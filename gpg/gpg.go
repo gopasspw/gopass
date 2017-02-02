@@ -35,7 +35,18 @@ var (
 	GPGArgs = []string{"--quiet", "--yes", "--compress-algo=none", "--no-encrypt-to", "--no-auto-check-trustdb"}
 	// Debug prints all the commands executed
 	Debug = false
+	// GPGBin is the name and possibly location of the gpg binary
+	GPGBin = "gpg"
 )
+
+func init() {
+	for _, b := range []string{"gpg2", "gpg1", "gpg"} {
+		if p, err := exec.LookPath(b); err == nil {
+			GPGBin = p
+			break
+		}
+	}
+}
 
 // KeyList is a searchable slice of Keys
 type KeyList []Key
@@ -295,7 +306,7 @@ func (i Identity) String() string {
 func listKeys(typ string, search ...string) (KeyList, error) {
 	args := []string{"--with-colons", "--with-fingerprint", "--fixed-list-mode", "--list-" + typ + "-keys"}
 	args = append(args, search...)
-	cmd := exec.Command("gpg", args...)
+	cmd := exec.Command(GPGBin, args...)
 	if Debug {
 		fmt.Printf("gpg.listKeys: %s %+v\n", cmd.Path, cmd.Args)
 	}
@@ -326,7 +337,7 @@ func GetRecipients(file string) ([]string, error) {
 	recp := make([]string, 0, 5)
 
 	args := []string{"--batch", "--list-only", "--no-default-keyring", "--secret-keyring", "/dev/null", file}
-	cmd := exec.Command("gpg", args...)
+	cmd := exec.Command(GPGBin, args...)
 	if Debug {
 		fmt.Printf("gpg.GetRecipients: %s %+v\n", cmd.Path, cmd.Args)
 	}
@@ -373,7 +384,7 @@ func Encrypt(path string, content []byte, recipients []string, alwaysTrust bool)
 		args = append(args, "--recipient", r)
 	}
 
-	cmd := exec.Command("gpg", args...)
+	cmd := exec.Command(GPGBin, args...)
 	if Debug {
 		fmt.Printf("gpg.Encrypt: %s %+v\n", cmd.Path, cmd.Args)
 	}
@@ -391,7 +402,7 @@ func Encrypt(path string, content []byte, recipients []string, alwaysTrust bool)
 // Decrypt will try to decrypt the given file
 func Decrypt(path string) ([]byte, error) {
 	args := append(GPGArgs, "--decrypt", path)
-	cmd := exec.Command("gpg", args...)
+	cmd := exec.Command(GPGBin, args...)
 	if Debug {
 		fmt.Printf("gpg.Decrypt: %s %+v\n", cmd.Path, cmd.Args)
 	}
@@ -401,7 +412,7 @@ func Decrypt(path string) ([]byte, error) {
 // ExportPublicKey will export the named public key to the location given
 func ExportPublicKey(id, filename string) error {
 	args := append(GPGArgs, "--armor", "--export", id)
-	cmd := exec.Command("gpg", args...)
+	cmd := exec.Command(GPGBin, args...)
 	if Debug {
 		fmt.Printf("gpg.ExportPublicKey: %s %+v\n", cmd.Path, cmd.Args)
 	}
@@ -421,7 +432,7 @@ func ImportPublicKey(filename string) error {
 	}
 
 	args := append(GPGArgs, "--import")
-	cmd := exec.Command("gpg", args...)
+	cmd := exec.Command(GPGBin, args...)
 	if Debug {
 		fmt.Printf("gpg.ImportPublicKey: %s %+v\n", cmd.Path, cmd.Args)
 	}
