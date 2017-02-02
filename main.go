@@ -165,6 +165,7 @@ func main() {
 			Usage:        "List secrets that match the search term.",
 			Before:       action.Initialized,
 			Action:       action.Find,
+			Aliases:      []string{"search"},
 			BashComplete: action.Complete,
 		},
 		{
