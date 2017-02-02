@@ -1,5 +1,7 @@
 # gopass
 
+[![Go Report Card](https://goreportcard.com/badge/github.com/justwatchcom/gopass)](https://goreportcard.com/report/github.com/justwatchcom/gopass)
+
 The slightly more awesome Standard Unix Password Manager for Teams. Written in Go.
 
 > Password management should be simple and follow [Unix philosophy](http://en.wikipedia.org/wiki/Unix_philosophy). With `pass`, each secret lives inside of a `gpg` encrypted file whose filename is the title of the website or resource that requires the secret. These encrypted files may be organized into meaningful folder hierarchies, copied from computer to computer, and, in general, manipulated using standard command line file management utilities. - [passwordstore.org](https://www.passwordstore.org/)
@@ -480,7 +482,7 @@ If you use `gopass` as a library be sure to vendor it and expect breaking change
 
 ## Credit & License
 
-`gopass` is maintained by the nice folks from [JustWatch](https://www.justwatch.com) and licensed under the terms of the MIT license.
+`gopass` is maintained by the nice folks from [JustWatch](https://www.justwatch.com/gopass) and licensed under the terms of the MIT license.
 
 Maintainers of this repository:
 - Matthias Loibl <matthias.loibl@justwatch.com> @metalmatze
