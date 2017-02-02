@@ -1,0 +1,21 @@
+language: go
+
+go:
+  - 1.7
+  - tip
+
+before_install:
+  - go get -v github.com/golang/lint/golint
+
+script:
+  - make clean
+  - make vet
+  - make lint
+  - make errcheck
+  - make test
+  - make build
+  - make test-integration
+
+matrix:
+  allow_failures:
+    - go: tip
