@@ -8,6 +8,9 @@ import (
 	"os"
 	"os/exec"
 
+	"github.com/justwatchcom/gopass/pwgen"
+	"github.com/justwatchcom/gopass/tpl"
+
 	"github.com/justwatchcom/gopass/fsutil"
 	"github.com/justwatchcom/gopass/password"
 	shellquote "github.com/kballard/go-shellquote"
@@ -27,10 +30,20 @@ func (s *Action) Edit(c *cli.Context) error {
 	}
 
 	var content []byte
+	var changed bool
 	if exists {
 		content, err = s.Store.Get(name)
 		if err != nil {
 			return fmt.Errorf("failed to decrypt %s: %v", name, err)
+		}
+	} else if tmpl, found := s.Store.LookupTemplate(name); found {
+		changed = true
+		// load template if it exists
+		content = pwgen.GeneratePassword(24, false)
+		if nc, err := tpl.Execute(string(tmpl), name, content, s.Store); err == nil {
+			content = nc
+		} else {
+			fmt.Printf("failed to execute template: %s\n", err)
 		}
 	}
 
@@ -40,7 +53,7 @@ func (s *Action) Edit(c *cli.Context) error {
 	}
 
 	// If content is equal, nothing changed, exiting
-	if bytes.Equal(content, nContent) {
+	if bytes.Equal(content, nContent) && !changed {
 		return nil
 	}
 
