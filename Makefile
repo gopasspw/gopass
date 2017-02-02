@@ -88,6 +88,11 @@ $(EXECUTABLE)-$(GOOS)-$(GOARCH): $(wildcard *.go)
 release: clean
 	dist/release.sh
 
-completion: build bash.completion zsh.completion
+bash.completion: $(EXECUTABLE)-$(GOOS)-$(GOARCH)
 	./$(EXECUTABLE)-$(GOOS)-$(GOARCH) completion bash >bash.completion
+
+zsh.completion: $(EXECUTABLE)-$(GOOS)-$(GOARCH)
 	./$(EXECUTABLE)-$(GOOS)-$(GOARCH) completion zsh >zsh.completion
+
+.PHONY: completion
+completion: bash.completion zsh.completion
