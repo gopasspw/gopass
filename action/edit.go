@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"strings"
 
 	"github.com/justwatchcom/gopass/fsutil"
 	"github.com/justwatchcom/gopass/password"
@@ -69,7 +70,10 @@ func (s *Action) editor(content []byte) ([]byte, error) {
 		return []byte{}, fmt.Errorf("failed to create tmpfile to start with %s: %v", editor, tmpfile.Name())
 	}
 
-	cmd := exec.Command(editor, tmpfile.Name())
+	cmdArgs := strings.Split(editor, " ")
+	editor = cmdArgs[0]
+	args := append(cmdArgs[1:], tmpfile.Name())
+	cmd := exec.Command(editor, args...)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
