@@ -1,3 +1,7 @@
+<p align="center">
+    <img src="logo.svg" height="500" alt="gopass Gopher by Vincent Leinweber, remixed from the Renée French original Gopher" title="gopass Gopher by Vincent Leinweber, remixed from the Renée French original Gopher" />
+</p>
+
 # gopass
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/justwatchcom/gopass)](https://goreportcard.com/report/github.com/justwatchcom/gopass)
@@ -188,13 +192,13 @@ gopass config autopull true
 
 ### Multiple Stores
 
-Gopass supports multi-stores that can be mounted over each other like filesystems
+gopass supports multi-stores that can be mounted over each other like filesystems
 on Linux/UNIX systems.
 
 To add an mount point to an existing store add an entry to the `mounts` object
 of the store.
 
-Gopass tries to read it's configuration from `$HOME/.gopass.yml` if present.
+gopass tries to read it's configuration from `$HOME/.gopass.yml` if present.
 You can override this location by setting `GOPASS_CONFIG` to another location.
 
 Mounting new stores can be done through gopass:
@@ -208,7 +212,8 @@ gopass mount
 gopass mount -u test
 ```
 
-**WARNING**: Initializing new stores while mounting is currently not possible. For the time-being you can only mount existing stores.
+**WARNING**: Initializing new stores while mounting is currently not possible.
+For the time-being you can only mount existing stores.
 
 ### Edit the Config
 
@@ -315,7 +320,8 @@ ln -s $GOPATH/bin/gopass $HOME/bin/pass
 
 ### Autocompletion
 
-Run one of the following commands for your shell and you should have autocompletion for subcommands like `gopass show`, `gopass ls` and others.
+Run one of the following commands for your shell and you should have
+autocompletion for subcommands like `gopass show`, `gopass ls` and others.
 
     source <(gopass completion bash)
     source <(gopass completion zsh)
@@ -362,13 +368,16 @@ We recommend these ones:
 
 ### Data Organization
 
-Your data in `gopass` loosely resembles an filesystem. You need to have at least one root store but you can mount as many sub-stores (think of volumes) under the root volume.
+Your data in `gopass` loosely resembles an filesystem. You need to have at least one
+root store but you can mount as many sub-stores (think of volumes) under the root volume.
 
 The stores do not impose any specific layout for your data. Any `key` can contain any kind of data.
 
 Please note that sensitive data **should not** be put into the name of a secret.
 
-If you mainly use a store for website logins or plan to use [browserpass](https://github.com/dannyvankooten/browserpass) you should follow the following pattern for storing your credentials:
+If you mainly use a store for website logins or plan to use
+[browserpass](https://github.com/dannyvankooten/browserpass) you should follow
+the following pattern for storing your credentials:
 
 ```
 example.org/user
@@ -393,7 +402,10 @@ gopass config path "~/Google Drive/Password-Store"
 ### Using other GUIs with `gopass`
 
 Because `gopass` is fully backwards compatible with `pass` you can simply use other existing interfaces.
-We use the [Android](https://github.com/zeapo/Android-Password-Store) &  [iOS](https://github.com/davidjb/pass-ios#readme) apps ourselves. But there are more integrations for [Chrome, Firefox](https://github.com/dannyvankooten/browserpass), [Windows](https://github.com/mbos/Pass4Win) and many more.
+We use the [Android](https://github.com/zeapo/Android-Password-Store) &
+[iOS](https://github.com/davidjb/pass-ios#readme) apps ourselves. But there are more integrations for
+[Chrome, Firefox](https://github.com/dannyvankooten/browserpass),
+[Windows](https://github.com/mbos/Pass4Win) and many more.
 
 ### Migrating to `gopass` from other password stores.
 
@@ -417,10 +429,17 @@ our own implementations.
 
 ### Ultimate Goals of Security
 
-* Confidentially - Ensure that only authorized parties can understand the data. gopass does only try to protect the content of the secrets. Neither their presence nor their names. Care must be taken not to disclose any confidential information through the name of the secrets.
-* Authentication - Ensure that whoever supplies some secret if an authorized party. gopass fully relies on GnuPG in this regard.
-* Integrity - Ensure that only authorized parties are allowed to modify data. Currently gopass makes no attempt at protecting the integrity of a store. However we plan to do this in the future.
-* Nonrepudiation - Ensure that the involved parties actually transmitted and received messages. gopass makes not attempt to ensure this.
+* Confidentially - Ensure that only authorized parties can understand the data.
+	gopass does only try to protect the content of the secrets.
+	Neither their presence nor their names. Care must be taken not to
+	disclose any confidential information through the name of the secrets.
+* Authentication - Ensure that whoever supplies some secret if an authorized party.
+	gopass fully relies on GnuPG in this regard.
+* Integrity - Ensure that only authorized parties are allowed to modify data.
+	Currently gopass makes no attempt at protecting the integrity of a store.
+	However we plan to do this in the future.
+* Nonrepudiation - Ensure that the involved parties actually transmitted and
+	received messages. gopass makes not attempt to ensure this.
 
 ### Additional Useability Goals
 
@@ -472,11 +491,13 @@ If you use `gopass` as a library be sure to vendor it and expect breaking change
 
 ## Credit & License
 
-`gopass` is maintained by the nice folks from [JustWatch](https://www.justwatch.com/gopass) and licensed under the terms of the MIT license.
+`gopass` is maintained by the nice folks from [JustWatch](https://www.justwatch.com/gopass)
+and licensed under the terms of the MIT license.
 
 Maintainers of this repository:
-- Matthias Loibl <matthias.loibl@justwatch.com> @metalmatze
-- Dominik Schulz <dominik.schulz@justwatch.com> @dominikschulz
+
+* Matthias Loibl <matthias.loibl@justwatch.com> @metalmatze
+* Dominik Schulz <dominik.schulz@justwatch.com> @dominikschulz
 
 Please refer to the Git commit log for a complete list of contributors.
 
