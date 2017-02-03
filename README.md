@@ -242,6 +242,8 @@ path: /home/tex/.password-store
 persistkeys: false
 ```
 
+Note that if a configuration file isn't present on disk, it will be written when you first run `gopass`.
+
 ### Managing Recipients
 
 You can list, add and remove recpients from the commandline.
@@ -258,6 +260,14 @@ gopass
 ├── 0xB1C7DF661ABB2C1A - Someone <someone@example.com>
 └── 0xB5B44266A3683834 - Gopher <gopher@golang.org>
 ```
+
+### Debugging
+
+To debug `gopass`, set the environment variable `GOPASS_DEBUG` to `true`.
+
+### Disabling Colors
+
+Disabling colours is as simple as `gopass config nocolors true`.
 
 ## Known Limitations and Caveats
 
