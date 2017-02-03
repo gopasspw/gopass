@@ -228,17 +228,7 @@ path: /home/user/.password-store
 persistkeys: false
 
 $ gopass config cliptimeout 60
-
-$ gopass config
-alwaystrust: false
-autoimport: false
-autopull: false
-autopush: true
-cliptimeout: 60
-loadkeys: false
-noconfirm: false
-path: /home/tex/.password-store
-persistkeys: false
+$ gopass config cliptimeout
 ```
 
 ### Managing Recipients
