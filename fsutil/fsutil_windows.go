@@ -1,3 +1,5 @@
+// +build windows
+
 package fsutil
 
 import (
@@ -6,8 +8,6 @@ import (
 	"os/user"
 	"path/filepath"
 	"strings"
-
-	"golang.org/x/sys/unix"
 )
 
 // CleanPath resolves common aliases in a path and cleans it as much as possible
@@ -63,17 +63,8 @@ func IsFile(path string) bool {
 	return fi.Mode().IsRegular()
 }
 
-// Tempdir returns a temporary directory suiteable for sensitive data. It tries
-// /dev/shm but if this isn't working it will return an empty string. Using
-// this with ioutil.Tempdir will ensure that we're getting the "best" tempdir.
+// Tempdir returns a temporary directory suiteable for sensitive data. On
+// Windows, just return empty string for ioutil.TempFile.
 func Tempdir() string {
-	shmDir := "/dev/shm"
-	if fi, err := os.Stat(shmDir); err == nil {
-		if fi.IsDir() {
-			if unix.Access(shmDir, unix.W_OK) == nil {
-				return shmDir
-			}
-		}
-	}
 	return ""
 }

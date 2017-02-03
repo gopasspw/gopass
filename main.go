@@ -10,6 +10,7 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/action"
+	"github.com/mattn/go-colorable"
 	"github.com/urfave/cli"
 )
 
@@ -36,7 +37,7 @@ func (e errorWriter) Write(p []byte) (int, error) {
 
 func main() {
 	cli.ErrWriter = errorWriter{
-		out: os.Stderr,
+		out: colorable.NewColorableStderr(),
 	}
 
 	cli.VersionPrinter = func(c *cli.Context) {

@@ -5,7 +5,12 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/gpg"
+	"github.com/mattn/go-colorable"
 	"github.com/urfave/cli"
+)
+
+var (
+	out = colorable.NewColorableStdout()
 )
 
 // Initialized returns an error if the store is not properly
@@ -46,7 +51,7 @@ func (s *Action) Init(c *cli.Context) error {
 		return err
 	}
 
-	fmt.Printf(color.GreenString("Password store initialized for: "))
+	color.Green("Password store initialized for: ")
 	for _, recipient := range s.Store.ListRecipients(store) {
 		r := "0x" + recipient
 		if kl, err := gpg.ListPublicKeys(recipient); err == nil && len(kl) > 0 {

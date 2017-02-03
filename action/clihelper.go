@@ -2,15 +2,12 @@ package action
 
 import (
 	"bufio"
-	"crypto/sha256"
 	"fmt"
 	"os"
-	"os/exec"
 	"os/signal"
 	"sort"
 	"strconv"
 	"strings"
-	"syscall"
 
 	"github.com/justwatchcom/gopass/gpg"
 	"golang.org/x/crypto/ssh/terminal"
@@ -49,22 +46,6 @@ func (s *Action) confirmRecipients(name string, recipients []string) ([]string, 
 
 		return recipients, fmt.Errorf("user aborted")
 	}
-}
-
-// clearClipboard will spwan a copy of gopass that waits in a detached background
-// process group until the timeout is expired. It will then compare the contents
-// of the clipboard and erase it if it still contains the data gopass copied
-// to it.
-func clearClipboard(content []byte, timeout int) error {
-	hash := fmt.Sprintf("%x", sha256.Sum256(content))
-
-	cmd := exec.Command(os.Args[0], "unclip", "--timeout", strconv.Itoa(timeout))
-	// https://groups.google.com/d/msg/golang-nuts/shST-SDqIp4/za4oxEiVtI0J
-	cmd.SysProcAttr = &syscall.SysProcAttr{
-		Setpgid: true,
-	}
-	cmd.Env = append(os.Environ(), "GOPASS_UNCLIP_CHECKSUM="+hash)
-	return cmd.Start()
 }
 
 // askForConfirmation asks a yes/no question until the user
