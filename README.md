@@ -142,7 +142,7 @@ the secret directly to the clipboard.
 #### Copy secret to clipboard
 
 ```bash
-gopass -c golang.org/gopher
+$ gopass -c golang.org/gopher
 
 Copied golang.org/gopher to clipboard. Will clear in 45 seconds.
 ```
@@ -150,7 +150,7 @@ Copied golang.org/gopher to clipboard. Will clear in 45 seconds.
 ### Removing secret
 
 ```bash
-gopass rm golang.org/gopher
+$ gopass rm golang.org/gopher
 ```
 
 `rm` will remove a secret from the store. Use `-r` to delete a whole folder.
@@ -160,7 +160,7 @@ You have to unmount any mounted sub stores first.
 ### Moving secrets
 
 ```bash
-gopass mv emails/example.com emails/user@example.com
+$ gopass mv emails/example.com emails/user@example.com
 ```
 
 *Moving also works across different sub-stores.*
@@ -168,7 +168,7 @@ gopass mv emails/example.com emails/user@example.com
 ### Copying secrets
 
 ```bash
-gopass cp emails/example.com emails/user@example.com
+$ gopass cp emails/example.com emails/user@example.com
 ```
 
 *Copying also works across different sub-stores.*
@@ -181,13 +181,13 @@ If you want gopass to always push changes in git to your default remote (origin)
 enable autopush:
 
 ```bash
-gopass config autopush true
+$ gopass config autopush true
 ```
 
 We also support `pull before push` to reduce the change of `rejected` pushes when frequent commits to a repo are made.
 
 ```bash
-gopass config autopull true
+$ gopass config autopull true
 ```
 
 ### Multiple Stores
@@ -205,11 +205,11 @@ Mounting new stores can be done through gopass:
 
 ```bash
 # Mount a new store
-gopass mount test /tmp/password-store-test
+$ gopass mount test /tmp/password-store-test
 # Show mounted stores
-gopass mount
+$ gopass mount
 # Umount a store
-gopass mount -u test
+$ gopass mount -u test
 ```
 
 **WARNING**: Initializing new stores while mounting is currently not possible.
@@ -286,15 +286,15 @@ a working Go development environment, we recommend building from source.
 #### macOS
 
 ```bash
-brew tap justwatchcom/gopass
-brew install gopass
+$ brew tap justwatchcom/gopass
+$ brew install gopass
 ```
 
 #### Debian and Ubuntu
 
 ```bash
-wget https://www.justwatch.com/gopass/releases/1.0.0/gopass_1.0.0_amd64.deb
-sudo dpkg -i gopass_1.0.0_amd64.deb
+$ wget https://www.justwatch.com/gopass/releases/1.0.0/gopass_1.0.0_amd64.deb
+$ sudo dpkg -i gopass_1.0.0_amd64.deb
 ```
 
 ### Download
@@ -315,7 +315,7 @@ replacement of `pass`.
 Assuming `$HOME/bin/` exists and is present in your `$PATH`:
 
 ```bash
-ln -s $GOPATH/bin/gopass $HOME/bin/pass
+$ ln -s $GOPATH/bin/gopass $HOME/bin/pass
 ```
 
 ### Autocompletion
@@ -336,13 +336,13 @@ autocompletion for subcommands like `gopass show`, `gopass ls` and others.
 On Debian-based Linux systems you should run this command:
 
 ```bash
-apt-get install gnupg git
+$ apt-get install gnupg git
 ```
 
 On macOS with [homebrew](http://brew.sh) the following will do:
 
 ```bash
-brew install gnupg2 git
+$ brew install gnupg2 git
 ```
 
 ### Setup GPG
@@ -351,7 +351,7 @@ brew install gnupg2 git
 suiteable key pair.
 
 ```bash
-gpg --gen-key
+$ gpg --gen-key
 # Key Type: Choose either "RSA and RSA" or "DSA and ElGamal"
 # Key Size: Choose at least 2048
 # Validity: 5 to 10 years is a good default
