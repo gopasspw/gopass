@@ -145,7 +145,7 @@ func (s *Store) gitCommit(msg string) error {
 	cmd.Stderr = os.Stderr
 
 	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("failed to committ files to git: %v", err)
+		return fmt.Errorf("failed to commit files to git: %v", err)
 	}
 
 	return nil
