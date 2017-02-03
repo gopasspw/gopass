@@ -76,7 +76,7 @@ func (s *Store) gitSetSignKey(sk string) error {
 		return fmt.Errorf("SignKey not set")
 	}
 
-	cmd := exec.Command("git", "config", "--local", "user.signkey", sk)
+	cmd := exec.Command("git", "config", "--local", "user.signingkey", sk)
 	cmd.Dir = s.path
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
