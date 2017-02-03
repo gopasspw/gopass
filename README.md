@@ -1,3 +1,7 @@
+<p align="center">
+    <img src="logo.png" height="500" alt="gopass Gopher by Vincent Leinweber, remixed from the Renée French original Gopher" title="gopass Gopher by Vincent Leinweber, remixed from the Renée French original Gopher" />
+</p>
+
 # gopass
 
 [![Build Status](https://travis-ci.org/justwatchcom/gopass.svg?branch=master)](https://travis-ci.org/justwatchcom/gopass)
@@ -139,7 +143,7 @@ the secret directly to the clipboard.
 #### Copy secret to clipboard
 
 ```bash
-gopass -c golang.org/gopher
+$ gopass -c golang.org/gopher
 
 Copied golang.org/gopher to clipboard. Will clear in 45 seconds.
 ```
@@ -147,7 +151,7 @@ Copied golang.org/gopher to clipboard. Will clear in 45 seconds.
 ### Removing secret
 
 ```bash
-gopass rm golang.org/gopher
+$ gopass rm golang.org/gopher
 ```
 
 `rm` will remove a secret from the store. Use `-r` to delete a whole folder.
@@ -157,7 +161,7 @@ You have to unmount any mounted sub stores first.
 ### Moving secrets
 
 ```bash
-gopass mv emails/example.com emails/user@example.com
+$ gopass mv emails/example.com emails/user@example.com
 ```
 
 *Moving also works across different sub-stores.*
@@ -165,7 +169,7 @@ gopass mv emails/example.com emails/user@example.com
 ### Copying secrets
 
 ```bash
-gopass cp emails/example.com emails/user@example.com
+$ gopass cp emails/example.com emails/user@example.com
 ```
 
 *Copying also works across different sub-stores.*
@@ -178,38 +182,39 @@ If you want gopass to always push changes in git to your default remote (origin)
 enable autopush:
 
 ```bash
-gopass config autopush true
+$ gopass config autopush true
 ```
 
 We also support `pull before push` to reduce the change of `rejected` pushes when frequent commits to a repo are made.
 
 ```bash
-gopass config autopull true
+$ gopass config autopull true
 ```
 
 ### Multiple Stores
 
-Gopass supports multi-stores that can be mounted over each other like filesystems
+gopass supports multi-stores that can be mounted over each other like filesystems
 on Linux/UNIX systems.
 
 To add an mount point to an existing store add an entry to the `mounts` object
 of the store.
 
-Gopass tries to read it's configuration from `$HOME/.gopass.yml` if present.
+gopass tries to read it's configuration from `$HOME/.gopass.yml` if present.
 You can override this location by setting `GOPASS_CONFIG` to another location.
 
 Mounting new stores can be done through gopass:
 
 ```bash
 # Mount a new store
-gopass mount test /tmp/password-store-test
+$ gopass mount test /tmp/password-store-test
 # Show mounted stores
-gopass mount
+$ gopass mount
 # Umount a store
-gopass mount -u test
+$ gopass mount -u test
 ```
 
-**WARNING**: Initializing new stores while mounting is currently not possible. For the time-being you can only mount existing stores.
+**WARNING**: Initializing new stores while mounting is currently not possible.
+For the time-being you can only mount existing stores.
 
 ### Edit the Config
 
@@ -282,15 +287,15 @@ a working Go development environment, we recommend building from source.
 #### macOS
 
 ```bash
-brew tap justwatchcom/gopass
-brew install gopass
+$ brew tap justwatchcom/gopass
+$ brew install gopass
 ```
 
 #### Debian and Ubuntu
 
 ```bash
-wget https://www.justwatch.com/gopass/releases/1.0.0/gopass_1.0.0_amd64.deb
-sudo dpkg -i gopass_1.0.0_amd64.deb
+$ wget https://www.justwatch.com/gopass/releases/1.0.0/gopass_1.0.0_amd64.deb
+$ sudo dpkg -i gopass_1.0.0_amd64.deb
 ```
 
 ### Download
@@ -311,12 +316,13 @@ replacement of `pass`.
 Assuming `$HOME/bin/` exists and is present in your `$PATH`:
 
 ```bash
-ln -s $GOPATH/bin/gopass $HOME/bin/pass
+$ ln -s $GOPATH/bin/gopass $HOME/bin/pass
 ```
 
 ### Autocompletion
 
-Run one of the following commands for your shell and you should have autocompletion for subcommands like `gopass show`, `gopass ls` and others.
+Run one of the following commands for your shell and you should have
+autocompletion for subcommands like `gopass show`, `gopass ls` and others.
 
     source <(gopass completion bash)
     source <(gopass completion zsh)
@@ -331,13 +337,13 @@ Run one of the following commands for your shell and you should have autocomplet
 On Debian-based Linux systems you should run this command:
 
 ```bash
-apt-get install gnupg git
+$ apt-get install gnupg git
 ```
 
 On macOS with [homebrew](http://brew.sh) the following will do:
 
 ```bash
-brew install gnupg2 git
+$ brew install gnupg2 git
 ```
 
 ### Setup GPG
@@ -346,7 +352,7 @@ brew install gnupg2 git
 suiteable key pair.
 
 ```bash
-gpg --gen-key
+$ gpg --gen-key
 # Key Type: Choose either "RSA and RSA" or "DSA and ElGamal"
 # Key Size: Choose at least 2048
 # Validity: 5 to 10 years is a good default
@@ -363,13 +369,16 @@ We recommend these ones:
 
 ### Data Organization
 
-Your data in `gopass` loosely resembles an filesystem. You need to have at least one root store but you can mount as many sub-stores (think of volumes) under the root volume.
+Your data in `gopass` loosely resembles an filesystem. You need to have at least one
+root store but you can mount as many sub-stores (think of volumes) under the root volume.
 
 The stores do not impose any specific layout for your data. Any `key` can contain any kind of data.
 
 Please note that sensitive data **should not** be put into the name of a secret.
 
-If you mainly use a store for website logins or plan to use [browserpass](https://github.com/dannyvankooten/browserpass) you should follow the following pattern for storing your credentials:
+If you mainly use a store for website logins or plan to use
+[browserpass](https://github.com/dannyvankooten/browserpass) you should follow
+the following pattern for storing your credentials:
 
 ```
 example.org/user
@@ -394,7 +403,10 @@ gopass config path "~/Google Drive/Password-Store"
 ### Using other GUIs with `gopass`
 
 Because `gopass` is fully backwards compatible with `pass` you can simply use other existing interfaces.
-We use the [Android](https://github.com/zeapo/Android-Password-Store) &  [iOS](https://github.com/davidjb/pass-ios#readme) apps ourselves. But there are more integrations for [Chrome, Firefox](https://github.com/dannyvankooten/browserpass), [Windows](https://github.com/mbos/Pass4Win) and many more.
+We use the [Android](https://github.com/zeapo/Android-Password-Store) &
+[iOS](https://github.com/davidjb/pass-ios#readme) apps ourselves. But there are more integrations for
+[Chrome, Firefox](https://github.com/dannyvankooten/browserpass),
+[Windows](https://github.com/mbos/Pass4Win) and many more.
 
 ### Migrating to `gopass` from other password stores.
 
@@ -418,10 +430,17 @@ our own implementations.
 
 ### Ultimate Goals of Security
 
-* Confidentially - Ensure that only authorized parties can understand the data. gopass does only try to protect the content of the secrets. Neither their presence nor their names. Care must be taken not to disclose any confidential information through the name of the secrets.
-* Authentication - Ensure that whoever supplies some secret if an authorized party. gopass fully relies on GnuPG in this regard.
-* Integrity - Ensure that only authorized parties are allowed to modify data. Currently gopass makes no attempt at protecting the integrity of a store. However we plan to do this in the future.
-* Nonrepudiation - Ensure that the involved parties actually transmitted and received messages. gopass makes not attempt to ensure this.
+* Confidentially - Ensure that only authorized parties can understand the data.
+	gopass does only try to protect the content of the secrets.
+	Neither their presence nor their names. Care must be taken not to
+	disclose any confidential information through the name of the secrets.
+* Authentication - Ensure that whoever supplies some secret if an authorized party.
+	gopass fully relies on GnuPG in this regard.
+* Integrity - Ensure that only authorized parties are allowed to modify data.
+	Currently gopass makes no attempt at protecting the integrity of a store.
+	However we plan to do this in the future.
+* Nonrepudiation - Ensure that the involved parties actually transmitted and
+	received messages. gopass makes not attempt to ensure this.
 
 ### Additional Useability Goals
 
@@ -473,11 +492,13 @@ If you use `gopass` as a library be sure to vendor it and expect breaking change
 
 ## Credit & License
 
-`gopass` is maintained by the nice folks from [JustWatch](https://www.justwatch.com/gopass) and licensed under the terms of the MIT license.
+`gopass` is maintained by the nice folks from [JustWatch](https://www.justwatch.com/gopass)
+and licensed under the terms of the MIT license.
 
 Maintainers of this repository:
-- Matthias Loibl <matthias.loibl@justwatch.com> @metalmatze
-- Dominik Schulz <dominik.schulz@justwatch.com> @dominikschulz
+
+* Matthias Loibl <matthias.loibl@justwatch.com> @metalmatze
+* Dominik Schulz <dominik.schulz@justwatch.com> @dominikschulz
 
 Please refer to the Git commit log for a complete list of contributors.
 
