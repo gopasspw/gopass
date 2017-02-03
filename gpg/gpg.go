@@ -236,7 +236,7 @@ type Key struct {
 
 // IsUseable returns true if GPG would assume this key is useable for encryption
 func (k Key) IsUseable() bool {
-	if k.ExpirationDate.Before(time.Now()) {
+	if !k.ExpirationDate.IsZero() && k.ExpirationDate.Before(time.Now()) {
 		return false
 	}
 	switch k.Validity {
