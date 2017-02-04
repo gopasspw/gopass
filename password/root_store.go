@@ -3,6 +3,7 @@ package password
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"sort"
 	"strings"
 
@@ -27,6 +28,7 @@ type RootStore struct {
 	Version     string            `json:"version"`
 	ImportFunc  ImportCallback    `json:"-"`
 	FsckFunc    FsckCallback      `json:"-"`
+	Debug       bool              `json:"-"`
 	store       *Store
 	mounts      map[string]*Store
 }
@@ -47,6 +49,10 @@ func NewRootStore(path string) (*RootStore, error) {
 // init checks internal consistency and initializes sub stores
 // after unmarshaling
 func (r *RootStore) init() error {
+	if d := os.Getenv("GOPASS_DEBUG"); d == "true" {
+		r.Debug = true
+	}
+
 	if r.Mount == nil {
 		r.Mount = make(map[string]string)
 	}
