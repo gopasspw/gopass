@@ -11,6 +11,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/fsutil"
 	"github.com/justwatchcom/gopass/gpg"
 )
@@ -133,7 +134,32 @@ func (s *Store) saveRecipients() error {
 		return err
 	}
 
+	if err := s.gitAdd(s.idFile()); err != nil {
+		if err == ErrGitNotInit {
+			return nil
+		}
+		return err
+	}
+	if err := s.gitCommit(fmt.Sprintf("Updated recipients")); err != nil {
+		return err
+	}
+
 	if !s.persistKeys {
+		// push to remote repo
+		if s.autoPush {
+			if err := s.gitPush("", ""); err != nil {
+				if err == ErrGitNotInit {
+					return nil
+				}
+				if err == ErrGitNoRemote {
+					msg := "Warning: git has no remote. Ignoring auto-push option\n" +
+						"Run: gopass git remote add origin ..."
+					fmt.Println(color.YellowString(msg))
+					return nil
+				}
+				return err
+			}
+		}
 		return nil
 	}
 
@@ -155,7 +181,8 @@ func (s *Store) saveRecipients() error {
 			return err
 		}
 		if err := s.gitCommit(fmt.Sprintf("Exported Public Keys %s", r)); err != nil {
-			return err
+			fmt.Println(color.RedString("Failed to git commit: %s", err))
+			continue
 		}
 	}
 
@@ -163,6 +190,12 @@ func (s *Store) saveRecipients() error {
 	if s.autoPush {
 		if err := s.gitPush("", ""); err != nil {
 			if err == ErrGitNotInit {
+				return nil
+			}
+			if err == ErrGitNoRemote {
+				msg := "Warning: git has not remote. Ignoring auto-push option\n" +
+					"Run: gopass git remote add origin ..."
+				fmt.Println(color.YellowString(msg))
 				return nil
 			}
 			return err
