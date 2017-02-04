@@ -242,8 +242,6 @@ path: /home/tex/.password-store
 persistkeys: false
 ```
 
-Note that if a configuration file isn't present on disk, it will be written when you first run `gopass`.
-
 ### Managing Recipients
 
 You can list, add and remove recpients from the commandline.

@@ -52,9 +52,7 @@ func New(v string) *Action {
 	cfg.ImportFunc = askForKeyImport
 	cfg.FsckFunc = askForConfirmation
 	cfg.Version = v
-
-	// write the config to disk for persisten
-	writeConfig(cfg)
+	
 	return &Action{
 		Name:  name,
 		Store: cfg,
