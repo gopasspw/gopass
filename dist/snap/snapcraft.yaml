@@ -14,7 +14,7 @@ apps:
 
 parts:
   gopass:
-    source: .
+    source: ../../
     plugin: go
     go-importpath: github.com/justwatchcom/gopass
     stage-packages: [git, gnupg]
