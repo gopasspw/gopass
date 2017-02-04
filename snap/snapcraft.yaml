@@ -17,4 +17,4 @@ parts:
     source: .
     plugin: go
     go-importpath: github.com/justwatchcom/gopass
-    stage-packages: [gnupg]
+    stage-packages: [git, gnupg]
