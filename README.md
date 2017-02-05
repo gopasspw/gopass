@@ -254,6 +254,14 @@ gopass
 └── 0xB5B44266A3683834 - Gopher <gopher@golang.org>
 ```
 
+### Debugging
+
+To debug `gopass`, set the environment variable `GOPASS_DEBUG` to `true`.
+
+### Disabling Colors
+
+Disabling colours is as simple as `gopass config nocolors true`.
+
 ## Known Limitations and Caveats
 
 ### GnuPG
