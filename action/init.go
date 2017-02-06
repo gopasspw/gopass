@@ -5,12 +5,7 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/gpg"
-	"github.com/mattn/go-colorable"
 	"github.com/urfave/cli"
-)
-
-var (
-	out = colorable.NewColorableStdout()
 )
 
 // Initialized returns an error if the store is not properly
