@@ -239,7 +239,7 @@ $ gopass config cliptimeout
 
 ### Managing Recipients
 
-You can list, add and remove recpients from the commandline.
+You can list, add and remove recipients from the commandline.
 
 ```bash
 $ gopass recipients
