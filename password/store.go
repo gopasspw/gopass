@@ -62,9 +62,13 @@ func NewStore(alias, path string, r *RootStore) (*Store, error) {
 	if path == "" {
 		return nil, fmt.Errorf("Need path")
 	}
+	resolvedSymlinkPath, err := filepath.EvalSymlinks(path)
+	if err != nil {
+		return nil, fmt.Errorf("Could not resolve store path")
+	}
 	s := &Store{
 		alias:       alias,
-		path:        path,
+		path:        resolvedSymlinkPath,
 		autoPush:    r.AutoPush,
 		autoPull:    r.AutoPull,
 		autoImport:  r.AutoImport,
