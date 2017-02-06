@@ -10,6 +10,7 @@ import (
 
 	"github.com/justwatchcom/gopass/fsutil"
 	"github.com/justwatchcom/gopass/password"
+	shellquote "github.com/kballard/go-shellquote"
 	"github.com/urfave/cli"
 )
 
@@ -69,7 +70,14 @@ func (s *Action) editor(content []byte) ([]byte, error) {
 		return []byte{}, fmt.Errorf("failed to create tmpfile to start with %s: %v", editor, tmpfile.Name())
 	}
 
-	cmd := exec.Command(editor, tmpfile.Name())
+	cmdArgs, err := shellquote.Split(editor)
+	if err != nil {
+		return []byte{}, fmt.Errorf("failed to parse EDITOR command `%s`", editor)
+	}
+
+	editor = cmdArgs[0]
+	args := append(cmdArgs[1:], tmpfile.Name())
+	cmd := exec.Command(editor, args...)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr

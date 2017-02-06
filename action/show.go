@@ -36,10 +36,18 @@ func (s *Action) Show(c *cli.Context) error {
 
 func (s *Action) copyToClipboard(name string, content []byte) error {
 	content = bytes.TrimSpace(content)
-	if err := clipboard.WriteAll(string(content)); err != nil {
+
+	// only copy the first line to the clipboard
+	lines := bytes.Split(content, []byte("\n"))
+	if len(lines) < 1 {
+		return fmt.Errorf("no content that can be copied to the clipboard")
+	}
+	line := lines[0]
+
+	if err := clipboard.WriteAll(string(line)); err != nil {
 		return err
 	}
-	if err := clearClipboard(content, s.Store.ClipTimeout); err != nil {
+	if err := clearClipboard(line, s.Store.ClipTimeout); err != nil {
 		return err
 	}
 	fmt.Printf("Copied %s to clipboard. Will clear in %d seconds.\n", color.YellowString(name), s.Store.ClipTimeout)
