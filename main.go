@@ -298,6 +298,12 @@ func main() {
 			Before:       action.Initialized,
 			Action:       action.List,
 			BashComplete: action.Complete,
+			Flags: []cli.Flag{
+				cli.BoolFlag{
+					Name:  "raw",
+					Usage: "List all secrets on new lines without formatting",
+				},
+			},
 		},
 		{
 			Name:         "move",
