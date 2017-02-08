@@ -113,6 +113,10 @@ func main() {
 				Name:   "zsh",
 				Usage:  "Source for auto completion in zsh",
 				Action: action.CompletionZSH,
+			}, {
+				Name:   "dmenu",
+				Usage:  "Completion output for dmenu",
+				Action: action.CompletionDMenu,
 			}},
 		},
 		{
