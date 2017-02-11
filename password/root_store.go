@@ -310,15 +310,15 @@ func (r *RootStore) IsDir(name string) bool {
 }
 
 // Set encodes and write the ciphertext of one entry to disk
-func (r *RootStore) Set(name string, content []byte) error {
+func (r *RootStore) Set(name string, content []byte, reason string) error {
 	store := r.getStore(name)
-	return store.Set(strings.TrimPrefix(name, store.alias), content)
+	return store.Set(strings.TrimPrefix(name, store.alias), content, reason)
 }
 
 // SetConfirm calls Set with confirmation callback
-func (r *RootStore) SetConfirm(name string, content []byte, cb RecipientCallback) error {
+func (r *RootStore) SetConfirm(name string, content []byte, reason string, cb RecipientCallback) error {
 	store := r.getStore(name)
-	return store.SetConfirm(strings.TrimPrefix(name, store.alias), content, cb)
+	return store.SetConfirm(strings.TrimPrefix(name, store.alias), content, reason, cb)
 }
 
 // Copy will copy one entry to another location. Multi-store copies are
@@ -334,7 +334,7 @@ func (r *RootStore) Copy(from, to string) error {
 		if err != nil {
 			return err
 		}
-		if err := subTo.Set(to, content); err != nil {
+		if err := subTo.Set(to, content, fmt.Sprintf("Copied from %s to %s", from, to)); err != nil {
 			return err
 		}
 		return nil
@@ -359,7 +359,7 @@ func (r *RootStore) Move(from, to string) error {
 		if err != nil {
 			return err
 		}
-		if err := subTo.Set(to, content); err != nil {
+		if err := subTo.Set(to, content, fmt.Sprintf("Moved from %s to %s", from, to)); err != nil {
 			return err
 		}
 		if err := subFrom.Delete(from); err != nil {

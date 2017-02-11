@@ -31,11 +31,11 @@ func (s *Store) AddRecipient(id string) error {
 
 	s.recipients = append(s.recipients, id)
 
-	if err := s.saveRecipients(); err != nil {
+	if err := s.saveRecipients("Added Recipient " + id); err != nil {
 		return err
 	}
 
-	return s.reencrypt()
+	return s.reencrypt("Added Recipient " + id)
 }
 
 // RemoveRecipient will remove the given recipient from the store
@@ -63,11 +63,11 @@ func (s *Store) RemoveRecipient(id string) error {
 	}
 	s.recipients = nk
 
-	if err := s.saveRecipients(); err != nil {
+	if err := s.saveRecipients("Removed Recipient " + id); err != nil {
 		return err
 	}
 
-	return s.reencrypt()
+	return s.reencrypt("Removed Recipients " + id)
 }
 
 // Load all Recipients from the .gpg-id file into a list of Recipients.
@@ -122,7 +122,7 @@ func (s *Store) loadRecipients() ([]string, error) {
 }
 
 // Save all Recipients in memory to the .gpg-id file on disk.
-func (s *Store) saveRecipients() error {
+func (s *Store) saveRecipients(msg string) error {
 	// filepath.Dir(s.idFile()) should equal s.path, but better safe than sorry
 	if err := os.MkdirAll(filepath.Dir(s.idFile()), dirMode); err != nil {
 		return err
@@ -131,6 +131,19 @@ func (s *Store) saveRecipients() error {
 	// save recipients to store/.gpg-id
 	if err := ioutil.WriteFile(s.idFile(), marshalRecipients(s.recipients), fileMode); err != nil {
 		return err
+	}
+
+	err := s.gitAdd(s.idFile())
+	if err == nil {
+		if err := s.gitCommit(msg); err != nil {
+			if err != ErrGitNotInit {
+				return err
+			}
+		}
+	} else {
+		if err != ErrGitNotInit {
+			return err
+		}
 	}
 
 	if !s.persistKeys {
