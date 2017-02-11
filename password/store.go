@@ -294,7 +294,7 @@ func (s *Store) SetConfirm(name string, content []byte, cb RecipientCallback) er
 			if err == ErrGitNoRemote {
 				msg := "Warning: git has not remote. Ignoring auto-push option\n" +
 					"Run: gopass git remote add origin ..."
-				fmt.Println(color.RedString(msg))
+				fmt.Println(color.YellowString(msg))
 				return nil
 			}
 			return err
