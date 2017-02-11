@@ -44,7 +44,7 @@ func (s *Action) Edit(c *cli.Context) error {
 		return nil
 	}
 
-	return s.Store.SetConfirm(name, nContent, s.confirmRecipients)
+	return s.Store.SetConfirm(name, nContent, fmt.Sprintf("Edited with %s", os.Getenv("EDITOR")), s.confirmRecipients)
 }
 
 func (s *Action) editor(content []byte) ([]byte, error) {
