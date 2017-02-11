@@ -54,8 +54,7 @@ source <(gopass completion bash)
 
 // CompletionDMenu returns a script that starts dmenu
 // Usage: eval "$(gopass completion dmenu)"
-func (s *Action) CompletionDMenu(
-	c *cli.Context) error {
+func (s *Action) CompletionDMenu(c *cli.Context) error {
 	out := `#!/usr/bin/env bash
 
 shopt -s nullglob globstar
