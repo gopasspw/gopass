@@ -53,7 +53,7 @@ source <(gopass completion bash)
 }
 
 // CompletionDMenu returns a script that starts dmenu
-// Usage: eval "$(pass completion dmenu)"
+// Usage: eval "$(gopass completion dmenu)"
 func (s *Action) CompletionDMenu(
 	c *cli.Context) error {
 	out := `#!/usr/bin/env bash
@@ -71,9 +71,9 @@ password=$(gopass list --raw | dmenu "$@")
 [[ -n $password ]] || exit
 
 if [[ $typeit -eq 0 ]]; then
-	pass show -c "$password" 2>/dev/null
+	gopass show -c "$password" 2>/dev/null
 else
-	pass show "$password" | { read -r pass; printf %s "$pass"; } |
+	gopass show "$password" | { read -r pass; printf %s "$pass"; } |
 		xdotool type --clearmodifiers --file -
 fi
 `
