@@ -52,6 +52,7 @@ type Store struct {
 	alwaysTrust bool
 	importFunc  ImportCallback
 	fsckFunc    FsckCallback
+	debug       bool
 }
 
 // NewStore creates a new store, copying settings from the given root store
@@ -73,6 +74,7 @@ func NewStore(alias, path string, r *RootStore) (*Store, error) {
 		alwaysTrust: r.AlwaysTrust,
 		importFunc:  r.ImportFunc,
 		fsckFunc:    r.FsckFunc,
+		debug:       r.Debug,
 		recipients:  make([]string, 0, 5),
 	}
 
