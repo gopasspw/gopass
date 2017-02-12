@@ -117,6 +117,12 @@ func main() {
 				Name:   "dmenu",
 				Usage:  "Completion output for dmenu",
 				Action: action.CompletionDMenu,
+				Flags: []cli.Flag{
+					cli.BoolFlag{
+						Name:  "type",
+						Usage: "Type the password with xdotool",
+					},
+				},
 			}},
 		},
 		{

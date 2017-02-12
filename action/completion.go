@@ -1,7 +1,10 @@
 package action
 
 import (
+	"bytes"
 	"fmt"
+	"os/exec"
+	"strings"
 
 	"github.com/urfave/cli"
 )
@@ -55,28 +58,43 @@ source <(gopass completion bash)
 // CompletionDMenu returns a script that starts dmenu
 // Usage: eval "$(gopass completion dmenu)"
 func (s *Action) CompletionDMenu(c *cli.Context) error {
-	out := `#!/usr/bin/env bash
+	typeit := c.Bool("type")
 
-shopt -s nullglob globstar
+	list, err := s.Store.List()
+	if err != nil {
+		return err
+	}
 
-typeit=0
-if [[ $1 == "--type" ]]; then
-	typeit=1
-	shift
-fi
+	name, err := dmenu(list)
+	if err != nil {
+		return err
+	}
 
-password=$(gopass list --raw | dmenu "$@")
+	content, err := s.Store.First(name)
+	if err != nil {
+		return err
+	}
 
-[[ -n $password ]] || exit
+	if typeit {
+		return exec.Command("xdotool", "type", "--clearmodifiers", string(content)).Run()
+	}
 
-if [[ $typeit -eq 0 ]]; then
-	gopass show -c "$password" 2>/dev/null
-else
-	gopass show "$password" | { read -r pass; printf %s "$pass"; } |
-		xdotool type --clearmodifiers --file -
-fi
-`
-	fmt.Println(out)
+	return s.copyToClipboard(name, content)
+}
 
-	return nil
+// dmenu runs it with the provided strings and returns the selected string
+func dmenu(list []string) (string, error) {
+	stdin := bytes.NewBuffer(nil)
+	for _, v := range list {
+		stdin.WriteString(v + "\n")
+	}
+
+	cmd := exec.Command("dmenu")
+	cmd.Stdin = stdin
+	out, err := cmd.Output()
+	if err != nil {
+		return "", err
+	}
+
+	return strings.TrimSpace(string(out)), nil
 }
