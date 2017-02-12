@@ -8,10 +8,10 @@ VERSION := $(shell cat VERSION)
 SHA := $(shell cat COMMIT 2>/dev/null || git rev-parse --short=8 HEAD)
 DATE := $(shell date -u '+%FT%T%z')
 
-LDFLAGS += -X "main.Version=$(VERSION)"
-LDFLAGS += -X "main.BuildTime=$(DATE)"
-LDFLAGS += -X "main.Commit=$(SHA)"
-LDFLAGS += -extldflags '-static'
+GOLDFLAGS += -X "main.Version=$(VERSION)"
+GOLDFLAGS += -X "main.BuildTime=$(DATE)"
+GOLDFLAGS += -X "main.Commit=$(SHA)"
+GOLDFLAGS += -extldflags '-static'
 
 PREFIX ?= /usr
 BINDIR ?= $(PREFIX)/bin
@@ -82,7 +82,7 @@ install: build
 build: $(EXECUTABLE)-$(GOOS)-$(GOARCH)
 
 $(EXECUTABLE)-$(GOOS)-$(GOARCH): $(wildcard *.go)
-	$(GO) build -tags '$(TAGS)' -ldflags '-s -w $(LDFLAGS)' -o gopass-$(GOOS)-$(GOARCH)
+	GO$(GO) build -tags '$(TAGS)' -ldflags '-s -w $(LDFLAGS)' -o gopass-$(GOOS)-$(GOARCH)
 
 .PHONY: release
 release: clean
