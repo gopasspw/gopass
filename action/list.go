@@ -8,15 +8,7 @@ import (
 
 // List all secrets as a tree
 func (s *Action) List(c *cli.Context) error {
-	raw := c.Bool("raw")
 	filter := c.Args().First()
-
-	// Don't show a tree only new lines
-	if raw {
-		//TODO(metalmatze): Support filtering
-		s.Complete(c)
-		return nil
-	}
 
 	l, err := s.Store.Tree()
 	if err != nil {
