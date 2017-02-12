@@ -82,7 +82,7 @@ install: build
 build: $(EXECUTABLE)-$(GOOS)-$(GOARCH)
 
 $(EXECUTABLE)-$(GOOS)-$(GOARCH): $(wildcard *.go)
-	GO$(GO) build -tags '$(TAGS)' -ldflags '-s -w $(LDFLAGS)' -o gopass-$(GOOS)-$(GOARCH)
+	$(GO) build -tags '$(TAGS)' -ldflags '-s -w $(LDFLAGS)' -o gopass-$(GOOS)-$(GOARCH)
 
 .PHONY: release
 release: clean
