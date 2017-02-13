@@ -57,7 +57,7 @@ func (s *Action) Generate(c *cli.Context) error {
 
 	password := pwgen.GeneratePassword(pwlen, !noSymbols)
 
-	if err := s.Store.SetConfirm(name, password, s.confirmRecipients); err != nil {
+	if err := s.Store.SetConfirm(name, password, "Generated Password", s.confirmRecipients); err != nil {
 		return err
 	}
 

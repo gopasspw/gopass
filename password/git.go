@@ -33,6 +33,10 @@ func (s *Store) GitInit(signKey string) error {
 	cmd.Dir = s.path
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
+
+	if s.debug {
+		fmt.Printf("store.GitInit: %s %+v\n", cmd.Path, cmd.Args)
+	}
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("Failed to initialize git: %s", err)
 	}
@@ -59,6 +63,9 @@ func (s *Store) GitInit(signKey string) error {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
+	if s.debug {
+		fmt.Printf("store.GitInit: %s %+v\n", cmd.Path, cmd.Args)
+	}
 	if err := cmd.Run(); err != nil {
 		fmt.Printf("Failed to initialize git: %s\n", err)
 	}
@@ -76,11 +83,14 @@ func (s *Store) gitSetSignKey(sk string) error {
 		return fmt.Errorf("SignKey not set")
 	}
 
-	cmd := exec.Command("git", "config", "--local", "user.signkey", sk)
+	cmd := exec.Command("git", "config", "--local", "user.signingkey", sk)
 	cmd.Dir = s.path
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
+	if s.debug {
+		fmt.Printf("store.gitSetSignKey: %s %+v\n", cmd.Path, cmd.Args)
+	}
 	if err := cmd.Run(); err != nil {
 		return err
 	}
@@ -90,6 +100,9 @@ func (s *Store) gitSetSignKey(sk string) error {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
+	if s.debug {
+		fmt.Printf("store.gitSetSignKey: %s %+v\n", cmd.Path, cmd.Args)
+	}
 	return cmd.Run()
 }
 
@@ -101,6 +114,9 @@ func (s *Store) Git(args ...string) error {
 	cmd.Stdin = os.Stdin
 	cmd.Stderr = os.Stderr
 
+	if s.debug {
+		fmt.Printf("store.Git: %s %+v\n", cmd.Path, cmd.Args)
+	}
 	if err := cmd.Run(); err != nil {
 		return err
 	}
@@ -126,6 +142,9 @@ func (s *Store) gitAdd(files ...string) error {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
+	if s.debug {
+		fmt.Printf("store.gitAdd: %s %+v\n", cmd.Path, cmd.Args)
+	}
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("failed to add files to git: %v", err)
 	}
@@ -144,6 +163,9 @@ func (s *Store) gitCommit(msg string) error {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
+	if s.debug {
+		fmt.Printf("store.gitCommit: %s %+v\n", cmd.Path, cmd.Args)
+	}
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("failed to commit files to git: %v", err)
 	}
@@ -163,6 +185,9 @@ func (s *Store) gitConfigValue(key string) (string, error) {
 	cmd.Stdout = buf
 	cmd.Stderr = os.Stderr
 
+	if s.debug {
+		fmt.Printf("store.gitConfigValue: %s %+v\n", cmd.Path, cmd.Args)
+	}
 	if err := cmd.Run(); err != nil {
 		return "", err
 	}
