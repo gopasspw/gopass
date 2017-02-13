@@ -1,6 +1,7 @@
 package password
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -301,6 +302,21 @@ func (r *RootStore) Get(name string) ([]byte, error) {
 	// forward to substore
 	store := r.getStore(name)
 	return store.Get(strings.TrimPrefix(name, store.alias))
+}
+
+// First returns the first line of the plaintext of a single key
+func (r *RootStore) First(name string) ([]byte, error) {
+	content, err := r.Get(name)
+	if err != nil {
+		return nil, err
+	}
+
+	lines := bytes.Split(content, []byte("\n"))
+	if len(lines) < 1 {
+		return nil, fmt.Errorf("no content to return the first line from")
+	}
+
+	return bytes.TrimSpace(lines[0]), nil
 }
 
 // Exists checks the existence of a single entry

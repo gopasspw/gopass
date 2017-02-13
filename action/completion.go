@@ -1,7 +1,10 @@
 package action
 
 import (
+	"bytes"
 	"fmt"
+	"os/exec"
+	"strings"
 
 	"github.com/urfave/cli"
 )
@@ -50,4 +53,48 @@ source <(gopass completion bash)
 	fmt.Println(out)
 
 	return nil
+}
+
+// CompletionDMenu returns a script that starts dmenu
+// Usage: eval "$(gopass completion dmenu)"
+func (s *Action) CompletionDMenu(c *cli.Context) error {
+	typeit := c.Bool("type")
+
+	list, err := s.Store.List()
+	if err != nil {
+		return err
+	}
+
+	name, err := dmenu(list)
+	if err != nil {
+		return err
+	}
+
+	content, err := s.Store.First(name)
+	if err != nil {
+		return err
+	}
+
+	if typeit {
+		return exec.Command("xdotool", "type", "--clearmodifiers", string(content)).Run()
+	}
+
+	return s.copyToClipboard(name, content)
+}
+
+// dmenu runs it with the provided strings and returns the selected string
+func dmenu(list []string) (string, error) {
+	stdin := bytes.NewBuffer(nil)
+	for _, v := range list {
+		stdin.WriteString(v + "\n")
+	}
+
+	cmd := exec.Command("dmenu")
+	cmd.Stdin = stdin
+	out, err := cmd.Output()
+	if err != nil {
+		return "", err
+	}
+
+	return strings.TrimSpace(string(out)), nil
 }
