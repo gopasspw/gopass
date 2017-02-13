@@ -45,7 +45,7 @@ func (s *Action) Insert(c *cli.Context) error {
 			return fmt.Errorf("Failed to copy after %d bytes: %s", written, err)
 		}
 
-		return s.Store.SetConfirm(name, content.Bytes(), s.confirmRecipients)
+		return s.Store.SetConfirm(name, content.Bytes(), "Read secret from STDIN", s.confirmRecipients)
 	}
 
 	// if multi-line input is requested start an editor
@@ -54,7 +54,7 @@ func (s *Action) Insert(c *cli.Context) error {
 		if err != nil {
 			return err
 		}
-		return s.Store.SetConfirm(name, []byte(content), s.confirmRecipients)
+		return s.Store.SetConfirm(name, []byte(content), fmt.Sprintf("Inserted user supplied password with %s", os.Getenv("EDITOR")), s.confirmRecipients)
 	}
 
 	// if echo mode is requested use a simple string input function
@@ -70,5 +70,5 @@ func (s *Action) Insert(c *cli.Context) error {
 		return fmt.Errorf("failed to ask for password: %v", err)
 	}
 
-	return s.Store.SetConfirm(name, []byte(content), s.confirmRecipients)
+	return s.Store.SetConfirm(name, []byte(content), "Inserted user supplied password", s.confirmRecipients)
 }
