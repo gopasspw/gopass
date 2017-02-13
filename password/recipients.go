@@ -11,6 +11,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/fsutil"
 	"github.com/justwatchcom/gopass/gpg"
 )
@@ -31,11 +32,11 @@ func (s *Store) AddRecipient(id string) error {
 
 	s.recipients = append(s.recipients, id)
 
-	if err := s.saveRecipients(); err != nil {
+	if err := s.saveRecipients("Added Recipient " + id); err != nil {
 		return err
 	}
 
-	return s.reencrypt()
+	return s.reencrypt("Added Recipient " + id)
 }
 
 // RemoveRecipient will remove the given recipient from the store
@@ -63,11 +64,11 @@ func (s *Store) RemoveRecipient(id string) error {
 	}
 	s.recipients = nk
 
-	if err := s.saveRecipients(); err != nil {
+	if err := s.saveRecipients("Removed Recipient " + id); err != nil {
 		return err
 	}
 
-	return s.reencrypt()
+	return s.reencrypt("Removed Recipients " + id)
 }
 
 // Load all Recipients from the .gpg-id file into a list of Recipients.
@@ -122,7 +123,7 @@ func (s *Store) loadRecipients() ([]string, error) {
 }
 
 // Save all Recipients in memory to the .gpg-id file on disk.
-func (s *Store) saveRecipients() error {
+func (s *Store) saveRecipients(msg string) error {
 	// filepath.Dir(s.idFile()) should equal s.path, but better safe than sorry
 	if err := os.MkdirAll(filepath.Dir(s.idFile()), dirMode); err != nil {
 		return err
@@ -133,7 +134,35 @@ func (s *Store) saveRecipients() error {
 		return err
 	}
 
+	err := s.gitAdd(s.idFile())
+	if err == nil {
+		if err := s.gitCommit(msg); err != nil {
+			if err != ErrGitNotInit {
+				return err
+			}
+		}
+	} else {
+		if err != ErrGitNotInit {
+			return err
+		}
+	}
+
 	if !s.persistKeys {
+		// push to remote repo
+		if s.autoPush {
+			if err := s.gitPush("", ""); err != nil {
+				if err == ErrGitNotInit {
+					return nil
+				}
+				if err == ErrGitNoRemote {
+					msg := "Warning: git has no remote. Ignoring auto-push option\n" +
+						"Run: gopass git remote add origin ..."
+					fmt.Println(color.YellowString(msg))
+					return nil
+				}
+				return err
+			}
+		}
 		return nil
 	}
 
@@ -155,7 +184,8 @@ func (s *Store) saveRecipients() error {
 			return err
 		}
 		if err := s.gitCommit(fmt.Sprintf("Exported Public Keys %s", r)); err != nil {
-			return err
+			fmt.Println(color.RedString("Failed to git commit: %s", err))
+			continue
 		}
 	}
 
@@ -163,6 +193,12 @@ func (s *Store) saveRecipients() error {
 	if s.autoPush {
 		if err := s.gitPush("", ""); err != nil {
 			if err == ErrGitNotInit {
+				return nil
+			}
+			if err == ErrGitNoRemote {
+				msg := "Warning: git has not remote. Ignoring auto-push option\n" +
+					"Run: gopass git remote add origin ..."
+				fmt.Println(color.YellowString(msg))
 				return nil
 			}
 			return err

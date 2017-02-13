@@ -1,8 +1,10 @@
 package password
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"os"
 	"sort"
 	"strings"
 
@@ -27,6 +29,7 @@ type RootStore struct {
 	Version     string            `json:"version"`
 	ImportFunc  ImportCallback    `json:"-"`
 	FsckFunc    FsckCallback      `json:"-"`
+	Debug       bool              `json:"-"`
 	store       *Store
 	mounts      map[string]*Store
 }
@@ -47,6 +50,10 @@ func NewRootStore(path string) (*RootStore, error) {
 // init checks internal consistency and initializes sub stores
 // after unmarshaling
 func (r *RootStore) init() error {
+	if d := os.Getenv("GOPASS_DEBUG"); d == "true" {
+		r.Debug = true
+	}
+
 	if r.Mount == nil {
 		r.Mount = make(map[string]string)
 	}
@@ -297,6 +304,21 @@ func (r *RootStore) Get(name string) ([]byte, error) {
 	return store.Get(strings.TrimPrefix(name, store.alias))
 }
 
+// First returns the first line of the plaintext of a single key
+func (r *RootStore) First(name string) ([]byte, error) {
+	content, err := r.Get(name)
+	if err != nil {
+		return nil, err
+	}
+
+	lines := bytes.Split(content, []byte("\n"))
+	if len(lines) < 1 {
+		return nil, fmt.Errorf("no content to return the first line from")
+	}
+
+	return bytes.TrimSpace(lines[0]), nil
+}
+
 // Exists checks the existence of a single entry
 func (r *RootStore) Exists(name string) (bool, error) {
 	store := r.getStore(name)
@@ -310,15 +332,15 @@ func (r *RootStore) IsDir(name string) bool {
 }
 
 // Set encodes and write the ciphertext of one entry to disk
-func (r *RootStore) Set(name string, content []byte) error {
+func (r *RootStore) Set(name string, content []byte, reason string) error {
 	store := r.getStore(name)
-	return store.Set(strings.TrimPrefix(name, store.alias), content)
+	return store.Set(strings.TrimPrefix(name, store.alias), content, reason)
 }
 
 // SetConfirm calls Set with confirmation callback
-func (r *RootStore) SetConfirm(name string, content []byte, cb RecipientCallback) error {
+func (r *RootStore) SetConfirm(name string, content []byte, reason string, cb RecipientCallback) error {
 	store := r.getStore(name)
-	return store.SetConfirm(strings.TrimPrefix(name, store.alias), content, cb)
+	return store.SetConfirm(strings.TrimPrefix(name, store.alias), content, reason, cb)
 }
 
 // Copy will copy one entry to another location. Multi-store copies are
@@ -334,7 +356,7 @@ func (r *RootStore) Copy(from, to string) error {
 		if err != nil {
 			return err
 		}
-		if err := subTo.Set(to, content); err != nil {
+		if err := subTo.Set(to, content, fmt.Sprintf("Copied from %s to %s", from, to)); err != nil {
 			return err
 		}
 		return nil
@@ -359,7 +381,7 @@ func (r *RootStore) Move(from, to string) error {
 		if err != nil {
 			return err
 		}
-		if err := subTo.Set(to, content); err != nil {
+		if err := subTo.Set(to, content, fmt.Sprintf("Moved from %s to %s", from, to)); err != nil {
 			return err
 		}
 		if err := subFrom.Delete(from); err != nil {

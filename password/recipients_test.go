@@ -49,7 +49,7 @@ func TestSaveRecipients(t *testing.T) {
 	// remove recipients
 	_ = os.Remove(filepath.Join(tempdir, gpgID))
 
-	err = s.saveRecipients()
+	err = s.saveRecipients("test-save-recipients")
 	assert.NoError(t, err)
 
 	buf, err := ioutil.ReadFile(s.idFile())

@@ -239,7 +239,7 @@ $ gopass config cliptimeout
 
 ### Managing Recipients
 
-You can list, add and remove recpients from the commandline.
+You can list, add and remove recipients from the commandline.
 
 ```bash
 $ gopass recipients
@@ -294,13 +294,13 @@ $ brew install gopass
 #### Debian and Ubuntu
 
 ```bash
-$ wget https://www.justwatch.com/gopass/releases/1.0.0/gopass_1.0.0_amd64.deb
-$ sudo dpkg -i gopass_1.0.0_amd64.deb
+$ wget https://www.justwatch.com/gopass/releases/1.0.1/gopass_1.0.1_amd64.deb
+$ sudo dpkg -i gopass_1.0.1_amd64.deb
 ```
 
 ### Download
 
-Please visit https://www.justwatch.com/gopass/releases/1.0.0/ for a list of binary releases.
+Please visit https://www.justwatch.com/gopass/releases/1.0.1/ for a list of binary releases.
 
 ### From Source
 
@@ -326,6 +326,25 @@ autocompletion for subcommands like `gopass show`, `gopass ls` and others.
 
     source <(gopass completion bash)
     source <(gopass completion zsh)
+
+### dmenu support
+
+Out of the box gopass supports [dmenu](http://tools.suckless.org/dmenu/).
+Instead of shipping another bash script we ship dmenu support from within the binary.
+
+If you have dmenu installed on your system simply run:
+
+```bash
+$ gopass completion dmenu
+```
+The first line of your selected secret will be copied to your clipboard.
+
+Maybe you want the password to be written to your selected text field.
+For that add `--type` and make sure _xdotool_ is installed.
+
+```bash
+$ gopass completion dmenu --type
+```
 
 ### Dependencies
 

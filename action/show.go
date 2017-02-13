@@ -1,7 +1,6 @@
 package action
 
 import (
-	"bytes"
 	"fmt"
 
 	"github.com/atotto/clipboard"
@@ -20,13 +19,18 @@ func (s *Action) Show(c *cli.Context) error {
 		return s.List(c)
 	}
 
+	if c.Bool("clip") {
+		content, err := s.Store.First(name)
+		if err != nil {
+			return err
+		}
+
+		return s.copyToClipboard(name, content)
+	}
+
 	content, err := s.Store.Get(name)
 	if err != nil {
 		return err
-	}
-
-	if c.Bool("clip") {
-		return s.copyToClipboard(name, content)
 	}
 
 	color.Yellow(string(content))
@@ -35,21 +39,14 @@ func (s *Action) Show(c *cli.Context) error {
 }
 
 func (s *Action) copyToClipboard(name string, content []byte) error {
-	content = bytes.TrimSpace(content)
-
-	// only copy the first line to the clipboard
-	lines := bytes.Split(content, []byte("\n"))
-	if len(lines) < 1 {
-		return fmt.Errorf("no content that can be copied to the clipboard")
-	}
-	line := lines[0]
-
-	if err := clipboard.WriteAll(string(line)); err != nil {
+	if err := clipboard.WriteAll(string(content)); err != nil {
 		return err
 	}
-	if err := clearClipboard(line, s.Store.ClipTimeout); err != nil {
+
+	if err := clearClipboard(content, s.Store.ClipTimeout); err != nil {
 		return err
 	}
+
 	fmt.Printf("Copied %s to clipboard. Will clear in %d seconds.\n", color.YellowString(name), s.Store.ClipTimeout)
 	return nil
 }
