@@ -22,25 +22,24 @@ type Action struct {
 
 // New returns a new Action wrapper
 func New(v string) *Action {
-	if gdb := os.Getenv("GOPASS_DEBUG"); gdb == "true" {
-		gpg.Debug = true
-	}
-	if nc := os.Getenv("GOPASS_NOCOLOR"); nc == "true" {
-		color.NoColor = true
-	}
 	name := "gopass"
 	if len(os.Args) > 0 {
 		name = filepath.Base(os.Args[0])
 	}
 
+	if gdb := os.Getenv("GOPASS_DEBUG"); gdb == "true" {
+		gpg.Debug = true
+	}
 	pwDir := pwStoreDir("")
 
 	// try to read config (if it exists)
 	if cfg, err := newFromFile(configFile()); err == nil && cfg != nil {
 		cfg.ImportFunc = askForKeyImport
 		cfg.Version = v
+		color.NoColor = cfg.NoColor
+
 		return &Action{
-			Name:  name,
+			Name: name,
 			Store: cfg,
 		}
 	}
@@ -53,13 +52,14 @@ func New(v string) *Action {
 	cfg.ImportFunc = askForKeyImport
 	cfg.FsckFunc = askForConfirmation
 	cfg.Version = v
+	
 	return &Action{
 		Name:  name,
 		Store: cfg,
 	}
 }
 
-// newFromFile creates a new RootStore instance by unmarsahling a config file.
+// newFromFile creates a new RootStore instance by unmarshaling a config file.
 // If the file doesn't exist or fails to unmarshal an error is returned
 func newFromFile(cf string) (*password.RootStore, error) {
 	// deliberately using os.Stat here, a symlinked

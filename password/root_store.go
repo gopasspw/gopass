@@ -24,6 +24,7 @@ type RootStore struct {
 	PersistKeys bool              `json:"persistkeys"` // store recipient keys in store
 	LoadKeys    bool              `json:"loadkeys"`    // load missing keys from store
 	ClipTimeout int               `json:"cliptimeout"` // clear clipboard after seconds
+	NoColor     bool              `json:"nocolor"`     // disable colors in output
 	Path        string            `json:"path"`        // path to the root store
 	Mount       map[string]string `json:"mounts,omitempty"`
 	Version     string            `json:"version"`
