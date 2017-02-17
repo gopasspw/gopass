@@ -135,7 +135,7 @@ func (s *Store) gitAdd(files ...string) error {
 		return ErrGitNotInit
 	}
 
-	args := []string{"add"}
+	args := []string{"add", "--all"}
 	args = append(args, files...)
 	cmd := exec.Command("git", args...)
 	cmd.Dir = s.path
