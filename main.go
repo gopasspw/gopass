@@ -403,6 +403,10 @@ func main() {
 					Name:  "clip, c",
 					Usage: "Copy the secret into the clipboard",
 				},
+				cli.BoolFlag{
+					Name:  "qr",
+					Usage: "Print secret as QR Code",
+				},
 			},
 		},
 		{
