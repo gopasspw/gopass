@@ -120,7 +120,12 @@ func (s *Action) setConfigValue(key, value string) error {
 
 // hasConfig is a short hand for checking if the config file exists
 func hasConfig() bool {
-	return fsutil.IsFile(configFile())
+	for _, l := range configLocations() {
+		if fsutil.IsFile(l) {
+			return true
+		}
+	}
+	return false
 }
 
 // writeConfig saves the config
@@ -129,17 +134,42 @@ func writeConfig(s *password.RootStore) error {
 	if err != nil {
 		return err
 	}
-	if err := ioutil.WriteFile(configFile(), buf, 0600); err != nil {
+	cfgLoc := configLocation()
+	cfgDir := filepath.Dir(cfgLoc)
+	if !fsutil.IsDir(cfgDir) {
+		if err := os.MkdirAll(cfgDir, 0700); err != nil {
+			return err
+		}
+	}
+	if err := ioutil.WriteFile(cfgLoc, buf, 0600); err != nil {
 		return err
 	}
 	return nil
 }
 
-// configFile returns the location of the config file. Either reading from
+// configLocation returns the location of the config file. Either reading from
 // GOPASS_CONFIG or using the default location (~/.gopass.yml)
-func configFile() string {
+func configLocation() string {
 	if cf := os.Getenv("GOPASS_CONFIG"); cf != "" {
 		return cf
 	}
-	return filepath.Join(os.Getenv("HOME"), ".gopass.yml")
+	if xch := os.Getenv("XDG_CONFIG_HOME"); xch != "" {
+		return filepath.Join(xch, "gopass", "config.yml")
+	}
+	return filepath.Join(os.Getenv("HOME"), ".config", "gopass", "config.yml")
+}
+
+// configLocations returns the possible locations of gopass config files,
+// in decreasing priority
+func configLocations() []string {
+	l := []string{}
+	if cf := os.Getenv("GOPASS_CONFIG"); cf != "" {
+		l = append(l, cf)
+	}
+	if xch := os.Getenv("XDG_CONFIG_HOME"); xch != "" {
+		l = append(l, filepath.Join(xch, "gopass", "config.yml"))
+	}
+	l = append(l, filepath.Join(os.Getenv("HOME"), ".config", "gopass", "config.yml"))
+	l = append(l, filepath.Join(os.Getenv("HOME"), ".gopass.yml"))
+	return l
 }
