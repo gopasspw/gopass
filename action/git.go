@@ -1,6 +1,8 @@
 package action
 
 import (
+	"fmt"
+
 	"github.com/fatih/color"
 	"github.com/urfave/cli"
 )
@@ -25,6 +27,6 @@ func (s *Action) GitInit(c *cli.Context) error {
 	if err := s.Store.GitInit(store, sk); err != nil {
 		return err
 	}
-	color.Green("Git initialized")
+	fmt.Fprintln(color.Output, color.GreenString("Git initialized"))
 	return nil
 }

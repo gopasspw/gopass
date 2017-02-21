@@ -20,7 +20,7 @@ func (s *Action) MountRemove(c *cli.Context) error {
 		return err
 	}
 
-	fmt.Println(color.GreenString("Password Store %s umounted", c.Args()[0]))
+	color.Green("Password Store %s umounted", c.Args()[0])
 	return nil
 }
 
@@ -36,7 +36,7 @@ func (s *Action) MountsPrint(c *cli.Context) error {
 			fmt.Printf("Failed to add mount: %s\n", err)
 		}
 	}
-	fmt.Println(root.Format())
+	fmt.Fprintln(color.Output, root.Format())
 	return nil
 }
 
@@ -65,6 +65,6 @@ func (s *Action) MountAdd(c *cli.Context) error {
 		return err
 	}
 
-	fmt.Println(color.GreenString("Mounted %s as %s", c.Args()[0], c.Args()[1]))
+	color.Green("Mounted %s as %s", c.Args()[0], c.Args()[1])
 	return nil
 }
