@@ -12,7 +12,6 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"syscall"
 	"time"
 )
 
@@ -24,7 +23,7 @@ const (
 func init() {
 	// ensure created files don't have group or world perms set
 	// this setting should be inherited by sub-processes
-	syscall.Umask(077)
+	umask(077)
 }
 
 var (

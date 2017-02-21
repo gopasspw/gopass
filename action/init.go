@@ -46,7 +46,7 @@ func (s *Action) Init(c *cli.Context) error {
 		return err
 	}
 
-	fmt.Printf(color.GreenString("Password store initialized for: "))
+	fmt.Fprint(color.Output, color.GreenString("Password store initialized for: "))
 	for _, recipient := range s.Store.ListRecipients(store) {
 		r := "0x" + recipient
 		if kl, err := gpg.ListPublicKeys(recipient); err == nil && len(kl) > 0 {
