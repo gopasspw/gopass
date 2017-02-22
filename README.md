@@ -260,7 +260,7 @@ To debug `gopass`, set the environment variable `GOPASS_DEBUG` to `true`.
 
 ### Disabling Colors
 
-Disabling colours is as simple as `gopass config nocolors true`.
+Disabling colors is as simple as `gopass config nocolor true`.
 
 ## Known Limitations and Caveats
 
