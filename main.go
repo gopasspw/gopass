@@ -298,7 +298,7 @@ func main() {
 				},
 				cli.BoolFlag{
 					Name:  "force, f",
-					Usage: "Overwrite any existing secret",
+					Usage: "Overwrite any existing secret and do not prompt to confirm recipients",
 				},
 			},
 		},

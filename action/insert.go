@@ -15,6 +15,10 @@ func (s *Action) Insert(c *cli.Context) error {
 	echo := c.Bool("echo")
 	multiline := c.Bool("multiline")
 	force := c.Bool("force")
+	confirm := s.confirmRecipients
+	if force {
+		confirm = nil
+	}
 
 	name := c.Args().Get(0)
 	if name == "" {
@@ -34,7 +38,7 @@ func (s *Action) Insert(c *cli.Context) error {
 			return fmt.Errorf("Failed to copy after %d bytes: %s", written, err)
 		}
 
-		return s.Store.SetConfirm(name, content.Bytes(), "Read secret from STDIN", s.confirmRecipients)
+		return s.Store.SetConfirm(name, content.Bytes(), "Read secret from STDIN", confirm)
 	}
 
 	replacing, err := s.Store.Exists(name)
@@ -54,7 +58,7 @@ func (s *Action) Insert(c *cli.Context) error {
 		if err != nil {
 			return err
 		}
-		return s.Store.SetConfirm(name, []byte(content), fmt.Sprintf("Inserted user supplied password with %s", os.Getenv("EDITOR")), s.confirmRecipients)
+		return s.Store.SetConfirm(name, []byte(content), fmt.Sprintf("Inserted user supplied password with %s", os.Getenv("EDITOR")), confirm)
 	}
 
 	// if echo mode is requested use a simple string input function
@@ -70,5 +74,5 @@ func (s *Action) Insert(c *cli.Context) error {
 		return fmt.Errorf("failed to ask for password: %v", err)
 	}
 
-	return s.Store.SetConfirm(name, []byte(content), "Inserted user supplied password", s.confirmRecipients)
+	return s.Store.SetConfirm(name, []byte(content), "Inserted user supplied password", confirm)
 }
