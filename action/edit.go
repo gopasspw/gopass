@@ -50,7 +50,7 @@ func (s *Action) Edit(c *cli.Context) error {
 func (s *Action) editor(content []byte) ([]byte, error) {
 	editor := os.Getenv("EDITOR")
 	if editor == "" {
-		return []byte{}, fmt.Errorf("failed to edit, please set $EDITOR")
+		editor = "editor"
 	}
 
 	tmpfile, err := ioutil.TempFile(fsutil.Tempdir(), "gopass-edit")
