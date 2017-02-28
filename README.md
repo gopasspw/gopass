@@ -306,7 +306,7 @@ Please visit https://www.justwatch.com/gopass/releases/1.0.1/ for a list of bina
 
 To get the latest version of pass, run `go get`:
 
-    go get github.com/justwatchcom/gopass
+    go get -u github.com/justwatchcom/gopass
 
 If `$GOPATH/bin` is in your `$PATH`, you can now run `gopass` from anywhere on your system and use this.
 
