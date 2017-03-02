@@ -3,9 +3,11 @@ package action
 import (
 	"bytes"
 	"fmt"
+	"os"
 	"os/exec"
 	"strings"
 
+	shellquote "github.com/kballard/go-shellquote"
 	"github.com/urfave/cli"
 )
 
@@ -59,13 +61,19 @@ source <(gopass completion bash)
 // Usage: eval "$(gopass completion dmenu)"
 func (s *Action) CompletionDMenu(c *cli.Context) error {
 	typeit := c.Bool("type")
+	args := c.String("args")
 
 	list, err := s.Store.List()
 	if err != nil {
 		return err
 	}
 
-	name, err := dmenu(list)
+	argsSplit, err := shellquote.Split(args)
+	if err != nil {
+		return err
+	}
+
+	name, err := dmenu(list, argsSplit...)
 	if err != nil {
 		return err
 	}
@@ -83,14 +91,15 @@ func (s *Action) CompletionDMenu(c *cli.Context) error {
 }
 
 // dmenu runs it with the provided strings and returns the selected string
-func dmenu(list []string) (string, error) {
+func dmenu(list []string, args ...string) (string, error) {
 	stdin := bytes.NewBuffer(nil)
 	for _, v := range list {
 		stdin.WriteString(v + "\n")
 	}
 
-	cmd := exec.Command("dmenu")
+	cmd := exec.Command("dmenu", args...)
 	cmd.Stdin = stdin
+	cmd.Stderr = os.Stderr
 	out, err := cmd.Output()
 	if err != nil {
 		return "", err
