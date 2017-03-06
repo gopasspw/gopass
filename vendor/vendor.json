@@ -53,6 +53,24 @@
 			"revisionTime": "2016-09-25T22:06:09Z"
 		},
 		{
+			"checksumSHA1": "l92ZNNpsqR/eht04a/PMDYsJqII=",
+			"path": "github.com/skip2/go-qrcode",
+			"revision": "cf02323edc040f5263d08b45a60bc8abdc3bde18",
+			"revisionTime": "2016-12-31T17:30:31Z"
+		},
+		{
+			"checksumSHA1": "xkuxp8PnGrQUsIXMiIOCk4U5IGw=",
+			"path": "github.com/skip2/go-qrcode/bitset",
+			"revision": "cf02323edc040f5263d08b45a60bc8abdc3bde18",
+			"revisionTime": "2016-12-31T17:30:31Z"
+		},
+		{
+			"checksumSHA1": "UtPg/z5chOpfiJvr29Or0oUx1Bs=",
+			"path": "github.com/skip2/go-qrcode/reedsolomon",
+			"revision": "cf02323edc040f5263d08b45a60bc8abdc3bde18",
+			"revisionTime": "2016-12-31T17:30:31Z"
+		},
+		{
 			"checksumSHA1": "Q2V7Zs3diLmLfmfbiuLpSxETSuY=",
 			"path": "github.com/stretchr/testify/assert",
 			"revision": "976c720a22c8eb4eb6a0b4348ad85ad12491a506",
