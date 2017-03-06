@@ -55,9 +55,19 @@ source <(gopass completion bash)
 	return nil
 }
 
-// CompletionDMenu returns a script that starts dmenu
-// Usage: eval "$(gopass completion dmenu)"
+// CompletionDMenu with dmenu
 func (s *Action) CompletionDMenu(c *cli.Context) error {
+  return s.CompletionMenu(c, []string{"dmenu"})
+}
+
+// CompletionRofi with rofi
+func (s *Action) CompletionRofi(c *cli.Context) error {
+  return s.CompletionMenu(c, []string{"rofi", "-dmenu"})
+}
+
+// CompletionMenu returns a script that starts a menu chooser (dmenu, rofi, ...)
+// Usage: eval "$(gopass completion dmenu|rofi)"
+func (s *Action) CompletionMenu(c *cli.Context, execstr []string) error {
 	typeit := c.Bool("type")
 
 	list, err := s.Store.List()
@@ -65,7 +75,7 @@ func (s *Action) CompletionDMenu(c *cli.Context) error {
 		return err
 	}
 
-	name, err := dmenu(list)
+	name, err := menu(execstr, list)
 	if err != nil {
 		return err
 	}
@@ -82,14 +92,14 @@ func (s *Action) CompletionDMenu(c *cli.Context) error {
 	return s.copyToClipboard(name, content)
 }
 
-// dmenu runs it with the provided strings and returns the selected string
-func dmenu(list []string) (string, error) {
+// menu runs it with the provided strings and returns the selected string
+func menu(execstr []string, list []string) (string, error) {
 	stdin := bytes.NewBuffer(nil)
 	for _, v := range list {
 		stdin.WriteString(v + "\n")
 	}
 
-	cmd := exec.Command("dmenu")
+	cmd := exec.Command(execstr[0], execstr[1:]...)
 	cmd.Stdin = stdin
 	out, err := cmd.Output()
 	if err != nil {
@@ -98,3 +108,4 @@ func dmenu(list []string) (string, error) {
 
 	return strings.TrimSpace(string(out)), nil
 }
+

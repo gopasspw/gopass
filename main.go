@@ -124,6 +124,16 @@ func main() {
 						Usage: "Type the password with xdotool",
 					},
 				},
+			}, {
+				Name:   "rofi",
+				Usage:  "Completion output for rofi",
+				Action: action.CompletionRofi,
+				Flags: []cli.Flag{
+					cli.BoolFlag{
+						Name:  "type",
+						Usage: "Type the password with xdotool",
+					},
+				},
 			}},
 		},
 		{
