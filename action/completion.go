@@ -55,12 +55,12 @@ source <(gopass completion bash)
 	return nil
 }
 
-// Completion with dmenu
+// CompletionDMenu with dmenu
 func (s *Action) CompletionDMenu(c *cli.Context) error {
   return s.CompletionMenu(c, []string{"dmenu"})
 }
 
-// Completion with rofi
+// CompletionRofi with rofi
 func (s *Action) CompletionRofi(c *cli.Context) error {
   return s.CompletionMenu(c, []string{"rofi", "-dmenu"})
 }
