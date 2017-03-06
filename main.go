@@ -123,6 +123,10 @@ func main() {
 						Name:  "type",
 						Usage: "Type the password with xdotool",
 					},
+					cli.StringFlag{
+						Name:  "args",
+						Usage: "Arguments passed to dmenu itself",
+					},
 				},
 			}},
 		},
