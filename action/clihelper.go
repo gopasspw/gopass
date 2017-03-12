@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"syscall"
 
 	"github.com/justwatchcom/gopass/gpg"
 	"golang.org/x/crypto/ssh/terminal"
@@ -188,7 +189,11 @@ func promptPass(prompt string) (pass string, err error) {
 	}
 	defer func() {
 		if err := terminal.Restore(fd, oldState); err != nil {
-			fmt.Printf("Failed to restore terminal: %s\n", err)
+			if e, ok := err.(syscall.Errno); ok {
+				if e != 0 {
+					fmt.Printf("Failed to restore terminal: %s\n", err)
+				}
+			}
 		}
 	}()
 
@@ -198,7 +203,11 @@ func promptPass(prompt string) (pass string, err error) {
 	go func() {
 		for range sigch {
 			if err := terminal.Restore(fd, oldState); err != nil {
-				fmt.Printf("Failed to restore terminal: %s\n", err)
+				if e, ok := err.(syscall.Errno); ok {
+					if e != 0 {
+						fmt.Printf("Failed to restore terminal: %s\n", err)
+					}
+				}
 			}
 			os.Exit(1)
 		}
