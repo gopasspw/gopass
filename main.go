@@ -86,7 +86,7 @@ func main() {
 	app.Flags = []cli.Flag{
 		cli.BoolFlag{
 			Name:  "clip, c",
-			Usage: "Copy the secret into the clipboard",
+			Usage: "Copy the first line of the secret into the clipboard",
 		},
 	}
 
@@ -396,9 +396,9 @@ func main() {
 		},
 		{
 			Name:  "show",
-			Usage: "Show existing secret and optionally put it on the clipboard.",
+			Usage: "Show existing secret and optionally put its first line on the clipboard.",
 			Description: "" +
-				"Show existing secret and optionally put it on the clipboard. " +
+				"Show existing secret and optionally put its first line on the clipboard. " +
 				"If put on the clipboard, it will be cleared in 45 seconds.",
 			Before:       action.Initialized,
 			Action:       action.Show,
@@ -406,11 +406,11 @@ func main() {
 			Flags: []cli.Flag{
 				cli.BoolFlag{
 					Name:  "clip, c",
-					Usage: "Copy the secret into the clipboard",
+					Usage: "Copy the first line of the secret into the clipboard",
 				},
 				cli.BoolFlag{
 					Name:  "qr",
-					Usage: "Print secret as QR Code",
+					Usage: "Print the first line of the secret as QR Code",
 				},
 			},
 		},
