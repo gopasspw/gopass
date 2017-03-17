@@ -89,10 +89,10 @@
 			"revisionTime": "2016-11-22T04:36:10Z"
 		},
 		{
-			"checksumSHA1": "VE+WBfxeMNC5a98uLXK2Iu80hOU=",
+			"checksumSHA1": "xiderUuvye8Kpn7yX3niiJg32bE=",
 			"path": "golang.org/x/crypto/ssh/terminal",
-			"revision": "b07d8c96772f426812d3fc5530710ec1f3b205e7",
-			"revisionTime": "2016-10-26T23:47:36Z"
+			"revision": "728b753d0135da6801d45a38e6f43ff55779c5c2",
+			"revisionTime": "2017-01-24T01:46:54Z"
 		},
 		{
 			"checksumSHA1": "vu7njn8O4vhFtmgGWntwjA2NAbk=",
