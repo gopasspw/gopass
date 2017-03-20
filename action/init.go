@@ -32,10 +32,13 @@ func (s *Action) Init(c *cli.Context) error {
 		s.Store.LoadKeys = false
 		s.Store.ClipTimeout = 45
 	}
+	if store == "" {
+		store = s.Store.Path
+	}
 
 	keys := c.Args()
 	if len(keys) < 1 {
-		nk, err := askForPrivateKey("Please select a private Key for encryption:")
+		nk, err := askForPrivateKey("Please select a private key for encryption:")
 		if err != nil {
 			return err
 		}

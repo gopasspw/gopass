@@ -123,8 +123,12 @@ func (r *RootStore) Initialized() bool {
 }
 
 // Init tries to initalize a new password store location matching the object
-func (r *RootStore) Init(store string, ids ...string) error {
-	sub := r.getStore(store)
+func (r *RootStore) Init(path string, ids ...string) error {
+	sub, err := NewStore("", fsutil.CleanPath(path), r)
+	if err != nil {
+		return err
+	}
+
 	sub.persistKeys = r.PersistKeys
 	sub.loadKeys = r.LoadKeys
 	sub.alwaysTrust = r.AlwaysTrust
@@ -166,7 +170,7 @@ func (r *RootStore) addMount(alias, path string, keys ...string) error {
 
 	if !s.Initialized() {
 		if len(keys) < 1 {
-			return fmt.Errorf("password store %s is not initialized. Try gopass init", path)
+			return fmt.Errorf("password store %s is not initialized. Try gopass init --store %s", alias, path)
 		}
 		if err := s.Init(keys...); err != nil {
 			return err
