@@ -278,6 +278,12 @@ secrets by checking out old revisions from the repository.
 
 **If you revoke access from a user you SHOULD change all secrets he had access to!**
 
+### Private Keys required
+
+Please note that we try to make it hard to lock yourself out from your secrets.
+To ensure that a user is always able to decrypt his own secrets we require you
+to have at least the public **and** private part of an recipient key available.
+
 ## Installation
 
 You can either use a package manager, download a pre-built binary or install from source. If you have
