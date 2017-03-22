@@ -55,6 +55,9 @@ A second parameter tells gopass to clone and mount it to the store.
 In the example above the repository would have been cloned to `$HOME/.password-store-work`.
 Afterwards the directory would have been mounted as `work`.
 
+Please note that the repository must contain an already initialized password
+store. You can initialize a new store with `gopass init --store /path/to/store`.
+
 ### Adding secrets
 
 Let's say you want to create an account.
@@ -207,15 +210,17 @@ Mounting new stores can be done through gopass:
 
 ```bash
 # Mount a new store
-$ gopass mount test /tmp/password-store-test
+$ gopass mounts add test /tmp/password-store-test
 # Show mounted stores
-$ gopass mount
+$ gopass mounts
 # Umount a store
-$ gopass mount -u test
+$ gopass mounts remove test
 ```
 
 **WARNING**: Initializing new stores while mounting is currently not possible.
 For the time-being you can only mount existing stores.
+
+You can initialize a new store using `gopass init --store /path/to/store`.
 
 ### Edit the Config
 
