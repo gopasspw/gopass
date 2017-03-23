@@ -497,6 +497,22 @@ no attempts are taken to verify the integrity of the password store. We plan on 
 signed git commits for this. Anyone with access to the git repository can see which
 secrets are stored inside the store, but not their content.
 
+## Configuration
+
+There are several configuration options available through the command line interface `gopass config`.
+
+| **Option**    | *Type*    | Description |
+| ------------- | --------- | ----------- |
+| `alwaystrust` | `bool`    | Always trust public keys when encrypting. This trades some security against easier use. Use with caution. |
+| `autoimport`  | `bool`    | Import missing keys stored in the pass repo (see `persistkeys`) without asking. |
+| `autopull`    | `bool`    | Always do a `git pull` before a `git push`. Reduces the chance of git rejections. |
+| `autopush`    | `bool`    | Always do a `git push` after a commit to the store. Makes sure your local changes are always available on your git remote. |
+| `cliptimeout` | `int`     | How many seconds the secret is stored when using `-c`. |
+| `loadkeys`    | `bool`    | Import missing keys store in the pass repo (see `persistkeys` and `autoimport`). |
+| `noconfirm`   | `bool`    | Do not confirm recipient list when encrypting. |
+| `path`        | `string`  | Path to the root store. |
+| `persistkeys` | `bool`    | Store every recipients public keys in the store. Makes it easier to set up an new machine or user. |
+
 ## API Stability
 
 `gopass` is provided as an CLI program, not as a library. While we try to make the
