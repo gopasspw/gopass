@@ -134,6 +134,9 @@ func (s *Store) gitAdd(files ...string) error {
 	if !s.isGit() {
 		return ErrGitNotInit
 	}
+	for i := range files {
+		files[i] = strings.TrimPrefix(files[i], s.path+"/")
+	}
 
 	args := []string{"add", "--all"}
 	args = append(args, files...)

@@ -400,16 +400,17 @@ func (s *Store) Prune(tree string) error {
 func (s *Store) delete(name string, recurse bool) error {
 	path := s.passfile(name)
 	rf := os.Remove
-	if recurse {
-		path = filepath.Join(s.path, name)
-		rf = os.RemoveAll
-	}
 
 	if !recurse && !fsutil.IsFile(path) {
 		return ErrNotFound
 	}
-	if recurse && !fsutil.IsDir(path) {
-		return ErrNotFound
+
+	if recurse && !fsutil.IsFile(path) {
+		path = filepath.Join(s.path, name)
+		rf = os.RemoveAll
+		if !fsutil.IsDir(path) {
+			return ErrNotFound
+		}
 	}
 
 	if err := rf(path); err != nil {
