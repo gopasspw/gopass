@@ -32,10 +32,13 @@ func (s *Action) Init(c *cli.Context) error {
 		s.Store.LoadKeys = false
 		s.Store.ClipTimeout = 45
 	}
+	if store == "" {
+		store = s.Store.Path
+	}
 
 	keys := c.Args()
 	if len(keys) < 1 {
-		nk, err := askForPrivateKey("Please select a private Key for encryption:")
+		nk, err := askForPrivateKey("Please select a private key for encryption:")
 		if err != nil {
 			return err
 		}
@@ -46,7 +49,7 @@ func (s *Action) Init(c *cli.Context) error {
 		return err
 	}
 
-	fmt.Printf(color.GreenString("Password store initialized for: "))
+	fmt.Fprint(color.Output, color.GreenString("Password store initialized for: "))
 	for _, recipient := range s.Store.ListRecipients(store) {
 		r := "0x" + recipient
 		if kl, err := gpg.ListPublicKeys(recipient); err == nil && len(kl) > 0 {

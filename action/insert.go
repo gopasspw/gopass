@@ -15,21 +15,14 @@ func (s *Action) Insert(c *cli.Context) error {
 	echo := c.Bool("echo")
 	multiline := c.Bool("multiline")
 	force := c.Bool("force")
+	confirm := s.confirmRecipients
+	if force {
+		confirm = nil
+	}
 
 	name := c.Args().Get(0)
 	if name == "" {
 		return fmt.Errorf("provide a secret name")
-	}
-
-	replacing, err := s.Store.Exists(name)
-	if err != nil && err != password.ErrNotFound {
-		return fmt.Errorf("failed to see if %s exists", name)
-	}
-
-	if !force { // don't check if it's force anyway
-		if replacing && !askForConfirmation(fmt.Sprintf("An entry already exists for %s. Overwrite it?", name)) {
-			return fmt.Errorf("not overwriting your current secret")
-		}
 	}
 
 	info, err := os.Stdin.Stat()
@@ -45,7 +38,18 @@ func (s *Action) Insert(c *cli.Context) error {
 			return fmt.Errorf("Failed to copy after %d bytes: %s", written, err)
 		}
 
-		return s.Store.SetConfirm(name, content.Bytes(), "Read secret from STDIN", s.confirmRecipients)
+		return s.Store.SetConfirm(name, content.Bytes(), "Read secret from STDIN", confirm)
+	}
+
+	replacing, err := s.Store.Exists(name)
+	if err != nil && err != password.ErrNotFound {
+		return fmt.Errorf("failed to see if %s exists", name)
+	}
+
+	if !force { // don't check if it's force anyway
+		if replacing && !askForConfirmation(fmt.Sprintf("An entry already exists for %s. Overwrite it?", name)) {
+			return fmt.Errorf("not overwriting your current secret")
+		}
 	}
 
 	// if multi-line input is requested start an editor
@@ -54,7 +58,7 @@ func (s *Action) Insert(c *cli.Context) error {
 		if err != nil {
 			return err
 		}
-		return s.Store.SetConfirm(name, []byte(content), fmt.Sprintf("Inserted user supplied password with %s", os.Getenv("EDITOR")), s.confirmRecipients)
+		return s.Store.SetConfirm(name, []byte(content), fmt.Sprintf("Inserted user supplied password with %s", os.Getenv("EDITOR")), confirm)
 	}
 
 	// if echo mode is requested use a simple string input function
@@ -70,5 +74,5 @@ func (s *Action) Insert(c *cli.Context) error {
 		return fmt.Errorf("failed to ask for password: %v", err)
 	}
 
-	return s.Store.SetConfirm(name, []byte(content), "Inserted user supplied password", s.confirmRecipients)
+	return s.Store.SetConfirm(name, []byte(content), "Inserted user supplied password", confirm)
 }

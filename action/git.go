@@ -27,6 +27,6 @@ func (s *Action) GitInit(c *cli.Context) error {
 	if err := s.Store.GitInit(store, sk); err != nil {
 		return err
 	}
-	fmt.Println(color.GreenString("Git initialized"))
+	fmt.Fprintln(color.Output, color.GreenString("Git initialized"))
 	return nil
 }
