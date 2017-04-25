@@ -41,4 +41,11 @@ func TestShow(t *testing.T) {
 	assert.Equal(t, "more stuff", out)
 	out, err = ts.run("show fixed/twoliner -f")
 	assert.Equal(t, "and\nmore stuff", out)
+
+	out, err = ts.run("config safecontent false")
+	assert.NoError(t, err)
+	out, err = ts.run("show fixed/twoliner")
+	assert.Equal(t, "and\nmore stuff", out)
+	out, err = ts.run("show fixed/secret")
+	assert.Equal(t, "moar", out)
 }
