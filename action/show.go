@@ -1,6 +1,7 @@
 package action
 
 import (
+	"bytes"
 	"fmt"
 
 	"github.com/atotto/clipboard"
@@ -13,7 +14,9 @@ import (
 func (s *Action) Show(c *cli.Context) error {
 	name := c.Args().First()
 	clip := c.Bool("clip")
+	force := c.Bool("force")
 	qr := c.Bool("qr")
+
 	if name == "" {
 		return fmt.Errorf("provide a secret name")
 	}
@@ -42,6 +45,14 @@ func (s *Action) Show(c *cli.Context) error {
 	content, err := s.Store.Get(name)
 	if err != nil {
 		return err
+	}
+
+	if s.Store.SafeContent && !force {
+		lines := bytes.SplitN(content, []byte("\n"), 2)
+		if len(lines) < 2 || len(bytes.TrimSpace(lines[1])) == 0 {
+			return fmt.Errorf("no safe content to display, you can force display with show -f")
+		}
+		content = lines[1]
 	}
 
 	color.Yellow(string(content))
