@@ -31,7 +31,8 @@ func TestList(t *testing.T) {
 gopass
 ├── baz
 ├── fixed
-│   └── secret
+│   ├── secret
+│   └── twoliner
 └── foo
     └── bar
 `
