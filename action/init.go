@@ -31,7 +31,7 @@ func (s *Action) Init(c *cli.Context) error {
 		s.Store.PersistKeys = true
 		s.Store.LoadKeys = false
 		s.Store.ClipTimeout = 45
-		s.Store.SafeContent = true
+		s.Store.SafeContent = false
 	}
 	if store == "" {
 		store = s.Store.Path
