@@ -90,5 +90,9 @@ func (s *Action) editor(content []byte) ([]byte, error) {
 		return []byte{}, fmt.Errorf("failed to read from tmpfile: %v", err)
 	}
 
+	// enforce unix line endings in the password store
+	nContent = bytes.Replace(nContent, []byte("\r\n"), []byte("\n"), -1)
+	nContent = bytes.Replace(nContent, []byte("\r"), []byte("\n"), -1)
+
 	return nContent, nil
 }
