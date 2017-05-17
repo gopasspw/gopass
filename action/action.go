@@ -36,8 +36,13 @@ func New(v string) *Action {
 	for _, l := range configLocations() {
 		if cfg, err := newFromFile(l); err == nil && cfg != nil {
 			cfg.ImportFunc = askForKeyImport
+			cfg.FsckFunc = askForConfirmation
 			cfg.Version = v
-      color.NoColor = cfg.NoColor
+			color.NoColor = cfg.NoColor
+			// need this override for our integration tests
+			if nc := os.Getenv("GOPASS_NOCOLOR"); nc == "true" {
+				color.NoColor = true
+			}
 			return &Action{
 				Name:  name,
 				Store: cfg,
@@ -53,6 +58,11 @@ func New(v string) *Action {
 	cfg.ImportFunc = askForKeyImport
 	cfg.FsckFunc = askForConfirmation
 	cfg.Version = v
+	color.NoColor = cfg.NoColor
+	// need this override for our integration tests
+	if nc := os.Getenv("GOPASS_NOCOLOR"); nc == "true" {
+		color.NoColor = true
+	}
 
 	return &Action{
 		Name:  name,
