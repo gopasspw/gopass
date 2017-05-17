@@ -10,6 +10,11 @@ import (
 
 // CleanPath resolves common aliases in a path and cleans it as much as possible
 func CleanPath(path string) string {
+	if fi, err := os.Lstat(path); err == nil {
+		if fi.Mode()&os.ModeSymlink == os.ModeSymlink {
+			path, _ = filepath.EvalSymlinks(path)
+		}
+	}
 	// http://stackoverflow.com/questions/17609732/expand-tilde-to-home-directory
 	if path[:2] == "~/" {
 		usr, _ := user.Current()
