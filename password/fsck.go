@@ -168,5 +168,5 @@ func (s *Store) fsckFixRecipients(fn string) error {
 	if err != nil {
 		return err
 	}
-	return s.Set(name, content)
+	return s.Set(name, content, "fsck fix recipients")
 }

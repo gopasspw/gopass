@@ -40,15 +40,15 @@ func (s *Action) Clone(c *cli.Context) error {
 		if !s.Store.Initialized() {
 			return fmt.Errorf("Root-Store is not initialized. Clone or init root store first")
 		}
-		fmt.Printf("Mounting password store %s at mount point `%s` ...\n", path, mount)
 		if err := s.Store.AddMount(mount, path); err != nil {
-			return err
+			return fmt.Errorf("Failed to add mount: %s", err)
 		}
+		fmt.Printf("Mounted password store %s at mount point `%s` ...\n", path, mount)
 	}
 
 	// save new mount in config file
 	if err := writeConfig(s.Store); err != nil {
-		return err
+		return fmt.Errorf("Failed to update config: %s", err)
 	}
 
 	fmt.Printf("Your password store is ready to use! Has a look around: `gopass %s`\n", mount)

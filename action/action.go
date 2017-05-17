@@ -33,14 +33,15 @@ func New(v string) *Action {
 	pwDir := pwStoreDir("")
 
 	// try to read config (if it exists)
-	if cfg, err := newFromFile(configFile()); err == nil && cfg != nil {
-		cfg.ImportFunc = askForKeyImport
-		cfg.Version = v
-		color.NoColor = cfg.NoColor
-
-		return &Action{
-			Name: name,
-			Store: cfg,
+	for _, l := range configLocations() {
+		if cfg, err := newFromFile(l); err == nil && cfg != nil {
+			cfg.ImportFunc = askForKeyImport
+			cfg.Version = v
+      color.NoColor = cfg.NoColor
+			return &Action{
+				Name:  name,
+				Store: cfg,
+			}
 		}
 	}
 

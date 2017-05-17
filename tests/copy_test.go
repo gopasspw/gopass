@@ -38,10 +38,10 @@ func TestCopy(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "", out)
 
-	orig, err := ts.run("show foo/bar")
+	orig, err := ts.run("show -f foo/bar")
 	assert.NoError(t, err)
 
-	copy, err := ts.run("show foo/baz")
+	copy, err := ts.run("show -f foo/baz")
 	assert.NoError(t, err)
 
 	assert.Equal(t, orig, copy)

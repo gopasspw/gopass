@@ -52,6 +52,7 @@ type Store struct {
 	alwaysTrust bool
 	importFunc  ImportCallback
 	fsckFunc    FsckCallback
+	debug       bool
 }
 
 // NewStore creates a new store, copying settings from the given root store
@@ -73,6 +74,7 @@ func NewStore(alias, path string, r *RootStore) (*Store, error) {
 		alwaysTrust: r.AlwaysTrust,
 		importFunc:  r.ImportFunc,
 		fsckFunc:    r.FsckFunc,
+		debug:       r.Debug,
 		recipients:  make([]string, 0, 5),
 	}
 
@@ -126,7 +128,7 @@ func (s *Store) Init(ids ...string) error {
 		return fmt.Errorf("None of the recipients has a secret key. You will not be able to decrypt the secrets you add")
 	}
 
-	if err := s.saveRecipients(); err != nil {
+	if err := s.saveRecipients("Initialized Store for " + strings.Join(s.recipients, ", ")); err != nil {
 		return fmt.Errorf("failed to initialize store: %v", err)
 	}
 
@@ -233,14 +235,14 @@ func (s *Store) Exists(name string) (bool, error) {
 }
 
 // Set encodes and write the ciphertext of one entry to disk
-func (s *Store) Set(name string, content []byte) error {
-	return s.SetConfirm(name, content, nil)
+func (s *Store) Set(name string, content []byte, reason string) error {
+	return s.SetConfirm(name, content, reason, nil)
 }
 
 // SetConfirm encodes and writes the cipertext of one entry to disk. This
 // method can be passed a callback to confirm the recipients immedeately
 // before encryption.
-func (s *Store) SetConfirm(name string, content []byte, cb RecipientCallback) error {
+func (s *Store) SetConfirm(name string, content []byte, reason string, cb RecipientCallback) error {
 	p := s.passfile(name)
 
 	if !strings.HasPrefix(p, s.path) {
@@ -274,7 +276,7 @@ func (s *Store) SetConfirm(name string, content []byte, cb RecipientCallback) er
 		return err
 	}
 
-	if err := s.gitCommit(fmt.Sprintf("Save secret to %s.", name)); err != nil {
+	if err := s.gitCommit(fmt.Sprintf("Save secret to %s: %s", name, reason)); err != nil {
 		if err == ErrGitNotInit {
 			return nil
 		}
@@ -292,7 +294,7 @@ func (s *Store) SetConfirm(name string, content []byte, cb RecipientCallback) er
 			if err == ErrGitNoRemote {
 				msg := "Warning: git has not remote. Ignoring auto-push option\n" +
 					"Run: gopass git remote add origin ..."
-				fmt.Println(color.RedString(msg))
+				fmt.Println(color.YellowString(msg))
 				return nil
 			}
 			return err
@@ -333,7 +335,7 @@ func (s *Store) Copy(from, to string) error {
 	if err != nil {
 		return err
 	}
-	if err := s.Set(to, content); err != nil {
+	if err := s.Set(to, content, fmt.Sprintf("Copied from %s to %s", from, to)); err != nil {
 		return err
 	}
 	return nil
@@ -373,7 +375,7 @@ func (s *Store) Move(from, to string) error {
 	if err != nil {
 		return err
 	}
-	if err := s.Set(to, content); err != nil {
+	if err := s.Set(to, content, fmt.Sprintf("Moved from %s to %s", from, to)); err != nil {
 		return err
 	}
 	if err := s.Delete(from); err != nil {
@@ -398,16 +400,17 @@ func (s *Store) Prune(tree string) error {
 func (s *Store) delete(name string, recurse bool) error {
 	path := s.passfile(name)
 	rf := os.Remove
-	if recurse {
-		path = filepath.Join(s.path, name)
-		rf = os.RemoveAll
-	}
 
 	if !recurse && !fsutil.IsFile(path) {
 		return ErrNotFound
 	}
-	if recurse && !fsutil.IsDir(path) {
-		return ErrNotFound
+
+	if recurse && !fsutil.IsFile(path) {
+		path = filepath.Join(s.path, name)
+		rf = os.RemoveAll
+		if !fsutil.IsDir(path) {
+			return ErrNotFound
+		}
 	}
 
 	if err := rf(path); err != nil {
@@ -454,7 +457,7 @@ func (s *Store) filenameToName(fn string) string {
 }
 
 // reencrypt will re-encrypt all entries for the current recipients
-func (s *Store) reencrypt() error {
+func (s *Store) reencrypt(reason string) error {
 	entries, err := s.List("")
 	if err != nil {
 		return err
@@ -465,7 +468,7 @@ func (s *Store) reencrypt() error {
 			fmt.Printf("Failed to get current value for %s: %s\n", e, err)
 			continue
 		}
-		if err := s.Set(e, content); err != nil {
+		if err := s.Set(e, content, reason); err != nil {
 			fmt.Printf("Failed to write %s: %s\n", e, err)
 		}
 	}

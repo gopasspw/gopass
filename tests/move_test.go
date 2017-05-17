@@ -35,9 +35,9 @@ func TestMove(t *testing.T) {
 	out, err = ts.run("move foo/bar foo/baz")
 	assert.Equal(t, "\nError: Entry is not in the password store\n", out)
 
-	_, err = ts.run("show bar/bar")
+	_, err = ts.run("show -f bar/bar")
 	assert.NoError(t, err)
 
-	_, err = ts.run("show baz")
+	_, err = ts.run("show -f baz")
 	assert.NoError(t, err)
 }

@@ -6,6 +6,7 @@
 
 [![Build Status](https://travis-ci.org/justwatchcom/gopass.svg?branch=master)](https://travis-ci.org/justwatchcom/gopass)
 [![Go Report Card](https://goreportcard.com/badge/github.com/justwatchcom/gopass)](https://goreportcard.com/report/github.com/justwatchcom/gopass)
+[![Code Climate](https://codeclimate.com/github/justwatchcom/gopass/badges/gpa.svg)](https://codeclimate.com/github/justwatchcom/gopass)
 
 The slightly more awesome Standard Unix Password Manager for Teams. Written in Go.
 
@@ -53,6 +54,9 @@ This runs `git clone` in the background and also sets up the `.gopass.yml` if ne
 A second parameter tells gopass to clone and mount it to the store.
 In the example above the repository would have been cloned to `$HOME/.password-store-work`.
 Afterwards the directory would have been mounted as `work`.
+
+Please note that the repository must contain an already initialized password
+store. You can initialize a new store with `gopass init --store /path/to/store`.
 
 ### Adding secrets
 
@@ -140,6 +144,10 @@ Eech4ahRoy2oowi0ohl
 The default action of `gopass` is show. It also accepts the `-c` flag to copy the content of
 the secret directly to the clipboard.
 
+Since it may be dangerous to always display the password on `gopass` calls, the `safecontent` 
+setting may be set to `true` to allow one to display only the rest of the password entries by 
+default and display the whole entry, with password, only when the `-f` flag is used.
+
 #### Copy secret to clipboard
 
 ```bash
@@ -206,15 +214,17 @@ Mounting new stores can be done through gopass:
 
 ```bash
 # Mount a new store
-$ gopass mount test /tmp/password-store-test
+$ gopass mounts add test /tmp/password-store-test
 # Show mounted stores
-$ gopass mount
+$ gopass mounts
 # Umount a store
-$ gopass mount -u test
+$ gopass mounts remove test
 ```
 
 **WARNING**: Initializing new stores while mounting is currently not possible.
 For the time-being you can only mount existing stores.
+
+You can initialize a new store using `gopass init --store /path/to/store`.
 
 ### Edit the Config
 
@@ -239,7 +249,7 @@ $ gopass config cliptimeout
 
 ### Managing Recipients
 
-You can list, add and remove recpients from the commandline.
+You can list, add and remove recipients from the commandline.
 
 ```bash
 $ gopass recipients
@@ -261,6 +271,12 @@ To debug `gopass`, set the environment variable `GOPASS_DEBUG` to `true`.
 ### Disabling Colors
 
 Disabling colors is as simple as `gopass config nocolor true`.
+
+### Password Templates
+
+With gopass you can create templates which are searched when executing `gopass edit` on a new secret. If the folder, or any parent folder, contains a file called `.pass-template` it's parsed as a Go template, executed with the name of the new secret and an auto-generated password and loaded into your `$EDITOR`.
+
+This makes it easy to e.g. generate database passwords or use templates for certain kind of secrets.
 
 ## Known Limitations and Caveats
 
@@ -285,6 +301,12 @@ secrets by checking out old revisions from the repository.
 
 **If you revoke access from a user you SHOULD change all secrets he had access to!**
 
+### Private Keys required
+
+Please note that we try to make it hard to lock yourself out from your secrets.
+To ensure that a user is always able to decrypt his own secrets we require you
+to have at least the public **and** private part of an recipient key available.
+
 ## Installation
 
 You can either use a package manager, download a pre-built binary or install from source. If you have
@@ -302,19 +324,19 @@ $ brew install gopass
 #### Debian and Ubuntu
 
 ```bash
-$ wget https://www.justwatch.com/gopass/releases/1.0.0/gopass_1.0.0_amd64.deb
-$ sudo dpkg -i gopass_1.0.0_amd64.deb
+$ wget https://www.justwatch.com/gopass/releases/1.0.2/gopass_1.0.2_amd64.deb
+$ sudo dpkg -i gopass_1.0.2_amd64.deb
 ```
 
 ### Download
 
-Please visit https://www.justwatch.com/gopass/releases/1.0.0/ for a list of binary releases.
+Please visit https://www.justwatch.com/gopass/releases/1.0.2/ for a list of binary releases.
 
 ### From Source
 
 To get the latest version of pass, run `go get`:
 
-    go get github.com/justwatchcom/gopass
+    go get -u github.com/justwatchcom/gopass
 
 If `$GOPATH/bin` is in your `$PATH`, you can now run `gopass` from anywhere on your system and use this.
 
@@ -334,6 +356,25 @@ autocompletion for subcommands like `gopass show`, `gopass ls` and others.
 
     source <(gopass completion bash)
     source <(gopass completion zsh)
+
+### dmenu support
+
+Out of the box gopass supports [dmenu](http://tools.suckless.org/dmenu/).
+Instead of shipping another bash script we ship dmenu support from within the binary.
+
+If you have dmenu installed on your system simply run:
+
+```bash
+$ gopass completion dmenu
+```
+The first line of your selected secret will be copied to your clipboard.
+
+Maybe you want the password to be written to your selected text field.
+For that add `--type` and make sure _xdotool_ is installed.
+
+```bash
+$ gopass completion dmenu --type
+```
 
 ### Dependencies
 
@@ -473,6 +514,22 @@ The threat model of gopass assumes there are no attackers on your local machine.
 no attempts are taken to verify the integrity of the password store. We plan on using
 signed git commits for this. Anyone with access to the git repository can see which
 secrets are stored inside the store, but not their content.
+
+## Configuration
+
+There are several configuration options available through the command line interface `gopass config`.
+
+| **Option**    | *Type*    | Description |
+| ------------- | --------- | ----------- |
+| `alwaystrust` | `bool`    | Always trust public keys when encrypting. This trades some security against easier use. Use with caution. |
+| `autoimport`  | `bool`    | Import missing keys stored in the pass repo (see `persistkeys`) without asking. |
+| `autopull`    | `bool`    | Always do a `git pull` before a `git push`. Reduces the chance of git rejections. |
+| `autopush`    | `bool`    | Always do a `git push` after a commit to the store. Makes sure your local changes are always available on your git remote. |
+| `cliptimeout` | `int`     | How many seconds the secret is stored when using `-c`. |
+| `loadkeys`    | `bool`    | Import missing keys store in the pass repo (see `persistkeys` and `autoimport`). |
+| `noconfirm`   | `bool`    | Do not confirm recipient list when encrypting. |
+| `path`        | `string`  | Path to the root store. |
+| `persistkeys` | `bool`    | Store every recipients public keys in the store. Makes it easier to set up an new machine or user. |
 
 ## API Stability
 

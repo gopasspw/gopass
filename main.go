@@ -10,6 +10,7 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/action"
+	"github.com/mattn/go-colorable"
 	"github.com/urfave/cli"
 )
 
@@ -36,7 +37,7 @@ func (e errorWriter) Write(p []byte) (int, error) {
 
 func main() {
 	cli.ErrWriter = errorWriter{
-		out: os.Stderr,
+		out: colorable.NewColorableStderr(),
 	}
 
 	cli.VersionPrinter = func(c *cli.Context) {
@@ -85,7 +86,7 @@ func main() {
 	app.Flags = []cli.Flag{
 		cli.BoolFlag{
 			Name:  "clip, c",
-			Usage: "Copy the secret into the clipboard",
+			Usage: "Copy the first line of the secret into the clipboard",
 		},
 	}
 
@@ -113,6 +114,20 @@ func main() {
 				Name:   "zsh",
 				Usage:  "Source for auto completion in zsh",
 				Action: action.CompletionZSH,
+			}, {
+				Name:   "dmenu",
+				Usage:  "Completion output for dmenu",
+				Action: action.CompletionDMenu,
+				Flags: []cli.Flag{
+					cli.BoolFlag{
+						Name:  "type",
+						Usage: "Type the password with xdotool",
+					},
+					cli.StringFlag{
+						Name:  "args",
+						Usage: "Arguments passed to dmenu itself",
+					},
+				},
 			}},
 		},
 		{
@@ -287,7 +302,7 @@ func main() {
 				},
 				cli.BoolFlag{
 					Name:  "force, f",
-					Usage: "Overwrite any existing secret",
+					Usage: "Overwrite any existing secret and do not prompt to confirm recipients",
 				},
 			},
 		},
@@ -381,9 +396,9 @@ func main() {
 		},
 		{
 			Name:  "show",
-			Usage: "Show existing secret and optionally put it on the clipboard.",
+			Usage: "Show existing secret and optionally put its first line on the clipboard.",
 			Description: "" +
-				"Show existing secret and optionally put it on the clipboard. " +
+				"Show existing secret and optionally put its first line on the clipboard. " +
 				"If put on the clipboard, it will be cleared in 45 seconds.",
 			Before:       action.Initialized,
 			Action:       action.Show,
@@ -391,7 +406,42 @@ func main() {
 			Flags: []cli.Flag{
 				cli.BoolFlag{
 					Name:  "clip, c",
-					Usage: "Copy the secret into the clipboard",
+					Usage: "Copy the first line of the secret into the clipboard",
+				},
+				cli.BoolFlag{
+					Name:  "qr",
+					Usage: "Print the first line of the secret as QR Code",
+				},
+				cli.BoolFlag{
+					Name:  "force, f",
+					Usage: "Display the password even if safecontent is enabled",
+				},
+			},
+		},
+		{
+			Name:  "templates",
+			Usage: "List and edit secret templates.",
+			Description: "" +
+				"List existing templates in the password store and allow for editing " +
+				"and creating them.",
+			Before: action.Initialized,
+			Action: action.TemplatesPrint,
+			Subcommands: []cli.Command{
+				{
+					Name:         "edit",
+					Usage:        "Edit secret templates.",
+					Description:  "Edit an existing or new template",
+					Before:       action.Initialized,
+					Action:       action.TemplateEdit,
+					BashComplete: action.TemplatesComplete,
+				},
+				{
+					Name:         "remove",
+					Usage:        "Remove secret templates.",
+					Description:  "Remove an existing template",
+					Before:       action.Initialized,
+					Action:       action.TemplateRemove,
+					BashComplete: action.TemplatesComplete,
 				},
 			},
 		},

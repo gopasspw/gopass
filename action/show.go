@@ -6,12 +6,17 @@ import (
 
 	"github.com/atotto/clipboard"
 	"github.com/fatih/color"
+	"github.com/justwatchcom/gopass/qrcon"
 	"github.com/urfave/cli"
 )
 
 // Show the content of a secret file
 func (s *Action) Show(c *cli.Context) error {
 	name := c.Args().First()
+	clip := c.Bool("clip")
+	force := c.Bool("force")
+	qr := c.Bool("qr")
+
 	if name == "" {
 		return fmt.Errorf("provide a secret name")
 	}
@@ -20,13 +25,34 @@ func (s *Action) Show(c *cli.Context) error {
 		return s.List(c)
 	}
 
+	if clip || qr {
+		content, err := s.Store.First(name)
+		if err != nil {
+			return err
+		}
+
+		if qr {
+			qr, err := qrcon.QRCode(string(content))
+			if err != nil {
+				return err
+			}
+			fmt.Println(qr)
+			return nil
+		}
+		return s.copyToClipboard(name, content)
+	}
+
 	content, err := s.Store.Get(name)
 	if err != nil {
 		return err
 	}
 
-	if c.Bool("clip") {
-		return s.copyToClipboard(name, content)
+	if s.Store.SafeContent && !force {
+		lines := bytes.SplitN(content, []byte("\n"), 2)
+		if len(lines) < 2 || len(bytes.TrimSpace(lines[1])) == 0 {
+			return fmt.Errorf("no safe content to display, you can force display with show -f")
+		}
+		content = lines[1]
 	}
 
 	color.Yellow(string(content))
@@ -35,21 +61,14 @@ func (s *Action) Show(c *cli.Context) error {
 }
 
 func (s *Action) copyToClipboard(name string, content []byte) error {
-	content = bytes.TrimSpace(content)
-
-	// only copy the first line to the clipboard
-	lines := bytes.Split(content, []byte("\n"))
-	if len(lines) < 1 {
-		return fmt.Errorf("no content that can be copied to the clipboard")
-	}
-	line := lines[0]
-
-	if err := clipboard.WriteAll(string(line)); err != nil {
+	if err := clipboard.WriteAll(string(content)); err != nil {
 		return err
 	}
-	if err := clearClipboard(line, s.Store.ClipTimeout); err != nil {
+
+	if err := clearClipboard(content, s.Store.ClipTimeout); err != nil {
 		return err
 	}
+
 	fmt.Printf("Copied %s to clipboard. Will clear in %d seconds.\n", color.YellowString(name), s.Store.ClipTimeout)
 	return nil
 }
