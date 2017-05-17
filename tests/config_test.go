@@ -21,6 +21,7 @@ func TestConfig(t *testing.T) {
 	assert.Contains(t, out, "noconfirm: true")
 	assert.Contains(t, out, "path: ")
 	assert.Contains(t, out, "persistkeys: true")
+	assert.Contains(t, out, "safecontent: true")
 
 	invertables := []string{
 		"alwaystrust",
@@ -30,6 +31,7 @@ func TestConfig(t *testing.T) {
 		"loadkeys",
 		"noconfirm",
 		"persistkeys",
+		"safecontent",
 	}
 
 	for _, invert := range invertables {

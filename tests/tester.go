@@ -23,7 +23,8 @@ autopush: true
 cliptimeout: 45
 loadkeys: true
 noconfirm: true
-persistkeys: true`
+persistkeys: true
+safecontent: true`
 )
 
 type tester struct {
@@ -164,5 +165,8 @@ func (ts *tester) initializeSecrets() {
 	require.NoError(ts.t, err, "failed to generate password:\n%s", out)
 
 	out, err = ts.runCmd([]string{ts.Binary, "insert", "fixed/secret"}, []byte("moar"))
+	require.NoError(ts.t, err, "failed to insert password:\n%s", out)
+
+	out, err = ts.runCmd([]string{ts.Binary, "insert", "fixed/twoliner"}, []byte("and\nmore stuff"))
 	require.NoError(ts.t, err, "failed to insert password:\n%s", out)
 }

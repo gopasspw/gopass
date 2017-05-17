@@ -25,6 +25,7 @@ type RootStore struct {
 	LoadKeys    bool              `json:"loadkeys"`    // load missing keys from store
 	ClipTimeout int               `json:"cliptimeout"` // clear clipboard after seconds
 	Path        string            `json:"path"`        // path to the root store
+	SafeContent bool              `json:"safecontent"` // avoid showing passwords in terminal
 	Mount       map[string]string `json:"mounts,omitempty"`
 	Version     string            `json:"version"`
 	ImportFunc  ImportCallback    `json:"-"`

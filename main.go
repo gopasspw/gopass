@@ -412,6 +412,10 @@ func main() {
 					Name:  "qr",
 					Usage: "Print the first line of the secret as QR Code",
 				},
+				cli.BoolFlag{
+					Name:  "force, f",
+					Usage: "Display the password even if safecontent is enabled",
+				},
 			},
 		},
 		{
