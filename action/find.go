@@ -17,8 +17,9 @@ func (s *Action) Find(c *cli.Context) error {
 	if err != nil {
 		return err
 	}
+	needle := strings.ToLower(c.Args().First())
 	for _, value := range l {
-		if strings.Contains(value, c.Args().First()) {
+		if strings.Contains(strings.ToLower(value), needle) {
 			fmt.Println(value)
 		}
 	}
