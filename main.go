@@ -415,6 +415,33 @@ func main() {
 			},
 		},
 		{
+			Name:  "templates",
+			Usage: "List and edit secret templates.",
+			Description: "" +
+				"List existing templates in the password store and allow for editing " +
+				"and creating them.",
+			Before: action.Initialized,
+			Action: action.TemplatesPrint,
+			Subcommands: []cli.Command{
+				{
+					Name:         "edit",
+					Usage:        "Edit secret templates.",
+					Description:  "Edit an existing or new template",
+					Before:       action.Initialized,
+					Action:       action.TemplateEdit,
+					BashComplete: action.TemplatesComplete,
+				},
+				{
+					Name:         "remove",
+					Usage:        "Remove secret templates.",
+					Description:  "Remove an existing template",
+					Before:       action.Initialized,
+					Action:       action.TemplateRemove,
+					BashComplete: action.TemplatesComplete,
+				},
+			},
+		},
+		{
 			Name:        "unclip",
 			Usage:       "Internal command to clear clipboard",
 			Description: "Clear the clipboard if the content matches the checksum",
