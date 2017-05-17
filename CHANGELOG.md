@@ -1,3 +1,15 @@
+## Next Release
+
+* [FEATURE] Support templates [#1]
+* [FEATURE] QR Code output [#64]
+* [ENHANCEMENT] Make find compare case insenstive [#108]
+* [ENHANCEMENT] Enforce UNIX style line endings [#105]
+* [ENHANCEMENT] Use XDG_CONFIG_HOME [#67]
+* [ENHANCEMENT] Support symlinks [#41]
+* [ENHANCEMENT] Add nocolor config flag [#33]
+* [ENHANCEMENT] Accept args for editor [#30]
+* [BUGFIX] Build fixes for Windwos [#14]
+
 ## 1.0.2 / 2017-03-24
 
 * [ENHANCEMENT] Improve mounts and init commands [#87]

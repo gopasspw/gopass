@@ -5,7 +5,7 @@ VERSION=$(cat VERSION)
 DIR=$(pwd)
 
 RELDIR=${PWD}/releases/gopass/${VERSION}
-mkdir -p ${RELDIR}
+mkdir -p "${RELDIR}"
 
 # Prepare completion
 make completion
@@ -15,14 +15,14 @@ make clean
 
 # Create source tarball
 echo "Creating source tarball ..."
-rsync --exclude=".git" --exclude="releases/" -a . /tmp/gopass-${VERSION}/ \
+rsync --exclude=".git" --exclude="releases/" -a . "/tmp/gopass-${VERSION}/" \
   && cd /tmp \
-  && echo ${COMMIT} >/tmp/gopass-${VERSION}/COMMIT \
-  && tar -czf gopass-${VERSION}.tar.gz gopass-${VERSION}/ \
-  && mv /tmp/gopass-${VERSION}.tar.gz ${RELDIR}/gopass-${VERSION}.tar.gz \
-  && rm -rf /tmp/gopass-${VERSION}
+  && echo "${COMMIT}" >"/tmp/gopass-${VERSION}/COMMIT" \
+  && tar -czf "gopass-${VERSION}.tar.gz gopass-${VERSION}/" \
+  && mv "/tmp/gopass-${VERSION}.tar.gz" "${RELDIR}/gopass-${VERSION}.tar.gz" \
+  && rm -rf "/tmp/gopass-${VERSION}"
 
-cd $DIR
+cd "$DIR"
 
 # Cross-compile binaries
 for TARGET in \
@@ -45,15 +45,16 @@ for TARGET in \
   openbsd/386 \
   openbsd/amd64 \
 ; do
-  export GOOS=$(echo $TARGET | cut -d'/' -f1)
-  export GOARCH=$(echo $TARGET | cut -d'/' -f2)
+  GOOS=$(echo $TARGET | cut -d'/' -f1)
+  GOARCH=$(echo $TARGET | cut -d'/' -f2)
+  export GOOS GOARCH
   echo "Cross-Compiling for ${GOOS}/${GOARCH}"
-  rm -rf gopass-${VERSION}/
+  rm -rf "gopass-${VERSION}/"
   make build && \
-    mkdir gopass-${VERSION} && \
-    cp gopass-${GOOS}-${GOARCH} gopass-${VERSION}/gopass && \
-    tar -czf ${RELDIR}/gopass-${VERSION}-${GOOS}-${GOARCH}.tar.gz gopass-${VERSION}/ && \
-    rm -rf gopass-${VERSION}
+    mkdir "gopass-${VERSION}" && \
+    cp "gopass-${GOOS}-${GOARCH}" "gopass-${VERSION}/gopass" && \
+    tar -czf "${RELDIR}/gopass-${VERSION}-${GOOS}-${GOARCH}.tar.gz" "gopass-${VERSION}/" && \
+    rm -rf "gopass-${VERSION}"
 done
 
 # Build Linux distro packages
@@ -70,24 +71,24 @@ for TARGET in \
   echo "Building package for ${FLAVOR}/${ARCH}"
   fpm \
     -s dir \
-    -t $FLAVOR \
-    -a $ARCH \
+    -t "${FLAVOR}" \
+    -a "${ARCH}" \
     -n gopass \
-    -v ${VERSION} \
+    -v "${VERSION}" \
     -d git \
     -d gnupg \
     --license MIT \
     -m gopass@justwatch.com \
     --url https://www.justwatch.com/gopass \
-    -p ${RELDIR} \
-    gopass-linux-${ARCH}=/usr/bin/gopass
+    -p "${RELDIR}" \
+    "gopass-linux-${ARCH}=/usr/bin/gopass"
 done
 
-cd $DIR
+cd "$DIR"
 # Generate SHA256SUMS
-cd ${RELDIR} && \
-  sha256sum * >gopass_${VERSION}_SHA256SUMS
+cd "${RELDIR}" && \
+  sha256sum ./* >"gopass_${VERSION}_SHA256SUMS"
 
-cd $DIR
+cd "$DIR"
 # Clean up
 make clean
