@@ -84,7 +84,7 @@ func (s *Action) CompletionDMenu(c *cli.Context) error {
 	}
 
 	if typeit {
-		return exec.Command("xdotool", "type", "--clearmodifiers", string(content)).Run()
+		return exec.Command("xdotool", "type", "--clearmodifiers", "--", string(content)).Run()
 	}
 
 	return s.copyToClipboard(name, content)
