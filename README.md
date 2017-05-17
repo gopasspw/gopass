@@ -264,6 +264,14 @@ gopass
 └── 0xB5B44266A3683834 - Gopher <gopher@golang.org>
 ```
 
+### Debugging
+
+To debug `gopass`, set the environment variable `GOPASS_DEBUG` to `true`.
+
+### Disabling Colors
+
+Disabling colors is as simple as `gopass config nocolor true`.
+
 ### Password Templates
 
 With gopass you can create templates which are searched when executing `gopass edit` on a new secret. If the folder, or any parent folder, contains a file called `.pass-template` it's parsed as a Go template, executed with the name of the new secret and an auto-generated password and loaded into your `$EDITOR`.
