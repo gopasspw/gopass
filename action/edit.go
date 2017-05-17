@@ -8,11 +8,10 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/justwatchcom/gopass/pwgen"
-	"github.com/justwatchcom/gopass/tpl"
-
 	"github.com/justwatchcom/gopass/fsutil"
 	"github.com/justwatchcom/gopass/password"
+	"github.com/justwatchcom/gopass/pwgen"
+	"github.com/justwatchcom/gopass/tpl"
 	shellquote "github.com/kballard/go-shellquote"
 	"github.com/urfave/cli"
 )
@@ -39,7 +38,7 @@ func (s *Action) Edit(c *cli.Context) error {
 	} else if tmpl, found := s.Store.LookupTemplate(name); found {
 		changed = true
 		// load template if it exists
-		content = pwgen.GeneratePassword(24, false)
+		content = pwgen.GeneratePassword(defaultLength, false)
 		if nc, err := tpl.Execute(string(tmpl), name, content, s.Store); err == nil {
 			content = nc
 		} else {
