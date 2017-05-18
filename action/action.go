@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"golang.org/x/crypto/ssh/terminal"
+
 	"github.com/fatih/color"
 	"github.com/ghodss/yaml"
 	"github.com/justwatchcom/gopass/fsutil"
@@ -43,6 +45,10 @@ func New(v string) *Action {
 			if nc := os.Getenv("GOPASS_NOCOLOR"); nc == "true" {
 				color.NoColor = true
 			}
+			// only emit color codes when stdout is a terminal
+			if !terminal.IsTerminal(int(os.Stdout.Fd())) {
+				color.NoColor = true
+			}
 			return &Action{
 				Name:  name,
 				Store: cfg,
@@ -61,6 +67,9 @@ func New(v string) *Action {
 	color.NoColor = cfg.NoColor
 	// need this override for our integration tests
 	if nc := os.Getenv("GOPASS_NOCOLOR"); nc == "true" {
+		color.NoColor = true
+	}
+	if !terminal.IsTerminal(int(os.Stdout.Fd())) {
 		color.NoColor = true
 	}
 
