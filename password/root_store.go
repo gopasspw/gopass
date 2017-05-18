@@ -113,10 +113,7 @@ func (r *RootStore) UnmarshalJSON(b []byte) error {
 		return err
 	}
 	*r = RootStore(s)
-	if err := r.init(); err != nil {
-		return err
-	}
-	return nil
+	return r.init()
 }
 
 // Initialized checks on disk if .gpg-id was generated and thus returns true.
@@ -150,11 +147,9 @@ func (r *RootStore) AddMount(alias, path string, keys ...string) error {
 		return err
 	}
 	r.Mount[alias] = path
+
 	// check for duplicate mounts
-	if err := r.checkMounts(); err != nil {
-		return err
-	}
-	return nil
+	return r.checkMounts()
 }
 
 func (r *RootStore) addMount(alias, path string, keys ...string) error {

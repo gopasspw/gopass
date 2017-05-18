@@ -72,5 +72,4 @@ func (s *Action) TemplatesComplete(*cli.Context) {
 	for _, v := range tree.List() {
 		fmt.Println(v)
 	}
-	return
 }

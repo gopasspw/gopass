@@ -391,11 +391,7 @@ func Encrypt(path string, content []byte, recipients []string, alwaysTrust bool)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
-	if err := cmd.Run(); err != nil {
-		return err
-	}
-
-	return nil
+	return cmd.Run()
 }
 
 // Decrypt will try to decrypt the given file

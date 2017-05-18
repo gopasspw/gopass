@@ -41,7 +41,7 @@ func TestConfig(t *testing.T) {
 
 		out, err = ts.run("config " + invert)
 		assert.NoError(t, err)
-		assert.Equal(t, ""+invert+": false", out)
+		assert.Equal(t, invert+": false", out)
 	}
 
 	out, err = ts.run("config cliptimeout 120")

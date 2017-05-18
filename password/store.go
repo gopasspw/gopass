@@ -178,16 +178,11 @@ func mkStoreWalkerFunc(alias, folder string, fn func(...string)) func(string, os
 func (s *Store) List(prefix string) ([]string, error) {
 	lst := make([]string, 0, 10)
 	addFunc := func(in ...string) {
-		for _, s := range in {
-			lst = append(lst, s)
-		}
+		lst = append(lst, in...)
 	}
 
-	if err := filepath.Walk(s.path, mkStoreWalkerFunc(prefix, s.path, addFunc)); err != nil {
-		return lst, err
-	}
-
-	return lst, nil
+	err := filepath.Walk(s.path, mkStoreWalkerFunc(prefix, s.path, addFunc))
+	return lst, err
 }
 
 // equals returns true if this store has the same on-disk path as the other

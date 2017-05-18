@@ -49,7 +49,6 @@ func (s *Action) RecipientsComplete(*cli.Context) {
 	for _, v := range tree.List() {
 		fmt.Println(v)
 	}
-	return
 }
 
 // RecipientsAdd adds new recipients

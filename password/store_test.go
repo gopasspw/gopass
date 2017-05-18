@@ -50,10 +50,8 @@ func createStore(dir string) ([]string, []string, error) {
 			return recipients, list, err
 		}
 	}
-	if err := ioutil.WriteFile(filepath.Join(dir, gpgID), []byte(strings.Join(recipients, "\n")), 0600); err != nil {
-		return recipients, list, err
-	}
-	return recipients, list, nil
+	err := ioutil.WriteFile(filepath.Join(dir, gpgID), []byte(strings.Join(recipients, "\n")), 0600)
+	return recipients, list, err
 }
 
 func maxLenStr(l []string) string {
@@ -109,18 +107,22 @@ func TestSimpleList(t *testing.T) {
 	defer func() {
 		_ = os.RemoveAll(tempdir)
 	}()
+
 	_, ents, err := createStore(tempdir)
+	if err != nil {
+		t.Fatalf("Failed to create store directory: %s", err)
+	}
+
 	rs, err := NewRootStore(tempdir)
 	if err != nil {
 		t.Fatalf("Failed to create root store: %s", err)
 	}
-	if err != nil {
-		t.Fatalf("failed to create root store: %s", err)
-	}
+
 	tree, err := rs.Tree()
 	if err != nil {
 		t.Fatalf("failed to list tree: %s", err)
 	}
+
 	compareLists(t, ents, tree.List())
 }
 
@@ -132,11 +134,13 @@ func TestListMulti(t *testing.T) {
 	defer func() {
 		_ = os.RemoveAll(tempdir)
 	}()
+
 	// root store
 	_, ents, err := createStore(tempdir + "/root")
 	if err != nil {
 		t.Fatalf("Failed to init root store: %s", err)
 	}
+
 	// sub1 store
 	_, sub1Ent, err := createStore(tempdir + "/sub1")
 	if err != nil {
@@ -145,6 +149,7 @@ func TestListMulti(t *testing.T) {
 	for _, k := range sub1Ent {
 		ents = append(ents, "sub1/"+k)
 	}
+
 	// sub2 store
 	_, sub2Ent, err := createStore(tempdir + "/sub2")
 	if err != nil {

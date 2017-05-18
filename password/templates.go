@@ -103,9 +103,7 @@ func mkTemplateStoreWalkerFunc(alias, folder string, fn func(...string)) func(st
 func (s *Store) ListTemplates(prefix string) []string {
 	lst := make([]string, 0, 10)
 	addFunc := func(in ...string) {
-		for _, s := range in {
-			lst = append(lst, s)
-		}
+		lst = append(lst, in...)
 	}
 
 	if err := filepath.Walk(s.path, mkTemplateStoreWalkerFunc(prefix, s.path, addFunc)); err != nil {
