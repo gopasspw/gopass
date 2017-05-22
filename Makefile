@@ -45,7 +45,7 @@ fmt:
 	$(GO) fmt $(PACKAGES)
 
 .PHONY: tests
-tests: test vet lint errcheck
+tests: test vet lint errcheck megacheck
 
 .PHONY: vet
 vet:
@@ -64,6 +64,13 @@ errcheck:
 		$(GO) get -u github.com/kisielk/errcheck; \
 	fi
 	for PKG in $(PACKAGES); do errcheck $$PKG || exit 1; done;
+
+.PHONY: megacheck
+megacheck:
+	@which megacheck > /dev/null; if [ $$? -ne 0  ]; then \
+		$(GO) get -u honnef.co/go/tools/cmd/megacheck; \
+	fi
+	for PKG in $(PACKAGES); do megacheck $$PKG || exit 1; done;
 
 .PHONY: test
 test:

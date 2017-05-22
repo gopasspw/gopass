@@ -46,7 +46,6 @@ func (s *Action) MountsComplete(*cli.Context) {
 	for alias := range s.Store.Mount {
 		fmt.Println(alias)
 	}
-	return
 }
 
 // MountAdd adds a new mount

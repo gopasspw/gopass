@@ -29,10 +29,10 @@ func TestMove(t *testing.T) {
 
 	ts.initializeSecrets()
 
-	out, err = ts.run("move foo bar")
+	_, err = ts.run("move foo bar")
 	assert.NoError(t, err)
 
-	out, err = ts.run("move foo/bar foo/baz")
+	out, _ = ts.run("move foo/bar foo/baz")
 	assert.Equal(t, "\nError: Entry is not in the password store\n", out)
 
 	_, err = ts.run("show -f bar/bar")
