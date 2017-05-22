@@ -48,7 +48,7 @@ func (s *Action) Show(c *cli.Context) error {
 		if err != password.ErrNotFound {
 			return err
 		}
-		color.Yellow("Entry '%s' not found. Starting search ...", name)
+		color.Yellow("Entry '%s' not found. Starting search...", name)
 		return s.Find(c)
 	}
 
