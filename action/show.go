@@ -6,6 +6,7 @@ import (
 
 	"github.com/atotto/clipboard"
 	"github.com/fatih/color"
+	"github.com/justwatchcom/gopass/password"
 	"github.com/justwatchcom/gopass/qrcon"
 	"github.com/urfave/cli"
 )
@@ -44,7 +45,11 @@ func (s *Action) Show(c *cli.Context) error {
 
 	content, err := s.Store.Get(name)
 	if err != nil {
-		return err
+		if err != password.ErrNotFound {
+			return err
+		}
+		color.Yellow("Entry '%s' not found. Starting search...", name)
+		return s.Find(c)
 	}
 
 	if s.Store.SafeContent && !force {
