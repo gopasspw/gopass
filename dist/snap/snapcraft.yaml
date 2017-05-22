@@ -1,0 +1,20 @@
+name: gopass
+version: master
+summary: gopass is a simple but powerful password manager for your terminal
+description: |
+  The slightly more awesome Standard Unix Password Manager for Teams.
+
+grade: devel
+confinement: classic
+
+apps:
+  gopass:
+    command: gopass
+    plugs: [home]
+
+parts:
+  gopass:
+    source: ../../
+    plugin: go
+    go-importpath: github.com/justwatchcom/gopass
+    stage-packages: [git, gnupg]
