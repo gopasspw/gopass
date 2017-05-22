@@ -2,6 +2,8 @@
 
 * [FEATURE] Support templates [#1]
 * [FEATURE] QR Code output [#64]
+* [ENHANCEMENT] If entry was not found start search [#109]
+* [ENHANCEMENT] Do not write color codes unless terminal [#111]
 * [ENHANCEMENT] Make find compare case insenstive [#108]
 * [ENHANCEMENT] Enforce UNIX style line endings [#105]
 * [ENHANCEMENT] Use XDG_CONFIG_HOME [#67]
