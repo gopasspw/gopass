@@ -325,6 +325,19 @@ func (r *RootStore) First(name string) ([]byte, error) {
 	return bytes.TrimSpace(lines[0]), nil
 }
 
+// Metadata returns the content of a single entry except of the first line (the password)
+func (r *RootStore) Metadata(name string) ([]byte, error) {
+	content, err := r.Get(name)
+	if err != nil {
+		return nil, err
+	}
+	lines := bytes.SplitN(content, []byte("\n"), 2)
+	if len(lines) < 2 || len(bytes.TrimSpace(lines[1])) == 0 {
+		return nil, fmt.Errorf("no safe content to display, you can force display with show -f")
+	}
+	return lines[1], nil
+}
+
 // Exists checks the existence of a single entry
 func (r *RootStore) Exists(name string) (bool, error) {
 	store := r.getStore(name)

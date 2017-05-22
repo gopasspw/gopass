@@ -416,6 +416,10 @@ func main() {
 					Name:  "force, f",
 					Usage: "Display the password even if safecontent is enabled",
 				},
+				cli.StringFlag{
+					Name:  "key, k",
+					Usage: "Load secret metadata as YAML and display a single key",
+				},
 			},
 		},
 		{
