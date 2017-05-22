@@ -1,7 +1,6 @@
 package action
 
 import (
-	"bytes"
 	"fmt"
 
 	"github.com/atotto/clipboard"
@@ -32,8 +31,8 @@ func (s *Action) Show(c *cli.Context) error {
 		return err
 	}
 
-	// if we only want to display safe contnt or if we want parse the secret as yaml strip the first line
-	if (s.Store.SafeContent && !force) || key != "" {
+	// load metadata if we want to parse the YAML (key is given) or we only want to display safe content (=metadata) and no clip/qr flag is given
+	if key != "" || (s.Store.SafeContent && !force && !(clip || qr)) {
 		content, err = s.Store.Metadata(name)
 		if err != nil {
 			return err

@@ -333,7 +333,7 @@ func (r *RootStore) Metadata(name string) ([]byte, error) {
 	}
 	lines := bytes.SplitN(content, []byte("\n"), 2)
 	if len(lines) < 2 || len(bytes.TrimSpace(lines[1])) == 0 {
-		return nil, fmt.Errorf("no safe content to display, you can force display with show -f")
+		return nil, fmt.Errorf("no metadata found")
 	}
 	return lines[1], nil
 }
