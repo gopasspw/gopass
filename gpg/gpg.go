@@ -220,87 +220,6 @@ func parseInt(str string) int {
 	return i
 }
 
-// Key is a GPG key (public or secret)
-type Key struct {
-	KeyType        string
-	KeyLength      int
-	Validity       string
-	CreationDate   time.Time
-	ExpirationDate time.Time
-	Ownertrust     string
-	Fingerprint    string
-	Identities     map[string]Identity
-	SubKeys        map[string]struct{}
-}
-
-// IsUseable returns true if GPG would assume this key is useable for encryption
-func (k Key) IsUseable() bool {
-	if !k.ExpirationDate.IsZero() && k.ExpirationDate.Before(time.Now()) {
-		return false
-	}
-	switch k.Validity {
-	case "m":
-		return true
-	case "f":
-		return true
-	case "u":
-		return true
-	}
-	return false
-}
-
-// String implement fmt.Stringer. This method produces output that is close to, but
-// not exactly the same, as the output form GPG itself
-func (k Key) String() string {
-	fp := ""
-	if len(k.Fingerprint) > 24 {
-		fp = k.Fingerprint[24:]
-	}
-	out := fmt.Sprintf("%s   %dD/0x%s %s", k.KeyType, k.KeyLength, fp, k.CreationDate.Format("2006-01-02"))
-	if !k.ExpirationDate.IsZero() {
-		out += fmt.Sprintf(" [expires: %s]", k.ExpirationDate.Format("2006-01-02"))
-	}
-	out += "\n      Key fingerprint = " + k.Fingerprint
-	for _, id := range k.Identities {
-		out += fmt.Sprintf("\n" + id.String())
-	}
-	return out
-}
-
-// OneLine prints a terse representation of this key on one line (includes only
-// the first identity!)
-func (k Key) OneLine() string {
-	id := Identity{}
-	for _, i := range k.Identities {
-		id = i
-		break
-	}
-	return fmt.Sprintf("0x%s - %s", k.Fingerprint[24:], id.ID())
-}
-
-// Identity is a GPG identity, one key can have many IDs
-type Identity struct {
-	Name    string
-	Comment string
-	Email   string
-}
-
-// ID returns the GPG ID format
-func (i Identity) ID() string {
-	out := i.Name
-	if i.Comment != "" {
-		out += " (" + i.Comment + ")"
-	}
-	out += " <" + i.Email + ">"
-	return out
-}
-
-// String implement fmt.Stringer. This method resembels the output gpg uses
-// for user-ids
-func (i Identity) String() string {
-	return "uid                            " + i.ID()
-}
-
 // listKey lists all keys of the given type and matching the search strings
 func listKeys(typ string, search ...string) (KeyList, error) {
 	args := []string{"--with-colons", "--with-fingerprint", "--fixed-list-mode", "--list-" + typ + "-keys"}
@@ -335,7 +254,7 @@ func GetRecipients(file string) ([]string, error) {
 	_ = os.Setenv("LANGUAGE", "C")
 	recp := make([]string, 0, 5)
 
-	args := []string{"--batch", "--list-only", "--no-default-keyring", "--secret-keyring", "/dev/null", file}
+	args := []string{"--batch", "--list-only", "--list-packets", "--no-default-keyring", "--secret-keyring", "/dev/null", file}
 	cmd := exec.Command(GPGBin, args...)
 	if Debug {
 		fmt.Printf("gpg.GetRecipients: %s %+v\n", cmd.Path, cmd.Args)
@@ -348,21 +267,32 @@ func GetRecipients(file string) ([]string, error) {
 	scanner := bufio.NewScanner(bytes.NewBuffer(out))
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
-		if !strings.HasPrefix(line, "gpg:") {
+		if Debug {
+			fmt.Printf("gpg Out: %s\n", line)
+		}
+		if !strings.HasPrefix(line, ":pubkey enc packet:") {
 			continue
 		}
-		p := strings.Split(line, ",")
-		if len(p) < 2 {
-			continue
+		m := splitPacket(line)
+		if keyid, found := m["keyid"]; found {
+			recp = append(recp, keyid)
 		}
-		p = strings.Split(strings.TrimSpace(p[1]), " ")
-		if len(p) < 2 {
-			continue
-		}
-		recp = append(recp, p[1])
 	}
 
 	return recp, nil
+}
+
+func splitPacket(in string) map[string]string {
+	m := make(map[string]string, 3)
+	p := strings.Split(in, ":")
+	if len(p) < 3 {
+		return m
+	}
+	p = strings.Split(strings.TrimSpace(p[2]), " ")
+	for i := 0; i+1 < len(p); i += 2 {
+		m[p[i]] = p[i+1]
+	}
+	return m
 }
 
 // Encrypt will encrypt the given content for the recipients. If alwaysTrust is true

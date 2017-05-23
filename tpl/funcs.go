@@ -22,19 +22,19 @@ func md5sum() func(...string) (string, error) {
 
 func sha1sum() func(...string) (string, error) {
 	return func(s ...string) (string, error) {
-		if len(s) < 2 {
-			return "", nil
-		}
-		return fmt.Sprintf("%x", sha1.Sum([]byte(s[1]))), nil
+		return fmt.Sprintf("%x", sha1.Sum([]byte(s[0]))), nil
 	}
 }
 
 func get(kv kvstore) func(...string) (string, error) {
 	return func(s ...string) (string, error) {
-		if len(s) < 2 {
+		if len(s) < 1 {
 			return "", nil
 		}
-		buf, err := kv.Get(s[1])
+		if kv == nil {
+			return "", fmt.Errorf("KV is nil")
+		}
+		buf, err := kv.Get(s[0])
 		return string(buf), err
 	}
 }

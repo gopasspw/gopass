@@ -65,3 +65,23 @@ func IsFile(path string) bool {
 
 	return fi.Mode().IsRegular()
 }
+
+// IsEmptyDir checks if a certain path is an empty directory
+func IsEmptyDir(path string) (bool, error) {
+	empty := true
+	if err := filepath.Walk(path, func(fp string, fi os.FileInfo, ferr error) error {
+		if ferr != nil {
+			return ferr
+		}
+		if fi.IsDir() && (fi.Name() == "." || fi.Name() == "..") {
+			return filepath.SkipDir
+		}
+		if fi.Mode().IsRegular() {
+			empty = false
+		}
+		return nil
+	}); err != nil {
+		return false, err
+	}
+	return empty, nil
+}
