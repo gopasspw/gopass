@@ -35,7 +35,10 @@ func get(kv kvstore) func(...string) (string, error) {
 			return "", fmt.Errorf("KV is nil")
 		}
 		buf, err := kv.Get(s[0])
-		return string(buf), err
+		if err != nil {
+			return err.Error(), nil
+		}
+		return string(buf), nil
 	}
 }
 
