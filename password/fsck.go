@@ -23,7 +23,6 @@ func (s *Store) Fsck(prefix string, check, force bool) (map[string]uint64, error
 	countFn := func(t string) {
 		counts[t]++
 	}
-	fmt.Printf("FsckFunc: %s\n", s.fsckFunc)
 	if err := filepath.Walk(s.path, s.mkStoreWalkerFsckFunc(prefix, check, force, storeRec, s.fsckFunc, countFn)); err != nil {
 		return counts, err
 	}

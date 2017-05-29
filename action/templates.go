@@ -34,7 +34,7 @@ func (s *Action) TemplatesPrint(c *cli.Context) error {
 	return nil
 }
 
-// TemplateShow will lookup and print a single template
+// TemplatePrint will lookup and print a single template
 func (s *Action) TemplatePrint(c *cli.Context) error {
 	name := c.Args().First()
 
