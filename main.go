@@ -428,9 +428,19 @@ func main() {
 			Action: action.TemplatesPrint,
 			Subcommands: []cli.Command{
 				{
+					Name:         "show",
+					Usage:        "Show a secret template.",
+					Description:  "Dispaly an existing template",
+					Aliases:      []string{"cat"},
+					Before:       action.Initialized,
+					Action:       action.TemplatePrint,
+					BashComplete: action.TemplatesComplete,
+				},
+				{
 					Name:         "edit",
 					Usage:        "Edit secret templates.",
 					Description:  "Edit an existing or new template",
+					Aliases:      []string{"create", "new"},
 					Before:       action.Initialized,
 					Action:       action.TemplateEdit,
 					BashComplete: action.TemplatesComplete,

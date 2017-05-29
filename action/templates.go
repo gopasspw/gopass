@@ -7,6 +7,23 @@ import (
 	"github.com/urfave/cli"
 )
 
+const (
+	templateExample = `{{ .Content }}
+
+# This is an example of the availabe template operations
+# Predefined variables:
+# - .Content: The secret payload, usually a generated password
+# - .Name: The name of this secret
+# - .Path: The path to this secret
+# - .Dir: The dir of this secret
+#
+# Available Template functions:
+# - md5sum: e.g. {{ .Content | md5sum }}
+# - sha1sum: e.g. {{ .Content | sha1sum }}
+# - get "key": e.g. {{ get "path/to/some/other/secret" | md5sum }}
+`
+)
+
 // TemplatesPrint will pretty-print a tree of templates
 func (s *Action) TemplatesPrint(c *cli.Context) error {
 	tree, err := s.Store.TemplateTree()
@@ -17,10 +34,24 @@ func (s *Action) TemplatesPrint(c *cli.Context) error {
 	return nil
 }
 
+// TemplatePrint will lookup and print a single template
+func (s *Action) TemplatePrint(c *cli.Context) error {
+	name := c.Args().First()
+
+	content, err := s.Store.GetTemplate(name)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(string(content))
+	return nil
+}
+
 // TemplateEdit will load and existing or new template into an
 // editor
 func (s *Action) TemplateEdit(c *cli.Context) error {
 	name := c.Args().First()
+	// TODO support editing the root template as well
 	if name == "" {
 		return fmt.Errorf("provide a template name")
 	}
@@ -32,6 +63,8 @@ func (s *Action) TemplateEdit(c *cli.Context) error {
 		if err != nil {
 			return err
 		}
+	} else {
+		content = []byte(templateExample)
 	}
 
 	nContent, err := s.editor(content)

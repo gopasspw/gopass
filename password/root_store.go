@@ -441,10 +441,11 @@ func (r *RootStore) Fsck(check, force bool) error {
 	sh := make(map[string]string, 100)
 	for _, alias := range r.mountPoints() {
 		// check sub-store integrity
-		if err := r.mounts[alias].Fsck(check, force); err != nil {
+		counts, err := r.mounts[alias].Fsck(alias, check, force)
+		if err != nil {
 			return err
 		}
-		fmt.Println(color.GreenString("Store %s (%s) OK", alias, r.Mount[alias]))
+		fmt.Println(color.GreenString("[%s] Store (%s) checked (%d OK, %d warnings, %d errors)", alias, r.Mount[alias], counts["ok"], counts["warn"], counts["err"]))
 		// check shadowing
 		lst, err := r.mounts[alias].List(alias)
 		if err != nil {
@@ -458,10 +459,11 @@ func (r *RootStore) Fsck(check, force bool) error {
 		}
 	}
 
-	if err := r.store.Fsck(check, force); err != nil {
+	counts, err := r.store.Fsck("root", check, force)
+	if err != nil {
 		return err
 	}
-	fmt.Println(color.GreenString("Store (%s) OK", r.store.path))
+	fmt.Println(color.GreenString("[%s] Store checked (%d OK, %d warnings, %d errors)", r.store.path, counts["ok"], counts["warn"], counts["err"]))
 	// check shadowing
 	lst, err := r.store.List("")
 	if err != nil {

@@ -25,9 +25,10 @@ func (r *RootStore) LookupTemplate(name string) ([]byte, bool) {
 
 // LookupTemplate will lookup and return a template
 func (s *Store) LookupTemplate(name string) ([]byte, bool) {
+	// chop off one path element until we find something
 	for {
-		if !strings.Contains(name, string(filepath.Separator)) {
-			return []byte{}, false
+		if name == "" {
+			break
 		}
 		name = filepath.Dir(name)
 		tpl := filepath.Join(s.path, name, TemplateFile)
@@ -37,6 +38,7 @@ func (s *Store) LookupTemplate(name string) ([]byte, bool) {
 			}
 		}
 	}
+	return []byte{}, false
 }
 
 // TemplateTree returns a tree of all templates
@@ -53,8 +55,7 @@ func (r *RootStore) TemplateTree() (*tree.Folder, error) {
 			return nil, fmt.Errorf("failed to add mount: %s", err)
 		}
 		for _, t := range substore.ListTemplates(alias) {
-			// TODO(dschulz) maybe: if err := root.AddFile(t); err != nil {
-			if err := root.AddFile(alias + "/" + t); err != nil {
+			if err := root.AddFile(t); err != nil {
 				fmt.Println(err)
 			}
 		}
@@ -90,7 +91,11 @@ func mkTemplateStoreWalkerFunc(alias, folder string, fn func(...string)) func(st
 			return nil
 		}
 		s := strings.TrimPrefix(path, folder+"/")
-		s = strings.TrimSuffix(s, "/"+TemplateFile)
+		s = strings.TrimSuffix(s, TemplateFile)
+		s = strings.TrimSuffix(s, "/")
+		if s == "" {
+			s = "default"
+		}
 		if alias != "" {
 			s = alias + "/" + s
 		}
