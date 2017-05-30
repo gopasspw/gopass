@@ -27,7 +27,7 @@ func (r *RootStore) LookupTemplate(name string) ([]byte, bool) {
 func (s *Store) LookupTemplate(name string) ([]byte, bool) {
 	// chop off one path element until we find something
 	for {
-		if name == "" {
+		if name == "" || name == "/" {
 			break
 		}
 		name = filepath.Dir(name)
