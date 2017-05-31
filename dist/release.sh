@@ -1,26 +1,31 @@
 #!/bin/bash
+set -e
 
 COMMIT=$(git rev-parse --short=8 HEAD)
 VERSION=$(cat VERSION)
 DIR=$(pwd)
 
 RELDIR=${PWD}/releases/gopass/${VERSION}
-mkdir -p "${RELDIR}"
 
 # Prepare completion
 make completion
 
-# Build a source tarball
+# Clean up
 make clean
+rm -rf "${RELDIR:?}/"
+mkdir -p "${RELDIR}"
 
 # Create source tarball
-echo "Creating source tarball ..."
-rsync --exclude=".git" --exclude="releases/" -a . "/tmp/gopass-${VERSION}/" \
+echo "Creating source tarball ..." \
+  && rm -f "/tmp/gopass-${VERSION}.tar.gz" \
+  && rm -rf "/tmp/gopass-${VERSION}/" \
+  && rsync --exclude=".git" --exclude="releases/" -a . "/tmp/gopass-${VERSION}/" \
   && cd /tmp \
   && echo "${COMMIT}" >"/tmp/gopass-${VERSION}/COMMIT" \
-  && tar -czf "gopass-${VERSION}.tar.gz gopass-${VERSION}/" \
+  && tar -czf "gopass-${VERSION}.tar.gz" "gopass-${VERSION}/" \
   && mv "/tmp/gopass-${VERSION}.tar.gz" "${RELDIR}/gopass-${VERSION}.tar.gz" \
-  && rm -rf "/tmp/gopass-${VERSION}"
+  && rm -rf "/tmp/gopass-${VERSION}" \
+  && echo "Created source tarball ${RELDIR}/gopass-${VERSION}.tar.gz"
 
 cd "$DIR"
 
