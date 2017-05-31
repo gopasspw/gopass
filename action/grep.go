@@ -16,7 +16,7 @@ func (s *Action) Grep(c *cli.Context) error {
 
 	search := c.Args().First()
 
-	l, err := s.Store.List()
+	l, err := s.Store.List(0)
 	if err != nil {
 		return err
 	}

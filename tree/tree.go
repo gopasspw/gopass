@@ -16,12 +16,15 @@ const (
 var (
 	colMount = color.New(color.FgRed, color.Bold).SprintfFunc()
 	colDir   = color.New(color.FgBlue, color.Bold).SprintfFunc()
+	colTpl   = color.New(color.FgGreen, color.Bold).SprintfFunc()
+	colBin   = color.New(color.FgYellow, color.Bold).SprintfFunc()
+	colYaml  = color.New(color.FgCyan, color.Bold).SprintfFunc()
 )
 
 // Entry is any kind of tree node
 type Entry interface {
-	format(string, bool) string
-	list(string) []string
+	format(string, bool, int, int) string
+	list(string, int, int) []string
 	IsFile() bool
 	IsDir() bool
 	IsMount() bool

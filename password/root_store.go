@@ -122,8 +122,8 @@ func (r *RootStore) Initialized() bool {
 }
 
 // Init tries to initalize a new password store location matching the object
-func (r *RootStore) Init(path string, ids ...string) error {
-	sub, err := NewStore("", fsutil.CleanPath(path), r)
+func (r *RootStore) Init(alias, path string, ids ...string) error {
+	sub, err := NewStore(alias, fsutil.CleanPath(path), r)
 	if err != nil {
 		return err
 	}
@@ -167,7 +167,7 @@ func (r *RootStore) addMount(alias, path string, keys ...string) error {
 
 	if !s.Initialized() {
 		if len(keys) < 1 {
-			return fmt.Errorf("password store %s is not initialized. Try gopass init --store %s", alias, path)
+			return fmt.Errorf("password store %s is not initialized. Try gopass init --alias %s --store %s", alias, alias, path)
 		}
 		if err := s.Init(keys...); err != nil {
 			return err
@@ -245,30 +245,47 @@ func (r *RootStore) checkMounts() error {
 }
 
 // Format will pretty print all entries in this store and all substores
-func (r *RootStore) Format() (string, error) {
+func (r *RootStore) Format(maxDepth int) (string, error) {
 	t, err := r.Tree()
 	if err != nil {
 		return "", err
 	}
-	return t.Format(), nil
+	return t.Format(maxDepth), nil
 }
 
 // List will return a flattened list of all tree entries
-func (r *RootStore) List() ([]string, error) {
+func (r *RootStore) List(maxDepth int) ([]string, error) {
 	t, err := r.Tree()
 	if err != nil {
 		return []string{}, err
 	}
-	return t.List(), nil
+	return t.List(maxDepth), nil
 }
 
 // Tree returns the tree representation of the entries
 func (r *RootStore) Tree() (*tree.Folder, error) {
 	root := tree.New("gopass")
-	addFunc := func(in ...string) {
+	addFileFunc := func(in ...string) {
 		for _, f := range in {
-			if err := root.AddFile(f); err != nil {
+			ct := "text/plain"
+			if strings.HasSuffix(f, ".yaml") {
+				ct = "text/yaml"
+				f = strings.TrimSuffix(f, ".yaml")
+			} else if strings.HasSuffix(f, ".b64") {
+				ct = "application/octet-stream"
+				f = strings.TrimSuffix(f, ".b64")
+			}
+			if err := root.AddFile(f, ct); err != nil {
 				fmt.Printf("Failed to add file %s to tree: %s\n", f, err)
+				continue
+			}
+		}
+	}
+	addTplFunc := func(in ...string) {
+		for _, f := range in {
+			if err := root.AddTemplate(f); err != nil {
+				fmt.Printf("Failed to add template %s to tree: %s\n", f, err)
+				continue
 			}
 		}
 	}
@@ -286,14 +303,16 @@ func (r *RootStore) Tree() (*tree.Folder, error) {
 		if err != nil {
 			return nil, fmt.Errorf("failed to add file: %s", err)
 		}
-		addFunc(sf...)
+		addFileFunc(sf...)
+		addTplFunc(substore.ListTemplates(alias)...)
 	}
 
 	sf, err := r.store.List("")
 	if err != nil {
 		return nil, err
 	}
-	addFunc(sf...)
+	addFileFunc(sf...)
+	addTplFunc(r.store.ListTemplates("")...)
 
 	return root, nil
 }
@@ -351,6 +370,9 @@ func (r *RootStore) Copy(from, to string) error {
 	subFrom := r.getStore(from)
 	subTo := r.getStore(to)
 
+	from = strings.TrimPrefix(from, subFrom.alias)
+	to = strings.TrimPrefix(to, subFrom.alias)
+
 	// cross-store copy
 	if !subFrom.equals(subTo) {
 		content, err := subFrom.Get(from)
@@ -363,8 +385,6 @@ func (r *RootStore) Copy(from, to string) error {
 		return nil
 	}
 
-	from = strings.TrimPrefix(from, subFrom.alias)
-	to = strings.TrimPrefix(to, subFrom.alias)
 	return subFrom.Copy(from, to)
 }
 
@@ -376,11 +396,14 @@ func (r *RootStore) Move(from, to string) error {
 	subFrom := r.getStore(from)
 	subTo := r.getStore(to)
 
+	from = strings.TrimPrefix(from, subFrom.alias)
+
 	// cross-store move
 	if !subFrom.equals(subTo) {
+		to = strings.TrimPrefix(to, subTo.alias)
 		content, err := subFrom.Get(from)
 		if err != nil {
-			return err
+			return fmt.Errorf("Source %s does not exist in source store %s: %s", from, subFrom.alias, err)
 		}
 		if err := subTo.Set(to, content, fmt.Sprintf("Moved from %s to %s", from, to)); err != nil {
 			return err
@@ -391,7 +414,6 @@ func (r *RootStore) Move(from, to string) error {
 		return nil
 	}
 
-	from = strings.TrimPrefix(from, subFrom.alias)
 	to = strings.TrimPrefix(to, subFrom.alias)
 	return subFrom.Move(from, to)
 }
@@ -518,7 +540,7 @@ func (r *RootStore) RecipientsTree(pretty bool) (*tree.Folder, error) {
 					}
 				}
 			}
-			if err := root.AddFile(alias + "/" + key); err != nil {
+			if err := root.AddFile(alias+"/"+key, "gopass/recipient"); err != nil {
 				fmt.Println(err)
 			}
 		}
@@ -538,7 +560,7 @@ func (r *RootStore) RecipientsTree(pretty bool) (*tree.Folder, error) {
 		if pretty {
 			key = kl[0].OneLine()
 		}
-		if err := root.AddFile(key); err != nil {
+		if err := root.AddFile(key, "gopass/recipient"); err != nil {
 			fmt.Println(err)
 		}
 	}

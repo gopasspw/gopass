@@ -55,14 +55,14 @@ func (r *RootStore) TemplateTree() (*tree.Folder, error) {
 			return nil, fmt.Errorf("failed to add mount: %s", err)
 		}
 		for _, t := range substore.ListTemplates(alias) {
-			if err := root.AddFile(t); err != nil {
+			if err := root.AddFile(t, "gopass/template"); err != nil {
 				fmt.Println(err)
 			}
 		}
 	}
 
 	for _, t := range r.store.ListTemplates("") {
-		if err := root.AddFile(t); err != nil {
+		if err := root.AddFile(t, "gopass/template"); err != nil {
 			fmt.Println(err)
 		}
 	}

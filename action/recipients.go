@@ -33,7 +33,7 @@ func (s *Action) RecipientsPrint(c *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(tree.Format())
+	fmt.Println(tree.Format(0))
 	return nil
 }
 
@@ -46,7 +46,7 @@ func (s *Action) RecipientsComplete(*cli.Context) {
 		return
 	}
 
-	for _, v := range tree.List() {
+	for _, v := range tree.List(0) {
 		fmt.Println(v)
 	}
 }

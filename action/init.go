@@ -19,9 +19,14 @@ func (s *Action) Initialized(*cli.Context) error {
 
 // Init a new password store with a first gpg id
 func (s *Action) Init(c *cli.Context) error {
-	store := c.String("store")
+	path := c.String("store")
+	alias := c.String("alias")
 	nogit := c.Bool("nogit")
 
+	return s.init(alias, path, nogit, c.Args()...)
+}
+
+func (s *Action) init(alias, path string, nogit bool, keys ...string) error {
 	if !hasConfig() {
 		// when creating a new config we set some sensible defaults
 		s.Store.AutoPush = true
@@ -33,30 +38,39 @@ func (s *Action) Init(c *cli.Context) error {
 		s.Store.ClipTimeout = 45
 		s.Store.SafeContent = false
 	}
-	if store == "" {
-		store = s.Store.Path
+	if path == "" {
+		path = s.Store.Path
 	}
 
-	keys := c.Args()
 	if len(keys) < 1 {
-		nk, err := askForPrivateKey("Please select a private key for encryption:")
+		nk, err := askForPrivateKey(color.CyanString("Please select a private key for encryption:"))
 		if err != nil {
 			return err
 		}
 		keys = []string{nk}
 	}
 
-	if err := s.Store.Init(store, keys...); err != nil {
+	if !nogit {
+		if err := s.gitInit(path, ""); err != nil {
+			color.Yellow("Failed to init git: %s", err)
+		}
+	}
+
+	if err := s.Store.Init(alias, path, keys...); err != nil {
 		return err
 	}
 
-	fmt.Fprint(color.Output, color.GreenString("Password store initialized for: "))
-	for _, recipient := range s.Store.ListRecipients(store) {
+	if err := s.Store.AddMount(alias, path); err != nil {
+		return err
+	}
+
+	fmt.Fprint(color.Output, color.GreenString("Password store %s initialized for:\n", path))
+	for _, recipient := range s.Store.ListRecipients(alias) {
 		r := "0x" + recipient
 		if kl, err := gpg.ListPublicKeys(recipient); err == nil && len(kl) > 0 {
 			r = kl[0].OneLine()
 		}
-		color.Yellow(r)
+		color.Yellow("  " + r)
 	}
 	fmt.Println("")
 
@@ -65,9 +79,5 @@ func (s *Action) Init(c *cli.Context) error {
 		color.Red(fmt.Sprintf("Failed to write config: %s", err))
 	}
 
-	if nogit {
-		return nil
-	}
-
-	return s.GitInit(c)
+	return nil
 }
