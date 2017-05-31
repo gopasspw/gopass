@@ -23,11 +23,8 @@ func (s *Store) Fsck(prefix string, check, force bool) (map[string]uint64, error
 	countFn := func(t string) {
 		counts[t]++
 	}
-	if err := filepath.Walk(s.path, s.mkStoreWalkerFsckFunc(prefix, check, force, storeRec, s.fsckFunc, countFn)); err != nil {
-		return counts, err
-	}
-
-	return counts, nil
+	err = filepath.Walk(s.path, s.mkStoreWalkerFsckFunc(prefix, check, force, storeRec, s.fsckFunc, countFn))
+	return counts, err
 }
 
 // mkStoreFsckWalkerFunc create a func to walk a (sub)store, i.e. list it's content

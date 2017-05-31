@@ -1,4 +1,4 @@
-## Next Release
+## 1.1.0 / 2017-05-31
 
 * [FEATURE] Support templates [#1]
 * [FEATURE] QR Code output [#64]
@@ -10,7 +10,7 @@
 * [ENHANCEMENT] Support symlinks [#41]
 * [ENHANCEMENT] Add nocolor config flag [#33]
 * [ENHANCEMENT] Accept args for editor [#30]
-* [BUGFIX] Build fixes for Windwos [#14]
+* [BUGFIX] Build fixes for Windows [#14]
 
 ## 1.0.2 / 2017-03-24
 
