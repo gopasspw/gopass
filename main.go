@@ -10,7 +10,7 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/action"
-	"github.com/mattn/go-colorable"
+	colorable "github.com/mattn/go-colorable"
 	"github.com/urfave/cli"
 )
 
@@ -350,6 +350,7 @@ func main() {
 				},
 				{
 					Name:         "remove",
+					Aliases:      []string{"rm"},
 					Usage:        "Remove mount",
 					Description:  "To remove a mounted sub store",
 					Before:       action.Initialized,
@@ -380,6 +381,7 @@ func main() {
 				},
 				{
 					Name:         "remove",
+					Aliases:      []string{"rm"},
 					Usage:        "Remove any number of Recipients",
 					Description:  "To remove any number of recipients from a store",
 					Before:       action.Initialized,
@@ -447,6 +449,7 @@ func main() {
 				},
 				{
 					Name:         "remove",
+					Aliases:      []string{"rm"},
 					Usage:        "Remove secret templates.",
 					Description:  "Remove an existing template",
 					Before:       action.Initialized,
