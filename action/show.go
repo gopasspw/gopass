@@ -27,7 +27,7 @@ func (s *Action) Show(c *cli.Context) error {
 	}
 
 	if clip || qr {
-		content, err := s.Store.First(name)
+		content, err := s.Store.Get(name)
 		if err != nil {
 			return err
 		}
