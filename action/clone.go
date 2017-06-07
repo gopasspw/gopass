@@ -58,7 +58,7 @@ func (s *Action) Clone(c *cli.Context) error {
 
 func gitClone(repo, path string) error {
 	if fsutil.IsDir(path) {
-		return fmt.Errorf("%s is a directory", path)
+		return fmt.Errorf("%s is a directory that already exists", path)
 	}
 
 	fmt.Printf("Cloning repository %s to %s ...\n", repo, path)
