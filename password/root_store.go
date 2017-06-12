@@ -153,6 +153,9 @@ func (r *RootStore) AddMount(alias, path string, keys ...string) error {
 }
 
 func (r *RootStore) addMount(alias, path string, keys ...string) error {
+	if alias == "" {
+		return fmt.Errorf("alias must not be empty")
+	}
 	if r.mounts == nil {
 		r.mounts = make(map[string]*Store, 1)
 	}

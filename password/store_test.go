@@ -123,7 +123,7 @@ func TestSimpleList(t *testing.T) {
 		t.Fatalf("failed to list tree: %s", err)
 	}
 
-	compareLists(t, ents, tree.List())
+	compareLists(t, ents, tree.List(0))
 }
 
 func TestListMulti(t *testing.T) {
@@ -176,7 +176,7 @@ func TestListMulti(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to list tree: %s", err)
 	}
-	compareLists(t, ents, tree.List())
+	compareLists(t, ents, tree.List(0))
 }
 
 func TestListNested(t *testing.T) {
@@ -237,5 +237,5 @@ func TestListNested(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to list tree: %s", err)
 	}
-	compareLists(t, ents, tree.List())
+	compareLists(t, ents, tree.List(0))
 }

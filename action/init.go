@@ -60,8 +60,10 @@ func (s *Action) init(alias, path string, nogit bool, keys ...string) error {
 		return err
 	}
 
-	if err := s.Store.AddMount(alias, path); err != nil {
-		return err
+	if alias != "" && path != "" {
+		if err := s.Store.AddMount(alias, path); err != nil {
+			return err
+		}
 	}
 
 	fmt.Fprint(color.Output, color.GreenString("Password store %s initialized for:\n", path))

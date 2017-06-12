@@ -20,6 +20,7 @@ func (f File) IsDir() bool { return false }
 // IsMount always returns false
 func (f File) IsMount() bool { return false }
 
+// IsBinary returns true if this is a binary file
 func (f File) IsBinary() bool {
 	if f.Metadata == nil {
 		return false

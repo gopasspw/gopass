@@ -50,6 +50,7 @@ func (f *Folder) AddMount(name, path string) error {
 	return f.addMount(strings.Split(name, string(filepath.Separator)), path)
 }
 
+// AddTemplate adds a new template
 func (f *Folder) AddTemplate(name string) error {
 	return f.addTemplate(strings.Split(name, string(filepath.Separator)))
 }
