@@ -15,9 +15,9 @@ const (
 │   │   └── c
 │   │       ├── d
 │   │       └── e
-│   ├── f
-│   └── g
-│       └── h
+│   ├── g
+│   │   └── h
+│   └── f
 └── foo (/tmp/foo)
     ├── bar (/tmp/bar)
     │   └── baz
