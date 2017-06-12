@@ -55,11 +55,11 @@ func TestFormat(t *testing.T) {
 		"a/f",
 		"a/g/h",
 	} {
-		if err := root.AddFile(f); err != nil {
+		if err := root.AddFile(f, "text/plain"); err != nil {
 			t.Fatalf("failed to add file: %s", err)
 		}
 	}
-	got := strings.TrimSpace(root.Format())
+	got := strings.TrimSpace(root.Format(0))
 	want := strings.TrimSpace(goldenFormat)
 	if want != got {
 		t.Errorf("Format mismatch: %s vs %s", want, got)
@@ -74,7 +74,7 @@ func TestFormatSubtree(t *testing.T) {
 		"baz/ing/a",
 		"baz/ing/b",
 	} {
-		if err := root.AddFile(f); err != nil {
+		if err := root.AddFile(f, "text/plain"); err != nil {
 			t.Fatalf("failed to add file: %s", err)
 		}
 	}
@@ -82,7 +82,7 @@ func TestFormatSubtree(t *testing.T) {
 	if sub == nil {
 		t.Fatalf("failed to find subtree")
 	}
-	got := strings.TrimSpace(sub.Format())
+	got := strings.TrimSpace(sub.Format(0))
 	want := strings.TrimSpace(goldenSubFormat)
 	if want != got {
 		t.Errorf("Format mismatch: %s vs %s", want, got)

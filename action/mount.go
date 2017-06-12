@@ -36,7 +36,7 @@ func (s *Action) MountsPrint(c *cli.Context) error {
 			fmt.Printf("Failed to add mount: %s\n", err)
 		}
 	}
-	fmt.Fprintln(color.Output, root.Format())
+	fmt.Fprintln(color.Output, root.Format(0))
 	return nil
 }
 
@@ -51,7 +51,7 @@ func (s *Action) MountsComplete(*cli.Context) {
 // MountAdd adds a new mount
 func (s *Action) MountAdd(c *cli.Context) error {
 	if len(c.Args()) != 2 {
-		return fmt.Errorf("usage: gopass mount add [alias] [path]")
+		return fmt.Errorf("usage: gopass mount add [alias] [local path]")
 	}
 	keys := make([]string, 0, 1)
 	if k := c.String("init"); k != "" {

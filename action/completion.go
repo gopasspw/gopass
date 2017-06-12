@@ -13,7 +13,7 @@ import (
 
 // Complete prints a list of all password names to os.Stdout
 func (s *Action) Complete(*cli.Context) {
-	list, err := s.Store.List()
+	list, err := s.Store.List(0)
 	if err != nil {
 		return
 	}
@@ -63,7 +63,7 @@ func (s *Action) CompletionDMenu(c *cli.Context) error {
 	typeit := c.Bool("type")
 	args := c.String("args")
 
-	list, err := s.Store.List()
+	list, err := s.Store.List(0)
 	if err != nil {
 		return err
 	}

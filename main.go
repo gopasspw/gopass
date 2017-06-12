@@ -275,6 +275,10 @@ func main() {
 					Name:  "store, s",
 					Usage: "Set the sub store to operate on",
 				},
+				cli.StringFlag{
+					Name:  "alias, a",
+					Usage: "Set the name of the sub store",
+				},
 				cli.BoolFlag{
 					Name:  "nogit",
 					Usage: "Do not init git repo",
@@ -313,6 +317,20 @@ func main() {
 			Before:       action.Initialized,
 			Action:       action.List,
 			BashComplete: action.Complete,
+			Flags: []cli.Flag{
+				cli.IntFlag{
+					Name:  "limit, l",
+					Usage: "Max tree depth",
+				},
+				cli.BoolFlag{
+					Name:  "flat, f",
+					Usage: "Print flat list",
+				},
+				cli.BoolFlag{
+					Name:  "strip-prefix, s",
+					Usage: "Strip prefix from filtered entries",
+				},
+			},
 		},
 		{
 			Name:         "move",

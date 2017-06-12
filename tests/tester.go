@@ -46,6 +46,7 @@ func newTester(t *testing.T) *tester {
 	if b := os.Getenv("GOPASS_BINARY"); b != "" {
 		gopassBin = b
 	}
+	t.Logf("Using gopass binary: %s", gopassBin)
 
 	ts := &tester{
 		t:         t,
@@ -56,6 +57,7 @@ func newTester(t *testing.T) *tester {
 	td, err := ioutil.TempDir("", "gopass-")
 	require.NoError(t, err)
 
+	t.Logf("Tempdir: %s", td)
 	ts.tempDir = td
 
 	// prepare ENVIRONMENT

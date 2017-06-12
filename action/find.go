@@ -13,7 +13,7 @@ func (s *Action) Find(c *cli.Context) error {
 		return fmt.Errorf("Usage: gopass find arg")
 	}
 
-	l, err := s.Store.List()
+	l, err := s.Store.List(0)
 	if err != nil {
 		return err
 	}

@@ -202,6 +202,9 @@ func (s *Store) Get(name string) ([]byte, error) {
 	}
 
 	if !fsutil.IsFile(p) {
+		if s.debug {
+			fmt.Printf("File %s not found\n", p)
+		}
 		return []byte{}, ErrNotFound
 	}
 

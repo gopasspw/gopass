@@ -25,20 +25,20 @@ var (
 // GitInit initializes this store's git repo and
 // recursively calls GitInit on all substores.
 func (s *Store) GitInit(signKey string) error {
-	if s.isGit() {
-		return ErrGitInit
-	}
+	// the git repo may be empty (i.e. no branches, cloned from a fresh remote)
+	// or already initialized. Only run git init if the folder is completely empty
+	if !s.isGit() {
+		cmd := exec.Command("git", "init")
+		cmd.Dir = s.path
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
 
-	cmd := exec.Command("git", "init")
-	cmd.Dir = s.path
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-
-	if s.debug {
-		fmt.Printf("store.GitInit: %s %+v\n", cmd.Path, cmd.Args)
-	}
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("Failed to initialize git: %s", err)
+		if s.debug {
+			fmt.Printf("store.GitInit: %s %+v\n", cmd.Path, cmd.Args)
+		}
+		if err := cmd.Run(); err != nil {
+			return fmt.Errorf("Failed to initialize git: %s", err)
+		}
 	}
 
 	if err := s.gitAdd(s.path); err != nil {
@@ -58,7 +58,7 @@ func (s *Store) GitInit(signKey string) error {
 		fmt.Println(color.YellowString("Warning: Failed to commit .gitattributes to git"))
 	}
 
-	cmd = exec.Command("git", "config", "--local", "diff.gpg.binary", "true")
+	cmd := exec.Command("git", "config", "--local", "diff.gpg.binary", "true")
 	cmd.Dir = s.path
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -67,12 +67,12 @@ func (s *Store) GitInit(signKey string) error {
 		fmt.Printf("store.GitInit: %s %+v\n", cmd.Path, cmd.Args)
 	}
 	if err := cmd.Run(); err != nil {
-		fmt.Printf("Failed to initialize git: %s\n", err)
+		color.Yellow("Failed to initialize git: %s\n", err)
 	}
 
 	// set GPG signkey
 	if err := s.gitSetSignKey(signKey); err != nil {
-		fmt.Printf("Failed to configure Git GPG Commit signing: %s\n", err)
+		color.Yellow("Failed to configure Git GPG Commit signing: %s\n", err)
 	}
 
 	return nil
@@ -218,7 +218,7 @@ func (s *Store) gitPush(remote, branch string) error {
 
 	if s.autoPull {
 		if err := s.Git("pull", remote, branch); err != nil {
-			return err
+			fmt.Println(color.YellowString("Failed to pull before git push: %s", err))
 		}
 	}
 
