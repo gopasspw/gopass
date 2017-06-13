@@ -207,7 +207,7 @@ on Linux/UNIX systems.
 To add an mount point to an existing store add an entry to the `mounts` object
 of the store.
 
-gopass tries to read it's configuration from `$HOME/.gopass.yml` if present.
+gopass tries to read it's configuration from `$HOME/.config/gopass/config.yml` if present.
 You can override this location by setting `GOPASS_CONFIG` to another location.
 
 Mounting new stores can be done through gopass:
@@ -324,17 +324,17 @@ $ brew install gopass
 #### Debian and Ubuntu
 
 ```bash
-$ wget https://www.justwatch.com/gopass/releases/1.0.2/gopass_1.0.2_amd64.deb
-$ sudo dpkg -i gopass_1.0.2_amd64.deb
+$ wget https://www.justwatch.com/gopass/releases/1.1.1/gopass_1.1.1_amd64.deb
+$ sudo dpkg -i gopass_1.1.1_amd64.deb
 ```
 
 ### Download
 
-Please visit https://www.justwatch.com/gopass/releases/1.0.2/ for a list of binary releases.
+Please visit https://www.justwatch.com/gopass/releases/1.1.1/ for a list of binary releases.
 
 ### From Source
 
-To get the latest version of pass, run `go get`:
+To get the latest version of gopass, run `go get`:
 
     go get -u github.com/justwatchcom/gopass
 
@@ -451,7 +451,7 @@ gopass config path "~/Google Drive/Password-Store"
 
 ### Using other GUIs with `gopass`
 
-Because `gopass` is fully backwards compatible with `pass` you can simply use other existing interfaces.
+Because `gopass` is fully *backwards* compatible with `pass` you can simply use other existing interfaces.
 We use the [Android](https://github.com/zeapo/Android-Password-Store) &
 [iOS](https://github.com/davidjb/pass-ios#readme) apps ourselves. But there are more integrations for
 [Chrome, Firefox](https://github.com/dannyvankooten/browserpass),
@@ -543,12 +543,14 @@ If you use `gopass` as a library be sure to vendor it and expect breaking change
 
 - [x] Be 100% pass compatible
 - [ ] Storing binary files in gopass (almost done)
-- [ ] Storing structured files and templates (credit cards, DBs, websites...)
+- [x] Storing structured files and templates (credit cards, DBs, websites...)
 - [ ] UX improvements and more wizards
 - [ ] Tackle the information disclosure issue
 - [ ] Build a great workflow for requesting and granting access
 - [ ] Better and more fine grained ACL
 - [ ] Be nicely usable by semi- and non-technical users
+
+*Note: Being 100% pass compatible was a milestone, not a promise for the future. We will eventually diverge from pass to support more advanced features. This will break compatiblity.*
 
 ## Further Reading
 
