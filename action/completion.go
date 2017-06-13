@@ -94,7 +94,7 @@ func (s *Action) CompletionDMenu(c *cli.Context) error {
 func dmenu(list []string, args ...string) (string, error) {
 	stdin := bytes.NewBuffer(nil)
 	for _, v := range list {
-		stdin.WriteString(v + "\n")
+		_, _ = stdin.WriteString(v + "\n")
 	}
 
 	cmd := exec.Command("dmenu", args...)

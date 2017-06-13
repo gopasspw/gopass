@@ -13,14 +13,9 @@ type Folder struct {
 	Path    string // Path is only used for mounts, it's the on-disk path
 	Root    bool   // Root is used for the root node to remove any prefix
 	HasTpl  bool
-	Entries map[string]Entry // the sub-entries, prevents having files and folder w/ same name
+	Folders map[string]*Folder // the sub-entries, prevents having files and folder w/ same name
+	Files   map[string]*File
 }
-
-// IsFile always return false
-func (f *Folder) IsFile() bool { return false }
-
-// IsDir always returns true
-func (f *Folder) IsDir() bool { return true }
 
 // IsMount returns true if the path is non-empty
 func (f *Folder) IsMount() bool { return f.Path != "" }
@@ -60,7 +55,8 @@ func newFolder(name string) *Folder {
 	return &Folder{
 		Name:    name,
 		Path:    "",
-		Entries: make(map[string]Entry, 10),
+		Folders: make(map[string]*Folder, 10),
+		Files:   make(map[string]*File, 10),
 	}
 }
 
@@ -85,8 +81,11 @@ func (f *Folder) list(prefix string, maxDepth, curDepth int) []string {
 		}
 		prefix += f.Name
 	}
-	for _, key := range sortedKeys(f.Entries) {
-		out = append(out, f.Entries[key].list(prefix, maxDepth, curDepth+1)...)
+	for _, key := range sortedFolders(f.Folders) {
+		out = append(out, f.Folders[key].list(prefix, maxDepth, curDepth+1)...)
+	}
+	for _, key := range sortedFiles(f.Files) {
+		out = append(out, filepath.Join(prefix, f.Files[key].Name))
 	}
 	return out
 }
@@ -132,9 +131,13 @@ func (f *Folder) format(prefix string, last bool, maxDepth, curDepth int) string
 	// finish this folders output
 	_, _ = out.WriteString("\n")
 	// let our children format themselfes
-	for i, key := range sortedKeys(f.Entries) {
-		last := i == len(f.Entries)-1
-		_, _ = out.WriteString(f.Entries[key].format(prefix, last, maxDepth, curDepth+1))
+	for i, key := range sortedFolders(f.Folders) {
+		last := i == len(f.Folders)-1 && len(f.Files) < 1
+		_, _ = out.WriteString(f.Folders[key].format(prefix, last, maxDepth, curDepth+1))
+	}
+	for i, key := range sortedFiles(f.Files) {
+		last := i == len(f.Files)-1
+		_, _ = out.WriteString(f.Files[key].format(prefix, last, maxDepth, curDepth+1))
 	}
 	return out.String()
 }
@@ -143,11 +146,11 @@ func (f *Folder) format(prefix string, last bool, maxDepth, curDepth int) string
 // name MUST NOT include filepath separators. If there is no
 // such folder a new one is created with that name.
 func (f *Folder) getFolder(name string) *Folder {
-	if next, found := f.Entries[name]; found && next.IsDir() {
-		return next.(*Folder)
+	if next, found := f.Folders[name]; found {
+		return next
 	}
 	next := newFolder(name)
-	f.Entries[name] = next
+	f.Folders[name] = next
 	return next
 }
 
@@ -162,10 +165,8 @@ func (f *Folder) findFolder(path []string) *Folder {
 		return f
 	}
 	name := path[0]
-	if next, found := f.Entries[name]; found && next.IsDir() {
-		if f, ok := next.(*Folder); ok {
-			return f.findFolder(path[1:])
-		}
+	if next, found := f.Folders[name]; found {
+		return next.findFolder(path[1:])
 	}
 	return nil
 }
@@ -177,10 +178,10 @@ func (f *Folder) addFile(path []string, contentType string) error {
 	}
 	name := path[0]
 	if len(path) == 1 {
-		if _, found := f.Entries[name]; found {
+		if _, found := f.Files[name]; found {
 			return fmt.Errorf("File %s exists", name)
 		}
-		f.Entries[name] = File{
+		f.Files[name] = &File{
 			Name: name,
 			Metadata: map[string]string{
 				"Content-Type": contentType,
@@ -199,12 +200,7 @@ func (f *Folder) addMount(path []string, dest string) error {
 	}
 	name := path[0]
 	if len(path) == 1 {
-		if e, found := f.Entries[name]; found {
-			if e.IsFile() {
-				return fmt.Errorf("File %s exists", name)
-			}
-		}
-		f.Entries[name] = newMount(name, dest)
+		f.Folders[name] = newMount(name, dest)
 		return nil
 	}
 	next := f.getFolder(name)
@@ -217,10 +213,8 @@ func (f *Folder) addTemplate(path []string) error {
 	}
 	name := path[0]
 	if len(path) == 1 {
-		if e, found := f.Entries[name]; found {
-			if sf, ok := e.(*Folder); ok {
-				sf.HasTpl = true
-			}
+		if e, found := f.Folders[name]; found {
+			e.HasTpl = true
 		}
 		return nil
 	}

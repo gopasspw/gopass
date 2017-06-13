@@ -32,5 +32,5 @@ func TestFind(t *testing.T) {
 
 	out, err = ts.run("find b")
 	assert.NoError(t, err)
-	assert.Equal(t, "baz\nfoo/bar", out)
+	assert.Equal(t, "foo/bar\nbaz", out)
 }
