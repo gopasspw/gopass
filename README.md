@@ -207,7 +207,7 @@ on Linux/UNIX systems.
 To add an mount point to an existing store add an entry to the `mounts` object
 of the store.
 
-gopass tries to read it's configuration from `$HOME/.config/gopass/config.yml` if present.
+gopass tries to read its configuration from `$HOME/.config/gopass/config.yml` if present.
 You can override this location by setting `GOPASS_CONFIG` to another location.
 
 Mounting new stores can be done through gopass:
@@ -282,15 +282,15 @@ This makes it easy to e.g. generate database passwords or use templates for cert
 
 ### GnuPG
 
-`gopass` use `gpg` to encrypt it's secrets. This makes it easy to build a software we feel comfortable
-with trusting our credentials, but `gpg` isn't know for being the most user-friendly software.
+`gopass` uses [gpg](https://www.gnupg.org) to encrypt its secrets. This makes it easy to build a software we feel comfortable
+trusting our credentials with, but `gpg` isn't known for being the most user-friendly software.
 
-We try to work around some of the useability limitations of `gpg` but we always have to keep the security
-goals in mind, so some features have to trade some useability against security and vice versa.
+We try to work around some of the usability limitations of `gpg` but we always have to keep the security
+goals in mind, so some features have to trade some usability against security and vice-versa.
 
 ### git history and local files
 
-Please keep in mind that by default `gopass` stores it's encrypted secrets in git. *This is a deviation
+Please keep in mind that by default `gopass` stores its encrypted secrets in git. *This is a deviation
 from the behavior of `pass`, which does not force you to use `git`.* Furthermore, the decision has some important
 properties.
 
