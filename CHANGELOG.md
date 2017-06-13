@@ -1,3 +1,10 @@
+## 1.1.1 / 2017-06-13
+
+* [ENHANCEMENT] Allow files and folders with the same name [#124]
+* [ENHANCEMENT] Improve error messages [#121]
+* [ENHANCEMENT] Add rm aliases to remove commands [#119]
+* [BUGFIX] Several bug fixes for multi-repository handling [#123]
+
 ## 1.1.0 / 2017-05-31
 
 * [FEATURE] Support templates [#1]
