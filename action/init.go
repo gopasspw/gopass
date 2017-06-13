@@ -39,7 +39,7 @@ func (s *Action) init(alias, path string, nogit bool, keys ...string) error {
 		s.Store.PersistKeys = true
 		s.Store.LoadKeys = false
 		s.Store.ClipTimeout = 45
-		s.Store.SafeContent = false
+		s.Store.ShowSafeContent = false
 	}
 	if path == "" {
 		path = s.Store.Path

@@ -1,10 +1,13 @@
 package password
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"gopkg.in/yaml.v2"
 
 	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/fsutil"
@@ -216,6 +219,54 @@ func (s *Store) Get(name string) ([]byte, error) {
 	return content, nil
 }
 
+// GetKey returns a single key from a structured secret
+func (s *Store) GetKey(name, key string) ([]byte, error) {
+	content, err := s.SafeContent(name)
+	if err != nil {
+		return nil, err
+	}
+
+	d := make(map[string]string)
+	if err := yaml.Unmarshal(content, &d); err != nil {
+		return nil, err
+	}
+
+	if v, found := d[key]; found {
+		return []byte(v), nil
+	}
+
+	return nil, fmt.Errorf("key not found")
+}
+
+// First returns the first line of the plaintext of a single key
+func (s *Store) First(name string) ([]byte, error) {
+	content, err := s.Get(name)
+	if err != nil {
+		return nil, err
+	}
+
+	lines := bytes.Split(content, []byte("\n"))
+	if len(lines) < 1 {
+		return nil, fmt.Errorf("no content to return the first line from")
+	}
+
+	return bytes.TrimSpace(lines[0]), nil
+}
+
+// SafeContent returns everything but the first line
+func (s *Store) SafeContent(name string) ([]byte, error) {
+	content, err := s.Get(name)
+	if err != nil {
+		return nil, err
+	}
+
+	lines := bytes.SplitN(content, []byte("\n"), 2)
+	if len(lines) < 2 || len(bytes.TrimSpace(lines[1])) < 1 {
+		return nil, fmt.Errorf("no safe content to display, you can force display with show -f")
+	}
+	return lines[1], nil
+}
+
 // IsDir returns true if the entry is folder inside the store
 func (s *Store) IsDir(name string) bool {
 	return fsutil.IsDir(filepath.Join(s.path, name))
@@ -299,6 +350,33 @@ func (s *Store) SetConfirm(name string, content []byte, reason string, cb Recipi
 		}
 	}
 	return nil
+}
+
+// SetKey will update a single key in a YAML structured secret
+func (s *Store) SetKey(name, key, value string) error {
+	var err error
+	first, err := s.First(name)
+	if err != nil {
+		first = []byte("\n")
+	}
+	body, err := s.SafeContent(name)
+	if err != nil && err != ErrNotFound {
+		return err
+	}
+
+	d := make(map[string]string)
+	if err := yaml.Unmarshal(body, &d); err != nil {
+		return err
+	}
+
+	d[key] = value
+
+	buf, err := yaml.Marshal(d)
+	if err != nil {
+		return err
+	}
+
+	return s.SetConfirm(name, append(first, buf...), fmt.Sprintf("Updated key %s in %s", key, name), nil)
 }
 
 // Copy will copy one entry to another location. Multi-store copies are

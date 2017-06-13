@@ -1,7 +1,6 @@
 package password
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -16,24 +15,24 @@ import (
 
 // RootStore is the public facing password store
 type RootStore struct {
-	AutoPush    bool              `json:"autopush"`    // push to git remote after commit
-	AutoPull    bool              `json:"autopull"`    // pull from git before push
-	AutoImport  bool              `json:"autoimport"`  // import missing public keys w/o asking
-	AlwaysTrust bool              `json:"alwaystrust"` // always trust public keys when encrypting
-	NoConfirm   bool              `json:"noconfirm"`   // do not confirm recipients when encrypting
-	PersistKeys bool              `json:"persistkeys"` // store recipient keys in store
-	LoadKeys    bool              `json:"loadkeys"`    // load missing keys from store
-	ClipTimeout int               `json:"cliptimeout"` // clear clipboard after seconds
-	NoColor     bool              `json:"nocolor"`     // disable colors in output
-	Path        string            `json:"path"`        // path to the root store
-	SafeContent bool              `json:"safecontent"` // avoid showing passwords in terminal
-	Mount       map[string]string `json:"mounts,omitempty"`
-	Version     string            `json:"version"`
-	ImportFunc  ImportCallback    `json:"-"`
-	FsckFunc    FsckCallback      `json:"-"`
-	Debug       bool              `json:"-"`
-	store       *Store
-	mounts      map[string]*Store
+	AutoPush        bool              `json:"autopush"`    // push to git remote after commit
+	AutoPull        bool              `json:"autopull"`    // pull from git before push
+	AutoImport      bool              `json:"autoimport"`  // import missing public keys w/o asking
+	AlwaysTrust     bool              `json:"alwaystrust"` // always trust public keys when encrypting
+	NoConfirm       bool              `json:"noconfirm"`   // do not confirm recipients when encrypting
+	PersistKeys     bool              `json:"persistkeys"` // store recipient keys in store
+	LoadKeys        bool              `json:"loadkeys"`    // load missing keys from store
+	ClipTimeout     int               `json:"cliptimeout"` // clear clipboard after seconds
+	NoColor         bool              `json:"nocolor"`     // disable colors in output
+	Path            string            `json:"path"`        // path to the root store
+	ShowSafeContent bool              `json:"safecontent"` // avoid showing passwords in terminal
+	Mount           map[string]string `json:"mounts,omitempty"`
+	Version         string            `json:"version"`
+	ImportFunc      ImportCallback    `json:"-"`
+	FsckFunc        FsckCallback      `json:"-"`
+	Debug           bool              `json:"-"`
+	store           *Store
+	mounts          map[string]*Store
 }
 
 // NewRootStore creates a new store
@@ -327,19 +326,24 @@ func (r *RootStore) Get(name string) ([]byte, error) {
 	return store.Get(strings.TrimPrefix(name, store.alias))
 }
 
+// GetKey will return a single named entry from a structured document (YAML)
+// in secret name. If no such key exists or yaml decoding fails it will
+// return an error
+func (r *RootStore) GetKey(name, key string) ([]byte, error) {
+	store := r.getStore(name)
+	return store.GetKey(strings.TrimPrefix(name, store.alias), key)
+}
+
 // First returns the first line of the plaintext of a single key
 func (r *RootStore) First(name string) ([]byte, error) {
-	content, err := r.Get(name)
-	if err != nil {
-		return nil, err
-	}
+	store := r.getStore(name)
+	return store.First(strings.TrimPrefix(name, store.alias))
+}
 
-	lines := bytes.Split(content, []byte("\n"))
-	if len(lines) < 1 {
-		return nil, fmt.Errorf("no content to return the first line from")
-	}
-
-	return bytes.TrimSpace(lines[0]), nil
+// SafeContent returns everything but the first line from a key
+func (r *RootStore) SafeContent(name string) ([]byte, error) {
+	store := r.getStore(name)
+	return store.SafeContent(strings.TrimPrefix(name, store.alias))
 }
 
 // Exists checks the existence of a single entry
@@ -358,6 +362,13 @@ func (r *RootStore) IsDir(name string) bool {
 func (r *RootStore) Set(name string, content []byte, reason string) error {
 	store := r.getStore(name)
 	return store.Set(strings.TrimPrefix(name, store.alias), content, reason)
+}
+
+// SetKey sets a single key in structured document (YAML) to the given
+// value. If the secret name is non-empty but no YAML it will return an error.
+func (r *RootStore) SetKey(name, key, value string) error {
+	store := r.getStore(name)
+	return store.SetKey(strings.TrimPrefix(name, store.alias), key, value)
 }
 
 // SetConfirm calls Set with confirmation callback

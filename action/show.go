@@ -1,7 +1,6 @@
 package action
 
 import (
-	"bytes"
 	"fmt"
 
 	"github.com/atotto/clipboard"
@@ -14,6 +13,8 @@ import (
 // Show the content of a secret file
 func (s *Action) Show(c *cli.Context) error {
 	name := c.Args().First()
+	key := c.Args().Get(1)
+
 	clip := c.Bool("clip")
 	force := c.Bool("force")
 	qr := c.Bool("qr")
@@ -26,38 +27,45 @@ func (s *Action) Show(c *cli.Context) error {
 		return s.List(c)
 	}
 
-	if clip || qr {
-		content, err := s.Store.First(name)
+	var content []byte
+	var err error
+
+	switch {
+	case key != "":
+		content, err = s.Store.GetKey(name, key)
 		if err != nil {
 			return err
 		}
-
-		if qr {
-			qr, err := qrcon.QRCode(string(content))
-			if err != nil {
-				return err
-			}
-			fmt.Println(qr)
-			return nil
-		}
-		return s.copyToClipboard(name, content)
-	}
-
-	content, err := s.Store.Get(name)
-	if err != nil {
-		if err != password.ErrNotFound {
+	case qr:
+		content, err = s.Store.First(name)
+		if err != nil {
 			return err
 		}
-		color.Yellow("Entry '%s' not found. Starting search...", name)
-		return s.Find(c)
-	}
-
-	if s.Store.SafeContent && !force {
-		lines := bytes.SplitN(content, []byte("\n"), 2)
-		if len(lines) < 2 || len(bytes.TrimSpace(lines[1])) == 0 {
-			return fmt.Errorf("no safe content to display, you can force display with show -f")
+		qr, err := qrcon.QRCode(string(content))
+		if err != nil {
+			return err
 		}
-		content = lines[1]
+		fmt.Println(qr)
+		return nil
+	case clip:
+		content, err = s.Store.First(name)
+		if err != nil {
+			return err
+		}
+		return s.copyToClipboard(name, content)
+	default:
+		if s.Store.ShowSafeContent && !force {
+			content, err = s.Store.SafeContent(name)
+		} else {
+			content, err = s.Store.Get(name)
+		}
+		if err != nil {
+			if err != password.ErrNotFound {
+				return err
+			}
+			color.Yellow("Entry '%s' not found. Starting search...", name)
+			return s.Find(c)
+		}
 	}
 
 	color.Yellow(string(content))

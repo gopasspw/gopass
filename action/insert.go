@@ -15,6 +15,7 @@ func (s *Action) Insert(c *cli.Context) error {
 	echo := c.Bool("echo")
 	multiline := c.Bool("multiline")
 	force := c.Bool("force")
+
 	confirm := s.confirmRecipients
 	if force {
 		confirm = nil
@@ -23,6 +24,19 @@ func (s *Action) Insert(c *cli.Context) error {
 	name := c.Args().Get(0)
 	if name == "" {
 		return fmt.Errorf("provide a secret name")
+	}
+	key := c.Args().Get(1)
+	value := c.Args().Get(2)
+
+	if key != "" {
+		if value == "" {
+			content, err := askForPassword(name+"/"+key, nil)
+			if err != nil {
+				return fmt.Errorf("failed to ask for password: %v", err)
+			}
+			value = string(content)
+		}
+		return s.Store.SetKey(name, key, value)
 	}
 
 	info, err := os.Stdin.Stat()

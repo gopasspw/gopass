@@ -173,6 +173,7 @@ func main() {
 			Usage:        "Insert a new secret or edit an existing secret using $EDITOR.",
 			Before:       action.Initialized,
 			Action:       action.Edit,
+			Aliases:      []string{"set"},
 			BashComplete: action.Complete,
 		},
 		{
