@@ -1,15 +1,15 @@
-package password
+package sub
 
 import (
 	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"sort"
 	"strings"
 
 	"github.com/justwatchcom/gopass/fsutil"
 	"github.com/justwatchcom/gopass/tree"
+	"github.com/justwatchcom/gopass/tree/simple"
 )
 
 const (
@@ -18,19 +18,14 @@ const (
 )
 
 // LookupTemplate will lookup and return a template
-func (r *RootStore) LookupTemplate(name string) ([]byte, bool) {
-	store := r.getStore(name)
-	return store.LookupTemplate(strings.TrimPrefix(name, store.alias))
-}
-
-// LookupTemplate will lookup and return a template
 func (s *Store) LookupTemplate(name string) ([]byte, bool) {
 	// chop off one path element until we find something
 	for {
-		if name == "" || name == "/" {
+		l1 := len(name)
+		name = filepath.Dir(name)
+		if len(name) == l1 {
 			break
 		}
-		name = filepath.Dir(name)
 		tpl := filepath.Join(s.path, name, TemplateFile)
 		if fsutil.IsFile(tpl) {
 			if content, err := ioutil.ReadFile(tpl); err == nil {
@@ -39,35 +34,6 @@ func (s *Store) LookupTemplate(name string) ([]byte, bool) {
 		}
 	}
 	return []byte{}, false
-}
-
-// TemplateTree returns a tree of all templates
-func (r *RootStore) TemplateTree() (*tree.Folder, error) {
-	root := tree.New("gopass")
-	mps := r.mountPoints()
-	sort.Sort(sort.Reverse(byLen(mps)))
-	for _, alias := range mps {
-		substore := r.mounts[alias]
-		if substore == nil {
-			continue
-		}
-		if err := root.AddMount(alias, substore.path); err != nil {
-			return nil, fmt.Errorf("failed to add mount: %s", err)
-		}
-		for _, t := range substore.ListTemplates(alias) {
-			if err := root.AddFile(t, "gopass/template"); err != nil {
-				fmt.Println(err)
-			}
-		}
-	}
-
-	for _, t := range r.store.ListTemplates("") {
-		if err := root.AddFile(t, "gopass/template"); err != nil {
-			fmt.Println(err)
-		}
-	}
-
-	return root, nil
 }
 
 func mkTemplateStoreWalkerFunc(alias, folder string, fn func(...string)) func(string, os.FileInfo, error) error {
@@ -118,15 +84,21 @@ func (s *Store) ListTemplates(prefix string) []string {
 	return lst
 }
 
+// TemplateTree returns a tree of all templates
+func (s *Store) TemplateTree() (tree.Tree, error) {
+	root := simple.New("gopass")
+	for _, t := range s.ListTemplates("") {
+		if err := root.AddFile(t, "gopass/template"); err != nil {
+			fmt.Println(err)
+		}
+	}
+
+	return root, nil
+}
+
 // templatefile returns the name of the given template on disk
 func (s *Store) templatefile(name string) string {
 	return filepath.Join(s.path, name, TemplateFile)
-}
-
-// HasTemplate returns true if the template exists
-func (r *RootStore) HasTemplate(name string) bool {
-	store := r.getStore(name)
-	return store.HasTemplate(strings.TrimPrefix(name, store.alias))
 }
 
 // HasTemplate returns true if the template exists
@@ -135,31 +107,13 @@ func (s *Store) HasTemplate(name string) bool {
 }
 
 // GetTemplate will return the content of the named template
-func (r *RootStore) GetTemplate(name string) ([]byte, error) {
-	store := r.getStore(name)
-	return store.GetTemplate(strings.TrimPrefix(name, store.alias))
-}
-
-// GetTemplate will return the content of the named template
 func (s *Store) GetTemplate(name string) ([]byte, error) {
 	return ioutil.ReadFile(s.templatefile(name))
 }
 
 // SetTemplate will (over)write the content to the template file
-func (r *RootStore) SetTemplate(name string, content []byte) error {
-	store := r.getStore(name)
-	return store.SetTemplate(strings.TrimPrefix(name, store.alias), content)
-}
-
-// SetTemplate will (over)write the content to the template file
 func (s *Store) SetTemplate(name string, content []byte) error {
 	return ioutil.WriteFile(s.templatefile(name), content, 0600)
-}
-
-// RemoveTemplate will delete the named template if it exists
-func (r *RootStore) RemoveTemplate(name string) error {
-	store := r.getStore(name)
-	return store.RemoveTemplate(strings.TrimPrefix(name, store.alias))
 }
 
 // RemoveTemplate will delete the named template if it exists

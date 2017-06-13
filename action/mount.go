@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/fatih/color"
-	"github.com/justwatchcom/gopass/tree"
+	"github.com/justwatchcom/gopass/tree/simple"
 	"github.com/urfave/cli"
 )
 
@@ -14,9 +14,9 @@ func (s *Action) MountRemove(c *cli.Context) error {
 		return fmt.Errorf("usage: gopass mount remove [alias]")
 	}
 	if err := s.Store.RemoveMount(c.Args()[0]); err != nil {
-		return err
+		color.Yellow("Failed to remove mount: %s", err)
 	}
-	if err := writeConfig(s.Store); err != nil {
+	if err := s.Store.Config().Save(); err != nil {
 		return err
 	}
 
@@ -26,12 +26,12 @@ func (s *Action) MountRemove(c *cli.Context) error {
 
 // MountsPrint prints all existing mounts
 func (s *Action) MountsPrint(c *cli.Context) error {
-	if len(s.Store.Mount) < 1 {
+	if len(s.Store.Mounts()) < 1 {
 		fmt.Println("No mounts")
 		return nil
 	}
-	root := tree.New(color.GreenString(fmt.Sprintf("gopass (%s)", s.Store.Path)))
-	for alias, path := range s.Store.Mount {
+	root := simple.New(color.GreenString(fmt.Sprintf("gopass (%s)", s.Store.Path())))
+	for alias, path := range s.Store.Mounts() {
 		if err := root.AddMount(alias, path); err != nil {
 			fmt.Printf("Failed to add mount: %s\n", err)
 		}
@@ -43,7 +43,7 @@ func (s *Action) MountsPrint(c *cli.Context) error {
 // MountsComplete will print a list of existings mount points for bash
 // completion
 func (s *Action) MountsComplete(*cli.Context) {
-	for alias := range s.Store.Mount {
+	for alias := range s.Store.Mounts() {
 		fmt.Println(alias)
 	}
 }
@@ -60,7 +60,7 @@ func (s *Action) MountAdd(c *cli.Context) error {
 	if err := s.Store.AddMount(c.Args()[0], c.Args()[1], keys...); err != nil {
 		return err
 	}
-	if err := writeConfig(s.Store); err != nil {
+	if err := s.Store.Config().Save(); err != nil {
 		return err
 	}
 

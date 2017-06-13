@@ -1,4 +1,4 @@
-package password
+package sub
 
 import (
 	"bytes"
@@ -11,32 +11,28 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/fsutil"
+	"github.com/justwatchcom/gopass/store"
 )
 
-var (
-	// ErrGitInit is returned if git is already initialized
-	ErrGitInit = fmt.Errorf("git is already initialized")
-	// ErrGitNotInit is returned if git is not initialized
-	ErrGitNotInit = fmt.Errorf("git is not initialized")
-	// ErrGitNoRemote is returned if git has no origin remote
-	ErrGitNoRemote = fmt.Errorf("git has no remote origin")
-)
+func (s *Store) gitCmd(args ...string) error {
+	cmd := exec.Command(args[0], args[1:]...)
+	cmd.Dir = s.path
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	if s.debug {
+		fmt.Printf("store.GitInit: %s %+v\n", cmd.Path, cmd.Args)
+	}
+	return cmd.Run()
+}
 
 // GitInit initializes this store's git repo and
 // recursively calls GitInit on all substores.
-func (s *Store) GitInit(signKey string) error {
+func (s *Store) GitInit(alias, signKey string) error {
 	// the git repo may be empty (i.e. no branches, cloned from a fresh remote)
 	// or already initialized. Only run git init if the folder is completely empty
 	if !s.isGit() {
-		cmd := exec.Command("git", "init")
-		cmd.Dir = s.path
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-
-		if s.debug {
-			fmt.Printf("store.GitInit: %s %+v\n", cmd.Path, cmd.Args)
-		}
-		if err := cmd.Run(); err != nil {
+		if err := s.gitCmd("git", "init"); err != nil {
 			return fmt.Errorf("Failed to initialize git: %s", err)
 		}
 	}
@@ -58,16 +54,12 @@ func (s *Store) GitInit(signKey string) error {
 		fmt.Println(color.YellowString("Warning: Failed to commit .gitattributes to git"))
 	}
 
-	cmd := exec.Command("git", "config", "--local", "diff.gpg.binary", "true")
-	cmd.Dir = s.path
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-
-	if s.debug {
-		fmt.Printf("store.GitInit: %s %+v\n", cmd.Path, cmd.Args)
+	// setup for proper diffs
+	if err := s.gitCmd("git", "config", "--local", "diff.gpg.binary", "true"); err != nil {
+		color.Yellow("Error while initializing git: %s\n", err)
 	}
-	if err := cmd.Run(); err != nil {
-		color.Yellow("Failed to initialize git: %s\n", err)
+	if err := s.gitCmd("git", "config", "--local", "diff.gpg.textconv", "gpg --no-tty --decrypt"); err != nil {
+		color.Yellow("Error while initializing git: %s\n", err)
 	}
 
 	// set GPG signkey
@@ -107,7 +99,7 @@ func (s *Store) gitSetSignKey(sk string) error {
 }
 
 // Git runs arbitrary git commands on this store and all substores
-func (s *Store) Git(args ...string) error {
+func (s *Store) Git(alias string, args ...string) error {
 	cmd := exec.Command("git", args...)
 	cmd.Dir = s.path
 	cmd.Stdout = os.Stdout
@@ -132,7 +124,7 @@ func (s *Store) isGit() bool {
 // gitAdd adds the listed files to the git index
 func (s *Store) gitAdd(files ...string) error {
 	if !s.isGit() {
-		return ErrGitNotInit
+		return store.ErrGitNotInit
 	}
 	for i := range files {
 		files[i] = strings.TrimPrefix(files[i], s.path+"/")
@@ -158,7 +150,7 @@ func (s *Store) gitAdd(files ...string) error {
 // gitCommit creates a new git commit with the given commit message
 func (s *Store) gitCommit(msg string) error {
 	if !s.isGit() {
-		return ErrGitNotInit
+		return store.ErrGitNotInit
 	}
 
 	cmd := exec.Command("git", "commit", "-m", msg)
@@ -178,7 +170,7 @@ func (s *Store) gitCommit(msg string) error {
 
 func (s *Store) gitConfigValue(key string) (string, error) {
 	if !s.isGit() {
-		return "", ErrGitNotInit
+		return "", store.ErrGitNotInit
 	}
 
 	buf := &bytes.Buffer{}
@@ -202,7 +194,7 @@ func (s *Store) gitConfigValue(key string) (string, error) {
 // optional arguments: remote and branch
 func (s *Store) gitPush(remote, branch string) error {
 	if !s.isGit() {
-		return ErrGitNotInit
+		return store.ErrGitNotInit
 	}
 
 	if remote == "" {
@@ -213,7 +205,7 @@ func (s *Store) gitPush(remote, branch string) error {
 	}
 
 	if v, err := s.gitConfigValue("remote." + remote + ".url"); err != nil || v == "" {
-		return ErrGitNoRemote
+		return store.ErrGitNoRemote
 	}
 
 	if s.autoPull {

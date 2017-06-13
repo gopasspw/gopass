@@ -1,4 +1,4 @@
-package tree
+package simple
 
 // File is a leaf node in the tree
 type File struct {

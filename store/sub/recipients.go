@@ -1,4 +1,4 @@
-package password
+package sub
 
 import (
 	"bufio"
@@ -14,6 +14,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/fsutil"
 	"github.com/justwatchcom/gopass/gpg"
+	"github.com/justwatchcom/gopass/store"
 )
 
 const (
@@ -21,6 +22,11 @@ const (
 	fileMode = 0600
 	dirMode  = 0700
 )
+
+// Recipients returns the list of recipients of this store
+func (s *Store) Recipients() []string {
+	return s.recipients
+}
 
 // AddRecipient adds a new recipient to the list
 func (s *Store) AddRecipient(id string) error {
@@ -39,9 +45,8 @@ func (s *Store) AddRecipient(id string) error {
 	return s.reencrypt("Added Recipient " + id)
 }
 
-// RemoveRecipient will remove the given recipient from the store
+// RemoveRecipient will remove the given recipient from the storefunc (s *Store) RemoveRecipient()id string) error {
 func (s *Store) RemoveRecipient(id string) error {
-	// we try to get the public key info for this ID from gpg
 	// but if this key is not available on this machine we
 	// just try to remove it literally
 	keys, err := gpg.ListPublicKeys(id)
@@ -137,12 +142,12 @@ func (s *Store) saveRecipients(msg string) error {
 	err := s.gitAdd(s.idFile())
 	if err == nil {
 		if err := s.gitCommit(msg); err != nil {
-			if err != ErrGitNotInit {
+			if err != store.ErrGitNotInit {
 				return err
 			}
 		}
 	} else {
-		if err != ErrGitNotInit {
+		if err != store.ErrGitNotInit {
 			return err
 		}
 	}
@@ -151,10 +156,10 @@ func (s *Store) saveRecipients(msg string) error {
 		// push to remote repo
 		if s.autoPush {
 			if err := s.gitPush("", ""); err != nil {
-				if err == ErrGitNotInit {
+				if err == store.ErrGitNotInit {
 					return nil
 				}
-				if err == ErrGitNoRemote {
+				if err == store.ErrGitNoRemote {
 					msg := "Warning: git has no remote. Ignoring auto-push option\n" +
 						"Run: gopass git remote add origin ..."
 					fmt.Println(color.YellowString(msg))
@@ -178,7 +183,7 @@ func (s *Store) saveRecipients(msg string) error {
 			return err
 		}
 		if err := s.gitAdd(path); err != nil {
-			if err == ErrGitNotInit {
+			if err == store.ErrGitNotInit {
 				continue
 			}
 			return err
@@ -192,10 +197,10 @@ func (s *Store) saveRecipients(msg string) error {
 	// push to remote repo
 	if s.autoPush {
 		if err := s.gitPush("", ""); err != nil {
-			if err == ErrGitNotInit {
+			if err == store.ErrGitNotInit {
 				return nil
 			}
-			if err == ErrGitNoRemote {
+			if err == store.ErrGitNoRemote {
 				msg := "Warning: git has not remote. Ignoring auto-push option\n" +
 					"Run: gopass git remote add origin ..."
 				fmt.Println(color.YellowString(msg))

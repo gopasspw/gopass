@@ -15,7 +15,7 @@ import (
 
 // confirmRecipients asks the user to confirm a given set of recipients
 func (s *Action) confirmRecipients(name string, recipients []string) ([]string, error) {
-	if s.Store.NoConfirm {
+	if s.Store.NoConfirm() {
 		return recipients, nil
 	}
 	for {

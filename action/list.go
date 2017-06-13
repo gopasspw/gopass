@@ -31,8 +31,8 @@ func (s *Action) List(c *cli.Context) error {
 	}
 
 	if subtree := l.FindFolder(filter); subtree != nil {
-		subtree.Root = true
-		subtree.Name = filter
+		subtree.SetRoot(true)
+		subtree.SetName(filter)
 		if flat {
 			sep := "/"
 			if strings.HasSuffix(filter, "/") {

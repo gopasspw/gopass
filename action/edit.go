@@ -9,8 +9,8 @@ import (
 	"os/exec"
 
 	"github.com/justwatchcom/gopass/fsutil"
-	"github.com/justwatchcom/gopass/password"
 	"github.com/justwatchcom/gopass/pwgen"
+	"github.com/justwatchcom/gopass/store"
 	"github.com/justwatchcom/gopass/tpl"
 	shellquote "github.com/kballard/go-shellquote"
 	"github.com/urfave/cli"
@@ -24,7 +24,7 @@ func (s *Action) Edit(c *cli.Context) error {
 	}
 
 	exists, err := s.Store.Exists(name)
-	if err != nil && err != password.ErrNotFound {
+	if err != nil && err != store.ErrNotFound {
 		return fmt.Errorf("failed to see if %s exists", name)
 	}
 

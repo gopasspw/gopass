@@ -47,7 +47,7 @@ func (s *Action) Clone(c *cli.Context) error {
 	}
 
 	// save new mount in config file
-	if err := writeConfig(s.Store); err != nil {
+	if err := s.Store.Config().Save(); err != nil {
 		return fmt.Errorf("Failed to update config: %s", err)
 	}
 

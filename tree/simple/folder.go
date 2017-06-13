@@ -1,10 +1,12 @@
-package tree
+package simple
 
 import (
 	"bytes"
 	"fmt"
 	"path/filepath"
 	"strings"
+
+	"github.com/justwatchcom/gopass/tree"
 )
 
 // Folder is intermediate tree node
@@ -155,7 +157,7 @@ func (f *Folder) getFolder(name string) *Folder {
 }
 
 // FindFolder returns a sub-tree or nil, if the subtree does not exist
-func (f *Folder) FindFolder(name string) *Folder {
+func (f *Folder) FindFolder(name string) tree.Tree {
 	return f.findFolder(strings.Split(strings.TrimSuffix(name, "/"), "/"))
 }
 
@@ -219,4 +221,14 @@ func (f *Folder) addTemplate(path []string) error {
 		return nil
 	}
 	return f.getFolder(name).addTemplate(path[1:])
+}
+
+// SetRoot sets the root flag of this folder
+func (f *Folder) SetRoot(on bool) {
+	f.Root = on
+}
+
+// SetName sets the name of this folder
+func (f *Folder) SetName(name string) {
+	f.Name = name
 }

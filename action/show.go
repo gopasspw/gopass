@@ -5,8 +5,8 @@ import (
 
 	"github.com/atotto/clipboard"
 	"github.com/fatih/color"
-	"github.com/justwatchcom/gopass/password"
 	"github.com/justwatchcom/gopass/qrcon"
+	"github.com/justwatchcom/gopass/store"
 	"github.com/urfave/cli"
 )
 
@@ -37,7 +37,7 @@ func (s *Action) Show(c *cli.Context) error {
 			return err
 		}
 	case qr:
-		content, err = s.Store.First(name)
+		content, err = s.Store.GetFirstLine(name)
 		if err != nil {
 			return err
 		}
@@ -48,19 +48,19 @@ func (s *Action) Show(c *cli.Context) error {
 		fmt.Println(qr)
 		return nil
 	case clip:
-		content, err = s.Store.First(name)
+		content, err = s.Store.GetFirstLine(name)
 		if err != nil {
 			return err
 		}
 		return s.copyToClipboard(name, content)
 	default:
-		if s.Store.ShowSafeContent && !force {
-			content, err = s.Store.SafeContent(name)
+		if s.Store.SafeContent() && !force {
+			content, err = s.Store.GetBody(name)
 		} else {
 			content, err = s.Store.Get(name)
 		}
 		if err != nil {
-			if err != password.ErrNotFound {
+			if err != store.ErrNotFound {
 				return err
 			}
 			color.Yellow("Entry '%s' not found. Starting search...", name)
@@ -78,7 +78,7 @@ func (s *Action) copyToClipboard(name string, content []byte) error {
 		return err
 	}
 
-	if err := clearClipboard(content, s.Store.ClipTimeout); err != nil {
+	if err := clearClipboard(content, s.Store.ClipTimeout()); err != nil {
 		return err
 	}
 

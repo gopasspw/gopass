@@ -1,4 +1,4 @@
-package password
+package sub
 
 import (
 	"bufio"
@@ -10,6 +10,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/justwatchcom/gopass/config"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -24,7 +25,7 @@ func TestLoadRecipients(t *testing.T) {
 	genRecs, _, err := createStore(tempdir)
 	assert.NoError(t, err)
 
-	s, err := NewStore("", tempdir, nil)
+	s, err := New("", &config.Config{Path: tempdir})
 	assert.NoError(t, err)
 
 	recs, err := s.loadRecipients()
@@ -43,11 +44,11 @@ func TestSaveRecipients(t *testing.T) {
 	genRecs, _, err := createStore(tempdir)
 	assert.NoError(t, err)
 
-	s, err := NewStore("", tempdir, nil)
+	s, err := New("", &config.Config{Path: tempdir})
 	assert.NoError(t, err)
 
 	// remove recipients
-	_ = os.Remove(filepath.Join(tempdir, gpgID))
+	_ = os.Remove(filepath.Join(tempdir, GPGID))
 
 	err = s.saveRecipients("test-save-recipients")
 	assert.NoError(t, err)
@@ -86,7 +87,7 @@ func TestAddRecipient(t *testing.T) {
 	genRecs, _, err := createStore(tempdir)
 	assert.NoError(t, err)
 
-	s, err := NewStore("", tempdir, nil)
+	s, err := New("", &config.Config{Path: tempdir})
 	assert.NoError(t, err)
 
 	newRecp := "A3683834"
@@ -114,7 +115,7 @@ func TestRemoveRecipient(t *testing.T) {
 	genRecs, _, err := createStore(tempdir)
 	assert.NoError(t, err)
 
-	s, err := NewStore("", tempdir, nil)
+	s, err := New("", &config.Config{Path: tempdir})
 	assert.NoError(t, err)
 
 	if os.Getenv("GOPASS_INTEGRATION_TESTS") != "true" {
@@ -137,7 +138,7 @@ func TestListRecipients(t *testing.T) {
 	genRecs, _, err := createStore(tempdir)
 	assert.NoError(t, err)
 
-	s, err := NewStore("", tempdir, nil)
+	s, err := New("", &config.Config{Path: tempdir})
 	assert.NoError(t, err)
 
 	assert.NoError(t, err)

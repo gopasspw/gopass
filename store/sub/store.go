@@ -1,4 +1,4 @@
-package password
+package sub
 
 import (
 	"bytes"
@@ -7,78 +7,55 @@ import (
 	"path/filepath"
 	"strings"
 
-	"gopkg.in/yaml.v2"
-
 	"github.com/fatih/color"
+	"github.com/justwatchcom/gopass/config"
 	"github.com/justwatchcom/gopass/fsutil"
 	"github.com/justwatchcom/gopass/gpg"
+	"github.com/justwatchcom/gopass/store"
 )
 
 const (
-	gpgID = ".gpg-id"
+	// GPGID is the name of the file containing the recipient ids
+	GPGID = ".gpg-id"
 )
-
-var (
-	// ErrExistsFailed is returend if we can't check for existence
-	ErrExistsFailed = fmt.Errorf("Failed to check for existence")
-	// ErrNotFound is returned if an entry was not found
-	ErrNotFound = fmt.Errorf("Entry is not in the password store")
-	// ErrEncrypt is returned if we failed to encrypt an entry
-	ErrEncrypt = fmt.Errorf("Failed to encrypt")
-	// ErrDecrypt is returned if we failed to decrypt and entry
-	ErrDecrypt = fmt.Errorf("Failed to decrypt")
-	// ErrSneaky is returned if the user passes a possible malicious path to gopass
-	ErrSneaky = fmt.Errorf("you've attempted to pass a sneaky path to gopass. go home")
-)
-
-// RecipientCallback is a callback to verify the list of recipients
-type RecipientCallback func(string, []string) ([]string, error)
-
-// ImportCallback is a callback to ask the user if he wants to import
-// a certain recipients public key into his keystore
-type ImportCallback func(string) bool
-
-// FsckCallback is a callback to ask the user to confirm certain fsck
-// corrective actions
-type FsckCallback func(string) bool
 
 // Store is password store
 type Store struct {
-	recipients  []string
 	alias       string
-	path        string
-	autoPush    bool
-	autoPull    bool
-	autoImport  bool
-	persistKeys bool
-	loadKeys    bool
 	alwaysTrust bool
-	importFunc  ImportCallback
-	fsckFunc    FsckCallback
+	autoImport  bool
+	autoPull    bool
+	autoPush    bool
 	debug       bool
+	fsckFunc    store.FsckCallback
+	importFunc  store.ImportCallback
+	loadKeys    bool
+	path        string
+	persistKeys bool
+	recipients  []string
 }
 
-// NewStore creates a new store, copying settings from the given root store
-func NewStore(alias, path string, r *RootStore) (*Store, error) {
-	if r == nil {
-		r = &RootStore{}
+// New creates a new store, copying settings from the given root store
+func New(alias string, cfg *config.Config) (*Store, error) {
+	if cfg == nil {
+		cfg = &config.Config{}
 	}
-	if path == "" {
+	if cfg.Path == "" {
 		return nil, fmt.Errorf("Need path")
 	}
 	s := &Store{
 		alias:       alias,
-		path:        path,
-		autoPush:    r.AutoPush,
-		autoPull:    r.AutoPull,
-		autoImport:  r.AutoImport,
-		persistKeys: r.PersistKeys,
-		loadKeys:    r.LoadKeys,
-		alwaysTrust: r.AlwaysTrust,
-		importFunc:  r.ImportFunc,
-		fsckFunc:    r.FsckFunc,
-		debug:       r.Debug,
-		recipients:  make([]string, 0, 5),
+		alwaysTrust: cfg.AlwaysTrust,
+		autoImport:  cfg.AutoImport,
+		autoPull:    cfg.AutoPull,
+		autoPush:    cfg.AutoPush,
+		debug:       cfg.Debug,
+		fsckFunc:    cfg.FsckFunc,
+		importFunc:  cfg.ImportFunc,
+		loadKeys:    cfg.LoadKeys,
+		path:        cfg.Path,
+		persistKeys: cfg.PersistKeys,
+		recipients:  make([]string, 0, 1),
 	}
 
 	// only try to load recipients if the store / recipients file exist
@@ -98,7 +75,7 @@ func (s *Store) Initialized() bool {
 }
 
 // Init tries to initalize a new password store location matching the object
-func (s *Store) Init(ids ...string) error {
+func (s *Store) Init(path string, ids ...string) error {
 	if s.Initialized() {
 		return fmt.Errorf("Store is already initialized")
 	}
@@ -140,7 +117,7 @@ func (s *Store) Init(ids ...string) error {
 
 // idFile returns the path to the recipient list for this store
 func (s *Store) idFile() string {
-	return fsutil.CleanPath(filepath.Join(s.path, gpgID))
+	return fsutil.CleanPath(filepath.Join(s.path, GPGID))
 }
 
 // mkStoreWalkerFunc create a func to walk a (sub)store, i.e. list it's content
@@ -161,7 +138,7 @@ func mkStoreWalkerFunc(alias, folder string, fn func(...string)) func(string, os
 		if path == folder {
 			return nil
 		}
-		if path == filepath.Join(folder, gpgID) {
+		if path == filepath.Join(folder, GPGID) {
 			return nil
 		}
 		if info.Mode()&os.ModeSymlink != 0 {
@@ -188,8 +165,8 @@ func (s *Store) List(prefix string) ([]string, error) {
 	return lst, err
 }
 
-// equals returns true if this store has the same on-disk path as the other
-func (s *Store) equals(other *Store) bool {
+// Equals returns true if this store has the same on-disk path as the other
+func (s *Store) Equals(other *Store) bool {
 	if other == nil {
 		return false
 	}
@@ -201,45 +178,26 @@ func (s *Store) Get(name string) ([]byte, error) {
 	p := s.passfile(name)
 
 	if !strings.HasPrefix(p, s.path) {
-		return []byte{}, ErrSneaky
+		return []byte{}, store.ErrSneaky
 	}
 
 	if !fsutil.IsFile(p) {
 		if s.debug {
 			fmt.Printf("File %s not found\n", p)
 		}
-		return []byte{}, ErrNotFound
+		return []byte{}, store.ErrNotFound
 	}
 
 	content, err := gpg.Decrypt(p)
 	if err != nil {
-		return []byte{}, ErrDecrypt
+		return []byte{}, store.ErrDecrypt
 	}
 
 	return content, nil
 }
 
-// GetKey returns a single key from a structured secret
-func (s *Store) GetKey(name, key string) ([]byte, error) {
-	content, err := s.SafeContent(name)
-	if err != nil {
-		return nil, err
-	}
-
-	d := make(map[string]string)
-	if err := yaml.Unmarshal(content, &d); err != nil {
-		return nil, err
-	}
-
-	if v, found := d[key]; found {
-		return []byte(v), nil
-	}
-
-	return nil, fmt.Errorf("key not found")
-}
-
-// First returns the first line of the plaintext of a single key
-func (s *Store) First(name string) ([]byte, error) {
+// GetFirstLine returns the first line of the plaintext of a single key
+func (s *Store) GetFirstLine(name string) ([]byte, error) {
 	content, err := s.Get(name)
 	if err != nil {
 		return nil, err
@@ -253,8 +211,8 @@ func (s *Store) First(name string) ([]byte, error) {
 	return bytes.TrimSpace(lines[0]), nil
 }
 
-// SafeContent returns everything but the first line
-func (s *Store) SafeContent(name string) ([]byte, error) {
+// GetBody returns everything but the first line
+func (s *Store) GetBody(name string) ([]byte, error) {
 	content, err := s.Get(name)
 	if err != nil {
 		return nil, err
@@ -277,7 +235,7 @@ func (s *Store) Exists(name string) (bool, error) {
 	p := s.passfile(name)
 
 	if !strings.HasPrefix(p, s.path) {
-		return false, ErrSneaky
+		return false, store.ErrSneaky
 	}
 
 	return fsutil.IsFile(p), nil
@@ -291,11 +249,11 @@ func (s *Store) Set(name string, content []byte, reason string) error {
 // SetConfirm encodes and writes the cipertext of one entry to disk. This
 // method can be passed a callback to confirm the recipients immedeately
 // before encryption.
-func (s *Store) SetConfirm(name string, content []byte, reason string, cb RecipientCallback) error {
+func (s *Store) SetConfirm(name string, content []byte, reason string, cb store.RecipientCallback) error {
 	p := s.passfile(name)
 
 	if !strings.HasPrefix(p, s.path) {
-		return ErrSneaky
+		return store.ErrSneaky
 	}
 
 	if s.IsDir(name) {
@@ -315,18 +273,18 @@ func (s *Store) SetConfirm(name string, content []byte, reason string, cb Recipi
 	}
 
 	if err := gpg.Encrypt(p, content, recipients, s.alwaysTrust); err != nil {
-		return ErrEncrypt
+		return store.ErrEncrypt
 	}
 
 	if err := s.gitAdd(p); err != nil {
-		if err == ErrGitNotInit {
+		if err == store.ErrGitNotInit {
 			return nil
 		}
 		return err
 	}
 
 	if err := s.gitCommit(fmt.Sprintf("Save secret to %s: %s", name, reason)); err != nil {
-		if err == ErrGitNotInit {
+		if err == store.ErrGitNotInit {
 			return nil
 		}
 		return err
@@ -334,13 +292,13 @@ func (s *Store) SetConfirm(name string, content []byte, reason string, cb Recipi
 
 	if s.autoPush {
 		if err := s.gitPush("", ""); err != nil {
-			if err == ErrGitNotInit {
+			if err == store.ErrGitNotInit {
 				msg := "Warning: git is not initialized for this store. Ignoring auto-push option\n" +
 					"Run: gopass git init"
 				fmt.Println(color.RedString(msg))
 				return nil
 			}
-			if err == ErrGitNoRemote {
+			if err == store.ErrGitNoRemote {
 				msg := "Warning: git has not remote. Ignoring auto-push option\n" +
 					"Run: gopass git remote add origin ..."
 				fmt.Println(color.YellowString(msg))
@@ -350,33 +308,6 @@ func (s *Store) SetConfirm(name string, content []byte, reason string, cb Recipi
 		}
 	}
 	return nil
-}
-
-// SetKey will update a single key in a YAML structured secret
-func (s *Store) SetKey(name, key, value string) error {
-	var err error
-	first, err := s.First(name)
-	if err != nil {
-		first = []byte("\n")
-	}
-	body, err := s.SafeContent(name)
-	if err != nil && err != ErrNotFound {
-		return err
-	}
-
-	d := make(map[string]string)
-	if err := yaml.Unmarshal(body, &d); err != nil {
-		return err
-	}
-
-	d[key] = value
-
-	buf, err := yaml.Marshal(d)
-	if err != nil {
-		return err
-	}
-
-	return s.SetConfirm(name, append(first, buf...), fmt.Sprintf("Updated key %s in %s", key, name), nil)
 }
 
 // Copy will copy one entry to another location. Multi-store copies are
@@ -478,14 +409,14 @@ func (s *Store) delete(name string, recurse bool) error {
 	rf := os.Remove
 
 	if !recurse && !fsutil.IsFile(path) {
-		return ErrNotFound
+		return store.ErrNotFound
 	}
 
 	if recurse && !fsutil.IsFile(path) {
 		path = filepath.Join(s.path, name)
 		rf = os.RemoveAll
 		if !fsutil.IsDir(path) {
-			return ErrNotFound
+			return store.ErrNotFound
 		}
 	}
 
@@ -494,13 +425,13 @@ func (s *Store) delete(name string, recurse bool) error {
 	}
 
 	if err := s.gitAdd(path); err != nil {
-		if err == ErrGitNotInit {
+		if err == store.ErrGitNotInit {
 			return nil
 		}
 		return err
 	}
 	if err := s.gitCommit(fmt.Sprintf("Remove %s from store.", name)); err != nil {
-		if err == ErrGitNotInit {
+		if err == store.ErrGitNotInit {
 			return nil
 		}
 		return err
@@ -508,7 +439,7 @@ func (s *Store) delete(name string, recurse bool) error {
 
 	if s.autoPush {
 		if err := s.gitPush("", ""); err != nil {
-			if err == ErrGitNotInit || err == ErrGitNoRemote {
+			if err == store.ErrGitNotInit || err == store.ErrGitNoRemote {
 				return nil
 			}
 			return err
