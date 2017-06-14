@@ -77,7 +77,7 @@ test:
 	for PKG in $(PACKAGES); do go test -cover -coverprofile $$GOPATH/src/$$PKG/coverage.out $$PKG || exit 1; done;
 
 .PHONY: test-integration
-test-integration: build
+test-integration: clean build
 	cd tests && GOPASS_BINARY=$(PWD)/$(EXECUTABLE)-$(GOOS)-$(GOARCH) GOPASS_TEST_DIR=$(PWD)/tests go test -v
 
 .PHONY: install
