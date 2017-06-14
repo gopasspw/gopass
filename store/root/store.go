@@ -46,26 +46,14 @@ func New(cfg *config.Config) (*Store, error) {
 		return nil, fmt.Errorf("need path")
 	}
 	r := &Store{
-		alwaysTrust: cfg.AlwaysTrust,
-		askForMore:  cfg.AskForMore,
-		autoImport:  cfg.AutoImport,
-		autoPull:    cfg.AutoPull,
-		autoPush:    cfg.AutoPush,
-		clipTimeout: cfg.ClipTimeout,
-		debug:       cfg.Debug,
-		fsckFunc:    cfg.FsckFunc,
 		gpg: gpg.New(gpg.Config{
 			Debug:       cfg.Debug,
 			AlwaysTrust: cfg.AlwaysTrust,
 		}),
-		importFunc:  cfg.ImportFunc,
-		loadKeys:    cfg.LoadKeys,
-		mounts:      make(map[string]*sub.Store, len(cfg.Mounts)),
-		noColor:     cfg.NoColor,
-		noConfirm:   cfg.NoConfirm,
-		path:        cfg.Path,
-		persistKeys: cfg.PersistKeys,
-		safeContent: cfg.SafeContent,
+		mounts: make(map[string]*sub.Store, len(cfg.Mounts)),
+	}
+	if err := r.UpdateConfig(cfg); err != nil {
+		return nil, err
 	}
 
 	if r.autoImport {
