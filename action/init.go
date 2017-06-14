@@ -50,14 +50,14 @@ func (s *Action) init(alias, path string, nogit bool, keys ...string) error {
 		keys = []string{nk}
 	}
 
+	if err := s.Store.Init(alias, path, keys...); err != nil {
+		return err
+	}
+
 	if !nogit {
 		if err := s.gitInit(path, ""); err != nil {
 			color.Yellow("Failed to init git: %s", err)
 		}
-	}
-
-	if err := s.Store.Init(alias, path, keys...); err != nil {
-		return err
 	}
 
 	if alias != "" && path != "" {
