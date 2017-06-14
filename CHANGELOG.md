@@ -1,3 +1,8 @@
+## 1.1.2 / 2017-06-14
+
+* [BUGFIX] Fix gopass init --store [#129]
+* [BUGFIX] Fix gopass init [#127]
+
 ## 1.1.1 / 2017-06-13
 
 * [ENHANCEMENT] Allow files and folders with the same name [#124]
