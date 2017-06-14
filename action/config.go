@@ -2,17 +2,8 @@ package action
 
 import (
 	"fmt"
-	"io/ioutil"
-	"os"
-	"path/filepath"
-	"reflect"
 	"sort"
-	"strconv"
-	"strings"
 
-	"github.com/ghodss/yaml"
-	"github.com/justwatchcom/gopass/fsutil"
-	"github.com/justwatchcom/gopass/password"
 	"github.com/urfave/cli"
 )
 
@@ -34,33 +25,17 @@ func (s *Action) Config(c *cli.Context) error {
 }
 
 func (s *Action) printConfigValues(filter ...string) error {
-	out := make([]string, 0, 10)
-	o := reflect.ValueOf(s.Store).Elem()
-	for i := 0; i < o.NumField(); i++ {
-		jsonArg := o.Type().Field(i).Tag.Get("json")
-		if jsonArg == "" || jsonArg == "-" {
+	m := s.Store.Config().ConfigMap()
+	out := make([]string, 0, len(m))
+	for k := range m {
+		if !contains(filter, k) {
 			continue
 		}
-		if !contains(filter, jsonArg) {
-			continue
-		}
-		f := o.Field(i)
-		strVal := ""
-		switch f.Kind() {
-		case reflect.String:
-			strVal = f.String()
-		case reflect.Bool:
-			strVal = fmt.Sprintf("%t", f.Bool())
-		case reflect.Int:
-			strVal = fmt.Sprintf("%d", f.Int())
-		default:
-			continue
-		}
-		out = append(out, fmt.Sprintf("%s: %s", jsonArg, strVal))
+		out = append(out, k)
 	}
 	sort.Strings(out)
-	for _, line := range out {
-		fmt.Println(line)
+	for _, k := range out {
+		fmt.Printf("%s: %s\n", k, m[k])
 	}
 	return nil
 }
@@ -78,98 +53,9 @@ func contains(haystack []string, needle string) bool {
 }
 
 func (s *Action) setConfigValue(key, value string) error {
-	if key == "version" {
-		return fmt.Errorf("Can not change version")
-	}
-	if key != "path" {
-		value = strings.ToLower(value)
-	}
-	o := reflect.ValueOf(s.Store).Elem()
-	for i := 0; i < o.NumField(); i++ {
-		jsonArg := o.Type().Field(i).Tag.Get("json")
-		if jsonArg == "" || jsonArg == "-" {
-			continue
-		}
-		if jsonArg != key {
-			continue
-		}
-		f := o.Field(i)
-		switch f.Kind() {
-		case reflect.String:
-			f.SetString(value)
-		case reflect.Bool:
-			if value == "true" {
-				f.SetBool(true)
-			} else if value == "false" {
-				f.SetBool(false)
-			} else {
-				return fmt.Errorf("No a bool: %s", value)
-			}
-		case reflect.Int:
-			iv, err := strconv.Atoi(value)
-			if err != nil {
-				return err
-			}
-			f.SetInt(int64(iv))
-		default:
-			continue
-		}
-	}
-	return writeConfig(s.Store)
-}
-
-// hasConfig is a short hand for checking if the config file exists
-func hasConfig() bool {
-	for _, l := range configLocations() {
-		if fsutil.IsFile(l) {
-			return true
-		}
-	}
-	return false
-}
-
-// writeConfig saves the config
-func writeConfig(s *password.RootStore) error {
-	buf, err := yaml.Marshal(s)
-	if err != nil {
+	cfg := s.Store.Config()
+	if err := cfg.SetConfigValue(key, value); err != nil {
 		return err
 	}
-	cfgLoc := configLocation()
-	cfgDir := filepath.Dir(cfgLoc)
-	if !fsutil.IsDir(cfgDir) {
-		if err := os.MkdirAll(cfgDir, 0700); err != nil {
-			return err
-		}
-	}
-	if err := ioutil.WriteFile(cfgLoc, buf, 0600); err != nil {
-		return err
-	}
-	return nil
-}
-
-// configLocation returns the location of the config file. Either reading from
-// GOPASS_CONFIG or using the default location (~/.gopass.yml)
-func configLocation() string {
-	if cf := os.Getenv("GOPASS_CONFIG"); cf != "" {
-		return cf
-	}
-	if xch := os.Getenv("XDG_CONFIG_HOME"); xch != "" {
-		return filepath.Join(xch, "gopass", "config.yml")
-	}
-	return filepath.Join(os.Getenv("HOME"), ".config", "gopass", "config.yml")
-}
-
-// configLocations returns the possible locations of gopass config files,
-// in decreasing priority
-func configLocations() []string {
-	l := []string{}
-	if cf := os.Getenv("GOPASS_CONFIG"); cf != "" {
-		l = append(l, cf)
-	}
-	if xch := os.Getenv("XDG_CONFIG_HOME"); xch != "" {
-		l = append(l, filepath.Join(xch, "gopass", "config.yml"))
-	}
-	l = append(l, filepath.Join(os.Getenv("HOME"), ".config", "gopass", "config.yml"))
-	l = append(l, filepath.Join(os.Getenv("HOME"), ".gopass.yml"))
-	return l
+	return s.Store.UpdateConfig(cfg)
 }

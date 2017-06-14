@@ -78,7 +78,7 @@ func (s *Action) CompletionDMenu(c *cli.Context) error {
 		return err
 	}
 
-	content, err := s.Store.First(name)
+	content, err := s.Store.GetFirstLine(name)
 	if err != nil {
 		return err
 	}

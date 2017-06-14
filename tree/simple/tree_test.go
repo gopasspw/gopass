@@ -1,4 +1,4 @@
-package tree
+package simple
 
 import (
 	"sort"
@@ -62,7 +62,7 @@ func TestFormat(t *testing.T) {
 	got := strings.TrimSpace(root.Format(0))
 	want := strings.TrimSpace(goldenFormat)
 	if want != got {
-		t.Errorf("Format mismatch: %s vs %s", want, got)
+		t.Errorf("Format mismatch:\n---\n%x\n---\n%x\n---", want, got)
 	}
 }
 

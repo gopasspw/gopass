@@ -3,7 +3,7 @@ package action
 import (
 	"fmt"
 
-	"github.com/justwatchcom/gopass/password"
+	"github.com/justwatchcom/gopass/store"
 	"github.com/urfave/cli"
 )
 
@@ -18,7 +18,7 @@ func (s *Action) Delete(c *cli.Context) error {
 	}
 
 	found, err := s.Store.Exists(name)
-	if err != nil && err != password.ErrNotFound {
+	if err != nil && err != store.ErrNotFound {
 		return fmt.Errorf("failed to see if %s exists", name)
 	}
 

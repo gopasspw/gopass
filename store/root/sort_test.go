@@ -1,4 +1,4 @@
-package password
+package root
 
 import (
 	"sort"
@@ -19,6 +19,27 @@ func TestMountPointSort(t *testing.T) {
 	} {
 		if mps[i] != v {
 			t.Errorf("Mismatch at %d: %s vs. %s", i, v, mps[i])
+		}
+	}
+}
+
+func TestSortByLen(t *testing.T) {
+	in := []string{
+		"a",
+		"bb",
+		"ccc",
+		"dddd",
+	}
+	out := []string{
+		"dddd",
+		"ccc",
+		"bb",
+		"a",
+	}
+	sort.Sort(byLen(in))
+	for i, s := range in {
+		if out[i] != s {
+			t.Errorf("Mismatch at pos %d (%s - %s)", i, out[i], s)
 		}
 	}
 }

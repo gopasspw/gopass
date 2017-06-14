@@ -27,22 +27,8 @@ func (s *Action) Init(c *cli.Context) error {
 }
 
 func (s *Action) init(alias, path string, nogit bool, keys ...string) error {
-	if path != "" && alias == "" {
-		return fmt.Errorf("need mount alias when using path")
-	}
-	if !hasConfig() {
-		// when creating a new config we set some sensible defaults
-		s.Store.AutoPush = true
-		s.Store.AutoPull = true
-		s.Store.AutoImport = false
-		s.Store.NoConfirm = false
-		s.Store.PersistKeys = true
-		s.Store.LoadKeys = false
-		s.Store.ClipTimeout = 45
-		s.Store.ShowSafeContent = false
-	}
 	if path == "" {
-		path = s.Store.Path
+		path = s.Store.Path()
 	}
 
 	if len(keys) < 1 {
@@ -80,7 +66,7 @@ func (s *Action) init(alias, path string, nogit bool, keys ...string) error {
 	fmt.Println("")
 
 	// write config
-	if err := writeConfig(s.Store); err != nil {
+	if err := s.Store.Config().Save(); err != nil {
 		color.Red(fmt.Sprintf("Failed to write config: %s", err))
 	}
 

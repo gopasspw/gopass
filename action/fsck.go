@@ -17,7 +17,8 @@ func (s *Action) Fsck(c *cli.Context) error {
 		force = false
 	}
 	// make sure config is in the right place
-	if err := writeConfig(s.Store); err != nil {
+	// we may have loaded it from one of the fallback locations
+	if err := s.Store.Config().Save(); err != nil {
 		return err
 	}
 	// clean up any previous config locations
@@ -27,5 +28,6 @@ func (s *Action) Fsck(c *cli.Context) error {
 			color.Red("Failed to remove old gopass config %s: %s", oldCfg, err)
 		}
 	}
-	return s.Store.Fsck(check, force)
+	_, err := s.Store.Fsck("", check, force)
+	return err
 }

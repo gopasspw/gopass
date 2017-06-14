@@ -1,4 +1,4 @@
-package password
+package root
 
 // byLen is a list of mount points (string) that can be sorted by name
 type byLen []string

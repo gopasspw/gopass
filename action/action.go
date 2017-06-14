@@ -1,8 +1,6 @@
 package action
 
 import (
-	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -10,16 +8,16 @@ import (
 	"golang.org/x/crypto/ssh/terminal"
 
 	"github.com/fatih/color"
-	"github.com/ghodss/yaml"
+	"github.com/justwatchcom/gopass/config"
 	"github.com/justwatchcom/gopass/fsutil"
 	"github.com/justwatchcom/gopass/gpg"
-	"github.com/justwatchcom/gopass/password"
+	"github.com/justwatchcom/gopass/store/root"
 )
 
 // Action knows everything to run gopass CLI actions
 type Action struct {
 	Name  string
-	Store *password.RootStore
+	Store *root.Store
 }
 
 // New returns a new Action wrapper
@@ -32,39 +30,40 @@ func New(v string) *Action {
 	if gdb := os.Getenv("GOPASS_DEBUG"); gdb == "true" {
 		gpg.Debug = true
 	}
-	pwDir := pwStoreDir("")
 
 	// try to read config (if it exists)
-	for _, l := range configLocations() {
-		if cfg, err := newFromFile(l); err == nil && cfg != nil {
-			cfg.ImportFunc = askForKeyImport
-			cfg.FsckFunc = askForConfirmation
-			cfg.Version = v
-			color.NoColor = cfg.NoColor
-			// need this override for our integration tests
-			if nc := os.Getenv("GOPASS_NOCOLOR"); nc == "true" {
-				color.NoColor = true
-			}
-			// only emit color codes when stdout is a terminal
-			if !terminal.IsTerminal(int(os.Stdout.Fd())) {
-				color.NoColor = true
-			}
-			return &Action{
-				Name:  name,
-				Store: cfg,
-			}
+	if cfg, err := config.Load(); err == nil && cfg != nil {
+		cfg.ImportFunc = askForKeyImport
+		cfg.FsckFunc = askForConfirmation
+		cfg.Version = v
+		color.NoColor = cfg.NoColor
+		// need this override for our integration tests
+		if nc := os.Getenv("GOPASS_NOCOLOR"); nc == "true" {
+			color.NoColor = true
+		}
+		// only emit color codes when stdout is a terminal
+		if !terminal.IsTerminal(int(os.Stdout.Fd())) {
+			color.NoColor = true
+		}
+		store, err := root.New(cfg)
+		if err != nil {
+			panic(err)
+		}
+		return &Action{
+			Name:  name,
+			Store: store,
 		}
 	}
 
-	cfg, err := password.NewRootStore(pwDir)
+	cfg := config.New()
+	cfg.Path = pwStoreDir("")
+	cfg.ImportFunc = askForKeyImport
+	cfg.FsckFunc = askForConfirmation
+	rs, err := root.New(cfg)
 	if err != nil {
 		panic(err)
 	}
 
-	cfg.ImportFunc = askForKeyImport
-	cfg.FsckFunc = askForConfirmation
-	cfg.Version = v
-	color.NoColor = cfg.NoColor
 	// need this override for our integration tests
 	if nc := os.Getenv("GOPASS_NOCOLOR"); nc == "true" {
 		color.NoColor = true
@@ -75,30 +74,8 @@ func New(v string) *Action {
 
 	return &Action{
 		Name:  name,
-		Store: cfg,
+		Store: rs,
 	}
-}
-
-// newFromFile creates a new RootStore instance by unmarsahling a config file.
-// If the file doesn't exist or fails to unmarshal an error is returned
-func newFromFile(cf string) (*password.RootStore, error) {
-	// deliberately using os.Stat here, a symlinked
-	// config is OK
-	if _, err := os.Stat(cf); err != nil {
-		return nil, err
-	}
-	buf, err := ioutil.ReadFile(cf)
-	if err != nil {
-		fmt.Printf("Error reading config from %s: %s\n", cf, err)
-		return nil, err
-	}
-	cfg := &password.RootStore{}
-	err = yaml.Unmarshal(buf, &cfg)
-	if err != nil {
-		fmt.Printf("Error reading config from %s: %s\n", cf, err)
-		return nil, err
-	}
-	return cfg, nil
 }
 
 // String implement fmt.Stringer
