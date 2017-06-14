@@ -27,6 +27,9 @@ func (s *Action) Init(c *cli.Context) error {
 }
 
 func (s *Action) init(alias, path string, nogit bool, keys ...string) error {
+	if path != "" && alias == "" {
+		return fmt.Errorf("need mount alias when using path")
+	}
 	if !hasConfig() {
 		// when creating a new config we set some sensible defaults
 		s.Store.AutoPush = true
@@ -54,15 +57,15 @@ func (s *Action) init(alias, path string, nogit bool, keys ...string) error {
 		return err
 	}
 
-	if !nogit {
-		if err := s.gitInit(path, ""); err != nil {
-			color.Yellow("Failed to init git: %s", err)
-		}
-	}
-
 	if alias != "" && path != "" {
 		if err := s.Store.AddMount(alias, path); err != nil {
 			return err
+		}
+	}
+
+	if !nogit {
+		if err := s.gitInit(alias, ""); err != nil {
+			color.Yellow("Failed to init git: %s", err)
 		}
 	}
 
