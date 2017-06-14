@@ -231,14 +231,14 @@ func (s *Store) IsDir(name string) bool {
 }
 
 // Exists checks the existence of a single entry
-func (s *Store) Exists(name string) (bool, error) {
+func (s *Store) Exists(name string) bool {
 	p := s.passfile(name)
 
 	if !strings.HasPrefix(p, s.path) {
-		return false, store.ErrSneaky
+		return false
 	}
 
-	return fsutil.IsFile(p), nil
+	return fsutil.IsFile(p)
 }
 
 // Set encodes and write the ciphertext of one entry to disk
@@ -316,7 +316,7 @@ func (s *Store) SetConfirm(name string, content []byte, reason string, cb store.
 func (s *Store) Copy(from, to string) error {
 	// recursive copy?
 	if s.IsDir(from) {
-		if found, err := s.Exists(to); err != nil || found {
+		if s.Exists(to) {
 			return fmt.Errorf("Can not copy dir to file")
 		}
 		sf, err := s.List("")
@@ -355,7 +355,7 @@ func (s *Store) Copy(from, to string) error {
 func (s *Store) Move(from, to string) error {
 	// recursive move?
 	if s.IsDir(from) {
-		if found, err := s.Exists(to); err != nil || found {
+		if s.Exists(to) {
 			return fmt.Errorf("Can not move dir to file")
 		}
 		sf, err := s.List("")

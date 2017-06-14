@@ -10,7 +10,6 @@ import (
 	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/fsutil"
 	"github.com/justwatchcom/gopass/pwgen"
-	"github.com/justwatchcom/gopass/store"
 	"github.com/justwatchcom/gopass/tpl"
 	shellquote "github.com/kballard/go-shellquote"
 	"github.com/urfave/cli"
@@ -23,14 +22,10 @@ func (s *Action) Edit(c *cli.Context) error {
 		return fmt.Errorf("provide a secret name")
 	}
 
-	exists, err := s.Store.Exists(name)
-	if err != nil && err != store.ErrNotFound {
-		return fmt.Errorf("failed to see if %s exists", name)
-	}
-
 	var content []byte
 	var changed bool
-	if exists {
+	if s.Store.Exists(name) {
+		var err error
 		content, err = s.Store.Get(name)
 		if err != nil {
 			return fmt.Errorf("failed to decrypt %s: %v", name, err)

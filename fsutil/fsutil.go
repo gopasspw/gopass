@@ -2,10 +2,13 @@ package fsutil
 
 import (
 	"fmt"
+	"io"
+	"math/rand"
 	"os"
 	"os/user"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 // CleanPath resolves common aliases in a path and cleans it as much as possible
@@ -84,4 +87,41 @@ func IsEmptyDir(path string) (bool, error) {
 		return false, err
 	}
 	return empty, nil
+}
+
+// Shred overwrite the given file any number of times
+func Shred(path string, runs int) error {
+	rand.Seed(time.Now().UnixNano())
+	fh, err := os.OpenFile(path, os.O_WRONLY, 0600)
+	if err != nil {
+		return err
+	}
+	buf := make([]byte, 1024)
+	for i := 0; i < runs; i++ {
+		// overwrite using pseudo-random data n-1 times and
+		// use zeros in the last iteration
+		if i < runs-1 {
+			_, _ = rand.Read(buf)
+		} else {
+			buf = make([]byte, 1024)
+		}
+		if _, err := fh.Seek(0, 0); err != nil {
+			return err
+		}
+		if _, err := fh.Write(buf); err != nil {
+			if err != io.EOF {
+				return err
+			}
+		}
+		// if we fail to sync the written blocks to disk it'd be pointless
+		// do any further loops
+		if err := fh.Sync(); err != nil {
+			return err
+		}
+	}
+	if err := fh.Close(); err != nil {
+		return err
+	}
+
+	return os.Remove(path)
 }

@@ -6,7 +6,6 @@ import (
 	"io"
 	"os"
 
-	"github.com/justwatchcom/gopass/store"
 	"github.com/urfave/cli"
 )
 
@@ -55,13 +54,8 @@ func (s *Action) Insert(c *cli.Context) error {
 		return s.Store.SetConfirm(name, content.Bytes(), "Read secret from STDIN", confirm)
 	}
 
-	replacing, err := s.Store.Exists(name)
-	if err != nil && err != store.ErrNotFound {
-		return fmt.Errorf("failed to see if %s exists", name)
-	}
-
 	if !force { // don't check if it's force anyway
-		if replacing && !askForConfirmation(fmt.Sprintf("An entry already exists for %s. Overwrite it?", name)) {
+		if s.Store.Exists(name) && !askForConfirmation(fmt.Sprintf("An entry already exists for %s. Overwrite it?", name)) {
 			return fmt.Errorf("not overwriting your current secret")
 		}
 	}

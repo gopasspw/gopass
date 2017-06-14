@@ -92,6 +92,56 @@ func main() {
 
 	app.Commands = []cli.Command{
 		{
+			Name:    "binary",
+			Usage:   "Work with binary blobs",
+			Aliases: []string{"bin"},
+			Subcommands: []cli.Command{
+				{
+					Name:         "cat",
+					Usage:        "Print content of a secret to stdout or insert from stdin",
+					Before:       action.Initialized,
+					Action:       action.BinaryCat,
+					BashComplete: action.Complete,
+				},
+				{
+					Name:         "sum",
+					Usage:        "Compute the SHA256 sum of a decoded secret",
+					Aliases:      []string{"sha", "sha256"},
+					Before:       action.Initialized,
+					Action:       action.BinarySum,
+					BashComplete: action.Complete,
+				},
+				{
+					Name:         "copy",
+					Usage:        "Copy files from or to the password store",
+					Before:       action.Initialized,
+					Aliases:      []string{"cp"},
+					Action:       action.BinaryCopy,
+					BashComplete: action.Complete,
+					Flags: []cli.Flag{
+						cli.BoolFlag{
+							Name:  "force, f",
+							Usage: "Force to move the secret and overwrite existing one",
+						},
+					},
+				},
+				{
+					Name:         "move",
+					Usage:        "Move files from or to the password store",
+					Before:       action.Initialized,
+					Aliases:      []string{"mv"},
+					Action:       action.BinaryMove,
+					BashComplete: action.Complete,
+					Flags: []cli.Flag{
+						cli.BoolFlag{
+							Name:  "force, f",
+							Usage: "Force to move the secret and overwrite existing one",
+						},
+					},
+				},
+			},
+		},
+		{
 			Name:        "clone",
 			Usage:       "Clone a new store",
 			Description: "To clone a remote repo",
