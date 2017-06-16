@@ -4,10 +4,10 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"os/exec"
 
+	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/fsutil"
 	"github.com/justwatchcom/gopass/pwgen"
 	"github.com/justwatchcom/gopass/store"
@@ -65,21 +65,21 @@ func (s *Action) editor(content []byte) ([]byte, error) {
 		editor = "editor"
 	}
 
-	tmpfile, err := ioutil.TempFile(fsutil.Tempdir(), "gopass-edit")
+	tmpfile, err := fsutil.TempFile("gopass-edit")
 	if err != nil {
-		return []byte{}, fmt.Errorf("failed to create tmpfile to start with %s: %v", editor, tmpfile.Name())
+		return []byte{}, fmt.Errorf("failed to create tmpfile %s: %s", editor, err)
 	}
 	defer func() {
-		if err := os.Remove(tmpfile.Name()); err != nil {
-			log.Fatal(err)
+		if err := tmpfile.Remove(); err != nil {
+			color.Red("Failed to remove tempfile at %s: %s", tmpfile.Name(), err)
 		}
 	}()
 
 	if _, err := tmpfile.Write([]byte(content)); err != nil {
-		return []byte{}, fmt.Errorf("failed to create tmpfile to start with %s: %v", editor, tmpfile.Name())
+		return []byte{}, fmt.Errorf("failed to write tmpfile to start with %s %v: %s", editor, tmpfile.Name(), err)
 	}
 	if err := tmpfile.Close(); err != nil {
-		return []byte{}, fmt.Errorf("failed to create tmpfile to start with %s: %v", editor, tmpfile.Name())
+		return []byte{}, fmt.Errorf("failed to close tmpfile to start with %s %v: %s", editor, tmpfile.Name(), err)
 	}
 
 	cmdArgs, err := shellquote.Split(editor)
