@@ -31,10 +31,11 @@ func (s *Store) SetKey(name, key, value string) error {
 	var err error
 	first, err := s.GetFirstLine(name)
 	if err != nil {
-		first = []byte("\n")
+		first = []byte("")
 	}
+	first = append(first, '\n')
 	body, err := s.GetBody(name)
-	if err != nil && err != store.ErrNotFound {
+	if err != nil && err != store.ErrNotFound && err != store.ErrNoBody {
 		return err
 	}
 

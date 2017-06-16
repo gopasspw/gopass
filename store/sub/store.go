@@ -205,7 +205,7 @@ func (s *Store) GetFirstLine(name string) ([]byte, error) {
 
 	lines := bytes.Split(content, []byte("\n"))
 	if len(lines) < 1 {
-		return nil, fmt.Errorf("no content to return the first line from")
+		return nil, store.ErrNoPassword
 	}
 
 	return bytes.TrimSpace(lines[0]), nil
@@ -220,7 +220,7 @@ func (s *Store) GetBody(name string) ([]byte, error) {
 
 	lines := bytes.SplitN(content, []byte("\n"), 2)
 	if len(lines) < 2 || len(bytes.TrimSpace(lines[1])) < 1 {
-		return nil, fmt.Errorf("no safe content to display, you can force display with show -f")
+		return nil, store.ErrNoBody
 	}
 	return lines[1], nil
 }
