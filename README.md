@@ -557,6 +557,10 @@ If you use `gopass` as a library be sure to vendor it and expect breaking change
 * [GPGTools](https://gpgtools.org/) for macOS
 * [GitHub Help on GPG](https://help.github.com/articles/signing-commits-with-gpg/)
 
+## FAQ
+
+* *How does gopass relate to HashiCorp vault?* - While [Vault](https://www.vaultproject.io/) is for machines, `gopass` is for humans [#7](https://github.com/justwatchcom/gopass/issues/7)
+
 ## Credit & License
 
 `gopass` is maintained by the nice folks from [JustWatch](https://www.justwatch.com/gopass)
