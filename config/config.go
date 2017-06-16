@@ -17,6 +17,7 @@ import (
 // Config is the gopass config structure
 type Config struct {
 	AlwaysTrust bool                 `json:"alwaystrust"` // always trust public keys when encrypting
+	AskForMore  bool                 `json:"askformore"`  // ask for more data on generate
 	AutoImport  bool                 `json:"autoimport"`  // import missing public keys w/o asking
 	AutoPull    bool                 `json:"autopull"`    // pull from git before push
 	AutoPush    bool                 `json:"autopush"`    // push to git remote after commit
@@ -38,6 +39,7 @@ type Config struct {
 func New() *Config {
 	return &Config{
 		AlwaysTrust: true,
+		AskForMore:  false,
 		AutoImport:  true,
 		AutoPull:    true,
 		AutoPush:    true,

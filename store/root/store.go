@@ -17,6 +17,7 @@ import (
 // Store is the public facing password store
 type Store struct {
 	alwaysTrust bool // always trust public keys when encrypting
+	askForMore  bool
 	autoImport  bool // import missing public keys w/o asking
 	autoPull    bool // pull from git before push
 	autoPush    bool // push to git remote after commit
@@ -45,6 +46,7 @@ func New(cfg *config.Config) (*Store, error) {
 	}
 	r := &Store{
 		alwaysTrust: cfg.AlwaysTrust,
+		askForMore:  cfg.AskForMore,
 		autoImport:  cfg.AutoImport,
 		autoPull:    cfg.AutoPull,
 		autoPush:    cfg.AutoPush,
