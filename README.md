@@ -223,6 +223,24 @@ $ gopass mounts remove test
 
 You can initialize a new store using `gopass init --alias mount-point --store /path/to/store`.
 
+### Directly edit structured secrets aka. YAML support
+
+`gopass` supports directly editing structured secrets (only simple key-value maps so far).
+
+```bash
+$ gopass generate -n foo/bar 12
+The generated password for foo/bar is:
+7fXGKeaZgzty
+$ gopass insert foo/bar baz
+Enter password for foo/bar/baz:
+Retype password for foo/bar/baz:
+$ gopass foo/bar baz
+zab
+$ gopass foo/bar
+7fXGKeaZgzty
+baz: zab
+```
+
 ### Edit the Config
 
 `gopass` allows editing the config from the commandline. This is similar to how `git` handles `config`
