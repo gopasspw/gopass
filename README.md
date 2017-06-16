@@ -541,7 +541,7 @@ If you use `gopass` as a library be sure to vendor it and expect breaking change
 
 ## Roadmap
 
-- [x] Be 100% pass compatible
+- [x] Be 100% pass 1.6.5 compatible
 - [ ] Storing binary files in gopass (almost done)
 - [x] Storing structured files and templates (credit cards, DBs, websites...)
 - [ ] UX improvements and more wizards
