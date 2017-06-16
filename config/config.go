@@ -128,7 +128,7 @@ func Load() (*Config, error) {
 	for _, l := range configLocations() {
 		if cfg, err := load(l); err == nil {
 			if gdb := os.Getenv("GOPASS_DEBUG"); gdb == "true" {
-				fmt.Printf("Loaded config from %s: %+v\n", l, cfg)
+				fmt.Printf("[DEBUG] Loaded config from %s: %+v\n", l, cfg)
 			}
 			return cfg, err
 		}

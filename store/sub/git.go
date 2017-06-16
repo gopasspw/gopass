@@ -14,14 +14,14 @@ import (
 	"github.com/justwatchcom/gopass/store"
 )
 
-func (s *Store) gitCmd(args ...string) error {
-	cmd := exec.Command(args[0], args[1:]...)
+func (s *Store) gitCmd(name string, args ...string) error {
+	cmd := exec.Command("git", args[0:]...)
 	cmd.Dir = s.path
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
 	if s.debug {
-		fmt.Printf("store.GitInit: %s %+v\n", cmd.Path, cmd.Args)
+		fmt.Printf("[DEBUG] store.%s: %s %+v\n", name, cmd.Path, cmd.Args)
 	}
 	return cmd.Run()
 }
@@ -32,7 +32,7 @@ func (s *Store) GitInit(alias, signKey string) error {
 	// the git repo may be empty (i.e. no branches, cloned from a fresh remote)
 	// or already initialized. Only run git init if the folder is completely empty
 	if !s.isGit() {
-		if err := s.gitCmd("git", "init"); err != nil {
+		if err := s.gitCmd("GitInit", "init"); err != nil {
 			return fmt.Errorf("Failed to initialize git: %s", err)
 		}
 	}
@@ -55,10 +55,10 @@ func (s *Store) GitInit(alias, signKey string) error {
 	}
 
 	// setup for proper diffs
-	if err := s.gitCmd("git", "config", "--local", "diff.gpg.binary", "true"); err != nil {
+	if err := s.gitCmd("GitInit", "config", "--local", "diff.gpg.binary", "true"); err != nil {
 		color.Yellow("Error while initializing git: %s\n", err)
 	}
-	if err := s.gitCmd("git", "config", "--local", "diff.gpg.textconv", "gpg --no-tty --decrypt"); err != nil {
+	if err := s.gitCmd("GitInit", "config", "--local", "diff.gpg.textconv", "gpg --no-tty --decrypt"); err != nil {
 		color.Yellow("Error while initializing git: %s\n", err)
 	}
 
@@ -75,49 +75,22 @@ func (s *Store) gitSetSignKey(sk string) error {
 		return fmt.Errorf("SignKey not set")
 	}
 
-	cmd := exec.Command("git", "config", "--local", "user.signingkey", sk)
-	cmd.Dir = s.path
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-
-	if s.debug {
-		fmt.Printf("store.gitSetSignKey: %s %+v\n", cmd.Path, cmd.Args)
-	}
-	if err := cmd.Run(); err != nil {
+	if err := s.gitCmd("gitSetSignKey", "config", "--local", "user.signingkey", sk); err != nil {
 		return err
 	}
 
-	cmd = exec.Command("git", "config", "--local", "commit.gpgsign", "true")
-	cmd.Dir = s.path
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-
-	if s.debug {
-		fmt.Printf("store.gitSetSignKey: %s %+v\n", cmd.Path, cmd.Args)
-	}
-	return cmd.Run()
+	return s.gitCmd("gitSetSignKey", "config", "--local", "commit.gpgsign", "true")
 }
 
-// Git runs arbitrary git commands on this store and all substores
-func (s *Store) Git(alias string, args ...string) error {
-	cmd := exec.Command("git", args...)
-	cmd.Dir = s.path
-	cmd.Stdout = os.Stdout
-	cmd.Stdin = os.Stdin
-	cmd.Stderr = os.Stderr
-
-	if s.debug {
-		fmt.Printf("store.Git: %s %+v\n", cmd.Path, cmd.Args)
-	}
-	if err := cmd.Run(); err != nil {
-		return err
-	}
-
-	return nil
+// Git runs arbitrary git commands on this store
+func (s *Store) Git(args ...string) error {
+	return s.gitCmd("Git", args...)
 }
 
 // isGit returns true if this stores has a .git folder
 func (s *Store) isGit() bool {
+	// TODO(dschulz) we may want to check if the folder actually contains
+	// an initialized git setup
 	return fsutil.IsDir(filepath.Join(s.path, ".git"))
 }
 
@@ -132,19 +105,8 @@ func (s *Store) gitAdd(files ...string) error {
 
 	args := []string{"add", "--all"}
 	args = append(args, files...)
-	cmd := exec.Command("git", args...)
-	cmd.Dir = s.path
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
 
-	if s.debug {
-		fmt.Printf("store.gitAdd: %s %+v\n", cmd.Path, cmd.Args)
-	}
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("failed to add files to git: %v", err)
-	}
-
-	return nil
+	return s.gitCmd("gitAdd", args...)
 }
 
 // gitCommit creates a new git commit with the given commit message
@@ -153,19 +115,7 @@ func (s *Store) gitCommit(msg string) error {
 		return store.ErrGitNotInit
 	}
 
-	cmd := exec.Command("git", "commit", "-m", msg)
-	cmd.Dir = s.path
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-
-	if s.debug {
-		fmt.Printf("store.gitCommit: %s %+v\n", cmd.Path, cmd.Args)
-	}
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("failed to commit files to git: %v", err)
-	}
-
-	return nil
+	return s.gitCmd("gitCommit", "commit", "-m", msg)
 }
 
 func (s *Store) gitConfigValue(key string) (string, error) {

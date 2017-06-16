@@ -63,6 +63,7 @@ func New(cfg *config.Config) (*Store, error) {
 		safeContent: cfg.SafeContent,
 	}
 
+	// TODO(dschulz) this should be passed down from main, not set here
 	if d := os.Getenv("GOPASS_DEBUG"); d == "true" {
 		r.debug = true
 	}
