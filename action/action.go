@@ -27,8 +27,19 @@ func New(v string) *Action {
 		name = filepath.Base(os.Args[0])
 	}
 
+	debug := false
 	if gdb := os.Getenv("GOPASS_DEBUG"); gdb == "true" {
 		gpg.Debug = true
+		debug = true
+	}
+	noColor := false
+	// need this override for our integration tests
+	if nc := os.Getenv("GOPASS_NOCOLOR"); nc == "true" {
+		noColor = true
+	}
+	// only emit color codes when stdout is a terminal
+	if !terminal.IsTerminal(int(os.Stdout.Fd())) {
+		noColor = true
 	}
 
 	// try to read config (if it exists)
@@ -36,14 +47,10 @@ func New(v string) *Action {
 		cfg.ImportFunc = askForKeyImport
 		cfg.FsckFunc = askForConfirmation
 		cfg.Version = v
+		cfg.Debug = debug
 		color.NoColor = cfg.NoColor
-		// need this override for our integration tests
-		if nc := os.Getenv("GOPASS_NOCOLOR"); nc == "true" {
-			color.NoColor = true
-		}
-		// only emit color codes when stdout is a terminal
-		if !terminal.IsTerminal(int(os.Stdout.Fd())) {
-			color.NoColor = true
+		if noColor {
+			color.NoColor = noColor
 		}
 		store, err := root.New(cfg)
 		if err != nil {
@@ -59,18 +66,12 @@ func New(v string) *Action {
 	cfg.Path = pwStoreDir("")
 	cfg.ImportFunc = askForKeyImport
 	cfg.FsckFunc = askForConfirmation
+	cfg.Debug = debug
 	rs, err := root.New(cfg)
 	if err != nil {
 		panic(err)
 	}
-
-	// need this override for our integration tests
-	if nc := os.Getenv("GOPASS_NOCOLOR"); nc == "true" {
-		color.NoColor = true
-	}
-	if !terminal.IsTerminal(int(os.Stdout.Fd())) {
-		color.NoColor = true
-	}
+	color.NoColor = noColor
 
 	return &Action{
 		Name:  name,

@@ -226,7 +226,7 @@ func listKeys(typ string, search ...string) (KeyList, error) {
 	args = append(args, search...)
 	cmd := exec.Command(GPGBin, args...)
 	if Debug {
-		fmt.Printf("gpg.listKeys: %s %+v\n", cmd.Path, cmd.Args)
+		fmt.Printf("[DEBUG] gpg.listKeys: %s %+v\n", cmd.Path, cmd.Args)
 	}
 	out, err := cmd.CombinedOutput()
 	if err != nil {
@@ -257,7 +257,7 @@ func GetRecipients(file string) ([]string, error) {
 	args := []string{"--batch", "--list-only", "--list-packets", "--no-default-keyring", "--secret-keyring", "/dev/null", file}
 	cmd := exec.Command(GPGBin, args...)
 	if Debug {
-		fmt.Printf("gpg.GetRecipients: %s %+v\n", cmd.Path, cmd.Args)
+		fmt.Printf("[DEBUG] gpg.GetRecipients: %s %+v\n", cmd.Path, cmd.Args)
 	}
 	out, err := cmd.CombinedOutput()
 	if err != nil {
@@ -268,7 +268,7 @@ func GetRecipients(file string) ([]string, error) {
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
 		if Debug {
-			fmt.Printf("gpg Out: %s\n", line)
+			fmt.Printf("[DEBUG] gpg Output: %s\n", line)
 		}
 		if !strings.HasPrefix(line, ":pubkey enc packet:") {
 			continue
@@ -315,7 +315,7 @@ func Encrypt(path string, content []byte, recipients []string, alwaysTrust bool)
 
 	cmd := exec.Command(GPGBin, args...)
 	if Debug {
-		fmt.Printf("gpg.Encrypt: %s %+v\n", cmd.Path, cmd.Args)
+		fmt.Printf("[DEBUG] gpg.Encrypt: %s %+v\n", cmd.Path, cmd.Args)
 	}
 	cmd.Stdin = bytes.NewReader(content)
 	cmd.Stdout = os.Stdout
@@ -329,7 +329,7 @@ func Decrypt(path string) ([]byte, error) {
 	args := append(GPGArgs, "--decrypt", path)
 	cmd := exec.Command(GPGBin, args...)
 	if Debug {
-		fmt.Printf("gpg.Decrypt: %s %+v\n", cmd.Path, cmd.Args)
+		fmt.Printf("[DEBUG] gpg.Decrypt: %s %+v\n", cmd.Path, cmd.Args)
 	}
 	return cmd.Output()
 }
@@ -339,7 +339,7 @@ func ExportPublicKey(id, filename string) error {
 	args := append(GPGArgs, "--armor", "--export", id)
 	cmd := exec.Command(GPGBin, args...)
 	if Debug {
-		fmt.Printf("gpg.ExportPublicKey: %s %+v\n", cmd.Path, cmd.Args)
+		fmt.Printf("[DEBUG] gpg.ExportPublicKey: %s %+v\n", cmd.Path, cmd.Args)
 	}
 	out, err := cmd.Output()
 	if err != nil {
@@ -359,7 +359,7 @@ func ImportPublicKey(filename string) error {
 	args := append(GPGArgs, "--import")
 	cmd := exec.Command(GPGBin, args...)
 	if Debug {
-		fmt.Printf("gpg.ImportPublicKey: %s %+v\n", cmd.Path, cmd.Args)
+		fmt.Printf("[DEBUG] gpg.ImportPublicKey: %s %+v\n", cmd.Path, cmd.Args)
 	}
 	cmd.Stdin = bytes.NewReader(buf)
 	cmd.Stdout = os.Stdout

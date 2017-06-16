@@ -15,6 +15,7 @@ func (s *Store) Config() *config.Config {
 		AutoPull:    s.autoPull,
 		AutoPush:    s.autoPush,
 		ClipTimeout: s.clipTimeout,
+		Debug:       s.debug,
 		LoadKeys:    s.loadKeys,
 		Mounts:      make(map[string]string, len(s.mounts)),
 		NoColor:     s.noColor,
@@ -41,6 +42,7 @@ func (s *Store) UpdateConfig(cfg *config.Config) error {
 	s.autoImport = cfg.AutoImport
 	s.autoPull = cfg.AutoPull
 	s.autoPush = cfg.AutoPush
+	s.debug = cfg.Debug
 	s.clipTimeout = cfg.ClipTimeout
 	s.loadKeys = cfg.LoadKeys
 	s.noColor = cfg.NoColor
