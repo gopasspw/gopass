@@ -116,6 +116,9 @@ func (r *Store) Init(alias, path string, ids ...string) error {
 	if err != nil {
 		return err
 	}
+	if !r.store.Initialized() && alias == "" {
+		r.store = sub
+	}
 
 	return sub.Init(path, ids...)
 }
