@@ -102,7 +102,7 @@ func (s *Store) loadRecipients() ([]string, error) {
 		// gpg does on encryption
 		kl, err := s.gpg.FindPublicKeys(r)
 		if err != nil {
-			fmt.Printf("Failed to get public key for %s: %s\n", r, err)
+			fmt.Printf("[%s] Failed to get public key for %s: %s\n", s.alias, r, err)
 			continue
 		}
 		if len(kl) > 0 {
@@ -119,7 +119,7 @@ func (s *Store) loadRecipients() ([]string, error) {
 
 		// try to load this recipient
 		if err := s.importPublicKey(r); err != nil {
-			fmt.Printf("Failed to import public key for %s: %s\n", r, err)
+			fmt.Printf("[%s] Failed to import public key for %s: %s\n", s.alias, r, err)
 		}
 	}
 

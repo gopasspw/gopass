@@ -169,8 +169,8 @@ func (r *Store) Tree() (tree.Tree, error) {
 			}
 		}
 	}
-	mps := r.mountPoints()
-	sort.Sort(sort.Reverse(byLen(mps)))
+	mps := r.MountPoints()
+	sort.Sort(store.ByPathLen(mps))
 	for _, alias := range mps {
 		substore := r.mounts[alias]
 		if substore == nil {

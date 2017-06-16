@@ -7,6 +7,7 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/fsutil"
+	"github.com/justwatchcom/gopass/store"
 	"github.com/justwatchcom/gopass/store/sub"
 )
 
@@ -84,18 +85,18 @@ func (r *Store) Mounts() map[string]string {
 // MountPoints returns a sorted list of mount points. It encodes the logic that
 // the longer a mount point the more specific it is. This allows to "shadow" a
 // shorter mount point by a longer one.
-func (r *Store) mountPoints() []string {
+func (r *Store) MountPoints() []string {
 	mps := make([]string, 0, len(r.mounts))
 	for k := range r.mounts {
 		mps = append(mps, k)
 	}
-	sort.Sort(byLen(mps))
+	sort.Sort(sort.Reverse(store.ByPathLen(mps)))
 	return mps
 }
 
 // mountPoint returns the most-specific mount point for the given key
 func (r *Store) mountPoint(name string) string {
-	for _, mp := range r.mountPoints() {
+	for _, mp := range r.MountPoints() {
 		if strings.HasPrefix(name, mp) {
 			return mp
 		}

@@ -82,6 +82,6 @@ func (s *Action) copyToClipboard(name string, content []byte) error {
 		return err
 	}
 
-	fmt.Printf("Copied %s to clipboard. Will clear in %d seconds.\n", color.YellowString(name), s.Store.ClipTimeout)
+	fmt.Printf("Copied %s to clipboard. Will clear in %d seconds.\n", color.YellowString(name), s.Store.ClipTimeout())
 	return nil
 }

@@ -10,7 +10,7 @@ import (
 func (r *Store) Fsck(prefix string, check, force bool) (map[string]uint64, error) {
 	rc := make(map[string]uint64, 10)
 	sh := make(map[string]string, 100)
-	for _, alias := range r.mountPoints() {
+	for _, alias := range r.MountPoints() {
 		// check sub-store integrity
 		counts, err := r.mounts[alias].Fsck(alias, check, force)
 		if err != nil {

@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"sort"
 
+	"github.com/fatih/color"
+	"github.com/justwatchcom/gopass/store"
 	"github.com/justwatchcom/gopass/tree"
 	"github.com/justwatchcom/gopass/tree/simple"
 )
@@ -23,11 +25,26 @@ func (r *Store) RemoveRecipient(store, rec string) error {
 	return r.getStore(store).RemoveRecipient(rec)
 }
 
+func (r *Store) addRecipient(prefix string, root tree.Tree, recp string, pretty bool) error {
+	key := fmt.Sprintf("%s (missing public key)", recp)
+	kl, err := r.gpg.FindPublicKeys(recp)
+	if err == nil {
+		if len(kl) > 0 {
+			if pretty {
+				key = kl[0].OneLine()
+			} else {
+				key = kl[0].Fingerprint
+			}
+		}
+	}
+	return root.AddFile(prefix+key, "gopass/recipient")
+}
+
 // RecipientsTree returns a tree view of all stores' recipients
 func (r *Store) RecipientsTree(pretty bool) (tree.Tree, error) {
 	root := simple.New("gopass")
-	mps := r.mountPoints()
-	sort.Sort(sort.Reverse(byLen(mps)))
+	mps := r.MountPoints()
+	sort.Sort(store.ByPathLen(mps))
 	for _, alias := range mps {
 		substore := r.mounts[alias]
 		if substore == nil {
@@ -37,39 +54,15 @@ func (r *Store) RecipientsTree(pretty bool) (tree.Tree, error) {
 			return nil, fmt.Errorf("failed to add mount: %s", err)
 		}
 		for _, recp := range substore.Recipients() {
-			key := fmt.Sprintf("%s (missing public key)", recp)
-			kl, err := r.gpg.FindPublicKeys(recp)
-			if err == nil {
-				if len(kl) > 0 {
-					if pretty {
-						key = kl[0].OneLine()
-					} else {
-						key = kl[0].Fingerprint
-					}
-				}
-			}
-			if err := root.AddFile(alias+"/"+key, "gopass/recipient"); err != nil {
-				fmt.Println(err)
+			if err := r.addRecipient(alias+"/", root, recp, pretty); err != nil {
+				color.Yellow("Failed to add recipient to tree %s: %s", recp, err)
 			}
 		}
 	}
 
 	for _, recp := range r.store.Recipients() {
-		kl, err := r.gpg.FindPublicKeys(recp)
-		if err != nil {
-			fmt.Println(err)
-			continue
-		}
-		if len(kl) < 1 {
-			fmt.Println("key not found", r)
-			continue
-		}
-		key := kl[0].Fingerprint
-		if pretty {
-			key = kl[0].OneLine()
-		}
-		if err := root.AddFile(key, "gopass/recipient"); err != nil {
-			fmt.Println(err)
+		if err := r.addRecipient("", root, recp, pretty); err != nil {
+			color.Yellow("Failed to add recipient to tree %s: %s", recp, err)
 		}
 	}
 	return root, nil
