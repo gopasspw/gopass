@@ -70,5 +70,9 @@ func (s *Action) Generate(c *cli.Context) error {
 		color.YellowString(string(password)),
 	)
 
+	if s.Store.AskForMore() && askForConfirmation(fmt.Sprintf("Do you want to add more data for %s?", name)) {
+		return s.Edit(c)
+	}
+
 	return nil
 }

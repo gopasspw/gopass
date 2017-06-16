@@ -10,6 +10,7 @@ import (
 func (s *Store) Config() *config.Config {
 	c := &config.Config{
 		AlwaysTrust: s.alwaysTrust,
+		AskForMore:  s.askForMore,
 		AutoImport:  s.autoImport,
 		AutoPull:    s.autoPull,
 		AutoPush:    s.autoPush,
@@ -36,6 +37,7 @@ func (s *Store) UpdateConfig(cfg *config.Config) error {
 		return fmt.Errorf("invalid config")
 	}
 	s.alwaysTrust = cfg.AlwaysTrust
+	s.askForMore = cfg.AskForMore
 	s.autoImport = cfg.AutoImport
 	s.autoPull = cfg.AutoPull
 	s.autoPush = cfg.AutoPush
@@ -107,4 +109,9 @@ func (s *Store) SafeContent() bool {
 // ClipTimeout returns the value of clip timeout
 func (s *Store) ClipTimeout() int {
 	return s.clipTimeout
+}
+
+// AskForMore returns true if generate should ask for more information
+func (s *Store) AskForMore() bool {
+	return s.askForMore
 }
