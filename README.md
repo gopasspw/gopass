@@ -221,10 +221,7 @@ $ gopass mounts
 $ gopass mounts remove test
 ```
 
-**WARNING**: Initializing new stores while mounting is currently not possible.
-For the time-being you can only mount existing stores.
-
-You can initialize a new store using `gopass init --store /path/to/store`.
+You can initialize a new store using `gopass init --alias mount-point --store /path/to/store`.
 
 ### Edit the Config
 
