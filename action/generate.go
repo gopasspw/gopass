@@ -29,13 +29,8 @@ func (s *Action) Generate(c *cli.Context) error {
 		}
 	}
 
-	replacing, err := s.Store.Exists(name)
-	if err != nil {
-		return fmt.Errorf("failed to see if %s exists: %s", name, err)
-	}
-
 	if !force { // don't check if it's force anyway
-		if replacing && !askForConfirmation(fmt.Sprintf("An entry already exists for %s. Overwrite it?", name)) {
+		if s.Store.Exists(name) && !askForConfirmation(fmt.Sprintf("An entry already exists for %s. Overwrite it?", name)) {
 			return fmt.Errorf("not overwriting your current password")
 		}
 	}

@@ -199,6 +199,23 @@ We also support `pull before push` to reduce the change of `rejected` pushes whe
 $ gopass config autopull true
 ```
 
+### Support for Binary Content
+
+gopass provides secure and easy support for working with binary files through the
+`gopass binary` family of subcommands. One can copy or move secret from or to
+the store. gopass will attempt to securely overwrite and remove any secret moved
+to the store.
+
+```bash
+# copy file "/some/file.jpg" to "some/secret.b64" in the store
+$ gopass binary cp /some/file.jpg some/secret
+# move file "/home/user/private.key" to "my/private.key.b64", removing the file on disk
+# after the file has been encoded, stored and verified to be intact (SHA256)
+$ gopass binary mv /home/user/private.key my/private.key
+# Calculate the checksum of some asset
+$ gopass binary sha256 my/private.key
+```
+
 ### Multiple Stores
 
 gopass supports multi-stores that can be mounted over each other like filesystems
@@ -556,8 +573,8 @@ If you use `gopass` as a library be sure to vendor it and expect breaking change
 
 ## Roadmap
 
-- [x] Be 100% pass 1.6.5 compatible
-- [ ] Storing binary files in gopass (almost done)
+- [x] Be 100% pass 1.4 compatible
+- [x] Storing binary files in gopass (almost done)
 - [x] Storing structured files and templates (credit cards, DBs, websites...)
 - [ ] UX improvements and more wizards
 - [ ] Tackle the information disclosure issue

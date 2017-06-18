@@ -217,7 +217,7 @@ func (r *Store) GetBody(name string) ([]byte, error) {
 }
 
 // Exists checks the existence of a single entry
-func (r *Store) Exists(name string) (bool, error) {
+func (r *Store) Exists(name string) bool {
 	store := r.getStore(name)
 	return store.Exists(strings.TrimPrefix(name, store.Alias()))
 }
