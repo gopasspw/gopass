@@ -9,6 +9,12 @@
 			"revisionTime": "2016-02-19T03:44:21Z"
 		},
 		{
+			"checksumSHA1": "9NoxW1ZvnX4inGkH4SA9RW6rIgM=",
+			"path": "github.com/cenkalti/backoff",
+			"revision": "cdf48bbc1eb78d1349cbda326a4a037f7ba565c6",
+			"revisionTime": "2016-06-10T10:09:12Z"
+		},
+		{
 			"checksumSHA1": "Lf3uUXTkKK5DJ37BxQvxO1Fq+K8=",
 			"origin": "github.com/stretchr/testify/vendor/github.com/davecgh/go-spew/spew",
 			"path": "github.com/davecgh/go-spew/spew",

@@ -44,6 +44,7 @@ func TestIsDir(t *testing.T) {
 		t.Errorf("Should be not dir: %s", fn)
 	}
 }
+
 func TestIsFile(t *testing.T) {
 	tempdir, err := ioutil.TempDir("", "gopass-")
 	if err != nil {
@@ -62,13 +63,4 @@ func TestIsFile(t *testing.T) {
 	if !IsFile(fn) {
 		t.Errorf("Should be not dir: %s", fn)
 	}
-}
-func TestTempdir(t *testing.T) {
-	tempdir, err := ioutil.TempDir(Tempdir(), "gopass-")
-	if err != nil {
-		t.Fatalf("Failed to create tempdir: %s", err)
-	}
-	defer func() {
-		_ = os.RemoveAll(tempdir)
-	}()
 }
