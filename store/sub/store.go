@@ -33,6 +33,7 @@ type Store struct {
 	path        string
 	persistKeys bool
 	recipients  []string
+	gpg         *gpg.GPG
 }
 
 // New creates a new store, copying settings from the given root store
@@ -56,6 +57,10 @@ func New(alias string, cfg *config.Config) (*Store, error) {
 		path:        cfg.Path,
 		persistKeys: cfg.PersistKeys,
 		recipients:  make([]string, 0, 1),
+		gpg: gpg.New(gpg.Config{
+			Debug:       cfg.Debug,
+			AlwaysTrust: cfg.AlwaysTrust,
+		}),
 	}
 
 	// only try to load recipients if the store / recipients file exist
@@ -87,7 +92,7 @@ func (s *Store) Init(path string, ids ...string) error {
 		if id == "" {
 			continue
 		}
-		kl, err := gpg.ListPublicKeys(id)
+		kl, err := s.gpg.FindPublicKeys(id)
 		if err != nil || len(kl) < 1 {
 			fmt.Println("Failed to fetch public key:", id)
 			continue
@@ -99,7 +104,7 @@ func (s *Store) Init(path string, ids ...string) error {
 		return fmt.Errorf("failed to initialize store: no valid recipients given")
 	}
 
-	kl, err := gpg.ListPrivateKeys(s.recipients...)
+	kl, err := s.gpg.FindPrivateKeys(s.recipients...)
 	if err != nil {
 		return fmt.Errorf("Failed to get available private keys: %s", err)
 	}
@@ -188,7 +193,7 @@ func (s *Store) Get(name string) ([]byte, error) {
 		return []byte{}, store.ErrNotFound
 	}
 
-	content, err := gpg.Decrypt(p)
+	content, err := s.gpg.Decrypt(p)
 	if err != nil {
 		return []byte{}, store.ErrDecrypt
 	}
@@ -272,7 +277,7 @@ func (s *Store) SetConfirm(name string, content []byte, reason string, cb store.
 		recipients = newRecipients
 	}
 
-	if err := gpg.Encrypt(p, content, recipients, s.alwaysTrust); err != nil {
+	if err := s.gpg.Encrypt(p, content, recipients); err != nil {
 		return store.ErrEncrypt
 	}
 

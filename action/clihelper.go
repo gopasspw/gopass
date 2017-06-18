@@ -9,7 +9,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/justwatchcom/gopass/gpg"
 	"golang.org/x/crypto/ssh/terminal"
 )
 
@@ -22,7 +21,7 @@ func (s *Action) confirmRecipients(name string, recipients []string) ([]string, 
 		fmt.Printf("gopass: Encrypting %s for these recipients:\n", name)
 		sort.Strings(recipients)
 		for _, r := range recipients {
-			kl, err := gpg.ListPublicKeys(r)
+			kl, err := s.gpg.FindPublicKeys(r)
 			if err != nil {
 				fmt.Println(err)
 				continue
@@ -154,8 +153,8 @@ func askForKeyImport(key string) bool {
 }
 
 // askforPrivateKey promts the user to select from a list of private keys
-func askForPrivateKey(prompt string) (string, error) {
-	kl, err := gpg.ListPrivateKeys()
+func (s *Action) askForPrivateKey(prompt string) (string, error) {
+	kl, err := s.gpg.ListPrivateKeys()
 	if err != nil {
 		return "", err
 	}

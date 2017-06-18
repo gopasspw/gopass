@@ -13,7 +13,6 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/fsutil"
-	"github.com/justwatchcom/gopass/gpg"
 	"github.com/justwatchcom/gopass/store"
 )
 
@@ -49,7 +48,7 @@ func (s *Store) AddRecipient(id string) error {
 func (s *Store) RemoveRecipient(id string) error {
 	// but if this key is not available on this machine we
 	// just try to remove it literally
-	keys, err := gpg.ListPublicKeys(id)
+	keys, err := s.gpg.FindPublicKeys(id)
 	if err != nil {
 		fmt.Printf("Failed to get GPG Key Info for %s: %s\n", id, err)
 	}
@@ -101,7 +100,7 @@ func (s *Store) loadRecipients() ([]string, error) {
 		// we could list all keys outside the loop and just do the lookup here
 		// but this way we ensure to use the exact same lookup logic as
 		// gpg does on encryption
-		kl, err := gpg.ListPublicKeys(r)
+		kl, err := s.gpg.FindPublicKeys(r)
 		if err != nil {
 			fmt.Printf("Failed to get public key for %s: %s\n", r, err)
 			continue
@@ -266,7 +265,7 @@ func (s *Store) exportPublicKey(r string) (string, error) {
 		return filename, nil
 	}
 
-	if err := gpg.ExportPublicKey(r, filename); err != nil {
+	if err := s.gpg.ExportPublicKey(r, filename); err != nil {
 		return filename, err
 	}
 
@@ -280,5 +279,5 @@ func (s *Store) importPublicKey(r string) error {
 		return fmt.Errorf("Public Key %s not found at %s", r, filename)
 	}
 
-	return gpg.ImportPublicKey(filename)
+	return s.gpg.ImportPublicKey(filename)
 }

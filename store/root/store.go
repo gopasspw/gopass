@@ -2,12 +2,12 @@ package root
 
 import (
 	"fmt"
-	"os"
 	"sort"
 	"strings"
 
 	"github.com/justwatchcom/gopass/config"
 	"github.com/justwatchcom/gopass/fsutil"
+	"github.com/justwatchcom/gopass/gpg"
 	"github.com/justwatchcom/gopass/store"
 	"github.com/justwatchcom/gopass/store/sub"
 	"github.com/justwatchcom/gopass/tree"
@@ -24,6 +24,7 @@ type Store struct {
 	clipTimeout int  // clear clipboard after seconds
 	debug       bool
 	fsckFunc    store.FsckCallback
+	gpg         *gpg.GPG
 	importFunc  store.ImportCallback
 	loadKeys    bool // load missing keys from store
 	mounts      map[string]*sub.Store
@@ -53,6 +54,10 @@ func New(cfg *config.Config) (*Store, error) {
 		clipTimeout: cfg.ClipTimeout,
 		debug:       cfg.Debug,
 		fsckFunc:    cfg.FsckFunc,
+		gpg: gpg.New(gpg.Config{
+			Debug:       cfg.Debug,
+			AlwaysTrust: cfg.AlwaysTrust,
+		}),
 		importFunc:  cfg.ImportFunc,
 		loadKeys:    cfg.LoadKeys,
 		mounts:      make(map[string]*sub.Store, len(cfg.Mounts)),
@@ -61,11 +66,6 @@ func New(cfg *config.Config) (*Store, error) {
 		path:        cfg.Path,
 		persistKeys: cfg.PersistKeys,
 		safeContent: cfg.SafeContent,
-	}
-
-	// TODO(dschulz) this should be passed down from main, not set here
-	if d := os.Getenv("GOPASS_DEBUG"); d == "true" {
-		r.debug = true
 	}
 
 	if r.autoImport {
