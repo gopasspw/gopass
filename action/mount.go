@@ -2,8 +2,10 @@ package action
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/fatih/color"
+	"github.com/justwatchcom/gopass/store"
 	"github.com/justwatchcom/gopass/tree/simple"
 	"github.com/urfave/cli"
 )
@@ -31,7 +33,11 @@ func (s *Action) MountsPrint(c *cli.Context) error {
 		return nil
 	}
 	root := simple.New(color.GreenString(fmt.Sprintf("gopass (%s)", s.Store.Path())))
-	for alias, path := range s.Store.Mounts() {
+	mounts := s.Store.Mounts()
+	mps := s.Store.MountPoints()
+	sort.Sort(store.ByPathLen(mps))
+	for _, alias := range mps {
+		path := mounts[alias]
 		if err := root.AddMount(alias, path); err != nil {
 			fmt.Printf("Failed to add mount: %s\n", err)
 		}

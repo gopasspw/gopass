@@ -5,6 +5,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/justwatchcom/gopass/store"
 	"github.com/justwatchcom/gopass/tree"
 	"github.com/justwatchcom/gopass/tree/simple"
 )
@@ -18,8 +19,8 @@ func (r *Store) LookupTemplate(name string) ([]byte, bool) {
 // TemplateTree returns a tree of all templates
 func (r *Store) TemplateTree() (tree.Tree, error) {
 	root := simple.New("gopass")
-	mps := r.mountPoints()
-	sort.Sort(sort.Reverse(byLen(mps)))
+	mps := r.MountPoints()
+	sort.Sort(store.ByPathLen(mps))
 	for _, alias := range mps {
 		substore := r.mounts[alias]
 		if substore == nil {
