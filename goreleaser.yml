@@ -1,0 +1,57 @@
+# goreleaser.yml
+# Release automation
+#
+# Build customization
+build:
+  binary: gopass
+  flags: -tags netgo
+  env:
+    - CGO_ENABLED=0
+  goos:
+    - darwin
+    - freebsd
+    - linux
+    - netbsd
+    - openbsd
+    - windows
+  goarch:
+    - 386
+    - amd64
+  goarm:
+    - 6
+    - 7
+archive:
+  name_template: "{{.Binary}}-{{.Version}}-{{.Os}}-{{.Arch}}"
+  format: tar.gz
+  format_overrides:
+    - goos: windows
+      format: zip
+  files:
+    - CHANGELOG.md
+    - LICENSE
+    - README.md
+release:
+  github:
+    owner: justwatchcom
+    name: gopass
+  draft: false
+brew:
+  github:
+    owner: justwatchcom
+    name: homebrew-gopass
+    homepage: "https://www.justwatch.com/gopass/"
+    dependencies:
+      - git
+      - gnupg2
+fpm:
+  vendor: JustWatch
+  homepage: "https://www.justwatch.com/gopass/"
+  maintainer: "Gopass Authors <gopass@justwatch.com>"
+  license: MIT
+  formats:
+    - deb
+    - rpm
+    - pacman
+  dependencies:
+    - git
+    - gnupg
