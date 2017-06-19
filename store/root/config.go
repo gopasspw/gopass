@@ -2,6 +2,9 @@ package root
 
 import (
 	"fmt"
+	"reflect"
+	"strings"
+	"unsafe"
 
 	"github.com/justwatchcom/gopass/config"
 )
@@ -9,25 +12,47 @@ import (
 // Config returns this root stores config as a config struct
 func (s *Store) Config() *config.Config {
 	c := &config.Config{
-		AlwaysTrust: s.alwaysTrust,
-		AskForMore:  s.askForMore,
-		AutoImport:  s.autoImport,
-		AutoPull:    s.autoPull,
-		AutoPush:    s.autoPush,
-		ClipTimeout: s.clipTimeout,
-		Debug:       s.debug,
-		LoadKeys:    s.loadKeys,
-		Mounts:      make(map[string]string, len(s.mounts)),
-		NoColor:     s.noColor,
-		NoConfirm:   s.noConfirm,
-		Path:        s.path,
-		PersistKeys: s.persistKeys,
-		SafeContent: s.safeContent,
-		Version:     s.version,
+		Mounts: make(map[string]string, len(s.mounts)),
 	}
 	for alias, sub := range s.mounts {
 		c.Mounts[alias] = sub.Path()
 	}
+	c.FsckFunc = s.fsckFunc
+	c.ImportFunc = s.importFunc
+
+	os := reflect.ValueOf(s).Elem()
+	oc := reflect.ValueOf(c).Elem()
+	for i := 0; i < os.NumField(); i++ {
+		gpArg := os.Type().Field(i).Tag.Get("gopass")
+		if gpArg == "-" {
+			continue
+		}
+		fs := os.Field(i)
+		name := strings.Title(os.Type().Field(i).Name)
+		fc := oc.FieldByName(name)
+		if fc.Kind() != fs.Kind() {
+			continue
+		}
+		switch fs.Kind() {
+		case reflect.String:
+			fc.SetString(fs.String())
+		case reflect.Bool:
+			fc.SetBool(fs.Bool())
+		case reflect.Int:
+			fc.SetInt(fs.Int())
+		default:
+			continue
+		}
+	}
+
+	// trick "unused", we need those when mounting a new sub-store
+	_ = s.alwaysTrust
+	_ = s.fsckFunc
+	_ = s.loadKeys
+	_ = s.noColor
+	_ = s.persistKeys
+	_ = s.version
+
 	return c
 }
 
@@ -37,19 +62,42 @@ func (s *Store) UpdateConfig(cfg *config.Config) error {
 	if cfg == nil {
 		return fmt.Errorf("invalid config")
 	}
-	s.alwaysTrust = cfg.AlwaysTrust
-	s.askForMore = cfg.AskForMore
-	s.autoImport = cfg.AutoImport
-	s.autoPull = cfg.AutoPull
-	s.autoPush = cfg.AutoPush
-	s.debug = cfg.Debug
-	s.clipTimeout = cfg.ClipTimeout
-	s.loadKeys = cfg.LoadKeys
-	s.noColor = cfg.NoColor
-	s.noConfirm = cfg.NoConfirm
-	s.path = cfg.Path
-	s.persistKeys = cfg.PersistKeys
-	s.safeContent = cfg.SafeContent
+
+	s.fsckFunc = cfg.FsckFunc
+	s.importFunc = cfg.ImportFunc
+
+	os := reflect.ValueOf(s).Elem()
+	oc := reflect.ValueOf(cfg).Elem()
+	for i := 0; i < os.NumField(); i++ {
+		gpArg := os.Type().Field(i).Tag.Get("gopass")
+		if gpArg == "-" {
+			continue
+		}
+		fs := os.Field(i)
+		name := strings.Title(os.Type().Field(i).Name)
+		fc := oc.FieldByName(name)
+		if fc.Kind() != fs.Kind() {
+			continue
+		}
+		if !fs.CanAddr() {
+			continue
+		}
+		// Acording to the "rules of reflect" fields obtained through unexported
+		// fields can not be updated. The following line creates a writeable
+		// copy at the exact same location to make it writeable.
+		// see https://stackoverflow.com/a/43918797/218846
+		fs = reflect.NewAt(fs.Type(), unsafe.Pointer(fs.UnsafeAddr())).Elem()
+		switch fc.Kind() {
+		case reflect.String:
+			fs.SetString(fc.String())
+		case reflect.Bool:
+			fs.SetBool(fc.Bool())
+		case reflect.Int:
+			fs.SetInt(fc.Int())
+		default:
+			continue
+		}
+	}
 
 	// add any missing mounts
 	for alias, path := range cfg.Mounts {
@@ -61,8 +109,10 @@ func (s *Store) UpdateConfig(cfg *config.Config) error {
 	}
 
 	// propagate any config changes to our substores
-	if err := s.store.UpdateConfig(cfg); err != nil {
-		return err
+	if s.store != nil {
+		if err := s.store.UpdateConfig(cfg); err != nil {
+			return err
+		}
 	}
 	for _, sub := range s.mounts {
 		if err := sub.UpdateConfig(cfg); err != nil {
