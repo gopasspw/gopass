@@ -389,23 +389,18 @@ autocompletion for subcommands like `gopass show`, `gopass ls` and others.
     source <(gopass completion bash)
     source <(gopass completion zsh)
 
-### dmenu support
+### dmenu/rofi support
 
-Out of the box gopass supports [dmenu](http://tools.suckless.org/dmenu/).
-Instead of shipping another bash script we ship dmenu support from within the binary.
+In earlier versions gopass supported [dmenu](http://tools.suckless.org/dmenu/).
+We removed this and encourage you to call dmenu yourself now.
 
-If you have dmenu installed on your system simply run:
-
-```bash
-$ gopass completion dmenu
-```
-The first line of your selected secret will be copied to your clipboard.
-
-Maybe you want the password to be written to your selected text field.
-For that add `--type` and make sure _xdotool_ is installed.
+This also makes it easier to call gopass with e.g. [rofi](https://github.com/DaveDavenport/rofi).
 
 ```bash
-$ gopass completion dmenu --type
+# Simply copy the selected password to the clipboard
+$ gopass ls --flat | dmenu | xargs --no-run-if-empty gopass show -c
+# First pipe the selected name to gopass, encrypt it and type the password with xdotool.
+$ gopass ls --flat | dmenu | xargs --no-run-if-empty gopass show | xdotool type --clearmodifiers --file -
 ```
 
 ### Dependencies
