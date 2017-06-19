@@ -1,13 +1,8 @@
 package action
 
 import (
-	"bytes"
 	"fmt"
-	"os"
-	"os/exec"
-	"strings"
 
-	shellquote "github.com/kballard/go-shellquote"
 	"github.com/urfave/cli"
 )
 
@@ -55,55 +50,4 @@ source <(gopass completion bash)
 	fmt.Println(out)
 
 	return nil
-}
-
-// CompletionDMenu returns a script that starts dmenu
-// Usage: eval "$(gopass completion dmenu)"
-func (s *Action) CompletionDMenu(c *cli.Context) error {
-	typeit := c.Bool("type")
-	args := c.String("args")
-
-	list, err := s.Store.List(0)
-	if err != nil {
-		return err
-	}
-
-	argsSplit, err := shellquote.Split(args)
-	if err != nil {
-		return err
-	}
-
-	name, err := dmenu(list, argsSplit...)
-	if err != nil {
-		return err
-	}
-
-	content, err := s.Store.GetFirstLine(name)
-	if err != nil {
-		return err
-	}
-
-	if typeit {
-		return exec.Command("xdotool", "type", "--clearmodifiers", "--", string(content)).Run()
-	}
-
-	return s.copyToClipboard(name, content)
-}
-
-// dmenu runs it with the provided strings and returns the selected string
-func dmenu(list []string, args ...string) (string, error) {
-	stdin := bytes.NewBuffer(nil)
-	for _, v := range list {
-		_, _ = stdin.WriteString(v + "\n")
-	}
-
-	cmd := exec.Command("dmenu", args...)
-	cmd.Stdin = stdin
-	cmd.Stderr = os.Stderr
-	out, err := cmd.Output()
-	if err != nil {
-		return "", err
-	}
-
-	return strings.TrimSpace(string(out)), nil
 }
