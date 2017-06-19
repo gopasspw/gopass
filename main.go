@@ -20,11 +20,11 @@ const (
 
 var (
 	// Version is the released version of gopass
-	Version string
+	version string
 	// BuildTime is the time the binary was built
-	BuildTime string
+	date string
 	// Commit is the git hash the binary was built from
-	Commit string
+	commit string
 )
 
 type errorWriter struct {
@@ -42,29 +42,29 @@ func main() {
 
 	cli.VersionPrinter = func(c *cli.Context) {
 		buildtime := ""
-		if bt, err := time.Parse("2006-01-02T15:04:05-0700", BuildTime); err == nil {
+		if bt, err := time.Parse("2006-01-02T15:04:05-0700", date); err == nil {
 			buildtime = bt.Format("2006-01-02 15:04:05")
 		}
-		if Version == "" {
-			Version = "HEAD"
+		if version == "" {
+			version = "HEAD"
 		}
-		if Commit == "" {
-			Commit = "n/a"
+		if commit == "" {
+			commit = "n/a"
 		}
 		fmt.Printf("%s %s (%s %s) %s\n",
 			name,
-			Version,
-			Commit,
+			version,
+			commit,
 			buildtime,
 			runtime.Version(),
 		)
 	}
 
-	action := action.New(Version)
+	action := action.New(version)
 	app := cli.NewApp()
 
 	app.Name = name
-	app.Version = Version
+	app.Version = version
 	app.Usage = "The standard unix password manager - rewritten in Go"
 	app.EnableBashCompletion = true
 	app.BashComplete = func(c *cli.Context) {
