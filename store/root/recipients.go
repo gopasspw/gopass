@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/justwatchcom/gopass/gpg"
 	"github.com/justwatchcom/gopass/tree"
 	"github.com/justwatchcom/gopass/tree/simple"
 )
@@ -37,9 +36,9 @@ func (r *Store) RecipientsTree(pretty bool) (tree.Tree, error) {
 		if err := root.AddMount(alias, substore.Path()); err != nil {
 			return nil, fmt.Errorf("failed to add mount: %s", err)
 		}
-		for _, r := range substore.Recipients() {
-			key := fmt.Sprintf("%s (missing public key)", r)
-			kl, err := gpg.ListPublicKeys(r)
+		for _, recp := range substore.Recipients() {
+			key := fmt.Sprintf("%s (missing public key)", recp)
+			kl, err := r.gpg.FindPublicKeys(recp)
 			if err == nil {
 				if len(kl) > 0 {
 					if pretty {
@@ -55,8 +54,8 @@ func (r *Store) RecipientsTree(pretty bool) (tree.Tree, error) {
 		}
 	}
 
-	for _, r := range r.store.Recipients() {
-		kl, err := gpg.ListPublicKeys(r)
+	for _, recp := range r.store.Recipients() {
+		kl, err := r.gpg.FindPublicKeys(recp)
 		if err != nil {
 			fmt.Println(err)
 			continue

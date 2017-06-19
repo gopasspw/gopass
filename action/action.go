@@ -18,6 +18,7 @@ import (
 type Action struct {
 	Name  string
 	Store *root.Store
+	gpg   *gpg.GPG
 }
 
 // New returns a new Action wrapper
@@ -27,11 +28,13 @@ func New(v string) *Action {
 		name = filepath.Base(os.Args[0])
 	}
 
+	// debug flag
 	debug := false
 	if gdb := os.Getenv("GOPASS_DEBUG"); gdb == "true" {
-		gpg.Debug = true
 		debug = true
 	}
+
+	// nocolorflag
 	noColor := false
 	// need this override for our integration tests
 	if nc := os.Getenv("GOPASS_NOCOLOR"); nc == "true" {
@@ -59,6 +62,10 @@ func New(v string) *Action {
 		return &Action{
 			Name:  name,
 			Store: store,
+			gpg: gpg.New(gpg.Config{
+				Debug:       debug,
+				AlwaysTrust: cfg.AlwaysTrust,
+			}),
 		}
 	}
 
@@ -76,6 +83,10 @@ func New(v string) *Action {
 	return &Action{
 		Name:  name,
 		Store: rs,
+		gpg: gpg.New(gpg.Config{
+			Debug:       debug,
+			AlwaysTrust: cfg.AlwaysTrust,
+		}),
 	}
 }
 

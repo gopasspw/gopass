@@ -14,7 +14,7 @@ import (
 
 // Fsck checks this stores integrity
 func (s *Store) Fsck(prefix string, check, force bool) (map[string]uint64, error) {
-	storeRec, err := gpg.ListPublicKeys(s.recipients...)
+	storeRec, err := s.gpg.FindPublicKeys(s.recipients...)
 	if err != nil {
 		fmt.Printf("Failed to list recipients: %s\n", err)
 	}
@@ -144,7 +144,7 @@ func (s *Store) fsckCheckFile(prefix, fn string, check, force bool, storeRec gpg
 		return nil
 	}
 	// get the IDs this file was encrypted for
-	fileRec, err := gpg.GetRecipients(fn)
+	fileRec, err := s.gpg.GetRecipients(fn)
 	if err != nil {
 		fmt.Println(color.RedString("[%s] Failed to check recipients: %s (%s)", prefix, fn, err))
 		countFn("err")

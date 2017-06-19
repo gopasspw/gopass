@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/fatih/color"
-	"github.com/justwatchcom/gopass/gpg"
 	"github.com/urfave/cli"
 )
 
@@ -32,7 +31,7 @@ func (s *Action) init(alias, path string, nogit bool, keys ...string) error {
 	}
 
 	if len(keys) < 1 {
-		nk, err := askForPrivateKey(color.CyanString("Please select a private key for encryption:"))
+		nk, err := s.askForPrivateKey(color.CyanString("Please select a private key for encryption:"))
 		if err != nil {
 			return err
 		}
@@ -58,7 +57,7 @@ func (s *Action) init(alias, path string, nogit bool, keys ...string) error {
 	fmt.Fprint(color.Output, color.GreenString("Password store %s initialized for:\n", path))
 	for _, recipient := range s.Store.ListRecipients(alias) {
 		r := "0x" + recipient
-		if kl, err := gpg.ListPublicKeys(recipient); err == nil && len(kl) > 0 {
+		if kl, err := s.gpg.FindPublicKeys(recipient); err == nil && len(kl) > 0 {
 			r = kl[0].OneLine()
 		}
 		color.Yellow("  " + r)

@@ -2,6 +2,7 @@ package gpg
 
 import (
 	"fmt"
+	"sort"
 	"time"
 )
 
@@ -55,9 +56,14 @@ func (k Key) String() string {
 // OneLine prints a terse representation of this key on one line (includes only
 // the first identity!)
 func (k Key) OneLine() string {
+	ids := make([]string, 0, len(k.Identities))
+	for i := range k.Identities {
+		ids = append(ids, i)
+	}
+	sort.Strings(ids)
 	id := Identity{}
-	for _, i := range k.Identities {
-		id = i
+	for _, i := range ids {
+		id = k.Identities[i]
 		break
 	}
 	return fmt.Sprintf("0x%s - %s", k.Fingerprint[24:], id.ID())

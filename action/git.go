@@ -23,7 +23,7 @@ func (s *Action) GitInit(c *cli.Context) error {
 
 func (s *Action) gitInit(store, sk string) error {
 	if sk == "" {
-		s, err := askForPrivateKey(color.CyanString("Please select a key for signing Git Commits"))
+		s, err := s.askForPrivateKey(color.CyanString("Please select a key for signing Git Commits"))
 		if err == nil {
 			sk = s
 		}
