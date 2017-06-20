@@ -112,7 +112,7 @@ the `-c` flag to copy it to your clipboard.
 $ gopass edit golang.org/gopher
 ```
 
-The `edit` command uses the `$EDITOR` environment variable to start your prefered editor where
+The `edit` command uses the `$EDITOR` environment variable to start your preferred editor where
 you can easily edit multi-line content. `vim` will be the default if `$EDITOR` is not set.
 
 ### Listing existing secrets
@@ -425,7 +425,7 @@ $ brew install gnupg2 git
 ### Setup GPG
 
 `gopass` depends on `gpg` for encryption and decryption. You **must** have a
-suiteable key pair.
+suitable key pair.
 
 ```bash
 $ gpg --gen-key
@@ -518,7 +518,7 @@ our own implementations.
 * Nonrepudiation - Ensure that the involved parties actually transmitted and
 	received messages. gopass makes not attempt to ensure this.
 
-### Additional Useability Goals
+### Additional Usability Goals
 
 * Availability - Secrets must always be readable by exactly the specified recipients.
 * Sensible Defaults - This project shall try to make the right things easy to do and make the wrong things hard to do.
@@ -561,7 +561,7 @@ There are several configuration options available through the command line inter
 ## API Stability
 
 `gopass` is provided as an CLI program, not as a library. While we try to make the
-packages useable as libraries we make no guarantees whatsoever with respect to
+packages usable as libraries we make no guarantees whatsoever with respect to
 the API stability. The `gopass` version only reflects changes in the CLI commands.
 
 If you use `gopass` as a library be sure to vendor it and expect breaking changes.
@@ -577,7 +577,7 @@ If you use `gopass` as a library be sure to vendor it and expect breaking change
 - [ ] Better and more fine grained ACL
 - [ ] Be nicely usable by semi- and non-technical users
 
-*Note: Being 100% pass compatible was a milestone, not a promise for the future. We will eventually diverge from pass to support more advanced features. This will break compatiblity.*
+*Note: Being 100% pass compatible was a milestone, not a promise for the future. We will eventually diverge from pass to support more advanced features. This will break compatibility.*
 
 ## Further Reading
 
