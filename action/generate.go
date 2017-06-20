@@ -23,21 +23,21 @@ func (s *Action) Generate(c *cli.Context) error {
 
 	if name == "" {
 		var err error
-		name, err = askForString("Which name do you want to use?", "")
+		name, err = s.askForString("Which name do you want to use?", "")
 		if err != nil || name == "" {
 			return fmt.Errorf(color.RedString("provide a password name"))
 		}
 	}
 
 	if !force { // don't check if it's force anyway
-		if s.Store.Exists(name) && !askForConfirmation(fmt.Sprintf("An entry already exists for %s. Overwrite it?", name)) {
+		if s.Store.Exists(name) && !s.askForConfirmation(fmt.Sprintf("An entry already exists for %s. Overwrite it?", name)) {
 			return fmt.Errorf("not overwriting your current password")
 		}
 	}
 
 	if length == "" {
 		length = strconv.Itoa(defaultLength)
-		if l, err := askForInt("How long should the password be?", defaultLength); err == nil {
+		if l, err := s.askForInt("How long should the password be?", defaultLength); err == nil {
 			length = strconv.Itoa(l)
 		}
 	}
@@ -65,7 +65,7 @@ func (s *Action) Generate(c *cli.Context) error {
 		color.YellowString(string(password)),
 	)
 
-	if s.Store.AskForMore() && askForConfirmation(fmt.Sprintf("Do you want to add more data for %s?", name)) {
+	if s.Store.AskForMore() && s.askForConfirmation(fmt.Sprintf("Do you want to add more data for %s?", name)) {
 		return s.Edit(c)
 	}
 

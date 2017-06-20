@@ -3,22 +3,21 @@ package action
 import (
 	"os"
 	"path/filepath"
-	"strings"
 
 	"golang.org/x/crypto/ssh/terminal"
 
 	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/config"
-	"github.com/justwatchcom/gopass/fsutil"
 	"github.com/justwatchcom/gopass/gpg"
 	"github.com/justwatchcom/gopass/store/root"
 )
 
 // Action knows everything to run gopass CLI actions
 type Action struct {
-	Name  string
-	Store *root.Store
-	gpg   *gpg.GPG
+	Name   string
+	Store  *root.Store
+	gpg    *gpg.GPG
+	isTerm bool
 }
 
 // New returns a new Action wrapper
@@ -28,82 +27,52 @@ func New(v string) *Action {
 		name = filepath.Base(os.Args[0])
 	}
 
+	// try to read config (if it exists)
+	cfg := config.Load()
+	cfg.Version = v
+
+	act := &Action{
+		Name:   name,
+		isTerm: true,
+	}
+	cfg.ImportFunc = act.askForKeyImport
+	cfg.FsckFunc = act.askForConfirmation
+
 	// debug flag
-	debug := false
 	if gdb := os.Getenv("GOPASS_DEBUG"); gdb == "true" {
-		debug = true
+		cfg.Debug = true
 	}
 
-	// nocolorflag
-	noColor := false
 	// need this override for our integration tests
 	if nc := os.Getenv("GOPASS_NOCOLOR"); nc == "true" {
-		noColor = true
+		cfg.NoColor = true
+		color.NoColor = true
 	}
+
 	// only emit color codes when stdout is a terminal
 	if !terminal.IsTerminal(int(os.Stdout.Fd())) {
-		noColor = true
+		cfg.NoColor = true
+		color.NoColor = true
+		cfg.ImportFunc = nil
+		cfg.FsckFunc = nil
+		act.isTerm = false
 	}
 
-	// try to read config (if it exists)
-	if cfg, err := config.Load(); err == nil && cfg != nil {
-		cfg.ImportFunc = askForKeyImport
-		cfg.FsckFunc = askForConfirmation
-		cfg.Version = v
-		cfg.Debug = debug
-		color.NoColor = cfg.NoColor
-		if noColor {
-			color.NoColor = noColor
-		}
-		store, err := root.New(cfg)
-		if err != nil {
-			panic(err)
-		}
-		return &Action{
-			Name:  name,
-			Store: store,
-			gpg: gpg.New(gpg.Config{
-				Debug:       debug,
-				AlwaysTrust: cfg.AlwaysTrust,
-			}),
-		}
-	}
-
-	cfg := config.New()
-	cfg.Path = pwStoreDir("")
-	cfg.ImportFunc = askForKeyImport
-	cfg.FsckFunc = askForConfirmation
-	cfg.Debug = debug
-	rs, err := root.New(cfg)
+	store, err := root.New(cfg)
 	if err != nil {
 		panic(err)
 	}
-	color.NoColor = noColor
+	act.Store = store
 
-	return &Action{
-		Name:  name,
-		Store: rs,
-		gpg: gpg.New(gpg.Config{
-			Debug:       debug,
-			AlwaysTrust: cfg.AlwaysTrust,
-		}),
-	}
+	act.gpg = gpg.New(gpg.Config{
+		Debug:       cfg.Debug,
+		AlwaysTrust: cfg.AlwaysTrust,
+	})
+
+	return act
 }
 
 // String implement fmt.Stringer
 func (s *Action) String() string {
 	return s.Store.String()
-}
-
-// pwStoreDir reads the password store dir from the environment
-// or returns the default location ~/.password-store if the env is
-// not set
-func pwStoreDir(mount string) string {
-	if mount != "" {
-		return fsutil.CleanPath(filepath.Join(os.Getenv("HOME"), ".password-store-"+strings.Replace(mount, string(filepath.Separator), "-", -1)))
-	}
-	if d := os.Getenv("PASSWORD_STORE_DIR"); d != "" {
-		return fsutil.CleanPath(d)
-	}
-	return os.Getenv("HOME") + "/.password-store"
 }

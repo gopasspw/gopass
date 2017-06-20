@@ -25,6 +25,7 @@ loadkeys: true
 noconfirm: true
 persistkeys: true
 safecontent: true`
+	keyID = "BE73F104"
 )
 
 type tester struct {
@@ -42,9 +43,16 @@ func newTester(t *testing.T) *tester {
 		sourceDir = d
 	}
 
-	gopassBin := "gopass"
+	gopassBin := ""
 	if b := os.Getenv("GOPASS_BINARY"); b != "" {
 		gopassBin = b
+	}
+	fi, err := os.Stat(gopassBin)
+	if err != nil {
+		t.Fatalf("Failed to stat GOPASS_BINARY %s: %s", gopassBin, err)
+	}
+	if fi.Mode()&0111 == 0 {
+		t.Fatalf("GOPASS_BINARY is not executeable")
 	}
 	t.Logf("Using gopass binary: %s", gopassBin)
 
@@ -67,7 +75,7 @@ func newTester(t *testing.T) *tester {
 	_ = os.Setenv("GOPASS_CONFIG", ts.gopassConfig())
 
 	// write config
-	if err := ioutil.WriteFile(ts.gopassConfig(), []byte(gopassConfig+"\npath: "+ts.storeDir()+"\n"), 0600); err != nil {
+	if err := ioutil.WriteFile(ts.gopassConfig(), []byte(gopassConfig+"\npath: "+ts.storeDir("")+"\n"), 0600); err != nil {
 		t.Fatalf("Failed to write gopass config to %s: %s", ts.gopassConfig(), err)
 	}
 
@@ -100,8 +108,11 @@ func (ts tester) gopassConfig() string {
 	return filepath.Join(ts.tempDir, ".gopass.yml")
 }
 
-func (ts tester) storeDir() string {
-	return filepath.Join(ts.tempDir, ".password-store")
+func (ts tester) storeDir(mount string) string {
+	if mount != "" {
+		mount = "-" + mount
+	}
+	return filepath.Join(ts.tempDir, ".password-store"+mount)
 }
 
 func (ts tester) workDir() string {
@@ -154,21 +165,21 @@ func (ts tester) run(arg string) (string, error) {
 	return strings.TrimSpace(string(out)), nil
 }
 
-func (ts *tester) initializeStore() {
-	out, err := ts.run("init --nogit BE73F104")
+func (ts *tester) initStore() {
+	out, err := ts.run("init --nogit " + keyID)
 	require.NoError(ts.t, err, "failed to init password store:\n%s", out)
 }
 
-func (ts *tester) initializeSecrets() {
-	out, err := ts.run("generate foo/bar 20")
+func (ts *tester) initSecrets(prefix string) {
+	out, err := ts.run("generate " + prefix + "foo/bar 20")
 	require.NoError(ts.t, err, "failed to generate password:\n%s", out)
 
-	out, err = ts.run("generate baz 40")
+	out, err = ts.run("generate " + prefix + "baz 40")
 	require.NoError(ts.t, err, "failed to generate password:\n%s", out)
 
-	out, err = ts.runCmd([]string{ts.Binary, "insert", "fixed/secret"}, []byte("moar"))
+	out, err = ts.runCmd([]string{ts.Binary, "insert", prefix + "fixed/secret"}, []byte("moar"))
 	require.NoError(ts.t, err, "failed to insert password:\n%s", out)
 
-	out, err = ts.runCmd([]string{ts.Binary, "insert", "fixed/twoliner"}, []byte("and\nmore stuff"))
+	out, err = ts.runCmd([]string{ts.Binary, "insert", prefix + "fixed/twoliner"}, []byte("and\nmore stuff"))
 	require.NoError(ts.t, err, "failed to insert password:\n%s", out)
 }

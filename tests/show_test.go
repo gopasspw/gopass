@@ -13,7 +13,7 @@ func TestShow(t *testing.T) {
 	_, err := ts.run("show")
 	assert.Error(t, err)
 
-	ts.initializeStore()
+	ts.initStore()
 
 	out, err := ts.run("show")
 	assert.Error(t, err)
@@ -23,7 +23,7 @@ func TestShow(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "Entry 'foo' not found. Starting search...", out)
 
-	ts.initializeSecrets()
+	ts.initSecrets("")
 
 	_, err = ts.run("show foo")
 	assert.NoError(t, err)

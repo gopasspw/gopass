@@ -19,6 +19,13 @@ func (r *Store) LookupTemplate(name string) ([]byte, bool) {
 // TemplateTree returns a tree of all templates
 func (r *Store) TemplateTree() (tree.Tree, error) {
 	root := simple.New("gopass")
+
+	for _, t := range r.store.ListTemplates("") {
+		if err := root.AddFile(t, "gopass/template"); err != nil {
+			fmt.Println(err)
+		}
+	}
+
 	mps := r.MountPoints()
 	sort.Sort(store.ByPathLen(mps))
 	for _, alias := range mps {
@@ -33,12 +40,6 @@ func (r *Store) TemplateTree() (tree.Tree, error) {
 			if err := root.AddFile(t, "gopass/template"); err != nil {
 				fmt.Println(err)
 			}
-		}
-	}
-
-	for _, t := range r.store.ListTemplates("") {
-		if err := root.AddFile(t, "gopass/template"); err != nil {
-			fmt.Println(err)
 		}
 	}
 

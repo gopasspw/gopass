@@ -73,10 +73,11 @@ func (g *GPG) listKeys(typ string, search ...string) (KeyList, error) {
 	args := []string{"--with-colons", "--with-fingerprint", "--fixed-list-mode", "--list-" + typ + "-keys"}
 	args = append(args, search...)
 	cmd := exec.Command(g.binary, args...)
+	cmd.Stderr = os.Stderr
 	if g.debug {
 		fmt.Printf("[DEBUG] gpg.listKeys: %s %+v\n", cmd.Path, cmd.Args)
 	}
-	out, err := cmd.CombinedOutput()
+	out, err := cmd.Output()
 	if err != nil {
 		if bytes.Contains(out, []byte("secret key not available")) {
 			return KeyList{}, nil

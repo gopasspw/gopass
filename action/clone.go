@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 
+	"github.com/justwatchcom/gopass/config"
 	"github.com/justwatchcom/gopass/fsutil"
 	"github.com/urfave/cli"
 )
@@ -23,7 +24,7 @@ func (s *Action) Clone(c *cli.Context) error {
 
 	path := c.String("path")
 	if path == "" {
-		path = pwStoreDir(mount)
+		path = config.PwStoreDir(mount)
 	}
 
 	if mount == "" && s.Store.Initialized() {

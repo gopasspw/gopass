@@ -29,7 +29,7 @@ func (s *Action) Insert(c *cli.Context) error {
 
 	if key != "" {
 		if value == "" {
-			content, err := askForPassword(name+"/"+key, nil)
+			content, err := s.askForPassword(name+"/"+key, nil)
 			if err != nil {
 				return fmt.Errorf("failed to ask for password: %v", err)
 			}
@@ -55,7 +55,7 @@ func (s *Action) Insert(c *cli.Context) error {
 	}
 
 	if !force { // don't check if it's force anyway
-		if s.Store.Exists(name) && !askForConfirmation(fmt.Sprintf("An entry already exists for %s. Overwrite it?", name)) {
+		if s.Store.Exists(name) && !s.askForConfirmation(fmt.Sprintf("An entry already exists for %s. Overwrite it?", name)) {
 			return fmt.Errorf("not overwriting your current secret")
 		}
 	}
@@ -73,11 +73,11 @@ func (s *Action) Insert(c *cli.Context) error {
 	var promptFn func(string) (string, error)
 	if echo {
 		promptFn = func(prompt string) (string, error) {
-			return askForString(prompt, "")
+			return s.askForString(prompt, "")
 		}
 	}
 
-	content, err := askForPassword(name, promptFn)
+	content, err := s.askForPassword(name, promptFn)
 	if err != nil {
 		return fmt.Errorf("failed to ask for password: %v", err)
 	}
