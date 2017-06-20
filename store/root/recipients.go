@@ -43,6 +43,13 @@ func (r *Store) addRecipient(prefix string, root tree.Tree, recp string, pretty 
 // RecipientsTree returns a tree view of all stores' recipients
 func (r *Store) RecipientsTree(pretty bool) (tree.Tree, error) {
 	root := simple.New("gopass")
+
+	for _, recp := range r.store.Recipients() {
+		if err := r.addRecipient("", root, recp, pretty); err != nil {
+			color.Yellow("Failed to add recipient to tree %s: %s", recp, err)
+		}
+	}
+
 	mps := r.MountPoints()
 	sort.Sort(store.ByPathLen(mps))
 	for _, alias := range mps {
@@ -60,10 +67,5 @@ func (r *Store) RecipientsTree(pretty bool) (tree.Tree, error) {
 		}
 	}
 
-	for _, recp := range r.store.Recipients() {
-		if err := r.addRecipient("", root, recp, pretty); err != nil {
-			color.Yellow("Failed to add recipient to tree %s: %s", recp, err)
-		}
-	}
 	return root, nil
 }

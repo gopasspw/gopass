@@ -63,7 +63,7 @@ func (s *Action) RecipientsAdd(c *cli.Context) error {
 			return fmt.Errorf("no matching key found in keyring")
 		}
 
-		if !askForConfirmation(fmt.Sprintf("Do you want to add '%s' as an recipient?", keys[0].OneLine())) {
+		if !s.askForConfirmation(fmt.Sprintf("Do you want to add '%s' as an recipient?", keys[0].OneLine())) {
 			continue
 		}
 
@@ -84,7 +84,7 @@ func (s *Action) RecipientsRemove(c *cli.Context) error {
 		kl, err := s.gpg.FindPrivateKeys(r)
 		if err == nil {
 			if len(kl) > 0 {
-				if !askForConfirmation(fmt.Sprintf("Do you want to remove yourself (%s) from the recipients?", r)) {
+				if !s.askForConfirmation(fmt.Sprintf("Do you want to remove yourself (%s) from the recipients?", r)) {
 					continue
 				}
 			}

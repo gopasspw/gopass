@@ -27,6 +27,11 @@ func (s *Action) Show(c *cli.Context) error {
 		return s.List(c)
 	}
 
+	// auto-fallback to binary files with b64 suffix, if unique
+	if !s.Store.Exists(name) && s.Store.Exists(name+BinarySuffix) {
+		name += BinarySuffix
+	}
+
 	var content []byte
 	var err error
 

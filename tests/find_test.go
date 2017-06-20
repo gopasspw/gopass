@@ -10,7 +10,7 @@ func TestFind(t *testing.T) {
 	ts := newTester(t)
 	defer ts.teardown()
 
-	ts.initializeStore()
+	ts.initStore()
 
 	out, err := ts.run("find")
 	assert.Error(t, err)
@@ -20,7 +20,7 @@ func TestFind(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Zero(t, out)
 
-	ts.initializeSecrets()
+	ts.initSecrets("")
 
 	out, err = ts.run("find bar")
 	assert.NoError(t, err)

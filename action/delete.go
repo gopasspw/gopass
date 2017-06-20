@@ -21,7 +21,7 @@ func (s *Action) Delete(c *cli.Context) error {
 		if recursive {
 			recStr = "recursively "
 		}
-		if s.Store.Exists(name) && !askForConfirmation(fmt.Sprintf("Are you sure you would like to %sdelete %s?", recStr, name)) {
+		if s.Store.Exists(name) && !s.askForConfirmation(fmt.Sprintf("Are you sure you would like to %sdelete %s?", recStr, name)) {
 			return nil
 		}
 	}

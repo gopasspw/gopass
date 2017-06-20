@@ -12,61 +12,65 @@ import (
 	"golang.org/x/crypto/ssh/terminal"
 )
 
+const (
+	maxTries = 42
+)
+
 // confirmRecipients asks the user to confirm a given set of recipients
 func (s *Action) confirmRecipients(name string, recipients []string) ([]string, error) {
-	if s.Store.NoConfirm() {
+	if s.Store.NoConfirm() || !s.isTerm {
 		return recipients, nil
 	}
-	for {
-		fmt.Printf("gopass: Encrypting %s for these recipients:\n", name)
-		sort.Strings(recipients)
-		for _, r := range recipients {
-			kl, err := s.gpg.FindPublicKeys(r)
-			if err != nil {
-				fmt.Println(err)
-				continue
-			}
-			if len(kl) < 1 {
-				fmt.Println("key not found", r)
-				continue
-			}
-			fmt.Printf(" - %s\n", kl[0].OneLine())
-		}
-		fmt.Println("")
 
-		yes, err := askForBool("Do you want to continue?", true)
+	fmt.Printf("gopass: Encrypting %s for these recipients:\n", name)
+	sort.Strings(recipients)
+	for _, r := range recipients {
+		kl, err := s.gpg.FindPublicKeys(r)
 		if err != nil {
-			return recipients, err
+			fmt.Println(err)
+			continue
 		}
-
-		if yes {
-			return recipients, nil
+		if len(kl) < 1 {
+			fmt.Println("key not found", r)
+			continue
 		}
-
-		return recipients, fmt.Errorf("user aborted")
+		fmt.Printf(" - %s\n", kl[0].OneLine())
 	}
+	fmt.Println("")
+
+	yes, err := s.askForBool("Do you want to continue?", true)
+	if err != nil {
+		return recipients, err
+	}
+
+	if yes {
+		return recipients, nil
+	}
+
+	return recipients, fmt.Errorf("user aborted")
 }
 
 // askForConfirmation asks a yes/no question until the user
 // replies yes or no
-func askForConfirmation(text string) bool {
-	for {
-		if choice, err := askForBool(text, false); err == nil {
+func (s *Action) askForConfirmation(text string) bool {
+	for i := 0; i < maxTries; i++ {
+		if choice, err := s.askForBool(text, false); err == nil {
 			return choice
 		}
 	}
+	return false
 }
 
 // askForBool ask for a bool (yes or no) exactly once.
 // The empty answer uses the specified default, any other answer
 // is an error.
-func askForBool(text string, def bool) (bool, error) {
+func (s *Action) askForBool(text string, def bool) (bool, error) {
 	choices := "y/N"
 	if def {
 		choices = "Y/n"
 	}
 
-	str, err := askForString(text, choices)
+	str, err := s.askForString(text, choices)
 	if err != nil {
 		return false, err
 	}
@@ -90,7 +94,7 @@ func askForBool(text string, def bool) (bool, error) {
 
 // askForString asks for a string once, using the default if the
 // anser is empty. Errors are only returned on I/O errors
-func askForString(text, def string) (string, error) {
+func (s *Action) askForString(text, def string) (string, error) {
 	reader := bufio.NewReader(os.Stdin)
 
 	fmt.Printf("%s [%s]: ", text, def)
@@ -107,8 +111,8 @@ func askForString(text, def string) (string, error) {
 
 // askForInt asks for an valid interger once. If the input
 // can not be converted to an int it returns an error
-func askForInt(text string, def int) (int, error) {
-	str, err := askForString(text, strconv.Itoa(def))
+func (s *Action) askForInt(text string, def int) (int, error) {
+	str, err := s.askForString(text, strconv.Itoa(def))
 	if err != nil {
 		return 0, err
 	}
@@ -120,11 +124,14 @@ func askForInt(text string, def int) (int, error) {
 }
 
 // askForPassword prompts for a password twice until both match
-func askForPassword(name string, askFn func(string) (string, error)) (string, error) {
-	if askFn == nil {
-		askFn = promptPass
+func (s *Action) askForPassword(name string, askFn func(string) (string, error)) (string, error) {
+	if !s.isTerm {
+		return "", fmt.Errorf("impossible without terminal")
 	}
-	for {
+	if askFn == nil {
+		askFn = s.promptPass
+	}
+	for i := 0; i < maxTries; i++ {
 		pass, err := askFn(fmt.Sprintf("Enter password for %s", name))
 		if err != nil {
 			return "", err
@@ -141,11 +148,15 @@ func askForPassword(name string, askFn func(string) (string, error)) (string, er
 
 		fmt.Println("Error: the entered password do not match")
 	}
+	return "", fmt.Errorf("no valid user input")
 }
 
 // askForKeyImport asks for permissions to import the named key
-func askForKeyImport(key string) bool {
-	ok, err := askForBool("Do you want to import the public key '%s' into your keyring?", false)
+func (s *Action) askForKeyImport(key string) bool {
+	if !s.isTerm {
+		return false
+	}
+	ok, err := s.askForBool("Do you want to import the public key '%s' into your keyring?", false)
 	if err != nil {
 		return false
 	}
@@ -154,6 +165,9 @@ func askForKeyImport(key string) bool {
 
 // askforPrivateKey promts the user to select from a list of private keys
 func (s *Action) askForPrivateKey(prompt string) (string, error) {
+	if !s.isTerm {
+		return "", fmt.Errorf("no interaction without terminal")
+	}
 	kl, err := s.gpg.ListPrivateKeys()
 	if err != nil {
 		return "", err
@@ -162,12 +176,12 @@ func (s *Action) askForPrivateKey(prompt string) (string, error) {
 	if len(kl) < 1 {
 		return "", fmt.Errorf("No useable private keys found")
 	}
-	for {
+	for i := 0; i < maxTries; i++ {
 		fmt.Println(prompt)
 		for i, k := range kl {
 			fmt.Printf("[%d] %s\n", i, k.OneLine())
 		}
-		iv, err := askForInt(fmt.Sprintf("Please enter the number of a key (0-%d)", len(kl)-1), 0)
+		iv, err := s.askForInt(fmt.Sprintf("Please enter the number of a key (0-%d)", len(kl)-1), 0)
 		if err != nil {
 			continue
 		}
@@ -175,10 +189,14 @@ func (s *Action) askForPrivateKey(prompt string) (string, error) {
 			return kl[iv].Fingerprint, nil
 		}
 	}
+	return "", fmt.Errorf("no valid user input")
 }
 
 // promptPass will prompt user's for a password by terminal.
-func promptPass(prompt string) (pass string, err error) {
+func (s *Action) promptPass(prompt string) (pass string, err error) {
+	if !s.isTerm {
+		return
+	}
 	// Make a copy of STDIN's state to restore afterward
 	fd := int(os.Stdin.Fd())
 	oldState, err := terminal.GetState(fd)

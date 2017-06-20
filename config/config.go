@@ -124,16 +124,18 @@ func (c *Config) SetConfigValue(key, value string) error {
 }
 
 // Load will try to load the config from one of the default locations
-func Load() (*Config, error) {
+func Load() *Config {
 	for _, l := range configLocations() {
 		if cfg, err := load(l); err == nil {
 			if gdb := os.Getenv("GOPASS_DEBUG"); gdb == "true" {
 				fmt.Printf("[DEBUG] Loaded config from %s: %+v\n", l, cfg)
 			}
-			return cfg, err
+			return cfg
 		}
 	}
-	return nil, fmt.Errorf("no config found")
+	cfg := New()
+	cfg.Path = PwStoreDir("")
+	return cfg
 }
 
 func load(cf string) (*Config, error) {
@@ -200,4 +202,17 @@ func configLocations() []string {
 	l = append(l, filepath.Join(os.Getenv("HOME"), ".config", "gopass", "config.yml"))
 	l = append(l, filepath.Join(os.Getenv("HOME"), ".gopass.yml"))
 	return l
+}
+
+// PwStoreDir reads the password store dir from the environment
+// or returns the default location ~/.password-store if the env is
+// not set
+func PwStoreDir(mount string) string {
+	if mount != "" {
+		return fsutil.CleanPath(filepath.Join(os.Getenv("HOME"), ".password-store-"+strings.Replace(mount, string(filepath.Separator), "-", -1)))
+	}
+	if d := os.Getenv("PASSWORD_STORE_DIR"); d != "" {
+		return fsutil.CleanPath(d)
+	}
+	return os.Getenv("HOME") + "/.password-store"
 }

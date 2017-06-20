@@ -169,6 +169,14 @@ func (r *Store) Tree() (tree.Tree, error) {
 			}
 		}
 	}
+
+	sf, err := r.store.List("")
+	if err != nil {
+		return nil, err
+	}
+	addFileFunc(sf...)
+	addTplFunc(r.store.ListTemplates("")...)
+
 	mps := r.MountPoints()
 	sort.Sort(store.ByPathLen(mps))
 	for _, alias := range mps {
@@ -186,13 +194,6 @@ func (r *Store) Tree() (tree.Tree, error) {
 		addFileFunc(sf...)
 		addTplFunc(substore.ListTemplates(alias)...)
 	}
-
-	sf, err := r.store.List("")
-	if err != nil {
-		return nil, err
-	}
-	addFileFunc(sf...)
-	addTplFunc(r.store.ListTemplates("")...)
 
 	return root, nil
 }

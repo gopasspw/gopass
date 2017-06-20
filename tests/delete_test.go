@@ -10,7 +10,7 @@ func TestDelete(t *testing.T) {
 	ts := newTester(t)
 	defer ts.teardown()
 
-	ts.initializeStore()
+	ts.initStore()
 
 	out, err := ts.run("delete")
 	assert.Error(t, err)
@@ -20,7 +20,7 @@ func TestDelete(t *testing.T) {
 	assert.Error(t, err)
 	assert.Equal(t, "\nError: Entry is not in the password store\n", out)
 
-	ts.initializeSecrets()
+	ts.initSecrets("")
 
 	secrets := []string{"baz", "foo/bar"}
 	for _, secret := range secrets {

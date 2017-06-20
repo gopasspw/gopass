@@ -1,4 +1,4 @@
-package action
+package config
 
 import (
 	"os"
@@ -16,7 +16,7 @@ func TestPwStoreDir(t *testing.T) {
 		"work":    filepath.Join(home, ".password-store-work"),
 		"foo/bar": filepath.Join(home, ".password-store-foo-bar"),
 	} {
-		got := pwStoreDir(in)
+		got := PwStoreDir(in)
 		if got != out {
 			t.Errorf("Mismatch for %s: %s != %s", in, got, out)
 		}

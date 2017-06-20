@@ -11,7 +11,7 @@ func TestGenerate(t *testing.T) {
 	ts := newTester(t)
 	defer ts.teardown()
 
-	ts.initializeStore()
+	ts.initStore()
 
 	out, err := ts.run("generate")
 	assert.Error(t, err)
