@@ -57,6 +57,9 @@ func (s *Action) BinaryCat(c *cli.Context) error {
 // BinarySum decodes binary content and computes the SHA256 checksum
 func (s *Action) BinarySum(c *cli.Context) error {
 	name := c.Args().First()
+	if name == "" {
+		return fmt.Errorf("Usage: gopass binary sha256 name")
+	}
 	if !strings.HasSuffix(name, BinarySuffix) {
 		name += BinarySuffix
 	}
@@ -96,6 +99,13 @@ func (s *Action) BinaryMove(c *cli.Context) error {
 //
 // Copying secrets in the store must be done through the regular copy command
 func (s *Action) binaryCopy(from, to string, deleteSource bool) error {
+	if from == "" || to == "" {
+		op := "copy"
+		if deleteSource {
+			op = "move"
+		}
+		return fmt.Errorf("Usage: gopass binary %s from to", op)
+	}
 	switch {
 	case fsutil.IsFile(from) && fsutil.IsFile(to):
 		// copying from on file to another file is not supported
