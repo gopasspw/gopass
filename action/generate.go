@@ -77,8 +77,11 @@ func (s *Action) Generate(c *cli.Context) error {
 		return s.copyToClipboard(name, password)
 	}
 
+	if key != "" {
+		key = " " + key
+	}
 	fmt.Printf(
-		"The generated password for %s %s is:\n%s\n", name, key,
+		"The generated password for %s%s is:\n%s\n", name, key,
 		color.YellowString(string(password)),
 	)
 
