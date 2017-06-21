@@ -19,7 +19,17 @@ func (s *Action) Generate(c *cli.Context) error {
 	noSymbols := c.Bool("no-symbols")
 
 	name := c.Args().Get(0)
-	length := c.Args().Get(1)
+	key := c.Args().Get(1)
+	length := c.Args().Get(2)
+
+	// generate can be called with one positional arg or two
+	// one - the desired length for the "master" secret itself
+	// two - the key in a YAML doc and the length for a secret generated for this
+	// key only
+	if length == "" && key != "" {
+		length = key
+		key = ""
+	}
 
 	if name == "" {
 		var err error
@@ -30,7 +40,7 @@ func (s *Action) Generate(c *cli.Context) error {
 	}
 
 	if !force { // don't check if it's force anyway
-		if s.Store.Exists(name) && !s.askForConfirmation(fmt.Sprintf("An entry already exists for %s. Overwrite it?", name)) {
+		if s.Store.Exists(name) && key == "" && !s.askForConfirmation(fmt.Sprintf("An entry already exists for %s. Overwrite it?", name)) {
 			return fmt.Errorf("not overwriting your current password")
 		}
 	}
@@ -52,8 +62,15 @@ func (s *Action) Generate(c *cli.Context) error {
 
 	password := pwgen.GeneratePassword(pwlen, !noSymbols)
 
-	if err := s.Store.SetConfirm(name, password, "Generated Password", s.confirmRecipients); err != nil {
-		return err
+	// set a single key in a yaml doc
+	if key != "" {
+		if err := s.Store.SetKey(name, key, string(password)); err != nil {
+			return err
+		}
+	} else {
+		if err := s.Store.SetConfirm(name, password, "Generated Password", s.confirmRecipients); err != nil {
+			return err
+		}
 	}
 
 	if c.Bool("clip") {
@@ -61,7 +78,7 @@ func (s *Action) Generate(c *cli.Context) error {
 	}
 
 	fmt.Printf(
-		"The generated password for %s is:\n%s\n", name,
+		"The generated password for %s %s is:\n%s\n", name, key,
 		color.YellowString(string(password)),
 	)
 

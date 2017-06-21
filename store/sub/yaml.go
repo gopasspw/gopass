@@ -59,8 +59,9 @@ func (s *Store) DeleteKey(name, key string) error {
 	var err error
 	first, err := s.GetFirstLine(name)
 	if err != nil {
-		first = []byte("\n")
+		first = []byte("")
 	}
+	first = append(first, '\n')
 	body, err := s.GetBody(name)
 	if err != nil && err != store.ErrNotFound {
 		return err
