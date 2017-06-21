@@ -11,4 +11,5 @@ type Tree interface {
 	FindFolder(string) Tree
 	SetRoot(bool)
 	SetName(string)
+	Len() int
 }

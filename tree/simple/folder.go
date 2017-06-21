@@ -19,6 +19,16 @@ type Folder struct {
 	Files   map[string]*File
 }
 
+// Len returns the number of entries in this folder and all subfolder including
+// this folder itself
+func (f *Folder) Len() int {
+	l := 1 + len(f.Files)
+	for _, f := range f.Folders {
+		l += f.Len()
+	}
+	return l
+}
+
 // IsMount returns true if the path is non-empty
 func (f *Folder) IsMount() bool { return f.Path != "" }
 
