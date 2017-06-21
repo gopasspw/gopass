@@ -1,3 +1,14 @@
+## 1.2.0-rc3 / 2017-06-21
+
+* [FEATURE] YAML support [#125]
+* [FEATURE] Binary support [#136]
+* [ENHANCEMENT] Increase test coverage [#160]
+* [ENHANCEMENT] Use secure temporary storage on macOS [#144]
+* [ENHANCEMENT] Use goreleaser [#151]
+* [BUGFIX] Fix git invocation [#140]
+* [BUGFIX] Fix missing recipients on init [#141]
+* [BUGFIX] Fix sorting of mount points [#148]
+
 ## 1.1.2 / 2017-06-14
 
 * [BUGFIX] Fix gopass init --store [#129]
