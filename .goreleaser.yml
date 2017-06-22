@@ -58,6 +58,7 @@ brew:
     - go
   dependencies:
     - git
+    - gnupg
   install:  |
     ENV["GOPATH"] = buildpath
     (buildpath/"src/github.com/justwatchcom/gopass").install buildpath.children
@@ -73,12 +74,6 @@ brew:
     zsh_completion.install "zsh_completion.zsh"
   test:  |
     assert_match version.to_s, shell_output("#{bin}/gopass version")
-  special:  |
-    option "with-gnupg21", "Depend on gnupg21 instead of gnupg2"
-    option "with-gnupg1", "Depend on gnupg1 instead of gnupg2" 
-    depends_on "gnupg2" => :run if build.without?("gnupg1") && build.without?("gnupg21")
-    depends_on "gnupg" => :run if build.with?("gnupg1")
-    depends_on "gnupg21" => :run if build.with?("gnupg21")
 fpm:
   vendor: JustWatch
   homepage: "https://www.justwatch.com/gopass/"
