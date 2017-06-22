@@ -1,4 +1,4 @@
-## 1.2.0-rc3 / 2017-06-21
+## 1.2.0 / 2017-06-21
 
 * [FEATURE] YAML support [#125]
 * [FEATURE] Binary support [#136]

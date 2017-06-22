@@ -41,6 +41,9 @@ func (s *Action) Show(c *cli.Context) error {
 		if err != nil {
 			return err
 		}
+		if clip {
+			return s.copyToClipboard(name, content)
+		}
 	case qr:
 		content, err = s.Store.GetFirstLine(name)
 		if err != nil {
