@@ -39,5 +39,6 @@ gopass-*
 *.tar.bz2
 
 releases/
+dist/
 
 *.completion

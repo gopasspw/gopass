@@ -55,3 +55,15 @@ fpm:
   dependencies:
     - git
     - gnupg
+source:
+  name_template: "{{.Binary}}-{{.Version}}"
+  excludes:
+    - "*/gopass-*"
+    - "*/.git/*"
+    - "*/releases/*"
+    - "*/dist/*"
+checksum:
+  name_template: "{{.Binary}}_{{.Version}}_SHA256SUMS"
+cleanup:
+  hooks:
+    - make clean
