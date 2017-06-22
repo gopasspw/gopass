@@ -58,6 +58,13 @@ func New(v string) *Action {
 		act.isTerm = false
 	}
 
+	// reading from stdin?
+	if info, err := os.Stdin.Stat(); err == nil && info.Mode()&os.ModeCharDevice == 0 {
+		cfg.ImportFunc = nil
+		cfg.FsckFunc = nil
+		act.isTerm = false
+	}
+
 	store, err := root.New(cfg)
 	if err != nil {
 		panic(err)

@@ -25,18 +25,9 @@ func (s *Action) Insert(c *cli.Context) error {
 		return fmt.Errorf("provide a secret name")
 	}
 	key := c.Args().Get(1)
-	value := c.Args().Get(2)
 
-	if key != "" {
-		if value == "" {
-			content, err := s.askForPassword(name+"/"+key, nil)
-			if err != nil {
-				return fmt.Errorf("failed to ask for password: %v", err)
-			}
-			value = string(content)
-		}
-		return s.Store.SetKey(name, key, value)
-	}
+	var content []byte
+	var fromStdin bool
 
 	info, err := os.Stdin.Stat()
 	if err != nil {
@@ -45,13 +36,30 @@ func (s *Action) Insert(c *cli.Context) error {
 
 	// if content is piped to stdin, read and save it
 	if info.Mode()&os.ModeCharDevice == 0 {
-		content := &bytes.Buffer{}
+		fromStdin = true
+		buf := &bytes.Buffer{}
 
-		if written, err := io.Copy(content, os.Stdin); err != nil {
+		if written, err := io.Copy(buf, os.Stdin); err != nil {
 			return fmt.Errorf("Failed to copy after %d bytes: %s", written, err)
 		}
 
-		return s.Store.SetConfirm(name, content.Bytes(), "Read secret from STDIN", confirm)
+		content = buf.Bytes()
+	}
+
+	// update to a single YAML entry
+	if key != "" {
+		if !fromStdin {
+			pw, err := s.askForPassword(name+"/"+key, nil)
+			if err != nil {
+				return fmt.Errorf("failed to ask for password: %v", err)
+			}
+			content = []byte(pw)
+		}
+		return s.Store.SetKey(name, key, string(content))
+	}
+
+	if fromStdin {
+		return s.Store.SetConfirm(name, content, "Read secret from STDIN", confirm)
 	}
 
 	if !force { // don't check if it's force anyway
@@ -77,10 +85,11 @@ func (s *Action) Insert(c *cli.Context) error {
 		}
 	}
 
-	content, err := s.askForPassword(name, promptFn)
+	pw, err := s.askForPassword(name, promptFn)
 	if err != nil {
 		return fmt.Errorf("failed to ask for password: %v", err)
 	}
+	content = []byte(pw)
 
-	return s.Store.SetConfirm(name, []byte(content), "Inserted user supplied password", confirm)
+	return s.Store.SetConfirm(name, content, "Inserted user supplied password", confirm)
 }
