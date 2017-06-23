@@ -8,9 +8,9 @@ VERSION := $(shell cat VERSION)
 SHA := $(shell cat COMMIT 2>/dev/null || git rev-parse --short=8 HEAD)
 DATE := $(shell date -u '+%FT%T%z')
 
-GOLDFLAGS += -X "main.Version=$(VERSION)"
-GOLDFLAGS += -X "main.BuildTime=$(DATE)"
-GOLDFLAGS += -X "main.Commit=$(SHA)"
+GOLDFLAGS += -X "main.version=$(VERSION)"
+GOLDFLAGS += -X "main.date=$(DATE)"
+GOLDFLAGS += -X "main.commit=$(SHA)"
 GOLDFLAGS += -extldflags '-static'
 
 PREFIX ?= /usr
