@@ -270,6 +270,12 @@ func main() {
 			Before:       action.Initialized,
 			Action:       action.TOTP,
 			BashComplete: action.Complete,
+			Flags: []cli.Flag{
+				cli.BoolFlag{
+					Name:  "clip, c",
+					Usage: "Copy the time based token into the clipboard",
+				},
+			},
 		},
 		{
 			Name:        "git",

@@ -2,6 +2,7 @@ package action
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 	"time"
 
@@ -33,7 +34,7 @@ func (s *Action) TOTP(c *cli.Context) error {
 	}
 
 	now := time.Now()
-	_, err = printCode(key.Secret(), now)
+	code, err := printCode(key.Secret(), now)
 	if err != nil {
 		return err
 	}
@@ -43,10 +44,14 @@ func (s *Action) TOTP(c *cli.Context) error {
 		return err
 	}
 
+	if c.Bool("clip") {
+		return s.copyToClipboard(fmt.Sprintf("time based token for %s", name), []byte(code))
+	}
+
 	return nil
 }
 
-func printCode(secret string, t time.Time) (int, error) {
+func printCode(secret string, t time.Time) (string, error) {
 	secret = strings.TrimSpace(secret)
 	secret = strings.ToUpper(secret)
 	code, err := totp.GenerateCodeCustom(secret, t, totp.ValidateOpts{
@@ -55,7 +60,7 @@ func printCode(secret string, t time.Time) (int, error) {
 		Algorithm: otp.AlgorithmSHA1,
 	})
 	if err != nil {
-		return 0, err
+		return "", err
 	}
 
 	expiresAt := time.Unix(t.Unix()+totpPeriod-(t.Unix()%totpPeriod), 0)
@@ -66,5 +71,5 @@ func printCode(secret string, t time.Time) (int, error) {
 	} else {
 		color.Yellow("%s expires in %ds", code, secondsLeft)
 	}
-	return secondsLeft, nil
+	return code, nil
 }
