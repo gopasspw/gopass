@@ -1,6 +1,7 @@
 package fsutil
 
 import (
+	"crypto/rand"
 	"io/ioutil"
 	"os"
 	"os/user"
@@ -44,6 +45,7 @@ func TestIsDir(t *testing.T) {
 		t.Errorf("Should be not dir: %s", fn)
 	}
 }
+
 func TestIsFile(t *testing.T) {
 	tempdir, err := ioutil.TempDir("", "gopass-")
 	if err != nil {
@@ -63,10 +65,38 @@ func TestIsFile(t *testing.T) {
 		t.Errorf("Should be not dir: %s", fn)
 	}
 }
+
 func TestTempdir(t *testing.T) {
-	tempdir, err := ioutil.TempDir(Tempdir(), "gopass-")
+	tempdir, err := ioutil.TempDir(tempdirBase(), "gopass-")
 	if err != nil {
 		t.Fatalf("Failed to create tempdir: %s", err)
+	}
+	defer func() {
+		_ = os.RemoveAll(tempdir)
+	}()
+}
+
+func TestShred(t *testing.T) {
+	tempdir, err := ioutil.TempDir("", "gopass-")
+	if err != nil {
+		t.Fatalf("Failed to create tempdir: %s", err)
+	}
+	fn := filepath.Join(tempdir, "file")
+	fh, err := os.OpenFile(fn, os.O_WRONLY|os.O_CREATE, 0644)
+	if err != nil {
+		t.Fatalf("Failed to open file: %s", err)
+	}
+	buf := make([]byte, 1024)
+	for i := 0; i < 10*1024; i++ {
+		_, _ = rand.Read(buf)
+		_, _ = fh.Write(buf)
+	}
+	_ = fh.Close()
+	if err := Shred(fn, 8); err != nil {
+		t.Fatalf("Failed to shred the file: %s", err)
+	}
+	if IsFile(fn) {
+		t.Errorf("Failed still exists after shreding: %s", fn)
 	}
 	defer func() {
 		_ = os.RemoveAll(tempdir)

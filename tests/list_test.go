@@ -11,7 +11,7 @@ func TestList(t *testing.T) {
 	ts := newTester(t)
 	defer ts.teardown()
 
-	ts.initializeStore()
+	ts.initStore()
 
 	out, err := ts.run("")
 	assert.NoError(t, err)
@@ -25,15 +25,16 @@ func TestList(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "gopass", out)
 
-	ts.initializeSecrets()
+	ts.initSecrets("")
 
 	list := `
 gopass
-├── baz
 ├── fixed
-│   └── secret
-└── foo
-    └── bar
+│   ├── secret
+│   └── twoliner
+├── foo
+│   └── bar
+└── baz
 `
 	out, err = ts.run("list")
 	assert.NoError(t, err)

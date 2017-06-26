@@ -2,14 +2,22 @@ package fsutil
 
 import (
 	"fmt"
+	"io"
+	"math/rand"
 	"os"
 	"os/user"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 // CleanPath resolves common aliases in a path and cleans it as much as possible
 func CleanPath(path string) string {
+	if fi, err := os.Lstat(path); err == nil {
+		if fi.Mode()&os.ModeSymlink == os.ModeSymlink {
+			path, _ = filepath.EvalSymlinks(path)
+		}
+	}
 	// http://stackoverflow.com/questions/17609732/expand-tilde-to-home-directory
 	if path[:2] == "~/" {
 		usr, _ := user.Current()
@@ -59,4 +67,61 @@ func IsFile(path string) bool {
 	}
 
 	return fi.Mode().IsRegular()
+}
+
+// IsEmptyDir checks if a certain path is an empty directory
+func IsEmptyDir(path string) (bool, error) {
+	empty := true
+	if err := filepath.Walk(path, func(fp string, fi os.FileInfo, ferr error) error {
+		if ferr != nil {
+			return ferr
+		}
+		if fi.IsDir() && (fi.Name() == "." || fi.Name() == "..") {
+			return filepath.SkipDir
+		}
+		if fi.Mode().IsRegular() {
+			empty = false
+		}
+		return nil
+	}); err != nil {
+		return false, err
+	}
+	return empty, nil
+}
+
+// Shred overwrite the given file any number of times
+func Shred(path string, runs int) error {
+	rand.Seed(time.Now().UnixNano())
+	fh, err := os.OpenFile(path, os.O_WRONLY, 0600)
+	if err != nil {
+		return err
+	}
+	buf := make([]byte, 1024)
+	for i := 0; i < runs; i++ {
+		// overwrite using pseudo-random data n-1 times and
+		// use zeros in the last iteration
+		if i < runs-1 {
+			_, _ = rand.Read(buf)
+		} else {
+			buf = make([]byte, 1024)
+		}
+		if _, err := fh.Seek(0, 0); err != nil {
+			return err
+		}
+		if _, err := fh.Write(buf); err != nil {
+			if err != io.EOF {
+				return err
+			}
+		}
+		// if we fail to sync the written blocks to disk it'd be pointless
+		// do any further loops
+		if err := fh.Sync(); err != nil {
+			return err
+		}
+	}
+	if err := fh.Close(); err != nil {
+		return err
+	}
+
+	return os.Remove(path)
 }

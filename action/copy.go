@@ -17,21 +17,12 @@ func (s *Action) Copy(c *cli.Context) error {
 	from := c.Args()[0]
 	to := c.Args()[1]
 
-	exists, err := s.Store.Exists(from)
-	if err != nil {
-		return err
-	}
-
-	if !exists {
+	if !s.Store.Exists(from) {
 		return fmt.Errorf("%s doesn't exists", from)
 	}
 
 	if !force {
-		exists, err := s.Store.Exists(to)
-		if err != nil {
-			return err
-		}
-		if exists && !askForConfirmation(fmt.Sprintf("%s already exists. Overwrite it?", to)) {
+		if s.Store.Exists(to) && !s.askForConfirmation(fmt.Sprintf("%s already exists. Overwrite it?", to)) {
 			return fmt.Errorf("not overwriting your current secret")
 		}
 	}

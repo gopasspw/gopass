@@ -8,9 +8,9 @@ VERSION := $(shell cat VERSION)
 SHA := $(shell cat COMMIT 2>/dev/null || git rev-parse --short=8 HEAD)
 DATE := $(shell date -u '+%FT%T%z')
 
-GOLDFLAGS += -X "main.Version=$(VERSION)"
-GOLDFLAGS += -X "main.BuildTime=$(DATE)"
-GOLDFLAGS += -X "main.Commit=$(SHA)"
+GOLDFLAGS += -X "main.version=$(VERSION)"
+GOLDFLAGS += -X "main.date=$(DATE)"
+GOLDFLAGS += -X "main.commit=$(SHA)"
 GOLDFLAGS += -extldflags '-static'
 
 PREFIX ?= /usr
@@ -45,7 +45,7 @@ fmt:
 	$(GO) fmt $(PACKAGES)
 
 .PHONY: tests
-tests: test vet lint errcheck
+tests: test vet lint errcheck megacheck
 
 .PHONY: vet
 vet:
@@ -56,21 +56,28 @@ lint:
 	@which golint > /dev/null; if [ $$? -ne 0 ]; then \
 		$(GO) get -u github.com/golang/lint/golint; \
 	fi
-	for PKG in $(PACKAGES); do golint -set_exit_status $$PKG || exit 1; done;
+	STATUS=0; for PKG in $(PACKAGES); do golint -set_exit_status $$PKG || STATUS=1; done; exit $$STATUS
 
 .PHONY: errcheck
 errcheck:
 	@which errcheck > /dev/null; if [ $$? -ne 0 ]; then \
 		$(GO) get -u github.com/kisielk/errcheck; \
 	fi
-	for PKG in $(PACKAGES); do errcheck $$PKG || exit 1; done;
+	STATUS=0; for PKG in $(PACKAGES); do errcheck $$PKG || STATUS=1; done; exit $$STATUS
+
+.PHONY: megacheck
+megacheck:
+	@which megacheck > /dev/null; if [ $$? -ne 0  ]; then \
+		$(GO) get -u honnef.co/go/tools/cmd/megacheck; \
+	fi
+	STATUS=0; for PKG in $(PACKAGES); do megacheck $$PKG || STATUS=1; done; exit $$STATUS
 
 .PHONY: test
 test:
-	for PKG in $(PACKAGES); do go test -cover -coverprofile $$GOPATH/src/$$PKG/coverage.out $$PKG || exit 1; done;
+	STATUS=0; for PKG in $(PACKAGES); do go test -cover -coverprofile $$GOPATH/src/$$PKG/coverage.out $$PKG || STATUS=1; done; exit $$STATUS
 
 .PHONY: test-integration
-test-integration: build
+test-integration: clean build
 	cd tests && GOPASS_BINARY=$(PWD)/$(EXECUTABLE)-$(GOOS)-$(GOARCH) GOPASS_TEST_DIR=$(PWD)/tests go test -v
 
 .PHONY: install

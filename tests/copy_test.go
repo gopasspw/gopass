@@ -13,7 +13,7 @@ func TestCopy(t *testing.T) {
 	_, err := ts.run("copy")
 	assert.Error(t, err)
 
-	ts.initializeStore()
+	ts.initStore()
 
 	out, err := ts.run("copy")
 	assert.Error(t, err)
@@ -27,7 +27,7 @@ func TestCopy(t *testing.T) {
 	assert.Error(t, err)
 	assert.Equal(t, "\nError: foo doesn't exists\n", out)
 
-	ts.initializeSecrets()
+	ts.initSecrets("")
 
 	//TODO: foo is a directory to be copied, which doesn't work
 	out, err = ts.run("copy foo bar")
@@ -38,10 +38,10 @@ func TestCopy(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "", out)
 
-	orig, err := ts.run("show foo/bar")
+	orig, err := ts.run("show -f foo/bar")
 	assert.NoError(t, err)
 
-	copy, err := ts.run("show foo/baz")
+	copy, err := ts.run("show -f foo/baz")
 	assert.NoError(t, err)
 
 	assert.Equal(t, orig, copy)

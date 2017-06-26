@@ -1,0 +1,101 @@
+# goreleaser.yml
+# Release automation
+#
+# Build customization
+build:
+  binary: gopass
+  flags: -tags netgo
+  env:
+    - CGO_ENABLED=0
+  goos:
+    - darwin
+    - freebsd
+    - linux
+    - netbsd
+    - openbsd
+    - windows
+  goarch:
+    - 386
+    - amd64
+  goarm:
+    - 6
+    - 7
+archive:
+  name_template: "{{.Binary}}-{{.Version}}-{{.Os}}-{{.Arch}}"
+  format: tar.gz
+  format_overrides:
+    - goos: windows
+      format: zip
+  files:
+    - CHANGELOG.md
+    - LICENSE
+    - README.md
+release:
+  github:
+    owner: justwatchcom
+    name: gopass
+  draft: false
+brew:
+  github:
+    owner: justwatchcom
+    name: homebrew-gopass
+  caveats:  |
+    Gopass has been installed, have fun!
+    If upgrading from `pass`, everything should work as expected.
+    If installing from scratch, you need to either initialize a new repository now...
+      gopass init
+    ...or clone one from a source:
+      gopass clone git@code.example.com:example/pass.git
+    In order to use the great autocompletion features (they're helpful with gopass),
+    please make sure you have autocompletion for homebrew enabled:
+      https://github.com/bobthecow/git-flow-completion/wiki/Install-Bash-git-completion
+    More information:
+      https://www.justwatch.com/gopass
+      https://github.com/justwatchcom/gopass/README.md
+  homepage: "https://www.justwatch.com/gopass/"
+  description: "The slightly more awesome Standard Unix Password Manager for Teams."
+  build_dependencies:
+    - go
+  dependencies:
+    - git
+    - gnupg
+  install:  |
+    ENV["GOPATH"] = buildpath
+    (buildpath/"src/github.com/justwatchcom/gopass").install buildpath.children
+
+    cd "src/github.com/justwatchcom/gopass" do
+      ENV["PREFIX"] = prefix
+      system "make", "install"
+    end
+
+    system bin/"gopass completion bash > bash_completion.bash"
+    system bin/"gopass completion zsh > zsh_completion.zsh"
+    bash_completion.install "bash_completion.bash"
+    zsh_completion.install "zsh_completion.zsh"
+  test:  |
+    assert_match version.to_s, shell_output("#{bin}/gopass version")
+fpm:
+  vendor: JustWatch
+  homepage: "https://www.justwatch.com/gopass/"
+  maintainer: "Gopass Authors <gopass@justwatch.com>"
+  license: MIT
+  formats:
+    - deb
+    - rpm
+    - pacman
+  dependencies:
+    - git
+    - gnupg
+source:
+  name_template: "{{.Binary}}-{{.Version}}"
+  excludes:
+    - "*/gopass-*"
+    - "*/.git/*"
+    - "*/.git"
+    - "*/releases/*"
+    - "*/dist/*"
+checksum:
+  name_template: "{{.Binary}}_{{.Version}}_SHA256SUMS"
+cleanup:
+  hooks:
+    - make clean

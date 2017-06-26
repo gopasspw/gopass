@@ -13,7 +13,7 @@ func TestMove(t *testing.T) {
 	_, err := ts.run("move")
 	assert.Error(t, err)
 
-	ts.initializeStore()
+	ts.initStore()
 
 	out, err := ts.run("move")
 	assert.Error(t, err)
@@ -27,17 +27,17 @@ func TestMove(t *testing.T) {
 	assert.Error(t, err)
 	assert.Equal(t, "\nError: Entry is not in the password store\n", out)
 
-	ts.initializeSecrets()
+	ts.initSecrets("")
 
-	out, err = ts.run("move foo bar")
+	_, err = ts.run("move foo bar")
 	assert.NoError(t, err)
 
-	out, err = ts.run("move foo/bar foo/baz")
+	out, _ = ts.run("move foo/bar foo/baz")
 	assert.Equal(t, "\nError: Entry is not in the password store\n", out)
 
-	_, err = ts.run("show bar/bar")
+	_, err = ts.run("show -f bar/bar")
 	assert.NoError(t, err)
 
-	_, err = ts.run("show baz")
+	_, err = ts.run("show -f baz")
 	assert.NoError(t, err)
 }

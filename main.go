@@ -10,7 +10,7 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/action"
-	"github.com/mattn/go-colorable"
+	colorable "github.com/mattn/go-colorable"
 	"github.com/urfave/cli"
 )
 
@@ -20,11 +20,11 @@ const (
 
 var (
 	// Version is the released version of gopass
-	Version string
+	version string
 	// BuildTime is the time the binary was built
-	BuildTime string
+	date string
 	// Commit is the git hash the binary was built from
-	Commit string
+	commit string
 )
 
 type errorWriter struct {
@@ -42,29 +42,29 @@ func main() {
 
 	cli.VersionPrinter = func(c *cli.Context) {
 		buildtime := ""
-		if bt, err := time.Parse("2006-01-02T15:04:05-0700", BuildTime); err == nil {
+		if bt, err := time.Parse("2006-01-02T15:04:05-0700", date); err == nil {
 			buildtime = bt.Format("2006-01-02 15:04:05")
 		}
-		if Version == "" {
-			Version = "HEAD"
+		if version == "" {
+			version = "HEAD"
 		}
-		if Commit == "" {
-			Commit = "n/a"
+		if commit == "" {
+			commit = "n/a"
 		}
 		fmt.Printf("%s %s (%s %s) %s\n",
 			name,
-			Version,
-			Commit,
+			version,
+			commit,
 			buildtime,
 			runtime.Version(),
 		)
 	}
 
-	action := action.New(Version)
+	action := action.New(version)
 	app := cli.NewApp()
 
 	app.Name = name
-	app.Version = Version
+	app.Version = version
 	app.Usage = "The standard unix password manager - rewritten in Go"
 	app.EnableBashCompletion = true
 	app.BashComplete = func(c *cli.Context) {
@@ -92,6 +92,56 @@ func main() {
 
 	app.Commands = []cli.Command{
 		{
+			Name:    "binary",
+			Usage:   "Work with binary blobs",
+			Aliases: []string{"bin"},
+			Subcommands: []cli.Command{
+				{
+					Name:         "cat",
+					Usage:        "Print content of a secret to stdout or insert from stdin",
+					Before:       action.Initialized,
+					Action:       action.BinaryCat,
+					BashComplete: action.Complete,
+				},
+				{
+					Name:         "sum",
+					Usage:        "Compute the SHA256 sum of a decoded secret",
+					Aliases:      []string{"sha", "sha256"},
+					Before:       action.Initialized,
+					Action:       action.BinarySum,
+					BashComplete: action.Complete,
+				},
+				{
+					Name:         "copy",
+					Usage:        "Copy files from or to the password store",
+					Before:       action.Initialized,
+					Aliases:      []string{"cp"},
+					Action:       action.BinaryCopy,
+					BashComplete: action.Complete,
+					Flags: []cli.Flag{
+						cli.BoolFlag{
+							Name:  "force, f",
+							Usage: "Force to move the secret and overwrite existing one",
+						},
+					},
+				},
+				{
+					Name:         "move",
+					Usage:        "Move files from or to the password store",
+					Before:       action.Initialized,
+					Aliases:      []string{"mv"},
+					Action:       action.BinaryMove,
+					BashComplete: action.Complete,
+					Flags: []cli.Flag{
+						cli.BoolFlag{
+							Name:  "force, f",
+							Usage: "Force to move the secret and overwrite existing one",
+						},
+					},
+				},
+			},
+		},
+		{
 			Name:        "clone",
 			Usage:       "Clone a new store",
 			Description: "To clone a remote repo",
@@ -114,20 +164,6 @@ func main() {
 				Name:   "zsh",
 				Usage:  "Source for auto completion in zsh",
 				Action: action.CompletionZSH,
-			}, {
-				Name:   "dmenu",
-				Usage:  "Completion output for dmenu",
-				Action: action.CompletionDMenu,
-				Flags: []cli.Flag{
-					cli.BoolFlag{
-						Name:  "type",
-						Usage: "Type the password with xdotool",
-					},
-					cli.StringFlag{
-						Name:  "args",
-						Usage: "Arguments passed to dmenu itself",
-					},
-				},
 			}},
 		},
 		{
@@ -173,6 +209,7 @@ func main() {
 			Usage:        "Insert a new secret or edit an existing secret using $EDITOR.",
 			Before:       action.Initialized,
 			Action:       action.Edit,
+			Aliases:      []string{"set"},
 			BashComplete: action.Complete,
 		},
 		{
@@ -283,6 +320,10 @@ func main() {
 					Name:  "store, s",
 					Usage: "Set the sub store to operate on",
 				},
+				cli.StringFlag{
+					Name:  "alias, a",
+					Usage: "Set the name of the sub store",
+				},
 				cli.BoolFlag{
 					Name:  "nogit",
 					Usage: "Do not init git repo",
@@ -321,6 +362,20 @@ func main() {
 			Before:       action.Initialized,
 			Action:       action.List,
 			BashComplete: action.Complete,
+			Flags: []cli.Flag{
+				cli.IntFlag{
+					Name:  "limit, l",
+					Usage: "Max tree depth",
+				},
+				cli.BoolFlag{
+					Name:  "flat, f",
+					Usage: "Print flat list",
+				},
+				cli.BoolFlag{
+					Name:  "strip-prefix, s",
+					Usage: "Strip prefix from filtered entries",
+				},
+			},
 		},
 		{
 			Name:         "move",
@@ -358,6 +413,7 @@ func main() {
 				},
 				{
 					Name:         "remove",
+					Aliases:      []string{"rm"},
 					Usage:        "Remove mount",
 					Description:  "To remove a mounted sub store",
 					Before:       action.Initialized,
@@ -388,6 +444,7 @@ func main() {
 				},
 				{
 					Name:         "remove",
+					Aliases:      []string{"rm"},
 					Usage:        "Remove any number of Recipients",
 					Description:  "To remove any number of recipients from a store",
 					Before:       action.Initialized,
@@ -419,6 +476,48 @@ func main() {
 				cli.BoolFlag{
 					Name:  "qr",
 					Usage: "Print the first line of the secret as QR Code",
+				},
+				cli.BoolFlag{
+					Name:  "force, f",
+					Usage: "Display the password even if safecontent is enabled",
+				},
+			},
+		},
+		{
+			Name:  "templates",
+			Usage: "List and edit secret templates.",
+			Description: "" +
+				"List existing templates in the password store and allow for editing " +
+				"and creating them.",
+			Before: action.Initialized,
+			Action: action.TemplatesPrint,
+			Subcommands: []cli.Command{
+				{
+					Name:         "show",
+					Usage:        "Show a secret template.",
+					Description:  "Dispaly an existing template",
+					Aliases:      []string{"cat"},
+					Before:       action.Initialized,
+					Action:       action.TemplatePrint,
+					BashComplete: action.TemplatesComplete,
+				},
+				{
+					Name:         "edit",
+					Usage:        "Edit secret templates.",
+					Description:  "Edit an existing or new template",
+					Aliases:      []string{"create", "new"},
+					Before:       action.Initialized,
+					Action:       action.TemplateEdit,
+					BashComplete: action.TemplatesComplete,
+				},
+				{
+					Name:         "remove",
+					Aliases:      []string{"rm"},
+					Usage:        "Remove secret templates.",
+					Description:  "Remove an existing template",
+					Before:       action.Initialized,
+					Action:       action.TemplateRemove,
+					BashComplete: action.TemplatesComplete,
 				},
 			},
 		},

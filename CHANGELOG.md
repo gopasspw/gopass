@@ -1,3 +1,40 @@
+## 1.2.0 / 2017-06-21
+
+* [FEATURE] YAML support [#125]
+* [FEATURE] Binary support [#136]
+* [ENHANCEMENT] Increase test coverage [#160]
+* [ENHANCEMENT] Use secure temporary storage on macOS [#144]
+* [ENHANCEMENT] Use goreleaser [#151]
+* [BUGFIX] Fix git invocation [#140]
+* [BUGFIX] Fix missing recipients on init [#141]
+* [BUGFIX] Fix sorting of mount points [#148]
+
+## 1.1.2 / 2017-06-14
+
+* [BUGFIX] Fix gopass init --store [#129]
+* [BUGFIX] Fix gopass init [#127]
+
+## 1.1.1 / 2017-06-13
+
+* [ENHANCEMENT] Allow files and folders with the same name [#124]
+* [ENHANCEMENT] Improve error messages [#121]
+* [ENHANCEMENT] Add rm aliases to remove commands [#119]
+* [BUGFIX] Several bug fixes for multi-repository handling [#123]
+
+## 1.1.0 / 2017-05-31
+
+* [FEATURE] Support templates [#1]
+* [FEATURE] QR Code output [#64]
+* [ENHANCEMENT] If entry was not found start search [#109]
+* [ENHANCEMENT] Do not write color codes unless terminal [#111]
+* [ENHANCEMENT] Make find compare case insensitive [#108]
+* [ENHANCEMENT] Enforce UNIX style line endings [#105]
+* [ENHANCEMENT] Use XDG_CONFIG_HOME [#67]
+* [ENHANCEMENT] Support symlinks [#41]
+* [ENHANCEMENT] Add nocolor config flag [#33]
+* [ENHANCEMENT] Accept args for editor [#30]
+* [BUGFIX] Build fixes for Windows [#14]
+
 ## 1.0.2 / 2017-03-24
 
 * [ENHANCEMENT] Improve mounts and init commands [#87]

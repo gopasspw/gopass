@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 
+	"github.com/justwatchcom/gopass/config"
 	"github.com/justwatchcom/gopass/fsutil"
 	"github.com/urfave/cli"
 )
@@ -23,7 +24,7 @@ func (s *Action) Clone(c *cli.Context) error {
 
 	path := c.String("path")
 	if path == "" {
-		path = pwStoreDir(mount)
+		path = config.PwStoreDir(mount)
 	}
 
 	if mount == "" && s.Store.Initialized() {
@@ -47,7 +48,7 @@ func (s *Action) Clone(c *cli.Context) error {
 	}
 
 	// save new mount in config file
-	if err := writeConfig(s.Store); err != nil {
+	if err := s.Store.Config().Save(); err != nil {
 		return fmt.Errorf("Failed to update config: %s", err)
 	}
 
@@ -58,7 +59,7 @@ func (s *Action) Clone(c *cli.Context) error {
 
 func gitClone(repo, path string) error {
 	if fsutil.IsDir(path) {
-		return fmt.Errorf("%s is a directory", path)
+		return fmt.Errorf("%s is a directory that already exists", path)
 	}
 
 	fmt.Printf("Cloning repository %s to %s ...\n", repo, path)
@@ -68,9 +69,5 @@ func gitClone(repo, path string) error {
 	cmd.Stdin = os.Stdin
 	cmd.Stderr = os.Stderr
 
-	if err := cmd.Run(); err != nil {
-		return err
-	}
-
-	return nil
+	return cmd.Run()
 }

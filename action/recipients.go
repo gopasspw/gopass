@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/justwatchcom/gopass/gpg"
 	"github.com/urfave/cli"
 )
 
@@ -33,7 +32,7 @@ func (s *Action) RecipientsPrint(c *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(tree.Format())
+	fmt.Println(tree.Format(0))
 	return nil
 }
 
@@ -46,10 +45,9 @@ func (s *Action) RecipientsComplete(*cli.Context) {
 		return
 	}
 
-	for _, v := range tree.List() {
+	for _, v := range tree.List(0) {
 		fmt.Println(v)
 	}
-	return
 }
 
 // RecipientsAdd adds new recipients
@@ -57,7 +55,7 @@ func (s *Action) RecipientsAdd(c *cli.Context) error {
 	store := c.String("store")
 	added := 0
 	for _, r := range c.Args() {
-		keys, err := gpg.ListPublicKeys(r)
+		keys, err := s.gpg.FindPublicKeys(r)
 		if err != nil {
 			return fmt.Errorf("Failed to list public keys: %s", err)
 		}
@@ -65,7 +63,7 @@ func (s *Action) RecipientsAdd(c *cli.Context) error {
 			return fmt.Errorf("no matching key found in keyring")
 		}
 
-		if !askForConfirmation(fmt.Sprintf("Do you want to add '%s' as an recipient?", keys[0].OneLine())) {
+		if !s.askForConfirmation(fmt.Sprintf("Do you want to add '%s' as an recipient?", keys[0].OneLine())) {
 			continue
 		}
 
@@ -83,10 +81,10 @@ func (s *Action) RecipientsRemove(c *cli.Context) error {
 	store := c.String("store")
 	removed := 0
 	for _, r := range c.Args() {
-		kl, err := gpg.ListPrivateKeys(r)
+		kl, err := s.gpg.FindPrivateKeys(r)
 		if err == nil {
 			if len(kl) > 0 {
-				if !askForConfirmation(fmt.Sprintf("Do you want to remove yourself (%s) from the recipients?", r)) {
+				if !s.askForConfirmation(fmt.Sprintf("Do you want to remove yourself (%s) from the recipients?", r)) {
 					continue
 				}
 			}

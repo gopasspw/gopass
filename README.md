@@ -112,7 +112,7 @@ the `-c` flag to copy it to your clipboard.
 $ gopass edit golang.org/gopher
 ```
 
-The `edit` command uses the `$EDITOR` environment variable to start your prefered editor where
+The `edit` command uses the `$EDITOR` environment variable to start your preferred editor where
 you can easily edit multi-line content. `vim` will be the default if `$EDITOR` is not set.
 
 ### Listing existing secrets
@@ -143,6 +143,10 @@ Eech4ahRoy2oowi0ohl
 
 The default action of `gopass` is show. It also accepts the `-c` flag to copy the content of
 the secret directly to the clipboard.
+
+Since it may be dangerous to always display the password on `gopass` calls, the `safecontent` 
+setting may be set to `true` to allow one to display only the rest of the password entries by 
+default and display the whole entry, with password, only when the `-f` flag is used.
 
 #### Copy secret to clipboard
 
@@ -195,6 +199,23 @@ We also support `pull before push` to reduce the change of `rejected` pushes whe
 $ gopass config autopull true
 ```
 
+### Support for Binary Content
+
+gopass provides secure and easy support for working with binary files through the
+`gopass binary` family of subcommands. One can copy or move secret from or to
+the store. gopass will attempt to securely overwrite and remove any secret moved
+to the store.
+
+```bash
+# copy file "/some/file.jpg" to "some/secret.b64" in the store
+$ gopass binary cp /some/file.jpg some/secret
+# move file "/home/user/private.key" to "my/private.key.b64", removing the file on disk
+# after the file has been encoded, stored and verified to be intact (SHA256)
+$ gopass binary mv /home/user/private.key my/private.key
+# Calculate the checksum of some asset
+$ gopass binary sha256 my/private.key
+```
+
 ### Multiple Stores
 
 gopass supports multi-stores that can be mounted over each other like filesystems
@@ -203,7 +224,7 @@ on Linux/UNIX systems.
 To add an mount point to an existing store add an entry to the `mounts` object
 of the store.
 
-gopass tries to read it's configuration from `$HOME/.gopass.yml` if present.
+gopass tries to read its configuration from `$HOME/.config/gopass/config.yml` if present.
 You can override this location by setting `GOPASS_CONFIG` to another location.
 
 Mounting new stores can be done through gopass:
@@ -217,10 +238,25 @@ $ gopass mounts
 $ gopass mounts remove test
 ```
 
-**WARNING**: Initializing new stores while mounting is currently not possible.
-For the time-being you can only mount existing stores.
+You can initialize a new store using `gopass init --alias mount-point --store /path/to/store`.
 
-You can initialize a new store using `gopass init --store /path/to/store`.
+### Directly edit structured secrets aka. YAML support
+
+`gopass` supports directly editing structured secrets (only simple key-value maps so far).
+
+```bash
+$ gopass generate -n foo/bar 12
+The generated password for foo/bar is:
+7fXGKeaZgzty
+$ gopass insert foo/bar baz
+Enter password for foo/bar/baz:
+Retype password for foo/bar/baz:
+$ gopass foo/bar baz
+zab
+$ gopass foo/bar
+7fXGKeaZgzty
+baz: zab
+```
 
 ### Edit the Config
 
@@ -260,19 +296,33 @@ gopass
 └── 0xB5B44266A3683834 - Gopher <gopher@golang.org>
 ```
 
+### Debugging
+
+To debug `gopass`, set the environment variable `GOPASS_DEBUG` to `true`.
+
+### Disabling Colors
+
+Disabling colors is as simple as `gopass config nocolor true`.
+
+### Password Templates
+
+With gopass you can create templates which are searched when executing `gopass edit` on a new secret. If the folder, or any parent folder, contains a file called `.pass-template` it's parsed as a Go template, executed with the name of the new secret and an auto-generated password and loaded into your `$EDITOR`.
+
+This makes it easy to e.g. generate database passwords or use templates for certain kind of secrets.
+
 ## Known Limitations and Caveats
 
 ### GnuPG
 
-`gopass` use `gpg` to encrypt it's secrets. This makes it easy to build a software we feel comfortable
-with trusting our credentials, but `gpg` isn't know for being the most user-friendly software.
+`gopass` uses [gpg](https://www.gnupg.org) to encrypt its secrets. This makes it easy to build a software we feel comfortable
+trusting our credentials with, but `gpg` isn't known for being the most user-friendly software.
 
-We try to work around some of the useability limitations of `gpg` but we always have to keep the security
-goals in mind, so some features have to trade some useability against security and vice versa.
+We try to work around some of the usability limitations of `gpg` but we always have to keep the security
+goals in mind, so some features have to trade some usability against security and vice-versa.
 
 ### git history and local files
 
-Please keep in mind that by default `gopass` stores it's encrypted secrets in git. *This is a deviation
+Please keep in mind that by default `gopass` stores its encrypted secrets in git. *This is a deviation
 from the behavior of `pass`, which does not force you to use `git`.* Furthermore, the decision has some important
 properties.
 
@@ -306,17 +356,17 @@ $ brew install gopass
 #### Debian and Ubuntu
 
 ```bash
-$ wget https://www.justwatch.com/gopass/releases/1.0.2/gopass_1.0.2_amd64.deb
-$ sudo dpkg -i gopass_1.0.2_amd64.deb
+$ wget https://www.justwatch.com/gopass/releases/1.2.0/gopass_1.2.0_amd64.deb
+$ sudo dpkg -i gopass_1.2.0_amd64.deb
 ```
 
 ### Download
 
-Please visit https://www.justwatch.com/gopass/releases/1.0.2/ for a list of binary releases.
+Please visit https://www.justwatch.com/gopass/releases/ for a list of binary releases.
 
 ### From Source
 
-To get the latest version of pass, run `go get`:
+To get the latest version of gopass, run `go get`:
 
     go get -u github.com/justwatchcom/gopass
 
@@ -339,23 +389,18 @@ autocompletion for subcommands like `gopass show`, `gopass ls` and others.
     source <(gopass completion bash)
     source <(gopass completion zsh)
 
-### dmenu support
+### dmenu/rofi support
 
-Out of the box gopass supports [dmenu](http://tools.suckless.org/dmenu/).
-Instead of shipping another bash script we ship dmenu support from within the binary.
+In earlier versions gopass supported [dmenu](http://tools.suckless.org/dmenu/).
+We removed this and encourage you to call dmenu yourself now.
 
-If you have dmenu installed on your system simply run:
-
-```bash
-$ gopass completion dmenu
-```
-The first line of your selected secret will be copied to your clipboard.
-
-Maybe you want the password to be written to your selected text field.
-For that add `--type` and make sure _xdotool_ is installed.
+This also makes it easier to call gopass with e.g. [rofi](https://github.com/DaveDavenport/rofi).
 
 ```bash
-$ gopass completion dmenu --type
+# Simply copy the selected password to the clipboard
+$ gopass ls --flat | dmenu | xargs --no-run-if-empty gopass show -c
+# First pipe the selected name to gopass, encrypt it and type the password with xdotool.
+$ gopass ls --flat | dmenu | xargs --no-run-if-empty gopass show | xdotool type --clearmodifiers --file -
 ```
 
 ### Dependencies
@@ -380,7 +425,7 @@ $ brew install gnupg2 git
 ### Setup GPG
 
 `gopass` depends on `gpg` for encryption and decryption. You **must** have a
-suiteable key pair.
+suitable key pair.
 
 ```bash
 $ gpg --gen-key
@@ -433,7 +478,7 @@ gopass config path "~/Google Drive/Password-Store"
 
 ### Using other GUIs with `gopass`
 
-Because `gopass` is fully backwards compatible with `pass` you can simply use other existing interfaces.
+Because `gopass` is fully *backwards* compatible with `pass` you can simply use other existing interfaces.
 We use the [Android](https://github.com/zeapo/Android-Password-Store) &
 [iOS](https://github.com/davidjb/pass-ios#readme) apps ourselves. But there are more integrations for
 [Chrome, Firefox](https://github.com/dannyvankooten/browserpass),
@@ -473,7 +518,7 @@ our own implementations.
 * Nonrepudiation - Ensure that the involved parties actually transmitted and
 	received messages. gopass makes not attempt to ensure this.
 
-### Additional Useability Goals
+### Additional Usability Goals
 
 * Availability - Secrets must always be readable by exactly the specified recipients.
 * Sensible Defaults - This project shall try to make the right things easy to do and make the wrong things hard to do.
@@ -516,26 +561,32 @@ There are several configuration options available through the command line inter
 ## API Stability
 
 `gopass` is provided as an CLI program, not as a library. While we try to make the
-packages useable as libraries we make no guarantees whatsoever with respect to
+packages usable as libraries we make no guarantees whatsoever with respect to
 the API stability. The `gopass` version only reflects changes in the CLI commands.
 
 If you use `gopass` as a library be sure to vendor it and expect breaking changes.
 
 ## Roadmap
 
-- [x] Be 100% pass compatible
-- [ ] Storing binary files in gopass (almost done)
-- [ ] Storing structured files and templates (credit cards, DBs, websites...)
+- [x] Be 100% pass 1.4 compatible
+- [x] Storing binary files in gopass (almost done)
+- [x] Storing structured files and templates (credit cards, DBs, websites...)
 - [ ] UX improvements and more wizards
 - [ ] Tackle the information disclosure issue
 - [ ] Build a great workflow for requesting and granting access
 - [ ] Better and more fine grained ACL
 - [ ] Be nicely usable by semi- and non-technical users
 
+*Note: Being 100% pass compatible was a milestone, not a promise for the future. We will eventually diverge from pass to support more advanced features. This will break compatibility.*
+
 ## Further Reading
 
 * [GPGTools](https://gpgtools.org/) for macOS
 * [GitHub Help on GPG](https://help.github.com/articles/signing-commits-with-gpg/)
+
+## FAQ
+
+* *How does gopass relate to HashiCorp vault?* - While [Vault](https://www.vaultproject.io/) is for machines, `gopass` is for humans [#7](https://github.com/justwatchcom/gopass/issues/7)
 
 ## Credit & License
 

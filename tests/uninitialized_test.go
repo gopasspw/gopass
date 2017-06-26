@@ -12,7 +12,6 @@ func TestUninitialized(t *testing.T) {
 
 	commands := []string{
 		"",
-		"binary",
 		"copy",
 		"cp",
 		"delete",

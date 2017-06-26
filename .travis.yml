@@ -1,11 +1,14 @@
 language: go
 
 go:
-  - 1.8
-  - tip
+  - 1.8.x
 
 before_install:
   - go get -v github.com/golang/lint/golint
+
+after_success:
+  - gem install fpm
+  - test -n "$TRAVIS_TAG" && curl -sL https://git.io/goreleaser | bash
 
 script:
   - make clean
@@ -15,7 +18,3 @@ script:
   - make test
   - make build
   - make test-integration
-
-matrix:
-  allow_failures:
-    - go: tip

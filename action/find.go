@@ -13,12 +13,13 @@ func (s *Action) Find(c *cli.Context) error {
 		return fmt.Errorf("Usage: gopass find arg")
 	}
 
-	l, err := s.Store.List()
+	l, err := s.Store.List(0)
 	if err != nil {
 		return err
 	}
+	needle := strings.ToLower(c.Args().First())
 	for _, value := range l {
-		if strings.Contains(value, c.Args().First()) {
+		if strings.Contains(strings.ToLower(value), needle) {
 			fmt.Println(value)
 		}
 	}
