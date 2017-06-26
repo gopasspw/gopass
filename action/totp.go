@@ -47,7 +47,9 @@ func (s *Action) TOTP(c *cli.Context) error {
 }
 
 func printCode(secret string, t time.Time) (int, error) {
-	code, err := totp.GenerateCodeCustom(strings.ToUpper(secret), t, totp.ValidateOpts{
+	secret = strings.TrimSpace(secret)
+	secret = strings.ToUpper(secret)
+	code, err := totp.GenerateCodeCustom(secret, t, totp.ValidateOpts{
 		Period:    totpPeriod,
 		Digits:    otp.DigitsSix,
 		Algorithm: otp.AlgorithmSHA1,
