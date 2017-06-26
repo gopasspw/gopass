@@ -264,6 +264,20 @@ func main() {
 			},
 		},
 		{
+			Name:         "totp",
+			Usage:        "Generate time based token from stored secret",
+			Description:  "Tries to parse the saved string as a time-based one-time password secret and generate a token based on the current time",
+			Before:       action.Initialized,
+			Action:       action.TOTP,
+			BashComplete: action.Complete,
+			Flags: []cli.Flag{
+				cli.BoolFlag{
+					Name:  "clip, c",
+					Usage: "Copy the time based token into the clipboard",
+				},
+			},
+		},
+		{
 			Name:        "git",
 			Usage:       "Do git things",
 			Description: "If the password store is a git repository, execute a git command specified by git-command-args.",
