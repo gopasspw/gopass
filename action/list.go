@@ -37,7 +37,7 @@ func (s *Action) List(c *cli.Context) error {
 			}
 			return nil
 		}
-		if rows, _ := termutil.GetTermsize(); l.Len() > rows {
+		if rows, _ := termutil.GetTermsize(); l.Len() > rows && !s.Store.NoPager() {
 			color.NoColor = true
 			buf = &bytes.Buffer{}
 			out = buf
@@ -85,7 +85,8 @@ func (s *Action) List(c *cli.Context) error {
 func (s *Action) pager(buf io.Reader) error {
 	pager := os.Getenv("PAGER")
 	if pager == "" {
-		pager = "pager"
+		fmt.Println(buf)
+		return nil
 	}
 
 	args, err := shellquote.Split(pager)

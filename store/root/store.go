@@ -28,8 +28,9 @@ type Store struct {
 	importFunc  store.ImportCallback
 	loadKeys    bool // load missing keys from store
 	mounts      map[string]*sub.Store
-	noColor     bool   // disable colors in output
-	noConfirm   bool   // do not confirm recipients when encrypting
+	noColor     bool // disable colors in output
+	noConfirm   bool // do not confirm recipients when encrypting
+	noPager     bool
 	path        string // path to the root store
 	persistKeys bool   // store recipient keys in store
 	safeContent bool   // avoid showing passwords in terminal
@@ -63,6 +64,7 @@ func New(cfg *config.Config) (*Store, error) {
 		mounts:      make(map[string]*sub.Store, len(cfg.Mounts)),
 		noColor:     cfg.NoColor,
 		noConfirm:   cfg.NoConfirm,
+		noPager:     cfg.NoPager,
 		path:        cfg.Path,
 		persistKeys: cfg.PersistKeys,
 		safeContent: cfg.SafeContent,

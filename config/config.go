@@ -29,6 +29,7 @@ type Config struct {
 	Mounts      map[string]string    `json:"mounts,omitempty"`
 	NoColor     bool                 `json:"nocolor"`     // disable colors in output
 	NoConfirm   bool                 `json:"noconfirm"`   // do not confirm recipients when encrypting
+	NoPager     bool                 `json:"nopager"`     // do not start a pager for longer output
 	Path        string               `json:"path"`        // path to the root store
 	PersistKeys bool                 `json:"persistkeys"` // store recipient keys in store
 	SafeContent bool                 `json:"safecontent"` // avoid showing passwords in terminal
@@ -49,6 +50,7 @@ func New() *Config {
 		Mounts:      make(map[string]string),
 		NoColor:     false,
 		NoConfirm:   false,
+		NoPager:     false,
 		PersistKeys: true,
 		SafeContent: false,
 		Version:     "",
