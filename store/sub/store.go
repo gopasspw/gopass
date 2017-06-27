@@ -474,6 +474,9 @@ func (s *Store) reencrypt(reason string) error {
 	if err != nil {
 		return err
 	}
+	// save original value of auto push
+	gitAutoPush := s.autoPush
+	s.autoPush = false
 	for _, e := range entries {
 		content, err := s.Get(e)
 		if err != nil {
@@ -482,6 +485,26 @@ func (s *Store) reencrypt(reason string) error {
 		}
 		if err := s.Set(e, content, reason); err != nil {
 			fmt.Printf("Failed to write %s: %s\n", e, err)
+		}
+	}
+	// restore value of auto push
+	s.autoPush = gitAutoPush
+
+	if s.autoPush {
+		if err := s.gitPush("", ""); err != nil {
+			if err == store.ErrGitNotInit {
+				msg := "Warning: git is not initialized for this store. Ignoring auto-push option\n" +
+					"Run: gopass git init"
+				fmt.Println(color.RedString(msg))
+				return nil
+			}
+			if err == store.ErrGitNoRemote {
+				msg := "Warning: git has not remote. Ignoring auto-push option\n" +
+					"Run: gopass git remote add origin ..."
+				fmt.Println(color.YellowString(msg))
+				return nil
+			}
+			return err
 		}
 	}
 	return nil
