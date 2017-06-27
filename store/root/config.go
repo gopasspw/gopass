@@ -20,6 +20,7 @@ func (s *Store) Config() *config.Config {
 		Mounts:      make(map[string]string, len(s.mounts)),
 		NoColor:     s.noColor,
 		NoConfirm:   s.noConfirm,
+		NoPager:     s.noPager,
 		Path:        s.path,
 		PersistKeys: s.persistKeys,
 		SafeContent: s.safeContent,
@@ -47,6 +48,7 @@ func (s *Store) UpdateConfig(cfg *config.Config) error {
 	s.loadKeys = cfg.LoadKeys
 	s.noColor = cfg.NoColor
 	s.noConfirm = cfg.NoConfirm
+	s.noPager = cfg.NoPager
 	s.path = cfg.Path
 	s.persistKeys = cfg.PersistKeys
 	s.safeContent = cfg.SafeContent
@@ -116,4 +118,9 @@ func (s *Store) ClipTimeout() int {
 // AskForMore returns true if generate should ask for more information
 func (s *Store) AskForMore() bool {
 	return s.askForMore
+}
+
+// NoPager retuns true if the user doesn't want a pager for longer output
+func (s *Store) NoPager() bool {
+	return s.noPager
 }

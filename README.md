@@ -184,6 +184,12 @@ $ gopass cp emails/example.com emails/user@example.com
 
 ## Advanced Features
 
+### Auto-Pager
+
+Like other popular open-source projects `gopass` automatically pipe the output
+to `$PAGER` if it's longer than one terminal page. You can disable this behaviour
+by unsetting `$PAGER` or `gopass config nopager true`.
+
 ### git auto-push and auto-pull
 
 If you want gopass to always push changes in git to your default remote (origin)
