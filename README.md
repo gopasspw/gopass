@@ -272,6 +272,7 @@ changes through the commandline. Any change will be written to the configured `g
 ```bash
 $ gopass config
 alwaystrust: false
+askformore: false
 autoimport: false
 autopull: false
 autopush: true
@@ -565,6 +566,7 @@ There are several configuration options available through the command line inter
 | **Option**    | *Type*    | Description |
 | ------------- | --------- | ----------- |
 | `alwaystrust` | `bool`    | Always trust public keys when encrypting. This trades some security against easier use. Use with caution. |
+| `askformore`  | `bool`    | If enabled - it will ask to add more data after use of `generate` command. |
 | `autoimport`  | `bool`    | Import missing keys stored in the pass repo (see `persistkeys`) without asking. |
 | `autopull`    | `bool`    | Always do a `git pull` before a `git push`. Reduces the chance of git rejections. |
 | `autopush`    | `bool`    | Always do a `git push` after a commit to the store. Makes sure your local changes are always available on your git remote. |
