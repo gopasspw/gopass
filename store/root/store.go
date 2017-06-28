@@ -237,6 +237,12 @@ func (r *Store) Set(name string, content []byte, reason string) error {
 	return store.Set(strings.TrimPrefix(name, store.Alias()), content, reason)
 }
 
+// SetPassword Update only the first line in an already existing entry
+func (r *Store) SetPassword(name string, password []byte) error {
+	store := r.getStore(name)
+	return store.SetPassword(strings.TrimPrefix(name, store.Alias()), password)
+}
+
 // SetConfirm calls Set with confirmation callback
 func (r *Store) SetConfirm(name string, content []byte, reason string, cb store.RecipientCallback) error {
 	store := r.getStore(name)
