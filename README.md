@@ -395,6 +395,16 @@ autocompletion for subcommands like `gopass show`, `gopass ls` and others.
     source <(gopass completion bash)
     source <(gopass completion zsh)
 
+### fish completion
+
+Experimental [fish](https://fishshell.com/) shell completion is available.
+Copy the file `fish.completion` to `~/.config/fish/completions/gopass.fish`
+and start a new shell.
+
+Since writing fish completion scripts is not yet supported by the CLI library we
+use, this completion script is missing a few features. Feel free to contribute
+if you want to improve it.
+
 ### dmenu/rofi support
 
 In earlier versions gopass supported [dmenu](http://tools.suckless.org/dmenu/).

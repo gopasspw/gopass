@@ -30,6 +30,9 @@ archive:
     - CHANGELOG.md
     - LICENSE
     - README.md
+    - bash.completion
+    - fish.completion
+    - zsh.completion
 release:
   github:
     owner: justwatchcom
