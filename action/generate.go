@@ -40,7 +40,7 @@ func (s *Action) Generate(c *cli.Context) error {
 	}
 
 	if !force { // don't check if it's force anyway
-		if s.Store.Exists(name) && key == "" && !s.askForConfirmation(fmt.Sprintf("An entry already exists for %s. Overwrite it?", name)) {
+		if s.Store.Exists(name) && key == "" && !s.askForConfirmation(fmt.Sprintf("An entry already exists for %s. Overwrite the current password?", name)) {
 			return fmt.Errorf("not overwriting your current password")
 		}
 	}
@@ -65,6 +65,10 @@ func (s *Action) Generate(c *cli.Context) error {
 	// set a single key in a yaml doc
 	if key != "" {
 		if err := s.Store.SetKey(name, key, string(password)); err != nil {
+			return err
+		}
+	} else if s.Store.Exists(name) {
+		if err := s.Store.SetPassword(name, password); err != nil {
 			return err
 		}
 	} else {

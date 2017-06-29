@@ -251,6 +251,17 @@ func (s *Store) Set(name string, content []byte, reason string) error {
 	return s.SetConfirm(name, content, reason, nil)
 }
 
+// SetPassword update a password in an already existing entry on the disk
+func (s *Store) SetPassword(name string, password []byte) error {
+	var err error
+	body, err := s.GetBody(name)
+	if err != nil && err != store.ErrNoBody {
+		return err
+	}
+	first := append(password, '\n')
+	return s.SetConfirm(name, append(first, body...), fmt.Sprintf("Updated password in %s", name), nil)
+}
+
 // SetConfirm encodes and writes the cipertext of one entry to disk. This
 // method can be passed a callback to confirm the recipients immedeately
 // before encryption.
