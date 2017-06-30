@@ -2,9 +2,22 @@ package action
 
 import (
 	"fmt"
+	"regexp"
 
 	"github.com/urfave/cli"
 )
+
+var escapeRegExp = regexp.MustCompile(`(\s|\(|\)|\<|\>|\&|\;|\#|\\|\||\*|\?)`)
+
+// bashEscape Escape special characters with `\`
+func bashEscape(s string) string {
+	return escapeRegExp.ReplaceAllStringFunc(s, func(c string) string {
+		if c == `\` {
+			return `\\\\`
+		}
+		return `\\` + c
+	})
+}
 
 // Complete prints a list of all password names to os.Stdout
 func (s *Action) Complete(*cli.Context) {
@@ -14,7 +27,7 @@ func (s *Action) Complete(*cli.Context) {
 	}
 
 	for _, v := range list {
-		fmt.Println(v)
+		fmt.Println(bashEscape(v))
 	}
 }
 
@@ -27,6 +40,7 @@ PROG=gopass
 _cli_bash_autocomplete() {
      local cur opts base
      COMPREPLY=()
+     local IFS=$'\n'
      cur="${COMP_WORDS[COMP_CWORD]}"
      opts=$( ${COMP_WORDS[@]:0:$COMP_CWORD} --generate-bash-completion )
      COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
