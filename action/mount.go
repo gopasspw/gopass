@@ -63,7 +63,11 @@ func (s *Action) MountAdd(c *cli.Context) error {
 	if k := c.String("init"); k != "" {
 		keys = append(keys, k)
 	}
-	if err := s.Store.AddMount(c.Args()[0], c.Args()[1], keys...); err != nil {
+	alias, localPath := c.Args()[0], c.Args()[1]
+	if s.Store.Exists(alias) {
+		fmt.Printf(color.YellowString("WARNING: shadowing %s entry\n"), alias)
+	}
+	if err := s.Store.AddMount(alias, localPath, keys...); err != nil {
 		return err
 	}
 	if err := s.Store.Config().Save(); err != nil {
