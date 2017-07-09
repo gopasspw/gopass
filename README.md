@@ -363,8 +363,8 @@ $ brew install gopass
 #### Debian and Ubuntu
 
 ```bash
-$ wget https://www.justwatch.com/gopass/releases/1.2.0/gopass_1.2.0_amd64.deb
-$ sudo dpkg -i gopass_1.2.0_amd64.deb
+$ wget https://www.justwatch.com/gopass/releases/1.2.0/gopass-1.2.0-linux-amd64.deb
+$ sudo dpkg -i gopass-1.2.0-linux-amd64.deb
 ```
 
 ### Download
