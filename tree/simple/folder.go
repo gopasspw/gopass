@@ -167,8 +167,12 @@ func (f *Folder) getFolder(name string) *Folder {
 }
 
 // FindFolder returns a sub-tree or nil, if the subtree does not exist
-func (f *Folder) FindFolder(name string) tree.Tree {
-	return f.findFolder(strings.Split(strings.TrimSuffix(name, "/"), "/"))
+func (f *Folder) FindFolder(name string) (tree.Tree, error) {
+	sub := f.findFolder(strings.Split(strings.TrimSuffix(name, "/"), "/"))
+	if sub == nil {
+		return nil, fmt.Errorf("Entry not found")
+	}
+	return sub, nil
 }
 
 // findFolder recursively tries to find the named sub-folder

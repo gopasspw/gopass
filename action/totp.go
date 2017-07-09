@@ -64,7 +64,7 @@ func printCode(secret string, t time.Time) (string, error) {
 	}
 
 	expiresAt := time.Unix(t.Unix()+totpPeriod-(t.Unix()%totpPeriod), 0)
-	secondsLeft := int(expiresAt.Sub(time.Now()) / time.Second)
+	secondsLeft := int(time.Until(expiresAt).Seconds())
 
 	if secondsLeft <= totpPeriod {
 		color.Yellow("%s lasts %ds \t|%s%s|", code, secondsLeft, strings.Repeat("=", totpPeriod-secondsLeft), strings.Repeat("-", secondsLeft))
