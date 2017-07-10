@@ -28,13 +28,20 @@ func (s *Store) gitCmd(name string, args ...string) error {
 
 // GitInit initializes this store's git repo and
 // recursively calls GitInit on all substores.
-func (s *Store) GitInit(alias, signKey string) error {
+func (s *Store) GitInit(alias, signKey, userName, userEmail string) error {
 	// the git repo may be empty (i.e. no branches, cloned from a fresh remote)
 	// or already initialized. Only run git init if the folder is completely empty
 	if !s.isGit() {
 		if err := s.gitCmd("GitInit", "init"); err != nil {
 			return fmt.Errorf("Failed to initialize git: %s", err)
 		}
+	}
+
+	if err := s.gitCmd("GitInit", "config", "--local", "user.name", userName); err != nil {
+		return err
+	}
+	if err := s.gitCmd("GitInit", "config", "--local", "user.email", userEmail); err != nil {
+		return err
 	}
 
 	if err := s.gitAdd(s.path); err != nil {
