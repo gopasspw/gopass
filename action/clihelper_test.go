@@ -26,8 +26,7 @@ func Test_askForGitConfigUserNonInteractive(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	name, email, err := s.askForGitConfigUser()
-	assert.NoError(t, err)
+	name, email, _ := s.askForGitConfigUser()
 
 	// tests cannot know whether keyList returned empty or not.
 	// a better distinction would require mocking/patching
