@@ -192,18 +192,19 @@ func (s *Action) askForPrivateKey(prompt string) (string, error) {
 	return "", fmt.Errorf("no valid user input")
 }
 
-// askForGitConfigUser will iterate over GPG private key identities and return one identity's name
-// and/or one identity's email address if selected by the user for being used as values for
+// askForGitConfigUser will iterate over GPG private key identities and prompt
+// the user for selecting one identity's name and email address each for being used as
 // git config user.name and git config user.email, respectively.
+// On error or no selection, name and email will be empty.
+// If s.isTerm is false (i.e., the user cannot be prompted), however,
+// the first identity's name/email pair found is returned.
 func (s *Action) askForGitConfigUser() (string, string, error) {
 	var (
-		name string
-		email string
+		name       string
+		email      string
+		useCurrent bool
 	)
 
-	if !s.isTerm {
-		return "", "", fmt.Errorf("no interaction without terminal")
-	}
 	keyList, err := s.gpg.ListPrivateKeys()
 	if err != nil {
 		return "", "", err
@@ -215,20 +216,33 @@ func (s *Action) askForGitConfigUser() (string, string, error) {
 
 	for _, key := range keyList {
 		for _, identity := range key.Identities {
-			ok, err := s.askForBool(fmt.Sprintf("Use %q as user name for password store git config?", identity.Name), false)
-			if err != nil {
-				return "", "", err
-			}
-			if ok {
+			useCurrent = false
+
+			if s.isTerm {
+				if name == "" {
+					useCurrent, err = s.askForBool(fmt.Sprintf("Use %q as user name for password store git config?", identity.Name), false)
+					if err != nil {
+						return "", "", err
+					}
+					if useCurrent {
+						name = identity.Name
+					}
+				}
+
+				if email == "" {
+					useCurrent, err = s.askForBool(fmt.Sprintf("Use %q as email address for password store git config?", identity.Email), false)
+					if err != nil {
+						return "", "", err
+					}
+					if useCurrent {
+						email = identity.Email
+					}
+				}
+			} else {
 				name = identity.Name
-			}
-			ok, err = s.askForBool(fmt.Sprintf("Use %q as email address for password store git config?", identity.Email), false)
-			if err != nil {
-				return "", "", err
-			}
-			if ok {
 				email = identity.Email
 			}
+
 			if name != "" && email != "" {
 				break
 			}

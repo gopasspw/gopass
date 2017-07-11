@@ -30,9 +30,10 @@ func (s *Action) gitInit(store, sk string) error {
 	}
 
 	// for convenience, set defaults to user-selected values from available private keys
-	userName, userEmail, err := s.askForGitConfigUser()
+	// NB: discarding returned error since this is merely a best-effort look-up for convenience
+	userName, userEmail, _ := s.askForGitConfigUser()
 
-	userName, err = s.askForString(color.CyanString("Please enter a user name for password store git config"), userName)
+	userName, err := s.askForString(color.CyanString("Please enter a user name for password store git config"), userName)
 	if err != nil {
 		return err
 	}
