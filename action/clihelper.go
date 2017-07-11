@@ -197,8 +197,8 @@ func (s *Action) askForPrivateKey(prompt string) (string, error) {
 // git config user.name and git config user.email, respectively.
 func (s *Action) askForGitConfigUser() (string, string, error) {
 	var (
-		name string = ""
-		email string = ""
+		name string
+		email string
 	)
 
 	if !s.isTerm {
