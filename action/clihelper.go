@@ -213,9 +213,6 @@ func (s *Action) askForGitConfigUser() (string, string, error) {
 		return "", "", fmt.Errorf("No usable private keys found")
 	}
 
-	if err != nil {
-		return "", "", err
-	}
 	for _, key := range keyList {
 		for _, identity := range key.Identities {
 			ok, err := s.askForBool(fmt.Sprintf("Use %q as user name for password store git config?", identity.Name), false)
