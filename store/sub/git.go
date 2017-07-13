@@ -23,7 +23,17 @@ func (s *Store) gitCmd(name string, args ...string) error {
 	if s.debug {
 		fmt.Printf("[DEBUG] store.%s: %s %+v\n", name, cmd.Path, cmd.Args)
 	}
-	return cmd.Run()
+	if err := cmd.Run(); err != nil {
+		return err
+	}
+	// load keys only after git pull
+	if s.loadKeys && len(cmd.Args) > 0 && cmd.Args[0] == "pull" {
+		if err := s.importMissingPublicKeys(); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // GitInit initializes this store's git repo and
