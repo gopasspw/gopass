@@ -8,7 +8,7 @@ type Tree interface {
 	AddFile(string, string) error
 	AddMount(string, string) error
 	AddTemplate(string) error
-	FindFolder(string) Tree
+	FindFolder(string) (Tree, error)
 	SetRoot(bool)
 	SetName(string)
 	Len() int

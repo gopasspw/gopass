@@ -49,8 +49,9 @@ func (s *Action) List(c *cli.Context) error {
 		return nil
 	}
 
-	subtree := l.FindFolder(filter)
-	if subtree == nil {
+	subtree, err := l.FindFolder(filter)
+	if err != nil {
+		color.Red("Entry '%s' not found", filter)
 		return nil
 	}
 
