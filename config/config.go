@@ -24,6 +24,7 @@ type Config struct {
 	ClipTimeout int                  `json:"cliptimeout"` // clear clipboard after seconds
 	Debug       bool                 `json:"debug"`       // enable debug output
 	FsckFunc    store.FsckCallback   `json:"-"`
+	GitRecurse  bool                 `json:"gitrecurse"`
 	ImportFunc  store.ImportCallback `json:"-"`
 	LoadKeys    bool                 `json:"loadkeys"` // load missing keys from store
 	Mounts      map[string]string    `json:"mounts,omitempty"`
@@ -46,6 +47,7 @@ func New() *Config {
 		AutoPush:    true,
 		ClipTimeout: 45,
 		Debug:       false,
+		GitRecurse:  true,
 		LoadKeys:    true,
 		Mounts:      make(map[string]string),
 		NoColor:     false,

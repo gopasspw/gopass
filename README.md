@@ -571,6 +571,7 @@ There are several configuration options available through the command line inter
 | `autopull`    | `bool`    | Always do a `git pull` before a `git push`. Reduces the chance of git rejections. |
 | `autopush`    | `bool`    | Always do a `git push` after a commit to the store. Makes sure your local changes are always available on your git remote. |
 | `cliptimeout` | `int`     | How many seconds the secret is stored when using `-c`. |
+| `gitrecurse`  | `bool`    | Automatically recurse any git operation to mounted sub-stores? |
 | `loadkeys`    | `bool`    | Import missing keys store in the pass repo (see `persistkeys` and `autoimport`). |
 | `noconfirm`   | `bool`    | Do not confirm recipient list when encrypting. |
 | `path`        | `string`  | Path to the root store. |

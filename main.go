@@ -285,8 +285,16 @@ func main() {
 			Action:      action.Git,
 			Flags: []cli.Flag{
 				cli.StringFlag{
-					Name:  "store",
+					Name:  "store, s",
 					Usage: "Store to operate on",
+				},
+				cli.BoolFlag{
+					Name:  "recurse, r",
+					Usage: "Recurse to mounted sub-stores",
+				},
+				cli.BoolFlag{
+					Name:  "force, f",
+					Usage: "Print errors but continue",
 				},
 			},
 			Subcommands: []cli.Command{
