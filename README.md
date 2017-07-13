@@ -573,9 +573,13 @@ There are several configuration options available through the command line inter
 | `cliptimeout` | `int`     | How many seconds the secret is stored when using `-c`. |
 | `gitrecurse`  | `bool`    | Automatically recurse any git operation to mounted sub-stores? |
 | `loadkeys`    | `bool`    | Import missing keys store in the pass repo (see `persistkeys` and `autoimport`). |
+| `debug`       | `bool`    | Enable debug output. |
+| `nocolor`     | `bool`    | Disable colored output even on terminals. |
 | `noconfirm`   | `bool`    | Do not confirm recipient list when encrypting. |
+| `nopager`     | `bool`    | Disable the pager feature when printing multi-page output. |
 | `path`        | `string`  | Path to the root store. |
 | `persistkeys` | `bool`    | Store every recipients public keys in the store. Makes it easier to set up an new machine or user. |
+| `safecontent` | `bool`    | Only output _safe content_ (i.e. everything but the first line of a secret) to the terminal. Use _copy_ (`-c`) to retrieve the password in the clipboard. |
 
 ## API Stability
 
