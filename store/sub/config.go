@@ -9,17 +9,18 @@ import (
 // Config returns this sub stores config as a config struct
 func (s *Store) Config() *config.Config {
 	c := &config.Config{
-		AlwaysTrust: s.alwaysTrust,
-		AutoImport:  s.autoImport,
-		AutoPull:    s.autoPull,
-		AutoPush:    s.autoPush,
-		Debug:       s.debug,
-		FsckFunc:    s.fsckFunc,
-		ImportFunc:  s.importFunc,
-		LoadKeys:    s.loadKeys,
-		Mounts:      make(map[string]string),
-		Path:        s.path,
-		PersistKeys: s.persistKeys,
+		AlwaysTrust:     s.alwaysTrust,
+		AutoImport:      s.autoImport,
+		AutoPull:        s.autoPull,
+		AutoPush:        s.autoPush,
+		CheckRecipients: s.checkRecipients,
+		Debug:           s.debug,
+		FsckFunc:        s.fsckFunc,
+		ImportFunc:      s.importFunc,
+		LoadKeys:        s.loadKeys,
+		Mounts:          make(map[string]string),
+		Path:            s.path,
+		PersistKeys:     s.persistKeys,
 	}
 	return c
 }
@@ -33,6 +34,7 @@ func (s *Store) UpdateConfig(cfg *config.Config) error {
 	s.autoImport = cfg.AutoImport
 	s.autoPull = cfg.AutoPull
 	s.autoPush = cfg.AutoPush
+	s.checkRecipients = cfg.CheckRecipients
 	s.debug = cfg.Debug
 	s.fsckFunc = cfg.FsckFunc
 	s.importFunc = cfg.ImportFunc

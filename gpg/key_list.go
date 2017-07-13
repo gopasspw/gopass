@@ -8,11 +8,32 @@ import (
 // KeyList is a searchable slice of Keys
 type KeyList []Key
 
+// Recipients returns the KeyList formatted as a recipient list
+func (kl KeyList) Recipients() []string {
+	l := make([]string, 0, len(kl))
+	for _, k := range kl {
+		l = append(l, k.ID())
+	}
+	return l
+}
+
 // UseableKeys returns the list of useable (valid keys)
 func (kl KeyList) UseableKeys() KeyList {
 	nkl := make(KeyList, 0, len(kl))
 	for _, k := range kl {
 		if !k.IsUseable() {
+			continue
+		}
+		nkl = append(nkl, k)
+	}
+	return nkl
+}
+
+// UnuseableKeys returns the list of unuseable keys (invalid keys)
+func (kl KeyList) UnuseableKeys() KeyList {
+	nkl := make(KeyList, 0, len(kl))
+	for _, k := range kl {
+		if k.IsUseable() {
 			continue
 		}
 		nkl = append(nkl, k)

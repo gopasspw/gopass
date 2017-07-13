@@ -21,19 +21,20 @@ const (
 
 // Store is password store
 type Store struct {
-	alias       string
-	alwaysTrust bool
-	autoImport  bool
-	autoPull    bool
-	autoPush    bool
-	debug       bool
-	fsckFunc    store.FsckCallback
-	importFunc  store.ImportCallback
-	loadKeys    bool
-	path        string
-	persistKeys bool
-	recipients  []string
-	gpg         *gpg.GPG
+	alias           string
+	alwaysTrust     bool
+	autoImport      bool
+	autoPull        bool
+	autoPush        bool
+	checkRecipients bool
+	debug           bool
+	fsckFunc        store.FsckCallback
+	importFunc      store.ImportCallback
+	loadKeys        bool
+	path            string
+	persistKeys     bool
+	recipients      []string
+	gpg             *gpg.GPG
 }
 
 // New creates a new store, copying settings from the given root store
@@ -45,18 +46,19 @@ func New(alias string, cfg *config.Config) (*Store, error) {
 		return nil, fmt.Errorf("Need path")
 	}
 	s := &Store{
-		alias:       alias,
-		alwaysTrust: cfg.AlwaysTrust,
-		autoImport:  cfg.AutoImport,
-		autoPull:    cfg.AutoPull,
-		autoPush:    cfg.AutoPush,
-		debug:       cfg.Debug,
-		fsckFunc:    cfg.FsckFunc,
-		importFunc:  cfg.ImportFunc,
-		loadKeys:    cfg.LoadKeys,
-		path:        cfg.Path,
-		persistKeys: cfg.PersistKeys,
-		recipients:  make([]string, 0, 1),
+		alias:           alias,
+		alwaysTrust:     cfg.AlwaysTrust,
+		autoImport:      cfg.AutoImport,
+		autoPull:        cfg.AutoPull,
+		autoPush:        cfg.AutoPush,
+		checkRecipients: cfg.CheckRecipients,
+		debug:           cfg.Debug,
+		fsckFunc:        cfg.FsckFunc,
+		importFunc:      cfg.ImportFunc,
+		loadKeys:        cfg.LoadKeys,
+		path:            cfg.Path,
+		persistKeys:     cfg.PersistKeys,
+		recipients:      make([]string, 0, 1),
 		gpg: gpg.New(gpg.Config{
 			Debug:       cfg.Debug,
 			AlwaysTrust: cfg.AlwaysTrust,
@@ -263,6 +265,28 @@ func (s *Store) SetPassword(name string, password []byte) error {
 	return s.SetConfirm(name, append(first, body...), fmt.Sprintf("Updated password in %s", name), nil)
 }
 
+func (s *Store) useableKeys() ([]string, error) {
+	recipients := make([]string, len(s.recipients))
+	copy(recipients, s.recipients)
+
+	if !s.checkRecipients {
+		return recipients, nil
+	}
+
+	kl, err := s.gpg.FindPublicKeys(recipients...)
+	if err != nil {
+		return recipients, err
+	}
+	unuseable := kl.UnuseableKeys()
+	if len(unuseable) > 0 {
+		fmt.Println(color.RedString("Unuseable public keys detected (IGNORING FOR ENCRYPTION):"))
+		for _, k := range unuseable {
+			fmt.Println(color.RedString("  - %s", k.OneLine()))
+		}
+	}
+	return kl.UseableKeys().Recipients(), nil
+}
+
 // SetConfirm encodes and writes the cipertext of one entry to disk. This
 // method can be passed a callback to confirm the recipients immedeately
 // before encryption.
@@ -277,8 +301,10 @@ func (s *Store) SetConfirm(name string, content []byte, reason string, cb store.
 		return fmt.Errorf("a folder named %s already exists", name)
 	}
 
-	recipients := make([]string, len(s.recipients))
-	copy(recipients, s.recipients)
+	recipients, err := s.useableKeys()
+	if err != nil {
+		return err
+	}
 
 	// confirm recipients
 	if cb != nil {
@@ -307,22 +333,24 @@ func (s *Store) SetConfirm(name string, content []byte, reason string, cb store.
 		return err
 	}
 
-	if s.autoPush {
-		if err := s.gitPush("", ""); err != nil {
-			if err == store.ErrGitNotInit {
-				msg := "Warning: git is not initialized for this store. Ignoring auto-push option\n" +
-					"Run: gopass git init"
-				fmt.Println(color.RedString(msg))
-				return nil
-			}
-			if err == store.ErrGitNoRemote {
-				msg := "Warning: git has not remote. Ignoring auto-push option\n" +
-					"Run: gopass git remote add origin ..."
-				fmt.Println(color.YellowString(msg))
-				return nil
-			}
-			return err
+	if !s.autoPush {
+		return nil
+	}
+
+	if err := s.gitPush("", ""); err != nil {
+		if err == store.ErrGitNotInit {
+			msg := "Warning: git is not initialized for this store. Ignoring auto-push option\n" +
+				"Run: gopass git init"
+			fmt.Println(color.RedString(msg))
+			return nil
 		}
+		if err == store.ErrGitNoRemote {
+			msg := "Warning: git has not remote. Ignoring auto-push option\n" +
+				"Run: gopass git remote add origin ..."
+			fmt.Println(color.YellowString(msg))
+			return nil
+		}
+		return err
 	}
 	return nil
 }

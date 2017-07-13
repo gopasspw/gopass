@@ -57,5 +57,8 @@ func (s *Action) setConfigValue(key, value string) error {
 	if err := cfg.SetConfigValue(key, value); err != nil {
 		return err
 	}
-	return s.Store.UpdateConfig(cfg)
+	if err := s.Store.UpdateConfig(cfg); err != nil {
+		return err
+	}
+	return s.printConfigValues(key)
 }
