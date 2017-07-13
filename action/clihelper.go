@@ -193,17 +193,13 @@ func (s *Action) askForPrivateKey(prompt string) (string, error) {
 }
 
 // askForGitConfigUser will iterate over GPG private key identities and prompt
-// the user for selecting one identity's name and email address each for being used as
+// the user for selecting one identity whose name and email address will be used as
 // git config user.name and git config user.email, respectively.
 // On error or no selection, name and email will be empty.
 // If s.isTerm is false (i.e., the user cannot be prompted), however,
 // the first identity's name/email pair found is returned.
 func (s *Action) askForGitConfigUser() (string, string, error) {
-	var (
-		name       string
-		email      string
-		useCurrent bool
-	)
+	var useCurrent bool
 
 	keyList, err := s.gpg.ListPrivateKeys()
 	if err != nil {
@@ -218,38 +214,22 @@ func (s *Action) askForGitConfigUser() (string, string, error) {
 		for _, identity := range key.Identities {
 			useCurrent = false
 
-			if s.isTerm {
-				if name == "" {
-					useCurrent, err = s.askForBool(fmt.Sprintf("Use %q as user name for password store git config?", identity.Name), false)
-					if err != nil {
-						return "", "", err
-					}
-					if useCurrent {
-						name = identity.Name
-					}
-				}
-
-				if email == "" {
-					useCurrent, err = s.askForBool(fmt.Sprintf("Use %q as email address for password store git config?", identity.Email), false)
-					if err != nil {
-						return "", "", err
-					}
-					if useCurrent {
-						email = identity.Email
-					}
-				}
+			if !s.isTerm {
+				return identity.Name, identity.Email, nil
 			} else {
-				name = identity.Name
-				email = identity.Email
-			}
-
-			if name != "" && email != "" {
-				break
+				useCurrent, err = s.askForBool(
+					fmt.Sprintf("Use %s (%s) for password store git config?", identity.Name, identity.Email), false)
+				if err != nil {
+					return "", "", err
+				}
+				if useCurrent {
+					return identity.Name, identity.Email, nil
+				}
 			}
 		}
 	}
 
-	return name, email, nil
+	return "", "", nil
 }
 
 // promptPass will prompt user's for a password by terminal.

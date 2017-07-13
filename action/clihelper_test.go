@@ -28,7 +28,7 @@ func Test_askForGitConfigUserNonInteractive(t *testing.T) {
 
 	name, email, _ := s.askForGitConfigUser()
 
-	// tests cannot know whether keyList returned empty or not.
+	// unit tests cannot know whether keyList returned empty or not.
 	// a better distinction would require mocking/patching
 	// calls to s.gpg.ListPrivateKeys()
 	if len(keyList) > 0 {
