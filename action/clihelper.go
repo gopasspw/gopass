@@ -216,16 +216,17 @@ func (s *Action) askForGitConfigUser() (string, string, error) {
 
 			if !s.isTerm {
 				return identity.Name, identity.Email, nil
-			} else {
-				useCurrent, err = s.askForBool(
-					fmt.Sprintf("Use %s (%s) for password store git config?", identity.Name, identity.Email), false)
-				if err != nil {
-					return "", "", err
-				}
-				if useCurrent {
-					return identity.Name, identity.Email, nil
-				}
 			}
+
+			useCurrent, err = s.askForBool(
+				fmt.Sprintf("Use %s (%s) for password store git config?", identity.Name, identity.Email), false)
+			if err != nil {
+				return "", "", err
+			}
+			if useCurrent {
+				return identity.Name, identity.Email, nil
+			}
+
 		}
 	}
 
