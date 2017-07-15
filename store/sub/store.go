@@ -19,6 +19,18 @@ const (
 	GPGID = ".gpg-id"
 )
 
+type gpger interface {
+	ListPublicKeys() (gpg.KeyList, error)
+	FindPublicKeys(...string) (gpg.KeyList, error)
+	ListPrivateKeys() (gpg.KeyList, error)
+	FindPrivateKeys(...string) (gpg.KeyList, error)
+	GetRecipients(string) ([]string, error)
+	Encrypt(string, []byte, []string) error
+	Decrypt(string) ([]byte, error)
+	ExportPublicKey(string, string) error
+	ImportPublicKey(string) error
+}
+
 // Store is password store
 type Store struct {
 	alias           string
@@ -34,7 +46,7 @@ type Store struct {
 	path            string
 	persistKeys     bool
 	recipients      []string
-	gpg             *gpg.GPG
+	gpg             gpger
 }
 
 // New creates a new store, copying settings from the given root store
