@@ -13,7 +13,7 @@ func (s *Action) Git(c *cli.Context) error {
 	return s.Store.Git(store, c.Args()...)
 }
 
-// GitInit initializes a git repo
+// GitInit initializes a git repo including basic configuration
 func (s *Action) GitInit(c *cli.Context) error {
 	store := c.String("store")
 	sk := c.String("sign-key")
@@ -29,7 +29,20 @@ func (s *Action) gitInit(store, sk string) error {
 		}
 	}
 
-	if err := s.Store.GitInit(store, sk); err != nil {
+	// for convenience, set defaults to user-selected values from available private keys
+	// NB: discarding returned error since this is merely a best-effort look-up for convenience
+	userName, userEmail, _ := s.askForGitConfigUser()
+
+	userName, err := s.askForString(color.CyanString("Please enter a user name for password store git config"), userName)
+	if err != nil {
+		return err
+	}
+	userEmail, err = s.askForString(color.CyanString("Please enter an email address for password store git config"), userEmail)
+	if err != nil {
+		return err
+	}
+
+	if err := s.Store.GitInit(store, sk, userName, userEmail); err != nil {
 		return err
 	}
 	fmt.Fprintln(color.Output, color.GreenString("Git initialized"))

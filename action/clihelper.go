@@ -192,6 +192,47 @@ func (s *Action) askForPrivateKey(prompt string) (string, error) {
 	return "", fmt.Errorf("no valid user input")
 }
 
+// askForGitConfigUser will iterate over GPG private key identities and prompt
+// the user for selecting one identity whose name and email address will be used as
+// git config user.name and git config user.email, respectively.
+// On error or no selection, name and email will be empty.
+// If s.isTerm is false (i.e., the user cannot be prompted), however,
+// the first identity's name/email pair found is returned.
+func (s *Action) askForGitConfigUser() (string, string, error) {
+	var useCurrent bool
+
+	keyList, err := s.gpg.ListPrivateKeys()
+	if err != nil {
+		return "", "", err
+	}
+	keyList = keyList.UseableKeys()
+	if len(keyList) < 1 {
+		return "", "", fmt.Errorf("No usable private keys found")
+	}
+
+	for _, key := range keyList {
+		for _, identity := range key.Identities {
+			useCurrent = false
+
+			if !s.isTerm {
+				return identity.Name, identity.Email, nil
+			}
+
+			useCurrent, err = s.askForBool(
+				fmt.Sprintf("Use %s (%s) for password store git config?", identity.Name, identity.Email), false)
+			if err != nil {
+				return "", "", err
+			}
+			if useCurrent {
+				return identity.Name, identity.Email, nil
+			}
+
+		}
+	}
+
+	return "", "", nil
+}
+
 // promptPass will prompt user's for a password by terminal.
 func (s *Action) promptPass(prompt string) (pass string, err error) {
 	if !s.isTerm {
