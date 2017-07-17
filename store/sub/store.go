@@ -83,7 +83,7 @@ func (s *Store) Initialized() bool {
 func (s *Store) Init(path string, ids ...string) error {
 	if s.Initialized() {
 		return fmt.Errorf(`Found already initialized store at %s.
-You can add secondary stores with gopass init --store <path to secondary store> --alias <mount name>.`, path)
+You can add secondary stores with gopass init --store <path to secondary store> --alias <mount name>`, path)
 	}
 
 	// initialize recipient list
