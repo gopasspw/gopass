@@ -20,4 +20,18 @@ func TestInit(t *testing.T) {
 	out, err = ts.run("init " + keyID)
 	assert.NoError(t, err)
 	assert.Contains(t, out, "Please enter a user name for password store git config [John Doe]:")
+	
+	ts = newTester(t)
+	defer ts.teardown()
+
+	ts.initStore()
+	// try to init again
+	out, err = ts.run("init "  + keyID)
+	assert.Error(t, err)
+	for _, o := range []string{
+		"Error: Found already initialized store at /tmp/gopass-",
+		"You can add secondary stores with gopass init --store <path to secondary store> --alias <mount name>",
+	} {
+		assert.Contains(t, out, o)
+	}
 }

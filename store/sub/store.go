@@ -82,7 +82,8 @@ func (s *Store) Initialized() bool {
 // Init tries to initalize a new password store location matching the object
 func (s *Store) Init(path string, ids ...string) error {
 	if s.Initialized() {
-		return fmt.Errorf("Store is already initialized")
+		return fmt.Errorf(`Found already initialized store at %s.
+You can add secondary stores with gopass init --store <path to secondary store> --alias <mount name>`, path)
 	}
 
 	// initialize recipient list
