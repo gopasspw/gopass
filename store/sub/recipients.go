@@ -89,13 +89,11 @@ func (s *Store) loadRecipients() ([]string, error) {
 		}
 	}()
 
-	keys := unmarshalRecipients(f)
+	return unmarshalRecipients(f), nil
+}
 
-	if !s.loadKeys {
-		return keys, nil
-	}
-
-	for _, r := range keys {
+func (s *Store) importMissingPublicKeys() error {
+	for _, r := range s.recipients {
 		// check if this recipient is missing
 		// we could list all keys outside the loop and just do the lookup here
 		// but this way we ensure to use the exact same lookup logic as
@@ -119,11 +117,10 @@ func (s *Store) loadRecipients() ([]string, error) {
 
 		// try to load this recipient
 		if err := s.importPublicKey(r); err != nil {
-			fmt.Printf("[%s] Failed to import public key for %s: %s\n", s.alias, r, err)
+			fmt.Println(color.RedString("[%s] Failed to import public key for %s: %s\n", s.alias, r, err))
 		}
 	}
-
-	return keys, nil
+	return nil
 }
 
 // Save all Recipients in memory to the .gpg-id file on disk.
