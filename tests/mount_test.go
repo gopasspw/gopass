@@ -27,8 +27,8 @@ func TestSingleMount(t *testing.T) {
 	assert.NoError(t, err)
 
 	out, err = ts.run("show mnt/m1/secret")
-	assert.NoError(t, err)
-	assert.Equal(t, "Entry 'mnt/m1/secret' not found. Starting search...", out)
+	assert.Error(t, err)
+	assert.Equal(t, "Entry 'mnt/m1/secret' not found. Starting search...\n", out)
 
 	ts.initSecrets("mnt/m1/")
 
