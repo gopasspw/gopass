@@ -9,23 +9,24 @@ import (
 // Config returns this root stores config as a config struct
 func (s *Store) Config() *config.Config {
 	c := &config.Config{
-		AlwaysTrust: s.alwaysTrust,
-		AskForMore:  s.askForMore,
-		AutoImport:  s.autoImport,
-		AutoPull:    s.autoPull,
-		AutoPush:    s.autoPush,
-		ClipTimeout: s.clipTimeout,
-		Debug:       s.debug,
-		GitRecurse:  s.gitRecurse,
-		LoadKeys:    s.loadKeys,
-		Mounts:      make(map[string]string, len(s.mounts)),
-		NoColor:     s.noColor,
-		NoConfirm:   s.noConfirm,
-		NoPager:     s.noPager,
-		Path:        s.path,
-		PersistKeys: s.persistKeys,
-		SafeContent: s.safeContent,
-		Version:     s.version,
+		AlwaysTrust:     s.alwaysTrust,
+		AskForMore:      s.askForMore,
+		AutoImport:      s.autoImport,
+		AutoPull:        s.autoPull,
+		AutoPush:        s.autoPush,
+		CheckRecipients: s.checkRecipients,
+		ClipTimeout:     s.clipTimeout,
+		Debug:           s.debug,
+		GitRecurse:      s.gitRecurse,
+		LoadKeys:        s.loadKeys,
+		Mounts:          make(map[string]string, len(s.mounts)),
+		NoColor:         s.noColor,
+		NoConfirm:       s.noConfirm,
+		NoPager:         s.noPager,
+		Path:            s.path,
+		PersistKeys:     s.persistKeys,
+		SafeContent:     s.safeContent,
+		Version:         s.version,
 	}
 	for alias, sub := range s.mounts {
 		c.Mounts[alias] = sub.Path()
@@ -45,6 +46,7 @@ func (s *Store) UpdateConfig(cfg *config.Config) error {
 	s.autoPull = cfg.AutoPull
 	s.autoPush = cfg.AutoPush
 	s.debug = cfg.Debug
+	s.checkRecipients = cfg.CheckRecipients
 	s.clipTimeout = cfg.ClipTimeout
 	s.gitRecurse = cfg.GitRecurse
 	s.loadKeys = cfg.LoadKeys

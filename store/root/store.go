@@ -16,27 +16,28 @@ import (
 
 // Store is the public facing password store
 type Store struct {
-	alwaysTrust bool // always trust public keys when encrypting
-	askForMore  bool
-	autoImport  bool // import missing public keys w/o asking
-	autoPull    bool // pull from git before push
-	autoPush    bool // push to git remote after commit
-	clipTimeout int  // clear clipboard after seconds
-	debug       bool
-	fsckFunc    store.FsckCallback
-	gpg         *gpg.GPG
-	gitRecurse  bool
-	importFunc  store.ImportCallback
-	loadKeys    bool // load missing keys from store
-	mounts      map[string]*sub.Store
-	noColor     bool // disable colors in output
-	noConfirm   bool // do not confirm recipients when encrypting
-	noPager     bool
-	path        string // path to the root store
-	persistKeys bool   // store recipient keys in store
-	safeContent bool   // avoid showing passwords in terminal
-	store       *sub.Store
-	version     string
+	alwaysTrust     bool // always trust public keys when encrypting
+	askForMore      bool
+	autoImport      bool // import missing public keys w/o asking
+	autoPull        bool // pull from git before push
+	autoPush        bool // push to git remote after commit
+	checkRecipients bool
+	clipTimeout     int // clear clipboard after seconds
+	debug           bool
+	fsckFunc        store.FsckCallback
+	gpg             *gpg.GPG
+	gitRecurse      bool
+	importFunc      store.ImportCallback
+	loadKeys        bool // load missing keys from store
+	mounts          map[string]*sub.Store
+	noColor         bool // disable colors in output
+	noConfirm       bool // do not confirm recipients when encrypting
+	noPager         bool
+	path            string // path to the root store
+	persistKeys     bool   // store recipient keys in store
+	safeContent     bool   // avoid showing passwords in terminal
+	store           *sub.Store
+	version         string
 }
 
 // New creates a new store
@@ -48,15 +49,16 @@ func New(cfg *config.Config) (*Store, error) {
 		return nil, fmt.Errorf("need path")
 	}
 	r := &Store{
-		alwaysTrust: cfg.AlwaysTrust,
-		askForMore:  cfg.AskForMore,
-		autoImport:  cfg.AutoImport,
-		autoPull:    cfg.AutoPull,
-		autoPush:    cfg.AutoPush,
-		clipTimeout: cfg.ClipTimeout,
-		debug:       cfg.Debug,
-		fsckFunc:    cfg.FsckFunc,
-		gitRecurse:  cfg.GitRecurse,
+		alwaysTrust:     cfg.AlwaysTrust,
+		askForMore:      cfg.AskForMore,
+		autoImport:      cfg.AutoImport,
+		autoPull:        cfg.AutoPull,
+		autoPush:        cfg.AutoPush,
+		checkRecipients: cfg.CheckRecipients,
+		clipTimeout:     cfg.ClipTimeout,
+		debug:           cfg.Debug,
+		fsckFunc:        cfg.FsckFunc,
+		gitRecurse:      cfg.GitRecurse,
 		gpg: gpg.New(gpg.Config{
 			Debug:       cfg.Debug,
 			AlwaysTrust: cfg.AlwaysTrust,
