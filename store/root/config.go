@@ -16,6 +16,7 @@ func (s *Store) Config() *config.Config {
 		AutoPush:    s.autoPush,
 		ClipTimeout: s.clipTimeout,
 		Debug:       s.debug,
+		GitRecurse:  s.gitRecurse,
 		LoadKeys:    s.loadKeys,
 		Mounts:      make(map[string]string, len(s.mounts)),
 		NoColor:     s.noColor,
@@ -45,6 +46,7 @@ func (s *Store) UpdateConfig(cfg *config.Config) error {
 	s.autoPush = cfg.AutoPush
 	s.debug = cfg.Debug
 	s.clipTimeout = cfg.ClipTimeout
+	s.gitRecurse = cfg.GitRecurse
 	s.loadKeys = cfg.LoadKeys
 	s.noColor = cfg.NoColor
 	s.noConfirm = cfg.NoConfirm
@@ -123,4 +125,9 @@ func (s *Store) AskForMore() bool {
 // NoPager retuns true if the user doesn't want a pager for longer output
 func (s *Store) NoPager() bool {
 	return s.noPager
+}
+
+// GitRecurse returns true if we should recurse git operations to substores
+func (s *Store) GitRecurse() bool {
+	return s.gitRecurse
 }

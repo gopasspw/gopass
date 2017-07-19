@@ -25,6 +25,7 @@ type Store struct {
 	debug       bool
 	fsckFunc    store.FsckCallback
 	gpg         *gpg.GPG
+	gitRecurse  bool
 	importFunc  store.ImportCallback
 	loadKeys    bool // load missing keys from store
 	mounts      map[string]*sub.Store
@@ -55,6 +56,7 @@ func New(cfg *config.Config) (*Store, error) {
 		clipTimeout: cfg.ClipTimeout,
 		debug:       cfg.Debug,
 		fsckFunc:    cfg.FsckFunc,
+		gitRecurse:  cfg.GitRecurse,
 		gpg: gpg.New(gpg.Config{
 			Debug:       cfg.Debug,
 			AlwaysTrust: cfg.AlwaysTrust,

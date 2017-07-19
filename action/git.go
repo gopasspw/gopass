@@ -10,7 +10,12 @@ import (
 // Git runs git commands inside the store or mounts
 func (s *Action) Git(c *cli.Context) error {
 	store := c.String("store")
-	return s.Store.Git(store, c.Args()...)
+	recurse := s.Store.GitRecurse()
+	if c.IsSet("recurse") {
+		recurse = c.Bool("recurse")
+	}
+	force := c.Bool("force")
+	return s.Store.Git(store, recurse, force, c.Args()...)
 }
 
 // GitInit initializes a git repo including basic configuration
