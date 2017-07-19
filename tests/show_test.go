@@ -20,8 +20,8 @@ func TestShow(t *testing.T) {
 	assert.Equal(t, "\nError: provide a secret name\n", out)
 
 	out, err = ts.run("show foo")
-	assert.NoError(t, err)
-	assert.Equal(t, "Entry 'foo' not found. Starting search...", out)
+	assert.Error(t, err)
+	assert.Equal(t, "Entry 'foo' not found. Starting search...\n", out)
 
 	ts.initSecrets("")
 

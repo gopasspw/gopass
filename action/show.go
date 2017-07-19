@@ -2,6 +2,7 @@ package action
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/atotto/clipboard"
 	"github.com/fatih/color"
@@ -72,7 +73,10 @@ func (s *Action) Show(c *cli.Context) error {
 				return err
 			}
 			color.Yellow("Entry '%s' not found. Starting search...", name)
-			return s.Find(c)
+			if err := s.Find(c); err != nil {
+				return err
+			}
+			os.Exit(1)
 		}
 	}
 
