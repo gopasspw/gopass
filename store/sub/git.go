@@ -34,7 +34,7 @@ func (s *Store) gitCmd(name string, args ...string) error {
 		if s.debug {
 			fmt.Printf("[DEBUG] importing possilby missing keys ...\n")
 		}
-		if err := s.importMissingPublicKeys(); err != nil {
+		if err := s.ImportMissingPublicKeys(); err != nil {
 			return err
 		}
 	}

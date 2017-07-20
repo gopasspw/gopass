@@ -40,6 +40,21 @@ func (r *Store) addRecipient(prefix string, root tree.Tree, recp string, pretty 
 	return root.AddFile(prefix+key, "gopass/recipient")
 }
 
+// ImportMissingPublicKeys import missing public keys in any substore
+func (r *Store) ImportMissingPublicKeys() error {
+	if !r.loadKeys {
+		return nil
+	}
+
+	for alias, sub := range r.mounts {
+		if err := sub.ImportMissingPublicKeys(); err != nil {
+			fmt.Println(color.RedString("[%s] Failed to import missing public keys: %s", alias, err))
+		}
+	}
+
+	return r.store.ImportMissingPublicKeys()
+}
+
 // RecipientsTree returns a tree view of all stores' recipients
 func (r *Store) RecipientsTree(pretty bool) (tree.Tree, error) {
 	root := simple.New("gopass")
