@@ -94,6 +94,9 @@ func (s *Store) loadRecipients() ([]string, error) {
 
 func (s *Store) importMissingPublicKeys() error {
 	for _, r := range s.recipients {
+		if s.debug {
+			fmt.Printf("[DEBUG] Checking recipients %s ...\n", r)
+		}
 		// check if this recipient is missing
 		// we could list all keys outside the loop and just do the lookup here
 		// but this way we ensure to use the exact same lookup logic as
@@ -101,9 +104,9 @@ func (s *Store) importMissingPublicKeys() error {
 		kl, err := s.gpg.FindPublicKeys(r)
 		if err != nil {
 			fmt.Printf("[%s] Failed to get public key for %s: %s\n", s.alias, r, err)
-			continue
 		}
 		if len(kl) > 0 {
+			fmt.Println(color.CyanString("[%s] Keyring contains %d public keys for %s", s.alias, len(kl), r))
 			continue
 		}
 
@@ -117,8 +120,10 @@ func (s *Store) importMissingPublicKeys() error {
 
 		// try to load this recipient
 		if err := s.importPublicKey(r); err != nil {
-			fmt.Println(color.RedString("[%s] Failed to import public key for %s: %s\n", s.alias, r, err))
+			fmt.Println(color.RedString("[%s] Failed to import public key for %s: %s", s.alias, r, err))
+			continue
 		}
+		fmt.Println(color.GreenString("[%s] Imported public key for %s into Keyring", s.alias, r))
 	}
 	return nil
 }

@@ -27,7 +27,13 @@ func (s *Store) gitCmd(name string, args ...string) error {
 		return err
 	}
 	// load keys only after git pull
-	if s.loadKeys && len(cmd.Args) > 0 && cmd.Args[0] == "pull" {
+	if s.debug {
+		fmt.Printf("[DEBUG] loadKeys: %t - cmd.Args: %+v\n", s.loadKeys, cmd.Args)
+	}
+	if s.loadKeys && len(cmd.Args) > 1 && cmd.Args[1] == "pull" {
+		if s.debug {
+			fmt.Printf("[DEBUG] importing possilby missing keys ...\n")
+		}
 		if err := s.importMissingPublicKeys(); err != nil {
 			return err
 		}
