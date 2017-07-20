@@ -19,6 +19,8 @@ var (
 	ErrGitNotInit = fmt.Errorf("git is not initialized")
 	// ErrGitNoRemote is returned if git has no origin remote
 	ErrGitNoRemote = fmt.Errorf("git has no remote origin")
+	// ErrGitNothingToCommit is returned if there are no staged changes
+	ErrGitNothingToCommit = fmt.Errorf("git has nothing to commit")
 	// ErrNoBody is returned if a secret exists but has no content beyond a password
 	ErrNoBody = fmt.Errorf("no safe content to display, you can force display with show -f")
 	// ErrNoPassword is returned is a secret exists but has no password, only a body

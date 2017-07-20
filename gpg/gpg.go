@@ -208,6 +208,10 @@ func (g *GPG) ExportPublicKey(id, filename string) error {
 		return err
 	}
 
+	if len(out) < 1 {
+		return fmt.Errorf("Key not found")
+	}
+
 	return ioutil.WriteFile(filename, out, fileMode)
 }
 

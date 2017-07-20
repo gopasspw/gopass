@@ -55,6 +55,22 @@ func (r *Store) ImportMissingPublicKeys() error {
 	return r.store.ImportMissingPublicKeys()
 }
 
+// SaveRecipients persists the recipients to disk. Only useful if persist keys is
+// enabled
+func (r *Store) SaveRecipients() error {
+	if !r.persistKeys {
+		return nil
+	}
+
+	for alias, sub := range r.mounts {
+		if err := sub.SaveRecipients(); err != nil {
+			fmt.Println(color.RedString("[%s] Failed to save recipients: %s", alias, err))
+		}
+	}
+
+	return r.store.SaveRecipients()
+}
+
 // RecipientsTree returns a tree view of all stores' recipients
 func (r *Store) RecipientsTree(pretty bool) (tree.Tree, error) {
 	root := simple.New("gopass")

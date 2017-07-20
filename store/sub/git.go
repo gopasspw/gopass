@@ -132,10 +132,22 @@ func (s *Store) gitAdd(files ...string) error {
 	return s.gitCmd("gitAdd", args...)
 }
 
+// gitStagedChanges returns true if there are any staged changes which can be commited
+func (s *Store) gitStagedChanges() bool {
+	if err := s.gitCmd("gitDiffIndex", "diff-index", "--quiet", "HEAD"); err != nil {
+		return true
+	}
+	return false
+}
+
 // gitCommit creates a new git commit with the given commit message
 func (s *Store) gitCommit(msg string) error {
 	if !s.isGit() {
 		return store.ErrGitNotInit
+	}
+
+	if !s.gitStagedChanges() {
+		return store.ErrGitNothingToCommit
 	}
 
 	return s.gitCmd("gitCommit", "commit", "-m", msg)
