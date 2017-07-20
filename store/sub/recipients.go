@@ -92,6 +92,8 @@ func (s *Store) loadRecipients() ([]string, error) {
 	return unmarshalRecipients(f), nil
 }
 
+// ImportMissingPublicKeys will try to import any missing public keys from the
+// .gpg-keys folder in the password store
 func (s *Store) ImportMissingPublicKeys() error {
 	for _, r := range s.recipients {
 		if s.debug {
