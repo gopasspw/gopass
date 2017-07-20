@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/fatih/color"
 	"github.com/urfave/cli"
 )
 
@@ -28,6 +29,9 @@ credentials.
 
 // RecipientsPrint prints all recipients per store
 func (s *Action) RecipientsPrint(c *cli.Context) error {
+	if err := s.Store.ImportMissingPublicKeys(); err != nil {
+		fmt.Println(color.RedString("Failed to import missing public keys: %s", err))
+	}
 	tree, err := s.Store.RecipientsTree(true)
 	if err != nil {
 		return err
