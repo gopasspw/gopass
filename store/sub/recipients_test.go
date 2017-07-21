@@ -22,7 +22,7 @@ func TestLoadRecipients(t *testing.T) {
 	defer func() {
 		_ = os.RemoveAll(tempdir)
 	}()
-	genRecs, _, err := createStore(tempdir)
+	genRecs, _, err := createStore(tempdir, nil, nil)
 	assert.NoError(t, err)
 
 	s, err := New("", &config.Config{Path: tempdir})
@@ -41,7 +41,7 @@ func TestSaveRecipients(t *testing.T) {
 	defer func() {
 		_ = os.RemoveAll(tempdir)
 	}()
-	genRecs, _, err := createStore(tempdir)
+	genRecs, _, err := createStore(tempdir, nil, nil)
 	assert.NoError(t, err)
 
 	s, err := New("", &config.Config{Path: tempdir})
@@ -84,7 +84,7 @@ func TestAddRecipient(t *testing.T) {
 	defer func() {
 		_ = os.RemoveAll(tempdir)
 	}()
-	genRecs, _, err := createStore(tempdir)
+	genRecs, _, err := createStore(tempdir, nil, nil)
 	assert.NoError(t, err)
 
 	s, err := New("", &config.Config{Path: tempdir})
@@ -112,7 +112,7 @@ func TestRemoveRecipient(t *testing.T) {
 	defer func() {
 		_ = os.RemoveAll(tempdir)
 	}()
-	genRecs, _, err := createStore(tempdir)
+	genRecs, _, err := createStore(tempdir, nil, nil)
 	assert.NoError(t, err)
 
 	s, err := New("", &config.Config{Path: tempdir})
@@ -135,7 +135,7 @@ func TestListRecipients(t *testing.T) {
 	defer func() {
 		_ = os.RemoveAll(tempdir)
 	}()
-	genRecs, _, err := createStore(tempdir)
+	genRecs, _, err := createStore(tempdir, nil, nil)
 	assert.NoError(t, err)
 
 	s, err := New("", &config.Config{Path: tempdir})

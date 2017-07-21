@@ -25,4 +25,8 @@ var (
 	ErrNoBody = fmt.Errorf("no safe content to display, you can force display with show -f")
 	// ErrNoPassword is returned is a secret exists but has no password, only a body
 	ErrNoPassword = fmt.Errorf("no password to display")
+	// ErrYAMLNoMark is returned if a secret contains no valid YAML document marker
+	ErrYAMLNoMark = fmt.Errorf("no YAML document marker found")
+	// ErrYAMLNoKey is returned if a YAML document doesn't contain a key
+	ErrYAMLNoKey = fmt.Errorf("key not found in YAML document")
 )

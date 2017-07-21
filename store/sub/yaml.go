@@ -1,6 +1,7 @@
 package sub
 
 import (
+	"bytes"
 	"fmt"
 
 	"github.com/justwatchcom/gopass/store"
@@ -9,13 +10,18 @@ import (
 
 // GetKey returns a single key from a structured secret
 func (s *Store) GetKey(name, key string) ([]byte, error) {
-	content, err := s.GetBody(name)
-	if err != nil {
+	content, err := s.Get(name)
+	if err != nil && err != store.ErrNotFound {
 		return nil, err
 	}
 
+	parts := bytes.Split(content, []byte("---\n"))
+	if len(parts) < 2 {
+		return nil, store.ErrYAMLNoMark
+	}
+
 	d := make(map[string]string)
-	if err := yaml.Unmarshal(content, &d); err != nil {
+	if err := yaml.Unmarshal(parts[1], &d); err != nil {
 		return nil, err
 	}
 
@@ -23,25 +29,23 @@ func (s *Store) GetKey(name, key string) ([]byte, error) {
 		return []byte(v), nil
 	}
 
-	return nil, fmt.Errorf("key not found")
+	return nil, store.ErrYAMLNoKey
 }
 
 // SetKey will update a single key in a YAML structured secret
 func (s *Store) SetKey(name, key, value string) error {
-	var err error
-	first, err := s.GetFirstLine(name)
-	if err != nil {
-		first = []byte("")
-	}
-	first = append(first, '\n')
-	body, err := s.GetBody(name)
-	if err != nil && err != store.ErrNotFound && err != store.ErrNoBody {
+	content, err := s.Get(name)
+	if err != nil && err != store.ErrNotFound {
 		return err
 	}
 
+	parts := bytes.Split(content, []byte("---\n"))
+
 	d := make(map[string]string)
-	if err := yaml.Unmarshal(body, &d); err != nil {
-		return err
+	if len(parts) > 1 {
+		if err := yaml.Unmarshal(parts[1], &d); err != nil {
+			return err
+		}
 	}
 
 	d[key] = value
@@ -51,25 +55,23 @@ func (s *Store) SetKey(name, key, value string) error {
 		return err
 	}
 
-	return s.SetConfirm(name, append(first, buf...), fmt.Sprintf("Updated key %s in %s", key, name), nil)
+	return s.SetConfirm(name, append(parts[0], append([]byte("\n---\n"), buf...)...), fmt.Sprintf("Updated key %s in %s", key, name), nil)
 }
 
 // DeleteKey will delete a single key in a YAML structured secret
 func (s *Store) DeleteKey(name, key string) error {
-	var err error
-	first, err := s.GetFirstLine(name)
-	if err != nil {
-		first = []byte("")
-	}
-	first = append(first, '\n')
-	body, err := s.GetBody(name)
+	content, err := s.Get(name)
 	if err != nil && err != store.ErrNotFound {
 		return err
 	}
 
+	parts := bytes.Split(content, []byte("---\n"))
+
 	d := make(map[string]string)
-	if err := yaml.Unmarshal(body, &d); err != nil {
-		return err
+	if len(parts) > 1 {
+		if err := yaml.Unmarshal(parts[1], &d); err != nil {
+			return err
+		}
 	}
 
 	delete(d, key)
@@ -79,5 +81,5 @@ func (s *Store) DeleteKey(name, key string) error {
 		return err
 	}
 
-	return s.SetConfirm(name, append(first, buf...), fmt.Sprintf("Deleted key %s in %s", key, name), nil)
+	return s.SetConfirm(name, append(parts[0], append([]byte("---\n"), buf...)...), fmt.Sprintf("Deleted key %s in %s", key, name), nil)
 }

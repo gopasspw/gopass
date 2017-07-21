@@ -17,7 +17,7 @@ func TestYAMLAndSecret(t *testing.T) {
 
 	out, err := ts.run("foo/bar baz")
 	assert.Error(t, err)
-	assert.Equal(t, "\nError: Entry is not in the password store\n", out)
+	assert.Equal(t, "\nError: no YAML document marker found\n", out)
 
 	_, err = ts.runCmd([]string{ts.Binary, "insert", "foo/bar"}, []byte("moar"))
 	assert.NoError(t, err)
