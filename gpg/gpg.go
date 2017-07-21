@@ -9,6 +9,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -238,4 +239,82 @@ func (g *GPG) ImportPublicKey(filename string) error {
 	g.privKeys = nil
 	g.pubKeys = nil
 	return nil
+}
+
+// Version contains GPG version and algorithm information
+type Version struct {
+	Major       int
+	Minor       int
+	Patch       int
+	Home        string
+	Pubkey      map[string]struct{}
+	Cipher      map[string]struct{}
+	Hash        map[string]struct{}
+	Compression map[string]struct{}
+}
+
+// Version will returns GPG version information
+func (g *GPG) Version() Version {
+	v := Version{
+		Pubkey:      map[string]struct{}{},
+		Cipher:      map[string]struct{}{},
+		Hash:        map[string]struct{}{},
+		Compression: map[string]struct{}{},
+	}
+
+	cmd := exec.Command(g.binary, "--version")
+	out, err := cmd.Output()
+	if err != nil {
+		return v
+	}
+
+	scanner := bufio.NewScanner(bytes.NewReader(out))
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		if strings.HasPrefix(line, "gpg ") {
+			p := strings.Fields(line)
+			p = strings.Split(p[len(p)-1], ".")
+			if len(p) > 2 {
+				if major, err := strconv.Atoi(p[0]); err == nil {
+					v.Major = major
+				}
+				if minor, err := strconv.Atoi(p[1]); err == nil {
+					v.Minor = minor
+				}
+				if patch, err := strconv.Atoi(p[2]); err == nil {
+					v.Patch = patch
+				}
+			}
+			continue
+		}
+		if strings.HasPrefix(line, "Home:") {
+			v.Home = strings.TrimPrefix(line, "Home: ")
+			continue
+		}
+		if strings.HasPrefix(line, "Pubkey: ") {
+			p := strings.Split(strings.TrimPrefix("Pubkey: ", line), ", ")
+			for _, e := range p {
+				v.Pubkey[e] = struct{}{}
+			}
+		}
+		if strings.HasPrefix(line, "Cipher: ") {
+			p := strings.Split(strings.TrimPrefix("Cipher: ", line), ", ")
+			for _, e := range p {
+				v.Cipher[e] = struct{}{}
+			}
+		}
+		if strings.HasPrefix(line, "Hash: ") {
+			p := strings.Split(strings.TrimPrefix("Hash: ", line), ", ")
+			for _, e := range p {
+				v.Hash[e] = struct{}{}
+			}
+		}
+		if strings.HasPrefix(line, "Compression: ") {
+			p := strings.Split(strings.TrimPrefix("Compression: ", line), ", ")
+			for _, e := range p {
+				v.Compression[e] = struct{}{}
+			}
+		}
+	}
+	return v
 }

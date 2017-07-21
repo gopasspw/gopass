@@ -48,15 +48,26 @@ func main() {
 		if version == "" {
 			version = "HEAD"
 		}
-		if commit == "" {
-			commit = "n/a"
+		buildInfo := ""
+		if commit != "" {
+			buildInfo = commit
 		}
-		fmt.Printf("%s %s (%s %s) %s\n",
+		if buildtime != "" {
+			if buildInfo != "" {
+				buildInfo += " "
+			}
+			buildInfo += buildtime
+		}
+		if buildInfo != "" {
+			buildInfo = "(" + buildInfo + ") "
+		}
+		fmt.Printf("%s %s %s%s %s %s\n",
 			name,
 			version,
-			commit,
-			buildtime,
+			buildInfo,
 			runtime.Version(),
+			runtime.GOOS,
+			runtime.GOARCH,
 		)
 	}
 
