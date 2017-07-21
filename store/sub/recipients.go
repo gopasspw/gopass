@@ -44,6 +44,11 @@ func (s *Store) AddRecipient(id string) error {
 	return s.reencrypt("Added Recipient " + id)
 }
 
+// SaveRecipients persists the current recipients on disk
+func (s *Store) SaveRecipients() error {
+	return s.saveRecipients("Save Recipients")
+}
+
 // RemoveRecipient will remove the given recipient from the storefunc (s *Store) RemoveRecipient()id string) error {
 func (s *Store) RemoveRecipient(id string) error {
 	// but if this key is not available on this machine we
@@ -145,7 +150,7 @@ func (s *Store) saveRecipients(msg string) error {
 	err := s.gitAdd(s.idFile())
 	if err == nil {
 		if err := s.gitCommit(msg); err != nil {
-			if err != store.ErrGitNotInit {
+			if err != store.ErrGitNotInit && err != store.ErrGitNothingToCommit {
 				return err
 			}
 		}
@@ -191,7 +196,7 @@ func (s *Store) saveRecipients(msg string) error {
 			}
 			return err
 		}
-		if err := s.gitCommit(fmt.Sprintf("Exported Public Keys %s", r)); err != nil {
+		if err := s.gitCommit(fmt.Sprintf("Exported Public Keys %s", r)); err != nil && err != store.ErrGitNothingToCommit {
 			fmt.Println(color.RedString("Failed to git commit: %s", err))
 			continue
 		}

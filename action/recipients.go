@@ -32,6 +32,9 @@ func (s *Action) RecipientsPrint(c *cli.Context) error {
 	if err := s.Store.ImportMissingPublicKeys(); err != nil {
 		fmt.Println(color.RedString("Failed to import missing public keys: %s", err))
 	}
+	if err := s.Store.SaveRecipients(); err != nil {
+		fmt.Println(color.RedString("Failed to export missing public keys: %s", err))
+	}
 	tree, err := s.Store.RecipientsTree(true)
 	if err != nil {
 		return err
