@@ -14,10 +14,11 @@ import (
 
 // Action knows everything to run gopass CLI actions
 type Action struct {
-	Name   string
-	Store  *root.Store
-	gpg    *gpg.GPG
-	isTerm bool
+	Name    string
+	Store   *root.Store
+	gpg     *gpg.GPG
+	isTerm  bool
+	version string
 }
 
 // New returns a new Action wrapper
@@ -32,8 +33,9 @@ func New(v string) *Action {
 	cfg.Version = v
 
 	act := &Action{
-		Name:   name,
-		isTerm: true,
+		Name:    name,
+		version: v,
+		isTerm:  true,
 	}
 	cfg.ImportFunc = act.askForKeyImport
 	cfg.FsckFunc = act.askForConfirmation
