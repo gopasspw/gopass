@@ -36,20 +36,16 @@ type gpger interface {
 
 // Store is password store
 type Store struct {
-	alias           string
-	alwaysTrust     bool
-	autoImport      bool
-	autoPull        bool
-	autoPush        bool
-	checkRecipients bool
-	debug           bool
-	fsckFunc        store.FsckCallback
-	importFunc      store.ImportCallback
-	loadKeys        bool
-	path            string
-	persistKeys     bool
-	recipients      []string
-	gpg             gpger
+	alias       string
+	alwaysTrust bool
+	autoImport  bool
+	autoSync    bool
+	debug       bool
+	fsckFunc    store.FsckCallback
+	importFunc  store.ImportCallback
+	path        string
+	recipients  []string
+	gpg         gpger
 }
 
 // New creates a new store, copying settings from the given root store
@@ -61,22 +57,17 @@ func New(alias string, cfg *config.Config) (*Store, error) {
 		return nil, fmt.Errorf("Need path")
 	}
 	s := &Store{
-		alias:           alias,
-		alwaysTrust:     cfg.AlwaysTrust,
-		autoImport:      cfg.AutoImport,
-		autoPull:        cfg.AutoPull,
-		autoPush:        cfg.AutoPush,
-		checkRecipients: cfg.CheckRecipients,
-		debug:           cfg.Debug,
-		fsckFunc:        cfg.FsckFunc,
-		importFunc:      cfg.ImportFunc,
-		loadKeys:        cfg.LoadKeys,
-		path:            cfg.Path,
-		persistKeys:     cfg.PersistKeys,
-		recipients:      make([]string, 0, 1),
+		alias:      alias,
+		autoImport: cfg.AutoImport,
+		autoSync:   cfg.AutoSync,
+		debug:      cfg.Debug,
+		fsckFunc:   cfg.FsckFunc,
+		importFunc: cfg.ImportFunc,
+		path:       cfg.Path,
+		recipients: make([]string, 0, 1),
 		gpg: gpgcli.New(gpgcli.Config{
 			Debug:       cfg.Debug,
-			AlwaysTrust: cfg.AlwaysTrust,
+			AlwaysTrust: true,
 		}),
 	}
 
@@ -284,10 +275,6 @@ func (s *Store) useableKeys() ([]string, error) {
 	recipients := make([]string, len(s.recipients))
 	copy(recipients, s.recipients)
 
-	if !s.checkRecipients {
-		return recipients, nil
-	}
-
 	kl, err := s.gpg.FindPublicKeys(recipients...)
 	if err != nil {
 		return recipients, err
@@ -348,7 +335,7 @@ func (s *Store) SetConfirm(name string, content []byte, reason string, cb store.
 		return err
 	}
 
-	if !s.autoPush {
+	if !s.autoSync {
 		return nil
 	}
 
@@ -497,7 +484,7 @@ func (s *Store) delete(name string, recurse bool) error {
 		return err
 	}
 
-	if s.autoPush {
+	if s.autoSync {
 		if err := s.gitPush("", ""); err != nil {
 			if err == store.ErrGitNotInit || err == store.ErrGitNoRemote {
 				return nil
@@ -530,8 +517,8 @@ func (s *Store) reencrypt(reason string) error {
 		return err
 	}
 	// save original value of auto push
-	gitAutoPush := s.autoPush
-	s.autoPush = false
+	gitAutoSync := s.autoSync
+	s.autoSync = false
 	for _, e := range entries {
 		content, err := s.Get(e)
 		if err != nil {
@@ -543,9 +530,9 @@ func (s *Store) reencrypt(reason string) error {
 		}
 	}
 	// restore value of auto push
-	s.autoPush = gitAutoPush
+	s.autoSync = gitAutoSync
 
-	if s.autoPush {
+	if s.autoSync {
 		if err := s.gitPush("", ""); err != nil {
 			if err == store.ErrGitNotInit {
 				msg := "Warning: git is not initialized for this store. Ignoring auto-push option\n" +

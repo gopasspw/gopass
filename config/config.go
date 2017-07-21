@@ -23,47 +23,32 @@ var (
 
 // Config is the gopass config structure
 type Config struct {
-	AlwaysTrust     bool                 `json:"alwaystrust"`     // always trust public keys when encrypting
-	AskForMore      bool                 `json:"askformore"`      // ask for more data on generate
-	AutoImport      bool                 `json:"autoimport"`      // import missing public keys w/o asking
-	AutoPull        bool                 `json:"autopull"`        // pull from git before push
-	AutoPush        bool                 `json:"autopush"`        // push to git remote after commit
-	CheckRecipients bool                 `json:"checkrecipients"` // only encrypt to valid recipients
-	ClipTimeout     int                  `json:"cliptimeout"`     // clear clipboard after seconds
-	Debug           bool                 `json:"debug"`           // enable debug output
-	FsckFunc        store.FsckCallback   `json:"-"`
-	GitRecurse      bool                 `json:"gitrecurse"`
-	ImportFunc      store.ImportCallback `json:"-"`
-	LoadKeys        bool                 `json:"loadkeys"` // load missing keys from store
-	Mounts          map[string]string    `json:"mounts,omitempty"`
-	NoColor         bool                 `json:"nocolor"`     // disable colors in output
-	NoConfirm       bool                 `json:"noconfirm"`   // do not confirm recipients when encrypting
-	NoPager         bool                 `json:"nopager"`     // do not start a pager for longer output
-	Path            string               `json:"path"`        // path to the root store
-	PersistKeys     bool                 `json:"persistkeys"` // store recipient keys in store
-	SafeContent     bool                 `json:"safecontent"` // avoid showing passwords in terminal
-	Version         string               `json:"version"`
+	AskForMore  bool                 `json:"askformore"`  // ask for more data on generate
+	AutoImport  bool                 `json:"autoimport"`  // import missing public keys w/o asking
+	AutoSync    bool                 `json:"autosync"`    // push to git remote after commit, pull before push if necessary
+	ClipTimeout int                  `json:"cliptimeout"` // clear clipboard after seconds
+	Debug       bool                 `json:"-"`
+	FsckFunc    store.FsckCallback   `json:"-"`
+	ImportFunc  store.ImportCallback `json:"-"`
+	Mounts      map[string]string    `json:"mounts,omitempty"`
+	NoColor     bool                 `json:"-"`
+	NoPager     bool                 `json:"-"`
+	NoConfirm   bool                 `json:"noconfirm"`   // do not confirm recipients when encrypting
+	Path        string               `json:"path"`        // path to the root store
+	SafeContent bool                 `json:"safecontent"` // avoid showing passwords in terminal
+	Version     string               `json:"version"`
 }
 
 // New creates a new config with sane default values
 func New() *Config {
 	return &Config{
-		AlwaysTrust:     true,
-		AskForMore:      false,
-		AutoImport:      true,
-		AutoPull:        true,
-		AutoPush:        true,
-		CheckRecipients: true,
-		ClipTimeout:     45,
-		Debug:           false,
-		GitRecurse:      true,
-		LoadKeys:        true,
-		Mounts:          make(map[string]string),
-		NoColor:         false,
-		NoConfirm:       false,
-		NoPager:         false,
-		PersistKeys:     true,
-		SafeContent:     false,
+		AskForMore:  false,
+		AutoImport:  true,
+		ClipTimeout: 45,
+		Mounts:      make(map[string]string),
+		NoConfirm:   false,
+		SafeContent: false,
+		Version:     "",
 	}
 }
 

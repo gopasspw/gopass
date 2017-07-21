@@ -10,9 +10,9 @@ import (
 // Git runs git commands inside the store or mounts
 func (s *Action) Git(c *cli.Context) error {
 	store := c.String("store")
-	recurse := s.Store.GitRecurse()
-	if c.IsSet("recurse") {
-		recurse = c.Bool("recurse")
+	recurse := true
+	if c.IsSet("no-recurse") {
+		recurse = !c.Bool("no-recurse")
 	}
 	force := c.Bool("force")
 	return s.Store.Git(store, recurse, force, c.Args()...)
