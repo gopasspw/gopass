@@ -63,3 +63,8 @@ func (m *Mocker) ExportPublicKey(string, string) error {
 func (m *Mocker) ImportPublicKey(string) error {
 	return nil
 }
+
+// Version returns dummy version info
+func (m *Mocker) Version() gpg.Version {
+	return gpg.Version{}
+}

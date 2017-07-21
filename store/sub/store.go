@@ -29,6 +29,7 @@ type gpger interface {
 	Decrypt(string) ([]byte, error)
 	ExportPublicKey(string, string) error
 	ImportPublicKey(string) error
+	Version() gpg.Version
 }
 
 // Store is password store
