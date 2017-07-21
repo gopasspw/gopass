@@ -421,7 +421,7 @@ func main() {
 					Flags: []cli.Flag{
 						cli.StringFlag{
 							Name:  "init, i",
-							Usage: "Init the store with the given recpient key",
+							Usage: "Init the store with the given recipient key",
 						},
 					},
 				},
