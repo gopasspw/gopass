@@ -29,7 +29,7 @@ func (s *Action) Version(c *cli.Context) error {
 	}
 
 	if r.Name != s.version {
-		fmt.Println(color.YellowString("\nYour version of gopass is out of date!\nThe latest version is %s.\nYou can update by downloading from www.justwatch.com/gopass", r.Name))
+		fmt.Println(color.YellowString("\nYour version of gopass is out of date!\nThe latest version is %s.\nYou can update by downloading from www.justwatch.com/gopass or via your package manager", r.Name))
 	}
 
 	return nil
