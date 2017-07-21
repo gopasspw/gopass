@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/fatih/color"
@@ -103,6 +104,33 @@ func (s *Store) gitSetSignKey(sk string) error {
 	}
 
 	return s.gitCmd("gitSetSignKey", "config", "--local", "commit.gpgsign", "true")
+}
+
+// GitVersion returns the git version as major, minor and patch level
+func (s *Store) GitVersion() (int, int, int) {
+	cmd := exec.Command("git", "version")
+	cmd.Dir = s.path
+	out, err := cmd.Output()
+	if err != nil {
+		return 0, 0, 0
+	}
+	p := strings.Split(strings.TrimPrefix(string(out), "git version "), ".")
+	if len(p) < 3 {
+		return 0, 0, 0
+	}
+	major := 0
+	minor := 0
+	patch := 0
+	if iv, err := strconv.Atoi(p[0]); err == nil {
+		major = iv
+	}
+	if iv, err := strconv.Atoi(p[1]); err == nil {
+		minor = iv
+	}
+	if iv, err := strconv.Atoi(p[2]); err == nil {
+		patch = iv
+	}
+	return major, minor, patch
 }
 
 // Git runs arbitrary git commands on this store

@@ -13,6 +13,11 @@ func (r *Store) GitInit(name, sk, userName, userEmail string) error {
 	return store.GitInit(store.Alias(), sk, userName, userEmail)
 }
 
+// GitVersion returns git version information
+func (r *Store) GitVersion() (int, int, int) {
+	return r.store.GitVersion()
+}
+
 // Git runs arbitrary git commands on this store and all substores
 func (r *Store) Git(name string, recurse, force bool, args ...string) error {
 	store := r.getStore(name)
