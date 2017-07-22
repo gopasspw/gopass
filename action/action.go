@@ -14,11 +14,18 @@ import (
 	"github.com/justwatchcom/gopass/store/root"
 )
 
+type gpger interface {
+	FindPublicKeys(...string) (gpg.KeyList, error)
+	FindPrivateKeys(...string) (gpg.KeyList, error)
+	ListPublicKeys() (gpg.KeyList, error)
+	ListPrivateKeys() (gpg.KeyList, error)
+}
+
 // Action knows everything to run gopass CLI actions
 type Action struct {
 	Name    string
 	Store   *root.Store
-	gpg     *gpg.GPG
+	gpg     gpger
 	isTerm  bool
 	version semver.Version
 }

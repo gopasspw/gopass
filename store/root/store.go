@@ -14,6 +14,10 @@ import (
 	"github.com/justwatchcom/gopass/tree/simple"
 )
 
+type gpger interface {
+	FindPublicKeys(...string) (gpg.KeyList, error)
+}
+
 // Store is the public facing password store
 type Store struct {
 	alwaysTrust     bool // always trust public keys when encrypting
@@ -25,7 +29,7 @@ type Store struct {
 	clipTimeout     int // clear clipboard after seconds
 	debug           bool
 	fsckFunc        store.FsckCallback
-	gpg             *gpg.GPG
+	gpg             gpger
 	gitRecurse      bool
 	importFunc      store.ImportCallback
 	loadKeys        bool // load missing keys from store
