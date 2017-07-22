@@ -159,7 +159,7 @@ func load(cf string) (*Config, error) {
 	// deliberately using os.Stat here, a symlinked
 	// config is OK
 	if _, err := os.Stat(cf); err != nil {
-		return nil, err
+		return nil, ErrConfigNotFound
 	}
 	buf, err := ioutil.ReadFile(cf)
 	if err != nil {
