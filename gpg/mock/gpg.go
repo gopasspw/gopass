@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/blang/semver"
 	"github.com/justwatchcom/gopass/gpg"
 )
 
@@ -65,6 +66,6 @@ func (m *Mocker) ImportPublicKey(string) error {
 }
 
 // Version returns dummy version info
-func (m *Mocker) Version() gpg.Version {
-	return gpg.Version{}
+func (m *Mocker) Version() semver.Version {
+	return semver.Version{}
 }
