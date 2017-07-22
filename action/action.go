@@ -11,6 +11,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/config"
 	"github.com/justwatchcom/gopass/gpg"
+	gpgcli "github.com/justwatchcom/gopass/gpg/cli"
 	"github.com/justwatchcom/gopass/store/root"
 )
 
@@ -89,7 +90,7 @@ func New(sv semver.Version) *Action {
 	}
 	act.Store = store
 
-	act.gpg = gpg.New(gpg.Config{
+	act.gpg = gpgcli.New(gpgcli.Config{
 		Debug:       cfg.Debug,
 		AlwaysTrust: cfg.AlwaysTrust,
 	})

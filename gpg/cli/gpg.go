@@ -9,8 +9,10 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
-	"strconv"
 	"strings"
+
+	"github.com/blang/semver"
+	"github.com/justwatchcom/gopass/gpg"
 )
 
 const (
@@ -31,8 +33,8 @@ type GPG struct {
 	binary      string
 	args        []string
 	debug       bool
-	pubKeys     KeyList
-	privKeys    KeyList
+	pubKeys     gpg.KeyList
+	privKeys    gpg.KeyList
 	alwaysTrust bool
 }
 
@@ -70,7 +72,7 @@ func New(cfg Config) *GPG {
 }
 
 // listKey lists all keys of the given type and matching the search strings
-func (g *GPG) listKeys(typ string, search ...string) (KeyList, error) {
+func (g *GPG) listKeys(typ string, search ...string) (gpg.KeyList, error) {
 	args := []string{"--with-colons", "--with-fingerprint", "--fixed-list-mode", "--list-" + typ + "-keys"}
 	args = append(args, search...)
 	cmd := exec.Command(g.binary, args...)
@@ -81,16 +83,16 @@ func (g *GPG) listKeys(typ string, search ...string) (KeyList, error) {
 	out, err := cmd.Output()
 	if err != nil {
 		if bytes.Contains(out, []byte("secret key not available")) {
-			return KeyList{}, nil
+			return gpg.KeyList{}, nil
 		}
-		return KeyList{}, err
+		return gpg.KeyList{}, err
 	}
 
 	return g.parseColons(bytes.NewBuffer(out)), nil
 }
 
 // ListPublicKeys returns a parsed list of GPG public keys
-func (g *GPG) ListPublicKeys() (KeyList, error) {
+func (g *GPG) ListPublicKeys() (gpg.KeyList, error) {
 	if g.pubKeys == nil {
 		kl, err := g.listKeys("public")
 		if err != nil {
@@ -102,13 +104,13 @@ func (g *GPG) ListPublicKeys() (KeyList, error) {
 }
 
 // FindPublicKeys searches for the given public keys
-func (g *GPG) FindPublicKeys(search ...string) (KeyList, error) {
+func (g *GPG) FindPublicKeys(search ...string) (gpg.KeyList, error) {
 	// TODO use cache
 	return g.listKeys("public", search...)
 }
 
 // ListPrivateKeys returns a parsed list of GPG secret keys
-func (g *GPG) ListPrivateKeys() (KeyList, error) {
+func (g *GPG) ListPrivateKeys() (gpg.KeyList, error) {
 	if g.privKeys == nil {
 		kl, err := g.listKeys("secret")
 		if err != nil {
@@ -120,7 +122,7 @@ func (g *GPG) ListPrivateKeys() (KeyList, error) {
 }
 
 // FindPrivateKeys searches for the given private keys
-func (g *GPG) FindPrivateKeys(search ...string) (KeyList, error) {
+func (g *GPG) FindPrivateKeys(search ...string) (gpg.KeyList, error) {
 	// TODO use cache
 	return g.listKeys("secret", search...)
 }
@@ -241,26 +243,9 @@ func (g *GPG) ImportPublicKey(filename string) error {
 	return nil
 }
 
-// Version contains GPG version and algorithm information
-type Version struct {
-	Major       int
-	Minor       int
-	Patch       int
-	Home        string
-	Pubkey      map[string]struct{}
-	Cipher      map[string]struct{}
-	Hash        map[string]struct{}
-	Compression map[string]struct{}
-}
-
 // Version will returns GPG version information
-func (g *GPG) Version() Version {
-	v := Version{
-		Pubkey:      map[string]struct{}{},
-		Cipher:      map[string]struct{}{},
-		Hash:        map[string]struct{}{},
-		Compression: map[string]struct{}{},
-	}
+func (g *GPG) Version() semver.Version {
+	v := semver.Version{}
 
 	cmd := exec.Command(g.binary, "--version")
 	out, err := cmd.Output()
@@ -273,47 +258,11 @@ func (g *GPG) Version() Version {
 		line := strings.TrimSpace(scanner.Text())
 		if strings.HasPrefix(line, "gpg ") {
 			p := strings.Fields(line)
-			p = strings.Split(p[len(p)-1], ".")
-			if len(p) > 2 {
-				if major, err := strconv.Atoi(p[0]); err == nil {
-					v.Major = major
-				}
-				if minor, err := strconv.Atoi(p[1]); err == nil {
-					v.Minor = minor
-				}
-				if patch, err := strconv.Atoi(p[2]); err == nil {
-					v.Patch = patch
-				}
+			sv, err := semver.Parse(p[len(p)-1])
+			if err != nil {
+				continue
 			}
-			continue
-		}
-		if strings.HasPrefix(line, "Home:") {
-			v.Home = strings.TrimPrefix(line, "Home: ")
-			continue
-		}
-		if strings.HasPrefix(line, "Pubkey: ") {
-			p := strings.Split(strings.TrimPrefix("Pubkey: ", line), ", ")
-			for _, e := range p {
-				v.Pubkey[e] = struct{}{}
-			}
-		}
-		if strings.HasPrefix(line, "Cipher: ") {
-			p := strings.Split(strings.TrimPrefix("Cipher: ", line), ", ")
-			for _, e := range p {
-				v.Cipher[e] = struct{}{}
-			}
-		}
-		if strings.HasPrefix(line, "Hash: ") {
-			p := strings.Split(strings.TrimPrefix("Hash: ", line), ", ")
-			for _, e := range p {
-				v.Hash[e] = struct{}{}
-			}
-		}
-		if strings.HasPrefix(line, "Compression: ") {
-			p := strings.Split(strings.TrimPrefix("Compression: ", line), ", ")
-			for _, e := range p {
-				v.Compression[e] = struct{}{}
-			}
+			return sv
 		}
 	}
 	return v

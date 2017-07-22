@@ -8,6 +8,7 @@ import (
 	"github.com/justwatchcom/gopass/config"
 	"github.com/justwatchcom/gopass/fsutil"
 	"github.com/justwatchcom/gopass/gpg"
+	gpgcli "github.com/justwatchcom/gopass/gpg/cli"
 	"github.com/justwatchcom/gopass/store"
 	"github.com/justwatchcom/gopass/store/sub"
 	"github.com/justwatchcom/gopass/tree"
@@ -63,7 +64,7 @@ func New(cfg *config.Config) (*Store, error) {
 		debug:           cfg.Debug,
 		fsckFunc:        cfg.FsckFunc,
 		gitRecurse:      cfg.GitRecurse,
-		gpg: gpg.New(gpg.Config{
+		gpg: gpgcli.New(gpgcli.Config{
 			Debug:       cfg.Debug,
 			AlwaysTrust: cfg.AlwaysTrust,
 		}),

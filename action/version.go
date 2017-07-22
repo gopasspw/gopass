@@ -44,10 +44,8 @@ func (s *Action) Version(c *cli.Context) error {
 
 	cli.VersionPrinter(c)
 
-	gv := s.Store.GPGVersion()
-	fmt.Printf("  GPG: %d.%d.%d\n", gv.Major, gv.Minor, gv.Patch)
-	gmaj, gmin, gpa := s.Store.GitVersion()
-	fmt.Printf("  Git: %d.%d.%d\n", gmaj, gmin, gpa)
+	fmt.Printf("  GPG: %s\n", s.Store.GPGVersion().String())
+	fmt.Printf("  Git: %s\n", s.Store.GitVersion().String())
 
 	select {
 	case vi := <-version:
