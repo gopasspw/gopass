@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/justwatchcom/gopass/config"
+	gpgmock "github.com/justwatchcom/gopass/gpg/mock"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -25,8 +26,12 @@ func TestLoadRecipients(t *testing.T) {
 	genRecs, _, err := createStore(tempdir, nil, nil)
 	assert.NoError(t, err)
 
-	s, err := New("", &config.Config{Path: tempdir})
-	assert.NoError(t, err)
+	s := &Store{
+		alias:      "",
+		path:       tempdir,
+		gpg:        gpgmock.New(),
+		recipients: []string{"john.doe"},
+	}
 
 	recs, err := s.loadRecipients()
 	assert.NoError(t, err)
@@ -41,11 +46,16 @@ func TestSaveRecipients(t *testing.T) {
 	defer func() {
 		_ = os.RemoveAll(tempdir)
 	}()
-	genRecs, _, err := createStore(tempdir, nil, nil)
+	_, _, err = createStore(tempdir, nil, nil)
 	assert.NoError(t, err)
 
-	s, err := New("", &config.Config{Path: tempdir})
-	assert.NoError(t, err)
+	recp := []string{"john.doe"}
+	s := &Store{
+		alias:      "",
+		path:       tempdir,
+		gpg:        gpgmock.New(),
+		recipients: recp,
+	}
 
 	// remove recipients
 	_ = os.Remove(filepath.Join(tempdir, GPGID))
@@ -65,13 +75,13 @@ func TestSaveRecipients(t *testing.T) {
 	}
 	sort.Strings(foundRecs)
 
-	for i := 0; i < len(genRecs); i++ {
+	for i := 0; i < len(recp); i++ {
 		if i >= len(foundRecs) {
 			t.Errorf("Read too few recipients")
 			break
 		}
-		if genRecs[i] != foundRecs[i] {
-			t.Errorf("Mismatch at %d: %s vs %s", i, genRecs[i], foundRecs[i])
+		if recp[i] != foundRecs[i] {
+			t.Errorf("Mismatch at %d: %s vs %s", i, recp[i], foundRecs[i])
 		}
 	}
 }
@@ -84,24 +94,23 @@ func TestAddRecipient(t *testing.T) {
 	defer func() {
 		_ = os.RemoveAll(tempdir)
 	}()
-	genRecs, _, err := createStore(tempdir, nil, nil)
+	_, _, err = createStore(tempdir, nil, nil)
 	assert.NoError(t, err)
 
-	s, err := New("", &config.Config{Path: tempdir})
-	assert.NoError(t, err)
+	s := &Store{
+		alias:      "",
+		path:       tempdir,
+		gpg:        gpgmock.New(),
+		recipients: []string{"john.doe"},
+	}
 
 	newRecp := "A3683834"
-	newFP := "1E52C1335AC1F4F4FE02F62AB5B44266A3683834"
-
-	if os.Getenv("GOPASS_INTEGRATION_TESTS") != "true" {
-		t.Skip("Skipping test. GOPASS_INTEGRATION_TESTS is not true")
-	}
 
 	err = s.AddRecipient(newRecp)
 	if err != nil {
 		t.Fatalf("Failed to add Recipient: %s", err)
 	}
-	assert.Equal(t, append(genRecs, newFP), s.recipients)
+	assert.Equal(t, []string{"john.doe", newRecp}, s.recipients)
 }
 
 func TestRemoveRecipient(t *testing.T) {
@@ -112,19 +121,19 @@ func TestRemoveRecipient(t *testing.T) {
 	defer func() {
 		_ = os.RemoveAll(tempdir)
 	}()
-	genRecs, _, err := createStore(tempdir, nil, nil)
+	_, _, err = createStore(tempdir, nil, nil)
 	assert.NoError(t, err)
 
-	s, err := New("", &config.Config{Path: tempdir})
-	assert.NoError(t, err)
-
-	if os.Getenv("GOPASS_INTEGRATION_TESTS") != "true" {
-		t.Skip("Skipping test. GOPASS_INTEGRATION_TESTS is not true")
+	s := &Store{
+		alias:      "",
+		path:       tempdir,
+		gpg:        gpgmock.New(),
+		recipients: []string{"john.doe"},
 	}
 
-	err = s.RemoveRecipient(genRecs[0])
+	err = s.RemoveRecipient("john.doe")
 	assert.NoError(t, err)
-	assert.Equal(t, genRecs[1:], s.recipients)
+	assert.Equal(t, []string{}, s.recipients)
 }
 
 func TestListRecipients(t *testing.T) {
