@@ -40,6 +40,9 @@ func (s *Action) Show(c *cli.Context) error {
 	case key != "":
 		content, err = s.Store.GetKey(name, key)
 		if err != nil {
+			if err == store.ErrYAMLKeyUnsupported {
+				return fmt.Errorf("Can not show nested key directly. Use 'gopass show %s'", name)
+			}
 			return err
 		}
 		if clip {
