@@ -10,6 +10,7 @@ import (
 func (s *Store) Config() *config.Config {
 	c := &config.Config{
 		AskForMore:  s.askForMore,
+		AutoImport:  s.autoImport,
 		AutoSync:    s.autoSync,
 		ClipTimeout: s.clipTimeout,
 		Debug:       s.debug,
@@ -34,6 +35,7 @@ func (s *Store) UpdateConfig(cfg *config.Config) error {
 		return fmt.Errorf("invalid config")
 	}
 	s.askForMore = cfg.AskForMore
+	s.autoImport = cfg.AutoImport
 	s.autoSync = cfg.AutoSync
 	s.clipTimeout = cfg.ClipTimeout
 	s.debug = cfg.Debug
@@ -76,7 +78,7 @@ func (s *Store) Alias() string {
 }
 
 // AutoSync returns the value of auto sync
-func (s *Store) AutoPull() bool {
+func (s *Store) AutoSync() bool {
 	return s.autoSync
 }
 

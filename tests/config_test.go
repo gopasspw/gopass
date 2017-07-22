@@ -12,25 +12,19 @@ func TestConfig(t *testing.T) {
 
 	out, err := ts.run("config")
 	assert.NoError(t, err)
-	assert.Contains(t, out, "alwaystrust: true")
+	assert.Contains(t, out, "askformore: false")
 	assert.Contains(t, out, "autoimport: true")
-	assert.Contains(t, out, "autopull: true")
-	assert.Contains(t, out, "autopush: true")
+	assert.Contains(t, out, "autosync: true")
 	assert.Contains(t, out, "cliptimeout: 45")
-	assert.Contains(t, out, "loadkeys: true")
 	assert.Contains(t, out, "noconfirm: true")
-	assert.Contains(t, out, "path: ")
-	assert.Contains(t, out, "persistkeys: true")
+	assert.Contains(t, out, "path: /tmp")
 	assert.Contains(t, out, "safecontent: true")
 
 	invertables := []string{
-		"alwaystrust",
+		"askformore",
 		"autoimport",
-		"autopull",
-		"autopush",
-		"loadkeys",
+		"autosync",
 		"noconfirm",
-		"persistkeys",
 		"safecontent",
 	}
 

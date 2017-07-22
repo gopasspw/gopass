@@ -16,14 +16,11 @@ import (
 
 const (
 	gopassConfig = `
-alwaystrust: true
+askformore: false
 autoimport: true
-autopull: true
-autopush: true
+autosync: true
 cliptimeout: 45
-loadkeys: true
 noconfirm: true
-persistkeys: true
 safecontent: true`
 	keyID = "BE73F104"
 )

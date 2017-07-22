@@ -36,16 +36,15 @@ type gpger interface {
 
 // Store is password store
 type Store struct {
-	alias       string
-	alwaysTrust bool
-	autoImport  bool
-	autoSync    bool
-	debug       bool
-	fsckFunc    store.FsckCallback
-	importFunc  store.ImportCallback
-	path        string
-	recipients  []string
-	gpg         gpger
+	alias      string
+	autoImport bool
+	autoSync   bool
+	debug      bool
+	fsckFunc   store.FsckCallback
+	importFunc store.ImportCallback
+	path       string
+	recipients []string
+	gpg        gpger
 }
 
 // New creates a new store, copying settings from the given root store
