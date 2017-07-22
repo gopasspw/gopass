@@ -1,11 +1,13 @@
 package action
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 
 	"golang.org/x/crypto/ssh/terminal"
 
+	"github.com/blang/semver"
 	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/config"
 	"github.com/justwatchcom/gopass/gpg"
@@ -18,11 +20,11 @@ type Action struct {
 	Store   *root.Store
 	gpg     *gpg.GPG
 	isTerm  bool
-	version string
+	version semver.Version
 }
 
 // New returns a new Action wrapper
-func New(v string) *Action {
+func New(sv semver.Version) *Action {
 	name := "gopass"
 	if len(os.Args) > 0 {
 		name = filepath.Base(os.Args[0])
@@ -30,11 +32,18 @@ func New(v string) *Action {
 
 	// try to read config (if it exists)
 	cfg := config.Load()
-	cfg.Version = v
+	// only update version field in config, if it's older than this build
+	csv, err := semver.Parse(cfg.Version)
+	if err != nil || csv.LT(sv) {
+		cfg.Version = sv.String()
+		if err := cfg.Save(); err != nil {
+			fmt.Println(color.RedString("Failed to save config: %s", err))
+		}
+	}
 
 	act := &Action{
 		Name:    name,
-		version: v,
+		version: sv,
 		isTerm:  true,
 	}
 	cfg.ImportFunc = act.askForKeyImport

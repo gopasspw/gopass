@@ -14,6 +14,13 @@ import (
 	"github.com/justwatchcom/gopass/store"
 )
 
+var (
+	// ErrConfigNotFound is returned on load if the config was not found
+	ErrConfigNotFound = fmt.Errorf("config not found")
+	// ErrConfigNotParsed is returned on load if the config could not be decoded
+	ErrConfigNotParsed = fmt.Errorf("config not parseable")
+)
+
 // Config is the gopass config structure
 type Config struct {
 	AlwaysTrust     bool                 `json:"alwaystrust"`     // always trust public keys when encrypting
@@ -57,7 +64,6 @@ func New() *Config {
 		NoPager:         false,
 		PersistKeys:     true,
 		SafeContent:     false,
-		Version:         "",
 	}
 }
 
@@ -132,12 +138,17 @@ func (c *Config) SetConfigValue(key, value string) error {
 // Load will try to load the config from one of the default locations
 func Load() *Config {
 	for _, l := range configLocations() {
-		if cfg, err := load(l); err == nil {
-			if gdb := os.Getenv("GOPASS_DEBUG"); gdb == "true" {
-				fmt.Printf("[DEBUG] Loaded config from %s: %+v\n", l, cfg)
-			}
-			return cfg
+		cfg, err := load(l)
+		if err == ErrConfigNotFound {
+			continue
 		}
+		if err != nil {
+			panic(err)
+		}
+		if gdb := os.Getenv("GOPASS_DEBUG"); gdb == "true" {
+			fmt.Printf("[DEBUG] Loaded config from %s: %+v\n", l, cfg)
+		}
+		return cfg
 	}
 	cfg := New()
 	cfg.Path = PwStoreDir("")
@@ -153,13 +164,13 @@ func load(cf string) (*Config, error) {
 	buf, err := ioutil.ReadFile(cf)
 	if err != nil {
 		fmt.Printf("Error reading config from %s: %s\n", cf, err)
-		return nil, err
+		return nil, ErrConfigNotFound
 	}
 	cfg := &Config{}
 	err = yaml.Unmarshal(buf, &cfg)
 	if err != nil {
 		fmt.Printf("Error reading config from %s: %s\n", cf, err)
-		return nil, err
+		return nil, ErrConfigNotParsed
 	}
 	return cfg, nil
 }
