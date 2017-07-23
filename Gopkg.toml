@@ -1,0 +1,74 @@
+
+# Gopkg.toml example
+#
+# Refer to https://github.com/golang/dep/blob/master/docs/Gopkg.toml.md
+# for detailed Gopkg.toml documentation.
+#
+# required = ["github.com/user/thing/cmd/thing"]
+# ignored = ["github.com/user/project/pkgX", "bitbucket.org/user/project/pkgA/pkgY"]
+#
+# [[constraint]]
+#   name = "github.com/user/project"
+#   version = "1.0.0"
+#
+# [[constraint]]
+#   name = "github.com/user/project2"
+#   branch = "dev"
+#   source = "github.com/myfork/project2"
+#
+# [[override]]
+#  name = "github.com/x/y"
+#  version = "2.4.0"
+
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/atotto/clipboard"
+
+[[constraint]]
+  name = "github.com/cenkalti/backoff"
+  version = "1.0.0"
+
+[[constraint]]
+  name = "github.com/fatih/color"
+  version = "1.5.0"
+
+[[constraint]]
+  name = "github.com/ghodss/yaml"
+  version = "1.0.0"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/kballard/go-shellquote"
+
+[[constraint]]
+  name = "github.com/mattn/go-colorable"
+  version = "0.0.8"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/pquerna/otp"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/skip2/go-qrcode"
+
+[[constraint]]
+  name = "github.com/stretchr/testify"
+  version = "1.1.4"
+
+[[constraint]]
+  name = "github.com/urfave/cli"
+  version = "1.19.1"
+
+[[constraint]]
+  branch = "master"
+  name = "golang.org/x/crypto"
+
+[[constraint]]
+  branch = "master"
+  name = "golang.org/x/sys"
+
+[[constraint]]
+  branch = "v2"
+  name = "gopkg.in/yaml.v2"
