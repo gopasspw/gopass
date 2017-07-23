@@ -52,7 +52,7 @@ func (s *Action) Clone(c *cli.Context) error {
 		return fmt.Errorf("Failed to update config: %s", err)
 	}
 
-	fmt.Printf("Your password store is ready to use! Has a look around: `gopass %s`\n", mount)
+	fmt.Printf("Your password store is ready to use! Have a look around: `gopass %s`\n", mount)
 
 	return nil
 }
