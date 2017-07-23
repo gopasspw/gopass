@@ -5,6 +5,7 @@ import (
 	"sort"
 
 	"github.com/fatih/color"
+	"github.com/justwatchcom/gopass/config"
 	"github.com/justwatchcom/gopass/store"
 	"github.com/justwatchcom/gopass/tree/simple"
 	"github.com/urfave/cli"
@@ -56,14 +57,18 @@ func (s *Action) MountsComplete(*cli.Context) {
 
 // MountAdd adds a new mount
 func (s *Action) MountAdd(c *cli.Context) error {
-	if len(c.Args()) != 2 {
-		return fmt.Errorf("usage: gopass mount add [alias] [local path]")
+	alias := c.Args().Get(0)
+	localPath := c.Args().Get(1)
+	if alias == "" {
+		return fmt.Errorf("usage: gopass mount add <alias> [local path]")
+	}
+	if localPath == "" {
+		localPath = config.PwStoreDir(alias)
 	}
 	keys := make([]string, 0, 1)
 	if k := c.String("init"); k != "" {
 		keys = append(keys, k)
 	}
-	alias, localPath := c.Args()[0], c.Args()[1]
 	if s.Store.Exists(alias) {
 		fmt.Printf(color.YellowString("WARNING: shadowing %s entry\n"), alias)
 	}
@@ -74,6 +79,6 @@ func (s *Action) MountAdd(c *cli.Context) error {
 		return err
 	}
 
-	color.Green("Mounted %s as %s", c.Args()[0], c.Args()[1])
+	color.Green("Mounted %s as %s", alias, localPath)
 	return nil
 }
