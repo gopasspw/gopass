@@ -607,6 +607,7 @@ If you use `gopass` as a library be sure to vendor it and expect breaking change
 
 * [GPGTools](https://gpgtools.org/) for macOS
 * [GitHub Help on GPG](https://help.github.com/articles/signing-commits-with-gpg/)
+* [Git - the simple guide](http://rogerdudler.github.io/git-guide/)
 
 ## FAQ
 
