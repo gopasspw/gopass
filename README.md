@@ -508,9 +508,10 @@ tools available for [`pass`](https://www.passwordstore.org) to import from 1Pass
 
 ## Development
 
-This project uses git-flow to have a standardized way of managing branches in git.
-If you don't know about git-flow please read about it:
-http://nvie.com/posts/a-successful-git-branching-model/
+This project uses github-flow, i.e. create feature branches from master, open an PR against master
+and rebase onto master if necessary.
+
+We aim for compatibility with the [latest stable Go Release](https://golang.org/dl/) only.
 
 ## Security
 
