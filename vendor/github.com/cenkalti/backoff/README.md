@@ -1,4 +1,4 @@
-# Exponential Backoff [![GoDoc][godoc image]][godoc] [![Build Status][travis image]][travis] [![Coverage Status][coveralls image]][coveralls]
+# Exponential Backoff [![GoDoc][godoc image]][godoc] [![Build Status][travis image]][travis]
 
 This is a Go port of the exponential backoff algorithm from [Google's HTTP Client Library for Java][google-http-java-client].
 
@@ -37,6 +37,8 @@ func RetryNotify(Operation, BackOff, Notify)
 
 ## Examples
 
+See more advanced examples in the [godoc][advanced example].
+
 ### Retry
 
 Simple retry helper that uses the default exponential backoff algorithm:
@@ -58,8 +60,6 @@ return nil
 ```
 
 ### Ticker
-
-Ticker is for using backoff algorithms with channels.
 
 ```go
 operation := func() error {
@@ -97,22 +97,20 @@ return nil
 
 ```bash
 # install
-$ go get github.com/cenk/backoff
+$ go get github.com/cenkalti/backoff
 
 # test
-$ cd $GOPATH/src/github.com/cenk/backoff
+$ cd $GOPATH/src/github.com/cenkalti/backoff
 $ go get -t ./...
 $ go test -v -cover
 ```
 
-[godoc]: https://godoc.org/github.com/cenk/backoff
-[godoc image]: https://godoc.org/github.com/cenk/backoff?status.png
-[travis]: https://travis-ci.org/cenk/backoff
-[travis image]: https://travis-ci.org/cenk/backoff.png?branch=master
-[coveralls]: https://coveralls.io/github/cenk/backoff?branch=master
-[coveralls image]: https://coveralls.io/repos/github/cenk/backoff/badge.svg?branch=master
+[godoc]: https://godoc.org/github.com/cenkalti/backoff
+[godoc image]: https://godoc.org/github.com/cenkalti/backoff?status.png
+[travis]: https://travis-ci.org/cenkalti/backoff
+[travis image]: https://travis-ci.org/cenkalti/backoff.png
 
 [google-http-java-client]: https://github.com/google/google-http-java-client
 [exponential backoff wiki]: http://en.wikipedia.org/wiki/Exponential_backoff
 
-[advanced example]: https://godoc.org/github.com/cenk/backoff#example_
+[advanced example]: https://godoc.org/github.com/cenkalti/backoff#example_
