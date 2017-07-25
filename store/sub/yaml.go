@@ -29,7 +29,7 @@ func (s *Store) GetKey(name, key string) ([]byte, error) {
 		if sv, ok := v.(string); ok {
 			return []byte(sv), nil
 		}
-		return nil, store.ErrYAMLKeyUnsupported
+		return nil, store.ErrYAMLValueUnsupported
 	}
 
 	return nil, store.ErrYAMLNoKey

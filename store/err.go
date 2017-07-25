@@ -29,6 +29,6 @@ var (
 	ErrYAMLNoMark = fmt.Errorf("no YAML document marker found")
 	// ErrYAMLNoKey is returned if a YAML document doesn't contain a key
 	ErrYAMLNoKey = fmt.Errorf("key not found in YAML document")
-	// ErrYAMLKeyUnsupported is returned is the user tries to unmarshal an nested struct
-	ErrYAMLKeyUnsupported = fmt.Errorf("can not unmarshal nested YAML key")
+	// ErrYAMLValueUnsupported is returned is the user tries to unmarshal an nested struct
+	ErrYAMLValueUnsupported = fmt.Errorf("can not unmarshal nested YAML value")
 )
