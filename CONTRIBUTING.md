@@ -40,6 +40,6 @@ make test-integration
 * Branch from master and, if needed, rebase to the current master branch before submitting your pull request.
   If it doesn't merge cleanly with master you will be asked to rebase your changes.
 
-* Commits should be as small as possible, while ensuring that each commit is corrent indepently.
+* Commits should be as small as possible, while ensuring that each commit is correct independently.
 
 * Add tests relevant to the fixed bug or new feature.
