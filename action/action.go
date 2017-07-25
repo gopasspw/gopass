@@ -11,14 +11,22 @@ import (
 	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/config"
 	"github.com/justwatchcom/gopass/gpg"
+	gpgcli "github.com/justwatchcom/gopass/gpg/cli"
 	"github.com/justwatchcom/gopass/store/root"
 )
+
+type gpger interface {
+	FindPublicKeys(...string) (gpg.KeyList, error)
+	FindPrivateKeys(...string) (gpg.KeyList, error)
+	ListPublicKeys() (gpg.KeyList, error)
+	ListPrivateKeys() (gpg.KeyList, error)
+}
 
 // Action knows everything to run gopass CLI actions
 type Action struct {
 	Name    string
 	Store   *root.Store
-	gpg     *gpg.GPG
+	gpg     gpger
 	isTerm  bool
 	version semver.Version
 }
@@ -82,7 +90,7 @@ func New(sv semver.Version) *Action {
 	}
 	act.Store = store
 
-	act.gpg = gpg.New(gpg.Config{
+	act.gpg = gpgcli.New(gpgcli.Config{
 		Debug:       cfg.Debug,
 		AlwaysTrust: cfg.AlwaysTrust,
 	})

@@ -7,9 +7,9 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strconv"
 	"strings"
 
+	"github.com/blang/semver"
 	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/fsutil"
 	"github.com/justwatchcom/gopass/store"
@@ -107,30 +107,27 @@ func (s *Store) gitSetSignKey(sk string) error {
 }
 
 // GitVersion returns the git version as major, minor and patch level
-func (s *Store) GitVersion() (int, int, int) {
+func (s *Store) GitVersion() semver.Version {
+	v := semver.Version{}
+
 	cmd := exec.Command("git", "version")
 	cmd.Dir = s.path
 	out, err := cmd.Output()
 	if err != nil {
-		return 0, 0, 0
+		if gd := os.Getenv("GOPASS_DEBUG"); gd != "" {
+			fmt.Printf("[DEBUG] Failed to run 'git version': %s\n", err)
+		}
+		return v
 	}
-	p := strings.Split(strings.TrimPrefix(string(out), "git version "), ".")
-	if len(p) < 3 {
-		return 0, 0, 0
+	svStr := strings.TrimPrefix(string(out), "git version ")
+	sv, err := semver.ParseTolerant(svStr)
+	if err != nil {
+		if gd := os.Getenv("GOPASS_DEBUG"); gd != "" {
+			fmt.Printf("[DEBUG] Failed to parse '%s' as semver: %s\n", svStr, err)
+		}
+		return v
 	}
-	major := 0
-	minor := 0
-	patch := 0
-	if iv, err := strconv.Atoi(p[0]); err == nil {
-		major = iv
-	}
-	if iv, err := strconv.Atoi(p[1]); err == nil {
-		minor = iv
-	}
-	if iv, err := strconv.Atoi(p[2]); err == nil {
-		patch = iv
-	}
-	return major, minor, patch
+	return sv
 }
 
 // Git runs arbitrary git commands on this store

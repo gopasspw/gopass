@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/blang/semver"
 	"github.com/fatih/color"
 )
 
@@ -14,7 +15,7 @@ func (r *Store) GitInit(name, sk, userName, userEmail string) error {
 }
 
 // GitVersion returns git version information
-func (r *Store) GitVersion() (int, int, int) {
+func (r *Store) GitVersion() semver.Version {
 	return r.store.GitVersion()
 }
 

@@ -8,11 +8,16 @@ import (
 	"github.com/justwatchcom/gopass/config"
 	"github.com/justwatchcom/gopass/fsutil"
 	"github.com/justwatchcom/gopass/gpg"
+	gpgcli "github.com/justwatchcom/gopass/gpg/cli"
 	"github.com/justwatchcom/gopass/store"
 	"github.com/justwatchcom/gopass/store/sub"
 	"github.com/justwatchcom/gopass/tree"
 	"github.com/justwatchcom/gopass/tree/simple"
 )
+
+type gpger interface {
+	FindPublicKeys(...string) (gpg.KeyList, error)
+}
 
 // Store is the public facing password store
 type Store struct {
@@ -25,7 +30,7 @@ type Store struct {
 	clipTimeout     int // clear clipboard after seconds
 	debug           bool
 	fsckFunc        store.FsckCallback
-	gpg             *gpg.GPG
+	gpg             gpger
 	gitRecurse      bool
 	importFunc      store.ImportCallback
 	loadKeys        bool // load missing keys from store
@@ -59,7 +64,7 @@ func New(cfg *config.Config) (*Store, error) {
 		debug:           cfg.Debug,
 		fsckFunc:        cfg.FsckFunc,
 		gitRecurse:      cfg.GitRecurse,
-		gpg: gpg.New(gpg.Config{
+		gpg: gpgcli.New(gpgcli.Config{
 			Debug:       cfg.Debug,
 			AlwaysTrust: cfg.AlwaysTrust,
 		}),

@@ -1,8 +1,8 @@
 package root
 
-import "github.com/justwatchcom/gopass/gpg"
+import "github.com/blang/semver"
 
 // GPGVersion returns GPG version information
-func (r *Store) GPGVersion() gpg.Version {
+func (r *Store) GPGVersion() semver.Version {
 	return r.store.GPGVersion()
 }

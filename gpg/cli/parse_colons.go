@@ -4,6 +4,8 @@ import (
 	"bufio"
 	"io"
 	"strings"
+
+	"github.com/justwatchcom/gopass/gpg"
 )
 
 // http://git.gnupg.org/cgi-bin/gitweb.cgi?p=gnupg.git;a=blob_plain;f=doc/DETAILS
@@ -46,12 +48,12 @@ import (
 // 16 - Curve Name
 
 // parseColons parses the `--with-colons` output format of GPG
-func (g *GPG) parseColons(reader io.Reader) KeyList {
-	kl := make(KeyList, 0, 100)
+func (g *GPG) parseColons(reader io.Reader) gpg.KeyList {
+	kl := make(gpg.KeyList, 0, 100)
 
 	scanner := bufio.NewScanner(reader)
 
-	var cur Key
+	var cur gpg.Key
 
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
@@ -68,14 +70,14 @@ func (g *GPG) parseColons(reader io.Reader) KeyList {
 			if validity == "" && fields[0] == "sec" {
 				validity = "u"
 			}
-			cur = Key{
+			cur = gpg.Key{
 				KeyType:        fields[0],
 				Validity:       validity,
 				KeyLength:      parseInt(fields[2]),
 				CreationDate:   parseTS(fields[5]),
 				ExpirationDate: parseTS(fields[6]),
 				Ownertrust:     fields[8],
-				Identities:     make(map[string]Identity, 1),
+				Identities:     make(map[string]gpg.Identity, 1),
 				SubKeys:        make(map[string]struct{}, 1),
 			}
 		case "sub":
@@ -89,7 +91,7 @@ func (g *GPG) parseColons(reader io.Reader) KeyList {
 		case "uid":
 			sn := fields[7]
 			id := fields[9]
-			ni := Identity{}
+			ni := gpg.Identity{}
 			if reUIDComment.MatchString(id) {
 				if m := reUIDComment.FindStringSubmatch(id); len(m) > 3 {
 					ni.Name = m[1]

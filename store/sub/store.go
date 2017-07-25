@@ -7,10 +7,12 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/blang/semver"
 	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/config"
 	"github.com/justwatchcom/gopass/fsutil"
 	"github.com/justwatchcom/gopass/gpg"
+	gpgcli "github.com/justwatchcom/gopass/gpg/cli"
 	"github.com/justwatchcom/gopass/store"
 )
 
@@ -29,7 +31,7 @@ type gpger interface {
 	Decrypt(string) ([]byte, error)
 	ExportPublicKey(string, string) error
 	ImportPublicKey(string) error
-	Version() gpg.Version
+	Version() semver.Version
 }
 
 // Store is password store
@@ -72,7 +74,7 @@ func New(alias string, cfg *config.Config) (*Store, error) {
 		path:            cfg.Path,
 		persistKeys:     cfg.PersistKeys,
 		recipients:      make([]string, 0, 1),
-		gpg: gpg.New(gpg.Config{
+		gpg: gpgcli.New(gpgcli.Config{
 			Debug:       cfg.Debug,
 			AlwaysTrust: cfg.AlwaysTrust,
 		}),
