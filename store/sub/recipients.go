@@ -160,25 +160,6 @@ func (s *Store) saveRecipients(msg string) error {
 		}
 	}
 
-	if !s.persistKeys {
-		// push to remote repo
-		if s.autoPush {
-			if err := s.gitPush("", ""); err != nil {
-				if err == store.ErrGitNotInit {
-					return nil
-				}
-				if err == store.ErrGitNoRemote {
-					msg := "Warning: git has no remote. Ignoring auto-push option\n" +
-						"Run: gopass git remote add origin ..."
-					fmt.Println(color.YellowString(msg))
-					return nil
-				}
-				return err
-			}
-		}
-		return nil
-	}
-
 	// save recipients' public keys
 	if err := os.MkdirAll(filepath.Join(s.path, keyDir), dirMode); err != nil {
 		return err
@@ -203,19 +184,17 @@ func (s *Store) saveRecipients(msg string) error {
 	}
 
 	// push to remote repo
-	if s.autoPush {
-		if err := s.gitPush("", ""); err != nil {
-			if err == store.ErrGitNotInit {
-				return nil
-			}
-			if err == store.ErrGitNoRemote {
-				msg := "Warning: git has not remote. Ignoring auto-push option\n" +
-					"Run: gopass git remote add origin ..."
-				fmt.Println(color.YellowString(msg))
-				return nil
-			}
-			return err
+	if err := s.gitPush("", ""); err != nil {
+		if err == store.ErrGitNotInit {
+			return nil
 		}
+		if err == store.ErrGitNoRemote {
+			msg := "Warning: git has not remote. Ignoring auto-push option\n" +
+				"Run: gopass git remote add origin ..."
+			fmt.Println(color.YellowString(msg))
+			return nil
+		}
+		return err
 	}
 
 	return nil

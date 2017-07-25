@@ -305,8 +305,8 @@ func main() {
 					Usage: "Store to operate on",
 				},
 				cli.BoolFlag{
-					Name:  "recurse, r",
-					Usage: "Recurse to mounted sub-stores",
+					Name:  "no-recurse, n",
+					Usage: "Do not recurse to mounted sub-stores",
 				},
 				cli.BoolFlag{
 					Name:  "force, f",

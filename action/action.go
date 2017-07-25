@@ -92,7 +92,7 @@ func New(sv semver.Version) *Action {
 
 	act.gpg = gpgcli.New(gpgcli.Config{
 		Debug:       cfg.Debug,
-		AlwaysTrust: cfg.AlwaysTrust,
+		AlwaysTrust: true,
 	})
 
 	return act

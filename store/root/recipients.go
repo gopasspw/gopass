@@ -42,10 +42,6 @@ func (r *Store) addRecipient(prefix string, root tree.Tree, recp string, pretty 
 
 // ImportMissingPublicKeys import missing public keys in any substore
 func (r *Store) ImportMissingPublicKeys() error {
-	if !r.loadKeys {
-		return nil
-	}
-
 	for alias, sub := range r.mounts {
 		if err := sub.ImportMissingPublicKeys(); err != nil {
 			fmt.Println(color.RedString("[%s] Failed to import missing public keys: %s", alias, err))
@@ -58,10 +54,6 @@ func (r *Store) ImportMissingPublicKeys() error {
 // SaveRecipients persists the recipients to disk. Only useful if persist keys is
 // enabled
 func (r *Store) SaveRecipients() error {
-	if !r.persistKeys {
-		return nil
-	}
-
 	for alias, sub := range r.mounts {
 		if err := sub.SaveRecipients(); err != nil {
 			fmt.Println(color.RedString("[%s] Failed to save recipients: %s", alias, err))

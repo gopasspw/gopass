@@ -28,10 +28,7 @@ func (s *Store) gitCmd(name string, args ...string) error {
 		return err
 	}
 	// load keys only after git pull
-	if s.debug {
-		fmt.Printf("[DEBUG] loadKeys: %t - cmd.Args: %+v\n", s.loadKeys, cmd.Args)
-	}
-	if s.loadKeys && len(cmd.Args) > 1 && cmd.Args[1] == "pull" {
+	if len(cmd.Args) > 1 && cmd.Args[1] == "pull" {
 		if s.debug {
 			fmt.Printf("[DEBUG] importing possilby missing keys ...\n")
 		}
@@ -218,10 +215,8 @@ func (s *Store) gitPush(remote, branch string) error {
 		return store.ErrGitNoRemote
 	}
 
-	if s.autoPull {
-		if err := s.Git("pull", remote, branch); err != nil {
-			fmt.Println(color.YellowString("Failed to pull before git push: %s", err))
-		}
+	if err := s.Git("pull", remote, branch); err != nil {
+		fmt.Println(color.YellowString("Failed to pull before git push: %s", err))
 	}
 
 	return s.Git("push", remote, branch)

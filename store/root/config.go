@@ -9,24 +9,18 @@ import (
 // Config returns this root stores config as a config struct
 func (s *Store) Config() *config.Config {
 	c := &config.Config{
-		AlwaysTrust:     s.alwaysTrust,
-		AskForMore:      s.askForMore,
-		AutoImport:      s.autoImport,
-		AutoPull:        s.autoPull,
-		AutoPush:        s.autoPush,
-		CheckRecipients: s.checkRecipients,
-		ClipTimeout:     s.clipTimeout,
-		Debug:           s.debug,
-		GitRecurse:      s.gitRecurse,
-		LoadKeys:        s.loadKeys,
-		Mounts:          make(map[string]string, len(s.mounts)),
-		NoColor:         s.noColor,
-		NoConfirm:       s.noConfirm,
-		NoPager:         s.noPager,
-		Path:            s.path,
-		PersistKeys:     s.persistKeys,
-		SafeContent:     s.safeContent,
-		Version:         s.version,
+		AskForMore:  s.askForMore,
+		AutoImport:  s.autoImport,
+		AutoSync:    s.autoSync,
+		ClipTimeout: s.clipTimeout,
+		Debug:       s.debug,
+		Mounts:      make(map[string]string, len(s.mounts)),
+		NoColor:     s.noColor,
+		NoConfirm:   s.noConfirm,
+		NoPager:     s.noPager,
+		Path:        s.path,
+		SafeContent: s.safeContent,
+		Version:     s.version,
 	}
 	for alias, sub := range s.mounts {
 		c.Mounts[alias] = sub.Path()
@@ -40,21 +34,15 @@ func (s *Store) UpdateConfig(cfg *config.Config) error {
 	if cfg == nil {
 		return fmt.Errorf("invalid config")
 	}
-	s.alwaysTrust = cfg.AlwaysTrust
 	s.askForMore = cfg.AskForMore
 	s.autoImport = cfg.AutoImport
-	s.autoPull = cfg.AutoPull
-	s.autoPush = cfg.AutoPush
-	s.debug = cfg.Debug
-	s.checkRecipients = cfg.CheckRecipients
+	s.autoSync = cfg.AutoSync
 	s.clipTimeout = cfg.ClipTimeout
-	s.gitRecurse = cfg.GitRecurse
-	s.loadKeys = cfg.LoadKeys
+	s.debug = cfg.Debug
 	s.noColor = cfg.NoColor
 	s.noConfirm = cfg.NoConfirm
 	s.noPager = cfg.NoPager
 	s.path = cfg.Path
-	s.persistKeys = cfg.PersistKeys
 	s.safeContent = cfg.SafeContent
 
 	// add any missing mounts
@@ -89,24 +77,9 @@ func (s *Store) Alias() string {
 	return ""
 }
 
-// NoConfirm returns true if no recipients should be confirmed on encryption
-func (s *Store) NoConfirm() bool {
-	return s.noConfirm
-}
-
-// AutoPush returns the value of auto push
-func (s *Store) AutoPush() bool {
-	return s.autoPush
-}
-
-// AutoPull returns the value of auto pull
-func (s *Store) AutoPull() bool {
-	return s.autoPull
-}
-
-// AutoImport returns the value of auto import
-func (s *Store) AutoImport() bool {
-	return s.autoImport
+// AutoSync returns the value of auto sync
+func (s *Store) AutoSync() bool {
+	return s.autoSync
 }
 
 // SafeContent returns the value of safe content
@@ -129,7 +102,7 @@ func (s *Store) NoPager() bool {
 	return s.noPager
 }
 
-// GitRecurse returns true if we should recurse git operations to substores
-func (s *Store) GitRecurse() bool {
-	return s.gitRecurse
+// NoConfirm returns true if no recipients should be confirmed on encryption
+func (s *Store) NoConfirm() bool {
+	return s.noConfirm
 }
