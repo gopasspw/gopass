@@ -3,11 +3,12 @@ package action
 import (
 	"testing"
 
+	"github.com/blang/semver"
 	"github.com/stretchr/testify/assert"
 )
 
 func Test_askForGitConfigUser(t *testing.T) {
-	s := New("test-init")
+	s := New(semver.Version{})
 	s.isTerm = true
 
 	_, _, err := s.askForGitConfigUser()
@@ -17,7 +18,7 @@ func Test_askForGitConfigUser(t *testing.T) {
 }
 
 func Test_askForGitConfigUserNonInteractive(t *testing.T) {
-	s := New("test-init")
+	s := New(semver.Version{})
 	// for explicitness
 	s.isTerm = false
 

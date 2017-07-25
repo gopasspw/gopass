@@ -582,6 +582,14 @@ There are several configuration options available through the command line inter
 | `persistkeys` | `bool`    | Store every recipients public keys in the store. Makes it easier to set up an new machine or user. |
 | `safecontent` | `bool`    | Only output _safe content_ (i.e. everything but the first line of a secret) to the terminal. Use _copy_ (`-c`) to retrieve the password in the clipboard. |
 
+## Environment Variables
+
+Some configuration options are only available through setting environment variables.
+
+| **Option**    | *Type*    | Description |
+| ------------- | --------- | ----------- |
+| `CHECKPOINT_DISABLE` | `bool`    | Set to any non-empty value to disable calling the GitHub API when running `gopass version`. |
+
 ## API Stability
 
 `gopass` is provided as an CLI program, not as a library. While we try to make the

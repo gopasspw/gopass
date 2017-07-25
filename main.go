@@ -8,6 +8,7 @@ import (
 	"runtime"
 	"time"
 
+	"github.com/blang/semver"
 	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/action"
 	colorable "github.com/mattn/go-colorable"
@@ -40,13 +41,17 @@ func main() {
 		out: colorable.NewColorableStderr(),
 	}
 
+	sv, err := semver.Parse(version)
+	if err != nil {
+		sv = semver.Version{
+			Build: []string{"HEAD"},
+		}
+	}
+
 	cli.VersionPrinter = func(c *cli.Context) {
 		buildtime := ""
 		if bt, err := time.Parse("2006-01-02T15:04:05-0700", date); err == nil {
 			buildtime = bt.Format("2006-01-02 15:04:05")
-		}
-		if version == "" {
-			version = "HEAD"
 		}
 		buildInfo := ""
 		if commit != "" {
@@ -63,7 +68,7 @@ func main() {
 		}
 		fmt.Printf("%s %s %s%s %s %s\n",
 			name,
-			version,
+			sv.String(),
 			buildInfo,
 			runtime.Version(),
 			runtime.GOOS,
@@ -71,11 +76,11 @@ func main() {
 		)
 	}
 
-	action := action.New(version)
+	action := action.New(sv)
 	app := cli.NewApp()
 
 	app.Name = name
-	app.Version = version
+	app.Version = sv.String()
 	app.Usage = "The standard unix password manager - rewritten in Go"
 	app.EnableBashCompletion = true
 	app.BashComplete = func(c *cli.Context) {
