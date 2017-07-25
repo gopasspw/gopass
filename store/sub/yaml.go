@@ -20,13 +20,16 @@ func (s *Store) GetKey(name, key string) ([]byte, error) {
 		return nil, store.ErrYAMLNoMark
 	}
 
-	d := make(map[string]string)
+	d := make(map[string]interface{})
 	if err := yaml.Unmarshal(parts[1], &d); err != nil {
 		return nil, err
 	}
 
 	if v, found := d[key]; found {
-		return []byte(v), nil
+		if sv, ok := v.(string); ok {
+			return []byte(sv), nil
+		}
+		return nil, store.ErrYAMLValueUnsupported
 	}
 
 	return nil, store.ErrYAMLNoKey
@@ -41,7 +44,7 @@ func (s *Store) SetKey(name, key, value string) error {
 
 	parts := bytes.Split(content, []byte("---\n"))
 
-	d := make(map[string]string)
+	d := make(map[string]interface{})
 	if len(parts) > 1 {
 		if err := yaml.Unmarshal(parts[1], &d); err != nil {
 			return err
@@ -67,7 +70,7 @@ func (s *Store) DeleteKey(name, key string) error {
 
 	parts := bytes.Split(content, []byte("---\n"))
 
-	d := make(map[string]string)
+	d := make(map[string]interface{})
 	if len(parts) > 1 {
 		if err := yaml.Unmarshal(parts[1], &d); err != nil {
 			return err
