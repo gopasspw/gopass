@@ -58,7 +58,7 @@ func (s *Store) SetKey(name, key, value string) error {
 		return err
 	}
 
-	return s.SetConfirm(name, append(parts[0], append([]byte("\n---\n"), buf...)...), fmt.Sprintf("Updated key %s in %s", key, name), nil)
+	return s.SetConfirm(name, append(parts[0], append([]byte("\n---\n"), buf...)...), fmt.Sprintf("Updated key in %s", name), nil)
 }
 
 // DeleteKey will delete a single key in a YAML structured secret
