@@ -205,6 +205,16 @@ We also support `pull before push` to reduce the change of `rejected` pushes whe
 $ gopass config autopull true
 ```
 
+### Check Passwords for Common Flaws
+
+gopass can check your passwords for common flaws, like being too short or coming
+from a dictionary.
+
+```bash
+$ gopass check
+Weak password for golang.org/gopher: it is too short
+```
+
 ### Support for Binary Content
 
 gopass provides secure and easy support for working with binary files through the
@@ -426,17 +436,18 @@ $ gopass ls --flat | dmenu | xargs --no-run-if-empty gopass show | xdotool type 
 
 * `gpg`
 * `git`
+* `cracklib`
 
 On Debian-based Linux systems you should run this command:
 
 ```bash
-$ apt-get install gnupg git
+$ apt-get install gnupg git libcrack2
 ```
 
 On macOS with [homebrew](http://brew.sh) the following will do:
 
 ```bash
-$ brew install gnupg2 git
+$ brew install gnupg2 git cracklib-words
 ```
 
 ### Setup GPG
