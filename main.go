@@ -108,6 +108,12 @@ func main() {
 
 	app.Commands = []cli.Command{
 		{
+			Name:        "audit",
+			Usage:       "Audit passwords for common flaws",
+			Description: "To check passwords for common flaws (e.g. too short or from a dictionary)",
+			Action:      action.Audit,
+		},
+		{
 			Name:    "binary",
 			Usage:   "Work with binary blobs",
 			Aliases: []string{"bin"},

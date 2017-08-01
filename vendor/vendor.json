@@ -82,6 +82,12 @@
 			"revisionTime": "2016-11-23T14:36:37Z"
 		},
 		{
+			"checksumSHA1": "LEQvE0mbFFmQGEgSkT2UYSs2tKk=",
+			"path": "github.com/muesli/crunchy",
+			"revision": "ea7a2096c31f029ee66e245338c2920b14724e7e",
+			"revisionTime": "2017-08-03T14:56:15Z"
+		},
+		{
 			"checksumSHA1": "zKKp5SZ3d3ycKe4EKMNT0BqAWBw=",
 			"origin": "github.com/stretchr/testify/vendor/github.com/pmezard/go-difflib/difflib",
 			"path": "github.com/pmezard/go-difflib/difflib",
@@ -141,6 +147,12 @@
 			"path": "github.com/urfave/cli",
 			"revision": "0bdeddeeb0f650497d603c4ad7b20cfe685682f6",
 			"revisionTime": "2016-11-22T04:36:10Z"
+		},
+		{
+			"checksumSHA1": "ZaOvCn/mlhJZ00hxTgTJ6gRn3MQ=",
+			"path": "github.com/xrash/smetrics",
+			"revision": "a3153f7040e90324c58c6287535e26a0ac5c1cc1",
+			"revisionTime": "2017-02-18T16:04:15Z"
 		},
 		{
 			"checksumSHA1": "xiderUuvye8Kpn7yX3niiJg32bE=",
