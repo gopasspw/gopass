@@ -137,6 +137,12 @@
 			"revisionTime": "2016-09-25T22:06:09Z"
 		},
 		{
+			"checksumSHA1": "wmQr1Ztgk4MijeCkPsUfydPXj0U=",
+			"path": "github.com/taganaka/go-cracklib",
+			"revision": "a3ad93ec48b8c5ebe9e0aa98d00814913aeb0369",
+			"revisionTime": "2016-03-06T06:52:24Z"
+		},
+		{
 			"checksumSHA1": "LMu1NsthSqcXfKu0m6YGPAmwBcY=",
 			"path": "github.com/urfave/cli",
 			"revision": "0bdeddeeb0f650497d603c4ad7b20cfe685682f6",
