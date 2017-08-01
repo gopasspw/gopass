@@ -158,6 +158,12 @@ func main() {
 			},
 		},
 		{
+			Name:        "check",
+			Usage:       "Check passwords for common flaws",
+			Description: "To check passwords for common flaws (e.g. too short or from a dictionary)",
+			Action:      action.Check,
+		},
+		{
 			Name:        "clone",
 			Usage:       "Clone a new store",
 			Description: "To clone a remote repo",

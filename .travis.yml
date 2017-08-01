@@ -3,8 +3,11 @@ language: go
 go:
   - 1.8.x
 
+sudo: required
 before_install:
   - go get -v github.com/golang/lint/golint
+  - sudo apt-get update -qq
+  - sudo apt-get install -y libcrack2
 
 after_success:
   - gem install fpm
