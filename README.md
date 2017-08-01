@@ -144,8 +144,8 @@ Eech4ahRoy2oowi0ohl
 The default action of `gopass` is show. It also accepts the `-c` flag to copy the content of
 the secret directly to the clipboard.
 
-Since it may be dangerous to always display the password on `gopass` calls, the `safecontent` 
-setting may be set to `true` to allow one to display only the rest of the password entries by 
+Since it may be dangerous to always display the password on `gopass` calls, the `safecontent`
+setting may be set to `true` to allow one to display only the rest of the password entries by
 default and display the whole entry, with password, only when the `-f` flag is used.
 
 #### Copy secret to clipboard
@@ -441,7 +441,7 @@ $ gopass ls --flat | dmenu | xargs --no-run-if-empty gopass show | xdotool type 
 On Debian-based Linux systems you should run this command:
 
 ```bash
-$ apt-get install gnupg git libcrack2
+$ apt-get install gnupg git libcrack2-dev
 ```
 
 On macOS with [homebrew](http://brew.sh) the following will do:

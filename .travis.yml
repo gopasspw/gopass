@@ -7,7 +7,7 @@ sudo: required
 before_install:
   - go get -v github.com/golang/lint/golint
   - sudo apt-get update -qq
-  - sudo apt-get install -y libcrack2
+  - sudo apt-get install -y libcrack2-dev
 
 after_success:
   - gem install fpm
