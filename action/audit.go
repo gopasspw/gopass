@@ -2,10 +2,17 @@ package action
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
+	"github.com/cheggaaa/pb"
+	"github.com/fatih/color"
 	"github.com/muesli/crunchy"
 	"github.com/urfave/cli"
+)
+
+const (
+	maxCheckLength = 256
 )
 
 // Audit validates passwords against common flaws
@@ -19,28 +26,48 @@ func (s *Action) Audit(c *cli.Context) error {
 	dupes := make(map[string][]string)
 	foundWeakPasswords := false
 
-	for _, secret := range t.List(0) {
-		content, err := s.Store.Get(secret)
+	pwList := t.List(0)
+	fmt.Printf("Checking %d secrets. This may take some time ...\n", len(pwList))
+	bar := pb.StartNew(len(pwList))
+	for _, secret := range pwList {
+		bar.Increment()
+		content, err := s.Store.GetFirstLine(secret)
 		if err != nil {
-			return err
+			fmt.Println(color.RedString("Failed to retrieve secret '%s': %s", secret, err))
+			continue
 		}
 
 		pw := string(content)
+		if len(pw) > maxCheckLength {
+			fmt.Println(color.RedString("Warning: Skipped long secret"))
+			continue
+		}
 		if err = validator.Check(pw); err != nil {
 			foundWeakPasswords = true
-			fmt.Printf("Detected weak password for %s: %v\n", secret, err)
+			fmt.Println(color.CyanString("Detected weak password for %s: %v\n", secret, err))
 		}
 
 		dupes[pw] = append(dupes[pw], secret)
 	}
+	bar.FinishPrint("Done")
 
 	if !foundWeakPasswords {
-		fmt.Println("No weak passwords detected.")
+		fmt.Println(color.GreenString("No weak passwords detected."))
 	}
+
+	foundDupes := false
 	for _, dupe := range dupes {
 		if len(dupe) > 1 {
-			fmt.Printf("Detected a shared password for %s\n", strings.Join(dupe, ", "))
+			foundDupes = true
+			fmt.Println(color.CyanString("Detected a shared password for %s\n", strings.Join(dupe, ", ")))
 		}
+	}
+	if !foundDupes {
+		fmt.Println(color.GreenString("No dupes found."))
+	}
+
+	if foundWeakPasswords || foundDupes {
+		os.Exit(1)
 	}
 
 	return nil

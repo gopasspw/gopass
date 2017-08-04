@@ -111,6 +111,7 @@ func main() {
 			Name:        "audit",
 			Usage:       "Audit passwords for common flaws",
 			Description: "To check passwords for common flaws (e.g. too short or from a dictionary)",
+			Before:      action.Initialized,
 			Action:      action.Audit,
 		},
 		{
