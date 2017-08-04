@@ -39,6 +39,12 @@
 			"revisionTime": "2016-06-10T10:09:12Z"
 		},
 		{
+			"checksumSHA1": "VZbiX0oCl9v8zYfFmExn/BPIA4E=",
+			"path": "github.com/cheggaaa/pb",
+			"revision": "c1f48d5ce4f292dfb775ef52aaedd15be323510d",
+			"revisionTime": "2016-05-20T10:10:51Z"
+		},
+		{
 			"checksumSHA1": "Lf3uUXTkKK5DJ37BxQvxO1Fq+K8=",
 			"origin": "github.com/stretchr/testify/vendor/github.com/davecgh/go-spew/spew",
 			"path": "github.com/davecgh/go-spew/spew",

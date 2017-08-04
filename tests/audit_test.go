@@ -1,7 +1,6 @@
 package tests
 
 import (
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -14,8 +13,8 @@ func TestAudit(t *testing.T) {
 	ts.initStore()
 	ts.initSecrets("")
 
-	list := `Detected weak password for fixed/secret: Password is too short`
 	out, err := ts.run("audit")
-	assert.NoError(t, err)
-	assert.Equal(t, strings.TrimSpace(list), out)
+	assert.Error(t, err)
+	assert.Contains(t, out, "No dupes found")
+	assert.Contains(t, out, "Detected weak password for fixed/secret: Password is too short")
 }
