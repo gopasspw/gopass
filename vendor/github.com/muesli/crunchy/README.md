@@ -13,9 +13,9 @@ Detects:
  - Hashed dictionary words, like "5f4dcc3b5aa765d61d8327deb882cf99" (the md5sum of "password"): `ErrHashedDictionary`
 
 Your system dictionaries from /usr/share/dict will be indexed. If no dictionaries were found, crunchy only relies on the
-regular sanity checks (ErrEmpty, ErrTooShort and ErrTooSystematic). On Ubuntu it is recommended to install the wordlists
-distributed with `cracklib-runtime`, on macOS you can install `cracklib-words` from brew. You could also install various
-other language dictionaries or wordlists, e.g. from skullsecurity.org.
+regular sanity checks (ErrEmpty, ErrTooShort, ErrTooFewChars and ErrTooSystematic). On Ubuntu it is recommended to install
+the wordlists distributed with `cracklib-runtime`, on macOS you can install `cracklib-words` from brew. You could also
+install various other language dictionaries or wordlists, e.g. from skullsecurity.org.
 
 crunchy uses the WagnerFischer algorithm to find mangled passwords in your dictionaries.
 
