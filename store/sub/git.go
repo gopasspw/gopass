@@ -108,7 +108,6 @@ func (s *Store) GitVersion() semver.Version {
 	v := semver.Version{}
 
 	cmd := exec.Command("git", "version")
-	cmd.Dir = s.path
 	out, err := cmd.Output()
 	if err != nil {
 		if gd := os.Getenv("GOPASS_DEBUG"); gd != "" {
