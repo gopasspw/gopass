@@ -5,9 +5,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/cheggaaa/pb"
 	"github.com/fatih/color"
 	"github.com/muesli/crunchy"
+	"github.com/muesli/goprogressbar"
 	"github.com/urfave/cli"
 )
 
@@ -24,11 +24,21 @@ func (s *Action) Audit(c *cli.Context) error {
 
 	pwList := t.List(0)
 	fmt.Printf("Checking %d secrets. This may take some time ...\n", len(pwList))
-	bar := pb.StartNew(len(pwList))
+
+	bar := &goprogressbar.ProgressBar{
+		Text:    "Secrets checked",
+		Total:   int64(len(pwList)),
+		Current: 0,
+		Width:   120,
+	}
 	for _, secret := range pwList {
-		bar.Increment()
+		bar.Current++
+		bar.Text = fmt.Sprintf("%d of %d secrets checked", bar.Current, bar.Total)
+		bar.LazyPrint()
+
 		content, err := s.Store.GetFirstLine(secret)
 		if err != nil {
+			bar.Clear()
 			fmt.Println(color.RedString("Failed to retrieve secret '%s': %s", secret, err))
 			continue
 		}
@@ -36,22 +46,24 @@ func (s *Action) Audit(c *cli.Context) error {
 		pw := string(content)
 		if err = validator.Check(pw); err != nil {
 			foundWeakPasswords = true
-			fmt.Println(color.CyanString("Detected weak password for %s: %v\n", secret, err))
+			bar.Clear()
+			fmt.Println(color.CyanString("Detected weak password for %s: %v", secret, err))
 		}
 
 		dupes[pw] = append(dupes[pw], secret)
 	}
-	bar.FinishPrint("Done")
 
 	if !foundWeakPasswords {
 		fmt.Println(color.GreenString("No weak passwords detected."))
+	} else {
+		bar.Clear()
 	}
 
 	foundDupes := false
 	for _, dupe := range dupes {
 		if len(dupe) > 1 {
 			foundDupes = true
-			fmt.Println(color.CyanString("Detected a shared password for %s\n", strings.Join(dupe, ", ")))
+			fmt.Println(color.CyanString("Detected a shared password for %s", strings.Join(dupe, ", ")))
 		}
 	}
 	if !foundDupes {
