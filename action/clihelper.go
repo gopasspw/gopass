@@ -212,8 +212,6 @@ func (s *Action) askForGitConfigUser() (string, string, error) {
 
 	for _, key := range keyList {
 		for _, identity := range key.Identities {
-			useCurrent = false
-
 			if !s.isTerm {
 				return identity.Name, identity.Email, nil
 			}

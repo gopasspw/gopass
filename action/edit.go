@@ -70,7 +70,7 @@ func (s *Action) editor(content []byte) ([]byte, error) {
 		}
 	}()
 
-	if _, err := tmpfile.Write([]byte(content)); err != nil {
+	if _, err := tmpfile.Write(content); err != nil {
 		return []byte{}, fmt.Errorf("failed to write tmpfile to start with %s %v: %s", editor, tmpfile.Name(), err)
 	}
 	if err := tmpfile.Close(); err != nil {

@@ -74,7 +74,7 @@ func (s *Action) Insert(c *cli.Context) error {
 		if err != nil {
 			return err
 		}
-		return s.Store.SetConfirm(name, []byte(content), fmt.Sprintf("Inserted user supplied password with %s", os.Getenv("EDITOR")), confirm)
+		return s.Store.SetConfirm(name, content, fmt.Sprintf("Inserted user supplied password with %s", os.Getenv("EDITOR")), confirm)
 	}
 
 	// if echo mode is requested use a simple string input function
