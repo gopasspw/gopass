@@ -11,10 +11,6 @@ import (
 	"github.com/urfave/cli"
 )
 
-const (
-	maxCheckLength = 256
-)
-
 // Audit validates passwords against common flaws
 func (s *Action) Audit(c *cli.Context) error {
 	t, err := s.Store.Tree()
@@ -38,10 +34,6 @@ func (s *Action) Audit(c *cli.Context) error {
 		}
 
 		pw := string(content)
-		if len(pw) > maxCheckLength {
-			fmt.Println(color.RedString("Warning: Skipped long secret"))
-			continue
-		}
 		if err = validator.Check(pw); err != nil {
 			foundWeakPasswords = true
 			fmt.Println(color.CyanString("Detected weak password for %s: %v\n", secret, err))
