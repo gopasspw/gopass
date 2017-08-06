@@ -47,14 +47,14 @@ func (s *Action) Audit(c *cli.Context) error {
 		if err = validator.Check(pw); err != nil {
 			foundWeakPasswords = true
 			bar.Clear()
-			fmt.Println(color.CyanString("Detected weak password for %s: %v", secret, err))
+			fmt.Println(color.CyanString("Detected weak secret for '%s': %v", secret, err))
 		}
 
 		dupes[pw] = append(dupes[pw], secret)
 	}
 
 	if !foundWeakPasswords {
-		fmt.Println(color.GreenString("No weak passwords detected."))
+		fmt.Println(color.GreenString("No weak secrets detected."))
 	} else {
 		bar.Clear()
 	}
@@ -63,11 +63,11 @@ func (s *Action) Audit(c *cli.Context) error {
 	for _, dupe := range dupes {
 		if len(dupe) > 1 {
 			foundDupes = true
-			fmt.Println(color.CyanString("Detected a shared password for %s", strings.Join(dupe, ", ")))
+			fmt.Println(color.CyanString("Detected a shared secret for %s", strings.Join(dupe, ", ")))
 		}
 	}
 	if !foundDupes {
-		fmt.Println(color.GreenString("No dupes found."))
+		fmt.Println(color.GreenString("No shared secrets found."))
 	}
 
 	if foundWeakPasswords || foundDupes {
