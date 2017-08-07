@@ -97,7 +97,7 @@ func (r *Store) MountPoints() []string {
 // mountPoint returns the most-specific mount point for the given key
 func (r *Store) mountPoint(name string) string {
 	for _, mp := range r.MountPoints() {
-		if strings.HasPrefix(name, mp) {
+		if strings.HasPrefix(name+"/", mp+"/") {
 			return mp
 		}
 	}
