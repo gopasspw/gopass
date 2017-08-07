@@ -212,7 +212,7 @@ from a dictionary.
 
 ```bash
 $ gopass audit
-Weak password for golang.org/gopher: it is too short
+Detected weak secret for 'golang.org/gopher': Password is too short
 ```
 
 ### Support for Binary Content
