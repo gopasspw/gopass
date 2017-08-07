@@ -15,6 +15,6 @@ func TestAudit(t *testing.T) {
 
 	out, err := ts.run("audit")
 	assert.Error(t, err)
-	assert.Contains(t, out, "No dupes found")
-	assert.Contains(t, out, "Detected weak password for fixed/secret: Password is too short")
+	assert.Contains(t, out, "No shared secrets found")
+	assert.Contains(t, out, "Detected weak secret for 'fixed/secret': Password is too short")
 }

@@ -39,12 +39,6 @@
 			"revisionTime": "2016-06-10T10:09:12Z"
 		},
 		{
-			"checksumSHA1": "VZbiX0oCl9v8zYfFmExn/BPIA4E=",
-			"path": "github.com/cheggaaa/pb",
-			"revision": "c1f48d5ce4f292dfb775ef52aaedd15be323510d",
-			"revisionTime": "2016-05-20T10:10:51Z"
-		},
-		{
 			"checksumSHA1": "Lf3uUXTkKK5DJ37BxQvxO1Fq+K8=",
 			"origin": "github.com/stretchr/testify/vendor/github.com/davecgh/go-spew/spew",
 			"path": "github.com/davecgh/go-spew/spew",
@@ -92,6 +86,12 @@
 			"path": "github.com/muesli/crunchy",
 			"revision": "36b0143650b78f67a2c842b7c924a3ced5a86243",
 			"revisionTime": "2017-08-06T02:11:55Z"
+		},
+		{
+			"checksumSHA1": "UBaji0k1XY/Oa5AbhRlskqX5viw=",
+			"path": "github.com/muesli/goprogressbar",
+			"revision": "4d7c51a9b4fd99699faee5dfbaa76dd67f94b2eb",
+			"revisionTime": "2017-08-06T02:40:18Z"
 		},
 		{
 			"checksumSHA1": "zKKp5SZ3d3ycKe4EKMNT0BqAWBw=",
