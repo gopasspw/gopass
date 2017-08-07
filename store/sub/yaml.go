@@ -15,7 +15,7 @@ func (s *Store) GetKey(name, key string) ([]byte, error) {
 		return nil, err
 	}
 
-	parts := bytes.Split(content, []byte("---\n"))
+	parts := bytes.SplitN(content, []byte("---\n"), 2)
 	if len(parts) < 2 {
 		return nil, store.ErrYAMLNoMark
 	}
