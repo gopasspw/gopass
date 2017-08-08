@@ -11,8 +11,8 @@ import (
 	"github.com/urfave/cli"
 )
 
-// AuditedSecret with its name, content a warning message and a pipeline error.
-type AuditedSecret struct {
+// auditedSecret with its name, content a warning message and a pipeline error.
+type auditedSecret struct {
 	name string
 
 	// the secret's content as a string. Needed for checking for duplicates.
@@ -39,11 +39,11 @@ func (s *Action) Audit(c *cli.Context) error {
 	jobs := make(chan string)
 
 	// Secrets that have been audited.
-	checked := make(chan AuditedSecret)
+	checked := make(chan auditedSecret)
 
 	// Spawn workers that run the auditing of all secrets concurrently.
 	validator := crunchy.NewValidator()
-	for worker := 1; worker <= runtime.NumCPU(); worker++ {
+	for worker := 0; worker < runtime.NumCPU(); worker++ {
 		go s.audit(validator, jobs, checked)
 	}
 
@@ -76,9 +76,10 @@ func (s *Action) Audit(c *cli.Context) error {
 		bar.LazyPrint()
 
 		if i == len(list) {
-			close(checked)
+			break
 		}
 	}
+	close(checked)
 	fmt.Println("") // Print empty line after the progressbar.
 
 	foundDuplicates := false
@@ -117,19 +118,19 @@ func (s *Action) Audit(c *cli.Context) error {
 	return nil
 }
 
-func (s *Action) audit(validator *crunchy.Validator, secrets <-chan string, checked chan<- AuditedSecret) {
+func (s *Action) audit(validator *crunchy.Validator, secrets <-chan string, checked chan<- auditedSecret) {
 	for secret := range secrets {
 		content, err := s.Store.GetFirstLine(secret)
 		if err != nil {
-			checked <- AuditedSecret{name: secret, content: string(content), err: err}
+			checked <- auditedSecret{name: secret, content: string(content), err: err}
 			continue
 		}
 
 		if err := validator.Check(string(content)); err != nil {
-			checked <- AuditedSecret{name: secret, content: string(content), message: err.Error()}
+			checked <- auditedSecret{name: secret, content: string(content), message: err.Error()}
 			continue
 		}
 
-		checked <- AuditedSecret{name: secret, content: string(content)}
+		checked <- auditedSecret{name: secret, content: string(content)}
 	}
 }
