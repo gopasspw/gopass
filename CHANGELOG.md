@@ -1,3 +1,26 @@
+## Next Release
+
+* [BREAKING] Enforce YAML document markers [#193]
+* [BREAKING] Simplify configuration [#213]
+* [FEATURE] Implement pager feature [#163]
+* [FEATURE] Add basic fish completions [#168]
+* [FEATURE] Add version check [#205]
+* [ENHANCEMENT] Disable auto-push while reencrypting [#171]
+* [ENHANCEMENT] Configure git user and email before initial git commit [#185]
+* [ENHANCEMENT] Add recursive git operations [#186]
+* [ENHANCEMENT] Document missing config options [#188]
+* [ENHANCEMENT] Only check and load missing GPG keys after git pull [#190]
+* [ENHANCEMENT] Only encrypt for valid recipients [#191]
+* [ENHANCEMENT] Check and import missing GPG keys on recipients show [#204]
+* [ENHANCEMENT] Save recipients on show [#207]
+* [ENHANCEMENT] Include GPG and Git version in gopass version output [#210]
+* [ENHANCEMENT] Support more flexible YAML documents [#217]
+* [ENHANCEMENT] Simplify mounts add by infering local path [#219]
+* [ENHANCEMENT] Add contributor documentation [#222]
+* [BUGFIX] Fix nil-pointer check on non existing subtree [#183]
+* [BUGFIX] Fix load-keys [#203]
+* [BUGFIX] Only match mounts on folders [#240]
+
 ## 1.2.0 / 2017-06-21
 
 * [FEATURE] YAML support [#125]
