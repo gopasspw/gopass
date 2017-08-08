@@ -101,31 +101,17 @@ func (s *Action) Audit(c *cli.Context) error {
 		fmt.Println(color.GreenString("No shared secrets found."))
 	}
 
-	foundWeakPasswords := printResults(messages, "%s:\n", color.CyanString)
+	foundWeakPasswords := printAuditResults(messages, "%s:\n", color.CyanString)
 	if !foundWeakPasswords {
 		fmt.Println(color.GreenString("No weak secrets detected."))
 	}
-	foundErrors := printResults(errors, "%s:\n", color.RedString)
+	foundErrors := printAuditResults(errors, "%s:\n", color.RedString)
 
 	if foundWeakPasswords || foundDuplicates || foundErrors {
 		os.Exit(1)
 	}
 
 	return nil
-}
-
-func printResults(m map[string][]string, format string, color func(format string, a ...interface{}) string) bool {
-	b := false
-
-	for msg, secrets := range m {
-		b = true
-		fmt.Printf(color(format, msg))
-		for _, secret := range secrets {
-			fmt.Printf(color("\t- %s\n", secret))
-		}
-	}
-
-	return b
 }
 
 func (s *Action) audit(validator *crunchy.Validator, secrets <-chan string, checked chan<- auditedSecret) {
@@ -143,4 +129,18 @@ func (s *Action) audit(validator *crunchy.Validator, secrets <-chan string, chec
 
 		checked <- auditedSecret{name: secret, content: string(content)}
 	}
+}
+
+func printAuditResults(m map[string][]string, format string, color func(format string, a ...interface{}) string) bool {
+	b := false
+
+	for msg, secrets := range m {
+		b = true
+		fmt.Printf(color(format, msg))
+		for _, secret := range secrets {
+			fmt.Printf(color("\t- %s\n", secret))
+		}
+	}
+
+	return b
 }
