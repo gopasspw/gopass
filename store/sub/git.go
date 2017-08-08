@@ -51,10 +51,18 @@ func (s *Store) GitInit(alias, signKey, userName, userEmail string) error {
 		}
 	}
 
+	// set commit identity
 	if err := s.gitCmd("GitInit", "config", "--local", "user.name", userName); err != nil {
 		return err
 	}
 	if err := s.gitCmd("GitInit", "config", "--local", "user.email", userEmail); err != nil {
+		return err
+	}
+
+	// set push default, to avoid issues with
+	// "fatal: The current branch master has multiple upstream branches, refusing to push"
+	// https://stackoverflow.com/questions/948354/default-behavior-of-git-push-without-a-branch-specified
+	if err := s.gitCmd("GitInit", "config", "--local", "push.default", "matching"); err != nil {
 		return err
 	}
 
