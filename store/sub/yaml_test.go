@@ -162,6 +162,31 @@ func TestYAML(t *testing.T) {
 				}
 			},
 		},
+		{
+			name: "Get Multi-Line Value containing three dashes",
+			tf: func(s *Store) func(t *testing.T) {
+				mlValue := `-----BEGIN PGP PRIVATE KEY BLOCK-----
+aaa
+bbb
+ccc
+-----END PGP PRIVATE KEY BLOCK-----`
+				return func(t *testing.T) {
+					// write key
+					err := s.SetKey(yamlSecret, yamlKey, mlValue)
+					if err != nil {
+						t.Fatalf("%s", err)
+					}
+					// read back key
+					content, err := s.GetKey(yamlSecret, yamlKey)
+					if err != nil {
+						t.Fatalf("%s", err)
+					}
+					if string(content) != mlValue {
+						t.Errorf("Wrong value: %s", content)
+					}
+				}
+			},
+		},
 	} {
 		// common setup
 		tempdir, err := ioutil.TempDir("", "gopass-")
