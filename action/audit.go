@@ -3,7 +3,6 @@ package action
 import (
 	"fmt"
 	"os"
-	"runtime"
 
 	"github.com/fatih/color"
 	"github.com/muesli/crunchy"
@@ -43,7 +42,8 @@ func (s *Action) Audit(c *cli.Context) error {
 
 	// Spawn workers that run the auditing of all secrets concurrently.
 	validator := crunchy.NewValidator()
-	for worker := 0; worker < runtime.NumCPU(); worker++ {
+	maxWorker := 1 // runtime.NumCPU()
+	for worker := 0; worker < maxWorker; worker++ {
 		go s.audit(validator, jobs, checked)
 	}
 
