@@ -64,8 +64,9 @@ func (s *Action) Audit(c *cli.Context) error {
 
 	i := 0
 	for secret := range checked {
-		duplicates[secret.content] = append(duplicates[secret.content], secret.name)
-
+		if secret.err == nil {
+			duplicates[secret.content] = append(duplicates[secret.content], secret.name)
+		}
 		if secret.message != "" {
 			messages[secret.message] = append(messages[secret.message], secret.name)
 		}
@@ -122,7 +123,7 @@ func (s *Action) audit(validator *crunchy.Validator, secrets <-chan string, chec
 	for secret := range secrets {
 		content, err := s.Store.GetFirstLine(secret)
 		if err != nil {
-			checked <- auditedSecret{name: secret, content: string(content), err: err}
+			checked <- auditedSecret{name: secret, content: string(content), err: err, message: err.Error()}
 			continue
 		}
 
