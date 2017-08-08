@@ -49,7 +49,11 @@ func (s *Action) init(alias, path string, nogit bool, keys ...string) error {
 	}
 
 	if !nogit {
-		if err := s.gitInit(alias, ""); err != nil {
+		sk := ""
+		if len(keys) == 1 {
+			sk = keys[0]
+		}
+		if err := s.gitInit(alias, sk); err != nil {
 			color.Yellow("Failed to init git: %s", err)
 		}
 	}
