@@ -215,6 +215,20 @@ $ gopass audit
 Detected weak secret for 'golang.org/gopher': Password is too short
 ```
 
+### Check Passwords against leaked passwords
+
+gopass can assist you in checking your passwords against those included in recent
+data breaches. Right now this you still need to download and unpack those dumps
+yourself, but gopass can take care of the rest.
+
+First go to (haveibeenpwned.com/Passwords)[https://haveibeenpwned.com/Passwords] and download
+the dumps. Then unpack the 7-zip archives somewhere. Note that full path to those
+files and provide it to gopass in the environment variable `HIBP_DUMPS`.
+
+```bash
+$ HIBP_DUMPS=/tmp/pwned-passwords-1.0.txt gopass audit hibp
+```
+
 ### Support for Binary Content
 
 gopass provides secure and easy support for working with binary files through the
@@ -654,6 +668,7 @@ If you use `gopass` as a library be sure to vendor it and expect breaking change
 ## FAQ
 
 * *How does gopass relate to HashiCorp vault?* - While [Vault](https://www.vaultproject.io/) is for machines, `gopass` is for humans [#7](https://github.com/justwatchcom/gopass/issues/7)
+* `gopass show secret` displays `Error: Failed to decrypt` - This issue may happen if your gpg setup if broken. On MacOS try `brew link --overwrite gnupg`. You also may need to set `export GPG_TTY=$(tty)` in your `.bashrc` [#208](https://github.com/justwatchcom/gopass/issues/208), [#209](https://github.com/justwatchcom/gopass/issues/209)
 
 ## Credit & License
 
