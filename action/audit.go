@@ -56,6 +56,7 @@ func (s *Action) Audit(c *cli.Context) error {
 
 	duplicates := make(map[string][]string)
 	messages := make(map[string][]string)
+	errors := make(map[string][]string)
 
 	bar := &goprogressbar.ProgressBar{
 		Total: int64(len(list)),
@@ -64,7 +65,9 @@ func (s *Action) Audit(c *cli.Context) error {
 
 	i := 0
 	for secret := range checked {
-		if secret.err == nil {
+		if secret.err != nil {
+			errors[secret.err.Error()] = append(errors[secret.err.Error()], secret.name)
+		} else {
 			duplicates[secret.content] = append(duplicates[secret.content], secret.name)
 		}
 		if secret.message != "" {
@@ -81,7 +84,7 @@ func (s *Action) Audit(c *cli.Context) error {
 		}
 	}
 	close(checked)
-	fmt.Println("") // Print empty line after the progressbar.
+	fmt.Println() // Print empty line after the progressbar.
 
 	foundDuplicates := false
 	for _, secrets := range duplicates {
@@ -94,25 +97,17 @@ func (s *Action) Audit(c *cli.Context) error {
 			}
 		}
 	}
-
 	if !foundDuplicates {
 		fmt.Println(color.GreenString("No shared secrets found."))
 	}
 
-	foundWeakPasswords := false
-	for msg, secrets := range messages {
-		foundWeakPasswords = true
-		fmt.Printf(color.CyanString("%s:\n", msg))
-		for _, secret := range secrets {
-			fmt.Printf(color.CyanString("\t- %s\n", secret))
-		}
-	}
-
+	foundWeakPasswords := printAuditResults(messages, "%s:\n", color.CyanString)
 	if !foundWeakPasswords {
 		fmt.Println(color.GreenString("No weak secrets detected."))
 	}
+	foundErrors := printAuditResults(errors, "%s:\n", color.RedString)
 
-	if foundWeakPasswords || foundDuplicates {
+	if foundWeakPasswords || foundDuplicates || foundErrors {
 		os.Exit(1)
 	}
 
@@ -123,7 +118,7 @@ func (s *Action) audit(validator *crunchy.Validator, secrets <-chan string, chec
 	for secret := range secrets {
 		content, err := s.Store.GetFirstLine(secret)
 		if err != nil {
-			checked <- auditedSecret{name: secret, content: string(content), err: err, message: err.Error()}
+			checked <- auditedSecret{name: secret, content: string(content), err: err}
 			continue
 		}
 
@@ -134,4 +129,18 @@ func (s *Action) audit(validator *crunchy.Validator, secrets <-chan string, chec
 
 		checked <- auditedSecret{name: secret, content: string(content)}
 	}
+}
+
+func printAuditResults(m map[string][]string, format string, color func(format string, a ...interface{}) string) bool {
+	b := false
+
+	for msg, secrets := range m {
+		b = true
+		fmt.Printf(color(format, msg))
+		for _, secret := range secrets {
+			fmt.Printf(color("\t- %s\n", secret))
+		}
+	}
+
+	return b
 }
