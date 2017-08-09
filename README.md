@@ -221,7 +221,7 @@ gopass can assist you in checking your passwords against those included in recen
 data breaches. Right now this you still need to download and unpack those dumps
 yourself, but gopass can take care of the rest.
 
-First go to (haveibeenpwned.com/Passwords)[https://haveibeenpwned.com/Passwords] and download
+First go to [haveibeenpwned.com/Passwords](https://haveibeenpwned.com/Passwords) and download
 the dumps. Then unpack the 7-zip archives somewhere. Note that full path to those
 files and provide it to gopass in the environment variable `HIBP_DUMPS`.
 
