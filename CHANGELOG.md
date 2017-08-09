@@ -1,4 +1,4 @@
-## 1.3.0-rc1 / 2017-08-09
+## 1.3.0-rc2 / 2017-08-09
 
 * [BREAKING] Enforce YAML document markers [#193]
 * [BREAKING] Simplify configuration [#213]
