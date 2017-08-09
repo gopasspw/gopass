@@ -113,6 +113,13 @@ func main() {
 			Description: "To check passwords for common flaws (e.g. too short or from a dictionary)",
 			Before:      action.Initialized,
 			Action:      action.Audit,
+			Flags: []cli.Flag{
+				cli.IntFlag{
+					Name:  "jobs, j",
+					Usage: "The number of jobs to run concurrently when auditing",
+					Value: 1,
+				},
+			},
 		},
 		{
 			Name:    "binary",

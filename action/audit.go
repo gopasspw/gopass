@@ -34,24 +34,23 @@ func (s *Action) Audit(c *cli.Context) error {
 
 	fmt.Printf("Checking %d secrets. This may take some time ...\n", len(list))
 
-	// Jobs are the secrets that still need auditing.
-	jobs := make(chan string)
+	// Secrets that still need auditing.
+	secrets := make(chan string)
 
 	// Secrets that have been audited.
 	checked := make(chan auditedSecret)
 
 	// Spawn workers that run the auditing of all secrets concurrently.
 	validator := crunchy.NewValidator()
-	maxWorker := 1 // runtime.NumCPU()
-	for worker := 0; worker < maxWorker; worker++ {
-		go s.audit(validator, jobs, checked)
+	for jobs := 0; jobs < c.Int("jobs"); jobs++ {
+		go s.audit(validator, secrets, checked)
 	}
 
 	go func() {
 		for _, secret := range list {
-			jobs <- secret
+			secrets <- secret
 		}
-		close(jobs)
+		close(secrets)
 	}()
 
 	duplicates := make(map[string][]string)
