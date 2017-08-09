@@ -113,6 +113,27 @@ func main() {
 			Description: "To check passwords for common flaws (e.g. too short or from a dictionary)",
 			Before:      action.Initialized,
 			Action:      action.Audit,
+			Flags: []cli.Flag{
+				cli.IntFlag{
+					Name:  "jobs, j",
+					Usage: "The number of jobs to run concurrently when auditing",
+					Value: 1,
+				},
+			},
+			Subcommands: []cli.Command{
+				{
+					Name:   "hibp",
+					Usage:  "Check all secrets against the public haveibeenpwned.com dumps",
+					Before: action.Initialized,
+					Action: action.HIBP,
+					Flags: []cli.Flag{
+						cli.BoolFlag{
+							Name:  "force, f",
+							Usage: "Force to move the secret and overwrite existing one",
+						},
+					},
+				},
+			},
 		},
 		{
 			Name:    "binary",

@@ -215,6 +215,20 @@ $ gopass audit
 Detected weak secret for 'golang.org/gopher': Password is too short
 ```
 
+### Check Passwords against leaked passwords
+
+gopass can assist you in checking your passwords against those included in recent
+data breaches. Right now this you still need to download and unpack those dumps
+yourself, but gopass can take care of the rest.
+
+First go to (haveibeenpwned.com/Passwords)[https://haveibeenpwned.com/Passwords] and download
+the dumps. Then unpack the 7-zip archives somewhere. Note that full path to those
+files and provide it to gopass in the environment variable `HIBP_DUMPS`.
+
+```bash
+$ HIBP_DUMPS=/tmp/pwned-passwords-1.0.txt gopass audit hibp
+```
+
 ### Support for Binary Content
 
 gopass provides secure and easy support for working with binary files through the
