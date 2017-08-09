@@ -1,10 +1,13 @@
-## Next Release
+## 1.3.0-rc1 / 2017-08-09
 
 * [BREAKING] Enforce YAML document markers [#193]
 * [BREAKING] Simplify configuration [#213]
+* [BREAKING] Align gopass init flags with other commands [#252]
 * [FEATURE] Implement pager feature [#163]
-* [FEATURE] Add basic fish completions [#168]
+* [FEATURE] Add basic fish completion [#168]
 * [FEATURE] Add version check [#205]
+* [FEATURE] Add gopass audit command [#228]
+* [FEATURE] Add gopass audit hibp command [#239]
 * [ENHANCEMENT] Disable auto-push while reencrypting [#171]
 * [ENHANCEMENT] Configure git user and email before initial git commit [#185]
 * [ENHANCEMENT] Add recursive git operations [#186]
@@ -17,9 +20,12 @@
 * [ENHANCEMENT] Support more flexible YAML documents [#217]
 * [ENHANCEMENT] Simplify mounts add by infering local path [#219]
 * [ENHANCEMENT] Add contributor documentation [#222]
+* [ENHANCEMENT] Re-use selected encryption key for git signing [#247]
+* [ENHANCEMENT] Setup git push.default [#248]
 * [BUGFIX] Fix nil-pointer check on non existing subtree [#183]
 * [BUGFIX] Fix load-keys [#203]
 * [BUGFIX] Only match mounts on folders [#240]
+* [BUGFIX] Disable checkRecipients as it conflicts with alwaysTrust [#242]
 
 ## 1.2.0 / 2017-06-21
 
