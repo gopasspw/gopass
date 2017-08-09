@@ -56,7 +56,7 @@ In the example above the repository would have been cloned to `$HOME/.password-s
 Afterwards the directory would have been mounted as `work`.
 
 Please note that the repository must contain an already initialized password
-store. You can initialize a new store with `gopass init --store /path/to/store`.
+store. You can initialize a new store with `gopass init --path /path/to/store`.
 
 ### Adding secrets
 
@@ -268,7 +268,26 @@ $ gopass mounts
 $ gopass mounts remove test
 ```
 
-You can initialize a new store using `gopass init --alias mount-point --store /path/to/store`.
+You can initialize a new store using `gopass init --store mount-point --path /path/to/store`.
+
+Where possible sub stores are supported transparently through the path to the
+secret. When specifying the name of a secret it's matched against any mounted
+sub stores and the given action is executed on this store.
+
+Commands that don't accept an secret name, e.g. `gopass recipients add` or
+`gopass init` usually accept a `--store` parameter. Please check the help output
+of each command for more information, e.g. `gopass help init` or
+`gopass recipients help add`.
+
+Commands that support the `--store` flag:
+
+| **Command** | *Example* | Description |
+| ----------- | --------- | ----------- |
+| `gopass git` | `gopass git --store=foo push origin master` | Push all changes in the sub store *foo* to master
+| `gopass git init` | `gopass git init --store=foo` | Initialize git in the sub store *foo*
+| `gopass init` | `gopass init --store=foo` | Initialize and mount the new sub store *foo*
+| `gopass recipients add`| `gopass recipients add --store=foo GPGxID` | Add the new recipient *GPGxID* to the store *foo*
+| `gopass recipients remove` | `gopass recipients remove --store=foo GPGxID` | Remove the existing recipients *GPGxID* from the store *foo*
 
 ### Directly edit structured secrets aka. YAML support
 
@@ -325,7 +344,20 @@ $ gopass recipients
 gopass
 ├── 0xB1C7DF661ABB2C1A - Someone <someone@example.com>
 └── 0xB5B44266A3683834 - Gopher <gopher@golang.org>
+
+$ gopass recipients remove 0xB5B44266A3683834
+
+$ gopass recipients
+gopass
+└── 0xB1C7DF661ABB2C1A - Someone <someone@example.com>
 ```
+
+Running `gopass recipients` will also try to load and save any missing GPG keys
+from and to the store.
+
+The commands manipulating recipients, i.e. `gopass recipients add` and
+`gopass recpients remove` accept a `--store` flag that expects the
+*name of a mount point* to operate on this mounted sub store.
 
 ### Debugging
 
