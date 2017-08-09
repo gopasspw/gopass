@@ -18,8 +18,8 @@ func (s *Action) Initialized(*cli.Context) error {
 
 // Init a new password store with a first gpg id
 func (s *Action) Init(c *cli.Context) error {
-	path := c.String("store")
-	alias := c.String("alias")
+	path := c.String("path")
+	alias := c.String("store")
 	nogit := c.Bool("nogit")
 
 	return s.init(alias, path, nogit, c.Args()...)

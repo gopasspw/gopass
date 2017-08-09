@@ -46,7 +46,7 @@ func (r *Store) addMount(alias, path string, keys ...string) error {
 
 	if !s.Initialized() {
 		if len(keys) < 1 {
-			return fmt.Errorf("password store %s is not initialized. Try gopass init --alias %s --store %s", alias, alias, path)
+			return fmt.Errorf("password store %s is not initialized. Try gopass init --store %s --path %s", alias, alias, path)
 		}
 		if err := s.Init(path, keys...); err != nil {
 			return err

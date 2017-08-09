@@ -91,9 +91,9 @@ func (s *Action) Audit(c *cli.Context) error {
 		if len(secrets) > 1 {
 			foundDuplicates = true
 
-			fmt.Printf(color.CyanString("Detected a shared secret for:\n"))
+			fmt.Println(color.CyanString("Detected a shared secret for:"))
 			for _, secret := range secrets {
-				fmt.Printf(color.CyanString("\t- %s\n", secret))
+				fmt.Println(color.CyanString("\t- %s", secret))
 			}
 		}
 	}
@@ -136,9 +136,9 @@ func printAuditResults(m map[string][]string, format string, color func(format s
 
 	for msg, secrets := range m {
 		b = true
-		fmt.Printf(color(format, msg))
+		fmt.Print(color(format, msg))
 		for _, secret := range secrets {
-			fmt.Printf(color("\t- %s\n", secret))
+			fmt.Print(color("\t- %s\n", secret))
 		}
 	}
 

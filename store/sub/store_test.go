@@ -51,10 +51,7 @@ func TestList(t *testing.T) {
 		{
 			name: "Single entry",
 			prep: func(s *Store) error {
-				if err := s.Set("foo", []byte("bar"), "test"); err != nil {
-					return err
-				}
-				return nil
+				return s.Set("foo", []byte("bar"), "test")
 			},
 			out: []string{"foo"},
 		},

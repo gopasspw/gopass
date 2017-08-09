@@ -354,11 +354,11 @@ func main() {
 			Action: action.Init,
 			Flags: []cli.Flag{
 				cli.StringFlag{
-					Name:  "store, s",
-					Usage: "Set the sub store to operate on",
+					Name:  "path, p",
+					Usage: "Set the sub store path to operate on",
 				},
 				cli.StringFlag{
-					Name:  "alias, a",
+					Name:  "store, s",
 					Usage: "Set the name of the sub store",
 				},
 				cli.BoolFlag{
