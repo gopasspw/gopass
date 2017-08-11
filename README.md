@@ -669,6 +669,7 @@ If you use `gopass` as a library be sure to vendor it and expect breaking change
 
 * *How does gopass relate to HashiCorp vault?* - While [Vault](https://www.vaultproject.io/) is for machines, `gopass` is for humans [#7](https://github.com/justwatchcom/gopass/issues/7)
 * `gopass show secret` displays `Error: Failed to decrypt` - This issue may happen if your gpg setup if broken. On MacOS try `brew link --overwrite gnupg`. You also may need to set `export GPG_TTY=$(tty)` in your `.bashrc` [#208](https://github.com/justwatchcom/gopass/issues/208), [#209](https://github.com/justwatchcom/gopass/issues/209)
+* *gopass recpients add fails with Warning: No matching valid key found* - If the key you're trying to add is already in your keyring you may need to trust it. If this is your key run `gpg --edit-key [KEYID]; trust (set to ultimate); quit`, if this is not your key run `gpg --edit-key [KEYID]; lsign; save; quit`
 
 ## Credit & License
 
