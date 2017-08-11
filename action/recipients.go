@@ -68,7 +68,7 @@ func (s *Action) RecipientsAdd(c *cli.Context) error {
 		}
 		keys = keys.UseableKeys()
 		if len(keys) < 1 {
-			fmt.Println(color.CyanString("Warning: No matching valid key found. If the key is in your keyring you may need to trust it."))
+			fmt.Println(color.CyanString("Warning: No matching valid key found. If the key is in your keyring you may need to validate it."))
 			fmt.Println(color.CyanString("If this is your key: gpg --edit-key %s; trust (set to ultimate); quit", r))
 			fmt.Println(color.CyanString("If this is not your key: gpg --edit-key %s; lsign; save; quit", r))
 			continue
