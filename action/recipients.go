@@ -64,7 +64,8 @@ func (s *Action) RecipientsAdd(c *cli.Context) error {
 	for _, r := range c.Args() {
 		keys, err := s.gpg.FindPublicKeys(r)
 		if err != nil {
-			return fmt.Errorf("Failed to list public keys: %s", err)
+			fmt.Println(color.CyanString("Failed to list public key '%s': %s", r, err))
+			continue
 		}
 		keys = keys.UseableKeys()
 		if len(keys) < 1 {
@@ -82,6 +83,9 @@ func (s *Action) RecipientsAdd(c *cli.Context) error {
 			return err
 		}
 		added++
+	}
+	if added < 1 {
+		return fmt.Errorf("no key added")
 	}
 	fmt.Printf("Added %d recipients\n", added)
 	return nil
