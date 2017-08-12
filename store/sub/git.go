@@ -40,6 +40,25 @@ func (s *Store) gitCmd(name string, args ...string) error {
 	return nil
 }
 
+func (s *Store) gitFixConfig() error {
+	// set push default, to avoid issues with
+	// "fatal: The current branch master has multiple upstream branches, refusing to push"
+	// https://stackoverflow.com/questions/948354/default-behavior-of-git-push-without-a-branch-specified
+	if err := s.gitCmd("GitInit", "config", "--local", "push.default", "matching"); err != nil {
+		return err
+	}
+
+	// setup for proper diffs
+	if err := s.gitCmd("GitInit", "config", "--local", "diff.gpg.binary", "true"); err != nil {
+		color.Yellow("Error while initializing git: %s\n", err)
+	}
+	if err := s.gitCmd("GitInit", "config", "--local", "diff.gpg.textconv", "gpg --no-tty --decrypt"); err != nil {
+		color.Yellow("Error while initializing git: %s\n", err)
+	}
+
+	return nil
+}
+
 // GitInit initializes this store's git repo and
 // recursively calls GitInit on all substores.
 func (s *Store) GitInit(alias, signKey, userName, userEmail string) error {
@@ -59,17 +78,16 @@ func (s *Store) GitInit(alias, signKey, userName, userEmail string) error {
 		return err
 	}
 
-	// set push default, to avoid issues with
-	// "fatal: The current branch master has multiple upstream branches, refusing to push"
-	// https://stackoverflow.com/questions/948354/default-behavior-of-git-push-without-a-branch-specified
-	if err := s.gitCmd("GitInit", "config", "--local", "push.default", "matching"); err != nil {
+	// ensure sane git config
+	if err := s.gitFixConfig(); err != nil {
 		return err
 	}
 
+	// add current content of the store
 	if err := s.gitAdd(s.path); err != nil {
 		return err
 	}
-	if err := s.gitCommit("Add current contents of password store."); err != nil {
+	if err := s.gitCommit("Add current content of password store."); err != nil {
 		return err
 	}
 
@@ -81,14 +99,6 @@ func (s *Store) GitInit(alias, signKey, userName, userEmail string) error {
 	}
 	if err := s.gitCommit("Configure git repository for gpg file diff."); err != nil {
 		fmt.Println(color.YellowString("Warning: Failed to commit .gitattributes to git"))
-	}
-
-	// setup for proper diffs
-	if err := s.gitCmd("GitInit", "config", "--local", "diff.gpg.binary", "true"); err != nil {
-		color.Yellow("Error while initializing git: %s\n", err)
-	}
-	if err := s.gitCmd("GitInit", "config", "--local", "diff.gpg.textconv", "gpg --no-tty --decrypt"); err != nil {
-		color.Yellow("Error while initializing git: %s\n", err)
 	}
 
 	// set GPG signkey
@@ -136,6 +146,18 @@ func (s *Store) GitVersion() semver.Version {
 
 // Git runs arbitrary git commands on this store
 func (s *Store) Git(args ...string) error {
+	// special case for push, as the gitPush method handles more cases
+	if len(args) > 0 && args[0] == "push" {
+		remote := ""
+		if len(args) > 1 {
+			remote = args[1]
+		}
+		branch := ""
+		if len(args) > 2 {
+			branch = args[2]
+		}
+		return s.gitPush(remote, branch)
+	}
 	return s.gitCmd("Git", args...)
 }
 
@@ -222,9 +244,9 @@ func (s *Store) gitPush(remote, branch string) error {
 		return store.ErrGitNoRemote
 	}
 
-	if err := s.Git("pull", remote, branch); err != nil {
+	if err := s.gitCmd("gitPush", "pull", remote, branch); err != nil {
 		fmt.Println(color.YellowString("Failed to pull before git push: %s", err))
 	}
 
-	return s.Git("push", remote, branch)
+	return s.gitCmd("gitPush", "push", remote, branch)
 }

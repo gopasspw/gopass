@@ -65,6 +65,7 @@ func New(cfg *config.Config) (*Store, error) {
 		noPager:     cfg.NoPager,
 		path:        cfg.Path,
 		safeContent: cfg.SafeContent,
+		version:     cfg.Version,
 	}
 
 	if r.autoImport {

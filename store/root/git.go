@@ -6,6 +6,7 @@ import (
 
 	"github.com/blang/semver"
 	"github.com/fatih/color"
+	"github.com/justwatchcom/gopass/store"
 )
 
 // GitInit initializes the git repo
@@ -21,13 +22,21 @@ func (r *Store) GitVersion() semver.Version {
 
 // Git runs arbitrary git commands on this store and all substores
 func (r *Store) Git(name string, recurse, force bool, args ...string) error {
-	store := r.getStore(name)
-	fmt.Println(color.CyanString("Running git %s on store %s", strings.Join(args, " "), name))
-	if err := store.Git(args...); err != nil {
-		if !force {
-			return err
+	sub := r.getStore(name)
+	dispName := name
+	if dispName == "" {
+		dispName = "root"
+	}
+	fmt.Println(color.CyanString("[%s] Running git %s", dispName, strings.Join(args, " ")))
+	if err := sub.Git(args...); err != nil {
+		if err == store.ErrGitNoRemote {
+			fmt.Println(color.YellowString("[%s] Has no remote. Skipping", dispName))
+		} else {
+			if !force {
+				return err
+			}
+			fmt.Println(color.RedString("[%s] Failed to run 'git %s'", dispName, strings.Join(args, " ")))
 		}
-		fmt.Println(color.RedString("Failed to run git %+v on store %s", args, name))
 	}
 
 	// TODO(dschulz) we could properly handle the "recurse to given substores"
@@ -37,12 +46,16 @@ func (r *Store) Git(name string, recurse, force bool, args ...string) error {
 	}
 
 	for _, alias := range r.MountPoints() {
-		fmt.Println(color.CyanString("Running git %s on store %s", strings.Join(args, " "), alias))
+		fmt.Println(color.CyanString("[%s] Running 'git %s'", alias, strings.Join(args, " ")))
 		if err := r.mounts[alias].Git(args...); err != nil {
+			if err == store.ErrGitNoRemote {
+				fmt.Println(color.YellowString("[%s] Has no remote. Skipping", alias))
+				continue
+			}
 			if !force {
 				return err
 			}
-			fmt.Println(color.RedString("Failed to run git %+v on store %s", args, alias))
+			fmt.Println(color.RedString("[%s] Failed to run 'git %s'", alias, strings.Join(args, " ")))
 		}
 	}
 
