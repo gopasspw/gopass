@@ -82,6 +82,12 @@
 			"revisionTime": "2016-11-23T14:36:37Z"
 		},
 		{
+			"checksumSHA1": "MNkKJyk2TazKMJYbal5wFHybpyA=",
+			"path": "github.com/mattn/go-runewidth",
+			"revision": "14207d285c6c197daabb5c9793d63e7af9ab2d50",
+			"revisionTime": "2017-02-01T02:35:40Z"
+		},
+		{
 			"checksumSHA1": "zA7bumv9IZ/malDah5mnLu9acrg=",
 			"path": "github.com/muesli/crunchy",
 			"revision": "36b0143650b78f67a2c842b7c924a3ced5a86243",
@@ -92,6 +98,12 @@
 			"path": "github.com/muesli/goprogressbar",
 			"revision": "4d7c51a9b4fd99699faee5dfbaa76dd67f94b2eb",
 			"revisionTime": "2017-08-06T02:40:18Z"
+		},
+		{
+			"checksumSHA1": "gOW8c+HcxvtRV/i75SxwLILC+9g=",
+			"path": "github.com/nsf/termbox-go",
+			"revision": "91bae1bb5fa9ee504905ecbe7043fa30e92feaa3",
+			"revisionTime": "2017-03-01T01:43:43Z"
 		},
 		{
 			"checksumSHA1": "zKKp5SZ3d3ycKe4EKMNT0BqAWBw=",

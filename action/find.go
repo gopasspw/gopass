@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/justwatchcom/gopass/termwiz"
 	"github.com/urfave/cli"
 )
 
@@ -18,10 +19,29 @@ func (s *Action) Find(c *cli.Context) error {
 		return err
 	}
 	needle := strings.ToLower(c.Args().First())
+	choices := make([]string, 0, 10)
 	for _, value := range l {
 		if strings.Contains(strings.ToLower(value), needle) {
+			choices = append(choices, value)
+		}
+	}
+
+	if !s.isTerm {
+		for _, value := range choices {
 			fmt.Println(value)
 		}
+		return nil
+	}
+
+	act, sel := termwiz.GetSelection(choices)
+	fmt.Printf("User selected to %s %d\n", act, sel)
+	switch act {
+	case "copy":
+		return s.show(c, choices[sel], "", true, false, false)
+	case "show":
+		return s.show(c, choices[sel], "", false, false, false)
+	default:
+		return fmt.Errorf("User aborted")
 	}
 
 	return nil
