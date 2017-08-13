@@ -27,15 +27,22 @@ func GetSelection(choices []string) (string, int) {
 
 	cur := 0
 	for {
+		_ = termbox.Clear(coldef, coldef)
 		tbprint(0, 0, coldef, coldef, "Please select:")
-		for i, c := range choices {
+		_, h := termbox.Size()
+		offset := 0
+		if len(choices)+2 > h {
+			offset = cur
+		}
+		for i := offset; i < len(choices) && i < h; i++ {
+			c := choices[i]
 			mark := " "
 			if cur == i {
 				mark = ">"
 			}
-			tbprint(0, 1+i, coldef, coldef, fmt.Sprintf("%s %s\n", mark, c))
+			tbprint(0, 1+i-offset, coldef, coldef, fmt.Sprintf("%s %s\n", mark, c))
 		}
-		tbprint(0, len(choices)+1, coldef, coldef, "<↑/↓> to change the selection, <→> to show, <←> to copy, <ESC> to quit")
+		tbprint(0, h-1, coldef, coldef, "<↑/↓> to change the selection, <→> to show, <←> to copy, <ESC> to quit")
 		_ = termbox.Flush()
 		switch ev := termbox.PollEvent(); ev.Type {
 		case termbox.EventKey:
