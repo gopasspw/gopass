@@ -42,7 +42,7 @@ func GetSelection(choices []string) (string, int) {
 			}
 			tbprint(0, 1+i-offset, coldef, coldef, fmt.Sprintf("%s %s\n", mark, c))
 		}
-		tbprint(0, len(choices)+1, coldef, coldef, "<↑/↓> to change the selection, <→> to show, <←> to copy, <ESC> to quit")
+		tbprint(0, h-1, coldef, coldef, "<↑/↓> to change the selection, <→> to show, <←> to copy, <ESC> to quit")
 		_ = termbox.Flush()
 		switch ev := termbox.PollEvent(); ev.Type {
 		case termbox.EventKey:

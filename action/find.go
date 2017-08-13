@@ -34,7 +34,6 @@ func (s *Action) Find(c *cli.Context) error {
 	}
 
 	act, sel := termwiz.GetSelection(choices)
-	fmt.Printf("User selected to %s %d\n", act, sel)
 	switch act {
 	case "copy":
 		return s.show(c, choices[sel], "", true, false, false)
