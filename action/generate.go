@@ -16,7 +16,7 @@ const (
 // Generate & save a password
 func (s *Action) Generate(c *cli.Context) error {
 	force := c.Bool("force")
-	noSymbols := c.Bool("no-symbols")
+	symbols := c.Bool("symbols")
 
 	name := c.Args().Get(0)
 	key := c.Args().Get(1)
@@ -60,7 +60,7 @@ func (s *Action) Generate(c *cli.Context) error {
 		return fmt.Errorf("password length must be bigger than 0")
 	}
 
-	password := pwgen.GeneratePassword(pwlen, !noSymbols)
+	password := pwgen.GeneratePassword(pwlen, symbols)
 
 	// set a single key in a yaml doc
 	if key != "" {
