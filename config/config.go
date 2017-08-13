@@ -44,6 +44,7 @@ func New() *Config {
 	return &Config{
 		AskForMore:  false,
 		AutoImport:  true,
+		AutoSync:    true,
 		ClipTimeout: 45,
 		Mounts:      make(map[string]string),
 		NoConfirm:   false,
@@ -151,7 +152,9 @@ func load(cf string) (*Config, error) {
 		fmt.Printf("Error reading config from %s: %s\n", cf, err)
 		return nil, ErrConfigNotFound
 	}
-	cfg := &Config{}
+	cfg := &Config{
+		AutoSync: true,
+	}
 	err = yaml.Unmarshal(buf, &cfg)
 	if err != nil {
 		fmt.Printf("Error reading config from %s: %s\n", cf, err)
