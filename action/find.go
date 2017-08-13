@@ -43,6 +43,4 @@ func (s *Action) Find(c *cli.Context) error {
 	default:
 		return fmt.Errorf("User aborted")
 	}
-
-	return nil
 }

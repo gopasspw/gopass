@@ -7,17 +7,6 @@ import (
 	"github.com/nsf/termbox-go"
 )
 
-//func main() {
-//	ls := []string{
-//		"foo/bar",
-//		"foo/baz",
-//		"foo/zab",
-//	}
-//
-//	act, sel := GetSelection(ls)
-//	fmt.Printf("User selected: %s %d\n", act, sel)
-//}
-
 func tbprint(x, y int, fg, bg termbox.Attribute, msg string) {
 	for _, c := range msg {
 		termbox.SetCell(x, y, c, fg, bg)
@@ -25,6 +14,8 @@ func tbprint(x, y int, fg, bg termbox.Attribute, msg string) {
 	}
 }
 
+// GetSelection show a navigateable multiple-choice list to the user
+// and returns the selected entry along with the action
 func GetSelection(choices []string) (string, int) {
 	if err := termbox.Init(); err != nil {
 		panic(err)
@@ -32,7 +23,7 @@ func GetSelection(choices []string) (string, int) {
 	defer termbox.Close()
 	termbox.SetInputMode(termbox.InputEsc)
 	const coldef = termbox.ColorDefault
-	termbox.Clear(coldef, coldef)
+	_ = termbox.Clear(coldef, coldef)
 
 	cur := 0
 	for {
@@ -45,7 +36,7 @@ func GetSelection(choices []string) (string, int) {
 			tbprint(0, 1+i, coldef, coldef, fmt.Sprintf("%s %s\n", mark, c))
 		}
 		tbprint(0, len(choices)+1, coldef, coldef, "<↑/↓> to change the selection, <→> to show, <←> to copy, <ESC> to quit")
-		termbox.Flush()
+		_ = termbox.Flush()
 		switch ev := termbox.PollEvent(); ev.Type {
 		case termbox.EventKey:
 			switch ev.Key {
@@ -88,5 +79,4 @@ func GetSelection(choices []string) (string, int) {
 			}
 		}
 	}
-	return "unreachable", cur
 }
