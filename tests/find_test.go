@@ -16,21 +16,25 @@ func TestFind(t *testing.T) {
 	assert.Error(t, err)
 	assert.Equal(t, "\nError: Usage: gopass find arg\n", out)
 
+	out, err = ts.run("config safecontent false")
+	assert.NoError(t, err)
+
 	out, err = ts.run("find bar")
 	assert.NoError(t, err)
 	assert.Zero(t, out)
 
-	ts.initSecrets("")
+	out, err = ts.runCmd([]string{ts.Binary, "insert", "foo/bar"}, []byte("baz"))
+	assert.NoError(t, err)
 
 	out, err = ts.run("find bar")
 	assert.NoError(t, err)
-	assert.Equal(t, "foo/bar", out)
+	assert.Equal(t, "Found exact match in 'foo/bar'\nbaz", out)
 
 	out, err = ts.run("find Bar")
 	assert.NoError(t, err)
-	assert.Equal(t, "foo/bar", out)
+	assert.Equal(t, "Found exact match in 'foo/bar'\nbaz", out)
 
 	out, err = ts.run("find b")
 	assert.NoError(t, err)
-	assert.Equal(t, "foo/bar\nbaz", out)
+	assert.Equal(t, "Found exact match in 'foo/bar'\nbaz", out)
 }

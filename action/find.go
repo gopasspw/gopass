@@ -28,7 +28,7 @@ func (s *Action) Find(c *cli.Context) error {
 	}
 
 	if len(choices) == 1 {
-		fmt.Println(color.YellowString("Found exact match in '%s'", choices[0]))
+		fmt.Println(color.GreenString("Found exact match in '%s'", choices[0]))
 		return s.show(c, choices[0], "", false, false, false)
 	}
 
