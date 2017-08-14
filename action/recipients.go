@@ -64,11 +64,15 @@ func (s *Action) RecipientsAdd(c *cli.Context) error {
 	for _, r := range c.Args() {
 		keys, err := s.gpg.FindPublicKeys(r)
 		if err != nil {
-			return fmt.Errorf("Failed to list public keys: %s", err)
+			fmt.Println(color.CyanString("Failed to list public key '%s': %s", r, err))
+			continue
 		}
 		keys = keys.UseableKeys()
 		if len(keys) < 1 {
-			return fmt.Errorf("no matching valid key found in keyring")
+			fmt.Println(color.CyanString("Warning: No matching valid key found. If the key is in your keyring you may need to validate it."))
+			fmt.Println(color.CyanString("If this is your key: gpg --edit-key %s; trust (set to ultimate); quit", r))
+			fmt.Println(color.CyanString("If this is not your key: gpg --edit-key %s; lsign; save; quit", r))
+			continue
 		}
 
 		if !s.askForConfirmation(fmt.Sprintf("Do you want to add '%s' as an recipient?", keys[0].OneLine())) {
@@ -79,6 +83,9 @@ func (s *Action) RecipientsAdd(c *cli.Context) error {
 			return err
 		}
 		added++
+	}
+	if added < 1 {
+		return fmt.Errorf("no key added")
 	}
 	fmt.Printf("Added %d recipients\n", added)
 	return nil
