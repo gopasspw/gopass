@@ -17,6 +17,9 @@ const (
 func (s *Action) Generate(c *cli.Context) error {
 	force := c.Bool("force")
 	symbols := c.Bool("symbols")
+	if c.IsSet("no-symbols") {
+		fmt.Println(color.RedString("Warning: -n/--no-symbols is deprecated. This is now the default. Use -s to enable symbols"))
+	}
 
 	name := c.Args().Get(0)
 	key := c.Args().Get(1)
