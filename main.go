@@ -302,8 +302,13 @@ func main() {
 					Usage: "Force to overwrite existing password",
 				},
 				cli.BoolFlag{
-					Name:  "no-symbols, n",
-					Usage: "Don't use symbols in the password",
+					Name:   "no-symbols, n",
+					Usage:  "Do not include symbols in the password",
+					Hidden: true,
+				},
+				cli.BoolFlag{
+					Name:  "symbols, s",
+					Usage: "Use symbols in the password",
 				},
 			},
 		},
