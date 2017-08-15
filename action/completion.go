@@ -33,21 +33,17 @@ func (s *Action) Complete(*cli.Context) {
 
 // CompletionBash returns a bash script used for auto completion
 func (s *Action) CompletionBash(c *cli.Context) error {
-	out := `#!/bin/bash
-
-PROG=gopass
-
-_cli_bash_autocomplete() {
+	out := `_gopass_bash_autocomplete() {
      local cur opts base
      COMPREPLY=()
-     local IFS=$'\n'
      cur="${COMP_WORDS[COMP_CWORD]}"
      opts=$( ${COMP_WORDS[@]:0:$COMP_CWORD} --generate-bash-completion )
+     local IFS=$'\n'
      COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
      return 0
  }
 
-complete -F _cli_bash_autocomplete $PROG
+complete -F _gopass_bash_autocomplete gopass
 `
 	fmt.Println(out)
 
