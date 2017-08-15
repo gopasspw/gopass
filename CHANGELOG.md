@@ -1,3 +1,9 @@
+## 1.3.1 / 2017-08-15
+
+* [BUGFIX] Enable AutoSync by default [#267]
+* [BUGFIX] git - do not abort if a store has not remote [#261]
+* [BUGFIX] Fix IFS in bash completion [#268]
+
 ## 1.3.0 / 2017-08-11
 
 * [BREAKING] Enforce YAML document markers [#193]
