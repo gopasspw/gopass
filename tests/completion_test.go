@@ -15,21 +15,17 @@ func TestCompletion(t *testing.T) {
 	assert.Contains(t, out, "Source for auto completion in bash")
 	assert.Contains(t, out, "Source for auto completion in zsh")
 
-	bash := `#!/bin/bash
-
-PROG=gopass
-
-_cli_bash_autocomplete() {
+	bash := `_gopass_bash_autocomplete() {
      local cur opts base
      COMPREPLY=()
-     local IFS=$'\n'
      cur="${COMP_WORDS[COMP_CWORD]}"
      opts=$( ${COMP_WORDS[@]:0:$COMP_CWORD} --generate-bash-completion )
+     local IFS=$'\n'
      COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
      return 0
  }
 
-complete -F _cli_bash_autocomplete $PROG`
+complete -F _gopass_bash_autocomplete gopass`
 
 	out, err = ts.run("completion bash")
 	assert.NoError(t, err)
