@@ -20,6 +20,10 @@ func (s *Action) Show(c *cli.Context) error {
 	force := c.Bool("force")
 	qr := c.Bool("qr")
 
+	return s.show(c, name, key, clip, force, qr)
+}
+
+func (s *Action) show(c *cli.Context, name, key string, clip, force, qr bool) error {
 	if name == "" {
 		return fmt.Errorf("provide a secret name")
 	}
