@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"os"
 	"strings"
 	"testing"
 
@@ -27,4 +28,12 @@ func TestGenerate(t *testing.T) {
 	assert.Len(t, lines, 2)
 	assert.Equal(t, "The generated password for baz is:", lines[0])
 	assert.Len(t, lines[1], 42)
+
+	os.Setenv("GOPASS_CHARACTER_SET", "a")
+	out, err = ts.run("generate zab 4")
+	assert.NoError(t, err)
+	lines = strings.Split(out, "\n")
+	assert.Len(t, lines, 2)
+	assert.Equal(t, "The generated password for zab is:", lines[0])
+	assert.Equal(t, lines[1], "aaaa")
 }
