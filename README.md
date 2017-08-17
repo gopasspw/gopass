@@ -363,6 +363,12 @@ The commands manipulating recipients, i.e. `gopass recipients add` and
 
 To debug `gopass`, set the environment variable `GOPASS_DEBUG` to `true`.
 
+### Restricting the characters in generated passwords
+
+To restrict the characters used in generated passwords set `GOPASS_CHARACTER_SET` to
+any non-empty string. Please keep in mind that this can considerably weaken the
+strength of generated passwords.
+
 ### Disabling Colors
 
 Disabling colors is as simple as `gopass config nocolor true`.
