@@ -28,7 +28,7 @@ func (s *Action) Find(c *cli.Context) error {
 	}
 
 	if len(choices) < 1 {
-		return fmt.Errorf("not results found")
+		return fmt.Errorf("no results found")
 	}
 
 	if len(choices) == 1 {
