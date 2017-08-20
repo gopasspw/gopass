@@ -51,6 +51,8 @@ func (s *Action) Edit(c *cli.Context) error {
 		return nil
 	}
 
+	printAuditResult(string(nContent))
+
 	return s.Store.SetConfirm(name, nContent, fmt.Sprintf("Edited with %s", os.Getenv("EDITOR")), s.confirmRecipients)
 }
 
