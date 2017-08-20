@@ -143,3 +143,10 @@ func printAuditResults(m map[string][]string, format string, color func(format s
 
 	return b
 }
+
+func printAuditResult(pw string) {
+	validator := crunchy.NewValidator()
+	if err := validator.Check(pw); err != nil {
+		fmt.Println(color.CyanString(fmt.Sprintf("Warning: %s", err)))
+	}
+}

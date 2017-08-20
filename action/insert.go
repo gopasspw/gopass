@@ -6,8 +6,6 @@ import (
 	"io"
 	"os"
 
-	"github.com/fatih/color"
-	"github.com/muesli/crunchy"
 	"github.com/urfave/cli"
 )
 
@@ -91,12 +89,9 @@ func (s *Action) Insert(c *cli.Context) error {
 	if err != nil {
 		return fmt.Errorf("failed to ask for password: %v", err)
 	}
+
+	printAuditResult(pw)
+
 	content = []byte(pw)
-
-	validator := crunchy.NewValidator()
-	if err := validator.Check(pw); err != nil {
-		fmt.Println(color.CyanString(fmt.Sprintf("Warning: %s", err)))
-	}
-
 	return s.Store.SetConfirm(name, content, "Inserted user supplied password", confirm)
 }
