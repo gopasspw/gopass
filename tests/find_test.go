@@ -20,8 +20,8 @@ func TestFind(t *testing.T) {
 	assert.NoError(t, err)
 
 	out, err = ts.run("find bar")
-	assert.NoError(t, err)
-	assert.Zero(t, out)
+	assert.Error(t, err)
+	assert.Equal(t, "\nError: no results found\n", out)
 
 	out, err = ts.runCmd([]string{ts.Binary, "insert", "foo/bar"}, []byte("baz"))
 	assert.NoError(t, err)
