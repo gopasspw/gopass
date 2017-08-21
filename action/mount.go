@@ -14,25 +14,28 @@ import (
 // MountRemove removes an existing mount
 func (s *Action) MountRemove(c *cli.Context) error {
 	if len(c.Args()) != 1 {
-		return fmt.Errorf("usage: gopass mount remove [alias]")
-	}
-	if err := s.Store.RemoveMount(c.Args()[0]); err != nil {
-		color.Yellow("Failed to remove mount: %s", err)
-	}
-	if err := s.Store.Config().Save(); err != nil {
-		return err
+		return s.exitError(ExitUsage, nil, "Usage: %s mount remove [alias]", s.Name)
 	}
 
-	color.Green("Password Store %s umounted", c.Args()[0])
+	if err := s.Store.RemoveMount(c.Args()[0]); err != nil {
+		fmt.Println(color.RedString("Failed to remove mount: %s", err))
+	}
+
+	if err := s.Store.Config().Save(); err != nil {
+		return s.exitError(ExitConfig, err, "failed to write config: %s", err)
+	}
+
+	fmt.Println(color.GreenString("Password Store %s umounted", c.Args()[0]))
 	return nil
 }
 
 // MountsPrint prints all existing mounts
 func (s *Action) MountsPrint(c *cli.Context) error {
 	if len(s.Store.Mounts()) < 1 {
-		fmt.Println("No mounts")
+		fmt.Println(color.CyanString("No mounts"))
 		return nil
 	}
+
 	root := simple.New(color.GreenString(fmt.Sprintf("gopass (%s)", s.Store.Path())))
 	mounts := s.Store.Mounts()
 	mps := s.Store.MountPoints()
@@ -40,10 +43,11 @@ func (s *Action) MountsPrint(c *cli.Context) error {
 	for _, alias := range mps {
 		path := mounts[alias]
 		if err := root.AddMount(alias, path); err != nil {
-			fmt.Printf("Failed to add mount: %s\n", err)
+			fmt.Println(color.RedString("Failed to add mount to tree: %s", err))
 		}
 	}
-	fmt.Fprintln(color.Output, root.Format(0))
+
+	fmt.Println(root.Format(0))
 	return nil
 }
 
@@ -60,25 +64,30 @@ func (s *Action) MountAdd(c *cli.Context) error {
 	alias := c.Args().Get(0)
 	localPath := c.Args().Get(1)
 	if alias == "" {
-		return fmt.Errorf("usage: gopass mount add <alias> [local path]")
+		return s.exitError(ExitUsage, nil, "usage: %s mount add <alias> [local path]", s.Name)
 	}
+
 	if localPath == "" {
 		localPath = config.PwStoreDir(alias)
 	}
+
 	keys := make([]string, 0, 1)
 	if k := c.String("init"); k != "" {
 		keys = append(keys, k)
 	}
+
 	if s.Store.Exists(alias) {
 		fmt.Printf(color.YellowString("WARNING: shadowing %s entry\n"), alias)
 	}
+
 	if err := s.Store.AddMount(alias, localPath, keys...); err != nil {
-		return err
-	}
-	if err := s.Store.Config().Save(); err != nil {
-		return err
+		return s.exitError(ExitMount, err, "failed to add mount '%s' to '%s': %s", alias, localPath, err)
 	}
 
-	color.Green("Mounted %s as %s", alias, localPath)
+	if err := s.Store.Config().Save(); err != nil {
+		return s.exitError(ExitConfig, err, "failed to save config: %s", err)
+	}
+
+	fmt.Println(color.GreenString("Mounted %s as %s", alias, localPath))
 	return nil
 }

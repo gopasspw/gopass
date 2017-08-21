@@ -8,6 +8,7 @@ import (
 	"github.com/justwatchcom/gopass/store"
 	"github.com/justwatchcom/gopass/tree"
 	"github.com/justwatchcom/gopass/tree/simple"
+	"github.com/pkg/errors"
 )
 
 // LookupTemplate will lookup and return a template
@@ -34,7 +35,7 @@ func (r *Store) TemplateTree() (tree.Tree, error) {
 			continue
 		}
 		if err := root.AddMount(alias, substore.Path()); err != nil {
-			return nil, fmt.Errorf("failed to add mount: %s", err)
+			return nil, errors.Errorf("failed to add mount: %s", err)
 		}
 		for _, t := range substore.ListTemplates(alias) {
 			if err := root.AddFile(t, "gopass/template"); err != nil {

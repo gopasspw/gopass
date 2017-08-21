@@ -9,16 +9,17 @@ import (
 	"github.com/justwatchcom/gopass/fsutil"
 	"github.com/justwatchcom/gopass/store"
 	"github.com/justwatchcom/gopass/store/sub"
+	"github.com/pkg/errors"
 )
 
 // AddMount adds a new mount
 func (r *Store) AddMount(alias, path string, keys ...string) error {
 	path = fsutil.CleanPath(path)
 	if _, found := r.mounts[alias]; found {
-		return fmt.Errorf("%s is already mounted", alias)
+		return errors.Errorf("%s is already mounted", alias)
 	}
 	if err := r.addMount(alias, path, keys...); err != nil {
-		return err
+		return errors.Wrapf(err, "failed to add mount")
 	}
 
 	// check for duplicate mounts
@@ -27,13 +28,13 @@ func (r *Store) AddMount(alias, path string, keys ...string) error {
 
 func (r *Store) addMount(alias, path string, keys ...string) error {
 	if alias == "" {
-		return fmt.Errorf("alias must not be empty")
+		return errors.Errorf("alias must not be empty")
 	}
 	if r.mounts == nil {
 		r.mounts = make(map[string]*sub.Store, 1)
 	}
 	if _, found := r.mounts[alias]; found {
-		return fmt.Errorf("%s is already mounted", alias)
+		return errors.Errorf("%s is already mounted", alias)
 	}
 
 	// propagate our config settings to the sub store
@@ -41,17 +42,17 @@ func (r *Store) addMount(alias, path string, keys ...string) error {
 	cfg.Path = fsutil.CleanPath(path)
 	s, err := sub.New(alias, cfg)
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "failed to create new sub store '%s'", alias)
 	}
 
 	if !s.Initialized() {
 		if len(keys) < 1 {
-			return fmt.Errorf("password store %s is not initialized. Try gopass init --store %s --path %s", alias, alias, path)
+			return errors.Errorf("password store %s is not initialized. Try gopass init --store %s --path %s", alias, alias, path)
 		}
 		if err := s.Init(path, keys...); err != nil {
-			return err
+			return errors.Wrapf(err, "failed to initialize store '%s' at '%s'", alias, path)
 		}
-		fmt.Printf("Password store %s initialized for:", path)
+		fmt.Println(color.GreenString("Password store %s initialized for:", path))
 		for _, r := range s.Recipients() {
 			color.Yellow(r)
 		}
@@ -64,7 +65,7 @@ func (r *Store) addMount(alias, path string, keys ...string) error {
 // RemoveMount removes and existing mount
 func (r *Store) RemoveMount(alias string) error {
 	if _, found := r.mounts[alias]; !found {
-		return fmt.Errorf("%s is not mounted", alias)
+		return errors.Errorf("%s is not mounted", alias)
 	}
 	if _, found := r.mounts[alias]; !found {
 		fmt.Println(color.YellowString("%s is not initialized", alias))
@@ -121,7 +122,7 @@ func (r *Store) checkMounts() error {
 	paths := make(map[string]string, len(r.mounts))
 	for k, v := range r.mounts {
 		if _, found := paths[v.Path()]; found {
-			return fmt.Errorf("Doubly mounted path at %s: %s", v.Path(), k)
+			return errors.Errorf("Doubly mounted path at %s: %s", v.Path(), k)
 		}
 		paths[v.Path()] = k
 	}

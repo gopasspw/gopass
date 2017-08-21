@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/cenkalti/backoff"
+	"github.com/pkg/errors"
 )
 
 func tempdirBase() string {
@@ -25,14 +26,14 @@ func (t *tempfile) mount() error {
 	}
 	out, err := cmd.Output()
 	if err != nil {
-		return fmt.Errorf("Failed to create disk with hdid: %s", err)
+		return errors.Errorf("Failed to create disk with hdid: %s", err)
 	}
 	if t.dbg {
 		fmt.Printf("[DEBUG] Output: %s\n", out)
 	}
 	p := strings.Split(string(out), " ")
 	if len(p) < 1 {
-		return fmt.Errorf("Unhandeled hdid output: %s", string(out))
+		return errors.Errorf("Unhandeled hdid output: %s", string(out))
 	}
 	t.dev = p[0]
 
@@ -44,7 +45,7 @@ func (t *tempfile) mount() error {
 		fmt.Printf("[DEBUG] CMD: %s %+v\n", cmd.Path, cmd.Args)
 	}
 	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("Failed to make filesystem on %s: %s", t.dev, err)
+		return errors.Errorf("Failed to make filesystem on %s: %s", t.dev, err)
 	}
 
 	// mount ramdisk
@@ -55,7 +56,7 @@ func (t *tempfile) mount() error {
 		fmt.Printf("[DEBUG] CMD: %s %+v\n", cmd.Path, cmd.Args)
 	}
 	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("Failed to mount filesystem %s to %s: %s", t.dev, t.dir, err)
+		return errors.Errorf("Failed to mount filesystem %s to %s: %s", t.dev, t.dir, err)
 	}
 	time.Sleep(100 * time.Millisecond)
 	return nil
@@ -69,7 +70,7 @@ func (t *tempfile) unmount() error {
 
 func (t *tempfile) tryUnmount() error {
 	if t.dir == "" || t.dev == "" {
-		return fmt.Errorf("need dir and dev")
+		return errors.Errorf("need dir and dev")
 	}
 	// unmount ramdisk
 	cmd := exec.Command("diskutil", "unmountDisk", t.dev)
@@ -79,7 +80,7 @@ func (t *tempfile) tryUnmount() error {
 		fmt.Printf("[DEBUG] CMD: %s %+v\n", cmd.Path, cmd.Args)
 	}
 	if err := cmd.Run(); err != nil {
-		return err
+		return errors.Wrapf(err, "failed to run command '%+v'", cmd.Args)
 	}
 
 	// eject disk

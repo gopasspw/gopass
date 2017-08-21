@@ -1,8 +1,9 @@
 package gpg
 
 import (
-	"fmt"
 	"strings"
+
+	"github.com/pkg/errors"
 )
 
 // KeyList is a searchable slice of Keys
@@ -65,5 +66,5 @@ func (kl KeyList) FindKey(id string) (Key, error) {
 			}
 		}
 	}
-	return Key{}, fmt.Errorf("No matching key found")
+	return Key{}, errors.Errorf("No matching key found")
 }

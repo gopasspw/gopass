@@ -1,11 +1,12 @@
 package fsutil
 
 import (
-	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
+
+	"github.com/pkg/errors"
 )
 
 type tempfile struct {
@@ -42,7 +43,7 @@ func TempFile(prefix string) (TempFiler, error) {
 	fn := filepath.Join(tf.dir, "tempfile")
 	fh, err := os.OpenFile(fn, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0600)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to open file %s: %s", fn, err)
+		return nil, errors.Errorf("Failed to open file %s: %s", fn, err)
 	}
 	tf.fh = fh
 
@@ -58,7 +59,7 @@ func (t *tempfile) Name() string {
 
 func (t *tempfile) Write(p []byte) (int, error) {
 	if t.fh == nil {
-		return 0, fmt.Errorf("not initialized")
+		return 0, errors.Errorf("not initialized")
 	}
 	return t.fh.Write(p)
 }
@@ -73,7 +74,7 @@ func (t *tempfile) Close() error {
 func (t *tempfile) Remove() error {
 	_ = t.Close()
 	if err := t.unmount(); err != nil {
-		return fmt.Errorf("Failed to unmount %s from %s: %s", t.dev, t.dir, err)
+		return errors.Errorf("Failed to unmount %s from %s: %s", t.dev, t.dir, err)
 	}
 	return os.RemoveAll(t.dir)
 }

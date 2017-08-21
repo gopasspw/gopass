@@ -14,6 +14,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/fsutil"
 	"github.com/justwatchcom/gopass/store"
+	"github.com/pkg/errors"
 )
 
 const (
@@ -31,14 +32,14 @@ func (s *Store) Recipients() []string {
 func (s *Store) AddRecipient(id string) error {
 	for _, k := range s.recipients {
 		if k == id {
-			return fmt.Errorf("Recipient already in store")
+			return errors.Errorf("Recipient already in store")
 		}
 	}
 
 	s.recipients = append(s.recipients, id)
 
 	if err := s.saveRecipients("Added Recipient " + id); err != nil {
-		return err
+		return errors.Wrapf(err, "failed to save recipients")
 	}
 
 	return s.reencrypt("Added Recipient " + id)
@@ -74,7 +75,7 @@ func (s *Store) RemoveRecipient(id string) error {
 	s.recipients = nk
 
 	if err := s.saveRecipients("Removed Recipient " + id); err != nil {
-		return err
+		return errors.Wrapf(err, "failed to save recipients")
 	}
 
 	return s.reencrypt("Removed Recipients " + id)
@@ -139,43 +140,43 @@ func (s *Store) ImportMissingPublicKeys() error {
 func (s *Store) saveRecipients(msg string) error {
 	// filepath.Dir(s.idFile()) should equal s.path, but better safe than sorry
 	if err := os.MkdirAll(filepath.Dir(s.idFile()), dirMode); err != nil {
-		return err
+		return errors.Wrapf(err, "failed to create directory for recipients")
 	}
 
 	// save recipients to store/.gpg-id
 	if err := ioutil.WriteFile(s.idFile(), marshalRecipients(s.recipients), fileMode); err != nil {
-		return err
+		return errors.Wrapf(err, "failed to write recipients file")
 	}
 
 	err := s.gitAdd(s.idFile())
 	if err == nil {
 		if err := s.gitCommit(msg); err != nil {
 			if err != store.ErrGitNotInit && err != store.ErrGitNothingToCommit {
-				return err
+				return errors.Wrapf(err, "failed to commit changes to git")
 			}
 		}
 	} else {
 		if err != store.ErrGitNotInit {
-			return err
+			return errors.Wrapf(err, "failed to add file '%s' to git", s.idFile())
 		}
 	}
 
 	// save recipients' public keys
 	if err := os.MkdirAll(filepath.Join(s.path, keyDir), dirMode); err != nil {
-		return err
+		return errors.Wrapf(err, "failed to create key dir '%s'", keyDir)
 	}
 
 	// save all recipients public keys to the repo
 	for _, r := range s.recipients {
 		path, err := s.exportPublicKey(r)
 		if err != nil {
-			return err
+			return errors.Wrapf(err, "failed to export public key for '%s'", r)
 		}
 		if err := s.gitAdd(path); err != nil {
 			if err == store.ErrGitNotInit {
 				continue
 			}
-			return err
+			return errors.Wrapf(err, "failed to add public key for '%s' to git", r)
 		}
 		if err := s.gitCommit(fmt.Sprintf("Exported Public Keys %s", r)); err != nil && err != store.ErrGitNothingToCommit {
 			fmt.Println(color.RedString("Failed to git commit: %s", err))
@@ -194,7 +195,7 @@ func (s *Store) saveRecipients(msg string) error {
 			fmt.Println(color.YellowString(msg))
 			return nil
 		}
-		return err
+		return errors.Wrapf(err, "failed to push changes to git")
 	}
 
 	return nil
@@ -264,7 +265,7 @@ func (s *Store) exportPublicKey(r string) (string, error) {
 func (s *Store) importPublicKey(r string) error {
 	filename := filepath.Join(s.path, keyDir, r)
 	if !fsutil.IsFile(filename) {
-		return fmt.Errorf("Public Key %s not found at %s", r, filename)
+		return errors.Errorf("Public Key %s not found at %s", r, filename)
 	}
 
 	return s.gpg.ImportPublicKey(filename)

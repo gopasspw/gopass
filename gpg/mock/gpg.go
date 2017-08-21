@@ -7,6 +7,7 @@ import (
 
 	"github.com/blang/semver"
 	"github.com/justwatchcom/gopass/gpg"
+	"github.com/pkg/errors"
 )
 
 // Mocker is a no-op GPG mock
@@ -45,7 +46,7 @@ func (m *Mocker) GetRecipients(string) ([]string, error) {
 // Encrypt writes the input to disk unaltered
 func (m *Mocker) Encrypt(path string, content []byte, recipients []string) error {
 	if err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {
-		return err
+		return errors.Wrapf(err, "failed to create dir '%s'", path)
 	}
 	return ioutil.WriteFile(path, content, 0600)
 }

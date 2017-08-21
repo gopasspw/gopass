@@ -14,6 +14,7 @@ import (
 	"github.com/justwatchcom/gopass/gpg"
 	gpgcli "github.com/justwatchcom/gopass/gpg/cli"
 	"github.com/justwatchcom/gopass/store"
+	"github.com/pkg/errors"
 )
 
 const (
@@ -54,7 +55,7 @@ func New(alias string, cfg *config.Config) (*Store, error) {
 		cfg = &config.Config{}
 	}
 	if cfg.Path == "" {
-		return nil, fmt.Errorf("Need path")
+		return nil, errors.Errorf("Need path")
 	}
 	s := &Store{
 		alias:           alias,
@@ -91,7 +92,7 @@ func (s *Store) Initialized() bool {
 // Init tries to initalize a new password store location matching the object
 func (s *Store) Init(path string, ids ...string) error {
 	if s.Initialized() {
-		return fmt.Errorf(`Found already initialized store at %s.
+		return errors.Errorf(`Found already initialized store at %s.
 You can add secondary stores with gopass init --path <path to secondary store> --store <mount name>`, path)
 	}
 
@@ -111,20 +112,20 @@ You can add secondary stores with gopass init --path <path to secondary store> -
 	}
 
 	if len(s.recipients) < 1 {
-		return fmt.Errorf("failed to initialize store: no valid recipients given")
+		return errors.Errorf("failed to initialize store: no valid recipients given")
 	}
 
 	kl, err := s.gpg.FindPrivateKeys(s.recipients...)
 	if err != nil {
-		return fmt.Errorf("Failed to get available private keys: %s", err)
+		return errors.Errorf("Failed to get available private keys: %s", err)
 	}
 
 	if len(kl) < 1 {
-		return fmt.Errorf("None of the recipients has a secret key. You will not be able to decrypt the secrets you add")
+		return errors.Errorf("None of the recipients has a secret key. You will not be able to decrypt the secrets you add")
 	}
 
 	if err := s.saveRecipients("Initialized Store for " + strings.Join(s.recipients, ", ")); err != nil {
-		return fmt.Errorf("failed to initialize store: %v", err)
+		return errors.Errorf("failed to initialize store: %v", err)
 	}
 
 	return nil
@@ -266,7 +267,7 @@ func (s *Store) SetPassword(name string, password []byte) error {
 	var err error
 	body, err := s.GetBody(name)
 	if err != nil && err != store.ErrNoBody {
-		return err
+		return errors.Wrapf(err, "failed to get existing secret")
 	}
 	first := append(password, '\n')
 	return s.SetConfirm(name, append(first, body...), fmt.Sprintf("Updated password in %s", name), nil)
@@ -305,19 +306,19 @@ func (s *Store) SetConfirm(name string, content []byte, reason string, cb store.
 	}
 
 	if s.IsDir(name) {
-		return fmt.Errorf("a folder named %s already exists", name)
+		return errors.Errorf("a folder named %s already exists", name)
 	}
 
 	recipients, err := s.useableKeys()
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "failed to list useable keys")
 	}
 
 	// confirm recipients
 	if cb != nil {
 		newRecipients, err := cb(name, recipients)
 		if err != nil {
-			return err
+			return errors.Wrapf(err, "user aborted")
 		}
 		recipients = newRecipients
 	}
@@ -330,14 +331,14 @@ func (s *Store) SetConfirm(name string, content []byte, reason string, cb store.
 		if err == store.ErrGitNotInit {
 			return nil
 		}
-		return err
+		return errors.Wrapf(err, "failed to add '%s' to git", p)
 	}
 
 	if err := s.gitCommit(fmt.Sprintf("Save secret to %s: %s", name, reason)); err != nil {
 		if err == store.ErrGitNotInit {
 			return nil
 		}
-		return err
+		return errors.Wrapf(err, "failed to commit changes to git")
 	}
 
 	if !s.autoSync {
@@ -357,8 +358,9 @@ func (s *Store) SetConfirm(name string, content []byte, reason string, cb store.
 			fmt.Println(color.YellowString(msg))
 			return nil
 		}
-		return err
+		return errors.Wrapf(err, "failed to push to git remote")
 	}
+	fmt.Println(color.GreenString("Pushed changes to git remote"))
 	return nil
 }
 
@@ -369,11 +371,11 @@ func (s *Store) Copy(from, to string) error {
 	// recursive copy?
 	if s.IsDir(from) {
 		if s.Exists(to) {
-			return fmt.Errorf("Can not copy dir to file")
+			return errors.Errorf("Can not copy dir to file")
 		}
 		sf, err := s.List("")
 		if err != nil {
-			return err
+			return errors.Wrapf(err, "failed to list store")
 		}
 		destPrefix := to
 		if s.IsDir(to) {
@@ -390,12 +392,13 @@ func (s *Store) Copy(from, to string) error {
 		}
 		return nil
 	}
+
 	content, err := s.Get(from)
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "failed to get '%s' from store", from)
 	}
 	if err := s.Set(to, content, fmt.Sprintf("Copied from %s to %s", from, to)); err != nil {
-		return err
+		return errors.Wrapf(err, "failed to save '%s' to store", to)
 	}
 	return nil
 }
@@ -408,11 +411,11 @@ func (s *Store) Move(from, to string) error {
 	// recursive move?
 	if s.IsDir(from) {
 		if s.Exists(to) {
-			return fmt.Errorf("Can not move dir to file")
+			return errors.Errorf("Can not move dir to file")
 		}
 		sf, err := s.List("")
 		if err != nil {
-			return err
+			return errors.Wrapf(err, "failed to list store")
 		}
 		destPrefix := to
 		if s.IsDir(to) {
@@ -432,13 +435,13 @@ func (s *Store) Move(from, to string) error {
 
 	content, err := s.Get(from)
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "failed to decrypt '%s'", from)
 	}
 	if err := s.Set(to, content, fmt.Sprintf("Moved from %s to %s", from, to)); err != nil {
-		return err
+		return errors.Wrapf(err, "failed to write '%s'", to)
 	}
 	if err := s.Delete(from); err != nil {
-		return err
+		return errors.Wrapf(err, "failed to delete '%s'", from)
 	}
 	return nil
 }
@@ -473,20 +476,20 @@ func (s *Store) delete(name string, recurse bool) error {
 	}
 
 	if err := rf(path); err != nil {
-		return fmt.Errorf("Failed to remove secret: %v", err)
+		return errors.Errorf("Failed to remove secret: %v", err)
 	}
 
 	if err := s.gitAdd(path); err != nil {
 		if err == store.ErrGitNotInit {
 			return nil
 		}
-		return err
+		return errors.Wrapf(err, "failed to add '%s' to git", path)
 	}
 	if err := s.gitCommit(fmt.Sprintf("Remove %s from store.", name)); err != nil {
 		if err == store.ErrGitNotInit {
 			return nil
 		}
-		return err
+		return errors.Wrapf(err, "failed to commit changes to git")
 	}
 
 	if s.autoSync {
@@ -494,7 +497,7 @@ func (s *Store) delete(name string, recurse bool) error {
 			if err == store.ErrGitNotInit || err == store.ErrGitNoRemote {
 				return nil
 			}
-			return err
+			return errors.Wrapf(err, "failed to push change to git remote")
 		}
 	}
 
@@ -519,8 +522,9 @@ func (s *Store) filenameToName(fn string) string {
 func (s *Store) reencrypt(reason string) error {
 	entries, err := s.List("")
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "failed to list store")
 	}
+
 	// save original value of auto push
 	gitAutoSync := s.autoSync
 	s.autoSync = false
@@ -534,6 +538,7 @@ func (s *Store) reencrypt(reason string) error {
 			fmt.Printf("Failed to write %s: %s\n", e, err)
 		}
 	}
+
 	// restore value of auto push
 	s.autoSync = gitAutoSync
 
@@ -551,7 +556,7 @@ func (s *Store) reencrypt(reason string) error {
 				fmt.Println(color.YellowString(msg))
 				return nil
 			}
-			return err
+			return errors.Wrapf(err, "failed to push change to git remote")
 		}
 	}
 	return nil

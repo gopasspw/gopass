@@ -16,6 +16,7 @@ const (
 // Generate & save a password
 func (s *Action) Generate(c *cli.Context) error {
 	force := c.Bool("force")
+	edit := c.Bool("edit")
 	symbols := c.Bool("symbols")
 	if c.IsSet("no-symbols") {
 		fmt.Println(color.RedString("Warning: -n/--no-symbols is deprecated. This is now the default. Use -s to enable symbols"))
@@ -38,13 +39,13 @@ func (s *Action) Generate(c *cli.Context) error {
 		var err error
 		name, err = s.askForString("Which name do you want to use?", "")
 		if err != nil || name == "" {
-			return fmt.Errorf(color.RedString("provide a password name"))
+			return s.exitError(ExitNoName, err, "please provide a password name")
 		}
 	}
 
 	if !force { // don't check if it's force anyway
 		if s.Store.Exists(name) && key == "" && !s.askForConfirmation(fmt.Sprintf("An entry already exists for %s. Overwrite the current password?", name)) {
-			return fmt.Errorf("not overwriting your current password")
+			return s.exitError(ExitAborted, nil, "user aborted. not overwriting your current password")
 		}
 	}
 
@@ -57,10 +58,10 @@ func (s *Action) Generate(c *cli.Context) error {
 
 	pwlen, err := strconv.Atoi(length)
 	if err != nil {
-		return fmt.Errorf("password length must be a number")
+		return s.exitError(ExitUsage, err, "password lenght must be a number")
 	}
 	if pwlen < 1 {
-		return fmt.Errorf("password length must be bigger than 0")
+		return s.exitError(ExitUsage, nil, "password length must not be zero")
 	}
 
 	password := pwgen.GeneratePassword(pwlen, symbols)
@@ -68,15 +69,15 @@ func (s *Action) Generate(c *cli.Context) error {
 	// set a single key in a yaml doc
 	if key != "" {
 		if err := s.Store.SetKey(name, key, string(password)); err != nil {
-			return err
+			return s.exitError(ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
 		}
 	} else if s.Store.Exists(name) {
 		if err := s.Store.SetPassword(name, password); err != nil {
-			return err
+			return s.exitError(ExitEncrypt, err, "failed to update '%s': %s", name, err)
 		}
 	} else {
 		if err := s.Store.SetConfirm(name, password, "Generated Password", s.confirmRecipients); err != nil {
-			return err
+			return s.exitError(ExitEncrypt, err, "failed to create '%s': %s", name, err)
 		}
 	}
 
@@ -92,8 +93,10 @@ func (s *Action) Generate(c *cli.Context) error {
 		color.YellowString(string(password)),
 	)
 
-	if s.Store.AskForMore() && s.askForConfirmation(fmt.Sprintf("Do you want to add more data for %s?", name)) {
-		return s.Edit(c)
+	if (edit || s.Store.AskForMore()) && s.askForConfirmation(fmt.Sprintf("Do you want to add more data for %s?", name)) {
+		if err := s.Edit(c); err != nil {
+			return s.exitError(ExitUnknown, err, "failed to edit '%s': %s", name, err)
+		}
 	}
 
 	return nil

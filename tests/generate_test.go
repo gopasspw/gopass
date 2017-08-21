@@ -16,11 +16,11 @@ func TestGenerate(t *testing.T) {
 
 	out, err := ts.run("generate")
 	assert.Error(t, err)
-	assert.Equal(t, "Which name do you want to use? []: \nError: provide a password name\n", out)
+	assert.Equal(t, "Which name do you want to use? []: \nError: please provide a password name\n", out)
 
 	out, err = ts.run("generate foo 0")
 	assert.Error(t, err)
-	assert.Equal(t, "\nError: password length must be bigger than 0\n", out)
+	assert.Equal(t, "\nError: password length must not be zero\n", out)
 
 	out, err = ts.run("generate baz 42")
 	assert.NoError(t, err)

@@ -9,6 +9,9 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/fatih/color"
+	"github.com/pkg/errors"
+
 	"golang.org/x/crypto/ssh/terminal"
 )
 
@@ -22,12 +25,13 @@ func (s *Action) confirmRecipients(name string, recipients []string) ([]string, 
 		return recipients, nil
 	}
 
-	fmt.Printf("gopass: Encrypting %s for these recipients:\n", name)
 	sort.Strings(recipients)
+
+	fmt.Printf("gopass: Encrypting %s for these recipients:\n", name)
 	for _, r := range recipients {
 		kl, err := s.gpg.FindPublicKeys(r)
 		if err != nil {
-			fmt.Println(err)
+			fmt.Println(color.RedString("Failed to read public key for '%s': %s", name, err))
 			continue
 		}
 		if len(kl) < 1 {
@@ -40,14 +44,14 @@ func (s *Action) confirmRecipients(name string, recipients []string) ([]string, 
 
 	yes, err := s.askForBool("Do you want to continue?", true)
 	if err != nil {
-		return recipients, err
+		return recipients, errors.Wrapf(err, "failed to read user input")
 	}
 
 	if yes {
 		return recipients, nil
 	}
 
-	return recipients, fmt.Errorf("user aborted")
+	return recipients, errors.New("user aborted")
 }
 
 // askForConfirmation asks a yes/no question until the user
@@ -72,7 +76,7 @@ func (s *Action) askForBool(text string, def bool) (bool, error) {
 
 	str, err := s.askForString(text, choices)
 	if err != nil {
-		return false, err
+		return false, errors.Wrapf(err, "failed to read user input")
 	}
 	switch str {
 	case "Y/n":
@@ -88,7 +92,7 @@ func (s *Action) askForBool(text string, def bool) (bool, error) {
 	case "n":
 		return false, nil
 	default:
-		return false, fmt.Errorf("Unknown answer: %s", str)
+		return false, errors.Errorf("Unknown answer: %s", str)
 	}
 }
 
@@ -100,7 +104,7 @@ func (s *Action) askForString(text, def string) (string, error) {
 	fmt.Printf("%s [%s]: ", text, def)
 	input, err := reader.ReadString('\n')
 	if err != nil {
-		return "", err
+		return "", errors.Wrapf(err, "failed to read user input")
 	}
 	input = strings.TrimSpace(input)
 	if input == "" {
@@ -118,7 +122,7 @@ func (s *Action) askForInt(text string, def int) (int, error) {
 	}
 	intVal, err := strconv.Atoi(str)
 	if err != nil {
-		return 0, err
+		return 0, errors.Wrapf(err, "failed to convert to number")
 	}
 	return intVal, nil
 }
@@ -126,7 +130,7 @@ func (s *Action) askForInt(text string, def int) (int, error) {
 // askForPassword prompts for a password twice until both match
 func (s *Action) askForPassword(name string, askFn func(string) (string, error)) (string, error) {
 	if !s.isTerm {
-		return "", fmt.Errorf("impossible without terminal")
+		return "", errors.New("impossible without terminal")
 	}
 	if askFn == nil {
 		askFn = s.promptPass
@@ -148,7 +152,7 @@ func (s *Action) askForPassword(name string, askFn func(string) (string, error))
 
 		fmt.Println("Error: the entered password do not match")
 	}
-	return "", fmt.Errorf("no valid user input")
+	return "", errors.New("no valid user input")
 }
 
 // askForKeyImport asks for permissions to import the named key
@@ -166,7 +170,7 @@ func (s *Action) askForKeyImport(key string) bool {
 // askforPrivateKey promts the user to select from a list of private keys
 func (s *Action) askForPrivateKey(prompt string) (string, error) {
 	if !s.isTerm {
-		return "", fmt.Errorf("no interaction without terminal")
+		return "", errors.New("no interaction without terminal")
 	}
 	kl, err := s.gpg.ListPrivateKeys()
 	if err != nil {
@@ -174,7 +178,7 @@ func (s *Action) askForPrivateKey(prompt string) (string, error) {
 	}
 	kl = kl.UseableKeys()
 	if len(kl) < 1 {
-		return "", fmt.Errorf("No useable private keys found")
+		return "", errors.New("No useable private keys found")
 	}
 	for i := 0; i < maxTries; i++ {
 		fmt.Println(prompt)
@@ -189,7 +193,7 @@ func (s *Action) askForPrivateKey(prompt string) (string, error) {
 			return kl[iv].Fingerprint, nil
 		}
 	}
-	return "", fmt.Errorf("no valid user input")
+	return "", errors.New("no valid user input")
 }
 
 // askForGitConfigUser will iterate over GPG private key identities and prompt
@@ -207,7 +211,7 @@ func (s *Action) askForGitConfigUser() (string, string, error) {
 	}
 	keyList = keyList.UseableKeys()
 	if len(keyList) < 1 {
-		return "", "", fmt.Errorf("No usable private keys found")
+		return "", "", errors.New("No usable private keys found")
 	}
 
 	for _, key := range keyList {
@@ -240,11 +244,11 @@ func (s *Action) promptPass(prompt string) (pass string, err error) {
 	fd := int(os.Stdin.Fd())
 	oldState, err := terminal.GetState(fd)
 	if err != nil {
-		return "", fmt.Errorf("Could not get state of terminal: %s", err)
+		return "", errors.Errorf("Could not get state of terminal: %s", err)
 	}
 	defer func() {
 		if err := terminal.Restore(fd, oldState); err != nil {
-			fmt.Printf("Failed to restore terminal: %s\n", err)
+			fmt.Println(color.RedString("Failed to restore terminal: %s", err))
 		}
 	}()
 
@@ -254,7 +258,7 @@ func (s *Action) promptPass(prompt string) (pass string, err error) {
 	go func() {
 		for range sigch {
 			if err := terminal.Restore(fd, oldState); err != nil {
-				fmt.Printf("Failed to restore terminal: %s\n", err)
+				fmt.Println(color.RedString("Failed to restore terminal: %s", err))
 			}
 			os.Exit(1)
 		}

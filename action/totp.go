@@ -1,12 +1,12 @@
 package action
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 	"time"
 
 	"github.com/fatih/color"
+	"github.com/pkg/errors"
 	"github.com/pquerna/otp"
 	"github.com/pquerna/otp/totp"
 	"github.com/urfave/cli"
@@ -20,32 +20,34 @@ const (
 func (s *Action) TOTP(c *cli.Context) error {
 	name := c.Args().First()
 	if name == "" {
-		return errors.New("provide a password name")
+		return s.exitError(ExitUsage, nil, "usage: %s totp [name]", s.Name)
 	}
 
 	content, err := s.Store.Get(name)
 	if err != nil {
-		return err
+		return s.exitError(ExitDecrypt, err, "failed to get entry '%s': %s", name, err)
 	}
 
 	key, err := otp.NewKeyFromURL(string(content))
 	if err != nil {
-		return err
+		return s.exitError(ExitUnknown, err, "failed get key from URL: %s", err)
 	}
 
 	now := time.Now()
 	code, err := printCode(key.Secret(), now)
 	if err != nil {
-		return err
+		return s.exitError(ExitIO, err, "failed to encode secret: %s", err)
 	}
 
 	_, err = printCode(key.Secret(), now.Add(totpPeriod*time.Second))
 	if err != nil {
-		return err
+		return s.exitError(ExitIO, err, "failed to print encode secret: %s", err)
 	}
 
 	if c.Bool("clip") {
-		return s.copyToClipboard(fmt.Sprintf("time based token for %s", name), []byte(code))
+		if err := s.copyToClipboard(fmt.Sprintf("time based token for %s", name), []byte(code)); err != nil {
+			return s.exitError(ExitIO, err, "failed to copy to clipboard: %s", err)
+		}
 	}
 
 	return nil
@@ -60,7 +62,7 @@ func printCode(secret string, t time.Time) (string, error) {
 		Algorithm: otp.AlgorithmSHA1,
 	})
 	if err != nil {
-		return "", err
+		return "", errors.Wrapf(err, "failed to generate OTP code")
 	}
 
 	expiresAt := time.Unix(t.Unix()+totpPeriod-(t.Unix()%totpPeriod), 0)

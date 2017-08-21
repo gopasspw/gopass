@@ -11,6 +11,7 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/muesli/goprogressbar"
+	"github.com/pkg/errors"
 	"github.com/urfave/cli"
 )
 
@@ -20,11 +21,11 @@ func (s *Action) HIBP(c *cli.Context) error {
 
 	fns := strings.Split(os.Getenv("HIBP_DUMPS"), ",")
 	if len(fns) < 1 || fns[0] == "" {
-		return fmt.Errorf("Please provide the name(s) of the haveibeenpwned.com password dumps in HIBP_DUMPS. See https://haveibeenpwned.com/Passwords for more information")
+		return errors.Errorf("Please provide the name(s) of the haveibeenpwned.com password dumps in HIBP_DUMPS. See https://haveibeenpwned.com/Passwords for more information")
 	}
 
 	if !force && !s.askForConfirmation(fmt.Sprintf("This command is checking all your secrets against the haveibeenpwned.com hashes in %+v.\nYou will be asked to unlock all your secrets!\nDo you want to continue?", fns)) {
-		return fmt.Errorf("user aborted")
+		return errors.Errorf("user aborted")
 	}
 
 	// build a map of all secrets sha sums to their names and also build a sorted (!)
@@ -32,8 +33,9 @@ func (s *Action) HIBP(c *cli.Context) error {
 	// a very efficient stream compare in O(n)
 	t, err := s.Store.Tree()
 	if err != nil {
-		return err
+		return s.exitError(ExitList, err, "failed to list store: %s", err)
 	}
+
 	pwList := t.List(0)
 	// map sha1sum back to secret name for reporting
 	shaSums := make(map[string]string, len(pwList))
@@ -78,7 +80,7 @@ func (s *Action) HIBP(c *cli.Context) error {
 	// compare the prepared list against all provided files. with a little more
 	// code this could be parallelized
 	for _, fn := range fns {
-		go findHIBPMatches(fn, shaSums, sortedShaSums, matches, done)
+		go s.findHIBPMatches(fn, shaSums, sortedShaSums, matches, done)
 	}
 	matchList := make([]string, 0, 100)
 	go func() {
@@ -100,18 +102,14 @@ func (s *Action) HIBP(c *cli.Context) error {
 		fmt.Println(color.RedString("\t- %s", m))
 	}
 	fmt.Println(color.CyanString("The passwords in the listed secrets were included in public leaks in the past. This means they are likely included in many word-list attacks and provide only very little security. Strongly consider changing those passwords!"))
-	return fmt.Errorf("Some matches found")
+	return s.exitError(ExitAudit, nil, "weak passwords found")
 }
 
-func findHIBPMatches(fn string, shaSums map[string]string, sortedShaSums []string, matches chan<- string, done chan<- struct{}) {
+func (s *Action) findHIBPMatches(fn string, shaSums map[string]string, sortedShaSums []string, matches chan<- string, done chan<- struct{}) {
 	defer func() {
 		done <- struct{}{}
 	}()
 	t0 := time.Now()
-	var debug bool
-	if gdb := os.Getenv("GOPASS_DEBUG"); gdb != "" {
-		debug = true
-	}
 
 	fh, err := os.Open(fn)
 	if err != nil {
@@ -122,7 +120,7 @@ func findHIBPMatches(fn string, shaSums map[string]string, sortedShaSums []strin
 		_ = fh.Close()
 	}()
 
-	if debug {
+	if s.debug {
 		fmt.Printf("Checking file %s ...\n", fn)
 	}
 
@@ -139,7 +137,7 @@ func findHIBPMatches(fn string, shaSums map[string]string, sortedShaSums []strin
 		}
 		if line == sortedShaSums[i] {
 			matches <- shaSums[line]
-			if debug {
+			if s.debug {
 				fmt.Printf("MATCH at line %d: %s / %s from %s\n", lineNo, line, shaSums[line], fn)
 			}
 			numMatches++
@@ -153,7 +151,7 @@ func findHIBPMatches(fn string, shaSums map[string]string, sortedShaSums []strin
 			i++
 		}
 	}
-	if debug {
+	if s.debug {
 		d0 := time.Since(t0)
 		fmt.Printf("Found %d matches in %d lines from %s in %.2fs (%.2f lines / s)\n", numMatches, lineNo, fn, d0.Seconds(), float64(lineNo)/d0.Seconds())
 	}
