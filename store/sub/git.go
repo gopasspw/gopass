@@ -134,6 +134,9 @@ func (s *Store) GitVersion() semver.Version {
 		return v
 	}
 	svStr := strings.TrimPrefix(string(out), "git version ")
+	if p := strings.Fields(svStr); len(p) > 0 {
+		svStr = p[0]
+	}
 	sv, err := semver.ParseTolerant(svStr)
 	if err != nil {
 		if gd := os.Getenv("GOPASS_DEBUG"); gd != "" {
