@@ -1,3 +1,7 @@
+## 1.3.2 / 2017-08-22
+
+* [BUGFIX] Fix git version output [#274]
+
 ## 1.3.1 / 2017-08-15
 
 * [BUGFIX] Enable AutoSync by default [#267]
