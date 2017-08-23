@@ -2,7 +2,6 @@ package root
 
 import (
 	"fmt"
-	"sort"
 	"strings"
 
 	"github.com/justwatchcom/gopass/config"
@@ -11,8 +10,6 @@ import (
 	gpgcli "github.com/justwatchcom/gopass/gpg/cli"
 	"github.com/justwatchcom/gopass/store"
 	"github.com/justwatchcom/gopass/store/sub"
-	"github.com/justwatchcom/gopass/tree"
-	"github.com/justwatchcom/gopass/tree/simple"
 	"github.com/pkg/errors"
 )
 
@@ -105,119 +102,6 @@ func New(cfg *config.Config) (*Store, error) {
 	return r, nil
 }
 
-// Initialized checks on disk if .gpg-id was generated and thus returns true.
-func (r *Store) Initialized() bool {
-	return r.store.Initialized()
-}
-
-// Init tries to initalize a new password store location matching the object
-func (r *Store) Init(alias, path string, ids ...string) error {
-	cfg := r.Config()
-	cfg.Path = fsutil.CleanPath(path)
-	sub, err := sub.New(alias, cfg)
-	if err != nil {
-		return errors.Wrapf(err, "failed to create new sub store '%s'", alias)
-	}
-	if !r.store.Initialized() && alias == "" {
-		r.store = sub
-	}
-
-	return sub.Init(path, ids...)
-}
-
-// Format will pretty print all entries in this store and all substores
-func (r *Store) Format(maxDepth int) (string, error) {
-	t, err := r.Tree()
-	if err != nil {
-		return "", err
-	}
-	return t.Format(maxDepth), nil
-}
-
-// List will return a flattened list of all tree entries
-func (r *Store) List(maxDepth int) ([]string, error) {
-	t, err := r.Tree()
-	if err != nil {
-		return []string{}, err
-	}
-	return t.List(maxDepth), nil
-}
-
-// Tree returns the tree representation of the entries
-func (r *Store) Tree() (tree.Tree, error) {
-	root := simple.New("gopass")
-	addFileFunc := func(in ...string) {
-		for _, f := range in {
-			ct := "text/plain"
-			if strings.HasSuffix(f, ".yaml") {
-				ct = "text/yaml"
-				f = strings.TrimSuffix(f, ".yaml")
-			} else if strings.HasSuffix(f, ".b64") {
-				ct = "application/octet-stream"
-				f = strings.TrimSuffix(f, ".b64")
-			}
-			if err := root.AddFile(f, ct); err != nil {
-				fmt.Printf("Failed to add file %s to tree: %s\n", f, err)
-				continue
-			}
-		}
-	}
-	addTplFunc := func(in ...string) {
-		for _, f := range in {
-			if err := root.AddTemplate(f); err != nil {
-				fmt.Printf("Failed to add template %s to tree: %s\n", f, err)
-				continue
-			}
-		}
-	}
-
-	sf, err := r.store.List("")
-	if err != nil {
-		return nil, err
-	}
-	addFileFunc(sf...)
-	addTplFunc(r.store.ListTemplates("")...)
-
-	mps := r.MountPoints()
-	sort.Sort(store.ByPathLen(mps))
-	for _, alias := range mps {
-		substore := r.mounts[alias]
-		if substore == nil {
-			continue
-		}
-		if err := root.AddMount(alias, substore.Path()); err != nil {
-			return nil, errors.Errorf("failed to add mount: %s", err)
-		}
-		sf, err := substore.List(alias)
-		if err != nil {
-			return nil, errors.Errorf("failed to add file: %s", err)
-		}
-		addFileFunc(sf...)
-		addTplFunc(substore.ListTemplates(alias)...)
-	}
-
-	return root, nil
-}
-
-// Get returns the plaintext of a single key
-func (r *Store) Get(name string) ([]byte, error) {
-	// forward to substore
-	store := r.getStore(name)
-	return store.Get(strings.TrimPrefix(name, store.Alias()))
-}
-
-// GetFirstLine returns the first line of the plaintext of a single key
-func (r *Store) GetFirstLine(name string) ([]byte, error) {
-	store := r.getStore(name)
-	return store.GetFirstLine(strings.TrimPrefix(name, store.Alias()))
-}
-
-// GetBody returns everything but the first line from a key
-func (r *Store) GetBody(name string) ([]byte, error) {
-	store := r.getStore(name)
-	return store.GetBody(strings.TrimPrefix(name, store.Alias()))
-}
-
 // Exists checks the existence of a single entry
 func (r *Store) Exists(name string) bool {
 	store := r.getStore(name)
@@ -228,101 +112,6 @@ func (r *Store) Exists(name string) bool {
 func (r *Store) IsDir(name string) bool {
 	store := r.getStore(name)
 	return store.IsDir(strings.TrimPrefix(name, store.Alias()))
-}
-
-// Set encodes and write the ciphertext of one entry to disk
-func (r *Store) Set(name string, content []byte, reason string) error {
-	store := r.getStore(name)
-	return store.Set(strings.TrimPrefix(name, store.Alias()), content, reason)
-}
-
-// SetPassword Update only the first line in an already existing entry
-func (r *Store) SetPassword(name string, password []byte) error {
-	store := r.getStore(name)
-	return store.SetPassword(strings.TrimPrefix(name, store.Alias()), password)
-}
-
-// SetConfirm calls Set with confirmation callback
-func (r *Store) SetConfirm(name string, content []byte, reason string, cb store.RecipientCallback) error {
-	store := r.getStore(name)
-	return store.SetConfirm(strings.TrimPrefix(name, store.Alias()), content, reason, cb)
-}
-
-// Copy will copy one entry to another location. Multi-store copies are
-// supported. Each entry has to be decoded and encoded for the destination
-// to make sure it's encrypted for the right set of recipients.
-func (r *Store) Copy(from, to string) error {
-	subFrom := r.getStore(from)
-	subTo := r.getStore(to)
-
-	from = strings.TrimPrefix(from, subFrom.Alias())
-	to = strings.TrimPrefix(to, subFrom.Alias())
-
-	// cross-store copy
-	if !subFrom.Equals(subTo) {
-		content, err := subFrom.Get(from)
-		if err != nil {
-			return errors.Wrapf(err, "failed to retrieve secret '%s'", from)
-		}
-		if err := subTo.Set(to, content, fmt.Sprintf("Copied from %s to %s", from, to)); err != nil {
-			return errors.Wrapf(err, "failed to store secret '%s'", to)
-		}
-		return nil
-	}
-
-	return subFrom.Copy(from, to)
-}
-
-// Move will move one entry from one location to another. Cross-store moves are
-// supported. Moving an entry will decode it from the old location, encode it
-// for the destination store with the right set of recipients and remove it
-// from the old location afterwards.
-func (r *Store) Move(from, to string) error {
-	subFrom := r.getStore(from)
-	subTo := r.getStore(to)
-
-	from = strings.TrimPrefix(from, subFrom.Alias())
-
-	// cross-store move
-	if !subFrom.Equals(subTo) {
-		to = strings.TrimPrefix(to, subTo.Alias())
-		content, err := subFrom.Get(from)
-		if err != nil {
-			return errors.Errorf("Source %s does not exist in source store %s: %s", from, subFrom.Alias(), err)
-		}
-		if err := subTo.Set(to, content, fmt.Sprintf("Moved from %s to %s", from, to)); err != nil {
-			return errors.Wrapf(err, "failed to save secret '%s'", to)
-		}
-		if err := subFrom.Delete(from); err != nil {
-			return errors.Wrapf(err, "failed to delete secret '%s'", from)
-		}
-		return nil
-	}
-
-	to = strings.TrimPrefix(to, subFrom.Alias())
-	return subFrom.Move(from, to)
-}
-
-// Delete will remove an single entry from the store
-func (r *Store) Delete(name string) error {
-	store := r.getStore(name)
-	sn := strings.TrimPrefix(name, store.Alias())
-	if sn == "" {
-		return errors.Errorf("can not delete a mount point. Use `gopass mount remove %s`", store.Alias())
-	}
-	return store.Delete(sn)
-}
-
-// Prune will remove a subtree from the Store
-func (r *Store) Prune(tree string) error {
-	for mp := range r.mounts {
-		if strings.HasPrefix(mp, tree) {
-			return errors.Errorf("can not prune subtree with mounts. Unmount first: `gopass mount remove %s`", mp)
-		}
-	}
-
-	store := r.getStore(tree)
-	return store.Prune(strings.TrimPrefix(tree, store.Alias()))
 }
 
 func (r *Store) String() string {
