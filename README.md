@@ -479,7 +479,7 @@ This also makes it easier to call gopass with e.g. [rofi](https://github.com/Dav
 # Simply copy the selected password to the clipboard
 $ gopass ls --flat | dmenu | xargs --no-run-if-empty gopass show -c
 # First pipe the selected name to gopass, encrypt it and type the password with xdotool.
-$ gopass ls --flat | dmenu | xargs --no-run-if-empty gopass show | xdotool type --clearmodifiers --file -
+$ gopass ls --flat | dmenu | xargs --no-run-if-empty gopass show | head -n 1 | xdotool type --clearmodifiers --file -
 ```
 
 ### Dependencies
