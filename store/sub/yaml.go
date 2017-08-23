@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/justwatchcom/gopass/store"
+	"github.com/pkg/errors"
 	yaml "gopkg.in/yaml.v2"
 )
 
@@ -39,7 +40,7 @@ func (s *Store) GetKey(name, key string) ([]byte, error) {
 func (s *Store) SetKey(name, key, value string) error {
 	content, err := s.Get(name)
 	if err != nil && err != store.ErrNotFound {
-		return err
+		return errors.Wrapf(err, "failed to read secret '%s'", name)
 	}
 
 	parts := bytes.Split(content, []byte("---\n"))
@@ -47,7 +48,7 @@ func (s *Store) SetKey(name, key, value string) error {
 	d := make(map[string]interface{})
 	if len(parts) > 1 {
 		if err := yaml.Unmarshal(parts[1], &d); err != nil {
-			return err
+			return errors.Wrapf(err, "failed to decode YAML from secret '%s'", name)
 		}
 	}
 
@@ -55,7 +56,7 @@ func (s *Store) SetKey(name, key, value string) error {
 
 	buf, err := yaml.Marshal(d)
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "failed to encode YAML for secret '%s'", name)
 	}
 
 	return s.SetConfirm(name, append(parts[0], append([]byte("\n---\n"), buf...)...), fmt.Sprintf("Updated key in %s", name), nil)
@@ -65,7 +66,7 @@ func (s *Store) SetKey(name, key, value string) error {
 func (s *Store) DeleteKey(name, key string) error {
 	content, err := s.Get(name)
 	if err != nil && err != store.ErrNotFound {
-		return err
+		return errors.Wrapf(err, "failed to read secret '%s'", name)
 	}
 
 	parts := bytes.Split(content, []byte("---\n"))
@@ -73,7 +74,7 @@ func (s *Store) DeleteKey(name, key string) error {
 	d := make(map[string]interface{})
 	if len(parts) > 1 {
 		if err := yaml.Unmarshal(parts[1], &d); err != nil {
-			return err
+			return errors.Wrapf(err, "failed to decode YAML from secret '%s'", name)
 		}
 	}
 
@@ -81,7 +82,7 @@ func (s *Store) DeleteKey(name, key string) error {
 
 	buf, err := yaml.Marshal(d)
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "failed to encode YAML for secret '%s'", name)
 	}
 
 	return s.SetConfirm(name, append(parts[0], append([]byte("---\n"), buf...)...), fmt.Sprintf("Deleted key %s in %s", key, name), nil)

@@ -1,9 +1,8 @@
 package sub
 
 import (
-	"fmt"
-
 	"github.com/justwatchcom/gopass/config"
+	"github.com/pkg/errors"
 )
 
 // Config returns this sub stores config as a config struct
@@ -22,7 +21,7 @@ func (s *Store) Config() *config.Config {
 // UpdateConfig updates this sub-stores internal config
 func (s *Store) UpdateConfig(cfg *config.Config) error {
 	if cfg == nil {
-		return fmt.Errorf("invalid config")
+		return errors.Errorf("invalid config")
 	}
 	s.autoImport = cfg.AutoImport
 	s.autoSync = cfg.AutoSync

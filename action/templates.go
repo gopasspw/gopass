@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 
+	"github.com/pkg/errors"
 	"github.com/urfave/cli"
 )
 
@@ -28,7 +29,7 @@ const (
 func (s *Action) TemplatesPrint(c *cli.Context) error {
 	tree, err := s.Store.TemplateTree()
 	if err != nil {
-		return err
+		return s.exitError(ExitList, err, "failed to list templates: %s", err)
 	}
 	fmt.Println(tree.Format(0))
 	return nil
@@ -40,7 +41,7 @@ func (s *Action) TemplatePrint(c *cli.Context) error {
 
 	content, err := s.Store.GetTemplate(name)
 	if err != nil {
-		return err
+		return s.exitError(ExitIO, err, "failed to retrieve template: %s", err)
 	}
 
 	fmt.Println(string(content))
@@ -53,7 +54,7 @@ func (s *Action) TemplateEdit(c *cli.Context) error {
 	name := c.Args().First()
 	// TODO support editing the root template as well
 	if name == "" {
-		return fmt.Errorf("provide a template name")
+		return errors.Errorf("provide a template name")
 	}
 
 	var content []byte
@@ -61,7 +62,7 @@ func (s *Action) TemplateEdit(c *cli.Context) error {
 		var err error
 		content, err = s.Store.GetTemplate(name)
 		if err != nil {
-			return err
+			return s.exitError(ExitIO, err, "failed to retrieve template: %s", err)
 		}
 	} else {
 		content = []byte(templateExample)
@@ -69,7 +70,7 @@ func (s *Action) TemplateEdit(c *cli.Context) error {
 
 	nContent, err := s.editor(content)
 	if err != nil {
-		return err
+		return s.exitError(ExitUnknown, err, "failed to invoke editor: %s", err)
 	}
 
 	// If content is equal, nothing changed, exiting
@@ -84,11 +85,11 @@ func (s *Action) TemplateEdit(c *cli.Context) error {
 func (s *Action) TemplateRemove(c *cli.Context) error {
 	name := c.Args().First()
 	if name == "" {
-		return fmt.Errorf("provide a template name")
+		return s.exitError(ExitUsage, nil, "usage: %s templates remove [name]", s.Name)
 	}
 
 	if !s.Store.HasTemplate(name) {
-		return fmt.Errorf("template not found")
+		return s.exitError(ExitNotFound, nil, "template '%s' not found", name)
 	}
 
 	return s.Store.RemoveTemplate(name)

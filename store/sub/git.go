@@ -13,6 +13,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/fsutil"
 	"github.com/justwatchcom/gopass/store"
+	"github.com/pkg/errors"
 )
 
 func (s *Store) gitCmd(name string, args ...string) error {
@@ -25,7 +26,7 @@ func (s *Store) gitCmd(name string, args ...string) error {
 		fmt.Printf("[DEBUG] store.%s: %s %+v\n", name, cmd.Path, cmd.Args)
 	}
 	if err := cmd.Run(); err != nil {
-		return err
+		return errors.Wrapf(err, "failed to run command %s %+v", cmd.Path, cmd.Args)
 	}
 	// load keys only after git pull
 	if len(cmd.Args) > 1 && cmd.Args[1] == "pull" {
@@ -33,7 +34,7 @@ func (s *Store) gitCmd(name string, args ...string) error {
 			fmt.Printf("[DEBUG] importing possilby missing keys ...\n")
 		}
 		if err := s.ImportMissingPublicKeys(); err != nil {
-			return err
+			return errors.Wrapf(err, "failed to import possibly missing public keys")
 		}
 	}
 
@@ -45,15 +46,15 @@ func (s *Store) gitFixConfig() error {
 	// "fatal: The current branch master has multiple upstream branches, refusing to push"
 	// https://stackoverflow.com/questions/948354/default-behavior-of-git-push-without-a-branch-specified
 	if err := s.gitCmd("GitInit", "config", "--local", "push.default", "matching"); err != nil {
-		return err
+		return errors.Wrapf(err, "failed to set git config for push.default")
 	}
 
 	// setup for proper diffs
 	if err := s.gitCmd("GitInit", "config", "--local", "diff.gpg.binary", "true"); err != nil {
-		color.Yellow("Error while initializing git: %s\n", err)
+		fmt.Println(color.YellowString("Error while initializing git: %s", err))
 	}
 	if err := s.gitCmd("GitInit", "config", "--local", "diff.gpg.textconv", "gpg --no-tty --decrypt"); err != nil {
-		color.Yellow("Error while initializing git: %s\n", err)
+		fmt.Println(color.YellowString("Error while initializing git: %s", err))
 	}
 
 	return nil
@@ -66,33 +67,33 @@ func (s *Store) GitInit(alias, signKey, userName, userEmail string) error {
 	// or already initialized. Only run git init if the folder is completely empty
 	if !s.isGit() {
 		if err := s.gitCmd("GitInit", "init"); err != nil {
-			return fmt.Errorf("Failed to initialize git: %s", err)
+			return errors.Errorf("Failed to initialize git: %s", err)
 		}
 	}
 
 	// set commit identity
 	if err := s.gitCmd("GitInit", "config", "--local", "user.name", userName); err != nil {
-		return err
+		return errors.Wrapf(err, "failed to set git config user.name")
 	}
 	if err := s.gitCmd("GitInit", "config", "--local", "user.email", userEmail); err != nil {
-		return err
+		return errors.Wrapf(err, "failed to set git config user.email")
 	}
 
 	// ensure sane git config
 	if err := s.gitFixConfig(); err != nil {
-		return err
+		return errors.Wrapf(err, "failed to fix git config")
 	}
 
 	// add current content of the store
 	if err := s.gitAdd(s.path); err != nil {
-		return err
+		return errors.Wrapf(err, "failed to add '%s' to git", s.path)
 	}
 	if err := s.gitCommit("Add current content of password store."); err != nil {
-		return err
+		return errors.Wrapf(err, "failed to commit changes to git")
 	}
 
 	if err := ioutil.WriteFile(filepath.Join(s.path, ".gitattributes"), []byte("*.gpg diff=gpg\n"), fileMode); err != nil {
-		return fmt.Errorf("Failed to initialize git: %s", err)
+		return errors.Errorf("Failed to initialize git: %s", err)
 	}
 	if err := s.gitAdd(s.path + "/.gitattributes"); err != nil {
 		fmt.Println(color.YellowString("Warning: Failed to add .gitattributes to git"))
@@ -111,11 +112,11 @@ func (s *Store) GitInit(alias, signKey, userName, userEmail string) error {
 
 func (s *Store) gitSetSignKey(sk string) error {
 	if sk == "" {
-		return fmt.Errorf("SignKey not set")
+		return errors.Errorf("SignKey not set")
 	}
 
 	if err := s.gitCmd("gitSetSignKey", "config", "--local", "user.signingkey", sk); err != nil {
-		return err
+		return errors.Wrapf(err, "failed to set git sign key")
 	}
 
 	return s.gitCmd("gitSetSignKey", "config", "--local", "commit.gpgsign", "true")
@@ -164,11 +165,9 @@ func (s *Store) Git(args ...string) error {
 	return s.gitCmd("Git", args...)
 }
 
-// isGit returns true if this stores has a .git folder
+// isGit returns true if this stores has an (probably) initialized .git folder
 func (s *Store) isGit() bool {
-	// TODO(dschulz) we may want to check if the folder actually contains
-	// an initialized git setup
-	return fsutil.IsDir(filepath.Join(s.path, ".git"))
+	return fsutil.IsFile(filepath.Join(s.path, ".git", "config"))
 }
 
 // gitAdd adds the listed files to the git index

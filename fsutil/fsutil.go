@@ -9,6 +9,8 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/pkg/errors"
 )
 
 // CleanPath resolves common aliases in a path and cleans it as much as possible
@@ -94,7 +96,7 @@ func Shred(path string, runs int) error {
 	rand.Seed(time.Now().UnixNano())
 	fh, err := os.OpenFile(path, os.O_WRONLY, 0600)
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "failed to open file '%s'", path)
 	}
 	buf := make([]byte, 1024)
 	for i := 0; i < runs; i++ {
@@ -106,21 +108,21 @@ func Shred(path string, runs int) error {
 			buf = make([]byte, 1024)
 		}
 		if _, err := fh.Seek(0, 0); err != nil {
-			return err
+			return errors.Wrapf(err, "failed to seek to 0,0")
 		}
 		if _, err := fh.Write(buf); err != nil {
 			if err != io.EOF {
-				return err
+				return errors.Wrapf(err, "failed to write to file")
 			}
 		}
 		// if we fail to sync the written blocks to disk it'd be pointless
 		// do any further loops
 		if err := fh.Sync(); err != nil {
-			return err
+			return errors.Wrapf(err, "failed to sync to disk")
 		}
 	}
 	if err := fh.Close(); err != nil {
-		return err
+		return errors.Wrapf(err, "failed to close file after writing")
 	}
 
 	return os.Remove(path)

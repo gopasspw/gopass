@@ -8,6 +8,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/qrcon"
 	"github.com/justwatchcom/gopass/store"
+	"github.com/pkg/errors"
 	"github.com/urfave/cli"
 )
 
@@ -20,12 +21,15 @@ func (s *Action) Show(c *cli.Context) error {
 	force := c.Bool("force")
 	qr := c.Bool("qr")
 
-	return s.show(c, name, key, clip, force, qr)
+	if err := s.show(c, name, key, clip, force, qr); err != nil {
+		return s.exitError(ExitDecrypt, err, "%s", err)
+	}
+	return nil
 }
 
 func (s *Action) show(c *cli.Context, name, key string, clip, force, qr bool) error {
 	if name == "" {
-		return fmt.Errorf("provide a secret name")
+		return s.exitError(ExitUsage, nil, "Usage: %s show [name]", s.Name)
 	}
 
 	if s.Store.IsDir(name) {
@@ -45,9 +49,9 @@ func (s *Action) show(c *cli.Context, name, key string, clip, force, qr bool) er
 		content, err = s.Store.GetKey(name, key)
 		if err != nil {
 			if err == store.ErrYAMLValueUnsupported {
-				return fmt.Errorf("Can not show nested key directly. Use 'gopass show %s'", name)
+				return s.exitError(ExitUnsupported, err, "Can not show nested key directly. Use 'gopass show %s'", name)
 			}
-			return err
+			return s.exitError(ExitUnknown, err, "failed to retrieve key '%s' from '%s': %s", key, name, err)
 		}
 		if clip {
 			return s.copyToClipboard(name, content)
@@ -55,18 +59,18 @@ func (s *Action) show(c *cli.Context, name, key string, clip, force, qr bool) er
 	case qr:
 		content, err = s.Store.GetFirstLine(name)
 		if err != nil {
-			return err
+			return s.exitError(ExitDecrypt, err, "failed to retrieve secret '%s': %s", name, err)
 		}
 		qr, err := qrcon.QRCode(string(content))
 		if err != nil {
-			return err
+			return s.exitError(ExitUnknown, err, "failed to encode '%s' as QR: %s", name, err)
 		}
 		fmt.Println(qr)
 		return nil
 	case clip:
 		content, err = s.Store.GetFirstLine(name)
 		if err != nil {
-			return err
+			return s.exitError(ExitDecrypt, err, "failed to retrieve secret '%s': %s", name, err)
 		}
 		return s.copyToClipboard(name, content)
 	default:
@@ -77,28 +81,28 @@ func (s *Action) show(c *cli.Context, name, key string, clip, force, qr bool) er
 		}
 		if err != nil {
 			if err != store.ErrNotFound {
-				return err
+				return s.exitError(ExitUnknown, err, "failed to retrieve secret '%s': %s", name, err)
 			}
 			color.Yellow("Entry '%s' not found. Starting search...", name)
 			if err := s.Find(c); err != nil {
-				return err
+				return s.exitError(ExitNotFound, err, "%s", err)
 			}
-			os.Exit(1)
+			os.Exit(ExitNotFound)
 		}
 	}
 
-	color.Yellow(string(content))
+	fmt.Println(color.YellowString(string(content)))
 
 	return nil
 }
 
 func (s *Action) copyToClipboard(name string, content []byte) error {
 	if err := clipboard.WriteAll(string(content)); err != nil {
-		return err
+		return errors.Wrapf(err, "failed to write to clipboard")
 	}
 
 	if err := clearClipboard(content, s.Store.ClipTimeout()); err != nil {
-		return err
+		return errors.Wrapf(err, "failed to clear clipboard")
 	}
 
 	fmt.Printf("Copied %s to clipboard. Will clear in %d seconds.\n", color.YellowString(name), s.Store.ClipTimeout())

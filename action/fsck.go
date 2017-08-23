@@ -1,6 +1,7 @@
 package action
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -19,15 +20,19 @@ func (s *Action) Fsck(c *cli.Context) error {
 	// make sure config is in the right place
 	// we may have loaded it from one of the fallback locations
 	if err := s.Store.Config().Save(); err != nil {
-		return err
+		return s.exitError(ExitConfig, err, "failed to save config: %s", err)
 	}
 	// clean up any previous config locations
 	oldCfg := filepath.Join(os.Getenv("HOME"), ".gopass.yml")
 	if fsutil.IsFile(oldCfg) {
 		if err := os.Remove(oldCfg); err != nil {
-			color.Red("Failed to remove old gopass config %s: %s", oldCfg, err)
+			fmt.Println(color.RedString("Failed to remove old gopass config %s: %s", oldCfg, err))
 		}
 	}
+
 	_, err := s.Store.Fsck("", check, force)
-	return err
+	if err != nil {
+		return s.exitError(ExitFsck, err, "fsck found errors")
+	}
+	return nil
 }

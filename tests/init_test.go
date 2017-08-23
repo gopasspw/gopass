@@ -12,7 +12,7 @@ func TestInit(t *testing.T) {
 
 	out, err := ts.run("init")
 	assert.Error(t, err)
-	assert.Equal(t, "\nError: no interaction without terminal\n", out)
+	assert.Equal(t, "\nError: failed to initialized store: failed to read user input: no interaction without terminal\n", out)
 
 	ts = newTester(t)
 	defer ts.teardown()
@@ -29,7 +29,7 @@ func TestInit(t *testing.T) {
 	out, err = ts.run("init " + keyID)
 	assert.Error(t, err)
 	for _, o := range []string{
-		"Error: Found already initialized store at /tmp/gopass-",
+		"Found already initialized store at /tmp/gopass-",
 		"You can add secondary stores with gopass init --path <path to secondary store> --store <mount name>",
 	} {
 		assert.Contains(t, out, o)

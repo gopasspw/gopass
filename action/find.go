@@ -12,13 +12,14 @@ import (
 // Find a string in the secret file's name
 func (s *Action) Find(c *cli.Context) error {
 	if !c.Args().Present() {
-		return fmt.Errorf("Usage: gopass find arg")
+		return s.exitError(ExitUsage, nil, "Usage: %s find arg", s.Name)
 	}
 
 	l, err := s.Store.List(0)
 	if err != nil {
-		return err
+		return s.exitError(ExitList, err, "failed to list store: %s", err)
 	}
+
 	needle := strings.ToLower(c.Args().First())
 	choices := make([]string, 0, 10)
 	for _, value := range l {
@@ -50,6 +51,6 @@ func (s *Action) Find(c *cli.Context) error {
 	case "show":
 		return s.show(c, choices[sel], "", false, false, false)
 	default:
-		return fmt.Errorf("User aborted")
+		return s.exitError(ExitAborted, nil, "user aborted")
 	}
 }

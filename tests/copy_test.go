@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -17,22 +18,22 @@ func TestCopy(t *testing.T) {
 
 	out, err := ts.run("copy")
 	assert.Error(t, err)
-	assert.Equal(t, "\nError: Usage: gopass cp old-path new-path\n", out)
+	assert.Equal(t, "\nError: Usage: "+filepath.Base(ts.Binary)+" cp old-path new-path\n", out)
 
 	out, err = ts.run("copy foo")
 	assert.Error(t, err)
-	assert.Equal(t, "\nError: Usage: gopass cp old-path new-path\n", out)
+	assert.Equal(t, "\nError: Usage: "+filepath.Base(ts.Binary)+" cp old-path new-path\n", out)
 
 	out, err = ts.run("copy foo bar")
 	assert.Error(t, err)
-	assert.Equal(t, "\nError: foo doesn't exists\n", out)
+	assert.Equal(t, "\nError: foo does not exist\n", out)
 
 	ts.initSecrets("")
 
-	//TODO: foo is a directory to be copied, which doesn't work
+	// TODO: foo is a directory to be copied, which doesn't work
 	out, err = ts.run("copy foo bar")
 	assert.Error(t, err)
-	assert.Equal(t, "\nError: foo doesn't exists\n", out)
+	assert.Equal(t, "\nError: foo does not exist\n", out)
 
 	out, err = ts.run("copy foo/bar foo/baz")
 	assert.NoError(t, err)

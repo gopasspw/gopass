@@ -5,6 +5,8 @@ import (
 	"crypto/sha1"
 	"fmt"
 	"text/template"
+
+	"github.com/pkg/errors"
 )
 
 // These constants defined the template function names used
@@ -32,7 +34,7 @@ func get(kv kvstore) func(...string) (string, error) {
 			return "", nil
 		}
 		if kv == nil {
-			return "", fmt.Errorf("KV is nil")
+			return "", errors.Errorf("KV is nil")
 		}
 		buf, err := kv.Get(s[0])
 		if err != nil {

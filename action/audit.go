@@ -2,7 +2,6 @@ package action
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/fatih/color"
 	"github.com/muesli/crunchy"
@@ -28,7 +27,7 @@ type auditedSecret struct {
 func (s *Action) Audit(c *cli.Context) error {
 	t, err := s.Store.Tree()
 	if err != nil {
-		return err
+		return s.exitError(ExitList, err, "failed to get store tree: %s", err)
 	}
 	list := t.List(0)
 
@@ -107,7 +106,7 @@ func (s *Action) Audit(c *cli.Context) error {
 	foundErrors := printAuditResults(errors, "%s:\n", color.RedString)
 
 	if foundWeakPasswords || foundDuplicates || foundErrors {
-		os.Exit(1)
+		return s.exitError(ExitAudit, nil, "found weak passwords or duplicates")
 	}
 
 	return nil

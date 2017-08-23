@@ -8,6 +8,7 @@ import (
 	"github.com/justwatchcom/gopass/store"
 	"github.com/justwatchcom/gopass/tree"
 	"github.com/justwatchcom/gopass/tree/simple"
+	"github.com/pkg/errors"
 )
 
 // ListRecipients lists all recipients for the given store
@@ -81,7 +82,7 @@ func (r *Store) RecipientsTree(pretty bool) (tree.Tree, error) {
 			continue
 		}
 		if err := root.AddMount(alias, substore.Path()); err != nil {
-			return nil, fmt.Errorf("failed to add mount: %s", err)
+			return nil, errors.Errorf("failed to add mount: %s", err)
 		}
 		for _, recp := range substore.Recipients() {
 			if err := r.addRecipient(alias+"/", root, recp, pretty); err != nil {

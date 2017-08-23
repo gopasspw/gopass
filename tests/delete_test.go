@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -14,11 +15,11 @@ func TestDelete(t *testing.T) {
 
 	out, err := ts.run("delete")
 	assert.Error(t, err)
-	assert.Equal(t, "\nError: provide a secret name\n", out)
+	assert.Equal(t, "\nError: Usage: "+filepath.Base(ts.Binary)+" rm name\n", out)
 
 	out, err = ts.run("delete foobarbaz")
 	assert.Error(t, err)
-	assert.Equal(t, "\nError: Entry is not in the password store\n", out)
+	assert.Equal(t, "\nError: Can not delete 'foobarbaz': Entry is not in the password store\n", out)
 
 	ts.initSecrets("")
 
@@ -30,6 +31,6 @@ func TestDelete(t *testing.T) {
 
 		out, err = ts.run("delete -f " + secret)
 		assert.Error(t, err)
-		assert.Equal(t, "\nError: Entry is not in the password store\n", out)
+		assert.Equal(t, "\nError: Can not delete '"+secret+"': Entry is not in the password store\n", out)
 	}
 }

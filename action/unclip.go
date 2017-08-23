@@ -19,7 +19,7 @@ func (s *Action) Unclip(c *cli.Context) error {
 
 	cur, err := clipboard.ReadAll()
 	if err != nil {
-		return err
+		return s.exitError(ExitIO, err, "failed to read clipboard: %s", err)
 	}
 
 	hash := fmt.Sprintf("%x", sha256.Sum256([]byte(cur)))
@@ -28,7 +28,7 @@ func (s *Action) Unclip(c *cli.Context) error {
 		return nil
 	}
 	if err := clipboard.WriteAll(""); err != nil {
-		return err
+		return s.exitError(ExitIO, err, "failed to write clipboard: %s", err)
 	}
 
 	return nil

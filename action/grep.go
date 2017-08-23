@@ -11,20 +11,20 @@ import (
 // Grep searches a string inside the content of all files
 func (s *Action) Grep(c *cli.Context) error {
 	if !c.Args().Present() {
-		return fmt.Errorf("Usage: gopass grep arg")
+		return s.exitError(ExitUsage, nil, "Usage: %s grep arg", s.Name)
 	}
 
 	search := c.Args().First()
 
 	l, err := s.Store.List(0)
 	if err != nil {
-		return err
+		return s.exitError(ExitList, err, "failed to list store: %s", err)
 	}
 
 	for _, v := range l {
 		content, err := s.Store.Get(v)
 		if err != nil {
-			fmt.Printf("failed to decrypt %s: %v", v, err)
+			fmt.Println(color.RedString("failed to decrypt %s: %v", v, err))
 			continue
 		}
 

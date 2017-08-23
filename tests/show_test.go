@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -17,7 +18,7 @@ func TestShow(t *testing.T) {
 
 	out, err := ts.run("show")
 	assert.Error(t, err)
-	assert.Equal(t, "\nError: provide a secret name\n", out)
+	assert.Equal(t, "\nError: Usage: "+filepath.Base(ts.Binary)+" show [name]\n", out)
 
 	out, err = ts.run("show foo")
 	assert.Error(t, err)
@@ -33,7 +34,7 @@ func TestShow(t *testing.T) {
 	assert.NoError(t, err)
 
 	out, _ = ts.run("show fixed/secret")
-	assert.Equal(t, "\nError: no safe content to display, you can force display with show -f\n", out)
+	assert.Equal(t, "\nError: failed to retrieve secret 'fixed/secret': no safe content to display, you can force display with show -f\n", out)
 
 	out, err = ts.run("show -f fixed/secret")
 	assert.NoError(t, err)

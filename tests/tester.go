@@ -2,7 +2,6 @@ package tests
 
 import (
 	"bytes"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -11,6 +10,7 @@ import (
 	"testing"
 
 	shellquote "github.com/kballard/go-shellquote"
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 )
 
@@ -126,7 +126,7 @@ func (ts tester) teardown() {
 
 func (ts tester) runCmd(args []string, in []byte) (string, error) {
 	if len(args) < 1 {
-		return "", fmt.Errorf("no command")
+		return "", errors.Errorf("no command")
 	}
 
 	cmd := exec.Command(args[0], args[1:]...)

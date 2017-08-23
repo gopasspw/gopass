@@ -13,6 +13,7 @@ import (
 
 	"github.com/blang/semver"
 	"github.com/justwatchcom/gopass/gpg"
+	"github.com/pkg/errors"
 )
 
 const (
@@ -52,22 +53,24 @@ func New(cfg Config) *GPG {
 	// this setting should be inherited by sub-processes
 	umask(077)
 
-	for _, b := range []string{cfg.Binary, "gpg2", "gpg1", "gpg"} {
-		if p, err := exec.LookPath(b); err == nil {
-			cfg.Binary = p
-			break
-		}
-	}
 	if len(cfg.Args) < 1 {
 		cfg.Args = defaultArgs
 	}
 
 	g := &GPG{
-		binary:      cfg.Binary,
+		binary:      "gpg",
 		args:        cfg.Args,
 		debug:       cfg.Debug,
 		alwaysTrust: cfg.AlwaysTrust,
 	}
+
+	for _, b := range []string{cfg.Binary, "gpg2", "gpg1", "gpg"} {
+		if p, err := exec.LookPath(b); err == nil {
+			g.binary = p
+			break
+		}
+	}
+
 	return g
 }
 
@@ -165,7 +168,7 @@ func (g *GPG) GetRecipients(file string) ([]string, error) {
 // errors when encrypting.
 func (g *GPG) Encrypt(path string, content []byte, recipients []string) error {
 	if err := os.MkdirAll(filepath.Dir(path), dirPerm); err != nil {
-		return err
+		return errors.Wrapf(err, "failed to create dir '%s'", path)
 	}
 
 	args := append(g.args, "--encrypt", "--output", path)
@@ -208,11 +211,11 @@ func (g *GPG) ExportPublicKey(id, filename string) error {
 	}
 	out, err := cmd.Output()
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "failed to run command '%s %+v'", cmd.Path, cmd.Args)
 	}
 
 	if len(out) < 1 {
-		return fmt.Errorf("Key not found")
+		return errors.Errorf("Key not found")
 	}
 
 	return ioutil.WriteFile(filename, out, fileMode)
@@ -222,7 +225,7 @@ func (g *GPG) ExportPublicKey(id, filename string) error {
 func (g *GPG) ImportPublicKey(filename string) error {
 	buf, err := ioutil.ReadFile(filename)
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "failed to read file '%s'", filename)
 	}
 
 	args := append(g.args, "--import")
@@ -235,7 +238,7 @@ func (g *GPG) ImportPublicKey(filename string) error {
 	cmd.Stderr = os.Stderr
 
 	if err := cmd.Run(); err != nil {
-		return err
+		return errors.Wrapf(err, "failed to run command: '%s %+v'", cmd.Path, cmd.Args)
 	}
 	// clear key cache
 	g.privKeys = nil

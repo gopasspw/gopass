@@ -32,13 +32,16 @@ func (s *Action) RecipientsPrint(c *cli.Context) error {
 	if err := s.Store.ImportMissingPublicKeys(); err != nil {
 		fmt.Println(color.RedString("Failed to import missing public keys: %s", err))
 	}
+
 	if err := s.Store.SaveRecipients(); err != nil {
 		fmt.Println(color.RedString("Failed to export missing public keys: %s", err))
 	}
+
 	tree, err := s.Store.RecipientsTree(true)
 	if err != nil {
-		return err
+		return s.exitError(ExitList, err, "failed to list recipients: %s", err)
 	}
+
 	fmt.Println(tree.Format(0))
 	return nil
 }
@@ -80,14 +83,15 @@ func (s *Action) RecipientsAdd(c *cli.Context) error {
 		}
 
 		if err := s.Store.AddRecipient(store, keys[0].Fingerprint); err != nil {
-			return err
+			return s.exitError(ExitRecipients, err, "failed to add recipient '%s': %s", r, err)
 		}
 		added++
 	}
 	if added < 1 {
-		return fmt.Errorf("no key added")
+		return s.exitError(ExitUnknown, nil, "no key added")
 	}
-	fmt.Printf("Added %d recipients\n", added)
+
+	fmt.Println(color.GreenString("Added %d recipients\n", added))
 	return nil
 }
 
@@ -105,11 +109,12 @@ func (s *Action) RecipientsRemove(c *cli.Context) error {
 			}
 		}
 		if err := s.Store.RemoveRecipient(store, strings.TrimPrefix(r, "0x")); err != nil {
-			return err
+			return s.exitError(ExitRecipients, err, "failed to remove recipient '%s': %s", r, err)
 		}
 		fmt.Printf(removalWarning, r)
 		removed++
 	}
+
 	fmt.Printf("Removed %d recipients\n", removed)
 	return nil
 }
