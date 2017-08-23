@@ -12,6 +12,7 @@ import (
 	"github.com/justwatchcom/gopass/pwgen"
 	"github.com/justwatchcom/gopass/tpl"
 	shellquote "github.com/kballard/go-shellquote"
+	"github.com/pkg/errors"
 	"github.com/urfave/cli"
 )
 
@@ -19,7 +20,7 @@ import (
 func (s *Action) Edit(c *cli.Context) error {
 	name := c.Args().First()
 	if name == "" {
-		return fmt.Errorf("provide a secret name")
+		return errors.Errorf("provide a secret name")
 	}
 
 	var content []byte
@@ -28,7 +29,7 @@ func (s *Action) Edit(c *cli.Context) error {
 		var err error
 		content, err = s.Store.Get(name)
 		if err != nil {
-			return fmt.Errorf("failed to decrypt %s: %v", name, err)
+			return errors.Errorf("failed to decrypt %s: %v", name, err)
 		}
 	} else if tmpl, found := s.Store.LookupTemplate(name); found {
 		changed = true
@@ -43,7 +44,7 @@ func (s *Action) Edit(c *cli.Context) error {
 
 	nContent, err := s.editor(content)
 	if err != nil {
-		return err
+		return s.exitError(ExitUnknown, err, "failed to invoke editor: %s", err)
 	}
 
 	// If content is equal, nothing changed, exiting
@@ -51,7 +52,10 @@ func (s *Action) Edit(c *cli.Context) error {
 		return nil
 	}
 
-	printAuditResult(string(nContent))
+	lines := bytes.Split(content, []byte("\n"))
+	if len(lines) > 0 {
+		printAuditResult(string(lines[0]))
+	}
 
 	return s.Store.SetConfirm(name, nContent, fmt.Sprintf("Edited with %s", os.Getenv("EDITOR")), s.confirmRecipients)
 }
@@ -64,7 +68,7 @@ func (s *Action) editor(content []byte) ([]byte, error) {
 
 	tmpfile, err := fsutil.TempFile("gopass-edit")
 	if err != nil {
-		return []byte{}, fmt.Errorf("failed to create tmpfile %s: %s", editor, err)
+		return []byte{}, errors.Errorf("failed to create tmpfile %s: %s", editor, err)
 	}
 	defer func() {
 		if err := tmpfile.Remove(); err != nil {
@@ -73,15 +77,15 @@ func (s *Action) editor(content []byte) ([]byte, error) {
 	}()
 
 	if _, err := tmpfile.Write(content); err != nil {
-		return []byte{}, fmt.Errorf("failed to write tmpfile to start with %s %v: %s", editor, tmpfile.Name(), err)
+		return []byte{}, errors.Errorf("failed to write tmpfile to start with %s %v: %s", editor, tmpfile.Name(), err)
 	}
 	if err := tmpfile.Close(); err != nil {
-		return []byte{}, fmt.Errorf("failed to close tmpfile to start with %s %v: %s", editor, tmpfile.Name(), err)
+		return []byte{}, errors.Errorf("failed to close tmpfile to start with %s %v: %s", editor, tmpfile.Name(), err)
 	}
 
 	cmdArgs, err := shellquote.Split(editor)
 	if err != nil {
-		return []byte{}, fmt.Errorf("failed to parse EDITOR command `%s`", editor)
+		return []byte{}, errors.Errorf("failed to parse EDITOR command `%s`", editor)
 	}
 
 	editor = cmdArgs[0]
@@ -91,12 +95,12 @@ func (s *Action) editor(content []byte) ([]byte, error) {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
-		return []byte{}, fmt.Errorf("failed to run %s with %s file", editor, tmpfile.Name())
+		return []byte{}, errors.Errorf("failed to run %s with %s file", editor, tmpfile.Name())
 	}
 
 	nContent, err := ioutil.ReadFile(tmpfile.Name())
 	if err != nil {
-		return []byte{}, fmt.Errorf("failed to read from tmpfile: %v", err)
+		return []byte{}, errors.Errorf("failed to read from tmpfile: %v", err)
 	}
 
 	// enforce unix line endings in the password store

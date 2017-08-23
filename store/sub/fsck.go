@@ -10,6 +10,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/fsutil"
 	"github.com/justwatchcom/gopass/gpg"
+	"github.com/pkg/errors"
 )
 
 // Fsck checks this stores integrity
@@ -83,7 +84,7 @@ func (s *Store) fsckCheckDir(prefix, fn string, check, force bool, askFunc func(
 	// check for empty folders
 	isEmpty, err := fsutil.IsEmptyDir(fn)
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "failed to check if '%s' is empty", fn)
 	}
 	if isEmpty {
 		fmt.Println(color.YellowString("[%s] Empty folder: %s", prefix, fn))
@@ -192,19 +193,19 @@ func fsckCheckRecipientsInSubkeys(key gpg.Key, recipients []string) error {
 			}
 		}
 	}
-	return fmt.Errorf("None of the Recipients matches a subkey")
+	return errors.Errorf("None of the Recipients matches a subkey")
 }
 
 func (s *Store) fsckCheckSelfDecrypt(fn string) error {
 	_, err := s.Get(s.filenameToName(fn))
-	return err
+	return errors.Wrapf(err, "failed to decode secret")
 }
 
 func (s *Store) fsckFixRecipients(fn string) error {
 	name := s.filenameToName(fn)
 	content, err := s.Get(s.filenameToName(fn))
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "failed to decode secret")
 	}
 	return s.Set(name, content, "fsck fix recipients")
 }

@@ -1,9 +1,8 @@
 package root
 
 import (
-	"fmt"
-
 	"github.com/justwatchcom/gopass/config"
+	"github.com/pkg/errors"
 )
 
 // Config returns this root stores config as a config struct
@@ -32,7 +31,7 @@ func (s *Store) Config() *config.Config {
 // those changes to all substores
 func (s *Store) UpdateConfig(cfg *config.Config) error {
 	if cfg == nil {
-		return fmt.Errorf("invalid config")
+		return errors.Errorf("invalid config")
 	}
 	s.askForMore = cfg.AskForMore
 	s.autoImport = cfg.AutoImport
@@ -49,18 +48,18 @@ func (s *Store) UpdateConfig(cfg *config.Config) error {
 	for alias, path := range cfg.Mounts {
 		if _, found := s.mounts[alias]; !found {
 			if err := s.addMount(alias, path); err != nil {
-				return err
+				return errors.Wrapf(err, "failed to add mount '%s' to '%s'", alias, path)
 			}
 		}
 	}
 
 	// propagate any config changes to our substores
 	if err := s.store.UpdateConfig(cfg); err != nil {
-		return err
+		return errors.Wrapf(err, "failed to update config for root store")
 	}
 	for _, sub := range s.mounts {
 		if err := sub.UpdateConfig(cfg); err != nil {
-			return err
+			return errors.Wrapf(err, "failed to update config for sub store %s", sub.Alias)
 		}
 	}
 

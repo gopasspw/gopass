@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -14,7 +15,7 @@ func TestFind(t *testing.T) {
 
 	out, err := ts.run("find")
 	assert.Error(t, err)
-	assert.Equal(t, "\nError: Usage: gopass find arg\n", out)
+	assert.Equal(t, "\nError: Usage: "+filepath.Base(ts.Binary)+" find arg\n", out)
 
 	out, err = ts.run("config safecontent false")
 	assert.NoError(t, err)

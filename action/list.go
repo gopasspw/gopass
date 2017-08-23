@@ -11,6 +11,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/termutil"
 	shellquote "github.com/kballard/go-shellquote"
+	"github.com/pkg/errors"
 	"github.com/urfave/cli"
 )
 
@@ -23,11 +24,12 @@ func (s *Action) List(c *cli.Context) error {
 
 	l, err := s.Store.Tree()
 	if err != nil {
-		return err
+		return s.exitError(ExitList, err, "failed to list store: %s", err)
 	}
 
 	var out io.Writer
 	var buf *bytes.Buffer
+	// we may need to redirect stdout for the pager support
 	out = os.Stdout
 
 	if filter == "" {
@@ -44,14 +46,16 @@ func (s *Action) List(c *cli.Context) error {
 		}
 		fmt.Fprintln(out, l.Format(limit))
 		if buf != nil {
-			return s.pager(buf)
+			if err := s.pager(buf); err != nil {
+				return s.exitError(ExitUnknown, err, "failed to invoke pager: %s", err)
+			}
 		}
 		return nil
 	}
 
 	subtree, err := l.FindFolder(filter)
 	if err != nil {
-		color.Red("Entry '%s' not found", filter)
+		fmt.Println(color.RedString("Entry '%s' not found", filter))
 		return nil
 	}
 
@@ -78,7 +82,9 @@ func (s *Action) List(c *cli.Context) error {
 	}
 	fmt.Fprintln(out, subtree.Format(limit))
 	if buf != nil {
-		return s.pager(buf)
+		if err := s.pager(buf); err != nil {
+			return s.exitError(ExitUnknown, err, "failed to invoke pager: %s", err)
+		}
 	}
 	return nil
 }
@@ -92,7 +98,7 @@ func (s *Action) pager(buf io.Reader) error {
 
 	args, err := shellquote.Split(pager)
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "failed to split pager command")
 	}
 
 	cmd := exec.Command(args[0], args[1:]...)

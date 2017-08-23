@@ -10,6 +10,7 @@ import (
 	"github.com/justwatchcom/gopass/fsutil"
 	"github.com/justwatchcom/gopass/tree"
 	"github.com/justwatchcom/gopass/tree/simple"
+	"github.com/pkg/errors"
 )
 
 const (
@@ -120,7 +121,7 @@ func (s *Store) SetTemplate(name string, content []byte) error {
 func (s *Store) RemoveTemplate(name string) error {
 	t := s.templatefile(name)
 	if !fsutil.IsFile(t) {
-		return fmt.Errorf("template not found")
+		return errors.Errorf("template not found")
 	}
 
 	return os.Remove(t)

@@ -2,11 +2,11 @@ package simple
 
 import (
 	"bytes"
-	"fmt"
 	"path/filepath"
 	"strings"
 
 	"github.com/justwatchcom/gopass/tree"
+	"github.com/pkg/errors"
 )
 
 // Folder is intermediate tree node
@@ -170,7 +170,7 @@ func (f *Folder) getFolder(name string) *Folder {
 func (f *Folder) FindFolder(name string) (tree.Tree, error) {
 	sub := f.findFolder(strings.Split(strings.TrimSuffix(name, "/"), "/"))
 	if sub == nil {
-		return nil, fmt.Errorf("Entry not found")
+		return nil, errors.Errorf("Entry not found")
 	}
 	return sub, nil
 }
@@ -190,12 +190,12 @@ func (f *Folder) findFolder(path []string) *Folder {
 // addFile adds new file
 func (f *Folder) addFile(path []string, contentType string) error {
 	if len(path) < 1 {
-		return fmt.Errorf("Path must not be empty")
+		return errors.Errorf("Path must not be empty")
 	}
 	name := path[0]
 	if len(path) == 1 {
 		if _, found := f.Files[name]; found {
-			return fmt.Errorf("File %s exists", name)
+			return errors.Errorf("File %s exists", name)
 		}
 		f.Files[name] = &File{
 			Name: name,
@@ -212,7 +212,7 @@ func (f *Folder) addFile(path []string, contentType string) error {
 // addMount adds a new mount (folder with non-empty on-disk path)
 func (f *Folder) addMount(path []string, dest string) error {
 	if len(path) < 1 {
-		return fmt.Errorf("Path must not be empty")
+		return errors.Errorf("Path must not be empty")
 	}
 	name := path[0]
 	if len(path) == 1 {
@@ -225,7 +225,7 @@ func (f *Folder) addMount(path []string, dest string) error {
 
 func (f *Folder) addTemplate(path []string) error {
 	if len(path) < 1 {
-		return fmt.Errorf("Path must not be empty")
+		return errors.Errorf("Path must not be empty")
 	}
 	name := path[0]
 	if len(path) == 1 {

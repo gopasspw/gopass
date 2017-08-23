@@ -13,6 +13,7 @@ import (
 	"github.com/justwatchcom/gopass/store/sub"
 	"github.com/justwatchcom/gopass/tree"
 	"github.com/justwatchcom/gopass/tree/simple"
+	"github.com/pkg/errors"
 )
 
 type gpger interface {
@@ -45,7 +46,7 @@ func New(cfg *config.Config) (*Store, error) {
 		cfg = &config.Config{}
 	}
 	if cfg.Path == "" {
-		return nil, fmt.Errorf("need path")
+		return nil, errors.Errorf("need path")
 	}
 	r := &Store{
 		askForMore:  cfg.AskForMore,
@@ -93,7 +94,7 @@ func New(cfg *config.Config) (*Store, error) {
 
 	// check for duplicate mounts
 	if err := r.checkMounts(); err != nil {
-		return nil, fmt.Errorf("checking mounts failed: %s", err)
+		return nil, errors.Errorf("checking mounts failed: %s", err)
 	}
 
 	// set some defaults
@@ -115,7 +116,7 @@ func (r *Store) Init(alias, path string, ids ...string) error {
 	cfg.Path = fsutil.CleanPath(path)
 	sub, err := sub.New(alias, cfg)
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "failed to create new sub store '%s'", alias)
 	}
 	if !r.store.Initialized() && alias == "" {
 		r.store = sub
@@ -185,11 +186,11 @@ func (r *Store) Tree() (tree.Tree, error) {
 			continue
 		}
 		if err := root.AddMount(alias, substore.Path()); err != nil {
-			return nil, fmt.Errorf("failed to add mount: %s", err)
+			return nil, errors.Errorf("failed to add mount: %s", err)
 		}
 		sf, err := substore.List(alias)
 		if err != nil {
-			return nil, fmt.Errorf("failed to add file: %s", err)
+			return nil, errors.Errorf("failed to add file: %s", err)
 		}
 		addFileFunc(sf...)
 		addTplFunc(substore.ListTemplates(alias)...)
@@ -261,10 +262,10 @@ func (r *Store) Copy(from, to string) error {
 	if !subFrom.Equals(subTo) {
 		content, err := subFrom.Get(from)
 		if err != nil {
-			return err
+			return errors.Wrapf(err, "failed to retrieve secret '%s'", from)
 		}
 		if err := subTo.Set(to, content, fmt.Sprintf("Copied from %s to %s", from, to)); err != nil {
-			return err
+			return errors.Wrapf(err, "failed to store secret '%s'", to)
 		}
 		return nil
 	}
@@ -287,13 +288,13 @@ func (r *Store) Move(from, to string) error {
 		to = strings.TrimPrefix(to, subTo.Alias())
 		content, err := subFrom.Get(from)
 		if err != nil {
-			return fmt.Errorf("Source %s does not exist in source store %s: %s", from, subFrom.Alias(), err)
+			return errors.Errorf("Source %s does not exist in source store %s: %s", from, subFrom.Alias(), err)
 		}
 		if err := subTo.Set(to, content, fmt.Sprintf("Moved from %s to %s", from, to)); err != nil {
-			return err
+			return errors.Wrapf(err, "failed to save secret '%s'", to)
 		}
 		if err := subFrom.Delete(from); err != nil {
-			return err
+			return errors.Wrapf(err, "failed to delete secret '%s'", from)
 		}
 		return nil
 	}
@@ -307,7 +308,7 @@ func (r *Store) Delete(name string) error {
 	store := r.getStore(name)
 	sn := strings.TrimPrefix(name, store.Alias())
 	if sn == "" {
-		return fmt.Errorf("can not delete a mount point. Use `gopass mount remove %s`", store.Alias())
+		return errors.Errorf("can not delete a mount point. Use `gopass mount remove %s`", store.Alias())
 	}
 	return store.Delete(sn)
 }
@@ -316,7 +317,7 @@ func (r *Store) Delete(name string) error {
 func (r *Store) Prune(tree string) error {
 	for mp := range r.mounts {
 		if strings.HasPrefix(mp, tree) {
-			return fmt.Errorf("can not prune subtree with mounts. Unmount first: `gopass mount remove %s`", mp)
+			return errors.Errorf("can not prune subtree with mounts. Unmount first: `gopass mount remove %s`", mp)
 		}
 	}
 

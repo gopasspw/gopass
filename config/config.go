@@ -12,13 +12,14 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/justwatchcom/gopass/fsutil"
 	"github.com/justwatchcom/gopass/store"
+	"github.com/pkg/errors"
 )
 
 var (
 	// ErrConfigNotFound is returned on load if the config was not found
-	ErrConfigNotFound = fmt.Errorf("config not found")
+	ErrConfigNotFound = errors.Errorf("config not found")
 	// ErrConfigNotParsed is returned on load if the config could not be decoded
-	ErrConfigNotParsed = fmt.Errorf("config not parseable")
+	ErrConfigNotParsed = errors.Errorf("config not parseable")
 )
 
 // Config is the gopass config structure
@@ -82,7 +83,7 @@ func (c *Config) ConfigMap() map[string]string {
 // SetConfigValue will try to set the given key to the value in the config struct
 func (c *Config) SetConfigValue(key, value string) error {
 	if key == "version" {
-		return fmt.Errorf("Can not change version")
+		return errors.Errorf("Can not change version")
 	}
 	if key != "path" {
 		value = strings.ToLower(value)
@@ -106,12 +107,12 @@ func (c *Config) SetConfigValue(key, value string) error {
 			} else if value == "false" {
 				f.SetBool(false)
 			} else {
-				return fmt.Errorf("No a bool: %s", value)
+				return errors.Errorf("No a bool: %s", value)
 			}
 		case reflect.Int:
 			iv, err := strconv.Atoi(value)
 			if err != nil {
-				return err
+				return errors.Wrapf(err, "failed to convert '%s' to int", value)
 			}
 			f.SetInt(int64(iv))
 		default:
@@ -167,17 +168,17 @@ func load(cf string) (*Config, error) {
 func (c *Config) Save() error {
 	buf, err := yaml.Marshal(c)
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "failed to marshal YAML")
 	}
 	cfgLoc := configLocation()
 	cfgDir := filepath.Dir(cfgLoc)
 	if !fsutil.IsDir(cfgDir) {
 		if err := os.MkdirAll(cfgDir, 0700); err != nil {
-			return err
+			return errors.Wrapf(err, "failed to create dir '%s'", cfgDir)
 		}
 	}
 	if err := ioutil.WriteFile(cfgLoc, buf, 0600); err != nil {
-		return err
+		return errors.Wrapf(err, "failed to write config file to '%s'", cfgLoc)
 	}
 	return nil
 }

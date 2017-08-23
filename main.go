@@ -33,7 +33,7 @@ type errorWriter struct {
 }
 
 func (e errorWriter) Write(p []byte) (int, error) {
-	return e.out.Write([]byte("\n" + color.RedString("Error: "+string(p))))
+	return e.out.Write([]byte("\n" + color.RedString("Error: %s", p)))
 }
 
 func main() {
@@ -300,6 +300,10 @@ func main() {
 				cli.BoolFlag{
 					Name:  "force, f",
 					Usage: "Force to overwrite existing password",
+				},
+				cli.BoolFlag{
+					Name:  "edit, e",
+					Usage: "Open secret for editing after generating a password",
 				},
 				cli.BoolFlag{
 					Name:   "no-symbols, n",

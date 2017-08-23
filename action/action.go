@@ -28,6 +28,7 @@ type Action struct {
 	Store   *root.Store
 	gpg     gpger
 	isTerm  bool
+	debug   bool
 	version semver.Version
 }
 
@@ -60,6 +61,7 @@ func New(sv semver.Version) *Action {
 	// debug flag
 	if gdb := os.Getenv("GOPASS_DEBUG"); gdb == "true" {
 		cfg.Debug = true
+		act.debug = true
 	}
 
 	// need this override for our integration tests

@@ -22,8 +22,9 @@ func (s *Action) Insert(c *cli.Context) error {
 
 	name := c.Args().Get(0)
 	if name == "" {
-		return fmt.Errorf("provide a secret name")
+		return s.exitError(ExitNoName, nil, "Usage: %s insert name", s.Name)
 	}
+
 	key := c.Args().Get(1)
 
 	var content []byte
@@ -31,7 +32,7 @@ func (s *Action) Insert(c *cli.Context) error {
 
 	info, err := os.Stdin.Stat()
 	if err != nil {
-		return fmt.Errorf("Failed to stat stdin: %s", err)
+		return s.exitError(ExitIO, err, "failed to stat stdin: %s", err)
 	}
 
 	// if content is piped to stdin, read and save it
@@ -40,7 +41,7 @@ func (s *Action) Insert(c *cli.Context) error {
 		buf := &bytes.Buffer{}
 
 		if written, err := io.Copy(buf, os.Stdin); err != nil {
-			return fmt.Errorf("Failed to copy after %d bytes: %s", written, err)
+			return s.exitError(ExitIO, err, "failed to copy after %d bytes: %s", written, err)
 		}
 
 		content = buf.Bytes()
@@ -51,20 +52,27 @@ func (s *Action) Insert(c *cli.Context) error {
 		if !fromStdin {
 			pw, err := s.askForPassword(name+"/"+key, nil)
 			if err != nil {
-				return fmt.Errorf("failed to ask for password: %v", err)
+				return s.exitError(ExitIO, err, "failed to ask for password: %s", err)
 			}
 			content = []byte(pw)
 		}
-		return s.Store.SetKey(name, key, string(content))
+
+		if err := s.Store.SetKey(name, key, string(content)); err != nil {
+			return s.exitError(ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
+		}
+		return nil
 	}
 
 	if fromStdin {
-		return s.Store.SetConfirm(name, content, "Read secret from STDIN", confirm)
+		if err := s.Store.SetConfirm(name, content, "Read secret from STDIN", confirm); err != nil {
+			return s.exitError(ExitEncrypt, err, "failed to set '%s': %s", name, err)
+		}
+		return nil
 	}
 
 	if !force { // don't check if it's force anyway
 		if s.Store.Exists(name) && !s.askForConfirmation(fmt.Sprintf("An entry already exists for %s. Overwrite it?", name)) {
-			return fmt.Errorf("not overwriting your current secret")
+			return s.exitError(ExitAborted, nil, "not overwriting your current secret")
 		}
 	}
 
@@ -72,9 +80,12 @@ func (s *Action) Insert(c *cli.Context) error {
 	if multiline {
 		content, err := s.editor([]byte{})
 		if err != nil {
-			return err
+			return s.exitError(ExitUnknown, err, "failed to start editor: %s", err)
 		}
-		return s.Store.SetConfirm(name, content, fmt.Sprintf("Inserted user supplied password with %s", os.Getenv("EDITOR")), confirm)
+		if err := s.Store.SetConfirm(name, content, fmt.Sprintf("Inserted user supplied password with %s", os.Getenv("EDITOR")), confirm); err != nil {
+			return s.exitError(ExitEncrypt, err, "failed to store secret '%s': %s", name, err)
+		}
+		return nil
 	}
 
 	// if echo mode is requested use a simple string input function
@@ -87,11 +98,14 @@ func (s *Action) Insert(c *cli.Context) error {
 
 	pw, err := s.askForPassword(name, promptFn)
 	if err != nil {
-		return fmt.Errorf("failed to ask for password: %v", err)
+		return s.exitError(ExitIO, err, "failed to ask for password: %s", err)
 	}
 
 	printAuditResult(pw)
-
 	content = []byte(pw)
-	return s.Store.SetConfirm(name, content, "Inserted user supplied password", confirm)
+
+	if err := s.Store.SetConfirm(name, content, "Inserted user supplied password", confirm); err != nil {
+		return s.exitError(ExitEncrypt, err, "failed to write secret '%s': %s", name, err)
+	}
+	return nil
 }

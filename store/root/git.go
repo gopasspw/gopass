@@ -7,6 +7,7 @@ import (
 	"github.com/blang/semver"
 	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/store"
+	"github.com/pkg/errors"
 )
 
 // GitInit initializes the git repo
@@ -33,7 +34,7 @@ func (r *Store) Git(name string, recurse, force bool, args ...string) error {
 			fmt.Println(color.YellowString("[%s] Has no remote. Skipping", dispName))
 		} else {
 			if !force {
-				return err
+				return errors.Wrapf(err, "failed to run git %s on sub store %s", strings.Join(args, " "), dispName)
 			}
 			fmt.Println(color.RedString("[%s] Failed to run 'git %s'", dispName, strings.Join(args, " ")))
 		}
@@ -53,7 +54,7 @@ func (r *Store) Git(name string, recurse, force bool, args ...string) error {
 				continue
 			}
 			if !force {
-				return err
+				return errors.Wrapf(err, "failed to perform git %s on %s", strings.Join(args, " "), alias)
 			}
 			fmt.Println(color.RedString("[%s] Failed to run 'git %s'", alias, strings.Join(args, " ")))
 		}
