@@ -61,10 +61,7 @@ func (s *Action) Edit(c *cli.Context) error {
 }
 
 func (s *Action) editor(content []byte) ([]byte, error) {
-	editor := os.Getenv("EDITOR")
-	if editor == "" {
-		editor = "editor"
-	}
+	editor := getEditor()
 
 	tmpfile, err := fsutil.TempFile("gopass-edit")
 	if err != nil {
