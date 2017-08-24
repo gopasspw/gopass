@@ -7,6 +7,7 @@ import (
 
 	gpgmock "github.com/justwatchcom/gopass/gpg/mock"
 	"github.com/justwatchcom/gopass/store"
+	"github.com/stretchr/testify/assert"
 )
 
 const (
@@ -250,11 +251,13 @@ ccc
 		}
 
 		s := &Store{
-			alias:      "",
-			path:       tempdir,
-			gpg:        gpgmock.New(),
-			recipients: []string{"john.doe"},
+			alias: "",
+			path:  tempdir,
+			gpg:   gpgmock.New(),
 		}
+
+		err = s.saveRecipients([]string{"john.doe"}, "test", false)
+		assert.NoError(t, err)
 
 		// run test case
 		t.Run(tc.name, tc.tf(s))

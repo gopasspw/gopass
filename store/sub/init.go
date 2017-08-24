@@ -10,7 +10,7 @@ import (
 
 // Initialized returns true if the store is properly initialized
 func (s *Store) Initialized() bool {
-	return fsutil.IsFile(s.idFile())
+	return fsutil.IsFile(s.idFile(""))
 }
 
 // Init tries to initalize a new password store location matching the object
@@ -21,7 +21,7 @@ You can add secondary stores with gopass init --path <path to secondary store> -
 	}
 
 	// initialize recipient list
-	s.recipients = make([]string, 0, len(ids))
+	recipients := make([]string, 0, len(ids))
 
 	for _, id := range ids {
 		if id == "" {
@@ -32,14 +32,14 @@ You can add secondary stores with gopass init --path <path to secondary store> -
 			fmt.Println("Failed to fetch public key:", id)
 			continue
 		}
-		s.recipients = append(s.recipients, kl[0].Fingerprint)
+		recipients = append(recipients, kl[0].Fingerprint)
 	}
 
-	if len(s.recipients) < 1 {
+	if len(recipients) < 1 {
 		return errors.Errorf("failed to initialize store: no valid recipients given")
 	}
 
-	kl, err := s.gpg.FindPrivateKeys(s.recipients...)
+	kl, err := s.gpg.FindPrivateKeys(recipients...)
 	if err != nil {
 		return errors.Errorf("Failed to get available private keys: %s", err)
 	}
@@ -48,7 +48,7 @@ You can add secondary stores with gopass init --path <path to secondary store> -
 		return errors.Errorf("None of the recipients has a secret key. You will not be able to decrypt the secrets you add")
 	}
 
-	if err := s.saveRecipients("Initialized Store for " + strings.Join(s.recipients, ", ")); err != nil {
+	if err := s.saveRecipients(recipients, "Initialized Store for "+strings.Join(recipients, ", "), true); err != nil {
 		return errors.Errorf("failed to initialize store: %v", err)
 	}
 

@@ -15,7 +15,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestLoadRecipients(t *testing.T) {
+func TestGetRecipientsDefault(t *testing.T) {
 	tempdir, err := ioutil.TempDir("", "gopass-")
 	if err != nil {
 		t.Fatalf("Failed to create tempdir: %s", err)
@@ -23,19 +23,49 @@ func TestLoadRecipients(t *testing.T) {
 	defer func() {
 		_ = os.RemoveAll(tempdir)
 	}()
+
 	genRecs, _, err := createStore(tempdir, nil, nil)
 	assert.NoError(t, err)
 
 	s := &Store{
-		alias:      "",
-		path:       tempdir,
-		gpg:        gpgmock.New(),
-		recipients: []string{"john.doe"},
+		alias: "",
+		path:  tempdir,
+		gpg:   gpgmock.New(),
 	}
 
-	recs, err := s.loadRecipients()
+	recs, err := s.getRecipients("")
 	assert.NoError(t, err)
 	assert.Equal(t, genRecs, recs)
+}
+
+func TestGetRecipientsSubID(t *testing.T) {
+	tempdir, err := ioutil.TempDir("", "gopass-")
+	if err != nil {
+		t.Fatalf("Failed to create tempdir: %s", err)
+	}
+	defer func() {
+		//_ = os.RemoveAll(tempdir)
+	}()
+
+	genRecs, _, err := createStore(tempdir, nil, nil)
+	assert.NoError(t, err)
+
+	s := &Store{
+		alias: "",
+		path:  tempdir,
+		gpg:   gpgmock.New(),
+	}
+
+	recs, err := s.getRecipients("")
+	assert.NoError(t, err)
+	assert.Equal(t, genRecs, recs)
+
+	err = ioutil.WriteFile(filepath.Join(tempdir, "foo", "bar", GPGID), []byte("john.doe\n"), 0600)
+	assert.NoError(t, err)
+
+	recs, err = s.getRecipients("foo/bar/baz")
+	assert.NoError(t, err)
+	assert.Equal(t, []string{"john.doe"}, recs)
 }
 
 func TestSaveRecipients(t *testing.T) {
@@ -51,19 +81,18 @@ func TestSaveRecipients(t *testing.T) {
 
 	recp := []string{"john.doe"}
 	s := &Store{
-		alias:      "",
-		path:       tempdir,
-		gpg:        gpgmock.New(),
-		recipients: recp,
+		alias: "",
+		path:  tempdir,
+		gpg:   gpgmock.New(),
 	}
 
 	// remove recipients
 	_ = os.Remove(filepath.Join(tempdir, GPGID))
 
-	err = s.saveRecipients("test-save-recipients")
+	err = s.saveRecipients(recp, "test-save-recipients", true)
 	assert.NoError(t, err)
 
-	buf, err := ioutil.ReadFile(s.idFile())
+	buf, err := ioutil.ReadFile(s.idFile(""))
 	if err != nil {
 		t.Fatalf("Failed to read ID File: %s", err)
 	}
@@ -94,23 +123,24 @@ func TestAddRecipient(t *testing.T) {
 	defer func() {
 		_ = os.RemoveAll(tempdir)
 	}()
-	_, _, err = createStore(tempdir, nil, nil)
+
+	genRecs, _, err := createStore(tempdir, nil, nil)
 	assert.NoError(t, err)
 
 	s := &Store{
-		alias:      "",
-		path:       tempdir,
-		gpg:        gpgmock.New(),
-		recipients: []string{"john.doe"},
+		alias: "",
+		path:  tempdir,
+		gpg:   gpgmock.New(),
 	}
 
 	newRecp := "A3683834"
 
 	err = s.AddRecipient(newRecp)
-	if err != nil {
-		t.Fatalf("Failed to add Recipient: %s", err)
-	}
-	assert.Equal(t, []string{"john.doe", newRecp}, s.recipients)
+	assert.NoError(t, err)
+
+	rs, err := s.getRecipients("")
+	assert.NoError(t, err)
+	assert.Equal(t, append(genRecs, newRecp), rs)
 }
 
 func TestRemoveRecipient(t *testing.T) {
@@ -125,15 +155,17 @@ func TestRemoveRecipient(t *testing.T) {
 	assert.NoError(t, err)
 
 	s := &Store{
-		alias:      "",
-		path:       tempdir,
-		gpg:        gpgmock.New(),
-		recipients: []string{"john.doe"},
+		alias: "",
+		path:  tempdir,
+		gpg:   gpgmock.New(),
 	}
 
-	err = s.RemoveRecipient("john.doe")
+	err = s.RemoveRecipient("0xDEADBEEF")
 	assert.NoError(t, err)
-	assert.Equal(t, []string{}, s.recipients)
+
+	rs, err := s.getRecipients("")
+	assert.NoError(t, err)
+	assert.Equal(t, []string{"0xFEEDBEEF"}, rs)
 }
 
 func TestListRecipients(t *testing.T) {
@@ -144,12 +176,14 @@ func TestListRecipients(t *testing.T) {
 	defer func() {
 		_ = os.RemoveAll(tempdir)
 	}()
+
 	genRecs, _, err := createStore(tempdir, nil, nil)
 	assert.NoError(t, err)
 
 	s, err := New("", &config.Config{Path: tempdir})
 	assert.NoError(t, err)
 
+	rs, err := s.getRecipients("")
 	assert.NoError(t, err)
-	assert.Equal(t, genRecs, s.recipients)
+	assert.Equal(t, genRecs, rs)
 }
