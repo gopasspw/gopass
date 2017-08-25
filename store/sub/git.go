@@ -151,7 +151,7 @@ func (s *Store) GitVersion() semver.Version {
 // Git runs arbitrary git commands on this store
 func (s *Store) Git(args ...string) error {
 	// special case for push, as the gitPush method handles more cases
-	if len(args) > 0 && args[0] == "push" {
+	if len(args) > 0 && (args[0] == "push" || args[0] == "pull") {
 		remote := ""
 		if len(args) > 1 {
 			remote = args[1]
@@ -160,7 +160,7 @@ func (s *Store) Git(args ...string) error {
 		if len(args) > 2 {
 			branch = args[2]
 		}
-		return s.gitPush(remote, branch)
+		return s.gitPushPull(args[0], remote, branch)
 	}
 	return s.gitCmd("Git", args...)
 }
@@ -230,7 +230,7 @@ func (s *Store) gitConfigValue(key string) (string, error) {
 
 // gitPush pushes the repo to it's origin.
 // optional arguments: remote and branch
-func (s *Store) gitPush(remote, branch string) error {
+func (s *Store) gitPushPull(op, remote, branch string) error {
 	if !s.isGit() {
 		return store.ErrGitNotInit
 	}
@@ -247,8 +247,18 @@ func (s *Store) gitPush(remote, branch string) error {
 	}
 
 	if err := s.gitCmd("gitPush", "pull", remote, branch); err != nil {
+		if op == "pull" {
+			return err
+		}
 		fmt.Println(color.YellowString("Failed to pull before git push: %s", err))
+	}
+	if op == "pull" {
+		return nil
 	}
 
 	return s.gitCmd("gitPush", "push", remote, branch)
+}
+
+func (s *Store) gitPush(remote, branch string) error {
+	return s.gitPushPull("push", remote, branch)
 }

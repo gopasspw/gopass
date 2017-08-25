@@ -173,13 +173,13 @@ func (s *Store) reencrypt(reason string) error {
 
 	if s.autoSync {
 		if err := s.gitPush("", ""); err != nil {
-			if err == store.ErrGitNotInit {
+			if errors.Cause(err) == store.ErrGitNotInit {
 				msg := "Warning: git is not initialized for this store. Ignoring auto-push option\n" +
 					"Run: gopass git init"
 				fmt.Println(color.RedString(msg))
 				return nil
 			}
-			if err == store.ErrGitNoRemote {
+			if errors.Cause(err) == store.ErrGitNoRemote {
 				msg := "Warning: git has not remote. Ignoring auto-push option\n" +
 					"Run: gopass git remote add origin ..."
 				fmt.Println(color.YellowString(msg))

@@ -30,7 +30,7 @@ func (r *Store) Git(name string, recurse, force bool, args ...string) error {
 	}
 	fmt.Println(color.CyanString("[%s] Running git %s", dispName, strings.Join(args, " ")))
 	if err := sub.Git(args...); err != nil {
-		if err == store.ErrGitNoRemote {
+		if errors.Cause(err) == store.ErrGitNoRemote {
 			fmt.Println(color.YellowString("[%s] Has no remote. Skipping", dispName))
 		} else {
 			if !force {
@@ -49,7 +49,7 @@ func (r *Store) Git(name string, recurse, force bool, args ...string) error {
 	for _, alias := range r.MountPoints() {
 		fmt.Println(color.CyanString("[%s] Running 'git %s'", alias, strings.Join(args, " ")))
 		if err := r.mounts[alias].Git(args...); err != nil {
-			if err == store.ErrGitNoRemote {
+			if errors.Cause(err) == store.ErrGitNoRemote {
 				fmt.Println(color.YellowString("[%s] Has no remote. Skipping", alias))
 				continue
 			}
