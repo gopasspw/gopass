@@ -35,6 +35,7 @@ type tester struct {
 }
 
 func newTester(t *testing.T) *tester {
+	t.Helper()
 	sourceDir := "."
 	if d := os.Getenv("GOPASS_TEST_DIR"); d != "" {
 		sourceDir = d
