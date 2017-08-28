@@ -48,7 +48,7 @@ func (s *Action) show(c *cli.Context, name, key string, clip, force, qr bool) er
 	case key != "":
 		content, err = s.Store.GetKey(name, key)
 		if err != nil {
-			if err == store.ErrYAMLValueUnsupported {
+			if errors.Cause(err) == store.ErrYAMLValueUnsupported {
 				return s.exitError(ExitUnsupported, err, "Can not show nested key directly. Use 'gopass show %s'", name)
 			}
 			return s.exitError(ExitUnknown, err, "failed to retrieve key '%s' from '%s': %s", key, name, err)

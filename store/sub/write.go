@@ -58,14 +58,14 @@ func (s *Store) SetConfirm(name string, content []byte, reason string, cb store.
 	}
 
 	if err := s.gitAdd(p); err != nil {
-		if err == store.ErrGitNotInit {
+		if errors.Cause(err) == store.ErrGitNotInit {
 			return nil
 		}
 		return errors.Wrapf(err, "failed to add '%s' to git", p)
 	}
 
 	if err := s.gitCommit(fmt.Sprintf("Save secret to %s: %s", name, reason)); err != nil {
-		if err == store.ErrGitNotInit {
+		if errors.Cause(err) == store.ErrGitNotInit {
 			return nil
 		}
 		return errors.Wrapf(err, "failed to commit changes to git")
@@ -76,13 +76,13 @@ func (s *Store) SetConfirm(name string, content []byte, reason string, cb store.
 	}
 
 	if err := s.gitPush("", ""); err != nil {
-		if err == store.ErrGitNotInit {
+		if errors.Cause(err) == store.ErrGitNotInit {
 			msg := "Warning: git is not initialized for this store. Ignoring auto-push option\n" +
 				"Run: gopass git init"
 			fmt.Println(color.RedString(msg))
 			return nil
 		}
-		if err == store.ErrGitNoRemote {
+		if errors.Cause(err) == store.ErrGitNoRemote {
 			msg := "Warning: git has not remote. Ignoring auto-push option\n" +
 				"Run: gopass git remote add origin ..."
 			fmt.Println(color.YellowString(msg))

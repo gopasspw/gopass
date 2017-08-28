@@ -173,7 +173,7 @@ func (s *Store) saveRecipients(msg string) error {
 			return errors.Wrapf(err, "failed to export public key for '%s'", r)
 		}
 		if err := s.gitAdd(path); err != nil {
-			if err == store.ErrGitNotInit {
+			if errors.Cause(err) == store.ErrGitNotInit {
 				continue
 			}
 			return errors.Wrapf(err, "failed to add public key for '%s' to git", r)
@@ -186,10 +186,10 @@ func (s *Store) saveRecipients(msg string) error {
 
 	// push to remote repo
 	if err := s.gitPush("", ""); err != nil {
-		if err == store.ErrGitNotInit {
+		if errors.Cause(err) == store.ErrGitNotInit {
 			return nil
 		}
-		if err == store.ErrGitNoRemote {
+		if errors.Cause(err) == store.ErrGitNoRemote {
 			msg := "Warning: git has not remote. Ignoring auto-push option\n" +
 				"Run: gopass git remote add origin ..."
 			fmt.Println(color.YellowString(msg))

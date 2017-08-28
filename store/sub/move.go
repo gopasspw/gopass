@@ -127,13 +127,13 @@ func (s *Store) delete(name string, recurse bool) error {
 	}
 
 	if err := s.gitAdd(path); err != nil {
-		if err == store.ErrGitNotInit {
+		if errors.Cause(err) == store.ErrGitNotInit {
 			return nil
 		}
 		return errors.Wrapf(err, "failed to add '%s' to git", path)
 	}
 	if err := s.gitCommit(fmt.Sprintf("Remove %s from store.", name)); err != nil {
-		if err == store.ErrGitNotInit {
+		if errors.Cause(err) == store.ErrGitNotInit {
 			return nil
 		}
 		return errors.Wrapf(err, "failed to commit changes to git")
@@ -141,7 +141,7 @@ func (s *Store) delete(name string, recurse bool) error {
 
 	if s.autoSync {
 		if err := s.gitPush("", ""); err != nil {
-			if err == store.ErrGitNotInit || err == store.ErrGitNoRemote {
+			if errors.Cause(err) == store.ErrGitNotInit || errors.Cause(err) == store.ErrGitNoRemote {
 				return nil
 			}
 			return errors.Wrapf(err, "failed to push change to git remote")
