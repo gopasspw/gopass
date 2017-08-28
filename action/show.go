@@ -3,6 +3,7 @@ package action
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/atotto/clipboard"
 	"github.com/fatih/color"
@@ -91,7 +92,7 @@ func (s *Action) show(c *cli.Context, name, key string, clip, force, qr bool) er
 		}
 	}
 
-	fmt.Println(color.YellowString(string(content)))
+	fmt.Println(color.YellowString(strings.Trim(string(content), "\r\n")))
 
 	return nil
 }
