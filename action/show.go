@@ -92,7 +92,7 @@ func (s *Action) show(c *cli.Context, name, key string, clip, force, qr bool) er
 		}
 	}
 
-	fmt.Println(color.YellowString(strings.Trim(string(content), "\r\n")))
+	fmt.Println(color.YellowString(strings.TrimRight(string(content), "\r\n")))
 
 	return nil
 }
