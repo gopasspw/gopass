@@ -76,7 +76,7 @@ func (s *Store) SetConfirm(ctx context.Context, name string, content []byte, rea
 		return nil
 	}
 
-	if err := s.gitPush(ctx, "", ""); err != nil {
+	if err := s.GitPush(ctx, "", ""); err != nil {
 		if errors.Cause(err) == store.ErrGitNotInit {
 			msg := "Warning: git is not initialized for this store. Ignoring auto-push option\n" +
 				"Run: gopass git init"

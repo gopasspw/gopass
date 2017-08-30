@@ -16,7 +16,7 @@ import (
 
 // Fsck checks this stores integrity
 func (s *Store) Fsck(ctx context.Context, prefix string, check, force bool) (map[string]uint64, error) {
-	rs, err := s.getRecipients(ctx, "")
+	rs, err := s.GetRecipients(ctx, "")
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get recipients")
 	}

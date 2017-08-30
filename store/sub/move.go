@@ -141,7 +141,7 @@ func (s *Store) delete(ctx context.Context, name string, recurse bool) error {
 	}
 
 	if s.autoSync {
-		if err := s.gitPush(ctx, "", ""); err != nil {
+		if err := s.GitPush(ctx, "", ""); err != nil {
 			if errors.Cause(err) == store.ErrGitNotInit || errors.Cause(err) == store.ErrGitNoRemote {
 				return nil
 			}

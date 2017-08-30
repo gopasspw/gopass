@@ -193,16 +193,10 @@ by unsetting `$PAGER` or `gopass config nopager true`.
 ### git auto-push and auto-pull
 
 If you want gopass to always push changes in git to your default remote (origin)
-enable autopush:
+enable autosync:
 
 ```bash
-$ gopass config autopush true
-```
-
-We also support `pull before push` to reduce the change of `rejected` pushes when frequent commits to a repo are made.
-
-```bash
-$ gopass config autopull true
+$ gopass config autosync true
 ```
 
 ### Check Passwords for Common Flaws

@@ -19,27 +19,22 @@ import (
 )
 
 func (s *Store) gitCmd(ctx context.Context, name string, args ...string) error {
+	buf := &bytes.Buffer{}
+
 	cmd := exec.CommandContext(ctx, "git", args[0:]...)
 	cmd.Dir = s.path
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+	cmd.Stdout = buf
+	cmd.Stderr = buf
 
 	if ctxutil.IsDebug(ctx) {
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
 		fmt.Printf("[DEBUG] store.%s: %s %+v\n", name, cmd.Path, cmd.Args)
 	}
 
 	if err := cmd.Run(); err != nil {
+		fmt.Printf("Output of '%s %+v:\n%s\n'", cmd.Path, cmd.Args, buf.String())
 		return errors.Wrapf(err, "failed to run command %s %+v", cmd.Path, cmd.Args)
-	}
-
-	// load keys only after git pull
-	if len(cmd.Args) > 1 && cmd.Args[1] == "pull" {
-		if s.debug {
-			fmt.Printf("[DEBUG] importing possilby missing keys ...\n")
-		}
-		if err := s.ImportMissingPublicKeys(ctx); err != nil {
-			return errors.Wrapf(err, "failed to import possibly missing public keys")
-		}
 	}
 
 	return nil
@@ -156,18 +151,6 @@ func (s *Store) GitVersion(ctx context.Context) semver.Version {
 
 // Git runs arbitrary git commands on this store
 func (s *Store) Git(ctx context.Context, args ...string) error {
-	// special case for push, as the gitPush method handles more cases
-	if len(args) > 0 && (args[0] == "push" || args[0] == "pull") {
-		remote := ""
-		if len(args) > 1 {
-			remote = args[1]
-		}
-		branch := ""
-		if len(args) > 2 {
-			branch = args[2]
-		}
-		return s.gitPushPull(ctx, args[0], remote, branch)
-	}
 	return s.gitCmd(ctx, "Git", args...)
 }
 
@@ -265,6 +248,12 @@ func (s *Store) gitPushPull(ctx context.Context, op, remote, branch string) erro
 	return s.gitCmd(ctx, "gitPush", "push", remote, branch)
 }
 
-func (s *Store) gitPush(ctx context.Context, remote, branch string) error {
+// GitPush pushes to the git remote
+func (s *Store) GitPush(ctx context.Context, remote, branch string) error {
 	return s.gitPushPull(ctx, "push", remote, branch)
+}
+
+// GitPull pulls from the git remote
+func (s *Store) GitPull(ctx context.Context, remote, branch string) error {
+	return s.gitPushPull(ctx, "pull", remote, branch)
 }
