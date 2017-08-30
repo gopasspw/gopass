@@ -50,9 +50,9 @@ func (s *Action) Insert(c *cli.Context) error {
 	// update to a single YAML entry
 	if key != "" {
 		if !fromStdin {
-			pw, err := s.askForPassword(name+"/"+key, nil)
+			pw, err := s.askForString(name+":"+key, "")
 			if err != nil {
-				return s.exitError(ExitIO, err, "failed to ask for password: %s", err)
+				return s.exitError(ExitIO, err, "failed to ask for user input: %s", err)
 			}
 			content = []byte(pw)
 		}
