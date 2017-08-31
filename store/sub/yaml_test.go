@@ -163,6 +163,61 @@ func TestYAML(t *testing.T) {
 			},
 		},
 		{
+			name: "Set multiple keys to a secret",
+			tf: func(s *Store) func(t *testing.T) {
+				return func(t *testing.T) {
+					// write password
+					err := s.Set(yamlSecret, []byte(yamlPassword), "testing")
+					if err != nil {
+						t.Fatalf("%s", err)
+					}
+					// set first key
+					err = s.SetKey(yamlSecret, yamlKey+"-1", yamlValue)
+					if err != nil {
+						t.Fatalf("Failed to write new key: %s", err)
+					}
+					// set second key
+					err = s.SetKey(yamlSecret, yamlKey+"-2", yamlValue)
+					if err != nil {
+						t.Fatalf("Failed to write new key: %s", err)
+					}
+					// set third key
+					err = s.SetKey(yamlSecret, yamlKey+"-3", yamlValue)
+					if err != nil {
+						t.Fatalf("Failed to write new key: %s", err)
+					}
+					// read back the password
+					pw, err := s.GetFirstLine(yamlSecret)
+					if err != nil {
+						t.Fatalf("Failed to read password: %s", err)
+					}
+					if string(pw) != yamlPassword {
+						t.Errorf("Wrong password: %s", pw)
+					}
+					// read back the keys
+					for _, k := range []string{"1", "2", "3"} {
+						key := yamlKey + "-" + k
+						content, err := s.GetKey(yamlSecret, key)
+						if err != nil {
+							t.Fatalf("Failed to read key %s: %s", key, err)
+						}
+						if string(content) != yamlValue {
+							t.Errorf("Wrong value: %s", content)
+						}
+					}
+					// read back whole entry
+					content, err := s.Get(yamlSecret)
+					if err != nil {
+						t.Fatalf("%s", err)
+					}
+					want := yamlPassword + "\n---\nbar-1: baz\nbar-2: baz\nbar-3: baz\n"
+					if string(content) != want {
+						t.Errorf("Wrong value: '%s' != '%s'", content, want)
+					}
+				}
+			},
+		},
+		{
 			name: "Get Multi-Line Value containing three dashes",
 			tf: func(s *Store) func(t *testing.T) {
 				mlValue := `-----BEGIN PGP PRIVATE KEY BLOCK-----

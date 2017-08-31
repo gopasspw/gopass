@@ -59,7 +59,7 @@ func (s *Store) SetKey(name, key, value string) error {
 		return errors.Wrapf(err, "failed to encode YAML for secret '%s'", name)
 	}
 
-	return s.SetConfirm(name, append(parts[0], append([]byte("\n---\n"), buf...)...), fmt.Sprintf("Updated key in %s", name), nil)
+	return s.SetConfirm(name, append(bytes.TrimRight(parts[0], "\n"), append([]byte("\n---\n"), buf...)...), fmt.Sprintf("Updated key in %s", name), nil)
 }
 
 // DeleteKey will delete a single key in a YAML structured secret
