@@ -288,7 +288,7 @@ func main() {
 				"Generate a new password of the specified length with optionally no symbols. " +
 				"Optionally put it on the clipboard and clear board after 45 seconds. " +
 				"Prompt before overwriting existing password unless forced. " +
-				"Optionally replace only the first line of an existing file with a new password.",
+				"It will replace only the first line of an existing file with a new password.",
 			Before:       action.Initialized,
 			Action:       action.Generate,
 			BashComplete: action.Complete,

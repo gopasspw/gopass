@@ -369,6 +369,14 @@ To restrict the characters used in generated passwords set `GOPASS_CHARACTER_SET
 any non-empty string. Please keep in mind that this can considerably weaken the
 strength of generated passwords.
 
+### In-place updates to existing passwords
+
+Running `gopass generate foo/bar` on an existing entry `foo/bar` will only update
+the first line of the secret leaving and trailing data in place.
+
+WARNING: At the moment this differs from the behaviour of `gopass insert` which
+will overwrite the whole entry. We [plan to fix this](https://github.com/justwatchcom/gopass/issues/301).
+
 ### Disabling Colors
 
 Disabling colors is as simple as `gopass config nocolor true`.
