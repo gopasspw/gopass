@@ -39,9 +39,9 @@ func (s *Store) SetConfirm(name string, content []byte, reason string, cb store.
 		return errors.Errorf("a folder named %s already exists", name)
 	}
 
-	recipients, err := s.useableKeys()
+	recipients, err := s.useableKeys(p)
 	if err != nil {
-		return errors.Wrapf(err, "failed to list useable keys")
+		return errors.Wrapf(err, "failed to list useable keys for '%s'", p)
 	}
 
 	// confirm recipients

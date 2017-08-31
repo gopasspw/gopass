@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	gpgmock "github.com/justwatchcom/gopass/gpg/mock"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestList(t *testing.T) {
@@ -58,11 +59,13 @@ func TestList(t *testing.T) {
 		}
 
 		s := &Store{
-			alias:      "",
-			path:       tempdir,
-			gpg:        gpgmock.New(),
-			recipients: []string{"john.doe"},
+			alias: "",
+			path:  tempdir,
+			gpg:   gpgmock.New(),
 		}
+
+		err = s.saveRecipients([]string{"john.doe"}, "test", false)
+		assert.NoError(t, err)
 
 		// prepare store
 		if err := tc.prep(s); err != nil {

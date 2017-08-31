@@ -2,6 +2,7 @@ package sub
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -43,7 +44,6 @@ type Store struct {
 	fsckFunc        store.FsckCallback
 	importFunc      store.ImportCallback
 	path            string
-	recipients      []string
 	gpg             gpger
 }
 
@@ -64,26 +64,42 @@ func New(alias string, cfg *config.Config) (*Store, error) {
 		fsckFunc:        cfg.FsckFunc,
 		importFunc:      cfg.ImportFunc,
 		path:            cfg.Path,
-		recipients:      make([]string, 0, 1),
 		gpg: gpgcli.New(gpgcli.Config{
 			Debug:       cfg.Debug,
 			AlwaysTrust: true,
 		}),
 	}
 
-	// only try to load recipients if the store / recipients file exist
-	if fsutil.IsFile(s.idFile()) {
-		keys, err := s.loadRecipients()
-		if err != nil {
-			return nil, err
-		}
-		s.recipients = keys
-	}
 	return s, nil
 }
 
 // idFile returns the path to the recipient list for this store
-func (s *Store) idFile() string {
+// it walks up from the given filename until it finds a directoy containing
+// a gpg id file or it leaves the scope of this store.
+func (s *Store) idFile(fn string) string {
+	fn, err := filepath.Abs(filepath.Join(s.path, fn))
+	if err != nil {
+		panic(err)
+	}
+	var cnt uint8
+	for {
+		cnt++
+		if cnt > 100 {
+			break
+		}
+		if fn == "" || fn == "/" {
+			break
+		}
+		if !strings.HasPrefix(fn, s.path) {
+			break
+		}
+		gfn := filepath.Join(fn, GPGID)
+		fi, err := os.Stat(gfn)
+		if err == nil && !fi.IsDir() {
+			return gfn
+		}
+		fn = filepath.Dir(fn)
+	}
 	return fsutil.CleanPath(filepath.Join(s.path, GPGID))
 }
 
@@ -111,18 +127,21 @@ func (s *Store) Exists(name string) bool {
 	return fsutil.IsFile(p)
 }
 
-func (s *Store) useableKeys() ([]string, error) {
-	recipients := make([]string, len(s.recipients))
-	copy(recipients, s.recipients)
+func (s *Store) useableKeys(file string) ([]string, error) {
+	rs, err := s.getRecipients(file)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get recipients")
+	}
 
 	if !s.checkRecipients {
-		return recipients, nil
+		return rs, nil
 	}
 
-	kl, err := s.gpg.FindPublicKeys(recipients...)
+	kl, err := s.gpg.FindPublicKeys(rs...)
 	if err != nil {
-		return recipients, err
+		return rs, err
 	}
+
 	unuseable := kl.UnuseableKeys()
 	if len(unuseable) > 0 {
 		fmt.Println(color.RedString("Unuseable public keys detected (IGNORING FOR ENCRYPTION):"))

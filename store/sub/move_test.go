@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	gpgmock "github.com/justwatchcom/gopass/gpg/mock"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestCopy(t *testing.T) {
@@ -58,11 +59,13 @@ func TestCopy(t *testing.T) {
 		}
 
 		s := &Store{
-			alias:      "",
-			path:       tempdir,
-			gpg:        gpgmock.New(),
-			recipients: []string{"john.doe"},
+			alias: "",
+			path:  tempdir,
+			gpg:   gpgmock.New(),
 		}
+
+		err = s.saveRecipients([]string{"john.doe"}, "test", false)
+		assert.NoError(t, err)
 
 		// run test case
 		t.Run(tc.name, tc.tf(s))
@@ -119,11 +122,13 @@ func TestMove(t *testing.T) {
 		}
 
 		s := &Store{
-			alias:      "",
-			path:       tempdir,
-			gpg:        gpgmock.New(),
-			recipients: []string{"john.doe"},
+			alias: "",
+			path:  tempdir,
+			gpg:   gpgmock.New(),
 		}
+
+		err = s.saveRecipients([]string{"john.doe"}, "test", false)
+		assert.NoError(t, err)
 
 		// run test case
 		t.Run(tc.name, tc.tf(s))
@@ -173,11 +178,13 @@ func TestDelete(t *testing.T) {
 		}
 
 		s := &Store{
-			alias:      "",
-			path:       tempdir,
-			gpg:        gpgmock.New(),
-			recipients: []string{"john.doe"},
+			alias: "",
+			path:  tempdir,
+			gpg:   gpgmock.New(),
 		}
+
+		err = s.saveRecipients([]string{"john.doe"}, "test", false)
+		assert.NoError(t, err)
 
 		// run test case
 		t.Run(tc.name, tc.tf(s))
@@ -258,11 +265,13 @@ func TestPrune(t *testing.T) {
 		}
 
 		s := &Store{
-			alias:      "",
-			path:       tempdir,
-			gpg:        gpgmock.New(),
-			recipients: []string{"john.doe"},
+			alias: "",
+			path:  tempdir,
+			gpg:   gpgmock.New(),
 		}
+
+		err = s.saveRecipients([]string{"john.doe"}, "test", false)
+		assert.NoError(t, err)
 
 		// run test case
 		t.Run(tc.name, tc.tf(s))

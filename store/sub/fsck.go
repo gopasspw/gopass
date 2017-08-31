@@ -15,7 +15,12 @@ import (
 
 // Fsck checks this stores integrity
 func (s *Store) Fsck(prefix string, check, force bool) (map[string]uint64, error) {
-	storeRec, err := s.gpg.FindPublicKeys(s.recipients...)
+	rs, err := s.getRecipients("")
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get recipients")
+	}
+
+	storeRec, err := s.gpg.FindPublicKeys(rs...)
 	if err != nil {
 		fmt.Printf("Failed to list recipients: %s\n", err)
 	}
