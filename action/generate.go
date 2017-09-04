@@ -1,6 +1,7 @@
 package action
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 
@@ -14,7 +15,7 @@ const (
 )
 
 // Generate & save a password
-func (s *Action) Generate(c *cli.Context) error {
+func (s *Action) Generate(ctx context.Context, c *cli.Context) error {
 	force := c.Bool("force")
 	edit := c.Bool("edit")
 	symbols := c.Bool("symbols")
@@ -39,13 +40,13 @@ func (s *Action) Generate(c *cli.Context) error {
 		var err error
 		name, err = s.askForString("Which name do you want to use?", "")
 		if err != nil || name == "" {
-			return s.exitError(ExitNoName, err, "please provide a password name")
+			return s.exitError(ctx, ExitNoName, err, "please provide a password name")
 		}
 	}
 
 	if !force { // don't check if it's force anyway
-		if s.Store.Exists(name) && key == "" && !s.askForConfirmation(fmt.Sprintf("An entry already exists for %s. Overwrite the current password?", name)) {
-			return s.exitError(ExitAborted, nil, "user aborted. not overwriting your current password")
+		if s.Store.Exists(name) && key == "" && !s.askForConfirmation(ctx, fmt.Sprintf("An entry already exists for %s. Overwrite the current password?", name)) {
+			return s.exitError(ctx, ExitAborted, nil, "user aborted. not overwriting your current password")
 		}
 	}
 
@@ -58,31 +59,31 @@ func (s *Action) Generate(c *cli.Context) error {
 
 	pwlen, err := strconv.Atoi(length)
 	if err != nil {
-		return s.exitError(ExitUsage, err, "password lenght must be a number")
+		return s.exitError(ctx, ExitUsage, err, "password lenght must be a number")
 	}
 	if pwlen < 1 {
-		return s.exitError(ExitUsage, nil, "password length must not be zero")
+		return s.exitError(ctx, ExitUsage, nil, "password length must not be zero")
 	}
 
 	password := pwgen.GeneratePassword(pwlen, symbols)
 
 	// set a single key in a yaml doc
 	if key != "" {
-		if err := s.Store.SetKey(name, key, string(password)); err != nil {
-			return s.exitError(ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
+		if err := s.Store.SetKey(ctx, name, key, string(password)); err != nil {
+			return s.exitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
 		}
 	} else if s.Store.Exists(name) {
-		if err := s.Store.SetPassword(name, password); err != nil {
-			return s.exitError(ExitEncrypt, err, "failed to update '%s': %s", name, err)
+		if err := s.Store.SetPassword(ctx, name, password); err != nil {
+			return s.exitError(ctx, ExitEncrypt, err, "failed to update '%s': %s", name, err)
 		}
 	} else {
-		if err := s.Store.SetConfirm(name, password, "Generated Password", s.confirmRecipients); err != nil {
-			return s.exitError(ExitEncrypt, err, "failed to create '%s': %s", name, err)
+		if err := s.Store.SetConfirm(ctx, name, password, "Generated Password", s.confirmRecipients); err != nil {
+			return s.exitError(ctx, ExitEncrypt, err, "failed to create '%s': %s", name, err)
 		}
 	}
 
 	if c.Bool("clip") {
-		return s.copyToClipboard(name, password)
+		return s.copyToClipboard(ctx, name, password)
 	}
 
 	if key != "" {
@@ -93,9 +94,9 @@ func (s *Action) Generate(c *cli.Context) error {
 		color.YellowString(string(password)),
 	)
 
-	if (edit || s.Store.AskForMore()) && s.askForConfirmation(fmt.Sprintf("Do you want to add more data for %s?", name)) {
-		if err := s.Edit(c); err != nil {
-			return s.exitError(ExitUnknown, err, "failed to edit '%s': %s", name, err)
+	if (edit || s.Store.AskForMore()) && s.askForConfirmation(ctx, fmt.Sprintf("Do you want to add more data for %s?", name)) {
+		if err := s.Edit(ctx, c); err != nil {
+			return s.exitError(ctx, ExitUnknown, err, "failed to edit '%s': %s", name, err)
 		}
 	}
 

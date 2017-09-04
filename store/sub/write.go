@@ -1,6 +1,7 @@
 package sub
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -10,25 +11,25 @@ import (
 )
 
 // Set encodes and write the ciphertext of one entry to disk
-func (s *Store) Set(name string, content []byte, reason string) error {
-	return s.SetConfirm(name, content, reason, nil)
+func (s *Store) Set(ctx context.Context, name string, content []byte, reason string) error {
+	return s.SetConfirm(ctx, name, content, reason, nil)
 }
 
 // SetPassword update a password in an already existing entry on the disk
-func (s *Store) SetPassword(name string, password []byte) error {
+func (s *Store) SetPassword(ctx context.Context, name string, password []byte) error {
 	var err error
-	body, err := s.GetBody(name)
+	body, err := s.GetBody(ctx, name)
 	if err != nil && err != store.ErrNoBody {
 		return errors.Wrapf(err, "failed to get existing secret")
 	}
 	first := append(password, '\n')
-	return s.SetConfirm(name, append(first, body...), fmt.Sprintf("Updated password in %s", name), nil)
+	return s.SetConfirm(ctx, name, append(first, body...), fmt.Sprintf("Updated password in %s", name), nil)
 }
 
 // SetConfirm encodes and writes the cipertext of one entry to disk. This
 // method can be passed a callback to confirm the recipients immedeately
 // before encryption.
-func (s *Store) SetConfirm(name string, content []byte, reason string, cb store.RecipientCallback) error {
+func (s *Store) SetConfirm(ctx context.Context, name string, content []byte, reason string, cb store.RecipientCallback) error {
 	p := s.passfile(name)
 
 	if !strings.HasPrefix(p, s.path) {
@@ -39,32 +40,32 @@ func (s *Store) SetConfirm(name string, content []byte, reason string, cb store.
 		return errors.Errorf("a folder named %s already exists", name)
 	}
 
-	recipients, err := s.useableKeys(p)
+	recipients, err := s.useableKeys(ctx, p)
 	if err != nil {
 		return errors.Wrapf(err, "failed to list useable keys for '%s'", p)
 	}
 
 	// confirm recipients
 	if cb != nil {
-		newRecipients, err := cb(name, recipients)
+		newRecipients, err := cb(ctx, name, recipients)
 		if err != nil {
 			return errors.Wrapf(err, "user aborted")
 		}
 		recipients = newRecipients
 	}
 
-	if err := s.gpg.Encrypt(p, content, recipients); err != nil {
+	if err := s.gpg.Encrypt(ctx, p, content, recipients); err != nil {
 		return store.ErrEncrypt
 	}
 
-	if err := s.gitAdd(p); err != nil {
+	if err := s.gitAdd(ctx, p); err != nil {
 		if errors.Cause(err) == store.ErrGitNotInit {
 			return nil
 		}
 		return errors.Wrapf(err, "failed to add '%s' to git", p)
 	}
 
-	if err := s.gitCommit(fmt.Sprintf("Save secret to %s: %s", name, reason)); err != nil {
+	if err := s.gitCommit(ctx, fmt.Sprintf("Save secret to %s: %s", name, reason)); err != nil {
 		if errors.Cause(err) == store.ErrGitNotInit {
 			return nil
 		}
@@ -75,7 +76,7 @@ func (s *Store) SetConfirm(name string, content []byte, reason string, cb store.
 		return nil
 	}
 
-	if err := s.gitPush("", ""); err != nil {
+	if err := s.gitPush(ctx, "", ""); err != nil {
 		if errors.Cause(err) == store.ErrGitNotInit {
 			msg := "Warning: git is not initialized for this store. Ignoring auto-push option\n" +
 				"Run: gopass git init"

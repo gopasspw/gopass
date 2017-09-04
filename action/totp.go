@@ -1,6 +1,7 @@
 package action
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"time"
@@ -17,36 +18,36 @@ const (
 )
 
 // TOTP implements time-based OTP token handling
-func (s *Action) TOTP(c *cli.Context) error {
+func (s *Action) TOTP(ctx context.Context, c *cli.Context) error {
 	name := c.Args().First()
 	if name == "" {
-		return s.exitError(ExitUsage, nil, "usage: %s totp [name]", s.Name)
+		return s.exitError(ctx, ExitUsage, nil, "usage: %s totp [name]", s.Name)
 	}
 
-	content, err := s.Store.Get(name)
+	content, err := s.Store.Get(ctx, name)
 	if err != nil {
-		return s.exitError(ExitDecrypt, err, "failed to get entry '%s': %s", name, err)
+		return s.exitError(ctx, ExitDecrypt, err, "failed to get entry '%s': %s", name, err)
 	}
 
 	key, err := otp.NewKeyFromURL(string(content))
 	if err != nil {
-		return s.exitError(ExitUnknown, err, "failed get key from URL: %s", err)
+		return s.exitError(ctx, ExitUnknown, err, "failed get key from URL: %s", err)
 	}
 
 	now := time.Now()
 	code, err := printCode(key.Secret(), now)
 	if err != nil {
-		return s.exitError(ExitIO, err, "failed to encode secret: %s", err)
+		return s.exitError(ctx, ExitIO, err, "failed to encode secret: %s", err)
 	}
 
 	_, err = printCode(key.Secret(), now.Add(totpPeriod*time.Second))
 	if err != nil {
-		return s.exitError(ExitIO, err, "failed to print encode secret: %s", err)
+		return s.exitError(ctx, ExitIO, err, "failed to print encode secret: %s", err)
 	}
 
 	if c.Bool("clip") {
-		if err := s.copyToClipboard(fmt.Sprintf("time based token for %s", name), []byte(code)); err != nil {
-			return s.exitError(ExitIO, err, "failed to copy to clipboard: %s", err)
+		if err := s.copyToClipboard(ctx, fmt.Sprintf("time based token for %s", name), []byte(code)); err != nil {
+			return s.exitError(ctx, ExitIO, err, "failed to copy to clipboard: %s", err)
 		}
 	}
 

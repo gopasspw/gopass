@@ -1,6 +1,7 @@
 package sub
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -14,13 +15,13 @@ import (
 )
 
 // Fsck checks this stores integrity
-func (s *Store) Fsck(prefix string, check, force bool) (map[string]uint64, error) {
-	rs, err := s.getRecipients("")
+func (s *Store) Fsck(ctx context.Context, prefix string, check, force bool) (map[string]uint64, error) {
+	rs, err := s.getRecipients(ctx, "")
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get recipients")
 	}
 
-	storeRec, err := s.gpg.FindPublicKeys(rs...)
+	storeRec, err := s.gpg.FindPublicKeys(ctx, rs...)
 	if err != nil {
 		fmt.Printf("Failed to list recipients: %s\n", err)
 	}
@@ -29,12 +30,12 @@ func (s *Store) Fsck(prefix string, check, force bool) (map[string]uint64, error
 	countFn := func(t string) {
 		counts[t]++
 	}
-	err = filepath.Walk(s.path, s.mkStoreWalkerFsckFunc(prefix, check, force, storeRec, s.fsckFunc, countFn))
+	err = filepath.Walk(s.path, s.mkStoreWalkerFsckFunc(ctx, prefix, check, force, storeRec, s.fsckFunc, countFn))
 	return counts, err
 }
 
 // mkStoreFsckWalkerFunc create a func to walk a (sub)store, i.e. list it's content
-func (s *Store) mkStoreWalkerFsckFunc(prefix string, check, force bool, storeRec gpg.KeyList, askFunc func(string) bool, countFn func(string)) func(string, os.FileInfo, error) error {
+func (s *Store) mkStoreWalkerFsckFunc(ctx context.Context, prefix string, check, force bool, storeRec gpg.KeyList, askFunc func(context.Context, string) bool, countFn func(string)) func(string, os.FileInfo, error) error {
 	shadowMap := make(map[string]struct{}, 100)
 	return func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -50,14 +51,14 @@ func (s *Store) mkStoreWalkerFsckFunc(prefix string, check, force bool, storeRec
 			return filepath.SkipDir
 		}
 		if info.IsDir() {
-			return s.fsckCheckDir(prefix, path, check, force, askFunc, shadowMap, countFn)
+			return s.fsckCheckDir(ctx, prefix, path, check, force, askFunc, shadowMap, countFn)
 		}
-		return s.fsckCheckFile(prefix, path, check, force, storeRec, askFunc, shadowMap, countFn)
+		return s.fsckCheckFile(ctx, prefix, path, check, force, storeRec, askFunc, shadowMap, countFn)
 	}
 }
 
 // fsckCheckDir checks a directory, mostly for it's permissions
-func (s *Store) fsckCheckDir(prefix, fn string, check, force bool, askFunc func(string) bool, sh map[string]struct{}, countFn func(string)) error {
+func (s *Store) fsckCheckDir(ctx context.Context, prefix, fn string, check, force bool, askFunc func(context.Context, string) bool, sh map[string]struct{}, countFn func(string)) error {
 	fi, err := os.Stat(fn)
 	if err != nil {
 		fmt.Println(color.RedString("[%s] Failed to check %s: %s\n", prefix, fn, err))
@@ -76,7 +77,7 @@ func (s *Store) fsckCheckDir(prefix, fn string, check, force bool, askFunc func(
 	if fi.Mode().Perm()&077 != 0 {
 		fmt.Println(color.YellowString("[%s] Permissions too wide: %s (%s)", prefix, fn, fi.Mode().Perm().String()))
 		countFn("warn")
-		if !check && (force || askFunc == nil || askFunc("Fix permissions?")) {
+		if !check && (force || askFunc == nil || askFunc(ctx, "Fix permissions?")) {
 			np := uint32(fi.Mode().Perm() & 0700)
 			fmt.Println(color.GreenString("[%s] Fixing permissions from %s to %s", prefix, fi.Mode().Perm().String(), os.FileMode(np).Perm().String()))
 			countFn("fixed")
@@ -94,7 +95,7 @@ func (s *Store) fsckCheckDir(prefix, fn string, check, force bool, askFunc func(
 	if isEmpty {
 		fmt.Println(color.YellowString("[%s] Empty folder: %s", prefix, fn))
 		countFn("warn")
-		if !check && (force || askFunc == nil || askFunc("Remove empty folder?")) {
+		if !check && (force || askFunc == nil || askFunc(ctx, "Remove empty folder?")) {
 			fmt.Println(color.GreenString("[%s] Removing empty folder %s", prefix, fn))
 			if err := os.RemoveAll(fn); err != nil {
 				fmt.Println(color.RedString("[%s] Failed to remove folder %s: %s", fn, err))
@@ -108,7 +109,7 @@ func (s *Store) fsckCheckDir(prefix, fn string, check, force bool, askFunc func(
 	return nil
 }
 
-func (s *Store) fsckCheckFile(prefix, fn string, check, force bool, storeRec gpg.KeyList, askFunc func(string) bool, sh map[string]struct{}, countFn func(string)) error {
+func (s *Store) fsckCheckFile(ctx context.Context, prefix, fn string, check, force bool, storeRec gpg.KeyList, askFunc func(context.Context, string) bool, sh map[string]struct{}, countFn func(string)) error {
 	fi, err := os.Stat(fn)
 	if err != nil {
 		fmt.Println(color.RedString("[%s] Failed to check %s: %s\n", prefix, fn, err))
@@ -120,7 +121,7 @@ func (s *Store) fsckCheckFile(prefix, fn string, check, force bool, storeRec gpg
 	if fi.Mode().Perm()&0177 != 0 {
 		fmt.Println(color.YellowString("[%s] Permissions too wide: %s (%s)", prefix, fn, fi.Mode().String()))
 		countFn("warn")
-		if !check && (force || askFunc == nil || askFunc("Fix permissions?")) {
+		if !check && (force || askFunc == nil || askFunc(ctx, "Fix permissions?")) {
 			np := uint32(fi.Mode().Perm() & 0600)
 			fmt.Println(color.GreenString("[%s] Fixing permissions from %s to %s", prefix, fi.Mode().Perm().String(), os.FileMode(np).Perm().String()))
 			if err := syscall.Chmod(fn, np); err != nil {
@@ -144,13 +145,13 @@ func (s *Store) fsckCheckFile(prefix, fn string, check, force bool, storeRec gpg
 	}
 	sh[name] = struct{}{}
 	// check that we can decrypt this file
-	if err := s.fsckCheckSelfDecrypt(fn); err != nil {
+	if err := s.fsckCheckSelfDecrypt(ctx, fn); err != nil {
 		fmt.Println(color.RedString("[%s] Secret Key missing. Can't fix: %s", prefix, fn))
 		countFn("err")
 		return nil
 	}
 	// get the IDs this file was encrypted for
-	fileRec, err := s.gpg.GetRecipients(fn)
+	fileRec, err := s.gpg.GetRecipients(ctx, fn)
 	if err != nil {
 		fmt.Println(color.RedString("[%s] Failed to check recipients: %s (%s)", prefix, fn, err))
 		countFn("err")
@@ -166,8 +167,8 @@ func (s *Store) fsckCheckFile(prefix, fn string, check, force bool, storeRec gpg
 		// the recipient is not present in the recipients file of the store
 		fmt.Println(color.YellowString("[%s] Extra recipient found %s: %s", prefix, fn, rec))
 		countFn("warn")
-		if !check && (force || askFunc == nil || askFunc("Fix recipients?")) {
-			if err := s.fsckFixRecipients(fn); err != nil {
+		if !check && (force || askFunc == nil || askFunc(ctx, "Fix recipients?")) {
+			if err := s.fsckFixRecipients(ctx, fn); err != nil {
 				fmt.Println(color.RedString("[%s] Failed to fix recipients for %s: %s", prefix, fn, err))
 				countFn("err")
 			}
@@ -180,8 +181,8 @@ func (s *Store) fsckCheckFile(prefix, fn string, check, force bool, storeRec gpg
 		}
 		fmt.Println(color.YellowString("[%s] Recipient missing %s: %s", prefix, name, key.ID()))
 		countFn("warn")
-		if !check && (force || askFunc == nil || askFunc("Fix recipients?")) {
-			if err := s.fsckFixRecipients(fn); err != nil {
+		if !check && (force || askFunc == nil || askFunc(ctx, "Fix recipients?")) {
+			if err := s.fsckFixRecipients(ctx, fn); err != nil {
 				fmt.Println(color.RedString("[%s] Failed to fix recipients for %s: %s\n", prefix, fn, err))
 				countFn("err")
 			}
@@ -201,16 +202,16 @@ func fsckCheckRecipientsInSubkeys(key gpg.Key, recipients []string) error {
 	return errors.Errorf("None of the Recipients matches a subkey")
 }
 
-func (s *Store) fsckCheckSelfDecrypt(fn string) error {
-	_, err := s.Get(s.filenameToName(fn))
+func (s *Store) fsckCheckSelfDecrypt(ctx context.Context, fn string) error {
+	_, err := s.Get(ctx, s.filenameToName(fn))
 	return errors.Wrapf(err, "failed to decode secret")
 }
 
-func (s *Store) fsckFixRecipients(fn string) error {
+func (s *Store) fsckFixRecipients(ctx context.Context, fn string) error {
 	name := s.filenameToName(fn)
-	content, err := s.Get(s.filenameToName(fn))
+	content, err := s.Get(ctx, s.filenameToName(fn))
 	if err != nil {
 		return errors.Wrapf(err, "failed to decode secret")
 	}
-	return s.Set(name, content, "fsck fix recipients")
+	return s.Set(ctx, name, content, "fsck fix recipients")
 }

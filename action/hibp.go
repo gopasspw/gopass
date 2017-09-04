@@ -2,6 +2,7 @@ package action
 
 import (
 	"bufio"
+	"context"
 	"crypto/sha1"
 	"fmt"
 	"os"
@@ -10,13 +11,14 @@ import (
 	"time"
 
 	"github.com/fatih/color"
+	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/muesli/goprogressbar"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"
 )
 
 // HIBP compares all entries from the store against the provided SHA1 sum dumps
-func (s *Action) HIBP(c *cli.Context) error {
+func (s *Action) HIBP(ctx context.Context, c *cli.Context) error {
 	force := c.Bool("force")
 
 	fns := strings.Split(os.Getenv("HIBP_DUMPS"), ",")
@@ -24,7 +26,7 @@ func (s *Action) HIBP(c *cli.Context) error {
 		return errors.Errorf("Please provide the name(s) of the haveibeenpwned.com password dumps in HIBP_DUMPS. See https://haveibeenpwned.com/Passwords for more information")
 	}
 
-	if !force && !s.askForConfirmation(fmt.Sprintf("This command is checking all your secrets against the haveibeenpwned.com hashes in %+v.\nYou will be asked to unlock all your secrets!\nDo you want to continue?", fns)) {
+	if !force && !s.askForConfirmation(ctx, fmt.Sprintf("This command is checking all your secrets against the haveibeenpwned.com hashes in %+v.\nYou will be asked to unlock all your secrets!\nDo you want to continue?", fns)) {
 		return errors.Errorf("user aborted")
 	}
 
@@ -33,7 +35,7 @@ func (s *Action) HIBP(c *cli.Context) error {
 	// a very efficient stream compare in O(n)
 	t, err := s.Store.Tree()
 	if err != nil {
-		return s.exitError(ExitList, err, "failed to list store: %s", err)
+		return s.exitError(ctx, ExitList, err, "failed to list store: %s", err)
 	}
 
 	pwList := t.List(0)
@@ -55,7 +57,7 @@ func (s *Action) HIBP(c *cli.Context) error {
 		// comparing the body is super hard, as every user may choose to use
 		// the body of a secret differently. In the future we may support
 		// go templates to extract and compare data from the body
-		content, err := s.Store.GetFirstLine(secret)
+		content, err := s.Store.GetFirstLine(ctx, secret)
 		if err != nil {
 			fmt.Println("\n" + color.YellowString("Failed to retrieve secret '%s': %s", secret, err))
 			continue
@@ -80,7 +82,7 @@ func (s *Action) HIBP(c *cli.Context) error {
 	// compare the prepared list against all provided files. with a little more
 	// code this could be parallelized
 	for _, fn := range fns {
-		go s.findHIBPMatches(fn, shaSums, sortedShaSums, matches, done)
+		go s.findHIBPMatches(ctx, fn, shaSums, sortedShaSums, matches, done)
 	}
 	matchList := make([]string, 0, 100)
 	go func() {
@@ -102,10 +104,10 @@ func (s *Action) HIBP(c *cli.Context) error {
 		fmt.Println(color.RedString("\t- %s", m))
 	}
 	fmt.Println(color.CyanString("The passwords in the listed secrets were included in public leaks in the past. This means they are likely included in many word-list attacks and provide only very little security. Strongly consider changing those passwords!"))
-	return s.exitError(ExitAudit, nil, "weak passwords found")
+	return s.exitError(ctx, ExitAudit, nil, "weak passwords found")
 }
 
-func (s *Action) findHIBPMatches(fn string, shaSums map[string]string, sortedShaSums []string, matches chan<- string, done chan<- struct{}) {
+func (s *Action) findHIBPMatches(ctx context.Context, fn string, shaSums map[string]string, sortedShaSums []string, matches chan<- string, done chan<- struct{}) {
 	defer func() {
 		done <- struct{}{}
 	}()
@@ -120,7 +122,7 @@ func (s *Action) findHIBPMatches(fn string, shaSums map[string]string, sortedSha
 		_ = fh.Close()
 	}()
 
-	if s.debug {
+	if ctxutil.IsDebug(ctx) {
 		fmt.Printf("Checking file %s ...\n", fn)
 	}
 
@@ -137,7 +139,7 @@ func (s *Action) findHIBPMatches(fn string, shaSums map[string]string, sortedSha
 		}
 		if line == sortedShaSums[i] {
 			matches <- shaSums[line]
-			if s.debug {
+			if ctxutil.IsDebug(ctx) {
 				fmt.Printf("MATCH at line %d: %s / %s from %s\n", lineNo, line, shaSums[line], fn)
 			}
 			numMatches++
@@ -151,7 +153,7 @@ func (s *Action) findHIBPMatches(fn string, shaSums map[string]string, sortedSha
 			i++
 		}
 	}
-	if s.debug {
+	if ctxutil.IsDebug(ctx) {
 		d0 := time.Since(t0)
 		fmt.Printf("Found %d matches in %d lines from %s in %.2fs (%.2f lines / s)\n", numMatches, lineNo, fn, d0.Seconds(), float64(lineNo)/d0.Seconds())
 	}

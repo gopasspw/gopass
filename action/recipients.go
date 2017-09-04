@@ -1,6 +1,7 @@
 package action
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -28,18 +29,18 @@ credentials.
 )
 
 // RecipientsPrint prints all recipients per store
-func (s *Action) RecipientsPrint(c *cli.Context) error {
-	if err := s.Store.ImportMissingPublicKeys(); err != nil {
+func (s *Action) RecipientsPrint(ctx context.Context, c *cli.Context) error {
+	if err := s.Store.ImportMissingPublicKeys(ctx); err != nil {
 		fmt.Println(color.RedString("Failed to import missing public keys: %s", err))
 	}
 
-	if err := s.Store.SaveRecipients(); err != nil {
+	if err := s.Store.SaveRecipients(ctx); err != nil {
 		fmt.Println(color.RedString("Failed to export missing public keys: %s", err))
 	}
 
-	tree, err := s.Store.RecipientsTree(true)
+	tree, err := s.Store.RecipientsTree(ctx, true)
 	if err != nil {
-		return s.exitError(ExitList, err, "failed to list recipients: %s", err)
+		return s.exitError(ctx, ExitList, err, "failed to list recipients: %s", err)
 	}
 
 	fmt.Println(tree.Format(0))
@@ -49,7 +50,7 @@ func (s *Action) RecipientsPrint(c *cli.Context) error {
 // RecipientsComplete will print a list of recipients for bash
 // completion
 func (s *Action) RecipientsComplete(*cli.Context) {
-	tree, err := s.Store.RecipientsTree(false)
+	tree, err := s.Store.RecipientsTree(context.TODO(), false)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -61,11 +62,11 @@ func (s *Action) RecipientsComplete(*cli.Context) {
 }
 
 // RecipientsAdd adds new recipients
-func (s *Action) RecipientsAdd(c *cli.Context) error {
+func (s *Action) RecipientsAdd(ctx context.Context, c *cli.Context) error {
 	store := c.String("store")
 	added := 0
 	for _, r := range c.Args() {
-		keys, err := s.gpg.FindPublicKeys(r)
+		keys, err := s.gpg.FindPublicKeys(ctx, r)
 		if err != nil {
 			fmt.Println(color.CyanString("Failed to list public key '%s': %s", r, err))
 			continue
@@ -78,17 +79,17 @@ func (s *Action) RecipientsAdd(c *cli.Context) error {
 			continue
 		}
 
-		if !s.askForConfirmation(fmt.Sprintf("Do you want to add '%s' as an recipient?", keys[0].OneLine())) {
+		if !s.askForConfirmation(ctx, fmt.Sprintf("Do you want to add '%s' as an recipient?", keys[0].OneLine())) {
 			continue
 		}
 
-		if err := s.Store.AddRecipient(store, keys[0].Fingerprint); err != nil {
-			return s.exitError(ExitRecipients, err, "failed to add recipient '%s': %s", r, err)
+		if err := s.Store.AddRecipient(ctx, store, keys[0].Fingerprint); err != nil {
+			return s.exitError(ctx, ExitRecipients, err, "failed to add recipient '%s': %s", r, err)
 		}
 		added++
 	}
 	if added < 1 {
-		return s.exitError(ExitUnknown, nil, "no key added")
+		return s.exitError(ctx, ExitUnknown, nil, "no key added")
 	}
 
 	fmt.Println(color.GreenString("Added %d recipients\n", added))
@@ -96,20 +97,20 @@ func (s *Action) RecipientsAdd(c *cli.Context) error {
 }
 
 // RecipientsRemove removes recipients
-func (s *Action) RecipientsRemove(c *cli.Context) error {
+func (s *Action) RecipientsRemove(ctx context.Context, c *cli.Context) error {
 	store := c.String("store")
 	removed := 0
 	for _, r := range c.Args() {
-		kl, err := s.gpg.FindPrivateKeys(r)
+		kl, err := s.gpg.FindPrivateKeys(ctx, r)
 		if err == nil {
 			if len(kl) > 0 {
-				if !s.askForConfirmation(fmt.Sprintf("Do you want to remove yourself (%s) from the recipients?", r)) {
+				if !s.askForConfirmation(ctx, fmt.Sprintf("Do you want to remove yourself (%s) from the recipients?", r)) {
 					continue
 				}
 			}
 		}
-		if err := s.Store.RemoveRecipient(store, strings.TrimPrefix(r, "0x")); err != nil {
-			return s.exitError(ExitRecipients, err, "failed to remove recipient '%s': %s", r, err)
+		if err := s.Store.RemoveRecipient(ctx, store, strings.TrimPrefix(r, "0x")); err != nil {
+			return s.exitError(ctx, ExitRecipients, err, "failed to remove recipient '%s': %s", r, err)
 		}
 		fmt.Printf(removalWarning, r)
 		removed++

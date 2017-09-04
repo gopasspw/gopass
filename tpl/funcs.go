@@ -1,6 +1,7 @@
 package tpl
 
 import (
+	"context"
 	"crypto/md5"
 	"crypto/sha1"
 	"fmt"
@@ -28,7 +29,7 @@ func sha1sum() func(...string) (string, error) {
 	}
 }
 
-func get(kv kvstore) func(...string) (string, error) {
+func get(ctx context.Context, kv kvstore) func(...string) (string, error) {
 	return func(s ...string) (string, error) {
 		if len(s) < 1 {
 			return "", nil
@@ -36,7 +37,7 @@ func get(kv kvstore) func(...string) (string, error) {
 		if kv == nil {
 			return "", errors.Errorf("KV is nil")
 		}
-		buf, err := kv.Get(s[0])
+		buf, err := kv.Get(ctx, s[0])
 		if err != nil {
 			return err.Error(), nil
 		}
@@ -44,9 +45,9 @@ func get(kv kvstore) func(...string) (string, error) {
 	}
 }
 
-func funcMap(kv kvstore) template.FuncMap {
+func funcMap(ctx context.Context, kv kvstore) template.FuncMap {
 	return template.FuncMap{
-		FuncGet:     get(kv),
+		FuncGet:     get(ctx, kv),
 		FuncMd5sum:  md5sum(),
 		FuncSha1sum: sha1sum(),
 	}

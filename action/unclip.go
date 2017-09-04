@@ -1,6 +1,7 @@
 package action
 
 import (
+	"context"
 	"crypto/sha256"
 	"fmt"
 	"os"
@@ -11,7 +12,7 @@ import (
 )
 
 // Unclip tries to erase the content of the clipboard
-func (s *Action) Unclip(c *cli.Context) error {
+func (s *Action) Unclip(ctx context.Context, c *cli.Context) error {
 	timeout := c.Int("timeout")
 	checksum := os.Getenv("GOPASS_UNCLIP_CHECKSUM")
 
@@ -19,7 +20,7 @@ func (s *Action) Unclip(c *cli.Context) error {
 
 	cur, err := clipboard.ReadAll()
 	if err != nil {
-		return s.exitError(ExitIO, err, "failed to read clipboard: %s", err)
+		return s.exitError(ctx, ExitIO, err, "failed to read clipboard: %s", err)
 	}
 
 	hash := fmt.Sprintf("%x", sha256.Sum256([]byte(cur)))
@@ -28,7 +29,7 @@ func (s *Action) Unclip(c *cli.Context) error {
 		return nil
 	}
 	if err := clipboard.WriteAll(""); err != nil {
-		return s.exitError(ExitIO, err, "failed to write clipboard: %s", err)
+		return s.exitError(ctx, ExitIO, err, "failed to write clipboard: %s", err)
 	}
 
 	return nil

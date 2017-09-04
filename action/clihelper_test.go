@@ -1,33 +1,40 @@
 package action
 
 import (
+	"context"
 	"testing"
 
 	"github.com/blang/semver"
+	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/stretchr/testify/assert"
 )
 
 func Test_askForGitConfigUser(t *testing.T) {
-	s := New(semver.Version{})
-	s.isTerm = true
+	ctx := context.Background()
 
-	_, _, err := s.askForGitConfigUser()
+	s := New(semver.Version{})
+
+	ctx = ctxutil.WithTerminal(ctx, true)
+
+	_, _, err := s.askForGitConfigUser(ctx)
 	if err == nil {
 		t.Error("Did not return error")
 	}
 }
 
 func Test_askForGitConfigUserNonInteractive(t *testing.T) {
-	s := New(semver.Version{})
-	// for explicitness
-	s.isTerm = false
+	ctx := context.Background()
 
-	keyList, err := s.gpg.ListPrivateKeys()
+	s := New(semver.Version{})
+
+	ctx = ctxutil.WithTerminal(ctx, false)
+
+	keyList, err := s.gpg.ListPrivateKeys(ctx)
 	if err != nil {
 		t.Error(err.Error())
 	}
 
-	name, email, _ := s.askForGitConfigUser()
+	name, email, _ := s.askForGitConfigUser(ctx)
 
 	// unit tests cannot know whether keyList returned empty or not.
 	// a better distinction would require mocking/patching

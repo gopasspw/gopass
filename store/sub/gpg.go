@@ -1,6 +1,7 @@
 package sub
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -12,14 +13,14 @@ import (
 )
 
 // GPGVersion returns parsed GPG version information
-func (s *Store) GPGVersion() semver.Version {
-	return s.gpg.Version()
+func (s *Store) GPGVersion(ctx context.Context) semver.Version {
+	return s.gpg.Version(ctx)
 }
 
 // ImportMissingPublicKeys will try to import any missing public keys from the
 // .gpg-keys folder in the password store
-func (s *Store) ImportMissingPublicKeys() error {
-	rs, err := s.getRecipients("")
+func (s *Store) ImportMissingPublicKeys(ctx context.Context) error {
+	rs, err := s.getRecipients(ctx, "")
 	if err != nil {
 		return errors.Wrapf(err, "failed to get recipients")
 	}
@@ -31,7 +32,7 @@ func (s *Store) ImportMissingPublicKeys() error {
 		// we could list all keys outside the loop and just do the lookup here
 		// but this way we ensure to use the exact same lookup logic as
 		// gpg does on encryption
-		kl, err := s.gpg.FindPublicKeys(r)
+		kl, err := s.gpg.FindPublicKeys(ctx, r)
 		if err != nil {
 			fmt.Printf("[%s] Failed to get public key for %s: %s\n", s.alias, r, err)
 		}
@@ -43,13 +44,13 @@ func (s *Store) ImportMissingPublicKeys() error {
 		// we need to ask the user before importing
 		// any key material into his keyring!
 		if s.importFunc != nil {
-			if !s.importFunc(r) {
+			if !s.importFunc(ctx, r) {
 				continue
 			}
 		}
 
 		// try to load this recipient
-		if err := s.importPublicKey(r); err != nil {
+		if err := s.importPublicKey(ctx, r); err != nil {
 			fmt.Println(color.RedString("[%s] Failed to import public key for %s: %s", s.alias, r, err))
 			continue
 		}
@@ -59,7 +60,7 @@ func (s *Store) ImportMissingPublicKeys() error {
 }
 
 // export an ASCII armored public key
-func (s *Store) exportPublicKey(r string) (string, error) {
+func (s *Store) exportPublicKey(ctx context.Context, r string) (string, error) {
 	filename := filepath.Join(s.path, keyDir, r)
 
 	// do not overwrite existing keys
@@ -68,7 +69,7 @@ func (s *Store) exportPublicKey(r string) (string, error) {
 	}
 
 	tmpFilename := filename + ".new"
-	if err := s.gpg.ExportPublicKey(r, tmpFilename); err != nil {
+	if err := s.gpg.ExportPublicKey(ctx, r, tmpFilename); err != nil {
 		return filename, err
 	}
 
@@ -93,11 +94,11 @@ func (s *Store) exportPublicKey(r string) (string, error) {
 }
 
 // import an public key into the default keyring
-func (s *Store) importPublicKey(r string) error {
+func (s *Store) importPublicKey(ctx context.Context, r string) error {
 	filename := filepath.Join(s.path, keyDir, r)
 	if !fsutil.IsFile(filename) {
 		return errors.Errorf("Public Key %s not found at %s", r, filename)
 	}
 
-	return s.gpg.ImportPublicKey(filename)
+	return s.gpg.ImportPublicKey(ctx, filename)
 }

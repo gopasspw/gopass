@@ -2,6 +2,7 @@ package sub
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 
 	"github.com/justwatchcom/gopass/store"
@@ -10,8 +11,8 @@ import (
 )
 
 // GetKey returns a single key from a structured secret
-func (s *Store) GetKey(name, key string) ([]byte, error) {
-	content, err := s.Get(name)
+func (s *Store) GetKey(ctx context.Context, name, key string) ([]byte, error) {
+	content, err := s.Get(ctx, name)
 	if err != nil && err != store.ErrNotFound {
 		return nil, err
 	}
@@ -37,8 +38,8 @@ func (s *Store) GetKey(name, key string) ([]byte, error) {
 }
 
 // SetKey will update a single key in a YAML structured secret
-func (s *Store) SetKey(name, key, value string) error {
-	content, err := s.Get(name)
+func (s *Store) SetKey(ctx context.Context, name, key, value string) error {
+	content, err := s.Get(ctx, name)
 	if err != nil && err != store.ErrNotFound {
 		return errors.Wrapf(err, "failed to read secret '%s'", name)
 	}
@@ -59,12 +60,12 @@ func (s *Store) SetKey(name, key, value string) error {
 		return errors.Wrapf(err, "failed to encode YAML for secret '%s'", name)
 	}
 
-	return s.SetConfirm(name, append(bytes.TrimRight(parts[0], "\n"), append([]byte("\n---\n"), buf...)...), fmt.Sprintf("Updated key in %s", name), nil)
+	return s.SetConfirm(ctx, name, append(bytes.TrimRight(parts[0], "\n"), append([]byte("\n---\n"), buf...)...), fmt.Sprintf("Updated key in %s", name), nil)
 }
 
 // DeleteKey will delete a single key in a YAML structured secret
-func (s *Store) DeleteKey(name, key string) error {
-	content, err := s.Get(name)
+func (s *Store) DeleteKey(ctx context.Context, name, key string) error {
+	content, err := s.Get(ctx, name)
 	if err != nil && err != store.ErrNotFound {
 		return errors.Wrapf(err, "failed to read secret '%s'", name)
 	}
@@ -85,5 +86,5 @@ func (s *Store) DeleteKey(name, key string) error {
 		return errors.Wrapf(err, "failed to encode YAML for secret '%s'", name)
 	}
 
-	return s.SetConfirm(name, append(parts[0], append([]byte("---\n"), buf...)...), fmt.Sprintf("Deleted key %s in %s", key, name), nil)
+	return s.SetConfirm(ctx, name, append(parts[0], append([]byte("---\n"), buf...)...), fmt.Sprintf("Deleted key %s in %s", key, name), nil)
 }

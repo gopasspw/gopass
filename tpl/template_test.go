@@ -1,14 +1,19 @@
 package tpl
 
-import "testing"
+import (
+	"context"
+	"testing"
+)
 
 type kvMock struct{}
 
-func (k kvMock) Get(key string) ([]byte, error) {
+func (k kvMock) Get(ctx context.Context, key string) ([]byte, error) {
 	return []byte("barfoo"), nil
 }
 
 func TestVars(t *testing.T) {
+	ctx := context.Background()
+
 	kv := kvMock{}
 	for _, tc := range []struct {
 		Template string
@@ -65,7 +70,7 @@ func TestVars(t *testing.T) {
 			Output:   "md55d952fb5e2b5c6258b044a663518349f",
 		},
 	} {
-		buf, err := Execute(tc.Template, tc.Name, tc.Content, kv)
+		buf, err := Execute(ctx, tc.Template, tc.Name, tc.Content, kv)
 		if err != nil {
 			t.Fatalf("Failed to execute template %s: %s", tc.Template, err)
 		}

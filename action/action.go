@@ -1,11 +1,10 @@
 package action
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
-
-	"golang.org/x/crypto/ssh/terminal"
 
 	"github.com/blang/semver"
 	"github.com/fatih/color"
@@ -16,10 +15,10 @@ import (
 )
 
 type gpger interface {
-	FindPublicKeys(...string) (gpg.KeyList, error)
-	FindPrivateKeys(...string) (gpg.KeyList, error)
-	ListPublicKeys() (gpg.KeyList, error)
-	ListPrivateKeys() (gpg.KeyList, error)
+	FindPublicKeys(context.Context, ...string) (gpg.KeyList, error)
+	FindPrivateKeys(context.Context, ...string) (gpg.KeyList, error)
+	ListPublicKeys(context.Context) (gpg.KeyList, error)
+	ListPrivateKeys(context.Context) (gpg.KeyList, error)
 }
 
 // Action knows everything to run gopass CLI actions
@@ -27,8 +26,6 @@ type Action struct {
 	Name    string
 	Store   *root.Store
 	gpg     gpger
-	isTerm  bool
-	debug   bool
 	version semver.Version
 }
 
@@ -53,38 +50,9 @@ func New(sv semver.Version) *Action {
 	act := &Action{
 		Name:    name,
 		version: sv,
-		isTerm:  true,
 	}
 	cfg.ImportFunc = act.askForKeyImport
 	cfg.FsckFunc = act.askForConfirmation
-
-	// debug flag
-	if gdb := os.Getenv("GOPASS_DEBUG"); gdb == "true" {
-		cfg.Debug = true
-		act.debug = true
-	}
-
-	// need this override for our integration tests
-	if nc := os.Getenv("GOPASS_NOCOLOR"); nc == "true" {
-		cfg.NoColor = true
-		color.NoColor = true
-	}
-
-	// only emit color codes when stdout is a terminal
-	if !terminal.IsTerminal(int(os.Stdout.Fd())) {
-		cfg.NoColor = true
-		color.NoColor = true
-		cfg.ImportFunc = nil
-		cfg.FsckFunc = nil
-		act.isTerm = false
-	}
-
-	// reading from stdin?
-	if info, err := os.Stdin.Stat(); err == nil && info.Mode()&os.ModeCharDevice == 0 {
-		cfg.ImportFunc = nil
-		cfg.FsckFunc = nil
-		act.isTerm = false
-	}
 
 	store, err := root.New(cfg)
 	if err != nil {
@@ -93,7 +61,6 @@ func New(sv semver.Version) *Action {
 	act.Store = store
 
 	act.gpg = gpgcli.New(gpgcli.Config{
-		Debug:       cfg.Debug,
 		AlwaysTrust: true,
 	})
 

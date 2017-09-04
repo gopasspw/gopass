@@ -1,6 +1,7 @@
 package sub
 
 import (
+	"context"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -10,6 +11,8 @@ import (
 )
 
 func TestCopy(t *testing.T) {
+	ctx := context.Background()
+
 	for _, tc := range []struct {
 		name string
 		tf   func(s *Store) func(t *testing.T)
@@ -18,7 +21,7 @@ func TestCopy(t *testing.T) {
 			name: "Empty store",
 			tf: func(s *Store) func(t *testing.T) {
 				return func(t *testing.T) {
-					if err := s.Copy("foo", "bar"); err == nil {
+					if err := s.Copy(ctx, "foo", "bar"); err == nil {
 						t.Errorf("Should fail to copy non-existing entries in empty store")
 					}
 				}
@@ -28,20 +31,20 @@ func TestCopy(t *testing.T) {
 			name: "Single entry",
 			tf: func(s *Store) func(t *testing.T) {
 				return func(t *testing.T) {
-					if err := s.Set("foo", []byte("bar"), "test"); err != nil {
+					if err := s.Set(ctx, "foo", []byte("bar"), "test"); err != nil {
 						t.Fatalf("Failed to insert test data: %s", err)
 					}
-					if err := s.Copy("foo", "bar"); err != nil {
+					if err := s.Copy(ctx, "foo", "bar"); err != nil {
 						t.Errorf("Failed to copy 'foo' to 'bar': %s", err)
 					}
-					content, err := s.Get("foo")
+					content, err := s.Get(ctx, "foo")
 					if err != nil {
 						t.Fatalf("Failed to get 'foo': %s", err)
 					}
 					if string(content) != "bar" {
 						t.Errorf("Wrong content in 'foo'")
 					}
-					content, err = s.Get("bar")
+					content, err = s.Get(ctx, "bar")
 					if err != nil {
 						t.Fatalf("Failed to get 'bar': %s", err)
 					}
@@ -64,7 +67,7 @@ func TestCopy(t *testing.T) {
 			gpg:   gpgmock.New(),
 		}
 
-		err = s.saveRecipients([]string{"john.doe"}, "test", false)
+		err = s.saveRecipients(ctx, []string{"john.doe"}, "test", false)
 		assert.NoError(t, err)
 
 		// run test case
@@ -76,6 +79,8 @@ func TestCopy(t *testing.T) {
 }
 
 func TestMove(t *testing.T) {
+	ctx := context.Background()
+
 	for _, tc := range []struct {
 		name string
 		tf   func(s *Store) func(t *testing.T)
@@ -84,7 +89,7 @@ func TestMove(t *testing.T) {
 			name: "Empty store",
 			tf: func(s *Store) func(t *testing.T) {
 				return func(t *testing.T) {
-					if err := s.Move("foo", "bar"); err == nil {
+					if err := s.Move(ctx, "foo", "bar"); err == nil {
 						t.Errorf("Should fail to move non-existing entries in empty store")
 					}
 				}
@@ -94,17 +99,17 @@ func TestMove(t *testing.T) {
 			name: "Single entry",
 			tf: func(s *Store) func(t *testing.T) {
 				return func(t *testing.T) {
-					if err := s.Set("foo", []byte("bar"), "test"); err != nil {
+					if err := s.Set(ctx, "foo", []byte("bar"), "test"); err != nil {
 						t.Fatalf("Failed to insert test data: %s", err)
 					}
-					if err := s.Move("foo", "bar"); err != nil {
+					if err := s.Move(ctx, "foo", "bar"); err != nil {
 						t.Errorf("Failed to copy 'foo' to 'bar': %s", err)
 					}
-					_, err := s.Get("foo")
+					_, err := s.Get(ctx, "foo")
 					if err == nil {
 						t.Fatalf("Should fail to get 'foo': %s", err)
 					}
-					content, err := s.Get("bar")
+					content, err := s.Get(ctx, "bar")
 					if err != nil {
 						t.Fatalf("Failed to get 'bar': %s", err)
 					}
@@ -127,7 +132,7 @@ func TestMove(t *testing.T) {
 			gpg:   gpgmock.New(),
 		}
 
-		err = s.saveRecipients([]string{"john.doe"}, "test", false)
+		err = s.saveRecipients(ctx, []string{"john.doe"}, "test", false)
 		assert.NoError(t, err)
 
 		// run test case
@@ -139,6 +144,8 @@ func TestMove(t *testing.T) {
 }
 
 func TestDelete(t *testing.T) {
+	ctx := context.Background()
+
 	for _, tc := range []struct {
 		name string
 		tf   func(s *Store) func(t *testing.T)
@@ -147,7 +154,7 @@ func TestDelete(t *testing.T) {
 			name: "Empty store",
 			tf: func(s *Store) func(t *testing.T) {
 				return func(t *testing.T) {
-					if err := s.Delete("foo"); err == nil {
+					if err := s.Delete(ctx, "foo"); err == nil {
 						t.Errorf("Should fail to delete non-existing entries in empty store")
 					}
 				}
@@ -157,13 +164,13 @@ func TestDelete(t *testing.T) {
 			name: "Single entry",
 			tf: func(s *Store) func(t *testing.T) {
 				return func(t *testing.T) {
-					if err := s.Set("foo", []byte("bar"), "test"); err != nil {
+					if err := s.Set(ctx, "foo", []byte("bar"), "test"); err != nil {
 						t.Fatalf("Failed to insert test data: %s", err)
 					}
-					if err := s.Delete("foo"); err != nil {
+					if err := s.Delete(ctx, "foo"); err != nil {
 						t.Errorf("Failed to delete 'foo': %s", err)
 					}
-					_, err := s.Get("foo")
+					_, err := s.Get(ctx, "foo")
 					if err == nil {
 						t.Fatalf("Should fail to get 'foo': %s", err)
 					}
@@ -183,7 +190,7 @@ func TestDelete(t *testing.T) {
 			gpg:   gpgmock.New(),
 		}
 
-		err = s.saveRecipients([]string{"john.doe"}, "test", false)
+		err = s.saveRecipients(ctx, []string{"john.doe"}, "test", false)
 		assert.NoError(t, err)
 
 		// run test case
@@ -195,6 +202,8 @@ func TestDelete(t *testing.T) {
 }
 
 func TestPrune(t *testing.T) {
+	ctx := context.Background()
+
 	for _, tc := range []struct {
 		name string
 		tf   func(s *Store) func(t *testing.T)
@@ -203,7 +212,7 @@ func TestPrune(t *testing.T) {
 			name: "Empty store",
 			tf: func(s *Store) func(t *testing.T) {
 				return func(t *testing.T) {
-					if err := s.Prune("foo"); err == nil {
+					if err := s.Prune(ctx, "foo"); err == nil {
 						t.Errorf("Should fail to delete non-existing entries in empty store")
 					}
 				}
@@ -213,13 +222,13 @@ func TestPrune(t *testing.T) {
 			name: "Single entry",
 			tf: func(s *Store) func(t *testing.T) {
 				return func(t *testing.T) {
-					if err := s.Set("foo", []byte("bar"), "test"); err != nil {
+					if err := s.Set(ctx, "foo", []byte("bar"), "test"); err != nil {
 						t.Fatalf("Failed to insert test data: %s", err)
 					}
-					if err := s.Prune("foo"); err != nil {
+					if err := s.Prune(ctx, "foo"); err != nil {
 						t.Errorf("Failed to delete 'foo': %s", err)
 					}
-					_, err := s.Get("foo")
+					_, err := s.Get(ctx, "foo")
 					if err == nil {
 						t.Fatalf("Should fail to get 'foo': %s", err)
 					}
@@ -230,28 +239,28 @@ func TestPrune(t *testing.T) {
 			name: "Multi entry nested",
 			tf: func(s *Store) func(t *testing.T) {
 				return func(t *testing.T) {
-					if err := s.Set("foo/bar/baz", []byte("bar"), "test"); err != nil {
+					if err := s.Set(ctx, "foo/bar/baz", []byte("bar"), "test"); err != nil {
 						t.Fatalf("Failed to insert test data: %s", err)
 					}
-					if err := s.Set("foo/bar/zab", []byte("bar"), "test"); err != nil {
+					if err := s.Set(ctx, "foo/bar/zab", []byte("bar"), "test"); err != nil {
 						t.Fatalf("Failed to insert test data: %s", err)
 					}
-					if err := s.Prune("foo/bar"); err != nil {
+					if err := s.Prune(ctx, "foo/bar"); err != nil {
 						t.Errorf("Failed to delete 'foo': %s", err)
 					}
-					_, err := s.Get("foo/bar/baz")
+					_, err := s.Get(ctx, "foo/bar/baz")
 					if err == nil {
 						t.Fatalf("Should fail to get 'foo/bar/baz': %s", err)
 					}
-					_, err = s.Get("foo/bar/zab")
+					_, err = s.Get(ctx, "foo/bar/zab")
 					if err == nil {
 						t.Fatalf("Should fail to get 'foo/bar/zab': %s", err)
 					}
 					// delete empty folder
-					if err := s.Prune("foo/"); err != nil {
+					if err := s.Prune(ctx, "foo/"); err != nil {
 						t.Errorf("Failed to delete 'foo': %s", err)
 					}
-					if err := s.Prune("foo/"); err == nil {
+					if err := s.Prune(ctx, "foo/"); err == nil {
 						t.Errorf("Should fail to delete 'foo' again")
 					}
 				}
@@ -270,7 +279,7 @@ func TestPrune(t *testing.T) {
 			gpg:   gpgmock.New(),
 		}
 
-		err = s.saveRecipients([]string{"john.doe"}, "test", false)
+		err = s.saveRecipients(ctx, []string{"john.doe"}, "test", false)
 		assert.NoError(t, err)
 
 		// run test case

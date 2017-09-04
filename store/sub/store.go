@@ -1,6 +1,7 @@
 package sub
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -22,16 +23,16 @@ const (
 )
 
 type gpger interface {
-	ListPublicKeys() (gpg.KeyList, error)
-	FindPublicKeys(...string) (gpg.KeyList, error)
-	ListPrivateKeys() (gpg.KeyList, error)
-	FindPrivateKeys(...string) (gpg.KeyList, error)
-	GetRecipients(string) ([]string, error)
-	Encrypt(string, []byte, []string) error
-	Decrypt(string) ([]byte, error)
-	ExportPublicKey(string, string) error
-	ImportPublicKey(string) error
-	Version() semver.Version
+	ListPublicKeys(context.Context) (gpg.KeyList, error)
+	FindPublicKeys(context.Context, ...string) (gpg.KeyList, error)
+	ListPrivateKeys(context.Context) (gpg.KeyList, error)
+	FindPrivateKeys(context.Context, ...string) (gpg.KeyList, error)
+	GetRecipients(context.Context, string) ([]string, error)
+	Encrypt(context.Context, string, []byte, []string) error
+	Decrypt(context.Context, string) ([]byte, error)
+	ExportPublicKey(context.Context, string, string) error
+	ImportPublicKey(context.Context, string) error
+	Version(context.Context) semver.Version
 }
 
 // Store is password store
@@ -65,7 +66,6 @@ func New(alias string, cfg *config.Config) (*Store, error) {
 		importFunc:      cfg.ImportFunc,
 		path:            cfg.Path,
 		gpg: gpgcli.New(gpgcli.Config{
-			Debug:       cfg.Debug,
 			AlwaysTrust: true,
 		}),
 	}
@@ -127,8 +127,8 @@ func (s *Store) Exists(name string) bool {
 	return fsutil.IsFile(p)
 }
 
-func (s *Store) useableKeys(file string) ([]string, error) {
-	rs, err := s.getRecipients(file)
+func (s *Store) useableKeys(ctx context.Context, file string) ([]string, error) {
+	rs, err := s.getRecipients(ctx, file)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get recipients")
 	}
@@ -137,7 +137,7 @@ func (s *Store) useableKeys(file string) ([]string, error) {
 		return rs, nil
 	}
 
-	kl, err := s.gpg.FindPublicKeys(rs...)
+	kl, err := s.gpg.FindPublicKeys(ctx, rs...)
 	if err != nil {
 		return rs, err
 	}
@@ -167,22 +167,22 @@ func (s *Store) filenameToName(fn string) string {
 }
 
 // reencrypt will re-encrypt all entries for the current recipients
-func (s *Store) reencrypt(reason string) error {
+func (s *Store) reencrypt(ctx context.Context, reason string) error {
 	entries, err := s.List("")
 	if err != nil {
 		return errors.Wrapf(err, "failed to list store")
 	}
 
 	// save original value of auto push
-	gitAutoSync := s.autoSync
+	gitAutoSync := s.autoSync // context.TODO
 	s.autoSync = false
 	for _, e := range entries {
-		content, err := s.Get(e)
+		content, err := s.Get(ctx, e)
 		if err != nil {
 			fmt.Printf("Failed to get current value for %s: %s\n", e, err)
 			continue
 		}
-		if err := s.Set(e, content, reason); err != nil {
+		if err := s.Set(ctx, e, content, reason); err != nil {
 			fmt.Printf("Failed to write %s: %s\n", e, err)
 		}
 	}
@@ -191,7 +191,7 @@ func (s *Store) reencrypt(reason string) error {
 	s.autoSync = gitAutoSync
 
 	if s.autoSync {
-		if err := s.gitPush("", ""); err != nil {
+		if err := s.gitPush(ctx, "", ""); err != nil {
 			if errors.Cause(err) == store.ErrGitNotInit {
 				msg := "Warning: git is not initialized for this store. Ignoring auto-push option\n" +
 					"Run: gopass git init"

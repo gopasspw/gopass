@@ -1,6 +1,7 @@
 package action
 
 import (
+	"context"
 	"fmt"
 	"sort"
 
@@ -12,9 +13,9 @@ import (
 )
 
 // MountRemove removes an existing mount
-func (s *Action) MountRemove(c *cli.Context) error {
+func (s *Action) MountRemove(ctx context.Context, c *cli.Context) error {
 	if len(c.Args()) != 1 {
-		return s.exitError(ExitUsage, nil, "Usage: %s mount remove [alias]", s.Name)
+		return s.exitError(ctx, ExitUsage, nil, "Usage: %s mount remove [alias]", s.Name)
 	}
 
 	if err := s.Store.RemoveMount(c.Args()[0]); err != nil {
@@ -22,7 +23,7 @@ func (s *Action) MountRemove(c *cli.Context) error {
 	}
 
 	if err := s.Store.Config().Save(); err != nil {
-		return s.exitError(ExitConfig, err, "failed to write config: %s", err)
+		return s.exitError(ctx, ExitConfig, err, "failed to write config: %s", err)
 	}
 
 	fmt.Println(color.GreenString("Password Store %s umounted", c.Args()[0]))
@@ -30,7 +31,7 @@ func (s *Action) MountRemove(c *cli.Context) error {
 }
 
 // MountsPrint prints all existing mounts
-func (s *Action) MountsPrint(c *cli.Context) error {
+func (s *Action) MountsPrint(ctx context.Context, c *cli.Context) error {
 	if len(s.Store.Mounts()) < 1 {
 		fmt.Println(color.CyanString("No mounts"))
 		return nil
@@ -60,11 +61,11 @@ func (s *Action) MountsComplete(*cli.Context) {
 }
 
 // MountAdd adds a new mount
-func (s *Action) MountAdd(c *cli.Context) error {
+func (s *Action) MountAdd(ctx context.Context, c *cli.Context) error {
 	alias := c.Args().Get(0)
 	localPath := c.Args().Get(1)
 	if alias == "" {
-		return s.exitError(ExitUsage, nil, "usage: %s mount add <alias> [local path]", s.Name)
+		return s.exitError(ctx, ExitUsage, nil, "usage: %s mount add <alias> [local path]", s.Name)
 	}
 
 	if localPath == "" {
@@ -80,12 +81,12 @@ func (s *Action) MountAdd(c *cli.Context) error {
 		fmt.Printf(color.YellowString("WARNING: shadowing %s entry\n"), alias)
 	}
 
-	if err := s.Store.AddMount(alias, localPath, keys...); err != nil {
-		return s.exitError(ExitMount, err, "failed to add mount '%s' to '%s': %s", alias, localPath, err)
+	if err := s.Store.AddMount(ctx, alias, localPath, keys...); err != nil {
+		return s.exitError(ctx, ExitMount, err, "failed to add mount '%s' to '%s': %s", alias, localPath, err)
 	}
 
 	if err := s.Store.Config().Save(); err != nil {
-		return s.exitError(ExitConfig, err, "failed to save config: %s", err)
+		return s.exitError(ctx, ExitConfig, err, "failed to save config: %s", err)
 	}
 
 	fmt.Println(color.GreenString("Mounted %s as %s", alias, localPath))

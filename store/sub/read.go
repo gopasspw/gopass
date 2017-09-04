@@ -2,6 +2,7 @@ package sub
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"strings"
 
@@ -10,7 +11,7 @@ import (
 )
 
 // Get returns the plaintext of a single key
-func (s *Store) Get(name string) ([]byte, error) {
+func (s *Store) Get(ctx context.Context, name string) ([]byte, error) {
 	p := s.passfile(name)
 
 	if !strings.HasPrefix(p, s.path) {
@@ -24,7 +25,7 @@ func (s *Store) Get(name string) ([]byte, error) {
 		return []byte{}, store.ErrNotFound
 	}
 
-	content, err := s.gpg.Decrypt(p)
+	content, err := s.gpg.Decrypt(ctx, p)
 	if err != nil {
 		return []byte{}, store.ErrDecrypt
 	}
@@ -33,8 +34,8 @@ func (s *Store) Get(name string) ([]byte, error) {
 }
 
 // GetFirstLine returns the first line of the plaintext of a single key
-func (s *Store) GetFirstLine(name string) ([]byte, error) {
-	content, err := s.Get(name)
+func (s *Store) GetFirstLine(ctx context.Context, name string) ([]byte, error) {
+	content, err := s.Get(ctx, name)
 	if err != nil {
 		return nil, err
 	}
@@ -48,8 +49,8 @@ func (s *Store) GetFirstLine(name string) ([]byte, error) {
 }
 
 // GetBody returns everything but the first line
-func (s *Store) GetBody(name string) ([]byte, error) {
-	content, err := s.Get(name)
+func (s *Store) GetBody(ctx context.Context, name string) ([]byte, error) {
+	content, err := s.Get(ctx, name)
 	if err != nil {
 		return nil, err
 	}

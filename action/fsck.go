@@ -1,6 +1,7 @@
 package action
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -11,7 +12,7 @@ import (
 )
 
 // Fsck checks the store integrity
-func (s *Action) Fsck(c *cli.Context) error {
+func (s *Action) Fsck(ctx context.Context, c *cli.Context) error {
 	check := c.Bool("check")
 	force := c.Bool("force")
 	if check {
@@ -20,7 +21,7 @@ func (s *Action) Fsck(c *cli.Context) error {
 	// make sure config is in the right place
 	// we may have loaded it from one of the fallback locations
 	if err := s.Store.Config().Save(); err != nil {
-		return s.exitError(ExitConfig, err, "failed to save config: %s", err)
+		return s.exitError(ctx, ExitConfig, err, "failed to save config: %s", err)
 	}
 	// clean up any previous config locations
 	oldCfg := filepath.Join(os.Getenv("HOME"), ".gopass.yml")
@@ -30,9 +31,9 @@ func (s *Action) Fsck(c *cli.Context) error {
 		}
 	}
 
-	_, err := s.Store.Fsck("", check, force)
+	_, err := s.Store.Fsck(ctx, "", check, force)
 	if err != nil {
-		return s.exitError(ExitFsck, err, "fsck found errors")
+		return s.exitError(ctx, ExitFsck, err, "fsck found errors")
 	}
 	return nil
 }

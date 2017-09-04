@@ -3,6 +3,7 @@
 package fsutil
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/exec"
@@ -10,6 +11,7 @@ import (
 	"time"
 
 	"github.com/cenkalti/backoff"
+	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/pkg/errors"
 )
 
@@ -17,20 +19,23 @@ func tempdirBase() string {
 	return ""
 }
 
-func (t *tempfile) mount() error {
+func (t *tempfile) mount(ctx context.Context) error {
 	// create 16MB ramdisk
-	cmd := exec.Command("hdid", "-drivekey", "system-image=yes", "-nomount", "ram://32768")
+	cmd := exec.CommandContext(ctx, "hdid", "-drivekey", "system-image=yes", "-nomount", "ram://32768")
 	cmd.Stderr = os.Stderr
-	if t.dbg {
+	if ctxutil.IsDebug(ctx) {
 		fmt.Printf("[DEBUG] CMD: %s %+v\n", cmd.Path, cmd.Args)
 	}
+
 	out, err := cmd.Output()
 	if err != nil {
 		return errors.Errorf("Failed to create disk with hdid: %s", err)
 	}
-	if t.dbg {
+
+	if ctxutil.IsDebug(ctx) {
 		fmt.Printf("[DEBUG] Output: %s\n", out)
 	}
+
 	p := strings.Split(string(out), " ")
 	if len(p) < 1 {
 		return errors.Errorf("Unhandeled hdid output: %s", string(out))
@@ -38,9 +43,10 @@ func (t *tempfile) mount() error {
 	t.dev = p[0]
 
 	// create filesystem on ramdisk
-	cmd = exec.Command("newfs_hfs", "-M", "700", t.dev)
+	cmd = exec.CommandContext(ctx, "newfs_hfs", "-M", "700", t.dev)
 	cmd.Stderr = os.Stderr
-	if t.dbg {
+
+	if ctxutil.IsDebug(ctx) {
 		cmd.Stdout = os.Stdout
 		fmt.Printf("[DEBUG] CMD: %s %+v\n", cmd.Path, cmd.Args)
 	}
@@ -49,7 +55,7 @@ func (t *tempfile) mount() error {
 	}
 
 	// mount ramdisk
-	cmd = exec.Command("mount", "-t", "hfs", "-o", "noatime", "-o", "nobrowse", t.dev, t.dir)
+	cmd = exec.CommandContext(ctx, "mount", "-t", "hfs", "-o", "noatime", "-o", "nobrowse", t.dev, t.dir)
 	cmd.Stderr = os.Stderr
 	if t.dbg {
 		cmd.Stdout = os.Stdout
@@ -72,8 +78,9 @@ func (t *tempfile) tryUnmount() error {
 	if t.dir == "" || t.dev == "" {
 		return errors.Errorf("need dir and dev")
 	}
+
 	// unmount ramdisk
-	cmd := exec.Command("diskutil", "unmountDisk", t.dev)
+	cmd := exec.CommandContext(context.TODO(), "diskutil", "unmountDisk", t.dev)
 	cmd.Stderr = os.Stderr
 	if t.dbg {
 		cmd.Stdout = os.Stdout
@@ -84,7 +91,7 @@ func (t *tempfile) tryUnmount() error {
 	}
 
 	// eject disk
-	cmd = exec.Command("diskutil", "quiet", "eject", t.dev)
+	cmd = exec.CommandContext(context.TODO(), "diskutil", "quiet", "eject", t.dev)
 	cmd.Stderr = os.Stderr
 	if t.dbg {
 		cmd.Stdout = os.Stdout

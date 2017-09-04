@@ -2,12 +2,13 @@ package tpl
 
 import (
 	"bytes"
+	"context"
 	"path/filepath"
 	"text/template"
 )
 
 type kvstore interface {
-	Get(string) ([]byte, error)
+	Get(context.Context, string) ([]byte, error)
 }
 
 type payload struct {
@@ -18,8 +19,8 @@ type payload struct {
 }
 
 // Execute executes the given template
-func Execute(tpl, name string, content []byte, s kvstore) ([]byte, error) {
-	funcs := funcMap(s)
+func Execute(ctx context.Context, tpl, name string, content []byte, s kvstore) ([]byte, error) {
+	funcs := funcMap(ctx, s)
 	pl := payload{
 		Dir:     filepath.Dir(name),
 		Path:    name,

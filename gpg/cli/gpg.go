@@ -3,6 +3,7 @@ package gpg
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -13,6 +14,7 @@ import (
 
 	"github.com/blang/semver"
 	"github.com/justwatchcom/gopass/gpg"
+	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/pkg/errors"
 )
 
@@ -33,17 +35,15 @@ var (
 type GPG struct {
 	binary      string
 	args        []string
-	debug       bool
 	pubKeys     gpg.KeyList
 	privKeys    gpg.KeyList
-	alwaysTrust bool
+	alwaysTrust bool // context.TODO
 }
 
 // Config is the gpg wrapper config
 type Config struct {
 	Binary      string
 	Args        []string
-	Debug       bool
 	AlwaysTrust bool
 }
 
@@ -60,7 +60,6 @@ func New(cfg Config) *GPG {
 	g := &GPG{
 		binary:      "gpg",
 		args:        cfg.Args,
-		debug:       cfg.Debug,
 		alwaysTrust: cfg.AlwaysTrust,
 	}
 
@@ -75,12 +74,13 @@ func New(cfg Config) *GPG {
 }
 
 // listKey lists all keys of the given type and matching the search strings
-func (g *GPG) listKeys(typ string, search ...string) (gpg.KeyList, error) {
+func (g *GPG) listKeys(ctx context.Context, typ string, search ...string) (gpg.KeyList, error) {
 	args := []string{"--with-colons", "--with-fingerprint", "--fixed-list-mode", "--list-" + typ + "-keys"}
 	args = append(args, search...)
-	cmd := exec.Command(g.binary, args...)
+	cmd := exec.CommandContext(ctx, g.binary, args...)
 	cmd.Stderr = os.Stderr
-	if g.debug {
+
+	if ctxutil.IsDebug(ctx) {
 		fmt.Printf("[DEBUG] gpg.listKeys: %s %+v\n", cmd.Path, cmd.Args)
 	}
 	out, err := cmd.Output()
@@ -95,9 +95,9 @@ func (g *GPG) listKeys(typ string, search ...string) (gpg.KeyList, error) {
 }
 
 // ListPublicKeys returns a parsed list of GPG public keys
-func (g *GPG) ListPublicKeys() (gpg.KeyList, error) {
+func (g *GPG) ListPublicKeys(ctx context.Context) (gpg.KeyList, error) {
 	if g.pubKeys == nil {
-		kl, err := g.listKeys("public")
+		kl, err := g.listKeys(ctx, "public")
 		if err != nil {
 			return nil, err
 		}
@@ -107,15 +107,15 @@ func (g *GPG) ListPublicKeys() (gpg.KeyList, error) {
 }
 
 // FindPublicKeys searches for the given public keys
-func (g *GPG) FindPublicKeys(search ...string) (gpg.KeyList, error) {
+func (g *GPG) FindPublicKeys(ctx context.Context, search ...string) (gpg.KeyList, error) {
 	// TODO use cache
-	return g.listKeys("public", search...)
+	return g.listKeys(ctx, "public", search...)
 }
 
 // ListPrivateKeys returns a parsed list of GPG secret keys
-func (g *GPG) ListPrivateKeys() (gpg.KeyList, error) {
+func (g *GPG) ListPrivateKeys(ctx context.Context) (gpg.KeyList, error) {
 	if g.privKeys == nil {
-		kl, err := g.listKeys("secret")
+		kl, err := g.listKeys(ctx, "secret")
 		if err != nil {
 			return nil, err
 		}
@@ -125,19 +125,19 @@ func (g *GPG) ListPrivateKeys() (gpg.KeyList, error) {
 }
 
 // FindPrivateKeys searches for the given private keys
-func (g *GPG) FindPrivateKeys(search ...string) (gpg.KeyList, error) {
+func (g *GPG) FindPrivateKeys(ctx context.Context, search ...string) (gpg.KeyList, error) {
 	// TODO use cache
-	return g.listKeys("secret", search...)
+	return g.listKeys(ctx, "secret", search...)
 }
 
 // GetRecipients returns a list of recipient IDs for a given file
-func (g *GPG) GetRecipients(file string) ([]string, error) {
+func (g *GPG) GetRecipients(ctx context.Context, file string) ([]string, error) {
 	_ = os.Setenv("LANGUAGE", "C")
 	recp := make([]string, 0, 5)
 
 	args := []string{"--batch", "--list-only", "--list-packets", "--no-default-keyring", "--secret-keyring", "/dev/null", file}
-	cmd := exec.Command(g.binary, args...)
-	if g.debug {
+	cmd := exec.CommandContext(ctx, g.binary, args...)
+	if ctxutil.IsDebug(ctx) {
 		fmt.Printf("[DEBUG] gpg.GetRecipients: %s %+v\n", cmd.Path, cmd.Args)
 	}
 	out, err := cmd.CombinedOutput()
@@ -148,7 +148,7 @@ func (g *GPG) GetRecipients(file string) ([]string, error) {
 	scanner := bufio.NewScanner(bytes.NewBuffer(out))
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
-		if g.debug {
+		if ctxutil.IsDebug(ctx) {
 			fmt.Printf("[DEBUG] gpg Output: %s\n", line)
 		}
 		if !strings.HasPrefix(line, ":pubkey enc packet:") {
@@ -166,7 +166,7 @@ func (g *GPG) GetRecipients(file string) ([]string, error) {
 // Encrypt will encrypt the given content for the recipients. If alwaysTrust is true
 // the trust-model will be set to always as to avoid (annoying) "unuseable public key"
 // errors when encrypting.
-func (g *GPG) Encrypt(path string, content []byte, recipients []string) error {
+func (g *GPG) Encrypt(ctx context.Context, path string, content []byte, recipients []string) error {
 	if err := os.MkdirAll(filepath.Dir(path), dirPerm); err != nil {
 		return errors.Wrapf(err, "failed to create dir '%s'", path)
 	}
@@ -181,8 +181,8 @@ func (g *GPG) Encrypt(path string, content []byte, recipients []string) error {
 		args = append(args, "--recipient", r)
 	}
 
-	cmd := exec.Command(g.binary, args...)
-	if g.debug {
+	cmd := exec.CommandContext(ctx, g.binary, args...)
+	if ctxutil.IsDebug(ctx) {
 		fmt.Printf("[DEBUG] gpg.Encrypt: %s %+v\n", cmd.Path, cmd.Args)
 	}
 	cmd.Stdin = bytes.NewReader(content)
@@ -193,20 +193,20 @@ func (g *GPG) Encrypt(path string, content []byte, recipients []string) error {
 }
 
 // Decrypt will try to decrypt the given file
-func (g *GPG) Decrypt(path string) ([]byte, error) {
+func (g *GPG) Decrypt(ctx context.Context, path string) ([]byte, error) {
 	args := append(g.args, "--decrypt", path)
-	cmd := exec.Command(g.binary, args...)
-	if g.debug {
+	cmd := exec.CommandContext(ctx, g.binary, args...)
+	if ctxutil.IsDebug(ctx) {
 		fmt.Printf("[DEBUG] gpg.Decrypt: %s %+v\n", cmd.Path, cmd.Args)
 	}
 	return cmd.Output()
 }
 
 // ExportPublicKey will export the named public key to the location given
-func (g *GPG) ExportPublicKey(id, filename string) error {
+func (g *GPG) ExportPublicKey(ctx context.Context, id, filename string) error {
 	args := append(g.args, "--armor", "--export", id)
-	cmd := exec.Command(g.binary, args...)
-	if g.debug {
+	cmd := exec.CommandContext(ctx, g.binary, args...)
+	if ctxutil.IsDebug(ctx) {
 		fmt.Printf("[DEBUG] gpg.ExportPublicKey: %s %+v\n", cmd.Path, cmd.Args)
 	}
 	out, err := cmd.Output()
@@ -222,15 +222,15 @@ func (g *GPG) ExportPublicKey(id, filename string) error {
 }
 
 // ImportPublicKey will import a key from the given location
-func (g *GPG) ImportPublicKey(filename string) error {
+func (g *GPG) ImportPublicKey(ctx context.Context, filename string) error {
 	buf, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return errors.Wrapf(err, "failed to read file '%s'", filename)
 	}
 
 	args := append(g.args, "--import")
-	cmd := exec.Command(g.binary, args...)
-	if g.debug {
+	cmd := exec.CommandContext(ctx, g.binary, args...)
+	if ctxutil.IsDebug(ctx) {
 		fmt.Printf("[DEBUG] gpg.ImportPublicKey: %s %+v\n", cmd.Path, cmd.Args)
 	}
 	cmd.Stdin = bytes.NewReader(buf)
@@ -247,10 +247,10 @@ func (g *GPG) ImportPublicKey(filename string) error {
 }
 
 // Version will returns GPG version information
-func (g *GPG) Version() semver.Version {
+func (g *GPG) Version(ctx context.Context) semver.Version {
 	v := semver.Version{}
 
-	cmd := exec.Command(g.binary, "--version")
+	cmd := exec.CommandContext(ctx, g.binary, "--version")
 	out, err := cmd.Output()
 	if err != nil {
 		return v

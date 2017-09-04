@@ -1,6 +1,8 @@
 package root
 
 import (
+	"context"
+
 	"github.com/justwatchcom/gopass/config"
 	"github.com/pkg/errors"
 )
@@ -12,7 +14,6 @@ func (s *Store) Config() *config.Config {
 		AutoImport:  s.autoImport,
 		AutoSync:    s.autoSync,
 		ClipTimeout: s.clipTimeout,
-		Debug:       s.debug,
 		Mounts:      make(map[string]string, len(s.mounts)),
 		NoColor:     s.noColor,
 		NoConfirm:   s.noConfirm,
@@ -29,7 +30,7 @@ func (s *Store) Config() *config.Config {
 
 // UpdateConfig updates this root-stores internal config and propagates
 // those changes to all substores
-func (s *Store) UpdateConfig(cfg *config.Config) error {
+func (s *Store) UpdateConfig(ctx context.Context, cfg *config.Config) error {
 	if cfg == nil {
 		return errors.Errorf("invalid config")
 	}
@@ -37,7 +38,6 @@ func (s *Store) UpdateConfig(cfg *config.Config) error {
 	s.autoImport = cfg.AutoImport
 	s.autoSync = cfg.AutoSync
 	s.clipTimeout = cfg.ClipTimeout
-	s.debug = cfg.Debug
 	s.noColor = cfg.NoColor
 	s.noConfirm = cfg.NoConfirm
 	s.noPager = cfg.NoPager
@@ -47,7 +47,7 @@ func (s *Store) UpdateConfig(cfg *config.Config) error {
 	// add any missing mounts
 	for alias, path := range cfg.Mounts {
 		if _, found := s.mounts[alias]; !found {
-			if err := s.addMount(alias, path); err != nil {
+			if err := s.addMount(ctx, alias, path); err != nil {
 				return errors.Wrapf(err, "failed to add mount '%s' to '%s'", alias, path)
 			}
 		}

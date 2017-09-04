@@ -2,6 +2,7 @@ package action
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"os"
 	"os/signal"
@@ -10,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
+	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/pkg/errors"
 
 	"golang.org/x/crypto/ssh/terminal"
@@ -20,8 +22,8 @@ const (
 )
 
 // confirmRecipients asks the user to confirm a given set of recipients
-func (s *Action) confirmRecipients(name string, recipients []string) ([]string, error) {
-	if s.Store.NoConfirm() || !s.isTerm {
+func (s *Action) confirmRecipients(ctx context.Context, name string, recipients []string) ([]string, error) {
+	if s.Store.NoConfirm() || !ctxutil.IsInteractive(ctx) {
 		return recipients, nil
 	}
 
@@ -29,7 +31,7 @@ func (s *Action) confirmRecipients(name string, recipients []string) ([]string, 
 
 	fmt.Printf("gopass: Encrypting %s for these recipients:\n", name)
 	for _, r := range recipients {
-		kl, err := s.gpg.FindPublicKeys(r)
+		kl, err := s.gpg.FindPublicKeys(ctx, r)
 		if err != nil {
 			fmt.Println(color.RedString("Failed to read public key for '%s': %s", name, err))
 			continue
@@ -56,7 +58,7 @@ func (s *Action) confirmRecipients(name string, recipients []string) ([]string, 
 
 // askForConfirmation asks a yes/no question until the user
 // replies yes or no
-func (s *Action) askForConfirmation(text string) bool {
+func (s *Action) askForConfirmation(ctx context.Context, text string) bool {
 	for i := 0; i < maxTries; i++ {
 		if choice, err := s.askForBool(text, false); err == nil {
 			return choice
@@ -128,20 +130,20 @@ func (s *Action) askForInt(text string, def int) (int, error) {
 }
 
 // askForPassword prompts for a password twice until both match
-func (s *Action) askForPassword(name string, askFn func(string) (string, error)) (string, error) {
-	if !s.isTerm {
+func (s *Action) askForPassword(ctx context.Context, name string, askFn func(context.Context, string) (string, error)) (string, error) {
+	if !ctxutil.IsInteractive(ctx) {
 		return "", errors.New("impossible without terminal")
 	}
 	if askFn == nil {
 		askFn = s.promptPass
 	}
 	for i := 0; i < maxTries; i++ {
-		pass, err := askFn(fmt.Sprintf("Enter password for %s", name))
+		pass, err := askFn(ctx, fmt.Sprintf("Enter password for %s", name))
 		if err != nil {
 			return "", err
 		}
 
-		passAgain, err := askFn(fmt.Sprintf("Retype password for %s", name))
+		passAgain, err := askFn(ctx, fmt.Sprintf("Retype password for %s", name))
 		if err != nil {
 			return "", err
 		}
@@ -156,8 +158,8 @@ func (s *Action) askForPassword(name string, askFn func(string) (string, error))
 }
 
 // askForKeyImport asks for permissions to import the named key
-func (s *Action) askForKeyImport(key string) bool {
-	if !s.isTerm {
+func (s *Action) askForKeyImport(ctx context.Context, key string) bool {
+	if !ctxutil.IsInteractive(ctx) {
 		return false
 	}
 	ok, err := s.askForBool("Do you want to import the public key '%s' into your keyring?", false)
@@ -168,11 +170,11 @@ func (s *Action) askForKeyImport(key string) bool {
 }
 
 // askforPrivateKey promts the user to select from a list of private keys
-func (s *Action) askForPrivateKey(prompt string) (string, error) {
-	if !s.isTerm {
+func (s *Action) askForPrivateKey(ctx context.Context, prompt string) (string, error) {
+	if !ctxutil.IsInteractive(ctx) {
 		return "", errors.New("no interaction without terminal")
 	}
-	kl, err := s.gpg.ListPrivateKeys()
+	kl, err := s.gpg.ListPrivateKeys(ctx)
 	if err != nil {
 		return "", err
 	}
@@ -202,10 +204,10 @@ func (s *Action) askForPrivateKey(prompt string) (string, error) {
 // On error or no selection, name and email will be empty.
 // If s.isTerm is false (i.e., the user cannot be prompted), however,
 // the first identity's name/email pair found is returned.
-func (s *Action) askForGitConfigUser() (string, string, error) {
+func (s *Action) askForGitConfigUser(ctx context.Context) (string, string, error) {
 	var useCurrent bool
 
-	keyList, err := s.gpg.ListPrivateKeys()
+	keyList, err := s.gpg.ListPrivateKeys(ctx)
 	if err != nil {
 		return "", "", err
 	}
@@ -216,7 +218,7 @@ func (s *Action) askForGitConfigUser() (string, string, error) {
 
 	for _, key := range keyList {
 		for _, identity := range key.Identities {
-			if !s.isTerm {
+			if !ctxutil.IsTerminal(ctx) {
 				return identity.Name, identity.Email, nil
 			}
 
@@ -236,8 +238,8 @@ func (s *Action) askForGitConfigUser() (string, string, error) {
 }
 
 // promptPass will prompt user's for a password by terminal.
-func (s *Action) promptPass(prompt string) (pass string, err error) {
-	if !s.isTerm {
+func (s *Action) promptPass(ctx context.Context, prompt string) (pass string, err error) {
+	if !ctxutil.IsTerminal(ctx) {
 		return
 	}
 	// Make a copy of STDIN's state to restore afterward

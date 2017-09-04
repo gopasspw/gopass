@@ -1,6 +1,7 @@
 package root
 
 import (
+	"context"
 	"fmt"
 	"sort"
 	"strings"
@@ -13,12 +14,12 @@ import (
 )
 
 // AddMount adds a new mount
-func (r *Store) AddMount(alias, path string, keys ...string) error {
+func (r *Store) AddMount(ctx context.Context, alias, path string, keys ...string) error {
 	path = fsutil.CleanPath(path)
 	if _, found := r.mounts[alias]; found {
 		return errors.Errorf("%s is already mounted", alias)
 	}
-	if err := r.addMount(alias, path, keys...); err != nil {
+	if err := r.addMount(ctx, alias, path, keys...); err != nil {
 		return errors.Wrapf(err, "failed to add mount")
 	}
 
@@ -26,7 +27,7 @@ func (r *Store) AddMount(alias, path string, keys ...string) error {
 	return r.checkMounts()
 }
 
-func (r *Store) addMount(alias, path string, keys ...string) error {
+func (r *Store) addMount(ctx context.Context, alias, path string, keys ...string) error {
 	if alias == "" {
 		return errors.Errorf("alias must not be empty")
 	}
@@ -49,11 +50,11 @@ func (r *Store) addMount(alias, path string, keys ...string) error {
 		if len(keys) < 1 {
 			return errors.Errorf("password store %s is not initialized. Try gopass init --store %s --path %s", alias, alias, path)
 		}
-		if err := s.Init(path, keys...); err != nil {
+		if err := s.Init(ctx, path, keys...); err != nil {
 			return errors.Wrapf(err, "failed to initialize store '%s' at '%s'", alias, path)
 		}
 		fmt.Println(color.GreenString("Password store %s initialized for:", path))
-		for _, r := range s.Recipients() {
+		for _, r := range s.Recipients(ctx) {
 			color.Yellow(r)
 		}
 	}

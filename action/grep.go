@@ -1,6 +1,7 @@
 package action
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -9,20 +10,20 @@ import (
 )
 
 // Grep searches a string inside the content of all files
-func (s *Action) Grep(c *cli.Context) error {
+func (s *Action) Grep(ctx context.Context, c *cli.Context) error {
 	if !c.Args().Present() {
-		return s.exitError(ExitUsage, nil, "Usage: %s grep arg", s.Name)
+		return s.exitError(ctx, ExitUsage, nil, "Usage: %s grep arg", s.Name)
 	}
 
 	search := c.Args().First()
 
 	l, err := s.Store.List(0)
 	if err != nil {
-		return s.exitError(ExitList, err, "failed to list store: %s", err)
+		return s.exitError(ctx, ExitList, err, "failed to list store: %s", err)
 	}
 
 	for _, v := range l {
-		content, err := s.Store.Get(v)
+		content, err := s.Store.Get(ctx, v)
 		if err != nil {
 			fmt.Println(color.RedString("failed to decrypt %s: %v", v, err))
 			continue
