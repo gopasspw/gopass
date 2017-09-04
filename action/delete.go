@@ -25,7 +25,7 @@ func (s *Action) Delete(ctx context.Context, c *cli.Context) error {
 		if recursive {
 			recStr = "recursively "
 		}
-		if s.Store.Exists(name) && key == "" && !s.askForConfirmation(ctx, fmt.Sprintf("Are you sure you would like to %sdelete %s?", recStr, name)) {
+		if (s.Store.Exists(name) || s.Store.IsDir(name)) && key == "" && !s.askForConfirmation(ctx, fmt.Sprintf("Are you sure you would like to %sdelete %s?", recStr, name)) {
 			return nil
 		}
 	}
