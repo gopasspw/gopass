@@ -697,10 +697,25 @@ Maintainers of this repository:
 
 Please refer to the Git commit log for a complete list of contributors.
 
+## Community
+
+`gopass` is developed in the open. Here are some of the channels we use to communicate and contribute:
+
+**IRC**: `#gopass` on [irc.freenode.net](freenode.net)
+
+**Usage mailing list:** [gopass-users](https://groups.google.com/forum/#!forum/gopass-users) - for discussions around gopass usage and community support
+
+**Issue tracker:** Use the [GitHub issue tracker](https://github.com/justwatchcom/gopass/issues) to file bugs and feature requests. If you need support, please send your questions to [gopass-user](https://groups.google.com/forum/#!forum/gopass-users) or ask on IRC rather than filing a GitHub issue.
+
 ## Contributing
 
-We welcome any contributions. Please fork the project on GitHub and open
-Pull Requests for any proposed changes.
+We welcome any contributions. Please see the `CONTRIBUTING.md` file for
+instructions on how to submit changes. If your are planning on making
+more elaborate or controversial changes, please discuss them on the
+mailing list or on IRC before sending a pull request.
 
-Please note that we will not merge any changes that encourage insecure
-behaviour. If in doubt please open an Issue first to discuss your proposal.
+**Development mailing list:** [gopass-developers](https://groups.google.com/forum/#!forum/gopass-developers) - for discussions around gopass development
+
+## Acknowledgements
+
+`gopass` was initially started by Matthias Loibl and Dominik Schulz. The majority of its development has been sponsored by [JustWatch](https://www.justwatch.com/).
