@@ -13,7 +13,7 @@ import (
 // GetKey returns a single key from a structured secret
 func (s *Store) GetKey(ctx context.Context, name, key string) ([]byte, error) {
 	content, err := s.Get(ctx, name)
-	if err != nil && err != store.ErrNotFound {
+	if err != nil {
 		return nil, err
 	}
 

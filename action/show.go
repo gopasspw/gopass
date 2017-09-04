@@ -53,6 +53,9 @@ func (s *Action) show(ctx context.Context, c *cli.Context, name, key string, cli
 			if errors.Cause(err) == store.ErrYAMLValueUnsupported {
 				return s.exitError(ctx, ExitUnsupported, err, "Can not show nested key directly. Use 'gopass show %s'", name)
 			}
+			if errors.Cause(err) == store.ErrNotFound {
+				return s.exitError(ctx, ExitNotFound, err, "Secret '%s' not found", name)
+			}
 			return s.exitError(ctx, ExitUnknown, err, "failed to retrieve key '%s' from '%s': %s", key, name, err)
 		}
 		if clip {
