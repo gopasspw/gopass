@@ -701,7 +701,7 @@ Please refer to the Git commit log for a complete list of contributors.
 
 `gopass` is developed in the open. Here are some of the channels we use to communicate and contribute:
 
-**IRC**: `#gopass` on [irc.freenode.net](freenode.net)
+**IRC**: `#gopass` on [irc.freenode.net](freenode.net) ([join via Riot](https://riot.im/app/#/room/#freenode_#gopass:matrix.org))
 
 **Usage mailing list:** [gopass-users](https://groups.google.com/forum/#!forum/gopass-users) - for discussions around gopass usage and community support
 
