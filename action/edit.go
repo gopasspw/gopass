@@ -9,9 +9,9 @@ import (
 	"os/exec"
 
 	"github.com/fatih/color"
-	"github.com/justwatchcom/gopass/fsutil"
-	"github.com/justwatchcom/gopass/pwgen"
-	"github.com/justwatchcom/gopass/tpl"
+	"github.com/justwatchcom/gopass/utils/fsutil"
+	"github.com/justwatchcom/gopass/utils/pwgen"
+	"github.com/justwatchcom/gopass/utils/tpl"
 	shellquote "github.com/kballard/go-shellquote"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"

@@ -7,9 +7,9 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
-	"github.com/justwatchcom/gopass/fsutil"
 	"github.com/justwatchcom/gopass/store"
 	"github.com/justwatchcom/gopass/store/sub"
+	"github.com/justwatchcom/gopass/utils/fsutil"
 	"github.com/pkg/errors"
 )
 

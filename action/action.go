@@ -8,9 +8,9 @@ import (
 
 	"github.com/blang/semver"
 	"github.com/fatih/color"
+	"github.com/justwatchcom/gopass/backend/gpg"
+	gpgcli "github.com/justwatchcom/gopass/backend/gpg/cli"
 	"github.com/justwatchcom/gopass/config"
-	"github.com/justwatchcom/gopass/gpg"
-	gpgcli "github.com/justwatchcom/gopass/gpg/cli"
 	"github.com/justwatchcom/gopass/store/root"
 )
 

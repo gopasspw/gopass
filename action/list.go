@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
-	"github.com/justwatchcom/gopass/termutil"
+	"github.com/justwatchcom/gopass/utils/termutil"
 	shellquote "github.com/kballard/go-shellquote"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"

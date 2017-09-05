@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/justwatchcom/gopass/backend/gpg"
+	gpgcli "github.com/justwatchcom/gopass/backend/gpg/cli"
 	"github.com/justwatchcom/gopass/config"
-	"github.com/justwatchcom/gopass/fsutil"
-	"github.com/justwatchcom/gopass/gpg"
-	gpgcli "github.com/justwatchcom/gopass/gpg/cli"
 	"github.com/justwatchcom/gopass/store"
 	"github.com/justwatchcom/gopass/store/sub"
+	"github.com/justwatchcom/gopass/utils/fsutil"
 	"github.com/pkg/errors"
 )
 

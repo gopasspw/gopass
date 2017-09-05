@@ -6,8 +6,8 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
-	"github.com/justwatchcom/gopass/termwiz"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
+	"github.com/justwatchcom/gopass/utils/termwiz"
 	"github.com/urfave/cli"
 )
 
