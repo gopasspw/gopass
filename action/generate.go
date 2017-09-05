@@ -6,7 +6,7 @@ import (
 	"strconv"
 
 	"github.com/fatih/color"
-	"github.com/justwatchcom/gopass/pwgen"
+	"github.com/justwatchcom/gopass/utils/pwgen"
 	"github.com/urfave/cli"
 )
 

@@ -9,8 +9,8 @@ import (
 	"syscall"
 
 	"github.com/fatih/color"
-	"github.com/justwatchcom/gopass/fsutil"
-	"github.com/justwatchcom/gopass/gpg"
+	"github.com/justwatchcom/gopass/backend/gpg"
+	"github.com/justwatchcom/gopass/utils/fsutil"
 	"github.com/pkg/errors"
 )
 

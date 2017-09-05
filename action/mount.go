@@ -8,7 +8,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/config"
 	"github.com/justwatchcom/gopass/store"
-	"github.com/justwatchcom/gopass/tree/simple"
+	"github.com/justwatchcom/gopass/utils/tree/simple"
 	"github.com/urfave/cli"
 )
 

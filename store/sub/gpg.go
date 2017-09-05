@@ -8,7 +8,7 @@ import (
 
 	"github.com/blang/semver"
 	"github.com/fatih/color"
-	"github.com/justwatchcom/gopass/fsutil"
+	"github.com/justwatchcom/gopass/utils/fsutil"
 	"github.com/pkg/errors"
 )
 

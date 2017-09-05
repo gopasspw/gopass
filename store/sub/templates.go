@@ -7,9 +7,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/justwatchcom/gopass/fsutil"
-	"github.com/justwatchcom/gopass/tree"
-	"github.com/justwatchcom/gopass/tree/simple"
+	"github.com/justwatchcom/gopass/utils/fsutil"
+	"github.com/justwatchcom/gopass/utils/tree"
+	"github.com/justwatchcom/gopass/utils/tree/simple"
 	"github.com/pkg/errors"
 )
 

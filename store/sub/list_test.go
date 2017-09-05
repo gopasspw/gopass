@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	gpgmock "github.com/justwatchcom/gopass/gpg/mock"
+	gpgmock "github.com/justwatchcom/gopass/backend/gpg/mock"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -10,8 +10,8 @@ import (
 	"strings"
 
 	"github.com/ghodss/yaml"
-	"github.com/justwatchcom/gopass/fsutil"
 	"github.com/justwatchcom/gopass/store"
+	"github.com/justwatchcom/gopass/utils/fsutil"
 	"github.com/pkg/errors"
 )
 

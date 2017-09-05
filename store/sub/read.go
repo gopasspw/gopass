@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/justwatchcom/gopass/fsutil"
 	"github.com/justwatchcom/gopass/store"
+	"github.com/justwatchcom/gopass/utils/fsutil"
 )
 
 // Get returns the plaintext of a single key

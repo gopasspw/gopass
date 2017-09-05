@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 
 	"github.com/blang/semver"
-	"github.com/justwatchcom/gopass/gpg"
+	"github.com/justwatchcom/gopass/backend/gpg"
 	"github.com/pkg/errors"
 )
 

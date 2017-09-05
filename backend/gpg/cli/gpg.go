@@ -13,7 +13,7 @@ import (
 	"strings"
 
 	"github.com/blang/semver"
-	"github.com/justwatchcom/gopass/gpg"
+	"github.com/justwatchcom/gopass/backend/gpg"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/pkg/errors"
 )

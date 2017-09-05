@@ -8,8 +8,8 @@ import (
 
 	"github.com/atotto/clipboard"
 	"github.com/fatih/color"
-	"github.com/justwatchcom/gopass/qrcon"
 	"github.com/justwatchcom/gopass/store"
+	"github.com/justwatchcom/gopass/utils/qrcon"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"
 )

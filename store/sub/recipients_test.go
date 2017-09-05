@@ -11,8 +11,8 @@ import (
 	"strings"
 	"testing"
 
+	gpgmock "github.com/justwatchcom/gopass/backend/gpg/mock"
 	"github.com/justwatchcom/gopass/config"
-	gpgmock "github.com/justwatchcom/gopass/gpg/mock"
 	"github.com/stretchr/testify/assert"
 )
 

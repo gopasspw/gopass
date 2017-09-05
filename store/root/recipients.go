@@ -7,8 +7,8 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/store"
-	"github.com/justwatchcom/gopass/tree"
-	"github.com/justwatchcom/gopass/tree/simple"
+	"github.com/justwatchcom/gopass/utils/tree"
+	"github.com/justwatchcom/gopass/utils/tree/simple"
 	"github.com/pkg/errors"
 )
 
