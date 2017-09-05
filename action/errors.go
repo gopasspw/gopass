@@ -1,9 +1,11 @@
 package action
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/fatih/color"
+	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/urfave/cli"
 )
 
@@ -50,8 +52,8 @@ const (
 	ExitIO
 )
 
-func (s *Action) exitError(exitCode int, err error, format string, args ...interface{}) error {
-	if s.debug && err != nil {
+func (s *Action) exitError(ctx context.Context, exitCode int, err error, format string, args ...interface{}) error {
+	if ctxutil.IsDebug(ctx) && err != nil {
 		fmt.Println(color.RedString("Stacktrace: %+v", err))
 	}
 	return cli.NewExitError(fmt.Sprintf(format, args...), exitCode)

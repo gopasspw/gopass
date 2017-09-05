@@ -2,6 +2,7 @@ package action
 
 import (
 	"bytes"
+	"context"
 	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
@@ -22,10 +23,10 @@ const (
 )
 
 // BinaryCat prints to or reads from STDIN/STDOUT
-func (s *Action) BinaryCat(c *cli.Context) error {
+func (s *Action) BinaryCat(ctx context.Context, c *cli.Context) error {
 	name := c.Args().First()
 	if name == "" {
-		return s.exitError(ExitNoName, nil, "need a name")
+		return s.exitError(ctx, ExitNoName, nil, "need a name")
 	}
 	if !strings.HasSuffix(name, BinarySuffix) {
 		name += BinarySuffix
@@ -34,7 +35,7 @@ func (s *Action) BinaryCat(c *cli.Context) error {
 	// handle pipe to stdin
 	info, err := os.Stdin.Stat()
 	if err != nil {
-		return s.exitError(ExitIO, err, "failed to stat stdin: %s", err)
+		return s.exitError(ctx, ExitIO, err, "failed to stat stdin: %s", err)
 	}
 
 	// if content is piped to stdin, read and save it
@@ -42,33 +43,33 @@ func (s *Action) BinaryCat(c *cli.Context) error {
 		content := &bytes.Buffer{}
 
 		if written, err := io.Copy(content, os.Stdin); err != nil {
-			return s.exitError(ExitIO, err, "Failed to copy after %d bytes: %s", written, err)
+			return s.exitError(ctx, ExitIO, err, "Failed to copy after %d bytes: %s", written, err)
 		}
 
-		return s.Store.Set(name, []byte(base64.StdEncoding.EncodeToString(content.Bytes())), "Read secret from STDIN")
+		return s.Store.Set(ctx, name, []byte(base64.StdEncoding.EncodeToString(content.Bytes())), "Read secret from STDIN")
 	}
 
-	buf, err := s.binaryGet(name)
+	buf, err := s.binaryGet(ctx, name)
 	if err != nil {
-		return s.exitError(ExitDecrypt, err, "failed to read secret: %s", err)
+		return s.exitError(ctx, ExitDecrypt, err, "failed to read secret: %s", err)
 	}
 	color.Yellow(string(buf))
 	return nil
 }
 
 // BinarySum decodes binary content and computes the SHA256 checksum
-func (s *Action) BinarySum(c *cli.Context) error {
+func (s *Action) BinarySum(ctx context.Context, c *cli.Context) error {
 	name := c.Args().First()
 	if name == "" {
-		return s.exitError(ExitUsage, nil, "Usage: %s binary sha256 name", s.Name)
+		return s.exitError(ctx, ExitUsage, nil, "Usage: %s binary sha256 name", s.Name)
 	}
 	if !strings.HasSuffix(name, BinarySuffix) {
 		name += BinarySuffix
 	}
 
-	buf, err := s.binaryGet(name)
+	buf, err := s.binaryGet(ctx, name)
 	if err != nil {
-		return s.exitError(ExitDecrypt, err, "failed to read secret: %s", err)
+		return s.exitError(ctx, ExitDecrypt, err, "failed to read secret: %s", err)
 	}
 
 	h := sha256.New()
@@ -80,12 +81,12 @@ func (s *Action) BinarySum(c *cli.Context) error {
 
 // BinaryCopy copies either from the filesystem to the store or from the store
 // to the filesystem
-func (s *Action) BinaryCopy(c *cli.Context) error {
+func (s *Action) BinaryCopy(ctx context.Context, c *cli.Context) error {
 	from := c.Args().Get(0)
 	to := c.Args().Get(1)
 
-	if err := s.binaryCopy(from, to, false); err != nil {
-		return s.exitError(ExitUnknown, err, "%s", err)
+	if err := s.binaryCopy(ctx, from, to, false); err != nil {
+		return s.exitError(ctx, ExitUnknown, err, "%s", err)
 	}
 	return nil
 }
@@ -93,12 +94,12 @@ func (s *Action) BinaryCopy(c *cli.Context) error {
 // BinaryMove works like BinaryCopy but will remove (shred/wipe) the source
 // after a successfull copy. Mostly useful for securely moving secrets into
 // the store if they are no longer needed / wanted on disk afterwards
-func (s *Action) BinaryMove(c *cli.Context) error {
+func (s *Action) BinaryMove(ctx context.Context, c *cli.Context) error {
 	from := c.Args().Get(0)
 	to := c.Args().Get(1)
 
-	if err := s.binaryCopy(from, to, true); err != nil {
-		return s.exitError(ExitUnknown, err, "%s", err)
+	if err := s.binaryCopy(ctx, from, to, true); err != nil {
+		return s.exitError(ctx, ExitUnknown, err, "%s", err)
 	}
 	return nil
 }
@@ -109,7 +110,7 @@ func (s *Action) BinaryMove(c *cli.Context) error {
 // 2. From the store to the filesystem
 //
 // Copying secrets in the store must be done through the regular copy command
-func (s *Action) binaryCopy(from, to string, deleteSource bool) error {
+func (s *Action) binaryCopy(ctx context.Context, from, to string, deleteSource bool) error {
 	if from == "" || to == "" {
 		op := "copy"
 		if deleteSource {
@@ -136,13 +137,13 @@ func (s *Action) binaryCopy(from, to string, deleteSource bool) error {
 		if err != nil {
 			return errors.Wrapf(err, "failed to read file from '%s'", from)
 		}
-		if err := s.Store.Set(to, []byte(base64.StdEncoding.EncodeToString(buf)), fmt.Sprintf("Copied data from %s to %s", from, to)); err != nil {
+		if err := s.Store.Set(ctx, to, []byte(base64.StdEncoding.EncodeToString(buf)), fmt.Sprintf("Copied data from %s to %s", from, to)); err != nil {
 			return errors.Wrapf(err, "failed to save buffer to store")
 		}
 		if deleteSource {
 			// it's important that we return if the validation fails, because
 			// in that case we don't want to shred our (only) copy of this data!
-			if err := s.binaryValidate(buf, to); err != nil {
+			if err := s.binaryValidate(ctx, buf, to); err != nil {
 				return errors.Wrapf(err, "failed to validate written data")
 			}
 			if err := fsutil.Shred(from, 8); err != nil {
@@ -157,7 +158,7 @@ func (s *Action) binaryCopy(from, to string, deleteSource bool) error {
 			from += BinarySuffix
 		}
 		// copy from store to FS
-		buf, err := s.binaryGet(from)
+		buf, err := s.binaryGet(ctx, from)
 		if err != nil {
 			return errors.Wrapf(err, "failed to read data from '%s'", from)
 		}
@@ -167,10 +168,10 @@ func (s *Action) binaryCopy(from, to string, deleteSource bool) error {
 		if deleteSource {
 			// as before: if validation of the written data fails, we MUST NOT
 			// delete the (only) source
-			if err := s.binaryValidate(buf, from); err != nil {
+			if err := s.binaryValidate(ctx, buf, from); err != nil {
 				return errors.Wrapf(err, "failed to validate the written data")
 			}
-			if err := s.Store.Delete(from); err != nil {
+			if err := s.Store.Delete(ctx, from); err != nil {
 				return errors.Wrapf(err, "failed to delete '%s' from the store", from)
 			}
 		}
@@ -180,7 +181,7 @@ func (s *Action) binaryCopy(from, to string, deleteSource bool) error {
 	}
 }
 
-func (s *Action) binaryValidate(buf []byte, name string) error {
+func (s *Action) binaryValidate(ctx context.Context, buf []byte, name string) error {
 	h := sha256.New()
 	_, _ = h.Write(buf)
 	fileSum := fmt.Sprintf("%x", h.Sum(nil))
@@ -188,7 +189,7 @@ func (s *Action) binaryValidate(buf []byte, name string) error {
 	h.Reset()
 
 	var err error
-	buf, err = s.binaryGet(name)
+	buf, err = s.binaryGet(ctx, name)
 	if err != nil {
 		return errors.Wrapf(err, "failed to read '%s' from the store", name)
 	}
@@ -201,8 +202,8 @@ func (s *Action) binaryValidate(buf []byte, name string) error {
 	return nil
 }
 
-func (s *Action) binaryGet(name string) ([]byte, error) {
-	buf, err := s.Store.Get(name)
+func (s *Action) binaryGet(ctx context.Context, name string) ([]byte, error) {
+	buf, err := s.Store.Get(ctx, name)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to read '%s' from the store", name)
 	}

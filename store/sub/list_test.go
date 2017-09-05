@@ -1,6 +1,7 @@
 package sub
 
 import (
+	"context"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -11,6 +12,8 @@ import (
 )
 
 func TestList(t *testing.T) {
+	ctx := context.Background()
+
 	for _, tc := range []struct {
 		name string
 		prep func(s *Store) error
@@ -23,7 +26,7 @@ func TestList(t *testing.T) {
 		{
 			name: "Single entry",
 			prep: func(s *Store) error {
-				return s.Set("foo", []byte("bar"), "test")
+				return s.Set(ctx, "foo", []byte("bar"), "test")
 			},
 			out: []string{"foo"},
 		},
@@ -31,7 +34,7 @@ func TestList(t *testing.T) {
 			name: "Multi-entry-single-level",
 			prep: func(s *Store) error {
 				for _, e := range []string{"foo", "bar", "baz"} {
-					if err := s.Set(e, []byte("bar"), "test"); err != nil {
+					if err := s.Set(ctx, e, []byte("bar"), "test"); err != nil {
 						return err
 					}
 				}
@@ -43,7 +46,7 @@ func TestList(t *testing.T) {
 			name: "Multi-entry-multi-level",
 			prep: func(s *Store) error {
 				for _, e := range []string{"foo/bar", "foo/baz", "foo/zab"} {
-					if err := s.Set(e, []byte("bar"), "test"); err != nil {
+					if err := s.Set(ctx, e, []byte("bar"), "test"); err != nil {
 						return err
 					}
 				}
@@ -64,7 +67,7 @@ func TestList(t *testing.T) {
 			gpg:   gpgmock.New(),
 		}
 
-		err = s.saveRecipients([]string{"john.doe"}, "test", false)
+		err = s.saveRecipients(ctx, []string{"john.doe"}, "test", false)
 		assert.NoError(t, err)
 
 		// prepare store

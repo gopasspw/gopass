@@ -1,23 +1,25 @@
 package action
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
 	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/termwiz"
+	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/urfave/cli"
 )
 
 // Find a string in the secret file's name
-func (s *Action) Find(c *cli.Context) error {
+func (s *Action) Find(ctx context.Context, c *cli.Context) error {
 	if !c.Args().Present() {
-		return s.exitError(ExitUsage, nil, "Usage: %s find arg", s.Name)
+		return s.exitError(ctx, ExitUsage, nil, "Usage: %s find arg", s.Name)
 	}
 
 	l, err := s.Store.List(0)
 	if err != nil {
-		return s.exitError(ExitList, err, "failed to list store: %s", err)
+		return s.exitError(ctx, ExitList, err, "failed to list store: %s", err)
 	}
 
 	needle := strings.ToLower(c.Args().First())
@@ -34,10 +36,10 @@ func (s *Action) Find(c *cli.Context) error {
 
 	if len(choices) == 1 {
 		fmt.Println(color.GreenString("Found exact match in '%s'", choices[0]))
-		return s.show(c, choices[0], "", false, false, false)
+		return s.show(ctx, c, choices[0], "", false, false, false)
 	}
 
-	if !s.isTerm {
+	if !ctxutil.IsTerminal(ctx) {
 		for _, value := range choices {
 			fmt.Println(value)
 		}
@@ -47,10 +49,10 @@ func (s *Action) Find(c *cli.Context) error {
 	act, sel := termwiz.GetSelection(choices)
 	switch act {
 	case "copy":
-		return s.show(c, choices[sel], "", true, false, false)
+		return s.show(ctx, c, choices[sel], "", true, false, false)
 	case "show":
-		return s.show(c, choices[sel], "", false, false, false)
+		return s.show(ctx, c, choices[sel], "", false, false, false)
 	default:
-		return s.exitError(ExitAborted, nil, "user aborted")
+		return s.exitError(ctx, ExitAborted, nil, "user aborted")
 	}
 }

@@ -3,6 +3,7 @@ package sub
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -23,8 +24,8 @@ const (
 )
 
 // Recipients returns the list of recipients of this store
-func (s *Store) Recipients() []string {
-	rs, err := s.getRecipients("")
+func (s *Store) Recipients(ctx context.Context) []string {
+	rs, err := s.getRecipients(ctx, "")
 	if err != nil {
 		fmt.Println(color.RedString("failed to read recipient list: %s", err))
 	}
@@ -32,8 +33,8 @@ func (s *Store) Recipients() []string {
 }
 
 // AddRecipient adds a new recipient to the list
-func (s *Store) AddRecipient(id string) error {
-	rs, err := s.getRecipients("")
+func (s *Store) AddRecipient(ctx context.Context, id string) error {
+	rs, err := s.getRecipients(ctx, "")
 	if err != nil {
 		return errors.Wrapf(err, "failed to read recipient list")
 	}
@@ -46,32 +47,32 @@ func (s *Store) AddRecipient(id string) error {
 
 	rs = append(rs, id)
 
-	if err := s.saveRecipients(rs, "Added Recipient "+id, true); err != nil {
+	if err := s.saveRecipients(ctx, rs, "Added Recipient "+id, true); err != nil {
 		return errors.Wrapf(err, "failed to save recipients")
 	}
 
-	return s.reencrypt("Added Recipient " + id)
+	return s.reencrypt(ctx, "Added Recipient "+id)
 }
 
 // SaveRecipients persists the current recipients on disk
-func (s *Store) SaveRecipients() error {
-	rs, err := s.getRecipients("")
+func (s *Store) SaveRecipients(ctx context.Context) error {
+	rs, err := s.getRecipients(ctx, "")
 	if err != nil {
 		return errors.Wrapf(err, "failed get recipients")
 	}
-	return s.saveRecipients(rs, "Save Recipients", true)
+	return s.saveRecipients(ctx, rs, "Save Recipients", true)
 }
 
 // RemoveRecipient will remove the given recipient from the storefunc (s *Store) RemoveRecipient()id string) error {
-func (s *Store) RemoveRecipient(id string) error {
+func (s *Store) RemoveRecipient(ctx context.Context, id string) error {
 	// but if this key is not available on this machine we
 	// just try to remove it literally
-	keys, err := s.gpg.FindPublicKeys(id)
+	keys, err := s.gpg.FindPublicKeys(ctx, id)
 	if err != nil {
 		fmt.Printf("Failed to get GPG Key Info for %s: %s\n", id, err)
 	}
 
-	rs, err := s.getRecipients("")
+	rs, err := s.getRecipients(ctx, "")
 	if err != nil {
 		return errors.Wrapf(err, "failed to read recipient list")
 	}
@@ -91,15 +92,15 @@ func (s *Store) RemoveRecipient(id string) error {
 		nk = append(nk, k)
 	}
 
-	if err := s.saveRecipients(nk, "Removed Recipient "+id, true); err != nil {
+	if err := s.saveRecipients(ctx, nk, "Removed Recipient "+id, true); err != nil {
 		return errors.Wrapf(err, "failed to save recipients")
 	}
 
-	return s.reencrypt("Removed Recipients " + id)
+	return s.reencrypt(ctx, "Removed Recipients "+id)
 }
 
 // Load all Recipients from the .gpg-id file into a list of Recipients.
-func (s *Store) getRecipients(file string) ([]string, error) {
+func (s *Store) getRecipients(ctx context.Context, file string) ([]string, error) {
 	idf := s.idFile(file)
 	// open recipient list (store/.gpg-id)
 	f, err := os.Open(idf)
@@ -117,7 +118,7 @@ func (s *Store) getRecipients(file string) ([]string, error) {
 }
 
 // Save all Recipients in memory to the .gpg-id file on disk.
-func (s *Store) saveRecipients(rs []string, msg string, exportKeys bool) error {
+func (s *Store) saveRecipients(ctx context.Context, rs []string, msg string, exportKeys bool) error {
 	if len(rs) < 1 {
 		return errors.New("can not remove all recipients")
 	}
@@ -133,9 +134,9 @@ func (s *Store) saveRecipients(rs []string, msg string, exportKeys bool) error {
 		return errors.Wrapf(err, "failed to write recipients file")
 	}
 
-	err := s.gitAdd(idf)
+	err := s.gitAdd(ctx, idf)
 	if err == nil {
-		if err := s.gitCommit(msg); err != nil {
+		if err := s.gitCommit(ctx, msg); err != nil {
 			if err != store.ErrGitNotInit && err != store.ErrGitNothingToCommit {
 				return errors.Wrapf(err, "failed to commit changes to git")
 			}
@@ -153,13 +154,13 @@ func (s *Store) saveRecipients(rs []string, msg string, exportKeys bool) error {
 
 	// save all recipients public keys to the repo
 	if exportKeys {
-		if err := s.exportPublicKeys(rs); err != nil {
+		if err := s.exportPublicKeys(ctx, rs); err != nil {
 			return errors.Wrapf(err, "failed to export public keys: %s", err)
 		}
 	}
 
 	// push to remote repo
-	if err := s.gitPush("", ""); err != nil {
+	if err := s.gitPush(ctx, "", ""); err != nil {
 		if errors.Cause(err) == store.ErrGitNotInit {
 			return nil
 		}
@@ -175,15 +176,15 @@ func (s *Store) saveRecipients(rs []string, msg string, exportKeys bool) error {
 	return nil
 }
 
-func (s *Store) exportPublicKeys(rs []string) error {
+func (s *Store) exportPublicKeys(ctx context.Context, rs []string) error {
 	for _, r := range rs {
-		path, err := s.exportPublicKey(r)
+		path, err := s.exportPublicKey(ctx, r)
 		if err != nil {
 			fmt.Println(color.RedString("failed to export public keys for '%s': %s", r, err))
 			continue
 		}
 
-		if err := s.gitAdd(path); err != nil {
+		if err := s.gitAdd(ctx, path); err != nil {
 			if errors.Cause(err) == store.ErrGitNotInit {
 				continue
 			}
@@ -192,7 +193,7 @@ func (s *Store) exportPublicKeys(rs []string) error {
 		}
 	}
 
-	if err := s.gitCommit(fmt.Sprintf("Exported Public Keys %v", rs)); err != nil && errors.Cause(err) != store.ErrGitNothingToCommit && errors.Cause(err) != store.ErrGitNotInit {
+	if err := s.gitCommit(ctx, fmt.Sprintf("Exported Public Keys %v", rs)); err != nil && errors.Cause(err) != store.ErrGitNothingToCommit && errors.Cause(err) != store.ErrGitNotInit {
 		fmt.Println(color.RedString("Failed to git commit: %s", err))
 	}
 	return nil

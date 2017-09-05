@@ -1,6 +1,7 @@
 package action
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/fatih/color"
@@ -24,10 +25,10 @@ type auditedSecret struct {
 }
 
 // Audit validates passwords against common flaws
-func (s *Action) Audit(c *cli.Context) error {
+func (s *Action) Audit(ctx context.Context, c *cli.Context) error {
 	t, err := s.Store.Tree()
 	if err != nil {
-		return s.exitError(ExitList, err, "failed to get store tree: %s", err)
+		return s.exitError(ctx, ExitList, err, "failed to get store tree: %s", err)
 	}
 	list := t.List(0)
 
@@ -42,7 +43,7 @@ func (s *Action) Audit(c *cli.Context) error {
 	// Spawn workers that run the auditing of all secrets concurrently.
 	validator := crunchy.NewValidator()
 	for jobs := 0; jobs < c.Int("jobs"); jobs++ {
-		go s.audit(validator, secrets, checked)
+		go s.audit(ctx, validator, secrets, checked)
 	}
 
 	go func() {
@@ -106,15 +107,15 @@ func (s *Action) Audit(c *cli.Context) error {
 	foundErrors := printAuditResults(errors, "%s:\n", color.RedString)
 
 	if foundWeakPasswords || foundDuplicates || foundErrors {
-		return s.exitError(ExitAudit, nil, "found weak passwords or duplicates")
+		return s.exitError(ctx, ExitAudit, nil, "found weak passwords or duplicates")
 	}
 
 	return nil
 }
 
-func (s *Action) audit(validator *crunchy.Validator, secrets <-chan string, checked chan<- auditedSecret) {
+func (s *Action) audit(ctx context.Context, validator *crunchy.Validator, secrets <-chan string, checked chan<- auditedSecret) {
 	for secret := range secrets {
-		content, err := s.Store.GetFirstLine(secret)
+		content, err := s.Store.GetFirstLine(ctx, secret)
 		if err != nil {
 			checked <- auditedSecret{name: secret, content: string(content), err: err}
 			continue

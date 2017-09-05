@@ -1,25 +1,28 @@
 package root
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/fatih/color"
 )
 
 // Fsck checks the stores integrity
-func (r *Store) Fsck(prefix string, check, force bool) (map[string]uint64, error) {
+func (r *Store) Fsck(ctx context.Context, prefix string, check, force bool) (map[string]uint64, error) {
 	rc := make(map[string]uint64, 10)
 	sh := make(map[string]string, 100)
 	for _, alias := range r.MountPoints() {
 		// check sub-store integrity
-		counts, err := r.mounts[alias].Fsck(alias, check, force)
+		counts, err := r.mounts[alias].Fsck(ctx, alias, check, force)
 		if err != nil {
 			return rc, err
 		}
 		for k, v := range counts {
 			rc[k] += v
 		}
+
 		fmt.Println(color.GreenString("[%s] Store (%s) checked (%d OK, %d warnings, %d errors)", alias, r.mounts[alias].Path(), counts["ok"], counts["warn"], counts["err"]))
+
 		// check shadowing
 		lst, err := r.mounts[alias].List(alias)
 		if err != nil {
@@ -33,7 +36,7 @@ func (r *Store) Fsck(prefix string, check, force bool) (map[string]uint64, error
 		}
 	}
 
-	counts, err := r.store.Fsck("root", check, force)
+	counts, err := r.store.Fsck(ctx, "root", check, force)
 	if err != nil {
 		return rc, err
 	}

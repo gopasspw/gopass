@@ -1,6 +1,7 @@
 package root
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -14,7 +15,7 @@ import (
 )
 
 type gpger interface {
-	FindPublicKeys(...string) (gpg.KeyList, error)
+	FindPublicKeys(context.Context, ...string) (gpg.KeyList, error)
 }
 
 // Store is the public facing password store
@@ -23,7 +24,6 @@ type Store struct {
 	autoImport  bool
 	autoSync    bool // push to git remote after commit
 	clipTimeout int  // clear clipboard after seconds
-	debug       bool
 	fsckFunc    store.FsckCallback
 	gpg         gpger
 	importFunc  store.ImportCallback
@@ -50,10 +50,8 @@ func New(cfg *config.Config) (*Store, error) {
 		autoImport:  cfg.AutoImport,
 		autoSync:    cfg.AutoSync,
 		clipTimeout: cfg.ClipTimeout,
-		debug:       cfg.Debug,
 		fsckFunc:    cfg.FsckFunc,
 		gpg: gpgcli.New(gpgcli.Config{
-			Debug:       cfg.Debug,
 			AlwaysTrust: true,
 		}),
 		importFunc:  cfg.ImportFunc,
@@ -83,7 +81,7 @@ func New(cfg *config.Config) (*Store, error) {
 	// initialize all mounts
 	for alias, path := range cfg.Mounts {
 		path = fsutil.CleanPath(path)
-		if err := r.addMount(alias, path); err != nil {
+		if err := r.addMount(context.TODO(), alias, path); err != nil {
 			fmt.Printf("Failed to initialized mount %s (%s): %s. Ignoring\n", alias, path, err)
 			continue
 		}

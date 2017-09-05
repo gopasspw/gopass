@@ -1,6 +1,7 @@
 package root
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -11,25 +12,25 @@ import (
 )
 
 // GitInit initializes the git repo
-func (r *Store) GitInit(name, sk, userName, userEmail string) error {
+func (r *Store) GitInit(ctx context.Context, name, sk, userName, userEmail string) error {
 	store := r.getStore(name)
-	return store.GitInit(store.Alias(), sk, userName, userEmail)
+	return store.GitInit(ctx, store.Alias(), sk, userName, userEmail)
 }
 
 // GitVersion returns git version information
-func (r *Store) GitVersion() semver.Version {
-	return r.store.GitVersion()
+func (r *Store) GitVersion(ctx context.Context) semver.Version {
+	return r.store.GitVersion(ctx)
 }
 
 // Git runs arbitrary git commands on this store and all substores
-func (r *Store) Git(name string, recurse, force bool, args ...string) error {
+func (r *Store) Git(ctx context.Context, name string, recurse, force bool, args ...string) error {
 	sub := r.getStore(name)
 	dispName := name
 	if dispName == "" {
 		dispName = "root"
 	}
 	fmt.Println(color.CyanString("[%s] Running git %s", dispName, strings.Join(args, " ")))
-	if err := sub.Git(args...); err != nil {
+	if err := sub.Git(ctx, args...); err != nil {
 		if errors.Cause(err) == store.ErrGitNoRemote {
 			fmt.Println(color.YellowString("[%s] Has no remote. Skipping", dispName))
 		} else {
@@ -48,7 +49,7 @@ func (r *Store) Git(name string, recurse, force bool, args ...string) error {
 
 	for _, alias := range r.MountPoints() {
 		fmt.Println(color.CyanString("[%s] Running 'git %s'", alias, strings.Join(args, " ")))
-		if err := r.mounts[alias].Git(args...); err != nil {
+		if err := r.mounts[alias].Git(ctx, args...); err != nil {
 			if errors.Cause(err) == store.ErrGitNoRemote {
 				fmt.Println(color.YellowString("[%s] Has no remote. Skipping", alias))
 				continue

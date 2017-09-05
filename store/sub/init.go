@@ -1,6 +1,7 @@
 package sub
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -14,7 +15,7 @@ func (s *Store) Initialized() bool {
 }
 
 // Init tries to initalize a new password store location matching the object
-func (s *Store) Init(path string, ids ...string) error {
+func (s *Store) Init(ctx context.Context, path string, ids ...string) error {
 	if s.Initialized() {
 		return errors.Errorf(`Found already initialized store at %s.
 You can add secondary stores with gopass init --path <path to secondary store> --store <mount name>`, path)
@@ -27,7 +28,7 @@ You can add secondary stores with gopass init --path <path to secondary store> -
 		if id == "" {
 			continue
 		}
-		kl, err := s.gpg.FindPublicKeys(id)
+		kl, err := s.gpg.FindPublicKeys(ctx, id)
 		if err != nil || len(kl) < 1 {
 			fmt.Println("Failed to fetch public key:", id)
 			continue
@@ -39,7 +40,7 @@ You can add secondary stores with gopass init --path <path to secondary store> -
 		return errors.Errorf("failed to initialize store: no valid recipients given")
 	}
 
-	kl, err := s.gpg.FindPrivateKeys(recipients...)
+	kl, err := s.gpg.FindPrivateKeys(ctx, recipients...)
 	if err != nil {
 		return errors.Errorf("Failed to get available private keys: %s", err)
 	}
@@ -48,7 +49,7 @@ You can add secondary stores with gopass init --path <path to secondary store> -
 		return errors.Errorf("None of the recipients has a secret key. You will not be able to decrypt the secrets you add")
 	}
 
-	if err := s.saveRecipients(recipients, "Initialized Store for "+strings.Join(recipients, ", "), true); err != nil {
+	if err := s.saveRecipients(ctx, recipients, "Initialized Store for "+strings.Join(recipients, ", "), true); err != nil {
 		return errors.Errorf("failed to initialize store: %v", err)
 	}
 

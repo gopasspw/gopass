@@ -1,8 +1,12 @@
 package root
 
-import "github.com/blang/semver"
+import (
+	"context"
+
+	"github.com/blang/semver"
+)
 
 // GPGVersion returns GPG version information
-func (r *Store) GPGVersion() semver.Version {
-	return r.store.GPGVersion()
+func (r *Store) GPGVersion(ctx context.Context) semver.Version {
+	return r.store.GPGVersion(ctx)
 }

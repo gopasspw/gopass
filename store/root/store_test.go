@@ -1,6 +1,7 @@
 package root
 
 import (
+	"context"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -41,6 +42,8 @@ func TestSimpleList(t *testing.T) {
 }
 
 func TestListMulti(t *testing.T) {
+	ctx := context.Background()
+
 	tempdir, err := ioutil.TempDir("", "gopass-")
 	if err != nil {
 		t.Fatalf("Failed to create tempdir: %s", err)
@@ -80,10 +83,10 @@ func TestListMulti(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to create root store: %s", err)
 	}
-	if err := rs.AddMount("sub1", tempdir+"/sub1"); err != nil {
+	if err := rs.AddMount(ctx, "sub1", tempdir+"/sub1"); err != nil {
 		t.Fatalf("failed to add mount %s: %s", "sub1", err)
 	}
-	if err := rs.AddMount("sub2", tempdir+"/sub2"); err != nil {
+	if err := rs.AddMount(ctx, "sub2", tempdir+"/sub2"); err != nil {
 		t.Fatalf("failed to add mount %s: %s", "sub2", err)
 	}
 	tree, err := rs.Tree()
@@ -94,6 +97,8 @@ func TestListMulti(t *testing.T) {
 }
 
 func TestListNested(t *testing.T) {
+	ctx := context.Background()
+
 	tempdir, err := ioutil.TempDir("", "gopass-")
 	if err != nil {
 		t.Fatalf("Failed to create tempdir: %s", err)
@@ -138,13 +143,13 @@ func TestListNested(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to create root store: %s", err)
 	}
-	if err := rs.AddMount("sub1", tempdir+"/sub1"); err != nil {
+	if err := rs.AddMount(ctx, "sub1", tempdir+"/sub1"); err != nil {
 		t.Fatalf("failed to add mount %s: %s", "sub1", err)
 	}
-	if err := rs.AddMount("sub2", tempdir+"/sub2"); err != nil {
+	if err := rs.AddMount(ctx, "sub2", tempdir+"/sub2"); err != nil {
 		t.Fatalf("failed to add mount %s: %s", "sub2", err)
 	}
-	if err := rs.AddMount("sub2/sub3", tempdir+"/sub3"); err != nil {
+	if err := rs.AddMount(ctx, "sub2/sub3", tempdir+"/sub3"); err != nil {
 		t.Fatalf("failed to add mount %s: %s", "sub2", err)
 	}
 	tree, err := rs.Tree()

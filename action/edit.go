@@ -2,6 +2,7 @@ package action
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -17,7 +18,7 @@ import (
 )
 
 // Edit the content of a password file
-func (s *Action) Edit(c *cli.Context) error {
+func (s *Action) Edit(ctx context.Context, c *cli.Context) error {
 	name := c.Args().First()
 	if name == "" {
 		return errors.Errorf("provide a secret name")
@@ -27,7 +28,7 @@ func (s *Action) Edit(c *cli.Context) error {
 	var changed bool
 	if s.Store.Exists(name) {
 		var err error
-		content, err = s.Store.Get(name)
+		content, err = s.Store.Get(ctx, name)
 		if err != nil {
 			return errors.Errorf("failed to decrypt %s: %v", name, err)
 		}
@@ -35,16 +36,16 @@ func (s *Action) Edit(c *cli.Context) error {
 		changed = true
 		// load template if it exists
 		content = pwgen.GeneratePassword(defaultLength, false)
-		if nc, err := tpl.Execute(string(tmpl), name, content, s.Store); err == nil {
+		if nc, err := tpl.Execute(ctx, string(tmpl), name, content, s.Store); err == nil {
 			content = nc
 		} else {
 			fmt.Printf("failed to execute template: %s\n", err)
 		}
 	}
 
-	nContent, err := s.editor(content)
+	nContent, err := s.editor(ctx, content)
 	if err != nil {
-		return s.exitError(ExitUnknown, err, "failed to invoke editor: %s", err)
+		return s.exitError(ctx, ExitUnknown, err, "failed to invoke editor: %s", err)
 	}
 
 	// If content is equal, nothing changed, exiting
@@ -57,10 +58,10 @@ func (s *Action) Edit(c *cli.Context) error {
 		printAuditResult(string(lines[0]))
 	}
 
-	return s.Store.SetConfirm(name, nContent, fmt.Sprintf("Edited with %s", os.Getenv("EDITOR")), s.confirmRecipients)
+	return s.Store.SetConfirm(ctx, name, nContent, fmt.Sprintf("Edited with %s", os.Getenv("EDITOR")), s.confirmRecipients)
 }
 
-func (s *Action) editor(content []byte) ([]byte, error) {
+func (s *Action) editor(ctx context.Context, content []byte) ([]byte, error) {
 	editor := getEditor()
 
 	tmpfile, err := fsutil.TempFile("gopass-edit")
@@ -87,10 +88,12 @@ func (s *Action) editor(content []byte) ([]byte, error) {
 
 	editor = cmdArgs[0]
 	args := append(cmdArgs[1:], tmpfile.Name())
+
 	cmd := exec.Command(editor, args...)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
+
 	if err := cmd.Run(); err != nil {
 		return []byte{}, errors.Errorf("failed to run %s with %s file", editor, tmpfile.Name())
 	}

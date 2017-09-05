@@ -2,6 +2,7 @@ package tests
 
 import (
 	"bytes"
+	"context"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -130,7 +131,7 @@ func (ts tester) runCmd(args []string, in []byte) (string, error) {
 		return "", errors.Errorf("no command")
 	}
 
-	cmd := exec.Command(args[0], args[1:]...)
+	cmd := exec.CommandContext(context.Background(), args[0], args[1:]...)
 	cmd.Dir = ts.workDir()
 	cmd.Stdin = bytes.NewReader(in)
 
@@ -150,7 +151,7 @@ func (ts tester) run(arg string) (string, error) {
 		return "", err
 	}
 
-	cmd := exec.Command(ts.Binary, args...)
+	cmd := exec.CommandContext(context.Background(), ts.Binary, args...)
 	cmd.Dir = ts.workDir()
 
 	ts.t.Logf("%+v", cmd.Args)

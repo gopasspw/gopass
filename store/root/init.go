@@ -1,6 +1,8 @@
 package root
 
 import (
+	"context"
+
 	"github.com/justwatchcom/gopass/fsutil"
 	"github.com/justwatchcom/gopass/store/sub"
 	"github.com/pkg/errors"
@@ -12,7 +14,7 @@ func (r *Store) Initialized() bool {
 }
 
 // Init tries to initalize a new password store location matching the object
-func (r *Store) Init(alias, path string, ids ...string) error {
+func (r *Store) Init(ctx context.Context, alias, path string, ids ...string) error {
 	cfg := r.Config()
 	cfg.Path = fsutil.CleanPath(path)
 	sub, err := sub.New(alias, cfg)
@@ -23,5 +25,5 @@ func (r *Store) Init(alias, path string, ids ...string) error {
 		r.store = sub
 	}
 
-	return sub.Init(path, ids...)
+	return sub.Init(ctx, path, ids...)
 }

@@ -2,6 +2,7 @@ package action
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -16,7 +17,7 @@ import (
 )
 
 // List all secrets as a tree
-func (s *Action) List(c *cli.Context) error {
+func (s *Action) List(ctx context.Context, c *cli.Context) error {
 	filter := c.Args().First()
 	flat := c.Bool("flat")
 	stripPrefix := c.Bool("strip-prefix")
@@ -24,7 +25,7 @@ func (s *Action) List(c *cli.Context) error {
 
 	l, err := s.Store.Tree()
 	if err != nil {
-		return s.exitError(ExitList, err, "failed to list store: %s", err)
+		return s.exitError(ctx, ExitList, err, "failed to list store: %s", err)
 	}
 
 	var out io.Writer
@@ -46,8 +47,8 @@ func (s *Action) List(c *cli.Context) error {
 		}
 		fmt.Fprintln(out, l.Format(limit))
 		if buf != nil {
-			if err := s.pager(buf); err != nil {
-				return s.exitError(ExitUnknown, err, "failed to invoke pager: %s", err)
+			if err := s.pager(ctx, buf); err != nil {
+				return s.exitError(ctx, ExitUnknown, err, "failed to invoke pager: %s", err)
 			}
 		}
 		return nil
@@ -75,21 +76,23 @@ func (s *Action) List(c *cli.Context) error {
 		}
 		return nil
 	}
+
 	if rows, _ := termutil.GetTermsize(); subtree.Len() > rows {
 		color.NoColor = true
 		buf = &bytes.Buffer{}
 		out = buf
 	}
+
 	fmt.Fprintln(out, subtree.Format(limit))
 	if buf != nil {
-		if err := s.pager(buf); err != nil {
-			return s.exitError(ExitUnknown, err, "failed to invoke pager: %s", err)
+		if err := s.pager(ctx, buf); err != nil {
+			return s.exitError(ctx, ExitUnknown, err, "failed to invoke pager: %s", err)
 		}
 	}
 	return nil
 }
 
-func (s *Action) pager(buf io.Reader) error {
+func (s *Action) pager(ctx context.Context, buf io.Reader) error {
 	pager := os.Getenv("PAGER")
 	if pager == "" {
 		fmt.Println(buf)
@@ -101,7 +104,7 @@ func (s *Action) pager(buf io.Reader) error {
 		return errors.Wrapf(err, "failed to split pager command")
 	}
 
-	cmd := exec.Command(args[0], args[1:]...)
+	cmd := exec.CommandContext(ctx, args[0], args[1:]...)
 	cmd.Stdin = buf
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr

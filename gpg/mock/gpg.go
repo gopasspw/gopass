@@ -1,6 +1,7 @@
 package mock
 
 import (
+	"context"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -19,32 +20,32 @@ func New() *Mocker {
 }
 
 // ListPublicKeys does nothing
-func (m *Mocker) ListPublicKeys() (gpg.KeyList, error) {
+func (m *Mocker) ListPublicKeys(context.Context) (gpg.KeyList, error) {
 	return gpg.KeyList{}, nil
 }
 
 // FindPublicKeys does nothing
-func (m *Mocker) FindPublicKeys(...string) (gpg.KeyList, error) {
+func (m *Mocker) FindPublicKeys(context.Context, ...string) (gpg.KeyList, error) {
 	return gpg.KeyList{}, nil
 }
 
 // ListPrivateKeys does nothing
-func (m *Mocker) ListPrivateKeys() (gpg.KeyList, error) {
+func (m *Mocker) ListPrivateKeys(context.Context) (gpg.KeyList, error) {
 	return gpg.KeyList{}, nil
 }
 
 // FindPrivateKeys does nothing
-func (m *Mocker) FindPrivateKeys(...string) (gpg.KeyList, error) {
+func (m *Mocker) FindPrivateKeys(context.Context, ...string) (gpg.KeyList, error) {
 	return gpg.KeyList{}, nil
 }
 
 // GetRecipients does nothing
-func (m *Mocker) GetRecipients(string) ([]string, error) {
+func (m *Mocker) GetRecipients(context.Context, string) ([]string, error) {
 	return []string{}, nil
 }
 
 // Encrypt writes the input to disk unaltered
-func (m *Mocker) Encrypt(path string, content []byte, recipients []string) error {
+func (m *Mocker) Encrypt(ctx context.Context, path string, content []byte, recipients []string) error {
 	if err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {
 		return errors.Wrapf(err, "failed to create dir '%s'", path)
 	}
@@ -52,21 +53,21 @@ func (m *Mocker) Encrypt(path string, content []byte, recipients []string) error
 }
 
 // Decrypt read the file from disk unaltered
-func (m *Mocker) Decrypt(path string) ([]byte, error) {
+func (m *Mocker) Decrypt(ctx context.Context, path string) ([]byte, error) {
 	return ioutil.ReadFile(path)
 }
 
 // ExportPublicKey does nothing
-func (m *Mocker) ExportPublicKey(string, string) error {
+func (m *Mocker) ExportPublicKey(context.Context, string, string) error {
 	return nil
 }
 
 // ImportPublicKey does nothing
-func (m *Mocker) ImportPublicKey(string) error {
+func (m *Mocker) ImportPublicKey(context.Context, string) error {
 	return nil
 }
 
 // Version returns dummy version info
-func (m *Mocker) Version() semver.Version {
+func (m *Mocker) Version(context.Context) semver.Version {
 	return semver.Version{}
 }

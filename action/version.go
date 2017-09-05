@@ -1,6 +1,7 @@
 package action
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"time"
@@ -16,7 +17,7 @@ const (
 )
 
 // Version prints the gopass version
-func (s *Action) Version(c *cli.Context) error {
+func (s *Action) Version(ctx context.Context, c *cli.Context) error {
 	version := make(chan string, 1)
 	go func(u chan string) {
 		if disabled := os.Getenv("CHECKPOINT_DISABLE"); disabled != "" {
@@ -44,8 +45,8 @@ func (s *Action) Version(c *cli.Context) error {
 
 	cli.VersionPrinter(c)
 
-	fmt.Printf("  GPG: %s\n", s.Store.GPGVersion().String())
-	fmt.Printf("  Git: %s\n", s.Store.GitVersion().String())
+	fmt.Printf("  GPG: %s\n", s.Store.GPGVersion(ctx).String())
+	fmt.Printf("  Git: %s\n", s.Store.GitVersion(ctx).String())
 
 	select {
 	case vi := <-version:
