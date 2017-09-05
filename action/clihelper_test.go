@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/blang/semver"
+	"github.com/justwatchcom/gopass/config"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/stretchr/testify/assert"
 )
@@ -12,7 +13,7 @@ import (
 func Test_askForGitConfigUser(t *testing.T) {
 	ctx := context.Background()
 
-	s := New(semver.Version{})
+	s := New(ctx, config.Load(), semver.Version{})
 
 	ctx = ctxutil.WithTerminal(ctx, true)
 
@@ -25,7 +26,7 @@ func Test_askForGitConfigUser(t *testing.T) {
 func Test_askForGitConfigUserNonInteractive(t *testing.T) {
 	ctx := context.Background()
 
-	s := New(semver.Version{})
+	s := New(ctx, config.Load(), semver.Version{})
 
 	ctx = ctxutil.WithTerminal(ctx, false)
 

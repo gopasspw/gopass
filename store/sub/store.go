@@ -37,15 +37,9 @@ type gpger interface {
 
 // Store is password store
 type Store struct {
-	alias           string
-	autoImport      bool
-	autoSync        bool
-	checkRecipients bool
-	debug           bool
-	fsckFunc        store.FsckCallback
-	importFunc      store.ImportCallback
-	path            string
-	gpg             gpger
+	alias string
+	path  string
+	gpg   gpger
 }
 
 // New creates a new store, copying settings from the given root store
@@ -57,17 +51,9 @@ func New(alias string, cfg *config.Config) (*Store, error) {
 		return nil, errors.Errorf("Need path")
 	}
 	s := &Store{
-		alias:           alias,
-		autoImport:      cfg.AutoImport,
-		autoSync:        cfg.AutoSync,
-		checkRecipients: false,
-		debug:           cfg.Debug,
-		fsckFunc:        cfg.FsckFunc,
-		importFunc:      cfg.ImportFunc,
-		path:            cfg.Path,
-		gpg: gpgcli.New(gpgcli.Config{
-			AlwaysTrust: true,
-		}),
+		alias: alias,
+		path:  cfg.Path,
+		gpg:   gpgcli.New(gpgcli.Config{}),
 	}
 
 	return s, nil
@@ -133,7 +119,7 @@ func (s *Store) useableKeys(ctx context.Context, file string) ([]string, error) 
 		return nil, errors.Wrapf(err, "failed to get recipients")
 	}
 
-	if !s.checkRecipients {
+	if !IsCheckRecipients(ctx) {
 		return rs, nil
 	}
 
@@ -167,45 +153,43 @@ func (s *Store) filenameToName(fn string) string {
 }
 
 // reencrypt will re-encrypt all entries for the current recipients
-func (s *Store) reencrypt(ctx context.Context, reason string) error {
+func (s *Store) reencrypt(ctx context.Context) error {
 	entries, err := s.List("")
 	if err != nil {
 		return errors.Wrapf(err, "failed to list store")
 	}
 
 	// save original value of auto push
-	gitAutoSync := s.autoSync // context.TODO
-	s.autoSync = false
+	ctx2 := WithAutoSync(ctx, false)
 	for _, e := range entries {
-		content, err := s.Get(ctx, e)
+		content, err := s.Get(ctx2, e)
 		if err != nil {
 			fmt.Printf("Failed to get current value for %s: %s\n", e, err)
 			continue
 		}
-		if err := s.Set(ctx, e, content, reason); err != nil {
+		if err := s.Set(ctx2, e, content); err != nil {
 			fmt.Printf("Failed to write %s: %s\n", e, err)
 		}
 	}
 
-	// restore value of auto push
-	s.autoSync = gitAutoSync
+	if !IsAutoSync(ctx) {
+		return nil
+	}
 
-	if s.autoSync {
-		if err := s.GitPush(ctx, "", ""); err != nil {
-			if errors.Cause(err) == store.ErrGitNotInit {
-				msg := "Warning: git is not initialized for this store. Ignoring auto-push option\n" +
-					"Run: gopass git init"
-				fmt.Println(color.RedString(msg))
-				return nil
-			}
-			if errors.Cause(err) == store.ErrGitNoRemote {
-				msg := "Warning: git has not remote. Ignoring auto-push option\n" +
-					"Run: gopass git remote add origin ..."
-				fmt.Println(color.YellowString(msg))
-				return nil
-			}
-			return errors.Wrapf(err, "failed to push change to git remote")
+	if err := s.GitPush(ctx, "", ""); err != nil {
+		if errors.Cause(err) == store.ErrGitNotInit {
+			msg := "Warning: git is not initialized for this store. Ignoring auto-push option\n" +
+				"Run: gopass git init"
+			fmt.Println(color.RedString(msg))
+			return nil
 		}
+		if errors.Cause(err) == store.ErrGitNoRemote {
+			msg := "Warning: git has not remote. Ignoring auto-push option\n" +
+				"Run: gopass git remote add origin ..."
+			fmt.Println(color.YellowString(msg))
+			return nil
+		}
+		return errors.Wrapf(err, "failed to push change to git remote")
 	}
 	return nil
 }

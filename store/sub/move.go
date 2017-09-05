@@ -45,7 +45,7 @@ func (s *Store) Copy(ctx context.Context, from, to string) error {
 	if err != nil {
 		return errors.Wrapf(err, "failed to get '%s' from store", from)
 	}
-	if err := s.Set(ctx, to, content, fmt.Sprintf("Copied from %s to %s", from, to)); err != nil {
+	if err := s.Set(WithReason(ctx, fmt.Sprintf("Copied from %s to %s", from, to)), to, content); err != nil {
 		return errors.Wrapf(err, "failed to save '%s' to store", to)
 	}
 	return nil
@@ -85,7 +85,7 @@ func (s *Store) Move(ctx context.Context, from, to string) error {
 	if err != nil {
 		return errors.Wrapf(err, "failed to decrypt '%s'", from)
 	}
-	if err := s.Set(ctx, to, content, fmt.Sprintf("Moved from %s to %s", from, to)); err != nil {
+	if err := s.Set(WithReason(ctx, fmt.Sprintf("Moved from %s to %s", from, to)), to, content); err != nil {
 		return errors.Wrapf(err, "failed to write '%s'", to)
 	}
 	if err := s.Delete(ctx, from); err != nil {
@@ -140,13 +140,15 @@ func (s *Store) delete(ctx context.Context, name string, recurse bool) error {
 		return errors.Wrapf(err, "failed to commit changes to git")
 	}
 
-	if s.autoSync {
-		if err := s.GitPush(ctx, "", ""); err != nil {
-			if errors.Cause(err) == store.ErrGitNotInit || errors.Cause(err) == store.ErrGitNoRemote {
-				return nil
-			}
-			return errors.Wrapf(err, "failed to push change to git remote")
+	if !IsAutoSync(ctx) {
+		return nil
+	}
+
+	if err := s.GitPush(ctx, "", ""); err != nil {
+		if errors.Cause(err) == store.ErrGitNotInit || errors.Cause(err) == store.ErrGitNoRemote {
+			return nil
 		}
+		return errors.Wrapf(err, "failed to push change to git remote")
 	}
 
 	return nil

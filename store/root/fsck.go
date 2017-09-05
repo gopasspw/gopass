@@ -8,12 +8,12 @@ import (
 )
 
 // Fsck checks the stores integrity
-func (r *Store) Fsck(ctx context.Context, prefix string, check, force bool) (map[string]uint64, error) {
+func (r *Store) Fsck(ctx context.Context, prefix string) (map[string]uint64, error) {
 	rc := make(map[string]uint64, 10)
 	sh := make(map[string]string, 100)
 	for _, alias := range r.MountPoints() {
 		// check sub-store integrity
-		counts, err := r.mounts[alias].Fsck(ctx, alias, check, force)
+		counts, err := r.mounts[alias].Fsck(ctx, alias)
 		if err != nil {
 			return rc, err
 		}
@@ -36,7 +36,7 @@ func (r *Store) Fsck(ctx context.Context, prefix string, check, force bool) (map
 		}
 	}
 
-	counts, err := r.store.Fsck(ctx, "root", check, force)
+	counts, err := r.store.Fsck(ctx, "root")
 	if err != nil {
 		return rc, err
 	}

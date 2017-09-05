@@ -9,6 +9,7 @@ const (
 	ctxKeyColor
 	ctxKeyTerminal
 	ctxKeyInteractive
+	ctxKeyStdin
 )
 
 // WithDebug returns a context with an explizit value for debug
@@ -63,6 +64,22 @@ func IsInteractive(ctx context.Context) bool {
 	bv, ok := ctx.Value(ctxKeyInteractive).(bool)
 	if !ok {
 		return true
+	}
+	return bv
+}
+
+// WithStdin returns a context with the value for Stdin set. If true some input
+// is available on Stdin (e.g. something is being piped into it)
+func WithStdin(ctx context.Context, isStdin bool) context.Context {
+	return context.WithValue(ctx, ctxKeyStdin, isStdin)
+}
+
+// IsStdin returns the value of stdin, i.e. if it's true some data is being
+// piped to stdin. If not set it returns the default value (false)
+func IsStdin(ctx context.Context) bool {
+	bv, ok := ctx.Value(ctxKeyStdin).(bool)
+	if !ok {
+		return false
 	}
 	return bv
 }

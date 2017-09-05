@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	"github.com/ghodss/yaml"
-	"github.com/justwatchcom/gopass/store"
 	"github.com/justwatchcom/gopass/utils/fsutil"
 	"github.com/pkg/errors"
 )
@@ -24,20 +23,18 @@ var (
 
 // Config is the gopass config structure
 type Config struct {
-	AskForMore  bool                 `json:"askformore"`  // ask for more data on generate
-	AutoImport  bool                 `json:"autoimport"`  // import missing public keys w/o asking
-	AutoSync    bool                 `json:"autosync"`    // push to git remote after commit, pull before push if necessary
-	ClipTimeout int                  `json:"cliptimeout"` // clear clipboard after seconds
-	Debug       bool                 `json:"-"`
-	FsckFunc    store.FsckCallback   `json:"-"`
-	ImportFunc  store.ImportCallback `json:"-"`
-	Mounts      map[string]string    `json:"mounts,omitempty"`
-	NoColor     bool                 `json:"-"`
-	NoPager     bool                 `json:"-"`
-	NoConfirm   bool                 `json:"noconfirm"`   // do not confirm recipients when encrypting
-	Path        string               `json:"path"`        // path to the root store
-	SafeContent bool                 `json:"safecontent"` // avoid showing passwords in terminal
-	Version     string               `json:"version"`
+	AskForMore  bool              `json:"askformore"`  // ask for more data on generate
+	AutoImport  bool              `json:"autoimport"`  // import missing public keys w/o asking
+	AutoSync    bool              `json:"autosync"`    // push to git remote after commit, pull before push if necessary
+	ClipTimeout int               `json:"cliptimeout"` // clear clipboard after seconds
+	Debug       bool              `json:"-"`
+	Mounts      map[string]string `json:"mounts,omitempty"`
+	NoColor     bool              `json:"-"`
+	NoPager     bool              `json:"-"`
+	NoConfirm   bool              `json:"noconfirm"`   // do not confirm recipients when encrypting
+	Path        string            `json:"path"`        // path to the root store
+	SafeContent bool              `json:"safecontent"` // avoid showing passwords in terminal
+	Version     string            `json:"version"`
 }
 
 // New creates a new config with sane default values

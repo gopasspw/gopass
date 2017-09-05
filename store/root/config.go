@@ -11,8 +11,6 @@ import (
 func (s *Store) Config() *config.Config {
 	c := &config.Config{
 		AskForMore:  s.askForMore,
-		AutoImport:  s.autoImport,
-		AutoSync:    s.autoSync,
 		ClipTimeout: s.clipTimeout,
 		Mounts:      make(map[string]string, len(s.mounts)),
 		NoColor:     s.noColor,
@@ -35,8 +33,6 @@ func (s *Store) UpdateConfig(ctx context.Context, cfg *config.Config) error {
 		return errors.Errorf("invalid config")
 	}
 	s.askForMore = cfg.AskForMore
-	s.autoImport = cfg.AutoImport
-	s.autoSync = cfg.AutoSync
 	s.clipTimeout = cfg.ClipTimeout
 	s.noColor = cfg.NoColor
 	s.noConfirm = cfg.NoConfirm
@@ -74,11 +70,6 @@ func (s *Store) Path() string {
 // Alias always returns an empty string
 func (s *Store) Alias() string {
 	return ""
-}
-
-// AutoSync returns the value of auto sync
-func (s *Store) AutoSync() bool {
-	return s.autoSync
 }
 
 // SafeContent returns the value of safe content

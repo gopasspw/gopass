@@ -8,6 +8,7 @@ import (
 
 	"github.com/blang/semver"
 	"github.com/fatih/color"
+	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/fsutil"
 	"github.com/pkg/errors"
 )
@@ -25,7 +26,7 @@ func (s *Store) ImportMissingPublicKeys(ctx context.Context) error {
 		return errors.Wrapf(err, "failed to get recipients")
 	}
 	for _, r := range rs {
-		if s.debug {
+		if ctxutil.IsDebug(ctx) {
 			fmt.Printf("[DEBUG] Checking recipients %s ...\n", r)
 		}
 		// check if this recipient is missing
@@ -37,7 +38,7 @@ func (s *Store) ImportMissingPublicKeys(ctx context.Context) error {
 			fmt.Printf("[%s] Failed to get public key for %s: %s\n", s.alias, r, err)
 		}
 		if len(kl) > 0 {
-			if s.debug {
+			if ctxutil.IsDebug(ctx) {
 				fmt.Println(color.CyanString("[%s] Keyring contains %d public keys for %s", s.alias, len(kl), r))
 			}
 			continue
@@ -45,8 +46,8 @@ func (s *Store) ImportMissingPublicKeys(ctx context.Context) error {
 
 		// we need to ask the user before importing
 		// any key material into his keyring!
-		if s.importFunc != nil {
-			if !s.importFunc(ctx, r) {
+		if imf := GetImportFunc(ctx); imf != nil {
+			if !imf(ctx, r) {
 				continue
 			}
 		}

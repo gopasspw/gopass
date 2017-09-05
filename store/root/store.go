@@ -8,7 +8,6 @@ import (
 	"github.com/justwatchcom/gopass/backend/gpg"
 	gpgcli "github.com/justwatchcom/gopass/backend/gpg/cli"
 	"github.com/justwatchcom/gopass/config"
-	"github.com/justwatchcom/gopass/store"
 	"github.com/justwatchcom/gopass/store/sub"
 	"github.com/justwatchcom/gopass/utils/fsutil"
 	"github.com/pkg/errors"
@@ -20,25 +19,21 @@ type gpger interface {
 
 // Store is the public facing password store
 type Store struct {
-	askForMore  bool
-	autoImport  bool
-	autoSync    bool // push to git remote after commit
-	clipTimeout int  // clear clipboard after seconds
-	fsckFunc    store.FsckCallback
+	askForMore  bool // context.TODO
+	clipTimeout int  // clear clipboard after seconds // context.TODO
 	gpg         gpger
-	importFunc  store.ImportCallback
 	mounts      map[string]*sub.Store
-	noColor     bool // disable colors in output
-	noConfirm   bool
-	noPager     bool
+	noColor     bool   // disable colors in output // context.TODO
+	noConfirm   bool   // context.TODO
+	noPager     bool   // context.TODO
 	path        string // path to the root store
-	safeContent bool   // avoid showing passwords in terminal
+	safeContent bool   // avoid showing passwords in terminal // context.TODO
 	store       *sub.Store
 	version     string
 }
 
 // New creates a new store
-func New(cfg *config.Config) (*Store, error) {
+func New(ctx context.Context, cfg *config.Config) (*Store, error) {
 	if cfg == nil {
 		cfg = &config.Config{}
 	}
@@ -47,14 +42,8 @@ func New(cfg *config.Config) (*Store, error) {
 	}
 	r := &Store{
 		askForMore:  cfg.AskForMore,
-		autoImport:  cfg.AutoImport,
-		autoSync:    cfg.AutoSync,
 		clipTimeout: cfg.ClipTimeout,
-		fsckFunc:    cfg.FsckFunc,
-		gpg: gpgcli.New(gpgcli.Config{
-			AlwaysTrust: true,
-		}),
-		importFunc:  cfg.ImportFunc,
+		gpg:         gpgcli.New(gpgcli.Config{}),
 		mounts:      make(map[string]*sub.Store, len(cfg.Mounts)),
 		noColor:     cfg.NoColor,
 		noConfirm:   cfg.NoConfirm,
@@ -62,10 +51,6 @@ func New(cfg *config.Config) (*Store, error) {
 		path:        cfg.Path,
 		safeContent: cfg.SafeContent,
 		version:     cfg.Version,
-	}
-
-	if r.autoImport {
-		r.importFunc = nil
 	}
 
 	// create the base store
@@ -81,7 +66,7 @@ func New(cfg *config.Config) (*Store, error) {
 	// initialize all mounts
 	for alias, path := range cfg.Mounts {
 		path = fsutil.CleanPath(path)
-		if err := r.addMount(context.TODO(), alias, path); err != nil {
+		if err := r.addMount(ctx, alias, path); err != nil {
 			fmt.Printf("Failed to initialized mount %s (%s): %s. Ignoring\n", alias, path, err)
 			continue
 		}

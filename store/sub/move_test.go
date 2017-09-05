@@ -32,7 +32,7 @@ func TestCopy(t *testing.T) {
 			name: "Single entry",
 			tf: func(s *Store) func(t *testing.T) {
 				return func(t *testing.T) {
-					if err := s.Set(ctx, "foo", secret.New("bar", ""), "test"); err != nil {
+					if err := s.Set(ctx, "foo", secret.New("bar", "")); err != nil {
 						t.Fatalf("Failed to insert test data: %s", err)
 					}
 					if err := s.Copy(ctx, "foo", "bar"); err != nil {
@@ -100,7 +100,7 @@ func TestMove(t *testing.T) {
 			name: "Single entry",
 			tf: func(s *Store) func(t *testing.T) {
 				return func(t *testing.T) {
-					if err := s.Set(ctx, "foo", secret.New("bar", ""), "test"); err != nil {
+					if err := s.Set(ctx, "foo", secret.New("bar", "")); err != nil {
 						t.Fatalf("Failed to insert test data: %s", err)
 					}
 					if err := s.Move(ctx, "foo", "bar"); err != nil {
@@ -165,7 +165,7 @@ func TestDelete(t *testing.T) {
 			name: "Single entry",
 			tf: func(s *Store) func(t *testing.T) {
 				return func(t *testing.T) {
-					if err := s.Set(ctx, "foo", secret.New("bar", ""), "test"); err != nil {
+					if err := s.Set(ctx, "foo", secret.New("bar", "")); err != nil {
 						t.Fatalf("Failed to insert test data: %s", err)
 					}
 					if err := s.Delete(ctx, "foo"); err != nil {
@@ -223,7 +223,7 @@ func TestPrune(t *testing.T) {
 			name: "Single entry",
 			tf: func(s *Store) func(t *testing.T) {
 				return func(t *testing.T) {
-					if err := s.Set(ctx, "foo", secret.New("bar", ""), "test"); err != nil {
+					if err := s.Set(ctx, "foo", secret.New("bar", "")); err != nil {
 						t.Fatalf("Failed to insert test data: %s", err)
 					}
 					if err := s.Prune(ctx, "foo"); err != nil {
@@ -240,10 +240,10 @@ func TestPrune(t *testing.T) {
 			name: "Multi entry nested",
 			tf: func(s *Store) func(t *testing.T) {
 				return func(t *testing.T) {
-					if err := s.Set(ctx, "foo/bar/baz", secret.New("bar", ""), "test"); err != nil {
+					if err := s.Set(ctx, "foo/bar/baz", secret.New("bar", "")); err != nil {
 						t.Fatalf("Failed to insert test data: %s", err)
 					}
-					if err := s.Set(ctx, "foo/bar/zab", secret.New("bar", ""), "test"); err != nil {
+					if err := s.Set(ctx, "foo/bar/zab", secret.New("bar", "")); err != nil {
 						t.Fatalf("Failed to insert test data: %s", err)
 					}
 					if err := s.Prune(ctx, "foo/bar"); err != nil {

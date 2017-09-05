@@ -3,6 +3,7 @@
 package fsutil
 
 import (
+	"context"
 	"os"
 
 	"golang.org/x/sys/unix"
@@ -23,11 +24,11 @@ func tempdirBase() string {
 	return ""
 }
 
-func (t *tempfile) mount() error {
+func (t *tempfile) mount(context.Context) error {
 	_ = t.dev // to trick megacheck
 	return nil
 }
 
-func (t *tempfile) unmount() error {
+func (t *tempfile) unmount(context.Context) error {
 	return nil
 }

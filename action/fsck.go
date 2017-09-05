@@ -7,16 +7,18 @@ import (
 	"path/filepath"
 
 	"github.com/fatih/color"
+	"github.com/justwatchcom/gopass/store/sub"
 	"github.com/justwatchcom/gopass/utils/fsutil"
 	"github.com/urfave/cli"
 )
 
 // Fsck checks the store integrity
 func (s *Action) Fsck(ctx context.Context, c *cli.Context) error {
-	check := c.Bool("check")
-	force := c.Bool("force")
-	if check {
-		force = false
+	if c.IsSet("check") {
+		ctx = sub.WithFsckCheck(ctx, c.Bool("check"))
+	}
+	if c.IsSet("force") {
+		ctx = sub.WithFsckForce(ctx, c.Bool("force"))
 	}
 	// make sure config is in the right place
 	// we may have loaded it from one of the fallback locations
@@ -31,8 +33,7 @@ func (s *Action) Fsck(ctx context.Context, c *cli.Context) error {
 		}
 	}
 
-	_, err := s.Store.Fsck(ctx, "", check, force)
-	if err != nil {
+	if _, err := s.Store.Fsck(ctx, ""); err != nil {
 		return s.exitError(ctx, ExitFsck, err, "fsck found errors")
 	}
 	return nil

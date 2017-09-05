@@ -33,18 +33,16 @@ var (
 
 // GPG is a gpg wrapper
 type GPG struct {
-	binary      string
-	args        []string
-	pubKeys     gpg.KeyList
-	privKeys    gpg.KeyList
-	alwaysTrust bool // context.TODO
+	binary   string
+	args     []string
+	pubKeys  gpg.KeyList
+	privKeys gpg.KeyList
 }
 
 // Config is the gpg wrapper config
 type Config struct {
-	Binary      string
-	Args        []string
-	AlwaysTrust bool
+	Binary string
+	Args   []string
 }
 
 // New creates a new GPG wrapper
@@ -58,9 +56,8 @@ func New(cfg Config) *GPG {
 	}
 
 	g := &GPG{
-		binary:      "gpg",
-		args:        cfg.Args,
-		alwaysTrust: cfg.AlwaysTrust,
+		binary: "gpg",
+		args:   cfg.Args,
 	}
 
 	for _, b := range []string{cfg.Binary, "gpg2", "gpg1", "gpg"} {
@@ -172,7 +169,7 @@ func (g *GPG) Encrypt(ctx context.Context, path string, content []byte, recipien
 	}
 
 	args := append(g.args, "--encrypt", "--output", path)
-	if g.alwaysTrust {
+	if gpg.IsAlwaysTrust(ctx) {
 		// changing the trustmodel is possibly dangerous. A user should always
 		// explicitly opt-in to do this
 		args = append(args, "--trust-model=always")

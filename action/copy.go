@@ -23,7 +23,7 @@ func (s *Action) Copy(ctx context.Context, c *cli.Context) error {
 	}
 
 	if !force {
-		if s.Store.Exists(to) && !s.askForConfirmation(ctx, fmt.Sprintf("%s already exists. Overwrite it?", to)) {
+		if s.Store.Exists(to) && !s.AskForConfirmation(ctx, fmt.Sprintf("%s already exists. Overwrite it?", to)) {
 			return s.exitError(ctx, ExitAborted, nil, "not overwriting your current secret")
 		}
 	}
