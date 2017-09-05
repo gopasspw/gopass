@@ -49,7 +49,7 @@ $ gopass clone git@example.com/pass.git
 $ gopass clone git@example.com/pass-work.git work # clone as mount called: work
 ```
 
-This runs `git clone` in the background and also sets up the `.gopass.yml` if necessary.
+This runs `git clone` in the background and also sets up the config file if necessary.
 
 A second parameter tells gopass to clone and mount it to the store.
 In the example above the repository would have been cloned to `$HOME/.password-store-work`.
