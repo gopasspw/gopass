@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
+	"github.com/justwatchcom/gopass/store/secret"
 	"github.com/justwatchcom/gopass/utils/fsutil"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"
@@ -46,7 +47,7 @@ func (s *Action) BinaryCat(ctx context.Context, c *cli.Context) error {
 			return s.exitError(ctx, ExitIO, err, "Failed to copy after %d bytes: %s", written, err)
 		}
 
-		return s.Store.Set(ctx, name, []byte(base64.StdEncoding.EncodeToString(content.Bytes())), "Read secret from STDIN")
+		return s.Store.Set(ctx, name, secret.New("", base64.StdEncoding.EncodeToString(content.Bytes())), "Read secret from STDIN")
 	}
 
 	buf, err := s.binaryGet(ctx, name)
@@ -137,7 +138,7 @@ func (s *Action) binaryCopy(ctx context.Context, from, to string, deleteSource b
 		if err != nil {
 			return errors.Wrapf(err, "failed to read file from '%s'", from)
 		}
-		if err := s.Store.Set(ctx, to, []byte(base64.StdEncoding.EncodeToString(buf)), fmt.Sprintf("Copied data from %s to %s", from, to)); err != nil {
+		if err := s.Store.Set(ctx, to, secret.New("", base64.StdEncoding.EncodeToString(buf)), fmt.Sprintf("Copied data from %s to %s", from, to)); err != nil {
 			return errors.Wrapf(err, "failed to save buffer to store")
 		}
 		if deleteSource {
@@ -203,11 +204,11 @@ func (s *Action) binaryValidate(ctx context.Context, buf []byte, name string) er
 }
 
 func (s *Action) binaryGet(ctx context.Context, name string) ([]byte, error) {
-	buf, err := s.Store.Get(ctx, name)
+	sec, err := s.Store.Get(ctx, name)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to read '%s' from the store", name)
 	}
-	buf, err = base64.StdEncoding.DecodeString(string(buf))
+	buf, err := base64.StdEncoding.DecodeString(sec.Body())
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to encode to base64")
 	}

@@ -3,12 +3,14 @@ package tpl
 import (
 	"context"
 	"testing"
+
+	"github.com/justwatchcom/gopass/store/secret"
 )
 
 type kvMock struct{}
 
-func (k kvMock) Get(ctx context.Context, key string) ([]byte, error) {
-	return []byte("barfoo"), nil
+func (k kvMock) Get(ctx context.Context, key string) (*secret.Secret, error) {
+	return secret.New("barfoo", ""), nil
 }
 
 func TestVars(t *testing.T) {
@@ -58,7 +60,7 @@ func TestVars(t *testing.T) {
 			Output:   "8843d7f92416211de9ebb963ff4ce28125932878",
 		},
 		{
-			Template: `{{get "testdir"}}`,
+			Template: `{{getpw "testdir"}}`,
 			Name:     "testdir",
 			Content:  []byte("foobar"),
 			Output:   "barfoo",

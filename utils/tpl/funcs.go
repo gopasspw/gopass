@@ -12,9 +12,11 @@ import (
 
 // These constants defined the template function names used
 const (
-	FuncMd5sum  = "md5sum"
-	FuncSha1sum = "sha1sum"
-	FuncGet     = "get"
+	FuncMd5sum      = "md5sum"
+	FuncSha1sum     = "sha1sum"
+	FuncGet         = "get"
+	FuncGetPassword = "getpw"
+	FuncGetValue    = "getval"
 )
 
 func md5sum() func(...string) (string, error) {
@@ -37,7 +39,11 @@ func get(ctx context.Context, kv kvstore) func(...string) (string, error) {
 		if kv == nil {
 			return "", errors.Errorf("KV is nil")
 		}
-		buf, err := kv.Get(ctx, s[0])
+		sec, err := kv.Get(ctx, s[0])
+		if err != nil {
+			return err.Error(), nil
+		}
+		buf, err := sec.Bytes()
 		if err != nil {
 			return err.Error(), nil
 		}
@@ -45,10 +51,48 @@ func get(ctx context.Context, kv kvstore) func(...string) (string, error) {
 	}
 }
 
+func getPassword(ctx context.Context, kv kvstore) func(...string) (string, error) {
+	return func(s ...string) (string, error) {
+		if len(s) < 1 {
+			return "", nil
+		}
+		if kv == nil {
+			return "", errors.Errorf("KV is nil")
+		}
+		sec, err := kv.Get(ctx, s[0])
+		if err != nil {
+			return err.Error(), nil
+		}
+		return sec.Password(), nil
+	}
+}
+
+func getValue(ctx context.Context, kv kvstore) func(...string) (string, error) {
+	return func(s ...string) (string, error) {
+		if len(s) < 2 {
+			return "", nil
+		}
+		if kv == nil {
+			return "", errors.Errorf("KV is nil")
+		}
+		sec, err := kv.Get(ctx, s[0])
+		if err != nil {
+			return err.Error(), nil
+		}
+		val, err := sec.Value(s[1])
+		if err != nil {
+			return err.Error(), nil
+		}
+		return val, nil
+	}
+}
+
 func funcMap(ctx context.Context, kv kvstore) template.FuncMap {
 	return template.FuncMap{
-		FuncGet:     get(ctx, kv),
-		FuncMd5sum:  md5sum(),
-		FuncSha1sum: sha1sum(),
+		FuncGet:         get(ctx, kv),
+		FuncGetPassword: getPassword(ctx, kv),
+		FuncGetValue:    getValue(ctx, kv),
+		FuncMd5sum:      md5sum(),
+		FuncSha1sum:     sha1sum(),
 	}
 }

@@ -43,12 +43,23 @@ func (s *Action) show(ctx context.Context, c *cli.Context, name, key string, cli
 		name += BinarySuffix
 	}
 
-	var content []byte
-	var err error
+	sec, err := s.Store.Get(ctx, name)
+	if err != nil {
+		if err != store.ErrNotFound {
+			return s.exitError(ctx, ExitUnknown, err, "failed to retrieve secret '%s': %s", name, err)
+		}
+		color.Yellow("Entry '%s' not found. Starting search...", name)
+		if err := s.Find(ctx, c); err != nil {
+			return s.exitError(ctx, ExitNotFound, err, "%s", err)
+		}
+		os.Exit(ExitNotFound)
+	}
+
+	var content string
 
 	switch {
 	case key != "":
-		content, err = s.Store.GetKey(ctx, name, key)
+		val, err := sec.Value(key)
 		if err != nil {
 			if errors.Cause(err) == store.ErrYAMLValueUnsupported {
 				return s.exitError(ctx, ExitUnsupported, err, "Can not show nested key directly. Use 'gopass show %s'", name)
@@ -59,40 +70,30 @@ func (s *Action) show(ctx context.Context, c *cli.Context, name, key string, cli
 			return s.exitError(ctx, ExitUnknown, err, "failed to retrieve key '%s' from '%s': %s", key, name, err)
 		}
 		if clip {
-			return s.copyToClipboard(ctx, name, content)
+			return s.copyToClipboard(ctx, name, []byte(val))
 		}
+		content = val
 	case qr:
-		content, err = s.Store.GetFirstLine(ctx, name)
-		if err != nil {
-			return s.exitError(ctx, ExitDecrypt, err, "failed to retrieve secret '%s': %s", name, err)
-		}
-		qr, err := qrcon.QRCode(string(content))
+		qr, err := qrcon.QRCode(sec.Password())
 		if err != nil {
 			return s.exitError(ctx, ExitUnknown, err, "failed to encode '%s' as QR: %s", name, err)
 		}
 		fmt.Println(qr)
 		return nil
 	case clip:
-		content, err = s.Store.GetFirstLine(ctx, name)
-		if err != nil {
-			return s.exitError(ctx, ExitDecrypt, err, "failed to retrieve secret '%s': %s", name, err)
-		}
-		return s.copyToClipboard(ctx, name, content)
+		return s.copyToClipboard(ctx, name, []byte(sec.Password()))
 	default:
 		if s.Store.SafeContent() && !force {
-			content, err = s.Store.GetBody(ctx, name)
+			content = sec.Body()
+			if content == "" {
+				return s.exitError(ctx, ExitNotFound, store.ErrNoBody, "no safe content to dsipaly, you can force dispaly with show -f")
+			}
 		} else {
-			content, err = s.Store.Get(ctx, name)
-		}
-		if err != nil {
-			if err != store.ErrNotFound {
-				return s.exitError(ctx, ExitUnknown, err, "failed to retrieve secret '%s': %s", name, err)
+			buf, err := sec.Bytes()
+			if err != nil {
+				return s.exitError(ctx, ExitUnknown, err, "failed to encode secret: %s", err)
 			}
-			color.Yellow("Entry '%s' not found. Starting search...", name)
-			if err := s.Find(ctx, c); err != nil {
-				return s.exitError(ctx, ExitNotFound, err, "%s", err)
-			}
-			os.Exit(ExitNotFound)
+			content = string(buf)
 		}
 	}
 

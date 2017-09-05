@@ -57,17 +57,17 @@ func (s *Action) HIBP(ctx context.Context, c *cli.Context) error {
 		// comparing the body is super hard, as every user may choose to use
 		// the body of a secret differently. In the future we may support
 		// go templates to extract and compare data from the body
-		content, err := s.Store.GetFirstLine(ctx, secret)
+		sec, err := s.Store.Get(ctx, secret)
 		if err != nil {
 			fmt.Println("\n" + color.YellowString("Failed to retrieve secret '%s': %s", secret, err))
 			continue
 		}
 		// do not check empty passwords, there should be caught by `gopass audit`
 		// anyway
-		if len(content) < 1 {
+		if len(sec.Password()) < 1 {
 			continue
 		}
-		sum := sha1sum(content)
+		sum := sha1sum(sec.Password())
 		shaSums[sum] = secret
 		sortedShaSums = append(sortedShaSums, sum)
 	}
@@ -159,8 +159,8 @@ func (s *Action) findHIBPMatches(ctx context.Context, fn string, shaSums map[str
 	}
 }
 
-func sha1sum(data []byte) string {
+func sha1sum(data string) string {
 	h := sha1.New()
-	_, _ = h.Write(data)
+	_, _ = h.Write([]byte(data))
 	return strings.ToUpper(fmt.Sprintf("%x", h.Sum(nil)))
 }

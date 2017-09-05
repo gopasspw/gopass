@@ -23,14 +23,17 @@ func (s *Action) Grep(ctx context.Context, c *cli.Context) error {
 	}
 
 	for _, v := range l {
-		content, err := s.Store.Get(ctx, v)
+		sec, err := s.Store.Get(ctx, v)
 		if err != nil {
 			fmt.Println(color.RedString("failed to decrypt %s: %v", v, err))
 			continue
 		}
 
-		if strings.Contains(string(content), search) {
-			fmt.Printf("%s:\n%s", color.BlueString(v), string(content))
+		if strings.Contains(string(sec.Password()), search) {
+			fmt.Printf("%s:\n%s", color.BlueString(v), sec.Password())
+		}
+		if strings.Contains(string(sec.Body()), search) {
+			fmt.Printf("%s:\n%s", color.BlueString(v), sec.Body())
 		}
 	}
 

@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 
+	"github.com/justwatchcom/gopass/store/secret"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/urfave/cli"
 )
@@ -59,14 +60,29 @@ func (s *Action) Insert(ctx context.Context, c *cli.Context) error {
 			content = []byte(pw)
 		}
 
-		if err := s.Store.SetKey(ctx, name, key, string(content)); err != nil {
+		sec := secret.New("", "")
+		if s.Store.Exists(name) {
+			var err error
+			sec, err = s.Store.Get(ctx, name)
+			if err != nil {
+				return s.exitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
+			}
+		}
+		if err := sec.SetValue(key, string(content)); err != nil {
+			return s.exitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
+		}
+		if err := s.Store.Set(ctx, name, sec, "Inserted YAML value from STDIN"); err != nil {
 			return s.exitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
 		}
 		return nil
 	}
 
 	if fromStdin {
-		if err := s.Store.SetConfirm(ctx, name, content, "Read secret from STDIN", confirm); err != nil {
+		sec, err := secret.Parse(content)
+		if err != nil {
+			return s.exitError(ctx, ExitEncrypt, err, "failed to set '%s': %s", name, err)
+		}
+		if err := s.Store.SetConfirm(ctx, name, sec, "Read secret from STDIN", confirm); err != nil {
 			return s.exitError(ctx, ExitEncrypt, err, "failed to set '%s': %s", name, err)
 		}
 		return nil
@@ -84,7 +100,11 @@ func (s *Action) Insert(ctx context.Context, c *cli.Context) error {
 		if err != nil {
 			return s.exitError(ctx, ExitUnknown, err, "failed to start editor: %s", err)
 		}
-		if err := s.Store.SetConfirm(ctx, name, content, fmt.Sprintf("Inserted user supplied password with %s", os.Getenv("EDITOR")), confirm); err != nil {
+		sec, err := secret.Parse(content)
+		if err != nil {
+			return s.exitError(ctx, ExitUnknown, err, "failed to parse secret: %s", err)
+		}
+		if err := s.Store.SetConfirm(ctx, name, sec, fmt.Sprintf("Inserted user supplied password with %s", os.Getenv("EDITOR")), confirm); err != nil {
 			return s.exitError(ctx, ExitEncrypt, err, "failed to store secret '%s': %s", name, err)
 		}
 		return nil
@@ -103,10 +123,10 @@ func (s *Action) Insert(ctx context.Context, c *cli.Context) error {
 		return s.exitError(ctx, ExitIO, err, "failed to ask for password: %s", err)
 	}
 
-	printAuditResult(pw)
-	content = []byte(pw)
+	sec := secret.New(pw, "")
+	printAuditResult(sec.Password())
 
-	if err := s.Store.SetConfirm(ctx, name, content, "Inserted user supplied password", confirm); err != nil {
+	if err := s.Store.SetConfirm(ctx, name, sec, "Inserted user supplied password", confirm); err != nil {
 		return s.exitError(ctx, ExitEncrypt, err, "failed to write secret '%s': %s", name, err)
 	}
 	return nil
