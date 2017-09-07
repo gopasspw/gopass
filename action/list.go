@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
+	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/termutil"
 	shellquote "github.com/kballard/go-shellquote"
 	"github.com/pkg/errors"
@@ -40,7 +41,7 @@ func (s *Action) List(ctx context.Context, c *cli.Context) error {
 			}
 			return nil
 		}
-		if rows, _ := termutil.GetTermsize(); l.Len() > rows && !s.Store.NoPager() {
+		if rows, _ := termutil.GetTermsize(); l.Len() > rows && !ctxutil.IsNoPager(ctx) {
 			color.NoColor = true
 			buf = &bytes.Buffer{}
 			out = buf

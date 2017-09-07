@@ -8,6 +8,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/store/secret"
 	"github.com/justwatchcom/gopass/store/sub"
+	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/pwgen"
 	"github.com/urfave/cli"
 )
@@ -108,7 +109,7 @@ func (s *Action) Generate(ctx context.Context, c *cli.Context) error {
 		color.YellowString(string(password)),
 	)
 
-	if (edit || s.Store.AskForMore()) && s.AskForConfirmation(ctx, fmt.Sprintf("Do you want to add more data for %s?", name)) {
+	if (edit || ctxutil.IsAskForMore(ctx)) && s.AskForConfirmation(ctx, fmt.Sprintf("Do you want to add more data for %s?", name)) {
 		if err := s.Edit(ctx, c); err != nil {
 			return s.exitError(ctx, ExitUnknown, err, "failed to edit '%s': %s", name, err)
 		}

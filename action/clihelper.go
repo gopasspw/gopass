@@ -23,7 +23,7 @@ const (
 
 // ConfirmRecipients asks the user to confirm a given set of recipients
 func (s *Action) ConfirmRecipients(ctx context.Context, name string, recipients []string) ([]string, error) {
-	if s.Store.NoConfirm() || !ctxutil.IsInteractive(ctx) {
+	if ctxutil.IsNoConfirm(ctx) || !ctxutil.IsInteractive(ctx) {
 		return recipients, nil
 	}
 

@@ -61,8 +61,23 @@ func main() {
 	// autosync
 	ctx = sub.WithAutoSync(ctx, cfg.AutoSync)
 
-	// alawys trust
+	// always trust
 	ctx = gpg.WithAlwaysTrust(ctx, true)
+
+	// ask for more
+	ctx = ctxutil.WithAskForMore(ctx, cfg.AskForMore)
+
+	// clipboard timeout
+	ctx = ctxutil.WithClipTimeout(ctx, cfg.ClipTimeout)
+
+	// no confirm
+	ctx = ctxutil.WithNoConfirm(ctx, cfg.NoConfirm)
+
+	// no pager
+	ctx = ctxutil.WithNoPager(ctx, cfg.NoPager)
+
+	// show safe content
+	ctx = ctxutil.WithShowSafeContent(ctx, cfg.SafeContent)
 
 	// check recipients conflicts with always trust, make sure it's not enabled
 	// when always trust is

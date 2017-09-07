@@ -10,6 +10,11 @@ const (
 	ctxKeyTerminal
 	ctxKeyInteractive
 	ctxKeyStdin
+	ctxKeyAskForMore
+	ctxKeyClipTimeout
+	ctxKeyNoConfirm
+	ctxKeyNoPager
+	ctxKeyShowSafeContent
 )
 
 // WithDebug returns a context with an explizit value for debug
@@ -78,6 +83,76 @@ func WithStdin(ctx context.Context, isStdin bool) context.Context {
 // piped to stdin. If not set it returns the default value (false)
 func IsStdin(ctx context.Context) bool {
 	bv, ok := ctx.Value(ctxKeyStdin).(bool)
+	if !ok {
+		return false
+	}
+	return bv
+}
+
+// WithAskForMore returns a context with the value for ask for more set
+func WithAskForMore(ctx context.Context, afm bool) context.Context {
+	return context.WithValue(ctx, ctxKeyAskForMore, afm)
+}
+
+// IsAskForMore returns the value of ask for more or the default (false)
+func IsAskForMore(ctx context.Context) bool {
+	bv, ok := ctx.Value(ctxKeyAskForMore).(bool)
+	if !ok {
+		return false
+	}
+	return bv
+}
+
+// WithClipTimeout returns a context with the value for clip timeout set
+func WithClipTimeout(ctx context.Context, to int) context.Context {
+	return context.WithValue(ctx, ctxKeyClipTimeout, to)
+}
+
+// GetClipTimeout returns the value of clip timeout or the default (45)
+func GetClipTimeout(ctx context.Context) int {
+	iv, ok := ctx.Value(ctxKeyClipTimeout).(int)
+	if !ok || iv < 1 {
+		return 45
+	}
+	return iv
+}
+
+// WithNoConfirm returns a context with the value for ask for more set
+func WithNoConfirm(ctx context.Context, bv bool) context.Context {
+	return context.WithValue(ctx, ctxKeyNoConfirm, bv)
+}
+
+// IsNoConfirm returns the value of ask for more or the default (false)
+func IsNoConfirm(ctx context.Context) bool {
+	bv, ok := ctx.Value(ctxKeyNoConfirm).(bool)
+	if !ok {
+		return false
+	}
+	return bv
+}
+
+// WithNoPager returns a context with the value for ask for more set
+func WithNoPager(ctx context.Context, bv bool) context.Context {
+	return context.WithValue(ctx, ctxKeyNoPager, bv)
+}
+
+// IsNoPager returns the value of ask for more or the default (false)
+func IsNoPager(ctx context.Context) bool {
+	bv, ok := ctx.Value(ctxKeyNoPager).(bool)
+	if !ok {
+		return false
+	}
+	return bv
+}
+
+// WithShowSafeContent returns a context with the value for ask for more set
+func WithShowSafeContent(ctx context.Context, bv bool) context.Context {
+	return context.WithValue(ctx, ctxKeyShowSafeContent, bv)
+}
+
+// IsShowSafeContent returns the value of ask for more or the default (false)
+func IsShowSafeContent(ctx context.Context) bool {
+	bv, ok := ctx.Value(ctxKeyShowSafeContent).(bool)
 	if !ok {
 		return false
 	}

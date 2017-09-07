@@ -60,6 +60,10 @@ func (r *Store) addMount(ctx context.Context, alias, path string, keys ...string
 	}
 
 	r.mounts[alias] = s
+	if r.cfg.Mounts == nil {
+		r.cfg.Mounts = make(map[string]string, 1)
+	}
+	r.cfg.Mounts[alias] = path
 	return nil
 }
 
