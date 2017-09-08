@@ -12,7 +12,6 @@ import (
 	"testing"
 
 	gpgmock "github.com/justwatchcom/gopass/backend/gpg/mock"
-	"github.com/justwatchcom/gopass/config"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -193,8 +192,7 @@ func TestListRecipients(t *testing.T) {
 	genRecs, _, err := createStore(tempdir, nil, nil)
 	assert.NoError(t, err)
 
-	s, err := New("", &config.Config{Path: tempdir})
-	assert.NoError(t, err)
+	s := New("", tempdir)
 
 	rs, err := s.GetRecipients(ctx, "")
 	assert.NoError(t, err)

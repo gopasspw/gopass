@@ -11,7 +11,6 @@ import (
 	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/backend/gpg"
 	gpgcli "github.com/justwatchcom/gopass/backend/gpg/cli"
-	"github.com/justwatchcom/gopass/config"
 	"github.com/justwatchcom/gopass/store"
 	"github.com/justwatchcom/gopass/utils/fsutil"
 	"github.com/pkg/errors"
@@ -43,20 +42,12 @@ type Store struct {
 }
 
 // New creates a new store, copying settings from the given root store
-func New(alias string, cfg *config.Config) (*Store, error) {
-	if cfg == nil {
-		cfg = &config.Config{}
-	}
-	if cfg.Path == "" {
-		return nil, errors.Errorf("Need path")
-	}
-	s := &Store{
+func New(alias string, path string) *Store {
+	return &Store{
 		alias: alias,
-		path:  cfg.Path,
+		path:  fsutil.CleanPath(path),
 		gpg:   gpgcli.New(gpgcli.Config{}),
 	}
-
-	return s, nil
 }
 
 // idFile returns the path to the recipient list for this store
@@ -192,4 +183,14 @@ func (s *Store) reencrypt(ctx context.Context) error {
 		return errors.Wrapf(err, "failed to push change to git remote")
 	}
 	return nil
+}
+
+// Path returns the value of path
+func (s *Store) Path() string {
+	return s.path
+}
+
+// Alias returns the value of alias
+func (s *Store) Alias() string {
+	return s.alias
 }

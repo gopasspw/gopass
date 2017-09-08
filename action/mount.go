@@ -22,7 +22,7 @@ func (s *Action) MountRemove(ctx context.Context, c *cli.Context) error {
 		fmt.Println(color.RedString("Failed to remove mount: %s", err))
 	}
 
-	if err := s.Store.Config().Save(); err != nil {
+	if err := s.cfg.Save(); err != nil {
 		return s.exitError(ctx, ExitConfig, err, "failed to write config: %s", err)
 	}
 
@@ -85,7 +85,7 @@ func (s *Action) MountAdd(ctx context.Context, c *cli.Context) error {
 		return s.exitError(ctx, ExitMount, err, "failed to add mount '%s' to '%s': %s", alias, localPath, err)
 	}
 
-	if err := s.Store.Config().Save(); err != nil {
+	if err := s.cfg.Save(); err != nil {
 		return s.exitError(ctx, ExitConfig, err, "failed to save config: %s", err)
 	}
 

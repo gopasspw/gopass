@@ -44,14 +44,7 @@ func New(ctx context.Context, cfg *config.Config) (*Store, error) {
 	}
 
 	// create the base store
-	subCfg := r.Config()
-	subCfg.Path = fsutil.CleanPath(r.Path())
-	s, err := sub.New("", subCfg)
-	if err != nil {
-		return nil, err
-	}
-
-	r.store = s
+	r.store = sub.New("", r.Path())
 
 	// initialize all mounts
 	for alias, path := range cfg.Mounts {
@@ -88,4 +81,14 @@ func (r *Store) String() string {
 		ms = append(ms, alias+"="+sub.String())
 	}
 	return fmt.Sprintf("Store(Path: %s, Mounts: %+v)", r.store.Path(), strings.Join(ms, ","))
+}
+
+// Path returns the store path
+func (r *Store) Path() string {
+	return r.path
+}
+
+// Alias always returns an empty string
+func (r *Store) Alias() string {
+	return ""
 }

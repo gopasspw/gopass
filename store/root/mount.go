@@ -39,12 +39,7 @@ func (r *Store) addMount(ctx context.Context, alias, path string, keys ...string
 	}
 
 	// propagate our config settings to the sub store
-	cfg := r.Config()
-	cfg.Path = fsutil.CleanPath(path)
-	s, err := sub.New(alias, cfg)
-	if err != nil {
-		return errors.Wrapf(err, "failed to create new sub store '%s'", alias)
-	}
+	s := sub.New(alias, path)
 
 	if !s.Initialized() {
 		if len(keys) < 1 {
