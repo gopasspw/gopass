@@ -98,7 +98,10 @@ func (s *Action) show(ctx context.Context, c *cli.Context, name, key string, cli
 		}
 	}
 
-	fmt.Println(color.YellowString(strings.TrimRight(string(content), "\r\n")))
+	fmt.Print(color.YellowString(strings.TrimRight(string(content), "\r\n")))
+	if ctxutil.IsTerminal(ctx) {
+		fmt.Println("")
+	}
 
 	return nil
 }
