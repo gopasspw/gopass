@@ -409,6 +409,14 @@ func main() {
 			},
 		},
 		{
+			Name:        "jsonapi",
+			Usage:       "Run golang as jsonapi e.g. for browser plugins",
+			Description: "Golang reads messages from stdin and responds to stdout in this mode",
+			Action: func(c *cli.Context) error {
+				return action.JSONAPI(ctx, c)
+			},
+		},
+		{
 			Name:        "totp",
 			Usage:       "Generate time based token from stored secret",
 			Description: "Tries to parse the saved string as a time-based one-time password secret and generate a token based on the current time",

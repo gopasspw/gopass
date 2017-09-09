@@ -13,6 +13,7 @@ import (
 	shellquote "github.com/kballard/go-shellquote"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
+	"io"
 )
 
 const (
@@ -161,6 +162,32 @@ func (ts tester) run(arg string) (string, error) {
 	}
 
 	return strings.TrimSpace(string(out)), nil
+}
+
+func (ts tester) runWithInput(arg, input string) ([]byte, error) {
+	reader := strings.NewReader(input)
+	out, err := ts.runWithInputReader(arg, reader)
+	return out, err
+}
+
+func (ts tester) runWithInputReader(arg string, input io.Reader) ([]byte, error) {
+	args, err := shellquote.Split(arg)
+	if err != nil {
+		return nil, err
+	}
+
+	cmd := exec.Command(ts.Binary, args...)
+	cmd.Dir = ts.workDir()
+	cmd.Stdin = input
+
+	ts.t.Logf("%+v", cmd.Args)
+
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return out, err
+	}
+
+	return out, nil
 }
 
 func (ts *tester) initStore() {
