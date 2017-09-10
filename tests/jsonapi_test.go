@@ -2,8 +2,8 @@ package tests
 
 import (
 	"bytes"
-	"testing"
 	"io"
+	"testing"
 
 	"encoding/binary"
 

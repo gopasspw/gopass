@@ -7,12 +7,13 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
-	"github.com/justwatchcom/gopass/store"
-	"github.com/urfave/cli"
 	"io"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/justwatchcom/gopass/store"
+	"github.com/urfave/cli"
 )
 
 type messageType struct {
@@ -38,13 +39,11 @@ type errorResponse struct {
 
 // JSONAPI reads a json message on stdin and responds on stdout
 func (s *Action) JSONAPI(ctx context.Context, c *cli.Context) error {
-	err := readAndRespond(ctx, s)
-	if err != nil {
+	if err := readAndRespond(ctx, s); err != nil {
 		var response errorResponse
 		response.Error = err.Error()
 
-		err = sendSerializedJSONMessage(response)
-		if err != nil {
+		if err := sendSerializedJSONMessage(response); err != nil {
 			return err
 		}
 	}
@@ -53,13 +52,11 @@ func (s *Action) JSONAPI(ctx context.Context, c *cli.Context) error {
 
 func readAndRespond(ctx context.Context, s *Action) error {
 	message, err := readMessage()
-	if message != nil {
-		err = respondMessage(ctx, s, message)
-		if err != nil {
-			return err
-		}
+	if message == nil || err != nil {
+		return err
 	}
-	return err
+
+	return respondMessage(ctx, s, message)
 }
 
 func readMessage() ([]byte, error) {
@@ -69,25 +66,28 @@ func readMessage() ([]byte, error) {
 	if err != nil {
 		return nil, eofReturn(err)
 	}
+
 	length, err := getMessageLength(lenBytes)
 	if err != nil {
 		return nil, err
 	}
+
 	msgBytes := make([]byte, length)
 	_, err = stdin.Read(msgBytes)
 	if err != nil {
 		return nil, eofReturn(err)
 	}
+
 	return msgBytes, nil
 }
 
 func getMessageLength(msg []byte) (int, error) {
 	var length uint32
 	buf := bytes.NewBuffer(msg)
-	err := binary.Read(buf, binary.LittleEndian, &length)
-	if err != nil {
+	if err := binary.Read(buf, binary.LittleEndian, &length); err != nil {
 		return 0, err
 	}
+
 	return int(length), nil
 }
 
@@ -100,10 +100,10 @@ func eofReturn(err error) error {
 
 func respondMessage(ctx context.Context, s *Action, msgBytes []byte) error {
 	var message messageType
-	err := json.Unmarshal(msgBytes, &message)
-	if err != nil {
+	if err := json.Unmarshal(msgBytes, &message); err != nil {
 		return err
 	}
+
 	switch message.Type {
 	case "query":
 		return respondQuery(s, msgBytes)
@@ -116,8 +116,7 @@ func respondMessage(ctx context.Context, s *Action, msgBytes []byte) error {
 
 func respondQuery(s *Action, msgBytes []byte) error {
 	var message queryMessage
-	err := json.Unmarshal(msgBytes, &message)
-	if err != nil {
+	if err := json.Unmarshal(msgBytes, &message); err != nil {
 		return err
 	}
 
@@ -141,13 +140,11 @@ func respondGetLogin(ctx context.Context, s *Action, msgBytes []byte) error {
 	var message getLoginMessage
 	var response loginResponse
 
-	err := json.Unmarshal(msgBytes, &message)
-	if err != nil {
+	if err := json.Unmarshal(msgBytes, &message); err != nil {
 		return err
 	}
 
 	secret, err := s.Store.Get(ctx, message.Entry)
-
 	if err != nil {
 		return err
 	}
@@ -156,10 +153,10 @@ func respondGetLogin(ctx context.Context, s *Action, msgBytes []byte) error {
 	if err != nil {
 		return err
 	}
+
 	response.Password = secret.Password()
 
-	err = sendSerializedJSONMessage(response)
-	return err
+	return sendSerializedJSONMessage(response)
 }
 
 func sendSerializedJSONMessage(message interface{}) error {
@@ -170,14 +167,15 @@ func sendSerializedJSONMessage(message interface{}) error {
 		return err
 	}
 
-	err = writeMessageLength(serialized)
-	if err != nil {
+	if err := writeMessageLength(serialized); err != nil {
 		return err
 	}
+
 	_, err = msgBuf.Write(serialized)
 	if err != nil {
 		return err
 	}
+
 	_, err = msgBuf.WriteTo(os.Stdout)
 	return err
 }
