@@ -117,6 +117,18 @@ func (r *Store) getStore(name string) *sub.Store {
 	return r.store
 }
 
+// GetSubStore returns an exact match for a mount point or an error if this
+// mount point does not exist
+func (r *Store) GetSubStore(name string) (*sub.Store, error) {
+	if name == "" {
+		return r.store, nil
+	}
+	if sub, found := r.mounts[name]; found {
+		return sub, nil
+	}
+	return nil, errors.Errorf("no such mount point '%s'", name)
+}
+
 // checkMounts performs some sanity checks on our mounts. At the moment it
 // only checks if some path is mounted twice.
 func (r *Store) checkMounts() error {

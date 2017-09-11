@@ -36,7 +36,7 @@ func TestGetRecipientsDefault(t *testing.T) {
 		gpg:   gpgmock.New(),
 	}
 
-	recs, err := s.getRecipients(ctx, "")
+	recs, err := s.GetRecipients(ctx, "")
 	assert.NoError(t, err)
 	assert.Equal(t, genRecs, recs)
 }
@@ -61,14 +61,14 @@ func TestGetRecipientsSubID(t *testing.T) {
 		gpg:   gpgmock.New(),
 	}
 
-	recs, err := s.getRecipients(ctx, "")
+	recs, err := s.GetRecipients(ctx, "")
 	assert.NoError(t, err)
 	assert.Equal(t, genRecs, recs)
 
 	err = ioutil.WriteFile(filepath.Join(tempdir, "foo", "bar", GPGID), []byte("john.doe\n"), 0600)
 	assert.NoError(t, err)
 
-	recs, err = s.getRecipients(ctx, "foo/bar/baz")
+	recs, err = s.GetRecipients(ctx, "foo/bar/baz")
 	assert.NoError(t, err)
 	assert.Equal(t, []string{"john.doe"}, recs)
 }
@@ -147,7 +147,7 @@ func TestAddRecipient(t *testing.T) {
 	err = s.AddRecipient(ctx, newRecp)
 	assert.NoError(t, err)
 
-	rs, err := s.getRecipients(ctx, "")
+	rs, err := s.GetRecipients(ctx, "")
 	assert.NoError(t, err)
 	assert.Equal(t, append(genRecs, newRecp), rs)
 }
@@ -174,7 +174,7 @@ func TestRemoveRecipient(t *testing.T) {
 	err = s.RemoveRecipient(ctx, "0xDEADBEEF")
 	assert.NoError(t, err)
 
-	rs, err := s.getRecipients(ctx, "")
+	rs, err := s.GetRecipients(ctx, "")
 	assert.NoError(t, err)
 	assert.Equal(t, []string{"0xFEEDBEEF"}, rs)
 }
@@ -196,7 +196,7 @@ func TestListRecipients(t *testing.T) {
 	s, err := New("", &config.Config{Path: tempdir})
 	assert.NoError(t, err)
 
-	rs, err := s.getRecipients(ctx, "")
+	rs, err := s.GetRecipients(ctx, "")
 	assert.NoError(t, err)
 	assert.Equal(t, genRecs, rs)
 }

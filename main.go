@@ -656,6 +656,18 @@ func main() {
 			},
 		},
 		{
+			Name:  "sync",
+			Usage: "Sync all local stores with their remotes (if any)",
+			Description: "" +
+				"Sync all local stores with their git remotes, if any, and check" +
+				"any possibly affected gpg keys.",
+			Before: func(c *cli.Context) error { return action.Initialized(ctx, c) },
+			Action: func(c *cli.Context) error {
+				return action.Sync(ctx, c)
+
+			},
+		},
+		{
 			Name:  "templates",
 			Usage: "List and edit secret templates.",
 			Description: "" +

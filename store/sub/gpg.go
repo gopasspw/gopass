@@ -20,7 +20,7 @@ func (s *Store) GPGVersion(ctx context.Context) semver.Version {
 // ImportMissingPublicKeys will try to import any missing public keys from the
 // .gpg-keys folder in the password store
 func (s *Store) ImportMissingPublicKeys(ctx context.Context) error {
-	rs, err := s.getRecipients(ctx, "")
+	rs, err := s.GetRecipients(ctx, "")
 	if err != nil {
 		return errors.Wrapf(err, "failed to get recipients")
 	}
@@ -37,7 +37,9 @@ func (s *Store) ImportMissingPublicKeys(ctx context.Context) error {
 			fmt.Printf("[%s] Failed to get public key for %s: %s\n", s.alias, r, err)
 		}
 		if len(kl) > 0 {
-			fmt.Println(color.CyanString("[%s] Keyring contains %d public keys for %s", s.alias, len(kl), r))
+			if s.debug {
+				fmt.Println(color.CyanString("[%s] Keyring contains %d public keys for %s", s.alias, len(kl), r))
+			}
 			continue
 		}
 
@@ -65,12 +67,12 @@ func (s *Store) exportPublicKey(ctx context.Context, r string) (string, error) {
 
 	// do not overwrite existing keys
 	if fsutil.IsFile(filename) {
-		return filename, nil
+		return "", nil
 	}
 
 	tmpFilename := filename + ".new"
 	if err := s.gpg.ExportPublicKey(ctx, r, tmpFilename); err != nil {
-		return filename, err
+		return "", err
 	}
 
 	defer func() {
@@ -87,7 +89,7 @@ func (s *Store) exportPublicKey(ctx context.Context, r string) (string, error) {
 	}
 
 	if err := os.Rename(tmpFilename, filename); err != nil {
-		return filename, err
+		return "", err
 	}
 
 	return filename, nil

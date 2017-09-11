@@ -128,7 +128,7 @@ func (s *Store) Exists(name string) bool {
 }
 
 func (s *Store) useableKeys(ctx context.Context, file string) ([]string, error) {
-	rs, err := s.getRecipients(ctx, file)
+	rs, err := s.GetRecipients(ctx, file)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get recipients")
 	}
@@ -191,7 +191,7 @@ func (s *Store) reencrypt(ctx context.Context, reason string) error {
 	s.autoSync = gitAutoSync
 
 	if s.autoSync {
-		if err := s.gitPush(ctx, "", ""); err != nil {
+		if err := s.GitPush(ctx, "", ""); err != nil {
 			if errors.Cause(err) == store.ErrGitNotInit {
 				msg := "Warning: git is not initialized for this store. Ignoring auto-push option\n" +
 					"Run: gopass git init"
