@@ -115,18 +115,18 @@ func (s *Action) Audit(ctx context.Context, c *cli.Context) error {
 
 func (s *Action) audit(ctx context.Context, validator *crunchy.Validator, secrets <-chan string, checked chan<- auditedSecret) {
 	for secret := range secrets {
-		content, err := s.Store.GetFirstLine(ctx, secret)
+		sec, err := s.Store.Get(ctx, secret)
 		if err != nil {
-			checked <- auditedSecret{name: secret, content: string(content), err: err}
+			checked <- auditedSecret{name: secret, content: sec.Password(), err: err}
 			continue
 		}
 
-		if err := validator.Check(string(content)); err != nil {
-			checked <- auditedSecret{name: secret, content: string(content), message: err.Error()}
+		if err := validator.Check(sec.Password()); err != nil {
+			checked <- auditedSecret{name: secret, content: sec.Password(), message: err.Error()}
 			continue
 		}
 
-		checked <- auditedSecret{name: secret, content: string(content)}
+		checked <- auditedSecret{name: secret, content: sec.Password()}
 	}
 }
 

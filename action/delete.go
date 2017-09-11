@@ -43,7 +43,14 @@ func (s *Action) Delete(ctx context.Context, c *cli.Context) error {
 
 	// deletes a single key from a YAML doc
 	if key != "" {
-		if err := s.Store.DeleteKey(ctx, name, key); err != nil {
+		sec, err := s.Store.Get(ctx, name)
+		if err != nil {
+			return s.exitError(ctx, ExitIO, err, "Can not delete key '%s' from '%s': %s", key, name, err)
+		}
+		if err := sec.DeleteKey(key); err != nil {
+			return s.exitError(ctx, ExitIO, err, "Can not delete key '%s' from '%s': %s", key, name, err)
+		}
+		if err := s.Store.Set(ctx, name, sec, "Update Key in YAML"); err != nil {
 			return s.exitError(ctx, ExitIO, err, "Can not delete key '%s' from '%s': %s", key, name, err)
 		}
 		return nil

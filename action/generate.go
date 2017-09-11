@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/fatih/color"
+	"github.com/justwatchcom/gopass/store/secret"
 	"github.com/justwatchcom/gopass/utils/pwgen"
 	"github.com/urfave/cli"
 )
@@ -69,15 +70,27 @@ func (s *Action) Generate(ctx context.Context, c *cli.Context) error {
 
 	// set a single key in a yaml doc
 	if key != "" {
-		if err := s.Store.SetKey(ctx, name, key, string(password)); err != nil {
+		sec, err := s.Store.Get(ctx, name)
+		if err != nil {
+			return s.exitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
+		}
+		if err := sec.SetValue(key, string(password)); err != nil {
+			return s.exitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
+		}
+		if err := s.Store.Set(ctx, name, sec, "Generated password for YAML key"); err != nil {
 			return s.exitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
 		}
 	} else if s.Store.Exists(name) {
-		if err := s.Store.SetPassword(ctx, name, password); err != nil {
-			return s.exitError(ctx, ExitEncrypt, err, "failed to update '%s': %s", name, err)
+		sec, err := s.Store.Get(ctx, name)
+		if err != nil {
+			return s.exitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
+		}
+		sec.SetPassword(string(password))
+		if err := s.Store.Set(ctx, name, sec, "Generated password for YAML key"); err != nil {
+			return s.exitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
 		}
 	} else {
-		if err := s.Store.SetConfirm(ctx, name, password, "Generated Password", s.confirmRecipients); err != nil {
+		if err := s.Store.SetConfirm(ctx, name, secret.New(string(password), ""), "Generated Password", s.confirmRecipients); err != nil {
 			return s.exitError(ctx, ExitEncrypt, err, "failed to create '%s': %s", name, err)
 		}
 	}

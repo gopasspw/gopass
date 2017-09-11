@@ -7,29 +7,19 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/store"
+	"github.com/justwatchcom/gopass/store/secret"
 	"github.com/pkg/errors"
 )
 
 // Set encodes and write the ciphertext of one entry to disk
-func (s *Store) Set(ctx context.Context, name string, content []byte, reason string) error {
-	return s.SetConfirm(ctx, name, content, reason, nil)
-}
-
-// SetPassword update a password in an already existing entry on the disk
-func (s *Store) SetPassword(ctx context.Context, name string, password []byte) error {
-	var err error
-	body, err := s.GetBody(ctx, name)
-	if err != nil && err != store.ErrNoBody {
-		return errors.Wrapf(err, "failed to get existing secret")
-	}
-	first := append(password, '\n')
-	return s.SetConfirm(ctx, name, append(first, body...), fmt.Sprintf("Updated password in %s", name), nil)
+func (s *Store) Set(ctx context.Context, name string, sec *secret.Secret, reason string) error {
+	return s.SetConfirm(ctx, name, sec, reason, nil)
 }
 
 // SetConfirm encodes and writes the cipertext of one entry to disk. This
 // method can be passed a callback to confirm the recipients immedeately
 // before encryption.
-func (s *Store) SetConfirm(ctx context.Context, name string, content []byte, reason string, cb store.RecipientCallback) error {
+func (s *Store) SetConfirm(ctx context.Context, name string, sec *secret.Secret, reason string, cb store.RecipientCallback) error {
 	p := s.passfile(name)
 
 	if !strings.HasPrefix(p, s.path) {
@@ -54,7 +44,12 @@ func (s *Store) SetConfirm(ctx context.Context, name string, content []byte, rea
 		recipients = newRecipients
 	}
 
-	if err := s.gpg.Encrypt(ctx, p, content, recipients); err != nil {
+	buf, err := sec.Bytes()
+	if err != nil {
+		return errors.Wrapf(err, "failed to encode secret")
+	}
+
+	if err := s.gpg.Encrypt(ctx, p, buf, recipients); err != nil {
 		return store.ErrEncrypt
 	}
 

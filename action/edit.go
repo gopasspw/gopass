@@ -9,6 +9,7 @@ import (
 	"os/exec"
 
 	"github.com/fatih/color"
+	"github.com/justwatchcom/gopass/store/secret"
 	"github.com/justwatchcom/gopass/utils/fsutil"
 	"github.com/justwatchcom/gopass/utils/pwgen"
 	"github.com/justwatchcom/gopass/utils/tpl"
@@ -27,10 +28,13 @@ func (s *Action) Edit(ctx context.Context, c *cli.Context) error {
 	var content []byte
 	var changed bool
 	if s.Store.Exists(name) {
-		var err error
-		content, err = s.Store.Get(ctx, name)
+		sec, err := s.Store.Get(ctx, name)
 		if err != nil {
 			return errors.Errorf("failed to decrypt %s: %v", name, err)
+		}
+		content, err = sec.Bytes()
+		if err != nil {
+			return errors.Errorf("failed to decode %s: %v", name, err)
 		}
 	} else if tmpl, found := s.Store.LookupTemplate(name); found {
 		changed = true
@@ -53,12 +57,16 @@ func (s *Action) Edit(ctx context.Context, c *cli.Context) error {
 		return nil
 	}
 
-	lines := bytes.Split(content, []byte("\n"))
-	if len(lines) > 0 {
-		printAuditResult(string(lines[0]))
+	nSec, err := secret.Parse(nContent)
+	if err != nil {
+		return s.exitError(ctx, ExitUnknown, err, "failed to parse secret: %s", err)
 	}
 
-	return s.Store.SetConfirm(ctx, name, nContent, fmt.Sprintf("Edited with %s", os.Getenv("EDITOR")), s.confirmRecipients)
+	if pw := nSec.Password(); pw != "" {
+		printAuditResult(pw)
+	}
+
+	return s.Store.SetConfirm(ctx, name, nSec, fmt.Sprintf("Edited with %s", os.Getenv("EDITOR")), s.confirmRecipients)
 }
 
 func (s *Action) editor(ctx context.Context, content []byte) ([]byte, error) {

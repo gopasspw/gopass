@@ -34,7 +34,7 @@ func TestShow(t *testing.T) {
 	assert.NoError(t, err)
 
 	out, _ = ts.run("show fixed/secret")
-	assert.Equal(t, "\nError: failed to retrieve secret 'fixed/secret': no safe content to display, you can force display with show -f\n", out)
+	assert.Equal(t, "\nError: no safe content to dsipaly, you can force dispaly with show -f\n", out)
 
 	out, err = ts.run("show -f fixed/secret")
 	assert.NoError(t, err)

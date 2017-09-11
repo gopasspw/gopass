@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	gpgmock "github.com/justwatchcom/gopass/backend/gpg/mock"
+	"github.com/justwatchcom/gopass/store/secret"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -31,24 +32,24 @@ func TestCopy(t *testing.T) {
 			name: "Single entry",
 			tf: func(s *Store) func(t *testing.T) {
 				return func(t *testing.T) {
-					if err := s.Set(ctx, "foo", []byte("bar"), "test"); err != nil {
+					if err := s.Set(ctx, "foo", secret.New("bar", ""), "test"); err != nil {
 						t.Fatalf("Failed to insert test data: %s", err)
 					}
 					if err := s.Copy(ctx, "foo", "bar"); err != nil {
 						t.Errorf("Failed to copy 'foo' to 'bar': %s", err)
 					}
-					content, err := s.Get(ctx, "foo")
+					sec, err := s.Get(ctx, "foo")
 					if err != nil {
 						t.Fatalf("Failed to get 'foo': %s", err)
 					}
-					if string(content) != "bar" {
+					if sec.Password() != "bar" {
 						t.Errorf("Wrong content in 'foo'")
 					}
-					content, err = s.Get(ctx, "bar")
+					sec, err = s.Get(ctx, "bar")
 					if err != nil {
 						t.Fatalf("Failed to get 'bar': %s", err)
 					}
-					if string(content) != "bar" {
+					if sec.Password() != "bar" {
 						t.Errorf("Wrong content in 'bar'")
 					}
 				}
@@ -99,7 +100,7 @@ func TestMove(t *testing.T) {
 			name: "Single entry",
 			tf: func(s *Store) func(t *testing.T) {
 				return func(t *testing.T) {
-					if err := s.Set(ctx, "foo", []byte("bar"), "test"); err != nil {
+					if err := s.Set(ctx, "foo", secret.New("bar", ""), "test"); err != nil {
 						t.Fatalf("Failed to insert test data: %s", err)
 					}
 					if err := s.Move(ctx, "foo", "bar"); err != nil {
@@ -109,11 +110,11 @@ func TestMove(t *testing.T) {
 					if err == nil {
 						t.Fatalf("Should fail to get 'foo': %s", err)
 					}
-					content, err := s.Get(ctx, "bar")
+					sec, err := s.Get(ctx, "bar")
 					if err != nil {
 						t.Fatalf("Failed to get 'bar': %s", err)
 					}
-					if string(content) != "bar" {
+					if sec.Password() != "bar" {
 						t.Errorf("Wrong content in 'bar'")
 					}
 				}
@@ -164,7 +165,7 @@ func TestDelete(t *testing.T) {
 			name: "Single entry",
 			tf: func(s *Store) func(t *testing.T) {
 				return func(t *testing.T) {
-					if err := s.Set(ctx, "foo", []byte("bar"), "test"); err != nil {
+					if err := s.Set(ctx, "foo", secret.New("bar", ""), "test"); err != nil {
 						t.Fatalf("Failed to insert test data: %s", err)
 					}
 					if err := s.Delete(ctx, "foo"); err != nil {
@@ -222,7 +223,7 @@ func TestPrune(t *testing.T) {
 			name: "Single entry",
 			tf: func(s *Store) func(t *testing.T) {
 				return func(t *testing.T) {
-					if err := s.Set(ctx, "foo", []byte("bar"), "test"); err != nil {
+					if err := s.Set(ctx, "foo", secret.New("bar", ""), "test"); err != nil {
 						t.Fatalf("Failed to insert test data: %s", err)
 					}
 					if err := s.Prune(ctx, "foo"); err != nil {
@@ -239,10 +240,10 @@ func TestPrune(t *testing.T) {
 			name: "Multi entry nested",
 			tf: func(s *Store) func(t *testing.T) {
 				return func(t *testing.T) {
-					if err := s.Set(ctx, "foo/bar/baz", []byte("bar"), "test"); err != nil {
+					if err := s.Set(ctx, "foo/bar/baz", secret.New("bar", ""), "test"); err != nil {
 						t.Fatalf("Failed to insert test data: %s", err)
 					}
-					if err := s.Set(ctx, "foo/bar/zab", []byte("bar"), "test"); err != nil {
+					if err := s.Set(ctx, "foo/bar/zab", secret.New("bar", ""), "test"); err != nil {
 						t.Fatalf("Failed to insert test data: %s", err)
 					}
 					if err := s.Prune(ctx, "foo/bar"); err != nil {

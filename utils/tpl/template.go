@@ -5,10 +5,12 @@ import (
 	"context"
 	"path/filepath"
 	"text/template"
+
+	"github.com/justwatchcom/gopass/store/secret"
 )
 
 type kvstore interface {
-	Get(context.Context, string) ([]byte, error)
+	Get(context.Context, string) (*secret.Secret, error)
 }
 
 type payload struct {

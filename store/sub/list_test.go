@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	gpgmock "github.com/justwatchcom/gopass/backend/gpg/mock"
+	"github.com/justwatchcom/gopass/store/secret"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -26,7 +27,7 @@ func TestList(t *testing.T) {
 		{
 			name: "Single entry",
 			prep: func(s *Store) error {
-				return s.Set(ctx, "foo", []byte("bar"), "test")
+				return s.Set(ctx, "foo", secret.New("bar", ""), "test")
 			},
 			out: []string{"foo"},
 		},
@@ -34,7 +35,7 @@ func TestList(t *testing.T) {
 			name: "Multi-entry-single-level",
 			prep: func(s *Store) error {
 				for _, e := range []string{"foo", "bar", "baz"} {
-					if err := s.Set(ctx, e, []byte("bar"), "test"); err != nil {
+					if err := s.Set(ctx, e, secret.New("bar", ""), "test"); err != nil {
 						return err
 					}
 				}
@@ -46,7 +47,7 @@ func TestList(t *testing.T) {
 			name: "Multi-entry-multi-level",
 			prep: func(s *Store) error {
 				for _, e := range []string{"foo/bar", "foo/baz", "foo/zab"} {
-					if err := s.Set(ctx, e, []byte("bar"), "test"); err != nil {
+					if err := s.Set(ctx, e, secret.New("bar", ""), "test"); err != nil {
 						return err
 					}
 				}

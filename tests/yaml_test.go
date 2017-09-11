@@ -17,7 +17,7 @@ func TestYAMLAndSecret(t *testing.T) {
 
 	out, err := ts.run("foo/bar baz")
 	assert.Error(t, err)
-	assert.Equal(t, "\nError: Secret 'foo/bar' not found\n", out)
+	assert.Equal(t, "Entry 'foo/bar' not found. Starting search...\n\nError: no results found\n", out)
 
 	_, err = ts.runCmd([]string{ts.Binary, "insert", "foo/bar"}, []byte("moar"))
 	assert.NoError(t, err)
