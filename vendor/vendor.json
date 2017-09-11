@@ -137,6 +137,12 @@
 			"revisionTime": "2017-02-23T01:06:52Z"
 		},
 		{
+			"checksumSHA1": "y6vlEAxNqpwYBmVsfC17WD53tAU=",
+			"path": "github.com/schollz/closestmatch",
+			"revision": "fdbe674bd5989fcfbb5c6a5036c8fd7f1538d6e4",
+			"revisionTime": "2017-09-07T09:16:32Z"
+		},
+		{
 			"checksumSHA1": "l92ZNNpsqR/eht04a/PMDYsJqII=",
 			"path": "github.com/skip2/go-qrcode",
 			"revision": "cf02323edc040f5263d08b45a60bc8abdc3bde18",

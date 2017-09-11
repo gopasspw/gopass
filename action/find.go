@@ -8,6 +8,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/termwiz"
+	"github.com/schollz/closestmatch"
 	"github.com/urfave/cli"
 )
 
@@ -30,13 +31,18 @@ func (s *Action) Find(ctx context.Context, c *cli.Context) error {
 		}
 	}
 
-	if len(choices) < 1 {
-		return fmt.Errorf("no results found")
-	}
-
 	if len(choices) == 1 {
 		fmt.Println(color.GreenString("Found exact match in '%s'", choices[0]))
 		return s.show(ctx, c, choices[0], "", false, false, false)
+	}
+
+	if len(choices) < 1 {
+		// try fuzzy match
+		cm := closestmatch.New(l, []int{2})
+		choices = cm.ClosestN(needle, 5)
+		if len(choices) < 1 {
+			return fmt.Errorf("no results found")
+		}
 	}
 
 	if !ctxutil.IsTerminal(ctx) {
