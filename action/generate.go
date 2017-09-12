@@ -7,6 +7,7 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/store/secret"
+	"github.com/justwatchcom/gopass/store/sub"
 	"github.com/justwatchcom/gopass/utils/pwgen"
 	"github.com/urfave/cli"
 )
@@ -46,7 +47,7 @@ func (s *Action) Generate(ctx context.Context, c *cli.Context) error {
 	}
 
 	if !force { // don't check if it's force anyway
-		if s.Store.Exists(name) && key == "" && !s.askForConfirmation(ctx, fmt.Sprintf("An entry already exists for %s. Overwrite the current password?", name)) {
+		if s.Store.Exists(name) && key == "" && !s.AskForConfirmation(ctx, fmt.Sprintf("An entry already exists for %s. Overwrite the current password?", name)) {
 			return s.exitError(ctx, ExitAborted, nil, "user aborted. not overwriting your current password")
 		}
 	}
@@ -77,7 +78,7 @@ func (s *Action) Generate(ctx context.Context, c *cli.Context) error {
 		if err := sec.SetValue(key, string(password)); err != nil {
 			return s.exitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
 		}
-		if err := s.Store.Set(ctx, name, sec, "Generated password for YAML key"); err != nil {
+		if err := s.Store.Set(sub.WithReason(ctx, "Generated password for YAML key"), name, sec); err != nil {
 			return s.exitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
 		}
 	} else if s.Store.Exists(name) {
@@ -86,11 +87,11 @@ func (s *Action) Generate(ctx context.Context, c *cli.Context) error {
 			return s.exitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
 		}
 		sec.SetPassword(string(password))
-		if err := s.Store.Set(ctx, name, sec, "Generated password for YAML key"); err != nil {
+		if err := s.Store.Set(sub.WithReason(ctx, "Generated password for YAML key"), name, sec); err != nil {
 			return s.exitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
 		}
 	} else {
-		if err := s.Store.SetConfirm(ctx, name, secret.New(string(password), ""), "Generated Password", s.confirmRecipients); err != nil {
+		if err := s.Store.Set(sub.WithReason(ctx, "Generated Password"), name, secret.New(string(password), "")); err != nil {
 			return s.exitError(ctx, ExitEncrypt, err, "failed to create '%s': %s", name, err)
 		}
 	}
@@ -107,7 +108,7 @@ func (s *Action) Generate(ctx context.Context, c *cli.Context) error {
 		color.YellowString(string(password)),
 	)
 
-	if (edit || s.Store.AskForMore()) && s.askForConfirmation(ctx, fmt.Sprintf("Do you want to add more data for %s?", name)) {
+	if (edit || s.Store.AskForMore()) && s.AskForConfirmation(ctx, fmt.Sprintf("Do you want to add more data for %s?", name)) {
 		if err := s.Edit(ctx, c); err != nil {
 			return s.exitError(ctx, ExitUnknown, err, "failed to edit '%s': %s", name, err)
 		}

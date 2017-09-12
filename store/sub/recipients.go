@@ -51,7 +51,7 @@ func (s *Store) AddRecipient(ctx context.Context, id string) error {
 		return errors.Wrapf(err, "failed to save recipients")
 	}
 
-	return s.reencrypt(ctx, "Added Recipient "+id)
+	return s.reencrypt(WithReason(ctx, "Added Recipient "+id))
 }
 
 // SaveRecipients persists the current recipients on disk
@@ -96,7 +96,7 @@ func (s *Store) RemoveRecipient(ctx context.Context, id string) error {
 		return errors.Wrapf(err, "failed to save recipients")
 	}
 
-	return s.reencrypt(ctx, "Removed Recipients "+id)
+	return s.reencrypt(WithReason(ctx, "Removed Recipient "+id))
 }
 
 // GetRecipients will load all Recipients from the .gpg-id file for the given

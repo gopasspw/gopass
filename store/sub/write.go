@@ -11,15 +11,10 @@ import (
 	"github.com/pkg/errors"
 )
 
-// Set encodes and write the ciphertext of one entry to disk
-func (s *Store) Set(ctx context.Context, name string, sec *secret.Secret, reason string) error {
-	return s.SetConfirm(ctx, name, sec, reason, nil)
-}
-
-// SetConfirm encodes and writes the cipertext of one entry to disk. This
+// Set encodes and writes the cipertext of one entry to disk. This
 // method can be passed a callback to confirm the recipients immedeately
 // before encryption.
-func (s *Store) SetConfirm(ctx context.Context, name string, sec *secret.Secret, reason string, cb store.RecipientCallback) error {
+func (s *Store) Set(ctx context.Context, name string, sec *secret.Secret) error {
 	p := s.passfile(name)
 
 	if !strings.HasPrefix(p, s.path) {
@@ -36,7 +31,7 @@ func (s *Store) SetConfirm(ctx context.Context, name string, sec *secret.Secret,
 	}
 
 	// confirm recipients
-	if cb != nil {
+	if cb := GetRecipientFunc(ctx); cb != nil {
 		newRecipients, err := cb(ctx, name, recipients)
 		if err != nil {
 			return errors.Wrapf(err, "user aborted")
@@ -60,14 +55,14 @@ func (s *Store) SetConfirm(ctx context.Context, name string, sec *secret.Secret,
 		return errors.Wrapf(err, "failed to add '%s' to git", p)
 	}
 
-	if err := s.gitCommit(ctx, fmt.Sprintf("Save secret to %s: %s", name, reason)); err != nil {
+	if err := s.gitCommit(ctx, fmt.Sprintf("Save secret to %s: %s", name, GetReason(ctx))); err != nil {
 		if errors.Cause(err) == store.ErrGitNotInit {
 			return nil
 		}
 		return errors.Wrapf(err, "failed to commit changes to git")
 	}
 
-	if !s.autoSync {
+	if !IsAutoSync(ctx) {
 		return nil
 	}
 

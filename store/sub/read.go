@@ -7,6 +7,7 @@ import (
 
 	"github.com/justwatchcom/gopass/store"
 	"github.com/justwatchcom/gopass/store/secret"
+	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/fsutil"
 )
 
@@ -19,7 +20,7 @@ func (s *Store) Get(ctx context.Context, name string) (*secret.Secret, error) {
 	}
 
 	if !fsutil.IsFile(p) {
-		if s.debug {
+		if ctxutil.IsDebug(ctx) {
 			fmt.Printf("File %s not found\n", p)
 		}
 		return nil, store.ErrNotFound

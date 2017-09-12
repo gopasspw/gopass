@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/justwatchcom/gopass/store/secret"
+	"github.com/justwatchcom/gopass/store/sub"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/urfave/cli"
 )
@@ -18,9 +19,10 @@ func (s *Action) Insert(ctx context.Context, c *cli.Context) error {
 	multiline := c.Bool("multiline")
 	force := c.Bool("force")
 
-	confirm := s.confirmRecipients
 	if force {
-		confirm = nil
+		ctx = sub.WithRecipientFunc(ctx, func(ctx context.Context, msg string, rs []string) ([]string, error) {
+			return rs, nil
+		})
 	}
 
 	name := c.Args().Get(0)
@@ -31,16 +33,9 @@ func (s *Action) Insert(ctx context.Context, c *cli.Context) error {
 	key := c.Args().Get(1)
 
 	var content []byte
-	var fromStdin bool
-
-	info, err := os.Stdin.Stat()
-	if err != nil {
-		return s.exitError(ctx, ExitIO, err, "failed to stat stdin: %s", err)
-	}
 
 	// if content is piped to stdin, read and save it
-	if info.Mode()&os.ModeCharDevice == 0 {
-		fromStdin = true
+	if ctxutil.IsStdin(ctx) {
 		buf := &bytes.Buffer{}
 
 		if written, err := io.Copy(buf, os.Stdin); err != nil {
@@ -52,7 +47,7 @@ func (s *Action) Insert(ctx context.Context, c *cli.Context) error {
 
 	// update to a single YAML entry
 	if key != "" {
-		if !fromStdin {
+		if ctxutil.IsInteractive(ctx) {
 			pw, err := s.askForString(name+":"+key, "")
 			if err != nil {
 				return s.exitError(ctx, ExitIO, err, "failed to ask for user input: %s", err)
@@ -71,25 +66,25 @@ func (s *Action) Insert(ctx context.Context, c *cli.Context) error {
 		if err := sec.SetValue(key, string(content)); err != nil {
 			return s.exitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
 		}
-		if err := s.Store.Set(ctx, name, sec, "Inserted YAML value from STDIN"); err != nil {
+		if err := s.Store.Set(sub.WithReason(ctx, "Inserted YAML value from STDIN"), name, sec); err != nil {
 			return s.exitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
 		}
 		return nil
 	}
 
-	if fromStdin {
+	if ctxutil.IsStdin(ctx) {
 		sec, err := secret.Parse(content)
 		if err != nil {
 			return s.exitError(ctx, ExitEncrypt, err, "failed to set '%s': %s", name, err)
 		}
-		if err := s.Store.SetConfirm(ctx, name, sec, "Read secret from STDIN", confirm); err != nil {
+		if err := s.Store.Set(sub.WithReason(ctx, "Read secret from STDIN"), name, sec); err != nil {
 			return s.exitError(ctx, ExitEncrypt, err, "failed to set '%s': %s", name, err)
 		}
 		return nil
 	}
 
 	if !force { // don't check if it's force anyway
-		if s.Store.Exists(name) && !s.askForConfirmation(ctx, fmt.Sprintf("An entry already exists for %s. Overwrite it?", name)) {
+		if s.Store.Exists(name) && !s.AskForConfirmation(ctx, fmt.Sprintf("An entry already exists for %s. Overwrite it?", name)) {
 			return s.exitError(ctx, ExitAborted, nil, "not overwriting your current secret")
 		}
 	}
@@ -104,7 +99,7 @@ func (s *Action) Insert(ctx context.Context, c *cli.Context) error {
 		if err != nil {
 			return s.exitError(ctx, ExitUnknown, err, "failed to parse secret: %s", err)
 		}
-		if err := s.Store.SetConfirm(ctx, name, sec, fmt.Sprintf("Inserted user supplied password with %s", os.Getenv("EDITOR")), confirm); err != nil {
+		if err := s.Store.Set(sub.WithReason(ctx, fmt.Sprintf("Inserted user supplied password with %s", getEditor())), name, sec); err != nil {
 			return s.exitError(ctx, ExitEncrypt, err, "failed to store secret '%s': %s", name, err)
 		}
 		return nil
@@ -126,7 +121,7 @@ func (s *Action) Insert(ctx context.Context, c *cli.Context) error {
 	sec := secret.New(pw, "")
 	printAuditResult(sec.Password())
 
-	if err := s.Store.SetConfirm(ctx, name, sec, "Inserted user supplied password", confirm); err != nil {
+	if err := s.Store.Set(sub.WithReason(ctx, "Inserted user supplied password"), name, sec); err != nil {
 		return s.exitError(ctx, ExitEncrypt, err, "failed to write secret '%s': %s", name, err)
 	}
 	return nil

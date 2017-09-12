@@ -8,12 +8,8 @@ import (
 // Config returns this sub stores config as a config struct
 func (s *Store) Config() *config.Config {
 	c := &config.Config{
-		AutoSync:   s.autoSync,
-		AutoImport: s.autoImport,
-		FsckFunc:   s.fsckFunc,
-		ImportFunc: s.importFunc,
-		Mounts:     make(map[string]string),
-		Path:       s.path,
+		Mounts: make(map[string]string),
+		Path:   s.path,
 	}
 	return c
 }
@@ -23,12 +19,7 @@ func (s *Store) UpdateConfig(cfg *config.Config) error {
 	if cfg == nil {
 		return errors.Errorf("invalid config")
 	}
-	s.autoImport = cfg.AutoImport
-	s.autoSync = cfg.AutoSync
-	s.fsckFunc = cfg.FsckFunc
-	s.importFunc = cfg.ImportFunc
 	s.path = cfg.Path
-
 	// substores have no mounts
 
 	return nil

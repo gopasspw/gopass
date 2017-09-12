@@ -10,6 +10,7 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/store/secret"
+	"github.com/justwatchcom/gopass/store/sub"
 	"github.com/justwatchcom/gopass/utils/fsutil"
 	"github.com/justwatchcom/gopass/utils/pwgen"
 	"github.com/justwatchcom/gopass/utils/tpl"
@@ -66,18 +67,18 @@ func (s *Action) Edit(ctx context.Context, c *cli.Context) error {
 		printAuditResult(pw)
 	}
 
-	return s.Store.SetConfirm(ctx, name, nSec, fmt.Sprintf("Edited with %s", os.Getenv("EDITOR")), s.confirmRecipients)
+	return s.Store.Set(sub.WithReason(ctx, fmt.Sprintf("Edited with %s", getEditor())), name, nSec)
 }
 
 func (s *Action) editor(ctx context.Context, content []byte) ([]byte, error) {
 	editor := getEditor()
 
-	tmpfile, err := fsutil.TempFile("gopass-edit")
+	tmpfile, err := fsutil.TempFile(ctx, "gopass-edit")
 	if err != nil {
 		return []byte{}, errors.Errorf("failed to create tmpfile %s: %s", editor, err)
 	}
 	defer func() {
-		if err := tmpfile.Remove(); err != nil {
+		if err := tmpfile.Remove(ctx); err != nil {
 			color.Red("Failed to remove tempfile at %s: %s", tmpfile.Name(), err)
 		}
 	}()

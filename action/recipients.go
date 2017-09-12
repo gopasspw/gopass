@@ -49,8 +49,8 @@ func (s *Action) RecipientsPrint(ctx context.Context, c *cli.Context) error {
 
 // RecipientsComplete will print a list of recipients for bash
 // completion
-func (s *Action) RecipientsComplete(*cli.Context) {
-	tree, err := s.Store.RecipientsTree(context.TODO(), false)
+func (s *Action) RecipientsComplete(ctx context.Context, c *cli.Context) {
+	tree, err := s.Store.RecipientsTree(ctx, false)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -79,7 +79,7 @@ func (s *Action) RecipientsAdd(ctx context.Context, c *cli.Context) error {
 			continue
 		}
 
-		if !s.askForConfirmation(ctx, fmt.Sprintf("Do you want to add '%s' as an recipient?", keys[0].OneLine())) {
+		if !s.AskForConfirmation(ctx, fmt.Sprintf("Do you want to add '%s' as an recipient?", keys[0].OneLine())) {
 			continue
 		}
 
@@ -104,7 +104,7 @@ func (s *Action) RecipientsRemove(ctx context.Context, c *cli.Context) error {
 		kl, err := s.gpg.FindPrivateKeys(ctx, r)
 		if err == nil {
 			if len(kl) > 0 {
-				if !s.askForConfirmation(ctx, fmt.Sprintf("Do you want to remove yourself (%s) from the recipients?", r)) {
+				if !s.AskForConfirmation(ctx, fmt.Sprintf("Do you want to remove yourself (%s) from the recipients?", r)) {
 					continue
 				}
 			}

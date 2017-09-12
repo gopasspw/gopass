@@ -15,6 +15,9 @@ import (
 	"github.com/blang/semver"
 	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/action"
+	"github.com/justwatchcom/gopass/backend/gpg"
+	"github.com/justwatchcom/gopass/config"
+	"github.com/justwatchcom/gopass/store/sub"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	colorable "github.com/mattn/go-colorable"
 	"github.com/urfave/cli"
@@ -32,14 +35,6 @@ var (
 	// Commit is the git hash the binary was built from
 	commit string
 )
-
-type errorWriter struct {
-	out io.Writer
-}
-
-func (e errorWriter) Write(p []byte) (int, error) {
-	return e.out.Write([]byte("\n" + color.RedString("Error: %s", p)))
-}
 
 func main() {
 	ctx := context.Background()
@@ -60,7 +55,20 @@ func main() {
 		}
 	}()
 
-	// init context values
+	// try to read config (if it exists)
+	cfg := config.Load()
+
+	// autosync
+	ctx = sub.WithAutoSync(ctx, cfg.AutoSync)
+
+	// alawys trust
+	ctx = gpg.WithAlwaysTrust(ctx, true)
+
+	// check recipients conflicts with always trust, make sure it's not enabled
+	// when always trust is
+	if gpg.IsAlwaysTrust(ctx) {
+		ctx = sub.WithCheckRecipients(ctx, false)
+	}
 
 	// debug flag
 	if gdb := os.Getenv("GOPASS_DEBUG"); gdb == "true" {
@@ -82,6 +90,7 @@ func main() {
 	// reading from stdin?
 	if info, err := os.Stdin.Stat(); err == nil && info.Mode()&os.ModeCharDevice == 0 {
 		ctx = ctxutil.WithInteractive(ctx, false)
+		ctx = ctxutil.WithStdin(ctx, true)
 	}
 
 	cli.ErrWriter = errorWriter{
@@ -95,35 +104,28 @@ func main() {
 		}
 	}
 
-	cli.VersionPrinter = func(c *cli.Context) {
-		buildtime := ""
-		if bt, err := time.Parse("2006-01-02T15:04:05-0700", date); err == nil {
-			buildtime = bt.Format("2006-01-02 15:04:05")
+	// only update version field in config, if it's older than this build
+	csv, err := semver.Parse(cfg.Version)
+	if err != nil || csv.LT(sv) {
+		cfg.Version = sv.String()
+		if err := cfg.Save(); err != nil {
+			fmt.Println(color.RedString("Failed to save config: %s", err))
 		}
-		buildInfo := ""
-		if commit != "" {
-			buildInfo = commit
-		}
-		if buildtime != "" {
-			if buildInfo != "" {
-				buildInfo += " "
-			}
-			buildInfo += buildtime
-		}
-		if buildInfo != "" {
-			buildInfo = "(" + buildInfo + ") "
-		}
-		fmt.Printf("%s %s %s%s %s %s\n",
-			name,
-			sv.String(),
-			buildInfo,
-			runtime.Version(),
-			runtime.GOOS,
-			runtime.GOARCH,
-		)
 	}
 
-	action := action.New(sv)
+	cli.VersionPrinter = makeVersionPrinter(sv)
+
+	action := action.New(ctx, cfg, sv)
+
+	// set some action callbacks
+	if !cfg.AutoImport {
+		ctx = sub.WithImportFunc(ctx, action.AskForKeyImport)
+	}
+	if !cfg.NoConfirm {
+		ctx = sub.WithRecipientFunc(ctx, action.ConfirmRecipients)
+	}
+	ctx = sub.WithFsckFunc(ctx, action.AskForConfirmation)
+
 	app := cli.NewApp()
 
 	app.Name = name
@@ -619,7 +621,9 @@ func main() {
 					Action: func(c *cli.Context) error {
 						return action.RecipientsRemove(ctx, c)
 					},
-					BashComplete: action.RecipientsComplete,
+					BashComplete: func(c *cli.Context) {
+						action.RecipientsComplete(ctx, c)
+					},
 					Flags: []cli.Flag{
 						cli.StringFlag{
 							Name:  "store",
@@ -741,4 +745,42 @@ func main() {
 	if err := app.Run(os.Args); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func makeVersionPrinter(sv semver.Version) func(c *cli.Context) {
+	return func(c *cli.Context) {
+		buildtime := ""
+		if bt, err := time.Parse("2006-01-02T15:04:05-0700", date); err == nil {
+			buildtime = bt.Format("2006-01-02 15:04:05")
+		}
+		buildInfo := ""
+		if commit != "" {
+			buildInfo = commit
+		}
+		if buildtime != "" {
+			if buildInfo != "" {
+				buildInfo += " "
+			}
+			buildInfo += buildtime
+		}
+		if buildInfo != "" {
+			buildInfo = "(" + buildInfo + ") "
+		}
+		fmt.Printf("%s %s %s%s %s %s\n",
+			name,
+			sv.String(),
+			buildInfo,
+			runtime.Version(),
+			runtime.GOOS,
+			runtime.GOARCH,
+		)
+	}
+}
+
+type errorWriter struct {
+	out io.Writer
+}
+
+func (e errorWriter) Write(p []byte) (int, error) {
+	return e.out.Write([]byte("\n" + color.RedString("Error: %s", p)))
 }

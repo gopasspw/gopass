@@ -2,12 +2,10 @@ package action
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"path/filepath"
 
 	"github.com/blang/semver"
-	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/backend/gpg"
 	gpgcli "github.com/justwatchcom/gopass/backend/gpg/cli"
 	"github.com/justwatchcom/gopass/config"
@@ -25,44 +23,31 @@ type gpger interface {
 type Action struct {
 	Name    string
 	Store   *root.Store
+	cfg     *config.Config
 	gpg     gpger
 	version semver.Version
 }
 
 // New returns a new Action wrapper
-func New(sv semver.Version) *Action {
+func New(ctx context.Context, cfg *config.Config, sv semver.Version) *Action {
 	name := "gopass"
 	if len(os.Args) > 0 {
 		name = filepath.Base(os.Args[0])
 	}
 
-	// try to read config (if it exists)
-	cfg := config.Load()
-	// only update version field in config, if it's older than this build
-	csv, err := semver.Parse(cfg.Version)
-	if err != nil || csv.LT(sv) {
-		cfg.Version = sv.String()
-		if err := cfg.Save(); err != nil {
-			fmt.Println(color.RedString("Failed to save config: %s", err))
-		}
-	}
-
 	act := &Action{
 		Name:    name,
+		cfg:     cfg,
 		version: sv,
 	}
-	cfg.ImportFunc = act.askForKeyImport
-	cfg.FsckFunc = act.askForConfirmation
 
-	store, err := root.New(cfg)
+	store, err := root.New(ctx, cfg)
 	if err != nil {
 		panic(err)
 	}
 	act.Store = store
 
-	act.gpg = gpgcli.New(gpgcli.Config{
-		AlwaysTrust: true,
-	})
+	act.gpg = gpgcli.New(gpgcli.Config{})
 
 	return act
 }

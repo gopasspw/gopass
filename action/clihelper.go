@@ -21,8 +21,8 @@ const (
 	maxTries = 42
 )
 
-// confirmRecipients asks the user to confirm a given set of recipients
-func (s *Action) confirmRecipients(ctx context.Context, name string, recipients []string) ([]string, error) {
+// ConfirmRecipients asks the user to confirm a given set of recipients
+func (s *Action) ConfirmRecipients(ctx context.Context, name string, recipients []string) ([]string, error) {
 	if s.Store.NoConfirm() || !ctxutil.IsInteractive(ctx) {
 		return recipients, nil
 	}
@@ -56,9 +56,9 @@ func (s *Action) confirmRecipients(ctx context.Context, name string, recipients 
 	return recipients, errors.New("user aborted")
 }
 
-// askForConfirmation asks a yes/no question until the user
+// AskForConfirmation asks a yes/no question until the user
 // replies yes or no
-func (s *Action) askForConfirmation(ctx context.Context, text string) bool {
+func (s *Action) AskForConfirmation(ctx context.Context, text string) bool {
 	for i := 0; i < maxTries; i++ {
 		if choice, err := s.askForBool(text, false); err == nil {
 			return choice
@@ -157,8 +157,8 @@ func (s *Action) askForPassword(ctx context.Context, name string, askFn func(con
 	return "", errors.New("no valid user input")
 }
 
-// askForKeyImport asks for permissions to import the named key
-func (s *Action) askForKeyImport(ctx context.Context, key string) bool {
+// AskForKeyImport asks for permissions to import the named key
+func (s *Action) AskForKeyImport(ctx context.Context, key string) bool {
 	if !ctxutil.IsInteractive(ctx) {
 		return false
 	}

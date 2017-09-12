@@ -68,19 +68,21 @@ func (t *tempfile) mount(ctx context.Context) error {
 	return nil
 }
 
-func (t *tempfile) unmount() error {
+func (t *tempfile) unmount(ctx context.Context) error {
 	bo := backoff.NewExponentialBackOff()
 	bo.MaxElapsedTime = 10 * time.Second
-	return backoff.Retry(t.tryUnmount, bo)
+	return backoff.Retry(func() error {
+		return t.tryUnmount(ctx)
+	}, bo)
 }
 
-func (t *tempfile) tryUnmount() error {
+func (t *tempfile) tryUnmount(ctx context.Context) error {
 	if t.dir == "" || t.dev == "" {
 		return errors.Errorf("need dir and dev")
 	}
 
 	// unmount ramdisk
-	cmd := exec.CommandContext(context.TODO(), "diskutil", "unmountDisk", t.dev)
+	cmd := exec.CommandContext(ctx, "diskutil", "unmountDisk", t.dev)
 	cmd.Stderr = os.Stderr
 	if t.dbg {
 		cmd.Stdout = os.Stdout
@@ -91,7 +93,7 @@ func (t *tempfile) tryUnmount() error {
 	}
 
 	// eject disk
-	cmd = exec.CommandContext(context.TODO(), "diskutil", "quiet", "eject", t.dev)
+	cmd = exec.CommandContext(ctx, "diskutil", "quiet", "eject", t.dev)
 	cmd.Stderr = os.Stderr
 	if t.dbg {
 		cmd.Stdout = os.Stdout

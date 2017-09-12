@@ -36,7 +36,7 @@ func (s *Action) Config(ctx context.Context, c *cli.Context) error {
 }
 
 func (s *Action) printConfigValues(filter ...string) error {
-	m := s.Store.Config().ConfigMap()
+	m := s.cfg.ConfigMap()
 	out := make([]string, 0, len(m))
 	for k := range m {
 		if !contains(filter, k) {
@@ -64,11 +64,11 @@ func contains(haystack []string, needle string) bool {
 }
 
 func (s *Action) setConfigValue(ctx context.Context, key, value string) error {
-	cfg := s.Store.Config()
-	if err := cfg.SetConfigValue(key, value); err != nil {
+	if err := s.cfg.SetConfigValue(key, value); err != nil {
 		return errors.Wrapf(err, "failed to set config value '%s'", key)
 	}
-	if err := s.Store.UpdateConfig(ctx, cfg); err != nil {
+	// TODO remove UpdateConfig after context migration
+	if err := s.Store.UpdateConfig(ctx, s.cfg); err != nil {
 		return errors.Wrapf(err, "failed to update config")
 	}
 	return s.printConfigValues(key)

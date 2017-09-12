@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/justwatchcom/gopass/store/sub"
 	"github.com/pkg/errors"
 )
 
@@ -24,7 +25,7 @@ func (r *Store) Copy(ctx context.Context, from, to string) error {
 		if err != nil {
 			return errors.Wrapf(err, "failed to retrieve secret '%s'", from)
 		}
-		if err := subTo.Set(ctx, to, content, fmt.Sprintf("Copied from %s to %s", from, to)); err != nil {
+		if err := subTo.Set(sub.WithReason(ctx, fmt.Sprintf("Copied from %s to %s", from, to)), to, content); err != nil {
 			return errors.Wrapf(err, "failed to store secret '%s'", to)
 		}
 		return nil
@@ -50,7 +51,7 @@ func (r *Store) Move(ctx context.Context, from, to string) error {
 		if err != nil {
 			return errors.Errorf("Source %s does not exist in source store %s: %s", from, subFrom.Alias(), err)
 		}
-		if err := subTo.Set(ctx, to, content, fmt.Sprintf("Moved from %s to %s", from, to)); err != nil {
+		if err := subTo.Set(sub.WithReason(ctx, fmt.Sprintf("Moved from %s to %s", from, to)), to, content); err != nil {
 			return errors.Wrapf(err, "failed to save secret '%s'", to)
 		}
 		if err := subFrom.Delete(ctx, from); err != nil {
