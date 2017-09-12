@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
+	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/urfave/cli"
 )
 
@@ -83,7 +84,7 @@ func (s *Action) RecipientsAdd(ctx context.Context, c *cli.Context) error {
 			continue
 		}
 
-		if err := s.Store.AddRecipient(ctx, store, keys[0].Fingerprint); err != nil {
+		if err := s.Store.AddRecipient(ctxutil.WithNoConfirm(ctx, true), store, keys[0].Fingerprint); err != nil {
 			return s.exitError(ctx, ExitRecipients, err, "failed to add recipient '%s': %s", r, err)
 		}
 		added++
@@ -109,7 +110,7 @@ func (s *Action) RecipientsRemove(ctx context.Context, c *cli.Context) error {
 				}
 			}
 		}
-		if err := s.Store.RemoveRecipient(ctx, store, strings.TrimPrefix(r, "0x")); err != nil {
+		if err := s.Store.RemoveRecipient(ctxutil.WithNoConfirm(ctx, true), store, strings.TrimPrefix(r, "0x")); err != nil {
 			return s.exitError(ctx, ExitRecipients, err, "failed to remove recipient '%s': %s", r, err)
 		}
 		fmt.Printf(removalWarning, r)
