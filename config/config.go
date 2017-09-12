@@ -158,6 +158,9 @@ func load(cf string) (*Config, error) {
 		fmt.Printf("Error reading config from %s: %s\n", cf, err)
 		return nil, ErrConfigNotParsed
 	}
+	if cfg.Mounts == nil {
+		cfg.Mounts = make(map[string]string)
+	}
 	return cfg, nil
 }
 
@@ -176,6 +179,9 @@ func (c *Config) Save() error {
 	}
 	if err := ioutil.WriteFile(cfgLoc, buf, 0600); err != nil {
 		return errors.Wrapf(err, "failed to write config file to '%s'", cfgLoc)
+	}
+	if gdb := os.Getenv("GOPASS_DEBUG"); gdb == "true" {
+		fmt.Printf("[DEBUG] Saved config to %s: %+v\n", cfgLoc, c)
 	}
 	return nil
 }

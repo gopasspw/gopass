@@ -9,6 +9,7 @@ import (
 	"github.com/atotto/clipboard"
 	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/store"
+	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/qrcon"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"
@@ -83,10 +84,10 @@ func (s *Action) show(ctx context.Context, c *cli.Context, name, key string, cli
 	case clip:
 		return s.copyToClipboard(ctx, name, []byte(sec.Password()))
 	default:
-		if s.Store.SafeContent() && !force {
+		if ctxutil.IsShowSafeContent(ctx) && !force {
 			content = sec.Body()
 			if content == "" {
-				return s.exitError(ctx, ExitNotFound, store.ErrNoBody, "no safe content to dsipaly, you can force dispaly with show -f")
+				return s.exitError(ctx, ExitNotFound, store.ErrNoBody, "no safe content to display, you can force display with show -f")
 			}
 		} else {
 			buf, err := sec.Bytes()
@@ -107,10 +108,10 @@ func (s *Action) copyToClipboard(ctx context.Context, name string, content []byt
 		return errors.Wrapf(err, "failed to write to clipboard")
 	}
 
-	if err := clearClipboard(ctx, content, s.Store.ClipTimeout()); err != nil {
+	if err := clearClipboard(ctx, content, ctxutil.GetClipTimeout(ctx)); err != nil {
 		return errors.Wrapf(err, "failed to clear clipboard")
 	}
 
-	fmt.Printf("Copied %s to clipboard. Will clear in %d seconds.\n", color.YellowString(name), s.Store.ClipTimeout())
+	fmt.Printf("Copied %s to clipboard. Will clear in %d seconds.\n", color.YellowString(name), ctxutil.GetClipTimeout(ctx))
 	return nil
 }

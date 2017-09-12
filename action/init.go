@@ -78,7 +78,7 @@ func (s *Action) init(ctx context.Context, alias, path string, nogit bool, keys 
 	fmt.Println("")
 
 	// write config
-	if err := s.Store.Config().Save(); err != nil {
+	if err := s.cfg.Save(); err != nil {
 		return s.exitError(ctx, ExitConfig, err, "failed to write config: %s", err)
 	}
 

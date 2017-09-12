@@ -16,8 +16,7 @@ import (
 )
 
 const (
-	gopassConfig = `
-askformore: false
+	gopassConfig = `askformore: false
 autoimport: true
 autosync: true
 cliptimeout: 45
