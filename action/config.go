@@ -67,9 +67,5 @@ func (s *Action) setConfigValue(ctx context.Context, key, value string) error {
 	if err := s.cfg.SetConfigValue(key, value); err != nil {
 		return errors.Wrapf(err, "failed to set config value '%s'", key)
 	}
-	// TODO remove UpdateConfig after context migration
-	if err := s.Store.UpdateConfig(ctx, s.cfg); err != nil {
-		return errors.Wrapf(err, "failed to update config")
-	}
 	return s.printConfigValues(key)
 }

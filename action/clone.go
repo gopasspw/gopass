@@ -51,7 +51,7 @@ func (s *Action) Clone(ctx context.Context, c *cli.Context) error {
 	}
 
 	// save new mount in config file
-	if err := s.Store.Config().Save(); err != nil {
+	if err := s.cfg.Save(); err != nil {
 		return s.exitError(ctx, ExitIO, err, "Failed to update config: %s", err)
 	}
 
