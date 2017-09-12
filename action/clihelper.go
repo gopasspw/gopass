@@ -23,7 +23,7 @@ const (
 
 // ConfirmRecipients asks the user to confirm a given set of recipients
 func (s *Action) ConfirmRecipients(ctx context.Context, name string, recipients []string) ([]string, error) {
-	if ctxutil.IsNoConfirm(ctx) || !ctxutil.IsInteractive(ctx) {
+	if ctxutil.IsNoConfirm(ctx) || !ctxutil.IsInteractive(ctx) || ctxutil.IsAlwaysYes(ctx) {
 		return recipients, nil
 	}
 
@@ -59,6 +59,10 @@ func (s *Action) ConfirmRecipients(ctx context.Context, name string, recipients 
 // AskForConfirmation asks a yes/no question until the user
 // replies yes or no
 func (s *Action) AskForConfirmation(ctx context.Context, text string) bool {
+	if ctxutil.IsAlwaysYes(ctx) {
+		return true
+	}
+
 	for i := 0; i < maxTries; i++ {
 		if choice, err := s.askForBool(text, false); err == nil {
 			return choice
@@ -134,6 +138,10 @@ func (s *Action) askForPassword(ctx context.Context, name string, askFn func(con
 	if !ctxutil.IsInteractive(ctx) {
 		return "", errors.New("impossible without terminal")
 	}
+	if ctxutil.IsAlwaysYes(ctx) {
+		return "", nil
+	}
+
 	if askFn == nil {
 		askFn = s.promptPass
 	}
@@ -159,13 +167,18 @@ func (s *Action) askForPassword(ctx context.Context, name string, askFn func(con
 
 // AskForKeyImport asks for permissions to import the named key
 func (s *Action) AskForKeyImport(ctx context.Context, key string) bool {
+	if ctxutil.IsAlwaysYes(ctx) {
+		return true
+	}
 	if !ctxutil.IsInteractive(ctx) {
 		return false
 	}
+
 	ok, err := s.askForBool(fmt.Sprintf("Do you want to import the public key '%s' into your keyring?", key), false)
 	if err != nil {
 		return false
 	}
+
 	return ok
 }
 
@@ -183,6 +196,10 @@ func (s *Action) askForPrivateKey(ctx context.Context, prompt string) (string, e
 		return "", errors.New("No useable private keys found")
 	}
 	for i := 0; i < maxTries; i++ {
+		if ctxutil.IsAlwaysYes(ctx) {
+			return kl[0].Fingerprint, nil
+		}
+
 		fmt.Println(prompt)
 		for i, k := range kl {
 			fmt.Printf("[%d] %s\n", i, k.OneLine())
@@ -218,7 +235,7 @@ func (s *Action) askForGitConfigUser(ctx context.Context) (string, string, error
 
 	for _, key := range keyList {
 		for _, identity := range key.Identities {
-			if !ctxutil.IsTerminal(ctx) {
+			if !ctxutil.IsTerminal(ctx) || ctxutil.IsAlwaysYes(ctx) {
 				return identity.Name, identity.Email, nil
 			}
 
@@ -242,6 +259,7 @@ func (s *Action) promptPass(ctx context.Context, prompt string) (pass string, er
 	if !ctxutil.IsTerminal(ctx) {
 		return
 	}
+
 	// Make a copy of STDIN's state to restore afterward
 	fd := int(os.Stdin.Fd())
 	oldState, err := terminal.GetState(fd)
