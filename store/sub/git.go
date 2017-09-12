@@ -33,7 +33,9 @@ func (s *Store) gitCmd(ctx context.Context, name string, args ...string) error {
 	}
 
 	if err := cmd.Run(); err != nil {
-		fmt.Printf("Output of '%s %+v:\n%s\n'", cmd.Path, cmd.Args, buf.String())
+		if ctxutil.IsDebug(ctx) {
+			fmt.Printf("Output of '%s %+v': '%s'\n", cmd.Path, cmd.Args, buf.String())
+		}
 		return errors.Wrapf(err, "failed to run command %s %+v", cmd.Path, cmd.Args)
 	}
 
