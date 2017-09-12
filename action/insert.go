@@ -91,7 +91,19 @@ func (s *Action) Insert(ctx context.Context, c *cli.Context) error {
 
 	// if multi-line input is requested start an editor
 	if multiline && ctxutil.IsInteractive(ctx) {
-		content, err := s.editor(ctx, []byte{})
+		buf := []byte{}
+		if s.Store.Exists(name) {
+			var err error
+			sec, err := s.Store.Get(ctx, name)
+			if err != nil {
+				return s.exitError(ctx, ExitDecrypt, err, "failed to decrypt existing secret: %s", err)
+			}
+			buf, err = sec.Bytes()
+			if err != nil {
+				return s.exitError(ctx, ExitUnknown, err, "failed to encode secret: %s", err)
+			}
+		}
+		content, err := s.editor(ctx, buf)
 		if err != nil {
 			return s.exitError(ctx, ExitUnknown, err, "failed to start editor: %s", err)
 		}
@@ -118,7 +130,15 @@ func (s *Action) Insert(ctx context.Context, c *cli.Context) error {
 		return s.exitError(ctx, ExitIO, err, "failed to ask for password: %s", err)
 	}
 
-	sec := secret.New(pw, "")
+	var sec *secret.Secret
+	if s.Store.Exists(name) {
+		var err error
+		sec, err = s.Store.Get(ctx, name)
+		if err != nil {
+			return s.exitError(ctx, ExitDecrypt, err, "failed to decrypt existing secret: %s", err)
+		}
+	}
+	sec.SetPassword(pw)
 	printAuditResult(sec.Password())
 
 	if err := s.Store.Set(sub.WithReason(ctx, "Inserted user supplied password"), name, sec); err != nil {
