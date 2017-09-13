@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
+	"github.com/justwatchcom/gopass/config"
 	"github.com/justwatchcom/gopass/store"
 	"github.com/justwatchcom/gopass/store/sub"
 	"github.com/justwatchcom/gopass/utils/fsutil"
@@ -56,9 +57,11 @@ func (r *Store) addMount(ctx context.Context, alias, path string, keys ...string
 
 	r.mounts[alias] = s
 	if r.cfg.Mounts == nil {
-		r.cfg.Mounts = make(map[string]string, 1)
+		r.cfg.Mounts = make(map[string]config.StoreConfig, 1)
 	}
-	r.cfg.Mounts[alias] = path
+	sc := r.cfg.Root
+	sc.Path = path
+	r.cfg.Mounts[alias] = sc
 	return nil
 }
 
@@ -107,13 +110,14 @@ func (r *Store) mountPoint(name string) string {
 
 // getStore returns the Store object at the most-specific mount point for the
 // given key
-func (r *Store) getStore(name string) *sub.Store {
+// context with sub store options set, sub store reference, truncated path to secret
+func (r *Store) getStore(ctx context.Context, name string) (context.Context, *sub.Store, string) {
 	name = strings.TrimSuffix(name, "/")
 	mp := r.mountPoint(name)
 	if sub, found := r.mounts[mp]; found {
-		return sub
+		return r.cfg.Mounts[mp].WithContext(ctx), sub, strings.TrimPrefix(name, sub.Alias())
 	}
-	return r.store
+	return ctx, r.store, name
 }
 
 // GetSubStore returns an exact match for a mount point or an error if this

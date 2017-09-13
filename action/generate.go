@@ -48,7 +48,7 @@ func (s *Action) Generate(ctx context.Context, c *cli.Context) error {
 	}
 
 	if !force { // don't check if it's force anyway
-		if s.Store.Exists(name) && key == "" && !s.AskForConfirmation(ctx, fmt.Sprintf("An entry already exists for %s. Overwrite the current password?", name)) {
+		if s.Store.Exists(ctx, name) && key == "" && !s.AskForConfirmation(ctx, fmt.Sprintf("An entry already exists for %s. Overwrite the current password?", name)) {
 			return s.exitError(ctx, ExitAborted, nil, "user aborted. not overwriting your current password")
 		}
 	}
@@ -82,7 +82,7 @@ func (s *Action) Generate(ctx context.Context, c *cli.Context) error {
 		if err := s.Store.Set(sub.WithReason(ctx, "Generated password for YAML key"), name, sec); err != nil {
 			return s.exitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
 		}
-	} else if s.Store.Exists(name) {
+	} else if s.Store.Exists(ctx, name) {
 		sec, err := s.Store.Get(ctx, name)
 		if err != nil {
 			return s.exitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)

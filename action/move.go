@@ -19,7 +19,7 @@ func (s *Action) Move(ctx context.Context, c *cli.Context) error {
 	to := c.Args()[1]
 
 	if !force {
-		if s.Store.Exists(to) && !s.AskForConfirmation(ctx, fmt.Sprintf("%s already exists. Overwrite it?", to)) {
+		if s.Store.Exists(ctx, to) && !s.AskForConfirmation(ctx, fmt.Sprintf("%s already exists. Overwrite it?", to)) {
 			return s.exitError(ctx, ExitAborted, nil, "not overwriting your current secret")
 		}
 	}

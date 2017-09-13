@@ -13,7 +13,7 @@ import (
 
 // GitInit initializes the git repo
 func (r *Store) GitInit(ctx context.Context, name, sk, userName, userEmail string) error {
-	store := r.getStore(name)
+	ctx, store, _ := r.getStore(ctx, name)
 	return store.GitInit(ctx, store.Alias(), sk, userName, userEmail)
 }
 
@@ -24,11 +24,12 @@ func (r *Store) GitVersion(ctx context.Context) semver.Version {
 
 // Git runs arbitrary git commands on this store and all substores
 func (r *Store) Git(ctx context.Context, name string, recurse, force bool, args ...string) error {
-	sub := r.getStore(name)
+	ctx, sub, name := r.getStore(ctx, name)
 	dispName := name
 	if dispName == "" {
 		dispName = "root"
 	}
+
 	fmt.Println(color.CyanString("[%s] Running git %s", dispName, strings.Join(args, " ")))
 	if err := sub.Git(ctx, args...); err != nil {
 		if errors.Cause(err) == store.ErrGitNoRemote {

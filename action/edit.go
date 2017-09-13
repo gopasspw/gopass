@@ -28,7 +28,7 @@ func (s *Action) Edit(ctx context.Context, c *cli.Context) error {
 
 	var content []byte
 	var changed bool
-	if s.Store.Exists(name) {
+	if s.Store.Exists(ctx, name) {
 		sec, err := s.Store.Get(ctx, name)
 		if err != nil {
 			return errors.Errorf("failed to decrypt %s: %v", name, err)
@@ -37,7 +37,7 @@ func (s *Action) Edit(ctx context.Context, c *cli.Context) error {
 		if err != nil {
 			return errors.Errorf("failed to decode %s: %v", name, err)
 		}
-	} else if tmpl, found := s.Store.LookupTemplate(name); found {
+	} else if tmpl, found := s.Store.LookupTemplate(ctx, name); found {
 		changed = true
 		// load template if it exists
 		content = pwgen.GeneratePassword(defaultLength, false)

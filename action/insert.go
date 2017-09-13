@@ -56,7 +56,7 @@ func (s *Action) Insert(ctx context.Context, c *cli.Context) error {
 		}
 
 		sec := secret.New("", "")
-		if s.Store.Exists(name) {
+		if s.Store.Exists(ctx, name) {
 			var err error
 			sec, err = s.Store.Get(ctx, name)
 			if err != nil {
@@ -84,7 +84,7 @@ func (s *Action) Insert(ctx context.Context, c *cli.Context) error {
 	}
 
 	if !force { // don't check if it's force anyway
-		if s.Store.Exists(name) && !s.AskForConfirmation(ctx, fmt.Sprintf("An entry already exists for %s. Overwrite it?", name)) {
+		if s.Store.Exists(ctx, name) && !s.AskForConfirmation(ctx, fmt.Sprintf("An entry already exists for %s. Overwrite it?", name)) {
 			return s.exitError(ctx, ExitAborted, nil, "not overwriting your current secret")
 		}
 	}
@@ -92,7 +92,7 @@ func (s *Action) Insert(ctx context.Context, c *cli.Context) error {
 	// if multi-line input is requested start an editor
 	if multiline && ctxutil.IsInteractive(ctx) {
 		buf := []byte{}
-		if s.Store.Exists(name) {
+		if s.Store.Exists(ctx, name) {
 			var err error
 			sec, err := s.Store.Get(ctx, name)
 			if err != nil {
@@ -131,7 +131,7 @@ func (s *Action) Insert(ctx context.Context, c *cli.Context) error {
 	}
 
 	var sec *secret.Secret
-	if s.Store.Exists(name) {
+	if s.Store.Exists(ctx, name) {
 		var err error
 		sec, err = s.Store.Get(ctx, name)
 		if err != nil {

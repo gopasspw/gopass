@@ -40,7 +40,7 @@ func (s *Action) TemplatesPrint(ctx context.Context, c *cli.Context) error {
 func (s *Action) TemplatePrint(ctx context.Context, c *cli.Context) error {
 	name := c.Args().First()
 
-	content, err := s.Store.GetTemplate(name)
+	content, err := s.Store.GetTemplate(ctx, name)
 	if err != nil {
 		return s.exitError(ctx, ExitIO, err, "failed to retrieve template: %s", err)
 	}
@@ -59,9 +59,9 @@ func (s *Action) TemplateEdit(ctx context.Context, c *cli.Context) error {
 	}
 
 	var content []byte
-	if s.Store.HasTemplate(name) {
+	if s.Store.HasTemplate(ctx, name) {
 		var err error
-		content, err = s.Store.GetTemplate(name)
+		content, err = s.Store.GetTemplate(ctx, name)
 		if err != nil {
 			return s.exitError(ctx, ExitIO, err, "failed to retrieve template: %s", err)
 		}
@@ -79,7 +79,7 @@ func (s *Action) TemplateEdit(ctx context.Context, c *cli.Context) error {
 		return nil
 	}
 
-	return s.Store.SetTemplate(name, nContent)
+	return s.Store.SetTemplate(ctx, name, nContent)
 }
 
 // TemplateRemove will remove a single template
@@ -89,11 +89,11 @@ func (s *Action) TemplateRemove(ctx context.Context, c *cli.Context) error {
 		return s.exitError(ctx, ExitUsage, nil, "usage: %s templates remove [name]", s.Name)
 	}
 
-	if !s.Store.HasTemplate(name) {
+	if !s.Store.HasTemplate(ctx, name) {
 		return s.exitError(ctx, ExitNotFound, nil, "template '%s' not found", name)
 	}
 
-	return s.Store.RemoveTemplate(name)
+	return s.Store.RemoveTemplate(ctx, name)
 }
 
 // TemplatesComplete prints a list of all templates for bash completion

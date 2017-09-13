@@ -30,7 +30,11 @@ func TestSimpleList(t *testing.T) {
 		t.Fatalf("Failed to create store directory: %s", err)
 	}
 
-	rs, err := New(ctx, &config.Config{Path: tempdir})
+	rs, err := New(ctx, &config.Config{
+		Root: config.StoreConfig{
+			Path: tempdir,
+		},
+	})
 	if err != nil {
 		t.Fatalf("Failed to create root store: %s", err)
 	}
@@ -79,7 +83,11 @@ func TestListMulti(t *testing.T) {
 	}
 	sort.Strings(ents)
 
-	rs, err := New(ctx, &config.Config{Path: tempdir + "/root"})
+	rs, err := New(ctx, &config.Config{
+		Root: config.StoreConfig{
+			Path: tempdir + "/root",
+		},
+	})
 	if err != nil {
 		t.Fatalf("Failed to create root store: %s", err)
 	}
@@ -140,7 +148,11 @@ func TestListNested(t *testing.T) {
 	}
 	sort.Strings(ents)
 
-	rs, err := New(ctx, &config.Config{Path: tempdir + "/root"})
+	rs, err := New(ctx, &config.Config{
+		Root: config.StoreConfig{
+			Path: tempdir + "/root",
+		},
+	})
 	if err != nil {
 		t.Fatalf("Failed to create root store: %s", err)
 	}

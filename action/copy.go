@@ -18,12 +18,12 @@ func (s *Action) Copy(ctx context.Context, c *cli.Context) error {
 	from := c.Args()[0]
 	to := c.Args()[1]
 
-	if !s.Store.Exists(from) {
+	if !s.Store.Exists(ctx, from) {
 		return s.exitError(ctx, ExitNotFound, nil, "%s does not exist", from)
 	}
 
 	if !force {
-		if s.Store.Exists(to) && !s.AskForConfirmation(ctx, fmt.Sprintf("%s already exists. Overwrite it?", to)) {
+		if s.Store.Exists(ctx, to) && !s.AskForConfirmation(ctx, fmt.Sprintf("%s already exists. Overwrite it?", to)) {
 			return s.exitError(ctx, ExitAborted, nil, "not overwriting your current secret")
 		}
 	}

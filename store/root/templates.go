@@ -1,9 +1,9 @@
 package root
 
 import (
+	"context"
 	"fmt"
 	"sort"
-	"strings"
 
 	"github.com/justwatchcom/gopass/store"
 	"github.com/justwatchcom/gopass/utils/tree"
@@ -12,9 +12,9 @@ import (
 )
 
 // LookupTemplate will lookup and return a template
-func (r *Store) LookupTemplate(name string) ([]byte, bool) {
-	store := r.getStore(name)
-	return store.LookupTemplate(strings.TrimPrefix(name, store.Alias()))
+func (r *Store) LookupTemplate(ctx context.Context, name string) ([]byte, bool) {
+	_, store, name := r.getStore(ctx, name)
+	return store.LookupTemplate(name)
 }
 
 // TemplateTree returns a tree of all templates
@@ -48,25 +48,25 @@ func (r *Store) TemplateTree() (tree.Tree, error) {
 }
 
 // HasTemplate returns true if the template exists
-func (r *Store) HasTemplate(name string) bool {
-	store := r.getStore(name)
-	return store.HasTemplate(strings.TrimPrefix(name, store.Alias()))
+func (r *Store) HasTemplate(ctx context.Context, name string) bool {
+	_, store, name := r.getStore(ctx, name)
+	return store.HasTemplate(name)
 }
 
 // GetTemplate will return the content of the named template
-func (r *Store) GetTemplate(name string) ([]byte, error) {
-	store := r.getStore(name)
-	return store.GetTemplate(strings.TrimPrefix(name, store.Alias()))
+func (r *Store) GetTemplate(ctx context.Context, name string) ([]byte, error) {
+	_, store, name := r.getStore(ctx, name)
+	return store.GetTemplate(name)
 }
 
 // SetTemplate will (over)write the content to the template file
-func (r *Store) SetTemplate(name string, content []byte) error {
-	store := r.getStore(name)
-	return store.SetTemplate(strings.TrimPrefix(name, store.Alias()), content)
+func (r *Store) SetTemplate(ctx context.Context, name string, content []byte) error {
+	_, store, name := r.getStore(ctx, name)
+	return store.SetTemplate(name, content)
 }
 
 // RemoveTemplate will delete the named template if it exists
-func (r *Store) RemoveTemplate(name string) error {
-	store := r.getStore(name)
-	return store.RemoveTemplate(strings.TrimPrefix(name, store.Alias()))
+func (r *Store) RemoveTemplate(ctx context.Context, name string) error {
+	_, store, name := r.getStore(ctx, name)
+	return store.RemoveTemplate(name)
 }
