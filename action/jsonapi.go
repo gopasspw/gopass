@@ -12,6 +12,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"regexp"
+
 	"github.com/justwatchcom/gopass/store"
 	"github.com/urfave/cli"
 )
@@ -22,6 +24,10 @@ type messageType struct {
 
 type queryMessage struct {
 	Query string `json:"query"`
+}
+
+type queryHostMessage struct {
+	Host string `json:"host"`
 }
 
 type getLoginMessage struct {
@@ -107,11 +113,41 @@ func respondMessage(ctx context.Context, s *Action, msgBytes []byte) error {
 	switch message.Type {
 	case "query":
 		return respondQuery(s, msgBytes)
+	case "queryHost":
+		return respondHostQuery(s, msgBytes)
 	case "getLogin":
 		return respondGetLogin(ctx, s, msgBytes)
 	default:
 		return fmt.Errorf("Unknown message of type %s", message.Type)
 	}
+}
+
+func respondHostQuery(s *Action, msgBytes []byte) error {
+	var message queryHostMessage
+	if err := json.Unmarshal(msgBytes, &message); err != nil {
+		return err
+	}
+
+	l, err := s.Store.List(0)
+	if err != nil {
+		return err
+	}
+	choices := make([]string, 0, 10)
+
+	reQuery := fmt.Sprintf("(^|.*/)%s($|/.*)", regexSafeLower(message.Host))
+	if err := searchAndAppendChoices(reQuery, l, &choices); err != nil {
+		return err
+	}
+
+	for len(choices) == 0 && strings.Count(message.Host, ".") > 1 {
+		message.Host = strings.SplitN(message.Host, ".", 2)[1]
+		reQuery = fmt.Sprintf("(^|.*/)%s($|/.*)", regexSafeLower(message.Host))
+		if err := searchAndAppendChoices(reQuery, l, &choices); err != nil {
+			return err
+		}
+	}
+
+	return sendSerializedJSONMessage(choices)
 }
 
 func respondQuery(s *Action, msgBytes []byte) error {
@@ -125,15 +161,30 @@ func respondQuery(s *Action, msgBytes []byte) error {
 		return err
 	}
 
-	needle := strings.ToLower(message.Query)
 	choices := make([]string, 0, 10)
-	for _, value := range l {
-		if strings.Contains(strings.ToLower(value), needle) {
-			choices = append(choices, value)
-		}
+	reQuery := fmt.Sprintf(".*%s.*", regexSafeLower(message.Query))
+	if err := searchAndAppendChoices(reQuery, l, &choices); err != nil {
+		return err
 	}
 
 	return sendSerializedJSONMessage(choices)
+}
+
+func regexSafeLower(str string) string {
+	return regexp.QuoteMeta(strings.ToLower(str))
+}
+
+func searchAndAppendChoices(reQuery string, list []string, choices *[]string) error {
+	re, err := regexp.Compile(reQuery)
+	if err != nil {
+		return err
+	}
+	for _, value := range list {
+		if re.MatchString(strings.ToLower(value)) {
+			*choices = append(*choices, value)
+		}
+	}
+	return nil
 }
 
 func respondGetLogin(ctx context.Context, s *Action, msgBytes []byte) error {

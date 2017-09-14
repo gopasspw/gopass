@@ -62,6 +62,21 @@ func TestJSONAPI(t *testing.T) {
 	out, err = ts.runCmd([]string{ts.Binary, "insert", "awesomePrefix/fixed/yamlother"}, []byte("thesecret\n---\nother: meh"))
 	require.NoError(ts.t, err, "failed to insert password:\n%s", out)
 
+	out, err = ts.runCmd([]string{ts.Binary, "insert", "awesomePrefix/some.other.host/other"}, []byte("thesecret\n---\nother: meh"))
+	require.NoError(ts.t, err, "failed to insert password:\n%s", out)
+
+	out, err = ts.runCmd([]string{ts.Binary, "insert", "awesomePrefix/b/some.other.host"}, []byte("thesecret\n---\nother: meh"))
+	require.NoError(ts.t, err, "failed to insert password:\n%s", out)
+
+	out, err = ts.runCmd([]string{ts.Binary, "insert", "awesomePrefix/evilsome.other.host"}, []byte("thesecret\n---\nother: meh"))
+	require.NoError(ts.t, err, "failed to insert password:\n%s", out)
+
+	out, err = ts.runCmd([]string{ts.Binary, "insert", "evilsome.other.host/something"}, []byte("thesecret\n---\nother: meh"))
+	require.NoError(ts.t, err, "failed to insert password:\n%s", out)
+
+	out, err = ts.runCmd([]string{ts.Binary, "insert", "awesomePrefix/other.host/other"}, []byte("thesecret\n---\nother: meh"))
+	require.NoError(ts.t, err, "failed to insert password:\n%s", out)
+
 	// message has length specified but invalid json
 	strout, err := ts.runWithInput("jsonapi", "1234Xabcd")
 	assert.NoError(t, err)
@@ -86,6 +101,10 @@ func TestJSONAPI(t *testing.T) {
 	// query for keys with matching multiple
 	response = getMessageResponse(t, ts, "{\"type\":\"query\",\"query\":\"yaml\"}")
 	assert.Equal(t, "[\"awesomePrefix/fixed/yamllogin\",\"awesomePrefix/fixed/yamlother\"]", response)
+
+	// query for host
+	response = getMessageResponse(t, ts, "{\"type\":\"queryHost\",\"host\":\"find.some.other.host\"}")
+	assert.Equal(t, "[\"awesomePrefix/b/some.other.host\",\"awesomePrefix/some.other.host/other\"]", response)
 
 	// get username / password for key without value in yaml
 	response = getMessageResponse(t, ts, "{\"type\":\"getLogin\",\"entry\":\"awesomePrefix/fixed/secret\"}")
