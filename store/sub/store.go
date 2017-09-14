@@ -51,7 +51,7 @@ func New(alias string, path string) *Store {
 }
 
 // idFile returns the path to the recipient list for this store
-// it walks up from the given filename until it finds a directoy containing
+// it walks up from the given filename until it finds a directory containing
 // a gpg id file or it leaves the scope of this store.
 func (s *Store) idFile(fn string) string {
 	fn, err := filepath.Abs(filepath.Join(s.path, fn))
@@ -119,10 +119,10 @@ func (s *Store) useableKeys(ctx context.Context, file string) ([]string, error) 
 		return rs, err
 	}
 
-	unuseable := kl.UnuseableKeys()
-	if len(unuseable) > 0 {
-		fmt.Println(color.RedString("Unuseable public keys detected (IGNORING FOR ENCRYPTION):"))
-		for _, k := range unuseable {
+	unusable := kl.UnusableKeys()
+	if len(unusable) > 0 {
+		fmt.Println(color.RedString("Unusable public keys detected (IGNORING FOR ENCRYPTION):"))
+		for _, k := range unusable {
 			fmt.Println(color.RedString("  - %s", k.OneLine()))
 		}
 	}

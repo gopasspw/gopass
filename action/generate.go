@@ -62,7 +62,7 @@ func (s *Action) Generate(ctx context.Context, c *cli.Context) error {
 
 	pwlen, err := strconv.Atoi(length)
 	if err != nil {
-		return s.exitError(ctx, ExitUsage, err, "password lenght must be a number")
+		return s.exitError(ctx, ExitUsage, err, "password length must be a number")
 	}
 	if pwlen < 1 {
 		return s.exitError(ctx, ExitUsage, nil, "password length must not be zero")

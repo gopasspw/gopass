@@ -9,7 +9,7 @@ func getEditor() string {
 		return ed
 	}
 	// given, this is a very opinionated default, but this should be available
-	// on virtualy any UNIX system and the user can still set EDITOR to get
+	// on virtually any UNIX system and the user can still set EDITOR to get
 	// his favorite one
 	return "vi"
 }

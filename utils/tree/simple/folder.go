@@ -142,7 +142,7 @@ func (f *Folder) format(prefix string, last bool, maxDepth, curDepth int) string
 	}
 	// finish this folders output
 	_, _ = out.WriteString("\n")
-	// let our children format themselfes
+	// let our children format themselves
 	for i, key := range sortedFolders(f.Folders) {
 		last := i == len(f.Folders)-1 && len(f.Files) < 1
 		_, _ = out.WriteString(f.Folders[key].format(prefix, last, maxDepth, curDepth+1))

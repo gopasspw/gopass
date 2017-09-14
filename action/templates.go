@@ -12,7 +12,7 @@ import (
 const (
 	templateExample = `{{ .Content }}
 
-# This is an example of the availabe template operations
+# This is an example of the available template operations
 # Predefined variables:
 # - .Content: The secret payload, usually a generated password
 # - .Name: The name of this secret
