@@ -317,7 +317,6 @@ cliptimeout: 10
 loadkeys: false
 noconfirm: false
 path: /home/user/.password-store
-persistkeys: false
 
 $ gopass config cliptimeout 60
 $ gopass config cliptimeout
@@ -631,7 +630,7 @@ There are several configuration options available through the command line inter
 | **Option**    | *Type*    | Description |
 | ------------- | --------- | ----------- |
 | `askformore`  | `bool`    | If enabled - it will ask to add more data after use of `generate` command. |
-| `autoimport`  | `bool`    | Import missing keys stored in the pass repo (see `persistkeys`) without asking. |
+| `autoimport`  | `bool`    | Import missing keys stored in the pass repo without asking. |
 | `autosync`    | `bool`    | Always do a `git push` after a commit to the store. Makes sure your local changes are always available on your git remote. |
 | `cliptimeout` | `int`     | How many seconds the secret is stored when using `-c`. |
 | `noconfirm`   | `bool`    | Do not confirm recipient list when encrypting. |
