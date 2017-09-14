@@ -26,12 +26,11 @@ func TestBinaryCopy(t *testing.T) {
 	dat := []byte("foobar")
 	assert.NoError(t, ioutil.WriteFile(fn, dat, 0644))
 
-	out, err = ts.run("binary copy " + fn + " foo/bar")
+	_, err = ts.run("binary copy " + fn + " foo/bar")
 	assert.NoError(t, err)
-
 	assert.NoError(t, os.Remove(fn))
 
-	out, err = ts.run("binary copy foo/bar " + fn)
+	_, err = ts.run("binary copy foo/bar " + fn)
 	assert.NoError(t, err)
 
 	buf, err := ioutil.ReadFile(fn)
@@ -39,7 +38,7 @@ func TestBinaryCopy(t *testing.T) {
 
 	assert.Equal(t, buf, dat)
 
-	out, err = ts.run("binary cat foo/bar")
+	_, err = ts.run("binary cat foo/bar")
 	assert.NoError(t, err)
 }
 
@@ -60,12 +59,11 @@ func TestBinaryMove(t *testing.T) {
 	dat := []byte("foobar")
 	assert.NoError(t, ioutil.WriteFile(fn, dat, 0644))
 
-	out, err = ts.run("binary move " + fn + " foo/bar")
+	_, err = ts.run("binary move " + fn + " foo/bar")
 	assert.NoError(t, err)
-
 	assert.Error(t, os.Remove(fn))
 
-	out, err = ts.run("binary move foo/bar " + fn)
+	_, err = ts.run("binary move foo/bar " + fn)
 	assert.NoError(t, err)
 
 	buf, err := ioutil.ReadFile(fn)
@@ -73,7 +71,7 @@ func TestBinaryMove(t *testing.T) {
 
 	assert.Equal(t, buf, dat)
 
-	out, err = ts.run("binary cat foo/bar")
+	_, err = ts.run("binary cat foo/bar")
 	assert.Error(t, err)
 }
 
@@ -94,7 +92,7 @@ func TestBinaryShasum(t *testing.T) {
 	dat := []byte("foobar")
 	assert.NoError(t, ioutil.WriteFile(fn, dat, 0644))
 
-	out, err = ts.run("binary move " + fn + " foo/bar")
+	_, err = ts.run("binary move " + fn + " foo/bar")
 	assert.NoError(t, err)
 
 	out, err = ts.run("binary sha256 foo/bar")

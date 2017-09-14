@@ -12,7 +12,7 @@ import (
 )
 
 // Set encodes and writes the cipertext of one entry to disk. This
-// method can be passed a callback to confirm the recipients immedeately
+// method can be passed a callback to confirm the recipients immediately
 // before encryption.
 func (s *Store) Set(ctx context.Context, name string, sec *secret.Secret) error {
 	p := s.passfile(name)

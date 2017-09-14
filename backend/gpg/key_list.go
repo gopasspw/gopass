@@ -30,8 +30,8 @@ func (kl KeyList) UseableKeys() KeyList {
 	return nkl
 }
 
-// UnuseableKeys returns the list of unuseable keys (invalid keys)
-func (kl KeyList) UnuseableKeys() KeyList {
+// UnusableKeys returns the list of unusable keys (invalid keys)
+func (kl KeyList) UnusableKeys() KeyList {
 	nkl := make(KeyList, 0, len(kl))
 	for _, k := range kl {
 		if k.IsUseable() {

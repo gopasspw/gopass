@@ -161,7 +161,7 @@ func (g *GPG) GetRecipients(ctx context.Context, file string) ([]string, error) 
 }
 
 // Encrypt will encrypt the given content for the recipients. If alwaysTrust is true
-// the trust-model will be set to always as to avoid (annoying) "unuseable public key"
+// the trust-model will be set to always as to avoid (annoying) "unusable public key"
 // errors when encrypting.
 func (g *GPG) Encrypt(ctx context.Context, path string, content []byte, recipients []string) error {
 	if err := os.MkdirAll(filepath.Dir(path), dirPerm); err != nil {

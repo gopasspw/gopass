@@ -174,7 +174,7 @@ func (s *Store) gitAdd(ctx context.Context, files ...string) error {
 	return s.gitCmd(ctx, "gitAdd", args...)
 }
 
-// gitStagedChanges returns true if there are any staged changes which can be commited
+// gitStagedChanges returns true if there are any staged changes which can be committed
 func (s *Store) gitStagedChanges(ctx context.Context) bool {
 	if err := s.gitCmd(ctx, "gitDiffIndex", "diff-index", "--quiet", "HEAD"); err != nil {
 		return true

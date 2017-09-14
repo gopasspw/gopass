@@ -17,14 +17,14 @@ func TestFind(t *testing.T) {
 	assert.Error(t, err)
 	assert.Equal(t, "\nError: Usage: "+filepath.Base(ts.Binary)+" find arg\n", out)
 
-	out, err = ts.run("config safecontent false")
+	_, err = ts.run("config safecontent false")
 	assert.NoError(t, err)
 
 	out, err = ts.run("find bar")
 	assert.Error(t, err)
 	assert.Equal(t, "\nError: no results found\n", out)
 
-	out, err = ts.runCmd([]string{ts.Binary, "insert", "foo/bar"}, []byte("baz"))
+	_, err = ts.runCmd([]string{ts.Binary, "insert", "foo/bar"}, []byte("baz"))
 	assert.NoError(t, err)
 
 	out, err = ts.run("find bar")

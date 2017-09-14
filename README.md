@@ -35,7 +35,7 @@ Choose one of:
 ```bash
 $ gopass init gopher@golang.org
 $ gopass init A3683834
-$ gopass init 1E52C1335AC1F4F4FE02F62AB5B44266A3683834    # prefered
+$ gopass init 1E52C1335AC1F4F4FE02F62AB5B44266A3683834    # preferred
 ```
 
 This will encrypt any secret which is added to the store for the recipient.
@@ -513,7 +513,7 @@ $ gpg --gen-key
 # Key Size: Choose at least 2048
 # Validity: 5 to 10 years is a good default
 # Enter your real name and primary email address, comment is not necessary
-# Passphrase: Make sure to pick a very long passphrase, not just a simple password. Remeber this should be stronger than any of the secrets you store in the password store. You can configure the GPG Agent later, to save you repititive typing.
+# Passphrase: Make sure to pick a very long passphrase, not just a simple password. Remember this should be stronger than any of the secrets you store in the password store. You can configure the GPG Agent later, to save you repititive typing.
 ```
 
 There are a lot of good manuals to get started with GPG out there.

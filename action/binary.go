@@ -98,7 +98,7 @@ func (s *Action) BinaryCopy(ctx context.Context, c *cli.Context) error {
 }
 
 // BinaryMove works like BinaryCopy but will remove (shred/wipe) the source
-// after a successfull copy. Mostly useful for securely moving secrets into
+// after a successful copy. Mostly useful for securely moving secrets into
 // the store if they are no longer needed / wanted on disk afterwards
 func (s *Action) BinaryMove(ctx context.Context, c *cli.Context) error {
 	from := c.Args().Get(0)

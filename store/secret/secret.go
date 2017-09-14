@@ -43,7 +43,7 @@ func Parse(buf []byte) (*Secret, error) {
 	return s, nil
 }
 
-// decodeYAML attemtps to decode an optional YAML part of a secret
+// decodeYAML attempts to decode an optional YAML part of a secret
 func (s *Secret) decodeYAML() (bool, error) {
 	if !strings.HasPrefix(s.body, "---\n") {
 		return false, nil

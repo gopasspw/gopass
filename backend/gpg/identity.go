@@ -17,7 +17,7 @@ func (i Identity) ID() string {
 	return out
 }
 
-// String implement fmt.Stringer. This method resembels the output gpg uses
+// String implement fmt.Stringer. This method resembles the output gpg uses
 // for user-ids
 func (i Identity) String() string {
 	return "uid                            " + i.ID()

@@ -14,7 +14,7 @@ func (s *Store) Initialized() bool {
 	return fsutil.IsFile(s.idFile(""))
 }
 
-// Init tries to initalize a new password store location matching the object
+// Init tries to initialize a new password store location matching the object
 func (s *Store) Init(ctx context.Context, path string, ids ...string) error {
 	if s.Initialized() {
 		return errors.Errorf(`Found already initialized store at %s.
