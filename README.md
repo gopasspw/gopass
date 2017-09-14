@@ -380,6 +380,10 @@ With gopass you can create templates which are searched when executing `gopass e
 
 This makes it easy to e.g. generate database passwords or use templates for certain kind of secrets.
 
+### JSON API
+
+`gopass jsonapi` enables communication with gopass via json messages. This is in particular useful for browser plugins like [gopassbridge](https://github.com/martinhoefling/gopassbridge) running gopass as native app. More details can be found in [docs/jsonapi.md](docs/jsonapi.md)
+
 ## Known Limitations and Caveats
 
 ### GnuPG
