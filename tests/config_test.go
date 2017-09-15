@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -17,7 +18,11 @@ func TestConfig(t *testing.T) {
 	assert.Contains(t, out, "autosync: true")
 	assert.Contains(t, out, "cliptimeout: 45")
 	assert.Contains(t, out, "noconfirm: true")
-	assert.Contains(t, out, "path: /tmp")
+	if runtime.GOOS == "darwin" {
+		assert.Contains(t, out, "path: /var/folders")
+	} else {
+		assert.Contains(t, out, "path: /tmp")
+	}
 	assert.Contains(t, out, "safecontent: true")
 
 	invertables := []string{

@@ -3,6 +3,8 @@ package tests
 import (
 	"testing"
 
+	"runtime"
+
 	"github.com/stretchr/testify/assert"
 )
 
@@ -28,10 +30,19 @@ func TestInit(t *testing.T) {
 	// try to init again
 	out, err = ts.run("init " + keyID)
 	assert.Error(t, err)
-	for _, o := range []string{
-		"Found already initialized store at /tmp/gopass-",
-		"You can add secondary stores with gopass init --path <path to secondary store> --store <mount name>",
-	} {
-		assert.Contains(t, out, o)
+	if runtime.GOOS == "darwin" {
+		for _, o := range []string{
+			"Found already initialized store at /var/folders/",
+			"You can add secondary stores with gopass init --path <path to secondary store> --store <mount name>",
+		} {
+			assert.Contains(t, out, o)
+		}
+	} else {
+		for _, o := range []string{
+			"Found already initialized store at /tmp/gopass-",
+			"You can add secondary stores with gopass init --path <path to secondary store> --store <mount name>",
+		} {
+			assert.Contains(t, out, o)
+		}
 	}
 }
