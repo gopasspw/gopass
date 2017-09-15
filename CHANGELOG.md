@@ -1,3 +1,33 @@
+## 1.4.0 / 2017-10-04
+
+* [FEATURE] Add fuzzy search [#317]
+* [FEATURE] Allow restricting charset of generated passwords [#270]
+* [FEATURE] Check quality of newly inserted passwords with crunchy [#276]
+* [FEATURE] JSON API [#326]
+* [FEATURE] Per-Mount configuration options [#330]
+* [FEATURE] Terminal selection of results [#259]
+* [FEATURE] gopass sync [#303]
+* [ENHANCEMENT] Build with Go 1.9 [#294]
+* [ENHANCEMENT] Display single find result directly [#265]
+* [ENHANCEMENT] Global --yes flag [#327]
+* [ENHANCEMENT] Improve error handling and propagation [#280]
+* [ENHANCEMENT] Omit newline when not writing to a terminal [#325]
+* [ENHANCEMENT] Only commit once per recipient batch operation [#329]
+* [ENHANCEMENT] Provide partial support for .gpg-id files in subfolders [#291]
+* [ENHANCEMENT] Trim any trailing newlines or carriage returns in show output [#296]
+* [ENHANCEMENT] Use contexts [#310]
+* [ENHANCEMENT] Use contexts to cancel long running operations [#358]
+* [ENHANCEMENT] Use default editors [#286]
+* [ENHANCEMENT] Improve documentation [#365]
+* [ENHANCEMENT] Print selected entry [#372]
+* [BUGFIX] Confirm removal of directories [#309]
+* [BUGFIX] Only confirm recipients once during batch operations [#328]
+* [BUGFIX] Only overwrite password on insert [#323]
+* [BUGFIX] Avoid Show/Find recursion [#360]
+* [BUGFIX] Remove deprecated special case for .yaml files [#362]
+* [BUGFIX] Do not offer invalid keys [#364]
+* [BUGFIX] Assign path only if resolving symlink succeeds [#370]
+
 ## 1.3.2 / 2017-08-22
 
 * [BUGFIX] Fix git version output [#274]
