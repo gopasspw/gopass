@@ -364,11 +364,8 @@ strength of generated passwords.
 
 ### In-place updates to existing passwords
 
-Running `gopass generate foo/bar` on an existing entry `foo/bar` will only update
-the first line of the secret leaving and trailing data in place.
-
-WARNING: At the moment this differs from the behaviour of `gopass insert` which
-will overwrite the whole entry. We [plan to fix this](https://github.com/justwatchcom/gopass/issues/301).
+Running `gopass [generate|insert] foo/bar` on an existing entry `foo/bar` will only update
+the first line of the secret, leaving any trailing data in place.
 
 ### Disabling Colors
 
