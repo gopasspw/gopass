@@ -16,6 +16,7 @@ import (
 
 	"github.com/justwatchcom/gopass/store"
 	"github.com/urfave/cli"
+	"golang.org/x/net/publicsuffix"
 )
 
 type messageType struct {
@@ -134,20 +135,24 @@ func respondHostQuery(s *Action, msgBytes []byte) error {
 	}
 	choices := make([]string, 0, 10)
 
-	reQuery := fmt.Sprintf("(^|.*/)%s($|/.*)", regexSafeLower(message.Host))
-	if err := searchAndAppendChoices(reQuery, l, &choices); err != nil {
-		return err
-	}
-
-	for len(choices) == 0 && strings.Count(message.Host, ".") > 1 {
-		message.Host = strings.SplitN(message.Host, ".", 2)[1]
-		reQuery = fmt.Sprintf("(^|.*/)%s($|/.*)", regexSafeLower(message.Host))
+	for !isPublicSuffix(message.Host) {
+		reQuery := fmt.Sprintf("(^|.*/)%s($|/.*)", regexSafeLower(message.Host))
 		if err := searchAndAppendChoices(reQuery, l, &choices); err != nil {
 			return err
+		}
+		if len(choices) > 0 {
+			break
+		} else {
+			message.Host = strings.SplitN(message.Host, ".", 2)[1]
 		}
 	}
 
 	return sendSerializedJSONMessage(choices)
+}
+
+func isPublicSuffix(host string) bool {
+	suffix, _ := publicsuffix.PublicSuffix(host)
+	return host == suffix
 }
 
 func respondQuery(s *Action, msgBytes []byte) error {
