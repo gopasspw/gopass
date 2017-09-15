@@ -12,6 +12,7 @@ import (
 	"github.com/justwatchcom/gopass/backend/gpg"
 	gpgcli "github.com/justwatchcom/gopass/backend/gpg/cli"
 	"github.com/justwatchcom/gopass/store"
+	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/fsutil"
 	"github.com/pkg/errors"
 )
@@ -152,6 +153,7 @@ func (s *Store) reencrypt(ctx context.Context) error {
 
 	// save original value of auto push
 	ctx2 := WithAutoSync(ctx, false)
+	ctx2 = ctxutil.WithGitCommit(ctx2, false)
 	for _, e := range entries {
 		content, err := s.Get(ctx2, e)
 		if err != nil {
@@ -160,6 +162,12 @@ func (s *Store) reencrypt(ctx context.Context) error {
 		}
 		if err := s.Set(ctx2, e, content); err != nil {
 			fmt.Printf("Failed to write %s: %s\n", e, err)
+		}
+	}
+
+	if err := s.gitCommit(ctx, GetReason(ctx)); err != nil {
+		if errors.Cause(err) != store.ErrGitNotInit {
+			return errors.Wrapf(err, "failed to commit changes to git")
 		}
 	}
 

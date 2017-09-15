@@ -8,6 +8,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/store"
 	"github.com/justwatchcom/gopass/store/secret"
+	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/pkg/errors"
 )
 
@@ -53,6 +54,10 @@ func (s *Store) Set(ctx context.Context, name string, sec *secret.Secret) error 
 			return nil
 		}
 		return errors.Wrapf(err, "failed to add '%s' to git", p)
+	}
+
+	if !ctxutil.IsGitCommit(ctx) {
+		return nil
 	}
 
 	if err := s.gitCommit(ctx, fmt.Sprintf("Save secret to %s: %s", name, GetReason(ctx))); err != nil {

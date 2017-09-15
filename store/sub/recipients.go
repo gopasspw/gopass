@@ -92,6 +92,10 @@ func (s *Store) RemoveRecipient(ctx context.Context, id string) error {
 		nk = append(nk, k)
 	}
 
+	if len(rs) == len(nk) {
+		return errors.Errorf("recipient not in store")
+	}
+
 	if err := s.saveRecipients(ctx, nk, "Removed Recipient "+id, true); err != nil {
 		return errors.Wrapf(err, "failed to save recipients")
 	}

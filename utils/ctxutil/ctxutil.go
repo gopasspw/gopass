@@ -15,6 +15,7 @@ const (
 	ctxKeyNoConfirm
 	ctxKeyNoPager
 	ctxKeyShowSafeContent
+	ctxKeyGitCommit
 )
 
 // WithDebug returns a context with an explizit value for debug
@@ -155,6 +156,20 @@ func IsShowSafeContent(ctx context.Context) bool {
 	bv, ok := ctx.Value(ctxKeyShowSafeContent).(bool)
 	if !ok {
 		return false
+	}
+	return bv
+}
+
+// WithGitCommit returns a context with the value of git commit set
+func WithGitCommit(ctx context.Context, bv bool) context.Context {
+	return context.WithValue(ctx, ctxKeyGitCommit, bv)
+}
+
+// IsGitCommit returns the value of git commit or the default (true)
+func IsGitCommit(ctx context.Context) bool {
+	bv, ok := ctx.Value(ctxKeyGitCommit).(bool)
+	if !ok {
+		return true
 	}
 	return bv
 }
