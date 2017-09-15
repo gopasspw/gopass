@@ -16,6 +16,7 @@ const (
 	ctxKeyNoPager
 	ctxKeyShowSafeContent
 	ctxKeyGitCommit
+	ctxKeyAlwaysYes
 )
 
 // WithDebug returns a context with an explizit value for debug
@@ -170,6 +171,20 @@ func IsGitCommit(ctx context.Context) bool {
 	bv, ok := ctx.Value(ctxKeyGitCommit).(bool)
 	if !ok {
 		return true
+	}
+	return bv
+}
+
+// WithAlwaysYes returns a context with the value of always yes set
+func WithAlwaysYes(ctx context.Context, bv bool) context.Context {
+	return context.WithValue(ctx, ctxKeyAlwaysYes, bv)
+}
+
+// IsAlwaysYes returns the value of always yes or the default (false)
+func IsAlwaysYes(ctx context.Context) bool {
+	bv, ok := ctx.Value(ctxKeyAlwaysYes).(bool)
+	if !ok {
+		return false
 	}
 	return bv
 }
