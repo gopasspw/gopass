@@ -52,7 +52,7 @@ func (api *API) respondHostQuery(msgBytes []byte) error {
 		}
 	}
 
-	return sendSerializedJSONMessage(choices)
+	return sendSerializedJSONMessage(choices, api.Writer)
 }
 
 func (api *API) respondQuery(msgBytes []byte) error {
@@ -72,7 +72,7 @@ func (api *API) respondQuery(msgBytes []byte) error {
 		return err
 	}
 
-	return sendSerializedJSONMessage(choices)
+	return sendSerializedJSONMessage(choices, api.Writer)
 }
 
 func searchAndAppendChoices(reQuery string, list []string, choices *[]string) error {
@@ -108,7 +108,7 @@ func (api *API) respondGetLogin(msgBytes []byte) error {
 
 	response.Password = secret.Password()
 
-	return sendSerializedJSONMessage(response)
+	return sendSerializedJSONMessage(response, api.Writer)
 }
 
 func (api *API) getUsername(name string) (string, error) {

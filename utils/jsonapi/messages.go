@@ -6,7 +6,6 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"io"
-	"os"
 )
 
 type messageType struct {
@@ -34,8 +33,8 @@ type errorResponse struct {
 	Error string `json:"error"`
 }
 
-func readMessage() ([]byte, error) {
-	stdin := bufio.NewReader(os.Stdin)
+func readMessage(r io.Reader) ([]byte, error) {
+	stdin := bufio.NewReader(r)
 	lenBytes := make([]byte, 4)
 	_, err := stdin.Read(lenBytes)
 	if err != nil {
@@ -73,7 +72,7 @@ func eofReturn(err error) error {
 	return err
 }
 
-func sendSerializedJSONMessage(message interface{}) error {
+func sendSerializedJSONMessage(message interface{}, w io.Writer) error {
 	var msgBuf bytes.Buffer
 
 	serialized, err := json.Marshal(message)
@@ -81,7 +80,7 @@ func sendSerializedJSONMessage(message interface{}) error {
 		return err
 	}
 
-	if err := writeMessageLength(serialized); err != nil {
+	if err := writeMessageLength(serialized, w); err != nil {
 		return err
 	}
 
@@ -90,10 +89,10 @@ func sendSerializedJSONMessage(message interface{}) error {
 		return err
 	}
 
-	_, err = msgBuf.WriteTo(os.Stdout)
+	_, err = msgBuf.WriteTo(w)
 	return err
 }
 
-func writeMessageLength(msg []byte) error {
-	return binary.Write(os.Stdout, binary.LittleEndian, uint32(len(msg)))
+func writeMessageLength(msg []byte, w io.Writer) error {
+	return binary.Write(w, binary.LittleEndian, uint32(len(msg)))
 }

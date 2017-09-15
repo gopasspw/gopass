@@ -3,6 +3,9 @@ package jsonapi
 import (
 	"context"
 
+	"io"
+	"os"
+
 	"github.com/justwatchcom/gopass/store/root"
 	"github.com/urfave/cli"
 )
@@ -12,11 +15,13 @@ type API struct {
 	Store      *root.Store
 	Context    context.Context
 	CliContext *cli.Context
+	Reader     io.Reader
+	Writer     io.Writer
 }
 
 // ReadAndRespond a single message via stdin/stdout
 func (api *API) ReadAndRespond() error {
-	message, err := readMessage()
+	message, err := readMessage(os.Stdin)
 	if message == nil || err != nil {
 		return err
 	}
@@ -29,5 +34,5 @@ func (api *API) RespondError(err error) error {
 	var response errorResponse
 	response.Error = err.Error()
 
-	return sendSerializedJSONMessage(response)
+	return sendSerializedJSONMessage(response, api.Writer)
 }
