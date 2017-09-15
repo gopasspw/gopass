@@ -162,7 +162,7 @@ func (s *Action) AskForKeyImport(ctx context.Context, key string) bool {
 	if !ctxutil.IsInteractive(ctx) {
 		return false
 	}
-	ok, err := s.askForBool("Do you want to import the public key '%s' into your keyring?", false)
+	ok, err := s.askForBool(fmt.Sprintf("Do you want to import the public key '%s' into your keyring?", key), false)
 	if err != nil {
 		return false
 	}
