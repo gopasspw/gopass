@@ -32,14 +32,14 @@ func New(ctx context.Context, cfg *config.Config) (*Store, error) {
 	if cfg == nil {
 		cfg = &config.Config{}
 	}
-	if cfg.Path == "" {
+	if cfg.Root.Path == "" {
 		return nil, errors.Errorf("need path")
 	}
 	r := &Store{
 		cfg:     cfg,
 		gpg:     gpgcli.New(gpgcli.Config{}),
 		mounts:  make(map[string]*sub.Store, len(cfg.Mounts)),
-		path:    cfg.Path,
+		path:    cfg.Root.Path,
 		version: cfg.Version,
 	}
 
@@ -47,8 +47,8 @@ func New(ctx context.Context, cfg *config.Config) (*Store, error) {
 	r.store = sub.New("", r.Path())
 
 	// initialize all mounts
-	for alias, path := range cfg.Mounts {
-		path = fsutil.CleanPath(path)
+	for alias, sc := range cfg.Mounts {
+		path := fsutil.CleanPath(sc.Path)
 		if err := r.addMount(ctx, alias, path); err != nil {
 			fmt.Printf("Failed to initialized mount %s (%s): %s. Ignoring\n", alias, path, err)
 			continue
@@ -64,15 +64,15 @@ func New(ctx context.Context, cfg *config.Config) (*Store, error) {
 }
 
 // Exists checks the existence of a single entry
-func (r *Store) Exists(name string) bool {
-	store := r.getStore(name)
-	return store.Exists(strings.TrimPrefix(name, store.Alias()))
+func (r *Store) Exists(ctx context.Context, name string) bool {
+	_, store, name := r.getStore(ctx, name)
+	return store.Exists(name)
 }
 
 // IsDir checks if a given key is actually a folder
-func (r *Store) IsDir(name string) bool {
-	store := r.getStore(name)
-	return store.IsDir(strings.TrimPrefix(name, store.Alias()))
+func (r *Store) IsDir(ctx context.Context, name string) bool {
+	_, store, name := r.getStore(ctx, name)
+	return store.IsDir(name)
 }
 
 func (r *Store) String() string {

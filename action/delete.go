@@ -26,7 +26,7 @@ func (s *Action) Delete(ctx context.Context, c *cli.Context) error {
 		if recursive {
 			recStr = "recursively "
 		}
-		if (s.Store.Exists(name) || s.Store.IsDir(name)) && key == "" && !s.AskForConfirmation(ctx, fmt.Sprintf("Are you sure you would like to %sdelete %s?", recStr, name)) {
+		if (s.Store.Exists(ctx, name) || s.Store.IsDir(ctx, name)) && key == "" && !s.AskForConfirmation(ctx, fmt.Sprintf("Are you sure you would like to %sdelete %s?", recStr, name)) {
 			return nil
 		}
 	}
@@ -38,7 +38,7 @@ func (s *Action) Delete(ctx context.Context, c *cli.Context) error {
 		return nil
 	}
 
-	if s.Store.IsDir(name) {
+	if s.Store.IsDir(ctx, name) {
 		return errors.Errorf("Cannot remove '%s': Is a directory. Use 'gopass rm -r %s' to delete", name, name)
 	}
 

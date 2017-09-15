@@ -35,12 +35,12 @@ func (s *Action) show(ctx context.Context, c *cli.Context, name, key string, cli
 		return s.exitError(ctx, ExitUsage, nil, "Usage: %s show [name]", s.Name)
 	}
 
-	if s.Store.IsDir(name) {
+	if s.Store.IsDir(ctx, name) {
 		return s.List(ctx, c)
 	}
 
 	// auto-fallback to binary files with b64 suffix, if unique
-	if !s.Store.Exists(name) && s.Store.Exists(name+BinarySuffix) {
+	if !s.Store.Exists(ctx, name) && s.Store.Exists(ctx, name+BinarySuffix) {
 		name += BinarySuffix
 	}
 

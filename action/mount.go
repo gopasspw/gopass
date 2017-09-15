@@ -77,7 +77,7 @@ func (s *Action) MountAdd(ctx context.Context, c *cli.Context) error {
 		keys = append(keys, k)
 	}
 
-	if s.Store.Exists(alias) {
+	if s.Store.Exists(ctx, alias) {
 		fmt.Printf(color.YellowString("WARNING: shadowing %s entry\n"), alias)
 	}
 

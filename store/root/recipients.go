@@ -14,17 +14,20 @@ import (
 
 // ListRecipients lists all recipients for the given store
 func (r *Store) ListRecipients(ctx context.Context, store string) []string {
-	return r.getStore(store).Recipients(ctx)
+	ctx, sub, _ := r.getStore(ctx, store)
+	return sub.Recipients(ctx)
 }
 
 // AddRecipient adds a single recipient to the given store
 func (r *Store) AddRecipient(ctx context.Context, store, rec string) error {
-	return r.getStore(store).AddRecipient(ctx, rec)
+	ctx, sub, _ := r.getStore(ctx, store)
+	return sub.AddRecipient(ctx, rec)
 }
 
 // RemoveRecipient removes a single recipient from the given store
 func (r *Store) RemoveRecipient(ctx context.Context, store, rec string) error {
-	return r.getStore(store).RemoveRecipient(ctx, rec)
+	ctx, sub, _ := r.getStore(ctx, store)
+	return sub.RemoveRecipient(ctx, rec)
 }
 
 func (r *Store) addRecipient(ctx context.Context, prefix string, root tree.Tree, recp string, pretty bool) error {
@@ -39,12 +42,14 @@ func (r *Store) addRecipient(ctx context.Context, prefix string, root tree.Tree,
 			}
 		}
 	}
+
 	return root.AddFile(prefix+key, "gopass/recipient")
 }
 
 // ImportMissingPublicKeys import missing public keys in any substore
 func (r *Store) ImportMissingPublicKeys(ctx context.Context) error {
 	for alias, sub := range r.mounts {
+		ctx := r.cfg.Mounts[alias].WithContext(ctx)
 		if err := sub.ImportMissingPublicKeys(ctx); err != nil {
 			fmt.Println(color.RedString("[%s] Failed to import missing public keys: %s", alias, err))
 		}
@@ -57,6 +62,7 @@ func (r *Store) ImportMissingPublicKeys(ctx context.Context) error {
 // enabled
 func (r *Store) SaveRecipients(ctx context.Context) error {
 	for alias, sub := range r.mounts {
+		ctx := r.cfg.Mounts[alias].WithContext(ctx)
 		if err := sub.SaveRecipients(ctx); err != nil {
 			fmt.Println(color.RedString("[%s] Failed to save recipients: %s", alias, err))
 		}

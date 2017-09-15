@@ -59,25 +59,25 @@ func main() {
 	cfg := config.Load()
 
 	// autosync
-	ctx = sub.WithAutoSync(ctx, cfg.AutoSync)
+	ctx = sub.WithAutoSync(ctx, cfg.Root.AutoSync)
 
 	// always trust
 	ctx = gpg.WithAlwaysTrust(ctx, true)
 
 	// ask for more
-	ctx = ctxutil.WithAskForMore(ctx, cfg.AskForMore)
+	ctx = ctxutil.WithAskForMore(ctx, cfg.Root.AskForMore)
 
 	// clipboard timeout
-	ctx = ctxutil.WithClipTimeout(ctx, cfg.ClipTimeout)
+	ctx = ctxutil.WithClipTimeout(ctx, cfg.Root.ClipTimeout)
 
 	// no confirm
-	ctx = ctxutil.WithNoConfirm(ctx, cfg.NoConfirm)
+	ctx = ctxutil.WithNoConfirm(ctx, cfg.Root.NoConfirm)
 
 	// no pager
-	ctx = ctxutil.WithNoPager(ctx, cfg.NoPager)
+	ctx = ctxutil.WithNoPager(ctx, cfg.Root.NoPager)
 
 	// show safe content
-	ctx = ctxutil.WithShowSafeContent(ctx, cfg.SafeContent)
+	ctx = ctxutil.WithShowSafeContent(ctx, cfg.Root.SafeContent)
 
 	// check recipients conflicts with always trust, make sure it's not enabled
 	// when always trust is
@@ -115,6 +115,12 @@ func main() {
 	sv, err := semver.Parse(version)
 	if err != nil {
 		sv = semver.Version{
+			Major: 1,
+			Minor: 3,
+			Patch: 3,
+			Pre: []semver.PRVersion{
+				semver.PRVersion{VersionStr: "git"},
+			},
 			Build: []string{"HEAD"},
 		}
 	}
@@ -133,10 +139,10 @@ func main() {
 	action := action.New(ctx, cfg, sv)
 
 	// set some action callbacks
-	if !cfg.AutoImport {
+	if !cfg.Root.AutoImport {
 		ctx = sub.WithImportFunc(ctx, action.AskForKeyImport)
 	}
-	if !cfg.NoConfirm {
+	if !cfg.Root.NoConfirm {
 		ctx = sub.WithRecipientFunc(ctx, action.ConfirmRecipients)
 	}
 	ctx = sub.WithFsckFunc(ctx, action.AskForConfirmation)
@@ -298,6 +304,13 @@ func main() {
 			Description: "To manipulate the gopass configuration",
 			Action: func(c *cli.Context) error {
 				return action.Config(withGlobalFlags(ctx, c), c)
+			},
+			BashComplete: action.ConfigComplete,
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "store",
+					Usage: "Set value to substore config",
+				},
 			},
 		},
 		{

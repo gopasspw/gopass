@@ -69,7 +69,7 @@ func newTester(t *testing.T) *tester {
 
 	// prepare ENVIRONMENT
 	_ = os.Setenv("GNUPGHOME", ts.gpgDir())
-	_ = os.Setenv("GOPASS_DEBUG", "false")
+	_ = os.Setenv("GOPASS_DEBUG", "")
 	_ = os.Setenv("GOPASS_NOCOLOR", "true")
 	_ = os.Setenv("GOPASS_CONFIG", ts.gopassConfig())
 

@@ -128,7 +128,7 @@ func (s *Action) binaryCopy(ctx context.Context, from, to string, deleteSource b
 	case fsutil.IsFile(from) && fsutil.IsFile(to):
 		// copying from on file to another file is not supported
 		return errors.New("ambiquity detected. Only from or to can be a file")
-	case s.Store.Exists(from) && s.Store.Exists(to):
+	case s.Store.Exists(ctx, from) && s.Store.Exists(ctx, to):
 		// copying from one secret to another secret is not supported
 		return errors.New("ambiquity detected. Either from or to must be a file")
 	case fsutil.IsFile(from) && !fsutil.IsFile(to):

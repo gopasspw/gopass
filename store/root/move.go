@@ -13,25 +13,24 @@ import (
 // supported. Each entry has to be decoded and encoded for the destination
 // to make sure it's encrypted for the right set of recipients.
 func (r *Store) Copy(ctx context.Context, from, to string) error {
-	subFrom := r.getStore(from)
-	subTo := r.getStore(to)
+	ctxFrom, subFrom, from := r.getStore(ctx, from)
+	ctxTo, subTo, _ := r.getStore(ctx, to)
 
-	from = strings.TrimPrefix(from, subFrom.Alias())
 	to = strings.TrimPrefix(to, subFrom.Alias())
 
 	// cross-store copy
 	if !subFrom.Equals(subTo) {
-		content, err := subFrom.Get(ctx, from)
+		content, err := subFrom.Get(ctxFrom, from)
 		if err != nil {
 			return errors.Wrapf(err, "failed to retrieve secret '%s'", from)
 		}
-		if err := subTo.Set(sub.WithReason(ctx, fmt.Sprintf("Copied from %s to %s", from, to)), to, content); err != nil {
+		if err := subTo.Set(sub.WithReason(ctxTo, fmt.Sprintf("Copied from %s to %s", from, to)), to, content); err != nil {
 			return errors.Wrapf(err, "failed to store secret '%s'", to)
 		}
 		return nil
 	}
 
-	return subFrom.Copy(ctx, from, to)
+	return subFrom.Copy(ctxFrom, from, to)
 }
 
 // Move will move one entry from one location to another. Cross-store moves are
@@ -39,35 +38,32 @@ func (r *Store) Copy(ctx context.Context, from, to string) error {
 // for the destination store with the right set of recipients and remove it
 // from the old location afterwards.
 func (r *Store) Move(ctx context.Context, from, to string) error {
-	subFrom := r.getStore(from)
-	subTo := r.getStore(to)
-
-	from = strings.TrimPrefix(from, subFrom.Alias())
+	ctxFrom, subFrom, from := r.getStore(ctx, from)
+	ctxTo, subTo, _ := r.getStore(ctx, to)
 
 	// cross-store move
 	if !subFrom.Equals(subTo) {
 		to = strings.TrimPrefix(to, subTo.Alias())
-		content, err := subFrom.Get(ctx, from)
+		content, err := subFrom.Get(ctxFrom, from)
 		if err != nil {
 			return errors.Errorf("Source %s does not exist in source store %s: %s", from, subFrom.Alias(), err)
 		}
-		if err := subTo.Set(sub.WithReason(ctx, fmt.Sprintf("Moved from %s to %s", from, to)), to, content); err != nil {
+		if err := subTo.Set(sub.WithReason(ctxTo, fmt.Sprintf("Moved from %s to %s", from, to)), to, content); err != nil {
 			return errors.Wrapf(err, "failed to save secret '%s'", to)
 		}
-		if err := subFrom.Delete(ctx, from); err != nil {
+		if err := subFrom.Delete(ctxFrom, from); err != nil {
 			return errors.Wrapf(err, "failed to delete secret '%s'", from)
 		}
 		return nil
 	}
 
 	to = strings.TrimPrefix(to, subFrom.Alias())
-	return subFrom.Move(ctx, from, to)
+	return subFrom.Move(ctxFrom, from, to)
 }
 
 // Delete will remove an single entry from the store
 func (r *Store) Delete(ctx context.Context, name string) error {
-	store := r.getStore(name)
-	sn := strings.TrimPrefix(name, store.Alias())
+	ctx, store, sn := r.getStore(ctx, name)
 	if sn == "" {
 		return errors.Errorf("can not delete a mount point. Use `gopass mount remove %s`", store.Alias())
 	}
@@ -82,6 +78,6 @@ func (r *Store) Prune(ctx context.Context, tree string) error {
 		}
 	}
 
-	store := r.getStore(tree)
-	return store.Prune(ctx, strings.TrimPrefix(tree, store.Alias()))
+	ctx, store, tree := r.getStore(ctx, tree)
+	return store.Prune(ctx, tree)
 }
