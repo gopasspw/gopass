@@ -130,7 +130,7 @@ func (s *Action) Insert(ctx context.Context, c *cli.Context) error {
 		return s.exitError(ctx, ExitIO, err, "failed to ask for password: %s", err)
 	}
 
-	var sec *secret.Secret
+	sec := &secret.Secret{}
 	if s.Store.Exists(ctx, name) {
 		var err error
 		sec, err = s.Store.Get(ctx, name)
