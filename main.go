@@ -92,11 +92,13 @@ func main() {
 
 	// need this override for our integration tests
 	if nc := os.Getenv("GOPASS_NOCOLOR"); nc == "true" {
+		color.NoColor = true
 		ctx = ctxutil.WithColor(ctx, false)
 	}
 
 	// only emit color codes when stdout is a terminal
 	if !terminal.IsTerminal(int(os.Stdout.Fd())) {
+		color.NoColor = true
 		ctx = ctxutil.WithColor(ctx, false)
 		ctx = ctxutil.WithTerminal(ctx, false)
 		ctx = ctxutil.WithInteractive(ctx, false)
@@ -106,6 +108,14 @@ func main() {
 	if info, err := os.Stdin.Stat(); err == nil && info.Mode()&os.ModeCharDevice == 0 {
 		ctx = ctxutil.WithInteractive(ctx, false)
 		ctx = ctxutil.WithStdin(ctx, true)
+	}
+
+	// disable colored output on windows since cmd.exe doesn't support ANSI color
+	// codes. Other terminal may do, but until we can figure that out better
+	// disable this for all terms on this platform
+	if runtime.GOOS == "windows" {
+		color.NoColor = true
+		ctx = ctxutil.WithColor(ctx, false)
 	}
 
 	cli.ErrWriter = errorWriter{

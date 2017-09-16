@@ -1,20 +1,21 @@
 package config
 
 import (
-	"os"
 	"path/filepath"
 	"testing"
 )
 
-func TestPwStoreDir(t *testing.T) {
-	home := ""
-	if h := os.Getenv("HOME"); h != "" {
-		home = h
+func TestHomedir(t *testing.T) {
+	if home := Homedir(); home == "" {
+		t.Fatalf("Homedir must not be empty")
 	}
+}
+
+func TestPwStoreDir(t *testing.T) {
 	for in, out := range map[string]string{
-		"":        filepath.Join(home, ".password-store"),
-		"work":    filepath.Join(home, ".password-store-work"),
-		"foo/bar": filepath.Join(home, ".password-store-foo-bar"),
+		"":     filepath.Join(Homedir(), ".password-store"),
+		"work": filepath.Join(Homedir(), ".password-store-work"),
+		filepath.Join("foo", "bar"): filepath.Join(Homedir(), ".password-store-foo-bar"),
 	} {
 		got := PwStoreDir(in)
 		if got != out {

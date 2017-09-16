@@ -65,7 +65,7 @@ func (s *Store) idFile(fn string) string {
 		if cnt > 100 {
 			break
 		}
-		if fn == "" || fn == "/" {
+		if fn == "" || fn == sep {
 			break
 		}
 		if !strings.HasPrefix(fn, s.path) {
@@ -141,7 +141,7 @@ func (s *Store) String() string {
 }
 
 func (s *Store) filenameToName(fn string) string {
-	return strings.TrimPrefix(strings.TrimSuffix(fn, ".gpg"), s.path+"/")
+	return strings.TrimPrefix(strings.TrimSuffix(fn, ".gpg"), s.path+sep)
 }
 
 // reencrypt will re-encrypt all entries for the current recipients
