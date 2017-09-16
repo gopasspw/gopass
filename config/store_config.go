@@ -31,7 +31,7 @@ func (c *StoreConfig) ConfigMap() map[string]string {
 			continue
 		}
 		f := o.Field(i)
-		strVal := ""
+		var strVal string
 		switch f.Kind() {
 		case reflect.String:
 			strVal = f.String()
