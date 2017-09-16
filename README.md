@@ -369,7 +369,7 @@ the first line of the secret, leaving any trailing data in place.
 
 ### Disabling Colors
 
-Disabling colors is as simple as `gopass config nocolor true`.
+Disabling colors is as simple as setting `GOPASS_NOCOLOR` to `true`.
 
 ### Password Templates
 
