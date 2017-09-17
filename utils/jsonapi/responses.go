@@ -1,6 +1,8 @@
 package jsonapi
 
 import (
+	"context"
+
 	"encoding/json"
 	"fmt"
 	"path/filepath"
@@ -10,7 +12,7 @@ import (
 	"github.com/justwatchcom/gopass/store"
 )
 
-func (api *API) respondMessage(msgBytes []byte) error {
+func (api *API) respondMessage(ctx context.Context, msgBytes []byte) error {
 	var message messageType
 	if err := json.Unmarshal(msgBytes, &message); err != nil {
 		return err
@@ -22,7 +24,7 @@ func (api *API) respondMessage(msgBytes []byte) error {
 	case "queryHost":
 		return api.respondHostQuery(msgBytes)
 	case "getLogin":
-		return api.respondGetLogin(msgBytes)
+		return api.respondGetLogin(ctx, msgBytes)
 	default:
 		return fmt.Errorf("Unknown message of type %s", message.Type)
 	}
@@ -88,7 +90,7 @@ func searchAndAppendChoices(reQuery string, list []string, choices *[]string) er
 	return nil
 }
 
-func (api *API) respondGetLogin(msgBytes []byte) error {
+func (api *API) respondGetLogin(ctx context.Context, msgBytes []byte) error {
 	var message getLoginMessage
 	var response loginResponse
 
@@ -96,12 +98,12 @@ func (api *API) respondGetLogin(msgBytes []byte) error {
 		return err
 	}
 
-	secret, err := api.Store.Get(api.Context, message.Entry)
+	secret, err := api.Store.Get(ctx, message.Entry)
 	if err != nil {
 		return err
 	}
 
-	response.Username, err = api.getUsername(message.Entry)
+	response.Username, err = api.getUsername(ctx, message.Entry)
 	if err != nil {
 		return err
 	}
@@ -111,9 +113,9 @@ func (api *API) respondGetLogin(msgBytes []byte) error {
 	return sendSerializedJSONMessage(response, api.Writer)
 }
 
-func (api *API) getUsername(name string) (string, error) {
+func (api *API) getUsername(ctx context.Context, name string) (string, error) {
 	for _, key := range []string{"login", "username", "user"} {
-		secret, err := api.Store.Get(api.Context, name)
+		secret, err := api.Store.Get(ctx, name)
 		if err != nil {
 			return "", err
 		}

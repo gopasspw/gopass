@@ -13,20 +13,19 @@ import (
 // API type holding store and context
 type API struct {
 	Store      *root.Store
-	Context    context.Context
 	CliContext *cli.Context
 	Reader     io.Reader
 	Writer     io.Writer
 }
 
 // ReadAndRespond a single message via stdin/stdout
-func (api *API) ReadAndRespond() error {
+func (api *API) ReadAndRespond(ctx context.Context) error {
 	message, err := readMessage(os.Stdin)
 	if message == nil || err != nil {
 		return err
 	}
 
-	return api.respondMessage(message)
+	return api.respondMessage(ctx, message)
 }
 
 // RespondError sends err as JSON response via stdout
