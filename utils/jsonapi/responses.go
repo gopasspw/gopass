@@ -43,6 +43,7 @@ func (api *API) respondHostQuery(msgBytes []byte) error {
 	choices := make([]string, 0, 10)
 
 	for !isPublicSuffix(message.Host) {
+		// only query for paths and files in the store fully matching the hostname.
 		reQuery := fmt.Sprintf("(^|.*/)%s($|/.*)", regexSafeLower(message.Host))
 		if err := searchAndAppendChoices(reQuery, l, &choices); err != nil {
 			return err
