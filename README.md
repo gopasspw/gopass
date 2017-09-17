@@ -431,6 +431,16 @@ $ wget https://www.justwatch.com/gopass/releases/1.2.0/gopass-1.2.0-linux-amd64.
 $ sudo dpkg -i gopass-1.2.0-linux-amd64.deb
 ```
 
+#### Windows
+
+**WARNING**: Windows is not officially supported, yet. We try to support windows
+in the future. These are steps are only meant to help you setup `gopass` on windows
+so you can provide us with feedback about the current state of our windows support.
+
+* Download a suiteable windows build, e.g. https://github.com/justwatchcom/gopass/releases/download/v1.4.0-rc1/gopass-1.4.0-rc1-windows-amd64.zip
+* Install [GPG4Win](https://www.gpg4win.org/)
+* Install [git](https://git-scm.com/download/win)
+
 ### Download
 
 Please visit https://www.justwatch.com/gopass/releases/ for a list of binary releases.

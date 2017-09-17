@@ -57,14 +57,14 @@ func mkTemplateStoreWalkerFunc(alias, folder string, fn func(...string)) func(st
 		if info.Mode()&os.ModeSymlink != 0 {
 			return nil
 		}
-		s := strings.TrimPrefix(path, folder+"/")
+		s := strings.TrimPrefix(path, folder+sep)
 		s = strings.TrimSuffix(s, TemplateFile)
-		s = strings.TrimSuffix(s, "/")
+		s = strings.TrimSuffix(s, sep)
 		if s == "" {
 			s = "default"
 		}
 		if alias != "" {
-			s = alias + "/" + s
+			s = alias + sep + s
 		}
 		fn(s)
 		return nil

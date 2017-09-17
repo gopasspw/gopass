@@ -6,6 +6,10 @@ import (
 	"strings"
 )
 
+var (
+	sep = string(filepath.Separator)
+)
+
 // mkStoreWalkerFunc create a func to walk a (sub)store, i.e. list it's content
 func mkStoreWalkerFunc(alias, folder string, fn func(...string)) func(string, os.FileInfo, error) error {
 	return func(path string, info os.FileInfo, err error) error {
@@ -30,10 +34,10 @@ func mkStoreWalkerFunc(alias, folder string, fn func(...string)) func(string, os
 		if info.Mode()&os.ModeSymlink != 0 {
 			return nil
 		}
-		s := strings.TrimPrefix(path, folder+"/")
+		s := strings.TrimPrefix(path, folder+sep)
 		s = strings.TrimSuffix(s, ".gpg")
 		if alias != "" {
-			s = alias + "/" + s
+			s = alias + sep + s
 		}
 		fn(s)
 		return nil

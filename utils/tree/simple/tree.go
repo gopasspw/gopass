@@ -1,6 +1,7 @@
 package simple
 
 import (
+	"path/filepath"
 	"sort"
 
 	"github.com/fatih/color"
@@ -19,6 +20,7 @@ var (
 	colTpl   = color.New(color.FgGreen, color.Bold).SprintfFunc()
 	colBin   = color.New(color.FgYellow, color.Bold).SprintfFunc()
 	colYaml  = color.New(color.FgCyan, color.Bold).SprintfFunc()
+	sep      = string(filepath.Separator)
 )
 
 // New create a new root folder

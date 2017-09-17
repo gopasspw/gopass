@@ -49,17 +49,17 @@ func (f *Folder) String() string {
 
 // AddFile adds a new file
 func (f *Folder) AddFile(name string, contentType string) error {
-	return f.addFile(strings.Split(name, string(filepath.Separator)), contentType)
+	return f.addFile(strings.Split(name, sep), contentType)
 }
 
 // AddMount adds a new mount
 func (f *Folder) AddMount(name, path string) error {
-	return f.addMount(strings.Split(name, string(filepath.Separator)), path)
+	return f.addMount(strings.Split(name, sep), path)
 }
 
 // AddTemplate adds a new template
 func (f *Folder) AddTemplate(name string) error {
-	return f.addTemplate(strings.Split(name, string(filepath.Separator)))
+	return f.addTemplate(strings.Split(name, sep))
 }
 
 // newFolder creates a new, initialized folder
@@ -89,7 +89,7 @@ func (f *Folder) list(prefix string, maxDepth, curDepth int) []string {
 
 	if !f.Root {
 		if prefix != "" {
-			prefix += string(filepath.Separator)
+			prefix += sep
 		}
 		prefix += f.Name
 	}
@@ -168,7 +168,7 @@ func (f *Folder) getFolder(name string) *Folder {
 
 // FindFolder returns a sub-tree or nil, if the subtree does not exist
 func (f *Folder) FindFolder(name string) (tree.Tree, error) {
-	sub := f.findFolder(strings.Split(strings.TrimSuffix(name, "/"), "/"))
+	sub := f.findFolder(strings.Split(strings.TrimSuffix(name, sep), sep))
 	if sub == nil {
 		return nil, errors.Errorf("Entry not found")
 	}

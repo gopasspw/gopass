@@ -1,13 +1,26 @@
 package config
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 
 	"github.com/justwatchcom/gopass/utils/fsutil"
+	homedir "github.com/mitchellh/go-homedir"
 )
+
+// Homedir returns the users home dir or an empty string if the lookup fails
+func Homedir() string {
+	hd, err := homedir.Dir()
+	if err != nil {
+		if debug {
+			fmt.Printf("[DEBUG] Failed to get homedir: %s\n", err)
+		}
+		return ""
+	}
+	return hd
+}
 
 // configLocation returns the location of the config file
 // (a YAML file that contains values such as the path to the password store)
@@ -24,18 +37,7 @@ func configLocation() string {
 		return filepath.Join(xch, "gopass", "config.yml")
 	}
 
-	// Third, check to see if we are running on a Windows platform
-	// We can check for platform via the "runtime.GOOS" variable:
-	// https://stackoverflow.com/questions/19847594/how-to-reliably-detect-os-platform-in-go
-	if runtime.GOOS == "windows" {
-		// Windows uses the "userprofile" environment variable instead of "HOME":
-		// https://stackoverflow.com/questions/9228950/what-is-the-alternative-for-users-home-directory-on-windows-command-prompt
-		return filepath.Join(os.Getenv("userprofile"), ".config", "gopass", "config.yml")
-	}
-
-	// Default to using the "HOME" environment variable present on most Linux &
-	// OS X systems
-	return filepath.Join(os.Getenv("HOME"), ".config", "gopass", "config.yml")
+	return filepath.Join(Homedir(), ".config", "gopass", "config.yml")
 }
 
 // configLocations returns the possible locations of gopass config files,
@@ -48,8 +50,8 @@ func configLocations() []string {
 	if xch := os.Getenv("XDG_CONFIG_HOME"); xch != "" {
 		l = append(l, filepath.Join(xch, "gopass", "config.yml"))
 	}
-	l = append(l, filepath.Join(os.Getenv("HOME"), ".config", "gopass", "config.yml"))
-	l = append(l, filepath.Join(os.Getenv("HOME"), ".gopass.yml"))
+	l = append(l, filepath.Join(Homedir(), ".config", "gopass", "config.yml"))
+	l = append(l, filepath.Join(Homedir(), ".gopass.yml"))
 	return l
 }
 
@@ -58,10 +60,10 @@ func configLocations() []string {
 // not set
 func PwStoreDir(mount string) string {
 	if mount != "" {
-		return fsutil.CleanPath(filepath.Join(os.Getenv("HOME"), ".password-store-"+strings.Replace(mount, string(filepath.Separator), "-", -1)))
+		return fsutil.CleanPath(filepath.Join(Homedir(), ".password-store-"+strings.Replace(mount, string(filepath.Separator), "-", -1)))
 	}
 	if d := os.Getenv("PASSWORD_STORE_DIR"); d != "" {
 		return fsutil.CleanPath(d)
 	}
-	return os.Getenv("HOME") + "/.password-store"
+	return filepath.Join(Homedir(), ".password-store")
 }
