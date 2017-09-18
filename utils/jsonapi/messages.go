@@ -73,8 +73,8 @@ func eofReturn(err error) error {
 }
 
 func sendSerializedJSONMessage(message interface{}, w io.Writer) error {
-	var msgBuf bytes.Buffer
-
+	// we can't use json.NewEncoder(w).Encode because we need to send the final
+	// message length before the actul JSON
 	serialized, err := json.Marshal(message)
 	if err != nil {
 		return err
@@ -84,6 +84,7 @@ func sendSerializedJSONMessage(message interface{}, w io.Writer) error {
 		return err
 	}
 
+	var msgBuf bytes.Buffer
 	_, err = msgBuf.Write(serialized)
 	if err != nil {
 		return err

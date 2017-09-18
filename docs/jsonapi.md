@@ -6,6 +6,8 @@ The API follows specification for native messaging from [Mozilla](https://develo
 Each json-utf8 encoded message is prefixed with a 32 bit integer specifying the length of the message. 
 Communication is performed via stdin/stdout. Currently, only a single request is repsonded `gopass jsonapi` call.
 
+**WARNING**: This API **MUST NOT** be exposed over the network to remote hosts.
+
 ## Request Types 
 
 ### `query`
