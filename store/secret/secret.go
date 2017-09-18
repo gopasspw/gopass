@@ -139,7 +139,12 @@ func (s *Secret) Value(key string) (string, error) {
 	defer s.Unlock()
 
 	if s.data == nil {
-		return "", store.ErrYAMLNoMark
+		if !strings.HasPrefix(s.body, "---\n") {
+			return "", store.ErrYAMLNoMark
+		}
+		if _, err := s.decodeYAML(); err != nil {
+			return "", err
+		}
 	}
 	if v, found := s.data[key]; found {
 		if sv, ok := v.(string); ok {

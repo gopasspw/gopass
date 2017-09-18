@@ -80,11 +80,11 @@ func TestJSONAPI(t *testing.T) {
 	// message has length specified but invalid json
 	strout, err := ts.runWithInput("jsonapi", "1234Xabcd")
 	assert.NoError(t, err)
-	assert.Equal(t, "{\"error\":\"invalid character 'X' looking for beginning of value\"}", readAndVerifyMessageLength(t, strout))
+	assert.Equal(t, "{\"error\":\"failed to unmarshal JSON message: invalid character 'X' looking for beginning of value\"}", readAndVerifyMessageLength(t, strout))
 
 	// empty message, no json to parse
 	response := getMessageResponse(t, ts, "")
-	assert.Equal(t, "{\"error\":\"unexpected end of JSON input\"}", response)
+	assert.Equal(t, "{\"error\":\"failed to unmarshal JSON message: unexpected end of JSON input\"}", response)
 
 	// message with empty object
 	response = getMessageResponse(t, ts, "{}")

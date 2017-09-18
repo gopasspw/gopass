@@ -9,7 +9,6 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/justwatchcom/gopass/store"
 	"github.com/justwatchcom/gopass/store/secret"
 	"github.com/pkg/errors"
 )
@@ -110,19 +109,17 @@ func (api *API) respondGetLogin(ctx context.Context, msgBytes []byte) error {
 	}
 
 	return sendSerializedJSONMessage(loginResponse{
-		Username: api.getUsername(ctx, message.Entry, sec),
+		Username: api.getUsername(message.Entry, sec),
 		Password: sec.Password(),
 	}, api.Writer)
 }
 
-func (api *API) getUsername(ctx context.Context, name string, sec *secret.Secret) string {
+func (api *API) getUsername(name string, sec *secret.Secret) string {
 	// look for a meta-data entry containing the username first
 	for _, key := range []string{"login", "username", "user"} {
 		value, err := sec.Value(key)
 		if err != nil {
-			if err != store.ErrYAMLNoKey {
-				continue
-			}
+			continue
 		}
 		return value
 	}
