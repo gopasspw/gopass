@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"encoding/json"
+	"fmt"
 	"io"
 )
 
@@ -36,9 +37,12 @@ type errorResponse struct {
 func readMessage(r io.Reader) ([]byte, error) {
 	stdin := bufio.NewReader(r)
 	lenBytes := make([]byte, 4)
-	_, err := stdin.Read(lenBytes)
+	count, err := stdin.Read(lenBytes)
 	if err != nil {
 		return nil, eofReturn(err)
+	}
+	if count != 4 {
+		return nil, fmt.Errorf("not enough bytes read to deterimine message size")
 	}
 
 	length, err := getMessageLength(lenBytes)
@@ -47,9 +51,12 @@ func readMessage(r io.Reader) ([]byte, error) {
 	}
 
 	msgBytes := make([]byte, length)
-	_, err = stdin.Read(msgBytes)
+	count, err = stdin.Read(msgBytes)
 	if err != nil {
 		return nil, eofReturn(err)
+	}
+	if count != length {
+		return nil, fmt.Errorf("incomplete message read")
 	}
 
 	return msgBytes, nil
@@ -85,12 +92,18 @@ func sendSerializedJSONMessage(message interface{}, w io.Writer) error {
 	}
 
 	var msgBuf bytes.Buffer
-	_, err = msgBuf.Write(serialized)
+	count, err := msgBuf.Write(serialized)
 	if err != nil {
 		return err
 	}
+	if count != len(serialized) {
+		return fmt.Errorf("message not fully written")
+	}
 
-	_, err = msgBuf.WriteTo(w)
+	wcount, err := msgBuf.WriteTo(w)
+	if wcount != int64(len(serialized)) {
+		return fmt.Errorf("message not fully written")
+	}
 	return err
 }
 

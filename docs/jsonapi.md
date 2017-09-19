@@ -6,7 +6,9 @@ The API follows specification for native messaging from [Mozilla](https://develo
 Each json-utf8 encoded message is prefixed with a 32 bit integer specifying the length of the message. 
 Communication is performed via stdin/stdout. Currently, only a single request is repsonded `gopass jsonapi` call.
 
-**WARNING**: This API **MUST NOT** be exposed over the network to remote hosts.
+**WARNING**: This API **MUST NOT** be exposed over the network to remote hosts. **No authentication is performed** and the only safe way is to communicate via stdin/stdout as you do in your terminal.
+
+The implementation is located in `utils/jsonapi`.
 
 ## Request Types 
 
@@ -32,7 +34,7 @@ Communication is performed via stdin/stdout. Currently, only a single request is
 
 ### `queryHost`
 
-Similar to `query` but cuts hostnames and subdomains from the left side until the response to the query is non-empty. Stops if only one dot (domain + tld) is remaining.
+Similar to `query` but cuts hostnames and subdomains from the left side until the response to the query is non-empty. Stops if only the [public suffix](https://publicsuffix.org/) is remaining.
 
 #### Query:
 
