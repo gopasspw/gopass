@@ -26,10 +26,7 @@ func (r *Store) Tree() (tree.Tree, error) {
 	addFileFunc := func(in ...string) {
 		for _, f := range in {
 			ct := "text/plain"
-			if strings.HasSuffix(f, ".yaml") {
-				ct = "text/yaml"
-				f = strings.TrimSuffix(f, ".yaml")
-			} else if strings.HasSuffix(f, ".b64") {
+			if strings.HasSuffix(f, ".b64") {
 				ct = "application/octet-stream"
 				f = strings.TrimSuffix(f, ".b64")
 			}
