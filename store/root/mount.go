@@ -57,11 +57,13 @@ func (r *Store) addMount(ctx context.Context, alias, path string, keys ...string
 
 	r.mounts[alias] = s
 	if r.cfg.Mounts == nil {
-		r.cfg.Mounts = make(map[string]config.StoreConfig, 1)
+		r.cfg.Mounts = make(map[string]*config.StoreConfig, 1)
 	}
-	sc := r.cfg.Root
+	// imporant: copy root config to avoid overwriting it with sub store
+	// values
+	sc := *r.cfg.Root
 	sc.Path = path
-	r.cfg.Mounts[alias] = sc
+	r.cfg.Mounts[alias] = &sc
 	return nil
 }
 

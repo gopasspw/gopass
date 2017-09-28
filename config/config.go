@@ -22,9 +22,9 @@ func init() {
 
 // Config is the current config struct
 type Config struct {
-	Root    StoreConfig            `yaml:"root"`
-	Mounts  map[string]StoreConfig `yaml:"mounts"`
-	Version string                 `yaml:"version"`
+	Root    *StoreConfig            `yaml:"root"`
+	Mounts  map[string]*StoreConfig `yaml:"mounts"`
+	Version string                  `yaml:"version"`
 
 	// Catches all undefined files and must be empty after parsing
 	XXX map[string]interface{} `yaml:",inline"`
@@ -33,7 +33,7 @@ type Config struct {
 // New creates a new config with sane default values
 func New() *Config {
 	return &Config{
-		Root: StoreConfig{
+		Root: &StoreConfig{
 			AskForMore:  false,
 			AutoImport:  true,
 			AutoSync:    true,
@@ -42,7 +42,7 @@ func New() *Config {
 			NoPager:     false,
 			SafeContent: false,
 		},
-		Mounts:  make(map[string]StoreConfig),
+		Mounts:  make(map[string]*StoreConfig),
 		Version: "",
 	}
 }

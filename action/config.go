@@ -12,14 +12,14 @@ import (
 // Config handles changes to the gopass configuration
 func (s *Action) Config(ctx context.Context, c *cli.Context) error {
 	if len(c.Args()) < 1 {
-		if err := s.printConfigValues(); err != nil {
+		if err := s.printConfigValues(""); err != nil {
 			return s.exitError(ctx, ExitUnknown, err, "Error printing config")
 		}
 		return nil
 	}
 
 	if len(c.Args()) == 1 {
-		if err := s.printConfigValues(c.Args()[0]); err != nil {
+		if err := s.printConfigValues("", c.Args()[0]); err != nil {
 			return s.exitError(ctx, ExitUnknown, err, "Error printing config value")
 		}
 		return nil
@@ -35,17 +35,23 @@ func (s *Action) Config(ctx context.Context, c *cli.Context) error {
 	return nil
 }
 
-func (s *Action) printConfigValues(needles ...string) error {
+func (s *Action) printConfigValues(store string, needles ...string) error {
 	prefix := ""
 	if len(needles) < 1 {
 		fmt.Printf("root store config:\n")
 		prefix = "  "
 	}
+
 	m := s.cfg.Root.ConfigMap()
-	for _, k := range filter(m, needles) {
-		fmt.Printf("%s%s: %s\n", prefix, k, m[k])
+	if store == "" {
+		for _, k := range filter(m, needles) {
+			fmt.Printf("%s%s: %s\n", prefix, k, m[k])
+		}
 	}
 	for mp, sc := range s.cfg.Mounts {
+		if store != "" && mp != store {
+			continue
+		}
 		if len(needles) < 1 {
 			fmt.Printf("mount '%s' config:\n", mp)
 			mp = "  "
@@ -54,7 +60,7 @@ func (s *Action) printConfigValues(needles ...string) error {
 		}
 		sm := sc.ConfigMap()
 		for _, k := range filter(sm, needles) {
-			if sm[k] != m[k] {
+			if sm[k] != m[k] || store != "" {
 				fmt.Printf("%s%s: %s\n", mp, k, sm[k])
 			}
 		}
@@ -90,7 +96,7 @@ func (s *Action) setConfigValue(ctx context.Context, store, key, value string) e
 	if err := s.cfg.SetConfigValue(store, key, value); err != nil {
 		return errors.Wrapf(err, "failed to set config value '%s'", key)
 	}
-	return s.printConfigValues(key)
+	return s.printConfigValues(store, key)
 }
 
 // ConfigComplete will print the list of valid config keys

@@ -31,7 +31,7 @@ func TestSimpleList(t *testing.T) {
 	}
 
 	rs, err := New(ctx, &config.Config{
-		Root: config.StoreConfig{
+		Root: &config.StoreConfig{
 			Path: tempdir,
 		},
 	})
@@ -84,7 +84,7 @@ func TestListMulti(t *testing.T) {
 	sort.Strings(ents)
 
 	rs, err := New(ctx, &config.Config{
-		Root: config.StoreConfig{
+		Root: &config.StoreConfig{
 			Path: tempdir + "/root",
 		},
 	})
@@ -149,7 +149,7 @@ func TestListNested(t *testing.T) {
 	sort.Strings(ents)
 
 	rs, err := New(ctx, &config.Config{
-		Root: config.StoreConfig{
+		Root: &config.StoreConfig{
 			Path: tempdir + "/root",
 		},
 	})
