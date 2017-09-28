@@ -24,13 +24,13 @@ func (s *Action) Show(ctx context.Context, c *cli.Context) error {
 	force := c.Bool("force")
 	qr := c.Bool("qr")
 
-	if err := s.show(ctx, c, name, key, clip, force, qr); err != nil {
+	if err := s.show(ctx, c, name, key, clip, force, qr, true); err != nil {
 		return s.exitError(ctx, ExitDecrypt, err, "%s", err)
 	}
 	return nil
 }
 
-func (s *Action) show(ctx context.Context, c *cli.Context, name, key string, clip, force, qr bool) error {
+func (s *Action) show(ctx context.Context, c *cli.Context, name, key string, clip, force, qr, recurse bool) error {
 	if name == "" {
 		return s.exitError(ctx, ExitUsage, nil, "Usage: %s show [name]", s.Name)
 	}
@@ -46,7 +46,7 @@ func (s *Action) show(ctx context.Context, c *cli.Context, name, key string, cli
 
 	sec, err := s.Store.Get(ctx, name)
 	if err != nil {
-		if err != store.ErrNotFound {
+		if err != store.ErrNotFound || !recurse {
 			return s.exitError(ctx, ExitUnknown, err, "failed to retrieve secret '%s': %s", name, err)
 		}
 		color.Yellow("Entry '%s' not found. Starting search...", name)
