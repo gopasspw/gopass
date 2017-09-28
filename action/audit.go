@@ -2,6 +2,7 @@ package action
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/fatih/color"
@@ -100,11 +101,11 @@ func (s *Action) Audit(ctx context.Context, c *cli.Context) error {
 		fmt.Println(color.GreenString("No shared secrets found."))
 	}
 
-	foundWeakPasswords := printAuditResults(messages, "%s:\n", color.CyanString)
+	foundWeakPasswords := printAuditResults(ctx, messages, "%s:\n", color.CyanString)
 	if !foundWeakPasswords {
 		fmt.Println(color.GreenString("No weak secrets detected."))
 	}
-	foundErrors := printAuditResults(errors, "%s:\n", color.RedString)
+	foundErrors := printAuditResults(ctx, errors, "%s:\n", color.RedString)
 
 	if foundWeakPasswords || foundDuplicates || foundErrors {
 		return s.exitError(ctx, ExitAudit, nil, "found weak passwords or duplicates")
@@ -115,9 +116,21 @@ func (s *Action) Audit(ctx context.Context, c *cli.Context) error {
 
 func (s *Action) audit(ctx context.Context, validator *crunchy.Validator, secrets <-chan string, checked chan<- auditedSecret) {
 	for secret := range secrets {
+		// check for context cancelation
+		select {
+		case <-ctx.Done():
+			checked <- auditedSecret{name: secret, content: "", err: errors.New("user aborted")}
+			continue
+		default:
+		}
+
 		sec, err := s.Store.Get(ctx, secret)
 		if err != nil {
-			checked <- auditedSecret{name: secret, content: sec.Password(), err: err}
+			pw := ""
+			if sec != nil {
+				pw = sec.Password()
+			}
+			checked <- auditedSecret{name: secret, content: pw, err: err}
 			continue
 		}
 
@@ -130,7 +143,7 @@ func (s *Action) audit(ctx context.Context, validator *crunchy.Validator, secret
 	}
 }
 
-func printAuditResults(m map[string][]string, format string, color func(format string, a ...interface{}) string) bool {
+func printAuditResults(ctx context.Context, m map[string][]string, format string, color func(format string, a ...interface{}) string) bool {
 	b := false
 
 	for msg, secrets := range m {
