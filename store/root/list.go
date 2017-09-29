@@ -25,10 +25,16 @@ func (r *Store) Tree() (tree.Tree, error) {
 	root := simple.New("gopass")
 	addFileFunc := func(in ...string) {
 		for _, f := range in {
-			ct := "text/plain"
-			if strings.HasSuffix(f, ".b64") {
+			var ct string
+			switch {
+			case strings.HasSuffix(f, ".b64"):
 				ct = "application/octet-stream"
-				f = strings.TrimSuffix(f, ".b64")
+			case strings.HasSuffix(f, ".yml"):
+				ct = "text/yaml"
+			case strings.HasSuffix(f, ".yaml"):
+				ct = "text/yaml"
+			default:
+				ct = "text/plain"
 			}
 			if err := root.AddFile(f, ct); err != nil {
 				fmt.Printf("Failed to add file %s to tree: %s\n", f, err)
