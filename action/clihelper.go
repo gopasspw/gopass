@@ -235,6 +235,12 @@ func (s *Action) askForGitConfigUser(ctx context.Context) (string, string, error
 			if !ctxutil.IsTerminal(ctx) || ctxutil.IsAlwaysYes(ctx) {
 				return identity.Name, identity.Email, nil
 			}
+			// check for context cancelation
+			select {
+			case <-ctx.Done():
+				return "", "", errors.New("user aborted")
+			default:
+			}
 
 			useCurrent, err = s.askForBool(
 				fmt.Sprintf("Use %s (%s) for password store git config?", identity.Name, identity.Email), false)
@@ -244,7 +250,6 @@ func (s *Action) askForGitConfigUser(ctx context.Context) (string, string, error
 			if useCurrent {
 				return identity.Name, identity.Email, nil
 			}
-
 		}
 	}
 

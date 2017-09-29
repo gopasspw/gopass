@@ -25,6 +25,8 @@ func (s *Action) Init(ctx context.Context, c *cli.Context) error {
 	alias := c.String("store")
 	nogit := c.Bool("nogit")
 
+	fmt.Println(color.CyanString("Initializing a new password store ...\n"))
+
 	if err := s.init(ctx, alias, path, nogit, c.Args()...); err != nil {
 		return s.exitError(ctx, ExitUnknown, err, "failed to initialized store: %s", err)
 	}
@@ -37,7 +39,7 @@ func (s *Action) init(ctx context.Context, alias, path string, nogit bool, keys 
 	}
 
 	if len(keys) < 1 {
-		nk, err := s.askForPrivateKey(ctx, color.CyanString("Please select a private key for encryption:"))
+		nk, err := s.askForPrivateKey(ctx, color.CyanString("Please select a private key for encrypting secrets:"))
 		if err != nil {
 			return errors.Wrapf(err, "failed to read user input")
 		}
@@ -67,7 +69,7 @@ func (s *Action) init(ctx context.Context, alias, path string, nogit bool, keys 
 		}
 	}
 
-	fmt.Fprint(color.Output, color.GreenString("Password store %s initialized for:\n", path))
+	fmt.Fprint(color.Output, color.GreenString("\nPassword store %s initialized for:\n", path))
 	for _, recipient := range s.Store.ListRecipients(ctx, alias) {
 		r := "0x" + recipient
 		if kl, err := s.gpg.FindPublicKeys(ctx, recipient); err == nil && len(kl) > 0 {

@@ -104,6 +104,8 @@ func (g *GPG) parseColons(reader io.Reader) gpg.KeyList {
 					ni.Email = m[2]
 				}
 			}
+			ni.CreationDate = parseTS(fields[5])
+			ni.ExpirationDate = parseTS(fields[6])
 			cur.Identities[sn] = ni
 		}
 	}

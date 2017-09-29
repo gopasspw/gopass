@@ -138,11 +138,12 @@ func (s *Action) findHIBPMatches(ctx context.Context, fn string, shaSums map[str
 	lineNo := 0
 	numMatches := 0
 	scanner := bufio.NewScanner(fh)
+SCAN:
 	for scanner.Scan() {
 		// check for context cancelation
 		select {
 		case <-ctx.Done():
-			break
+			break SCAN
 		default:
 		}
 

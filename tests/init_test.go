@@ -14,14 +14,14 @@ func TestInit(t *testing.T) {
 
 	out, err := ts.run("init")
 	assert.Error(t, err)
-	assert.Equal(t, "\nError: failed to initialized store: failed to read user input: no interaction without terminal\n", out)
+	assert.Equal(t, "Initializing a new password store ...\n\n\nError: failed to initialized store: failed to read user input: no interaction without terminal\n", out)
 
 	ts = newTester(t)
 	defer ts.teardown()
 
 	out, err = ts.run("init " + keyID)
 	assert.NoError(t, err)
-	assert.Contains(t, out, "Please enter a user name for password store git config [John Doe]:")
+	assert.Contains(t, out, "initialized for")
 
 	ts = newTester(t)
 	defer ts.teardown()
