@@ -33,13 +33,14 @@ func (c *Pre140) Config() *Config {
 		SafeContent: c.SafeContent,
 	}
 	cfg := &Config{
-		Root:    sc,
-		Mounts:  make(map[string]StoreConfig, len(c.Mounts)),
+		Root:    &sc,
+		Mounts:  make(map[string]*StoreConfig, len(c.Mounts)),
 		Version: c.Version,
 	}
 	for k, v := range c.Mounts {
-		sc.Path = v
-		cfg.Mounts[k] = sc
+		subSc := sc
+		subSc.Path = v
+		cfg.Mounts[k] = &subSc
 	}
 	return cfg
 }

@@ -49,7 +49,7 @@ func load(cf string) (*Config, error) {
 		return nil, ErrConfigNotParsed
 	}
 	if cfg.Mounts == nil {
-		cfg.Mounts = make(map[string]StoreConfig)
+		cfg.Mounts = make(map[string]*StoreConfig)
 	}
 	return cfg, nil
 }
@@ -74,7 +74,7 @@ type configer interface {
 func decode(buf []byte) (*Config, error) {
 	cfgs := []configer{
 		&Config{
-			Root: StoreConfig{
+			Root: &StoreConfig{
 				AutoSync: true,
 			},
 		},
