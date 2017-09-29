@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/utils/fsutil"
 	"github.com/pkg/errors"
 )
@@ -30,7 +31,12 @@ You can add secondary stores with gopass init --path <path to secondary store> -
 		}
 		kl, err := s.gpg.FindPublicKeys(ctx, id)
 		if err != nil || len(kl) < 1 {
-			fmt.Println("Failed to fetch public key:", id)
+			fmt.Println(color.RedString("Failed to fetch public key for '%s': %s", id, err))
+			continue
+		}
+		kl = kl.UseableKeys()
+		if len(kl) < 1 {
+			fmt.Println(color.RedString("No useable keys for '%s'", id))
 			continue
 		}
 		recipients = append(recipients, kl[0].Fingerprint)

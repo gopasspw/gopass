@@ -36,6 +36,7 @@ func (s *Action) GitInit(ctx context.Context, c *cli.Context) error {
 }
 
 func (s *Action) gitInit(ctx context.Context, store, sk string) error {
+	fmt.Println(color.GreenString("Initializing embedded password store git repo ..."))
 	if sk == "" {
 		s, err := s.askForPrivateKey(ctx, color.CyanString("Please select a key for signing Git Commits"))
 		if err == nil {
@@ -47,19 +48,25 @@ func (s *Action) gitInit(ctx context.Context, store, sk string) error {
 	// NB: discarding returned error since this is merely a best-effort look-up for convenience
 	userName, userEmail, _ := s.askForGitConfigUser(ctx)
 
-	userName, err := s.askForString(color.CyanString("Please enter a user name for password store git config"), userName)
-	if err != nil {
-		return errors.Wrapf(err, "failed to ask for user input")
+	if userName == "" {
+		var err error
+		userName, err = s.askForString(color.CyanString("Please enter a user name for password store git config"), userName)
+		if err != nil {
+			return errors.Wrapf(err, "failed to ask for user input")
+		}
 	}
-	userEmail, err = s.askForString(color.CyanString("Please enter an email address for password store git config"), userEmail)
-	if err != nil {
-		return errors.Wrapf(err, "failed to ask for user input")
+	if userEmail == "" {
+		var err error
+		userEmail, err = s.askForString(color.CyanString("Please enter an email address for password store git config"), userEmail)
+		if err != nil {
+			return errors.Wrapf(err, "failed to ask for user input")
+		}
 	}
 
 	if err := s.Store.GitInit(ctx, store, sk, userName, userEmail); err != nil {
 		return errors.Wrapf(err, "failed to run git init")
 	}
 
-	fmt.Println(color.GreenString("Git initialized"))
+	fmt.Println(color.GreenString("Git initialized\n"))
 	return nil
 }

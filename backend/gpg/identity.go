@@ -1,10 +1,14 @@
 package gpg
 
+import "time"
+
 // Identity is a GPG identity, one key can have many IDs
 type Identity struct {
-	Name    string
-	Comment string
-	Email   string
+	Name           string
+	Comment        string
+	Email          string
+	CreationDate   time.Time
+	ExpirationDate time.Time
 }
 
 // ID returns the GPG ID format
