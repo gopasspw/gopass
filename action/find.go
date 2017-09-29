@@ -33,7 +33,7 @@ func (s *Action) Find(ctx context.Context, c *cli.Context) error {
 
 	if len(choices) == 1 {
 		fmt.Println(color.GreenString("Found exact match in '%s'", choices[0]))
-		return s.show(ctx, c, choices[0], "", false, false, false)
+		return s.show(ctx, c, choices[0], "", false, false, false, false)
 	}
 
 	if len(choices) < 1 {
@@ -55,9 +55,9 @@ func (s *Action) Find(ctx context.Context, c *cli.Context) error {
 	act, sel := termwiz.GetSelection(choices)
 	switch act {
 	case "copy":
-		return s.show(ctx, c, choices[sel], "", true, false, false)
+		return s.show(ctx, c, choices[sel], "", true, false, false, false)
 	case "show":
-		return s.show(ctx, c, choices[sel], "", false, false, false)
+		return s.show(ctx, c, choices[sel], "", false, false, false, false)
 	default:
 		return s.exitError(ctx, ExitAborted, nil, "user aborted")
 	}
