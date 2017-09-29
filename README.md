@@ -501,6 +501,8 @@ $ gopass ls --flat | dmenu | xargs --no-run-if-empty gopass show | head -n 1 | x
 * `gpg`
 * `git`
 
+As well as some external editor (using `vim` by default).
+
 On Debian-based Linux systems you should run this command:
 
 ```bash
@@ -533,6 +535,18 @@ We recommend these ones:
 
 * ["git + gpg, know thy commits" at coderwall](https://coderwall.com/p/d3uo3w/git-gpg-know-thy-commits)
 * ["Generating a new GPG key" by GitHub](https://help.github.com/articles/generating-a-new-gpg-key/)
+
+### Securing your editor
+
+Various editors may store temporary files outside of the secure working directory
+when editing secrets. It's advised to check and disable this behaviour for
+your editor of choice.
+
+For vim on linux this setting may be helpful:
+
+```
+au BufNewFile,BufRead /dev/shm/gopass.* setlocal noswapfile nobackup noundofile
+```
 
 ### Data Organization
 

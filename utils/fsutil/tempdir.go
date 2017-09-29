@@ -41,7 +41,7 @@ func TempFile(ctx context.Context, prefix string) (TempFiler, error) {
 		return nil, err
 	}
 
-	fn := filepath.Join(tf.dir, "tempfile")
+	fn := filepath.Join(tf.dir, "secret")
 	fh, err := os.OpenFile(fn, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0600)
 	if err != nil {
 		return nil, errors.Errorf("Failed to open file %s: %s", fn, err)
