@@ -50,6 +50,13 @@ func (s *Action) HIBP(ctx context.Context, c *cli.Context) error {
 	}
 	fmt.Println("Computing SHA1 hashes of all your secrets ...")
 	for _, secret := range pwList {
+		// check for context cancelation
+		select {
+		case <-ctx.Done():
+			return s.exitError(ctx, ExitAborted, nil, "user aborted")
+		default:
+		}
+
 		bar.Current++
 		bar.Text = fmt.Sprintf("%d of %d secrets computed", bar.Current, bar.Total)
 		bar.LazyPrint()
@@ -132,6 +139,13 @@ func (s *Action) findHIBPMatches(ctx context.Context, fn string, shaSums map[str
 	numMatches := 0
 	scanner := bufio.NewScanner(fh)
 	for scanner.Scan() {
+		// check for context cancelation
+		select {
+		case <-ctx.Done():
+			break
+		default:
+		}
+
 		line := strings.TrimSpace(scanner.Text())
 		lineNo++
 		if i >= len(sortedShaSums) {
