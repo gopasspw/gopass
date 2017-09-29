@@ -98,8 +98,8 @@ func (s *Action) show(ctx context.Context, c *cli.Context, name, key string, cli
 		}
 	}
 
-	fmt.Print(color.YellowString(strings.TrimRight(string(content), "\r\n")))
-	if ctxutil.IsTerminal(ctx) {
+	fmt.Print(color.YellowString(content))
+	if ctxutil.IsTerminal(ctx) && !strings.HasSuffix(content, "\n") {
 		fmt.Println("")
 	}
 
