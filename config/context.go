@@ -8,15 +8,25 @@ import (
 )
 
 // WithContext returns a context with all config options set for this store
-// config
+// config, iff they have not been already set in the context
 func (c StoreConfig) WithContext(ctx context.Context) context.Context {
-	ctx = ctxutil.WithAskForMore(ctx, c.AskForMore)
+	if !ctxutil.HasAskForMore(ctx) {
+		ctx = ctxutil.WithAskForMore(ctx, c.AskForMore)
+	}
 	if !c.AutoImport {
 		ctx = sub.WithImportFunc(ctx, nil)
 	}
-	ctx = sub.WithAutoSync(ctx, c.AutoSync)
-	ctx = ctxutil.WithClipTimeout(ctx, c.ClipTimeout)
-	ctx = ctxutil.WithNoConfirm(ctx, c.NoConfirm)
-	ctx = ctxutil.WithShowSafeContent(ctx, c.SafeContent)
+	if !sub.HasAutoSync(ctx) {
+		ctx = sub.WithAutoSync(ctx, c.AutoSync)
+	}
+	if !ctxutil.HasClipTimeout(ctx) {
+		ctx = ctxutil.WithClipTimeout(ctx, c.ClipTimeout)
+	}
+	if !ctxutil.HasNoConfirm(ctx) {
+		ctx = ctxutil.WithNoConfirm(ctx, c.NoConfirm)
+	}
+	if !ctxutil.HasShowSafeContent(ctx) {
+		ctx = ctxutil.WithShowSafeContent(ctx, c.SafeContent)
+	}
 	return ctx
 }

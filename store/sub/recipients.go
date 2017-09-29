@@ -177,16 +177,15 @@ func (s *Store) saveRecipients(ctx context.Context, rs []string, msg string, exp
 		return errors.Wrapf(err, "failed to write recipients file")
 	}
 
-	err := s.gitAdd(ctx, idf)
-	if err == nil {
-		if err := s.gitCommit(ctx, msg); err != nil {
-			if err != store.ErrGitNotInit && err != store.ErrGitNothingToCommit {
-				return errors.Wrapf(err, "failed to commit changes to git")
-			}
-		}
-	} else {
+	if err := s.gitAdd(ctx, idf); err != nil {
 		if err != store.ErrGitNotInit {
 			return errors.Wrapf(err, "failed to add file '%s' to git", idf)
+		}
+	}
+
+	if err := s.gitCommit(ctx, msg); err != nil {
+		if err != store.ErrGitNotInit && err != store.ErrGitNothingToCommit {
+			return errors.Wrapf(err, "failed to commit changes to git")
 		}
 	}
 

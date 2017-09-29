@@ -152,16 +152,25 @@ func (s *Store) reencrypt(ctx context.Context) error {
 	}
 
 	// save original value of auto push
-	ctx2 := WithAutoSync(ctx, false)
-	ctx2 = ctxutil.WithGitCommit(ctx2, false)
-	for _, e := range entries {
-		content, err := s.Get(ctx2, e)
-		if err != nil {
-			fmt.Printf("Failed to get current value for %s: %s\n", e, err)
-			continue
-		}
-		if err := s.Set(ctx2, e, content); err != nil {
-			fmt.Printf("Failed to write %s: %s\n", e, err)
+	{
+		// shadow ctx in this block only
+		ctx := WithAutoSync(ctx, false)
+		ctx = ctxutil.WithGitCommit(ctx, false)
+		for _, e := range entries {
+			// check for context cancelation
+			select {
+			case <-ctx.Done():
+				return errors.New("context canceled")
+			default:
+			}
+			content, err := s.Get(ctx, e)
+			if err != nil {
+				fmt.Printf("Failed to get current value for %s: %s\n", e, err)
+				continue
+			}
+			if err := s.Set(ctx, e, content); err != nil {
+				fmt.Printf("Failed to write %s: %s\n", e, err)
+			}
 		}
 	}
 

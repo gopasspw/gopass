@@ -24,6 +24,12 @@ func WithDebug(ctx context.Context, dbg bool) context.Context {
 	return context.WithValue(ctx, ctxKeyDebug, dbg)
 }
 
+// HasDebug returns true if a value for debug has been set in this context
+func HasDebug(ctx context.Context) bool {
+	_, ok := ctx.Value(ctxKeyDebug).(bool)
+	return ok
+}
+
 // IsDebug returns the value of debug or the default (false)
 func IsDebug(ctx context.Context) bool {
 	bv, ok := ctx.Value(ctxKeyDebug).(bool)
@@ -36,6 +42,12 @@ func IsDebug(ctx context.Context) bool {
 // WithColor returns a context with an explizit value for color
 func WithColor(ctx context.Context, color bool) context.Context {
 	return context.WithValue(ctx, ctxKeyColor, color)
+}
+
+// HasColor returns true if a value for Color has been set in this context
+func HasColor(ctx context.Context) bool {
+	_, ok := ctx.Value(ctxKeyColor).(bool)
+	return ok
 }
 
 // IsColor returns the value of color or the default (true)
@@ -52,6 +64,12 @@ func WithTerminal(ctx context.Context, isTerm bool) context.Context {
 	return context.WithValue(ctx, ctxKeyTerminal, isTerm)
 }
 
+// HasTerminal returns true if a value for Terminal has been set in this context
+func HasTerminal(ctx context.Context) bool {
+	_, ok := ctx.Value(ctxKeyTerminal).(bool)
+	return ok
+}
+
 // IsTerminal returns the value of terminal or the default (true)
 func IsTerminal(ctx context.Context) bool {
 	bv, ok := ctx.Value(ctxKeyTerminal).(bool)
@@ -64,6 +82,12 @@ func IsTerminal(ctx context.Context) bool {
 // WithInteractive returns a context with an explizit value for interactive
 func WithInteractive(ctx context.Context, isInteractive bool) context.Context {
 	return context.WithValue(ctx, ctxKeyInteractive, isInteractive)
+}
+
+// HasInteractive returns true if a value for Interactive has been set in this context
+func HasInteractive(ctx context.Context) bool {
+	_, ok := ctx.Value(ctxKeyInteractive).(bool)
+	return ok
 }
 
 // IsInteractive returns the value of interactive or the default (true)
@@ -81,6 +105,12 @@ func WithStdin(ctx context.Context, isStdin bool) context.Context {
 	return context.WithValue(ctx, ctxKeyStdin, isStdin)
 }
 
+// HasStdin returns true if a value for Stdin has been set in this context
+func HasStdin(ctx context.Context) bool {
+	_, ok := ctx.Value(ctxKeyStdin).(bool)
+	return ok
+}
+
 // IsStdin returns the value of stdin, i.e. if it's true some data is being
 // piped to stdin. If not set it returns the default value (false)
 func IsStdin(ctx context.Context) bool {
@@ -94,6 +124,12 @@ func IsStdin(ctx context.Context) bool {
 // WithAskForMore returns a context with the value for ask for more set
 func WithAskForMore(ctx context.Context, afm bool) context.Context {
 	return context.WithValue(ctx, ctxKeyAskForMore, afm)
+}
+
+// HasAskForMore returns true if a value for AskForMore has been set in this context
+func HasAskForMore(ctx context.Context) bool {
+	_, ok := ctx.Value(ctxKeyAskForMore).(bool)
+	return ok
 }
 
 // IsAskForMore returns the value of ask for more or the default (false)
@@ -110,6 +146,12 @@ func WithClipTimeout(ctx context.Context, to int) context.Context {
 	return context.WithValue(ctx, ctxKeyClipTimeout, to)
 }
 
+// HasClipTimeout returns true if a value for ClipTimeout has been set in this context
+func HasClipTimeout(ctx context.Context) bool {
+	_, ok := ctx.Value(ctxKeyClipTimeout).(int)
+	return ok
+}
+
 // GetClipTimeout returns the value of clip timeout or the default (45)
 func GetClipTimeout(ctx context.Context) int {
 	iv, ok := ctx.Value(ctxKeyClipTimeout).(int)
@@ -122,6 +164,12 @@ func GetClipTimeout(ctx context.Context) int {
 // WithNoConfirm returns a context with the value for ask for more set
 func WithNoConfirm(ctx context.Context, bv bool) context.Context {
 	return context.WithValue(ctx, ctxKeyNoConfirm, bv)
+}
+
+// HasNoConfirm returns true if a value for NoConfirm has been set in this context
+func HasNoConfirm(ctx context.Context) bool {
+	_, ok := ctx.Value(ctxKeyNoConfirm).(bool)
+	return ok
 }
 
 // IsNoConfirm returns the value of ask for more or the default (false)
@@ -138,6 +186,12 @@ func WithNoPager(ctx context.Context, bv bool) context.Context {
 	return context.WithValue(ctx, ctxKeyNoPager, bv)
 }
 
+// HasNoPager returns true if a value for NoPager has been set in this context
+func HasNoPager(ctx context.Context) bool {
+	_, ok := ctx.Value(ctxKeyNoPager).(bool)
+	return ok
+}
+
 // IsNoPager returns the value of ask for more or the default (false)
 func IsNoPager(ctx context.Context) bool {
 	bv, ok := ctx.Value(ctxKeyNoPager).(bool)
@@ -150,6 +204,12 @@ func IsNoPager(ctx context.Context) bool {
 // WithShowSafeContent returns a context with the value for ask for more set
 func WithShowSafeContent(ctx context.Context, bv bool) context.Context {
 	return context.WithValue(ctx, ctxKeyShowSafeContent, bv)
+}
+
+// HasShowSafeContent returns true if a value for ShowSafeContent has been set in this context
+func HasShowSafeContent(ctx context.Context) bool {
+	_, ok := ctx.Value(ctxKeyShowSafeContent).(bool)
+	return ok
 }
 
 // IsShowSafeContent returns the value of ask for more or the default (false)
@@ -166,6 +226,12 @@ func WithGitCommit(ctx context.Context, bv bool) context.Context {
 	return context.WithValue(ctx, ctxKeyGitCommit, bv)
 }
 
+// HasGitCommit returns true if a value for GitCommit has been set in this context
+func HasGitCommit(ctx context.Context) bool {
+	_, ok := ctx.Value(ctxKeyShowSafeContent).(bool)
+	return ok
+}
+
 // IsGitCommit returns the value of git commit or the default (true)
 func IsGitCommit(ctx context.Context) bool {
 	bv, ok := ctx.Value(ctxKeyGitCommit).(bool)
@@ -178,6 +244,12 @@ func IsGitCommit(ctx context.Context) bool {
 // WithAlwaysYes returns a context with the value of always yes set
 func WithAlwaysYes(ctx context.Context, bv bool) context.Context {
 	return context.WithValue(ctx, ctxKeyAlwaysYes, bv)
+}
+
+// HasAlwaysYes returns true if a value for AlwaysYes has been set in this context
+func HasAlwaysYes(ctx context.Context) bool {
+	_, ok := ctx.Value(ctxKeyAlwaysYes).(bool)
+	return ok
 }
 
 // IsAlwaysYes returns the value of always yes or the default (false)

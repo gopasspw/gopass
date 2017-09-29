@@ -32,13 +32,11 @@ func (s *Store) Set(ctx context.Context, name string, sec *secret.Secret) error 
 	}
 
 	// confirm recipients
-	if cb := GetRecipientFunc(ctx); cb != nil {
-		newRecipients, err := cb(ctx, name, recipients)
-		if err != nil {
-			return errors.Wrapf(err, "user aborted")
-		}
-		recipients = newRecipients
+	newRecipients, err := GetRecipientFunc(ctx)(ctx, name, recipients)
+	if err != nil {
+		return errors.Wrapf(err, "user aborted")
 	}
+	recipients = newRecipients
 
 	buf, err := sec.Bytes()
 	if err != nil {
