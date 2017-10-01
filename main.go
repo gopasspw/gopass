@@ -437,10 +437,47 @@ func main() {
 		},
 		{
 			Name:        "jsonapi",
-			Usage:       "Run golang as jsonapi e.g. for browser plugins",
-			Description: "Golang reads messages from stdin and responds to stdout in this mode",
-			Action: func(c *cli.Context) error {
-				return action.JSONAPI(ctx, c)
+			Usage:       "Run gopass as jsonapi e.g. for browser plugins",
+			Description: "Setup and run gopass as native messaging hosts, e.g. for browser plugins.",
+			Subcommands: []cli.Command{
+				{
+					Name:        "listen",
+					Usage:       "Listen and respond to messages via stdin/stdout",
+					Description: "Gopass is started in listen mode from browser plugins using a wrapper specified in native messaging host manifests",
+					Action: func(c *cli.Context) error {
+						return action.JSONAPI(withGlobalFlags(ctx, c), c)
+					},
+				},
+				{
+					Name:        "configure",
+					Usage:       "Setup gopass native messaging manifest for selected browser",
+					Description: "To access gopass from browser plugins, a native app manifest must be installed at the correct location",
+					Action: func(c *cli.Context) error {
+						return action.SetupNativeMessaging(withGlobalFlags(ctx, c), c)
+					},
+					Flags: []cli.Flag{
+						cli.StringFlag{
+							Name:  "browser",
+							Usage: "One of 'chrome' and 'firefox'",
+						},
+						cli.StringFlag{
+							Name:  "path",
+							Usage: "Path to install 'gopass_wrapper.sh' to",
+						},
+						cli.BoolFlag{
+							Name:  "global",
+							Usage: "Install for all users, requires superuser rights",
+						},
+						cli.StringFlag{
+							Name:  "libpath",
+							Usage: "Library path for global installation on linux. Default is /usr/lib",
+						},
+						cli.BoolFlag{
+							Name:  "print-only",
+							Usage: "only print installation summary but do not actually create any files",
+						},
+					},
+				},
 			},
 		},
 		{
