@@ -17,7 +17,10 @@ import (
 func CleanPath(path string) string {
 	if fi, err := os.Lstat(path); err == nil {
 		if fi.Mode()&os.ModeSymlink == os.ModeSymlink {
-			path, _ = filepath.EvalSymlinks(path)
+			resolvedPath, err := filepath.EvalSymlinks(path)
+			if err != nil {
+				path = resolvedPath
+			}
 		}
 	}
 	// http://stackoverflow.com/questions/17609732/expand-tilde-to-home-directory
