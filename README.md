@@ -72,8 +72,8 @@ and licensed under the terms of the MIT license.
 
 Maintainers of this repository:
 
-* Matthias Loibl <matthias.loibl@justwatch.com> @metalmatze
-* Dominik Schulz <dominik.schulz@justwatch.com> @dominikschulz
+* Matthias Loibl <mail@matthiasloibl.com> [@metalmatze](https://github.com/metalmatze)
+* Dominik Schulz <dominik.schulz@justwatch.com> [@dominikschulz](https://github.com/dominikschulz)
 
 Please refer to the Git commit log for a complete list of contributors.
 
