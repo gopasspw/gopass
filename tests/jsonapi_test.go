@@ -44,7 +44,7 @@ func writeMessageWithLength(message string) io.Reader {
 }
 
 func getMessageResponse(t *testing.T, ts *tester, message string) string {
-	out, err := ts.runWithInputReader("jsonapi", writeMessageWithLength(message))
+	out, err := ts.runWithInputReader("jsonapi listen", writeMessageWithLength(message))
 	assert.NoError(t, err)
 	return readAndVerifyMessageLength(t, out)
 }
@@ -78,7 +78,7 @@ func TestJSONAPI(t *testing.T) {
 	require.NoError(ts.t, err, "failed to insert password:\n%s", out)
 
 	// message has length specified but invalid json
-	strout, err := ts.runWithInput("jsonapi", "1234Xabcd")
+	strout, err := ts.runWithInput("jsonapi listen", "1234Xabcd")
 	assert.NoError(t, err)
 	assert.Equal(t, "{\"error\":\"incomplete message read\"}", readAndVerifyMessageLength(t, strout))
 
