@@ -55,8 +55,12 @@ func (s *Action) Find(ctx context.Context, c *cli.Context) error {
 	act, sel := termwiz.GetSelection(choices)
 	switch act {
 	case "copy":
+		// display selected entry
+		fmt.Println(choices[sel])
 		return s.show(ctx, c, choices[sel], "", true, false, false, false)
 	case "show":
+		// display selected entry
+		fmt.Println(choices[sel])
 		return s.show(ctx, c, choices[sel], "", false, false, false, false)
 	default:
 		return s.exitError(ctx, ExitAborted, nil, "user aborted")
