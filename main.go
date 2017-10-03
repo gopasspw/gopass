@@ -433,6 +433,10 @@ func main() {
 					Name:  "symbols, s",
 					Usage: "Use symbols in the password",
 				},
+				cli.BoolFlag{
+					Name:  "xkcd, x",
+					Usage: "Use multiple random english words as password",
+				},
 			},
 		},
 		{

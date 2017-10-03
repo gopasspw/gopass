@@ -10,11 +10,13 @@ import (
 	"github.com/justwatchcom/gopass/store/sub"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/pwgen"
+	"github.com/martinhoefling/goxkcdpwgen/xkcdpwgen"
 	"github.com/urfave/cli"
 )
 
 const (
-	defaultLength = 24
+	defaultLength     = 24
+	defaultXKCDLength = 4
 )
 
 // Generate & save a password
@@ -22,6 +24,7 @@ func (s *Action) Generate(ctx context.Context, c *cli.Context) error {
 	force := c.Bool("force")
 	edit := c.Bool("edit")
 	symbols := c.Bool("symbols")
+	xkcd := c.Bool("xkcd")
 	if c.IsSet("no-symbols") {
 		fmt.Println(color.RedString("Warning: -n/--no-symbols is deprecated. This is now the default. Use -s to enable symbols"))
 	}
@@ -54,8 +57,15 @@ func (s *Action) Generate(ctx context.Context, c *cli.Context) error {
 	}
 
 	if length == "" {
-		length = strconv.Itoa(defaultLength)
-		if l, err := s.askForInt("How long should the password be?", defaultLength); err == nil {
+		def := defaultLength
+		question := "How long should the password be?"
+		if xkcd {
+			def = defaultXKCDLength
+			length = strconv.Itoa(defaultXKCDLength)
+			question = "How many words should be combined to a password?"
+		}
+		length = strconv.Itoa(def)
+		if l, err := s.askForInt(question, def); err == nil {
 			length = strconv.Itoa(l)
 		}
 	}
@@ -68,7 +78,16 @@ func (s *Action) Generate(ctx context.Context, c *cli.Context) error {
 		return s.exitError(ctx, ExitUsage, nil, "password length must not be zero")
 	}
 
-	password := pwgen.GeneratePassword(pwlen, symbols)
+	var password []byte
+	if xkcd {
+		g := xkcdpwgen.NewGenerator()
+		g.SetCapitalize(true)
+		g.SetNumWords(pwlen)
+		g.SetDelimiter("")
+		password = g.GeneratePassword()
+	} else {
+		password = pwgen.GeneratePassword(pwlen, symbols)
+	}
 
 	// set a single key in a yaml doc
 	if key != "" {
