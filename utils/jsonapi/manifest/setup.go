@@ -81,10 +81,7 @@ func getManifest(browser, wrapperPath, libpath string, global bool) (configuredF
 	}
 	file.path = manifestPath
 	file.content, err = getManifestContent(browser, wrapperPath)
-	if err != nil {
-		return file, err
-	}
-	return file, nil
+	return file, err
 }
 
 func getWrapper(wrapperPath string) (configuredFile, error) {

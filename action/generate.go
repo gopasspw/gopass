@@ -62,7 +62,6 @@ func (s *Action) Generate(ctx context.Context, c *cli.Context) error {
 		question := "How long should the password be?"
 		if xkcd || xkcdo {
 			def = defaultXKCDLength
-			length = strconv.Itoa(defaultXKCDLength)
 			question = "How many words should be combined to a password?"
 		}
 		length = strconv.Itoa(def)
