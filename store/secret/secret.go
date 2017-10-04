@@ -120,6 +120,15 @@ func (s *Secret) Body() string {
 	return s.body
 }
 
+// Data returns the data of a secret. Unless the body was valid YAML, it returns
+// an map
+func (s *Secret) Data() map[string]interface{} {
+	s.Lock()
+	defer s.Unlock()
+
+	return s.data
+}
+
 // SetBody sets a new body possibly erasing an decoded YAML map
 func (s *Secret) SetBody(b string) error {
 	s.Lock()

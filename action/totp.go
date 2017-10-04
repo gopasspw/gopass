@@ -29,7 +29,12 @@ func (s *Action) TOTP(ctx context.Context, c *cli.Context) error {
 		return s.exitError(ctx, ExitDecrypt, err, "failed to get entry '%s': %s", name, err)
 	}
 
-	key, err := otp.NewKeyFromURL(sec.Password())
+	secKey, err := sec.Value("totp")
+	if err != nil {
+		secKey = sec.Password()
+	}
+
+	key, err := otp.NewKeyFromURL(secKey)
 	if err != nil {
 		return s.exitError(ctx, ExitUnknown, err, "failed get key from URL: %s", err)
 	}
