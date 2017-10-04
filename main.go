@@ -435,7 +435,11 @@ func main() {
 				},
 				cli.BoolFlag{
 					Name:  "xkcd, x",
-					Usage: "Use multiple random english words as password",
+					Usage: "Use multiple random english words as password, separated by space",
+				},
+				cli.BoolFlag{
+					Name:  "xkcdo, xo",
+					Usage: "Use multiple random english words as password, no separator but CamelCased",
 				},
 			},
 		},

@@ -25,6 +25,7 @@ func (s *Action) Generate(ctx context.Context, c *cli.Context) error {
 	edit := c.Bool("edit")
 	symbols := c.Bool("symbols")
 	xkcd := c.Bool("xkcd")
+	xkcdo := c.Bool("xkcdo")
 	if c.IsSet("no-symbols") {
 		fmt.Println(color.RedString("Warning: -n/--no-symbols is deprecated. This is now the default. Use -s to enable symbols"))
 	}
@@ -59,7 +60,7 @@ func (s *Action) Generate(ctx context.Context, c *cli.Context) error {
 	if length == "" {
 		def := defaultLength
 		question := "How long should the password be?"
-		if xkcd {
+		if xkcd || xkcdo {
 			def = defaultXKCDLength
 			length = strconv.Itoa(defaultXKCDLength)
 			question = "How many words should be combined to a password?"
@@ -79,11 +80,16 @@ func (s *Action) Generate(ctx context.Context, c *cli.Context) error {
 	}
 
 	var password []byte
-	if xkcd {
+	if xkcd || xkcdo {
 		g := xkcdpwgen.NewGenerator()
-		g.SetCapitalize(true)
 		g.SetNumWords(pwlen)
-		g.SetDelimiter("")
+		if xkcdo {
+			g.SetCapitalize(true)
+			g.SetDelimiter("")
+		} else {
+			g.SetCapitalize(false)
+			g.SetDelimiter(" ")
+		}
 		password = g.GeneratePassword()
 	} else {
 		password = pwgen.GeneratePassword(pwlen, symbols)
