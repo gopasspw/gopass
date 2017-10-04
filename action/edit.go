@@ -60,7 +60,7 @@ func (s *Action) Edit(ctx context.Context, c *cli.Context) error {
 
 	nSec, err := secret.Parse(nContent)
 	if err != nil {
-		return s.exitError(ctx, ExitUnknown, err, "failed to parse secret: %s", err)
+		fmt.Println(color.RedString("WARNING: Invalid YAML: %s", err))
 	}
 
 	if pw := nSec.Password(); pw != "" {
