@@ -27,7 +27,8 @@ func New(password, body string) *Secret {
 	}
 }
 
-// Parse decodes an secret
+// Parse decodes an secret. It will always return a valid secret. If decoding
+// the body to YAML is may return an error which can be ignored.
 func Parse(buf []byte) (*Secret, error) {
 	s := &Secret{}
 	lines := bytes.SplitN(buf, []byte("\n"), 2)

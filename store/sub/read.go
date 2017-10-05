@@ -31,5 +31,11 @@ func (s *Store) Get(ctx context.Context, name string) (*secret.Secret, error) {
 		return nil, store.ErrDecrypt
 	}
 
-	return secret.Parse(content)
+	sec, err := secret.Parse(content)
+	if err != nil {
+		if ctxutil.IsDebug(ctx) {
+			fmt.Printf("Failed to parse YAML: %s", err)
+		}
+	}
+	return sec, nil
 }
