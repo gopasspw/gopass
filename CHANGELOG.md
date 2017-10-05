@@ -1,3 +1,8 @@
+## 1.4.1 / 2017-10-05
+
+* [BUGFIX] Support pre-1.3.0 configs [#382]
+* [BUGFIX] Turn YAML errors into warnings [#380]
+
 ## 1.4.0 / 2017-10-04
 
 * [FEATURE] Add fuzzy search [#317]
