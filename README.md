@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="logo.png" height="500" alt="gopass Gopher by Vincent Leinweber, remixed from the Renée French original Gopher" title="gopass Gopher by Vincent Leinweber, remixed from the Renée French original Gopher" />
+    <img src="logo.png" height="250" alt="gopass Gopher by Vincent Leinweber, remixed from the Renée French original Gopher" title="gopass Gopher by Vincent Leinweber, remixed from the Renée French original Gopher" />
 </p>
 
 # gopass
@@ -10,14 +10,33 @@
 
 The slightly more awesome Standard Unix Password Manager for Teams. Written in Go.
 
+## Table of Contents
+
+1. [Abstract](#abstract)
+2. [Demo](#demo)
+3. [Features](#features)
+4. [Installation](#installation)
+5. [Development](#development)
+6. [Credit & License](#credit-&-license)
+7. [Community](#community)
+8. [Contributing](#contributing)
+9. [Acknowledgements](#acknowledgements)
+
+Further reading:
+
+* [Security](https://github.com/justwatchcom/gopass/blob/master/docs/security.md)
+* [Configuration](https://github.com/justwatchcom/gopass/blob/master/docs/config.md)
+* [Caveats](https://github.com/justwatchcom/gopass/blob/master/docs/caveats.md)
+* [FAQ](https://github.com/justwatchcom/gopass/blob/master/docs/faq.md)
+* [JSON API](https://github.com/justwatchcom/gopass/blob/master/docs/jsonapi.md)
+
+## Abstract
+
 > Password management should be simple and follow [Unix philosophy](http://en.wikipedia.org/wiki/Unix_philosophy). With `pass`, each secret lives inside of a `gpg` encrypted file whose filename is the title of the website or resource that requires the secret. These encrypted files may be organized into meaningful folder hierarchies, copied from computer to computer, and, in general, manipulated using standard command line file management utilities. - [passwordstore.org](https://www.passwordstore.org/)
 
-Our target audience are professional developers and sysadmins (and especially teams of those) who are well versed with a
-command line interface. One explicit goal for this project is to make it more approachable to semi- and non-technical users
-in the long term as well. We go by the UNIX philosophy and try to do one thing and do it well - always providing stellar
-user experience and sane, simple interfaces.
+`gopass` is a rewrite of `pass` in [Go](https://golang.org/) with the aim of making it cross-platform and [adding additional features](#features). Our target audience are professional developers and sysadmins (and especially teams of those) who are well versed with a command line interface. One explicit goal for this project is to make it more approachable to non-technical users. We go by the UNIX philosophy and try to do one thing and do it well, providing a stellar user experience and a sane, simple interface.
 
-Warning: _gopass_ currently works on Linux & macOS. Please feel free to help with others.
+Warning: `gopass` currently works on Ubuntu & macOS. Please feel free to help with others.
 
 ## Demo
 
@@ -25,20 +44,19 @@ Warning: _gopass_ currently works on Linux & macOS. Please feel free to help wit
 
 ## Features
 
-Please see `docs/features.md` for an extensive list of all features along with
-several usage examples.
+Please see [docs/features.md](https://github.com/justwatchcom/gopass/blob/master/docs/features.md) for an extensive list of all features along with several usage examples.
 
-| **Feature** | *State* | Description |
-| ----------- | ------- | ----------- |
-| **Secure secret storage** | *stable* | Securely storing secrets encrypted with GPG
-| **Recipient management** | *beta* | Easily manage multiple users of each store
-| **Multiple stores** | *beta* | Mount multiple stores in your root store, like filesystems
-| **password quality assistance** | *beta* | Checks existing or new passwords for common flaws
-| **Binary support** | *alpha* | Special handling of binary files (automatic Base64 encoding)
-| **YAML support** | *alpha* | Special handling for YAML content in secrets
-| **password leak checker** | *alpha* | Perform **offline** checks against known leaked passwords
-| **PAGER support** | *stable* | Automatically invoke a pager on long output
-| **JSON API** | *alpha* | Allow gopass to be used as a native extension for browser plugins
+| **Feature**                     | *pass* | *gopass* | **State** | **Description**                                                     |
+| ------------------------------- | ------ | -------- | --------- | ------------------------------------------------------------------- |
+| **Secure secret storage**       | ✔      | ✔       | *stable*  | Securely storing secrets encrypted with GPG                         |
+| **Recipient management**        | ❌     | ✔       | *beta*    | Easily manage multiple users of each store                          |
+| **Multiple stores**             | ❌     | ✔       | *beta*    | Mount multiple stores in your root store, like file systems         |
+| **password quality assistance** | ❌     | ✔       | *beta*    | Checks existing or new passwords for common flaws                   |
+| **Binary support**              | ❌     | ✔       | *alpha*   | Special handling of binary files (automatic Base64 encoding)        |
+| **YAML support**                | ❌     | ✔       | *alpha*   | Special handling for YAML content in secrets                        |
+| **password leak checker**       | ❌     | ✔       | *alpha*   | Perform **offline** checks against known leaked passwords           |
+| **PAGER support**               | ❌     | ✔       | *stable*  | Automatically invoke a pager on long output                         |
+| **JSON API**                    | ❌     | ✔       | *alpha*   | Allow `gopass` to be used as a native extension for browser plugins |
 
 ## Installation
 
@@ -48,27 +66,17 @@ If you have a Go development environment installed please build from source:
 go get github.com/justwatchcom/gopass
 ```
 
-Otherwise please see `docs/setup.md` or the [gopass website](https://www.justwatch.com/gopass/#install) for further instructions.
+Otherwise please see [docs/setup.md](https://github.com/justwatchcom/gopass/blob/master/docs/setup.md) or the [gopass website](https://www.justwatch.com/gopass/#install) for further instructions.
 
 ## Development
 
-This project uses github-flow, i.e. create feature branches from master, open an PR against master
-and rebase onto master if necessary.
+This project uses github-flow, i.e. create feature branches from master, open an PR against master and rebase onto master if necessary.
 
 We aim for compatibility with the [latest stable Go Release](https://golang.org/dl/) only.
 
-## Security
-
-Please see `docs/security.md`.
-
-## Configuration
-
-Please see `docs/config.md`.
-
 ## Credit & License
 
-`gopass` is maintained by the nice folks from [JustWatch](https://www.justwatch.com/gopass)
-and licensed under the terms of the MIT license.
+`gopass` is maintained by the nice folks from [JustWatch](https://www.justwatch.com/gopass) and licensed under the terms of the MIT license.
 
 Maintainers of this repository:
 
@@ -89,10 +97,7 @@ Please refer to the Git commit log for a complete list of contributors.
 
 ## Contributing
 
-We welcome any contributions. Please see the `CONTRIBUTING.md` file for
-instructions on how to submit changes. If your are planning on making
-more elaborate or controversial changes, please discuss them on the
-mailing list or on IRC before sending a pull request.
+We welcome any contributions. Please see the [CONTRIBUTING.md](https://github.com/justwatchcom/gopass/blob/master/CONTRIBUTING.md) file for instructions on how to submit changes. If your are planning on making more elaborate or controversial changes, please discuss them on the mailing list or on IRC before sending a pull request.
 
 **Development mailing list:** [gopass-developers](https://groups.google.com/forum/#!forum/gopass-developers) - for discussions around gopass development
 

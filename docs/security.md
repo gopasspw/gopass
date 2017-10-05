@@ -44,4 +44,3 @@ The threat model of gopass assumes there are no attackers on your local machine.
 no attempts are taken to verify the integrity of the password store. We plan on using
 signed git commits for this. Anyone with access to the git repository can see which
 secrets are stored inside the store, but not their content.
-
