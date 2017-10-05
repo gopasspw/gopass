@@ -31,9 +31,11 @@ func (s *Action) Find(ctx context.Context, c *cli.Context) error {
 		}
 	}
 
+	clip := c.Bool("clip")
+
 	if len(choices) == 1 {
 		fmt.Println(color.GreenString("Found exact match in '%s'", choices[0]))
-		return s.show(ctx, c, choices[0], "", false, false, false, false)
+		return s.show(ctx, c, choices[0], "", clip, false, false, false)
 	}
 
 	if len(choices) < 1 {
@@ -61,7 +63,7 @@ func (s *Action) Find(ctx context.Context, c *cli.Context) error {
 	case "show":
 		// display selected entry
 		fmt.Println(choices[sel])
-		return s.show(ctx, c, choices[sel], "", false, false, false, false)
+		return s.show(ctx, c, choices[sel], "", clip, false, false, false)
 	default:
 		return s.exitError(ctx, ExitAborted, nil, "user aborted")
 	}

@@ -378,6 +378,12 @@ func main() {
 			},
 			Aliases:      []string{"search"},
 			BashComplete: action.Complete,
+			Flags: []cli.Flag{
+				cli.BoolFlag{
+					Name:  "clip, c",
+					Usage: "Copy the password into the clipboard",
+				},
+			},
 		},
 		{
 			Name:        "fsck",
