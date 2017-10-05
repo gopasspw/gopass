@@ -2,15 +2,21 @@
 
 ## Standard Features
 
-#### Initializing a Password Store
+### Initializing a Password Store
 
 After installing `gopass`, the first thing you should do is initialize a password store. (If you are migrating to `gopass` from `pass` and already have a password store, you can skip this step.)
 
-Please note: This document uses the term *password store* to refer to a directory (usually `$HOME/.password-store`) which is managed by `gopass`. This is entirely different from any OS-level credential store, your GPG keyring, or your SSH Keys.
+Note that this document uses the term *password store* to refer to a directory (usually `$HOME/.password-store`) which is managed by `gopass`. This is entirely different from any OS-level credential store, your GPG keyring, or your SSH Keys.
 
-To initialize a password store, just do a `gopass init`. This will prompt you for which GPG key you want to associate the store with and then create a `.password-store` directory in your home directory.
+To initialize a password store, just do a:
 
-If you don't want `gopass` to use this default directory, then you can initialize the password store with:
+```bash
+gopass init
+```
+
+This will prompt you for which GPG key you want to associate the store with. Then it will create a `.password-store` directory in your home directory.
+
+If you don't want `gopass` to use this default directory, you can instead initialize a password store with:
 
 ```bash
 gopass init --path /custom/path/to/password/store
@@ -24,7 +30,7 @@ gopass init A3683834 # By specifying the 8 character ID found by typing "gpg --l
 gopass init 1E52C1335AC1F4F4FE02F62AB5B44266A3683834 # By specifying the GPG key fingerprint found by typing "gpg --fingerprint" and removing all of the spaces
 ```
 
-#### Cloning an Existing Password Store
+### Cloning an Existing Password Store
 
 If you already have an existing password store that exists in a Git repository, then use `gitpass` to clone it:
 
@@ -285,8 +291,8 @@ baz: zab
 
 ### Edit the Config
 
-`gopass` allows editing the config from the commandline. This is similar to how `git` handles `config`
-changes through the commandline. Any change will be written to the configured `gopass` config file.
+`gopass` allows editing the config from the command-line. This is similar to how `git` handles `config`
+changes through the command-line. Any change will be written to the configured `gopass` config file.
 
 ```bash
 $ gopass config
@@ -306,7 +312,7 @@ $ gopass config cliptimeout
 
 ### Managing Recipients
 
-You can list, add and remove recipients from the command line.
+You can list, add and remove recipients from the command-line.
 
 ```bash
 $ gopass recipients
@@ -355,13 +361,13 @@ Disabling colors is as simple as setting `GOPASS_NOCOLOR` to `true`.
 
 ### Password Templates
 
-With gopass you can create templates which are searched when executing `gopass edit` on a new secret. If the folder, or any parent folder, contains a file called `.pass-template` it's parsed as a Go template, executed with the name of the new secret and an auto-generated password and loaded into your `$EDITOR`.
+With `gopass` you can create templates which are searched when executing `gopass edit` on a new secret. If the folder, or any parent folder, contains a file called `.pass-template` it's parsed as a Go template, executed with the name of the new secret and an auto-generated password and loaded into your `$EDITOR`.
 
-This makes it easy to e.g. generate database passwords or use templates for certain kind of secrets.
+This makes it easy to use templates for certain kind of secrets such as database passwords.
 
 ### JSON API
 
-`gopass jsonapi` enables communication with gopass via json messages. This is in particular useful for browser plugins like [gopassbridge](https://github.com/martinhoefling/gopassbridge) running gopass as native app. More details can be found in [docs/jsonapi.md](docs/jsonapi.md)
+`gopass jsonapi` enables communication with `gopass` via json messages. This is particularly useful for browser plugins like [gopassbridge](https://github.com/martinhoefling/gopassbridge) running `gopass` as native app. More details can be found in [docs/jsonapi.md](docs/jsonapi.md).
 
 ## Roadmap
 
@@ -374,4 +380,4 @@ This makes it easy to e.g. generate database passwords or use templates for cert
 - [ ] Better and more fine grained ACL
 - [ ] Be nicely usable by semi- and non-technical users
 
-*Note: Being 100% pass compatible was a milestone, not a promise for the future. We will eventually diverge from pass to support more advanced features. This will break compatibility.*
+*Note: Being 100% pass compatible is a milestone, not a promise for the future. We will eventually diverge from pass to support more advanced features. This will break compatibility.*

@@ -21,14 +21,7 @@ The slightly more awesome Standard Unix Password Manager for Teams. Written in G
 7. [Community](#community)
 8. [Contributing](#contributing)
 9. [Acknowledgements](#acknowledgements)
-
-Further reading:
-
-* [Security](https://github.com/justwatchcom/gopass/blob/master/docs/security.md)
-* [Configuration](https://github.com/justwatchcom/gopass/blob/master/docs/config.md)
-* [Caveats](https://github.com/justwatchcom/gopass/blob/master/docs/caveats.md)
-* [FAQ](https://github.com/justwatchcom/gopass/blob/master/docs/faq.md)
-* [JSON API](https://github.com/justwatchcom/gopass/blob/master/docs/jsonapi.md)
+10. [Further Documentation](#further-documentation)
 
 ## Abstract
 
@@ -60,17 +53,17 @@ Please see [docs/features.md](https://github.com/justwatchcom/gopass/blob/master
 
 ## Installation
 
-If you have a Go development environment installed please build from source:
+If you have [Go](https://golang.org/) installed:
 
 ```bash
 go get github.com/justwatchcom/gopass
 ```
 
-Otherwise please see [docs/setup.md](https://github.com/justwatchcom/gopass/blob/master/docs/setup.md) or the [gopass website](https://www.justwatch.com/gopass/#install) for further instructions.
+Otherwise, please see [docs/setup.md](https://github.com/justwatchcom/gopass/blob/master/docs/setup.md).
 
 ## Development
 
-This project uses github-flow, i.e. create feature branches from master, open an PR against master and rebase onto master if necessary.
+This project uses [GitHub Flow](https://guides.github.com/introduction/flow/). In other words, create feature branches from master, open an PR against master, and rebase onto master if necessary.
 
 We aim for compatibility with the [latest stable Go Release](https://golang.org/dl/) only.
 
@@ -89,18 +82,22 @@ Please refer to the Git commit log for a complete list of contributors.
 
 `gopass` is developed in the open. Here are some of the channels we use to communicate and contribute:
 
-**IRC**: `#gopass` on [irc.freenode.net](https://freenode.net) ([join via Riot](https://riot.im/app/#/room/#freenode_#gopass:matrix.org))
-
-**Usage mailing list:** [gopass-users](https://groups.google.com/forum/#!forum/gopass-users) - for discussions around gopass usage and community support
-
-**Issue tracker:** Use the [GitHub issue tracker](https://github.com/justwatchcom/gopass/issues) to file bugs and feature requests. If you need support, please send your questions to [gopass-user](https://groups.google.com/forum/#!forum/gopass-users) or ask on IRC rather than filing a GitHub issue.
+* IRC: #gopass on [irc.freenode.net](https://freenode.net) ([join via Riot](https://riot.im/app/#/room/#freenode_#gopass:matrix.org))
+* Usage mailing list: [gopass-users](https://groups.google.com/forum/#!forum/gopass-users), for discussions around `gopass` usage and community support
+* Issue tracker: Use the [GitHub issue tracker](https://github.com/justwatchcom/gopass/issues) to file bugs and feature requests. If you need support, please send your questions to [gopass-user](https://groups.google.com/forum/#!forum/gopass-users) or ask on IRC rather than filing a GitHub issue.
 
 ## Contributing
 
-We welcome any contributions. Please see the [CONTRIBUTING.md](https://github.com/justwatchcom/gopass/blob/master/CONTRIBUTING.md) file for instructions on how to submit changes. If your are planning on making more elaborate or controversial changes, please discuss them on the mailing list or on IRC before sending a pull request.
-
-**Development mailing list:** [gopass-developers](https://groups.google.com/forum/#!forum/gopass-developers) - for discussions around gopass development
+We welcome any contributions. Please see the [CONTRIBUTING.md](https://github.com/justwatchcom/gopass/blob/master/CONTRIBUTING.md) file for instructions on how to submit changes. If your are planning on making more elaborate or controversial changes, please discuss them on the [gopass-developers mailing list](https://groups.google.com/forum/#!forum/gopass-developers) or on IRC before sending a pull request.
 
 ## Acknowledgements
 
 `gopass` was initially started by Matthias Loibl and Dominik Schulz. The majority of its development has been sponsored by [JustWatch](https://www.justwatch.com/).
+
+## Further Documentation
+
+* [Security](https://github.com/justwatchcom/gopass/blob/master/docs/security.md)
+* [Configuration](https://github.com/justwatchcom/gopass/blob/master/docs/config.md)
+* [Caveats](https://github.com/justwatchcom/gopass/blob/master/docs/caveats.md)
+* [FAQ](https://github.com/justwatchcom/gopass/blob/master/docs/faq.md)
+* [JSON API](https://github.com/justwatchcom/gopass/blob/master/docs/jsonapi.md)
