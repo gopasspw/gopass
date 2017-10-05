@@ -45,13 +45,10 @@ func Parse(buf []byte) (*Secret, error) {
 
 // decodeYAML attempts to decode an optional YAML part of a secret
 func (s *Secret) decodeYAML() (bool, error) {
-	if !strings.HasPrefix(s.body, "---\n") {
-		return false, nil
-	}
 	d := make(map[string]interface{})
 	err := yaml.Unmarshal([]byte(s.body), &d)
 	if err != nil {
-		return true, err
+		return false, nil
 	}
 	s.data = d
 	s.body = ""
