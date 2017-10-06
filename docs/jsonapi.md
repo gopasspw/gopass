@@ -2,15 +2,15 @@
 
 ## Overview
 
-The API follows specification for native messaging from [Mozilla](https://developer.mozilla.org/en-US/Add-ons/WebExtensions/Native_messaging) and [Chrome](https://developer.chrome.com/apps/nativeMessaging). 
-Each json-utf8 encoded message is prefixed with a 32 bit integer specifying the length of the message. 
+The API follows specification for native messaging from [Mozilla](https://developer.mozilla.org/en-US/Add-ons/WebExtensions/Native_messaging) and [Chrome](https://developer.chrome.com/apps/nativeMessaging).
+Each json-utf8 encoded message is prefixed with a 32 bit integer specifying the length of the message.
 Communication is performed via stdin/stdout. Currently, only a single request is repsonded `gopass jsonapi` call.
 
 **WARNING**: This API **MUST NOT** be exposed over the network to remote hosts. **No authentication is performed** and the only safe way is to communicate via stdin/stdout as you do in your terminal.
 
 The implementation is located in `utils/jsonapi`.
 
-## Request Types 
+## Request Types
 
 ### `query`
 
@@ -27,7 +27,7 @@ The implementation is located in `utils/jsonapi`.
 
 ```json
 [
-    "somewhere/mysecret/loginname", 
+    "somewhere/mysecret/loginname",
     "somwhere/else/secretsauce"
 ]
 ```
@@ -49,7 +49,7 @@ Similar to `query` but cuts hostnames and subdomains from the left side until th
 
 ```json
 [
-    "somewhere/domain.example.com/loginname", 
+    "somewhere/domain.example.com/loginname",
     "somwhere/other.domain.example.com"
 ]
 ```
@@ -83,5 +83,3 @@ If an uncaught error occurs, the stringified error message is send back as respo
   "error": "Some error occured with fancy message"
 }
 ```
-
-
