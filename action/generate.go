@@ -10,18 +10,27 @@ import (
 	"github.com/justwatchcom/gopass/store/sub"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/pwgen"
+	"github.com/martinhoefling/goxkcdpwgen/xkcdpwgen"
 	"github.com/urfave/cli"
 )
 
 const (
-	defaultLength = 24
+	defaultLength     = 24
+	defaultXKCDLength = 4
 )
 
 // Generate & save a password
 func (s *Action) Generate(ctx context.Context, c *cli.Context) error {
+	var xkcdSeparator string
 	force := c.Bool("force")
 	edit := c.Bool("edit")
 	symbols := c.Bool("symbols")
+	xkcd := c.Bool("xkcd")
+	if c.IsSet("xkcdsep") {
+		xkcdSeparator = c.String("xkcdsep")
+		xkcd = true
+	}
+
 	if c.IsSet("no-symbols") {
 		fmt.Println(color.RedString("Warning: -n/--no-symbols is deprecated. This is now the default. Use -s to enable symbols"))
 	}
@@ -52,11 +61,17 @@ func (s *Action) Generate(ctx context.Context, c *cli.Context) error {
 			return s.exitError(ctx, ExitAborted, nil, "user aborted. not overwriting your current password")
 		}
 	}
-
+	var pwlen int
 	if length == "" {
-		length = strconv.Itoa(defaultLength)
-		if l, err := s.askForInt("How long should the password be?", defaultLength); err == nil {
-			length = strconv.Itoa(l)
+		candidateLength := defaultLength
+		question := "How long should the password be?"
+		if xkcd {
+			candidateLength = defaultXKCDLength
+			question = "How many words should be combined to a password?"
+		}
+		var err error
+		if length, err = s.askForString(question, string(candidateLength)); err != nil {
+			panic(err) // panic on i/o error only, string -> int conversion is done below
 		}
 	}
 
@@ -68,7 +83,16 @@ func (s *Action) Generate(ctx context.Context, c *cli.Context) error {
 		return s.exitError(ctx, ExitUsage, nil, "password length must not be zero")
 	}
 
-	password := pwgen.GeneratePassword(pwlen, symbols)
+	var password []byte
+	if xkcd {
+		g := xkcdpwgen.NewGenerator()
+		g.SetNumWords(pwlen)
+		g.SetDelimiter(xkcdSeparator)
+		g.SetCapitalize(xkcdSeparator == "")
+		password = g.GeneratePassword()
+	} else {
+		password = pwgen.GeneratePassword(pwlen, symbols)
+	}
 
 	// set a single key in a yaml doc
 	if key != "" {

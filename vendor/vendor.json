@@ -70,6 +70,18 @@
 			"revisionTime": "2015-08-10T07:47:51Z"
 		},
 		{
+			"checksumSHA1": "Xecz+v5jRybn2IjJCtLIPF598Gw=",
+			"path": "github.com/martinhoefling/goxkcdpwgen",
+			"revision": "a396ae1dbe7ad364f0b91546371b70a693110b51",
+			"revisionTime": "2017-10-03T20:22:27Z"
+		},
+		{
+			"checksumSHA1": "AAFHrlpWQxXQhuGeIaML9j99vLc=",
+			"path": "github.com/martinhoefling/goxkcdpwgen/xkcdpwgen",
+			"revision": "a396ae1dbe7ad364f0b91546371b70a693110b51",
+			"revisionTime": "2017-10-03T20:22:27Z"
+		},
+		{
 			"checksumSHA1": "I4njd26dG5hxFT2nawuByM4pxzY=",
 			"path": "github.com/mattn/go-colorable",
 			"revision": "d228849504861217f796da67fae4f6e347643f15",
