@@ -403,6 +403,7 @@ func main() {
 			Usage: "Generate a new password of the specified length with optionally no symbols.",
 			Description: "" +
 				"Generate a new password of the specified length with optionally no symbols. " +
+				"Alternatively, a xkcd style password can be generated (https://xkcd.com/936/). " +
 				"Optionally put it on the clipboard and clear board after 45 seconds. " +
 				"Prompt before overwriting existing password unless forced. " +
 				"It will replace only the first line of an existing file with a new password.",
@@ -435,11 +436,12 @@ func main() {
 				},
 				cli.BoolFlag{
 					Name:  "xkcd, x",
-					Usage: "Use multiple random english words as password, separated by space",
+					Usage: "Use multiple random english words combined to a password. If no separator is specified, the words are combined without spaces/separator and the first character of words is capitalised",
 				},
-				cli.BoolFlag{
-					Name:  "xkcdo, xo",
-					Usage: "Use multiple random english words as password, no separator but CamelCased",
+				cli.StringFlag{
+					Name:  "xkcdsep, xs",
+					Usage: "Word separator for generated xkcd style password. Implies -xkcd",
+					Value: "",
 				},
 			},
 		},

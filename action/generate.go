@@ -21,11 +21,16 @@ const (
 
 // Generate & save a password
 func (s *Action) Generate(ctx context.Context, c *cli.Context) error {
+	var xkcdSeparator string
 	force := c.Bool("force")
 	edit := c.Bool("edit")
 	symbols := c.Bool("symbols")
 	xkcd := c.Bool("xkcd")
-	xkcdo := c.Bool("xkcdo")
+	if c.IsSet("xkcdsep") {
+		xkcdSeparator = c.String("xkcdsep")
+		xkcd = true
+	}
+
 	if c.IsSet("no-symbols") {
 		fmt.Println(color.RedString("Warning: -n/--no-symbols is deprecated. This is now the default. Use -s to enable symbols"))
 	}
@@ -56,17 +61,17 @@ func (s *Action) Generate(ctx context.Context, c *cli.Context) error {
 			return s.exitError(ctx, ExitAborted, nil, "user aborted. not overwriting your current password")
 		}
 	}
-
+	var pwlen int
 	if length == "" {
-		def := defaultLength
+		candidateLength := defaultLength
 		question := "How long should the password be?"
-		if xkcd || xkcdo {
-			def = defaultXKCDLength
+		if xkcd {
+			candidateLength = defaultXKCDLength
 			question = "How many words should be combined to a password?"
 		}
-		length = strconv.Itoa(def)
-		if l, err := s.askForInt(question, def); err == nil {
-			length = strconv.Itoa(l)
+		var err error
+		if length, err = s.askForString(question, string(candidateLength)); err != nil {
+			panic(err) // panic on i/o error only, string -> int conversion is done below
 		}
 	}
 
@@ -79,16 +84,11 @@ func (s *Action) Generate(ctx context.Context, c *cli.Context) error {
 	}
 
 	var password []byte
-	if xkcd || xkcdo {
+	if xkcd {
 		g := xkcdpwgen.NewGenerator()
 		g.SetNumWords(pwlen)
-		if xkcdo {
-			g.SetCapitalize(true)
-			g.SetDelimiter("")
-		} else {
-			g.SetCapitalize(false)
-			g.SetDelimiter(" ")
-		}
+		g.SetDelimiter(xkcdSeparator)
+		g.SetCapitalize(xkcdSeparator == "")
 		password = g.GeneratePassword()
 	} else {
 		password = pwgen.GeneratePassword(pwlen, symbols)
