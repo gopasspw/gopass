@@ -11,11 +11,10 @@
 
 ### Download and Install Dependencies
 
-`gopass` needs some external programs to work:
+gopass needs some external programs to work:
 
 * `gpg`
 * `git`
-* An external editor (using `vim` by default)
 
 #### Ubuntu & Debian
 
@@ -42,9 +41,9 @@ brew install gnupg2 git
 * Download and install [GPG4Win](https://www.gpg4win.org/).
 * Download and install [the Windows git installer](https://git-scm.com/download/win).
 
-### Setup a GPG key pair
+### Set up a GPG key pair
 
-`gopass` depends on `gpg` for encryption and decryption. You **must** have a
+gopass depends on the `gpg` program for encryption and decryption. You **must** have a
 suitable key pair. To list your current keys, you can do:
 
 ```bash
@@ -71,25 +70,11 @@ Now, you have created a public and private key pair. If you don't know what that
 * ["git + gpg, know thy commits" at coderwall](https://coderwall.com/p/d3uo3w/git-gpg-know-thy-commits)
 * ["Generating a new GPG key" by GitHub](https://help.github.com/articles/generating-a-new-gpg-key/)
 
-### Securing Your Editor
-
-Various editors may store temporary files outside of the secure working directory
-when editing secrets. It's advised to check and disable this behavior for
-your editor of choice.
-
-For `vim` on Linux, the following setting may be helpful:
-
-```
-au BufNewFile,BufRead /dev/shm/gopass.* setlocal noswapfile nobackup noundofile
-```
-
 ## Installation Steps
 
-Depending on your operating system, you can either use a package manager,
-download a pre-built binary, or install from source. If you have a working Go
-development environment, we recommend building from source.
+Depending on your operating system, you can either use a package manager, download a pre-built binary, or install from source. If you have a working Go development environment, we recommend building from source.
 
-#### macOS
+### macOS
 
 If you haven't already, install [homebrew](http://brew.sh). And then:
 
@@ -98,9 +83,9 @@ brew tap justwatchcom/gopass
 brew install gopass
 ```
 
-Alternatively, you can grab the appropriate darwin release from the repository [releases page](https://github.com/justwatchcom/gopass/releases).
+Alternatively, you can install gopass from the appropriate darwin release from the repository [releases page](https://github.com/justwatchcom/gopass/releases).
 
-#### Ubuntu & Debian
+### Ubuntu & Debian
 
 First, find the latest .deb release from the repository [releases page](https://github.com/justwatchcom/gopass/releases). Then, download and install it:
 
@@ -109,15 +94,13 @@ wget [the URL of the latest .deb release]
 sudo dpkg -i gopass-1.2.0-linux-amd64.deb
 ```
 
-#### Windows
+### Windows
 
-**WARNING**: Windows is not yet officially supported. We try to support it in
-the future. These are steps are only meant to help you setup `gopass` on Windows
-so you can provide us with feedback about the current state of our Windows support.
+**WARNING**: Windows is not yet officially supported. We try to support it in the future. These are steps are only meant to help you setup gopass on Windows so you can provide us with feedback about the current state of our Windows support.
 
 Download and install a suitable Windows build from the repository [releases page](https://github.com/justwatchcom/gopass/releases).
 
-#### Installing from Source
+### Installing from Source
 
 If you have [Go](https://golang.org/) already installed, you can use `go get` to automatically download the latest version:
 
@@ -129,40 +112,48 @@ If `$GOPATH/bin` is in your `$PATH`, you can now run `gopass` from anywhere on y
 
 ## Optional Post-Installation Steps
 
-#### Migrating from `pass` to `gopass`
+### Securing Your Editor
 
-If you are migrating from `pass` to `gopass`, it may be helpful to link it to `pass` so that you can use it as a drop-in replacement for `pass`. For example, assuming `$HOME/bin/` exists and is present in your `$PATH`:
+Various editors may store temporary files outside of the secure working directory when editing secrets. We advise you to check and disable this behavior for your editor of choice.
+
+For `vim` on Linux, the following setting may be helpful:
+
+```
+au BufNewFile,BufRead /dev/shm/gopass.* setlocal noswapfile nobackup noundofile
+```
+
+### Migrating from pass to gopass
+
+If you are migrating from pass to gopass, you can simply use your existing password store and everything should just work. Furthermore, it may be helpful to link the gopass binary so that you can use it as a drop-in replacement. For example, assuming `$HOME/bin/` exists and is present in your `$PATH`:
 
 ```bash
 ln -s $GOPATH/bin/gopass $HOME/bin/pass
 ```
 
-#### Enable Bash / Z Shell Autocompletion
+### Migrating to gopass from Other Password Stores
 
-Run one of the following commands for your shell and you should have
-autocompletion for subcommands like `gopass show`, `gopass ls` and others.
+Before migrating to gopass, you may have been using other password managers (such as [KeePass](https://keepass.info/), for example). If you were, you might want to import all of your existing passwords over. Because gopass is fully backwards compatible with pass, you can use any of the existing migration tools found under the "Migrating to pass" section of the [official pass website](https://www.passwordstore.org/).
+
+### Enable Bash / Z Shell Autocompletion
+
+If you use Bash or Z Shell, you can run one of the following commands to enable autocompletion for subcommands like `gopass show`, `gopass ls` and others.
 
 ```
 source <(gopass completion bash)
 source <(gopass completion zsh)
 ```
 
-#### Enable fish completion
+### Enable fish completion
 
-Experimental [fish](https://fishshell.com/) shell completion is available.
-Copy the file `fish.completion` to `~/.config/fish/completions/gopass.fish`
-and start a new shell.
+If you use the [fish](https://fishshell.com/) shell, you can enable experimental shell completion. Copy the file `fish.completion` to `~/.config/fish/completions/gopass.fish` and start a new shell.
 
-Since writing fish completion scripts is not yet supported by the CLI library we
-use, this completion script is missing a few features. Feel free to contribute
-if you want to improve it.
+Since writing fish completion scripts is not yet supported by the CLI library we use, this completion script is missing a few features. Feel free to contribute if you want to improve it.
 
-#### dmenu / rofi support
+### dmenu / rofi support
 
-In earlier versions `gopass` supported [dmenu](http://tools.suckless.org/dmenu/).
-We removed this and encourage you to call dmenu yourself now.
+In earlier versions gopass supported [dmenu](http://tools.suckless.org/dmenu/). We removed this and encourage you to call dmenu yourself now.
 
-This also makes it easier to call `gopass` with e.g. [rofi](https://github.com/DaveDavenport/rofi).
+This also makes it easier to call gopass with [rofi](https://github.com/DaveDavenport/rofi), for example.
 
 ```bash
 # Simply copy the selected password to the clipboard
@@ -171,51 +162,21 @@ gopass ls --flat | dmenu | xargs --no-run-if-empty gopass show -c
 gopass ls --flat | dmenu | xargs --no-run-if-empty gopass show | head -n 1 | xdotool type --clearmodifiers --file -
 ```
 
-#### Migrating to `gopass` from Other Password Stores
+### Storing and Syncing your Password Store with Google Drive / Dropbox / etc.
 
-Because `gopass` is fully backwards compatible with `pass`, you can use any of the existing migration tools found under the "Migrating to pass" section of the [official pass website](https://www.passwordstore.org/).
+Please be warned that using cloud-based storage may negatively impact to confidentially of your store. However, if you wish to use one of these services, you can do so.
 
-
-
-
-
-
-### Data Organization
-
-Your data in `gopass` loosely resembles an file system. You need to have at least one
-root store but you can mount as many sub-stores (think of volumes) under the root volume.
-
-The stores do not impose any specific layout for your data. Any `key` can contain any kind of data.
-
-Please note that sensitive data **should not** be put into the name of a secret.
-
-If you mainly use a store for website logins or plan to use
-[browserpass](https://github.com/dannyvankooten/browserpass) you should follow
-the following pattern for storing your credentials:
-
-```
-example.org/user
-example.com/john@doe.com
-```
-
-#### Storing and Syncing your Password Store with Google Drive / Dropbox / etc.
-
-Please be warned that using a cloud-based storage _drive_ may negatively impact
-to confidentially of your store, but if you wish to use one of these services
-you can do so.
-
-For example, if using [Google Drive](https://drive.google.com):
+For example, to use gopass with [Google Drive](https://drive.google.com):
 
 ```bash
-cd
 gopass init --nogit
 mv .password-store/ "Google Drive/Password-Store"
 gopass config path "~/Google Drive/Password-Store"
 ```
 
-### Using other GUIs with `gopass`
+### Download a GUI
 
-Because `gopass` is fully backwards compatible with `pass`, you can use some existing interfaces:
+Because gopass is fully backwards compatible with pass, you can use some existing graphical user interfaces / frontends:
 
 * Android - [PwdStore](https://github.com/zeapo/Android-Password-Store)
 * iOS - [Pass for iOS](https://github.com/davidjb/pass-ios#readme)

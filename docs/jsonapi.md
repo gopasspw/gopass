@@ -2,9 +2,7 @@
 
 ## Overview
 
-The API follows specification for native messaging from [Mozilla](https://developer.mozilla.org/en-US/Add-ons/WebExtensions/Native_messaging) and [Chrome](https://developer.chrome.com/apps/nativeMessaging).
-Each json-utf8 encoded message is prefixed with a 32 bit integer specifying the length of the message.
-Communication is performed via stdin/stdout. Currently, only a single request is repsonded `gopass jsonapi` call.
+The API follows specification for native messaging from [Mozilla](https://developer.mozilla.org/en-US/Add-ons/WebExtensions/Native_messaging) and [Chrome](https://developer.chrome.com/apps/nativeMessaging). Each json-utf8 encoded message is prefixed with a 32-bit integer specifying the length of the message. Communication is performed via stdin/stdout.
 
 **WARNING**: This API **MUST NOT** be exposed over the network to remote hosts. **No authentication is performed** and the only safe way is to communicate via stdin/stdout as you do in your terminal.
 
@@ -80,6 +78,6 @@ If an uncaught error occurs, the stringified error message is send back as respo
 
 ```json
 {
-  "error": "Some error occured with fancy message"
+  "error": "Some error occurred with fancy message"
 }
 ```

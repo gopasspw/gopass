@@ -2,11 +2,44 @@
 
 ## Standard Features
 
+### Data Organization
+
+Before you start using gopass, you should know a little bit about how it stores your data. It's actually really simple! Each password (or secret) will live in its own file. And you can stick related passwords (or secrets) together in a directory. So, for example, if you had 3 laptops and wanted to store the root passwords for all 3, then your file system might look something like the following:
+
+```
+.password-store
+└── laptops
+    ├── dell.gpg
+    ├── hp.gpg
+    └── macbook.gpg
+```
+
+With this file system, if you typed the `gopass show` command, it would report the following:
+
+```
+gopass
+└── laptops
+    ├── dell
+    ├── hp
+    └── macbook
+```
+
+In this example, the key for the MacBook is `laptops/macbook`.
+
+gopass does not impose any specific layout for your data. Any key can contain any kind of data. Please note that sensitive data **should not** be put into the name of a secret.
+
+If you plan to use the password store for website credentials or plan to use [browserpass](https://github.com/dannyvankooten/browserpass), you should follow the following pattern for storing passwords:
+
+```
+example1.com/username
+example2.com/john@doe.com
+```
+
 ### Initializing a Password Store
 
-After installing `gopass`, the first thing you should do is initialize a password store. (If you are migrating to `gopass` from `pass` and already have a password store, you can skip this step.)
+After installing gopass, the first thing you should do is initialize a password store. (If you are migrating to gopass from pass and already have a password store, you can skip this step.)
 
-Note that this document uses the term *password store* to refer to a directory (usually `$HOME/.password-store`) which is managed by `gopass`. This is entirely different from any OS-level credential store, your GPG keyring, or your SSH Keys.
+Note that this document uses the term *password store* to refer to a directory that is managed by gopass. This is entirely different from any OS-level credential store, your GPG keyring, or your SSH keys.
 
 To initialize a password store, just do a:
 
@@ -16,13 +49,13 @@ gopass init
 
 This will prompt you for which GPG key you want to associate the store with. Then it will create a `.password-store` directory in your home directory.
 
-If you don't want `gopass` to use this default directory, you can instead initialize a password store with:
+If you don't want gopass to use this default directory, you can instead initialize a password store with:
 
 ```bash
 gopass init --path /custom/path/to/password/store
 ````
 
-Note that if you have a huge number of GPG keys on the system or if you are running this command from a script, you can also specify the GPG key to use inline. You can do this in three different ways:
+If you don't want gopass to prompt you for the GPG key to use, you can specify it inline. For example, this might be useful if you have a huge number of GPG keys on the system or if you are initializing a password store from a script. You can do this in three different ways:
 
 ```bash
 gopass init gopher@golang.org # By specifying the email address associated with the GPG key
@@ -38,13 +71,13 @@ If you already have an existing password store that exists in a Git repository, 
 gopass clone git@example.com/pass.git
 ```
 
-This runs `git clone` in the background. If you don't want `gopass` to use the default directory of "$HOME/.password-store", then you can specify an additional parameter:
+This runs `git clone` in the background. If you don't want gopass to use the default directory of "$HOME/.password-store", then you can specify an additional parameter:
 
 ```bash
 gopass clone git@example.com/pass-work.git work # This will initialize the password store in the "$HOME/.password-store-work" directory
 ```
 
-Please note that all cloned repositories must already have been initialized with `gopass`. (See the previous section for more details.)
+Please note that all cloned repositories must already have been initialized with gopass. (See the previous section for more details.)
 
 ### Adding Secrets
 
@@ -58,8 +91,8 @@ Let's say you want to create an account.
 
 ```bash
 $ gopass insert golang.org/gopher
-Enter secret for golang.org/gopher:       # hidden
-Retype secret for golang.org/gopher:      # hidden
+Enter secret for golang.org/gopher:       # hidden on Linux / macOS
+Retype secret for golang.org/gopher:      # hidden on Linux / macOS
 gopass: Encrypting golang.org/gopher for these recipients:
  - 0xB5B44266A3683834 - Gopher <gopher@golang.org>
 
@@ -89,9 +122,7 @@ The generated password for golang.org/gopher is:
 Eech4ahRoy2oowi0ohl
 ```
 
-The `generate` command will ask for any missing arguments, like the name of the
-secret or the length. If you don't want the password to be displayed use the
-`-c` flag to copy it to your clipboard.
+The `generate` command will ask for any missing arguments, like the name of the secret or the length. If you don't want the password to be displayed use the `-c` flag to copy it to your clipboard.
 
 ### Edit a secret
 
@@ -99,8 +130,7 @@ secret or the length. If you don't want the password to be displayed use the
 $ gopass edit golang.org/gopher
 ```
 
-The `edit` command uses the `$EDITOR` environment variable to start your preferred editor where
-you can easily edit multi-line content. `vim` will be the default if `$EDITOR` is not set.
+The `edit` command uses the `$EDITOR` environment variable to start your preferred editor where you can easily edit multi-line content. `vim` will be the default if `$EDITOR` is not set.
 
 ### Listing existing secrets
 
@@ -116,9 +146,7 @@ gopass
     └── user@justwatch.com
 ```
 
-If your terminal supports colors the output will use ANSI color codes to highlight directories
-and mounted sub stores. Mounted sub stores include the mount point and source directory. See
-below for more details on mounts and sub stores.
+If your terminal supports colors the output will use ANSI color codes to highlight directories and mounted sub stores. Mounted sub stores include the mount point and source directory. See below for more details on mounts and sub stores.
 
 ### Show a secret
 
@@ -128,12 +156,9 @@ $ gopass golang.org/gopher
 Eech4ahRoy2oowi0ohl
 ```
 
-The default action of `gopass` is show. It also accepts the `-c` flag to copy the content of
-the secret directly to the clipboard.
+The default action of `gopass` is show, so the previous command is exactly the same as typing `gopass show golang.org/gopher`. It also accepts the `-c` flag to copy the content of the secret directly to the clipboard.
 
-Since it may be dangerous to always display the password on `gopass` calls, the `safecontent`
-setting may be set to `true` to allow one to display only the rest of the password entries by
-default and display the whole entry, with password, only when the `-f` flag is used.
+Since it may be dangerous to always display the password, the `safecontent` setting may be set to `true` to allow one to display only the rest of the password entries by default and display the whole entry, with password, only when the `-f` flag is used.
 
 #### Copy a secret to the clipboard
 
@@ -149,9 +174,7 @@ Copied golang.org/gopher to clipboard. Will clear in 45 seconds.
 $ gopass rm golang.org/gopher
 ```
 
-`rm` will remove a secret from the store. Use `-r` to delete a whole folder.
-Please note that you **can not** remove a folder containing a mounted sub store.
-You have to unmount any mounted sub stores first.
+`rm` will remove a secret from the store. Use `-r` to delete a whole folder. Please note that you **can not** remove a folder containing a mounted sub store. You have to unmount any mounted sub stores first.
 
 ### Moving a secret
 
@@ -173,14 +196,11 @@ $ gopass cp emails/example.com emails/user@example.com
 
 ### Auto-Pager
 
-Like other popular open-source projects `gopass` automatically pipe the output
-to `$PAGER` if it's longer than one terminal page. You can disable this behavior
-by unsetting `$PAGER` or `gopass config nopager true`.
+Like other popular open-source projects, gopass automatically pipe the output to `$PAGER` if it's longer than one terminal page. You can disable this behavior by unsetting `$PAGER` or `gopass config nopager true`.
 
 ### git auto-push and auto-pull
 
-If you want gopass to always push changes in git to your default remote (origin)
-enable autosync:
+If you want gopass to always push changes in git to your default remote server (origin), enable autosync:
 
 ```bash
 $ gopass config autosync true
@@ -188,8 +208,7 @@ $ gopass config autosync true
 
 ### Check Passwords for Common Flaws
 
-gopass can check your passwords for common flaws, like being too short or coming
-from a dictionary.
+gopass can check your passwords for common flaws, like being too short or coming from a dictionary.
 
 ```bash
 $ gopass audit
@@ -198,13 +217,9 @@ Detected weak secret for 'golang.org/gopher': Password is too short
 
 ### Check Passwords against leaked passwords
 
-gopass can assist you in checking your passwords against those included in recent
-data breaches. Right now this you still need to download and unpack those dumps
-yourself, but gopass can take care of the rest.
+gopass can assist you in checking your passwords against those included in recent data breaches. Right now this you still need to download and unpack those dumps yourself, but gopass can take care of the rest.
 
-First go to [haveibeenpwned.com/Passwords](https://haveibeenpwned.com/Passwords) and download
-the dumps. Then unpack the 7-zip archives somewhere. Note that full path to those
-files and provide it to gopass in the environment variable `HIBP_DUMPS`.
+First go to [haveibeenpwned.com/Passwords](https://haveibeenpwned.com/Passwords) and download the dumps. Then unpack the 7-zip archives somewhere. Note that full path to those files and provide it to gopass in the environment variable `HIBP_DUMPS`.
 
 ```bash
 $ HIBP_DUMPS=/tmp/pwned-passwords-1.0.txt gopass audit hibp
@@ -212,10 +227,7 @@ $ HIBP_DUMPS=/tmp/pwned-passwords-1.0.txt gopass audit hibp
 
 ### Support for Binary Content
 
-gopass provides secure and easy support for working with binary files through the
-`gopass binary` family of subcommands. One can copy or move secret from or to
-the store. gopass will attempt to securely overwrite and remove any secret moved
-to the store.
+gopass provides secure and easy support for working with binary files through the `gopass binary` family of subcommands. One can copy or move secret from or to the store. gopass will attempt to securely overwrite and remove any secret moved to the store.
 
 ```bash
 # copy file "/some/file.jpg" to "some/secret.b64" in the store
@@ -229,16 +241,7 @@ $ gopass binary sha256 my/private.key
 
 ### Multiple Stores
 
-gopass supports multi-stores that can be mounted over each other like filesystems
-on Linux/UNIX systems.
-
-To add an mount point to an existing store add an entry to the `mounts` object
-of the store.
-
-gopass tries to read its configuration from `$HOME/.config/gopass/config.yml` if present.
-You can override this location by setting `GOPASS_CONFIG` to another location.
-
-Mounting new stores can be done through gopass:
+gopass supports multi-stores that can be mounted over each other like filesystems on Linux/UNIX systems. Mounting new stores can be done through gopass:
 
 ```bash
 # Mount a new store
@@ -251,29 +254,24 @@ $ gopass mounts remove test
 
 You can initialize a new store using `gopass init --store mount-point --path /path/to/store`.
 
-Where possible sub stores are supported transparently through the path to the
-secret. When specifying the name of a secret it's matched against any mounted
-sub stores and the given action is executed on this store.
+Where possible sub stores are supported transparently through the path to the secret. When specifying the name of a secret it's matched against any mounted sub stores and the given action is executed on this store.
 
-Commands that don't accept an secret name, e.g. `gopass recipients add` or
-`gopass init` usually accept a `--store` parameter. Please check the help output
-of each command for more information, e.g. `gopass help init` or
-`gopass recipients help add`.
+Commands that don't accept an secret name, e.g. `gopass recipients add` or `gopass init` usually accept a `--store` parameter. Please check the help output of each command for more information, e.g. `gopass help init` or `gopass recipients help add`.
 
 Commands that support the `--store` flag:
 
-| **Command** | *Example* | Description |
-| ----------- | --------- | ----------- |
-| `gopass git` | `gopass git --store=foo push origin master` | Push all changes in the sub store *foo* to master
-| `gopass git init` | `gopass git init --store=foo` | Initialize git in the sub store *foo*
-| `gopass init` | `gopass init --store=foo` | Initialize and mount the new sub store *foo*
-| `gopass recipients add`| `gopass recipients add --store=foo GPGxID` | Add the new recipient *GPGxID* to the store *foo*
-| `gopass recipients remove` | `gopass recipients remove --store=foo GPGxID` | Remove the existing recipients *GPGxID* from the store *foo*
-| `gopass config` | `gopass config --store=foo autosync false` | Set the config flag `autosync` to `false` for the store *foo*
+| **Command**                | **Example**                                   | **Description** |
+| -------------------------- | --------------------------------------------- | --------------- |
+| `gopass git`               | `gopass git --store=foo push origin master`   | Push all changes in the sub store *foo* to master |
+| `gopass git init`          | `gopass git init --store=foo`                 | Initialize git in the sub store *foo* |
+| `gopass init`              | `gopass init --store=foo`                     | Initialize and mount the new sub store *foo* |
+| `gopass recipients add`    | `gopass recipients add --store=foo GPGxID`    | Add the new recipient *GPGxID* to the store *foo* |
+| `gopass recipients remove` | `gopass recipients remove --store=foo GPGxID` | Remove the existing recipients *GPGxID* from the store *foo* |
+| `gopass config`            | `gopass config --store=foo autosync false`    | Set the config flag `autosync` to `false` for the store *foo* |
 
 ### Directly edit structured secrets aka. YAML support
 
-`gopass` supports directly editing structured secrets (only simple key-value maps so far).
+gopass supports directly editing structured secrets (only simple key-value maps so far).
 
 ```bash
 $ gopass generate -n foo/bar 12
@@ -291,8 +289,7 @@ baz: zab
 
 ### Edit the Config
 
-`gopass` allows editing the config from the command-line. This is similar to how `git` handles `config`
-changes through the command-line. Any change will be written to the configured `gopass` config file.
+gopass allows editing the config from the command-line. This is similar to how git handles config changes through the command-line. Any change will be written to the configured gopass config file.
 
 ```bash
 $ gopass config
@@ -333,27 +330,21 @@ gopass
 └── 0xB1C7DF661ABB2C1A - Someone <someone@example.com>
 ```
 
-Running `gopass recipients` will also try to load and save any missing GPG keys
-from and to the store.
+Running `gopass recipients` will also try to load and save any missing GPG keys from and to the store.
 
-The commands manipulating recipients, i.e. `gopass recipients add` and
-`gopass recipients remove` accept a `--store` flag that expects the
-*name of a mount point* to operate on this mounted sub store.
+The commands manipulating recipients, i.e. `gopass recipients add` and `gopass recipients remove` accept a `--store` flag that expects the *name of a mount point* to operate on this mounted sub store.
 
 ### Debugging
 
-To debug `gopass`, set the environment variable `GOPASS_DEBUG` to `true`.
+To debug gopass, set the environment variable `GOPASS_DEBUG` to `true`.
 
 ### Restricting the characters in generated passwords
 
-To restrict the characters used in generated passwords set `GOPASS_CHARACTER_SET` to
-any non-empty string. Please keep in mind that this can considerably weaken the
-strength of generated passwords.
+To restrict the characters used in generated passwords set `GOPASS_CHARACTER_SET` to any non-empty string. Please keep in mind that this can considerably weaken the strength of generated passwords.
 
 ### In-place updates to existing passwords
 
-Running `gopass [generate|insert] foo/bar` on an existing entry `foo/bar` will only update
-the first line of the secret, leaving any trailing data in place.
+Running `gopass [generate|insert] foo/bar` on an existing entry `foo/bar` will only update the first line of the secret, leaving any trailing data in place.
 
 ### Disabling Colors
 
@@ -361,13 +352,13 @@ Disabling colors is as simple as setting `GOPASS_NOCOLOR` to `true`.
 
 ### Password Templates
 
-With `gopass` you can create templates which are searched when executing `gopass edit` on a new secret. If the folder, or any parent folder, contains a file called `.pass-template` it's parsed as a Go template, executed with the name of the new secret and an auto-generated password and loaded into your `$EDITOR`.
+With gopass you can create templates which are searched when executing `gopass edit` on a new secret. If the folder, or any parent folder, contains a file called `.pass-template` it's parsed as a Go template, executed with the name of the new secret and an auto-generated password and loaded into your `$EDITOR`.
 
 This makes it easy to use templates for certain kind of secrets such as database passwords.
 
 ### JSON API
 
-`gopass jsonapi` enables communication with `gopass` via json messages. This is particularly useful for browser plugins like [gopassbridge](https://github.com/martinhoefling/gopassbridge) running `gopass` as native app. More details can be found in [docs/jsonapi.md](docs/jsonapi.md).
+`gopass jsonapi` enables communication with gopass via JSON messages. This is particularly useful for browser plugins like [gopassbridge](https://github.com/martinhoefling/gopassbridge) running gopass as native app. More details can be found in [docs/jsonapi.md](docs/jsonapi.md).
 
 ## Roadmap
 

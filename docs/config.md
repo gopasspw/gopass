@@ -4,29 +4,25 @@
 
 Some configuration options are only available through setting environment variables.
 
-| **Option**           | *Type* | Description |
-| -------------------- | -------| ----------- |
-| `CHECKPOINT_DISABLE` | `bool` | Set to any non-empty value to disable calling the GitHub API when running `gopass version`. |
-| `GOPASS_DEBUG`       | `bool` | Set to any non-empty value to enable verbose debug output |
+| **Option**           | **Type** | **Description** |
+| -------------------- | ---------| --------------- |
+| `CHECKPOINT_DISABLE` | `bool`   | Set to any non-empty value to disable calling the GitHub API when running `gopass version`. |
+| `GOPASS_DEBUG`       | `bool`   | Set to any non-empty value to enable verbose debug output |
 
 ## Configuration Options
 
-`gopass` create a new configuration file if not already present during startup.
-If a config exists it will attempt to parse and load the settings. If this
-fails program execution aborts. If `gopass` can not start because  of broken
-or incompatible config file move it away (make a backup) and start fresh.
+During startup, gopass will look for a configuration file at `$HOME/.config/gopass/config.yml`. If one is not present, it will create one. If the config file already exists, it will attempt to parse it and load the settings. If this fails, the program will abort. Thus, if gopass is giving you trouble with a broken or incompatible configuration file, simply rename it or delete it.
 
-All configuration options are also available for reading and writing through
-the subcommand `gopass config`.
+All configuration options are also available for reading and writing through the subcommand `gopass config`.
 
-* To display all values type: `gopass config`.
-* To display a single value type: `gopass config autosync`
-* To update a single value type: `gopass config autosync false`
+* To display all values: `gopass config`
+* To display a single value: `gopass config autosync`
+* To update a single value: `gopass config autosync false`
 * As many other subcommands this command accepts a `--store` flag to operate on a given sub-store.
 
-This is a list of options available for `gopass`:
+This is a list of options available:
 
-| **Option**    | *Type*   | Description |
+| **Option**    | **Type** | Description |
 | ------------- | -------- | ----------- |
 | `askformore`  | `bool`   | If enabled - it will ask to add more data after use of `generate` command. |
 | `autoimport`  | `bool`   | Import missing keys stored in the pass repo without asking. |
