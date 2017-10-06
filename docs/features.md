@@ -2,47 +2,57 @@
 
 ## Standard Features
 
-### Setup of a Store
+### Initializing a Password Store
 
-If you don't have an existing password store or your store is completely empty you have to initialize it.
+After installing `gopass`, the first thing you should do is initialize a password store. (If you are migrating to `gopass` from `pass` and already have a password store, you can skip this step.)
 
-Please note: This document uses the term *password store* to refer to a directory (usually `$HOME/.password-store`) which is managed by either `gopass` or `pass`. This is entirely different from any OS-level credential store, your GPG Keyring or your SSH Keys.
+Note that this document uses the term *password store* to refer to a directory (usually `$HOME/.password-store`) which is managed by `gopass`. This is entirely different from any OS-level credential store, your GPG keyring, or your SSH Keys.
 
-Choose one of:
-```bash
-$ gopass init gopher@golang.org
-$ gopass init A3683834
-$ gopass init 1E52C1335AC1F4F4FE02F62AB5B44266A3683834    # preferred
-```
-
-This will encrypt any secret which is added to the store for the recipient.
-
-#### Clone an existing store
-
-If you already have a _password-store_ that you would clone to the system you can take one short cut:
+To initialize a password store, just do a:
 
 ```bash
-$ gopass clone git@example.com/pass.git
-$ gopass clone git@example.com/pass-work.git work # clone as mount called: work
+gopass init
 ```
 
-This runs `git clone` in the background and also sets up the config file if necessary.
+This will prompt you for which GPG key you want to associate the store with. Then it will create a `.password-store` directory in your home directory.
 
-A second parameter tells gopass to clone and mount it to the store.
-In the example above the repository would have been cloned to `$HOME/.password-store-work`.
-Afterwards the directory would have been mounted as `work`.
+If you don't want `gopass` to use this default directory, you can instead initialize a password store with:
 
-Please note that the repository must contain an already initialized password
-store. You can initialize a new store with `gopass init --path /path/to/store`.
+```bash
+gopass init --path /custom/path/to/password/store
+````
 
-### Adding secrets
+Note that if you have a huge number of GPG keys on the system or if you are running this command from a script, you can also specify the GPG key to use inline. You can do this in three different ways:
+
+```bash
+gopass init gopher@golang.org # By specifying the email address associated with the GPG key
+gopass init A3683834 # By specifying the 8 character ID found by typing "gpg --list-keys" and looking at the "pub" line
+gopass init 1E52C1335AC1F4F4FE02F62AB5B44266A3683834 # By specifying the GPG key fingerprint found by typing "gpg --fingerprint" and removing all of the spaces
+```
+
+### Cloning an Existing Password Store
+
+If you already have an existing password store that exists in a Git repository, then use `gitpass` to clone it:
+
+```bash
+gopass clone git@example.com/pass.git
+```
+
+This runs `git clone` in the background. If you don't want `gopass` to use the default directory of "$HOME/.password-store", then you can specify an additional parameter:
+
+```bash
+gopass clone git@example.com/pass-work.git work # This will initialize the password store in the "$HOME/.password-store-work" directory
+```
+
+Please note that all cloned repositories must already have been initialized with `gopass`. (See the previous section for more details.)
+
+### Adding Secrets
 
 Let's say you want to create an account.
 
 | Website    | User   |
 | ---------- | ------ |
 | golang.org | gopher |
-
 
 #### Type in a new secret
 
@@ -70,18 +80,18 @@ Eech4ahRoy2oowi0ohl
 ```
 
 ```bash
-$ gopass generate golang.org/gopher 16    # length as paramenter
+$ gopass generate golang.org/gopher 16    # length as parameter
 gopass: Encrypting golang.org/gopher for these recipients:
  - 0xB5B44266A3683834 - Gopher <gopher@golang.org>
 
 Do you want to continue? [yn]: y
 The generated password for golang.org/gopher is:
 Eech4ahRoy2oowi0ohl
-
 ```
 
-The `generate` command will ask for any missing arguments, like name of the secret or the length. If you don't want the password to be displayed use
-the `-c` flag to copy it to your clipboard.
+The `generate` command will ask for any missing arguments, like the name of the
+secret or the length. If you don't want the password to be displayed use the
+`-c` flag to copy it to your clipboard.
 
 ### Edit a secret
 
@@ -125,7 +135,7 @@ Since it may be dangerous to always display the password on `gopass` calls, the 
 setting may be set to `true` to allow one to display only the rest of the password entries by
 default and display the whole entry, with password, only when the `-f` flag is used.
 
-#### Copy secret to clipboard
+#### Copy a secret to the clipboard
 
 ```bash
 $ gopass -c golang.org/gopher
@@ -133,7 +143,7 @@ $ gopass -c golang.org/gopher
 Copied golang.org/gopher to clipboard. Will clear in 45 seconds.
 ```
 
-### Removing secret
+### Removing a secret
 
 ```bash
 $ gopass rm golang.org/gopher
@@ -143,7 +153,7 @@ $ gopass rm golang.org/gopher
 Please note that you **can not** remove a folder containing a mounted sub store.
 You have to unmount any mounted sub stores first.
 
-### Moving secrets
+### Moving a secret
 
 ```bash
 $ gopass mv emails/example.com emails/user@example.com
@@ -151,7 +161,7 @@ $ gopass mv emails/example.com emails/user@example.com
 
 *Moving also works across different sub-stores.*
 
-### Copying secrets
+### Copying a secret
 
 ```bash
 $ gopass cp emails/example.com emails/user@example.com
@@ -164,7 +174,7 @@ $ gopass cp emails/example.com emails/user@example.com
 ### Auto-Pager
 
 Like other popular open-source projects `gopass` automatically pipe the output
-to `$PAGER` if it's longer than one terminal page. You can disable this behaviour
+to `$PAGER` if it's longer than one terminal page. You can disable this behavior
 by unsetting `$PAGER` or `gopass config nopager true`.
 
 ### git auto-push and auto-pull
@@ -281,8 +291,8 @@ baz: zab
 
 ### Edit the Config
 
-`gopass` allows editing the config from the commandline. This is similar to how `git` handles `config`
-changes through the commandline. Any change will be written to the configured `gopass` config file.
+`gopass` allows editing the config from the command-line. This is similar to how `git` handles `config`
+changes through the command-line. Any change will be written to the configured `gopass` config file.
 
 ```bash
 $ gopass config
@@ -302,7 +312,7 @@ $ gopass config cliptimeout
 
 ### Managing Recipients
 
-You can list, add and remove recipients from the commandline.
+You can list, add and remove recipients from the command-line.
 
 ```bash
 $ gopass recipients
@@ -327,7 +337,7 @@ Running `gopass recipients` will also try to load and save any missing GPG keys
 from and to the store.
 
 The commands manipulating recipients, i.e. `gopass recipients add` and
-`gopass recpients remove` accept a `--store` flag that expects the
+`gopass recipients remove` accept a `--store` flag that expects the
 *name of a mount point* to operate on this mounted sub store.
 
 ### Debugging
@@ -351,13 +361,13 @@ Disabling colors is as simple as setting `GOPASS_NOCOLOR` to `true`.
 
 ### Password Templates
 
-With gopass you can create templates which are searched when executing `gopass edit` on a new secret. If the folder, or any parent folder, contains a file called `.pass-template` it's parsed as a Go template, executed with the name of the new secret and an auto-generated password and loaded into your `$EDITOR`.
+With `gopass` you can create templates which are searched when executing `gopass edit` on a new secret. If the folder, or any parent folder, contains a file called `.pass-template` it's parsed as a Go template, executed with the name of the new secret and an auto-generated password and loaded into your `$EDITOR`.
 
-This makes it easy to e.g. generate database passwords or use templates for certain kind of secrets.
+This makes it easy to use templates for certain kind of secrets such as database passwords.
 
 ### JSON API
 
-`gopass jsonapi` enables communication with gopass via json messages. This is in particular useful for browser plugins like [gopassbridge](https://github.com/martinhoefling/gopassbridge) running gopass as native app. More details can be found in [docs/jsonapi.md](docs/jsonapi.md)
+`gopass jsonapi` enables communication with `gopass` via json messages. This is particularly useful for browser plugins like [gopassbridge](https://github.com/martinhoefling/gopassbridge) running `gopass` as native app. More details can be found in [docs/jsonapi.md](docs/jsonapi.md).
 
 ## Roadmap
 
@@ -370,5 +380,4 @@ This makes it easy to e.g. generate database passwords or use templates for cert
 - [ ] Better and more fine grained ACL
 - [ ] Be nicely usable by semi- and non-technical users
 
-*Note: Being 100% pass compatible was a milestone, not a promise for the future. We will eventually diverge from pass to support more advanced features. This will break compatibility.*
-
+*Note: Being 100% pass compatible is a milestone, not a promise for the future. We will eventually diverge from pass to support more advanced features. This will break compatibility.*
