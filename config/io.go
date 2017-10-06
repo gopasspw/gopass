@@ -81,6 +81,7 @@ func decode(buf []byte) (*Config, error) {
 		&Pre140{
 			AutoSync: true,
 		},
+		&Pre130{},
 	}
 	for _, cfg := range cfgs {
 		if err := yaml.Unmarshal(buf, cfg); err != nil {

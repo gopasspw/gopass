@@ -212,6 +212,28 @@ ccc
 				}
 			},
 		},
+		{
+			name: "Retrieve content from invalid YAML (#375)",
+			tf: func(t *testing.T) {
+				mlValue := `somepasswd
+---
+Test / test.com
+username: myuser@test.com
+password: somepasswd
+url: http://www.test.com/`
+				s, err := Parse([]byte(mlValue))
+				if err != nil {
+					t.Logf("%s", err)
+				}
+				if s == nil {
+					t.Fatalf("Secret is nil")
+				}
+				// read back key
+				if s.String() != mlValue {
+					t.Errorf("Decoded Secret does not match input")
+				}
+			},
+		},
 	} {
 		// run test case
 		t.Run(tc.name, tc.tf)

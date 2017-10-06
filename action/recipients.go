@@ -7,6 +7,7 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
+	"github.com/justwatchcom/gopass/utils/termwiz"
 	"github.com/urfave/cli"
 )
 
@@ -66,7 +67,25 @@ func (s *Action) RecipientsComplete(ctx context.Context, c *cli.Context) {
 func (s *Action) RecipientsAdd(ctx context.Context, c *cli.Context) error {
 	store := c.String("store")
 	added := 0
-	for _, r := range c.Args() {
+
+	recipients := []string(c.Args())
+	if len(recipients) < 1 {
+		choices := []string{}
+		kl, _ := s.gpg.FindPublicKeys(ctx)
+		for _, key := range kl.UseableKeys() {
+			choices = append(choices, key.OneLine())
+		}
+		if len(choices) > 0 {
+			act, sel := termwiz.GetSelection(choices)
+			switch act {
+			case "show":
+				recipients = []string{choices[sel]}
+			default:
+				return s.exitError(ctx, ExitAborted, nil, "user aborted")
+			}
+		}
+	}
+	for _, r := range recipients {
 		keys, err := s.gpg.FindPublicKeys(ctx, r)
 		if err != nil {
 			fmt.Println(color.CyanString("Failed to list public key '%s': %s", r, err))
@@ -100,8 +119,34 @@ func (s *Action) RecipientsAdd(ctx context.Context, c *cli.Context) error {
 // RecipientsRemove removes recipients
 func (s *Action) RecipientsRemove(ctx context.Context, c *cli.Context) error {
 	store := c.String("store")
+
+	recipients := []string(c.Args())
+	if len(recipients) < 1 {
+		ids := s.Store.ListRecipients(ctx, store)
+		choices := make([]string, 0, len(ids))
+		kl, err := s.gpg.FindPublicKeys(ctx, ids...)
+		if err == nil && kl != nil {
+			for _, id := range ids {
+				if key, err := kl.FindKey(id); err == nil {
+					choices = append(choices, key.OneLine())
+					continue
+				}
+				choices = append(choices, id)
+			}
+		}
+		if len(choices) > 0 {
+			act, sel := termwiz.GetSelection(choices)
+			switch act {
+			case "show":
+				recipients = []string{choices[sel]}
+			default:
+				return s.exitError(ctx, ExitAborted, nil, "user aborted")
+			}
+		}
+	}
+
 	removed := 0
-	for _, r := range c.Args() {
+	for _, r := range recipients {
 		kl, err := s.gpg.FindPrivateKeys(ctx, r)
 		if err == nil {
 			if len(kl) > 0 {
