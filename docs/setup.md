@@ -143,6 +143,12 @@ source <(gopass completion bash)
 source <(gopass completion zsh)
 ```
 
+**MacOS**: The version of bash shipped with MacOS may [require a workaround](https://stackoverflow.com/questions/32596123/why-source-command-doesnt-work-with-process-substitution-in-bash-3-2) to enable autocompletion. If the instructions above do not work try the following one:
+
+```
+source /dev/stdin <<<"$(gopass completion bash)"
+```
+
 ### Enable fish completion
 
 If you use the [fish](https://fishshell.com/) shell, you can enable experimental shell completion. Copy the file `fish.completion` to `~/.config/fish/completions/gopass.fish` and start a new shell.
