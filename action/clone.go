@@ -26,10 +26,14 @@ func (s *Action) Clone(ctx context.Context, c *cli.Context) error {
 	}
 
 	path := c.String("path")
+
+	return s.clone(ctx, repo, mount, path)
+}
+
+func (s *Action) clone(ctx context.Context, repo, mount, path string) error {
 	if path == "" {
 		path = config.PwStoreDir(mount)
 	}
-
 	if mount == "" && s.Store.Initialized() {
 		return s.exitError(ctx, ExitAlreadyInitialized, nil, "Can not clone %s to the root store, as this store is already initialized. Please try cloning to a submount: `%s clone %s sub`", repo, s.Name, repo)
 	}
