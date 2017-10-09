@@ -34,6 +34,12 @@ func GetSelection(ctx context.Context, prompt, usage string, choices []string) (
 
 	cur := 0
 	for {
+		// check for context cancelation
+		select {
+		case <-ctx.Done():
+			return "aborted", cur
+		default:
+		}
 		_ = termbox.Clear(coldef, coldef)
 		tbprint(0, 0, coldef, coldef, prompt+"Please select:")
 		_, h := termbox.Size()

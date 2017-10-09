@@ -58,7 +58,7 @@ func (s *Action) createWebsite(ctx context.Context, c *cli.Context) error {
 		err      error
 		genPw    bool
 	)
-	urlStr, err = s.askForString("Please enter the URL", "")
+	urlStr, err = s.askForString(ctx, "Please enter the URL", "")
 	if err != nil {
 		return err
 	}
@@ -66,11 +66,11 @@ func (s *Action) createWebsite(ctx context.Context, c *cli.Context) error {
 	if err != nil {
 		return errors.Wrapf(err, "Can not parse URL. Please use 'gopass edit' to manually create the secret")
 	}
-	username, err = s.askForString("Please enter the Username/Login", "")
+	username, err = s.askForString(ctx, "Please enter the Username/Login", "")
 	if err != nil {
 		return err
 	}
-	genPw, err = s.askForBool("Do you want to generate a new password?", true)
+	genPw, err = s.askForBool(ctx, "Do you want to generate a new password?", true)
 	if err != nil {
 		return err
 	}
@@ -85,7 +85,7 @@ func (s *Action) createWebsite(ctx context.Context, c *cli.Context) error {
 			return err
 		}
 	}
-	comment, _ = s.askForString("Comments (optional)", "")
+	comment, _ = s.askForString(ctx, "Comments (optional)", "")
 	// select store
 	stores := []string{"<root>"}
 	stores = append(stores, s.Store.MountPoints()...)
@@ -105,7 +105,7 @@ func (s *Action) createWebsite(ctx context.Context, c *cli.Context) error {
 	}
 	name := fmt.Sprintf("%swebsites/%s/%s", store, u.Hostname(), username)
 	if s.Store.Exists(ctx, name) {
-		name, err = s.askForString("Secret already exists, please choose another path", name)
+		name, err = s.askForString(ctx, "Secret already exists, please choose another path", name)
 		if err != nil {
 			return err
 		}
@@ -136,15 +136,15 @@ func (s *Action) createPIN(ctx context.Context, c *cli.Context) error {
 		err         error
 		genPw       bool
 	)
-	authority, err = s.askForString("Please enter the authoriy (e.g. MyBank) this PIN is for", "")
+	authority, err = s.askForString(ctx, "Please enter the authoriy (e.g. MyBank) this PIN is for", "")
 	if err != nil {
 		return err
 	}
-	application, err = s.askForString("Please enter the entity (e.g. Credit Card) this PIN is for", "")
+	application, err = s.askForString(ctx, "Please enter the entity (e.g. Credit Card) this PIN is for", "")
 	if err != nil {
 		return err
 	}
-	genPw, err = s.askForBool("Do you want to generate a new PIN?", true)
+	genPw, err = s.askForBool(ctx, "Do you want to generate a new PIN?", true)
 	if err != nil {
 		return err
 	}
@@ -159,7 +159,7 @@ func (s *Action) createPIN(ctx context.Context, c *cli.Context) error {
 			return err
 		}
 	}
-	comment, _ = s.askForString("Comments (optional)", "")
+	comment, _ = s.askForString(ctx, "Comments (optional)", "")
 	// select store
 	stores := []string{"<root>"}
 	stores = append(stores, s.Store.MountPoints()...)
@@ -179,7 +179,7 @@ func (s *Action) createPIN(ctx context.Context, c *cli.Context) error {
 	}
 	name := fmt.Sprintf("%spins/%s/%s", store, authority, application)
 	if s.Store.Exists(ctx, name) {
-		name, err = s.askForString("Secret already exists, please choose another path", name)
+		name, err = s.askForString(ctx, "Secret already exists, please choose another path", name)
 		if err != nil {
 			return err
 		}
@@ -209,15 +209,15 @@ func (s *Action) createAWS(ctx context.Context, c *cli.Context) error {
 		store     string
 		err       error
 	)
-	account, err = s.askForString("Please enter the AWS Account this key belongs to", "")
+	account, err = s.askForString(ctx, "Please enter the AWS Account this key belongs to", "")
 	if err != nil {
 		return err
 	}
-	username, err = s.askForString("Please enter the name of the AWS IAM User this key belongs to", "")
+	username, err = s.askForString(ctx, "Please enter the name of the AWS IAM User this key belongs to", "")
 	if err != nil {
 		return err
 	}
-	accesskey, err = s.askForString("Please enter the Access Key ID (AWS_ACCESS_KEY_ID)", "")
+	accesskey, err = s.askForString(ctx, "Please enter the Access Key ID (AWS_ACCESS_KEY_ID)", "")
 	if err != nil {
 		return err
 	}
@@ -225,7 +225,7 @@ func (s *Action) createAWS(ctx context.Context, c *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	region, _ = s.askForString("Please enter the default Region (AWS_DEFAULT_REGION) (optional)", "")
+	region, _ = s.askForString(ctx, "Please enter the default Region (AWS_DEFAULT_REGION) (optional)", "")
 	// select store
 	stores := []string{"<root>"}
 	stores = append(stores, s.Store.MountPoints()...)
@@ -245,7 +245,7 @@ func (s *Action) createAWS(ctx context.Context, c *cli.Context) error {
 	}
 	name := fmt.Sprintf("%saws/iam/%s/%s", store, account, username)
 	if s.Store.Exists(ctx, name) {
-		name, err = s.askForString("Secret already exists, please choose another path", name)
+		name, err = s.askForString(ctx, "Secret already exists, please choose another path", name)
 		if err != nil {
 			return err
 		}
@@ -269,7 +269,7 @@ func (s *Action) createGCP(ctx context.Context, c *cli.Context) error {
 		store    string
 		err      error
 	)
-	svcaccfn, err = s.askForString("Please enter path to the Service Account JSON file", "")
+	svcaccfn, err = s.askForString(ctx, "Please enter path to the Service Account JSON file", "")
 	if err != nil {
 		return err
 	}
@@ -282,13 +282,13 @@ func (s *Action) createGCP(ctx context.Context, c *cli.Context) error {
 		return err
 	}
 	if username == "" {
-		username, err = s.askForString("Please enter the name of this service account", "")
+		username, err = s.askForString(ctx, "Please enter the name of this service account", "")
 		if err != nil {
 			return err
 		}
 	}
 	if project == "" {
-		project, err = s.askForString("Please enter the name of this GCP project", "")
+		project, err = s.askForString(ctx, "Please enter the name of this GCP project", "")
 		if err != nil {
 			return err
 		}
@@ -312,7 +312,7 @@ func (s *Action) createGCP(ctx context.Context, c *cli.Context) error {
 	}
 	name := fmt.Sprintf("%sgcp/iam/%s/%s", store, project, username)
 	if s.Store.Exists(ctx, name) {
-		name, err = s.askForString("Secret already exists, please choose another path", name)
+		name, err = s.askForString(ctx, "Secret already exists, please choose another path", name)
 		if err != nil {
 			return err
 		}
@@ -349,11 +349,11 @@ func (s *Action) createGeneric(ctx context.Context, c *cli.Context) error {
 		err       error
 		genPw     bool
 	)
-	shortname, err = s.askForString("Please enter a name for the secret", "")
+	shortname, err = s.askForString(ctx, "Please enter a name for the secret", "")
 	if err != nil {
 		return err
 	}
-	genPw, err = s.askForBool("Do you want to generate a new password?", true)
+	genPw, err = s.askForBool(ctx, "Do you want to generate a new password?", true)
 	if err != nil {
 		return err
 	}
@@ -387,7 +387,7 @@ func (s *Action) createGeneric(ctx context.Context, c *cli.Context) error {
 	}
 	name := fmt.Sprintf("%smisc/%s", store, shortname)
 	if s.Store.Exists(ctx, name) {
-		name, err = s.askForString("Secret already exists, please choose another path", name)
+		name, err = s.askForString(ctx, "Secret already exists, please choose another path", name)
 		if err != nil {
 			return err
 		}
@@ -395,14 +395,14 @@ func (s *Action) createGeneric(ctx context.Context, c *cli.Context) error {
 	sec := secret.New(password, "")
 	fmt.Println("Enter zero or more key value pairs for this secret:")
 	for {
-		key, err := s.askForString("Name for Key Value pair (enter to quit)", "")
+		key, err := s.askForString(ctx, "Name for Key Value pair (enter to quit)", "")
 		if err != nil {
 			return err
 		}
 		if key == "" {
 			break
 		}
-		val, err := s.askForString("Value for Key '"+key+"'", "")
+		val, err := s.askForString(ctx, "Value for Key '"+key+"'", "")
 		if err != nil {
 			return err
 		}
@@ -421,12 +421,12 @@ func (s *Action) createGeneric(ctx context.Context, c *cli.Context) error {
 }
 
 func (s *Action) createGeneratePassword(ctx context.Context) (string, error) {
-	xkcd, err := s.askForBool("Do you want an rememberable password?", true)
+	xkcd, err := s.askForBool(ctx, "Do you want an rememberable password?", true)
 	if err != nil {
 		return "", err
 	}
 	if xkcd {
-		length, err := s.askForInt("How many words should be cominbed into a passphrase?", 4)
+		length, err := s.askForInt(ctx, "How many words should be cominbed into a passphrase?", 4)
 		if err != nil {
 			return "", err
 		}
@@ -437,11 +437,11 @@ func (s *Action) createGeneratePassword(ctx context.Context) (string, error) {
 		return string(g.GeneratePassword()), nil
 	}
 
-	length, err := s.askForInt("How long should the password be?", defaultLength)
+	length, err := s.askForInt(ctx, "How long should the password be?", defaultLength)
 	if err != nil {
 		return "", err
 	}
-	symbols, err := s.askForBool("Do you want to include symbols?", false)
+	symbols, err := s.askForBool(ctx, "Do you want to include symbols?", false)
 	if err != nil {
 		return "", err
 	}
@@ -449,7 +449,7 @@ func (s *Action) createGeneratePassword(ctx context.Context) (string, error) {
 }
 
 func (s *Action) createGeneratePIN(ctx context.Context) (string, error) {
-	length, err := s.askForInt("How long should the PIN be?", 4)
+	length, err := s.askForInt(ctx, "How long should the PIN be?", 4)
 	if err != nil {
 		return "", err
 	}

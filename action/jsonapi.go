@@ -25,22 +25,22 @@ func (s *Action) JSONAPI(ctx context.Context, c *cli.Context) error {
 
 // SetupNativeMessaging sets up manifest for gopass as native messaging host
 func (s *Action) SetupNativeMessaging(ctx context.Context, c *cli.Context) error {
-	browser, err := s.getBrowser(c)
+	browser, err := s.getBrowser(ctx, c)
 	if err != nil {
 		return err
 	}
 
-	globalInstall, err := s.getGlobalInstall(c)
+	globalInstall, err := s.getGlobalInstall(ctx, c)
 	if err != nil {
 		return err
 	}
 
-	libpath, err := s.getLibPath(c, browser, globalInstall)
+	libpath, err := s.getLibPath(ctx, c, browser, globalInstall)
 	if err != nil {
 		return err
 	}
 
-	wrapperPath, err := s.getWrapperPath(c)
+	wrapperPath, err := s.getWrapperPath(ctx, c)
 	if err != nil {
 		return err
 	}
@@ -53,17 +53,17 @@ func (s *Action) SetupNativeMessaging(ctx context.Context, c *cli.Context) error
 		return nil
 	}
 
-	install, err := s.askForBool(color.BlueString("Install manifest and wrapper?"), true)
+	install, err := s.askForBool(ctx, color.BlueString("Install manifest and wrapper?"), true)
 	if install && err == nil {
 		return manifest.SetUp(browser, wrapperPath, libpath, globalInstall)
 	}
 	return err
 }
 
-func (s *Action) getBrowser(c *cli.Context) (browser string, err error) {
+func (s *Action) getBrowser(ctx context.Context, c *cli.Context) (browser string, err error) {
 	browser = c.String("browser")
 	if browser == "" {
-		browser, err = s.askForString(color.BlueString("For which browser do you want to install gopass native messaging? [%s]", strings.Join(manifest.ValidBrowsers[:], ",")), manifest.DefaultBrowser)
+		browser, err = s.askForString(ctx, color.BlueString("For which browser do you want to install gopass native messaging? [%s]", strings.Join(manifest.ValidBrowsers[:], ",")), manifest.DefaultBrowser)
 		if err != nil {
 			return "", errors.Wrapf(err, "failed to ask for user input")
 		}
@@ -74,24 +74,24 @@ func (s *Action) getBrowser(c *cli.Context) (browser string, err error) {
 	return
 }
 
-func (s *Action) getGlobalInstall(c *cli.Context) (bool, error) {
+func (s *Action) getGlobalInstall(ctx context.Context, c *cli.Context) (bool, error) {
 	if !c.IsSet("global") {
-		return s.askForBool(color.BlueString("Install for all users? (might require sudo gopass)"), false)
+		return s.askForBool(ctx, color.BlueString("Install for all users? (might require sudo gopass)"), false)
 	}
 	return c.Bool("global"), nil
 }
 
-func (s *Action) getLibPath(c *cli.Context, browser string, global bool) (string, error) {
+func (s *Action) getLibPath(ctx context.Context, c *cli.Context, browser string, global bool) (string, error) {
 	if !c.IsSet("libpath") && runtime.GOOS == "linux" && browser == "firefox" && global {
-		return s.askForString(color.BlueString("What is your lib path?"), "/usr/lib")
+		return s.askForString(ctx, color.BlueString("What is your lib path?"), "/usr/lib")
 	}
 	return c.String("libpath"), nil
 }
 
-func (s *Action) getWrapperPath(c *cli.Context) (path string, err error) {
+func (s *Action) getWrapperPath(ctx context.Context, c *cli.Context) (path string, err error) {
 	path = c.String("path")
 	if path == "" {
-		path, err = s.askForString(color.BlueString("In which path should gopass_wrapper.sh be installed?"), manifest.DefaultWrapperPath)
+		path, err = s.askForString(ctx, color.BlueString("In which path should gopass_wrapper.sh be installed?"), manifest.DefaultWrapperPath)
 		if err != nil {
 			return "", errors.Wrapf(err, "failed to ask for user input")
 		}

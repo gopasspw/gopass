@@ -50,7 +50,7 @@ func (s *Action) Generate(ctx context.Context, c *cli.Context) error {
 
 	if name == "" {
 		var err error
-		name, err = s.askForString("Which name do you want to use?", "")
+		name, err = s.askForString(ctx, "Which name do you want to use?", "")
 		if err != nil || name == "" {
 			return s.exitError(ctx, ExitNoName, err, "please provide a password name")
 		}
@@ -70,7 +70,7 @@ func (s *Action) Generate(ctx context.Context, c *cli.Context) error {
 			question = "How many words should be combined to a password?"
 		}
 		var err error
-		if length, err = s.askForString(question, string(candidateLength)); err != nil {
+		if length, err = s.askForString(ctx, question, string(candidateLength)); err != nil {
 			panic(err) // panic on i/o error only, string -> int conversion is done below
 		}
 	}

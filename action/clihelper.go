@@ -28,6 +28,13 @@ func (s *Action) ConfirmRecipients(ctx context.Context, name string, recipients 
 
 	fmt.Printf("gopass: Encrypting %s for these recipients:\n", name)
 	for _, r := range recipients {
+		// check for context cancelation
+		select {
+		case <-ctx.Done():
+			return nil, errors.New("user aborted")
+		default:
+		}
+
 		kl, err := s.gpg.FindPublicKeys(ctx, r)
 		if err != nil {
 			fmt.Println(color.RedString("Failed to read public key for '%s': %s", name, err))
@@ -41,7 +48,7 @@ func (s *Action) ConfirmRecipients(ctx context.Context, name string, recipients 
 	}
 	fmt.Println("")
 
-	yes, err := s.askForBool("Do you want to continue?", true)
+	yes, err := s.askForBool(ctx, "Do you want to continue?", true)
 	if err != nil {
 		return recipients, errors.Wrapf(err, "failed to read user input")
 	}
@@ -61,7 +68,7 @@ func (s *Action) AskForConfirmation(ctx context.Context, text string) bool {
 	}
 
 	for i := 0; i < maxTries; i++ {
-		if choice, err := s.askForBool(text, false); err == nil {
+		if choice, err := s.askForBool(ctx, text, false); err == nil {
 			return choice
 		}
 	}
@@ -71,13 +78,13 @@ func (s *Action) AskForConfirmation(ctx context.Context, text string) bool {
 // askForBool ask for a bool (yes or no) exactly once.
 // The empty answer uses the specified default, any other answer
 // is an error.
-func (s *Action) askForBool(text string, def bool) (bool, error) {
+func (s *Action) askForBool(ctx context.Context, text string, def bool) (bool, error) {
 	choices := "y/N"
 	if def {
 		choices = "Y/n"
 	}
 
-	str, err := s.askForString(text, choices)
+	str, err := s.askForString(ctx, text, choices)
 	if err != nil {
 		return false, errors.Wrapf(err, "failed to read user input")
 	}
@@ -101,7 +108,14 @@ func (s *Action) askForBool(text string, def bool) (bool, error) {
 
 // askForString asks for a string once, using the default if the
 // anser is empty. Errors are only returned on I/O errors
-func (s *Action) askForString(text, def string) (string, error) {
+func (s *Action) askForString(ctx context.Context, text, def string) (string, error) {
+	// check for context cancelation
+	select {
+	case <-ctx.Done():
+		return "", errors.New("user aborted")
+	default:
+	}
+
 	reader := bufio.NewReader(os.Stdin)
 
 	fmt.Printf("%s [%s]: ", text, def)
@@ -118,8 +132,8 @@ func (s *Action) askForString(text, def string) (string, error) {
 
 // askForInt asks for an valid interger once. If the input
 // can not be converted to an int it returns an error
-func (s *Action) askForInt(text string, def int) (int, error) {
-	str, err := s.askForString(text, strconv.Itoa(def))
+func (s *Action) askForInt(ctx context.Context, text string, def int) (int, error) {
+	str, err := s.askForString(ctx, text, strconv.Itoa(def))
 	if err != nil {
 		return 0, err
 	}
@@ -143,6 +157,13 @@ func (s *Action) askForPassword(ctx context.Context, name string, askFn func(con
 		askFn = s.promptPass
 	}
 	for i := 0; i < maxTries; i++ {
+		// check for context cancelation
+		select {
+		case <-ctx.Done():
+			return "", errors.New("user aborted")
+		default:
+		}
+
 		pass, err := askFn(ctx, fmt.Sprintf("Enter password for %s", name))
 		if err != nil {
 			return "", err
@@ -171,7 +192,7 @@ func (s *Action) AskForKeyImport(ctx context.Context, key string) bool {
 		return false
 	}
 
-	ok, err := s.askForBool(fmt.Sprintf("Do you want to import the public key '%s' into your keyring?", key), false)
+	ok, err := s.askForBool(ctx, fmt.Sprintf("Do you want to import the public key '%s' into your keyring?", key), false)
 	if err != nil {
 		return false
 	}
@@ -196,12 +217,18 @@ func (s *Action) askForPrivateKey(ctx context.Context, prompt string) (string, e
 		if ctxutil.IsAlwaysYes(ctx) {
 			return kl[0].Fingerprint, nil
 		}
+		// check for context cancelation
+		select {
+		case <-ctx.Done():
+			return "", errors.New("user aborted")
+		default:
+		}
 
 		fmt.Println(prompt)
 		for i, k := range kl {
 			fmt.Printf("[%d] %s\n", i, k.OneLine())
 		}
-		iv, err := s.askForInt(fmt.Sprintf("Please enter the number of a key (0-%d)", len(kl)-1), 0)
+		iv, err := s.askForInt(ctx, fmt.Sprintf("Please enter the number of a key (0-%d)", len(kl)-1), 0)
 		if err != nil {
 			continue
 		}
@@ -243,7 +270,8 @@ func (s *Action) askForGitConfigUser(ctx context.Context) (string, string, error
 			}
 
 			useCurrent, err = s.askForBool(
-				fmt.Sprintf("Use %s (%s) for password store git config?", identity.Name, identity.Email), false)
+				ctx,
+				fmt.Sprintf("Use %s (%s) for password store git config?", identity.Name, identity.Email), true)
 			if err != nil {
 				return "", "", err
 			}
