@@ -54,7 +54,7 @@ func (s *Action) Find(ctx context.Context, c *cli.Context) error {
 		return nil
 	}
 
-	act, sel := termwiz.GetSelection(choices)
+	act, sel := termwiz.GetSelection(ctx, "Found secrets -", "", choices)
 	switch act {
 	case "copy":
 		// display selected entry
@@ -64,6 +64,12 @@ func (s *Action) Find(ctx context.Context, c *cli.Context) error {
 		// display selected entry
 		fmt.Println(choices[sel])
 		return s.show(ctx, c, choices[sel], "", clip, false, false, false)
+	case "sync":
+		// run sync and re-run show/find workflow
+		if err := s.Sync(ctx, c); err != nil {
+			return err
+		}
+		return s.show(ctx, c, needle, "", clip, false, false, true)
 	default:
 		return s.exitError(ctx, ExitAborted, nil, "user aborted")
 	}

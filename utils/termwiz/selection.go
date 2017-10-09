@@ -1,8 +1,10 @@
 package termwiz
 
 import (
+	"context"
 	"fmt"
 
+	"github.com/justwatchcom/gopass/utils/ctxutil"
 	runewidth "github.com/mattn/go-runewidth"
 	"github.com/nsf/termbox-go"
 )
@@ -16,11 +18,16 @@ func tbprint(x, y int, fg, bg termbox.Attribute, msg string) {
 
 // GetSelection show a navigateable multiple-choice list to the user
 // and returns the selected entry along with the action
-func GetSelection(choices []string) (string, int) {
+func GetSelection(ctx context.Context, prompt, usage string, choices []string) (string, int) {
+	if prompt != "" {
+		prompt += " "
+	}
+
 	if err := termbox.Init(); err != nil {
 		panic(err)
 	}
 	defer termbox.Close()
+
 	termbox.SetInputMode(termbox.InputEsc)
 	const coldef = termbox.ColorDefault
 	_ = termbox.Clear(coldef, coldef)
@@ -28,13 +35,13 @@ func GetSelection(choices []string) (string, int) {
 	cur := 0
 	for {
 		_ = termbox.Clear(coldef, coldef)
-		tbprint(0, 0, coldef, coldef, "Please select:")
+		tbprint(0, 0, coldef, coldef, prompt+"Please select:")
 		_, h := termbox.Size()
 		offset := 0
-		if len(choices)+2 > h {
+		if len(choices)+2 > h && cur > h-3 {
 			offset = cur
 		}
-		for i := offset; i < len(choices) && i < h; i++ {
+		for i := offset; i < len(choices) && i-offset < h; i++ {
 			c := choices[i]
 			mark := " "
 			if cur == i {
@@ -42,7 +49,14 @@ func GetSelection(choices []string) (string, int) {
 			}
 			tbprint(0, 1+i-offset, coldef, coldef, fmt.Sprintf("%s %s\n", mark, c))
 		}
-		tbprint(0, h-1, coldef, coldef, "<↑/↓> to change the selection, <→> to show, <←> to copy, <ESC> to quit")
+		usageLine := usage
+		if usageLine == "" {
+			usageLine = "<↑/↓> to change the selection, <→> to show, <←> to copy, <s> to sync, <ESC> to quit"
+		}
+		if ctxutil.IsDebug(ctx) {
+			usageLine += " - DEBUG: " + fmt.Sprintf("Offset: %d - Cur: %d - Choices: %d", offset, cur, len(choices))
+		}
+		tbprint(0, h-1, coldef, coldef, usageLine)
 		_ = termbox.Flush()
 		switch ev := termbox.PollEvent(); ev.Type {
 		case termbox.EventKey:
@@ -64,6 +78,7 @@ func GetSelection(choices []string) (string, int) {
 				if cur < 0 {
 					cur = len(choices) - 1
 				}
+				continue
 			default:
 				if ev.Ch != 0 {
 					switch ev.Ch {
@@ -74,13 +89,17 @@ func GetSelection(choices []string) (string, int) {
 						if cur >= len(choices) {
 							cur = 0
 						}
+						continue
 					case 'k':
 						cur--
 						if cur < 0 {
 							cur = len(choices) - 1
 						}
+						continue
 					case 'l':
 						return "show", cur
+					case 's':
+						return "sync", cur
 					}
 				}
 			}

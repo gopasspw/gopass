@@ -76,7 +76,7 @@ func (s *Action) RecipientsAdd(ctx context.Context, c *cli.Context) error {
 			choices = append(choices, key.OneLine())
 		}
 		if len(choices) > 0 {
-			act, sel := termwiz.GetSelection(choices)
+			act, sel := termwiz.GetSelection(ctx, "Add Recipient -", "<↑/↓> to change the selection, <→> to add this recipient, <ESC> to quit", choices)
 			switch act {
 			case "show":
 				recipients = []string{choices[sel]}
@@ -135,7 +135,7 @@ func (s *Action) RecipientsRemove(ctx context.Context, c *cli.Context) error {
 			}
 		}
 		if len(choices) > 0 {
-			act, sel := termwiz.GetSelection(choices)
+			act, sel := termwiz.GetSelection(ctx, "Remove recipient -", "<↑/↓> to change the selection, <→> to remove this recipient, <ESC> to quit", choices)
 			switch act {
 			case "show":
 				recipients = []string{choices[sel]}
