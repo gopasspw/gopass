@@ -1,3 +1,16 @@
+## Upcoming Release
+
+* [FEATURE] Add secret creation wizard [#386]
+* [FEATURE] Add onboarding wizard [#387]
+* [FEATURE] Wizard for recipients add/remove [#359]
+* [FEATURE] XKCD#936 inspired password generation [#368]
+* [ENHANCEMENT] Overhaul documentation [#383] [#384]
+* [ENHANCEMENT] Attempt to get TOTP key from YAML [#376]
+* [ENHANCEMENT] Allow find to take -c [#378]
+* [ENHANCEMENT] Improve terminal wizard [#385]
+* [ENHANCEMENT] Improve responsiveness by context usage [#388]
+* [BUGFIX] Support pre-1.3.0 config format [#382]
+
 ## 1.4.1 / 2017-10-05
 
 * [BUGFIX] Support pre-1.3.0 configs [#382]
