@@ -340,6 +340,15 @@ func main() {
 			},
 		},
 		{
+			Name:    "create",
+			Aliases: []string{"new"},
+			Usage:   "Assists in creating new secrets",
+			Before:  func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
+			Action: func(c *cli.Context) error {
+				return action.Create(withGlobalFlags(ctx, c), c)
+			},
+		},
+		{
 			Name:    "delete",
 			Usage:   "Remove existing secret or directory, optionally forcefully.",
 			Aliases: []string{"remove", "rm"},
