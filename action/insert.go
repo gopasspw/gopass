@@ -49,7 +49,7 @@ func (s *Action) Insert(ctx context.Context, c *cli.Context) error {
 	// update to a single YAML entry
 	if key != "" {
 		if ctxutil.IsInteractive(ctx) {
-			pw, err := s.askForString(name+":"+key, "")
+			pw, err := s.askForString(ctx, name+":"+key, "")
 			if err != nil {
 				return s.exitError(ctx, ExitIO, err, "failed to ask for user input: %s", err)
 			}
@@ -122,7 +122,7 @@ func (s *Action) Insert(ctx context.Context, c *cli.Context) error {
 	var promptFn func(context.Context, string) (string, error)
 	if echo {
 		promptFn = func(ctx context.Context, prompt string) (string, error) {
-			return s.askForString(prompt, "")
+			return s.askForString(ctx, prompt, "")
 		}
 	}
 

@@ -17,7 +17,7 @@ import (
 func (s *Action) Initialized(ctx context.Context, c *cli.Context) error {
 	if !s.Store.Initialized() {
 		if ctxutil.IsInteractive(ctx) {
-			if ok, err := s.askForBool("It seems you are new to gopass. Do you want to run the onboarding wizard?", true); err == nil && ok {
+			if ok, err := s.askForBool(ctx, "It seems you are new to gopass. Do you want to run the onboarding wizard?", true); err == nil && ok {
 				return s.initOnboarding(ctx, c)
 			}
 		}
@@ -127,10 +127,10 @@ func (s *Action) initOBLocal(ctx context.Context, c *cli.Context) error {
 		return err
 	}
 	fmt.Println("Configuring your local store")
-	if want, err := s.askForBool("Do you want to automatically push any changes to the git remote (if any)?", true); err == nil {
+	if want, err := s.askForBool(ctx, "Do you want to automatically push any changes to the git remote (if any)?", true); err == nil {
 		s.cfg.Root.AutoSync = want
 	}
-	if want, err := s.askForBool("Do you want to always confirm recipients when encrypting?", false); err == nil {
+	if want, err := s.askForBool(ctx, "Do you want to always confirm recipients when encrypting?", false); err == nil {
 		s.cfg.Root.NoConfirm = !want
 	}
 	if err := s.cfg.Save(); err != nil {
@@ -145,7 +145,7 @@ func (s *Action) initOBCreateTeam(ctx context.Context, c *cli.Context) error {
 	if err := s.initOBLocal(ctx, c); err != nil {
 		return errors.Wrapf(err, "failed to create local store")
 	}
-	team, err := s.askForString("Please enter the name of your team (may contain slashes)", "")
+	team, err := s.askForString(ctx, "Please enter the name of your team (may contain slashes)", "")
 	if err != nil {
 		return err
 	}
@@ -154,7 +154,7 @@ func (s *Action) initOBCreateTeam(ctx context.Context, c *cli.Context) error {
 		return err
 	}
 	fmt.Println("3.) Configuring the remote for ", team)
-	remote, err := s.askForString("Please enter the git remote for your shared store", "")
+	remote, err := s.askForString(ctx, "Please enter the git remote for your shared store", "")
 	if err != nil {
 		return err
 	}
@@ -172,12 +172,12 @@ func (s *Action) initOBJoinTeam(ctx context.Context, c *cli.Context) error {
 	if err := s.initOBLocal(ctx, c); err != nil {
 		return errors.Wrapf(err, "failed to create local store")
 	}
-	team, err := s.askForString("Please enter the name of your team (may contain slashes)", "")
+	team, err := s.askForString(ctx, "Please enter the name of your team (may contain slashes)", "")
 	if err != nil {
 		return err
 	}
 	fmt.Println("2.) Cloning from the remote for ", team)
-	remote, err := s.askForString("Please enter the git remote for your shared store", "")
+	remote, err := s.askForString(ctx, "Please enter the git remote for your shared store", "")
 	if err != nil {
 		return err
 	}
