@@ -5,7 +5,9 @@ import (
 	"fmt"
 
 	"github.com/fatih/color"
+	"github.com/justwatchcom/gopass/config"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
+	"github.com/justwatchcom/gopass/utils/termwiz"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"
 )
@@ -14,6 +16,11 @@ import (
 // prepared.
 func (s *Action) Initialized(ctx context.Context, c *cli.Context) error {
 	if !s.Store.Initialized() {
+		if ctxutil.IsInteractive(ctx) {
+			if ok, err := s.askForBool("It seems you are new to gopass. Do you want to run the onboarding wizard?", true); err == nil && ok {
+				return s.initOnboarding(ctx, c)
+			}
+		}
 		return s.exitError(ctx, ExitNotInitialized, nil, "password-store is not initialized. Try '%s init'", s.Name)
 	}
 	return nil
@@ -35,7 +42,11 @@ func (s *Action) Init(ctx context.Context, c *cli.Context) error {
 
 func (s *Action) init(ctx context.Context, alias, path string, nogit bool, keys ...string) error {
 	if path == "" {
-		path = s.Store.Path()
+		if alias != "" {
+			path = config.PwStoreDir(alias)
+		} else {
+			path = s.Store.Path()
+		}
 	}
 
 	if len(keys) < 1 {
@@ -85,4 +96,90 @@ func (s *Action) init(ctx context.Context, alias, path string, nogit bool, keys 
 	}
 
 	return nil
+}
+
+func (s *Action) initOnboarding(ctx context.Context, c *cli.Context) error {
+	choices := []string{
+		"Local store",
+		"Create a Team",
+		"Join an existing Team",
+	}
+	act, sel := termwiz.GetSelection(ctx, "Store for secret", "<↑/↓> to change the selection, <→> to select, <ESC> to quit", choices)
+	switch act {
+	case "show":
+		switch sel {
+		case 0:
+			return s.initOBLocal(ctx, c)
+		case 1:
+			return s.initOBCreateTeam(ctx, c)
+		case 2:
+			return s.initOBJoinTeam(ctx, c)
+		}
+	default:
+		return fmt.Errorf("user aborted")
+	}
+	return nil
+}
+
+func (s *Action) initOBLocal(ctx context.Context, c *cli.Context) error {
+	fmt.Println("Initializing your local store")
+	if err := s.init(ctx, "", "", false); err != nil {
+		return err
+	}
+	fmt.Println("Configuring your local store")
+	if want, err := s.askForBool("Do you want to automatically push any changes to the git remote (if any)?", true); err == nil {
+		s.cfg.Root.AutoSync = want
+	}
+	if want, err := s.askForBool("Do you want to always confirm recipients when encrypting?", false); err == nil {
+		s.cfg.Root.NoConfirm = !want
+	}
+	if err := s.cfg.Save(); err != nil {
+		return errors.Wrapf(err, "failed to save config")
+	}
+	return nil
+}
+
+func (s *Action) initOBCreateTeam(ctx context.Context, c *cli.Context) error {
+	fmt.Println("Ok, creating a new team. We need three things: 1.) a local store for you, 2.) the initial copy of the team store and 3.) a remote to push the store to")
+	fmt.Println("1.) Local Store")
+	if err := s.initOBLocal(ctx, c); err != nil {
+		return errors.Wrapf(err, "failed to create local store")
+	}
+	team, err := s.askForString("Please enter the name of your team (may contain slashes)", "")
+	if err != nil {
+		return err
+	}
+	fmt.Println("2.) Initializing your shared store for ", team)
+	if err := s.init(ctx, team, "", false); err != nil {
+		return err
+	}
+	fmt.Println("3.) Configuring the remote for ", team)
+	remote, err := s.askForString("Please enter the git remote for your shared store", "")
+	if err != nil {
+		return err
+	}
+	if err := s.Store.Git(ctx, team, false, false, "remote", "add", "origin", remote); err != nil {
+		return errors.Wrapf(err, "failed to add git remote")
+	}
+	if err := s.Store.Git(ctx, team, false, false, "push", "origin", "master"); err != nil {
+		return errors.Wrapf(err, "failed to push to git remote")
+	}
+	return nil
+}
+
+func (s *Action) initOBJoinTeam(ctx context.Context, c *cli.Context) error {
+	fmt.Println("Ok, joining an existing team. We need two things: 1.) a local store for you, 2.) the remote to clone the team store from")
+	if err := s.initOBLocal(ctx, c); err != nil {
+		return errors.Wrapf(err, "failed to create local store")
+	}
+	team, err := s.askForString("Please enter the name of your team (may contain slashes)", "")
+	if err != nil {
+		return err
+	}
+	fmt.Println("2.) Cloning from the remote for ", team)
+	remote, err := s.askForString("Please enter the git remote for your shared store", "")
+	if err != nil {
+		return err
+	}
+	return s.clone(ctx, remote, team, "")
 }
