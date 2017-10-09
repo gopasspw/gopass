@@ -31,6 +31,12 @@ func GeneratePassword(length int, symbols bool) []byte {
 	if c := os.Getenv("GOPASS_CHARACTER_SET"); c != "" {
 		chars = c
 	}
+	return GeneratePasswordCharset(length, chars)
+}
+
+// GeneratePasswordCharset generates a random password from a given
+// set of characters
+func GeneratePasswordCharset(length int, chars string) []byte {
 	pw := &bytes.Buffer{}
 	for pw.Len() < length {
 		_ = pw.WriteByte(chars[randomInteger(len(chars))])
