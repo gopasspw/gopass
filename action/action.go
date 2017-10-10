@@ -17,6 +17,9 @@ type gpger interface {
 	FindPrivateKeys(context.Context, ...string) (gpg.KeyList, error)
 	ListPublicKeys(context.Context) (gpg.KeyList, error)
 	ListPrivateKeys(context.Context) (gpg.KeyList, error)
+	CreatePrivateKeyBatch(context.Context, string, string, string) error
+	CreatePrivateKey(context.Context) error
+	ExportPublicKey(context.Context, string, string) error
 }
 
 // Action knows everything to run gopass CLI actions
