@@ -192,4 +192,21 @@ Others can be found at the "Compatible Clients" section of the [official pass we
 
 ## Using gopass
 
-Once you have installed gopass, check out the [features documentation](https://github.com/justwatchcom/gopass/blob/master/docs/usage.md) for some quick usage examples.
+Once you have installed gopass, check out the [features documentation](https://github.com/justwatchcom/gopass/blob/master/docs/features.md) for some quick usage examples.
+
+### Using the onboarding wizard
+
+Running `gopass` with no existing store will start the onboarding wizard which
+will guide you through the setup of gopass.
+
+### Batch bootstraping
+
+In order to simplify the setup of gopass for your team members if can be run in a fully scripted bootstrap mode.
+
+```bash
+# First initialize a new shared store and push it to an empty remote
+gopass --yes setup --remote github.com/example/pass.git --alias example --create --name "John Doe" --email "john.doe@example.com"
+
+# For every other team member initialize a new store and clone the existing remote
+gopass --yes setup --remote github.com/example/pass.git --alias example --name "Jane Doe" --email "jane.doe@example.com"
+```

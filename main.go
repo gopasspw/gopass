@@ -764,6 +764,14 @@ func main() {
 					Name:  "create",
 					Usage: "Create a new team (default: false, i.e. join an existing team)",
 				},
+				cli.StringFlag{
+					Name:  "name",
+					Usage: "Firstname and Lastname for unattended GPG key generation",
+				},
+				cli.StringFlag{
+					Name:  "email",
+					Usage: "EMail for unattended GPG key generation",
+				},
 			},
 		},
 		{

@@ -8,6 +8,7 @@ import (
 	"github.com/justwatchcom/gopass/config"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/termwiz"
+	"github.com/martinhoefling/goxkcdpwgen/xkcdpwgen"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"
 )
@@ -103,6 +104,15 @@ func (s *Action) InitOnboarding(ctx context.Context, c *cli.Context) error {
 	remote := c.String("remote")
 	team := c.String("alias")
 	create := c.Bool("create")
+	name := c.String("name")
+	email := c.String("email")
+
+	if !s.initHasUseablePrivateKeys(ctx) {
+		fmt.Println(color.YellowString("No GPG key available. Creating a new key pair. This may take up to a few minutes"))
+		if err := s.initOBCreatePrivateKey(ctx, name, email); err != nil {
+			return errors.Wrapf(err, "failed to create new private key")
+		}
+	}
 
 	if remote != "" && team != "" {
 		if create {
@@ -134,6 +144,55 @@ func (s *Action) InitOnboarding(ctx context.Context, c *cli.Context) error {
 	return nil
 }
 
+func (s *Action) initOBCreatePrivateKey(ctx context.Context, name, email string) error {
+	if name != "" && email != "" {
+		g := xkcdpwgen.NewGenerator()
+		g.SetNumWords(4)
+		g.SetDelimiter(" ")
+		g.SetCapitalize(true)
+		passphrase := string(g.GeneratePassword())
+		if err := s.gpg.CreatePrivateKeyBatch(ctx, name, email, passphrase); err != nil {
+			return errors.Wrapf(err, "failed to create new private key in batch mode")
+		}
+		fmt.Println(color.GreenString("Your generated GPG Passphrase is displayed on the next line. Make sure to remmeber it!"))
+		fmt.Println(color.YellowString(passphrase))
+	} else {
+		if err := s.gpg.CreatePrivateKey(ctx); err != nil {
+			return errors.Wrapf(err, "failed to create new private key in interactive mode")
+		}
+	}
+	kl, err := s.gpg.ListPrivateKeys(ctx)
+	if err != nil {
+		return errors.Wrapf(err, "failed to list private keys")
+	}
+	klu := kl.UseableKeys()
+	if len(klu) > 1 {
+		fmt.Println(color.CyanString("WARNING: More than one private key detected. Make sure to communicate the right one"))
+		return nil
+	}
+	if len(klu) < 1 {
+		if ctxutil.IsDebug(ctx) {
+			fmt.Printf("Private Keys: %+v\n", kl)
+		}
+		return errors.New("failed to create a useable key pair")
+	}
+	key := klu[0]
+	fn := key.ID() + ".pub.key"
+	if err := s.gpg.ExportPublicKey(ctx, key.Fingerprint, fn); err != nil {
+		return errors.Wrapf(err, "failed to export public key")
+	}
+	fmt.Println(color.CyanString("Your generated public key was exported to '%s'. Send it to one of the existing team members (if any) to get added to the store", fn))
+	return nil
+}
+
+func (s *Action) initHasUseablePrivateKeys(ctx context.Context) bool {
+	kl, err := s.gpg.ListPrivateKeys(ctx)
+	if err != nil {
+		return false
+	}
+	return len(kl.UseableKeys()) > 0
+}
+
 func (s *Action) initOBLocal(ctx context.Context, c *cli.Context) error {
 	fmt.Println("Initializing your local store")
 	if err := s.init(ctx, "", "", false); err != nil {
@@ -149,6 +208,7 @@ func (s *Action) initOBLocal(ctx context.Context, c *cli.Context) error {
 	if err := s.cfg.Save(); err != nil {
 		return errors.Wrapf(err, "failed to save config")
 	}
+	fmt.Println(color.GreenString("Finished creating your local store"))
 	return nil
 }
 
@@ -178,6 +238,7 @@ func (s *Action) initOBCreateTeam(ctx context.Context, c *cli.Context, team, rem
 	if err := s.Store.Git(ctx, team, false, false, "push", "origin", "master"); err != nil {
 		return errors.Wrapf(err, "failed to push to git remote")
 	}
+	fmt.Println(color.GreenString("Finished creating a new team"))
 	return nil
 }
 
@@ -196,5 +257,9 @@ func (s *Action) initOBJoinTeam(ctx context.Context, c *cli.Context, team, remot
 	if err != nil {
 		return err
 	}
-	return s.clone(ctx, remote, team, "")
+	if err := s.clone(ctx, remote, team, ""); err != nil {
+		return errors.Wrapf(err, "failed to clone repo")
+	}
+	fmt.Println(color.GreenString("Cloned your teams repo. Make sure to request access by sending your public key to an existing member"))
+	return nil
 }
