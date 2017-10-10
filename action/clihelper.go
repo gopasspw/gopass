@@ -79,6 +79,10 @@ func (s *Action) AskForConfirmation(ctx context.Context, text string) bool {
 // The empty answer uses the specified default, any other answer
 // is an error.
 func (s *Action) askForBool(ctx context.Context, text string, def bool) (bool, error) {
+	if ctxutil.IsAlwaysYes(ctx) {
+		return def, nil
+	}
+
 	choices := "y/N"
 	if def {
 		choices = "Y/n"
@@ -109,10 +113,14 @@ func (s *Action) askForBool(ctx context.Context, text string, def bool) (bool, e
 // askForString asks for a string once, using the default if the
 // anser is empty. Errors are only returned on I/O errors
 func (s *Action) askForString(ctx context.Context, text, def string) (string, error) {
+	if ctxutil.IsAlwaysYes(ctx) {
+		return def, nil
+	}
+
 	// check for context cancelation
 	select {
 	case <-ctx.Done():
-		return "", errors.New("user aborted")
+		return def, errors.New("user aborted")
 	default:
 	}
 
@@ -133,6 +141,10 @@ func (s *Action) askForString(ctx context.Context, text, def string) (string, er
 // askForInt asks for an valid interger once. If the input
 // can not be converted to an int it returns an error
 func (s *Action) askForInt(ctx context.Context, text string, def int) (int, error) {
+	if ctxutil.IsAlwaysYes(ctx) {
+		return def, nil
+	}
+
 	str, err := s.askForString(ctx, text, strconv.Itoa(def))
 	if err != nil {
 		return 0, err
