@@ -169,7 +169,7 @@ func main() {
 	}
 
 	app.Action = func(c *cli.Context) error {
-		if err := action.Initialized(ctx, c); err != nil {
+		if err := action.Initialized(withGlobalFlags(ctx, c), c); err != nil {
 			return err
 		}
 
@@ -742,6 +742,27 @@ func main() {
 							Usage: "Store to operate on",
 						},
 					},
+				},
+			},
+		},
+		{
+			Name:  "setup",
+			Usage: "Initialize a new password store.",
+			Action: func(c *cli.Context) error {
+				return action.InitOnboarding(withGlobalFlags(ctx, c), c)
+			},
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "remote",
+					Usage: "URL to a git remote, will attempt to join this team",
+				},
+				cli.StringFlag{
+					Name:  "alias",
+					Usage: "Local mount point for the given remote",
+				},
+				cli.BoolFlag{
+					Name:  "create",
+					Usage: "Create a new team (default: false, i.e. join an existing team)",
 				},
 			},
 		},

@@ -18,7 +18,7 @@ func (s *Action) Initialized(ctx context.Context, c *cli.Context) error {
 	if !s.Store.Initialized() {
 		if ctxutil.IsInteractive(ctx) {
 			if ok, err := s.askForBool(ctx, "It seems you are new to gopass. Do you want to run the onboarding wizard?", true); err == nil && ok {
-				return s.initOnboarding(ctx, c)
+				return s.InitOnboarding(ctx, c)
 			}
 		}
 		return s.exitError(ctx, ExitNotInitialized, nil, "password-store is not initialized. Try '%s init'", s.Name)
@@ -98,7 +98,20 @@ func (s *Action) init(ctx context.Context, alias, path string, nogit bool, keys 
 	return nil
 }
 
-func (s *Action) initOnboarding(ctx context.Context, c *cli.Context) error {
+// InitOnboarding will invoke the onboarding / setup wizard
+func (s *Action) InitOnboarding(ctx context.Context, c *cli.Context) error {
+	remote := c.String("remote")
+	team := c.String("alias")
+	create := c.Bool("create")
+
+	if remote != "" && team != "" {
+		if create {
+			return s.initOBCreateTeam(ctx, c, team, remote)
+		}
+		return s.initOBJoinTeam(ctx, c, team, remote)
+	}
+
+	// no flags given, ask user
 	choices := []string{
 		"Local store",
 		"Create a Team",
@@ -111,9 +124,9 @@ func (s *Action) initOnboarding(ctx context.Context, c *cli.Context) error {
 		case 0:
 			return s.initOBLocal(ctx, c)
 		case 1:
-			return s.initOBCreateTeam(ctx, c)
+			return s.initOBCreateTeam(ctx, c, "", "")
 		case 2:
-			return s.initOBJoinTeam(ctx, c)
+			return s.initOBJoinTeam(ctx, c, "", "")
 		}
 	default:
 		return fmt.Errorf("user aborted")
@@ -139,13 +152,14 @@ func (s *Action) initOBLocal(ctx context.Context, c *cli.Context) error {
 	return nil
 }
 
-func (s *Action) initOBCreateTeam(ctx context.Context, c *cli.Context) error {
+func (s *Action) initOBCreateTeam(ctx context.Context, c *cli.Context, team, remote string) error {
+	var err error
 	fmt.Println("Ok, creating a new team. We need three things: 1.) a local store for you, 2.) the initial copy of the team store and 3.) a remote to push the store to")
 	fmt.Println("1.) Local Store")
 	if err := s.initOBLocal(ctx, c); err != nil {
 		return errors.Wrapf(err, "failed to create local store")
 	}
-	team, err := s.askForString(ctx, "Please enter the name of your team (may contain slashes)", "")
+	team, err = s.askForString(ctx, "Please enter the name of your team (may contain slashes)", team)
 	if err != nil {
 		return err
 	}
@@ -154,7 +168,7 @@ func (s *Action) initOBCreateTeam(ctx context.Context, c *cli.Context) error {
 		return err
 	}
 	fmt.Println("3.) Configuring the remote for ", team)
-	remote, err := s.askForString(ctx, "Please enter the git remote for your shared store", "")
+	remote, err = s.askForString(ctx, "Please enter the git remote for your shared store", remote)
 	if err != nil {
 		return err
 	}
@@ -167,17 +181,18 @@ func (s *Action) initOBCreateTeam(ctx context.Context, c *cli.Context) error {
 	return nil
 }
 
-func (s *Action) initOBJoinTeam(ctx context.Context, c *cli.Context) error {
+func (s *Action) initOBJoinTeam(ctx context.Context, c *cli.Context, team, remote string) error {
+	var err error
 	fmt.Println("Ok, joining an existing team. We need two things: 1.) a local store for you, 2.) the remote to clone the team store from")
 	if err := s.initOBLocal(ctx, c); err != nil {
 		return errors.Wrapf(err, "failed to create local store")
 	}
-	team, err := s.askForString(ctx, "Please enter the name of your team (may contain slashes)", "")
+	team, err = s.askForString(ctx, "Please enter the name of your team (may contain slashes)", team)
 	if err != nil {
 		return err
 	}
 	fmt.Println("2.) Cloning from the remote for ", team)
-	remote, err := s.askForString(ctx, "Please enter the git remote for your shared store", "")
+	remote, err = s.askForString(ctx, "Please enter the git remote for your shared store", remote)
 	if err != nil {
 		return err
 	}
