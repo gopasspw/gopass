@@ -7,6 +7,7 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/store"
+	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/justwatchcom/gopass/utils/tree"
 	"github.com/justwatchcom/gopass/utils/tree/simple"
 	"github.com/pkg/errors"
@@ -51,7 +52,7 @@ func (r *Store) ImportMissingPublicKeys(ctx context.Context) error {
 	for alias, sub := range r.mounts {
 		ctx := r.cfg.Mounts[alias].WithContext(ctx)
 		if err := sub.ImportMissingPublicKeys(ctx); err != nil {
-			fmt.Println(color.RedString("[%s] Failed to import missing public keys: %s", alias, err))
+			out.Red(ctx, "[%s] Failed to import missing public keys: %s", alias, err)
 		}
 	}
 
@@ -64,7 +65,7 @@ func (r *Store) SaveRecipients(ctx context.Context) error {
 	for alias, sub := range r.mounts {
 		ctx := r.cfg.Mounts[alias].WithContext(ctx)
 		if err := sub.SaveRecipients(ctx); err != nil {
-			fmt.Println(color.RedString("[%s] Failed to save recipients: %s", alias, err))
+			out.Red(ctx, "[%s] Failed to save recipients: %s", alias, err)
 		}
 	}
 

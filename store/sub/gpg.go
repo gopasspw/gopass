@@ -2,14 +2,12 @@ package sub
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"path/filepath"
 
 	"github.com/blang/semver"
-	"github.com/fatih/color"
-	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/fsutil"
+	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/pkg/errors"
 )
 
@@ -26,21 +24,17 @@ func (s *Store) ImportMissingPublicKeys(ctx context.Context) error {
 		return errors.Wrapf(err, "failed to get recipients")
 	}
 	for _, r := range rs {
-		if ctxutil.IsDebug(ctx) {
-			fmt.Printf("[DEBUG] Checking recipients %s ...\n", r)
-		}
+		out.Debug(ctx, "Checking recipients %s ...", r)
 		// check if this recipient is missing
 		// we could list all keys outside the loop and just do the lookup here
 		// but this way we ensure to use the exact same lookup logic as
 		// gpg does on encryption
 		kl, err := s.gpg.FindPublicKeys(ctx, r)
 		if err != nil {
-			fmt.Printf("[%s] Failed to get public key for %s: %s\n", s.alias, r, err)
+			out.Red(ctx, "[%s] Failed to get public key for %s: %s", s.alias, r, err)
 		}
 		if len(kl) > 0 {
-			if ctxutil.IsDebug(ctx) {
-				fmt.Println(color.CyanString("[%s] Keyring contains %d public keys for %s", s.alias, len(kl), r))
-			}
+			out.Debug(ctx, "[%s] Keyring contains %d public keys for %s", s.alias, len(kl), r)
 			continue
 		}
 
@@ -54,10 +48,10 @@ func (s *Store) ImportMissingPublicKeys(ctx context.Context) error {
 
 		// try to load this recipient
 		if err := s.importPublicKey(ctx, r); err != nil {
-			fmt.Println(color.RedString("[%s] Failed to import public key for %s: %s", s.alias, r, err))
+			out.Red(ctx, "[%s] Failed to import public key for %s: %s", s.alias, r, err)
 			continue
 		}
-		fmt.Println(color.GreenString("[%s] Imported public key for %s into Keyring", s.alias, r))
+		out.Green(ctx, "[%s] Imported public key for %s into Keyring", s.alias, r)
 	}
 	return nil
 }

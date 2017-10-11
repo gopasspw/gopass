@@ -2,9 +2,8 @@ package root
 
 import (
 	"context"
-	"fmt"
 
-	"github.com/fatih/color"
+	"github.com/justwatchcom/gopass/utils/out"
 )
 
 // Fsck checks the stores integrity
@@ -21,7 +20,7 @@ func (r *Store) Fsck(ctx context.Context, prefix string) (map[string]uint64, err
 			rc[k] += v
 		}
 
-		fmt.Println(color.GreenString("[%s] Store (%s) checked (%d OK, %d warnings, %d errors)", alias, r.mounts[alias].Path(), counts["ok"], counts["warn"], counts["err"]))
+		out.Green(ctx, "[%s] Store (%s) checked (%d OK, %d warnings, %d errors)", alias, r.mounts[alias].Path(), counts["ok"], counts["warn"], counts["err"])
 
 		// check shadowing
 		lst, err := r.mounts[alias].List(alias)
@@ -30,7 +29,7 @@ func (r *Store) Fsck(ctx context.Context, prefix string) (map[string]uint64, err
 		}
 		for _, e := range lst {
 			if a, found := sh[e]; found {
-				fmt.Println(color.YellowString("Entry %s is being shadowed by %s", e, a))
+				out.Yellow(ctx, "Entry %s is being shadowed by %s", e, a)
 			}
 			sh[e] = alias
 		}
@@ -43,7 +42,7 @@ func (r *Store) Fsck(ctx context.Context, prefix string) (map[string]uint64, err
 	for k, v := range counts {
 		rc[k] += v
 	}
-	fmt.Println(color.GreenString("[%s] Store checked (%d OK, %d warnings, %d errors)", r.store.Path(), counts["ok"], counts["warn"], counts["err"]))
+	out.Green(ctx, "[%s] Store checked (%d OK, %d warnings, %d errors)", r.store.Path(), counts["ok"], counts["warn"], counts["err"])
 	// check shadowing
 	lst, err := r.store.List("")
 	if err != nil {
@@ -51,7 +50,7 @@ func (r *Store) Fsck(ctx context.Context, prefix string) (map[string]uint64, err
 	}
 	for _, e := range lst {
 		if a, found := sh[e]; found {
-			fmt.Println(color.YellowString("Entry %s is being shadowed by %s", e, a))
+			out.Yellow(ctx, "Entry %s is being shadowed by %s", e, a)
 		}
 		sh[e] = ""
 	}

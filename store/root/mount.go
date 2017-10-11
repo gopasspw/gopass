@@ -2,7 +2,6 @@ package root
 
 import (
 	"context"
-	"fmt"
 	"sort"
 	"strings"
 
@@ -11,6 +10,7 @@ import (
 	"github.com/justwatchcom/gopass/store"
 	"github.com/justwatchcom/gopass/store/sub"
 	"github.com/justwatchcom/gopass/utils/fsutil"
+	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/pkg/errors"
 )
 
@@ -49,7 +49,7 @@ func (r *Store) addMount(ctx context.Context, alias, path string, keys ...string
 		if err := s.Init(ctx, path, keys...); err != nil {
 			return errors.Wrapf(err, "failed to initialize store '%s' at '%s'", alias, path)
 		}
-		fmt.Println(color.GreenString("Password store %s initialized for:", path))
+		out.Green(ctx, "Password store %s initialized for:", path)
 		for _, r := range s.Recipients(ctx) {
 			color.Yellow(r)
 		}
@@ -68,12 +68,12 @@ func (r *Store) addMount(ctx context.Context, alias, path string, keys ...string
 }
 
 // RemoveMount removes and existing mount
-func (r *Store) RemoveMount(alias string) error {
+func (r *Store) RemoveMount(ctx context.Context, alias string) error {
 	if _, found := r.mounts[alias]; !found {
 		return errors.Errorf("%s is not mounted", alias)
 	}
 	if _, found := r.mounts[alias]; !found {
-		fmt.Println(color.YellowString("%s is not initialized", alias))
+		out.Yellow(ctx, "%s is not initialized", alias)
 	}
 	delete(r.mounts, alias)
 	return nil

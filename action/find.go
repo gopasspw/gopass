@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
+	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/justwatchcom/gopass/utils/termwiz"
 	"github.com/schollz/closestmatch"
 	"github.com/urfave/cli"
@@ -34,7 +34,7 @@ func (s *Action) Find(ctx context.Context, c *cli.Context) error {
 	clip := c.Bool("clip")
 
 	if len(choices) == 1 {
-		fmt.Println(color.GreenString("Found exact match in '%s'", choices[0]))
+		out.Green(ctx, "Found exact match in '%s'", choices[0])
 		return s.show(ctx, c, choices[0], "", clip, false, false, false)
 	}
 

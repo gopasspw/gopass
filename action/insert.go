@@ -7,10 +7,10 @@ import (
 	"io"
 	"os"
 
-	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/store/secret"
 	"github.com/justwatchcom/gopass/store/sub"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
+	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/urfave/cli"
 )
 
@@ -76,7 +76,7 @@ func (s *Action) Insert(ctx context.Context, c *cli.Context) error {
 	if ctxutil.IsStdin(ctx) {
 		sec, err := secret.Parse(content)
 		if err != nil {
-			fmt.Println(color.RedString("WARNING: Invalid YAML: %s", err))
+			out.Red(ctx, "WARNING: Invalid YAML: %s", err)
 		}
 		if err := s.Store.Set(sub.WithReason(ctx, "Read secret from STDIN"), name, sec); err != nil {
 			return s.exitError(ctx, ExitEncrypt, err, "failed to set '%s': %s", name, err)
@@ -110,7 +110,7 @@ func (s *Action) Insert(ctx context.Context, c *cli.Context) error {
 		}
 		sec, err := secret.Parse(content)
 		if err != nil {
-			fmt.Println(color.RedString("WARNING: Invalid YAML: %s", err))
+			out.Red(ctx, "WARNING: Invalid YAML: %s", err)
 		}
 		if err := s.Store.Set(sub.WithReason(ctx, fmt.Sprintf("Inserted user supplied password with %s", getEditor())), name, sec); err != nil {
 			return s.exitError(ctx, ExitEncrypt, err, "failed to store secret '%s': %s", name, err)
@@ -140,7 +140,7 @@ func (s *Action) Insert(ctx context.Context, c *cli.Context) error {
 		}
 	}
 	sec.SetPassword(pw)
-	printAuditResult(sec.Password())
+	printAuditResult(ctx, sec.Password())
 
 	if err := s.Store.Set(sub.WithReason(ctx, "Inserted user supplied password"), name, sec); err != nil {
 		return s.exitError(ctx, ExitEncrypt, err, "failed to write secret '%s': %s", name, err)

@@ -15,6 +15,7 @@ import (
 	"github.com/justwatchcom/gopass/store/secret"
 	"github.com/justwatchcom/gopass/store/sub"
 	"github.com/justwatchcom/gopass/utils/fsutil"
+	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"
 )
@@ -80,7 +81,7 @@ func (s *Action) BinarySum(ctx context.Context, c *cli.Context) error {
 
 	h := sha256.New()
 	_, _ = h.Write(buf)
-	fmt.Println(color.YellowString("%x", h.Sum(nil)))
+	out.Yellow(ctx, "%x", h.Sum(nil))
 
 	return nil
 }

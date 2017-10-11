@@ -2,9 +2,9 @@ package action
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/fatih/color"
+	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"
 )
@@ -36,7 +36,7 @@ func (s *Action) GitInit(ctx context.Context, c *cli.Context) error {
 }
 
 func (s *Action) gitInit(ctx context.Context, store, sk string) error {
-	fmt.Println(color.GreenString("Initializing embedded password store git repo ..."))
+	out.Green(ctx, "Initializing git repository ...")
 	if sk == "" {
 		s, err := s.askForPrivateKey(ctx, color.CyanString("Please select a key for signing Git Commits"))
 		if err == nil {
@@ -67,6 +67,6 @@ func (s *Action) gitInit(ctx context.Context, store, sk string) error {
 		return errors.Wrapf(err, "failed to run git init")
 	}
 
-	fmt.Println(color.GreenString("Git initialized\n"))
+	out.Green(ctx, "Git initialized")
 	return nil
 }

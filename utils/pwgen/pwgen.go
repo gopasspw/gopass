@@ -23,7 +23,7 @@ func init() {
 }
 
 // GeneratePassword generates a random, hard to remember password
-func GeneratePassword(length int, symbols bool) []byte {
+func GeneratePassword(length int, symbols bool) string {
 	chars := digits + upper + lower
 	if symbols {
 		chars += syms
@@ -36,13 +36,13 @@ func GeneratePassword(length int, symbols bool) []byte {
 
 // GeneratePasswordCharset generates a random password from a given
 // set of characters
-func GeneratePasswordCharset(length int, chars string) []byte {
+func GeneratePasswordCharset(length int, chars string) string {
 	pw := &bytes.Buffer{}
 	for pw.Len() < length {
 		_ = pw.WriteByte(chars[randomInteger(len(chars))])
 	}
 
-	return pw.Bytes()
+	return pw.String()
 }
 
 func randomInteger(max int) int {

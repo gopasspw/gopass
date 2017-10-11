@@ -9,8 +9,9 @@ import (
 	"github.com/justwatchcom/gopass/store/secret"
 	"github.com/justwatchcom/gopass/store/sub"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
+	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/justwatchcom/gopass/utils/pwgen"
-	"github.com/martinhoefling/goxkcdpwgen/xkcdpwgen"
+	"github.com/justwatchcom/gopass/utils/pwgen/xkcdgen"
 	"github.com/urfave/cli"
 )
 
@@ -32,7 +33,7 @@ func (s *Action) Generate(ctx context.Context, c *cli.Context) error {
 	}
 
 	if c.IsSet("no-symbols") {
-		fmt.Println(color.RedString("Warning: -n/--no-symbols is deprecated. This is now the default. Use -s to enable symbols"))
+		out.Red(ctx, "Warning: -n/--no-symbols is deprecated. This is now the default. Use -s to enable symbols")
 	}
 
 	name := c.Args().Get(0)
@@ -83,13 +84,9 @@ func (s *Action) Generate(ctx context.Context, c *cli.Context) error {
 		return s.exitError(ctx, ExitUsage, nil, "password length must not be zero")
 	}
 
-	var password []byte
+	var password string
 	if xkcd {
-		g := xkcdpwgen.NewGenerator()
-		g.SetNumWords(pwlen)
-		g.SetDelimiter(xkcdSeparator)
-		g.SetCapitalize(xkcdSeparator == "")
-		password = g.GeneratePassword()
+		password = xkcdgen.RandomLengthDelim(pwlen, xkcdSeparator)
 	} else {
 		password = pwgen.GeneratePassword(pwlen, symbols)
 	}
@@ -111,7 +108,7 @@ func (s *Action) Generate(ctx context.Context, c *cli.Context) error {
 		if err != nil {
 			return s.exitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
 		}
-		sec.SetPassword(string(password))
+		sec.SetPassword(password)
 		if err := s.Store.Set(sub.WithReason(ctx, "Generated password for YAML key"), name, sec); err != nil {
 			return s.exitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
 		}
@@ -122,7 +119,7 @@ func (s *Action) Generate(ctx context.Context, c *cli.Context) error {
 	}
 
 	if c.Bool("clip") {
-		return s.copyToClipboard(ctx, name, password)
+		return s.copyToClipboard(ctx, name, []byte(password))
 	}
 
 	if key != "" {

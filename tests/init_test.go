@@ -14,7 +14,7 @@ func TestInit(t *testing.T) {
 
 	out, err := ts.run("init")
 	assert.Error(t, err)
-	assert.Equal(t, "Initializing a new password store ...\n\n\nError: failed to initialized store: failed to read user input: no interaction without terminal\n", out)
+	assert.Equal(t, "[init] Initializing a new password store ...\n\nError: failed to initialized store: failed to read user input: no interaction without terminal\n", out)
 
 	ts = newTester(t)
 	defer ts.teardown()

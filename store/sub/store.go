@@ -8,12 +8,12 @@ import (
 	"strings"
 
 	"github.com/blang/semver"
-	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/backend/gpg"
 	gpgcli "github.com/justwatchcom/gopass/backend/gpg/cli"
 	"github.com/justwatchcom/gopass/store"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/fsutil"
+	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/pkg/errors"
 )
 
@@ -122,9 +122,9 @@ func (s *Store) useableKeys(ctx context.Context, file string) ([]string, error) 
 
 	unusable := kl.UnusableKeys()
 	if len(unusable) > 0 {
-		fmt.Println(color.RedString("Unusable public keys detected (IGNORING FOR ENCRYPTION):"))
+		out.Red(ctx, "Unusable public keys detected (IGNORING FOR ENCRYPTION):")
 		for _, k := range unusable {
-			fmt.Println(color.RedString("  - %s", k.OneLine()))
+			out.Red(ctx, "  - %s", k.OneLine())
 		}
 	}
 	return kl.UseableKeys().Recipients(), nil
@@ -188,13 +188,13 @@ func (s *Store) reencrypt(ctx context.Context) error {
 		if errors.Cause(err) == store.ErrGitNotInit {
 			msg := "Warning: git is not initialized for this store. Ignoring auto-push option\n" +
 				"Run: gopass git init"
-			fmt.Println(color.RedString(msg))
+			out.Red(ctx, msg)
 			return nil
 		}
 		if errors.Cause(err) == store.ErrGitNoRemote {
 			msg := "Warning: git has not remote. Ignoring auto-push option\n" +
 				"Run: gopass git remote add origin ..."
-			fmt.Println(color.YellowString(msg))
+			out.Yellow(ctx, msg)
 			return nil
 		}
 		return errors.Wrapf(err, "failed to push change to git remote")

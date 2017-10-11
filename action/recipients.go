@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
+	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/justwatchcom/gopass/utils/termwiz"
 	"github.com/urfave/cli"
 )
@@ -33,11 +33,11 @@ credentials.
 // RecipientsPrint prints all recipients per store
 func (s *Action) RecipientsPrint(ctx context.Context, c *cli.Context) error {
 	if err := s.Store.ImportMissingPublicKeys(ctx); err != nil {
-		fmt.Println(color.RedString("Failed to import missing public keys: %s", err))
+		out.Red(ctx, "Failed to import missing public keys: %s", err)
 	}
 
 	if err := s.Store.SaveRecipients(ctx); err != nil {
-		fmt.Println(color.RedString("Failed to export missing public keys: %s", err))
+		out.Red(ctx, "Failed to export missing public keys: %s", err)
 	}
 
 	tree, err := s.Store.RecipientsTree(ctx, true)
@@ -88,14 +88,14 @@ func (s *Action) RecipientsAdd(ctx context.Context, c *cli.Context) error {
 	for _, r := range recipients {
 		keys, err := s.gpg.FindPublicKeys(ctx, r)
 		if err != nil {
-			fmt.Println(color.CyanString("Failed to list public key '%s': %s", r, err))
+			out.Cyan(ctx, "Failed to list public key '%s': %s", r, err)
 			continue
 		}
 		keys = keys.UseableKeys()
 		if len(keys) < 1 {
-			fmt.Println(color.CyanString("Warning: No matching valid key found. If the key is in your keyring you may need to validate it."))
-			fmt.Println(color.CyanString("If this is your key: gpg --edit-key %s; trust (set to ultimate); quit", r))
-			fmt.Println(color.CyanString("If this is not your key: gpg --edit-key %s; lsign; save; quit", r))
+			out.Cyan(ctx, "Warning: No matching valid key found. If the key is in your keyring you may need to validate it.")
+			out.Cyan(ctx, "If this is your key: gpg --edit-key %s; trust (set to ultimate); quit", r)
+			out.Cyan(ctx, "If this is not your key: gpg --edit-key %s; lsign; save; quit", r)
 			continue
 		}
 
@@ -112,7 +112,7 @@ func (s *Action) RecipientsAdd(ctx context.Context, c *cli.Context) error {
 		return s.exitError(ctx, ExitUnknown, nil, "no key added")
 	}
 
-	fmt.Println(color.GreenString("Added %d recipients\n", added))
+	out.Green(ctx, "Added %d recipients\n", added)
 	return nil
 }
 

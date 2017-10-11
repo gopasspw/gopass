@@ -2,13 +2,12 @@ package sub
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
 	"github.com/justwatchcom/gopass/store"
 	"github.com/justwatchcom/gopass/store/secret"
-	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/fsutil"
+	"github.com/justwatchcom/gopass/utils/out"
 )
 
 // Get returns the plaintext of a single key
@@ -20,9 +19,7 @@ func (s *Store) Get(ctx context.Context, name string) (*secret.Secret, error) {
 	}
 
 	if !fsutil.IsFile(p) {
-		if ctxutil.IsDebug(ctx) {
-			fmt.Printf("File %s not found\n", p)
-		}
+		out.Debug(ctx, "File %s not found", p)
 		return nil, store.ErrNotFound
 	}
 
@@ -33,9 +30,7 @@ func (s *Store) Get(ctx context.Context, name string) (*secret.Secret, error) {
 
 	sec, err := secret.Parse(content)
 	if err != nil {
-		if ctxutil.IsDebug(ctx) {
-			fmt.Printf("Failed to parse YAML: %s", err)
-		}
+		out.Debug(ctx, "Failed to parse YAML: %s", err)
 	}
 	return sec, nil
 }

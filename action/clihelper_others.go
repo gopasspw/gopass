@@ -8,8 +8,8 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
+	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/ssh/terminal"
 )
@@ -28,7 +28,7 @@ func (s *Action) promptPass(ctx context.Context, prompt string) (pass string, er
 	}
 	defer func() {
 		if err := terminal.Restore(fd, oldState); err != nil {
-			fmt.Println(color.RedString("Failed to restore terminal: %s", err))
+			out.Red(ctx, "Failed to restore terminal: %s", err)
 		}
 	}()
 
@@ -38,7 +38,7 @@ func (s *Action) promptPass(ctx context.Context, prompt string) (pass string, er
 	go func() {
 		for range sigch {
 			if err := terminal.Restore(fd, oldState); err != nil {
-				fmt.Println(color.RedString("Failed to restore terminal: %s", err))
+				out.Red(ctx, "Failed to restore terminal: %s", err)
 			}
 			os.Exit(1)
 		}

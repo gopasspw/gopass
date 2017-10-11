@@ -9,8 +9,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
+	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/pkg/errors"
 )
 
@@ -37,7 +37,7 @@ func (s *Action) ConfirmRecipients(ctx context.Context, name string, recipients 
 
 		kl, err := s.gpg.FindPublicKeys(ctx, r)
 		if err != nil {
-			fmt.Println(color.RedString("Failed to read public key for '%s': %s", name, err))
+			out.Red(ctx, "Failed to read public key for '%s': %s", name, err)
 			continue
 		}
 		if len(kl) < 1 {
