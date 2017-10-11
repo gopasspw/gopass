@@ -2,12 +2,11 @@ package root
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
 	"github.com/blang/semver"
-	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/store"
+	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/pkg/errors"
 )
 
@@ -29,16 +28,17 @@ func (r *Store) Git(ctx context.Context, name string, recurse, force bool, args 
 	if dispName == "" {
 		dispName = "root"
 	}
+	ctxRoot := out.AddPrefix(ctx, "["+dispName+"]")
 
-	fmt.Println(color.CyanString("[%s] Running git %s", dispName, strings.Join(args, " ")))
-	if err := sub.Git(ctx, args...); err != nil {
+	out.Cyan(ctxRoot, "Running git %s", strings.Join(args, " "))
+	if err := sub.Git(ctxRoot, args...); err != nil {
 		if errors.Cause(err) == store.ErrGitNoRemote {
-			fmt.Println(color.YellowString("[%s] Has no remote. Skipping", dispName))
+			out.Yellow(ctxRoot, "Has no remote. Skipping")
 		} else {
 			if !force {
 				return errors.Wrapf(err, "failed to run git %s on sub store %s", strings.Join(args, " "), dispName)
 			}
-			fmt.Println(color.RedString("[%s] Failed to run 'git %s'", dispName, strings.Join(args, " ")))
+			out.Red(ctxRoot, "Failed to run 'git %s'", strings.Join(args, " "))
 		}
 	}
 
@@ -49,16 +49,17 @@ func (r *Store) Git(ctx context.Context, name string, recurse, force bool, args 
 	}
 
 	for _, alias := range r.MountPoints() {
-		fmt.Println(color.CyanString("[%s] Running 'git %s'", alias, strings.Join(args, " ")))
+		ctx := out.AddPrefix(ctx, "["+alias+"]")
+		out.Cyan(ctx, "Running 'git %s'", strings.Join(args, " "))
 		if err := r.mounts[alias].Git(ctx, args...); err != nil {
 			if errors.Cause(err) == store.ErrGitNoRemote {
-				fmt.Println(color.YellowString("[%s] Has no remote. Skipping", alias))
+				out.Yellow(ctx, "Has no remote. Skipping")
 				continue
 			}
 			if !force {
 				return errors.Wrapf(err, "failed to perform git %s on %s", strings.Join(args, " "), alias)
 			}
-			fmt.Println(color.RedString("[%s] Failed to run 'git %s'", alias, strings.Join(args, " ")))
+			out.Red(ctx, "Failed to run 'git %s'", strings.Join(args, " "))
 		}
 	}
 

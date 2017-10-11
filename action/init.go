@@ -7,8 +7,9 @@ import (
 	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/config"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
+	"github.com/justwatchcom/gopass/utils/out"
+	"github.com/justwatchcom/gopass/utils/pwgen/xkcdgen"
 	"github.com/justwatchcom/gopass/utils/termwiz"
-	"github.com/martinhoefling/goxkcdpwgen/xkcdpwgen"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"
 )
@@ -33,7 +34,8 @@ func (s *Action) Init(ctx context.Context, c *cli.Context) error {
 	alias := c.String("store")
 	nogit := c.Bool("nogit")
 
-	fmt.Println(color.CyanString("Initializing a new password store ...\n"))
+	ctx = out.WithPrefix(ctx, "[init] ")
+	out.Cyan(ctx, "Initializing a new password store ...")
 
 	if err := s.init(ctx, alias, path, nogit, c.Args()...); err != nil {
 		return s.exitError(ctx, ExitUnknown, err, "failed to initialized store: %s", err)
@@ -74,22 +76,19 @@ func (s *Action) init(ctx context.Context, alias, path string, nogit bool, keys 
 			sk = keys[0]
 		}
 		if err := s.gitInit(ctx, alias, sk); err != nil {
-			if ctxutil.IsDebug(ctx) {
-				fmt.Println(color.RedString("Stacktrace: %+v\n", err))
-			}
-			fmt.Println(color.RedString("Failed to init git: %s", err))
+			out.Debug(ctx, "Stacktrace: %+v\n", err)
+			out.Red(ctx, "Failed to init git: %s", err)
 		}
 	}
 
-	fmt.Fprint(color.Output, color.GreenString("\nPassword store %s initialized for:\n", path))
+	out.Green(ctx, "Password store %s initialized for:", path)
 	for _, recipient := range s.Store.ListRecipients(ctx, alias) {
 		r := "0x" + recipient
 		if kl, err := s.gpg.FindPublicKeys(ctx, recipient); err == nil && len(kl) > 0 {
 			r = kl[0].OneLine()
 		}
-		fmt.Println(color.YellowString("  " + r))
+		out.Yellow(ctx, "  "+r)
 	}
-	fmt.Println("")
 
 	// write config
 	if err := s.cfg.Save(); err != nil {
@@ -107,21 +106,28 @@ func (s *Action) InitOnboarding(ctx context.Context, c *cli.Context) error {
 	name := c.String("name")
 	email := c.String("email")
 
+	ctx = out.AddPrefix(ctx, "[init] ")
+
+	// check for existing GPG keypairs (private/secret keys). We need at least
+	// one useable key pair. If none exists try to create one
 	if !s.initHasUseablePrivateKeys(ctx) {
-		fmt.Println(color.YellowString("No GPG key available. Creating a new key pair. This may take up to a few minutes"))
-		if err := s.initOBCreatePrivateKey(ctx, name, email); err != nil {
+		out.Yellow(ctx, "GPG: No useable keys. Generating new key pair")
+		ctx := out.AddPrefix(ctx, "[gpg] ")
+		out.Print(ctx, "This may take up to a few minutes")
+		if err := s.initCreatePrivateKey(ctx, name, email); err != nil {
 			return errors.Wrapf(err, "failed to create new private key")
 		}
 	}
 
+	// if a git remote and a team name are given attempt unattended team setup
 	if remote != "" && team != "" {
 		if create {
-			return s.initOBCreateTeam(ctx, c, team, remote)
+			return s.initCreateTeam(ctx, c, team, remote)
 		}
-		return s.initOBJoinTeam(ctx, c, team, remote)
+		return s.initJoinTeam(ctx, c, team, remote)
 	}
 
-	// no flags given, ask user
+	// no flags given, run interactively
 	choices := []string{
 		"Local store",
 		"Create a Team",
@@ -132,11 +138,11 @@ func (s *Action) InitOnboarding(ctx context.Context, c *cli.Context) error {
 	case "show":
 		switch sel {
 		case 0:
-			return s.initOBLocal(ctx, c)
+			return s.initLocal(ctx, c)
 		case 1:
-			return s.initOBCreateTeam(ctx, c, "", "")
+			return s.initCreateTeam(ctx, c, "", "")
 		case 2:
-			return s.initOBJoinTeam(ctx, c, "", "")
+			return s.initJoinTeam(ctx, c, "", "")
 		}
 	default:
 		return fmt.Errorf("user aborted")
@@ -144,18 +150,14 @@ func (s *Action) InitOnboarding(ctx context.Context, c *cli.Context) error {
 	return nil
 }
 
-func (s *Action) initOBCreatePrivateKey(ctx context.Context, name, email string) error {
+func (s *Action) initCreatePrivateKey(ctx context.Context, name, email string) error {
 	if name != "" && email != "" {
-		g := xkcdpwgen.NewGenerator()
-		g.SetNumWords(4)
-		g.SetDelimiter(" ")
-		g.SetCapitalize(true)
-		passphrase := string(g.GeneratePassword())
+		passphrase := xkcdgen.Random()
 		if err := s.gpg.CreatePrivateKeyBatch(ctx, name, email, passphrase); err != nil {
 			return errors.Wrapf(err, "failed to create new private key in batch mode")
 		}
-		fmt.Println(color.GreenString("Your generated GPG Passphrase is displayed on the next line. Make sure to remmeber it!"))
-		fmt.Println(color.YellowString(passphrase))
+		out.Yellow(ctx, "GPG key pair created. Remember the passphrase")
+		out.Print(ctx, color.MagentaString("Generated Passphrase: ")+color.HiGreenString(passphrase))
 	} else {
 		if err := s.gpg.CreatePrivateKey(ctx); err != nil {
 			return errors.Wrapf(err, "failed to create new private key in interactive mode")
@@ -167,13 +169,11 @@ func (s *Action) initOBCreatePrivateKey(ctx context.Context, name, email string)
 	}
 	klu := kl.UseableKeys()
 	if len(klu) > 1 {
-		fmt.Println(color.CyanString("WARNING: More than one private key detected. Make sure to communicate the right one"))
+		out.Cyan(ctx, "WARNING: More than one private key detected. Make sure to communicate the right one")
 		return nil
 	}
 	if len(klu) < 1 {
-		if ctxutil.IsDebug(ctx) {
-			fmt.Printf("Private Keys: %+v\n", kl)
-		}
+		out.Debug(ctx, "Private Keys: %+v", kl)
 		return errors.New("failed to create a useable key pair")
 	}
 	key := klu[0]
@@ -181,7 +181,7 @@ func (s *Action) initOBCreatePrivateKey(ctx context.Context, name, email string)
 	if err := s.gpg.ExportPublicKey(ctx, key.Fingerprint, fn); err != nil {
 		return errors.Wrapf(err, "failed to export public key")
 	}
-	fmt.Println(color.CyanString("Your generated public key was exported to '%s'. Send it to one of the existing team members (if any) to get added to the store", fn))
+	out.Cyan(ctx, "Public key exported to '%s'", fn)
 	return nil
 }
 
@@ -193,41 +193,58 @@ func (s *Action) initHasUseablePrivateKeys(ctx context.Context) bool {
 	return len(kl.UseableKeys()) > 0
 }
 
-func (s *Action) initOBLocal(ctx context.Context, c *cli.Context) error {
-	fmt.Println("Initializing your local store")
+// initLocal will initalize a local store, useful for local-only setups or as
+// part of team setups to create the root store
+func (s *Action) initLocal(ctx context.Context, c *cli.Context) error {
+	ctx = out.AddPrefix(ctx, "[local] ")
+
+	out.Print(ctx, "Initializing your local store")
 	if err := s.init(ctx, "", "", false); err != nil {
 		return err
 	}
-	fmt.Println("Configuring your local store")
+
+	out.Print(ctx, "Configuring your local store ...")
+	// autosync
 	if want, err := s.askForBool(ctx, "Do you want to automatically push any changes to the git remote (if any)?", true); err == nil {
 		s.cfg.Root.AutoSync = want
 	}
+
+	// noconfirm
 	if want, err := s.askForBool(ctx, "Do you want to always confirm recipients when encrypting?", false); err == nil {
 		s.cfg.Root.NoConfirm = !want
 	}
+
+	// save config
 	if err := s.cfg.Save(); err != nil {
 		return errors.Wrapf(err, "failed to save config")
 	}
-	fmt.Println(color.GreenString("Finished creating your local store"))
+
+	out.Green(ctx, "Done")
 	return nil
 }
 
-func (s *Action) initOBCreateTeam(ctx context.Context, c *cli.Context, team, remote string) error {
+// initCreateTeam will create a local root store and a shared team store
+func (s *Action) initCreateTeam(ctx context.Context, c *cli.Context, team, remote string) error {
 	var err error
-	fmt.Println("Ok, creating a new team. We need three things: 1.) a local store for you, 2.) the initial copy of the team store and 3.) a remote to push the store to")
-	fmt.Println("1.) Local Store")
-	if err := s.initOBLocal(ctx, c); err != nil {
+
+	out.Print(ctx, "Creating a new team ...")
+	if err := s.initLocal(ctx, c); err != nil {
 		return errors.Wrapf(err, "failed to create local store")
 	}
+
+	// name of the new team
 	team, err = s.askForString(ctx, "Please enter the name of your team (may contain slashes)", team)
 	if err != nil {
 		return err
 	}
-	fmt.Println("2.) Initializing your shared store for ", team)
+	ctx = out.AddPrefix(ctx, "["+team+"] ")
+
+	out.Print(ctx, "Initializing your shared store")
 	if err := s.init(ctx, team, "", false); err != nil {
 		return err
 	}
-	fmt.Println("3.) Configuring the remote for ", team)
+
+	out.Print(ctx, "Configuring the git remote ...")
 	remote, err = s.askForString(ctx, "Please enter the git remote for your shared store", remote)
 	if err != nil {
 		return err
@@ -238,21 +255,28 @@ func (s *Action) initOBCreateTeam(ctx context.Context, c *cli.Context, team, rem
 	if err := s.Store.Git(ctx, team, false, false, "push", "origin", "master"); err != nil {
 		return errors.Wrapf(err, "failed to push to git remote")
 	}
-	fmt.Println(color.GreenString("Finished creating a new team"))
+	out.Green(ctx, "Done")
 	return nil
 }
 
-func (s *Action) initOBJoinTeam(ctx context.Context, c *cli.Context, team, remote string) error {
+// initJoinTeam will create a local root store and clone and existing store to
+// a mount
+func (s *Action) initJoinTeam(ctx context.Context, c *cli.Context, team, remote string) error {
 	var err error
-	fmt.Println("Ok, joining an existing team. We need two things: 1.) a local store for you, 2.) the remote to clone the team store from")
-	if err := s.initOBLocal(ctx, c); err != nil {
+
+	out.Print(ctx, "Joining an existing team ...")
+	if err := s.initLocal(ctx, c); err != nil {
 		return errors.Wrapf(err, "failed to create local store")
 	}
+
+	// name of the existing team
 	team, err = s.askForString(ctx, "Please enter the name of your team (may contain slashes)", team)
 	if err != nil {
 		return err
 	}
-	fmt.Println("2.) Cloning from the remote for ", team)
+	ctx = out.AddPrefix(ctx, "["+team+"]")
+
+	out.Print(ctx, "Cloning from the git remote ...")
 	remote, err = s.askForString(ctx, "Please enter the git remote for your shared store", remote)
 	if err != nil {
 		return err
@@ -260,6 +284,6 @@ func (s *Action) initOBJoinTeam(ctx context.Context, c *cli.Context, team, remot
 	if err := s.clone(ctx, remote, team, ""); err != nil {
 		return errors.Wrapf(err, "failed to clone repo")
 	}
-	fmt.Println(color.GreenString("Cloned your teams repo. Make sure to request access by sending your public key to an existing member"))
+	out.Green(ctx, "Done")
 	return nil
 }

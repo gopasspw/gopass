@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/fatih/color"
+	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/muesli/crunchy"
 	"github.com/muesli/goprogressbar"
 	"github.com/urfave/cli"
@@ -91,19 +92,19 @@ func (s *Action) Audit(ctx context.Context, c *cli.Context) error {
 		if len(secrets) > 1 {
 			foundDuplicates = true
 
-			fmt.Println(color.CyanString("Detected a shared secret for:"))
+			out.Cyan(ctx, "Detected a shared secret for:")
 			for _, secret := range secrets {
-				fmt.Println(color.CyanString("\t- %s", secret))
+				out.Cyan(ctx, "\t- %s", secret)
 			}
 		}
 	}
 	if !foundDuplicates {
-		fmt.Println(color.GreenString("No shared secrets found."))
+		out.Green(ctx, "No shared secrets found.")
 	}
 
 	foundWeakPasswords := printAuditResults(ctx, messages, "%s:\n", color.CyanString)
 	if !foundWeakPasswords {
-		fmt.Println(color.GreenString("No weak secrets detected."))
+		out.Green(ctx, "No weak secrets detected.")
 	}
 	foundErrors := printAuditResults(ctx, errors, "%s:\n", color.RedString)
 
@@ -157,9 +158,9 @@ func printAuditResults(ctx context.Context, m map[string][]string, format string
 	return b
 }
 
-func printAuditResult(pw string) {
+func printAuditResult(ctx context.Context, pw string) {
 	validator := crunchy.NewValidator()
 	if err := validator.Check(pw); err != nil {
-		fmt.Println(color.CyanString(fmt.Sprintf("Warning: %s", err)))
+		out.Cyan(ctx, fmt.Sprintf("Warning: %s", err))
 	}
 }

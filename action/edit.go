@@ -12,6 +12,7 @@ import (
 	"github.com/justwatchcom/gopass/store/secret"
 	"github.com/justwatchcom/gopass/store/sub"
 	"github.com/justwatchcom/gopass/utils/fsutil"
+	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/justwatchcom/gopass/utils/pwgen"
 	"github.com/justwatchcom/gopass/utils/tpl"
 	shellquote "github.com/kballard/go-shellquote"
@@ -40,7 +41,7 @@ func (s *Action) Edit(ctx context.Context, c *cli.Context) error {
 	} else if tmpl, found := s.Store.LookupTemplate(ctx, name); found {
 		changed = true
 		// load template if it exists
-		content = pwgen.GeneratePassword(defaultLength, false)
+		content = []byte(pwgen.GeneratePassword(defaultLength, false))
 		if nc, err := tpl.Execute(ctx, string(tmpl), name, content, s.Store); err == nil {
 			content = nc
 		} else {
@@ -60,11 +61,11 @@ func (s *Action) Edit(ctx context.Context, c *cli.Context) error {
 
 	nSec, err := secret.Parse(nContent)
 	if err != nil {
-		fmt.Println(color.RedString("WARNING: Invalid YAML: %s", err))
+		out.Red(ctx, "WARNING: Invalid YAML: %s", err)
 	}
 
 	if pw := nSec.Password(); pw != "" {
-		printAuditResult(pw)
+		printAuditResult(ctx, pw)
 	}
 
 	return s.Store.Set(sub.WithReason(ctx, fmt.Sprintf("Edited with %s", getEditor())), name, nSec)

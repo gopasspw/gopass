@@ -3,7 +3,6 @@ package sub
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -15,6 +14,7 @@ import (
 	"github.com/justwatchcom/gopass/store"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/fsutil"
+	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/pkg/errors"
 )
 
@@ -29,13 +29,11 @@ func (s *Store) gitCmd(ctx context.Context, name string, args ...string) error {
 	if ctxutil.IsDebug(ctx) {
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
-		fmt.Printf("[DEBUG] store.%s: %s %+v\n", name, cmd.Path, cmd.Args)
 	}
+	out.Debug(ctx, "store.%s: %s %+v", name, cmd.Path, cmd.Args)
 
 	if err := cmd.Run(); err != nil {
-		if ctxutil.IsDebug(ctx) {
-			fmt.Printf("Output of '%s %+v': '%s'\n", cmd.Path, cmd.Args, buf.String())
-		}
+		out.Debug(ctx, "Output of '%s %+v': '%s'", cmd.Path, cmd.Args, buf.String())
 		return errors.Wrapf(err, "failed to run command %s %+v", cmd.Path, cmd.Args)
 	}
 
@@ -52,10 +50,10 @@ func (s *Store) gitFixConfig(ctx context.Context) error {
 
 	// setup for proper diffs
 	if err := s.gitCmd(ctx, "GitInit", "config", "--local", "diff.gpg.binary", "true"); err != nil {
-		fmt.Println(color.YellowString("Error while initializing git: %s", err))
+		out.Yellow(ctx, "Error while initializing git: %s", err)
 	}
 	if err := s.gitCmd(ctx, "GitInit", "config", "--local", "diff.gpg.textconv", "gpg --no-tty --decrypt"); err != nil {
-		fmt.Println(color.YellowString("Error while initializing git: %s", err))
+		out.Yellow(ctx, "Error while initializing git: %s", err)
 	}
 
 	return nil
@@ -97,10 +95,10 @@ func (s *Store) GitInit(ctx context.Context, alias, signKey, userName, userEmail
 		return errors.Errorf("Failed to initialize git: %s", err)
 	}
 	if err := s.gitAdd(ctx, s.path+"/.gitattributes"); err != nil {
-		fmt.Println(color.YellowString("Warning: Failed to add .gitattributes to git"))
+		out.Yellow(ctx, "Warning: Failed to add .gitattributes to git")
 	}
 	if err := s.gitCommit(ctx, "Configure git repository for gpg file diff."); err != nil {
-		fmt.Println(color.YellowString("Warning: Failed to commit .gitattributes to git"))
+		out.Yellow(ctx, "Warning: Failed to commit .gitattributes to git")
 	}
 
 	// set GPG signkey
@@ -128,24 +126,20 @@ func (s *Store) GitVersion(ctx context.Context) semver.Version {
 	v := semver.Version{}
 
 	cmd := exec.CommandContext(ctx, "git", "version")
-	out, err := cmd.Output()
+	cmdout, err := cmd.Output()
 	if err != nil {
-		if ctxutil.IsDebug(ctx) {
-			fmt.Printf("[DEBUG] Failed to run 'git version': %s\n", err)
-		}
+		out.Debug(ctx, "[DEBUG] Failed to run 'git version': %s", err)
 		return v
 	}
 
-	svStr := strings.TrimPrefix(string(out), "git version ")
+	svStr := strings.TrimPrefix(string(cmdout), "git version ")
 	if p := strings.Fields(svStr); len(p) > 0 {
 		svStr = p[0]
 	}
 
 	sv, err := semver.ParseTolerant(svStr)
 	if err != nil {
-		if ctxutil.IsDebug(ctx) {
-			fmt.Printf("[DEBUG] Failed to parse '%s' as semver: %s\n", svStr, err)
-		}
+		out.Debug(ctx, "Failed to parse '%s' as semver: %s", svStr, err)
 		return v
 	}
 	return sv
@@ -209,9 +203,7 @@ func (s *Store) gitConfigValue(ctx context.Context, key string) (string, error) 
 	cmd.Stdout = buf
 	cmd.Stderr = os.Stderr
 
-	if ctxutil.IsDebug(ctx) {
-		fmt.Printf("store.gitConfigValue: %s %+v\n", cmd.Path, cmd.Args)
-	}
+	out.Debug(ctx, "store.gitConfigValue: %s %+v", cmd.Path, cmd.Args)
 	if err := cmd.Run(); err != nil {
 		return "", err
 	}
@@ -241,7 +233,7 @@ func (s *Store) gitPushPull(ctx context.Context, op, remote, branch string) erro
 		if op == "pull" {
 			return err
 		}
-		fmt.Println(color.YellowString("Failed to pull before git push: %s", err))
+		out.Yellow(ctx, "Failed to pull before git push: %s", err)
 	}
 	if op == "pull" {
 		return nil

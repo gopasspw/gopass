@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
+	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/urfave/cli"
 )
 
@@ -25,7 +26,7 @@ func (s *Action) Grep(ctx context.Context, c *cli.Context) error {
 	for _, v := range l {
 		sec, err := s.Store.Get(ctx, v)
 		if err != nil {
-			fmt.Println(color.RedString("failed to decrypt %s: %v", v, err))
+			out.Red(ctx, "failed to decrypt %s: %v", v, err)
 			continue
 		}
 

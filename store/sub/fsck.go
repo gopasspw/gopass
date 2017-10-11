@@ -8,9 +8,9 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/backend/gpg"
 	"github.com/justwatchcom/gopass/utils/fsutil"
+	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/pkg/errors"
 )
 
@@ -62,28 +62,28 @@ func (s *Store) fsckCheckDir(ctx context.Context, prefix, fn string, sh map[stri
 	askFunc := GetFsckFunc(ctx)
 	fi, err := os.Stat(fn)
 	if err != nil {
-		fmt.Println(color.RedString("[%s] Failed to check %s: %s\n", prefix, fn, err))
+		out.Red(ctx, "[%s] Failed to check %s: %s\n", prefix, fn, err)
 		countFn("err")
 		return nil
 	}
 	// check for shadowing
 	name := s.filenameToName(fn)
 	if _, found := sh[name]; found {
-		fmt.Println(color.YellowString("[%s] Shadowed %s by %s", name, fn))
+		out.Yellow(ctx, "[%s] Shadowed %s by %s", name, fn)
 		countFn("warn")
 	}
 	sh[name] = struct{}{}
 	// check if any group or other perms are set,
 	// i.e. check for perms other than rwx------
 	if fi.Mode().Perm()&077 != 0 {
-		fmt.Println(color.YellowString("[%s] Permissions too wide: %s (%s)", prefix, fn, fi.Mode().Perm().String()))
+		out.Yellow(ctx, "[%s] Permissions too wide: %s (%s)", prefix, fn, fi.Mode().Perm().String())
 		countFn("warn")
 		if !IsFsckCheck(ctx) && (IsFsckForce(ctx) || askFunc(ctx, "Fix permissions?")) {
 			np := uint32(fi.Mode().Perm() & 0700)
-			fmt.Println(color.GreenString("[%s] Fixing permissions from %s to %s", prefix, fi.Mode().Perm().String(), os.FileMode(np).Perm().String()))
+			out.Green(ctx, "[%s] Fixing permissions from %s to %s", prefix, fi.Mode().Perm().String(), os.FileMode(np).Perm().String())
 			countFn("fixed")
 			if err := syscall.Chmod(fn, np); err != nil {
-				fmt.Println(color.RedString("[%s] Failed to set permissions for %s to rwx------: %s", prefix, fn, err))
+				out.Red(ctx, "[%s] Failed to set permissions for %s to rwx------: %s", prefix, fn, err)
 				countFn("err")
 			}
 		}
@@ -94,12 +94,12 @@ func (s *Store) fsckCheckDir(ctx context.Context, prefix, fn string, sh map[stri
 		return errors.Wrapf(err, "failed to check if '%s' is empty", fn)
 	}
 	if isEmpty {
-		fmt.Println(color.YellowString("[%s] Empty folder: %s", prefix, fn))
+		out.Yellow(ctx, "[%s] Empty folder: %s", prefix, fn)
 		countFn("warn")
 		if !IsFsckCheck(ctx) && (IsFsckForce(ctx) || askFunc(ctx, "Remove empty folder?")) {
-			fmt.Println(color.GreenString("[%s] Removing empty folder %s", prefix, fn))
+			out.Green(ctx, "[%s] Removing empty folder %s", prefix, fn)
 			if err := os.RemoveAll(fn); err != nil {
-				fmt.Println(color.RedString("[%s] Failed to remove folder %s: %s", fn, err))
+				out.Red(ctx, "[%s] Failed to remove folder %s: %s", fn, err)
 				countFn("err")
 			} else {
 				countFn("fixed")
@@ -114,20 +114,20 @@ func (s *Store) fsckCheckFile(ctx context.Context, prefix, fn string, storeRec g
 	askFunc := GetFsckFunc(ctx)
 	fi, err := os.Stat(fn)
 	if err != nil {
-		fmt.Println(color.RedString("[%s] Failed to check %s: %s\n", prefix, fn, err))
+		out.Red(ctx, "[%s] Failed to check %s: %s\n", prefix, fn, err)
 		countFn("err")
 		return nil
 	}
 	// check if any group or other perms are set,
 	// i.e. check for perms other than rw-------
 	if fi.Mode().Perm()&0177 != 0 {
-		fmt.Println(color.YellowString("[%s] Permissions too wide: %s (%s)", prefix, fn, fi.Mode().String()))
+		out.Yellow(ctx, "[%s] Permissions too wide: %s (%s)", prefix, fn, fi.Mode().String())
 		countFn("warn")
 		if !IsFsckCheck(ctx) && (IsFsckForce(ctx) || askFunc(ctx, "Fix permissions?")) {
 			np := uint32(fi.Mode().Perm() & 0600)
-			fmt.Println(color.GreenString("[%s] Fixing permissions from %s to %s", prefix, fi.Mode().Perm().String(), os.FileMode(np).Perm().String()))
+			out.Green(ctx, "[%s] Fixing permissions from %s to %s", prefix, fi.Mode().Perm().String(), os.FileMode(np).Perm().String())
 			if err := syscall.Chmod(fn, np); err != nil {
-				fmt.Println(color.RedString("[%s] Failed to set permissions for %s to rw-------: %s", prefix, fn, err))
+				out.Red(ctx, "[%s] Failed to set permissions for %s to rw-------: %s", prefix, fn, err)
 				countFn("err")
 			} else {
 				countFn("fixed")
@@ -142,20 +142,20 @@ func (s *Store) fsckCheckFile(ctx context.Context, prefix, fn string, storeRec g
 	// check for shadowing
 	name := s.filenameToName(fn)
 	if _, found := sh[name]; found {
-		fmt.Println(color.YellowString("[%s] Shadowed %s by %s", prefix, name, fn))
+		out.Yellow(ctx, "[%s] Shadowed %s by %s", prefix, name, fn)
 		countFn("warn")
 	}
 	sh[name] = struct{}{}
 	// check that we can decrypt this file
 	if err := s.fsckCheckSelfDecrypt(ctx, fn); err != nil {
-		fmt.Println(color.RedString("[%s] Secret Key missing. Can't fix: %s", prefix, fn))
+		out.Red(ctx, "[%s] Secret Key missing. Can't fix: %s", prefix, fn)
 		countFn("err")
 		return nil
 	}
 	// get the IDs this file was encrypted for
 	fileRec, err := s.gpg.GetRecipients(ctx, fn)
 	if err != nil {
-		fmt.Println(color.RedString("[%s] Failed to check recipients: %s (%s)", prefix, fn, err))
+		out.Red(ctx, "[%s] Failed to check recipients: %s (%s)", prefix, fn, err)
 		countFn("err")
 		return nil
 	}
@@ -167,11 +167,11 @@ func (s *Store) fsckCheckFile(ctx context.Context, prefix, fn string, storeRec g
 			continue
 		}
 		// the recipient is not present in the recipients file of the store
-		fmt.Println(color.YellowString("[%s] Extra recipient found %s: %s", prefix, fn, rec))
+		out.Yellow(ctx, "[%s] Extra recipient found %s: %s", prefix, fn, rec)
 		countFn("warn")
 		if !IsFsckCheck(ctx) && (IsFsckForce(ctx) || askFunc(ctx, "Fix recipients?")) {
 			if err := s.fsckFixRecipients(ctx, fn); err != nil {
-				fmt.Println(color.RedString("[%s] Failed to fix recipients for %s: %s", prefix, fn, err))
+				out.Red(ctx, "[%s] Failed to fix recipients for %s: %s", prefix, fn, err)
 				countFn("err")
 			}
 		}
@@ -181,11 +181,11 @@ func (s *Store) fsckCheckFile(ctx context.Context, prefix, fn string, storeRec g
 		if err := fsckCheckRecipientsInSubkeys(key, fileRec); err == nil {
 			continue
 		}
-		fmt.Println(color.YellowString("[%s] Recipient missing %s: %s", prefix, name, key.ID()))
+		out.Yellow(ctx, "[%s] Recipient missing %s: %s", prefix, name, key.ID())
 		countFn("warn")
 		if !IsFsckCheck(ctx) && (IsFsckForce(ctx) || askFunc(ctx, "Fix recipients?")) {
 			if err := s.fsckFixRecipients(ctx, fn); err != nil {
-				fmt.Println(color.RedString("[%s] Failed to fix recipients for %s: %s\n", prefix, fn, err))
+				out.Red(ctx, "[%s] Failed to fix recipients for %s: %s\n", prefix, fn, err)
 				countFn("err")
 			}
 		}

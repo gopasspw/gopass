@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/fatih/color"
-	"github.com/justwatchcom/gopass/utils/ctxutil"
+	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/muesli/goprogressbar"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"
@@ -102,15 +102,15 @@ func (s *Action) HIBP(ctx context.Context, c *cli.Context) error {
 	}
 
 	if len(matchList) < 0 {
-		fmt.Println(color.GreenString("Good news - No matches found!"))
+		out.Green(ctx, "Good news - No matches found!")
 		return nil
 	}
 	sort.Strings(matchList)
-	fmt.Println(color.RedString("Oh no - Found some matches:"))
+	out.Red(ctx, "Oh no - Found some matches:")
 	for _, m := range matchList {
-		fmt.Println(color.RedString("\t- %s", m))
+		out.Red(ctx, "\t- %s", m)
 	}
-	fmt.Println(color.CyanString("The passwords in the listed secrets were included in public leaks in the past. This means they are likely included in many word-list attacks and provide only very little security. Strongly consider changing those passwords!"))
+	out.Cyan(ctx, "The passwords in the listed secrets were included in public leaks in the past. This means they are likely included in many word-list attacks and provide only very little security. Strongly consider changing those passwords!")
 	return s.exitError(ctx, ExitAudit, nil, "weak passwords found")
 }
 
@@ -122,16 +122,14 @@ func (s *Action) findHIBPMatches(ctx context.Context, fn string, shaSums map[str
 
 	fh, err := os.Open(fn)
 	if err != nil {
-		fmt.Println(color.RedString("Failed to open file %s: %s", fn, err))
+		out.Red(ctx, "Failed to open file %s: %s", fn, err)
 		return
 	}
 	defer func() {
 		_ = fh.Close()
 	}()
 
-	if ctxutil.IsDebug(ctx) {
-		fmt.Printf("Checking file %s ...\n", fn)
-	}
+	out.Debug(ctx, "Checking file %s ...\n", fn)
 
 	// index in sortedShaSums
 	i := 0
@@ -154,9 +152,7 @@ SCAN:
 		}
 		if line == sortedShaSums[i] {
 			matches <- shaSums[line]
-			if ctxutil.IsDebug(ctx) {
-				fmt.Printf("MATCH at line %d: %s / %s from %s\n", lineNo, line, shaSums[line], fn)
-			}
+			out.Debug(ctx, "MATCH at line %d: %s / %s from %s", lineNo, line, shaSums[line], fn)
 			numMatches++
 			// advance to next sha sum from store and next line in file
 			i++
@@ -168,10 +164,9 @@ SCAN:
 			i++
 		}
 	}
-	if ctxutil.IsDebug(ctx) {
-		d0 := time.Since(t0)
-		fmt.Printf("Found %d matches in %d lines from %s in %.2fs (%.2f lines / s)\n", numMatches, lineNo, fn, d0.Seconds(), float64(lineNo)/d0.Seconds())
-	}
+
+	d0 := time.Since(t0)
+	out.Debug(ctx, "Found %d matches in %d lines from %s in %.2fs (%.2f lines / s)\n", numMatches, lineNo, fn, d0.Seconds(), float64(lineNo)/d0.Seconds())
 }
 
 func sha1sum(data string) string {

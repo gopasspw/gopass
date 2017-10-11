@@ -12,8 +12,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/store"
+	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/pkg/errors"
 )
 
@@ -27,7 +27,7 @@ const (
 func (s *Store) Recipients(ctx context.Context) []string {
 	rs, err := s.GetRecipients(ctx, "")
 	if err != nil {
-		fmt.Println(color.RedString("failed to read recipient list: %s", err))
+		out.Red(ctx, "failed to read recipient list: %s", err)
 	}
 	return rs
 }
@@ -131,7 +131,7 @@ func (s *Store) ExportMissingPublicKeys(ctx context.Context, rs []string) (bool,
 		path, err := s.exportPublicKey(ctx, r)
 		if err != nil {
 			ok = false
-			fmt.Println(color.RedString("failed to export public key for '%s': %s", r, err))
+			out.Red(ctx, "failed to export public key for '%s': %s", r, err)
 			continue
 		}
 		if path == "" {
@@ -144,12 +144,12 @@ func (s *Store) ExportMissingPublicKeys(ctx context.Context, rs []string) (bool,
 				continue
 			}
 			ok = false
-			fmt.Println(color.RedString("failed to add public key for '%s' to git: %s", r, err))
+			out.Red(ctx, "failed to add public key for '%s' to git: %s", r, err)
 			continue
 		}
 		if err := s.gitCommit(ctx, fmt.Sprintf("Exported Public Keys %s", r)); err != nil && err != store.ErrGitNothingToCommit {
 			ok = false
-			fmt.Println(color.RedString("Failed to git commit: %s", err))
+			out.Red(ctx, "Failed to git commit: %s", err)
 			continue
 		}
 	}
@@ -197,7 +197,7 @@ func (s *Store) saveRecipients(ctx context.Context, rs []string, msg string, exp
 	// save all recipients public keys to the repo
 	if exportKeys {
 		if _, err := s.ExportMissingPublicKeys(ctx, rs); err != nil {
-			fmt.Println(color.RedString("Failed to export missing public keys: %s", err))
+			out.Red(ctx, "Failed to export missing public keys: %s", err)
 		}
 	}
 
@@ -209,7 +209,7 @@ func (s *Store) saveRecipients(ctx context.Context, rs []string, msg string, exp
 		if errors.Cause(err) == store.ErrGitNoRemote {
 			msg := "Warning: git has not remote. Ignoring auto-push option\n" +
 				"Run: gopass git remote add origin ..."
-			fmt.Println(color.YellowString(msg))
+			out.Yellow(ctx, msg)
 			return nil
 		}
 		return errors.Wrapf(err, "failed to push changes to git")

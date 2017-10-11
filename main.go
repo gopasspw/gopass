@@ -19,6 +19,7 @@ import (
 	"github.com/justwatchcom/gopass/config"
 	"github.com/justwatchcom/gopass/store/sub"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
+	"github.com/justwatchcom/gopass/utils/out"
 	colorable "github.com/mattn/go-colorable"
 	"github.com/urfave/cli"
 )
@@ -140,7 +141,7 @@ func main() {
 	if err != nil || csv.LT(sv) {
 		cfg.Version = sv.String()
 		if err := cfg.Save(); err != nil {
-			fmt.Println(color.RedString("Failed to save config: %s", err))
+			out.Red(ctx, "Failed to save config: %s", err)
 		}
 	}
 

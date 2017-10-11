@@ -6,9 +6,9 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/config"
 	"github.com/justwatchcom/gopass/utils/fsutil"
+	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"
 )
@@ -59,7 +59,7 @@ func (s *Action) clone(ctx context.Context, repo, mount, path string) error {
 		return s.exitError(ctx, ExitIO, err, "Failed to update config: %s", err)
 	}
 
-	fmt.Println(color.GreenString("Your password store is ready to use! Have a look around: `%s %s`\n", s.Name, mount))
+	out.Green(ctx, "Your password store is ready to use! Have a look around: `%s %s`\n", s.Name, mount)
 
 	return nil
 }

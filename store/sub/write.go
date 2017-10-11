@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/store"
 	"github.com/justwatchcom/gopass/store/secret"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
+	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/pkg/errors"
 )
 
@@ -73,17 +73,17 @@ func (s *Store) Set(ctx context.Context, name string, sec *secret.Secret) error 
 		if errors.Cause(err) == store.ErrGitNotInit {
 			msg := "Warning: git is not initialized for this store. Ignoring auto-push option\n" +
 				"Run: gopass git init"
-			fmt.Println(color.RedString(msg))
+			out.Red(ctx, msg)
 			return nil
 		}
 		if errors.Cause(err) == store.ErrGitNoRemote {
 			msg := "Warning: git has not remote. Ignoring auto-push option\n" +
 				"Run: gopass git remote add origin ..."
-			fmt.Println(color.YellowString(msg))
+			out.Yellow(ctx, msg)
 			return nil
 		}
 		return errors.Wrapf(err, "failed to push to git remote")
 	}
-	fmt.Println(color.GreenString("Pushed changes to git remote"))
+	out.Green(ctx, "Pushed changes to git remote")
 	return nil
 }

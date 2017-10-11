@@ -8,6 +8,7 @@ import (
 
 	"github.com/dominikschulz/github-releases/ghrel"
 	"github.com/fatih/color"
+	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/urfave/cli"
 )
 
@@ -54,7 +55,7 @@ func (s *Action) Version(ctx context.Context, c *cli.Context) error {
 			fmt.Println(vi)
 		}
 	case <-time.After(2 * time.Second):
-		fmt.Println(color.RedString("Version check timed out"))
+		out.Red(ctx, "Version check timed out")
 	}
 
 	return nil

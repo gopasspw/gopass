@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"bytes"
 	"context"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -14,7 +13,7 @@ import (
 
 	"github.com/blang/semver"
 	"github.com/justwatchcom/gopass/backend/gpg"
-	"github.com/justwatchcom/gopass/utils/ctxutil"
+	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/pkg/errors"
 )
 
@@ -75,20 +74,18 @@ func (g *GPG) listKeys(ctx context.Context, typ string, search ...string) (gpg.K
 	args := []string{"--with-colons", "--with-fingerprint", "--fixed-list-mode", "--list-" + typ + "-keys"}
 	args = append(args, search...)
 	cmd := exec.CommandContext(ctx, g.binary, args...)
-	cmd.Stderr = os.Stderr
+	cmd.Stderr = nil
 
-	if ctxutil.IsDebug(ctx) {
-		fmt.Printf("[DEBUG] gpg.listKeys: %s %+v\n", cmd.Path, cmd.Args)
-	}
-	out, err := cmd.Output()
+	out.Debug(ctx, "[DEBUG] gpg.listKeys: %s %+v\n", cmd.Path, cmd.Args)
+	cmdout, err := cmd.Output()
 	if err != nil {
-		if bytes.Contains(out, []byte("secret key not available")) {
+		if bytes.Contains(cmdout, []byte("secret key not available")) {
 			return gpg.KeyList{}, nil
 		}
 		return gpg.KeyList{}, err
 	}
 
-	return g.parseColons(bytes.NewBuffer(out)), nil
+	return g.parseColons(bytes.NewBuffer(cmdout)), nil
 }
 
 // ListPublicKeys returns a parsed list of GPG public keys
@@ -134,20 +131,17 @@ func (g *GPG) GetRecipients(ctx context.Context, file string) ([]string, error) 
 
 	args := []string{"--batch", "--list-only", "--list-packets", "--no-default-keyring", "--secret-keyring", "/dev/null", file}
 	cmd := exec.CommandContext(ctx, g.binary, args...)
-	if ctxutil.IsDebug(ctx) {
-		fmt.Printf("[DEBUG] gpg.GetRecipients: %s %+v\n", cmd.Path, cmd.Args)
-	}
-	out, err := cmd.CombinedOutput()
+	out.Debug(ctx, "gpg.GetRecipients: %s %+v", cmd.Path, cmd.Args)
+
+	cmdout, err := cmd.CombinedOutput()
 	if err != nil {
 		return []string{}, err
 	}
 
-	scanner := bufio.NewScanner(bytes.NewBuffer(out))
+	scanner := bufio.NewScanner(bytes.NewBuffer(cmdout))
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
-		if ctxutil.IsDebug(ctx) {
-			fmt.Printf("[DEBUG] gpg Output: %s\n", line)
-		}
+		out.Debug(ctx, "gpg Output: %s", line)
 		if !strings.HasPrefix(line, ":pubkey enc packet:") {
 			continue
 		}
@@ -179,13 +173,11 @@ func (g *GPG) Encrypt(ctx context.Context, path string, content []byte, recipien
 	}
 
 	cmd := exec.CommandContext(ctx, g.binary, args...)
-	if ctxutil.IsDebug(ctx) {
-		fmt.Printf("[DEBUG] gpg.Encrypt: %s %+v\n", cmd.Path, cmd.Args)
-	}
 	cmd.Stdin = bytes.NewReader(content)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
+	out.Debug(ctx, "gpg.Encrypt: %s %+v", cmd.Path, cmd.Args)
 	return cmd.Run()
 }
 
@@ -193,9 +185,8 @@ func (g *GPG) Encrypt(ctx context.Context, path string, content []byte, recipien
 func (g *GPG) Decrypt(ctx context.Context, path string) ([]byte, error) {
 	args := append(g.args, "--decrypt", path)
 	cmd := exec.CommandContext(ctx, g.binary, args...)
-	if ctxutil.IsDebug(ctx) {
-		fmt.Printf("[DEBUG] gpg.Decrypt: %s %+v\n", cmd.Path, cmd.Args)
-	}
+
+	out.Debug(ctx, "gpg.Decrypt: %s %+v", cmd.Path, cmd.Args)
 	return cmd.Output()
 }
 
@@ -203,9 +194,8 @@ func (g *GPG) Decrypt(ctx context.Context, path string) ([]byte, error) {
 func (g *GPG) ExportPublicKey(ctx context.Context, id, filename string) error {
 	args := append(g.args, "--armor", "--export", id)
 	cmd := exec.CommandContext(ctx, g.binary, args...)
-	if ctxutil.IsDebug(ctx) {
-		fmt.Printf("[DEBUG] gpg.ExportPublicKey: %s %+v\n", cmd.Path, cmd.Args)
-	}
+
+	out.Debug(ctx, "gpg.ExportPublicKey: %s %+v", cmd.Path, cmd.Args)
 	out, err := cmd.Output()
 	if err != nil {
 		return errors.Wrapf(err, "failed to run command '%s %+v'", cmd.Path, cmd.Args)
@@ -227,16 +217,15 @@ func (g *GPG) ImportPublicKey(ctx context.Context, filename string) error {
 
 	args := append(g.args, "--import")
 	cmd := exec.CommandContext(ctx, g.binary, args...)
-	if ctxutil.IsDebug(ctx) {
-		fmt.Printf("[DEBUG] gpg.ImportPublicKey: %s %+v\n", cmd.Path, cmd.Args)
-	}
 	cmd.Stdin = bytes.NewReader(buf)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
+	out.Debug(ctx, "gpg.ImportPublicKey: %s %+v", cmd.Path, cmd.Args)
 	if err := cmd.Run(); err != nil {
 		return errors.Wrapf(err, "failed to run command: '%s %+v'", cmd.Path, cmd.Args)
 	}
+
 	// clear key cache
 	g.privKeys = nil
 	g.pubKeys = nil
@@ -285,17 +274,16 @@ Expire-Date: 0
 
 	args := []string{"--batch", "--gen-key"}
 	cmd := exec.CommandContext(ctx, g.binary, args...)
-	if ctxutil.IsDebug(ctx) {
-		fmt.Printf("[DEBUG] gpg.CreatePrivateKeyBatch: %s %+v\n", cmd.Path, cmd.Args)
-	}
 	cmd.Stdin = bytes.NewReader(buf.Bytes())
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+	cmd.Stdout = nil
+	cmd.Stderr = nil
 
+	out.Debug(ctx, "gpg.CreatePrivateKeyBatch: %s %+v", cmd.Path, cmd.Args)
 	if err := cmd.Run(); err != nil {
 		return errors.Wrapf(err, "failed to run command: '%s %+v'", cmd.Path, cmd.Args)
 	}
 	g.privKeys = nil
+	g.pubKeys = nil
 	return nil
 }
 
@@ -303,16 +291,16 @@ Expire-Date: 0
 func (g *GPG) CreatePrivateKey(ctx context.Context) error {
 	args := []string{"--gen-key"}
 	cmd := exec.CommandContext(ctx, g.binary, args...)
-	if ctxutil.IsDebug(ctx) {
-		fmt.Printf("[DEBUG] gpg.CreatePrivateKey: %s %+v\n", cmd.Path, cmd.Args)
-	}
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
+	out.Debug(ctx, "gpg.CreatePrivateKey: %s %+v", cmd.Path, cmd.Args)
 	if err := cmd.Run(); err != nil {
 		return errors.Wrapf(err, "failed to run command: '%s %+v'", cmd.Path, cmd.Args)
 	}
+
 	g.privKeys = nil
+	g.pubKeys = nil
 	return nil
 }
