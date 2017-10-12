@@ -1,14 +1,18 @@
-## Upcoming Release
+## 1.5.0 / 2017-10-17
 
 * [FEATURE] Add secret creation wizard [#386]
 * [FEATURE] Add onboarding wizard [#387]
 * [FEATURE] Wizard for recipients add/remove [#359]
 * [FEATURE] XKCD#936 inspired password generation [#368]
+* [FEATURE] Add update wizard [#395]
 * [ENHANCEMENT] Overhaul documentation [#383] [#384]
 * [ENHANCEMENT] Attempt to get TOTP key from YAML [#376]
 * [ENHANCEMENT] Allow find to take -c [#378]
 * [ENHANCEMENT] Improve terminal wizard [#385]
 * [ENHANCEMENT] Improve responsiveness by context usage [#388]
+* [ENHANCEMENT] Improve output readability [#392] [#393]
+* [ENHANCEMENT] Automatic GPG key generation [#391]
+* [BUGFIX] Relax YAML document marker handling [#398]
 
 ## 1.4.1 / 2017-10-05
 
