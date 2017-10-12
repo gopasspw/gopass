@@ -24,17 +24,17 @@ func (t *tempfile) mount(ctx context.Context) error {
 	cmd := exec.CommandContext(ctx, "hdid", "-drivekey", "system-image=yes", "-nomount", "ram://32768")
 	cmd.Stderr = os.Stderr
 
-	out.Debug(ctx, "[DEBUG] CMD: %s %+v", cmd.Path, cmd.Args)
-	out, err := cmd.Output()
+	out.Debug(ctx, "CMD: %s %+v", cmd.Path, cmd.Args)
+	cmdout, err := cmd.Output()
 	if err != nil {
 		return errors.Errorf("Failed to create disk with hdid: %s", err)
 	}
 
-	out.Debug("[DEBUG] Output: %s\n", out)
+	out.Debug(ctx, "Output: %s\n", cmdout)
 
-	p := strings.Split(string(out), " ")
+	p := strings.Split(string(cmdout), " ")
 	if len(p) < 1 {
-		return errors.Errorf("Unhandeled hdid output: %s", string(out))
+		return errors.Errorf("Unhandeled hdid output: %s", string(cmdout))
 	}
 	t.dev = p[0]
 
@@ -57,7 +57,7 @@ func (t *tempfile) mount(ctx context.Context) error {
 		cmd.Stdout = os.Stdout
 	}
 
-	os.Debug(ctx, "CMD: %s %+v", cmd.Path, cmd.Args)
+	out.Debug(ctx, "CMD: %s %+v", cmd.Path, cmd.Args)
 	if err := cmd.Run(); err != nil {
 		return errors.Errorf("Failed to mount filesystem %s to %s: %s", t.dev, t.dir, err)
 	}

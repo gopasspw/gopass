@@ -14,5 +14,5 @@ func (s *Action) promptPass(ctx context.Context, prompt string) (string, error) 
 		return "", nil
 	}
 
-	return s.askForString(prompt, "")
+	return s.askForString(ctx, prompt, "")
 }
