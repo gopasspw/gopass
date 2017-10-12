@@ -9,7 +9,6 @@
 * [ENHANCEMENT] Allow find to take -c [#378]
 * [ENHANCEMENT] Improve terminal wizard [#385]
 * [ENHANCEMENT] Improve responsiveness by context usage [#388]
-* [BUGFIX] Support pre-1.3.0 config format [#382]
 
 ## 1.4.1 / 2017-10-05
 
