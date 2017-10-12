@@ -111,9 +111,9 @@ func (s *Action) InitOnboarding(ctx context.Context, c *cli.Context) error {
 	// check for existing GPG keypairs (private/secret keys). We need at least
 	// one useable key pair. If none exists try to create one
 	if !s.initHasUseablePrivateKeys(ctx) {
-		out.Yellow(ctx, "GPG: No useable keys. Generating new key pair")
+		out.Yellow(ctx, "No useable GPG keys. Generating new key pair")
 		ctx := out.AddPrefix(ctx, "[gpg] ")
-		out.Print(ctx, "This may take up to a few minutes")
+		out.Print(ctx, "Key generation may take up to a few minutes")
 		if err := s.initCreatePrivateKey(ctx, name, email); err != nil {
 			return errors.Wrapf(err, "failed to create new private key")
 		}
@@ -151,18 +151,23 @@ func (s *Action) InitOnboarding(ctx context.Context, c *cli.Context) error {
 }
 
 func (s *Action) initCreatePrivateKey(ctx context.Context, name, email string) error {
+	out.Green(ctx, "Creating key pair ...")
 	if name != "" && email != "" {
+		ctx := out.AddPrefix(ctx, " ")
 		passphrase := xkcdgen.Random()
 		if err := s.gpg.CreatePrivateKeyBatch(ctx, name, email, passphrase); err != nil {
 			return errors.Wrapf(err, "failed to create new private key in batch mode")
 		}
-		out.Yellow(ctx, "GPG key pair created. Remember the passphrase")
-		out.Print(ctx, color.MagentaString("Generated Passphrase: ")+color.HiGreenString(passphrase))
+		out.Green(ctx, "-> OK")
+		out.Print(ctx, color.MagentaString("Passphrase: ")+color.HiGreenString(passphrase))
 	} else {
+		ctx := out.WithPrefix(ctx, " ")
 		if err := s.gpg.CreatePrivateKey(ctx); err != nil {
 			return errors.Wrapf(err, "failed to create new private key in interactive mode")
 		}
+		out.Green(ctx, "-> OK")
 	}
+
 	kl, err := s.gpg.ListPrivateKeys(ctx)
 	if err != nil {
 		return errors.Wrapf(err, "failed to list private keys")
@@ -182,6 +187,7 @@ func (s *Action) initCreatePrivateKey(ctx context.Context, name, email string) e
 		return errors.Wrapf(err, "failed to export public key")
 	}
 	out.Cyan(ctx, "Public key exported to '%s'", fn)
+	out.Green(ctx, "Done")
 	return nil
 }
 
@@ -198,10 +204,11 @@ func (s *Action) initHasUseablePrivateKeys(ctx context.Context) bool {
 func (s *Action) initLocal(ctx context.Context, c *cli.Context) error {
 	ctx = out.AddPrefix(ctx, "[local] ")
 
-	out.Print(ctx, "Initializing your local store")
-	if err := s.init(ctx, "", "", false); err != nil {
-		return err
+	out.Print(ctx, "Initializing your local store ...")
+	if err := s.init(out.WithHidden(ctx, true), "", "", false); err != nil {
+		return errors.Wrapf(err, "failed to init local store")
 	}
+	out.Green(ctx, " -> OK")
 
 	out.Print(ctx, "Configuring your local store ...")
 	// autosync
@@ -219,7 +226,7 @@ func (s *Action) initLocal(ctx context.Context, c *cli.Context) error {
 		return errors.Wrapf(err, "failed to save config")
 	}
 
-	out.Green(ctx, "Done")
+	out.Green(ctx, " -> OK")
 	return nil
 }
 
@@ -235,27 +242,32 @@ func (s *Action) initCreateTeam(ctx context.Context, c *cli.Context, team, remot
 	// name of the new team
 	team, err = s.askForString(ctx, "Please enter the name of your team (may contain slashes)", team)
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "failed to read user input")
 	}
 	ctx = out.AddPrefix(ctx, "["+team+"] ")
 
-	out.Print(ctx, "Initializing your shared store")
-	if err := s.init(ctx, team, "", false); err != nil {
-		return err
+	out.Print(ctx, "Initializing your shared store ...")
+	if err := s.init(out.WithHidden(ctx, true), team, "", false); err != nil {
+		return errors.Wrapf(err, "failed to init shared store")
 	}
+	out.Green(ctx, " -> OK")
 
 	out.Print(ctx, "Configuring the git remote ...")
 	remote, err = s.askForString(ctx, "Please enter the git remote for your shared store", remote)
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "failed to read user input")
 	}
-	if err := s.Store.Git(ctx, team, false, false, "remote", "add", "origin", remote); err != nil {
-		return errors.Wrapf(err, "failed to add git remote")
+	{
+		ctx := out.WithHidden(ctx, true)
+		if err := s.Store.Git(ctx, team, false, false, "remote", "add", "origin", remote); err != nil {
+			return errors.Wrapf(err, "failed to add git remote")
+		}
+		if err := s.Store.Git(ctx, team, false, false, "push", "origin", "master"); err != nil {
+			return errors.Wrapf(err, "failed to push to git remote")
+		}
 	}
-	if err := s.Store.Git(ctx, team, false, false, "push", "origin", "master"); err != nil {
-		return errors.Wrapf(err, "failed to push to git remote")
-	}
-	out.Green(ctx, "Done")
+	out.Green(ctx, " -> OK")
+	out.Green(ctx, "Created Team '%s'", team)
 	return nil
 }
 
@@ -264,7 +276,7 @@ func (s *Action) initCreateTeam(ctx context.Context, c *cli.Context, team, remot
 func (s *Action) initJoinTeam(ctx context.Context, c *cli.Context, team, remote string) error {
 	var err error
 
-	out.Print(ctx, "Joining an existing team ...")
+	out.Print(ctx, "Joining existing team ...")
 	if err := s.initLocal(ctx, c); err != nil {
 		return errors.Wrapf(err, "failed to create local store")
 	}
@@ -276,14 +288,18 @@ func (s *Action) initJoinTeam(ctx context.Context, c *cli.Context, team, remote 
 	}
 	ctx = out.AddPrefix(ctx, "["+team+"]")
 
-	out.Print(ctx, "Cloning from the git remote ...")
+	out.Print(ctx, "Configuring git remote ...")
 	remote, err = s.askForString(ctx, "Please enter the git remote for your shared store", remote)
 	if err != nil {
 		return err
 	}
-	if err := s.clone(ctx, remote, team, ""); err != nil {
+
+	out.Print(ctx, "Cloning from the git remote ...")
+	if err := s.clone(out.WithHidden(ctx, true), remote, team, ""); err != nil {
 		return errors.Wrapf(err, "failed to clone repo")
 	}
-	out.Green(ctx, "Done")
+	out.Green(ctx, " -> OK")
+	out.Green(ctx, "Joined Team '%s'", team)
+	out.Yellow(ctx, "Note: You still need to request access to decrypt any secret!")
 	return nil
 }
