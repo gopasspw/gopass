@@ -33,10 +33,10 @@
 			"revisionTime": "2017-06-05T19:46:43Z"
 		},
 		{
-			"checksumSHA1": "9NoxW1ZvnX4inGkH4SA9RW6rIgM=",
+			"checksumSHA1": "GWJsUGyqiChR6BM7ZR2GSZ+1sY0=",
 			"path": "github.com/cenkalti/backoff",
-			"revision": "cdf48bbc1eb78d1349cbda326a4a037f7ba565c6",
-			"revisionTime": "2016-06-10T10:09:12Z"
+			"revision": "61ba96c4d1002f22e06acb8e34a7650611125a63",
+			"revisionTime": "2017-09-19T12:10:20Z"
 		},
 		{
 			"checksumSHA1": "Lf3uUXTkKK5DJ37BxQvxO1Fq+K8=",
@@ -201,6 +201,12 @@
 			"path": "golang.org/x/crypto/ssh/terminal",
 			"revision": "728b753d0135da6801d45a38e6f43ff55779c5c2",
 			"revisionTime": "2017-01-24T01:46:54Z"
+		},
+		{
+			"checksumSHA1": "dr5+PfIRzXeN+l1VG+s0lea9qz8=",
+			"path": "golang.org/x/net/context",
+			"revision": "a04bdaca5b32abe1c069418fb7088ae607de5bd0",
+			"revisionTime": "2017-10-03T05:09:24Z"
 		},
 		{
 			"checksumSHA1": "kEO69MIsqWDxBOIs3ez1faofNSg=",

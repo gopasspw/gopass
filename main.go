@@ -875,6 +875,13 @@ func main() {
 			},
 		},
 		{
+			Name:  "update",
+			Usage: "Check for and install gopass update",
+			Action: func(c *cli.Context) error {
+				return action.Update(withGlobalFlags(ctx, c), c)
+			},
+		},
+		{
 			Name:        "version",
 			Usage:       "Print gopass version",
 			Description: "Display version and build time information",
