@@ -39,7 +39,13 @@ func (s *Action) Version(ctx context.Context, c *cli.Context) error {
 		}
 
 		if s.version.LT(r.Version()) {
-			u <- color.YellowString("\nYour version (%s) of gopass is out of date!\nThe latest version is %s.\nYou can update by downloading from www.justwatch.com/gopass or via your package manager", s.version, r.Version().String())
+			notice := fmt.Sprintf("\nYour version (%s) of gopass is out of date!\nThe latest version is %s.\n", s.version, r.Version().String())
+			notice += "You can update by downloading from www.justwatch.com/gopass"
+			if err := s.isUpdateable(ctx); err == nil {
+				notice += " by running 'gopass update' "
+			}
+			notice += "or via your package manager"
+			u <- color.YellowString(notice)
 		}
 		u <- ""
 	}(version)
@@ -56,6 +62,8 @@ func (s *Action) Version(ctx context.Context, c *cli.Context) error {
 		}
 	case <-time.After(2 * time.Second):
 		out.Red(ctx, "Version check timed out")
+	case <-ctx.Done():
+		return s.exitError(ctx, ExitAborted, nil, "user aborted")
 	}
 
 	return nil
