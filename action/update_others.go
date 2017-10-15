@@ -20,6 +20,10 @@ import (
 )
 
 func (s *Action) updateGopass(ctx context.Context, version string, url string) error {
+	exe, err := s.executable(ctx)
+	if err != nil {
+		return err
+	}
 	if !strings.HasPrefix(url, "https") {
 		return errors.Errorf("refusing non-https URL %s", url)
 	}
@@ -36,14 +40,14 @@ func (s *Action) updateGopass(ctx context.Context, version string, url string) e
 	if err := s.tryDownload(ctx, archive, url); err != nil {
 		return err
 	}
-	binDst := os.Args[0] + "_new"
+	binDst := exe + "_new"
 	_ = os.Remove(binDst)
 	if err := s.extract(ctx, archive, binDst); err != nil {
 		return err
 	}
 	// launch rename script and exit
-	out.Yellow(ctx, "Downloaded update. Exiting to install in place ...")
-	cmd := exec.Command("/bin/bash", "-c", fmt.Sprintf(`sleep 10; mv "%s" "%s" && echo OK`, binDst, os.Args[0]))
+	out.Yellow(ctx, "Downloaded update. Exiting to install in place (%s) ...", exe)
+	cmd := exec.Command("/bin/bash", "-c", fmt.Sprintf(`sleep 1; echo ""; echo -n "Please wait ... "; sleep 2; mv "%s" "%s" && echo OK`, binDst, exe))
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.SysProcAttr = &syscall.SysProcAttr{
@@ -53,7 +57,10 @@ func (s *Action) updateGopass(ctx context.Context, version string, url string) e
 }
 
 func (s *Action) isUpdateable(ctx context.Context) error {
-	fn := os.Args[0]
+	fn, err := s.executable(ctx)
+	if err != nil {
+		return err
+	}
 	out.Debug(ctx, "isUpdateable - File: %s", fn)
 	// check file
 	fi, err := os.Stat(fn)
@@ -69,4 +76,13 @@ func (s *Action) isUpdateable(ctx context.Context) error {
 	// check dir
 	fdir := filepath.Dir(fn)
 	return unix.Access(fdir, unix.W_OK)
+}
+
+func (s *Action) executable(ctx context.Context) (string, error) {
+	path, err := os.Executable()
+	if err != nil {
+		return path, err
+	}
+	path, err = filepath.EvalSymlinks(path)
+	return path, err
 }
