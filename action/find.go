@@ -47,7 +47,7 @@ func (s *Action) Find(ctx context.Context, c *cli.Context) error {
 		}
 	}
 
-	if !ctxutil.IsTerminal(ctx) {
+	if !ctxutil.IsTerminal(ctx) || c.Command.Name == "find" {
 		for _, value := range choices {
 			fmt.Println(value)
 		}
