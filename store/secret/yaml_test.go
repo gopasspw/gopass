@@ -234,6 +234,48 @@ url: http://www.test.com/`
 				}
 			},
 		},
+		{
+			name: "Document Marker as Password (#398)",
+			tf: func(t *testing.T) {
+				mlValue := `---`
+				s, err := Parse([]byte(mlValue))
+				if err != nil {
+					t.Logf("%s", err)
+				}
+				if s == nil {
+					t.Fatalf("Secret is nil")
+				}
+				// read back key
+				if s.Password() != "---" {
+					t.Errorf("Secret does not match input")
+				}
+			},
+		},
+		{
+			name: "YAML Body without Password (#398)",
+			tf: func(t *testing.T) {
+				mlValue := `---
+username: myuser@test.com
+password: somepasswd
+url: http://www.test.com/`
+				s, err := Parse([]byte(mlValue))
+				if err != nil {
+					t.Logf("%s", err)
+				}
+				if s == nil {
+					t.Fatalf("Secret is nil")
+				}
+				t.Logf("Data: %+v", s.Data())
+				// read back key
+				val, err := s.Value("username")
+				if err != nil {
+					t.Fatalf("Failed to read username: %s", err)
+				}
+				if val != "myuser@test.com" {
+					t.Errorf("Decoded Secret does not match input")
+				}
+			},
+		},
 	} {
 		// run test case
 		t.Run(tc.name, tc.tf)

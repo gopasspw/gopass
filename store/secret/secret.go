@@ -46,7 +46,7 @@ func Parse(buf []byte) (*Secret, error) {
 
 // decodeYAML attempts to decode an optional YAML part of a secret
 func (s *Secret) decodeYAML() (bool, error) {
-	if !strings.HasPrefix(s.body, "---\n") {
+	if !strings.HasPrefix(s.body, "---\n") && s.password != "---" {
 		return false, nil
 	}
 	d := make(map[string]interface{})
