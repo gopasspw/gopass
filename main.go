@@ -193,10 +193,12 @@ func main() {
 
 	app.Commands = []cli.Command{
 		{
-			Name:        "audit",
-			Usage:       "Audit passwords for common flaws",
-			Description: "To check passwords for common flaws (e.g. too short or from a dictionary)",
-			Before:      func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
+			Name:  "audit",
+			Usage: "Scan for weak passwords",
+			Description: "" +
+				"This command decrypts all secrets and checks for common flaws and (optionally) " +
+				"against a list of previously leaked passwords.",
+			Before: func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
 			Action: func(c *cli.Context) error {
 				return action.Audit(withGlobalFlags(ctx, c), c)
 			},
@@ -209,8 +211,12 @@ func main() {
 			},
 			Subcommands: []cli.Command{
 				{
-					Name:   "hibp",
-					Usage:  "Check all secrets against the public haveibeenpwned.com dumps",
+					Name:  "hibp",
+					Usage: "Detect leaked passwords (ALPHA)",
+					Description: "" +
+						"This command will decrypt all secrets and check the passwords against the public " +
+						"havibeenpwned.com dumps. " +
+						"To use this feature you need to download the dumps from https://haveibeenpwned.com/passwords first. This is a very expensive operation for advanced users",
 					Before: func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
 					Action: func(c *cli.Context) error {
 						return action.HIBP(withGlobalFlags(ctx, c), c)
@@ -225,13 +231,20 @@ func main() {
 			},
 		},
 		{
-			Name:    "binary",
-			Usage:   "Work with binary blobs",
+			Name:  "binary",
+			Usage: "Assist with Binary/Base64 content",
+			Description: "" +
+				"These commands directly convert binary files from/to base64 encoding.",
 			Aliases: []string{"bin"},
 			Subcommands: []cli.Command{
 				{
-					Name:   "cat",
-					Usage:  "Print content of a secret to stdout or insert from stdin",
+					Name:  "cat",
+					Usage: "Print content of a secret to stdout or insert from stdin",
+					Description: "" +
+						"This command is similar to the way cat works on the command line. " +
+						"It can either be used to retrieve the decoded content of a secret " +
+						"similar to 'cat file' or vice versa to encode the content from STDIN " +
+						"to a secret.",
 					Before: func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
 					Action: func(c *cli.Context) error {
 						return action.BinaryCat(withGlobalFlags(ctx, c), c)
@@ -239,8 +252,12 @@ func main() {
 					BashComplete: action.Complete,
 				},
 				{
-					Name:    "sum",
-					Usage:   "Compute the SHA256 sum of a decoded secret",
+					Name:  "sum",
+					Usage: "Compute the SHA256 checksum",
+					Description: "" +
+						"This command decodes an Base64 encoded secret and computes the SHA256 checksum " +
+						"over the decoded data. This is useful to verify the integrity of an " +
+						"inserted secret.",
 					Aliases: []string{"sha", "sha256"},
 					Before:  func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
 					Action: func(c *cli.Context) error {
@@ -249,8 +266,14 @@ func main() {
 					BashComplete: action.Complete,
 				},
 				{
-					Name:    "copy",
-					Usage:   "Copy files from or to the password store",
+					Name:  "copy",
+					Usage: "Copy files from or to the password store",
+					Description: "" +
+						"This command either reads a file from the filesystem and writes the " +
+						"encoded and encrypted version in the store or it decrypts and decodes " +
+						"a secret and write the result to a file. Either source or destination " +
+						"must be a file and the other one a secret. If you want the source to " +
+						"be securely removed after copying use 'gopass binary move'",
 					Before:  func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
 					Aliases: []string{"cp"},
 					Action: func(c *cli.Context) error {
@@ -265,8 +288,16 @@ func main() {
 					},
 				},
 				{
-					Name:    "move",
-					Usage:   "Move files from or to the password store",
+					Name:  "move",
+					Usage: "Move files from or to the password store",
+					Description: "" +
+						"This command either reads a file from the filesystem and writes the " +
+						"encoded and encrypted version in the store or it decrypts and decodes " +
+						"a secret and write the result to a file. Either source or destination " +
+						"must be a file and the other one a secret. The source will be wiped " +
+						"from disk or from the store after it has been copied successfully " +
+						"and validated. If you don't want the source to be removed use " +
+						"'gopass binary copy'",
 					Before:  func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
 					Aliases: []string{"mv"},
 					Action: func(c *cli.Context) error {
@@ -283,9 +314,12 @@ func main() {
 			},
 		},
 		{
-			Name:        "clone",
-			Usage:       "Clone a new store",
-			Description: "To clone a remote repo",
+			Name:  "clone",
+			Usage: "Clone a store from git",
+			Description: "" +
+				"This command clones an existing password store from a git remote to " +
+				"a local password store. Can be either used to initialize a new root store " +
+				"or to add a new mounted sub store.",
 			Action: func(c *cli.Context) error {
 				return action.Clone(withGlobalFlags(ctx, c), c)
 			},
@@ -298,7 +332,9 @@ func main() {
 		},
 		{
 			Name:  "completion",
-			Usage: "Source the output with bash or zsh to get auto completion",
+			Usage: "Bash and ZSH completion",
+			Description: "" +
+				"Source the output of this command with bash or zsh to get auto completion",
 			Subcommands: []cli.Command{{
 				Name:   "bash",
 				Usage:  "Source for auto completion in bash",
@@ -310,9 +346,10 @@ func main() {
 			}},
 		},
 		{
-			Name:        "config",
-			Usage:       "Edit configuration",
-			Description: "To manipulate the gopass configuration",
+			Name:  "config",
+			Usage: "Edit configuration",
+			Description: "" +
+				"This command allows for easy editing of the configuration",
 			Action: func(c *cli.Context) error {
 				return action.Config(withGlobalFlags(ctx, c), c)
 			},
@@ -327,8 +364,11 @@ func main() {
 		{
 			Name:    "copy",
 			Aliases: []string{"cp"},
-			Usage:   "Copies old-path to new-path, optionally forcefully, selectively reencrypting.",
-			Before:  func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
+			Usage:   "Copy secrets from one location to another",
+			Description: "" +
+				"This command copies an existing secret in the store to another location. " +
+				"It will also handle copying secrets to different sub stores.",
+			Before: func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
 			Action: func(c *cli.Context) error {
 				return action.Copy(withGlobalFlags(ctx, c), c)
 			},
@@ -343,15 +383,20 @@ func main() {
 		{
 			Name:    "create",
 			Aliases: []string{"new"},
-			Usage:   "Assists in creating new secrets",
-			Before:  func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
+			Usage:   "Easy creation of new secrets",
+			Description: "" +
+				"This command starts a wizard to aid in creation of new secrets.",
+			Before: func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
 			Action: func(c *cli.Context) error {
 				return action.Create(withGlobalFlags(ctx, c), c)
 			},
 		},
 		{
-			Name:    "delete",
-			Usage:   "Remove existing secret or directory, optionally forcefully.",
+			Name:  "delete",
+			Usage: "Remove secrets",
+			Description: "" +
+				"This command removes secrets. It can work recursivly on folders. " +
+				"Recursing across stores is purposefully not supported.",
 			Aliases: []string{"remove", "rm"},
 			Before:  func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
 			Action: func(c *cli.Context) error {
@@ -370,8 +415,14 @@ func main() {
 			},
 		},
 		{
-			Name:   "edit",
-			Usage:  "Insert a new secret or edit an existing secret using $EDITOR.",
+			Name:  "edit",
+			Usage: "Edit new or existing secret",
+			Description: "" +
+				"Use this command to insert a new secret or edit an existing one using " +
+				"your $EDITOR. It will attempt to create a secure temporary directory " +
+				"for storing your secret while the editor is accessing it. Please make " +
+				"sure your editor doesn't leak sensitive data to other locations while " +
+				"editing.",
 			Before: func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
 			Action: func(c *cli.Context) error {
 				return action.Edit(withGlobalFlags(ctx, c), c)
@@ -380,8 +431,13 @@ func main() {
 			BashComplete: action.Complete,
 		},
 		{
-			Name:   "find",
-			Usage:  "List secrets that match the search term.",
+			Name:  "find",
+			Usage: "Search for secrets",
+			Description: "" +
+				"This command will first attempt a simple pattern match on the name of the " +
+				"secret. If that yields no results it will trigger a fuzzy search. " +
+				"If there is an exact match it will be shown diretly, if there are " +
+				"multiple matches a selection will be shown.",
 			Before: func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
 			Action: func(c *cli.Context) error {
 				return action.Find(withGlobalFlags(ctx, c), c)
@@ -396,10 +452,12 @@ func main() {
 			},
 		},
 		{
-			Name:        "fsck",
-			Usage:       "Check store integrity",
-			Description: "Check integrity of all stores",
-			Before:      func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
+			Name:  "fsck",
+			Usage: "Check inconsistencies (ALPHA)",
+			Description: "" +
+				"Check all mounted password stores for know issues and inconsistencies, like " +
+				"wrong file persmissions or missing / extra recipients.",
+			Before: func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
 			Action: func(c *cli.Context) error {
 				return action.Fsck(withGlobalFlags(ctx, c), c)
 			},
@@ -416,7 +474,7 @@ func main() {
 		},
 		{
 			Name:  "generate",
-			Usage: "Generate a new password of the specified length with optionally no symbols.",
+			Usage: "Generate a new password",
 			Description: "" +
 				"Generate a new password of the specified length with optionally no symbols. " +
 				"Alternatively, a xkcd style password can be generated (https://xkcd.com/936/). " +
@@ -465,6 +523,7 @@ func main() {
 			Name:        "jsonapi",
 			Usage:       "Run gopass as jsonapi e.g. for browser plugins",
 			Description: "Setup and run gopass as native messaging hosts, e.g. for browser plugins.",
+			Hidden:      true,
 			Subcommands: []cli.Command{
 				{
 					Name:        "listen",
@@ -507,10 +566,12 @@ func main() {
 			},
 		},
 		{
-			Name:        "totp",
-			Usage:       "Generate time based token from stored secret",
-			Description: "Tries to parse the saved string as a time-based one-time password secret and generate a token based on the current time",
-			Before:      func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
+			Name:  "totp",
+			Usage: "Generate time based tokens (ALPHA)",
+			Description: "" +
+				"Tries to parse the saved string as a time-based one-time " +
+				"password secret and generate a token based on the current time.",
+			Before: func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
 			Action: func(c *cli.Context) error {
 				return action.TOTP(withGlobalFlags(ctx, c), c)
 			},
@@ -523,10 +584,12 @@ func main() {
 			},
 		},
 		{
-			Name:        "git",
-			Usage:       "Do git things",
-			Description: "If the password store is a git repository, execute a git command specified by git-command-args.",
-			Before:      func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
+			Name:  "git",
+			Usage: "Run any git command inside a password store",
+			Description: "" +
+				"If the password store is a git repository, execute a git command " +
+				"specified by git-command-args.",
+			Before: func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
 			Action: func(c *cli.Context) error {
 				return action.Git(withGlobalFlags(ctx, c), c)
 			},
@@ -567,8 +630,11 @@ func main() {
 			},
 		},
 		{
-			Name:   "grep",
-			Usage:  "Search for secrets files containing search-string when decrypted.",
+			Name:  "grep",
+			Usage: "Search for secrets files containing search-string when decrypted.",
+			Description: "" +
+				"This command decrypts all secrets and performs a pattern matching on the " +
+				"content.",
 			Before: func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
 			Action: func(c *cli.Context) error {
 				return action.Grep(withGlobalFlags(ctx, c), c)
@@ -576,7 +642,7 @@ func main() {
 		},
 		{
 			Name:  "init",
-			Usage: "Initialize new password storage and use gpg-id for encryption.",
+			Usage: "Initialize new password store.",
 			Description: "" +
 				"Initialize new password storage and use gpg-id for encryption.",
 			Action: func(c *cli.Context) error {
@@ -599,9 +665,9 @@ func main() {
 		},
 		{
 			Name:  "insert",
-			Usage: "Insert new secret",
+			Usage: "Insert a new secret",
 			Description: "" +
-				"Insert new secret. Optionally, echo the secret back to the console during entry. " +
+				"Insert a new secret. Optionally, echo the secret back to the console during entry. " +
 				"Or, optionally, the entry may be multiline. " +
 				"Prompt before overwriting existing secret unless forced.",
 			Before: func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
@@ -625,8 +691,11 @@ func main() {
 			},
 		},
 		{
-			Name:    "list",
-			Usage:   "List secrets.",
+			Name:  "list",
+			Usage: "List existing secrets",
+			Description: "" +
+				"This command will list all existing secrets. Provide a folder prefix to list " +
+				"only certain subfolders of the store.",
 			Aliases: []string{"ls"},
 			Before:  func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
 			Action: func(c *cli.Context) error {
@@ -651,8 +720,11 @@ func main() {
 		{
 			Name:    "move",
 			Aliases: []string{"mv"},
-			Usage:   "Renames or moves old-path to new-path, optionally forcefully, selectively reencrypting.",
-			Before:  func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
+			Usage:   "Move secrets from one location to another",
+			Description: "" +
+				"This command moves a secret from one path to another. This works even " +
+				"across different sub stores.",
+			Before: func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
 			Action: func(c *cli.Context) error {
 				return action.Move(withGlobalFlags(ctx, c), c)
 			},
@@ -665,19 +737,24 @@ func main() {
 			},
 		},
 		{
-			Name:        "mounts",
-			Usage:       "Edit mounts",
-			Description: "To manipulate gopass mounts",
-			Before:      func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
+			Name:  "mounts",
+			Usage: "Edit mounted stores",
+			Description: "" +
+				"This command displays all mounted password stores. It offers several " +
+				"subcommands to create or remove mounts.",
+			Before: func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
 			Action: func(c *cli.Context) error {
 				return action.MountsPrint(withGlobalFlags(ctx, c), c)
 			},
 			Subcommands: []cli.Command{
 				{
-					Name:        "add",
-					Usage:       "Add mount",
-					Description: "To add a new mounted sub store",
-					Before:      func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
+					Name:    "add",
+					Aliases: []string{"mount"},
+					Usage:   "Mount an password store",
+					Description: "" +
+						"This command allows for mounting an existing or new password store " +
+						"at any path in an existing root store.",
+					Before: func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
 					Action: func(c *cli.Context) error {
 						return action.MountAdd(withGlobalFlags(ctx, c), c)
 					},
@@ -689,11 +766,13 @@ func main() {
 					},
 				},
 				{
-					Name:        "remove",
-					Aliases:     []string{"rm"},
-					Usage:       "Remove mount",
-					Description: "To remove a mounted sub store",
-					Before:      func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
+					Name:    "remove",
+					Aliases: []string{"rm", "unmount", "umount"},
+					Usage:   "Umount an mounted password store",
+					Description: "" +
+						"This command allows to unmount an mounted password store. This will " +
+						"only updated the configuration and not delete the password store.",
+					Before: func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
 					Action: func(c *cli.Context) error {
 						return action.MountRemove(withGlobalFlags(ctx, c), c)
 					},
@@ -702,19 +781,27 @@ func main() {
 			},
 		},
 		{
-			Name:        "recipients",
-			Usage:       "List Recipients",
-			Description: "To show all recipients",
-			Before:      func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
+			Name:  "recipients",
+			Usage: "Edit recipient permissions",
+			Description: "" +
+				"This command displays all existing recipients for all mounted stores. " +
+				"The subcommands allow adding or removing recipients.",
+			Before: func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
 			Action: func(c *cli.Context) error {
 				return action.RecipientsPrint(withGlobalFlags(ctx, c), c)
 			},
 			Subcommands: []cli.Command{
 				{
-					Name:        "add",
-					Usage:       "Add any number of Recipients",
-					Description: "To add any number of recipients to a store",
-					Before:      func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
+					Name:    "add",
+					Aliases: []string{"authorize"},
+					Usage:   "Add any number of Recipients to any store",
+					Description: "" +
+						"This command adds any number of recipients to any existing store. " +
+						"If none are given it will display a list of useable public keys. " +
+						"After adding the recipient to the list it will reencrypt the whole " +
+						"affected store to make sure the recipient has access to any existing " +
+						"secret.",
+					Before: func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
 					Action: func(c *cli.Context) error {
 						return action.RecipientsAdd(withGlobalFlags(ctx, c), c)
 					},
@@ -726,11 +813,19 @@ func main() {
 					},
 				},
 				{
-					Name:        "remove",
-					Aliases:     []string{"rm"},
-					Usage:       "Remove any number of Recipients",
-					Description: "To remove any number of recipients from a store",
-					Before:      func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
+					Name:    "remove",
+					Aliases: []string{"rm", "deauthorize"},
+					Usage:   "Remove any number of Recipients from any store",
+					Description: "" +
+						"This command removes any number of recipients from any existing store. " +
+						"If no recipients are provided it will show a list of existing recipients " +
+						"to choose from. It will refuse to remove the current users key from the " +
+						"store to avoid loosing access. After removing the keys it will reencrypt " +
+						"all existing secrets. Please note that the removed recipients will still " +
+						"be able to decrypt old revisions of the password store and any local " +
+						"copies he might have. The only way to reliably remove a recipients is to " +
+						"rotate all existing secrets.",
+					Before: func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
 					Action: func(c *cli.Context) error {
 						return action.RecipientsRemove(withGlobalFlags(ctx, c), c)
 					},
@@ -748,7 +843,12 @@ func main() {
 		},
 		{
 			Name:  "setup",
-			Usage: "Initialize a new password store.",
+			Usage: "Initialize a new password store",
+			Description: "" +
+				"This command is automatically invoked if gopass is started without any " +
+				"existing password store. This command exists so users can be provided with " +
+				"simple one-command setup instructions.",
+			Hidden: true,
 			Action: func(c *cli.Context) error {
 				return action.InitOnboarding(withGlobalFlags(ctx, c), c)
 			},
@@ -777,10 +877,10 @@ func main() {
 		},
 		{
 			Name:  "show",
-			Usage: "Show existing secret and optionally put its first line on the clipboard.",
+			Usage: "Dispaly a secret",
 			Description: "" +
-				"Show existing secret and optionally put its first line on the clipboard. " +
-				"If put on the clipboard, it will be cleared in 45 seconds.",
+				"Show an existing secret and optionally put its first line on the clipboard. " +
+				"If put on the clipboard, it will be cleared after 45 seconds.",
 			Before: func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
 			Action: func(c *cli.Context) error {
 				return action.Show(withGlobalFlags(ctx, c), c)
@@ -803,9 +903,9 @@ func main() {
 		},
 		{
 			Name:  "sync",
-			Usage: "Sync all local stores with their remotes (if any)",
+			Usage: "Sync all local stores with their remotes",
 			Description: "" +
-				"Sync all local stores with their git remotes, if any, and check" +
+				"Sync all local stores with their git remotes, if any, and check " +
 				"any possibly affected gpg keys.",
 			Before: func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
 			Action: func(c *cli.Context) error {
@@ -815,7 +915,7 @@ func main() {
 		},
 		{
 			Name:  "templates",
-			Usage: "List and edit secret templates.",
+			Usage: "Edit templates",
 			Description: "" +
 				"List existing templates in the password store and allow for editing " +
 				"and creating them.",
@@ -862,7 +962,7 @@ func main() {
 		{
 			Name:        "unclip",
 			Usage:       "Internal command to clear clipboard",
-			Description: "Clear the clipboard if the content matches the checksum",
+			Description: "Clear the clipboard if the content matches the checksum.",
 			Action: func(c *cli.Context) error {
 				return action.Unclip(withGlobalFlags(ctx, c), c)
 			},
@@ -876,15 +976,21 @@ func main() {
 		},
 		{
 			Name:  "update",
-			Usage: "Check for and install gopass update",
+			Usage: "Check for updates",
+			Description: "" +
+				"This command checks for gopass updates at GitHub and automatically " +
+				"downloads and installs any missing update.",
 			Action: func(c *cli.Context) error {
 				return action.Update(withGlobalFlags(ctx, c), c)
 			},
 		},
 		{
-			Name:        "version",
-			Usage:       "Print gopass version",
-			Description: "Display version and build time information",
+			Name:  "version",
+			Usage: "Display version",
+			Description: "" +
+				"This command displays version and build time information " +
+				"along with version information of important external commands. " +
+				"Please provide the output when reporting issues.",
 			Action: func(c *cli.Context) error {
 				return action.Version(withGlobalFlags(ctx, c), c)
 			},
