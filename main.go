@@ -983,6 +983,12 @@ func main() {
 			Action: func(c *cli.Context) error {
 				return action.Update(withGlobalFlags(ctx, c), c)
 			},
+			Flags: []cli.Flag{
+				cli.BoolFlag{
+					Name:  "pre",
+					Usage: "Update to prereleases",
+				},
+			},
 		},
 		{
 			Name:  "version",
