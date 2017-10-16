@@ -25,6 +25,8 @@ import (
 
 // Update will start hte interactive update assistant
 func (s *Action) Update(ctx context.Context, c *cli.Context) error {
+	pre := c.Bool("pre")
+
 	if s.version.String() == "0.0.0+HEAD" {
 		out.Red(ctx, "Can not check version against HEAD")
 		return nil
@@ -44,7 +46,12 @@ func (s *Action) Update(ctx context.Context, c *cli.Context) error {
 		return nil
 	}
 
-	r, err := ghrel.FetchLatestStableRelease(gitHubOrg, gitHubRepo)
+	var r ghrel.Release
+	if pre || len(s.version.Pre) > 0 {
+		r, err = ghrel.FetchLatestRelease(gitHubOrg, gitHubRepo)
+	} else {
+		r, err = ghrel.FetchLatestStableRelease(gitHubOrg, gitHubRepo)
+	}
 	if err != nil {
 		return err
 	}
@@ -57,18 +64,26 @@ func (s *Action) Update(ctx context.Context, c *cli.Context) error {
 
 	out.Debug(ctx, "Assets: %+v", r.Assets)
 	for _, asset := range r.Assets {
-		name := strings.TrimSuffix(asset.Name, ".tar.gz")
+		name := strings.TrimSuffix(strings.TrimPrefix(asset.Name, "gopass-"), ".tar.gz")
 		p := strings.Split(name, "-")
-		if len(p) != 4 {
+		if len(p) < 3 {
 			continue
 		}
-		if p[2] != runtime.GOOS {
+		if p[len(p)-2] != runtime.GOOS {
 			continue
 		}
-		if p[3] != runtime.GOARCH {
+		if p[len(p)-1] != runtime.GOARCH {
 			continue
 		}
 		out.Debug(ctx, "URL: %s", asset.URL)
+		out.Green(ctx, "Update available!")
+		ok, err := s.askForBool(ctx, fmt.Sprintf("Do you want to update gopass to %s?", r.Version().String()), true)
+		if err != nil {
+			return err
+		}
+		if !ok {
+			return nil
+		}
 		return s.updateGopass(ctx, r.Version().String(), asset.URL)
 	}
 	return errors.New("no supported binary found")

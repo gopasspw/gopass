@@ -32,7 +32,13 @@ func (s *Action) Version(ctx context.Context, c *cli.Context) error {
 			return
 		}
 
-		r, err := ghrel.FetchLatestStableRelease(gitHubOrg, gitHubRepo)
+		var r ghrel.Release
+		var err error
+		if len(s.version.Pre) > 0 {
+			r, err = ghrel.FetchLatestRelease(gitHubOrg, gitHubRepo)
+		} else {
+			r, err = ghrel.FetchLatestStableRelease(gitHubOrg, gitHubRepo)
+		}
 		if err != nil {
 			u <- color.RedString("\nError checking latest version: %s", err)
 			return

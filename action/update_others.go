@@ -62,6 +62,10 @@ func (s *Action) isUpdateable(ctx context.Context) error {
 		return err
 	}
 	out.Debug(ctx, "isUpdateable - File: %s", fn)
+	// check if file is in GOPATH
+	if gp := os.Getenv("GOPATH"); strings.HasPrefix(fn, gp) {
+		return fmt.Errorf("use go get -u to update binary in GOPATH")
+	}
 	// check file
 	fi, err := os.Stat(fn)
 	if err != nil {
