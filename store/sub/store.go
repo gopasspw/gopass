@@ -7,8 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/blang/semver"
-	"github.com/justwatchcom/gopass/backend/gpg"
+	gitcli "github.com/justwatchcom/gopass/backend/git/cli"
 	gpgcli "github.com/justwatchcom/gopass/backend/gpg/cli"
 	"github.com/justwatchcom/gopass/store"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
@@ -23,33 +22,23 @@ const (
 	GPGID = ".gpg-id"
 )
 
-type gpger interface {
-	Binary() string
-	ListPublicKeys(context.Context) (gpg.KeyList, error)
-	FindPublicKeys(context.Context, ...string) (gpg.KeyList, error)
-	ListPrivateKeys(context.Context) (gpg.KeyList, error)
-	FindPrivateKeys(context.Context, ...string) (gpg.KeyList, error)
-	GetRecipients(context.Context, string) ([]string, error)
-	Encrypt(context.Context, string, []byte, []string) error
-	Decrypt(context.Context, string) ([]byte, error)
-	ExportPublicKey(context.Context, string, string) error
-	ImportPublicKey(context.Context, string) error
-	Version(context.Context) semver.Version
-}
-
 // Store is password store
 type Store struct {
 	alias string
 	path  string
 	gpg   gpger
+	git   giter
 }
 
 // New creates a new store, copying settings from the given root store
 func New(alias string, path string) *Store {
+	path = fsutil.CleanPath(path)
+	gpg := gpgcli.New(gpgcli.Config{})
 	return &Store{
 		alias: alias,
-		path:  fsutil.CleanPath(path),
-		gpg:   gpgcli.New(gpgcli.Config{}),
+		path:  path,
+		gpg:   gpg,
+		git:   gitcli.New(path, gpg.Binary()),
 	}
 }
 
@@ -192,7 +181,7 @@ func (s *Store) reencrypt(ctx context.Context) error {
 		}
 	}
 
-	if err := s.gitCommit(ctx, GetReason(ctx)); err != nil {
+	if err := s.git.Commit(ctx, GetReason(ctx)); err != nil {
 		if errors.Cause(err) != store.ErrGitNotInit {
 			return errors.Wrapf(err, "failed to commit changes to git")
 		}
@@ -202,7 +191,7 @@ func (s *Store) reencrypt(ctx context.Context) error {
 		return nil
 	}
 
-	if err := s.GitPush(ctx, "", ""); err != nil {
+	if err := s.git.Push(ctx, "", ""); err != nil {
 		if errors.Cause(err) == store.ErrGitNotInit {
 			msg := "Warning: git is not initialized for this store. Ignoring auto-push option\n" +
 				"Run: gopass git init"

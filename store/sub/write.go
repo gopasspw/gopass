@@ -47,7 +47,7 @@ func (s *Store) Set(ctx context.Context, name string, sec *secret.Secret) error 
 		return store.ErrEncrypt
 	}
 
-	if err := s.gitAdd(ctx, p); err != nil {
+	if err := s.git.Add(ctx, p); err != nil {
 		if errors.Cause(err) == store.ErrGitNotInit {
 			return nil
 		}
@@ -58,7 +58,7 @@ func (s *Store) Set(ctx context.Context, name string, sec *secret.Secret) error 
 		return nil
 	}
 
-	if err := s.gitCommit(ctx, fmt.Sprintf("Save secret to %s: %s", name, GetReason(ctx))); err != nil {
+	if err := s.git.Commit(ctx, fmt.Sprintf("Save secret to %s: %s", name, GetReason(ctx))); err != nil {
 		if errors.Cause(err) == store.ErrGitNotInit {
 			return nil
 		}
@@ -69,7 +69,7 @@ func (s *Store) Set(ctx context.Context, name string, sec *secret.Secret) error 
 		return nil
 	}
 
-	if err := s.GitPush(ctx, "", ""); err != nil {
+	if err := s.git.Push(ctx, "", ""); err != nil {
 		if errors.Cause(err) == store.ErrGitNotInit {
 			msg := "Warning: git is not initialized for this store. Ignoring auto-push option\n" +
 				"Run: gopass git init"

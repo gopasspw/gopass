@@ -127,13 +127,13 @@ func (s *Store) delete(ctx context.Context, name string, recurse bool) error {
 		return errors.Errorf("Failed to remove secret: %v", err)
 	}
 
-	if err := s.gitAdd(ctx, path); err != nil {
+	if err := s.git.Add(ctx, path); err != nil {
 		if errors.Cause(err) == store.ErrGitNotInit {
 			return nil
 		}
 		return errors.Wrapf(err, "failed to add '%s' to git", path)
 	}
-	if err := s.gitCommit(ctx, fmt.Sprintf("Remove %s from store.", name)); err != nil {
+	if err := s.git.Commit(ctx, fmt.Sprintf("Remove %s from store.", name)); err != nil {
 		if errors.Cause(err) == store.ErrGitNotInit {
 			return nil
 		}
@@ -144,7 +144,7 @@ func (s *Store) delete(ctx context.Context, name string, recurse bool) error {
 		return nil
 	}
 
-	if err := s.GitPush(ctx, "", ""); err != nil {
+	if err := s.git.Push(ctx, "", ""); err != nil {
 		if errors.Cause(err) == store.ErrGitNotInit || errors.Cause(err) == store.ErrGitNoRemote {
 			return nil
 		}

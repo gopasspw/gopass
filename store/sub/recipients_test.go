@@ -11,6 +11,7 @@ import (
 	"strings"
 	"testing"
 
+	gitmock "github.com/justwatchcom/gopass/backend/git/mock"
 	gpgmock "github.com/justwatchcom/gopass/backend/gpg/mock"
 	"github.com/stretchr/testify/assert"
 )
@@ -33,6 +34,7 @@ func TestGetRecipientsDefault(t *testing.T) {
 		alias: "",
 		path:  tempdir,
 		gpg:   gpgmock.New(),
+		git:   gitmock.New(),
 	}
 
 	recs, err := s.GetRecipients(ctx, "")
@@ -58,6 +60,7 @@ func TestGetRecipientsSubID(t *testing.T) {
 		alias: "",
 		path:  tempdir,
 		gpg:   gpgmock.New(),
+		git:   gitmock.New(),
 	}
 
 	recs, err := s.GetRecipients(ctx, "")
@@ -90,6 +93,7 @@ func TestSaveRecipients(t *testing.T) {
 		alias: "",
 		path:  tempdir,
 		gpg:   gpgmock.New(),
+		git:   gitmock.New(),
 	}
 
 	// remove recipients
@@ -139,6 +143,7 @@ func TestAddRecipient(t *testing.T) {
 		alias: "",
 		path:  tempdir,
 		gpg:   gpgmock.New(),
+		git:   gitmock.New(),
 	}
 
 	newRecp := "A3683834"
@@ -168,6 +173,7 @@ func TestRemoveRecipient(t *testing.T) {
 		alias: "",
 		path:  tempdir,
 		gpg:   gpgmock.New(),
+		git:   gitmock.New(),
 	}
 
 	err = s.RemoveRecipient(ctx, "0xDEADBEEF")
