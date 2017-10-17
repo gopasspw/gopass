@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/justwatchcom/gopass/pkg/backend"
 	"github.com/justwatchcom/gopass/pkg/ctxutil"
 
 	"github.com/blang/semver"
@@ -102,4 +103,10 @@ func TestSignVerify(t *testing.T) {
 
 	assert.NoError(t, ioutil.WriteFile(sigf, []byte("in"), 0644))
 	assert.Error(t, m.Verify(ctx, sigf, in))
+}
+
+func TestInterface(t *testing.T) {
+	var crypto backend.Crypto
+	crypto = New()
+	_ = crypto
 }

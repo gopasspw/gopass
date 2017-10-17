@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/blang/semver"
+	"github.com/justwatchcom/gopass/pkg/backend"
 	"github.com/justwatchcom/gopass/pkg/backend/crypto/xc/keyring"
 	"github.com/stretchr/testify/assert"
 )
@@ -58,4 +59,10 @@ func TestInitialized(t *testing.T) {
 	assert.Error(t, x.Initialized(ctx))
 	x.client = &fakeAgent{passphrase}
 	assert.NoError(t, x.Initialized(ctx))
+}
+
+func TestInterface(t *testing.T) {
+	var crypto backend.Crypto
+	crypto = &XC{}
+	_ = crypto
 }

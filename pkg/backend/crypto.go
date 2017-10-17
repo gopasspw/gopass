@@ -60,4 +60,7 @@ type Crypto interface {
 	Initialized(ctx context.Context) error
 	Ext() string    // filename extension
 	IDFile() string // recipient IDs
+
+	Sign(ctx context.Context, message []byte) ([]byte, error)
+	Verify(ctx context.Context, message, signedMessage []byte) ([]byte, error)
 }

@@ -1,10 +1,10 @@
 package plain
 
 import (
+	"bytes"
 	"context"
 	"crypto/sha256"
 	"fmt"
-	"io/ioutil"
 	"strings"
 	"time"
 
@@ -117,37 +117,36 @@ func (m *Mocker) Binary() string {
 }
 
 // Sign writes the hashsum to the given file
-func (m *Mocker) Sign(ctx context.Context, in string, sigf string) error {
-	buf, err := ioutil.ReadFile(in)
-	if err != nil {
-		return err
+func (m *Mocker) Sign(ctx context.Context, message []byte) ([]byte, error) {
+	buf := &bytes.Buffer{}
+	if _, err := buf.Write(message); err != nil {
+		return nil, err
 	}
 	sum := sha256.New()
-	_, _ = sum.Write(buf)
-	hexsum := fmt.Sprintf("%X", sum.Sum(nil))
-	return ioutil.WriteFile(sigf, []byte(hexsum), 0644)
+	_, _ = sum.Write(message)
+	_, err := buf.WriteString(fmt.Sprintf("%X", sum.Sum(nil)))
+	return buf.Bytes(), err
 }
 
 // Verify does a pseudo-verification
-func (m *Mocker) Verify(ctx context.Context, sigf string, in string) error {
-	sigb, err := ioutil.ReadFile(sigf)
-	if err != nil {
-		return err
+func (m *Mocker) Verify(ctx context.Context, message, signedMessage []byte) ([]byte, error) {
+	if len(signedMessage) < len(message) {
+		return nil, fmt.Errorf("signed message too short")
 	}
 
-	buf, err := ioutil.ReadFile(in)
-	if err != nil {
-		return err
-	}
 	sum := sha256.New()
-	_, _ = sum.Write(buf)
+	_, _ = sum.Write(message)
 	hexsum := fmt.Sprintf("%X", sum.Sum(nil))
 
-	if string(sigb) != hexsum {
-		return fmt.Errorf("hashsum mismatch")
+	fmt.Printf("Presented: '%s' - Computed: '%s'\n", string(signedMessage[len(message):]), hexsum)
+	if string(signedMessage[len(message):]) != hexsum {
+		return nil, fmt.Errorf("hashsum mismatch")
+	}
+	if string(signedMessage[:len(message)]) != string(message) {
+		return nil, fmt.Errorf("message mismatch")
 	}
 
-	return nil
+	return message, nil
 }
 
 // CreatePrivateKey is not implemented

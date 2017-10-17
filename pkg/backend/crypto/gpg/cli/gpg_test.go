@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/justwatchcom/gopass/pkg/backend"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -58,4 +59,10 @@ func TestDecrypt(t *testing.T) {
 
 	_, err := g.Decrypt(ctx, []byte("foo"))
 	assert.NoError(t, err)
+}
+
+func TestInterface(t *testing.T) {
+	var crypto backend.Crypto
+	crypto = &GPG{}
+	_ = crypto
 }
