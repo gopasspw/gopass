@@ -76,6 +76,7 @@ func (r *Store) RemoveMount(ctx context.Context, alias string) error {
 		out.Yellow(ctx, "%s is not initialized", alias)
 	}
 	delete(r.mounts, alias)
+	delete(r.cfg.Mounts, alias)
 	return nil
 }
 
