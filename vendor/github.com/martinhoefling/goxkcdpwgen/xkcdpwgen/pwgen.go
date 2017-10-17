@@ -1,6 +1,9 @@
 package xkcdpwgen
 
-import "strings"
+import (
+	"fmt"
+	"strings"
+)
 
 // Generator encapsulates the password generator configuration
 type Generator struct {
@@ -12,12 +15,7 @@ type Generator struct {
 
 // NewGenerator returns a new password generator with default values set
 func NewGenerator() *Generator {
-	pwgen := Generator{}
-	pwgen.wordlist = effLarge
-	pwgen.numwords = 4
-	pwgen.delimiter = " "
-	pwgen.capitalize = false
-	return &pwgen
+	return &Generator{wordlist: wordlists["en"], numwords: 4, delimiter: " ", capitalize: false}
 }
 
 // GeneratePassword creates a randomized password returned as byte slice
@@ -50,12 +48,22 @@ func (g *Generator) SetDelimiter(delimiter string) {
 
 // UseWordlistEFFLarge sets the wordlist from which the passwords are generated to eff_large (https://www.eff.org/de/deeplinks/2016/07/new-wordlists-random-passphrases)
 func (g *Generator) UseWordlistEFFLarge() {
-	g.wordlist = effLarge
+	g.wordlist = wordlists["en"]
 }
 
 // UseWordlistEFFShort sets the wordlist from which the passwords are generated to eff_short (https://www.eff.org/de/deeplinks/2016/07/new-wordlists-random-passphrases)
 func (g *Generator) UseWordlistEFFShort() {
-	g.wordlist = effShort
+	g.wordlist = wordlists["en_eff_short"]
+}
+
+// UseLangWordlist sets wordlist matching to provided lang string
+func (g *Generator) UseLangWordlist(lang string) error {
+	var ok bool
+	g.wordlist, ok = wordlists[lang]
+	if !ok {
+		return fmt.Errorf("language \"%s\" has no matching wordlist", lang)
+	}
+	return nil
 }
 
 // UseCustomWordlist sets the wordlist to the wl provided one

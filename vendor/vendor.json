@@ -64,16 +64,16 @@
 			"revisionTime": "2015-08-10T07:47:51Z"
 		},
 		{
-			"checksumSHA1": "Xecz+v5jRybn2IjJCtLIPF598Gw=",
+			"checksumSHA1": "pgwbIvOnS3jKwQVAUSmTW/or/Bc=",
 			"path": "github.com/martinhoefling/goxkcdpwgen",
-			"revision": "a396ae1dbe7ad364f0b91546371b70a693110b51",
-			"revisionTime": "2017-10-03T20:22:27Z"
+			"revision": "2d1f183547aa87620ddc845fcc498b0d04b5e646",
+			"revisionTime": "2017-10-16T19:52:03Z"
 		},
 		{
-			"checksumSHA1": "AAFHrlpWQxXQhuGeIaML9j99vLc=",
+			"checksumSHA1": "HXkWah+y6RY1BqhTEGVlNpKGveU=",
 			"path": "github.com/martinhoefling/goxkcdpwgen/xkcdpwgen",
-			"revision": "a396ae1dbe7ad364f0b91546371b70a693110b51",
-			"revisionTime": "2017-10-03T20:22:27Z"
+			"revision": "2d1f183547aa87620ddc845fcc498b0d04b5e646",
+			"revisionTime": "2017-10-16T19:52:03Z"
 		},
 		{
 			"checksumSHA1": "cTDA66oZUy18cIzJsU1diKq+9CE=",

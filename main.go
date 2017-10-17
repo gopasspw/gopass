@@ -517,6 +517,11 @@ func main() {
 					Usage: "Word separator for generated xkcd style password. Implies -xkcd",
 					Value: "",
 				},
+				cli.StringFlag{
+					Name:  "xkcdlang, xl",
+					Usage: "Language to generate password from, currently de (german) and en (english, default) are supported",
+					Value: "en",
+				},
 			},
 		},
 		{
