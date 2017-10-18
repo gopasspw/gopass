@@ -148,6 +148,7 @@ source <(gopass completion zsh)
 ```
 source /dev/stdin <<<"$(gopass completion bash)"
 ```
+**oh-my-zsh**: `source <(gopass completion bash)` must be run after `source wherever/oh-my-zsh.zsh` to ensure the completion is loaded correctly.
 
 ### Enable fish completion
 
