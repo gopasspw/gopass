@@ -86,7 +86,10 @@ func (s *Action) Generate(ctx context.Context, c *cli.Context) error {
 
 	var password string
 	if xkcd {
-		password = xkcdgen.RandomLengthDelim(pwlen, xkcdSeparator)
+		password, err = xkcdgen.RandomLengthDelim(pwlen, xkcdSeparator, c.String("xkcdlang"))
+		if err != nil {
+			return err
+		}
 	} else {
 		password = pwgen.GeneratePassword(pwlen, symbols)
 	}

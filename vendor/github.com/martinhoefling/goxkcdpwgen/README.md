@@ -23,6 +23,8 @@ All params
     -c    Capitalize words
     -d string
             Delimiter to separate words (default " ")
+    -l string
+            Use non english language with custom list, currently only de = german is supported (default "en")
     -n int
             Number of words to generate a password from (default 4)
     -s    Use eff_short instead of eff_long as wordlist
