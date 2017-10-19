@@ -825,10 +825,10 @@ func main() {
 						"This command removes any number of recipients from any existing store. " +
 						"If no recipients are provided it will show a list of existing recipients " +
 						"to choose from. It will refuse to remove the current users key from the " +
-						"store to avoid loosing access. After removing the keys it will reencrypt " +
+						"store to avoid loosing access. After removing the keys it will re-encrypt " +
 						"all existing secrets. Please note that the removed recipients will still " +
 						"be able to decrypt old revisions of the password store and any local " +
-						"copies he might have. The only way to reliably remove a recipients is to " +
+						"copies they might have. The only way to reliably remove a recipients is to " +
 						"rotate all existing secrets.",
 					Before: func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
 					Action: func(c *cli.Context) error {
@@ -882,7 +882,7 @@ func main() {
 		},
 		{
 			Name:  "show",
-			Usage: "Dispaly a secret",
+			Usage: "Display a secret",
 			Description: "" +
 				"Show an existing secret and optionally put its first line on the clipboard. " +
 				"If put on the clipboard, it will be cleared after 45 seconds.",
@@ -932,7 +932,7 @@ func main() {
 				{
 					Name:        "show",
 					Usage:       "Show a secret template.",
-					Description: "Dispaly an existing template",
+					Description: "Display an existing template",
 					Aliases:     []string{"cat"},
 					Before:      func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
 					Action: func(c *cli.Context) error {
