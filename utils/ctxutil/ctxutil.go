@@ -247,7 +247,7 @@ func WithUseSymbols(ctx context.Context, bv bool) context.Context {
 	return context.WithValue(ctx, ctxKeyUseSymbols, bv)
 }
 
-// HasNoSymbols returns true if a value for UseSymbols has been set in this context
+// HasUseSymbols returns true if a value for UseSymbols has been set in this context
 func HasUseSymbols(ctx context.Context) bool {
 	_, ok := ctx.Value(ctxKeyUseSymbols).(bool)
 	return ok
