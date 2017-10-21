@@ -41,6 +41,7 @@ func New() *Config {
 			NoConfirm:   false,
 			NoPager:     false,
 			SafeContent: false,
+			UseSymbols:  false,
 		},
 		Mounts:  make(map[string]*StoreConfig),
 		Version: "",

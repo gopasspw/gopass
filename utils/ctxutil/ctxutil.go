@@ -17,6 +17,7 @@ const (
 	ctxKeyShowSafeContent
 	ctxKeyGitCommit
 	ctxKeyAlwaysYes
+	ctxKeyUseSymbols
 )
 
 // WithDebug returns a context with an explizit value for debug
@@ -237,6 +238,26 @@ func IsGitCommit(ctx context.Context) bool {
 	bv, ok := ctx.Value(ctxKeyGitCommit).(bool)
 	if !ok {
 		return true
+	}
+	return bv
+}
+
+// WithUseSymbols returns a context with the value for ask for more set
+func WithUseSymbols(ctx context.Context, bv bool) context.Context {
+	return context.WithValue(ctx, ctxKeyUseSymbols, bv)
+}
+
+// HasNoSymbols returns true if a value for UseSymbols has been set in this context
+func HasUseSymbols(ctx context.Context) bool {
+	_, ok := ctx.Value(ctxKeyUseSymbols).(bool)
+	return ok
+}
+
+// IsUseSymbols returns the value of ask for more or the default (false)
+func IsUseSymbols(ctx context.Context) bool {
+	bv, ok := ctx.Value(ctxKeyUseSymbols).(bool)
+	if !ok {
+		return false
 	}
 	return bv
 }
