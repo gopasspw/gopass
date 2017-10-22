@@ -80,6 +80,9 @@ func main() {
 	// show safe content
 	ctx = ctxutil.WithShowSafeContent(ctx, cfg.Root.SafeContent)
 
+	// always use symbols
+	ctx = ctxutil.WithUseSymbols(ctx, cfg.Root.UseSymbols)
+
 	// check recipients conflicts with always trust, make sure it's not enabled
 	// when always trust is
 	if gpg.IsAlwaysTrust(ctx) {

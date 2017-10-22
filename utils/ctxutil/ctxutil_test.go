@@ -74,6 +74,7 @@ func TestComposite(t *testing.T) {
 	ctx = WithNoPager(ctx, true)
 	ctx = WithShowSafeContent(ctx, true)
 	ctx = WithGitCommit(ctx, false)
+	ctx = WithUseSymbols(ctx, false)
 	ctx = WithAlwaysYes(ctx, true)
 
 	if !IsDebug(ctx) {
@@ -108,6 +109,9 @@ func TestComposite(t *testing.T) {
 	}
 	if IsGitCommit(ctx) {
 		t.Errorf("Git commit should be false")
+	}
+	if IsUseSymbols(ctx) {
+		t.Errorf("UseSymbols should be false")
 	}
 	if !IsAlwaysYes(ctx) {
 		t.Errorf("Always yes should be true")

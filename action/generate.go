@@ -25,7 +25,10 @@ func (s *Action) Generate(ctx context.Context, c *cli.Context) error {
 	var xkcdSeparator string
 	force := c.Bool("force")
 	edit := c.Bool("edit")
-	symbols := c.Bool("symbols")
+	symbols := false
+	if c.Bool("symbols") || ctxutil.IsUseSymbols(ctx) {
+		symbols = true
+	}
 	xkcd := c.Bool("xkcd")
 	if c.IsSet("xkcdsep") {
 		xkcdSeparator = c.String("xkcdsep")
@@ -33,7 +36,7 @@ func (s *Action) Generate(ctx context.Context, c *cli.Context) error {
 	}
 
 	if c.IsSet("no-symbols") {
-		out.Red(ctx, "Warning: -n/--no-symbols is deprecated. This is now the default. Use -s to enable symbols")
+		out.Red(ctx, "Warning: -n/--no-symbols is deprecated. This is now the default. Use -s to enable symbols. You can also set 'usesymbols' to true via gopass config.")
 	}
 
 	name := c.Args().Get(0)
