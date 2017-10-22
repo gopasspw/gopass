@@ -32,3 +32,4 @@ This is a list of options available:
 | `path`        | `string` | Path to the root store. |
 | `safecontent` | `bool`   | Only output _safe content_ (i.e. everything but the first line of a secret) to the terminal. Use _copy_ (`-c`) to retrieve the password in the clipboard. |
 | `usesymbols`  | `bool`   | If enabled - it will use symbols when generating passwords. |
+| `nocolor`     | `bool`   | Do not use color. |

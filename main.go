@@ -83,6 +83,9 @@ func main() {
 	// always use symbols
 	ctx = ctxutil.WithUseSymbols(ctx, cfg.Root.UseSymbols)
 
+	// never use color
+	ctx = ctxutil.WithNoColor(ctx, cfg.Root.NoColor)
+
 	// check recipients conflicts with always trust, make sure it's not enabled
 	// when always trust is
 	if gpg.IsAlwaysTrust(ctx) {
@@ -95,7 +98,7 @@ func main() {
 	}
 
 	// need this override for our integration tests
-	if nc := os.Getenv("GOPASS_NOCOLOR"); nc == "true" {
+	if nc := os.Getenv("GOPASS_NOCOLOR"); nc == "true" || ctxutil.IsNoColor(ctx) {
 		color.NoColor = true
 		ctx = ctxutil.WithColor(ctx, false)
 	}
