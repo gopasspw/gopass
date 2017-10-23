@@ -169,6 +169,24 @@ gopass ls --flat | dmenu | xargs --no-run-if-empty gopass show -c
 gopass ls --flat | dmenu | xargs --no-run-if-empty gopass show | head -n 1 | xdotool type --clearmodifiers --file -
 ```
 
+### Filling in passwords from browser
+
+Gopass allows filling in passwords in browsers leveraging a browser plugin like [gopass bridge](https://github.com/martinhoefling/gopassbridge). 
+The browser plugin communicates with gopass via json messages. To allow the plugin to start gopass, a [native messaging manifest](https://developer.mozilla.org/en-US/Add-ons/WebExtensions/Native_messaging) must be installed for each browser.
+Chrome, chromium and firefox are supported, currently. Further a wrapper must be installed to setup gpg-agent and execute `gopass jsonapi listen`.
+
+```bash
+# Asks all questions concerning browser and setup
+gopass jsonapi configure
+
+# Do not copy / install any files, just print their location and content
+gopass jsonapi configure --print-only
+
+# Specify browser and wrapper path
+gopass jsonapi configure --browser chrome --path /home/user/.local/
+
+```
+ 
 ### Storing and Syncing your Password Store with Google Drive / Dropbox / etc.
 
 Please be warned that using cloud-based storage may negatively impact to confidentially of your store. However, if you wish to use one of these services, you can do so.
