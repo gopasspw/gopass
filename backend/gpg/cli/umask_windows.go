@@ -1,6 +1,6 @@
 // +build windows
 
-package gpg
+package cli
 
 func umask(mask int) int {
 	return -1

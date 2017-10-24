@@ -20,6 +20,7 @@ type gpger interface {
 	CreatePrivateKeyBatch(context.Context, string, string, string) error
 	CreatePrivateKey(context.Context) error
 	ExportPublicKey(context.Context, string, string) error
+	Version(context.Context) semver.Version
 }
 
 // Action knows everything to run gopass CLI actions

@@ -83,6 +83,9 @@ func main() {
 	// always use symbols
 	ctx = ctxutil.WithUseSymbols(ctx, cfg.Root.UseSymbols)
 
+	// never use color
+	ctx = ctxutil.WithNoColor(ctx, cfg.Root.NoColor)
+
 	// check recipients conflicts with always trust, make sure it's not enabled
 	// when always trust is
 	if gpg.IsAlwaysTrust(ctx) {
@@ -95,7 +98,7 @@ func main() {
 	}
 
 	// need this override for our integration tests
-	if nc := os.Getenv("GOPASS_NOCOLOR"); nc == "true" {
+	if nc := os.Getenv("GOPASS_NOCOLOR"); nc == "true" || ctxutil.IsNoColor(ctx) {
 		color.NoColor = true
 		ctx = ctxutil.WithColor(ctx, false)
 	}
@@ -322,7 +325,11 @@ func main() {
 			Description: "" +
 				"This command clones an existing password store from a git remote to " +
 				"a local password store. Can be either used to initialize a new root store " +
-				"or to add a new mounted sub store.",
+				"or to add a new mounted sub store." +
+				"" +
+				"Needs at least one argument (git URL) to clone from. " +
+				"Accepts as second argument (mount location) to clone and mount a sub store, e.g. " +
+				"gopass clone git@example.com/store.git foo/bar",
 			Action: func(c *cli.Context) error {
 				return action.Clone(withGlobalFlags(ctx, c), c)
 			},
