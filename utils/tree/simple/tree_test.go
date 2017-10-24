@@ -5,11 +5,29 @@ import (
 	"strings"
 	"testing"
 
+	"path/filepath"
+
 	"github.com/fatih/color"
 )
 
 const (
-	goldenFormat = `gopass
+	goldenSubFormat = `└── ing
+    ├── a
+    └── b
+`
+)
+
+func getGoldenFormat(t *testing.T) string {
+	mustAbsoluteFilepath := func(s string) string {
+		path, err := filepath.Abs(s)
+		if err != nil {
+			t.Errorf("Error during filepath.Absolute: %s", err)
+			return "ERROR"
+		}
+		return path
+	}
+
+	return `gopass
 ├── a
 │   ├── b
 │   │   └── c
@@ -18,16 +36,12 @@ const (
 │   ├── g
 │   │   └── h
 │   └── f
-└── foo (/tmp/foo)
-    ├── bar (/tmp/bar)
+└── foo (` + mustAbsoluteFilepath("/tmp/foo") + `)
+    ├── bar (` + mustAbsoluteFilepath("/tmp/bar") + `)
     │   └── baz
     └── baz
         └── inga`
-	goldenSubFormat = `└── ing
-    ├── a
-    └── b
-`
-)
+}
 
 func TestFormat(t *testing.T) {
 	color.NoColor = true
@@ -43,7 +57,11 @@ func TestFormat(t *testing.T) {
 	sort.Strings(keys)
 	for _, k := range keys {
 		v := mounts[k]
-		if err := root.AddMount(k, v); err != nil {
+		absV, err := filepath.Abs(v)
+		if err != nil {
+			t.Errorf("Error during filepath.Abs: %s", err)
+		}
+		if err := root.AddMount(k, absV); err != nil {
 			t.Fatalf("failed to add mount: %s", err)
 		}
 	}
@@ -60,9 +78,9 @@ func TestFormat(t *testing.T) {
 		}
 	}
 	got := strings.TrimSpace(root.Format(0))
-	want := strings.TrimSpace(goldenFormat)
+	want := strings.TrimSpace(getGoldenFormat(t))
 	if want != got {
-		t.Errorf("Format mismatch:\n---\n%x\n---\n%x\n---", want, got)
+		t.Errorf("Format mismatch:\n---\n%s\n---\n%s\n---", want, got)
 	}
 }
 

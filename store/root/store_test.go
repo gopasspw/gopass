@@ -59,33 +59,33 @@ func TestListMulti(t *testing.T) {
 	}()
 
 	// root store
-	_, ents, err := createStore(tempdir + "/root")
+	_, ents, err := createStore(filepath.Join(tempdir, "root"))
 	if err != nil {
 		t.Fatalf("Failed to init root store: %s", err)
 	}
 
 	// sub1 store
-	_, sub1Ent, err := createStore(tempdir + "/sub1")
+	_, sub1Ent, err := createStore(filepath.Join(tempdir, "sub1"))
 	if err != nil {
 		t.Fatalf("Failed to init sub1 store: %s", err)
 	}
 	for _, k := range sub1Ent {
-		ents = append(ents, "sub1/"+k)
+		ents = append(ents, filepath.Join("sub1",k))
 	}
 
 	// sub2 store
-	_, sub2Ent, err := createStore(tempdir + "/sub2")
+	_, sub2Ent, err := createStore(filepath.Join(tempdir, "sub2"))
 	if err != nil {
 		t.Fatalf("Failed to init sub2 store: %s", err)
 	}
 	for _, k := range sub2Ent {
-		ents = append(ents, "sub2/"+k)
+		ents = append(ents, filepath.Join("sub2", k))
 	}
 	sort.Strings(ents)
 
 	rs, err := New(ctx, &config.Config{
 		Root: &config.StoreConfig{
-			Path: tempdir + "/root",
+			Path: filepath.Join(tempdir, "root"),
 		},
 	})
 	if err != nil {
@@ -94,10 +94,10 @@ func TestListMulti(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to create root store: %s", err)
 	}
-	if err := rs.AddMount(ctx, "sub1", tempdir+"/sub1"); err != nil {
+	if err := rs.AddMount(ctx, "sub1", filepath.Join(tempdir,"sub1")); err != nil {
 		t.Fatalf("failed to add mount %s: %s", "sub1", err)
 	}
-	if err := rs.AddMount(ctx, "sub2", tempdir+"/sub2"); err != nil {
+	if err := rs.AddMount(ctx, "sub2", filepath.Join(tempdir,"sub2")); err != nil {
 		t.Fatalf("failed to add mount %s: %s", "sub2", err)
 	}
 	tree, err := rs.Tree()
@@ -118,60 +118,58 @@ func TestListNested(t *testing.T) {
 		_ = os.RemoveAll(tempdir)
 	}()
 	// root store
-	_, ents, err := createStore(tempdir + "/root")
+	_, ents, err := createStore(filepath.Join(tempdir, "root"))
 	if err != nil {
 		t.Fatalf("Failed to init root store: %s", err)
 	}
 	// sub1 store
-	_, sub1Ent, err := createStore(tempdir + "/sub1")
+	_, sub1Ent, err := createStore(filepath.Join(tempdir, "sub1"))
 	if err != nil {
 		t.Fatalf("Failed to init sub1 store: %s", err)
 	}
 	for _, k := range sub1Ent {
-		ents = append(ents, "sub1/"+k)
+		ents = append(ents, filepath.Join("sub1",k))
 	}
 	// sub2 store
-	_, sub2Ent, err := createStore(tempdir + "/sub2")
+	_, sub2Ent, err := createStore(filepath.Join(tempdir, "sub2"))
 	if err != nil {
 		t.Fatalf("Failed to init sub2 store: %s", err)
 	}
 	for _, k := range sub2Ent {
-		ents = append(ents, "sub2/"+k)
+		ents = append(ents, filepath.Join("sub2", k))
 	}
 	// sub3 store
-	_, sub3Ent, err := createStore(tempdir + "/sub3")
+	_, sub3Ent, err := createStore(filepath.Join(tempdir, "sub3"))
 	if err != nil {
 		t.Fatalf("Failed to init sub3 store: %s", err)
 	}
 	for _, k := range sub3Ent {
-		ents = append(ents, "sub2/sub3/"+k)
+		ents = append(ents, filepath.Join("sub2", "sub3", k))
 	}
 	sort.Strings(ents)
 
 	rs, err := New(ctx, &config.Config{
 		Root: &config.StoreConfig{
-			Path: tempdir + "/root",
+			Path: filepath.Join(tempdir, "root"),
 		},
 	})
 	if err != nil {
 		t.Fatalf("Failed to create root store: %s", err)
 	}
-	if err != nil {
-		t.Fatalf("failed to create root store: %s", err)
-	}
-	if err := rs.AddMount(ctx, "sub1", tempdir+"/sub1"); err != nil {
+	if err := rs.AddMount(ctx, "sub1", filepath.Join(tempdir, "sub1")); err != nil {
 		t.Fatalf("failed to add mount %s: %s", "sub1", err)
 	}
-	if err := rs.AddMount(ctx, "sub2", tempdir+"/sub2"); err != nil {
+	if err := rs.AddMount(ctx, "sub2", filepath.Join(tempdir, "sub2")); err != nil {
 		t.Fatalf("failed to add mount %s: %s", "sub2", err)
 	}
-	if err := rs.AddMount(ctx, "sub2/sub3", tempdir+"/sub3"); err != nil {
+	if err := rs.AddMount(ctx, filepath.Join("sub2", "sub3"), filepath.Join(tempdir, "sub3")); err != nil {
 		t.Fatalf("failed to add mount %s: %s", "sub2", err)
 	}
 	tree, err := rs.Tree()
 	if err != nil {
 		t.Fatalf("failed to list tree: %s", err)
 	}
+	t.Log(tree.Format(100))
 	compareLists(t, ents, tree.List(0))
 }
 
@@ -181,8 +179,8 @@ func createStore(dir string) ([]string, []string, error) {
 		"0xFEEDBEEF",
 	}
 	list := []string{
-		"foo/bar/baz",
-		"baz/ing/a",
+		filepath.Join("foo", "bar", "baz"),
+		filepath.Join("baz", "ing", "a"),
 	}
 	sort.Strings(list)
 	for _, file := range list {

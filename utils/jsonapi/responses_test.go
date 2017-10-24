@@ -4,9 +4,10 @@ import (
 	"testing"
 
 	"github.com/justwatchcom/gopass/store/secret"
+	"path/filepath"
 )
 
-func TestGetUsename(t *testing.T) {
+func TestGetUsername(t *testing.T) {
 	a := &API{}
 	for _, tc := range []struct {
 		Name string
@@ -24,7 +25,7 @@ func TestGetUsename(t *testing.T) {
 			Out:  "foo",
 		},
 	} {
-		got := a.getUsername(tc.Name, tc.Sec)
+		got := a.getUsername(filepath.FromSlash(tc.Name), tc.Sec)
 		if got != tc.Out {
 			t.Errorf("Wrong username: %s != %s", got, tc.Out)
 		}

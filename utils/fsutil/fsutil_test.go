@@ -20,8 +20,14 @@ func TestCleanPath(t *testing.T) {
 	}
 	for in, out := range m {
 		got := CleanPath(in)
-		if out != got {
-			t.Errorf("Mismatch for %s: %s != %s", in, got, out)
+
+		// filepath.Abs turns /home/bob into C:\home\bob on Windows
+		absOut, err := filepath.Abs(out)
+		if err != nil {
+			t.Errorf("filepath.Absolute errored: %s", err)
+		}
+		if absOut != got {
+			t.Errorf("Mismatch for %s: %s != %s", in, got, absOut)
 		}
 	}
 }
