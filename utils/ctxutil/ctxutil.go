@@ -18,6 +18,7 @@ const (
 	ctxKeyGitCommit
 	ctxKeyAlwaysYes
 	ctxKeyUseSymbols
+	ctxKeyNoColor
 )
 
 // WithDebug returns a context with an explizit value for debug
@@ -256,6 +257,26 @@ func HasUseSymbols(ctx context.Context) bool {
 // IsUseSymbols returns the value of ask for more or the default (false)
 func IsUseSymbols(ctx context.Context) bool {
 	bv, ok := ctx.Value(ctxKeyUseSymbols).(bool)
+	if !ok {
+		return false
+	}
+	return bv
+}
+
+// WithNoColor returns a context with the value for ask for more set
+func WithNoColor(ctx context.Context, bv bool) context.Context {
+	return context.WithValue(ctx, ctxKeyNoColor, bv)
+}
+
+// HasNoColor returns true if a value for NoColor has been set in this context
+func HasNoColor(ctx context.Context) bool {
+	_, ok := ctx.Value(ctxKeyNoColor).(bool)
+	return ok
+}
+
+// IsNoColor returns the value of ask for more or the default (false)
+func IsNoColor(ctx context.Context) bool {
+	bv, ok := ctx.Value(ctxKeyNoColor).(bool)
 	if !ok {
 		return false
 	}

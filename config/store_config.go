@@ -20,6 +20,7 @@ type StoreConfig struct {
 	Path        string `yaml:"path"`        // path to the root store
 	SafeContent bool   `yaml:"safecontent"` // avoid showing passwords in terminal
 	UseSymbols  bool   `yaml:"usesymbols"`  // always use symbols when generating passwords
+	NoColor     bool   `yaml:"nocolor"`     // do not use color when outputing text
 }
 
 // ConfigMap returns a map of stringified config values for easy printing

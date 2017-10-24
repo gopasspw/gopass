@@ -76,6 +76,7 @@ func TestComposite(t *testing.T) {
 	ctx = WithGitCommit(ctx, false)
 	ctx = WithUseSymbols(ctx, false)
 	ctx = WithAlwaysYes(ctx, true)
+	ctx = WithNoColor(ctx, true)
 
 	if !IsDebug(ctx) {
 		t.Errorf("Debug should be true")

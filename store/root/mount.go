@@ -17,9 +17,6 @@ import (
 // AddMount adds a new mount
 func (r *Store) AddMount(ctx context.Context, alias, path string, keys ...string) error {
 	path = fsutil.CleanPath(path)
-	if _, found := r.mounts[alias]; found {
-		return errors.Errorf("%s is already mounted", alias)
-	}
 	if err := r.addMount(ctx, alias, path, keys...); err != nil {
 		return errors.Wrapf(err, "failed to add mount")
 	}
