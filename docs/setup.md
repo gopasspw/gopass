@@ -41,6 +41,15 @@ brew install gnupg2 git
 * Download and install [GPG4Win](https://www.gpg4win.org/).
 * Download and install [the Windows git installer](https://git-scm.com/download/win).
 
+#### OpenBSD
+
+For OpenBSD -current:
+```
+pkg_add gopass
+```
+
+For OpenBSD 6.2 and earlier, install via `go get`.
+
 ### Set up a GPG key pair
 
 gopass depends on the `gpg` program for encryption and decryption. You **must** have a
