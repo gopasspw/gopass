@@ -26,7 +26,7 @@ func (g *GPG) detectBinary(bin string) error {
 	}
 
 	// gpg.exe for GPG4Win 3.0.0; would be gpg2.exe for 2.x
-	for _, b := range []string{bin, "gpg.exe", "gpg2.exe"} {
+	for _, b := range []string{bin, "gpg2.exe", "gpg.exe"} {
 		gpgPath := filepath.Join(v, "bin", b)
 		if fsutil.IsFile(gpgPath) {
 			g.binary = gpgPath
