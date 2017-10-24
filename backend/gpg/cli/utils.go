@@ -1,4 +1,4 @@
-package gpg
+package cli
 
 import (
 	"strconv"

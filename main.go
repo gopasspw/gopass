@@ -322,7 +322,11 @@ func main() {
 			Description: "" +
 				"This command clones an existing password store from a git remote to " +
 				"a local password store. Can be either used to initialize a new root store " +
-				"or to add a new mounted sub store.",
+				"or to add a new mounted sub store." +
+				"" +
+				"Needs at least one argument (git URL) to clone from. " +
+				"Accepts as second argument (mount location) to clone and mount a sub store, e.g. " +
+				"gopass clone git@example.com/store.git foo/bar",
 			Action: func(c *cli.Context) error {
 				return action.Clone(withGlobalFlags(ctx, c), c)
 			},

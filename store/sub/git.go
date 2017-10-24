@@ -56,7 +56,7 @@ func (s *Store) gitFixConfig(ctx context.Context) error {
 		out.Yellow(ctx, "Error while initializing git: %s", err)
 	}
 
-	return nil
+	return s.gitFixConfigOSDep(ctx)
 }
 
 // GitInit initializes this store's git repo and

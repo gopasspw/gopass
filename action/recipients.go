@@ -68,23 +68,42 @@ func (s *Action) RecipientsAdd(ctx context.Context, c *cli.Context) error {
 	store := c.String("store")
 	added := 0
 
+	// select store
+	if store == "" {
+		stores := []string{"<root>"}
+		stores = append(stores, s.Store.MountPoints()...)
+		act, sel := termwiz.GetSelection(ctx, "Store for secret", "<↑/↓> to change the selection, <→> to select, <ESC> to quit", stores)
+		switch act {
+		case "show":
+			store = stores[sel]
+			if store == "<root>" {
+				store = ""
+			}
+		default:
+			store = "" // root store
+		}
+	}
+
+	// select recipient
 	recipients := []string(c.Args())
 	if len(recipients) < 1 {
 		choices := []string{}
 		kl, _ := s.gpg.FindPublicKeys(ctx)
-		for _, key := range kl.UseableKeys() {
+		kl = kl.UseableKeys()
+		for _, key := range kl {
 			choices = append(choices, key.OneLine())
 		}
 		if len(choices) > 0 {
 			act, sel := termwiz.GetSelection(ctx, "Add Recipient -", "<↑/↓> to change the selection, <→> to add this recipient, <ESC> to quit", choices)
 			switch act {
 			case "show":
-				recipients = []string{choices[sel]}
+				recipients = []string{kl[sel].Fingerprint}
 			default:
 				return s.exitError(ctx, ExitAborted, nil, "user aborted")
 			}
 		}
 	}
+
 	for _, r := range recipients {
 		keys, err := s.gpg.FindPublicKeys(ctx, r)
 		if err != nil {
@@ -95,11 +114,12 @@ func (s *Action) RecipientsAdd(ctx context.Context, c *cli.Context) error {
 		if len(keys) < 1 {
 			out.Cyan(ctx, "Warning: No matching valid key found. If the key is in your keyring you may need to validate it.")
 			out.Cyan(ctx, "If this is your key: gpg --edit-key %s; trust (set to ultimate); quit", r)
-			out.Cyan(ctx, "If this is not your key: gpg --edit-key %s; lsign; save; quit", r)
+			out.Cyan(ctx, "If this is not your key: gpg --edit-key %s; lsign; trust; save; quit", r)
+			out.Cyan(ctx, "You may need to run 'gpg --update-trustdb' afterwards")
 			continue
 		}
 
-		if !s.AskForConfirmation(ctx, fmt.Sprintf("Do you want to add '%s' as an recipient?", keys[0].OneLine())) {
+		if !s.AskForConfirmation(ctx, fmt.Sprintf("Do you want to add '%s' as an recipient to the store '%s'?", keys[0].OneLine(), store)) {
 			continue
 		}
 
@@ -112,7 +132,8 @@ func (s *Action) RecipientsAdd(ctx context.Context, c *cli.Context) error {
 		return s.exitError(ctx, ExitUnknown, nil, "no key added")
 	}
 
-	out.Green(ctx, "Added %d recipients\n", added)
+	out.Green(ctx, "\nAdded %d recipients", added)
+	out.Cyan(ctx, "You need to run 'gopass sync' to push these changes")
 	return nil
 }
 
@@ -120,6 +141,23 @@ func (s *Action) RecipientsAdd(ctx context.Context, c *cli.Context) error {
 func (s *Action) RecipientsRemove(ctx context.Context, c *cli.Context) error {
 	store := c.String("store")
 
+	// select store
+	if store == "" {
+		stores := []string{"<root>"}
+		stores = append(stores, s.Store.MountPoints()...)
+		act, sel := termwiz.GetSelection(ctx, "Store for secret", "<↑/↓> to change the selection, <→> to select, <ESC> to quit", stores)
+		switch act {
+		case "show":
+			store = stores[sel]
+			if store == "<root>" {
+				store = ""
+			}
+		default:
+			store = "" // root store
+		}
+	}
+
+	// select recipient
 	recipients := []string(c.Args())
 	if len(recipients) < 1 {
 		ids := s.Store.ListRecipients(ctx, store)
@@ -138,7 +176,7 @@ func (s *Action) RecipientsRemove(ctx context.Context, c *cli.Context) error {
 			act, sel := termwiz.GetSelection(ctx, "Remove recipient -", "<↑/↓> to change the selection, <→> to remove this recipient, <ESC> to quit", choices)
 			switch act {
 			case "show":
-				recipients = []string{choices[sel]}
+				recipients = []string{ids[sel]}
 			default:
 				return s.exitError(ctx, ExitAborted, nil, "user aborted")
 			}
@@ -162,6 +200,7 @@ func (s *Action) RecipientsRemove(ctx context.Context, c *cli.Context) error {
 		removed++
 	}
 
-	fmt.Printf("Removed %d recipients\n", removed)
+	out.Green(ctx, "\nRemoved %d recipients", removed)
+	out.Cyan(ctx, "You need to run 'gopass sync' to push these changes")
 	return nil
 }

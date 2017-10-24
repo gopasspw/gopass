@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/blang/semver"
 	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/config"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
@@ -17,6 +18,9 @@ import (
 // Initialized returns an error if the store is not properly
 // prepared.
 func (s *Action) Initialized(ctx context.Context, c *cli.Context) error {
+	if s.gpg.Version(ctx).LT(semver.Version{Major: 2, Minor: 0, Patch: 0}) {
+		out.Red(ctx, "Warning: Using GPG 1.x. Using GPG 2.0 or later is highly recommended")
+	}
 	if !s.Store.Initialized() {
 		if ctxutil.IsInteractive(ctx) {
 			if ok, err := s.askForBool(ctx, "It seems you are new to gopass. Do you want to run the onboarding wizard?", true); err == nil && ok {
