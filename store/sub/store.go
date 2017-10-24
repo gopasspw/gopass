@@ -24,6 +24,7 @@ const (
 )
 
 type gpger interface {
+	Binary() string
 	ListPublicKeys(context.Context) (gpg.KeyList, error)
 	FindPublicKeys(context.Context, ...string) (gpg.KeyList, error)
 	ListPrivateKeys(context.Context) (gpg.KeyList, error)
