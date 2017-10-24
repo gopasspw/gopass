@@ -1,4 +1,4 @@
-package gpg
+package cli
 
 import (
 	"bufio"
@@ -58,15 +58,14 @@ func New(cfg Config) *GPG {
 		binary: "gpg",
 		args:   cfg.Args,
 	}
-
-	for _, b := range []string{cfg.Binary, "gpg2", "gpg1", "gpg"} {
-		if p, err := exec.LookPath(b); err == nil {
-			g.binary = p
-			break
-		}
-	}
+	_ = g.detectBinary(cfg.Binary)
 
 	return g
+}
+
+// Binary returns the GPG binary location
+func (g *GPG) Binary() string {
+	return g.binary
 }
 
 // listKey lists all keys of the given type and matching the search strings
@@ -76,7 +75,7 @@ func (g *GPG) listKeys(ctx context.Context, typ string, search ...string) (gpg.K
 	cmd := exec.CommandContext(ctx, g.binary, args...)
 	cmd.Stderr = nil
 
-	out.Debug(ctx, "[DEBUG] gpg.listKeys: %s %+v\n", cmd.Path, cmd.Args)
+	out.Debug(ctx, "gpg.listKeys: %s %+v\n", cmd.Path, cmd.Args)
 	cmdout, err := cmd.Output()
 	if err != nil {
 		if bytes.Contains(cmdout, []byte("secret key not available")) {

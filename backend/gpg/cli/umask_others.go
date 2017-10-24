@@ -1,6 +1,6 @@
 // +build !windows
 
-package gpg
+package cli
 
 import "syscall"
 

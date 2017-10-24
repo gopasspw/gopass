@@ -51,6 +51,7 @@ func (s *Store) AddRecipient(ctx context.Context, id string) error {
 		return errors.Wrapf(err, "failed to save recipients")
 	}
 
+	out.Cyan(ctx, "Reencrypting existing secrets. This may take some time ...")
 	return s.reencrypt(WithReason(ctx, "Added Recipient "+id))
 }
 
@@ -69,7 +70,7 @@ func (s *Store) RemoveRecipient(ctx context.Context, id string) error {
 	// just try to remove it literally
 	keys, err := s.gpg.FindPublicKeys(ctx, id)
 	if err != nil {
-		fmt.Printf("Failed to get GPG Key Info for %s: %s\n", id, err)
+		out.Cyan(ctx, "Warning: Failed to get GPG Key Info for %s: %s", id, err)
 	}
 
 	rs, err := s.GetRecipients(ctx, "")

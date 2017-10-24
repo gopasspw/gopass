@@ -14,6 +14,7 @@ import (
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/fsutil"
 	"github.com/justwatchcom/gopass/utils/out"
+	"github.com/muesli/goprogressbar"
 	"github.com/pkg/errors"
 )
 
@@ -156,6 +157,15 @@ func (s *Store) reencrypt(ctx context.Context) error {
 		// shadow ctx in this block only
 		ctx := WithAutoSync(ctx, false)
 		ctx = ctxutil.WithGitCommit(ctx, false)
+
+		// progress bar
+		bar := &goprogressbar.ProgressBar{
+			Total: int64(len(entries)),
+			Width: 120,
+		}
+		if !ctxutil.IsTerminal(ctx) {
+			bar = nil
+		}
 		for _, e := range entries {
 			// check for context cancelation
 			select {
@@ -163,6 +173,13 @@ func (s *Store) reencrypt(ctx context.Context) error {
 				return errors.New("context canceled")
 			default:
 			}
+
+			if bar != nil {
+				bar.Current++
+				bar.Text = fmt.Sprintf("%d of %d secrets reencrypted", bar.Current, bar.Total)
+				bar.LazyPrint()
+			}
+
 			content, err := s.Get(ctx, e)
 			if err != nil {
 				fmt.Printf("Failed to get current value for %s: %s\n", e, err)
