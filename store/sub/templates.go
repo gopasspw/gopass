@@ -66,6 +66,8 @@ func mkTemplateStoreWalkerFunc(alias, folder string, fn func(...string)) func(st
 		if alias != "" {
 			s = alias + sep + s
 		}
+		// make sure to always use forward slashes for internal gopass representation
+		s = filepath.ToSlash(s)
 		fn(s)
 		return nil
 	}
