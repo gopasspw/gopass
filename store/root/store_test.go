@@ -156,9 +156,6 @@ func TestListNested(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create root store: %s", err)
 	}
-	if err != nil {
-		t.Fatalf("failed to create root store: %s", err)
-	}
 	if err := rs.AddMount(ctx, "sub1", filepath.Join(tempdir, "sub1")); err != nil {
 		t.Fatalf("failed to add mount %s: %s", "sub1", err)
 	}
@@ -172,6 +169,7 @@ func TestListNested(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to list tree: %s", err)
 	}
+	t.Log(tree.Format(100))
 	compareLists(t, ents, tree.List(0))
 }
 

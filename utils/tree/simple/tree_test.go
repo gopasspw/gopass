@@ -5,8 +5,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fatih/color"
 	"path/filepath"
+
+	"github.com/fatih/color"
 )
 
 const (
@@ -60,7 +61,7 @@ func TestFormat(t *testing.T) {
 		if err != nil {
 			t.Errorf("Error during filepath.Abs: %s", err)
 		}
-		if err := root.AddMount(filepath.FromSlash(k), absV); err != nil {
+		if err := root.AddMount(k, absV); err != nil {
 			t.Fatalf("failed to add mount: %s", err)
 		}
 	}
@@ -72,14 +73,14 @@ func TestFormat(t *testing.T) {
 		"a/f",
 		"a/g/h",
 	} {
-		if err := root.AddFile(filepath.FromSlash(f), "text/plain"); err != nil {
+		if err := root.AddFile(f, "text/plain"); err != nil {
 			t.Fatalf("failed to add file: %s", err)
 		}
 	}
 	got := strings.TrimSpace(root.Format(0))
 	want := strings.TrimSpace(getGoldenFormat(t))
 	if want != got {
-		t.Errorf("Format mismatch:\n---\n%x\n---\n%x\n---", want, got)
+		t.Errorf("Format mismatch:\n---\n%s\n---\n%s\n---", want, got)
 	}
 }
 
@@ -91,11 +92,11 @@ func TestFormatSubtree(t *testing.T) {
 		"baz/ing/a",
 		"baz/ing/b",
 	} {
-		if err := root.AddFile(filepath.FromSlash(f), "text/plain"); err != nil {
+		if err := root.AddFile(f, "text/plain"); err != nil {
 			t.Fatalf("failed to add file: %s", err)
 		}
 	}
-	sub, err := root.FindFolder(filepath.Join("baz", "ing"))
+	sub, err := root.FindFolder("baz/ing")
 	if err != nil {
 		t.Fatalf("failed to find subtree")
 	}
@@ -114,7 +115,7 @@ func TestGetNonExistingSubtree(t *testing.T) {
 		"baz/ing/a",
 		"baz/ing/b",
 	} {
-		if err := root.AddFile(filepath.FromSlash(f), "text/plain"); err != nil {
+		if err := root.AddFile(f, "text/plain"); err != nil {
 			t.Fatalf("failed to add file: %s", err)
 		}
 	}

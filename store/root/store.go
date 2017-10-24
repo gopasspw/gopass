@@ -32,7 +32,7 @@ func New(ctx context.Context, cfg *config.Config) (*Store, error) {
 	if cfg == nil {
 		cfg = &config.Config{}
 	}
-	if cfg.Root.Path == "" {
+	if cfg.Root != nil && cfg.Root.Path == "" {
 		return nil, errors.Errorf("need path")
 	}
 	r := &Store{
@@ -50,7 +50,7 @@ func New(ctx context.Context, cfg *config.Config) (*Store, error) {
 	for alias, sc := range cfg.Mounts {
 		path := fsutil.CleanPath(sc.Path)
 		if err := r.addMount(ctx, alias, path); err != nil {
-			fmt.Printf("Failed to initialized mount %s (%s): %s. Ignoring\n", alias, path, err)
+			fmt.Printf("Failed to initialize mount %s (%s): %s. Ignoring\n", alias, path, err)
 			continue
 		}
 	}

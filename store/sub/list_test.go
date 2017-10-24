@@ -10,7 +10,6 @@ import (
 	gpgmock "github.com/justwatchcom/gopass/backend/gpg/mock"
 	"github.com/justwatchcom/gopass/store/secret"
 	"github.com/stretchr/testify/assert"
-	"path/filepath"
 )
 
 func TestList(t *testing.T) {
@@ -47,14 +46,14 @@ func TestList(t *testing.T) {
 		{
 			name: "Multi-entry-multi-level",
 			prep: func(s *Store) error {
-				for _, e := range []string{filepath.Join("foo", "bar"), filepath.Join("foo", "baz"), filepath.Join("foo", "zab")} {
+				for _, e := range []string{"foo/bar", "foo/baz", "foo/zab"} {
 					if err := s.Set(ctx, e, secret.New("bar", "")); err != nil {
 						return err
 					}
 				}
 				return nil
 			},
-			out: []string{filepath.Join("foo", "bar"), filepath.Join("foo", "baz"), filepath.Join("foo", "zab")},
+			out: []string{"foo/bar", "foo/baz", "foo/zab"},
 		},
 	} {
 		// common setup
