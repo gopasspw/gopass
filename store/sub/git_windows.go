@@ -9,7 +9,7 @@ import (
 )
 
 func (s *Store) gitFixConfigOSDep(ctx context.Context) error {
-	if err := s.gitCmd(ctx, "gitFixConfigOSDep", "config", "--local", "gpg.program", "TODO"); err != nil {
+	if err := s.gitCmd(ctx, "gitFixConfigOSDep", "config", "--local", "gpg.program", s.gpg.Binary()); err != nil {
 		return errors.Wrapf(err, "failed to set git config gpg.program")
 	}
 	return nil

@@ -71,3 +71,8 @@ func (m *Mocker) ImportPublicKey(context.Context, string) error {
 func (m *Mocker) Version(context.Context) semver.Version {
 	return semver.Version{}
 }
+
+// Binary always returns 'gpg'
+func (m *Mocker) Binary() string {
+	return "gpg"
+}
