@@ -1,3 +1,11 @@
+## 1.5.1 / 2017-10-25
+
+* [ENHANCEMENT] Re-introduce usecolor config option [#414]
+* [ENHANCEMENT] Improve documentation [#407] [#409] [#416] [#417]
+* [ENHANCEMENT] Add language switch for xckd-style generation [#406]
+* [BUGFIX] Fix gpg binary detection [#419]
+* [BUGFIX] Fix tests on windows [#421]
+
 ## 1.5.0 / 2017-10-17
 
 * [FEATURE] Add secret creation wizard [#386]
