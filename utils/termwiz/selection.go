@@ -53,7 +53,7 @@ func GetSelection(ctx context.Context, prompt, usage string, choices []string) (
 			if cur == i {
 				mark = ">"
 			}
-			tbprint(0, 1+i-offset, coldef, coldef, fmt.Sprintf("%s %s\n", mark, c))
+			tbprint(0, 1+i-offset, coldef, coldef, fmt.Sprintf("%s %s", mark, c))
 		}
 		usageLine := usage
 		if usageLine == "" {
