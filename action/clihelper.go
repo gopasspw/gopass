@@ -196,7 +196,7 @@ func (s *Action) askForPassword(ctx context.Context, name string, askFn func(con
 }
 
 // AskForKeyImport asks for permissions to import the named key
-func (s *Action) AskForKeyImport(ctx context.Context, key string) bool {
+func (s *Action) AskForKeyImport(ctx context.Context, key string, names []string) bool {
 	if ctxutil.IsAlwaysYes(ctx) {
 		return true
 	}
@@ -204,7 +204,7 @@ func (s *Action) AskForKeyImport(ctx context.Context, key string) bool {
 		return false
 	}
 
-	ok, err := s.askForBool(ctx, fmt.Sprintf("Do you want to import the public key '%s' into your keyring?", key), false)
+	ok, err := s.askForBool(ctx, fmt.Sprintf("Do you want to import the public key '%s' (Names: %+v) into your keyring?", key, names), false)
 	if err != nil {
 		return false
 	}

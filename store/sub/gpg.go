@@ -2,6 +2,7 @@ package sub
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -9,6 +10,7 @@ import (
 	"github.com/justwatchcom/gopass/utils/fsutil"
 	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/pkg/errors"
+	"golang.org/x/crypto/openpgp"
 )
 
 // GPGVersion returns parsed GPG version information
@@ -38,10 +40,17 @@ func (s *Store) ImportMissingPublicKeys(ctx context.Context) error {
 			continue
 		}
 
+		// get info about this public key
+		names, err := s.decodePublicKey(ctx, r)
+		if err != nil {
+			out.Red(ctx, "[%s] Failed to decode public key %s: %s", s.alias, r, err)
+			continue
+		}
+
 		// we need to ask the user before importing
 		// any key material into his keyring!
 		if imf := GetImportFunc(ctx); imf != nil {
-			if !imf(ctx, r) {
+			if !imf(ctx, r, names) {
 				continue
 			}
 		}
@@ -88,6 +97,34 @@ func (s *Store) exportPublicKey(ctx context.Context, r string) (string, error) {
 	}
 
 	return filename, nil
+}
+
+func (s *Store) decodePublicKey(ctx context.Context, r string) ([]string, error) {
+	filename := filepath.Join(s.path, keyDir, r)
+	if !fsutil.IsFile(filename) {
+		return nil, errors.Errorf("Public Key %s not found at %s", r, filename)
+	}
+
+	fh, err := os.Open(filename)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		_ = fh.Close()
+	}()
+
+	el, err := openpgp.ReadArmoredKeyRing(fh)
+	if err != nil {
+		return nil, err
+	}
+	if len(el) != 1 {
+		return nil, fmt.Errorf("Public Key must contain exactly one Entity")
+	}
+	names := make([]string, 0, len(el[0].Identities))
+	for _, v := range el[0].Identities {
+		names = append(names, v.Name)
+	}
+	return names, nil
 }
 
 // import an public key into the default keyring
