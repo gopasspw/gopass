@@ -44,51 +44,34 @@ func (s *Store) gitFixConfig(ctx context.Context) error {
 	// set push default, to avoid issues with
 	// "fatal: The current branch master has multiple upstream branches, refusing to push"
 	// https://stackoverflow.com/questions/948354/default-behavior-of-git-push-without-a-branch-specified
-	if err := s.gitCmd(ctx, "GitInit", "config", "--local", "push.default", "matching"); err != nil {
+	if err := s.gitConfigSet(ctx, "push.default", "matching"); err != nil {
 		return errors.Wrapf(err, "failed to set git config for push.default")
 	}
 
 	// setup for proper diffs
-	if err := s.gitCmd(ctx, "GitInit", "config", "--local", "diff.gpg.binary", "true"); err != nil {
+	if err := s.gitConfigSet(ctx, "diff.gpg.binary", "true"); err != nil {
 		out.Yellow(ctx, "Error while initializing git: %s", err)
 	}
-	if err := s.gitCmd(ctx, "GitInit", "config", "--local", "diff.gpg.textconv", "gpg --no-tty --decrypt"); err != nil {
+	if err := s.gitConfigSet(ctx, "diff.gpg.textconv", "gpg --no-tty --decrypt"); err != nil {
 		out.Yellow(ctx, "Error while initializing git: %s", err)
 	}
 
 	return s.gitFixConfigOSDep(ctx)
 }
 
-// GitInit initializes this store's git repo and
-// recursively calls GitInit on all substores.
-func (s *Store) GitInit(ctx context.Context, alias, signKey, userName, userEmail string) error {
-	// the git repo may be empty (i.e. no branches, cloned from a fresh remote)
-	// or already initialized. Only run git init if the folder is completely empty
-	if !s.isGit() {
-		if err := s.gitCmd(ctx, "GitInit", "init"); err != nil {
-			return errors.Errorf("Failed to initialize git: %s", err)
-		}
-	}
-
+// GitInitConfig initialized and preparse the git config
+func (s *Store) GitInitConfig(ctx context.Context, signKey, userName, userEmail string) error {
 	// set commit identity
-	if err := s.gitCmd(ctx, "GitInit", "config", "--local", "user.name", userName); err != nil {
+	if err := s.gitConfigSet(ctx, "user.name", userName); err != nil {
 		return errors.Wrapf(err, "failed to set git config user.name")
 	}
-	if err := s.gitCmd(ctx, "GitInit", "config", "--local", "user.email", userEmail); err != nil {
+	if err := s.gitConfigSet(ctx, "user.email", userEmail); err != nil {
 		return errors.Wrapf(err, "failed to set git config user.email")
 	}
 
 	// ensure sane git config
 	if err := s.gitFixConfig(ctx); err != nil {
 		return errors.Wrapf(err, "failed to fix git config")
-	}
-
-	// add current content of the store
-	if err := s.gitAdd(ctx, s.path); err != nil {
-		return errors.Wrapf(err, "failed to add '%s' to git", s.path)
-	}
-	if err := s.gitCommit(ctx, "Add current content of password store."); err != nil {
-		return errors.Wrapf(err, "failed to commit changes to git")
 	}
 
 	if err := ioutil.WriteFile(filepath.Join(s.path, ".gitattributes"), []byte("*.gpg diff=gpg\n"), fileMode); err != nil {
@@ -109,16 +92,48 @@ func (s *Store) GitInit(ctx context.Context, alias, signKey, userName, userEmail
 	return nil
 }
 
+// GitInit initializes this store's git repo
+func (s *Store) GitInit(ctx context.Context, signKey, userName, userEmail string) error {
+	// the git repo may be empty (i.e. no branches, cloned from a fresh remote)
+	// or already initialized. Only run git init if the folder is completely empty
+	if !s.isGit() {
+		if err := s.gitCmd(ctx, "GitInit", "init"); err != nil {
+			return errors.Errorf("Failed to initialize git: %s", err)
+		}
+	}
+
+	// initialize the local git config
+	if err := s.GitInitConfig(ctx, signKey, userName, userEmail); err != nil {
+		return errors.Errorf("failed to configure git: %s", err)
+	}
+
+	// add current content of the store
+	if err := s.gitAdd(ctx, s.path); err != nil {
+		return errors.Wrapf(err, "failed to add '%s' to git", s.path)
+	}
+
+	// commit if there is something to commit
+	if !s.gitStagedChanges(ctx) {
+		return nil
+	}
+
+	if err := s.gitCommit(ctx, "Add current content of password store."); err != nil {
+		return errors.Wrapf(err, "failed to commit changes to git")
+	}
+
+	return nil
+}
+
 func (s *Store) gitSetSignKey(ctx context.Context, sk string) error {
 	if sk == "" {
 		return errors.Errorf("SignKey not set")
 	}
 
-	if err := s.gitCmd(ctx, "gitSetSignKey", "config", "--local", "user.signingkey", sk); err != nil {
+	if err := s.gitConfigSet(ctx, "user.signingkey", sk); err != nil {
 		return errors.Wrapf(err, "failed to set git sign key")
 	}
 
-	return s.gitCmd(ctx, "gitSetSignKey", "config", "--local", "commit.gpgsign", "true")
+	return s.gitConfigSet(ctx, "commit.gpgsign", "true")
 }
 
 // GitVersion returns the git version as major, minor and patch level
@@ -191,7 +206,11 @@ func (s *Store) gitCommit(ctx context.Context, msg string) error {
 	return s.gitCmd(ctx, "gitCommit", "commit", "-m", msg)
 }
 
-func (s *Store) gitConfigValue(ctx context.Context, key string) (string, error) {
+func (s *Store) gitConfigSet(ctx context.Context, key, value string) error {
+	return s.gitCmd(ctx, "gitConfigSet", "config", "--local", key, value)
+}
+
+func (s *Store) gitConfigGet(ctx context.Context, key string) (string, error) {
 	if !s.isGit() {
 		return "", store.ErrGitNotInit
 	}
@@ -225,7 +244,7 @@ func (s *Store) gitPushPull(ctx context.Context, op, remote, branch string) erro
 		branch = "master"
 	}
 
-	if v, err := s.gitConfigValue(ctx, "remote."+remote+".url"); err != nil || v == "" {
+	if v, err := s.gitConfigGet(ctx, "remote."+remote+".url"); err != nil || v == "" {
 		return store.ErrGitNoRemote
 	}
 

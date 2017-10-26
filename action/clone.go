@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 
+	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/config"
 	"github.com/justwatchcom/gopass/utils/fsutil"
 	"github.com/justwatchcom/gopass/utils/out"
@@ -59,7 +60,38 @@ func (s *Action) clone(ctx context.Context, repo, mount, path string) error {
 		return s.exitError(ctx, ExitIO, err, "Failed to update config: %s", err)
 	}
 
-	out.Green(ctx, "Your password store is ready to use! Have a look around: `%s %s`\n", s.Name, mount)
+	// try to init git config
+	out.Green(ctx, "Configuring git repository ...")
+	sk, err := s.askForPrivateKey(ctx, color.CyanString("Please select a key for signing Git Commits"))
+	if err != nil {
+		out.Red(ctx, "Failed to ask for signing key: %s", err)
+	}
+	// for convenience, set defaults to user-selected values from available private keys
+	// NB: discarding returned error since this is merely a best-effort look-up for convenience
+	userName, userEmail, _ := s.askForGitConfigUser(ctx)
+	if userName == "" {
+		var err error
+		userName, err = s.askForString(ctx, color.CyanString("Please enter a user name for password store git config"), userName)
+		if err != nil {
+			return errors.Wrapf(err, "failed to ask for user input")
+		}
+	}
+	if userEmail == "" {
+		var err error
+		userEmail, err = s.askForString(ctx, color.CyanString("Please enter an email address for password store git config"), userEmail)
+		if err != nil {
+			return errors.Wrapf(err, "failed to ask for user input")
+		}
+	}
+	if err := s.Store.GitInitConfig(ctx, mount, sk, userName, userEmail); err != nil {
+		out.Debug(ctx, "Stacktrace: %+v\n", err)
+		out.Red(ctx, "Failed to configure git: %s", err)
+	}
+
+	if mount != "" {
+		mount = " " + mount
+	}
+	out.Green(ctx, "Your password store is ready to use! Have a look around: `%s list%s`\n", s.Name, mount)
 
 	return nil
 }

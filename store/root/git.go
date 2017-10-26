@@ -13,7 +13,13 @@ import (
 // GitInit initializes the git repo
 func (r *Store) GitInit(ctx context.Context, name, sk, userName, userEmail string) error {
 	ctx, store, _ := r.getStore(ctx, name)
-	return store.GitInit(ctx, store.Alias(), sk, userName, userEmail)
+	return store.GitInit(ctx, sk, userName, userEmail)
+}
+
+// GitInitConfig initializes the git repos local config
+func (r *Store) GitInitConfig(ctx context.Context, name, sk, userName, userEmail string) error {
+	ctx, store, _ := r.getStore(ctx, name)
+	return store.GitInitConfig(ctx, sk, userName, userEmail)
 }
 
 // GitVersion returns git version information
