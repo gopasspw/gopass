@@ -65,16 +65,16 @@ gopass init 1E52C1335AC1F4F4FE02F62AB5B44266A3683834 # By specifying the GPG key
 
 ### Cloning an Existing Password Store
 
-If you already have an existing password store that exists in a Git repository, then use `gitpass` to clone it:
+If you already have an existing password store that exists in a Git repository, then use `gopass` to clone it:
 
 ```bash
-gopass clone git@example.com/pass.git
+gopass git clone git@example.com/pass.git
 ```
 
 This runs `git clone` in the background. If you don't want gopass to use the default directory of "$HOME/.password-store", then you can specify an additional parameter:
 
 ```bash
-gopass clone git@example.com/pass-work.git work # This will initialize the password store in the "$HOME/.password-store-work" directory
+gopass git clone git@example.com/pass-work.git work # This will initialize the password store in the "$HOME/.password-store-work" directory
 ```
 
 Please note that all cloned repositories must already have been initialized with gopass. (See the previous section for more details.)
