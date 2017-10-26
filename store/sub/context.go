@@ -119,7 +119,7 @@ func HasImportFunc(ctx context.Context) bool {
 func GetImportFunc(ctx context.Context) store.ImportCallback {
 	imf, ok := ctx.Value(ctxKeyImportFunc).(store.ImportCallback)
 	if !ok || imf == nil {
-		return func(context.Context, string) bool {
+		return func(context.Context, string, []string) bool {
 			return true
 		}
 	}
