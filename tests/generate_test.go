@@ -22,7 +22,7 @@ func TestGenerate(t *testing.T) {
 	assert.Error(t, err)
 	assert.Equal(t, "\nError: password length must not be zero\n", out)
 
-	out, err = ts.run("generate baz 42")
+	out, err = ts.run("generate -p baz 42")
 	assert.NoError(t, err)
 	lines := strings.Split(out, "\n")
 	assert.Len(t, lines, 2)
@@ -30,7 +30,7 @@ func TestGenerate(t *testing.T) {
 	assert.Len(t, lines[1], 42)
 
 	os.Setenv("GOPASS_CHARACTER_SET", "a")
-	out, err = ts.run("generate zab 4")
+	out, err = ts.run("generate -p zab 4")
 	assert.NoError(t, err)
 	lines = strings.Split(out, "\n")
 	assert.Len(t, lines, 2)

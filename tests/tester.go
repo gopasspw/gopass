@@ -197,10 +197,10 @@ func (ts *tester) initStore() {
 }
 
 func (ts *tester) initSecrets(prefix string) {
-	out, err := ts.run("generate " + prefix + "foo/bar 20")
+	out, err := ts.run("generate -p " + prefix + "foo/bar 20")
 	require.NoError(ts.t, err, "failed to generate password:\n%s", out)
 
-	out, err = ts.run("generate " + prefix + "baz 40")
+	out, err = ts.run("generate -p " + prefix + "baz 40")
 	require.NoError(ts.t, err, "failed to generate password:\n%s", out)
 
 	out, err = ts.runCmd([]string{ts.Binary, "insert", prefix + "fixed/secret"}, []byte("moar"))
