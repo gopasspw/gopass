@@ -2,8 +2,9 @@ package simple
 
 import (
 	"bytes"
-	"path/filepath"
 	"strings"
+
+	"path"
 
 	"github.com/justwatchcom/gopass/utils/tree"
 	"github.com/pkg/errors"
@@ -97,7 +98,7 @@ func (f *Folder) list(prefix string, maxDepth, curDepth int) []string {
 		out = append(out, f.Folders[key].list(prefix, maxDepth, curDepth+1)...)
 	}
 	for _, key := range sortedFiles(f.Files) {
-		out = append(out, filepath.Join(prefix, f.Files[key].Name))
+		out = append(out, path.Join(prefix, f.Files[key].Name))
 	}
 	return out
 }
