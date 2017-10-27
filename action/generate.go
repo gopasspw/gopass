@@ -65,6 +65,7 @@ func (s *Action) Generate(ctx context.Context, c *cli.Context) error {
 			return s.exitError(ctx, ExitAborted, nil, "user aborted. not overwriting your current password")
 		}
 	}
+
 	var pwlen int
 	if length == "" {
 		candidateLength := defaultLength
@@ -73,22 +74,26 @@ func (s *Action) Generate(ctx context.Context, c *cli.Context) error {
 			candidateLength = defaultXKCDLength
 			question = "How many words should be combined to a password?"
 		}
-		var err error
-		if length, err = s.askForString(ctx, question, string(candidateLength)); err != nil {
-			panic(err) // panic on i/o error only, string -> int conversion is done below
+		iv, err := s.askForInt(ctx, question, candidateLength)
+		if err != nil {
+			return s.exitError(ctx, ExitUsage, err, "password length must be a number")
 		}
+		pwlen = iv
+	} else {
+		iv, err := strconv.Atoi(length)
+		if err != nil {
+			return s.exitError(ctx, ExitUsage, err, "password length must be a number")
+		}
+		pwlen = iv
 	}
 
-	pwlen, err := strconv.Atoi(length)
-	if err != nil {
-		return s.exitError(ctx, ExitUsage, err, "password length must be a number")
-	}
 	if pwlen < 1 {
 		return s.exitError(ctx, ExitUsage, nil, "password length must not be zero")
 	}
 
 	var password string
 	if xkcd {
+		var err error
 		password, err = xkcdgen.RandomLengthDelim(pwlen, xkcdSeparator, c.String("xkcdlang"))
 		if err != nil {
 			return err
@@ -124,23 +129,22 @@ func (s *Action) Generate(ctx context.Context, c *cli.Context) error {
 		}
 	}
 
-	if c.Bool("clip") {
-		return s.copyToClipboard(ctx, name, []byte(password))
-	}
-
-	if key != "" {
-		key = " " + key
-	}
-	fmt.Printf(
-		"The generated password for %s%s is:\n%s\n", name, key,
-		color.YellowString(string(password)),
-	)
-
 	if (edit || ctxutil.IsAskForMore(ctx)) && s.AskForConfirmation(ctx, fmt.Sprintf("Do you want to add more data for %s?", name)) {
 		if err := s.Edit(ctx, c); err != nil {
 			return s.exitError(ctx, ExitUnknown, err, "failed to edit '%s': %s", name, err)
 		}
 	}
 
-	return nil
+	if c.Bool("print") {
+		if key != "" {
+			key = " " + key
+		}
+		fmt.Printf(
+			"The generated password for %s%s is:\n%s\n", name, key,
+			color.YellowString(string(password)),
+		)
+		return nil
+	}
+
+	return s.copyToClipboard(ctx, name, []byte(password))
 }

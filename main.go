@@ -498,8 +498,8 @@ func main() {
 			BashComplete: action.Complete,
 			Flags: []cli.Flag{
 				cli.BoolFlag{
-					Name:  "clip, c",
-					Usage: "Copy the password into the clipboard",
+					Name:  "print, p",
+					Usage: "Print the generated password to the tmerinal",
 				},
 				cli.BoolFlag{
 					Name:  "force, f",
