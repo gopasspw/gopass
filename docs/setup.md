@@ -96,6 +96,26 @@ Alternatively, you can install gopass from the appropriate darwin release from t
 
 ### Ubuntu & Debian
 
+When installing on Ubuntu or Debian you can either download the `deb` package and install manually or use our repository.
+
+#### Using the gopass repository
+
+First you need to add our archive signing key and add the package source.
+
+```bash
+wget -O- https://www.justwatch.com/gopass/releases/0x0C92225A97F6B666.pub | sudo apt-key add -
+echo "deb https://www.justwatch.com/gopass/releases/binary-amd64 ./" > /etc/apt/sources.list.d/gopass.list
+```
+
+Now you can update your package lists and install using `apt-get`:
+
+```bash
+sudo apt-get update
+sudo apt-get install gopass
+```
+
+#### Manual download
+
 First, find the latest .deb release from the repository [releases page](https://github.com/justwatchcom/gopass/releases). Then, download and install it:
 
 ```bash
