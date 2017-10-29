@@ -58,6 +58,12 @@
 			"revisionTime": "2017-09-26T11:14:11Z"
 		},
 		{
+			"checksumSHA1": "Qbh78KcLmLVoURsCp+f5xVeA/fI=",
+			"path": "github.com/godbus/dbus",
+			"revision": "a389bdde4dd695d414e47b755e95e72b7826432c",
+			"revisionTime": "2017-09-18T23:46:06Z"
+		},
+		{
 			"checksumSHA1": "v3FvbNaR/CPHNmKqyVNLM4SXjX0=",
 			"path": "github.com/kballard/go-shellquote",
 			"revision": "d8ec1a69a250a17bb0e419c386eac1f3711dc142",
