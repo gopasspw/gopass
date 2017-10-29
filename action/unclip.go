@@ -13,6 +13,7 @@ import (
 
 // Unclip tries to erase the content of the clipboard
 func (s *Action) Unclip(ctx context.Context, c *cli.Context) error {
+	force := c.Bool("force")
 	timeout := c.Int("timeout")
 	checksum := os.Getenv("GOPASS_UNCLIP_CHECKSUM")
 
@@ -25,11 +26,22 @@ func (s *Action) Unclip(ctx context.Context, c *cli.Context) error {
 
 	hash := fmt.Sprintf("%x", sha256.Sum256([]byte(cur)))
 
-	if hash != checksum {
+	if hash != checksum && !force {
 		return nil
 	}
+
 	if err := clipboard.WriteAll(""); err != nil {
+		_ = s.unclipNotify(ctx, "Failed to clear clipboard")
 		return s.exitError(ctx, ExitIO, err, "failed to write clipboard: %s", err)
+	}
+
+	if err := s.clearClipboardHistory(ctx); err != nil {
+		_ = s.unclipNotify(ctx, "Failed to clear clipboard history")
+		return s.exitError(ctx, ExitIO, err, "failed to clear clipboard history: %s", err)
+	}
+
+	if err := s.unclipNotify(ctx, "Clipboard has been cleared"); err != nil {
+		return s.exitError(ctx, ExitIO, err, "failed to send unclip notification: %s", err)
 	}
 
 	return nil
