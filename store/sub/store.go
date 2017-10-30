@@ -210,7 +210,7 @@ func (s *Store) reencrypt(ctx context.Context) error {
 			return nil
 		}
 		if errors.Cause(err) == store.ErrGitNoRemote {
-			msg := "Warning: git has not remote. Ignoring auto-push option\n" +
+			msg := "Warning: git has no remote. Ignoring auto-push option\n" +
 				"Run: gopass git remote add origin ..."
 			out.Yellow(ctx, msg)
 			return nil
