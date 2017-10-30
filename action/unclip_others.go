@@ -8,6 +8,6 @@ func (s *Action) clearClipboardHistory(ctx context.Context) error {
 	return nil
 }
 
-func (s *Action) unclipNotify(ctx context.Context, msg string) error {
+func (s *Action) desktopNotify(ctx context.Context, subj, msg string) error {
 	return nil
 }
