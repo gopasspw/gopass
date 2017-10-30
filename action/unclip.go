@@ -31,16 +31,16 @@ func (s *Action) Unclip(ctx context.Context, c *cli.Context) error {
 	}
 
 	if err := clipboard.WriteAll(""); err != nil {
-		_ = s.unclipNotify(ctx, "Failed to clear clipboard")
+		_ = s.desktopNotify(ctx, "gopass - clipboard", "Failed to clear clipboard")
 		return s.exitError(ctx, ExitIO, err, "failed to write clipboard: %s", err)
 	}
 
 	if err := s.clearClipboardHistory(ctx); err != nil {
-		_ = s.unclipNotify(ctx, "Failed to clear clipboard history")
+		_ = s.desktopNotify(ctx, "gopass - clipboard", "Failed to clear clipboard history")
 		return s.exitError(ctx, ExitIO, err, "failed to clear clipboard history: %s", err)
 	}
 
-	if err := s.unclipNotify(ctx, "Clipboard has been cleared"); err != nil {
+	if err := s.desktopNotify(ctx, "gopass -clipboard", "Clipboard has been cleared"); err != nil {
 		return s.exitError(ctx, ExitIO, err, "failed to send unclip notification: %s", err)
 	}
 
