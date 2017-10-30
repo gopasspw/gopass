@@ -32,13 +32,7 @@ credentials.
 
 // RecipientsPrint prints all recipients per store
 func (s *Action) RecipientsPrint(ctx context.Context, c *cli.Context) error {
-	if err := s.Store.ImportMissingPublicKeys(ctx); err != nil {
-		out.Red(ctx, "Failed to import missing public keys: %s", err)
-	}
-
-	if err := s.Store.SaveRecipients(ctx); err != nil {
-		out.Red(ctx, "Failed to export missing public keys: %s", err)
-	}
+	out.Cyan(ctx, "Hint: run 'gopass sync' to import any missing public keys")
 
 	tree, err := s.Store.RecipientsTree(ctx, true)
 	if err != nil {

@@ -79,15 +79,16 @@ func (s *Store) RemoveRecipient(ctx context.Context, id string) error {
 	}
 
 	nk := make([]string, 0, len(rs)-1)
+RECIPIENTS:
 	for _, k := range rs {
 		if k == id {
-			continue
+			continue RECIPIENTS
 		}
-		if len(keys) > 0 {
-			// if the key is available locally we can also match the id against
-			// the fingerprint
-			if strings.HasSuffix(keys[0].Fingerprint, k) {
-				continue
+		// if the key is available locally we can also match the id against
+		// the fingerprint
+		for _, key := range keys {
+			if strings.HasSuffix(key.Fingerprint, k) {
+				continue RECIPIENTS
 			}
 		}
 		nk = append(nk, k)
@@ -208,7 +209,7 @@ func (s *Store) saveRecipients(ctx context.Context, rs []string, msg string, exp
 			return nil
 		}
 		if errors.Cause(err) == store.ErrGitNoRemote {
-			msg := "Warning: git has not remote. Ignoring auto-push option\n" +
+			msg := "Warning: git has no remote. Ignoring auto-push option\n" +
 				"Run: gopass git remote add origin ..."
 			out.Yellow(ctx, msg)
 			return nil
