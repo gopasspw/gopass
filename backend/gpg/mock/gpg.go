@@ -2,14 +2,34 @@ package mock
 
 import (
 	"context"
+	"crypto/sha256"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/blang/semver"
 	"github.com/justwatchcom/gopass/backend/gpg"
 	"github.com/pkg/errors"
 )
+
+var staticPrivateKeyList = gpg.KeyList{
+	gpg.Key{
+		KeyType:      "rsa",
+		KeyLength:    2048,
+		Validity:     "u",
+		CreationDate: time.Now(),
+		Fingerprint:  "000000000000000000000000DEADBEEF",
+		Identities: map[string]gpg.Identity{
+			"Dead Beef <dead.beef@example.com>": gpg.Identity{
+				Name:         "Dead Beef",
+				Email:        "dead.beef@example.com",
+				CreationDate: time.Now(),
+			},
+		},
+	},
+}
 
 // Mocker is a no-op GPG mock
 type Mocker struct{}
@@ -31,12 +51,12 @@ func (m *Mocker) FindPublicKeys(context.Context, ...string) (gpg.KeyList, error)
 
 // ListPrivateKeys does nothing
 func (m *Mocker) ListPrivateKeys(context.Context) (gpg.KeyList, error) {
-	return gpg.KeyList{}, nil
+	return staticPrivateKeyList, nil
 }
 
 // FindPrivateKeys does nothing
 func (m *Mocker) FindPrivateKeys(context.Context, ...string) (gpg.KeyList, error) {
-	return gpg.KeyList{}, nil
+	return staticPrivateKeyList, nil
 }
 
 // GetRecipients does nothing
@@ -75,4 +95,38 @@ func (m *Mocker) Version(context.Context) semver.Version {
 // Binary always returns 'gpg'
 func (m *Mocker) Binary() string {
 	return "gpg"
+}
+
+// Sign writes the hashsum to the given file
+func (m *Mocker) Sign(ctx context.Context, in string, sigf string) error {
+	buf, err := ioutil.ReadFile(in)
+	if err != nil {
+		return err
+	}
+	sum := sha256.New()
+	_, _ = sum.Write(buf)
+	hexsum := fmt.Sprintf("%X", sum.Sum(nil))
+	return ioutil.WriteFile(sigf, []byte(hexsum), 0644)
+}
+
+// Verify does a pseudo-verification
+func (m *Mocker) Verify(ctx context.Context, sigf string, in string) error {
+	sigb, err := ioutil.ReadFile(sigf)
+	if err != nil {
+		return err
+	}
+
+	buf, err := ioutil.ReadFile(in)
+	if err != nil {
+		return err
+	}
+	sum := sha256.New()
+	_, _ = sum.Write(buf)
+	hexsum := fmt.Sprintf("%X", sum.Sum(nil))
+
+	if string(sigb) != hexsum {
+		return fmt.Errorf("hashsum mismatch")
+	}
+
+	return nil
 }

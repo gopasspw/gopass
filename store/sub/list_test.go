@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	gitmock "github.com/justwatchcom/gopass/backend/git/mock"
 	gpgmock "github.com/justwatchcom/gopass/backend/gpg/mock"
 	"github.com/justwatchcom/gopass/store/secret"
 	"github.com/stretchr/testify/assert"
@@ -66,6 +67,7 @@ func TestList(t *testing.T) {
 			alias: "",
 			path:  tempdir,
 			gpg:   gpgmock.New(),
+			git:   gitmock.New(),
 		}
 
 		err = s.saveRecipients(ctx, []string{"john.doe"}, "test", false)

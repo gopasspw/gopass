@@ -15,6 +15,10 @@ const (
 	upper  = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	lower  = "abcdefghijklmnopqrstuvwxyz"
 	syms   = "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~"
+	// CharAlphaNum is the class of alpha-numeric characters
+	CharAlphaNum = digits + upper + lower
+	// CharAll is the class of all characters
+	CharAll = digits + upper + lower + syms
 )
 
 func init() {

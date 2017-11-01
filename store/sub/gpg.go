@@ -7,11 +7,26 @@ import (
 	"path/filepath"
 
 	"github.com/blang/semver"
+	"github.com/justwatchcom/gopass/backend/gpg"
 	"github.com/justwatchcom/gopass/utils/fsutil"
 	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/openpgp"
 )
+
+type gpger interface {
+	Binary() string
+	ListPublicKeys(context.Context) (gpg.KeyList, error)
+	FindPublicKeys(context.Context, ...string) (gpg.KeyList, error)
+	ListPrivateKeys(context.Context) (gpg.KeyList, error)
+	FindPrivateKeys(context.Context, ...string) (gpg.KeyList, error)
+	GetRecipients(context.Context, string) ([]string, error)
+	Encrypt(context.Context, string, []byte, []string) error
+	Decrypt(context.Context, string) ([]byte, error)
+	ExportPublicKey(context.Context, string, string) error
+	ImportPublicKey(context.Context, string) error
+	Version(context.Context) semver.Version
+}
 
 // GPGVersion returns parsed GPG version information
 func (s *Store) GPGVersion(ctx context.Context) semver.Version {
