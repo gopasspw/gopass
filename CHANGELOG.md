@@ -1,3 +1,13 @@
+## 1.6.0 / 2017-11-03
+
+* [FEATURE] Add Desktop notifications (Linux/DBus only) [#434] [#435]
+* [ENHANCEMENT] Show public key identities before importing [#427]
+* [ENHANCEMENT] Initialize local git config on gopass clone [#429]
+* [ENHANCEMENT] Do not print generated passwords by default [#430]
+* [ENHANCEMENT] Clear KDE Klipper History on clipboard clearing [#434]
+* [ENHANCEMENT] Refactor git backend [#437]
+* [BUGFIX] Fix recipients remove when using email as identifier [#436]
+
 ## 1.5.1 / 2017-10-25
 
 * [ENHANCEMENT] Re-introduce usecolor config option [#414]
