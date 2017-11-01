@@ -45,7 +45,7 @@ fmt:
 	$(GO) fmt $(PACKAGES)
 
 .PHONY: tests
-tests: test vet lint errcheck megacheck
+tests: test-cross test vet lint errcheck megacheck
 
 .PHONY: vet
 vet:
@@ -75,6 +75,12 @@ megacheck:
 .PHONY: test
 test:
 	STATUS=0; for PKG in $(PACKAGES); do go test -cover -coverprofile $$GOPATH/src/$$PKG/coverage.out $$PKG || STATUS=1; done; exit $$STATUS
+
+.PHONY: test-cross
+test-cross:
+	GOOS=linux GOARCH=amd64 $(GO) build
+	GOOS=darwin GOARCH=amd64 $(GO) build
+	GOOS=windows GOARCH=amd64 $(GO) build
 
 .PHONY: test-integration
 test-integration: clean build
