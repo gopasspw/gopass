@@ -13,7 +13,7 @@ func (g *Git) fixConfigOSDep(ctx context.Context) error {
 		return nil
 	}
 
-	if err := g.Cmd(ctx, "gitFixConfigOSDep", "config", "--local", "gpg.program", s.gpg); err != nil {
+	if err := g.Cmd(ctx, "gitFixConfigOSDep", "config", "--local", "gpg.program", g.gpg); err != nil {
 		return errors.Wrapf(err, "failed to set git config gpg.program")
 	}
 	return nil
