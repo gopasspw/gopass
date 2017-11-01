@@ -61,11 +61,11 @@ func (s *Action) Sync(ctx context.Context, c *cli.Context) error {
 		fmt.Print(color.GreenString("OK"))
 
 		if l, err := sub.List(""); err == nil {
-			diff := numMP - len(l)
+			diff := len(l) - numMP
 			if diff > 0 {
 				fmt.Print(color.GreenString(" (Added %d entries)", diff))
 			} else if diff < 0 {
-				fmt.Print(color.GreenString(" (Removed %d entries)", diff))
+				fmt.Print(color.GreenString(" (Removed %d entries)", -1*diff))
 			} else {
 				fmt.Print(color.GreenString(" (no changes)"))
 			}
@@ -107,13 +107,13 @@ func (s *Action) Sync(ctx context.Context, c *cli.Context) error {
 	out.Green(ctx, "All done")
 
 	if l, err := s.Store.Tree(); err == nil {
-		numEntries = numEntries - len(l.List(0))
+		numEntries = len(l.List(0)) - numEntries
 	}
 	diff := ""
 	if numEntries > 0 {
 		diff = fmt.Sprintf(" Added %d entries", numEntries)
 	} else if numEntries < 0 {
-		diff = fmt.Sprintf(" Removed %d entries", numEntries)
+		diff = fmt.Sprintf(" Removed %d entries", -1*numEntries)
 	}
 	_ = s.desktopNotify(ctx, "gopass - sync", fmt.Sprintf("Finished. Synced %d remotes.%s", numMPs, diff))
 
