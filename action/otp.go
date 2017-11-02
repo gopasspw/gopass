@@ -109,7 +109,3 @@ func (s *Action) OTP(ctx context.Context, c *cli.Context) error {
 
 	return nil
 }
-
-func printOTP(code string) {
-
-}
