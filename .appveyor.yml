@@ -1,0 +1,23 @@
+version: "{build}"
+
+os: Windows Server 2012 R2
+
+clone_folder: c:\gopath\src\github.com\justwatchcom\gopass
+
+environment:
+  GOPATH: c:\gopath
+  GOPASS_BINARY: c:\gopath\src\github.com\justwatchcom\gopass\gopass.exe
+
+install:
+    - echo %PATH%
+    - echo %GOPATH%
+    - go version
+    - go env
+#    - ps: |
+#        go.exe get -t -d (go.exe list ./... `
+#        |? { -not $_.Contains('/vendor/') })
+
+build_script:
+    - go build
+    - ps: |
+        go.exe test (go.exe list ./... | where { -not $_.Contains('/vendor/') -and -not $_.Contains('/tests') })
