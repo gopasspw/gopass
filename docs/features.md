@@ -132,6 +132,33 @@ $ gopass edit golang.org/gopher
 
 The `edit` command uses the `$EDITOR` environment variable to start your preferred editor where you can easily edit multi-line content. `vim` will be the default if `$EDITOR` is not set.
 
+### Adding OTP Secrets
+
+*Note: Depending on your security needs, it may not behoove you to store your OTP secrets alongside your passwords! Look into [Multiple Stores](https://github.com/justwatchcom/gopass/blob/master/docs/features.md#multiple-stores) if you need things to be separate!*
+
+Typically sites will display a QR code containing a URL that starts with `oauth://`. This string contains information about generating your OTPs and can be directly added to your password file. For example:
+
+```
+gopass golang.org/gopher
+secret1234
+otpauth://totp/golang.org:gopher?secret=ABC123
+```
+
+Alternatively, you can use YAML (currently totp only):
+
+```
+gopass golang.org/gopher
+secret1234
+---
+totp: ABC123
+```
+
+*Note: any values for `totp:` need to be base32 (32, not 64) encoded. Often sites will display the raw secret alongside the QR*
+
+Some sites will not directly show you the URL contained in the QR code. If this is the case, you can use something like [zbar](http://zbar.sourceforge.net/) to extract the url.
+
+Both TOTP and HOTP are supported.
+
 ### Listing existing secrets
 
 You can list all entries of the store:
@@ -258,6 +285,7 @@ Where possible sub stores are supported transparently through the path to the se
 
 Commands that don't accept an secret name, e.g. `gopass recipients add` or `gopass init` usually accept a `--store` parameter. Please check the help output of each command for more information, e.g. `gopass help init` or `gopass recipients help add`.
 
+
 Commands that support the `--store` flag:
 
 | **Command**                | **Example**                                   | **Description** |
@@ -345,6 +373,8 @@ To restrict the characters used in generated passwords set `GOPASS_CHARACTER_SET
 ### In-place updates to existing passwords
 
 Running `gopass [generate|insert] foo/bar` on an existing entry `foo/bar` will only update the first line of the secret, leaving any trailing data in place.
+
+*Note: if the trailing data is marked as YAML (has a line with `---` after the password line), invalid yaml will be removed!*
 
 ### Disabling Colors
 
