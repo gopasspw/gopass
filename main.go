@@ -581,30 +581,9 @@ func main() {
 			},
 		},
 		{
-			Name:  "totp",
-			Usage: "Alias for otp",
-			Description: "" +
-				"Tries to parse the saved string as a time-based one-time " +
-				"password secret and generate a token based on the current time.",
-			Before: func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
-			Action: func(c *cli.Context) error {
-				return action.OTP(withGlobalFlags(ctx, c), c)
-			},
-			BashComplete: action.Complete,
-			Flags: []cli.Flag{
-				cli.BoolFlag{
-					Name:  "clip, c",
-					Usage: "Copy the time based token into the clipboard",
-				},
-				cli.StringFlag{
-					Name:  "qr, q",
-					Usage: "Write QR code to `FILE`",
-				},
-			},
-		},
-		{
-			Name:  "otp",
-			Usage: "Generate time or hmac based tokens",
+			Name:    "otp",
+			Usage:   "Generate time or hmac based tokens",
+			Aliases: []string{"totp", "hotp"},
 			Description: "" +
 				"Tries to parse an OTP URL (otpauth://). " +
 				"URL can be TOTP or HOTP.",
