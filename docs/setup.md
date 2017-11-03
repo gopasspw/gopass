@@ -189,7 +189,7 @@ Since writing fish completion scripts is not yet supported by the CLI library we
 
 In earlier versions gopass supported [dmenu](http://tools.suckless.org/dmenu/). We removed this and encourage you to call dmenu yourself now.
 
-This also makes it easier to call gopass with [rofi](https://github.com/DaveDavenport/rofi), for example.
+This also makes it easier to call gopass with any drop-in replacement of dmenu, like [rofi](https://github.com/DaveDavenport/rofi), for example, since you would just need to replace the `dmenu` call below by `rofi -dmenu`.
 
 ```bash
 # Simply copy the selected password to the clipboard
@@ -197,6 +197,8 @@ gopass ls --flat | dmenu | xargs --no-run-if-empty gopass show -c
 # First pipe the selected name to gopass, encrypt it and type the password with xdotool.
 gopass ls --flat | dmenu | xargs --no-run-if-empty gopass show -f | head -n 1 | xdotool type --clearmodifiers --file -
 ```
+
+You can then simply bind these command lines to your preferred shortcuts in your window manager settings, typically under `System Settings > Keyboard > Shortcuts > Custom Shortcuts`.
 
 ### Filling in passwords from browser
 
