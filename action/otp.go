@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"regexp"
 	"strings"
 	"time"
 
@@ -34,12 +33,7 @@ func (s *Action) OTP(ctx context.Context, c *cli.Context) error {
 
 	otpURL := ""
 	for _, line := range strings.Split(sec.Body(), "\n") {
-		matched, err := regexp.MatchString("^otpauth:", line)
-		if err != nil {
-			break
-		}
-
-		if matched {
+		if strings.HasPrefix(line, "otpauth://") {
 			otpURL = line
 			break
 		}
