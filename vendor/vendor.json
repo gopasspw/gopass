@@ -64,6 +64,12 @@
 			"revisionTime": "2017-09-18T23:46:06Z"
 		},
 		{
+			"checksumSHA1": "6wsvLTgohpob5+41L+a2KRBJ7A8=",
+			"path": "github.com/gokyle/twofactor",
+			"revision": "eaad1884d40f9cabff98a57a524c17afd00c9fe7",
+			"revisionTime": "2017-09-17T21:41:16Z"
+		},
+		{
 			"checksumSHA1": "v3FvbNaR/CPHNmKqyVNLM4SXjX0=",
 			"path": "github.com/kballard/go-shellquote",
 			"revision": "d8ec1a69a250a17bb0e419c386eac1f3711dc142",
@@ -135,24 +141,6 @@
 			"path": "github.com/pmezard/go-difflib/difflib",
 			"revision": "976c720a22c8eb4eb6a0b4348ad85ad12491a506",
 			"revisionTime": "2016-09-25T22:06:09Z"
-		},
-		{
-			"checksumSHA1": "woY3inKe+d7B1jPTFxVKNCCFH9c=",
-			"path": "github.com/pquerna/otp",
-			"revision": "9e1935374bc73ffe011187dafed51a412b90fe43",
-			"revisionTime": "2017-02-23T01:06:52Z"
-		},
-		{
-			"checksumSHA1": "xo32aXW4ZXXRHJ/9E6m10vXJZAo=",
-			"path": "github.com/pquerna/otp/hotp",
-			"revision": "9e1935374bc73ffe011187dafed51a412b90fe43",
-			"revisionTime": "2017-02-23T01:06:52Z"
-		},
-		{
-			"checksumSHA1": "Ie55pTQw1rnOZ8KDekSDXUWDT1I=",
-			"path": "github.com/pquerna/otp/totp",
-			"revision": "9e1935374bc73ffe011187dafed51a412b90fe43",
-			"revisionTime": "2017-02-23T01:06:52Z"
 		},
 		{
 			"checksumSHA1": "y6vlEAxNqpwYBmVsfC17WD53tAU=",
@@ -285,6 +273,24 @@
 			"path": "gopkg.in/yaml.v2",
 			"revision": "a5b47d31c556af34a302ce5d659e6fea44d90de0",
 			"revisionTime": "2016-09-28T15:37:09Z"
+		},
+		{
+			"checksumSHA1": "e45Azo7LgzRZ10Cj5ux0g8K83LA=",
+			"path": "rsc.io/qr",
+			"revision": "48b2ede4844e13f1a2b7ce4d2529c9af7e359fc5",
+			"revisionTime": "2016-11-21T13:34:36Z"
+		},
+		{
+			"checksumSHA1": "4B8phQR0udHpHfoqrjLeOO58DOY=",
+			"path": "rsc.io/qr/coding",
+			"revision": "48b2ede4844e13f1a2b7ce4d2529c9af7e359fc5",
+			"revisionTime": "2016-11-21T13:34:36Z"
+		},
+		{
+			"checksumSHA1": "+FzwQgteDBYRZ1nePvDq1jW44c0=",
+			"path": "rsc.io/qr/gf256",
+			"revision": "48b2ede4844e13f1a2b7ce4d2529c9af7e359fc5",
+			"revisionTime": "2016-11-21T13:34:36Z"
 		}
 	],
 	"rootPath": "github.com/justwatchcom/gopass"
