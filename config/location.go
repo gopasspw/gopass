@@ -67,3 +67,9 @@ func PwStoreDir(mount string) string {
 	}
 	return filepath.Join(Homedir(), ".password-store")
 }
+
+// Directory returns the configuration directory for the gopass config file
+func Directory() string {
+	cfgLoc := configLocation()
+	return filepath.Dir(cfgLoc)
+}

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"path/filepath"
 
 	"github.com/justwatchcom/gopass/utils/fsutil"
 	"github.com/pkg/errors"
@@ -108,7 +107,7 @@ func (c *Config) Save() error {
 		return errors.Wrapf(err, "failed to marshal YAML")
 	}
 	cfgLoc := configLocation()
-	cfgDir := filepath.Dir(cfgLoc)
+	cfgDir := Directory()
 	if !fsutil.IsDir(cfgDir) {
 		if err := os.MkdirAll(cfgDir, 0700); err != nil {
 			return errors.Wrapf(err, "failed to create dir '%s'", cfgDir)

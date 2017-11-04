@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
+	"github.com/justwatchcom/gopass/config"
 	"github.com/justwatchcom/gopass/utils/jsonapi"
 	"github.com/justwatchcom/gopass/utils/jsonapi/manifest"
 	"github.com/pkg/errors"
@@ -91,7 +92,7 @@ func (s *Action) getLibPath(ctx context.Context, c *cli.Context, browser string,
 func (s *Action) getWrapperPath(ctx context.Context, c *cli.Context) (path string, err error) {
 	path = c.String("path")
 	if path == "" {
-		path, err = s.askForString(ctx, color.BlueString("In which path should gopass_wrapper.sh be installed?"), manifest.DefaultWrapperPath)
+		path, err = s.askForString(ctx, color.BlueString("In which path should gopass_wrapper.sh be installed?"), config.Directory())
 		if err != nil {
 			return "", errors.Wrapf(err, "failed to ask for user input")
 		}
