@@ -7,6 +7,7 @@
 [![Build Status](https://travis-ci.org/justwatchcom/gopass.svg?branch=master)](https://travis-ci.org/justwatchcom/gopass)
 [![Go Report Card](https://goreportcard.com/badge/github.com/justwatchcom/gopass)](https://goreportcard.com/report/github.com/justwatchcom/gopass)
 [![Code Climate](https://codeclimate.com/github/justwatchcom/gopass/badges/gpa.svg)](https://codeclimate.com/github/justwatchcom/gopass)
+[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/justwatchcom/gopass/blob/master/LICENSE)
 
 The slightly more awesome Standard Unix Password Manager for Teams. Written in Go.
 
