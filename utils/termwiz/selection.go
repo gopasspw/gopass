@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/gdamore/tcell/termbox"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	runewidth "github.com/mattn/go-runewidth"
-	"github.com/nsf/termbox-go"
 )
 
 func tbprint(x, y int, fg, bg termbox.Attribute, msg string) {
@@ -30,7 +30,7 @@ func GetSelection(ctx context.Context, prompt, usage string, choices []string) (
 
 	termbox.SetInputMode(termbox.InputEsc)
 	const coldef = termbox.ColorDefault
-	_ = termbox.Clear(coldef, coldef)
+	termbox.Clear(coldef, coldef)
 
 	cur := 0
 	for {
@@ -40,7 +40,7 @@ func GetSelection(ctx context.Context, prompt, usage string, choices []string) (
 			return "aborted", cur
 		default:
 		}
-		_ = termbox.Clear(coldef, coldef)
+		termbox.Clear(coldef, coldef)
 		tbprint(0, 0, coldef, coldef, prompt+"Please select:")
 		_, h := termbox.Size()
 		offset := 0
