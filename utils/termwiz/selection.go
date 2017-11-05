@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/gdamore/tcell/termbox"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	runewidth "github.com/mattn/go-runewidth"
-	"github.com/zyedidia/tcell/termbox"
 )
 
 func tbprint(x, y int, fg, bg termbox.Attribute, msg string) {
