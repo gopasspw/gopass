@@ -217,6 +217,8 @@ gopass jsonapi configure --print-only
 gopass jsonapi configure --browser chrome --path /home/user/.local/
 
 ```
+
+The username/login is determined from `login`, `username` and `user` yaml attributes. As fallback, the last part of the path is used, e.g. `theuser1` for `Internet/github.com/theuser1` entry.
  
 ### Storing and Syncing your Password Store with Google Drive / Dropbox / etc.
 
