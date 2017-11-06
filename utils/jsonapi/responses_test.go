@@ -3,8 +3,6 @@ package jsonapi
 import (
 	"testing"
 
-	"path/filepath"
-
 	"github.com/justwatchcom/gopass/store/secret"
 )
 
@@ -26,7 +24,7 @@ func TestGetUsername(t *testing.T) {
 			Out:  "foo",
 		},
 	} {
-		got := a.getUsername(filepath.FromSlash(tc.Name), tc.Sec)
+		got := a.getUsername(tc.Name, tc.Sec)
 		if got != tc.Out {
 			t.Errorf("Wrong username: %s != %s", got, tc.Out)
 		}

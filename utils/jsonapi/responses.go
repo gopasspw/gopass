@@ -5,16 +5,17 @@ import (
 
 	"encoding/json"
 	"fmt"
-	"path/filepath"
 	"regexp"
 	"strings"
+
+	"path"
 
 	"github.com/justwatchcom/gopass/store/secret"
 	"github.com/pkg/errors"
 )
 
 var (
-	sep = string(filepath.Separator)
+	sep = "/"
 )
 
 func (api *API) respondMessage(ctx context.Context, msgBytes []byte) error {
@@ -127,7 +128,7 @@ func (api *API) getUsername(name string, sec *secret.Secret) string {
 	// if no meta-data was found return the name of the secret itself
 	// as the username, e.g. providers/amazon.com/foobar -> foobar
 	if strings.Contains(name, sep) {
-		return filepath.Base(name)
+		return path.Base(name)
 	}
 
 	return ""
