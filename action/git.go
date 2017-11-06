@@ -2,6 +2,7 @@ package action
 
 import (
 	"context"
+	"os"
 
 	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/utils/out"
@@ -64,6 +65,9 @@ func (s *Action) gitInit(ctx context.Context, store, sk string) error {
 	}
 
 	if err := s.Store.GitInit(ctx, store, sk, userName, userEmail); err != nil {
+		if gtv := os.Getenv("GPG_TTY"); gtv == "" {
+			out.Yellow(ctx, "Git initialization failed. You may want to try to 'export GPG_TTY=$(tty)' and start over.")
+		}
 		return errors.Wrapf(err, "failed to run git init")
 	}
 
