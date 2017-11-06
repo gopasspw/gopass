@@ -20,4 +20,4 @@ install:
 build_script:
     - go build
     - ps: |
-        go.exe test (go.exe list ./... | where { -not $_.Contains('/vendor/') -and -not $_.Contains('/tests') })
+        go.exe test (go.exe list ./... | where { -not $_.Contains('/vendor/') })
