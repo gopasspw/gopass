@@ -19,6 +19,7 @@ const (
 	ctxKeyAlwaysYes
 	ctxKeyUseSymbols
 	ctxKeyNoColor
+	ctxKeyFuzzySearch
 )
 
 // WithDebug returns a context with an explizit value for debug
@@ -299,6 +300,20 @@ func IsAlwaysYes(ctx context.Context) bool {
 	bv, ok := ctx.Value(ctxKeyAlwaysYes).(bool)
 	if !ok {
 		return false
+	}
+	return bv
+}
+
+// WithFuzzySearch returns a context with the value for fuzzy search set
+func WithFuzzySearch(ctx context.Context, fuzzy bool) context.Context {
+	return context.WithValue(ctx, ctxKeyFuzzySearch, fuzzy)
+}
+
+// IsFuzzySearch return the value of fuzzy search or the default (true)
+func IsFuzzySearch(ctx context.Context) bool {
+	bv, ok := ctx.Value(ctxKeyFuzzySearch).(bool)
+	if !ok {
+		return true
 	}
 	return bv
 }
