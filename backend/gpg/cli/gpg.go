@@ -50,6 +50,13 @@ func New(cfg Config) *GPG {
 	// this setting should be inherited by sub-processes
 	umask(077)
 
+	// make sure GPG_TTY is set (if possible)
+	if gt := os.Getenv("GPG_TTY"); gt == "" {
+		if t := tty(); t != "" {
+			_ = os.Setenv("GPG_TTY", t)
+		}
+	}
+
 	if len(cfg.Args) < 1 {
 		cfg.Args = defaultArgs
 	}

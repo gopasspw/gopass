@@ -28,7 +28,6 @@ func GetSelection(ctx context.Context, prompt, usage string, choices []string) (
 	}
 	defer termbox.Close()
 
-	termbox.SetInputMode(termbox.InputEsc)
 	const coldef = termbox.ColorDefault
 	termbox.Clear(coldef, coldef)
 
