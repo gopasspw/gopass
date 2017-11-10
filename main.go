@@ -450,7 +450,7 @@ func main() {
 				"multiple matches a selection will be shown.",
 			Before: func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
 			Action: func(c *cli.Context) error {
-				return action.Find(withGlobalFlags(ctx, c), c)
+				return action.Find(withGlobalFlags(ctxutil.WithFuzzySearch(ctx, false), c), c)
 			},
 			Aliases:      []string{"search"},
 			BashComplete: action.Complete,

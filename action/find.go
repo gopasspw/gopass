@@ -38,15 +38,17 @@ func (s *Action) Find(ctx context.Context, c *cli.Context) error {
 		return s.show(ctx, c, choices[0], "", clip, false, false, false)
 	}
 
-	if len(choices) < 1 {
+	if len(choices) < 1 && ctxutil.IsFuzzySearch(ctx) {
 		// try fuzzy match
 		cm := closestmatch.New(l, []int{2})
 		choices = cm.ClosestN(needle, 5)
-		if len(choices) < 1 {
-			return fmt.Errorf("no results found")
-		}
+	}
+	if len(choices) < 1 {
+		return fmt.Errorf("no results found")
 	}
 
+	// do not invoke wizard if not printing to terminal or if
+	// gopass find/search was invoked directly (for scripts)
 	if !ctxutil.IsTerminal(ctx) || c.Command.Name == "find" {
 		for _, value := range choices {
 			fmt.Println(value)
