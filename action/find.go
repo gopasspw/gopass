@@ -14,6 +14,8 @@ import (
 
 // Find a string in the secret file's name
 func (s *Action) Find(ctx context.Context, c *cli.Context) error {
+	ctx = WithClip(ctx, c.Bool("clip"))
+
 	if !c.Args().Present() {
 		return s.exitError(ctx, ExitUsage, nil, "Usage: %s find arg", s.Name)
 	}
@@ -31,11 +33,9 @@ func (s *Action) Find(ctx context.Context, c *cli.Context) error {
 		}
 	}
 
-	clip := c.Bool("clip")
-
 	if len(choices) == 1 {
 		out.Green(ctx, "Found exact match in '%s'", choices[0])
-		return s.show(ctx, c, choices[0], "", clip, false, false, false)
+		return s.show(ctx, c, choices[0], "", false)
 	}
 
 	if len(choices) < 1 && ctxutil.IsFuzzySearch(ctx) {
@@ -61,17 +61,17 @@ func (s *Action) Find(ctx context.Context, c *cli.Context) error {
 	case "copy":
 		// display selected entry
 		fmt.Println(choices[sel])
-		return s.show(ctx, c, choices[sel], "", true, false, false, false)
+		return s.show(WithClip(ctx, true), c, choices[sel], "", false)
 	case "show":
 		// display selected entry
 		fmt.Println(choices[sel])
-		return s.show(ctx, c, choices[sel], "", clip, false, false, false)
+		return s.show(WithClip(ctx, false), c, choices[sel], "", false)
 	case "sync":
 		// run sync and re-run show/find workflow
 		if err := s.Sync(ctx, c); err != nil {
 			return err
 		}
-		return s.show(ctx, c, needle, "", clip, false, false, true)
+		return s.show(ctx, c, needle, "", true)
 	default:
 		return s.exitError(ctx, ExitAborted, nil, "user aborted")
 	}

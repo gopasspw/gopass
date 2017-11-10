@@ -919,6 +919,10 @@ func main() {
 					Name:  "force, f",
 					Usage: "Display the password even if safecontent is enabled",
 				},
+				cli.BoolFlag{
+					Name:  "password, o",
+					Usage: "Dispaly only the password",
+				},
 			},
 		},
 		{
