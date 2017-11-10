@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -41,4 +42,14 @@ func splitPacket(in string) map[string]string {
 		m[p[i]] = p[i+1]
 	}
 	return m
+}
+
+// see https://www.gnupg.org/documentation/manuals/gnupg/Invoking-GPG_002dAGENT.html
+func tty() string {
+	fd0 := "/proc/self/fd/0"
+	dest, err := os.Readlink(fd0)
+	if err != nil {
+		return ""
+	}
+	return dest
 }
