@@ -48,9 +48,9 @@ func (s *Action) Version(ctx context.Context, c *cli.Context) error {
 			notice := fmt.Sprintf("\nYour version (%s) of gopass is out of date!\nThe latest version is %s.\n", s.version, r.Version().String())
 			notice += "You can update by downloading from www.justwatch.com/gopass"
 			if err := s.isUpdateable(ctx); err == nil {
-				notice += " by running 'gopass update' "
+				notice += " by running 'gopass update'"
 			}
-			notice += "or via your package manager"
+			notice += " or via your package manager"
 			u <- color.YellowString(notice)
 		}
 		u <- ""
