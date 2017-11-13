@@ -9,6 +9,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/store"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
+	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/justwatchcom/gopass/utils/qrcon"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"
@@ -35,8 +36,11 @@ func (s *Action) show(ctx context.Context, c *cli.Context, name, key string, rec
 		return s.exitError(ctx, ExitUsage, nil, "Usage: %s show [name]", s.Name)
 	}
 
-	if s.Store.IsDir(ctx, name) {
+	if s.Store.IsDir(ctx, name) && !s.Store.Exists(ctx, name) {
 		return s.List(ctx, c)
+	}
+	if s.Store.IsDir(ctx, name) && ctxutil.IsTerminal(ctx) {
+		out.Cyan(ctx, "Warning: %s is a secret and a folder. Use 'gopass show %s' to display the secret and 'gopass list %s' to show the content of the folder", name, name, name)
 	}
 
 	// auto-fallback to binary files with b64 suffix, if unique
