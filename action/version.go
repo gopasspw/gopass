@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/dominikschulz/github-releases/ghrel"
@@ -26,7 +27,7 @@ func (s *Action) Version(ctx context.Context, c *cli.Context) error {
 			return
 		}
 
-		if s.version.String() == "0.0.0+HEAD" {
+		if strings.HasSuffix(s.version.String(), "+HEAD") {
 			// chan not check version against HEAD
 			u <- ""
 			return
