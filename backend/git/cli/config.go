@@ -35,7 +35,14 @@ func (g *Git) fixConfig(ctx context.Context) error {
 		out.Yellow(ctx, "Error while initializing git: %s", err)
 	}
 
-	return g.fixConfigOSDep(ctx)
+	if g.gpg == "" {
+		return nil
+	}
+
+	if err := g.Cmd(ctx, "gitFixConfig", "config", "--local", "gpg.program", g.gpg); err != nil {
+		return errors.Wrapf(err, "failed to set git config gpg.program")
+	}
+	return nil
 }
 
 // InitConfig initialized and preparse the git config
