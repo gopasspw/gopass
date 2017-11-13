@@ -34,6 +34,9 @@ func mkStoreWalkerFunc(alias, folder string, fn func(...string)) func(string, os
 		if info.Mode()&os.ModeSymlink != 0 {
 			return nil
 		}
+		if !strings.HasSuffix(path, ".gpg") {
+			return nil
+		}
 		s := strings.TrimPrefix(path, folder+sep)
 		s = strings.TrimSuffix(s, ".gpg")
 		if alias != "" {
