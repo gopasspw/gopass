@@ -26,7 +26,7 @@ func (s *Store) Set(ctx context.Context, name string, sec *secret.Secret) error 
 		return errors.Errorf("a folder named %s already exists", name)
 	}
 
-	recipients, err := s.useableKeys(ctx, p)
+	recipients, err := s.useableKeys(ctx, name)
 	if err != nil {
 		return errors.Wrapf(err, "failed to list useable keys for '%s'", p)
 	}

@@ -45,8 +45,8 @@ func New(alias string, path string) *Store {
 // idFile returns the path to the recipient list for this store
 // it walks up from the given filename until it finds a directory containing
 // a gpg id file or it leaves the scope of this store.
-func (s *Store) idFile(fn string) string {
-	fn, err := filepath.Abs(filepath.Join(s.path, fn))
+func (s *Store) idFile(name string) string {
+	fn, err := filepath.Abs(filepath.Join(s.path, name))
 	if err != nil {
 		panic(err)
 	}
@@ -96,8 +96,8 @@ func (s *Store) Exists(name string) bool {
 	return fsutil.IsFile(p)
 }
 
-func (s *Store) useableKeys(ctx context.Context, file string) ([]string, error) {
-	rs, err := s.GetRecipients(ctx, file)
+func (s *Store) useableKeys(ctx context.Context, name string) ([]string, error) {
+	rs, err := s.GetRecipients(ctx, name)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get recipients")
 	}
