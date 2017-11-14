@@ -120,8 +120,10 @@ func (s *Store) OurKeyID(ctx context.Context) string {
 
 // GetRecipients will load all Recipients from the .gpg-id file for the given
 // secret path
-func (s *Store) GetRecipients(ctx context.Context, file string) ([]string, error) {
-	idf := s.idFile(file)
+func (s *Store) GetRecipients(ctx context.Context, name string) ([]string, error) {
+	idf := s.idFile(name)
+
+	out.Debug(ctx, "GetRecipients(%s) - idfile: %s", name, idf)
 	// open recipient list (store/.gpg-id)
 	f, err := os.Open(idf)
 	if err != nil {
