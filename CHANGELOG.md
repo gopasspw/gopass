@@ -1,3 +1,16 @@
+## 1.6.1 / 2017-11-15
+
+* [FEATURE] Add generic OTP action [#440]
+* [ENHANCEMENT] Ignore any secret that does not end with .gpg [#461]
+* [ENHANCEMENT] Add option to display only the password [#455]
+* [ENHANCEMENT] Disable fuzzy search for gopass find [#454]
+* [BUGFIX] Fix .gpg-id selection for subfolders [#465]
+* [BUGFIX] Set gpg.program if possible [#464]
+* [BUGFIX] Allow access to secrets shadowed by a folder [#463]
+* [BUGFIX] Set GPG_TTY [#452]
+* [BUGFIX] Fix termbox UI on OpenBSD [#446]
+* [BUGFIX] Fix tests and paths on Windows [#421] [#431] [#442] [#450]
+
 ## 1.6.0 / 2017-11-03
 
 * [FEATURE] Add Desktop notifications (Linux/DBus only) [#434] [#435]
