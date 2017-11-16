@@ -20,6 +20,7 @@ import (
 	"github.com/justwatchcom/gopass/store/sub"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/out"
+	"github.com/justwatchcom/gopass/utils/protect"
 	colorable "github.com/mattn/go-colorable"
 	"github.com/urfave/cli"
 )
@@ -38,6 +39,7 @@ var (
 )
 
 func main() {
+	protect.Pledge("stdio rpath tty proc exec")
 	ctx := context.Background()
 
 	// trap Ctrl+C and call cancel on the context
