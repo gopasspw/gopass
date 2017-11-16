@@ -50,7 +50,12 @@ func (s *Action) OTP(ctx context.Context, c *cli.Context) error {
 			secKey = sec.Password()
 		}
 
-		otp, err = twofactor.NewGoogleTOTP(secKey)
+		if strings.HasPrefix(secKey, "otpauth://") {
+			otp, label, err = twofactor.FromURL(secKey)
+		} else {
+			otp, err = twofactor.NewGoogleTOTP(secKey)
+		}
+
 		if err != nil {
 			return s.exitError(ctx, ExitUnknown, err, "No OTP entry found for %s", name)
 		}
