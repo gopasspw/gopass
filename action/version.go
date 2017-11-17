@@ -10,6 +10,7 @@ import (
 	"github.com/dominikschulz/github-releases/ghrel"
 	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/utils/out"
+	"github.com/justwatchcom/gopass/utils/protect"
 	"github.com/urfave/cli"
 )
 
@@ -27,8 +28,9 @@ func (s *Action) Version(ctx context.Context, c *cli.Context) error {
 			return
 		}
 
-		if strings.HasSuffix(s.version.String(), "+HEAD") {
-			// chan not check version against HEAD
+		if strings.HasSuffix(s.version.String(), "+HEAD") || protect.ProtectEnabled {
+			// chan not check version against HEAD or
+			// against pledge(2)'d OpenBSD
 			u <- ""
 			return
 		}
