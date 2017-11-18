@@ -464,6 +464,24 @@ func main() {
 			},
 		},
 		{
+			Name:   "fix",
+			Usage:  "Upgrade secrets",
+			Before: func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
+			Action: func(c *cli.Context) error {
+				return action.Fix(withGlobalFlags(ctx, c), c)
+			},
+			Flags: []cli.Flag{
+				cli.BoolFlag{
+					Name:  "check, c",
+					Usage: "Only report",
+				},
+				cli.BoolFlag{
+					Name:  "force, f",
+					Usage: "Auto-correct any errors, do not ask",
+				},
+			},
+		},
+		{
 			Name:  "fsck",
 			Usage: "Check inconsistencies (ALPHA)",
 			Description: "" +
