@@ -22,13 +22,15 @@ const (
 
 // Generate & save a password
 func (s *Action) Generate(ctx context.Context, c *cli.Context) error {
-	var xkcdSeparator string
+	xkcdSeparator := " "
 	force := c.Bool("force")
 	edit := c.Bool("edit")
 	symbols := false
+
 	if c.Bool("symbols") || ctxutil.IsUseSymbols(ctx) {
 		symbols = true
 	}
+
 	xkcd := c.Bool("xkcd")
 	if c.IsSet("xkcdsep") {
 		xkcdSeparator = c.String("xkcdsep")
