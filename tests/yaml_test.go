@@ -17,7 +17,7 @@ func TestYAMLAndSecret(t *testing.T) {
 
 	out, err := ts.run("foo/bar baz")
 	assert.Error(t, err)
-	assert.Equal(t, "Entry 'foo/bar' not found. Starting search...\n\nError: no results found\n", out)
+	assert.Equal(t, "\nError: failed to retrieve secret 'foo/bar': Entry is not in the password store\n", out)
 
 	_, err = ts.runCmd([]string{ts.Binary, "insert", "foo/bar"}, []byte("moar"))
 	assert.NoError(t, err)
@@ -48,7 +48,7 @@ url: http://www.test.com/`
 
 	out, err := ts.run("foo/bar")
 	assert.Error(t, err)
-	assert.Equal(t, "Entry 'foo/bar' not found. Starting search...\n\nError: no results found\n", out)
+	assert.Equal(t, "\nError: failed to retrieve secret 'foo/bar': Entry is not in the password store\n", out)
 
 	_, err = ts.runCmd([]string{ts.Binary, "insert", "foo/bar"}, []byte(testBody))
 	assert.NoError(t, err)
