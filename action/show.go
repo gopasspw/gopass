@@ -50,7 +50,7 @@ func (s *Action) show(ctx context.Context, c *cli.Context, name, key string, rec
 
 	sec, err := s.Store.Get(ctx, name)
 	if err != nil {
-		if err != store.ErrNotFound || !recurse {
+		if err != store.ErrNotFound || !recurse || !ctxutil.IsTerminal(ctx) {
 			return s.exitError(ctx, ExitUnknown, err, "failed to retrieve secret '%s': %s", name, err)
 		}
 		color.Yellow("Entry '%s' not found. Starting search...", name)

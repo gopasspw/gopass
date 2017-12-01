@@ -22,7 +22,7 @@ func TestShow(t *testing.T) {
 
 	out, err = ts.run("show foo")
 	assert.Error(t, err)
-	assert.Equal(t, "Entry 'foo' not found. Starting search...\n\nError: no results found\n", out)
+	assert.Equal(t, "\nError: failed to retrieve secret 'foo': Entry is not in the password store\n", out)
 
 	ts.initSecrets("")
 
