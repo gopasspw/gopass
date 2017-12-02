@@ -123,6 +123,15 @@ wget [the URL of the latest .deb release]
 sudo dpkg -i gopass-1.2.0-linux-amd64.deb
 ```
 
+### Gentoo
+
+There is an overlay that includes gopass. Run these commands to install gopass through `emerge`.
+
+```bash
+layman -a go-overlay
+emerge -av gopass
+```
+
 ### Windows
 
 **WARNING**: Windows is not yet officially supported. We try to support it in the future. These are steps are only meant to help you setup gopass on Windows so you can provide us with feedback about the current state of our Windows support.
