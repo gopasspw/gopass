@@ -1,3 +1,12 @@
+## 1.6.2 / 2017-12-02
+
+* [FEATURE] Add gopass fix command [#471]
+* [ENHANCEMENT] Add pledge support on OpenBSD [#469]
+* [ENHANCEMENT] Improve no clipboard warning [#484]
+* [BUGFIX] Allow OTP entry in password field [#467]
+* [BUGFIX] Default to vi if no other editor is available [#479]
+* [BUGFIX] Avoid auto-search running non-interactively [#483]
+
 ## 1.6.1 / 2017-11-15
 
 * [FEATURE] Add generic OTP action [#440]
