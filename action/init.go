@@ -203,6 +203,28 @@ func (s *Action) initHasUseablePrivateKeys(ctx context.Context) bool {
 	return len(kl.UseableKeys()) > 0
 }
 
+func (s *Action) initSetupGitRemote(ctx context.Context, team, remote string) error {
+	var err error
+	remote, err = s.askForString(ctx, "Please enter the git remote for your shared store", remote)
+	if err != nil {
+		return errors.Wrapf(err, "failed to read user input")
+	}
+	{
+		ctx := out.WithHidden(ctx, true)
+		if err := s.Store.Git(ctx, team, false, false, "remote", "add", "origin", remote); err != nil {
+			return errors.Wrapf(err, "failed to add git remote")
+		}
+		// initial pull, in case the remote is non-empty
+		if err := s.Store.Git(ctx, team, false, false, "pull", "origin", "master"); err != nil {
+			out.Debug(ctx, "Initial git pull failed: %s", err)
+		}
+		if err := s.Store.Git(ctx, team, false, false, "push", "origin", "master"); err != nil {
+			return errors.Wrapf(err, "failed to push to git remote")
+		}
+	}
+	return nil
+}
+
 // initLocal will initalize a local store, useful for local-only setups or as
 // part of team setups to create the root store
 func (s *Action) initLocal(ctx context.Context, c *cli.Context) error {
@@ -218,18 +240,8 @@ func (s *Action) initLocal(ctx context.Context, c *cli.Context) error {
 
 	if want, err := s.askForBool(ctx, "Do you want to add a git remote?", false); err == nil && want {
 		out.Print(ctx, "Configuring the git remote ...")
-		remote, err := s.askForString(ctx, "Please enter the git remote for your store", "")
-		if err != nil {
-			return errors.Wrapf(err, "failed to read user input")
-		}
-		{
-			ctx := out.WithHidden(ctx, true)
-			if err := s.Store.Git(ctx, "", false, false, "remote", "add", "origin", remote); err != nil {
-				return errors.Wrapf(err, "failed to add git remote")
-			}
-			if err := s.Store.Git(ctx, "", false, false, "push", "origin", "master"); err != nil {
-				return errors.Wrapf(err, "failed to push to git remote")
-			}
+		if err := s.initSetupGitRemote(ctx, "", ""); err != nil {
+			return errors.Wrapf(err, "failed to setup git remote")
 		}
 		// autosync
 		if want, err := s.askForBool(ctx, "Do you want to automatically push any changes to the git remote (if any)?", true); err == nil {
@@ -276,18 +288,8 @@ func (s *Action) initCreateTeam(ctx context.Context, c *cli.Context, team, remot
 	out.Green(ctx, " -> OK")
 
 	out.Print(ctx, "Configuring the git remote ...")
-	remote, err = s.askForString(ctx, "Please enter the git remote for your shared store", remote)
-	if err != nil {
-		return errors.Wrapf(err, "failed to read user input")
-	}
-	{
-		ctx := out.WithHidden(ctx, true)
-		if err := s.Store.Git(ctx, team, false, false, "remote", "add", "origin", remote); err != nil {
-			return errors.Wrapf(err, "failed to add git remote")
-		}
-		if err := s.Store.Git(ctx, team, false, false, "push", "origin", "master"); err != nil {
-			return errors.Wrapf(err, "failed to push to git remote")
-		}
+	if err := s.initSetupGitRemote(ctx, team, remote); err != nil {
+		return errors.Wrapf(err, "failed to setup git remote")
 	}
 	out.Green(ctx, " -> OK")
 	out.Green(ctx, "Created Team '%s'", team)
