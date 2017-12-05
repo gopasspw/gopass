@@ -13,19 +13,22 @@
 
 gopass needs some external programs to work:
 
-* `gpg`
-* `git`
+* `gpg` - [GnuPG](https://www.gnupg.org/), preferably in Version 2 or later
+* `git` - [Git SCM](https://git-scm.com/), any Version should be OK
+
+It is recommended to have either `rng-tools` or `haveged` installed to speed up
+key generation if these are available for your platform.
 
 #### Ubuntu & Debian
 
 ```bash
-apt-get install gnupg git
+apt-get install gnupg git rng-tools
 ```
 
 #### RHEL & CentOS
 
 ```bash
-yum install gnupg2 git
+yum install gnupg2 git rng-tools
 ```
 
 #### macOS

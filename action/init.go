@@ -156,6 +156,11 @@ func (s *Action) InitOnboarding(ctx context.Context, c *cli.Context) error {
 
 func (s *Action) initCreatePrivateKey(ctx context.Context, name, email string) error {
 	out.Green(ctx, "Creating key pair ...")
+	out.Yellow(ctx, "WARNING: We are about to generate some GPG keys.")
+	out.Print(ctx, `However, the GPG program can sometimes lock up, displaying the following:
+"We need to generate a lot of random bytes."
+If this happens, please see the following tips:
+https://github.com/justwatchcom/gopass/blob/master/docs/entropy.md`)
 	if name != "" && email != "" {
 		ctx := out.AddPrefix(ctx, " ")
 		passphrase := xkcdgen.Random()
@@ -165,6 +170,9 @@ func (s *Action) initCreatePrivateKey(ctx context.Context, name, email string) e
 		out.Green(ctx, "-> OK")
 		out.Print(ctx, color.MagentaString("Passphrase: ")+color.HiGreenString(passphrase))
 	} else {
+		if want, err := s.askForBool(ctx, "Continue?", true); err != nil || !want {
+			return errors.Wrapf(err, "User aborted")
+		}
 		ctx := out.WithPrefix(ctx, " ")
 		if err := s.gpg.CreatePrivateKey(ctx); err != nil {
 			return errors.Wrapf(err, "failed to create new private key in interactive mode")
@@ -231,6 +239,7 @@ func (s *Action) initLocal(ctx context.Context, c *cli.Context) error {
 	ctx = out.AddPrefix(ctx, "[local] ")
 
 	out.Print(ctx, "Initializing your local store ...")
+	out.Yellow(ctx, "Setting up git to sign commits. You will be asked for your selected GPG keys passphrase to sign the initial commit")
 	if err := s.init(out.WithHidden(ctx, true), "", "", false); err != nil {
 		return errors.Wrapf(err, "failed to init local store")
 	}
