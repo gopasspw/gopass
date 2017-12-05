@@ -89,6 +89,8 @@ fpm:
   dependencies:
     - git
     - gnupg
+  recommends:
+    - rng-tools
 source:
   name_template: "{{.Binary}}-{{.Version}}"
   excludes:
