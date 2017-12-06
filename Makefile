@@ -6,7 +6,9 @@ EXECUTABLE := gopass
 PWD := $(shell pwd)
 VERSION := $(shell cat VERSION)
 SHA := $(shell cat COMMIT 2>/dev/null || git rev-parse --short=8 HEAD)
-DATE := $(shell date -u '+%FT%T%z')
+
+# Support reproducible builds by embedding date according to SOURCE_DATE_EPOCH if present
+DATE := $(shell date -u -d "@$(SOURCE_DATE_EPOCH)" '+%FT%T%z' 2>/dev/null || date -u '+%FT%T%z')
 
 GOLDFLAGS += -X "main.version=$(VERSION)"
 GOLDFLAGS += -X "main.date=$(DATE)"
