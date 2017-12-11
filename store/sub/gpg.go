@@ -82,7 +82,16 @@ func (s *Store) ImportMissingPublicKeys(ctx context.Context) error {
 
 // export an ASCII armored public key
 func (s *Store) exportPublicKey(ctx context.Context, r string) (string, error) {
-	filename := filepath.Join(s.path, keyDir, r)
+	filedir := filepath.Join(s.path, keyDir)
+
+	// make sure dir exists
+	if !fsutil.IsDir(filedir) {
+		if err := os.Mkdir(filedir, 0700); err != nil {
+			return "", err
+		}
+	}
+
+	filename := filepath.Join(filedir, r)
 
 	// do not overwrite existing keys
 	if fsutil.IsFile(filename) {
