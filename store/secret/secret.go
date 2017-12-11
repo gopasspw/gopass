@@ -2,7 +2,6 @@ package secret
 
 import (
 	"bytes"
-	"fmt"
 	"strings"
 	"sync"
 
@@ -55,8 +54,17 @@ func (s *Secret) decodeYAML() (bool, error) {
 		return true, err
 	}
 	s.data = d
-	s.body = ""
 	return true, nil
+}
+
+func (s *Secret) encodeYAML() error {
+	// update body
+	yb, err := yaml.Marshal(s.data)
+	if err != nil {
+		return err
+	}
+	s.body = "---\n" + string(yb)
+	return nil
 }
 
 // Bytes encodes an secret
@@ -64,15 +72,6 @@ func (s *Secret) Bytes() ([]byte, error) {
 	buf := &bytes.Buffer{}
 	_, _ = buf.WriteString(s.password)
 	_, _ = buf.WriteString("\n")
-	if s.data != nil {
-		yb, err := yaml.Marshal(s.data)
-		if err != nil {
-			return nil, err
-		}
-		_, _ = buf.WriteString("---\n")
-		_, _ = buf.Write(yb)
-		return buf.Bytes(), nil
-	}
 	_, _ = buf.WriteString(s.body)
 	return buf.Bytes(), nil
 }
@@ -82,16 +81,6 @@ func (s *Secret) String() string {
 	buf := &bytes.Buffer{}
 	_, _ = buf.WriteString(s.password)
 	_, _ = buf.WriteString("\n")
-	if s.data != nil {
-		yb, err := yaml.Marshal(s.data)
-		if err != nil {
-			_, _ = buf.WriteString(fmt.Sprintf("YAML-Encoding Error: %s\n%+v\n", err, s.data))
-			return buf.String()
-		}
-		_, _ = buf.WriteString("---\n")
-		_, _ = buf.Write(yb)
-		return buf.String()
-	}
 	_, _ = buf.WriteString(s.body)
 	return buf.String()
 }
@@ -177,7 +166,7 @@ func (s *Secret) SetValue(key, value string) error {
 		return store.ErrYAMLNoMark
 	}
 	s.data[key] = value
-	return nil
+	return s.encodeYAML()
 }
 
 // DeleteKey key will delete a single key from an decoded map
@@ -189,7 +178,7 @@ func (s *Secret) DeleteKey(key string) error {
 		return store.ErrYAMLNoMark
 	}
 	delete(s.data, key)
-	return nil
+	return s.encodeYAML()
 }
 
 // Equal returns true if two secrets are equal
