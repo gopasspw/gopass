@@ -4,6 +4,8 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"strconv"
+	"strings"
 
 	"github.com/blang/semver"
 	"github.com/justwatchcom/gopass/backend/gpg"
@@ -51,9 +53,32 @@ func New(ctx context.Context, cfg *config.Config, sv semver.Version) *Action {
 	}
 	act.Store = store
 
-	act.gpg = gpgcli.New(gpgcli.Config{})
+	act.gpg = gpgcli.New(gpgcli.Config{
+		Umask: umask(),
+		Args:  gpgOpts(),
+	})
 
 	return act
+}
+
+func umask() int {
+	for _, en := range []string{"GOPASS_UMASK", "PASSWORD_STORE_UMASK"} {
+		if um := os.Getenv(en); um != "" {
+			if iv, err := strconv.ParseInt(um, 8, 32); err == nil && iv >= 0 && iv <= 0777 {
+				return int(iv)
+			}
+		}
+	}
+	return 077
+}
+
+func gpgOpts() []string {
+	for _, en := range []string{"GOPASS_GPG_OPTS", "PASSWORD_STORE_GPG_OPTS"} {
+		if opts := os.Getenv(en); opts != "" {
+			return strings.Fields(opts)
+		}
+	}
+	return nil
 }
 
 // String implement fmt.Stringer
