@@ -42,13 +42,14 @@ type GPG struct {
 type Config struct {
 	Binary string
 	Args   []string
+	Umask  int
 }
 
 // New creates a new GPG wrapper
 func New(cfg Config) *GPG {
 	// ensure created files don't have group or world perms set
 	// this setting should be inherited by sub-processes
-	umask(077)
+	umask(cfg.Umask)
 
 	// make sure GPG_TTY is set (if possible)
 	if gt := os.Getenv("GPG_TTY"); gt == "" {
@@ -57,13 +58,9 @@ func New(cfg Config) *GPG {
 		}
 	}
 
-	if len(cfg.Args) < 1 {
-		cfg.Args = defaultArgs
-	}
-
 	g := &GPG{
 		binary: "gpg",
-		args:   cfg.Args,
+		args:   append(defaultArgs, cfg.Args...),
 	}
 	_ = g.detectBinary(cfg.Binary)
 

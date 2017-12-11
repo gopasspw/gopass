@@ -8,6 +8,8 @@ Some configuration options are only available through setting environment variab
 | -------------------- | ---------| --------------- |
 | `CHECKPOINT_DISABLE` | `bool`   | Set to any non-empty value to disable calling the GitHub API when running `gopass version`. |
 | `GOPASS_DEBUG`       | `bool`   | Set to any non-empty value to enable verbose debug output |
+| `GOPASS_UMASK`       | `octal`  | Set to any valid umask to mask bits of files created by gopass |
+| `GOPASS_GPG_OPTS`    | `string` | Add any extra arguments, e.g. `--armor` you want to pass to gpg on every invocation |
 
 ## Configuration Options
 
