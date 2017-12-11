@@ -44,6 +44,9 @@ key2: value2`),
 				"key1": "value1",
 				"key2": "value2",
 			},
+			Body: `---
+key1: value1
+key2: value2`,
 		},
 		{
 			Desc: "YAML only Secret",
@@ -55,6 +58,9 @@ key2: value2`),
 				"key1": "value1",
 				"key2": "value2",
 			},
+			Body: `---
+key1: value1
+key2: value2`,
 		},
 		{
 			Desc: "invalid YAML Secret",
@@ -90,10 +96,10 @@ key2: value2`,
 			continue
 		}
 		if sec.Password() != tc.Password {
-			t.Errorf("Wrong password")
+			t.Errorf("[%s] Wrong password", tc.Desc)
 		}
 		if sec.Body() != tc.Body {
-			t.Errorf("Wrong body")
+			t.Errorf("[%s] Wrong body: %s - %s", tc.Desc, sec.Body(), tc.Body)
 		}
 		for k, v := range tc.Data {
 			rv, err := sec.Value(k)
