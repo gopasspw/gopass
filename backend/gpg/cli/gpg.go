@@ -46,7 +46,7 @@ type Config struct {
 }
 
 // New creates a new GPG wrapper
-func New(cfg Config) *GPG {
+func New(cfg Config) (*GPG, error) {
 	// ensure created files don't have group or world perms set
 	// this setting should be inherited by sub-processes
 	umask(cfg.Umask)
@@ -62,9 +62,11 @@ func New(cfg Config) *GPG {
 		binary: "gpg",
 		args:   append(defaultArgs, cfg.Args...),
 	}
-	_ = g.detectBinary(cfg.Binary)
+	if err := g.detectBinary(cfg.Binary); err != nil {
+		return nil, err
+	}
 
-	return g
+	return g, nil
 }
 
 // Binary returns the GPG binary location

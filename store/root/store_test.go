@@ -12,6 +12,7 @@ import (
 
 	"path"
 
+	gpgmock "github.com/justwatchcom/gopass/backend/gpg/mock"
 	"github.com/justwatchcom/gopass/config"
 	"github.com/justwatchcom/gopass/store/sub"
 )
@@ -32,11 +33,15 @@ func TestSimpleList(t *testing.T) {
 		t.Fatalf("Failed to create store directory: %s", err)
 	}
 
-	rs, err := New(ctx, &config.Config{
-		Root: &config.StoreConfig{
-			Path: tempdir,
+	rs, err := New(
+		ctx,
+		&config.Config{
+			Root: &config.StoreConfig{
+				Path: tempdir,
+			},
 		},
-	})
+		gpgmock.New(),
+	)
 	if err != nil {
 		t.Fatalf("Failed to create root store: %s", err)
 	}
@@ -85,11 +90,15 @@ func TestListMulti(t *testing.T) {
 	}
 	sort.Strings(ents)
 
-	rs, err := New(ctx, &config.Config{
-		Root: &config.StoreConfig{
-			Path: filepath.Join(tempdir, "root"),
+	rs, err := New(
+		ctx,
+		&config.Config{
+			Root: &config.StoreConfig{
+				Path: filepath.Join(tempdir, "root"),
+			},
 		},
-	})
+		gpgmock.New(),
+	)
 	if err != nil {
 		t.Fatalf("Failed to create root store: %s", err)
 	}
@@ -150,11 +159,15 @@ func TestListNested(t *testing.T) {
 	}
 	sort.Strings(ents)
 
-	rs, err := New(ctx, &config.Config{
-		Root: &config.StoreConfig{
-			Path: filepath.Join(tempdir, "root"),
+	rs, err := New(
+		ctx,
+		&config.Config{
+			Root: &config.StoreConfig{
+				Path: filepath.Join(tempdir, "root"),
+			},
 		},
-	})
+		gpgmock.New(),
+	)
 	if err != nil {
 		t.Fatalf("Failed to create root store: %s", err)
 	}

@@ -15,13 +15,18 @@ import (
 )
 
 type gpger interface {
-	FindPublicKeys(context.Context, ...string) (gpg.KeyList, error)
-	FindPrivateKeys(context.Context, ...string) (gpg.KeyList, error)
+	Binary() string
 	ListPublicKeys(context.Context) (gpg.KeyList, error)
+	FindPublicKeys(context.Context, ...string) (gpg.KeyList, error)
 	ListPrivateKeys(context.Context) (gpg.KeyList, error)
 	CreatePrivateKeyBatch(context.Context, string, string, string) error
 	CreatePrivateKey(context.Context) error
+	FindPrivateKeys(context.Context, ...string) (gpg.KeyList, error)
+	GetRecipients(context.Context, string) ([]string, error)
+	Encrypt(context.Context, string, []byte, []string) error
+	Decrypt(context.Context, string) ([]byte, error)
 	ExportPublicKey(context.Context, string, string) error
+	ImportPublicKey(context.Context, string) error
 	Version(context.Context) semver.Version
 }
 
@@ -35,7 +40,7 @@ type Action struct {
 }
 
 // New returns a new Action wrapper
-func New(ctx context.Context, cfg *config.Config, sv semver.Version) *Action {
+func New(ctx context.Context, cfg *config.Config, sv semver.Version) (*Action, error) {
 	name := "gopass"
 	if len(os.Args) > 0 {
 		name = filepath.Base(os.Args[0])
@@ -47,18 +52,22 @@ func New(ctx context.Context, cfg *config.Config, sv semver.Version) *Action {
 		version: sv,
 	}
 
-	store, err := root.New(ctx, cfg)
-	if err != nil {
-		panic(err)
-	}
-	act.Store = store
-
-	act.gpg = gpgcli.New(gpgcli.Config{
+	var err error
+	act.gpg, err = gpgcli.New(gpgcli.Config{
 		Umask: umask(),
 		Args:  gpgOpts(),
 	})
+	if err != nil {
+		return nil, err
+	}
 
-	return act
+	store, err := root.New(ctx, cfg, act.gpg)
+	if err != nil {
+		return nil, err
+	}
+	act.Store = store
+
+	return act, nil
 }
 
 func umask() int {

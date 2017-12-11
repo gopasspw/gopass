@@ -37,7 +37,7 @@ func (r *Store) addMount(ctx context.Context, alias, path string, keys ...string
 	}
 
 	// propagate our config settings to the sub store
-	s := sub.New(alias, path)
+	s := sub.New(alias, path, r.gpg)
 
 	if !s.Initialized() {
 		if len(keys) < 1 {

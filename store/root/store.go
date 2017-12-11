@@ -5,17 +5,11 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/justwatchcom/gopass/backend/gpg"
-	gpgcli "github.com/justwatchcom/gopass/backend/gpg/cli"
 	"github.com/justwatchcom/gopass/config"
 	"github.com/justwatchcom/gopass/store/sub"
 	"github.com/justwatchcom/gopass/utils/fsutil"
 	"github.com/pkg/errors"
 )
-
-type gpger interface {
-	FindPublicKeys(context.Context, ...string) (gpg.KeyList, error)
-}
 
 // Store is the public facing password store
 type Store struct {
@@ -28,7 +22,7 @@ type Store struct {
 }
 
 // New creates a new store
-func New(ctx context.Context, cfg *config.Config) (*Store, error) {
+func New(ctx context.Context, cfg *config.Config, gpg gpger) (*Store, error) {
 	if cfg == nil {
 		cfg = &config.Config{}
 	}
@@ -37,14 +31,14 @@ func New(ctx context.Context, cfg *config.Config) (*Store, error) {
 	}
 	r := &Store{
 		cfg:     cfg,
-		gpg:     gpgcli.New(gpgcli.Config{}),
+		gpg:     gpg,
 		mounts:  make(map[string]*sub.Store, len(cfg.Mounts)),
 		path:    cfg.Root.Path,
 		version: cfg.Version,
 	}
 
 	// create the base store
-	r.store = sub.New("", r.Path())
+	r.store = sub.New("", r.Path(), gpg)
 
 	// initialize all mounts
 	for alias, sc := range cfg.Mounts {

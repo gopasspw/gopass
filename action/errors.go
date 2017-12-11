@@ -49,6 +49,8 @@ const (
 	ExitRecipients
 	// ExitIO is used for misc. I/O errors
 	ExitIO
+	// ExitGPG is used for misc. gpg errors
+	ExitGPG
 )
 
 func (s *Action) exitError(ctx context.Context, exitCode int, err error, format string, args ...interface{}) error {
