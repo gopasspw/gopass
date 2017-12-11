@@ -13,11 +13,14 @@ import (
 func Test_askForGitConfigUser(t *testing.T) {
 	ctx := context.Background()
 
-	s := New(ctx, config.Load(), semver.Version{})
+	s, err := New(ctx, config.Load(), semver.Version{})
+	if err != nil {
+		t.Fatalf("%s", err)
+	}
 
 	ctx = ctxutil.WithTerminal(ctx, true)
 
-	_, _, err := s.askForGitConfigUser(ctx)
+	_, _, err = s.askForGitConfigUser(ctx)
 	if err == nil {
 		t.Error("Did not return error")
 	}
@@ -26,7 +29,10 @@ func Test_askForGitConfigUser(t *testing.T) {
 func Test_askForGitConfigUserNonInteractive(t *testing.T) {
 	ctx := context.Background()
 
-	s := New(ctx, config.Load(), semver.Version{})
+	s, err := New(ctx, config.Load(), semver.Version{})
+	if err != nil {
+		t.Fatalf("%s", err)
+	}
 
 	ctx = ctxutil.WithTerminal(ctx, false)
 

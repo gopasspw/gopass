@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	gitcli "github.com/justwatchcom/gopass/backend/git/cli"
-	gpgcli "github.com/justwatchcom/gopass/backend/gpg/cli"
 	"github.com/justwatchcom/gopass/store"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/fsutil"
@@ -31,9 +30,8 @@ type Store struct {
 }
 
 // New creates a new store, copying settings from the given root store
-func New(alias string, path string) *Store {
+func New(alias string, path string, gpg gpger) *Store {
 	path = fsutil.CleanPath(path)
-	gpg := gpgcli.New(gpgcli.Config{})
 	return &Store{
 		alias: alias,
 		path:  path,

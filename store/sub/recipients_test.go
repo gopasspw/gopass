@@ -198,7 +198,11 @@ func TestListRecipients(t *testing.T) {
 	genRecs, _, err := createStore(tempdir, nil, nil)
 	assert.NoError(t, err)
 
-	s := New("", tempdir)
+	s := New(
+		"",
+		tempdir,
+		gpgmock.New(),
+	)
 
 	rs, err := s.GetRecipients(ctx, "")
 	assert.NoError(t, err)

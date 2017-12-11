@@ -14,7 +14,7 @@ import (
 
 	"github.com/blang/semver"
 	"github.com/fatih/color"
-	"github.com/justwatchcom/gopass/action"
+	ap "github.com/justwatchcom/gopass/action"
 	"github.com/justwatchcom/gopass/backend/gpg"
 	"github.com/justwatchcom/gopass/config"
 	"github.com/justwatchcom/gopass/store/sub"
@@ -155,7 +155,11 @@ func main() {
 
 	cli.VersionPrinter = makeVersionPrinter(sv)
 
-	action := action.New(ctx, cfg, sv)
+	action, err := ap.New(ctx, cfg, sv)
+	if err != nil {
+		out.Red(ctx, "No gpg binary found: %s", err)
+		os.Exit(ap.ExitGPG)
+	}
 
 	// set some action callbacks
 	if !cfg.Root.AutoImport {
