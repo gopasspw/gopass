@@ -5,6 +5,7 @@
 * *gopass recipients add fails with Warning: No matching valid key found* - If the key you're trying to add is already in your keyring you may need to trust it. If this is your key run `gpg --edit-key [KEYID]; trust (set to ultimate); quit`, if this is not your key run `gpg --edit-key [KEYID]; lsign; save; quit`
 * *How can gopass handle binary data?* - gopass is designed not to change to content of the secrets in any way except that it will add a final newline at the end of the secret iff it does not have one already and the output is going to a terminal. This means that the output may mess up your terminal if it's not only text. In this case you should either encoded the secret to text (e.g. base64) before inserting or use the special `gopass binary` subcommand that does that for you.
 * *Why does gopass delete my whole KDE klipper history?* - KDEs klipper provides a clipboard history for your convenience. Since we currently can't figure out which entry may contain a secret copied to the clipboard, we just clear the whole history once the clipboard timer expires.
+* *Can I use gopass as an token helper for Vault?* - Yes, there is [a repo](https://github.com/frntn/vault-token-helper-gopass) that provides the necessary scripts and instructions.
 
 ## API Stability
 
