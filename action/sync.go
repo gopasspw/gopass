@@ -6,6 +6,7 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/store"
+	"github.com/justwatchcom/gopass/utils/notify"
 	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"
@@ -115,7 +116,7 @@ func (s *Action) Sync(ctx context.Context, c *cli.Context) error {
 	} else if numEntries < 0 {
 		diff = fmt.Sprintf(" Removed %d entries", -1*numEntries)
 	}
-	_ = s.desktopNotify(ctx, "gopass - sync", fmt.Sprintf("Finished. Synced %d remotes.%s", numMPs, diff))
+	_ = notify.Notify("gopass - sync", fmt.Sprintf("Finished. Synced %d remotes.%s", numMPs, diff))
 
 	return nil
 }

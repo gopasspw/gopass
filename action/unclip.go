@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/atotto/clipboard"
+	"github.com/justwatchcom/gopass/utils/notify"
 	"github.com/urfave/cli"
 )
 
@@ -31,16 +32,16 @@ func (s *Action) Unclip(ctx context.Context, c *cli.Context) error {
 	}
 
 	if err := clipboard.WriteAll(""); err != nil {
-		_ = s.desktopNotify(ctx, "gopass - clipboard", "Failed to clear clipboard")
+		_ = notify.Notify("gopass - clipboard", "Failed to clear clipboard")
 		return s.exitError(ctx, ExitIO, err, "failed to write clipboard: %s", err)
 	}
 
 	if err := s.clearClipboardHistory(ctx); err != nil {
-		_ = s.desktopNotify(ctx, "gopass - clipboard", "Failed to clear clipboard history")
+		_ = notify.Notify("gopass - clipboard", "Failed to clear clipboard history")
 		return s.exitError(ctx, ExitIO, err, "failed to clear clipboard history: %s", err)
 	}
 
-	if err := s.desktopNotify(ctx, "gopass -clipboard", "Clipboard has been cleared"); err != nil {
+	if err := notify.Notify("gopass -clipboard", "Clipboard has been cleared"); err != nil {
 		return s.exitError(ctx, ExitIO, err, "failed to send unclip notification: %s", err)
 	}
 

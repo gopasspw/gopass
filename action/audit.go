@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/fatih/color"
+	"github.com/justwatchcom/gopass/utils/notify"
 	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/muesli/crunchy"
 	"github.com/muesli/goprogressbar"
@@ -109,11 +110,11 @@ func (s *Action) Audit(ctx context.Context, c *cli.Context) error {
 	foundErrors := printAuditResults(ctx, errors, "%s:\n", color.RedString)
 
 	if foundWeakPasswords || foundDuplicates || foundErrors {
-		_ = s.desktopNotify(ctx, "gopass - audit", "Finished. Found weak passwords and/or duplicates")
+		_ = notify.Notify("gopass - audit", "Finished. Found weak passwords and/or duplicates")
 		return s.exitError(ctx, ExitAudit, nil, "found weak passwords or duplicates")
 	}
 
-	_ = s.desktopNotify(ctx, "gopass - audit", "Finished. No weak passwords or duplicates found!")
+	_ = notify.Notify("gopass - audit", "Finished. No weak passwords or duplicates found!")
 	return nil
 }
 
