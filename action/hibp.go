@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/fatih/color"
+	"github.com/justwatchcom/gopass/utils/notify"
 	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/muesli/goprogressbar"
 	"github.com/pkg/errors"
@@ -102,13 +103,13 @@ func (s *Action) HIBP(ctx context.Context, c *cli.Context) error {
 	}
 
 	if len(matchList) < 0 {
-		_ = s.desktopNotify(ctx, "gopass - audit HIBP", "Good news - No matches found!")
+		_ = notify.Notify("gopass - audit HIBP", "Good news - No matches found!")
 		out.Green(ctx, "Good news - No matches found!")
 		return nil
 	}
 
 	sort.Strings(matchList)
-	_ = s.desktopNotify(ctx, "gopass - audit HIBP", fmt.Sprintf("Oh no - found %d matches", len(matchList)))
+	_ = notify.Notify("gopass - audit HIBP", fmt.Sprintf("Oh no - found %d matches", len(matchList)))
 	out.Red(ctx, "Oh no - Found some matches:")
 	for _, m := range matchList {
 		out.Red(ctx, "\t- %s", m)
