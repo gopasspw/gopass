@@ -43,7 +43,7 @@ func (g *Git) Cmd(ctx context.Context, name string, args ...string) error {
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 	}
-	out.Debug(ctx, "store.%s: %s %+v", name, cmd.Path, cmd.Args)
+	out.Debug(ctx, "store.%s: %s %+v (%s)", name, cmd.Path, cmd.Args, g.path)
 
 	if err := cmd.Run(); err != nil {
 		out.Debug(ctx, "Output of '%s %+v': '%s'", cmd.Path, cmd.Args, buf.String())
