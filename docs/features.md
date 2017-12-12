@@ -225,6 +225,21 @@ $ gopass cp emails/example.com emails/user@example.com
 
 Like other popular open-source projects, gopass automatically pipe the output to `$PAGER` if it's longer than one terminal page. You can disable this behavior by unsetting `$PAGER` or `gopass config nopager true`.
 
+### Sync
+
+Gopass offers as simple and intuitive way to sync one or many stores with their
+remotes. This will perform and git pull, push and import or export any missing
+GPG keys.
+
+```bash
+$ gopas sync
+```
+
+### Desktop Notifications
+
+Certain long running operations, like `gopass sync` or `copy to clipboard` will
+try to show desktop notifications [Linux only].
+
 ### git auto-push and auto-pull
 
 If you want gopass to always push changes in git to your default remote server (origin), enable autosync:
@@ -314,6 +329,11 @@ $ gopass foo/bar
 7fXGKeaZgzty
 baz: zab
 ```
+
+Please note that gopass will try to leave your secret as is whenever possible,
+but as soon as you mutate the YAML content through gopass, i.e. `gopass insert secret key`,
+it will employ an YAML marshaler that may alter the order and escaping of your
+entries.
 
 ### Edit the Config
 

@@ -53,6 +53,9 @@ pkg_add gopass
 
 For OpenBSD 6.2 and earlier, install via `go get`.
 
+Please note that the OpenBSD builds uses `pledge(2)` to disable some syscalls,
+so some features (e.g. version checks, auto-update) are unavailable.
+
 ### Set up a GPG key pair
 
 gopass depends on the `gpg` program for encryption and decryption. You **must** have a
@@ -91,7 +94,6 @@ Depending on your operating system, you can either use a package manager, downlo
 If you haven't already, install [homebrew](http://brew.sh). And then:
 
 ```bash
-brew tap justwatchcom/gopass
 brew install gopass
 ```
 
