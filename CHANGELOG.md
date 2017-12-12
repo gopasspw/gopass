@@ -1,3 +1,11 @@
+## 1.6.3 / 2017-12-12
+
+* [ENHANCEMENT] Avoid altering YAML secrets unless necessary [#508]
+* [ENHANCEMENT] Documentation updates [#493] [#509]
+* [ENHANCEMENT] Abort if no gpg binary was found [#506]
+* [ENHANCEMENT] Support GOPASS_GPG_OPTS and GOPASS_UMASK [#504]
+* [BUGFIX] Create .gpg-keys if it does not exist [#507]
+
 ## 1.6.2 / 2017-12-02
 
 * [FEATURE] Add gopass fix command [#471]
