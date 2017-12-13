@@ -1,3 +1,10 @@
+## 1.6.4 / 2017-12-13
+
+* [ENHANCEMENT] Support desktop notifications on Mac and Windows [#513]
+* [BUGFIX] Fix slice out of bounds error [#517]
+* [BUGFIX] Allow .password-store to be a symlink [#516]
+* [BUGFIX] Respect --store flag to git subcommand [#512]
+
 ## 1.6.3 / 2017-12-12
 
 * [ENHANCEMENT] Avoid altering YAML secrets unless necessary [#508]

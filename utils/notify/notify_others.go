@@ -10,5 +10,5 @@ import (
 
 // Notify is not yet implemented on this platform
 func Notify(subj, msg string) error {
-	return errors.New("GOOS %s not yet supported", runtime.GOOS)
+	return errors.Errorf("GOOS %s not yet supported", runtime.GOOS)
 }
