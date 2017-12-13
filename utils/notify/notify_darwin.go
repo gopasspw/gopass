@@ -12,7 +12,7 @@ func Notify(subj, msg string) error {
 	}
 
 	return exec.Command(
-		osa,
+		osas,
 		"-e",
 		`display notification "`+msg+`" with title "`+subj+`"`,
 	).Start()
