@@ -30,7 +30,12 @@ func (s *Store) Fsck(ctx context.Context, prefix string) (map[string]uint64, err
 	countFn := func(t string) {
 		counts[t]++
 	}
-	err = filepath.Walk(s.path, s.mkStoreWalkerFsckFunc(ctx, prefix, storeRec, countFn))
+
+	path, err := filepath.EvalSymlinks(s.path)
+	if err != nil {
+		return counts, err
+	}
+	err = filepath.Walk(path, s.mkStoreWalkerFsckFunc(ctx, prefix, storeRec, countFn))
 	return counts, err
 }
 

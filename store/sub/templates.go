@@ -80,7 +80,11 @@ func (s *Store) ListTemplates(prefix string) []string {
 		lst = append(lst, in...)
 	}
 
-	if err := filepath.Walk(s.path, mkTemplateStoreWalkerFunc(prefix, s.path, addFunc)); err != nil {
+	path, err := filepath.EvalSymlinks(s.path)
+	if err != nil {
+		return lst
+	}
+	if err := filepath.Walk(path, mkTemplateStoreWalkerFunc(prefix, path, addFunc)); err != nil {
 		fmt.Printf("Failed to list templates: %s\n", err)
 	}
 
