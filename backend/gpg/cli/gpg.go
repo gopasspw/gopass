@@ -11,7 +11,6 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/blang/semver"
 	"github.com/justwatchcom/gopass/backend/gpg"
 	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/pkg/errors"
@@ -235,31 +234,6 @@ func (g *GPG) ImportPublicKey(ctx context.Context, filename string) error {
 	g.privKeys = nil
 	g.pubKeys = nil
 	return nil
-}
-
-// Version will returns GPG version information
-func (g *GPG) Version(ctx context.Context) semver.Version {
-	v := semver.Version{}
-
-	cmd := exec.CommandContext(ctx, g.binary, "--version")
-	out, err := cmd.Output()
-	if err != nil {
-		return v
-	}
-
-	scanner := bufio.NewScanner(bytes.NewReader(out))
-	for scanner.Scan() {
-		line := strings.TrimSpace(scanner.Text())
-		if strings.HasPrefix(line, "gpg ") {
-			p := strings.Fields(line)
-			sv, err := semver.Parse(p[len(p)-1])
-			if err != nil {
-				continue
-			}
-			return sv
-		}
-	}
-	return v
 }
 
 // CreatePrivateKeyBatch will create a new GPG keypair in batch mode
