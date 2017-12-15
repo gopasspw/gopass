@@ -689,6 +689,12 @@ func main() {
 			Usage: "Initialize new password store.",
 			Description: "" +
 				"Initialize new password storage and use gpg-id for encryption.",
+			Before: func(c *cli.Context) error {
+				if !action.HasGPG() {
+					return fmt.Errorf("gpg not found")
+				}
+				return nil
+			},
 			Action: func(c *cli.Context) error {
 				return action.Init(withGlobalFlags(ctx, c), c)
 			},

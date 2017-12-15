@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/justwatchcom/gopass/backend/gpg"
+	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/pkg/errors"
 )
@@ -61,7 +62,12 @@ func New(cfg Config) (*GPG, error) {
 		binary: "gpg",
 		args:   append(defaultArgs, cfg.Args...),
 	}
-	if err := g.detectBinary(cfg.Binary); err != nil {
+
+	ctx := context.Background()
+	if gdb := os.Getenv("GOPASS_DEBUG"); gdb == "true" {
+		ctx = ctxutil.WithDebug(ctx, true)
+	}
+	if err := g.detectBinary(ctx, cfg.Binary); err != nil {
 		return nil, err
 	}
 
@@ -70,6 +76,9 @@ func New(cfg Config) (*GPG, error) {
 
 // Binary returns the GPG binary location
 func (g *GPG) Binary() string {
+	if g == nil {
+		return ""
+	}
 	return g.binary
 }
 

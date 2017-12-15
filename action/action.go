@@ -12,6 +12,7 @@ import (
 	gpgcli "github.com/justwatchcom/gopass/backend/gpg/cli"
 	"github.com/justwatchcom/gopass/config"
 	"github.com/justwatchcom/gopass/store/root"
+	"github.com/justwatchcom/gopass/utils/out"
 )
 
 type gpger interface {
@@ -58,7 +59,7 @@ func New(ctx context.Context, cfg *config.Config, sv semver.Version) (*Action, e
 		Args:  gpgOpts(),
 	})
 	if err != nil {
-		return nil, err
+		out.Red(ctx, "Warning: GPG not found: %s", err)
 	}
 
 	store, err := root.New(ctx, cfg, act.gpg)
@@ -93,4 +94,9 @@ func gpgOpts() []string {
 // String implement fmt.Stringer
 func (s *Action) String() string {
 	return s.Store.String()
+}
+
+// HasGPG returns true if the GPG wrapper is initialized
+func (s *Action) HasGPG() bool {
+	return s.gpg != nil
 }
