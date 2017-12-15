@@ -17,7 +17,7 @@ import (
 // Clone will fetch and mount a new password store from a git repo
 func (s *Action) Clone(ctx context.Context, c *cli.Context) error {
 	if len(c.Args()) < 1 {
-		return errors.Errorf("Usage: %s clone repo [mount]", s.Name)
+		return exitError(ctx, ExitUsage, nil, "Usage: %s clone repo [mount]", s.Name)
 	}
 
 	repo := c.Args()[0]
@@ -36,28 +36,28 @@ func (s *Action) clone(ctx context.Context, repo, mount, path string) error {
 		path = config.PwStoreDir(mount)
 	}
 	if mount == "" && s.Store.Initialized() {
-		return s.exitError(ctx, ExitAlreadyInitialized, nil, "Can not clone %s to the root store, as this store is already initialized. Please try cloning to a submount: `%s clone %s sub`", repo, s.Name, repo)
+		return exitError(ctx, ExitAlreadyInitialized, nil, "Can not clone %s to the root store, as this store is already initialized. Please try cloning to a submount: `%s clone %s sub`", repo, s.Name, repo)
 	}
 
 	// clone repo
 	if err := gitClone(ctx, repo, path); err != nil {
-		return s.exitError(ctx, ExitGit, err, "failed to clone repo '%s' to '%s'", repo, path)
+		return exitError(ctx, ExitGit, err, "failed to clone repo '%s' to '%s'", repo, path)
 	}
 
 	// add mount
 	if mount != "" {
 		if !s.Store.Initialized() {
-			return s.exitError(ctx, ExitNotInitialized, nil, "Root-Store is not initialized. Clone or init root store first")
+			return exitError(ctx, ExitNotInitialized, nil, "Root-Store is not initialized. Clone or init root store first")
 		}
 		if err := s.Store.AddMount(ctx, mount, path); err != nil {
-			return s.exitError(ctx, ExitMount, err, "Failed to add mount: %s", err)
+			return exitError(ctx, ExitMount, err, "Failed to add mount: %s", err)
 		}
 		fmt.Printf("Mounted password store %s at mount point `%s` ...\n", path, mount)
 	}
 
 	// save new mount in config file
 	if err := s.cfg.Save(); err != nil {
-		return s.exitError(ctx, ExitIO, err, "Failed to update config: %s", err)
+		return exitError(ctx, ExitIO, err, "Failed to update config: %s", err)
 	}
 
 	// try to init git config
@@ -73,14 +73,14 @@ func (s *Action) clone(ctx context.Context, repo, mount, path string) error {
 		var err error
 		userName, err = s.askForString(ctx, color.CyanString("Please enter a user name for password store git config"), userName)
 		if err != nil {
-			return errors.Wrapf(err, "failed to ask for user input")
+			return exitError(ctx, ExitIO, err, "Failed to read user input: %s", err)
 		}
 	}
 	if userEmail == "" {
 		var err error
 		userEmail, err = s.askForString(ctx, color.CyanString("Please enter an email address for password store git config"), userEmail)
 		if err != nil {
-			return errors.Wrapf(err, "failed to ask for user input")
+			return exitError(ctx, ExitIO, err, "Failed to read user input: %s", err)
 		}
 	}
 	if err := s.Store.GitInitConfig(ctx, mount, sk, userName, userEmail); err != nil {

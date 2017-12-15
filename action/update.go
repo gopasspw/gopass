@@ -137,7 +137,7 @@ func (s *Action) tryDownload(ctx context.Context, dest, url string) error {
 	return backoff.Retry(func() error {
 		select {
 		case <-ctx.Done():
-			return backoff.Permanent(s.exitError(ctx, ExitAborted, nil, "user aborted"))
+			return backoff.Permanent(exitError(ctx, ExitAborted, nil, "user aborted"))
 		default:
 		}
 		return s.download(ctx, dest, url)

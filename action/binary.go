@@ -29,7 +29,7 @@ const (
 func (s *Action) BinaryCat(ctx context.Context, c *cli.Context) error {
 	name := c.Args().First()
 	if name == "" {
-		return s.exitError(ctx, ExitNoName, nil, "need a name")
+		return exitError(ctx, ExitNoName, nil, "need a name")
 	}
 	if !strings.HasSuffix(name, BinarySuffix) {
 		name += BinarySuffix
@@ -38,7 +38,7 @@ func (s *Action) BinaryCat(ctx context.Context, c *cli.Context) error {
 	// handle pipe to stdin
 	info, err := os.Stdin.Stat()
 	if err != nil {
-		return s.exitError(ctx, ExitIO, err, "failed to stat stdin: %s", err)
+		return exitError(ctx, ExitIO, err, "failed to stat stdin: %s", err)
 	}
 
 	// if content is piped to stdin, read and save it
@@ -46,7 +46,7 @@ func (s *Action) BinaryCat(ctx context.Context, c *cli.Context) error {
 		content := &bytes.Buffer{}
 
 		if written, err := io.Copy(content, os.Stdin); err != nil {
-			return s.exitError(ctx, ExitIO, err, "Failed to copy after %d bytes: %s", written, err)
+			return exitError(ctx, ExitIO, err, "Failed to copy after %d bytes: %s", written, err)
 		}
 
 		return s.Store.Set(
@@ -58,7 +58,7 @@ func (s *Action) BinaryCat(ctx context.Context, c *cli.Context) error {
 
 	buf, err := s.binaryGet(ctx, name)
 	if err != nil {
-		return s.exitError(ctx, ExitDecrypt, err, "failed to read secret: %s", err)
+		return exitError(ctx, ExitDecrypt, err, "failed to read secret: %s", err)
 	}
 	color.Yellow(string(buf))
 	return nil
@@ -68,7 +68,7 @@ func (s *Action) BinaryCat(ctx context.Context, c *cli.Context) error {
 func (s *Action) BinarySum(ctx context.Context, c *cli.Context) error {
 	name := c.Args().First()
 	if name == "" {
-		return s.exitError(ctx, ExitUsage, nil, "Usage: %s binary sha256 name", s.Name)
+		return exitError(ctx, ExitUsage, nil, "Usage: %s binary sha256 name", s.Name)
 	}
 	if !strings.HasSuffix(name, BinarySuffix) {
 		name += BinarySuffix
@@ -76,7 +76,7 @@ func (s *Action) BinarySum(ctx context.Context, c *cli.Context) error {
 
 	buf, err := s.binaryGet(ctx, name)
 	if err != nil {
-		return s.exitError(ctx, ExitDecrypt, err, "failed to read secret: %s", err)
+		return exitError(ctx, ExitDecrypt, err, "failed to read secret: %s", err)
 	}
 
 	h := sha256.New()
@@ -93,7 +93,7 @@ func (s *Action) BinaryCopy(ctx context.Context, c *cli.Context) error {
 	to := c.Args().Get(1)
 
 	if err := s.binaryCopy(ctx, from, to, false); err != nil {
-		return s.exitError(ctx, ExitUnknown, err, "%s", err)
+		return exitError(ctx, ExitUnknown, err, "%s", err)
 	}
 	return nil
 }
@@ -106,7 +106,7 @@ func (s *Action) BinaryMove(ctx context.Context, c *cli.Context) error {
 	to := c.Args().Get(1)
 
 	if err := s.binaryCopy(ctx, from, to, true); err != nil {
-		return s.exitError(ctx, ExitUnknown, err, "%s", err)
+		return exitError(ctx, ExitUnknown, err, "%s", err)
 	}
 	return nil
 }

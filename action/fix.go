@@ -23,7 +23,7 @@ func (s *Action) Fix(ctx context.Context, c *cli.Context) error {
 
 	t, err := s.Store.Tree()
 	if err != nil {
-		return s.exitError(ctx, ExitList, err, "failed to list store: %s", err)
+		return exitError(ctx, ExitList, err, "failed to list store: %s", err)
 	}
 
 	pwList := t.List(0)

@@ -58,13 +58,13 @@ func (s *Action) Generate(ctx context.Context, c *cli.Context) error {
 		var err error
 		name, err = s.askForString(ctx, "Which name do you want to use?", "")
 		if err != nil || name == "" {
-			return s.exitError(ctx, ExitNoName, err, "please provide a password name")
+			return exitError(ctx, ExitNoName, err, "please provide a password name")
 		}
 	}
 
 	if !force { // don't check if it's force anyway
 		if s.Store.Exists(ctx, name) && key == "" && !s.AskForConfirmation(ctx, fmt.Sprintf("An entry already exists for %s. Overwrite the current password?", name)) {
-			return s.exitError(ctx, ExitAborted, nil, "user aborted. not overwriting your current password")
+			return exitError(ctx, ExitAborted, nil, "user aborted. not overwriting your current password")
 		}
 	}
 
@@ -78,19 +78,19 @@ func (s *Action) Generate(ctx context.Context, c *cli.Context) error {
 		}
 		iv, err := s.askForInt(ctx, question, candidateLength)
 		if err != nil {
-			return s.exitError(ctx, ExitUsage, err, "password length must be a number")
+			return exitError(ctx, ExitUsage, err, "password length must be a number")
 		}
 		pwlen = iv
 	} else {
 		iv, err := strconv.Atoi(length)
 		if err != nil {
-			return s.exitError(ctx, ExitUsage, err, "password length must be a number")
+			return exitError(ctx, ExitUsage, err, "password length must be a number")
 		}
 		pwlen = iv
 	}
 
 	if pwlen < 1 {
-		return s.exitError(ctx, ExitUsage, nil, "password length must not be zero")
+		return exitError(ctx, ExitUsage, nil, "password length must not be zero")
 	}
 
 	var password string
@@ -108,32 +108,32 @@ func (s *Action) Generate(ctx context.Context, c *cli.Context) error {
 	if key != "" {
 		sec, err := s.Store.Get(ctx, name)
 		if err != nil {
-			return s.exitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
+			return exitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
 		}
 		if err := sec.SetValue(key, string(password)); err != nil {
-			return s.exitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
+			return exitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
 		}
 		if err := s.Store.Set(sub.WithReason(ctx, "Generated password for YAML key"), name, sec); err != nil {
-			return s.exitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
+			return exitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
 		}
 	} else if s.Store.Exists(ctx, name) {
 		sec, err := s.Store.Get(ctx, name)
 		if err != nil {
-			return s.exitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
+			return exitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
 		}
 		sec.SetPassword(password)
 		if err := s.Store.Set(sub.WithReason(ctx, "Generated password for YAML key"), name, sec); err != nil {
-			return s.exitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
+			return exitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
 		}
 	} else {
 		if err := s.Store.Set(sub.WithReason(ctx, "Generated Password"), name, secret.New(string(password), "")); err != nil {
-			return s.exitError(ctx, ExitEncrypt, err, "failed to create '%s': %s", name, err)
+			return exitError(ctx, ExitEncrypt, err, "failed to create '%s': %s", name, err)
 		}
 	}
 
 	if (edit || ctxutil.IsAskForMore(ctx)) && s.AskForConfirmation(ctx, fmt.Sprintf("Do you want to add more data for %s?", name)) {
 		if err := s.Edit(ctx, c); err != nil {
-			return s.exitError(ctx, ExitUnknown, err, "failed to edit '%s': %s", name, err)
+			return exitError(ctx, ExitUnknown, err, "failed to edit '%s': %s", name, err)
 		}
 	}
 
@@ -148,5 +148,8 @@ func (s *Action) Generate(ctx context.Context, c *cli.Context) error {
 		return nil
 	}
 
-	return s.copyToClipboard(ctx, name, []byte(password))
+	if err := s.copyToClipboard(ctx, name, []byte(password)); err != nil {
+		return exitError(ctx, ExitIO, err, "failed to copy to clipboard: %s", err)
+	}
+	return nil
 }

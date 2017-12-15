@@ -36,7 +36,7 @@ func (s *Action) HIBP(ctx context.Context, c *cli.Context) error {
 	// a very efficient stream compare in O(n)
 	t, err := s.Store.Tree()
 	if err != nil {
-		return s.exitError(ctx, ExitList, err, "failed to list store: %s", err)
+		return exitError(ctx, ExitList, err, "failed to list store: %s", err)
 	}
 
 	pwList := t.List(0)
@@ -54,7 +54,7 @@ func (s *Action) HIBP(ctx context.Context, c *cli.Context) error {
 		// check for context cancelation
 		select {
 		case <-ctx.Done():
-			return s.exitError(ctx, ExitAborted, nil, "user aborted")
+			return exitError(ctx, ExitAborted, nil, "user aborted")
 		default:
 		}
 
@@ -115,7 +115,7 @@ func (s *Action) HIBP(ctx context.Context, c *cli.Context) error {
 		out.Red(ctx, "\t- %s", m)
 	}
 	out.Cyan(ctx, "The passwords in the listed secrets were included in public leaks in the past. This means they are likely included in many word-list attacks and provide only very little security. Strongly consider changing those passwords!")
-	return s.exitError(ctx, ExitAudit, nil, "weak passwords found")
+	return exitError(ctx, ExitAudit, nil, "weak passwords found")
 }
 
 func (s *Action) findHIBPMatches(ctx context.Context, fn string, shaSums map[string]string, sortedShaSums []string, matches chan<- string, done chan<- struct{}) {

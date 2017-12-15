@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"sort"
 
+	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"
 )
@@ -12,40 +13,40 @@ import (
 // Config handles changes to the gopass configuration
 func (s *Action) Config(ctx context.Context, c *cli.Context) error {
 	if len(c.Args()) < 1 {
-		if err := s.printConfigValues(""); err != nil {
-			return s.exitError(ctx, ExitUnknown, err, "Error printing config")
+		if err := s.printConfigValues(ctx, ""); err != nil {
+			return exitError(ctx, ExitUnknown, err, "Error printing config")
 		}
 		return nil
 	}
 
 	if len(c.Args()) == 1 {
-		if err := s.printConfigValues("", c.Args()[0]); err != nil {
-			return s.exitError(ctx, ExitUnknown, err, "Error printing config value")
+		if err := s.printConfigValues(ctx, "", c.Args()[0]); err != nil {
+			return exitError(ctx, ExitUnknown, err, "Error printing config value")
 		}
 		return nil
 	}
 
 	if len(c.Args()) > 2 {
-		return s.exitError(ctx, ExitUsage, nil, "Usage: %s config key value", s.Name)
+		return exitError(ctx, ExitUsage, nil, "Usage: %s config key value", s.Name)
 	}
 
 	if err := s.setConfigValue(ctx, c.String("store"), c.Args()[0], c.Args()[1]); err != nil {
-		return s.exitError(ctx, ExitUnknown, err, "Error setting config value")
+		return exitError(ctx, ExitUnknown, err, "Error setting config value")
 	}
 	return nil
 }
 
-func (s *Action) printConfigValues(store string, needles ...string) error {
+func (s *Action) printConfigValues(ctx context.Context, store string, needles ...string) error {
 	prefix := ""
 	if len(needles) < 1 {
-		fmt.Printf("root store config:\n")
+		out.Print(ctx, "root store config:\n")
 		prefix = "  "
 	}
 
 	m := s.cfg.Root.ConfigMap()
 	if store == "" {
 		for _, k := range filter(m, needles) {
-			fmt.Printf("%s%s: %s\n", prefix, k, m[k])
+			out.Print(ctx, "%s%s: %s\n", prefix, k, m[k])
 		}
 	}
 	for mp, sc := range s.cfg.Mounts {
@@ -53,7 +54,7 @@ func (s *Action) printConfigValues(store string, needles ...string) error {
 			continue
 		}
 		if len(needles) < 1 {
-			fmt.Printf("mount '%s' config:\n", mp)
+			out.Print(ctx, "mount '%s' config:\n", mp)
 			mp = "  "
 		} else {
 			mp += "/"
@@ -61,7 +62,7 @@ func (s *Action) printConfigValues(store string, needles ...string) error {
 		sm := sc.ConfigMap()
 		for _, k := range filter(sm, needles) {
 			if sm[k] != m[k] || store != "" {
-				fmt.Printf("%s%s: %s\n", mp, k, sm[k])
+				out.Print(ctx, "%s%s: %s\n", mp, k, sm[k])
 			}
 		}
 	}
@@ -96,7 +97,7 @@ func (s *Action) setConfigValue(ctx context.Context, store, key, value string) e
 	if err := s.cfg.SetConfigValue(store, key, value); err != nil {
 		return errors.Wrapf(err, "failed to set config value '%s'", key)
 	}
-	return s.printConfigValues(store, key)
+	return s.printConfigValues(ctx, store, key)
 }
 
 // ConfigComplete will print the list of valid config keys

@@ -30,7 +30,7 @@ const (
 func (s *Action) TemplatesPrint(ctx context.Context, c *cli.Context) error {
 	tree, err := s.Store.TemplateTree()
 	if err != nil {
-		return s.exitError(ctx, ExitList, err, "failed to list templates: %s", err)
+		return exitError(ctx, ExitList, err, "failed to list templates: %s", err)
 	}
 	fmt.Println(tree.Format(0))
 	return nil
@@ -42,7 +42,7 @@ func (s *Action) TemplatePrint(ctx context.Context, c *cli.Context) error {
 
 	content, err := s.Store.GetTemplate(ctx, name)
 	if err != nil {
-		return s.exitError(ctx, ExitIO, err, "failed to retrieve template: %s", err)
+		return exitError(ctx, ExitIO, err, "failed to retrieve template: %s", err)
 	}
 
 	fmt.Println(string(content))
@@ -63,15 +63,16 @@ func (s *Action) TemplateEdit(ctx context.Context, c *cli.Context) error {
 		var err error
 		content, err = s.Store.GetTemplate(ctx, name)
 		if err != nil {
-			return s.exitError(ctx, ExitIO, err, "failed to retrieve template: %s", err)
+			return exitError(ctx, ExitIO, err, "failed to retrieve template: %s", err)
 		}
 	} else {
 		content = []byte(templateExample)
 	}
 
-	nContent, err := s.editor(ctx, content)
+	editor := getEditor(c)
+	nContent, err := s.editor(ctx, editor, content)
 	if err != nil {
-		return s.exitError(ctx, ExitUnknown, err, "failed to invoke editor: %s", err)
+		return exitError(ctx, ExitUnknown, err, "failed to invoke editor %s: %s", editor, err)
 	}
 
 	// If content is equal, nothing changed, exiting
@@ -86,11 +87,11 @@ func (s *Action) TemplateEdit(ctx context.Context, c *cli.Context) error {
 func (s *Action) TemplateRemove(ctx context.Context, c *cli.Context) error {
 	name := c.Args().First()
 	if name == "" {
-		return s.exitError(ctx, ExitUsage, nil, "usage: %s templates remove [name]", s.Name)
+		return exitError(ctx, ExitUsage, nil, "usage: %s templates remove [name]", s.Name)
 	}
 
 	if !s.Store.HasTemplate(ctx, name) {
-		return s.exitError(ctx, ExitNotFound, nil, "template '%s' not found", name)
+		return exitError(ctx, ExitNotFound, nil, "template '%s' not found", name)
 	}
 
 	return s.Store.RemoveTemplate(ctx, name)

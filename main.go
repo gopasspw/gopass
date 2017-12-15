@@ -445,6 +445,12 @@ func main() {
 			},
 			Aliases:      []string{"set"},
 			BashComplete: action.Complete,
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "editor, e",
+					Usage: "Use this editor binary",
+				},
+			},
 		},
 		{
 			Name:  "find",

@@ -24,19 +24,21 @@ import (
 func (s *Action) Edit(ctx context.Context, c *cli.Context) error {
 	name := c.Args().First()
 	if name == "" {
-		return errors.Errorf("provide a secret name")
+		return exitError(ctx, ExitUsage, nil, "Usage: %s edit secret", s.Name)
 	}
+
+	editor := getEditor(c)
 
 	var content []byte
 	var changed bool
 	if s.Store.Exists(ctx, name) {
 		sec, err := s.Store.Get(ctx, name)
 		if err != nil {
-			return errors.Errorf("failed to decrypt %s: %v", name, err)
+			return exitError(ctx, ExitDecrypt, err, "failed to decrypt %s: %s", name, err)
 		}
 		content, err = sec.Bytes()
 		if err != nil {
-			return errors.Errorf("failed to decode %s: %v", name, err)
+			return exitError(ctx, ExitDecrypt, err, "failed to decode %s: %s", name, err)
 		}
 	} else if tmpl, found := s.Store.LookupTemplate(ctx, name); found {
 		changed = true
@@ -49,9 +51,9 @@ func (s *Action) Edit(ctx context.Context, c *cli.Context) error {
 		}
 	}
 
-	nContent, err := s.editor(ctx, content)
+	nContent, err := s.editor(ctx, editor, content)
 	if err != nil {
-		return s.exitError(ctx, ExitUnknown, err, "failed to invoke editor: %s", err)
+		return exitError(ctx, ExitUnknown, err, "failed to invoke editor: %s", err)
 	}
 
 	// If content is equal, nothing changed, exiting
@@ -68,12 +70,13 @@ func (s *Action) Edit(ctx context.Context, c *cli.Context) error {
 		printAuditResult(ctx, pw)
 	}
 
-	return s.Store.Set(sub.WithReason(ctx, fmt.Sprintf("Edited with %s", getEditor())), name, nSec)
+	if err := s.Store.Set(sub.WithReason(ctx, fmt.Sprintf("Edited with %s", editor)), name, nSec); err != nil {
+		return exitError(ctx, ExitEncrypt, err, "failed to encrypt secret %s: %s", name, err)
+	}
+	return nil
 }
 
-func (s *Action) editor(ctx context.Context, content []byte) ([]byte, error) {
-	editor := getEditor()
-
+func (s *Action) editor(ctx context.Context, editor string, content []byte) ([]byte, error) {
 	tmpfile, err := fsutil.TempFile(ctx, "gopass-edit")
 	if err != nil {
 		return []byte{}, errors.Errorf("failed to create tmpfile %s: %s", editor, err)

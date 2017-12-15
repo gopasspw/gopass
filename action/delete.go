@@ -16,7 +16,7 @@ func (s *Action) Delete(ctx context.Context, c *cli.Context) error {
 
 	name := c.Args().First()
 	if name == "" {
-		return s.exitError(ctx, ExitUsage, nil, "Usage: %s rm name", s.Name)
+		return exitError(ctx, ExitUsage, nil, "Usage: %s rm name", s.Name)
 	}
 
 	key := c.Args().Get(1)
@@ -33,7 +33,7 @@ func (s *Action) Delete(ctx context.Context, c *cli.Context) error {
 
 	if recursive {
 		if err := s.Store.Prune(ctx, name); err != nil {
-			return s.exitError(ctx, ExitUnknown, err, "failed to prune '%s': %s", name, err)
+			return exitError(ctx, ExitUnknown, err, "failed to prune '%s': %s", name, err)
 		}
 		return nil
 	}
@@ -46,19 +46,19 @@ func (s *Action) Delete(ctx context.Context, c *cli.Context) error {
 	if key != "" {
 		sec, err := s.Store.Get(ctx, name)
 		if err != nil {
-			return s.exitError(ctx, ExitIO, err, "Can not delete key '%s' from '%s': %s", key, name, err)
+			return exitError(ctx, ExitIO, err, "Can not delete key '%s' from '%s': %s", key, name, err)
 		}
 		if err := sec.DeleteKey(key); err != nil {
-			return s.exitError(ctx, ExitIO, err, "Can not delete key '%s' from '%s': %s", key, name, err)
+			return exitError(ctx, ExitIO, err, "Can not delete key '%s' from '%s': %s", key, name, err)
 		}
 		if err := s.Store.Set(sub.WithReason(ctx, "Updated Key in YAML"), name, sec); err != nil {
-			return s.exitError(ctx, ExitIO, err, "Can not delete key '%s' from '%s': %s", key, name, err)
+			return exitError(ctx, ExitIO, err, "Can not delete key '%s' from '%s': %s", key, name, err)
 		}
 		return nil
 	}
 
 	if err := s.Store.Delete(ctx, name); err != nil {
-		return s.exitError(ctx, ExitIO, err, "Can not delete '%s': %s", name, err)
+		return exitError(ctx, ExitIO, err, "Can not delete '%s': %s", name, err)
 	}
 	return nil
 }

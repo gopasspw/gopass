@@ -12,7 +12,6 @@ import (
 	"strings"
 
 	"github.com/justwatchcom/gopass/backend/gpg"
-	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/pkg/errors"
 )
@@ -46,7 +45,7 @@ type Config struct {
 }
 
 // New creates a new GPG wrapper
-func New(cfg Config) (*GPG, error) {
+func New(ctx context.Context, cfg Config) (*GPG, error) {
 	// ensure created files don't have group or world perms set
 	// this setting should be inherited by sub-processes
 	umask(cfg.Umask)
@@ -63,10 +62,6 @@ func New(cfg Config) (*GPG, error) {
 		args:   append(defaultArgs, cfg.Args...),
 	}
 
-	ctx := context.Background()
-	if gdb := os.Getenv("GOPASS_DEBUG"); gdb == "true" {
-		ctx = ctxutil.WithDebug(ctx, true)
-	}
 	if err := g.detectBinary(ctx, cfg.Binary); err != nil {
 		return nil, err
 	}

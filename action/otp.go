@@ -23,12 +23,12 @@ const (
 func (s *Action) OTP(ctx context.Context, c *cli.Context) error {
 	name := c.Args().First()
 	if name == "" {
-		return s.exitError(ctx, ExitUsage, nil, "usage: %s otp [name]", s.Name)
+		return exitError(ctx, ExitUsage, nil, "usage: %s otp [name]", s.Name)
 	}
 
 	sec, err := s.Store.Get(ctx, name)
 	if err != nil {
-		return s.exitError(ctx, ExitDecrypt, err, "failed to get entry '%s': %s", name, err)
+		return exitError(ctx, ExitDecrypt, err, "failed to get entry '%s': %s", name, err)
 	}
 
 	otpURL := ""
@@ -57,12 +57,12 @@ func (s *Action) OTP(ctx context.Context, c *cli.Context) error {
 		}
 
 		if err != nil {
-			return s.exitError(ctx, ExitUnknown, err, "No OTP entry found for %s", name)
+			return exitError(ctx, ExitUnknown, err, "No OTP entry found for %s", name)
 		}
 	} else {
 		otp, label, err = twofactor.FromURL(otpURL)
 		if err != nil {
-			return s.exitError(ctx, ExitUnknown, err, "failed get key from URL: %s", err)
+			return exitError(ctx, ExitUnknown, err, "failed get key from URL: %s", err)
 		}
 	}
 
@@ -82,7 +82,7 @@ func (s *Action) OTP(ctx context.Context, c *cli.Context) error {
 
 	if c.Bool("clip") {
 		if err := s.copyToClipboard(ctx, fmt.Sprintf("token for %s", name), []byte(token)); err != nil {
-			return s.exitError(ctx, ExitIO, err, "failed to copy to clipboard: %s", err)
+			return exitError(ctx, ExitIO, err, "failed to copy to clipboard: %s", err)
 		}
 	}
 
@@ -100,11 +100,11 @@ func (s *Action) OTP(ctx context.Context, c *cli.Context) error {
 			err = errors.New("QR codes can only be generated for OATH OTPs")
 		}
 		if err != nil {
-			return s.exitError(ctx, ExitIO, err, "%s", err)
+			return exitError(ctx, ExitIO, err, "%s", err)
 		}
 
 		if err := ioutil.WriteFile(c.String("qr"), qr, 0600); err != nil {
-			return s.exitError(ctx, ExitIO, err, "failed to write QR code: %s", err)
+			return exitError(ctx, ExitIO, err, "failed to write QR code: %s", err)
 		}
 	}
 

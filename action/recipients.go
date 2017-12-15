@@ -36,7 +36,7 @@ func (s *Action) RecipientsPrint(ctx context.Context, c *cli.Context) error {
 
 	tree, err := s.Store.RecipientsTree(ctx, true)
 	if err != nil {
-		return s.exitError(ctx, ExitList, err, "failed to list recipients: %s", err)
+		return exitError(ctx, ExitList, err, "failed to list recipients: %s", err)
 	}
 
 	fmt.Println(tree.Format(0))
@@ -93,7 +93,7 @@ func (s *Action) RecipientsAdd(ctx context.Context, c *cli.Context) error {
 			case "show":
 				recipients = []string{kl[sel].Fingerprint}
 			default:
-				return s.exitError(ctx, ExitAborted, nil, "user aborted")
+				return exitError(ctx, ExitAborted, nil, "user aborted")
 			}
 		}
 	}
@@ -118,12 +118,12 @@ func (s *Action) RecipientsAdd(ctx context.Context, c *cli.Context) error {
 		}
 
 		if err := s.Store.AddRecipient(ctxutil.WithNoConfirm(ctx, true), store, keys[0].Fingerprint); err != nil {
-			return s.exitError(ctx, ExitRecipients, err, "failed to add recipient '%s': %s", r, err)
+			return exitError(ctx, ExitRecipients, err, "failed to add recipient '%s': %s", r, err)
 		}
 		added++
 	}
 	if added < 1 {
-		return s.exitError(ctx, ExitUnknown, nil, "no key added")
+		return exitError(ctx, ExitUnknown, nil, "no key added")
 	}
 
 	out.Green(ctx, "\nAdded %d recipients", added)
@@ -172,7 +172,7 @@ func (s *Action) RecipientsRemove(ctx context.Context, c *cli.Context) error {
 			case "show":
 				recipients = []string{ids[sel]}
 			default:
-				return s.exitError(ctx, ExitAborted, nil, "user aborted")
+				return exitError(ctx, ExitAborted, nil, "user aborted")
 			}
 		}
 	}
@@ -188,7 +188,7 @@ func (s *Action) RecipientsRemove(ctx context.Context, c *cli.Context) error {
 			}
 		}
 		if err := s.Store.RemoveRecipient(ctxutil.WithNoConfirm(ctx, true), store, strings.TrimPrefix(r, "0x")); err != nil {
-			return s.exitError(ctx, ExitRecipients, err, "failed to remove recipient '%s': %s", r, err)
+			return exitError(ctx, ExitRecipients, err, "failed to remove recipient '%s': %s", r, err)
 		}
 		fmt.Printf(removalWarning, r)
 		removed++

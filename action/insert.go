@@ -28,7 +28,7 @@ func (s *Action) Insert(ctx context.Context, c *cli.Context) error {
 
 	name := c.Args().Get(0)
 	if name == "" {
-		return s.exitError(ctx, ExitNoName, nil, "Usage: %s insert name", s.Name)
+		return exitError(ctx, ExitNoName, nil, "Usage: %s insert name", s.Name)
 	}
 
 	key := c.Args().Get(1)
@@ -40,7 +40,7 @@ func (s *Action) Insert(ctx context.Context, c *cli.Context) error {
 		buf := &bytes.Buffer{}
 
 		if written, err := io.Copy(buf, os.Stdin); err != nil {
-			return s.exitError(ctx, ExitIO, err, "failed to copy after %d bytes: %s", written, err)
+			return exitError(ctx, ExitIO, err, "failed to copy after %d bytes: %s", written, err)
 		}
 
 		content = buf.Bytes()
@@ -51,7 +51,7 @@ func (s *Action) Insert(ctx context.Context, c *cli.Context) error {
 		if ctxutil.IsInteractive(ctx) {
 			pw, err := s.askForString(ctx, name+":"+key, "")
 			if err != nil {
-				return s.exitError(ctx, ExitIO, err, "failed to ask for user input: %s", err)
+				return exitError(ctx, ExitIO, err, "failed to ask for user input: %s", err)
 			}
 			content = []byte(pw)
 		}
@@ -61,14 +61,14 @@ func (s *Action) Insert(ctx context.Context, c *cli.Context) error {
 			var err error
 			sec, err = s.Store.Get(ctx, name)
 			if err != nil {
-				return s.exitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
+				return exitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
 			}
 		}
 		if err := sec.SetValue(key, string(content)); err != nil {
-			return s.exitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
+			return exitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
 		}
 		if err := s.Store.Set(sub.WithReason(ctx, "Inserted YAML value from STDIN"), name, sec); err != nil {
-			return s.exitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
+			return exitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
 		}
 		return nil
 	}
@@ -79,14 +79,14 @@ func (s *Action) Insert(ctx context.Context, c *cli.Context) error {
 			out.Red(ctx, "WARNING: Invalid YAML: %s", err)
 		}
 		if err := s.Store.Set(sub.WithReason(ctx, "Read secret from STDIN"), name, sec); err != nil {
-			return s.exitError(ctx, ExitEncrypt, err, "failed to set '%s': %s", name, err)
+			return exitError(ctx, ExitEncrypt, err, "failed to set '%s': %s", name, err)
 		}
 		return nil
 	}
 
 	if !force { // don't check if it's force anyway
 		if s.Store.Exists(ctx, name) && !s.AskForConfirmation(ctx, fmt.Sprintf("An entry already exists for %s. Overwrite it?", name)) {
-			return s.exitError(ctx, ExitAborted, nil, "not overwriting your current secret")
+			return exitError(ctx, ExitAborted, nil, "not overwriting your current secret")
 		}
 	}
 
@@ -97,23 +97,24 @@ func (s *Action) Insert(ctx context.Context, c *cli.Context) error {
 			var err error
 			sec, err := s.Store.Get(ctx, name)
 			if err != nil {
-				return s.exitError(ctx, ExitDecrypt, err, "failed to decrypt existing secret: %s", err)
+				return exitError(ctx, ExitDecrypt, err, "failed to decrypt existing secret: %s", err)
 			}
 			buf, err = sec.Bytes()
 			if err != nil {
-				return s.exitError(ctx, ExitUnknown, err, "failed to encode secret: %s", err)
+				return exitError(ctx, ExitUnknown, err, "failed to encode secret: %s", err)
 			}
 		}
-		content, err := s.editor(ctx, buf)
+		editor := getEditor(c)
+		content, err := s.editor(ctx, editor, buf)
 		if err != nil {
-			return s.exitError(ctx, ExitUnknown, err, "failed to start editor: %s", err)
+			return exitError(ctx, ExitUnknown, err, "failed to start editor: %s", err)
 		}
 		sec, err := secret.Parse(content)
 		if err != nil {
 			out.Red(ctx, "WARNING: Invalid YAML: %s", err)
 		}
-		if err := s.Store.Set(sub.WithReason(ctx, fmt.Sprintf("Inserted user supplied password with %s", getEditor())), name, sec); err != nil {
-			return s.exitError(ctx, ExitEncrypt, err, "failed to store secret '%s': %s", name, err)
+		if err := s.Store.Set(sub.WithReason(ctx, fmt.Sprintf("Inserted user supplied password with %s", editor)), name, sec); err != nil {
+			return exitError(ctx, ExitEncrypt, err, "failed to store secret '%s': %s", name, err)
 		}
 		return nil
 	}
@@ -128,7 +129,7 @@ func (s *Action) Insert(ctx context.Context, c *cli.Context) error {
 
 	pw, err := s.askForPassword(ctx, name, promptFn)
 	if err != nil {
-		return s.exitError(ctx, ExitIO, err, "failed to ask for password: %s", err)
+		return exitError(ctx, ExitIO, err, "failed to ask for password: %s", err)
 	}
 
 	sec := &secret.Secret{}
@@ -136,14 +137,14 @@ func (s *Action) Insert(ctx context.Context, c *cli.Context) error {
 		var err error
 		sec, err = s.Store.Get(ctx, name)
 		if err != nil {
-			return s.exitError(ctx, ExitDecrypt, err, "failed to decrypt existing secret: %s", err)
+			return exitError(ctx, ExitDecrypt, err, "failed to decrypt existing secret: %s", err)
 		}
 	}
 	sec.SetPassword(pw)
 	printAuditResult(ctx, sec.Password())
 
 	if err := s.Store.Set(sub.WithReason(ctx, "Inserted user supplied password"), name, sec); err != nil {
-		return s.exitError(ctx, ExitEncrypt, err, "failed to write secret '%s': %s", name, err)
+		return exitError(ctx, ExitEncrypt, err, "failed to write secret '%s': %s", name, err)
 	}
 	return nil
 }
