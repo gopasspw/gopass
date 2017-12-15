@@ -26,14 +26,14 @@ func (s *Action) Show(ctx context.Context, c *cli.Context) error {
 	ctx = WithPasswordOnly(ctx, c.Bool("password"))
 
 	if err := s.show(ctx, c, name, key, true); err != nil {
-		return s.exitError(ctx, ExitDecrypt, err, "%s", err)
+		return exitError(ctx, ExitDecrypt, err, "%s", err)
 	}
 	return nil
 }
 
 func (s *Action) show(ctx context.Context, c *cli.Context, name, key string, recurse bool) error {
 	if name == "" {
-		return s.exitError(ctx, ExitUsage, nil, "Usage: %s show [name]", s.Name)
+		return exitError(ctx, ExitUsage, nil, "Usage: %s show [name]", s.Name)
 	}
 
 	if s.Store.IsDir(ctx, name) && !s.Store.Exists(ctx, name) {
@@ -51,11 +51,11 @@ func (s *Action) show(ctx context.Context, c *cli.Context, name, key string, rec
 	sec, err := s.Store.Get(ctx, name)
 	if err != nil {
 		if err != store.ErrNotFound || !recurse || !ctxutil.IsTerminal(ctx) {
-			return s.exitError(ctx, ExitUnknown, err, "failed to retrieve secret '%s': %s", name, err)
+			return exitError(ctx, ExitUnknown, err, "failed to retrieve secret '%s': %s", name, err)
 		}
 		color.Yellow("Entry '%s' not found. Starting search...", name)
 		if err := s.Find(ctx, c); err != nil {
-			return s.exitError(ctx, ExitNotFound, err, "%s", err)
+			return exitError(ctx, ExitNotFound, err, "%s", err)
 		}
 		os.Exit(ExitNotFound)
 	}
@@ -67,12 +67,12 @@ func (s *Action) show(ctx context.Context, c *cli.Context, name, key string, rec
 		val, err := sec.Value(key)
 		if err != nil {
 			if errors.Cause(err) == store.ErrYAMLValueUnsupported {
-				return s.exitError(ctx, ExitUnsupported, err, "Can not show nested key directly. Use 'gopass show %s'", name)
+				return exitError(ctx, ExitUnsupported, err, "Can not show nested key directly. Use 'gopass show %s'", name)
 			}
 			if errors.Cause(err) == store.ErrNotFound {
-				return s.exitError(ctx, ExitNotFound, err, "Secret '%s' not found", name)
+				return exitError(ctx, ExitNotFound, err, "Secret '%s' not found", name)
 			}
-			return s.exitError(ctx, ExitUnknown, err, "failed to retrieve key '%s' from '%s': %s", key, name, err)
+			return exitError(ctx, ExitUnknown, err, "failed to retrieve key '%s' from '%s': %s", key, name, err)
 		}
 		if IsClip(ctx) {
 			return s.copyToClipboard(ctx, name, []byte(val))
@@ -81,7 +81,7 @@ func (s *Action) show(ctx context.Context, c *cli.Context, name, key string, rec
 	case IsPrintQR(ctx):
 		qr, err := qrcon.QRCode(sec.Password())
 		if err != nil {
-			return s.exitError(ctx, ExitUnknown, err, "failed to encode '%s' as QR: %s", name, err)
+			return exitError(ctx, ExitUnknown, err, "failed to encode '%s' as QR: %s", name, err)
 		}
 		fmt.Println(qr)
 		return nil
@@ -94,12 +94,12 @@ func (s *Action) show(ctx context.Context, c *cli.Context, name, key string, rec
 		case ctxutil.IsShowSafeContent(ctx) && !IsForce(ctx):
 			content = sec.Body()
 			if content == "" {
-				return s.exitError(ctx, ExitNotFound, store.ErrNoBody, "no safe content to display, you can force display with show -f")
+				return exitError(ctx, ExitNotFound, store.ErrNoBody, "no safe content to display, you can force display with show -f")
 			}
 		default:
 			buf, err := sec.Bytes()
 			if err != nil {
-				return s.exitError(ctx, ExitUnknown, err, "failed to encode secret: %s", err)
+				return exitError(ctx, ExitUnknown, err, "failed to encode secret: %s", err)
 			}
 			content = string(buf)
 		}

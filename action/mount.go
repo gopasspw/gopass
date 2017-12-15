@@ -16,7 +16,7 @@ import (
 // MountRemove removes an existing mount
 func (s *Action) MountRemove(ctx context.Context, c *cli.Context) error {
 	if len(c.Args()) != 1 {
-		return s.exitError(ctx, ExitUsage, nil, "Usage: %s mount remove [alias]", s.Name)
+		return exitError(ctx, ExitUsage, nil, "Usage: %s mount remove [alias]", s.Name)
 	}
 
 	if err := s.Store.RemoveMount(ctx, c.Args()[0]); err != nil {
@@ -24,7 +24,7 @@ func (s *Action) MountRemove(ctx context.Context, c *cli.Context) error {
 	}
 
 	if err := s.cfg.Save(); err != nil {
-		return s.exitError(ctx, ExitConfig, err, "failed to write config: %s", err)
+		return exitError(ctx, ExitConfig, err, "failed to write config: %s", err)
 	}
 
 	out.Green(ctx, "Password Store %s umounted", c.Args()[0])
@@ -66,7 +66,7 @@ func (s *Action) MountAdd(ctx context.Context, c *cli.Context) error {
 	alias := c.Args().Get(0)
 	localPath := c.Args().Get(1)
 	if alias == "" {
-		return s.exitError(ctx, ExitUsage, nil, "usage: %s mount add <alias> [local path]", s.Name)
+		return exitError(ctx, ExitUsage, nil, "usage: %s mount add <alias> [local path]", s.Name)
 	}
 
 	if localPath == "" {
@@ -83,11 +83,11 @@ func (s *Action) MountAdd(ctx context.Context, c *cli.Context) error {
 	}
 
 	if err := s.Store.AddMount(ctx, alias, localPath, keys...); err != nil {
-		return s.exitError(ctx, ExitMount, err, "failed to add mount '%s' to '%s': %s", alias, localPath, err)
+		return exitError(ctx, ExitMount, err, "failed to add mount '%s' to '%s': %s", alias, localPath, err)
 	}
 
 	if err := s.cfg.Save(); err != nil {
-		return s.exitError(ctx, ExitConfig, err, "failed to save config: %s", err)
+		return exitError(ctx, ExitConfig, err, "failed to save config: %s", err)
 	}
 
 	out.Green(ctx, "Mounted %s as %s", alias, localPath)

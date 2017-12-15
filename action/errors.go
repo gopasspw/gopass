@@ -53,7 +53,7 @@ const (
 	ExitGPG
 )
 
-func (s *Action) exitError(ctx context.Context, exitCode int, err error, format string, args ...interface{}) error {
+func exitError(ctx context.Context, exitCode int, err error, format string, args ...interface{}) error {
 	if err != nil {
 		out.Debug(ctx, "Stacktrace: %+v", err)
 	}

@@ -43,7 +43,7 @@ func (s *Action) Create(ctx context.Context, c *cli.Context) error {
 			return s.createGeneric(ctx, c)
 		}
 	default:
-		return s.exitError(ctx, ExitAborted, nil, "user aborted")
+		return exitError(ctx, ExitAborted, nil, "user aborted")
 	}
 	return nil
 }
@@ -115,7 +115,7 @@ func (s *Action) createWebsite(ctx context.Context, c *cli.Context) error {
 	_ = sec.SetValue("username", username)
 	_ = sec.SetValue("comment", comment)
 	if err := s.Store.Set(sub.WithReason(ctx, "Created new entry"), name, sec); err != nil {
-		return s.exitError(ctx, ExitEncrypt, err, "failed to set '%s': %s", name, err)
+		return exitError(ctx, ExitEncrypt, err, "failed to set '%s': %s", name, err)
 	}
 	if genPw {
 		fmt.Printf(
@@ -188,7 +188,7 @@ func (s *Action) createPIN(ctx context.Context, c *cli.Context) error {
 	_ = sec.SetValue("application", application)
 	_ = sec.SetValue("comment", comment)
 	if err := s.Store.Set(sub.WithReason(ctx, "Created new entry"), name, sec); err != nil {
-		return s.exitError(ctx, ExitEncrypt, err, "failed to set '%s': %s", name, err)
+		return exitError(ctx, ExitEncrypt, err, "failed to set '%s': %s", name, err)
 	}
 	if genPw {
 		fmt.Printf(
@@ -256,7 +256,7 @@ func (s *Action) createAWS(ctx context.Context, c *cli.Context) error {
 	_ = sec.SetValue("accesskey", accesskey)
 	_ = sec.SetValue("region", region)
 	if err := s.Store.Set(sub.WithReason(ctx, "Created new entry"), name, sec); err != nil {
-		return s.exitError(ctx, ExitEncrypt, err, "failed to set '%s': %s", name, err)
+		return exitError(ctx, ExitEncrypt, err, "failed to set '%s': %s", name, err)
 	}
 	return nil
 }
@@ -319,7 +319,7 @@ func (s *Action) createGCP(ctx context.Context, c *cli.Context) error {
 	}
 	sec := secret.New("", string(buf))
 	if err := s.Store.Set(sub.WithReason(ctx, "Created new entry"), name, sec); err != nil {
-		return s.exitError(ctx, ExitEncrypt, err, "failed to set '%s': %s", name, err)
+		return exitError(ctx, ExitEncrypt, err, "failed to set '%s': %s", name, err)
 	}
 	return nil
 }
@@ -409,7 +409,7 @@ func (s *Action) createGeneric(ctx context.Context, c *cli.Context) error {
 		_ = sec.SetValue(key, val)
 	}
 	if err := s.Store.Set(sub.WithReason(ctx, "Created new entry"), name, sec); err != nil {
-		return s.exitError(ctx, ExitEncrypt, err, "failed to set '%s': %s", name, err)
+		return exitError(ctx, ExitEncrypt, err, "failed to set '%s': %s", name, err)
 	}
 	if genPw {
 		fmt.Printf(

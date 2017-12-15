@@ -27,7 +27,7 @@ func (s *Action) List(ctx context.Context, c *cli.Context) error {
 
 	l, err := s.Store.Tree()
 	if err != nil {
-		return s.exitError(ctx, ExitList, err, "failed to list store: %s", err)
+		return exitError(ctx, ExitList, err, "failed to list store: %s", err)
 	}
 
 	var stdout io.Writer
@@ -50,7 +50,7 @@ func (s *Action) List(ctx context.Context, c *cli.Context) error {
 		fmt.Fprintln(stdout, l.Format(limit))
 		if buf != nil {
 			if err := s.pager(ctx, buf); err != nil {
-				return s.exitError(ctx, ExitUnknown, err, "failed to invoke pager: %s", err)
+				return exitError(ctx, ExitUnknown, err, "failed to invoke pager: %s", err)
 			}
 		}
 		return nil
@@ -88,7 +88,7 @@ func (s *Action) List(ctx context.Context, c *cli.Context) error {
 	fmt.Fprintln(stdout, subtree.Format(limit))
 	if buf != nil {
 		if err := s.pager(ctx, buf); err != nil {
-			return s.exitError(ctx, ExitUnknown, err, "failed to invoke pager: %s", err)
+			return exitError(ctx, ExitUnknown, err, "failed to invoke pager: %s", err)
 		}
 	}
 	return nil

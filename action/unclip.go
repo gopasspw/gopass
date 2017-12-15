@@ -22,7 +22,7 @@ func (s *Action) Unclip(ctx context.Context, c *cli.Context) error {
 
 	cur, err := clipboard.ReadAll()
 	if err != nil {
-		return s.exitError(ctx, ExitIO, err, "failed to read clipboard: %s", err)
+		return exitError(ctx, ExitIO, err, "failed to read clipboard: %s", err)
 	}
 
 	hash := fmt.Sprintf("%x", sha256.Sum256([]byte(cur)))
@@ -33,16 +33,16 @@ func (s *Action) Unclip(ctx context.Context, c *cli.Context) error {
 
 	if err := clipboard.WriteAll(""); err != nil {
 		_ = notify.Notify("gopass - clipboard", "Failed to clear clipboard")
-		return s.exitError(ctx, ExitIO, err, "failed to write clipboard: %s", err)
+		return exitError(ctx, ExitIO, err, "failed to write clipboard: %s", err)
 	}
 
 	if err := s.clearClipboardHistory(ctx); err != nil {
 		_ = notify.Notify("gopass - clipboard", "Failed to clear clipboard history")
-		return s.exitError(ctx, ExitIO, err, "failed to clear clipboard history: %s", err)
+		return exitError(ctx, ExitIO, err, "failed to clear clipboard history: %s", err)
 	}
 
 	if err := notify.Notify("gopass -clipboard", "Clipboard has been cleared"); err != nil {
-		return s.exitError(ctx, ExitIO, err, "failed to send unclip notification: %s", err)
+		return exitError(ctx, ExitIO, err, "failed to send unclip notification: %s", err)
 	}
 
 	return nil

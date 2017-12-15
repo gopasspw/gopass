@@ -2,7 +2,6 @@ package action
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/atotto/clipboard"
 	"github.com/fatih/color"
@@ -25,6 +24,6 @@ func (s *Action) copyToClipboard(ctx context.Context, name string, content []byt
 		return errors.Wrapf(err, "failed to clear clipboard")
 	}
 
-	fmt.Printf("Copied %s to clipboard. Will clear in %d seconds.\n", color.YellowString(name), ctxutil.GetClipTimeout(ctx))
+	out.Print(ctx, "Copied %s to clipboard. Will clear in %d seconds.\n", color.YellowString(name), ctxutil.GetClipTimeout(ctx))
 	return nil
 }

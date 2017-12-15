@@ -17,12 +17,12 @@ func (s *Action) Find(ctx context.Context, c *cli.Context) error {
 	ctx = WithClip(ctx, c.Bool("clip"))
 
 	if !c.Args().Present() {
-		return s.exitError(ctx, ExitUsage, nil, "Usage: %s find arg", s.Name)
+		return exitError(ctx, ExitUsage, nil, "Usage: %s find arg", s.Name)
 	}
 
 	l, err := s.Store.List(0)
 	if err != nil {
-		return s.exitError(ctx, ExitList, err, "failed to list store: %s", err)
+		return exitError(ctx, ExitList, err, "failed to list store: %s", err)
 	}
 
 	needle := strings.ToLower(c.Args().First())
@@ -73,6 +73,6 @@ func (s *Action) Find(ctx context.Context, c *cli.Context) error {
 		}
 		return s.show(ctx, c, needle, "", true)
 	default:
-		return s.exitError(ctx, ExitAborted, nil, "user aborted")
+		return exitError(ctx, ExitAborted, nil, "user aborted")
 	}
 }

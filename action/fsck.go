@@ -23,7 +23,7 @@ func (s *Action) Fsck(ctx context.Context, c *cli.Context) error {
 	// make sure config is in the right place
 	// we may have loaded it from one of the fallback locations
 	if err := s.cfg.Save(); err != nil {
-		return s.exitError(ctx, ExitConfig, err, "failed to save config: %s", err)
+		return exitError(ctx, ExitConfig, err, "failed to save config: %s", err)
 	}
 	// clean up any previous config locations
 	oldCfg := filepath.Join(config.Homedir(), ".gopass.yml")
@@ -34,7 +34,7 @@ func (s *Action) Fsck(ctx context.Context, c *cli.Context) error {
 	}
 
 	if _, err := s.Store.Fsck(ctx, ""); err != nil {
-		return s.exitError(ctx, ExitFsck, err, "fsck found errors")
+		return exitError(ctx, ExitFsck, err, "fsck found errors")
 	}
 	return nil
 }

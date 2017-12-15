@@ -54,7 +54,7 @@ func New(ctx context.Context, cfg *config.Config, sv semver.Version) (*Action, e
 	}
 
 	var err error
-	act.gpg, err = gpgcli.New(gpgcli.Config{
+	act.gpg, err = gpgcli.New(ctx, gpgcli.Config{
 		Umask: umask(),
 		Args:  gpgOpts(),
 	})
@@ -64,7 +64,7 @@ func New(ctx context.Context, cfg *config.Config, sv semver.Version) (*Action, e
 
 	store, err := root.New(ctx, cfg, act.gpg)
 	if err != nil {
-		return nil, err
+		return nil, exitError(ctx, ExitUnknown, err, "failed to init root store: %s", err)
 	}
 	act.Store = store
 

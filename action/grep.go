@@ -13,14 +13,14 @@ import (
 // Grep searches a string inside the content of all files
 func (s *Action) Grep(ctx context.Context, c *cli.Context) error {
 	if !c.Args().Present() {
-		return s.exitError(ctx, ExitUsage, nil, "Usage: %s grep arg", s.Name)
+		return exitError(ctx, ExitUsage, nil, "Usage: %s grep arg", s.Name)
 	}
 
 	search := c.Args().First()
 
 	l, err := s.Store.List(0)
 	if err != nil {
-		return s.exitError(ctx, ExitList, err, "failed to list store: %s", err)
+		return exitError(ctx, ExitList, err, "failed to list store: %s", err)
 	}
 
 	for _, v := range l {

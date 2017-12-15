@@ -5,9 +5,14 @@ package action
 import (
 	"os"
 	"os/exec"
+
+	"github.com/urfave/cli"
 )
 
-func getEditor() string {
+func getEditor(c *cli.Context) string {
+	if ed := c.String("editor"); ed != "" {
+		return ed
+	}
 	if ed := os.Getenv("EDITOR"); ed != "" {
 		return ed
 	}

@@ -12,7 +12,7 @@ func (s *Action) Move(ctx context.Context, c *cli.Context) error {
 	force := c.Bool("force")
 
 	if len(c.Args()) != 2 {
-		return s.exitError(ctx, ExitUsage, nil, "Usage: %s mv old-path new-path", s.Name)
+		return exitError(ctx, ExitUsage, nil, "Usage: %s mv old-path new-path", s.Name)
 	}
 
 	from := c.Args()[0]
@@ -20,12 +20,12 @@ func (s *Action) Move(ctx context.Context, c *cli.Context) error {
 
 	if !force {
 		if s.Store.Exists(ctx, to) && !s.AskForConfirmation(ctx, fmt.Sprintf("%s already exists. Overwrite it?", to)) {
-			return s.exitError(ctx, ExitAborted, nil, "not overwriting your current secret")
+			return exitError(ctx, ExitAborted, nil, "not overwriting your current secret")
 		}
 	}
 
 	if err := s.Store.Move(ctx, from, to); err != nil {
-		return s.exitError(ctx, ExitUnknown, err, "%s", err)
+		return exitError(ctx, ExitUnknown, err, "%s", err)
 	}
 
 	return nil

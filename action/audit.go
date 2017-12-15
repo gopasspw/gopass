@@ -31,7 +31,7 @@ type auditedSecret struct {
 func (s *Action) Audit(ctx context.Context, c *cli.Context) error {
 	t, err := s.Store.Tree()
 	if err != nil {
-		return s.exitError(ctx, ExitList, err, "failed to get store tree: %s", err)
+		return exitError(ctx, ExitList, err, "failed to get store tree: %s", err)
 	}
 	list := t.List(0)
 
@@ -111,7 +111,7 @@ func (s *Action) Audit(ctx context.Context, c *cli.Context) error {
 
 	if foundWeakPasswords || foundDuplicates || foundErrors {
 		_ = notify.Notify("gopass - audit", "Finished. Found weak passwords and/or duplicates")
-		return s.exitError(ctx, ExitAudit, nil, "found weak passwords or duplicates")
+		return exitError(ctx, ExitAudit, nil, "found weak passwords or duplicates")
 	}
 
 	_ = notify.Notify("gopass - audit", "Finished. No weak passwords or duplicates found!")

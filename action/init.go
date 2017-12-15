@@ -19,7 +19,7 @@ import (
 // prepared.
 func (s *Action) Initialized(ctx context.Context, c *cli.Context) error {
 	if s.gpg.Binary() == "" {
-		return s.exitError(ctx, ExitGPG, nil, "gpg not found but required")
+		return exitError(ctx, ExitGPG, nil, "gpg not found but required")
 	}
 	if s.gpg.Version(ctx).LT(semver.Version{Major: 2, Minor: 0, Patch: 0}) {
 		out.Red(ctx, "Warning: Using GPG 1.x. Using GPG 2.0 or later is highly recommended")
@@ -27,10 +27,13 @@ func (s *Action) Initialized(ctx context.Context, c *cli.Context) error {
 	if !s.Store.Initialized() {
 		if ctxutil.IsInteractive(ctx) {
 			if ok, err := s.askForBool(ctx, "It seems you are new to gopass. Do you want to run the onboarding wizard?", true); err == nil && ok {
-				return s.InitOnboarding(ctx, c)
+				if err := s.InitOnboarding(ctx, c); err != nil {
+					return exitError(ctx, ExitUnknown, err, "failed to run onboarding wizard: %s", err)
+				}
+				return nil
 			}
 		}
-		return s.exitError(ctx, ExitNotInitialized, nil, "password-store is not initialized. Try '%s init'", s.Name)
+		return exitError(ctx, ExitNotInitialized, nil, "password-store is not initialized. Try '%s init'", s.Name)
 	}
 	return nil
 }
@@ -45,7 +48,7 @@ func (s *Action) Init(ctx context.Context, c *cli.Context) error {
 	out.Cyan(ctx, "Initializing a new password store ...")
 
 	if err := s.init(ctx, alias, path, nogit, c.Args()...); err != nil {
-		return s.exitError(ctx, ExitUnknown, err, "failed to initialized store: %s", err)
+		return exitError(ctx, ExitUnknown, err, "failed to initialized store: %s", err)
 	}
 	return nil
 }
@@ -99,7 +102,7 @@ func (s *Action) init(ctx context.Context, alias, path string, nogit bool, keys 
 
 	// write config
 	if err := s.cfg.Save(); err != nil {
-		return s.exitError(ctx, ExitConfig, err, "failed to write config: %s", err)
+		return exitError(ctx, ExitConfig, err, "failed to write config: %s", err)
 	}
 
 	return nil

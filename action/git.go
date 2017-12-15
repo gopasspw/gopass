@@ -20,7 +20,7 @@ func (s *Action) Git(ctx context.Context, c *cli.Context) error {
 	force := c.Bool("force")
 
 	if err := s.Store.Git(ctx, store, recurse, force, c.Args()...); err != nil {
-		return s.exitError(ctx, ExitGit, err, "git operation failed: %s", err)
+		return exitError(ctx, ExitGit, err, "git operation failed: %s", err)
 	}
 	return nil
 }
@@ -31,7 +31,7 @@ func (s *Action) GitInit(ctx context.Context, c *cli.Context) error {
 	sk := c.String("sign-key")
 
 	if err := s.gitInit(ctx, store, sk); err != nil {
-		return s.exitError(ctx, ExitGit, err, "failed to initialize git: %s", err)
+		return exitError(ctx, ExitGit, err, "failed to initialize git: %s", err)
 	}
 	return nil
 }
