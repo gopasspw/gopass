@@ -18,6 +18,9 @@ import (
 // Initialized returns an error if the store is not properly
 // prepared.
 func (s *Action) Initialized(ctx context.Context, c *cli.Context) error {
+	if s.gpg.Binary() == "" {
+		return s.exitError(ctx, ExitGPG, nil, "gpg not found but required")
+	}
 	if s.gpg.Version(ctx).LT(semver.Version{Major: 2, Minor: 0, Patch: 0}) {
 		out.Red(ctx, "Warning: Using GPG 1.x. Using GPG 2.0 or later is highly recommended")
 	}
