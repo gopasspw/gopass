@@ -1,3 +1,9 @@
+## 1.6.5 / 2017-12-15
+
+* [ENHANCEMENT] Handle errors gracefully [#524]
+* [BUGFIX] Follow symlinks [#519]
+* [BUGFIX] Improve gpg binary detection [#520] [#522]
+
 ## 1.6.4 / 2017-12-13
 
 * [ENHANCEMENT] Support desktop notifications on Mac and Windows [#513]
