@@ -6,6 +6,8 @@
 * *How can gopass handle binary data?* - gopass is designed not to change to content of the secrets in any way except that it will add a final newline at the end of the secret iff it does not have one already and the output is going to a terminal. This means that the output may mess up your terminal if it's not only text. In this case you should either encoded the secret to text (e.g. base64) before inserting or use the special `gopass binary` subcommand that does that for you.
 * *Why does gopass delete my whole KDE klipper history?* - KDEs klipper provides a clipboard history for your convenience. Since we currently can't figure out which entry may contain a secret copied to the clipboard, we just clear the whole history once the clipboard timer expires.
 * *Can I use gopass as an token helper for Vault?* - Yes, there is [a repo](https://github.com/frntn/vault-token-helper-gopass) that provides the necessary scripts and instructions.
+* *Does gopass support reencryption?* - Adding or removing recipients with `gopass recipients add` or `gopass recipients remove` will automatically reencrypt all affected secrets.
+* *gopass can automatically import missing recipient keys but can it export them as well?* - When adding a recipient with `gopass recipients add` his public key will automatically exported to the store `.gpg-keys/<ID>`.
 
 ## API Stability
 
