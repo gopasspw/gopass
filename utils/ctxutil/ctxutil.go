@@ -20,6 +20,7 @@ const (
 	ctxKeyUseSymbols
 	ctxKeyNoColor
 	ctxKeyFuzzySearch
+	ctxKeyVerbose
 )
 
 // WithDebug returns a context with an explizit value for debug
@@ -314,6 +315,20 @@ func IsFuzzySearch(ctx context.Context) bool {
 	bv, ok := ctx.Value(ctxKeyFuzzySearch).(bool)
 	if !ok {
 		return true
+	}
+	return bv
+}
+
+// WithVerbose returns a context with the value for verbose set
+func WithVerbose(ctx context.Context, verbose bool) context.Context {
+	return context.WithValue(ctx, ctxKeyVerbose, verbose)
+}
+
+// IsVerbose returns the value of verbose or the default (false)
+func IsVerbose(ctx context.Context) bool {
+	bv, ok := ctx.Value(ctxKeyVerbose).(bool)
+	if !ok {
+		return false
 	}
 	return bv
 }

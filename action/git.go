@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/fatih/color"
+	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"
@@ -19,7 +20,7 @@ func (s *Action) Git(ctx context.Context, c *cli.Context) error {
 	}
 	force := c.Bool("force")
 
-	if err := s.Store.Git(ctx, store, recurse, force, c.Args()...); err != nil {
+	if err := s.Store.Git(ctxutil.WithVerbose(ctx, true), store, recurse, force, c.Args()...); err != nil {
 		return exitError(ctx, ExitGit, err, "git operation failed: %s", err)
 	}
 	return nil

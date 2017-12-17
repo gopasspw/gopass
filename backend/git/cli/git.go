@@ -39,7 +39,7 @@ func (g *Git) Cmd(ctx context.Context, name string, args ...string) error {
 	cmd.Stdout = buf
 	cmd.Stderr = buf
 
-	if ctxutil.IsDebug(ctx) {
+	if ctxutil.IsDebug(ctx) || ctxutil.IsVerbose(ctx) {
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 	}
