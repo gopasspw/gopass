@@ -29,6 +29,8 @@ func (s *Action) Create(ctx context.Context, c *cli.Context) error {
 	}
 	act, sel := termwiz.GetSelection(ctx, "Type of secret to create", "<↑/↓> to change the selection, <→> to select, <ESC> to quit", types)
 	switch act {
+	case "default":
+		fallthrough
 	case "show":
 		switch sel {
 		case 0:
@@ -91,6 +93,8 @@ func (s *Action) createWebsite(ctx context.Context, c *cli.Context) error {
 	stores = append(stores, s.Store.MountPoints()...)
 	act, sel := termwiz.GetSelection(ctx, "Store for secret", "<↑/↓> to change the selection, <→> to select, <ESC> to quit", stores)
 	switch act {
+	case "default":
+		fallthrough
 	case "show":
 		store = stores[sel]
 		if store == "<root>" {
@@ -165,6 +169,8 @@ func (s *Action) createPIN(ctx context.Context, c *cli.Context) error {
 	stores = append(stores, s.Store.MountPoints()...)
 	act, sel := termwiz.GetSelection(ctx, "Store for secret", "<↑/↓> to change the selection, <→> to select, <ESC> to quit", stores)
 	switch act {
+	case "default":
+		fallthrough
 	case "show":
 		store = stores[sel]
 		if store == "<root>" {
@@ -231,6 +237,8 @@ func (s *Action) createAWS(ctx context.Context, c *cli.Context) error {
 	stores = append(stores, s.Store.MountPoints()...)
 	act, sel := termwiz.GetSelection(ctx, "Store for secret", "<↑/↓> to change the selection, <→> to select, <ESC> to quit", stores)
 	switch act {
+	case "default":
+		fallthrough
 	case "show":
 		store = stores[sel]
 		if store == "<root>" {
@@ -298,6 +306,8 @@ func (s *Action) createGCP(ctx context.Context, c *cli.Context) error {
 	stores = append(stores, s.Store.MountPoints()...)
 	act, sel := termwiz.GetSelection(ctx, "Store for secret", "<↑/↓> to change the selection, <→> to select, <ESC> to quit", stores)
 	switch act {
+	case "default":
+		fallthrough
 	case "show":
 		store = stores[sel]
 		if store == "<root>" {
@@ -373,6 +383,8 @@ func (s *Action) createGeneric(ctx context.Context, c *cli.Context) error {
 	stores = append(stores, s.Store.MountPoints()...)
 	act, sel := termwiz.GetSelection(ctx, "Store for secret", "<↑/↓> to change the selection, <→> to select, <ESC> to quit", stores)
 	switch act {
+	case "default":
+		fallthrough
 	case "show":
 		store = stores[sel]
 		if store == "<root>" {

@@ -70,8 +70,10 @@ func GetSelection(ctx context.Context, prompt, usage string, choices []string) (
 				return "aborted", cur
 			case termbox.KeyArrowLeft:
 				return "copy", cur
-			case termbox.KeyArrowRight, termbox.KeyEnter:
+			case termbox.KeyArrowRight:
 				return "show", cur
+			case termbox.KeyEnter:
+				return "default", cur
 			case termbox.KeyArrowDown, termbox.KeyTab:
 				cur++
 				if cur >= len(choices) {
