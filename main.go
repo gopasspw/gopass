@@ -529,7 +529,7 @@ func main() {
 			Flags: []cli.Flag{
 				cli.BoolFlag{
 					Name:  "print, p",
-					Usage: "Print the generated password to the tmerinal",
+					Usage: "Print the generated password to the terminal",
 				},
 				cli.BoolFlag{
 					Name:  "force, f",
