@@ -1,7 +1,7 @@
 # Entropy
 
 Generating cryptographic keys needs a lot of entropy. Especially `gnupg --gen-key`
-depletes the kernel entropy pool (`/dev/random`) quite fast and may apear to be
+depletes the kernel entropy pool (`/dev/random`) quite fast and may appear to be
 stuck when it's waiting for new entropy.
 
 If you wonder how to speed this up consider installing `rng-tools`
@@ -29,7 +29,7 @@ to generate some entropy by triggering some network activity and input.
 sudo apt-get install rng-tools
 ```
 
-### CentOS / Fedora / RedHat
+### CentOS / Fedora / Red Hat
 
 ```
 sudo yum install rng-tools
@@ -37,5 +37,5 @@ sudo yum install rng-tools
 
 ## Further Information
 
-* [RNG-Tools on the ArchLinux Wiki](https://wiki.archlinux.org/index.php/Rng-tools)
+* [RNG-Tools on the Arch Linux Wiki](https://wiki.archlinux.org/index.php/Rng-tools)
 * [gopass Issue #486](https://github.com/justwatchcom/gopass/issues/486)

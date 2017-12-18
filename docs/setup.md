@@ -31,7 +31,7 @@ apt-get install gnupg git rng-tools
 yum install gnupg2 git rng-tools
 ```
 
-#### macOS
+#### MacOS
 
 If you haven't already, install [homebrew](http://brew.sh). And then:
 
@@ -78,7 +78,7 @@ You will be presented with several options:
 * Validity: 5 to 10 years is a good default.
 * Enter your real name and primary email address.
 * A comment is not necessary.
-* Passphrase: Make sure to pick a very long passphrase, not just a simple password. Remember this should be stronger than any of the secrets you store in the password store. You can configure the GPG Agent later to save you repetitive typing.
+* Pass phrase: Make sure to pick a very long pass phrase, not just a simple password. Remember this should be stronger than any of the secrets you store in the password store. You can configure the GPG Agent later to save you repetitive typing.
 
 Now, you have created a public and private key pair. If you don't know what that means, of if you are not familiar with GPG, we highly recommend you do a little reading on the subject. Check out the following manuals:
 
@@ -89,7 +89,7 @@ Now, you have created a public and private key pair. If you don't know what that
 
 Depending on your operating system, you can either use a package manager, download a pre-built binary, or install from source. If you have a working Go development environment, we recommend building from source.
 
-### macOS
+### MacOS
 
 If you haven't already, install [homebrew](http://brew.sh). And then:
 
@@ -97,7 +97,7 @@ If you haven't already, install [homebrew](http://brew.sh). And then:
 brew install gopass
 ```
 
-Alternatively, you can install gopass from the appropriate darwin release from the repository [releases page](https://github.com/justwatchcom/gopass/releases).
+Alternatively, you can install gopass from the appropriate Darwin release from the repository [releases page](https://github.com/justwatchcom/gopass/releases).
 
 ### Ubuntu & Debian
 
@@ -177,16 +177,16 @@ ln -s $GOPATH/bin/gopass $HOME/bin/pass
 
 Before migrating to gopass, you may have been using other password managers (such as [KeePass](https://keepass.info/), for example). If you were, you might want to import all of your existing passwords over. Because gopass is fully backwards compatible with pass, you can use any of the existing migration tools found under the "Migrating to pass" section of the [official pass website](https://www.passwordstore.org/).
 
-### Enable Bash / Z Shell Autocompletion
+### Enable Bash / Z Shell Auto completion
 
-If you use Bash or Z Shell, you can run one of the following commands to enable autocompletion for subcommands like `gopass show`, `gopass ls` and others.
+If you use Bash or Z Shell, you can run one of the following commands to enable auto completion for sub commands like `gopass show`, `gopass ls` and others.
 
 ```
 source <(gopass completion bash)
 source <(gopass completion zsh)
 ```
 
-**MacOS**: The version of bash shipped with MacOS may [require a workaround](https://stackoverflow.com/questions/32596123/why-source-command-doesnt-work-with-process-substitution-in-bash-3-2) to enable autocompletion. If the instructions above do not work try the following one:
+**MacOS**: The version of bash shipped with MacOS may [require a workaround](https://stackoverflow.com/questions/32596123/why-source-command-doesnt-work-with-process-substitution-in-bash-3-2) to enable auto completion. If the instructions above do not work try the following one:
 
 ```
 source /dev/stdin <<<"$(gopass completion bash)"
@@ -217,8 +217,8 @@ You can then simply bind these command lines to your preferred shortcuts in your
 ### Filling in passwords from browser
 
 Gopass allows filling in passwords in browsers leveraging a browser plugin like [gopass bridge](https://github.com/martinhoefling/gopassbridge). 
-The browser plugin communicates with gopass via json messages. To allow the plugin to start gopass, a [native messaging manifest](https://developer.mozilla.org/en-US/Add-ons/WebExtensions/Native_messaging) must be installed for each browser.
-Chrome, chromium and firefox are supported, currently. Further a wrapper must be installed to setup gpg-agent and execute `gopass jsonapi listen`.
+The browser plugin communicates with gopass via JSON messages. To allow the plugin to start gopass, a [native messaging manifest](https://developer.mozilla.org/en-US/Add-ons/WebExtensions/Native_messaging) must be installed for each browser.
+Chrome, chromium and Firefox are supported, currently. Further a wrapper must be installed to setup gpg-agent and execute `gopass jsonapi listen`.
 
 ```bash
 # Asks all questions concerning browser and setup
@@ -232,7 +232,7 @@ gopass jsonapi configure --browser chrome --path /home/user/.local/
 
 ```
 
-The username/login is determined from `login`, `username` and `user` yaml attributes. As fallback, the last part of the path is used, e.g. `theuser1` for `Internet/github.com/theuser1` entry.
+The user name/login is determined from `login`, `username` and `user` yaml attributes. As fallback, the last part of the path is used, e.g. `theuser1` for `Internet/github.com/theuser1` entry.
  
 ### Storing and Syncing your Password Store with Google Drive / Dropbox / etc.
 
@@ -252,7 +252,7 @@ Because gopass is fully backwards compatible with pass, you can use some existin
 
 * Android - [PwdStore](https://github.com/zeapo/Android-Password-Store)
 * iOS - [Pass for iOS](https://github.com/davidjb/pass-ios#readme)
-* Windows / macOS / Linux -  [QtPass](https://qtpass.org/)
+* Windows / MacOS / Linux -  [QtPass](https://qtpass.org/)
 
 Others can be found at the "Compatible Clients" section of the [official pass website](https://www.passwordstore.org/).
 
@@ -265,7 +265,7 @@ Once you have installed gopass, check out the [features documentation](https://g
 Running `gopass` with no existing store will start the onboarding wizard which
 will guide you through the setup of gopass.
 
-### Batch bootstraping
+### Batch bootstrapping
 
 In order to simplify the setup of gopass for your team members if can be run in a fully scripted bootstrap mode.
 

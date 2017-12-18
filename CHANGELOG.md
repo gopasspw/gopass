@@ -2,20 +2,20 @@
 
 * [ENHANCEMENT] Handle errors gracefully [#524]
 * [BUGFIX] Follow symlinks [#519]
-* [BUGFIX] Improve gpg binary detection [#520] [#522]
+* [BUGFIX] Improve GPG binary detection [#520] [#522]
 
 ## 1.6.4 / 2017-12-13
 
 * [ENHANCEMENT] Support desktop notifications on Mac and Windows [#513]
 * [BUGFIX] Fix slice out of bounds error [#517]
 * [BUGFIX] Allow .password-store to be a symlink [#516]
-* [BUGFIX] Respect --store flag to git subcommand [#512]
+* [BUGFIX] Respect --store flag to git sub command [#512]
 
 ## 1.6.3 / 2017-12-12
 
 * [ENHANCEMENT] Avoid altering YAML secrets unless necessary [#508]
 * [ENHANCEMENT] Documentation updates [#493] [#509]
-* [ENHANCEMENT] Abort if no gpg binary was found [#506]
+* [ENHANCEMENT] Abort if no GPG binary was found [#506]
 * [ENHANCEMENT] Support GOPASS_GPG_OPTS and GOPASS_UMASK [#504]
 * [BUGFIX] Create .gpg-keys if it does not exist [#507]
 
@@ -34,7 +34,7 @@
 * [ENHANCEMENT] Ignore any secret that does not end with .gpg [#461]
 * [ENHANCEMENT] Add option to display only the password [#455]
 * [ENHANCEMENT] Disable fuzzy search for gopass find [#454]
-* [BUGFIX] Fix .gpg-id selection for subfolders [#465]
+* [BUGFIX] Fix .gpg-id selection for sub folders [#465]
 * [BUGFIX] Set gpg.program if possible [#464]
 * [BUGFIX] Allow access to secrets shadowed by a folder [#463]
 * [BUGFIX] Set GPG_TTY [#452]
@@ -56,7 +56,7 @@
 * [ENHANCEMENT] Re-introduce usecolor config option [#414]
 * [ENHANCEMENT] Improve documentation [#407] [#409] [#416] [#417]
 * [ENHANCEMENT] Add language switch for xckd-style generation [#406]
-* [BUGFIX] Fix gpg binary detection [#419]
+* [BUGFIX] Fix GPG binary detection [#419]
 * [BUGFIX] Fix tests on windows [#421]
 
 ## 1.5.0 / 2017-10-17
@@ -95,7 +95,7 @@
 * [ENHANCEMENT] Improve error handling and propagation [#280]
 * [ENHANCEMENT] Omit newline when not writing to a terminal [#325]
 * [ENHANCEMENT] Only commit once per recipient batch operation [#329]
-* [ENHANCEMENT] Provide partial support for .gpg-id files in subfolders [#291]
+* [ENHANCEMENT] Provide partial support for .gpg-id files in sub folders [#291]
 * [ENHANCEMENT] Trim any trailing newlines or carriage returns in show output [#296]
 * [ENHANCEMENT] Use contexts [#310]
 * [ENHANCEMENT] Use contexts to cancel long running operations [#358]
@@ -130,7 +130,7 @@
 * [FEATURE] Add version check [#205]
 * [FEATURE] Add gopass audit command [#228]
 * [FEATURE] Add gopass audit hibp command [#239]
-* [ENHANCEMENT] Disable auto-push while reencrypting [#171]
+* [ENHANCEMENT] Disable auto-push while re-encrypting [#171]
 * [ENHANCEMENT] Configure git user and email before initial git commit [#185]
 * [ENHANCEMENT] Add recursive git operations [#186]
 * [ENHANCEMENT] Document missing config options [#188]
@@ -140,11 +140,11 @@
 * [ENHANCEMENT] Save recipients on show [#207]
 * [ENHANCEMENT] Include GPG and Git version in gopass version output [#210]
 * [ENHANCEMENT] Support more flexible YAML documents [#217]
-* [ENHANCEMENT] Simplify mounts add by infering local path [#219]
+* [ENHANCEMENT] Simplify mounts add by inferring local path [#219]
 * [ENHANCEMENT] Add contributor documentation [#222]
 * [ENHANCEMENT] Re-use selected encryption key for git signing [#247]
 * [ENHANCEMENT] Setup git push.default [#248]
-* [BUGFIX] Fix nil-pointer check on non existing subtree [#183]
+* [BUGFIX] Fix nil-pointer check on non existing sub tree [#183]
 * [BUGFIX] Fix load-keys [#203]
 * [BUGFIX] Only match mounts on folders [#240]
 * [BUGFIX] Disable checkRecipients as it conflicts with alwaysTrust [#242]
@@ -154,7 +154,7 @@
 * [FEATURE] YAML support [#125]
 * [FEATURE] Binary support [#136]
 * [ENHANCEMENT] Increase test coverage [#160]
-* [ENHANCEMENT] Use secure temporary storage on macOS [#144]
+* [ENHANCEMENT] Use secure temporary storage on MacOS [#144]
 * [ENHANCEMENT] Use goreleaser [#151]
 * [BUGFIX] Fix git invocation [#140]
 * [BUGFIX] Fix missing recipients on init [#141]

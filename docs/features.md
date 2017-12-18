@@ -39,7 +39,7 @@ example2.com/john@doe.com
 
 After installing gopass, the first thing you should do is initialize a password store. (If you are migrating to gopass from pass and already have a password store, you can skip this step.)
 
-Note that this document uses the term *password store* to refer to a directory that is managed by gopass. This is entirely different from any OS-level credential store, your GPG keyring, or your SSH keys.
+Note that this document uses the term *password store* to refer to a directory that is managed by gopass. This is entirely different from any OS-level credential store, your GPG key ring, or your SSH keys.
 
 To initialize a password store, just do a:
 
@@ -91,8 +91,8 @@ Let's say you want to create an account.
 
 ```bash
 $ gopass insert golang.org/gopher
-Enter secret for golang.org/gopher:       # hidden on Linux / macOS
-Retype secret for golang.org/gopher:      # hidden on Linux / macOS
+Enter secret for golang.org/gopher:       # hidden on Linux / MacOS
+Retype secret for golang.org/gopher:      # hidden on Linux / MacOS
 gopass: Encrypting golang.org/gopher for these recipients:
  - 0xB5B44266A3683834 - Gopher <gopher@golang.org>
 
@@ -155,7 +155,7 @@ totp: ABC123
 
 *Note: any values for `totp:` need to be base32 (32, not 64) encoded. Often sites will display the raw secret alongside the QR*
 
-Some sites will not directly show you the URL contained in the QR code. If this is the case, you can use something like [zbar](http://zbar.sourceforge.net/) to extract the url.
+Some sites will not directly show you the URL contained in the QR code. If this is the case, you can use something like [zbar](http://zbar.sourceforge.net/) to extract the URL.
 
 Both TOTP and HOTP are supported.
 
@@ -232,7 +232,7 @@ remotes. This will perform and git pull, push and import or export any missing
 GPG keys.
 
 ```bash
-$ gopas sync
+$ gopass sync
 ```
 
 ### Desktop Notifications
@@ -242,7 +242,7 @@ try to show desktop notifications [Linux only].
 
 ### git auto-push and auto-pull
 
-If you want gopass to always push changes in git to your default remote server (origin), enable autosync:
+If you want gopass to always push changes in git to your default remote server (origin), enable auto sync:
 
 ```bash
 $ gopass config autosync true
@@ -269,7 +269,7 @@ $ HIBP_DUMPS=/tmp/pwned-passwords-1.0.txt gopass audit hibp
 
 ### Support for Binary Content
 
-gopass provides secure and easy support for working with binary files through the `gopass binary` family of subcommands. One can copy or move secret from or to the store. gopass will attempt to securely overwrite and remove any secret moved to the store.
+gopass provides secure and easy support for working with binary files through the `gopass binary` family of sub commands. One can copy or move secret from or to the store. gopass will attempt to securely overwrite and remove any secret moved to the store.
 
 ```bash
 # copy file "/some/file.jpg" to "some/secret.b64" in the store
@@ -283,14 +283,14 @@ $ gopass binary sha256 my/private.key
 
 ### Multiple Stores
 
-gopass supports multi-stores that can be mounted over each other like filesystems on Linux/UNIX systems. Mounting new stores can be done through gopass:
+gopass supports multi-stores that can be mounted over each other like file systems on Linux/UNIX systems. Mounting new stores can be done through gopass:
 
 ```bash
 # Mount a new store
 $ gopass mounts add test /tmp/password-store-test
 # Show mounted stores
 $ gopass mounts
-# Umount a store
+# Unmount a store
 $ gopass mounts remove test
 ```
 
@@ -394,7 +394,7 @@ To restrict the characters used in generated passwords set `GOPASS_CHARACTER_SET
 
 Running `gopass [generate|insert] foo/bar` on an existing entry `foo/bar` will only update the first line of the secret, leaving any trailing data in place.
 
-*Note: if the trailing data is marked as YAML (has a line with `---` after the password line), invalid yaml will be removed!*
+*Note: if the trailing data is marked as YAML (has a line with `---` after the password line), invalid YAML will be removed!*
 
 ### Disabling Colors
 
@@ -410,14 +410,14 @@ This makes it easy to use templates for certain kind of secrets such as database
 
 `gopass jsonapi` enables communication with gopass via JSON messages. This is particularly useful for browser plugins like [gopassbridge](https://github.com/martinhoefling/gopassbridge) running gopass as native app. More details can be found in [docs/jsonapi.md](docs/jsonapi.md).
 
-## Roadmap
+## Road map
 
 - [x] Be 100% pass 1.4 compatible
 - [x] Storing binary files in gopass (almost done)
 - [x] Storing structured files and templates (credit cards, DBs, websites...)
 - [ ] UX improvements and more wizards
 - [ ] Tackle the information disclosure issue
-- [ ] Build a great workflow for requesting and granting access
+- [ ] Build a great work flow for requesting and granting access
 - [ ] Better and more fine grained ACL
 - [ ] Be nicely usable by semi- and non-technical users
 

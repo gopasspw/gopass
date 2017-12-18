@@ -9,25 +9,25 @@ Some configuration options are only available through setting environment variab
 | `CHECKPOINT_DISABLE` | `bool`   | Set to any non-empty value to disable calling the GitHub API when running `gopass version`. |
 | `GOPASS_DEBUG`       | `bool`   | Set to any non-empty value to enable verbose debug output |
 | `GOPASS_UMASK`       | `octal`  | Set to any valid umask to mask bits of files created by gopass |
-| `GOPASS_GPG_OPTS`    | `string` | Add any extra arguments, e.g. `--armor` you want to pass to gpg on every invocation |
+| `GOPASS_GPG_OPTS`    | `string` | Add any extra arguments, e.g. `--armor` you want to pass to GPG on every invocation |
 
 ## Configuration Options
 
-During startup, gopass will look for a configuration file at `$HOME/.config/gopass/config.yml`. If one is not present, it will create one. If the config file already exists, it will attempt to parse it and load the settings. If this fails, the program will abort. Thus, if gopass is giving you trouble with a broken or incompatible configuration file, simply rename it or delete it.
+During start up, gopass will look for a configuration file at `$HOME/.config/gopass/config.yml`. If one is not present, it will create one. If the config file already exists, it will attempt to parse it and load the settings. If this fails, the program will abort. Thus, if gopass is giving you trouble with a broken or incompatible configuration file, simply rename it or delete it.
 
-All configuration options are also available for reading and writing through the subcommand `gopass config`.
+All configuration options are also available for reading and writing through the sub command `gopass config`.
 
 * To display all values: `gopass config`
 * To display a single value: `gopass config autosync`
 * To update a single value: `gopass config autosync false`
-* As many other subcommands this command accepts a `--store` flag to operate on a given sub-store.
+* As many other sub commands this command accepts a `--store` flag to operate on a given sub-store.
 
 This is a list of options available:
 
 | **Option**    | **Type** | Description |
 | ------------- | -------- | ----------- |
 | `askformore`  | `bool`   | If enabled - it will ask to add more data after use of `generate` command. |
-| `autoimport`  | `bool`   | Import missing keys stored in the pass repo without asking. |
+| `autoimport`  | `bool`   | Import missing keys stored in the pass repository without asking. |
 | `autosync`    | `bool`   | Always do a `git push` after a commit to the store. Makes sure your local changes are always available on your git remote. |
 | `cliptimeout` | `int`    | How many seconds the secret is stored when using `-c`. |
 | `noconfirm`   | `bool`   | Do not confirm recipient list when encrypting. |
