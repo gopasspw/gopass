@@ -58,6 +58,10 @@ func (s *Action) Find(ctx context.Context, c *cli.Context) error {
 
 	act, sel := termwiz.GetSelection(ctx, "Found secrets -", "", choices)
 	switch act {
+	case "default":
+		// display or copy selected entry
+		fmt.Println(choices[sel])
+		return s.show(ctx, c, choices[sel], "", false)
 	case "copy":
 		// display selected entry
 		fmt.Println(choices[sel])

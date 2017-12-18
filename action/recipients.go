@@ -68,6 +68,8 @@ func (s *Action) RecipientsAdd(ctx context.Context, c *cli.Context) error {
 		stores = append(stores, s.Store.MountPoints()...)
 		act, sel := termwiz.GetSelection(ctx, "Store for secret", "<↑/↓> to change the selection, <→> to select, <ESC> to quit", stores)
 		switch act {
+		case "default":
+			fallthrough
 		case "show":
 			store = stores[sel]
 			if store == "<root>" {
@@ -90,6 +92,8 @@ func (s *Action) RecipientsAdd(ctx context.Context, c *cli.Context) error {
 		if len(choices) > 0 {
 			act, sel := termwiz.GetSelection(ctx, "Add Recipient -", "<↑/↓> to change the selection, <→> to add this recipient, <ESC> to quit", choices)
 			switch act {
+			case "default":
+				fallthrough
 			case "show":
 				recipients = []string{kl[sel].Fingerprint}
 			default:
@@ -141,6 +145,8 @@ func (s *Action) RecipientsRemove(ctx context.Context, c *cli.Context) error {
 		stores = append(stores, s.Store.MountPoints()...)
 		act, sel := termwiz.GetSelection(ctx, "Store for secret", "<↑/↓> to change the selection, <→> to select, <ESC> to quit", stores)
 		switch act {
+		case "default":
+			fallthrough
 		case "show":
 			store = stores[sel]
 			if store == "<root>" {
@@ -169,6 +175,8 @@ func (s *Action) RecipientsRemove(ctx context.Context, c *cli.Context) error {
 		if len(choices) > 0 {
 			act, sel := termwiz.GetSelection(ctx, "Remove recipient -", "<↑/↓> to change the selection, <→> to remove this recipient, <ESC> to quit", choices)
 			switch act {
+			case "default":
+				fallthrough
 			case "show":
 				recipients = []string{ids[sel]}
 			default:

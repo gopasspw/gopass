@@ -145,6 +145,8 @@ func (s *Action) InitOnboarding(ctx context.Context, c *cli.Context) error {
 	}
 	act, sel := termwiz.GetSelection(ctx, "Store for secret", "<↑/↓> to change the selection, <→> to select, <ESC> to quit", choices)
 	switch act {
+	case "default":
+		fallthrough
 	case "show":
 		switch sel {
 		case 0:
