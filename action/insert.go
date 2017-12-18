@@ -48,29 +48,7 @@ func (s *Action) Insert(ctx context.Context, c *cli.Context) error {
 
 	// update to a single YAML entry
 	if key != "" {
-		if ctxutil.IsInteractive(ctx) {
-			pw, err := s.askForString(ctx, name+":"+key, "")
-			if err != nil {
-				return exitError(ctx, ExitIO, err, "failed to ask for user input: %s", err)
-			}
-			content = []byte(pw)
-		}
-
-		sec := secret.New("", "")
-		if s.Store.Exists(ctx, name) {
-			var err error
-			sec, err = s.Store.Get(ctx, name)
-			if err != nil {
-				return exitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
-			}
-		}
-		if err := sec.SetValue(key, string(content)); err != nil {
-			return exitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
-		}
-		if err := s.Store.Set(sub.WithReason(ctx, "Inserted YAML value from STDIN"), name, sec); err != nil {
-			return exitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
-		}
-		return nil
+		return s.insertYAML(ctx, name, key, content)
 	}
 
 	if ctxutil.IsStdin(ctx) {
@@ -92,31 +70,7 @@ func (s *Action) Insert(ctx context.Context, c *cli.Context) error {
 
 	// if multi-line input is requested start an editor
 	if multiline && ctxutil.IsInteractive(ctx) {
-		buf := []byte{}
-		if s.Store.Exists(ctx, name) {
-			var err error
-			sec, err := s.Store.Get(ctx, name)
-			if err != nil {
-				return exitError(ctx, ExitDecrypt, err, "failed to decrypt existing secret: %s", err)
-			}
-			buf, err = sec.Bytes()
-			if err != nil {
-				return exitError(ctx, ExitUnknown, err, "failed to encode secret: %s", err)
-			}
-		}
-		editor := getEditor(c)
-		content, err := s.editor(ctx, editor, buf)
-		if err != nil {
-			return exitError(ctx, ExitUnknown, err, "failed to start editor: %s", err)
-		}
-		sec, err := secret.Parse(content)
-		if err != nil {
-			out.Red(ctx, "WARNING: Invalid YAML: %s", err)
-		}
-		if err := s.Store.Set(sub.WithReason(ctx, fmt.Sprintf("Inserted user supplied password with %s", editor)), name, sec); err != nil {
-			return exitError(ctx, ExitEncrypt, err, "failed to store secret '%s': %s", name, err)
-		}
-		return nil
+		return s.insertMultiline(ctx, c, name)
 	}
 
 	// if echo mode is requested use a simple string input function
@@ -145,6 +99,60 @@ func (s *Action) Insert(ctx context.Context, c *cli.Context) error {
 
 	if err := s.Store.Set(sub.WithReason(ctx, "Inserted user supplied password"), name, sec); err != nil {
 		return exitError(ctx, ExitEncrypt, err, "failed to write secret '%s': %s", name, err)
+	}
+	return nil
+}
+
+func (s *Action) insertYAML(ctx context.Context, name, key string, content []byte) error {
+	if ctxutil.IsInteractive(ctx) {
+		pw, err := s.askForString(ctx, name+":"+key, "")
+		if err != nil {
+			return exitError(ctx, ExitIO, err, "failed to ask for user input: %s", err)
+		}
+		content = []byte(pw)
+	}
+
+	sec := secret.New("", "")
+	if s.Store.Exists(ctx, name) {
+		var err error
+		sec, err = s.Store.Get(ctx, name)
+		if err != nil {
+			return exitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
+		}
+	}
+	if err := sec.SetValue(key, string(content)); err != nil {
+		return exitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
+	}
+	if err := s.Store.Set(sub.WithReason(ctx, "Inserted YAML value from STDIN"), name, sec); err != nil {
+		return exitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
+	}
+	return nil
+}
+
+func (s *Action) insertMultiline(ctx context.Context, c *cli.Context, name string) error {
+	buf := []byte{}
+	if s.Store.Exists(ctx, name) {
+		var err error
+		sec, err := s.Store.Get(ctx, name)
+		if err != nil {
+			return exitError(ctx, ExitDecrypt, err, "failed to decrypt existing secret: %s", err)
+		}
+		buf, err = sec.Bytes()
+		if err != nil {
+			return exitError(ctx, ExitUnknown, err, "failed to encode secret: %s", err)
+		}
+	}
+	editor := getEditor(c)
+	content, err := s.editor(ctx, editor, buf)
+	if err != nil {
+		return exitError(ctx, ExitUnknown, err, "failed to start editor: %s", err)
+	}
+	sec, err := secret.Parse(content)
+	if err != nil {
+		out.Red(ctx, "WARNING: Invalid YAML: %s", err)
+	}
+	if err := s.Store.Set(sub.WithReason(ctx, fmt.Sprintf("Inserted user supplied password with %s", editor)), name, sec); err != nil {
+		return exitError(ctx, ExitEncrypt, err, "failed to store secret '%s': %s", name, err)
 	}
 	return nil
 }
