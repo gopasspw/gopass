@@ -14,6 +14,8 @@ import (
 
 // Sync all stores with their remotes
 func (s *Action) Sync(ctx context.Context, c *cli.Context) error {
+	store := c.String("store")
+
 	out.Green(ctx, "Sync starting ...")
 
 	numEntries := 0
@@ -27,6 +29,15 @@ func (s *Action) Sync(ctx context.Context, c *cli.Context) error {
 
 	// sync all stores (root and all mounted sub stores)
 	for _, mp := range mps {
+		if store != "" {
+			if store != "root" && mp != store {
+				continue
+			}
+			if store == "root" && mp != "" {
+				continue
+			}
+		}
+
 		numMPs++
 		_ = s.syncMount(ctx, mp)
 	}
