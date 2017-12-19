@@ -43,8 +43,8 @@ func (s *Action) CompletionBash(c *cli.Context) error {
      return 0
  }
 
-complete -F _gopass_bash_autocomplete gopass
 `
+	out += "complete -F _gopass_bash_autocomplete " + s.Name
 	fmt.Println(out)
 
 	return nil
@@ -55,8 +55,8 @@ func (s *Action) CompletionZSH(c *cli.Context) error {
 	out := `autoload -U compinit && compinit
 autoload -U bashcompinit && bashcompinit
 
-source <(gopass completion bash)
 `
+	out += "source <(" + s.Name + " completion bash)"
 	fmt.Println(out)
 
 	return nil
