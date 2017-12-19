@@ -972,6 +972,12 @@ func main() {
 				return action.Sync(withGlobalFlags(ctx, c), c)
 
 			},
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "store, s",
+					Usage: "Select the store to sync",
+				},
+			},
 		},
 		{
 			Name:  "templates",
