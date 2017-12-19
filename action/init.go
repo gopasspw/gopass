@@ -241,7 +241,7 @@ func (s *Action) initSetupGitRemote(ctx context.Context, team, remote string) er
 	return nil
 }
 
-// initLocal will initalize a local store, useful for local-only setups or as
+// initLocal will initialize a local store, useful for local-only setups or as
 // part of team setups to create the root store
 func (s *Action) initLocal(ctx context.Context, c *cli.Context) error {
 	ctx = out.AddPrefix(ctx, "[local] ")

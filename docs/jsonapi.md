@@ -26,7 +26,7 @@ The implementation is located in `utils/jsonapi`.
 ```json
 [
     "somewhere/mysecret/loginname",
-    "somwhere/else/secretsauce"
+    "somewhere/else/secretsauce"
 ]
 ```
 
@@ -48,7 +48,7 @@ Similar to `query` but cuts host names and sub domains from the left side until 
 ```json
 [
     "somewhere/domain.example.com/loginname",
-    "somwhere/other.domain.example.com"
+    "somewhere/other.domain.example.com"
 ]
 ```
 

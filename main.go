@@ -411,7 +411,7 @@ func main() {
 			Name:  "delete",
 			Usage: "Remove secrets",
 			Description: "" +
-				"This command removes secrets. It can work recursivly on folders. " +
+				"This command removes secrets. It can work recursively on folders. " +
 				"Recursing across stores is purposefully not supported.",
 			Aliases: []string{"remove", "rm"},
 			Before:  func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
