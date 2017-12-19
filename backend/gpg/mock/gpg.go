@@ -22,7 +22,7 @@ var staticPrivateKeyList = gpg.KeyList{
 		CreationDate: time.Now(),
 		Fingerprint:  "000000000000000000000000DEADBEEF",
 		Identities: map[string]gpg.Identity{
-			"Dead Beef <dead.beef@example.com>": gpg.Identity{
+			"Dead Beef <dead.beef@example.com>": {
 				Name:         "Dead Beef",
 				Email:        "dead.beef@example.com",
 				CreationDate: time.Now(),

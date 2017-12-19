@@ -138,7 +138,7 @@ func main() {
 			Minor: 6,
 			Patch: 5,
 			Pre: []semver.PRVersion{
-				semver.PRVersion{VersionStr: "git"},
+				{VersionStr: "git"},
 			},
 			Build: []string{"HEAD"},
 		}

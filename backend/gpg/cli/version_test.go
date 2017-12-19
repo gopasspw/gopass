@@ -9,7 +9,7 @@ import (
 
 func TestSort(t *testing.T) {
 	in := []gpgBin{
-		gpgBin{
+		{
 			path: "/usr/local/bin/gpg",
 			ver: semver.Version{
 				Major: 1,
@@ -17,14 +17,14 @@ func TestSort(t *testing.T) {
 				Patch: 1,
 			},
 		},
-		gpgBin{
+		{
 			path: "/usr/bin/gpg",
 			ver: semver.Version{
 				Major: 2,
 				Minor: 4,
 			},
 		},
-		gpgBin{
+		{
 			path: "/usr/local/bin/gpg2",
 			ver: semver.Version{
 				Major: 2,
