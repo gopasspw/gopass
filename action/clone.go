@@ -3,14 +3,11 @@ package action
 import (
 	"context"
 	"fmt"
-	"os"
-	"os/exec"
 
 	"github.com/fatih/color"
+	git "github.com/justwatchcom/gopass/backend/git/cli"
 	"github.com/justwatchcom/gopass/config"
-	"github.com/justwatchcom/gopass/utils/fsutil"
 	"github.com/justwatchcom/gopass/utils/out"
-	"github.com/pkg/errors"
 	"github.com/urfave/cli"
 )
 
@@ -40,7 +37,7 @@ func (s *Action) clone(ctx context.Context, repo, mount, path string) error {
 	}
 
 	// clone repo
-	if err := gitClone(ctx, repo, path); err != nil {
+	if _, err := git.Clone(ctx, s.gpg.Binary(), repo, path); err != nil {
 		return exitError(ctx, ExitGit, err, "failed to clone repo '%s' to '%s'", repo, path)
 	}
 
@@ -94,19 +91,4 @@ func (s *Action) clone(ctx context.Context, repo, mount, path string) error {
 	out.Green(ctx, "Your password store is ready to use! Have a look around: `%s list%s`\n", s.Name, mount)
 
 	return nil
-}
-
-func gitClone(ctx context.Context, repo, path string) error {
-	if fsutil.IsDir(path) {
-		return errors.Errorf("%s is a directory that already exists", path)
-	}
-
-	fmt.Printf("Cloning repository %s to %s ...\n", repo, path)
-
-	cmd := exec.CommandContext(ctx, "git", "clone", repo, path)
-	cmd.Stdout = os.Stdout
-	cmd.Stdin = os.Stdin
-	cmd.Stderr = os.Stderr
-
-	return cmd.Run()
 }

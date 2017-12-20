@@ -92,13 +92,7 @@ func (s *Action) init(ctx context.Context, alias, path string, nogit bool, keys 
 	}
 
 	out.Green(ctx, "Password store %s initialized for:", path)
-	for _, recipient := range s.Store.ListRecipients(ctx, alias) {
-		r := "0x" + recipient
-		if kl, err := s.gpg.FindPublicKeys(ctx, recipient); err == nil && len(kl) > 0 {
-			r = kl[0].OneLine()
-		}
-		out.Yellow(ctx, "  "+r)
-	}
+	s.printRecipients(ctx, path, alias)
 
 	// write config
 	if err := s.cfg.Save(); err != nil {
@@ -106,6 +100,16 @@ func (s *Action) init(ctx context.Context, alias, path string, nogit bool, keys 
 	}
 
 	return nil
+}
+
+func (s *Action) printRecipients(ctx context.Context, path, alias string) {
+	for _, recipient := range s.Store.ListRecipients(ctx, alias) {
+		r := "0x" + recipient
+		if kl, err := s.gpg.FindPublicKeys(ctx, recipient); err == nil && len(kl) > 0 {
+			r = kl[0].OneLine()
+		}
+		out.Yellow(ctx, "  "+r)
+	}
 }
 
 // InitOnboarding will invoke the onboarding / setup wizard

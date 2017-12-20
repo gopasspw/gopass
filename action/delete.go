@@ -44,21 +44,25 @@ func (s *Action) Delete(ctx context.Context, c *cli.Context) error {
 
 	// deletes a single key from a YAML doc
 	if key != "" {
-		sec, err := s.Store.Get(ctx, name)
-		if err != nil {
-			return exitError(ctx, ExitIO, err, "Can not delete key '%s' from '%s': %s", key, name, err)
-		}
-		if err := sec.DeleteKey(key); err != nil {
-			return exitError(ctx, ExitIO, err, "Can not delete key '%s' from '%s': %s", key, name, err)
-		}
-		if err := s.Store.Set(sub.WithReason(ctx, "Updated Key in YAML"), name, sec); err != nil {
-			return exitError(ctx, ExitIO, err, "Can not delete key '%s' from '%s': %s", key, name, err)
-		}
-		return nil
+		return s.deleteKeyFromYAML(ctx, name, key)
 	}
 
 	if err := s.Store.Delete(ctx, name); err != nil {
 		return exitError(ctx, ExitIO, err, "Can not delete '%s': %s", name, err)
+	}
+	return nil
+}
+
+func (s *Action) deleteKeyFromYAML(ctx context.Context, name, key string) error {
+	sec, err := s.Store.Get(ctx, name)
+	if err != nil {
+		return exitError(ctx, ExitIO, err, "Can not delete key '%s' from '%s': %s", key, name, err)
+	}
+	if err := sec.DeleteKey(key); err != nil {
+		return exitError(ctx, ExitIO, err, "Can not delete key '%s' from '%s': %s", key, name, err)
+	}
+	if err := s.Store.Set(sub.WithReason(ctx, "Updated Key in YAML"), name, sec); err != nil {
+		return exitError(ctx, ExitIO, err, "Can not delete key '%s' from '%s': %s", key, name, err)
 	}
 	return nil
 }

@@ -88,6 +88,10 @@ func (s *Action) Audit(ctx context.Context, c *cli.Context) error {
 	close(checked)
 	fmt.Println() // Print empty line after the progressbar.
 
+	return s.auditPrintResults(ctx, duplicates, messages, errors)
+}
+
+func (s *Action) auditPrintResults(ctx context.Context, duplicates, messages, errors map[string][]string) error {
 	foundDuplicates := false
 	for _, secrets := range duplicates {
 		if len(secrets) > 1 {
