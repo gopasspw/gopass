@@ -20,6 +20,7 @@ func (s *Action) Insert(ctx context.Context, c *cli.Context) error {
 	multiline := c.Bool("multiline")
 	force := c.Bool("force")
 
+	// if force mode is requested we mock the recipient func to just return anything that goes in
 	if force {
 		ctx = sub.WithRecipientFunc(ctx, func(ctx context.Context, msg string, rs []string) ([]string, error) {
 			return rs, nil
@@ -52,20 +53,12 @@ func (s *Action) Insert(ctx context.Context, c *cli.Context) error {
 	}
 
 	if ctxutil.IsStdin(ctx) {
-		sec, err := secret.Parse(content)
-		if err != nil {
-			out.Red(ctx, "WARNING: Invalid YAML: %s", err)
-		}
-		if err := s.Store.Set(sub.WithReason(ctx, "Read secret from STDIN"), name, sec); err != nil {
-			return exitError(ctx, ExitEncrypt, err, "failed to set '%s': %s", name, err)
-		}
-		return nil
+		return s.insertStdin(ctx, name, content)
 	}
 
-	if !force { // don't check if it's force anyway
-		if s.Store.Exists(ctx, name) && !s.AskForConfirmation(ctx, fmt.Sprintf("An entry already exists for %s. Overwrite it?", name)) {
-			return exitError(ctx, ExitAborted, nil, "not overwriting your current secret")
-		}
+	// don't check if it's force anyway
+	if !force && s.Store.Exists(ctx, name) && !s.AskForConfirmation(ctx, fmt.Sprintf("An entry already exists for %s. Overwrite it?", name)) {
+		return exitError(ctx, ExitAborted, nil, "not overwriting your current secret")
 	}
 
 	// if multi-line input is requested start an editor
@@ -86,6 +79,21 @@ func (s *Action) Insert(ctx context.Context, c *cli.Context) error {
 		return exitError(ctx, ExitIO, err, "failed to ask for password: %s", err)
 	}
 
+	return s.insertSingle(ctx, name, pw)
+}
+
+func (s *Action) insertStdin(ctx context.Context, name string, content []byte) error {
+	sec, err := secret.Parse(content)
+	if err != nil {
+		out.Red(ctx, "WARNING: Invalid YAML: %s", err)
+	}
+	if err := s.Store.Set(sub.WithReason(ctx, "Read secret from STDIN"), name, sec); err != nil {
+		return exitError(ctx, ExitEncrypt, err, "failed to set '%s': %s", name, err)
+	}
+	return nil
+}
+
+func (s *Action) insertSingle(ctx context.Context, name, pw string) error {
 	sec := &secret.Secret{}
 	if s.Store.Exists(ctx, name) {
 		var err error

@@ -63,24 +63,15 @@ func (s *Action) clone(ctx context.Context, repo, mount, path string) error {
 	if err != nil {
 		out.Red(ctx, "Failed to ask for signing key: %s", err)
 	}
-	// for convenience, set defaults to user-selected values from available private keys
-	// NB: discarding returned error since this is merely a best-effort look-up for convenience
-	userName, userEmail, _ := s.askForGitConfigUser(ctx)
-	if userName == "" {
-		var err error
-		userName, err = s.askForString(ctx, color.CyanString("Please enter a user name for password store git config"), userName)
-		if err != nil {
-			return exitError(ctx, ExitIO, err, "Failed to read user input: %s", err)
-		}
+
+	// ask for git config values
+	username, email, err := s.cloneGetGitConfig(ctx)
+	if err != nil {
+		return err
 	}
-	if userEmail == "" {
-		var err error
-		userEmail, err = s.askForString(ctx, color.CyanString("Please enter an email address for password store git config"), userEmail)
-		if err != nil {
-			return exitError(ctx, ExitIO, err, "Failed to read user input: %s", err)
-		}
-	}
-	if err := s.Store.GitInitConfig(ctx, mount, sk, userName, userEmail); err != nil {
+
+	// initialize git config
+	if err := s.Store.GitInitConfig(ctx, mount, sk, username, email); err != nil {
 		out.Debug(ctx, "Stacktrace: %+v\n", err)
 		out.Red(ctx, "Failed to configure git: %s", err)
 	}
@@ -91,4 +82,25 @@ func (s *Action) clone(ctx context.Context, repo, mount, path string) error {
 	out.Green(ctx, "Your password store is ready to use! Have a look around: `%s list%s`\n", s.Name, mount)
 
 	return nil
+}
+
+func (s *Action) cloneGetGitConfig(ctx context.Context) (string, string, error) {
+	// for convenience, set defaults to user-selected values from available private keys
+	// NB: discarding returned error since this is merely a best-effort look-up for convenience
+	username, email, _ := s.askForGitConfigUser(ctx)
+	if username == "" {
+		var err error
+		username, err = s.askForString(ctx, color.CyanString("Please enter a user name for password store git config"), username)
+		if err != nil {
+			return "", "", exitError(ctx, ExitIO, err, "Failed to read user input: %s", err)
+		}
+	}
+	if email == "" {
+		var err error
+		email, err = s.askForString(ctx, color.CyanString("Please enter an email address for password store git config"), email)
+		if err != nil {
+			return "", "", exitError(ctx, ExitIO, err, "Failed to read user input: %s", err)
+		}
+	}
+	return username, email, nil
 }

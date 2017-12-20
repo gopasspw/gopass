@@ -58,6 +58,10 @@ func (s *Store) Set(ctx context.Context, name string, sec *secret.Secret) error 
 		return nil
 	}
 
+	return s.gitCommitAndPush(ctx, name)
+}
+
+func (s *Store) gitCommitAndPush(ctx context.Context, name string) error {
 	if err := s.git.Commit(ctx, fmt.Sprintf("Save secret to %s: %s", name, GetReason(ctx))); err != nil {
 		if errors.Cause(err) == store.ErrGitNotInit {
 			return nil

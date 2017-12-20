@@ -24,6 +24,7 @@ GOOS ?= $(shell go version | cut -d' ' -f4 | cut -d'/' -f1)
 GOARCH ?= $(shell go version | cut -d' ' -f4 | cut -d'/' -f2)
 
 PACKAGES ?= $(shell go list ./... | grep -v /vendor/ | grep -v /tests)
+GOFILES ?= $(shell find . -type f -name "*.go" | grep -v vendor/)
 
 TAGS ?= netgo
 
@@ -47,7 +48,7 @@ fmt:
 	$(GO) fmt $(PACKAGES)
 
 .PHONY: tests
-tests: test-cross test vet lint errcheck megacheck
+tests: test-cross test vet lint errcheck megacheck gocyclo
 
 .PHONY: vet
 vet:
@@ -73,6 +74,13 @@ megacheck:
 		$(GO) get -u honnef.co/go/tools/cmd/megacheck; \
 	fi
 	STATUS=0; for PKG in $(PACKAGES); do megacheck $$PKG || STATUS=1; done; exit $$STATUS
+
+.PHONY: gocyclo
+gocyclo:
+	@which gocyclo > /dev/null; if [ $$? -ne 0 ]; then \
+		$(GO) get -u github.com/fzipp/gocyclo; \
+	fi
+	STATUS=0; for FN in $(GOFILES); do gocyclo -over 15 $$FN || STATUS=1; done; exit $$STATUS
 
 .PHONY: test
 test:

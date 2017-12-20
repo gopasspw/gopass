@@ -31,17 +31,7 @@ func (s *Action) Generate(ctx context.Context, c *cli.Context) error {
 	}
 
 	name := c.Args().Get(0)
-	key := c.Args().Get(1)
-	length := c.Args().Get(2)
-
-	// generate can be called with one positional arg or two
-	// one - the desired length for the "master" secret itself
-	// two - the key in a YAML doc and the length for a secret generated for this
-	// key only
-	if length == "" && key != "" {
-		length = key
-		key = ""
-	}
+	key, length := keyAndLength(c)
 
 	// ask for name of the secret if it wasn't provided already
 	if name == "" {
@@ -79,6 +69,22 @@ func (s *Action) Generate(ctx context.Context, c *cli.Context) error {
 
 	// display or copy to clipboard
 	return s.generateCopyOrPrint(ctx, c, name, key, password)
+}
+
+func keyAndLength(c *cli.Context) (string, string) {
+	key := c.Args().Get(1)
+	length := c.Args().Get(2)
+
+	// generate can be called with one positional arg or two
+	// one - the desired length for the "master" secret itself
+	// two - the key in a YAML doc and the length for a secret generated for this
+	// key only
+	if length == "" && key != "" {
+		length = key
+		key = ""
+	}
+
+	return key, length
 }
 
 func (s *Action) generateCopyOrPrint(ctx context.Context, c *cli.Context, name, key, password string) error {
