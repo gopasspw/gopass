@@ -1,3 +1,11 @@
+## 1.6.6 / 2017-12-20
+
+* [FEATURE] Selective Sync [#538]
+* [ENHANCEMENT] Make termwiz honor copy flag [#534]
+* [ENHANCEMENT] Make shell completion respect binary name [#536]
+* [ENHANCEMENT] Refactor [#533] [#540] [#541] [#542]
+* [BUGFIX] Show git output [#529]
+
 ## 1.6.5 / 2017-12-15
 
 * [ENHANCEMENT] Handle errors gracefully [#524]
