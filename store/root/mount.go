@@ -98,8 +98,8 @@ func (r *Store) MountPoints() []string {
 	return mps
 }
 
-// mountPoint returns the most-specific mount point for the given key
-func (r *Store) mountPoint(name string) string {
+// MountPoint returns the most-specific mount point for the given key
+func (r *Store) MountPoint(name string) string {
 	for _, mp := range r.MountPoints() {
 		if strings.HasPrefix(name+"/", mp+"/") {
 			return mp
@@ -113,7 +113,7 @@ func (r *Store) mountPoint(name string) string {
 // context with sub store options set, sub store reference, truncated path to secret
 func (r *Store) getStore(ctx context.Context, name string) (context.Context, *sub.Store, string) {
 	name = strings.TrimSuffix(name, "/")
-	mp := r.mountPoint(name)
+	mp := r.MountPoint(name)
 	if sub, found := r.mounts[mp]; found {
 		return r.cfg.Mounts[mp].WithContext(ctx), sub, strings.TrimPrefix(name, sub.Alias())
 	}

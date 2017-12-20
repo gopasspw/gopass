@@ -894,7 +894,11 @@ func main() {
 				},
 				cli.BoolFlag{
 					Name:  "password, o",
-					Usage: "Dispaly only the password",
+					Usage: "Display only the password",
+				},
+				cli.BoolFlag{
+					Name:  "sync, s",
+					Usage: "Sync before attempting to display the secret",
 				},
 			},
 		},
