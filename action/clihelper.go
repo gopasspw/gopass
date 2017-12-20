@@ -11,6 +11,7 @@ import (
 
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/out"
+	"github.com/justwatchcom/gopass/utils/termwiz"
 	"github.com/pkg/errors"
 )
 
@@ -294,4 +295,22 @@ func (s *Action) askForGitConfigUser(ctx context.Context) (string, string, error
 	}
 
 	return "", "", nil
+}
+
+func (s *Action) askForStore(ctx context.Context) string {
+	stores := []string{"<root>"}
+	stores = append(stores, s.Store.MountPoints()...)
+	act, sel := termwiz.GetSelection(ctx, "Store for secret", "<↑/↓> to change the selection, <→> to select, <ESC> to quit", stores)
+	switch act {
+	case "default":
+		fallthrough
+	case "show":
+		store := stores[sel]
+		if store == "<root>" {
+			store = ""
+		}
+		return store
+	default:
+		return "" // root store
+	}
 }

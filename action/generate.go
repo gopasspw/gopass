@@ -22,21 +22,10 @@ const (
 
 // Generate & save a password
 func (s *Action) Generate(ctx context.Context, c *cli.Context) error {
-	xkcdSeparator := " "
 	force := c.Bool("force")
 	edit := c.Bool("edit")
-	symbols := false
 
-	if c.Bool("symbols") || ctxutil.IsUseSymbols(ctx) {
-		symbols = true
-	}
-
-	xkcd := c.Bool("xkcd")
-	if c.IsSet("xkcdsep") {
-		xkcdSeparator = c.String("xkcdsep")
-		xkcd = true
-	}
-
+	// warn about depreated "no-symbols" flag
 	if c.IsSet("no-symbols") {
 		out.Red(ctx, "Warning: -n/--no-symbols is deprecated. This is now the default. Use -s to enable symbols. You can also set 'usesymbols' to true via gopass config.")
 	}
@@ -54,6 +43,7 @@ func (s *Action) Generate(ctx context.Context, c *cli.Context) error {
 		key = ""
 	}
 
+	// ask for name of the secret if it wasn't provided already
 	if name == "" {
 		var err error
 		name, err = s.askForString(ctx, "Which name do you want to use?", "")
@@ -62,81 +52,36 @@ func (s *Action) Generate(ctx context.Context, c *cli.Context) error {
 		}
 	}
 
+	// ask for confirmation before overwriting existing entry
 	if !force { // don't check if it's force anyway
 		if s.Store.Exists(ctx, name) && key == "" && !s.AskForConfirmation(ctx, fmt.Sprintf("An entry already exists for %s. Overwrite the current password?", name)) {
 			return exitError(ctx, ExitAborted, nil, "user aborted. not overwriting your current password")
 		}
 	}
 
-	var pwlen int
-	if length == "" {
-		candidateLength := defaultLength
-		question := "How long should the password be?"
-		if xkcd {
-			candidateLength = defaultXKCDLength
-			question = "How many words should be combined to a password?"
-		}
-		iv, err := s.askForInt(ctx, question, candidateLength)
-		if err != nil {
-			return exitError(ctx, ExitUsage, err, "password length must be a number")
-		}
-		pwlen = iv
-	} else {
-		iv, err := strconv.Atoi(length)
-		if err != nil {
-			return exitError(ctx, ExitUsage, err, "password length must be a number")
-		}
-		pwlen = iv
+	// generate password
+	password, err := s.generatePassword(ctx, c, length)
+	if err != nil {
+		return err
 	}
 
-	if pwlen < 1 {
-		return exitError(ctx, ExitUsage, nil, "password length must not be zero")
+	// write generated password to stroe
+	if err := s.generateSetPassword(ctx, name, key, password); err != nil {
+		return err
 	}
 
-	var password string
-	if xkcd {
-		var err error
-		password, err = xkcdgen.RandomLengthDelim(pwlen, xkcdSeparator, c.String("xkcdlang"))
-		if err != nil {
-			return err
-		}
-	} else {
-		password = pwgen.GeneratePassword(pwlen, symbols)
-	}
-
-	// set a single key in a yaml doc
-	if key != "" {
-		sec, err := s.Store.Get(ctx, name)
-		if err != nil {
-			return exitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
-		}
-		if err := sec.SetValue(key, string(password)); err != nil {
-			return exitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
-		}
-		if err := s.Store.Set(sub.WithReason(ctx, "Generated password for YAML key"), name, sec); err != nil {
-			return exitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
-		}
-	} else if s.Store.Exists(ctx, name) {
-		sec, err := s.Store.Get(ctx, name)
-		if err != nil {
-			return exitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
-		}
-		sec.SetPassword(password)
-		if err := s.Store.Set(sub.WithReason(ctx, "Generated password for YAML key"), name, sec); err != nil {
-			return exitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
-		}
-	} else {
-		if err := s.Store.Set(sub.WithReason(ctx, "Generated Password"), name, secret.New(string(password), "")); err != nil {
-			return exitError(ctx, ExitEncrypt, err, "failed to create '%s': %s", name, err)
-		}
-	}
-
+	// if requested launch editor to add more data to the generated secret
 	if (edit || ctxutil.IsAskForMore(ctx)) && s.AskForConfirmation(ctx, fmt.Sprintf("Do you want to add more data for %s?", name)) {
 		if err := s.Edit(ctx, c); err != nil {
 			return exitError(ctx, ExitUnknown, err, "failed to edit '%s': %s", name, err)
 		}
 	}
 
+	// display or copy to clipboard
+	return s.generateCopyOrPrint(ctx, c, name, key, password)
+}
+
+func (s *Action) generateCopyOrPrint(ctx context.Context, c *cli.Context, name, key, password string) error {
 	if c.Bool("print") {
 		if key != "" {
 			key = " " + key
@@ -150,6 +95,106 @@ func (s *Action) Generate(ctx context.Context, c *cli.Context) error {
 
 	if err := s.copyToClipboard(ctx, name, []byte(password)); err != nil {
 		return exitError(ctx, ExitIO, err, "failed to copy to clipboard: %s", err)
+	}
+	return nil
+}
+
+func (s *Action) generatePassword(ctx context.Context, c *cli.Context, length string) (string, error) {
+	if c.Bool("xkcd") || c.IsSet("xkcdsep") {
+		return s.generatePasswordXKCD(ctx, c, length)
+	}
+
+	symbols := false
+	if c.Bool("symbols") || ctxutil.IsUseSymbols(ctx) {
+		symbols = true
+	}
+
+	var pwlen int
+	if length == "" {
+		candidateLength := defaultLength
+		question := "How long should the password be?"
+		iv, err := s.askForInt(ctx, question, candidateLength)
+		if err != nil {
+			return "", exitError(ctx, ExitUsage, err, "password length must be a number")
+		}
+		pwlen = iv
+	} else {
+		iv, err := strconv.Atoi(length)
+		if err != nil {
+			return "", exitError(ctx, ExitUsage, err, "password length must be a number")
+		}
+		pwlen = iv
+	}
+
+	if pwlen < 1 {
+		return "", exitError(ctx, ExitUsage, nil, "password length must not be zero")
+	}
+
+	return pwgen.GeneratePassword(pwlen, symbols), nil
+}
+
+func (s *Action) generatePasswordXKCD(ctx context.Context, c *cli.Context, length string) (string, error) {
+	xkcdSeparator := " "
+	if c.IsSet("xkcdsep") {
+		xkcdSeparator = c.String("xkcdsep")
+	}
+
+	var pwlen int
+	if length == "" {
+		candidateLength := defaultXKCDLength
+		question := "How many words should be combined to a password?"
+		iv, err := s.askForInt(ctx, question, candidateLength)
+		if err != nil {
+			return "", exitError(ctx, ExitUsage, err, "password length must be a number")
+		}
+		pwlen = iv
+	} else {
+		iv, err := strconv.Atoi(length)
+		if err != nil {
+			return "", exitError(ctx, ExitUsage, err, "password length must be a number")
+		}
+		pwlen = iv
+	}
+
+	if pwlen < 1 {
+		return "", exitError(ctx, ExitUsage, nil, "password length must not be zero")
+	}
+
+	return xkcdgen.RandomLengthDelim(pwlen, xkcdSeparator, c.String("xkcdlang"))
+}
+
+func (s *Action) generateSetPassword(ctx context.Context, name, key, password string) error {
+	// set a single key in a yaml doc
+	if key != "" {
+		sec, err := s.Store.Get(ctx, name)
+		if err != nil {
+			return exitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
+		}
+		if err := sec.SetValue(key, string(password)); err != nil {
+			return exitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
+		}
+		if err := s.Store.Set(sub.WithReason(ctx, "Generated password for YAML key"), name, sec); err != nil {
+			return exitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
+		}
+		return nil
+	}
+
+	// replace password in existing secret
+	if s.Store.Exists(ctx, name) {
+		sec, err := s.Store.Get(ctx, name)
+		if err != nil {
+			return exitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
+		}
+		sec.SetPassword(password)
+		if err := s.Store.Set(sub.WithReason(ctx, "Generated password for YAML key"), name, sec); err != nil {
+			return exitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
+		}
+		return nil
+	}
+
+	// generate a completely new secret
+	if err := s.Store.Set(sub.WithReason(ctx, "Generated Password"), name, secret.New(string(password), "")); err != nil {
+		return exitError(ctx, ExitEncrypt, err, "failed to create '%s': %s", name, err)
 	}
 	return nil
 }

@@ -64,20 +64,7 @@ func (s *Action) RecipientsAdd(ctx context.Context, c *cli.Context) error {
 
 	// select store
 	if store == "" {
-		stores := []string{"<root>"}
-		stores = append(stores, s.Store.MountPoints()...)
-		act, sel := termwiz.GetSelection(ctx, "Store for secret", "<↑/↓> to change the selection, <→> to select, <ESC> to quit", stores)
-		switch act {
-		case "default":
-			fallthrough
-		case "show":
-			store = stores[sel]
-			if store == "<root>" {
-				store = ""
-			}
-		default:
-			store = "" // root store
-		}
+		store = s.askForStore(ctx)
 	}
 
 	// select recipient
@@ -141,20 +128,7 @@ func (s *Action) RecipientsRemove(ctx context.Context, c *cli.Context) error {
 
 	// select store
 	if store == "" {
-		stores := []string{"<root>"}
-		stores = append(stores, s.Store.MountPoints()...)
-		act, sel := termwiz.GetSelection(ctx, "Store for secret", "<↑/↓> to change the selection, <→> to select, <ESC> to quit", stores)
-		switch act {
-		case "default":
-			fallthrough
-		case "show":
-			store = stores[sel]
-			if store == "<root>" {
-				store = ""
-			}
-		default:
-			store = "" // root store
-		}
+		store = s.askForStore(ctx)
 	}
 
 	// select recipient
