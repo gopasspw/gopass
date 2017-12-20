@@ -26,6 +26,12 @@ func (s *Action) Show(ctx context.Context, c *cli.Context) error {
 	ctx = WithPrintQR(ctx, c.Bool("qr"))
 	ctx = WithPasswordOnly(ctx, c.Bool("password"))
 
+	if c.Bool("sync") {
+		if err := s.sync(out.WithHidden(ctx, true), c, s.Store.MountPoint(name)); err != nil {
+			out.Red(ctx, "Failed to sync %s: %s", name, err)
+		}
+	}
+
 	if err := s.show(ctx, c, name, key, true); err != nil {
 		return exitError(ctx, ExitDecrypt, err, "%s", err)
 	}
