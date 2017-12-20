@@ -30,6 +30,20 @@ func New(path, gpg string) *Git {
 	}
 }
 
+// Clone clones an existing git repo and returns a new cli based git backend
+// configured for this clone repo
+func Clone(ctx context.Context, gpg, repo, path string) (*Git, error) {
+	g := &Git{
+		gpg:  gpg,
+		path: filepath.Dir(path),
+	}
+	if err := g.Cmd(ctx, "Clone", "clone", repo, path); err != nil {
+		return nil, err
+	}
+	g.path = path
+	return g, nil
+}
+
 // Cmd runs an git command
 func (g *Git) Cmd(ctx context.Context, name string, args ...string) error {
 	buf := &bytes.Buffer{}

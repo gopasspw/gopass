@@ -134,29 +134,11 @@ func (s *Action) RecipientsRemove(ctx context.Context, c *cli.Context) error {
 	// select recipient
 	recipients := []string(c.Args())
 	if len(recipients) < 1 {
-		ids := s.Store.ListRecipients(ctx, store)
-		choices := make([]string, 0, len(ids))
-		kl, err := s.gpg.FindPublicKeys(ctx, ids...)
-		if err == nil && kl != nil {
-			for _, id := range ids {
-				if key, err := kl.FindKey(id); err == nil {
-					choices = append(choices, key.OneLine())
-					continue
-				}
-				choices = append(choices, id)
-			}
+		rs, err := s.recipientsSelectForRemoval(ctx, store)
+		if err != nil {
+			return err
 		}
-		if len(choices) > 0 {
-			act, sel := termwiz.GetSelection(ctx, "Remove recipient -", "<↑/↓> to change the selection, <→> to remove this recipient, <ESC> to quit", choices)
-			switch act {
-			case "default":
-				fallthrough
-			case "show":
-				recipients = []string{ids[sel]}
-			default:
-				return exitError(ctx, ExitAborted, nil, "user aborted")
-			}
-		}
+		recipients = rs
 	}
 
 	removed := 0
@@ -179,4 +161,31 @@ func (s *Action) RecipientsRemove(ctx context.Context, c *cli.Context) error {
 	out.Green(ctx, "\nRemoved %d recipients", removed)
 	out.Cyan(ctx, "You need to run 'gopass sync' to push these changes")
 	return nil
+}
+
+func (s *Action) recipientsSelectForRemoval(ctx context.Context, store string) ([]string, error) {
+	ids := s.Store.ListRecipients(ctx, store)
+	choices := make([]string, 0, len(ids))
+	kl, err := s.gpg.FindPublicKeys(ctx, ids...)
+	if err == nil && kl != nil {
+		for _, id := range ids {
+			if key, err := kl.FindKey(id); err == nil {
+				choices = append(choices, key.OneLine())
+				continue
+			}
+			choices = append(choices, id)
+		}
+	}
+	if len(choices) < 1 {
+		return nil, nil
+	}
+	act, sel := termwiz.GetSelection(ctx, "Remove recipient -", "<↑/↓> to change the selection, <→> to remove this recipient, <ESC> to quit", choices)
+	switch act {
+	case "default":
+		fallthrough
+	case "show":
+		return []string{ids[sel]}, nil
+	default:
+		return nil, exitError(ctx, ExitAborted, nil, "user aborted")
+	}
 }

@@ -2,68 +2,59 @@ package manifest
 
 import (
 	"fmt"
-	"path"
 	"runtime"
 )
 
+var globalLocations = map[string]map[string]string{
+	"darwin": map[string]string{
+		"firefox":  "/Library/Application Support/Mozilla/NativeMessagingHosts/%s.json",
+		"chrome":   "/Library/Google/Chrome/NativeMessagingHosts/%s.json",
+		"chromium": "/Library/Application Support/Chromium/NativeMessagingHosts/%s.json",
+	},
+	"linux": map[string]string{
+		"firefox":  "mozilla/native-messaging-hosts/%s.json",
+		"chrome":   "/etc/opt/chrome/native-messaging-hosts/%s.json",
+		"chromium": "/etc/chromium/native-messaging-hosts/%s.json",
+	},
+}
+
+var locations = map[string]map[string]string{
+	"darwin": map[string]string{
+		"firefox":  "~/Library/Application Support/Mozilla/NativeMessagingHosts/%s.json",
+		"chrome":   "~/Library/Application Support/Google/Chrome/NativeMessagingHosts/%s.json",
+		"chromium": "~/Library/Application Support/Chromium/NativeMessagingHosts/%s.json",
+	},
+	"linux": map[string]string{
+		"firefox":  "~/.mozilla/native-messaging-hosts/%s.json",
+		"chrome":   "~/.config/google-chrome/NativeMessagingHosts/%s.json",
+		"chromium": "~/.config/chromium/NativeMessagingHosts/%s.json",
+	},
+}
+
 func getLocation(browser, libpath string, globalInstall bool) (string, error) {
-	switch platform := runtime.GOOS; platform {
-	case "darwin":
-		{
-			switch browser {
-			case "firefox":
-				{
-					if globalInstall {
-						return "/Library/Application Support/Mozilla/NativeMessagingHosts/%s.json", nil
-					}
-					return "~/Library/Application Support/Mozilla/NativeMessagingHosts/%s.json", nil
-				}
-			case "chrome":
-				{
-					if globalInstall {
-						return "/Library/Google/Chrome/NativeMessagingHosts/%s.json", nil
-					}
-					return "~/Library/Application Support/Google/Chrome/NativeMessagingHosts/%s.json", nil
-				}
-			case "chromium":
-				{
-					if globalInstall {
-						return "/Library/Application Support/Chromium/NativeMessagingHosts/%s.json", nil
-					}
-					return "~/Library/Application Support/Chromium/NativeMessagingHosts/%s.json", nil
-				}
-			}
-		}
-	case "linux":
-		{
-			switch browser {
-			case "firefox":
-				{
-					if globalInstall {
-						return path.Join(libpath, "mozilla/native-messaging-hosts/%s.json"), nil
-					}
-					return "~/.mozilla/native-messaging-hosts/%s.json", nil
-				}
-			case "chrome":
-				{
-					if globalInstall {
-						return "/etc/opt/chrome/native-messaging-hosts/%s.json", nil
-					}
-					return "~/.config/google-chrome/NativeMessagingHosts/%s.json", nil
-				}
-			case "chromium":
-				{
-					if globalInstall {
-						return "/etc/chromium/native-messaging-hosts/%s.json", nil
-					}
-					return "~/.config/chromium/NativeMessagingHosts/%s.json", nil
-				}
-			}
-		}
-	default:
-		{
+	platform := runtime.GOOS
+	if globalInstall {
+		pm, found := globalLocations[platform]
+		if !found {
 			return "", fmt.Errorf("platform %s is currently not supported", platform)
 		}
+		path, found := pm[browser]
+		if !found {
+			return "", fmt.Errorf("browser %s on %s is currently not supported", browser, platform)
+		}
+		if browser == "firefox" {
+			path = libpath + "/" + path
+		}
+		return path, nil
 	}
-	return "", nil
+
+	pm, found := locations[platform]
+	if !found {
+		return "", fmt.Errorf("platform %s is currently not supported", platform)
+	}
+	path, found := pm[browser]
+	if !found {
+		return "", fmt.Errorf("browser %s on %s is currently not supported", browser, platform)
+	}
+	return path, nil
 }
