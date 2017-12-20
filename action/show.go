@@ -8,6 +8,7 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/store"
+	"github.com/justwatchcom/gopass/store/secret"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/justwatchcom/gopass/utils/qrcon"
@@ -50,41 +51,27 @@ func (s *Action) show(ctx context.Context, c *cli.Context, name, key string, rec
 
 	sec, err := s.Store.Get(ctx, name)
 	if err != nil {
-		if err != store.ErrNotFound || !recurse || !ctxutil.IsTerminal(ctx) {
-			return exitError(ctx, ExitUnknown, err, "failed to retrieve secret '%s': %s", name, err)
-		}
-		color.Yellow("Entry '%s' not found. Starting search...", name)
-		if err := s.Find(ctx, c); err != nil {
-			return exitError(ctx, ExitNotFound, err, "%s", err)
-		}
-		os.Exit(ExitNotFound)
+		return s.showHandleError(ctx, c, name, recurse, err)
 	}
 
+	return s.showHandleOutput(ctx, name, key, sec)
+}
+
+func (s *Action) showHandleOutput(ctx context.Context, name, key string, sec *secret.Secret) error {
 	var content string
 
 	switch {
 	case key != "":
 		val, err := sec.Value(key)
 		if err != nil {
-			if errors.Cause(err) == store.ErrYAMLValueUnsupported {
-				return exitError(ctx, ExitUnsupported, err, "Can not show nested key directly. Use 'gopass show %s'", name)
-			}
-			if errors.Cause(err) == store.ErrNotFound {
-				return exitError(ctx, ExitNotFound, err, "Secret '%s' not found", name)
-			}
-			return exitError(ctx, ExitUnknown, err, "failed to retrieve key '%s' from '%s': %s", key, name, err)
+			return s.showHandleYAMLError(ctx, name, key, err)
 		}
 		if IsClip(ctx) {
 			return s.copyToClipboard(ctx, name, []byte(val))
 		}
 		content = val
 	case IsPrintQR(ctx):
-		qr, err := qrcon.QRCode(sec.Password())
-		if err != nil {
-			return exitError(ctx, ExitUnknown, err, "failed to encode '%s' as QR: %s", name, err)
-		}
-		fmt.Println(qr)
-		return nil
+		return s.showPrintQR(ctx, name, sec.Password())
 	case IsClip(ctx):
 		return s.copyToClipboard(ctx, name, []byte(sec.Password()))
 	default:
@@ -110,5 +97,36 @@ func (s *Action) show(ctx context.Context, c *cli.Context, name, key string, rec
 		fmt.Println("")
 	}
 
+	return nil
+}
+
+func (s *Action) showHandleError(ctx context.Context, c *cli.Context, name string, recurse bool, err error) error {
+	if err != store.ErrNotFound || !recurse || !ctxutil.IsTerminal(ctx) {
+		return exitError(ctx, ExitUnknown, err, "failed to retrieve secret '%s': %s", name, err)
+	}
+	color.Yellow("Entry '%s' not found. Starting search...", name)
+	if err := s.Find(ctx, c); err != nil {
+		return exitError(ctx, ExitNotFound, err, "%s", err)
+	}
+	os.Exit(ExitNotFound)
+	return nil
+}
+
+func (s *Action) showHandleYAMLError(ctx context.Context, name, key string, err error) error {
+	if errors.Cause(err) == store.ErrYAMLValueUnsupported {
+		return exitError(ctx, ExitUnsupported, err, "Can not show nested key directly. Use 'gopass show %s'", name)
+	}
+	if errors.Cause(err) == store.ErrNotFound {
+		return exitError(ctx, ExitNotFound, err, "Secret '%s' not found", name)
+	}
+	return exitError(ctx, ExitUnknown, err, "failed to retrieve key '%s' from '%s': %s", key, name, err)
+}
+
+func (s *Action) showPrintQR(ctx context.Context, name, pw string) error {
+	qr, err := qrcon.QRCode(pw)
+	if err != nil {
+		return exitError(ctx, ExitUnknown, err, "failed to encode '%s' as QR: %s", name, err)
+	}
+	fmt.Println(qr)
 	return nil
 }

@@ -61,18 +61,20 @@ func (s *Action) SetupNativeMessaging(ctx context.Context, c *cli.Context) error
 	return err
 }
 
-func (s *Action) getBrowser(ctx context.Context, c *cli.Context) (browser string, err error) {
-	browser = c.String("browser")
-	if browser == "" {
-		browser, err = s.askForString(ctx, color.BlueString("For which browser do you want to install gopass native messaging? [%s]", strings.Join(manifest.ValidBrowsers[:], ",")), manifest.DefaultBrowser)
-		if err != nil {
-			return "", errors.Wrapf(err, "failed to ask for user input")
-		}
-		if !stringInSlice(browser, manifest.ValidBrowsers) {
-			return "", errors.Errorf("%s not one of %s", browser, strings.Join(manifest.ValidBrowsers[:], ","))
-		}
+func (s *Action) getBrowser(ctx context.Context, c *cli.Context) (string, error) {
+	browser := c.String("browser")
+	if browser != "" {
+		return browser, nil
 	}
-	return
+
+	browser, err := s.askForString(ctx, color.BlueString("For which browser do you want to install gopass native messaging? [%s]", strings.Join(manifest.ValidBrowsers[:], ",")), manifest.DefaultBrowser)
+	if err != nil {
+		return "", errors.Wrapf(err, "failed to ask for user input")
+	}
+	if !stringInSlice(browser, manifest.ValidBrowsers) {
+		return "", errors.Errorf("%s not one of %s", browser, strings.Join(manifest.ValidBrowsers[:], ","))
+	}
+	return browser, nil
 }
 
 func (s *Action) getGlobalInstall(ctx context.Context, c *cli.Context) (bool, error) {
@@ -89,15 +91,16 @@ func (s *Action) getLibPath(ctx context.Context, c *cli.Context, browser string,
 	return c.String("libpath"), nil
 }
 
-func (s *Action) getWrapperPath(ctx context.Context, c *cli.Context) (path string, err error) {
-	path = c.String("path")
-	if path == "" {
-		path, err = s.askForString(ctx, color.BlueString("In which path should gopass_wrapper.sh be installed?"), config.Directory())
-		if err != nil {
-			return "", errors.Wrapf(err, "failed to ask for user input")
-		}
+func (s *Action) getWrapperPath(ctx context.Context, c *cli.Context) (string, error) {
+	path := c.String("path")
+	if path != "" {
+		return path, nil
 	}
-	return
+	path, err := s.askForString(ctx, color.BlueString("In which path should gopass_wrapper.sh be installed?"), config.Directory())
+	if err != nil {
+		return "", errors.Wrapf(err, "failed to ask for user input")
+	}
+	return path, nil
 }
 
 func stringInSlice(a string, list []string) bool {

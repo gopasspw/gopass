@@ -63,53 +63,67 @@ func GetSelection(ctx context.Context, prompt, usage string, choices []string) (
 		}
 		tbprint(0, h-1, coldef, coldef, usageLine)
 		_ = termbox.Flush()
-		switch ev := termbox.PollEvent(); ev.Type {
-		case termbox.EventKey:
-			switch ev.Key {
-			case termbox.KeyEsc:
-				return "aborted", cur
-			case termbox.KeyArrowLeft:
-				return "copy", cur
-			case termbox.KeyArrowRight:
-				return "show", cur
-			case termbox.KeyEnter:
-				return "default", cur
-			case termbox.KeyArrowDown, termbox.KeyTab:
-				cur++
-				if cur >= len(choices) {
-					cur = 0
-				}
-				continue
-			case termbox.KeyArrowUp:
-				cur--
-				if cur < 0 {
-					cur = len(choices) - 1
-				}
-				continue
-			default:
-				if ev.Ch != 0 {
-					switch ev.Ch {
-					case 'h':
-						return "copy", cur
-					case 'j':
-						cur++
-						if cur >= len(choices) {
-							cur = 0
-						}
-						continue
-					case 'k':
-						cur--
-						if cur < 0 {
-							cur = len(choices) - 1
-						}
-						continue
-					case 'l':
-						return "show", cur
-					case 's':
-						return "sync", cur
-					}
-				}
+		var act string
+		if act, cur = tbpoll(cur, len(choices)); act != "" {
+			return act, cur
+		}
+	}
+}
+
+func tbpoll(cur, max int) (string, int) {
+	switch ev := termbox.PollEvent(); ev.Type {
+	case termbox.EventKey:
+		switch ev.Key {
+		case termbox.KeyEsc:
+			return "aborted", cur
+		case termbox.KeyArrowLeft:
+			return "copy", cur
+		case termbox.KeyArrowRight:
+			return "show", cur
+		case termbox.KeyEnter:
+			return "default", cur
+		case termbox.KeyArrowDown, termbox.KeyTab:
+			cur++
+			if cur >= max {
+				cur = 0
+			}
+			return "", cur
+		case termbox.KeyArrowUp:
+			cur--
+			if cur < 0 {
+				cur = max - 1
+			}
+			return "", cur
+		default:
+			if ev.Ch != 0 {
+				return tbchars(ev.Ch, cur, max)
 			}
 		}
+	}
+	return "", cur
+}
+
+func tbchars(ch rune, cur, max int) (string, int) {
+	switch ch {
+	case 'h':
+		return "copy", cur
+	case 'j':
+		cur++
+		if cur >= max {
+			cur = 0
+		}
+		return "", cur
+	case 'k':
+		cur--
+		if cur < 0 {
+			cur = max - 1
+		}
+		return "", cur
+	case 'l':
+		return "show", cur
+	case 's':
+		return "sync", cur
+	default:
+		return "", cur
 	}
 }

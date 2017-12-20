@@ -26,23 +26,22 @@ func (s *Action) Find(ctx context.Context, c *cli.Context) error {
 	}
 
 	needle := strings.ToLower(c.Args().First())
-	choices := make([]string, 0, 10)
-	for _, value := range l {
-		if strings.Contains(strings.ToLower(value), needle) {
-			choices = append(choices, value)
-		}
-	}
+	choices := filter(l, needle)
 
+	// if we have an exact match print it
 	if len(choices) == 1 {
 		out.Green(ctx, "Found exact match in '%s'", choices[0])
 		return s.show(ctx, c, choices[0], "", false)
 	}
 
+	// if we don't have a match yet try a fuzzy search
 	if len(choices) < 1 && ctxutil.IsFuzzySearch(ctx) {
 		// try fuzzy match
 		cm := closestmatch.New(l, []int{2})
 		choices = cm.ClosestN(needle, 5)
 	}
+
+	// if there are still no results we abort
 	if len(choices) < 1 {
 		return fmt.Errorf("no results found")
 	}
@@ -56,6 +55,10 @@ func (s *Action) Find(ctx context.Context, c *cli.Context) error {
 		return nil
 	}
 
+	return s.findSelection(ctx, c, choices, needle)
+}
+
+func (s *Action) findSelection(ctx context.Context, c *cli.Context, choices []string, needle string) error {
 	act, sel := termwiz.GetSelection(ctx, "Found secrets -", "", choices)
 	switch act {
 	case "default":
@@ -79,4 +82,14 @@ func (s *Action) Find(ctx context.Context, c *cli.Context) error {
 	default:
 		return exitError(ctx, ExitAborted, nil, "user aborted")
 	}
+}
+
+func filter(l []string, needle string) []string {
+	choices := make([]string, 0, 10)
+	for _, value := range l {
+		if strings.Contains(strings.ToLower(value), needle) {
+			choices = append(choices, value)
+		}
+	}
+	return choices
 }

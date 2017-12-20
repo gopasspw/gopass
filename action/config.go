@@ -45,7 +45,7 @@ func (s *Action) printConfigValues(ctx context.Context, store string, needles ..
 
 	m := s.cfg.Root.ConfigMap()
 	if store == "" {
-		for _, k := range filter(m, needles) {
+		for _, k := range filterMap(m, needles) {
 			out.Print(ctx, "%s%s: %s\n", prefix, k, m[k])
 		}
 	}
@@ -60,7 +60,7 @@ func (s *Action) printConfigValues(ctx context.Context, store string, needles ..
 			mp += "/"
 		}
 		sm := sc.ConfigMap()
-		for _, k := range filter(sm, needles) {
+		for _, k := range filterMap(sm, needles) {
 			if sm[k] != m[k] || store != "" {
 				out.Print(ctx, "%s%s: %s\n", mp, k, sm[k])
 			}
@@ -69,7 +69,7 @@ func (s *Action) printConfigValues(ctx context.Context, store string, needles ..
 	return nil
 }
 
-func filter(haystack map[string]string, needles []string) []string {
+func filterMap(haystack map[string]string, needles []string) []string {
 	out := make([]string, 0, len(haystack))
 	for k := range haystack {
 		if !contains(needles, k) {

@@ -123,27 +123,17 @@ func (s *Store) fsckCheckFile(ctx context.Context, prefix, fn string, storeRec g
 		countFn("err")
 		return nil
 	}
+
 	// check if any group or other perms are set,
 	// i.e. check for perms other than rw-------
-	if fi.Mode().Perm()&0177 != 0 {
-		out.Yellow(ctx, "[%s] Permissions too wide: %s (%s)", prefix, fn, fi.Mode().String())
-		countFn("warn")
-		if !IsFsckCheck(ctx) && (IsFsckForce(ctx) || askFunc(ctx, "Fix permissions?")) {
-			np := uint32(fi.Mode().Perm() & 0600)
-			out.Green(ctx, "[%s] Fixing permissions from %s to %s", prefix, fi.Mode().Perm().String(), os.FileMode(np).Perm().String())
-			if err := syscall.Chmod(fn, np); err != nil {
-				out.Red(ctx, "[%s] Failed to set permissions for %s to rw-------: %s", prefix, fn, err)
-				countFn("err")
-			} else {
-				countFn("fixed")
-			}
-		}
-	}
+	fsckCheckFilePerms(ctx, fi, prefix, fn, countFn)
+
 	// we check all files (secrets and meta-data) for permissions,
 	// but all other checks are only applied to secrets (which end in .gpg)
 	if !strings.HasSuffix(fn, ".gpg") {
 		return nil
 	}
+
 	// check for shadowing
 	name := s.filenameToName(fn)
 	if _, found := sh[name]; found {
@@ -151,12 +141,14 @@ func (s *Store) fsckCheckFile(ctx context.Context, prefix, fn string, storeRec g
 		countFn("warn")
 	}
 	sh[name] = struct{}{}
+
 	// check that we can decrypt this file
 	if err := s.fsckCheckSelfDecrypt(ctx, fn); err != nil {
 		out.Red(ctx, "[%s] Secret Key missing. Can't fix: %s", prefix, fn)
 		countFn("err")
 		return nil
 	}
+
 	// get the IDs this file was encrypted for
 	fileRec, err := s.gpg.GetRecipients(ctx, fn)
 	if err != nil {
@@ -164,23 +156,13 @@ func (s *Store) fsckCheckFile(ctx context.Context, prefix, fn string, storeRec g
 		countFn("err")
 		return nil
 	}
+
 	// check that each recipient of the file is in the current
 	// recipient list
 	for _, rec := range fileRec {
-		if _, err := storeRec.FindKey(rec); err == nil {
-			// the recipient is (still) present in the recipients file of the store
-			continue
-		}
-		// the recipient is not present in the recipients file of the store
-		out.Yellow(ctx, "[%s] Extra recipient found %s: %s", prefix, fn, rec)
-		countFn("warn")
-		if !IsFsckCheck(ctx) && (IsFsckForce(ctx) || askFunc(ctx, "Fix recipients?")) {
-			if err := s.fsckFixRecipients(ctx, fn); err != nil {
-				out.Red(ctx, "[%s] Failed to fix recipients for %s: %s", prefix, fn, err)
-				countFn("err")
-			}
-		}
+		s.fsckCheckRecipients(ctx, rec, storeRec, prefix, fn, countFn)
 	}
+
 	// check that each recipient of the store can actually decrypt this file
 	for _, key := range storeRec {
 		if err := fsckCheckRecipientsInSubkeys(key, fileRec); err == nil {
@@ -196,6 +178,48 @@ func (s *Store) fsckCheckFile(ctx context.Context, prefix, fn string, storeRec g
 		}
 	}
 	return nil
+}
+
+func (s *Store) fsckCheckRecipients(ctx context.Context, rec string, storeRec gpg.KeyList, prefix, fn string, countFn func(string)) {
+	if _, err := storeRec.FindKey(rec); err == nil {
+		// the recipient is (still) present in the recipients file of the store
+		return
+	}
+
+	// the recipient is not present in the recipients file of the store
+	out.Yellow(ctx, "[%s] Extra recipient found %s: %s", prefix, fn, rec)
+	countFn("warn")
+	if !IsFsckCheck(ctx) && (IsFsckForce(ctx) || GetFsckFunc(ctx)(ctx, "Fix recipients?")) {
+		if err := s.fsckFixRecipients(ctx, fn); err != nil {
+			out.Red(ctx, "[%s] Failed to fix recipients for %s: %s", prefix, fn, err)
+			countFn("err")
+		}
+	}
+}
+
+func fsckCheckFilePerms(ctx context.Context, fi os.FileInfo, prefix, fn string, countFn func(string)) {
+	if fi.Mode().Perm()&0177 == 0 {
+		return
+	}
+	out.Yellow(ctx, "[%s] Permissions too wide: %s (%s)", prefix, fn, fi.Mode().String())
+	countFn("warn")
+
+	if IsFsckCheck(ctx) {
+		return
+	}
+
+	if !IsFsckForce(ctx) && !GetFsckFunc(ctx)(ctx, "Fix permissions?") {
+		return
+	}
+
+	np := uint32(fi.Mode().Perm() & 0600)
+	out.Green(ctx, "[%s] Fixing permissions from %s to %s", prefix, fi.Mode().Perm().String(), os.FileMode(np).Perm().String())
+	if err := syscall.Chmod(fn, np); err != nil {
+		out.Red(ctx, "[%s] Failed to set permissions for %s to rw-------: %s", prefix, fn, err)
+		countFn("err")
+	} else {
+		countFn("fixed")
+	}
 }
 
 func fsckCheckRecipientsInSubkeys(key gpg.Key, recipients []string) error {

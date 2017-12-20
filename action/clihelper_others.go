@@ -15,9 +15,9 @@ import (
 )
 
 // promptPass will prompt user's for a password by terminal.
-func (s *Action) promptPass(ctx context.Context, prompt string) (pass string, err error) {
+func (s *Action) promptPass(ctx context.Context, prompt string) (string, error) {
 	if !ctxutil.IsTerminal(ctx) {
-		return
+		return "", nil
 	}
 
 	// Make a copy of STDIN's state to restore afterward

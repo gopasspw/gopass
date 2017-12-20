@@ -6,12 +6,12 @@ import (
 )
 
 var globalLocations = map[string]map[string]string{
-	"darwin": map[string]string{
+	"darwin": {
 		"firefox":  "/Library/Application Support/Mozilla/NativeMessagingHosts/%s.json",
 		"chrome":   "/Library/Google/Chrome/NativeMessagingHosts/%s.json",
 		"chromium": "/Library/Application Support/Chromium/NativeMessagingHosts/%s.json",
 	},
-	"linux": map[string]string{
+	"linux": {
 		"firefox":  "mozilla/native-messaging-hosts/%s.json",
 		"chrome":   "/etc/opt/chrome/native-messaging-hosts/%s.json",
 		"chromium": "/etc/chromium/native-messaging-hosts/%s.json",
@@ -19,12 +19,12 @@ var globalLocations = map[string]map[string]string{
 }
 
 var locations = map[string]map[string]string{
-	"darwin": map[string]string{
+	"darwin": {
 		"firefox":  "~/Library/Application Support/Mozilla/NativeMessagingHosts/%s.json",
 		"chrome":   "~/Library/Application Support/Google/Chrome/NativeMessagingHosts/%s.json",
 		"chromium": "~/Library/Application Support/Chromium/NativeMessagingHosts/%s.json",
 	},
-	"linux": map[string]string{
+	"linux": {
 		"firefox":  "~/.mozilla/native-messaging-hosts/%s.json",
 		"chrome":   "~/.config/google-chrome/NativeMessagingHosts/%s.json",
 		"chromium": "~/.config/chromium/NativeMessagingHosts/%s.json",

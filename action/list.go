@@ -13,6 +13,7 @@ import (
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/justwatchcom/gopass/utils/termutil"
+	"github.com/justwatchcom/gopass/utils/tree"
 	shellquote "github.com/kballard/go-shellquote"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"
@@ -30,30 +31,8 @@ func (s *Action) List(ctx context.Context, c *cli.Context) error {
 		return exitError(ctx, ExitList, err, "failed to list store: %s", err)
 	}
 
-	var stdout io.Writer
-	var buf *bytes.Buffer
-	// we may need to redirect stdout for the pager support
-	stdout = os.Stdout
-
 	if filter == "" {
-		if flat {
-			for _, e := range l.List(limit) {
-				fmt.Fprintln(stdout, e)
-			}
-			return nil
-		}
-		if rows, _ := termutil.GetTermsize(); l.Len() > rows && !ctxutil.IsNoPager(ctx) {
-			color.NoColor = true
-			buf = &bytes.Buffer{}
-			stdout = buf
-		}
-		fmt.Fprintln(stdout, l.Format(limit))
-		if buf != nil {
-			if err := s.pager(ctx, buf); err != nil {
-				return exitError(ctx, ExitUnknown, err, "failed to invoke pager: %s", err)
-			}
-		}
-		return nil
+		return s.listAll(ctx, l, limit, flat)
 	}
 
 	subtree, err := l.FindFolder(filter)
@@ -71,13 +50,18 @@ func (s *Action) List(ctx context.Context, c *cli.Context) error {
 		}
 		for _, e := range subtree.List(limit) {
 			if stripPrefix {
-				fmt.Fprintln(stdout, e)
+				fmt.Println(e)
 				continue
 			}
-			fmt.Fprintln(stdout, filter+sep+e)
+			fmt.Println(filter + sep + e)
 		}
 		return nil
 	}
+
+	var stdout io.Writer
+	var buf *bytes.Buffer
+	// we may need to redirect stdout for the pager support
+	stdout = os.Stdout
 
 	if rows, _ := termutil.GetTermsize(); subtree.Len() > rows {
 		color.NoColor = true
@@ -86,6 +70,33 @@ func (s *Action) List(ctx context.Context, c *cli.Context) error {
 	}
 
 	fmt.Fprintln(stdout, subtree.Format(limit))
+	if buf != nil {
+		if err := s.pager(ctx, buf); err != nil {
+			return exitError(ctx, ExitUnknown, err, "failed to invoke pager: %s", err)
+		}
+	}
+	return nil
+}
+
+func (s *Action) listAll(ctx context.Context, l tree.Tree, limit int, flat bool) error {
+	if flat {
+		for _, e := range l.List(limit) {
+			fmt.Println(e)
+		}
+		return nil
+	}
+
+	var stdout io.Writer
+	var buf *bytes.Buffer
+	// we may need to redirect stdout for the pager support
+	stdout = os.Stdout
+
+	if rows, _ := termutil.GetTermsize(); l.Len() > rows && !ctxutil.IsNoPager(ctx) {
+		color.NoColor = true
+		buf = &bytes.Buffer{}
+		stdout = buf
+	}
+	fmt.Fprintln(stdout, l.Format(limit))
 	if buf != nil {
 		if err := s.pager(ctx, buf); err != nil {
 			return exitError(ctx, ExitUnknown, err, "failed to invoke pager: %s", err)
