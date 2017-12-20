@@ -14,7 +14,6 @@ import (
 	"github.com/justwatchcom/gopass/utils/pwgen"
 	"github.com/justwatchcom/gopass/utils/termwiz"
 	"github.com/martinhoefling/goxkcdpwgen/xkcdpwgen"
-	"github.com/pkg/errors"
 	"github.com/urfave/cli"
 )
 
@@ -64,9 +63,12 @@ func (s *Action) createWebsite(ctx context.Context, c *cli.Context) error {
 	if err != nil {
 		return err
 	}
+	if !strings.Contains(urlStr, "://") {
+		urlStr = "http://" + urlStr
+	}
 	u, err := url.Parse(urlStr)
-	if err != nil {
-		return errors.Wrapf(err, "Can not parse URL. Please use 'gopass edit' to manually create the secret")
+	if err != nil || u.Hostname() == "" {
+		return exitError(ctx, ExitUnknown, err, "Can not parse URL. Please use 'gopass edit' to manually create the secret")
 	}
 	username, err = s.askForString(ctx, "Please enter the Username/Login", "")
 	if err != nil {
@@ -95,6 +97,13 @@ func (s *Action) createWebsite(ctx context.Context, c *cli.Context) error {
 	// generate name, ask for override if already taken
 	if store != "" {
 		store += "/"
+	}
+
+	if u.Hostname() == "" {
+		return exitError(ctx, ExitUnknown, nil, "Hostname must not be empty")
+	}
+	if username == "" {
+		return exitError(ctx, ExitUnknown, nil, "Username must not be empty")
 	}
 	name := fmt.Sprintf("%swebsites/%s/%s", store, u.Hostname(), username)
 	if s.Store.Exists(ctx, name) {

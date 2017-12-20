@@ -298,8 +298,13 @@ func (s *Action) askForGitConfigUser(ctx context.Context) (string, string, error
 }
 
 func (s *Action) askForStore(ctx context.Context) string {
+	mps := s.Store.MountPoints()
+	if len(mps) < 1 {
+		return ""
+	}
+
 	stores := []string{"<root>"}
-	stores = append(stores, s.Store.MountPoints()...)
+	stores = append(stores, mps...)
 	act, sel := termwiz.GetSelection(ctx, "Store for secret", "<↑/↓> to change the selection, <→> to select, <ESC> to quit", stores)
 	switch act {
 	case "default":
