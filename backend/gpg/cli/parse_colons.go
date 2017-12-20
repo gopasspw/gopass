@@ -90,23 +90,7 @@ func (g *GPG) parseColons(reader io.Reader) gpg.KeyList {
 			}
 		case "uid":
 			sn := fields[7]
-			id := fields[9]
-			ni := gpg.Identity{}
-			if reUIDComment.MatchString(id) {
-				if m := reUIDComment.FindStringSubmatch(id); len(m) > 3 {
-					ni.Name = m[1]
-					ni.Comment = strings.Trim(m[2], "()")
-					ni.Email = m[3]
-				}
-			} else if reUID.MatchString(id) {
-				if m := reUID.FindStringSubmatch(id); len(m) > 2 {
-					ni.Name = m[1]
-					ni.Email = m[2]
-				}
-			}
-			ni.CreationDate = parseTS(fields[5])
-			ni.ExpirationDate = parseTS(fields[6])
-			cur.Identities[sn] = ni
+			cur.Identities[sn] = parseColonIdentity(fields)
 		}
 	}
 
@@ -115,4 +99,25 @@ func (g *GPG) parseColons(reader io.Reader) gpg.KeyList {
 	}
 
 	return kl
+}
+
+func parseColonIdentity(fields []string) gpg.Identity {
+	id := fields[9]
+	ni := gpg.Identity{}
+	if reUIDComment.MatchString(id) {
+		if m := reUIDComment.FindStringSubmatch(id); len(m) > 3 {
+			ni.Name = m[1]
+			ni.Comment = strings.Trim(m[2], "()")
+			ni.Email = m[3]
+		}
+	} else if reUID.MatchString(id) {
+		if m := reUID.FindStringSubmatch(id); len(m) > 2 {
+			ni.Name = m[1]
+			ni.Email = m[2]
+		}
+	}
+	ni.CreationDate = parseTS(fields[5])
+	ni.ExpirationDate = parseTS(fields[6])
+
+	return ni
 }

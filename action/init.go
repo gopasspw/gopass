@@ -143,7 +143,7 @@ func (s *Action) InitOnboarding(ctx context.Context, c *cli.Context) error {
 		"Create a Team",
 		"Join an existing Team",
 	}
-	act, sel := termwiz.GetSelection(ctx, "Store for secret", "<↑/↓> to change the selection, <→> to select, <ESC> to quit", choices)
+	act, sel := termwiz.GetSelection(ctx, "Select action", "<↑/↓> to change the selection, <→> to select, <ESC> to quit", choices)
 	switch act {
 	case "default":
 		fallthrough

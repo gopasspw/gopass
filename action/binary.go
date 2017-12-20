@@ -133,59 +133,75 @@ func (s *Action) binaryCopy(ctx context.Context, from, to string, deleteSource b
 		// copying from one secret to another secret is not supported
 		return errors.New("ambiquity detected. Either from or to must be a file")
 	case fsutil.IsFile(from) && !fsutil.IsFile(to):
-		// if the source is a file the destination must no to avoid ambiquities
-		// if necessary this can be resolved by using a absolute path for the file
-		// and a relative one for the secret
-		if !strings.HasSuffix(to, BinarySuffix) {
-			to += BinarySuffix
-		}
-		// copy from FS to store
-		buf, err := ioutil.ReadFile(from)
-		if err != nil {
-			return errors.Wrapf(err, "failed to read file from '%s'", from)
-		}
-		if err := s.Store.Set(sub.WithReason(ctx, fmt.Sprintf("Copied data from %s to %s", from, to)), to, secret.New("", base64.StdEncoding.EncodeToString(buf))); err != nil {
-			return errors.Wrapf(err, "failed to save buffer to store")
-		}
-		if deleteSource {
-			// it's important that we return if the validation fails, because
-			// in that case we don't want to shred our (only) copy of this data!
-			if err := s.binaryValidate(ctx, buf, to); err != nil {
-				return errors.Wrapf(err, "failed to validate written data")
-			}
-			if err := fsutil.Shred(from, 8); err != nil {
-				return errors.Wrapf(err, "failed to shred data")
-			}
-		}
-		return nil
+		return s.binaryCopyFromFileToStore(ctx, from, to, deleteSource)
 	case !fsutil.IsFile(from):
-		// if the source is no file we assume it's a secret and to is a filename
-		// (which may already exist or not)
-		if !strings.HasSuffix(from, BinarySuffix) {
-			from += BinarySuffix
-		}
-		// copy from store to FS
-		buf, err := s.binaryGet(ctx, from)
-		if err != nil {
-			return errors.Wrapf(err, "failed to read data from '%s'", from)
-		}
-		if err := ioutil.WriteFile(to, buf, 0600); err != nil {
-			return errors.Wrapf(err, "failed to write data to '%s'", to)
-		}
-		if deleteSource {
-			// as before: if validation of the written data fails, we MUST NOT
-			// delete the (only) source
-			if err := s.binaryValidate(ctx, buf, from); err != nil {
-				return errors.Wrapf(err, "failed to validate the written data")
-			}
-			if err := s.Store.Delete(ctx, from); err != nil {
-				return errors.Wrapf(err, "failed to delete '%s' from the store", from)
-			}
-		}
-		return nil
+		return s.binaryCopyFromStoreToFile(ctx, from, to, deleteSource)
 	default:
 		return errors.Errorf("ambiquity detected. Unhandled case. Please report a bug")
 	}
+}
+func (s *Action) binaryCopyFromFileToStore(ctx context.Context, from, to string, deleteSource bool) error {
+	// if the source is a file the destination must no to avoid ambiquities
+	// if necessary this can be resolved by using a absolute path for the file
+	// and a relative one for the secret
+	if !strings.HasSuffix(to, BinarySuffix) {
+		to += BinarySuffix
+	}
+
+	// copy from FS to store
+	buf, err := ioutil.ReadFile(from)
+	if err != nil {
+		return errors.Wrapf(err, "failed to read file from '%s'", from)
+	}
+
+	if err := s.Store.Set(sub.WithReason(ctx, fmt.Sprintf("Copied data from %s to %s", from, to)), to, secret.New("", base64.StdEncoding.EncodeToString(buf))); err != nil {
+		return errors.Wrapf(err, "failed to save buffer to store")
+	}
+
+	if !deleteSource {
+		return nil
+	}
+
+	// it's important that we return if the validation fails, because
+	// in that case we don't want to shred our (only) copy of this data!
+	if err := s.binaryValidate(ctx, buf, to); err != nil {
+		return errors.Wrapf(err, "failed to validate written data")
+	}
+	if err := fsutil.Shred(from, 8); err != nil {
+		return errors.Wrapf(err, "failed to shred data")
+	}
+	return nil
+}
+
+func (s *Action) binaryCopyFromStoreToFile(ctx context.Context, from, to string, deleteSource bool) error {
+	// if the source is no file we assume it's a secret and to is a filename
+	// (which may already exist or not)
+	if !strings.HasSuffix(from, BinarySuffix) {
+		from += BinarySuffix
+	}
+
+	// copy from store to FS
+	buf, err := s.binaryGet(ctx, from)
+	if err != nil {
+		return errors.Wrapf(err, "failed to read data from '%s'", from)
+	}
+	if err := ioutil.WriteFile(to, buf, 0600); err != nil {
+		return errors.Wrapf(err, "failed to write data to '%s'", to)
+	}
+
+	if !deleteSource {
+		return nil
+	}
+
+	// as before: if validation of the written data fails, we MUST NOT
+	// delete the (only) source
+	if err := s.binaryValidate(ctx, buf, from); err != nil {
+		return errors.Wrapf(err, "failed to validate the written data")
+	}
+	if err := s.Store.Delete(ctx, from); err != nil {
+		return errors.Wrapf(err, "failed to delete '%s' from the store", from)
+	}
+	return nil
 }
 
 func (s *Action) binaryValidate(ctx context.Context, buf []byte, name string) error {

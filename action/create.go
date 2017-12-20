@@ -88,21 +88,10 @@ func (s *Action) createWebsite(ctx context.Context, c *cli.Context) error {
 		}
 	}
 	comment, _ = s.askForString(ctx, "Comments (optional)", "")
+
 	// select store
-	stores := []string{"<root>"}
-	stores = append(stores, s.Store.MountPoints()...)
-	act, sel := termwiz.GetSelection(ctx, "Store for secret", "<↑/↓> to change the selection, <→> to select, <ESC> to quit", stores)
-	switch act {
-	case "default":
-		fallthrough
-	case "show":
-		store = stores[sel]
-		if store == "<root>" {
-			store = ""
-		}
-	default:
-		store = "" // root store
-	}
+	store = s.askForStore(ctx)
+
 	// generate name, ask for override if already taken
 	if store != "" {
 		store += "/"
@@ -164,21 +153,10 @@ func (s *Action) createPIN(ctx context.Context, c *cli.Context) error {
 		}
 	}
 	comment, _ = s.askForString(ctx, "Comments (optional)", "")
+
 	// select store
-	stores := []string{"<root>"}
-	stores = append(stores, s.Store.MountPoints()...)
-	act, sel := termwiz.GetSelection(ctx, "Store for secret", "<↑/↓> to change the selection, <→> to select, <ESC> to quit", stores)
-	switch act {
-	case "default":
-		fallthrough
-	case "show":
-		store = stores[sel]
-		if store == "<root>" {
-			store = ""
-		}
-	default:
-		store = "" // root store
-	}
+	store = s.askForStore(ctx)
+
 	// generate name, ask for override if already taken
 	if store != "" {
 		store += "/"
@@ -232,21 +210,10 @@ func (s *Action) createAWS(ctx context.Context, c *cli.Context) error {
 		return err
 	}
 	region, _ = s.askForString(ctx, "Please enter the default Region (AWS_DEFAULT_REGION) (optional)", "")
+
 	// select store
-	stores := []string{"<root>"}
-	stores = append(stores, s.Store.MountPoints()...)
-	act, sel := termwiz.GetSelection(ctx, "Store for secret", "<↑/↓> to change the selection, <→> to select, <ESC> to quit", stores)
-	switch act {
-	case "default":
-		fallthrough
-	case "show":
-		store = stores[sel]
-		if store == "<root>" {
-			store = ""
-		}
-	default:
-		store = "" // root store
-	}
+	store = s.askForStore(ctx)
+
 	// generate name, ask for override if already taken
 	if store != "" {
 		store += "/"
@@ -301,21 +268,10 @@ func (s *Action) createGCP(ctx context.Context, c *cli.Context) error {
 			return err
 		}
 	}
+
 	// select store
-	stores := []string{"<root>"}
-	stores = append(stores, s.Store.MountPoints()...)
-	act, sel := termwiz.GetSelection(ctx, "Store for secret", "<↑/↓> to change the selection, <→> to select, <ESC> to quit", stores)
-	switch act {
-	case "default":
-		fallthrough
-	case "show":
-		store = stores[sel]
-		if store == "<root>" {
-			store = ""
-		}
-	default:
-		store = "" // root store
-	}
+	store = s.askForStore(ctx)
+
 	// generate name, ask for override if already taken
 	if store != "" {
 		store += "/"
@@ -378,21 +334,10 @@ func (s *Action) createGeneric(ctx context.Context, c *cli.Context) error {
 			return err
 		}
 	}
+
 	// select store
-	stores := []string{"<root>"}
-	stores = append(stores, s.Store.MountPoints()...)
-	act, sel := termwiz.GetSelection(ctx, "Store for secret", "<↑/↓> to change the selection, <→> to select, <ESC> to quit", stores)
-	switch act {
-	case "default":
-		fallthrough
-	case "show":
-		store = stores[sel]
-		if store == "<root>" {
-			store = ""
-		}
-	default:
-		store = "" // root store
-	}
+	store = s.askForStore(ctx)
+
 	// generate name, ask for override if already taken
 	if store != "" {
 		store += "/"

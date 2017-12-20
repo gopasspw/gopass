@@ -84,29 +84,34 @@ func (s *Action) OTP(ctx context.Context, c *cli.Context) error {
 		if err := s.copyToClipboard(ctx, fmt.Sprintf("token for %s", name), []byte(token)); err != nil {
 			return exitError(ctx, ExitIO, err, "failed to copy to clipboard: %s", err)
 		}
+		return nil
 	}
 
-	if c.String("qr") != "" {
-		var qr []byte
-		var err error
-		switch otp.Type() {
-		case twofactor.OATH_HOTP:
-			hotp := otp.(*twofactor.HOTP)
-			qr, err = hotp.QR(label)
-		case twofactor.OATH_TOTP:
-			totp := otp.(*twofactor.TOTP)
-			qr, err = totp.QR(label)
-		default:
-			err = errors.New("QR codes can only be generated for OATH OTPs")
-		}
-		if err != nil {
-			return exitError(ctx, ExitIO, err, "%s", err)
-		}
+	if qrf := c.String("qr"); qrf != "" {
+		return s.otpWriteQRFile(ctx, otp, label, qrf)
+	}
+	return nil
+}
 
-		if err := ioutil.WriteFile(c.String("qr"), qr, 0600); err != nil {
-			return exitError(ctx, ExitIO, err, "failed to write QR code: %s", err)
-		}
+func (s *Action) otpWriteQRFile(ctx context.Context, otp twofactor.OTP, label, file string) error {
+	var qr []byte
+	var err error
+	switch otp.Type() {
+	case twofactor.OATH_HOTP:
+		hotp := otp.(*twofactor.HOTP)
+		qr, err = hotp.QR(label)
+	case twofactor.OATH_TOTP:
+		totp := otp.(*twofactor.TOTP)
+		qr, err = totp.QR(label)
+	default:
+		err = errors.New("QR codes can only be generated for OATH OTPs")
+	}
+	if err != nil {
+		return exitError(ctx, ExitIO, err, "%s", err)
 	}
 
+	if err := ioutil.WriteFile(file, qr, 0600); err != nil {
+		return exitError(ctx, ExitIO, err, "failed to write QR code: %s", err)
+	}
 	return nil
 }
