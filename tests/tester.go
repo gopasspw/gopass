@@ -172,8 +172,7 @@ func (ts tester) run(arg string) (string, error) {
 
 func (ts tester) runWithInput(arg, input string) ([]byte, error) {
 	reader := strings.NewReader(input)
-	out, err := ts.runWithInputReader(arg, reader)
-	return out, err
+	return ts.runWithInputReader(arg, reader)
 }
 
 func (ts tester) runWithInputReader(arg string, input io.Reader) ([]byte, error) {
@@ -188,12 +187,7 @@ func (ts tester) runWithInputReader(arg string, input io.Reader) ([]byte, error)
 
 	ts.t.Logf("%+v", cmd.Args)
 
-	out, err := cmd.CombinedOutput()
-	if err != nil {
-		return out, err
-	}
-
-	return out, nil
+	return cmd.CombinedOutput()
 }
 
 func (ts *tester) initStore() {
