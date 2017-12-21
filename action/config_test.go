@@ -6,6 +6,7 @@ import (
 	"flag"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -50,7 +51,7 @@ func TestConfig(t *testing.T) {
   noconfirm: false
   nopager: false
 `
-	want += "  path: " + td + "\n"
+	want += "  path: " + filepath.Join(td, "store") + "\n"
 	want += `  safecontent: false
   usesymbols: false
 `

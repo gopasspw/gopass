@@ -12,6 +12,9 @@ import (
 
 // Homedir returns the users home dir or an empty string if the lookup fails
 func Homedir() string {
+	if hd := os.Getenv("GOPASS_HOMEDIR"); hd != "" {
+		return hd
+	}
 	hd, err := homedir.Dir()
 	if err != nil {
 		if debug {

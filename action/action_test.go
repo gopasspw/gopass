@@ -6,6 +6,8 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/blang/semver"
@@ -16,9 +18,34 @@ import (
 
 func newMock(ctx context.Context, dir string) (*Action, error) {
 	cfg := config.New()
-	cfg.Root.Path = dir
+	cfg.Root.Path = filepath.Join(dir, "store")
 	sv := semver.Version{}
 	gpg := gpgmock.New()
+
+	if err := os.MkdirAll(cfg.Root.Path, 0700); err != nil {
+		return nil, err
+	}
+	if err := os.Setenv("GOPASS_CONFIG", filepath.Join(dir, ".gopass.yml")); err != nil {
+		return nil, err
+	}
+	if err := os.Setenv("GOPASS_HOMEDIR", dir); err != nil {
+		return nil, err
+	}
+	if err := os.Unsetenv("PAGER"); err != nil {
+		return nil, err
+	}
+	if err := os.Setenv("CHECKPOINT_DISABLE", "true"); err != nil {
+		return nil, err
+	}
+	if err := os.Setenv("GOPASS_NO_NOTIFY", "true"); err != nil {
+		return nil, err
+	}
+	if err := ioutil.WriteFile(filepath.Join(dir, "store", ".gpg-id"), []byte("0xDEADBEEF"), 0600); err != nil {
+		return nil, err
+	}
+	if err := ioutil.WriteFile(filepath.Join(dir, "store", "foo.gpg"), []byte("0xDEADBEEF"), 0600); err != nil {
+		return nil, err
+	}
 
 	return newAction(ctx, cfg, sv, gpg)
 }
@@ -42,7 +69,8 @@ func capture(t *testing.T, fn func() error) string {
 	if err != nil {
 		t.Errorf("Error: %s", err)
 	}
-	return <-done
+	out := <-done
+	return strings.TrimSpace(out)
 }
 
 func TestAction(t *testing.T) {
@@ -60,7 +88,7 @@ func TestAction(t *testing.T) {
 		t.Fatalf("Error: %s", err)
 	}
 
-	if as := act.String(); as != "Store(Path: "+td+", Mounts: )" {
+	if as := act.String(); as != "Store(Path: "+filepath.Join(td, "store")+", Mounts: )" {
 		t.Errorf("act.String(): %s", as)
 	}
 	if !act.HasGPG() {
