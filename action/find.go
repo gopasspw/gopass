@@ -43,7 +43,7 @@ func (s *Action) Find(ctx context.Context, c *cli.Context) error {
 
 	// if there are still no results we abort
 	if len(choices) < 1 {
-		return fmt.Errorf("no results found")
+		return exitError(ctx, ExitNotFound, nil, "no results found")
 	}
 
 	// do not invoke wizard if not printing to terminal or if

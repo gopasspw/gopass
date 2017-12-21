@@ -448,7 +448,8 @@ loop:
 			break loop
 		}
 
-		if c2 == ']' {
+		switch c2 {
+		case ']':
 			w.rest.WriteByte(c1)
 			w.rest.WriteByte(c2)
 			er.WriteTo(&w.rest)
@@ -462,8 +463,17 @@ loop:
 			}
 			w.rest.Reset()
 			continue
-		}
-		if c2 != 0x5b {
+		// https://github.com/mattn/go-colorable/issues/27
+		case '7':
+			procGetConsoleScreenBufferInfo.Call(uintptr(handle), uintptr(unsafe.Pointer(&csbi)))
+			w.oldpos = csbi.cursorPosition
+			continue
+		case '8':
+			procSetConsoleCursorPosition.Call(uintptr(handle), *(*uintptr)(unsafe.Pointer(&w.oldpos)))
+			continue
+		case 0x5b:
+			// execute part after switch
+		default:
 			continue
 		}
 

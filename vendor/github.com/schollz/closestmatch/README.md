@@ -18,7 +18,7 @@ Getting Started
 go get -u -v github.com/schollz/closestmatch
 ```
 
-## Use
+## Use 
 
 ####  Create a *closestmatch* object from a list words
 
@@ -72,7 +72,7 @@ fmt.Println(cm2.Closest("lizard wizard"))
 
 ### Advantages
 
-*closestmatch* is more accurate than Levenshtein for long strings (like in the test corpus).
+*closestmatch* is more accurate than Levenshtein for long strings (like in the test corpus). 
 
 *closestmatch* is ~20x faster than [a fast implementation of Levenshtein](https://groups.google.com/forum/#!topic/golang-nuts/YyH1f_qCZVc). Try it yourself with the benchmarks:
 

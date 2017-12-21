@@ -23,8 +23,16 @@ Two functions cover most use cases:
 
 	err := qrcode.WriteFile("https://example.org", qrcode.Medium, 256, "qr.png")
 
-Both examples use the qrcode.Medium error Recovery Level and create a 256x256
-pixel, black on white QR Code.
+Both examples use the qrcode.Medium error Recovery Level and create a fixed
+256x256px size, black on white QR Code.
+
+To generate a variable sized image instead, specify a negative size (in place of
+the 256 above), such as -4 or -5. Larger negative numbers create larger images:
+A size of -5 sets each module (QR Code "pixel") to be 5px wide/high.
+
+- Create a PNG image (variable size, with minimum white padding) and write to a file:
+
+	err := qrcode.WriteFile("https://example.org", qrcode.Medium, -5, "qr.png")
 
 The maximum capacity of a QR Code varies according to the content encoded and
 the error recovery level. The maximum capacity is 2,953 bytes, 4,296
@@ -53,7 +61,8 @@ import (
 // Encode a QR Code and return a raw PNG image.
 //
 // size is both the image width and height in pixels. If size is too small then
-// a larger image is silently returned.
+// a larger image is silently returned. Negative values for size cause a
+// variable sized image to be returned: See the documentation for Image().
 //
 // To serve over HTTP, remember to send a Content-Type: image/png header.
 func Encode(content string, level RecoveryLevel, size int) ([]byte, error) {
@@ -70,8 +79,9 @@ func Encode(content string, level RecoveryLevel, size int) ([]byte, error) {
 
 // WriteFile encodes, then writes a QR Code to the given filename in PNG format.
 //
-// size is both the width and height in pixels. If size is too small then a
-// larger image is silently written.
+// size is both the image width and height in pixels. If size is too small then
+// a larger image is silently written. Negative values for size cause a variable
+// sized image to be written: See the documentation for Image().
 func WriteFile(content string, level RecoveryLevel, size int, filename string) error {
 	var q *QRCode
 
@@ -218,10 +228,25 @@ func (q *QRCode) Bitmap() [][]bool {
 
 // Image returns the QR Code as an image.Image.
 //
-// size is both the width and height in pixels.
+// A positive size sets a fixed image width and height (e.g. 256 yields an
+// 256x256px image).
+//
+// Depending on the amount of data encoded, fixed size images can have different
+// amounts of padding (white space around the QR Code). As an alternative, a
+// variable sized image can be generated instead:
+//
+// A negative size causes a variable sized image to be returned. The image
+// returned is the minimum size required for the QR Code. Choose a larger
+// negative number to increase the scale of the image. e.g. a size of -5 causes
+// each module (QR Code "pixel") to be 5px in size.
 func (q *QRCode) Image(size int) image.Image {
 	// Minimum pixels (both width and height) required.
 	realSize := q.symbol.size
+
+	// Variable size support.
+	if size < 0 {
+		size = size * -1 * realSize
+	}
 
 	// Actual pixels available to draw the symbol. Automatically increase the
 	// image size if it's not large enough.
@@ -236,7 +261,10 @@ func (q *QRCode) Image(size int) image.Image {
 	offset := (size - realSize*pixelsPerModule) / 2
 
 	rect := image.Rectangle{Min: image.Point{0, 0}, Max: image.Point{size, size}}
-	img := image.NewRGBA(rect)
+
+	// Saves a few bytes to have them in this order
+	p := color.Palette([]color.Color{q.BackgroundColor, q.ForegroundColor})
+	img := image.NewPaletted(rect, p)
 
 	for i := 0; i < size; i++ {
 		for j := 0; j < size; j++ {
@@ -265,12 +293,15 @@ func (q *QRCode) Image(size int) image.Image {
 // PNG returns the QR Code as a PNG image.
 //
 // size is both the image width and height in pixels. If size is too small then
-// a larger image is silently returned.
+// a larger image is silently returned. Negative values for size cause a
+// variable sized image to be returned: See the documentation for Image().
 func (q *QRCode) PNG(size int) ([]byte, error) {
 	img := q.Image(size)
 
+	encoder := png.Encoder{CompressionLevel: png.BestCompression}
+
 	var b bytes.Buffer
-	err := png.Encode(&b, img)
+	err := encoder.Encode(&b, img)
 
 	if err != nil {
 		return nil, err
@@ -282,7 +313,8 @@ func (q *QRCode) PNG(size int) ([]byte, error) {
 // Write writes the QR Code as a PNG image to io.Writer.
 //
 // size is both the image width and height in pixels. If size is too small then
-// a larger image is silently written.
+// a larger image is silently written. Negative values for size cause a
+// variable sized image to be written: See the documentation for Image().
 func (q *QRCode) Write(size int, out io.Writer) error {
 	var png []byte
 
@@ -298,7 +330,8 @@ func (q *QRCode) Write(size int, out io.Writer) error {
 // WriteFile writes the QR Code as a PNG image to the specified file.
 //
 // size is both the image width and height in pixels. If size is too small then
-// a larger image is silently written.
+// a larger image is silently written. Negative values for size cause a
+// variable sized image to be written: See the documentation for Image().
 func (q *QRCode) WriteFile(size int, filename string) error {
 	var png []byte
 
