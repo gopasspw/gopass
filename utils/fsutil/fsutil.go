@@ -7,11 +7,20 @@ import (
 	"os"
 	"os/user"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 
 	"github.com/pkg/errors"
 )
+
+var reCleanFilename = regexp.MustCompile(`[^\w\d.-]`)
+
+// CleanFilename strips all possibly suspicious characters from a filename
+// WARNING: NOT suiteable for pathnames as slashes will be stripped as well!
+func CleanFilename(in string) string {
+	return strings.Trim(reCleanFilename.ReplaceAllString(in, "_"), "_ ")
+}
 
 // CleanPath resolves common aliases in a path and cleans it as much as possible
 func CleanPath(path string) string {

@@ -3,14 +3,6 @@ language: go
 go:
   - 1.9
 
-before_install:
-  - go get -v github.com/golang/lint/golint
-
 script:
-  - make clean
-  - make vet
-  - make lint
-  - make errcheck
-  - make test
-  - make build
+  - make all
   - make test-integration

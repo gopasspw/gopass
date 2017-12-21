@@ -298,6 +298,10 @@ func (s *Action) askForGitConfigUser(ctx context.Context) (string, string, error
 }
 
 func (s *Action) askForStore(ctx context.Context) string {
+	if !ctxutil.IsInteractive(ctx) {
+		return ""
+	}
+
 	mps := s.Store.MountPoints()
 	if len(mps) < 1 {
 		return ""

@@ -39,7 +39,9 @@ var (
 )
 
 func main() {
-	protect.Pledge("stdio rpath wpath cpath tty proc exec")
+	if err := protect.Pledge("stdio rpath wpath cpath tty proc exec"); err != nil {
+		panic(err)
+	}
 	ctx := context.Background()
 
 	// trap Ctrl+C and call cancel on the context

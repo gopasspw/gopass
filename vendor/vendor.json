@@ -94,6 +94,30 @@
 			"revisionTime": "2017-09-17T21:41:16Z"
 		},
 		{
+			"checksumSHA1": "aAhauhzbr8Om2gxyU1Mdu1wdkRo=",
+			"path": "github.com/google/go-cmp/cmp",
+			"revision": "ab3beb0f1673c5cab43e36db4ea73c2613100e69",
+			"revisionTime": "2017-12-15T19:45:42Z"
+		},
+		{
+			"checksumSHA1": "oLBV7th4sxzxzmf1b91NVVbdOfI=",
+			"path": "github.com/google/go-cmp/cmp/internal/diff",
+			"revision": "ab3beb0f1673c5cab43e36db4ea73c2613100e69",
+			"revisionTime": "2017-12-15T19:45:42Z"
+		},
+		{
+			"checksumSHA1": "kYtvRhMjM0X4bvEjR3pqEHLw1qo=",
+			"path": "github.com/google/go-cmp/cmp/internal/function",
+			"revision": "ab3beb0f1673c5cab43e36db4ea73c2613100e69",
+			"revisionTime": "2017-12-15T19:45:42Z"
+		},
+		{
+			"checksumSHA1": "SqUdhXJw6RZCn8RZbfKIFSzCAzw=",
+			"path": "github.com/google/go-cmp/cmp/internal/value",
+			"revision": "ab3beb0f1673c5cab43e36db4ea73c2613100e69",
+			"revisionTime": "2017-12-15T19:45:42Z"
+		},
+		{
 			"checksumSHA1": "+IzngblnBQNh+GmsS2O7jqmzSVQ=",
 			"path": "github.com/kballard/go-shellquote",
 			"revision": "cd60e84ee657ff3dc51de0b4f55dd299a3e136f2",

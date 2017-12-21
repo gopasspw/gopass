@@ -42,6 +42,17 @@ type Action struct {
 
 // New returns a new Action wrapper
 func New(ctx context.Context, cfg *config.Config, sv semver.Version) (*Action, error) {
+	gpg, err := gpgcli.New(ctx, gpgcli.Config{
+		Umask: umask(),
+		Args:  gpgOpts(),
+	})
+	if err != nil {
+		out.Red(ctx, "Warning: GPG not found: %s", err)
+	}
+	return newAction(ctx, cfg, sv, gpg)
+}
+
+func newAction(ctx context.Context, cfg *config.Config, sv semver.Version, gpg gpger) (*Action, error) {
 	name := "gopass"
 	if len(os.Args) > 0 {
 		name = filepath.Base(os.Args[0])
@@ -51,15 +62,7 @@ func New(ctx context.Context, cfg *config.Config, sv semver.Version) (*Action, e
 		Name:    name,
 		cfg:     cfg,
 		version: sv,
-	}
-
-	var err error
-	act.gpg, err = gpgcli.New(ctx, gpgcli.Config{
-		Umask: umask(),
-		Args:  gpgOpts(),
-	})
-	if err != nil {
-		out.Red(ctx, "Warning: GPG not found: %s", err)
+		gpg:     gpg,
 	}
 
 	store, err := root.New(ctx, cfg, act.gpg)
