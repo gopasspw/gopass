@@ -85,6 +85,7 @@ func (p *ProgressBar) LazyPrint() {
 	}
 }
 
+// Clear deletes everything on the current terminal line, hence removing a printed progressbar
 func (p *ProgressBar) Clear() {
 	clearCurrentLine()
 }

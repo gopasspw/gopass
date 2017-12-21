@@ -8,8 +8,6 @@
 package crunchy
 
 import (
-	"encoding/hex"
-	"errors"
 	"hash"
 	"io/ioutil"
 	"path/filepath"
@@ -17,23 +15,6 @@ import (
 	"sync"
 
 	"github.com/xrash/smetrics"
-)
-
-var (
-	// ErrEmpty gets returned when the password is empty or all whitespace
-	ErrEmpty = errors.New("Password is empty or all whitespace")
-	// ErrTooShort gets returned when the password is not long enough
-	ErrTooShort = errors.New("Password is too short")
-	// ErrTooFewChars gets returned when the password does not contain enough unique characters
-	ErrTooFewChars = errors.New("Password does not contain enough different/unique characters")
-	// ErrTooSystematic gets returned when the password is too systematic (e.g. 123456, abcdef)
-	ErrTooSystematic = errors.New("Password is too systematic")
-	// ErrDictionary gets returned when the password is found in a dictionary
-	ErrDictionary = errors.New("Password is too common / from a dictionary")
-	// ErrMangledDictionary gets returned when the password is mangled, but found in a dictionary
-	ErrMangledDictionary = errors.New("Password is mangled, but too common / from a dictionary")
-	// ErrHashedDictionary gets returned when the password is hashed, but found in a dictionary
-	ErrHashedDictionary = errors.New("Password is hashed, but too common / from a dictionary")
 )
 
 // Validator is used to setup a new password validator with options and dictionaries
@@ -86,57 +67,6 @@ func NewValidatorWithOpts(options Options) *Validator {
 	}
 }
 
-// countUniqueChars returns the amount of unique runes in a string
-func countUniqueChars(s string) int {
-	m := make(map[rune]struct{})
-
-	for _, c := range s {
-		if _, ok := m[c]; !ok {
-			m[c] = struct{}{}
-		}
-	}
-
-	return len(m)
-}
-
-// countSystematicChars returns how many runes in a string are part of a sequence ('abcdef', '654321')
-func countSystematicChars(s string) int {
-	var x int
-	rs := []rune(s)
-
-	for i, c := range rs {
-		if i == 0 {
-			continue
-		}
-		if c == rs[i-1]+1 || c == rs[i-1]-1 {
-			x++
-		}
-	}
-
-	return x
-}
-
-// reverse returns the reversed form of a string
-func reverse(s string) string {
-	rs := []rune(s)
-	for i, j := 0, len(rs)-1; i < j; i, j = i+1, j-1 {
-		rs[i], rs[j] = rs[j], rs[i]
-	}
-	return string(rs)
-}
-
-// normalize returns the trimmed and lowercase version of a string
-func normalize(s string) string {
-	return strings.TrimSpace(strings.ToLower(s))
-}
-
-// hashsum returns the hashed sum of a string
-func hashsum(s string, hasher hash.Hash) string {
-	hasher.Reset()
-	hasher.Write([]byte(s))
-	return hex.EncodeToString(hasher.Sum(nil))
-}
-
 // indexDictionaries parses dictionaries/wordlists
 func (v *Validator) indexDictionaries() {
 	if v.options.DictionaryPath == "" {
@@ -175,7 +105,7 @@ func (v *Validator) indexDictionaries() {
 }
 
 // foundInDictionaries returns whether a (mangled) string exists in the indexed dictionaries
-func (v *Validator) foundInDictionaries(s string) (string, error) {
+func (v *Validator) foundInDictionaries(s string) error {
 	v.once.Do(v.indexDictionaries)
 
 	pw := normalize(s)   // normalized password
@@ -186,16 +116,16 @@ func (v *Validator) foundInDictionaries(s string) (string, error) {
 	// we can skip this if the pw is longer than the longest word in our dictionary
 	if pwlen <= v.wordsMaxLen {
 		if _, ok := v.words[pw]; ok {
-			return pw, ErrDictionary
+			return &DictionaryError{ErrDictionary, pw, 0}
 		}
 		if _, ok := v.words[revpw]; ok {
-			return revpw, ErrMangledDictionary
+			return &DictionaryError{ErrMangledDictionary, revpw, 0}
 		}
 	}
 
 	// find hashed dictionary entries
-	if _, ok := v.hashedWords[pw]; ok {
-		return pw, ErrHashedDictionary
+	if word, ok := v.hashedWords[pw]; ok {
+		return &HashedDictionaryError{ErrHashedDictionary, word}
 	}
 
 	// find mangled / reversed passwords
@@ -203,15 +133,15 @@ func (v *Validator) foundInDictionaries(s string) (string, error) {
 	if pwlen <= v.wordsMaxLen+v.options.MinDist {
 		for word := range v.words {
 			if dist := smetrics.WagnerFischer(word, pw, 1, 1, 1); dist <= v.options.MinDist {
-				return word, ErrMangledDictionary
+				return &DictionaryError{ErrMangledDictionary, word, dist}
 			}
 			if dist := smetrics.WagnerFischer(word, revpw, 1, 1, 1); dist <= v.options.MinDist {
-				return word, ErrMangledDictionary
+				return &DictionaryError{ErrMangledDictionary, word, dist}
 			}
 		}
 	}
 
-	return "", nil
+	return nil
 }
 
 // Check validates a password for common flaws
@@ -233,9 +163,5 @@ func (v *Validator) Check(password string) error {
 		return ErrTooSystematic
 	}
 
-	if _, err := v.foundInDictionaries(password); err != nil {
-		return err
-	}
-
-	return nil
+	return v.foundInDictionaries(password)
 }

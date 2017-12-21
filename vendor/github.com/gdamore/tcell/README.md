@@ -1,4 +1,4 @@
-## tcell
+## tcell <img src=tcell.png align=right>
 
 [![Linux Status](https://img.shields.io/travis/gdamore/tcell.svg?label=linux)](https://travis-ci.org/gdamore/tcell)
 [![Windows Status](https://img.shields.io/appveyor/ci/gdamore/tcell.svg?label=windows)](https://ci.appveyor.com/project/gdamore/tcell)
@@ -260,3 +260,12 @@ The nacl and plan9 platforms won't work, but compilation stubs are supplied
 for folks that want to include parts of this in software targetting those
 platforms.  The Simulation screen works, but as Tcell doesn't know how to
 allocate a real screen object on those platforms, NewScreen() will fail.
+
+### Commercial Support
+
+This software is absolutely free, but if you want to obtain commercial
+support (giving prioritized access to the developer, etc. on an hourly
+rate), please drop a line to info@staysail.tech
+
+I also welcome donations at Patreon, if you just want to feel good about
+defraying development costs: https://www.patreon.com/gedamore

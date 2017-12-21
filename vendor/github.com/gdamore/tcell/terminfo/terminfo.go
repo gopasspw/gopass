@@ -1,4 +1,4 @@
-// Copyright 2016 The TCell Authors
+// Copyright 2017 The TCell Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use file except in compliance with the License.
@@ -12,11 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package tcell
+package terminfo
 
 import (
 	"bytes"
+	"compress/gzip"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -24,6 +26,17 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+)
+
+var (
+	// ErrTermNotFound indicates that a suitable terminal entry could
+	// not be found.  This can result from either not having TERM set,
+	// or from the TERM failing to support certain minimal functionality,
+	// in particular absolute cursor addressability (the cup capability)
+	// is required.  For example, legacy "adm3" lacks this capability,
+	// whereas the slightly newer "adm3a" supports it.  This failure
+	// occurs most often with "dumb".
+	ErrTermNotFound = errors.New("terminal entry not found")
 )
 
 // Terminfo represents a terminfo entry.  Note that we use friendly names
@@ -249,9 +262,8 @@ func (st stack) PopBool() (bool, stack) {
 		if e.isStr {
 			if e.s == "1" {
 				return true, st
-			} else {
-				return false, st
 			}
+			return false, st
 		} else if e.i == 1 {
 			return true, st
 		} else {
@@ -664,9 +676,7 @@ func (t *Terminfo) TGoto(col, row int) string {
 
 // TColor returns a string corresponding to the given foreground and background
 // colors.  Either fg or bg can be set to -1 to elide.
-func (t *Terminfo) TColor(fg, bg Color) string {
-	fi := int(fg)
-	bi := int(bg)
+func (t *Terminfo) TColor(fi, bi int) string {
 	rv := ""
 	// As a special case, we map bright colors to lower versions if the
 	// color table only holds 8.  For the remaining 240 colors, the user
@@ -706,9 +716,15 @@ func AddTerminfo(t *Terminfo) {
 }
 
 func loadFromFile(fname string, term string) (*Terminfo, error) {
-	f, e := os.Open(fname)
-	if e != nil {
+	var e error
+	var f io.Reader
+	if f, e = os.Open(fname); e != nil {
 		return nil, e
+	}
+	if strings.HasSuffix(fname, ".gz") {
+		if f, e = gzip.NewReader(f); e != nil {
+			return nil, e
+		}
 	}
 	d := json.NewDecoder(f)
 	for {
@@ -719,8 +735,17 @@ func loadFromFile(fname string, term string) (*Terminfo, error) {
 			}
 			return nil, e
 		}
+		if t.SetCursor == "" {
+			// This must be an alias record, return it.
+			return t, nil
+		}
 		if t.Name == term {
 			return t, nil
+		}
+		for _, a := range t.Aliases {
+			if a == term {
+				return t, nil
+			}
 		}
 	}
 }
@@ -736,31 +761,64 @@ func LookupTerminfo(name string) (*Terminfo, error) {
 	dblock.Unlock()
 
 	if t == nil {
-		// Load the database located here.  Its expected that TCELLSDB
-		// points either to a single JSON file.
+
+		var files []string
+		letter := fmt.Sprintf("%02x", name[0])
+		gzfile := path.Join(letter, name+".gz")
+		jsfile := path.Join(letter, name)
+
+		// Build up the search path.  Old versions of tcell used a
+		// single database file, whereas the new ones locate them
+		// in JSON (optionally compressed) files.
+		//
+		// The search path looks like:
+		//
+		// $TCELLDB/x/xterm.gz
+		// $TCELLDB/x/xterm
+		// $TCELLDB
+		// $HOME/.tcelldb/x/xterm.gz
+		// $HOME/.tcelldb/x/xterm
+		// $HOME/.tcelldb
+		// $GOPATH/terminfo/database/x/xterm.gz
+		// $GOPATH/terminfo/database/x/xterm
+		//
 		if pth := os.Getenv("TCELLDB"); pth != "" {
-			t, _ = loadFromFile(pth, name)
+			files = append(files, path.Join(pth, gzfile))
+			files = append(files, path.Join(pth, jsfile))
+			files = append(files, pth)
 		}
-		if t == nil {
-			if pth := os.Getenv("HOME"); pth != "" {
-				fname := path.Join(pth, ".tcelldb")
-				t, _ = loadFromFile(fname, name)
-			}
+		if pth := os.Getenv("HOME"); pth != "" {
+			pth = path.Join(pth, ".tcelldb")
+			files = append(files, path.Join(pth, gzfile))
+			files = append(files, path.Join(pth, jsfile))
+			files = append(files, pth)
 		}
-		if t == nil {
-			gopath := strings.Split(os.Getenv("GOPATH"),
-				string(os.PathListSeparator))
-			fname := path.Join("src",
-				"github.com", "gdamore", "tcell",
-				"database.json")
-			for _, pth := range gopath {
-				t, _ = loadFromFile(path.Join(pth, fname), name)
-				if t != nil {
-					break
-				}
+
+		for _, pth := range strings.Split(os.Getenv("GOPATH"), string(os.PathListSeparator)) {
+			pth = path.Join(pth, "src", "github.com", "gdamore", "tcell", "terminfo", "database")
+			files = append(files, path.Join(pth, gzfile))
+			files = append(files, path.Join(pth, jsfile))
+		}
+
+		for _, fname := range files {
+			t, _ = loadFromFile(fname, name)
+			if t != nil {
+				break
 			}
 		}
 		if t != nil {
+			if t.Name != name {
+				// Check for a database loop (no infinite
+				// recursion).
+				dblock.Lock()
+				if aliases[name] != "" {
+					dblock.Unlock()
+					return nil, ErrTermNotFound
+				}
+				aliases[name] = t.Name
+				dblock.Unlock()
+				return LookupTerminfo(t.Name)
+			}
 			dblock.Lock()
 			terminfos[name] = t
 			dblock.Unlock()

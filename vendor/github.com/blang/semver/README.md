@@ -109,7 +109,7 @@ fmt.Printf("Build: %s\n", v.Build)
 if len(v.Pre) > 0 {
     fmt.Println("Prerelease versions:")
     for i, pre := range v.Pre {
-	fmt.Printf("%d: %q\n", i, pre)
+        fmt.Printf("%d: %q\n", i, pre)
     }
 }
 
@@ -117,7 +117,7 @@ if len(v.Pre) > 0 {
 if len(v.Build) > 0 {
     fmt.Println("Build meta data:")
     for i, build := range v.Build {
-	fmt.Printf("%d: %q\n", i, build)
+        fmt.Printf("%d: %q\n", i, build)
     }
 }
 

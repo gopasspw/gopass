@@ -17,6 +17,8 @@ package tcell
 import (
 	"errors"
 	"time"
+
+	"github.com/gdamore/tcell/terminfo"
 )
 
 var (
@@ -27,7 +29,7 @@ var (
 	// is required.  For example, legacy "adm3" lacks this capability,
 	// whereas the slightly newer "adm3a" supports it.  This failure
 	// occurs most often with "dumb".
-	ErrTermNotFound = errors.New("terminal entry not found")
+	ErrTermNotFound = terminfo.ErrTermNotFound
 
 	// ErrNoScreen indicates that no suitable screen could be found.
 	// This may result from attempting to run on a platform where there
