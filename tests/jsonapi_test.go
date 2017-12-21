@@ -38,7 +38,7 @@ func readAndVerifyMessageLength(t *testing.T, rawMessage []byte) string {
 
 func writeMessageWithLength(message string) io.Reader {
 	buffer := bytes.NewBuffer([]byte{})
-	binary.Write(buffer, binary.LittleEndian, uint32(len(message)))
+	_ = binary.Write(buffer, binary.LittleEndian, uint32(len(message)))
 	buffer.WriteString(message)
 	return buffer
 }

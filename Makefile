@@ -1,121 +1,167 @@
-DIST := dist
-BIN := bin
-
-EXECUTABLE := gopass
-
-PWD := $(shell pwd)
-VERSION := $(shell cat VERSION)
-SHA := $(shell cat COMMIT 2>/dev/null || git rev-parse --short=8 HEAD)
-
+FIRST_GOPATH              := $(firstword $(subst :, ,$(GOPATH)))
+PKGS                      := $(shell go list ./... | grep -v /tests)
+GOFILES_NOVENDOR          := $(shell find . -type f -name '*.go' -not -path "./vendor/*")
+GOPASS_VERSION            ?= $(shell cat VERSION)
+GOPASS_OUTPUT             ?= gopass
+GOPASS_REVISION           := $(shell cat COMMIT 2>/dev/null || git rev-parse --short=8 HEAD)
+BASH_COMPLETION_OUTPUT    := bash.completion
+ZSH_COMPLETION_OUTPUT     := zsh.completion
 # Support reproducible builds by embedding date according to SOURCE_DATE_EPOCH if present
-DATE := $(shell date -u -d "@$(SOURCE_DATE_EPOCH)" '+%FT%T%z' 2>/dev/null || date -u '+%FT%T%z')
+DATE                      := $(shell date -u -d "@$(SOURCE_DATE_EPOCH)" '+%FT%T%z' 2>/dev/null || date -u '+%FT%T%z')
+BUILDFLAGS                := -ldflags="-s -w -X main.version=$(GOPASS_VERSION) -X main.commit=$(GOPASS_REVISION) -X main.date=$(DATE) -extldflags '-static'" -gcflags="-trimpath=$(GOPATH)" -asmflags="-trimpath=$(GOPATH)"
+TESTFLAGS                 ?=
+PWD                       := $(shell pwd)
+PREFIX                    ?= $(GOPATH)
+BINDIR                    ?= $(PREFIX)/bin
+GO                        := CGO_ENABLED=0 go
+GOOS                      ?= $(shell go version | cut -d' ' -f4 | cut -d'/' -f1)
+GOARCH                    ?= $(shell go version | cut -d' ' -f4 | cut -d'/' -f2)
+TAGS                      ?= netgo
 
-GOLDFLAGS += -X "main.version=$(VERSION)"
-GOLDFLAGS += -X "main.date=$(DATE)"
-GOLDFLAGS += -X "main.commit=$(SHA)"
-GOLDFLAGS += -extldflags '-static'
+all: sysinfo crosscompile build install test codequality completion
 
-PREFIX ?= /usr
-BINDIR ?= $(PREFIX)/bin
+.PHONY: clean build man
 
-GO := CGO_ENABLED=0 go
+define ok
+	@tput setaf 6 2>/dev/null || echo -n ""
+	@echo " [OK]"
+	@tput sgr0 2>/dev/null || echo -n ""
+endef
 
-GOOS ?= $(shell go version | cut -d' ' -f4 | cut -d'/' -f1)
-GOARCH ?= $(shell go version | cut -d' ' -f4 | cut -d'/' -f2)
+sysinfo:
+	@echo ">> SYSTEM INFORMATION"
+	@echo -n "     PLATFORM: $(shell uname -a)"
+	@$(call ok)
+	@echo -n "     PWD:    : $(shell pwd)"
+	@$(call ok)
+	@echo -n "     GO      : $(shell go version)"
+	@$(call ok)
+	@echo -n "     BUILDFLAGS: $(BUILDFLAGS)"
+	@$(call ok)
 
-PACKAGES ?= $(shell go list ./... | grep -v /vendor/ | grep -v /tests)
-GOFILES ?= $(shell find . -type f -name "*.go" | grep -v vendor/)
-
-TAGS ?= netgo
-
-.PHONY: all
-all: clean test build
-
-.PHONY: clean
 clean:
-	$(GO) clean -i ./...
-	find . -type f -name "coverage.out" -delete
-	rm -f gopass_*.deb
-	rm -f gopass-*.pkg.tar.xz
-	rm -f gopass-*.rpm
-	rm -f gopass-*.tar.bz2
-	rm -f gopass-*.tar.gz
-	rm -f gopass-*-*
-	rm -f tests/tests
+	@echo -n ">> CLEAN"
+	@$(GO) clean -i ./...
+	@rm -f ./coverage-all.html
+	@rm -f ./coverage-all.out
+	@rm -f ./coverage.out
+	@find . -type f -name "coverage.out" -delete
+	@rm -f gopass_*.deb
+	@rm -f gopass-*.pkg.tar.xz
+	@rm -f gopass-*.rpm
+	@rm -f gopass-*.tar.bz2
+	@rm -f gopass-*.tar.gz
+	@rm -f gopass-*-*
+	@rm -f tests/tests
+	@$(call ok)
 
-.PHONY: fmt
-fmt:
-	$(GO) fmt $(PACKAGES)
+build:
+	@echo -n ">> BUILD, version = $(GOPASS_VERSION)/$(GOPASS_REVISION), output = $(GOPASS_OUTPUT)"
+	@$(GO) build -o $(GOPASS_OUTPUT) $(BUILDFLAGS)
+	@$(call ok)
 
-.PHONY: tests
-tests: test-cross test vet lint errcheck megacheck gocyclo
+install: build
+	@echo -n ">> INSTALL, version = $(GOPASS_VERSION)"
+	@install -m 0755 -d $(DESTDIR)$(BINDIR)
+	@install -m 0755 $(GOPASS_OUTPUT) $(DESTDIR)$(BINDIR)/gopass
+	@$(call ok)
 
-.PHONY: vet
-vet:
-	$(GO) vet $(PACKAGES)
+fulltest: build
+	@echo ">> TEST, \"full-mode\": race detector on"
+	@echo "mode: count" > coverage-all.out
+	@$(foreach pkg, $(PKGS),\
+	    echo -n "     ";\
+		go test -run '(Test|Example)' $(BUILDFLAGS) $(TESTFLAGS) -race -coverprofile=coverage.out -covermode=atomic $(pkg) || exit 1;\
+		tail -n +2 coverage.out >> coverage-all.out;)
+	@$(GO) tool cover -html=coverage-all.out -o coverage-all.html
 
-.PHONY: lint
-lint:
-	@which golint > /dev/null; if [ $$? -ne 0 ]; then \
-		$(GO) get -u github.com/golang/lint/golint; \
-	fi
-	STATUS=0; for PKG in $(PACKAGES); do golint -set_exit_status $$PKG || STATUS=1; done; exit $$STATUS
+test: build
+	@echo ">> TEST, \"fast-mode\": race detector off"
+	@echo "mode: count" > coverage-all.out
+	@$(foreach pkg, $(PKGS),\
+	    echo -n "     ";\
+		$(GO) test  -run '(Test|Example)' $(BUILDFLAGS) $(TESTFLAGS) -coverprofile=coverage.out $(pkg) || exit 1;\
+		tail -n +2 coverage.out >> coverage-all.out;)
+	@$(GO) tool cover -html=coverage-all.out
 
-.PHONY: errcheck
-errcheck:
-	@which errcheck > /dev/null; if [ $$? -ne 0 ]; then \
-		$(GO) get -u github.com/kisielk/errcheck; \
-	fi
-	STATUS=0; for PKG in $(PACKAGES); do errcheck $$PKG || STATUS=1; done; exit $$STATUS
+test-integration: clean build
+	cd tests && GOPASS_BINARY=$(PWD)/$(GOPASS_OUTPUT) GOPASS_TEST_DIR=$(PWD)/tests go test -v
 
-.PHONY: megacheck
-megacheck:
-	@which megacheck > /dev/null; if [ $$? -ne 0  ]; then \
-		$(GO) get -u honnef.co/go/tools/cmd/megacheck; \
-	fi
-	STATUS=0; for PKG in $(PACKAGES); do megacheck $$PKG || STATUS=1; done; exit $$STATUS
+crosscompile:
+	@echo -n ">> CROSSCOMPILE linux/amd64"
+	@GOOS=linux GOARCH=amd64 $(GO) build -o $(GOPASS_OUTPUT)-linux-amd64
+	@$(call ok)
+	@echo -n ">> CROSSCOMPILE darwin/amd64"
+	@GOOS=darwin GOARCH=amd64 $(GO) build -o $(GOPASS_OUTPUT)-darwin-amd64
+	@$(call ok)
+	@echo -n ">> CROSSCOMPILE windows/amd64"
+	@GOOS=windows GOARCH=amd64 $(GO) build -o $(GOPASS_OUTPUT)-windows-amd64
+	@$(call ok)
 
-.PHONY: gocyclo
-gocyclo:
+completion: $(BASH_COMPLETION_OUTPUT) $(ZSH_COMPLETION_OUTPUT)
+
+$(BASH_COMPLETION_OUTPUT): build
+	@echo -n ">> BASH COMPLETION, output = $(BASH_COMPLETION_OUTPUT)"
+	@gopass completion bash > $(BASH_COMPLETION_OUTPUT)
+	@$(call ok)
+
+$(ZSH_COMPLETION_OUTPUT): build
+	@echo -n ">> ZSH COMPLETION, output = $(ZSH_COMPLETION_OUTPUT)"
+	@gopass completion bash > $(ZSH_COMPLETION_OUTPUT)
+	@$(call ok)
+
+codequality:
+	@echo ">> CODE QUALITY"
+	@echo -n "     FMT"
+	@$(foreach gofile, $(GOFILES_NOVENDOR),\
+	        (gofmt -s -l -d -e $(gofile) | tee /dev/stderr) || exit 1;)
+	@$(call ok)
+
+	@echo -n "     VET"
+	@$(GO) vet ./...
+	@$(call ok)
+
+	@echo -n "     CYCLO"
 	@which gocyclo > /dev/null; if [ $$? -ne 0 ]; then \
 		$(GO) get -u github.com/fzipp/gocyclo; \
 	fi
-	STATUS=0; for FN in $(GOFILES); do gocyclo -over 15 $$FN || STATUS=1; done; exit $$STATUS
+	@$(foreach gofile, $(GOFILES_NOVENDOR),\
+			gocyclo -over 15 $(gofile);)
+	@$(call ok)
 
-.PHONY: test
-test:
-	STATUS=0; for PKG in $(PACKAGES); do go test -cover -coverprofile $$GOPATH/src/$$PKG/coverage.out $$PKG || STATUS=1; done; exit $$STATUS
+	@echo -n "     LINT"
+	@which golint > /dev/null; if [ $$? -ne 0 ]; then \
+		$(GO) get -u github.com/golang/lint/golint; \
+	fi
+	@$(foreach pkg, $(PKGS),\
+			golint -set_exit_status $(pkg);)
+	@$(call ok)
 
-.PHONY: test-cross
-test-cross:
-	GOOS=linux GOARCH=amd64 $(GO) build
-	GOOS=darwin GOARCH=amd64 $(GO) build
-	GOOS=windows GOARCH=amd64 $(GO) build
+	@echo -n "     INEFF"
+	@which ineffassign > /dev/null; if [ $$? -ne 0 ]; then \
+		$(GO) get -u github.com/gordonklaus/ineffassign; \
+	fi
+	@ineffassign .
+	@$(call ok)
 
-.PHONY: test-integration
-test-integration: clean build
-	cd tests && GOPASS_BINARY=$(PWD)/$(EXECUTABLE)-$(GOOS)-$(GOARCH) GOPASS_TEST_DIR=$(PWD)/tests go test -v
+	@echo -n "     SPELL"
+	@which misspell > /dev/null; if [ $$? -ne 0 ]; then \
+		$(GO) get -u github.com/client9/misspell/cmd/misspell; \
+	fi
+	@$(foreach gofile, $(GOFILES_NOVENDOR),\
+			misspell --error $(gofile);)
+	@$(call ok)
 
-.PHONY: install
-install: build
-	install -m 0755 -d $(DESTDIR)$(BINDIR)
-	install -m 0755 $(EXECUTABLE)-$(GOOS)-$(GOARCH) $(DESTDIR)$(BINDIR)/gopass
+	@echo -n "     MEGACHECK"
+	@which megacheck > /dev/null; if [ $$? -ne 0  ]; then \
+		$(GO) get -u honnef.co/go/tools/cmd/megacheck; \
+	fi
+	@megacheck $(PKGS)
+	@$(call ok)
 
-.PHONY: build
-build: $(EXECUTABLE)-$(GOOS)-$(GOARCH)
-
-$(EXECUTABLE)-$(GOOS)-$(GOARCH): $(wildcard *.go)
-	$(GO) build -tags '$(TAGS)' -ldflags '-s -w $(GOLDFLAGS)' -o gopass-$(GOOS)-$(GOARCH)
-
-.PHONY: release
-release: clean
-	dist/release.sh
-
-bash.completion: $(EXECUTABLE)-$(GOOS)-$(GOARCH)
-	./$(EXECUTABLE)-$(GOOS)-$(GOARCH) completion bash >bash.completion
-
-zsh.completion: $(EXECUTABLE)-$(GOOS)-$(GOARCH)
-	./$(EXECUTABLE)-$(GOOS)-$(GOARCH) completion zsh >zsh.completion
-
-.PHONY: completion
-completion: bash.completion zsh.completion
+	@echo -n "     ERRCHECK"
+	@which errcheck > /dev/null; if [ $$? -ne 0  ]; then \
+		$(GO) get -u github.com/kisielk/errcheck; \
+	fi
+	@errcheck $(PKGS)
+	@$(call ok)

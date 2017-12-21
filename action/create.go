@@ -11,6 +11,8 @@ import (
 	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/store/secret"
 	"github.com/justwatchcom/gopass/store/sub"
+	"github.com/justwatchcom/gopass/utils/fsutil"
+	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/justwatchcom/gopass/utils/pwgen"
 	"github.com/justwatchcom/gopass/utils/termwiz"
 	"github.com/martinhoefling/goxkcdpwgen/xkcdpwgen"
@@ -49,6 +51,23 @@ func (s *Action) Create(ctx context.Context, c *cli.Context) error {
 	return nil
 }
 
+func extractHostname(in string) string {
+	if in == "" {
+		return ""
+	}
+	// help url.Parse by adding a scheme if one is missing. This should still
+	// allow for any scheme, but by default we assume http (only for parsing)
+	urlStr := in
+	if !strings.Contains(urlStr, "://") {
+		urlStr = "http://" + urlStr
+	}
+	u, err := url.Parse(urlStr)
+	if ch := fsutil.CleanFilename(u.Hostname()); err == nil && ch != "" {
+		return ch
+	}
+	return fsutil.CleanFilename(in)
+}
+
 func (s *Action) createWebsite(ctx context.Context, c *cli.Context) error {
 	var (
 		urlStr   string
@@ -63,21 +82,25 @@ func (s *Action) createWebsite(ctx context.Context, c *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	if !strings.Contains(urlStr, "://") {
-		urlStr = "http://" + urlStr
-	}
-	u, err := url.Parse(urlStr)
-	if err != nil || u.Hostname() == "" {
+	hostname := extractHostname(urlStr)
+	if hostname == "" {
 		return exitError(ctx, ExitUnknown, err, "Can not parse URL. Please use 'gopass edit' to manually create the secret")
 	}
+
 	username, err = s.askForString(ctx, "Please enter the Username/Login", "")
 	if err != nil {
 		return err
 	}
+	username = fsutil.CleanFilename(username)
+	if username == "" {
+		return exitError(ctx, ExitUnknown, nil, "Username must not be empty")
+	}
+
 	genPw, err = s.askForBool(ctx, "Do you want to generate a new password?", true)
 	if err != nil {
 		return err
 	}
+
 	if genPw {
 		password, err = s.createGeneratePassword(ctx)
 		if err != nil {
@@ -99,19 +122,16 @@ func (s *Action) createWebsite(ctx context.Context, c *cli.Context) error {
 		store += "/"
 	}
 
-	if u.Hostname() == "" {
-		return exitError(ctx, ExitUnknown, nil, "Hostname must not be empty")
-	}
-	if username == "" {
-		return exitError(ctx, ExitUnknown, nil, "Username must not be empty")
-	}
-	name := fmt.Sprintf("%swebsites/%s/%s", store, u.Hostname(), username)
+	name := fmt.Sprintf("%swebsites/%s/%s", store, hostname, username)
 	if s.Store.Exists(ctx, name) {
 		name, err = s.askForString(ctx, "Secret already exists, please choose another path", name)
 		if err != nil {
 			return err
 		}
 	}
+
+	out.Yellow(ctx, "Note: You may be asked for your GPG passphrase to sign the commit")
+
 	sec := secret.New(password, "")
 	_ = sec.SetValue("url", urlStr)
 	_ = sec.SetValue("username", username)
@@ -119,11 +139,25 @@ func (s *Action) createWebsite(ctx context.Context, c *cli.Context) error {
 	if err := s.Store.Set(sub.WithReason(ctx, "Created new entry"), name, sec); err != nil {
 		return exitError(ctx, ExitEncrypt, err, "failed to set '%s': %s", name, err)
 	}
-	if genPw {
+
+	return s.createPrintOrCopy(ctx, c, name, password, genPw)
+}
+
+func (s *Action) createPrintOrCopy(ctx context.Context, c *cli.Context, name, password string, genPw bool) error {
+	if !genPw {
+		return nil
+	}
+
+	if c.Bool("print") {
 		fmt.Printf(
 			"The generated password for %s is:\n%s\n", name,
 			color.YellowString(string(password)),
 		)
+		return nil
+	}
+
+	if err := s.copyToClipboard(ctx, name, []byte(password)); err != nil {
+		return exitError(ctx, ExitIO, err, "failed to copy to clipboard: %s", err)
 	}
 	return nil
 }
@@ -183,13 +217,8 @@ func (s *Action) createPIN(ctx context.Context, c *cli.Context) error {
 	if err := s.Store.Set(sub.WithReason(ctx, "Created new entry"), name, sec); err != nil {
 		return exitError(ctx, ExitEncrypt, err, "failed to set '%s': %s", name, err)
 	}
-	if genPw {
-		fmt.Printf(
-			"The generated password for %s is:\n%s\n", name,
-			color.YellowString(string(password)),
-		)
-	}
-	return nil
+
+	return s.createPrintOrCopy(ctx, c, name, password, genPw)
 }
 
 func (s *Action) createAWS(ctx context.Context, c *cli.Context) error {
@@ -377,13 +406,8 @@ func (s *Action) createGeneric(ctx context.Context, c *cli.Context) error {
 	if err := s.Store.Set(sub.WithReason(ctx, "Created new entry"), name, sec); err != nil {
 		return exitError(ctx, ExitEncrypt, err, "failed to set '%s': %s", name, err)
 	}
-	if genPw {
-		fmt.Printf(
-			"The generated password for %s is:\n%s\n", name,
-			color.YellowString(string(password)),
-		)
-	}
-	return nil
+
+	return s.createPrintOrCopy(ctx, c, name, password, genPw)
 }
 
 func (s *Action) createGeneratePassword(ctx context.Context) (string, error) {

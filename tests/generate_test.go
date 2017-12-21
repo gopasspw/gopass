@@ -29,7 +29,7 @@ func TestGenerate(t *testing.T) {
 	assert.Equal(t, "The generated password for baz is:", lines[0])
 	assert.Len(t, lines[1], 42)
 
-	os.Setenv("GOPASS_CHARACTER_SET", "a")
+	_ = os.Setenv("GOPASS_CHARACTER_SET", "a")
 	out, err = ts.run("generate -p zab 4")
 	assert.NoError(t, err)
 	lines = strings.Split(out, "\n")

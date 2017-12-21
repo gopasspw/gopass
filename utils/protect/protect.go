@@ -6,4 +6,6 @@ package protect
 var ProtectEnabled = false
 
 // Pledge on any other system than OpenBSD doesn't do anything
-func Pledge(s string) {}
+func Pledge(s string) error {
+	return nil
+}

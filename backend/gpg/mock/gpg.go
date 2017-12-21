@@ -130,3 +130,13 @@ func (m *Mocker) Verify(ctx context.Context, sigf string, in string) error {
 
 	return nil
 }
+
+// CreatePrivateKey is not implemented
+func (m *Mocker) CreatePrivateKey(ctx context.Context) error {
+	return fmt.Errorf("not yet implemented")
+}
+
+// CreatePrivateKeyBatch is not implemented
+func (m *Mocker) CreatePrivateKeyBatch(ctx context.Context, name, email, pw string) error {
+	return fmt.Errorf("not yet implemented")
+}

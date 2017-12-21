@@ -39,14 +39,14 @@ func (s *Action) Config(ctx context.Context, c *cli.Context) error {
 func (s *Action) printConfigValues(ctx context.Context, store string, needles ...string) error {
 	prefix := ""
 	if len(needles) < 1 {
-		out.Print(ctx, "root store config:\n")
+		out.Print(ctx, "root store config:")
 		prefix = "  "
 	}
 
 	m := s.cfg.Root.ConfigMap()
 	if store == "" {
 		for _, k := range filterMap(m, needles) {
-			out.Print(ctx, "%s%s: %s\n", prefix, k, m[k])
+			out.Print(ctx, "%s%s: %s", prefix, k, m[k])
 		}
 	}
 	for mp, sc := range s.cfg.Mounts {
@@ -54,7 +54,7 @@ func (s *Action) printConfigValues(ctx context.Context, store string, needles ..
 			continue
 		}
 		if len(needles) < 1 {
-			out.Print(ctx, "mount '%s' config:\n", mp)
+			out.Print(ctx, "mount '%s' config:", mp)
 			mp = "  "
 		} else {
 			mp += "/"
@@ -62,7 +62,7 @@ func (s *Action) printConfigValues(ctx context.Context, store string, needles ..
 		sm := sc.ConfigMap()
 		for _, k := range filterMap(sm, needles) {
 			if sm[k] != m[k] || store != "" {
-				out.Print(ctx, "%s%s: %s\n", mp, k, sm[k])
+				out.Print(ctx, "%s%s: %s", mp, k, sm[k])
 			}
 		}
 	}

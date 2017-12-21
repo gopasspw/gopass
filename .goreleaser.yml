@@ -4,9 +4,12 @@
 # Build customization
 build:
   binary: gopass
-  flags: -tags netgo
+  flags: |
+    -tags netgo -gcflags="-trimpath=$GOPATH" -asmflags="-trimpath=$GOPATH"
   env:
     - CGO_ENABLED=0
+  ldflags: |
+    -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}} -extldflags '-static'
   goos:
     - darwin
     - freebsd
