@@ -45,7 +45,11 @@ func (s *Action) Audit(ctx context.Context, c *cli.Context) error {
 
 	// Spawn workers that run the auditing of all secrets concurrently.
 	validator := crunchy.NewValidator()
-	for jobs := 0; jobs < c.Int("jobs"); jobs++ {
+	maxJobs := 1
+	if mj := c.Int("jobs"); mj > 0 {
+		maxJobs = mj
+	}
+	for jobs := 0; jobs < maxJobs; jobs++ {
 		go s.audit(ctx, validator, secrets, checked)
 	}
 

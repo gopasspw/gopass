@@ -34,8 +34,8 @@ func TestComplete(t *testing.T) {
 		act.Complete(nil)
 		return nil
 	})
-	if out != "" {
-		t.Errorf("should be empty for empty store")
+	if out != "foo" {
+		t.Errorf("should return 'foo' not '%s'", out)
 	}
 
 	out = capture(t, func() error {

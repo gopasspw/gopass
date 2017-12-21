@@ -88,6 +88,10 @@ func TestShred(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create tempdir: %s", err)
 	}
+	defer func() {
+		_ = os.RemoveAll(tempdir)
+	}()
+
 	fn := filepath.Join(tempdir, "file")
 	fh, err := os.OpenFile(fn, os.O_WRONLY|os.O_CREATE, 0644)
 	if err != nil {
@@ -105,7 +109,40 @@ func TestShred(t *testing.T) {
 	if IsFile(fn) {
 		t.Errorf("Failed still exists after shreding: %s", fn)
 	}
+}
+
+func TestIsEmptyDir(t *testing.T) {
+	tempdir, err := ioutil.TempDir("", "gopass-")
+	if err != nil {
+		t.Fatalf("Failed to create tempdir: %s", err)
+	}
 	defer func() {
 		_ = os.RemoveAll(tempdir)
 	}()
+
+	fn := filepath.Join(tempdir, "foo", "bar", "baz", "zab")
+	if err := os.MkdirAll(fn, 0755); err != nil {
+		t.Fatalf("failed to create dir %s: %s", fn, err)
+	}
+
+	isEmpty, err := IsEmptyDir(tempdir)
+	if err != nil {
+		t.Fatalf("Error: %s", err)
+	}
+	if !isEmpty {
+		t.Errorf("Dir should be empty")
+	}
+
+	fn = filepath.Join(fn, ".config.yml")
+	if err := ioutil.WriteFile(fn, []byte("foo"), 0644); err != nil {
+		t.Fatalf("Failed to write file %s: %s", fn, err)
+	}
+
+	isEmpty, err = IsEmptyDir(tempdir)
+	if err != nil {
+		t.Fatalf("Error: %s", err)
+	}
+	if isEmpty {
+		t.Errorf("Dir should not be empty")
+	}
 }

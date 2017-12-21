@@ -15,6 +15,9 @@ import (
 
 // Notify displays a desktop notification with dbus
 func Notify(subj, msg string) error {
+	if nn := os.Getenv("GOPASS_NO_NOTIFY"); nn != "" {
+		return nil
+	}
 	conn, err := dbus.SessionBus()
 	if err != nil {
 		return err
