@@ -94,7 +94,7 @@ func (s *Action) generateCopyOrPrint(ctx context.Context, c *cli.Context, name, 
 		}
 		fmt.Printf(
 			"The generated password for %s%s is:\n%s\n", name, key,
-			color.YellowString(string(password)),
+			color.YellowString(password),
 		)
 		return nil
 	}
@@ -176,7 +176,7 @@ func (s *Action) generateSetPassword(ctx context.Context, name, key, password st
 		if err != nil {
 			return exitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
 		}
-		if err := sec.SetValue(key, string(password)); err != nil {
+		if err := sec.SetValue(key, password); err != nil {
 			return exitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
 		}
 		if err := s.Store.Set(sub.WithReason(ctx, "Generated password for YAML key"), name, sec); err != nil {
@@ -199,7 +199,7 @@ func (s *Action) generateSetPassword(ctx context.Context, name, key, password st
 	}
 
 	// generate a completely new secret
-	if err := s.Store.Set(sub.WithReason(ctx, "Generated Password"), name, secret.New(string(password), "")); err != nil {
+	if err := s.Store.Set(sub.WithReason(ctx, "Generated Password"), name, secret.New(password, "")); err != nil {
 		return exitError(ctx, ExitEncrypt, err, "failed to create '%s': %s", name, err)
 	}
 	return nil
