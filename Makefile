@@ -24,7 +24,7 @@ all: sysinfo crosscompile build install test codequality completion
 
 define ok
 	@tput setaf 6 2>/dev/null || echo -n ""
-	@echo " [OK]"
+	@echo "[OK]"
 	@tput sgr0 2>/dev/null || echo -n ""
 endef
 
@@ -112,16 +112,16 @@ $(ZSH_COMPLETION_OUTPUT): build
 
 codequality:
 	@echo ">> CODE QUALITY"
-	@echo -n "     FMT"
+	@echo -n "     FMT       "
 	@$(foreach gofile, $(GOFILES_NOVENDOR),\
-	        (gofmt -s -l -d -e $(gofile) | tee /dev/stderr) || exit 1;)
+			out=$$(gofmt -s -l -d -e $(gofile) | tee /dev/stderr); if [ -n "$$out" ]; then exit 1; fi;)
 	@$(call ok)
 
-	@echo -n "     VET"
+	@echo -n "     VET       "
 	@$(GO) vet ./...
 	@$(call ok)
 
-	@echo -n "     CYCLO"
+	@echo -n "     CYCLO     "
 	@which gocyclo > /dev/null; if [ $$? -ne 0 ]; then \
 		$(GO) get -u github.com/fzipp/gocyclo; \
 	fi
@@ -129,7 +129,7 @@ codequality:
 			gocyclo -over 15 $(gofile);)
 	@$(call ok)
 
-	@echo -n "     LINT"
+	@echo -n "     LINT      "
 	@which golint > /dev/null; if [ $$? -ne 0 ]; then \
 		$(GO) get -u github.com/golang/lint/golint; \
 	fi
@@ -137,14 +137,14 @@ codequality:
 			golint -set_exit_status $(pkg);)
 	@$(call ok)
 
-	@echo -n "     INEFF"
+	@echo -n "     INEFF     "
 	@which ineffassign > /dev/null; if [ $$? -ne 0 ]; then \
 		$(GO) get -u github.com/gordonklaus/ineffassign; \
 	fi
 	@ineffassign .
 	@$(call ok)
 
-	@echo -n "     SPELL"
+	@echo -n "     SPELL     "
 	@which misspell > /dev/null; if [ $$? -ne 0 ]; then \
 		$(GO) get -u github.com/client9/misspell/cmd/misspell; \
 	fi
@@ -152,16 +152,24 @@ codequality:
 			misspell --error $(gofile);)
 	@$(call ok)
 
-	@echo -n "     MEGACHECK"
+	@echo -n "     MEGACHECK "
 	@which megacheck > /dev/null; if [ $$? -ne 0  ]; then \
 		$(GO) get -u honnef.co/go/tools/cmd/megacheck; \
 	fi
 	@megacheck $(PKGS)
 	@$(call ok)
 
-	@echo -n "     ERRCHECK"
+	@echo -n "     ERRCHECK  "
 	@which errcheck > /dev/null; if [ $$? -ne 0  ]; then \
 		$(GO) get -u github.com/kisielk/errcheck; \
 	fi
 	@errcheck $(PKGS)
 	@$(call ok)
+
+	@echo -n "     UNCONVERT "
+	@which unconvert > /dev/null; if [ $$? -ne 0  ]; then \
+		$(GO) get -u github.com/mdempsky/unconvert; \
+	fi
+	@unconvert -v $(PKGS)
+	@$(call ok)
+
