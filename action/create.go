@@ -151,7 +151,7 @@ func (s *Action) createPrintOrCopy(ctx context.Context, c *cli.Context, name, pa
 	if c.Bool("print") {
 		fmt.Printf(
 			"The generated password for %s is:\n%s\n", name,
-			color.YellowString(string(password)),
+			color.YellowString(password),
 		)
 		return nil
 	}
@@ -435,7 +435,7 @@ func (s *Action) createGeneratePassword(ctx context.Context) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return string(pwgen.GeneratePassword(length, symbols)), nil
+	return pwgen.GeneratePassword(length, symbols), nil
 }
 
 func (s *Action) createGeneratePIN(ctx context.Context) (string, error) {
@@ -443,5 +443,5 @@ func (s *Action) createGeneratePIN(ctx context.Context) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return string(pwgen.GeneratePasswordCharset(length, "0123456789")), nil
+	return pwgen.GeneratePasswordCharset(length, "0123456789"), nil
 }

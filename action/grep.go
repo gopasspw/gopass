@@ -30,10 +30,10 @@ func (s *Action) Grep(ctx context.Context, c *cli.Context) error {
 			continue
 		}
 
-		if strings.Contains(string(sec.Password()), search) {
+		if strings.Contains(sec.Password(), search) {
 			fmt.Printf("%s:\n%s", color.BlueString(v), sec.Password())
 		}
-		if strings.Contains(string(sec.Body()), search) {
+		if strings.Contains(sec.Body(), search) {
 			fmt.Printf("%s:\n%s", color.BlueString(v), sec.Body())
 		}
 	}
