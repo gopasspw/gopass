@@ -27,7 +27,7 @@ go build
 ./gopass
 
 # run unit and meta tests
-make tests
+make test
 
 # run integration tests
 make test-integration
