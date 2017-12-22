@@ -57,7 +57,7 @@ func TestEditor(t *testing.T) {
 	}
 
 	want := "foobar"
-	out, err := act.editor(ctx, "/bin/touch", []byte(want))
+	out, err := act.editor(ctx, "/usr/bin/touch", []byte(want))
 	if err != nil {
 		t.Errorf("Error: %s", err)
 	}
