@@ -10,6 +10,7 @@ import (
 
 	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/urfave/cli"
+	"os/exec"
 )
 
 func TestEdit(t *testing.T) {
@@ -57,7 +58,12 @@ func TestEditor(t *testing.T) {
 	}
 
 	want := "foobar"
-	out, err := act.editor(ctx, "/bin/touch", []byte(want))
+	touch, err := exec.LookPath("touch")
+	if (err != nil){
+		t.Errorf("Couldnt find touch. Error: %s", err)
+	}
+	
+	out, err := act.editor(ctx, touch, []byte(want))
 	if err != nil {
 		t.Errorf("Error: %s", err)
 	}
