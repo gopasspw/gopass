@@ -88,8 +88,14 @@ func TestAction(t *testing.T) {
 		t.Fatalf("Error: %s", err)
 	}
 
-	if as := act.String(); as != "Store(Path: "+filepath.Join(td, "store")+", Mounts: )" {
-		t.Errorf("act.String(): %s", as)
+	if as := act.Name; as != "action.test" {
+		t.Errorf("act.Name: %s", as)
+	}
+	if as := act.Store.Path(); strings.Index(as, filepath.Join(td, "store")) == -1 {
+		t.Errorf("act.Store.Path(): %s", as)
+	}
+	if as := len(act.Store.Mounts()); as != 0 {
+		t.Errorf("len(act.Store.Mounts()) != 0, is: %d", as)
 	}
 	if !act.HasGPG() {
 		t.Errorf("no gpg")
