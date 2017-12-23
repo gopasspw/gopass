@@ -68,7 +68,7 @@ install: build
 
 fulltest: build
 	@echo ">> TEST, \"full-mode\": race detector on"
-	@echo "mode: count" > coverage-all.out
+	@echo "mode: atomic" > coverage-all.out
 	@$(foreach pkg, $(PKGS),\
 	    echo -n "     ";\
 		go test -run '(Test|Example)' $(BUILDFLAGS) $(TESTFLAGS) -race -coverprofile=coverage.out -covermode=atomic $(pkg) || exit 1;\
@@ -80,11 +80,11 @@ test: build
 	@echo "mode: count" > coverage-all.out
 	@$(foreach pkg, $(PKGS),\
 	    echo -n "     ";\
-		$(GO) test  -run '(Test|Example)' $(BUILDFLAGS) $(TESTFLAGS) -coverprofile=coverage.out $(pkg) || exit 1;\
+		$(GO) test  -run '(Test|Example)' $(BUILDFLAGS) $(TESTFLAGS) -coverprofile=coverage.out -covermode=count $(pkg) || exit 1;\
 		tail -n +2 coverage.out >> coverage-all.out;)
-	@$(GO) tool cover -html=coverage-all.out
+	@$(GO) tool cover -html=coverage-all.out -o coverage-all.html
 
-test-integration: clean build
+test-integration: build
 	cd tests && GOPASS_BINARY=$(PWD)/$(GOPASS_OUTPUT) GOPASS_TEST_DIR=$(PWD)/tests go test -v
 
 crosscompile:

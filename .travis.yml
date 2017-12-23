@@ -1,4 +1,6 @@
 language: go
+sudo: false
+dist: trusty
 
 go:
   - 1.9
@@ -6,3 +8,6 @@ go:
 script:
   - make all
   - make test-integration
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash) -f coverage-all.out
