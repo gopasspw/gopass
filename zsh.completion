@@ -1,0 +1,231 @@
+#compdef gopass 
+
+_gopass () {
+    local cmd
+    if (( CURRENT > 2)); then
+        cmd=${words[2]}
+        curcontext="${curcontext%:*:*}:gopass-$cmd"
+        (( CURRENT-- ))
+        shift words
+        case "${cmd}" in
+            audit)
+                local -a subcommands
+                subcommands=(
+                "hibp:Detect leaked passwords (ALPHA)"
+                )
+                _arguments : \
+                    "--jobs[the number of jobs to run concurrently when auditing]" \
+                    "--help[show help]"
+                _describe -t commands "gopass audit" subcommands
+                ;;
+            binary|bin)
+                local -a subcommands
+                subcommands=(
+                "cat:Print content of a secret to stdout or insert from stdin"
+                "sum:Compute the sha256 checksum"
+                "sha:Compute the sha256 checksum"
+                "sha256:Compute the sha256 checksum"
+                "mv:Move files from the password store"
+                "move:Move files from the password store"
+                "cp:Move files from the password store"
+                "copy:Move files from the password store"
+                )
+                _describe -t commands "gopass binary" subcommands
+                ;;
+            clone)
+                _arguments : \
+                    "--path[path to clone the repo to]:select path:_files"
+                ;;
+            completion)
+                local -a subcommands
+                subcommands=(
+                "bash:Source for auto completion in bash"
+                "zsh:Source for auto completion in zsh"
+                )
+                _describe -t commands "gopass completion" subcommands
+                ;;
+            config)
+                _arguments : \
+                    "--store[set the value to substore config]:select store:_files -/"
+                ;;
+            edit|set)
+                _arguments : \
+                    "--edit[Use this editor binary]:select store:_files -/"
+                ;;
+            find|search)
+                _arguments : \
+                    "--clip[Copy the password into the clipboard]"
+                ;;
+            fix|fsck)
+                _arguments : \
+                    "--check[only report]" \
+                    "--force[Auto-correct any errors, do not ask]"
+                ;;
+            generate)
+                _arguments : \
+                    "--print[Print the generate password to the terminal]" \
+                    "--force[Force to overwrite existing password]" \
+                    "--edit[Open secret for editing after generating a password]" \
+                    "--symbols[Use symbols in the password]" \
+                    "--xkcd[Use multiple random english words combined to a password]" \
+                    "--xkcdsep[Word separator for generated xkcd style password. Implies --xkcd]" \
+                    "--xkcdlang[Language to generate password from, current de (german) and en (english, default) are supported]"
+                ;;
+            otp|totp|htop)
+                _arguments : \
+                    "--clip[Copy the time based token into the clipboard]" \
+                    "--qr[Write QR code to file]:file:_file"
+                ;;
+            git)
+                local -a subcommands
+                subcommands=(
+                "init:Initialize git repository"
+                "status:Show status of the repo"
+                "add:Add changes to the index"
+                "commit:Commit changes to the repo"
+                "push:Push changes to remote repo"
+                "pull:Pull changes from remote repo"
+                "log:View changelog"
+                )
+                _describe -t commands "gopass git" subcommands
+                ;;
+            init)
+                _arguments : \
+                    "--path[set the sub store path to operate on]:select path:_files" \
+                    "--store[set the name of the sub store]:select store:_files -/" \
+                    "--nogit[do not init git repo]" \
+                    "*:keyid:_gopass_complete_keys"
+                ;;
+            insert)
+                _arguments : \
+                    "--echo[Display secret while typing]" \
+                    "--multiline[Insert using \$EDITOR]" \
+                    "--force[Overwrite any existing secret and do not prompt to confirm recipients]"
+                ;;
+            list|ls)
+                _arguments : \
+                    "--limit[max tree depth (default: 0)]"
+                "--flat[Print flat list]"
+                "--strip-prefix[Strip prefix from filtered entries]"
+                _gopass_complete_passwords
+                ;;
+            mounts)
+                local -a subcommands
+                subcommands=(
+                "add:Mount an password store"
+                "mount:Mount an password store"
+                "remove:Umount an mounted password store"
+                "rm:Umount an mounted password store"
+                "umount:Umount an mounted password store"
+                )
+                _arguments : \
+                    "--help[show help]"
+                _describe -t commands "gopass mounts" subcommands
+                ;;
+            recipients)
+                local -a subcommands
+                subcommands=(
+                "add:Add any number of Recipients to any store"
+                "autorize:Add any number of Recipients to any store"
+                "remove:remove any number of Recpieints from any store"
+                "rm:remove any number of Recpieints from any store"
+                "deauthorize:remove any number of Recpieints from any store"
+                )
+                _arguments : \
+                    "--help[show help]"
+                _describe -t commands "gopass recipients" subcommands
+                ;;
+            templates)
+                local -a subcommands
+                subcommands=(
+                "show:Show a secret template"
+                "cat:Show a secret template"
+                "edit:Edit secret templates"
+                "create:Edit secret templates"
+                "new:Edit secret templates"
+                "remove:Remove secret templates"
+                "rm:Remove secret templates"
+                )
+                _arguments : \
+                    "--help[show help]"
+                _describe -t commands "gopass templates" subcommands
+                ;;
+            update)
+                _arguments : \
+                    "--pre[Update to prereleases]"
+                ;;
+            cp|copy|move|mv|delete|remove|rm)
+                _arguments : \
+                    "--force[force]"
+                _gopass_complete_passwords
+                ;;
+            show|*)
+                _gopass_complete_passwords
+                ;;
+        esac
+    else
+        local -a subcommands
+        subcommands=(
+        "audit:Scan for weak passwords"
+        "binary:Assist with Binary/Base64 content"
+        "bin:Assist with Binary/Base64 content"
+        "clone:Clone a store from git"
+        "completion:Bash and ZSH completion"
+        "config:Edit configuration"
+        "copy:Copy secrets from one location to another"
+        "cp:Copy secrets from one location to another"
+        "create:Easy creation of new secrets"
+        "new:Easy creation of new secrets"
+        "delete:Remove secrets"
+        "remove:Remove secrets"
+        "rm:Remove secrets"
+        "set:Edit new or existing secret"
+        "edit:Edit new or existing secret"
+        "find:Search for secrets"
+        "search:Search for secrets"
+        "fix:Upgrade secrets"
+        "fsck:Check inconsistencies (ALPHA)"
+        "generate:Generate a new password"
+        "otp:Generate time or hmac based tokens"
+        "totp:Generate time or hmac based tokens"
+        "hotp:Generate time or hmac based tokens"
+        "git:Run any git command inside a password store"
+        "grep:Search for secrets files containing search-string when decrypted."
+        "init:Initialize new password store."
+        "insert:Insert a new secret"
+        "list:List existing secrets"
+        "ls:List existing secrets"
+        "move:Move secrets from one location to another"
+        "mv:Move secrets from one location to another"
+        "mounts:Edit mounted stores"
+        "recipients:Edit recipient permissions"
+        "show:Display a secret"
+        "sync:Sync all local stores with their remotes"
+        "templates:Edit templates"
+        "update:Check for updates"
+        "version:Display version"
+        "help:Shows a list of commands or help for one command"
+        "h:Shows a list of commands or help for one command"
+        )
+        _describe -t command 'gopass' subcommands
+        _arguments : \
+            "--yes[Assume yes on all yes/no questions or use the default on all others]" \
+            "--version[print the version]" \
+            "--help[show help]"
+        _gopass_complete_passwords
+    fi
+}
+
+
+_gopass_complete_keys () {
+    local IFS=$'\n'
+    _values 'gpg keys' $(gpg2 --list-secret-keys --with-colons 2> /dev/null | cut -d : -f 10 | sort -u | sed '/^$/d')
+}
+
+_gopass_complete_passwords () {
+    _arguments : \
+        "--clip[Copy the first line of the secret into the clipboard]"
+    _values 'passwords' $(gopass ls --flat)
+}
+
+_gopass
