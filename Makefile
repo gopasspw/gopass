@@ -5,7 +5,6 @@ GOPASS_VERSION            ?= $(shell cat VERSION)
 GOPASS_OUTPUT             ?= gopass
 GOPASS_REVISION           := $(shell cat COMMIT 2>/dev/null || git rev-parse --short=8 HEAD)
 BASH_COMPLETION_OUTPUT    := bash.completion
-ZSH_COMPLETION_OUTPUT     := zsh.completion
 # Support reproducible builds by embedding date according to SOURCE_DATE_EPOCH if present
 DATE                      := $(shell date -u -d "@$(SOURCE_DATE_EPOCH)" '+%FT%T%z' 2>/dev/null || date -u '+%FT%T%z')
 BUILDFLAGS                := -ldflags="-s -w -X main.version=$(GOPASS_VERSION) -X main.commit=$(GOPASS_REVISION) -X main.date=$(DATE) -extldflags '-static'" -gcflags="-trimpath=$(GOPATH)" -asmflags="-trimpath=$(GOPATH)"
@@ -103,11 +102,6 @@ completion: $(BASH_COMPLETION_OUTPUT) $(ZSH_COMPLETION_OUTPUT)
 $(BASH_COMPLETION_OUTPUT): build
 	@echo -n ">> BASH COMPLETION, output = $(BASH_COMPLETION_OUTPUT)"
 	@gopass completion bash > $(BASH_COMPLETION_OUTPUT)
-	@$(call ok)
-
-$(ZSH_COMPLETION_OUTPUT): build
-	@echo -n ">> ZSH COMPLETION, output = $(ZSH_COMPLETION_OUTPUT)"
-	@gopass completion bash > $(ZSH_COMPLETION_OUTPUT)
 	@$(call ok)
 
 codequality:

@@ -44,3 +44,4 @@ dist/
 
 *.completion
 !fish.completion
+!zsh.completion
