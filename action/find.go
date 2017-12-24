@@ -3,11 +3,12 @@ package action
 import (
 	"context"
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/justwatchcom/gopass/utils/ctxutil"
+	"github.com/justwatchcom/gopass/utils/cui"
 	"github.com/justwatchcom/gopass/utils/out"
-	"github.com/justwatchcom/gopass/utils/termwiz"
 	"github.com/schollz/closestmatch"
 	"github.com/urfave/cli"
 )
@@ -59,7 +60,9 @@ func (s *Action) Find(ctx context.Context, c *cli.Context) error {
 }
 
 func (s *Action) findSelection(ctx context.Context, c *cli.Context, choices []string, needle string) error {
-	act, sel := termwiz.GetSelection(ctx, "Found secrets -", "", choices)
+	sort.Strings(choices)
+	act, sel := cui.GetSelection(ctx, "Found secrets - Please select an entry", "<↑/↓> to change the selection, <→> to show, <←> to copy, <s> to sync, <ESC> to quit", choices)
+	out.Debug(ctx, "Action: %s - Selection: %d", act, sel)
 	switch act {
 	case "default":
 		// display or copy selected entry
