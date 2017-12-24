@@ -2,10 +2,16 @@
 
 package notify
 
-import "os/exec"
+import (
+	"os"
+	"os/exec"
+)
 
 // Notify displays a desktop notification through msg
 func Notify(subj, msg string) error {
+	if nn := os.Getenv("GOPASS_NO_NOTIFY"); nn != "" {
+		return nil
+	}
 	winmsg, err := exec.LookPath("msg")
 	if err != nil {
 		return err

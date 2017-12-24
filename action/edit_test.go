@@ -6,6 +6,7 @@ import (
 	"flag"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"testing"
 
 	"github.com/justwatchcom/gopass/utils/out"
@@ -56,8 +57,13 @@ func TestEditor(t *testing.T) {
 		t.Fatalf("Error: %s", err)
 	}
 
+	touch, err := exec.LookPath("touch")
+	if err != nil {
+		t.Errorf("Error: %s", err)
+	}
+
 	want := "foobar"
-	out, err := act.editor(ctx, "/bin/touch", []byte(want))
+	out, err := act.editor(ctx, touch, []byte(want))
 	if err != nil {
 		t.Errorf("Error: %s", err)
 	}
