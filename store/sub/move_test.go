@@ -62,6 +62,7 @@ func TestCopy(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to create tempdir: %s", err)
 		}
+		t.Logf("Using tempdir: %s", tempdir)
 
 		s := &Store{
 			alias: "",

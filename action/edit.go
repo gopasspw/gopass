@@ -108,7 +108,8 @@ func (s *Action) editor(ctx context.Context, editor string, content []byte) ([]b
 	cmd.Stderr = os.Stderr
 
 	if err := cmd.Run(); err != nil {
-		return []byte{}, errors.Errorf("failed to run %s with %s file", editor, tmpfile.Name())
+		out.Debug(ctx, "editor - cmd: %s %+v - error: %+v", cmd.Path, cmd.Args, err)
+		return []byte{}, errors.Errorf("failed to run %s with %s file: %s", editor, tmpfile.Name(), err)
 	}
 
 	nContent, err := ioutil.ReadFile(tmpfile.Name())

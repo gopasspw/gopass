@@ -88,11 +88,19 @@ func TestAction(t *testing.T) {
 		t.Fatalf("Error: %s", err)
 	}
 
-	if as := act.String(); as != "Store(Path: "+filepath.Join(td, "store")+", Mounts: )" {
-		t.Errorf("act.String(): %s", as)
+	if an := act.Name; an != "action.test" {
+		t.Errorf("Wrong binary name: '%s' != '%s'", an, "action.test")
+	}
+
+	want := filepath.Join(td, "store")
+	if as := act.String(); !strings.Contains(as, want) {
+		t.Errorf("act.String(): '%s' != '%s'", want, as)
 	}
 	if !act.HasGPG() {
 		t.Errorf("no gpg")
+	}
+	if lm := len(act.Store.Mounts()); lm != 0 {
+		t.Errorf("Too many mounts: %d", lm)
 	}
 }
 

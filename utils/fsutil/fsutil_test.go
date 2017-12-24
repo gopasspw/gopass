@@ -10,10 +10,18 @@ import (
 )
 
 func TestCleanPath(t *testing.T) {
+	tempdir, err := ioutil.TempDir("", "gopass-")
+	if err != nil {
+		t.Fatalf("Failed to create tempdir: %s", err)
+	}
+	defer func() {
+		_ = os.RemoveAll(tempdir)
+	}()
 	m := map[string]string{
 		".": "",
 		"/home/user/../bob/.password-store": "/home/bob/.password-store",
 		"/home/user//.password-store":       "/home/user/.password-store",
+		tempdir + "/foo.gpg":                tempdir + "/foo.gpg",
 	}
 	usr, err := user.Current()
 	if err == nil {
