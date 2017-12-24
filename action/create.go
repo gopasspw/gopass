@@ -11,10 +11,10 @@ import (
 	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/store/secret"
 	"github.com/justwatchcom/gopass/store/sub"
+	"github.com/justwatchcom/gopass/utils/cui"
 	"github.com/justwatchcom/gopass/utils/fsutil"
 	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/justwatchcom/gopass/utils/pwgen"
-	"github.com/justwatchcom/gopass/utils/termwiz"
 	"github.com/martinhoefling/goxkcdpwgen/xkcdpwgen"
 	"github.com/urfave/cli"
 )
@@ -24,11 +24,11 @@ func (s *Action) Create(ctx context.Context, c *cli.Context) error {
 	types := []string{
 		"Website Login",
 		"PIN Code (numerical)",
+		"Generic",
 		"AWS Secret Key",
 		"Google Service Account",
-		"Generic",
 	}
-	act, sel := termwiz.GetSelection(ctx, "Type of secret to create", "<↑/↓> to change the selection, <→> to select, <ESC> to quit", types)
+	act, sel := cui.GetSelection(ctx, "Please select the type of secret you would like to create", "<↑/↓> to change the selection, <→> to select, <ESC> to quit", types)
 	switch act {
 	case "default":
 		fallthrough

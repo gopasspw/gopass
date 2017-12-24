@@ -10,8 +10,8 @@ import (
 	"strings"
 
 	"github.com/justwatchcom/gopass/utils/ctxutil"
+	"github.com/justwatchcom/gopass/utils/cui"
 	"github.com/justwatchcom/gopass/utils/out"
-	"github.com/justwatchcom/gopass/utils/termwiz"
 	"github.com/pkg/errors"
 )
 
@@ -309,7 +309,7 @@ func (s *Action) askForStore(ctx context.Context) string {
 
 	stores := []string{"<root>"}
 	stores = append(stores, mps...)
-	act, sel := termwiz.GetSelection(ctx, "Store for secret", "<↑/↓> to change the selection, <→> to select, <ESC> to quit", stores)
+	act, sel := cui.GetSelection(ctx, "Please select the store you would like to use", "<↑/↓> to change the selection, <→> to select, <ESC> to quit", stores)
 	switch act {
 	case "default":
 		fallthrough
