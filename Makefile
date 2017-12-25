@@ -5,6 +5,7 @@ GOPASS_VERSION            ?= $(shell cat VERSION)
 GOPASS_OUTPUT             ?= gopass
 GOPASS_REVISION           := $(shell cat COMMIT 2>/dev/null || git rev-parse --short=8 HEAD)
 BASH_COMPLETION_OUTPUT    := bash.completion
+FISH_COMPLETION_OUTPUT    := fish.completion
 ZSH_COMPLETION_OUTPUT     := zsh.completion
 # Support reproducible builds by embedding date according to SOURCE_DATE_EPOCH if present
 DATE                      := $(shell date -u -d "@$(SOURCE_DATE_EPOCH)" '+%FT%T%z' 2>/dev/null || date -u '+%FT%T%z')
@@ -24,7 +25,7 @@ all: sysinfo crosscompile build install test codequality completion
 
 define ok
 	@tput setaf 6 2>/dev/null || echo -n ""
-	@echo "[OK]"
+	@echo " [OK]"
 	@tput sgr0 2>/dev/null || echo -n ""
 endef
 
@@ -98,16 +99,21 @@ crosscompile:
 	@GOOS=windows GOARCH=amd64 $(GO) build -o $(GOPASS_OUTPUT)-windows-amd64
 	@$(call ok)
 
-completion: $(BASH_COMPLETION_OUTPUT) $(ZSH_COMPLETION_OUTPUT)
+completion: $(BASH_COMPLETION_OUTPUT) $(FISH_COMPLETION_OUTPUT) $(ZSH_COMPLETION_OUTPUT)
 
 $(BASH_COMPLETION_OUTPUT): build
 	@echo -n ">> BASH COMPLETION, output = $(BASH_COMPLETION_OUTPUT)"
-	@gopass completion bash > $(BASH_COMPLETION_OUTPUT)
+	@./gopass completion bash > $(BASH_COMPLETION_OUTPUT)
 	@$(call ok)
 
+$(FISH_COMPLETION_OUTPUT): build
+	@echo -n ">> FISH COMPLETION, output = $(FISH_COMPLETION_OUTPUT)"
+	@./gopass completion fish > $(FISH_COMPLETION_OUTPUT)
+	@$(call ok)
+	
 $(ZSH_COMPLETION_OUTPUT): build
 	@echo -n ">> ZSH COMPLETION, output = $(ZSH_COMPLETION_OUTPUT)"
-	@gopass completion bash > $(ZSH_COMPLETION_OUTPUT)
+	@./gopass completion zsh > $(ZSH_COMPLETION_OUTPUT)
 	@$(call ok)
 
 codequality:
@@ -134,7 +140,7 @@ codequality:
 		$(GO) get -u github.com/golang/lint/golint; \
 	fi
 	@$(foreach pkg, $(PKGS),\
-			golint -set_exit_status $(pkg);)
+			golint -set_exit_status $(pkg) || exit 1;)
 	@$(call ok)
 
 	@echo -n "     INEFF     "
@@ -149,7 +155,7 @@ codequality:
 		$(GO) get -u github.com/client9/misspell/cmd/misspell; \
 	fi
 	@$(foreach gofile, $(GOFILES_NOVENDOR),\
-			misspell --error $(gofile);)
+			misspell --error $(gofile) || exit 1;)
 	@$(call ok)
 
 	@echo -n "     MEGACHECK "

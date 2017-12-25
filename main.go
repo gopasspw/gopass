@@ -295,9 +295,17 @@ func main() {
 				Usage:  "Source for auto completion in bash",
 				Action: action.CompletionBash,
 			}, {
-				Name:   "zsh",
-				Usage:  "Source for auto completion in zsh",
-				Action: action.CompletionZSH,
+				Name:  "zsh",
+				Usage: "Source for auto completion in zsh",
+				Action: func(c *cli.Context) error {
+					return action.CompletionZSH(c, app)
+				},
+			}, {
+				Name:  "fish",
+				Usage: "Source for auto completion in fish",
+				Action: func(c *cli.Context) error {
+					return action.CompletionFish(c, app)
+				},
 			}},
 		},
 		{
