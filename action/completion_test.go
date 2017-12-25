@@ -6,6 +6,8 @@ import (
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/urfave/cli"
 )
 
 func TestBashEscape(t *testing.T) {
@@ -30,6 +32,8 @@ func TestComplete(t *testing.T) {
 		t.Fatalf("Error: %s", err)
 	}
 
+	app := cli.NewApp()
+
 	out := capture(t, func() error {
 		act.Complete(nil)
 		return nil
@@ -38,6 +42,7 @@ func TestComplete(t *testing.T) {
 		t.Errorf("should return 'foo' not '%s'", out)
 	}
 
+	// bash
 	out = capture(t, func() error {
 		return act.CompletionBash(nil)
 	})
@@ -45,8 +50,17 @@ func TestComplete(t *testing.T) {
 		t.Errorf("should contain name of test")
 	}
 
+	// fish
 	out = capture(t, func() error {
-		return act.CompletionZSH(nil)
+		return act.CompletionFish(nil, app)
+	})
+	if !strings.Contains(out, "action.test") {
+		t.Errorf("should contain name of test")
+	}
+
+	// zsh
+	out = capture(t, func() error {
+		return act.CompletionZSH(nil, app)
 	})
 	if !strings.Contains(out, "action.test") {
 		t.Errorf("should contain name of test")

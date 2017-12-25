@@ -43,4 +43,3 @@ releases/
 dist/
 
 *.completion
-!fish.completion
