@@ -51,6 +51,7 @@ func newMock(ctx context.Context, dir string) (*Action, error) {
 }
 
 func capture(t *testing.T, fn func() error) string {
+	t.Helper()
 	old := os.Stdout
 	r, w, _ := os.Pipe()
 	os.Stdout = w
@@ -102,6 +103,33 @@ func TestAction(t *testing.T) {
 	if lm := len(act.Store.Mounts()); lm != 0 {
 		t.Errorf("Too many mounts: %d", lm)
 	}
+}
+
+func TestNew(t *testing.T) {
+	td, err := ioutil.TempDir("", "gopass-")
+	if err != nil {
+		t.Fatalf("Error: %s", err)
+	}
+	defer func() {
+		_ = os.RemoveAll(td)
+	}()
+
+	ctx := context.Background()
+
+	cfg := config.New()
+	sv := semver.Version{}
+
+	_, err = New(ctx, cfg, sv)
+	if err == nil {
+		t.Errorf("Should fail w/o path")
+	}
+
+	cfg.Root.Path = filepath.Join(td, "store")
+	act, err := New(ctx, cfg, sv)
+	if err != nil {
+		t.Fatalf("Error: %s", err)
+	}
+	t.Logf("Action: %+v", act)
 }
 
 func TestUmask(t *testing.T) {

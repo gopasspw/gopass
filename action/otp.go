@@ -81,7 +81,7 @@ func (s *Action) OTP(ctx context.Context, c *cli.Context) error {
 	color.Yellow("%s lasts %ds \t|%s%s|", token, secondsLeft, strings.Repeat("-", otpPeriod-secondsLeft), strings.Repeat("=", secondsLeft))
 
 	if c.Bool("clip") {
-		if err := s.copyToClipboard(ctx, fmt.Sprintf("token for %s", name), []byte(token)); err != nil {
+		if err := copyToClipboard(ctx, fmt.Sprintf("token for %s", name), []byte(token)); err != nil {
 			return exitError(ctx, ExitIO, err, "failed to copy to clipboard: %s", err)
 		}
 		return nil

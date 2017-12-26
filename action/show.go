@@ -73,13 +73,13 @@ func (s *Action) showHandleOutput(ctx context.Context, name, key string, sec *se
 			return s.showHandleYAMLError(ctx, name, key, err)
 		}
 		if IsClip(ctx) {
-			return s.copyToClipboard(ctx, name, []byte(val))
+			return copyToClipboard(ctx, name, []byte(val))
 		}
 		content = val
 	case IsPrintQR(ctx):
 		return s.showPrintQR(ctx, name, sec.Password())
 	case IsClip(ctx):
-		return s.copyToClipboard(ctx, name, []byte(sec.Password()))
+		return copyToClipboard(ctx, name, []byte(sec.Password()))
 	default:
 		switch {
 		case IsPasswordOnly(ctx):
