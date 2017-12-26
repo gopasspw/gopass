@@ -104,3 +104,4 @@ gopass was initially started by Matthias Loibl and Dominik Schulz. The majority 
 * [Configuration](https://github.com/justwatchcom/gopass/blob/master/docs/config.md)
 * [FAQ](https://github.com/justwatchcom/gopass/blob/master/docs/faq.md)
 * [JSON API](https://github.com/justwatchcom/gopass/blob/master/docs/jsonapi.md)
+* [Gopass as Summon provider](https://github.com/justwatchcom/gopass/blob/master/docs/summon-provider.md)
