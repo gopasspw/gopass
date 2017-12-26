@@ -27,20 +27,43 @@ func TestCopy(t *testing.T) {
 		t.Fatalf("Error: %s", err)
 	}
 
-	app := cli.NewApp()
-	fs := flag.NewFlagSet("default", flag.ContinueOnError)
-	if err := fs.Parse([]string{"foo", "bar"}); err != nil {
-		t.Fatalf("Error: %s", err)
-	}
-	c := cli.NewContext(app, fs, nil)
-
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
 	defer func() {
 		out.Stdout = os.Stdout
 	}()
 
+	app := cli.NewApp()
+	// copy foo bar
+	fs := flag.NewFlagSet("default", flag.ContinueOnError)
+	if err := fs.Parse([]string{"foo", "bar"}); err != nil {
+		t.Fatalf("Error: %s", err)
+	}
+	c := cli.NewContext(app, fs, nil)
+
 	if err := act.Copy(ctx, c); err != nil {
 		t.Errorf("Error: %s", err)
 	}
+	buf.Reset()
+
+	// copy not-found still-not-there
+	fs = flag.NewFlagSet("default", flag.ContinueOnError)
+	if err := fs.Parse([]string{"not-found", "still-not-there"}); err != nil {
+		t.Fatalf("Error: %s", err)
+	}
+	c = cli.NewContext(app, fs, nil)
+
+	if err := act.Copy(ctx, c); err == nil {
+		t.Errorf("Should fail")
+	}
+	buf.Reset()
+
+	// copy
+	fs = flag.NewFlagSet("default", flag.ContinueOnError)
+	c = cli.NewContext(app, fs, nil)
+
+	if err := act.Copy(ctx, c); err == nil {
+		t.Errorf("Should fail")
+	}
+	buf.Reset()
 }
