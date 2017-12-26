@@ -6,6 +6,7 @@ import (
 	"flag"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/justwatchcom/gopass/utils/ctxutil"
@@ -39,7 +40,13 @@ func TestClone(t *testing.T) {
 		out.Stdout = os.Stdout
 	}()
 
+	// no args
 	if err := act.Clone(ctx, c); err == nil {
+		t.Errorf("Should fail")
+	}
+
+	// clone to initialized store
+	if err := act.clone(ctx, "/tmp/non-existing-repo.git", "", filepath.Join(td, "store")); err == nil {
 		t.Errorf("Should fail")
 	}
 }

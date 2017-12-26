@@ -10,6 +10,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/justwatchcom/gopass/config"
 	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/urfave/cli"
 )
@@ -71,10 +72,14 @@ func TestConfig(t *testing.T) {
 	}
 	buf.Reset()
 
+	act.cfg.Mounts["foo"] = &config.StoreConfig{}
+
 	// action.printConfigValues
 	if err := act.printConfigValues(ctx, "", "nopager"); err != nil {
 		t.Errorf("Error: %s", err)
 	}
+	want = `nopager: true
+foo/nopager: false`
 	sv = strings.TrimSpace(buf.String())
 	if sv != want {
 		t.Errorf("Wrong config result: '%s' != '%s'", sv, want)
