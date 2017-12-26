@@ -11,6 +11,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/store/secret"
 	"github.com/justwatchcom/gopass/store/sub"
+	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/fsutil"
 	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/justwatchcom/gopass/utils/pwgen"
@@ -77,6 +78,10 @@ func (s *Action) Edit(ctx context.Context, c *cli.Context) error {
 }
 
 func (s *Action) editor(ctx context.Context, editor string, content []byte) ([]byte, error) {
+	if !ctxutil.IsTerminal(ctx) {
+		return nil, errors.New("need terminal")
+	}
+
 	tmpfile, err := fsutil.TempFile(ctx, "gopass-edit")
 	if err != nil {
 		return []byte{}, errors.Errorf("failed to create tmpfile %s: %s", editor, err)

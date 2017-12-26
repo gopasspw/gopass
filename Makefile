@@ -132,7 +132,7 @@ codequality:
 		$(GO) get -u github.com/fzipp/gocyclo; \
 	fi
 	@$(foreach gofile, $(GOFILES_NOVENDOR),\
-			gocyclo -over 15 $(gofile);)
+			gocyclo -over 15 $(gofile) || exit 1;)
 	@$(call ok)
 
 	@echo -n "     LINT      "

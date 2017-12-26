@@ -19,6 +19,10 @@ func tbprint(x, y int, fg, bg termbox.Attribute, msg string) {
 // GetSelection show a navigateable multiple-choice list to the user
 // and returns the selected entry along with the action
 func GetSelection(ctx context.Context, prompt, usage string, choices []string) (string, int) {
+	if ctxutil.IsAlwaysYes(ctx) || !ctxutil.IsInteractive(ctx) {
+		return "impossible", 0
+	}
+
 	if prompt != "" {
 		prompt += " "
 	}
@@ -54,20 +58,24 @@ func GetSelection(ctx context.Context, prompt, usage string, choices []string) (
 			}
 			tbprint(0, 1+i-offset, coldef, coldef, fmt.Sprintf("%s %s", mark, c))
 		}
-		usageLine := usage
-		if usageLine == "" {
-			usageLine = "<↑/↓> to change the selection, <→> to show, <←> to copy, <s> to sync, <ESC> to quit"
-		}
-		if ctxutil.IsDebug(ctx) {
-			usageLine += " - DEBUG: " + fmt.Sprintf("Offset: %d - Cur: %d - Choices: %d", offset, cur, len(choices))
-		}
-		tbprint(0, h-1, coldef, coldef, usageLine)
+		tbprint(0, h-1, coldef, coldef, formatUsageLine(ctx, usage, offset, cur, choices))
 		_ = termbox.Flush()
 		var act string
 		if act, cur = tbpoll(cur, len(choices)); act != "" {
 			return act, cur
 		}
 	}
+}
+
+func formatUsageLine(ctx context.Context, usage string, offset, cur int, choices []string) string {
+	usageLine := usage
+	if usageLine == "" {
+		usageLine = "<↑/↓> to change the selection, <→> to show, <←> to copy, <s> to sync, <ESC> to quit"
+	}
+	if ctxutil.IsDebug(ctx) {
+		usageLine += " - DEBUG: " + fmt.Sprintf("Offset: %d - Cur: %d - Choices: %d", offset, cur, len(choices))
+	}
+	return usageLine
 }
 
 func tbpoll(cur, max int) (string, int) {

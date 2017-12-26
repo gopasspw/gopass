@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/blang/semver"
+	"github.com/fatih/color"
 	"github.com/google/go-cmp/cmp"
 	gpgmock "github.com/justwatchcom/gopass/backend/gpg/mock"
 	"github.com/justwatchcom/gopass/config"
@@ -53,6 +54,10 @@ func newMock(ctx context.Context, dir string) (*Action, error) {
 func capture(t *testing.T, fn func() error) string {
 	t.Helper()
 	old := os.Stdout
+
+	oldcol := color.NoColor
+	color.NoColor = true
+
 	r, w, _ := os.Pipe()
 	os.Stdout = w
 
@@ -67,6 +72,7 @@ func capture(t *testing.T, fn func() error) string {
 	// back to normal
 	_ = w.Close()
 	os.Stdout = old
+	color.NoColor = oldcol
 	if err != nil {
 		t.Errorf("Error: %s", err)
 	}

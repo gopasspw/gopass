@@ -9,6 +9,7 @@ import (
 	"os/exec"
 	"testing"
 
+	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/urfave/cli"
 )
@@ -23,13 +24,12 @@ func TestEdit(t *testing.T) {
 	}()
 
 	ctx := context.Background()
+	ctx = ctxutil.WithAlwaysYes(ctx, true)
+	ctx = ctxutil.WithTerminal(ctx, false)
 	act, err := newMock(ctx, td)
 	if err != nil {
 		t.Fatalf("Error: %s", err)
 	}
-
-	app := cli.NewApp()
-	c := cli.NewContext(app, flag.NewFlagSet("default", flag.ContinueOnError), nil)
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
@@ -37,9 +37,25 @@ func TestEdit(t *testing.T) {
 		out.Stdout = os.Stdout
 	}()
 
+	app := cli.NewApp()
+
+	// edit
+	c := cli.NewContext(app, flag.NewFlagSet("default", flag.ContinueOnError), nil)
 	if err := act.Edit(ctx, c); err == nil || err.Error() != "Usage: action.test edit secret" {
 		t.Errorf("Should fail")
 	}
+
+	// edit foo
+	fs := flag.NewFlagSet("default", flag.ContinueOnError)
+	if err := fs.Parse([]string{"foo"}); err != nil {
+		t.Fatalf("Error: %s", err)
+	}
+	c = cli.NewContext(app, fs, nil)
+
+	if err := act.Edit(ctx, c); err == nil {
+		t.Errorf("Should fail")
+	}
+	buf.Reset()
 }
 
 func TestEditor(t *testing.T) {
