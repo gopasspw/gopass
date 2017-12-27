@@ -9,6 +9,19 @@ import (
 	"testing"
 )
 
+func TestCleanFilename(t *testing.T) {
+	m := map[string]string{
+		`"§$%&aÜÄ*&b%§"'Ä"c%$"'"`: "a____b______c",
+	}
+	for k, v := range m {
+		out := CleanFilename(k)
+		t.Logf("%s -> %s / %s", k, v, out)
+		if out != v {
+			t.Errorf("'%s' != '%s'", out, v)
+		}
+	}
+}
+
 func TestCleanPath(t *testing.T) {
 	tempdir, err := ioutil.TempDir("", "gopass-")
 	if err != nil {
