@@ -6,17 +6,6 @@ type File struct {
 	Metadata map[string]string
 }
 
-// IsBinary returns true if this is a binary file
-func (f File) IsBinary() bool {
-	if f.Metadata == nil {
-		return false
-	}
-	if f.Metadata["Content-Type"] == "application/octet-stream" {
-		return true
-	}
-	return false
-}
-
 // String implement fmt.Stringer
 func (f File) String() string {
 	return f.Name

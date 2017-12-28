@@ -1,6 +1,9 @@
 package pwgen
 
-import "testing"
+import (
+	"os"
+	"testing"
+)
 
 func TestPwgen(t *testing.T) {
 	for _, sym := range []bool{true, false} {
@@ -10,5 +13,13 @@ func TestPwgen(t *testing.T) {
 				t.Errorf("Length mismatch")
 			}
 		}
+	}
+}
+
+func TestPwgenCharset(t *testing.T) {
+	_ = os.Setenv("GOPASS_CHARACTER_SET", "a")
+	pw := GeneratePassword(4, true)
+	if pw != "aaaa" {
+		t.Errorf("Wrong password: %s", pw)
 	}
 }
