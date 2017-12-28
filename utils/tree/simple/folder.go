@@ -23,7 +23,7 @@ type Folder struct {
 // Len returns the number of entries in this folder and all subfolder including
 // this folder itself
 func (f *Folder) Len() int {
-	l := 1 + len(f.Files)
+	l := len(f.Files)
 	for _, f := range f.Folders {
 		l += f.Len()
 	}

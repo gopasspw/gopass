@@ -14,3 +14,10 @@ func TestRandom(t *testing.T) {
 		t.Errorf("too few words")
 	}
 }
+
+func TestRandomLengthDelim(t *testing.T) {
+	_, err := RandomLengthDelim(10, " ", "cn_ZH")
+	if err == nil {
+		t.Errorf("Should fail")
+	}
+}
