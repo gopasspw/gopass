@@ -39,6 +39,7 @@ func TestRecipients(t *testing.T) {
 		out.Stdout = os.Stdout
 	}()
 
+	// RecipientsPrint
 	out := capture(t, func() error {
 		return act.RecipientsPrint(ctx, c)
 	})
@@ -47,4 +48,28 @@ func TestRecipients(t *testing.T) {
 	if out != want {
 		t.Errorf("'%s' != '%s'", want, out)
 	}
+	buf.Reset()
+
+	// RecipientsComplete
+	out = capture(t, func() error {
+		act.RecipientsComplete(ctx, c)
+		return nil
+	})
+	want = "0xDEADBEEF (missing public key)"
+	if out != want {
+		t.Errorf("'%s' != '%s'", want, out)
+	}
+	buf.Reset()
+
+	// RecipientsAdd
+	if err := act.RecipientsAdd(ctx, c); err == nil {
+		t.Errorf("Should fail")
+	}
+	buf.Reset()
+
+	// RecipientsRemove
+	if err := act.RecipientsRemove(ctx, c); err == nil {
+		t.Errorf("Should fail")
+	}
+	buf.Reset()
 }

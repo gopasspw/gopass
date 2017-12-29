@@ -14,8 +14,6 @@ import (
 )
 
 func TestUnclip(t *testing.T) {
-	t.Skip("flaky")
-
 	td, err := ioutil.TempDir("", "gopass-")
 	if err != nil {
 		t.Fatalf("Error: %s", err)
@@ -41,7 +39,7 @@ func TestUnclip(t *testing.T) {
 		out.Stdout = os.Stdout
 	}()
 
-	if err := act.Unclip(ctx, c); err != nil {
+	if err := act.Unclip(ctx, c); err != nil && err.Error() != clipboardNotSupported {
 		t.Errorf("Error: %s", err)
 	}
 }
