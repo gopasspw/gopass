@@ -93,7 +93,7 @@ func (g *GPG) listKeys(ctx context.Context, typ string, search ...string) (gpg.K
 		return gpg.KeyList{}, err
 	}
 
-	return g.parseColons(bytes.NewBuffer(cmdout)), nil
+	return parseColons(bytes.NewBuffer(cmdout)), nil
 }
 
 // ListPublicKeys returns a parsed list of GPG public keys

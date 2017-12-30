@@ -48,7 +48,7 @@ import (
 // 16 - Curve Name
 
 // parseColons parses the `--with-colons` output format of GPG
-func (g *GPG) parseColons(reader io.Reader) gpg.KeyList {
+func parseColons(reader io.Reader) gpg.KeyList {
 	kl := make(gpg.KeyList, 0, 100)
 
 	scanner := bufio.NewScanner(reader)
