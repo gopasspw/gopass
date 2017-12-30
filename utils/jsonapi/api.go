@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"io"
-	"os"
 
 	"github.com/justwatchcom/gopass/store/root"
 	"github.com/urfave/cli"
@@ -20,7 +19,7 @@ type API struct {
 
 // ReadAndRespond a single message via stdin/stdout
 func (api *API) ReadAndRespond(ctx context.Context) error {
-	message, err := readMessage(os.Stdin)
+	message, err := readMessage(api.Reader)
 	if message == nil || err != nil {
 		return err
 	}

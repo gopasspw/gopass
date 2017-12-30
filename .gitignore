@@ -43,3 +43,7 @@ releases/
 dist/
 
 *.completion
+
+# go-fuzz
+*-fuzz.zip
+workdir/
