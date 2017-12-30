@@ -70,16 +70,58 @@ func TestNew(t *testing.T) {
 }
 
 func TestEqual(t *testing.T) {
-	var s1 *Secret
-	var s2 *Secret
-
-	if !s1.Equal(s2) {
-		t.Errorf("Should be equal")
-	}
-
-	s1 = New("foo", "")
-	if s1.Equal(s2) {
-		t.Errorf("Should be different")
+	for _, tc := range []struct {
+		s1 *Secret
+		s2 *Secret
+		eq bool
+	}{
+		{
+			s1: nil,
+			s2: nil,
+			eq: true,
+		},
+		{
+			s1: New("foo", "bar"),
+			s2: nil,
+			eq: false,
+		},
+		{
+			s1: New("foo", "bar"),
+			s2: New("foo", "bar"),
+			eq: true,
+		},
+		{
+			s1: New("foo", "bar"),
+			s2: New("foo", "baz"),
+			eq: false,
+		},
+		{
+			s1: New("foo", "bar"),
+			s2: New("bar", "bar"),
+			eq: false,
+		},
+		{
+			s1: &Secret{
+				password: "foo",
+				data: map[string]interface{}{
+					"key": &Secret{},
+				},
+			},
+			s2: &Secret{
+				password: "foo",
+			},
+			eq: false,
+		},
+	} {
+		if tc.s1 != nil && tc.s1.data != nil {
+			_ = tc.s1.encodeYAML()
+		}
+		if tc.s2 != nil && tc.s2.data != nil {
+			_ = tc.s2.encodeYAML()
+		}
+		if tc.s1.Equal(tc.s2) != tc.eq {
+			t.Errorf("s1 (%+v) and s2 (%+v) should be equal (%t) but are not", tc.s1, tc.s2, tc.eq)
+		}
 	}
 }
 
