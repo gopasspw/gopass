@@ -156,7 +156,7 @@ func (s *Action) createPrintOrCopy(ctx context.Context, c *cli.Context, name, pa
 		return nil
 	}
 
-	if err := s.copyToClipboard(ctx, name, []byte(password)); err != nil {
+	if err := copyToClipboard(ctx, name, []byte(password)); err != nil {
 		return exitError(ctx, ExitIO, err, "failed to copy to clipboard: %s", err)
 	}
 	return nil

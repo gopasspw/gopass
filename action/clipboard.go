@@ -10,9 +10,13 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (s *Action) copyToClipboard(ctx context.Context, name string, content []byte) error {
+const (
+	clipboardNotSupported = "WARNING: No clipboard available. Install xsel or xclip or use -p to print to console"
+)
+
+func copyToClipboard(ctx context.Context, name string, content []byte) error {
 	if clipboard.Unsupported {
-		out.Yellow(ctx, "WARNING: No clipboard available. Install xsel or xclip or use -p to print to console")
+		out.Yellow(ctx, clipboardNotSupported)
 		return nil
 	}
 

@@ -7,6 +7,7 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/jroimartin/gocui"
+	"github.com/justwatchcom/gopass/utils/ctxutil"
 )
 
 type selection struct {
@@ -161,6 +162,9 @@ func (s *selection) sync(g *gocui.Gui, v *gocui.View) error {
 // GetSelection show a navigateable multiple-choice list to the user
 // and returns the selected entry along with the action
 func GetSelection(ctx context.Context, prompt, usage string, choices []string) (string, int) {
+	if ctxutil.IsAlwaysYes(ctx) || !ctxutil.IsInteractive(ctx) {
+		return "impossible", 0
+	}
 	g, err := gocui.NewGui(gocui.OutputNormal)
 	if err != nil {
 		panic(err)

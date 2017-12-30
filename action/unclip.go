@@ -14,6 +14,10 @@ import (
 
 // Unclip tries to erase the content of the clipboard
 func (s *Action) Unclip(ctx context.Context, c *cli.Context) error {
+	if clipboard.Unsupported {
+		return exitError(ctx, ExitIO, nil, clipboardNotSupported)
+	}
+
 	force := c.Bool("force")
 	timeout := c.Int("timeout")
 	checksum := os.Getenv("GOPASS_UNCLIP_CHECKSUM")

@@ -10,6 +10,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/justwatchcom/gopass/config"
 	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/urfave/cli"
 )
@@ -72,12 +73,50 @@ func TestConfig(t *testing.T) {
 	buf.Reset()
 
 	// action.printConfigValues
+	act.cfg.Mounts["foo"] = &config.StoreConfig{}
 	if err := act.printConfigValues(ctx, "", "nopager"); err != nil {
 		t.Errorf("Error: %s", err)
 	}
+	want = `nopager: true
+foo/nopager: false`
+	sv = strings.TrimSpace(buf.String())
+	if sv != want {
+		t.Errorf("Wrong config result: '%s' != '%s'", sv, want)
+	}
+
+	delete(act.cfg.Mounts, "foo")
+	buf.Reset()
+
+	// config autoimport
+	fs := flag.NewFlagSet("default", flag.ContinueOnError)
+	if err := fs.Parse([]string{"autoimport"}); err != nil {
+		t.Fatalf("Error: %s", err)
+	}
+	c = cli.NewContext(app, fs, nil)
+	if err := act.Config(ctx, c); err != nil {
+		t.Errorf("Error: %s", err)
+	}
+	want = `autoimport: true`
 	sv = strings.TrimSpace(buf.String())
 	if sv != want {
 		t.Errorf("Wrong config result: '%s' != '%s'", sv, want)
 	}
 	buf.Reset()
+
+	// config autoimport false
+	fs = flag.NewFlagSet("default", flag.ContinueOnError)
+	if err := fs.Parse([]string{"autoimport", "false"}); err != nil {
+		t.Fatalf("Error: %s", err)
+	}
+	c = cli.NewContext(app, fs, nil)
+	if err := act.Config(ctx, c); err != nil {
+		t.Errorf("Error: %s", err)
+	}
+	want = `autoimport: false`
+	sv = strings.TrimSpace(buf.String())
+	if sv != want {
+		t.Errorf("Wrong config result: '%s' != '%s'", sv, want)
+	}
+	buf.Reset()
+
 }

@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/blang/semver"
+	"github.com/fatih/color"
 	"github.com/google/go-cmp/cmp"
 	gpgmock "github.com/justwatchcom/gopass/backend/gpg/mock"
 	"github.com/justwatchcom/gopass/config"
@@ -51,7 +52,12 @@ func newMock(ctx context.Context, dir string) (*Action, error) {
 }
 
 func capture(t *testing.T, fn func() error) string {
+	t.Helper()
 	old := os.Stdout
+
+	oldcol := color.NoColor
+	color.NoColor = true
+
 	r, w, _ := os.Pipe()
 	os.Stdout = w
 
@@ -66,6 +72,7 @@ func capture(t *testing.T, fn func() error) string {
 	// back to normal
 	_ = w.Close()
 	os.Stdout = old
+	color.NoColor = oldcol
 	if err != nil {
 		t.Errorf("Error: %s", err)
 	}
@@ -102,6 +109,33 @@ func TestAction(t *testing.T) {
 	if lm := len(act.Store.Mounts()); lm != 0 {
 		t.Errorf("Too many mounts: %d", lm)
 	}
+}
+
+func TestNew(t *testing.T) {
+	td, err := ioutil.TempDir("", "gopass-")
+	if err != nil {
+		t.Fatalf("Error: %s", err)
+	}
+	defer func() {
+		_ = os.RemoveAll(td)
+	}()
+
+	ctx := context.Background()
+
+	cfg := config.New()
+	sv := semver.Version{}
+
+	_, err = New(ctx, cfg, sv)
+	if err == nil {
+		t.Errorf("Should fail w/o path")
+	}
+
+	cfg.Root.Path = filepath.Join(td, "store")
+	act, err := New(ctx, cfg, sv)
+	if err != nil {
+		t.Fatalf("Error: %s", err)
+	}
+	t.Logf("Action: %+v", act)
 }
 
 func TestUmask(t *testing.T) {
