@@ -2,7 +2,6 @@ package action
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
 	"github.com/fatih/color"
@@ -31,10 +30,10 @@ func (s *Action) Grep(ctx context.Context, c *cli.Context) error {
 		}
 
 		if strings.Contains(sec.Password(), search) {
-			fmt.Printf("%s:\n%s", color.BlueString(v), sec.Password())
+			out.Print(ctx, "%s:\n%s", color.BlueString(v), sec.Password())
 		}
 		if strings.Contains(sec.Body(), search) {
-			fmt.Printf("%s:\n%s", color.BlueString(v), sec.Body())
+			out.Print(ctx, "%s:\n%s", color.BlueString(v), sec.Body())
 		}
 	}
 

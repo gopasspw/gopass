@@ -2,6 +2,12 @@ language: go
 sudo: false
 dist: trusty
 
+addons:
+  apt:
+    packages:
+    - git
+    - gnupg2
+
 go:
   - 1.9
 

@@ -12,6 +12,7 @@ import (
 
 	"github.com/justwatchcom/gopass/config"
 	"github.com/justwatchcom/gopass/utils/out"
+	"github.com/stretchr/testify/assert"
 	"github.com/urfave/cli"
 )
 
@@ -74,9 +75,7 @@ func TestConfig(t *testing.T) {
 
 	// action.printConfigValues
 	act.cfg.Mounts["foo"] = &config.StoreConfig{}
-	if err := act.printConfigValues(ctx, "", "nopager"); err != nil {
-		t.Errorf("Error: %s", err)
-	}
+	act.printConfigValues(ctx, "", "nopager")
 	want = `nopager: true
 foo/nopager: false`
 	sv = strings.TrimSpace(buf.String())
@@ -119,4 +118,20 @@ foo/nopager: false`
 	}
 	buf.Reset()
 
+	// action.ConfigComplete
+	out := capture(t, func() error {
+		act.ConfigComplete(c)
+		return nil
+	})
+	want = `askformore
+autoimport
+autosync
+cliptimeout
+nocolor
+noconfirm
+nopager
+path
+safecontent
+usesymbols`
+	assert.Equal(t, want, out)
 }

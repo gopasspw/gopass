@@ -106,7 +106,7 @@ func (s *Action) HIBP(ctx context.Context, c *cli.Context) error {
 }
 
 func (s *Action) printHIBPMatches(ctx context.Context, matchList []string) error {
-	if len(matchList) < 0 {
+	if len(matchList) < 1 {
 		_ = notify.Notify("gopass - audit HIBP", "Good news - No matches found!")
 		out.Green(ctx, "Good news - No matches found!")
 		return nil

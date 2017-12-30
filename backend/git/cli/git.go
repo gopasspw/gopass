@@ -93,7 +93,7 @@ func (g *Git) Init(ctx context.Context, signKey, userName, userEmail string) err
 		return nil
 	}
 
-	if err := g.Commit(ctx, "Add current content of password store."); err != nil {
+	if err := g.Commit(ctx, "Add current content of password store"); err != nil {
 		return errors.Wrapf(err, "failed to commit changes to git")
 	}
 
