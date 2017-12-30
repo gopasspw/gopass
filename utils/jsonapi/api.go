@@ -2,19 +2,16 @@ package jsonapi
 
 import (
 	"context"
-
 	"io"
 
 	"github.com/justwatchcom/gopass/store/root"
-	"github.com/urfave/cli"
 )
 
 // API type holding store and context
 type API struct {
-	Store      *root.Store
-	CliContext *cli.Context
-	Reader     io.Reader
-	Writer     io.Writer
+	Store  *root.Store
+	Reader io.Reader
+	Writer io.Writer
 }
 
 // ReadAndRespond a single message via stdin/stdout
