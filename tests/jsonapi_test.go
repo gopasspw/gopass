@@ -3,6 +3,7 @@ package tests
 import (
 	"bytes"
 	"io"
+	"regexp"
 	"testing"
 
 	"encoding/binary"
@@ -117,4 +118,25 @@ func TestJSONAPI(t *testing.T) {
 	// get username / password for key with no login in yaml (fallback)
 	response = getMessageResponse(t, ts, "{\"type\":\"getLogin\",\"entry\":\"awesomePrefix/fixed/yamlother\"}")
 	assert.Equal(t, "{\"username\":\"yamlother\",\"password\":\"thesecret\"}", response)
+
+	// store new secret with given password
+	response = getMessageResponse(t, ts, "{\"type\":\"create\",\"entry_name\":\"prefix/stored\",\"login\":\"myname\",\"password\":\"mypass\",\"length\":16,\"generate\":false,\"use_symbols\":true}")
+	assert.Equal(t, "{\"username\":\"myname\",\"password\":\"mypass\"}", response)
+	// get username / password of newly stored secret
+	response = getMessageResponse(t, ts, "{\"type\":\"getLogin\",\"entry\":\"prefix/stored\"}")
+	assert.Equal(t, "{\"username\":\"myname\",\"password\":\"mypass\"}", response)
+
+	// generate new secret with given length and without symbols
+	response = getMessageResponse(t, ts, "{\"type\":\"create\",\"entry_name\":\"prefix/generated\",\"login\":\"myname\",\"password\":\"\",\"length\":12,\"generate\":true,\"use_symbols\":false}")
+	assert.Regexp(t, regexp.MustCompile(`{"username":"myname","password":"\w{12}"}`), response)
+	// get username / password of newly created secret
+	response = getMessageResponse(t, ts, "{\"type\":\"getLogin\",\"entry\":\"prefix/generated\"}")
+	assert.Regexp(t, regexp.MustCompile(`{"username":"myname","password":"\w{12}"}`), response)
+
+	// generate new secret with given length and with symbols
+	response = getMessageResponse(t, ts, "{\"type\":\"create\",\"entry_name\":\"prefix/generated_symbols\",\"login\":\"myname\",\"password\":\"\",\"length\":12,\"generate\":true,\"use_symbols\":true}")
+	assert.Regexp(t, regexp.MustCompile(`{"username":"myname","password":".{12}"}`), response)
+	// get username / password of newly created secret
+	response = getMessageResponse(t, ts, "{\"type\":\"getLogin\",\"entry\":\"prefix/generated_symbols\"}")
+	assert.Regexp(t, regexp.MustCompile(`{"username":"myname","password":".{12}"}`), response)
 }

@@ -72,6 +72,30 @@ Similar to `query` but cuts host names and sub domains from the left side until 
 }
 ```
 
+### `create`
+
+#### Query:
+
+```json
+{
+   "type": "create",
+   "login": "myusername",
+   "password": "",
+   "length": 12,
+   "generate": true,
+   "use_symbols": true
+}
+```
+
+#### Response:
+
+```json
+{
+   "username": "myusername",
+   "password": "5^dX9j1\"b5^q"
+}
+```
+
 ## Error Response
 
 If an uncaught error occurs, the stringified error message is send back as response:
