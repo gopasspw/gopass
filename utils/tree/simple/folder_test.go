@@ -4,6 +4,7 @@ import (
 	"sort"
 	"testing"
 
+	"github.com/fatih/color"
 	"github.com/google/go-cmp/cmp"
 )
 
@@ -24,14 +25,31 @@ func TestFolder(t *testing.T) {
 	if root.Len() != 3 {
 		t.Errorf("Should have 3 entries not %d", root.Len())
 	}
+	// test list
 	lst := root.List(0)
 	sort.Strings(lst)
-	want := []string{
+	wants := []string{
 		"foo/bar",
 		"foo/baz.b64",
 		"foo/zab.yml",
 	}
-	if !cmp.Equal(lst, want) {
-		t.Errorf("'%v' != '%v'", lst, want)
+	if !cmp.Equal(lst, wants) {
+		t.Errorf("'%v' != '%v'", lst, wants)
+	}
+	// test name
+	if root.String() != "gopass" {
+		t.Errorf("Wrong name: %s", root.String())
+	}
+	// test format
+	color.NoColor = true
+	out := root.Format(2)
+	want := `gopass
+└── foo (template)
+    ├── bar
+    ├── baz.b64 (binary)
+    └── zab.yml (yaml)
+`
+	if out != want {
+		t.Errorf("\n%s\n != \n%s\n", out, want)
 	}
 }
