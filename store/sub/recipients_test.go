@@ -154,6 +154,9 @@ func TestAddRecipient(t *testing.T) {
 	rs, err := s.GetRecipients(ctx, "")
 	assert.NoError(t, err)
 	assert.Equal(t, append(genRecs, newRecp), rs)
+
+	err = s.SaveRecipients(ctx)
+	assert.NoError(t, err)
 }
 
 func TestRemoveRecipient(t *testing.T) {

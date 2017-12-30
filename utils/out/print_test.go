@@ -5,6 +5,9 @@ import (
 	"context"
 	"os"
 	"testing"
+
+	"github.com/fatih/color"
+	"github.com/justwatchcom/gopass/utils/ctxutil"
 )
 
 func TestPrint(t *testing.T) {
@@ -39,5 +42,38 @@ func TestDebug(t *testing.T) {
 	Debug(ctx, "foobar")
 	if buf.String() != "" {
 		t.Errorf("Got output: %s", buf.String())
+	}
+
+	ctx = ctxutil.WithDebug(ctx, true)
+	Debug(ctx, "foobar")
+	if buf.String() != "[DEBUG] foobar\n" {
+		t.Errorf("Wrong output: %s", buf.String())
+	}
+}
+
+func TestColor(t *testing.T) {
+	ctx := context.Background()
+	buf := &bytes.Buffer{}
+	Stdout = buf
+	defer func() {
+		Stdout = os.Stdout
+	}()
+	color.NoColor = true
+
+	for _, fn := range []func(context.Context, string, ...interface{}){
+		Black,
+		Blue,
+		Cyan,
+		Green,
+		Magenta,
+		Red,
+		White,
+		Yellow,
+	} {
+		buf.Reset()
+		fn(ctx, "foobar")
+		if buf.String() != "foobar\n" {
+			t.Errorf("Wrong output: %s", buf.String())
+		}
 	}
 }
