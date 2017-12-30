@@ -154,7 +154,7 @@ codequality:
 	@which ineffassign > /dev/null; if [ $$? -ne 0 ]; then \
 		$(GO) get -u github.com/gordonklaus/ineffassign; \
 	fi
-	@ineffassign .
+	@ineffassign . || exit 1
 	@$(call ok)
 
 	@echo -n "     SPELL     "
@@ -169,21 +169,21 @@ codequality:
 	@which megacheck > /dev/null; if [ $$? -ne 0  ]; then \
 		$(GO) get -u honnef.co/go/tools/cmd/megacheck; \
 	fi
-	@megacheck $(PKGS)
+	@megacheck $(PKGS) || exit 1
 	@$(call ok)
 
 	@echo -n "     ERRCHECK  "
 	@which errcheck > /dev/null; if [ $$? -ne 0  ]; then \
 		$(GO) get -u github.com/kisielk/errcheck; \
 	fi
-	@errcheck $(PKGS)
+	@errcheck $(PKGS) || exit 1
 	@$(call ok)
 
 	@echo -n "     UNCONVERT "
 	@which unconvert > /dev/null; if [ $$? -ne 0  ]; then \
 		$(GO) get -u github.com/mdempsky/unconvert; \
 	fi
-	@unconvert -v $(PKGS)
+	@unconvert -v $(PKGS) || exit 1
 	@$(call ok)
 
 fuzz-gpg:

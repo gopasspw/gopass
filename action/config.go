@@ -62,7 +62,6 @@ func (s *Action) printConfigValues(ctx context.Context, store string, needles ..
 			}
 		}
 	}
-	return
 }
 
 func filterMap(haystack map[string]string, needles []string) []string {

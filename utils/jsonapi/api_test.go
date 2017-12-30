@@ -153,7 +153,7 @@ func TestRespondMessageCreate(t *testing.T) {
 func writeMessageWithLength(message string) string {
 	buffer := bytes.NewBuffer([]byte{})
 	_ = binary.Write(buffer, binary.LittleEndian, uint32(len(message)))
-	buffer.WriteString(message)
+	_, _ = buffer.WriteString(message)
 	return buffer.String()
 }
 
@@ -208,7 +208,7 @@ func runRespondRawMessages(t *testing.T, requests []verifiedRequest, secrets []s
 
 		api := API{store, &inbuf, &outbuf}
 
-		inbuf.Write([]byte(request.InputStr))
+		_, _ = inbuf.Write([]byte(request.InputStr))
 
 		err = api.ReadAndRespond(ctx)
 
