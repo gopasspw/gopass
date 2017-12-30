@@ -40,6 +40,12 @@ sysinfo:
 	@$(call ok)
 	@echo -n "     BUILDFLAGS: $(BUILDFLAGS)"
 	@$(call ok)
+	@echo -n "     GIT     : $(shell git version)"
+	@$(call ok)
+	@echo -n "     GPG1    : $(shell gpg --version | head -1)"
+	@$(call ok)
+	@echo -n "     GPG2    : $(shell gpg2 --version | head -1)"
+	@$(call ok)
 
 clean:
 	@echo -n ">> CLEAN"

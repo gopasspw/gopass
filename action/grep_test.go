@@ -8,6 +8,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/justwatchcom/gopass/store/secret"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/urfave/cli"
@@ -29,6 +30,12 @@ func TestGrep(t *testing.T) {
 		t.Fatalf("Error: %s", err)
 	}
 
+	buf := &bytes.Buffer{}
+	out.Stdout = buf
+	defer func() {
+		out.Stdout = os.Stdout
+	}()
+
 	app := cli.NewApp()
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
 	if err := fs.Parse([]string{"foo"}); err != nil {
@@ -36,13 +43,17 @@ func TestGrep(t *testing.T) {
 	}
 	c := cli.NewContext(app, fs, nil)
 
-	buf := &bytes.Buffer{}
-	out.Stdout = buf
-	defer func() {
-		out.Stdout = os.Stdout
-	}()
-
 	if err := act.Grep(ctx, c); err != nil {
 		t.Errorf("Error: %s", err)
 	}
+	buf.Reset()
+
+	// add some secret
+	if err := act.Store.Set(ctx, "foo", secret.New("foobar", "foobar")); err != nil {
+		t.Errorf("Failed to add secret: %s", err)
+	}
+	if err := act.Grep(ctx, c); err != nil {
+		t.Errorf("Error: %s", err)
+	}
+	buf.Reset()
 }

@@ -34,7 +34,10 @@ func (s *Action) List(ctx context.Context, c *cli.Context) error {
 	if filter == "" {
 		return s.listAll(ctx, l, limit, flat)
 	}
+	return s.listFiltered(ctx, l, limit, flat, stripPrefix, filter)
+}
 
+func (s *Action) listFiltered(ctx context.Context, l tree.Tree, limit int, flat, stripPrefix bool, filter string) error {
 	subtree, err := l.FindFolder(filter)
 	if err != nil {
 		out.Red(ctx, "Entry '%s' not found", filter)
