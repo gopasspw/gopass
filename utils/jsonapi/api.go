@@ -5,6 +5,7 @@ import (
 	"io"
 
 	"github.com/justwatchcom/gopass/store/root"
+	"github.com/justwatchcom/gopass/utils/out"
 )
 
 // API type holding store and context
@@ -16,12 +17,13 @@ type API struct {
 
 // ReadAndRespond a single message via stdin/stdout
 func (api *API) ReadAndRespond(ctx context.Context) error {
+	silentCtx := out.WithHidden(ctx, true)
 	message, err := readMessage(api.Reader)
 	if message == nil || err != nil {
 		return err
 	}
 
-	return api.respondMessage(ctx, message)
+	return api.respondMessage(silentCtx, message)
 }
 
 // RespondError sends err as JSON response via stdout
