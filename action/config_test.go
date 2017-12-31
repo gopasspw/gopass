@@ -18,18 +18,14 @@ import (
 
 func TestConfig(t *testing.T) {
 	td, err := ioutil.TempDir("", "gopass-")
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(td)
 	}()
 
 	ctx := context.Background()
 	act, err := newMock(ctx, td)
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 
 	app := cli.NewApp()
 	c := cli.NewContext(app, flag.NewFlagSet("default", flag.ContinueOnError), nil)
@@ -41,9 +37,7 @@ func TestConfig(t *testing.T) {
 	}()
 
 	// action.Config
-	if err := act.Config(ctx, c); err != nil {
-		t.Errorf("Error: %s", err)
-	}
+	assert.NoError(t, act.Config(ctx, c))
 	want := `root store config:
   askformore: false
   autoimport: true
@@ -63,9 +57,7 @@ func TestConfig(t *testing.T) {
 	buf.Reset()
 
 	// action.setConfigValue
-	if err := act.setConfigValue(ctx, "", "nopager", "true"); err != nil {
-		t.Errorf("Error: %s", err)
-	}
+	assert.NoError(t, act.setConfigValue(ctx, "", "nopager", "true"))
 	sv := strings.TrimSpace(buf.String())
 	want = "nopager: true"
 	if sv != want {
@@ -92,9 +84,7 @@ foo/nopager: false`
 		t.Fatalf("Error: %s", err)
 	}
 	c = cli.NewContext(app, fs, nil)
-	if err := act.Config(ctx, c); err != nil {
-		t.Errorf("Error: %s", err)
-	}
+	assert.NoError(t, act.Config(ctx, c))
 	want = `autoimport: true`
 	sv = strings.TrimSpace(buf.String())
 	if sv != want {
@@ -108,9 +98,7 @@ foo/nopager: false`
 		t.Fatalf("Error: %s", err)
 	}
 	c = cli.NewContext(app, fs, nil)
-	if err := act.Config(ctx, c); err != nil {
-		t.Errorf("Error: %s", err)
-	}
+	assert.NoError(t, act.Config(ctx, c))
 	want = `autoimport: false`
 	sv = strings.TrimSpace(buf.String())
 	if sv != want {

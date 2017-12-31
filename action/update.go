@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"path"
@@ -174,6 +175,14 @@ func (s *Action) download(ctx context.Context, dest, url string) error {
 				},
 			},
 		}
+		if out.IsHidden(ctx) {
+			old := goprogressbar.Stdout
+			goprogressbar.Stdout = ioutil.Discard
+			defer func() {
+				goprogressbar.Stdout = old
+			}()
+		}
+
 	} else {
 		body = resp.Body
 	}

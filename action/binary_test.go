@@ -11,14 +11,13 @@ import (
 
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/out"
+	"github.com/stretchr/testify/assert"
 	"github.com/urfave/cli"
 )
 
 func TestBinary(t *testing.T) {
 	td, err := ioutil.TempDir("", "gopass-")
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(td)
 	}()
@@ -27,9 +26,7 @@ func TestBinary(t *testing.T) {
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = out.WithHidden(ctx, true)
 	act, err := newMock(ctx, td)
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 
 	app := cli.NewApp()
 
@@ -40,35 +37,21 @@ func TestBinary(t *testing.T) {
 	}()
 
 	infile := filepath.Join(td, "input.txt")
-	if err := ioutil.WriteFile(infile, []byte("0xDEADBEEF"), 0644); err != nil {
-		t.Fatalf("Failed to write input file: %s", err)
-	}
-	if err := act.binaryCopy(ctx, infile, "bar", true); err != nil {
-		t.Fatalf("Failed to move file to store: %s", err)
-	}
+	assert.NoError(t, ioutil.WriteFile(infile, []byte("0xDEADBEEF"), 0644))
+	assert.NoError(t, act.binaryCopy(ctx, infile, "bar", true))
 
 	// no arg
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
 	c := cli.NewContext(app, fs, nil)
-	if err := act.BinaryCat(ctx, c); err == nil {
-		t.Errorf("Should fail")
-	}
-	if err := act.BinaryCopy(ctx, c); err == nil {
-		t.Errorf("Should fail")
-	}
-	if err := act.BinaryMove(ctx, c); err == nil {
-		t.Errorf("Should fail")
-	}
-	if err := act.BinarySum(ctx, c); err == nil {
-		t.Errorf("Should fail")
-	}
+	assert.Error(t, act.BinaryCat(ctx, c))
+	assert.Error(t, act.BinaryCopy(ctx, c))
+	assert.Error(t, act.BinaryMove(ctx, c))
+	assert.Error(t, act.BinarySum(ctx, c))
 }
 
 func TestBinaryCat(t *testing.T) {
 	td, err := ioutil.TempDir("", "gopass-")
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(td)
 	}()
@@ -77,9 +60,7 @@ func TestBinaryCat(t *testing.T) {
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = out.WithHidden(ctx, true)
 	act, err := newMock(ctx, td)
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 
 	app := cli.NewApp()
 
@@ -90,12 +71,8 @@ func TestBinaryCat(t *testing.T) {
 	}()
 
 	infile := filepath.Join(td, "input.txt")
-	if err := ioutil.WriteFile(infile, []byte("0xDEADBEEF"), 0644); err != nil {
-		t.Fatalf("Failed to write input file: %s", err)
-	}
-	if err := act.binaryCopy(ctx, infile, "bar", true); err != nil {
-		t.Fatalf("Failed to move file to store: %s", err)
-	}
+	assert.NoError(t, ioutil.WriteFile(infile, []byte("0xDEADBEEF"), 0644))
+	assert.NoError(t, act.binaryCopy(ctx, infile, "bar", true))
 
 	// binary cat bar
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
@@ -103,16 +80,12 @@ func TestBinaryCat(t *testing.T) {
 		t.Fatalf("Error: %s", err)
 	}
 	c := cli.NewContext(app, fs, nil)
-	if err := act.BinaryCat(ctx, c); err != nil {
-		t.Errorf("Should not fail")
-	}
+	assert.NoError(t, act.BinaryCat(ctx, c))
 }
 
 func TestBinaryCopy(t *testing.T) {
 	td, err := ioutil.TempDir("", "gopass-")
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(td)
 	}()
@@ -121,9 +94,7 @@ func TestBinaryCopy(t *testing.T) {
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = out.WithHidden(ctx, true)
 	act, err := newMock(ctx, td)
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 
 	app := cli.NewApp()
 
@@ -134,12 +105,8 @@ func TestBinaryCopy(t *testing.T) {
 	}()
 
 	infile := filepath.Join(td, "input.txt")
-	if err := ioutil.WriteFile(infile, []byte("0xDEADBEEF"), 0644); err != nil {
-		t.Fatalf("Failed to write input file: %s", err)
-	}
-	if err := act.binaryCopy(ctx, infile, "bar", true); err != nil {
-		t.Fatalf("Failed to move file to store: %s", err)
-	}
+	assert.NoError(t, ioutil.WriteFile(infile, []byte("0xDEADBEEF"), 0644))
+	assert.NoError(t, act.binaryCopy(ctx, infile, "bar", true))
 
 	outfile := filepath.Join(td, "output.txt")
 
@@ -149,9 +116,7 @@ func TestBinaryCopy(t *testing.T) {
 		t.Fatalf("Error: %s", err)
 	}
 	c := cli.NewContext(app, fs, nil)
-	if err := act.BinaryCopy(ctx, c); err != nil {
-		t.Errorf("Should not fail")
-	}
+	assert.NoError(t, act.BinaryCopy(ctx, c))
 
 	// binary move tempdir/bar bar2
 	fs = flag.NewFlagSet("default", flag.ContinueOnError)
@@ -159,16 +124,12 @@ func TestBinaryCopy(t *testing.T) {
 		t.Fatalf("Error: %s", err)
 	}
 	c = cli.NewContext(app, fs, nil)
-	if err := act.BinaryMove(ctx, c); err != nil {
-		t.Errorf("Should not fail")
-	}
+	assert.NoError(t, act.BinaryMove(ctx, c))
 }
 
 func TestBinarySum(t *testing.T) {
 	td, err := ioutil.TempDir("", "gopass-")
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(td)
 	}()
@@ -177,9 +138,7 @@ func TestBinarySum(t *testing.T) {
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = out.WithHidden(ctx, true)
 	act, err := newMock(ctx, td)
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 
 	app := cli.NewApp()
 
@@ -190,12 +149,8 @@ func TestBinarySum(t *testing.T) {
 	}()
 
 	infile := filepath.Join(td, "input.txt")
-	if err := ioutil.WriteFile(infile, []byte("0xDEADBEEF"), 0644); err != nil {
-		t.Fatalf("Failed to write input file: %s", err)
-	}
-	if err := act.binaryCopy(ctx, infile, "bar", true); err != nil {
-		t.Fatalf("Failed to move file to store: %s", err)
-	}
+	assert.NoError(t, ioutil.WriteFile(infile, []byte("0xDEADBEEF"), 0644))
+	assert.NoError(t, act.binaryCopy(ctx, infile, "bar", true))
 
 	// binary sum bar
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
@@ -203,7 +158,5 @@ func TestBinarySum(t *testing.T) {
 		t.Fatalf("Error: %s", err)
 	}
 	c := cli.NewContext(app, fs, nil)
-	if err := act.BinarySum(ctx, c); err != nil {
-		t.Errorf("Should not fail")
-	}
+	assert.NoError(t, act.BinarySum(ctx, c))
 }

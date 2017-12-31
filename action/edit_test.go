@@ -11,14 +11,13 @@ import (
 
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/out"
+	"github.com/stretchr/testify/assert"
 	"github.com/urfave/cli"
 )
 
 func TestEdit(t *testing.T) {
 	td, err := ioutil.TempDir("", "gopass-")
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(td)
 	}()
@@ -27,9 +26,7 @@ func TestEdit(t *testing.T) {
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithTerminal(ctx, false)
 	act, err := newMock(ctx, td)
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
@@ -52,37 +49,27 @@ func TestEdit(t *testing.T) {
 	}
 	c = cli.NewContext(app, fs, nil)
 
-	if err := act.Edit(ctx, c); err == nil {
-		t.Errorf("Should fail")
-	}
+	assert.Error(t, act.Edit(ctx, c))
 	buf.Reset()
 }
 
 func TestEditor(t *testing.T) {
 	td, err := ioutil.TempDir("", "gopass-")
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(td)
 	}()
 
 	ctx := context.Background()
 	act, err := newMock(ctx, td)
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 
 	touch, err := exec.LookPath("touch")
-	if err != nil {
-		t.Errorf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 
 	want := "foobar"
 	out, err := act.editor(ctx, touch, []byte(want))
-	if err != nil {
-		t.Errorf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 	if string(out) != want {
 		t.Errorf("'%s' != '%s'", string(out), want)
 	}

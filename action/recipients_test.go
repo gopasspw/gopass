@@ -10,14 +10,13 @@ import (
 
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/out"
+	"github.com/stretchr/testify/assert"
 	"github.com/urfave/cli"
 )
 
 func TestRecipients(t *testing.T) {
 	td, err := ioutil.TempDir("", "gopass-")
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(td)
 	}()
@@ -25,9 +24,7 @@ func TestRecipients(t *testing.T) {
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	act, err := newMock(ctx, td)
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 
 	app := cli.NewApp()
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
@@ -62,14 +59,10 @@ func TestRecipients(t *testing.T) {
 	buf.Reset()
 
 	// RecipientsAdd
-	if err := act.RecipientsAdd(ctx, c); err == nil {
-		t.Errorf("Should fail")
-	}
+	assert.Error(t, act.RecipientsAdd(ctx, c))
 	buf.Reset()
 
 	// RecipientsRemove
-	if err := act.RecipientsRemove(ctx, c); err == nil {
-		t.Errorf("Should fail")
-	}
+	assert.Error(t, act.RecipientsRemove(ctx, c))
 	buf.Reset()
 }
