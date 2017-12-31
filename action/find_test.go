@@ -10,23 +10,20 @@ import (
 	"testing"
 
 	"github.com/justwatchcom/gopass/utils/out"
+	"github.com/stretchr/testify/assert"
 	"github.com/urfave/cli"
 )
 
 func TestFind(t *testing.T) {
 	td, err := ioutil.TempDir("", "gopass-")
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(td)
 	}()
 
 	ctx := context.Background()
 	act, err := newMock(ctx, td)
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
@@ -66,8 +63,6 @@ func TestFind(t *testing.T) {
 	}
 	c = cli.NewContext(app, fs, nil)
 
-	if err := act.Find(ctx, c); err == nil {
-		t.Errorf("Should fail")
-	}
+	assert.Error(t, act.Find(ctx, c))
 	buf.Reset()
 }

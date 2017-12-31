@@ -28,19 +28,16 @@ const testHibpSample = `000000005AD76BD555C1D6D771DE417A4B87E4B4
 
 func TestHIBP(t *testing.T) {
 	td, err := ioutil.TempDir("", "gopass-")
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(td)
 	}()
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
+	ctx = out.WithHidden(ctx, true)
 	act, err := newMock(ctx, td)
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
@@ -53,16 +50,12 @@ func TestHIBP(t *testing.T) {
 	c := cli.NewContext(app, fs, nil)
 
 	// no hibp dump, no env var
-	if err := act.HIBP(ctx, c); err == nil {
-		t.Errorf("Should fail")
-	}
+	assert.Error(t, act.HIBP(ctx, c))
 	buf.Reset()
 
 	// setup file and env
 	fn := filepath.Join(td, "dump.txt")
-	if err := ioutil.WriteFile(fn, []byte(testHibpSample), 0644); err != nil {
-		t.Fatalf("Failed to write HIBP dump %s: %s", fn, err)
-	}
+	assert.NoError(t, ioutil.WriteFile(fn, []byte(testHibpSample), 0644))
 	assert.NoError(t, os.Setenv("HIBP_DUMPS", fn))
 	assert.NoError(t, act.HIBP(ctx, c))
 	buf.Reset()

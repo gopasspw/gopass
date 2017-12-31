@@ -3,11 +3,11 @@ package action
 import (
 	"bytes"
 	"context"
-	"strings"
 	"testing"
 
 	"github.com/atotto/clipboard"
 	"github.com/justwatchcom/gopass/utils/out"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestCopyToClipboard(t *testing.T) {
@@ -16,11 +16,6 @@ func TestCopyToClipboard(t *testing.T) {
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
-	if err := copyToClipboard(ctx, "foo", []byte("bar")); err != nil {
-		t.Fatalf("Error: %s", err)
-	}
-
-	if !strings.Contains(buf.String(), "WARNING") {
-		t.Errorf("Should warn about missing tools")
-	}
+	assert.NoError(t, copyToClipboard(ctx, "foo", []byte("bar")))
+	assert.Contains(t, buf.String(), "WARNING")
 }

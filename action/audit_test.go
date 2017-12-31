@@ -12,14 +12,13 @@ import (
 	"github.com/justwatchcom/gopass/store/secret"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/out"
+	"github.com/stretchr/testify/assert"
 	"github.com/urfave/cli"
 )
 
 func TestAudit(t *testing.T) {
 	td, err := ioutil.TempDir("", "gopass-")
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(td)
 	}()
@@ -28,16 +27,10 @@ func TestAudit(t *testing.T) {
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = out.WithHidden(ctx, true)
 	act, err := newMock(ctx, td)
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 
-	if err := act.Store.Set(ctx, "bar", secret.New("123", "")); err != nil {
-		t.Errorf("Failed to add secret: %s", err)
-	}
-	if err := act.Store.Set(ctx, "baz", secret.New("123", "")); err != nil {
-		t.Errorf("Failed to add secret: %s", err)
-	}
+	assert.NoError(t, act.Store.Set(ctx, "bar", secret.New("123", "")))
+	assert.NoError(t, act.Store.Set(ctx, "baz", secret.New("123", "")))
 
 	app := cli.NewApp()
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)

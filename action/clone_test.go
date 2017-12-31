@@ -11,14 +11,13 @@ import (
 
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/out"
+	"github.com/stretchr/testify/assert"
 	"github.com/urfave/cli"
 )
 
 func TestClone(t *testing.T) {
 	td, err := ioutil.TempDir("", "gopass-")
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(td)
 	}()
@@ -26,9 +25,7 @@ func TestClone(t *testing.T) {
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	act, err := newMock(ctx, td)
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 
 	app := cli.NewApp()
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
@@ -41,12 +38,8 @@ func TestClone(t *testing.T) {
 	}()
 
 	// no args
-	if err := act.Clone(ctx, c); err == nil {
-		t.Errorf("Should fail")
-	}
+	assert.Error(t, act.Clone(ctx, c))
 
 	// clone to initialized store
-	if err := act.clone(ctx, "/tmp/non-existing-repo.git", "", filepath.Join(td, "store")); err == nil {
-		t.Errorf("Should fail")
-	}
+	assert.Error(t, act.clone(ctx, "/tmp/non-existing-repo.git", "", filepath.Join(td, "store")))
 }

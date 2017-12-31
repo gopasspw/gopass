@@ -11,14 +11,13 @@ import (
 	"github.com/justwatchcom/gopass/store/secret"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/out"
+	"github.com/stretchr/testify/assert"
 	"github.com/urfave/cli"
 )
 
 func TestDelete(t *testing.T) {
 	td, err := ioutil.TempDir("", "gopass-")
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(td)
 	}()
@@ -26,9 +25,7 @@ func TestDelete(t *testing.T) {
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	act, err := newMock(ctx, td)
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
@@ -53,23 +50,17 @@ func TestDelete(t *testing.T) {
 	}
 	c = cli.NewContext(app, fs, nil)
 
-	if err := act.Delete(ctx, c); err != nil {
-		t.Errorf("Error: %s", err)
-	}
+	assert.NoError(t, act.Delete(ctx, c))
 	buf.Reset()
 
 	// delete foo bar
-	if err := act.Store.Set(ctx, "foo", secret.New("123", "---\nbar: zab")); err != nil {
-		t.Errorf("Failed to add secret: %s", err)
-	}
+	assert.NoError(t, act.Store.Set(ctx, "foo", secret.New("123", "---\nbar: zab")))
 	fs = flag.NewFlagSet("default", flag.ContinueOnError)
 	if err := fs.Parse([]string{"foo", "bar"}); err != nil {
 		t.Fatalf("Error: %s", err)
 	}
 	c = cli.NewContext(app, fs, nil)
 
-	if err := act.Delete(ctx, c); err != nil {
-		t.Errorf("Error: %s", err)
-	}
+	assert.NoError(t, act.Delete(ctx, c))
 	buf.Reset()
 }

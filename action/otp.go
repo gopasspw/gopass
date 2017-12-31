@@ -8,8 +8,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/fatih/color"
 	"github.com/gokyle/twofactor"
+	"github.com/justwatchcom/gopass/store/secret"
+	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/urfave/cli"
 )
 
@@ -25,47 +26,22 @@ func (s *Action) OTP(ctx context.Context, c *cli.Context) error {
 	if name == "" {
 		return exitError(ctx, ExitUsage, nil, "usage: %s otp [name]", s.Name)
 	}
+	qrf := c.String("qr")
+	clip := c.Bool("clip")
 
+	return s.otp(ctx, name, qrf, clip)
+}
+
+func (s *Action) otp(ctx context.Context, name, qrf string, clip bool) error {
 	sec, err := s.Store.Get(ctx, name)
 	if err != nil {
 		return exitError(ctx, ExitDecrypt, err, "failed to get entry '%s': %s", name, err)
 	}
 
-	otpURL := ""
-	for _, line := range strings.Split(sec.Body(), "\n") {
-		if strings.HasPrefix(line, "otpauth://") {
-			otpURL = line
-			break
-		}
+	otp, label, err := otpData(ctx, name, sec)
+	if err != nil {
+		return exitError(ctx, ExitUnknown, err, "No OTP entry found for %s: %s", name, err)
 	}
-
-	var otp twofactor.OTP
-	var label string
-
-	if otpURL == "" {
-		// check yaml entry and fall back to password if we don't have one
-		label = name
-		secKey, err := sec.Value("totp")
-		if err != nil {
-			secKey = sec.Password()
-		}
-
-		if strings.HasPrefix(secKey, "otpauth://") {
-			otp, label, err = twofactor.FromURL(secKey)
-		} else {
-			otp, err = twofactor.NewGoogleTOTP(secKey)
-		}
-
-		if err != nil {
-			return exitError(ctx, ExitUnknown, err, "No OTP entry found for %s", name)
-		}
-	} else {
-		otp, label, err = twofactor.FromURL(otpURL)
-		if err != nil {
-			return exitError(ctx, ExitUnknown, err, "failed get key from URL: %s", err)
-		}
-	}
-
 	token := otp.OTP()
 
 	now := time.Now()
@@ -78,19 +54,47 @@ func (s *Action) OTP(ctx context.Context, c *cli.Context) error {
 		secondsLeft = secondsLeft - otpPeriod
 	}
 
-	color.Yellow("%s lasts %ds \t|%s%s|", token, secondsLeft, strings.Repeat("-", otpPeriod-secondsLeft), strings.Repeat("=", secondsLeft))
+	out.Yellow(ctx, "%s lasts %ds \t|%s%s|", token, secondsLeft, strings.Repeat("-", otpPeriod-secondsLeft), strings.Repeat("=", secondsLeft))
 
-	if c.Bool("clip") {
+	if clip {
 		if err := copyToClipboard(ctx, fmt.Sprintf("token for %s", name), []byte(token)); err != nil {
 			return exitError(ctx, ExitIO, err, "failed to copy to clipboard: %s", err)
 		}
 		return nil
 	}
 
-	if qrf := c.String("qr"); qrf != "" {
+	if qrf != "" {
 		return s.otpWriteQRFile(ctx, otp, label, qrf)
 	}
 	return nil
+}
+
+func otpData(ctx context.Context, name string, sec *secret.Secret) (twofactor.OTP, string, error) {
+	otpURL := ""
+	// check body
+	for _, line := range strings.Split(sec.Body(), "\n") {
+		if strings.HasPrefix(line, "otpauth://") {
+			otpURL = line
+			break
+		}
+	}
+	if otpURL != "" {
+		return twofactor.FromURL(otpURL)
+	}
+
+	// check yaml entry and fall back to password if we don't have one
+	label := name
+	secKey, err := sec.Value("totp")
+	if err != nil {
+		secKey = sec.Password()
+	}
+
+	if strings.HasPrefix(secKey, "otpauth://") {
+		return twofactor.FromURL(secKey)
+	}
+
+	otp, err := twofactor.NewGoogleTOTP(secKey)
+	return otp, label, err
 }
 
 func (s *Action) otpWriteQRFile(ctx context.Context, otp twofactor.OTP, label, file string) error {

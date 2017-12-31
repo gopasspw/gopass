@@ -15,6 +15,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	gpgmock "github.com/justwatchcom/gopass/backend/gpg/mock"
 	"github.com/justwatchcom/gopass/config"
+	"github.com/stretchr/testify/assert"
 )
 
 func newMock(ctx context.Context, dir string) (*Action, error) {
@@ -82,18 +83,14 @@ func capture(t *testing.T, fn func() error) string {
 
 func TestAction(t *testing.T) {
 	td, err := ioutil.TempDir("", "gopass-")
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(td)
 	}()
 
 	ctx := context.Background()
 	act, err := newMock(ctx, td)
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 
 	if an := act.Name; an != "action.test" {
 		t.Errorf("Wrong binary name: '%s' != '%s'", an, "action.test")
@@ -113,9 +110,7 @@ func TestAction(t *testing.T) {
 
 func TestNew(t *testing.T) {
 	td, err := ioutil.TempDir("", "gopass-")
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(td)
 	}()
@@ -126,15 +121,11 @@ func TestNew(t *testing.T) {
 	sv := semver.Version{}
 
 	_, err = New(ctx, cfg, sv)
-	if err == nil {
-		t.Errorf("Should fail w/o path")
-	}
+	assert.Error(t, err)
 
 	cfg.Root.Path = filepath.Join(td, "store")
 	act, err := New(ctx, cfg, sv)
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 	t.Logf("Action: %+v", act)
 }
 

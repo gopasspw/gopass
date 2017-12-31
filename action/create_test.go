@@ -10,6 +10,7 @@ import (
 
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/out"
+	"github.com/stretchr/testify/assert"
 	"github.com/urfave/cli"
 )
 
@@ -28,9 +29,7 @@ func TestExtractHostname(t *testing.T) {
 
 func TestCreate(t *testing.T) {
 	td, err := ioutil.TempDir("", "gopass-")
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(td)
 	}()
@@ -38,9 +37,7 @@ func TestCreate(t *testing.T) {
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	act, err := newMock(ctx, td)
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
@@ -53,8 +50,6 @@ func TestCreate(t *testing.T) {
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
 	c := cli.NewContext(app, fs, nil)
 
-	if err := act.Create(ctx, c); err == nil {
-		t.Errorf("Should fail")
-	}
+	assert.Error(t, act.Create(ctx, c))
 	buf.Reset()
 }

@@ -17,6 +17,7 @@ import (
 	"github.com/dominikschulz/github-releases/ghrel"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/out"
+	"github.com/stretchr/testify/assert"
 	"github.com/urfave/cli"
 )
 
@@ -51,6 +52,7 @@ func TestUpdate(t *testing.T) {
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
+	ctx = out.WithHidden(ctx, true)
 	act, err := newMock(ctx, td)
 	if err != nil {
 		t.Fatalf("Error: %s", err)
@@ -101,7 +103,6 @@ func TestUpdate(t *testing.T) {
 		out.Stdout = os.Stdout
 	}()
 
-	if err := act.Update(ctx, c); err != nil {
-		t.Errorf("Error: %s", err)
-	}
+	assert.NoError(t, act.Update(ctx, c))
+	buf.Reset()
 }

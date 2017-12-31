@@ -36,7 +36,7 @@ func (s *Action) Audit(ctx context.Context, c *cli.Context) error {
 	}
 	list := t.List(0)
 
-	fmt.Printf("Checking %d secrets. This may take some time ...\n", len(list))
+	out.Print(ctx, "Checking %d secrets. This may take some time ...\n", len(list))
 
 	// Secrets that still need auditing.
 	secrets := make(chan string)
