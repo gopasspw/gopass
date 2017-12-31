@@ -77,5 +77,8 @@ func (t *tempfile) Remove(ctx context.Context) error {
 	if err := t.unmount(ctx); err != nil {
 		return errors.Errorf("Failed to unmount %s from %s: %s", t.dev, t.dir, err)
 	}
+	if t.dir == "" {
+		return nil
+	}
 	return os.RemoveAll(t.dir)
 }

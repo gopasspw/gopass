@@ -23,6 +23,7 @@ func TestTempdirBase(t *testing.T) {
 func TestTempFiler(t *testing.T) {
 	ctx := context.Background()
 
+	// regular tempfile
 	tf, err := TempFile(ctx, "gp-test-")
 	if err != nil {
 		t.Fatalf("Error: %s", err)
@@ -34,4 +35,12 @@ func TestTempFiler(t *testing.T) {
 	if _, err := fmt.Fprintf(tf, "foobar"); err != nil {
 		t.Errorf("failed to write: %s", err)
 	}
+
+	// unintialized tempfile
+	utf := tempfile{}
+	assert.Equal(t, utf.Name(), "")
+	_, err = utf.Write([]byte("foo"))
+	assert.Error(t, err)
+	assert.NoError(t, utf.Remove(ctx))
+	assert.NoError(t, utf.Close())
 }
