@@ -1,3 +1,14 @@
+## 1.6.7 / 2017-12-31
+
+* [ENHANCEMENT] Add --sync flag to gopass show [#544]
+* [ENHANCEMENT] Update dependencies [#547]
+* [ENHANCEMENT] Use gocui for terminal UI [#562]
+* [ENHANCEMENT] Increase test coverage [#548] [#549] [#567] [#568] [#570] [#572] [#574] [#575] [#577] [#578] [#583] [#584]
+* [ENHANCEMENT] Add Dockerfile [#561]
+* [ENHANCEMENT] Add zsh and fish completion generator [#565]
+* [ENHANCEMENT] Add go-fuzz instrumentation [#576]
+* [BUGFIX] Catch URL parse errors [#546]
+
 ## 1.6.6 / 2017-12-20
 
 * [FEATURE] Selective Sync [#538]
