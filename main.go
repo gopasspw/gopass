@@ -306,6 +306,12 @@ func main() {
 				Action: func(c *cli.Context) error {
 					return action.CompletionFish(c, app)
 				},
+			}, {
+				Name:  "ksh",
+				Usage: "Source for auto completion in ksh",
+				Action: func(c *cli.Context) error {
+					return action.CompletionKsh(c, app)
+				},
 			}},
 		},
 		{

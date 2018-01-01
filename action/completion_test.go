@@ -62,4 +62,12 @@ func TestComplete(t *testing.T) {
 	if !strings.Contains(out, "action.test") {
 		t.Errorf("should contain name of test")
 	}
+
+	// ksh
+	out = capture(t, func() error {
+		return act.CompletionKsh(nil, app)
+	})
+	if !strings.Contains(out, "complete_gopass") {
+		t.Errorf("should contain name of test")
+	}
 }

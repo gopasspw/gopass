@@ -3,6 +3,7 @@ package action
 import (
 	"fmt"
 	"regexp"
+	"strings"
 
 	fishcomp "github.com/justwatchcom/gopass/utils/completion/fish"
 	zshcomp "github.com/justwatchcom/gopass/utils/completion/zsh"
@@ -31,6 +32,25 @@ func (s *Action) Complete(*cli.Context) {
 	for _, v := range list {
 		fmt.Println(bashEscape(v))
 	}
+}
+
+// CompletionKsh returns an OpenBSD ksh script used for auto completion
+func (s *Action) CompletionKsh(c *cli.Context, a *cli.App) error {
+	out := `
+	PASS_LIST=$(gopass ls -f)
+	set -A complete_gopass -- $PASS_LIST %s
+`
+	var opts []string
+	for _, opt := range a.Commands {
+		opts = append(opts, opt.Name)
+		if len(opt.Aliases) > 0 {
+			opts = append(opts, strings.Join(opt.Aliases, " "))
+		}
+	}
+
+	fmt.Println(fmt.Sprintf(out, strings.Join(opts, " ")))
+
+	return nil
 }
 
 // CompletionBash returns a bash script used for auto completion
