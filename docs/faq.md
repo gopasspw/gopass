@@ -8,6 +8,7 @@
 * *Can I use gopass as an token helper for Vault?* - Yes, there is [a repo](https://github.com/frntn/vault-token-helper-gopass) that provides the necessary scripts and instructions.
 * *Does gopass support re-encryption?* - Adding or removing recipients with `gopass recipients add` or `gopass recipients remove` will automatically re-encrypt all affected secrets.
 * *gopass can automatically import missing recipient keys but can it export them as well?* - When adding a recipient with `gopass recipients add` his public key will automatically exported to the store `.gpg-keys/<ID>`.
+* *gopass fails with 'gpg failed to sign the data fatal: failed to write commit object'* - If git is not able to interface with GPG commits will fail because gopass configures git to sign commits by default. Have a look a [this question](https://stackoverflow.com/questions/39494631/gpg-failed-to-sign-the-data-fatal-failed-to-write-commit-object-git-2-10-0) for more information.
 
 ## API Stability
 
