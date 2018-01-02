@@ -73,5 +73,8 @@ func (k Key) OneLine() string {
 
 // ID returns the short fingerprint
 func (k Key) ID() string {
+	if len(k.Fingerprint) < 25 {
+		return ""
+	}
 	return fmt.Sprintf("0x%s", k.Fingerprint[24:])
 }

@@ -1,6 +1,7 @@
 package gpg
 
 import (
+	"sort"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -15,6 +16,7 @@ func (kl KeyList) Recipients() []string {
 	for _, k := range kl {
 		l = append(l, k.ID())
 	}
+	sort.Strings(l)
 	return l
 }
 
@@ -27,6 +29,7 @@ func (kl KeyList) UseableKeys() KeyList {
 		}
 		nkl = append(nkl, k)
 	}
+	sort.Sort(nkl)
 	return nkl
 }
 
@@ -39,6 +42,7 @@ func (kl KeyList) UnusableKeys() KeyList {
 		}
 		nkl = append(nkl, k)
 	}
+	sort.Sort(nkl)
 	return nkl
 }
 
@@ -53,7 +57,7 @@ func (kl KeyList) FindKey(id string) (Key, error) {
 			return k, nil
 		}
 		for _, ident := range k.Identities {
-			if ident.String() == id {
+			if ident.Name == id {
 				return k, nil
 			}
 			if ident.Email == id {
@@ -67,4 +71,16 @@ func (kl KeyList) FindKey(id string) (Key, error) {
 		}
 	}
 	return Key{}, errors.Errorf("No matching key found")
+}
+
+func (kl KeyList) Len() int {
+	return len(kl)
+}
+
+func (kl KeyList) Less(i, j int) bool {
+	return kl[i].ID() < kl[j].ID()
+}
+
+func (kl KeyList) Swap(i, j int) {
+	kl[i], kl[j] = kl[j], kl[i]
 }
