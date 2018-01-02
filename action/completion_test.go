@@ -64,4 +64,13 @@ func TestComplete(t *testing.T) {
 		t.Errorf("should contain name of test")
 	}
 	assert.Error(t, act.CompletionZSH(nil, nil))
+
+	// openbsdksh
+	out = capture(t, func() error {
+		return act.CompletionOpenBSDKsh(nil, app)
+	})
+	if !strings.Contains(out, "complete_gopass") {
+		t.Errorf("should contain name of test")
+	}
+	assert.Error(t, act.CompletionOpenBSDKsh(nil, nil))
 }

@@ -306,6 +306,12 @@ func main() {
 				Action: func(c *cli.Context) error {
 					return action.CompletionFish(c, app)
 				},
+			}, {
+				Name:  "openbsdksh",
+				Usage: "Source for auto completion in OpenBSD's ksh",
+				Action: func(c *cli.Context) error {
+					return action.CompletionOpenBSDKsh(c, app)
+				},
 			}},
 		},
 		{
