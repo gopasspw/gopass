@@ -26,14 +26,54 @@ func TestFsck(t *testing.T) {
 	act, err := newMock(ctx, td)
 	assert.NoError(t, err)
 
-	app := cli.NewApp()
-	c := cli.NewContext(app, flag.NewFlagSet("default", flag.ContinueOnError), nil)
-
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
 	defer func() {
 		out.Stdout = os.Stdout
 	}()
 
-	assert.NoError(t, act.Fsck(ctx, c))
+	app := cli.NewApp()
+
+	for _, tc := range []struct {
+		name string
+		args map[string]string
+	}{
+		{
+			name: "fsck",
+		},
+		{
+			name: "fsck --check",
+			args: map[string]string{
+				"check": "true",
+			},
+		},
+		{
+			name: "fsck --force",
+			args: map[string]string{
+				"force": "true",
+			},
+		},
+		{
+			name: "fsck --check --force",
+			args: map[string]string{
+				"check": "true",
+				"force": "true",
+			},
+		},
+	} {
+		// fsck
+		fs := flag.NewFlagSet("default", flag.ContinueOnError)
+		args := make([]string, 0, len(tc.args)*2)
+		for an, av := range tc.args {
+			f := cli.BoolFlag{
+				Name:  an,
+				Usage: an,
+			}
+			assert.NoError(t, f.ApplyWithError(fs))
+			args = append(args, "--"+an, av)
+		}
+		assert.NoError(t, fs.Parse(args))
+		c := cli.NewContext(app, fs, nil)
+		assert.NoError(t, act.Fsck(ctx, c))
+	}
 }
