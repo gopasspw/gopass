@@ -44,9 +44,18 @@ func TestEdit(t *testing.T) {
 
 	// edit foo
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
-	if err := fs.Parse([]string{"foo"}); err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, fs.Parse([]string{"foo"}))
+	c = cli.NewContext(app, fs, nil)
+
+	assert.Error(t, act.Edit(ctx, c))
+	buf.Reset()
+
+	// edit bar/foo with template
+	assert.NoError(t, act.Store.SetTemplate(ctx, "bar", []byte("foobar")))
+	buf.Reset()
+
+	fs = flag.NewFlagSet("default", flag.ContinueOnError)
+	assert.NoError(t, fs.Parse([]string{"bar/foo"}))
 	c = cli.NewContext(app, fs, nil)
 
 	assert.Error(t, act.Edit(ctx, c))
@@ -73,4 +82,41 @@ func TestEditor(t *testing.T) {
 	if string(out) != want {
 		t.Errorf("'%s' != '%s'", string(out), want)
 	}
+}
+
+func TestGetEditor(t *testing.T) {
+	app := cli.NewApp()
+
+	// --editor=fooed
+	fs := flag.NewFlagSet("default", flag.ContinueOnError)
+	sf := cli.StringFlag{
+		Name:  "editor",
+		Usage: "editor",
+	}
+	assert.NoError(t, sf.ApplyWithError(fs))
+	if err := fs.Parse([]string{"--editor", "fooed"}); err != nil {
+		t.Fatalf("Error: %s", err)
+	}
+	c := cli.NewContext(app, fs, nil)
+
+	assert.Equal(t, "fooed", getEditor(c))
+
+	// EDITOR
+	fs = flag.NewFlagSet("default", flag.ContinueOnError)
+	c = cli.NewContext(app, fs, nil)
+	assert.NoError(t, os.Setenv("EDITOR", "fooenv"))
+	assert.Equal(t, "fooenv", getEditor(c))
+	assert.NoError(t, os.Unsetenv("EDITOR"))
+
+	// editor
+	pathed, err := exec.LookPath("editor")
+	if err == nil {
+		assert.Equal(t, pathed, getEditor(c))
+	}
+
+	// vi
+	op := os.Getenv("PATH")
+	assert.NoError(t, os.Setenv("PATH", "/tmp"))
+	assert.Equal(t, "vi", getEditor(c))
+	assert.NoError(t, os.Setenv("PATH", op))
 }

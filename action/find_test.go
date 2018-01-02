@@ -9,6 +9,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/justwatchcom/gopass/store/secret"
+	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/stretchr/testify/assert"
 	"github.com/urfave/cli"
@@ -22,6 +24,7 @@ func TestFind(t *testing.T) {
 	}()
 
 	ctx := context.Background()
+	ctx = ctxutil.WithTerminal(ctx, false)
 	act, err := newMock(ctx, td)
 	assert.NoError(t, err)
 
@@ -58,11 +61,26 @@ func TestFind(t *testing.T) {
 
 	// find yo
 	fs = flag.NewFlagSet("default", flag.ContinueOnError)
-	if err := fs.Parse([]string{"yo"}); err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, fs.Parse([]string{"yo"}))
 	c = cli.NewContext(app, fs, nil)
 
 	assert.Error(t, act.Find(ctx, c))
+	buf.Reset()
+
+	// add some secrets
+	assert.NoError(t, act.Store.Set(ctx, "bar/baz", secret.New("foo", "bar")))
+	assert.NoError(t, act.Store.Set(ctx, "bar/zab", secret.New("foo", "bar")))
+
+	// find bar
+	fs = flag.NewFlagSet("default", flag.ContinueOnError)
+	assert.NoError(t, fs.Parse([]string{"bar"}))
+	c = cli.NewContext(app, fs, nil)
+
+	out = capture(t, func() error {
+		return act.Find(ctx, c)
+	})
+	out = strings.TrimSpace(out)
+	want = "bar/baz\nbar/zab"
+	assert.Equal(t, want, out)
 	buf.Reset()
 }

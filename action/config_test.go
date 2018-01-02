@@ -122,4 +122,10 @@ path
 safecontent
 usesymbols`
 	assert.Equal(t, want, out)
+
+	// config autoimport false 42
+	fs = flag.NewFlagSet("default", flag.ContinueOnError)
+	assert.NoError(t, fs.Parse([]string{"autoimport", "false", "42"}))
+	c = cli.NewContext(app, fs, nil)
+	assert.Error(t, act.Config(ctx, c))
 }

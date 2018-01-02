@@ -54,6 +54,7 @@ func TestComplete(t *testing.T) {
 	if !strings.Contains(out, "action.test") {
 		t.Errorf("should contain name of test")
 	}
+	assert.Error(t, act.CompletionFish(nil, nil))
 
 	// zsh
 	out = capture(t, func() error {
@@ -62,4 +63,5 @@ func TestComplete(t *testing.T) {
 	if !strings.Contains(out, "action.test") {
 		t.Errorf("should contain name of test")
 	}
+	assert.Error(t, act.CompletionZSH(nil, nil))
 }

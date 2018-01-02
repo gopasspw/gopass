@@ -56,11 +56,24 @@ func TestDelete(t *testing.T) {
 	// delete foo bar
 	assert.NoError(t, act.Store.Set(ctx, "foo", secret.New("123", "---\nbar: zab")))
 	fs = flag.NewFlagSet("default", flag.ContinueOnError)
-	if err := fs.Parse([]string{"foo", "bar"}); err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, fs.Parse([]string{"foo", "bar"}))
 	c = cli.NewContext(app, fs, nil)
 
 	assert.NoError(t, act.Delete(ctx, c))
 	buf.Reset()
+
+	// delete -r foo
+	assert.NoError(t, act.Store.Set(ctx, "foo", secret.New("123", "---\nbar: zab")))
+	fs = flag.NewFlagSet("default", flag.ContinueOnError)
+	sf := cli.BoolFlag{
+		Name:  "recursive",
+		Usage: "recursive",
+	}
+	assert.NoError(t, sf.ApplyWithError(fs))
+	assert.NoError(t, fs.Parse([]string{"--recursive=true", "foo"}))
+	c = cli.NewContext(app, fs, nil)
+
+	assert.NoError(t, act.Delete(ctx, c))
+	buf.Reset()
+
 }

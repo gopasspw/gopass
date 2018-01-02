@@ -50,9 +50,7 @@ func TestList(t *testing.T) {
 	// add foo/bar and list folder foo
 	assert.NoError(t, act.Store.Set(ctx, "foo/bar", secret.New("123", "---\nbar: zab")))
 	fs = flag.NewFlagSet("default", flag.ContinueOnError)
-	if err := fs.Parse([]string{"foo"}); err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, fs.Parse([]string{"foo"}))
 	c = cli.NewContext(app, fs, nil)
 
 	out = capture(t, func() error {
@@ -64,5 +62,22 @@ func TestList(t *testing.T) {
 		t.Errorf("'%s' != '%s'", out, want)
 		t.Logf("Out: %s", buf.String())
 	}
+	buf.Reset()
+
+	// list --flat foo
+	fs = flag.NewFlagSet("default", flag.ContinueOnError)
+	bf := cli.BoolFlag{
+		Name:  "flat",
+		Usage: "flat",
+	}
+	assert.NoError(t, bf.ApplyWithError(fs))
+	assert.NoError(t, fs.Parse([]string{"--flat=true", "foo"}))
+	c = cli.NewContext(app, fs, nil)
+
+	out = capture(t, func() error {
+		return act.List(ctx, c)
+	})
+	want = `foo/bar`
+	assert.Equal(t, want, out)
 	buf.Reset()
 }

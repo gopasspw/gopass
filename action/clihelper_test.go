@@ -227,3 +227,19 @@ func TestAskForGitConfigUserNonInteractive(t *testing.T) {
 		assert.Equal(t, "", email)
 	}
 }
+
+func TestPrompPass(t *testing.T) {
+	td, err := ioutil.TempDir("", "gopass-")
+	assert.NoError(t, err)
+	defer func() {
+		_ = os.RemoveAll(td)
+	}()
+
+	ctx := context.Background()
+	act, err := newMock(ctx, td)
+	assert.NoError(t, err)
+
+	ctx = ctxutil.WithTerminal(ctx, false)
+	_, err = act.promptPass(ctx, "foo")
+	assert.NoError(t, err)
+}
