@@ -26,22 +26,40 @@ func TestShow(t *testing.T) {
 	act, err := newMock(ctx, td)
 	assert.NoError(t, err)
 
-	app := cli.NewApp()
-	fs := flag.NewFlagSet("default", flag.ContinueOnError)
-	if err := fs.Parse([]string{"foo"}); err != nil {
-		t.Fatalf("Error: %s", err)
-	}
-	c := cli.NewContext(app, fs, nil)
-
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
 	defer func() {
 		out.Stdout = os.Stdout
 	}()
 
+	app := cli.NewApp()
+
+	// show foo
+	fs := flag.NewFlagSet("default", flag.ContinueOnError)
+	assert.NoError(t, fs.Parse([]string{"foo"}))
+	c := cli.NewContext(app, fs, nil)
+
 	out := capture(t, func() error {
 		return act.Show(ctx, c)
 	})
 	want := "0xDEADBEEF"
 	assert.Equal(t, out, want)
+	buf.Reset()
+
+	// show --sync foo
+	fs = flag.NewFlagSet("default", flag.ContinueOnError)
+	bf := cli.BoolFlag{
+		Name:  "sync",
+		Usage: "sync",
+	}
+	assert.NoError(t, bf.ApplyWithError(fs))
+	assert.NoError(t, fs.Parse([]string{"--sync", "foo"}))
+	c = cli.NewContext(app, fs, nil)
+
+	out = capture(t, func() error {
+		return act.Show(ctx, c)
+	})
+	want = "0xDEADBEEF"
+	assert.Equal(t, out, want)
+	buf.Reset()
 }

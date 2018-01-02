@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	git "github.com/justwatchcom/gopass/backend/git/cli"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/stretchr/testify/assert"
@@ -24,6 +25,8 @@ func TestClone(t *testing.T) {
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
+	ctx = ctxutil.WithInteractive(ctx, false)
+
 	act, err := newMock(ctx, td)
 	assert.NoError(t, err)
 
@@ -42,4 +45,15 @@ func TestClone(t *testing.T) {
 
 	// clone to initialized store
 	assert.Error(t, act.clone(ctx, "/tmp/non-existing-repo.git", "", filepath.Join(td, "store")))
+
+	t.Skip("flaky")
+
+	// clone to mount
+	gd := filepath.Join(td, "other-repo")
+	assert.NoError(t, os.MkdirAll(gd, 0700))
+	gr := git.New(gd, "")
+	idf := filepath.Join(gd, ".gpg-id")
+	assert.NoError(t, ioutil.WriteFile(idf, []byte("0xDEADBEEF"), 0600))
+	assert.NoError(t, gr.Init(ctx, "", "", ""))
+	assert.NoError(t, act.clone(ctx, gd, "gd", filepath.Join(td, "mount")))
 }

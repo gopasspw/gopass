@@ -6,6 +6,7 @@ import (
 	"flag"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/gokyle/twofactor"
@@ -48,13 +49,26 @@ func TestOTP(t *testing.T) {
 
 	// create and display valid OTP
 	fs = flag.NewFlagSet("default", flag.ContinueOnError)
-	if err := fs.Parse([]string{"bar"}); err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, fs.Parse([]string{"bar"}))
 	c = cli.NewContext(app, fs, nil)
 
 	assert.NoError(t, act.Store.Set(ctx, "bar", secret.New("foo", twofactor.GenerateGoogleTOTP().URL("foo"))))
 
 	assert.NoError(t, act.OTP(ctx, c))
+	buf.Reset()
+
+	// write QR file
+	fs = flag.NewFlagSet("default", flag.ContinueOnError)
+	sf := cli.StringFlag{
+		Name:  "qr",
+		Usage: "qr",
+	}
+	assert.NoError(t, sf.ApplyWithError(fs))
+	fn := filepath.Join(td, "qr.png")
+	assert.NoError(t, fs.Parse([]string{"--qr=" + fn, "bar"}))
+	c = cli.NewContext(app, fs, nil)
+
+	assert.NoError(t, act.OTP(ctx, c))
+	assert.FileExists(t, fn)
 	buf.Reset()
 }
