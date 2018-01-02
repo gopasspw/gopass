@@ -307,10 +307,10 @@ func main() {
 					return action.CompletionFish(c, app)
 				},
 			}, {
-				Name:  "ksh",
-				Usage: "Source for auto completion in ksh",
+				Name:  "openbsdksh",
+				Usage: "Source for auto completion in OpenBSD's ksh",
 				Action: func(c *cli.Context) error {
-					return action.CompletionKsh(c, app)
+					return action.CompletionOpenBSDKsh(c, app)
 				},
 			}},
 		},

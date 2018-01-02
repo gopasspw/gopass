@@ -34,8 +34,8 @@ func (s *Action) Complete(*cli.Context) {
 	}
 }
 
-// CompletionKsh returns an OpenBSD ksh script used for auto completion
-func (s *Action) CompletionKsh(c *cli.Context, a *cli.App) error {
+// CompletionOpenBSDKsh returns an OpenBSD ksh script used for auto completion
+func (s *Action) CompletionOpenBSDKsh(c *cli.Context, a *cli.App) error {
 	out := `
 PASS_LIST=$(gopass ls -f)
 set -A complete_gopass -- $PASS_LIST %s
