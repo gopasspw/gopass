@@ -3,6 +3,7 @@ package action
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strconv"
 
 	"github.com/fatih/color"
@@ -20,15 +21,14 @@ const (
 	defaultXKCDLength = 4
 )
 
+var (
+	reNumber = regexp.MustCompile(`^\d+$`)
+)
+
 // Generate & save a password
 func (s *Action) Generate(ctx context.Context, c *cli.Context) error {
 	force := c.Bool("force")
 	edit := c.Bool("edit")
-
-	// warn about depreated "no-symbols" flag
-	if c.IsSet("no-symbols") {
-		out.Red(ctx, "Warning: -n/--no-symbols is deprecated. This is now the default. Use -s to enable symbols. You can also set 'usesymbols' to true via gopass config.")
-	}
 
 	name := c.Args().Get(0)
 	key, length := keyAndLength(c)
@@ -55,7 +55,7 @@ func (s *Action) Generate(ctx context.Context, c *cli.Context) error {
 		return err
 	}
 
-	// write generated password to stroe
+	// write generated password to store
 	if err := s.generateSetPassword(ctx, name, key, password); err != nil {
 		return err
 	}
@@ -79,7 +79,7 @@ func keyAndLength(c *cli.Context) (string, string) {
 	// one - the desired length for the "master" secret itself
 	// two - the key in a YAML doc and the length for a secret generated for this
 	// key only
-	if length == "" && key != "" {
+	if length == "" && key != "" && reNumber.MatchString(key) {
 		length = key
 		key = ""
 	}
@@ -92,8 +92,9 @@ func (s *Action) generateCopyOrPrint(ctx context.Context, c *cli.Context, name, 
 		if key != "" {
 			key = " " + key
 		}
-		fmt.Printf(
-			"The generated password for %s%s is:\n%s\n", name, key,
+		out.Print(
+			ctx,
+			"The generated password for %s%s is:\n%s", name, key,
 			color.YellowString(password),
 		)
 		return nil
@@ -157,7 +158,7 @@ func (s *Action) generatePasswordXKCD(ctx context.Context, c *cli.Context, lengt
 	} else {
 		iv, err := strconv.Atoi(length)
 		if err != nil {
-			return "", exitError(ctx, ExitUsage, err, "password length must be a number")
+			return "", exitError(ctx, ExitUsage, err, "password length must be a number: %s", err)
 		}
 		pwlen = iv
 	}

@@ -10,6 +10,7 @@ import (
 	gpgmock "github.com/justwatchcom/gopass/backend/gpg/mock"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/out"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestGit(t *testing.T) {
@@ -33,7 +34,7 @@ func TestGit(t *testing.T) {
 	gpg := gpgmock.New()
 	git := New(td, gpg.Binary())
 
-	if err := git.Init(ctx, "0xDEADBEEF", "Dead Beef", "dead.beef@example.org"); err != nil {
-		t.Errorf("Error: %s", err)
-	}
+	assert.NoError(t, git.Init(ctx, "0xDEADBEEF", "Dead Beef", "dead.beef@example.org"))
+	sv := git.Version(ctx)
+	t.Logf("Version: %s", sv.String())
 }

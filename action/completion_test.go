@@ -54,6 +54,7 @@ func TestComplete(t *testing.T) {
 	if !strings.Contains(out, "action.test") {
 		t.Errorf("should contain name of test")
 	}
+	assert.Error(t, act.CompletionFish(nil, nil))
 
 	// zsh
 	out = capture(t, func() error {
@@ -62,6 +63,7 @@ func TestComplete(t *testing.T) {
 	if !strings.Contains(out, "action.test") {
 		t.Errorf("should contain name of test")
 	}
+	assert.Error(t, act.CompletionZSH(nil, nil))
 
 	// openbsdksh
 	out = capture(t, func() error {
@@ -70,4 +72,5 @@ func TestComplete(t *testing.T) {
 	if !strings.Contains(out, "complete_gopass") {
 		t.Errorf("should contain name of test")
 	}
+	assert.Error(t, act.CompletionOpenBSDKsh(nil, nil))
 }

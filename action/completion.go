@@ -40,6 +40,11 @@ func (s *Action) CompletionOpenBSDKsh(c *cli.Context, a *cli.App) error {
 PASS_LIST=$(gopass ls -f)
 set -A complete_gopass -- $PASS_LIST %s
 `
+
+	if a == nil {
+		return nil
+	}
+
 	var opts []string
 	for _, opt := range a.Commands {
 		opts = append(opts, opt.Name)
