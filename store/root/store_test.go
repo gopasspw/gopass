@@ -196,6 +196,40 @@ func allPathsToSlash(paths []string) []string {
 	return r
 }
 
+func createRootStore(ctx context.Context, dir string) (*Store, error) {
+	sd := filepath.Join(dir, "root")
+	_, _, err := createStore(sd)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := os.Setenv("GOPASS_CONFIG", filepath.Join(dir, ".gopass.yml")); err != nil {
+		return nil, err
+	}
+	if err := os.Setenv("GOPASS_HOMEDIR", dir); err != nil {
+		return nil, err
+	}
+	if err := os.Unsetenv("PAGER"); err != nil {
+		return nil, err
+	}
+	if err := os.Setenv("CHECKPOINT_DISABLE", "true"); err != nil {
+		return nil, err
+	}
+	if err := os.Setenv("GOPASS_NO_NOTIFY", "true"); err != nil {
+		return nil, err
+	}
+
+	return New(
+		ctx,
+		&config.Config{
+			Root: &config.StoreConfig{
+				Path: sd,
+			},
+		},
+		gpgmock.New(),
+	)
+}
+
 func createStore(dir string) ([]string, []string, error) {
 	recipients := []string{
 		"0xDEADBEEF",

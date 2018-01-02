@@ -4,6 +4,8 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestHomedir(t *testing.T) {
@@ -13,9 +15,7 @@ func TestHomedir(t *testing.T) {
 }
 
 func TestNewConfig(t *testing.T) {
-	if err := os.Setenv("GOPASS_CONFIG", filepath.Join(os.TempDir(), ".gopass.yml")); err != nil {
-		t.Fatalf("Failed to set GOPASS_CONFIG: %s", err)
-	}
+	assert.NoError(t, os.Setenv("GOPASS_CONFIG", filepath.Join(os.TempDir(), ".gopass.yml")))
 
 	cfg := New()
 	if cfg.Root.AskForMore {
