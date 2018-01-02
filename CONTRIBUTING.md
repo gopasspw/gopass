@@ -21,20 +21,6 @@ Please check the [`help-wanted`](https://github.com/justwatchcom/gopass/issues?q
 If you have questions about one of the issues please comment on them and one of the maintainers
 will try to clarify it.
 
-For quickly compiling and testing your changes do:
-```
-go build
-./gopass
-
-# run unit and meta tests
-make test
-
-# run integration tests
-make test-integration
-```
-
-if you are having trouble building check out troubleshooting area below.
-
 
 ## Pull Request Checklist
 
@@ -48,37 +34,48 @@ if you are having trouble building check out troubleshooting area below.
 * Add tests relevant to the fixed bug or new feature.
 
 
-## Troubleshooting build
+## Building & Testing
 
-### docker approach
-you can build in a docker container by going to root dir of gopass project and:
+* Build via `go build` to create the binary file `./gopass`.
+* Unit and Meta tests: `make test`
+* Integration tests `make test-integration`
+
+If any of the above don't work check out [troubleshooting section](#troubleshooting-build).
+
+
+## Troubleshooting
+
+### Docker Approach
+
+Building and testing commands can be run in a docker container.  
+cd to the root dir of your gopass checkout and run:
 ```
 docker run --rm -v "$PWD":/go/src/github.com/justwatchcom/gopass -w /go/src/github.com/justwatchcom/gopass golang:stretch go build -v
 ```
 
-replace `go build -v` in above command with `make test` or anything else you'd like to run inside docker.
+Replace `go build -v` in the above command with `make test` or any other command you'd like to run inside the docker container.
 
-you can also get an interactive shell inside the container via:
+You can also run an interactive shell inside the container via:
 ```
 docker run -it -v "$PWD":/go/src/github.com/justwatchcom/gopass -w /go/src/github.com/justwatchcom/gopass golang:stretch bash
 ```
-in which you can run `go build`, `make test` or whatever you'd like
 
-### non-docker
+### Setup of Local Env
 
-make sure $GOPATH and $GOROOT are set correctly.
-$GOROOT should be the go dir where VERSION file is, and which has bin/ pkg/ and src/ as sub dirs.
-$GOPATH is roughly where your go projects src code is.
-`go env` will show you the current dirs used.
+- `go env` shows helpful info about the current env setup for go.
+- See https://github.com/golang/go/wiki/GOPATH for more info on setting `$GOPATH` and `$GOROOT` env vars.
 
-heres a quick start:
-- `mkdir $HOME/go-workspace`
-- `export GOPATH=$HOME/go-workspace`
+Quick Start:
+- `mkdir $HOME/go`
+- `export GOPATH=$HOME/go`
 - `mkdir $GOPATH/src`
-- `mkdir -p $GOPATH/src/github.com/justwatchcom/`
-- clone gopath project the the above dir (so its in $GOPATH/src/github.com/justwatchcom/golang)
-- making sure $GOROOT points to /usr/local/opt/go/libexec/ (installed golang via brew)
-- then you should be able to cd into the gopass dir and sucesfully run `go build -v`
+- `go get -u github.com/justwatchcom/gopass`
+- Set `$GOROOT` depending on your os and goland installation method:
+  - Mac & golang installed via brew: `export GOROOT=/usr/local/opt/go/libexec/`
+  - Linux: `contribute here please`
+- Now you should be able to build from the gopass dir:
+  - `cd $GOPATH/src/github.com/justwatchcom/`
+  - `go build -v`
 
 
 
