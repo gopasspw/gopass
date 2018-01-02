@@ -37,19 +37,20 @@ will try to clarify it.
 ## Building & Testing
 
 * Build via `go build` to create the binary file `./gopass`.
-* Unit and Meta tests: `make test`
-* Integration tests `make test-integration`
+* Run unit tests with: `make test`
+* Run meta tests with: `make codequality`
+* Run integration tests `make test-integration`
 
-If any of the above don't work check out [troubleshooting section](#troubleshooting-build).
-
+If any of the above don't work check out the [troubleshooting section](#troubleshooting-build).
 
 ## Troubleshooting
 
 ### Docker Approach
 
 Building and testing commands can be run in a docker container.  
-cd to the root dir of your gopass checkout and run:
+Change to the directory of your gopass checkout and run:
 ```
+cd $GOPATH/src/github.com/justwatchcom/gopass
 docker run --rm -v "$PWD":/go/src/github.com/justwatchcom/gopass -w /go/src/github.com/justwatchcom/gopass golang:stretch go build -v
 ```
 
@@ -60,19 +61,17 @@ You can also run an interactive shell inside the container via:
 docker run -it -v "$PWD":/go/src/github.com/justwatchcom/gopass -w /go/src/github.com/justwatchcom/gopass golang:stretch bash
 ```
 
-### Setup of Local Env
+### Setup of your local environment
 
 - `go env` shows helpful info about the current env setup for go.
 - See https://github.com/golang/go/wiki/GOPATH for more info on setting `$GOPATH` and `$GOROOT` env vars.
 
 Quick Start:
-- `mkdir $HOME/go`
+- `mkdir -p $HOME/go/src`
 - `export GOPATH=$HOME/go`
-- `mkdir $GOPATH/src`
 - `go get -u github.com/justwatchcom/gopass`
-- Set `$GOROOT` depending on your os and goland installation method:
-  - Mac & golang installed via brew: `export GOROOT=/usr/local/opt/go/libexec/`
-  - Linux: `contribute here please`
+- Set `$GOROOT` depending on your OS and Go installation method:
+  - MacOS, Go installed via brew: `export GOROOT=/usr/local/opt/go/libexec/`
 - Now you should be able to build from the gopass dir:
   - `cd $GOPATH/src/github.com/justwatchcom/`
   - `go build -v`

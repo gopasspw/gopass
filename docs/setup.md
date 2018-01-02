@@ -85,6 +85,22 @@ Now, you have created a public and private key pair. If you don't know what that
 * ["git + gpg, know thy commits" at coderwall](https://coderwall.com/p/d3uo3w/git-gpg-know-thy-commits)
 * ["Generating a new GPG key" by GitHub](https://help.github.com/articles/generating-a-new-gpg-key/)
 
+### Git and GPG
+
+gopass will configure git to sign commits by default, so you should make sure that git can
+interface with GPG.
+
+```bash
+mkdir some-dir
+cd some-dir
+git init
+touch foo
+git add foo
+git commit -S -m "test"
+```
+
+If the last step fails please investigate this before continuing.
+
 ## Installation Steps
 
 Depending on your operating system, you can either use a package manager, download a pre-built binary, or install from source. If you have a working Go development environment, we recommend building from source.
