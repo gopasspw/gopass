@@ -6,6 +6,9 @@ import (
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/urfave/cli"
 )
 
 func TestBashEscape(t *testing.T) {
@@ -17,18 +20,16 @@ func TestBashEscape(t *testing.T) {
 
 func TestComplete(t *testing.T) {
 	td, err := ioutil.TempDir("", "gopass-")
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(td)
 	}()
 
 	ctx := context.Background()
 	act, err := newMock(ctx, td)
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, err)
+
+	app := cli.NewApp()
 
 	out := capture(t, func() error {
 		act.Complete(nil)
@@ -38,6 +39,7 @@ func TestComplete(t *testing.T) {
 		t.Errorf("should return 'foo' not '%s'", out)
 	}
 
+	// bash
 	out = capture(t, func() error {
 		return act.CompletionBash(nil)
 	})
@@ -45,8 +47,17 @@ func TestComplete(t *testing.T) {
 		t.Errorf("should contain name of test")
 	}
 
+	// fish
 	out = capture(t, func() error {
-		return act.CompletionZSH(nil)
+		return act.CompletionFish(nil, app)
+	})
+	if !strings.Contains(out, "action.test") {
+		t.Errorf("should contain name of test")
+	}
+
+	// zsh
+	out = capture(t, func() error {
+		return act.CompletionZSH(nil, app)
 	})
 	if !strings.Contains(out, "action.test") {
 		t.Errorf("should contain name of test")

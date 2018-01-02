@@ -120,7 +120,12 @@ func (s *Store) GetTemplate(name string) ([]byte, error) {
 
 // SetTemplate will (over)write the content to the template file
 func (s *Store) SetTemplate(name string, content []byte) error {
-	return ioutil.WriteFile(s.templatefile(name), content, 0600)
+	tplFile := s.templatefile(name)
+	tplDir := filepath.Dir(tplFile)
+	if err := os.MkdirAll(tplDir, 0700); err != nil {
+		return err
+	}
+	return ioutil.WriteFile(tplFile, content, 0600)
 }
 
 // RemoveTemplate will delete the named template if it exists

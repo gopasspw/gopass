@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"path"
@@ -75,18 +76,25 @@ func (s *Action) Update(ctx context.Context, c *cli.Context) error {
 		if p[len(p)-1] != runtime.GOARCH {
 			continue
 		}
-		out.Debug(ctx, "URL: %s", asset.URL)
-		out.Green(ctx, "Update available!")
-		ok, err := s.askForBool(ctx, fmt.Sprintf("Do you want to update gopass to %s?", r.Version().String()), true)
-		if err != nil {
-			return err
+		if asset.URL == "" {
+			continue
 		}
-		if !ok {
-			return nil
-		}
-		return s.updateGopass(ctx, r.Version().String(), asset.URL)
+		return s.updateTo(ctx, r.Version().String(), asset.URL)
 	}
 	return errors.New("no supported binary found")
+}
+
+func (s *Action) updateTo(ctx context.Context, version, url string) error {
+	out.Debug(ctx, "URL: %s", url)
+	out.Green(ctx, "Update available!")
+	ok, err := s.askForBool(ctx, fmt.Sprintf("Do you want to update gopass to %s?", version), true)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return nil
+	}
+	return s.updateGopass(ctx, version, url)
 }
 
 func (s *Action) extract(ctx context.Context, archive, dest string) error {
@@ -167,6 +175,14 @@ func (s *Action) download(ctx context.Context, dest, url string) error {
 				},
 			},
 		}
+		if out.IsHidden(ctx) {
+			old := goprogressbar.Stdout
+			goprogressbar.Stdout = ioutil.Discard
+			defer func() {
+				goprogressbar.Stdout = old
+			}()
+		}
+
 	} else {
 		body = resp.Body
 	}

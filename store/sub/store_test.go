@@ -6,6 +6,10 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"testing"
+
+	gpgmock "github.com/justwatchcom/gopass/backend/gpg/mock"
+	"github.com/stretchr/testify/assert"
 )
 
 func createStore(dir string, recipients, entries []string) ([]string, []string, error) {
@@ -33,4 +37,27 @@ func createStore(dir string, recipients, entries []string) ([]string, []string, 
 	}
 	err := ioutil.WriteFile(filepath.Join(dir, GPGID), []byte(strings.Join(recipients, "\n")), 0600)
 	return recipients, entries, err
+}
+
+func TestStore(t *testing.T) {
+	tempdir, err := ioutil.TempDir("", "gopass-")
+	if err != nil {
+		t.Fatalf("Failed to create tempdir: %s", err)
+	}
+	defer func() {
+		_ = os.RemoveAll(tempdir)
+	}()
+
+	_, _, err = createStore(tempdir, nil, nil)
+	assert.NoError(t, err)
+
+	s := New(
+		"",
+		tempdir,
+		gpgmock.New(),
+	)
+
+	if !s.Equals(s) {
+		t.Errorf("Should be equal to myself")
+	}
 }

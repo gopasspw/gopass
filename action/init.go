@@ -8,9 +8,9 @@ import (
 	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/config"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
+	"github.com/justwatchcom/gopass/utils/cui"
 	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/justwatchcom/gopass/utils/pwgen/xkcdgen"
-	"github.com/justwatchcom/gopass/utils/termwiz"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"
 )
@@ -147,7 +147,7 @@ func (s *Action) InitOnboarding(ctx context.Context, c *cli.Context) error {
 		"Create a Team",
 		"Join an existing Team",
 	}
-	act, sel := termwiz.GetSelection(ctx, "Select action", "<↑/↓> to change the selection, <→> to select, <ESC> to quit", choices)
+	act, sel := cui.GetSelection(ctx, "Select action", "<↑/↓> to change the selection, <→> to select, <ESC> to quit", choices)
 	switch act {
 	case "default":
 		fallthrough

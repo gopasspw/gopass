@@ -19,20 +19,23 @@ func (s *Action) Insert(ctx context.Context, c *cli.Context) error {
 	echo := c.Bool("echo")
 	multiline := c.Bool("multiline")
 	force := c.Bool("force")
+	name := c.Args().Get(0)
+	key := c.Args().Get(1)
 
+	if name == "" {
+		return exitError(ctx, ExitNoName, nil, "Usage: %s insert name", s.Name)
+	}
+
+	return s.insert(ctx, c, name, key, echo, multiline, force)
+}
+
+func (s *Action) insert(ctx context.Context, c *cli.Context, name, key string, echo, multiline, force bool) error {
 	// if force mode is requested we mock the recipient func to just return anything that goes in
 	if force {
 		ctx = sub.WithRecipientFunc(ctx, func(ctx context.Context, msg string, rs []string) ([]string, error) {
 			return rs, nil
 		})
 	}
-
-	name := c.Args().Get(0)
-	if name == "" {
-		return exitError(ctx, ExitNoName, nil, "Usage: %s insert name", s.Name)
-	}
-
-	key := c.Args().Get(1)
 
 	var content []byte
 

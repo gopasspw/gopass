@@ -10,14 +10,13 @@ import (
 
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/out"
+	"github.com/stretchr/testify/assert"
 	"github.com/urfave/cli"
 )
 
 func TestInsert(t *testing.T) {
 	td, err := ioutil.TempDir("", "gopass-")
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(td)
 	}()
@@ -25,16 +24,7 @@ func TestInsert(t *testing.T) {
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	act, err := newMock(ctx, td)
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
-
-	app := cli.NewApp()
-	fs := flag.NewFlagSet("default", flag.ContinueOnError)
-	if err := fs.Parse([]string{"bar"}); err != nil {
-		t.Fatalf("Error: %s", err)
-	}
-	c := cli.NewContext(app, fs, nil)
+	assert.NoError(t, err)
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
@@ -42,7 +32,20 @@ func TestInsert(t *testing.T) {
 		out.Stdout = os.Stdout
 	}()
 
-	if err := act.Insert(ctx, c); err != nil {
-		t.Errorf("Error: %s", err)
+	app := cli.NewApp()
+
+	// insert bar
+	fs := flag.NewFlagSet("default", flag.ContinueOnError)
+	if err := fs.Parse([]string{"bar"}); err != nil {
+		t.Fatalf("Error: %s", err)
 	}
+	c := cli.NewContext(app, fs, nil)
+
+	assert.NoError(t, act.Insert(ctx, c))
+
+	// insert baz via stdin
+	assert.NoError(t, act.insertStdin(ctx, "baz", []byte("foobar")))
+
+	// insert zab#key
+	assert.NoError(t, act.insertYAML(ctx, "zab", "key", []byte("foobar")))
 }

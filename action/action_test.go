@@ -11,9 +11,11 @@ import (
 	"testing"
 
 	"github.com/blang/semver"
+	"github.com/fatih/color"
 	"github.com/google/go-cmp/cmp"
 	gpgmock "github.com/justwatchcom/gopass/backend/gpg/mock"
 	"github.com/justwatchcom/gopass/config"
+	"github.com/stretchr/testify/assert"
 )
 
 func newMock(ctx context.Context, dir string) (*Action, error) {
@@ -51,7 +53,12 @@ func newMock(ctx context.Context, dir string) (*Action, error) {
 }
 
 func capture(t *testing.T, fn func() error) string {
+	t.Helper()
 	old := os.Stdout
+
+	oldcol := color.NoColor
+	color.NoColor = true
+
 	r, w, _ := os.Pipe()
 	os.Stdout = w
 
@@ -66,6 +73,7 @@ func capture(t *testing.T, fn func() error) string {
 	// back to normal
 	_ = w.Close()
 	os.Stdout = old
+	color.NoColor = oldcol
 	if err != nil {
 		t.Errorf("Error: %s", err)
 	}
@@ -75,25 +83,50 @@ func capture(t *testing.T, fn func() error) string {
 
 func TestAction(t *testing.T) {
 	td, err := ioutil.TempDir("", "gopass-")
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(td)
 	}()
 
 	ctx := context.Background()
 	act, err := newMock(ctx, td)
-	if err != nil {
-		t.Fatalf("Error: %s", err)
+	assert.NoError(t, err)
+
+	if an := act.Name; an != "action.test" {
+		t.Errorf("Wrong binary name: '%s' != '%s'", an, "action.test")
 	}
 
-	if as := act.String(); as != "Store(Path: "+filepath.Join(td, "store")+", Mounts: )" {
-		t.Errorf("act.String(): %s", as)
+	want := filepath.Join(td, "store")
+	if as := act.String(); !strings.Contains(as, want) {
+		t.Errorf("act.String(): '%s' != '%s'", want, as)
 	}
 	if !act.HasGPG() {
 		t.Errorf("no gpg")
 	}
+	if lm := len(act.Store.Mounts()); lm != 0 {
+		t.Errorf("Too many mounts: %d", lm)
+	}
+}
+
+func TestNew(t *testing.T) {
+	td, err := ioutil.TempDir("", "gopass-")
+	assert.NoError(t, err)
+	defer func() {
+		_ = os.RemoveAll(td)
+	}()
+
+	ctx := context.Background()
+
+	cfg := config.New()
+	sv := semver.Version{}
+
+	_, err = New(ctx, cfg, sv)
+	assert.Error(t, err)
+
+	cfg.Root.Path = filepath.Join(td, "store")
+	act, err := New(ctx, cfg, sv)
+	assert.NoError(t, err)
+	t.Logf("Action: %+v", act)
 }
 
 func TestUmask(t *testing.T) {

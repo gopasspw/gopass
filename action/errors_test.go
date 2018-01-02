@@ -10,6 +10,7 @@ import (
 
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/out"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestExitError(t *testing.T) {
@@ -18,10 +19,7 @@ func TestExitError(t *testing.T) {
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
 
-	err := exitError(ctx, ExitUnknown, fmt.Errorf("test"), "test")
-	if err == nil {
-		t.Errorf("Should fail")
-	}
+	assert.Error(t, exitError(ctx, ExitUnknown, fmt.Errorf("test"), "test"))
 	sv := buf.String()
 	if !strings.Contains(sv, "Stacktrace") {
 		t.Errorf("Should contain an stacktrace")

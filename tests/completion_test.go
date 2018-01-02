@@ -31,12 +31,11 @@ complete -F _gopass_bash_autocomplete gopass`
 	assert.NoError(t, err)
 	assert.Equal(t, bash, out)
 
-	zsh := `autoload -U compinit && compinit
-autoload -U bashcompinit && bashcompinit
-
-source <(gopass completion bash)`
-
 	out, err = ts.run("completion zsh")
 	assert.NoError(t, err)
-	assert.Equal(t, zsh, out)
+	assert.Contains(t, out, "compdef gopass")
+
+	out, err = ts.run("completion fish")
+	assert.NoError(t, err)
+	assert.Contains(t, out, "complete")
 }

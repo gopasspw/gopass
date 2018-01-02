@@ -10,14 +10,13 @@ import (
 
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/out"
+	"github.com/stretchr/testify/assert"
 	"github.com/urfave/cli"
 )
 
 func TestShow(t *testing.T) {
 	td, err := ioutil.TempDir("", "gopass-")
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(td)
 	}()
@@ -25,9 +24,7 @@ func TestShow(t *testing.T) {
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	act, err := newMock(ctx, td)
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 
 	app := cli.NewApp()
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
@@ -46,7 +43,5 @@ func TestShow(t *testing.T) {
 		return act.Show(ctx, c)
 	})
 	want := "0xDEADBEEF"
-	if out != want {
-		t.Errorf("'%s' != '%s'", out, want)
-	}
+	assert.Equal(t, out, want)
 }

@@ -13,25 +13,19 @@ import (
 
 func TestConfirmRecipients(t *testing.T) {
 	td, err := ioutil.TempDir("", "gopass-")
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(td)
 	}()
 
 	ctx := context.Background()
 	act, err := newMock(ctx, td)
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	in := []string{"foo", "bar"}
 	got, err := act.ConfirmRecipients(ctx, "test", in)
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 	if !cmp.Equal(got, in) {
 		t.Errorf("Recipient Mismatch: %+v != %+v", got, in)
 	}
@@ -39,18 +33,14 @@ func TestConfirmRecipients(t *testing.T) {
 
 func TestAskForConfirmation(t *testing.T) {
 	td, err := ioutil.TempDir("", "gopass-")
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(td)
 	}()
 
 	ctx := context.Background()
 	act, err := newMock(ctx, td)
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	if !act.AskForConfirmation(ctx, "test") {
@@ -60,24 +50,18 @@ func TestAskForConfirmation(t *testing.T) {
 
 func TestAskForBool(t *testing.T) {
 	td, err := ioutil.TempDir("", "gopass-")
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(td)
 	}()
 
 	ctx := context.Background()
 	act, err := newMock(ctx, td)
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	bv, err := act.askForBool(ctx, "test", false)
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 	if bv {
 		t.Errorf("%t != %t", bv, false)
 	}
@@ -85,24 +69,18 @@ func TestAskForBool(t *testing.T) {
 
 func TestAskForString(t *testing.T) {
 	td, err := ioutil.TempDir("", "gopass-")
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(td)
 	}()
 
 	ctx := context.Background()
 	act, err := newMock(ctx, td)
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	sv, err := act.askForString(ctx, "test", "foobar")
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 	if sv != "foobar" {
 		t.Errorf("%s != %s", sv, "foobar")
 	}
@@ -110,24 +88,18 @@ func TestAskForString(t *testing.T) {
 
 func TestAskForInt(t *testing.T) {
 	td, err := ioutil.TempDir("", "gopass-")
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(td)
 	}()
 
 	ctx := context.Background()
 	act, err := newMock(ctx, td)
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	got, err := act.askForInt(ctx, "test", 42)
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 	if got != 42 {
 		t.Errorf("%d != %d", got, 42)
 	}
@@ -135,18 +107,14 @@ func TestAskForInt(t *testing.T) {
 
 func TestAskForPasswordNonInteractive(t *testing.T) {
 	td, err := ioutil.TempDir("", "gopass-")
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(td)
 	}()
 
 	ctx := context.Background()
 	act, err := newMock(ctx, td)
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 
 	ctx = ctxutil.WithInteractive(ctx, false)
 	if _, err := act.askForPassword(ctx, "test", nil); err == nil {
@@ -156,18 +124,14 @@ func TestAskForPasswordNonInteractive(t *testing.T) {
 
 func TestAskForPasswordInteractive(t *testing.T) {
 	td, err := ioutil.TempDir("", "gopass-")
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(td)
 	}()
 
 	ctx := context.Background()
 	act, err := newMock(ctx, td)
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 
 	askFn := func(ctx context.Context, prompt string) (string, error) {
 		return "test", nil
@@ -175,9 +139,7 @@ func TestAskForPasswordInteractive(t *testing.T) {
 
 	ctx = ctxutil.WithInteractive(ctx, true)
 	pw, err := act.askForPassword(ctx, "test", askFn)
-	if err != nil {
-		t.Errorf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 	if pw != "test" {
 		t.Errorf("Wrong password")
 	}
@@ -185,18 +147,14 @@ func TestAskForPasswordInteractive(t *testing.T) {
 
 func TestAskForKeyImport(t *testing.T) {
 	td, err := ioutil.TempDir("", "gopass-")
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(td)
 	}()
 
 	ctx := context.Background()
 	act, err := newMock(ctx, td)
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	if !act.AskForKeyImport(ctx, "test", []string{}) {
@@ -206,18 +164,14 @@ func TestAskForKeyImport(t *testing.T) {
 
 func TestAskForStore(t *testing.T) {
 	td, err := ioutil.TempDir("", "gopass-")
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(td)
 	}()
 
 	ctx := context.Background()
 	act, err := newMock(ctx, td)
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 
 	ctx = ctxutil.WithInteractive(ctx, false)
 	sel := act.askForStore(ctx)
@@ -228,49 +182,37 @@ func TestAskForStore(t *testing.T) {
 
 func TestAskForGitConfigUser(t *testing.T) {
 	td, err := ioutil.TempDir("", "gopass-")
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(td)
 	}()
 
 	ctx := context.Background()
 	act, err := newMock(ctx, td)
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 
 	ctx = ctxutil.WithTerminal(ctx, true)
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 
 	_, _, err = act.askForGitConfigUser(ctx)
-	if err != nil {
-		t.Errorf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 }
 
 func TestAskForGitConfigUserNonInteractive(t *testing.T) {
 	td, err := ioutil.TempDir("", "gopass-")
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(td)
 	}()
 
 	ctx := context.Background()
 	act, err := newMock(ctx, td)
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 
 	ctx = ctxutil.WithTerminal(ctx, false)
 
 	keyList, err := act.gpg.ListPrivateKeys(ctx)
-	if err != nil {
-		t.Error(err.Error())
-	}
+	assert.NoError(t, err)
 
 	name, email, _ := act.askForGitConfigUser(ctx)
 

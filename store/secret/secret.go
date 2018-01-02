@@ -183,12 +183,15 @@ func (s *Secret) DeleteKey(key string) error {
 
 // Equal returns true if two secrets are equal
 func (s *Secret) Equal(other *Secret) bool {
-	s.Lock()
-	defer s.Unlock()
-
 	if s == nil && other == nil {
 		return true
 	}
+	if s == nil || other == nil {
+		return false
+	}
+
+	s.Lock()
+	defer s.Unlock()
 
 	if s.password != other.Password() {
 		return false

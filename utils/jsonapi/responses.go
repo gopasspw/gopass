@@ -11,6 +11,7 @@ import (
 	"path"
 
 	"github.com/justwatchcom/gopass/store/secret"
+	"github.com/justwatchcom/gopass/utils/pwgen"
 	"github.com/pkg/errors"
 )
 
@@ -31,6 +32,8 @@ func (api *API) respondMessage(ctx context.Context, msgBytes []byte) error {
 		return api.respondHostQuery(msgBytes)
 	case "getLogin":
 		return api.respondGetLogin(ctx, msgBytes)
+	case "create":
+		return api.respondCreateEntry(ctx, msgBytes)
 	default:
 		return fmt.Errorf("Unknown message of type %s", message.Type)
 	}
@@ -132,4 +135,33 @@ func (api *API) getUsername(name string, sec *secret.Secret) string {
 	}
 
 	return ""
+}
+
+func (api *API) respondCreateEntry(ctx context.Context, msgBytes []byte) error {
+	var message createEntryMessage
+	if err := json.Unmarshal(msgBytes, &message); err != nil {
+		return errors.Wrapf(err, "failed to unmarshal JSON message")
+	}
+
+	if api.Store.Exists(ctx, message.Name) {
+		return fmt.Errorf("secret %s already exists", message.Name)
+	}
+
+	if message.Generate {
+		message.Password = pwgen.GeneratePassword(message.PasswordLength, message.UseSymbols)
+	}
+
+	var body = ""
+	if len(message.Login) > 0 {
+		body = fmt.Sprintf("---\nuser: %s", message.Login)
+	}
+
+	if err := api.Store.Set(ctx, message.Name, secret.New(message.Password, body)); err != nil {
+		return errors.Wrapf(err, "failed to store secret")
+	}
+
+	return sendSerializedJSONMessage(loginResponse{
+		Username: message.Login,
+		Password: message.Password,
+	}, api.Writer)
 }

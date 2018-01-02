@@ -43,4 +43,7 @@ releases/
 dist/
 
 *.completion
-!fish.completion
+
+# go-fuzz
+*-fuzz.zip
+workdir/

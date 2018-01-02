@@ -7,13 +7,36 @@ import (
 	"os/user"
 	"path/filepath"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
+func TestCleanFilename(t *testing.T) {
+	m := map[string]string{
+		`"§$%&aÜÄ*&b%§"'Ä"c%$"'"`: "a____b______c",
+	}
+	for k, v := range m {
+		out := CleanFilename(k)
+		t.Logf("%s -> %s / %s", k, v, out)
+		if out != v {
+			t.Errorf("'%s' != '%s'", out, v)
+		}
+	}
+}
+
 func TestCleanPath(t *testing.T) {
+	tempdir, err := ioutil.TempDir("", "gopass-")
+	if err != nil {
+		t.Fatalf("Failed to create tempdir: %s", err)
+	}
+	defer func() {
+		_ = os.RemoveAll(tempdir)
+	}()
 	m := map[string]string{
 		".": "",
 		"/home/user/../bob/.password-store": "/home/bob/.password-store",
 		"/home/user//.password-store":       "/home/user/.password-store",
+		tempdir + "/foo.gpg":                tempdir + "/foo.gpg",
 	}
 	usr, err := user.Current()
 	if err == nil {
@@ -50,6 +73,9 @@ func TestIsDir(t *testing.T) {
 	}
 	if IsDir(fn) {
 		t.Errorf("Should be not dir: %s", fn)
+	}
+	if IsDir(filepath.Join(tempdir, "non-existing")) {
+		t.Errorf("Should not exist")
 	}
 }
 
@@ -93,6 +119,7 @@ func TestShred(t *testing.T) {
 	}()
 
 	fn := filepath.Join(tempdir, "file")
+	// test successful shread
 	fh, err := os.OpenFile(fn, os.O_WRONLY|os.O_CREATE, 0644)
 	if err != nil {
 		t.Fatalf("Failed to open file: %s", err)
@@ -108,6 +135,22 @@ func TestShred(t *testing.T) {
 	}
 	if IsFile(fn) {
 		t.Errorf("Failed still exists after shreding: %s", fn)
+	}
+
+	// test failed
+	fh, err = os.OpenFile(fn, os.O_WRONLY|os.O_CREATE, 0400)
+	if err != nil {
+		t.Fatalf("Failed to open file: %s", err)
+	}
+	buf = make([]byte, 1024)
+	for i := 0; i < 10*1024; i++ {
+		_, _ = rand.Read(buf)
+		_, _ = fh.Write(buf)
+	}
+	_ = fh.Close()
+	assert.Error(t, Shred(fn, 8))
+	if !IsFile(fn) {
+		t.Errorf("File should still exist: %s", fn)
 	}
 }
 

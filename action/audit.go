@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io/ioutil"
 
 	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/utils/notify"
@@ -35,7 +36,7 @@ func (s *Action) Audit(ctx context.Context, c *cli.Context) error {
 	}
 	list := t.List(0)
 
-	fmt.Printf("Checking %d secrets. This may take some time ...\n", len(list))
+	out.Print(ctx, "Checking %d secrets. This may take some time ...\n", len(list))
 
 	// Secrets that still need auditing.
 	secrets := make(chan string)
@@ -67,6 +68,13 @@ func (s *Action) Audit(ctx context.Context, c *cli.Context) error {
 	bar := &goprogressbar.ProgressBar{
 		Total: int64(len(list)),
 		Width: 120,
+	}
+	if out.IsHidden(ctx) {
+		old := goprogressbar.Stdout
+		goprogressbar.Stdout = ioutil.Discard
+		defer func() {
+			goprogressbar.Stdout = old
+		}()
 	}
 
 	i := 0

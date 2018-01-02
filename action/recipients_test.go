@@ -10,14 +10,13 @@ import (
 
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/out"
+	"github.com/stretchr/testify/assert"
 	"github.com/urfave/cli"
 )
 
 func TestRecipients(t *testing.T) {
 	td, err := ioutil.TempDir("", "gopass-")
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(td)
 	}()
@@ -25,9 +24,7 @@ func TestRecipients(t *testing.T) {
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	act, err := newMock(ctx, td)
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 
 	app := cli.NewApp()
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
@@ -39,6 +36,7 @@ func TestRecipients(t *testing.T) {
 		out.Stdout = os.Stdout
 	}()
 
+	// RecipientsPrint
 	out := capture(t, func() error {
 		return act.RecipientsPrint(ctx, c)
 	})
@@ -47,4 +45,24 @@ func TestRecipients(t *testing.T) {
 	if out != want {
 		t.Errorf("'%s' != '%s'", want, out)
 	}
+	buf.Reset()
+
+	// RecipientsComplete
+	out = capture(t, func() error {
+		act.RecipientsComplete(ctx, c)
+		return nil
+	})
+	want = "0xDEADBEEF (missing public key)"
+	if out != want {
+		t.Errorf("'%s' != '%s'", want, out)
+	}
+	buf.Reset()
+
+	// RecipientsAdd
+	assert.Error(t, act.RecipientsAdd(ctx, c))
+	buf.Reset()
+
+	// RecipientsRemove
+	assert.Error(t, act.RecipientsRemove(ctx, c))
+	buf.Reset()
 }

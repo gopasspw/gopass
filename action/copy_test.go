@@ -9,30 +9,20 @@ import (
 	"testing"
 
 	"github.com/justwatchcom/gopass/utils/out"
+	"github.com/stretchr/testify/assert"
 	"github.com/urfave/cli"
 )
 
 func TestCopy(t *testing.T) {
 	td, err := ioutil.TempDir("", "gopass-")
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(td)
 	}()
 
 	ctx := context.Background()
 	act, err := newMock(ctx, td)
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
-
-	app := cli.NewApp()
-	fs := flag.NewFlagSet("default", flag.ContinueOnError)
-	if err := fs.Parse([]string{"foo", "bar"}); err != nil {
-		t.Fatalf("Error: %s", err)
-	}
-	c := cli.NewContext(app, fs, nil)
+	assert.NoError(t, err)
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
@@ -40,7 +30,31 @@ func TestCopy(t *testing.T) {
 		out.Stdout = os.Stdout
 	}()
 
-	if err := act.Copy(ctx, c); err != nil {
-		t.Errorf("Error: %s", err)
+	app := cli.NewApp()
+	// copy foo bar
+	fs := flag.NewFlagSet("default", flag.ContinueOnError)
+	if err := fs.Parse([]string{"foo", "bar"}); err != nil {
+		t.Fatalf("Error: %s", err)
 	}
+	c := cli.NewContext(app, fs, nil)
+
+	assert.NoError(t, act.Copy(ctx, c))
+	buf.Reset()
+
+	// copy not-found still-not-there
+	fs = flag.NewFlagSet("default", flag.ContinueOnError)
+	if err := fs.Parse([]string{"not-found", "still-not-there"}); err != nil {
+		t.Fatalf("Error: %s", err)
+	}
+	c = cli.NewContext(app, fs, nil)
+
+	assert.Error(t, act.Copy(ctx, c))
+	buf.Reset()
+
+	// copy
+	fs = flag.NewFlagSet("default", flag.ContinueOnError)
+	c = cli.NewContext(app, fs, nil)
+
+	assert.Error(t, act.Copy(ctx, c))
+	buf.Reset()
 }

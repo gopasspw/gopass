@@ -4,30 +4,33 @@ import (
 	"bytes"
 	"context"
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"testing"
 
+	"github.com/justwatchcom/gopass/store/secret"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/out"
+	"github.com/stretchr/testify/assert"
 	"github.com/urfave/cli"
 )
 
 func TestAudit(t *testing.T) {
 	td, err := ioutil.TempDir("", "gopass-")
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(td)
 	}()
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
+	ctx = out.WithHidden(ctx, true)
 	act, err := newMock(ctx, td)
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, err)
+
+	assert.NoError(t, act.Store.Set(ctx, "bar", secret.New("123", "")))
+	assert.NoError(t, act.Store.Set(ctx, "baz", secret.New("123", "")))
 
 	app := cli.NewApp()
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
@@ -40,6 +43,9 @@ func TestAudit(t *testing.T) {
 	}()
 
 	capture(t, func() error {
-		return act.Audit(ctx, c)
+		if err := act.Audit(ctx, c); err != nil {
+			return nil
+		}
+		return fmt.Errorf("should detect weak password")
 	})
 }

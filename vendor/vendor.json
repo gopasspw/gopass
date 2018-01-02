@@ -118,6 +118,12 @@
 			"revisionTime": "2017-12-15T19:45:42Z"
 		},
 		{
+			"checksumSHA1": "6C0OqC3SnM7aMFU7hZJQkb8a4lY=",
+			"path": "github.com/jroimartin/gocui",
+			"revision": "4f518eddb04b8f73870836b6d1941e8aa3c06637",
+			"revisionTime": "2017-08-27T14:52:36Z"
+		},
+		{
 			"checksumSHA1": "+IzngblnBQNh+GmsS2O7jqmzSVQ=",
 			"path": "github.com/kballard/go-shellquote",
 			"revision": "cd60e84ee657ff3dc51de0b4f55dd299a3e136f2",
@@ -176,6 +182,12 @@
 			"path": "github.com/muesli/goprogressbar",
 			"revision": "dd17953263532f3008704b72727d04703c4fd45e",
 			"revisionTime": "2017-09-27T09:43:41Z"
+		},
+		{
+			"checksumSHA1": "5Jd0+a1X5Nvhhw8VfSUD9i1WyP0=",
+			"path": "github.com/nsf/termbox-go",
+			"revision": "aa4a75b1c20a2b03751b1a9f7e41d58bd6f71c43",
+			"revisionTime": "2017-11-04T16:23:16Z"
 		},
 		{
 			"checksumSHA1": "xCv4GBFyw07vZkVtKF/XrUnkHRk=",

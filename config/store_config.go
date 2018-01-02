@@ -73,7 +73,7 @@ func (c *StoreConfig) SetConfigValue(key, value string) error {
 			} else if value == "false" {
 				f.SetBool(false)
 			} else {
-				return errors.Errorf("No a bool: %s", value)
+				return errors.Errorf("not a bool: %s", value)
 			}
 		case reflect.Int:
 			iv, err := strconv.Atoi(value)

@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"regexp"
 
+	fishcomp "github.com/justwatchcom/gopass/utils/completion/fish"
+	zshcomp "github.com/justwatchcom/gopass/utils/completion/zsh"
 	"github.com/urfave/cli"
 )
 
@@ -50,14 +52,24 @@ func (s *Action) CompletionBash(c *cli.Context) error {
 	return nil
 }
 
-// CompletionZSH returns a script that uses bash's auto completion
-func (s *Action) CompletionZSH(c *cli.Context) error {
-	out := `autoload -U compinit && compinit
-autoload -U bashcompinit && bashcompinit
+// CompletionFish returns an autocompletion script for fish
+func (s *Action) CompletionFish(c *cli.Context, a *cli.App) error {
+	comp, err := fishcomp.GetCompletion(a)
+	if err != nil {
+		return err
+	}
 
-`
-	out += "source <(" + s.Name + " completion bash)"
-	fmt.Println(out)
+	fmt.Println(comp)
+	return nil
+}
 
+// CompletionZSH returns a zsh completion script
+func (s *Action) CompletionZSH(c *cli.Context, a *cli.App) error {
+	comp, err := zshcomp.GetCompletion(a)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(comp)
 	return nil
 }

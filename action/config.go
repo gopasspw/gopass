@@ -13,16 +13,12 @@ import (
 // Config handles changes to the gopass configuration
 func (s *Action) Config(ctx context.Context, c *cli.Context) error {
 	if len(c.Args()) < 1 {
-		if err := s.printConfigValues(ctx, ""); err != nil {
-			return exitError(ctx, ExitUnknown, err, "Error printing config")
-		}
+		s.printConfigValues(ctx, "")
 		return nil
 	}
 
 	if len(c.Args()) == 1 {
-		if err := s.printConfigValues(ctx, "", c.Args()[0]); err != nil {
-			return exitError(ctx, ExitUnknown, err, "Error printing config value")
-		}
+		s.printConfigValues(ctx, "", c.Args()[0])
 		return nil
 	}
 
@@ -36,7 +32,7 @@ func (s *Action) Config(ctx context.Context, c *cli.Context) error {
 	return nil
 }
 
-func (s *Action) printConfigValues(ctx context.Context, store string, needles ...string) error {
+func (s *Action) printConfigValues(ctx context.Context, store string, needles ...string) {
 	prefix := ""
 	if len(needles) < 1 {
 		out.Print(ctx, "root store config:")
@@ -66,7 +62,6 @@ func (s *Action) printConfigValues(ctx context.Context, store string, needles ..
 			}
 		}
 	}
-	return nil
 }
 
 func filterMap(haystack map[string]string, needles []string) []string {
@@ -97,12 +92,19 @@ func (s *Action) setConfigValue(ctx context.Context, store, key, value string) e
 	if err := s.cfg.SetConfigValue(store, key, value); err != nil {
 		return errors.Wrapf(err, "failed to set config value '%s'", key)
 	}
-	return s.printConfigValues(ctx, store, key)
+	s.printConfigValues(ctx, store, key)
+	return nil
 }
 
 // ConfigComplete will print the list of valid config keys
 func (s *Action) ConfigComplete(c *cli.Context) {
-	for k := range s.cfg.Root.ConfigMap() {
+	cm := s.cfg.Root.ConfigMap()
+	keys := make([]string, 0, len(cm))
+	for k := range cm {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	for _, k := range keys {
 		fmt.Println(k)
 	}
 }

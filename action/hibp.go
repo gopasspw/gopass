@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/sha1"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"sort"
 	"strings"
@@ -49,7 +50,15 @@ func (s *Action) HIBP(ctx context.Context, c *cli.Context) error {
 		Total: int64(len(pwList)),
 		Width: 120,
 	}
-	fmt.Println("Computing SHA1 hashes of all your secrets ...")
+	if out.IsHidden(ctx) {
+		old := goprogressbar.Stdout
+		goprogressbar.Stdout = ioutil.Discard
+		defer func() {
+			goprogressbar.Stdout = old
+		}()
+	}
+
+	out.Print(ctx, "Computing SHA1 hashes of all your secrets ...")
 	for _, secret := range pwList {
 		// check for context cancelation
 		select {
@@ -67,7 +76,7 @@ func (s *Action) HIBP(ctx context.Context, c *cli.Context) error {
 		// go templates to extract and compare data from the body
 		sec, err := s.Store.Get(ctx, secret)
 		if err != nil {
-			fmt.Println("\n" + color.YellowString("Failed to retrieve secret '%s': %s", secret, err))
+			out.Print(ctx, "\n"+color.YellowString("Failed to retrieve secret '%s': %s", secret, err))
 			continue
 		}
 		// do not check empty passwords, there should be caught by `gopass audit`
@@ -79,12 +88,12 @@ func (s *Action) HIBP(ctx context.Context, c *cli.Context) error {
 		shaSums[sum] = secret
 		sortedShaSums = append(sortedShaSums, sum)
 	}
-	fmt.Println("")
+	out.Print(ctx, "")
 	// IMPORTANT: sort after all entries have been added. without the sort
 	// the stream compare will not work
 	sort.Strings(sortedShaSums)
 
-	fmt.Println("Checking pre-computed SHA1 hashes against the blacklists ...")
+	out.Print(ctx, "Checking pre-computed SHA1 hashes against the blacklists ...")
 	matches := make(chan string, 1000)
 	done := make(chan struct{})
 	// compare the prepared list against all provided files. with a little more
@@ -106,7 +115,7 @@ func (s *Action) HIBP(ctx context.Context, c *cli.Context) error {
 }
 
 func (s *Action) printHIBPMatches(ctx context.Context, matchList []string) error {
-	if len(matchList) < 0 {
+	if len(matchList) < 1 {
 		_ = notify.Notify("gopass - audit HIBP", "Good news - No matches found!")
 		out.Green(ctx, "Good news - No matches found!")
 		return nil

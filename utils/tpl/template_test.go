@@ -10,7 +10,7 @@ import (
 type kvMock struct{}
 
 func (k kvMock) Get(ctx context.Context, key string) (*secret.Secret, error) {
-	return secret.New("barfoo", ""), nil
+	return secret.New("barfoo", "---\nbarkey: barvalue\n"), nil
 }
 
 func TestVars(t *testing.T) {
@@ -18,10 +18,11 @@ func TestVars(t *testing.T) {
 
 	kv := kvMock{}
 	for _, tc := range []struct {
-		Template string
-		Name     string
-		Content  []byte
-		Output   string
+		Template   string
+		Name       string
+		Content    []byte
+		Output     string
+		ShouldFail bool
 	}{
 		{
 			Template: "{{.Dir}}",
@@ -66,18 +67,40 @@ func TestVars(t *testing.T) {
 			Output:   "barfoo",
 		},
 		{
+			Template: `{{get "testdir"}}`,
+			Name:     "testdir",
+			Content:  []byte("foobar"),
+			Output:   "barfoo\n---\nbarkey: barvalue\n",
+		},
+		{
+			Template: `{{getval "testdir" "barkey"}}`,
+			Name:     "testdir",
+			Content:  []byte("foobar"),
+			Output:   "barvalue",
+		},
+		{
 			Template: `md5{{(print .Content .Name) | md5sum}}`,
 			Name:     "testdir",
 			Content:  []byte("foobar"),
 			Output:   "md55d952fb5e2b5c6258b044a663518349f",
 		},
+		{
+			Template:   `{{|}}`,
+			Name:       "testdir",
+			Content:    []byte("foobar"),
+			Output:     "",
+			ShouldFail: true,
+		},
 	} {
 		buf, err := Execute(ctx, tc.Template, tc.Name, tc.Content, kv)
-		if err != nil {
-			t.Fatalf("Failed to execute template %s: %s", tc.Template, err)
+		if err != nil && !tc.ShouldFail {
+			t.Fatalf("[%s] Failed to execute template %s: %s", tc.Template, tc.Template, err)
+		}
+		if err == nil && tc.ShouldFail {
+			t.Errorf("[%s] Should fail", tc.Template)
 		}
 		if string(buf) != tc.Output {
-			t.Errorf("Wrong templated output %s vs %s", string(buf), tc.Output)
+			t.Errorf("[%s] Wrong templated output %s vs %s", tc.Template, string(buf), tc.Output)
 		}
 	}
 }

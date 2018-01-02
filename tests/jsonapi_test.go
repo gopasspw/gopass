@@ -8,7 +8,6 @@ import (
 	"encoding/binary"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func getMessageLength(t *testing.T, msg []byte) int {
@@ -56,65 +55,17 @@ func TestJSONAPI(t *testing.T) {
 	ts.initStore()
 	ts.initSecrets("awesomePrefix/")
 
-	out, err := ts.runCmd([]string{ts.Binary, "insert", "awesomePrefix/fixed/yamllogin"}, []byte("thesecret\n---\nlogin: muh"))
-	require.NoError(ts.t, err, "failed to insert password:\n%s", out)
-
-	out, err = ts.runCmd([]string{ts.Binary, "insert", "awesomePrefix/fixed/yamlother"}, []byte("thesecret\n---\nother: meh"))
-	require.NoError(ts.t, err, "failed to insert password:\n%s", out)
-
-	out, err = ts.runCmd([]string{ts.Binary, "insert", "awesomePrefix/some.other.host/other"}, []byte("thesecret\n---\nother: meh"))
-	require.NoError(ts.t, err, "failed to insert password:\n%s", out)
-
-	out, err = ts.runCmd([]string{ts.Binary, "insert", "awesomePrefix/b/some.other.host"}, []byte("thesecret\n---\nother: meh"))
-	require.NoError(ts.t, err, "failed to insert password:\n%s", out)
-
-	out, err = ts.runCmd([]string{ts.Binary, "insert", "awesomePrefix/evilsome.other.host"}, []byte("thesecret\n---\nother: meh"))
-	require.NoError(ts.t, err, "failed to insert password:\n%s", out)
-
-	out, err = ts.runCmd([]string{ts.Binary, "insert", "evilsome.other.host/something"}, []byte("thesecret\n---\nother: meh"))
-	require.NoError(ts.t, err, "failed to insert password:\n%s", out)
-
-	out, err = ts.runCmd([]string{ts.Binary, "insert", "awesomePrefix/other.host/other"}, []byte("thesecret\n---\nother: meh"))
-	require.NoError(ts.t, err, "failed to insert password:\n%s", out)
-
 	// message has length specified but invalid json
 	strout, err := ts.runWithInput("jsonapi listen", "1234Xabcd")
 	assert.NoError(t, err)
 	assert.Equal(t, "{\"error\":\"incomplete message read\"}", readAndVerifyMessageLength(t, strout))
 
-	// empty message, no json to parse
-	response := getMessageResponse(t, ts, "")
-	assert.Equal(t, "{\"error\":\"failed to unmarshal JSON message: unexpected end of JSON input\"}", response)
-
 	// message with empty object
-	response = getMessageResponse(t, ts, "{}")
+	response := getMessageResponse(t, ts, "{}")
 	assert.Equal(t, "{\"error\":\"Unknown message of type \"}", response)
-
-	// query for keys without any matching
-	response = getMessageResponse(t, ts, "{\"type\":\"query\",\"query\":\"notfound\"}")
-	assert.Equal(t, "[]", response)
 
 	// query for keys with matching one
 	response = getMessageResponse(t, ts, "{\"type\":\"query\",\"query\":\"foo\"}")
 	assert.Equal(t, "[\"awesomePrefix/foo/bar\"]", response)
 
-	// query for keys with matching multiple
-	response = getMessageResponse(t, ts, "{\"type\":\"query\",\"query\":\"yaml\"}")
-	assert.Equal(t, "[\"awesomePrefix/fixed/yamllogin\",\"awesomePrefix/fixed/yamlother\"]", response)
-
-	// query for host
-	response = getMessageResponse(t, ts, "{\"type\":\"queryHost\",\"host\":\"find.some.other.host\"}")
-	assert.Equal(t, "[\"awesomePrefix/b/some.other.host\",\"awesomePrefix/some.other.host/other\"]", response)
-
-	// get username / password for key without value in yaml
-	response = getMessageResponse(t, ts, "{\"type\":\"getLogin\",\"entry\":\"awesomePrefix/fixed/secret\"}")
-	assert.Equal(t, "{\"username\":\"secret\",\"password\":\"moar\"}", response)
-
-	// get username / password for key with login in yaml
-	response = getMessageResponse(t, ts, "{\"type\":\"getLogin\",\"entry\":\"awesomePrefix/fixed/yamllogin\"}")
-	assert.Equal(t, "{\"username\":\"muh\",\"password\":\"thesecret\"}", response)
-
-	// get username / password for key with no login in yaml (fallback)
-	response = getMessageResponse(t, ts, "{\"type\":\"getLogin\",\"entry\":\"awesomePrefix/fixed/yamlother\"}")
-	assert.Equal(t, "{\"username\":\"yamlother\",\"password\":\"thesecret\"}", response)
 }

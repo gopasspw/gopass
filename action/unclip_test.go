@@ -10,16 +10,13 @@ import (
 
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/out"
+	"github.com/stretchr/testify/assert"
 	"github.com/urfave/cli"
 )
 
 func TestUnclip(t *testing.T) {
-	t.Skip("flaky")
-
 	td, err := ioutil.TempDir("", "gopass-")
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(td)
 	}()
@@ -27,9 +24,7 @@ func TestUnclip(t *testing.T) {
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	act, err := newMock(ctx, td)
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 
 	app := cli.NewApp()
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
@@ -41,7 +36,7 @@ func TestUnclip(t *testing.T) {
 		out.Stdout = os.Stdout
 	}()
 
-	if err := act.Unclip(ctx, c); err != nil {
+	if err := act.Unclip(ctx, c); err != nil && err.Error() != clipboardNotSupported {
 		t.Errorf("Error: %s", err)
 	}
 }
