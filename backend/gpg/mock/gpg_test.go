@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/blang/semver"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/stretchr/testify/assert"
 )
@@ -51,4 +52,15 @@ func TestMock(t *testing.T) {
 
 	assert.Error(t, m.CreatePrivateKey(ctx))
 	assert.Error(t, m.CreatePrivateKeyBatch(ctx, "", "", ""))
+
+	kl, err = m.FindPublicKeys(ctx)
+	assert.NoError(t, err)
+	assert.Empty(t, kl)
+
+	_, err = m.FindPrivateKeys(ctx)
+	assert.NoError(t, err)
+
+	assert.NoError(t, m.ExportPublicKey(ctx, "", ""))
+	assert.NoError(t, m.ImportPublicKey(ctx, ""))
+	assert.Equal(t, semver.Version{}, m.Version(ctx))
 }

@@ -4,6 +4,8 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestPwStoreDirNoEnv(t *testing.T) {
@@ -92,4 +94,10 @@ func TestConfigLocations(t *testing.T) {
 	if locs[3] != oldcfg {
 		t.Errorf("'%s' != '%s'", locs[3], oldcfg)
 	}
+}
+
+func TestDirectory(t *testing.T) {
+	loc := configLocation()
+	dir := filepath.Dir(loc)
+	assert.Equal(t, dir, Directory())
 }
