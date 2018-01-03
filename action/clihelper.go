@@ -1,7 +1,6 @@
 package action
 
 import (
-	"bufio"
 	"context"
 	"fmt"
 	"sort"
@@ -124,12 +123,13 @@ func (s *Action) askForString(ctx context.Context, text, def string) (string, er
 	default:
 	}
 
-	reader := bufio.NewReader(stdin)
-
-	fmt.Printf("%s [%s]: ", text, def)
-	input, err := reader.ReadString('\n')
+	fmt.Fprintf(stdout, "%s [%s]: ", text, def)
+	input := ""
+	_, err := fmt.Fscanln(stdin, &input)
 	if err != nil {
-		return "", errors.Wrapf(err, "failed to read user input")
+		if err.Error() != "unexpected newline" {
+			return "", errors.Wrapf(err, "failed to read user input")
+		}
 	}
 	input = strings.TrimSpace(input)
 	if input == "" {
@@ -158,9 +158,6 @@ func (s *Action) askForInt(ctx context.Context, text string, def int) (int, erro
 
 // askForPassword prompts for a password twice until both match
 func (s *Action) askForPassword(ctx context.Context, name string, askFn func(context.Context, string) (string, error)) (string, error) {
-	if !ctxutil.IsInteractive(ctx) {
-		return "", errors.New("impossible without terminal")
-	}
 	if ctxutil.IsAlwaysYes(ctx) {
 		return "", nil
 	}

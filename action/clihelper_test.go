@@ -1,13 +1,16 @@
 package action
 
 import (
+	"bytes"
 	"context"
 	"io/ioutil"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
+	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -74,16 +77,44 @@ func TestAskForString(t *testing.T) {
 		_ = os.RemoveAll(td)
 	}()
 
+	buf := &bytes.Buffer{}
+	out.Stdout = buf
+	stdout = buf
+	defer func() {
+		out.Stdout = os.Stdout
+		stdout = os.Stdout
+	}()
+
 	ctx := context.Background()
 	act, err := newMock(ctx, td)
 	assert.NoError(t, err)
 
+	// always yes - expect default value
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	sv, err := act.askForString(ctx, "test", "foobar")
 	assert.NoError(t, err)
-	if sv != "foobar" {
-		t.Errorf("%s != %s", sv, "foobar")
-	}
+	assert.Equal(t, "foobar", sv)
+
+	t.Logf("Out: %s", buf.String())
+	buf.Reset()
+
+	// provide value on redirected stdin
+	input := `foobaz
+bar
+`
+	stdin = strings.NewReader(input)
+	ctx = ctxutil.WithAlwaysYes(ctx, false)
+	sv, err = act.askForString(ctx, "test", "foobar")
+	assert.NoError(t, err)
+	assert.Equal(t, "foobaz", sv)
+
+	sv, err = act.askForString(ctx, "test", "foobar")
+	assert.NoError(t, err)
+	assert.Equal(t, "bar", sv)
+	stdin = os.Stdin
+
+	t.Logf("Out: %s", buf.String())
+	buf.Reset()
 }
 
 func TestAskForInt(t *testing.T) {
@@ -228,7 +259,7 @@ func TestAskForGitConfigUserNonInteractive(t *testing.T) {
 	}
 }
 
-func TestPrompPass(t *testing.T) {
+func TestPromptPass(t *testing.T) {
 	td, err := ioutil.TempDir("", "gopass-")
 	assert.NoError(t, err)
 	defer func() {
@@ -240,6 +271,7 @@ func TestPrompPass(t *testing.T) {
 	assert.NoError(t, err)
 
 	ctx = ctxutil.WithTerminal(ctx, false)
+	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	_, err = act.promptPass(ctx, "foo")
 	assert.NoError(t, err)
 }

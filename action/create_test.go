@@ -6,6 +6,8 @@ import (
 	"flag"
 	"io/ioutil"
 	"os"
+	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/justwatchcom/gopass/utils/ctxutil"
@@ -84,7 +86,6 @@ func TestCreateWebsite(t *testing.T) {
 	}()
 
 	ctx := context.Background()
-	//ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithInteractive(ctx, false)
 	act, err := newMock(ctx, td)
 	assert.NoError(t, err)
@@ -97,12 +98,26 @@ func TestCreateWebsite(t *testing.T) {
 		stdout = os.Stdout
 	}()
 
+	// provide values on redirected stdin
+	input := `https://www.example.org/
+foobar
+y
+y
+5
+`
+	stdin = strings.NewReader(input)
+	ctx = ctxutil.WithAlwaysYes(ctx, false)
+	defer func() {
+		stdin = os.Stdin
+	}()
+
 	app := cli.NewApp()
 	// create
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
 	c := cli.NewContext(app, fs, nil)
 
-	assert.Error(t, act.createWebsite(ctx, c))
+	assert.NoError(t, act.createWebsite(ctx, c))
+	t.Logf("Out: %s", buf.String())
 	buf.Reset()
 }
 
@@ -114,7 +129,7 @@ func TestCreatePIN(t *testing.T) {
 	}()
 
 	ctx := context.Background()
-	ctx = ctxutil.WithAlwaysYes(ctx, true)
+	ctx = ctxutil.WithInteractive(ctx, false)
 	act, err := newMock(ctx, td)
 	assert.NoError(t, err)
 
@@ -124,19 +139,33 @@ func TestCreatePIN(t *testing.T) {
 		out.Stdout = os.Stdout
 	}()
 
-	app := cli.NewApp()
-	// create
-	fs := flag.NewFlagSet("default", flag.ContinueOnError)
-	c := cli.NewContext(app, fs, nil)
-
-	assert.Error(t, act.createPIN(ctx, c))
-	buf.Reset()
-
+	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	pw, err := act.createGeneratePIN(ctx)
 	assert.NoError(t, err)
 	if len(pw) < 4 || len(pw) > 4 {
 		t.Errorf("PIN should have 4 characters")
 	}
+	buf.Reset()
+
+	// provide values on redirected stdin
+	input := `MyBank
+FooCard
+y
+8
+`
+	stdin = strings.NewReader(input)
+	ctx = ctxutil.WithAlwaysYes(ctx, false)
+	defer func() {
+		stdin = os.Stdin
+	}()
+
+	app := cli.NewApp()
+	// create
+	fs := flag.NewFlagSet("default", flag.ContinueOnError)
+	c := cli.NewContext(app, fs, nil)
+
+	assert.NoError(t, act.createPIN(ctx, c))
+	buf.Reset()
 }
 
 func TestCreateGeneric(t *testing.T) {
@@ -157,12 +186,25 @@ func TestCreateGeneric(t *testing.T) {
 		out.Stdout = os.Stdout
 	}()
 
+	// provide values on redirected stdin
+	input := `foobar
+y
+y
+8
+
+`
+	stdin = strings.NewReader(input)
+	ctx = ctxutil.WithAlwaysYes(ctx, false)
+	defer func() {
+		stdin = os.Stdin
+	}()
+
 	app := cli.NewApp()
 	// create
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
 	c := cli.NewContext(app, fs, nil)
 
-	assert.Error(t, act.createGeneric(ctx, c))
+	assert.NoError(t, act.createGeneric(ctx, c))
 	buf.Reset()
 }
 
@@ -175,13 +217,30 @@ func TestCreateAWS(t *testing.T) {
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
+	ctx = ctxutil.WithTerminal(ctx, false)
 	act, err := newMock(ctx, td)
 	assert.NoError(t, err)
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
+	stdout = buf
 	defer func() {
 		out.Stdout = os.Stdout
+		stdout = os.Stdout
+	}()
+
+	// provide values on redirected stdin
+	input := `account
+user
+ACCESSKEY
+SECRETKEY
+SECRETKEY
+
+`
+	stdin = strings.NewReader(input)
+	ctx = ctxutil.WithAlwaysYes(ctx, false)
+	defer func() {
+		stdin = os.Stdin
 	}()
 
 	app := cli.NewApp()
@@ -189,7 +248,7 @@ func TestCreateAWS(t *testing.T) {
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
 	c := cli.NewContext(app, fs, nil)
 
-	assert.Error(t, act.createAWS(ctx, c))
+	assert.NoError(t, act.createAWS(ctx, c))
 	buf.Reset()
 }
 
@@ -207,8 +266,23 @@ func TestCreateGCP(t *testing.T) {
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
+	stdout = buf
 	defer func() {
 		out.Stdout = os.Stdout
+		stdout = os.Stdout
+	}()
+
+	tf := filepath.Join(td, "service-account.json")
+	assert.NoError(t, ioutil.WriteFile(tf, []byte(`{"client_email": "foobar@example.org"}`), 0600))
+	// provide values on redirected stdin
+	input := tf
+	input += `
+
+`
+	stdin = strings.NewReader(input)
+	ctx = ctxutil.WithAlwaysYes(ctx, false)
+	defer func() {
+		stdin = os.Stdin
 	}()
 
 	app := cli.NewApp()
@@ -216,6 +290,6 @@ func TestCreateGCP(t *testing.T) {
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
 	c := cli.NewContext(app, fs, nil)
 
-	assert.Error(t, act.createGCP(ctx, c))
+	assert.NoError(t, act.createGCP(ctx, c))
 	buf.Reset()
 }

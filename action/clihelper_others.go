@@ -17,7 +17,7 @@ import (
 // promptPass will prompt user's for a password by terminal.
 func (s *Action) promptPass(ctx context.Context, prompt string) (string, error) {
 	if !ctxutil.IsTerminal(ctx) {
-		return "", nil
+		return s.askForString(ctx, prompt, "")
 	}
 
 	// Make a copy of STDIN's state to restore afterward
@@ -44,8 +44,8 @@ func (s *Action) promptPass(ctx context.Context, prompt string) (string, error) 
 		}
 	}()
 
-	fmt.Printf("%s: ", prompt)
+	fmt.Fprintf(stdout, "%s: ", prompt)
 	passBytes, err := terminal.ReadPassword(fd)
-	fmt.Println("")
+	fmt.Fprintln(stdout, "")
 	return string(passBytes), err
 }
