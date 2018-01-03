@@ -218,6 +218,10 @@ func createRootStore(ctx context.Context, dir string) (*Store, error) {
 	if err := os.Setenv("GOPASS_NO_NOTIFY", "true"); err != nil {
 		return nil, err
 	}
+	gpgDir := filepath.Join(dir, ".gnupg")
+	if err := os.Setenv("GNUPGHOME", gpgDir); err != nil {
+		return nil, err
+	}
 
 	return New(
 		ctx,

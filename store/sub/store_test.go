@@ -12,6 +12,41 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func createSubStore(dir string) (*Store, error) {
+	sd := filepath.Join(dir, "sub")
+	_, _, err := createStore(sd, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := os.Setenv("GOPASS_CONFIG", filepath.Join(dir, ".gopass.yml")); err != nil {
+		return nil, err
+	}
+	if err := os.Setenv("GOPASS_HOMEDIR", dir); err != nil {
+		return nil, err
+	}
+	if err := os.Unsetenv("PAGER"); err != nil {
+		return nil, err
+	}
+	if err := os.Setenv("CHECKPOINT_DISABLE", "true"); err != nil {
+		return nil, err
+	}
+	if err := os.Setenv("GOPASS_NO_NOTIFY", "true"); err != nil {
+		return nil, err
+	}
+
+	gpgDir := filepath.Join(dir, ".gnupg")
+	if err := os.Setenv("GNUPGHOME", gpgDir); err != nil {
+		return nil, err
+	}
+
+	return New(
+		"",
+		sd,
+		gpgmock.New(),
+	), nil
+}
+
 func createStore(dir string, recipients, entries []string) ([]string, []string, error) {
 	if recipients == nil {
 		recipients = []string{
@@ -48,14 +83,8 @@ func TestStore(t *testing.T) {
 		_ = os.RemoveAll(tempdir)
 	}()
 
-	_, _, err = createStore(tempdir, nil, nil)
+	s, err := createSubStore(tempdir)
 	assert.NoError(t, err)
-
-	s := New(
-		"",
-		tempdir,
-		gpgmock.New(),
-	)
 
 	if !s.Equals(s) {
 		t.Errorf("Should be equal to myself")
