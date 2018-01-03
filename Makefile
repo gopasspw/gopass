@@ -68,7 +68,7 @@ build:
 	@$(GO) build -o $(GOPASS_OUTPUT) $(BUILDFLAGS)
 	@$(call ok)
 
-install: build
+install: build completion install-completion
 	@echo -n ">> INSTALL, version = $(GOPASS_VERSION)"
 	@install -m 0755 -d $(DESTDIR)$(BINDIR)
 	@install -m 0755 $(GOPASS_OUTPUT) $(DESTDIR)$(BINDIR)/gopass
@@ -121,6 +121,12 @@ $(FISH_COMPLETION_OUTPUT): build
 $(ZSH_COMPLETION_OUTPUT): build
 	@echo -n ">> ZSH COMPLETION, output = $(ZSH_COMPLETION_OUTPUT)"
 	@./gopass completion zsh > $(ZSH_COMPLETION_OUTPUT)
+	@$(call ok)
+
+install-completion:
+	@install -D -m 0755 $(ZSH_COMPLETION_OUTPUT) $(DESTDIR)$(PREFIX)/share/zsh/site-functions/_gopass
+	@install -D -m 0755 $(BASH_COMPLETION_OUTPUT) $(DESTDIR)$(PREFIX)/share/bash-completion/completions/gopass
+	@install -D -m 0755 fish.completion $(DESTDIR)$(PREFIX)/share/fish/vendor_completions.d/gopass.fish
 	@$(call ok)
 
 codequality:
