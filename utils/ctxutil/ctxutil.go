@@ -310,6 +310,12 @@ func WithFuzzySearch(ctx context.Context, fuzzy bool) context.Context {
 	return context.WithValue(ctx, ctxKeyFuzzySearch, fuzzy)
 }
 
+// HasFuzzySearch returns true if a value for FuzzySearch has been set in this context
+func HasFuzzySearch(ctx context.Context) bool {
+	_, ok := ctx.Value(ctxKeyFuzzySearch).(bool)
+	return ok
+}
+
 // IsFuzzySearch return the value of fuzzy search or the default (true)
 func IsFuzzySearch(ctx context.Context) bool {
 	bv, ok := ctx.Value(ctxKeyFuzzySearch).(bool)
@@ -322,6 +328,12 @@ func IsFuzzySearch(ctx context.Context) bool {
 // WithVerbose returns a context with the value for verbose set
 func WithVerbose(ctx context.Context, verbose bool) context.Context {
 	return context.WithValue(ctx, ctxKeyVerbose, verbose)
+}
+
+// HasVerbose returns true if a value for Verbose has been set in this context
+func HasVerbose(ctx context.Context) bool {
+	_, ok := ctx.Value(ctxKeyVerbose).(bool)
+	return ok
 }
 
 // IsVerbose returns the value of verbose or the default (false)

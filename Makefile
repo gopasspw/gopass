@@ -138,7 +138,7 @@ codequality:
 	@which gocyclo > /dev/null; if [ $$? -ne 0 ]; then \
 		$(GO) get -u github.com/fzipp/gocyclo; \
 	fi
-	@$(foreach gofile, $(GOFILES_NOTEST),\
+	@$(foreach gofile, $(GOFILES_NOVENDOR),\
 			gocyclo -over 15 $(gofile) || exit 1;)
 	@$(call ok)
 

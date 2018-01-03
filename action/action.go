@@ -2,6 +2,7 @@ package action
 
 import (
 	"context"
+	"io"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -13,6 +14,12 @@ import (
 	"github.com/justwatchcom/gopass/config"
 	"github.com/justwatchcom/gopass/store/root"
 	"github.com/justwatchcom/gopass/utils/out"
+)
+
+var (
+	stdin  io.Reader = os.Stdin
+	stdout io.Writer = os.Stdout
+	stderr io.Writer = os.Stderr
 )
 
 type gpger interface {

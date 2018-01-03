@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"context"
 	"fmt"
-	"os"
 	"sort"
 	"strconv"
 	"strings"
@@ -125,7 +124,7 @@ func (s *Action) askForString(ctx context.Context, text, def string) (string, er
 	default:
 	}
 
-	reader := bufio.NewReader(os.Stdin)
+	reader := bufio.NewReader(stdin)
 
 	fmt.Printf("%s [%s]: ", text, def)
 	input, err := reader.ReadString('\n')

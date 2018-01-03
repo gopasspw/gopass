@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
-	"os"
 	"os/exec"
 
 	"github.com/fatih/color"
@@ -108,9 +107,9 @@ func (s *Action) editor(ctx context.Context, editor string, content []byte) ([]b
 	args := append(cmdArgs[1:], tmpfile.Name())
 
 	cmd := exec.Command(editor, args...)
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+	cmd.Stdin = stdin
+	cmd.Stdout = stdout
+	cmd.Stderr = stderr
 
 	if err := cmd.Run(); err != nil {
 		out.Debug(ctx, "editor - cmd: %s %+v - error: %+v", cmd.Path, cmd.Args, err)
