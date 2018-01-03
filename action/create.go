@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/url"
+	"sort"
 	"strings"
 
 	"github.com/fatih/color"
@@ -19,36 +20,83 @@ import (
 	"github.com/urfave/cli"
 )
 
+type createAction struct {
+	order int
+	name  string
+	fn    func(context.Context, *cli.Context) error
+}
+
+type createActions []createAction
+
+func (ca createActions) Len() int {
+	return len(ca)
+}
+
+func (ca createActions) Less(i, j int) bool {
+	return ca[i].order < ca[j].order
+}
+
+func (ca createActions) Swap(i, j int) {
+	ca[i], ca[j] = ca[j], ca[i]
+}
+
+func (ca createActions) Selection() []string {
+	sort.Sort(ca)
+	keys := make([]string, 0, len(ca))
+	for _, a := range ca {
+		keys = append(keys, a.name)
+	}
+	return keys
+}
+
+func (ca createActions) Run(ctx context.Context, c *cli.Context, i int) error {
+	if len(ca) < i || i >= len(ca) {
+		return exitError(ctx, ExitUnknown, nil, "action not found")
+	}
+	if ca[i].fn == nil {
+		return exitError(ctx, ExitUnknown, nil, "action invalid")
+	}
+	return ca[i].fn(ctx, c)
+}
+
 // Create displays the password creation wizard
 func (s *Action) Create(ctx context.Context, c *cli.Context) error {
-	types := []string{
-		"Website Login",
-		"PIN Code (numerical)",
-		"Generic",
-		"AWS Secret Key",
-		"Google Service Account",
+	acts := createActions{
+		{
+			order: 1,
+			name:  "Website Login",
+			fn:    s.createWebsite,
+		},
+		{
+			order: 2,
+			name:  "PIN Code (numerical)",
+			fn:    s.createPIN,
+		},
+		{
+			order: 3,
+			name:  "Generic",
+			fn:    s.createGeneric,
+		},
+		{
+			order: 4,
+			name:  "AWS Secret Key",
+			fn:    s.createAWS,
+		},
+		{
+			order: 5,
+			name:  "GCP Service Account",
+			fn:    s.createGCP,
+		},
 	}
-	act, sel := cui.GetSelection(ctx, "Please select the type of secret you would like to create", "<↑/↓> to change the selection, <→> to select, <ESC> to quit", types)
+	act, sel := cui.GetSelection(ctx, "Please select the type of secret you would like to create", "<↑/↓> to change the selection, <→> to select, <ESC> to quit", acts.Selection())
 	switch act {
 	case "default":
 		fallthrough
 	case "show":
-		switch sel {
-		case 0:
-			return s.createWebsite(ctx, c)
-		case 1:
-			return s.createPIN(ctx, c)
-		case 2:
-			return s.createAWS(ctx, c)
-		case 3:
-			return s.createGCP(ctx, c)
-		case 4:
-			return s.createGeneric(ctx, c)
-		}
+		return acts.Run(ctx, c, sel)
 	default:
 		return exitError(ctx, ExitAborted, nil, "user aborted")
 	}
-	return nil
 }
 
 func extractHostname(in string) string {
@@ -78,13 +126,14 @@ func (s *Action) createWebsite(ctx context.Context, c *cli.Context) error {
 		err      error
 		genPw    bool
 	)
+	out.Green(ctx, "Creating Website login ...")
 	urlStr, err = s.askForString(ctx, "Please enter the URL", "")
 	if err != nil {
 		return err
 	}
 	hostname := extractHostname(urlStr)
 	if hostname == "" {
-		return exitError(ctx, ExitUnknown, err, "Can not parse URL. Please use 'gopass edit' to manually create the secret")
+		return exitError(ctx, ExitUnknown, err, "Can not parse URL '%s'. Please use 'gopass edit' to manually create the secret", urlStr)
 	}
 
 	username, err = s.askForString(ctx, "Please enter the Username/Login", "")
@@ -172,13 +221,20 @@ func (s *Action) createPIN(ctx context.Context, c *cli.Context) error {
 		err         error
 		genPw       bool
 	)
+	out.Green(ctx, "Creating numerical PIN ...")
 	authority, err = s.askForString(ctx, "Please enter the authoriy (e.g. MyBank) this PIN is for", "")
 	if err != nil {
 		return err
 	}
+	if authority == "" {
+		return exitError(ctx, ExitUnknown, nil, "Authority must not be empty")
+	}
 	application, err = s.askForString(ctx, "Please enter the entity (e.g. Credit Card) this PIN is for", "")
 	if err != nil {
 		return err
+	}
+	if application == "" {
+		return exitError(ctx, ExitUnknown, nil, "Application must not be empty")
 	}
 	genPw, err = s.askForBool(ctx, "Do you want to generate a new PIN?", true)
 	if err != nil {
@@ -231,13 +287,20 @@ func (s *Action) createAWS(ctx context.Context, c *cli.Context) error {
 		store     string
 		err       error
 	)
+	out.Green(ctx, "Creating AWS credentials ...")
 	account, err = s.askForString(ctx, "Please enter the AWS Account this key belongs to", "")
 	if err != nil {
 		return err
 	}
+	if account == "" {
+		return exitError(ctx, ExitUnknown, nil, "Account must not be empty")
+	}
 	username, err = s.askForString(ctx, "Please enter the name of the AWS IAM User this key belongs to", "")
 	if err != nil {
 		return err
+	}
+	if username == "" {
+		return exitError(ctx, ExitUnknown, nil, "Username must not be empty")
 	}
 	accesskey, err = s.askForString(ctx, "Please enter the Access Key ID (AWS_ACCESS_KEY_ID)", "")
 	if err != nil {
@@ -282,6 +345,7 @@ func (s *Action) createGCP(ctx context.Context, c *cli.Context) error {
 		store    string
 		err      error
 	)
+	out.Green(ctx, "Creating GCP credentials ...")
 	svcaccfn, err = s.askForString(ctx, "Please enter path to the Service Account JSON file", "")
 	if err != nil {
 		return err
@@ -300,11 +364,17 @@ func (s *Action) createGCP(ctx context.Context, c *cli.Context) error {
 			return err
 		}
 	}
+	if username == "" {
+		return exitError(ctx, ExitUnknown, nil, "Username must not be empty")
+	}
 	if project == "" {
 		project, err = s.askForString(ctx, "Please enter the name of this GCP project", "")
 		if err != nil {
 			return err
 		}
+	}
+	if project == "" {
+		return exitError(ctx, ExitUnknown, nil, "Project must not be empty")
 	}
 
 	// select store
@@ -353,9 +423,13 @@ func (s *Action) createGeneric(ctx context.Context, c *cli.Context) error {
 		err       error
 		genPw     bool
 	)
+	out.Green(ctx, "Creating generic secret ...")
 	shortname, err = s.askForString(ctx, "Please enter a name for the secret", "")
 	if err != nil {
 		return err
+	}
+	if shortname == "" {
+		return exitError(ctx, ExitUnknown, nil, "Name must not be empty")
 	}
 	genPw, err = s.askForBool(ctx, "Do you want to generate a new password?", true)
 	if err != nil {
