@@ -1,6 +1,7 @@
 package sub
 
 import (
+	"bytes"
 	"context"
 	"io/ioutil"
 	"os"
@@ -9,11 +10,18 @@ import (
 	gitmock "github.com/justwatchcom/gopass/backend/git/mock"
 	gpgmock "github.com/justwatchcom/gopass/backend/gpg/mock"
 	"github.com/justwatchcom/gopass/store/secret"
+	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestCopy(t *testing.T) {
 	ctx := context.Background()
+
+	obuf := &bytes.Buffer{}
+	out.Stdout = obuf
+	defer func() {
+		out.Stdout = os.Stdout
+	}()
 
 	for _, tc := range []struct {
 		name string
@@ -62,7 +70,6 @@ func TestCopy(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to create tempdir: %s", err)
 		}
-		t.Logf("Using tempdir: %s", tempdir)
 
 		s := &Store{
 			alias: "",
@@ -77,6 +84,7 @@ func TestCopy(t *testing.T) {
 		// run test case
 		t.Run(tc.name, tc.tf(s))
 
+		obuf.Reset()
 		// common tear down
 		_ = os.RemoveAll(tempdir)
 	}
@@ -84,6 +92,12 @@ func TestCopy(t *testing.T) {
 
 func TestMove(t *testing.T) {
 	ctx := context.Background()
+
+	obuf := &bytes.Buffer{}
+	out.Stdout = obuf
+	defer func() {
+		out.Stdout = os.Stdout
+	}()
 
 	for _, tc := range []struct {
 		name string
@@ -143,6 +157,7 @@ func TestMove(t *testing.T) {
 		// run test case
 		t.Run(tc.name, tc.tf(s))
 
+		obuf.Reset()
 		// common tear down
 		_ = os.RemoveAll(tempdir)
 	}
@@ -150,6 +165,12 @@ func TestMove(t *testing.T) {
 
 func TestDelete(t *testing.T) {
 	ctx := context.Background()
+
+	obuf := &bytes.Buffer{}
+	out.Stdout = obuf
+	defer func() {
+		out.Stdout = os.Stdout
+	}()
 
 	for _, tc := range []struct {
 		name string
@@ -202,6 +223,7 @@ func TestDelete(t *testing.T) {
 		// run test case
 		t.Run(tc.name, tc.tf(s))
 
+		obuf.Reset()
 		// common tear down
 		_ = os.RemoveAll(tempdir)
 	}
@@ -209,6 +231,12 @@ func TestDelete(t *testing.T) {
 
 func TestPrune(t *testing.T) {
 	ctx := context.Background()
+
+	obuf := &bytes.Buffer{}
+	out.Stdout = obuf
+	defer func() {
+		out.Stdout = os.Stdout
+	}()
 
 	for _, tc := range []struct {
 		name string
@@ -292,6 +320,7 @@ func TestPrune(t *testing.T) {
 		// run test case
 		t.Run(tc.name, tc.tf(s))
 
+		obuf.Reset()
 		// common tear down
 		_ = os.RemoveAll(tempdir)
 	}

@@ -1,11 +1,13 @@
 package sub
 
 import (
+	"bytes"
 	"context"
 	"io/ioutil"
 	"os"
 	"testing"
 
+	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -18,6 +20,12 @@ func TestFsck(t *testing.T) {
 	}
 	defer func() {
 		_ = os.RemoveAll(tempdir)
+	}()
+
+	obuf := &bytes.Buffer{}
+	out.Stdout = obuf
+	defer func() {
+		out.Stdout = os.Stdout
 	}()
 
 	s, err := createSubStore(tempdir)

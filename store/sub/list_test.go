@@ -1,20 +1,27 @@
 package sub
 
 import (
+	"bytes"
 	"context"
 	"io/ioutil"
 	"os"
-	"strings"
 	"testing"
 
 	gitmock "github.com/justwatchcom/gopass/backend/git/mock"
 	gpgmock "github.com/justwatchcom/gopass/backend/gpg/mock"
 	"github.com/justwatchcom/gopass/store/secret"
+	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestList(t *testing.T) {
 	ctx := context.Background()
+
+	obuf := &bytes.Buffer{}
+	out.Stdout = obuf
+	defer func() {
+		out.Stdout = os.Stdout
+	}()
 
 	for _, tc := range []struct {
 		name string
@@ -24,6 +31,7 @@ func TestList(t *testing.T) {
 		{
 			name: "Empty store",
 			prep: func(s *Store) error { return nil },
+			out:  []string{},
 		},
 		{
 			name: "Single entry",
@@ -80,13 +88,10 @@ func TestList(t *testing.T) {
 
 		// run test case
 		out, err := s.List("")
-		if err != nil {
-			t.Fatalf("Failed to call List(): %s", err)
-		}
-		t.Logf("Output: %s", out)
-		if strings.Join(out, "\n") != strings.Join(tc.out, "\n") {
-			t.Errorf("Mismatched output: %+v vs. %+v", out, tc.out)
-		}
+		assert.NoError(t, err)
+		assert.Equal(t, tc.out, out)
+
+		obuf.Reset()
 
 		// common tear down
 		_ = os.RemoveAll(tempdir)

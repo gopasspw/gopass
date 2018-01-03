@@ -3,6 +3,7 @@ package fish
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/urfave/cli"
 )
 
@@ -28,8 +29,34 @@ func TestFormatFlag(t *testing.T) {
 func TestGetCompletion(t *testing.T) {
 	app := cli.NewApp()
 	sv, err := GetCompletion(app)
-	if err != nil {
-		t.Fatalf("Error: %s", err)
+	assert.NoError(t, err)
+	assert.Contains(t, sv, "#!/usr/bin/env fish")
+}
+
+func TestFormatflagFunc(t *testing.T) {
+	for _, flag := range []cli.Flag{
+		cli.BoolFlag{Name: "foo", Usage: "bar"},
+		cli.Float64Flag{Name: "foo", Usage: "bar"},
+		cli.GenericFlag{Name: "foo", Usage: "bar"},
+		cli.Int64Flag{Name: "foo", Usage: "bar"},
+		cli.Int64SliceFlag{Name: "foo", Usage: "bar"},
+		cli.IntFlag{Name: "foo", Usage: "bar"},
+		cli.IntSliceFlag{Name: "foo", Usage: "bar"},
+		cli.StringFlag{Name: "foo", Usage: "bar"},
+		cli.StringSliceFlag{Name: "foo", Usage: "bar"},
+		cli.Uint64Flag{Name: "foo", Usage: "bar"},
+		cli.UintFlag{Name: "foo", Usage: "bar"},
+	} {
+		sv, err := formatFlagFunc("short")(flag)
+		assert.NoError(t, err)
+		assert.Equal(t, "", sv)
+
+		sv, err = formatFlagFunc("long")(flag)
+		assert.NoError(t, err)
+		assert.Equal(t, "foo", sv)
+
+		sv, err = formatFlagFunc("usage")(flag)
+		assert.NoError(t, err)
+		assert.Equal(t, "bar", sv)
 	}
-	t.Logf("Output: %s", sv)
 }

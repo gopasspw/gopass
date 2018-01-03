@@ -11,21 +11,18 @@ import (
 
 func TestNotify(t *testing.T) {
 	_ = os.Setenv("GOPASS_NO_NOTIFY", "true")
-	err := Notify("foo", "bar")
-	t.Logf("Error: %s", err)
+	assert.NoError(t, Notify("foo", "bar"))
 }
 
 func TestIcon(t *testing.T) {
 	fn := strings.TrimPrefix(iconURI(), "file://")
+	_ = os.Remove(fn)
+	_ = iconURI()
 	fh, err := os.Open(fn)
-	if err != nil {
-		t.Fatalf("Failed to open file %s: %s", fn, err)
-	}
+	assert.NoError(t, err)
 	defer func() {
 		assert.NoError(t, fh.Close())
 	}()
 	_, err = png.Decode(fh)
-	if err != nil {
-		t.Fatalf("Failed to decode icon: %s", err)
-	}
+	assert.NoError(t, err)
 }
