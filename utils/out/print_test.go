@@ -8,6 +8,7 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestPrint(t *testing.T) {
@@ -19,15 +20,15 @@ func TestPrint(t *testing.T) {
 	}()
 
 	Print(ctx, "%s = %d", "foo", 42)
-	if buf.String() != "foo = 42\n" {
-		t.Errorf("Wrong output: %s", buf.String())
-	}
+	assert.Equal(t, "foo = 42\n", buf.String())
+	buf.Reset()
+
+	Print(WithHidden(ctx, true), "%s = %d", "foo", 42)
+	assert.Equal(t, "", buf.String())
 	buf.Reset()
 
 	Print(WithNewline(ctx, false), "%s = %d", "foo", 42)
-	if buf.String() != "foo = 42" {
-		t.Errorf("Wrong output: %s", buf.String())
-	}
+	assert.Equal(t, "foo = 42", buf.String())
 	buf.Reset()
 }
 
@@ -72,8 +73,9 @@ func TestColor(t *testing.T) {
 	} {
 		buf.Reset()
 		fn(ctx, "foobar")
-		if buf.String() != "foobar\n" {
-			t.Errorf("Wrong output: %s", buf.String())
-		}
+		assert.Equal(t, "foobar\n", buf.String())
+		buf.Reset()
+		fn(WithHidden(ctx, true), "foobar")
+		assert.Equal(t, "", buf.String())
 	}
 }
