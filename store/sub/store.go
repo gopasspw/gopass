@@ -151,7 +151,7 @@ func (s *Store) reencrypt(ctx context.Context) error {
 			Total: int64(len(entries)),
 			Width: 120,
 		}
-		if !ctxutil.IsTerminal(ctx) {
+		if !ctxutil.IsTerminal(ctx) || out.IsHidden(ctx) {
 			bar = nil
 		}
 		for _, e := range entries {
@@ -189,6 +189,10 @@ func (s *Store) reencrypt(ctx context.Context) error {
 		return nil
 	}
 
+	return s.reencryptGitPush(ctx)
+}
+
+func (s *Store) reencryptGitPush(ctx context.Context) error {
 	if err := s.git.Push(ctx, "", ""); err != nil {
 		if errors.Cause(err) == store.ErrGitNotInit {
 			msg := "Warning: git is not initialized for this store. Ignoring auto-push option\n" +

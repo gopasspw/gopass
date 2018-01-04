@@ -28,9 +28,7 @@ func TestMove(t *testing.T) {
 
 	app := cli.NewApp()
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
-	if err := fs.Parse([]string{"foo", "bar"}); err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, fs.Parse([]string{"foo", "bar"}))
 	c := cli.NewContext(app, fs, nil)
 
 	buf := &bytes.Buffer{}

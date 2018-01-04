@@ -36,9 +36,7 @@ func TestTemplates(t *testing.T) {
 
 	// display empty template tree
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
-	if err := fs.Parse([]string{"foo"}); err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, fs.Parse([]string{"foo"}))
 	c := cli.NewContext(app, fs, nil)
 
 	out := capture(t, func() error {

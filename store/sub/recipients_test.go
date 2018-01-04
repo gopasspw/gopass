@@ -13,6 +13,7 @@ import (
 
 	gitmock "github.com/justwatchcom/gopass/backend/git/mock"
 	gpgmock "github.com/justwatchcom/gopass/backend/gpg/mock"
+	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -27,6 +28,12 @@ func TestGetRecipientsDefault(t *testing.T) {
 		_ = os.RemoveAll(tempdir)
 	}()
 
+	obuf := &bytes.Buffer{}
+	out.Stdout = obuf
+	defer func() {
+		out.Stdout = os.Stdout
+	}()
+
 	genRecs, _, err := createStore(tempdir, nil, nil)
 	assert.NoError(t, err)
 
@@ -37,6 +44,7 @@ func TestGetRecipientsDefault(t *testing.T) {
 		git:   gitmock.New(),
 	}
 
+	assert.Equal(t, genRecs, s.Recipients(ctx))
 	recs, err := s.GetRecipients(ctx, "")
 	assert.NoError(t, err)
 	assert.Equal(t, genRecs, recs)
@@ -50,7 +58,13 @@ func TestGetRecipientsSubID(t *testing.T) {
 		t.Fatalf("Failed to create tempdir: %s", err)
 	}
 	defer func() {
-		//_ = os.RemoveAll(tempdir)
+		_ = os.RemoveAll(tempdir)
+	}()
+
+	obuf := &bytes.Buffer{}
+	out.Stdout = obuf
+	defer func() {
+		out.Stdout = os.Stdout
 	}()
 
 	genRecs, _, err := createStore(tempdir, nil, nil)
@@ -87,6 +101,12 @@ func TestSaveRecipients(t *testing.T) {
 	}()
 	_, _, err = createStore(tempdir, nil, nil)
 	assert.NoError(t, err)
+
+	obuf := &bytes.Buffer{}
+	out.Stdout = obuf
+	defer func() {
+		out.Stdout = os.Stdout
+	}()
 
 	recp := []string{"john.doe"}
 	s := &Store{
@@ -127,6 +147,7 @@ func TestSaveRecipients(t *testing.T) {
 
 func TestAddRecipient(t *testing.T) {
 	ctx := context.Background()
+	ctx = out.WithHidden(ctx, true)
 
 	tempdir, err := ioutil.TempDir("", "gopass-")
 	if err != nil {
@@ -138,6 +159,12 @@ func TestAddRecipient(t *testing.T) {
 
 	genRecs, _, err := createStore(tempdir, nil, nil)
 	assert.NoError(t, err)
+
+	obuf := &bytes.Buffer{}
+	out.Stdout = obuf
+	defer func() {
+		out.Stdout = os.Stdout
+	}()
 
 	s := &Store{
 		alias: "",
@@ -161,6 +188,7 @@ func TestAddRecipient(t *testing.T) {
 
 func TestRemoveRecipient(t *testing.T) {
 	ctx := context.Background()
+	ctx = out.WithHidden(ctx, true)
 
 	tempdir, err := ioutil.TempDir("", "gopass-")
 	if err != nil {
@@ -171,6 +199,12 @@ func TestRemoveRecipient(t *testing.T) {
 	}()
 	_, _, err = createStore(tempdir, nil, nil)
 	assert.NoError(t, err)
+
+	obuf := &bytes.Buffer{}
+	out.Stdout = obuf
+	defer func() {
+		out.Stdout = os.Stdout
+	}()
 
 	s := &Store{
 		alias: "",
@@ -200,6 +234,12 @@ func TestListRecipients(t *testing.T) {
 
 	genRecs, _, err := createStore(tempdir, nil, nil)
 	assert.NoError(t, err)
+
+	obuf := &bytes.Buffer{}
+	out.Stdout = obuf
+	defer func() {
+		out.Stdout = os.Stdout
+	}()
 
 	s := New(
 		"",

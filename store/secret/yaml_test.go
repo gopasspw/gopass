@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/justwatchcom/gopass/store"
+	"github.com/stretchr/testify/assert"
 )
 
 const (
@@ -18,10 +19,30 @@ func TestYAMLKeyFromEmptySecret(t *testing.T) {
 	t.Logf("Get Key from empty Secret")
 	s := &Secret{}
 	_, err := s.Value(yamlKey)
-	if err == nil {
-		t.Errorf("Should complain about missing YAML marker")
-	}
+	assert.Error(t, err)
 }
+
+type inlineB struct {
+	B       int
+	inlineC `yaml:",inline"`
+}
+
+type inlineC struct {
+	C int
+}
+
+func TestYAMLEncodingError(t *testing.T) {
+	s := &Secret{
+		data: map[string]interface{}{
+			"foo": &struct {
+				B       int
+				inlineB `yaml:",inline"`
+			}{1, inlineB{2, inlineC{3}}},
+		},
+	}
+	assert.Error(t, s.encodeYAML())
+}
+
 func TestYAMLKeyToEmptySecret(t *testing.T) {
 	t.Logf("Set Key to empty Secret")
 	s := &Secret{}
@@ -62,13 +83,8 @@ func TestYAMLKeyFromPWOnlySecret(t *testing.T) {
 	}
 	// read back whole entry
 	content, err := s.Bytes()
-	if err != nil {
-		t.Fatalf("%s", err)
-	}
-	want := string(yamlPassword)
-	if string(content) != want+"\n" {
-		t.Errorf("Wrong value: '%s' != '%s'", content, want)
-	}
+	assert.NoError(t, err)
+	assert.Equal(t, string(yamlPassword), string(content))
 }
 
 func TestYAMLKeyToPWOnlySecret(t *testing.T) {

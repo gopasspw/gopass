@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/justwatchcom/gopass/store"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestNew(t *testing.T) {
@@ -138,7 +139,7 @@ func TestParse(t *testing.T) {
 		{
 			Desc:     "Simple Secret",
 			In:       []byte(`password`),
-			Out:      []byte("password\n"),
+			Out:      []byte("password"),
 			Password: "password",
 		},
 		{
@@ -210,37 +211,23 @@ key2: value2`,
 	} {
 		sec, err := Parse(tc.In)
 		if tc.Fail {
-			if err == nil {
-				t.Errorf("Should fail to parse secret")
-			}
+			assert.Error(t, err)
 			continue
 		} else if err != nil {
-			t.Errorf("Failed to parse secret: %s", err)
+			assert.NoError(t, err)
 			continue
 		}
-		if sec.Password() != tc.Password {
-			t.Errorf("[%s] Wrong password", tc.Desc)
-		}
-		if sec.Body() != tc.Body {
-			t.Errorf("[%s] Wrong body: %s - %s", tc.Desc, sec.Body(), tc.Body)
-		}
+		assert.Equal(t, tc.Password, sec.Password())
+		assert.Equal(t, tc.Body, sec.Body())
 		for k, v := range tc.Data {
 			rv, err := sec.Value(k)
-			if err != nil {
-				t.Fatalf("failed to retrieve value")
-			}
-			if rv != v {
-				t.Errorf("Wrong value for %s", k)
-			}
+			assert.NoError(t, err)
+			assert.Equal(t, v, rv)
 		}
 		b, err := sec.Bytes()
-		if err != nil {
-			t.Fatalf("failed to marshal secret: %s", err)
-		}
+		assert.NoError(t, err)
 		if tc.Out != nil {
-			if string(b) != string(tc.Out) {
-				t.Errorf("wrong bytes: '%s'", string(b))
-			}
+			assert.Equal(t, string(tc.Out), string(b))
 		}
 	}
 }

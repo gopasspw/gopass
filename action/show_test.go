@@ -8,6 +8,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/stretchr/testify/assert"
@@ -23,9 +24,11 @@ func TestShow(t *testing.T) {
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
+	ctx = ctxutil.WithTerminal(ctx, false)
 	act, err := newMock(ctx, td)
 	assert.NoError(t, err)
 
+	color.NoColor = true
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
 	defer func() {
@@ -39,11 +42,8 @@ func TestShow(t *testing.T) {
 	assert.NoError(t, fs.Parse([]string{"foo"}))
 	c := cli.NewContext(app, fs, nil)
 
-	out := capture(t, func() error {
-		return act.Show(ctx, c)
-	})
-	want := "0xDEADBEEF"
-	assert.Equal(t, out, want)
+	assert.NoError(t, act.Show(ctx, c))
+	assert.Equal(t, "0xDEADBEEF", buf.String())
 	buf.Reset()
 
 	// show --sync foo
@@ -56,10 +56,7 @@ func TestShow(t *testing.T) {
 	assert.NoError(t, fs.Parse([]string{"--sync", "foo"}))
 	c = cli.NewContext(app, fs, nil)
 
-	out = capture(t, func() error {
-		return act.Show(ctx, c)
-	})
-	want = "0xDEADBEEF"
-	assert.Equal(t, out, want)
+	assert.NoError(t, act.Show(ctx, c))
+	assert.Equal(t, "0xDEADBEEF", buf.String())
 	buf.Reset()
 }

@@ -80,9 +80,7 @@ foo/nopager: false`
 
 	// config autoimport
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
-	if err := fs.Parse([]string{"autoimport"}); err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, fs.Parse([]string{"autoimport"}))
 	c = cli.NewContext(app, fs, nil)
 	assert.NoError(t, act.Config(ctx, c))
 	want = `autoimport: true`
@@ -94,9 +92,7 @@ foo/nopager: false`
 
 	// config autoimport false
 	fs = flag.NewFlagSet("default", flag.ContinueOnError)
-	if err := fs.Parse([]string{"autoimport", "false"}); err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, fs.Parse([]string{"autoimport", "false"}))
 	c = cli.NewContext(app, fs, nil)
 	assert.NoError(t, act.Config(ctx, c))
 	want = `autoimport: false`

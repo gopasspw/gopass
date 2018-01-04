@@ -10,11 +10,9 @@ import (
 )
 
 func longName(name string) string {
-	parts := strings.Split(name, ",")
-	if len(parts) < 1 {
-		return ""
-	}
-	return strings.TrimSpace(parts[0])
+	// "If s does not contain sep and sep is not empty, Split returns a slice of length 1 whose only element is s."
+	// from https://golang.org/pkg/strings/#Split
+	return strings.TrimSpace(strings.Split(name, ",")[0])
 }
 
 func formatFlag(name, usage string) string {

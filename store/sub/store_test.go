@@ -1,6 +1,7 @@
 package sub
 
 import (
+	"context"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -9,6 +10,7 @@ import (
 	"testing"
 
 	gpgmock "github.com/justwatchcom/gopass/backend/gpg/mock"
+	"github.com/justwatchcom/gopass/store/secret"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -89,4 +91,39 @@ func TestStore(t *testing.T) {
 	if !s.Equals(s) {
 		t.Errorf("Should be equal to myself")
 	}
+}
+
+func TestIdFile(t *testing.T) {
+	ctx := context.Background()
+
+	tempdir, err := ioutil.TempDir("", "gopass-")
+	if err != nil {
+		t.Fatalf("Failed to create tempdir: %s", err)
+	}
+	defer func() {
+		_ = os.RemoveAll(tempdir)
+	}()
+
+	s, err := createSubStore(tempdir)
+	assert.NoError(t, err)
+
+	// test sub-id
+	secName := "a"
+	for i := 0; i < 99; i++ {
+		secName += "/a"
+	}
+	assert.NoError(t, s.Set(ctx, secName, secret.New("foo", "bar")))
+	assert.NoError(t, ioutil.WriteFile(filepath.Join(tempdir, "sub", "a", GPGID), []byte("foobar"), 0600))
+	assert.Equal(t, filepath.Join(tempdir, "sub", "a", GPGID), s.idFile(secName))
+
+	assert.Equal(t, true, s.Exists(secName))
+
+	// test abort condition
+	secName = "a"
+	for i := 0; i < 100; i++ {
+		secName += "/a"
+	}
+	assert.NoError(t, s.Set(ctx, secName, secret.New("foo", "bar")))
+	assert.NoError(t, ioutil.WriteFile(filepath.Join(tempdir, "sub", "a", GPGID), []byte("foobar"), 0600))
+	assert.Equal(t, filepath.Join(tempdir, "sub", GPGID), s.idFile(secName))
 }

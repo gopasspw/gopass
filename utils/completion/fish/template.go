@@ -1,7 +1,7 @@
 package fish
 
 // see https://fishshell.com/docs/current/commands.html#complete
-const fishTemplate = `#!/usr/bin/env fish
+var fishTemplate = `#!/usr/bin/env fish
 {{ $prog := .Name -}}
 set PROG '{{ $prog }}'
 

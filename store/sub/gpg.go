@@ -112,7 +112,8 @@ func (s *Store) exportPublicKey(ctx context.Context, r string) (string, error) {
 		return "", err
 	}
 
-	if fi.Size() < 1024 {
+	// ECC keys are at least 700 byte, RSA should be a lot bigger
+	if fi.Size() < 256 {
 		return "", errors.New("exported key too small")
 	}
 
