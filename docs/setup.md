@@ -193,13 +193,12 @@ ln -s $GOPATH/bin/gopass $HOME/bin/pass
 
 Before migrating to gopass, you may have been using other password managers (such as [KeePass](https://keepass.info/), for example). If you were, you might want to import all of your existing passwords over. Because gopass is fully backwards compatible with pass, you can use any of the existing migration tools found under the "Migrating to pass" section of the [official pass website](https://www.passwordstore.org/).
 
-### Enable Bash / Z Shell Auto completion
+### Enable Bash Auto completion
 
-If you use Bash or Z Shell, you can run one of the following commands to enable auto completion for sub commands like `gopass show`, `gopass ls` and others.
+If you use Bash, you can run one of the following commands to enable auto completion for sub commands like `gopass show`, `gopass ls` and others.
 
 ```
 source <(gopass completion bash)
-source <(gopass completion zsh)
 ```
 
 **MacOS**: The version of bash shipped with MacOS may [require a workaround](https://stackoverflow.com/questions/32596123/why-source-command-doesnt-work-with-process-substitution-in-bash-3-2) to enable auto completion. If the instructions above do not work try the following one:
@@ -207,7 +206,10 @@ source <(gopass completion zsh)
 ```
 source /dev/stdin <<<"$(gopass completion bash)"
 ```
-**oh-my-zsh**: `source <(gopass completion bash)` must be run after `source wherever/oh-my-zsh.zsh` to ensure the completion is loaded correctly.
+
+### Enable  Z Shell Auto completion
+
+If you use zsh, `make install` or `make install-completion` should install the completion in the correct location.
 
 ### Enable fish completion
 
