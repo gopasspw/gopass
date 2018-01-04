@@ -77,8 +77,10 @@ func (s *Secret) encodeYAML() (err error) {
 func (s *Secret) Bytes() ([]byte, error) {
 	buf := &bytes.Buffer{}
 	_, _ = buf.WriteString(s.password)
-	_, _ = buf.WriteString("\n")
-	_, _ = buf.WriteString(s.body)
+	if s.body != "" {
+		_, _ = buf.WriteString("\n")
+		_, _ = buf.WriteString(s.body)
+	}
 	return buf.Bytes(), nil
 }
 

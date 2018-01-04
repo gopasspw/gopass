@@ -2,19 +2,26 @@ package main
 
 import (
 	"context"
+	"flag"
 	"testing"
 
-	"github.com/justwatchcom/gopass/backend/gpg"
-	"github.com/justwatchcom/gopass/config"
+	"github.com/justwatchcom/gopass/utils/ctxutil"
+	"github.com/stretchr/testify/assert"
+	"github.com/urfave/cli"
 )
 
-func TestInitContext(t *testing.T) {
+func TestGlobalFlags(t *testing.T) {
 	ctx := context.Background()
-	cfg := config.New()
+	app := cli.NewApp()
 
-	ctx = initContext(ctx, cfg)
-
-	if !gpg.IsAlwaysTrust(ctx) {
-		t.Errorf("AlwaysTrust should be true")
+	fs := flag.NewFlagSet("default", flag.ContinueOnError)
+	sf := cli.BoolFlag{
+		Name:  "yes",
+		Usage: "yes",
 	}
+	assert.NoError(t, sf.ApplyWithError(fs))
+	assert.NoError(t, fs.Parse([]string{"--yes"}))
+	c := cli.NewContext(app, fs, nil)
+
+	assert.Equal(t, true, ctxutil.IsAlwaysYes(withGlobalFlags(ctx, c)))
 }

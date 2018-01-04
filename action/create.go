@@ -462,7 +462,7 @@ func (s *Action) createGeneric(ctx context.Context, c *cli.Context) error {
 		}
 	}
 	sec := secret.New(password, "")
-	fmt.Println("Enter zero or more key value pairs for this secret:")
+	out.Print(ctx, "Enter zero or more key value pairs for this secret:")
 	for {
 		key, err := s.askForString(ctx, "Name for Key Value pair (enter to quit)", "")
 		if err != nil {
