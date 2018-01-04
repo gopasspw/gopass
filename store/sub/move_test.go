@@ -31,9 +31,7 @@ func TestCopy(t *testing.T) {
 			name: "Empty store",
 			tf: func(s *Store) func(t *testing.T) {
 				return func(t *testing.T) {
-					if err := s.Copy(ctx, "foo", "bar"); err == nil {
-						t.Errorf("Should fail to copy non-existing entries in empty store")
-					}
+					assert.Error(t, s.Copy(ctx, "foo", "bar"))
 				}
 			},
 		},
@@ -41,35 +39,47 @@ func TestCopy(t *testing.T) {
 			name: "Single entry",
 			tf: func(s *Store) func(t *testing.T) {
 				return func(t *testing.T) {
-					if err := s.Set(ctx, "foo", secret.New("bar", "")); err != nil {
-						t.Fatalf("Failed to insert test data: %s", err)
-					}
-					if err := s.Copy(ctx, "foo", "bar"); err != nil {
-						t.Errorf("Failed to copy 'foo' to 'bar': %s", err)
-					}
+					assert.NoError(t, s.Set(ctx, "foo", secret.New("bar", "")))
+					assert.NoError(t, s.Copy(ctx, "foo", "bar"))
 					sec, err := s.Get(ctx, "foo")
-					if err != nil {
-						t.Fatalf("Failed to get 'foo': %s", err)
-					}
-					if sec.Password() != "bar" {
-						t.Errorf("Wrong content in 'foo'")
-					}
+					assert.NoError(t, err)
+					assert.Equal(t, "bar", sec.Password())
 					sec, err = s.Get(ctx, "bar")
-					if err != nil {
-						t.Fatalf("Failed to get 'bar': %s", err)
-					}
-					if sec.Password() != "bar" {
-						t.Errorf("Wrong content in 'bar'")
-					}
+					assert.NoError(t, err)
+					assert.Equal(t, "bar", sec.Password())
+				}
+			},
+		},
+		{
+			name: "Recursive",
+			tf: func(s *Store) func(t *testing.T) {
+				return func(t *testing.T) {
+					assert.NoError(t, s.Set(ctx, "foo/bar/baz", secret.New("baz", "")))
+					assert.NoError(t, s.Set(ctx, "foo/bar/zab", secret.New("zab", "")))
+					assert.NoError(t, s.Copy(ctx, "foo", "bar"))
+
+					sec, err := s.Get(ctx, "bar/bar/baz")
+					assert.NoError(t, err)
+					assert.Equal(t, "baz", sec.Password())
+
+					sec, err = s.Get(ctx, "bar/bar/zab")
+					assert.NoError(t, err)
+					assert.Equal(t, "zab", sec.Password())
+
+					sec, err = s.Get(ctx, "foo/bar/baz")
+					assert.NoError(t, err)
+					assert.Equal(t, "baz", sec.Password())
+
+					sec, err = s.Get(ctx, "foo/bar/zab")
+					assert.NoError(t, err)
+					assert.Equal(t, "zab", sec.Password())
 				}
 			},
 		},
 	} {
 		// common setup
 		tempdir, err := ioutil.TempDir("", "gopass-")
-		if err != nil {
-			t.Fatalf("Failed to create tempdir: %s", err)
-		}
+		assert.NoError(t, err)
 
 		s := &Store{
 			alias: "",
@@ -78,8 +88,7 @@ func TestCopy(t *testing.T) {
 			git:   gitmock.New(),
 		}
 
-		err = s.saveRecipients(ctx, []string{"john.doe"}, "test", false)
-		assert.NoError(t, err)
+		assert.NoError(t, s.saveRecipients(ctx, []string{"john.doe"}, "test", false))
 
 		// run test case
 		t.Run(tc.name, tc.tf(s))
@@ -107,9 +116,7 @@ func TestMove(t *testing.T) {
 			name: "Empty store",
 			tf: func(s *Store) func(t *testing.T) {
 				return func(t *testing.T) {
-					if err := s.Move(ctx, "foo", "bar"); err == nil {
-						t.Errorf("Should fail to move non-existing entries in empty store")
-					}
+					assert.Error(t, s.Move(ctx, "foo", "bar"))
 				}
 			},
 		},
@@ -134,6 +141,24 @@ func TestMove(t *testing.T) {
 					if sec.Password() != "bar" {
 						t.Errorf("Wrong content in 'bar'")
 					}
+				}
+			},
+		},
+		{
+			name: "Recursive",
+			tf: func(s *Store) func(t *testing.T) {
+				return func(t *testing.T) {
+					assert.NoError(t, s.Set(ctx, "foo/bar/baz", secret.New("baz", "")))
+					assert.NoError(t, s.Set(ctx, "foo/bar/zab", secret.New("zab", "")))
+					assert.NoError(t, s.Move(ctx, "foo", "bar"))
+
+					sec, err := s.Get(ctx, "bar/bar/baz")
+					assert.NoError(t, err)
+					assert.Equal(t, "baz", sec.Password())
+
+					sec, err = s.Get(ctx, "bar/bar/zab")
+					assert.NoError(t, err)
+					assert.Equal(t, "zab", sec.Password())
 				}
 			},
 		},

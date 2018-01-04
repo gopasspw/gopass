@@ -1,11 +1,23 @@
 package fish
 
 import (
+	"flag"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/urfave/cli"
 )
+
+type unknownFlag struct{}
+
+func (u unknownFlag) String() string {
+	return ""
+}
+
+func (u unknownFlag) Apply(*flag.FlagSet) {}
+func (u unknownFlag) GetName() string {
+	return ""
+}
 
 func TestFormatFlag(t *testing.T) {
 	for _, tc := range []struct {
@@ -17,12 +29,11 @@ func TestFormatFlag(t *testing.T) {
 		{"print, p", "Print", "short", "p"},
 		{"print, p", "Print", "long", "print"},
 		{"print, p", "Print", "usage", "Print"},
+		{"print", "Print", "short", ""},
+		{"", "Print", "long", ""},
 		{"print, p", "Print", "foo", ""},
 	} {
-		out := formatFlag(tc.Name, tc.Usage, tc.Typ)
-		if out != tc.Out {
-			t.Errorf("'%s' != '%s'", out, tc.Out)
-		}
+		assert.Equal(t, tc.Out, formatFlag(tc.Name, tc.Usage, tc.Typ))
 	}
 }
 
@@ -31,6 +42,16 @@ func TestGetCompletion(t *testing.T) {
 	sv, err := GetCompletion(app)
 	assert.NoError(t, err)
 	assert.Contains(t, sv, "#!/usr/bin/env fish")
+
+	fishTemplate = "{{.unexported}}"
+	sv, err = GetCompletion(app)
+	assert.Error(t, err)
+	assert.Contains(t, sv, "")
+
+	fishTemplate = "{{}}"
+	sv, err = GetCompletion(app)
+	assert.Error(t, err)
+	assert.Contains(t, sv, "")
 }
 
 func TestFormatflagFunc(t *testing.T) {
@@ -59,4 +80,16 @@ func TestFormatflagFunc(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, "bar", sv)
 	}
+
+	sv, err := formatFlagFunc("short")(unknownFlag{})
+	assert.Error(t, err)
+	assert.Equal(t, "", sv)
+
+	sv, err = formatFlagFunc("long")(unknownFlag{})
+	assert.Error(t, err)
+	assert.Equal(t, "", sv)
+
+	sv, err = formatFlagFunc("usage")(unknownFlag{})
+	assert.Error(t, err)
+	assert.Equal(t, "", sv)
 }

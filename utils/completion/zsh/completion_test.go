@@ -1,11 +1,23 @@
 package zsh
 
 import (
+	"flag"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/urfave/cli"
 )
+
+type unknownFlag struct{}
+
+func (u unknownFlag) String() string {
+	return ""
+}
+
+func (u unknownFlag) Apply(*flag.FlagSet) {}
+func (u unknownFlag) GetName() string {
+	return ""
+}
 
 func TestFormatFlag(t *testing.T) {
 	for _, tc := range []struct {
@@ -24,6 +36,16 @@ func TestGetCompletion(t *testing.T) {
 	sv, err := GetCompletion(app)
 	assert.NoError(t, err)
 	assert.Contains(t, sv, "#compdef zsh.test")
+
+	zshTemplate = "{{.unexported}}"
+	sv, err = GetCompletion(app)
+	assert.Error(t, err)
+	assert.Contains(t, sv, "")
+
+	zshTemplate = "{{}}"
+	sv, err = GetCompletion(app)
+	assert.Error(t, err)
+	assert.Contains(t, sv, "")
 }
 
 func TestFormatflagFunc(t *testing.T) {
@@ -45,4 +67,7 @@ func TestFormatflagFunc(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, "--foo[bar]", sv)
 	}
+	sv, err := ff(unknownFlag{})
+	assert.Error(t, err)
+	assert.Equal(t, "", sv)
 }

@@ -2,6 +2,7 @@ package secret
 
 import (
 	"bytes"
+	"fmt"
 	"strings"
 	"sync"
 
@@ -57,14 +58,19 @@ func (s *Secret) decodeYAML() (bool, error) {
 	return true, nil
 }
 
-func (s *Secret) encodeYAML() error {
+func (s *Secret) encodeYAML() (err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("panic: %s", r)
+		}
+	}()
 	// update body
 	yb, err := yaml.Marshal(s.data)
 	if err != nil {
 		return err
 	}
 	s.body = "---\n" + string(yb)
-	return nil
+	return err
 }
 
 // Bytes encodes an secret
