@@ -1,0 +1,6 @@
+coverage:
+  range: 40..90
+  round: nearest
+  precision: 2
+ignore:
+  - "vendor/"
