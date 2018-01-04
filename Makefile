@@ -195,3 +195,7 @@ fuzz-jsonapi:
 	mkdir -p workdir/jsonapi/corpus
 	go-fuzz-build github.com/justwatchcom/gopass/utils/jsonapi
 	go-fuzz -bin=jsonapi-fuzz.zip -workdir=workdir/jsonapi
+
+docker-test:
+	docker build -t gopass:$(GOPASS_REVISION) .
+	docker run --rm gopass:$(GOPASS_REVISION) make test
