@@ -58,9 +58,7 @@ func TestMounts(t *testing.T) {
 
 	// remove non-existing mount
 	fs = flag.NewFlagSet("default", flag.ContinueOnError)
-	if err := fs.Parse([]string{"foo"}); err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, fs.Parse([]string{"foo"}))
 	c = cli.NewContext(app, fs, nil)
 
 	assert.NoError(t, act.MountRemove(ctx, c))

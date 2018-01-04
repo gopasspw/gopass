@@ -83,13 +83,8 @@ func TestYAMLKeyFromPWOnlySecret(t *testing.T) {
 	}
 	// read back whole entry
 	content, err := s.Bytes()
-	if err != nil {
-		t.Fatalf("%s", err)
-	}
-	want := string(yamlPassword)
-	if string(content) != want+"\n" {
-		t.Errorf("Wrong value: '%s' != '%s'", content, want)
-	}
+	assert.NoError(t, err)
+	assert.Equal(t, string(yamlPassword), string(content))
 }
 
 func TestYAMLKeyToPWOnlySecret(t *testing.T) {

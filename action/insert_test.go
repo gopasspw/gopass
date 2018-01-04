@@ -36,10 +36,15 @@ func TestInsert(t *testing.T) {
 
 	// insert bar
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
-	if err := fs.Parse([]string{"bar"}); err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, fs.Parse([]string{"bar"}))
 	c := cli.NewContext(app, fs, nil)
+
+	assert.NoError(t, act.Insert(ctx, c))
+
+	// insert bar baz
+	fs = flag.NewFlagSet("default", flag.ContinueOnError)
+	assert.NoError(t, fs.Parse([]string{"bar", "baz"}))
+	c = cli.NewContext(app, fs, nil)
 
 	assert.NoError(t, act.Insert(ctx, c))
 

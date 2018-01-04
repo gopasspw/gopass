@@ -94,9 +94,7 @@ func TestGetEditor(t *testing.T) {
 		Usage: "editor",
 	}
 	assert.NoError(t, sf.ApplyWithError(fs))
-	if err := fs.Parse([]string{"--editor", "fooed"}); err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, fs.Parse([]string{"--editor", "fooed"}))
 	c := cli.NewContext(app, fs, nil)
 
 	assert.Equal(t, "fooed", getEditor(c))

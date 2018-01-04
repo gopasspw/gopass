@@ -98,11 +98,8 @@ func (s *Action) showHandleOutput(ctx context.Context, name, key string, sec *se
 		}
 	}
 
-	fmt.Print(color.YellowString(content))
-	if ctxutil.IsTerminal(ctx) && !strings.HasSuffix(content, "\n") {
-		fmt.Println("")
-	}
-
+	ctx = out.WithNewline(ctx, ctxutil.IsTerminal(ctx) && !strings.HasSuffix(content, "\n"))
+	out.Yellow(ctx, content)
 	return nil
 }
 

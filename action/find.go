@@ -51,7 +51,7 @@ func (s *Action) Find(ctx context.Context, c *cli.Context) error {
 	// gopass find/search was invoked directly (for scripts)
 	if !ctxutil.IsTerminal(ctx) || c.Command.Name == "find" {
 		for _, value := range choices {
-			fmt.Println(value)
+			out.Print(ctx, value)
 		}
 		return nil
 	}

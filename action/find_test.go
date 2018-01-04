@@ -9,6 +9,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/store/secret"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/out"
@@ -30,9 +31,12 @@ func TestFind(t *testing.T) {
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
+	stdout = buf
 	defer func() {
+		stdout = os.Stdout
 		out.Stdout = os.Stdout
 	}()
+	color.NoColor = true
 
 	app := cli.NewApp()
 
@@ -44,19 +48,11 @@ func TestFind(t *testing.T) {
 
 	// find fo
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
-	if err := fs.Parse([]string{"fo"}); err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, fs.Parse([]string{"fo"}))
 	c = cli.NewContext(app, fs, nil)
 
-	out := capture(t, func() error {
-		return act.Find(ctx, c)
-	})
-	out = strings.TrimSpace(out)
-	want := "0xDEADBEEF"
-	if out != want {
-		t.Errorf("'%s' != '%s'", out, want)
-	}
+	assert.NoError(t, act.Find(ctx, c))
+	assert.Equal(t, "Found exact match in 'foo'\n0xDEADBEEF", strings.TrimSpace(buf.String()))
 	buf.Reset()
 
 	// find yo
@@ -76,11 +72,7 @@ func TestFind(t *testing.T) {
 	assert.NoError(t, fs.Parse([]string{"bar"}))
 	c = cli.NewContext(app, fs, nil)
 
-	out = capture(t, func() error {
-		return act.Find(ctx, c)
-	})
-	out = strings.TrimSpace(out)
-	want = "bar/baz\nbar/zab"
-	assert.Equal(t, want, out)
+	assert.NoError(t, act.Find(ctx, c))
+	assert.Equal(t, "bar/baz\nbar/zab", strings.TrimSpace(buf.String()))
 	buf.Reset()
 }

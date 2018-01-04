@@ -33,9 +33,7 @@ func TestCopy(t *testing.T) {
 	app := cli.NewApp()
 	// copy foo bar
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
-	if err := fs.Parse([]string{"foo", "bar"}); err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, fs.Parse([]string{"foo", "bar"}))
 	c := cli.NewContext(app, fs, nil)
 
 	assert.NoError(t, act.Copy(ctx, c))
@@ -43,9 +41,7 @@ func TestCopy(t *testing.T) {
 
 	// copy not-found still-not-there
 	fs = flag.NewFlagSet("default", flag.ContinueOnError)
-	if err := fs.Parse([]string{"not-found", "still-not-there"}); err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, fs.Parse([]string{"not-found", "still-not-there"}))
 	c = cli.NewContext(app, fs, nil)
 
 	assert.Error(t, act.Copy(ctx, c))

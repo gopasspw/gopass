@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -116,8 +117,27 @@ y
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
 	c := cli.NewContext(app, fs, nil)
 
-	assert.NoError(t, act.createWebsite(ctx, c))
-	t.Logf("Out: %s", buf.String())
+	capture(t, func() error { return act.createWebsite(ctx, c) })
+	buf.Reset()
+
+	// try to create the same entry twice
+	input = `https://www.example.org/
+foobar
+y
+y
+5
+`
+	stdin = strings.NewReader(input)
+
+	fs = flag.NewFlagSet("default", flag.ContinueOnError)
+	c = cli.NewContext(app, fs, nil)
+
+	capture(t, func() error {
+		if err := act.createWebsite(ctx, c); err == nil {
+			return fmt.Errorf("expected error")
+		}
+		return nil
+	})
 	buf.Reset()
 }
 
@@ -135,7 +155,9 @@ func TestCreatePIN(t *testing.T) {
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
+	stdout = buf
 	defer func() {
+		stdout = os.Stdout
 		out.Stdout = os.Stdout
 	}()
 
@@ -164,7 +186,7 @@ y
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
 	c := cli.NewContext(app, fs, nil)
 
-	assert.NoError(t, act.createPIN(ctx, c))
+	capture(t, func() error { return act.createPIN(ctx, c) })
 	buf.Reset()
 }
 
@@ -182,7 +204,9 @@ func TestCreateGeneric(t *testing.T) {
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
+	stdout = buf
 	defer func() {
+		stdout = os.Stdout
 		out.Stdout = os.Stdout
 	}()
 

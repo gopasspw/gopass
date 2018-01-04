@@ -76,9 +76,7 @@ func TestBinaryCat(t *testing.T) {
 
 	// binary cat bar
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
-	if err := fs.Parse([]string{"bar"}); err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, fs.Parse([]string{"bar"}))
 	c := cli.NewContext(app, fs, nil)
 	assert.NoError(t, act.BinaryCat(ctx, c))
 }
@@ -130,9 +128,7 @@ func TestBinaryCopy(t *testing.T) {
 
 	// binary move tempdir/bar bar2
 	fs = flag.NewFlagSet("default", flag.ContinueOnError)
-	if err := fs.Parse([]string{outfile, "bar2"}); err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, fs.Parse([]string{outfile, "bar2"}))
 	c = cli.NewContext(app, fs, nil)
 	assert.NoError(t, act.BinaryMove(ctx, c))
 }

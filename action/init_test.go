@@ -6,6 +6,7 @@ import (
 	"flag"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/justwatchcom/gopass/utils/ctxutil"
@@ -40,8 +41,10 @@ func TestInit(t *testing.T) {
 	assert.NoError(t, act.Initialized(ctx, c))
 	assert.Error(t, act.Init(ctx, c))
 	assert.Error(t, act.InitOnboarding(ctx, c))
+	assert.Equal(t, true, act.initHasUseablePrivateKeys(ctx))
+	assert.Error(t, act.initCreatePrivateKey(ctx, "foo bar", "foo.bar@example.org"))
 
-	if !act.initHasUseablePrivateKeys(ctx) {
-		t.Errorf("Should have useable private keys")
-	}
+	// un-initialize the store
+	assert.NoError(t, os.Remove(filepath.Join(td, "store", ".gpg-id")))
+	assert.Error(t, act.Initialized(ctx, c))
 }

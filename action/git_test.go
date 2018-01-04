@@ -49,9 +49,7 @@ func TestGit(t *testing.T) {
 
 	// git status
 	fs = flag.NewFlagSet("default", flag.ContinueOnError)
-	if err := fs.Parse([]string{"status"}); err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, fs.Parse([]string{"status"}))
 	c = cli.NewContext(app, fs, nil)
 	out := capture(t, func() error {
 		return act.Git(ctx, c)
