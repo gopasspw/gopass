@@ -7,4 +7,8 @@ WORKDIR /go/src/github.com/justwatchcom/gopass
 
 RUN make install
 
+RUN chown -R 1000:1000 /go/src/github.com/justwatchcom/gopass
+ENV HOME /go/src/github.com/justwatchcom/gopass
+USER 1000:1000
+
 CMD [ "/go/src/github.com/justwatchcom/gopass/gopass" ]

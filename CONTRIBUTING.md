@@ -47,19 +47,29 @@ If any of the above don't work check out the [troubleshooting section](#troubles
 
 ### Docker Approach
 
-Building and testing commands can be run in a docker container.  
-Change to the directory of your gopass checkout and run:
-```
-cd $GOPATH/src/github.com/justwatchcom/gopass
-docker run --rm -v "$PWD":/go/src/github.com/justwatchcom/gopass -w /go/src/github.com/justwatchcom/gopass golang:stretch go build -v
-```
+gopass ships a ready to use Dockerfile based on Alpine. It allows to run tests
+and build gopass without having to setup a Go stack on the host.
 
-Replace `go build -v` in the above command with `make test` or any other command you'd like to run inside the docker container.
+```bash
+cd $GOPATH/src/github.com/justwatchcom/gopass
+make docker-test
+```
 
 You can also run an interactive shell inside the container via:
+
+```bash
+docker run --rm -ti gopass sh
 ```
-docker run -it -v "$PWD":/go/src/github.com/justwatchcom/gopass -w /go/src/github.com/justwatchcom/gopass golang:stretch bash
+
+It is also possible mount a local directory into the container to copy files in
+and out of it, but please pay attention to permissions.
+
+```bash
+docker run -it -v "$PWD":/go/src/github.com/justwatchcom/gopass -w /go/src/github.com/justwatchcom/gopass gopass sh
 ```
+
+Please note that it is not recommended to actually *use* gopass inside Docker
+as there are issues with random number generation in general and GnuPG.
 
 ### Setup of your local environment
 
