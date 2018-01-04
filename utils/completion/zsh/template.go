@@ -1,7 +1,7 @@
 package zsh
 
 // see http://zsh.sourceforge.net/Doc/Release/Completion-System.html
-const zshTemplate = `{{ $prog := .Name }}#compdef {{ $prog }}
+var zshTemplate = `{{ $prog := .Name }}#compdef {{ $prog }}
 
 _{{ $prog }} () {
     local cmd

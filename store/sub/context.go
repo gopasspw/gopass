@@ -89,7 +89,7 @@ func WithReason(ctx context.Context, msg string) context.Context {
 
 // HasReason returns true if a value for reason has been set in this context
 func HasReason(ctx context.Context) bool {
-	_, ok := ctx.Value(ctxKeyReason).(bool)
+	_, ok := ctx.Value(ctxKeyReason).(string)
 	return ok
 }
 

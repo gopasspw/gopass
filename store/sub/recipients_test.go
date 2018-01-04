@@ -44,6 +44,7 @@ func TestGetRecipientsDefault(t *testing.T) {
 		git:   gitmock.New(),
 	}
 
+	assert.Equal(t, genRecs, s.Recipients(ctx))
 	recs, err := s.GetRecipients(ctx, "")
 	assert.NoError(t, err)
 	assert.Equal(t, genRecs, recs)

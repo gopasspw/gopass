@@ -5,6 +5,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/fatih/color"
 	gpgmock "github.com/justwatchcom/gopass/backend/gpg/mock"
 	"github.com/stretchr/testify/assert"
 )
@@ -18,6 +19,8 @@ func TestTemplates(t *testing.T) {
 		_ = os.RemoveAll(tempdir)
 	}()
 
+	color.NoColor = true
+
 	_, _, err = createStore(tempdir, nil, nil)
 	assert.NoError(t, err)
 
@@ -27,39 +30,26 @@ func TestTemplates(t *testing.T) {
 		gpgmock.New(),
 	)
 
-	if len(s.ListTemplates("")) != 0 {
-		t.Errorf("Should have no templates")
-	}
+	assert.Equal(t, 0, len(s.ListTemplates("")))
+	assert.NoError(t, s.SetTemplate("foo", []byte("foobar")))
+	assert.Equal(t, 1, len(s.ListTemplates("")))
 
-	if err := s.SetTemplate("foo", []byte("foobar")); err != nil {
-		t.Errorf("Failed to write template: %s", err)
-	}
+	tt, err := s.TemplateTree()
+	assert.NoError(t, err)
+	assert.Equal(t, "gopass\n└── foo\n", tt.Format(0))
 
-	if len(s.ListTemplates("")) != 1 {
-		t.Errorf("Should have one template")
-	}
+	assert.Equal(t, true, s.HasTemplate("foo"))
 
 	b, err := s.GetTemplate("foo")
-	if err != nil {
-		t.Errorf("Error: %s", err)
-	}
-	if string(b) != "foobar" {
-		t.Errorf("Wrong template: %s", b)
-	}
+	assert.NoError(t, err)
+	assert.Equal(t, "foobar", string(b))
 
 	b, found := s.LookupTemplate("foo/bar")
-	if !found {
-		t.Errorf("No template found")
-	}
-	if string(b) != "foobar" {
-		t.Errorf("Wrong template: %s", b)
-	}
+	assert.Equal(t, true, found)
+	assert.Equal(t, "foobar", string(b))
 
-	if err := s.RemoveTemplate("foo"); err != nil {
-		t.Errorf("Failed to remove template: %s", err)
-	}
+	assert.NoError(t, s.RemoveTemplate("foo"))
+	assert.Equal(t, 0, len(s.ListTemplates("")))
 
-	if len(s.ListTemplates("")) != 0 {
-		t.Errorf("Should have no templates")
-	}
+	assert.Error(t, s.RemoveTemplate("foo"))
 }
