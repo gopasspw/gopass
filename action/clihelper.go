@@ -1,6 +1,7 @@
 package action
 
 import (
+	"bufio"
 	"context"
 	"fmt"
 	"sort"
@@ -123,13 +124,13 @@ func (s *Action) askForString(ctx context.Context, text, def string) (string, er
 	default:
 	}
 
+	if s.bio == nil {
+		s.bio = bufio.NewReader(stdin)
+	}
 	fmt.Fprintf(stdout, "%s [%s]: ", text, def)
-	input := ""
-	_, err := fmt.Fscanln(stdin, &input)
+	input, err := s.bio.ReadString('\n')
 	if err != nil {
-		if err.Error() != "unexpected newline" {
-			return "", errors.Wrapf(err, "failed to read user input")
-		}
+		return "", errors.Wrapf(err, "failed to read user input")
 	}
 	input = strings.TrimSpace(input)
 	if input == "" {
