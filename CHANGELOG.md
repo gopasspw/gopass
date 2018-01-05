@@ -1,3 +1,7 @@
+## 1.6.9 / 2017-01-05
+
+* [BUGFIX] Fix update URL check [#610]
+
 ## 1.6.8 / 2017-01-05
 
 * [ENHANCEMENT] Add OpenBSD Ksh completion [#586]
