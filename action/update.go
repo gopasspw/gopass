@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"path"
 	"path/filepath"
@@ -79,9 +81,27 @@ func (s *Action) Update(ctx context.Context, c *cli.Context) error {
 		if asset.URL == "" {
 			continue
 		}
-		return s.updateTo(ctx, r.Version().String(), asset.URL)
+		if err := s.updateTo(ctx, r.Version().String(), asset.URL); err != nil {
+			return exitError(ctx, ExitUnknown, err, "failed to update gopass")
+		}
+		return nil
 	}
-	return errors.New("no supported binary found")
+	return exitError(ctx, ExitNotFound, nil, "no supported binary found")
+}
+
+func updateCheckHost(ctx context.Context, u *url.URL) error {
+	host, _, err := net.SplitHostPort(u.Host)
+	if err != nil {
+		out.Debug(ctx, "failed to split host port: %s", err)
+		if e, ok := err.(*net.AddrError); ok && e.Err != "missing port in address" {
+			return errors.Wrapf(err, "failed to split host port")
+		}
+		host = u.Host
+	}
+	if u.Scheme != "https" && host != "localhost" && host != "127.0.0.1" {
+		return errors.Errorf("refusing non-https URL '%s'", u.String())
+	}
+	return nil
 }
 
 func (s *Action) updateTo(ctx context.Context, version, url string) error {

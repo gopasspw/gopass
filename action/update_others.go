@@ -6,7 +6,6 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
-	"net"
 	"net/url"
 	"os"
 	"os/exec"
@@ -28,28 +27,29 @@ var (
 func (s *Action) updateGopass(ctx context.Context, version string, urlStr string) error {
 	exe, err := s.executable(ctx)
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "failed to detect executable location")
 	}
+	out.Debug(ctx, "Excuteable is at '%s'", exe)
+
 	u, err := url.Parse(urlStr)
 	if err != nil {
+		return errors.Wrapf(err, "failed to parse URL")
+	}
+
+	if err := updateCheckHost(ctx, u); err != nil {
 		return err
 	}
-	host, _, err := net.SplitHostPort(u.Host)
-	if err != nil {
-		return err
-	}
-	if u.Scheme != "https" && host != "localhost" && host != "127.0.0.1" {
-		return errors.Errorf("refusing non-https URL '%s'", urlStr)
-	}
+
 	td, err := ioutil.TempDir("", "gopass-")
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "failed to create tempdir")
 	}
 	defer func() {
 		_ = os.RemoveAll(td)
 	}()
 
 	out.Debug(ctx, "Tempdir: %s", td)
+	out.Debug(ctx, "URL: %s", u.String())
 	archive := filepath.Join(td, path.Base(u.Path))
 	if err := s.tryDownload(ctx, archive, u.String()); err != nil {
 		return err
@@ -84,6 +84,11 @@ func (s *Action) isUpdateable(ctx context.Context) error {
 	out.Debug(ctx, "isUpdateable - File: %s", fn)
 	// check if this is a test binary
 	if filepath.Base(fn) == "action.test" {
+		return nil
+	}
+	// check if we want to force updateability
+	if uf := os.Getenv("GOPASS_FORCE_UPDATE"); uf != "" {
+		out.Debug(ctx, "updateable due to force flag")
 		return nil
 	}
 	// check if file is in GOPATH
