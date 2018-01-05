@@ -1,3 +1,12 @@
+## 1.6.8 / 2017-01-05
+
+* [ENHANCEMENT] Add OpenBSD Ksh completion [#586]
+* [ENHANCEMENT] Increase test coverage [#589] [#590] [#592] [#595] [#596] [#597] [#601] [#602] [#603] [#604]
+* [ENHANCEMENT] Update Documentation and Dockerfile [#591] [#605]
+* [BUGFIX] Use Termwiz CUI on OpenBSD [#588]
+* [BUGFIX] Fix create wizard [#594]
+* [BUGFIX] Use persistent bufio.Reader [#607]
+
 ## 1.6.7 / 2017-12-31
 
 * [ENHANCEMENT] Add --sync flag to gopass show [#544]
