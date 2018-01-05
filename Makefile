@@ -123,10 +123,10 @@ $(ZSH_COMPLETION_OUTPUT): build
 	@./gopass completion zsh > $(ZSH_COMPLETION_OUTPUT)
 	@$(call ok)
 
-install-completion:
+install-completion: completion
 	@install -D -m 0755 $(ZSH_COMPLETION_OUTPUT) $(DESTDIR)$(PREFIX)/share/zsh/site-functions/_gopass
 	@install -D -m 0755 $(BASH_COMPLETION_OUTPUT) $(DESTDIR)$(PREFIX)/share/bash-completion/completions/gopass
-	@install -D -m 0755 fish.completion $(DESTDIR)$(PREFIX)/share/fish/vendor_completions.d/gopass.fish
+	@install -D -m 0755 $(FISH_COMPLETION_OUTPUT) $(DESTDIR)$(PREFIX)/share/fish/vendor_completions.d/gopass.fish
 	@$(call ok)
 
 codequality:
