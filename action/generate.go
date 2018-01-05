@@ -13,6 +13,7 @@ import (
 	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/justwatchcom/gopass/utils/pwgen"
 	"github.com/justwatchcom/gopass/utils/pwgen/xkcdgen"
+	"github.com/justwatchcom/gopass/utils/termio"
 	"github.com/urfave/cli"
 )
 
@@ -36,7 +37,7 @@ func (s *Action) Generate(ctx context.Context, c *cli.Context) error {
 	// ask for name of the secret if it wasn't provided already
 	if name == "" {
 		var err error
-		name, err = s.askForString(ctx, "Which name do you want to use?", "")
+		name, err = termio.AskForString(ctx, "Which name do you want to use?", "")
 		if err != nil || name == "" {
 			return exitError(ctx, ExitNoName, err, "please provide a password name")
 		}
@@ -44,7 +45,7 @@ func (s *Action) Generate(ctx context.Context, c *cli.Context) error {
 
 	// ask for confirmation before overwriting existing entry
 	if !force { // don't check if it's force anyway
-		if s.Store.Exists(ctx, name) && key == "" && !s.AskForConfirmation(ctx, fmt.Sprintf("An entry already exists for %s. Overwrite the current password?", name)) {
+		if s.Store.Exists(ctx, name) && key == "" && !termio.AskForConfirmation(ctx, fmt.Sprintf("An entry already exists for %s. Overwrite the current password?", name)) {
 			return exitError(ctx, ExitAborted, nil, "user aborted. not overwriting your current password")
 		}
 	}
@@ -61,7 +62,7 @@ func (s *Action) Generate(ctx context.Context, c *cli.Context) error {
 	}
 
 	// if requested launch editor to add more data to the generated secret
-	if (edit || ctxutil.IsAskForMore(ctx)) && s.AskForConfirmation(ctx, fmt.Sprintf("Do you want to add more data for %s?", name)) {
+	if (edit || ctxutil.IsAskForMore(ctx)) && termio.AskForConfirmation(ctx, fmt.Sprintf("Do you want to add more data for %s?", name)) {
 		if err := s.Edit(ctx, c); err != nil {
 			return exitError(ctx, ExitUnknown, err, "failed to edit '%s': %s", name, err)
 		}
@@ -120,7 +121,7 @@ func (s *Action) generatePassword(ctx context.Context, c *cli.Context, length st
 	if length == "" {
 		candidateLength := defaultLength
 		question := "How long should the password be?"
-		iv, err := s.askForInt(ctx, question, candidateLength)
+		iv, err := termio.AskForInt(ctx, question, candidateLength)
 		if err != nil {
 			return "", exitError(ctx, ExitUsage, err, "password length must be a number")
 		}
@@ -150,7 +151,7 @@ func (s *Action) generatePasswordXKCD(ctx context.Context, c *cli.Context, lengt
 	if length == "" {
 		candidateLength := defaultXKCDLength
 		question := "How many words should be combined to a password?"
-		iv, err := s.askForInt(ctx, question, candidateLength)
+		iv, err := termio.AskForInt(ctx, question, candidateLength)
 		if err != nil {
 			return "", exitError(ctx, ExitUsage, err, "password length must be a number")
 		}

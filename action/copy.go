@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/justwatchcom/gopass/utils/termio"
 	"github.com/urfave/cli"
 )
 
@@ -23,7 +24,7 @@ func (s *Action) Copy(ctx context.Context, c *cli.Context) error {
 	}
 
 	if !force {
-		if s.Store.Exists(ctx, to) && !s.AskForConfirmation(ctx, fmt.Sprintf("%s already exists. Overwrite it?", to)) {
+		if s.Store.Exists(ctx, to) && !termio.AskForConfirmation(ctx, fmt.Sprintf("%s already exists. Overwrite it?", to)) {
 			return exitError(ctx, ExitAborted, nil, "not overwriting your current secret")
 		}
 	}

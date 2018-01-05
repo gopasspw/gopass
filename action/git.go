@@ -7,6 +7,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/out"
+	"github.com/justwatchcom/gopass/utils/termio"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"
 )
@@ -52,14 +53,14 @@ func (s *Action) gitInit(ctx context.Context, store, sk string) error {
 
 	if userName == "" {
 		var err error
-		userName, err = s.askForString(ctx, color.CyanString("Please enter a user name for password store git config"), userName)
+		userName, err = termio.AskForString(ctx, color.CyanString("Please enter a user name for password store git config"), userName)
 		if err != nil {
 			return errors.Wrapf(err, "failed to ask for user input")
 		}
 	}
 	if userEmail == "" {
 		var err error
-		userEmail, err = s.askForString(ctx, color.CyanString("Please enter an email address for password store git config"), userEmail)
+		userEmail, err = termio.AskForString(ctx, color.CyanString("Please enter an email address for password store git config"), userEmail)
 		if err != nil {
 			return errors.Wrapf(err, "failed to ask for user input")
 		}

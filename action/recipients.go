@@ -8,6 +8,7 @@ import (
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/cui"
 	"github.com/justwatchcom/gopass/utils/out"
+	"github.com/justwatchcom/gopass/utils/termio"
 	"github.com/urfave/cli"
 )
 
@@ -104,7 +105,7 @@ func (s *Action) RecipientsAdd(ctx context.Context, c *cli.Context) error {
 			continue
 		}
 
-		if !s.AskForConfirmation(ctx, fmt.Sprintf("Do you want to add '%s' as an recipient to the store '%s'?", keys[0].OneLine(), store)) {
+		if !termio.AskForConfirmation(ctx, fmt.Sprintf("Do you want to add '%s' as an recipient to the store '%s'?", keys[0].OneLine(), store)) {
 			continue
 		}
 
@@ -146,7 +147,7 @@ func (s *Action) RecipientsRemove(ctx context.Context, c *cli.Context) error {
 		kl, err := s.gpg.FindPrivateKeys(ctx, r)
 		if err == nil {
 			if len(kl) > 0 {
-				if !s.AskForConfirmation(ctx, fmt.Sprintf("Do you want to remove yourself (%s) from the recipients?", r)) {
+				if !termio.AskForConfirmation(ctx, fmt.Sprintf("Do you want to remove yourself (%s) from the recipients?", r)) {
 					continue
 				}
 			}

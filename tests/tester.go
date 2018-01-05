@@ -16,6 +16,7 @@ import (
 
 	shellquote "github.com/kballard/go-shellquote"
 	"github.com/pkg/errors"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -71,10 +72,11 @@ func newTester(t *testing.T) *tester {
 	ts.tempDir = td
 
 	// prepare ENVIRONMENT
-	_ = os.Setenv("GNUPGHOME", ts.gpgDir())
-	_ = os.Setenv("GOPASS_DEBUG", "")
-	_ = os.Setenv("GOPASS_NOCOLOR", "true")
-	_ = os.Setenv("GOPASS_CONFIG", ts.gopassConfig())
+	assert.NoError(t, os.Setenv("GNUPGHOME", ts.gpgDir()))
+	assert.NoError(t, os.Setenv("GOPASS_DEBUG", ""))
+	assert.NoError(t, os.Setenv("GOPASS_NOCOLOR", "true"))
+	assert.NoError(t, os.Setenv("GOPASS_CONFIG", ts.gopassConfig()))
+	assert.NoError(t, os.Setenv("GOPASS_NO_NOTIFY", "true"))
 
 	// write config
 	if err := ioutil.WriteFile(ts.gopassConfig(), []byte(gopassConfig+"\npath: "+ts.storeDir("")+"\n"), 0600); err != nil {

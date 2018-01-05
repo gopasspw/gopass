@@ -1,6 +1,6 @@
 // +build linux
 
-package fsutil
+package tempfile
 
 import (
 	"context"
@@ -24,11 +24,11 @@ func tempdirBase() string {
 	return ""
 }
 
-func (t *tempfile) mount(context.Context) error {
+func (t *File) mount(context.Context) error {
 	_ = t.dev // to trick megacheck
 	return nil
 }
 
-func (t *tempfile) unmount(context.Context) error {
+func (t *File) unmount(context.Context) error {
 	return nil
 }

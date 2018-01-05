@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/justwatchcom/gopass/store/sub"
+	"github.com/justwatchcom/gopass/utils/termio"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"
 )
@@ -26,7 +27,7 @@ func (s *Action) Delete(ctx context.Context, c *cli.Context) error {
 		if recursive {
 			recStr = "recursively "
 		}
-		if (s.Store.Exists(ctx, name) || s.Store.IsDir(ctx, name)) && key == "" && !s.AskForConfirmation(ctx, fmt.Sprintf("Are you sure you would like to %sdelete %s?", recStr, name)) {
+		if (s.Store.Exists(ctx, name) || s.Store.IsDir(ctx, name)) && key == "" && !termio.AskForConfirmation(ctx, fmt.Sprintf("Are you sure you would like to %sdelete %s?", recStr, name)) {
 			return nil
 		}
 	}

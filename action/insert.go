@@ -11,6 +11,7 @@ import (
 	"github.com/justwatchcom/gopass/store/sub"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/out"
+	"github.com/justwatchcom/gopass/utils/termio"
 	"github.com/urfave/cli"
 )
 
@@ -60,7 +61,7 @@ func (s *Action) insert(ctx context.Context, c *cli.Context, name, key string, e
 	}
 
 	// don't check if it's force anyway
-	if !force && s.Store.Exists(ctx, name) && !s.AskForConfirmation(ctx, fmt.Sprintf("An entry already exists for %s. Overwrite it?", name)) {
+	if !force && s.Store.Exists(ctx, name) && !termio.AskForConfirmation(ctx, fmt.Sprintf("An entry already exists for %s. Overwrite it?", name)) {
 		return exitError(ctx, ExitAborted, nil, "not overwriting your current secret")
 	}
 
@@ -70,14 +71,13 @@ func (s *Action) insert(ctx context.Context, c *cli.Context, name, key string, e
 	}
 
 	// if echo mode is requested use a simple string input function
-	var promptFn func(context.Context, string) (string, error)
 	if echo {
-		promptFn = func(ctx context.Context, prompt string) (string, error) {
-			return s.askForString(ctx, prompt, "")
-		}
+		ctx = termio.WithPassPromptFunc(ctx, func(ctx context.Context, prompt string) (string, error) {
+			return termio.AskForString(ctx, prompt, "")
+		})
 	}
 
-	pw, err := s.askForPassword(ctx, name, promptFn)
+	pw, err := termio.AskForPassword(ctx, name)
 	if err != nil {
 		return exitError(ctx, ExitIO, err, "failed to ask for password: %s", err)
 	}
@@ -116,7 +116,7 @@ func (s *Action) insertSingle(ctx context.Context, name, pw string) error {
 
 func (s *Action) insertYAML(ctx context.Context, name, key string, content []byte) error {
 	if ctxutil.IsInteractive(ctx) {
-		pw, err := s.askForString(ctx, name+":"+key, "")
+		pw, err := termio.AskForString(ctx, name+":"+key, "")
 		if err != nil {
 			return exitError(ctx, ExitIO, err, "failed to ask for user input: %s", err)
 		}

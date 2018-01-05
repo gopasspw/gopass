@@ -1,16 +1,14 @@
 package action
 
 import (
-	"bufio"
 	"context"
 	"fmt"
 	"sort"
-	"strconv"
-	"strings"
 
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/cui"
 	"github.com/justwatchcom/gopass/utils/out"
+	"github.com/justwatchcom/gopass/utils/termio"
 	"github.com/pkg/errors"
 )
 
@@ -48,7 +46,7 @@ func (s *Action) ConfirmRecipients(ctx context.Context, name string, recipients 
 	}
 	fmt.Println("")
 
-	yes, err := s.askForBool(ctx, "Do you want to continue?", true)
+	yes, err := termio.AskForBool(ctx, "Do you want to continue?", true)
 	if err != nil {
 		return recipients, errors.Wrapf(err, "failed to read user input")
 	}
@@ -58,156 +56,6 @@ func (s *Action) ConfirmRecipients(ctx context.Context, name string, recipients 
 	}
 
 	return recipients, errors.New("user aborted")
-}
-
-// AskForConfirmation asks a yes/no question until the user
-// replies yes or no
-func (s *Action) AskForConfirmation(ctx context.Context, text string) bool {
-	if ctxutil.IsAlwaysYes(ctx) {
-		return true
-	}
-
-	for i := 0; i < maxTries; i++ {
-		if choice, err := s.askForBool(ctx, text, false); err == nil {
-			return choice
-		}
-	}
-	return false
-}
-
-// askForBool ask for a bool (yes or no) exactly once.
-// The empty answer uses the specified default, any other answer
-// is an error.
-func (s *Action) askForBool(ctx context.Context, text string, def bool) (bool, error) {
-	if ctxutil.IsAlwaysYes(ctx) {
-		return def, nil
-	}
-
-	choices := "y/N"
-	if def {
-		choices = "Y/n"
-	}
-
-	str, err := s.askForString(ctx, text, choices)
-	if err != nil {
-		return false, errors.Wrapf(err, "failed to read user input")
-	}
-	switch str {
-	case "Y/n":
-		return true, nil
-	case "y/N":
-		return false, nil
-	}
-
-	str = strings.ToLower(string(str[0]))
-	switch str {
-	case "y":
-		return true, nil
-	case "n":
-		return false, nil
-	default:
-		return false, errors.Errorf("Unknown answer: %s", str)
-	}
-}
-
-// askForString asks for a string once, using the default if the
-// anser is empty. Errors are only returned on I/O errors
-func (s *Action) askForString(ctx context.Context, text, def string) (string, error) {
-	if ctxutil.IsAlwaysYes(ctx) {
-		return def, nil
-	}
-
-	// check for context cancelation
-	select {
-	case <-ctx.Done():
-		return def, errors.New("user aborted")
-	default:
-	}
-
-	if s.bio == nil {
-		s.bio = bufio.NewReader(stdin)
-	}
-	fmt.Fprintf(stdout, "%s [%s]: ", text, def)
-	input, err := s.bio.ReadString('\n')
-	if err != nil {
-		return "", errors.Wrapf(err, "failed to read user input")
-	}
-	input = strings.TrimSpace(input)
-	if input == "" {
-		input = def
-	}
-	return input, nil
-}
-
-// askForInt asks for an valid interger once. If the input
-// can not be converted to an int it returns an error
-func (s *Action) askForInt(ctx context.Context, text string, def int) (int, error) {
-	if ctxutil.IsAlwaysYes(ctx) {
-		return def, nil
-	}
-
-	str, err := s.askForString(ctx, text, strconv.Itoa(def))
-	if err != nil {
-		return 0, err
-	}
-	intVal, err := strconv.Atoi(str)
-	if err != nil {
-		return 0, errors.Wrapf(err, "failed to convert to number")
-	}
-	return intVal, nil
-}
-
-// askForPassword prompts for a password twice until both match
-func (s *Action) askForPassword(ctx context.Context, name string, askFn func(context.Context, string) (string, error)) (string, error) {
-	if ctxutil.IsAlwaysYes(ctx) {
-		return "", nil
-	}
-
-	if askFn == nil {
-		askFn = s.promptPass
-	}
-	for i := 0; i < maxTries; i++ {
-		// check for context cancelation
-		select {
-		case <-ctx.Done():
-			return "", errors.New("user aborted")
-		default:
-		}
-
-		pass, err := askFn(ctx, fmt.Sprintf("Enter password for %s", name))
-		if err != nil {
-			return "", err
-		}
-
-		passAgain, err := askFn(ctx, fmt.Sprintf("Retype password for %s", name))
-		if err != nil {
-			return "", err
-		}
-
-		if pass == passAgain {
-			return strings.TrimSpace(pass), nil
-		}
-
-		fmt.Println("Error: the entered password do not match")
-	}
-	return "", errors.New("no valid user input")
-}
-
-// AskForKeyImport asks for permissions to import the named key
-func (s *Action) AskForKeyImport(ctx context.Context, key string, names []string) bool {
-	if ctxutil.IsAlwaysYes(ctx) {
-		return true
-	}
-	if !ctxutil.IsInteractive(ctx) {
-		return false
-	}
-
-	ok, err := s.askForBool(ctx, fmt.Sprintf("Do you want to import the public key '%s' (Names: %+v) into your keyring?", key, names), false)
-	if err != nil {
-		return false
-	}
-
-	return ok
 }
 
 // askforPrivateKey promts the user to select from a list of private keys
@@ -238,7 +86,7 @@ func (s *Action) askForPrivateKey(ctx context.Context, prompt string) (string, e
 		for i, k := range kl {
 			fmt.Printf("[%d] %s\n", i, k.OneLine())
 		}
-		iv, err := s.askForInt(ctx, fmt.Sprintf("Please enter the number of a key (0-%d)", len(kl)-1), 0)
+		iv, err := termio.AskForInt(ctx, fmt.Sprintf("Please enter the number of a key (0-%d)", len(kl)-1), 0)
 		if err != nil {
 			continue
 		}
@@ -279,7 +127,7 @@ func (s *Action) askForGitConfigUser(ctx context.Context) (string, string, error
 			default:
 			}
 
-			useCurrent, err = s.askForBool(
+			useCurrent, err = termio.AskForBool(
 				ctx,
 				fmt.Sprintf("Use %s (%s) for password store git config?", identity.Name, identity.Email), true)
 			if err != nil {

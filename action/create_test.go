@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"flag"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -13,6 +12,7 @@ import (
 
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/out"
+	"github.com/justwatchcom/gopass/utils/termio"
 	"github.com/stretchr/testify/assert"
 	"github.com/urfave/cli"
 )
@@ -106,10 +106,10 @@ y
 y
 5
 `
-	stdin = strings.NewReader(input)
+	termio.Stdin = strings.NewReader(input)
 	ctx = ctxutil.WithAlwaysYes(ctx, false)
 	defer func() {
-		stdin = os.Stdin
+		termio.Stdin = os.Stdin
 	}()
 
 	app := cli.NewApp()
@@ -127,17 +127,12 @@ y
 y
 5
 `
-	stdin = strings.NewReader(input)
+	termio.Stdin = strings.NewReader(input)
 
 	fs = flag.NewFlagSet("default", flag.ContinueOnError)
 	c = cli.NewContext(app, fs, nil)
 
-	capture(t, func() error {
-		if err := act.createWebsite(ctx, c); err == nil {
-			return fmt.Errorf("expected error")
-		}
-		return nil
-	})
+	assert.NoError(t, act.createWebsite(ctx, c))
 	buf.Reset()
 }
 
@@ -175,10 +170,10 @@ FooCard
 y
 8
 `
-	stdin = strings.NewReader(input)
+	termio.Stdin = strings.NewReader(input)
 	ctx = ctxutil.WithAlwaysYes(ctx, false)
 	defer func() {
-		stdin = os.Stdin
+		termio.Stdin = os.Stdin
 	}()
 
 	app := cli.NewApp()
@@ -217,10 +212,10 @@ y
 8
 
 `
-	stdin = strings.NewReader(input)
+	termio.Stdin = strings.NewReader(input)
 	ctx = ctxutil.WithAlwaysYes(ctx, false)
 	defer func() {
-		stdin = os.Stdin
+		termio.Stdin = os.Stdin
 	}()
 
 	app := cli.NewApp()
@@ -261,10 +256,10 @@ SECRETKEY
 SECRETKEY
 
 `
-	stdin = strings.NewReader(input)
+	termio.Stdin = strings.NewReader(input)
 	ctx = ctxutil.WithAlwaysYes(ctx, false)
 	defer func() {
-		stdin = os.Stdin
+		termio.Stdin = os.Stdin
 	}()
 
 	app := cli.NewApp()
@@ -303,10 +298,10 @@ func TestCreateGCP(t *testing.T) {
 	input += `
 
 `
-	stdin = strings.NewReader(input)
+	termio.Stdin = strings.NewReader(input)
 	ctx = ctxutil.WithAlwaysYes(ctx, false)
 	defer func() {
-		stdin = os.Stdin
+		termio.Stdin = os.Stdin
 	}()
 
 	app := cli.NewApp()

@@ -1,6 +1,6 @@
 // +build darwin
 
-package fsutil
+package tempfile
 
 import (
 	"context"
@@ -19,7 +19,7 @@ func tempdirBase() string {
 	return ""
 }
 
-func (t *tempfile) mount(ctx context.Context) error {
+func (t *File) mount(ctx context.Context) error {
 	// create 16MB ramdisk
 	cmd := exec.CommandContext(ctx, "hdid", "-drivekey", "system-image=yes", "-nomount", "ram://32768")
 	cmd.Stderr = os.Stderr
@@ -45,6 +45,7 @@ func (t *tempfile) mount(ctx context.Context) error {
 	if ctxutil.IsDebug(ctx) {
 		cmd.Stdout = os.Stdout
 	}
+
 	out.Debug(ctx, "CMD: %s %+v", cmd.Path, cmd.Args)
 	if err := cmd.Run(); err != nil {
 		return errors.Errorf("Failed to make filesystem on %s: %s", t.dev, err)
@@ -66,7 +67,7 @@ func (t *tempfile) mount(ctx context.Context) error {
 	return nil
 }
 
-func (t *tempfile) unmount(ctx context.Context) error {
+func (t *File) unmount(ctx context.Context) error {
 	bo := backoff.NewExponentialBackOff()
 	bo.MaxElapsedTime = 10 * time.Second
 	return backoff.Retry(func() error {
@@ -74,9 +75,9 @@ func (t *tempfile) unmount(ctx context.Context) error {
 	}, bo)
 }
 
-func (t *tempfile) tryUnmount(ctx context.Context) error {
+func (t *File) tryUnmount(ctx context.Context) error {
 	if t.dir == "" || t.dev == "" {
-		return errors.Errorf("need dir and dev")
+		return nil
 	}
 
 	// unmount ramdisk

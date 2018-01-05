@@ -16,6 +16,7 @@ import (
 	"github.com/justwatchcom/gopass/utils/fsutil"
 	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/justwatchcom/gopass/utils/pwgen"
+	"github.com/justwatchcom/gopass/utils/termio"
 	"github.com/martinhoefling/goxkcdpwgen/xkcdpwgen"
 	"github.com/urfave/cli"
 )
@@ -127,7 +128,7 @@ func (s *Action) createWebsite(ctx context.Context, c *cli.Context) error {
 		genPw    bool
 	)
 	out.Green(ctx, "Creating Website login ...")
-	urlStr, err = s.askForString(ctx, "Please enter the URL", "")
+	urlStr, err = termio.AskForString(ctx, "Please enter the URL", "")
 	if err != nil {
 		return err
 	}
@@ -136,7 +137,7 @@ func (s *Action) createWebsite(ctx context.Context, c *cli.Context) error {
 		return exitError(ctx, ExitUnknown, err, "Can not parse URL '%s'. Please use 'gopass edit' to manually create the secret", urlStr)
 	}
 
-	username, err = s.askForString(ctx, "Please enter the Username/Login", "")
+	username, err = termio.AskForString(ctx, "Please enter the Username/Login", "")
 	if err != nil {
 		return err
 	}
@@ -145,7 +146,7 @@ func (s *Action) createWebsite(ctx context.Context, c *cli.Context) error {
 		return exitError(ctx, ExitUnknown, nil, "Username must not be empty")
 	}
 
-	genPw, err = s.askForBool(ctx, "Do you want to generate a new password?", true)
+	genPw, err = termio.AskForBool(ctx, "Do you want to generate a new password?", true)
 	if err != nil {
 		return err
 	}
@@ -156,12 +157,12 @@ func (s *Action) createWebsite(ctx context.Context, c *cli.Context) error {
 			return err
 		}
 	} else {
-		password, err = s.askForPassword(ctx, username, nil)
+		password, err = termio.AskForPassword(ctx, username)
 		if err != nil {
 			return err
 		}
 	}
-	comment, _ = s.askForString(ctx, "Comments (optional)", "")
+	comment, _ = termio.AskForString(ctx, "Comments (optional)", "")
 
 	// select store
 	store = s.askForStore(ctx)
@@ -173,7 +174,7 @@ func (s *Action) createWebsite(ctx context.Context, c *cli.Context) error {
 
 	name := fmt.Sprintf("%swebsites/%s/%s", store, hostname, username)
 	if s.Store.Exists(ctx, name) {
-		name, err = s.askForString(ctx, "Secret already exists, please choose another path", name)
+		name, err = termio.AskForString(ctx, "Secret already exists, please choose another path", name)
 		if err != nil {
 			return err
 		}
@@ -222,21 +223,21 @@ func (s *Action) createPIN(ctx context.Context, c *cli.Context) error {
 		genPw       bool
 	)
 	out.Green(ctx, "Creating numerical PIN ...")
-	authority, err = s.askForString(ctx, "Please enter the authoriy (e.g. MyBank) this PIN is for", "")
+	authority, err = termio.AskForString(ctx, "Please enter the authoriy (e.g. MyBank) this PIN is for", "")
 	if err != nil {
 		return err
 	}
 	if authority == "" {
 		return exitError(ctx, ExitUnknown, nil, "Authority must not be empty")
 	}
-	application, err = s.askForString(ctx, "Please enter the entity (e.g. Credit Card) this PIN is for", "")
+	application, err = termio.AskForString(ctx, "Please enter the entity (e.g. Credit Card) this PIN is for", "")
 	if err != nil {
 		return err
 	}
 	if application == "" {
 		return exitError(ctx, ExitUnknown, nil, "Application must not be empty")
 	}
-	genPw, err = s.askForBool(ctx, "Do you want to generate a new PIN?", true)
+	genPw, err = termio.AskForBool(ctx, "Do you want to generate a new PIN?", true)
 	if err != nil {
 		return err
 	}
@@ -246,12 +247,12 @@ func (s *Action) createPIN(ctx context.Context, c *cli.Context) error {
 			return err
 		}
 	} else {
-		password, err = s.askForPassword(ctx, "PIN", nil)
+		password, err = termio.AskForPassword(ctx, "PIN")
 		if err != nil {
 			return err
 		}
 	}
-	comment, _ = s.askForString(ctx, "Comments (optional)", "")
+	comment, _ = termio.AskForString(ctx, "Comments (optional)", "")
 
 	// select store
 	store = s.askForStore(ctx)
@@ -262,7 +263,7 @@ func (s *Action) createPIN(ctx context.Context, c *cli.Context) error {
 	}
 	name := fmt.Sprintf("%spins/%s/%s", store, authority, application)
 	if s.Store.Exists(ctx, name) {
-		name, err = s.askForString(ctx, "Secret already exists, please choose another path", name)
+		name, err = termio.AskForString(ctx, "Secret already exists, please choose another path", name)
 		if err != nil {
 			return err
 		}
@@ -288,29 +289,29 @@ func (s *Action) createAWS(ctx context.Context, c *cli.Context) error {
 		err       error
 	)
 	out.Green(ctx, "Creating AWS credentials ...")
-	account, err = s.askForString(ctx, "Please enter the AWS Account this key belongs to", "")
+	account, err = termio.AskForString(ctx, "Please enter the AWS Account this key belongs to", "")
 	if err != nil {
 		return err
 	}
 	if account == "" {
 		return exitError(ctx, ExitUnknown, nil, "Account must not be empty")
 	}
-	username, err = s.askForString(ctx, "Please enter the name of the AWS IAM User this key belongs to", "")
+	username, err = termio.AskForString(ctx, "Please enter the name of the AWS IAM User this key belongs to", "")
 	if err != nil {
 		return err
 	}
 	if username == "" {
 		return exitError(ctx, ExitUnknown, nil, "Username must not be empty")
 	}
-	accesskey, err = s.askForString(ctx, "Please enter the Access Key ID (AWS_ACCESS_KEY_ID)", "")
+	accesskey, err = termio.AskForString(ctx, "Please enter the Access Key ID (AWS_ACCESS_KEY_ID)", "")
 	if err != nil {
 		return err
 	}
-	secretkey, err = s.askForPassword(ctx, "Please enter the Secret Access Key (AWS_SECRET_ACCESS_KEY)", nil)
+	secretkey, err = termio.AskForPassword(ctx, "Please enter the Secret Access Key (AWS_SECRET_ACCESS_KEY)")
 	if err != nil {
 		return err
 	}
-	region, _ = s.askForString(ctx, "Please enter the default Region (AWS_DEFAULT_REGION) (optional)", "")
+	region, _ = termio.AskForString(ctx, "Please enter the default Region (AWS_DEFAULT_REGION) (optional)", "")
 
 	// select store
 	store = s.askForStore(ctx)
@@ -321,7 +322,7 @@ func (s *Action) createAWS(ctx context.Context, c *cli.Context) error {
 	}
 	name := fmt.Sprintf("%saws/iam/%s/%s", store, account, username)
 	if s.Store.Exists(ctx, name) {
-		name, err = s.askForString(ctx, "Secret already exists, please choose another path", name)
+		name, err = termio.AskForString(ctx, "Secret already exists, please choose another path", name)
 		if err != nil {
 			return err
 		}
@@ -346,7 +347,7 @@ func (s *Action) createGCP(ctx context.Context, c *cli.Context) error {
 		err      error
 	)
 	out.Green(ctx, "Creating GCP credentials ...")
-	svcaccfn, err = s.askForString(ctx, "Please enter path to the Service Account JSON file", "")
+	svcaccfn, err = termio.AskForString(ctx, "Please enter path to the Service Account JSON file", "")
 	if err != nil {
 		return err
 	}
@@ -359,7 +360,7 @@ func (s *Action) createGCP(ctx context.Context, c *cli.Context) error {
 		return err
 	}
 	if username == "" {
-		username, err = s.askForString(ctx, "Please enter the name of this service account", "")
+		username, err = termio.AskForString(ctx, "Please enter the name of this service account", "")
 		if err != nil {
 			return err
 		}
@@ -368,7 +369,7 @@ func (s *Action) createGCP(ctx context.Context, c *cli.Context) error {
 		return exitError(ctx, ExitUnknown, nil, "Username must not be empty")
 	}
 	if project == "" {
-		project, err = s.askForString(ctx, "Please enter the name of this GCP project", "")
+		project, err = termio.AskForString(ctx, "Please enter the name of this GCP project", "")
 		if err != nil {
 			return err
 		}
@@ -386,7 +387,7 @@ func (s *Action) createGCP(ctx context.Context, c *cli.Context) error {
 	}
 	name := fmt.Sprintf("%sgcp/iam/%s/%s", store, project, username)
 	if s.Store.Exists(ctx, name) {
-		name, err = s.askForString(ctx, "Secret already exists, please choose another path", name)
+		name, err = termio.AskForString(ctx, "Secret already exists, please choose another path", name)
 		if err != nil {
 			return err
 		}
@@ -424,14 +425,14 @@ func (s *Action) createGeneric(ctx context.Context, c *cli.Context) error {
 		genPw     bool
 	)
 	out.Green(ctx, "Creating generic secret ...")
-	shortname, err = s.askForString(ctx, "Please enter a name for the secret", "")
+	shortname, err = termio.AskForString(ctx, "Please enter a name for the secret", "")
 	if err != nil {
 		return err
 	}
 	if shortname == "" {
 		return exitError(ctx, ExitUnknown, nil, "Name must not be empty")
 	}
-	genPw, err = s.askForBool(ctx, "Do you want to generate a new password?", true)
+	genPw, err = termio.AskForBool(ctx, "Do you want to generate a new password?", true)
 	if err != nil {
 		return err
 	}
@@ -441,7 +442,7 @@ func (s *Action) createGeneric(ctx context.Context, c *cli.Context) error {
 			return err
 		}
 	} else {
-		password, err = s.askForPassword(ctx, shortname, nil)
+		password, err = termio.AskForPassword(ctx, shortname)
 		if err != nil {
 			return err
 		}
@@ -456,7 +457,7 @@ func (s *Action) createGeneric(ctx context.Context, c *cli.Context) error {
 	}
 	name := fmt.Sprintf("%smisc/%s", store, shortname)
 	if s.Store.Exists(ctx, name) {
-		name, err = s.askForString(ctx, "Secret already exists, please choose another path", name)
+		name, err = termio.AskForString(ctx, "Secret already exists, please choose another path", name)
 		if err != nil {
 			return err
 		}
@@ -464,14 +465,14 @@ func (s *Action) createGeneric(ctx context.Context, c *cli.Context) error {
 	sec := secret.New(password, "")
 	out.Print(ctx, "Enter zero or more key value pairs for this secret:")
 	for {
-		key, err := s.askForString(ctx, "Name for Key Value pair (enter to quit)", "")
+		key, err := termio.AskForString(ctx, "Name for Key Value pair (enter to quit)", "")
 		if err != nil {
 			return err
 		}
 		if key == "" {
 			break
 		}
-		val, err := s.askForString(ctx, "Value for Key '"+key+"'", "")
+		val, err := termio.AskForString(ctx, "Value for Key '"+key+"'", "")
 		if err != nil {
 			return err
 		}
@@ -485,12 +486,12 @@ func (s *Action) createGeneric(ctx context.Context, c *cli.Context) error {
 }
 
 func (s *Action) createGeneratePassword(ctx context.Context) (string, error) {
-	xkcd, err := s.askForBool(ctx, "Do you want an rememberable password?", true)
+	xkcd, err := termio.AskForBool(ctx, "Do you want an rememberable password?", true)
 	if err != nil {
 		return "", err
 	}
 	if xkcd {
-		length, err := s.askForInt(ctx, "How many words should be cominbed into a passphrase?", 4)
+		length, err := termio.AskForInt(ctx, "How many words should be cominbed into a passphrase?", 4)
 		if err != nil {
 			return "", err
 		}
@@ -501,11 +502,11 @@ func (s *Action) createGeneratePassword(ctx context.Context) (string, error) {
 		return string(g.GeneratePassword()), nil
 	}
 
-	length, err := s.askForInt(ctx, "How long should the password be?", defaultLength)
+	length, err := termio.AskForInt(ctx, "How long should the password be?", defaultLength)
 	if err != nil {
 		return "", err
 	}
-	symbols, err := s.askForBool(ctx, "Do you want to include symbols?", false)
+	symbols, err := termio.AskForBool(ctx, "Do you want to include symbols?", false)
 	if err != nil {
 		return "", err
 	}
@@ -513,7 +514,7 @@ func (s *Action) createGeneratePassword(ctx context.Context) (string, error) {
 }
 
 func (s *Action) createGeneratePIN(ctx context.Context) (string, error) {
-	length, err := s.askForInt(ctx, "How long should the PIN be?", 4)
+	length, err := termio.AskForInt(ctx, "How long should the PIN be?", 4)
 	if err != nil {
 		return "", err
 	}

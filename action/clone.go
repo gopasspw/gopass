@@ -8,6 +8,7 @@ import (
 	git "github.com/justwatchcom/gopass/backend/git/cli"
 	"github.com/justwatchcom/gopass/config"
 	"github.com/justwatchcom/gopass/utils/out"
+	"github.com/justwatchcom/gopass/utils/termio"
 	"github.com/urfave/cli"
 )
 
@@ -90,14 +91,14 @@ func (s *Action) cloneGetGitConfig(ctx context.Context) (string, string, error) 
 	username, email, _ := s.askForGitConfigUser(ctx)
 	if username == "" {
 		var err error
-		username, err = s.askForString(ctx, color.CyanString("Please enter a user name for password store git config"), username)
+		username, err = termio.AskForString(ctx, color.CyanString("Please enter a user name for password store git config"), username)
 		if err != nil {
 			return "", "", exitError(ctx, ExitIO, err, "Failed to read user input: %s", err)
 		}
 	}
 	if email == "" {
 		var err error
-		email, err = s.askForString(ctx, color.CyanString("Please enter an email address for password store git config"), email)
+		email, err = termio.AskForString(ctx, color.CyanString("Please enter an email address for password store git config"), email)
 		if err != nil {
 			return "", "", exitError(ctx, ExitIO, err, "Failed to read user input: %s", err)
 		}
