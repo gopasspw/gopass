@@ -193,6 +193,7 @@ func (g *GPG) Encrypt(ctx context.Context, path string, content []byte, recipien
 func (g *GPG) Decrypt(ctx context.Context, path string) ([]byte, error) {
 	args := append(g.args, "--decrypt", path)
 	cmd := exec.CommandContext(ctx, g.binary, args...)
+	cmd.Stdin = os.Stdin
 
 	out.Debug(ctx, "gpg.Decrypt: %s %+v", cmd.Path, cmd.Args)
 	return cmd.Output()
