@@ -7,6 +7,7 @@ import (
 
 	"github.com/justwatchcom/gopass/store/sub"
 	"github.com/justwatchcom/gopass/utils/out"
+	"github.com/justwatchcom/gopass/utils/termio"
 	"github.com/urfave/cli"
 )
 
@@ -17,7 +18,7 @@ func (s *Action) Fix(ctx context.Context, c *cli.Context) error {
 	}
 	check := c.Bool("check")
 
-	if !s.AskForConfirmation(ctx, "Do you want to introduce YAML document separators to all secrets that can be parsed as valid YAML?") {
+	if !termio.AskForConfirmation(ctx, "Do you want to introduce YAML document separators to all secrets that can be parsed as valid YAML?") {
 		return errors.New("user aborted")
 	}
 

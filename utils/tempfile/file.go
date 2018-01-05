@@ -1,41 +1,35 @@
-package fsutil
+package tempfile
 
 import (
 	"context"
-	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 
+	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/pkg/errors"
 )
 
-type tempfile struct {
+// File is a temporary file
+type File struct {
 	dir string
 	dev string
 	fh  *os.File
 	dbg bool
 }
 
-// TempFiler is a tempfile interface
-type TempFiler interface {
-	io.WriteCloser
-	Name() string
-	Remove(context.Context) error
-}
-
-// TempFile returns a new tempfile wrapper
-func TempFile(ctx context.Context, prefix string) (TempFiler, error) {
+// New returns a new tempfile wrapper
+func New(ctx context.Context, prefix string) (*File, error) {
 	td, err := ioutil.TempDir(tempdirBase(), prefix)
 	if err != nil {
 		return nil, err
 	}
-	tf := &tempfile{
+
+	tf := &File{
 		dir: td,
+		dbg: ctxutil.IsDebug(ctx),
 	}
-	if gdb := os.Getenv("GOPASS_DEBUG"); gdb == "true" {
-		tf.dbg = true
-	}
+
 	if err := tf.mount(ctx); err != nil {
 		_ = os.RemoveAll(tf.dir)
 		return nil, err
@@ -51,28 +45,32 @@ func TempFile(ctx context.Context, prefix string) (TempFiler, error) {
 	return tf, nil
 }
 
-func (t *tempfile) Name() string {
+// Name returns the name of the tempfile
+func (t *File) Name() string {
 	if t.fh == nil {
 		return ""
 	}
 	return t.fh.Name()
 }
 
-func (t *tempfile) Write(p []byte) (int, error) {
+// Write implement io.Writer
+func (t *File) Write(p []byte) (int, error) {
 	if t.fh == nil {
 		return 0, errors.Errorf("not initialized")
 	}
 	return t.fh.Write(p)
 }
 
-func (t *tempfile) Close() error {
+// Close implements io.WriteCloser
+func (t *File) Close() error {
 	if t.fh == nil {
 		return nil
 	}
 	return t.fh.Close()
 }
 
-func (t *tempfile) Remove(ctx context.Context) error {
+// Remove attempts to remove the tempfile
+func (t *File) Remove(ctx context.Context) error {
 	_ = t.Close()
 	if err := t.unmount(ctx); err != nil {
 		return errors.Errorf("Failed to unmount %s from %s: %s", t.dev, t.dir, err)

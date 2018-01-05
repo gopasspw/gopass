@@ -1,7 +1,6 @@
 package action
 
 import (
-	"bufio"
 	"context"
 	"io"
 	"os"
@@ -45,7 +44,6 @@ type Action struct {
 	Store   *root.Store
 	cfg     *config.Config
 	gpg     gpger
-	bio     *bufio.Reader
 	version semver.Version
 }
 

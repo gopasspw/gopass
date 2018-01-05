@@ -14,6 +14,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/utils/notify"
 	"github.com/justwatchcom/gopass/utils/out"
+	"github.com/justwatchcom/gopass/utils/termio"
 	"github.com/muesli/goprogressbar"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"
@@ -28,7 +29,7 @@ func (s *Action) HIBP(ctx context.Context, c *cli.Context) error {
 		return errors.Errorf("Please provide the name(s) of the haveibeenpwned.com password dumps in HIBP_DUMPS. See https://haveibeenpwned.com/Passwords for more information")
 	}
 
-	if !force && !s.AskForConfirmation(ctx, fmt.Sprintf("This command is checking all your secrets against the haveibeenpwned.com hashes in %+v.\nYou will be asked to unlock all your secrets!\nDo you want to continue?", fns)) {
+	if !force && !termio.AskForConfirmation(ctx, fmt.Sprintf("This command is checking all your secrets against the haveibeenpwned.com hashes in %+v.\nYou will be asked to unlock all your secrets!\nDo you want to continue?", fns)) {
 		return errors.Errorf("user aborted")
 	}
 

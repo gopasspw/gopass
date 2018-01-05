@@ -1,4 +1,4 @@
-package fsutil
+package tempfile
 
 import (
 	"context"
@@ -9,6 +9,16 @@ import (
 
 	"github.com/stretchr/testify/assert"
 )
+
+func TestTempfile(t *testing.T) {
+	tempdir, err := ioutil.TempDir(tempdirBase(), "gopass-")
+	if err != nil {
+		t.Fatalf("Failed to create tempdir: %s", err)
+	}
+	defer func() {
+		_ = os.RemoveAll(tempdir)
+	}()
+}
 
 func TestTempdirBase(t *testing.T) {
 	tempdir, err := ioutil.TempDir(tempdirBase(), "gopass-")
@@ -24,7 +34,7 @@ func TestTempFiler(t *testing.T) {
 	ctx := context.Background()
 
 	// regular tempfile
-	tf, err := TempFile(ctx, "gp-test-")
+	tf, err := New(ctx, "gp-test-")
 	if err != nil {
 		t.Fatalf("Error: %s", err)
 	}
@@ -37,7 +47,7 @@ func TestTempFiler(t *testing.T) {
 	}
 
 	// unintialized tempfile
-	utf := tempfile{}
+	utf := File{}
 	assert.Equal(t, utf.Name(), "")
 	_, err = utf.Write([]byte("foo"))
 	assert.Error(t, err)

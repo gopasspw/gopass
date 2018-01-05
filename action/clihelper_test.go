@@ -1,16 +1,13 @@
 package action
 
 import (
-	"bytes"
 	"context"
 	"io/ioutil"
 	"os"
-	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
-	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -31,165 +28,6 @@ func TestConfirmRecipients(t *testing.T) {
 	assert.NoError(t, err)
 	if !cmp.Equal(got, in) {
 		t.Errorf("Recipient Mismatch: %+v != %+v", got, in)
-	}
-}
-
-func TestAskForConfirmation(t *testing.T) {
-	td, err := ioutil.TempDir("", "gopass-")
-	assert.NoError(t, err)
-	defer func() {
-		_ = os.RemoveAll(td)
-	}()
-
-	ctx := context.Background()
-	act, err := newMock(ctx, td)
-	assert.NoError(t, err)
-
-	ctx = ctxutil.WithAlwaysYes(ctx, true)
-	if !act.AskForConfirmation(ctx, "test") {
-		t.Errorf("Failed to confirm")
-	}
-}
-
-func TestAskForBool(t *testing.T) {
-	td, err := ioutil.TempDir("", "gopass-")
-	assert.NoError(t, err)
-	defer func() {
-		_ = os.RemoveAll(td)
-	}()
-
-	ctx := context.Background()
-	act, err := newMock(ctx, td)
-	assert.NoError(t, err)
-
-	ctx = ctxutil.WithAlwaysYes(ctx, true)
-	bv, err := act.askForBool(ctx, "test", false)
-	assert.NoError(t, err)
-	if bv {
-		t.Errorf("%t != %t", bv, false)
-	}
-}
-
-func TestAskForString(t *testing.T) {
-	td, err := ioutil.TempDir("", "gopass-")
-	assert.NoError(t, err)
-	defer func() {
-		_ = os.RemoveAll(td)
-	}()
-
-	buf := &bytes.Buffer{}
-	out.Stdout = buf
-	stdout = buf
-	defer func() {
-		out.Stdout = os.Stdout
-		stdout = os.Stdout
-	}()
-
-	ctx := context.Background()
-	act, err := newMock(ctx, td)
-	assert.NoError(t, err)
-
-	// always yes - expect default value
-	ctx = ctxutil.WithAlwaysYes(ctx, true)
-	sv, err := act.askForString(ctx, "test", "foobar")
-	assert.NoError(t, err)
-	assert.Equal(t, "foobar", sv)
-
-	t.Logf("Out: %s", buf.String())
-	buf.Reset()
-
-	// provide value on redirected stdin
-	input := `foobaz
-bar
-`
-	stdin = strings.NewReader(input)
-	ctx = ctxutil.WithAlwaysYes(ctx, false)
-	sv, err = act.askForString(ctx, "test", "foobar")
-	assert.NoError(t, err)
-	assert.Equal(t, "foobaz", sv)
-
-	sv, err = act.askForString(ctx, "test", "foobar")
-	assert.NoError(t, err)
-	assert.Equal(t, "bar", sv)
-	stdin = os.Stdin
-
-	t.Logf("Out: %s", buf.String())
-	buf.Reset()
-}
-
-func TestAskForInt(t *testing.T) {
-	td, err := ioutil.TempDir("", "gopass-")
-	assert.NoError(t, err)
-	defer func() {
-		_ = os.RemoveAll(td)
-	}()
-
-	ctx := context.Background()
-	act, err := newMock(ctx, td)
-	assert.NoError(t, err)
-
-	ctx = ctxutil.WithAlwaysYes(ctx, true)
-	got, err := act.askForInt(ctx, "test", 42)
-	assert.NoError(t, err)
-	if got != 42 {
-		t.Errorf("%d != %d", got, 42)
-	}
-}
-
-func TestAskForPasswordNonInteractive(t *testing.T) {
-	td, err := ioutil.TempDir("", "gopass-")
-	assert.NoError(t, err)
-	defer func() {
-		_ = os.RemoveAll(td)
-	}()
-
-	ctx := context.Background()
-	act, err := newMock(ctx, td)
-	assert.NoError(t, err)
-
-	ctx = ctxutil.WithInteractive(ctx, false)
-	if _, err := act.askForPassword(ctx, "test", nil); err == nil {
-		t.Errorf("Should return an error")
-	}
-}
-
-func TestAskForPasswordInteractive(t *testing.T) {
-	td, err := ioutil.TempDir("", "gopass-")
-	assert.NoError(t, err)
-	defer func() {
-		_ = os.RemoveAll(td)
-	}()
-
-	ctx := context.Background()
-	act, err := newMock(ctx, td)
-	assert.NoError(t, err)
-
-	askFn := func(ctx context.Context, prompt string) (string, error) {
-		return "test", nil
-	}
-
-	ctx = ctxutil.WithInteractive(ctx, true)
-	pw, err := act.askForPassword(ctx, "test", askFn)
-	assert.NoError(t, err)
-	if pw != "test" {
-		t.Errorf("Wrong password")
-	}
-}
-
-func TestAskForKeyImport(t *testing.T) {
-	td, err := ioutil.TempDir("", "gopass-")
-	assert.NoError(t, err)
-	defer func() {
-		_ = os.RemoveAll(td)
-	}()
-
-	ctx := context.Background()
-	act, err := newMock(ctx, td)
-	assert.NoError(t, err)
-
-	ctx = ctxutil.WithAlwaysYes(ctx, true)
-	if !act.AskForKeyImport(ctx, "test", []string{}) {
-		t.Errorf("Should be true")
 	}
 }
 
@@ -257,21 +95,4 @@ func TestAskForGitConfigUserNonInteractive(t *testing.T) {
 		assert.Equal(t, "", name)
 		assert.Equal(t, "", email)
 	}
-}
-
-func TestPromptPass(t *testing.T) {
-	td, err := ioutil.TempDir("", "gopass-")
-	assert.NoError(t, err)
-	defer func() {
-		_ = os.RemoveAll(td)
-	}()
-
-	ctx := context.Background()
-	act, err := newMock(ctx, td)
-	assert.NoError(t, err)
-
-	ctx = ctxutil.WithTerminal(ctx, false)
-	ctx = ctxutil.WithAlwaysYes(ctx, true)
-	_, err = act.promptPass(ctx, "foo")
-	assert.NoError(t, err)
 }

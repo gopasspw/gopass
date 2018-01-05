@@ -21,6 +21,7 @@ import (
 
 	"github.com/dominikschulz/github-releases/ghrel"
 	"github.com/justwatchcom/gopass/utils/out"
+	"github.com/justwatchcom/gopass/utils/termio"
 	"github.com/muesli/goprogressbar"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"
@@ -41,7 +42,7 @@ func (s *Action) Update(ctx context.Context, c *cli.Context) error {
 		return nil
 	}
 
-	ok, err := s.askForBool(ctx, "Do you want to check for available updates?", true)
+	ok, err := termio.AskForBool(ctx, "Do you want to check for available updates?", true)
 	if err != nil {
 		return err
 	}
@@ -107,7 +108,7 @@ func updateCheckHost(ctx context.Context, u *url.URL) error {
 func (s *Action) updateTo(ctx context.Context, version, url string) error {
 	out.Debug(ctx, "URL: %s", url)
 	out.Green(ctx, "Update available!")
-	ok, err := s.askForBool(ctx, fmt.Sprintf("Do you want to update gopass to %s?", version), true)
+	ok, err := termio.AskForBool(ctx, fmt.Sprintf("Do you want to update gopass to %s?", version), true)
 	if err != nil {
 		return err
 	}
