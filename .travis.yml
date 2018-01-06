@@ -1,12 +1,11 @@
 language: go
-sudo: false
 dist: trusty
+os:
+  - linux
+  - osx
 
-addons:
-  apt:
-    packages:
-    - git
-    - gnupg2
+before_install:
+  - if [ $TRAVIS_OS_NAME = linux ]; then sudo apt-get install git gnupg2; else brew install git gnupg || true; fi
 
 go:
   - 1.9
@@ -14,6 +13,7 @@ go:
 script:
   - make all
   - make test-integration
+  - make install-completion
 
 after_success:
   - bash <(curl -s https://codecov.io/bash) -f coverage-all.out
