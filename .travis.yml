@@ -5,7 +5,7 @@ os:
   - osx
 
 before_install:
-  - if [ $TRAVIS_OS_NAME = linux ]; then sudo apt-get install git gnupg2; else brew install git gnupg; fi
+  - if [ $TRAVIS_OS_NAME = linux ]; then sudo apt-get install git gnupg2; else brew install git gnupg || true; fi
 
 go:
   - 1.9
