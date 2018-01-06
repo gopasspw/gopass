@@ -3,10 +3,10 @@
 	"ignore": "test",
 	"package": [
 		{
-			"checksumSHA1": "SNSgdp5ShDZ57VZqBkQ0PXJCJIM=",
+			"checksumSHA1": "goU41xLccm4c+VnPOxJ71/zDl3A=",
 			"path": "github.com/atotto/clipboard",
-			"revision": "bb272b845f1112e10117e3e45ce39f690c0001ad",
-			"revisionTime": "2016-02-19T03:44:21Z"
+			"revision": "bc5958e1c8339112fc3347a89f3c482f416a69d3",
+			"revisionTime": "2017-12-29T22:41:53Z"
 		},
 		{
 			"checksumSHA1": "OT4XN9z5k69e2RsMSpwW74B+yk4=",
