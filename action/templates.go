@@ -32,7 +32,7 @@ func (s *Action) TemplatesPrint(ctx context.Context, c *cli.Context) error {
 	if err != nil {
 		return exitError(ctx, ExitList, err, "failed to list templates: %s", err)
 	}
-	fmt.Println(tree.Format(0))
+	fmt.Fprintln(stdout, tree.Format(0))
 	return nil
 }
 
@@ -45,7 +45,7 @@ func (s *Action) TemplatePrint(ctx context.Context, c *cli.Context) error {
 		return exitError(ctx, ExitIO, err, "failed to retrieve template: %s", err)
 	}
 
-	fmt.Println(string(content))
+	fmt.Fprintln(stdout, string(content))
 	return nil
 }
 
@@ -101,11 +101,11 @@ func (s *Action) TemplateRemove(ctx context.Context, c *cli.Context) error {
 func (s *Action) TemplatesComplete(*cli.Context) {
 	tree, err := s.Store.TemplateTree()
 	if err != nil {
-		fmt.Println(err)
+		fmt.Fprintln(stdout, err)
 		return
 	}
 
 	for _, v := range tree.List(0) {
-		fmt.Println(v)
+		fmt.Fprintln(stdout, v)
 	}
 }

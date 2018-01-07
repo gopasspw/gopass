@@ -11,6 +11,7 @@ import (
 	"github.com/justwatchcom/gopass/store/secret"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/out"
+	"github.com/justwatchcom/gopass/utils/tree"
 	"github.com/stretchr/testify/assert"
 	"github.com/urfave/cli"
 )
@@ -29,7 +30,9 @@ func TestList(t *testing.T) {
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
+	stdout = buf
 	defer func() {
+		stdout = os.Stdout
 		out.Stdout = os.Stdout
 	}()
 
@@ -37,14 +40,12 @@ func TestList(t *testing.T) {
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
 	c := cli.NewContext(app, fs, nil)
 
-	out := capture(t, func() error {
-		return act.List(ctx, c)
-	})
+	assert.NoError(t, act.List(ctx, c))
 	want := `gopass
-└── foo`
-	if out != want {
-		t.Errorf("'%s' != '%s'", out, want)
-	}
+└── foo
+
+`
+	assert.Equal(t, want, buf.String())
 	buf.Reset()
 
 	// add foo/bar and list folder foo
@@ -53,15 +54,12 @@ func TestList(t *testing.T) {
 	assert.NoError(t, fs.Parse([]string{"foo"}))
 	c = cli.NewContext(app, fs, nil)
 
-	out = capture(t, func() error {
-		return act.List(ctx, c)
-	})
+	assert.NoError(t, act.List(ctx, c))
 	want = `foo
-└── bar`
-	if out != want {
-		t.Errorf("'%s' != '%s'", out, want)
-		t.Logf("Out: %s", buf.String())
-	}
+└── bar
+
+`
+	assert.Equal(t, want, buf.String())
 	buf.Reset()
 
 	// list --flat foo
@@ -74,10 +72,28 @@ func TestList(t *testing.T) {
 	assert.NoError(t, fs.Parse([]string{"--flat=true", "foo"}))
 	c = cli.NewContext(app, fs, nil)
 
-	out = capture(t, func() error {
-		return act.List(ctx, c)
-	})
-	want = `foo/bar`
-	assert.Equal(t, want, out)
+	assert.NoError(t, act.List(ctx, c))
+	want = `foo/bar
+`
+	assert.Equal(t, want, buf.String())
 	buf.Reset()
+}
+
+func TestRedirectPager(t *testing.T) {
+	ctx := context.Background()
+
+	var buf *bytes.Buffer
+	var subtree tree.Tree
+
+	// no pager
+	ctx = ctxutil.WithNoPager(ctx, true)
+	so, buf := redirectPager(ctx, subtree)
+	assert.Nil(t, buf)
+	assert.NotNil(t, so)
+
+	// no term
+	ctx = ctxutil.WithNoPager(ctx, false)
+	so, buf = redirectPager(ctx, subtree)
+	assert.Nil(t, buf)
+	assert.NotNil(t, so)
 }

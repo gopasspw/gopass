@@ -8,6 +8,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/stretchr/testify/assert"
@@ -28,7 +29,10 @@ func TestTemplates(t *testing.T) {
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
+	stdout = buf
+	color.NoColor = true
 	defer func() {
+		stdout = os.Stdout
 		out.Stdout = os.Stdout
 	}()
 
@@ -39,36 +43,28 @@ func TestTemplates(t *testing.T) {
 	assert.NoError(t, fs.Parse([]string{"foo"}))
 	c := cli.NewContext(app, fs, nil)
 
-	out := capture(t, func() error {
-		return act.TemplatesPrint(ctx, c)
-	})
-	want := `gopass`
-	if out != want {
-		t.Errorf("'%s' != '%s'", want, out)
-	}
+	assert.NoError(t, act.TemplatesPrint(ctx, c))
+	assert.Equal(t, "gopass\n\n", buf.String())
 	buf.Reset()
 
 	// add template
-	if err := act.Store.SetTemplate(ctx, "foo", []byte("foobar")); err != nil {
-		t.Errorf("Failed to add template: %s", err)
-	}
-	out = capture(t, func() error {
-		return act.TemplatesPrint(ctx, c)
-	})
-	want = `gopass
-└── foo`
-	if out != want {
-		t.Errorf("'%s' != '%s'", want, out)
-	}
+	assert.NoError(t, act.Store.SetTemplate(ctx, "foo", []byte("foobar")))
+	assert.NoError(t, act.TemplatesPrint(ctx, c))
+	want := `gopass
+└── foo
+
+`
+	assert.Equal(t, want, buf.String())
 	buf.Reset()
 
 	// complete templates
-	out = capture(t, func() error {
-		act.TemplatesComplete(c)
-		return nil
-	})
-	assert.Equal(t, out, "foo")
+	act.TemplatesComplete(c)
+	assert.Equal(t, "foo\n", buf.String())
 	buf.Reset()
+
+	// print template
+	assert.NoError(t, act.TemplatePrint(ctx, c))
+	assert.Equal(t, "foobar\n", buf.String())
 
 	// remove template
 	assert.NoError(t, act.TemplateRemove(ctx, c))

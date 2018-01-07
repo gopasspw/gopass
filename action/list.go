@@ -53,32 +53,40 @@ func (s *Action) listFiltered(ctx context.Context, l tree.Tree, limit int, flat,
 		}
 		for _, e := range subtree.List(limit) {
 			if stripPrefix {
-				fmt.Println(e)
+				fmt.Fprintln(stdout, e)
 				continue
 			}
-			fmt.Println(filter + sep + e)
+			fmt.Fprintln(stdout, filter+sep+e)
 		}
 		return nil
 	}
 
-	var stdout io.Writer
-	var buf *bytes.Buffer
 	// we may need to redirect stdout for the pager support
-	stdout = os.Stdout
+	so, buf := redirectPager(ctx, subtree)
 
-	if rows, _ := termutil.GetTermsize(); subtree.Len() > rows {
-		color.NoColor = true
-		buf = &bytes.Buffer{}
-		stdout = buf
-	}
-
-	fmt.Fprintln(stdout, subtree.Format(limit))
+	fmt.Fprintln(so, subtree.Format(limit))
 	if buf != nil {
 		if err := s.pager(ctx, buf); err != nil {
 			return exitError(ctx, ExitUnknown, err, "failed to invoke pager: %s", err)
 		}
 	}
 	return nil
+}
+
+func redirectPager(ctx context.Context, subtree tree.Tree) (io.Writer, *bytes.Buffer) {
+	if ctxutil.IsNoPager(ctx) {
+		return stdout, nil
+	}
+	rows, _ := termutil.GetTermsize()
+	if rows <= 0 {
+		return stdout, nil
+	}
+	if subtree == nil || subtree.Len() < rows {
+		return stdout, nil
+	}
+	color.NoColor = true
+	buf := &bytes.Buffer{}
+	return buf, buf
 }
 
 func (s *Action) listAll(ctx context.Context, l tree.Tree, limit int, flat bool) error {
@@ -89,17 +97,10 @@ func (s *Action) listAll(ctx context.Context, l tree.Tree, limit int, flat bool)
 		return nil
 	}
 
-	var stdout io.Writer
-	var buf *bytes.Buffer
 	// we may need to redirect stdout for the pager support
-	stdout = os.Stdout
+	so, buf := redirectPager(ctx, l)
 
-	if rows, _ := termutil.GetTermsize(); l.Len() > rows && !ctxutil.IsNoPager(ctx) {
-		color.NoColor = true
-		buf = &bytes.Buffer{}
-		stdout = buf
-	}
-	fmt.Fprintln(stdout, l.Format(limit))
+	fmt.Fprintln(so, l.Format(limit))
 	if buf != nil {
 		if err := s.pager(ctx, buf); err != nil {
 			return exitError(ctx, ExitUnknown, err, "failed to invoke pager: %s", err)

@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/fatih/color"
+	"github.com/justwatchcom/gopass/store/secret"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/stretchr/testify/assert"
@@ -31,7 +32,9 @@ func TestShow(t *testing.T) {
 	color.NoColor = true
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
+	stdout = buf
 	defer func() {
+		stdout = os.Stdout
 		out.Stdout = os.Stdout
 	}()
 
@@ -58,5 +61,15 @@ func TestShow(t *testing.T) {
 
 	assert.NoError(t, act.Show(ctx, c))
 	assert.Equal(t, "0xDEADBEEF", buf.String())
+	buf.Reset()
+
+	// show dir
+	assert.NoError(t, act.Store.Set(ctx, "bar/baz", secret.New("123", "---\nbar: zab")))
+	fs = flag.NewFlagSet("default", flag.ContinueOnError)
+	assert.NoError(t, fs.Parse([]string{"bar"}))
+	c = cli.NewContext(app, fs, nil)
+
+	assert.NoError(t, act.Show(ctx, c))
+	assert.Equal(t, "bar\n└── baz\n\n", buf.String())
 	buf.Reset()
 }

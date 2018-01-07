@@ -94,9 +94,11 @@ func TestCreateWebsite(t *testing.T) {
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
 	stdout = buf
+	termio.Stdout = buf
 	defer func() {
 		out.Stdout = os.Stdout
 		stdout = os.Stdout
+		termio.Stdout = os.Stdout
 	}()
 
 	// provide values on redirected stdin
@@ -117,7 +119,7 @@ y
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
 	c := cli.NewContext(app, fs, nil)
 
-	capture(t, func() error { return act.createWebsite(ctx, c) })
+	assert.NoError(t, act.createWebsite(ctx, c))
 	buf.Reset()
 
 	// try to create the same entry twice
@@ -151,9 +153,11 @@ func TestCreatePIN(t *testing.T) {
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
 	stdout = buf
+	termio.Stdout = buf
 	defer func() {
 		stdout = os.Stdout
 		out.Stdout = os.Stdout
+		termio.Stdout = os.Stdout
 	}()
 
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
@@ -181,7 +185,7 @@ y
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
 	c := cli.NewContext(app, fs, nil)
 
-	capture(t, func() error { return act.createPIN(ctx, c) })
+	assert.NoError(t, act.createPIN(ctx, c))
 	buf.Reset()
 }
 
@@ -200,9 +204,11 @@ func TestCreateGeneric(t *testing.T) {
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
 	stdout = buf
+	termio.Stdout = buf
 	defer func() {
 		stdout = os.Stdout
 		out.Stdout = os.Stdout
+		termio.Stdout = os.Stdout
 	}()
 
 	// provide values on redirected stdin
@@ -243,9 +249,11 @@ func TestCreateAWS(t *testing.T) {
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
 	stdout = buf
+	termio.Stdout = buf
 	defer func() {
 		out.Stdout = os.Stdout
 		stdout = os.Stdout
+		termio.Stdout = os.Stdout
 	}()
 
 	// provide values on redirected stdin
@@ -286,9 +294,11 @@ func TestCreateGCP(t *testing.T) {
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
 	stdout = buf
+	termio.Stdout = buf
 	defer func() {
 		out.Stdout = os.Stdout
 		stdout = os.Stdout
+		termio.Stdout = os.Stdout
 	}()
 
 	tf := filepath.Join(td, "service-account.json")
