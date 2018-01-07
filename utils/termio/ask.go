@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/justwatchcom/gopass/utils/ctxutil"
+	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/pkg/errors"
 )
 
@@ -159,11 +160,11 @@ func AskForPassword(ctx context.Context, name string) (string, error) {
 			return "", err
 		}
 
-		if pass == passAgain {
-			return strings.TrimSpace(pass), nil
+		if pass == passAgain || pass == "" {
+			return pass, nil
 		}
 
-		fmt.Println("Error: the entered password do not match")
+		out.Red(ctx, "Error: the entered password do not match")
 	}
 	return "", errors.New("no valid user input")
 }
