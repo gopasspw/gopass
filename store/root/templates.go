@@ -2,10 +2,10 @@ package root
 
 import (
 	"context"
-	"fmt"
 	"sort"
 
 	"github.com/justwatchcom/gopass/store"
+	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/justwatchcom/gopass/utils/tree"
 	"github.com/justwatchcom/gopass/utils/tree/simple"
 	"github.com/pkg/errors"
@@ -18,12 +18,12 @@ func (r *Store) LookupTemplate(ctx context.Context, name string) ([]byte, bool) 
 }
 
 // TemplateTree returns a tree of all templates
-func (r *Store) TemplateTree() (tree.Tree, error) {
+func (r *Store) TemplateTree(ctx context.Context) (tree.Tree, error) {
 	root := simple.New("gopass")
 
-	for _, t := range r.store.ListTemplates("") {
+	for _, t := range r.store.ListTemplates(ctx, "") {
 		if err := root.AddFile(t, "gopass/template"); err != nil {
-			fmt.Println(err)
+			out.Red(ctx, "Failed to add file to tree: %s", err)
 		}
 	}
 
@@ -37,9 +37,9 @@ func (r *Store) TemplateTree() (tree.Tree, error) {
 		if err := root.AddMount(alias, substore.Path()); err != nil {
 			return nil, errors.Errorf("failed to add mount: %s", err)
 		}
-		for _, t := range substore.ListTemplates(alias) {
+		for _, t := range substore.ListTemplates(ctx, alias) {
 			if err := root.AddFile(t, "gopass/template"); err != nil {
-				fmt.Println(err)
+				out.Red(ctx, "Failed to add file to tree: %s", err)
 			}
 		}
 	}

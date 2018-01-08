@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/fatih/color"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestConfigs(t *testing.T) {
@@ -163,14 +164,10 @@ func TestLoad(t *testing.T) {
 
 func TestLoadError(t *testing.T) {
 	gcfg := filepath.Join(os.TempDir(), ".gopass-err.yml")
-	if err := os.Setenv("GOPASS_CONFIG", gcfg); err != nil {
-		t.Fatalf("Failed to set GOPASS_CONFIG: %s", err)
-	}
+	assert.NoError(t, os.Setenv("GOPASS_CONFIG", gcfg))
 
 	_ = os.Remove(gcfg)
-	if err := ioutil.WriteFile(gcfg, []byte(testConfig), 0000); err != nil {
-		t.Fatalf("Failed to write config %s: %s", gcfg, err)
-	}
+	assert.NoError(t, ioutil.WriteFile(gcfg, []byte(testConfig), 0000))
 
 	capture(t, func() error {
 		_, err := load(gcfg)
@@ -182,28 +179,19 @@ func TestLoadError(t *testing.T) {
 
 	_ = os.Remove(gcfg)
 	cfg, err := load(gcfg)
-	if err == nil {
-		t.Errorf("Should fail")
-	}
+	assert.Error(t, err)
+
 	gcfg = filepath.Join(os.TempDir(), "foo", ".gopass.yml")
-	if err := os.Setenv("GOPASS_CONFIG", gcfg); err != nil {
-		t.Fatalf("Failed to set GOPASS_CONFIG: %s", err)
-	}
-	if err := cfg.Save(); err != nil {
-		t.Errorf("Error: %s", err)
-	}
+	assert.NoError(t, os.Setenv("GOPASS_CONFIG", gcfg))
+	assert.NoError(t, cfg.Save())
 }
 
 func TestDecodeError(t *testing.T) {
 	gcfg := filepath.Join(os.TempDir(), ".gopass-err2.yml")
-	if err := os.Setenv("GOPASS_CONFIG", gcfg); err != nil {
-		t.Fatalf("Failed to set GOPASS_CONFIG: %s", err)
-	}
+	assert.NoError(t, os.Setenv("GOPASS_CONFIG", gcfg))
 
 	_ = os.Remove(gcfg)
-	if err := ioutil.WriteFile(gcfg, []byte(testConfig+"\nfoobar: zab\n"), 0600); err != nil {
-		t.Fatalf("Failed to write config %s: %s", gcfg, err)
-	}
+	assert.NoError(t, ioutil.WriteFile(gcfg, []byte(testConfig+"\nfoobar: zab\n"), 0600))
 
 	capture(t, func() error {
 		_, err := load(gcfg)
@@ -221,7 +209,8 @@ func capture(t *testing.T, fn func() error) string {
 	oldcol := color.NoColor
 	color.NoColor = true
 
-	r, w, _ := os.Pipe()
+	r, w, err := os.Pipe()
+	assert.NoError(t, err)
 	os.Stdout = w
 
 	done := make(chan string)
@@ -231,14 +220,12 @@ func capture(t *testing.T, fn func() error) string {
 		done <- buf.String()
 	}()
 
-	err := fn()
+	err = fn()
 	// back to normal
 	_ = w.Close()
 	os.Stdout = old
 	color.NoColor = oldcol
-	if err != nil {
-		t.Errorf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 	out := <-done
 	return strings.TrimSpace(out)
 }

@@ -36,7 +36,5 @@ func TestUnclip(t *testing.T) {
 		out.Stdout = os.Stdout
 	}()
 
-	if err := act.Unclip(ctx, c); err != nil && err.Error() != clipboardNotSupported {
-		t.Errorf("Error: %s", err)
-	}
+	assert.EqualError(t, act.Unclip(ctx, c), clipboardNotSupported)
 }

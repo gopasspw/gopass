@@ -199,7 +199,8 @@ func (s *Action) createPrintOrCopy(ctx context.Context, c *cli.Context, name, pa
 	}
 
 	if c.Bool("print") {
-		fmt.Printf(
+		fmt.Fprintf(
+			stdout,
 			"The generated password for %s is:\n%s\n", name,
 			color.YellowString(password),
 		)

@@ -132,7 +132,7 @@ func (s *Store) GetRecipients(ctx context.Context, name string) ([]string, error
 
 	defer func() {
 		if err := f.Close(); err != nil {
-			fmt.Printf("Failed to close %s: %s\n", idf, err)
+			out.Red(ctx, "Failed to close %s: %s", idf, err)
 		}
 	}()
 

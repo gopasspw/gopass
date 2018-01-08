@@ -47,7 +47,7 @@ func (s *Action) Edit(ctx context.Context, c *cli.Context) error {
 		if nc, err := tpl.Execute(ctx, string(tmpl), name, content, s.Store); err == nil {
 			content = nc
 		} else {
-			fmt.Printf("failed to execute template: %s\n", err)
+			fmt.Fprintf(stdout, "failed to execute template: %s\n", err)
 		}
 	}
 

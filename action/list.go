@@ -26,7 +26,7 @@ func (s *Action) List(ctx context.Context, c *cli.Context) error {
 	stripPrefix := c.Bool("strip-prefix")
 	limit := c.Int("limit")
 
-	l, err := s.Store.Tree()
+	l, err := s.Store.Tree(ctx)
 	if err != nil {
 		return exitError(ctx, ExitList, err, "failed to list store: %s", err)
 	}
@@ -92,7 +92,7 @@ func redirectPager(ctx context.Context, subtree tree.Tree) (io.Writer, *bytes.Bu
 func (s *Action) listAll(ctx context.Context, l tree.Tree, limit int, flat bool) error {
 	if flat {
 		for _, e := range l.List(limit) {
-			fmt.Println(e)
+			fmt.Fprintln(stdout, e)
 		}
 		return nil
 	}
@@ -112,7 +112,7 @@ func (s *Action) listAll(ctx context.Context, l tree.Tree, limit int, flat bool)
 func (s *Action) pager(ctx context.Context, buf io.Reader) error {
 	pager := os.Getenv("PAGER")
 	if pager == "" {
-		fmt.Println(buf)
+		fmt.Fprintln(stdout, buf)
 		return nil
 	}
 

@@ -11,7 +11,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/store/secret"
 	"github.com/justwatchcom/gopass/store/sub"
 	"github.com/justwatchcom/gopass/utils/fsutil"
@@ -60,7 +59,8 @@ func (s *Action) BinaryCat(ctx context.Context, c *cli.Context) error {
 	if err != nil {
 		return exitError(ctx, ExitDecrypt, err, "failed to read secret: %s", err)
 	}
-	color.Yellow(string(buf))
+
+	out.Yellow(ctx, string(buf))
 	return nil
 }
 

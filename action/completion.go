@@ -1,6 +1,7 @@
 package action
 
 import (
+	"context"
 	"fmt"
 	"regexp"
 	"strings"
@@ -23,14 +24,14 @@ func bashEscape(s string) string {
 }
 
 // Complete prints a list of all password names to os.Stdout
-func (s *Action) Complete(*cli.Context) {
-	list, err := s.Store.List(0)
+func (s *Action) Complete(ctx context.Context, c *cli.Context) {
+	list, err := s.Store.List(ctx, 0)
 	if err != nil {
 		return
 	}
 
 	for _, v := range list {
-		fmt.Println(bashEscape(v))
+		fmt.Fprintln(stdout, bashEscape(v))
 	}
 }
 
@@ -53,8 +54,7 @@ set -A complete_gopass -- $PASS_LIST %s
 		}
 	}
 
-	fmt.Println(fmt.Sprintf(out, strings.Join(opts, " ")))
-
+	fmt.Fprintf(stdout, out, strings.Join(opts, " "))
 	return nil
 }
 
@@ -72,7 +72,7 @@ func (s *Action) CompletionBash(c *cli.Context) error {
 
 `
 	out += "complete -F _gopass_bash_autocomplete " + s.Name
-	fmt.Println(out)
+	fmt.Fprintln(stdout, out)
 
 	return nil
 }
@@ -84,7 +84,7 @@ func (s *Action) CompletionFish(c *cli.Context, a *cli.App) error {
 		return err
 	}
 
-	fmt.Println(comp)
+	fmt.Fprintln(stdout, comp)
 	return nil
 }
 
@@ -95,6 +95,6 @@ func (s *Action) CompletionZSH(c *cli.Context, a *cli.App) error {
 		return err
 	}
 
-	fmt.Println(comp)
+	fmt.Fprintln(stdout, comp)
 	return nil
 }

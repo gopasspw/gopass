@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"flag"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -38,14 +37,11 @@ func TestAudit(t *testing.T) {
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
+	stdout = buf
 	defer func() {
 		out.Stdout = os.Stdout
+		stdout = os.Stdout
 	}()
 
-	capture(t, func() error {
-		if err := act.Audit(ctx, c); err != nil {
-			return nil
-		}
-		return fmt.Errorf("should detect weak password")
-	})
+	assert.Error(t, act.Audit(ctx, c))
 }

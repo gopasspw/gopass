@@ -105,6 +105,6 @@ func (s *Action) ConfigComplete(c *cli.Context) {
 	}
 	sort.Strings(keys)
 	for _, k := range keys {
-		fmt.Println(k)
+		fmt.Fprintln(stdout, k)
 	}
 }

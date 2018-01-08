@@ -32,8 +32,10 @@ func TestConfig(t *testing.T) {
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
+	stdout = buf
 	defer func() {
 		out.Stdout = os.Stdout
+		stdout = os.Stdout
 	}()
 
 	// action.Config
@@ -103,10 +105,7 @@ foo/nopager: false`
 	buf.Reset()
 
 	// action.ConfigComplete
-	out := capture(t, func() error {
-		act.ConfigComplete(c)
-		return nil
-	})
+	act.ConfigComplete(c)
 	want = `askformore
 autoimport
 autosync
@@ -116,12 +115,15 @@ noconfirm
 nopager
 path
 safecontent
-usesymbols`
-	assert.Equal(t, want, out)
+usesymbols
+`
+	assert.Equal(t, want, buf.String())
+	buf.Reset()
 
 	// config autoimport false 42
 	fs = flag.NewFlagSet("default", flag.ContinueOnError)
 	assert.NoError(t, fs.Parse([]string{"autoimport", "false", "42"}))
 	c = cli.NewContext(app, fs, nil)
 	assert.Error(t, act.Config(ctx, c))
+	buf.Reset()
 }

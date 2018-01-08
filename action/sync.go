@@ -22,7 +22,7 @@ func (s *Action) sync(ctx context.Context, c *cli.Context, store string) error {
 	out.Green(ctx, "Sync starting ...")
 
 	numEntries := 0
-	if l, err := s.Store.Tree(); err == nil {
+	if l, err := s.Store.Tree(ctx); err == nil {
 		numEntries = len(l.List(0))
 	}
 	numMPs := 0
@@ -47,7 +47,7 @@ func (s *Action) sync(ctx context.Context, c *cli.Context, store string) error {
 	out.Green(ctx, "All done")
 
 	// calculate number of changes entries
-	if l, err := s.Store.Tree(); err == nil {
+	if l, err := s.Store.Tree(ctx); err == nil {
 		numEntries = len(l.List(0)) - numEntries
 	}
 	diff := ""

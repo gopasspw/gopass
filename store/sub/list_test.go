@@ -67,9 +67,7 @@ func TestList(t *testing.T) {
 	} {
 		// common setup
 		tempdir, err := ioutil.TempDir("", "gopass-")
-		if err != nil {
-			t.Fatalf("Failed to create tempdir: %s", err)
-		}
+		assert.NoError(t, err)
 
 		s := &Store{
 			alias: "",
@@ -82,9 +80,7 @@ func TestList(t *testing.T) {
 		assert.NoError(t, err)
 
 		// prepare store
-		if err := tc.prep(s); err != nil {
-			t.Fatalf("Failed to prepare store: %s", err)
-		}
+		assert.NoError(t, tc.prep(s))
 
 		// run test case
 		out, err := s.List("")

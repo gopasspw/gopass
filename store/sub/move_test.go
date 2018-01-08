@@ -156,9 +156,7 @@ func TestMove(t *testing.T) {
 	} {
 		// common setup
 		tempdir, err := ioutil.TempDir("", "gopass-")
-		if err != nil {
-			t.Fatalf("Failed to create tempdir: %s", err)
-		}
+		assert.NoError(t, err)
 
 		s := &Store{
 			alias: "",
@@ -291,9 +289,7 @@ func TestPrune(t *testing.T) {
 	} {
 		// common setup
 		tempdir, err := ioutil.TempDir("", "gopass-")
-		if err != nil {
-			t.Fatalf("Failed to create tempdir: %s", err)
-		}
+		assert.NoError(t, err)
 
 		s := &Store{
 			alias: "",

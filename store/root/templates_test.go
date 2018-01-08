@@ -14,9 +14,7 @@ import (
 
 func TestTemplate(t *testing.T) {
 	tempdir, err := ioutil.TempDir("", "gopass-")
-	if err != nil {
-		t.Fatalf("Failed to create tempdir: %s", err)
-	}
+	assert.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(tempdir)
 	}()
@@ -29,7 +27,7 @@ func TestTemplate(t *testing.T) {
 	rs, err := createRootStore(ctx, tempdir)
 	assert.NoError(t, err)
 
-	tt, err := rs.TemplateTree()
+	tt, err := rs.TemplateTree(ctx)
 	assert.NoError(t, err)
 	assert.Equal(t, "gopass\n", tt.Format(0))
 

@@ -27,7 +27,7 @@ func TestList(t *testing.T) {
 	rs, err := createRootStore(ctx, tempdir)
 	assert.NoError(t, err)
 
-	es, err := rs.List(0)
+	es, err := rs.List(ctx, 0)
 	assert.NoError(t, err)
 	assert.Equal(t, []string{"baz/ing/a", "foo/bar/baz"}, es)
 }

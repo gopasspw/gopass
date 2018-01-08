@@ -26,9 +26,7 @@ func TestNew(t *testing.T) {
 
 	// get non-existing key
 	_, err = sec.Value("some-key")
-	if err != store.ErrYAMLNoKey {
-		t.Errorf("Should fail")
-	}
+	assert.EqualError(t, err, store.ErrYAMLNoKey.Error())
 
 	// delete existing key
 	assert.NoError(t, sec.DeleteKey("key"))
@@ -44,14 +42,10 @@ func TestNew(t *testing.T) {
 	assert.NoError(t, sec.SetBody("key-only\n"))
 
 	// try to set value on non-YAML body
-	if err := sec.SetValue("key", "value"); err != store.ErrYAMLNoMark {
-		t.Errorf("Should fail")
-	}
+	assert.EqualError(t, sec.SetValue("key", "value"), store.ErrYAMLNoMark.Error())
 
 	// delete non-existing key
-	if err := sec.DeleteKey("some-key"); err != store.ErrYAMLNoMark {
-		t.Errorf("Should fail")
-	}
+	assert.EqualError(t, sec.DeleteKey("some-key"), store.ErrYAMLNoMark.Error())
 }
 
 func TestEqual(t *testing.T) {

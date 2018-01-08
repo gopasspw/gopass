@@ -8,6 +8,7 @@ import (
 	"github.com/justwatchcom/gopass/config"
 	"github.com/justwatchcom/gopass/store/sub"
 	"github.com/justwatchcom/gopass/utils/fsutil"
+	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/pkg/errors"
 )
 
@@ -44,7 +45,7 @@ func New(ctx context.Context, cfg *config.Config, gpg gpger) (*Store, error) {
 	for alias, sc := range cfg.Mounts {
 		path := fsutil.CleanPath(sc.Path)
 		if err := r.addMount(ctx, alias, path); err != nil {
-			fmt.Printf("Failed to initialize mount %s (%s): %s. Ignoring\n", alias, path, err)
+			out.Red(ctx, "Failed to initialize mount %s (%s): %s. Ignoring", alias, path, err)
 			continue
 		}
 	}

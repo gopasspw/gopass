@@ -2,7 +2,6 @@ package sub
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -23,7 +22,7 @@ func (s *Store) Fsck(ctx context.Context, prefix string) (map[string]uint64, err
 
 	storeRec, err := s.gpg.FindPublicKeys(ctx, rs...)
 	if err != nil {
-		fmt.Printf("Failed to list recipients: %s\n", err)
+		out.Red(ctx, "Failed to list recipients: %s", err)
 	}
 
 	counts := make(map[string]uint64, 5)

@@ -52,7 +52,7 @@ func setupApp(ctx context.Context, sv semver.Version) *cli.App {
 	app.EnableBashCompletion = true
 	app.BashComplete = func(c *cli.Context) {
 		cli.DefaultAppComplete(c)
-		action.Complete(c)
+		action.Complete(ctx, c)
 	}
 
 	app.Action = func(c *cli.Context) error {

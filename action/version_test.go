@@ -32,15 +32,15 @@ func TestVersion(t *testing.T) {
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
+	stdout = buf
 	defer func() {
 		out.Stdout = os.Stdout
+		stdout = os.Stdout
 	}()
 
 	cli.VersionPrinter = func(*cli.Context) {
 		out.Print(ctx, "gopass version 0.0.0-test")
 	}
 
-	capture(t, func() error {
-		return act.Version(ctx, c)
-	})
+	assert.NoError(t, act.Version(ctx, c))
 }

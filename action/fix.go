@@ -22,7 +22,7 @@ func (s *Action) Fix(ctx context.Context, c *cli.Context) error {
 		return errors.New("user aborted")
 	}
 
-	t, err := s.Store.Tree()
+	t, err := s.Store.Tree(ctx)
 	if err != nil {
 		return exitError(ctx, ExitList, err, "failed to list store: %s", err)
 	}

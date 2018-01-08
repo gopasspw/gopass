@@ -2,7 +2,6 @@ package action
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/fatih/color"
 	git "github.com/justwatchcom/gopass/backend/git/cli"
@@ -50,7 +49,7 @@ func (s *Action) clone(ctx context.Context, repo, mount, path string) error {
 		if err := s.Store.AddMount(ctx, mount, path); err != nil {
 			return exitError(ctx, ExitMount, err, "Failed to add mount: %s", err)
 		}
-		fmt.Printf("Mounted password store %s at mount point `%s` ...\n", path, mount)
+		out.Green(ctx, "Mounted password store %s at mount point `%s` ...", path, mount)
 	}
 
 	// save new mount in config file

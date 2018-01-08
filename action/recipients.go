@@ -40,7 +40,7 @@ func (s *Action) RecipientsPrint(ctx context.Context, c *cli.Context) error {
 		return exitError(ctx, ExitList, err, "failed to list recipients: %s", err)
 	}
 
-	fmt.Println(tree.Format(0))
+	fmt.Fprintln(stdout, tree.Format(0))
 	return nil
 }
 
@@ -49,12 +49,12 @@ func (s *Action) RecipientsPrint(ctx context.Context, c *cli.Context) error {
 func (s *Action) RecipientsComplete(ctx context.Context, c *cli.Context) {
 	tree, err := s.Store.RecipientsTree(ctx, false)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Fprintln(stdout, err)
 		return
 	}
 
 	for _, v := range tree.List(0) {
-		fmt.Println(v)
+		fmt.Fprintln(stdout, v)
 	}
 }
 
@@ -155,7 +155,7 @@ func (s *Action) RecipientsRemove(ctx context.Context, c *cli.Context) error {
 		if err := s.Store.RemoveRecipient(ctxutil.WithNoConfirm(ctx, true), store, strings.TrimPrefix(r, "0x")); err != nil {
 			return exitError(ctx, ExitRecipients, err, "failed to remove recipient '%s': %s", r, err)
 		}
-		fmt.Printf(removalWarning, r)
+		fmt.Fprintf(stdout, removalWarning, r)
 		removed++
 	}
 

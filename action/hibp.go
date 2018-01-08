@@ -36,7 +36,7 @@ func (s *Action) HIBP(ctx context.Context, c *cli.Context) error {
 	// build a map of all secrets sha sums to their names and also build a sorted (!)
 	// list of this shasums. As the hibp dump is already sorted this allows for
 	// a very efficient stream compare in O(n)
-	t, err := s.Store.Tree()
+	t, err := s.Store.Tree(ctx)
 	if err != nil {
 		return exitError(ctx, ExitList, err, "failed to list store: %s", err)
 	}

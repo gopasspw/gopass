@@ -26,33 +26,30 @@ func TestCleanFilename(t *testing.T) {
 
 func TestCleanPath(t *testing.T) {
 	tempdir, err := ioutil.TempDir("", "gopass-")
-	if err != nil {
-		t.Fatalf("Failed to create tempdir: %s", err)
-	}
+	assert.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(tempdir)
 	}()
+
 	m := map[string]string{
 		".": "",
 		"/home/user/../bob/.password-store": "/home/bob/.password-store",
 		"/home/user//.password-store":       "/home/user/.password-store",
 		tempdir + "/foo.gpg":                tempdir + "/foo.gpg",
 	}
+
 	usr, err := user.Current()
 	if err == nil {
 		m["~/.password-store"] = usr.HomeDir + "/.password-store"
 	}
+
 	for in, out := range m {
 		got := CleanPath(in)
 
 		// filepath.Abs turns /home/bob into C:\home\bob on Windows
 		absOut, err := filepath.Abs(out)
-		if err != nil {
-			t.Errorf("filepath.Absolute errored: %s", err)
-		}
-		if absOut != got {
-			t.Errorf("Mismatch for %s: %s != %s", in, got, absOut)
-		}
+		assert.NoError(t, err)
+		assert.Equal(t, absOut, got)
 	}
 }
 
