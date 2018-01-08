@@ -14,33 +14,22 @@ func TestPwStoreDirNoEnv(t *testing.T) {
 		"work": filepath.Join(Homedir(), ".password-store-work"),
 		filepath.Join("foo", "bar"): filepath.Join(Homedir(), ".password-store-foo-bar"),
 	} {
-		got := PwStoreDir(in)
-		if got != out {
-			t.Errorf("Mismatch for %s: %s != %s", in, got, out)
-		}
+		assert.Equal(t, out, PwStoreDir(in))
 	}
 }
 
 func TestPwStoreDir(t *testing.T) {
 	gph := filepath.Join(os.TempDir(), "home")
-	_ = os.Setenv("GOPASS_HOMEDIR", gph)
+	assert.NoError(t, os.Setenv("GOPASS_HOMEDIR", gph))
 
-	if d := PwStoreDir(""); d != filepath.Join(gph, ".password-store") {
-		t.Errorf("Wrong dir: %s", d)
-	}
-	if d := PwStoreDir("foo"); d != filepath.Join(gph, ".password-store-foo") {
-		t.Errorf("Wrong dir: %s", d)
-	}
+	assert.Equal(t, filepath.Join(gph, ".password-store"), PwStoreDir(""))
+	assert.Equal(t, filepath.Join(gph, ".password-store-foo"), PwStoreDir("foo"))
 
 	psd := filepath.Join(gph, ".password-store-test")
-	_ = os.Setenv("PASSWORD_STORE_DIR", psd)
+	assert.NoError(t, os.Setenv("PASSWORD_STORE_DIR", psd))
 
-	if d := PwStoreDir(""); d != psd {
-		t.Errorf("Wrong dir: %s", d)
-	}
-	if d := PwStoreDir("foo"); d != filepath.Join(gph, ".password-store-foo") {
-		t.Errorf("Wrong dir: %s", d)
-	}
+	assert.Equal(t, psd, PwStoreDir(""))
+	assert.Equal(t, filepath.Join(gph, ".password-store-foo"), PwStoreDir("foo"))
 }
 
 func TestConfigLocation(t *testing.T) {
@@ -52,48 +41,39 @@ func TestConfigLocation(t *testing.T) {
 		"XDG_CONFIG_HOME": {ev: filepath.Join(os.TempDir(), "xdg"), loc: filepath.Join(os.TempDir(), "xdg", "gopass", "config.yml")},
 		"GOPASS_HOMEDIR":  {ev: filepath.Join(os.TempDir(), "home"), loc: filepath.Join(os.TempDir(), "home", ".config", "gopass", "config.yml")},
 	}
+
 	for k := range evs {
-		_ = os.Unsetenv(k)
+		assert.NoError(t, os.Unsetenv(k))
 	}
+
 	for k, v := range evs {
-		_ = os.Setenv(k, v.ev)
-		loc := configLocation()
-		t.Logf("%s = %s -> %s", k, v.ev, loc)
-		if loc != v.loc {
-			t.Errorf("'%s' != '%s'", loc, v.loc)
-		}
-		_ = os.Unsetenv(k)
+		assert.NoError(t, os.Setenv(k, v.ev))
+		assert.Equal(t, v.loc, configLocation())
+		assert.NoError(t, os.Unsetenv(k))
 	}
 }
 
 func TestConfigLocations(t *testing.T) {
 	gpcfg := filepath.Join(os.TempDir(), "config", ".gopass.yml")
-	_ = os.Setenv("GOPASS_CONFIG", gpcfg)
 	xdghome := filepath.Join(os.TempDir(), "xdg")
-	_ = os.Setenv("XDG_CONFIG_HOME", xdghome)
 	gphome := filepath.Join(os.TempDir(), "home")
-	_ = os.Setenv("GOPASS_HOMEDIR", gphome)
+
+	xdgcfg := filepath.Join(xdghome, "gopass", "config.yml")
+	curcfg := filepath.Join(gphome, ".config", "gopass", "config.yml")
+	oldcfg := filepath.Join(gphome, ".gopass.yml")
+
+	assert.NoError(t, os.Setenv("GOPASS_CONFIG", gpcfg))
+	assert.NoError(t, os.Setenv("XDG_CONFIG_HOME", xdghome))
+	assert.NoError(t, os.Setenv("GOPASS_HOMEDIR", gphome))
 
 	locs := configLocations()
 	t.Logf("Locations: %+v", locs)
-	if len(locs) != 4 {
-		t.Errorf("Expects 4 locations not %d", len(locs))
-	}
-	if locs[0] != gpcfg {
-		t.Errorf("'%s' != '%s'", locs[0], gpcfg)
-	}
-	xdgcfg := filepath.Join(xdghome, "gopass", "config.yml")
-	if locs[1] != xdgcfg {
-		t.Errorf("'%s' != '%s'", locs[1], xdgcfg)
-	}
-	curcfg := filepath.Join(gphome, ".config", "gopass", "config.yml")
-	if locs[2] != curcfg {
-		t.Errorf("'%s' != '%s'", locs[2], curcfg)
-	}
-	oldcfg := filepath.Join(gphome, ".gopass.yml")
-	if locs[3] != oldcfg {
-		t.Errorf("'%s' != '%s'", locs[3], oldcfg)
-	}
+
+	assert.Equal(t, 4, len(locs))
+	assert.Equal(t, gpcfg, locs[0])
+	assert.Equal(t, xdgcfg, locs[1])
+	assert.Equal(t, curcfg, locs[2])
+	assert.Equal(t, oldcfg, locs[3])
 }
 
 func TestDirectory(t *testing.T) {

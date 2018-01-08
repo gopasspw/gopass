@@ -20,9 +20,10 @@ const (
 
 func getGoldenFormat(t *testing.T) string {
 	mustAbsoluteFilepath := func(s string) string {
+		t.Helper()
 		path, err := filepath.Abs(s)
 		if err != nil {
-			t.Errorf("Error during filepath.Absolute: %s", err)
+			assert.NoError(t, err)
 			return "ERROR"
 		}
 		return path
@@ -59,9 +60,7 @@ func TestFormat(t *testing.T) {
 	for _, k := range keys {
 		v := mounts[k]
 		absV, err := filepath.Abs(v)
-		if err != nil {
-			t.Errorf("Error during filepath.Abs: %s", err)
-		}
+		assert.NoError(t, err)
 		assert.NoError(t, root.AddMount(k, absV))
 	}
 	for _, f := range []string{

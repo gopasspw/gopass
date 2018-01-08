@@ -183,9 +183,7 @@ func runRespondRawMessages(t *testing.T, requests []verifiedRequest, secrets []s
 	ctx := context.Background()
 
 	tempdir, err := ioutil.TempDir("", "gopass-")
-	if err != nil {
-		t.Fatalf("Failed to create tempdir: %s", err)
-	}
+	assert.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(tempdir)
 	}()
@@ -196,7 +194,9 @@ func runRespondRawMessages(t *testing.T, requests []verifiedRequest, secrets []s
 			Root: &config.StoreConfig{
 				Path: tempdir,
 			},
-		}, gpgmock.New())
+		},
+		gpgmock.New(),
+	)
 	assert.NoError(t, err)
 
 	err = populateStore(tempdir, secrets)
@@ -208,18 +208,18 @@ func runRespondRawMessages(t *testing.T, requests []verifiedRequest, secrets []s
 
 		api := API{store, &inbuf, &outbuf}
 
-		_, _ = inbuf.Write([]byte(request.InputStr))
+		_, err = inbuf.Write([]byte(request.InputStr))
+		assert.NoError(t, err)
 
 		err = api.ReadAndRespond(ctx)
-
 		if len(request.ErrorStr) > 0 {
 			assert.EqualError(t, err, request.ErrorStr)
 			assert.Equal(t, len(outbuf.String()), 0)
-		} else {
-			assert.NoError(t, err)
-			outputMessage := readAndVerifyMessageLength(t, outbuf.Bytes())
-			assert.Regexp(t, regexp.MustCompile(request.OutputRegexpStr), outputMessage)
+			continue
 		}
+		assert.NoError(t, err)
+		outputMessage := readAndVerifyMessageLength(t, outbuf.Bytes())
+		assert.Regexp(t, regexp.MustCompile(request.OutputRegexpStr), outputMessage)
 	}
 }
 

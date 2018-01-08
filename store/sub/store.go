@@ -170,11 +170,11 @@ func (s *Store) reencrypt(ctx context.Context) error {
 
 			content, err := s.Get(ctx, e)
 			if err != nil {
-				fmt.Printf("Failed to get current value for %s: %s\n", e, err)
+				out.Red(ctx, "Failed to get current value for %s: %s", e, err)
 				continue
 			}
 			if err := s.Set(ctx, e, content); err != nil {
-				fmt.Printf("Failed to write %s: %s\n", e, err)
+				out.Red(ctx, "Failed to write %s: %s", e, err)
 			}
 		}
 	}

@@ -32,30 +32,26 @@ func TestRecipients(t *testing.T) {
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
+	stdout = buf
 	defer func() {
 		out.Stdout = os.Stdout
+		stdout = os.Stdout
 	}()
 
 	// RecipientsPrint
-	out := capture(t, func() error {
-		return act.RecipientsPrint(ctx, c)
-	})
-	want := `gopass
-└── 0xDEADBEEF (missing public key)`
-	if out != want {
-		t.Errorf("'%s' != '%s'", want, out)
-	}
+	assert.NoError(t, act.RecipientsPrint(ctx, c))
+	want := `Hint: run 'gopass sync' to import any missing public keys
+gopass
+└── 0xDEADBEEF (missing public key)
+
+`
+	assert.Equal(t, want, buf.String())
 	buf.Reset()
 
 	// RecipientsComplete
-	out = capture(t, func() error {
-		act.RecipientsComplete(ctx, c)
-		return nil
-	})
-	want = "0xDEADBEEF (missing public key)"
-	if out != want {
-		t.Errorf("'%s' != '%s'", want, out)
-	}
+	act.RecipientsComplete(ctx, c)
+	want = "0xDEADBEEF (missing public key)\n"
+	assert.Equal(t, want, buf.String())
 	buf.Reset()
 
 	// RecipientsAdd

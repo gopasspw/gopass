@@ -21,9 +21,7 @@ func TestGetRecipientsDefault(t *testing.T) {
 	ctx := context.Background()
 
 	tempdir, err := ioutil.TempDir("", "gopass-")
-	if err != nil {
-		t.Fatalf("Failed to create tempdir: %s", err)
-	}
+	assert.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(tempdir)
 	}()
@@ -54,9 +52,7 @@ func TestGetRecipientsSubID(t *testing.T) {
 	ctx := context.Background()
 
 	tempdir, err := ioutil.TempDir("", "gopass-")
-	if err != nil {
-		t.Fatalf("Failed to create tempdir: %s", err)
-	}
+	assert.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(tempdir)
 	}()
@@ -93,9 +89,7 @@ func TestSaveRecipients(t *testing.T) {
 	ctx := context.Background()
 
 	tempdir, err := ioutil.TempDir("", "gopass-")
-	if err != nil {
-		t.Fatalf("Failed to create tempdir: %s", err)
-	}
+	assert.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(tempdir)
 	}()
@@ -123,9 +117,7 @@ func TestSaveRecipients(t *testing.T) {
 	assert.NoError(t, err)
 
 	buf, err := ioutil.ReadFile(s.idFile(""))
-	if err != nil {
-		t.Fatalf("Failed to read ID File: %s", err)
-	}
+	assert.NoError(t, err)
 
 	foundRecs := []string{}
 	scanner := bufio.NewScanner(bytes.NewReader(buf))
@@ -150,9 +142,7 @@ func TestAddRecipient(t *testing.T) {
 	ctx = out.WithHidden(ctx, true)
 
 	tempdir, err := ioutil.TempDir("", "gopass-")
-	if err != nil {
-		t.Fatalf("Failed to create tempdir: %s", err)
-	}
+	assert.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(tempdir)
 	}()
@@ -191,9 +181,7 @@ func TestRemoveRecipient(t *testing.T) {
 	ctx = out.WithHidden(ctx, true)
 
 	tempdir, err := ioutil.TempDir("", "gopass-")
-	if err != nil {
-		t.Fatalf("Failed to create tempdir: %s", err)
-	}
+	assert.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(tempdir)
 	}()
@@ -225,9 +213,7 @@ func TestListRecipients(t *testing.T) {
 	ctx := context.Background()
 
 	tempdir, err := ioutil.TempDir("", "gopass-")
-	if err != nil {
-		t.Fatalf("Failed to create tempdir: %s", err)
-	}
+	assert.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(tempdir)
 	}()

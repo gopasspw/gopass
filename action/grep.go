@@ -17,7 +17,7 @@ func (s *Action) Grep(ctx context.Context, c *cli.Context) error {
 
 	search := c.Args().First()
 
-	l, err := s.Store.List(0)
+	l, err := s.Store.List(ctx, 0)
 	if err != nil {
 		return exitError(ctx, ExitList, err, "failed to list store: %s", err)
 	}

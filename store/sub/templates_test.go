@@ -1,6 +1,7 @@
 package sub
 
 import (
+	"context"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -11,10 +12,10 @@ import (
 )
 
 func TestTemplates(t *testing.T) {
+	ctx := context.Background()
+
 	tempdir, err := ioutil.TempDir("", "gopass-")
-	if err != nil {
-		t.Fatalf("Failed to create tempdir: %s", err)
-	}
+	assert.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(tempdir)
 	}()
@@ -30,11 +31,11 @@ func TestTemplates(t *testing.T) {
 		gpgmock.New(),
 	)
 
-	assert.Equal(t, 0, len(s.ListTemplates("")))
+	assert.Equal(t, 0, len(s.ListTemplates(ctx, "")))
 	assert.NoError(t, s.SetTemplate("foo", []byte("foobar")))
-	assert.Equal(t, 1, len(s.ListTemplates("")))
+	assert.Equal(t, 1, len(s.ListTemplates(ctx, "")))
 
-	tt, err := s.TemplateTree()
+	tt, err := s.TemplateTree(ctx)
 	assert.NoError(t, err)
 	assert.Equal(t, "gopass\n└── foo\n", tt.Format(0))
 
@@ -49,7 +50,7 @@ func TestTemplates(t *testing.T) {
 	assert.Equal(t, "foobar", string(b))
 
 	assert.NoError(t, s.RemoveTemplate("foo"))
-	assert.Equal(t, 0, len(s.ListTemplates("")))
+	assert.Equal(t, 0, len(s.ListTemplates(ctx, "")))
 
 	assert.Error(t, s.RemoveTemplate("foo"))
 }

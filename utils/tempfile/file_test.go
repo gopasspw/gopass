@@ -10,21 +10,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestTempfile(t *testing.T) {
-	tempdir, err := ioutil.TempDir(tempdirBase(), "gopass-")
-	if err != nil {
-		t.Fatalf("Failed to create tempdir: %s", err)
-	}
-	defer func() {
-		_ = os.RemoveAll(tempdir)
-	}()
-}
-
 func TestTempdirBase(t *testing.T) {
 	tempdir, err := ioutil.TempDir(tempdirBase(), "gopass-")
-	if err != nil {
-		t.Fatalf("Failed to create tempdir: %s", err)
-	}
+	assert.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(tempdir)
 	}()
@@ -35,16 +23,14 @@ func TestTempFiler(t *testing.T) {
 
 	// regular tempfile
 	tf, err := New(ctx, "gp-test-")
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 	defer func() {
 		assert.NoError(t, tf.Close())
 	}()
+
 	t.Logf("Name: %s", tf.Name())
-	if _, err := fmt.Fprintf(tf, "foobar"); err != nil {
-		t.Errorf("failed to write: %s", err)
-	}
+	_, err = fmt.Fprintf(tf, "foobar")
+	assert.NoError(t, err)
 
 	// unintialized tempfile
 	utf := File{}

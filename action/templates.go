@@ -28,7 +28,7 @@ const (
 
 // TemplatesPrint will pretty-print a tree of templates
 func (s *Action) TemplatesPrint(ctx context.Context, c *cli.Context) error {
-	tree, err := s.Store.TemplateTree()
+	tree, err := s.Store.TemplateTree(ctx)
 	if err != nil {
 		return exitError(ctx, ExitList, err, "failed to list templates: %s", err)
 	}
@@ -98,8 +98,8 @@ func (s *Action) TemplateRemove(ctx context.Context, c *cli.Context) error {
 }
 
 // TemplatesComplete prints a list of all templates for bash completion
-func (s *Action) TemplatesComplete(*cli.Context) {
-	tree, err := s.Store.TemplateTree()
+func (s *Action) TemplatesComplete(ctx context.Context, c *cli.Context) {
+	tree, err := s.Store.TemplateTree(ctx)
 	if err != nil {
 		fmt.Fprintln(stdout, err)
 		return

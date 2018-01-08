@@ -211,7 +211,7 @@ func (s *Action) download(ctx context.Context, dest, url string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println("")
+	fmt.Fprintln(stdout, "")
 	out.Debug(ctx, "Transferred %d bytes from %s to %s", count, url, dest)
 	return nil
 }

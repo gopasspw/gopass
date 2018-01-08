@@ -58,7 +58,7 @@ func TestTemplates(t *testing.T) {
 	buf.Reset()
 
 	// complete templates
-	act.TemplatesComplete(c)
+	act.TemplatesComplete(ctx, c)
 	assert.Equal(t, "foo\n", buf.String())
 	buf.Reset()
 

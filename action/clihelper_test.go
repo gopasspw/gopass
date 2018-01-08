@@ -4,9 +4,9 @@ import (
 	"context"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"testing"
 
-	"github.com/google/go-cmp/cmp"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/stretchr/testify/assert"
 )
@@ -23,15 +23,14 @@ func TestConfirmRecipients(t *testing.T) {
 	assert.NoError(t, err)
 
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
+
 	in := []string{"foo", "bar"}
 	got, err := act.ConfirmRecipients(ctx, "test", in)
 	assert.NoError(t, err)
-	if !cmp.Equal(got, in) {
-		t.Errorf("Recipient Mismatch: %+v != %+v", got, in)
-	}
+	assert.Equal(t, in, got)
 }
 
-func TestAskForStore(t *testing.T) {
+func TestAskForPrivateKey(t *testing.T) {
 	td, err := ioutil.TempDir("", "gopass-")
 	assert.NoError(t, err)
 	defer func() {
@@ -42,11 +41,10 @@ func TestAskForStore(t *testing.T) {
 	act, err := newMock(ctx, td)
 	assert.NoError(t, err)
 
-	ctx = ctxutil.WithInteractive(ctx, false)
-	sel := act.askForStore(ctx)
-	if sel != "" {
-		t.Errorf("Wrong selection: %s", sel)
-	}
+	ctx = ctxutil.WithAlwaysYes(ctx, true)
+	key, err := act.askForPrivateKey(ctx, "test")
+	assert.NoError(t, err)
+	assert.Equal(t, "000000000000000000000000DEADBEEF", key)
 }
 
 func TestAskForGitConfigUser(t *testing.T) {
@@ -94,5 +92,32 @@ func TestAskForGitConfigUserNonInteractive(t *testing.T) {
 	} else {
 		assert.Equal(t, "", name)
 		assert.Equal(t, "", email)
+	}
+}
+
+func TestAskForStore(t *testing.T) {
+	td, err := ioutil.TempDir("", "gopass-")
+	assert.NoError(t, err)
+	defer func() {
+		_ = os.RemoveAll(td)
+	}()
+
+	ctx := context.Background()
+	act, err := newMock(ctx, td)
+	assert.NoError(t, err)
+
+	sd1 := filepath.Join(td, "sub1")
+	sd2 := filepath.Join(td, "sub2")
+
+	assert.NoError(t, newStore(sd1))
+	assert.NoError(t, newStore(sd2))
+
+	assert.NoError(t, act.Store.AddMount(ctx, "sub1", sd1))
+	assert.NoError(t, act.Store.AddMount(ctx, "sub2", sd2))
+
+	ctx = ctxutil.WithInteractive(ctx, false)
+	sel := act.askForStore(ctx)
+	if sel != "" {
+		t.Errorf("Wrong selection: %s", sel)
 	}
 }

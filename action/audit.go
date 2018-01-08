@@ -30,7 +30,7 @@ type auditedSecret struct {
 
 // Audit validates passwords against common flaws
 func (s *Action) Audit(ctx context.Context, c *cli.Context) error {
-	t, err := s.Store.Tree()
+	t, err := s.Store.Tree(ctx)
 	if err != nil {
 		return exitError(ctx, ExitList, err, "failed to get store tree: %s", err)
 	}
@@ -98,7 +98,7 @@ func (s *Action) Audit(ctx context.Context, c *cli.Context) error {
 		}
 	}
 	close(checked)
-	fmt.Println() // Print empty line after the progressbar.
+	fmt.Fprintln(stdout) // Print empty line after the progressbar.
 
 	return s.auditPrintResults(ctx, duplicates, messages, errors)
 }
@@ -168,9 +168,9 @@ func printAuditResults(ctx context.Context, m map[string][]string, format string
 
 	for msg, secrets := range m {
 		b = true
-		fmt.Print(color(format, msg))
+		fmt.Fprint(stdout, color(format, msg))
 		for _, secret := range secrets {
-			fmt.Print(color("\t- %s\n", secret))
+			fmt.Fprint(stdout, color("\t- %s\n", secret))
 		}
 	}
 

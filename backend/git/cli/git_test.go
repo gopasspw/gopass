@@ -16,9 +16,7 @@ import (
 
 func TestGit(t *testing.T) {
 	td, err := ioutil.TempDir("", "gopass-")
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(td)
 	}()
@@ -37,7 +35,7 @@ func TestGit(t *testing.T) {
 
 	assert.NoError(t, git.Init(ctx, "0xDEADBEEF", "Dead Beef", "dead.beef@example.org"))
 	sv := git.Version(ctx)
-	t.Logf("Version: %s", sv.String())
+	assert.NotEqual(t, "", sv.String())
 
 	assert.Equal(t, true, git.IsInitialized())
 	tf := filepath.Join(td, "some-file")

@@ -3,6 +3,8 @@ package xkcdgen
 import (
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestRandom(t *testing.T) {
@@ -17,7 +19,5 @@ func TestRandom(t *testing.T) {
 
 func TestRandomLengthDelim(t *testing.T) {
 	_, err := RandomLengthDelim(10, " ", "cn_ZH")
-	if err == nil {
-		t.Errorf("Should fail")
-	}
+	assert.Error(t, err)
 }

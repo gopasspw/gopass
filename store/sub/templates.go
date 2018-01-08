@@ -1,13 +1,14 @@
 package sub
 
 import (
-	"fmt"
+	"context"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/justwatchcom/gopass/utils/fsutil"
+	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/justwatchcom/gopass/utils/tree"
 	"github.com/justwatchcom/gopass/utils/tree/simple"
 	"github.com/pkg/errors"
@@ -74,7 +75,7 @@ func mkTemplateStoreWalkerFunc(alias, folder string, fn func(...string)) func(st
 }
 
 // ListTemplates will list all templates in this store
-func (s *Store) ListTemplates(prefix string) []string {
+func (s *Store) ListTemplates(ctx context.Context, prefix string) []string {
 	lst := make([]string, 0, 10)
 	addFunc := func(in ...string) {
 		lst = append(lst, in...)
@@ -85,18 +86,18 @@ func (s *Store) ListTemplates(prefix string) []string {
 		return lst
 	}
 	if err := filepath.Walk(path, mkTemplateStoreWalkerFunc(prefix, path, addFunc)); err != nil {
-		fmt.Printf("Failed to list templates: %s\n", err)
+		out.Red(ctx, "Failed to list templates: %s", err)
 	}
 
 	return lst
 }
 
 // TemplateTree returns a tree of all templates
-func (s *Store) TemplateTree() (tree.Tree, error) {
+func (s *Store) TemplateTree(ctx context.Context) (tree.Tree, error) {
 	root := simple.New("gopass")
-	for _, t := range s.ListTemplates("") {
+	for _, t := range s.ListTemplates(ctx, "") {
 		if err := root.AddFile(t, "gopass/template"); err != nil {
-			fmt.Println(err)
+			out.Red(ctx, "Failed to add template: %s", err)
 		}
 	}
 

@@ -66,12 +66,9 @@ func TestMounts(t *testing.T) {
 
 	// add non-existing mount
 	fs = flag.NewFlagSet("default", flag.ContinueOnError)
-	if err := fs.Parse([]string{"foo", filepath.Join(td, "mount1")}); err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	assert.NoError(t, fs.Parse([]string{"foo", filepath.Join(td, "mount1")}))
 	c = cli.NewContext(app, fs, nil)
 
 	assert.Error(t, act.MountAdd(ctx, c))
 	buf.Reset()
-
 }

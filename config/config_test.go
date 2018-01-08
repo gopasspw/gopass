@@ -9,52 +9,29 @@ import (
 )
 
 func TestHomedir(t *testing.T) {
-	if home := Homedir(); home == "" {
-		t.Fatalf("Homedir must not be empty")
-	}
+	assert.NotEqual(t, Homedir(), "")
 }
 
 func TestNewConfig(t *testing.T) {
 	assert.NoError(t, os.Setenv("GOPASS_CONFIG", filepath.Join(os.TempDir(), ".gopass.yml")))
 
 	cfg := New()
-	if cfg.Root.AskForMore {
-		t.Errorf("AskForMore should be false")
-	}
+	assert.Equal(t, false, cfg.Root.AskForMore)
 }
 
 func TestSetConfigValue(t *testing.T) {
-	if err := os.Setenv("GOPASS_CONFIG", filepath.Join(os.TempDir(), ".gopass.yml")); err != nil {
-		t.Fatalf("Failed to set GOPASS_CONFIG: %s", err)
-	}
+	assert.NoError(t, os.Setenv("GOPASS_CONFIG", filepath.Join(os.TempDir(), ".gopass.yml")))
 
 	cfg := New()
-	if err := cfg.SetConfigValue("", "autosync", "false"); err != nil {
-		t.Errorf("Error: %s", err)
-	}
-	if err := cfg.SetConfigValue("", "askformore", "true"); err != nil {
-		t.Errorf("Error: %s", err)
-	}
-	if err := cfg.SetConfigValue("", "askformore", "yo"); err == nil {
-		t.Errorf("Should fail")
-	}
-	if err := cfg.SetConfigValue("", "cliptimeout", "900"); err != nil {
-		t.Errorf("Error: %s", err)
-	}
-	if err := cfg.SetConfigValue("", "path", "/tmp"); err != nil {
-		t.Errorf("Error: %s", err)
-	}
+	assert.NoError(t, cfg.SetConfigValue("", "autosync", "false"))
+	assert.NoError(t, cfg.SetConfigValue("", "askformore", "true"))
+	assert.NoError(t, cfg.SetConfigValue("", "cliptimeout", "900"))
+	assert.NoError(t, cfg.SetConfigValue("", "path", "/tmp"))
+	assert.Error(t, cfg.SetConfigValue("", "askformore", "yo"))
+
 	cfg.Mounts["foo"] = &StoreConfig{}
-	if err := cfg.SetConfigValue("foo", "autosync", "true"); err != nil {
-		t.Errorf("Error: %s", err)
-	}
-	if err := cfg.SetConfigValue("foo", "askformore", "true"); err != nil {
-		t.Errorf("Error: %s", err)
-	}
-	if err := cfg.SetConfigValue("foo", "askformore", "yo"); err == nil {
-		t.Errorf("Should fail")
-	}
-	if err := cfg.SetConfigValue("foo", "cliptimeout", "900"); err != nil {
-		t.Errorf("Error: %s", err)
-	}
+	assert.NoError(t, cfg.SetConfigValue("foo", "autosync", "true"))
+	assert.NoError(t, cfg.SetConfigValue("foo", "askformore", "true"))
+	assert.NoError(t, cfg.SetConfigValue("foo", "cliptimeout", "900"))
+	assert.Error(t, cfg.SetConfigValue("foo", "askformore", "yo"))
 }
