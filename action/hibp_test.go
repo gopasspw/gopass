@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/justwatchcom/gopass/tests/gptest"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/stretchr/testify/assert"
@@ -27,16 +28,13 @@ const testHibpSample = `000000005AD76BD555C1D6D771DE417A4B87E4B4
 00000010F4B38525354491E099EB1796278544B1`
 
 func TestHIBP(t *testing.T) {
-	td, err := ioutil.TempDir("", "gopass-")
-	assert.NoError(t, err)
-	defer func() {
-		_ = os.RemoveAll(td)
-	}()
+	u := gptest.NewUnitTester(t)
+	defer u.Remove()
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = out.WithHidden(ctx, true)
-	act, err := newMock(ctx, td)
+	act, err := newMock(ctx, u)
 	assert.NoError(t, err)
 
 	buf := &bytes.Buffer{}
@@ -54,7 +52,7 @@ func TestHIBP(t *testing.T) {
 	buf.Reset()
 
 	// setup file and env
-	fn := filepath.Join(td, "dump.txt")
+	fn := filepath.Join(u.Dir, "dump.txt")
 	assert.NoError(t, ioutil.WriteFile(fn, []byte(testHibpSample), 0644))
 	assert.NoError(t, os.Setenv("HIBP_DUMPS", fn))
 	assert.NoError(t, act.HIBP(ctx, c))

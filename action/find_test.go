@@ -4,13 +4,13 @@ import (
 	"bytes"
 	"context"
 	"flag"
-	"io/ioutil"
 	"os"
 	"strings"
 	"testing"
 
 	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/store/secret"
+	"github.com/justwatchcom/gopass/tests/gptest"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/stretchr/testify/assert"
@@ -18,15 +18,12 @@ import (
 )
 
 func TestFind(t *testing.T) {
-	td, err := ioutil.TempDir("", "gopass-")
-	assert.NoError(t, err)
-	defer func() {
-		_ = os.RemoveAll(td)
-	}()
+	u := gptest.NewUnitTester(t)
+	defer u.Remove()
 
 	ctx := context.Background()
 	ctx = ctxutil.WithTerminal(ctx, false)
-	act, err := newMock(ctx, td)
+	act, err := newMock(ctx, u)
 	assert.NoError(t, err)
 
 	buf := &bytes.Buffer{}
@@ -52,7 +49,7 @@ func TestFind(t *testing.T) {
 	c = cli.NewContext(app, fs, nil)
 
 	assert.NoError(t, act.Find(ctx, c))
-	assert.Equal(t, "Found exact match in 'foo'\n0xDEADBEEF", strings.TrimSpace(buf.String()))
+	assert.Equal(t, "Found exact match in 'foo'\nsecret", strings.TrimSpace(buf.String()))
 	buf.Reset()
 
 	// find yo

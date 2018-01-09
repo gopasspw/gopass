@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/justwatchcom/gopass/tests/gptest"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/stretchr/testify/assert"
@@ -16,16 +17,13 @@ import (
 )
 
 func TestBinary(t *testing.T) {
-	td, err := ioutil.TempDir("", "gopass-")
-	assert.NoError(t, err)
-	defer func() {
-		_ = os.RemoveAll(td)
-	}()
+	u := gptest.NewUnitTester(t)
+	defer u.Remove()
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = out.WithHidden(ctx, true)
-	act, err := newMock(ctx, td)
+	act, err := newMock(ctx, u)
 	assert.NoError(t, err)
 
 	app := cli.NewApp()
@@ -36,7 +34,7 @@ func TestBinary(t *testing.T) {
 		out.Stdout = os.Stdout
 	}()
 
-	infile := filepath.Join(td, "input.txt")
+	infile := filepath.Join(u.Dir, "input.txt")
 	assert.NoError(t, ioutil.WriteFile(infile, []byte("0xDEADBEEF"), 0644))
 	assert.NoError(t, act.binaryCopy(ctx, infile, "bar", true))
 
@@ -50,16 +48,13 @@ func TestBinary(t *testing.T) {
 }
 
 func TestBinaryCat(t *testing.T) {
-	td, err := ioutil.TempDir("", "gopass-")
-	assert.NoError(t, err)
-	defer func() {
-		_ = os.RemoveAll(td)
-	}()
+	u := gptest.NewUnitTester(t)
+	defer u.Remove()
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = out.WithHidden(ctx, true)
-	act, err := newMock(ctx, td)
+	act, err := newMock(ctx, u)
 	assert.NoError(t, err)
 
 	app := cli.NewApp()
@@ -70,7 +65,7 @@ func TestBinaryCat(t *testing.T) {
 		out.Stdout = os.Stdout
 	}()
 
-	infile := filepath.Join(td, "input.txt")
+	infile := filepath.Join(u.Dir, "input.txt")
 	assert.NoError(t, ioutil.WriteFile(infile, []byte("0xDEADBEEF"), 0644))
 	assert.NoError(t, act.binaryCopy(ctx, infile, "bar", true))
 
@@ -82,31 +77,30 @@ func TestBinaryCat(t *testing.T) {
 }
 
 func TestBinaryCopy(t *testing.T) {
-	td, err := ioutil.TempDir("", "gopass-")
-	assert.NoError(t, err)
-	defer func() {
-		_ = os.RemoveAll(td)
-	}()
+	u := gptest.NewUnitTester(t)
+	defer u.Remove()
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = out.WithHidden(ctx, true)
-	act, err := newMock(ctx, td)
+	act, err := newMock(ctx, u)
 	assert.NoError(t, err)
 
 	app := cli.NewApp()
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
+	stdout = buf
 	defer func() {
 		out.Stdout = os.Stdout
+		stdout = os.Stdout
 	}()
 
-	infile := filepath.Join(td, "input.txt")
+	infile := filepath.Join(u.Dir, "input.txt")
 	assert.NoError(t, ioutil.WriteFile(infile, []byte("0xDEADBEEF"), 0644))
 	assert.NoError(t, act.binaryCopy(ctx, infile, "bar", true))
 
-	outfile := filepath.Join(td, "output.txt")
+	outfile := filepath.Join(u.Dir, "output.txt")
 
 	// binary copy bar tempdir/bar
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
@@ -134,16 +128,13 @@ func TestBinaryCopy(t *testing.T) {
 }
 
 func TestBinarySum(t *testing.T) {
-	td, err := ioutil.TempDir("", "gopass-")
-	assert.NoError(t, err)
-	defer func() {
-		_ = os.RemoveAll(td)
-	}()
+	u := gptest.NewUnitTester(t)
+	defer u.Remove()
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = out.WithHidden(ctx, true)
-	act, err := newMock(ctx, td)
+	act, err := newMock(ctx, u)
 	assert.NoError(t, err)
 
 	app := cli.NewApp()
@@ -154,7 +145,7 @@ func TestBinarySum(t *testing.T) {
 		out.Stdout = os.Stdout
 	}()
 
-	infile := filepath.Join(td, "input.txt")
+	infile := filepath.Join(u.Dir, "input.txt")
 	assert.NoError(t, ioutil.WriteFile(infile, []byte("0xDEADBEEF"), 0644))
 	assert.NoError(t, act.binaryCopy(ctx, infile, "bar", true))
 

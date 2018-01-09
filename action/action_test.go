@@ -10,60 +10,30 @@ import (
 	"github.com/blang/semver"
 	gpgmock "github.com/justwatchcom/gopass/backend/gpg/mock"
 	"github.com/justwatchcom/gopass/config"
+	"github.com/justwatchcom/gopass/tests/gptest"
 	"github.com/stretchr/testify/assert"
 )
 
-func newStore(dir string) error {
-	if err := os.MkdirAll(dir, 0700); err != nil {
-		return err
-	}
-	if err := ioutil.WriteFile(filepath.Join(dir, ".gpg-id"), []byte("0xDEADBEEF"), 0600); err != nil {
-		return err
-	}
-	return ioutil.WriteFile(filepath.Join(dir, "foo.gpg"), []byte("0xDEADBEEF"), 0600)
-}
-
-func newMock(ctx context.Context, dir string) (*Action, error) {
+func newMock(ctx context.Context, u *gptest.Unit) (*Action, error) {
 	cfg := config.New()
-	cfg.Root.Path = filepath.Join(dir, "store")
+	cfg.Root.Path = u.StoreDir("")
+
 	sv := semver.Version{}
 	gpg := gpgmock.New()
-
-	if err := os.Setenv("GOPASS_CONFIG", filepath.Join(dir, ".gopass.yml")); err != nil {
-		return nil, err
-	}
-	if err := os.Setenv("GOPASS_HOMEDIR", dir); err != nil {
-		return nil, err
-	}
-	if err := os.Unsetenv("PAGER"); err != nil {
-		return nil, err
-	}
-	if err := os.Setenv("CHECKPOINT_DISABLE", "true"); err != nil {
-		return nil, err
-	}
-	if err := os.Setenv("GOPASS_NO_NOTIFY", "true"); err != nil {
-		return nil, err
-	}
-	if err := newStore(cfg.Root.Path); err != nil {
-		return nil, err
-	}
 
 	return newAction(ctx, cfg, sv, gpg)
 }
 
 func TestAction(t *testing.T) {
-	td, err := ioutil.TempDir("", "gopass-")
-	assert.NoError(t, err)
-	defer func() {
-		_ = os.RemoveAll(td)
-	}()
+	u := gptest.NewUnitTester(t)
+	defer u.Remove()
 
 	ctx := context.Background()
-	act, err := newMock(ctx, td)
+	act, err := newMock(ctx, u)
 	assert.NoError(t, err)
 	assert.Equal(t, "action.test", act.Name)
 
-	assert.Contains(t, act.String(), filepath.Join(td, "store"))
+	assert.Contains(t, act.String(), u.StoreDir(""))
 	assert.Equal(t, true, act.HasGPG())
 	assert.Equal(t, 0, len(act.Store.Mounts()))
 }
