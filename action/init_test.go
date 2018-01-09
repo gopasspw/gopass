@@ -4,11 +4,11 @@ import (
 	"bytes"
 	"context"
 	"flag"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
 
+	"github.com/justwatchcom/gopass/tests/gptest"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/stretchr/testify/assert"
@@ -16,16 +16,13 @@ import (
 )
 
 func TestInit(t *testing.T) {
-	td, err := ioutil.TempDir("", "gopass-")
-	assert.NoError(t, err)
-	defer func() {
-		_ = os.RemoveAll(td)
-	}()
+	u := gptest.NewUnitTester(t)
+	defer u.Remove()
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithInteractive(ctx, false)
-	act, err := newMock(ctx, td)
+	act, err := newMock(ctx, u)
 	assert.NoError(t, err)
 
 	buf := &bytes.Buffer{}
@@ -45,6 +42,6 @@ func TestInit(t *testing.T) {
 	assert.Error(t, act.initCreatePrivateKey(ctx, "foo bar", "foo.bar@example.org"))
 
 	// un-initialize the store
-	assert.NoError(t, os.Remove(filepath.Join(td, "store", ".gpg-id")))
+	assert.NoError(t, os.Remove(filepath.Join(u.StoreDir(""), ".gpg-id")))
 	assert.Error(t, act.Initialized(ctx, c))
 }

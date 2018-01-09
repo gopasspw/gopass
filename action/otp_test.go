@@ -4,13 +4,13 @@ import (
 	"bytes"
 	"context"
 	"flag"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/gokyle/twofactor"
 	"github.com/justwatchcom/gopass/store/secret"
+	"github.com/justwatchcom/gopass/tests/gptest"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/stretchr/testify/assert"
@@ -18,15 +18,12 @@ import (
 )
 
 func TestOTP(t *testing.T) {
-	td, err := ioutil.TempDir("", "gopass-")
-	assert.NoError(t, err)
-	defer func() {
-		_ = os.RemoveAll(td)
-	}()
+	u := gptest.NewUnitTester(t)
+	defer u.Remove()
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
-	act, err := newMock(ctx, td)
+	act, err := newMock(ctx, u)
 	assert.NoError(t, err)
 
 	buf := &bytes.Buffer{}
@@ -62,7 +59,7 @@ func TestOTP(t *testing.T) {
 		Usage: "qr",
 	}
 	assert.NoError(t, sf.ApplyWithError(fs))
-	fn := filepath.Join(td, "qr.png")
+	fn := filepath.Join(u.Dir, "qr.png")
 	assert.NoError(t, fs.Parse([]string{"--qr=" + fn, "bar"}))
 	c = cli.NewContext(app, fs, nil)
 

@@ -4,27 +4,23 @@ import (
 	"bytes"
 	"context"
 	"flag"
-	"io/ioutil"
 	"os"
-	"path/filepath"
 	"strings"
 	"testing"
 
 	"github.com/justwatchcom/gopass/config"
+	"github.com/justwatchcom/gopass/tests/gptest"
 	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/stretchr/testify/assert"
 	"github.com/urfave/cli"
 )
 
 func TestConfig(t *testing.T) {
-	td, err := ioutil.TempDir("", "gopass-")
-	assert.NoError(t, err)
-	defer func() {
-		_ = os.RemoveAll(td)
-	}()
+	u := gptest.NewUnitTester(t)
+	defer u.Remove()
 
 	ctx := context.Background()
-	act, err := newMock(ctx, td)
+	act, err := newMock(ctx, u)
 	assert.NoError(t, err)
 
 	app := cli.NewApp()
@@ -49,7 +45,7 @@ func TestConfig(t *testing.T) {
   noconfirm: false
   nopager: false
 `
-	want += "  path: " + filepath.Join(td, "store") + "\n"
+	want += "  path: " + u.StoreDir("") + "\n"
 	want += `  safecontent: false
   usesymbols: false
 `

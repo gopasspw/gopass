@@ -1,25 +1,28 @@
 package action
 
 import (
+	"bytes"
 	"context"
-	"io/ioutil"
 	"os"
-	"path/filepath"
 	"testing"
 
+	"github.com/justwatchcom/gopass/tests/gptest"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestConfirmRecipients(t *testing.T) {
-	td, err := ioutil.TempDir("", "gopass-")
-	assert.NoError(t, err)
+	u := gptest.NewUnitTester(t)
+	defer u.Remove()
+
+	buf := &bytes.Buffer{}
+	stdout = buf
 	defer func() {
-		_ = os.RemoveAll(td)
+		stdout = os.Stdout
 	}()
 
 	ctx := context.Background()
-	act, err := newMock(ctx, td)
+	act, err := newMock(ctx, u)
 	assert.NoError(t, err)
 
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
@@ -28,34 +31,36 @@ func TestConfirmRecipients(t *testing.T) {
 	got, err := act.ConfirmRecipients(ctx, "test", in)
 	assert.NoError(t, err)
 	assert.Equal(t, in, got)
+	buf.Reset()
 }
 
 func TestAskForPrivateKey(t *testing.T) {
-	td, err := ioutil.TempDir("", "gopass-")
-	assert.NoError(t, err)
+	u := gptest.NewUnitTester(t)
+	defer u.Remove()
+
+	buf := &bytes.Buffer{}
+	stdout = buf
 	defer func() {
-		_ = os.RemoveAll(td)
+		stdout = os.Stdout
 	}()
 
 	ctx := context.Background()
-	act, err := newMock(ctx, td)
+	act, err := newMock(ctx, u)
 	assert.NoError(t, err)
 
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	key, err := act.askForPrivateKey(ctx, "test")
 	assert.NoError(t, err)
 	assert.Equal(t, "000000000000000000000000DEADBEEF", key)
+	buf.Reset()
 }
 
 func TestAskForGitConfigUser(t *testing.T) {
-	td, err := ioutil.TempDir("", "gopass-")
-	assert.NoError(t, err)
-	defer func() {
-		_ = os.RemoveAll(td)
-	}()
+	u := gptest.NewUnitTester(t)
+	defer u.Remove()
 
 	ctx := context.Background()
-	act, err := newMock(ctx, td)
+	act, err := newMock(ctx, u)
 	assert.NoError(t, err)
 
 	ctx = ctxutil.WithTerminal(ctx, true)
@@ -66,14 +71,11 @@ func TestAskForGitConfigUser(t *testing.T) {
 }
 
 func TestAskForGitConfigUserNonInteractive(t *testing.T) {
-	td, err := ioutil.TempDir("", "gopass-")
-	assert.NoError(t, err)
-	defer func() {
-		_ = os.RemoveAll(td)
-	}()
+	u := gptest.NewUnitTester(t)
+	defer u.Remove()
 
 	ctx := context.Background()
-	act, err := newMock(ctx, td)
+	act, err := newMock(ctx, u)
 	assert.NoError(t, err)
 
 	ctx = ctxutil.WithTerminal(ctx, false)
@@ -96,28 +98,19 @@ func TestAskForGitConfigUserNonInteractive(t *testing.T) {
 }
 
 func TestAskForStore(t *testing.T) {
-	td, err := ioutil.TempDir("", "gopass-")
-	assert.NoError(t, err)
-	defer func() {
-		_ = os.RemoveAll(td)
-	}()
+	u := gptest.NewUnitTester(t)
+	defer u.Remove()
 
 	ctx := context.Background()
-	act, err := newMock(ctx, td)
+	act, err := newMock(ctx, u)
 	assert.NoError(t, err)
 
-	sd1 := filepath.Join(td, "sub1")
-	sd2 := filepath.Join(td, "sub2")
+	assert.NoError(t, u.InitStore("sub1"))
+	assert.NoError(t, u.InitStore("sub2"))
 
-	assert.NoError(t, newStore(sd1))
-	assert.NoError(t, newStore(sd2))
-
-	assert.NoError(t, act.Store.AddMount(ctx, "sub1", sd1))
-	assert.NoError(t, act.Store.AddMount(ctx, "sub2", sd2))
+	assert.NoError(t, act.Store.AddMount(ctx, "sub1", u.StoreDir("sub1")))
+	assert.NoError(t, act.Store.AddMount(ctx, "sub2", u.StoreDir("sub2")))
 
 	ctx = ctxutil.WithInteractive(ctx, false)
-	sel := act.askForStore(ctx)
-	if sel != "" {
-		t.Errorf("Wrong selection: %s", sel)
-	}
+	assert.Equal(t, "", act.askForStore(ctx))
 }
