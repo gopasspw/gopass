@@ -17,7 +17,7 @@ import (
 // AddMount adds a new mount
 func (r *Store) AddMount(ctx context.Context, alias, path string, keys ...string) error {
 	path = fsutil.CleanPath(path)
-	if err := r.addMount(ctx, alias, path, keys...); err != nil {
+	if err := r.addMount(ctx, alias, path, nil, keys...); err != nil {
 		return errors.Wrapf(err, "failed to add mount")
 	}
 
@@ -25,7 +25,7 @@ func (r *Store) AddMount(ctx context.Context, alias, path string, keys ...string
 	return r.checkMounts()
 }
 
-func (r *Store) addMount(ctx context.Context, alias, path string, keys ...string) error {
+func (r *Store) addMount(ctx context.Context, alias, path string, sc *config.StoreConfig, keys ...string) error {
 	if alias == "" {
 		return errors.Errorf("alias must not be empty")
 	}
@@ -56,11 +56,16 @@ func (r *Store) addMount(ctx context.Context, alias, path string, keys ...string
 	if r.cfg.Mounts == nil {
 		r.cfg.Mounts = make(map[string]*config.StoreConfig, 1)
 	}
-	// imporant: copy root config to avoid overwriting it with sub store
-	// values
-	sc := *r.cfg.Root
-	sc.Path = path
-	r.cfg.Mounts[alias] = &sc
+	if sc == nil {
+		// imporant: copy root config to avoid overwriting it with sub store
+		// values
+		cp := *r.cfg.Root
+		sc = &cp
+	}
+	if path != "" {
+		sc.Path = path
+	}
+	r.cfg.Mounts[alias] = sc
 	return nil
 }
 

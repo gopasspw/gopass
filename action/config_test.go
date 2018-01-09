@@ -49,18 +49,12 @@ func TestConfig(t *testing.T) {
 	want += `  safecontent: false
   usesymbols: false
 `
-	if buf.String() != want {
-		t.Errorf("'%s' != '%s'", buf.String(), want)
-	}
+	assert.Equal(t, want, buf.String())
 	buf.Reset()
 
 	// action.setConfigValue
 	assert.NoError(t, act.setConfigValue(ctx, "", "nopager", "true"))
-	sv := strings.TrimSpace(buf.String())
-	want = "nopager: true"
-	if sv != want {
-		t.Errorf("Wrong config echo: '%s' != '%s'", sv, want)
-	}
+	assert.Equal(t, "nopager: true", strings.TrimSpace(buf.String()))
 	buf.Reset()
 
 	// action.printConfigValues
@@ -68,10 +62,36 @@ func TestConfig(t *testing.T) {
 	act.printConfigValues(ctx, "", "nopager")
 	want = `nopager: true
 foo/nopager: false`
-	sv = strings.TrimSpace(buf.String())
-	if sv != want {
-		t.Errorf("Wrong config result: '%s' != '%s'", sv, want)
-	}
+	assert.Equal(t, want, strings.TrimSpace(buf.String()))
+	buf.Reset()
+
+	// action.setConfigValue on substore
+	assert.NoError(t, act.setConfigValue(ctx, "foo", "cliptimeout", "23"))
+	assert.Equal(t, "foo/cliptimeout: 23", strings.TrimSpace(buf.String()))
+	buf.Reset()
+
+	// action.printConfigValues
+	act.printConfigValues(ctx, "")
+	want = `root store config:
+  askformore: false
+  autoimport: true
+  autosync: true
+  cliptimeout: 45
+  nocolor: false
+  noconfirm: false
+  nopager: true
+`
+	want += "  path: " + u.StoreDir("") + "\n"
+	want += `  safecontent: false
+  usesymbols: false
+mount 'foo' config:
+  autoimport: false
+  autosync: false
+  cliptimeout: 23
+  nopager: false
+  path:`
+	assert.Equal(t, want, strings.TrimSpace(buf.String()))
+	buf.Reset()
 
 	delete(act.cfg.Mounts, "foo")
 	buf.Reset()
@@ -81,11 +101,7 @@ foo/nopager: false`
 	assert.NoError(t, fs.Parse([]string{"autoimport"}))
 	c = cli.NewContext(app, fs, nil)
 	assert.NoError(t, act.Config(ctx, c))
-	want = `autoimport: true`
-	sv = strings.TrimSpace(buf.String())
-	if sv != want {
-		t.Errorf("Wrong config result: '%s' != '%s'", sv, want)
-	}
+	assert.Equal(t, "autoimport: true", strings.TrimSpace(buf.String()))
 	buf.Reset()
 
 	// config autoimport false
@@ -93,11 +109,7 @@ foo/nopager: false`
 	assert.NoError(t, fs.Parse([]string{"autoimport", "false"}))
 	c = cli.NewContext(app, fs, nil)
 	assert.NoError(t, act.Config(ctx, c))
-	want = `autoimport: false`
-	sv = strings.TrimSpace(buf.String())
-	if sv != want {
-		t.Errorf("Wrong config result: '%s' != '%s'", sv, want)
-	}
+	assert.Equal(t, "autoimport: false", strings.TrimSpace(buf.String()))
 	buf.Reset()
 
 	// action.ConfigComplete

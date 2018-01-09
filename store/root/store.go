@@ -44,7 +44,7 @@ func New(ctx context.Context, cfg *config.Config, gpg gpger) (*Store, error) {
 	// initialize all mounts
 	for alias, sc := range cfg.Mounts {
 		path := fsutil.CleanPath(sc.Path)
-		if err := r.addMount(ctx, alias, path); err != nil {
+		if err := r.addMount(ctx, alias, path, sc); err != nil {
 			out.Red(ctx, "Failed to initialize mount %s (%s): %s. Ignoring", alias, path, err)
 			continue
 		}
