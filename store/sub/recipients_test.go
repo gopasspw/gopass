@@ -227,11 +227,12 @@ func TestListRecipients(t *testing.T) {
 		out.Stdout = os.Stdout
 	}()
 
-	s := New(
+	s, err := New(
 		"",
 		tempdir,
 		gpgmock.New(),
 	)
+	assert.NoError(t, err)
 
 	rs, err := s.GetRecipients(ctx, "")
 	assert.NoError(t, err)

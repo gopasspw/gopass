@@ -51,9 +51,12 @@ func TestClone(t *testing.T) {
 	// clone to mount
 	gd := filepath.Join(u.Dir, "other-repo")
 	assert.NoError(t, os.MkdirAll(gd, 0700))
-	gr := git.New(gd, "")
+	_, err = git.Open(gd, "")
+	assert.NoError(t, err)
 	idf := filepath.Join(gd, ".gpg-id")
 	assert.NoError(t, ioutil.WriteFile(idf, []byte("0xDEADBEEF"), 0600))
-	assert.NoError(t, gr.Init(ctx, "", "", ""))
+	gr, err := git.Init(ctx, gd, "", "", "", "")
+	assert.NoError(t, err)
+	assert.NotNil(t, gr)
 	assert.NoError(t, act.clone(ctx, gd, "gd", filepath.Join(u.Dir, "mount")))
 }

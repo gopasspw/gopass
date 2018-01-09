@@ -13,7 +13,10 @@ func (r *Store) Initialized() bool {
 
 // Init tries to initialize a new password store location matching the object
 func (r *Store) Init(ctx context.Context, alias, path string, ids ...string) error {
-	sub := sub.New(alias, path, r.gpg)
+	sub, err := sub.New(alias, path, r.gpg)
+	if err != nil {
+		return err
+	}
 	if !r.store.Initialized() && alias == "" {
 		r.store = sub
 	}

@@ -63,6 +63,7 @@ func TestFind(t *testing.T) {
 	// add some secrets
 	assert.NoError(t, act.Store.Set(ctx, "bar/baz", secret.New("foo", "bar")))
 	assert.NoError(t, act.Store.Set(ctx, "bar/zab", secret.New("foo", "bar")))
+	buf.Reset()
 
 	// find bar
 	fs = flag.NewFlagSet("default", flag.ContinueOnError)

@@ -76,17 +76,16 @@ func TestList(t *testing.T) {
 			git:   gitmock.New(),
 		}
 
-		err = s.saveRecipients(ctx, []string{"john.doe"}, "test", false)
-		assert.NoError(t, err)
+		assert.NoError(t, s.saveRecipients(ctx, []string{"john.doe"}, "test", false))
 
 		// prepare store
 		assert.NoError(t, tc.prep(s))
+		obuf.Reset()
 
 		// run test case
 		out, err := s.List("")
 		assert.NoError(t, err)
 		assert.Equal(t, tc.out, out)
-
 		obuf.Reset()
 
 		// common tear down

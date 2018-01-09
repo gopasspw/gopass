@@ -25,11 +25,12 @@ func TestTemplates(t *testing.T) {
 	_, _, err = createStore(tempdir, nil, nil)
 	assert.NoError(t, err)
 
-	s := New(
+	s, err := New(
 		"",
 		tempdir,
 		gpgmock.New(),
 	)
+	assert.NoError(t, err)
 
 	assert.Equal(t, 0, len(s.ListTemplates(ctx, "")))
 	assert.NoError(t, s.SetTemplate("foo", []byte("foobar")))

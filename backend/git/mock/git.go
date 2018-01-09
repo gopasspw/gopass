@@ -29,6 +29,11 @@ func (g *Git) Push(ctx context.Context, origin, branch string) error {
 	return nil
 }
 
+// Pull does nothing
+func (g *Git) Pull(ctx context.Context, origin, branch string) error {
+	return nil
+}
+
 // Cmd does nothing
 func (g *Git) Cmd(ctx context.Context, name string, args ...string) error {
 	return nil
@@ -47,4 +52,9 @@ func (g *Git) InitConfig(context.Context, string, string, string) error {
 // Version returns an empty version
 func (g *Git) Version(context.Context) semver.Version {
 	return semver.Version{}
+}
+
+// AddRemote does nothing
+func (g *Git) AddRemote(ctx context.Context, remote, url string) error {
+	return nil
 }

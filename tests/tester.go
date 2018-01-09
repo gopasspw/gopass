@@ -23,7 +23,7 @@ import (
 const (
 	gopassConfig = `askformore: false
 autoimport: true
-autosync: true
+autosync: false
 cliptimeout: 45
 noconfirm: true
 safecontent: true`

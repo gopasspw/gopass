@@ -14,7 +14,7 @@ func TestConfig(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Contains(t, out, "askformore: false")
 	assert.Contains(t, out, "autoimport: true")
-	assert.Contains(t, out, "autosync: true")
+	assert.Contains(t, out, "autosync: false")
 	assert.Contains(t, out, "cliptimeout: 45")
 	assert.Contains(t, out, "noconfirm: true")
 	assert.Contains(t, out, "path: ")

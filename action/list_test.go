@@ -47,6 +47,8 @@ func TestList(t *testing.T) {
 
 	// add foo/bar and list folder foo
 	assert.NoError(t, act.Store.Set(ctx, "foo/bar", secret.New("123", "---\nbar: zab")))
+	buf.Reset()
+
 	fs = flag.NewFlagSet("default", flag.ContinueOnError)
 	assert.NoError(t, fs.Parse([]string{"foo"}))
 	c = cli.NewContext(app, fs, nil)

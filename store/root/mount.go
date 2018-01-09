@@ -37,7 +37,10 @@ func (r *Store) addMount(ctx context.Context, alias, path string, sc *config.Sto
 	}
 
 	// propagate our config settings to the sub store
-	s := sub.New(alias, path, r.gpg)
+	s, err := sub.New(alias, path, r.gpg)
+	if err != nil {
+		return errors.Wrapf(err, "failed to initialize store '%s' at '%s': %s", alias, path, err)
+	}
 
 	if !s.Initialized() {
 		if len(keys) < 1 {

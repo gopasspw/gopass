@@ -46,7 +46,7 @@ func createSubStore(dir string) (*Store, error) {
 		"",
 		sd,
 		gpgmock.New(),
-	), nil
+	)
 }
 
 func createStore(dir string, recipients, entries []string) ([]string, []string, error) {

@@ -31,9 +31,9 @@ func TestGit(t *testing.T) {
 	}()
 
 	gpg := gpgmock.New()
-	git := New(td, gpg.Binary())
+	git, err := Init(ctx, td, gpg.Binary(), "0xDEADBEEF", "Dead Beef", "dead.beef@example.org")
+	assert.NoError(t, err)
 
-	assert.NoError(t, git.Init(ctx, "0xDEADBEEF", "Dead Beef", "dead.beef@example.org"))
 	sv := git.Version(ctx)
 	assert.NotEqual(t, "", sv.String())
 
