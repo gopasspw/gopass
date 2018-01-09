@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	gpgmock "github.com/justwatchcom/gopass/backend/crypto/gpg/mock"
+	"github.com/justwatchcom/gopass/backend"
 	"github.com/justwatchcom/gopass/store/secret"
 	"github.com/stretchr/testify/assert"
 )
@@ -36,16 +36,23 @@ func createSubStore(dir string) (*Store, error) {
 	if err := os.Setenv("GOPASS_NO_NOTIFY", "true"); err != nil {
 		return nil, err
 	}
+	if err := os.Setenv("GOPASS_DISABLE_ENCRYPTION", "true"); err != nil {
+		return nil, err
+	}
 
 	gpgDir := filepath.Join(dir, ".gnupg")
 	if err := os.Setenv("GNUPGHOME", gpgDir); err != nil {
 		return nil, err
 	}
 
+	ctx := context.Background()
+	ctx = backend.WithCryptoBackendString(ctx, "gpgmock")
+	ctx = backend.WithSyncBackendString(ctx, "gitmock")
 	return New(
+		ctx,
 		"",
 		sd,
-		gpgmock.New(),
+		sd,
 	)
 }
 
@@ -72,7 +79,7 @@ func createStore(dir string, recipients, entries []string) ([]string, []string, 
 			return recipients, entries, err
 		}
 	}
-	err := ioutil.WriteFile(filepath.Join(dir, GPGID), []byte(strings.Join(recipients, "\n")), 0600)
+	err := ioutil.WriteFile(filepath.Join(dir, ".gpg-id"), []byte(strings.Join(recipients, "\n")), 0600)
 	return recipients, entries, err
 }
 
@@ -109,9 +116,9 @@ func TestIdFile(t *testing.T) {
 		secName += "/a"
 	}
 	assert.NoError(t, s.Set(ctx, secName, secret.New("foo", "bar")))
-	assert.NoError(t, ioutil.WriteFile(filepath.Join(tempdir, "sub", "a", GPGID), []byte("foobar"), 0600))
-	assert.Equal(t, filepath.Join(tempdir, "sub", "a", GPGID), s.idFile(secName))
-	assert.Equal(t, true, s.Exists(secName))
+	assert.NoError(t, ioutil.WriteFile(filepath.Join(tempdir, "sub", "a", ".gpg-id"), []byte("foobar"), 0600))
+	assert.Equal(t, filepath.Join("a", ".gpg-id"), s.idFile(ctx, secName))
+	assert.Equal(t, true, s.Exists(ctx, secName))
 
 	// test abort condition
 	secName = "a"
@@ -119,6 +126,70 @@ func TestIdFile(t *testing.T) {
 		secName += "/a"
 	}
 	assert.NoError(t, s.Set(ctx, secName, secret.New("foo", "bar")))
-	assert.NoError(t, ioutil.WriteFile(filepath.Join(tempdir, "sub", "a", GPGID), []byte("foobar"), 0600))
-	assert.Equal(t, filepath.Join(tempdir, "sub", GPGID), s.idFile(secName))
+	assert.NoError(t, ioutil.WriteFile(filepath.Join(tempdir, "sub", "a", ".gpg-id"), []byte("foobar"), 0600))
+	assert.Equal(t, ".gpg-id", s.idFile(ctx, secName))
+}
+
+func TestNew(t *testing.T) {
+	ctx := context.Background()
+
+	tempdir, err := ioutil.TempDir("", "gopass-")
+	assert.NoError(t, err)
+	defer func() {
+		_ = os.RemoveAll(tempdir)
+	}()
+
+	for _, tc := range []struct {
+		ctx context.Context
+		ok  bool
+	}{
+		{
+			ctx: backend.WithStoreBackend(ctx, backend.KVMock),
+			ok:  true,
+		},
+		{
+			ctx: backend.WithStoreBackend(ctx, -1),
+			ok:  false,
+		},
+		{
+			ctx: backend.WithSyncBackend(ctx, backend.GoGit),
+			ok:  true,
+		},
+		{
+			ctx: backend.WithSyncBackend(ctx, backend.GitCLI),
+			ok:  true,
+		},
+		{
+			ctx: backend.WithSyncBackend(ctx, backend.GitMock),
+			ok:  true,
+		},
+		{
+			ctx: backend.WithSyncBackend(ctx, -1),
+			ok:  false,
+		},
+		{
+			ctx: backend.WithCryptoBackend(ctx, backend.GPGCLI),
+			ok:  true,
+		},
+		{
+			ctx: backend.WithCryptoBackend(ctx, backend.XC),
+			ok:  true,
+		},
+		{
+			ctx: backend.WithCryptoBackend(ctx, backend.GPGMock),
+			ok:  true,
+		},
+		{
+			ctx: backend.WithCryptoBackend(ctx, -1),
+			ok:  false,
+		},
+	} {
+		s, err := New(tc.ctx, "", tempdir, tempdir)
+		if tc.ok {
+			assert.NoError(t, err)
+			assert.NotNil(t, s)
+		} else {
+			assert.Error(t, err)
+		}
+	}
 }

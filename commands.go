@@ -5,12 +5,49 @@ import (
 	"fmt"
 
 	ap "github.com/justwatchcom/gopass/action"
+	"github.com/justwatchcom/gopass/config"
+	"github.com/justwatchcom/gopass/utils/agent"
+	"github.com/justwatchcom/gopass/utils/agent/client"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/urfave/cli"
 )
 
 func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Command {
 	return []cli.Command{
+		{
+			Name:  "agent",
+			Usage: "Start gopass-agent",
+			Description: "" +
+				"This command start the gopass agent that will cache passphrases" +
+				"so they don't have to be entered repeately.",
+			Action: func(c *cli.Context) error {
+				ec := make(chan error)
+				go func() {
+					ec <- agent.New(config.Directory()).ListenAndServe()
+				}()
+				select {
+				case <-ctx.Done():
+					return fmt.Errorf("aborted")
+				case e := <-ec:
+					return e
+				}
+			},
+			Subcommands: []cli.Command{
+				{
+					Name:   "client",
+					Usage:  "Start a simple agent test client",
+					Hidden: true,
+					Action: func(c *cli.Context) error {
+						pw, err := client.New(config.Directory()).Passphrase("test", "test")
+						if err != nil {
+							return err
+						}
+						fmt.Println("Passphrase:" + pw)
+						return nil
+					},
+				},
+			},
+		},
 		{
 			Name:  "audit",
 			Usage: "Scan for weak passwords",
@@ -150,6 +187,14 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 				cli.StringFlag{
 					Name:  "path",
 					Usage: "Path to clone the repo to",
+				},
+				cli.StringFlag{
+					Name:  "crypto",
+					Usage: "Select crypto backend (gpg, gpgcli, gpgmock, xc)",
+				},
+				cli.StringFlag{
+					Name:  "sync",
+					Usage: "Select sync backend (git, gitcli, gogit, gitmock)",
 				},
 			},
 		},
@@ -313,27 +358,6 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 			},
 		},
 		{
-			Name:  "fsck",
-			Usage: "Check inconsistencies (ALPHA)",
-			Description: "" +
-				"Check all mounted password stores for know issues and inconsistencies, like " +
-				"wrong file persmissions or missing / extra recipients.",
-			Before: func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
-			Action: func(c *cli.Context) error {
-				return action.Fsck(withGlobalFlags(ctx, c), c)
-			},
-			Flags: []cli.Flag{
-				cli.BoolFlag{
-					Name:  "check, c",
-					Usage: "Only report",
-				},
-				cli.BoolFlag{
-					Name:  "force, f",
-					Usage: "Auto-correct any errors, do not ask",
-				},
-			},
-		},
-		{
 			Name:  "generate",
 			Usage: "Generate a new password",
 			Description: "" +
@@ -460,24 +484,6 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 			Description: "" +
 				"If the password store is a git repository, execute a git command " +
 				"specified by git-command-args.",
-			Before: func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
-			Action: func(c *cli.Context) error {
-				return action.Git(withGlobalFlags(ctx, c), c)
-			},
-			Flags: []cli.Flag{
-				cli.StringFlag{
-					Name:  "store, s",
-					Usage: "Store to operate on",
-				},
-				cli.BoolFlag{
-					Name:  "no-recurse, n",
-					Usage: "Do not recurse to mounted sub-stores",
-				},
-				cli.BoolFlag{
-					Name:  "force, f",
-					Usage: "Print errors but continue",
-				},
-			},
 			Subcommands: []cli.Command{
 				{
 					Name:        "init",
@@ -495,6 +501,83 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 						cli.StringFlag{
 							Name:  "sign-key",
 							Usage: "GPG Key to sign commits",
+						},
+					},
+				},
+				{
+					Name:        "remote",
+					Usage:       "TODO",
+					Description: "TODO",
+					Before:      func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
+					Subcommands: []cli.Command{
+						{
+							Name:        "add",
+							Usage:       "Add git remote",
+							Description: "TODO",
+							Before:      func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
+							Action: func(c *cli.Context) error {
+								return action.GitAddRemote(withGlobalFlags(ctx, c), c)
+							},
+							Flags: []cli.Flag{
+								cli.StringFlag{
+									Name:  "store",
+									Usage: "Store to operate on",
+								},
+								cli.StringFlag{
+									Name:  "remote",
+									Usage: "Git remote to add",
+								},
+								cli.StringFlag{
+									Name:  "url",
+									Usage: "Git URL",
+								},
+							},
+						},
+					},
+				},
+				{
+					Name:        "push",
+					Usage:       "Push to remote",
+					Description: "TODO",
+					Before:      func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
+					Action: func(c *cli.Context) error {
+						return action.GitPush(withGlobalFlags(ctx, c), c)
+					},
+					Flags: []cli.Flag{
+						cli.StringFlag{
+							Name:  "store",
+							Usage: "Store to operate on",
+						},
+						cli.StringFlag{
+							Name:  "origin",
+							Usage: "Git Origin to push to",
+						},
+						cli.StringFlag{
+							Name:  "branch",
+							Usage: "Git branch to push",
+						},
+					},
+				},
+				{
+					Name:        "pull",
+					Usage:       "Pull from remote",
+					Description: "TODO",
+					Before:      func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
+					Action: func(c *cli.Context) error {
+						return action.GitPull(withGlobalFlags(ctx, c), c)
+					},
+					Flags: []cli.Flag{
+						cli.StringFlag{
+							Name:  "store",
+							Usage: "Store to operate on",
+						},
+						cli.StringFlag{
+							Name:  "origin",
+							Usage: "Git Origin to push to",
+						},
+						cli.StringFlag{
+							Name:  "branch",
+							Usage: "Git branch to push",
 						},
 					},
 				},
@@ -516,12 +599,6 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 			Usage: "Initialize new password store.",
 			Description: "" +
 				"Initialize new password storage and use gpg-id for encryption.",
-			Before: func(c *cli.Context) error {
-				if !action.HasGPG() {
-					return fmt.Errorf("gpg not found")
-				}
-				return nil
-			},
 			Action: func(c *cli.Context) error {
 				return action.Init(withGlobalFlags(ctx, c), c)
 			},
@@ -537,6 +614,14 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 				cli.BoolFlag{
 					Name:  "nogit",
 					Usage: "Do not init git repo",
+				},
+				cli.StringFlag{
+					Name:  "crypto",
+					Usage: "Select crypto backend (gpg, gpgcli, gpgmock, xc)",
+				},
+				cli.StringFlag{
+					Name:  "sync",
+					Usage: "Select sync backend (git, gitcli, gogit, gitmock)",
 				},
 			},
 		},
@@ -894,6 +979,100 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 				"Please provide the output when reporting issues.",
 			Action: func(c *cli.Context) error {
 				return action.Version(withGlobalFlags(ctx, c), c)
+			},
+		},
+		{
+			Name:  "xc",
+			Usage: "Experimental Crypto",
+			Description: "" +
+				"These subcommands are used to control and test the experimental crypto" +
+				"implementation.",
+			Subcommands: []cli.Command{
+				{
+					Name: "list-private-keys",
+					Action: func(c *cli.Context) error {
+						return action.XCListPrivateKeys(withGlobalFlags(ctx, c), c)
+					},
+				},
+				{
+					Name: "list-public-keys",
+					Action: func(c *cli.Context) error {
+						return action.XCListPublicKeys(withGlobalFlags(ctx, c), c)
+					},
+				},
+				{
+					Name: "generate",
+					Action: func(c *cli.Context) error {
+						return action.XCGenerateKeypair(withGlobalFlags(ctx, c), c)
+					},
+				},
+				{
+					Name: "export",
+					Action: func(c *cli.Context) error {
+						return action.XCExportPublicKey(withGlobalFlags(ctx, c), c)
+					},
+					Flags: []cli.Flag{
+						cli.StringFlag{
+							Name: "id",
+						},
+						cli.StringFlag{
+							Name: "file",
+						},
+					},
+				},
+				{
+					Name: "import",
+					Action: func(c *cli.Context) error {
+						return action.XCImportPublicKey(withGlobalFlags(ctx, c), c)
+					},
+					Flags: []cli.Flag{
+						cli.StringFlag{
+							Name: "id",
+						},
+						cli.StringFlag{
+							Name: "file",
+						},
+					},
+				},
+				{
+					Name: "export-private-key",
+					Action: func(c *cli.Context) error {
+						return action.XCExportPrivateKey(withGlobalFlags(ctx, c), c)
+					},
+					Flags: []cli.Flag{
+						cli.StringFlag{
+							Name: "id",
+						},
+						cli.StringFlag{
+							Name: "file",
+						},
+					},
+				},
+				{
+					Name: "import-private-key",
+					Action: func(c *cli.Context) error {
+						return action.XCImportPrivateKey(withGlobalFlags(ctx, c), c)
+					},
+					Flags: []cli.Flag{
+						cli.StringFlag{
+							Name: "id",
+						},
+						cli.StringFlag{
+							Name: "file",
+						},
+					},
+				},
+				{
+					Name: "remove",
+					Action: func(c *cli.Context) error {
+						return action.XCRemoveKey(withGlobalFlags(ctx, c), c)
+					},
+					Flags: []cli.Flag{
+						cli.StringFlag{
+							Name: "id",
+						},
+					},
+				},
 			},
 		},
 	}

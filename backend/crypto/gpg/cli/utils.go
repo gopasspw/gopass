@@ -39,7 +39,7 @@ func splitPacket(in string) map[string]string {
 	}
 	p = strings.Split(strings.TrimSpace(p[2]), " ")
 	for i := 0; i+1 < len(p); i += 2 {
-		m[p[i]] = p[i+1]
+		m[p[i]] = strings.Trim(p[i+1], ",")
 	}
 	return m
 }
@@ -52,4 +52,14 @@ func tty() string {
 		return ""
 	}
 	return dest
+}
+
+// GPGOpts parses extra GPG options from the environment
+func GPGOpts() []string {
+	for _, en := range []string{"GOPASS_GPG_OPTS", "PASSWORD_STORE_GPG_OPTS"} {
+		if opts := os.Getenv(en); opts != "" {
+			return strings.Fields(opts)
+		}
+	}
+	return nil
 }

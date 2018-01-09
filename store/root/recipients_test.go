@@ -26,5 +26,5 @@ func TestRecipients(t *testing.T) {
 	assert.Equal(t, []string{"0xDEADBEEF"}, rs.ListRecipients(ctx, ""))
 	rt, err := rs.RecipientsTree(ctx, false)
 	assert.NoError(t, err)
-	assert.Equal(t, "gopass\n└── 0xDEADBEEF (missing public key)\n", rt.Format(0))
+	assert.Equal(t, "gopass\n└── 0xDEADBEEF\n", rt.Format(0))
 }

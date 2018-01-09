@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 	"testing"
 
-	gpgmock "github.com/justwatchcom/gopass/backend/crypto/gpg/mock"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/stretchr/testify/assert"
@@ -21,8 +20,12 @@ func TestGit(t *testing.T) {
 		_ = os.RemoveAll(td)
 	}()
 
+	gitdir := filepath.Join(td, "git")
+	assert.NoError(t, os.Mkdir(gitdir, 0755))
+
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
+	ctx = ctxutil.WithDebug(ctx, true)
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
@@ -30,21 +33,31 @@ func TestGit(t *testing.T) {
 		out.Stdout = os.Stdout
 	}()
 
-	gpg := gpgmock.New()
-	git, err := Init(ctx, td, gpg.Binary(), "0xDEADBEEF", "Dead Beef", "dead.beef@example.org")
+	git, err := Init(ctx, gitdir, "Dead Beef", "dead.beef@example.org")
 	assert.NoError(t, err)
 
 	sv := git.Version(ctx)
 	assert.NotEqual(t, "", sv.String())
 
 	assert.Equal(t, true, git.IsInitialized())
-	tf := filepath.Join(td, "some-file")
+	tf := filepath.Join(gitdir, "some-file")
 	assert.NoError(t, ioutil.WriteFile(tf, []byte("foobar"), 0644))
 	assert.NoError(t, git.Add(ctx, "some-file"))
 	assert.Equal(t, true, git.HasStagedChanges(ctx))
 	assert.Error(t, git.Push(ctx, "origin", "master"))
 	assert.Error(t, git.Pull(ctx, "origin", "master"))
 
-	// flaky
-	//assert.NoError(t, git.Commit(ctx, "added some-file"))
+	git, err = Open(gitdir, "")
+	assert.NoError(t, err)
+	assert.Equal(t, "git", git.Name())
+	assert.NoError(t, git.AddRemote(ctx, "foo", "file:///tmp/foo"))
+
+	gitdir2 := filepath.Join(td, "git2")
+	assert.NoError(t, os.Mkdir(gitdir2, 0755))
+
+	git, err = Clone(ctx, gitdir, gitdir2)
+	assert.NoError(t, err)
+	assert.Equal(t, "git", git.Name())
+
+	assert.Error(t, git.Commit(ctx, "added some-file"))
 }

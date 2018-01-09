@@ -5,68 +5,29 @@ import (
 	"os"
 
 	"github.com/fatih/color"
-	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/justwatchcom/gopass/utils/termio"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"
 )
 
-// Git runs git commands inside the store or mounts
-func (s *Action) Git(ctx context.Context, c *cli.Context) error {
-	store := c.String("store")
-	recurse := true
-	if c.IsSet("no-recurse") {
-		recurse = !c.Bool("no-recurse")
-	}
-	force := c.Bool("force")
-
-	if err := s.Store.Git(ctxutil.WithVerbose(ctx, true), store, recurse, force, c.Args()...); err != nil {
-		return exitError(ctx, ExitGit, err, "git operation failed: %s", err)
-	}
-	return nil
-}
-
 // GitInit initializes a git repo including basic configuration
 func (s *Action) GitInit(ctx context.Context, c *cli.Context) error {
 	store := c.String("store")
-	sk := c.String("sign-key")
+	un := c.String("username")
+	ue := c.String("useremail")
 
-	if err := s.gitInit(ctx, store, sk); err != nil {
+	if err := s.gitInit(ctx, store, un, ue); err != nil {
 		return exitError(ctx, ExitGit, err, "failed to initialize git: %s", err)
 	}
 	return nil
 }
 
-func (s *Action) gitInit(ctx context.Context, store, sk string) error {
+func (s *Action) gitInit(ctx context.Context, store, un, ue string) error {
 	out.Green(ctx, "Initializing git repository ...")
-	if sk == "" {
-		s, err := s.askForPrivateKey(ctx, color.CyanString("Please select a key for signing Git Commits"))
-		if err == nil {
-			sk = s
-		}
-	}
 
-	// for convenience, set defaults to user-selected values from available private keys
-	// NB: discarding returned error since this is merely a best-effort look-up for convenience
-	userName, userEmail, _ := s.askForGitConfigUser(ctx)
-
-	if userName == "" {
-		var err error
-		userName, err = termio.AskForString(ctx, color.CyanString("Please enter a user name for password store git config"), userName)
-		if err != nil {
-			return errors.Wrapf(err, "failed to ask for user input")
-		}
-	}
-	if userEmail == "" {
-		var err error
-		userEmail, err = termio.AskForString(ctx, color.CyanString("Please enter an email address for password store git config"), userEmail)
-		if err != nil {
-			return errors.Wrapf(err, "failed to ask for user input")
-		}
-	}
-
-	if err := s.Store.GitInit(ctx, store, sk, userName, userEmail); err != nil {
+	userName, userEmail := s.getUserData(ctx, store, un, ue)
+	if err := s.Store.GitInit(ctx, store, userName, userEmail); err != nil {
 		if gtv := os.Getenv("GPG_TTY"); gtv == "" {
 			out.Yellow(ctx, "Git initialization failed. You may want to try to 'export GPG_TTY=$(tty)' and start over.")
 		}
@@ -75,4 +36,55 @@ func (s *Action) gitInit(ctx context.Context, store, sk string) error {
 
 	out.Green(ctx, "Git initialized")
 	return nil
+}
+
+func (s *Action) getUserData(ctx context.Context, store, un, ue string) (string, string) {
+	if un != "" && ue != "" {
+		return un, ue
+	}
+
+	// for convenience, set defaults to user-selected values from available private keys
+	// NB: discarding returned error since this is merely a best-effort look-up for convenience
+	userName, userEmail, _ := s.askForGitConfigUser(ctx, store)
+
+	if userName == "" {
+		var err error
+		userName, err = termio.AskForString(ctx, color.CyanString("Please enter a user name for password store git config"), userName)
+		if err != nil {
+			out.Red(ctx, "Failed to ask for user input: %s", err)
+		}
+	}
+	if userEmail == "" {
+		var err error
+		userEmail, err = termio.AskForString(ctx, color.CyanString("Please enter an email address for password store git config"), userEmail)
+		if err != nil {
+			out.Red(ctx, "Failed to ask for user input: %s", err)
+		}
+	}
+
+	return userName, userEmail
+}
+
+// GitAddRemote adds a new git remote
+func (s *Action) GitAddRemote(ctx context.Context, c *cli.Context) error {
+	store := c.String("store")
+	remote := c.String("remote")
+	url := c.String("url")
+	return s.Store.GitAddRemote(ctx, store, remote, url)
+}
+
+// GitPull pulls from a git remote
+func (s *Action) GitPull(ctx context.Context, c *cli.Context) error {
+	store := c.String("store")
+	origin := c.String("origin")
+	branch := c.String("branch")
+	return s.Store.GitPull(ctx, store, origin, branch)
+}
+
+// GitPush pushes to a git remote
+func (s *Action) GitPush(ctx context.Context, c *cli.Context) error {
+	store := c.String("store")
+	origin := c.String("origin")
+	branch := c.String("branch")
+	return s.Store.GitPush(ctx, store, origin, branch)
 }

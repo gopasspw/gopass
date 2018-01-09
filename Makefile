@@ -1,7 +1,7 @@
 FIRST_GOPATH              := $(firstword $(subst :, ,$(GOPATH)))
-PKGS                      := $(shell go list ./... | grep -v /tests)
-GOFILES_NOVENDOR          := $(shell find . -type f -name '*.go' -not -path "./vendor/*")
-GOFILES_NOTEST            := $(shell find . -type f -name '*.go' -not -path "./vendor/*" -not -name "*_test.go")
+PKGS                      := $(shell go list ./... | grep -v /tests | grep -v /xcpb)
+GOFILES_NOVENDOR          := $(shell find . -type f -name '*.go' -not -path "./vendor/*" -not -name "*.pb.go")
+GOFILES_NOTEST            := $(shell find . -type f -name '*.go' -not -path "./vendor/*" -not -name "*_test.go" -not -name "*.pb.go")
 GOPASS_VERSION            ?= $(shell cat VERSION)
 GOPASS_OUTPUT             ?= gopass
 GOPASS_REVISION           := $(shell cat COMMIT 2>/dev/null || git rev-parse --short=8 HEAD)
@@ -147,7 +147,7 @@ codequality:
 		$(GO) get -u github.com/fzipp/gocyclo; \
 	fi
 	@$(foreach gofile, $(GOFILES_NOVENDOR),\
-			gocyclo -over 15 $(gofile) || exit 1;)
+			gocyclo -over 20 $(gofile) || exit 1;)
 	@$(call ok)
 
 	@echo -n "     LINT      "

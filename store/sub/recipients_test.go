@@ -11,7 +11,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/justwatchcom/gopass/backend"
 	gpgmock "github.com/justwatchcom/gopass/backend/crypto/gpg/mock"
+	"github.com/justwatchcom/gopass/backend/store/fs"
 	gitmock "github.com/justwatchcom/gopass/backend/sync/git/mock"
 	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/stretchr/testify/assert"
@@ -36,10 +38,11 @@ func TestGetRecipientsDefault(t *testing.T) {
 	assert.NoError(t, err)
 
 	s := &Store{
-		alias: "",
-		path:  tempdir,
-		gpg:   gpgmock.New(),
-		git:   gitmock.New(),
+		alias:  "",
+		path:   tempdir,
+		crypto: gpgmock.New(),
+		sync:   gitmock.New(),
+		store:  fs.New(tempdir),
 	}
 
 	assert.Equal(t, genRecs, s.Recipients(ctx))
@@ -67,17 +70,18 @@ func TestGetRecipientsSubID(t *testing.T) {
 	assert.NoError(t, err)
 
 	s := &Store{
-		alias: "",
-		path:  tempdir,
-		gpg:   gpgmock.New(),
-		git:   gitmock.New(),
+		alias:  "",
+		path:   tempdir,
+		crypto: gpgmock.New(),
+		sync:   gitmock.New(),
+		store:  fs.New(tempdir),
 	}
 
 	recs, err := s.GetRecipients(ctx, "")
 	assert.NoError(t, err)
 	assert.Equal(t, genRecs, recs)
 
-	err = ioutil.WriteFile(filepath.Join(tempdir, "foo", "bar", GPGID), []byte("john.doe\n"), 0600)
+	err = ioutil.WriteFile(filepath.Join(tempdir, "foo", "bar", s.crypto.IDFile()), []byte("john.doe\n"), 0600)
 	assert.NoError(t, err)
 
 	recs, err = s.GetRecipients(ctx, "foo/bar/baz")
@@ -104,19 +108,20 @@ func TestSaveRecipients(t *testing.T) {
 
 	recp := []string{"john.doe"}
 	s := &Store{
-		alias: "",
-		path:  tempdir,
-		gpg:   gpgmock.New(),
-		git:   gitmock.New(),
+		alias:  "",
+		path:   tempdir,
+		crypto: gpgmock.New(),
+		sync:   gitmock.New(),
+		store:  fs.New(tempdir),
 	}
 
 	// remove recipients
-	_ = os.Remove(filepath.Join(tempdir, GPGID))
+	_ = os.Remove(filepath.Join(tempdir, s.crypto.IDFile()))
 
-	err = s.saveRecipients(ctx, recp, "test-save-recipients", true)
-	assert.NoError(t, err)
+	assert.NoError(t, s.saveRecipients(ctx, recp, "test-save-recipients", true))
+	assert.Error(t, s.saveRecipients(ctx, nil, "test-save-recipients", true))
 
-	buf, err := ioutil.ReadFile(s.idFile(""))
+	buf, err := s.store.Get(ctx, s.idFile(ctx, ""))
 	assert.NoError(t, err)
 
 	foundRecs := []string{}
@@ -157,10 +162,11 @@ func TestAddRecipient(t *testing.T) {
 	}()
 
 	s := &Store{
-		alias: "",
-		path:  tempdir,
-		gpg:   gpgmock.New(),
-		git:   gitmock.New(),
+		alias:  "",
+		path:   tempdir,
+		crypto: gpgmock.New(),
+		sync:   gitmock.New(),
+		store:  fs.New(tempdir),
 	}
 
 	newRecp := "A3683834"
@@ -195,10 +201,11 @@ func TestRemoveRecipient(t *testing.T) {
 	}()
 
 	s := &Store{
-		alias: "",
-		path:  tempdir,
-		gpg:   gpgmock.New(),
-		git:   gitmock.New(),
+		alias:  "",
+		path:   tempdir,
+		crypto: gpgmock.New(),
+		sync:   gitmock.New(),
+		store:  fs.New(tempdir),
 	}
 
 	err = s.RemoveRecipient(ctx, "0xDEADBEEF")
@@ -227,14 +234,19 @@ func TestListRecipients(t *testing.T) {
 		out.Stdout = os.Stdout
 	}()
 
+	ctx = backend.WithCryptoBackendString(ctx, "gpgmock")
+	ctx = backend.WithSyncBackendString(ctx, "gitmock")
 	s, err := New(
+		ctx,
 		"",
 		tempdir,
-		gpgmock.New(),
+		tempdir,
 	)
 	assert.NoError(t, err)
 
 	rs, err := s.GetRecipients(ctx, "")
 	assert.NoError(t, err)
 	assert.Equal(t, genRecs, rs)
+
+	assert.Equal(t, "0xDEADBEEF", s.OurKeyID(ctx))
 }

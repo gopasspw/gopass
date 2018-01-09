@@ -81,7 +81,7 @@ func (s *Action) syncMount(ctx context.Context, mp string) error {
 	}
 
 	numMP := 0
-	if l, err := sub.List(""); err == nil {
+	if l, err := sub.List(ctx, ""); err == nil {
 		numMP = len(l)
 	}
 
@@ -98,7 +98,7 @@ func (s *Action) syncMount(ctx context.Context, mp string) error {
 	}
 	out.Print(ctxno, color.GreenString("OK"))
 
-	if l, err := sub.List(""); err == nil {
+	if l, err := sub.List(ctx, ""); err == nil {
 		diff := len(l) - numMP
 		if diff > 0 {
 			out.Print(ctxno, color.GreenString(" (Added %d entries)", diff))

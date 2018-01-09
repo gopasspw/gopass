@@ -73,6 +73,7 @@ func TestFsckFunc(t *testing.T) {
 		return true
 	}
 	assert.NotNil(t, GetFsckFunc(ctx))
+	assert.Equal(t, true, GetFsckFunc(ctx)(ctx, ""))
 	assert.Equal(t, true, GetFsckFunc(WithFsckFunc(ctx, ffunc))(ctx, ""))
 	assert.Equal(t, true, HasFsckFunc(WithFsckFunc(ctx, ffunc)))
 }

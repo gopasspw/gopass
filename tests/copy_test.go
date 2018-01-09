@@ -30,7 +30,6 @@ func TestCopy(t *testing.T) {
 
 	ts.initSecrets("")
 
-	// TODO: foo is a directory to be copied, which doesn't work
 	out, err = ts.run("copy foo bar")
 	assert.Error(t, err)
 	assert.Equal(t, "\nError: foo does not exist\n", out)

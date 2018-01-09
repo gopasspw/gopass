@@ -18,7 +18,6 @@ func TestUninitialized(t *testing.T) {
 		"edit",
 		"find",
 		"generate",
-		"git",
 		"grep",
 		"insert",
 		"list",

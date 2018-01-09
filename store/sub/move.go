@@ -3,12 +3,10 @@ package sub
 import (
 	"context"
 	"fmt"
-	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/justwatchcom/gopass/store"
-	"github.com/justwatchcom/gopass/utils/fsutil"
 	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/pkg/errors"
 )
@@ -18,16 +16,16 @@ import (
 // to make sure it's encrypted for the right set of recipients.
 func (s *Store) Copy(ctx context.Context, from, to string) error {
 	// recursive copy?
-	if s.IsDir(from) {
-		if s.Exists(to) {
+	if s.IsDir(ctx, from) {
+		if s.Exists(ctx, to) {
 			return errors.Errorf("Can not copy dir to file")
 		}
-		sf, err := s.List("")
+		sf, err := s.List(ctx, "")
 		if err != nil {
 			return errors.Wrapf(err, "failed to list store")
 		}
 		destPrefix := to
-		if s.IsDir(to) {
+		if s.IsDir(ctx, to) {
 			destPrefix = filepath.Join(to, filepath.Base(from))
 		}
 		for _, e := range sf {
@@ -58,16 +56,16 @@ func (s *Store) Copy(ctx context.Context, from, to string) error {
 // from the old location afterwards.
 func (s *Store) Move(ctx context.Context, from, to string) error {
 	// recursive move?
-	if s.IsDir(from) {
-		if s.Exists(to) {
+	if s.IsDir(ctx, from) {
+		if s.Exists(ctx, to) {
 			return errors.Errorf("Can not move dir to file")
 		}
-		sf, err := s.List("")
+		sf, err := s.List(ctx, "")
 		if err != nil {
 			return errors.Wrapf(err, "failed to list store")
 		}
 		destPrefix := to
-		if s.IsDir(to) {
+		if s.IsDir(ctx, to) {
 			destPrefix = filepath.Join(to, filepath.Base(from))
 		}
 		for _, e := range sf {
@@ -110,31 +108,34 @@ func (s *Store) Prune(ctx context.Context, tree string) error {
 // os.RemoveAll for the recursive mode.
 func (s *Store) delete(ctx context.Context, name string, recurse bool) error {
 	path := s.passfile(name)
-	rf := os.Remove
 
-	if !recurse && !fsutil.IsFile(path) {
+	if !recurse && !s.store.Exists(ctx, path) {
 		return store.ErrNotFound
 	}
 
-	if recurse && !fsutil.IsFile(path) {
-		path = filepath.Join(s.path, name)
-		rf = os.RemoveAll
-		if !fsutil.IsDir(path) {
-			return store.ErrNotFound
+	if recurse && !s.store.IsDir(ctx, name) && !s.store.Exists(ctx, path) {
+		return store.ErrNotFound
+	}
+
+	if recurse {
+		if err := s.store.Prune(ctx, name); err != nil {
+			return err
 		}
 	}
 
-	if err := rf(path); err != nil {
-		return errors.Errorf("Failed to remove secret: %v", err)
+	if err := s.store.Delete(ctx, path); err != nil {
+		if !recurse {
+			return err
+		}
 	}
 
-	if err := s.git.Add(ctx, path); err != nil {
+	if err := s.sync.Add(ctx, path); err != nil {
 		if errors.Cause(err) == store.ErrGitNotInit {
 			return nil
 		}
 		return errors.Wrapf(err, "failed to add '%s' to git", path)
 	}
-	if err := s.git.Commit(ctx, fmt.Sprintf("Remove %s from store.", name)); err != nil {
+	if err := s.sync.Commit(ctx, fmt.Sprintf("Remove %s from store.", name)); err != nil {
 		if errors.Cause(err) == store.ErrGitNotInit {
 			return nil
 		}
@@ -145,7 +146,7 @@ func (s *Store) delete(ctx context.Context, name string, recurse bool) error {
 		return nil
 	}
 
-	if err := s.git.Push(ctx, "", ""); err != nil {
+	if err := s.sync.Push(ctx, "", ""); err != nil {
 		if errors.Cause(err) == store.ErrGitNotInit || errors.Cause(err) == store.ErrGitNoRemote {
 			return nil
 		}

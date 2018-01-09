@@ -47,7 +47,8 @@ func TestTemplates(t *testing.T) {
 	// add template
 	assert.NoError(t, act.Store.SetTemplate(ctx, "foo", []byte("foobar")))
 	assert.NoError(t, act.TemplatesPrint(ctx, c))
-	want := `gopass
+	want := `Pushed changes to git remote
+gopass
 └── foo
 
 `

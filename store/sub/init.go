@@ -4,19 +4,18 @@ import (
 	"context"
 	"strings"
 
-	"github.com/justwatchcom/gopass/utils/fsutil"
 	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/pkg/errors"
 )
 
 // Initialized returns true if the store is properly initialized
-func (s *Store) Initialized() bool {
-	return fsutil.IsFile(s.idFile(""))
+func (s *Store) Initialized(ctx context.Context) bool {
+	return s.store.Exists(ctx, s.idFile(ctx, ""))
 }
 
 // Init tries to initialize a new password store location matching the object
 func (s *Store) Init(ctx context.Context, path string, ids ...string) error {
-	if s.Initialized() {
+	if s.Initialized(ctx) {
 		return errors.Errorf(`Found already initialized store at %s.
 You can add secondary stores with gopass init --path <path to secondary store> --store <mount name>`, path)
 	}
@@ -28,24 +27,23 @@ You can add secondary stores with gopass init --path <path to secondary store> -
 		if id == "" {
 			continue
 		}
-		kl, err := s.gpg.FindPublicKeys(ctx, id)
-		if err != nil || len(kl) < 1 {
+		kl, err := s.crypto.FindPublicKeys(ctx, id)
+		if err != nil {
 			out.Red(ctx, "Failed to fetch public key for '%s': %s", id, err)
 			continue
 		}
-		kl = kl.UseableKeys()
 		if len(kl) < 1 {
 			out.Red(ctx, "No useable keys for '%s'", id)
 			continue
 		}
-		recipients = append(recipients, kl[0].Fingerprint)
+		recipients = append(recipients, kl[0])
 	}
 
 	if len(recipients) < 1 {
 		return errors.Errorf("failed to initialize store: no valid recipients given")
 	}
 
-	kl, err := s.gpg.FindPrivateKeys(ctx, recipients...)
+	kl, err := s.crypto.FindPrivateKeys(ctx, recipients...)
 	if err != nil {
 		return errors.Errorf("Failed to get available private keys: %s", err)
 	}

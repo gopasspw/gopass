@@ -61,8 +61,15 @@ func (s *Action) Version(ctx context.Context, c *cli.Context) error {
 
 	cli.VersionPrinter(c)
 
-	fmt.Fprintf(stdout, "  GPG: %s\n", s.Store.GPGVersion(ctx).String())
-	fmt.Fprintf(stdout, "  Git: %s\n", s.Store.GitVersion(ctx).String())
+	// report all used crypto, sync and fs backends
+	for _, mp := range append(s.Store.MountPoints(), "") {
+		crypto := s.Store.Crypto(ctx, mp)
+		fmt.Fprintf(stdout, "[%s] Crypto: %s %s\n", mp, crypto.Name(), crypto.Version(ctx))
+		sync := s.Store.Sync(ctx, mp)
+		fmt.Fprintf(stdout, "[%s] Sync: %s %s\n", mp, sync.Name(), sync.Version(ctx))
+		storer := s.Store.Store(ctx, mp)
+		fmt.Fprintf(stdout, "[%s] Store: %s %s\n", mp, storer.Name(), storer.Version())
+	}
 
 	select {
 	case vi := <-version:

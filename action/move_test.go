@@ -20,6 +20,7 @@ func TestMove(t *testing.T) {
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
+	ctx = ctxutil.WithDebug(ctx, true)
 	act, err := newMock(ctx, u)
 	assert.NoError(t, err)
 
@@ -35,4 +36,5 @@ func TestMove(t *testing.T) {
 	}()
 
 	assert.NoError(t, act.Move(ctx, c))
+	buf.Reset()
 }

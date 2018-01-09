@@ -147,19 +147,19 @@ mounts:
 version: 1.4.0`
 
 func TestLoad(t *testing.T) {
-	gcfg := filepath.Join(os.TempDir(), ".gopass.yml")
-	if err := os.Setenv("GOPASS_CONFIG", gcfg); err != nil {
-		t.Fatalf("Failed to set GOPASS_CONFIG: %s", err)
-	}
-
-	if err := ioutil.WriteFile(gcfg, []byte(testConfig), 0600); err != nil {
-		t.Fatalf("Failed to write config %s: %s", gcfg, err)
-	}
+	td := os.TempDir()
+	gcfg := filepath.Join(td, ".gopass.yml")
+	assert.NoError(t, os.Remove(gcfg))
+	assert.NoError(t, os.Setenv("GOPASS_CONFIG", gcfg))
+	assert.NoError(t, os.Setenv("GOPASS_HOMEDIR", td))
 
 	cfg := Load()
-	if !cfg.Root.SafeContent {
-		t.Errorf("SafeContent should be true")
-	}
+	assert.Equal(t, filepath.Join(td, ".password-store"), cfg.Root.Path)
+	assert.Equal(t, "gpg", cfg.Root.CryptoBackend)
+
+	assert.NoError(t, ioutil.WriteFile(gcfg, []byte(testConfig), 0600))
+	cfg = Load()
+	assert.Equal(t, true, cfg.Root.SafeContent)
 }
 
 func TestLoadError(t *testing.T) {

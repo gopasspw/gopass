@@ -20,7 +20,6 @@ import (
 // Git is a cli based git backend
 type Git struct {
 	path string
-	gpg  string
 }
 
 // Open creates a new git cli based git backend
@@ -30,15 +29,13 @@ func Open(path, gpg string) (*Git, error) {
 	}
 	return &Git{
 		path: path,
-		gpg:  gpg,
 	}, nil
 }
 
 // Clone clones an existing git repo and returns a new cli based git backend
 // configured for this clone repo
-func Clone(ctx context.Context, gpg, repo, path string) (*Git, error) {
+func Clone(ctx context.Context, repo, path string) (*Git, error) {
 	g := &Git{
-		gpg:  gpg,
 		path: filepath.Dir(path),
 	}
 	if err := g.Cmd(ctx, "Clone", "clone", repo, path); err != nil {
@@ -49,10 +46,9 @@ func Clone(ctx context.Context, gpg, repo, path string) (*Git, error) {
 }
 
 // Init initializes this store's git repo
-func Init(ctx context.Context, path, gpg, signKey, userName, userEmail string) (*Git, error) {
+func Init(ctx context.Context, path, userName, userEmail string) (*Git, error) {
 	g := &Git{
 		path: path,
-		gpg:  gpg,
 	}
 	// the git repo may be empty (i.e. no branches, cloned from a fresh remote)
 	// or already initialized. Only run git init if the folder is completely empty
@@ -63,7 +59,7 @@ func Init(ctx context.Context, path, gpg, signKey, userName, userEmail string) (
 	}
 
 	// initialize the local git config
-	if err := g.InitConfig(ctx, signKey, userName, userEmail); err != nil {
+	if err := g.InitConfig(ctx, userName, userEmail); err != nil {
 		return g, errors.Errorf("failed to configure git: %s", err)
 	}
 
@@ -106,6 +102,11 @@ func (g *Git) Cmd(ctx context.Context, name string, args ...string) error {
 	}
 
 	return nil
+}
+
+// Name returns git
+func (g *Git) Name() string {
+	return "git"
 }
 
 // Version returns the git version as major, minor and patch level

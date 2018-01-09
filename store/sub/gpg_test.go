@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/justwatchcom/gopass/utils/out"
+	"github.com/muesli/goprogressbar"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -22,15 +23,20 @@ func TestGPG(t *testing.T) {
 
 	obuf := &bytes.Buffer{}
 	out.Stdout = obuf
+	goprogressbar.Stdout = obuf
 	defer func() {
 		out.Stdout = os.Stdout
+		goprogressbar.Stdout = os.Stdout
 	}()
 
 	s, err := createSubStore(tempdir)
 	assert.NoError(t, err)
 
-	sv := s.GPGVersion(ctx)
-	t.Logf("GPG-Version: %s", sv.String())
+	assert.NoError(t, s.ImportMissingPublicKeys(ctx))
+
+	newRecp := "A3683834"
+	err = s.AddRecipient(ctx, newRecp)
+	assert.NoError(t, err)
 
 	assert.NoError(t, s.ImportMissingPublicKeys(ctx))
 }

@@ -10,7 +10,7 @@ import (
 	"golang.org/x/sys/windows/registry"
 )
 
-func (g *GPG) detectBinaryCandidates(bin string) ([]string, error) {
+func detectBinaryCandidates(bin string) ([]string, error) {
 	// gpg.exe for GPG4Win 3.0.0; would be gpg2.exe for 2.x
 	bins := make([]string, 0, 4)
 

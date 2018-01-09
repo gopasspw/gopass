@@ -2,12 +2,12 @@ package sub
 
 import (
 	"context"
-	"io/ioutil"
-	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
-	"github.com/justwatchcom/gopass/utils/fsutil"
+	"github.com/justwatchcom/gopass/store"
+	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/justwatchcom/gopass/utils/tree"
 	"github.com/justwatchcom/gopass/utils/tree/simple"
@@ -20,7 +20,7 @@ const (
 )
 
 // LookupTemplate will lookup and return a template
-func (s *Store) LookupTemplate(name string) ([]byte, bool) {
+func (s *Store) LookupTemplate(ctx context.Context, name string) ([]byte, bool) {
 	// chop off one path element until we find something
 	for {
 		l1 := len(name)
@@ -28,9 +28,9 @@ func (s *Store) LookupTemplate(name string) ([]byte, bool) {
 		if len(name) == l1 {
 			break
 		}
-		tpl := filepath.Join(s.path, name, TemplateFile)
-		if fsutil.IsFile(tpl) {
-			if content, err := ioutil.ReadFile(tpl); err == nil {
+		tpl := filepath.Join(name, TemplateFile)
+		if s.store.Exists(ctx, tpl) {
+			if content, err := s.store.Get(ctx, tpl); err == nil {
 				return content, true
 			}
 		}
@@ -38,58 +38,27 @@ func (s *Store) LookupTemplate(name string) ([]byte, bool) {
 	return []byte{}, false
 }
 
-func mkTemplateStoreWalkerFunc(alias, folder string, fn func(...string)) func(string, os.FileInfo, error) error {
-	return func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-		if info.IsDir() && strings.HasPrefix(info.Name(), ".") && path != folder {
-			return filepath.SkipDir
-		}
-		if info.IsDir() {
-			return nil
-		}
-		if info.Name() != TemplateFile {
-			return nil
-		}
-		if path == folder {
-			return nil
-		}
-		if info.Mode()&os.ModeSymlink != 0 {
-			return nil
-		}
-		s := strings.TrimPrefix(path, folder+sep)
-		s = strings.TrimSuffix(s, TemplateFile)
-		s = strings.TrimSuffix(s, sep)
-		if s == "" {
-			s = "default"
-		}
-		if alias != "" {
-			s = alias + sep + s
-		}
-		// make sure to always use forward slashes for internal gopass representation
-		s = filepath.ToSlash(s)
-		fn(s)
-		return nil
-	}
-}
-
 // ListTemplates will list all templates in this store
 func (s *Store) ListTemplates(ctx context.Context, prefix string) []string {
-	lst := make([]string, 0, 10)
-	addFunc := func(in ...string) {
-		lst = append(lst, in...)
-	}
-
-	path, err := filepath.EvalSymlinks(s.path)
+	lst, err := s.store.List(ctx, prefix)
 	if err != nil {
-		return lst
+		out.Debug(ctx, "failed to list templates: %s", err)
+		return nil
 	}
-	if err := filepath.Walk(path, mkTemplateStoreWalkerFunc(prefix, path, addFunc)); err != nil {
-		out.Red(ctx, "Failed to list templates: %s", err)
+	tpls := make(map[string]struct{}, len(lst))
+	for _, path := range lst {
+		if !strings.HasSuffix(path, TemplateFile) {
+			continue
+		}
+		path = strings.TrimSuffix(path, sep+TemplateFile)
+		tpls[path] = struct{}{}
 	}
-
-	return lst
+	out := make([]string, 0, len(tpls))
+	for k := range tpls {
+		out = append(out, k)
+	}
+	sort.Strings(out)
+	return out
 }
 
 // TemplateTree returns a tree of all templates
@@ -106,35 +75,59 @@ func (s *Store) TemplateTree(ctx context.Context) (tree.Tree, error) {
 
 // templatefile returns the name of the given template on disk
 func (s *Store) templatefile(name string) string {
-	return filepath.Join(s.path, name, TemplateFile)
+	return filepath.Join(name, TemplateFile)
 }
 
 // HasTemplate returns true if the template exists
-func (s *Store) HasTemplate(name string) bool {
-	return fsutil.IsFile(s.templatefile(name))
+func (s *Store) HasTemplate(ctx context.Context, name string) bool {
+	return s.store.Exists(ctx, s.templatefile(name))
 }
 
 // GetTemplate will return the content of the named template
-func (s *Store) GetTemplate(name string) ([]byte, error) {
-	return ioutil.ReadFile(s.templatefile(name))
+func (s *Store) GetTemplate(ctx context.Context, name string) ([]byte, error) {
+	return s.store.Get(ctx, s.templatefile(name))
 }
 
 // SetTemplate will (over)write the content to the template file
-func (s *Store) SetTemplate(name string, content []byte) error {
-	tplFile := s.templatefile(name)
-	tplDir := filepath.Dir(tplFile)
-	if err := os.MkdirAll(tplDir, 0700); err != nil {
-		return err
+func (s *Store) SetTemplate(ctx context.Context, name string, content []byte) error {
+	p := s.templatefile(name)
+
+	if err := s.store.Set(ctx, p, content); err != nil {
+		return errors.Wrapf(err, "failed to write template")
 	}
-	return ioutil.WriteFile(tplFile, content, 0600)
+
+	if err := s.sync.Add(ctx, p); err != nil {
+		if errors.Cause(err) == store.ErrGitNotInit {
+			return nil
+		}
+		return errors.Wrapf(err, "failed to add '%s' to git", p)
+	}
+
+	if !ctxutil.IsGitCommit(ctx) {
+		return nil
+	}
+
+	return s.gitCommitAndPush(ctx, name)
 }
 
 // RemoveTemplate will delete the named template if it exists
-func (s *Store) RemoveTemplate(name string) error {
-	t := s.templatefile(name)
-	if !fsutil.IsFile(t) {
-		return errors.Errorf("template not found")
+func (s *Store) RemoveTemplate(ctx context.Context, name string) error {
+	p := s.templatefile(name)
+
+	if err := s.store.Delete(ctx, p); err != nil {
+		return errors.Wrapf(err, "failed to remote template")
 	}
 
-	return os.Remove(t)
+	if err := s.sync.Add(ctx, p); err != nil {
+		if errors.Cause(err) == store.ErrGitNotInit {
+			return nil
+		}
+		return errors.Wrapf(err, "failed to add '%s' to git", p)
+	}
+
+	if !ctxutil.IsGitCommit(ctx) {
+		return nil
+	}
+
+	return s.gitCommitAndPush(ctx, name)
 }

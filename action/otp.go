@@ -15,8 +15,8 @@ import (
 )
 
 const (
-	// TODO - replace this with the currently un-exported step value
-	// from twofactor.FromURL
+	// we might want to replace this with the currently un-exported step value
+	// from twofactor.FromURL if it gets ever exported
 	otpPeriod = 30
 )
 

@@ -40,18 +40,23 @@ func (g *Git) Cmd(ctx context.Context, name string, args ...string) error {
 }
 
 // Init does nothing
-func (g *Git) Init(context.Context, string, string, string) error {
+func (g *Git) Init(context.Context, string, string) error {
 	return nil
 }
 
 // InitConfig does nothing
-func (g *Git) InitConfig(context.Context, string, string, string) error {
+func (g *Git) InitConfig(context.Context, string, string) error {
 	return nil
 }
 
 // Version returns an empty version
 func (g *Git) Version(context.Context) semver.Version {
 	return semver.Version{}
+}
+
+// Name returns git-mock
+func (g *Git) Name() string {
+	return "git-mock"
 }
 
 // AddRemote does nothing

@@ -2,11 +2,9 @@ package sub
 
 import (
 	"context"
-	"strings"
 
 	"github.com/justwatchcom/gopass/store"
 	"github.com/justwatchcom/gopass/store/secret"
-	"github.com/justwatchcom/gopass/utils/fsutil"
 	"github.com/justwatchcom/gopass/utils/out"
 )
 
@@ -14,17 +12,15 @@ import (
 func (s *Store) Get(ctx context.Context, name string) (*secret.Secret, error) {
 	p := s.passfile(name)
 
-	if !strings.HasPrefix(p, s.path) {
-		return nil, store.ErrSneaky
-	}
-
-	if !fsutil.IsFile(p) {
-		out.Debug(ctx, "File %s not found", p)
+	ciphertext, err := s.store.Get(ctx, p)
+	if err != nil {
+		out.Debug(ctx, "File %s not found: %s", p, err)
 		return nil, store.ErrNotFound
 	}
 
-	content, err := s.gpg.Decrypt(ctx, p)
+	content, err := s.crypto.Decrypt(ctx, ciphertext)
 	if err != nil {
+		out.Debug(ctx, "Decryption failed: %s", err)
 		return nil, store.ErrDecrypt
 	}
 

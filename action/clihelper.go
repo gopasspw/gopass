@@ -22,6 +22,7 @@ func (s *Action) ConfirmRecipients(ctx context.Context, name string, recipients 
 		return recipients, nil
 	}
 
+	crypto := s.Store.Crypto(ctx, name)
 	sort.Strings(recipients)
 
 	fmt.Fprintf(stdout, "gopass: Encrypting %s for these recipients:\n", name)
@@ -33,7 +34,7 @@ func (s *Action) ConfirmRecipients(ctx context.Context, name string, recipients 
 		default:
 		}
 
-		kl, err := s.gpg.FindPublicKeys(ctx, r)
+		kl, err := crypto.FindPublicKeys(ctx, r)
 		if err != nil {
 			out.Red(ctx, "Failed to read public key for '%s': %s", name, err)
 			continue
@@ -42,7 +43,7 @@ func (s *Action) ConfirmRecipients(ctx context.Context, name string, recipients 
 			fmt.Fprintln(stdout, "key not found", r)
 			continue
 		}
-		fmt.Fprintf(stdout, " - %s\n", kl[0].OneLine())
+		fmt.Fprintf(stdout, " - %s\n", crypto.FormatKey(ctx, kl[0]))
 	}
 	fmt.Fprintln(stdout, "")
 
@@ -58,23 +59,23 @@ func (s *Action) ConfirmRecipients(ctx context.Context, name string, recipients 
 }
 
 // askforPrivateKey promts the user to select from a list of private keys
-func (s *Action) askForPrivateKey(ctx context.Context, prompt string) (string, error) {
+func (s *Action) askForPrivateKey(ctx context.Context, name, prompt string) (string, error) {
 	if !ctxutil.IsInteractive(ctx) {
 		return "", errors.New("no interaction without terminal")
 	}
 
-	kl, err := s.gpg.ListPrivateKeys(ctx)
+	crypto := s.Store.Crypto(ctx, name)
+	kl, err := crypto.ListPrivateKeyIDs(ctx)
 	if err != nil {
 		return "", err
 	}
-	kl = kl.UseableKeys()
 	if len(kl) < 1 {
 		return "", errors.New("No useable private keys found")
 	}
 
 	for i := 0; i < maxTries; i++ {
 		if !ctxutil.IsTerminal(ctx) {
-			return kl[0].Fingerprint, nil
+			return kl[0], nil
 		}
 		// check for context cancelation
 		select {
@@ -85,14 +86,14 @@ func (s *Action) askForPrivateKey(ctx context.Context, prompt string) (string, e
 
 		fmt.Fprintln(stdout, prompt)
 		for i, k := range kl {
-			fmt.Fprintf(stdout, "[%d] %s\n", i, k.OneLine())
+			fmt.Fprintf(stdout, "[%d] %s\n", i, crypto.FormatKey(ctx, k))
 		}
 		iv, err := termio.AskForInt(ctx, fmt.Sprintf("Please enter the number of a key (0-%d)", len(kl)-1), 0)
 		if err != nil {
 			continue
 		}
 		if iv >= 0 && iv < len(kl) {
-			return kl[iv].Fingerprint, nil
+			return kl[iv], nil
 		}
 	}
 	return "", errors.New("no valid user input")
@@ -104,39 +105,39 @@ func (s *Action) askForPrivateKey(ctx context.Context, prompt string) (string, e
 // On error or no selection, name and email will be empty.
 // If s.isTerm is false (i.e., the user cannot be prompted), however,
 // the first identity's name/email pair found is returned.
-func (s *Action) askForGitConfigUser(ctx context.Context) (string, string, error) {
+func (s *Action) askForGitConfigUser(ctx context.Context, name string) (string, string, error) {
 	var useCurrent bool
 
-	keyList, err := s.gpg.ListPrivateKeys(ctx)
+	crypto := s.Store.Crypto(ctx, name)
+	keyList, err := crypto.ListPrivateKeyIDs(ctx)
 	if err != nil {
 		return "", "", err
 	}
-	keyList = keyList.UseableKeys()
 	if len(keyList) < 1 {
 		return "", "", errors.New("No usable private keys found")
 	}
 
 	for _, key := range keyList {
-		for _, identity := range key.Identities {
-			if !ctxutil.IsTerminal(ctx) {
-				return identity.Name, identity.Email, nil
-			}
-			// check for context cancelation
-			select {
-			case <-ctx.Done():
-				return "", "", errors.New("user aborted")
-			default:
-			}
+		// check for context cancelation
+		select {
+		case <-ctx.Done():
+			return "", "", errors.New("user aborted")
+		default:
+		}
 
-			useCurrent, err = termio.AskForBool(
-				ctx,
-				fmt.Sprintf("Use %s (%s) for password store git config?", identity.Name, identity.Email), true)
-			if err != nil {
-				return "", "", err
-			}
-			if useCurrent {
-				return identity.Name, identity.Email, nil
-			}
+		name := crypto.NameFromKey(ctx, key)
+		email := crypto.EmailFromKey(ctx, key)
+
+		useCurrent, err = termio.AskForBool(
+			ctx,
+			fmt.Sprintf("Use %s (%s) for password store git config?", name, email),
+			true,
+		)
+		if err != nil {
+			return "", "", err
+		}
+		if useCurrent {
+			return name, email, nil
 		}
 	}
 

@@ -23,44 +23,75 @@ func TestMock(t *testing.T) {
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 
 	m := New()
-	kl, err := m.ListPrivateKeys(ctx)
+	kl, err := m.ListPrivateKeyIDs(ctx)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, kl)
-	assert.Equal(t, "0xDEADBEEF", kl[0].ID())
+	assert.Equal(t, "0xDEADBEEF", kl[0])
 
-	kl, err = m.ListPublicKeys(ctx)
+	kl, err = m.ListPublicKeyIDs(ctx)
 	assert.NoError(t, err)
-	assert.Empty(t, kl)
+	assert.NotEmpty(t, kl, "ListPublicKeyIDs")
 
-	rcs, err := m.GetRecipients(ctx, "")
+	rcs, err := m.RecipientIDs(ctx, []byte{})
 	assert.NoError(t, err)
-	assert.Empty(t, rcs)
+	assert.NotEmpty(t, rcs, "RecipientIDs")
 
-	fn := filepath.Join(td, "sec.gpg")
-	assert.NoError(t, m.Encrypt(ctx, fn, []byte("foobar"), []string{"0xDEADBEEF"}))
-	assert.FileExists(t, fn)
+	buf, err := m.Encrypt(ctx, []byte("foobar"), []string{"0xDEADBEEF"})
+	assert.NoError(t, err)
 
-	content, err := m.Decrypt(ctx, fn)
+	content, err := m.Decrypt(ctx, buf)
 	assert.NoError(t, err)
 	assert.Equal(t, string(content), "foobar")
 
 	assert.Equal(t, "gpg", m.Binary())
-
-	sigfn := fn + ".sig"
-	assert.NoError(t, m.Sign(ctx, fn, sigfn))
-	assert.NoError(t, m.Verify(ctx, sigfn, fn))
 
 	assert.Error(t, m.CreatePrivateKey(ctx))
 	assert.Error(t, m.CreatePrivateKeyBatch(ctx, "", "", ""))
 
 	kl, err = m.FindPublicKeys(ctx)
 	assert.NoError(t, err)
-	assert.Empty(t, kl)
+	assert.Empty(t, kl, "FindPublicKeys()")
+
+	kl, err = m.FindPublicKeys(ctx, "0xDEADBEEF")
+	assert.NoError(t, err)
+	assert.NotEmpty(t, kl, "FindPublicKeys(0xDEADBEEF)")
 
 	_, err = m.FindPrivateKeys(ctx)
 	assert.NoError(t, err)
 
-	assert.NoError(t, m.ExportPublicKey(ctx, "", ""))
-	assert.NoError(t, m.ImportPublicKey(ctx, ""))
+	buf, err = m.ExportPublicKey(ctx, "")
+	assert.NoError(t, err)
+	assert.NoError(t, m.ImportPublicKey(ctx, buf))
 	assert.Equal(t, semver.Version{}, m.Version(ctx))
+
+	assert.Equal(t, "", m.EmailFromKey(ctx, ""))
+	assert.Equal(t, "", m.NameFromKey(ctx, ""))
+	assert.Equal(t, "", m.FormatKey(ctx, ""))
+	assert.Nil(t, m.Initialized(ctx))
+	assert.Equal(t, "gpgmock", m.Name())
+	assert.Equal(t, "gpg", m.Ext())
+	assert.Equal(t, ".gpg-id", m.IDFile())
+	names, err := m.ReadNamesFromKey(ctx, nil)
+	assert.NoError(t, err)
+	assert.Equal(t, []string{"unsupported"}, names)
+}
+
+func TestSignVerify(t *testing.T) {
+	td, err := ioutil.TempDir("", "gopass-")
+	assert.NoError(t, err)
+	defer func() {
+		_ = os.RemoveAll(td)
+	}()
+
+	ctx := context.Background()
+	ctx = ctxutil.WithAlwaysYes(ctx, true)
+
+	m := New()
+
+	in := filepath.Join(td, "in")
+	assert.NoError(t, ioutil.WriteFile(in, []byte("in"), 0644))
+	sigf := filepath.Join(td, "sigf")
+
+	assert.NoError(t, m.Sign(ctx, in, sigf))
+	assert.NoError(t, m.Verify(ctx, sigf, in))
 }

@@ -28,6 +28,7 @@ func Load() *Config {
 	}
 	cfg := New()
 	cfg.Root.Path = PwStoreDir("")
+	cfg.checkDefaults()
 	return cfg
 }
 
@@ -103,6 +104,7 @@ func decode(buf []byte) (*Config, error) {
 
 // Save saves the config
 func (c *Config) Save() error {
+	c.checkDefaults()
 	buf, err := yaml.Marshal(c)
 	if err != nil {
 		return errors.Wrapf(err, "failed to marshal YAML")

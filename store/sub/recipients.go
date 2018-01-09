@@ -5,8 +5,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"sort"
@@ -18,9 +16,9 @@ import (
 )
 
 const (
-	keyDir   = ".gpg-keys"
-	fileMode = 0600
-	dirMode  = 0700
+	keyDir    = ".public-keys"
+	oldKeyDir = ".gpg-keys"
+	dirMode   = 0700
 )
 
 // Recipients returns the list of recipients of this store
@@ -68,7 +66,7 @@ func (s *Store) SaveRecipients(ctx context.Context) error {
 // but if this key is not available on this machine we
 // just try to remove it literally
 func (s *Store) RemoveRecipient(ctx context.Context, id string) error {
-	keys, err := s.gpg.FindPublicKeys(ctx, id)
+	keys, err := s.crypto.FindPublicKeys(ctx, id)
 	if err != nil {
 		out.Cyan(ctx, "Warning: Failed to get GPG Key Info for %s: %s", id, err)
 	}
@@ -87,7 +85,7 @@ RECIPIENTS:
 		// if the key is available locally we can also match the id against
 		// the fingerprint
 		for _, key := range keys {
-			if strings.HasSuffix(key.Fingerprint, k) {
+			if strings.HasSuffix(key, k) {
 				continue RECIPIENTS
 			}
 		}
@@ -109,11 +107,11 @@ RECIPIENTS:
 // (if any)
 func (s *Store) OurKeyID(ctx context.Context) string {
 	for _, r := range s.Recipients(ctx) {
-		kl, err := s.gpg.FindPrivateKeys(ctx, r)
+		kl, err := s.crypto.FindPrivateKeys(ctx, r)
 		if err != nil || len(kl) < 1 {
 			continue
 		}
-		return kl[0].Fingerprint
+		return kl[0]
 	}
 	return ""
 }
@@ -121,26 +119,16 @@ func (s *Store) OurKeyID(ctx context.Context) string {
 // GetRecipients will load all Recipients from the .gpg-id file for the given
 // secret path
 func (s *Store) GetRecipients(ctx context.Context, name string) ([]string, error) {
-	idf := s.idFile(name)
-
-	out.Debug(ctx, "GetRecipients(%s) - idfile: %s", name, idf)
-	// open recipient list (store/.gpg-id)
-	f, err := os.Open(idf)
+	buf, err := s.store.Get(ctx, s.idFile(ctx, name))
 	if err != nil {
-		return []string{}, err
+		return nil, errors.Wrapf(err, "failed to get recipients for %s", name)
 	}
 
-	defer func() {
-		if err := f.Close(); err != nil {
-			out.Red(ctx, "Failed to close %s: %s", idf, err)
-		}
-	}()
-
-	return unmarshalRecipients(f), nil
+	return unmarshalRecipients(buf), nil
 }
 
 // ExportMissingPublicKeys will export any possibly missing public keys to the
-// stores .gpg-keys directory
+// stores .public-keys directory
 func (s *Store) ExportMissingPublicKeys(ctx context.Context, rs []string) (bool, error) {
 	ok := true
 	exported := false
@@ -156,7 +144,7 @@ func (s *Store) ExportMissingPublicKeys(ctx context.Context, rs []string) (bool,
 		}
 		// at least one key has been exported
 		exported = true
-		if err := s.git.Add(ctx, path); err != nil {
+		if err := s.sync.Add(ctx, path); err != nil {
 			if errors.Cause(err) == store.ErrGitNotInit {
 				continue
 			}
@@ -164,7 +152,7 @@ func (s *Store) ExportMissingPublicKeys(ctx context.Context, rs []string) (bool,
 			out.Red(ctx, "failed to add public key for '%s' to git: %s", r, err)
 			continue
 		}
-		if err := s.git.Commit(ctx, fmt.Sprintf("Exported Public Keys %s", r)); err != nil && err != store.ErrGitNothingToCommit {
+		if err := s.sync.Commit(ctx, fmt.Sprintf("Exported Public Keys %s", r)); err != nil && err != store.ErrGitNothingToCommit {
 			ok = false
 			out.Red(ctx, "Failed to git commit: %s", err)
 			continue
@@ -182,25 +170,18 @@ func (s *Store) saveRecipients(ctx context.Context, rs []string, msg string, exp
 		return errors.New("can not remove all recipients")
 	}
 
-	idf := s.idFile("")
-
-	// filepath.Dir(s.idFile()) should equal s.path, but better safe than sorry
-	if err := os.MkdirAll(filepath.Dir(idf), dirMode); err != nil {
-		return errors.Wrapf(err, "failed to create directory for recipients")
-	}
-
-	// save recipients to store/.gpg-id
-	if err := ioutil.WriteFile(idf, marshalRecipients(rs), fileMode); err != nil {
+	idf := s.idFile(ctx, "")
+	if err := s.store.Set(ctx, idf, marshalRecipients(rs)); err != nil {
 		return errors.Wrapf(err, "failed to write recipients file")
 	}
 
-	if err := s.git.Add(ctx, idf); err != nil {
+	if err := s.sync.Add(ctx, idf); err != nil {
 		if err != store.ErrGitNotInit {
 			return errors.Wrapf(err, "failed to add file '%s' to git", idf)
 		}
 	}
 
-	if err := s.git.Commit(ctx, msg); err != nil {
+	if err := s.sync.Commit(ctx, msg); err != nil {
 		if err != store.ErrGitNotInit && err != store.ErrGitNothingToCommit {
 			return errors.Wrapf(err, "failed to commit changes to git")
 		}
@@ -219,7 +200,7 @@ func (s *Store) saveRecipients(ctx context.Context, rs []string, msg string, exp
 	}
 
 	// push to remote repo
-	if err := s.git.Push(ctx, "", ""); err != nil {
+	if err := s.sync.Push(ctx, "", ""); err != nil {
 		if errors.Cause(err) == store.ErrGitNotInit {
 			return nil
 		}
@@ -263,9 +244,9 @@ func marshalRecipients(r []string) []byte {
 }
 
 // unmarshal Recipients line by line from a io.Reader.
-func unmarshalRecipients(reader io.Reader) []string {
+func unmarshalRecipients(buf []byte) []string {
 	m := make(map[string]struct{}, 5)
-	scanner := bufio.NewScanner(reader)
+	scanner := bufio.NewScanner(bytes.NewReader(buf))
 
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())

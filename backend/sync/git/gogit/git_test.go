@@ -117,6 +117,18 @@ func TestInit(t *testing.T) {
 
 	// push to remote
 	assert.NoError(t, g.PushPull(ctx, "push", "", ""))
+
+	g, err = Open(path)
+	assert.NoError(t, err)
+	assert.Error(t, g.Cmd(ctx, "foo", "bar"))
+	assert.Error(t, g.InitConfig(ctx, "foo", "bar"))
+	assert.Equal(t, "go-git", g.Name())
+	assert.NoError(t, g.AddRemote(ctx, "foo", "file:///tmp/foo"))
+
+	// list remotes
+	list, err = g.repo.Remotes()
+	assert.NoError(t, err)
+	t.Logf("Remotes: %+v", list)
 }
 
 func run(ctx context.Context, wd, command string, args ...string) error {

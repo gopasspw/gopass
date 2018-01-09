@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/pkg/errors"
 	"github.com/urfave/cli"
 )
 
@@ -53,10 +52,6 @@ func (s *Action) TemplatePrint(ctx context.Context, c *cli.Context) error {
 // editor
 func (s *Action) TemplateEdit(ctx context.Context, c *cli.Context) error {
 	name := c.Args().First()
-	// TODO support editing the root template as well
-	if name == "" {
-		return errors.Errorf("provide a template name")
-	}
 
 	var content []byte
 	if s.Store.HasTemplate(ctx, name) {

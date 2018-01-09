@@ -17,6 +17,22 @@ func TestNewConfig(t *testing.T) {
 
 	cfg := New()
 	assert.Equal(t, false, cfg.Root.AskForMore)
+	cfg.checkDefaults()
+	assert.Equal(t, "gpg", cfg.Root.CryptoBackend)
+	assert.Equal(t, "git", cfg.Root.SyncBackend)
+	assert.Equal(t, "fs", cfg.Root.StoreBackend)
+	assert.Equal(t, "Config[Root:StoreConfig[AskForMore:false,AutoImport:true,AutoSync:true,ClipTimeout:45,CryptoBackend:gpg,NoColor:false,NoConfirm:false,NoPager:false,Path:,SafeContent:false,SyncBackend:git,UseSymbols:false],Mounts(),Version:]", cfg.String())
+
+	cfg = nil
+	cfg.checkDefaults()
+
+	cfg = &Config{
+		Mounts: make(map[string]*StoreConfig, 2),
+	}
+	cfg.Mounts["foo"] = &StoreConfig{}
+	cfg.Mounts["bar"] = &StoreConfig{}
+	cfg.checkDefaults()
+	assert.Equal(t, "Config[Root:StoreConfig[AskForMore:false,AutoImport:false,AutoSync:false,ClipTimeout:0,CryptoBackend:gpg,NoColor:false,NoConfirm:false,NoPager:false,Path:,SafeContent:false,SyncBackend:git,UseSymbols:false],Mounts(bar=>StoreConfig[AskForMore:false,AutoImport:false,AutoSync:false,ClipTimeout:0,CryptoBackend:gpg,NoColor:false,NoConfirm:false,NoPager:false,Path:,SafeContent:false,SyncBackend:git,UseSymbols:false]foo=>StoreConfig[AskForMore:false,AutoImport:false,AutoSync:false,ClipTimeout:0,CryptoBackend:gpg,NoColor:false,NoConfirm:false,NoPager:false,Path:,SafeContent:false,SyncBackend:git,UseSymbols:false]),Version:]", cfg.String())
 }
 
 func TestSetConfigValue(t *testing.T) {

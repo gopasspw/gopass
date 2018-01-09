@@ -92,8 +92,6 @@ func Init(ctx context.Context, path string) (*Git, error) {
 		g.wt = wt
 	}
 
-	// TODO initialize the local git config
-
 	// add current content of the store
 	if err := g.Add(ctx, g.path); err != nil {
 		return g, errors.Wrapf(err, "failed to add '%s' to git", g.path)
@@ -253,10 +251,6 @@ func (g *Git) Push(ctx context.Context, remote, branch string) error {
 	if remote == "" {
 		remote = "origin"
 	}
-	// TODO branch
-	//if branch == "" {
-	//	branch = "master"
-	//}
 
 	cfg, err := g.repo.Config()
 	if err != nil {
@@ -267,8 +261,7 @@ func (g *Git) Push(ctx context.Context, remote, branch string) error {
 	}
 	return g.repo.PushContext(ctx, &git.PushOptions{
 		RemoteName: remote,
-		//RefSpecs:   []config.RefSpec{config.RefSpec(branch + ":" + branch)},
-		Progress: Stdout,
+		Progress:   Stdout,
 	})
 }
 
@@ -278,8 +271,8 @@ func (g *Git) Cmd(context.Context, string, ...string) error {
 }
 
 // InitConfig is not yet implemented
-func (g *Git) InitConfig(context.Context, string, string, string) error {
-	return fmt.Errorf("not yet implemented")
+func (g *Git) InitConfig(context.Context, string, string) error {
+	return fmt.Errorf("not supported")
 }
 
 // AddRemote adds a new remote
@@ -289,4 +282,9 @@ func (g *Git) AddRemote(ctx context.Context, remote, url string) error {
 		URLs: []string{url},
 	})
 	return err
+}
+
+// Name returns go-git
+func (g *Git) Name() string {
+	return "go-git"
 }

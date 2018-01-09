@@ -1,7 +1,9 @@
 package config
 
 import (
+	"fmt"
 	"os"
+	"sort"
 
 	"github.com/pkg/errors"
 )
@@ -34,15 +36,18 @@ type Config struct {
 func New() *Config {
 	return &Config{
 		Root: &StoreConfig{
-			AskForMore:  false,
-			AutoImport:  true,
-			AutoSync:    true,
-			ClipTimeout: 45,
-			NoConfirm:   false,
-			NoPager:     false,
-			SafeContent: false,
-			UseSymbols:  false,
-			NoColor:     false,
+			AskForMore:    false,
+			AutoImport:    true,
+			AutoSync:      true,
+			ClipTimeout:   45,
+			CryptoBackend: "gpg",
+			NoColor:       false,
+			NoConfirm:     false,
+			NoPager:       false,
+			SafeContent:   false,
+			StoreBackend:  "fs",
+			SyncBackend:   "git",
+			UseSymbols:    false,
 		},
 		Mounts:  make(map[string]*StoreConfig),
 		Version: "",
@@ -75,4 +80,48 @@ func (c *Config) SetConfigValue(mount, key, value string) error {
 		}
 	}
 	return c.Save()
+}
+
+func (c *Config) checkDefaults() {
+	if c == nil {
+		return
+	}
+	if c.Root == nil {
+		c.Root = &StoreConfig{}
+	}
+	if c.Root.CryptoBackend == "" {
+		c.Root.CryptoBackend = "gpg"
+	}
+	if c.Root.SyncBackend == "" {
+		c.Root.SyncBackend = "git"
+	}
+	if c.Root.StoreBackend == "" {
+		c.Root.StoreBackend = "fs"
+	}
+	for _, sc := range c.Mounts {
+		if sc.CryptoBackend == "" {
+			sc.CryptoBackend = "gpg"
+		}
+		if sc.SyncBackend == "" {
+			sc.SyncBackend = "git"
+		}
+		if sc.StoreBackend == "" {
+			sc.StoreBackend = "fs"
+		}
+	}
+}
+
+func (c *Config) String() string {
+	mounts := ""
+	keys := make([]string, 0, len(c.Mounts))
+	for alias := range c.Mounts {
+		keys = append(keys, alias)
+	}
+	sort.Strings(keys)
+
+	for _, alias := range keys {
+		sc := c.Mounts[alias]
+		mounts += alias + "=>" + sc.String()
+	}
+	return fmt.Sprintf("Config[Root:%s,Mounts(%s),Version:%s]", c.Root.String(), mounts, c.Version)
 }

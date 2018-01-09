@@ -7,29 +7,35 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestSplitPacket(t *testing.T) {
-	m := splitPacket(":pubkey enc packet: version 3, algo 16, keyid 6780DF473C7A71D3")
-	val, found := m["keyid"]
-	if !found {
-		t.Errorf("Failed to parse/lookup keyid")
-	}
-	if val != "6780DF473C7A71D3" {
-		t.Errorf("Failed to get keyid")
-	}
-}
-
 func TestGPG(t *testing.T) {
 	ctx := context.Background()
-	g, err := New(ctx, Config{})
+
+	var err error
+	var g *GPG
+
+	assert.Equal(t, "", g.Binary())
+
+	g, err = New(ctx, Config{})
 	assert.NoError(t, err)
 	assert.NotEqual(t, "", g.Binary())
 
-	_, err = g.ListPublicKeys(ctx)
+	_, err = g.ListPublicKeyIDs(ctx)
 	assert.NoError(t, err)
 
-	_, err = g.ListPrivateKeys(ctx)
+	_, err = g.ListPrivateKeyIDs(ctx)
 	assert.NoError(t, err)
 
-	_, err = g.GetRecipients(ctx, "nothing")
+	_, err = g.RecipientIDs(ctx, []byte{})
 	assert.Error(t, err)
+
+	assert.NoError(t, g.Initialized(ctx))
+	assert.Equal(t, "gpg", g.Name())
+	assert.Equal(t, "gpg", g.Ext())
+	assert.Equal(t, ".gpg-id", g.IDFile())
+}
+
+func TestDetectBinaryCandidates(t *testing.T) {
+	bins, err := detectBinaryCandidates("foobar")
+	assert.NoError(t, err)
+	assert.Equal(t, []string{"gpg2", "gpg1", "gpg", "foobar"}, bins)
 }
