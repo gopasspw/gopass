@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 
 	"github.com/fatih/color"
+	"github.com/stretchr/testify/assert"
 )
 
 const (
@@ -19,9 +20,10 @@ const (
 
 func getGoldenFormat(t *testing.T) string {
 	mustAbsoluteFilepath := func(s string) string {
+		t.Helper()
 		path, err := filepath.Abs(s)
 		if err != nil {
-			t.Errorf("Error during filepath.Absolute: %s", err)
+			assert.NoError(t, err)
 			return "ERROR"
 		}
 		return path
@@ -58,12 +60,8 @@ func TestFormat(t *testing.T) {
 	for _, k := range keys {
 		v := mounts[k]
 		absV, err := filepath.Abs(v)
-		if err != nil {
-			t.Errorf("Error during filepath.Abs: %s", err)
-		}
-		if err := root.AddMount(k, absV); err != nil {
-			t.Fatalf("failed to add mount: %s", err)
-		}
+		assert.NoError(t, err)
+		assert.NoError(t, root.AddMount(k, absV))
 	}
 	for _, f := range []string{
 		"foo/baz/inga",
@@ -73,9 +71,7 @@ func TestFormat(t *testing.T) {
 		"a/f",
 		"a/g/h",
 	} {
-		if err := root.AddFile(f, "text/plain"); err != nil {
-			t.Fatalf("failed to add file: %s", err)
-		}
+		assert.NoError(t, root.AddFile(f, "text/plain"))
 	}
 	got := strings.TrimSpace(root.Format(0))
 	want := strings.TrimSpace(getGoldenFormat(t))
@@ -92,19 +88,15 @@ func TestFormatSubtree(t *testing.T) {
 		"baz/ing/a",
 		"baz/ing/b",
 	} {
-		if err := root.AddFile(f, "text/plain"); err != nil {
-			t.Fatalf("failed to add file: %s", err)
-		}
+		assert.NoError(t, root.AddFile(f, "text/plain"))
 	}
+
 	sub, err := root.FindFolder("baz/ing")
-	if err != nil {
-		t.Fatalf("failed to find subtree")
-	}
+	assert.NoError(t, err)
+
 	got := strings.TrimSpace(sub.Format(0))
 	want := strings.TrimSpace(goldenSubFormat)
-	if want != got {
-		t.Errorf("Format mismatch: %s vs %s", want, got)
-	}
+	assert.Equal(t, want, got)
 }
 
 func TestGetNonExistingSubtree(t *testing.T) {
@@ -115,14 +107,12 @@ func TestGetNonExistingSubtree(t *testing.T) {
 		"baz/ing/a",
 		"baz/ing/b",
 	} {
-		if err := root.AddFile(f, "text/plain"); err != nil {
-			t.Fatalf("failed to add file: %s", err)
-		}
+		assert.NoError(t, root.AddFile(f, "text/plain"))
 	}
+
 	sub, err := root.FindFolder("bla")
-	if err == nil {
-		t.Fatalf("should fail to find subtree")
-	}
+	assert.Error(t, err)
+
 	// if it doesn't panic we're good
 	_ = sub
 }

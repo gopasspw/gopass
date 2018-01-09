@@ -49,7 +49,7 @@ func (s *Action) MountsPrint(ctx context.Context, c *cli.Context) error {
 		}
 	}
 
-	fmt.Println(root.Format(0))
+	fmt.Fprintln(stdout, root.Format(0))
 	return nil
 }
 
@@ -57,7 +57,7 @@ func (s *Action) MountsPrint(ctx context.Context, c *cli.Context) error {
 // completion
 func (s *Action) MountsComplete(*cli.Context) {
 	for alias := range s.Store.Mounts() {
-		fmt.Println(alias)
+		fmt.Fprintln(stdout, alias)
 	}
 }
 

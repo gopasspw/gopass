@@ -61,13 +61,13 @@ func (s *Action) Version(ctx context.Context, c *cli.Context) error {
 
 	cli.VersionPrinter(c)
 
-	fmt.Printf("  GPG: %s\n", s.Store.GPGVersion(ctx).String())
-	fmt.Printf("  Git: %s\n", s.Store.GitVersion(ctx).String())
+	fmt.Fprintf(stdout, "  GPG: %s\n", s.Store.GPGVersion(ctx).String())
+	fmt.Fprintf(stdout, "  Git: %s\n", s.Store.GitVersion(ctx).String())
 
 	select {
 	case vi := <-version:
 		if vi != "" {
-			fmt.Println(vi)
+			fmt.Fprintln(stdout, vi)
 		}
 	case <-time.After(2 * time.Second):
 		out.Red(ctx, "Version check timed out")

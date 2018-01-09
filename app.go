@@ -9,6 +9,7 @@ import (
 	"github.com/justwatchcom/gopass/config"
 	"github.com/justwatchcom/gopass/store/sub"
 	"github.com/justwatchcom/gopass/utils/out"
+	"github.com/justwatchcom/gopass/utils/termio"
 	"github.com/urfave/cli"
 )
 
@@ -36,12 +37,12 @@ func setupApp(ctx context.Context, sv semver.Version) *cli.App {
 
 	// set some action callbacks
 	if !cfg.Root.AutoImport {
-		ctx = sub.WithImportFunc(ctx, action.AskForKeyImport)
+		ctx = sub.WithImportFunc(ctx, termio.AskForKeyImport)
 	}
 	if !cfg.Root.NoConfirm {
 		ctx = sub.WithRecipientFunc(ctx, action.ConfirmRecipients)
 	}
-	ctx = sub.WithFsckFunc(ctx, action.AskForConfirmation)
+	ctx = sub.WithFsckFunc(ctx, termio.AskForConfirmation)
 
 	app := cli.NewApp()
 
@@ -51,7 +52,7 @@ func setupApp(ctx context.Context, sv semver.Version) *cli.App {
 	app.EnableBashCompletion = true
 	app.BashComplete = func(c *cli.Context) {
 		cli.DefaultAppComplete(c)
-		action.Complete(c)
+		action.Complete(ctx, c)
 	}
 
 	app.Action = func(c *cli.Context) error {

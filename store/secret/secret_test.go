@@ -17,57 +17,35 @@ func TestNew(t *testing.T) {
 	}
 
 	// set valid YAML
-	if err := sec.SetBody("---\nkey: value\n"); err != nil {
-		t.Errorf("YAML Error: %s", err)
-	}
+	assert.NoError(t, sec.SetBody("---\nkey: value\n"))
 
 	// get existing key
 	val, err := sec.Value("key")
-	if err != nil {
-		t.Errorf("Error: %s", err)
-	}
-	if val != "value" {
-		t.Errorf("Wrong value: %s", val)
-	}
+	assert.NoError(t, err)
+	assert.Equal(t, "value", val)
 
 	// get non-existing key
 	_, err = sec.Value("some-key")
-	if err != store.ErrYAMLNoKey {
-		t.Errorf("Should fail")
-	}
+	assert.EqualError(t, err, store.ErrYAMLNoKey.Error())
 
 	// delete existing key
-	if err := sec.DeleteKey("key"); err != nil {
-		t.Errorf("Error: %s", err)
-	}
+	assert.NoError(t, sec.DeleteKey("key"))
 
 	// delete non-existing key
-	if err := sec.DeleteKey("some-key"); err != nil {
-		t.Errorf("Error: %s", err)
-	}
+	assert.NoError(t, sec.DeleteKey("some-key"))
 
 	// set invalid YAML
-	if err := sec.SetBody("---\nkey-only\n"); err == nil {
-		t.Errorf("Should fail")
-	}
-	if sec.Body() != "---\nkey-only\n" {
-		t.Errorf("Should contain invalid YAML despite parser failure")
-	}
+	assert.Error(t, sec.SetBody("---\nkey-only\n"))
+	assert.Equal(t, "---\nkey-only\n", sec.Body())
 
 	// non-YAML body
-	if err := sec.SetBody("key-only\n"); err != nil {
-		t.Errorf("YAML Error: %s", err)
-	}
+	assert.NoError(t, sec.SetBody("key-only\n"))
 
 	// try to set value on non-YAML body
-	if err := sec.SetValue("key", "value"); err != store.ErrYAMLNoMark {
-		t.Errorf("Should fail")
-	}
+	assert.EqualError(t, sec.SetValue("key", "value"), store.ErrYAMLNoMark.Error())
 
 	// delete non-existing key
-	if err := sec.DeleteKey("some-key"); err != store.ErrYAMLNoMark {
-		t.Errorf("Should fail")
-	}
+	assert.EqualError(t, sec.DeleteKey("some-key"), store.ErrYAMLNoMark.Error())
 }
 
 func TestEqual(t *testing.T) {
@@ -120,9 +98,7 @@ func TestEqual(t *testing.T) {
 		if tc.s2 != nil && tc.s2.data != nil {
 			_ = tc.s2.encodeYAML()
 		}
-		if tc.s1.Equal(tc.s2) != tc.eq {
-			t.Errorf("s1 (%+v) and s2 (%+v) should be equal (%t) but are not", tc.s1, tc.s2, tc.eq)
-		}
+		assert.Equal(t, tc.eq, tc.s1.Equal(tc.s2))
 	}
 }
 

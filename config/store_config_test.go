@@ -1,12 +1,12 @@
 package config
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+)
 
 func TestStoreConfigMap(t *testing.T) {
 	sc := &StoreConfig{}
-	scm := sc.ConfigMap()
-	t.Logf("map: %+v", scm)
-	if scm["nopager"] != "false" {
-		t.Errorf("nopager should be false")
-	}
+	assert.Equal(t, "false", sc.ConfigMap()["nopager"])
 }

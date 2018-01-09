@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/justwatchcom/gopass/utils/ctxutil"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestContext(t *testing.T) {
@@ -16,15 +17,10 @@ func TestContext(t *testing.T) {
 	}
 
 	// should return the default value from the store config
-	if ctxutil.IsNoConfirm(sc.WithContext(ctx)) {
-		t.Errorf("NoConfirm should be false")
-	}
+	assert.Equal(t, false, ctxutil.IsNoConfirm(sc.WithContext(ctx)))
 
 	// after overwriting the noconfirm value in the context,
 	// it should not be overwritten by the store config value
 	ctx = ctxutil.WithNoConfirm(ctx, true)
-
-	if !ctxutil.IsNoConfirm(sc.WithContext(ctx)) {
-		t.Errorf("NoConfirm should be true")
-	}
+	assert.Equal(t, true, ctxutil.IsNoConfirm(sc.WithContext(ctx)))
 }

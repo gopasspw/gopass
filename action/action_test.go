@@ -1,111 +1,41 @@
 package action
 
 import (
-	"bytes"
 	"context"
-	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 
 	"github.com/blang/semver"
-	"github.com/fatih/color"
-	"github.com/google/go-cmp/cmp"
 	gpgmock "github.com/justwatchcom/gopass/backend/gpg/mock"
 	"github.com/justwatchcom/gopass/config"
+	"github.com/justwatchcom/gopass/tests/gptest"
 	"github.com/stretchr/testify/assert"
 )
 
-func newMock(ctx context.Context, dir string) (*Action, error) {
+func newMock(ctx context.Context, u *gptest.Unit) (*Action, error) {
 	cfg := config.New()
-	cfg.Root.Path = filepath.Join(dir, "store")
+	cfg.Root.Path = u.StoreDir("")
+
 	sv := semver.Version{}
 	gpg := gpgmock.New()
-
-	if err := os.MkdirAll(cfg.Root.Path, 0700); err != nil {
-		return nil, err
-	}
-	if err := os.Setenv("GOPASS_CONFIG", filepath.Join(dir, ".gopass.yml")); err != nil {
-		return nil, err
-	}
-	if err := os.Setenv("GOPASS_HOMEDIR", dir); err != nil {
-		return nil, err
-	}
-	if err := os.Unsetenv("PAGER"); err != nil {
-		return nil, err
-	}
-	if err := os.Setenv("CHECKPOINT_DISABLE", "true"); err != nil {
-		return nil, err
-	}
-	if err := os.Setenv("GOPASS_NO_NOTIFY", "true"); err != nil {
-		return nil, err
-	}
-	if err := ioutil.WriteFile(filepath.Join(dir, "store", ".gpg-id"), []byte("0xDEADBEEF"), 0600); err != nil {
-		return nil, err
-	}
-	if err := ioutil.WriteFile(filepath.Join(dir, "store", "foo.gpg"), []byte("0xDEADBEEF"), 0600); err != nil {
-		return nil, err
-	}
 
 	return newAction(ctx, cfg, sv, gpg)
 }
 
-func capture(t *testing.T, fn func() error) string {
-	t.Helper()
-	old := os.Stdout
-
-	oldcol := color.NoColor
-	color.NoColor = true
-
-	r, w, _ := os.Pipe()
-	os.Stdout = w
-
-	done := make(chan string)
-	go func() {
-		buf := &bytes.Buffer{}
-		_, _ = io.Copy(buf, r)
-		done <- buf.String()
-	}()
-
-	err := fn()
-	// back to normal
-	_ = w.Close()
-	os.Stdout = old
-	color.NoColor = oldcol
-	if err != nil {
-		t.Errorf("Error: %s", err)
-	}
-	out := <-done
-	return strings.TrimSpace(out)
-}
-
 func TestAction(t *testing.T) {
-	td, err := ioutil.TempDir("", "gopass-")
-	assert.NoError(t, err)
-	defer func() {
-		_ = os.RemoveAll(td)
-	}()
+	u := gptest.NewUnitTester(t)
+	defer u.Remove()
 
 	ctx := context.Background()
-	act, err := newMock(ctx, td)
+	act, err := newMock(ctx, u)
 	assert.NoError(t, err)
+	assert.Equal(t, "action.test", act.Name)
 
-	if an := act.Name; an != "action.test" {
-		t.Errorf("Wrong binary name: '%s' != '%s'", an, "action.test")
-	}
-
-	want := filepath.Join(td, "store")
-	if as := act.String(); !strings.Contains(as, want) {
-		t.Errorf("act.String(): '%s' != '%s'", want, as)
-	}
-	if !act.HasGPG() {
-		t.Errorf("no gpg")
-	}
-	if lm := len(act.Store.Mounts()); lm != 0 {
-		t.Errorf("Too many mounts: %d", lm)
-	}
+	assert.Contains(t, act.String(), u.StoreDir(""))
+	assert.Equal(t, true, act.HasGPG())
+	assert.Equal(t, 0, len(act.Store.Mounts()))
 }
 
 func TestNew(t *testing.T) {
@@ -116,7 +46,6 @@ func TestNew(t *testing.T) {
 	}()
 
 	ctx := context.Background()
-
 	cfg := config.New()
 	sv := semver.Version{}
 
@@ -124,9 +53,8 @@ func TestNew(t *testing.T) {
 	assert.Error(t, err)
 
 	cfg.Root.Path = filepath.Join(td, "store")
-	act, err := New(ctx, cfg, sv)
+	_, err = New(ctx, cfg, sv)
 	assert.NoError(t, err)
-	t.Logf("Action: %+v", act)
 }
 
 func TestUmask(t *testing.T) {
@@ -137,11 +65,9 @@ func TestUmask(t *testing.T) {
 			"000":      0,
 			"07557575": 077,
 		} {
-			_ = os.Setenv(vn, in)
-			if um := umask(); um != out {
-				t.Errorf("[%s=%s] %o != %o", vn, in, um, out)
-			}
-			_ = os.Unsetenv(vn)
+			assert.NoError(t, os.Setenv(vn, in))
+			assert.Equal(t, out, umask())
+			assert.NoError(t, os.Unsetenv(vn))
 		}
 	}
 }
@@ -152,11 +78,9 @@ func TestGpgOpts(t *testing.T) {
 			"": nil,
 			"--decrypt --armor --recipient 0xDEADBEEF": {"--decrypt", "--armor", "--recipient", "0xDEADBEEF"},
 		} {
-			_ = os.Setenv(vn, in)
-			if gp := gpgOpts(); !cmp.Equal(gp, out) {
-				t.Errorf("[%s=%s] %+v != %+v", vn, in, gp, out)
-			}
-			_ = os.Unsetenv(vn)
+			assert.NoError(t, os.Setenv(vn, in))
+			assert.Equal(t, out, gpgOpts())
+			assert.NoError(t, os.Unsetenv(vn))
 		}
 	}
 }

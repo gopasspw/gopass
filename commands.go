@@ -68,7 +68,7 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 					Action: func(c *cli.Context) error {
 						return action.BinaryCat(withGlobalFlags(ctx, c), c)
 					},
-					BashComplete: action.Complete,
+					BashComplete: func(c *cli.Context) { action.Complete(ctx, c) },
 				},
 				{
 					Name:  "sum",
@@ -82,7 +82,7 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 					Action: func(c *cli.Context) error {
 						return action.BinarySum(withGlobalFlags(ctx, c), c)
 					},
-					BashComplete: action.Complete,
+					BashComplete: func(c *cli.Context) { action.Complete(ctx, c) },
 				},
 				{
 					Name:  "copy",
@@ -98,7 +98,7 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 					Action: func(c *cli.Context) error {
 						return action.BinaryCopy(withGlobalFlags(ctx, c), c)
 					},
-					BashComplete: action.Complete,
+					BashComplete: func(c *cli.Context) { action.Complete(ctx, c) },
 					Flags: []cli.Flag{
 						cli.BoolFlag{
 							Name:  "force, f",
@@ -122,7 +122,7 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 					Action: func(c *cli.Context) error {
 						return action.BinaryMove(withGlobalFlags(ctx, c), c)
 					},
-					BashComplete: action.Complete,
+					BashComplete: func(c *cli.Context) { action.Complete(ctx, c) },
 					Flags: []cli.Flag{
 						cli.BoolFlag{
 							Name:  "force, f",
@@ -209,7 +209,7 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 			Action: func(c *cli.Context) error {
 				return action.Copy(withGlobalFlags(ctx, c), c)
 			},
-			BashComplete: action.Complete,
+			BashComplete: func(c *cli.Context) { action.Complete(ctx, c) },
 			Flags: []cli.Flag{
 				cli.BoolFlag{
 					Name:  "force, f",
@@ -239,7 +239,7 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 			Action: func(c *cli.Context) error {
 				return action.Delete(withGlobalFlags(ctx, c), c)
 			},
-			BashComplete: action.Complete,
+			BashComplete: func(c *cli.Context) { action.Complete(ctx, c) },
 			Flags: []cli.Flag{
 				cli.BoolFlag{
 					Name:  "recursive, r",
@@ -265,7 +265,7 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 				return action.Edit(withGlobalFlags(ctx, c), c)
 			},
 			Aliases:      []string{"set"},
-			BashComplete: action.Complete,
+			BashComplete: func(c *cli.Context) { action.Complete(ctx, c) },
 			Flags: []cli.Flag{
 				cli.StringFlag{
 					Name:  "editor, e",
@@ -286,7 +286,7 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 				return action.Find(withGlobalFlags(ctxutil.WithFuzzySearch(ctx, false), c), c)
 			},
 			Aliases:      []string{"search"},
-			BashComplete: action.Complete,
+			BashComplete: func(c *cli.Context) { action.Complete(ctx, c) },
 			Flags: []cli.Flag{
 				cli.BoolFlag{
 					Name:  "clip, c",
@@ -346,7 +346,7 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 			Action: func(c *cli.Context) error {
 				return action.Generate(withGlobalFlags(ctx, c), c)
 			},
-			BashComplete: action.Complete,
+			BashComplete: func(c *cli.Context) { action.Complete(ctx, c) },
 			Flags: []cli.Flag{
 				cli.BoolFlag{
 					Name:  "print, p",
@@ -442,7 +442,7 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 			Action: func(c *cli.Context) error {
 				return action.OTP(withGlobalFlags(ctx, c), c)
 			},
-			BashComplete: action.Complete,
+			BashComplete: func(c *cli.Context) { action.Complete(ctx, c) },
 			Flags: []cli.Flag{
 				cli.BoolFlag{
 					Name:  "clip, c",
@@ -551,7 +551,7 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 			Action: func(c *cli.Context) error {
 				return action.Insert(withGlobalFlags(ctx, c), c)
 			},
-			BashComplete: action.Complete,
+			BashComplete: func(c *cli.Context) { action.Complete(ctx, c) },
 			Flags: []cli.Flag{
 				cli.BoolFlag{
 					Name:  "echo, e",
@@ -578,7 +578,7 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 			Action: func(c *cli.Context) error {
 				return action.List(withGlobalFlags(ctx, c), c)
 			},
-			BashComplete: action.Complete,
+			BashComplete: func(c *cli.Context) { action.Complete(ctx, c) },
 			Flags: []cli.Flag{
 				cli.IntFlag{
 					Name:  "limit, l",
@@ -605,7 +605,7 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 			Action: func(c *cli.Context) error {
 				return action.Move(withGlobalFlags(ctx, c), c)
 			},
-			BashComplete: action.Complete,
+			BashComplete: func(c *cli.Context) { action.Complete(ctx, c) },
 			Flags: []cli.Flag{
 				cli.BoolFlag{
 					Name:  "force, f",
@@ -762,7 +762,7 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 			Action: func(c *cli.Context) error {
 				return action.Show(withGlobalFlags(ctx, c), c)
 			},
-			BashComplete: action.Complete,
+			BashComplete: func(c *cli.Context) { action.Complete(ctx, c) },
 			Flags: []cli.Flag{
 				cli.BoolFlag{
 					Name:  "clip, c",
@@ -824,7 +824,7 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 					Action: func(c *cli.Context) error {
 						return action.TemplatePrint(withGlobalFlags(ctx, c), c)
 					},
-					BashComplete: action.TemplatesComplete,
+					BashComplete: func(c *cli.Context) { action.TemplatesComplete(ctx, c) },
 				},
 				{
 					Name:        "edit",
@@ -835,7 +835,7 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 					Action: func(c *cli.Context) error {
 						return action.TemplateEdit(withGlobalFlags(ctx, c), c)
 					},
-					BashComplete: action.TemplatesComplete,
+					BashComplete: func(c *cli.Context) { action.TemplatesComplete(ctx, c) },
 				},
 				{
 					Name:        "remove",
@@ -846,7 +846,7 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 					Action: func(c *cli.Context) error {
 						return action.TemplateRemove(withGlobalFlags(ctx, c), c)
 					},
-					BashComplete: action.TemplatesComplete,
+					BashComplete: func(c *cli.Context) { action.TemplatesComplete(ctx, c) },
 				},
 			},
 		},

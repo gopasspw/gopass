@@ -4,12 +4,11 @@ import (
 	"bytes"
 	"context"
 	"flag"
-	"fmt"
-	"io/ioutil"
 	"os"
 	"testing"
 
 	"github.com/justwatchcom/gopass/store/secret"
+	"github.com/justwatchcom/gopass/tests/gptest"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/stretchr/testify/assert"
@@ -17,16 +16,13 @@ import (
 )
 
 func TestAudit(t *testing.T) {
-	td, err := ioutil.TempDir("", "gopass-")
-	assert.NoError(t, err)
-	defer func() {
-		_ = os.RemoveAll(td)
-	}()
+	u := gptest.NewUnitTester(t)
+	defer u.Remove()
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = out.WithHidden(ctx, true)
-	act, err := newMock(ctx, td)
+	act, err := newMock(ctx, u)
 	assert.NoError(t, err)
 
 	assert.NoError(t, act.Store.Set(ctx, "bar", secret.New("123", "")))
@@ -38,14 +34,11 @@ func TestAudit(t *testing.T) {
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
+	stdout = buf
 	defer func() {
 		out.Stdout = os.Stdout
+		stdout = os.Stdout
 	}()
 
-	capture(t, func() error {
-		if err := act.Audit(ctx, c); err != nil {
-			return nil
-		}
-		return fmt.Errorf("should detect weak password")
-	})
+	assert.Error(t, act.Audit(ctx, c))
 }

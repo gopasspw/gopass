@@ -2,34 +2,28 @@ package root
 
 import (
 	"context"
-	"io/ioutil"
-	"os"
 	"testing"
 
 	"github.com/fatih/color"
+	"github.com/justwatchcom/gopass/tests/gptest"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestTemplate(t *testing.T) {
-	tempdir, err := ioutil.TempDir("", "gopass-")
-	if err != nil {
-		t.Fatalf("Failed to create tempdir: %s", err)
-	}
-	defer func() {
-		_ = os.RemoveAll(tempdir)
-	}()
+	u := gptest.NewUnitTester(t)
+	defer u.Remove()
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = out.WithHidden(ctx, true)
 	color.NoColor = true
 
-	rs, err := createRootStore(ctx, tempdir)
+	rs, err := createRootStore(ctx, u)
 	assert.NoError(t, err)
 
-	tt, err := rs.TemplateTree()
+	tt, err := rs.TemplateTree(ctx)
 	assert.NoError(t, err)
 	assert.Equal(t, "gopass\n", tt.Format(0))
 

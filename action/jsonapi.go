@@ -10,6 +10,7 @@ import (
 	"github.com/justwatchcom/gopass/config"
 	"github.com/justwatchcom/gopass/utils/jsonapi"
 	"github.com/justwatchcom/gopass/utils/jsonapi/manifest"
+	"github.com/justwatchcom/gopass/utils/termio"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"
 )
@@ -53,7 +54,7 @@ func (s *Action) SetupNativeMessaging(ctx context.Context, c *cli.Context) error
 		return nil
 	}
 
-	install, err := s.askForBool(ctx, color.BlueString("Install manifest and wrapper?"), true)
+	install, err := termio.AskForBool(ctx, color.BlueString("Install manifest and wrapper?"), true)
 	if install && err == nil {
 		return manifest.SetUp(browser, wrapperPath, libpath, globalInstall)
 	}
@@ -66,7 +67,7 @@ func (s *Action) getBrowser(ctx context.Context, c *cli.Context) (string, error)
 		return browser, nil
 	}
 
-	browser, err := s.askForString(ctx, color.BlueString("For which browser do you want to install gopass native messaging? [%s]", strings.Join(manifest.ValidBrowsers[:], ",")), manifest.DefaultBrowser)
+	browser, err := termio.AskForString(ctx, color.BlueString("For which browser do you want to install gopass native messaging? [%s]", strings.Join(manifest.ValidBrowsers[:], ",")), manifest.DefaultBrowser)
 	if err != nil {
 		return "", errors.Wrapf(err, "failed to ask for user input")
 	}
@@ -78,14 +79,14 @@ func (s *Action) getBrowser(ctx context.Context, c *cli.Context) (string, error)
 
 func (s *Action) getGlobalInstall(ctx context.Context, c *cli.Context) (bool, error) {
 	if !c.IsSet("global") {
-		return s.askForBool(ctx, color.BlueString("Install for all users? (might require sudo gopass)"), false)
+		return termio.AskForBool(ctx, color.BlueString("Install for all users? (might require sudo gopass)"), false)
 	}
 	return c.Bool("global"), nil
 }
 
 func (s *Action) getLibPath(ctx context.Context, c *cli.Context, browser string, global bool) (string, error) {
 	if !c.IsSet("libpath") && runtime.GOOS == "linux" && browser == "firefox" && global {
-		return s.askForString(ctx, color.BlueString("What is your lib path?"), "/usr/lib")
+		return termio.AskForString(ctx, color.BlueString("What is your lib path?"), "/usr/lib")
 	}
 	return c.String("libpath"), nil
 }
@@ -95,7 +96,7 @@ func (s *Action) getWrapperPath(ctx context.Context, c *cli.Context) (string, er
 	if path != "" {
 		return path, nil
 	}
-	path, err := s.askForString(ctx, color.BlueString("In which path should gopass_wrapper.sh be installed?"), config.Directory())
+	path, err := termio.AskForString(ctx, color.BlueString("In which path should gopass_wrapper.sh be installed?"), config.Directory())
 	if err != nil {
 		return "", errors.Wrapf(err, "failed to ask for user input")
 	}

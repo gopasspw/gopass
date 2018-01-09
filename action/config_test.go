@@ -4,27 +4,23 @@ import (
 	"bytes"
 	"context"
 	"flag"
-	"io/ioutil"
 	"os"
-	"path/filepath"
 	"strings"
 	"testing"
 
 	"github.com/justwatchcom/gopass/config"
+	"github.com/justwatchcom/gopass/tests/gptest"
 	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/stretchr/testify/assert"
 	"github.com/urfave/cli"
 )
 
 func TestConfig(t *testing.T) {
-	td, err := ioutil.TempDir("", "gopass-")
-	assert.NoError(t, err)
-	defer func() {
-		_ = os.RemoveAll(td)
-	}()
+	u := gptest.NewUnitTester(t)
+	defer u.Remove()
 
 	ctx := context.Background()
-	act, err := newMock(ctx, td)
+	act, err := newMock(ctx, u)
 	assert.NoError(t, err)
 
 	app := cli.NewApp()
@@ -32,8 +28,10 @@ func TestConfig(t *testing.T) {
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
+	stdout = buf
 	defer func() {
 		out.Stdout = os.Stdout
+		stdout = os.Stdout
 	}()
 
 	// action.Config
@@ -47,7 +45,7 @@ func TestConfig(t *testing.T) {
   noconfirm: false
   nopager: false
 `
-	want += "  path: " + filepath.Join(td, "store") + "\n"
+	want += "  path: " + u.StoreDir("") + "\n"
 	want += `  safecontent: false
   usesymbols: false
 `
@@ -103,10 +101,7 @@ foo/nopager: false`
 	buf.Reset()
 
 	// action.ConfigComplete
-	out := capture(t, func() error {
-		act.ConfigComplete(c)
-		return nil
-	})
+	act.ConfigComplete(c)
 	want = `askformore
 autoimport
 autosync
@@ -116,12 +111,15 @@ noconfirm
 nopager
 path
 safecontent
-usesymbols`
-	assert.Equal(t, want, out)
+usesymbols
+`
+	assert.Equal(t, want, buf.String())
+	buf.Reset()
 
 	// config autoimport false 42
 	fs = flag.NewFlagSet("default", flag.ContinueOnError)
 	assert.NoError(t, fs.Parse([]string{"autoimport", "false", "42"}))
 	c = cli.NewContext(app, fs, nil)
 	assert.Error(t, act.Config(ctx, c))
+	buf.Reset()
 }

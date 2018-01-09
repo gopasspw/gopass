@@ -1,12 +1,13 @@
 package action
 
 import (
+	"bytes"
 	"context"
-	"io/ioutil"
 	"os"
-	"strings"
 	"testing"
 
+	"github.com/justwatchcom/gopass/tests/gptest"
+	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/stretchr/testify/assert"
 	"github.com/urfave/cli"
 )
@@ -19,58 +20,47 @@ func TestBashEscape(t *testing.T) {
 }
 
 func TestComplete(t *testing.T) {
-	td, err := ioutil.TempDir("", "gopass-")
-	assert.NoError(t, err)
+	u := gptest.NewUnitTester(t)
+	defer u.Remove()
+
+	buf := &bytes.Buffer{}
+	out.Stdout = buf
+	stdout = buf
 	defer func() {
-		_ = os.RemoveAll(td)
+		out.Stdout = os.Stdout
+		stdout = os.Stdout
 	}()
 
 	ctx := context.Background()
-	act, err := newMock(ctx, td)
+	act, err := newMock(ctx, u)
 	assert.NoError(t, err)
 
 	app := cli.NewApp()
 
-	out := capture(t, func() error {
-		act.Complete(nil)
-		return nil
-	})
-	if out != "foo" {
-		t.Errorf("should return 'foo' not '%s'", out)
-	}
+	act.Complete(ctx, nil)
+	assert.Equal(t, "foo\n", buf.String())
+	buf.Reset()
 
 	// bash
-	out = capture(t, func() error {
-		return act.CompletionBash(nil)
-	})
-	if !strings.Contains(out, "action.test") {
-		t.Errorf("should contain name of test")
-	}
+	assert.NoError(t, act.CompletionBash(nil))
+	assert.Contains(t, buf.String(), "action.test")
+	buf.Reset()
 
 	// fish
-	out = capture(t, func() error {
-		return act.CompletionFish(nil, app)
-	})
-	if !strings.Contains(out, "action.test") {
-		t.Errorf("should contain name of test")
-	}
+	assert.NoError(t, act.CompletionFish(nil, app))
+	assert.Contains(t, buf.String(), "action.test")
 	assert.Error(t, act.CompletionFish(nil, nil))
+	buf.Reset()
 
 	// zsh
-	out = capture(t, func() error {
-		return act.CompletionZSH(nil, app)
-	})
-	if !strings.Contains(out, "action.test") {
-		t.Errorf("should contain name of test")
-	}
+	assert.NoError(t, act.CompletionZSH(nil, app))
+	assert.Contains(t, buf.String(), "action.test")
 	assert.Error(t, act.CompletionZSH(nil, nil))
+	buf.Reset()
 
 	// openbsdksh
-	out = capture(t, func() error {
-		return act.CompletionOpenBSDKsh(nil, app)
-	})
-	if !strings.Contains(out, "complete_gopass") {
-		t.Errorf("should contain name of test")
-	}
+	assert.NoError(t, act.CompletionOpenBSDKsh(nil, app))
+	assert.Contains(t, buf.String(), "complete_gopass")
 	assert.Error(t, act.CompletionOpenBSDKsh(nil, nil))
+	buf.Reset()
 }

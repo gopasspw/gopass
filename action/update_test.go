@@ -7,7 +7,6 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -16,6 +15,7 @@ import (
 	"testing"
 
 	"github.com/dominikschulz/github-releases/ghrel"
+	"github.com/justwatchcom/gopass/tests/gptest"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/stretchr/testify/assert"
@@ -43,21 +43,14 @@ const testUpdateJSON = `[
 func TestUpdate(t *testing.T) {
 	updateMoveAfterQuit = false
 
-	td, err := ioutil.TempDir("", "gopass-")
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
-	defer func() {
-		_ = os.RemoveAll(td)
-	}()
+	u := gptest.NewUnitTester(t)
+	defer u.Remove()
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = out.WithHidden(ctx, true)
-	act, err := newMock(ctx, td)
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	act, err := newMock(ctx, u)
+	assert.NoError(t, err)
 
 	app := cli.NewApp()
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
@@ -100,8 +93,10 @@ func TestUpdate(t *testing.T) {
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
+	stdout = buf
 	defer func() {
 		out.Stdout = os.Stdout
+		stdout = os.Stdout
 	}()
 
 	assert.NoError(t, act.Update(ctx, c))

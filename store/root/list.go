@@ -1,19 +1,20 @@
 package root
 
 import (
-	"fmt"
+	"context"
 	"sort"
 	"strings"
 
 	"github.com/justwatchcom/gopass/store"
+	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/justwatchcom/gopass/utils/tree"
 	"github.com/justwatchcom/gopass/utils/tree/simple"
 	"github.com/pkg/errors"
 )
 
 // List will return a flattened list of all tree entries
-func (r *Store) List(maxDepth int) ([]string, error) {
-	t, err := r.Tree()
+func (r *Store) List(ctx context.Context, maxDepth int) ([]string, error) {
+	t, err := r.Tree(ctx)
 	if err != nil {
 		return []string{}, err
 	}
@@ -21,7 +22,7 @@ func (r *Store) List(maxDepth int) ([]string, error) {
 }
 
 // Tree returns the tree representation of the entries
-func (r *Store) Tree() (tree.Tree, error) {
+func (r *Store) Tree(ctx context.Context) (tree.Tree, error) {
 	root := simple.New("gopass")
 	addFileFunc := func(in ...string) {
 		for _, f := range in {
@@ -37,7 +38,7 @@ func (r *Store) Tree() (tree.Tree, error) {
 				ct = "text/plain"
 			}
 			if err := root.AddFile(f, ct); err != nil {
-				fmt.Printf("Failed to add file %s to tree: %s\n", f, err)
+				out.Red(ctx, "Failed to add file %s to tree: %s", f, err)
 				continue
 			}
 		}
@@ -45,7 +46,7 @@ func (r *Store) Tree() (tree.Tree, error) {
 	addTplFunc := func(in ...string) {
 		for _, f := range in {
 			if err := root.AddTemplate(f); err != nil {
-				fmt.Printf("Failed to add template %s to tree: %s\n", f, err)
+				out.Red(ctx, "Failed to add template %s to tree: %s", f, err)
 				continue
 			}
 		}
@@ -56,7 +57,7 @@ func (r *Store) Tree() (tree.Tree, error) {
 		return nil, err
 	}
 	addFileFunc(sf...)
-	addTplFunc(r.store.ListTemplates("")...)
+	addTplFunc(r.store.ListTemplates(ctx, "")...)
 
 	mps := r.MountPoints()
 	sort.Sort(store.ByPathLen(mps))
@@ -73,15 +74,15 @@ func (r *Store) Tree() (tree.Tree, error) {
 			return nil, errors.Errorf("failed to add file: %s", err)
 		}
 		addFileFunc(sf...)
-		addTplFunc(substore.ListTemplates(alias)...)
+		addTplFunc(substore.ListTemplates(ctx, alias)...)
 	}
 
 	return root, nil
 }
 
 // Format will pretty print all entries in this store and all substores
-func (r *Store) Format(maxDepth int) (string, error) {
-	t, err := r.Tree()
+func (r *Store) Format(ctx context.Context, maxDepth int) (string, error) {
+	t, err := r.Tree(ctx)
 	if err != nil {
 		return "", err
 	}

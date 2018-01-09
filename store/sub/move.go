@@ -9,6 +9,7 @@ import (
 
 	"github.com/justwatchcom/gopass/store"
 	"github.com/justwatchcom/gopass/utils/fsutil"
+	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/pkg/errors"
 )
 
@@ -35,7 +36,7 @@ func (s *Store) Copy(ctx context.Context, from, to string) error {
 			}
 			et := filepath.Join(destPrefix, strings.TrimPrefix(e, from))
 			if err := s.Copy(ctx, e, et); err != nil {
-				fmt.Println(err)
+				out.Red(ctx, "Failed to copy '%s' to '%s': %s", e, et, err)
 			}
 		}
 		return nil
@@ -75,7 +76,7 @@ func (s *Store) Move(ctx context.Context, from, to string) error {
 			}
 			et := filepath.Join(destPrefix, strings.TrimPrefix(e, from))
 			if err := s.Move(ctx, e, et); err != nil {
-				fmt.Println(err)
+				out.Red(ctx, "Failed to move '%s' to '%s': %s", e, et, err)
 			}
 		}
 		return nil

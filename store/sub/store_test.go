@@ -78,9 +78,7 @@ func createStore(dir string, recipients, entries []string) ([]string, []string, 
 
 func TestStore(t *testing.T) {
 	tempdir, err := ioutil.TempDir("", "gopass-")
-	if err != nil {
-		t.Fatalf("Failed to create tempdir: %s", err)
-	}
+	assert.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(tempdir)
 	}()
@@ -97,9 +95,7 @@ func TestIdFile(t *testing.T) {
 	ctx := context.Background()
 
 	tempdir, err := ioutil.TempDir("", "gopass-")
-	if err != nil {
-		t.Fatalf("Failed to create tempdir: %s", err)
-	}
+	assert.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(tempdir)
 	}()
@@ -115,7 +111,6 @@ func TestIdFile(t *testing.T) {
 	assert.NoError(t, s.Set(ctx, secName, secret.New("foo", "bar")))
 	assert.NoError(t, ioutil.WriteFile(filepath.Join(tempdir, "sub", "a", GPGID), []byte("foobar"), 0600))
 	assert.Equal(t, filepath.Join(tempdir, "sub", "a", GPGID), s.idFile(secName))
-
 	assert.Equal(t, true, s.Exists(secName))
 
 	// test abort condition

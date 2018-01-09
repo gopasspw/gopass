@@ -27,9 +27,9 @@ func (api *API) respondMessage(ctx context.Context, msgBytes []byte) error {
 
 	switch message.Type {
 	case "query":
-		return api.respondQuery(msgBytes)
+		return api.respondQuery(ctx, msgBytes)
 	case "queryHost":
-		return api.respondHostQuery(msgBytes)
+		return api.respondHostQuery(ctx, msgBytes)
 	case "getLogin":
 		return api.respondGetLogin(ctx, msgBytes)
 	case "create":
@@ -39,13 +39,13 @@ func (api *API) respondMessage(ctx context.Context, msgBytes []byte) error {
 	}
 }
 
-func (api *API) respondHostQuery(msgBytes []byte) error {
+func (api *API) respondHostQuery(ctx context.Context, msgBytes []byte) error {
 	var message queryHostMessage
 	if err := json.Unmarshal(msgBytes, &message); err != nil {
 		return errors.Wrapf(err, "failed to unmarshal JSON message")
 	}
 
-	l, err := api.Store.List(0)
+	l, err := api.Store.List(ctx, 0)
 	if err != nil {
 		return errors.Wrapf(err, "failed to list store")
 	}
@@ -67,13 +67,13 @@ func (api *API) respondHostQuery(msgBytes []byte) error {
 	return sendSerializedJSONMessage(choices, api.Writer)
 }
 
-func (api *API) respondQuery(msgBytes []byte) error {
+func (api *API) respondQuery(ctx context.Context, msgBytes []byte) error {
 	var message queryMessage
 	if err := json.Unmarshal(msgBytes, &message); err != nil {
 		return errors.Wrapf(err, "failed to unmarshal JSON message")
 	}
 
-	l, err := api.Store.List(0)
+	l, err := api.Store.List(ctx, 0)
 	if err != nil {
 		return errors.Wrapf(err, "failed to list store")
 	}

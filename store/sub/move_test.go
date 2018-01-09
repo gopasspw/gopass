@@ -124,23 +124,14 @@ func TestMove(t *testing.T) {
 			name: "Single entry",
 			tf: func(s *Store) func(t *testing.T) {
 				return func(t *testing.T) {
-					if err := s.Set(ctx, "foo", secret.New("bar", "")); err != nil {
-						t.Fatalf("Failed to insert test data: %s", err)
-					}
-					if err := s.Move(ctx, "foo", "bar"); err != nil {
-						t.Errorf("Failed to copy 'foo' to 'bar': %s", err)
-					}
+					assert.NoError(t, s.Set(ctx, "foo", secret.New("bar", "")))
+					assert.NoError(t, s.Move(ctx, "foo", "bar"))
 					_, err := s.Get(ctx, "foo")
-					if err == nil {
-						t.Fatalf("Should fail to get 'foo': %s", err)
-					}
+					assert.Error(t, err)
+
 					sec, err := s.Get(ctx, "bar")
-					if err != nil {
-						t.Fatalf("Failed to get 'bar': %s", err)
-					}
-					if sec.Password() != "bar" {
-						t.Errorf("Wrong content in 'bar'")
-					}
+					assert.NoError(t, err)
+					assert.Equal(t, "bar", sec.Password())
 				}
 			},
 		},
@@ -165,9 +156,7 @@ func TestMove(t *testing.T) {
 	} {
 		// common setup
 		tempdir, err := ioutil.TempDir("", "gopass-")
-		if err != nil {
-			t.Fatalf("Failed to create tempdir: %s", err)
-		}
+		assert.NoError(t, err)
 
 		s := &Store{
 			alias: "",
@@ -205,9 +194,7 @@ func TestDelete(t *testing.T) {
 			name: "Empty store",
 			tf: func(s *Store) func(t *testing.T) {
 				return func(t *testing.T) {
-					if err := s.Delete(ctx, "foo"); err == nil {
-						t.Errorf("Should fail to delete non-existing entries in empty store")
-					}
+					assert.Error(t, s.Delete(ctx, "foo"))
 				}
 			},
 		},
@@ -215,25 +202,17 @@ func TestDelete(t *testing.T) {
 			name: "Single entry",
 			tf: func(s *Store) func(t *testing.T) {
 				return func(t *testing.T) {
-					if err := s.Set(ctx, "foo", secret.New("bar", "")); err != nil {
-						t.Fatalf("Failed to insert test data: %s", err)
-					}
-					if err := s.Delete(ctx, "foo"); err != nil {
-						t.Errorf("Failed to delete 'foo': %s", err)
-					}
+					assert.NoError(t, s.Set(ctx, "foo", secret.New("bar", "")))
+					assert.NoError(t, s.Delete(ctx, "foo"))
 					_, err := s.Get(ctx, "foo")
-					if err == nil {
-						t.Fatalf("Should fail to get 'foo': %s", err)
-					}
+					assert.Error(t, err)
 				}
 			},
 		},
 	} {
 		// common setup
 		tempdir, err := ioutil.TempDir("", "gopass-")
-		if err != nil {
-			t.Fatalf("Failed to create tempdir: %s", err)
-		}
+		assert.NoError(t, err)
 
 		s := &Store{
 			alias: "",
@@ -271,9 +250,7 @@ func TestPrune(t *testing.T) {
 			name: "Empty store",
 			tf: func(s *Store) func(t *testing.T) {
 				return func(t *testing.T) {
-					if err := s.Prune(ctx, "foo"); err == nil {
-						t.Errorf("Should fail to delete non-existing entries in empty store")
-					}
+					assert.Error(t, s.Prune(ctx, "foo"))
 				}
 			},
 		},
@@ -281,16 +258,11 @@ func TestPrune(t *testing.T) {
 			name: "Single entry",
 			tf: func(s *Store) func(t *testing.T) {
 				return func(t *testing.T) {
-					if err := s.Set(ctx, "foo", secret.New("bar", "")); err != nil {
-						t.Fatalf("Failed to insert test data: %s", err)
-					}
-					if err := s.Prune(ctx, "foo"); err != nil {
-						t.Errorf("Failed to delete 'foo': %s", err)
-					}
+					assert.NoError(t, s.Set(ctx, "foo", secret.New("bar", "")))
+					assert.NoError(t, s.Prune(ctx, "foo"))
+
 					_, err := s.Get(ctx, "foo")
-					if err == nil {
-						t.Fatalf("Should fail to get 'foo': %s", err)
-					}
+					assert.Error(t, err)
 				}
 			},
 		},
@@ -298,39 +270,26 @@ func TestPrune(t *testing.T) {
 			name: "Multi entry nested",
 			tf: func(s *Store) func(t *testing.T) {
 				return func(t *testing.T) {
-					if err := s.Set(ctx, "foo/bar/baz", secret.New("bar", "")); err != nil {
-						t.Fatalf("Failed to insert test data: %s", err)
-					}
-					if err := s.Set(ctx, "foo/bar/zab", secret.New("bar", "")); err != nil {
-						t.Fatalf("Failed to insert test data: %s", err)
-					}
-					if err := s.Prune(ctx, "foo/bar"); err != nil {
-						t.Errorf("Failed to delete 'foo': %s", err)
-					}
+					assert.NoError(t, s.Set(ctx, "foo/bar/baz", secret.New("bar", "")))
+					assert.NoError(t, s.Set(ctx, "foo/bar/zab", secret.New("bar", "")))
+					assert.NoError(t, s.Prune(ctx, "foo/bar"))
+
 					_, err := s.Get(ctx, "foo/bar/baz")
-					if err == nil {
-						t.Fatalf("Should fail to get 'foo/bar/baz': %s", err)
-					}
+					assert.Error(t, err)
+
 					_, err = s.Get(ctx, "foo/bar/zab")
-					if err == nil {
-						t.Fatalf("Should fail to get 'foo/bar/zab': %s", err)
-					}
+					assert.Error(t, err)
+
 					// delete empty folder
-					if err := s.Prune(ctx, "foo/"); err != nil {
-						t.Errorf("Failed to delete 'foo': %s", err)
-					}
-					if err := s.Prune(ctx, "foo/"); err == nil {
-						t.Errorf("Should fail to delete 'foo' again")
-					}
+					assert.NoError(t, s.Prune(ctx, "foo/"))
+					assert.Error(t, s.Prune(ctx, "foo/"))
 				}
 			},
 		},
 	} {
 		// common setup
 		tempdir, err := ioutil.TempDir("", "gopass-")
-		if err != nil {
-			t.Fatalf("Failed to create tempdir: %s", err)
-		}
+		assert.NoError(t, err)
 
 		s := &Store{
 			alias: "",

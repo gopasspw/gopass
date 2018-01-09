@@ -1,6 +1,6 @@
 // +build windows
 
-package action
+package termio
 
 import (
 	"context"
@@ -9,10 +9,10 @@ import (
 )
 
 // promptPass will prompt user's for a password by terminal.
-func (s *Action) promptPass(ctx context.Context, prompt string) (string, error) {
+func promptPass(ctx context.Context, prompt string) (string, error) {
 	if !ctxutil.IsTerminal(ctx) {
 		return "", nil
 	}
 
-	return s.askForString(ctx, prompt, "")
+	return AskForString(ctx, prompt, "")
 }

@@ -130,6 +130,6 @@ func (s *Action) showPrintQR(ctx context.Context, name, pw string) error {
 	if err != nil {
 		return exitError(ctx, ExitUnknown, err, "failed to encode '%s' as QR: %s", name, err)
 	}
-	fmt.Println(qr)
+	fmt.Fprintln(stdout, qr)
 	return nil
 }

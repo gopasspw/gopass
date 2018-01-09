@@ -26,94 +26,63 @@ func TestCleanFilename(t *testing.T) {
 
 func TestCleanPath(t *testing.T) {
 	tempdir, err := ioutil.TempDir("", "gopass-")
-	if err != nil {
-		t.Fatalf("Failed to create tempdir: %s", err)
-	}
+	assert.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(tempdir)
 	}()
+
 	m := map[string]string{
 		".": "",
 		"/home/user/../bob/.password-store": "/home/bob/.password-store",
 		"/home/user//.password-store":       "/home/user/.password-store",
 		tempdir + "/foo.gpg":                tempdir + "/foo.gpg",
 	}
+
 	usr, err := user.Current()
 	if err == nil {
 		m["~/.password-store"] = usr.HomeDir + "/.password-store"
 	}
+
 	for in, out := range m {
 		got := CleanPath(in)
 
 		// filepath.Abs turns /home/bob into C:\home\bob on Windows
 		absOut, err := filepath.Abs(out)
-		if err != nil {
-			t.Errorf("filepath.Absolute errored: %s", err)
-		}
-		if absOut != got {
-			t.Errorf("Mismatch for %s: %s != %s", in, got, absOut)
-		}
+		assert.NoError(t, err)
+		assert.Equal(t, absOut, got)
 	}
 }
 
 func TestIsDir(t *testing.T) {
 	tempdir, err := ioutil.TempDir("", "gopass-")
-	if err != nil {
-		t.Fatalf("Failed to create tempdir: %s", err)
-	}
+	assert.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(tempdir)
 	}()
+
 	fn := filepath.Join(tempdir, "foo")
-	if err := ioutil.WriteFile(fn, []byte("bar"), 0644); err != nil {
-		t.Fatalf("Failed to write test file: %s", err)
-	}
-	if !IsDir(tempdir) {
-		t.Errorf("Should be a dir: %s", tempdir)
-	}
-	if IsDir(fn) {
-		t.Errorf("Should be not dir: %s", fn)
-	}
-	if IsDir(filepath.Join(tempdir, "non-existing")) {
-		t.Errorf("Should not exist")
-	}
+	assert.NoError(t, ioutil.WriteFile(fn, []byte("bar"), 0644))
+	assert.Equal(t, true, IsDir(tempdir))
+	assert.Equal(t, false, IsDir(fn))
+	assert.Equal(t, false, IsDir(filepath.Join(tempdir, "non-existing")))
 }
 
 func TestIsFile(t *testing.T) {
 	tempdir, err := ioutil.TempDir("", "gopass-")
-	if err != nil {
-		t.Fatalf("Failed to create tempdir: %s", err)
-	}
+	assert.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(tempdir)
 	}()
-	fn := filepath.Join(tempdir, "foo")
-	if err := ioutil.WriteFile(fn, []byte("bar"), 0644); err != nil {
-		t.Fatalf("Failed to write test file: %s", err)
-	}
-	if IsFile(tempdir) {
-		t.Errorf("Should be a dir: %s", tempdir)
-	}
-	if !IsFile(fn) {
-		t.Errorf("Should be not dir: %s", fn)
-	}
-}
 
-func TestTempdir(t *testing.T) {
-	tempdir, err := ioutil.TempDir(tempdirBase(), "gopass-")
-	if err != nil {
-		t.Fatalf("Failed to create tempdir: %s", err)
-	}
-	defer func() {
-		_ = os.RemoveAll(tempdir)
-	}()
+	fn := filepath.Join(tempdir, "foo")
+	assert.NoError(t, ioutil.WriteFile(fn, []byte("bar"), 0644))
+	assert.Equal(t, false, IsFile(tempdir))
+	assert.Equal(t, true, IsFile(fn))
 }
 
 func TestShred(t *testing.T) {
 	tempdir, err := ioutil.TempDir("", "gopass-")
-	if err != nil {
-		t.Fatalf("Failed to create tempdir: %s", err)
-	}
+	assert.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(tempdir)
 	}()
@@ -121,27 +90,21 @@ func TestShred(t *testing.T) {
 	fn := filepath.Join(tempdir, "file")
 	// test successful shread
 	fh, err := os.OpenFile(fn, os.O_WRONLY|os.O_CREATE, 0644)
-	if err != nil {
-		t.Fatalf("Failed to open file: %s", err)
-	}
+	assert.NoError(t, err)
+
 	buf := make([]byte, 1024)
 	for i := 0; i < 10*1024; i++ {
 		_, _ = rand.Read(buf)
 		_, _ = fh.Write(buf)
 	}
 	_ = fh.Close()
-	if err := Shred(fn, 8); err != nil {
-		t.Fatalf("Failed to shred the file: %s", err)
-	}
-	if IsFile(fn) {
-		t.Errorf("Failed still exists after shreding: %s", fn)
-	}
+	assert.NoError(t, Shred(fn, 8))
+	assert.Equal(t, false, IsFile(fn))
 
 	// test failed
 	fh, err = os.OpenFile(fn, os.O_WRONLY|os.O_CREATE, 0400)
-	if err != nil {
-		t.Fatalf("Failed to open file: %s", err)
-	}
+	assert.NoError(t, err)
+
 	buf = make([]byte, 1024)
 	for i := 0; i < 10*1024; i++ {
 		_, _ = rand.Read(buf)
@@ -149,43 +112,27 @@ func TestShred(t *testing.T) {
 	}
 	_ = fh.Close()
 	assert.Error(t, Shred(fn, 8))
-	if !IsFile(fn) {
-		t.Errorf("File should still exist: %s", fn)
-	}
+	assert.Equal(t, true, IsFile(fn))
 }
 
 func TestIsEmptyDir(t *testing.T) {
 	tempdir, err := ioutil.TempDir("", "gopass-")
-	if err != nil {
-		t.Fatalf("Failed to create tempdir: %s", err)
-	}
+	assert.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(tempdir)
 	}()
 
 	fn := filepath.Join(tempdir, "foo", "bar", "baz", "zab")
-	if err := os.MkdirAll(fn, 0755); err != nil {
-		t.Fatalf("failed to create dir %s: %s", fn, err)
-	}
+	assert.NoError(t, os.MkdirAll(fn, 0755))
 
 	isEmpty, err := IsEmptyDir(tempdir)
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
-	if !isEmpty {
-		t.Errorf("Dir should be empty")
-	}
+	assert.NoError(t, err)
+	assert.Equal(t, true, isEmpty)
 
 	fn = filepath.Join(fn, ".config.yml")
-	if err := ioutil.WriteFile(fn, []byte("foo"), 0644); err != nil {
-		t.Fatalf("Failed to write file %s: %s", fn, err)
-	}
+	assert.NoError(t, ioutil.WriteFile(fn, []byte("foo"), 0644))
 
 	isEmpty, err = IsEmptyDir(tempdir)
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
-	if isEmpty {
-		t.Errorf("Dir should not be empty")
-	}
+	assert.NoError(t, err)
+	assert.Equal(t, false, isEmpty)
 }

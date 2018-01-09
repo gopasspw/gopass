@@ -3,51 +3,35 @@ package out
 import (
 	"context"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestPrefix(t *testing.T) {
 	ctx := context.Background()
 
-	if pfx := Prefix(ctx); pfx != "" {
-		t.Errorf("non-empty prefix: %s", pfx)
-	}
+	assert.Equal(t, "", Prefix(ctx))
 
 	ctx = AddPrefix(ctx, "[foo] ")
-	if pfx := Prefix(ctx); pfx != "[foo] " {
-		t.Errorf("invalid prefix: %s", pfx)
-	}
+	assert.Equal(t, "[foo] ", Prefix(ctx))
 
 	ctx = AddPrefix(ctx, "[bar] ")
-	if pfx := Prefix(ctx); pfx != "[foo] [bar] " {
-		t.Errorf("invalid prefix: %s", pfx)
-	}
+	assert.Equal(t, "[foo] [bar] ", Prefix(ctx))
 
 	ctx = AddPrefix(ctx, "")
-	if pfx := Prefix(ctx); pfx != "[foo] [bar] " {
-		t.Errorf("invalid prefix: %s", pfx)
-	}
+	assert.Equal(t, "[foo] [bar] ", Prefix(ctx))
 }
 
 func TestHidden(t *testing.T) {
 	ctx := context.Background()
 
-	if IsHidden(ctx) {
-		t.Errorf("hidden should be false")
-	}
-
-	if !IsHidden(WithHidden(ctx, true)) {
-		t.Errorf("hidden should be true")
-	}
+	assert.Equal(t, false, IsHidden(ctx))
+	assert.Equal(t, true, IsHidden(WithHidden(ctx, true)))
 }
 
 func TestNewline(t *testing.T) {
 	ctx := context.Background()
 
-	if !HasNewline(ctx) {
-		t.Errorf("Newline should be true")
-	}
-
-	if HasNewline(WithNewline(ctx, false)) {
-		t.Errorf("Newline should be false")
-	}
+	assert.Equal(t, true, HasNewline(ctx))
+	assert.Equal(t, false, HasNewline(WithNewline(ctx, false)))
 }

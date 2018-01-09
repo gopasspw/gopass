@@ -1,9 +1,11 @@
 package protect
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+)
 
 func TestProtect(t *testing.T) {
-	if err := Pledge(""); err != nil {
-		t.Errorf("Error: %s", err)
-	}
+	assert.NoError(t, Pledge(""))
 }

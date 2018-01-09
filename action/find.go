@@ -21,7 +21,7 @@ func (s *Action) Find(ctx context.Context, c *cli.Context) error {
 		return exitError(ctx, ExitUsage, nil, "Usage: %s find arg", s.Name)
 	}
 
-	l, err := s.Store.List(0)
+	l, err := s.Store.List(ctx, 0)
 	if err != nil {
 		return exitError(ctx, ExitList, err, "failed to list store: %s", err)
 	}
@@ -66,15 +66,15 @@ func (s *Action) findSelection(ctx context.Context, c *cli.Context, choices []st
 	switch act {
 	case "default":
 		// display or copy selected entry
-		fmt.Println(choices[sel])
+		fmt.Fprintln(stdout, choices[sel])
 		return s.show(ctx, c, choices[sel], "", false)
 	case "copy":
 		// display selected entry
-		fmt.Println(choices[sel])
+		fmt.Fprintln(stdout, choices[sel])
 		return s.show(WithClip(ctx, true), c, choices[sel], "", false)
 	case "show":
 		// display selected entry
-		fmt.Println(choices[sel])
+		fmt.Fprintln(stdout, choices[sel])
 		return s.show(WithClip(ctx, false), c, choices[sel], "", false)
 	case "sync":
 		// run sync and re-run show/find workflow

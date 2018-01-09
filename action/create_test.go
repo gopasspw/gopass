@@ -4,15 +4,16 @@ import (
 	"bytes"
 	"context"
 	"flag"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 
+	"github.com/justwatchcom/gopass/tests/gptest"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/out"
+	"github.com/justwatchcom/gopass/utils/termio"
 	"github.com/stretchr/testify/assert"
 	"github.com/urfave/cli"
 )
@@ -53,15 +54,12 @@ func TestCreateActions(t *testing.T) {
 }
 
 func TestCreate(t *testing.T) {
-	td, err := ioutil.TempDir("", "gopass-")
-	assert.NoError(t, err)
-	defer func() {
-		_ = os.RemoveAll(td)
-	}()
+	u := gptest.NewUnitTester(t)
+	defer u.Remove()
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
-	act, err := newMock(ctx, td)
+	act, err := newMock(ctx, u)
 	assert.NoError(t, err)
 
 	buf := &bytes.Buffer{}
@@ -80,23 +78,22 @@ func TestCreate(t *testing.T) {
 }
 
 func TestCreateWebsite(t *testing.T) {
-	td, err := ioutil.TempDir("", "gopass-")
-	assert.NoError(t, err)
-	defer func() {
-		_ = os.RemoveAll(td)
-	}()
+	u := gptest.NewUnitTester(t)
+	defer u.Remove()
 
 	ctx := context.Background()
 	ctx = ctxutil.WithInteractive(ctx, false)
-	act, err := newMock(ctx, td)
+	act, err := newMock(ctx, u)
 	assert.NoError(t, err)
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
 	stdout = buf
+	termio.Stdout = buf
 	defer func() {
 		out.Stdout = os.Stdout
 		stdout = os.Stdout
+		termio.Stdout = os.Stdout
 	}()
 
 	// provide values on redirected stdin
@@ -106,10 +103,10 @@ y
 y
 5
 `
-	stdin = strings.NewReader(input)
+	termio.Stdin = strings.NewReader(input)
 	ctx = ctxutil.WithAlwaysYes(ctx, false)
 	defer func() {
-		stdin = os.Stdin
+		termio.Stdin = os.Stdin
 	}()
 
 	app := cli.NewApp()
@@ -117,7 +114,7 @@ y
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
 	c := cli.NewContext(app, fs, nil)
 
-	capture(t, func() error { return act.createWebsite(ctx, c) })
+	assert.NoError(t, act.createWebsite(ctx, c))
 	buf.Reset()
 
 	// try to create the same entry twice
@@ -127,38 +124,32 @@ y
 y
 5
 `
-	stdin = strings.NewReader(input)
+	termio.Stdin = strings.NewReader(input)
 
 	fs = flag.NewFlagSet("default", flag.ContinueOnError)
 	c = cli.NewContext(app, fs, nil)
 
-	capture(t, func() error {
-		if err := act.createWebsite(ctx, c); err == nil {
-			return fmt.Errorf("expected error")
-		}
-		return nil
-	})
+	assert.NoError(t, act.createWebsite(ctx, c))
 	buf.Reset()
 }
 
 func TestCreatePIN(t *testing.T) {
-	td, err := ioutil.TempDir("", "gopass-")
-	assert.NoError(t, err)
-	defer func() {
-		_ = os.RemoveAll(td)
-	}()
+	u := gptest.NewUnitTester(t)
+	defer u.Remove()
 
 	ctx := context.Background()
 	ctx = ctxutil.WithInteractive(ctx, false)
-	act, err := newMock(ctx, td)
+	act, err := newMock(ctx, u)
 	assert.NoError(t, err)
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
 	stdout = buf
+	termio.Stdout = buf
 	defer func() {
 		stdout = os.Stdout
 		out.Stdout = os.Stdout
+		termio.Stdout = os.Stdout
 	}()
 
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
@@ -175,10 +166,10 @@ FooCard
 y
 8
 `
-	stdin = strings.NewReader(input)
+	termio.Stdin = strings.NewReader(input)
 	ctx = ctxutil.WithAlwaysYes(ctx, false)
 	defer func() {
-		stdin = os.Stdin
+		termio.Stdin = os.Stdin
 	}()
 
 	app := cli.NewApp()
@@ -186,28 +177,27 @@ y
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
 	c := cli.NewContext(app, fs, nil)
 
-	capture(t, func() error { return act.createPIN(ctx, c) })
+	assert.NoError(t, act.createPIN(ctx, c))
 	buf.Reset()
 }
 
 func TestCreateGeneric(t *testing.T) {
-	td, err := ioutil.TempDir("", "gopass-")
-	assert.NoError(t, err)
-	defer func() {
-		_ = os.RemoveAll(td)
-	}()
+	u := gptest.NewUnitTester(t)
+	defer u.Remove()
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
-	act, err := newMock(ctx, td)
+	act, err := newMock(ctx, u)
 	assert.NoError(t, err)
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
 	stdout = buf
+	termio.Stdout = buf
 	defer func() {
 		stdout = os.Stdout
 		out.Stdout = os.Stdout
+		termio.Stdout = os.Stdout
 	}()
 
 	// provide values on redirected stdin
@@ -217,10 +207,10 @@ y
 8
 
 `
-	stdin = strings.NewReader(input)
+	termio.Stdin = strings.NewReader(input)
 	ctx = ctxutil.WithAlwaysYes(ctx, false)
 	defer func() {
-		stdin = os.Stdin
+		termio.Stdin = os.Stdin
 	}()
 
 	app := cli.NewApp()
@@ -233,24 +223,23 @@ y
 }
 
 func TestCreateAWS(t *testing.T) {
-	td, err := ioutil.TempDir("", "gopass-")
-	assert.NoError(t, err)
-	defer func() {
-		_ = os.RemoveAll(td)
-	}()
+	u := gptest.NewUnitTester(t)
+	defer u.Remove()
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithTerminal(ctx, false)
-	act, err := newMock(ctx, td)
+	act, err := newMock(ctx, u)
 	assert.NoError(t, err)
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
 	stdout = buf
+	termio.Stdout = buf
 	defer func() {
 		out.Stdout = os.Stdout
 		stdout = os.Stdout
+		termio.Stdout = os.Stdout
 	}()
 
 	// provide values on redirected stdin
@@ -261,10 +250,10 @@ SECRETKEY
 SECRETKEY
 
 `
-	stdin = strings.NewReader(input)
+	termio.Stdin = strings.NewReader(input)
 	ctx = ctxutil.WithAlwaysYes(ctx, false)
 	defer func() {
-		stdin = os.Stdin
+		termio.Stdin = os.Stdin
 	}()
 
 	app := cli.NewApp()
@@ -277,36 +266,35 @@ SECRETKEY
 }
 
 func TestCreateGCP(t *testing.T) {
-	td, err := ioutil.TempDir("", "gopass-")
-	assert.NoError(t, err)
-	defer func() {
-		_ = os.RemoveAll(td)
-	}()
+	u := gptest.NewUnitTester(t)
+	defer u.Remove()
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
-	act, err := newMock(ctx, td)
+	act, err := newMock(ctx, u)
 	assert.NoError(t, err)
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
 	stdout = buf
+	termio.Stdout = buf
 	defer func() {
 		out.Stdout = os.Stdout
 		stdout = os.Stdout
+		termio.Stdout = os.Stdout
 	}()
 
-	tf := filepath.Join(td, "service-account.json")
+	tf := filepath.Join(u.Dir, "service-account.json")
 	assert.NoError(t, ioutil.WriteFile(tf, []byte(`{"client_email": "foobar@example.org"}`), 0600))
 	// provide values on redirected stdin
 	input := tf
 	input += `
 
 `
-	stdin = strings.NewReader(input)
+	termio.Stdin = strings.NewReader(input)
 	ctx = ctxutil.WithAlwaysYes(ctx, false)
 	defer func() {
-		stdin = os.Stdin
+		termio.Stdin = os.Stdin
 	}()
 
 	app := cli.NewApp()

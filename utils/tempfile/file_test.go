@@ -1,4 +1,4 @@
-package fsutil
+package tempfile
 
 import (
 	"context"
@@ -12,9 +12,7 @@ import (
 
 func TestTempdirBase(t *testing.T) {
 	tempdir, err := ioutil.TempDir(tempdirBase(), "gopass-")
-	if err != nil {
-		t.Fatalf("Failed to create tempdir: %s", err)
-	}
+	assert.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(tempdir)
 	}()
@@ -24,20 +22,18 @@ func TestTempFiler(t *testing.T) {
 	ctx := context.Background()
 
 	// regular tempfile
-	tf, err := TempFile(ctx, "gp-test-")
-	if err != nil {
-		t.Fatalf("Error: %s", err)
-	}
+	tf, err := New(ctx, "gp-test-")
+	assert.NoError(t, err)
 	defer func() {
 		assert.NoError(t, tf.Close())
 	}()
+
 	t.Logf("Name: %s", tf.Name())
-	if _, err := fmt.Fprintf(tf, "foobar"); err != nil {
-		t.Errorf("failed to write: %s", err)
-	}
+	_, err = fmt.Fprintf(tf, "foobar")
+	assert.NoError(t, err)
 
 	// unintialized tempfile
-	utf := tempfile{}
+	utf := File{}
 	assert.Equal(t, utf.Name(), "")
 	_, err = utf.Write([]byte("foo"))
 	assert.Error(t, err)

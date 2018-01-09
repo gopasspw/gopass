@@ -11,9 +11,9 @@ import (
 	"github.com/justwatchcom/gopass/store/secret"
 	"github.com/justwatchcom/gopass/store/sub"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
-	"github.com/justwatchcom/gopass/utils/fsutil"
 	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/justwatchcom/gopass/utils/pwgen"
+	"github.com/justwatchcom/gopass/utils/tempfile"
 	"github.com/justwatchcom/gopass/utils/tpl"
 	shellquote "github.com/kballard/go-shellquote"
 	"github.com/pkg/errors"
@@ -47,7 +47,7 @@ func (s *Action) Edit(ctx context.Context, c *cli.Context) error {
 		if nc, err := tpl.Execute(ctx, string(tmpl), name, content, s.Store); err == nil {
 			content = nc
 		} else {
-			fmt.Printf("failed to execute template: %s\n", err)
+			fmt.Fprintf(stdout, "failed to execute template: %s\n", err)
 		}
 	}
 
@@ -81,7 +81,7 @@ func (s *Action) editor(ctx context.Context, editor string, content []byte) ([]b
 		return nil, errors.New("need terminal")
 	}
 
-	tmpfile, err := fsutil.TempFile(ctx, "gopass-edit")
+	tmpfile, err := tempfile.New(ctx, "gopass-edit")
 	if err != nil {
 		return []byte{}, errors.Errorf("failed to create tmpfile %s: %s", editor, err)
 	}

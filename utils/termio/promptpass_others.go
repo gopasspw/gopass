@@ -1,6 +1,6 @@
 // +build !windows
 
-package action
+package termio
 
 import (
 	"context"
@@ -15,9 +15,9 @@ import (
 )
 
 // promptPass will prompt user's for a password by terminal.
-func (s *Action) promptPass(ctx context.Context, prompt string) (string, error) {
+func promptPass(ctx context.Context, prompt string) (string, error) {
 	if !ctxutil.IsTerminal(ctx) {
-		return s.askForString(ctx, prompt, "")
+		return AskForString(ctx, prompt, "")
 	}
 
 	// Make a copy of STDIN's state to restore afterward
@@ -36,16 +36,15 @@ func (s *Action) promptPass(ctx context.Context, prompt string) (string, error) 
 	sigch := make(chan os.Signal, 1)
 	signal.Notify(sigch, os.Interrupt)
 	go func() {
-		for range sigch {
-			if err := terminal.Restore(fd, oldState); err != nil {
-				out.Red(ctx, "Failed to restore terminal: %s", err)
-			}
-			os.Exit(1)
+		<-sigch
+		if err := terminal.Restore(fd, oldState); err != nil {
+			out.Red(ctx, "Failed to restore terminal: %s", err)
 		}
+		os.Exit(1)
 	}()
 
-	fmt.Fprintf(stdout, "%s: ", prompt)
+	fmt.Fprintf(Stdout, "%s: ", prompt)
 	passBytes, err := terminal.ReadPassword(fd)
-	fmt.Fprintln(stdout, "")
+	fmt.Fprintln(Stdout, "")
 	return string(passBytes), err
 }

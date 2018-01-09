@@ -1,10 +1,12 @@
 package qrcon
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+)
 
 func TestQRCode(t *testing.T) {
 	_, err := QRCode("http://www.justwatch.com/")
-	if err != nil {
-		t.Fatalf("Failed to generate QR Code")
-	}
+	assert.NoError(t, err)
 }

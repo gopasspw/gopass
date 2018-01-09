@@ -11,6 +11,7 @@ import (
 	"github.com/justwatchcom/gopass/utils/cui"
 	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/justwatchcom/gopass/utils/pwgen/xkcdgen"
+	"github.com/justwatchcom/gopass/utils/termio"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"
 )
@@ -26,7 +27,7 @@ func (s *Action) Initialized(ctx context.Context, c *cli.Context) error {
 	}
 	if !s.Store.Initialized() {
 		if ctxutil.IsInteractive(ctx) {
-			if ok, err := s.askForBool(ctx, "It seems you are new to gopass. Do you want to run the onboarding wizard?", true); err == nil && ok {
+			if ok, err := termio.AskForBool(ctx, "It seems you are new to gopass. Do you want to run the onboarding wizard?", true); err == nil && ok {
 				if err := s.InitOnboarding(ctx, c); err != nil {
 					return exitError(ctx, ExitUnknown, err, "failed to run onboarding wizard: %s", err)
 				}
@@ -182,7 +183,7 @@ https://github.com/justwatchcom/gopass/blob/master/docs/entropy.md`)
 		out.Green(ctx, "-> OK")
 		out.Print(ctx, color.MagentaString("Passphrase: ")+color.HiGreenString(passphrase))
 	} else {
-		if want, err := s.askForBool(ctx, "Continue?", true); err != nil || !want {
+		if want, err := termio.AskForBool(ctx, "Continue?", true); err != nil || !want {
 			return errors.Wrapf(err, "User aborted")
 		}
 		ctx := out.WithPrefix(ctx, " ")
@@ -225,7 +226,7 @@ func (s *Action) initHasUseablePrivateKeys(ctx context.Context) bool {
 
 func (s *Action) initSetupGitRemote(ctx context.Context, team, remote string) error {
 	var err error
-	remote, err = s.askForString(ctx, "Please enter the git remote for your shared store", remote)
+	remote, err = termio.AskForString(ctx, "Please enter the git remote for your shared store", remote)
 	if err != nil {
 		return errors.Wrapf(err, "failed to read user input")
 	}
@@ -259,13 +260,13 @@ func (s *Action) initLocal(ctx context.Context, c *cli.Context) error {
 
 	out.Print(ctx, "Configuring your local store ...")
 
-	if want, err := s.askForBool(ctx, "Do you want to add a git remote?", false); err == nil && want {
+	if want, err := termio.AskForBool(ctx, "Do you want to add a git remote?", false); err == nil && want {
 		out.Print(ctx, "Configuring the git remote ...")
 		if err := s.initSetupGitRemote(ctx, "", ""); err != nil {
 			return errors.Wrapf(err, "failed to setup git remote")
 		}
 		// autosync
-		if want, err := s.askForBool(ctx, "Do you want to automatically push any changes to the git remote (if any)?", true); err == nil {
+		if want, err := termio.AskForBool(ctx, "Do you want to automatically push any changes to the git remote (if any)?", true); err == nil {
 			s.cfg.Root.AutoSync = want
 		}
 	} else {
@@ -273,7 +274,7 @@ func (s *Action) initLocal(ctx context.Context, c *cli.Context) error {
 	}
 
 	// noconfirm
-	if want, err := s.askForBool(ctx, "Do you want to always confirm recipients when encrypting?", false); err == nil {
+	if want, err := termio.AskForBool(ctx, "Do you want to always confirm recipients when encrypting?", false); err == nil {
 		s.cfg.Root.NoConfirm = !want
 	}
 
@@ -296,7 +297,7 @@ func (s *Action) initCreateTeam(ctx context.Context, c *cli.Context, team, remot
 	}
 
 	// name of the new team
-	team, err = s.askForString(ctx, "Please enter the name of your team (may contain slashes)", team)
+	team, err = termio.AskForString(ctx, "Please enter the name of your team (may contain slashes)", team)
 	if err != nil {
 		return errors.Wrapf(err, "failed to read user input")
 	}
@@ -328,14 +329,14 @@ func (s *Action) initJoinTeam(ctx context.Context, c *cli.Context, team, remote 
 	}
 
 	// name of the existing team
-	team, err = s.askForString(ctx, "Please enter the name of your team (may contain slashes)", team)
+	team, err = termio.AskForString(ctx, "Please enter the name of your team (may contain slashes)", team)
 	if err != nil {
 		return err
 	}
 	ctx = out.AddPrefix(ctx, "["+team+"]")
 
 	out.Print(ctx, "Configuring git remote ...")
-	remote, err = s.askForString(ctx, "Please enter the git remote for your shared store", remote)
+	remote, err = termio.AskForString(ctx, "Please enter the git remote for your shared store", remote)
 	if err != nil {
 		return err
 	}

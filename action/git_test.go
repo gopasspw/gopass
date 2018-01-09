@@ -4,11 +4,10 @@ import (
 	"bytes"
 	"context"
 	"flag"
-	"io/ioutil"
 	"os"
-	"strings"
 	"testing"
 
+	"github.com/justwatchcom/gopass/tests/gptest"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/stretchr/testify/assert"
@@ -16,25 +15,22 @@ import (
 )
 
 func TestGit(t *testing.T) {
-	td, err := ioutil.TempDir("", "gopass-")
-	assert.NoError(t, err)
-	defer func() {
-		_ = os.RemoveAll(td)
-	}()
+	u := gptest.NewUnitTester(t)
+	defer u.Remove()
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithInteractive(ctx, false)
-	ctx = ctxutil.WithDebug(ctx, true)
-	ctx = ctxutil.WithVerbose(ctx, true)
 
-	act, err := newMock(ctx, td)
+	act, err := newMock(ctx, u)
 	assert.NoError(t, err)
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
+	stdout = buf
 	defer func() {
 		out.Stdout = os.Stdout
+		stdout = os.Stdout
 	}()
 
 	app := cli.NewApp()
@@ -51,13 +47,8 @@ func TestGit(t *testing.T) {
 	fs = flag.NewFlagSet("default", flag.ContinueOnError)
 	assert.NoError(t, fs.Parse([]string{"status"}))
 	c = cli.NewContext(app, fs, nil)
-	out := capture(t, func() error {
-		return act.Git(ctx, c)
-	})
-	want := `On branch master
-nothing to commit`
-	if !strings.HasPrefix(out, want) {
-		t.Errorf("'%s' != '%s'", want, out)
-	}
+	assert.NoError(t, act.Git(ctx, c))
+	want := "[root] Running git status\n"
+	assert.Contains(t, want, buf.String())
 	buf.Reset()
 }

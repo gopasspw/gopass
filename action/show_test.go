@@ -4,11 +4,12 @@ import (
 	"bytes"
 	"context"
 	"flag"
-	"io/ioutil"
 	"os"
 	"testing"
 
 	"github.com/fatih/color"
+	"github.com/justwatchcom/gopass/store/secret"
+	"github.com/justwatchcom/gopass/tests/gptest"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/stretchr/testify/assert"
@@ -16,22 +17,21 @@ import (
 )
 
 func TestShow(t *testing.T) {
-	td, err := ioutil.TempDir("", "gopass-")
-	assert.NoError(t, err)
-	defer func() {
-		_ = os.RemoveAll(td)
-	}()
+	u := gptest.NewUnitTester(t)
+	defer u.Remove()
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithTerminal(ctx, false)
-	act, err := newMock(ctx, td)
+	act, err := newMock(ctx, u)
 	assert.NoError(t, err)
 
 	color.NoColor = true
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
+	stdout = buf
 	defer func() {
+		stdout = os.Stdout
 		out.Stdout = os.Stdout
 	}()
 
@@ -43,7 +43,7 @@ func TestShow(t *testing.T) {
 	c := cli.NewContext(app, fs, nil)
 
 	assert.NoError(t, act.Show(ctx, c))
-	assert.Equal(t, "0xDEADBEEF", buf.String())
+	assert.Equal(t, "secret", buf.String())
 	buf.Reset()
 
 	// show --sync foo
@@ -57,6 +57,16 @@ func TestShow(t *testing.T) {
 	c = cli.NewContext(app, fs, nil)
 
 	assert.NoError(t, act.Show(ctx, c))
-	assert.Equal(t, "0xDEADBEEF", buf.String())
+	assert.Equal(t, "secret", buf.String())
+	buf.Reset()
+
+	// show dir
+	assert.NoError(t, act.Store.Set(ctx, "bar/baz", secret.New("123", "---\nbar: zab")))
+	fs = flag.NewFlagSet("default", flag.ContinueOnError)
+	assert.NoError(t, fs.Parse([]string{"bar"}))
+	c = cli.NewContext(app, fs, nil)
+
+	assert.NoError(t, act.Show(ctx, c))
+	assert.Equal(t, "bar\n└── baz\n\n", buf.String())
 	buf.Reset()
 }
