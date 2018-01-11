@@ -627,7 +627,7 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 				{
 					Name:    "add",
 					Aliases: []string{"mount"},
-					Usage:   "Mount an password store",
+					Usage:   "Mount a password store",
 					Description: "" +
 						"This command allows for mounting an existing or new password store " +
 						"at any path in an existing root store.",
