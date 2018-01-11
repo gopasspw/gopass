@@ -27,6 +27,24 @@ func (r *Store) GitVersion(ctx context.Context) semver.Version {
 	return r.store.GitVersion(ctx)
 }
 
+// GitAddRemote adds a git remote
+func (r *Store) GitAddRemote(ctx context.Context, name, remote, url string) error {
+	ctx, store, _ := r.getStore(ctx, name)
+	return store.GitAddRemote(ctx, remote, url)
+}
+
+// GitPull performs a git pull
+func (r *Store) GitPull(ctx context.Context, name, origin, remote string) error {
+	ctx, store, _ := r.getStore(ctx, name)
+	return store.GitPush(ctx, origin, remote)
+}
+
+// GitPush performs a git push
+func (r *Store) GitPush(ctx context.Context, name, origin, remote string) error {
+	ctx, store, _ := r.getStore(ctx, name)
+	return store.GitPush(ctx, origin, remote)
+}
+
 // Git runs arbitrary git commands on this store and all substores
 func (r *Store) Git(ctx context.Context, name string, recurse, force bool, args ...string) error {
 	// run on selected store only

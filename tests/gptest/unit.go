@@ -51,13 +51,14 @@ func NewUnitTester(t *testing.T) *Unit {
 		Dir:        td,
 	}
 	u.env = map[string]string{
-		"CHECKPOINT_DISABLE": "true",
-		"GNUPGHOME":          u.GPGHome(),
-		"GOPASS_CONFIG":      u.GPConfig(),
-		"GOPASS_HOMEDIR":     u.Dir,
-		"GOPASS_NOCOLOR":     "true",
-		"GOPASS_NO_NOTIFY":   "true",
-		"PAGER":              "",
+		"CHECKPOINT_DISABLE":        "true",
+		"GNUPGHOME":                 u.GPGHome(),
+		"GOPASS_CONFIG":             u.GPConfig(),
+		"GOPASS_EXPERIMENTAL_GOGIT": "",
+		"GOPASS_HOMEDIR":            u.Dir,
+		"GOPASS_NOCOLOR":            "true",
+		"GOPASS_NO_NOTIFY":          "true",
+		"PAGER":                     "",
 	}
 	assert.NoError(t, setupEnv(u.env))
 	assert.NoError(t, os.Mkdir(u.GPGHome(), 0600))

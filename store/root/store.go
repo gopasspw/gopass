@@ -39,7 +39,11 @@ func New(ctx context.Context, cfg *config.Config, gpg gpger) (*Store, error) {
 	}
 
 	// create the base store
-	r.store = sub.New("", r.Path(), gpg)
+	s, err := sub.New("", r.Path(), gpg)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to initialize the root store at '%s': %s", r.Path(), err)
+	}
+	r.store = s
 
 	// initialize all mounts
 	for alias, sc := range cfg.Mounts {

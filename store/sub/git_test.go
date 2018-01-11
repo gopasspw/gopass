@@ -21,8 +21,8 @@ func TestGit(t *testing.T) {
 	s, err := createSubStore(tempdir)
 	assert.NoError(t, err)
 
-	assert.Error(t, s.Git(ctx, "status"))
-	assert.Error(t, s.GitPush(ctx, "origin", "master"))
+	assert.NoError(t, s.Git(ctx, "status"))
+	assert.NoError(t, s.GitPush(ctx, "origin", "master"))
 
 	t.Skip("flaky")
 	assert.NoError(t, s.GitInit(ctx, "", "", ""))

@@ -8,6 +8,8 @@ import (
 	"strings"
 
 	gitcli "github.com/justwatchcom/gopass/backend/git/cli"
+	"github.com/justwatchcom/gopass/backend/git/gogit"
+	gitmock "github.com/justwatchcom/gopass/backend/git/mock"
 	"github.com/justwatchcom/gopass/store"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/fsutil"
@@ -30,14 +32,27 @@ type Store struct {
 }
 
 // New creates a new store, copying settings from the given root store
-func New(alias string, path string, gpg gpger) *Store {
+func New(alias string, path string, gpg gpger) (*Store, error) {
 	path = fsutil.CleanPath(path)
-	return &Store{
+	s := &Store{
 		alias: alias,
 		path:  path,
 		gpg:   gpg,
-		git:   gitcli.New(path, gpg.Binary()),
+		git:   gitmock.New(),
 	}
+	if gg := os.Getenv("GOPASS_EXPERIMENTAL_GOGIT"); gg != "" {
+		git, err := gogit.Open(path)
+		if err == nil {
+			s.git = git
+		}
+		return s, nil
+	}
+
+	git, err := gitcli.Open(path, gpg.Binary())
+	if err == nil {
+		s.git = git
+	}
+	return s, nil
 }
 
 // idFile returns the path to the recipient list for this store

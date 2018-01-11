@@ -3,6 +3,7 @@ package cli
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -22,12 +23,15 @@ type Git struct {
 	gpg  string
 }
 
-// New creates a new git cli based git backend
-func New(path, gpg string) *Git {
+// Open creates a new git cli based git backend
+func Open(path, gpg string) (*Git, error) {
+	if !fsutil.IsDir(filepath.Join(path, ".git")) {
+		return nil, fmt.Errorf("git repo does not exist")
+	}
 	return &Git{
 		path: path,
 		gpg:  gpg,
-	}
+	}, nil
 }
 
 // Clone clones an existing git repo and returns a new cli based git backend
@@ -41,6 +45,43 @@ func Clone(ctx context.Context, gpg, repo, path string) (*Git, error) {
 		return nil, err
 	}
 	g.path = path
+	return g, nil
+}
+
+// Init initializes this store's git repo
+func Init(ctx context.Context, path, gpg, signKey, userName, userEmail string) (*Git, error) {
+	g := &Git{
+		path: path,
+		gpg:  gpg,
+	}
+	// the git repo may be empty (i.e. no branches, cloned from a fresh remote)
+	// or already initialized. Only run git init if the folder is completely empty
+	if !g.IsInitialized() {
+		if err := g.Cmd(ctx, "Init", "init"); err != nil {
+			return nil, errors.Errorf("Failed to initialize git: %s", err)
+		}
+	}
+
+	// initialize the local git config
+	if err := g.InitConfig(ctx, signKey, userName, userEmail); err != nil {
+		return g, errors.Errorf("failed to configure git: %s", err)
+	}
+
+	// add current content of the store
+	if err := g.Add(ctx, g.path); err != nil {
+		return g, errors.Wrapf(err, "failed to add '%s' to git", g.path)
+	}
+
+	// commit if there is something to commit
+	if !g.HasStagedChanges(ctx) {
+		out.Debug(ctx, "No staged changes")
+		return g, nil
+	}
+
+	if err := g.Commit(ctx, "Add current content of password store"); err != nil {
+		return g, errors.Wrapf(err, "failed to commit changes to git")
+	}
+
 	return g, nil
 }
 
@@ -62,39 +103,6 @@ func (g *Git) Cmd(ctx context.Context, name string, args ...string) error {
 	if err := cmd.Run(); err != nil {
 		out.Debug(ctx, "Output of '%s %+v': '%s'", cmd.Path, cmd.Args, buf.String())
 		return errors.Wrapf(err, "failed to run command %s %+v", cmd.Path, cmd.Args)
-	}
-
-	return nil
-}
-
-// Init initializes this store's git repo
-func (g *Git) Init(ctx context.Context, signKey, userName, userEmail string) error {
-	// the git repo may be empty (i.e. no branches, cloned from a fresh remote)
-	// or already initialized. Only run git init if the folder is completely empty
-	if !g.IsInitialized() {
-		if err := g.Cmd(ctx, "Init", "init"); err != nil {
-			return errors.Errorf("Failed to initialize git: %s", err)
-		}
-	}
-
-	// initialize the local git config
-	if err := g.InitConfig(ctx, signKey, userName, userEmail); err != nil {
-		return errors.Errorf("failed to configure git: %s", err)
-	}
-
-	// add current content of the store
-	if err := g.Add(ctx, g.path); err != nil {
-		return errors.Wrapf(err, "failed to add '%s' to git", g.path)
-	}
-
-	// commit if there is something to commit
-	if !g.HasStagedChanges(ctx) {
-		out.Debug(ctx, "No staged changes")
-		return nil
-	}
-
-	if err := g.Commit(ctx, "Add current content of password store"); err != nil {
-		return errors.Wrapf(err, "failed to commit changes to git")
 	}
 
 	return nil
@@ -205,4 +213,9 @@ func (g *Git) Push(ctx context.Context, remote, branch string) error {
 // Pull pulls from the git remote
 func (g *Git) Pull(ctx context.Context, remote, branch string) error {
 	return g.PushPull(ctx, "pull", remote, branch)
+}
+
+// AddRemote adds a new remote
+func (g *Git) AddRemote(ctx context.Context, remote, url string) error {
+	return g.Cmd(ctx, "gitAddRemote", "remote", "add", remote, url)
 }

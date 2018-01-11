@@ -232,14 +232,14 @@ func (s *Action) initSetupGitRemote(ctx context.Context, team, remote string) er
 	}
 	{
 		ctx := out.WithHidden(ctx, true)
-		if err := s.Store.Git(ctx, team, false, false, "remote", "add", "origin", remote); err != nil {
+		if err := s.Store.GitAddRemote(ctx, team, "origin", remote); err != nil {
 			return errors.Wrapf(err, "failed to add git remote")
 		}
 		// initial pull, in case the remote is non-empty
-		if err := s.Store.Git(ctx, team, false, false, "pull", "origin", "master"); err != nil {
+		if err := s.Store.GitPull(ctx, team, "origin", "master"); err != nil {
 			out.Debug(ctx, "Initial git pull failed: %s", err)
 		}
-		if err := s.Store.Git(ctx, team, false, false, "push", "origin", "master"); err != nil {
+		if err := s.Store.GitPush(ctx, team, "origin", "master"); err != nil {
 			return errors.Wrapf(err, "failed to push to git remote")
 		}
 	}
