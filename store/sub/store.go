@@ -7,9 +7,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	gitcli "github.com/justwatchcom/gopass/backend/git/cli"
-	"github.com/justwatchcom/gopass/backend/git/gogit"
-	gitmock "github.com/justwatchcom/gopass/backend/git/mock"
+	gitcli "github.com/justwatchcom/gopass/backend/sync/git/cli"
+	"github.com/justwatchcom/gopass/backend/sync/git/gogit"
+	gitmock "github.com/justwatchcom/gopass/backend/sync/git/mock"
 	"github.com/justwatchcom/gopass/store"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/fsutil"

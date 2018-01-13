@@ -61,6 +61,7 @@ clean:
 	@rm -f gopass-*.tar.gz
 	@rm -f gopass-*-*
 	@rm -f tests/tests
+	@rm -rf dist/*
 	@$(call ok)
 
 build:

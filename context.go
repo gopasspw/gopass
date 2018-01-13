@@ -6,7 +6,7 @@ import (
 	"runtime"
 
 	"github.com/fatih/color"
-	"github.com/justwatchcom/gopass/backend/gpg"
+	"github.com/justwatchcom/gopass/backend/crypto/gpg"
 	"github.com/justwatchcom/gopass/config"
 	"github.com/justwatchcom/gopass/store/sub"
 	"github.com/justwatchcom/gopass/utils/ctxutil"

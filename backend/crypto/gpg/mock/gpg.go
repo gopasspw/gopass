@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/blang/semver"
-	"github.com/justwatchcom/gopass/backend/gpg"
+	"github.com/justwatchcom/gopass/backend/crypto/gpg"
 	"github.com/pkg/errors"
 )
 

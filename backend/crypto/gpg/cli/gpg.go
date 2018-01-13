@@ -11,7 +11,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/justwatchcom/gopass/backend/gpg"
+	"github.com/justwatchcom/gopass/backend/crypto/gpg"
 	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/pkg/errors"
 )

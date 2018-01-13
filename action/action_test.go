@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/blang/semver"
-	gpgmock "github.com/justwatchcom/gopass/backend/gpg/mock"
+	gpgmock "github.com/justwatchcom/gopass/backend/crypto/gpg/mock"
 	"github.com/justwatchcom/gopass/config"
 	"github.com/justwatchcom/gopass/tests/gptest"
 	"github.com/stretchr/testify/assert"

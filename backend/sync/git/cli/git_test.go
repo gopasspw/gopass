@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	gpgmock "github.com/justwatchcom/gopass/backend/gpg/mock"
+	gpgmock "github.com/justwatchcom/gopass/backend/crypto/gpg/mock"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/stretchr/testify/assert"

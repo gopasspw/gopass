@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	git "github.com/justwatchcom/gopass/backend/git/cli"
+	git "github.com/justwatchcom/gopass/backend/sync/git/cli"
 	"github.com/justwatchcom/gopass/tests/gptest"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/out"

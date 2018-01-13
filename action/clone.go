@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/fatih/color"
-	git "github.com/justwatchcom/gopass/backend/git/cli"
+	git "github.com/justwatchcom/gopass/backend/sync/git/cli"
 	"github.com/justwatchcom/gopass/config"
 	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/justwatchcom/gopass/utils/termio"
