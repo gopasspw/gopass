@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/fatih/color"
-	gpgmock "github.com/justwatchcom/gopass/backend/gpg/mock"
+	gpgmock "github.com/justwatchcom/gopass/backend/crypto/gpg/mock"
 	"github.com/stretchr/testify/assert"
 )
 

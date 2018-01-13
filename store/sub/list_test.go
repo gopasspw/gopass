@@ -7,8 +7,8 @@ import (
 	"os"
 	"testing"
 
-	gitmock "github.com/justwatchcom/gopass/backend/git/mock"
-	gpgmock "github.com/justwatchcom/gopass/backend/gpg/mock"
+	gpgmock "github.com/justwatchcom/gopass/backend/crypto/gpg/mock"
+	gitmock "github.com/justwatchcom/gopass/backend/sync/git/mock"
 	"github.com/justwatchcom/gopass/store/secret"
 	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/stretchr/testify/assert"

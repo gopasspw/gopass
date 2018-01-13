@@ -9,8 +9,8 @@ import (
 	"strings"
 
 	"github.com/blang/semver"
-	"github.com/justwatchcom/gopass/backend/gpg"
-	gpgcli "github.com/justwatchcom/gopass/backend/gpg/cli"
+	"github.com/justwatchcom/gopass/backend/crypto/gpg"
+	gpgcli "github.com/justwatchcom/gopass/backend/crypto/gpg/cli"
 	"github.com/justwatchcom/gopass/config"
 	"github.com/justwatchcom/gopass/store/root"
 	"github.com/justwatchcom/gopass/utils/out"

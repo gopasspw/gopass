@@ -5,8 +5,8 @@ import (
 	"os"
 
 	"github.com/blang/semver"
-	gitcli "github.com/justwatchcom/gopass/backend/git/cli"
-	"github.com/justwatchcom/gopass/backend/git/gogit"
+	gitcli "github.com/justwatchcom/gopass/backend/sync/git/cli"
+	"github.com/justwatchcom/gopass/backend/sync/git/gogit"
 	"github.com/pkg/errors"
 )
 

@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/blang/semver"
-	"github.com/justwatchcom/gopass/backend/gpg"
+	"github.com/justwatchcom/gopass/backend/crypto/gpg"
 )
 
 type gpger interface {

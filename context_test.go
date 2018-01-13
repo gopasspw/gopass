@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/justwatchcom/gopass/backend/gpg"
+	"github.com/justwatchcom/gopass/backend/crypto/gpg"
 	"github.com/justwatchcom/gopass/config"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/stretchr/testify/assert"
