@@ -11,16 +11,17 @@ import (
 
 // StoreConfig is a per-store (root or mount) config
 type StoreConfig struct {
-	AskForMore  bool   `yaml:"askformore"`  // ask for more data on generate
-	AutoImport  bool   `yaml:"autoimport"`  // import missing public keys w/o asking
-	AutoSync    bool   `yaml:"autosync"`    // push to git remote after commit, pull before push if necessary
-	ClipTimeout int    `yaml:"cliptimeout"` // clear clipboard after seconds
-	NoConfirm   bool   `yaml:"noconfirm"`   // do not confirm recipients when encrypting
-	NoPager     bool   `yaml:"nopager"`     // do not invoke a pager to display long lists
-	Path        string `yaml:"path"`        // path to the root store
-	SafeContent bool   `yaml:"safecontent"` // avoid showing passwords in terminal
-	UseSymbols  bool   `yaml:"usesymbols"`  // always use symbols when generating passwords
-	NoColor     bool   `yaml:"nocolor"`     // do not use color when outputing text
+	AskForMore   bool   `yaml:"askformore"`   // ask for more data on generate
+	AutoImport   bool   `yaml:"autoimport"`   // import missing public keys w/o asking
+	AutoSync     bool   `yaml:"autosync"`     // push to git remote after commit, pull before push if necessary
+	ClipTimeout  int    `yaml:"cliptimeout"`  // clear clipboard after seconds
+	NoConfirm    bool   `yaml:"noconfirm"`    // do not confirm recipients when encrypting
+	NoPager      bool   `yaml:"nopager"`      // do not invoke a pager to display long lists
+	Path         string `yaml:"path"`         // path to the root store
+	SafeContent  bool   `yaml:"safecontent"`  // avoid showing passwords in terminal
+	UseSymbols   bool   `yaml:"usesymbols"`   // always use symbols when generating passwords
+	NoColor      bool   `yaml:"nocolor"`      // do not use color when outputing text
+	NotifyUnclip bool   `yaml:"notifyunclip"` // notify when the clipboard is successfully cleared
 }
 
 // ConfigMap returns a map of stringified config values for easy printing
