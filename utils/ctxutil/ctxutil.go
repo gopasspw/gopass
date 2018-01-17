@@ -21,6 +21,7 @@ const (
 	ctxKeyNoColor
 	ctxKeyFuzzySearch
 	ctxKeyVerbose
+	ctxNotifyUnclip
 )
 
 // WithDebug returns a context with an explizit value for debug
@@ -341,6 +342,26 @@ func IsVerbose(ctx context.Context) bool {
 	bv, ok := ctx.Value(ctxKeyVerbose).(bool)
 	if !ok {
 		return false
+	}
+	return bv
+}
+
+// WithNotifyUnclip returns a context with the value for NotifyUnclip set
+func WithNotifyUnclip(ctx context.Context, verbose bool) context.Context {
+	return context.WithValue(ctx, ctxNotifyUnclip, verbose)
+}
+
+// HasNotifyUnclip returns true if a value for NotifyUnclip has been set in this context
+func HasNotifyUnclip(ctx context.Context) bool {
+	_, ok := ctx.Value(ctxNotifyUnclip).(bool)
+	return ok
+}
+
+// IsNotifyUnclip returns the value of NotifyUnclip or the default (true)
+func IsNotifyUnclip(ctx context.Context) bool {
+	bv, ok := ctx.Value(ctxNotifyUnclip).(bool)
+	if !ok {
+		return true
 	}
 	return bv
 }

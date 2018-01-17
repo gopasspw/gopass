@@ -228,6 +228,20 @@ func TestVerbose(t *testing.T) {
 	}
 }
 
+func TestNotifyUnclip(t *testing.T) {
+	ctx := context.Background()
+
+	if !IsNotifyUnclip(ctx) {
+		t.Errorf("Vanilla ctx should not have NotifyUnclip")
+	}
+	if !IsNotifyUnclip(WithNotifyUnclip(ctx, true)) {
+		t.Errorf("Should have NotifyUnclipflag")
+	}
+	if IsNotifyUnclip(WithNotifyUnclip(ctx, false)) {
+		t.Errorf("Should not have NotifyUnclipflag")
+	}
+}
+
 func TestComposite(t *testing.T) {
 	ctx := context.Background()
 	ctx = WithDebug(ctx, true)
@@ -246,6 +260,7 @@ func TestComposite(t *testing.T) {
 	ctx = WithNoColor(ctx, true)
 	ctx = WithFuzzySearch(ctx, false)
 	ctx = WithVerbose(ctx, true)
+	ctx = WithNotifyUnclip(ctx, true)
 
 	assert.Equal(t, true, IsDebug(ctx))
 	assert.Equal(t, true, HasDebug(ctx))
@@ -294,4 +309,7 @@ func TestComposite(t *testing.T) {
 
 	assert.Equal(t, true, IsVerbose(ctx))
 	assert.Equal(t, true, HasVerbose(ctx))
+
+	assert.Equal(t, true, IsNotifyUnclip(ctx))
+	assert.Equal(t, true, HasNotifyUnclip(ctx))
 }

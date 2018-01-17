@@ -41,6 +41,9 @@ func initContext(ctx context.Context, cfg *config.Config) context.Context {
 	// never use color
 	ctx = ctxutil.WithNoColor(ctx, cfg.Root.NoColor)
 
+	// notify when the clipboard is successfully cleared
+	ctx = ctxutil.WithNotifyUnclip(ctx, cfg.Root.NotifyUnclip)
+
 	// check recipients conflicts with always trust, make sure it's not enabled
 	// when always trust is
 	if gpg.IsAlwaysTrust(ctx) {
