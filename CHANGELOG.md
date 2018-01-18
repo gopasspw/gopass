@@ -1,3 +1,12 @@
+## 1.6.10 / 2017-01-18
+
+* [ENHANCEMENT] Add Travis MacOS builds [#618]
+* [ENHANCEMENT] Make gopass build on DragonFlyBSD [#619]
+* [ENHANCEMENT] Increase test coverage [#621] [#622] [#624]
+* [BUGFIX] Properly handle sub-store configuration [#625]
+* [BUGFIX] Fix Makefile [#615] [#617]
+* [BUGFIX] Fix failing tests on MacOS [#614]
+
 ## 1.6.9 / 2017-01-05
 
 * [BUGFIX] Fix update URL check [#610]
