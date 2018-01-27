@@ -1,6 +1,11 @@
 package ctxutil
 
-import "context"
+import (
+	"context"
+	"os"
+
+	"golang.org/x/crypto/ssh/terminal"
+)
 
 type contextKey int
 
@@ -76,11 +81,7 @@ func HasTerminal(ctx context.Context) bool {
 
 // IsTerminal returns the value of terminal or the default (true)
 func IsTerminal(ctx context.Context) bool {
-	bv, ok := ctx.Value(ctxKeyTerminal).(bool)
-	if !ok {
-		return true
-	}
-	return bv
+	return terminal.IsTerminal(int(os.Stdout.Fd()))
 }
 
 // WithInteractive returns a context with an explizit value for interactive
