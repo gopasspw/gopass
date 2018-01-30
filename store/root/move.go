@@ -65,7 +65,7 @@ func (r *Store) Move(ctx context.Context, from, to string) error {
 func (r *Store) Delete(ctx context.Context, name string) error {
 	ctx, store, sn := r.getStore(ctx, name)
 	if sn == "" {
-		return errors.Errorf("can not delete a mount point. Use `gopass mount remove %s`", store.Alias())
+		return errors.Errorf("can not delete a mount point. Use `gopass mounts remove %s`", store.Alias())
 	}
 	return store.Delete(ctx, sn)
 }
@@ -74,7 +74,7 @@ func (r *Store) Delete(ctx context.Context, name string) error {
 func (r *Store) Prune(ctx context.Context, tree string) error {
 	for mp := range r.mounts {
 		if strings.HasPrefix(mp, tree) {
-			return errors.Errorf("can not prune subtree with mounts. Unmount first: `gopass mount remove %s`", mp)
+			return errors.Errorf("can not prune subtree with mounts. Unmount first: `gopass mounts remove %s`", mp)
 		}
 	}
 
