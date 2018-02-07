@@ -115,6 +115,11 @@ func parseColonIdentity(fields []string) gpg.Identity {
 			ni.Name = m[1]
 			ni.Email = m[2]
 		}
+	} else if reUIDNoEmailComment.MatchString(id) {
+		if m := reUID.FindStringSubmatch(id); len(m) > 2 {
+			ni.Name = m[1]
+			ni.Comment = strings.Trim(m[2], "()")
+		}
 	}
 	ni.CreationDate = parseTS(fields[5])
 	ni.ExpirationDate = parseTS(fields[6])
