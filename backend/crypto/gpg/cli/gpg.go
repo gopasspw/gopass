@@ -22,8 +22,9 @@ const (
 )
 
 var (
-	reUIDComment = regexp.MustCompile(`([^(<]+)\s+(\([^)]+\))\s+<([^>]+)>`)
-	reUID        = regexp.MustCompile(`([^(<]+)\s+<([^>]+)>`)
+	reUIDComment        = regexp.MustCompile(`([^(<]+)\s+(\([^)]+\))\s+<([^>]+)>`)
+	reUID               = regexp.MustCompile(`([^(<]+)\s+<([^>]+)>`)
+	reUIDNoEmailComment = regexp.MustCompile(`([^(<]+)\s+(\([^)]+\))`)
 	// defaultArgs contains the default GPG args for non-interactive use. Note: Do not use '--batch'
 	// as this will disable (necessary) passphrase questions!
 	defaultArgs = []string{"--quiet", "--yes", "--compress-algo=none", "--no-encrypt-to", "--no-auto-check-trustdb"}
