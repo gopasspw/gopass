@@ -21,7 +21,7 @@ _{{ $prog }} () {
               {{- end }}
               {{ if .Flags }}_arguments :{{ range .Flags }} "{{ . | formatFlag }}"{{ end }}{{ end }}
               _describe -t commands "{{ $prog }} {{ .Name }}" subcommands
-              {{ if or (eq .Name "copy") (eq .Name "move") (eq .Name "delete") (eq .Name "show") }}_{{ $prog }}_complete_passwords{{ end -}}
+              {{ if or (eq .Name "copy") (eq .Name "move") (eq .Name "delete") (eq .Name "show") (eq .Name "edit") }}_{{ $prog }}_complete_passwords{{ end -}}
               ;;
 {{- end }}
           *)
