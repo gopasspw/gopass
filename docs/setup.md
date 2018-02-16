@@ -25,6 +25,8 @@ key generation if these are available for your platform.
 apt-get install gnupg git rng-tools
 ```
 
+_Note:_ installing in Ubuntu 16.04 will require you to install `gnupg2`.
+
 #### RHEL & CentOS
 
 ```bash
@@ -125,7 +127,7 @@ First you need to add our archive signing key and add the package source.
 
 ```bash
 wget -O- https://www.justwatch.com/gopass/releases/0x0C92225A97F6B666.pub | sudo apt-key add -
-echo "deb https://www.justwatch.com/gopass/releases/binary-amd64 ./" > /etc/apt/sources.list.d/gopass.list
+echo "deb https://www.justwatch.com/gopass/releases/binary-amd64 ./" | sudo tee /etc/apt/sources.list.d/gopass.list
 ```
 
 Now you can update your package lists and install using `apt-get`:
