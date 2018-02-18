@@ -340,24 +340,6 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 			},
 		},
 		{
-			Name:   "fix",
-			Usage:  "Upgrade secrets",
-			Before: func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
-			Action: func(c *cli.Context) error {
-				return action.Fix(withGlobalFlags(ctx, c), c)
-			},
-			Flags: []cli.Flag{
-				cli.BoolFlag{
-					Name:  "check, c",
-					Usage: "Only report",
-				},
-				cli.BoolFlag{
-					Name:  "force, f",
-					Usage: "Auto-correct any errors, do not ask",
-				},
-			},
-		},
-		{
 			Name:  "generate",
 			Usage: "Generate a new password",
 			Description: "" +

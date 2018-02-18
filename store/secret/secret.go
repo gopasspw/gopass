@@ -2,14 +2,18 @@ package secret
 
 import (
 	"bytes"
-	"fmt"
+	"os"
 	"strings"
 	"sync"
-
-	"github.com/justwatchcom/gopass/store"
-
-	yaml "gopkg.in/yaml.v2"
 )
+
+var debug bool
+
+func init() {
+	if gdb := os.Getenv("GOPASS_DEBUG"); gdb != "" {
+		debug = true
+	}
+}
 
 // Secret is a decoded secret
 type Secret struct {
@@ -38,39 +42,10 @@ func Parse(buf []byte) (*Secret, error) {
 	if len(lines) > 1 {
 		s.body = string(bytes.TrimSpace(lines[1]))
 	}
-	if _, err := s.decodeYAML(); err != nil {
+	if err := s.decode(); err != nil {
 		return s, err
 	}
 	return s, nil
-}
-
-// decodeYAML attempts to decode an optional YAML part of a secret
-func (s *Secret) decodeYAML() (bool, error) {
-	if !strings.HasPrefix(s.body, "---\n") && s.password != "---" {
-		return false, nil
-	}
-	d := make(map[string]interface{})
-	err := yaml.Unmarshal([]byte(s.body), &d)
-	if err != nil {
-		return true, err
-	}
-	s.data = d
-	return true, nil
-}
-
-func (s *Secret) encodeYAML() (err error) {
-	defer func() {
-		if r := recover(); r != nil {
-			err = fmt.Errorf("panic: %s", r)
-		}
-	}()
-	// update body
-	yb, err := yaml.Marshal(s.data)
-	if err != nil {
-		return err
-	}
-	s.body = "---\n" + string(yb)
-	return err
 }
 
 // Bytes encodes an secret
@@ -86,7 +61,7 @@ func (s *Secret) Bytes() ([]byte, error) {
 
 // String encodes and returns a string representation of a secret
 func (s *Secret) String() string {
-	buf := &bytes.Buffer{}
+	var buf strings.Builder
 	_, _ = buf.WriteString(s.password)
 	_, _ = buf.WriteString("\n")
 	_, _ = buf.WriteString(s.body)
@@ -135,58 +110,8 @@ func (s *Secret) SetBody(b string) error {
 	s.body = b
 	s.data = nil
 
-	_, err := s.decodeYAML()
+	err := s.decode()
 	return err
-}
-
-// Value returns the value of the given key if the body contained valid
-// YAML
-func (s *Secret) Value(key string) (string, error) {
-	s.Lock()
-	defer s.Unlock()
-
-	if s.data == nil {
-		if !strings.HasPrefix(s.body, "---\n") {
-			return "", store.ErrYAMLNoMark
-		}
-		if _, err := s.decodeYAML(); err != nil {
-			return "", err
-		}
-	}
-	if v, found := s.data[key]; found {
-		if sv, ok := v.(string); ok {
-			return sv, nil
-		}
-		return "", store.ErrYAMLValueUnsupported
-	}
-	return "", store.ErrYAMLNoKey
-}
-
-// SetValue sets a key to a given value. Will fail if an non-empty body exists
-func (s *Secret) SetValue(key, value string) error {
-	s.Lock()
-	defer s.Unlock()
-
-	if s.body == "" && s.data == nil {
-		s.data = make(map[string]interface{}, 1)
-	}
-	if s.data == nil {
-		return store.ErrYAMLNoMark
-	}
-	s.data[key] = value
-	return s.encodeYAML()
-}
-
-// DeleteKey key will delete a single key from an decoded map
-func (s *Secret) DeleteKey(key string) error {
-	s.Lock()
-	defer s.Unlock()
-
-	if s.data == nil {
-		return store.ErrYAMLNoMark
-	}
-	delete(s.data, key)
-	return s.encodeYAML()
 }
 
 // Equal returns true if two secrets are equal
@@ -209,18 +134,13 @@ func (s *Secret) Equal(other *Secret) bool {
 		return false
 	}
 
-	buf, err := s.Bytes()
-	if err != nil {
-		return false
-	}
-	bufOther, err := other.Bytes()
-	if err != nil {
-		return false
-	}
-
-	if len(buf) != len(bufOther) {
-		return false
-	}
-
 	return true
+}
+
+func (s *Secret) encode() error {
+	return s.encodeKV()
+}
+
+func (s *Secret) decode() error {
+	return s.decodeKV()
 }

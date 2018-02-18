@@ -34,18 +34,18 @@ func TestNew(t *testing.T) {
 	// delete non-existing key
 	assert.NoError(t, sec.DeleteKey("some-key"))
 
-	// set invalid YAML
-	assert.Error(t, sec.SetBody("---\nkey-only\n"))
+	// set invalid YAML, should parse as K/V
+	assert.NoError(t, sec.SetBody("---\nkey-only\n"))
 	assert.Equal(t, "---\nkey-only\n", sec.Body())
 
 	// non-YAML body
 	assert.NoError(t, sec.SetBody("key-only\n"))
 
 	// try to set value on non-YAML body
-	assert.EqualError(t, sec.SetValue("key", "value"), store.ErrYAMLNoMark.Error())
+	assert.NoError(t, sec.SetValue("key", "value"))
 
 	// delete non-existing key
-	assert.EqualError(t, sec.DeleteKey("some-key"), store.ErrYAMLNoMark.Error())
+	assert.NoError(t, sec.DeleteKey("some-key"))
 }
 
 func TestEqual(t *testing.T) {
@@ -173,7 +173,10 @@ key2: value2`),
 				"key1": "value1",
 				"key2": "value2",
 			},
-			Fail: true,
+			Body: `---
+	key1: value1
+key2: value2`,
+			Fail: false,
 		},
 		{
 			Desc: "missing YAML marker",
@@ -187,14 +190,14 @@ key2: value2`,
 	} {
 		sec, err := Parse(tc.In)
 		if tc.Fail {
-			assert.Error(t, err)
+			assert.Error(t, err, tc.Desc)
 			continue
 		} else if err != nil {
 			assert.NoError(t, err)
 			continue
 		}
-		assert.Equal(t, tc.Password, sec.Password())
-		assert.Equal(t, tc.Body, sec.Body())
+		assert.Equal(t, tc.Password, sec.Password(), tc.Desc)
+		assert.Equal(t, tc.Body, sec.Body(), tc.Desc)
 		for k, v := range tc.Data {
 			rv, err := sec.Value(k)
 			assert.NoError(t, err)
