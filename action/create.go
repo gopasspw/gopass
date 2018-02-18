@@ -141,10 +141,6 @@ func (s *Action) createWebsite(ctx context.Context, c *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	username = fsutil.CleanFilename(username)
-	if username == "" {
-		return exitError(ctx, ExitUnknown, nil, "Username must not be empty")
-	}
 
 	genPw, err = termio.AskForBool(ctx, "Do you want to generate a new password?", true)
 	if err != nil {
@@ -172,7 +168,7 @@ func (s *Action) createWebsite(ctx context.Context, c *cli.Context) error {
 		store += "/"
 	}
 
-	name := fmt.Sprintf("%swebsites/%s/%s", store, hostname, username)
+	name := fmt.Sprintf("%swebsites/%s/%s", store, fsutil.CleanFilename(hostname), fsutil.CleanFilename(username))
 	if s.Store.Exists(ctx, name) {
 		name, err = termio.AskForString(ctx, "Secret already exists, please choose another path", name)
 		if err != nil {
@@ -262,7 +258,7 @@ func (s *Action) createPIN(ctx context.Context, c *cli.Context) error {
 	if store != "" {
 		store += "/"
 	}
-	name := fmt.Sprintf("%spins/%s/%s", store, authority, application)
+	name := fmt.Sprintf("%spins/%s/%s", store, fsutil.CleanFilename(authority), fsutil.CleanFilename(application))
 	if s.Store.Exists(ctx, name) {
 		name, err = termio.AskForString(ctx, "Secret already exists, please choose another path", name)
 		if err != nil {
@@ -321,7 +317,7 @@ func (s *Action) createAWS(ctx context.Context, c *cli.Context) error {
 	if store != "" {
 		store += "/"
 	}
-	name := fmt.Sprintf("%saws/iam/%s/%s", store, account, username)
+	name := fmt.Sprintf("%saws/iam/%s/%s", store, fsutil.CleanFilename(account), fsutil.CleanFilename(username))
 	if s.Store.Exists(ctx, name) {
 		name, err = termio.AskForString(ctx, "Secret already exists, please choose another path", name)
 		if err != nil {
@@ -386,7 +382,7 @@ func (s *Action) createGCP(ctx context.Context, c *cli.Context) error {
 	if store != "" {
 		store += "/"
 	}
-	name := fmt.Sprintf("%sgcp/iam/%s/%s", store, project, username)
+	name := fmt.Sprintf("%sgcp/iam/%s/%s", store, fsutil.CleanFilename(project), fsutil.CleanFilename(username))
 	if s.Store.Exists(ctx, name) {
 		name, err = termio.AskForString(ctx, "Secret already exists, please choose another path", name)
 		if err != nil {
@@ -456,7 +452,7 @@ func (s *Action) createGeneric(ctx context.Context, c *cli.Context) error {
 	if store != "" {
 		store += "/"
 	}
-	name := fmt.Sprintf("%smisc/%s", store, shortname)
+	name := fmt.Sprintf("%smisc/%s", store, fsutil.CleanFilename(shortname))
 	if s.Store.Exists(ctx, name) {
 		name, err = termio.AskForString(ctx, "Secret already exists, please choose another path", name)
 		if err != nil {
