@@ -16,6 +16,10 @@ import (
 // method can be passed a callback to confirm the recipients immediately
 // before encryption.
 func (s *Store) Set(ctx context.Context, name string, sec *secret.Secret) error {
+	if strings.Contains(name, "//") {
+		return errors.Errorf("invalid secret name: %s", name)
+	}
+
 	p := s.passfile(name)
 
 	if !strings.HasPrefix(p, s.path) {
