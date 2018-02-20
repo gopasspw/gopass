@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
+	"strings"
 
 	"github.com/justwatchcom/gopass/backend"
 	gpgcli "github.com/justwatchcom/gopass/backend/crypto/gpg/cli"
@@ -172,7 +173,7 @@ func (s *Store) useableKeys(ctx context.Context, name string) ([]string, error) 
 
 // passfile returns the name of gpg file on disk, for the given key/name
 func (s *Store) passfile(name string) string {
-	return name + "." + s.crypto.Ext()
+	return strings.TrimPrefix(name+"."+s.crypto.Ext(), "/")
 }
 
 // String implement fmt.Stringer

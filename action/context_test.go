@@ -3,6 +3,8 @@ package action
 import (
 	"context"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestWithClip(t *testing.T) {
@@ -43,12 +45,14 @@ func TestWithPasswordOnly(t *testing.T) {
 
 func TestWithPrintQR(t *testing.T) {
 	ctx := context.Background()
+	assert.Equal(t, false, IsPrintQR(ctx))
+	assert.Equal(t, true, IsPrintQR(WithPrintQR(ctx, true)))
+}
 
-	if IsPrintQR(ctx) {
-		t.Errorf("Should be false")
-	}
-
-	if !IsPrintQR(WithPrintQR(ctx, true)) {
-		t.Errorf("Should be true")
-	}
+func TestWithRevision(t *testing.T) {
+	ctx := context.Background()
+	assert.Equal(t, "", GetRevision(ctx))
+	assert.Equal(t, "foo", GetRevision(WithRevision(ctx, "foo")))
+	assert.Equal(t, false, HasRevision(ctx))
+	assert.Equal(t, true, HasRevision(WithRevision(ctx, "foo")))
 }

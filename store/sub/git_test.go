@@ -40,3 +40,27 @@ func TestGit(t *testing.T) {
 	ctx = ctxutil.WithDebug(ctx, true)
 	assert.NoError(t, s.GitInit(backend.WithSyncBackend(ctx, backend.GitCLI), "Foo Bar", "foo.bar@example.org"))
 }
+
+func TestGitRevisions(t *testing.T) {
+	ctx := context.Background()
+
+	tempdir, err := ioutil.TempDir("", "gopass-")
+	assert.NoError(t, err)
+	defer func() {
+		_ = os.RemoveAll(tempdir)
+	}()
+
+	s, err := createSubStore(tempdir)
+	assert.NoError(t, err)
+
+	assert.NotNil(t, s.Sync())
+	assert.Equal(t, "git-mock", s.Sync().Name())
+	assert.NoError(t, s.GitInitConfig(ctx, "foo", "bar@baz.com"))
+
+	_, err = s.ListRevisions(ctx, "foo")
+	assert.Error(t, err)
+
+	sec, err := s.GetRevision(ctx, "foo", "bar")
+	assert.NoError(t, err)
+	assert.Equal(t, "", sec.Password())
+}

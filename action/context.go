@@ -9,6 +9,7 @@ const (
 	ctxKeyForce
 	ctxKeyPasswordOnly
 	ctxKeyPrintQR
+	ctxKeyRevision
 )
 
 // WithClip returns a context with the value for clip (for copy to clipboard)
@@ -66,4 +67,24 @@ func IsPrintQR(ctx context.Context) bool {
 		return false
 	}
 	return bv
+}
+
+// WithRevision returns a context withe the value of revision set
+func WithRevision(ctx context.Context, rev string) context.Context {
+	return context.WithValue(ctx, ctxKeyRevision, rev)
+}
+
+// HasRevision returns true if a value for revision was set in this context
+func HasRevision(ctx context.Context) bool {
+	sv, ok := ctx.Value(ctxKeyRevision).(string)
+	return ok && sv != ""
+}
+
+// GetRevision returns the revison set in this context or an empty string
+func GetRevision(ctx context.Context) string {
+	sv, ok := ctx.Value(ctxKeyRevision).(string)
+	if !ok {
+		return ""
+	}
+	return sv
 }

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"flag"
+	"fmt"
 	"os"
 	"testing"
 
@@ -70,5 +71,109 @@ func TestShow(t *testing.T) {
 
 	assert.NoError(t, act.Show(ctx, c))
 	assert.Equal(t, "bar\n└── baz\n\n", buf.String())
+	buf.Reset()
+}
+
+func TestShowHandleRevision(t *testing.T) {
+	u := gptest.NewUnitTester(t)
+	defer u.Remove()
+
+	ctx := context.Background()
+	ctx = ctxutil.WithAlwaysYes(ctx, true)
+	ctx = ctxutil.WithTerminal(ctx, false)
+	act, err := newMock(ctx, u)
+	assert.NoError(t, err)
+
+	color.NoColor = true
+	buf := &bytes.Buffer{}
+	out.Stdout = buf
+	stdout = buf
+	defer func() {
+		stdout = os.Stdout
+		out.Stdout = os.Stdout
+	}()
+
+	app := cli.NewApp()
+
+	// show foo
+	fs := flag.NewFlagSet("default", flag.ContinueOnError)
+	c := cli.NewContext(app, fs, nil)
+
+	assert.NoError(t, act.showHandleRevision(ctx, c, "foo", "", "baz"))
+	buf.Reset()
+}
+
+func TestShowHandleError(t *testing.T) {
+	u := gptest.NewUnitTester(t)
+	defer u.Remove()
+
+	ctx := context.Background()
+	ctx = ctxutil.WithAlwaysYes(ctx, true)
+	ctx = ctxutil.WithTerminal(ctx, false)
+	act, err := newMock(ctx, u)
+	assert.NoError(t, err)
+
+	color.NoColor = true
+	buf := &bytes.Buffer{}
+	out.Stdout = buf
+	stdout = buf
+	defer func() {
+		stdout = os.Stdout
+		out.Stdout = os.Stdout
+	}()
+
+	app := cli.NewApp()
+
+	// show foo
+	fs := flag.NewFlagSet("default", flag.ContinueOnError)
+	c := cli.NewContext(app, fs, nil)
+
+	assert.Error(t, act.showHandleError(ctx, c, "foo", false, fmt.Errorf("test")))
+	buf.Reset()
+}
+
+func TestShowHandleYAMLError(t *testing.T) {
+	u := gptest.NewUnitTester(t)
+	defer u.Remove()
+
+	ctx := context.Background()
+	ctx = ctxutil.WithAlwaysYes(ctx, true)
+	ctx = ctxutil.WithTerminal(ctx, false)
+	act, err := newMock(ctx, u)
+	assert.NoError(t, err)
+
+	color.NoColor = true
+	buf := &bytes.Buffer{}
+	out.Stdout = buf
+	stdout = buf
+	defer func() {
+		stdout = os.Stdout
+		out.Stdout = os.Stdout
+	}()
+
+	assert.Error(t, act.showHandleYAMLError(ctx, "foo", "bar", fmt.Errorf("test")))
+	buf.Reset()
+}
+
+func TestShowPrintQR(t *testing.T) {
+	u := gptest.NewUnitTester(t)
+	defer u.Remove()
+
+	ctx := context.Background()
+	ctx = ctxutil.WithAlwaysYes(ctx, true)
+	ctx = ctxutil.WithTerminal(ctx, false)
+	act, err := newMock(ctx, u)
+	assert.NoError(t, err)
+
+	color.NoColor = true
+	buf := &bytes.Buffer{}
+	out.Stdout = buf
+	stdout = buf
+	defer func() {
+		stdout = os.Stdout
+		out.Stdout = os.Stdout
+	}()
+
+	assert.NoError(t, act.showPrintQR(ctx, "foo", "bar"))
 	buf.Reset()
 }
