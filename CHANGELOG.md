@@ -1,3 +1,10 @@
+## 1.6.11 / 2017-02-20
+
+* [ENHANCEMENT] Documentation updates [#648] [#656]
+* [ENHANCEMENT] Add secret completions to edit command in zsh [#654]
+* [BUGFIX] Avoid escaping values added to secrets [#658]
+* [BUGFIX] Fix parsing of GPG UIDs [#650]
+
 ## 1.6.10 / 2017-01-18
 
 * [ENHANCEMENT] Add Travis MacOS builds [#618]
