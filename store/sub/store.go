@@ -9,6 +9,7 @@ import (
 	gpgcli "github.com/justwatchcom/gopass/backend/crypto/gpg/cli"
 	gpgmock "github.com/justwatchcom/gopass/backend/crypto/gpg/mock"
 	"github.com/justwatchcom/gopass/backend/crypto/xc"
+	"github.com/justwatchcom/gopass/backend/crypto/trezor"
 	"github.com/justwatchcom/gopass/backend/store/fs"
 	kvmock "github.com/justwatchcom/gopass/backend/store/kv/mock"
 	gitcli "github.com/justwatchcom/gopass/backend/sync/git/cli"
@@ -104,6 +105,13 @@ func New(ctx context.Context, alias, path string, cfgdir string) (*Store, error)
 		//out.Red(ctx, "WARNING: Using no-op crypto backend (NO ENCRYPTION)!")
 		s.crypto = gpgmock.New()
 		out.Debug(ctx, "Using Crypto Backend: gpg-mock")
+	case backend.TREZOR:
+		out.Debug(ctx, "Using Crypto Backend: trezor")
+		crypto, err := trezor.New(cfgdir)
+		if err != nil {
+			return nil, err
+		}
+		s.crypto = crypto
 	default:
 		return nil, fmt.Errorf("no valid crypto backend selected")
 	}

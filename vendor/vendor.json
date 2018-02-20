@@ -106,6 +106,12 @@
 			"revisionTime": "2018-02-02T18:43:18Z"
 		},
 		{
+			"checksumSHA1": "XNHQiRltA7NQJV0RvUroY+cf+zg=",
+			"path": "github.com/golang/protobuf/protoc-gen-go/descriptor",
+			"revision": "bbd03ef6da3a115852eaf24c8a1c46aeb39aa175",
+			"revisionTime": "2018-02-02T18:43:18Z"
+		},
+		{
 			"checksumSHA1": "aAhauhzbr8Om2gxyU1Mdu1wdkRo=",
 			"path": "github.com/google/go-cmp/cmp",
 			"revision": "ab3beb0f1673c5cab43e36db4ea73c2613100e69",
@@ -130,6 +136,13 @@
 			"revisionTime": "2017-12-15T19:45:42Z"
 		},
 		{
+			"checksumSHA1": "En2AWOs3VBTZCHJS5gISl19+FwQ=",
+			"path": "github.com/gotk3/gotk3",
+			"revision": "518e0924bf632ade2bad7ca40da7487a4b57e748",
+			"revisionTime": "2018-02-18T09:36:26Z",
+			"tree": true
+		},
+		{
 			"checksumSHA1": "iCsyavJDnXC9OY//p52IWJWy7PY=",
 			"path": "github.com/jbenet/go-context/io",
 			"revision": "d14ea06fba99483203c19d92cfcd13ebe73135f4",
@@ -140,6 +153,13 @@
 			"path": "github.com/jroimartin/gocui",
 			"revision": "4f518eddb04b8f73870836b6d1941e8aa3c06637",
 			"revisionTime": "2017-08-27T14:52:36Z"
+		},
+		{
+			"checksumSHA1": "L6TC50F+mDo2y4znuzV6u5RLXRY=",
+			"path": "github.com/karalabe/hid",
+			"revision": "93a94ab6671087f0768f1d4e701c0ec14f449df9",
+			"revisionTime": "2017-11-09T11:27:46Z",
+			"tree": true
 		},
 		{
 			"checksumSHA1": "+IzngblnBQNh+GmsS2O7jqmzSVQ=",
@@ -231,6 +251,24 @@
 			"path": "github.com/pmezard/go-difflib/difflib",
 			"revision": "2aa2c176b9dab406a6970f6a55f513e8a8c8b18f",
 			"revisionTime": "2017-08-14T20:04:35Z"
+		},
+		{
+			"checksumSHA1": "oX8M3Mh3Y4PYuOh4YbR28QXa6tk=",
+			"path": "github.com/rendaw/go-trezor",
+			"revision": "c50ba080994ee994dce00ca7bc548fe1bce9da1f",
+			"revisionTime": "2018-02-20T20:19:11Z"
+		},
+		{
+			"checksumSHA1": "WxgQHxjiUVER8wTwAuQZ7tmgUKY=",
+			"path": "github.com/rendaw/go-trezor-encrypt",
+			"revision": "69736613eb07338cd776dbe5af1ef98b79f758e6",
+			"revisionTime": "2018-02-20T20:20:25Z"
+		},
+		{
+			"checksumSHA1": "z1vMvu7+r3P2E0k6CvRziXHjByc=",
+			"path": "github.com/rendaw/go-trezor/messages",
+			"revision": "c50ba080994ee994dce00ca7bc548fe1bce9da1f",
+			"revisionTime": "2018-02-20T20:19:11Z"
 		},
 		{
 			"checksumSHA1": "y6vlEAxNqpwYBmVsfC17WD53tAU=",

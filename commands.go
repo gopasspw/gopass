@@ -190,7 +190,7 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 				},
 				cli.StringFlag{
 					Name:  "crypto",
-					Usage: "Select crypto backend (gpg, gpgcli, gpgmock, xc)",
+					Usage: "Select crypto backend (gpg, gpgcli, gpgmock, xc, trezor)",
 				},
 				cli.StringFlag{
 					Name:  "sync",
@@ -617,7 +617,7 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 				},
 				cli.StringFlag{
 					Name:  "crypto",
-					Usage: "Select crypto backend (gpg, gpgcli, gpgmock, xc)",
+					Usage: "Select crypto backend (gpg, gpgcli, gpgmock, xc, trezor)",
 				},
 				cli.StringFlag{
 					Name:  "sync",

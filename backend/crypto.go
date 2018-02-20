@@ -16,6 +16,8 @@ const (
 	GPGCLI
 	// XC is an experimental crypto backend
 	XC
+	// Trezor is a USB hardware secure processor crypto backend
+	TREZOR
 )
 
 // Keyring is a public/private key manager
