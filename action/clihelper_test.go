@@ -25,10 +25,16 @@ func TestConfirmRecipients(t *testing.T) {
 	act, err := newMock(ctx, u)
 	assert.NoError(t, err)
 
-	ctx = ctxutil.WithAlwaysYes(ctx, true)
-
+	// AlwaysYes true
 	in := []string{"foo", "bar"}
-	got, err := act.ConfirmRecipients(ctx, "test", in)
+	got, err := act.ConfirmRecipients(ctxutil.WithAlwaysYes(ctx, true), "test", in)
+	assert.NoError(t, err)
+	assert.Equal(t, in, got)
+	buf.Reset()
+
+	// IsNoConfirm true
+	in = []string{"foo", "bar"}
+	got, err = act.ConfirmRecipients(ctxutil.WithNoConfirm(ctx, true), "test", in)
 	assert.NoError(t, err)
 	assert.Equal(t, in, got)
 	buf.Reset()
@@ -49,9 +55,9 @@ func TestAskForPrivateKey(t *testing.T) {
 	assert.NoError(t, err)
 
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
-	key, err := act.askForPrivateKey(ctx, "test")
+	key, err := act.askForPrivateKey(ctx, "test", "test")
 	assert.NoError(t, err)
-	assert.Equal(t, "000000000000000000000000DEADBEEF", key)
+	assert.Equal(t, "0xDEADBEEF", key)
 	buf.Reset()
 }
 
@@ -66,35 +72,8 @@ func TestAskForGitConfigUser(t *testing.T) {
 	ctx = ctxutil.WithTerminal(ctx, true)
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 
-	_, _, err = act.askForGitConfigUser(ctx)
+	_, _, err = act.askForGitConfigUser(ctx, "test")
 	assert.NoError(t, err)
-}
-
-func TestAskForGitConfigUserNonInteractive(t *testing.T) {
-	u := gptest.NewUnitTester(t)
-	defer u.Remove()
-
-	ctx := context.Background()
-	act, err := newMock(ctx, u)
-	assert.NoError(t, err)
-
-	ctx = ctxutil.WithTerminal(ctx, false)
-
-	keyList, err := act.gpg.ListPrivateKeys(ctx)
-	assert.NoError(t, err)
-
-	name, email, _ := act.askForGitConfigUser(ctx)
-
-	// unit tests cannot know whether keyList returned empty or not.
-	// a better distinction would require mocking/patching
-	// calls to s.gpg.ListPrivateKeys()
-	if len(keyList) > 0 {
-		assert.NotEqual(t, "", name)
-		assert.NotEqual(t, "", email)
-	} else {
-		assert.Equal(t, "", name)
-		assert.Equal(t, "", email)
-	}
 }
 
 func TestAskForStore(t *testing.T) {
@@ -112,5 +91,9 @@ func TestAskForStore(t *testing.T) {
 	assert.NoError(t, act.Store.AddMount(ctx, "sub2", u.StoreDir("sub2")))
 
 	ctx = ctxutil.WithInteractive(ctx, false)
+	assert.Equal(t, "", act.askForStore(ctx))
+
+	ctx = ctxutil.WithInteractive(ctx, true)
+	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	assert.Equal(t, "", act.askForStore(ctx))
 }

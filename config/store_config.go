@@ -11,16 +11,19 @@ import (
 
 // StoreConfig is a per-store (root or mount) config
 type StoreConfig struct {
-	AskForMore  bool   `yaml:"askformore"`  // ask for more data on generate
-	AutoImport  bool   `yaml:"autoimport"`  // import missing public keys w/o asking
-	AutoSync    bool   `yaml:"autosync"`    // push to git remote after commit, pull before push if necessary
-	ClipTimeout int    `yaml:"cliptimeout"` // clear clipboard after seconds
-	NoConfirm   bool   `yaml:"noconfirm"`   // do not confirm recipients when encrypting
-	NoPager     bool   `yaml:"nopager"`     // do not invoke a pager to display long lists
-	Path        string `yaml:"path"`        // path to the root store
-	SafeContent bool   `yaml:"safecontent"` // avoid showing passwords in terminal
-	UseSymbols  bool   `yaml:"usesymbols"`  // always use symbols when generating passwords
-	NoColor     bool   `yaml:"nocolor"`     // do not use color when outputing text
+	AskForMore    bool   `yaml:"askformore"`    // ask for more data on generate
+	AutoImport    bool   `yaml:"autoimport"`    // import missing public keys w/o asking
+	AutoSync      bool   `yaml:"autosync"`      // push to git remote after commit, pull before push if necessary
+	ClipTimeout   int    `yaml:"cliptimeout"`   // clear clipboard after seconds
+	CryptoBackend string `yaml:"cryptobackend"` // encryption backend (e.g. GPG, XC)
+	NoColor       bool   `yaml:"nocolor"`       // do not use color when outputing text
+	NoConfirm     bool   `yaml:"noconfirm"`     // do not confirm recipients when encrypting
+	NoPager       bool   `yaml:"nopager"`       // do not invoke a pager to display long lists
+	Path          string `yaml:"path"`          // path to the root store
+	SafeContent   bool   `yaml:"safecontent"`   // avoid showing passwords in terminal
+	StoreBackend  string `yaml:"storebackend"`  // storage backend (e.g. FS, K/V, ...)
+	SyncBackend   string `yaml:"syncbackend"`   // sync backend (e.g. GitCLI, GoGit, ...)
+	UseSymbols    bool   `yaml:"usesymbols"`    // always use symbols when generating passwords
 }
 
 // ConfigMap returns a map of stringified config values for easy printing
@@ -86,4 +89,8 @@ func (c *StoreConfig) SetConfigValue(key, value string) error {
 		}
 	}
 	return nil
+}
+
+func (c *StoreConfig) String() string {
+	return fmt.Sprintf("StoreConfig[AskForMore:%t,AutoImport:%t,AutoSync:%t,ClipTimeout:%d,CryptoBackend:%s,NoColor:%t,NoConfirm:%t,NoPager:%t,Path:%s,SafeContent:%t,SyncBackend:%s,UseSymbols:%t]", c.AskForMore, c.AutoImport, c.AutoSync, c.ClipTimeout, c.CryptoBackend, c.NoColor, c.NoConfirm, c.NoPager, c.Path, c.SafeContent, c.SyncBackend, c.UseSymbols)
 }

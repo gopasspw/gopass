@@ -15,8 +15,11 @@ func TestGitMock(t *testing.T) {
 	assert.NoError(t, g.Add(ctx, "foo", "bar"))
 	assert.NoError(t, g.Commit(ctx, "foobar"))
 	assert.NoError(t, g.Push(ctx, "foo", "bar"))
+	assert.NoError(t, g.Pull(ctx, "foo", "bar"))
 	assert.NoError(t, g.Cmd(ctx, "foo", "bar"))
-	assert.NoError(t, g.Init(ctx, "foo", "bar", "baz"))
-	assert.NoError(t, g.InitConfig(ctx, "foo", "bar", "baz"))
+	assert.NoError(t, g.Init(ctx, "foo", "bar"))
+	assert.NoError(t, g.InitConfig(ctx, "foo", "bar"))
 	assert.Equal(t, g.Version(ctx), semver.Version{})
+	assert.Equal(t, "git-mock", g.Name())
+	assert.NoError(t, g.AddRemote(ctx, "foo", "bar"))
 }

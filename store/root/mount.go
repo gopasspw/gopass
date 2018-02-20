@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
+	"github.com/justwatchcom/gopass/backend"
 	"github.com/justwatchcom/gopass/config"
 	"github.com/justwatchcom/gopass/store"
 	"github.com/justwatchcom/gopass/store/sub"
@@ -37,12 +38,21 @@ func (r *Store) addMount(ctx context.Context, alias, path string, sc *config.Sto
 	}
 
 	// propagate our config settings to the sub store
-	s, err := sub.New(alias, path, r.gpg)
+	if sc != nil {
+		if !backend.HasCryptoBackend(ctx) {
+			ctx = backend.WithCryptoBackendString(ctx, sc.CryptoBackend)
+		}
+		if !backend.HasSyncBackend(ctx) {
+			ctx = backend.WithSyncBackendString(ctx, sc.SyncBackend)
+		}
+	}
+	s, err := sub.New(ctx, alias, path, config.Directory())
 	if err != nil {
 		return errors.Wrapf(err, "failed to initialize store '%s' at '%s': %s", alias, path, err)
 	}
 
-	if !s.Initialized() {
+	if !s.Initialized(ctx) {
+		out.Debug(ctx, "[%s] Mount %s is not initialized", alias, path)
 		if len(keys) < 1 {
 			return errors.Errorf("password store %s is not initialized. Try gopass init --store %s --path %s", alias, alias, path)
 		}
@@ -64,6 +74,9 @@ func (r *Store) addMount(ctx context.Context, alias, path string, sc *config.Sto
 		// values
 		cp := *r.cfg.Root
 		sc = &cp
+		sc.CryptoBackend = backend.CryptoBackendName(backend.GetCryptoBackend(ctx))
+		sc.SyncBackend = backend.SyncBackendName(backend.GetSyncBackend(ctx))
+		sc.StoreBackend = backend.StoreBackendName(backend.GetStoreBackend(ctx))
 	}
 	if path != "" {
 		sc.Path = path

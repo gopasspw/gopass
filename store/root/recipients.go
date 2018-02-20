@@ -32,14 +32,15 @@ func (r *Store) RemoveRecipient(ctx context.Context, store, rec string) error {
 }
 
 func (r *Store) addRecipient(ctx context.Context, prefix string, root tree.Tree, recp string, pretty bool) error {
+	ctx, sub, _ := r.getStore(ctx, prefix)
 	key := fmt.Sprintf("%s (missing public key)", recp)
-	kl, err := r.gpg.FindPublicKeys(ctx, recp)
+	kl, err := sub.Crypto().FindPublicKeys(ctx, recp)
 	if err == nil {
 		if len(kl) > 0 {
 			if pretty {
-				key = kl[0].OneLine()
+				key = sub.Crypto().FormatKey(ctx, kl[0])
 			} else {
-				key = kl[0].Fingerprint
+				key = kl[0]
 			}
 		}
 	}

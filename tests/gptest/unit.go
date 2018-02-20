@@ -16,6 +16,8 @@ autoimport: true
 autosync: true
 cliptimeout: 45
 noconfirm: true
+cryptobackend: gpgmock
+syncbackend: gitmock
 safecontent: true`
 )
 
@@ -54,6 +56,7 @@ func NewUnitTester(t *testing.T) *Unit {
 		"CHECKPOINT_DISABLE":        "true",
 		"GNUPGHOME":                 u.GPGHome(),
 		"GOPASS_CONFIG":             u.GPConfig(),
+		"GOPASS_DISABLE_ENCRYPTION": "true",
 		"GOPASS_EXPERIMENTAL_GOGIT": "",
 		"GOPASS_HOMEDIR":            u.Dir,
 		"GOPASS_NOCOLOR":            "true",
@@ -61,7 +64,7 @@ func NewUnitTester(t *testing.T) *Unit {
 		"PAGER":                     "",
 	}
 	assert.NoError(t, setupEnv(u.env))
-	assert.NoError(t, os.Mkdir(u.GPGHome(), 0600))
+	assert.NoError(t, os.Mkdir(u.GPGHome(), 0700))
 	assert.NoError(t, u.initConfig())
 	assert.NoError(t, u.InitStore(""))
 

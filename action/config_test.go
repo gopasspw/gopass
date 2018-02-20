@@ -41,12 +41,15 @@ func TestConfig(t *testing.T) {
   autoimport: true
   autosync: true
   cliptimeout: 45
+  cryptobackend: gpg
   nocolor: false
   noconfirm: false
   nopager: false
 `
 	want += "  path: " + u.StoreDir("") + "\n"
 	want += `  safecontent: false
+  storebackend: fs
+  syncbackend: git
   usesymbols: false
 `
 	assert.Equal(t, want, buf.String())
@@ -77,12 +80,15 @@ foo/nopager: false`
   autoimport: true
   autosync: true
   cliptimeout: 45
+  cryptobackend: gpg
   nocolor: false
   noconfirm: false
   nopager: true
 `
 	want += "  path: " + u.StoreDir("") + "\n"
 	want += `  safecontent: false
+  storebackend: fs
+  syncbackend: git
   usesymbols: false
 mount 'foo' config:
   autoimport: false
@@ -118,11 +124,14 @@ mount 'foo' config:
 autoimport
 autosync
 cliptimeout
+cryptobackend
 nocolor
 noconfirm
 nopager
 path
 safecontent
+storebackend
+syncbackend
 usesymbols
 `
 	assert.Equal(t, want, buf.String())

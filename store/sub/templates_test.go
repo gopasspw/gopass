@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/fatih/color"
-	gpgmock "github.com/justwatchcom/gopass/backend/crypto/gpg/mock"
+	"github.com/justwatchcom/gopass/backend"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -25,33 +25,36 @@ func TestTemplates(t *testing.T) {
 	_, _, err = createStore(tempdir, nil, nil)
 	assert.NoError(t, err)
 
+	ctx = backend.WithCryptoBackendString(ctx, "gpgmock")
+	ctx = backend.WithSyncBackendString(ctx, "gitmock")
 	s, err := New(
+		ctx,
 		"",
 		tempdir,
-		gpgmock.New(),
+		tempdir,
 	)
 	assert.NoError(t, err)
 
 	assert.Equal(t, 0, len(s.ListTemplates(ctx, "")))
-	assert.NoError(t, s.SetTemplate("foo", []byte("foobar")))
+	assert.NoError(t, s.SetTemplate(ctx, "foo", []byte("foobar")))
 	assert.Equal(t, 1, len(s.ListTemplates(ctx, "")))
 
 	tt, err := s.TemplateTree(ctx)
 	assert.NoError(t, err)
 	assert.Equal(t, "gopass\n└── foo\n", tt.Format(0))
 
-	assert.Equal(t, true, s.HasTemplate("foo"))
+	assert.Equal(t, true, s.HasTemplate(ctx, "foo"))
 
-	b, err := s.GetTemplate("foo")
+	b, err := s.GetTemplate(ctx, "foo")
 	assert.NoError(t, err)
 	assert.Equal(t, "foobar", string(b))
 
-	b, found := s.LookupTemplate("foo/bar")
+	b, found := s.LookupTemplate(ctx, "foo/bar")
 	assert.Equal(t, true, found)
 	assert.Equal(t, "foobar", string(b))
 
-	assert.NoError(t, s.RemoveTemplate("foo"))
+	assert.NoError(t, s.RemoveTemplate(ctx, "foo"))
 	assert.Equal(t, 0, len(s.ListTemplates(ctx, "")))
 
-	assert.Error(t, s.RemoveTemplate("foo"))
+	assert.Error(t, s.RemoveTemplate(ctx, "foo"))
 }

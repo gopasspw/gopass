@@ -3,13 +3,13 @@ package cli
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 
-	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/store"
 	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/pkg/errors"
@@ -35,18 +35,14 @@ func (g *Git) fixConfig(ctx context.Context) error {
 		out.Yellow(ctx, "Error while initializing git: %s", err)
 	}
 
-	if g.gpg == "" {
-		return nil
-	}
-
-	if err := g.Cmd(ctx, "gitFixConfig", "config", "--local", "gpg.program", g.gpg); err != nil {
-		return errors.Wrapf(err, "failed to set git config gpg.program")
-	}
 	return nil
 }
 
 // InitConfig initialized and preparse the git config
-func (g *Git) InitConfig(ctx context.Context, signKey, userName, userEmail string) error {
+func (g *Git) InitConfig(ctx context.Context, userName, userEmail string) error {
+	if userName == "" || userEmail == "" || !strings.Contains(userEmail, "@") {
+		return fmt.Errorf("Username and Email must not be empty and valid")
+	}
 	// set commit identity
 	if err := g.ConfigSet(ctx, "user.name", userName); err != nil {
 		return errors.Wrapf(err, "failed to set git config user.name")
@@ -70,25 +66,7 @@ func (g *Git) InitConfig(ctx context.Context, signKey, userName, userEmail strin
 		out.Yellow(ctx, "Warning: Failed to commit .gitattributes to git")
 	}
 
-	// set GPG signkey
-	if err := g.SetSignKey(ctx, signKey); err != nil {
-		color.Yellow("Failed to configure Git GPG Commit signing: %s\n", err)
-	}
-
 	return nil
-}
-
-// SetSignKey configures git to use the given sign key
-func (g *Git) SetSignKey(ctx context.Context, sk string) error {
-	if sk == "" {
-		return errors.Errorf("SignKey not set")
-	}
-
-	if err := g.ConfigSet(ctx, "user.signingkey", sk); err != nil {
-		return errors.Wrapf(err, "failed to set git sign key")
-	}
-
-	return g.ConfigSet(ctx, "commit.gpgsign", "true")
 }
 
 // ConfigSet sets a local config value

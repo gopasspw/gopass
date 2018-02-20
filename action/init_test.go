@@ -22,6 +22,7 @@ func TestInit(t *testing.T) {
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithInteractive(ctx, false)
+	ctx = ctxutil.WithDebug(ctx, true)
 	act, err := newMock(ctx, u)
 	assert.NoError(t, err)
 
@@ -38,10 +39,12 @@ func TestInit(t *testing.T) {
 	assert.NoError(t, act.Initialized(ctx, c))
 	assert.Error(t, act.Init(ctx, c))
 	assert.Error(t, act.InitOnboarding(ctx, c))
-	assert.Equal(t, true, act.initHasUseablePrivateKeys(ctx))
-	assert.Error(t, act.initCreatePrivateKey(ctx, "foo bar", "foo.bar@example.org"))
+	assert.Equal(t, true, act.initHasUseablePrivateKeys(ctx, ""))
+	assert.Error(t, act.initCreatePrivateKey(ctx, "", "foo bar", "foo.bar@example.org"))
+	buf.Reset()
 
 	// un-initialize the store
 	assert.NoError(t, os.Remove(filepath.Join(u.StoreDir(""), ".gpg-id")))
 	assert.Error(t, act.Initialized(ctx, c))
+	buf.Reset()
 }

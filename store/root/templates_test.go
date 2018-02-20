@@ -34,9 +34,11 @@ func TestTemplate(t *testing.T) {
 
 	assert.NoError(t, rs.SetTemplate(ctx, "foo", []byte("foobar")))
 	assert.Equal(t, true, rs.HasTemplate(ctx, "foo"))
+
 	b, err := rs.GetTemplate(ctx, "foo")
 	assert.NoError(t, err)
 	assert.Equal(t, "foobar", string(b))
+
 	b, found := rs.LookupTemplate(ctx, "foo/bar")
 	assert.Equal(t, true, found)
 	assert.Equal(t, "foobar", string(b))

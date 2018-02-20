@@ -37,18 +37,19 @@ func TestGit(t *testing.T) {
 
 	// git init
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
+	un := cli.StringFlag{
+		Name:  "username",
+		Usage: "username",
+	}
+	assert.NoError(t, un.ApplyWithError(fs))
+	ue := cli.StringFlag{
+		Name:  "useremail",
+		Usage: "useremail",
+	}
+	assert.NoError(t, ue.ApplyWithError(fs))
+	assert.NoError(t, fs.Parse([]string{"--username", "foobar", "--useremail", "foo.bar@example.org"}))
 	c := cli.NewContext(app, fs, nil)
 
 	assert.NoError(t, act.GitInit(ctx, c))
-	t.Logf("Out: %s", buf.String())
-	buf.Reset()
-
-	// git status
-	fs = flag.NewFlagSet("default", flag.ContinueOnError)
-	assert.NoError(t, fs.Parse([]string{"status"}))
-	c = cli.NewContext(app, fs, nil)
-	assert.NoError(t, act.Git(ctx, c))
-	want := "[root] Running git status\n"
-	assert.Contains(t, want, buf.String())
 	buf.Reset()
 }

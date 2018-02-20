@@ -3,34 +3,16 @@ package sub
 import (
 	"context"
 	"fmt"
-	"os"
 	"path/filepath"
 
-	"github.com/blang/semver"
-	"github.com/justwatchcom/gopass/backend/crypto/gpg"
-	"github.com/justwatchcom/gopass/utils/fsutil"
+	"github.com/justwatchcom/gopass/backend"
 	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/pkg/errors"
-	"golang.org/x/crypto/openpgp"
 )
 
-type gpger interface {
-	Binary() string
-	ListPublicKeys(context.Context) (gpg.KeyList, error)
-	FindPublicKeys(context.Context, ...string) (gpg.KeyList, error)
-	ListPrivateKeys(context.Context) (gpg.KeyList, error)
-	FindPrivateKeys(context.Context, ...string) (gpg.KeyList, error)
-	GetRecipients(context.Context, string) ([]string, error)
-	Encrypt(context.Context, string, []byte, []string) error
-	Decrypt(context.Context, string) ([]byte, error)
-	ExportPublicKey(context.Context, string, string) error
-	ImportPublicKey(context.Context, string) error
-	Version(context.Context) semver.Version
-}
-
-// GPGVersion returns parsed GPG version information
-func (s *Store) GPGVersion(ctx context.Context) semver.Version {
-	return s.gpg.Version(ctx)
+// Crypto returns the crypto backend
+func (s *Store) Crypto() backend.Crypto {
+	return s.crypto
 }
 
 // ImportMissingPublicKeys will try to import any missing public keys from the
@@ -46,7 +28,7 @@ func (s *Store) ImportMissingPublicKeys(ctx context.Context) error {
 		// we could list all keys outside the loop and just do the lookup here
 		// but this way we ensure to use the exact same lookup logic as
 		// gpg does on encryption
-		kl, err := s.gpg.FindPublicKeys(ctx, r)
+		kl, err := s.crypto.FindPublicKeys(ctx, r)
 		if err != nil {
 			out.Red(ctx, "[%s] Failed to get public key for %s: %s", s.alias, r, err)
 		}
@@ -80,84 +62,61 @@ func (s *Store) ImportMissingPublicKeys(ctx context.Context) error {
 	return nil
 }
 
+func (s *Store) decodePublicKey(ctx context.Context, r string) ([]string, error) {
+	for _, kd := range []string{keyDir, oldKeyDir} {
+		filename := filepath.Join(kd, r)
+		if !s.store.Exists(ctx, filename) {
+			out.Debug(ctx, "Public Key %s not found at %s", r, filename)
+			continue
+		}
+		buf, err := s.store.Get(ctx, filename)
+		if err != nil {
+			return nil, errors.Errorf("Unable to read Public Key %s %s: %s", r, filename, err)
+		}
+		return s.crypto.ReadNamesFromKey(ctx, buf)
+	}
+	return nil, errors.Errorf("Public Key %s not found", r)
+}
+
 // export an ASCII armored public key
 func (s *Store) exportPublicKey(ctx context.Context, r string) (string, error) {
-	filedir := filepath.Join(s.path, keyDir)
-
-	// make sure dir exists
-	if !fsutil.IsDir(filedir) {
-		if err := os.Mkdir(filedir, 0700); err != nil {
-			return "", err
-		}
-	}
-
-	filename := filepath.Join(filedir, r)
+	filename := filepath.Join(keyDir, r)
 
 	// do not overwrite existing keys
-	if fsutil.IsFile(filename) {
+	if s.store.Exists(ctx, filename) {
 		return "", nil
 	}
 
-	tmpFilename := filename + ".new"
-	if err := s.gpg.ExportPublicKey(ctx, r, tmpFilename); err != nil {
-		return "", err
-	}
-
-	defer func() {
-		_ = os.Remove(tmpFilename)
-	}()
-
-	fi, err := os.Stat(tmpFilename)
+	pk, err := s.crypto.ExportPublicKey(ctx, r)
 	if err != nil {
-		return "", err
+		return "", errors.Wrapf(err, "failed to export public key")
 	}
 
 	// ECC keys are at least 700 byte, RSA should be a lot bigger
-	if fi.Size() < 256 {
+	if len(pk) < 32 {
 		return "", errors.New("exported key too small")
 	}
 
-	if err := os.Rename(tmpFilename, filename); err != nil {
-		return "", err
+	if err := s.store.Set(ctx, filename, pk); err != nil {
+		return "", errors.Wrapf(err, "failed to write exported public key to store")
 	}
 
 	return filename, nil
 }
 
-func (s *Store) decodePublicKey(ctx context.Context, r string) ([]string, error) {
-	filename := filepath.Join(s.path, keyDir, r)
-	if !fsutil.IsFile(filename) {
-		return nil, errors.Errorf("Public Key %s not found at %s", r, filename)
-	}
-
-	fh, err := os.Open(filename)
-	if err != nil {
-		return nil, err
-	}
-	defer func() {
-		_ = fh.Close()
-	}()
-
-	el, err := openpgp.ReadArmoredKeyRing(fh)
-	if err != nil {
-		return nil, err
-	}
-	if len(el) != 1 {
-		return nil, fmt.Errorf("Public Key must contain exactly one Entity")
-	}
-	names := make([]string, 0, len(el[0].Identities))
-	for _, v := range el[0].Identities {
-		names = append(names, v.Name)
-	}
-	return names, nil
-}
-
 // import an public key into the default keyring
 func (s *Store) importPublicKey(ctx context.Context, r string) error {
-	filename := filepath.Join(s.path, keyDir, r)
-	if !fsutil.IsFile(filename) {
-		return errors.Errorf("Public Key %s not found at %s", r, filename)
+	for _, kd := range []string{keyDir, oldKeyDir} {
+		filename := filepath.Join(kd, r)
+		if !s.store.Exists(ctx, filename) {
+			out.Debug(ctx, "Public Key %s not found at %s", r, filename)
+			continue
+		}
+		pk, err := s.store.Get(ctx, filename)
+		if err != nil {
+			return err
+		}
+		return s.crypto.ImportPublicKey(ctx, pk)
 	}
-
-	return s.gpg.ImportPublicKey(ctx, filename)
+	return fmt.Errorf("Public Key not found in store")
 }

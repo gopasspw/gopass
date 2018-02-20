@@ -12,11 +12,10 @@ import (
 	"strings"
 	"testing"
 
-	gpgmock "github.com/justwatchcom/gopass/backend/crypto/gpg/mock"
+	"github.com/justwatchcom/gopass/backend"
 	"github.com/justwatchcom/gopass/config"
 	"github.com/justwatchcom/gopass/store/root"
 	"github.com/justwatchcom/gopass/store/secret"
-	"github.com/justwatchcom/gopass/store/sub"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -188,6 +187,8 @@ func runRespondRawMessages(t *testing.T, requests []verifiedRequest, secrets []s
 		_ = os.RemoveAll(tempdir)
 	}()
 
+	assert.NoError(t, os.Setenv("GOPASS_DISABLE_ENCRYPTION", "true"))
+	ctx = backend.WithCryptoBackendString(ctx, "gpgmock")
 	store, err := root.New(
 		ctx,
 		&config.Config{
@@ -195,7 +196,6 @@ func runRespondRawMessages(t *testing.T, requests []verifiedRequest, secrets []s
 				Path: tempdir,
 			},
 		},
-		gpgmock.New(),
 	)
 	assert.NoError(t, err)
 
@@ -242,7 +242,7 @@ func populateStore(dir string, secrets []storedSecret) error {
 			return err
 		}
 	}
-	return ioutil.WriteFile(filepath.Join(dir, sub.GPGID), []byte(strings.Join(recipients, "\n")), 0600)
+	return ioutil.WriteFile(filepath.Join(dir, ".gpg-id"), []byte(strings.Join(recipients, "\n")), 0600)
 }
 
 func readAndVerifyMessageLength(t *testing.T, rawMessage []byte) string {

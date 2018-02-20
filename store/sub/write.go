@@ -22,11 +22,7 @@ func (s *Store) Set(ctx context.Context, name string, sec *secret.Secret) error 
 
 	p := s.passfile(name)
 
-	if !strings.HasPrefix(p, s.path) {
-		return store.ErrSneaky
-	}
-
-	if s.IsDir(name) {
+	if s.IsDir(ctx, name) {
 		return errors.Errorf("a folder named %s already exists", name)
 	}
 
@@ -47,11 +43,16 @@ func (s *Store) Set(ctx context.Context, name string, sec *secret.Secret) error 
 		return errors.Wrapf(err, "failed to encode secret")
 	}
 
-	if err := s.gpg.Encrypt(ctx, p, buf, recipients); err != nil {
+	ciphertext, err := s.crypto.Encrypt(ctx, buf, recipients)
+	if err != nil {
 		return store.ErrEncrypt
 	}
 
-	if err := s.git.Add(ctx, p); err != nil {
+	if err := s.store.Set(ctx, p, ciphertext); err != nil {
+		return errors.Wrapf(err, "failed to write secret")
+	}
+
+	if err := s.sync.Add(ctx, p); err != nil {
 		if errors.Cause(err) == store.ErrGitNotInit {
 			return nil
 		}
@@ -66,7 +67,7 @@ func (s *Store) Set(ctx context.Context, name string, sec *secret.Secret) error 
 }
 
 func (s *Store) gitCommitAndPush(ctx context.Context, name string) error {
-	if err := s.git.Commit(ctx, fmt.Sprintf("Save secret to %s: %s", name, GetReason(ctx))); err != nil {
+	if err := s.sync.Commit(ctx, fmt.Sprintf("Save secret to %s: %s", name, GetReason(ctx))); err != nil {
 		if errors.Cause(err) == store.ErrGitNotInit {
 			return nil
 		}
@@ -77,7 +78,7 @@ func (s *Store) gitCommitAndPush(ctx context.Context, name string) error {
 		return nil
 	}
 
-	if err := s.git.Push(ctx, "", ""); err != nil {
+	if err := s.sync.Push(ctx, "", ""); err != nil {
 		if errors.Cause(err) == store.ErrGitNotInit {
 			msg := "Warning: git is not initialized for this store. Ignoring auto-push option\n" +
 				"Run: gopass git init"

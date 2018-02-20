@@ -2,71 +2,68 @@ package sub
 
 import (
 	"context"
-	"os"
+	"fmt"
 
 	"github.com/blang/semver"
+	"github.com/justwatchcom/gopass/backend"
 	gitcli "github.com/justwatchcom/gopass/backend/sync/git/cli"
 	"github.com/justwatchcom/gopass/backend/sync/git/gogit"
+	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/pkg/errors"
 )
 
-type giter interface {
-	Add(context.Context, ...string) error
-	AddRemote(context.Context, string, string) error
-	Cmd(context.Context, string, ...string) error
-	Commit(context.Context, string) error
-	InitConfig(context.Context, string, string, string) error
-	Pull(context.Context, string, string) error
-	Push(context.Context, string, string) error
-	Version(context.Context) semver.Version
+// Sync returns the sync backend
+func (s *Store) Sync() backend.Sync {
+	return s.sync
 }
 
 // GitInit initializes the the git repo in the store
-func (s *Store) GitInit(ctx context.Context, sk, un, ue string) error {
-	if gg := os.Getenv("GOPASS_EXPERIMENTAL_GOGIT"); gg != "" {
+func (s *Store) GitInit(ctx context.Context, un, ue string) error {
+	switch backend.GetSyncBackend(ctx) {
+	case backend.GoGit:
+		out.Cyan(ctx, "WARNING: Using experimental sync backend 'go-git'")
 		git, err := gogit.Init(ctx, s.path)
 		if err != nil {
 			return errors.Wrapf(err, "failed to init git: %s", err)
 		}
-		s.git = git
+		s.sync = git
 		return nil
+	case backend.GitCLI:
+		git, err := gitcli.Init(ctx, s.path, un, ue)
+		if err != nil {
+			return errors.Wrapf(err, "failed to init git: %s", err)
+		}
+		s.sync = git
+		return nil
+	case backend.GitMock:
+		out.Cyan(ctx, "WARNING: Initializing with no-op (mock) git backend")
+		return nil
+	default:
+		return fmt.Errorf("Unknown Sync Backend: %d", backend.GetSyncBackend(ctx))
 	}
-
-	git, err := gitcli.Init(ctx, s.path, s.gpg.Binary(), sk, un, ue)
-	if err != nil {
-		return errors.Wrapf(err, "failed to init git: %s", err)
-	}
-	s.git = git
-	return nil
 }
 
 // GitInitConfig (re-)intializes the git config in an existing repo
-func (s *Store) GitInitConfig(ctx context.Context, sk, un, ue string) error {
-	return s.git.InitConfig(ctx, sk, un, ue)
+func (s *Store) GitInitConfig(ctx context.Context, un, ue string) error {
+	return s.sync.InitConfig(ctx, un, ue)
 }
 
 // GitVersion returns the git version
 func (s *Store) GitVersion(ctx context.Context) semver.Version {
-	return s.git.Version(ctx)
-}
-
-// Git channels any git subcommand to git in the store
-// TODO remove this command, doesn't work with gogit
-func (s *Store) Git(ctx context.Context, args ...string) error {
-	return s.git.Cmd(ctx, "Git", args...)
+	return s.sync.Version(ctx)
 }
 
 // GitAddRemote adds a new remote
 func (s *Store) GitAddRemote(ctx context.Context, remote, url string) error {
-	return s.git.AddRemote(ctx, remote, url)
+	return s.sync.AddRemote(ctx, remote, url)
 }
 
 // GitPull performs a git pull
 func (s *Store) GitPull(ctx context.Context, origin, branch string) error {
-	return s.git.Pull(ctx, origin, branch)
+	return s.sync.Pull(ctx, origin, branch)
 }
 
 // GitPush performs a git push
 func (s *Store) GitPush(ctx context.Context, origin, branch string) error {
-	return s.git.Push(ctx, origin, branch)
+	return s.sync.Push(ctx, origin, branch)
 }

@@ -56,6 +56,11 @@ func (k Key) String() string {
 // OneLine prints a terse representation of this key on one line (includes only
 // the first identity!)
 func (k Key) OneLine() string {
+	return fmt.Sprintf("0x%s - %s", k.Fingerprint[24:], k.Identity().ID())
+}
+
+// Identity returns the first identity
+func (k Key) Identity() Identity {
 	ids := make([]Identity, 0, len(k.Identities))
 	for _, i := range k.Identities {
 		ids = append(ids, i)
@@ -63,12 +68,10 @@ func (k Key) OneLine() string {
 	sort.Slice(ids, func(i, j int) bool {
 		return ids[i].CreationDate.After(ids[j].CreationDate)
 	})
-	id := Identity{}
 	for _, i := range ids {
-		id = i
-		break
+		return i
 	}
-	return fmt.Sprintf("0x%s - %s", k.Fingerprint[24:], id.ID())
+	return Identity{}
 }
 
 // ID returns the short fingerprint

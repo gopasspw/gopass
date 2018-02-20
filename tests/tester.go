@@ -21,12 +21,16 @@ import (
 )
 
 const (
-	gopassConfig = `askformore: false
-autoimport: true
-autosync: false
-cliptimeout: 45
-noconfirm: true
-safecontent: true`
+	gopassConfig = `root:
+  askformore: false
+  autoimport: true
+  autosync: false
+  cliptimeout: 45
+  cryptobackend: gpg
+  noconfirm: true
+  syncbackend: gitmock
+  safecontent: true
+`
 	keyID = "BE73F104"
 )
 
@@ -79,7 +83,7 @@ func newTester(t *testing.T) *tester {
 	assert.NoError(t, os.Setenv("GOPASS_NO_NOTIFY", "true"))
 
 	// write config
-	if err := ioutil.WriteFile(ts.gopassConfig(), []byte(gopassConfig+"\npath: "+ts.storeDir("")+"\n"), 0600); err != nil {
+	if err := ioutil.WriteFile(ts.gopassConfig(), []byte(gopassConfig+"\n  path: "+ts.storeDir("")+"\n"), 0600); err != nil {
 		t.Fatalf("Failed to write gopass config to %s: %s", ts.gopassConfig(), err)
 	}
 

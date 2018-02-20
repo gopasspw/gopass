@@ -6,6 +6,9 @@ import (
 	"os"
 	"testing"
 
+	"github.com/blang/semver"
+	"github.com/justwatchcom/gopass/backend"
+	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -21,10 +24,19 @@ func TestGit(t *testing.T) {
 	s, err := createSubStore(tempdir)
 	assert.NoError(t, err)
 
-	assert.NoError(t, s.Git(ctx, "status"))
+	assert.NotNil(t, s.Sync())
+	assert.Equal(t, "git-mock", s.Sync().Name())
+	assert.NoError(t, s.GitInitConfig(ctx, "foo", "bar@baz.com"))
+	assert.Equal(t, semver.Version{}, s.GitVersion(ctx))
+	assert.NoError(t, s.GitAddRemote(ctx, "foo", "bar"))
+	assert.NoError(t, s.GitPull(ctx, "origin", "master"))
 	assert.NoError(t, s.GitPush(ctx, "origin", "master"))
 
-	t.Skip("flaky")
-	assert.NoError(t, s.GitInit(ctx, "", "", ""))
-	assert.NoError(t, s.Git(ctx, "status"))
+	assert.NoError(t, s.GitInit(ctx, "", ""))
+	assert.NoError(t, s.GitInit(backend.WithSyncBackend(ctx, backend.GitMock), "", ""))
+	assert.NoError(t, s.GitInit(backend.WithSyncBackend(ctx, backend.GoGit), "", ""))
+	assert.Error(t, s.GitInit(backend.WithSyncBackend(ctx, -1), "", ""))
+
+	ctx = ctxutil.WithDebug(ctx, true)
+	assert.NoError(t, s.GitInit(backend.WithSyncBackend(ctx, backend.GitCLI), "Foo Bar", "foo.bar@example.org"))
 }

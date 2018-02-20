@@ -68,14 +68,15 @@ func (s *Action) RecipientsAdd(ctx context.Context, c *cli.Context) error {
 		store = s.askForStore(ctx)
 	}
 
+	crypto := s.Store.Crypto(ctx, store)
+
 	// select recipient
 	recipients := []string(c.Args())
 	if len(recipients) < 1 {
 		choices := []string{}
-		kl, _ := s.gpg.FindPublicKeys(ctx)
-		kl = kl.UseableKeys()
+		kl, _ := crypto.FindPublicKeys(ctx)
 		for _, key := range kl {
-			choices = append(choices, key.OneLine())
+			choices = append(choices, crypto.FormatKey(ctx, key))
 		}
 		if len(choices) > 0 {
 			act, sel := cui.GetSelection(ctx, "Add Recipient -", "<↑/↓> to change the selection, <→> to add this recipient, <ESC> to quit", choices)
@@ -83,7 +84,7 @@ func (s *Action) RecipientsAdd(ctx context.Context, c *cli.Context) error {
 			case "default":
 				fallthrough
 			case "show":
-				recipients = []string{kl[sel].Fingerprint}
+				recipients = []string{kl[sel]}
 			default:
 				return exitError(ctx, ExitAborted, nil, "user aborted")
 			}
@@ -91,12 +92,11 @@ func (s *Action) RecipientsAdd(ctx context.Context, c *cli.Context) error {
 	}
 
 	for _, r := range recipients {
-		keys, err := s.gpg.FindPublicKeys(ctx, r)
+		keys, err := crypto.FindPublicKeys(ctx, r)
 		if err != nil {
 			out.Cyan(ctx, "Failed to list public key '%s': %s", r, err)
 			continue
 		}
-		keys = keys.UseableKeys()
 		if len(keys) < 1 {
 			out.Cyan(ctx, "Warning: No matching valid key found. If the key is in your keyring you may need to validate it.")
 			out.Cyan(ctx, "If this is your key: gpg --edit-key %s; trust (set to ultimate); quit", r)
@@ -105,11 +105,11 @@ func (s *Action) RecipientsAdd(ctx context.Context, c *cli.Context) error {
 			continue
 		}
 
-		if !termio.AskForConfirmation(ctx, fmt.Sprintf("Do you want to add '%s' as an recipient to the store '%s'?", keys[0].OneLine(), store)) {
+		if !termio.AskForConfirmation(ctx, fmt.Sprintf("Do you want to add '%s' as an recipient to the store '%s'?", crypto.FormatKey(ctx, keys[0]), store)) {
 			continue
 		}
 
-		if err := s.Store.AddRecipient(ctxutil.WithNoConfirm(ctx, true), store, keys[0].Fingerprint); err != nil {
+		if err := s.Store.AddRecipient(ctxutil.WithNoConfirm(ctx, true), store, keys[0]); err != nil {
 			return exitError(ctx, ExitRecipients, err, "failed to add recipient '%s': %s", r, err)
 		}
 		added++
@@ -132,6 +132,8 @@ func (s *Action) RecipientsRemove(ctx context.Context, c *cli.Context) error {
 		store = s.askForStore(ctx)
 	}
 
+	crypto := s.Store.Crypto(ctx, store)
+
 	// select recipient
 	recipients := []string(c.Args())
 	if len(recipients) < 1 {
@@ -144,7 +146,7 @@ func (s *Action) RecipientsRemove(ctx context.Context, c *cli.Context) error {
 
 	removed := 0
 	for _, r := range recipients {
-		kl, err := s.gpg.FindPrivateKeys(ctx, r)
+		kl, err := crypto.FindPrivateKeys(ctx, r)
 		if err == nil {
 			if len(kl) > 0 {
 				if !termio.AskForConfirmation(ctx, fmt.Sprintf("Do you want to remove yourself (%s) from the recipients?", r)) {
@@ -165,17 +167,12 @@ func (s *Action) RecipientsRemove(ctx context.Context, c *cli.Context) error {
 }
 
 func (s *Action) recipientsSelectForRemoval(ctx context.Context, store string) ([]string, error) {
+	crypto := s.Store.Crypto(ctx, store)
+
 	ids := s.Store.ListRecipients(ctx, store)
 	choices := make([]string, 0, len(ids))
-	kl, err := s.gpg.FindPublicKeys(ctx, ids...)
-	if err == nil && kl != nil {
-		for _, id := range ids {
-			if key, err := kl.FindKey(id); err == nil {
-				choices = append(choices, key.OneLine())
-				continue
-			}
-			choices = append(choices, id)
-		}
+	for _, id := range ids {
+		choices = append(choices, crypto.FormatKey(ctx, id))
 	}
 	if len(choices) < 1 {
 		return nil, nil

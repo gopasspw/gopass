@@ -11,8 +11,8 @@ var (
 	ErrEncrypt = errors.Errorf("Failed to encrypt")
 	// ErrDecrypt is returned if we failed to decrypt and entry
 	ErrDecrypt = errors.Errorf("Failed to decrypt")
-	// ErrSneaky is returned if the user passes a possible malicious path to gopass
-	ErrSneaky = errors.Errorf("you've attempted to pass a sneaky path to gopass. go home")
+	// ErrIO is any kind of I/O error
+	ErrIO = errors.Errorf("I/O error")
 	// ErrGitInit is returned if git is already initialized
 	ErrGitInit = errors.Errorf("git is already initialized")
 	// ErrGitNotInit is returned if git is not initialized

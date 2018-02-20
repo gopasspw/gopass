@@ -5,13 +5,11 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"io/ioutil"
-	"os"
-	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/blang/semver"
 	"github.com/justwatchcom/gopass/backend/crypto/gpg"
-	"github.com/pkg/errors"
 )
 
 var staticPrivateKeyList = gpg.KeyList{
@@ -29,6 +27,20 @@ var staticPrivateKeyList = gpg.KeyList{
 			},
 		},
 	},
+	gpg.Key{
+		KeyType:      "rsa",
+		KeyLength:    2048,
+		Validity:     "u",
+		CreationDate: time.Now(),
+		Fingerprint:  "000000000000000000000000FEEDBEEF",
+		Identities: map[string]gpg.Identity{
+			"Feed Beef <feed.beef@example.com>": {
+				Name:         "Feed Beef",
+				Email:        "feed.beef@example.com",
+				CreationDate: time.Now(),
+			},
+		},
+	},
 }
 
 // Mocker is a no-op GPG mock
@@ -39,51 +51,57 @@ func New() *Mocker {
 	return &Mocker{}
 }
 
-// ListPublicKeys does nothing
-func (m *Mocker) ListPublicKeys(context.Context) (gpg.KeyList, error) {
-	return gpg.KeyList{}, nil
+// ListPublicKeyIDs does nothing
+func (m *Mocker) ListPublicKeyIDs(context.Context) ([]string, error) {
+	return staticPrivateKeyList.Recipients(), nil
 }
 
 // FindPublicKeys does nothing
-func (m *Mocker) FindPublicKeys(context.Context, ...string) (gpg.KeyList, error) {
-	return gpg.KeyList{}, nil
+func (m *Mocker) FindPublicKeys(ctx context.Context, keys ...string) ([]string, error) {
+	rs := staticPrivateKeyList.Recipients()
+	res := make([]string, 0, len(rs))
+	for _, r := range rs {
+		for _, needle := range keys {
+			if strings.HasSuffix(r, needle) {
+				res = append(res, r)
+			}
+		}
+	}
+	return res, nil
 }
 
-// ListPrivateKeys does nothing
-func (m *Mocker) ListPrivateKeys(context.Context) (gpg.KeyList, error) {
-	return staticPrivateKeyList, nil
+// ListPrivateKeyIDs does nothing
+func (m *Mocker) ListPrivateKeyIDs(context.Context) ([]string, error) {
+	return staticPrivateKeyList.Recipients(), nil
 }
 
 // FindPrivateKeys does nothing
-func (m *Mocker) FindPrivateKeys(context.Context, ...string) (gpg.KeyList, error) {
-	return staticPrivateKeyList, nil
+func (m *Mocker) FindPrivateKeys(ctx context.Context, keys ...string) ([]string, error) {
+	return m.FindPublicKeys(ctx, keys...)
 }
 
-// GetRecipients does nothing
-func (m *Mocker) GetRecipients(context.Context, string) ([]string, error) {
-	return []string{}, nil
+// RecipientIDs does nothing
+func (m *Mocker) RecipientIDs(context.Context, []byte) ([]string, error) {
+	return staticPrivateKeyList.Recipients(), nil
 }
 
 // Encrypt writes the input to disk unaltered
-func (m *Mocker) Encrypt(ctx context.Context, path string, content []byte, recipients []string) error {
-	if err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {
-		return errors.Wrapf(err, "failed to create dir '%s'", path)
-	}
-	return ioutil.WriteFile(path, content, 0600)
+func (m *Mocker) Encrypt(ctx context.Context, content []byte, recipients []string) ([]byte, error) {
+	return content, nil
 }
 
 // Decrypt read the file from disk unaltered
-func (m *Mocker) Decrypt(ctx context.Context, path string) ([]byte, error) {
-	return ioutil.ReadFile(path)
+func (m *Mocker) Decrypt(ctx context.Context, ciphertext []byte) ([]byte, error) {
+	return ciphertext, nil
 }
 
 // ExportPublicKey does nothing
-func (m *Mocker) ExportPublicKey(context.Context, string, string) error {
-	return nil
+func (m *Mocker) ExportPublicKey(context.Context, string) ([]byte, error) {
+	return nil, nil
 }
 
 // ImportPublicKey does nothing
-func (m *Mocker) ImportPublicKey(context.Context, string) error {
+func (m *Mocker) ImportPublicKey(context.Context, []byte) error {
 	return nil
 }
 
@@ -139,4 +157,44 @@ func (m *Mocker) CreatePrivateKey(ctx context.Context) error {
 // CreatePrivateKeyBatch is not implemented
 func (m *Mocker) CreatePrivateKeyBatch(ctx context.Context, name, email, pw string) error {
 	return fmt.Errorf("not yet implemented")
+}
+
+// EmailFromKey returns nothing
+func (m *Mocker) EmailFromKey(context.Context, string) string {
+	return ""
+}
+
+// NameFromKey returns nothing
+func (m *Mocker) NameFromKey(context.Context, string) string {
+	return ""
+}
+
+// FormatKey returns the id
+func (m *Mocker) FormatKey(ctx context.Context, id string) string {
+	return id
+}
+
+// Initialized returns nil
+func (m *Mocker) Initialized(context.Context) error {
+	return nil
+}
+
+// Name returns gpgmock
+func (m *Mocker) Name() string {
+	return "gpgmock"
+}
+
+// Ext returns gpg
+func (m *Mocker) Ext() string {
+	return "gpg"
+}
+
+// IDFile returns .gpg-id
+func (m *Mocker) IDFile() string {
+	return ".gpg-id"
+}
+
+// ReadNamesFromKey does nothing
+func (m *Mocker) ReadNamesFromKey(ctx context.Context, buf []byte) ([]string, error) {
+	return []string{"unsupported"}, nil
 }

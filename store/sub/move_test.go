@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	gpgmock "github.com/justwatchcom/gopass/backend/crypto/gpg/mock"
+	"github.com/justwatchcom/gopass/backend/store/fs"
 	gitmock "github.com/justwatchcom/gopass/backend/sync/git/mock"
 	"github.com/justwatchcom/gopass/store/secret"
 	"github.com/justwatchcom/gopass/utils/out"
@@ -82,10 +83,11 @@ func TestCopy(t *testing.T) {
 		assert.NoError(t, err)
 
 		s := &Store{
-			alias: "",
-			path:  tempdir,
-			gpg:   gpgmock.New(),
-			git:   gitmock.New(),
+			alias:  "",
+			path:   tempdir,
+			crypto: gpgmock.New(),
+			sync:   gitmock.New(),
+			store:  fs.New(tempdir),
 		}
 
 		assert.NoError(t, s.saveRecipients(ctx, []string{"john.doe"}, "test", false))
@@ -159,10 +161,11 @@ func TestMove(t *testing.T) {
 		assert.NoError(t, err)
 
 		s := &Store{
-			alias: "",
-			path:  tempdir,
-			gpg:   gpgmock.New(),
-			git:   gitmock.New(),
+			alias:  "",
+			path:   tempdir,
+			crypto: gpgmock.New(),
+			sync:   gitmock.New(),
+			store:  fs.New(tempdir),
 		}
 
 		err = s.saveRecipients(ctx, []string{"john.doe"}, "test", false)
@@ -215,10 +218,11 @@ func TestDelete(t *testing.T) {
 		assert.NoError(t, err)
 
 		s := &Store{
-			alias: "",
-			path:  tempdir,
-			gpg:   gpgmock.New(),
-			git:   gitmock.New(),
+			alias:  "",
+			path:   tempdir,
+			crypto: gpgmock.New(),
+			sync:   gitmock.New(),
+			store:  fs.New(tempdir),
 		}
 
 		err = s.saveRecipients(ctx, []string{"john.doe"}, "test", false)
@@ -292,10 +296,11 @@ func TestPrune(t *testing.T) {
 		assert.NoError(t, err)
 
 		s := &Store{
-			alias: "",
-			path:  tempdir,
-			gpg:   gpgmock.New(),
-			git:   gitmock.New(),
+			alias:  "",
+			path:   tempdir,
+			crypto: gpgmock.New(),
+			sync:   gitmock.New(),
+			store:  fs.New(tempdir),
 		}
 
 		err = s.saveRecipients(ctx, []string{"john.doe"}, "test", false)
