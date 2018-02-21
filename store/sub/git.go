@@ -8,6 +8,8 @@ import (
 	"github.com/justwatchcom/gopass/backend"
 	gitcli "github.com/justwatchcom/gopass/backend/sync/git/cli"
 	"github.com/justwatchcom/gopass/backend/sync/git/gogit"
+	"github.com/justwatchcom/gopass/store"
+	"github.com/justwatchcom/gopass/store/secret"
 	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/pkg/errors"
 )
@@ -66,4 +68,31 @@ func (s *Store) GitPull(ctx context.Context, origin, branch string) error {
 // GitPush performs a git push
 func (s *Store) GitPush(ctx context.Context, origin, branch string) error {
 	return s.sync.Push(ctx, origin, branch)
+}
+
+// ListRevisions will list all revisions for a secret
+func (s *Store) ListRevisions(ctx context.Context, name string) ([]backend.Revision, error) {
+	p := s.passfile(name)
+	return s.sync.Revisions(ctx, p)
+}
+
+// GetRevision will retrieve a single revision from the backend
+func (s *Store) GetRevision(ctx context.Context, name, revision string) (*secret.Secret, error) {
+	p := s.passfile(name)
+	ciphertext, err := s.sync.GetRevision(ctx, p, revision)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get ciphertext of '%s'@'%s'", name, revision)
+	}
+
+	content, err := s.crypto.Decrypt(ctx, ciphertext)
+	if err != nil {
+		out.Debug(ctx, "Decryption failed: %s", err)
+		return nil, store.ErrDecrypt
+	}
+
+	sec, err := secret.Parse(content)
+	if err != nil {
+		out.Debug(ctx, "Failed to parse YAML: %s", err)
+	}
+	return sec, nil
 }

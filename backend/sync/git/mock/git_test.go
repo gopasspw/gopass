@@ -22,4 +22,9 @@ func TestGitMock(t *testing.T) {
 	assert.Equal(t, g.Version(ctx), semver.Version{})
 	assert.Equal(t, "git-mock", g.Name())
 	assert.NoError(t, g.AddRemote(ctx, "foo", "bar"))
+	_, err := g.Revisions(ctx, "foo")
+	assert.Error(t, err)
+	body, err := g.GetRevision(ctx, "foo", "bar")
+	assert.NoError(t, err)
+	assert.Equal(t, "", string(body))
 }

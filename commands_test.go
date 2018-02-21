@@ -35,6 +35,7 @@ var commandsWithError = map[string]struct{}{
 	".find":                  {},
 	".generate":              {},
 	".grep":                  {},
+	".history":               {},
 	".init":                  {},
 	".insert":                {},
 	".mounts.add":            {},
@@ -48,13 +49,13 @@ var commandsWithError = map[string]struct{}{
 	".templates.edit":        {},
 	".templates.remove":      {},
 	".templates.show":        {},
+	".unclip":                {},
 	".xc.export":             {},
 	".xc.export-private-key": {},
 	".xc.generate":           {},
 	".xc.import":             {},
 	".xc.import-private-key": {},
 	".xc.remove":             {},
-	".unclip":                {},
 }
 
 func TestGetCommands(t *testing.T) {
@@ -89,7 +90,7 @@ func TestGetCommands(t *testing.T) {
 	c := cli.NewContext(app, fs, nil)
 
 	commands := getCommands(ctx, act, app)
-	assert.Equal(t, 30, len(commands))
+	assert.Equal(t, 31, len(commands))
 
 	prefix := ""
 	testCommands(t, c, commands, prefix)
@@ -108,6 +109,9 @@ func testCommands(t *testing.T, c *cli.Context, commands []cli.Command, prefix s
 			if err := cmd.Before(c); err != nil {
 				continue
 			}
+		}
+		if cmd.BashComplete != nil {
+			cmd.BashComplete(c)
 		}
 		if cmd.Action != nil {
 			fullName := prefix + "." + cmd.Name

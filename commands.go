@@ -577,6 +577,24 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 			},
 		},
 		{
+			Name:    "history",
+			Usage:   "Show password history",
+			Aliases: []string{"hist"},
+			Description: "" +
+				"Display the change history for a secret",
+			Before: func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
+			Action: func(c *cli.Context) error {
+				return action.History(withGlobalFlags(ctx, c), c)
+			},
+			BashComplete: func(c *cli.Context) { action.Complete(ctx, c) },
+			Flags: []cli.Flag{
+				cli.BoolFlag{
+					Name:  "password, p",
+					Usage: "Include passwords in output",
+				},
+			},
+		},
+		{
 			Name:  "init",
 			Usage: "Initialize new password store.",
 			Description: "" +
@@ -850,6 +868,10 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 				cli.BoolFlag{
 					Name:  "sync, s",
 					Usage: "Sync before attempting to display the secret",
+				},
+				cli.StringFlag{
+					Name:  "revision",
+					Usage: "Show a past revision",
 				},
 			},
 		},

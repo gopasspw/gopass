@@ -25,7 +25,6 @@ func TestGit(t *testing.T) {
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
-	ctx = ctxutil.WithDebug(ctx, true)
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
@@ -44,6 +43,9 @@ func TestGit(t *testing.T) {
 	assert.NoError(t, ioutil.WriteFile(tf, []byte("foobar"), 0644))
 	assert.NoError(t, git.Add(ctx, "some-file"))
 	assert.Equal(t, true, git.HasStagedChanges(ctx))
+	assert.NoError(t, git.Commit(ctx, "added some-file"))
+	assert.Equal(t, false, git.HasStagedChanges(ctx))
+
 	assert.Error(t, git.Push(ctx, "origin", "master"))
 	assert.Error(t, git.Pull(ctx, "origin", "master"))
 
@@ -59,5 +61,16 @@ func TestGit(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "git", git.Name())
 
-	assert.Error(t, git.Commit(ctx, "added some-file"))
+	tf = filepath.Join(gitdir2, "some-other-file")
+	assert.NoError(t, ioutil.WriteFile(tf, []byte("foobar"), 0644))
+	assert.NoError(t, git.Add(ctx, "some-other-file"))
+	assert.NoError(t, git.Commit(ctx, "added some-other-file"))
+
+	revs, err := git.Revisions(ctx, "some-other-file")
+	assert.NoError(t, err)
+	assert.Equal(t, true, len(revs) == 1)
+
+	content, err := git.GetRevision(ctx, "some-other-file", revs[0].Hash)
+	assert.NoError(t, err)
+	assert.Equal(t, "foobar", string(content))
 }

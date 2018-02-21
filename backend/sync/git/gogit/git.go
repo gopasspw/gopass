@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/blang/semver"
+	"github.com/justwatchcom/gopass/backend"
 	"github.com/justwatchcom/gopass/store"
 	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/pkg/errors"
@@ -287,4 +288,14 @@ func (g *Git) AddRemote(ctx context.Context, remote, url string) error {
 // Name returns go-git
 func (g *Git) Name() string {
 	return "go-git"
+}
+
+// Revisions is not implemented
+func (g *Git) Revisions(context.Context, string) ([]backend.Revision, error) {
+	return nil, fmt.Errorf("not yet implemented for %s", g.Name())
+}
+
+// GetRevision is not implemented
+func (g *Git) GetRevision(context.Context, string, string) ([]byte, error) {
+	return nil, fmt.Errorf("not yet implemented for %s", g.Name())
 }

@@ -21,6 +21,7 @@ func Load() *Config {
 		if err != nil {
 			panic(err)
 		}
+		cfg.checkDefaults()
 		if debug {
 			fmt.Printf("[DEBUG] Loaded config from %s: %+v\n", l, cfg)
 		}
@@ -29,6 +30,9 @@ func Load() *Config {
 	cfg := New()
 	cfg.Root.Path = PwStoreDir("")
 	cfg.checkDefaults()
+	if debug {
+		fmt.Printf("[DEBUG] config.Load(): %+v\n", cfg)
+	}
 	return cfg
 }
 

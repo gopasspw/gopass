@@ -4,12 +4,16 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/blang/semver"
+	"github.com/justwatchcom/gopass/backend"
 	"github.com/justwatchcom/gopass/store"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/fsutil"
@@ -81,24 +85,31 @@ func Init(ctx context.Context, path, userName, userEmail string) (*Git, error) {
 	return g, nil
 }
 
-// Cmd runs an git command
-func (g *Git) Cmd(ctx context.Context, name string, args ...string) error {
-	buf := &bytes.Buffer{}
+func (g *Git) captureCmd(ctx context.Context, name string, args ...string) ([]byte, []byte, error) {
+	bufOut := &bytes.Buffer{}
+	bufErr := &bytes.Buffer{}
 
 	cmd := exec.CommandContext(ctx, "git", args[0:]...)
 	cmd.Dir = g.path
-	cmd.Stdout = buf
-	cmd.Stderr = buf
+	cmd.Stdout = bufOut
+	cmd.Stderr = bufErr
 
 	if ctxutil.IsDebug(ctx) || ctxutil.IsVerbose(ctx) {
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
+		cmd.Stdout = io.MultiWriter(bufOut, os.Stdout)
+		cmd.Stderr = io.MultiWriter(bufErr, os.Stderr)
 	}
-	out.Debug(ctx, "store.%s: %s %+v (%s)", name, cmd.Path, cmd.Args, g.path)
 
-	if err := cmd.Run(); err != nil {
-		out.Debug(ctx, "Output of '%s %+v': '%s'", cmd.Path, cmd.Args, buf.String())
-		return errors.Wrapf(err, "failed to run command %s %+v", cmd.Path, cmd.Args)
+	out.Debug(ctx, "store.%s: %s %+v (%s)", name, cmd.Path, cmd.Args, g.path)
+	err := cmd.Run()
+	return bufOut.Bytes(), bufErr.Bytes(), err
+}
+
+// Cmd runs an git command
+func (g *Git) Cmd(ctx context.Context, name string, args ...string) error {
+	stdout, stderr, err := g.captureCmd(ctx, name, args...)
+	if err != nil {
+		out.Debug(ctx, "Output:\n  Stdout: '%s'\n  Stderr: '%s'", string(stdout), string(stderr))
+		return err
 	}
 
 	return nil
@@ -219,4 +230,73 @@ func (g *Git) Pull(ctx context.Context, remote, branch string) error {
 // AddRemote adds a new remote
 func (g *Git) AddRemote(ctx context.Context, remote, url string) error {
 	return g.Cmd(ctx, "gitAddRemote", "remote", "add", remote, url)
+}
+
+// Revisions will list all available revisions of the named entity
+// see http://blog.lost-theory.org/post/how-to-parse-git-log-output/
+// and https://git-scm.com/docs/git-log#_pretty_formats
+func (g *Git) Revisions(ctx context.Context, name string) ([]backend.Revision, error) {
+	args := []string{
+		"log",
+		`--format=%H%x1f%an%x1f%ae%x1f%at%x1f%s%x1f%b%x1e`,
+		"--",
+		name,
+	}
+	stdout, stderr, err := g.captureCmd(ctx, "Revisions", args...)
+	if err != nil {
+		out.Debug(ctx, "Command failed: %s", string(stderr))
+		return nil, err
+	}
+	so := string(stdout)
+	revs := make([]backend.Revision, 0, strings.Count(so, "\x1e"))
+	for _, rev := range strings.Split(so, "\x1e") {
+		rev = strings.TrimSpace(rev)
+		if rev == "" {
+			continue
+		}
+
+		p := strings.Split(rev, "\x1f")
+		if len(p) < 1 {
+			continue
+		}
+
+		r := backend.Revision{}
+		r.Hash = p[0]
+		if len(p) > 1 {
+			r.AuthorName = p[1]
+		}
+		if len(p) > 2 {
+			r.AuthorEmail = p[2]
+		}
+		if len(p) > 3 {
+			if iv, err := strconv.ParseInt(p[3], 10, 64); err == nil {
+				r.Date = time.Unix(iv, 0)
+			}
+		}
+		if len(p) > 4 {
+			r.Subject = p[4]
+		}
+		if len(p) > 5 {
+			r.Body = p[5]
+		}
+		revs = append(revs, r)
+	}
+	return revs, nil
+}
+
+// GetRevision will return the content of any revision of the named entity
+// see https://git-scm.com/docs/git-log#_pretty_formats
+func (g *Git) GetRevision(ctx context.Context, name, revision string) ([]byte, error) {
+	name = strings.TrimSpace(name)
+	revision = strings.TrimSpace(revision)
+	args := []string{
+		"show",
+		revision + ":" + name,
+	}
+	stdout, stderr, err := g.captureCmd(ctx, "GetRevision", args...)
+	if err != nil {
+		out.Debug(ctx, "Command failed: %s", string(stderr))
+		return nil, err
+	}
+	return stdout, nil
 }

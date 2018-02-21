@@ -25,6 +25,7 @@ func (s *Action) Show(ctx context.Context, c *cli.Context) error {
 	ctx = WithForce(ctx, c.Bool("force"))
 	ctx = WithPrintQR(ctx, c.Bool("qr"))
 	ctx = WithPasswordOnly(ctx, c.Bool("password"))
+	ctx = WithRevision(ctx, c.String("revision"))
 
 	if c.Bool("sync") {
 		if err := s.sync(out.WithHidden(ctx, true), c, s.Store.MountPoint(name)); err != nil {
@@ -55,9 +56,22 @@ func (s *Action) show(ctx context.Context, c *cli.Context, name, key string, rec
 		name += BinarySuffix
 	}
 
+	if HasRevision(ctx) {
+		return s.showHandleRevision(ctx, c, name, key, GetRevision(ctx))
+	}
+
 	sec, err := s.Store.Get(ctx, name)
 	if err != nil {
 		return s.showHandleError(ctx, c, name, recurse, err)
+	}
+
+	return s.showHandleOutput(ctx, name, key, sec)
+}
+
+func (s *Action) showHandleRevision(ctx context.Context, c *cli.Context, name, key, revision string) error {
+	sec, err := s.Store.GetRevision(ctx, name, revision)
+	if err != nil {
+		return s.showHandleError(ctx, c, name, false, err)
 	}
 
 	return s.showHandleOutput(ctx, name, key, sec)

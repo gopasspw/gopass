@@ -2,8 +2,10 @@ package mock
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/blang/semver"
+	"github.com/justwatchcom/gopass/backend"
 )
 
 // Git is a no-op git backend
@@ -62,4 +64,14 @@ func (g *Git) Name() string {
 // AddRemote does nothing
 func (g *Git) AddRemote(ctx context.Context, remote, url string) error {
 	return nil
+}
+
+// Revisions is not implemented
+func (g *Git) Revisions(context.Context, string) ([]backend.Revision, error) {
+	return nil, fmt.Errorf("not yet implemented for %s", g.Name())
+}
+
+// GetRevision is not implemented
+func (g *Git) GetRevision(context.Context, string, string) ([]byte, error) {
+	return []byte(""), nil
 }

@@ -51,6 +51,12 @@ func TestCloneLocal(t *testing.T) {
 
 	// push to remote
 	assert.Error(t, g.PushPull(ctx, "push", "", ""))
+
+	// test revisions
+	_, err = g.Revisions(ctx, "foo")
+	assert.Error(t, err)
+	_, err = g.GetRevision(ctx, "foo", "bar")
+	assert.Error(t, err)
 }
 
 func TestCloneSSH(t *testing.T) {

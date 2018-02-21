@@ -2,6 +2,7 @@ package backend
 
 import (
 	"context"
+	"time"
 
 	"github.com/blang/semver"
 )
@@ -30,4 +31,17 @@ type Sync interface {
 
 	InitConfig(ctx context.Context, name, email string) error
 	AddRemote(ctx context.Context, remote, location string) error
+
+	Revisions(ctx context.Context, name string) ([]Revision, error)
+	GetRevision(ctx context.Context, name, revision string) ([]byte, error)
+}
+
+// Revision is a SCM revision
+type Revision struct {
+	Hash        string
+	AuthorName  string
+	AuthorEmail string
+	Date        time.Time
+	Subject     string
+	Body        string
 }
