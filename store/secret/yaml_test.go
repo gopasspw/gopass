@@ -2,10 +2,11 @@ package secret
 
 import (
 	"fmt"
+	"sort"
 	"strconv"
+	"strings"
 	"testing"
 
-	"github.com/justwatchcom/gopass/store"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -58,7 +59,7 @@ func TestYAMLKeyToEmptySecret(t *testing.T) {
 	// read back whole entry
 	buf, err := s.Bytes()
 	assert.NoError(t, err)
-	want := "\n---\n" + yamlKey + ": " + yamlValue + "\n"
+	want := "\n" + yamlKey + ": " + yamlValue + "\n"
 	assert.Equal(t, want, string(buf))
 }
 
@@ -96,21 +97,20 @@ func TestYAMLKeyToPWOnlySecret(t *testing.T) {
 	// read back whole entry
 	bv, err := s.Bytes()
 	assert.NoError(t, err)
-	want := yamlPassword + "\n---\nbar: baz\n"
+	want := yamlPassword + "\nbar: baz\n"
 	assert.Equal(t, want, string(bv))
 }
 
 func TestBareYAMLReadKey(t *testing.T) {
 	t.Logf("Bare YAML - no document marker - read key")
-	in := "bar: baz\nzab: 123\n"
+	in := "\nbar: baz\nzab: 123\n"
 	s, err := Parse([]byte(in))
 	assert.NoError(t, err)
 
 	// read back a key
 	_, err = s.Value(yamlKey)
-	if err != store.ErrYAMLNoMark {
-		t.Fatalf("Should fail to read YAML without document marker")
-	}
+	assert.NoError(t, err)
+
 	// read back whole entry
 	content, err := s.Bytes()
 	assert.NoError(t, err)
@@ -122,8 +122,11 @@ func TestYAMLSetMultipleKeys(t *testing.T) {
 	s, err := Parse([]byte(yamlPassword))
 	assert.NoError(t, err)
 
-	want := yamlPassword + "\n---\n"
+	var b strings.Builder
+	_, _ = b.WriteString(yamlPassword)
+	_, _ = b.WriteString("\n")
 	numKey := 100
+	keys := make([]string, 0, numKey)
 	for i := 0; i < numKey; i++ {
 		// set key
 		key := fmt.Sprintf("%s-%d", yamlKey, i)
@@ -131,7 +134,14 @@ func TestYAMLSetMultipleKeys(t *testing.T) {
 			t.Fatalf("Failed to write new key: %s", err)
 			continue
 		}
-		want += key + ": " + yamlValue + "\n"
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+	for _, key := range keys {
+		_, _ = b.WriteString(key)
+		_, _ = b.WriteString(": ")
+		_, _ = b.WriteString(yamlValue)
+		_, _ = b.WriteString("\n")
 	}
 
 	// read back the password
@@ -150,7 +160,7 @@ func TestYAMLSetMultipleKeys(t *testing.T) {
 	// read back whole entry
 	content, err := s.Bytes()
 	assert.NoError(t, err)
-	assert.Equal(t, want, string(content))
+	assert.Equal(t, b.String(), string(content))
 }
 
 func TestYAMLMultilineWithDashes(t *testing.T) {
@@ -168,22 +178,6 @@ ccc
 	content, err := s.Value(yamlKey)
 	assert.NoError(t, err)
 	assert.Equal(t, mlValue, string(content))
-}
-
-func TestYAMLContentFromInvalidYAML(t *testing.T) {
-	t.Logf("Retrieve content from invalid YAML (#375)")
-	mlValue := `somepasswd
----
-Test / test.com
-username: myuser@test.com
-password: somepasswd
-url: http://www.test.com/`
-	s, err := Parse([]byte(mlValue))
-	assert.Error(t, err)
-	assert.NotNil(t, s)
-
-	// read back key
-	assert.Equal(t, mlValue, s.String())
 }
 
 func TestYAMLDocMarkerAsPW(t *testing.T) {
