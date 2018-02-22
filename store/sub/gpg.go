@@ -52,6 +52,8 @@ func (s *Store) ImportMissingPublicKeys(ctx context.Context) error {
 			}
 		}
 
+		out.Debug(ctx, "[%s] Public Key %s not found in keyring, importing", s.alias, r)
+
 		// try to load this recipient
 		if err := s.importPublicKey(ctx, r); err != nil {
 			out.Red(ctx, "[%s] Failed to import public key for %s: %s", s.alias, r, err)
