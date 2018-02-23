@@ -1,4 +1,4 @@
-FROM golang:1.9-alpine AS builder
+FROM golang:1.10-alpine AS builder
 
 RUN apk add -U make git gnupg
 
