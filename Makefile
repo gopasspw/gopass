@@ -1,5 +1,5 @@
 FIRST_GOPATH              := $(firstword $(subst :, ,$(GOPATH)))
-PKGS                      := $(shell go list ./... | grep -v /tests | grep -v /xcpb)
+PKGS                      := $(shell go list ./... | grep -v /tests | grep -v /xcpb | grep -v /openpgp)
 GOFILES_NOVENDOR          := $(shell find . -type f -name '*.go' -not -path "./vendor/*" -not -name "*.pb.go")
 GOFILES_NOTEST            := $(shell find . -type f -name '*.go' -not -path "./vendor/*" -not -name "*_test.go" -not -name "*.pb.go")
 GOPASS_VERSION            ?= $(shell cat VERSION)
