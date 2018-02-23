@@ -42,18 +42,20 @@ Please see [docs/features.md](https://github.com/justwatchcom/gopass/blob/master
 
 | **Feature**                 | *pass* | *gopass* | **State** | **Description**                                                   |
 | --------------------------- | ------ | -------- | --------- | ----------------------------------------------------------------- |
-| Secure secret storage       | ✔      | ✔       | *stable*  | Securely storing secrets encrypted with GPG                       |
-| Recipient management        | ❌     | ✔       | *beta*    | Easily manage multiple users of each store                        |
-| Multiple stores             | ❌     | ✔       | *beta*    | Mount multiple stores in your root store, like file systems       |
-| password quality assistance | ❌     | ✔       | *beta*    | Checks existing or new passwords for common flaws                 |
-| Binary support              | ❌     | ✔       | *alpha*   | Special handling of binary files (automatic Base64 encoding)      |
-| YAML support                | ❌     | ✔       | *alpha*   | Special handling for YAML content in secrets                      |
-| password leak checker       | ❌     | ✔       | *alpha*   | Perform **offline** checks against known leaked passwords         |
-| PAGER support               | ❌     | ✔       | *stable*  | Automatically invoke a pager on long output                       |
-| JSON API                    | ❌     | ✔       | *alpha*   | Allow gopass to be used as a native extension for browser plugins |
-| Automatic fuzzy search      | ❌     | ✔       | *stable*   | Automatically search for matching store entries if a literal entry was not found |
-| gopass sync                 | ❌     | ✔       | *beta*    | Easy to use syncing of remote repos and GPG keys |
-| Desktop Notifications       | ❌     | ✔       | *beta*    | [Linux only] Display desktop notifications and completing long running operations |
+| Secure secret storage       | ✔      | ✔        | *stable*  | Securely storing secrets encrypted with GPG                       |
+| Recipient management        | ❌      | ✔        | *beta*    | Easily manage multiple users of each store                        |
+| Multiple stores             | ❌      | ✔        | *beta*    | Mount multiple stores in your root store, like file systems       |
+| password quality assistance | ❌      | ✔        | *beta*    | Checks existing or new passwords for common flaws                 |
+| Binary support              | ❌      | ✔        | *alpha*   | Special handling of binary files (automatic Base64 encoding)      |
+| K/V and YAML support        | ❌      | ✔        | *alpha*   | Special handling for Key/Value and YAML content in secrets        |
+| password leak checker       | ❌      | ✔        | *alpha*   | Perform **offline** checks against known leaked passwords         |
+| PAGER support               | ❌      | ✔        | *stable*  | Automatically invoke a pager on long output                       |
+| JSON API                    | ❌      | ✔        | *alpha*   | Allow gopass to be used as a native extension for browser plugins |
+| Automatic fuzzy search      | ❌      | ✔        | *stable*  | Automatically search for matching store entries if a literal entry was not found |
+| gopass sync                 | ❌      | ✔        | *beta*    | Easy to use syncing of remote repos and GPG keys |
+| Desktop Notifications       | ❌      | ✔        | *beta*    | Display desktop notifications and completing long running operations |
+| OTP support                 | (✔)    | ✔        | *stable*  | Generate HOTP/TOTP tokens based on the stored secret               |
+| Multiple Crypto Backends    | ❌      | ✔        | *alpha*   | Extensible crypto backend support (GPG, NaCl)                      |
 
 ## Installation
 

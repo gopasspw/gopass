@@ -1,3 +1,10 @@
+## Next Release
+
+* [FEATURE] Pluggable crypto, storage and RCS backends. Including a pure-Go NaCl based crypto backend [#645]
+* [FEATURE] Password history [#660]
+* [ENHANCEMENT] Support HIBPv2 API and Dumps [#666]
+* [ENHANCEMENT] Robust K/V parser with YAML fallback [#659]
+
 ## 1.6.11 / 2017-02-20
 
 * [ENHANCEMENT] Documentation updates [#648] [#656]
