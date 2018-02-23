@@ -68,11 +68,12 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 			Subcommands: []cli.Command{
 				{
 					Name:  "hibp",
-					Usage: "Detect leaked passwords (ALPHA)",
+					Usage: "Detect leaked passwords",
 					Description: "" +
 						"This command will decrypt all secrets and check the passwords against the public " +
-						"havibeenpwned.com dumps. " +
-						"To use this feature you need to download the dumps from https://haveibeenpwned.com/passwords first. This is a very expensive operation for advanced users",
+						"havibeenpwned.com v2 API or Dumps. " +
+						"To use the dumps you need to download the dumps from https://haveibeenpwned.com/passwords first. This is a very expensive operation for advanced users." +
+						"Most users should probably use the API.",
 					Before: func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
 					Action: func(c *cli.Context) error {
 						return action.HIBP(withGlobalFlags(ctx, c), c)
@@ -81,6 +82,10 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 						cli.BoolFlag{
 							Name:  "force, f",
 							Usage: "Force to move the secret and overwrite existing one",
+						},
+						cli.BoolFlag{
+							Name:  "api, a",
+							Usage: "Use HIBP API",
 						},
 					},
 				},
