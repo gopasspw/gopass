@@ -45,7 +45,7 @@ func TestCompress(t *testing.T) {
 			return pw
 		},
 	} {
-		for i := 0; i < 1024; i++ {
+		for i := 256; i < 512; i++ {
 			pw := pwg(i)
 			compPlain, compressed := compress([]byte(pw))
 			decompPlain := []byte(pw)

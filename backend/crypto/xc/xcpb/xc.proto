@@ -4,15 +4,18 @@ package xcpb;
 
 message Header {
   string Sender = 1;
-  bytes Nonce = 2;
   map<string, bytes> Recipients = 3;
   map<string, string> Metadata = 4;
+}
+
+message Chunk {
+    bytes Body = 1;
 }
 
 message Message {
   uint32 Version = 1;
   Header Header = 2;
-  bytes Body = 3;
+  repeated Chunk Chunks = 3;
   bool Compressed = 4;
 }
 

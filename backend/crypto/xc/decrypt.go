@@ -1,7 +1,9 @@
 package xc
 
 import (
+	"bytes"
 	"context"
+	"encoding/binary"
 	"fmt"
 	"time"
 
@@ -32,23 +34,35 @@ func (x *XC) Decrypt(ctx context.Context, buf []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	// initialize the AEAD cipher with the session key
-	cp, err := chacha20poly1305.New(sk)
-	if err != nil {
-		return nil, err
-	}
+	plainBuf := &bytes.Buffer{}
 
-	// decrypt and verify the ciphertext
-	plaintext, err := cp.Open(nil, msg.Header.Nonce, msg.Body, nil)
-	if err != nil {
-		return nil, err
+	for i, chunk := range msg.Chunks {
+		// initialize the AEAD cipher with the session key
+		cp, err := chacha20poly1305.New(sk)
+		if err != nil {
+			return nil, err
+		}
+
+		// reconstruct nonce from chunk number
+		// in case chunks have been reordered by some adversary
+		// decryption will fail
+		nonce := make([]byte, 12)
+		binary.BigEndian.PutUint64(nonce, uint64(i))
+
+		// decrypt and verify the ciphertext
+		plaintext, err := cp.Open(nil, nonce, chunk.Body, nil)
+		if err != nil {
+			return nil, err
+		}
+
+		plainBuf.Write(plaintext)
 	}
 
 	if !msg.Compressed {
-		return plaintext, nil
+		return plainBuf.Bytes(), nil
 	}
 
-	return decompress(plaintext)
+	return decompress(plainBuf.Bytes())
 }
 
 // findDecryptionKey tries to find a suiteable decryption key from the available
