@@ -2,6 +2,7 @@ package xc
 
 import (
 	"context"
+	"encoding/binary"
 	"fmt"
 	"io"
 	"sort"
@@ -20,6 +21,7 @@ import (
 const (
 	// OnDiskVersion is the version of our on-disk format
 	OnDiskVersion = 1
+	chunkSizeMax  = 1024 * 1024
 )
 
 // Encrypt encrypts the given plaintext for all the given recipients and returns the
@@ -34,14 +36,14 @@ func (x *XC) Encrypt(ctx context.Context, plaintext []byte, recipients []string)
 	var compressed bool
 	plaintext, compressed = compress(plaintext)
 
-	// encrypt body (als generates a random nonce and a random session key)
-	sk, nonce, body, err := encryptBody(plaintext)
+	// encrypt body (also generates a random session key)
+	sk, chunks, err := encryptBody(plaintext)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to encrypt body: %s", err)
 	}
 
 	// encrypt the session key per recipient
-	header, err := x.encryptHeader(privKey, sk, nonce, recipients)
+	header, err := x.encryptHeader(privKey, sk, recipients)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to encrypt header: %s", err)
 	}
@@ -49,7 +51,7 @@ func (x *XC) Encrypt(ctx context.Context, plaintext []byte, recipients []string)
 	msg := &xcpb.Message{
 		Version:    OnDiskVersion,
 		Header:     header,
-		Body:       body,
+		Chunks:     chunks,
 		Compressed: compressed,
 	}
 
@@ -58,10 +60,9 @@ func (x *XC) Encrypt(ctx context.Context, plaintext []byte, recipients []string)
 
 // encrypt header creates and populates a header struct with the nonce (plain)
 // and the session key encrypted per recipient
-func (x *XC) encryptHeader(signKey *keyring.PrivateKey, sk, nonce []byte, recipients []string) (*xcpb.Header, error) {
+func (x *XC) encryptHeader(signKey *keyring.PrivateKey, sk []byte, recipients []string) (*xcpb.Header, error) {
 	hdr := &xcpb.Header{
 		Sender:     signKey.Fingerprint(),
-		Nonce:      nonce,
 		Recipients: make(map[string][]byte, len(recipients)),
 		Metadata:   make(map[string]string), // metadata is plaintext!
 	}
@@ -116,27 +117,43 @@ func (x *XC) encryptForRecipient(sender *keyring.PrivateKey, sk []byte, recipien
 
 // encryptBody generates a random session key and a nonce and encrypts the given
 // plaintext with those. it returns all three
-func encryptBody(plaintext []byte) ([]byte, []byte, []byte, error) {
+func encryptBody(plaintext []byte) ([]byte, []*xcpb.Chunk, error) {
 	// generate session / encryption key
 	sessionKey := make([]byte, 32)
 	if _, err := crypto_rand.Read(sessionKey); err != nil {
-		return nil, nil, nil, err
+		return nil, nil, err
 	}
 
-	// generate a random nonce
-	nonce := make([]byte, 12)
-	if _, err := crypto_rand.Read(nonce); err != nil {
-		return nil, nil, nil, err
+	chunks := make([]*xcpb.Chunk, 0, (len(plaintext)/chunkSizeMax)+1)
+	offset := 0
+
+	for offset < len(plaintext) {
+		// use a sequential nonce to prevent chunk reordering.
+		// since the pair of key and nonce has to be unique and we're
+		// generating a new random key for each message, this is OK
+		nonce := make([]byte, 12)
+		binary.BigEndian.PutUint64(nonce, uint64(len(chunks)))
+
+		// initialize the AEAD with the generated session key
+		cp, err := chacha20poly1305.New(sessionKey)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		// encrypt the plaintext using the random nonce
+		ciphertext := cp.Seal(nil, nonce, plaintext[offset:min(len(plaintext), offset+chunkSizeMax)], nil)
+		chunks = append(chunks, &xcpb.Chunk{
+			Body: ciphertext,
+		})
+		offset += chunkSizeMax
 	}
 
-	// initialize the AEAD with the generated session key
-	cp, err := chacha20poly1305.New(sessionKey)
-	if err != nil {
-		return nil, nil, nil, err
+	return sessionKey, chunks, nil
+}
+
+func min(a, b int) int {
+	if a < b {
+		return a
 	}
-
-	// encrypt the plaintext using the random nonce
-	ciphertext := cp.Seal(nil, nonce, plaintext, nil)
-
-	return sessionKey, nonce, ciphertext, nil
+	return b
 }
