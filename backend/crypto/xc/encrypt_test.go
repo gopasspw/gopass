@@ -150,22 +150,35 @@ func TestEncryptChunks(t *testing.T) {
 	}
 	assert.Equal(t, 10485760, plaintext.Len())
 
-	buf, err := xc.Encrypt(ctx, plaintext.Bytes(), []string{k1.Fingerprint()})
+	ciphertext, err := xc.Encrypt(ctx, plaintext.Bytes(), []string{k1.Fingerprint()})
 	assert.NoError(t, err)
 
 	// check recipients
-	recps, err := xc.RecipientIDs(ctx, buf)
+	recps, err := xc.RecipientIDs(ctx, ciphertext)
 	assert.NoError(t, err)
 	assert.Equal(t, []string{k1.Fingerprint()}, recps)
 
 	// check number of chunks
 	msg := &xcpb.Message{}
-	assert.NoError(t, proto.Unmarshal(buf, msg))
+	assert.NoError(t, proto.Unmarshal(ciphertext, msg))
 	assert.Equal(t, 10, len(msg.Chunks))
 
 	// check decryption works and yields exactly the input
-	buf, err = xc.Decrypt(ctx, buf)
+	plainagain, err := xc.Decrypt(ctx, ciphertext)
 	assert.NoError(t, err)
-	assert.Equal(t, plaintext.String(), string(buf))
+	assert.Equal(t, plaintext.String(), string(plainagain))
 
+	// reorder some chunks
+	msg = &xcpb.Message{}
+	assert.NoError(t, proto.Unmarshal(ciphertext, msg))
+	assert.Equal(t, 10, len(msg.Chunks))
+
+	msg.Chunks[0], msg.Chunks[1] = msg.Chunks[1], msg.Chunks[0]
+
+	ciphertext, err = proto.Marshal(msg)
+	assert.NoError(t, err)
+
+	// check decryption fails
+	_, err = xc.Decrypt(ctx, ciphertext)
+	assert.Error(t, err)
 }
