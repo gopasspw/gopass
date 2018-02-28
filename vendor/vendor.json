@@ -33,12 +33,6 @@
 			"revisionTime": "2017-09-22T10:33:52Z"
 		},
 		{
-			"checksumSHA1": "u8n5T1RWE2k2jkddsmQ1SMtssms=",
-			"path": "github.com/cenk/backoff",
-			"revision": "61153c768f31ee5f130071d08fc82b85208528de",
-			"revisionTime": "2017-07-11T19:02:43Z"
-		},
-		{
 			"checksumSHA1": "hTThB1Cw2ue02RD5Oig4eu1Dkzk=",
 			"path": "github.com/cenkalti/backoff",
 			"revision": "309aa717adbf351e92864cbedf9cca0b769a4b5a",

@@ -15,7 +15,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cenk/backoff"
+	"github.com/cenkalti/backoff"
 	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/utils/notify"
 	"github.com/justwatchcom/gopass/utils/out"
