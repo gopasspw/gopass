@@ -101,7 +101,8 @@ func (s *Action) showHandleOutput(ctx context.Context, name, key string, sec *se
 		case ctxutil.IsShowSafeContent(ctx) && !IsForce(ctx):
 			content = sec.Body()
 			if content == "" {
-				return exitError(ctx, ExitNotFound, store.ErrNoBody, "no safe content to display, you can force display with show -f")
+				color.Yellow("No safe content to display, you can force display with show -f.\nCopying password instead.")
+				return copyToClipboard(ctx, name, []byte(sec.Password()))
 			}
 		default:
 			buf, err := sec.Bytes()
