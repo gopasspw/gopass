@@ -48,7 +48,7 @@ func New() *Config {
 			StoreBackend:  "fs",
 			SyncBackend:   "git",
 			UseSymbols:    false,
-			Notify:        true,
+			Notifications: true,
 		},
 		Mounts:  make(map[string]*StoreConfig),
 		Version: "",

@@ -228,17 +228,17 @@ func TestVerbose(t *testing.T) {
 	}
 }
 
-func TestNotify(t *testing.T) {
+func TestNotifications(t *testing.T) {
 	ctx := context.Background()
 
-	if !IsNotify(ctx) {
-		t.Errorf("Vanilla ctx should not have Notify")
+	if !IsNotifications(ctx) {
+		t.Errorf("Vanilla ctx should not have Notifications")
 	}
-	if !IsNotify(WithNotify(ctx, true)) {
-		t.Errorf("Should have Notify flag")
+	if !IsNotifications(WithNotifications(ctx, true)) {
+		t.Errorf("Should have Notifications flag")
 	}
-	if IsNotify(WithNotify(ctx, false)) {
-		t.Errorf("Should not have Notify flag")
+	if IsNotifications(WithNotifications(ctx, false)) {
+		t.Errorf("Should not have Notifications flag")
 	}
 }
 
@@ -260,7 +260,7 @@ func TestComposite(t *testing.T) {
 	ctx = WithNoColor(ctx, true)
 	ctx = WithFuzzySearch(ctx, false)
 	ctx = WithVerbose(ctx, true)
-	ctx = WithNotify(ctx, true)
+	ctx = WithNotifications(ctx, true)
 
 	assert.Equal(t, true, IsDebug(ctx))
 	assert.Equal(t, true, HasDebug(ctx))
@@ -310,6 +310,6 @@ func TestComposite(t *testing.T) {
 	assert.Equal(t, true, IsVerbose(ctx))
 	assert.Equal(t, true, HasVerbose(ctx))
 
-	assert.Equal(t, true, IsNotify(ctx))
-	assert.Equal(t, true, HasNotify(ctx))
+	assert.Equal(t, true, IsNotifications(ctx))
+	assert.Equal(t, true, HasNotifications(ctx))
 }

@@ -42,7 +42,7 @@ func initContext(ctx context.Context, cfg *config.Config) context.Context {
 	ctx = ctxutil.WithNoColor(ctx, cfg.Root.NoColor)
 
 	// enable desktop notifications
-	ctx = ctxutil.WithNotify(ctx, cfg.Root.Notify)
+	ctx = ctxutil.WithNotifications(ctx, cfg.Root.Notifications)
 
 	// check recipients conflicts with always trust, make sure it's not enabled
 	// when always trust is
