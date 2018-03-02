@@ -45,6 +45,10 @@ If any of the above don't work check out the [troubleshooting section](#troubles
 
 ## Troubleshooting
 
+### Vendoring
+
+This project use `dep` to manage it's dependencies. See this [gist](https://gist.github.com/subfuzion/12342599e26f5094e4e2d08e9d4ad50d) for a quick overview.
+
 ### Docker Approach
 
 gopass ships a ready to use Dockerfile based on Alpine. It allows to run tests
