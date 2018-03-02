@@ -9,7 +9,7 @@ import (
 
 func TestShow(t *testing.T) {
 	ts := newTester(t)
-	//defer ts.teardown()
+	defer ts.teardown()
 
 	_, err := ts.run("show")
 	assert.Error(t, err)
