@@ -126,11 +126,11 @@ func (s *Action) auditPrintResults(ctx context.Context, duplicates, messages, er
 	foundErrors := printAuditResults(ctx, errors, "%s:\n", color.RedString)
 
 	if foundWeakPasswords || foundDuplicates || foundErrors {
-		_ = notify.Notify("gopass - audit", "Finished. Found weak passwords and/or duplicates")
+		_ = notify.Notify(ctx, "gopass - audit", "Finished. Found weak passwords and/or duplicates")
 		return exitError(ctx, ExitAudit, nil, "found weak passwords or duplicates")
 	}
 
-	_ = notify.Notify("gopass - audit", "Finished. No weak passwords or duplicates found!")
+	_ = notify.Notify(ctx, "gopass - audit", "Finished. No weak passwords or duplicates found!")
 	return nil
 }
 

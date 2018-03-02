@@ -1,6 +1,7 @@
 package notify
 
 import (
+	"context"
 	"image/png"
 	"os"
 	"strings"
@@ -10,8 +11,9 @@ import (
 )
 
 func TestNotify(t *testing.T) {
+	ctx := context.Background()
 	_ = os.Setenv("GOPASS_NO_NOTIFY", "true")
-	assert.NoError(t, Notify("foo", "bar"))
+	assert.NoError(t, Notify(ctx, "foo", "bar"))
 }
 
 func TestIcon(t *testing.T) {

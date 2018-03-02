@@ -3,14 +3,16 @@
 package notify
 
 import (
+	"context"
 	"os"
 
 	"github.com/godbus/dbus"
+	"github.com/justwatchcom/gopass/utils/ctxutil"
 )
 
 // Notify displays a desktop notification with dbus
-func Notify(subj, msg string) error {
-	if nn := os.Getenv("GOPASS_NO_NOTIFY"); nn != "" {
+func Notify(ctx context.Context, subj, msg string) error {
+	if os.Getenv("GOPASS_NO_NOTIFY") != "" || ctxutil.IsNotify(ctx) != true {
 		return nil
 	}
 	conn, err := dbus.SessionBus()

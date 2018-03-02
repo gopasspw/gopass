@@ -232,13 +232,13 @@ func (s *Action) hibpPrecomputeHashes(ctx context.Context) (map[string]string, [
 
 func (s *Action) printHIBPMatches(ctx context.Context, matchList []string) error {
 	if len(matchList) < 1 {
-		_ = notify.Notify("gopass - audit HIBP", "Good news - No matches found!")
+		_ = notify.Notify(ctx, "gopass - audit HIBP", "Good news - No matches found!")
 		out.Green(ctx, "Good news - No matches found!")
 		return nil
 	}
 
 	sort.Strings(matchList)
-	_ = notify.Notify("gopass - audit HIBP", fmt.Sprintf("Oh no - found %d matches", len(matchList)))
+	_ = notify.Notify(ctx, "gopass - audit HIBP", fmt.Sprintf("Oh no - found %d matches", len(matchList)))
 	out.Red(ctx, "Oh no - Found some matches:")
 	for _, m := range matchList {
 		out.Red(ctx, "\t- %s", m)

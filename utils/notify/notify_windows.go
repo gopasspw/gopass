@@ -3,13 +3,16 @@
 package notify
 
 import (
+	"context"
 	"os"
 	"os/exec"
+
+	"github.com/justwatchcom/gopass/utils/ctxutil"
 )
 
 // Notify displays a desktop notification through msg
-func Notify(subj, msg string) error {
-	if nn := os.Getenv("GOPASS_NO_NOTIFY"); nn != "" {
+func Notify(ctx context.Context, subj, msg string) error {
+	if os.Getenv("GOPASS_NO_NOTIFY") != "" || ctxutil.IsNotify(ctx) {
 		return nil
 	}
 	winmsg, err := exec.LookPath("msg")

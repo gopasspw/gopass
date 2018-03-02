@@ -24,6 +24,7 @@ type StoreConfig struct {
 	StoreBackend  string `yaml:"storebackend"`  // storage backend (e.g. FS, K/V, ...)
 	SyncBackend   string `yaml:"syncbackend"`   // sync backend (e.g. GitCLI, GoGit, ...)
 	UseSymbols    bool   `yaml:"usesymbols"`    // always use symbols when generating passwords
+	Notify        bool   `yaml:"notify"`        // enable desktop notifications
 }
 
 // ConfigMap returns a map of stringified config values for easy printing
