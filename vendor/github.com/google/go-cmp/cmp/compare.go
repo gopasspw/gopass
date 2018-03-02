@@ -61,8 +61,8 @@ var nothing = reflect.Value{}
 //
 // • If the values have an Equal method of the form "(T) Equal(T) bool" or
 // "(T) Equal(I) bool" where T is assignable to I, then use the result of
-// x.Equal(y). Otherwise, no such method exists and evaluation proceeds to
-// the next rule.
+// x.Equal(y) even if x or y is nil.
+// Otherwise, no such method exists and evaluation proceeds to the next rule.
 //
 // • Lastly, try to compare x and y based on their basic kinds.
 // Simple kinds like booleans, integers, floats, complex numbers, strings, and
@@ -380,8 +380,9 @@ func detectRaces(c chan<- reflect.Value, f reflect.Value, vs ...reflect.Value) {
 // assuming that T is assignable to R.
 // Otherwise, it returns the input value as is.
 func sanitizeValue(v reflect.Value, t reflect.Type) reflect.Value {
-	// TODO(dsnet): Remove this hacky workaround.
-	// See https://golang.org/issue/22143
+	// TODO(dsnet): Workaround for reflect bug (https://golang.org/issue/22143).
+	// The upstream fix landed in Go1.10, so we can remove this when drop support
+	// for Go1.9 and below.
 	if v.Kind() == reflect.Interface && v.IsNil() && v.Type() != t {
 		return reflect.New(t).Elem()
 	}

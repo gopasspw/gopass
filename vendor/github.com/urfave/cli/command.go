@@ -178,7 +178,7 @@ func (c *Command) parseFlags(args Args) (*flag.FlagSet, error) {
 	set.SetOutput(ioutil.Discard)
 
 	if c.SkipFlagParsing {
-		return set, set.Parse(append([]string{c.Name, "--"}, args...))
+		return set, set.Parse(append([]string{"--"}, args...))
 	}
 
 	if c.UseShortOptionHandling {
@@ -213,11 +213,12 @@ func reorderArgs(args []string) []string {
 			break
 		}
 
-		if readFlagValue {
+		if readFlagValue && !strings.HasPrefix(arg, "-") && !strings.HasPrefix(arg, "--") {
 			readFlagValue = false
 			flags = append(flags, arg)
 			continue
 		}
+		readFlagValue = false
 
 		if arg != "-" && strings.HasPrefix(arg, "-") {
 			flags = append(flags, arg)

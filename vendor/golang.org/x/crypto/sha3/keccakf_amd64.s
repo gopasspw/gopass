@@ -72,35 +72,35 @@
 	/* Prepare round */    \
 	MOVQ rCe, rDa;         \
 	ROLQ $1, rDa;          \
-			       \
+	                       \
 	MOVQ _bi(iState), rCi; \
 	XORQ _gi(iState), rDi; \
 	XORQ rCu, rDa;         \
 	XORQ _ki(iState), rCi; \
 	XORQ _mi(iState), rDi; \
 	XORQ rDi, rCi;         \
-			       \
+	                       \
 	MOVQ rCi, rDe;         \
 	ROLQ $1, rDe;          \
-			       \
+	                       \
 	MOVQ _bo(iState), rCo; \
 	XORQ _go(iState), rDo; \
 	XORQ rCa, rDe;         \
 	XORQ _ko(iState), rCo; \
 	XORQ _mo(iState), rDo; \
 	XORQ rDo, rCo;         \
-			       \
+	                       \
 	MOVQ rCo, rDi;         \
 	ROLQ $1, rDi;          \
-			       \
+	                       \
 	MOVQ rCu, rDo;         \
 	XORQ rCe, rDi;         \
 	ROLQ $1, rDo;          \
-			       \
+	                       \
 	MOVQ rCa, rDu;         \
 	XORQ rCi, rDo;         \
 	ROLQ $1, rDu;          \
-			       \
+	                       \
 	/* Result b */         \
 	MOVQ _ba(iState), rBa; \
 	MOVQ _ge(iState), rBe; \
@@ -113,28 +113,28 @@
 	XORQ rDi, rBi;         \
 	XORQ rDa, rBa;         \
 	ROLQ $43, rBi;         \
-			       \
+	                       \
 	MOVQ rBe, rCa;         \
 	MOVQ rc, rT1;          \
 	ORQ  rBi, rCa;         \
 	XORQ rBa, rT1;         \
 	XORQ rT1, rCa;         \
 	MOVQ rCa, _ba(oState); \
-			       \
+	                       \
 	XORQ rDu, rBu;         \
 	ROLQ $14, rBu;         \
 	MOVQ rBa, rCu;         \
 	ANDQ rBe, rCu;         \
 	XORQ rBu, rCu;         \
 	MOVQ rCu, _bu(oState); \
-			       \
+	                       \
 	XORQ rDo, rBo;         \
 	ROLQ $21, rBo;         \
 	MOVQ rBo, rT1;         \
 	ANDQ rBu, rT1;         \
 	XORQ rBi, rT1;         \
 	MOVQ rT1, _bi(oState); \
-			       \
+	                       \
 	NOTQ rBi;              \
 	ORQ  rBa, rBu;         \
 	ORQ  rBo, rBi;         \
@@ -143,7 +143,7 @@
 	MOVQ rBu, _bo(oState); \
 	MOVQ rBi, _be(oState); \
 	B_RBI_RCE;             \
-			       \
+	                       \
 	/* Result g */         \
 	MOVQ _gu(iState), rBe; \
 	XORQ rDu, rBe;         \
@@ -161,7 +161,7 @@
 	XORQ rBa, rT1;         \
 	MOVQ rT1, _ga(oState); \
 	G_RT1_RCA;             \
-			       \
+	                       \
 	XORQ rDe, rBo;         \
 	ROLQ $45, rBo;         \
 	MOVQ rBi, rT1;         \
@@ -169,24 +169,24 @@
 	XORQ rBe, rT1;         \
 	MOVQ rT1, _ge(oState); \
 	G_RT1_RCE;             \
-			       \
+	                       \
 	XORQ rDi, rBu;         \
 	ROLQ $61, rBu;         \
 	MOVQ rBu, rT1;         \
 	ORQ  rBa, rT1;         \
 	XORQ rBo, rT1;         \
 	MOVQ rT1, _go(oState); \
-			       \
+	                       \
 	ANDQ rBe, rBa;         \
 	XORQ rBu, rBa;         \
 	MOVQ rBa, _gu(oState); \
 	NOTQ rBu;              \
 	G_RBA_RCU;             \
-			       \
+	                       \
 	ORQ  rBu, rBo;         \
 	XORQ rBi, rBo;         \
 	MOVQ rBo, _gi(oState); \
-			       \
+	                       \
 	/* Result k */         \
 	MOVQ _be(iState), rBa; \
 	MOVQ _gi(iState), rBe; \
@@ -204,7 +204,7 @@
 	XORQ rBa, rT1;         \
 	MOVQ rT1, _ka(oState); \
 	K_RT1_RCA;             \
-			       \
+	                       \
 	XORQ rDu, rBo;         \
 	ROLQ $8, rBo;          \
 	MOVQ rBi, rT1;         \
@@ -212,7 +212,7 @@
 	XORQ rBe, rT1;         \
 	MOVQ rT1, _ke(oState); \
 	K_RT1_RCE;             \
-			       \
+	                       \
 	XORQ rDa, rBu;         \
 	ROLQ $18, rBu;         \
 	NOTQ rBo;              \
@@ -220,17 +220,17 @@
 	ANDQ rBu, rT1;         \
 	XORQ rBi, rT1;         \
 	MOVQ rT1, _ki(oState); \
-			       \
+	                       \
 	MOVQ rBu, rT1;         \
 	ORQ  rBa, rT1;         \
 	XORQ rBo, rT1;         \
 	MOVQ rT1, _ko(oState); \
-			       \
+	                       \
 	ANDQ rBe, rBa;         \
 	XORQ rBu, rBa;         \
 	MOVQ rBa, _ku(oState); \
 	K_RBA_RCU;             \
-			       \
+	                       \
 	/* Result m */         \
 	MOVQ _ga(iState), rBe; \
 	XORQ rDa, rBe;         \
@@ -248,7 +248,7 @@
 	XORQ rBa, rT1;         \
 	MOVQ rT1, _ma(oState); \
 	M_RT1_RCA;             \
-			       \
+	                       \
 	XORQ rDi, rBo;         \
 	ROLQ $15, rBo;         \
 	MOVQ rBi, rT1;         \
@@ -256,7 +256,7 @@
 	XORQ rBe, rT1;         \
 	MOVQ rT1, _me(oState); \
 	M_RT1_RCE;             \
-			       \
+	                       \
 	XORQ rDo, rBu;         \
 	ROLQ $56, rBu;         \
 	NOTQ rBo;              \
@@ -264,16 +264,16 @@
 	ORQ  rBu, rT1;         \
 	XORQ rBi, rT1;         \
 	MOVQ rT1, _mi(oState); \
-			       \
+	                       \
 	ORQ  rBa, rBe;         \
 	XORQ rBu, rBe;         \
 	MOVQ rBe, _mu(oState); \
-			       \
+	                       \
 	ANDQ rBa, rBu;         \
 	XORQ rBo, rBu;         \
 	MOVQ rBu, _mo(oState); \
 	M_RBE_RCU;             \
-			       \
+	                       \
 	/* Result s */         \
 	MOVQ _bi(iState), rBa; \
 	MOVQ _go(iState), rBe; \
@@ -284,7 +284,7 @@
 	XORQ rDo, rBe;         \
 	MOVQ _se(iState), rBu; \
 	ROLQ $55, rBe;         \
-			       \
+	                       \
 	XORQ rDu, rBi;         \
 	MOVQ rBa, rDu;         \
 	XORQ rDe, rBu;         \
@@ -292,7 +292,7 @@
 	ANDQ rBe, rDu;         \
 	XORQ rBu, rDu;         \
 	MOVQ rDu, _su(oState); \
-			       \
+	                       \
 	ROLQ $39, rBi;         \
 	S_RDU_RCU;             \
 	NOTQ rBe;              \
@@ -302,14 +302,14 @@
 	XORQ rBa, rDa;         \
 	MOVQ rDa, _sa(oState); \
 	S_RDA_RCA;             \
-			       \
+	                       \
 	ROLQ $41, rBo;         \
 	MOVQ rBi, rDe;         \
 	ORQ  rBo, rDe;         \
 	XORQ rBe, rDe;         \
 	MOVQ rDe, _se(oState); \
 	S_RDE_RCE;             \
-			       \
+	                       \
 	MOVQ rBo, rDi;         \
 	MOVQ rBu, rDo;         \
 	ANDQ rBu, rDi;         \

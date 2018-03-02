@@ -37,7 +37,7 @@ func isCrossBoundaries(path string) bool {
 	path = filepath.ToSlash(path)
 	path = filepath.Clean(path)
 
-	return strings.HasPrefix(path, "..")
+	return strings.HasPrefix(path, ".."+string(filepath.Separator))
 }
 
 func (fs *ChrootHelper) Create(filename string) (billy.File, error) {

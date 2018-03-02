@@ -15,9 +15,12 @@ import (
 	"strings"
 	"syscall"
 	"time"
+	"unicode/utf8"
 
 	"golang.org/x/crypto/ssh/terminal"
 )
+
+const fps = 25
 
 var (
 	// Stdout defines where output gets printed to
@@ -78,8 +81,7 @@ func (p *ProgressBar) UpdateRequired() bool {
 // LazyPrint writes the progress bar to stdout if a significant update occurred
 func (p *ProgressBar) LazyPrint() {
 	now := time.Now()
-	if p.UpdateRequired() || now.Sub(p.lastPrintTime) > time.Second/25 {
-		// Max out at 25fps
+	if p.UpdateRequired() || now.Sub(p.lastPrintTime) > time.Second/fps {
 		p.lastPrintTime = now
 		p.Print()
 	}
@@ -118,13 +120,14 @@ func (p *ProgressBar) Print() {
 	}
 
 	text := p.Text
-	maxTextWidth := int(tiWidth) - 3 - int(barWidth) - len(p.PrependText)
+	textLen := utf8.RuneCountInString(p.Text)
+	maxTextWidth := tiWidth - 3 - int(barWidth) - utf8.RuneCountInString(p.PrependText)
 	if maxTextWidth < 0 {
 		maxTextWidth = 0
 	}
-	if len(p.Text) > maxTextWidth {
-		if len(p.Text)-maxTextWidth+3 < len(p.Text) {
-			text = "..." + p.Text[len(p.Text)-maxTextWidth+3:]
+	if textLen > maxTextWidth {
+		if textLen-maxTextWidth+3 < textLen {
+			text = "..." + string([]rune(p.Text)[textLen-maxTextWidth+3:])
 		} else {
 			text = ""
 		}
@@ -133,7 +136,7 @@ func (p *ProgressBar) Print() {
 	// Print text
 	s := fmt.Sprintf("%s%s  %s ",
 		text,
-		strings.Repeat(" ", maxTextWidth-len(text)),
+		strings.Repeat(" ", maxTextWidth-utf8.RuneCountInString(text)),
 		p.PrependText)
 	fmt.Fprint(Stdout, s)
 
@@ -186,11 +189,10 @@ func (mp *MultiProgressBar) LazyPrint() {
 
 	now := time.Now()
 	if !forced {
-		forced = now.Sub(mp.lastPrintTime) > time.Second/25
+		forced = now.Sub(mp.lastPrintTime) > time.Second/fps
 	}
 
 	if forced {
-		// Max out at 25fps
 		mp.lastPrintTime = now
 
 		moveCursorUp(uint(len(mp.ProgressBars)))

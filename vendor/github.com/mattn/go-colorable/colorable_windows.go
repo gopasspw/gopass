@@ -449,6 +449,8 @@ loop:
 		}
 
 		switch c2 {
+		case '>':
+			continue
 		case ']':
 			w.rest.WriteByte(c1)
 			w.rest.WriteByte(c2)
@@ -599,13 +601,13 @@ loop:
 			switch n {
 			case 0:
 				cursor = coord{x: csbi.cursorPosition.x, y: csbi.cursorPosition.y}
-				count = dword(csbi.size.x - csbi.cursorPosition.x + (csbi.size.y-csbi.cursorPosition.y)*csbi.size.x)
+				count = dword(csbi.size.x) - dword(csbi.cursorPosition.x) + dword(csbi.size.y-csbi.cursorPosition.y)*dword(csbi.size.x)
 			case 1:
 				cursor = coord{x: csbi.window.left, y: csbi.window.top}
-				count = dword(csbi.size.x - csbi.cursorPosition.x + (csbi.window.top-csbi.cursorPosition.y)*csbi.size.x)
+				count = dword(csbi.size.x) - dword(csbi.cursorPosition.x) + dword(csbi.window.top-csbi.cursorPosition.y)*dword(csbi.size.x)
 			case 2:
 				cursor = coord{x: csbi.window.left, y: csbi.window.top}
-				count = dword(csbi.size.x - csbi.cursorPosition.x + (csbi.size.y-csbi.cursorPosition.y)*csbi.size.x)
+				count = dword(csbi.size.x) - dword(csbi.cursorPosition.x) + dword(csbi.size.y-csbi.cursorPosition.y)*dword(csbi.size.x)
 			}
 			procFillConsoleOutputCharacter.Call(uintptr(handle), uintptr(' '), uintptr(count), *(*uintptr)(unsafe.Pointer(&cursor)), uintptr(unsafe.Pointer(&written)))
 			procFillConsoleOutputAttribute.Call(uintptr(handle), uintptr(csbi.attributes), uintptr(count), *(*uintptr)(unsafe.Pointer(&cursor)), uintptr(unsafe.Pointer(&written)))
@@ -625,10 +627,10 @@ loop:
 				cursor = coord{x: csbi.cursorPosition.x, y: csbi.cursorPosition.y}
 				count = dword(csbi.size.x - csbi.cursorPosition.x)
 			case 1:
-				cursor = coord{x: csbi.window.left, y: csbi.window.top + csbi.cursorPosition.y}
+				cursor = coord{x: csbi.window.left, y: csbi.cursorPosition.y}
 				count = dword(csbi.size.x - csbi.cursorPosition.x)
 			case 2:
-				cursor = coord{x: csbi.window.left, y: csbi.window.top + csbi.cursorPosition.y}
+				cursor = coord{x: csbi.window.left, y: csbi.cursorPosition.y}
 				count = dword(csbi.size.x)
 			}
 			procFillConsoleOutputCharacter.Call(uintptr(handle), uintptr(' '), uintptr(count), *(*uintptr)(unsafe.Pointer(&cursor)), uintptr(unsafe.Pointer(&written)))

@@ -24,7 +24,7 @@
 	MOVQ  r0, t2;                  \
 	IMULQ h2, t2;                  \
 	ADDQ  DX, t2;                  \
-				       \
+	                               \
 	MOVQ  r1, AX;                  \
 	MULQ  h0;                      \
 	ADDQ  AX, t1;                  \
@@ -38,7 +38,7 @@
 	ADCQ  DX, t3;                  \
 	ADDQ  h0, t2;                  \
 	ADCQ  $0, t3;                  \
-				       \
+	                               \
 	MOVQ  t0, h0;                  \
 	MOVQ  t1, h1;                  \
 	MOVQ  t2, h2;                  \

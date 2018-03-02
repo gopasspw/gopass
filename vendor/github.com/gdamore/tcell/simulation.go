@@ -441,8 +441,10 @@ func (s *simscreen) SetSize(w, h int) {
 			newc[(row*w)+col] = s.front[(row*s.physw)+col]
 		}
 	}
-	s.physw = w
-	s.physh = h
+	s.cursorx, s.cursory = -1, -1
+	s.physw, s.physh = w, h
+	s.front = newc
+	s.back.Resize(w, h)
 	s.Unlock()
 }
 
