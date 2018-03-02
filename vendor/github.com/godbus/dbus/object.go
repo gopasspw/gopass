@@ -83,21 +83,13 @@ func (o *Object) Go(method string, flags Flags, ch chan *Call, args ...interface
 			Args:        args,
 			Done:        ch,
 		}
-		o.conn.callsLck.Lock()
-		o.conn.calls[msg.serial] = call
-		o.conn.callsLck.Unlock()
-		o.conn.outLck.RLock()
-		if o.conn.closed {
+		o.conn.calls.track(msg.serial, call)
+		o.conn.sendMessageAndIfClosed(msg, func() {
 			call.Err = ErrClosed
 			call.Done <- call
-		} else {
-			o.conn.out <- msg
-		}
-		o.conn.outLck.RUnlock()
+		})
 		return call
 	}
-	o.conn.outLck.RLock()
-	defer o.conn.outLck.RUnlock()
 	done := make(chan *Call, 1)
 	call := &Call{
 		Err:  nil,
@@ -107,11 +99,9 @@ func (o *Object) Go(method string, flags Flags, ch chan *Call, args ...interface
 		call.Done <- call
 		close(done)
 	}()
-	if o.conn.closed {
+	o.conn.sendMessageAndIfClosed(msg, func() {
 		call.Err = ErrClosed
-		return call
-	}
-	o.conn.out <- msg
+	})
 	return call
 }
 

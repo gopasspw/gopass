@@ -12,7 +12,7 @@ obscured codes. There are four levels of error recovery: qrcode.{Low, Medium,
 High, Highest}. QR Codes with a higher recovery level are more robust to damage,
 at the cost of being physically larger.
 
-Two functions cover most use cases:
+Three functions cover most use cases:
 
 - Create a PNG image:
 
@@ -23,8 +23,13 @@ Two functions cover most use cases:
 
 	err := qrcode.WriteFile("https://example.org", qrcode.Medium, 256, "qr.png")
 
-Both examples use the qrcode.Medium error Recovery Level and create a fixed
-256x256px size, black on white QR Code.
+- Create a PNG image with custom colors and write to file:
+
+	err := qrcode.WriteColorFile("https://example.org", qrcode.Medium, 256, color.Black, color.White, "qr.png")
+
+All examples use the qrcode.Medium error Recovery Level and create a fixed
+256x256px size QR Code. The last function creates a white on black instead of black
+on white QR Code.
 
 To generate a variable sized image instead, specify a negative size (in place of
 the 256 above), such as -4 or -5. Larger negative numbers create larger images:
@@ -86,6 +91,29 @@ func WriteFile(content string, level RecoveryLevel, size int, filename string) e
 	var q *QRCode
 
 	q, err := New(content, level)
+
+	if err != nil {
+		return err
+	}
+
+	return q.WriteFile(size, filename)
+}
+
+// WriteColorFile encodes, then writes a QR Code to the given filename in PNG format.
+// With WriteColorFile you can also specify the colors you want to use.
+//
+// size is both the image width and height in pixels. If size is too small then
+// a larger image is silently written. Negative values for size cause a variable
+// sized image to be written: See the documentation for Image().
+func WriteColorFile(content string, level RecoveryLevel, size int, background,
+	foreground color.Color, filename string) error {
+
+	var q *QRCode
+
+	q, err := New(content, level)
+
+	q.BackgroundColor = background
+	q.ForegroundColor = foreground
 
 	if err != nil {
 		return err
@@ -506,4 +534,21 @@ func (q *QRCode) addPadding() {
 	if q.data.Len() != numDataBits {
 		log.Panicf("BUG: got len %d, expected %d", q.data.Len(), numDataBits)
 	}
+}
+
+// ToString produces a multi-line string that forms a QR-code image.
+func (q *QRCode) ToString(inverseColor bool) string {
+	bits := q.Bitmap()
+	var buf bytes.Buffer
+	for y := range bits {
+		for x := range bits[y] {
+			if bits[y][x] != inverseColor {
+				buf.WriteString("  ")
+			} else {
+				buf.WriteString("██")
+			}
+		}
+		buf.WriteString("\n")
+	}
+	return buf.String()
 }

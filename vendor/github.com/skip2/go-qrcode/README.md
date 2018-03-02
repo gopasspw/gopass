@@ -27,7 +27,13 @@ A command-line tool `qrcode` will be built into `$GOPATH/bin/`.
 
         err := qrcode.WriteFile("https://example.org", qrcode.Medium, 256, "qr.png")
 
-Both examples use the `qrcode.Medium` error Recovery Level and create a 256x256 pixel, black on white QR Code.
+- **Create a PNG image with custom colors and write to file:**
+
+        err := qrcode.WriteColorFile("https://example.org", qrcode.Medium, 256, color.Black, color.White, "qr.png")
+
+All examples use the qrcode.Medium error Recovery Level and create a fixed
+256x256px size QR Code. The last function creates a white on black instead of black
+on white QR Code.
 
 The maximum capacity of a QR Code varies according to the content encoded and
 the error recovery level. The maximum capacity is 2,953 bytes, 4,296

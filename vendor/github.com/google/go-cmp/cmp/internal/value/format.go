@@ -22,24 +22,28 @@ var stringerIface = reflect.TypeOf((*fmt.Stringer)(nil)).Elem()
 //	* Avoids printing struct fields that are zero
 //	* Prints a nil-slice as being nil, not empty
 //	* Prints map entries in deterministic order
-func Format(v reflect.Value, useStringer bool) string {
-	return formatAny(v, formatConfig{useStringer, true, true, true}, nil)
+func Format(v reflect.Value, conf FormatConfig) string {
+	conf.printType = true
+	conf.followPointers = true
+	conf.realPointers = true
+	return formatAny(v, conf, nil)
 }
 
-type formatConfig struct {
-	useStringer    bool // Should the String method be used if available?
-	printType      bool // Should we print the type before the value?
-	followPointers bool // Should we recursively follow pointers?
-	realPointers   bool // Should we print the real address of pointers?
+type FormatConfig struct {
+	UseStringer        bool // Should the String method be used if available?
+	printType          bool // Should we print the type before the value?
+	PrintPrimitiveType bool // Should we print the type of primitives?
+	followPointers     bool // Should we recursively follow pointers?
+	realPointers       bool // Should we print the real address of pointers?
 }
 
-func formatAny(v reflect.Value, conf formatConfig, visited map[uintptr]bool) string {
+func formatAny(v reflect.Value, conf FormatConfig, visited map[uintptr]bool) string {
 	// TODO: Should this be a multi-line printout in certain situations?
 
 	if !v.IsValid() {
 		return "<non-existent>"
 	}
-	if conf.useStringer && v.Type().Implements(stringerIface) && v.CanInterface() {
+	if conf.UseStringer && v.Type().Implements(stringerIface) && v.CanInterface() {
 		if (v.Kind() == reflect.Ptr || v.Kind() == reflect.Interface) && v.IsNil() {
 			return "<nil>"
 		}
@@ -150,7 +154,7 @@ func formatAny(v reflect.Value, conf formatConfig, visited map[uintptr]bool) str
 				continue // Elide zero value fields
 			}
 			name := v.Type().Field(i).Name
-			subConf.useStringer = conf.useStringer
+			subConf.UseStringer = conf.UseStringer
 			s := formatAny(vv, subConf, visited)
 			ss = append(ss, fmt.Sprintf("%s: %s", name, s))
 		}
@@ -183,14 +187,14 @@ func formatString(s string) string {
 	return qs
 }
 
-func formatPrimitive(t reflect.Type, v interface{}, conf formatConfig) string {
-	if conf.printType && t.PkgPath() != "" {
+func formatPrimitive(t reflect.Type, v interface{}, conf FormatConfig) string {
+	if conf.printType && (conf.PrintPrimitiveType || t.PkgPath() != "") {
 		return fmt.Sprintf("%v(%v)", t, v)
 	}
 	return fmt.Sprintf("%v", v)
 }
 
-func formatPointer(v reflect.Value, conf formatConfig) string {
+func formatPointer(v reflect.Value, conf FormatConfig) string {
 	p := v.Pointer()
 	if !conf.realPointers {
 		p = 0 // For deterministic printing purposes

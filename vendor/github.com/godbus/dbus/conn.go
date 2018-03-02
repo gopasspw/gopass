@@ -35,21 +35,15 @@ type Conn struct {
 	unixFD bool
 	uuid   string
 
-	names    []string
-	namesLck sync.RWMutex
+	names *nameTracker
 
-	serialLck  sync.Mutex
-	nextSerial uint32
-	serialUsed map[uint32]bool
+	serialGen *serialGenerator
 
-	calls    map[uint32]*Call
-	callsLck sync.RWMutex
+	calls *callTracker
 
 	handler Handler
 
-	out    chan *Message
-	closed bool
-	outLck sync.RWMutex
+	outHandler *outputHandler
 
 	signalHandler SignalHandler
 
@@ -186,12 +180,12 @@ func NewConnHandler(conn io.ReadWriteCloser, handler Handler, signalHandler Sign
 func newConn(tr transport, handler Handler, signalHandler SignalHandler) (*Conn, error) {
 	conn := new(Conn)
 	conn.transport = tr
-	conn.calls = make(map[uint32]*Call)
-	conn.out = make(chan *Message, 10)
+	conn.calls = newCallTracker()
 	conn.handler = handler
 	conn.signalHandler = signalHandler
-	conn.nextSerial = 1
-	conn.serialUsed = map[uint32]bool{0: true}
+	conn.outHandler = &outputHandler{conn: conn}
+	conn.serialGen = newSerialGenerator()
+	conn.names = newNameTracker()
 	conn.busObj = conn.Object("org.freedesktop.DBus", "/org/freedesktop/DBus")
 	return conn, nil
 }
@@ -206,18 +200,7 @@ func (conn *Conn) BusObject() BusObject {
 // and the channels passed to Eavesdrop and Signal are closed. This method must
 // not be called on shared connections.
 func (conn *Conn) Close() error {
-	conn.outLck.Lock()
-	if conn.closed {
-		// inWorker calls Close on read error, the read error may
-		// be caused by another caller calling Close to shutdown the
-		// dbus connection, a double-close scenario we prevent here.
-		conn.outLck.Unlock()
-		return nil
-	}
-	close(conn.out)
-	conn.closed = true
-	conn.outLck.Unlock()
-
+	conn.outHandler.close()
 	if term, ok := conn.signalHandler.(Terminator); ok {
 		term.Terminate()
 	}
@@ -251,15 +234,7 @@ func (conn *Conn) Eavesdrop(ch chan<- *Message) {
 
 // getSerial returns an unused serial.
 func (conn *Conn) getSerial() uint32 {
-	conn.serialLck.Lock()
-	defer conn.serialLck.Unlock()
-	n := conn.nextSerial
-	for conn.serialUsed[n] {
-		n++
-	}
-	conn.serialUsed[n] = true
-	conn.nextSerial = n + 1
-	return n
+	return conn.serialGen.getSerial()
 }
 
 // Hello sends the initial org.freedesktop.DBus.Hello call. This method must be
@@ -271,10 +246,7 @@ func (conn *Conn) Hello() error {
 	if err != nil {
 		return err
 	}
-	conn.namesLck.Lock()
-	conn.names = make([]string, 1)
-	conn.names[0] = s
-	conn.namesLck.Unlock()
+	conn.names.acquireUniqueConnectionName(s)
 	return nil
 }
 
@@ -283,109 +255,48 @@ func (conn *Conn) Hello() error {
 func (conn *Conn) inWorker() {
 	for {
 		msg, err := conn.ReadMessage()
-		if err == nil {
-			conn.eavesdroppedLck.Lock()
-			if conn.eavesdropped != nil {
-				select {
-				case conn.eavesdropped <- msg:
-				default:
-				}
-				conn.eavesdroppedLck.Unlock()
-				continue
+		if err != nil {
+			if _, ok := err.(InvalidMessageError); !ok {
+				// Some read error occured (usually EOF); we can't really do
+				// anything but to shut down all stuff and returns errors to all
+				// pending replies.
+				conn.Close()
+				conn.calls.finalizeAllWithError(err)
+				return
+			}
+			// invalid messages are ignored
+			continue
+		}
+		conn.eavesdroppedLck.Lock()
+		if conn.eavesdropped != nil {
+			select {
+			case conn.eavesdropped <- msg:
+			default:
 			}
 			conn.eavesdroppedLck.Unlock()
-			dest, _ := msg.Headers[FieldDestination].value.(string)
-			found := false
-			if dest == "" {
-				found = true
-			} else {
-				conn.namesLck.RLock()
-				if len(conn.names) == 0 {
-					found = true
-				}
-				for _, v := range conn.names {
-					if dest == v {
-						found = true
-						break
-					}
-				}
-				conn.namesLck.RUnlock()
-			}
-			if !found {
-				// Eavesdropped a message, but no channel for it is registered.
-				// Ignore it.
-				continue
-			}
-			switch msg.Type {
-			case TypeMethodReply, TypeError:
-				serial := msg.Headers[FieldReplySerial].value.(uint32)
-				conn.callsLck.Lock()
-				if c, ok := conn.calls[serial]; ok {
-					if msg.Type == TypeError {
-						name, _ := msg.Headers[FieldErrorName].value.(string)
-						c.Err = Error{name, msg.Body}
-					} else {
-						c.Body = msg.Body
-					}
-					c.Done <- c
-					conn.serialLck.Lock()
-					delete(conn.serialUsed, serial)
-					conn.serialLck.Unlock()
-					delete(conn.calls, serial)
-				}
-				conn.callsLck.Unlock()
-			case TypeSignal:
-				iface := msg.Headers[FieldInterface].value.(string)
-				member := msg.Headers[FieldMember].value.(string)
-				// as per http://dbus.freedesktop.org/doc/dbus-specification.html ,
-				// sender is optional for signals.
-				sender, _ := msg.Headers[FieldSender].value.(string)
-				if iface == "org.freedesktop.DBus" && sender == "org.freedesktop.DBus" {
-					if member == "NameLost" {
-						// If we lost the name on the bus, remove it from our
-						// tracking list.
-						name, ok := msg.Body[0].(string)
-						if !ok {
-							panic("Unable to read the lost name")
-						}
-						conn.namesLck.Lock()
-						for i, v := range conn.names {
-							if v == name {
-								conn.names = append(conn.names[:i],
-									conn.names[i+1:]...)
-							}
-						}
-						conn.namesLck.Unlock()
-					} else if member == "NameAcquired" {
-						// If we acquired the name on the bus, add it to our
-						// tracking list.
-						name, ok := msg.Body[0].(string)
-						if !ok {
-							panic("Unable to read the acquired name")
-						}
-						conn.namesLck.Lock()
-						conn.names = append(conn.names, name)
-						conn.namesLck.Unlock()
-					}
-				}
-				conn.handleSignal(msg)
-			case TypeMethodCall:
-				go conn.handleCall(msg)
-			}
-		} else if _, ok := err.(InvalidMessageError); !ok {
-			// Some read error occured (usually EOF); we can't really do
-			// anything but to shut down all stuff and returns errors to all
-			// pending replies.
-			conn.Close()
-			conn.callsLck.RLock()
-			for _, v := range conn.calls {
-				v.Err = err
-				v.Done <- v
-			}
-			conn.callsLck.RUnlock()
-			return
+			continue
 		}
-		// invalid messages are ignored
+		conn.eavesdroppedLck.Unlock()
+		dest, _ := msg.Headers[FieldDestination].value.(string)
+		found := dest == "" ||
+			!conn.names.uniqueNameIsKnown() ||
+			conn.names.isKnownName(dest)
+		if !found {
+			// Eavesdropped a message, but no channel for it is registered.
+			// Ignore it.
+			continue
+		}
+		switch msg.Type {
+		case TypeError:
+			conn.serialGen.retireSerial(conn.calls.handleDBusError(msg))
+		case TypeMethodReply:
+			conn.serialGen.retireSerial(conn.calls.handleReply(msg))
+		case TypeSignal:
+			conn.handleSignal(msg)
+		case TypeMethodCall:
+			go conn.handleCall(msg)
+		}
+
 	}
 }
 
@@ -395,6 +306,25 @@ func (conn *Conn) handleSignal(msg *Message) {
 	// as per http://dbus.freedesktop.org/doc/dbus-specification.html ,
 	// sender is optional for signals.
 	sender, _ := msg.Headers[FieldSender].value.(string)
+	if iface == "org.freedesktop.DBus" && sender == "org.freedesktop.DBus" {
+		if member == "NameLost" {
+			// If we lost the name on the bus, remove it from our
+			// tracking list.
+			name, ok := msg.Body[0].(string)
+			if !ok {
+				panic("Unable to read the lost name")
+			}
+			conn.names.loseName(name)
+		} else if member == "NameAcquired" {
+			// If we acquired the name on the bus, add it to our
+			// tracking list.
+			name, ok := msg.Body[0].(string)
+			if !ok {
+				panic("Unable to read the acquired name")
+			}
+			conn.names.acquireName(name)
+		}
+	}
 	signal := &Signal{
 		Sender: sender,
 		Path:   msg.Headers[FieldPath].value.(ObjectPath),
@@ -408,12 +338,7 @@ func (conn *Conn) handleSignal(msg *Message) {
 // connection. The slice is always at least one element long, the first element
 // being the unique name of the connection.
 func (conn *Conn) Names() []string {
-	conn.namesLck.RLock()
-	// copy the slice so it can't be modified
-	s := make([]string, len(conn.names))
-	copy(s, conn.names)
-	conn.namesLck.RUnlock()
-	return s
+	return conn.names.listKnownNames()
 }
 
 // Object returns the object identified by the given destination name and path.
@@ -423,24 +348,17 @@ func (conn *Conn) Object(dest string, path ObjectPath) BusObject {
 
 // outWorker runs in an own goroutine, encoding and sending messages that are
 // sent to conn.out.
-func (conn *Conn) outWorker() {
-	for msg := range conn.out {
-		err := conn.SendMessage(msg)
-		conn.callsLck.RLock()
-		if err != nil {
-			if c := conn.calls[msg.serial]; c != nil {
-				c.Err = err
-				c.Done <- c
-			}
-			conn.serialLck.Lock()
-			delete(conn.serialUsed, msg.serial)
-			conn.serialLck.Unlock()
-		} else if msg.Type != TypeMethodCall {
-			conn.serialLck.Lock()
-			delete(conn.serialUsed, msg.serial)
-			conn.serialLck.Unlock()
-		}
-		conn.callsLck.RUnlock()
+func (conn *Conn) sendMessage(msg *Message) {
+	conn.sendMessageAndIfClosed(msg, func() {})
+}
+
+func (conn *Conn) sendMessageAndIfClosed(msg *Message, ifClosed func()) {
+	err := conn.outHandler.sendAndIfClosed(msg, ifClosed)
+	conn.calls.handleSendError(msg, err)
+	if err != nil {
+		conn.serialGen.retireSerial(msg.serial)
+	} else if msg.Type != TypeMethodCall {
+		conn.serialGen.retireSerial(msg.serial)
 	}
 }
 
@@ -468,26 +386,16 @@ func (conn *Conn) Send(msg *Message, ch chan *Call) *Call {
 		call.Method = iface + "." + member
 		call.Args = msg.Body
 		call.Done = ch
-		conn.callsLck.Lock()
-		conn.calls[msg.serial] = call
-		conn.callsLck.Unlock()
-		conn.outLck.RLock()
-		if conn.closed {
+		conn.calls.track(msg.serial, call)
+		conn.sendMessageAndIfClosed(msg, func() {
 			call.Err = ErrClosed
 			call.Done <- call
-		} else {
-			conn.out <- msg
-		}
-		conn.outLck.RUnlock()
+		})
 	} else {
-		conn.outLck.RLock()
-		if conn.closed {
+		call = &Call{Err: nil}
+		conn.sendMessageAndIfClosed(msg, func() {
 			call = &Call{Err: ErrClosed}
-		} else {
-			conn.out <- msg
-			call = &Call{Err: nil}
-		}
-		conn.outLck.RUnlock()
+		})
 	}
 	return call
 }
@@ -520,11 +428,7 @@ func (conn *Conn) sendError(err error, dest string, serial uint32) {
 	if len(e.Body) > 0 {
 		msg.Headers[FieldSignature] = MakeVariant(SignatureOf(e.Body...))
 	}
-	conn.outLck.RLock()
-	if !conn.closed {
-		conn.out <- msg
-	}
-	conn.outLck.RUnlock()
+	conn.sendMessage(msg)
 }
 
 // sendReply creates a method reply message corresponding to the parameters and
@@ -542,11 +446,7 @@ func (conn *Conn) sendReply(dest string, serial uint32, values ...interface{}) {
 	if len(values) > 0 {
 		msg.Headers[FieldSignature] = MakeVariant(SignatureOf(values...))
 	}
-	conn.outLck.RLock()
-	if !conn.closed {
-		conn.out <- msg
-	}
-	conn.outLck.RUnlock()
+	conn.sendMessage(msg)
 }
 
 func (conn *Conn) defaultSignalAction(fn func(h *defaultSignalHandler, ch chan<- *Signal), ch chan<- *Signal) {
@@ -680,4 +580,188 @@ func getKey(s, key string) string {
 		}
 	}
 	return ""
+}
+
+type outputHandler struct {
+	conn    *Conn
+	sendLck sync.Mutex
+	closed  struct {
+		isClosed bool
+		lck      sync.RWMutex
+	}
+}
+
+func (h *outputHandler) sendAndIfClosed(msg *Message, ifClosed func()) error {
+	h.closed.lck.RLock()
+	defer h.closed.lck.RUnlock()
+	if h.closed.isClosed {
+		ifClosed()
+		return nil
+	}
+	h.sendLck.Lock()
+	defer h.sendLck.Unlock()
+	return h.conn.SendMessage(msg)
+}
+
+func (h *outputHandler) close() {
+	h.closed.lck.Lock()
+	defer h.closed.lck.Unlock()
+	h.closed.isClosed = true
+}
+
+type serialGenerator struct {
+	lck        sync.Mutex
+	nextSerial uint32
+	serialUsed map[uint32]bool
+}
+
+func newSerialGenerator() *serialGenerator {
+	return &serialGenerator{
+		serialUsed: map[uint32]bool{0: true},
+		nextSerial: 1,
+	}
+}
+
+func (gen *serialGenerator) getSerial() uint32 {
+	gen.lck.Lock()
+	defer gen.lck.Unlock()
+	n := gen.nextSerial
+	for gen.serialUsed[n] {
+		n++
+	}
+	gen.serialUsed[n] = true
+	gen.nextSerial = n + 1
+	return n
+}
+
+func (gen *serialGenerator) retireSerial(serial uint32) {
+	gen.lck.Lock()
+	defer gen.lck.Unlock()
+	delete(gen.serialUsed, serial)
+}
+
+type nameTracker struct {
+	lck    sync.RWMutex
+	unique string
+	names  map[string]struct{}
+}
+
+func newNameTracker() *nameTracker {
+	return &nameTracker{names: map[string]struct{}{}}
+}
+func (tracker *nameTracker) acquireUniqueConnectionName(name string) {
+	tracker.lck.Lock()
+	defer tracker.lck.Unlock()
+	tracker.unique = name
+}
+func (tracker *nameTracker) acquireName(name string) {
+	tracker.lck.Lock()
+	defer tracker.lck.Unlock()
+	tracker.names[name] = struct{}{}
+}
+func (tracker *nameTracker) loseName(name string) {
+	tracker.lck.Lock()
+	defer tracker.lck.Unlock()
+	delete(tracker.names, name)
+}
+
+func (tracker *nameTracker) uniqueNameIsKnown() bool {
+	tracker.lck.RLock()
+	defer tracker.lck.RUnlock()
+	return tracker.unique != ""
+}
+func (tracker *nameTracker) isKnownName(name string) bool {
+	tracker.lck.RLock()
+	defer tracker.lck.RUnlock()
+	_, ok := tracker.names[name]
+	return ok || name == tracker.unique
+}
+func (tracker *nameTracker) listKnownNames() []string {
+	tracker.lck.RLock()
+	defer tracker.lck.RUnlock()
+	out := make([]string, 0, len(tracker.names)+1)
+	out = append(out, tracker.unique)
+	for k := range tracker.names {
+		out = append(out, k)
+	}
+	return out
+}
+
+type callTracker struct {
+	calls map[uint32]*Call
+	lck   sync.RWMutex
+}
+
+func newCallTracker() *callTracker {
+	return &callTracker{calls: map[uint32]*Call{}}
+}
+
+func (tracker *callTracker) track(sn uint32, call *Call) {
+	tracker.lck.Lock()
+	defer tracker.lck.Unlock()
+	tracker.calls[sn] = call
+}
+
+func (tracker *callTracker) handleReply(msg *Message) uint32 {
+	serial := msg.Headers[FieldReplySerial].value.(uint32)
+	tracker.lck.RLock()
+	c, ok := tracker.calls[serial]
+	tracker.lck.RUnlock()
+	if !ok {
+		return serial
+	}
+	c.Body = msg.Body
+	c.Done <- c
+	tracker.finalize(serial)
+	return serial
+}
+
+func (tracker *callTracker) handleDBusError(msg *Message) uint32 {
+	serial := msg.Headers[FieldReplySerial].value.(uint32)
+	tracker.lck.RLock()
+	c, ok := tracker.calls[serial]
+	tracker.lck.RUnlock()
+	if !ok {
+		return serial
+	}
+	name, _ := msg.Headers[FieldErrorName].value.(string)
+	c.Err = Error{name, msg.Body}
+	c.Done <- c
+	tracker.finalize(serial)
+	return serial
+}
+
+func (tracker *callTracker) handleSendError(msg *Message, err error) {
+	if err == nil {
+		return
+	}
+	tracker.lck.RLock()
+	c, ok := tracker.calls[msg.serial]
+	tracker.lck.RUnlock()
+	if !ok {
+		return
+	}
+	c.Err = err
+	c.Done <- c
+	tracker.finalize(msg.serial)
+}
+
+func (tracker *callTracker) finalize(sn uint32) {
+	tracker.lck.Lock()
+	defer tracker.lck.Unlock()
+	delete(tracker.calls, sn)
+}
+
+func (tracker *callTracker) finalizeAllWithError(err error) {
+	closedCalls := make(map[uint32]*Call)
+	tracker.lck.RLock()
+	for sn, v := range tracker.calls {
+		v.Err = err
+		v.Done <- v
+		closedCalls[sn] = v
+	}
+	tracker.lck.RUnlock()
+	for sn := range closedCalls {
+		tracker.finalize(sn)
+	}
 }
