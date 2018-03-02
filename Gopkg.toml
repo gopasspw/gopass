@@ -1,0 +1,138 @@
+# Gopkg.toml example
+#
+# Refer to https://golang.github.io/dep/docs/Gopkg.toml.html
+# for detailed Gopkg.toml documentation.
+#
+# required = ["github.com/user/thing/cmd/thing"]
+# ignored = ["github.com/user/project/pkgX", "bitbucket.org/user/project/pkgA/pkgY"]
+#
+# [[constraint]]
+#   name = "github.com/user/project"
+#   version = "1.0.0"
+#
+# [[constraint]]
+#   name = "github.com/user/project2"
+#   branch = "dev"
+#   source = "github.com/myfork/project2"
+#
+# [[override]]
+#   name = "github.com/x/y"
+#   version = "2.4.0"
+#
+# [prune]
+#   non-go = false
+#   go-tests = true
+#   unused-packages = true
+
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/atotto/clipboard"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/blang/semver"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/cenkalti/backoff"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/dominikschulz/github-releases"
+
+[[constraint]]
+  name = "github.com/fatih/color"
+  version = "1.5.0"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/gdamore/tcell"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/godbus/dbus"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/gokyle/twofactor"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/golang/protobuf"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/jroimartin/gocui"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/kballard/go-shellquote"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/martinhoefling/goxkcdpwgen"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/mattn/go-colorable"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/mattn/go-runewidth"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/mitchellh/go-homedir"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/muesli/crunchy"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/muesli/goprogressbar"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/pkg/errors"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/schollz/closestmatch"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/skip2/go-qrcode"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/stretchr/testify"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/urfave/cli"
+
+[[constraint]]
+  branch = "master"
+  name = "golang.org/x/crypto"
+
+[[constraint]]
+  branch = "master"
+  name = "golang.org/x/net"
+
+[[constraint]]
+  branch = "master"
+  name = "golang.org/x/sys"
+
+[[constraint]]
+  name = "gopkg.in/src-d/go-git.v4"
+  version = "4.1.1"
+
+[[constraint]]
+  name = "gopkg.in/yaml.v2"
+  version = "2.1.1"
+
+[prune]
+  go-tests = true
+  unused-packages = true
