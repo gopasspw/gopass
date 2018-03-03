@@ -12,7 +12,7 @@ import (
 
 // Notify displays a desktop notification using osascript
 func Notify(ctx context.Context, subj, msg string) error {
-	if os.Getenv("GOPASS_NO_NOTIFY") != "" || ctxutil.IsNotifications(ctx) != true {
+	if os.Getenv("GOPASS_NO_NOTIFY") != "" || !ctxutil.IsNotifications(ctx) {
 		return nil
 	}
 	osas, err := exec.LookPath("osascript")
