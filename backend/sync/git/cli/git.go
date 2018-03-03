@@ -186,6 +186,34 @@ func (g *Git) Commit(ctx context.Context, msg string) error {
 	return g.Cmd(ctx, "gitCommit", "commit", "-m", msg)
 }
 
+func (g *Git) defaultRemote(ctx context.Context, branch string) string {
+	opts, err := g.ConfigList(ctx)
+	if err != nil {
+		return "origin"
+	}
+
+	remote := opts["branch."+branch+".remote"]
+	if remote == "" {
+		return "origin"
+	}
+
+	needle := "remote." + remote + ".url"
+	for k := range opts {
+		if k == needle {
+			return remote
+		}
+	}
+	return "origin"
+}
+
+func (g *Git) defaultBranch(ctx context.Context) string {
+	out, _, err := g.captureCmd(ctx, "defaultBranch", "rev-parse", "--abbrev-ref", "HEAD")
+	if err != nil || string(out) == "" {
+		return "master"
+	}
+	return strings.TrimSpace(string(out))
+}
+
 // PushPull pushes the repo to it's origin.
 // optional arguments: remote and branch
 func (g *Git) PushPull(ctx context.Context, op, remote, branch string) error {
@@ -193,11 +221,11 @@ func (g *Git) PushPull(ctx context.Context, op, remote, branch string) error {
 		return store.ErrGitNotInit
 	}
 
-	if remote == "" {
-		remote = "origin"
-	}
 	if branch == "" {
-		branch = "master"
+		branch = g.defaultBranch(ctx)
+	}
+	if remote == "" {
+		remote = g.defaultRemote(ctx, branch)
 	}
 
 	if v, err := g.ConfigGet(ctx, "remote."+remote+".url"); err != nil || v == "" {

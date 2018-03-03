@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"io/ioutil"
@@ -80,17 +79,48 @@ func (g *Git) ConfigGet(ctx context.Context, key string) (string, error) {
 		return "", store.ErrGitNotInit
 	}
 
-	buf := &bytes.Buffer{}
+	buf := &strings.Builder{}
 
 	cmd := exec.CommandContext(ctx, "git", "config", "--get", key)
 	cmd.Dir = g.path
 	cmd.Stdout = buf
 	cmd.Stderr = os.Stderr
 
-	out.Debug(ctx, "store.gitConfigValue: %s %+v", cmd.Path, cmd.Args)
+	out.Debug(ctx, "store.gitConfigGet: %s %+v", cmd.Path, cmd.Args)
 	if err := cmd.Run(); err != nil {
 		return "", err
 	}
 
 	return strings.TrimSpace(buf.String()), nil
+}
+
+// ConfigList returns all git config settings
+func (g *Git) ConfigList(ctx context.Context) (map[string]string, error) {
+	if !g.IsInitialized() {
+		return nil, store.ErrGitNotInit
+	}
+
+	buf := &strings.Builder{}
+
+	cmd := exec.CommandContext(ctx, "git", "config", "--list")
+	cmd.Dir = g.path
+	cmd.Stdout = buf
+	cmd.Stderr = os.Stderr
+
+	out.Debug(ctx, "store.gitConfigList: %s %+v", cmd.Path, cmd.Args)
+	if err := cmd.Run(); err != nil {
+		return nil, err
+	}
+
+	lines := strings.Split(buf.String(), "\n")
+	kv := make(map[string]string, len(lines))
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		p := strings.SplitN(line, "=", 2)
+		if len(p) < 2 {
+			continue
+		}
+		kv[p[0]] = p[1]
+	}
+	return kv, nil
 }
