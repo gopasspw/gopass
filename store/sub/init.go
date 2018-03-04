@@ -40,7 +40,7 @@ You can add secondary stores with gopass init --path <path to secondary store> -
 	}
 
 	if len(recipients) < 1 {
-		return errors.Errorf("failed to initialize store: no valid recipients given")
+		return errors.Errorf("failed to initialize store: no valid recipients given in %+v", ids)
 	}
 
 	kl, err := s.crypto.FindPrivateKeys(ctx, recipients...)

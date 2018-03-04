@@ -243,6 +243,7 @@
     "nacl/secretbox",
     "openpgp",
     "openpgp/armor",
+    "openpgp/clearsign",
     "openpgp/elgamal",
     "openpgp/errors",
     "openpgp/packet",
@@ -385,6 +386,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "f4570d29b1c074b48aa81ea55d134b0d966957e52c3198f906fe67420da5fe66"
+  inputs-digest = "9606db4b0325abdc1f3609ba446754d9dc675d211736c7708254dea57c906b95"
   solver-name = "gps-cdcl"
   solver-version = 1

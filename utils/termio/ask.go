@@ -58,9 +58,9 @@ func AskForBool(ctx context.Context, text string, def bool) (bool, error) {
 		return def, nil
 	}
 
-	choices := "y/N"
+	choices := "y/N/q"
 	if def {
-		choices = "Y/n"
+		choices = "Y/n/q"
 	}
 
 	str, err := AskForString(ctx, text, choices)
@@ -68,9 +68,9 @@ func AskForBool(ctx context.Context, text string, def bool) (bool, error) {
 		return false, errors.Wrapf(err, "failed to read user input")
 	}
 	switch str {
-	case "Y/n":
+	case "Y/n/q":
 		return true, nil
-	case "y/N":
+	case "y/N/q":
 		return false, nil
 	}
 
@@ -80,6 +80,8 @@ func AskForBool(ctx context.Context, text string, def bool) (bool, error) {
 		return true, nil
 	case "n":
 		return false, nil
+	case "q":
+		return false, errors.Errorf("user aborted")
 	default:
 		return false, errors.Errorf("Unknown answer: %s", str)
 	}
@@ -95,6 +97,9 @@ func AskForInt(ctx context.Context, text string, def int) (int, error) {
 	str, err := AskForString(ctx, text, strconv.Itoa(def))
 	if err != nil {
 		return 0, err
+	}
+	if str == "q" {
+		return 0, errors.Errorf("user aborted")
 	}
 	intVal, err := strconv.Atoi(str)
 	if err != nil {

@@ -16,6 +16,8 @@ const (
 	GPGCLI
 	// XC is an experimental crypto backend
 	XC
+	// OpenPGP is a GPG1.x compatible pure-Go crypto backend
+	OpenPGP
 )
 
 // Keyring is a public/private key manager

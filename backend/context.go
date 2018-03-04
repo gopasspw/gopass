@@ -19,6 +19,8 @@ func CryptoBackendName(cb CryptoBackend) string {
 		return "gpgcli"
 	case XC:
 		return "xc"
+	case OpenPGP:
+		return "openpgp"
 	default:
 		return ""
 	}
@@ -35,6 +37,8 @@ func WithCryptoBackendString(ctx context.Context, be string) context.Context {
 		return WithCryptoBackend(ctx, GPGMock)
 	case "xc":
 		return WithCryptoBackend(ctx, XC)
+	case "openpgp":
+		return WithCryptoBackend(ctx, OpenPGP)
 	default:
 		return ctx
 	}
