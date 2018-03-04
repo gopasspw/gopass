@@ -51,11 +51,11 @@ func (s *Action) clone(ctx context.Context, repo, mount, path string) error {
 			return exitError(ctx, ExitGit, err, "failed to clone repo '%s' to '%s'", repo, path)
 		}
 	case backend.GitCLI:
+		fallthrough
+	default:
 		if _, err := gitcli.Clone(ctx, repo, path); err != nil {
 			return exitError(ctx, ExitGit, err, "failed to clone repo '%s' to '%s'", repo, path)
 		}
-	default:
-		return exitError(ctx, ExitGit, nil, "unknown sync backend '%s'", backend.SyncBackendName(backend.GetSyncBackend(ctx)))
 	}
 
 	// detect crypto backend based on cloned repo
