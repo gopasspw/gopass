@@ -21,6 +21,7 @@ const (
 	ctxKeyNoColor
 	ctxKeyFuzzySearch
 	ctxKeyVerbose
+	ctxNotifications
 )
 
 // WithDebug returns a context with an explizit value for debug
@@ -341,6 +342,26 @@ func IsVerbose(ctx context.Context) bool {
 	bv, ok := ctx.Value(ctxKeyVerbose).(bool)
 	if !ok {
 		return false
+	}
+	return bv
+}
+
+// WithNotifications returns a context with the value for Notifications set
+func WithNotifications(ctx context.Context, verbose bool) context.Context {
+	return context.WithValue(ctx, ctxNotifications, verbose)
+}
+
+// HasNotifications returns true if a value for Notifications has been set in this context
+func HasNotifications(ctx context.Context) bool {
+	_, ok := ctx.Value(ctxNotifications).(bool)
+	return ok
+}
+
+// IsNotifications returns the value of Notifications or the default (true)
+func IsNotifications(ctx context.Context) bool {
+	bv, ok := ctx.Value(ctxNotifications).(bool)
+	if !ok {
+		return true
 	}
 	return bv
 }

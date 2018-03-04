@@ -56,7 +56,7 @@ func (s *Action) sync(ctx context.Context, c *cli.Context, store string) error {
 	} else if numEntries < 0 {
 		diff = fmt.Sprintf(" Removed %d entries", -1*numEntries)
 	}
-	_ = notify.Notify("gopass - sync", fmt.Sprintf("Finished. Synced %d remotes.%s", numMPs, diff))
+	_ = notify.Notify(ctx, "gopass - sync", fmt.Sprintf("Finished. Synced %d remotes.%s", numMPs, diff))
 
 	return nil
 }

@@ -45,6 +45,7 @@ func TestConfig(t *testing.T) {
   nocolor: false
   noconfirm: false
   nopager: false
+  notifications: true
 `
 	want += "  path: " + u.StoreDir("") + "\n"
 	want += `  safecontent: false
@@ -84,6 +85,7 @@ foo/nopager: false`
   nocolor: false
   noconfirm: false
   nopager: true
+  notifications: true
 `
 	want += "  path: " + u.StoreDir("") + "\n"
 	want += `  safecontent: false
@@ -95,6 +97,7 @@ mount 'foo' config:
   autosync: false
   cliptimeout: 23
   nopager: false
+  notifications: false
   path:`
 	assert.Equal(t, want, strings.TrimSpace(buf.String()))
 	buf.Reset()
@@ -128,6 +131,7 @@ cryptobackend
 nocolor
 noconfirm
 nopager
+notifications
 path
 safecontent
 storebackend
