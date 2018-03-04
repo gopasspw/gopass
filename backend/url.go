@@ -2,6 +2,7 @@ package backend
 
 import (
 	"fmt"
+	"net"
 	"net/url"
 	"strings"
 )
@@ -14,6 +15,8 @@ type URL struct {
 	Sync     SyncBackend
 	Store    StoreBackend
 	Scheme   string
+	Host     string
+	Port     string
 	Path     string
 	Username string
 	Password string
@@ -54,6 +57,13 @@ func ParseURL(us string) (*URL, error) {
 		u.Password, _ = nu.User.Password()
 	}
 	u.Query = nu.Query()
+	if nu.Host != "" {
+		h, p, err := net.SplitHostPort(nu.Host)
+		if err == nil {
+			u.Host = h
+			u.Port = p
+		}
+	}
 	return u, nil
 }
 
