@@ -45,6 +45,7 @@ func (s *Store) Set(ctx context.Context, name string, sec *secret.Secret) error 
 
 	ciphertext, err := s.crypto.Encrypt(ctx, buf, recipients)
 	if err != nil {
+		out.Debug(ctx, "Failed encrypt secret: %s", err)
 		return store.ErrEncrypt
 	}
 

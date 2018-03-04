@@ -9,6 +9,7 @@ import (
 	"github.com/justwatchcom/gopass/backend"
 	gpgcli "github.com/justwatchcom/gopass/backend/crypto/gpg/cli"
 	gpgmock "github.com/justwatchcom/gopass/backend/crypto/gpg/mock"
+	"github.com/justwatchcom/gopass/backend/crypto/gpg/openpgp"
 	"github.com/justwatchcom/gopass/backend/crypto/xc"
 	"github.com/justwatchcom/gopass/backend/store/fs"
 	kvmock "github.com/justwatchcom/gopass/backend/store/kv/mock"
@@ -105,6 +106,13 @@ func New(ctx context.Context, alias, path string, cfgdir string) (*Store, error)
 		//out.Red(ctx, "WARNING: Using no-op crypto backend (NO ENCRYPTION)!")
 		s.crypto = gpgmock.New()
 		out.Debug(ctx, "Using Crypto Backend: gpg-mock")
+	case backend.OpenPGP:
+		crypto, err := openpgp.New(ctx)
+		if err != nil {
+			return nil, err
+		}
+		s.crypto = crypto
+		out.Debug(ctx, "Using Crypto Backend: openpgp")
 	default:
 		return nil, fmt.Errorf("no valid crypto backend selected")
 	}

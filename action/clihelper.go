@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"sort"
 
+	"github.com/justwatchcom/gopass/backend/crypto/gpg"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/cui"
 	"github.com/justwatchcom/gopass/utils/out"
@@ -65,7 +66,7 @@ func (s *Action) askForPrivateKey(ctx context.Context, name, prompt string) (str
 	}
 
 	crypto := s.Store.Crypto(ctx, name)
-	kl, err := crypto.ListPrivateKeyIDs(ctx)
+	kl, err := crypto.ListPrivateKeyIDs(gpg.WithAlwaysTrust(ctx, false))
 	if err != nil {
 		return "", err
 	}
@@ -88,7 +89,7 @@ func (s *Action) askForPrivateKey(ctx context.Context, name, prompt string) (str
 		for i, k := range kl {
 			fmt.Fprintf(stdout, "[%d] %s\n", i, crypto.FormatKey(ctx, k))
 		}
-		iv, err := termio.AskForInt(ctx, fmt.Sprintf("Please enter the number of a key (0-%d)", len(kl)-1), 0)
+		iv, err := termio.AskForInt(ctx, fmt.Sprintf("Please enter the number of a key (0-%d, [q]uit)", len(kl)-1), 0)
 		if err != nil {
 			continue
 		}
