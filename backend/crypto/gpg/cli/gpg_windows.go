@@ -15,10 +15,24 @@ func detectBinaryCandidates(bin string) ([]string, error) {
 	// gpg.exe for GPG4Win 3.0.0; would be gpg2.exe for 2.x
 	bins := make([]string, 0, 4)
 
+	bins, err := searchRegistry(bin, bins)
+	if err != nil {
+		return bins, err
+	}
+
+	bins, err = searchPath(bin, bins)
+	if err != nil {
+		return bins, err
+	}
+
+	return bins, nil
+}
+
+func searchRegistry(bin string, bins []string) ([]string, error) {
 	// try to detect location of installed GPG4Win
 	k, err := registry.OpenKey(registry.LOCAL_MACHINE, `SOFTWARE\GnuPG`, registry.QUERY_VALUE|registry.WOW64_32KEY)
 	if err != nil {
-		return bins, err
+		return bins, nil
 	}
 
 	if v, _, err := k.GetStringValue("Install Directory"); err == nil && v != "" {
@@ -30,6 +44,10 @@ func detectBinaryCandidates(bin string) ([]string, error) {
 		}
 	}
 
+	return bins, nil
+}
+
+func searchPath(bin string, bins []string) ([]string, error) {
 	// try to detect location for GPG installed somewhere on the PATH
 	for _, b := range []string{bin, "gpg2.exe", "gpg.exe"} {
 		gpgPath, err := exec.LookPath(b)
@@ -40,5 +58,6 @@ func detectBinaryCandidates(bin string) ([]string, error) {
 			bins = append(bins, gpgPath)
 		}
 	}
+
 	return bins, nil
 }
