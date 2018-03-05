@@ -1,6 +1,6 @@
 package manifest
 
-var wrapperTemplate = `#!/bin/bash
+var wrapperTemplate = `#!/bin/sh
 
 if [ -f ~/.gpg-agent-info ] && [ -n "$(pgrep gpg-agent)" ]; then
 source ~/.gpg-agent-info
