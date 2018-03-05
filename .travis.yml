@@ -12,7 +12,7 @@ go:
   - '1.10'
 
 script:
-  - make all
+  - make travis
   - make test-integration
   - make install-completion
 

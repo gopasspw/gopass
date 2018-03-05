@@ -1,6 +1,7 @@
 FIRST_GOPATH              := $(firstword $(subst :, ,$(GOPATH)))
 PKGS                      := $(shell go list ./... | grep -v /tests | grep -v /xcpb | grep -v /openpgp)
-GOFILES_NOVENDOR          := $(shell find . -type f -name '*.go' -not -path "./vendor/*" -not -name "*.pb.go")
+GOFILES_NOVENDOR          := $(shell find . -name vendor -prune -o -type f -name '*.go' -not -name '*.pb.go' -print)
+GOFILES_BUILD             := $(shell find . -type f -name '*.go' -not -name '*_test.go')
 GOPASS_VERSION            ?= $(shell cat VERSION)
 GOPASS_OUTPUT             ?= gopass
 GOPASS_REVISION           := $(shell cat COMMIT 2>/dev/null || git rev-parse --short=8 HEAD)
@@ -21,7 +22,10 @@ TAGS                      ?= netgo
 
 OK := $(shell tput setaf 6; echo ' [OK]'; tput sgr0;)
 
-all: sysinfo crosscompile build install test codequality completion
+all: build completion
+build: $(GOPASS_OUTPUT)
+completion: $(BASH_COMPLETION_OUTPUT) $(FISH_COMPLETION_OUTPUT) $(ZSH_COMPLETION_OUTPUT)
+travis: sysinfo crosscompile build install test codequality completion
 
 sysinfo:
 	@echo ">> SYSTEM INFORMATION"
@@ -57,18 +61,18 @@ clean:
 	@rm -rf dist/*
 	@printf '%s\n' '$(OK)'
 
-build:
-	@echo -n ">> BUILD, version = $(GOPASS_VERSION)/$(GOPASS_REVISION), output = $(GOPASS_OUTPUT)"
-	@$(GO) build -o $(GOPASS_OUTPUT) $(BUILDFLAGS)
+$(GOPASS_OUTPUT): $(GOFILES_BUILD)
+	@echo -n ">> BUILD, version = $(GOPASS_VERSION)/$(GOPASS_REVISION), output = $@"
+	@$(GO) build -o $@ $(BUILDFLAGS)
 	@printf '%s\n' '$(OK)'
 
-install: build completion install-completion
+install: all install-completion
 	@echo -n ">> INSTALL, version = $(GOPASS_VERSION)"
 	@install -m 0755 -d $(DESTDIR)$(BINDIR)
 	@install -m 0755 $(GOPASS_OUTPUT) $(DESTDIR)$(BINDIR)/gopass
 	@printf '%s\n' '$(OK)'
 
-fulltest: build
+fulltest: $(GOPASS_OUTPUT)
 	@echo ">> TEST, \"full-mode\": race detector on"
 	@echo "mode: atomic" > coverage-all.out
 	@$(foreach pkg, $(PKGS),\
@@ -77,7 +81,7 @@ fulltest: build
 		tail -n +2 coverage.out >> coverage-all.out;)
 	@$(GO) tool cover -html=coverage-all.out -o coverage-all.html
 
-test: build
+test: $(GOPASS_OUTPUT)
 	@echo ">> TEST, \"fast-mode\": race detector off"
 	@echo "mode: count" > coverage-all.out
 	@$(foreach pkg, $(PKGS),\
@@ -86,7 +90,7 @@ test: build
 		tail -n +2 coverage.out >> coverage-all.out;)
 	@$(GO) tool cover -html=coverage-all.out -o coverage-all.html
 
-test-integration: build
+test-integration: $(GOPASS_OUTPUT)
 	cd tests && GOPASS_BINARY=$(PWD)/$(GOPASS_OUTPUT) GOPASS_TEST_DIR=$(PWD)/tests go test -v
 
 crosscompile:
@@ -100,22 +104,11 @@ crosscompile:
 	@GOOS=windows GOARCH=amd64 $(GO) build -o $(GOPASS_OUTPUT)-windows-amd64
 	@printf '%s\n' '$(OK)'
 
-completion: $(BASH_COMPLETION_OUTPUT) $(FISH_COMPLETION_OUTPUT) $(ZSH_COMPLETION_OUTPUT)
 
-$(BASH_COMPLETION_OUTPUT): build
-	@echo -n ">> BASH COMPLETION, output = $(BASH_COMPLETION_OUTPUT)"
-	@./gopass completion bash > $(BASH_COMPLETION_OUTPUT)
-	@printf '%s\n' '$(OK)'
-
-$(FISH_COMPLETION_OUTPUT): build
-	@echo -n ">> FISH COMPLETION, output = $(FISH_COMPLETION_OUTPUT)"
-	@./gopass completion fish > $(FISH_COMPLETION_OUTPUT)
-	@printf '%s\n' '$(OK)'
-
-$(ZSH_COMPLETION_OUTPUT): build
-	@echo -n ">> ZSH COMPLETION, output = $(ZSH_COMPLETION_OUTPUT)"
-	@./gopass completion zsh > $(ZSH_COMPLETION_OUTPUT)
-	@printf '%s\n' '$(OK)'
+%.completion: $(GOPASS_OUTPUT)
+	@printf ">> $* completion, output = $@"
+	@./gopass completion $* > $@
+	@printf "%s\n" "$(OK)"
 
 install-completion: completion
 	@install -d $(DESTDIR)$(PREFIX)/share/zsh/site-functions $(DESTDIR)$(PREFIX)/share/bash-completion/completions $(DESTDIR)$(PREFIX)/share/fish/vendor_completions.d
@@ -201,4 +194,4 @@ docker-test:
 	docker build -t gopass:$(GOPASS_REVISION) .
 	docker run --rm gopass:$(GOPASS_REVISION) make test
 
-.PHONY: clean build man
+.PHONY: clean build completion install sysinfo crosscompile test codequality
