@@ -70,7 +70,7 @@ func TestGetCommands(t *testing.T) {
 	}()
 
 	cfg := config.New()
-	cfg.Root.Path = u.StoreDir("")
+	cfg.Root.Path = backend.FromPath(u.StoreDir(""))
 
 	clipboard.Unsupported = true
 

@@ -40,13 +40,10 @@ func New() *Config {
 			AutoImport:    true,
 			AutoSync:      true,
 			ClipTimeout:   45,
-			CryptoBackend: "gpg",
 			NoColor:       false,
 			NoConfirm:     false,
 			NoPager:       false,
 			SafeContent:   false,
-			StoreBackend:  "fs",
-			SyncBackend:   "git",
 			UseSymbols:    false,
 			Notifications: true,
 		},
@@ -83,33 +80,22 @@ func (c *Config) SetConfigValue(mount, key, value string) error {
 	return c.Save()
 }
 
-func (c *Config) checkDefaults() {
+func (c *Config) checkDefaults() error {
 	if c == nil {
-		return
+		return fmt.Errorf("config is nil")
 	}
 	if c.Root == nil {
 		c.Root = &StoreConfig{}
 	}
-	if c.Root.CryptoBackend == "" {
-		c.Root.CryptoBackend = "gpg"
-	}
-	if c.Root.SyncBackend == "" {
-		c.Root.SyncBackend = "git"
-	}
-	if c.Root.StoreBackend == "" {
-		c.Root.StoreBackend = "fs"
+	if err := c.Root.checkDefaults(); err != nil {
+		return err
 	}
 	for _, sc := range c.Mounts {
-		if sc.CryptoBackend == "" {
-			sc.CryptoBackend = "gpg"
-		}
-		if sc.SyncBackend == "" {
-			sc.SyncBackend = "git"
-		}
-		if sc.StoreBackend == "" {
-			sc.StoreBackend = "fs"
+		if err := sc.checkDefaults(); err != nil {
+			return err
 		}
 	}
+	return nil
 }
 
 func (c *Config) String() string {

@@ -70,13 +70,13 @@ func (s *Action) clone(ctx context.Context, repo, mount, path string) error {
 			return exitError(ctx, ExitMount, err, "Failed to add mount: %s", err)
 		}
 		out.Green(ctx, "Mounted password store %s at mount point `%s` ...", path, mount)
-		s.cfg.Mounts[mount].CryptoBackend = backend.CryptoBackendName(backend.GetCryptoBackend(ctx))
-		s.cfg.Mounts[mount].SyncBackend = backend.SyncBackendName(backend.GetSyncBackend(ctx))
-		s.cfg.Mounts[mount].StoreBackend = backend.StoreBackendName(backend.GetStoreBackend(ctx))
+		s.cfg.Mounts[mount].Path.Crypto = backend.GetCryptoBackend(ctx)
+		s.cfg.Mounts[mount].Path.Sync = backend.GetSyncBackend(ctx)
+		s.cfg.Mounts[mount].Path.Store = backend.GetStoreBackend(ctx)
 	} else {
-		s.cfg.Root.CryptoBackend = backend.CryptoBackendName(backend.GetCryptoBackend(ctx))
-		s.cfg.Root.SyncBackend = backend.SyncBackendName(backend.GetSyncBackend(ctx))
-		s.cfg.Root.StoreBackend = backend.StoreBackendName(backend.GetStoreBackend(ctx))
+		s.cfg.Root.Path.Crypto = backend.GetCryptoBackend(ctx)
+		s.cfg.Root.Path.Sync = backend.GetSyncBackend(ctx)
+		s.cfg.Root.Path.Store = backend.GetStoreBackend(ctx)
 	}
 
 	// save new mount in config file

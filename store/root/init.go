@@ -27,16 +27,22 @@ func (r *Store) Init(ctx context.Context, alias, path string, ids ...string) err
 		return err
 	}
 	if alias == "" {
-		r.cfg.Root.CryptoBackend = backend.CryptoBackendName(backend.GetCryptoBackend(ctx))
-		r.cfg.Root.SyncBackend = backend.SyncBackendName(backend.GetSyncBackend(ctx))
-		r.cfg.Root.StoreBackend = backend.StoreBackendName(backend.GetStoreBackend(ctx))
+		if r.cfg.Root.Path == nil {
+			r.cfg.Root.Path = backend.FromPath(path)
+		}
+		r.cfg.Root.Path.Crypto = backend.GetCryptoBackend(ctx)
+		r.cfg.Root.Path.Sync = backend.GetSyncBackend(ctx)
+		r.cfg.Root.Path.Store = backend.GetStoreBackend(ctx)
 	} else {
 		if sc := r.cfg.Mounts[alias]; sc == nil {
 			r.cfg.Mounts[alias] = &config.StoreConfig{}
 		}
-		r.cfg.Mounts[alias].CryptoBackend = backend.CryptoBackendName(backend.GetCryptoBackend(ctx))
-		r.cfg.Mounts[alias].SyncBackend = backend.SyncBackendName(backend.GetSyncBackend(ctx))
-		r.cfg.Mounts[alias].StoreBackend = backend.StoreBackendName(backend.GetStoreBackend(ctx))
+		if r.cfg.Mounts[alias].Path == nil {
+			r.cfg.Mounts[alias].Path = backend.FromPath(path)
+		}
+		r.cfg.Mounts[alias].Path.Crypto = backend.GetCryptoBackend(ctx)
+		r.cfg.Mounts[alias].Path.Sync = backend.GetSyncBackend(ctx)
+		r.cfg.Mounts[alias].Path.Store = backend.GetStoreBackend(ctx)
 	}
 	return nil
 }

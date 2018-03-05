@@ -193,7 +193,7 @@ func runRespondRawMessages(t *testing.T, requests []verifiedRequest, secrets []s
 		ctx,
 		&config.Config{
 			Root: &config.StoreConfig{
-				Path: tempdir,
+				Path: backend.FromPath(tempdir),
 			},
 		},
 	)

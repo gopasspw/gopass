@@ -22,7 +22,7 @@ func TestInit(t *testing.T) {
 	ctx = backend.WithCryptoBackend(ctx, backend.GPGMock)
 
 	cfg := config.New()
-	cfg.Root.Path = u.StoreDir("rs")
+	cfg.Root.Path = backend.FromPath(u.StoreDir("rs"))
 	rs, err := New(ctx, cfg)
 	assert.NoError(t, err)
 

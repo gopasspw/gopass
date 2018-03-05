@@ -40,10 +40,10 @@ func (r *Store) addMount(ctx context.Context, alias, path string, sc *config.Sto
 	// propagate our config settings to the sub store
 	if sc != nil {
 		if !backend.HasCryptoBackend(ctx) {
-			ctx = backend.WithCryptoBackendString(ctx, sc.CryptoBackend)
+			ctx = backend.WithCryptoBackend(ctx, sc.Path.Crypto)
 		}
 		if !backend.HasSyncBackend(ctx) {
-			ctx = backend.WithSyncBackendString(ctx, sc.SyncBackend)
+			ctx = backend.WithSyncBackend(ctx, sc.Path.Sync)
 		}
 	}
 	s, err := sub.New(ctx, alias, path, config.Directory())
@@ -69,17 +69,25 @@ func (r *Store) addMount(ctx context.Context, alias, path string, sc *config.Sto
 	if r.cfg.Mounts == nil {
 		r.cfg.Mounts = make(map[string]*config.StoreConfig, 1)
 	}
+	pathURL, err := backend.ParseURL(path)
+	if err != nil {
+		return errors.Wrapf(err, "failed to parse backend URL '%s': %s", path, err)
+	}
 	if sc == nil {
 		// imporant: copy root config to avoid overwriting it with sub store
 		// values
 		cp := *r.cfg.Root
 		sc = &cp
-		sc.CryptoBackend = backend.CryptoBackendName(backend.GetCryptoBackend(ctx))
-		sc.SyncBackend = backend.SyncBackendName(backend.GetSyncBackend(ctx))
-		sc.StoreBackend = backend.StoreBackendName(backend.GetStoreBackend(ctx))
 	}
-	if path != "" {
-		sc.Path = path
+	sc.Path = pathURL
+	if backend.HasCryptoBackend(ctx) {
+		sc.Path.Crypto = backend.GetCryptoBackend(ctx)
+	}
+	if backend.HasSyncBackend(ctx) {
+		sc.Path.Sync = backend.GetSyncBackend(ctx)
+	}
+	if backend.HasStoreBackend(ctx) {
+		sc.Path.Store = backend.GetStoreBackend(ctx)
 	}
 	r.cfg.Mounts[alias] = sc
 	return nil

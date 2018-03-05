@@ -7,6 +7,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/justwatchcom/gopass/backend"
 	gpgmock "github.com/justwatchcom/gopass/backend/crypto/gpg/mock"
 	"github.com/justwatchcom/gopass/backend/store/fs"
 	gitmock "github.com/justwatchcom/gopass/backend/sync/git/mock"
@@ -72,7 +73,7 @@ func TestList(t *testing.T) {
 
 		s := &Store{
 			alias:  "",
-			path:   tempdir,
+			url:    backend.FromPath(tempdir),
 			crypto: gpgmock.New(),
 			sync:   gitmock.New(),
 			store:  fs.New(tempdir),

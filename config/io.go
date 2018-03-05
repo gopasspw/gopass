@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/justwatchcom/gopass/backend"
 	"github.com/justwatchcom/gopass/utils/fsutil"
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
@@ -21,15 +22,15 @@ func Load() *Config {
 		if err != nil {
 			panic(err)
 		}
-		cfg.checkDefaults()
+		_ = cfg.checkDefaults()
 		if debug {
 			fmt.Printf("[DEBUG] Loaded config from %s: %+v\n", l, cfg)
 		}
 		return cfg
 	}
 	cfg := New()
-	cfg.Root.Path = PwStoreDir("")
-	cfg.checkDefaults()
+	cfg.Root.Path = backend.FromPath(PwStoreDir(""))
+	_ = cfg.checkDefaults()
 	if debug {
 		fmt.Printf("[DEBUG] config.Load(): %+v\n", cfg)
 	}
@@ -108,11 +109,15 @@ func decode(buf []byte) (*Config, error) {
 
 // Save saves the config
 func (c *Config) Save() error {
-	c.checkDefaults()
+	if err := c.checkDefaults(); err != nil {
+		return err
+	}
+
 	buf, err := yaml.Marshal(c)
 	if err != nil {
 		return errors.Wrapf(err, "failed to marshal YAML")
 	}
+
 	cfgLoc := configLocation()
 	cfgDir := filepath.Dir(cfgLoc)
 	if !fsutil.IsDir(cfgDir) {

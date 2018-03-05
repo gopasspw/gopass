@@ -27,7 +27,7 @@ func TestHistory(t *testing.T) {
 	ctx = backend.WithCryptoBackend(ctx, backend.GPGMock)
 
 	cfg := config.New()
-	cfg.Root.Path = u.StoreDir("")
+	cfg.Root.Path = backend.FromPath(u.StoreDir(""))
 	act, err := newAction(ctx, cfg, semver.Version{})
 	assert.NoError(t, err)
 

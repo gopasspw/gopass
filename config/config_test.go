@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/justwatchcom/gopass/backend"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -17,22 +18,22 @@ func TestNewConfig(t *testing.T) {
 
 	cfg := New()
 	assert.Equal(t, false, cfg.Root.AskForMore)
-	cfg.checkDefaults()
-	assert.Equal(t, "gpg", cfg.Root.CryptoBackend)
-	assert.Equal(t, "git", cfg.Root.SyncBackend)
-	assert.Equal(t, "fs", cfg.Root.StoreBackend)
-	assert.Equal(t, "Config[Root:StoreConfig[AskForMore:false,AutoImport:true,AutoSync:true,ClipTimeout:45,CryptoBackend:gpg,NoColor:false,NoConfirm:false,NoPager:false,Path:,SafeContent:false,SyncBackend:git,UseSymbols:false],Mounts(),Version:]", cfg.String())
+	assert.NoError(t, cfg.checkDefaults())
+	assert.Equal(t, backend.GPGCLI, cfg.Root.Path.Crypto)
+	assert.Equal(t, backend.GitCLI, cfg.Root.Path.Sync)
+	assert.Equal(t, backend.FS, cfg.Root.Path.Store)
+	assert.Equal(t, "Config[Root:StoreConfig[AskForMore:false,AutoImport:true,AutoSync:true,ClipTimeout:45,NoColor:false,NoConfirm:false,NoPager:false,Path:gpgcli-gitcli-fs+file:,SafeContent:false,UseSymbols:false],Mounts(),Version:]", cfg.String())
 
 	cfg = nil
-	cfg.checkDefaults()
+	assert.Error(t, cfg.checkDefaults())
 
 	cfg = &Config{
 		Mounts: make(map[string]*StoreConfig, 2),
 	}
 	cfg.Mounts["foo"] = &StoreConfig{}
 	cfg.Mounts["bar"] = &StoreConfig{}
-	cfg.checkDefaults()
-	assert.Equal(t, "Config[Root:StoreConfig[AskForMore:false,AutoImport:false,AutoSync:false,ClipTimeout:0,CryptoBackend:gpg,NoColor:false,NoConfirm:false,NoPager:false,Path:,SafeContent:false,SyncBackend:git,UseSymbols:false],Mounts(bar=>StoreConfig[AskForMore:false,AutoImport:false,AutoSync:false,ClipTimeout:0,CryptoBackend:gpg,NoColor:false,NoConfirm:false,NoPager:false,Path:,SafeContent:false,SyncBackend:git,UseSymbols:false]foo=>StoreConfig[AskForMore:false,AutoImport:false,AutoSync:false,ClipTimeout:0,CryptoBackend:gpg,NoColor:false,NoConfirm:false,NoPager:false,Path:,SafeContent:false,SyncBackend:git,UseSymbols:false]),Version:]", cfg.String())
+	assert.NoError(t, cfg.checkDefaults())
+	assert.Equal(t, "Config[Root:StoreConfig[AskForMore:false,AutoImport:false,AutoSync:false,ClipTimeout:0,NoColor:false,NoConfirm:false,NoPager:false,Path:gpgcli-gitcli-fs+file:,SafeContent:false,UseSymbols:false],Mounts(bar=>StoreConfig[AskForMore:false,AutoImport:false,AutoSync:false,ClipTimeout:0,NoColor:false,NoConfirm:false,NoPager:false,Path:gpgcli-gitcli-fs+file:,SafeContent:false,UseSymbols:false]foo=>StoreConfig[AskForMore:false,AutoImport:false,AutoSync:false,ClipTimeout:0,NoColor:false,NoConfirm:false,NoPager:false,Path:gpgcli-gitcli-fs+file:,SafeContent:false,UseSymbols:false]),Version:]", cfg.String())
 }
 
 func TestSetConfigValue(t *testing.T) {
