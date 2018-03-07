@@ -67,7 +67,7 @@ func (s *Action) updateGopass(ctx context.Context, version string, urlStr string
 
 	// launch rename script and exit
 	out.Yellow(ctx, "Downloaded update. Exiting to install in place (%s) ...", exe)
-	cmd := exec.Command("/bin/bash", "-c", fmt.Sprintf(`sleep 1; echo ""; echo -n "Please wait ... "; sleep 2; mv "%s" "%s" && echo OK`, binDst, exe))
+	cmd := exec.Command("/bin/sh", "-c", fmt.Sprintf(`sleep 1; echo ""; echo -n "Please wait ... "; sleep 2; mv "%s" "%s" && echo OK`, binDst, exe))
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.SysProcAttr = &syscall.SysProcAttr{
