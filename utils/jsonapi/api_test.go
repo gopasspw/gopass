@@ -188,7 +188,7 @@ func runRespondRawMessages(t *testing.T, requests []verifiedRequest, secrets []s
 	}()
 
 	assert.NoError(t, os.Setenv("GOPASS_DISABLE_ENCRYPTION", "true"))
-	ctx = backend.WithCryptoBackendString(ctx, "gpgmock")
+	ctx = backend.WithCryptoBackendString(ctx, "plain")
 	store, err := root.New(
 		ctx,
 		&config.Config{
@@ -230,7 +230,7 @@ func populateStore(dir string, secrets []storedSecret) error {
 	}
 	for _, sec := range secrets {
 		file := filepath.Join(sec.Name...)
-		filename := filepath.Join(dir, file+".gpg")
+		filename := filepath.Join(dir, file+".txt")
 		if err := os.MkdirAll(filepath.Dir(filename), 0700); err != nil {
 			return err
 		}

@@ -12,7 +12,7 @@ import (
 func (s *Store) Get(ctx context.Context, name string) (*secret.Secret, error) {
 	p := s.passfile(name)
 
-	ciphertext, err := s.store.Get(ctx, p)
+	ciphertext, err := s.storage.Get(ctx, p)
 	if err != nil {
 		out.Debug(ctx, "File %s not found: %s", p, err)
 		return nil, store.ErrNotFound

@@ -12,8 +12,8 @@ type URL struct {
 	url *url.URL
 
 	Crypto   CryptoBackend
-	Sync     SyncBackend
-	Store    StoreBackend
+	RCS      RCSBackend
+	Storage  StorageBackend
 	Scheme   string
 	Host     string
 	Port     string
@@ -27,11 +27,11 @@ type URL struct {
 // and default backends (GitCLI, GPGCLI, FS)
 func FromPath(path string) *URL {
 	return &URL{
-		Crypto: GPGCLI,
-		Sync:   GitCLI,
-		Store:  FS,
-		Scheme: "file",
-		Path:   path,
+		Crypto:  GPGCLI,
+		RCS:     GitCLI,
+		Storage: FS,
+		Scheme:  "file",
+		Path:    path,
 	}
 }
 
@@ -80,13 +80,19 @@ func (u *URL) String() string {
 	u.url.Scheme = fmt.Sprintf(
 		"%s-%s-%s+%s",
 		u.Crypto,
-		u.Sync,
-		u.Store,
+		u.RCS,
+		u.Storage,
 		scheme,
 	)
 	u.url.Path = u.Path
 	if u.Username != "" {
 		u.url.User = url.UserPassword(u.Username, u.Password)
+	}
+	if u.Host != "" {
+		u.url.Host = u.Host
+		if u.Port != "" {
+			u.url.Host += ":" + u.Port
+		}
 	}
 	u.url.RawQuery = u.Query.Encode()
 	return u.url.String()
@@ -99,8 +105,8 @@ func (u *URL) parseScheme() error {
 	}
 
 	u.Crypto = cryptoBackendFromName(crypto)
-	u.Sync = syncBackendFromName(sync)
-	u.Store = storeBackendFromName(store)
+	u.RCS = rcsBackendFromName(sync)
+	u.Storage = storageBackendFromName(store)
 	u.Scheme = scheme
 
 	return nil

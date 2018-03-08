@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_roundtrip(t *testing.T) {
+func TestRoundTrip(t *testing.T) {
 	a := assert.New(t)
 	var receivedMessage queryMessage
 

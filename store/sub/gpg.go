@@ -67,11 +67,11 @@ func (s *Store) ImportMissingPublicKeys(ctx context.Context) error {
 func (s *Store) decodePublicKey(ctx context.Context, r string) ([]string, error) {
 	for _, kd := range []string{keyDir, oldKeyDir} {
 		filename := filepath.Join(kd, r)
-		if !s.store.Exists(ctx, filename) {
+		if !s.storage.Exists(ctx, filename) {
 			out.Debug(ctx, "Public Key %s not found at %s", r, filename)
 			continue
 		}
-		buf, err := s.store.Get(ctx, filename)
+		buf, err := s.storage.Get(ctx, filename)
 		if err != nil {
 			return nil, errors.Errorf("Unable to read Public Key %s %s: %s", r, filename, err)
 		}
@@ -85,7 +85,7 @@ func (s *Store) exportPublicKey(ctx context.Context, r string) (string, error) {
 	filename := filepath.Join(keyDir, r)
 
 	// do not overwrite existing keys
-	if s.store.Exists(ctx, filename) {
+	if s.storage.Exists(ctx, filename) {
 		return "", nil
 	}
 
@@ -99,7 +99,7 @@ func (s *Store) exportPublicKey(ctx context.Context, r string) (string, error) {
 		return "", errors.New("exported key too small")
 	}
 
-	if err := s.store.Set(ctx, filename, pk); err != nil {
+	if err := s.storage.Set(ctx, filename, pk); err != nil {
 		return "", errors.Wrapf(err, "failed to write exported public key to store")
 	}
 
@@ -110,11 +110,11 @@ func (s *Store) exportPublicKey(ctx context.Context, r string) (string, error) {
 func (s *Store) importPublicKey(ctx context.Context, r string) error {
 	for _, kd := range []string{keyDir, oldKeyDir} {
 		filename := filepath.Join(kd, r)
-		if !s.store.Exists(ctx, filename) {
+		if !s.storage.Exists(ctx, filename) {
 			out.Debug(ctx, "Public Key %s not found at %s", r, filename)
 			continue
 		}
-		pk, err := s.store.Get(ctx, filename)
+		pk, err := s.storage.Get(ctx, filename)
 		if err != nil {
 			return err
 		}

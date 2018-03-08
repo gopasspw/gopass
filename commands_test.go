@@ -79,8 +79,8 @@ func TestGetCommands(t *testing.T) {
 	ctx = ctxutil.WithInteractive(ctx, false)
 	ctx = ctxutil.WithTerminal(ctx, false)
 	ctx = out.WithHidden(ctx, true)
-	ctx = backend.WithSyncBackendString(ctx, "gitmock")
-	ctx = backend.WithCryptoBackendString(ctx, "gpgmock")
+	ctx = backend.WithRCSBackendString(ctx, "noop")
+	ctx = backend.WithCryptoBackendString(ctx, "plain")
 
 	act, err := action.New(ctx, cfg, semver.Version{})
 	assert.NoError(t, err)

@@ -1,4 +1,4 @@
-package mock
+package noop
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGitMock(t *testing.T) {
+func TestNoop(t *testing.T) {
 	ctx := context.Background()
 
 	g := New()
@@ -20,7 +20,7 @@ func TestGitMock(t *testing.T) {
 	assert.NoError(t, g.Init(ctx, "foo", "bar"))
 	assert.NoError(t, g.InitConfig(ctx, "foo", "bar"))
 	assert.Equal(t, g.Version(ctx), semver.Version{})
-	assert.Equal(t, "git-mock", g.Name())
+	assert.Equal(t, "noop", g.Name())
 	assert.NoError(t, g.AddRemote(ctx, "foo", "bar"))
 	_, err := g.Revisions(ctx, "foo")
 	assert.Error(t, err)

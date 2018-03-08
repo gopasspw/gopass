@@ -1,4 +1,4 @@
-package mock
+package plain
 
 import (
 	"context"
@@ -179,14 +179,14 @@ func (m *Mocker) Initialized(context.Context) error {
 	return nil
 }
 
-// Name returns gpgmock
+// Name returns plain
 func (m *Mocker) Name() string {
-	return "gpgmock"
+	return "plain"
 }
 
 // Ext returns gpg
 func (m *Mocker) Ext() string {
-	return "gpg"
+	return "txt"
 }
 
 // IDFile returns .gpg-id

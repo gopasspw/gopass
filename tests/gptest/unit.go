@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/justwatchcom/gopass/backend"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -16,8 +17,6 @@ autoimport: true
 autosync: true
 cliptimeout: 45
 noconfirm: true
-cryptobackend: gpgmock
-syncbackend: gitmock
 safecontent: true`
 )
 
@@ -72,7 +71,10 @@ func NewUnitTester(t *testing.T) *Unit {
 }
 
 func (u Unit) initConfig() error {
-	return ioutil.WriteFile(u.GPConfig(), []byte(gopassConfig+"\npath: "+u.StoreDir("")+"\n"), 0600)
+	url := backend.FromPath(u.StoreDir(""))
+	url.Crypto = backend.Plain
+	url.RCS = backend.Noop
+	return ioutil.WriteFile(u.GPConfig(), []byte(gopassConfig+"\npath: "+url.String()+"\n"), 0600)
 }
 
 func (u Unit) StoreDir(mount string) string {
@@ -91,7 +93,7 @@ func (u Unit) InitStore(name string) error {
 		return err
 	}
 	for _, p := range AllPathsToSlash(u.Entries) {
-		if err := ioutil.WriteFile(filepath.Join(dir, p+".gpg"), []byte("secret"), 0600); err != nil {
+		if err := ioutil.WriteFile(filepath.Join(dir, p+".txt"), []byte("secret"), 0600); err != nil {
 			return err
 		}
 	}

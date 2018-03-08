@@ -22,8 +22,8 @@ crypto-sync-store+url
 
 - examples
 gpgcli-gitcli-fs+file:///tmp/foo
-xc-gitmock-consul+http://localhost:8500/v1/foo/bar
-xc-gitmock-consul+https://localhost:8500/v1/foo/bar
+xc-noop-consul+http://localhost:8500/v1/foo/bar
+xc-noop-consul+https://localhost:8500/v1/foo/bar
 file:///tmp/foo -> gpgcli, gitcli, fs (using defaults)
 /tmp/foo -> gpgcli, gitcli, fs (using defaults)
 
@@ -38,17 +38,30 @@ func TestURLString(t *testing.T) {
 		{
 			name: "defaults",
 			in:   &URL{},
-			out:  "gpgmock-gitmock-fs+file:",
+			out:  "plain-noop-fs+file:",
 		},
 		{
 			name: "xc+gogit",
 			in: &URL{
-				Crypto: XC,
-				Sync:   GoGit,
-				Store:  FS,
-				Path:   "/tmp/foo",
+				Crypto:  XC,
+				RCS:     GoGit,
+				Storage: FS,
+				Path:    "/tmp/foo",
 			},
 			out: "xc-gogit-fs+file:///tmp/foo",
+		},
+		{
+			name: "xc+consul",
+			in: &URL{
+				Crypto:  XC,
+				RCS:     Noop,
+				Storage: Consul,
+				Scheme:  "http",
+				Host:    "localhost",
+				Port:    "8500",
+				Path:    "/foo/bar",
+			},
+			out: "xc-noop-consul+http://localhost:8500/foo/bar",
 		},
 	} {
 		assert.Equal(t, tc.out, tc.in.String(), tc.name)
@@ -57,45 +70,46 @@ func TestURLString(t *testing.T) {
 
 func TestParseScheme(t *testing.T) {
 	for _, tc := range []struct {
-		Name   string
-		URL    string
-		Crypto CryptoBackend
-		Sync   SyncBackend
-		Store  StoreBackend
+		Name    string
+		URL     string
+		Crypto  CryptoBackend
+		RCS     RCSBackend
+		Storage StorageBackend
 	}{
 		{
-			Name:   "legacy file path",
-			URL:    "/tmp/foo",
-			Crypto: GPGCLI,
-			Sync:   GitCLI,
-			Store:  FS,
+			Name:    "legacy file path",
+			URL:     "/tmp/foo",
+			Crypto:  GPGCLI,
+			RCS:     GitCLI,
+			Storage: FS,
 		},
 		{
-			Name:   "XC+gogit+file",
-			URL:    "xc-gogit-fs+file:///tmp/foo",
-			Crypto: XC,
-			Sync:   GoGit,
-			Store:  FS,
+			Name:    "XC+gogit+file",
+			URL:     "xc-gogit-fs+file:///tmp/foo",
+			Crypto:  XC,
+			RCS:     GoGit,
+			Storage: FS,
+		},
+		{
+			Name:    "XC+consul+http",
+			URL:     "xc-noop-consul+http://localhost:8500/api/v1/foo/bar?token=bla",
+			Crypto:  XC,
+			RCS:     Noop,
+			Storage: Consul,
 		},
 		//{
-		//	URL:    "xc+consul://localhost:8500/api/v1/foo/bar?token=bla",
-		//	Crypto: XC,
-		//	Sync:   GitMock,
-		//	Store:  Consul,
+		//	URL:     "plain+vault-http://localhost:9600/foo/bar",
+		//	Crypto:  Plain,
+		//	RCS:     Noop,
+		//	Storage: Vault,
 		//},
-		//{
-		//	URL: "vaults://localhost:9600/foo/bar",
-		//	Crypto: GPGMock,
-		//	Sync: GitMock,
-		//	Store: Vault,
-		//}
 	} {
 		u, err := ParseURL(tc.URL)
-		assert.NoError(t, err)
-		assert.NotNil(t, u)
-		assert.Equal(t, tc.Crypto, u.Crypto)
-		assert.Equal(t, tc.Sync, u.Sync)
-		assert.Equal(t, tc.Store, u.Store)
+		assert.NoError(t, err, tc.Name)
+		assert.NotNil(t, u, tc.Name)
+		assert.Equal(t, tc.Crypto, u.Crypto, tc.Name)
+		assert.Equal(t, tc.RCS, u.RCS, tc.Name)
+		assert.Equal(t, tc.Storage, u.Storage, tc.Name)
 	}
 }
 
@@ -117,10 +131,10 @@ func TestMarshalYAML(t *testing.T) {
 `
 	cfg := testConfig{
 		Path: &URL{
-			Crypto: XC,
-			Sync:   GoGit,
-			Store:  FS,
-			Path:   "/tmp/foo",
+			Crypto:  XC,
+			RCS:     GoGit,
+			Storage: FS,
+			Path:    "/tmp/foo",
 		},
 	}
 	buf, err := yaml.Marshal(&cfg)

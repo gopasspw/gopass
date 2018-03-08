@@ -1,4 +1,4 @@
-package mock
+package plain
 
 import (
 	"context"
@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestMock(t *testing.T) {
+func TestPlain(t *testing.T) {
 	td, err := ioutil.TempDir("", "gopass-")
 	assert.NoError(t, err)
 	defer func() {
@@ -68,8 +68,8 @@ func TestMock(t *testing.T) {
 	assert.Equal(t, "", m.NameFromKey(ctx, ""))
 	assert.Equal(t, "", m.FormatKey(ctx, ""))
 	assert.Nil(t, m.Initialized(ctx))
-	assert.Equal(t, "gpgmock", m.Name())
-	assert.Equal(t, "gpg", m.Ext())
+	assert.Equal(t, "plain", m.Name())
+	assert.Equal(t, "txt", m.Ext())
 	assert.Equal(t, ".gpg-id", m.IDFile())
 	names, err := m.ReadNamesFromKey(ctx, nil)
 	assert.NoError(t, err)

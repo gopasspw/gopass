@@ -10,7 +10,7 @@ import (
 
 // Initialized returns true if the store is properly initialized
 func (s *Store) Initialized(ctx context.Context) bool {
-	return s.store.Exists(ctx, s.idFile(ctx, ""))
+	return s.storage.Exists(ctx, s.idFile(ctx, ""))
 }
 
 // Init tries to initialize a new password store location matching the object

@@ -10,8 +10,8 @@ import (
 type CryptoBackend int
 
 const (
-	// GPGMock is a no-op crypto backend
-	GPGMock CryptoBackend = iota
+	// Plain is a no-op crypto backend
+	Plain CryptoBackend = iota
 	// GPGCLI is a gpg-cli based crypto backend
 	GPGCLI
 	// XC is an experimental crypto backend

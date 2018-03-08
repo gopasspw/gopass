@@ -36,13 +36,18 @@ func (s *Action) Audit(ctx context.Context, c *cli.Context) error {
 	}
 	list := t.List(0)
 
+	if len(list) < 1 {
+		out.Yellow(ctx, "No secrets found")
+		return nil
+	}
+
 	out.Print(ctx, "Checking %d secrets. This may take some time ...\n", len(list))
 
 	// Secrets that still need auditing.
-	secrets := make(chan string)
+	secrets := make(chan string, 100)
 
 	// Secrets that have been audited.
-	checked := make(chan auditedSecret)
+	checked := make(chan auditedSecret, 100)
 
 	// Spawn workers that run the auditing of all secrets concurrently.
 	validator := crunchy.NewValidator()
@@ -50,8 +55,9 @@ func (s *Action) Audit(ctx context.Context, c *cli.Context) error {
 	if mj := c.Int("jobs"); mj > 0 {
 		maxJobs = mj
 	}
+	done := make(chan struct{}, maxJobs)
 	for jobs := 0; jobs < maxJobs; jobs++ {
-		go s.audit(ctx, validator, secrets, checked)
+		go s.audit(ctx, validator, secrets, checked, done)
 	}
 
 	go func() {
@@ -59,6 +65,12 @@ func (s *Action) Audit(ctx context.Context, c *cli.Context) error {
 			secrets <- secret
 		}
 		close(secrets)
+	}()
+	go func() {
+		for i := 0; i < maxJobs; i++ {
+			<-done
+		}
+		close(checked)
 	}()
 
 	duplicates := make(map[string][]string)
@@ -97,7 +109,6 @@ func (s *Action) Audit(ctx context.Context, c *cli.Context) error {
 			break
 		}
 	}
-	close(checked)
 	fmt.Fprintln(stdout) // Print empty line after the progressbar.
 
 	return s.auditPrintResults(ctx, duplicates, messages, errors)
@@ -134,7 +145,7 @@ func (s *Action) auditPrintResults(ctx context.Context, duplicates, messages, er
 	return nil
 }
 
-func (s *Action) audit(ctx context.Context, validator *crunchy.Validator, secrets <-chan string, checked chan<- auditedSecret) {
+func (s *Action) audit(ctx context.Context, validator *crunchy.Validator, secrets <-chan string, checked chan<- auditedSecret, done chan struct{}) {
 	for secret := range secrets {
 		// check for context cancelation
 		select {
@@ -161,6 +172,7 @@ func (s *Action) audit(ctx context.Context, validator *crunchy.Validator, secret
 
 		checked <- auditedSecret{name: secret, content: sec.Password()}
 	}
+	done <- struct{}{}
 }
 
 func printAuditResults(ctx context.Context, m map[string][]string, format string, color func(format string, a ...interface{}) string) bool {

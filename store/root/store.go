@@ -40,8 +40,11 @@ func New(ctx context.Context, cfg *config.Config) (*Store, error) {
 	if !backend.HasCryptoBackend(ctx) {
 		ctx = backend.WithCryptoBackend(ctx, cfg.Root.Path.Crypto)
 	}
-	if !backend.HasSyncBackend(ctx) {
-		ctx = backend.WithSyncBackend(ctx, cfg.Root.Path.Sync)
+	if !backend.HasRCSBackend(ctx) {
+		ctx = backend.WithRCSBackend(ctx, cfg.Root.Path.RCS)
+	}
+	if !backend.HasStorageBackend(ctx) {
+		ctx = backend.WithStorageBackend(ctx, cfg.Root.Path.Storage)
 	}
 	s, err := sub.New(ctx, "", r.Path(), config.Directory())
 	if err != nil {
@@ -96,7 +99,7 @@ func (r *Store) Alias() string {
 }
 
 // Store returns the storage backend for the given mount point
-func (r *Store) Store(ctx context.Context, name string) backend.Store {
+func (r *Store) Store(ctx context.Context, name string) backend.Storage {
 	_, sub, _ := r.getStore(ctx, name)
-	return sub.Store()
+	return sub.Storage()
 }

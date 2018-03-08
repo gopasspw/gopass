@@ -31,8 +31,8 @@ func (r *Store) Init(ctx context.Context, alias, path string, ids ...string) err
 			r.cfg.Root.Path = backend.FromPath(path)
 		}
 		r.cfg.Root.Path.Crypto = backend.GetCryptoBackend(ctx)
-		r.cfg.Root.Path.Sync = backend.GetSyncBackend(ctx)
-		r.cfg.Root.Path.Store = backend.GetStoreBackend(ctx)
+		r.cfg.Root.Path.RCS = backend.GetRCSBackend(ctx)
+		r.cfg.Root.Path.Storage = backend.GetStorageBackend(ctx)
 	} else {
 		if sc := r.cfg.Mounts[alias]; sc == nil {
 			r.cfg.Mounts[alias] = &config.StoreConfig{}
@@ -41,8 +41,8 @@ func (r *Store) Init(ctx context.Context, alias, path string, ids ...string) err
 			r.cfg.Mounts[alias].Path = backend.FromPath(path)
 		}
 		r.cfg.Mounts[alias].Path.Crypto = backend.GetCryptoBackend(ctx)
-		r.cfg.Mounts[alias].Path.Sync = backend.GetSyncBackend(ctx)
-		r.cfg.Mounts[alias].Path.Store = backend.GetStoreBackend(ctx)
+		r.cfg.Mounts[alias].Path.RCS = backend.GetRCSBackend(ctx)
+		r.cfg.Mounts[alias].Path.Storage = backend.GetStorageBackend(ctx)
 	}
 	return nil
 }

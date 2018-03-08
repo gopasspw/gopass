@@ -10,14 +10,12 @@ import (
 	"github.com/justwatchcom/gopass/config"
 	"github.com/justwatchcom/gopass/store"
 	"github.com/justwatchcom/gopass/store/sub"
-	"github.com/justwatchcom/gopass/utils/fsutil"
 	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/pkg/errors"
 )
 
 // AddMount adds a new mount
 func (r *Store) AddMount(ctx context.Context, alias, path string, keys ...string) error {
-	path = fsutil.CleanPath(path)
 	if err := r.addMount(ctx, alias, path, nil, keys...); err != nil {
 		return errors.Wrapf(err, "failed to add mount")
 	}
@@ -42,8 +40,8 @@ func (r *Store) addMount(ctx context.Context, alias, path string, sc *config.Sto
 		if !backend.HasCryptoBackend(ctx) {
 			ctx = backend.WithCryptoBackend(ctx, sc.Path.Crypto)
 		}
-		if !backend.HasSyncBackend(ctx) {
-			ctx = backend.WithSyncBackend(ctx, sc.Path.Sync)
+		if !backend.HasRCSBackend(ctx) {
+			ctx = backend.WithRCSBackend(ctx, sc.Path.RCS)
 		}
 	}
 	s, err := sub.New(ctx, alias, path, config.Directory())
@@ -83,11 +81,11 @@ func (r *Store) addMount(ctx context.Context, alias, path string, sc *config.Sto
 	if backend.HasCryptoBackend(ctx) {
 		sc.Path.Crypto = backend.GetCryptoBackend(ctx)
 	}
-	if backend.HasSyncBackend(ctx) {
-		sc.Path.Sync = backend.GetSyncBackend(ctx)
+	if backend.HasRCSBackend(ctx) {
+		sc.Path.RCS = backend.GetRCSBackend(ctx)
 	}
-	if backend.HasStoreBackend(ctx) {
-		sc.Path.Store = backend.GetStoreBackend(ctx)
+	if backend.HasStorageBackend(ctx) {
+		sc.Path.Storage = backend.GetStorageBackend(ctx)
 	}
 	r.cfg.Mounts[alias] = sc
 	return nil

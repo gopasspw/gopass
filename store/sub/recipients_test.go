@@ -12,9 +12,9 @@ import (
 	"testing"
 
 	"github.com/justwatchcom/gopass/backend"
-	gpgmock "github.com/justwatchcom/gopass/backend/crypto/gpg/mock"
-	"github.com/justwatchcom/gopass/backend/store/fs"
-	gitmock "github.com/justwatchcom/gopass/backend/sync/git/mock"
+	plain "github.com/justwatchcom/gopass/backend/crypto/plain"
+	noop "github.com/justwatchcom/gopass/backend/rcs/noop"
+	"github.com/justwatchcom/gopass/backend/storage/fs"
 	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/stretchr/testify/assert"
 )
@@ -38,11 +38,11 @@ func TestGetRecipientsDefault(t *testing.T) {
 	assert.NoError(t, err)
 
 	s := &Store{
-		alias:  "",
-		url:    backend.FromPath(tempdir),
-		crypto: gpgmock.New(),
-		sync:   gitmock.New(),
-		store:  fs.New(tempdir),
+		alias:   "",
+		url:     backend.FromPath(tempdir),
+		crypto:  plain.New(),
+		rcs:     noop.New(),
+		storage: fs.New(tempdir),
 	}
 
 	assert.Equal(t, genRecs, s.Recipients(ctx))
@@ -70,11 +70,11 @@ func TestGetRecipientsSubID(t *testing.T) {
 	assert.NoError(t, err)
 
 	s := &Store{
-		alias:  "",
-		url:    backend.FromPath(tempdir),
-		crypto: gpgmock.New(),
-		sync:   gitmock.New(),
-		store:  fs.New(tempdir),
+		alias:   "",
+		url:     backend.FromPath(tempdir),
+		crypto:  plain.New(),
+		rcs:     noop.New(),
+		storage: fs.New(tempdir),
 	}
 
 	recs, err := s.GetRecipients(ctx, "")
@@ -108,11 +108,11 @@ func TestSaveRecipients(t *testing.T) {
 
 	recp := []string{"john.doe"}
 	s := &Store{
-		alias:  "",
-		url:    backend.FromPath(tempdir),
-		crypto: gpgmock.New(),
-		sync:   gitmock.New(),
-		store:  fs.New(tempdir),
+		alias:   "",
+		url:     backend.FromPath(tempdir),
+		crypto:  plain.New(),
+		rcs:     noop.New(),
+		storage: fs.New(tempdir),
 	}
 
 	// remove recipients
@@ -121,7 +121,7 @@ func TestSaveRecipients(t *testing.T) {
 	assert.NoError(t, s.saveRecipients(ctx, recp, "test-save-recipients", true))
 	assert.Error(t, s.saveRecipients(ctx, nil, "test-save-recipients", true))
 
-	buf, err := s.store.Get(ctx, s.idFile(ctx, ""))
+	buf, err := s.storage.Get(ctx, s.idFile(ctx, ""))
 	assert.NoError(t, err)
 
 	foundRecs := []string{}
@@ -162,11 +162,11 @@ func TestAddRecipient(t *testing.T) {
 	}()
 
 	s := &Store{
-		alias:  "",
-		url:    backend.FromPath(tempdir),
-		crypto: gpgmock.New(),
-		sync:   gitmock.New(),
-		store:  fs.New(tempdir),
+		alias:   "",
+		url:     backend.FromPath(tempdir),
+		crypto:  plain.New(),
+		rcs:     noop.New(),
+		storage: fs.New(tempdir),
 	}
 
 	newRecp := "A3683834"
@@ -201,11 +201,11 @@ func TestRemoveRecipient(t *testing.T) {
 	}()
 
 	s := &Store{
-		alias:  "",
-		url:    backend.FromPath(tempdir),
-		crypto: gpgmock.New(),
-		sync:   gitmock.New(),
-		store:  fs.New(tempdir),
+		alias:   "",
+		url:     backend.FromPath(tempdir),
+		crypto:  plain.New(),
+		rcs:     noop.New(),
+		storage: fs.New(tempdir),
 	}
 
 	err = s.RemoveRecipient(ctx, "0xDEADBEEF")
@@ -234,8 +234,8 @@ func TestListRecipients(t *testing.T) {
 		out.Stdout = os.Stdout
 	}()
 
-	ctx = backend.WithCryptoBackendString(ctx, "gpgmock")
-	ctx = backend.WithSyncBackendString(ctx, "gitmock")
+	ctx = backend.WithCryptoBackendString(ctx, "plain")
+	ctx = backend.WithRCSBackendString(ctx, "noop")
 	s, err := New(
 		ctx,
 		"",

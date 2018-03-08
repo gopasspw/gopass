@@ -29,8 +29,8 @@ func (s *Store) LookupTemplate(ctx context.Context, name string) ([]byte, bool) 
 			break
 		}
 		tpl := filepath.Join(name, TemplateFile)
-		if s.store.Exists(ctx, tpl) {
-			if content, err := s.store.Get(ctx, tpl); err == nil {
+		if s.storage.Exists(ctx, tpl) {
+			if content, err := s.storage.Get(ctx, tpl); err == nil {
 				return content, true
 			}
 		}
@@ -38,9 +38,9 @@ func (s *Store) LookupTemplate(ctx context.Context, name string) ([]byte, bool) 
 	return []byte{}, false
 }
 
-// ListTemplates will list all templates in this store
+// ListTemplates will list all templates in this.storage
 func (s *Store) ListTemplates(ctx context.Context, prefix string) []string {
-	lst, err := s.store.List(ctx, prefix)
+	lst, err := s.storage.List(ctx, prefix)
 	if err != nil {
 		out.Debug(ctx, "failed to list templates: %s", err)
 		return nil
@@ -80,23 +80,23 @@ func (s *Store) templatefile(name string) string {
 
 // HasTemplate returns true if the template exists
 func (s *Store) HasTemplate(ctx context.Context, name string) bool {
-	return s.store.Exists(ctx, s.templatefile(name))
+	return s.storage.Exists(ctx, s.templatefile(name))
 }
 
 // GetTemplate will return the content of the named template
 func (s *Store) GetTemplate(ctx context.Context, name string) ([]byte, error) {
-	return s.store.Get(ctx, s.templatefile(name))
+	return s.storage.Get(ctx, s.templatefile(name))
 }
 
 // SetTemplate will (over)write the content to the template file
 func (s *Store) SetTemplate(ctx context.Context, name string, content []byte) error {
 	p := s.templatefile(name)
 
-	if err := s.store.Set(ctx, p, content); err != nil {
+	if err := s.storage.Set(ctx, p, content); err != nil {
 		return errors.Wrapf(err, "failed to write template")
 	}
 
-	if err := s.sync.Add(ctx, p); err != nil {
+	if err := s.rcs.Add(ctx, p); err != nil {
 		if errors.Cause(err) == store.ErrGitNotInit {
 			return nil
 		}
@@ -114,11 +114,11 @@ func (s *Store) SetTemplate(ctx context.Context, name string, content []byte) er
 func (s *Store) RemoveTemplate(ctx context.Context, name string) error {
 	p := s.templatefile(name)
 
-	if err := s.store.Delete(ctx, p); err != nil {
+	if err := s.storage.Delete(ctx, p); err != nil {
 		return errors.Wrapf(err, "failed to remote template")
 	}
 
-	if err := s.sync.Add(ctx, p); err != nil {
+	if err := s.rcs.Add(ctx, p); err != nil {
 		if errors.Cause(err) == store.ErrGitNotInit {
 			return nil
 		}

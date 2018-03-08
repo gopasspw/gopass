@@ -49,11 +49,11 @@ func (s *Store) Set(ctx context.Context, name string, sec *secret.Secret) error 
 		return store.ErrEncrypt
 	}
 
-	if err := s.store.Set(ctx, p, ciphertext); err != nil {
+	if err := s.storage.Set(ctx, p, ciphertext); err != nil {
 		return errors.Wrapf(err, "failed to write secret")
 	}
 
-	if err := s.sync.Add(ctx, p); err != nil {
+	if err := s.rcs.Add(ctx, p); err != nil {
 		if errors.Cause(err) == store.ErrGitNotInit {
 			return nil
 		}
@@ -68,7 +68,7 @@ func (s *Store) Set(ctx context.Context, name string, sec *secret.Secret) error 
 }
 
 func (s *Store) gitCommitAndPush(ctx context.Context, name string) error {
-	if err := s.sync.Commit(ctx, fmt.Sprintf("Save secret to %s: %s", name, GetReason(ctx))); err != nil {
+	if err := s.rcs.Commit(ctx, fmt.Sprintf("Save secret to %s: %s", name, GetReason(ctx))); err != nil {
 		if errors.Cause(err) == store.ErrGitNotInit {
 			return nil
 		}
@@ -79,9 +79,9 @@ func (s *Store) gitCommitAndPush(ctx context.Context, name string) error {
 		return nil
 	}
 
-	if err := s.sync.Push(ctx, "", ""); err != nil {
+	if err := s.rcs.Push(ctx, "", ""); err != nil {
 		if errors.Cause(err) == store.ErrGitNotInit {
-			msg := "Warning: git is not initialized for this store. Ignoring auto-push option\n" +
+			msg := "Warning: git is not initialized for this.storage. Ignoring auto-push option\n" +
 				"Run: gopass git init"
 			out.Red(ctx, msg)
 			return nil

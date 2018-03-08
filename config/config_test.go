@@ -20,8 +20,8 @@ func TestNewConfig(t *testing.T) {
 	assert.Equal(t, false, cfg.Root.AskForMore)
 	assert.NoError(t, cfg.checkDefaults())
 	assert.Equal(t, backend.GPGCLI, cfg.Root.Path.Crypto)
-	assert.Equal(t, backend.GitCLI, cfg.Root.Path.Sync)
-	assert.Equal(t, backend.FS, cfg.Root.Path.Store)
+	assert.Equal(t, backend.GitCLI, cfg.Root.Path.RCS)
+	assert.Equal(t, backend.FS, cfg.Root.Path.Storage)
 	assert.Equal(t, "Config[Root:StoreConfig[AskForMore:false,AutoImport:true,AutoSync:true,ClipTimeout:45,NoColor:false,NoConfirm:false,NoPager:false,Path:gpgcli-gitcli-fs+file:,SafeContent:false,UseSymbols:false],Mounts(),Version:]", cfg.String())
 
 	cfg = nil

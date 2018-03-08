@@ -1,4 +1,4 @@
-package mock
+package inmem
 
 import (
 	"context"
@@ -10,21 +10,21 @@ import (
 	"github.com/blang/semver"
 )
 
-// Mock is a in-memory store
-type Mock struct {
+// InMem is a in-memory store
+type InMem struct {
 	sync.Mutex
 	data map[string][]byte
 }
 
 // New creates a new mock
-func New() *Mock {
-	return &Mock{
+func New() *InMem {
+	return &InMem{
 		data: make(map[string][]byte, 10),
 	}
 }
 
 // Get retrieves a value
-func (m *Mock) Get(ctx context.Context, name string) ([]byte, error) {
+func (m *InMem) Get(ctx context.Context, name string) ([]byte, error) {
 	m.Lock()
 	defer m.Unlock()
 
@@ -36,7 +36,7 @@ func (m *Mock) Get(ctx context.Context, name string) ([]byte, error) {
 }
 
 // Set writes a value
-func (m *Mock) Set(ctx context.Context, name string, value []byte) error {
+func (m *InMem) Set(ctx context.Context, name string, value []byte) error {
 	m.Lock()
 	defer m.Unlock()
 
@@ -45,7 +45,7 @@ func (m *Mock) Set(ctx context.Context, name string, value []byte) error {
 }
 
 // Delete removes a value
-func (m *Mock) Delete(ctx context.Context, name string) error {
+func (m *InMem) Delete(ctx context.Context, name string) error {
 	m.Lock()
 	defer m.Unlock()
 
@@ -54,7 +54,7 @@ func (m *Mock) Delete(ctx context.Context, name string) error {
 }
 
 // Exists checks is a value exists
-func (m *Mock) Exists(ctx context.Context, name string) bool {
+func (m *InMem) Exists(ctx context.Context, name string) bool {
 	m.Lock()
 	defer m.Unlock()
 
@@ -63,7 +63,7 @@ func (m *Mock) Exists(ctx context.Context, name string) bool {
 }
 
 // List shows all values
-func (m *Mock) List(ctx context.Context, prefix string) ([]string, error) {
+func (m *InMem) List(ctx context.Context, prefix string) ([]string, error) {
 	m.Lock()
 	defer m.Unlock()
 
@@ -76,7 +76,7 @@ func (m *Mock) List(ctx context.Context, prefix string) ([]string, error) {
 }
 
 // IsDir returns true if the entry is a directory
-func (m *Mock) IsDir(ctx context.Context, name string) bool {
+func (m *InMem) IsDir(ctx context.Context, name string) bool {
 	m.Lock()
 	defer m.Unlock()
 
@@ -89,7 +89,7 @@ func (m *Mock) IsDir(ctx context.Context, name string) bool {
 }
 
 // Prune removes a directory
-func (m *Mock) Prune(ctx context.Context, prefix string) error {
+func (m *InMem) Prune(ctx context.Context, prefix string) error {
 	m.Lock()
 	defer m.Unlock()
 
@@ -107,11 +107,11 @@ func (m *Mock) Prune(ctx context.Context, prefix string) error {
 }
 
 // Name returns the name of this backend
-func (m *Mock) Name() string {
-	return "kvmock"
+func (m *InMem) Name() string {
+	return "inmem"
 }
 
 // Version returns the version of this backend
-func (m *Mock) Version() semver.Version {
+func (m *InMem) Version() semver.Version {
 	return semver.Version{Major: 1}
 }

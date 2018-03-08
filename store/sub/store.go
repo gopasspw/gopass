@@ -8,15 +8,15 @@ import (
 
 	"github.com/justwatchcom/gopass/backend"
 	gpgcli "github.com/justwatchcom/gopass/backend/crypto/gpg/cli"
-	gpgmock "github.com/justwatchcom/gopass/backend/crypto/gpg/mock"
 	"github.com/justwatchcom/gopass/backend/crypto/gpg/openpgp"
+	"github.com/justwatchcom/gopass/backend/crypto/plain"
 	"github.com/justwatchcom/gopass/backend/crypto/xc"
-	"github.com/justwatchcom/gopass/backend/store/fs"
-	kvconsul "github.com/justwatchcom/gopass/backend/store/kv/consul"
-	kvmock "github.com/justwatchcom/gopass/backend/store/kv/mock"
-	gitcli "github.com/justwatchcom/gopass/backend/sync/git/cli"
-	"github.com/justwatchcom/gopass/backend/sync/git/gogit"
-	gitmock "github.com/justwatchcom/gopass/backend/sync/git/mock"
+	gitcli "github.com/justwatchcom/gopass/backend/rcs/git/cli"
+	"github.com/justwatchcom/gopass/backend/rcs/git/gogit"
+	"github.com/justwatchcom/gopass/backend/rcs/noop"
+	"github.com/justwatchcom/gopass/backend/storage/fs"
+	kvconsul "github.com/justwatchcom/gopass/backend/storage/kv/consul"
+	"github.com/justwatchcom/gopass/backend/storage/kv/inmem"
 	"github.com/justwatchcom/gopass/store"
 	"github.com/justwatchcom/gopass/utils/agent/client"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
@@ -28,12 +28,12 @@ import (
 
 // Store is password store
 type Store struct {
-	alias  string
-	url    *backend.URL
-	crypto backend.Crypto
-	sync   backend.Sync
-	store  backend.Store
-	cfgdir string
+	alias   string
+	url     *backend.URL
+	crypto  backend.Crypto
+	rcs     backend.RCS
+	storage backend.Storage
+	cfgdir  string
 }
 
 // New creates a new store, copying settings from the given root store
@@ -46,23 +46,23 @@ func New(ctx context.Context, alias, path string, cfgdir string) (*Store, error)
 	s := &Store{
 		alias:  alias,
 		url:    u,
-		sync:   gitmock.New(),
+		rcs:    noop.New(),
 		cfgdir: cfgdir,
 	}
 
 	// init store backend
-	if backend.HasStoreBackend(ctx) {
-		s.url.Store = backend.GetStoreBackend(ctx)
+	if backend.HasStorageBackend(ctx) {
+		s.url.Storage = backend.GetStorageBackend(ctx)
 	}
-	if err := s.initStoreBackend(ctx); err != nil {
+	if err := s.initStorageBackend(ctx); err != nil {
 		return nil, err
 	}
 
 	// init sync backend
-	if backend.HasSyncBackend(ctx) {
-		s.url.Sync = backend.GetSyncBackend(ctx)
+	if backend.HasRCSBackend(ctx) {
+		s.url.RCS = backend.GetRCSBackend(ctx)
 	}
-	if err := s.initSyncBackend(ctx); err != nil {
+	if err := s.initRCSBackend(ctx); err != nil {
 		return nil, err
 	}
 
@@ -77,52 +77,52 @@ func New(ctx context.Context, alias, path string, cfgdir string) (*Store, error)
 	return s, nil
 }
 
-func (s *Store) initStoreBackend(ctx context.Context) error {
-	switch s.url.Store {
+func (s *Store) initStorageBackend(ctx context.Context) error {
+	switch s.url.Storage {
 	case backend.FS:
-		out.Debug(ctx, "Using Store Backend: fs")
-		s.store = fs.New(s.url.Path)
-	case backend.KVMock:
-		out.Debug(ctx, "Using Store Backend: kvmock")
-		s.store = kvmock.New()
+		out.Debug(ctx, "Using Storage Backend: fs")
+		s.storage = fs.New(s.url.Path)
+	case backend.InMem:
+		out.Debug(ctx, "Using Storage Backend: inmem")
+		s.storage = inmem.New()
 	case backend.Consul:
-		out.Debug(ctx, "Using Store Backend: consul")
+		out.Debug(ctx, "Using Storage Backend: consul")
 		store, err := kvconsul.New(s.url.Host+":"+s.url.Port, s.url.Query.Get("datacenter"), s.url.Query.Get("token"))
 		if err != nil {
 			return err
 		}
-		s.store = store
+		s.storage = store
 	default:
-		return fmt.Errorf("Unknown store backend")
+		return fmt.Errorf("Unknown storage backend")
 	}
 	return nil
 }
 
-func (s *Store) initSyncBackend(ctx context.Context) error {
-	switch s.url.Sync {
+func (s *Store) initRCSBackend(ctx context.Context) error {
+	switch s.url.RCS {
 	case backend.GoGit:
-		out.Cyan(ctx, "WARNING: Using experimental sync backend 'go-git'")
+		out.Cyan(ctx, "WARNING: Using experimental RCS backend 'go-git'")
 		git, err := gogit.Open(s.url.Path)
 		if err != nil {
-			out.Debug(ctx, "Failed to initialize sync backend 'gogit': %s", err)
+			out.Debug(ctx, "Failed to initialize RCS backend 'gogit': %s", err)
 		} else {
-			s.sync = git
-			out.Debug(ctx, "Using Sync Backend: go-git")
+			s.rcs = git
+			out.Debug(ctx, "Using RCS Backend: go-git")
 		}
 	case backend.GitCLI:
 		gpgBin, _ := gpgcli.Binary(ctx, "")
 		git, err := gitcli.Open(s.url.Path, gpgBin)
 		if err != nil {
-			out.Debug(ctx, "Failed to initialize sync backend 'gitcli': %s", err)
+			out.Debug(ctx, "Failed to initialize RCS backend 'gitcli': %s", err)
 		} else {
-			s.sync = git
-			out.Debug(ctx, "Using Sync Backend: gitcli")
+			s.rcs = git
+			out.Debug(ctx, "Using RCS Backend: gitcli")
 		}
-	case backend.GitMock:
+	case backend.Noop:
 		// no-op
-		out.Debug(ctx, "Using Sync Backend: git-mock")
+		out.Debug(ctx, "Using RCS Backend: noop")
 	default:
-		return fmt.Errorf("Unknown Sync Backend")
+		return fmt.Errorf("Unknown RCS Backend")
 	}
 	return nil
 }
@@ -146,9 +146,9 @@ func (s *Store) initCryptoBackend(ctx context.Context) error {
 			return err
 		}
 		s.crypto = crypto
-	case backend.GPGMock:
-		out.Debug(ctx, "Using Crypto Backend: gpg-mock (NO ENCRYPTION)")
-		s.crypto = gpgmock.New()
+	case backend.Plain:
+		out.Debug(ctx, "Using Crypto Backend: plain (NO ENCRYPTION)")
+		s.crypto = plain.New()
 	case backend.OpenPGP:
 		out.Debug(ctx, "Using Crypto Backend: openpgp (ALPHA)")
 		crypto, err := openpgp.New(ctx)
@@ -162,9 +162,9 @@ func (s *Store) initCryptoBackend(ctx context.Context) error {
 	return nil
 }
 
-// idFile returns the path to the recipient list for this store
+// idFile returns the path to the recipient list for this.storage
 // it walks up from the given filename until it finds a directory containing
-// a gpg id file or it leaves the scope of this store.
+// a gpg id file or it leaves the scope of this.storage.
 func (s *Store) idFile(ctx context.Context, name string) string {
 	fn := name
 	var cnt uint8
@@ -177,7 +177,7 @@ func (s *Store) idFile(ctx context.Context, name string) string {
 			break
 		}
 		gfn := filepath.Join(fn, s.crypto.IDFile())
-		if s.store.Exists(ctx, gfn) {
+		if s.storage.Exists(ctx, gfn) {
 			return gfn
 		}
 		fn = filepath.Dir(fn)
@@ -185,7 +185,7 @@ func (s *Store) idFile(ctx context.Context, name string) string {
 	return s.crypto.IDFile()
 }
 
-// Equals returns true if this store has the same on-disk path as the other
+// Equals returns true if this.storage has the same on-disk path as the other
 func (s *Store) Equals(other *Store) bool {
 	if other == nil {
 		return false
@@ -195,12 +195,12 @@ func (s *Store) Equals(other *Store) bool {
 
 // IsDir returns true if the entry is folder inside the store
 func (s *Store) IsDir(ctx context.Context, name string) bool {
-	return s.store.IsDir(ctx, name)
+	return s.storage.IsDir(ctx, name)
 }
 
 // Exists checks the existence of a single entry
 func (s *Store) Exists(ctx context.Context, name string) bool {
-	return s.store.Exists(ctx, s.passfile(name))
+	return s.storage.Exists(ctx, s.passfile(name))
 }
 
 func (s *Store) useableKeys(ctx context.Context, name string) ([]string, error) {
@@ -277,7 +277,7 @@ func (s *Store) reencrypt(ctx context.Context) error {
 		}
 	}
 
-	if err := s.sync.Commit(ctx, GetReason(ctx)); err != nil {
+	if err := s.rcs.Commit(ctx, GetReason(ctx)); err != nil {
 		if errors.Cause(err) != store.ErrGitNotInit {
 			return errors.Wrapf(err, "failed to commit changes to git")
 		}
@@ -291,9 +291,9 @@ func (s *Store) reencrypt(ctx context.Context) error {
 }
 
 func (s *Store) reencryptGitPush(ctx context.Context) error {
-	if err := s.sync.Push(ctx, "", ""); err != nil {
+	if err := s.rcs.Push(ctx, "", ""); err != nil {
 		if errors.Cause(err) == store.ErrGitNotInit {
-			msg := "Warning: git is not initialized for this store. Ignoring auto-push option\n" +
+			msg := "Warning: git is not initialized for this.storage. Ignoring auto-push option\n" +
 				"Run: gopass git init"
 			out.Red(ctx, msg)
 			return nil
@@ -319,7 +319,7 @@ func (s *Store) Alias() string {
 	return s.alias
 }
 
-// Store returns the storage backend used by this store
-func (s *Store) Store() backend.Store {
-	return s.store
+// Storage returns the storage backend used by this.storage
+func (s *Store) Storage() backend.Storage {
+	return s.storage
 }

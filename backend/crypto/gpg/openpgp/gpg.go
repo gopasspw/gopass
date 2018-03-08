@@ -17,7 +17,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-// GPG is a no-op GPG mock
+// GPG is a pure-Go GPG backend
 type GPG struct {
 	pubfn   string
 	pubring openpgp.EntityList
@@ -26,7 +26,7 @@ type GPG struct {
 	client  agentClient
 }
 
-// New creates a new GPG mock
+// New creates a new pure-Go GPG backend
 func New(ctx context.Context) (*GPG, error) {
 	pubfn := filepath.Join(gpgHome(ctx), "pubring.gpg")
 	pubring, err := readKeyring(pubfn)
