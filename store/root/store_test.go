@@ -122,7 +122,7 @@ func createRootStore(ctx context.Context, u *gptest.Unit) (*Store, error) {
 		ctx,
 		&config.Config{
 			Root: &config.StoreConfig{
-				Path: u.StoreDir(""),
+				Path: backend.FromPath(u.StoreDir("")),
 			},
 		},
 	)

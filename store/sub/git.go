@@ -24,14 +24,14 @@ func (s *Store) GitInit(ctx context.Context, un, ue string) error {
 	switch backend.GetSyncBackend(ctx) {
 	case backend.GoGit:
 		out.Cyan(ctx, "WARNING: Using experimental sync backend 'go-git'")
-		git, err := gogit.Init(ctx, s.path)
+		git, err := gogit.Init(ctx, s.url.Path)
 		if err != nil {
 			return errors.Wrapf(err, "failed to init git: %s", err)
 		}
 		s.sync = git
 		return nil
 	case backend.GitCLI:
-		git, err := gitcli.Init(ctx, s.path, un, ue)
+		git, err := gitcli.Init(ctx, s.url.Path, un, ue)
 		if err != nil {
 			return errors.Wrapf(err, "failed to init git: %s", err)
 		}

@@ -25,13 +25,13 @@ func Binary(ctx context.Context, bin string) (string, error) {
 	}
 	bv := make(byVersion, 0, len(bins))
 	for _, b := range bins {
-		out.Debug(ctx, "gpg.detectBinary - Looking for '%s' ...", b)
+		// TODO out.Debug(ctx, "gpg.detectBinary - Looking for '%s' ...", b)
 		if p, err := exec.LookPath(b); err == nil {
 			gb := gpgBin{
 				path: p,
 				ver:  version(ctx, p),
 			}
-			out.Debug(ctx, "gpg.detectBinary - Found '%s' at '%s' (%s)", b, p, gb.ver.String())
+			// TODO out.Debug(ctx, "gpg.detectBinary - Found '%s' at '%s' (%s)", b, p, gb.ver.String())
 			bv = append(bv, gb)
 		}
 	}

@@ -19,6 +19,10 @@ const (
 	GoGit
 )
 
+func (s SyncBackend) String() string {
+	return syncNameFromBackend(s)
+}
+
 // Sync is a sync backend
 type Sync interface {
 	Add(ctx context.Context, args ...string) error

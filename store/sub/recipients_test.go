@@ -39,7 +39,7 @@ func TestGetRecipientsDefault(t *testing.T) {
 
 	s := &Store{
 		alias:  "",
-		path:   tempdir,
+		url:    backend.FromPath(tempdir),
 		crypto: gpgmock.New(),
 		sync:   gitmock.New(),
 		store:  fs.New(tempdir),
@@ -71,7 +71,7 @@ func TestGetRecipientsSubID(t *testing.T) {
 
 	s := &Store{
 		alias:  "",
-		path:   tempdir,
+		url:    backend.FromPath(tempdir),
 		crypto: gpgmock.New(),
 		sync:   gitmock.New(),
 		store:  fs.New(tempdir),
@@ -109,7 +109,7 @@ func TestSaveRecipients(t *testing.T) {
 	recp := []string{"john.doe"}
 	s := &Store{
 		alias:  "",
-		path:   tempdir,
+		url:    backend.FromPath(tempdir),
 		crypto: gpgmock.New(),
 		sync:   gitmock.New(),
 		store:  fs.New(tempdir),
@@ -163,7 +163,7 @@ func TestAddRecipient(t *testing.T) {
 
 	s := &Store{
 		alias:  "",
-		path:   tempdir,
+		url:    backend.FromPath(tempdir),
 		crypto: gpgmock.New(),
 		sync:   gitmock.New(),
 		store:  fs.New(tempdir),
@@ -202,7 +202,7 @@ func TestRemoveRecipient(t *testing.T) {
 
 	s := &Store{
 		alias:  "",
-		path:   tempdir,
+		url:    backend.FromPath(tempdir),
 		crypto: gpgmock.New(),
 		sync:   gitmock.New(),
 		store:  fs.New(tempdir),

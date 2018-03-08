@@ -1,5 +1,7 @@
 package config
 
+import "github.com/justwatchcom/gopass/backend"
+
 // Pre140 is the gopass config structure before version 1.4.0
 type Pre140 struct {
 	AskForMore  bool              `yaml:"askformore"`  // ask for more data on generate
@@ -29,7 +31,7 @@ func (c *Pre140) Config() *Config {
 		AutoSync:    c.AutoSync,
 		ClipTimeout: c.ClipTimeout,
 		NoConfirm:   c.NoConfirm,
-		Path:        c.Path,
+		Path:        backend.FromPath(c.Path),
 		SafeContent: c.SafeContent,
 	}
 	cfg := &Config{
@@ -39,7 +41,7 @@ func (c *Pre140) Config() *Config {
 	}
 	for k, v := range c.Mounts {
 		subSc := sc
-		subSc.Path = v
+		subSc.Path = backend.FromPath(v)
 		cfg.Mounts[k] = &subSc
 	}
 	return cfg
@@ -81,7 +83,7 @@ func (c *Pre130) Config() *Config {
 		AutoSync:    c.AutoPull && c.AutoPush,
 		ClipTimeout: c.ClipTimeout,
 		NoConfirm:   c.NoConfirm,
-		Path:        c.Path,
+		Path:        backend.FromPath(c.Path),
 		SafeContent: c.SafeContent,
 	}
 	cfg := &Config{
@@ -91,7 +93,7 @@ func (c *Pre130) Config() *Config {
 	}
 	for k, v := range c.Mounts {
 		subSc := sc
-		subSc.Path = v
+		subSc.Path = backend.FromPath(v)
 		cfg.Mounts[k] = &subSc
 	}
 	return cfg

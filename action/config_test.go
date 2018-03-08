@@ -8,6 +8,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/justwatchcom/gopass/backend"
 	"github.com/justwatchcom/gopass/config"
 	"github.com/justwatchcom/gopass/tests/gptest"
 	"github.com/justwatchcom/gopass/utils/out"
@@ -41,16 +42,13 @@ func TestConfig(t *testing.T) {
   autoimport: true
   autosync: true
   cliptimeout: 45
-  cryptobackend: gpg
   nocolor: false
   noconfirm: false
   nopager: false
   notifications: true
 `
-	want += "  path: " + u.StoreDir("") + "\n"
+	want += "  path: " + backend.FromPath(u.StoreDir("")).String() + "\n"
 	want += `  safecontent: false
-  storebackend: fs
-  syncbackend: git
   usesymbols: false
 `
 	assert.Equal(t, want, buf.String())
@@ -58,7 +56,7 @@ func TestConfig(t *testing.T) {
 
 	// action.setConfigValue
 	assert.NoError(t, act.setConfigValue(ctx, "", "nopager", "true"))
-	assert.Equal(t, "nopager: true", strings.TrimSpace(buf.String()))
+	assert.Equal(t, "nopager: true", strings.TrimSpace(buf.String()), "action.setConfigValue")
 	buf.Reset()
 
 	// action.printConfigValues
@@ -66,12 +64,12 @@ func TestConfig(t *testing.T) {
 	act.printConfigValues(ctx, "", "nopager")
 	want = `nopager: true
 foo/nopager: false`
-	assert.Equal(t, want, strings.TrimSpace(buf.String()))
+	assert.Equal(t, want, strings.TrimSpace(buf.String()), "action.printConfigValues")
 	buf.Reset()
 
 	// action.setConfigValue on substore
 	assert.NoError(t, act.setConfigValue(ctx, "foo", "cliptimeout", "23"))
-	assert.Equal(t, "foo/cliptimeout: 23", strings.TrimSpace(buf.String()))
+	assert.Equal(t, "foo/cliptimeout: 23", strings.TrimSpace(buf.String()), "action.setConfigValue on substore")
 	buf.Reset()
 
 	// action.printConfigValues
@@ -81,16 +79,13 @@ foo/nopager: false`
   autoimport: true
   autosync: true
   cliptimeout: 45
-  cryptobackend: gpg
   nocolor: false
   noconfirm: false
   nopager: true
   notifications: true
 `
-	want += "  path: " + u.StoreDir("") + "\n"
+	want += "  path: " + backend.FromPath(u.StoreDir("")).String() + "\n"
 	want += `  safecontent: false
-  storebackend: fs
-  syncbackend: git
   usesymbols: false
 mount 'foo' config:
   autoimport: false
@@ -98,8 +93,9 @@ mount 'foo' config:
   cliptimeout: 23
   nopager: false
   notifications: false
-  path:`
-	assert.Equal(t, want, strings.TrimSpace(buf.String()))
+`
+	want += "  path: " + backend.FromPath("").String()
+	assert.Equal(t, want, strings.TrimSpace(buf.String()), "action.setConfigValues")
 	buf.Reset()
 
 	delete(act.cfg.Mounts, "foo")
@@ -127,15 +123,12 @@ mount 'foo' config:
 autoimport
 autosync
 cliptimeout
-cryptobackend
 nocolor
 noconfirm
 nopager
 notifications
 path
 safecontent
-storebackend
-syncbackend
 usesymbols
 `
 	assert.Equal(t, want, buf.String())

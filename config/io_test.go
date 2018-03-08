@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/fatih/color"
+	"github.com/justwatchcom/gopass/backend"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -154,8 +155,8 @@ func TestLoad(t *testing.T) {
 	assert.NoError(t, os.Setenv("GOPASS_HOMEDIR", td))
 
 	cfg := Load()
-	assert.Equal(t, filepath.Join(td, ".password-store"), cfg.Root.Path)
-	assert.Equal(t, "gpg", cfg.Root.CryptoBackend)
+	assert.Equal(t, backend.FromPath(filepath.Join(td, ".password-store")).String(), cfg.Root.Path.String())
+	assert.Equal(t, backend.GPGCLI, cfg.Root.Path.Crypto)
 
 	assert.NoError(t, ioutil.WriteFile(gcfg, []byte(testConfig), 0600))
 	cfg = Load()
@@ -183,7 +184,7 @@ func TestLoadError(t *testing.T) {
 
 	gcfg = filepath.Join(os.TempDir(), "foo", ".gopass.yml")
 	assert.NoError(t, os.Setenv("GOPASS_CONFIG", gcfg))
-	assert.NoError(t, cfg.Save())
+	assert.Error(t, cfg.Save())
 }
 
 func TestDecodeError(t *testing.T) {

@@ -28,7 +28,7 @@ import (
 // Store is password store
 type Store struct {
 	alias  string
-	path   string
+	url    *backend.URL
 	crypto backend.Crypto
 	sync   backend.Sync
 	store  backend.Store
@@ -36,17 +36,24 @@ type Store struct {
 
 // New creates a new store, copying settings from the given root store
 func New(ctx context.Context, alias, path string, cfgdir string) (*Store, error) {
-	path = fsutil.CleanPath(path)
+	u, err := backend.ParseURL(path)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to parse path URL '%s': %s", path, err)
+	}
+
 	s := &Store{
 		alias: alias,
-		path:  path,
+		url:   u,
 		sync:  gitmock.New(),
 	}
 
 	// init store backend
-	switch backend.GetStoreBackend(ctx) {
+	if backend.HasStoreBackend(ctx) {
+		s.url.Store = backend.GetStoreBackend(ctx)
+	}
+	switch s.url.Store {
 	case backend.FS:
-		s.store = fs.New(path)
+		s.store = fs.New(u.Path)
 		out.Debug(ctx, "Using Store Backend: fs")
 	case backend.KVMock:
 		s.store = kvmock.New()
@@ -56,10 +63,13 @@ func New(ctx context.Context, alias, path string, cfgdir string) (*Store, error)
 	}
 
 	// init sync backend
-	switch backend.GetSyncBackend(ctx) {
+	if backend.HasSyncBackend(ctx) {
+		s.url.Sync = backend.GetSyncBackend(ctx)
+	}
+	switch s.url.Sync {
 	case backend.GoGit:
 		out.Cyan(ctx, "WARNING: Using experimental sync backend 'go-git'")
-		git, err := gogit.Open(path)
+		git, err := gogit.Open(u.Path)
 		if err != nil {
 			out.Debug(ctx, "Failed to initialize sync backend 'gogit': %s", err)
 		} else {
@@ -68,12 +78,12 @@ func New(ctx context.Context, alias, path string, cfgdir string) (*Store, error)
 		}
 	case backend.GitCLI:
 		gpgBin, _ := gpgcli.Binary(ctx, "")
-		git, err := gitcli.Open(path, gpgBin)
+		git, err := gitcli.Open(u.Path, gpgBin)
 		if err != nil {
-			out.Debug(ctx, "Failed to initialize sync backend 'git': %s", err)
+			out.Debug(ctx, "Failed to initialize sync backend 'gitcli': %s", err)
 		} else {
 			s.sync = git
-			out.Debug(ctx, "Using Sync Backend: git-cli")
+			out.Debug(ctx, "Using Sync Backend: gitcli")
 		}
 	case backend.GitMock:
 		// no-op
@@ -83,7 +93,10 @@ func New(ctx context.Context, alias, path string, cfgdir string) (*Store, error)
 	}
 
 	// init crypto backend
-	switch backend.GetCryptoBackend(ctx) {
+	if backend.HasCryptoBackend(ctx) {
+		s.url.Crypto = backend.GetCryptoBackend(ctx)
+	}
+	switch s.url.Crypto {
 	case backend.GPGCLI:
 		gpg, err := gpgcli.New(ctx, gpgcli.Config{
 			Umask: fsutil.Umask(),
@@ -148,7 +161,7 @@ func (s *Store) Equals(other *Store) bool {
 	if other == nil {
 		return false
 	}
-	return s.path == other.path
+	return s.url.String() == other.url.String()
 }
 
 // IsDir returns true if the entry is folder inside the store
@@ -186,7 +199,7 @@ func (s *Store) passfile(name string) string {
 
 // String implement fmt.Stringer
 func (s *Store) String() string {
-	return fmt.Sprintf("Store(Alias: %s, Path: %s)", s.alias, s.path)
+	return fmt.Sprintf("Store(Alias: %s, Path: %s)", s.alias, s.url.String())
 }
 
 // reencrypt will re-encrypt all entries for the current recipients
@@ -269,7 +282,7 @@ func (s *Store) reencryptGitPush(ctx context.Context) error {
 
 // Path returns the value of path
 func (s *Store) Path() string {
-	return s.path
+	return s.url.Path
 }
 
 // Alias returns the value of alias

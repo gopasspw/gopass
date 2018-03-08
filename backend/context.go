@@ -12,36 +12,15 @@ const (
 
 // CryptoBackendName returns the name of the given backend
 func CryptoBackendName(cb CryptoBackend) string {
-	switch cb {
-	case GPGMock:
-		return "gpgmock"
-	case GPGCLI:
-		return "gpgcli"
-	case XC:
-		return "xc"
-	case OpenPGP:
-		return "openpgp"
-	default:
-		return ""
-	}
+	return cryptoNameFromBackend(cb)
 }
 
 // WithCryptoBackendString returns a context with the given crypto backend set
 func WithCryptoBackendString(ctx context.Context, be string) context.Context {
-	switch be {
-	case "gpg":
-		fallthrough
-	case "gpgcli":
-		return WithCryptoBackend(ctx, GPGCLI)
-	case "gpgmock":
-		return WithCryptoBackend(ctx, GPGMock)
-	case "xc":
-		return WithCryptoBackend(ctx, XC)
-	case "openpgp":
-		return WithCryptoBackend(ctx, OpenPGP)
-	default:
-		return ctx
+	if cb := cryptoBackendFromName(be); cb >= 0 {
+		ctx = WithCryptoBackend(ctx, cb)
 	}
+	return ctx
 }
 
 // WithCryptoBackend returns a context with the given crypto backend set
@@ -66,32 +45,15 @@ func GetCryptoBackend(ctx context.Context) CryptoBackend {
 
 // SyncBackendName returns the name of the given backend
 func SyncBackendName(sb SyncBackend) string {
-	switch sb {
-	case GitMock:
-		return "gitmock"
-	case GitCLI:
-		return "gitcli"
-	case GoGit:
-		return "gogit"
-	default:
-		return ""
-	}
+	return syncNameFromBackend(sb)
 }
 
 // WithSyncBackendString returns a context with the given sync backend set
 func WithSyncBackendString(ctx context.Context, sb string) context.Context {
-	switch sb {
-	case "git":
-		fallthrough
-	case "gitcli":
-		return WithSyncBackend(ctx, GitCLI)
-	case "gogit":
-		return WithSyncBackend(ctx, GoGit)
-	case "gitmock":
-		return WithSyncBackend(ctx, GitMock)
-	default:
-		return WithSyncBackend(ctx, GitMock)
+	if be := syncBackendFromName(sb); be >= 0 {
+		return WithSyncBackend(ctx, be)
 	}
+	return WithSyncBackend(ctx, GitMock)
 }
 
 // WithSyncBackend returns a context with the given sync backend set
@@ -116,14 +78,7 @@ func GetSyncBackend(ctx context.Context) SyncBackend {
 
 // WithStoreBackendString returns a context with the given store backend set
 func WithStoreBackendString(ctx context.Context, sb string) context.Context {
-	switch sb {
-	case "kvmock":
-		return WithStoreBackend(ctx, KVMock)
-	case "fs":
-		return WithStoreBackend(ctx, FS)
-	default:
-		return WithStoreBackend(ctx, FS)
-	}
+	return WithStoreBackend(ctx, storeBackendFromName(sb))
 }
 
 // WithStoreBackend returns a context with the given store backend set
@@ -140,14 +95,13 @@ func GetStoreBackend(ctx context.Context) StoreBackend {
 	return be
 }
 
+// HasStoreBackend returns true if a value for store backend was set
+func HasStoreBackend(ctx context.Context) bool {
+	_, ok := ctx.Value(ctxKeyStoreBackend).(StoreBackend)
+	return ok
+}
+
 // StoreBackendName returns the name of the given backend
 func StoreBackendName(sb StoreBackend) string {
-	switch sb {
-	case FS:
-		return "fs"
-	case KVMock:
-		return "kvmock"
-	default:
-		return ""
-	}
+	return storeNameFromBackend(sb)
 }

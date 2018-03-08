@@ -8,7 +8,6 @@ import (
 	"github.com/justwatchcom/gopass/backend"
 	"github.com/justwatchcom/gopass/config"
 	"github.com/justwatchcom/gopass/store/sub"
-	"github.com/justwatchcom/gopass/utils/fsutil"
 	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/pkg/errors"
 )
@@ -17,7 +16,7 @@ import (
 type Store struct {
 	cfg     *config.Config
 	mounts  map[string]*sub.Store
-	path    string // path to the root store
+	url     *backend.URL // url of the root store
 	store   *sub.Store
 	version string
 }
@@ -27,22 +26,22 @@ func New(ctx context.Context, cfg *config.Config) (*Store, error) {
 	if cfg == nil {
 		cfg = &config.Config{}
 	}
-	if cfg.Root != nil && cfg.Root.Path == "" {
+	if cfg.Root != nil && (cfg.Root.Path == nil || cfg.Root.Path.Path == "") {
 		return nil, errors.Errorf("need path")
 	}
 	r := &Store{
 		cfg:     cfg,
 		mounts:  make(map[string]*sub.Store, len(cfg.Mounts)),
-		path:    cfg.Root.Path,
+		url:     cfg.Root.Path,
 		version: cfg.Version,
 	}
 
 	// create the base store
 	if !backend.HasCryptoBackend(ctx) {
-		ctx = backend.WithCryptoBackendString(ctx, cfg.Root.CryptoBackend)
+		ctx = backend.WithCryptoBackend(ctx, cfg.Root.Path.Crypto)
 	}
 	if !backend.HasSyncBackend(ctx) {
-		ctx = backend.WithSyncBackendString(ctx, cfg.Root.SyncBackend)
+		ctx = backend.WithSyncBackend(ctx, cfg.Root.Path.Sync)
 	}
 	s, err := sub.New(ctx, "", r.Path(), config.Directory())
 	if err != nil {
@@ -52,9 +51,8 @@ func New(ctx context.Context, cfg *config.Config) (*Store, error) {
 
 	// initialize all mounts
 	for alias, sc := range cfg.Mounts {
-		path := fsutil.CleanPath(sc.Path)
-		if err := r.addMount(ctx, alias, path, sc); err != nil {
-			out.Red(ctx, "Failed to initialize mount %s (%s). Ignoring: %s", alias, path, err)
+		if err := r.addMount(ctx, alias, sc.Path.String(), sc); err != nil {
+			out.Red(ctx, "Failed to initialize mount %s (%s). Ignoring: %s", alias, sc.Path.String(), err)
 			continue
 		}
 	}
@@ -89,7 +87,7 @@ func (r *Store) String() string {
 
 // Path returns the store path
 func (r *Store) Path() string {
-	return r.path
+	return r.url.Path
 }
 
 // Alias always returns an empty string

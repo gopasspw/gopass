@@ -10,11 +10,15 @@ import (
 type StoreBackend int
 
 const (
-	// KVMock is an in-memory mock store for tests
-	KVMock StoreBackend = iota
 	// FS is a filesystem-backend storage
-	FS
+	FS StoreBackend = iota
+	// KVMock is an in-memory mock store for tests
+	KVMock
 )
+
+func (s StoreBackend) String() string {
+	return storeNameFromBackend(s)
+}
 
 // Store is an storage backend
 type Store interface {

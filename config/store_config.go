@@ -6,25 +6,33 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/justwatchcom/gopass/backend"
 	"github.com/pkg/errors"
 )
 
 // StoreConfig is a per-store (root or mount) config
 type StoreConfig struct {
-	AskForMore    bool   `yaml:"askformore"`    // ask for more data on generate
-	AutoImport    bool   `yaml:"autoimport"`    // import missing public keys w/o asking
-	AutoSync      bool   `yaml:"autosync"`      // push to git remote after commit, pull before push if necessary
-	ClipTimeout   int    `yaml:"cliptimeout"`   // clear clipboard after seconds
-	CryptoBackend string `yaml:"cryptobackend"` // encryption backend (e.g. GPG, XC)
-	NoColor       bool   `yaml:"nocolor"`       // do not use color when outputing text
-	NoConfirm     bool   `yaml:"noconfirm"`     // do not confirm recipients when encrypting
-	NoPager       bool   `yaml:"nopager"`       // do not invoke a pager to display long lists
-	Path          string `yaml:"path"`          // path to the root store
-	SafeContent   bool   `yaml:"safecontent"`   // avoid showing passwords in terminal
-	StoreBackend  string `yaml:"storebackend"`  // storage backend (e.g. FS, K/V, ...)
-	SyncBackend   string `yaml:"syncbackend"`   // sync backend (e.g. GitCLI, GoGit, ...)
-	UseSymbols    bool   `yaml:"usesymbols"`    // always use symbols when generating passwords
-	Notifications bool   `yaml:"notifications"` // enable desktop notifications
+	AskForMore    bool         `yaml:"askformore"`    // ask for more data on generate
+	AutoImport    bool         `yaml:"autoimport"`    // import missing public keys w/o asking
+	AutoSync      bool         `yaml:"autosync"`      // push to git remote after commit, pull before push if necessary
+	ClipTimeout   int          `yaml:"cliptimeout"`   // clear clipboard after seconds
+	NoColor       bool         `yaml:"nocolor"`       // do not use color when outputing text
+	NoConfirm     bool         `yaml:"noconfirm"`     // do not confirm recipients when encrypting
+	NoPager       bool         `yaml:"nopager"`       // do not invoke a pager to display long lists
+	Path          *backend.URL `yaml:"path"`          // path to the root store
+	SafeContent   bool         `yaml:"safecontent"`   // avoid showing passwords in terminal
+	UseSymbols    bool         `yaml:"usesymbols"`    // always use symbols when generating passwords
+	Notifications bool         `yaml:"notifications"` // enable desktop notifications
+}
+
+func (c *StoreConfig) checkDefaults() error {
+	if c == nil {
+		return nil
+	}
+	if c.Path == nil {
+		c.Path = backend.FromPath("")
+	}
+	return nil
 }
 
 // ConfigMap returns a map of stringified config values for easy printing
@@ -45,6 +53,14 @@ func (c *StoreConfig) ConfigMap() map[string]string {
 			strVal = fmt.Sprintf("%t", f.Bool())
 		case reflect.Int:
 			strVal = fmt.Sprintf("%d", f.Int())
+		case reflect.Ptr:
+			switch bup := f.Interface().(type) {
+			case *backend.URL:
+				if bup == nil {
+					continue
+				}
+				strVal = bup.String()
+			}
 		default:
 			continue
 		}
@@ -93,5 +109,5 @@ func (c *StoreConfig) SetConfigValue(key, value string) error {
 }
 
 func (c *StoreConfig) String() string {
-	return fmt.Sprintf("StoreConfig[AskForMore:%t,AutoImport:%t,AutoSync:%t,ClipTimeout:%d,CryptoBackend:%s,NoColor:%t,NoConfirm:%t,NoPager:%t,Path:%s,SafeContent:%t,SyncBackend:%s,UseSymbols:%t]", c.AskForMore, c.AutoImport, c.AutoSync, c.ClipTimeout, c.CryptoBackend, c.NoColor, c.NoConfirm, c.NoPager, c.Path, c.SafeContent, c.SyncBackend, c.UseSymbols)
+	return fmt.Sprintf("StoreConfig[AskForMore:%t,AutoImport:%t,AutoSync:%t,ClipTimeout:%d,NoColor:%t,NoConfirm:%t,NoPager:%t,Path:%s,SafeContent:%t,UseSymbols:%t]", c.AskForMore, c.AutoImport, c.AutoSync, c.ClipTimeout, c.NoColor, c.NoConfirm, c.NoPager, c.Path, c.SafeContent, c.UseSymbols)
 }

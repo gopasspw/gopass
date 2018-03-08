@@ -188,7 +188,7 @@ func (s *Store) saveRecipients(ctx context.Context, rs []string, msg string, exp
 	}
 
 	// save recipients' public keys
-	if err := os.MkdirAll(filepath.Join(s.path, keyDir), dirMode); err != nil {
+	if err := os.MkdirAll(filepath.Join(s.url.Path, keyDir), dirMode); err != nil {
 		return errors.Wrapf(err, "failed to create key dir '%s'", keyDir)
 	}
 

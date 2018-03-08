@@ -20,6 +20,10 @@ const (
 	OpenPGP
 )
 
+func (c CryptoBackend) String() string {
+	return cryptoNameFromBackend(c)
+}
+
 // Keyring is a public/private key manager
 type Keyring interface {
 	ImportPublicKey(ctx context.Context, key []byte) error
