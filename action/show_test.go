@@ -72,6 +72,54 @@ func TestShow(t *testing.T) {
 	assert.NoError(t, act.Show(ctx, c))
 	assert.Equal(t, "bar\n└── baz\n\n", buf.String())
 	buf.Reset()
+
+	// show twoliner with safecontent enabled
+	ctx = ctxutil.WithShowSafeContent(ctx, true)
+	fs = flag.NewFlagSet("default", flag.ContinueOnError)
+	assert.NoError(t, fs.Parse([]string{"bar/baz"}))
+	c = cli.NewContext(app, fs, nil)
+
+	assert.NoError(t, act.Show(ctx, c))
+	assert.Equal(t, "---\nbar: zab", buf.String())
+	buf.Reset()
+
+	// show foo with safecontent enabled, should warn and copy the stuff
+	fs = flag.NewFlagSet("default", flag.ContinueOnError)
+	assert.NoError(t, fs.Parse([]string{"foo"}))
+	c = cli.NewContext(app, fs, nil)
+
+	assert.NoError(t, act.Show(ctx, c))
+	assert.Contains(t, buf.String(), "No safe content to display, you can force display with show -f.")
+	buf.Reset()
+
+	// show foo with safecontent enabled, with the force flag
+	fs = flag.NewFlagSet("default", flag.ContinueOnError)
+	bf = cli.BoolFlag{
+		Name:  "force",
+		Usage: "force",
+	}
+	assert.NoError(t, bf.ApplyWithError(fs))
+	assert.NoError(t, fs.Parse([]string{"--force", "foo"}))
+	c = cli.NewContext(app, fs, nil)
+
+	assert.NoError(t, act.Show(ctx, c))
+	assert.Equal(t, "secret", buf.String())
+	buf.Reset()
+
+	// show twoliner with safecontent enabled, but with the clip flag, which should copy just the secret
+	ctx = ctxutil.WithShowSafeContent(ctx, true)
+	fs = flag.NewFlagSet("default", flag.ContinueOnError)
+	bf = cli.BoolFlag{
+		Name:  "clip",
+		Usage: "clip",
+	}
+	assert.NoError(t, bf.ApplyWithError(fs))
+	assert.NoError(t, fs.Parse([]string{"--clip", "bar/baz"}))
+	c = cli.NewContext(app, fs, nil)
+
+	assert.NoError(t, act.Show(ctx, c))
+	assert.NotContains(t, buf.String(), "123")
+	buf.Reset()
 }
 
 func TestShowHandleRevision(t *testing.T) {
