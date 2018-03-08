@@ -146,7 +146,7 @@ func (r *Store) getStore(ctx context.Context, name string) (context.Context, *su
 	if sub, found := r.mounts[mp]; found {
 		return r.cfg.Mounts[mp].WithContext(ctx), sub, strings.TrimPrefix(name, sub.Alias())
 	}
-	return ctx, r.store, name
+	return r.cfg.Root.WithContext(ctx), r.store, name
 }
 
 // GetSubStore returns an exact match for a mount point or an error if this
