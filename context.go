@@ -14,35 +14,8 @@ import (
 )
 
 func initContext(ctx context.Context, cfg *config.Config) context.Context {
-	// autosync
-	ctx = sub.WithAutoSync(ctx, cfg.Root.AutoSync)
-
 	// always trust
 	ctx = gpg.WithAlwaysTrust(ctx, true)
-
-	// ask for more
-	ctx = ctxutil.WithAskForMore(ctx, cfg.Root.AskForMore)
-
-	// clipboard timeout
-	ctx = ctxutil.WithClipTimeout(ctx, cfg.Root.ClipTimeout)
-
-	// no confirm
-	ctx = ctxutil.WithNoConfirm(ctx, cfg.Root.NoConfirm)
-
-	// no pager
-	ctx = ctxutil.WithNoPager(ctx, cfg.Root.NoPager)
-
-	// show safe content
-	ctx = ctxutil.WithShowSafeContent(ctx, cfg.Root.SafeContent)
-
-	// always use symbols
-	ctx = ctxutil.WithUseSymbols(ctx, cfg.Root.UseSymbols)
-
-	// never use color
-	ctx = ctxutil.WithNoColor(ctx, cfg.Root.NoColor)
-
-	// enable desktop notifications
-	ctx = ctxutil.WithNotifications(ctx, cfg.Root.Notifications)
 
 	// check recipients conflicts with always trust, make sure it's not enabled
 	// when always trust is
