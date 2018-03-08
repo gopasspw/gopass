@@ -7,8 +7,8 @@ import (
 	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/backend"
 	"github.com/justwatchcom/gopass/backend/crypto/xc"
-	gitcli "github.com/justwatchcom/gopass/backend/sync/git/cli"
-	"github.com/justwatchcom/gopass/backend/sync/git/gogit"
+	gitcli "github.com/justwatchcom/gopass/backend/rcs/git/cli"
+	"github.com/justwatchcom/gopass/backend/rcs/git/gogit"
 	"github.com/justwatchcom/gopass/config"
 	"github.com/justwatchcom/gopass/utils/fsutil"
 	"github.com/justwatchcom/gopass/utils/out"
@@ -19,7 +19,7 @@ import (
 // Clone will fetch and mount a new password store from a git repo
 func (s *Action) Clone(ctx context.Context, c *cli.Context) error {
 	ctx = backend.WithCryptoBackendString(ctx, c.String("crypto"))
-	ctx = backend.WithSyncBackendString(ctx, c.String("sync"))
+	ctx = backend.WithRCSBackendString(ctx, c.String("sync"))
 
 	if len(c.Args()) < 1 {
 		return exitError(ctx, ExitUsage, nil, "Usage: %s clone repo [mount]", s.Name)
@@ -45,7 +45,7 @@ func (s *Action) clone(ctx context.Context, repo, mount, path string) error {
 	}
 
 	// clone repo
-	switch backend.GetSyncBackend(ctx) {
+	switch backend.GetRCSBackend(ctx) {
 	case backend.GoGit:
 		if _, err := gogit.Clone(ctx, repo, path); err != nil {
 			return exitError(ctx, ExitGit, err, "failed to clone repo '%s' to '%s'", repo, path)
@@ -71,12 +71,12 @@ func (s *Action) clone(ctx context.Context, repo, mount, path string) error {
 		}
 		out.Green(ctx, "Mounted password store %s at mount point `%s` ...", path, mount)
 		s.cfg.Mounts[mount].Path.Crypto = backend.GetCryptoBackend(ctx)
-		s.cfg.Mounts[mount].Path.Sync = backend.GetSyncBackend(ctx)
-		s.cfg.Mounts[mount].Path.Store = backend.GetStoreBackend(ctx)
+		s.cfg.Mounts[mount].Path.RCS = backend.GetRCSBackend(ctx)
+		s.cfg.Mounts[mount].Path.Storage = backend.GetStorageBackend(ctx)
 	} else {
 		s.cfg.Root.Path.Crypto = backend.GetCryptoBackend(ctx)
-		s.cfg.Root.Path.Sync = backend.GetSyncBackend(ctx)
-		s.cfg.Root.Path.Store = backend.GetStoreBackend(ctx)
+		s.cfg.Root.Path.RCS = backend.GetRCSBackend(ctx)
+		s.cfg.Root.Path.Storage = backend.GetStorageBackend(ctx)
 	}
 
 	// save new mount in config file

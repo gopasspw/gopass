@@ -40,7 +40,7 @@ func (s *Action) Init(ctx context.Context, c *cli.Context) error {
 	alias := c.String("store")
 	nogit := c.Bool("nogit")
 	ctx = backend.WithCryptoBackendString(ctx, c.String("crypto"))
-	ctx = backend.WithSyncBackendString(ctx, c.String("sync"))
+	ctx = backend.WithRCSBackendString(ctx, c.String("sync"))
 
 	ctx = out.WithPrefix(ctx, "[init] ")
 	out.Cyan(ctx, "Initializing a new password store ...")
@@ -116,7 +116,7 @@ func (s *Action) InitOnboarding(ctx context.Context, c *cli.Context) error {
 	email := c.String("email")
 
 	ctx = out.AddPrefix(ctx, "[init] ")
-	ctx = backend.WithSyncBackend(ctx, backend.GitCLI)
+	ctx = backend.WithRCSBackend(ctx, backend.GitCLI)
 
 	// check for existing GPG keypairs (private/secret keys). We need at least
 	// one useable key pair. If none exists try to create one

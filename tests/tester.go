@@ -28,7 +28,7 @@ const (
   cliptimeout: 45
   cryptobackend: gpg
   noconfirm: true
-  syncbackend: gitmock
+  syncbackend: noop
   safecontent: true
 `
 	keyID = "BE73F104"

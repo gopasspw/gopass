@@ -29,6 +29,8 @@ func TestSimpleList(t *testing.T) {
 
 func TestListMulti(t *testing.T) {
 	ctx := context.Background()
+	ctx = backend.WithCryptoBackend(ctx, backend.Plain)
+	ctx = backend.WithRCSBackend(ctx, backend.Noop)
 
 	u := gptest.NewUnitTester(t)
 	defer u.Remove()
@@ -66,6 +68,8 @@ func TestListMulti(t *testing.T) {
 
 func TestListNested(t *testing.T) {
 	ctx := context.Background()
+	ctx = backend.WithCryptoBackend(ctx, backend.Plain)
+	ctx = backend.WithRCSBackend(ctx, backend.Noop)
 
 	u := gptest.NewUnitTester(t)
 	defer u.Remove()
@@ -116,8 +120,8 @@ func TestListNested(t *testing.T) {
 }
 
 func createRootStore(ctx context.Context, u *gptest.Unit) (*Store, error) {
-	ctx = backend.WithSyncBackendString(ctx, "gitmock")
-	ctx = backend.WithCryptoBackendString(ctx, "gpgmock")
+	ctx = backend.WithRCSBackendString(ctx, "noop")
+	ctx = backend.WithCryptoBackendString(ctx, "plain")
 	return New(
 		ctx,
 		&config.Config{

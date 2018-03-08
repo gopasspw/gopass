@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/justwatchcom/gopass/backend"
-	git "github.com/justwatchcom/gopass/backend/sync/git/cli"
+	git "github.com/justwatchcom/gopass/backend/rcs/git/cli"
 	"github.com/justwatchcom/gopass/tests/gptest"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/out"
@@ -25,7 +25,7 @@ func TestClone(t *testing.T) {
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithInteractive(ctx, false)
-	ctx = backend.WithSyncBackend(ctx, backend.GitCLI)
+	ctx = backend.WithRCSBackend(ctx, backend.GitCLI)
 
 	act, err := newMock(ctx, u)
 	assert.NoError(t, err)

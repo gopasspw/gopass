@@ -46,8 +46,8 @@ func createSubStore(dir string) (*Store, error) {
 	}
 
 	ctx := context.Background()
-	ctx = backend.WithCryptoBackendString(ctx, "gpgmock")
-	ctx = backend.WithSyncBackendString(ctx, "gitmock")
+	ctx = backend.WithCryptoBackendString(ctx, "plain")
+	ctx = backend.WithRCSBackendString(ctx, "noop")
 	return New(
 		ctx,
 		"",
@@ -144,27 +144,27 @@ func TestNew(t *testing.T) {
 		ok  bool
 	}{
 		{
-			ctx: backend.WithStoreBackend(ctx, backend.KVMock),
+			ctx: backend.WithStorageBackend(ctx, backend.InMem),
 			ok:  true,
 		},
 		{
-			ctx: backend.WithStoreBackend(ctx, -1),
+			ctx: backend.WithStorageBackend(ctx, -1),
 			ok:  false,
 		},
 		{
-			ctx: backend.WithSyncBackend(ctx, backend.GoGit),
+			ctx: backend.WithRCSBackend(ctx, backend.GoGit),
 			ok:  true,
 		},
 		{
-			ctx: backend.WithSyncBackend(ctx, backend.GitCLI),
+			ctx: backend.WithRCSBackend(ctx, backend.GitCLI),
 			ok:  true,
 		},
 		{
-			ctx: backend.WithSyncBackend(ctx, backend.GitMock),
+			ctx: backend.WithRCSBackend(ctx, backend.Noop),
 			ok:  true,
 		},
 		{
-			ctx: backend.WithSyncBackend(ctx, -1),
+			ctx: backend.WithRCSBackend(ctx, -1),
 			ok:  false,
 		},
 		{
@@ -176,7 +176,7 @@ func TestNew(t *testing.T) {
 			ok:  true,
 		},
 		{
-			ctx: backend.WithCryptoBackend(ctx, backend.GPGMock),
+			ctx: backend.WithCryptoBackend(ctx, backend.Plain),
 			ok:  true,
 		},
 		{

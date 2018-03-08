@@ -24,8 +24,8 @@ func TestGit(t *testing.T) {
 	s, err := createSubStore(tempdir)
 	assert.NoError(t, err)
 
-	assert.NotNil(t, s.Sync())
-	assert.Equal(t, "git-mock", s.Sync().Name())
+	assert.NotNil(t, s.RCS())
+	assert.Equal(t, "noop", s.RCS().Name())
 	assert.NoError(t, s.GitInitConfig(ctx, "foo", "bar@baz.com"))
 	assert.Equal(t, semver.Version{}, s.GitVersion(ctx))
 	assert.NoError(t, s.GitAddRemote(ctx, "foo", "bar"))
@@ -33,12 +33,12 @@ func TestGit(t *testing.T) {
 	assert.NoError(t, s.GitPush(ctx, "origin", "master"))
 
 	assert.NoError(t, s.GitInit(ctx, "", ""))
-	assert.NoError(t, s.GitInit(backend.WithSyncBackend(ctx, backend.GitMock), "", ""))
-	assert.NoError(t, s.GitInit(backend.WithSyncBackend(ctx, backend.GoGit), "", ""))
-	assert.Error(t, s.GitInit(backend.WithSyncBackend(ctx, -1), "", ""))
+	assert.NoError(t, s.GitInit(backend.WithRCSBackend(ctx, backend.Noop), "", ""))
+	assert.NoError(t, s.GitInit(backend.WithRCSBackend(ctx, backend.GoGit), "", ""))
+	assert.Error(t, s.GitInit(backend.WithRCSBackend(ctx, -1), "", ""))
 
 	ctx = ctxutil.WithDebug(ctx, true)
-	assert.NoError(t, s.GitInit(backend.WithSyncBackend(ctx, backend.GitCLI), "Foo Bar", "foo.bar@example.org"))
+	assert.NoError(t, s.GitInit(backend.WithRCSBackend(ctx, backend.GitCLI), "Foo Bar", "foo.bar@example.org"))
 }
 
 func TestGitRevisions(t *testing.T) {
@@ -53,8 +53,8 @@ func TestGitRevisions(t *testing.T) {
 	s, err := createSubStore(tempdir)
 	assert.NoError(t, err)
 
-	assert.NotNil(t, s.Sync())
-	assert.Equal(t, "git-mock", s.Sync().Name())
+	assert.NotNil(t, s.RCS())
+	assert.Equal(t, "noop", s.RCS().Name())
 	assert.NoError(t, s.GitInitConfig(ctx, "foo", "bar@baz.com"))
 
 	_, err = s.ListRevisions(ctx, "foo")

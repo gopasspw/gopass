@@ -6,24 +6,24 @@ import (
 	"github.com/blang/semver"
 )
 
-// StoreBackend is a type of storage backend
-type StoreBackend int
+// StorageBackend is a type of storage backend
+type StorageBackend int
 
 const (
 	// FS is a filesystem-backend storage
-	FS StoreBackend = iota
-	// KVMock is an in-memory mock store for tests
-	KVMock
+	FS StorageBackend = iota
+	// InMem is an in-memory mock store for tests
+	InMem
 	// Consul is a consul backend storage
 	Consul
 )
 
-func (s StoreBackend) String() string {
-	return storeNameFromBackend(s)
+func (s StorageBackend) String() string {
+	return storageNameFromBackend(s)
 }
 
-// Store is an storage backend
-type Store interface {
+// Storage is an storage backend
+type Storage interface {
 	Get(ctx context.Context, name string) ([]byte, error)
 	Set(ctx context.Context, name string, value []byte) error
 	Delete(ctx context.Context, name string) error

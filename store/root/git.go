@@ -9,9 +9,9 @@ import (
 )
 
 // Sync returns the sync backend
-func (r *Store) Sync(ctx context.Context, name string) backend.Sync {
+func (r *Store) Sync(ctx context.Context, name string) backend.RCS {
 	_, sub, _ := r.getStore(ctx, name)
-	return sub.Sync()
+	return sub.RCS()
 }
 
 // GitInit initializes the git repo

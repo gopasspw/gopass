@@ -41,4 +41,5 @@ func TestAudit(t *testing.T) {
 	}()
 
 	assert.Error(t, act.Audit(ctx, c))
+	buf.Reset()
 }

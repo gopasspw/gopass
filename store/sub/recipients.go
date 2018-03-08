@@ -21,7 +21,7 @@ const (
 	dirMode   = 0700
 )
 
-// Recipients returns the list of recipients of this store
+// Recipients returns the list of recipients of this.storage
 func (s *Store) Recipients(ctx context.Context) []string {
 	rs, err := s.GetRecipients(ctx, "")
 	if err != nil {
@@ -119,7 +119,7 @@ func (s *Store) OurKeyID(ctx context.Context) string {
 // GetRecipients will load all Recipients from the .gpg-id file for the given
 // secret path
 func (s *Store) GetRecipients(ctx context.Context, name string) ([]string, error) {
-	buf, err := s.store.Get(ctx, s.idFile(ctx, name))
+	buf, err := s.storage.Get(ctx, s.idFile(ctx, name))
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get recipients for %s", name)
 	}
@@ -144,7 +144,7 @@ func (s *Store) ExportMissingPublicKeys(ctx context.Context, rs []string) (bool,
 		}
 		// at least one key has been exported
 		exported = true
-		if err := s.sync.Add(ctx, path); err != nil {
+		if err := s.rcs.Add(ctx, path); err != nil {
 			if errors.Cause(err) == store.ErrGitNotInit {
 				continue
 			}
@@ -152,7 +152,7 @@ func (s *Store) ExportMissingPublicKeys(ctx context.Context, rs []string) (bool,
 			out.Red(ctx, "failed to add public key for '%s' to git: %s", r, err)
 			continue
 		}
-		if err := s.sync.Commit(ctx, fmt.Sprintf("Exported Public Keys %s", r)); err != nil && err != store.ErrGitNothingToCommit {
+		if err := s.rcs.Commit(ctx, fmt.Sprintf("Exported Public Keys %s", r)); err != nil && err != store.ErrGitNothingToCommit {
 			ok = false
 			out.Red(ctx, "Failed to git commit: %s", err)
 			continue
@@ -171,17 +171,17 @@ func (s *Store) saveRecipients(ctx context.Context, rs []string, msg string, exp
 	}
 
 	idf := s.idFile(ctx, "")
-	if err := s.store.Set(ctx, idf, marshalRecipients(rs)); err != nil {
+	if err := s.storage.Set(ctx, idf, marshalRecipients(rs)); err != nil {
 		return errors.Wrapf(err, "failed to write recipients file")
 	}
 
-	if err := s.sync.Add(ctx, idf); err != nil {
+	if err := s.rcs.Add(ctx, idf); err != nil {
 		if err != store.ErrGitNotInit {
 			return errors.Wrapf(err, "failed to add file '%s' to git", idf)
 		}
 	}
 
-	if err := s.sync.Commit(ctx, msg); err != nil {
+	if err := s.rcs.Commit(ctx, msg); err != nil {
 		if err != store.ErrGitNotInit && err != store.ErrGitNothingToCommit {
 			return errors.Wrapf(err, "failed to commit changes to git")
 		}
@@ -200,7 +200,7 @@ func (s *Store) saveRecipients(ctx context.Context, rs []string, msg string, exp
 	}
 
 	// push to remote repo
-	if err := s.sync.Push(ctx, "", ""); err != nil {
+	if err := s.rcs.Push(ctx, "", ""); err != nil {
 		if errors.Cause(err) == store.ErrGitNotInit {
 			return nil
 		}

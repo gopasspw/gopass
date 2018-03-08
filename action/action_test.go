@@ -18,8 +18,9 @@ func newMock(ctx context.Context, u *gptest.Unit) (*Action, error) {
 	cfg := config.New()
 	cfg.Root.Path = backend.FromPath(u.StoreDir(""))
 
-	ctx = backend.WithSyncBackendString(ctx, "gitmock")
-	ctx = backend.WithCryptoBackendString(ctx, "gpgmock")
+	ctx = backend.WithRCSBackend(ctx, backend.Noop)
+	ctx = backend.WithCryptoBackend(ctx, backend.Plain)
+	ctx = backend.WithStorageBackend(ctx, backend.FS)
 	return newAction(ctx, cfg, semver.Version{})
 }
 
@@ -51,6 +52,8 @@ func TestNew(t *testing.T) {
 	assert.Error(t, err)
 
 	cfg.Root.Path = backend.FromPath(filepath.Join(td, "store"))
+	cfg.Root.Path.Crypto = backend.Plain
+	cfg.Root.Path.RCS = backend.Noop
 	_, err = New(ctx, cfg, sv)
 	assert.NoError(t, err)
 }

@@ -8,9 +8,9 @@ import (
 	"testing"
 
 	"github.com/justwatchcom/gopass/backend"
-	gpgmock "github.com/justwatchcom/gopass/backend/crypto/gpg/mock"
-	"github.com/justwatchcom/gopass/backend/store/fs"
-	gitmock "github.com/justwatchcom/gopass/backend/sync/git/mock"
+	plain "github.com/justwatchcom/gopass/backend/crypto/plain"
+	noop "github.com/justwatchcom/gopass/backend/rcs/noop"
+	"github.com/justwatchcom/gopass/backend/storage/fs"
 	"github.com/justwatchcom/gopass/store/secret"
 	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/stretchr/testify/assert"
@@ -72,11 +72,11 @@ func TestList(t *testing.T) {
 		assert.NoError(t, err)
 
 		s := &Store{
-			alias:  "",
-			url:    backend.FromPath(tempdir),
-			crypto: gpgmock.New(),
-			sync:   gitmock.New(),
-			store:  fs.New(tempdir),
+			alias:   "",
+			url:     backend.FromPath(tempdir),
+			crypto:  plain.New(),
+			rcs:     noop.New(),
+			storage: fs.New(tempdir),
 		}
 
 		assert.NoError(t, s.saveRecipients(ctx, []string{"john.doe"}, "test", false))

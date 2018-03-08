@@ -7,24 +7,24 @@ import (
 	"github.com/blang/semver"
 )
 
-// SyncBackend is a remote-sync backend
-type SyncBackend int
+// RCSBackend is a remote-sync backend
+type RCSBackend int
 
 const (
-	// GitMock is a no-op mock backend
-	GitMock SyncBackend = iota
+	// Noop is a no-op mock backend
+	Noop RCSBackend = iota
 	// GitCLI is a git-cli based sync backend
 	GitCLI
 	// GoGit is an src-d/go-git.v4 based sync backend
 	GoGit
 )
 
-func (s SyncBackend) String() string {
-	return syncNameFromBackend(s)
+func (s RCSBackend) String() string {
+	return rcsNameFromBackend(s)
 }
 
-// Sync is a sync backend
-type Sync interface {
+// RCS is a revision control backend
+type RCS interface {
 	Add(ctx context.Context, args ...string) error
 	Commit(ctx context.Context, msg string) error
 	Push(ctx context.Context, remote, location string) error

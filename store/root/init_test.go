@@ -19,7 +19,7 @@ func TestInit(t *testing.T) {
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = out.WithHidden(ctx, true)
-	ctx = backend.WithCryptoBackend(ctx, backend.GPGMock)
+	ctx = backend.WithCryptoBackend(ctx, backend.Plain)
 
 	cfg := config.New()
 	cfg.Root.Path = backend.FromPath(u.StoreDir("rs"))

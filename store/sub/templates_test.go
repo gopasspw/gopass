@@ -25,8 +25,8 @@ func TestTemplates(t *testing.T) {
 	_, _, err = createStore(tempdir, nil, nil)
 	assert.NoError(t, err)
 
-	ctx = backend.WithCryptoBackendString(ctx, "gpgmock")
-	ctx = backend.WithSyncBackendString(ctx, "gitmock")
+	ctx = backend.WithCryptoBackendString(ctx, "plain")
+	ctx = backend.WithRCSBackendString(ctx, "noop")
 	s, err := New(
 		ctx,
 		"",

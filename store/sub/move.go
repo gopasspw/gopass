@@ -50,7 +50,7 @@ func (s *Store) Copy(ctx context.Context, from, to string) error {
 	return nil
 }
 
-// Move will move one entry from one location to another. Cross-store moves are
+// Move will move one entry from one location to another. Cross.storage moves are
 // supported. Moving an entry will decode it from the old location, encode it
 // for the destination store with the right set of recipients and remove it
 // from the old location afterwards.
@@ -109,33 +109,33 @@ func (s *Store) Prune(ctx context.Context, tree string) error {
 func (s *Store) delete(ctx context.Context, name string, recurse bool) error {
 	path := s.passfile(name)
 
-	if !recurse && !s.store.Exists(ctx, path) {
+	if !recurse && !s.storage.Exists(ctx, path) {
 		return store.ErrNotFound
 	}
 
-	if recurse && !s.store.IsDir(ctx, name) && !s.store.Exists(ctx, path) {
+	if recurse && !s.storage.IsDir(ctx, name) && !s.storage.Exists(ctx, path) {
 		return store.ErrNotFound
 	}
 
 	if recurse {
-		if err := s.store.Prune(ctx, name); err != nil {
+		if err := s.storage.Prune(ctx, name); err != nil {
 			return err
 		}
 	}
 
-	if err := s.store.Delete(ctx, path); err != nil {
+	if err := s.storage.Delete(ctx, path); err != nil {
 		if !recurse {
 			return err
 		}
 	}
 
-	if err := s.sync.Add(ctx, path); err != nil {
+	if err := s.rcs.Add(ctx, path); err != nil {
 		if errors.Cause(err) == store.ErrGitNotInit {
 			return nil
 		}
 		return errors.Wrapf(err, "failed to add '%s' to git", path)
 	}
-	if err := s.sync.Commit(ctx, fmt.Sprintf("Remove %s from store.", name)); err != nil {
+	if err := s.rcs.Commit(ctx, fmt.Sprintf("Remove %s from store.", name)); err != nil {
 		if errors.Cause(err) == store.ErrGitNotInit {
 			return nil
 		}
@@ -146,7 +146,7 @@ func (s *Store) delete(ctx context.Context, name string, recurse bool) error {
 		return nil
 	}
 
-	if err := s.sync.Push(ctx, "", ""); err != nil {
+	if err := s.rcs.Push(ctx, "", ""); err != nil {
 		if errors.Cause(err) == store.ErrGitNotInit || errors.Cause(err) == store.ErrGitNoRemote {
 			return nil
 		}

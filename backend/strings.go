@@ -2,35 +2,35 @@ package backend
 
 var (
 	cryptoNameToBackendMap = map[string]CryptoBackend{
-		"gpgmock": GPGMock,
+		"plain":   Plain,
 		"gpgcli":  GPGCLI,
 		"xc":      XC,
 		"openpgp": OpenPGP,
 	}
 	cryptoBackendToNameMap = map[CryptoBackend]string{}
-	syncNameToBackendMap   = map[string]SyncBackend{
-		"gitcli":  GitCLI,
-		"gitmock": GitMock,
-		"gogit":   GoGit,
+	rcsNameToBackendMap    = map[string]RCSBackend{
+		"gitcli": GitCLI,
+		"noop":   Noop,
+		"gogit":  GoGit,
 	}
-	syncBackendToNameMap  = map[SyncBackend]string{}
-	storeNameToBackendMap = map[string]StoreBackend{
-		"kvmock": KVMock,
+	rcsBackendToNameMap     = map[RCSBackend]string{}
+	storageNameToBackendMap = map[string]StorageBackend{
+		"inmem":  InMem,
 		"fs":     FS,
 		"consul": Consul,
 	}
-	storeBackendToNameMap = map[StoreBackend]string{}
+	storageBackendToNameMap = map[StorageBackend]string{}
 )
 
 func init() {
 	for k, v := range cryptoNameToBackendMap {
 		cryptoBackendToNameMap[v] = k
 	}
-	for k, v := range syncNameToBackendMap {
-		syncBackendToNameMap[v] = k
+	for k, v := range rcsNameToBackendMap {
+		rcsBackendToNameMap[v] = k
 	}
-	for k, v := range storeNameToBackendMap {
-		storeBackendToNameMap[v] = k
+	for k, v := range storageNameToBackendMap {
+		storageBackendToNameMap[v] = k
 	}
 }
 
@@ -48,29 +48,29 @@ func cryptoNameFromBackend(be CryptoBackend) string {
 	return ""
 }
 
-func syncBackendFromName(name string) SyncBackend {
-	if b, found := syncNameToBackendMap[name]; found {
+func rcsBackendFromName(name string) RCSBackend {
+	if b, found := rcsNameToBackendMap[name]; found {
 		return b
 	}
 	return -1
 }
 
-func syncNameFromBackend(be SyncBackend) string {
-	if b, found := syncBackendToNameMap[be]; found {
+func rcsNameFromBackend(be RCSBackend) string {
+	if b, found := rcsBackendToNameMap[be]; found {
 		return b
 	}
 	return ""
 }
 
-func storeBackendFromName(name string) StoreBackend {
-	if b, found := storeNameToBackendMap[name]; found {
+func storageBackendFromName(name string) StorageBackend {
+	if b, found := storageNameToBackendMap[name]; found {
 		return b
 	}
 	return FS
 }
 
-func storeNameFromBackend(be StoreBackend) string {
-	if b, found := storeBackendToNameMap[be]; found {
+func storageNameFromBackend(be StorageBackend) string {
+	if b, found := storageBackendToNameMap[be]; found {
 		return b
 	}
 	return ""
