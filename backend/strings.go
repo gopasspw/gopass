@@ -17,6 +17,7 @@ var (
 	storeNameToBackendMap = map[string]StoreBackend{
 		"kvmock": KVMock,
 		"fs":     FS,
+		"consul": Consul,
 	}
 	storeBackendToNameMap = map[StoreBackend]string{}
 )

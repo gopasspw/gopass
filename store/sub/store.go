@@ -12,6 +12,7 @@ import (
 	"github.com/justwatchcom/gopass/backend/crypto/gpg/openpgp"
 	"github.com/justwatchcom/gopass/backend/crypto/xc"
 	"github.com/justwatchcom/gopass/backend/store/fs"
+	kvconsul "github.com/justwatchcom/gopass/backend/store/kv/consul"
 	kvmock "github.com/justwatchcom/gopass/backend/store/kv/mock"
 	gitcli "github.com/justwatchcom/gopass/backend/sync/git/cli"
 	"github.com/justwatchcom/gopass/backend/sync/git/gogit"
@@ -32,6 +33,7 @@ type Store struct {
 	crypto backend.Crypto
 	sync   backend.Sync
 	store  backend.Store
+	cfgdir string
 }
 
 // New creates a new store, copying settings from the given root store
@@ -42,34 +44,65 @@ func New(ctx context.Context, alias, path string, cfgdir string) (*Store, error)
 	}
 
 	s := &Store{
-		alias: alias,
-		url:   u,
-		sync:  gitmock.New(),
+		alias:  alias,
+		url:    u,
+		sync:   gitmock.New(),
+		cfgdir: cfgdir,
 	}
 
 	// init store backend
 	if backend.HasStoreBackend(ctx) {
 		s.url.Store = backend.GetStoreBackend(ctx)
 	}
-	switch s.url.Store {
-	case backend.FS:
-		s.store = fs.New(u.Path)
-		out.Debug(ctx, "Using Store Backend: fs")
-	case backend.KVMock:
-		s.store = kvmock.New()
-		out.Debug(ctx, "Using Store Backend: kvmock")
-	default:
-		return nil, fmt.Errorf("Unknown store backend")
+	if err := s.initStoreBackend(ctx); err != nil {
+		return nil, err
 	}
 
 	// init sync backend
 	if backend.HasSyncBackend(ctx) {
 		s.url.Sync = backend.GetSyncBackend(ctx)
 	}
+	if err := s.initSyncBackend(ctx); err != nil {
+		return nil, err
+	}
+
+	// init crypto backend
+	if backend.HasCryptoBackend(ctx) {
+		s.url.Crypto = backend.GetCryptoBackend(ctx)
+	}
+	if err := s.initCryptoBackend(ctx); err != nil {
+		return nil, err
+	}
+
+	return s, nil
+}
+
+func (s *Store) initStoreBackend(ctx context.Context) error {
+	switch s.url.Store {
+	case backend.FS:
+		out.Debug(ctx, "Using Store Backend: fs")
+		s.store = fs.New(s.url.Path)
+	case backend.KVMock:
+		out.Debug(ctx, "Using Store Backend: kvmock")
+		s.store = kvmock.New()
+	case backend.Consul:
+		out.Debug(ctx, "Using Store Backend: consul")
+		store, err := kvconsul.New(s.url.Host+":"+s.url.Port, s.url.Query.Get("datacenter"), s.url.Query.Get("token"))
+		if err != nil {
+			return err
+		}
+		s.store = store
+	default:
+		return fmt.Errorf("Unknown store backend")
+	}
+	return nil
+}
+
+func (s *Store) initSyncBackend(ctx context.Context) error {
 	switch s.url.Sync {
 	case backend.GoGit:
 		out.Cyan(ctx, "WARNING: Using experimental sync backend 'go-git'")
-		git, err := gogit.Open(u.Path)
+		git, err := gogit.Open(s.url.Path)
 		if err != nil {
 			out.Debug(ctx, "Failed to initialize sync backend 'gogit': %s", err)
 		} else {
@@ -78,7 +111,7 @@ func New(ctx context.Context, alias, path string, cfgdir string) (*Store, error)
 		}
 	case backend.GitCLI:
 		gpgBin, _ := gpgcli.Binary(ctx, "")
-		git, err := gitcli.Open(u.Path, gpgBin)
+		git, err := gitcli.Open(s.url.Path, gpgBin)
 		if err != nil {
 			out.Debug(ctx, "Failed to initialize sync backend 'gitcli': %s", err)
 		} else {
@@ -89,48 +122,44 @@ func New(ctx context.Context, alias, path string, cfgdir string) (*Store, error)
 		// no-op
 		out.Debug(ctx, "Using Sync Backend: git-mock")
 	default:
-		return nil, fmt.Errorf("Unknown Sync Backend")
+		return fmt.Errorf("Unknown Sync Backend")
 	}
+	return nil
+}
 
-	// init crypto backend
-	if backend.HasCryptoBackend(ctx) {
-		s.url.Crypto = backend.GetCryptoBackend(ctx)
-	}
+func (s *Store) initCryptoBackend(ctx context.Context) error {
 	switch s.url.Crypto {
 	case backend.GPGCLI:
+		out.Debug(ctx, "Using Crypto Backend: gpg-cli")
 		gpg, err := gpgcli.New(ctx, gpgcli.Config{
 			Umask: fsutil.Umask(),
 			Args:  gpgcli.GPGOpts(),
 		})
 		if err != nil {
-			return nil, err
+			return err
 		}
 		s.crypto = gpg
-		out.Debug(ctx, "Using Crypto Backend: gpg-cli")
 	case backend.XC:
-		//out.Red(ctx, "WARNING: Using highly experimental crypto backend!")
-		crypto, err := xc.New(cfgdir, client.New(cfgdir))
+		out.Debug(ctx, "Using Crypto Backend: xc (EXPERIMENTAL)")
+		crypto, err := xc.New(s.cfgdir, client.New(s.cfgdir))
 		if err != nil {
-			return nil, err
+			return err
 		}
 		s.crypto = crypto
-		out.Debug(ctx, "Using Crypto Backend: xc")
 	case backend.GPGMock:
-		//out.Red(ctx, "WARNING: Using no-op crypto backend (NO ENCRYPTION)!")
+		out.Debug(ctx, "Using Crypto Backend: gpg-mock (NO ENCRYPTION)")
 		s.crypto = gpgmock.New()
-		out.Debug(ctx, "Using Crypto Backend: gpg-mock")
 	case backend.OpenPGP:
+		out.Debug(ctx, "Using Crypto Backend: openpgp (ALPHA)")
 		crypto, err := openpgp.New(ctx)
 		if err != nil {
-			return nil, err
+			return err
 		}
 		s.crypto = crypto
-		out.Debug(ctx, "Using Crypto Backend: openpgp")
 	default:
-		return nil, fmt.Errorf("no valid crypto backend selected")
+		return fmt.Errorf("no valid crypto backend selected")
 	}
-
-	return s, nil
+	return nil
 }
 
 // idFile returns the path to the recipient list for this store

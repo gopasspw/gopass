@@ -14,6 +14,8 @@ const (
 	FS StoreBackend = iota
 	// KVMock is an in-memory mock store for tests
 	KVMock
+	// Consul is a consul backend storage
+	Consul
 )
 
 func (s StoreBackend) String() string {
