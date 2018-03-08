@@ -6,7 +6,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/store"
 	"github.com/justwatchcom/gopass/store/secret"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
@@ -101,7 +100,7 @@ func (s *Action) showHandleOutput(ctx context.Context, name, key string, sec *se
 		case ctxutil.IsShowSafeContent(ctx) && !IsForce(ctx):
 			content = sec.Body()
 			if content == "" {
-				color.Yellow("No safe content to display, you can force display with show -f.\nCopying password instead.")
+				out.Yellow(ctx, "No safe content to display, you can force display with show -f.\nCopying password instead.")
 				return copyToClipboard(ctx, name, []byte(sec.Password()))
 			}
 		default:
@@ -122,7 +121,7 @@ func (s *Action) showHandleError(ctx context.Context, c *cli.Context, name strin
 	if err != store.ErrNotFound || !recurse || !ctxutil.IsTerminal(ctx) {
 		return exitError(ctx, ExitUnknown, err, "failed to retrieve secret '%s': %s", name, err)
 	}
-	color.Yellow("Entry '%s' not found. Starting search...", name)
+	out.Yellow(ctx, "Entry '%s' not found. Starting search...", name)
 	if err := s.Find(ctx, c); err != nil {
 		return exitError(ctx, ExitNotFound, err, "%s", err)
 	}
