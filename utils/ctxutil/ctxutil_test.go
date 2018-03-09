@@ -150,6 +150,14 @@ func TestEditRecipients(t *testing.T) {
 	assert.Equal(t, false, IsEditRecipients(WithEditRecipients(ctx, false)))
 }
 
+func TestAutoClip(t *testing.T) {
+	ctx := context.Background()
+
+	assert.Equal(t, true, IsAutoClip(ctx))
+	assert.Equal(t, true, IsAutoClip(WithAutoClip(ctx, true)))
+	assert.Equal(t, false, IsAutoClip(WithAutoClip(ctx, false)))
+}
+
 func TestComposite(t *testing.T) {
 	ctx := context.Background()
 	ctx = WithDebug(ctx, true)
@@ -170,6 +178,7 @@ func TestComposite(t *testing.T) {
 	ctx = WithVerbose(ctx, true)
 	ctx = WithNotifications(ctx, true)
 	ctx = WithEditRecipients(ctx, true)
+	ctx = WithAutoClip(ctx, true)
 
 	assert.Equal(t, true, IsDebug(ctx))
 	assert.Equal(t, true, HasDebug(ctx))
@@ -224,4 +233,7 @@ func TestComposite(t *testing.T) {
 
 	assert.Equal(t, true, IsEditRecipients(ctx))
 	assert.Equal(t, true, HasEditRecipients(ctx))
+
+	assert.Equal(t, true, IsAutoClip(ctx))
+	assert.Equal(t, true, HasAutoClip(ctx))
 }
