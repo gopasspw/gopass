@@ -33,8 +33,14 @@ func TestShow(t *testing.T) {
 	_, err = ts.run("show foo -force")
 	assert.NoError(t, err)
 
-	out, _ = ts.run("show fixed/secret")
-	assert.Contains(t, out, "No safe content to display, you can force display with show -f.\nCopying password instead.")
+	out, err = ts.run("show fixed/secret")
+	assert.NoError(t, err)
+	assert.Contains(t, out, "safe content to display, you can force display with show -f.\nCopying password instead.")
+
+	_, err = ts.run("config autoclip false")
+	assert.NoError(t, err)
+	out, err = ts.run("show fixed/secret")
+	assert.Error(t, err)
 
 	out, err = ts.run("show -f fixed/secret")
 	assert.NoError(t, err)
@@ -50,7 +56,7 @@ func TestShow(t *testing.T) {
 
 	out, err = ts.run("show fixed/twoliner -c")
 	assert.NoError(t, err)
-	assert.NotContains(t, out, "No safe content to display, you can force display with show -f")
+	assert.NotContains(t, out, "safe content to display")
 
 	_, err = ts.run("config safecontent false")
 	assert.NoError(t, err)

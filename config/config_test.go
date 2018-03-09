@@ -22,7 +22,7 @@ func TestNewConfig(t *testing.T) {
 	assert.Equal(t, backend.GPGCLI, cfg.Root.Path.Crypto)
 	assert.Equal(t, backend.GitCLI, cfg.Root.Path.RCS)
 	assert.Equal(t, backend.FS, cfg.Root.Path.Storage)
-	assert.Equal(t, "Config[Root:StoreConfig[AskForMore:false,AutoImport:true,AutoSync:true,ClipTimeout:45,NoColor:false,NoConfirm:false,NoPager:false,Path:gpgcli-gitcli-fs+file:,SafeContent:false,UseSymbols:false],Mounts(),Version:]", cfg.String())
+	assert.Equal(t, "Config[Root:StoreConfig[AskForMore:false,AutoClip:true,AutoImport:true,AutoSync:true,ClipTimeout:45,NoColor:false,NoConfirm:false,NoPager:false,Notifications:true,Path:gpgcli-gitcli-fs+file:,SafeContent:false,UseSymbols:false],Mounts(),Version:]", cfg.String())
 
 	cfg = nil
 	assert.Error(t, cfg.checkDefaults())
@@ -33,7 +33,7 @@ func TestNewConfig(t *testing.T) {
 	cfg.Mounts["foo"] = &StoreConfig{}
 	cfg.Mounts["bar"] = &StoreConfig{}
 	assert.NoError(t, cfg.checkDefaults())
-	assert.Equal(t, "Config[Root:StoreConfig[AskForMore:false,AutoImport:false,AutoSync:false,ClipTimeout:0,NoColor:false,NoConfirm:false,NoPager:false,Path:gpgcli-gitcli-fs+file:,SafeContent:false,UseSymbols:false],Mounts(bar=>StoreConfig[AskForMore:false,AutoImport:false,AutoSync:false,ClipTimeout:0,NoColor:false,NoConfirm:false,NoPager:false,Path:gpgcli-gitcli-fs+file:,SafeContent:false,UseSymbols:false]foo=>StoreConfig[AskForMore:false,AutoImport:false,AutoSync:false,ClipTimeout:0,NoColor:false,NoConfirm:false,NoPager:false,Path:gpgcli-gitcli-fs+file:,SafeContent:false,UseSymbols:false]),Version:]", cfg.String())
+	assert.Equal(t, "Config[Root:StoreConfig[AskForMore:false,AutoClip:false,AutoImport:false,AutoSync:false,ClipTimeout:0,NoColor:false,NoConfirm:false,NoPager:false,Notifications:false,Path:gpgcli-gitcli-fs+file:,SafeContent:false,UseSymbols:false],Mounts(bar=>StoreConfig[AskForMore:false,AutoClip:false,AutoImport:false,AutoSync:false,ClipTimeout:0,NoColor:false,NoConfirm:false,NoPager:false,Notifications:false,Path:gpgcli-gitcli-fs+file:,SafeContent:false,UseSymbols:false]foo=>StoreConfig[AskForMore:false,AutoClip:false,AutoImport:false,AutoSync:false,ClipTimeout:0,NoColor:false,NoConfirm:false,NoPager:false,Notifications:false,Path:gpgcli-gitcli-fs+file:,SafeContent:false,UseSymbols:false]),Version:]", cfg.String())
 }
 
 func TestSetConfigValue(t *testing.T) {
