@@ -39,7 +39,7 @@ func TestShow(t *testing.T) {
 
 	_, err = ts.run("config autoclip false")
 	assert.NoError(t, err)
-	out, err = ts.run("show fixed/secret")
+	_, err = ts.run("show fixed/secret")
 	assert.Error(t, err)
 
 	out, err = ts.run("show -f fixed/secret")

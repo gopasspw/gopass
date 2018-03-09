@@ -57,7 +57,8 @@ func (s *Action) Generate(ctx context.Context, c *cli.Context) error {
 	}
 
 	// write generated password to store
-	if err := s.generateSetPassword(ctx, name, key, password); err != nil {
+	ctx, err = s.generateSetPassword(ctx, name, key, password)
+	if err != nil {
 		return err
 	}
 
@@ -172,38 +173,38 @@ func (s *Action) generatePasswordXKCD(ctx context.Context, c *cli.Context, lengt
 	return xkcdgen.RandomLengthDelim(pwlen, xkcdSeparator, c.String("xkcdlang"))
 }
 
-func (s *Action) generateSetPassword(ctx context.Context, name, key, password string) error {
+func (s *Action) generateSetPassword(ctx context.Context, name, key, password string) (context.Context, error) {
 	// set a single key in a yaml doc
 	if key != "" {
-		sec, err := s.Store.Get(ctx, name)
+		sec, ctx, err := s.Store.GetContext(ctx, name)
 		if err != nil {
-			return exitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
+			return ctx, exitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
 		}
 		if err := sec.SetValue(key, password); err != nil {
-			return exitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
+			return ctx, exitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
 		}
 		if err := s.Store.Set(sub.WithReason(ctx, "Generated password for YAML key"), name, sec); err != nil {
-			return exitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
+			return ctx, exitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
 		}
-		return nil
+		return ctx, nil
 	}
 
 	// replace password in existing secret
 	if s.Store.Exists(ctx, name) {
-		sec, err := s.Store.Get(ctx, name)
+		sec, ctx, err := s.Store.GetContext(ctx, name)
 		if err != nil {
-			return exitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
+			return ctx, exitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
 		}
 		sec.SetPassword(password)
 		if err := s.Store.Set(sub.WithReason(ctx, "Generated password for YAML key"), name, sec); err != nil {
-			return exitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
+			return ctx, exitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
 		}
-		return nil
+		return ctx, nil
 	}
 
 	// generate a completely new secret
 	if err := s.Store.Set(sub.WithReason(ctx, "Generated Password"), name, secret.New(password, "")); err != nil {
-		return exitError(ctx, ExitEncrypt, err, "failed to create '%s': %s", name, err)
+		return ctx, exitError(ctx, ExitEncrypt, err, "failed to create '%s': %s", name, err)
 	}
-	return nil
+	return ctx, nil
 }
