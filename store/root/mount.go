@@ -35,13 +35,16 @@ func (r *Store) addMount(ctx context.Context, alias, path string, sc *config.Sto
 		return errors.Errorf("%s is already mounted", alias)
 	}
 
+	out.Debug(ctx, "addMount - Path: %s - StoreConfig: %+v", path, sc)
 	// propagate our config settings to the sub store
 	if sc != nil {
 		if !backend.HasCryptoBackend(ctx) {
 			ctx = backend.WithCryptoBackend(ctx, sc.Path.Crypto)
+			out.Debug(ctx, "addMount - Using crypto backend %s", backend.CryptoBackendName(sc.Path.Crypto))
 		}
 		if !backend.HasRCSBackend(ctx) {
 			ctx = backend.WithRCSBackend(ctx, sc.Path.RCS)
+			out.Debug(ctx, "addMount - Using RCS backend %s", backend.RCSBackendName(sc.Path.RCS))
 		}
 	}
 	s, err := sub.New(ctx, alias, path, config.Directory())

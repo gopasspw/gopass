@@ -38,10 +38,13 @@ type Store struct {
 
 // New creates a new store, copying settings from the given root store
 func New(ctx context.Context, alias, path string, cfgdir string) (*Store, error) {
+	// TODO
+	out.Debug(ctx, "Path: %s", path)
 	u, err := backend.ParseURL(path)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to parse path URL '%s': %s", path, err)
 	}
+	out.Debug(ctx, "URL: %s", u.String())
 
 	s := &Store{
 		alias:  alias,
@@ -53,6 +56,7 @@ func New(ctx context.Context, alias, path string, cfgdir string) (*Store, error)
 	// init store backend
 	if backend.HasStorageBackend(ctx) {
 		s.url.Storage = backend.GetStorageBackend(ctx)
+		out.Debug(ctx, "sub.New - Using storage backend from ctx: %s", backend.StorageBackendName(s.url.Storage))
 	}
 	if err := s.initStorageBackend(ctx); err != nil {
 		return nil, err
@@ -61,6 +65,7 @@ func New(ctx context.Context, alias, path string, cfgdir string) (*Store, error)
 	// init sync backend
 	if backend.HasRCSBackend(ctx) {
 		s.url.RCS = backend.GetRCSBackend(ctx)
+		out.Debug(ctx, "sub.New - Using RCS backend from ctx: %s", backend.RCSBackendName(s.url.RCS))
 	}
 	if err := s.initRCSBackend(ctx); err != nil {
 		return nil, err
@@ -69,6 +74,7 @@ func New(ctx context.Context, alias, path string, cfgdir string) (*Store, error)
 	// init crypto backend
 	if backend.HasCryptoBackend(ctx) {
 		s.url.Crypto = backend.GetCryptoBackend(ctx)
+		out.Debug(ctx, "sub.New - Using Crypto backend from ctx: %s", backend.CryptoBackendName(s.url.Crypto))
 	}
 	if err := s.initCryptoBackend(ctx); err != nil {
 		return nil, err
@@ -87,7 +93,7 @@ func (s *Store) initStorageBackend(ctx context.Context) error {
 		s.storage = inmem.New()
 	case backend.Consul:
 		out.Debug(ctx, "Using Storage Backend: consul")
-		store, err := kvconsul.New(s.url.Host+":"+s.url.Port, s.url.Query.Get("datacenter"), s.url.Query.Get("token"))
+		store, err := kvconsul.New(s.url.Host+":"+s.url.Port, s.url.Path, s.url.Query.Get("datacenter"), s.url.Query.Get("token"))
 		if err != nil {
 			return err
 		}
