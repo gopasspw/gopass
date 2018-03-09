@@ -14,6 +14,8 @@ import (
 	"strings"
 	"testing"
 
+	hibpapi "github.com/justwatchcom/gopass/utils/hibp/api"
+
 	"github.com/justwatchcom/gopass/tests/gptest"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/out"
@@ -58,15 +60,30 @@ func TestHIBPDump(t *testing.T) {
 
 	// setup file and env
 	fn := filepath.Join(u.Dir, "dump.txt")
+	fs = flag.NewFlagSet("default", flag.ContinueOnError)
+	bf := cli.StringSliceFlag{
+		Name:  "dumps",
+		Usage: "dumps",
+	}
+	assert.NoError(t, bf.ApplyWithError(fs))
+	assert.NoError(t, fs.Parse([]string{"--dumps=" + fn}))
+	c = cli.NewContext(app, fs, nil)
+
 	assert.NoError(t, ioutil.WriteFile(fn, []byte(testHibpSample), 0644))
-	assert.NoError(t, os.Setenv("HIBP_DUMPS", fn))
 	assert.NoError(t, act.HIBP(ctx, c))
 	buf.Reset()
 
 	// gzip
 	fn = filepath.Join(u.Dir, "dump.txt.gz")
+	fs = flag.NewFlagSet("default", flag.ContinueOnError)
+	bf = cli.StringSliceFlag{
+		Name:  "dumps",
+		Usage: "dumps",
+	}
+	assert.NoError(t, bf.ApplyWithError(fs))
+	assert.NoError(t, fs.Parse([]string{"--dumps=" + fn}))
+	c = cli.NewContext(app, fs, nil)
 	assert.NoError(t, testWriteGZ(fn, []byte(testHibpSample)))
-	assert.NoError(t, os.Setenv("HIBP_DUMPS", fn))
 	assert.NoError(t, act.HIBP(ctx, c))
 	buf.Reset()
 }
@@ -133,7 +150,7 @@ func TestHIBPAPI(t *testing.T) {
 		http.Error(w, "not found", http.StatusNotFound)
 	}))
 	defer ts.Close()
-	hibpAPIURL = ts.URL
+	hibpapi.URL = ts.URL
 
 	// test with one entry
 	assert.NoError(t, act.HIBP(ctx, c))

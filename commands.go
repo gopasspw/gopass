@@ -73,7 +73,9 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 						"This command will decrypt all secrets and check the passwords against the public " +
 						"havibeenpwned.com v2 API or Dumps. " +
 						"To use the dumps you need to download the dumps from https://haveibeenpwned.com/passwords first. This is a very expensive operation for advanced users." +
-						"Most users should probably use the API.",
+						"Most users should probably use the API." +
+						"If you want to use the dumps you need to use 7z to extract the dump: 7z x pwned-passwords-2.0.txt.7z." +
+						"To speed up processing you should sort them and use the --sorted flag: cat pwned-passwords-2.0.txt | LANG=C sort -S 10G --parallel=4 | gzip --fast > pwned-passwords-2.0.txt.gz",
 					Before: func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
 					Action: func(c *cli.Context) error {
 						return action.HIBP(withGlobalFlags(ctx, c), c)
@@ -86,6 +88,10 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 						cli.BoolFlag{
 							Name:  "api, a",
 							Usage: "Use HIBP API",
+						},
+						cli.StringSliceFlag{
+							Name:  "dumps",
+							Usage: "One or more HIBP v1/v2 dumps",
 						},
 					},
 				},
