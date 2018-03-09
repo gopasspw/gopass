@@ -39,6 +39,7 @@ func TestConfig(t *testing.T) {
 	assert.NoError(t, act.Config(ctx, c))
 	want := `root store config:
   askformore: false
+  autoclip: true
   autoimport: true
   autosync: true
   cliptimeout: 45
@@ -81,6 +82,7 @@ foo/nopager: false`
 	act.printConfigValues(ctx, "")
 	want = `root store config:
   askformore: false
+  autoclip: true
   autoimport: true
   autosync: true
   cliptimeout: 45
@@ -94,6 +96,7 @@ foo/nopager: false`
 	want += `  safecontent: false
   usesymbols: false
 mount 'foo' config:
+  autoclip: false
   autoimport: false
   autosync: false
   cliptimeout: 23
@@ -126,6 +129,7 @@ mount 'foo' config:
 	// action.ConfigComplete
 	act.ConfigComplete(c)
 	want = `askformore
+autoclip
 autoimport
 autosync
 cliptimeout

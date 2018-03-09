@@ -124,7 +124,9 @@ The generated password for golang.org/gopher is:
 Eech4ahRoy2oowi0ohl
 ```
 
-The `generate` command will ask for any missing arguments, like the name of the secret or the length. If you don't want the password to be displayed use the `-c` flag to copy it to your clipboard.
+The `generate` command will ask for any missing arguments, like the name of the secret or the length. By default the password is copied to clipboard. If you don't want the password to be copied, but displayed instead, use the `-p` flag to print it.
+
+By default the password is copied to clipboard, but you can disable this using the `AutoClip` option, which, when set to`false`, will neither display, nor print the password. This is overriden by the `-p` or `-c` flags.
 
 ### Edit a secret
 

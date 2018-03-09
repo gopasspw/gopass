@@ -31,5 +31,8 @@ func (c StoreConfig) WithContext(ctx context.Context) context.Context {
 	if !ctxutil.HasShowSafeContent(ctx) {
 		ctx = ctxutil.WithShowSafeContent(ctx, c.SafeContent)
 	}
+	if !ctxutil.HasAutoClip(ctx) {
+		ctx = ctxutil.WithAutoClip(ctx, c.AutoClip)
+	}
 	return ctx
 }

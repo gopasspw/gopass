@@ -360,6 +360,10 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 			BashComplete: func(c *cli.Context) { action.Complete(ctx, c) },
 			Flags: []cli.Flag{
 				cli.BoolFlag{
+					Name:  "clip, c",
+					Usage: "Copy the generated password to the clipboard",
+				},
+				cli.BoolFlag{
 					Name:  "print, p",
 					Usage: "Print the generated password to the terminal",
 				},
