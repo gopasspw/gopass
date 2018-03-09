@@ -235,7 +235,7 @@ func WithGitCommit(ctx context.Context, bv bool) context.Context {
 
 // HasGitCommit returns true if a value for GitCommit has been set in this context
 func HasGitCommit(ctx context.Context) bool {
-	_, ok := ctx.Value(ctxKeyShowSafeContent).(bool)
+	_, ok := ctx.Value(ctxKeyGitCommit).(bool)
 	return ok
 }
 
