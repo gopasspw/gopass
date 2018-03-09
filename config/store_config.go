@@ -13,6 +13,7 @@ import (
 // StoreConfig is a per-store (root or mount) config
 type StoreConfig struct {
 	AskForMore    bool         `yaml:"askformore"`    // ask for more data on generate
+	AutoClip      bool         `yaml:"autoclip"`      // decide whether passwords are automatically copied or not
 	AutoImport    bool         `yaml:"autoimport"`    // import missing public keys w/o asking
 	AutoSync      bool         `yaml:"autosync"`      // push to git remote after commit, pull before push if necessary
 	ClipTimeout   int          `yaml:"cliptimeout"`   // clear clipboard after seconds
@@ -109,5 +110,5 @@ func (c *StoreConfig) SetConfigValue(key, value string) error {
 }
 
 func (c *StoreConfig) String() string {
-	return fmt.Sprintf("StoreConfig[AskForMore:%t,AutoImport:%t,AutoSync:%t,ClipTimeout:%d,NoColor:%t,NoConfirm:%t,NoPager:%t,Path:%s,SafeContent:%t,UseSymbols:%t]", c.AskForMore, c.AutoImport, c.AutoSync, c.ClipTimeout, c.NoColor, c.NoConfirm, c.NoPager, c.Path, c.SafeContent, c.UseSymbols)
+	return fmt.Sprintf("StoreConfig[AskForMore:%t,AutoClip:%t,AutoImport:%t,AutoSync:%t,ClipTimeout:%d,NoColor:%t,NoConfirm:%t,NoPager:%t,Notifications:%t,Path:%s,SafeContent:%t,UseSymbols:%t]", c.AskForMore, c.AutoClip, c.AutoImport, c.AutoSync, c.ClipTimeout, c.NoColor, c.NoConfirm, c.NoPager, c.Notifications, c.Path, c.SafeContent, c.UseSymbols)
 }

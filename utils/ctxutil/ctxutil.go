@@ -22,6 +22,7 @@ const (
 	ctxKeyFuzzySearch
 	ctxKeyVerbose
 	ctxNotifications
+	ctxKeyAutoClip
 )
 
 // WithDebug returns a context with an explizit value for debug
@@ -206,7 +207,7 @@ func IsNoPager(ctx context.Context) bool {
 	return bv
 }
 
-// WithShowSafeContent returns a context with the value for ask for more set
+// WithShowSafeContent returns a context with the value for ShowSafeContent set
 func WithShowSafeContent(ctx context.Context, bv bool) context.Context {
 	return context.WithValue(ctx, ctxKeyShowSafeContent, bv)
 }
@@ -217,7 +218,7 @@ func HasShowSafeContent(ctx context.Context) bool {
 	return ok
 }
 
-// IsShowSafeContent returns the value of ask for more or the default (false)
+// IsShowSafeContent returns the value of ShowSafeContent or the default (false)
 func IsShowSafeContent(ctx context.Context) bool {
 	bv, ok := ctx.Value(ctxKeyShowSafeContent).(bool)
 	if !ok {
@@ -360,6 +361,26 @@ func HasNotifications(ctx context.Context) bool {
 // IsNotifications returns the value of Notifications or the default (true)
 func IsNotifications(ctx context.Context) bool {
 	bv, ok := ctx.Value(ctxNotifications).(bool)
+	if !ok {
+		return true
+	}
+	return bv
+}
+
+// WithAutoClip returns a context with the value for AutoClip set
+func WithAutoClip(ctx context.Context, bv bool) context.Context {
+	return context.WithValue(ctx, ctxKeyAutoClip, bv)
+}
+
+// HasAutoClip returns true if a value for AutoClip has been set in this context
+func HasAutoClip(ctx context.Context) bool {
+	_, ok := ctx.Value(ctxKeyAutoClip).(bool)
+	return ok
+}
+
+// IsAutoClip returns the value of AutoClip or the default (true)
+func IsAutoClip(ctx context.Context) bool {
+	bv, ok := ctx.Value(ctxKeyAutoClip).(bool)
 	if !ok {
 		return true
 	}

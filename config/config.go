@@ -37,6 +37,7 @@ func New() *Config {
 	return &Config{
 		Root: &StoreConfig{
 			AskForMore:    false,
+			AutoClip:      true,
 			AutoImport:    true,
 			AutoSync:      true,
 			ClipTimeout:   45,
