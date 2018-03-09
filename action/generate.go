@@ -100,7 +100,7 @@ func (s *Action) generateCopyOrPrint(ctx context.Context, c *cli.Context, name, 
 		)
 		return nil
 	}
-	if ctxutil.IsAutoClip(ctx) {
+	if ctxutil.IsAutoClip(ctx) || c.Bool("clip") {
 		if err := copyToClipboard(ctx, name, []byte(password)); err != nil {
 			return exitError(ctx, ExitIO, err, "failed to copy to clipboard: %s", err)
 		}
