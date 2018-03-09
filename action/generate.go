@@ -203,7 +203,9 @@ func (s *Action) generateSetPassword(ctx context.Context, name, key, password st
 	}
 
 	// generate a completely new secret
-	if err := s.Store.Set(sub.WithReason(ctx, "Generated Password"), name, secret.New(password, "")); err != nil {
+	var err error
+	ctx, err = s.Store.SetContext(sub.WithReason(ctx, "Generated Password"), name, secret.New(password, ""))
+	if err != nil {
 		return ctx, exitError(ctx, ExitEncrypt, err, "failed to create '%s': %s", name, err)
 	}
 	return ctx, nil
