@@ -493,14 +493,14 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 				},
 				{
 					Name:        "remote",
-					Usage:       "TODO",
-					Description: "TODO",
+					Usage:       "Mangage git remotes",
+					Description: "These subcommands can be used to manage git remotes",
 					Before:      func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
 					Subcommands: []cli.Command{
 						{
 							Name:        "add",
 							Usage:       "Add git remote",
-							Description: "TODO",
+							Description: "Add a new git remote",
 							Before:      func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
 							Action: func(c *cli.Context) error {
 								return action.GitAddRemote(withGlobalFlags(ctx, c), c)
@@ -525,7 +525,7 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 				{
 					Name:        "push",
 					Usage:       "Push to remote",
-					Description: "TODO",
+					Description: "Push to a git remote",
 					Before:      func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
 					Action: func(c *cli.Context) error {
 						return action.GitPush(withGlobalFlags(ctx, c), c)
@@ -548,7 +548,7 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 				{
 					Name:        "pull",
 					Usage:       "Pull from remote",
-					Description: "TODO",
+					Description: "Pull from a git remote",
 					Before:      func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
 					Action: func(c *cli.Context) error {
 						return action.GitPull(withGlobalFlags(ctx, c), c)

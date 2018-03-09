@@ -21,7 +21,8 @@ const (
 	ctxKeyNoColor
 	ctxKeyFuzzySearch
 	ctxKeyVerbose
-	ctxNotifications
+	ctxKeyNotifications
+	ctxKeyEditRecipients
 )
 
 // WithDebug returns a context with an explizit value for debug
@@ -348,20 +349,40 @@ func IsVerbose(ctx context.Context) bool {
 
 // WithNotifications returns a context with the value for Notifications set
 func WithNotifications(ctx context.Context, verbose bool) context.Context {
-	return context.WithValue(ctx, ctxNotifications, verbose)
+	return context.WithValue(ctx, ctxKeyNotifications, verbose)
 }
 
 // HasNotifications returns true if a value for Notifications has been set in this context
 func HasNotifications(ctx context.Context) bool {
-	_, ok := ctx.Value(ctxNotifications).(bool)
+	_, ok := ctx.Value(ctxKeyNotifications).(bool)
 	return ok
 }
 
 // IsNotifications returns the value of Notifications or the default (true)
 func IsNotifications(ctx context.Context) bool {
-	bv, ok := ctx.Value(ctxNotifications).(bool)
+	bv, ok := ctx.Value(ctxKeyNotifications).(bool)
 	if !ok {
 		return true
+	}
+	return bv
+}
+
+// WithEditRecipients returns a context with the value for EditRecipients set
+func WithEditRecipients(ctx context.Context, bv bool) context.Context {
+	return context.WithValue(ctx, ctxKeyEditRecipients, bv)
+}
+
+// HasEditRecipients returns true if a value for EditRecipients has been set in this context
+func HasEditRecipients(ctx context.Context) bool {
+	_, ok := ctx.Value(ctxKeyEditRecipients).(bool)
+	return ok
+}
+
+// IsEditRecipients returns the value of EditRecipients or the default (false)
+func IsEditRecipients(ctx context.Context) bool {
+	bv, ok := ctx.Value(ctxKeyEditRecipients).(bool)
+	if !ok {
+		return false
 	}
 	return bv
 }

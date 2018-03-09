@@ -56,6 +56,7 @@ Please see [docs/features.md](https://github.com/justwatchcom/gopass/blob/master
 | Desktop Notifications       | ❌      | ✔        | *beta*    | Display desktop notifications and completing long running operations |
 | OTP support                 | (✔)    | ✔        | *stable*  | Generate HOTP/TOTP tokens based on the stored secret               |
 | Multiple Crypto Backends    | ❌      | ✔        | *alpha*   | Extensible crypto backend support (GPG, NaCl)                      |
+| Editing Recipients per Secret    | ❌      | ✔        | *beta*   | Select recipients per secret when encrypting |
 
 ## Installation
 

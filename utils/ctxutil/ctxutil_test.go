@@ -10,236 +10,144 @@ import (
 func TestDebug(t *testing.T) {
 	ctx := context.Background()
 
-	if IsDebug(ctx) {
-		t.Errorf("Vanilla ctx should not be debug")
-	}
-	if !IsDebug(WithDebug(ctx, true)) {
-		t.Errorf("Should have debug flag")
-	}
-	if IsDebug(WithDebug(ctx, false)) {
-		t.Errorf("Should not have debug flag")
-	}
+	assert.Equal(t, false, IsDebug(ctx))
+	assert.Equal(t, true, IsDebug(WithDebug(ctx, true)))
+	assert.Equal(t, false, IsDebug(WithDebug(ctx, false)))
 }
 
 func TestColor(t *testing.T) {
 	ctx := context.Background()
 
-	if !IsColor(ctx) {
-		t.Errorf("Vanilla ctx should have color")
-	}
-	if !IsColor(WithColor(ctx, true)) {
-		t.Errorf("Should have color flag")
-	}
-	if IsColor(WithColor(ctx, false)) {
-		t.Errorf("Should not have color flag")
-	}
+	assert.Equal(t, true, IsColor(ctx))
+	assert.Equal(t, true, IsColor(WithColor(ctx, true)))
+	assert.Equal(t, false, IsColor(WithColor(ctx, false)))
 }
 
 func TestTerminal(t *testing.T) {
 	ctx := context.Background()
 
-	if !IsTerminal(ctx) {
-		t.Errorf("Vanilla ctx should be terminal")
-	}
-	if !IsTerminal(WithTerminal(ctx, true)) {
-		t.Errorf("Should have terminal flag")
-	}
-	if IsTerminal(WithTerminal(ctx, false)) {
-		t.Errorf("Should not have terminal flag")
-	}
+	assert.Equal(t, true, IsTerminal(ctx))
+	assert.Equal(t, true, IsTerminal(WithTerminal(ctx, true)))
+	assert.Equal(t, false, IsTerminal(WithTerminal(ctx, false)))
 }
 
 func TestInteractive(t *testing.T) {
 	ctx := context.Background()
 
-	if !IsInteractive(ctx) {
-		t.Errorf("Vanilla ctx should be interactive")
-	}
-	if !IsInteractive(WithInteractive(ctx, true)) {
-		t.Errorf("Should have interactive flag")
-	}
-	if IsInteractive(WithInteractive(ctx, false)) {
-		t.Errorf("Should not have interactive flag")
-	}
+	assert.Equal(t, true, IsInteractive(ctx))
+	assert.Equal(t, true, IsInteractive(WithInteractive(ctx, true)))
+	assert.Equal(t, false, IsInteractive(WithInteractive(ctx, false)))
 }
 
 func TestStdin(t *testing.T) {
 	ctx := context.Background()
 
-	if IsStdin(ctx) {
-		t.Errorf("Vanilla ctx should not have Stdin")
-	}
-	if !IsStdin(WithStdin(ctx, true)) {
-		t.Errorf("Should have stdin flag")
-	}
-	if IsStdin(WithStdin(ctx, false)) {
-		t.Errorf("Should not have Stdin flag")
-	}
+	assert.Equal(t, false, IsStdin(ctx))
+	assert.Equal(t, true, IsStdin(WithStdin(ctx, true)))
+	assert.Equal(t, false, IsStdin(WithStdin(ctx, false)))
 }
 
 func TestAskForMore(t *testing.T) {
 	ctx := context.Background()
 
-	if IsAskForMore(ctx) {
-		t.Errorf("Vanilla ctx should not have AskForMore")
-	}
-	if !IsAskForMore(WithAskForMore(ctx, true)) {
-		t.Errorf("Should have AskForMore flag")
-	}
-	if IsAskForMore(WithAskForMore(ctx, false)) {
-		t.Errorf("Should not have AskForMore flag")
-	}
+	assert.Equal(t, false, IsAskForMore(ctx))
+	assert.Equal(t, true, IsAskForMore(WithAskForMore(ctx, true)))
+	assert.Equal(t, false, IsAskForMore(WithAskForMore(ctx, false)))
 }
 
 func TestClipTimeout(t *testing.T) {
 	ctx := context.Background()
 
-	if GetClipTimeout(ctx) != 45 {
-		t.Errorf("Vanilla ctx should have ClipTimeout 45")
-	}
-	if GetClipTimeout(WithClipTimeout(ctx, 30)) != 30 {
-		t.Errorf("ClipTimeout should be 30")
-	}
+	assert.Equal(t, 45, GetClipTimeout(ctx))
+	assert.Equal(t, 30, GetClipTimeout(WithClipTimeout(ctx, 30)))
 }
 
 func TestNoConfirm(t *testing.T) {
 	ctx := context.Background()
 
-	if IsNoConfirm(ctx) {
-		t.Errorf("Vanilla ctx should not have NoConfirm")
-	}
-	if !IsNoConfirm(WithNoConfirm(ctx, true)) {
-		t.Errorf("Should have NoConfirm flag")
-	}
-	if IsNoConfirm(WithNoConfirm(ctx, false)) {
-		t.Errorf("Should not have NoConfirm flag")
-	}
+	assert.Equal(t, false, IsNoConfirm(ctx))
+	assert.Equal(t, true, IsNoConfirm(WithNoConfirm(ctx, true)))
+	assert.Equal(t, false, IsNoConfirm(WithNoConfirm(ctx, false)))
 }
 
 func TestNoPager(t *testing.T) {
 	ctx := context.Background()
 
-	if IsNoPager(ctx) {
-		t.Errorf("Vanilla ctx should not have NoPager")
-	}
-	if !IsNoPager(WithNoPager(ctx, true)) {
-		t.Errorf("Should have NoPager flag")
-	}
-	if IsNoPager(WithNoPager(ctx, false)) {
-		t.Errorf("Should not have NoPager flag")
-	}
+	assert.Equal(t, false, IsNoPager(ctx))
+	assert.Equal(t, true, IsNoPager(WithNoPager(ctx, true)))
+	assert.Equal(t, false, IsNoPager(WithNoPager(ctx, false)))
 }
 
 func TestShowSafeContent(t *testing.T) {
 	ctx := context.Background()
 
-	if IsShowSafeContent(ctx) {
-		t.Errorf("Vanilla ctx should not have ShowSafeContent")
-	}
-	if !IsShowSafeContent(WithShowSafeContent(ctx, true)) {
-		t.Errorf("Should have ShowSafeContent flag")
-	}
-	if IsShowSafeContent(WithShowSafeContent(ctx, false)) {
-		t.Errorf("Should not have ShowSafeContent flag")
-	}
+	assert.Equal(t, false, IsShowSafeContent(ctx))
+	assert.Equal(t, true, IsShowSafeContent(WithShowSafeContent(ctx, true)))
+	assert.Equal(t, false, IsShowSafeContent(WithShowSafeContent(ctx, false)))
 }
 
 func TestGitCommit(t *testing.T) {
 	ctx := context.Background()
 
-	if !IsGitCommit(ctx) {
-		t.Errorf("Vanilla ctx should have GitCommit")
-	}
-	if !IsGitCommit(WithGitCommit(ctx, true)) {
-		t.Errorf("Should have GitCommit flag")
-	}
-	if IsGitCommit(WithGitCommit(ctx, false)) {
-		t.Errorf("Should not have GitCommit flag")
-	}
+	assert.Equal(t, true, IsGitCommit(ctx))
+	assert.Equal(t, true, IsGitCommit(WithGitCommit(ctx, true)))
+	assert.Equal(t, false, IsGitCommit(WithGitCommit(ctx, false)))
 }
 
 func TestUseSymbols(t *testing.T) {
 	ctx := context.Background()
 
-	if IsUseSymbols(ctx) {
-		t.Errorf("Vanilla ctx should not have UseSymbols")
-	}
-	if !IsUseSymbols(WithUseSymbols(ctx, true)) {
-		t.Errorf("Should have UseSymbols flag")
-	}
-	if IsUseSymbols(WithUseSymbols(ctx, false)) {
-		t.Errorf("Should not have UseSymbols flag")
-	}
+	assert.Equal(t, false, IsUseSymbols(ctx))
+	assert.Equal(t, true, IsUseSymbols(WithUseSymbols(ctx, true)))
+	assert.Equal(t, false, IsUseSymbols(WithUseSymbols(ctx, false)))
 }
 
 func TestNoColor(t *testing.T) {
 	ctx := context.Background()
 
-	if IsNoColor(ctx) {
-		t.Errorf("Vanilla ctx should not have NoColor")
-	}
-	if !IsNoColor(WithNoColor(ctx, true)) {
-		t.Errorf("Should have NoColor flag")
-	}
-	if IsNoColor(WithNoColor(ctx, false)) {
-		t.Errorf("Should not have NoColor flag")
-	}
+	assert.Equal(t, false, IsNoColor(ctx))
+	assert.Equal(t, true, IsNoColor(WithNoColor(ctx, true)))
+	assert.Equal(t, false, IsNoColor(WithNoColor(ctx, false)))
 }
 
 func TestAlwaysYes(t *testing.T) {
 	ctx := context.Background()
 
-	if IsAlwaysYes(ctx) {
-		t.Errorf("Vanilla ctx should not have AlwaysYes")
-	}
-	if !IsAlwaysYes(WithAlwaysYes(ctx, true)) {
-		t.Errorf("Should have AlwaysYes flag")
-	}
-	if IsAlwaysYes(WithAlwaysYes(ctx, false)) {
-		t.Errorf("Should not have AlwaysYes flag")
-	}
+	assert.Equal(t, false, IsAlwaysYes(ctx))
+	assert.Equal(t, true, IsAlwaysYes(WithAlwaysYes(ctx, true)))
+	assert.Equal(t, false, IsAlwaysYes(WithAlwaysYes(ctx, false)))
 }
 
 func TestFuzzySearch(t *testing.T) {
 	ctx := context.Background()
 
-	if !IsFuzzySearch(ctx) {
-		t.Errorf("Vanilla ctx should have FuzzySearch")
-	}
-	if !IsFuzzySearch(WithFuzzySearch(ctx, true)) {
-		t.Errorf("Should have FuzzySearch flag")
-	}
-	if IsFuzzySearch(WithFuzzySearch(ctx, false)) {
-		t.Errorf("Should not have FuzzySearch flag")
-	}
+	assert.Equal(t, true, IsFuzzySearch(ctx))
+	assert.Equal(t, true, IsFuzzySearch(WithFuzzySearch(ctx, true)))
+	assert.Equal(t, false, IsFuzzySearch(WithFuzzySearch(ctx, false)))
 }
 
 func TestVerbose(t *testing.T) {
 	ctx := context.Background()
 
-	if IsVerbose(ctx) {
-		t.Errorf("Vanilla ctx should not have Verbose")
-	}
-	if !IsVerbose(WithVerbose(ctx, true)) {
-		t.Errorf("Should have Verbose flag")
-	}
-	if IsVerbose(WithVerbose(ctx, false)) {
-		t.Errorf("Should not have Verbose flag")
-	}
+	assert.Equal(t, false, IsVerbose(ctx))
+	assert.Equal(t, true, IsVerbose(WithVerbose(ctx, true)))
+	assert.Equal(t, false, IsVerbose(WithVerbose(ctx, false)))
 }
 
 func TestNotifications(t *testing.T) {
 	ctx := context.Background()
 
-	if !IsNotifications(ctx) {
-		t.Errorf("Vanilla ctx should not have Notifications")
-	}
-	if !IsNotifications(WithNotifications(ctx, true)) {
-		t.Errorf("Should have Notifications flag")
-	}
-	if IsNotifications(WithNotifications(ctx, false)) {
-		t.Errorf("Should not have Notifications flag")
-	}
+	assert.Equal(t, true, IsNotifications(ctx))
+	assert.Equal(t, true, IsNotifications(WithNotifications(ctx, true)))
+	assert.Equal(t, false, IsNotifications(WithNotifications(ctx, false)))
+}
+
+func TestEditRecipients(t *testing.T) {
+	ctx := context.Background()
+
+	assert.Equal(t, false, IsEditRecipients(ctx))
+	assert.Equal(t, true, IsEditRecipients(WithEditRecipients(ctx, true)))
+	assert.Equal(t, false, IsEditRecipients(WithEditRecipients(ctx, false)))
 }
 
 func TestComposite(t *testing.T) {
@@ -261,6 +169,7 @@ func TestComposite(t *testing.T) {
 	ctx = WithFuzzySearch(ctx, false)
 	ctx = WithVerbose(ctx, true)
 	ctx = WithNotifications(ctx, true)
+	ctx = WithEditRecipients(ctx, true)
 
 	assert.Equal(t, true, IsDebug(ctx))
 	assert.Equal(t, true, HasDebug(ctx))
@@ -312,4 +221,7 @@ func TestComposite(t *testing.T) {
 
 	assert.Equal(t, true, IsNotifications(ctx))
 	assert.Equal(t, true, HasNotifications(ctx))
+
+	assert.Equal(t, true, IsEditRecipients(ctx))
+	assert.Equal(t, true, HasEditRecipients(ctx))
 }
