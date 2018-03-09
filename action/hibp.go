@@ -1,31 +1,21 @@
 package action
 
 import (
-	"bufio"
-	"compress/gzip"
 	"context"
 	"crypto/sha1"
 	"fmt"
-	"io"
 	"io/ioutil"
-	"net/http"
-	"os"
 	"sort"
-	"strconv"
-	"strings"
-	"time"
 
-	"github.com/cenkalti/backoff"
 	"github.com/fatih/color"
+	hibpapi "github.com/justwatchcom/gopass/utils/hibp/api"
+	hibpdump "github.com/justwatchcom/gopass/utils/hibp/dump"
 	"github.com/justwatchcom/gopass/utils/notify"
 	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/justwatchcom/gopass/utils/termio"
 	"github.com/muesli/goprogressbar"
-	"github.com/pkg/errors"
 	"github.com/urfave/cli"
 )
-
-var hibpAPIURL = "https://api.pwnedpasswords.com"
 
 // HIBP compares all entries from the store against the provided SHA1 sum dumps
 func (s *Action) HIBP(ctx context.Context, c *cli.Context) error {
@@ -38,7 +28,8 @@ func (s *Action) HIBP(ctx context.Context, c *cli.Context) error {
 
 	out.Yellow(ctx, "WARNING: Using the HIBPv2 dumps is very expensive. If you can condone leaking a few bits of entropy per secret you should probably use the '--api' flag.")
 
-	return s.hibpDump(ctx, force)
+	dumps := c.StringSlice("dumps")
+	return s.hibpDump(ctx, force, dumps)
 }
 
 func (s *Action) hibpAPI(ctx context.Context, force bool) error {
@@ -53,11 +44,10 @@ func (s *Action) hibpAPI(ctx context.Context, force bool) error {
 
 	out.Print(ctx, "Checking pre-computed SHA1 hashes against the HIBP API ...")
 
-	// compare the prepared list against all provided files. with a little more
-	// code this could be parallelized
-	matchList := make([]string, 0, 100)
+	// compare the prepared list against all provided files
+	matchList := make([]string, 0, len(sortedShaSums))
 	for _, shaSum := range sortedShaSums {
-		freq, err := s.hibpAPILookup(ctx, shaSum)
+		freq, err := hibpapi.Lookup(ctx, shaSum)
 		if err != nil {
 			out.Red(ctx, "Failed to check HIBP API: %s", err)
 			continue
@@ -73,69 +63,8 @@ func (s *Action) hibpAPI(ctx context.Context, force bool) error {
 	return s.printHIBPMatches(ctx, matchList)
 }
 
-func (s *Action) hibpAPILookup(ctx context.Context, shaSum string) (uint64, error) {
-	if len(shaSum) < 40 {
-		return 0, errors.Errorf("invalid shasum")
-	}
-
-	prefix := strings.ToUpper(shaSum[:5])
-	suffix := strings.ToUpper(shaSum[5:])
-
-	var count uint64
-	url := fmt.Sprintf("%s/range/%s", hibpAPIURL, prefix)
-
-	op := func() error {
-		out.Debug(ctx, "[%s] HTTP Request: %s", shaSum, url)
-		resp, err := http.Get(url)
-		if err != nil {
-			return err
-		}
-		defer func() {
-			_ = resp.Body.Close()
-		}()
-
-		if resp.StatusCode == http.StatusNotFound {
-			return nil
-		}
-
-		body, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			return err
-		}
-
-		if resp.StatusCode != http.StatusOK {
-			return fmt.Errorf("HTTP request failed: %s %s", resp.Status, body)
-		}
-
-		for _, line := range strings.Split(string(body), "\n") {
-			if len(line) < 37 {
-				continue
-			}
-			if line[:35] != suffix {
-				continue
-			}
-			if iv, err := strconv.ParseUint(line[36:], 10, 64); err == nil {
-				count = iv
-				return nil
-			}
-		}
-		return nil
-	}
-
-	bo := backoff.NewExponentialBackOff()
-	bo.MaxElapsedTime = 10 * time.Second
-
-	err := backoff.Retry(op, bo)
-	return count, err
-}
-
-func (s *Action) hibpDump(ctx context.Context, force bool) error {
-	fns := strings.Split(os.Getenv("HIBP_DUMPS"), ",")
-	if len(fns) < 1 || fns[0] == "" {
-		return errors.Errorf("Please provide the name(s) of the haveibeenpwned.com password dumps in HIBP_DUMPS. See https://haveibeenpwned.com/Passwords for more information. Use 7z to extract the dump: 7z x pwned-passwords-2.0.txt.7z, then sort them: cat pwned-passwords-2.0.txt | LANG=C sort -S 10G --parallel=4 | gzip --fast > pwned-passwords-2.0.txt.gz")
-	}
-
-	if !force && !termio.AskForConfirmation(ctx, fmt.Sprintf("This command is checking all your secrets against the haveibeenpwned.com hashes in %+v.\nYou will be asked to unlock all your secrets!\nDo you want to continue?", fns)) {
+func (s *Action) hibpDump(ctx context.Context, force bool, dumps []string) error {
+	if !force && !termio.AskForConfirmation(ctx, fmt.Sprintf("This command is checking all your secrets against the haveibeenpwned.com hashes in %+v.\nYou will be asked to unlock all your secrets!\nDo you want to continue?", dumps)) {
 		return exitError(ctx, ExitAborted, nil, "user aborted")
 	}
 
@@ -144,22 +73,18 @@ func (s *Action) hibpDump(ctx context.Context, force bool) error {
 		return err
 	}
 
-	out.Print(ctx, "Checking pre-computed SHA1 hashes against the blacklists ...")
-	matches := make(chan string, 1000)
-	done := make(chan struct{})
-	// compare the prepared list against all provided files. with a little more
-	// code this could be parallelized
-	for _, fn := range fns {
-		go s.findHIBPMatches(ctx, fn, shaSums, sortedShaSums, matches, done)
+	scanner, err := hibpdump.New(dumps)
+	if err != nil {
+		return exitError(ctx, ExitUsage, err, "Failed to create new HIBP Dump scanner: %s", err)
 	}
-	matchList := make([]string, 0, 100)
-	go func() {
-		for match := range matches {
-			matchList = append(matchList, match)
+
+	matchedSums := scanner.LookupBatch(ctx, sortedShaSums)
+	out.Debug(ctx, "In: %+v - Out: %+v", sortedShaSums, matchedSums)
+	matchList := make([]string, 0, len(matchedSums))
+	for _, matchedSum := range matchedSums {
+		if pw, found := shaSums[matchedSum]; found {
+			matchList = append(matchList, pw)
 		}
-	}()
-	for range fns {
-		<-done
 	}
 
 	return s.printHIBPMatches(ctx, matchList)
@@ -247,82 +172,8 @@ func (s *Action) printHIBPMatches(ctx context.Context, matchList []string) error
 	return exitError(ctx, ExitAudit, nil, "weak passwords found")
 }
 
-func (s *Action) findHIBPMatches(ctx context.Context, fn string, shaSums map[string]string, sortedShaSums []string, matches chan<- string, done chan<- struct{}) {
-	defer func() {
-		done <- struct{}{}
-	}()
-	t0 := time.Now()
-
-	var rdr io.Reader
-	fh, err := os.Open(fn)
-	if err != nil {
-		out.Red(ctx, "Failed to open file %s: %s", fn, err)
-		return
-	}
-	defer func() {
-		_ = fh.Close()
-	}()
-	rdr = fh
-
-	if strings.HasSuffix(fn, ".gz") {
-		gzr, err := gzip.NewReader(fh)
-		if err != nil {
-			out.Red(ctx, "Failed to open the file %s: %s", fn, err)
-			return
-		}
-		defer func() {
-			_ = gzr.Close()
-		}()
-		rdr = gzr
-	}
-
-	out.Debug(ctx, "Checking file %s ...\n", fn)
-
-	// index in sortedShaSums
-	i := 0
-	lineNo := 0
-	numMatches := 0
-	scanner := bufio.NewScanner(rdr)
-SCAN:
-	for scanner.Scan() {
-		// check for context cancelation
-		select {
-		case <-ctx.Done():
-			break SCAN
-		default:
-		}
-
-		line := strings.TrimSpace(scanner.Text())
-		lineNo++
-		if i >= len(sortedShaSums) {
-			break
-		}
-		pw := line[:40]
-		freq := ""
-		if len(line) > 41 {
-			freq = line[:41]
-		}
-		if pw == sortedShaSums[i] {
-			matches <- shaSums[pw]
-			out.Debug(ctx, "MATCH at line %d: %s (#%s) / %s from %s", lineNo, pw, freq, shaSums[freq], fn)
-			numMatches++
-			// advance to next sha sum from store and next line in file
-			i++
-			continue
-		}
-		// advance in sha sums from store until we've reached the position in
-		// the file
-		for i < len(sortedShaSums) && line > sortedShaSums[i] {
-			i++
-		}
-	}
-
-	d0 := time.Since(t0)
-	out.Debug(ctx, "Found %d matches in %d lines from %s in %.2fs (%.2f lines / s)\n", numMatches, lineNo, fn, d0.Seconds(), float64(lineNo)/d0.Seconds())
-}
-
 func sha1sum(data string) string {
 	h := sha1.New()
 	_, _ = h.Write([]byte(data))
-	return strings.ToUpper(fmt.Sprintf("%x", h.Sum(nil)))
+	return fmt.Sprintf("%X", h.Sum(nil))
 }
