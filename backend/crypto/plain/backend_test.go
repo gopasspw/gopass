@@ -94,4 +94,11 @@ func TestSignVerify(t *testing.T) {
 
 	assert.NoError(t, m.Sign(ctx, in, sigf))
 	assert.NoError(t, m.Verify(ctx, sigf, in))
+
+	assert.Error(t, m.Sign(ctx, "/tmp", sigf))
+	assert.Error(t, m.Verify(ctx, sigf, "/tmp"))
+	assert.Error(t, m.Verify(ctx, "/tmp", in))
+
+	assert.NoError(t, ioutil.WriteFile(sigf, []byte("in"), 0644))
+	assert.Error(t, m.Verify(ctx, sigf, in))
 }

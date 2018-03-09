@@ -7,6 +7,10 @@ import (
 	"time"
 )
 
+var (
+	fd0 = "/proc/self/fd/0"
+)
+
 // parseTS parses the passed string as an Epoch int and returns
 // the time struct or the zero time struct
 func parseTS(str string) time.Time {
@@ -46,7 +50,6 @@ func splitPacket(in string) map[string]string {
 
 // see https://www.gnupg.org/documentation/manuals/gnupg/Invoking-GPG_002dAGENT.html
 func tty() string {
-	fd0 := "/proc/self/fd/0"
 	dest, err := os.Readlink(fd0)
 	if err != nil {
 		return ""

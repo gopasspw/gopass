@@ -43,6 +43,7 @@ func TestConfig(t *testing.T) {
   autoimport: true
   autosync: true
   cliptimeout: 45
+  editrecipients: false
   nocolor: false
   noconfirm: false
   nopager: false
@@ -58,6 +59,10 @@ func TestConfig(t *testing.T) {
 	// action.setConfigValue
 	assert.NoError(t, act.setConfigValue(ctx, "", "nopager", "true"))
 	assert.Equal(t, "nopager: true", strings.TrimSpace(buf.String()), "action.setConfigValue")
+	buf.Reset()
+
+	// action.setConfigValue (invalid)
+	assert.Error(t, act.setConfigValue(ctx, "", "foobar", "true"))
 	buf.Reset()
 
 	// action.printConfigValues
@@ -81,6 +86,7 @@ foo/nopager: false`
   autoimport: true
   autosync: true
   cliptimeout: 45
+  editrecipients: false
   nocolor: false
   noconfirm: false
   nopager: true
@@ -127,6 +133,7 @@ autoclip
 autoimport
 autosync
 cliptimeout
+editrecipients
 nocolor
 noconfirm
 nopager
