@@ -61,6 +61,7 @@ func (s *Store) Exists(ctx context.Context, name string) bool {
 
 // List returns a list of all entities
 func (s *Store) List(ctx context.Context, prefix string) ([]string, error) {
+	out.Debug(ctx, "fs.List(%s)", prefix)
 	files := make([]string, 0, 100)
 	if err := filepath.Walk(s.path, func(path string, info os.FileInfo, err error) error {
 		if err != nil {

@@ -10,7 +10,7 @@ var (
 	sep = string(filepath.Separator)
 )
 
-// List will list all entries in this.storage
+// List will list all entries in this store
 func (s *Store) List(ctx context.Context, prefix string) ([]string, error) {
 	lst, err := s.storage.List(ctx, prefix)
 	if err != nil {
