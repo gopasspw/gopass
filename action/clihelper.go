@@ -1,9 +1,12 @@
 package action
 
 import (
+	"bufio"
+	"bytes"
 	"context"
 	"fmt"
 	"sort"
+	"strings"
 
 	"github.com/justwatchcom/gopass/backend/crypto/gpg"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
@@ -17,16 +20,51 @@ const (
 	maxTries = 42
 )
 
-// ConfirmRecipients asks the user to confirm a given set of recipients
-func (s *Action) ConfirmRecipients(ctx context.Context, name string, recipients []string) ([]string, error) {
-	if ctxutil.IsNoConfirm(ctx) || !ctxutil.IsInteractive(ctx) {
-		return recipients, nil
+type recipientInfo struct {
+	id   string
+	name string
+	self bool
+}
+
+func (r recipientInfo) String() string {
+	self := ""
+	if r.self {
+		self = " *"
 	}
+	return fmt.Sprintf("- %s - %s%s", r.id, r.name, self)
+}
 
+type recipientInfos []recipientInfo
+
+func (r recipientInfos) Recipients() []string {
+	rs := make([]string, 0, len(r))
+	for _, ri := range r {
+		rs = append(rs, ri.id)
+	}
+	return rs
+}
+
+func (r recipientInfos) Len() int {
+	return len(r)
+}
+
+func (r recipientInfos) Swap(i, j int) {
+	r[i], r[j] = r[j], r[i]
+}
+
+func (r recipientInfos) Less(i, j int) bool {
+	if r[i].self {
+		return true
+	} else if r[j].self {
+		return false
+	}
+	return r[i].name < r[j].name
+}
+
+func (s *Action) getRecipientInfo(ctx context.Context, name string, recipients []string) (recipientInfos, error) {
 	crypto := s.Store.Crypto(ctx, name)
-	sort.Strings(recipients)
+	ris := make(recipientInfos, 0, len(recipients))
 
-	fmt.Fprintf(stdout, "gopass: Encrypting %s for these recipients:\n", name)
 	for _, r := range recipients {
 		// check for context cancelation
 		select {
@@ -37,16 +75,48 @@ func (s *Action) ConfirmRecipients(ctx context.Context, name string, recipients 
 
 		kl, err := crypto.FindPublicKeys(ctx, r)
 		if err != nil {
-			out.Red(ctx, "Failed to read public key for '%s': %s", name, err)
+			out.Red(ctx, "Failed to read public key for '%s': %s", r, err)
 			continue
 		}
-		if len(kl) < 1 {
-			fmt.Fprintln(stdout, "key not found", r)
-			continue
+		ri := recipientInfo{
+			id:   r,
+			name: "key not found",
 		}
-		fmt.Fprintf(stdout, " - %s\n", crypto.FormatKey(ctx, kl[0]))
+		if len(kl) > 0 {
+			ri.name = crypto.FormatKey(ctx, kl[0])
+		}
+		ris = append(ris, ri)
+	}
+	sort.Sort(ris)
+	return ris, nil
+}
+
+// ConfirmRecipients asks the user to confirm a given set of recipients
+func (s *Action) ConfirmRecipients(ctx context.Context, name string, recipients []string) ([]string, error) {
+	if ctxutil.IsNoConfirm(ctx) || !ctxutil.IsInteractive(ctx) {
+		return recipients, nil
+	}
+
+	ris, err := s.getRecipientInfo(ctx, name, recipients)
+	if err != nil {
+		return nil, err
+	}
+
+	if ctxutil.IsEditRecipients(ctx) {
+		return s.confirmEditRecipients(ctx, name, ris)
+	}
+
+	return s.confirmAskRecipients(ctx, name, ris)
+}
+
+func (s *Action) confirmAskRecipients(ctx context.Context, name string, ris recipientInfos) ([]string, error) {
+	fmt.Fprintf(stdout, "gopass: Encrypting %s for these recipients:\n", name)
+	for _, ri := range ris {
+		fmt.Fprintf(stdout, ri.String())
 	}
 	fmt.Fprintln(stdout, "")
+
+	recipients := ris.Recipients()
 
 	yes, err := termio.AskForBool(ctx, "Do you want to continue?", true)
 	if err != nil {
@@ -57,6 +127,45 @@ func (s *Action) ConfirmRecipients(ctx context.Context, name string, recipients 
 	}
 
 	return recipients, errors.New("user aborted")
+}
+
+func (s *Action) confirmEditRecipients(ctx context.Context, name string, ris recipientInfos) ([]string, error) {
+	buf := &bytes.Buffer{}
+	fmt.Fprintf(buf, "# gopass - Encrypting %s\n", name)
+	fmt.Fprintf(buf, "# Please review and remove any recipient you don't want to include.\n")
+	fmt.Fprintf(buf, "# Lines starting with # will be ignored.\n")
+	fmt.Fprintf(buf, "# WARNING: Do not edit existing entries.\n")
+	for _, ri := range ris {
+		fmt.Fprintf(buf, ri.String())
+	}
+	out, err := s.editor(ctx, getEditor(nil), buf.Bytes())
+	if err != nil {
+		return nil, err
+	}
+
+	recipients := make([]string, 0, len(ris))
+	scanner := bufio.NewScanner(bytes.NewReader(out))
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		if strings.HasPrefix(line, "#") {
+			continue
+		}
+		line = strings.TrimPrefix(line, "- ")
+		p := strings.SplitN(line, "-", 2)
+		if len(p) < 2 {
+			continue
+		}
+		recipients = append(recipients, strings.TrimSpace(p[0]))
+	}
+	if err := scanner.Err(); err != nil {
+		return nil, err
+	}
+
+	if len(recipients) < 1 {
+		return recipients, errors.New("user aborted")
+	}
+
+	return recipients, nil
 }
 
 // askforPrivateKey promts the user to select from a list of private keys

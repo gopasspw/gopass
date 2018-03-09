@@ -103,6 +103,20 @@ RECIPIENTS:
 	return s.reencrypt(WithReason(ctx, "Removed Recipient "+id))
 }
 
+func (s *Store) ensureOurKeyID(ctx context.Context, rs []string) []string {
+	ourID := s.OurKeyID(ctx)
+	if ourID == "" {
+		return rs
+	}
+	for _, r := range rs {
+		if r == ourID {
+			return rs
+		}
+	}
+	rs = append(rs, ourID)
+	return rs
+}
+
 // OurKeyID returns the key fingprint this user can use to access the store
 // (if any)
 func (s *Store) OurKeyID(ctx context.Context) string {

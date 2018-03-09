@@ -12,17 +12,18 @@ import (
 
 // StoreConfig is a per-store (root or mount) config
 type StoreConfig struct {
-	AskForMore    bool         `yaml:"askformore"`    // ask for more data on generate
-	AutoImport    bool         `yaml:"autoimport"`    // import missing public keys w/o asking
-	AutoSync      bool         `yaml:"autosync"`      // push to git remote after commit, pull before push if necessary
-	ClipTimeout   int          `yaml:"cliptimeout"`   // clear clipboard after seconds
-	NoColor       bool         `yaml:"nocolor"`       // do not use color when outputing text
-	NoConfirm     bool         `yaml:"noconfirm"`     // do not confirm recipients when encrypting
-	NoPager       bool         `yaml:"nopager"`       // do not invoke a pager to display long lists
-	Path          *backend.URL `yaml:"path"`          // path to the root store
-	SafeContent   bool         `yaml:"safecontent"`   // avoid showing passwords in terminal
-	UseSymbols    bool         `yaml:"usesymbols"`    // always use symbols when generating passwords
-	Notifications bool         `yaml:"notifications"` // enable desktop notifications
+	AskForMore     bool         `yaml:"askformore"`     // ask for more data on generate
+	AutoImport     bool         `yaml:"autoimport"`     // import missing public keys w/o asking
+	AutoSync       bool         `yaml:"autosync"`       // push to git remote after commit, pull before push if necessary
+	ClipTimeout    int          `yaml:"cliptimeout"`    // clear clipboard after seconds
+	EditRecipients bool         `yaml:"editrecipients"` // edit recipients when confirming
+	NoColor        bool         `yaml:"nocolor"`        // do not use color when outputing text
+	NoConfirm      bool         `yaml:"noconfirm"`      // do not confirm recipients when encrypting
+	NoPager        bool         `yaml:"nopager"`        // do not invoke a pager to display long lists
+	Path           *backend.URL `yaml:"path"`           // path to the root store
+	SafeContent    bool         `yaml:"safecontent"`    // avoid showing passwords in terminal
+	UseSymbols     bool         `yaml:"usesymbols"`     // always use symbols when generating passwords
+	Notifications  bool         `yaml:"notifications"`  // enable desktop notifications
 }
 
 func (c *StoreConfig) checkDefaults() error {
@@ -87,11 +88,14 @@ func (c *StoreConfig) SetConfigValue(key, value string) error {
 		switch f.Kind() {
 		case reflect.String:
 			f.SetString(value)
+			return nil
 		case reflect.Bool:
 			if value == "true" {
 				f.SetBool(true)
+				return nil
 			} else if value == "false" {
 				f.SetBool(false)
+				return nil
 			} else {
 				return errors.Errorf("not a bool: %s", value)
 			}
@@ -101,13 +105,14 @@ func (c *StoreConfig) SetConfigValue(key, value string) error {
 				return errors.Wrapf(err, "failed to convert '%s' to int", value)
 			}
 			f.SetInt(int64(iv))
+			return nil
 		default:
 			continue
 		}
 	}
-	return nil
+	return errors.New("unknown config option")
 }
 
 func (c *StoreConfig) String() string {
-	return fmt.Sprintf("StoreConfig[AskForMore:%t,AutoImport:%t,AutoSync:%t,ClipTimeout:%d,NoColor:%t,NoConfirm:%t,NoPager:%t,Path:%s,SafeContent:%t,UseSymbols:%t]", c.AskForMore, c.AutoImport, c.AutoSync, c.ClipTimeout, c.NoColor, c.NoConfirm, c.NoPager, c.Path, c.SafeContent, c.UseSymbols)
+	return fmt.Sprintf("StoreConfig[AskForMore:%t,AutoImport:%t,AutoSync:%t,ClipTimeout:%d,EditRecipients:%t,NoColor:%t,NoConfirm:%t,NoPager:%t,Path:%s,SafeContent:%t,UseSymbols:%t]", c.AskForMore, c.AutoImport, c.AutoSync, c.ClipTimeout, c.EditRecipients, c.NoColor, c.NoConfirm, c.NoPager, c.Path, c.SafeContent, c.UseSymbols)
 }

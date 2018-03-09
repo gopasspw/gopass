@@ -19,6 +19,9 @@ func (c StoreConfig) WithContext(ctx context.Context) context.Context {
 	if !sub.HasAutoSync(ctx) {
 		ctx = sub.WithAutoSync(ctx, c.AutoSync)
 	}
+	if !ctxutil.HasEditRecipients(ctx) {
+		ctx = ctxutil.WithEditRecipients(ctx, c.EditRecipients)
+	}
 	if !ctxutil.HasClipTimeout(ctx) {
 		ctx = ctxutil.WithClipTimeout(ctx, c.ClipTimeout)
 	}
