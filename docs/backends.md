@@ -12,13 +12,58 @@ All backends are in their own packages below `backend/`. They need to implement 
 interfaces defined in the backend package and have their identification added to
 the context handlers in the same package.
 
-## Storage Backends (store)
+## Storage Backends (storage)
 
 ### Filesystem (fs)
 
 Right now there is only one storage backend implemented: Storing bytes on disk.
 
-## SCM Backends (sync)
+### In Memory (inmem)
+
+This is a volatile in-memory backend for tests.
+
+WARNING: All data is lost when gopass stops!
+
+### Consul (consul)
+
+This is an experimental storage backend that stores data in Consul.
+Make sure to either combine this with a crypto backend or make sure
+the data in Consul is properly protected as this backend does no
+encryption on it's own.
+
+#### Usage
+
+Until Consul support is fully integrated you need to manually setup a mount
+using the Consul backend.
+
+Add a new mount to your `config.yml` (usually at `.config/gopass/config.yml`):
+
+```bash
+cat <<EOF >> $HOME/.config/gopass/config.yml
+mounts:
+  consul:
+    path: plain-noop-consul+https://consul:8500/some/prefix/?token=some-token&datacenter=your-dc
+EOF
+```
+
+This will setup an unecrypted backend, i.e. your secrets in Consul will be only
+protected by Consul's ACLs and anyone who can access your Consul K/V prefix
+can read your secrets.
+
+You probably want to use a crypto backend to protect your secrets like in the
+following example:
+
+```bash
+gopass xc generate
+KEY=$(gopass xc list-private-keys | tail -1 | cut -d' ' -f1)
+gopass init --path='xc-noop-consul+https://consul:8500/foo/bar/?token=some-token&datacenter=you-dc' --store=consul --crypto=xc --sync=noop $KEY
+gopass mounts
+```
+
+## RCS Backends (rcs)
+
+These are revision control backends talking to difference source control
+management systems.
 
 ### CLI-based git (gitcli)
 
@@ -36,13 +81,13 @@ it unseable for most gopass usecases. However we still keep this backend around
 in case upstream manages to implement proper merges. In that case this will
 quickly become the default SCM backend.
 
-### Git Mock
+### Noop (noop)
 
 This is a no-op backend for testing SCM-less support.
 
 ## Crypto Backends (crypto)
 
-### CLI-based GPG
+### CLI-based GPG (gitcli)
 
 This backend is based on calling the gpg binary. This is the recommended backend
 since we believe that it's the most secure and one and it's compatible with
@@ -51,7 +96,7 @@ difficult to use, there are lot's of different versions being used and the
 output is not very machine readable. We will continue to support this backend
 in the future, but we'd like to to move to a different default backend if possible.
 
-### GPG Mock
+### Plaintext (plain)
 
 This is a no-op backend used for testing.
 
@@ -75,3 +120,6 @@ using existing building blocks - we're a little wary to recommend it for broader
 
 Also it requires it's own Keyring/Agent infrastructure as the keyformat is quite
 different from what GPG is using.
+
+Please see the backend [Readme](https://github.com/justwatchcom/gopass/blob/master/backend/crypto/xc/README.md) for more details. Proper documentation for this
+backend still needs to written and will be added at a later point.

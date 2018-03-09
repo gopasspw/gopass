@@ -37,20 +37,25 @@ func New(ctx context.Context, cfg *config.Config) (*Store, error) {
 	}
 
 	// create the base store
-	if !backend.HasCryptoBackend(ctx) {
-		ctx = backend.WithCryptoBackend(ctx, cfg.Root.Path.Crypto)
+	{
+		// capture ctx to limit effect on the next sub.New call and to not
+		// propagate it's effects to the mounts below
+		ctx := ctx
+		if !backend.HasCryptoBackend(ctx) {
+			ctx = backend.WithCryptoBackend(ctx, cfg.Root.Path.Crypto)
+		}
+		if !backend.HasRCSBackend(ctx) {
+			ctx = backend.WithRCSBackend(ctx, cfg.Root.Path.RCS)
+		}
+		if !backend.HasStorageBackend(ctx) {
+			ctx = backend.WithStorageBackend(ctx, cfg.Root.Path.Storage)
+		}
+		s, err := sub.New(ctx, "", r.url.String(), config.Directory())
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to initialize the root store at '%s': %s", r.Path(), err)
+		}
+		r.store = s
 	}
-	if !backend.HasRCSBackend(ctx) {
-		ctx = backend.WithRCSBackend(ctx, cfg.Root.Path.RCS)
-	}
-	if !backend.HasStorageBackend(ctx) {
-		ctx = backend.WithStorageBackend(ctx, cfg.Root.Path.Storage)
-	}
-	s, err := sub.New(ctx, "", r.Path(), config.Directory())
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to initialize the root store at '%s': %s", r.Path(), err)
-	}
-	r.store = s
 
 	// initialize all mounts
 	for alias, sc := range cfg.Mounts {

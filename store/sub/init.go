@@ -53,7 +53,7 @@ You can add secondary stores with gopass init --path <path to secondary store> -
 	}
 
 	if err := s.saveRecipients(ctx, recipients, "Initialized Store for "+strings.Join(recipients, ", "), true); err != nil {
-		return errors.Errorf("failed to initialize store: %v", err)
+		return errors.Wrapf(err, "failed to initialize store: %s", err)
 	}
 
 	return nil

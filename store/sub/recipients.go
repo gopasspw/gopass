@@ -5,8 +5,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"os"
-	"path/filepath"
 	"sort"
 	"strings"
 
@@ -18,7 +16,6 @@ import (
 const (
 	keyDir    = ".public-keys"
 	oldKeyDir = ".gpg-keys"
-	dirMode   = 0700
 )
 
 // Recipients returns the list of recipients of this.storage
@@ -199,11 +196,6 @@ func (s *Store) saveRecipients(ctx context.Context, rs []string, msg string, exp
 		if err != store.ErrGitNotInit && err != store.ErrGitNothingToCommit {
 			return errors.Wrapf(err, "failed to commit changes to git")
 		}
-	}
-
-	// save recipients' public keys
-	if err := os.MkdirAll(filepath.Join(s.url.Path, keyDir), dirMode); err != nil {
-		return errors.Wrapf(err, "failed to create key dir '%s'", keyDir)
 	}
 
 	// save all recipients public keys to the repo
