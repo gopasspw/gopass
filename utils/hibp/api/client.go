@@ -23,8 +23,9 @@ func Lookup(ctx context.Context, shaSum string) (uint64, error) {
 		return 0, errors.Errorf("invalid shasum")
 	}
 
-	prefix := strings.ToUpper(shaSum[:5])
-	suffix := strings.ToUpper(shaSum[5:])
+	shaSum = strings.ToUpper(shaSum)
+	prefix := shaSum[:5]
+	suffix := shaSum[5:]
 
 	var count uint64
 	url := fmt.Sprintf("%s/range/%s", URL, prefix)

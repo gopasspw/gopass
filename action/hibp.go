@@ -73,7 +73,7 @@ func (s *Action) hibpDump(ctx context.Context, force bool, dumps []string) error
 		return err
 	}
 
-	scanner, err := hibpdump.New(dumps)
+	scanner, err := hibpdump.New(dumps...)
 	if err != nil {
 		return exitError(ctx, ExitUsage, err, "Failed to create new HIBP Dump scanner: %s", err)
 	}

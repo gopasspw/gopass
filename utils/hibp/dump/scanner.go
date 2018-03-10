@@ -21,7 +21,7 @@ type Scanner struct {
 }
 
 // New creates a new scanner
-func New(dumps []string) (*Scanner, error) {
+func New(dumps ...string) (*Scanner, error) {
 	ok := make([]string, 0, len(dumps))
 	for _, dump := range dumps {
 		if !fsutil.IsFile(dump) {
@@ -114,6 +114,9 @@ func isSorted(fn string) bool {
 		}
 
 		line := scanner.Text()
+		if len(line) > 40 {
+			line = line[:40]
+		}
 		if line < lastLine {
 			return false
 		}
