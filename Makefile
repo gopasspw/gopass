@@ -1,7 +1,7 @@
 FIRST_GOPATH              := $(firstword $(subst :, ,$(GOPATH)))
 PKGS                      := $(shell go list ./... | grep -v /tests | grep -v /xcpb | grep -v /openpgp)
-GOFILES_NOVENDOR          := $(shell find . -type f -name '*.go' -not -path "./vendor/*" -not -name "*.pb.go")
-GOFILES_NOTEST            := $(shell find . -type f -name '*.go' -not -path "./vendor/*" -not -name "*_test.go" -not -name "*.pb.go")
+GOFILES_NOVENDOR          := $(shell find . -name vendor -prune -o -type f -name '*.go' -not -name '*.pb.go' -print)
+GOFILES_BUILD             := $(shell find . -type f -name '*.go' -not -name '*_test.go')
 GOPASS_VERSION            ?= $(shell cat VERSION)
 GOPASS_OUTPUT             ?= gopass
 GOPASS_REVISION           := $(shell cat COMMIT 2>/dev/null || git rev-parse --short=8 HEAD)
@@ -20,32 +20,29 @@ GOOS                      ?= $(shell go version | cut -d' ' -f4 | cut -d'/' -f1)
 GOARCH                    ?= $(shell go version | cut -d' ' -f4 | cut -d'/' -f2)
 TAGS                      ?= netgo
 
-all: sysinfo crosscompile build install test codequality completion
+OK := $(shell tput setaf 6; echo ' [OK]'; tput sgr0;)
 
-.PHONY: clean build man
-
-define ok
-	@tput setaf 6 2>/dev/null || echo -n ""
-	@echo " [OK]"
-	@tput sgr0 2>/dev/null || echo -n ""
-endef
+all: build completion
+build: $(GOPASS_OUTPUT)
+completion: $(BASH_COMPLETION_OUTPUT) $(FISH_COMPLETION_OUTPUT) $(ZSH_COMPLETION_OUTPUT)
+travis: sysinfo crosscompile build install test codequality completion
 
 sysinfo:
 	@echo ">> SYSTEM INFORMATION"
 	@echo -n "     PLATFORM: $(shell uname -a)"
-	@$(call ok)
+	@printf '%s\n' '$(OK)'
 	@echo -n "     PWD:    : $(shell pwd)"
-	@$(call ok)
+	@printf '%s\n' '$(OK)'
 	@echo -n "     GO      : $(shell go version)"
-	@$(call ok)
+	@printf '%s\n' '$(OK)'
 	@echo -n "     BUILDFLAGS: $(BUILDFLAGS)"
-	@$(call ok)
+	@printf '%s\n' '$(OK)'
 	@echo -n "     GIT     : $(shell git version)"
-	@$(call ok)
+	@printf '%s\n' '$(OK)'
 	@echo -n "     GPG1    : $(shell gpg --version | head -1)"
-	@$(call ok)
+	@printf '%s\n' '$(OK)'
 	@echo -n "     GPG2    : $(shell gpg2 --version | head -1)"
-	@$(call ok)
+	@printf '%s\n' '$(OK)'
 
 clean:
 	@echo -n ">> CLEAN"
@@ -62,20 +59,20 @@ clean:
 	@rm -f gopass-*-*
 	@rm -f tests/tests
 	@rm -rf dist/*
-	@$(call ok)
+	@printf '%s\n' '$(OK)'
 
-build:
-	@echo -n ">> BUILD, version = $(GOPASS_VERSION)/$(GOPASS_REVISION), output = $(GOPASS_OUTPUT)"
-	@$(GO) build -o $(GOPASS_OUTPUT) $(BUILDFLAGS)
-	@$(call ok)
+$(GOPASS_OUTPUT): $(GOFILES_BUILD)
+	@echo -n ">> BUILD, version = $(GOPASS_VERSION)/$(GOPASS_REVISION), output = $@"
+	@$(GO) build -o $@ $(BUILDFLAGS)
+	@printf '%s\n' '$(OK)'
 
-install: build completion install-completion
+install: all install-completion
 	@echo -n ">> INSTALL, version = $(GOPASS_VERSION)"
 	@install -m 0755 -d $(DESTDIR)$(BINDIR)
 	@install -m 0755 $(GOPASS_OUTPUT) $(DESTDIR)$(BINDIR)/gopass
-	@$(call ok)
+	@printf '%s\n' '$(OK)'
 
-fulltest: build
+fulltest: $(GOPASS_OUTPUT)
 	@echo ">> TEST, \"full-mode\": race detector on"
 	@echo "mode: atomic" > coverage-all.out
 	@$(foreach pkg, $(PKGS),\
@@ -84,7 +81,7 @@ fulltest: build
 		tail -n +2 coverage.out >> coverage-all.out;)
 	@$(GO) tool cover -html=coverage-all.out -o coverage-all.html
 
-test: build
+test: $(GOPASS_OUTPUT)
 	@echo ">> TEST, \"fast-mode\": race detector off"
 	@echo "mode: count" > coverage-all.out
 	@$(foreach pkg, $(PKGS),\
@@ -93,54 +90,43 @@ test: build
 		tail -n +2 coverage.out >> coverage-all.out;)
 	@$(GO) tool cover -html=coverage-all.out -o coverage-all.html
 
-test-integration: build
+test-integration: $(GOPASS_OUTPUT)
 	cd tests && GOPASS_BINARY=$(PWD)/$(GOPASS_OUTPUT) GOPASS_TEST_DIR=$(PWD)/tests go test -v
 
 crosscompile:
 	@echo -n ">> CROSSCOMPILE linux/amd64"
 	@GOOS=linux GOARCH=amd64 $(GO) build -o $(GOPASS_OUTPUT)-linux-amd64
-	@$(call ok)
+	@printf '%s\n' '$(OK)'
 	@echo -n ">> CROSSCOMPILE darwin/amd64"
 	@GOOS=darwin GOARCH=amd64 $(GO) build -o $(GOPASS_OUTPUT)-darwin-amd64
-	@$(call ok)
+	@printf '%s\n' '$(OK)'
 	@echo -n ">> CROSSCOMPILE windows/amd64"
 	@GOOS=windows GOARCH=amd64 $(GO) build -o $(GOPASS_OUTPUT)-windows-amd64
-	@$(call ok)
+	@printf '%s\n' '$(OK)'
 
-completion: $(BASH_COMPLETION_OUTPUT) $(FISH_COMPLETION_OUTPUT) $(ZSH_COMPLETION_OUTPUT)
 
-$(BASH_COMPLETION_OUTPUT): build
-	@echo -n ">> BASH COMPLETION, output = $(BASH_COMPLETION_OUTPUT)"
-	@./gopass completion bash > $(BASH_COMPLETION_OUTPUT)
-	@$(call ok)
-
-$(FISH_COMPLETION_OUTPUT): build
-	@echo -n ">> FISH COMPLETION, output = $(FISH_COMPLETION_OUTPUT)"
-	@./gopass completion fish > $(FISH_COMPLETION_OUTPUT)
-	@$(call ok)
-
-$(ZSH_COMPLETION_OUTPUT): build
-	@echo -n ">> ZSH COMPLETION, output = $(ZSH_COMPLETION_OUTPUT)"
-	@./gopass completion zsh > $(ZSH_COMPLETION_OUTPUT)
-	@$(call ok)
+%.completion: $(GOPASS_OUTPUT)
+	@printf ">> $* completion, output = $@"
+	@./gopass completion $* > $@
+	@printf "%s\n" "$(OK)"
 
 install-completion: completion
 	@install -d $(DESTDIR)$(PREFIX)/share/zsh/site-functions $(DESTDIR)$(PREFIX)/share/bash-completion/completions $(DESTDIR)$(PREFIX)/share/fish/vendor_completions.d
 	@install -m 0755 $(ZSH_COMPLETION_OUTPUT) $(DESTDIR)$(PREFIX)/share/zsh/site-functions/_gopass
 	@install -m 0755 $(BASH_COMPLETION_OUTPUT) $(DESTDIR)$(PREFIX)/share/bash-completion/completions/gopass
 	@install -m 0755 $(FISH_COMPLETION_OUTPUT) $(DESTDIR)$(PREFIX)/share/fish/vendor_completions.d/gopass.fish
-	@$(call ok)
+	@printf '%s\n' '$(OK)'
 
 codequality:
 	@echo ">> CODE QUALITY"
 	@echo -n "     FMT       "
 	@$(foreach gofile, $(GOFILES_NOVENDOR),\
 			out=$$(gofmt -s -l -d -e $(gofile) | tee /dev/stderr); if [ -n "$$out" ]; then exit 1; fi;)
-	@$(call ok)
+	@printf '%s\n' '$(OK)'
 
 	@echo -n "     VET       "
 	@$(GO) vet ./...
-	@$(call ok)
+	@printf '%s\n' '$(OK)'
 
 	@echo -n "     CYCLO     "
 	@which gocyclo > /dev/null; if [ $$? -ne 0 ]; then \
@@ -148,7 +134,7 @@ codequality:
 	fi
 	@$(foreach gofile, $(GOFILES_NOVENDOR),\
 			gocyclo -over 22 $(gofile) || exit 1;)
-	@$(call ok)
+	@printf '%s\n' '$(OK)'
 
 	@echo -n "     LINT      "
 	@which golint > /dev/null; if [ $$? -ne 0 ]; then \
@@ -156,14 +142,14 @@ codequality:
 	fi
 	@$(foreach pkg, $(PKGS),\
 			golint -set_exit_status $(pkg) || exit 1;)
-	@$(call ok)
+	@printf '%s\n' '$(OK)'
 
 	@echo -n "     INEFF     "
 	@which ineffassign > /dev/null; if [ $$? -ne 0 ]; then \
 		$(GO) get -u github.com/gordonklaus/ineffassign; \
 	fi
 	@ineffassign . || exit 1
-	@$(call ok)
+	@printf '%s\n' '$(OK)'
 
 	@echo -n "     SPELL     "
 	@which misspell > /dev/null; if [ $$? -ne 0 ]; then \
@@ -171,28 +157,28 @@ codequality:
 	fi
 	@$(foreach gofile, $(GOFILES_NOVENDOR),\
 			misspell --error $(gofile) || exit 1;)
-	@$(call ok)
+	@printf '%s\n' '$(OK)'
 
 	@echo -n "     MEGACHECK "
 	@which megacheck > /dev/null; if [ $$? -ne 0  ]; then \
 		$(GO) get -u honnef.co/go/tools/cmd/megacheck; \
 	fi
 	@megacheck $(PKGS) || exit 1
-	@$(call ok)
+	@printf '%s\n' '$(OK)'
 
 	@echo -n "     ERRCHECK  "
 	@which errcheck > /dev/null; if [ $$? -ne 0  ]; then \
 		$(GO) get -u github.com/kisielk/errcheck; \
 	fi
 	@errcheck $(PKGS) || exit 1
-	@$(call ok)
+	@printf '%s\n' '$(OK)'
 
 	@echo -n "     UNCONVERT "
 	@which unconvert > /dev/null; if [ $$? -ne 0  ]; then \
 		$(GO) get -u github.com/mdempsky/unconvert; \
 	fi
 	@unconvert -v $(PKGS) || exit 1
-	@$(call ok)
+	@printf '%s\n' '$(OK)'
 
 fuzz-gpg:
 	mkdir -p workdir/gpg-cli/corpus
@@ -207,3 +193,5 @@ fuzz-jsonapi:
 docker-test:
 	docker build -t gopass:$(GOPASS_REVISION) .
 	docker run --rm gopass:$(GOPASS_REVISION) make test
+
+.PHONY: clean build completion install sysinfo crosscompile test codequality
