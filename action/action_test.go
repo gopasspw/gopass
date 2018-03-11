@@ -21,7 +21,14 @@ func newMock(ctx context.Context, u *gptest.Unit) (*Action, error) {
 	ctx = backend.WithRCSBackend(ctx, backend.Noop)
 	ctx = backend.WithCryptoBackend(ctx, backend.Plain)
 	ctx = backend.WithStorageBackend(ctx, backend.FS)
-	return newAction(ctx, cfg, semver.Version{})
+	act, err := newAction(ctx, cfg, semver.Version{})
+	if err != nil {
+		return nil, err
+	}
+	if err := act.Initialized(ctx, nil); err != nil {
+		return nil, err
+	}
+	return act, nil
 }
 
 func TestAction(t *testing.T) {

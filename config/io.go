@@ -57,6 +57,7 @@ func load(cf string) (*Config, error) {
 	if cfg.Mounts == nil {
 		cfg.Mounts = make(map[string]*StoreConfig)
 	}
+	cfg.Path = cf
 	return cfg, nil
 }
 

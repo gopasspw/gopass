@@ -1,15 +1,19 @@
 package agent
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"net/http"
 	"os"
 	"path/filepath"
+	"sync"
 	"time"
 
 	"github.com/justwatchcom/gopass/utils/agent/client"
+	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/justwatchcom/gopass/utils/pinentry"
+	"github.com/pkg/errors"
 )
 
 type piner interface {
@@ -21,6 +25,7 @@ type piner interface {
 
 // Agent is a gopass agent
 type Agent struct {
+	sync.Mutex
 	socket   string
 	testing  bool
 	server   *http.Server
@@ -60,19 +65,24 @@ func NewForTesting(dir, key, pass string) *Agent {
 }
 
 // ListenAndServe starts listening and blocks
-func (a *Agent) ListenAndServe() error {
+func (a *Agent) ListenAndServe(ctx context.Context) error {
+	out.Debug(ctx, "Trying to listen on %s", a.socket)
 	lis, err := net.Listen("unix", a.socket)
+	if err == nil {
+		return a.server.Serve(lis)
+	}
+
+	out.Debug(ctx, "Failed to listen on %s: %s", a.socket, err)
+	if err := client.New(filepath.Dir(a.socket)).Ping(ctx); err == nil {
+		return fmt.Errorf("agent already running")
+	}
+	if err := os.Remove(a.socket); err != nil {
+		return errors.Wrapf(err, "failed to remove old agent socket %s: %s", a.socket, err)
+	}
+	out.Debug(ctx, "Trying to listen on %s after removing old socket", a.socket)
+	lis, err = net.Listen("unix", a.socket)
 	if err != nil {
-		if err := client.New(filepath.Dir(a.socket)).Ping(); err == nil {
-			return fmt.Errorf("agent already running")
-		}
-		if err := os.Remove(a.socket); err != nil {
-			return err
-		}
-		lis, err = net.Listen("unix", a.socket)
-		if err != nil {
-			return err
-		}
+		return errors.Wrapf(err, "failed to listen on %s after cleanup: %s", a.socket, err)
 	}
 	return a.server.Serve(lis)
 }
@@ -82,6 +92,9 @@ func (a *Agent) servePing(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *Agent) serveRemove(w http.ResponseWriter, r *http.Request) {
+	a.Lock()
+	defer a.Unlock()
+
 	key := r.URL.Query().Get("key")
 	if !a.testing {
 		a.cache.remove(key)
@@ -90,6 +103,9 @@ func (a *Agent) serveRemove(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *Agent) servePurge(w http.ResponseWriter, r *http.Request) {
+	a.Lock()
+	defer a.Unlock()
+
 	if !a.testing {
 		a.cache.purge()
 	}
@@ -97,6 +113,9 @@ func (a *Agent) servePurge(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *Agent) servePassphrase(w http.ResponseWriter, r *http.Request) {
+	a.Lock()
+	defer a.Unlock()
+
 	key := r.URL.Query().Get("key")
 	reason := r.URL.Query().Get("reason")
 

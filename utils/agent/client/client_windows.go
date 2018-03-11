@@ -3,6 +3,7 @@
 package client
 
 import (
+	"context"
 	"os"
 	"os/exec"
 	"syscall"
@@ -16,7 +17,7 @@ const (
 	DETACHED_PROCESS = 0x00000008
 )
 
-func (c *Client) startAgent() error {
+func (c *Client) startAgent(ctx context.Context) error {
 	path, err := os.Executable()
 	if err != nil {
 		return err

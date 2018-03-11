@@ -23,7 +23,7 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 			Action: func(c *cli.Context) error {
 				ec := make(chan error)
 				go func() {
-					ec <- agent.New(config.Directory()).ListenAndServe()
+					ec <- agent.New(config.Directory()).ListenAndServe(ctx)
 				}()
 				select {
 				case <-ctx.Done():
@@ -38,7 +38,7 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 					Usage:  "Start a simple agent test client",
 					Hidden: true,
 					Action: func(c *cli.Context) error {
-						pw, err := client.New(config.Directory()).Passphrase("test", "test")
+						pw, err := client.New(config.Directory()).Passphrase(ctx, "test", "test")
 						if err != nil {
 							return err
 						}
@@ -419,6 +419,7 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 					Action: func(c *cli.Context) error {
 						return action.JSONAPI(withGlobalFlags(ctx, c), c)
 					},
+					Before: func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
 				},
 				{
 					Name:        "configure",

@@ -47,7 +47,7 @@ func (r *Store) addMount(ctx context.Context, alias, path string, sc *config.Sto
 			out.Debug(ctx, "addMount - Using RCS backend %s", backend.RCSBackendName(sc.Path.RCS))
 		}
 	}
-	s, err := sub.New(ctx, alias, path, config.Directory())
+	s, err := sub.New(ctx, alias, path, r.cfg.Directory(), r.agent)
 	if err != nil {
 		return errors.Wrapf(err, "failed to initialize store '%s' at '%s': %s", alias, path, err)
 	}

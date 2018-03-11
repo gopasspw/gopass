@@ -9,6 +9,7 @@ import (
 	"github.com/blang/semver"
 	"github.com/justwatchcom/gopass/config"
 	"github.com/justwatchcom/gopass/store/root"
+	"github.com/justwatchcom/gopass/utils/out"
 )
 
 var (
@@ -41,6 +42,8 @@ func newAction(ctx context.Context, cfg *config.Config, sv semver.Version) (*Act
 		cfg:     cfg,
 		version: sv,
 	}
+
+	ctx = out.AddPrefix(ctx, "[action] ")
 
 	store, err := root.New(ctx, cfg)
 	if err != nil {

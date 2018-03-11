@@ -39,8 +39,9 @@ func TestInit(t *testing.T) {
 	assert.NoError(t, act.Initialized(ctx, c))
 	assert.Error(t, act.Init(ctx, c))
 	assert.Error(t, act.InitOnboarding(ctx, c))
-	assert.Equal(t, true, act.initHasUseablePrivateKeys(ctx, ""))
-	assert.Error(t, act.initCreatePrivateKey(ctx, "", "foo bar", "foo.bar@example.org"))
+	crypto := act.Store.Crypto(ctx, "")
+	assert.Equal(t, true, act.initHasUseablePrivateKeys(ctx, crypto, ""))
+	assert.Error(t, act.initCreatePrivateKey(ctx, crypto, "", "foo bar", "foo.bar@example.org"))
 	buf.Reset()
 
 	// un-initialize the store

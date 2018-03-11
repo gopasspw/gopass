@@ -10,6 +10,9 @@ import (
 
 // Initialized returns true if the store is properly initialized
 func (s *Store) Initialized(ctx context.Context) bool {
+	if s == nil || s.storage == nil {
+		return false
+	}
 	return s.storage.Exists(ctx, s.idFile(ctx, ""))
 }
 

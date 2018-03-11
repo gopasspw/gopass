@@ -81,10 +81,10 @@ func (x *XC) FindPrivateKeys(ctx context.Context, search ...string) ([]string, e
 // FormatKey formats a key
 func (x *XC) FormatKey(ctx context.Context, id string) string {
 	if key := x.pubring.Get(id); key != nil {
-		return key.Identity.ID()
+		return id + " - " + key.Identity.ID()
 	}
 	if key := x.secring.Get(id); key != nil {
-		return key.PublicKey.Identity.ID()
+		return id + " - " + key.PublicKey.Identity.ID()
 	}
 	return id
 }

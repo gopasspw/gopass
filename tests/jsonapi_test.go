@@ -67,5 +67,4 @@ func TestJSONAPI(t *testing.T) {
 	// query for keys with matching one
 	response = getMessageResponse(t, ts, "{\"type\":\"query\",\"query\":\"foo\"}")
 	assert.Equal(t, "[\"awesomePrefix/foo/bar\"]", response)
-
 }

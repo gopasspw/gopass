@@ -17,27 +17,31 @@ import (
 
 // Client is a agent client
 type Client struct {
-	http http.Client
+	http *http.Client
 }
 
 // New creates a new client
 func New(dir string) *Client {
 	socket := filepath.Join(dir, ".gopass-agent.sock")
 	return &Client{
-		http: http.Client{
+		http: &http.Client{
 			Transport: &http.Transport{
 				DialContext: func(context.Context, string, string) (net.Conn, error) {
 					return net.Dial("unix", socket)
 				},
 			},
-			Timeout: 30 * time.Second,
+			Timeout: 10 * time.Minute,
 		},
 	}
 }
 
 // Ping checks connectivity to the agent
-func (c *Client) Ping() error {
-	resp, err := c.http.Get("http://unix/ping")
+func (c *Client) Ping(ctx context.Context) error {
+	pc := &http.Client{
+		Transport: c.http.Transport,
+		Timeout:   5 * time.Second,
+	}
+	resp, err := pc.Get("http://unix/ping")
 	if err != nil {
 		return err
 	}
@@ -45,14 +49,31 @@ func (c *Client) Ping() error {
 	return nil
 }
 
-func (c *Client) waitForAgent() error {
+func (c *Client) waitForAgent(ctx context.Context) error {
 	bo := backoff.NewExponentialBackOff()
 	bo.MaxElapsedTime = 60 * time.Second
-	return backoff.Retry(c.Ping, bo)
+	return backoff.Retry(func() error { return c.Ping(ctx) }, bo)
+}
+
+func (c *Client) checkAgent(ctx context.Context) error {
+	if err := c.Ping(ctx); err == nil {
+		return nil
+	}
+	if err := c.startAgent(ctx); err != nil {
+		return errors.Wrapf(err, "failed to start agent")
+	}
+	if err := c.waitForAgent(ctx); err != nil {
+		return errors.Wrapf(err, "failed to start agent (expired)")
+	}
+	return nil
 }
 
 // Remove un-caches a single key
-func (c *Client) Remove(key string) error {
+func (c *Client) Remove(ctx context.Context, key string) error {
+	if err := c.checkAgent(ctx); err != nil {
+		return errors.Wrapf(err, "agent not available: %s", err)
+	}
+
 	u, err := url.Parse("http://unix/cache/remove")
 	if err != nil {
 		return errors.Wrapf(err, "failed to build request url")
@@ -76,14 +97,9 @@ func (c *Client) Remove(key string) error {
 }
 
 // Passphrase asks for a passphrase from the agent
-func (c *Client) Passphrase(key, reason string) (string, error) {
-	if err := c.Ping(); err != nil {
-		if err := c.startAgent(); err != nil {
-			return "", errors.Wrapf(err, "failed to start agent")
-		}
-		if err := c.waitForAgent(); err != nil {
-			return "", errors.Wrapf(err, "failed to start agent (expired)")
-		}
+func (c *Client) Passphrase(ctx context.Context, key, reason string) (string, error) {
+	if err := c.checkAgent(ctx); err != nil {
+		return "", errors.Wrapf(err, "no agent available: %s", err)
 	}
 
 	u, err := url.Parse("http://unix/passphrase")

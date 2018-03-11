@@ -53,6 +53,7 @@ func createSubStore(dir string) (*Store, error) {
 		"",
 		sd,
 		sd,
+		nil,
 	)
 }
 
@@ -184,7 +185,7 @@ func TestNew(t *testing.T) {
 			ok:  false,
 		},
 	} {
-		s, err := New(tc.ctx, "", tempdir, tempdir)
+		s, err := New(tc.ctx, "", tempdir, tempdir, nil)
 		if tc.ok {
 			assert.NoError(t, err)
 			assert.NotNil(t, s)
