@@ -64,7 +64,6 @@ func (x *XC) encryptHeader(signKey *keyring.PrivateKey, sk []byte, recipients []
 	hdr := &xcpb.Header{
 		Sender:     signKey.Fingerprint(),
 		Recipients: make(map[string][]byte, len(recipients)),
-		Metadata:   make(map[string]string), // metadata is plaintext!
 	}
 
 	recipients = append(recipients, signKey.Fingerprint())
