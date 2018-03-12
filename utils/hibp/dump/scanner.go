@@ -60,10 +60,13 @@ func (s *Scanner) LookupBatch(ctx context.Context, in []string) []string {
 		for result := range results {
 			out = append(out, result)
 		}
+		done <- struct{}{}
 	}()
 	for range s.dumps {
 		<-done
 	}
+	close(results)
+	<-done
 
 	return out
 }
