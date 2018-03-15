@@ -8,7 +8,7 @@ import (
 	"github.com/justwatchcom/gopass/backend"
 	"github.com/justwatchcom/gopass/config"
 	"github.com/justwatchcom/gopass/store/sub"
-	"github.com/justwatchcom/gopass/utils/out"
+	"github.com/justwatchcom/gopass/utils/agent/client"
 	"github.com/pkg/errors"
 )
 
@@ -19,6 +19,7 @@ type Store struct {
 	url     *backend.URL // url of the root store
 	store   *sub.Store
 	version string
+	agent   *client.Client
 }
 
 // New creates a new store
@@ -34,40 +35,6 @@ func New(ctx context.Context, cfg *config.Config) (*Store, error) {
 		mounts:  make(map[string]*sub.Store, len(cfg.Mounts)),
 		url:     cfg.Root.Path,
 		version: cfg.Version,
-	}
-
-	// create the base store
-	{
-		// capture ctx to limit effect on the next sub.New call and to not
-		// propagate it's effects to the mounts below
-		ctx := ctx
-		if !backend.HasCryptoBackend(ctx) {
-			ctx = backend.WithCryptoBackend(ctx, cfg.Root.Path.Crypto)
-		}
-		if !backend.HasRCSBackend(ctx) {
-			ctx = backend.WithRCSBackend(ctx, cfg.Root.Path.RCS)
-		}
-		if !backend.HasStorageBackend(ctx) {
-			ctx = backend.WithStorageBackend(ctx, cfg.Root.Path.Storage)
-		}
-		s, err := sub.New(ctx, "", r.url.String(), config.Directory())
-		if err != nil {
-			return nil, errors.Wrapf(err, "failed to initialize the root store at '%s': %s", r.Path(), err)
-		}
-		r.store = s
-	}
-
-	// initialize all mounts
-	for alias, sc := range cfg.Mounts {
-		if err := r.addMount(ctx, alias, sc.Path.String(), sc); err != nil {
-			out.Red(ctx, "Failed to initialize mount %s (%s). Ignoring: %s", alias, sc.Path.String(), err)
-			continue
-		}
-	}
-
-	// check for duplicate mounts
-	if err := r.checkMounts(); err != nil {
-		return nil, errors.Errorf("checking mounts failed: %s", err)
 	}
 
 	return r, nil
@@ -90,12 +57,27 @@ func (r *Store) String() string {
 	for alias, sub := range r.mounts {
 		ms = append(ms, alias+"="+sub.String())
 	}
-	return fmt.Sprintf("Store(Path: %s, Mounts: %+v)", r.store.Path(), strings.Join(ms, ","))
+	path := ""
+	if r.store != nil {
+		path = r.store.Path()
+	}
+	return fmt.Sprintf("Store(Path: %s, Mounts: %+v)", path, strings.Join(ms, ","))
 }
 
 // Path returns the store path
 func (r *Store) Path() string {
+	if r.url == nil {
+		return ""
+	}
 	return r.url.Path
+}
+
+// URL returns the store URL
+func (r *Store) URL() string {
+	if r.url == nil {
+		return ""
+	}
+	return r.url.String()
 }
 
 // Alias always returns an empty string
@@ -106,5 +88,8 @@ func (r *Store) Alias() string {
 // Store returns the storage backend for the given mount point
 func (r *Store) Store(ctx context.Context, name string) backend.Storage {
 	_, sub, _ := r.getStore(ctx, name)
+	if sub == nil {
+		return nil
+	}
 	return sub.Storage()
 }

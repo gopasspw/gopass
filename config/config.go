@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"sort"
 
 	"github.com/pkg/errors"
@@ -24,6 +25,7 @@ func init() {
 
 // Config is the current config struct
 type Config struct {
+	Path    string                  `yaml:"-"`
 	Root    *StoreConfig            `yaml:"root"`
 	Mounts  map[string]*StoreConfig `yaml:"mounts"`
 	Version string                  `yaml:"version"`
@@ -35,6 +37,7 @@ type Config struct {
 // New creates a new config with sane default values
 func New() *Config {
 	return &Config{
+		Path: configLocation(),
 		Root: &StoreConfig{
 			AskForMore:    false,
 			AutoClip:      true,
@@ -112,4 +115,9 @@ func (c *Config) String() string {
 		mounts += alias + "=>" + sc.String()
 	}
 	return fmt.Sprintf("Config[Root:%s,Mounts(%s),Version:%s]", c.Root.String(), mounts, c.Version)
+}
+
+// Directory returns the directory this config is using
+func (c *Config) Directory() string {
+	return filepath.Dir(c.Path)
 }

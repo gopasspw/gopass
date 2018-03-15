@@ -22,6 +22,7 @@ func TestHistory(t *testing.T) {
 	defer u.Remove()
 
 	ctx := context.Background()
+	ctx = ctxutil.WithDebug(ctx, true)
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = backend.WithRCSBackend(ctx, backend.GitCLI)
 	ctx = backend.WithCryptoBackend(ctx, backend.Plain)
@@ -30,6 +31,7 @@ func TestHistory(t *testing.T) {
 	cfg.Root.Path = backend.FromPath(u.StoreDir(""))
 	act, err := newAction(ctx, cfg, semver.Version{})
 	assert.NoError(t, err)
+	assert.NoError(t, act.Initialized(ctx, nil))
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
@@ -41,6 +43,7 @@ func TestHistory(t *testing.T) {
 
 	// init git
 	assert.NoError(t, act.gitInit(ctx, "", "foo bar", "foo.bar@example.org"))
+	buf.Reset()
 
 	// insert bar
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
@@ -48,6 +51,7 @@ func TestHistory(t *testing.T) {
 	c := cli.NewContext(app, fs, nil)
 
 	assert.NoError(t, act.Insert(ctx, c))
+	buf.Reset()
 
 	// history bar
 	fs = flag.NewFlagSet("default", flag.ContinueOnError)
@@ -55,4 +59,5 @@ func TestHistory(t *testing.T) {
 	c = cli.NewContext(app, fs, nil)
 
 	assert.NoError(t, act.History(ctx, c))
+	buf.Reset()
 }

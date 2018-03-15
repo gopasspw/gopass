@@ -198,9 +198,8 @@ func runRespondRawMessages(t *testing.T, requests []verifiedRequest, secrets []s
 		},
 	)
 	assert.NoError(t, err)
-
-	err = populateStore(tempdir, secrets)
-	assert.NoError(t, err)
+	assert.Equal(t, false, store.Initialized(ctx))
+	assert.NoError(t, populateStore(tempdir, secrets))
 
 	for _, request := range requests {
 		var inbuf bytes.Buffer

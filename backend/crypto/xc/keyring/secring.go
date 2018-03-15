@@ -182,9 +182,10 @@ func secPBToKR(xpk *xcpb.PrivateKey) *PrivateKey {
 			PublicKey: [32]byte{},
 		},
 		EncryptedData: make([]byte, len(xpk.Ciphertext)),
-		Nonce:         [24]byte{},
+		Nonce:         [nonceLength]byte{},
 		Salt:          make([]byte, len(xpk.Salt)),
 	}
+
 	// public part
 	pk.PublicKey.CreationTime = time.Unix(int64(xpk.PublicKey.CreationTime), 0)
 	switch xpk.PublicKey.PubKeyAlgo {
@@ -193,6 +194,7 @@ func secPBToKR(xpk *xcpb.PrivateKey) *PrivateKey {
 	}
 	copy(pk.PublicKey.PublicKey[:], xpk.PublicKey.PublicKey)
 	pk.PublicKey.Identity = xpk.PublicKey.Identity
+
 	// private part
 	pk.Encrypted = true
 	copy(pk.EncryptedData, xpk.Ciphertext)
@@ -214,6 +216,7 @@ func secKRToPB(pk *PrivateKey) *xcpb.PrivateKey {
 		Nonce:      make([]byte, len(pk.Nonce)),
 		Salt:       make([]byte, len(pk.Salt)),
 	}
+
 	// public key
 	switch pk.PubKeyAlgo {
 	case PubKeyNaCl:

@@ -46,7 +46,7 @@ func TestCreatePrivateKeyBatch(t *testing.T) {
 	assert.Equal(t, len(pubKeys), len(privKeys))
 
 	id := pubKeys[0]
-	assert.Equal(t, "foo <bar@example.org>", xc.FormatKey(ctx, id))
+	assert.Contains(t, xc.FormatKey(ctx, id), "foo <bar@example.org>")
 	assert.Equal(t, "foo", xc.NameFromKey(ctx, id))
 	assert.Equal(t, "bar@example.org", xc.EmailFromKey(ctx, id))
 

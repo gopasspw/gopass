@@ -115,3 +115,11 @@ func (m *InMem) Name() string {
 func (m *InMem) Version() semver.Version {
 	return semver.Version{Major: 1}
 }
+
+// Available will check if this backend is useable
+func (m *InMem) Available(ctx context.Context) error {
+	if m.data == nil {
+		return fmt.Errorf("not initialized")
+	}
+	return nil
+}

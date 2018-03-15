@@ -29,6 +29,7 @@ func setupApp(ctx context.Context, sv semver.Version) *cli.App {
 		}
 	}
 
+	// initialize action handlers
 	action, err := ap.New(ctx, cfg, sv)
 	if err != nil {
 		out.Red(ctx, "No gpg binary found: %s", err)

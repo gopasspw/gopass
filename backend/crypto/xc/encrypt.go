@@ -43,7 +43,7 @@ func (x *XC) Encrypt(ctx context.Context, plaintext []byte, recipients []string)
 	}
 
 	// encrypt the session key per recipient
-	header, err := x.encryptHeader(privKey, sk, recipients)
+	header, err := x.encryptHeader(ctx, privKey, sk, recipients)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to encrypt header: %s", err)
 	}
@@ -60,7 +60,7 @@ func (x *XC) Encrypt(ctx context.Context, plaintext []byte, recipients []string)
 
 // encrypt header creates and populates a header struct with the nonce (plain)
 // and the session key encrypted per recipient
-func (x *XC) encryptHeader(signKey *keyring.PrivateKey, sk []byte, recipients []string) (*xcpb.Header, error) {
+func (x *XC) encryptHeader(ctx context.Context, signKey *keyring.PrivateKey, sk []byte, recipients []string) (*xcpb.Header, error) {
 	hdr := &xcpb.Header{
 		Sender:     signKey.Fingerprint(),
 		Recipients: make(map[string][]byte, len(recipients)),
@@ -75,7 +75,7 @@ func (x *XC) encryptHeader(signKey *keyring.PrivateKey, sk []byte, recipients []
 			continue
 		}
 
-		r, err := x.encryptForRecipient(signKey, sk, recp)
+		r, err := x.encryptForRecipient(ctx, signKey, sk, recp)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to encrypt session key for recipient %s: %s", recp, err)
 		}
@@ -87,7 +87,7 @@ func (x *XC) encryptHeader(signKey *keyring.PrivateKey, sk []byte, recipients []
 }
 
 // encryptForRecipients encrypts the given session key for the given recipient
-func (x *XC) encryptForRecipient(sender *keyring.PrivateKey, sk []byte, recipient string) ([]byte, error) {
+func (x *XC) encryptForRecipient(ctx context.Context, sender *keyring.PrivateKey, sk []byte, recipient string) ([]byte, error) {
 	recp := x.pubring.Get(recipient)
 	if recp == nil {
 		return nil, fmt.Errorf("recipient public key not available for %s", recipient)
@@ -97,7 +97,7 @@ func (x *XC) encryptForRecipient(sender *keyring.PrivateKey, sk []byte, recipien
 	copy(recipientPublicKey[:], recp.PublicKey[:])
 
 	// unlock sender key
-	if err := x.decryptPrivateKey(sender); err != nil {
+	if err := x.decryptPrivateKey(ctx, sender); err != nil {
 		return nil, err
 	}
 

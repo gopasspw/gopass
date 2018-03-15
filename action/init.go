@@ -8,6 +8,8 @@ import (
 	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/backend"
 	"github.com/justwatchcom/gopass/config"
+	"github.com/justwatchcom/gopass/store/sub"
+	"github.com/justwatchcom/gopass/utils/agent/client"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/cui"
 	"github.com/justwatchcom/gopass/utils/out"
@@ -21,6 +23,7 @@ import (
 // prepared.
 func (s *Action) Initialized(ctx context.Context, c *cli.Context) error {
 	if !s.Store.Initialized(ctx) {
+		out.Debug(ctx, "Store needs to be initialized")
 		if !ctxutil.IsInteractive(ctx) {
 			return exitError(ctx, ExitNotInitialized, nil, "password-store is not initialized. Try '%s init'", s.Name)
 		}
@@ -31,6 +34,7 @@ func (s *Action) Initialized(ctx context.Context, c *cli.Context) error {
 			return nil
 		}
 	}
+	out.Debug(ctx, "Store is already initialized")
 	return nil
 }
 
@@ -59,7 +63,9 @@ func (s *Action) init(ctx context.Context, alias, path string, nogit bool, keys 
 			path = s.Store.Path()
 		}
 	}
+	out.Debug(ctx, "init(%s, %s, %t, %+v)", alias, path, nogit, keys)
 
+	out.Debug(ctx, "Checking private keys ...")
 	if len(keys) < 1 {
 		nk, err := s.askForPrivateKey(ctx, alias, color.CyanString("Please select a private key for encrypting secrets:"))
 		if err != nil {
@@ -68,17 +74,20 @@ func (s *Action) init(ctx context.Context, alias, path string, nogit bool, keys 
 		keys = []string{nk}
 	}
 
+	out.Debug(ctx, "Initializing sub store - Alias: %s - Path: %s - Keys: %+v", alias, path, keys)
 	if err := s.Store.Init(ctx, alias, path, keys...); err != nil {
 		return errors.Wrapf(err, "failed to init store '%s' at '%s'", alias, path)
 	}
 
 	if alias != "" && path != "" {
+		out.Debug(ctx, "Mounting sub store %s -> %s", alias, path)
 		if err := s.Store.AddMount(ctx, alias, path); err != nil {
 			return errors.Wrapf(err, "failed to add mount '%s'", alias)
 		}
 	}
 
 	if !nogit {
+		out.Debug(ctx, "Initializing RCS ...")
 		if err := s.gitInit(ctx, alias, "", ""); err != nil {
 			out.Debug(ctx, "Stacktrace: %+v\n", err)
 			out.Red(ctx, "Failed to init git: %s", err)
@@ -116,18 +125,31 @@ func (s *Action) InitOnboarding(ctx context.Context, c *cli.Context) error {
 	email := c.String("email")
 
 	ctx = out.AddPrefix(ctx, "[init] ")
-	ctx = backend.WithRCSBackend(ctx, backend.GitCLI)
+	out.Debug(ctx, "Starting Onboarding Wizard - remote: %s - team: %s - create: %t - name: %s - email: %s", remote, team, create, name, email)
+
+	crypto := s.Store.Crypto(ctx, name)
+	if crypto == nil {
+		c, err := sub.GetCryptoBackend(ctx, backend.GetCryptoBackend(ctx), config.Directory(), client.New(config.Directory()))
+		if err != nil {
+			return errors.Wrapf(err, "failed to init crypto backend")
+		}
+		crypto = c
+	}
+
+	out.Debug(ctx, "Crypto Backend initialized as: %s", crypto.Name())
 
 	// check for existing GPG keypairs (private/secret keys). We need at least
 	// one useable key pair. If none exists try to create one
-	if !s.initHasUseablePrivateKeys(ctx, team) {
-		out.Yellow(ctx, "No useable GPG keys. Generating new key pair")
-		ctx := out.AddPrefix(ctx, "[gpg] ")
+	if !s.initHasUseablePrivateKeys(ctx, crypto, team) {
+		out.Yellow(ctx, "No useable crypto keys. Generating new key pair")
+		ctx := out.AddPrefix(ctx, "[crypto] ")
 		out.Print(ctx, "Key generation may take up to a few minutes")
-		if err := s.initCreatePrivateKey(ctx, team, name, email); err != nil {
+		if err := s.initCreatePrivateKey(ctx, crypto, team, name, email); err != nil {
 			return errors.Wrapf(err, "failed to create new private key")
 		}
 	}
+
+	out.Debug(ctx, "Has useable private keys")
 
 	// if a git remote and a team name are given attempt unattended team setup
 	if remote != "" && team != "" {
@@ -162,8 +184,7 @@ func (s *Action) InitOnboarding(ctx context.Context, c *cli.Context) error {
 	return nil
 }
 
-func (s *Action) initCreatePrivateKey(ctx context.Context, mount, name, email string) error {
-	crypto := s.Store.Crypto(ctx, mount)
+func (s *Action) initCreatePrivateKey(ctx context.Context, crypto backend.Crypto, mount, name, email string) error {
 	out.Green(ctx, "Creating key pair ...")
 	out.Yellow(ctx, "WARNING: We are about to generate some GPG keys.")
 	out.Print(ctx, `However, the GPG program can sometimes lock up, displaying the following:
@@ -213,8 +234,8 @@ https://github.com/justwatchcom/gopass/blob/master/docs/entropy.md`)
 	return nil
 }
 
-func (s *Action) initHasUseablePrivateKeys(ctx context.Context, mount string) bool {
-	kl, err := s.Store.Crypto(ctx, mount).ListPrivateKeyIDs(ctx)
+func (s *Action) initHasUseablePrivateKeys(ctx context.Context, crypto backend.Crypto, mount string) bool {
+	kl, err := crypto.ListPrivateKeyIDs(ctx)
 	if err != nil {
 		return false
 	}
@@ -248,8 +269,13 @@ func (s *Action) initSetupGitRemote(ctx context.Context, team, remote string) er
 func (s *Action) initLocal(ctx context.Context, c *cli.Context) error {
 	ctx = out.AddPrefix(ctx, "[local] ")
 
+	path := ""
+	if s.Store != nil {
+		path = s.Store.URL()
+	}
+
 	out.Print(ctx, "Initializing your local store ...")
-	if err := s.init(out.WithHidden(ctx, true), "", "", false); err != nil {
+	if err := s.init(out.WithHidden(ctx, true), "", path, false); err != nil {
 		return errors.Wrapf(err, "failed to init local store")
 	}
 	out.Green(ctx, " -> OK")

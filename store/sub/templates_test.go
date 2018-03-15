@@ -32,6 +32,7 @@ func TestTemplates(t *testing.T) {
 		"",
 		tempdir,
 		tempdir,
+		nil,
 	)
 	assert.NoError(t, err)
 

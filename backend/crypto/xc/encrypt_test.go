@@ -19,15 +19,15 @@ type fakeAgent struct {
 	pw string
 }
 
-func (f *fakeAgent) Ping() error {
+func (f *fakeAgent) Ping(context.Context) error {
 	return nil
 }
 
-func (f *fakeAgent) Remove(string) error {
+func (f *fakeAgent) Remove(context.Context, string) error {
 	return nil
 }
 
-func (f *fakeAgent) Passphrase(string, string) (string, error) {
+func (f *fakeAgent) Passphrase(context.Context, string, string) (string, error) {
 	return f.pw, nil
 }
 

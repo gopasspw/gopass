@@ -19,9 +19,9 @@ const (
 )
 
 type agentClient interface {
-	Ping() error
-	Passphrase(string, string) (string, error)
-	Remove(string) error
+	Ping(context.Context) error
+	Passphrase(context.Context, string, string) (string, error)
+	Remove(context.Context, string) error
 }
 
 // XC is an experimental crypto backend
@@ -75,7 +75,7 @@ func (x *XC) Initialized(ctx context.Context) error {
 	if x.client == nil {
 		return fmt.Errorf("client not initialized")
 	}
-	if err := x.client.Ping(); err != nil {
+	if err := x.client.Ping(ctx); err != nil {
 		return fmt.Errorf("agent not running")
 	}
 	return nil

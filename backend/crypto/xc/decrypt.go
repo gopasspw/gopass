@@ -29,7 +29,7 @@ func (x *XC) Decrypt(ctx context.Context, buf []byte) ([]byte, error) {
 	}
 
 	// try to find a suiteable decryption key in the header
-	sk, err := x.decryptSessionKey(msg.Header)
+	sk, err := x.decryptSessionKey(ctx, msg.Header)
 	if err != nil {
 		return nil, err
 	}
@@ -87,12 +87,12 @@ func (x *XC) findPublicKey(needle string) (*keyring.PublicKey, error) {
 }
 
 // decryptPrivateKey will ask the agent to unlock the private key
-func (x *XC) decryptPrivateKey(recp *keyring.PrivateKey) error {
+func (x *XC) decryptPrivateKey(ctx context.Context, recp *keyring.PrivateKey) error {
 	fp := recp.Fingerprint()
 
 	for i := 0; i < maxUnlockAttempts; i++ {
 		// retry asking for key in case it's wrong
-		passphrase, err := x.client.Passphrase(fp, fmt.Sprintf("Unlock private key %s", recp.Fingerprint()))
+		passphrase, err := x.client.Passphrase(ctx, fp, fmt.Sprintf("Unlock private key %s", recp.Fingerprint()))
 		if err != nil {
 			return errors.Wrapf(err, "failed to get passphrase from agent: %s", err)
 		}
@@ -103,7 +103,7 @@ func (x *XC) decryptPrivateKey(recp *keyring.PrivateKey) error {
 		}
 
 		// decryption failed, clear cache and wait a moment before trying again
-		if err := x.client.Remove(fp); err != nil {
+		if err := x.client.Remove(ctx, fp); err != nil {
 			return errors.Wrapf(err, "failed to clear cache")
 		}
 		time.Sleep(10 * time.Millisecond)
@@ -114,7 +114,7 @@ func (x *XC) decryptPrivateKey(recp *keyring.PrivateKey) error {
 
 // decryptSessionKey will attempt to find a readable recipient entry in the
 // header and decrypt it's session key
-func (x *XC) decryptSessionKey(hdr *xcpb.Header) ([]byte, error) {
+func (x *XC) decryptSessionKey(ctx context.Context, hdr *xcpb.Header) ([]byte, error) {
 	// find a suiteable decryption key, i.e. a recipient entry which was encrypted
 	// for one of our private keys
 	recp, err := x.findDecryptionKey(hdr)
@@ -130,7 +130,7 @@ func (x *XC) decryptSessionKey(hdr *xcpb.Header) ([]byte, error) {
 	}
 
 	// unlock recipient key
-	if err := x.decryptPrivateKey(recp); err != nil {
+	if err := x.decryptPrivateKey(ctx, recp); err != nil {
 		return nil, err
 	}
 

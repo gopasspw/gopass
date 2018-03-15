@@ -196,7 +196,7 @@ func (s *Action) askForPrivateKey(ctx context.Context, name, prompt string) (str
 
 		fmt.Fprintln(stdout, prompt)
 		for i, k := range kl {
-			fmt.Fprintf(stdout, "[%d] %s\n", i, crypto.FormatKey(ctx, k))
+			fmt.Fprintf(stdout, "[%d] %s - %s\n", i, crypto.Name(), crypto.FormatKey(ctx, k))
 		}
 		iv, err := termio.AskForInt(ctx, fmt.Sprintf("Please enter the number of a key (0-%d, [q]uit)", len(kl)-1), 0)
 		if err != nil {

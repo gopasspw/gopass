@@ -11,6 +11,9 @@ import (
 // Sync returns the sync backend
 func (r *Store) Sync(ctx context.Context, name string) backend.RCS {
 	_, sub, _ := r.getStore(ctx, name)
+	if sub == nil {
+		return nil
+	}
 	return sub.RCS()
 }
 

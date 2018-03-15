@@ -129,3 +129,8 @@ func (s *Store) Name() string {
 func (s *Store) Version() semver.Version {
 	return semver.Version{Major: 1}
 }
+
+// Available will check if this backend is useable
+func (s *Store) Available(ctx context.Context) error {
+	return s.Set(ctx, ".test", []byte("test"))
+}

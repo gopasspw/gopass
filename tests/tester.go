@@ -27,9 +27,7 @@ const (
   autoimport: true
   autosync: false
   cliptimeout: 45
-  cryptobackend: gpg
   noconfirm: true
-  syncbackend: noop
   safecontent: true
 `
 	keyID = "BE73F104"
