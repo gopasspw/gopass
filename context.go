@@ -6,10 +6,10 @@ import (
 	"runtime"
 
 	"github.com/fatih/color"
-	"github.com/justwatchcom/gopass/backend/crypto/gpg"
-	"github.com/justwatchcom/gopass/config"
-	"github.com/justwatchcom/gopass/store/sub"
-	"github.com/justwatchcom/gopass/utils/ctxutil"
+	"github.com/justwatchcom/gopass/pkg/backend/crypto/gpg"
+	"github.com/justwatchcom/gopass/pkg/config"
+	"github.com/justwatchcom/gopass/pkg/ctxutil"
+	"github.com/justwatchcom/gopass/pkg/store/sub"
 	"golang.org/x/crypto/ssh/terminal"
 )
 

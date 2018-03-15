@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/justwatchcom/gopass/backend"
+	"github.com/justwatchcom/gopass/pkg/backend"
 	"github.com/stretchr/testify/assert"
 )
 

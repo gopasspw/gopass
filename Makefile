@@ -180,6 +180,9 @@ codequality:
 	@unconvert -v $(PKGS) || exit 1
 	@printf '%s\n' '$(OK)'
 
+fmt:
+	@gofmt -s -l -w $(GOFILES_NOVENDOR)
+
 fuzz-gpg:
 	mkdir -p workdir/gpg-cli/corpus
 	go-fuzz-build github.com/justwatchcom/gopass/backend/gpg/cli

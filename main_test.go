@@ -5,7 +5,7 @@ import (
 	"flag"
 	"testing"
 
-	"github.com/justwatchcom/gopass/utils/ctxutil"
+	"github.com/justwatchcom/gopass/pkg/ctxutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/urfave/cli"
 )
