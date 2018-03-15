@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 
+	"github.com/justwatchcom/gopass/store"
 	"github.com/justwatchcom/gopass/store/secret"
 	"github.com/justwatchcom/gopass/store/sub"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
@@ -97,13 +98,15 @@ func (s *Action) insertStdin(ctx context.Context, name string, content []byte) e
 }
 
 func (s *Action) insertSingle(ctx context.Context, name, pw string) error {
-	sec := &secret.Secret{}
+	var sec store.Secret
 	if s.Store.Exists(ctx, name) {
 		var err error
 		sec, err = s.Store.Get(ctx, name)
 		if err != nil {
 			return exitError(ctx, ExitDecrypt, err, "failed to decrypt existing secret: %s", err)
 		}
+	} else {
+		sec = &secret.Secret{}
 	}
 	sec.SetPassword(pw)
 	printAuditResult(ctx, sec.Password())
@@ -123,13 +126,15 @@ func (s *Action) insertYAML(ctx context.Context, name, key string, content []byt
 		content = []byte(pw)
 	}
 
-	sec := secret.New("", "")
+	var sec store.Secret
 	if s.Store.Exists(ctx, name) {
 		var err error
 		sec, err = s.Store.Get(ctx, name)
 		if err != nil {
 			return exitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
 		}
+	} else {
+		sec = &secret.Secret{}
 	}
 	if err := sec.SetValue(key, string(content)); err != nil {
 		return exitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)

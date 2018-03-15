@@ -77,7 +77,7 @@ func (s *Store) ListRevisions(ctx context.Context, name string) ([]backend.Revis
 }
 
 // GetRevision will retrieve a single revision from the backend
-func (s *Store) GetRevision(ctx context.Context, name, revision string) (*secret.Secret, error) {
+func (s *Store) GetRevision(ctx context.Context, name, revision string) (store.Secret, error) {
 	p := s.passfile(name)
 	ciphertext, err := s.rcs.GetRevision(ctx, p, revision)
 	if err != nil {

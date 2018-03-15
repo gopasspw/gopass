@@ -3,8 +3,11 @@ package secret
 import (
 	"bytes"
 	"os"
+	"reflect"
 	"strings"
 	"sync"
+
+	"github.com/justwatchcom/gopass/store"
 )
 
 var debug bool
@@ -115,11 +118,11 @@ func (s *Secret) SetBody(b string) error {
 }
 
 // Equal returns true if two secrets are equal
-func (s *Secret) Equal(other *Secret) bool {
-	if s == nil && other == nil {
+func (s *Secret) Equal(other store.Secret) bool {
+	if s == nil && (other == nil || reflect.ValueOf(other).IsNil()) {
 		return true
 	}
-	if s == nil || other == nil {
+	if s == nil || other == nil || reflect.ValueOf(other).IsNil() {
 		return false
 	}
 

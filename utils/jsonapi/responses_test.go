@@ -3,6 +3,7 @@ package jsonapi
 import (
 	"testing"
 
+	"github.com/justwatchcom/gopass/store"
 	"github.com/justwatchcom/gopass/store/secret"
 )
 
@@ -10,7 +11,7 @@ func TestGetUsername(t *testing.T) {
 	a := &API{}
 	for _, tc := range []struct {
 		Name string
-		Sec  *secret.Secret
+		Sec  store.Secret
 		Out  string
 	}{
 		{

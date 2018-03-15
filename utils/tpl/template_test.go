@@ -4,12 +4,13 @@ import (
 	"context"
 	"testing"
 
+	"github.com/justwatchcom/gopass/store"
 	"github.com/justwatchcom/gopass/store/secret"
 )
 
 type kvMock struct{}
 
-func (k kvMock) Get(ctx context.Context, key string) (*secret.Secret, error) {
+func (k kvMock) Get(ctx context.Context, key string) (store.Secret, error) {
 	return secret.New("barfoo", "---\nbarkey: barvalue\n"), nil
 }
 
