@@ -9,7 +9,7 @@ import (
 )
 
 // Get returns the plaintext of a single key
-func (s *Store) Get(ctx context.Context, name string) (*secret.Secret, error) {
+func (s *Store) Get(ctx context.Context, name string) (store.Secret, error) {
 	p := s.passfile(name)
 
 	ciphertext, err := s.storage.Get(ctx, p)

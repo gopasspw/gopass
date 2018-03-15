@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/justwatchcom/gopass/store"
-	"github.com/justwatchcom/gopass/store/secret"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/justwatchcom/gopass/utils/qrcon"
@@ -76,7 +75,7 @@ func (s *Action) showHandleRevision(ctx context.Context, c *cli.Context, name, k
 	return s.showHandleOutput(ctx, name, key, sec)
 }
 
-func (s *Action) showHandleOutput(ctx context.Context, name, key string, sec *secret.Secret) error {
+func (s *Action) showHandleOutput(ctx context.Context, name, key string, sec store.Secret) error {
 	var content string
 
 	switch {

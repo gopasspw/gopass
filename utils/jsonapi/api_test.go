@@ -14,6 +14,7 @@ import (
 
 	"github.com/justwatchcom/gopass/backend"
 	"github.com/justwatchcom/gopass/config"
+	"github.com/justwatchcom/gopass/store"
 	"github.com/justwatchcom/gopass/store/root"
 	"github.com/justwatchcom/gopass/store/secret"
 	"github.com/stretchr/testify/assert"
@@ -21,7 +22,7 @@ import (
 
 type storedSecret struct {
 	Name   []string
-	Secret *secret.Secret
+	Secret store.Secret
 }
 
 func TestRespondMessageBrokenInput(t *testing.T) {

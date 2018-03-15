@@ -10,6 +10,7 @@ import (
 
 	"path"
 
+	"github.com/justwatchcom/gopass/store"
 	"github.com/justwatchcom/gopass/store/secret"
 	"github.com/justwatchcom/gopass/utils/pwgen"
 	"github.com/pkg/errors"
@@ -118,7 +119,7 @@ func (api *API) respondGetLogin(ctx context.Context, msgBytes []byte) error {
 	}, api.Writer)
 }
 
-func (api *API) getUsername(name string, sec *secret.Secret) string {
+func (api *API) getUsername(name string, sec store.Secret) string {
 	// look for a meta-data entry containing the username first
 	for _, key := range []string{"login", "username", "user"} {
 		value, err := sec.Value(key)

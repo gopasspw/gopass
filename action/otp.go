@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/gokyle/twofactor"
-	"github.com/justwatchcom/gopass/store/secret"
+	"github.com/justwatchcom/gopass/store"
 	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/urfave/cli"
 )
@@ -69,7 +69,7 @@ func (s *Action) otp(ctx context.Context, name, qrf string, clip bool) error {
 	return nil
 }
 
-func otpData(ctx context.Context, name string, sec *secret.Secret) (twofactor.OTP, string, error) {
+func otpData(ctx context.Context, name string, sec store.Secret) (twofactor.OTP, string, error) {
 	otpURL := ""
 	// check body
 	for _, line := range strings.Split(sec.Body(), "\n") {
