@@ -19,7 +19,11 @@ func (s *Action) Copy(ctx context.Context, c *cli.Context) error {
 	from := c.Args()[0]
 	to := c.Args()[1]
 
-	if !s.Store.Exists(ctx, from) {
+	return s.copy(ctx, from, to, force)
+}
+
+func (s *Action) copy(ctx context.Context, from, to string, force bool) error {
+	if !s.Store.Exists(ctx, from) && !s.Store.IsDir(ctx, from) {
 		return exitError(ctx, ExitNotFound, nil, "%s does not exist", from)
 	}
 

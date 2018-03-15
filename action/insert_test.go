@@ -7,6 +7,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/tests/gptest"
 	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/out"
@@ -25,6 +26,7 @@ func TestInsert(t *testing.T) {
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
+	color.NoColor = true
 	defer func() {
 		out.Stdout = os.Stdout
 	}()
@@ -47,7 +49,13 @@ func TestInsert(t *testing.T) {
 
 	// insert baz via stdin
 	assert.NoError(t, act.insertStdin(ctx, "baz", []byte("foobar")))
+	buf.Reset()
+
+	assert.NoError(t, act.show(ctx, c, "baz", "", false))
+	assert.Equal(t, "foobar\n", buf.String())
+	buf.Reset()
 
 	// insert zab#key
 	assert.NoError(t, act.insertYAML(ctx, "zab", "key", []byte("foobar")))
+
 }

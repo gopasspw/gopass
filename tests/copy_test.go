@@ -30,9 +30,9 @@ func TestCopy(t *testing.T) {
 
 	ts.initSecrets("")
 
-	out, err = ts.run("copy foo bar")
-	assert.Error(t, err)
-	assert.Equal(t, "\nError: foo does not exist\n", out)
+	// recursive copy
+	_, err = ts.run("copy foo bar")
+	assert.NoError(t, err)
 
 	out, err = ts.run("copy foo/bar foo/baz")
 	assert.NoError(t, err)
