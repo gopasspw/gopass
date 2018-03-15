@@ -7,7 +7,9 @@ import (
 	"os"
 	"testing"
 
+	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/tests/gptest"
+	"github.com/justwatchcom/gopass/utils/ctxutil"
 	"github.com/justwatchcom/gopass/utils/out"
 	"github.com/stretchr/testify/assert"
 	"github.com/urfave/cli"
@@ -18,11 +20,13 @@ func TestCopy(t *testing.T) {
 	defer u.Remove()
 
 	ctx := context.Background()
+	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	act, err := newMock(ctx, u)
 	assert.NoError(t, err)
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
+	color.NoColor = true
 	defer func() {
 		out.Stdout = os.Stdout
 	}()
@@ -49,5 +53,21 @@ func TestCopy(t *testing.T) {
 	c = cli.NewContext(app, fs, nil)
 
 	assert.Error(t, act.Copy(ctx, c))
+	buf.Reset()
+
+	// insert bam/baz
+	assert.NoError(t, act.insertStdin(ctx, "bam/baz", []byte("foobar")))
+	assert.NoError(t, act.insertStdin(ctx, "bam/zab", []byte("barfoo")))
+
+	// recursive copy: bam -> zab
+	fs = flag.NewFlagSet("default", flag.ContinueOnError)
+	assert.NoError(t, fs.Parse([]string{"bam", "zab"}))
+	c = cli.NewContext(app, fs, nil)
+
+	assert.NoError(t, act.Copy(ctx, c))
+	buf.Reset()
+
+	assert.NoError(t, act.show(ctx, c, "zab/zab", "", false))
+	assert.Equal(t, "barfoo\n", buf.String())
 	buf.Reset()
 }

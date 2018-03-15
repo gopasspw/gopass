@@ -260,7 +260,8 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 			Usage:   "Copy secrets from one location to another",
 			Description: "" +
 				"This command copies an existing secret in the store to another location. " +
-				"It will also handle copying secrets to different sub stores.",
+				"It will also handle copying secrets to different sub stores. " +
+				"If the destination is directory it will automatically copy recursively.",
 			Before: func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
 			Action: func(c *cli.Context) error {
 				return action.Copy(withGlobalFlags(ctx, c), c)
