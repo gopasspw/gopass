@@ -26,30 +26,30 @@ func (r *Store) GitInit(ctx context.Context, name, userName, userEmail string) e
 // GitInitConfig initializes the git repos local config
 func (r *Store) GitInitConfig(ctx context.Context, name, userName, userEmail string) error {
 	ctx, store, _ := r.getStore(ctx, name)
-	return store.GitInitConfig(ctx, userName, userEmail)
+	return store.RCS().InitConfig(ctx, userName, userEmail)
 }
 
 // GitVersion returns git version information
 func (r *Store) GitVersion(ctx context.Context) semver.Version {
-	return r.store.GitVersion(ctx)
+	return r.store.RCS().Version(ctx)
 }
 
 // GitAddRemote adds a git remote
 func (r *Store) GitAddRemote(ctx context.Context, name, remote, url string) error {
 	ctx, store, _ := r.getStore(ctx, name)
-	return store.GitAddRemote(ctx, remote, url)
+	return store.RCS().AddRemote(ctx, remote, url)
 }
 
 // GitPull performs a git pull
 func (r *Store) GitPull(ctx context.Context, name, origin, remote string) error {
 	ctx, store, _ := r.getStore(ctx, name)
-	return store.GitPush(ctx, origin, remote)
+	return store.RCS().Push(ctx, origin, remote)
 }
 
 // GitPush performs a git push
 func (r *Store) GitPush(ctx context.Context, name, origin, remote string) error {
 	ctx, store, _ := r.getStore(ctx, name)
-	return store.GitPush(ctx, origin, remote)
+	return store.RCS().Push(ctx, origin, remote)
 }
 
 // ListRevisions will list all revisions for the named entity

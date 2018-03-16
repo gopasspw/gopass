@@ -99,11 +99,11 @@ func (s *Store) idFile(ctx context.Context, name string) string {
 }
 
 // Equals returns true if this.storage has the same on-disk path as the other
-func (s *Store) Equals(other *Store) bool {
+func (s *Store) Equals(other store.Store) bool {
 	if other == nil {
 		return false
 	}
-	return s.url.String() == other.url.String()
+	return s.URL() == other.URL()
 }
 
 // IsDir returns true if the entry is folder inside the store
@@ -235,7 +235,17 @@ func (s *Store) Alias() string {
 	return s.alias
 }
 
+// URL returns the store URL
+func (s *Store) URL() string {
+	return s.url.String()
+}
+
 // Storage returns the storage backend used by this.storage
 func (s *Store) Storage() backend.Storage {
 	return s.storage
+}
+
+// Valid returns true if this store is not nil
+func (s *Store) Valid() bool {
+	return s != nil
 }

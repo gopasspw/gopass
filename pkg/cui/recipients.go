@@ -184,6 +184,9 @@ func AskForPrivateKey(ctx context.Context, crypto backend.Crypto, name, prompt s
 	if !ctxutil.IsInteractive(ctx) {
 		return "", errors.New("no interaction without terminal")
 	}
+	if crypto == nil {
+		return "", errors.New("no key selection without valid crypto")
+	}
 
 	kl, err := crypto.ListPrivateKeyIDs(gpg.WithAlwaysTrust(ctx, false))
 	if err != nil {
