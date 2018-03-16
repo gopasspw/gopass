@@ -11,7 +11,7 @@
   branch = "master"
   name = "github.com/blang/semver"
   packages = ["."]
-  revision = "a088618caaf34f5392024fc3386143873033fbea"
+  revision = "c5e971dbed7850a93c23aa6ff69db5771d8e23b3"
 
 [[projects]]
   branch = "master"
@@ -30,6 +30,19 @@
   name = "github.com/dominikschulz/github-releases"
   packages = ["ghrel"]
   revision = "7635b43b24478da37c5559e0950897f1560dbbdb"
+
+[[projects]]
+  name = "github.com/emirpasic/gods"
+  packages = [
+    "containers",
+    "lists",
+    "lists/arraylist",
+    "trees",
+    "trees/binaryheap",
+    "utils"
+  ]
+  revision = "f6c17b524822278a87e3b3bd809fec33b51f5b46"
+  version = "v1.9.0"
 
 [[projects]]
   name = "github.com/fatih/color"
@@ -135,19 +148,19 @@
   branch = "master"
   name = "github.com/mattn/go-colorable"
   packages = ["."]
-  revision = "7dc3415be66d7cc68bf0182f35c8d31f8d2ad8a7"
+  revision = "efa589957cd060542a26d2dd7832fd6a6c6c3ade"
 
 [[projects]]
-  branch = "master"
   name = "github.com/mattn/go-isatty"
   packages = ["."]
-  revision = "6ca4dbf54d38eea1a992b3c722a76a5d1c4cb25c"
+  revision = "0360b2af4f38e8d38c7fce2a9f4e702702d73a39"
+  version = "v0.0.3"
 
 [[projects]]
   branch = "master"
   name = "github.com/mattn/go-runewidth"
   packages = ["."]
-  revision = "97311d9f7767e3d6f422ea06661bc2c7a19e8a5d"
+  revision = "a9d6d1e4dc51df2130326793d49971f238839169"
 
 [[projects]]
   branch = "master"
@@ -171,19 +184,19 @@
   branch = "master"
   name = "github.com/nsf/termbox-go"
   packages = ["."]
-  revision = "88b7b944be8bc8d8ec6195fca97c5869ba20f99d"
+  revision = "e2050e41c8847748ec5288741c0b19a8cb26d084"
 
 [[projects]]
-  branch = "master"
   name = "github.com/pelletier/go-buffruneio"
   packages = ["."]
-  revision = "e2f66f8164ca709d4c21e815860afd2024e9b894"
+  revision = "c37440a7cf42ac63b919c752ca73a85067e05992"
+  version = "v0.2.0"
 
 [[projects]]
   branch = "master"
   name = "github.com/pkg/errors"
   packages = ["."]
-  revision = "30136e27e2ac8d167177e8a583aa4c3fea5be833"
+  revision = "816c9085562cd7ee03e7f8188a1cfd942858cded"
 
 [[projects]]
   name = "github.com/pmezard/go-difflib"
@@ -198,10 +211,10 @@
   revision = "19d3b334fdfcb0151de79319f1fe1dfc41de758c"
 
 [[projects]]
-  branch = "master"
   name = "github.com/sergi/go-diff"
   packages = ["diffmatchpatch"]
-  revision = "da645544ed44df016359bd4c0e3dc60ee3a0da43"
+  revision = "1744e2970ca51c86172c8190fadad617561ed6e7"
+  version = "v1.0.0"
 
 [[projects]]
   branch = "master"
@@ -231,7 +244,7 @@
     "assert",
     "require"
   ]
-  revision = "be8372ae8ec5c6daaed3cc28ebf73c54b737c240"
+  revision = "b89eecf5ca5db6d3ba60b237ffe3df7bafb7662f"
 
 [[projects]]
   branch = "master"
@@ -280,7 +293,7 @@
     "ssh/knownhosts",
     "ssh/terminal"
   ]
-  revision = "91a49db82a88618983a78a06c1cbd4e00ab749ab"
+  revision = "b4956d363a8b14623cc81db401707679605930a3"
 
 [[projects]]
   branch = "master"
@@ -290,7 +303,7 @@
     "idna",
     "publicsuffix"
   ]
-  revision = "22ae77b79946ea320088417e4d50825671d82d57"
+  revision = "e0c57d8f86c17f0724497efcb3bc617e82834821"
 
 [[projects]]
   branch = "master"
@@ -300,10 +313,9 @@
     "windows",
     "windows/registry"
   ]
-  revision = "dd2ff4accc098aceecb86b36eaa7829b2a17b1c9"
+  revision = "cc7307a45468e49eaf2997c890f14aa03a26917b"
 
 [[projects]]
-  branch = "master"
   name = "golang.org/x/text"
   packages = [
     "collate",
@@ -312,7 +324,6 @@
     "encoding/internal/identifier",
     "internal/colltab",
     "internal/gen",
-    "internal/language",
     "internal/tag",
     "internal/triegen",
     "internal/ucd",
@@ -324,7 +335,8 @@
     "unicode/norm",
     "unicode/rangetable"
   ]
-  revision = "0b0b1f509072617b86d90971b51da23cc52694f2"
+  revision = "f21a4dfb5e38f5895301dc265a8def02365cc3d0"
+  version = "v0.3.0"
 
 [[projects]]
   name = "gopkg.in/src-d/go-billy.v4"
@@ -382,8 +394,8 @@
     "utils/merkletrie/internal/frame",
     "utils/merkletrie/noder"
   ]
-  revision = "886dc83f3ed518a78772055497bcc7d7621b468e"
-  version = "v4.1.1"
+  revision = "1d28459504251497e0ce6132a0fadd5eb44ffd22"
+  version = "v4.2.0"
 
 [[projects]]
   name = "gopkg.in/warnings.v0"

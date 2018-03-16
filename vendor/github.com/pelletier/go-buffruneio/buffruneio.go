@@ -1,133 +1,117 @@
-// Package buffruneio provides rune-based buffered input.
+// Package buffruneio is a wrapper around bufio to provide buffered runes access with unlimited unreads.
 package buffruneio
 
 import (
 	"bufio"
+	"container/list"
 	"errors"
 	"io"
-	"unicode/utf8"
 )
 
-// EOF is a rune value indicating end-of-file.
-const EOF = -1
+// Rune to indicate end of file.
+const (
+	EOF = -(iota + 1)
+)
 
-// ErrNoRuneToUnread is the error returned when UnreadRune is called with nothing to unread.
+// ErrNoRuneToUnread is returned by UnreadRune() when the read index is already at the beginning of the buffer.
 var ErrNoRuneToUnread = errors.New("no rune to unwind")
 
-// A Reader implements rune-based input for an underlying byte stream.
+// Reader implements runes buffering for an io.Reader object.
 type Reader struct {
-	buffer  []rune
-	current int
+	buffer  *list.List
+	current *list.Element
 	input   *bufio.Reader
 }
 
-// NewReader returns a new Reader reading the given input.
-func NewReader(input io.Reader) *Reader {
+// NewReader returns a new Reader.
+func NewReader(rd io.Reader) *Reader {
 	return &Reader{
-		input: bufio.NewReader(input),
+		buffer: list.New(),
+		input:  bufio.NewReader(rd),
 	}
 }
 
-// The rune buffer stores -2 to represent RuneError of length 1 (UTF-8 decoding errors).
-const badRune = -2
+type runeWithSize struct {
+	r    rune
+	size int
+}
 
-// feedBuffer adds a rune to the buffer.
-// If EOF is reached, it adds EOF to the buffer and returns nil.
-// If a different error is encountered, it returns the error without
-// adding to the buffer.
 func (rd *Reader) feedBuffer() error {
-	if rd.buffer == nil {
-		rd.buffer = make([]rune, 0, 256)
-	}
 	r, size, err := rd.input.ReadRune()
+
 	if err != nil {
 		if err != io.EOF {
 			return err
 		}
 		r = EOF
 	}
-	if r == utf8.RuneError && size == 1 {
-		r = badRune
+
+	newRuneWithSize := runeWithSize{r, size}
+
+	rd.buffer.PushBack(newRuneWithSize)
+	if rd.current == nil {
+		rd.current = rd.buffer.Back()
 	}
-	rd.buffer = append(rd.buffer, r)
 	return nil
 }
 
-// ReadRune reads and returns the next rune from the input.
-// The rune is also saved in an internal buffer, in case UnreadRune is called.
-// To avoid unbounded buffer growth, the caller must call Forget at appropriate intervals.
-//
-// At end of file, ReadRune returns EOF, 0, nil.
-// On read errors other than io.EOF, ReadRune returns EOF, 0, err.
+// ReadRune reads the next rune from buffer, or from the underlying reader if needed.
 func (rd *Reader) ReadRune() (rune, int, error) {
-	if rd.current >= len(rd.buffer) {
-		if err := rd.feedBuffer(); err != nil {
+	if rd.current == rd.buffer.Back() || rd.current == nil {
+		err := rd.feedBuffer()
+		if err != nil {
 			return EOF, 0, err
 		}
 	}
-	r := rd.buffer[rd.current]
-	rd.current++
-	if r == badRune {
-		return utf8.RuneError, 1, nil
-	}
-	if r == EOF {
-		return EOF, 0, nil
-	}
-	return r, utf8.RuneLen(r), nil
+
+	runeWithSize := rd.current.Value.(runeWithSize)
+	rd.current = rd.current.Next()
+	return runeWithSize.r, runeWithSize.size, nil
 }
 
-// UnreadRune rewinds the input by one rune, undoing the effect of a single ReadRune call.
-// UnreadRune may be called multiple times to rewind a sequence of ReadRune calls,
-// up to the last time Forget was called or the beginning of the input.
-//
-// If there are no ReadRune calls left to undo, UnreadRune returns ErrNoRuneToUnread.
+// UnreadRune pushes back the previously read rune in the buffer, extending it if needed.
 func (rd *Reader) UnreadRune() error {
-	if rd.current == 0 {
+	if rd.current == rd.buffer.Front() {
 		return ErrNoRuneToUnread
 	}
-	rd.current--
+	if rd.current == nil {
+		rd.current = rd.buffer.Back()
+	} else {
+		rd.current = rd.current.Prev()
+	}
 	return nil
 }
 
-// Forget discards buffered runes before the current input position.
-// Calling Forget makes it impossible to UnreadRune earlier than the current input position
-// but is necessary to avoid unbounded buffer growth.
+// Forget removes runes stored before the current stream position index.
 func (rd *Reader) Forget() {
-	n := copy(rd.buffer, rd.buffer[rd.current:])
-	rd.current = 0
-	rd.buffer = rd.buffer[:n]
+	if rd.current == nil {
+		rd.current = rd.buffer.Back()
+	}
+	for ; rd.current != rd.buffer.Front(); rd.buffer.Remove(rd.current.Prev()) {
+	}
 }
 
-// PeekRunes returns the next n runes in the input,
-// without advancing the current input position.
-//
-// If the input has fewer than n runes and then returns
-// an io.EOF error, PeekRune returns a slice containing
-// the available runes followed by EOF.
-// On other hand, if the input ends early with a non-io.EOF error,
-// PeekRune returns a slice containing only the available runes,
-// with no terminating EOF.
+// PeekRune returns at most the next n runes, reading from the uderlying source if
+// needed. Does not move the current index. It includes EOF if reached.
 func (rd *Reader) PeekRunes(n int) []rune {
-	for len(rd.buffer)-rd.current < n && !rd.haveEOF() {
-		if err := rd.feedBuffer(); err != nil {
-			break
-		}
-	}
-
 	res := make([]rune, 0, n)
+	cursor := rd.current
 	for i := 0; i < n; i++ {
-		r := rd.buffer[rd.current+i]
-		if r == badRune {
-			r = utf8.RuneError
+		if cursor == nil {
+			err := rd.feedBuffer()
+			if err != nil {
+				return res
+			}
+			cursor = rd.buffer.Back()
 		}
-		res = append(res, r)
-		if r == EOF {
-			break
+		if cursor != nil {
+			r := cursor.Value.(runeWithSize).r
+			res = append(res, r)
+			if r == EOF {
+				return res
+			}
+			cursor = cursor.Next()
 		}
 	}
 	return res
-}
-
-func (rd *Reader) haveEOF() bool {
-	return rd.current < len(rd.buffer) && rd.buffer[len(rd.buffer)-1] == EOF
 }
