@@ -4,11 +4,12 @@ import (
 	"context"
 	"fmt"
 
-	ap "github.com/justwatchcom/gopass/action"
-	"github.com/justwatchcom/gopass/config"
-	"github.com/justwatchcom/gopass/utils/agent"
-	"github.com/justwatchcom/gopass/utils/agent/client"
-	"github.com/justwatchcom/gopass/utils/ctxutil"
+	ap "github.com/justwatchcom/gopass/pkg/action"
+	"github.com/justwatchcom/gopass/pkg/action/xc"
+	"github.com/justwatchcom/gopass/pkg/agent"
+	"github.com/justwatchcom/gopass/pkg/agent/client"
+	"github.com/justwatchcom/gopass/pkg/config"
+	"github.com/justwatchcom/gopass/pkg/ctxutil"
 	"github.com/urfave/cli"
 )
 
@@ -1012,25 +1013,25 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 				{
 					Name: "list-private-keys",
 					Action: func(c *cli.Context) error {
-						return action.XCListPrivateKeys(withGlobalFlags(ctx, c), c)
+						return xc.ListPrivateKeys(withGlobalFlags(ctx, c), c)
 					},
 				},
 				{
 					Name: "list-public-keys",
 					Action: func(c *cli.Context) error {
-						return action.XCListPublicKeys(withGlobalFlags(ctx, c), c)
+						return xc.ListPublicKeys(withGlobalFlags(ctx, c), c)
 					},
 				},
 				{
 					Name: "generate",
 					Action: func(c *cli.Context) error {
-						return action.XCGenerateKeypair(withGlobalFlags(ctx, c), c)
+						return xc.GenerateKeypair(withGlobalFlags(ctx, c), c)
 					},
 				},
 				{
 					Name: "export",
 					Action: func(c *cli.Context) error {
-						return action.XCExportPublicKey(withGlobalFlags(ctx, c), c)
+						return xc.ExportPublicKey(withGlobalFlags(ctx, c), c)
 					},
 					Flags: []cli.Flag{
 						cli.StringFlag{
@@ -1044,7 +1045,7 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 				{
 					Name: "import",
 					Action: func(c *cli.Context) error {
-						return action.XCImportPublicKey(withGlobalFlags(ctx, c), c)
+						return xc.ImportPublicKey(withGlobalFlags(ctx, c), c)
 					},
 					Flags: []cli.Flag{
 						cli.StringFlag{
@@ -1058,7 +1059,7 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 				{
 					Name: "export-private-key",
 					Action: func(c *cli.Context) error {
-						return action.XCExportPrivateKey(withGlobalFlags(ctx, c), c)
+						return xc.ExportPrivateKey(withGlobalFlags(ctx, c), c)
 					},
 					Flags: []cli.Flag{
 						cli.StringFlag{
@@ -1072,7 +1073,7 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 				{
 					Name: "import-private-key",
 					Action: func(c *cli.Context) error {
-						return action.XCImportPrivateKey(withGlobalFlags(ctx, c), c)
+						return xc.ImportPrivateKey(withGlobalFlags(ctx, c), c)
 					},
 					Flags: []cli.Flag{
 						cli.StringFlag{
@@ -1086,7 +1087,7 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 				{
 					Name: "remove",
 					Action: func(c *cli.Context) error {
-						return action.XCRemoveKey(withGlobalFlags(ctx, c), c)
+						return xc.RemoveKey(withGlobalFlags(ctx, c), c)
 					},
 					Flags: []cli.Flag{
 						cli.StringFlag{
