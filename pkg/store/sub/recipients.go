@@ -135,7 +135,12 @@ func (s *Store) GetRecipients(ctx context.Context, name string) ([]string, error
 		return nil, errors.Wrapf(err, "failed to get recipients for %s", name)
 	}
 
-	return unmarshalRecipients(buf), nil
+	rawRecps := unmarshalRecipients(buf)
+	finalRecps := make([]string, 0, len(rawRecps))
+	for _, r := range rawRecps {
+		finalRecps = append(finalRecps, s.crypto.Fingerprint(ctx, r))
+	}
+	return finalRecps, nil
 }
 
 // ExportMissingPublicKeys will export any possibly missing public keys to the

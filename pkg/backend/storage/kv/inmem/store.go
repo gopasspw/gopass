@@ -123,3 +123,8 @@ func (m *InMem) Available(ctx context.Context) error {
 	}
 	return nil
 }
+
+// Fsck always returns nil
+func (m *InMem) Fsck(ctx context.Context) error {
+	return nil
+}

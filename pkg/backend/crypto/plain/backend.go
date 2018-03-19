@@ -174,6 +174,11 @@ func (m *Mocker) FormatKey(ctx context.Context, id string) string {
 	return id
 }
 
+// Fingerprint returns the full-length native fingerprint
+func (m *Mocker) Fingerprint(ctx context.Context, id string) string {
+	return id
+}
+
 // Initialized returns nil
 func (m *Mocker) Initialized(context.Context) error {
 	return nil

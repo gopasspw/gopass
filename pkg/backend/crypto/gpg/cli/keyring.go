@@ -108,3 +108,8 @@ func (g *GPG) NameFromKey(ctx context.Context, id string) string {
 func (g *GPG) FormatKey(ctx context.Context, id string) string {
 	return g.findKey(ctx, id).Identity().ID()
 }
+
+// Fingerprint returns the full-length native fingerprint
+func (g *GPG) Fingerprint(ctx context.Context, id string) string {
+	return g.findKey(ctx, id).Fingerprint
+}
