@@ -5,14 +5,14 @@
 * [ENHANCEMENT] Support HIBPv2 API and Dumps [#666]
 * [ENHANCEMENT] Robust K/V parser with YAML fallback [#659]
 
-## 1.6.11 / 2017-02-20
+## 1.6.11 / 2018-02-20
 
 * [ENHANCEMENT] Documentation updates [#648] [#656]
 * [ENHANCEMENT] Add secret completions to edit command in zsh [#654]
 * [BUGFIX] Avoid escaping values added to secrets [#658]
 * [BUGFIX] Fix parsing of GPG UIDs [#650]
 
-## 1.6.10 / 2017-01-18
+## 1.6.10 / 2018-01-18
 
 * [ENHANCEMENT] Add Travis MacOS builds [#618]
 * [ENHANCEMENT] Make gopass build on DragonFlyBSD [#619]
@@ -21,11 +21,11 @@
 * [BUGFIX] Fix Makefile [#615] [#617]
 * [BUGFIX] Fix failing tests on MacOS [#614]
 
-## 1.6.9 / 2017-01-05
+## 1.6.9 / 2018-01-05
 
 * [BUGFIX] Fix update URL check [#610]
 
-## 1.6.8 / 2017-01-05
+## 1.6.8 / 2018-01-05
 
 * [ENHANCEMENT] Add OpenBSD Ksh completion [#586]
 * [ENHANCEMENT] Increase test coverage [#589] [#590] [#592] [#595] [#596] [#597] [#601] [#602] [#603] [#604]
