@@ -121,5 +121,5 @@ using existing building blocks - we're a little wary to recommend it for broader
 Also it requires it's own Keyring/Agent infrastructure as the keyformat is quite
 different from what GPG is using.
 
-Please see the backend [Readme](https://github.com/justwatchcom/gopass/blob/master/backend/crypto/xc/README.md) for more details. Proper documentation for this
+Please see the backend [Readme](https://github.com/justwatchcom/gopass/blob/master/pkg/backend/crypto/xc/README.md) for more details. Proper documentation for this
 backend still needs to written and will be added at a later point.
