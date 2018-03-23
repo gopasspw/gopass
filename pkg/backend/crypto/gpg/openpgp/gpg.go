@@ -247,6 +247,15 @@ func (g *GPG) FormatKey(ctx context.Context, id string) string {
 	return ""
 }
 
+// Fingerprint returns the full-length native fingerprint
+func (g *GPG) Fingerprint(ctx context.Context, id string) string {
+	ent := g.findEntity(id)
+	if ent == nil || ent.PrimaryKey == nil {
+		return ""
+	}
+	return fmt.Sprintf("%x", ent.PrimaryKey.Fingerprint)
+}
+
 // Initialized returns nil
 func (g *GPG) Initialized(context.Context) error {
 	return nil

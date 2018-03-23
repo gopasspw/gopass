@@ -134,3 +134,8 @@ func (s *Store) Version() semver.Version {
 func (s *Store) Available(ctx context.Context) error {
 	return s.Set(ctx, ".test", []byte("test"))
 }
+
+// Fsck always returns nil
+func (s *Store) Fsck(ctx context.Context) error {
+	return nil
+}

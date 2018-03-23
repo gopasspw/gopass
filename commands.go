@@ -353,6 +353,18 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 			},
 		},
 		{
+			Name:  "fsck",
+			Usage: "Check store integrity",
+			Description: "" +
+				"Check the integrity of the given sub store or all stores if none are specified. " +
+				"Will automatically fix all issues found.",
+			Before: func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
+			Action: func(c *cli.Context) error {
+				return action.Fsck(withGlobalFlags(ctx, c), c)
+			},
+			BashComplete: action.MountsComplete,
+		},
+		{
 			Name:  "generate",
 			Usage: "Generate a new password",
 			Description: "" +

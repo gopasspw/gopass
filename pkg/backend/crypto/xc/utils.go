@@ -111,6 +111,11 @@ func (x *XC) EmailFromKey(ctx context.Context, id string) string {
 	return id
 }
 
+// Fingerprint returns the full-length native fingerprint
+func (x *XC) Fingerprint(ctx context.Context, id string) string {
+	return id
+}
+
 // CreatePrivateKeyBatch creates a new keypair
 func (x *XC) CreatePrivateKeyBatch(ctx context.Context, name, email, passphrase string) error {
 	k, err := keyring.GenerateKeypair(passphrase)

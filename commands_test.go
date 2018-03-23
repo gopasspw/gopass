@@ -90,7 +90,7 @@ func TestGetCommands(t *testing.T) {
 	c := cli.NewContext(app, fs, nil)
 
 	commands := getCommands(ctx, act, app)
-	assert.Equal(t, 31, len(commands))
+	assert.Equal(t, 32, len(commands))
 
 	prefix := ""
 	testCommands(t, c, commands, prefix)

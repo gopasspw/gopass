@@ -92,7 +92,11 @@ func (g *GPG) RecipientIDs(ctx context.Context, buf []byte) ([]string, error) {
 		}
 		m := splitPacket(line)
 		if keyid, found := m["keyid"]; found {
-			recp = append(recp, keyid)
+			kl, err := g.listKeys(ctx, "public", keyid)
+			if err != nil || len(kl) < 1 {
+				continue
+			}
+			recp = append(recp, kl[0].Fingerprint)
 		}
 	}
 
