@@ -8,14 +8,16 @@ import (
 	"github.com/justwatchcom/gopass/pkg/agent/client"
 	"github.com/justwatchcom/gopass/pkg/backend"
 	"github.com/justwatchcom/gopass/pkg/config"
+	"github.com/justwatchcom/gopass/pkg/store"
 	"github.com/justwatchcom/gopass/pkg/store/sub"
 	"github.com/pkg/errors"
 )
 
 // Store is the public facing password store
 type Store struct {
-	cfg     *config.Config
-	mounts  map[string]*sub.Store
+	cfg *config.Config
+	//mounts  map[string]*sub.Store
+	mounts  map[string]store.Store
 	url     *backend.URL // url of the root store
 	store   *sub.Store
 	version string
@@ -32,7 +34,7 @@ func New(ctx context.Context, cfg *config.Config) (*Store, error) {
 	}
 	r := &Store{
 		cfg:     cfg,
-		mounts:  make(map[string]*sub.Store, len(cfg.Mounts)),
+		mounts:  make(map[string]store.Store, len(cfg.Mounts)),
 		url:     cfg.Root.Path,
 		version: cfg.Version,
 	}

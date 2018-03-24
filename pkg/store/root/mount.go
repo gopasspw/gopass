@@ -29,7 +29,7 @@ func (r *Store) addMount(ctx context.Context, alias, path string, sc *config.Sto
 		return errors.Errorf("alias must not be empty")
 	}
 	if r.mounts == nil {
-		r.mounts = make(map[string]*sub.Store, 1)
+		r.mounts = make(map[string]store.Store, 1)
 	}
 	if _, found := r.mounts[alias]; found {
 		return errors.Errorf("%s is already mounted", alias)
@@ -141,7 +141,7 @@ func (r *Store) MountPoint(name string) string {
 // getStore returns the Store object at the most-specific mount point for the
 // given key
 // context with sub store options set, sub store reference, truncated path to secret
-func (r *Store) getStore(ctx context.Context, name string) (context.Context, *sub.Store, string) {
+func (r *Store) getStore(ctx context.Context, name string) (context.Context, store.Store, string) {
 	name = strings.TrimSuffix(name, "/")
 	mp := r.MountPoint(name)
 	if sub, found := r.mounts[mp]; found {
@@ -152,7 +152,7 @@ func (r *Store) getStore(ctx context.Context, name string) (context.Context, *su
 
 // GetSubStore returns an exact match for a mount point or an error if this
 // mount point does not exist
-func (r *Store) GetSubStore(name string) (*sub.Store, error) {
+func (r *Store) GetSubStore(name string) (store.Store, error) {
 	if name == "" {
 		return r.store, nil
 	}
