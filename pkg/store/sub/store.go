@@ -28,12 +28,7 @@ type Store struct {
 }
 
 // New creates a new store, copying settings from the given root store
-func New(ctx context.Context, alias, path, cfgdir string, agent *client.Client) (*Store, error) {
-	out.Debug(ctx, "sub.New - Path: %s", path)
-	u, err := backend.ParseURL(path)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to parse path URL '%s': %s", path, err)
-	}
+func New(ctx context.Context, alias string, u *backend.URL, cfgdir string, agent *client.Client) (*Store, error) {
 	out.Debug(ctx, "sub.New - URL: %s", u.String())
 
 	s := &Store{

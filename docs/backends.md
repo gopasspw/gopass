@@ -123,3 +123,39 @@ different from what GPG is using.
 
 Please see the backend [Readme](https://github.com/justwatchcom/gopass/blob/master/pkg/backend/crypto/xc/README.md) for more details. Proper documentation for this
 backend still needs to written and will be added at a later point.
+
+### Vault (vault)
+
+This is an experimental crypto and storage backend currently available as a
+preview. This backend is special in that it's not implemented as a traditional
+backend but instead as an alternative `sub store` implementation. That was
+necessary as Vault already works with complex Secrets by itself and it didn't
+seem wise to force the internal gopass architecture onto this sophisticated
+storage scheme. That would have worked well for gopass, but would have stopped
+interoperability with other Vault users.
+
+**Note**: This backend fully relies on Vault for encryption and access
+management. It mostly exists as an easy access path to sync static secrets
+between a password store and Vault.
+
+To use the Vault backend manually create a mount in the config like in the
+following example:
+
+```
+cat <<EOF >> $HOME/.config/gopass/config.yml
+mounts:
+  vault:
+    path: vault+https://vault:8200/secret?token=some-token
+EOF
+```
+
+All `TLSConfig` options for Vault are supported as query parameters.
+
+| **Query Parameter** | **TLSConfig Attribute** | Description |
+| ------------------- | ----------------------- | ----------- |
+| tls-cacert | CACert | the Path to a PEM-encoded CA cert file |
+| tls-capath | CAPath | the Path to a directory of PEM-encoded CA cert files |
+| tls-clientcert | ClientCert | the Path to the certificate for Vault communication |
+| tls-clientkey | ClientKey | the path to the private key for Vault communication |
+| tls-servername | TLSServerName | set the SNI host when connecting |
+| tls-insecure | Disables SSL verification |

@@ -51,7 +51,7 @@ func createSubStore(dir string) (*Store, error) {
 	return New(
 		ctx,
 		"",
-		sd,
+		backend.FromPath(sd),
 		sd,
 		nil,
 	)
@@ -185,7 +185,7 @@ func TestNew(t *testing.T) {
 			ok:  false,
 		},
 	} {
-		s, err := New(tc.ctx, "", tempdir, tempdir, nil)
+		s, err := New(tc.ctx, "", backend.FromPath(tempdir), tempdir, nil)
 		if tc.ok {
 			assert.NoError(t, err)
 			assert.NotNil(t, s)
