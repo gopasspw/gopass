@@ -87,10 +87,10 @@ func (r *Store) Alias() string {
 	return ""
 }
 
-// Store returns the storage backend for the given mount point
-func (r *Store) Store(ctx context.Context, name string) backend.Storage {
+// Storage returns the storage backend for the given mount point
+func (r *Store) Storage(ctx context.Context, name string) backend.Storage {
 	_, sub, _ := r.getStore(ctx, name)
-	if sub == nil {
+	if sub == nil || !sub.Valid() {
 		return nil
 	}
 	return sub.Storage()

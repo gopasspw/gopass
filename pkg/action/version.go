@@ -48,16 +48,25 @@ func (s *Action) Version(ctx context.Context, c *cli.Context) error {
 		u <- ""
 	}(version)
 
+	_ = s.Initialized(ctx, c)
+
 	cli.VersionPrinter(c)
 
 	// report all used crypto, sync and fs backends
 	for _, mp := range append(s.Store.MountPoints(), "") {
-		crypto := s.Store.Crypto(ctx, mp)
-		fmt.Fprintf(stdout, "[%s] Crypto: %s %s\n", mp, crypto.Name(), crypto.Version(ctx))
-		sync := s.Store.Sync(ctx, mp)
-		fmt.Fprintf(stdout, "[%s] Sync: %s %s\n", mp, sync.Name(), sync.Version(ctx))
-		storer := s.Store.Store(ctx, mp)
-		fmt.Fprintf(stdout, "[%s] Store: %s %s\n", mp, storer.Name(), storer.Version())
+		name := mp
+		if name == "" {
+			name = "<root>"
+		}
+		if crypto := s.Store.Crypto(ctx, mp); crypto != nil {
+			fmt.Fprintf(stdout, "[%s] Crypto: %s %s\n", name, crypto.Name(), crypto.Version(ctx))
+		}
+		if sync := s.Store.RCS(ctx, mp); sync != nil {
+			fmt.Fprintf(stdout, "[%s] RCS: %s %s\n", name, sync.Name(), sync.Version(ctx))
+		}
+		if storer := s.Store.Storage(ctx, mp); storer != nil {
+			fmt.Fprintf(stdout, "[%s] Storage: %s %s\n", name, storer.Name(), storer.Version())
+		}
 	}
 
 	select {

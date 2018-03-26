@@ -114,7 +114,7 @@ func TestListNested(t *testing.T) {
 	assert.Equal(t, false, rs.Exists(ctx, "sub1"))
 	assert.Equal(t, true, rs.IsDir(ctx, "sub1"))
 	assert.Equal(t, "", rs.Alias())
-	assert.NotNil(t, rs.Store(ctx, "sub1"))
+	assert.NotNil(t, rs.Storage(ctx, "sub1"))
 }
 
 func createRootStore(ctx context.Context, u *gptest.Unit) (*Store, error) {
