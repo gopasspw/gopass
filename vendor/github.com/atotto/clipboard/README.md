@@ -1,12 +1,10 @@
-[![Build Status](https://travis-ci.org/atotto/clipboard.svg?branch=master)](https://travis-ci.org/atotto/clipboard) [![Build Status](https://drone.io/github.com/atotto/clipboard/status.png)](https://drone.io/github.com/atotto/clipboard/latest) 
+[![Build Status](https://travis-ci.org/atotto/clipboard.svg?branch=master)](https://travis-ci.org/atotto/clipboard)
 
 [![GoDoc](https://godoc.org/github.com/atotto/clipboard?status.svg)](http://godoc.org/github.com/atotto/clipboard)
 
 # Clipboard for Go
 
 Provide copying and pasting to the Clipboard for Go.
-
-Download shell commands at https://drone.io/github.com/atotto/clipboard/files
 
 Build:
 

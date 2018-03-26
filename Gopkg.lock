@@ -5,7 +5,7 @@
   branch = "master"
   name = "github.com/atotto/clipboard"
   packages = ["."]
-  revision = "bc5958e1c8339112fc3347a89f3c482f416a69d3"
+  revision = "5e2c7bddca04488284428a201e4a15615f7a5074"
 
 [[projects]]
   branch = "master"
@@ -70,7 +70,7 @@
     "termbox",
     "terminfo"
   ]
-  revision = "8fa68ef023c6a27854ba5ca5f2894f322880f544"
+  revision = "aa381bce1bf2eb814ead6ce443dfad0580f4a79f"
 
 [[projects]]
   branch = "master"
@@ -181,8 +181,8 @@
 [[projects]]
   name = "github.com/kevinburke/ssh_config"
   packages = ["."]
-  revision = "0ff8514904a8ebfcfb3c32ad73e1f8498a7f81b4"
-  version = "0.3"
+  revision = "9fc7bb800b555d63157c65a904c86a2cc7b4e795"
+  version = "0.4"
 
 [[projects]]
   branch = "master"
@@ -314,7 +314,7 @@
     "assert",
     "require"
   ]
-  revision = "b89eecf5ca5db6d3ba60b237ffe3df7bafb7662f"
+  revision = "c679ae2cc0cb27ec3293fea7e254e47386f05d69"
 
 [[projects]]
   branch = "master"
@@ -363,7 +363,7 @@
     "ssh/knownhosts",
     "ssh/terminal"
   ]
-  revision = "b4956d363a8b14623cc81db401707679605930a3"
+  revision = "88942b9c40a4c9d203b82b3731787b672d6e809b"
 
 [[projects]]
   branch = "master"
@@ -376,7 +376,7 @@
     "lex/httplex",
     "publicsuffix"
   ]
-  revision = "e0c57d8f86c17f0724497efcb3bc617e82834821"
+  revision = "6078986fec03a1dcc236c34816c71b0e05018fda"
 
 [[projects]]
   branch = "master"
@@ -386,7 +386,7 @@
     "windows",
     "windows/registry"
   ]
-  revision = "cc7307a45468e49eaf2997c890f14aa03a26917b"
+  revision = "91ee8cde435411ca3f1cd365e8f20131aed4d0a1"
 
 [[projects]]
   name = "golang.org/x/text"
@@ -479,8 +479,8 @@
 [[projects]]
   name = "gopkg.in/yaml.v2"
   packages = ["."]
-  revision = "7f97868eec74b32b0982dd158a51a446d1da7eb5"
-  version = "v2.1.1"
+  revision = "86f5ed62f8a0ee96bd888d2efdfd6d4fb100a4eb"
+  version = "v2.2.0"
 
 [[projects]]
   branch = "master"
