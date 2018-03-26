@@ -1,9 +1,23 @@
 ## Next Release
 
-* [FEATURE] Pluggable crypto, storage and RCS backends. Including a pure-Go NaCl based crypto backend [#645]
+* [FEATURE] Pluggable crypto, storage and RCS backends. Including a pure-Go NaCl based crypto backend [#645] [#680]
 * [FEATURE] Password history [#660]
+* [FEATURE] Vault backend [#723]
+* [FEATURE] Consul backend [#697]
+* [FEATURE] HIBPv2 Dump and API support [#666] [#706]
+* [FEATURE] Select recipients per secret [#703]
+* [FEATURE] Add experiemental OpenPGP crypto backend [#670]
 * [ENHANCEMENT] Support HIBPv2 API and Dumps [#666]
 * [ENHANCEMENT] Robust K/V parser with YAML fallback [#659]
+* [ENHANCEMENT] Restrict fsck to given path [#721]
+* [ENHANCEMENT] Refactor [#702] [#708] [#715] [#722]
+* [ENHANCEMENT] Proper Makefile dependencies [#707]
+* [ENHANCEMENT] Auto-copy with safecontent [#685]
+* [ENHANCEMENT] Add disable notifications option [#690]
+* [ENHANCEMENT] Migrate from govendor to dep [#688]
+* [BUGFIX] Use sh instead of bash [#699]
+* [BUGFIX] Lookup correct remote for current branch [#692]
+* [BUGFIX] Fix GPG binary detection on Windwos [#681] [#693]
 
 ## 1.6.11 / 2018-02-20
 
