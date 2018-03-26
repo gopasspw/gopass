@@ -8,10 +8,10 @@ import (
 	"github.com/justwatchcom/gopass/pkg/store"
 )
 
-// Sync returns the sync backend
-func (r *Store) Sync(ctx context.Context, name string) backend.RCS {
+// RCS returns the sync backend
+func (r *Store) RCS(ctx context.Context, name string) backend.RCS {
 	_, sub, _ := r.getStore(ctx, name)
-	if sub == nil {
+	if sub == nil || !sub.Valid() {
 		return nil
 	}
 	return sub.RCS()
