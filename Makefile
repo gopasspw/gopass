@@ -25,7 +25,7 @@ OK := $(shell tput setaf 6; echo ' [OK]'; tput sgr0;)
 all: build completion
 build: $(GOPASS_OUTPUT)
 completion: $(BASH_COMPLETION_OUTPUT) $(FISH_COMPLETION_OUTPUT) $(ZSH_COMPLETION_OUTPUT)
-travis: sysinfo crosscompile build install test codequality completion
+travis: sysinfo crosscompile build install legal test codequality completion
 
 sysinfo:
 	@echo ">> SYSTEM INFORMATION"
@@ -115,6 +115,16 @@ install-completion: completion
 	@install -m 0755 $(ZSH_COMPLETION_OUTPUT) $(DESTDIR)$(PREFIX)/share/zsh/site-functions/_gopass
 	@install -m 0755 $(BASH_COMPLETION_OUTPUT) $(DESTDIR)$(PREFIX)/share/bash-completion/completions/gopass
 	@install -m 0755 $(FISH_COMPLETION_OUTPUT) $(DESTDIR)$(PREFIX)/share/fish/vendor_completions.d/gopass.fish
+	@printf '%s\n' '$(OK)'
+
+legal:
+	@echo ">> LEGAL"
+	@echo -n "   LICENSES   "
+	@which fossa > /dev/null; if [ $$? -ne 0 ]; then \
+		$(GO) get -u github.com/pmezard/licenses; \
+	fi
+	@licenses . > NOTICE.new
+	@diff NOTICE.txt NOTICE.new || exit 1
 	@printf '%s\n' '$(OK)'
 
 codequality:

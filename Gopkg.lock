@@ -51,6 +51,12 @@
   version = "v1.5.0"
 
 [[projects]]
+  name = "github.com/fatih/structs"
+  packages = ["."]
+  revision = "a720dfa8df582c51dee1b36feabb906bde1588bd"
+  version = "v1.0"
+
+[[projects]]
   branch = "master"
   name = "github.com/gdamore/encoding"
   packages = ["."]
@@ -85,10 +91,22 @@
   revision = "bbd03ef6da3a115852eaf24c8a1c46aeb39aa175"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/golang/snappy"
+  packages = ["."]
+  revision = "553a641470496b2327abcac10b36396bd98e45c9"
+
+[[projects]]
   name = "github.com/hashicorp/consul"
   packages = ["api"]
   revision = "9a494b5fb9c86180a5702e29c485df1507a47198"
   version = "v1.0.6"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/hashicorp/errwrap"
+  packages = ["."]
+  revision = "7554cd9344cec97297fa6649b055a8c98c2a1e55"
 
 [[projects]]
   branch = "master"
@@ -98,15 +116,49 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/hashicorp/go-multierror"
+  packages = ["."]
+  revision = "b7773ae218740a7be65057fc60b366a49b538a44"
+
+[[projects]]
+  branch = "master"
   name = "github.com/hashicorp/go-rootcerts"
   packages = ["."]
   revision = "6bb64b370b90e7ef1fa532be9e591a81c3493e00"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/hashicorp/hcl"
+  packages = [
+    ".",
+    "hcl/ast",
+    "hcl/parser",
+    "hcl/scanner",
+    "hcl/strconv",
+    "hcl/token",
+    "json/parser",
+    "json/scanner",
+    "json/token"
+  ]
+  revision = "f40e974e75af4e271d97ce0fc917af5898ae7bda"
 
 [[projects]]
   name = "github.com/hashicorp/serf"
   packages = ["coordinate"]
   revision = "d6574a5bb1226678d7010325fb6c985db20ee458"
   version = "v0.8.1"
+
+[[projects]]
+  name = "github.com/hashicorp/vault"
+  packages = [
+    "api",
+    "helper/compressutil",
+    "helper/jsonutil",
+    "helper/parseutil",
+    "helper/strutil"
+  ]
+  revision = "7e1fbde40afee241f81ef08700e7987d86fc7242"
+  version = "v0.9.6"
 
 [[projects]]
   branch = "master"
@@ -170,6 +222,12 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/mitchellh/mapstructure"
+  packages = ["."]
+  revision = "00c29f56e2386353d58c599509e8dc3801b0d716"
+
+[[projects]]
+  branch = "master"
   name = "github.com/muesli/crunchy"
   packages = ["."]
   revision = "f17698490fdf74439244b7b019e2e3d00ca4d870"
@@ -205,6 +263,12 @@
   version = "v1.0.0"
 
 [[projects]]
+  name = "github.com/ryanuber/go-glob"
+  packages = ["."]
+  revision = "572520ed46dbddaed19ea3d9541bdd0494163693"
+  version = "v0.1"
+
+[[projects]]
   branch = "master"
   name = "github.com/schollz/closestmatch"
   packages = ["."]
@@ -215,6 +279,12 @@
   packages = ["diffmatchpatch"]
   revision = "1744e2970ca51c86172c8190fadad617561ed6e7"
   version = "v1.0.0"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/sethgrid/pester"
+  packages = ["."]
+  revision = "ed9870dad3170c0b25ab9b11830cc57c3a7798fb"
 
 [[projects]]
   branch = "master"
@@ -300,7 +370,10 @@
   name = "golang.org/x/net"
   packages = [
     "context",
+    "http2",
+    "http2/hpack",
     "idna",
+    "lex/httplex",
     "publicsuffix"
   ]
   revision = "e0c57d8f86c17f0724497efcb3bc617e82834821"
@@ -422,6 +495,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "7fc800922a9541a6b3d8bd29bf3a84ab207e5b090bdafe40152e5190bc3c4cbf"
+  inputs-digest = "583d903068fa8846736e7365e90e87e118901c24aff815bb3f3c0094bfd6db7f"
   solver-name = "gps-cdcl"
   solver-version = 1

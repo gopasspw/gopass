@@ -30,7 +30,7 @@ func TestTemplates(t *testing.T) {
 	s, err := New(
 		ctx,
 		"",
-		tempdir,
+		backend.FromPath(tempdir),
 		tempdir,
 		nil,
 	)

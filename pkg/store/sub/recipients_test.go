@@ -239,7 +239,7 @@ func TestListRecipients(t *testing.T) {
 	s, err := New(
 		ctx,
 		"",
-		tempdir,
+		backend.FromPath(tempdir),
 		tempdir,
 		nil,
 	)

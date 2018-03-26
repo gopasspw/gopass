@@ -47,3 +47,5 @@ dist/
 # go-fuzz
 *-fuzz.zip
 workdir/
+
+NOTICE.new

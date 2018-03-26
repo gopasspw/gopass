@@ -6,6 +6,7 @@ var (
 		"gpgcli":  GPGCLI,
 		"xc":      XC,
 		"openpgp": OpenPGP,
+		"vault":   Vault,
 	}
 	cryptoBackendToNameMap = map[CryptoBackend]string{}
 	rcsNameToBackendMap    = map[string]RCSBackend{

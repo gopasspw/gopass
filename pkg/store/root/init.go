@@ -26,7 +26,12 @@ func (r *Store) Initialized(ctx context.Context) bool {
 // Init tries to initialize a new password store location matching the object
 func (r *Store) Init(ctx context.Context, alias, path string, ids ...string) error {
 	out.Debug(ctx, "Instantiating new sub store %s at %s for %+v", alias, path, ids)
-	sub, err := sub.New(ctx, alias, path, r.cfg.Directory(), r.agent)
+	// parse backend URL
+	pathURL, err := backend.ParseURL(path)
+	if err != nil {
+		return errors.Wrapf(err, "failed to parse backend URL '%s': %s", path, err)
+	}
+	sub, err := sub.New(ctx, alias, pathURL, r.cfg.Directory(), r.agent)
 	if err != nil {
 		return err
 	}
@@ -94,7 +99,11 @@ func (r *Store) initialize(ctx context.Context) error {
 		if !backend.HasStorageBackend(ctx) {
 			ctx = backend.WithStorageBackend(ctx, r.cfg.Root.Path.Storage)
 		}
-		s, err := sub.New(ctx, "", r.url.String(), r.cfg.Directory(), r.agent)
+		bu, err := backend.ParseURL(r.url.String())
+		if err != nil {
+			return errors.Wrapf(err, "failed to parse backend URL '%s': %s", r.url.String(), err)
+		}
+		s, err := sub.New(ctx, "", bu, r.cfg.Directory(), r.agent)
 		if err != nil {
 			return errors.Wrapf(err, "failed to initialize the root store at '%s': %s", r.url.String(), err)
 		}
