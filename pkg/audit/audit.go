@@ -1,3 +1,4 @@
+// Package audit contains the password-strength auditing implementation
 package audit
 
 import (

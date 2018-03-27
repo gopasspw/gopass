@@ -61,6 +61,7 @@ func (s *Action) sync(ctx context.Context, c *cli.Context, store string) error {
 	return nil
 }
 
+// syncMount syncs a single mount
 func (s *Action) syncMount(ctx context.Context, mp string) error {
 	ctxno := out.WithNewline(ctx, false)
 	name := mp

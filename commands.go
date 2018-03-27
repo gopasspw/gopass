@@ -5,6 +5,8 @@ import (
 	"fmt"
 
 	ap "github.com/justwatchcom/gopass/pkg/action"
+	"github.com/justwatchcom/gopass/pkg/action/binary"
+	"github.com/justwatchcom/gopass/pkg/action/create"
 	"github.com/justwatchcom/gopass/pkg/action/xc"
 	"github.com/justwatchcom/gopass/pkg/agent"
 	"github.com/justwatchcom/gopass/pkg/agent/client"
@@ -73,10 +75,10 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 					Description: "" +
 						"This command will decrypt all secrets and check the passwords against the public " +
 						"havibeenpwned.com v2 API or Dumps. " +
-						"To use the dumps you need to download the dumps from https://haveibeenpwned.com/passwords first. This is a very expensive operation for advanced users." +
-						"Most users should probably use the API." +
-						"If you want to use the dumps you need to use 7z to extract the dump: 7z x pwned-passwords-2.0.txt.7z." +
-						"To speed up processing you should sort them and use the --sorted flag: cat pwned-passwords-2.0.txt | LANG=C sort -S 10G --parallel=4 | gzip --fast > pwned-passwords-2.0.txt.gz",
+						"To use the dumps you need to download the dumps from https://haveibeenpwned.com/passwords first. Be sure to grap the one that says '(ordered by hash)'. " +
+						"This is a very expensive operation for advanced users. " +
+						"Most users should probably use the API. " +
+						"If you want to use the dumps you need to use 7z to extract the dump: 7z x pwned-passwords-ordered-2.0.txt.7z.",
 					Before: func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
 					Action: func(c *cli.Context) error {
 						return action.HIBP(withGlobalFlags(ctx, c), c)
@@ -115,7 +117,7 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 						"to a secret.",
 					Before: func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
 					Action: func(c *cli.Context) error {
-						return action.BinaryCat(withGlobalFlags(ctx, c), c)
+						return binary.Cat(withGlobalFlags(ctx, c), c, action.Store)
 					},
 					BashComplete: func(c *cli.Context) { action.Complete(ctx, c) },
 				},
@@ -129,7 +131,7 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 					Aliases: []string{"sha", "sha256"},
 					Before:  func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
 					Action: func(c *cli.Context) error {
-						return action.BinarySum(withGlobalFlags(ctx, c), c)
+						return binary.Sum(withGlobalFlags(ctx, c), c, action.Store)
 					},
 					BashComplete: func(c *cli.Context) { action.Complete(ctx, c) },
 				},
@@ -145,7 +147,7 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 					Before:  func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
 					Aliases: []string{"cp"},
 					Action: func(c *cli.Context) error {
-						return action.BinaryCopy(withGlobalFlags(ctx, c), c)
+						return binary.Copy(withGlobalFlags(ctx, c), c, action.Store)
 					},
 					BashComplete: func(c *cli.Context) { action.Complete(ctx, c) },
 					Flags: []cli.Flag{
@@ -169,7 +171,7 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 					Before:  func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
 					Aliases: []string{"mv"},
 					Action: func(c *cli.Context) error {
-						return action.BinaryMove(withGlobalFlags(ctx, c), c)
+						return binary.Move(withGlobalFlags(ctx, c), c, action.Store)
 					},
 					BashComplete: func(c *cli.Context) { action.Complete(ctx, c) },
 					Flags: []cli.Flag{
@@ -283,7 +285,7 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 				"This command starts a wizard to aid in creation of new secrets.",
 			Before: func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
 			Action: func(c *cli.Context) error {
-				return action.Create(withGlobalFlags(ctx, c), c)
+				return create.Create(withGlobalFlags(ctx, c), c, action.Store)
 			},
 		},
 		{
@@ -539,14 +541,6 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 									Name:  "store",
 									Usage: "Store to operate on",
 								},
-								cli.StringFlag{
-									Name:  "remote",
-									Usage: "Git remote to add",
-								},
-								cli.StringFlag{
-									Name:  "url",
-									Usage: "Git URL",
-								},
 							},
 						},
 					},
@@ -564,14 +558,6 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 							Name:  "store",
 							Usage: "Store to operate on",
 						},
-						cli.StringFlag{
-							Name:  "origin",
-							Usage: "Git Origin to push to",
-						},
-						cli.StringFlag{
-							Name:  "branch",
-							Usage: "Git branch to push",
-						},
 					},
 				},
 				{
@@ -586,14 +572,6 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 						cli.StringFlag{
 							Name:  "store",
 							Usage: "Store to operate on",
-						},
-						cli.StringFlag{
-							Name:  "origin",
-							Usage: "Git Origin to push to",
-						},
-						cli.StringFlag{
-							Name:  "branch",
-							Usage: "Git branch to push",
 						},
 					},
 				},

@@ -77,23 +77,36 @@ func (s *Action) getUserData(ctx context.Context, store, un, ue string) (string,
 // GitAddRemote adds a new git remote
 func (s *Action) GitAddRemote(ctx context.Context, c *cli.Context) error {
 	store := c.String("store")
-	remote := c.String("remote")
-	url := c.String("url")
+	remote := c.Args().Get(0)
+	url := c.Args().Get(1)
+
+	if remote == "" || url == "" {
+		return ExitError(ctx, ExitUsage, nil, "Usage: %s git remote add <REMOTE> <URL>", s.Name)
+	}
+
 	return s.Store.GitAddRemote(ctx, store, remote, url)
 }
 
 // GitPull pulls from a git remote
 func (s *Action) GitPull(ctx context.Context, c *cli.Context) error {
 	store := c.String("store")
-	origin := c.String("origin")
-	branch := c.String("branch")
+	origin := c.Args().Get(0)
+	branch := c.Args().Get(1)
+
+	if origin == "" || branch == "" {
+		return ExitError(ctx, ExitUsage, nil, "Usage: %s git pull <ORIGIN> <BRANCH>", s.Name)
+	}
 	return s.Store.GitPull(ctx, store, origin, branch)
 }
 
 // GitPush pushes to a git remote
 func (s *Action) GitPush(ctx context.Context, c *cli.Context) error {
 	store := c.String("store")
-	origin := c.String("origin")
-	branch := c.String("branch")
+	origin := c.Args().Get(0)
+	branch := c.Args().Get(1)
+
+	if origin == "" || branch == "" {
+		return ExitError(ctx, ExitUsage, nil, "Usage: %s git push <ORIGIN> <BRANCH>", s.Name)
+	}
 	return s.Store.GitPush(ctx, store, origin, branch)
 }

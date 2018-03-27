@@ -129,6 +129,8 @@ func (s *Action) cloneGetGitConfig(ctx context.Context, name string) (string, st
 	return username, email, nil
 }
 
+// detectCryptoBackend tries to detect the crypto backend used in a cloned repo
+// This detection is very shallow and doesn't support all backends, yet
 func detectCryptoBackend(ctx context.Context, path string) backend.CryptoBackend {
 	if fsutil.IsFile(filepath.Join(path, xc.IDFile)) {
 		return backend.XC

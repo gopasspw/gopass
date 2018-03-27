@@ -8,7 +8,7 @@ import (
 	"github.com/urfave/cli"
 )
 
-// Update will start hte interactive update assistant
+// Update will start the interactive update assistant
 func (s *Action) Update(ctx context.Context, c *cli.Context) error {
 	pre := c.Bool("pre")
 

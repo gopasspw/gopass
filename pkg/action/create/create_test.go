@@ -1,4 +1,4 @@
-package action
+package create
 
 import (
 	"bytes"
@@ -13,7 +13,7 @@ import (
 	"github.com/justwatchcom/gopass/pkg/ctxutil"
 	"github.com/justwatchcom/gopass/pkg/out"
 	"github.com/justwatchcom/gopass/pkg/termio"
-	"github.com/justwatchcom/gopass/tests/gptest"
+	"github.com/justwatchcom/gopass/tests/mockstore"
 	"github.com/stretchr/testify/assert"
 	"github.com/urfave/cli"
 )
@@ -32,13 +32,10 @@ func TestExtractHostname(t *testing.T) {
 }
 
 func TestCreate(t *testing.T) {
-	u := gptest.NewUnitTester(t)
-	defer u.Remove()
+	store := mockstore.New("")
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
-	act, err := newMock(ctx, u)
-	assert.NoError(t, err)
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
@@ -51,26 +48,21 @@ func TestCreate(t *testing.T) {
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
 	c := cli.NewContext(app, fs, nil)
 
-	assert.Error(t, act.Create(ctx, c))
+	assert.Error(t, Create(ctx, c, store))
 	buf.Reset()
 }
 
 func TestCreateWebsite(t *testing.T) {
-	u := gptest.NewUnitTester(t)
-	defer u.Remove()
+	s := creator{mockstore.New("")}
 
 	ctx := context.Background()
 	ctx = ctxutil.WithInteractive(ctx, false)
-	act, err := newMock(ctx, u)
-	assert.NoError(t, err)
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
-	stdout = buf
 	termio.Stdout = buf
 	defer func() {
 		out.Stdout = os.Stdout
-		stdout = os.Stdout
 		termio.Stdout = os.Stdout
 	}()
 
@@ -92,7 +84,7 @@ y
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
 	c := cli.NewContext(app, fs, nil)
 
-	assert.NoError(t, act.createWebsite(ctx, c))
+	assert.NoError(t, s.createWebsite(ctx, c))
 	buf.Reset()
 
 	// try to create the same entry twice
@@ -107,31 +99,26 @@ y
 	fs = flag.NewFlagSet("default", flag.ContinueOnError)
 	c = cli.NewContext(app, fs, nil)
 
-	assert.NoError(t, act.createWebsite(ctx, c))
+	assert.NoError(t, s.createWebsite(ctx, c))
 	buf.Reset()
 }
 
 func TestCreatePIN(t *testing.T) {
-	u := gptest.NewUnitTester(t)
-	defer u.Remove()
+	s := creator{mockstore.New("")}
 
 	ctx := context.Background()
 	ctx = ctxutil.WithInteractive(ctx, false)
-	act, err := newMock(ctx, u)
-	assert.NoError(t, err)
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
-	stdout = buf
 	termio.Stdout = buf
 	defer func() {
-		stdout = os.Stdout
 		out.Stdout = os.Stdout
 		termio.Stdout = os.Stdout
 	}()
 
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
-	pw, err := act.createGeneratePIN(ctx)
+	pw, err := s.createGeneratePIN(ctx)
 	assert.NoError(t, err)
 	if len(pw) < 4 || len(pw) > 4 {
 		t.Errorf("PIN should have 4 characters")
@@ -155,25 +142,20 @@ y
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
 	c := cli.NewContext(app, fs, nil)
 
-	assert.NoError(t, act.createPIN(ctx, c))
+	assert.NoError(t, s.createPIN(ctx, c))
 	buf.Reset()
 }
 
 func TestCreateGeneric(t *testing.T) {
-	u := gptest.NewUnitTester(t)
-	defer u.Remove()
+	s := creator{mockstore.New("")}
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
-	act, err := newMock(ctx, u)
-	assert.NoError(t, err)
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
-	stdout = buf
 	termio.Stdout = buf
 	defer func() {
-		stdout = os.Stdout
 		out.Stdout = os.Stdout
 		termio.Stdout = os.Stdout
 	}()
@@ -196,27 +178,22 @@ y
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
 	c := cli.NewContext(app, fs, nil)
 
-	assert.NoError(t, act.createGeneric(ctx, c))
+	assert.NoError(t, s.createGeneric(ctx, c))
 	buf.Reset()
 }
 
 func TestCreateAWS(t *testing.T) {
-	u := gptest.NewUnitTester(t)
-	defer u.Remove()
+	s := creator{mockstore.New("")}
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithTerminal(ctx, false)
-	act, err := newMock(ctx, u)
-	assert.NoError(t, err)
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
-	stdout = buf
 	termio.Stdout = buf
 	defer func() {
 		out.Stdout = os.Stdout
-		stdout = os.Stdout
 		termio.Stdout = os.Stdout
 	}()
 
@@ -239,30 +216,31 @@ SECRETKEY
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
 	c := cli.NewContext(app, fs, nil)
 
-	assert.NoError(t, act.createAWS(ctx, c))
+	assert.NoError(t, s.createAWS(ctx, c))
 	buf.Reset()
 }
 
 func TestCreateGCP(t *testing.T) {
-	u := gptest.NewUnitTester(t)
-	defer u.Remove()
+	tempdir, err := ioutil.TempDir("", "gopass-")
+	assert.NoError(t, err)
+	defer func() {
+		_ = os.RemoveAll(tempdir)
+	}()
+
+	s := creator{mockstore.New("")}
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
-	act, err := newMock(ctx, u)
-	assert.NoError(t, err)
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
-	stdout = buf
 	termio.Stdout = buf
 	defer func() {
 		out.Stdout = os.Stdout
-		stdout = os.Stdout
 		termio.Stdout = os.Stdout
 	}()
 
-	tf := filepath.Join(u.Dir, "service-account.json")
+	tf := filepath.Join(tempdir, "service-account.json")
 	assert.NoError(t, ioutil.WriteFile(tf, []byte(`{"client_email": "foobar@example.org"}`), 0600))
 	// provide values on redirected stdin
 	input := tf
@@ -280,6 +258,6 @@ func TestCreateGCP(t *testing.T) {
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
 	c := cli.NewContext(app, fs, nil)
 
-	assert.NoError(t, act.createGCP(ctx, c))
+	assert.NoError(t, s.createGCP(ctx, c))
 	buf.Reset()
 }

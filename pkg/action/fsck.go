@@ -26,6 +26,7 @@ func (s *Action) Fsck(ctx context.Context, c *cli.Context) error {
 		}
 	}
 
+	// the main work in done by the sub stores
 	if err := s.Store.Fsck(ctx, c.Args().Get(0)); err != nil {
 		return ExitError(ctx, ExitFsck, err, "fsck found errors: %s", err)
 	}

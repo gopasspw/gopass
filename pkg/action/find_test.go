@@ -39,8 +39,8 @@ func TestFind(t *testing.T) {
 
 	// find
 	c := cli.NewContext(app, flag.NewFlagSet("default", flag.ContinueOnError), nil)
-	if err := act.Find(ctx, c); err == nil || err.Error() != "Usage: action.test find arg" {
-		t.Errorf("Should fail")
+	if err := act.Find(ctx, c); err == nil || err.Error() != "Usage: action.test find <NEEDLE>" {
+		t.Errorf("Should fail: %s", err)
 	}
 
 	// find fo
