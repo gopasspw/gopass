@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/vault/api"
+	"github.com/justwatchcom/gopass/pkg/agent/client"
 	"github.com/justwatchcom/gopass/pkg/backend"
 	"github.com/justwatchcom/gopass/pkg/out"
 	"github.com/justwatchcom/gopass/pkg/store"
@@ -21,14 +22,16 @@ const (
 
 // Store is a vault backed store
 type Store struct {
-	api   *api.Client
-	alias string
-	url   *backend.URL
-	path  string
+	api    *api.Client
+	alias  string
+	url    *backend.URL
+	path   string
+	agent  *client.Client
+	cfgdir string
 }
 
 // New creates a new store
-func New(alias string, url *backend.URL) (*Store, error) {
+func New(ctx context.Context, alias string, url *backend.URL, cfgdir string, agent *client.Client) (*Store, error) {
 	cfg := &api.Config{
 		Address: fmt.Sprintf("%s://%s:%s", url.Scheme, url.Host, url.Port),
 	}
@@ -41,14 +44,42 @@ func New(alias string, url *backend.URL) (*Store, error) {
 	if err != nil {
 		return nil, err
 	}
-	client.SetToken(url.Query.Get("token"))
 
-	return &Store{
-		api:   client,
-		alias: alias,
-		url:   url,
-		path:  url.Path,
-	}, nil
+	s := &Store{
+		api:    client,
+		alias:  alias,
+		url:    url,
+		path:   url.Path,
+		cfgdir: cfgdir,
+	}
+
+	token := url.Query.Get("token")
+	key := fmt.Sprintf("vault-%s-%s", alias, url.String())
+	if token == "" {
+		out.Debug(ctx, "Requesting token from secrets config: %s", key)
+		t, err := s.loadSecret(ctx, key)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to load token from secrets config: %s", err)
+		}
+		out.Debug(ctx, "Got token from secrets config: '%s'", t)
+		token = t
+	}
+	out.Debug(ctx, "Vault-Token: '%s'", token)
+
+	s.api.SetToken(token)
+
+	// test connection and save token if it works
+	if _, err := s.List(ctx, ""); err != nil {
+		out.Debug(ctx, "Vault access not working. removing saved token")
+		_ = s.eraseSecret
+		return nil, err
+	}
+	out.Debug(ctx, "Vault access OK. saving token")
+	if err := s.storeSecret(ctx, key, token); err != nil {
+		return nil, err
+	}
+
+	return s, nil
 }
 
 func configureTLS(q url.Values, cfg *api.Config) error {
