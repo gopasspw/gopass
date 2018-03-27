@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/fatih/color"
+	"github.com/justwatchcom/gopass/pkg/backend"
 	"github.com/justwatchcom/gopass/pkg/cui"
 	"github.com/justwatchcom/gopass/pkg/out"
 	"github.com/justwatchcom/gopass/pkg/termio"
@@ -17,15 +18,22 @@ func (s *Action) GitInit(ctx context.Context, c *cli.Context) error {
 	store := c.String("store")
 	un := c.String("username")
 	ue := c.String("useremail")
+	ctx = backend.WithRCSBackendString(ctx, c.String("rcs"))
 
-	if err := s.gitInit(ctx, store, un, ue); err != nil {
+	// default to git
+	if !backend.HasRCSBackend(ctx) {
+		ctx = backend.WithRCSBackend(ctx, backend.GitCLI)
+	}
+
+	if err := s.rcsInit(ctx, store, un, ue); err != nil {
 		return ExitError(ctx, ExitGit, err, "failed to initialize git: %s", err)
 	}
 	return nil
 }
 
-func (s *Action) gitInit(ctx context.Context, store, un, ue string) error {
-	out.Green(ctx, "Initializing git repository ...")
+func (s *Action) rcsInit(ctx context.Context, store, un, ue string) error {
+	bn := backend.RCSBackendName(backend.GetRCSBackend(ctx))
+	out.Green(ctx, "Initializing git repository (%s) ...", bn)
 
 	userName, userEmail := s.getUserData(ctx, store, un, ue)
 	if err := s.Store.GitInit(ctx, store, userName, userEmail); err != nil {

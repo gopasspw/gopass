@@ -22,7 +22,7 @@ func TestSingleMount(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "moar", out)
 
-	out, err = ts.run("init --store mnt/m1 --path " + ts.storeDir("m1") + " --nogit " + keyID)
+	out, err = ts.run("init --store mnt/m1 --path " + ts.storeDir("m1") + " --rcs=noop " + keyID)
 	t.Logf("Output: %s", out)
 	assert.NoError(t, err)
 
@@ -62,7 +62,7 @@ func TestMultiMount(t *testing.T) {
 	ts.initSecrets("")
 
 	// mount m1
-	out, err := ts.run("init --store mnt/m1 --path " + ts.storeDir("m1") + " --nogit " + keyID)
+	out, err := ts.run("init --store mnt/m1 --path " + ts.storeDir("m1") + " --rcs=noop " + keyID)
 	t.Logf("Output: %s", out)
 	assert.NoError(t, err)
 
@@ -90,7 +90,7 @@ func TestMultiMount(t *testing.T) {
 	assert.Equal(t, strings.TrimSpace(list), out)
 
 	// mount m2
-	out, err = ts.run("init --store mnt/m2 --path " + ts.storeDir("m2") + " --nogit " + keyID)
+	out, err = ts.run("init --store mnt/m2 --path " + ts.storeDir("m2") + " --rcs=noop " + keyID)
 	t.Logf("Output: %s", out)
 	assert.NoError(t, err)
 
