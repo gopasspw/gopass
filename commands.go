@@ -514,6 +514,10 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 							Name:  "sign-key",
 							Usage: "GPG Key to sign commits",
 						},
+						cli.StringFlag{
+							Name:  "rcs",
+							Usage: "Select sync backend (git, gitcli, gogit, noop)",
+						},
 					},
 				},
 				{
@@ -641,16 +645,12 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 					Name:  "store, s",
 					Usage: "Set the name of the sub store",
 				},
-				cli.BoolFlag{
-					Name:  "nogit",
-					Usage: "Do not init git repo",
-				},
 				cli.StringFlag{
 					Name:  "crypto",
 					Usage: "Select crypto backend (gpg, gpgcli, plain, xc)",
 				},
 				cli.StringFlag{
-					Name:  "sync",
+					Name:  "rcs",
 					Usage: "Select sync backend (git, gitcli, gogit, noop)",
 				},
 			},
@@ -864,6 +864,14 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 				cli.StringFlag{
 					Name:  "email",
 					Usage: "EMail for unattended GPG key generation",
+				},
+				cli.StringFlag{
+					Name:  "crypto",
+					Usage: "Select crypto backend (gpg, gpgcli, plain, xc)",
+				},
+				cli.StringFlag{
+					Name:  "rcs",
+					Usage: "Select sync backend (git, gitcli, gogit, noop)",
 				},
 			},
 		},

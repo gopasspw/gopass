@@ -7,11 +7,12 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/justwatchcom/gopass/pkg/config"
 	"github.com/justwatchcom/gopass/pkg/fsutil"
 )
 
 func iconURI() string {
-	iconFN := filepath.Join(os.TempDir(), "gopass-logo-small.png")
+	iconFN := filepath.Join(config.Directory(), "gopass-logo-small.png")
 	if !fsutil.IsFile(iconFN) {
 		fh, err := os.OpenFile(iconFN, os.O_WRONLY|os.O_CREATE, 0644)
 		if err != nil {

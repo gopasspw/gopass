@@ -42,7 +42,7 @@ func TestHistory(t *testing.T) {
 	app := cli.NewApp()
 
 	// init git
-	assert.NoError(t, act.gitInit(ctx, "", "foo bar", "foo.bar@example.org"))
+	assert.NoError(t, act.rcsInit(ctx, "", "foo bar", "foo.bar@example.org"))
 	buf.Reset()
 
 	// insert bar
