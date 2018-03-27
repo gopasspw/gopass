@@ -88,7 +88,7 @@ func (r *Store) addMount(ctx context.Context, alias, path string, sc *config.Sto
 }
 
 func (r *Store) initSubVault(ctx context.Context, alias string, path *backend.URL) (store.Store, error) {
-	return vault.New(alias, path)
+	return vault.New(ctx, alias, path, r.cfg.Directory(), r.agent)
 }
 
 func (r *Store) initSub(ctx context.Context, alias string, path *backend.URL, keys []string) (store.Store, error) {
