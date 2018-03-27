@@ -125,7 +125,7 @@ func isSorted(fn string) bool {
 		}
 		lastLine = line
 	}
-	return false
+	return true
 }
 
 func (s *Scanner) scanSortedFile(ctx context.Context, fn string, in []string, results chan string) {

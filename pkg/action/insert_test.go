@@ -21,6 +21,7 @@ func TestInsert(t *testing.T) {
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
+	ctx = ctxutil.WithTerminal(ctx, false)
 	act, err := newMock(ctx, u)
 	assert.NoError(t, err)
 
@@ -52,10 +53,21 @@ func TestInsert(t *testing.T) {
 	buf.Reset()
 
 	assert.NoError(t, act.show(ctx, c, "baz", "", false))
-	assert.Equal(t, "foobar\n", buf.String())
+	assert.Equal(t, "foobar", buf.String())
 	buf.Reset()
 
 	// insert zab#key
 	assert.NoError(t, act.insertYAML(ctx, "zab", "key", []byte("foobar")))
 
+	// insert --multiline foo
+	fs = flag.NewFlagSet("default", flag.ContinueOnError)
+	bf := cli.BoolFlag{
+		Name:  "multiline",
+		Usage: "multiline",
+	}
+	assert.NoError(t, bf.ApplyWithError(fs))
+	assert.NoError(t, fs.Parse([]string{"--multiline=true", "bar", "baz"}))
+	c = cli.NewContext(app, fs, nil)
+
+	assert.NoError(t, act.Insert(ctx, c))
 }

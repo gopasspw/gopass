@@ -57,7 +57,7 @@ func main() {
 		out: colorable.NewColorableStderr(),
 	}
 	sv := getVersion()
-	cli.VersionPrinter = makeVersionPrinter(sv)
+	cli.VersionPrinter = makeVersionPrinter(os.Stdout, sv)
 
 	app := setupApp(ctx, sv)
 	if err := app.Run(os.Args); err != nil {
@@ -65,7 +65,7 @@ func main() {
 	}
 }
 
-func makeVersionPrinter(sv semver.Version) func(c *cli.Context) {
+func makeVersionPrinter(out io.Writer, sv semver.Version) func(c *cli.Context) {
 	return func(c *cli.Context) {
 		buildtime := ""
 		if bt, err := time.Parse("2006-01-02T15:04:05-0700", date); err == nil {
@@ -84,7 +84,9 @@ func makeVersionPrinter(sv semver.Version) func(c *cli.Context) {
 		if buildInfo != "" {
 			buildInfo = "(" + buildInfo + ") "
 		}
-		fmt.Printf("%s %s %s%s %s %s\n",
+		fmt.Fprintf(
+			out,
+			"%s %s %s%s %s %s\n",
 			name,
 			sv.String(),
 			buildInfo,

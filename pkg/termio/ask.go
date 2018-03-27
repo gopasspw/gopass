@@ -27,7 +27,7 @@ const (
 // AskForString asks for a string once, using the default if the
 // anser is empty. Errors are only returned on I/O errors
 func AskForString(ctx context.Context, text, def string) (string, error) {
-	if ctxutil.IsAlwaysYes(ctx) {
+	if ctxutil.IsAlwaysYes(ctx) || !ctxutil.IsInteractive(ctx) {
 		return def, nil
 	}
 

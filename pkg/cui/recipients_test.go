@@ -14,6 +14,7 @@ import (
 
 func TestConfirmRecipients(t *testing.T) {
 	ctx := context.Background()
+	ctx = ctxutil.WithTerminal(ctx, false)
 
 	buf := &bytes.Buffer{}
 	Stdout = buf
@@ -33,6 +34,12 @@ func TestConfirmRecipients(t *testing.T) {
 	got, err = ConfirmRecipients(ctxutil.WithNoConfirm(ctx, true), plain.New(), "test", in)
 	assert.NoError(t, err)
 	assert.Equal(t, in, got)
+	buf.Reset()
+
+	// IsEditRecipients true
+	in = []string{"foo", "bar"}
+	_, err = ConfirmRecipients(ctxutil.WithEditRecipients(ctx, true), plain.New(), "test", in)
+	assert.Error(t, err)
 	buf.Reset()
 }
 

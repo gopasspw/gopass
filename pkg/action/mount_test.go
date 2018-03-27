@@ -26,8 +26,10 @@ func TestMounts(t *testing.T) {
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
+	stdout = buf
 	defer func() {
 		out.Stdout = os.Stdout
+		stdout = os.Stdout
 	}()
 
 	app := cli.NewApp()
@@ -67,5 +69,18 @@ func TestMounts(t *testing.T) {
 	c = cli.NewContext(app, fs, nil)
 
 	assert.Error(t, act.MountAdd(ctx, c))
+	buf.Reset()
+
+	// add some mounts
+	assert.NoError(t, u.InitStore("mount1"))
+	assert.NoError(t, u.InitStore("mount2"))
+	assert.NoError(t, act.Store.AddMount(ctx, "mount1", u.StoreDir("mount1")))
+	assert.NoError(t, act.Store.AddMount(ctx, "mount2", u.StoreDir("mount2")))
+
+	// print mounts
+	fs = flag.NewFlagSet("default", flag.ContinueOnError)
+	c = cli.NewContext(app, fs, nil)
+
+	assert.NoError(t, act.MountsPrint(ctx, c))
 	buf.Reset()
 }

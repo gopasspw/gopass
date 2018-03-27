@@ -22,7 +22,6 @@ func TestHistory(t *testing.T) {
 	defer u.Remove()
 
 	ctx := context.Background()
-	ctx = ctxutil.WithDebug(ctx, true)
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = backend.WithRCSBackend(ctx, backend.GitCLI)
 	ctx = backend.WithCryptoBackend(ctx, backend.Plain)
@@ -56,6 +55,19 @@ func TestHistory(t *testing.T) {
 	// history bar
 	fs = flag.NewFlagSet("default", flag.ContinueOnError)
 	assert.NoError(t, fs.Parse([]string{"bar"}))
+	c = cli.NewContext(app, fs, nil)
+
+	assert.NoError(t, act.History(ctx, c))
+	buf.Reset()
+
+	// history --password bar
+	fs = flag.NewFlagSet("default", flag.ContinueOnError)
+	sf := cli.StringFlag{
+		Name:  "password",
+		Usage: "password",
+	}
+	assert.NoError(t, sf.ApplyWithError(fs))
+	assert.NoError(t, fs.Parse([]string{"--password=true", "bar"}))
 	c = cli.NewContext(app, fs, nil)
 
 	assert.NoError(t, act.History(ctx, c))
