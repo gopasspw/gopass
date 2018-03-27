@@ -20,6 +20,8 @@ import (
 	"github.com/urfave/cli"
 )
 
+// commandsWithError is a list of commands that return an error when
+// invoked without arguments
 var commandsWithError = map[string]struct{}{
 	".audit":                 {},
 	".audit.hibp":            {},
@@ -35,6 +37,9 @@ var commandsWithError = map[string]struct{}{
 	".find":                  {},
 	".generate":              {},
 	".grep":                  {},
+	".git.remote.add":        {},
+	".git.push":              {},
+	".git.pull":              {},
 	".history":               {},
 	".init":                  {},
 	".insert":                {},

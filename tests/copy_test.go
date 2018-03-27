@@ -18,11 +18,11 @@ func TestCopy(t *testing.T) {
 
 	out, err := ts.run("copy")
 	assert.Error(t, err)
-	assert.Equal(t, "\nError: Usage: "+filepath.Base(ts.Binary)+" cp old-path new-path\n", out)
+	assert.Equal(t, "\nError: Usage: "+filepath.Base(ts.Binary)+" cp <FROM> <TO>\n", out)
 
 	out, err = ts.run("copy foo")
 	assert.Error(t, err)
-	assert.Equal(t, "\nError: Usage: "+filepath.Base(ts.Binary)+" cp old-path new-path\n", out)
+	assert.Equal(t, "\nError: Usage: "+filepath.Base(ts.Binary)+" cp <FROM> <TO>\n", out)
 
 	out, err = ts.run("copy foo bar")
 	assert.Error(t, err)

@@ -15,6 +15,11 @@ import (
 	"github.com/urfave/cli"
 )
 
+const (
+	// BinarySuffix is the suffix that is appended to binaries in the store
+	BinarySuffix = ".b64"
+)
+
 // Show the content of a secret file
 func (s *Action) Show(ctx context.Context, c *cli.Context) error {
 	name := c.Args().First()
@@ -38,6 +43,7 @@ func (s *Action) Show(ctx context.Context, c *cli.Context) error {
 	return nil
 }
 
+// show displays the given secret/key
 func (s *Action) show(ctx context.Context, c *cli.Context, name, key string, recurse bool) error {
 	if name == "" {
 		return ExitError(ctx, ExitUsage, nil, "Usage: %s show [name]", s.Name)
@@ -67,6 +73,7 @@ func (s *Action) show(ctx context.Context, c *cli.Context, name, key string, rec
 	return s.showHandleOutput(ctx, name, key, sec)
 }
 
+// showHandleRevision displays a single revision
 func (s *Action) showHandleRevision(ctx context.Context, c *cli.Context, name, key, revision string) error {
 	sec, err := s.Store.GetRevision(ctx, name, revision)
 	if err != nil {
@@ -76,6 +83,7 @@ func (s *Action) showHandleRevision(ctx context.Context, c *cli.Context, name, k
 	return s.showHandleOutput(ctx, name, key, sec)
 }
 
+// showHandleOutput displays a secret
 func (s *Action) showHandleOutput(ctx context.Context, name, key string, sec store.Secret) error {
 	var content string
 
@@ -120,6 +128,7 @@ func (s *Action) showHandleOutput(ctx context.Context, name, key string, sec sto
 	return nil
 }
 
+// showHandleError handles errors retrieving secrets
 func (s *Action) showHandleError(ctx context.Context, c *cli.Context, name string, recurse bool, err error) error {
 	if err != store.ErrNotFound || !recurse || !ctxutil.IsTerminal(ctx) {
 		return ExitError(ctx, ExitUnknown, err, "failed to retrieve secret '%s': %s", name, err)

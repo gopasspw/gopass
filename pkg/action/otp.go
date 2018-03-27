@@ -22,8 +22,9 @@ const (
 func (s *Action) OTP(ctx context.Context, c *cli.Context) error {
 	name := c.Args().First()
 	if name == "" {
-		return ExitError(ctx, ExitUsage, nil, "usage: %s otp [name]", s.Name)
+		return ExitError(ctx, ExitUsage, nil, "Usage: %s otp <NAME>", s.Name)
 	}
+
 	qrf := c.String("qr")
 	clip := c.Bool("clip")
 

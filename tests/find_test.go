@@ -15,7 +15,7 @@ func TestFind(t *testing.T) {
 
 	out, err := ts.run("find")
 	assert.Error(t, err)
-	assert.Equal(t, "\nError: Usage: "+filepath.Base(ts.Binary)+" find arg\n", out)
+	assert.Equal(t, "\nError: Usage: "+filepath.Base(ts.Binary)+" find <NEEDLE>\n", out)
 
 	_, err = ts.run("config safecontent false")
 	assert.NoError(t, err)

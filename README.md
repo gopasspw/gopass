@@ -34,7 +34,7 @@ The slightly more awesome Standard Unix Password Manager for Teams. Written in G
 
 ## Demo
 
-[![asciicast](https://asciinema.org/a/101688.png)](https://asciinema.org/a/101688)
+[![asciicast](https://asciinema.org/a/172749.png)](https://asciinema.org/a/172749)
 
 ## Features
 

@@ -12,6 +12,8 @@ import (
 func (s *Action) Audit(ctx context.Context, c *cli.Context) error {
 	filter := c.Args().First()
 
+	out.Print(ctx, "Auditing passwords for common flaws ...")
+
 	t, err := s.Store.Tree(ctx)
 	if err != nil {
 		return ExitError(ctx, ExitList, err, "failed to get store tree: %s", err)
@@ -19,7 +21,7 @@ func (s *Action) Audit(ctx context.Context, c *cli.Context) error {
 	if filter != "" {
 		subtree, err := t.FindFolder(filter)
 		if err != nil {
-			return err
+			return ExitError(ctx, ExitUnknown, err, "failed to find subtree: %s", err)
 		}
 		t = subtree
 	}
