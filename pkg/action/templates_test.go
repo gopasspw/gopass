@@ -21,6 +21,7 @@ func TestTemplates(t *testing.T) {
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
+	ctx = ctxutil.WithTerminal(ctx, false)
 	act, err := newMock(ctx, u)
 	assert.NoError(t, err)
 
@@ -63,6 +64,11 @@ gopass
 	// print template
 	assert.NoError(t, act.TemplatePrint(ctx, c))
 	assert.Equal(t, "foobar\n", buf.String())
+	buf.Reset()
+
+	// edit template
+	assert.Error(t, act.TemplateEdit(ctx, c))
+	buf.Reset()
 
 	// remove template
 	assert.NoError(t, act.TemplateRemove(ctx, c))

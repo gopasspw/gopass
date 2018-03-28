@@ -32,10 +32,17 @@ func TestGenerate(t *testing.T) {
 
 	app := cli.NewApp()
 
-	// generate foobar
+	// generate
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
-	assert.NoError(t, fs.Parse([]string{"foobar"}))
 	c := cli.NewContext(app, fs, nil)
+
+	assert.Error(t, act.Generate(ctx, c))
+	buf.Reset()
+
+	// generate foobar
+	fs = flag.NewFlagSet("default", flag.ContinueOnError)
+	assert.NoError(t, fs.Parse([]string{"foobar"}))
+	c = cli.NewContext(app, fs, nil)
 
 	assert.NoError(t, act.Generate(ctx, c))
 	buf.Reset()

@@ -24,6 +24,7 @@ func TestRCSBackend(t *testing.T) {
 	assert.Equal(t, Noop, GetRCSBackend(ctx))
 	assert.Equal(t, GitCLI, GetRCSBackend(WithRCSBackendString(ctx, "gitcli")))
 	assert.Equal(t, GitCLI, GetRCSBackend(WithRCSBackend(ctx, GitCLI)))
+	assert.Equal(t, Noop, GetRCSBackend(WithRCSBackendString(ctx, "foobar")))
 	assert.Equal(t, true, HasRCSBackend(WithRCSBackend(ctx, GitCLI)))
 }
 

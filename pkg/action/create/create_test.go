@@ -56,7 +56,7 @@ func TestCreateWebsite(t *testing.T) {
 	s := creator{mockstore.New("")}
 
 	ctx := context.Background()
-	ctx = ctxutil.WithInteractive(ctx, false)
+	ctx = ctxutil.WithInteractive(ctx, true)
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
@@ -107,7 +107,7 @@ func TestCreatePIN(t *testing.T) {
 	s := creator{mockstore.New("")}
 
 	ctx := context.Background()
-	ctx = ctxutil.WithInteractive(ctx, false)
+	ctx = ctxutil.WithInteractive(ctx, true)
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
