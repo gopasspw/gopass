@@ -36,11 +36,14 @@ archive:
     - bash.completion
     - fish.completion
     - zsh.completion
+  wrap_in_directory: true
 release:
   github:
     owner: justwatchcom
     name: gopass
   draft: false
+  name_template: '{{ .Version }} / {{ time "2006-01-02" }}'
+  body_template: '{{ .ReleaseNotes }}'
 brew:
   github:
     owner: justwatchcom
@@ -80,7 +83,7 @@ brew:
     zsh_completion.install "zsh_completion.zsh"
   test:  |
     assert_match version.to_s, shell_output("#{bin}/gopass version")
-fpm:
+nfpm:
   vendor: JustWatch
   homepage: "https://www.justwatch.com/gopass/"
   maintainer: "Gopass Authors <gopass@justwatch.com>"
@@ -88,7 +91,6 @@ fpm:
   formats:
     - deb
     - rpm
-    - pacman
   dependencies:
     - git
     - gnupg2
@@ -103,7 +105,11 @@ source:
     - "*/releases/*"
     - "*/dist/*"
 checksum:
-  name_template: "{{.Binary}}_{{.Version}}_SHA256SUMS"
+  name_template: "{{.ProjectName}}_{{.Version}}_SHA256SUMS"
+sign:
+  artifacts: checksum
+changelog:
+  extract: CHANGELOG.md
 cleanup:
   hooks:
     - make clean
