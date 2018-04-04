@@ -38,12 +38,14 @@ Working, needs more of testing.
 Design
 ------
 
+The design tries to follow current [industry best-practices](http://latacora.singles/2018/04/03/cryptographic-right-answers.html) wherever possible.
+
 * Hybrid encryption
     * Symmetric encryption for payload (secrets)
-	* Using [Chacha20Poly1305](https://godoc.org/golang.org/x/crypto/chacha20poly1305) [AEAD](https://godoc.org/crypto/cipher#AEAD)
+	* Using [XSalsa20, Poly1305 (NaCL Secretbox)](https://godoc.org/golang.org/x/crypto/nacl/secretbox) [AEAD](https://godoc.org/crypto/cipher#AEAD)
 	* [Random session key](https://godoc.org/crypto/rand)
     * Asymmetric encryption per recipient
-	* Using [Curve25519, XSalsa20, Poly1305 (NaCL Box)](https://godoc.org/golang.org/x/crypto/nacl/box)
+	    * Using [Curve25519, XSalsa20, Poly1305 (NaCL Box)](https://godoc.org/golang.org/x/crypto/nacl/box)
 	* (optional) Unencrypted Metadata
     * Disk format uses [protocol buffers version 3](https://developers.google.com/protocol-buffers/) encoding
 * Keystore

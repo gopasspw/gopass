@@ -148,7 +148,7 @@ func TestEncryptChunks(t *testing.T) {
 		_, _ = rand.Read(p)
 		plaintext.Write(p)
 	}
-	assert.Equal(t, 10485760, plaintext.Len())
+	assert.Equal(t, 163840, plaintext.Len())
 
 	ciphertext, err := xc.Encrypt(ctx, plaintext.Bytes(), []string{k1.Fingerprint()})
 	assert.NoError(t, err)

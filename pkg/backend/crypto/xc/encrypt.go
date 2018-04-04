@@ -14,14 +14,17 @@ import (
 
 	crypto_rand "crypto/rand"
 
-	"golang.org/x/crypto/chacha20poly1305"
 	"golang.org/x/crypto/nacl/box"
+	"golang.org/x/crypto/nacl/secretbox"
 )
 
 const (
 	// OnDiskVersion is the version of our on-disk format
 	OnDiskVersion = 1
-	chunkSizeMax  = 1024 * 1024
+	// chunkSizeMax is chosen according to the NaCl recommendation:
+	// "If in doubt, 16KB is a reasonable chunk size."
+	// https://godoc.org/golang.org/x/crypto/nacl/secretbox
+	chunkSizeMax = 16 * 1024
 )
 
 // Encrypt encrypts the given plaintext for all the given recipients and returns the
@@ -118,8 +121,8 @@ func (x *XC) encryptForRecipient(ctx context.Context, sender *keyring.PrivateKey
 // plaintext with those. it returns all three
 func encryptBody(plaintext []byte) ([]byte, []*xcpb.Chunk, error) {
 	// generate session / encryption key
-	sessionKey := make([]byte, 32)
-	if _, err := crypto_rand.Read(sessionKey); err != nil {
+	var sessionKey [32]byte
+	if _, err := crypto_rand.Read(sessionKey[:]); err != nil {
 		return nil, nil, err
 	}
 
@@ -130,24 +133,17 @@ func encryptBody(plaintext []byte) ([]byte, []*xcpb.Chunk, error) {
 		// use a sequential nonce to prevent chunk reordering.
 		// since the pair of key and nonce has to be unique and we're
 		// generating a new random key for each message, this is OK
-		nonce := make([]byte, 12)
-		binary.BigEndian.PutUint64(nonce, uint64(len(chunks)))
-
-		// initialize the AEAD with the generated session key
-		cp, err := chacha20poly1305.New(sessionKey)
-		if err != nil {
-			return nil, nil, err
-		}
+		var nonce [24]byte
+		binary.BigEndian.PutUint64(nonce[:], uint64(len(chunks)))
 
 		// encrypt the plaintext using the random nonce
-		ciphertext := cp.Seal(nil, nonce, plaintext[offset:min(len(plaintext), offset+chunkSizeMax)], nil)
 		chunks = append(chunks, &xcpb.Chunk{
-			Body: ciphertext,
+			Body: secretbox.Seal(nil, plaintext[offset:min(len(plaintext), offset+chunkSizeMax)], &nonce, &sessionKey),
 		})
 		offset += chunkSizeMax
 	}
 
-	return sessionKey, chunks, nil
+	return sessionKey[:], chunks, nil
 }
 
 func min(a, b int) int {
