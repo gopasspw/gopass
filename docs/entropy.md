@@ -23,6 +23,8 @@ The second command should complete within a few seconds and report no errors.
 If it takes much longer you probably don't have an hardware RNG and will have
 to generate some entropy by triggering some network activity and input.
 
+You should avoid `havaged`.
+
 ### Debian / Ubuntu
 
 ```
