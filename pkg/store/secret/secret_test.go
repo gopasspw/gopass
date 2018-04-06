@@ -109,6 +109,7 @@ func TestParse(t *testing.T) {
 		Out      []byte
 		Password string
 		Body     string
+		String   string
 		Data     map[string]interface{}
 		Fail     bool
 	}{
@@ -117,6 +118,8 @@ func TestParse(t *testing.T) {
 			In:       []byte(`password`),
 			Out:      []byte("password"),
 			Password: "password",
+			Body:     "",
+			String:   "password",
 		},
 		{
 			Desc: "Multiline secret",
@@ -207,6 +210,9 @@ key2: value2`,
 		assert.NoError(t, err)
 		if tc.Out != nil {
 			assert.Equal(t, string(tc.Out), string(b))
+		}
+		if tc.String != "" {
+			assert.Equal(t, tc.String, sec.String(), tc.Desc)
 		}
 	}
 }
