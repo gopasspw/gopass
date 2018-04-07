@@ -23,10 +23,7 @@ func (s *Secret) Value(key string) (string, error) {
 		}
 	}
 	if v, found := s.data[key]; found {
-		if sv, ok := v.(string); ok {
-			return sv, nil
-		}
-		return "", store.ErrYAMLValueUnsupported
+		return fmt.Sprintf("%v", v), nil
 	}
 	return "", store.ErrYAMLNoKey
 }
