@@ -66,8 +66,12 @@ func (s *Secret) Bytes() ([]byte, error) {
 func (s *Secret) String() string {
 	var buf strings.Builder
 	_, _ = buf.WriteString(s.password)
-	_, _ = buf.WriteString("\n")
-	_, _ = buf.WriteString(s.body)
+
+	if s.body != "" {
+		_, _ = buf.WriteString("\n")
+		_, _ = buf.WriteString(s.body)
+	}
+
 	return buf.String()
 }
 
