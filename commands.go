@@ -419,6 +419,39 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 			},
 		},
 		{
+			Name:  "git-credential",
+			Usage: "Use '!gopass git-credential $@' as git's credential.helper",
+			Description: "" +
+				"This command allows you to cache your git-credentials with gopass." +
+				"Activate by using `git config --global credential.helper '!gopass git-credential $@'`",
+			Before: func(c *cli.Context) error {
+				return action.GitCredentialBefore(ctxutil.WithInteractive(withGlobalFlags(ctx, c), false), c)
+			},
+			Subcommands: []cli.Command{
+				{
+					Name:   "get",
+					Hidden: true,
+					Action: func(c *cli.Context) error {
+						return action.GitCredentialGet(withGlobalFlags(ctx, c), c)
+					},
+				},
+				{
+					Name:   "store",
+					Hidden: true,
+					Action: func(c *cli.Context) error {
+						return action.GitCredentialStore(withGlobalFlags(ctx, c), c)
+					},
+				},
+				{
+					Name:   "erase",
+					Hidden: true,
+					Action: func(c *cli.Context) error {
+						return action.GitCredentialErase(withGlobalFlags(ctx, c), c)
+					},
+				},
+			},
+		},
+		{
 			Name:        "jsonapi",
 			Usage:       "Run gopass as jsonapi e.g. for browser plugins",
 			Description: "Setup and run gopass as native messaging hosts, e.g. for browser plugins.",
