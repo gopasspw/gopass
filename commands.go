@@ -398,11 +398,6 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 					Usage: "Open secret for editing after generating a password",
 				},
 				cli.BoolFlag{
-					Name:   "no-symbols, n",
-					Usage:  "Do not include symbols in the password",
-					Hidden: true,
-				},
-				cli.BoolFlag{
 					Name:  "symbols, s",
 					Usage: "Use symbols in the password",
 				},

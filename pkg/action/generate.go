@@ -118,9 +118,9 @@ func (s *Action) generatePassword(ctx context.Context, c *cli.Context, length st
 		return s.generatePasswordXKCD(ctx, c, length)
 	}
 
-	symbols := false
-	if c.Bool("symbols") || ctxutil.IsUseSymbols(ctx) {
-		symbols = true
+	symbols := ctxutil.IsUseSymbols(ctx)
+	if c.IsSet("symbols") {
+		symbols = c.Bool("symbols")
 	}
 
 	var pwlen int
