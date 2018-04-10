@@ -5,20 +5,14 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"strings"
 
-	"github.com/justwatchcom/gopass/pkg/store/sub"
-
-	"github.com/justwatchcom/gopass/pkg/store/secret"
-
-	"github.com/justwatchcom/gopass/pkg/fsutil"
-
-	"github.com/justwatchcom/gopass/pkg/out"
-
 	"github.com/justwatchcom/gopass/pkg/ctxutil"
-
+	"github.com/justwatchcom/gopass/pkg/fsutil"
+	"github.com/justwatchcom/gopass/pkg/out"
+	"github.com/justwatchcom/gopass/pkg/store/secret"
+	"github.com/justwatchcom/gopass/pkg/store/sub"
 	"github.com/urfave/cli"
 )
 
@@ -30,6 +24,7 @@ type gitCredentials struct {
 	Password string
 }
 
+// WriteTo writes the given credentials to the given io.Writer in the git-credential format
 func (c *gitCredentials) WriteTo(w io.Writer) (int64, error) {
 	var n int64
 	if c.Protocol != "" {
@@ -75,9 +70,10 @@ func parseGitCredentials(r io.Reader) (*gitCredentials, error) {
 	c := &gitCredentials{}
 	for {
 		key, err := rd.ReadString('=')
-		if err == io.EOF {
-			return c, nil
-		} else if err != nil {
+		if err != nil {
+			if err == io.EOF {
+				return c, nil
+			}
 			return nil, err
 		}
 		key = strings.TrimSuffix(key, "=")
@@ -114,12 +110,15 @@ func (s *Action) GitCredentialBefore(ctx context.Context, c *cli.Context) error 
 
 // GitCredentialGet returns a credential to git
 func (s *Action) GitCredentialGet(ctx context.Context, c *cli.Context) error {
+	ctx = sub.WithAutoSync(ctx, false)
 	cred, err := parseGitCredentials(os.Stdin)
 	if err != nil {
 		return ExitError(ctx, ExitUnsupported, err, "Error: %v while parsing git-credential", err)
 	}
+	// try git/host/username... If username is empty, simply try git/host
 	path := "git/" + fsutil.CleanFilename(cred.Host) + "/" + fsutil.CleanFilename(cred.Username)
 	if !s.Store.Exists(ctx, path) {
+		// if the looked up path is a directory with only one entry (e.g. one user per host), take the subentry instead
 		if s.Store.IsDir(ctx, path) {
 			tree, err := s.Store.Tree(ctx)
 			if err != nil {
@@ -144,9 +143,10 @@ func (s *Action) GitCredentialGet(ctx context.Context, c *cli.Context) error {
 		return ExitError(ctx, ExitDecrypt, err, "")
 	}
 	cred.Password = secret.Password()
-	cred.Username, err = secret.Value("login")
+	username, err := secret.Value("login")
 	if err != nil {
-		log.Println(err)
+		// leave the username as is otherwise
+		cred.Username = username
 	}
 
 	_, err = cred.WriteTo(out.Stdout)
@@ -158,6 +158,7 @@ func (s *Action) GitCredentialGet(ctx context.Context, c *cli.Context) error {
 
 // GitCredentialStore stores a credential got from git
 func (s *Action) GitCredentialStore(ctx context.Context, c *cli.Context) error {
+	ctx = sub.WithAutoSync(ctx, false)
 	cred, err := parseGitCredentials(os.Stdin)
 	if err != nil {
 		return ExitError(ctx, ExitUnsupported, err, "Error: %v while parsing git-credential", err)
@@ -167,7 +168,8 @@ func (s *Action) GitCredentialStore(ctx context.Context, c *cli.Context) error {
 	if cred.Username != "" {
 		_ = secret.SetValue("login", cred.Username)
 	}
-	err = s.Store.Set(sub.WithAutoSync(ctx, false), path, secret)
+	// TODO: Skip this step if the same secret is already in the store. How to implement this?
+	err = s.Store.Set(ctx, path, secret)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "gopass error: error while writing to store")
 	}
@@ -176,12 +178,13 @@ func (s *Action) GitCredentialStore(ctx context.Context, c *cli.Context) error {
 
 // GitCredentialErase removes a credential got from git
 func (s *Action) GitCredentialErase(ctx context.Context, c *cli.Context) error {
+	ctx = sub.WithAutoSync(ctx, false)
 	cred, err := parseGitCredentials(os.Stdin)
 	if err != nil {
 		return ExitError(ctx, ExitUnsupported, err, "Error: %v while parsing git-credential", err)
 	}
 	path := "git/" + fsutil.CleanFilename(cred.Host) + "/" + fsutil.CleanFilename(cred.Username)
-	err = s.Store.Delete(sub.WithAutoSync(ctx, false), path)
+	err = s.Store.Delete(ctx, path)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "gopass error: error while writing to store")
 	}
