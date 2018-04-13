@@ -28,10 +28,13 @@ function __fish_{{ $prog }}_print_gpg_keys
 end
 
 function __fish_{{ $prog }}_print_entries
-  eval "{{ $prog }} ls --flat"
-  for file in $files
-    echo "$file"
-  end
+  {{ $prog }} ls --flat
+end
+
+function __fish_{{ $prog }}__print_dirs
+  for i in ({{ $prog }} ls --flat)
+	  echo (dirname $i)
+	end | sort -u
 end
 
 # erase any existing completions for {{ $prog }}
@@ -41,10 +44,13 @@ complete -c $PROG -f -n '__fish_{{ $prog }}_needs_command' -a "(__fish_{{ $prog 
 {{ range .Commands }}
 complete -c $PROG -f -n '__fish_{{ $prog }}_needs_command' -a {{ .Name }} -d 'Command: {{ .Usage }}'
 {{- $cmd := .Name -}}
+{{- if or (eq $cmd "copy") (eq $cmd "move") (eq $cmd "delete") (eq $cmd "show") }}
+complete -c $PROG -f -n '__fish_{{ $prog }}_uses_command {{ $cmd }}' -a "(__fish_{{ $prog }}_print_entries)"{{ end -}}
+{{- if or (eq $cmd "insert") (eq $cmd "generate") (eq $cmd "list") }}
+complete -c $PROG -f -n '__fish_{{ $prog }}_uses_command {{ $cmd }}' -a "(__fish_{{ $prog }}_print_dir)"{{ end -}}
 {{- range .Subcommands }}
 {{- $subcmd := .Name }}
 complete -c $PROG -f -n '__fish_{{ $prog }}_uses_command {{ $cmd }}' -a {{ $subcmd }} -d 'Subcommand: {{ .Usage }}'
-{{- if or (eq $cmd "copy") (eq $cmd "move") (eq $cmd "delete") (eq $cmd "show") }}complete -c $PROG -f -n '__fish_{{ $prog }}_uses_command {{ $cmd }}' -a "(__fish_{{ $prog }}_print_entries)"{{ end -}}
 {{- range .Flags }}
 complete -c $PROG -f -n '__fish_{{ $prog }}_uses_command {{ $cmd }} {{ $subcmd }} {{ if ne (. | formatShortFlag) "" }}-s {{ . | formatShortFlag }} {{ end }}-l {{ . | formatLongFlag }} -d "{{ . | formatFlagUsage }}"'
 {{- end }}
