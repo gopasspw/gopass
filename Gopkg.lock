@@ -79,10 +79,10 @@
   revision = "885f9cc04c9c1a6a61a2008e211d36c5737be3f5"
 
 [[projects]]
-  branch = "master"
   name = "github.com/gokyle/twofactor"
   packages = ["."]
-  revision = "eaad1884d40f9cabff98a57a524c17afd00c9fe7"
+  revision = "bbc82ff8de72400ce39a13077627531d9841ad62"
+  version = "v1.0.1"
 
 [[projects]]
   branch = "master"
@@ -341,7 +341,6 @@
     "argon2",
     "blake2b",
     "cast5",
-    "chacha20poly1305",
     "curve25519",
     "ed25519",
     "ed25519/internal/edwards25519",
@@ -495,6 +494,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "583d903068fa8846736e7365e90e87e118901c24aff815bb3f3c0094bfd6db7f"
+  inputs-digest = "2031707fc17d49c74ff05d9a0b73924f0f5b05de1663cc552c43b0272edc7840"
   solver-name = "gps-cdcl"
   solver-version = 1

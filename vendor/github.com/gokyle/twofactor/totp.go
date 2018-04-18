@@ -123,12 +123,11 @@ func totpFromURL(u *url.URL) (*TOTP, string, error) {
 
 	var algo = crypto.SHA1
 	if algorithm := v.Get("algorithm"); algorithm != "" {
-		switch {
-		case algorithm == "SHA256":
+		if strings.EqualFold(algorithm, "SHA256") {
 			algo = crypto.SHA256
-		case algorithm == "SHA512":
+		} else if strings.EqualFold(algorithm, "SHA512") {
 			algo = crypto.SHA512
-		case algorithm != "SHA1":
+		} else if !strings.EqualFold(algorithm, "SHA1") {
 			return nil, "", ErrInvalidAlgo
 		}
 	}
@@ -151,9 +150,10 @@ func totpFromURL(u *url.URL) (*TOTP, string, error) {
 		}
 	}
 
-	key, err := base32.StdEncoding.DecodeString(secret)
+	key, err := base32.StdEncoding.DecodeString(Pad(secret))
 	if err != nil {
-		return nil, "", err
+		// assume secret isn't base32 encoded
+		key = []byte(secret)
 	}
 	otp := NewTOTP(key, 0, period, digits, algo)
 	return otp, label, nil
