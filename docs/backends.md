@@ -16,13 +16,13 @@ the context handlers in the same package.
 
 ### Filesystem (fs)
 
-Right now there is only one storage backend implemented: Storing bytes on disk.
+This is the only stable storage backend. It stores the encrypted (see "Crypto Backends") data directly in the filesystem.
 
 ### In Memory (inmem)
 
 This is a volatile in-memory backend for tests.
 
-WARNING: All data is lost when gopass stops!
+**WARNING**: All data is lost when gopass stops!
 
 ### Consul (consul)
 
@@ -76,7 +76,7 @@ fails.
 
 This backend is based on the amazing work of [source{d}](https://sourced.tech/)
 and implements a pure-Go SCM backend. It works pretty well but there is one major
-show stopped: It only supports fast-forward merges. Unfortunately this makes
+show stopper: It only supports fast-forward merges. Unfortunately this makes
 it unseable for most gopass usecases. However we still keep this backend around
 in case upstream manages to implement proper merges. In that case this will
 quickly become the default SCM backend.
@@ -90,8 +90,8 @@ This is a no-op backend for testing SCM-less support.
 ### CLI-based GPG (gitcli)
 
 This backend is based on calling the gpg binary. This is the recommended backend
-since we believe that it's the most secure and one and it's compatible with
-other implementations of the `password-store` layout. However GPG is notoriously
+since we believe that it's the most secure one and it is compatible with
+other implementations of the `password-store` vault layout. However GPG is notoriously
 difficult to use, there are lot's of different versions being used and the
 output is not very machine readable. We will continue to support this backend
 in the future, but we'd like to to move to a different default backend if possible.
@@ -100,19 +100,21 @@ in the future, but we'd like to to move to a different default backend if possib
 
 This is a no-op backend used for testing.
 
+**WARNING**: Do not use unless you know what you are doing.
+
 ### openpgp pure-Go (openpgp)
 
-We're planning to implement a pure-Go GPG backend based on the [openpgp package](https://godoc.org/golang.org/x/crypto/openpgp),
-but unfortunately this packaged doesn't support recent versions of GPG.
+We started to implement a pure-Go GPG backend based on the [openpgp package](https://godoc.org/golang.org/x/crypto/openpgp),
+but unfortunately this package doesn't support recent versions of GPG.
 If the openpgp package or a proper fork gains support for recent GPG versions
-we'll try to move to this yet-to-be-written backend as the default backend.
+we'll try to move to this backend as the default backend.
 
 ### NaCl-based custom crypto backend (xc)
 
 We implemented a pure-Go backend using a custom message format based on the excellent
 [NaCl library](https://nacl.cr.yp.to/) [packages](https://godoc.org/golang.org/x/crypto/nacl).
 The advantage of this backend that it's properly integrated into gopass, has a stable API,
-stable error handling and only the feature we absolutely need. This makes it
+stable error handling and only the features we absolutely need. This makes it
 very easy to setup, use and support. The big drawback is that it didn't receive
 any of the scrunity and peer review that GPG got. And since it's very easy to
 make dangerous mistakes when dealing with cryptography - even when it's only
