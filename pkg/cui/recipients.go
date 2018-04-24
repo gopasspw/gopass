@@ -213,6 +213,10 @@ func AskForPrivateKey(ctx context.Context, crypto backend.Crypto, name, prompt s
 		}
 		iv, err := termio.AskForInt(ctx, fmt.Sprintf("Please enter the number of a key (0-%d, [q]uit)", len(kl)-1), 0)
 		if err != nil {
+			if err.Error() == "user aborted" {
+				return "", err
+			}
+
 			continue
 		}
 		if iv >= 0 && iv < len(kl) {
