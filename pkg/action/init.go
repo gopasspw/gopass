@@ -42,8 +42,12 @@ func (s *Action) Initialized(ctx context.Context, c *cli.Context) error {
 func (s *Action) Init(ctx context.Context, c *cli.Context) error {
 	path := c.String("path")
 	alias := c.String("store")
-	ctx = backend.WithCryptoBackendString(ctx, c.String("crypto"))
-	ctx = backend.WithRCSBackendString(ctx, c.String("rcs"))
+	if c.IsSet("crypto") {
+		ctx = backend.WithCryptoBackendString(ctx, c.String("crypto"))
+	}
+	if c.IsSet("rcs") {
+		ctx = backend.WithRCSBackendString(ctx, c.String("rcs"))
+	}
 
 	// default to git
 	if !backend.HasRCSBackend(ctx) {
@@ -53,6 +57,10 @@ func (s *Action) Init(ctx context.Context, c *cli.Context) error {
 
 	ctx = out.WithPrefix(ctx, "[init] ")
 	out.Cyan(ctx, "Initializing a new password store ...")
+
+	if s.Store.Initialized(ctx) {
+		out.Red(ctx, "WARNING: Store is already initialized")
+	}
 
 	if err := s.init(ctx, alias, path, c.Args()...); err != nil {
 		return ExitError(ctx, ExitUnknown, err, "failed to initialized store: %s", err)

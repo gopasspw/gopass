@@ -182,10 +182,10 @@ func confirmEditRecipients(ctx context.Context, name string, ris recipientInfos)
 // AskForPrivateKey promts the user to select from a list of private keys
 func AskForPrivateKey(ctx context.Context, crypto backend.Crypto, name, prompt string) (string, error) {
 	if !ctxutil.IsInteractive(ctx) {
-		return "", errors.New("no interaction without terminal")
+		return "", errors.New("Can not select private key without terminal")
 	}
 	if crypto == nil {
-		return "", errors.New("no key selection without valid crypto")
+		return "", errors.New("Can not select private key without valid crypto backend")
 	}
 
 	kl, err := crypto.ListPrivateKeyIDs(gpg.WithAlwaysTrust(ctx, false))
