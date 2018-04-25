@@ -80,6 +80,7 @@ gopass is maintained by the nice folks from [JustWatch](https://www.justwatch.co
 
 Maintainers of this repository:
 
+* Christoph Oelmüller <christoph.oelmueller@justwatch.com> [@zwopir](https://github.com/zwopir)
 * Matthias Loibl <mail@matthiasloibl.com> [@metalmatze](https://github.com/metalmatze)
 * Dominik Schulz <dominik.schulz@justwatch.com> [@dominikschulz](https://github.com/dominikschulz)
 
