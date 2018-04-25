@@ -33,7 +33,7 @@ func (r *Store) Init(ctx context.Context, alias, path string, ids ...string) err
 	}
 	sub, err := sub.New(ctx, alias, pathURL, r.cfg.Directory(), r.agent)
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "failed to instantiate new sub store: %s", err)
 	}
 	if !r.store.Initialized(ctx) && alias == "" {
 		r.store = sub
@@ -41,8 +41,9 @@ func (r *Store) Init(ctx context.Context, alias, path string, ids ...string) err
 
 	out.Debug(ctx, "Initializing sub store at %s for %+v", path, ids)
 	if err := sub.Init(ctx, path, ids...); err != nil {
-		return err
+		return errors.Wrapf(err, "failed to initialize new sub store: %s", err)
 	}
+
 	if alias == "" {
 		if r.cfg.Root.Path == nil {
 			r.cfg.Root.Path = backend.FromPath(path)
