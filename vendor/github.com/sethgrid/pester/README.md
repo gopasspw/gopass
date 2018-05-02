@@ -98,8 +98,8 @@ func main() {
 c := pester.New()
 c.KeepLog = true
 
-nonExistantURL := "http://localhost:9000/foo"
-_, _ = c.Get(nonExistantURL)
+nonExistentURL := "http://localhost:9000/foo"
+_, _ = c.Get(nonExistentURL)
 
 fmt.Println(c.LogString())
 /*
@@ -117,7 +117,7 @@ You can run tests in the root directory with `$ go test`. There is a benchmark-l
 You can see `pester` in action with `$ cd sample; go run main.go`.
 
 For watching open file descriptors, you can run `watch "lsof -i -P | grep main"` if you started the app with `go run main.go`.
-I did this for watching for FD leaks. My method was to alter `sample/main.go` to only run one case (`pester.Get with set backoff stategy, concurrency and retries increased`)
+I did this for watching for FD leaks. My method was to alter `sample/main.go` to only run one case (`pester.Get with set backoff strategy, concurrency and retries increased`)
 and adding a sleep after the result came back. This let me verify if FDs were getting left open when they should have closed. If you know a better way, let me know!
 I was able to see that FDs are now closing when they should :)
 
