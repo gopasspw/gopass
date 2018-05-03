@@ -4,7 +4,7 @@ Experimental Crypto Backend for gopass
 This package contains an experimental crypto backend for gopass.
 The goal is to provide an implementation that is feature complete
 compared to the GPG backend but doesn't require any external binaries,
-especially no GPG. Of course this would break compatilibity to existing
+especially no GPG. Of course this would break compatibility to existing
 GPG deployments and users of different pass implementations, but
 especially for closed teams with no existing GPG deployment this should
 make little to no difference.
@@ -18,7 +18,7 @@ applications and devices, it's not really user friendly. Even passioned
 newcomers it's a major hurdle. For the gopass developers it's about the
 most time consuming task to provide support and implement workaround for
 GPG issues. This doesn't mean that GPG is bad, but security is hard and
-complex and GPG adds a lot of flexiblity on top of that so the result
+complex and GPG adds a lot of flexibility on top of that so the result
 is complex and complicated.
 
 WARNING
@@ -26,7 +26,7 @@ WARNING
 
 We are no crypto experts. While this code uses professional implementations of
 well known and rather easy to use crypto primitives there is still a lot of room
-for making mistakes. This code so far has recieved no kind of security audit.
+for making mistakes. This code so far has received no kind of security audit.
 Please don't use it for anything critical unless you have reviewed and verified
 it yourself and are willing to take any risk.
 

@@ -4,8 +4,8 @@ gopass supports pluggable backends for Storage (`store`), Encryption (`crypto`) 
 
 As of today the names and responsibilities of these backends are still unstable and will probably change.
 
-By providing suiteable backends gopass can use differnt kinds of encryption (see XC below) or storage.
-For example it is pretty straight forward to add mercurial or bazaar as an SCM backend or
+By providing suitable backends gopass can use different kinds of encryption (see XC below) or storage.
+For example it is pretty straightforward to add mercurial or bazaar as an SCM backend or
 implement a Vault storage.
 
 All backends are in their own packages below `backend/`. They need to implement the
@@ -46,7 +46,7 @@ mounts:
 EOF
 ```
 
-This will setup an unecrypted backend, i.e. your secrets in Consul will be only
+This will setup an unencrypted backend, i.e. your secrets in Consul will be only
 protected by Consul's ACLs and anyone who can access your Consul K/V prefix
 can read your secrets.
 
@@ -77,7 +77,7 @@ fails.
 This backend is based on the amazing work of [source{d}](https://sourced.tech/)
 and implements a pure-Go SCM backend. It works pretty well but there is one major
 show stopper: It only supports fast-forward merges. Unfortunately this makes
-it unseable for most gopass usecases. However we still keep this backend around
+it unusable for most gopass usecases. However we still keep this backend around
 in case upstream manages to implement proper merges. In that case this will
 quickly become the default SCM backend.
 
@@ -116,7 +116,7 @@ We implemented a pure-Go backend using a custom message format based on the exce
 The advantage of this backend that it's properly integrated into gopass, has a stable API,
 stable error handling and only the features we absolutely need. This makes it
 very easy to setup, use and support. The big drawback is that it didn't receive
-any of the scrunity and peer review that GPG got. And since it's very easy to
+any of the scrutiny and peer review that GPG got. And since it's very easy to
 make dangerous mistakes when dealing with cryptography - even when it's only
 using existing building blocks - we're a little wary to recommend it for broader use.
 

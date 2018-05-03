@@ -131,7 +131,7 @@ Tcell _supports true color_!  (That is, if your terminal can support it,
 Tcell can accurately display 24-bit color.)
 
 To use 24-bit color, you need to use a terminal that supports it.  Modern
-xterm and similar teminal emulators can support this.  As terminfo lacks any
+xterm and similar terminal emulators can support this.  As terminfo lacks any
 way to describe this capability, we fabricate the capability for
 terminals with names ending in *-truecolor.  The stock distribution ships
 with a database that defines xterm-truecolor.  To try it out, set your
@@ -167,7 +167,7 @@ which can be located either by the $TCELLDB environment file, $HOME/.tcelldb,
 or is located in the Go source directory as database.json.
 
 These files (both the Go and the JSON files) can be generated using the
-mkinfo.go program.  If you need to regnerate the entire set for some reason,
+mkinfo.go program.  If you need to regenerate the entire set for some reason,
 run the mkdatabase.sh file.  The generation uses the infocmp(1) program on
 the system to collect the necessary information.
 
@@ -202,7 +202,7 @@ consoles, all support this quite nicely.  On other platforms you might
 find that only mouse click and release events are reported, with
 no intervening motion events.  It really depends on your terminal.
 
-## Testablity
+## Testability
 
 There is a SimulationScreen, that can be used to simulate a real screen
 for automated testing.  The supplied tests do this.  The simulation contains

@@ -63,7 +63,7 @@ func (s *Action) Init(ctx context.Context, c *cli.Context) error {
 	}
 
 	if err := s.init(ctx, alias, path, c.Args()...); err != nil {
-		return ExitError(ctx, ExitUnknown, err, "failed to initialized store: %s", err)
+		return ExitError(ctx, ExitUnknown, err, "failed to initialize store: %s", err)
 	}
 	return nil
 }

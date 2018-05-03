@@ -312,11 +312,11 @@ generating this picture in `doc/colorgens/golorgens.go`.
 
 ### Getting random palettes
 As soon as you need to generate more than one random color, you probably want
-them to be distinguishible. Playing against an opponent which has almost the
+them to be distinguishable. Playing against an opponent which has almost the
 same blue as I do is not fun. This is where random palettes can help.
 
 These palettes are generated using an algorithm which ensures that all colors
-on the palette are as distinguishible as possible. Again, there is a `Fast`
+on the palette are as distinguishable as possible. Again, there is a `Fast`
 method which works in HSV and is less perceptually uniform and a non-`Fast`
 method which works in CIE spaces. For more theory on `SoftPalette`, check out
 [I want hue](http://tools.medialab.sciences-po.fr/iwanthue/theory.php). Yet
