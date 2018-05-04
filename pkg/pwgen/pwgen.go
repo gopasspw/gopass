@@ -8,6 +8,8 @@ import (
 	"math/rand"
 	"os"
 	"time"
+
+	"github.com/muesli/crunchy"
 )
 
 const (
@@ -41,12 +43,22 @@ func GeneratePassword(length int, symbols bool) string {
 // GeneratePasswordCharset generates a random password from a given
 // set of characters
 func GeneratePasswordCharset(length int, chars string) string {
-	pw := &bytes.Buffer{}
-	for pw.Len() < length {
-		_ = pw.WriteByte(chars[randomInteger(len(chars))])
+	validator := crunchy.NewValidator()
+	var password string
+
+	for i := 0; i < 3; i++ {
+		pw := &bytes.Buffer{}
+		for pw.Len() < length {
+			_ = pw.WriteByte(chars[randomInteger(len(chars))])
+		}
+		password = pw.String()
+
+		if validator.Check(password) == nil {
+			break
+		}
 	}
 
-	return pw.String()
+	return password
 }
 
 func randomInteger(max int) int {
