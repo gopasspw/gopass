@@ -6,11 +6,12 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/pkg/config"
 	"github.com/justwatchcom/gopass/pkg/jsonapi"
 	"github.com/justwatchcom/gopass/pkg/jsonapi/manifest"
 	"github.com/justwatchcom/gopass/pkg/termio"
+
+	"github.com/fatih/color"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"
 )

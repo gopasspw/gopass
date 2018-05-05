@@ -3,16 +3,14 @@ package tests
 import (
 	"bytes"
 	"context"
+	"io"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
-
-	"io"
-
-	"runtime"
 
 	shellquote "github.com/kballard/go-shellquote"
 	"github.com/pkg/errors"

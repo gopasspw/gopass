@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/blang/semver"
 	"github.com/justwatchcom/gopass/pkg/backend/crypto/xc/keyring"
+
+	"github.com/blang/semver"
 )
 
 const (

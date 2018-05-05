@@ -4,11 +4,12 @@ import (
 	"context"
 	"os"
 
-	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/pkg/backend"
 	"github.com/justwatchcom/gopass/pkg/cui"
 	"github.com/justwatchcom/gopass/pkg/out"
 	"github.com/justwatchcom/gopass/pkg/termio"
+
+	"github.com/fatih/color"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"
 )

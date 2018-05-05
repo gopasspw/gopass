@@ -7,12 +7,13 @@ import (
 	"os"
 	"testing"
 
-	"github.com/blang/semver"
 	"github.com/justwatchcom/gopass/pkg/backend"
 	"github.com/justwatchcom/gopass/pkg/config"
 	"github.com/justwatchcom/gopass/pkg/ctxutil"
 	"github.com/justwatchcom/gopass/pkg/out"
 	"github.com/justwatchcom/gopass/tests/gptest"
+
+	"github.com/blang/semver"
 	"github.com/stretchr/testify/assert"
 	"github.com/urfave/cli"
 )

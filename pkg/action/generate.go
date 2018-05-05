@@ -6,7 +6,6 @@ import (
 	"regexp"
 	"strconv"
 
-	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/pkg/clipboard"
 	"github.com/justwatchcom/gopass/pkg/ctxutil"
 	"github.com/justwatchcom/gopass/pkg/out"
@@ -15,6 +14,8 @@ import (
 	"github.com/justwatchcom/gopass/pkg/store/secret"
 	"github.com/justwatchcom/gopass/pkg/store/sub"
 	"github.com/justwatchcom/gopass/pkg/termio"
+
+	"github.com/fatih/color"
 	"github.com/urfave/cli"
 )
 

@@ -10,6 +10,7 @@ import (
 	"github.com/justwatchcom/gopass/pkg/backend/storage/kv/inmem"
 	"github.com/justwatchcom/gopass/pkg/config/secrets"
 	"github.com/justwatchcom/gopass/pkg/out"
+
 	"github.com/pkg/errors"
 )
 

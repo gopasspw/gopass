@@ -4,8 +4,9 @@ import (
 	"context"
 	"strings"
 
-	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/pkg/out"
+
+	"github.com/fatih/color"
 	"github.com/urfave/cli"
 )
 

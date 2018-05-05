@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"context"
 
-	"github.com/pkg/errors"
-
 	"golang.org/x/crypto/openpgp"
+
+	"github.com/pkg/errors"
 )
 
 // ReadNamesFromKey unmarshals and returns the names associated with the given public key

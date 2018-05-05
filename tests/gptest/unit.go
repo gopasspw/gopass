@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/justwatchcom/gopass/pkg/backend"
+
 	"github.com/stretchr/testify/assert"
 )
 

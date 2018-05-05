@@ -9,11 +9,12 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/pkg/ctxutil"
 	"github.com/justwatchcom/gopass/pkg/out"
 	"github.com/justwatchcom/gopass/pkg/termutil"
 	"github.com/justwatchcom/gopass/pkg/tree"
+
+	"github.com/fatih/color"
 	shellquote "github.com/kballard/go-shellquote"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"

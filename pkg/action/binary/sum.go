@@ -7,6 +7,7 @@ import (
 
 	"github.com/justwatchcom/gopass/pkg/action"
 	"github.com/justwatchcom/gopass/pkg/out"
+
 	"github.com/urfave/cli"
 )
 

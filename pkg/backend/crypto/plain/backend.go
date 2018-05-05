@@ -8,8 +8,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/blang/semver"
 	"github.com/justwatchcom/gopass/pkg/backend/crypto/gpg"
+
+	"github.com/blang/semver"
 )
 
 var staticPrivateKeyList = gpg.KeyList{

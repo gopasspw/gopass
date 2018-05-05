@@ -17,12 +17,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/blang/semver"
-	"github.com/cenkalti/backoff"
-
-	"github.com/dominikschulz/github-releases/ghrel"
 	"github.com/justwatchcom/gopass/pkg/out"
 	"github.com/justwatchcom/gopass/pkg/termio"
+
+	"github.com/blang/semver"
+	"github.com/cenkalti/backoff"
+	"github.com/dominikschulz/github-releases/ghrel"
 	"github.com/muesli/goprogressbar"
 	"github.com/pkg/errors"
 )

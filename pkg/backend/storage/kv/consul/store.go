@@ -4,9 +4,10 @@ import (
 	"context"
 	"strings"
 
+	"github.com/justwatchcom/gopass/pkg/out"
+
 	"github.com/blang/semver"
 	api "github.com/hashicorp/consul/api"
-	"github.com/justwatchcom/gopass/pkg/out"
 )
 
 // Store is a consul-backed store

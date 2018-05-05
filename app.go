@@ -5,12 +5,13 @@ import (
 	"os"
 	"strings"
 
-	"github.com/blang/semver"
 	ap "github.com/justwatchcom/gopass/pkg/action"
 	"github.com/justwatchcom/gopass/pkg/config"
 	"github.com/justwatchcom/gopass/pkg/out"
 	"github.com/justwatchcom/gopass/pkg/store/sub"
 	"github.com/justwatchcom/gopass/pkg/termio"
+
+	"github.com/blang/semver"
 	"github.com/urfave/cli"
 )
 

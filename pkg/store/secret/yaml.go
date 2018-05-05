@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/justwatchcom/gopass/pkg/store"
+
 	yaml "gopkg.in/yaml.v2"
 )
 

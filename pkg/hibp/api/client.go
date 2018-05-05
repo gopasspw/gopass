@@ -9,8 +9,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cenkalti/backoff"
 	"github.com/justwatchcom/gopass/pkg/out"
+
+	"github.com/cenkalti/backoff"
 	"github.com/pkg/errors"
 )
 

@@ -16,6 +16,7 @@ import (
 	"github.com/justwatchcom/gopass/pkg/editor"
 	"github.com/justwatchcom/gopass/pkg/out"
 	"github.com/justwatchcom/gopass/pkg/termio"
+
 	"github.com/pkg/errors"
 )
 

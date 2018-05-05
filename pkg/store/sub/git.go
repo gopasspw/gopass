@@ -10,6 +10,7 @@ import (
 	"github.com/justwatchcom/gopass/pkg/out"
 	"github.com/justwatchcom/gopass/pkg/store"
 	"github.com/justwatchcom/gopass/pkg/store/secret"
+
 	"github.com/pkg/errors"
 )
 

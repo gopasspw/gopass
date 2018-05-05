@@ -5,12 +5,14 @@ import (
 	"os"
 	"runtime"
 
-	"github.com/fatih/color"
+	"golang.org/x/crypto/ssh/terminal"
+
 	"github.com/justwatchcom/gopass/pkg/backend/crypto/gpg"
 	"github.com/justwatchcom/gopass/pkg/config"
 	"github.com/justwatchcom/gopass/pkg/ctxutil"
 	"github.com/justwatchcom/gopass/pkg/store/sub"
-	"golang.org/x/crypto/ssh/terminal"
+
+	"github.com/fatih/color"
 )
 
 func initContext(ctx context.Context, cfg *config.Config) context.Context {

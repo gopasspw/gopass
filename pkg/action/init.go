@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/pkg/agent/client"
 	"github.com/justwatchcom/gopass/pkg/backend"
 	"github.com/justwatchcom/gopass/pkg/config"
@@ -15,6 +14,8 @@ import (
 	"github.com/justwatchcom/gopass/pkg/pwgen/xkcdgen"
 	"github.com/justwatchcom/gopass/pkg/store/sub"
 	"github.com/justwatchcom/gopass/pkg/termio"
+
+	"github.com/fatih/color"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"
 )

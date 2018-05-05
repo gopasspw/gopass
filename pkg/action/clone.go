@@ -4,7 +4,6 @@ import (
 	"context"
 	"path/filepath"
 
-	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/pkg/backend"
 	"github.com/justwatchcom/gopass/pkg/backend/crypto/xc"
 	gitcli "github.com/justwatchcom/gopass/pkg/backend/rcs/git/cli"
@@ -14,6 +13,8 @@ import (
 	"github.com/justwatchcom/gopass/pkg/fsutil"
 	"github.com/justwatchcom/gopass/pkg/out"
 	"github.com/justwatchcom/gopass/pkg/termio"
+
+	"github.com/fatih/color"
 	"github.com/urfave/cli"
 )
 

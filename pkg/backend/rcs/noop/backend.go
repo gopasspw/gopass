@@ -4,8 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/blang/semver"
 	"github.com/justwatchcom/gopass/pkg/backend"
+
+	"github.com/blang/semver"
 )
 
 // Noop is a no-op git backend

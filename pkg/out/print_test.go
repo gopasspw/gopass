@@ -6,8 +6,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/pkg/ctxutil"
+
+	"github.com/fatih/color"
 	"github.com/stretchr/testify/assert"
 )
 

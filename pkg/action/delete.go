@@ -6,6 +6,7 @@ import (
 
 	"github.com/justwatchcom/gopass/pkg/store/sub"
 	"github.com/justwatchcom/gopass/pkg/termio"
+
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"
 )

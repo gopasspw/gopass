@@ -4,10 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/pkg/notify"
 	"github.com/justwatchcom/gopass/pkg/out"
 	"github.com/justwatchcom/gopass/pkg/store"
+
+	"github.com/fatih/color"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"
 )

@@ -5,13 +5,14 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/pkg/backend"
 	"github.com/justwatchcom/gopass/pkg/config"
 	"github.com/justwatchcom/gopass/pkg/out"
 	"github.com/justwatchcom/gopass/pkg/store"
 	"github.com/justwatchcom/gopass/pkg/store/sub"
 	"github.com/justwatchcom/gopass/pkg/store/vault"
+
+	"github.com/fatih/color"
 	"github.com/pkg/errors"
 )
 

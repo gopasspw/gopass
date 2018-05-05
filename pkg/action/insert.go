@@ -15,6 +15,7 @@ import (
 	"github.com/justwatchcom/gopass/pkg/store/secret"
 	"github.com/justwatchcom/gopass/pkg/store/sub"
 	"github.com/justwatchcom/gopass/pkg/termio"
+
 	"github.com/urfave/cli"
 )
 

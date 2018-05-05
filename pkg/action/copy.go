@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/justwatchcom/gopass/pkg/termio"
+
 	"github.com/urfave/cli"
 )
 

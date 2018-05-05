@@ -17,6 +17,7 @@ import (
 	"golang.org/x/sys/unix"
 
 	"github.com/justwatchcom/gopass/pkg/out"
+
 	"github.com/pkg/errors"
 )
 

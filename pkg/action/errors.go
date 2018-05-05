@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/justwatchcom/gopass/pkg/out"
+
 	"github.com/urfave/cli"
 )
 
