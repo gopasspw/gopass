@@ -8,9 +8,10 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/blang/semver"
 	"github.com/justwatchcom/gopass/pkg/fsutil"
 	"github.com/justwatchcom/gopass/pkg/out"
+
+	"github.com/blang/semver"
 )
 
 // Store is a fs based store

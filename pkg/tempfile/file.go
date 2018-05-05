@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	"github.com/justwatchcom/gopass/pkg/ctxutil"
+
 	"github.com/pkg/errors"
 )
 

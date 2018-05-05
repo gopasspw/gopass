@@ -5,6 +5,7 @@ import (
 	"os/exec"
 
 	"github.com/justwatchcom/gopass/pkg/out"
+
 	"github.com/pkg/errors"
 )
 

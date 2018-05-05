@@ -3,11 +3,9 @@ package manifest
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path"
-
-	"io/ioutil"
-
 	"path/filepath"
 
 	homedir "github.com/mitchellh/go-homedir"

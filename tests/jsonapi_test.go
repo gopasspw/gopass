@@ -2,10 +2,9 @@ package tests
 
 import (
 	"bytes"
+	"encoding/binary"
 	"io"
 	"testing"
-
-	"encoding/binary"
 
 	"github.com/stretchr/testify/assert"
 )

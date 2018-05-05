@@ -12,6 +12,7 @@ import (
 	"github.com/justwatchcom/gopass/pkg/fsutil"
 	"github.com/justwatchcom/gopass/pkg/store/secret"
 	"github.com/justwatchcom/gopass/pkg/store/sub"
+
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"
 )

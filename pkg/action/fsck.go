@@ -8,6 +8,7 @@ import (
 	"github.com/justwatchcom/gopass/pkg/config"
 	"github.com/justwatchcom/gopass/pkg/fsutil"
 	"github.com/justwatchcom/gopass/pkg/out"
+
 	"github.com/urfave/cli"
 )
 

@@ -12,6 +12,7 @@ import (
 	"github.com/justwatchcom/gopass/pkg/agent/client"
 	"github.com/justwatchcom/gopass/pkg/config"
 	"github.com/justwatchcom/gopass/pkg/ctxutil"
+
 	"github.com/urfave/cli"
 )
 

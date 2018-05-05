@@ -3,9 +3,10 @@ package root
 import (
 	"context"
 
-	"github.com/blang/semver"
 	"github.com/justwatchcom/gopass/pkg/backend"
 	"github.com/justwatchcom/gopass/pkg/store"
+
+	"github.com/blang/semver"
 )
 
 // RCS returns the sync backend

@@ -6,9 +6,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/pkg/errors"
-
 	"golang.org/x/crypto/openpgp"
+
+	"github.com/pkg/errors"
 )
 
 // ListPublicKeyIDs does nothing

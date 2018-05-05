@@ -5,8 +5,9 @@ import (
 	"crypto/sha256"
 	"fmt"
 
-	"github.com/atotto/clipboard"
 	"github.com/justwatchcom/gopass/pkg/notify"
+
+	"github.com/atotto/clipboard"
 	"github.com/pkg/errors"
 )
 

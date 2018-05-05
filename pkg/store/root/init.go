@@ -8,6 +8,7 @@ import (
 	"github.com/justwatchcom/gopass/pkg/config"
 	"github.com/justwatchcom/gopass/pkg/out"
 	"github.com/justwatchcom/gopass/pkg/store/sub"
+
 	"github.com/pkg/errors"
 )
 

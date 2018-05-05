@@ -8,9 +8,10 @@ import (
 	"strings"
 	"time"
 
+	"golang.org/x/crypto/openpgp"
+
 	"github.com/justwatchcom/gopass/pkg/out"
 	homedir "github.com/mitchellh/go-homedir"
-	"golang.org/x/crypto/openpgp"
 )
 
 type agentClient interface {

@@ -2,17 +2,16 @@ package jsonapi
 
 import (
 	"context"
-
 	"encoding/json"
 	"fmt"
+	"path"
 	"regexp"
 	"strings"
-
-	"path"
 
 	"github.com/justwatchcom/gopass/pkg/pwgen"
 	"github.com/justwatchcom/gopass/pkg/store"
 	"github.com/justwatchcom/gopass/pkg/store/secret"
+
 	"github.com/pkg/errors"
 )
 

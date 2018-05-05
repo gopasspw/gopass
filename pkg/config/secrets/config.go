@@ -8,11 +8,12 @@ import (
 	"io/ioutil"
 	"path/filepath"
 
-	"github.com/justwatchcom/gopass/pkg/fsutil"
-	"github.com/pkg/errors"
-
 	"golang.org/x/crypto/argon2"
 	"golang.org/x/crypto/nacl/secretbox"
+
+	"github.com/justwatchcom/gopass/pkg/fsutil"
+
+	"github.com/pkg/errors"
 )
 
 const (

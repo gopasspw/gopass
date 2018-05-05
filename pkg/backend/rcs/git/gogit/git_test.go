@@ -8,11 +8,11 @@ import (
 	"path/filepath"
 	"testing"
 
-	"gopkg.in/src-d/go-git.v4/config"
-
 	"github.com/justwatchcom/gopass/pkg/ctxutil"
 	"github.com/justwatchcom/gopass/pkg/store"
+
 	"github.com/stretchr/testify/assert"
+	"gopkg.in/src-d/go-git.v4/config"
 )
 
 func TestCloneLocal(t *testing.T) {

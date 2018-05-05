@@ -2,9 +2,8 @@ package jsonapi
 
 import (
 	"bytes"
-	"encoding/binary"
-
 	"context"
+	"encoding/binary"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -17,6 +16,7 @@ import (
 	"github.com/justwatchcom/gopass/pkg/store"
 	"github.com/justwatchcom/gopass/pkg/store/root"
 	"github.com/justwatchcom/gopass/pkg/store/secret"
+
 	"github.com/stretchr/testify/assert"
 )
 

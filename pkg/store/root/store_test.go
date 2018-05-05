@@ -2,14 +2,14 @@ package root
 
 import (
 	"context"
+	"path"
 	"sort"
 	"testing"
-
-	"path"
 
 	"github.com/justwatchcom/gopass/pkg/backend"
 	"github.com/justwatchcom/gopass/pkg/config"
 	"github.com/justwatchcom/gopass/tests/gptest"
+
 	"github.com/stretchr/testify/assert"
 )
 

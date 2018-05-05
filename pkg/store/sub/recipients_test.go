@@ -16,6 +16,7 @@ import (
 	noop "github.com/justwatchcom/gopass/pkg/backend/rcs/noop"
 	"github.com/justwatchcom/gopass/pkg/backend/storage/fs"
 	"github.com/justwatchcom/gopass/pkg/out"
+
 	"github.com/stretchr/testify/assert"
 )
 

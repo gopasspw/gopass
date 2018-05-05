@@ -10,10 +10,11 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/blang/semver"
-	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/pkg/ctxutil"
 	"github.com/justwatchcom/gopass/pkg/protect"
+
+	"github.com/blang/semver"
+	"github.com/fatih/color"
 	colorable "github.com/mattn/go-colorable"
 	"github.com/urfave/cli"
 )

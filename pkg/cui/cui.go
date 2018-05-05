@@ -7,10 +7,11 @@ import (
 	"os"
 	"runtime"
 
-	"github.com/fatih/color"
-	"github.com/jroimartin/gocui"
 	"github.com/justwatchcom/gopass/pkg/ctxutil"
 	"github.com/justwatchcom/gopass/pkg/termwiz"
+
+	"github.com/fatih/color"
+	"github.com/jroimartin/gocui"
 )
 
 type selection struct {

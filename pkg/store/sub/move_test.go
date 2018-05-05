@@ -13,6 +13,7 @@ import (
 	"github.com/justwatchcom/gopass/pkg/backend/storage/fs"
 	"github.com/justwatchcom/gopass/pkg/out"
 	"github.com/justwatchcom/gopass/pkg/store/secret"
+
 	"github.com/stretchr/testify/assert"
 )
 

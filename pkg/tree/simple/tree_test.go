@@ -1,11 +1,10 @@
 package simple
 
 import (
+	"path/filepath"
 	"sort"
 	"strings"
 	"testing"
-
-	"path/filepath"
 
 	"github.com/fatih/color"
 	"github.com/stretchr/testify/assert"

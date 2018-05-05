@@ -12,6 +12,7 @@ import (
 	"github.com/justwatchcom/gopass/pkg/ctxutil"
 	"github.com/justwatchcom/gopass/pkg/out"
 	"github.com/justwatchcom/gopass/pkg/store"
+
 	"github.com/muesli/goprogressbar"
 	"github.com/pkg/errors"
 )

@@ -8,10 +8,11 @@ import (
 	"io/ioutil"
 	"runtime"
 
-	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/pkg/notify"
 	"github.com/justwatchcom/gopass/pkg/out"
 	"github.com/justwatchcom/gopass/pkg/store"
+
+	"github.com/fatih/color"
 	"github.com/muesli/crunchy"
 	"github.com/muesli/goprogressbar"
 )

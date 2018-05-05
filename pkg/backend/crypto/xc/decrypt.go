@@ -7,12 +7,14 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/golang/protobuf/proto"
-	"github.com/justwatchcom/gopass/pkg/backend/crypto/xc/keyring"
-	"github.com/justwatchcom/gopass/pkg/backend/crypto/xc/xcpb"
-	"github.com/pkg/errors"
 	"golang.org/x/crypto/nacl/box"
 	"golang.org/x/crypto/nacl/secretbox"
+
+	"github.com/justwatchcom/gopass/pkg/backend/crypto/xc/keyring"
+	"github.com/justwatchcom/gopass/pkg/backend/crypto/xc/xcpb"
+
+	"github.com/golang/protobuf/proto"
+	"github.com/pkg/errors"
 )
 
 const (

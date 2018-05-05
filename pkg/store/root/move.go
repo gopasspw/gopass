@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/justwatchcom/gopass/pkg/store/sub"
+
 	"github.com/pkg/errors"
 )
 

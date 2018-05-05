@@ -4,10 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/atotto/clipboard"
-	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/pkg/ctxutil"
 	"github.com/justwatchcom/gopass/pkg/out"
+
+	"github.com/atotto/clipboard"
+	"github.com/fatih/color"
 	"github.com/pkg/errors"
 )
 

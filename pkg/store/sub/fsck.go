@@ -5,6 +5,7 @@ import (
 	"sort"
 
 	"github.com/justwatchcom/gopass/pkg/out"
+
 	"github.com/pkg/errors"
 )
 

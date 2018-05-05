@@ -7,6 +7,7 @@ import (
 	"github.com/justwatchcom/gopass/pkg/ctxutil"
 	"github.com/justwatchcom/gopass/pkg/out"
 	"github.com/justwatchcom/gopass/tests/gptest"
+
 	"github.com/stretchr/testify/assert"
 )
 

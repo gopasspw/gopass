@@ -8,6 +8,7 @@ import (
 
 	"github.com/justwatchcom/gopass/pkg/backend"
 	"github.com/justwatchcom/gopass/pkg/fsutil"
+
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
 )

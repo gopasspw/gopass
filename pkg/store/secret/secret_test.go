@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/justwatchcom/gopass/pkg/store"
+
 	"github.com/stretchr/testify/assert"
 )
 

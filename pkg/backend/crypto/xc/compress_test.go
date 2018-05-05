@@ -8,6 +8,7 @@ import (
 
 	"github.com/justwatchcom/gopass/pkg/pwgen"
 	"github.com/justwatchcom/gopass/pkg/pwgen/xkcdgen"
+
 	"github.com/stretchr/testify/assert"
 )
 
