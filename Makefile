@@ -137,7 +137,7 @@ codequality:
 
 	@echo -n "     CLANGFMT  "
 	@$(foreach pbfile, $(PROTOFILES),\
-			if [ $$(clang-format -output-replacements-xml $(pbfile) | wc -l) -gt 3  ]; then exit 1; fi)
+			if [ $$(clang-format -output-replacements-xml $(pbfile) | wc -l) -gt 3  ]; then exit 1; fi;)
 	@printf '%s\n' '$(OK)'
 
 	@echo -n "     VET       "
