@@ -4,7 +4,7 @@ os:
   - linux
 
 before_install:
-  - if [ $TRAVIS_OS_NAME = linux ]; then sudo apt-get install git gnupg2; else brew install git gnupg || true; fi
+  - if [ $TRAVIS_OS_NAME = linux ]; then sudo apt-get install git gnupg2 clang-format-3.9; else brew install git gnupg clang-format || true; fi
   - git config --global user.name nobody
   - git config --global user.email foo.bar@example.org
 

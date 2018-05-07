@@ -2,6 +2,7 @@ FIRST_GOPATH              := $(firstword $(subst :, ,$(GOPATH)))
 PKGS                      := $(shell go list ./... | grep -v /tests | grep -v /xcpb | grep -v /openpgp)
 GOFILES_NOVENDOR          := $(shell find . -name vendor -prune -o -type f -name '*.go' -not -name '*.pb.go' -print)
 GOFILES_BUILD             := $(shell find . -type f -name '*.go' -not -name '*_test.go')
+PROTOFILES                := $(shell find . -name vendor -prune -o -type f -name '*.proto' -print)
 GOPASS_VERSION            ?= $(shell cat VERSION)
 GOPASS_OUTPUT             ?= gopass
 GOPASS_REVISION           := $(shell cat COMMIT 2>/dev/null || git rev-parse --short=8 HEAD)
@@ -134,6 +135,11 @@ codequality:
 			out=$$(gofmt -s -l -d -e $(gofile) | tee /dev/stderr); if [ -n "$$out" ]; then exit 1; fi;)
 	@printf '%s\n' '$(OK)'
 
+	@echo -n "     CLANGFMT  "
+	@$(foreach pbfile, $(PROTOFILES),\
+			if [ $$(clang-format -output-replacements-xml $(pbfile) | wc -l) -gt 3  ]; then exit 1; fi)
+	@printf '%s\n' '$(OK)'
+
 	@echo -n "     VET       "
 	@$(GO) vet ./...
 	@printf '%s\n' '$(OK)'
@@ -192,6 +198,7 @@ codequality:
 
 fmt:
 	@gofmt -s -l -w $(GOFILES_NOVENDOR)
+	@clang-format -i $(PROTOFILES)
 
 fuzz-gpg:
 	mkdir -p workdir/gpg-cli/corpus
