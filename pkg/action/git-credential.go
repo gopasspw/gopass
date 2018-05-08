@@ -102,10 +102,14 @@ func parseGitCredentials(r io.Reader) (*gitCredentials, error) {
 
 // GitCredentialBefore is executed before another git-credential command
 func (s *Action) GitCredentialBefore(ctx context.Context, c *cli.Context) error {
+	err := s.Initialized(ctx, c)
+	if err != nil {
+		return err
+	}
 	if !ctxutil.IsStdin(ctx) {
 		return ExitError(ctx, ExitUsage, nil, "missing stdin from git")
 	}
-	return s.Initialized(ctx, c)
+	return nil
 }
 
 // GitCredentialGet returns a credential to git
@@ -119,24 +123,24 @@ func (s *Action) GitCredentialGet(ctx context.Context, c *cli.Context) error {
 	path := "git/" + fsutil.CleanFilename(cred.Host) + "/" + fsutil.CleanFilename(cred.Username)
 	if !s.Store.Exists(ctx, path) {
 		// if the looked up path is a directory with only one entry (e.g. one user per host), take the subentry instead
-		if s.Store.IsDir(ctx, path) {
-			tree, err := s.Store.Tree(ctx)
-			if err != nil {
-				return ExitError(ctx, ExitDecrypt, err, "Error: %v while listing the storage", err)
-			}
-			sub, err := tree.FindFolder(path)
-			if err != nil {
-				return ExitError(ctx, ExitDecrypt, err, "Error: %v while listing the storage", err)
-			}
-			entries := sub.List(0)
-			if len(entries) == 1 {
-				path = "git/" + entries[0]
-			} else {
-				fmt.Fprintln(os.Stderr, "gopass error: too many entries")
-			}
-		} else {
+		if !s.Store.IsDir(ctx, path) {
 			return nil
 		}
+		tree, err := s.Store.Tree(ctx)
+		if err != nil {
+			return ExitError(ctx, ExitDecrypt, err, "Error: %v while listing the storage", err)
+		}
+		sub, err := tree.FindFolder(path)
+		if err != nil {
+			// no entry found... this is not an error
+			return nil
+		}
+		entries := sub.List(0)
+		if len(entries) != 1 {
+			fmt.Fprintln(os.Stderr, "gopass error: too many entries")
+			return nil
+		}
+		path = "git/" + entries[0]
 	}
 	secret, err := s.Store.Get(ctx, path)
 	if err != nil {
@@ -144,7 +148,7 @@ func (s *Action) GitCredentialGet(ctx context.Context, c *cli.Context) error {
 	}
 	cred.Password = secret.Password()
 	username, err := secret.Value("login")
-	if err != nil {
+	if err == nil {
 		// leave the username as is otherwise
 		cred.Username = username
 	}
@@ -158,27 +162,34 @@ func (s *Action) GitCredentialGet(ctx context.Context, c *cli.Context) error {
 
 // GitCredentialStore stores a credential got from git
 func (s *Action) GitCredentialStore(ctx context.Context, c *cli.Context) error {
-	ctx = sub.WithAutoSync(ctx, false)
 	cred, err := parseGitCredentials(os.Stdin)
 	if err != nil {
 		return ExitError(ctx, ExitUnsupported, err, "Error: %v while parsing git-credential", err)
 	}
 	path := "git/" + fsutil.CleanFilename(cred.Host) + "/" + fsutil.CleanFilename(cred.Username)
+	// This should never really be an issue because git automatically removes invalid credentials first
+	if s.Store.Exists(ctx, path) {
+		fmt.Fprintf(os.Stderr, ""+
+			"gopass: did not store \"%s\" because it already exists. "+
+			"If you want to overwrite it, delete it first by doing: "+
+			"\"gopass rm %s\"\n",
+			path, path,
+		)
+		return nil
+	}
 	secret := secret.New(cred.Password, "")
 	if cred.Username != "" {
 		_ = secret.SetValue("login", cred.Username)
 	}
-	// TODO: Skip this step if the same secret is already in the store. How to implement this?
 	err = s.Store.Set(ctx, path, secret)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "gopass error: error while writing to store")
+		fmt.Fprintf(os.Stderr, "gopass error: error while writing to store: %v\n", err)
 	}
 	return nil
 }
 
 // GitCredentialErase removes a credential got from git
 func (s *Action) GitCredentialErase(ctx context.Context, c *cli.Context) error {
-	ctx = sub.WithAutoSync(ctx, false)
 	cred, err := parseGitCredentials(os.Stdin)
 	if err != nil {
 		return ExitError(ctx, ExitUnsupported, err, "Error: %v while parsing git-credential", err)
