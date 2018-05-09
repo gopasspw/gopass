@@ -175,6 +175,7 @@ func (s *Store) reencrypt(ctx context.Context) error {
 				bar.LazyPrint()
 			}
 
+			e = strings.TrimLeft(e, s.alias)
 			content, err := s.Get(ctx, e)
 			if err != nil {
 				out.Red(ctx, "Failed to get current value for %s: %s", e, err)
