@@ -95,6 +95,23 @@ func TestRespondMessageQuery(t *testing.T) {
 		"", secrets)
 }
 
+func TestRespondMessageGetData(t *testing.T) {
+	secrets := []storedSecret{
+		{[]string{"foo"}, secret.New("20", "hallo: welt")},
+		{[]string{"bar"}, secret.New("20", "---\nlogin: muh")},
+	}
+
+	runRespondMessage(t,
+		`{"type":"getData","entry":"foo"}`,
+		`{"hallo":"welt"}`,
+		"", secrets)
+
+	runRespondMessage(t,
+		`{"type":"getData","entry":"bar"}`,
+		`{"login":"muh"}`,
+		"", secrets)
+}
+
 func TestRespondMessageCreate(t *testing.T) {
 	secrets := []storedSecret{
 		{[]string{"awesomePrefix", "overwrite", "me"}, secret.New("20", "")},

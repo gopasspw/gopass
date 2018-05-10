@@ -30,6 +30,10 @@ type loginResponse struct {
 	Password string `json:"password"`
 }
 
+type getDataMessage struct {
+	Entry string `json:"entry"`
+}
+
 type createEntryMessage struct {
 	Name           string `json:"entry_name"`
 	Login          string `json:"login"`

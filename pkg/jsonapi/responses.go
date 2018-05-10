@@ -32,6 +32,8 @@ func (api *API) respondMessage(ctx context.Context, msgBytes []byte) error {
 		return api.respondHostQuery(ctx, msgBytes)
 	case "getLogin":
 		return api.respondGetLogin(ctx, msgBytes)
+	case "getData":
+		return api.respondGetData(ctx, msgBytes)
 	case "create":
 		return api.respondCreateEntry(ctx, msgBytes)
 	default:
@@ -116,6 +118,20 @@ func (api *API) respondGetLogin(ctx context.Context, msgBytes []byte) error {
 		Username: api.getUsername(message.Entry, sec),
 		Password: sec.Password(),
 	}, api.Writer)
+}
+
+func (api *API) respondGetData(ctx context.Context, msgBytes []byte) error {
+	var message getDataMessage
+	if err := json.Unmarshal(msgBytes, &message); err != nil {
+		return errors.Wrapf(err, "failed to unmarshal JSON message")
+	}
+
+	sec, err := api.Store.Get(ctx, message.Entry)
+	if err != nil {
+		return errors.Wrapf(err, "failed to get secret")
+	}
+
+	return sendSerializedJSONMessage(sec.Data(), api.Writer)
 }
 
 func (api *API) getUsername(name string, sec store.Secret) string {
