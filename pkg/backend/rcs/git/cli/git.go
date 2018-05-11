@@ -261,6 +261,11 @@ func (g *Git) AddRemote(ctx context.Context, remote, url string) error {
 	return g.Cmd(ctx, "gitAddRemote", "remote", "add", remote, url)
 }
 
+// RemoveRemote adds a new remote
+func (g *Git) RemoveRemote(ctx context.Context, remote string) error {
+	return g.Cmd(ctx, "gitAddRemote", "remote", "remove", remote)
+}
+
 // Revisions will list all available revisions of the named entity
 // see http://blog.lost-theory.org/post/how-to-parse-git-log-output/
 // and https://git-scm.com/docs/git-log#_pretty_formats
