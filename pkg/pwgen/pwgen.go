@@ -37,12 +37,22 @@ func GeneratePassword(length int, symbols bool) string {
 	if c := os.Getenv("GOPASS_CHARACTER_SET"); c != "" {
 		chars = c
 	}
-	return GeneratePasswordCharset(length, chars)
+	return GeneratePasswordCharsetCheck(length, chars)
 }
 
 // GeneratePasswordCharset generates a random password from a given
 // set of characters
 func GeneratePasswordCharset(length int, chars string) string {
+	pw := &bytes.Buffer{}
+	for pw.Len() < length {
+		_ = pw.WriteByte(chars[randomInteger(len(chars))])
+	}
+	return pw.String()
+}
+
+// GeneratePasswordCharsetCheck generates a random password from a given
+// set of characters and validates the generated password with crunchy
+func GeneratePasswordCharsetCheck(length int, chars string) string {
 	validator := crunchy.NewValidator()
 	var password string
 

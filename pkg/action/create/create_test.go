@@ -10,6 +10,7 @@ import (
 	"strings"
 	"testing"
 
+	aclip "github.com/atotto/clipboard"
 	"github.com/justwatchcom/gopass/pkg/ctxutil"
 	"github.com/justwatchcom/gopass/pkg/out"
 	"github.com/justwatchcom/gopass/pkg/termio"
@@ -32,10 +33,12 @@ func TestExtractHostname(t *testing.T) {
 }
 
 func TestCreate(t *testing.T) {
+	aclip.Unsupported = true
 	store := mockstore.New("")
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
+	ctx = ctxutil.WithClipTimeout(ctx, 1)
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
@@ -53,10 +56,12 @@ func TestCreate(t *testing.T) {
 }
 
 func TestCreateWebsite(t *testing.T) {
+	aclip.Unsupported = true
 	s := creator{mockstore.New("")}
 
 	ctx := context.Background()
 	ctx = ctxutil.WithInteractive(ctx, true)
+	ctx = ctxutil.WithClipTimeout(ctx, 1)
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
@@ -104,6 +109,7 @@ y
 }
 
 func TestCreatePIN(t *testing.T) {
+	aclip.Unsupported = true
 	s := creator{mockstore.New("")}
 
 	ctx := context.Background()
@@ -118,6 +124,8 @@ func TestCreatePIN(t *testing.T) {
 	}()
 
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
+	ctx = ctxutil.WithClipTimeout(ctx, 1)
+
 	pw, err := s.createGeneratePIN(ctx)
 	assert.NoError(t, err)
 	if len(pw) < 4 || len(pw) > 4 {
@@ -147,10 +155,12 @@ y
 }
 
 func TestCreateGeneric(t *testing.T) {
+	aclip.Unsupported = true
 	s := creator{mockstore.New("")}
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
+	ctx = ctxutil.WithClipTimeout(ctx, 1)
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
@@ -183,11 +193,13 @@ y
 }
 
 func TestCreateAWS(t *testing.T) {
+	aclip.Unsupported = true
 	s := creator{mockstore.New("")}
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithTerminal(ctx, false)
+	ctx = ctxutil.WithClipTimeout(ctx, 1)
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
@@ -221,6 +233,7 @@ SECRETKEY
 }
 
 func TestCreateGCP(t *testing.T) {
+	aclip.Unsupported = true
 	tempdir, err := ioutil.TempDir("", "gopass-")
 	assert.NoError(t, err)
 	defer func() {
@@ -231,6 +244,7 @@ func TestCreateGCP(t *testing.T) {
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
+	ctx = ctxutil.WithClipTimeout(ctx, 1)
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
