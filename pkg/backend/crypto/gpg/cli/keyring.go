@@ -106,7 +106,7 @@ func (g *GPG) NameFromKey(ctx context.Context, id string) string {
 
 // FormatKey formats the details of a key id
 func (g *GPG) FormatKey(ctx context.Context, id string) string {
-	return g.findKey(ctx, id).Identity().ID()
+	return g.findKey(ctx, id).OneLine()
 }
 
 // Fingerprint returns the full-length native fingerprint
