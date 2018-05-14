@@ -13,7 +13,7 @@ import (
 
 type configuredFile struct {
 	path    string
-	content string
+	content []byte
 }
 
 // PrintSummary prints path and content of manifest and wrapper script
@@ -40,6 +40,7 @@ func SetUp(browser, wrapperPath, libpath string, global bool) error {
 	if err != nil {
 		return err
 	}
+
 	if err := writeConfiguredFile("Manifest", manifestFile, 0644); err != nil {
 		return err
 	}
@@ -67,6 +68,7 @@ func writeConfiguredFile(name string, file configuredFile, perm os.FileMode) err
 	if err := ioutil.WriteFile(file.path, []byte(file.content), perm); err != nil {
 		return err
 	}
+
 	fmt.Printf("\n%s written to %s\n", name, file.path)
 	return nil
 }
@@ -77,17 +79,22 @@ func getManifest(browser, wrapperPath, libpath string, global bool) (configuredF
 	if err != nil {
 		return file, err
 	}
+
 	file.path = manifestPath
 	file.content, err = getManifestContent(browser, wrapperPath)
 	return file, err
 }
 
 func getWrapper(wrapperPath string) (configuredFile, error) {
-	file := configuredFile{path: path.Join(wrapperPath, wrapperName)}
+	file := configuredFile{
+		path: path.Join(wrapperPath, wrapperName),
+	}
+
 	gopassPath, err := getGopassPath()
 	if err != nil {
 		return file, err
 	}
+
 	file.content = getWrapperContent(gopassPath)
 	return file, nil
 }
@@ -110,32 +117,27 @@ func getGopassPath() (string, error) {
 	return os.Executable()
 }
 
-func getWrapperContent(gopassPath string) string {
-	return fmt.Sprintf(wrapperTemplate, gopassPath)
+func getWrapperContent(gopassPath string) []byte {
+	return []byte(fmt.Sprintf(wrapperTemplate, gopassPath))
 }
 
-func getManifestContent(browser, wrapperPath string) (string, error) {
-	var bytes []byte
-	var err error
-
-	if browser == "firefox" {
+func getManifestContent(browser, wrapperPath string) ([]byte, error) {
+	switch browser {
+	case "firefox":
 		jsonManifest := firefoxManifest{}
 		jsonManifest.InitFields(path.Join(wrapperPath, wrapperName))
 		jsonManifest.AllowedExtensions = firefoxOrigins
-		bytes, err = json.MarshalIndent(jsonManifest, "", "    ")
-	} else if browser == "chrome" || browser == "chromium" {
+		return json.MarshalIndent(jsonManifest, "", "    ")
+	case "chrome":
+		fallthrough
+	case "chromium":
 		jsonManifest := chromeManifest{}
 		jsonManifest.InitFields(path.Join(wrapperPath, wrapperName))
 		jsonManifest.AllowedOrigins = chromeOrigins
-		bytes, err = json.MarshalIndent(jsonManifest, "", "    ")
-	} else {
-		return "", fmt.Errorf("no manifest template for browser %s", browser)
+		return json.MarshalIndent(jsonManifest, "", "    ")
+	default:
+		return nil, fmt.Errorf("no manifest template for browser %s", browser)
 	}
-
-	if err != nil {
-		return "", err
-	}
-	return string(bytes), nil
 }
 
 func (m *manifestBase) InitFields(wrapperPath string) {
