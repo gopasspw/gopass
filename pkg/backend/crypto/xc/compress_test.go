@@ -13,7 +13,7 @@ import (
 )
 
 func TestCompressPlain(t *testing.T) {
-	t.Skip("no needed right now")
+	t.Skip("not needed right now")
 
 	for _, pwg := range []func(n int) string{
 		func(n int) string { return pwgen.GeneratePasswordCharset(n+1, pwgen.CharAll) },
@@ -42,7 +42,7 @@ func TestCompressPlain(t *testing.T) {
 
 func TestCompress(t *testing.T) {
 	for _, pwg := range []func(n int) string{
-		func(n int) string { return pwgen.GeneratePassword(n+1, true) },
+		func(n int) string { return pwgen.GeneratePasswordCharset(n+1, pwgen.CharAll) },
 		func(n int) string {
 			pw, _ := xkcdgen.RandomLength(n, "en")
 			return pw
