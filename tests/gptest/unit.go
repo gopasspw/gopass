@@ -9,6 +9,7 @@ import (
 
 	"github.com/justwatchcom/gopass/pkg/backend"
 
+	aclip "github.com/atotto/clipboard"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -43,6 +44,7 @@ func (u Unit) GPGHome() string {
 }
 
 func NewUnitTester(t *testing.T) *Unit {
+	aclip.Unsupported = true
 	td, err := ioutil.TempDir("", "gopass-")
 	assert.NoError(t, err)
 

@@ -15,10 +15,11 @@ import (
 func TestPwgen(t *testing.T) {
 	for _, sym := range []bool{true, false} {
 		for i := 0; i < 50; i++ {
-			sec := GeneratePassword(i, sym)
-			if len(sec) != i {
-				t.Errorf("Length mismatch")
+			syms := CharAlphaNum
+			if sym {
+				syms = CharAll
 			}
+			assert.Equal(t, i, len(GeneratePasswordCharset(i, syms)))
 		}
 	}
 }
@@ -50,4 +51,16 @@ func TestPwgenNoCrand(t *testing.T) {
 	os.Stdout = oldOut
 	assert.Equal(t, 42, n)
 	assert.Equal(t, "WARNING: No crypto/rand available. Falling back to PRNG\n", <-done)
+}
+
+func BenchmarkPwgen(b *testing.B) {
+	for n := 0; n < b.N; n++ {
+		GeneratePasswordCharset(24, CharAll)
+	}
+}
+
+func BenchmarkPwgenCheck(b *testing.B) {
+	for n := 0; n < b.N; n++ {
+		GeneratePasswordCharsetCheck(24, CharAll)
+	}
 }
