@@ -19,7 +19,7 @@ const (
 	oldKeyDir = ".gpg-keys"
 )
 
-// Recipients returns the list of recipients of this.storage
+// Recipients returns the list of recipients of this store
 func (s *Store) Recipients(ctx context.Context) []string {
 	rs, err := s.GetRecipients(ctx, "")
 	if err != nil {
