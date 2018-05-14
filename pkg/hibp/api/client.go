@@ -54,7 +54,7 @@ func Lookup(ctx context.Context, shaSum string) (uint64, error) {
 			return fmt.Errorf("HTTP request failed: %s %s", resp.Status, body)
 		}
 
-		for _, line := range strings.Split(string(body), "\n") {
+		for _, line := range strings.Split(string(body), "\r\n") {
 			if len(line) < 37 {
 				continue
 			}
