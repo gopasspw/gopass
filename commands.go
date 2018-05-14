@@ -1089,6 +1089,31 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 						},
 					},
 				},
+				{
+					Name: "encrypt",
+					Action: func(c *cli.Context) error {
+						return xc.EncryptFile(withGlobalFlags(ctx, c), c)
+					},
+					Flags: []cli.Flag{
+						cli.StringFlag{
+							Name: "file",
+						},
+						cli.StringSliceFlag{
+							Name: "recipients",
+						},
+					},
+				},
+				{
+					Name: "decrypt",
+					Action: func(c *cli.Context) error {
+						return xc.DecryptFile(withGlobalFlags(ctx, c), c)
+					},
+					Flags: []cli.Flag{
+						cli.StringFlag{
+							Name: "file",
+						},
+					},
+				},
 			},
 		},
 	}
