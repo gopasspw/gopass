@@ -61,7 +61,7 @@ func (s *Action) SetupNativeMessaging(ctx context.Context, c *cli.Context) error
 		manifestPath = p
 	}
 
-	wrap, mf, err := manifest.Render(browser, wrapperPath, libPath, c.String("gopass-path"), globalInstall)
+	wrap, mf, err := manifest.Render(browser, wrapperPath, c.String("gopass-path"), globalInstall)
 	if err != nil {
 		return ExitError(ctx, ExitUnknown, err, "failed to render manifest: %s", err)
 	}

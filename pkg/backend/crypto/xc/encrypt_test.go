@@ -183,3 +183,52 @@ func TestEncryptChunks(t *testing.T) {
 	_, err = xc.Decrypt(ctx, ciphertext)
 	assert.Error(t, err)
 }
+
+func TestEncryptCompress(t *testing.T) {
+	ctx := context.Background()
+
+	td, err := ioutil.TempDir("", "gopass-")
+	assert.NoError(t, err)
+	defer func() {
+		_ = os.RemoveAll(td)
+	}()
+	assert.NoError(t, os.Setenv("GOPASS_CONFIG", filepath.Join(td, ".gopass.yml")))
+	assert.NoError(t, os.Setenv("GOPASS_HOMEDIR", td))
+
+	passphrase := "test"
+
+	k1, err := keyring.GenerateKeypair(passphrase)
+	assert.NoError(t, err)
+
+	skr := keyring.NewSecring()
+	assert.NoError(t, skr.Set(k1))
+
+	pkr := keyring.NewPubring(skr)
+
+	xc := &XC{
+		pubring: pkr,
+		secring: skr,
+		client:  &fakeAgent{passphrase},
+	}
+
+	data := &bytes.Buffer{}
+	for i := 0; i < 1024*1024; i++ {
+		data.WriteString("aaaaaaaa")
+	}
+
+	buf, err := xc.Encrypt(ctx, data.Bytes(), []string{k1.Fingerprint()})
+	assert.NoError(t, err)
+
+	recps, err := xc.RecipientIDs(ctx, buf)
+	assert.NoError(t, err)
+	assert.Equal(t, []string{k1.Fingerprint()}, recps)
+
+	// check compress flag
+	msg := &xcpb.Message{}
+	assert.NoError(t, proto.Unmarshal(buf, msg))
+	assert.Equal(t, true, msg.Compressed)
+
+	buf, err = xc.Decrypt(ctx, buf)
+	assert.NoError(t, err)
+	assert.Equal(t, data.String(), string(buf))
+}

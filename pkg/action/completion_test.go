@@ -37,6 +37,12 @@ func TestComplete(t *testing.T) {
 	assert.NoError(t, err)
 
 	app := cli.NewApp()
+	app.Commands = []cli.Command{
+		{
+			Name:    "test",
+			Aliases: []string{"foo", "bar"},
+		},
+	}
 
 	act.Complete(ctx, nil)
 	assert.Equal(t, "foo\n", buf.String())

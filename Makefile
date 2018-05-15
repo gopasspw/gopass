@@ -126,7 +126,7 @@ manifests: $(GOPASS_OUTPUT)
 legal:
 	@echo ">> LEGAL"
 	@echo -n "   LICENSES   "
-	@which fossa > /dev/null; if [ $$? -ne 0 ]; then \
+	@which licenses > /dev/null; if [ $$? -ne 0 ]; then \
 		$(GO) get -u github.com/pmezard/licenses; \
 	fi
 	@licenses . > NOTICE.new

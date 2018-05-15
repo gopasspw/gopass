@@ -163,10 +163,7 @@ func (g *GPG) Sign(ctx context.Context, in string, sigf string) error {
 	if _, err := io.Copy(wc, infh); err != nil {
 		return err
 	}
-	if err := wc.Close(); err != nil {
-		return err
-	}
-	return nil
+	return wc.Close()
 }
 
 // Verify is not implemented

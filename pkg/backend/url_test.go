@@ -140,3 +140,7 @@ func TestMarshalYAML(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, out, string(buf))
 }
+
+func TestFromPath(t *testing.T) {
+	assert.Equal(t, "gpgcli-gitcli-fs+file:///tmp", FromPath("/tmp").String())
+}

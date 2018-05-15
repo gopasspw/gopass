@@ -18,36 +18,7 @@ import (
 // Version prints the gopass version
 func (s *Action) Version(ctx context.Context, c *cli.Context) error {
 	version := make(chan string, 1)
-	go func(u chan string) {
-		if disabled := os.Getenv("CHECKPOINT_DISABLE"); disabled != "" {
-			u <- ""
-			return
-		}
-
-		if strings.HasSuffix(s.version.String(), "+HEAD") || protect.ProtectEnabled {
-			// chan not check version against HEAD or
-			// against pledge(2)'d OpenBSD
-			u <- ""
-			return
-		}
-
-		r, err := updater.LatestRelease(ctx, len(s.version.Pre) > 0)
-		if err != nil {
-			u <- color.RedString("\nError checking latest version: %s", err)
-			return
-		}
-
-		if s.version.LT(r.Version()) {
-			notice := fmt.Sprintf("\nYour version (%s) of gopass is out of date!\nThe latest version is %s.\n", s.version, r.Version().String())
-			notice += "You can update by downloading from www.justwatch.com/gopass"
-			if err := updater.IsUpdateable(ctx); err == nil {
-				notice += " by running 'gopass update'"
-			}
-			notice += " or via your package manager"
-			u <- color.YellowString(notice)
-		}
-		u <- ""
-	}(version)
+	go s.checkVersion(ctx, version)
 
 	_ = s.Initialized(ctx, c)
 
@@ -82,4 +53,35 @@ func (s *Action) Version(ctx context.Context, c *cli.Context) error {
 	}
 
 	return nil
+}
+
+func (s *Action) checkVersion(ctx context.Context, u chan string) {
+	if disabled := os.Getenv("CHECKPOINT_DISABLE"); disabled != "" {
+		u <- ""
+		return
+	}
+
+	if strings.HasSuffix(s.version.String(), "+HEAD") || protect.ProtectEnabled {
+		// chan not check version against HEAD or
+		// against pledge(2)'d OpenBSD
+		u <- ""
+		return
+	}
+
+	r, err := updater.LatestRelease(ctx, len(s.version.Pre) > 0)
+	if err != nil {
+		u <- color.RedString("\nError checking latest version: %s", err)
+		return
+	}
+
+	if s.version.LT(r.Version()) {
+		notice := fmt.Sprintf("\nYour version (%s) of gopass is out of date!\nThe latest version is %s.\n", s.version, r.Version().String())
+		notice += "You can update by downloading from www.justwatch.com/gopass"
+		if err := updater.IsUpdateable(ctx); err == nil {
+			notice += " by running 'gopass update'"
+		}
+		notice += " or via your package manager"
+		u <- color.YellowString(notice)
+	}
+	u <- ""
 }
