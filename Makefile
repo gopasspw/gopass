@@ -26,7 +26,7 @@ OK := $(shell tput setaf 6; echo ' [OK]'; tput sgr0;)
 all: build completion
 build: $(GOPASS_OUTPUT)
 completion: $(BASH_COMPLETION_OUTPUT) $(FISH_COMPLETION_OUTPUT) $(ZSH_COMPLETION_OUTPUT)
-travis: sysinfo crosscompile build install legal test codequality completion
+travis: sysinfo crosscompile build install legal test codequality completion manifests
 
 sysinfo:
 	@echo ">> SYSTEM INFORMATION"
@@ -117,6 +117,11 @@ install-completion: completion
 	@install -m 0755 $(BASH_COMPLETION_OUTPUT) $(DESTDIR)$(PREFIX)/share/bash-completion/completions/gopass
 	@install -m 0755 $(FISH_COMPLETION_OUTPUT) $(DESTDIR)$(PREFIX)/share/fish/vendor_completions.d/gopass.fish
 	@printf '%s\n' '$(OK)'
+
+manifests: $(GOPASS_OUTPUT)
+	@./gopass --yes jsonapi configure --path=. --manifest-path=manifest-chrome.json --browser=chrome --gopass-path=gopass --print=false
+	@./gopass --yes jsonapi configure --path=. --manifest-path=manifest-chromium.json --browser=chromium --gopass-path=gopass --print=false
+	@./gopass --yes jsonapi configure --path=. --manifest-path=manifest-firefox.json --browser=firefox --gopass-path=gopass --print=false
 
 legal:
 	@echo ">> LEGAL"

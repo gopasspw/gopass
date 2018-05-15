@@ -36,12 +36,3 @@ func TestJSONAPI(t *testing.T) {
 
 	assert.NoError(t, act.JSONAPI(ctx, c))
 }
-
-func TestStringInSlice(t *testing.T) {
-	if stringInSlice("foo", []string{"bar", "baz"}) {
-		t.Errorf("Should not contain foo")
-	}
-	if !stringInSlice("foo", []string{"foo", "bar", "baz"}) {
-		t.Errorf("Should contain foo")
-	}
-}
