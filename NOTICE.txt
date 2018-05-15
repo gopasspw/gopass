@@ -1,4 +1,5 @@
 github.com/justwatchcom/gopass                                                         MIT License
+github.com/justwatchcom/gopass/vendor/github.com/alecthomas/binary                     MIT License (98%)
 github.com/justwatchcom/gopass/vendor/github.com/atotto/clipboard                      BSD 3-clause "New" or "Revised" License (97%)
 github.com/justwatchcom/gopass/vendor/github.com/blang/semver                          MIT License
 github.com/justwatchcom/gopass/vendor/github.com/cenkalti/backoff                      MIT License

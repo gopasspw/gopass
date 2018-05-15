@@ -3,6 +3,7 @@ package xc
 import (
 	"context"
 	"io/ioutil"
+	"os"
 	"strings"
 
 	"github.com/justwatchcom/gopass/pkg/action"
@@ -229,6 +230,10 @@ func ImportPrivateKey(ctx context.Context, c *cli.Context) error {
 
 // EncryptFile encrypts a single file
 func EncryptFile(ctx context.Context, c *cli.Context) error {
+	if c.Bool("stream") {
+		return EncryptFileStream(ctx, c)
+	}
+
 	inFile := c.String("file")
 	if inFile == "" {
 		return action.ExitError(ctx, action.ExitUsage, nil, "need file")
@@ -267,6 +272,10 @@ func EncryptFile(ctx context.Context, c *cli.Context) error {
 
 // DecryptFile decrypts a single file
 func DecryptFile(ctx context.Context, c *cli.Context) error {
+	if c.Bool("stream") {
+		return DecryptFileStream(ctx, c)
+	}
+
 	inFile := c.String("file")
 	if inFile == "" {
 		return action.ExitError(ctx, action.ExitUsage, nil, "need file")
@@ -301,6 +310,90 @@ func DecryptFile(ctx context.Context, c *cli.Context) error {
 
 	if err := ioutil.WriteFile(outFile, plaintext, 0600); err != nil {
 		return action.ExitError(ctx, action.ExitUnknown, err, "failed to write plaintext")
+	}
+	return nil
+}
+
+// EncryptFileStream encrypts a single file
+func EncryptFileStream(ctx context.Context, c *cli.Context) error {
+	inFile := c.String("file")
+	if inFile == "" {
+		return action.ExitError(ctx, action.ExitUsage, nil, "need file")
+	}
+
+	recipients := c.StringSlice("recipients")
+
+	outFile := inFile + ".xc"
+
+	cfgdir := config.Directory()
+	crypto, err := xc.New(cfgdir, client.New(cfgdir))
+	if err != nil {
+		return action.ExitError(ctx, action.ExitUnknown, err, "failed to init XC")
+	}
+
+	if !fsutil.IsFile(inFile) {
+		return action.ExitError(ctx, action.ExitNotFound, nil, "input file not found")
+	}
+	if fsutil.IsFile(outFile) {
+		return action.ExitError(ctx, action.ExitIO, nil, "output file already exists")
+	}
+
+	plaintext, err := os.Open(inFile)
+	if err != nil {
+		return action.ExitError(ctx, action.ExitIO, err, "failed to open file")
+	}
+	defer func() { _ = plaintext.Close() }()
+
+	ciphertext, err := os.OpenFile(outFile, os.O_CREATE|os.O_WRONLY, 0600)
+	if err != nil {
+		return action.ExitError(ctx, action.ExitIO, err, "failed to open file")
+	}
+	defer func() { _ = ciphertext.Close() }()
+
+	if err := crypto.EncryptStream(ctx, plaintext, recipients, ciphertext); err != nil {
+		return action.ExitError(ctx, action.ExitUnknown, err, "failed to encrypt file")
+	}
+	return nil
+}
+
+// DecryptFileStream decrypts a single file
+func DecryptFileStream(ctx context.Context, c *cli.Context) error {
+	inFile := c.String("file")
+	if inFile == "" {
+		return action.ExitError(ctx, action.ExitUsage, nil, "need file")
+	}
+	if !strings.HasSuffix(inFile, ".xc") {
+		return action.ExitError(ctx, action.ExitUsage, nil, "unknown extension. expecting .xc")
+	}
+	outFile := strings.TrimSuffix(inFile, ".xc")
+
+	cfgdir := config.Directory()
+	crypto, err := xc.New(cfgdir, client.New(cfgdir))
+	if err != nil {
+		return action.ExitError(ctx, action.ExitUnknown, err, "failed to init XC")
+	}
+
+	if !fsutil.IsFile(inFile) {
+		return action.ExitError(ctx, action.ExitNotFound, nil, "input file not found")
+	}
+	if fsutil.IsFile(outFile) {
+		return action.ExitError(ctx, action.ExitIO, nil, "output file already exists")
+	}
+
+	ciphertext, err := os.Open(inFile)
+	if err != nil {
+		return action.ExitError(ctx, action.ExitIO, err, "failed to read file")
+	}
+	defer func() { _ = ciphertext.Close() }()
+
+	plaintext, err := os.OpenFile(outFile, os.O_CREATE|os.O_WRONLY, 0600)
+	if err != nil {
+		return action.ExitError(ctx, action.ExitIO, err, "failed to read file")
+	}
+	defer func() { _ = plaintext.Close() }()
+
+	if err := crypto.DecryptStream(ctx, ciphertext, plaintext); err != nil {
+		return action.ExitError(ctx, action.ExitUnknown, err, "failed to encrypt file")
 	}
 	return nil
 }

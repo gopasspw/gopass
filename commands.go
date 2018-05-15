@@ -1101,6 +1101,9 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 						cli.StringSliceFlag{
 							Name: "recipients",
 						},
+						cli.BoolFlag{
+							Name: "stream",
+						},
 					},
 				},
 				{
@@ -1111,6 +1114,9 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 					Flags: []cli.Flag{
 						cli.StringFlag{
 							Name: "file",
+						},
+						cli.BoolFlag{
+							Name: "stream",
 						},
 					},
 				},

@@ -65,7 +65,7 @@ func writeConfiguredFile(name string, file configuredFile, perm os.FileMode) err
 		return err
 	}
 
-	if err := ioutil.WriteFile(file.path, []byte(file.content), perm); err != nil {
+	if err := ioutil.WriteFile(file.path, file.content, perm); err != nil {
 		return err
 	}
 
