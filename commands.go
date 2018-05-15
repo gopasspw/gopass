@@ -449,6 +449,10 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 							Name:  "path",
 							Usage: "Path to install 'gopass_wrapper.sh' to",
 						},
+						cli.StringFlag{
+							Name:  "manifest-path",
+							Usage: "Path to install 'com.justwatch.gopass.json' to",
+						},
 						cli.BoolFlag{
 							Name:  "global",
 							Usage: "Install for all users, requires superuser rights",
@@ -457,9 +461,13 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 							Name:  "libpath",
 							Usage: "Library path for global installation on linux. Default is /usr/lib",
 						},
-						cli.BoolFlag{
-							Name:  "print-only",
-							Usage: "only print installation summary but do not actually create any files",
+						cli.StringFlag{
+							Name:  "gopass-path",
+							Usage: "Path to gopass binary. Default is auto detected",
+						},
+						cli.BoolTFlag{
+							Name:  "print",
+							Usage: "Print installation summary before creating any files",
 						},
 					},
 				},
