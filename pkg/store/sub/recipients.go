@@ -139,7 +139,11 @@ func (s *Store) GetRecipients(ctx context.Context, name string) ([]string, error
 	rawRecps := unmarshalRecipients(buf)
 	finalRecps := make([]string, 0, len(rawRecps))
 	for _, r := range rawRecps {
-		finalRecps = append(finalRecps, s.crypto.Fingerprint(ctx, r))
+		fp := s.crypto.Fingerprint(ctx, r)
+		if fp == "" {
+			fp = r
+		}
+		finalRecps = append(finalRecps, fp)
 	}
 	return finalRecps, nil
 }
@@ -150,6 +154,9 @@ func (s *Store) ExportMissingPublicKeys(ctx context.Context, rs []string) (bool,
 	ok := true
 	exported := false
 	for _, r := range rs {
+		if r == "" {
+			continue
+		}
 		path, err := s.exportPublicKey(ctx, r)
 		if err != nil {
 			ok = false
