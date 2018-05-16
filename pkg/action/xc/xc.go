@@ -344,6 +344,7 @@ func EncryptFileStream(ctx context.Context, c *cli.Context) error {
 	defer func() { _ = ciphertext.Close() }()
 
 	if err := crypto.EncryptStream(ctx, plaintext, recipients, ciphertext); err != nil {
+		os.Remove(outFile)
 		return action.ExitError(ctx, action.ExitUnknown, err, "failed to encrypt file: %s", err)
 	}
 	return nil
@@ -384,6 +385,7 @@ func DecryptFileStream(ctx context.Context, c *cli.Context) error {
 	defer func() { _ = plaintext.Close() }()
 
 	if err := crypto.DecryptStream(ctx, ciphertext, plaintext); err != nil {
+		os.Remove(outFile)
 		return action.ExitError(ctx, action.ExitUnknown, err, "failed to decrypt file: %s", err)
 	}
 	return nil
