@@ -50,36 +50,39 @@ func (x *XC) EncryptStream(ctx context.Context, plaintext io.Reader, recipients 
 	buf := make([]byte, chunkSizeMax)
 	encbuf := make([]byte, 8)
 	for {
-		_, err := plaintext.Read(buf)
+		n, err := plaintext.Read(buf)
+		if err := x.encryptChunk(sessionKey, num, buf[:n], encbuf, ciphertext); err != nil {
+			return err
+		}
 		if err != nil {
 			if err == io.EOF {
 				return nil
 			}
 			return err
 		}
-
-		// use a sequential nonce to prevent chunk reordering.
-		// since the pair of key and nonce has to be unique and we're
-		// generating a new random key for each message, this is OK
-		var nonce [24]byte
-		binary.BigEndian.PutUint64(nonce[:], uint64(num))
-
-		// encrypt the plaintext using the random nonce
-		cipherBlock := secretbox.Seal(nil, buf, &nonce, &sessionKey)
-
-		// write ciphertext block length
-		l := stdbin.PutUvarint(encbuf, uint64(len(cipherBlock)))
-		if _, err := ciphertext.Write(encbuf[:l]); err != nil {
-			return err
-		}
-
-		// write ciphertext block data
-		if _, err := ciphertext.Write(cipherBlock); err != nil {
-			return err
-		}
-
 		num++
 	}
+}
+
+func (x *XC) encryptChunk(sessionKey [32]byte, num int, buf, encbuf []byte, ciphertext io.Writer) error {
+	// use a sequential nonce to prevent chunk reordering.
+	// since the pair of key and nonce has to be unique and we're
+	// generating a new random key for each message, this is OK
+	var nonce [24]byte
+	binary.BigEndian.PutUint64(nonce[:], uint64(num))
+
+	// encrypt the plaintext using the random nonce
+	cipherBlock := secretbox.Seal(nil, buf, &nonce, &sessionKey)
+
+	// write ciphertext block length
+	l := stdbin.PutUvarint(encbuf, uint64(len(cipherBlock)))
+	if _, err := ciphertext.Write(encbuf[:l]); err != nil {
+		return err
+	}
+
+	// write ciphertext block data
+	_, err := ciphertext.Write(cipherBlock)
+	return err
 }
 
 // DecryptStream decrypts an stream encrypted with EncryptStream
@@ -122,30 +125,35 @@ func (x *XC) DecryptStream(ctx context.Context, ciphertext io.Reader, plaintext 
 			return err
 		}
 		buf = make([]byte, l)
-		if _, err := br.Read(buf); err != nil {
+		n, err := br.Read(buf)
+		if err := x.decryptChunk(secretKey, num, buf[:n], plaintext); err != nil {
+			return err
+		}
+		if err != nil {
 			if err == io.EOF {
 				return nil
 			}
 			return err
 		}
-
-		// reconstruct nonce from chunk number
-		// in case chunks have been reordered by some adversary
-		// decryption will fail
-		var nonce [24]byte
-		binary.BigEndian.PutUint64(nonce[:], uint64(num))
-
-		// decrypt and verify the ciphertext
-		plain, ok := secretbox.Open(nil, buf, &nonce, &secretKey)
-		if !ok {
-			return fmt.Errorf("failed to decrypt chunk %d", num)
-		}
-
-		if _, err := plaintext.Write(plain); err != nil {
-			return err
-		}
 		num++
 	}
+}
+
+func (x *XC) decryptChunk(secretKey [32]byte, num int, buf []byte, plaintext io.Writer) error {
+	// reconstruct nonce from chunk number
+	// in case chunks have been reordered by some adversary
+	// decryption will fail
+	var nonce [24]byte
+	binary.BigEndian.PutUint64(nonce[:], uint64(num))
+
+	// decrypt and verify the ciphertext
+	plain, ok := secretbox.Open(nil, buf, &nonce, &secretKey)
+	if !ok {
+		return fmt.Errorf("failed to decrypt chunk %d", num)
+	}
+
+	_, err := plaintext.Write(plain)
+	return err
 }
 
 type byteReader struct {

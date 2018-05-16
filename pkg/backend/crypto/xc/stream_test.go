@@ -61,12 +61,19 @@ func TestStream(t *testing.T) {
 	p := make([]byte, 1024)
 	written := 0
 	for i := 0; i < 64*1024; i++ {
-		_, _ = rand.Read(p)
-		n, err := pfh.Write(p)
+		n, _ := rand.Read(p)
+		n, err := pfh.Write(p[:n])
 		written += n
 		assert.NoError(t, err)
-		_, _ = plainSum.Write(p)
+		_, _ = plainSum.Write(p[:n])
 	}
+	// add some more bytes to force an uneven block boundary
+	p = make([]byte, 10)
+	rand.Read(p)
+	_, err = pfh.Write(p)
+	assert.NoError(t, err)
+	_, _ = plainSum.Write(p)
+
 	assert.NoError(t, pfh.Close())
 	t.Logf("Wrote %d bytes", written)
 
@@ -99,14 +106,14 @@ func TestStream(t *testing.T) {
 	assert.NoError(t, err)
 	buf := make([]byte, 1024)
 	for {
-		_, err := pfh.Read(buf)
+		n, err := pfh.Read(buf)
+		_, _ = againSum.Write(buf[:n])
 		if err != nil {
 			if err == io.EOF {
 				break
 			}
 			assert.NoError(t, err)
 		}
-		_, _ = againSum.Write(buf)
 	}
 	assert.NoError(t, pfh.Close())
 

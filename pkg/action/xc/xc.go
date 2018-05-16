@@ -16,11 +16,25 @@ import (
 	"github.com/urfave/cli"
 )
 
+var crypto *xc.XC
+
+func initCrypto() error {
+	if crypto != nil {
+		return nil
+	}
+
+	cfgdir := config.Directory()
+	c, err := xc.New(cfgdir, client.New(cfgdir))
+	if err != nil {
+		return err
+	}
+	crypto = c
+	return nil
+}
+
 // ListPrivateKeys list the XC private keys
 func ListPrivateKeys(ctx context.Context, c *cli.Context) error {
-	cfgdir := config.Directory()
-	crypto, err := xc.New(cfgdir, client.New(cfgdir))
-	if err != nil {
+	if err := initCrypto(); err != nil {
 		return action.ExitError(ctx, action.ExitUnknown, err, "failed to init XC")
 	}
 
@@ -39,9 +53,7 @@ func ListPrivateKeys(ctx context.Context, c *cli.Context) error {
 
 // ListPublicKeys lists the XC public keys
 func ListPublicKeys(ctx context.Context, c *cli.Context) error {
-	cfgdir := config.Directory()
-	crypto, err := xc.New(cfgdir, client.New(cfgdir))
-	if err != nil {
+	if err := initCrypto(); err != nil {
 		return action.ExitError(ctx, action.ExitUnknown, err, "failed to init XC")
 	}
 
@@ -60,6 +72,10 @@ func ListPublicKeys(ctx context.Context, c *cli.Context) error {
 
 // GenerateKeypair generates a new XC keypair
 func GenerateKeypair(ctx context.Context, c *cli.Context) error {
+	if err := initCrypto(); err != nil {
+		return action.ExitError(ctx, action.ExitUnknown, err, "failed to init XC")
+	}
+
 	name := c.String("name")
 	email := c.String("email")
 	pw := c.String("passphrase")
@@ -74,22 +90,16 @@ func GenerateKeypair(ctx context.Context, c *cli.Context) error {
 	if email == "" {
 		var err error
 		email, err = termio.AskForString(ctx, "What is your email?", "")
-		if err != nil || name == "" {
-			return action.ExitError(ctx, action.ExitNoName, err, "please provide a email")
+		if err != nil || email == "" {
+			return action.ExitError(ctx, action.ExitNoName, err, "please provide an email")
 		}
 	}
 	if pw == "" {
 		var err error
-		pw, err = termio.AskForPassword(ctx, name)
-		if err != nil {
+		pw, err = termio.AskForPassword(ctx, "")
+		if err != nil || pw == "" {
 			return action.ExitError(ctx, action.ExitIO, err, "failed to ask for password: %s", err)
 		}
-	}
-
-	cfgdir := config.Directory()
-	crypto, err := xc.New(cfgdir, client.New(cfgdir))
-	if err != nil {
-		return action.ExitError(ctx, action.ExitUnknown, err, "failed to init XC")
 	}
 
 	return crypto.CreatePrivateKeyBatch(ctx, name, email, pw)
@@ -97,6 +107,10 @@ func GenerateKeypair(ctx context.Context, c *cli.Context) error {
 
 // ExportPublicKey exports an XC key
 func ExportPublicKey(ctx context.Context, c *cli.Context) error {
+	if err := initCrypto(); err != nil {
+		return action.ExitError(ctx, action.ExitUnknown, err, "failed to init XC")
+	}
+
 	id := c.String("id")
 	file := c.String("file")
 
@@ -105,12 +119,6 @@ func ExportPublicKey(ctx context.Context, c *cli.Context) error {
 	}
 	if file == "" {
 		return action.ExitError(ctx, action.ExitUsage, nil, "need file")
-	}
-
-	cfgdir := config.Directory()
-	crypto, err := xc.New(cfgdir, client.New(cfgdir))
-	if err != nil {
-		return action.ExitError(ctx, action.ExitUnknown, err, "failed to init XC")
 	}
 
 	if fsutil.IsFile(file) {
@@ -130,16 +138,14 @@ func ExportPublicKey(ctx context.Context, c *cli.Context) error {
 
 // ImportPublicKey imports an XC key
 func ImportPublicKey(ctx context.Context, c *cli.Context) error {
+	if err := initCrypto(); err != nil {
+		return action.ExitError(ctx, action.ExitUnknown, err, "failed to init XC")
+	}
+
 	file := c.String("file")
 
 	if file == "" {
 		return action.ExitError(ctx, action.ExitUsage, nil, "need file")
-	}
-
-	cfgdir := config.Directory()
-	crypto, err := xc.New(cfgdir, client.New(cfgdir))
-	if err != nil {
-		return action.ExitError(ctx, action.ExitUnknown, err, "failed to init XC")
 	}
 
 	if !fsutil.IsFile(file) {
@@ -155,16 +161,14 @@ func ImportPublicKey(ctx context.Context, c *cli.Context) error {
 
 // RemoveKey removes a key from the keyring
 func RemoveKey(ctx context.Context, c *cli.Context) error {
+	if err := initCrypto(); err != nil {
+		return action.ExitError(ctx, action.ExitUnknown, err, "failed to init XC")
+	}
+
 	id := c.String("id")
 
 	if id == "" {
 		return action.ExitError(ctx, action.ExitUsage, nil, "need id")
-	}
-
-	cfgdir := config.Directory()
-	crypto, err := xc.New(cfgdir, client.New(cfgdir))
-	if err != nil {
-		return action.ExitError(ctx, action.ExitUnknown, err, "failed to init XC")
 	}
 
 	return crypto.RemoveKey(id)
@@ -172,6 +176,10 @@ func RemoveKey(ctx context.Context, c *cli.Context) error {
 
 // ExportPrivateKey exports an XC key
 func ExportPrivateKey(ctx context.Context, c *cli.Context) error {
+	if err := initCrypto(); err != nil {
+		return action.ExitError(ctx, action.ExitUnknown, err, "failed to init XC")
+	}
+
 	id := c.String("id")
 	file := c.String("file")
 
@@ -180,12 +188,6 @@ func ExportPrivateKey(ctx context.Context, c *cli.Context) error {
 	}
 	if file == "" {
 		return action.ExitError(ctx, action.ExitUsage, nil, "need file")
-	}
-
-	cfgdir := config.Directory()
-	crypto, err := xc.New(cfgdir, client.New(cfgdir))
-	if err != nil {
-		return action.ExitError(ctx, action.ExitUnknown, err, "failed to init XC")
 	}
 
 	if fsutil.IsFile(file) {
@@ -205,16 +207,14 @@ func ExportPrivateKey(ctx context.Context, c *cli.Context) error {
 
 // ImportPrivateKey imports an XC key
 func ImportPrivateKey(ctx context.Context, c *cli.Context) error {
+	if err := initCrypto(); err != nil {
+		return action.ExitError(ctx, action.ExitUnknown, err, "failed to init XC")
+	}
+
 	file := c.String("file")
 
 	if file == "" {
 		return action.ExitError(ctx, action.ExitUsage, nil, "need file")
-	}
-
-	cfgdir := config.Directory()
-	crypto, err := xc.New(cfgdir, client.New(cfgdir))
-	if err != nil {
-		return action.ExitError(ctx, action.ExitUnknown, err, "failed to init XC")
 	}
 
 	if !fsutil.IsFile(file) {
@@ -230,6 +230,10 @@ func ImportPrivateKey(ctx context.Context, c *cli.Context) error {
 
 // EncryptFile encrypts a single file
 func EncryptFile(ctx context.Context, c *cli.Context) error {
+	if err := initCrypto(); err != nil {
+		return action.ExitError(ctx, action.ExitUnknown, err, "failed to init XC")
+	}
+
 	if c.Bool("stream") {
 		return EncryptFileStream(ctx, c)
 	}
@@ -240,14 +244,7 @@ func EncryptFile(ctx context.Context, c *cli.Context) error {
 	}
 
 	recipients := c.StringSlice("recipients")
-
 	outFile := inFile + ".xc"
-
-	cfgdir := config.Directory()
-	crypto, err := xc.New(cfgdir, client.New(cfgdir))
-	if err != nil {
-		return action.ExitError(ctx, action.ExitUnknown, err, "failed to init XC")
-	}
 
 	if !fsutil.IsFile(inFile) {
 		return action.ExitError(ctx, action.ExitNotFound, nil, "input file not found")
@@ -262,7 +259,7 @@ func EncryptFile(ctx context.Context, c *cli.Context) error {
 	}
 	ciphertext, err := crypto.Encrypt(ctx, plaintext, recipients)
 	if err != nil {
-		return action.ExitError(ctx, action.ExitUnknown, err, "failed to encrypt file")
+		return action.ExitError(ctx, action.ExitUnknown, err, "failed to encrypt file: %s", err)
 	}
 	if err := ioutil.WriteFile(outFile, ciphertext, 0600); err != nil {
 		return action.ExitError(ctx, action.ExitUnknown, err, "failed to write ciphertext")
@@ -272,6 +269,10 @@ func EncryptFile(ctx context.Context, c *cli.Context) error {
 
 // DecryptFile decrypts a single file
 func DecryptFile(ctx context.Context, c *cli.Context) error {
+	if err := initCrypto(); err != nil {
+		return action.ExitError(ctx, action.ExitUnknown, err, "failed to init XC")
+	}
+
 	if c.Bool("stream") {
 		return DecryptFileStream(ctx, c)
 	}
@@ -284,12 +285,6 @@ func DecryptFile(ctx context.Context, c *cli.Context) error {
 		return action.ExitError(ctx, action.ExitUsage, nil, "unknown extension. expecting .xc")
 	}
 	outFile := strings.TrimSuffix(inFile, ".xc")
-
-	cfgdir := config.Directory()
-	crypto, err := xc.New(cfgdir, client.New(cfgdir))
-	if err != nil {
-		return action.ExitError(ctx, action.ExitUnknown, err, "failed to init XC")
-	}
 
 	if !fsutil.IsFile(inFile) {
 		return action.ExitError(ctx, action.ExitNotFound, nil, "input file not found")
@@ -305,7 +300,7 @@ func DecryptFile(ctx context.Context, c *cli.Context) error {
 
 	plaintext, err := crypto.Decrypt(ctx, ciphertext)
 	if err != nil {
-		return action.ExitError(ctx, action.ExitUnknown, err, "failed to encrypt file")
+		return action.ExitError(ctx, action.ExitUnknown, err, "failed to decrypt file: %s", err)
 	}
 
 	if err := ioutil.WriteFile(outFile, plaintext, 0600); err != nil {
@@ -316,6 +311,10 @@ func DecryptFile(ctx context.Context, c *cli.Context) error {
 
 // EncryptFileStream encrypts a single file
 func EncryptFileStream(ctx context.Context, c *cli.Context) error {
+	if err := initCrypto(); err != nil {
+		return action.ExitError(ctx, action.ExitUnknown, err, "failed to init XC")
+	}
+
 	inFile := c.String("file")
 	if inFile == "" {
 		return action.ExitError(ctx, action.ExitUsage, nil, "need file")
@@ -324,12 +323,6 @@ func EncryptFileStream(ctx context.Context, c *cli.Context) error {
 	recipients := c.StringSlice("recipients")
 
 	outFile := inFile + ".xc"
-
-	cfgdir := config.Directory()
-	crypto, err := xc.New(cfgdir, client.New(cfgdir))
-	if err != nil {
-		return action.ExitError(ctx, action.ExitUnknown, err, "failed to init XC")
-	}
 
 	if !fsutil.IsFile(inFile) {
 		return action.ExitError(ctx, action.ExitNotFound, nil, "input file not found")
@@ -351,13 +344,17 @@ func EncryptFileStream(ctx context.Context, c *cli.Context) error {
 	defer func() { _ = ciphertext.Close() }()
 
 	if err := crypto.EncryptStream(ctx, plaintext, recipients, ciphertext); err != nil {
-		return action.ExitError(ctx, action.ExitUnknown, err, "failed to encrypt file")
+		return action.ExitError(ctx, action.ExitUnknown, err, "failed to encrypt file: %s", err)
 	}
 	return nil
 }
 
 // DecryptFileStream decrypts a single file
 func DecryptFileStream(ctx context.Context, c *cli.Context) error {
+	if err := initCrypto(); err != nil {
+		return action.ExitError(ctx, action.ExitUnknown, err, "failed to init XC")
+	}
+
 	inFile := c.String("file")
 	if inFile == "" {
 		return action.ExitError(ctx, action.ExitUsage, nil, "need file")
@@ -366,12 +363,6 @@ func DecryptFileStream(ctx context.Context, c *cli.Context) error {
 		return action.ExitError(ctx, action.ExitUsage, nil, "unknown extension. expecting .xc")
 	}
 	outFile := strings.TrimSuffix(inFile, ".xc")
-
-	cfgdir := config.Directory()
-	crypto, err := xc.New(cfgdir, client.New(cfgdir))
-	if err != nil {
-		return action.ExitError(ctx, action.ExitUnknown, err, "failed to init XC")
-	}
 
 	if !fsutil.IsFile(inFile) {
 		return action.ExitError(ctx, action.ExitNotFound, nil, "input file not found")
@@ -393,7 +384,7 @@ func DecryptFileStream(ctx context.Context, c *cli.Context) error {
 	defer func() { _ = plaintext.Close() }()
 
 	if err := crypto.DecryptStream(ctx, ciphertext, plaintext); err != nil {
-		return action.ExitError(ctx, action.ExitUnknown, err, "failed to encrypt file")
+		return action.ExitError(ctx, action.ExitUnknown, err, "failed to decrypt file: %s", err)
 	}
 	return nil
 }

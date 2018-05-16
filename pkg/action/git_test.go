@@ -53,4 +53,21 @@ func TestGit(t *testing.T) {
 
 	assert.NoError(t, act.GitInit(ctx, c))
 	buf.Reset()
+
+	// getUserData
+	name, email := act.getUserData(ctx, "", "", "")
+	assert.Equal(t, "", name)
+	assert.Equal(t, "", email)
+
+	// GitAddRemote
+	assert.Error(t, act.GitAddRemote(ctx, c))
+	buf.Reset()
+
+	// GitPull
+	assert.Error(t, act.GitPull(ctx, c))
+	buf.Reset()
+
+	// GitPush
+	assert.Error(t, act.GitPush(ctx, c))
+	buf.Reset()
 }

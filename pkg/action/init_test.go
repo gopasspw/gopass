@@ -35,6 +35,7 @@ func TestInit(t *testing.T) {
 
 	app := cli.NewApp()
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
+	assert.NoError(t, fs.Parse([]string{"foo.bar@example.org"}))
 	c := cli.NewContext(app, fs, nil)
 
 	assert.NoError(t, act.Initialized(ctx, c))
