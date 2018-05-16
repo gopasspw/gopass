@@ -54,6 +54,8 @@ func TestGit(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "git", git.Name())
 	assert.NoError(t, git.AddRemote(ctx, "foo", "file:///tmp/foo"))
+	assert.NoError(t, git.RemoveRemote(ctx, "foo"))
+	assert.Error(t, git.RemoveRemote(ctx, "foo"))
 
 	gitdir2 := filepath.Join(td, "git2")
 	assert.NoError(t, os.Mkdir(gitdir2, 0755))
