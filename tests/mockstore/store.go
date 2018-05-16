@@ -77,7 +77,7 @@ func (m *MockStore) GetRecipients(context.Context, string) ([]string, error) {
 	return nil, nil
 }
 
-// RemoveRecipients does nothing
+// RemoveRecipient does nothing
 func (m *MockStore) RemoveRecipient(context.Context, string) error {
 	return nil
 }
@@ -173,7 +173,7 @@ func (m *MockStore) Get(ctx context.Context, name string) (store.Secret, error) 
 	return secret.Parse(content)
 }
 
-// GetRevisions does nothing
+// GetRevision does nothing
 func (m *MockStore) GetRevision(context.Context, string, string) (store.Secret, error) {
 	return nil, fmt.Errorf("not supported")
 }

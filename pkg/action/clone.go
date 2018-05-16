@@ -64,21 +64,8 @@ func (s *Action) clone(ctx context.Context, repo, mount, path string) error {
 	ctx = backend.WithCryptoBackend(ctx, detectCryptoBackend(ctx, path))
 
 	// add mount
-	if mount != "" {
-		if !s.Store.Initialized(ctx) {
-			return ExitError(ctx, ExitNotInitialized, nil, "Root-Store is not initialized. Clone or init root store first")
-		}
-		if err := s.Store.AddMount(ctx, mount, path); err != nil {
-			return ExitError(ctx, ExitMount, err, "Failed to add mount: %s", err)
-		}
-		out.Green(ctx, "Mounted password store %s at mount point `%s` ...", path, mount)
-		s.cfg.Mounts[mount].Path.Crypto = backend.GetCryptoBackend(ctx)
-		s.cfg.Mounts[mount].Path.RCS = backend.GetRCSBackend(ctx)
-		s.cfg.Mounts[mount].Path.Storage = backend.GetStorageBackend(ctx)
-	} else {
-		s.cfg.Root.Path.Crypto = backend.GetCryptoBackend(ctx)
-		s.cfg.Root.Path.RCS = backend.GetRCSBackend(ctx)
-		s.cfg.Root.Path.Storage = backend.GetStorageBackend(ctx)
+	if err := s.cloneAddMount(ctx, mount, path); err != nil {
+		return err
 	}
 
 	// save new mount in config file
@@ -106,6 +93,27 @@ func (s *Action) clone(ctx context.Context, repo, mount, path string) error {
 	}
 	out.Green(ctx, "Your password store is ready to use! Have a look around: `%s list%s`\n", s.Name, mount)
 
+	return nil
+}
+
+func (s *Action) cloneAddMount(ctx context.Context, mount, path string) error {
+	if mount == "" {
+		s.cfg.Root.Path.Crypto = backend.GetCryptoBackend(ctx)
+		s.cfg.Root.Path.RCS = backend.GetRCSBackend(ctx)
+		s.cfg.Root.Path.Storage = backend.GetStorageBackend(ctx)
+		return nil
+	}
+
+	if !s.Store.Initialized(ctx) {
+		return ExitError(ctx, ExitNotInitialized, nil, "Root-Store is not initialized. Clone or init root store first")
+	}
+	if err := s.Store.AddMount(ctx, mount, path); err != nil {
+		return ExitError(ctx, ExitMount, err, "Failed to add mount: %s", err)
+	}
+	out.Green(ctx, "Mounted password store %s at mount point `%s` ...", path, mount)
+	s.cfg.Mounts[mount].Path.Crypto = backend.GetCryptoBackend(ctx)
+	s.cfg.Mounts[mount].Path.RCS = backend.GetRCSBackend(ctx)
+	s.cfg.Mounts[mount].Path.Storage = backend.GetStorageBackend(ctx)
 	return nil
 }
 
