@@ -11,7 +11,7 @@ import (
 )
 
 // Render returns the rendered wrapper and manifest
-func Render(browser, wrapperPath, libPath, binPath string, global bool) ([]byte, []byte, error) {
+func Render(browser, wrapperPath, binPath string, global bool) ([]byte, []byte, error) {
 	mf, err := getManifestContent(browser, wrapperPath)
 	if err != nil {
 		return nil, nil, err

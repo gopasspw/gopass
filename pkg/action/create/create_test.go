@@ -87,6 +87,12 @@ y
 	app := cli.NewApp()
 	// create
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
+	sf := cli.BoolFlag{
+		Name:  "print",
+		Usage: "print",
+	}
+	assert.NoError(t, sf.ApplyWithError(fs))
+	assert.NoError(t, fs.Parse([]string{"--print=true"}))
 	c := cli.NewContext(app, fs, nil)
 
 	assert.NoError(t, s.createWebsite(ctx, c))

@@ -48,7 +48,15 @@ func TestSecring(t *testing.T) {
 	}
 
 	assert.Equal(t, true, kr.Contains(k1.Fingerprint()))
+
+	buf, err := kr.Export(k2.Fingerprint(), true)
+	assert.NoError(t, err)
+
 	assert.Equal(t, true, kr.Contains(k2.Fingerprint()))
 	assert.NoError(t, kr.Remove(k2.Fingerprint()))
 	assert.Error(t, kr.Remove(k2.Fingerprint()))
+	assert.Equal(t, false, kr.Contains(k2.Fingerprint()))
+
+	assert.NoError(t, kr.Import(buf))
+	assert.Equal(t, true, kr.Contains(k2.Fingerprint()))
 }
