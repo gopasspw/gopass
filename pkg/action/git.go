@@ -88,7 +88,7 @@ func (s *Action) GitAddRemote(ctx context.Context, c *cli.Context) error {
 	return s.Store.GitAddRemote(ctx, store, remote, url)
 }
 
-// GitRemoveRemote removes a new git remote
+// GitRemoveRemote removes a git remote
 func (s *Action) GitRemoveRemote(ctx context.Context, c *cli.Context) error {
 	store := c.String("store")
 	remote := c.Args().Get(0)
