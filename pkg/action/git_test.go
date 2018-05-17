@@ -63,6 +63,10 @@ func TestGit(t *testing.T) {
 	assert.Error(t, act.GitAddRemote(ctx, c))
 	buf.Reset()
 
+	// GitRemoveRemote
+	assert.Error(t, act.GitRemoveRemote(ctx, c))
+	buf.Reset()
+
 	// GitPull
 	assert.Error(t, act.GitPull(ctx, c))
 	buf.Reset()
