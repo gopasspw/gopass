@@ -547,6 +547,21 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 								},
 							},
 						},
+						{
+							Name:        "remove",
+							Usage:       "Remove git remote",
+							Description: "Remove a git remote",
+							Before:      func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
+							Action: func(c *cli.Context) error {
+								return action.GitRemoveRemote(withGlobalFlags(ctx, c), c)
+							},
+							Flags: []cli.Flag{
+								cli.StringFlag{
+									Name:  "store",
+									Usage: "Store to operate on",
+								},
+							},
+						},
 					},
 				},
 				{

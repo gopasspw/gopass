@@ -27,4 +27,5 @@ func TestNoop(t *testing.T) {
 	body, err := g.GetRevision(ctx, "foo", "bar")
 	assert.NoError(t, err)
 	assert.Equal(t, "", string(body))
+	assert.NoError(t, g.RemoveRemote(ctx, "foo"))
 }

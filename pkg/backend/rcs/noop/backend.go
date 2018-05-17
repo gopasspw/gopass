@@ -67,6 +67,11 @@ func (g *Noop) AddRemote(ctx context.Context, remote, url string) error {
 	return nil
 }
 
+// RemoveRemote does nothing
+func (g *Noop) RemoveRemote(ctx context.Context, remote string) error {
+	return nil
+}
+
 // Revisions is not implemented
 func (g *Noop) Revisions(context.Context, string) ([]backend.Revision, error) {
 	return nil, fmt.Errorf("not yet implemented for %s", g.Name())

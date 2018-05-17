@@ -88,6 +88,18 @@ func (s *Action) GitAddRemote(ctx context.Context, c *cli.Context) error {
 	return s.Store.GitAddRemote(ctx, store, remote, url)
 }
 
+// GitRemoveRemote removes a git remote
+func (s *Action) GitRemoveRemote(ctx context.Context, c *cli.Context) error {
+	store := c.String("store")
+	remote := c.Args().Get(0)
+
+	if remote == "" {
+		return ExitError(ctx, ExitUsage, nil, "Usage: %s git remote rm <REMOTE>", s.Name)
+	}
+
+	return s.Store.GitRemoveRemote(ctx, store, remote)
+}
+
 // GitPull pulls from a git remote
 func (s *Action) GitPull(ctx context.Context, c *cli.Context) error {
 	store := c.String("store")

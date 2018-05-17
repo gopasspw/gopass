@@ -285,6 +285,11 @@ func (g *Git) AddRemote(ctx context.Context, remote, url string) error {
 	return err
 }
 
+// RemoveRemote removes a remote
+func (g *Git) RemoveRemote(ctx context.Context, remote string) error {
+	return g.repo.DeleteRemote(remote)
+}
+
 // Name returns go-git
 func (g *Git) Name() string {
 	return "go-git"

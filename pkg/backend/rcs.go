@@ -35,6 +35,7 @@ type RCS interface {
 
 	InitConfig(ctx context.Context, name, email string) error
 	AddRemote(ctx context.Context, remote, location string) error
+	RemoveRemote(ctx context.Context, remote string) error
 
 	Revisions(ctx context.Context, name string) ([]Revision, error)
 	GetRevision(ctx context.Context, name, revision string) ([]byte, error)

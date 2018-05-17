@@ -41,6 +41,12 @@ func (r *Store) GitAddRemote(ctx context.Context, name, remote, url string) erro
 	return store.RCS().AddRemote(ctx, remote, url)
 }
 
+// GitRemoveRemote removes a git remote
+func (r *Store) GitRemoveRemote(ctx context.Context, name, remote string) error {
+	ctx, store, _ := r.getStore(ctx, name)
+	return store.RCS().RemoveRemote(ctx, remote)
+}
+
 // GitPull performs a git pull
 func (r *Store) GitPull(ctx context.Context, name, origin, remote string) error {
 	ctx, store, _ := r.getStore(ctx, name)
