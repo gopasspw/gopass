@@ -109,6 +109,7 @@ type simscreen struct {
 
 func (s *simscreen) Init() error {
 	s.evch = make(chan Event, 10)
+	s.quit = make(chan struct{})
 	s.fillchar = 'X'
 	s.fillstyle = StyleDefault
 	s.mouse = false
@@ -369,7 +370,7 @@ func (s *simscreen) InjectMouse(x, y int, buttons ButtonMask, mod ModMask) {
 }
 
 func (s *simscreen) InjectKey(key Key, r rune, mod ModMask) {
-	ev := NewEventKey(KeyRune, r, ModNone)
+	ev := NewEventKey(key, r, mod)
 	s.PostEvent(ev)
 }
 

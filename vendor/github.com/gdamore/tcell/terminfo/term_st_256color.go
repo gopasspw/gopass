@@ -3,9 +3,10 @@
 package terminfo
 
 func init() {
-	//  simpleterm with 256 colors
+	// simpleterm with 256 colors
 	AddTerminfo(&Terminfo{
 		Name:            "st-256color",
+		Aliases:         []string{"stterm-256color"},
 		Columns:         80,
 		Lines:           24,
 		Colors:          256,
@@ -18,7 +19,6 @@ func init() {
 		AttrOff:         "\x1b[0m",
 		Underline:       "\x1b[4m",
 		Bold:            "\x1b[1m",
-		Dim:             "\x1b[2m",
 		Blink:           "\x1b[5m",
 		Reverse:         "\x1b[7m",
 		EnterKeypad:     "\x1b[?1h\x1b=",
@@ -26,7 +26,8 @@ func init() {
 		SetFg:           "\x1b[%?%p1%{8}%<%t3%p1%d%e%p1%{16}%<%t9%p1%{8}%-%d%e38;5;%p1%d%;m",
 		SetBg:           "\x1b[%?%p1%{8}%<%t4%p1%d%e%p1%{16}%<%t10%p1%{8}%-%d%e48;5;%p1%d%;m",
 		SetFgBg:         "\x1b[%?%p1%{8}%<%t3%p1%d%e%p1%{16}%<%t9%p1%{8}%-%d%e38;5;%p1%d%;;%?%p2%{8}%<%t4%p2%d%e%p2%{16}%<%t10%p2%{8}%-%d%e48;5;%p2%d%;m",
-		AltChars:        "+C,D-A.B0E``aaffgghFiGjjkkllmmnnooppqqrrssttuuvvwwxxyyzz{{||}}~~",
+		PadChar:         "\x00",
+		AltChars:        "``aaffggiijjkkllmmnnooppqqrrssttuuvvwwxxyyzz{{||}}~~",
 		EnterAcs:        "\x1b(0",
 		ExitAcs:         "\x1b(B",
 		EnableAcs:       "\x1b)0",
