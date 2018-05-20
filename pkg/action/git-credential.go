@@ -13,6 +13,7 @@ import (
 	"github.com/justwatchcom/gopass/pkg/out"
 	"github.com/justwatchcom/gopass/pkg/store/secret"
 	"github.com/justwatchcom/gopass/pkg/store/sub"
+	"github.com/justwatchcom/gopass/pkg/termio"
 	"github.com/urfave/cli"
 )
 
@@ -72,7 +73,10 @@ func parseGitCredentials(r io.Reader) (*gitCredentials, error) {
 		key, err := rd.ReadString('=')
 		if err != nil {
 			if err == io.EOF {
-				return c, nil
+				if key == "" {
+					return c, nil
+				}
+				return nil, io.ErrUnexpectedEOF
 			}
 			return nil, err
 		}
@@ -115,7 +119,7 @@ func (s *Action) GitCredentialBefore(ctx context.Context, c *cli.Context) error 
 // GitCredentialGet returns a credential to git
 func (s *Action) GitCredentialGet(ctx context.Context, c *cli.Context) error {
 	ctx = sub.WithAutoSync(ctx, false)
-	cred, err := parseGitCredentials(os.Stdin)
+	cred, err := parseGitCredentials(termio.Stdin)
 	if err != nil {
 		return ExitError(ctx, ExitUnsupported, err, "Error: %v while parsing git-credential", err)
 	}
@@ -162,7 +166,7 @@ func (s *Action) GitCredentialGet(ctx context.Context, c *cli.Context) error {
 
 // GitCredentialStore stores a credential got from git
 func (s *Action) GitCredentialStore(ctx context.Context, c *cli.Context) error {
-	cred, err := parseGitCredentials(os.Stdin)
+	cred, err := parseGitCredentials(termio.Stdin)
 	if err != nil {
 		return ExitError(ctx, ExitUnsupported, err, "Error: %v while parsing git-credential", err)
 	}
@@ -190,7 +194,7 @@ func (s *Action) GitCredentialStore(ctx context.Context, c *cli.Context) error {
 
 // GitCredentialErase removes a credential got from git
 func (s *Action) GitCredentialErase(ctx context.Context, c *cli.Context) error {
-	cred, err := parseGitCredentials(os.Stdin)
+	cred, err := parseGitCredentials(termio.Stdin)
 	if err != nil {
 		return ExitError(ctx, ExitUnsupported, err, "Error: %v while parsing git-credential", err)
 	}
