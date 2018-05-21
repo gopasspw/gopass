@@ -3,6 +3,12 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/alecthomas/binary"
+  packages = ["."]
+  revision = "6e8df1b1fb9d591dfc8249e230e0a762524873f3"
+
+[[projects]]
+  branch = "master"
   name = "github.com/atotto/clipboard"
   packages = ["."]
   revision = "5e2c7bddca04488284428a201e4a15615f7a5074"
@@ -70,7 +76,7 @@
     "termbox",
     "terminfo"
   ]
-  revision = "aa381bce1bf2eb814ead6ce443dfad0580f4a79f"
+  revision = "3d5f294a6fcacb5448d76a1f4116c6827a8f0869"
 
 [[projects]]
   branch = "master"
@@ -170,7 +176,7 @@
   branch = "master"
   name = "github.com/jroimartin/gocui"
   packages = ["."]
-  revision = "4f518eddb04b8f73870836b6d1941e8aa3c06637"
+  revision = "c055c87ae801372cd74a0839b972db4f7697ae5f"
 
 [[projects]]
   branch = "master"
@@ -242,7 +248,7 @@
   branch = "master"
   name = "github.com/nsf/termbox-go"
   packages = ["."]
-  revision = "e2050e41c8847748ec5288741c0b19a8cb26d084"
+  revision = "21a4d435a86280a2927985fd6296de56cbce453e"
 
 [[projects]]
   name = "github.com/pelletier/go-buffruneio"
@@ -494,6 +500,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "2031707fc17d49c74ff05d9a0b73924f0f5b05de1663cc552c43b0272edc7840"
+  inputs-digest = "6621c915e9488854dd220c56dd228ddbc62255d8da8ad32826141c95d3606ece"
   solver-name = "gps-cdcl"
   solver-version = 1

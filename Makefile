@@ -191,7 +191,7 @@ codequality:
 	@which errcheck > /dev/null; if [ $$? -ne 0  ]; then \
 		$(GO) get -u github.com/kisielk/errcheck; \
 	fi
-	@errcheck $(PKGS) || exit 1
+	@errcheck -exclude .errcheck.excl $(PKGS) || exit 1
 	@printf '%s\n' '$(OK)'
 
 	@echo -n "     UNCONVERT "

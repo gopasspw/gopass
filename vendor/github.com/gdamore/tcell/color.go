@@ -29,7 +29,7 @@ type Color int32
 
 const (
 	// ColorDefault is used to leave the Color unchanged from whatever
-	// system or terminal default may exist.
+	// system or teminal default may exist.
 	ColorDefault Color = -1
 
 	// ColorIsRGB is used to indicate that the numeric value is not
