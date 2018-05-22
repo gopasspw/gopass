@@ -13,6 +13,10 @@ import (
 
 // ImportPublicKey will import a key from the given location
 func (g *GPG) ImportPublicKey(ctx context.Context, buf []byte) error {
+	if len(buf) < 1 {
+		return errors.Errorf("empty input")
+	}
+
 	args := append(g.args, "--import")
 	cmd := exec.CommandContext(ctx, g.binary, args...)
 	cmd.Stdin = bytes.NewReader(buf)

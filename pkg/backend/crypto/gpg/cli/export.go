@@ -11,6 +11,10 @@ import (
 
 // ExportPublicKey will export the named public key to the location given
 func (g *GPG) ExportPublicKey(ctx context.Context, id string) ([]byte, error) {
+	if id == "" {
+		return nil, errors.Errorf("id is empty")
+	}
+
 	args := append(g.args, "--armor", "--export", id)
 	cmd := exec.CommandContext(ctx, g.binary, args...)
 
