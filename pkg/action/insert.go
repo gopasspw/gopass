@@ -24,17 +24,19 @@ func (s *Action) Insert(ctx context.Context, c *cli.Context) error {
 	echo := c.Bool("echo")
 	multiline := c.Bool("multiline")
 	force := c.Bool("force")
-	name := c.Args().Get(0)
-	key := c.Args().Get(1)
+
+	args, kvps := parseArgs(c)
+	name := args.Get(0)
+	key := args.Get(1)
 
 	if name == "" {
 		return ExitError(ctx, ExitNoName, nil, "Usage: %s insert name", s.Name)
 	}
 
-	return s.insert(ctx, c, name, key, echo, multiline, force)
+	return s.insert(ctx, c, name, key, echo, multiline, force, kvps)
 }
 
-func (s *Action) insert(ctx context.Context, c *cli.Context, name, key string, echo, multiline, force bool) error {
+func (s *Action) insert(ctx context.Context, c *cli.Context, name, key string, echo, multiline, force bool, kvps map[string]string) error {
 	// if force mode is requested we mock the recipient func to just return anything that goes in
 	if force {
 		ctx = sub.WithRecipientFunc(ctx, func(ctx context.Context, msg string, rs []string) ([]string, error) {
@@ -57,7 +59,7 @@ func (s *Action) insert(ctx context.Context, c *cli.Context, name, key string, e
 
 	// update to a single YAML entry
 	if key != "" {
-		return s.insertYAML(ctx, name, key, content)
+		return s.insertYAML(ctx, name, key, content, kvps)
 	}
 
 	if ctxutil.IsStdin(ctx) {
@@ -86,7 +88,7 @@ func (s *Action) insert(ctx context.Context, c *cli.Context, name, key string, e
 		return ExitError(ctx, ExitIO, err, "failed to ask for password: %s", err)
 	}
 
-	return s.insertSingle(ctx, name, pw)
+	return s.insertSingle(ctx, name, pw, kvps)
 }
 
 func (s *Action) insertStdin(ctx context.Context, name string, content []byte) error {
@@ -100,7 +102,7 @@ func (s *Action) insertStdin(ctx context.Context, name string, content []byte) e
 	return nil
 }
 
-func (s *Action) insertSingle(ctx context.Context, name, pw string) error {
+func (s *Action) insertSingle(ctx context.Context, name, pw string, kvps map[string]string) error {
 	var sec store.Secret
 	if s.Store.Exists(ctx, name) {
 		var err error
@@ -111,6 +113,7 @@ func (s *Action) insertSingle(ctx context.Context, name, pw string) error {
 	} else {
 		sec = &secret.Secret{}
 	}
+	setMetadata(sec, kvps)
 	sec.SetPassword(pw)
 	audit.Single(ctx, sec.Password())
 
@@ -120,7 +123,7 @@ func (s *Action) insertSingle(ctx context.Context, name, pw string) error {
 	return nil
 }
 
-func (s *Action) insertYAML(ctx context.Context, name, key string, content []byte) error {
+func (s *Action) insertYAML(ctx context.Context, name, key string, content []byte, kvps map[string]string) error {
 	if ctxutil.IsInteractive(ctx) {
 		pw, err := termio.AskForString(ctx, name+":"+key, "")
 		if err != nil {
@@ -139,6 +142,7 @@ func (s *Action) insertYAML(ctx context.Context, name, key string, content []byt
 	} else {
 		sec = &secret.Secret{}
 	}
+	setMetadata(sec, kvps)
 	if err := sec.SetValue(key, string(content)); err != nil {
 		return ExitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
 	}

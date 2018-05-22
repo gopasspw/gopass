@@ -299,7 +299,8 @@ func TestKeyAndLength(t *testing.T) {
 		fs := flag.NewFlagSet("default", flag.ContinueOnError)
 		assert.NoError(t, fs.Parse(append([]string{"foobar"}, tc.in...)))
 		c := cli.NewContext(app, fs, nil)
-		k, l := keyAndLength(c)
+		args, _ := parseArgs(c)
+		k, l := keyAndLength(args)
 		assert.Equal(t, tc.key, k, "Key from %+v", tc.in)
 		assert.Equal(t, tc.length, l, "Length from %+v", tc.in)
 	}

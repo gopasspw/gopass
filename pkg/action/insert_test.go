@@ -58,7 +58,7 @@ func TestInsert(t *testing.T) {
 	buf.Reset()
 
 	// insert zab#key
-	assert.NoError(t, act.insertYAML(ctx, "zab", "key", []byte("foobar")))
+	assert.NoError(t, act.insertYAML(ctx, "zab", "key", []byte("foobar"), nil))
 
 	// insert --multiline foo
 	fs = flag.NewFlagSet("default", flag.ContinueOnError)
