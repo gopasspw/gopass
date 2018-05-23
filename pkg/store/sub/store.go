@@ -175,9 +175,10 @@ func (s *Store) reencrypt(ctx context.Context) error {
 				bar.LazyPrint()
 			}
 
+			e = strings.TrimPrefix(e, s.alias)
 			content, err := s.Get(ctx, e)
 			if err != nil {
-				out.Red(ctx, "Failed to get current value for %s: %s", e, err)
+				out.Red(ctx, "\n[%s] Failed to get current value for '%s': %s", s.alias, e, err)
 				continue
 			}
 			if err := s.Set(ctx, e, content); err != nil {
