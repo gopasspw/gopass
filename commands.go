@@ -650,6 +650,11 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 					Name:  "rcs",
 					Usage: "Select sync backend (git, gitcli, gogit, noop)",
 				},
+				cli.BoolFlag{
+					Name:   "nogit",
+					Usage:  "(DEPRECATED): Select noop RCS backend. Use '--rcs noop' instead",
+					Hidden: true,
+				},
 			},
 		},
 		{
