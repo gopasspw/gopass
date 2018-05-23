@@ -267,7 +267,7 @@ Please be warned that using cloud-based storage may negatively impact to confide
 For example, to use gopass with [Google Drive](https://drive.google.com):
 
 ```bash
-gopass init --nogit
+gopass init --rcs noop
 mv .password-store/ "Google Drive/Password-Store"
 gopass config path "~/Google Drive/Password-Store"
 ```
