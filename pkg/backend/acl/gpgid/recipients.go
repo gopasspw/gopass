@@ -2,9 +2,9 @@ package gpgid
 
 import (
 	"bufio"
+	"bytes"
 	"context"
 	"fmt"
-	"os"
 	"sort"
 	"strings"
 )
@@ -59,20 +59,17 @@ func (a *ACL) Remove(ctx context.Context, recp string) error {
 	return a.save(ctx)
 }
 
-func (a *ACL) unmarshal() error {
-	fh, err := os.Open(a.idf)
-	if err != nil {
-		return err
-	}
-	defer func() {
-		_ = fh.Close()
-	}()
-
+func (a *ACL) unmarshal(ctx context.Context) error {
 	if a.recps == nil {
 		a.recps = make(map[string]struct{}, 1)
 	}
 
-	scanner := bufio.NewScanner(fh)
+	idfBuf, err := a.fs.Get(ctx, a.crypto.IDFile())
+	if err != nil {
+		return err
+	}
+
+	scanner := bufio.NewScanner(bytes.NewReader(idfBuf))
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
 		if line != "" {
@@ -84,7 +81,7 @@ func (a *ACL) unmarshal() error {
 }
 
 // marshal all in memory Recipients line by line to []byte.
-func (a *ACL) marshal() error {
+func (a *ACL) marshal(ctx context.Context) error {
 	// sort
 	keys := make([]string, 0, len(a.recps))
 	for k := range a.recps {
@@ -92,17 +89,13 @@ func (a *ACL) marshal() error {
 	}
 	sort.Strings(keys)
 
-	fh, err := os.OpenFile(a.idf, os.O_WRONLY, 0600)
-	if err != nil {
-		return err
-	}
-	defer func() {
-		_ = fh.Close()
-	}()
-
+	buf := &bytes.Buffer{}
 	for _, k := range keys {
-		_, _ = fh.WriteString(k)
-		_, _ = fh.WriteString("\n")
+		_, _ = buf.WriteString(k)
+		_, _ = buf.WriteString("\n")
+	}
+	if err := a.fs.Set(ctx, a.crypto.IDFile(), buf.Bytes()); err != nil {
+		return err
 	}
 
 	return nil

@@ -2,134 +2,73 @@ package gpgid
 
 import (
 	"context"
-	"io/ioutil"
-	"os"
-	"path/filepath"
-	"reflect"
 	"testing"
 
 	gpgmock "github.com/justwatchcom/gopass/pkg/backend/crypto/plain"
 	gitmock "github.com/justwatchcom/gopass/pkg/backend/rcs/noop"
+	"github.com/justwatchcom/gopass/pkg/backend/storage/kv/inmem"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestInitLoadVerify(t *testing.T) {
 	ctx := context.Background()
-	gpgm := gpgmock.New()
-	gitm := gitmock.New()
+	crypto := gpgmock.New()
+	rcs := gitmock.New()
+	fs := inmem.New()
 
-	tempdir, err := ioutil.TempDir("", "gopass-")
-	if err != nil {
-		t.Fatalf("Failed to create tempdir: %s", err)
-	}
-	t.Logf("Tempdir: %s", tempdir)
-	defer func() {
-		_ = os.RemoveAll(tempdir)
-	}()
-	idfile := filepath.Join(tempdir, ".gpg-id")
-	if err := ioutil.WriteFile(idfile, []byte("0xDEADBEEF"), 0600); err != nil {
-		t.Fatalf("failed to write idfile: %s", err)
-	}
+	assert.NoError(t, fs.Set(ctx, crypto.IDFile(), []byte("0xDEADBEEF")))
 
-	a, err := Init(ctx, gpgm, gitm, idfile)
-	if err != nil {
-		t.Fatalf("failed to init store: %+v", err)
-	}
+	a, err := Init(ctx, crypto, rcs, fs)
+	assert.NoError(t, err)
 	t.Logf("a.Recipients: %s", a.Recipients())
 
-	if !reflect.DeepEqual(a.Recipients(), []string{"0xDEADBEEF"}) {
-		t.Errorf("Slice mismatch for a")
-	}
+	assert.Equal(t, a.Recipients(), []string{"0xDEADBEEF"})
 
-	b, err := Load(ctx, gpgm, gitm, idfile)
-	if err != nil {
-		t.Fatalf("failed to load store: %+v", err)
-	}
+	b, err := Load(ctx, crypto, rcs, fs)
+	assert.NoError(t, err, "Load()ing store")
 	t.Logf("b.Recipients: %s", b.Recipients())
 
-	if !reflect.DeepEqual(b.Recipients(), []string{"0xDEADBEEF"}) {
-		t.Errorf("Slice mismatch for b")
-	}
+	assert.Equal(t, b.Recipients(), []string{"0xDEADBEEF"})
+	assert.NoError(t, b.Save(ctx))
+	assert.NoError(t, b.Add(ctx, "0xFEEDBEEF"))
 
-	if err := b.Save(ctx); err != nil {
-		t.Fatalf("failed to save acl: %+v", err)
-	}
-
-	if err := b.Add(ctx, "0xFEEDBEEF"); err != nil {
-		t.Fatalf("failed to add recipient: %s", err)
-	}
-
-	c, err := Load(ctx, gpgm, gitm, idfile)
-	if err != nil {
-		t.Fatalf("failed to load store: %+v", err)
-	}
+	c, err := Load(ctx, crypto, rcs, fs)
+	assert.NoError(t, err)
 	t.Logf("c.Recipients: %s", c.Recipients())
 
-	if !reflect.DeepEqual(c.Recipients(), []string{"0xDEADBEEF", "0xFEEDBEEF"}) {
-		t.Errorf("Slice mismatch for c")
-	}
+	assert.Equal(t, c.Recipients(), []string{"0xDEADBEEF", "0xFEEDBEEF"})
 
-	if err := b.Remove(ctx, "0xDEADBEEF"); err != nil {
-		t.Fatalf("failed to remove recipient: %s", err)
-	}
+	assert.NoError(t, b.Remove(ctx, "0xDEADBEEF"), "removing recipient")
 
-	d, err := Load(ctx, gpgm, gitm, idfile)
-	if err != nil {
-		t.Fatalf("failed to load store: %+v", err)
-	}
+	d, err := Load(ctx, crypto, rcs, fs)
+	assert.NoError(t, err, "Load()ing store")
 	t.Logf("d.Recipients: %s", d.Recipients())
 
-	if !reflect.DeepEqual(d.Recipients(), []string{"0xFEEDBEEF"}) {
-		t.Errorf("Slice mismatch for d")
-	}
-
-	if err := d.verify(ctx); err != nil {
-		t.Errorf("Should verify d")
-	}
+	assert.Equal(t, d.Recipients(), []string{"0xFEEDBEEF"})
+	assert.NoError(t, d.verify(ctx))
 }
 
 func TestInitVerify(t *testing.T) {
 	ctx := context.Background()
-	gpgm := gpgmock.New()
-	gitm := gitmock.New()
+	crypto := gpgmock.New()
+	rcs := gitmock.New()
+	fs := inmem.New()
 
-	tempdir, err := ioutil.TempDir("", "gopass-")
-	if err != nil {
-		t.Fatalf("Failed to create tempdir: %s", err)
-	}
-	t.Logf("Tempdir: %s", tempdir)
-	defer func() {
-		_ = os.RemoveAll(tempdir)
-	}()
-	idfile := filepath.Join(tempdir, ".gpg-id")
-	if err := ioutil.WriteFile(idfile, []byte("0xDEADBEEF"), 0600); err != nil {
-		t.Fatalf("failed to write idfile: %s", err)
-	}
+	assert.NoError(t, fs.Set(ctx, crypto.IDFile(), []byte("0xDEADBEEF")))
 
-	a, err := Init(ctx, gpgm, gitm, idfile)
-	if err != nil {
-		t.Fatalf("failed to init store: %+v", err)
-	}
+	a, err := Init(ctx, crypto, rcs, fs)
+	assert.NoError(t, err, "Init() store")
 	t.Logf("a.Recipients: %s", a.Recipients())
 
-	if !reflect.DeepEqual(a.Recipients(), []string{"0xDEADBEEF"}) {
-		t.Errorf("Slice mismatch for a")
-	}
-
-	if err := a.verify(ctx); err != nil {
-		t.Errorf("Should verify a")
-	}
+	assert.Equal(t, a.Recipients(), []string{"0xDEADBEEF"})
+	assert.NoError(t, a.verify(ctx), "initialized store is valid")
 
 	t.Logf("Tokens: %s", a.tokens)
 	a.tokens = nil
-	if err := a.marshalTokenFile(ctx); err != nil {
-		t.Errorf("failed to marshal token file: %s", err)
-	}
+	assert.NoError(t, a.marshalTokenFile(ctx))
 
-	if err := a.unmarshalTokenFile(ctx); err != nil {
-		t.Errorf("failed to unmarshal token file: %s", err)
-	}
+	assert.NoError(t, a.unmarshalTokenFile(ctx))
 	t.Logf("Tokens: %s", a.tokens)
-	if err := a.verify(ctx); err == nil {
-		t.Errorf("Should NOT verify a")
-	}
+
+	assert.Error(t, a.verify(ctx), "should not verify invalid (empty) token file")
 }

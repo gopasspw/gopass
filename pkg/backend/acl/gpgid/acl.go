@@ -4,20 +4,18 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"path/filepath"
+	"strings"
 
 	"github.com/justwatchcom/gopass/pkg/backend"
-	"github.com/justwatchcom/gopass/pkg/fsutil"
 	"github.com/justwatchcom/gopass/pkg/out"
 	"github.com/justwatchcom/gopass/pkg/store"
 )
 
 // ACL is an gpg-id based store ACL
 type ACL struct {
-	idf    string
 	crypto backend.Crypto
 	rcs    backend.RCS
+	fs     backend.Storage
 	signed bool
 	valid  bool
 	recps  map[string]struct{}
@@ -25,20 +23,20 @@ type ACL struct {
 }
 
 // Init initializes (new) store integrity / ACL structs
-func Init(ctx context.Context, crypto backend.Crypto, rcs backend.RCS, idfile string) (*ACL, error) {
+func Init(ctx context.Context, crypto backend.Crypto, rcs backend.RCS, fs backend.Storage) (*ACL, error) {
 	a := &ACL{
-		idf:    idfile,
 		crypto: crypto,
 		rcs:    rcs,
+		fs:     fs,
 		signed: false,
 		valid:  false,
 		recps:  make(map[string]struct{}),
 		tokens: make(TokenList, 0),
 	}
-	if err := a.unmarshal(); err != nil {
+	if err := a.unmarshal(ctx); err != nil {
 		return nil, err
 	}
-	if a.isSigned() {
+	if a.isSigned(ctx) {
 		return nil, fmt.Errorf("already signed")
 	}
 	if err := a.init(ctx); err != nil {
@@ -48,20 +46,20 @@ func Init(ctx context.Context, crypto backend.Crypto, rcs backend.RCS, idfile st
 }
 
 // Load tries to load and verify existing ACL information
-func Load(ctx context.Context, crypto backend.Crypto, rcs backend.RCS, idfile string) (*ACL, error) {
+func Load(ctx context.Context, crypto backend.Crypto, rcs backend.RCS, fs backend.Storage) (*ACL, error) {
 	a := &ACL{
-		idf:    idfile,
 		crypto: crypto,
 		rcs:    rcs,
+		fs:     fs,
 		signed: false,
 		valid:  false,
 		recps:  make(map[string]struct{}),
 		tokens: make(TokenList, 0),
 	}
-	if err := a.unmarshal(); err != nil {
+	if err := a.unmarshal(ctx); err != nil {
 		return nil, err
 	}
-	if !a.isSigned() {
+	if !a.isSigned(ctx) {
 		return a, nil
 	}
 	if err := a.verify(ctx); err != nil {
@@ -88,11 +86,11 @@ func (a *ACL) SigningKeyID(ctx context.Context) string {
 }
 
 func (a *ACL) tokenfile() string {
-	return a.idf + ".token"
+	return a.crypto.IDFile() + ".token"
 }
 
-func (a *ACL) isSigned() bool {
-	return fsutil.IsFile(a.tokenfile())
+func (a *ACL) isSigned(ctx context.Context) bool {
+	return a.fs.Exists(ctx, a.tokenfile())
 }
 
 func (a *ACL) save(ctx context.Context) error {
@@ -114,14 +112,14 @@ func (a *ACL) save(ctx context.Context) error {
 		return err
 	}
 	// save recipients
-	if err := a.marshal(); err != nil {
+	if err := a.marshal(ctx); err != nil {
 		return err
 	}
-	if err := a.rcs.Add(ctx, a.idf); err != nil {
+	if err := a.rcs.Add(ctx, a.crypto.IDFile()); err != nil {
 		return err
 	}
 	// sign gpg id
-	idf, err := ioutil.ReadFile(a.idf)
+	idf, err := a.fs.Get(ctx, a.crypto.IDFile())
 	if err != nil {
 		return err
 	}
@@ -129,8 +127,8 @@ func (a *ACL) save(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	sigfn := a.idf + ".sig." + sigID
-	if err := ioutil.WriteFile(sigfn, signed, 0600); err != nil {
+	sigfn := a.crypto.IDFile() + ".sig." + sigID
+	if err := a.fs.Set(ctx, sigfn, signed); err != nil {
 		return err
 	}
 	if err := a.rcs.Add(ctx, sigfn); err != nil {
@@ -167,7 +165,7 @@ func (a *ACL) marshalTokenFile(ctx context.Context) error {
 	if err != nil {
 		return store.ErrEncrypt
 	}
-	if err := ioutil.WriteFile(a.tokenfile(), ciphertext, 0600); err != nil {
+	if err := a.fs.Set(ctx, a.tokenfile(), ciphertext); err != nil {
 		return err
 	}
 
@@ -175,7 +173,7 @@ func (a *ACL) marshalTokenFile(ctx context.Context) error {
 }
 
 func (a *ACL) unmarshalTokenFile(ctx context.Context) error {
-	ciphertext, err := ioutil.ReadFile(a.tokenfile())
+	ciphertext, err := a.fs.Get(ctx, a.tokenfile())
 	if err != nil {
 		return err
 	}
@@ -195,7 +193,7 @@ func (a *ACL) verify(ctx context.Context) error {
 
 	// store/.gpg-id.sig.0xDEADBEEF
 	// store/.gpg-id.hmac.0xDEADBEEF
-	sigs, err := filepath.Glob(a.idf + ".sig.*")
+	sigs, err := a.prefixFilter(ctx, a.crypto.IDFile()+".sig.")
 	if err != nil {
 		return err
 	}
@@ -205,11 +203,11 @@ func (a *ACL) verify(ctx context.Context) error {
 	signByLatest := false
 	for _, sigf := range sigs {
 		out.Debug(ctx, "verify - Checking %s ...", sigf)
-		sigBuf, err := ioutil.ReadFile(sigf)
+		sigBuf, err := a.fs.Get(ctx, sigf)
 		if err != nil {
 			return err
 		}
-		idfBuf, err := ioutil.ReadFile(a.idf)
+		idfBuf, err := a.fs.Get(ctx, a.crypto.IDFile())
 		if err != nil {
 			return err
 		}
@@ -231,4 +229,19 @@ func (a *ACL) verify(ctx context.Context) error {
 		return fmt.Errorf("no signature by latest token. possibly replay attack")
 	}
 	return nil
+}
+
+func (a *ACL) prefixFilter(ctx context.Context, prefix string) ([]string, error) {
+	files, err := a.fs.List(ctx, prefix)
+	if err != nil {
+		return nil, err
+	}
+	res := make([]string, 0, len(files))
+	for _, file := range files {
+		if !strings.HasPrefix(file, prefix) {
+			continue
+		}
+		res = append(res, file)
+	}
+	return res, nil
 }

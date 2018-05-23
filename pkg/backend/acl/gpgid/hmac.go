@@ -16,7 +16,7 @@ import (
 func (a *ACL) hmacNameFromSig(fn string) string {
 	// store/.gpg-id.sig.0xDEADBEEF
 	// store/.gpg-id.hmac.0xDEADBEEF
-	return a.idf + ".hmac." + strings.TrimPrefix(fn, a.idf+".sig.")
+	return a.crypto.IDFile() + ".hmac." + strings.TrimPrefix(fn, a.crypto.IDFile()+".sig.")
 
 }
 

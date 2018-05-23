@@ -138,7 +138,6 @@ func (m *Mocker) Verify(ctx context.Context, message, signedMessage []byte) ([]b
 	_, _ = sum.Write(message)
 	hexsum := fmt.Sprintf("%X", sum.Sum(nil))
 
-	fmt.Printf("Presented: '%s' - Computed: '%s'\n", string(signedMessage[len(message):]), hexsum)
 	if string(signedMessage[len(message):]) != hexsum {
 		return nil, fmt.Errorf("hashsum mismatch")
 	}
