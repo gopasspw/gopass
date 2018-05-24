@@ -10,6 +10,7 @@
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/justwatchcom/gopass/blob/master/LICENSE)
 [![Github All Releases](https://img.shields.io/github/downloads/justwatchcom/gopass/total.svg)](https://github.com/justwatchcom/gopass/releases)
 [![codecov](https://codecov.io/gh/justwatchcom/gopass/branch/master/graph/badge.svg)](https://codecov.io/gh/justwatchcom/gopass)
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fjustwatchcom%2Fgopass.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fjustwatchcom%2Fgopass?ref=badge_shield)
 
 The slightly more awesome Standard Unix Password Manager for Teams. Written in Go.
 
@@ -85,6 +86,9 @@ Maintainers of this repository:
 * Dominik Schulz <dominik.schulz@justwatch.com> [@dominikschulz](https://github.com/dominikschulz)
 
 Please refer to the Git commit log for a complete list of contributors.
+
+
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fjustwatchcom%2Fgopass.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fjustwatchcom%2Fgopass?ref=badge_large)
 
 ## Community
 
