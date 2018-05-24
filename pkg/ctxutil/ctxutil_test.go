@@ -62,6 +62,13 @@ func TestClipTimeout(t *testing.T) {
 	assert.Equal(t, 30, GetClipTimeout(WithClipTimeout(ctx, 30)))
 }
 
+func TestConcurrency(t *testing.T) {
+	ctx := context.Background()
+
+	assert.Equal(t, 1, GetConcurrency(ctx))
+	assert.Equal(t, 3, GetConcurrency(WithConcurrency(ctx, 3)))
+}
+
 func TestNoConfirm(t *testing.T) {
 	ctx := context.Background()
 
@@ -167,6 +174,7 @@ func TestComposite(t *testing.T) {
 	ctx = WithStdin(ctx, true)
 	ctx = WithAskForMore(ctx, true)
 	ctx = WithClipTimeout(ctx, 10)
+	ctx = WithConcurrency(ctx, 5)
 	ctx = WithNoConfirm(ctx, true)
 	ctx = WithNoPager(ctx, true)
 	ctx = WithShowSafeContent(ctx, true)
@@ -200,6 +208,9 @@ func TestComposite(t *testing.T) {
 
 	assert.Equal(t, 10, GetClipTimeout(ctx))
 	assert.Equal(t, true, HasClipTimeout(ctx))
+
+	assert.Equal(t, 5, GetConcurrency(ctx))
+	assert.Equal(t, true, HasConcurrency(ctx))
 
 	assert.Equal(t, true, IsNoConfirm(ctx))
 	assert.Equal(t, true, HasNoConfirm(ctx))
