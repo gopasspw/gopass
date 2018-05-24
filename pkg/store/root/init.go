@@ -8,6 +8,7 @@ import (
 	"github.com/justwatchcom/gopass/pkg/config"
 	"github.com/justwatchcom/gopass/pkg/out"
 	"github.com/justwatchcom/gopass/pkg/store/sub"
+
 	"github.com/pkg/errors"
 )
 
@@ -26,9 +27,14 @@ func (r *Store) Initialized(ctx context.Context) bool {
 // Init tries to initialize a new password store location matching the object
 func (r *Store) Init(ctx context.Context, alias, path string, ids ...string) error {
 	out.Debug(ctx, "Instantiating new sub store %s at %s for %+v", alias, path, ids)
-	sub, err := sub.New(ctx, alias, path, r.cfg.Directory(), r.agent)
+	// parse backend URL
+	pathURL, err := backend.ParseURL(path)
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "failed to parse backend URL '%s': %s", path, err)
+	}
+	sub, err := sub.New(ctx, r.cfg, alias, pathURL, r.cfg.Directory(), r.agent)
+	if err != nil {
+		return errors.Wrapf(err, "failed to instantiate new sub store: %s", err)
 	}
 	if !r.store.Initialized(ctx) && alias == "" {
 		r.store = sub
@@ -36,8 +42,13 @@ func (r *Store) Init(ctx context.Context, alias, path string, ids ...string) err
 
 	out.Debug(ctx, "Initializing sub store at %s for %+v", path, ids)
 	if err := sub.Init(ctx, path, ids...); err != nil {
-		return err
+		return errors.Wrapf(err, "failed to initialize new sub store: %s", err)
 	}
+
+	return r.initConfig(ctx, alias, path)
+}
+
+func (r *Store) initConfig(ctx context.Context, alias, path string) error {
 	if alias == "" {
 		if r.cfg.Root.Path == nil {
 			r.cfg.Root.Path = backend.FromPath(path)
@@ -51,22 +62,23 @@ func (r *Store) Init(ctx context.Context, alias, path string, ids ...string) err
 		if backend.HasStorageBackend(ctx) {
 			r.cfg.Root.Path.Storage = backend.GetStorageBackend(ctx)
 		}
-	} else {
-		if sc := r.cfg.Mounts[alias]; sc == nil {
-			r.cfg.Mounts[alias] = &config.StoreConfig{}
-		}
-		if r.cfg.Mounts[alias].Path == nil {
-			r.cfg.Mounts[alias].Path = backend.FromPath(path)
-		}
-		if backend.HasCryptoBackend(ctx) {
-			r.cfg.Mounts[alias].Path.Crypto = backend.GetCryptoBackend(ctx)
-		}
-		if backend.HasRCSBackend(ctx) {
-			r.cfg.Mounts[alias].Path.RCS = backend.GetRCSBackend(ctx)
-		}
-		if backend.HasStorageBackend(ctx) {
-			r.cfg.Mounts[alias].Path.Storage = backend.GetStorageBackend(ctx)
-		}
+		return nil
+	}
+
+	if sc := r.cfg.Mounts[alias]; sc == nil {
+		r.cfg.Mounts[alias] = &config.StoreConfig{}
+	}
+	if r.cfg.Mounts[alias].Path == nil {
+		r.cfg.Mounts[alias].Path = backend.FromPath(path)
+	}
+	if backend.HasCryptoBackend(ctx) {
+		r.cfg.Mounts[alias].Path.Crypto = backend.GetCryptoBackend(ctx)
+	}
+	if backend.HasRCSBackend(ctx) {
+		r.cfg.Mounts[alias].Path.RCS = backend.GetRCSBackend(ctx)
+	}
+	if backend.HasStorageBackend(ctx) {
+		r.cfg.Mounts[alias].Path.Storage = backend.GetStorageBackend(ctx)
 	}
 	return nil
 }
@@ -94,7 +106,11 @@ func (r *Store) initialize(ctx context.Context) error {
 		if !backend.HasStorageBackend(ctx) {
 			ctx = backend.WithStorageBackend(ctx, r.cfg.Root.Path.Storage)
 		}
-		s, err := sub.New(ctx, "", r.url.String(), r.cfg.Directory(), r.agent)
+		bu, err := backend.ParseURL(r.url.String())
+		if err != nil {
+			return errors.Wrapf(err, "failed to parse backend URL '%s': %s", r.url.String(), err)
+		}
+		s, err := sub.New(ctx, r.cfg, "", bu, r.cfg.Directory(), r.agent)
 		if err != nil {
 			return errors.Wrapf(err, "failed to initialize the root store at '%s': %s", r.url.String(), err)
 		}

@@ -163,10 +163,7 @@ func (g *GPG) Sign(ctx context.Context, in string, sigf string) error {
 	if _, err := io.Copy(wc, infh); err != nil {
 		return err
 	}
-	if err := wc.Close(); err != nil {
-		return err
-	}
-	return nil
+	return wc.Close()
 }
 
 // Verify is not implemented
@@ -245,6 +242,15 @@ func (g *GPG) FormatKey(ctx context.Context, id string) string {
 		return name
 	}
 	return ""
+}
+
+// Fingerprint returns the full-length native fingerprint
+func (g *GPG) Fingerprint(ctx context.Context, id string) string {
+	ent := g.findEntity(id)
+	if ent == nil || ent.PrimaryKey == nil {
+		return ""
+	}
+	return fmt.Sprintf("%x", ent.PrimaryKey.Fingerprint)
 }
 
 // Initialized returns nil

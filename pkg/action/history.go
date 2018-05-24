@@ -5,17 +5,17 @@ import (
 	"time"
 
 	"github.com/justwatchcom/gopass/pkg/out"
+
 	"github.com/urfave/cli"
 )
 
 // History displays the history of a given secret
 func (s *Action) History(ctx context.Context, c *cli.Context) error {
 	name := c.Args().Get(0)
-
 	showPassword := c.Bool("password")
 
 	if name == "" {
-		return ExitError(ctx, ExitUsage, nil, "Usage: %s history [name]", s.Name)
+		return ExitError(ctx, ExitUsage, nil, "Usage: %s history <NAME>", s.Name)
 	}
 
 	if !s.Store.Exists(ctx, name) {

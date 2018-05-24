@@ -139,8 +139,11 @@ func splitBackends(in string) (string, string, string, string, error) {
 	backends := p[0]
 	scheme := p[1]
 	p = strings.Split(backends, "-")
-	if len(p) < 3 {
+	if len(p) < 1 {
 		return "", "", "", "", fmt.Errorf("invalid")
+	}
+	if len(p) < 3 {
+		return p[0], "", "", scheme, nil
 	}
 	return p[0], p[1], p[2], scheme, nil
 }

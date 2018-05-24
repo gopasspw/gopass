@@ -7,10 +7,11 @@ import (
 	"os"
 	"testing"
 
-	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/pkg/ctxutil"
 	"github.com/justwatchcom/gopass/pkg/out"
 	"github.com/justwatchcom/gopass/tests/gptest"
+
+	"github.com/fatih/color"
 	"github.com/stretchr/testify/assert"
 	"github.com/urfave/cli"
 )
@@ -32,6 +33,7 @@ func TestCopy(t *testing.T) {
 	}()
 
 	app := cli.NewApp()
+
 	// copy foo bar
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
 	assert.NoError(t, fs.Parse([]string{"foo", "bar"}))
@@ -39,6 +41,14 @@ func TestCopy(t *testing.T) {
 
 	assert.NoError(t, act.Copy(ctx, c))
 	buf.Reset()
+
+	// copy foo bar (again, should fail)
+	{
+		ctx := ctxutil.WithAlwaysYes(ctx, false)
+		ctx = ctxutil.WithInteractive(ctx, false)
+		assert.Error(t, act.Copy(ctx, c))
+		buf.Reset()
+	}
 
 	// copy not-found still-not-there
 	fs = flag.NewFlagSet("default", flag.ContinueOnError)

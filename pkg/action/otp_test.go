@@ -8,11 +8,12 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/gokyle/twofactor"
 	"github.com/justwatchcom/gopass/pkg/ctxutil"
 	"github.com/justwatchcom/gopass/pkg/out"
 	"github.com/justwatchcom/gopass/pkg/store/secret"
 	"github.com/justwatchcom/gopass/tests/gptest"
+
+	"github.com/gokyle/twofactor"
 	"github.com/stretchr/testify/assert"
 	"github.com/urfave/cli"
 )
@@ -50,6 +51,10 @@ func TestOTP(t *testing.T) {
 	assert.NoError(t, act.Store.Set(ctx, "bar", secret.New("foo", twofactor.GenerateGoogleTOTP().URL("foo"))))
 
 	assert.NoError(t, act.OTP(ctx, c))
+	buf.Reset()
+
+	// copy to clipboard
+	assert.NoError(t, act.otp(ctx, "bar", "", true))
 	buf.Reset()
 
 	// write QR file

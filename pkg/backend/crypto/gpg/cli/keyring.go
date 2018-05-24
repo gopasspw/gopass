@@ -91,7 +91,9 @@ func (g *GPG) findKey(ctx context.Context, id string) gpg.Key {
 	if len(kl) == 1 {
 		return kl[0]
 	}
-	return gpg.Key{}
+	return gpg.Key{
+		Fingerprint: id,
+	}
 }
 
 // EmailFromKey extracts the email from a key id
@@ -106,5 +108,10 @@ func (g *GPG) NameFromKey(ctx context.Context, id string) string {
 
 // FormatKey formats the details of a key id
 func (g *GPG) FormatKey(ctx context.Context, id string) string {
-	return g.findKey(ctx, id).Identity().ID()
+	return g.findKey(ctx, id).OneLine()
+}
+
+// Fingerprint returns the full-length native fingerprint
+func (g *GPG) Fingerprint(ctx context.Context, id string) string {
+	return g.findKey(ctx, id).Fingerprint
 }

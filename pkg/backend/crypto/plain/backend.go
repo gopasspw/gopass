@@ -8,8 +8,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/blang/semver"
 	"github.com/justwatchcom/gopass/pkg/backend/crypto/gpg"
+
+	"github.com/blang/semver"
 )
 
 var staticPrivateKeyList = gpg.KeyList{
@@ -171,6 +172,11 @@ func (m *Mocker) NameFromKey(context.Context, string) string {
 
 // FormatKey returns the id
 func (m *Mocker) FormatKey(ctx context.Context, id string) string {
+	return id
+}
+
+// Fingerprint returns the full-length native fingerprint
+func (m *Mocker) Fingerprint(ctx context.Context, id string) string {
 	return id
 }
 

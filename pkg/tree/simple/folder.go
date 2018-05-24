@@ -2,11 +2,11 @@ package simple
 
 import (
 	"bytes"
+	"path"
 	"strings"
 
-	"path"
-
 	"github.com/justwatchcom/gopass/pkg/tree"
+
 	"github.com/pkg/errors"
 )
 

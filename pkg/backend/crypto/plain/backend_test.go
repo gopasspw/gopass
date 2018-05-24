@@ -7,8 +7,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/blang/semver"
 	"github.com/justwatchcom/gopass/pkg/ctxutil"
+
+	"github.com/blang/semver"
 	"github.com/stretchr/testify/assert"
 )
 

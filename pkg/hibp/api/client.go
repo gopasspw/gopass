@@ -9,8 +9,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cenkalti/backoff"
 	"github.com/justwatchcom/gopass/pkg/out"
+
+	"github.com/cenkalti/backoff"
 	"github.com/pkg/errors"
 )
 
@@ -54,6 +55,7 @@ func Lookup(ctx context.Context, shaSum string) (uint64, error) {
 		}
 
 		for _, line := range strings.Split(string(body), "\n") {
+			line = strings.TrimSpace(line)
 			if len(line) < 37 {
 				continue
 			}

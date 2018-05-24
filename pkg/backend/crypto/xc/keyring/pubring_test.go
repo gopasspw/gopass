@@ -29,7 +29,13 @@ func TestPubring(t *testing.T) {
 	var k1Pk [32]byte
 	copy(k1Pk[:], k1.PublicKey.PublicKey[:])
 
+	assert.NoError(t, ioutil.WriteFile(fn, []byte("foobar"), 0644))
 	kr, err := LoadPubring(fn, nil)
+	assert.Error(t, err)
+	assert.NoError(t, os.Remove(fn))
+	assert.Nil(t, kr)
+
+	kr, err = LoadPubring(fn, nil)
 	assert.NoError(t, err)
 	assert.NotNil(t, kr)
 
@@ -51,7 +57,15 @@ func TestPubring(t *testing.T) {
 	}
 
 	assert.Equal(t, true, kr.Contains(k1.Fingerprint()))
+
+	buf, err := kr.Export(k2.Fingerprint())
+	assert.NoError(t, err)
+
 	assert.Equal(t, true, kr.Contains(k2.Fingerprint()))
 	assert.NoError(t, kr.Remove(k2.Fingerprint()))
 	assert.Error(t, kr.Remove(k2.Fingerprint()))
+	assert.Equal(t, false, kr.Contains(k2.Fingerprint()))
+
+	assert.NoError(t, kr.Import(buf))
+	assert.Equal(t, true, kr.Contains(k2.Fingerprint()))
 }

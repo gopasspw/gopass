@@ -9,6 +9,7 @@ import (
 
 	"github.com/justwatchcom/gopass/pkg/ctxutil"
 	"github.com/justwatchcom/gopass/pkg/out"
+
 	"github.com/stretchr/testify/assert"
 )
 

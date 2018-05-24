@@ -5,11 +5,15 @@ import (
 	"context"
 	"flag"
 	"os"
+	"regexp"
+	"strings"
 	"testing"
 
+	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/pkg/ctxutil"
 	"github.com/justwatchcom/gopass/pkg/out"
 	"github.com/justwatchcom/gopass/tests/gptest"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/urfave/cli"
 )
@@ -29,13 +33,21 @@ func TestGenerate(t *testing.T) {
 	defer func() {
 		out.Stdout = os.Stdout
 	}()
+	color.NoColor = true
 
 	app := cli.NewApp()
 
-	// generate foobar
+	// generate
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
-	assert.NoError(t, fs.Parse([]string{"foobar"}))
 	c := cli.NewContext(app, fs, nil)
+
+	assert.Error(t, act.Generate(ctx, c))
+	buf.Reset()
+
+	// generate foobar
+	fs = flag.NewFlagSet("default", flag.ContinueOnError)
+	assert.NoError(t, fs.Parse([]string{"foobar"}))
+	c = cli.NewContext(app, fs, nil)
 
 	assert.NoError(t, act.Generate(ctx, c))
 	buf.Reset()
@@ -69,6 +81,78 @@ func TestGenerate(t *testing.T) {
 	c = cli.NewContext(app, fs, nil)
 
 	assert.NoError(t, act.Generate(ctx, c))
+	buf.Reset()
+
+	// generate --force --symbols foobar 32
+	fs = flag.NewFlagSet("default", flag.ContinueOnError)
+	bf = cli.BoolFlag{
+		Name:  "force",
+		Usage: "force",
+	}
+	assert.NoError(t, bf.ApplyWithError(fs))
+	bf = cli.BoolFlag{
+		Name:  "symbols",
+		Usage: "symbols",
+	}
+	assert.NoError(t, bf.ApplyWithError(fs))
+	bf = cli.BoolFlag{
+		Name:  "print",
+		Usage: "print",
+	}
+	assert.NoError(t, bf.ApplyWithError(fs))
+	assert.NoError(t, fs.Parse([]string{"--force=true", "--print=true", "--symbols", "foobar", "32"}))
+	c = cli.NewContext(app, fs, nil)
+
+	assert.NoError(t, act.Generate(ctx, c))
+	assert.Equal(t, false, passIsAlphaNum(buf))
+	buf.Reset()
+
+	// generate --force --symbols=true foobar 32
+	fs = flag.NewFlagSet("default", flag.ContinueOnError)
+	bf = cli.BoolFlag{
+		Name:  "force",
+		Usage: "force",
+	}
+	assert.NoError(t, bf.ApplyWithError(fs))
+	bf = cli.BoolFlag{
+		Name:  "symbols",
+		Usage: "symbols",
+	}
+	assert.NoError(t, bf.ApplyWithError(fs))
+	bf = cli.BoolFlag{
+		Name:  "print",
+		Usage: "print",
+	}
+	assert.NoError(t, bf.ApplyWithError(fs))
+	assert.NoError(t, fs.Parse([]string{"--force=true", "--print=true", "--symbols=true", "foobar", "32"}))
+	c = cli.NewContext(app, fs, nil)
+
+	assert.NoError(t, act.Generate(ctx, c))
+	assert.Equal(t, false, passIsAlphaNum(buf))
+	buf.Reset()
+
+	// generate --force --symbols=false foobar 32
+	fs = flag.NewFlagSet("default", flag.ContinueOnError)
+	bf = cli.BoolFlag{
+		Name:  "force",
+		Usage: "force",
+	}
+	assert.NoError(t, bf.ApplyWithError(fs))
+	bf = cli.BoolFlag{
+		Name:  "symbols",
+		Usage: "symbols",
+	}
+	assert.NoError(t, bf.ApplyWithError(fs))
+	bf = cli.BoolFlag{
+		Name:  "print",
+		Usage: "print",
+	}
+	assert.NoError(t, bf.ApplyWithError(fs))
+	assert.NoError(t, fs.Parse([]string{"--force=true", "--print=true", "--symbols=false", "foobar", "32"}))
+	c = cli.NewContext(app, fs, nil)
+
+	assert.NoError(t, act.Generate(ctx, c))
+	assert.Equal(t, true, passIsAlphaNum(buf), buf.String())
 	buf.Reset()
 
 	// generate --force --xkcd foobar 32
@@ -171,6 +255,16 @@ func TestGenerate(t *testing.T) {
 
 	assert.NoError(t, act.Generate(ctx, c))
 	buf.Reset()
+}
+
+func passIsAlphaNum(buf *bytes.Buffer) bool {
+	reAlphaNum := regexp.MustCompile(`^[A-Za-z0-9]+$`)
+	lines := strings.Split(strings.TrimSpace(buf.String()), "\n")
+	if len(lines) < 1 {
+		return false
+	}
+	line := strings.TrimSpace(lines[len(lines)-1])
+	return reAlphaNum.MatchString(line)
 }
 
 func TestKeyAndLength(t *testing.T) {

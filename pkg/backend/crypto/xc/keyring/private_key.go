@@ -1,17 +1,16 @@
 package keyring
 
 import (
+	crypto_rand "crypto/rand"
 	"fmt"
 	"io"
 	"time"
 
-	"github.com/justwatchcom/gopass/pkg/backend/crypto/xc/xcpb"
-
-	crypto_rand "crypto/rand"
-
 	"golang.org/x/crypto/argon2"
 	"golang.org/x/crypto/nacl/box"
 	"golang.org/x/crypto/nacl/secretbox"
+
+	"github.com/justwatchcom/gopass/pkg/backend/crypto/xc/xcpb"
 )
 
 // saltLength is chosen based on the recommendation in

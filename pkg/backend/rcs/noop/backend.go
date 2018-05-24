@@ -4,8 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/blang/semver"
 	"github.com/justwatchcom/gopass/pkg/backend"
+
+	"github.com/blang/semver"
 )
 
 // Noop is a no-op git backend
@@ -63,6 +64,11 @@ func (g *Noop) Name() string {
 
 // AddRemote does nothing
 func (g *Noop) AddRemote(ctx context.Context, remote, url string) error {
+	return nil
+}
+
+// RemoveRemote does nothing
+func (g *Noop) RemoveRemote(ctx context.Context, remote string) error {
 	return nil
 }
 

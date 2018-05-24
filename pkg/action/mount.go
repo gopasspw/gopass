@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/pkg/config"
 	"github.com/justwatchcom/gopass/pkg/out"
 	"github.com/justwatchcom/gopass/pkg/store"
 	"github.com/justwatchcom/gopass/pkg/tree/simple"
+
+	"github.com/fatih/color"
 	"github.com/urfave/cli"
 )
 
@@ -66,7 +67,7 @@ func (s *Action) MountAdd(ctx context.Context, c *cli.Context) error {
 	alias := c.Args().Get(0)
 	localPath := c.Args().Get(1)
 	if alias == "" {
-		return ExitError(ctx, ExitUsage, nil, "usage: %s mount add <alias> [local path]", s.Name)
+		return ExitError(ctx, ExitUsage, nil, "usage: %s mounts add <alias> [local path]", s.Name)
 	}
 
 	if localPath == "" {

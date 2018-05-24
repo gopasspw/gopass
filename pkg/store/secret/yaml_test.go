@@ -211,3 +211,34 @@ url: http://www.test.com/`
 	assert.NoError(t, err)
 	assert.Equal(t, "myuser@test.com", val)
 }
+
+func TestYAMLValues(t *testing.T) {
+	s := &Secret{
+		data: map[string]interface{}{
+			"string": "string",
+			"int":    int(32),
+			"float":  2.3,
+			"slice":  []int{1, 2, 3},
+			"map":    map[string]string{"a": "b"},
+		},
+	}
+	sv, err := s.Value("string")
+	assert.NoError(t, err)
+	assert.Equal(t, "string", sv)
+
+	sv, err = s.Value("int")
+	assert.NoError(t, err)
+	assert.Equal(t, "32", sv)
+
+	sv, err = s.Value("float")
+	assert.NoError(t, err)
+	assert.Equal(t, "2.3", sv)
+
+	sv, err = s.Value("slice")
+	assert.NoError(t, err)
+	assert.Equal(t, "[1 2 3]", sv)
+
+	sv, err = s.Value("map")
+	assert.NoError(t, err)
+	assert.Equal(t, "map[a:b]", sv)
+}

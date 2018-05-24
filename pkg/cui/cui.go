@@ -3,13 +3,15 @@ package cui
 import (
 	"context"
 	"fmt"
+	"io"
 	"os"
 	"runtime"
 
-	"github.com/fatih/color"
-	"github.com/jroimartin/gocui"
 	"github.com/justwatchcom/gopass/pkg/ctxutil"
 	"github.com/justwatchcom/gopass/pkg/termwiz"
+
+	"github.com/fatih/color"
+	"github.com/jroimartin/gocui"
 )
 
 type selection struct {
@@ -65,18 +67,18 @@ func (s *selection) layout(g *gocui.Gui) error {
 	return nil
 }
 
-func (s *selection) renderHeader(v *gocui.View, maxx int) {
+func (s *selection) renderHeader(v io.Writer, maxx int) {
 	fmt.Fprintf(v, "%s\n", color.GreenString("gopass"))
 	fmt.Fprintf(v, s.prompt)
 }
 
-func (s *selection) render(v *gocui.View, maxx int) {
+func (s *selection) render(v io.Writer, maxx int) {
 	for _, item := range s.choices {
 		fmt.Fprintf(v, "%s\n", item)
 	}
 }
 
-func (s *selection) renderFooter(v *gocui.View, maxx int) {
+func (s *selection) renderFooter(v io.Writer, maxx int) {
 	fmt.Fprintf(v, "\u001b[1m%s\u001b[0m\n", s.usage)
 }
 

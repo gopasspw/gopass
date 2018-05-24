@@ -28,6 +28,7 @@ func TestUninitialized(t *testing.T) {
 		"remove",
 		"rm",
 		"show",
+		"git-credential",
 	}
 
 	for _, command := range commands {

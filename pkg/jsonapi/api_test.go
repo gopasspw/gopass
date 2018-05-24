@@ -2,9 +2,8 @@ package jsonapi
 
 import (
 	"bytes"
-	"encoding/binary"
-
 	"context"
+	"encoding/binary"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -17,6 +16,7 @@ import (
 	"github.com/justwatchcom/gopass/pkg/store"
 	"github.com/justwatchcom/gopass/pkg/store/root"
 	"github.com/justwatchcom/gopass/pkg/store/secret"
+
 	"github.com/stretchr/testify/assert"
 )
 
@@ -92,6 +92,23 @@ func TestRespondMessageQuery(t *testing.T) {
 	runRespondMessage(t,
 		`{"type":"getLogin","entry":"awesomePrefix/fixed/yamlother"}`,
 		`{"username":"yamlother","password":"thesecret"}`,
+		"", secrets)
+}
+
+func TestRespondMessageGetData(t *testing.T) {
+	secrets := []storedSecret{
+		{[]string{"foo"}, secret.New("20", "hallo: welt")},
+		{[]string{"bar"}, secret.New("20", "---\nlogin: muh")},
+	}
+
+	runRespondMessage(t,
+		`{"type":"getData","entry":"foo"}`,
+		`{"hallo":"welt"}`,
+		"", secrets)
+
+	runRespondMessage(t,
+		`{"type":"getData","entry":"bar"}`,
+		`{"login":"muh"}`,
 		"", secrets)
 }
 

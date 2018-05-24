@@ -16,6 +16,7 @@ import (
 	"github.com/justwatchcom/gopass/pkg/editor"
 	"github.com/justwatchcom/gopass/pkg/out"
 	"github.com/justwatchcom/gopass/pkg/termio"
+
 	"github.com/pkg/errors"
 )
 
@@ -182,7 +183,10 @@ func confirmEditRecipients(ctx context.Context, name string, ris recipientInfos)
 // AskForPrivateKey promts the user to select from a list of private keys
 func AskForPrivateKey(ctx context.Context, crypto backend.Crypto, name, prompt string) (string, error) {
 	if !ctxutil.IsInteractive(ctx) {
-		return "", errors.New("no interaction without terminal")
+		return "", errors.New("Can not select private key without terminal")
+	}
+	if crypto == nil {
+		return "", errors.New("Can not select private key without valid crypto backend")
 	}
 
 	kl, err := crypto.ListPrivateKeyIDs(gpg.WithAlwaysTrust(ctx, false))
@@ -210,6 +214,10 @@ func AskForPrivateKey(ctx context.Context, crypto backend.Crypto, name, prompt s
 		}
 		iv, err := termio.AskForInt(ctx, fmt.Sprintf("Please enter the number of a key (0-%d, [q]uit)", len(kl)-1), 0)
 		if err != nil {
+			if err.Error() == "user aborted" {
+				return "", err
+			}
+
 			continue
 		}
 		if iv >= 0 && iv < len(kl) {

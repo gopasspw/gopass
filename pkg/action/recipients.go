@@ -3,12 +3,16 @@ package action
 import (
 	"context"
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/justwatchcom/gopass/pkg/ctxutil"
 	"github.com/justwatchcom/gopass/pkg/cui"
 	"github.com/justwatchcom/gopass/pkg/out"
+	"github.com/justwatchcom/gopass/pkg/store"
+	"github.com/justwatchcom/gopass/pkg/store/sub"
 	"github.com/justwatchcom/gopass/pkg/termio"
+
 	"github.com/urfave/cli"
 )
 
@@ -47,7 +51,7 @@ func (s *Action) RecipientsPrint(ctx context.Context, c *cli.Context) error {
 // RecipientsComplete will print a list of recipients for bash
 // completion
 func (s *Action) RecipientsComplete(ctx context.Context, c *cli.Context) {
-	tree, err := s.Store.RecipientsTree(ctx, false)
+	tree, err := s.Store.RecipientsTree(out.WithHidden(ctx, true), false)
 	if err != nil {
 		fmt.Fprintln(stdout, err)
 		return
@@ -163,6 +167,52 @@ func (s *Action) RecipientsRemove(ctx context.Context, c *cli.Context) error {
 
 	out.Green(ctx, "\nRemoved %d recipients", removed)
 	out.Cyan(ctx, "You need to run 'gopass sync' to push these changes")
+	return nil
+}
+
+// RecipientsUpdate will recompute and update any changed recipients list checksums
+func (s *Action) RecipientsUpdate(ctx context.Context, c *cli.Context) error {
+	changed := 0
+
+	mps := s.Store.MountPoints()
+	sort.Sort(store.ByPathLen(mps))
+	for _, alias := range append(mps, "") {
+		subs, err := s.Store.GetSubStore(alias)
+		if err != nil || subs == nil {
+			continue
+		}
+		recp, err := subs.GetRecipients(ctx, "")
+		if err != nil {
+			if err != sub.ErrRecipientChecksumChanged {
+				return err
+			}
+		}
+		if err == nil && s.cfg.GetRecipientHash(alias, subs.Crypto().IDFile()) != "" {
+			continue
+		}
+		if alias == "" {
+			alias = "<root>"
+		}
+		out.Cyan(ctx, "Please confirm Recipients for %s:", alias)
+		for _, r := range recp {
+			out.Print(ctx, "- %s", subs.Crypto().FormatKey(ctx, r))
+		}
+		if !termio.AskForConfirmation(ctx, fmt.Sprintf("Do you trust these recipients for %s?", alias)) {
+			continue
+		}
+		if err := subs.SetRecipients(ctx, recp); err != nil {
+			return err
+		}
+		out.Print(ctx, "")
+		changed++
+	}
+
+	if changed > 0 {
+		out.Green(ctx, "Updated %d stores", changed)
+	} else {
+		out.Green(ctx, "Nothing to do")
+	}
+
 	return nil
 }
 

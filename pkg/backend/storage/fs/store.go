@@ -8,9 +8,10 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/blang/semver"
 	"github.com/justwatchcom/gopass/pkg/fsutil"
 	"github.com/justwatchcom/gopass/pkg/out"
+
+	"github.com/blang/semver"
 )
 
 // Store is a fs based store
@@ -77,6 +78,9 @@ func (s *Store) List(ctx context.Context, prefix string) ([]string, error) {
 			return nil
 		}
 		name := strings.TrimPrefix(path, s.path+string(filepath.Separator))
+		if !strings.HasPrefix(name, prefix) {
+			return nil
+		}
 		files = append(files, name)
 		return nil
 	}); err != nil {

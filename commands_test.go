@@ -20,6 +20,8 @@ import (
 	"github.com/urfave/cli"
 )
 
+// commandsWithError is a list of commands that return an error when
+// invoked without arguments
 var commandsWithError = map[string]struct{}{
 	".audit":                 {},
 	".audit.hibp":            {},
@@ -34,6 +36,10 @@ var commandsWithError = map[string]struct{}{
 	".edit":                  {},
 	".find":                  {},
 	".generate":              {},
+	".git.pull":              {},
+	".git.push":              {},
+	".git.remote.add":        {},
+	".git.remote.remove":     {},
 	".grep":                  {},
 	".history":               {},
 	".init":                  {},
@@ -50,6 +56,8 @@ var commandsWithError = map[string]struct{}{
 	".templates.remove":      {},
 	".templates.show":        {},
 	".unclip":                {},
+	".xc.decrypt":            {},
+	".xc.encrypt":            {},
 	".xc.export":             {},
 	".xc.export-private-key": {},
 	".xc.generate":           {},
@@ -90,7 +98,7 @@ func TestGetCommands(t *testing.T) {
 	c := cli.NewContext(app, fs, nil)
 
 	commands := getCommands(ctx, act, app)
-	assert.Equal(t, 31, len(commands))
+	assert.Equal(t, 33, len(commands))
 
 	prefix := ""
 	testCommands(t, c, commands, prefix)
@@ -100,6 +108,10 @@ func testCommands(t *testing.T, c *cli.Context, commands []cli.Command, prefix s
 	for _, cmd := range commands {
 		if cmd.Name == "agent" || cmd.Name == "update" {
 			// the agent command is blocking
+			continue
+		}
+		if cmd.Name == "configure" && prefix == ".jsonapi" {
+			// running jsonapi configure will overwrite the chrome manifest
 			continue
 		}
 		if len(cmd.Subcommands) > 0 {

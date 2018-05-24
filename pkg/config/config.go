@@ -44,6 +44,7 @@ func New() *Config {
 			AutoImport:    true,
 			AutoSync:      true,
 			ClipTimeout:   45,
+			Concurrency:   1,
 			NoColor:       false,
 			NoConfirm:     false,
 			NoPager:       false,
@@ -120,4 +121,29 @@ func (c *Config) String() string {
 // Directory returns the directory this config is using
 func (c *Config) Directory() string {
 	return filepath.Dir(c.Path)
+}
+
+// GetRecipientHash returns the recipients hash for the given store and file
+func (c *Config) GetRecipientHash(alias, name string) string {
+	if alias == "" {
+		return c.Root.RecipientHash[name]
+	}
+	if sc, found := c.Mounts[alias]; found && sc != nil {
+		return sc.RecipientHash[name]
+	}
+	return ""
+}
+
+// SetRecipientHash will set and save the recipient hash for the given store
+// and file
+func (c *Config) SetRecipientHash(alias, name, value string) error {
+	if alias == "" {
+		c.Root.setRecipientHash(name, value)
+	} else {
+		if sc, found := c.Mounts[alias]; found && sc != nil {
+			sc.setRecipientHash(name, value)
+		}
+	}
+
+	return c.Save()
 }

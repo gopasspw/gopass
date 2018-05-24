@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/pkg/out"
 	"github.com/justwatchcom/gopass/pkg/store"
 	"github.com/justwatchcom/gopass/pkg/tree"
 	"github.com/justwatchcom/gopass/pkg/tree/simple"
+
+	"github.com/fatih/color"
 	"github.com/pkg/errors"
 )
 
@@ -95,7 +96,7 @@ func (r *Store) RecipientsTree(ctx context.Context, pretty bool) (tree.Tree, err
 		}
 		for _, recp := range substore.Recipients(ctx) {
 			if err := r.addRecipient(ctx, alias+"/", root, recp, pretty); err != nil {
-				color.Yellow("Failed to add recipient to tree %s: %s", recp, err)
+				out.Debug(ctx, "Failed to add recipient to tree %s: %s", recp, err)
 			}
 		}
 	}

@@ -4,10 +4,12 @@ import (
 	"context"
 	"os"
 
-	"github.com/fatih/color"
+	"github.com/justwatchcom/gopass/pkg/backend"
 	"github.com/justwatchcom/gopass/pkg/cui"
 	"github.com/justwatchcom/gopass/pkg/out"
 	"github.com/justwatchcom/gopass/pkg/termio"
+
+	"github.com/fatih/color"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"
 )
@@ -17,15 +19,22 @@ func (s *Action) GitInit(ctx context.Context, c *cli.Context) error {
 	store := c.String("store")
 	un := c.String("username")
 	ue := c.String("useremail")
+	ctx = backend.WithRCSBackendString(ctx, c.String("rcs"))
 
-	if err := s.gitInit(ctx, store, un, ue); err != nil {
+	// default to git
+	if !backend.HasRCSBackend(ctx) {
+		ctx = backend.WithRCSBackend(ctx, backend.GitCLI)
+	}
+
+	if err := s.rcsInit(ctx, store, un, ue); err != nil {
 		return ExitError(ctx, ExitGit, err, "failed to initialize git: %s", err)
 	}
 	return nil
 }
 
-func (s *Action) gitInit(ctx context.Context, store, un, ue string) error {
-	out.Green(ctx, "Initializing git repository ...")
+func (s *Action) rcsInit(ctx context.Context, store, un, ue string) error {
+	bn := backend.RCSBackendName(backend.GetRCSBackend(ctx))
+	out.Green(ctx, "Initializing git repository (%s) ...", bn)
 
 	userName, userEmail := s.getUserData(ctx, store, un, ue)
 	if err := s.Store.GitInit(ctx, store, userName, userEmail); err != nil {
@@ -69,23 +78,48 @@ func (s *Action) getUserData(ctx context.Context, store, un, ue string) (string,
 // GitAddRemote adds a new git remote
 func (s *Action) GitAddRemote(ctx context.Context, c *cli.Context) error {
 	store := c.String("store")
-	remote := c.String("remote")
-	url := c.String("url")
+	remote := c.Args().Get(0)
+	url := c.Args().Get(1)
+
+	if remote == "" || url == "" {
+		return ExitError(ctx, ExitUsage, nil, "Usage: %s git remote add <REMOTE> <URL>", s.Name)
+	}
+
 	return s.Store.GitAddRemote(ctx, store, remote, url)
+}
+
+// GitRemoveRemote removes a git remote
+func (s *Action) GitRemoveRemote(ctx context.Context, c *cli.Context) error {
+	store := c.String("store")
+	remote := c.Args().Get(0)
+
+	if remote == "" {
+		return ExitError(ctx, ExitUsage, nil, "Usage: %s git remote rm <REMOTE>", s.Name)
+	}
+
+	return s.Store.GitRemoveRemote(ctx, store, remote)
 }
 
 // GitPull pulls from a git remote
 func (s *Action) GitPull(ctx context.Context, c *cli.Context) error {
 	store := c.String("store")
-	origin := c.String("origin")
-	branch := c.String("branch")
+	origin := c.Args().Get(0)
+	branch := c.Args().Get(1)
+
+	if origin == "" || branch == "" {
+		return ExitError(ctx, ExitUsage, nil, "Usage: %s git pull <ORIGIN> <BRANCH>", s.Name)
+	}
 	return s.Store.GitPull(ctx, store, origin, branch)
 }
 
 // GitPush pushes to a git remote
 func (s *Action) GitPush(ctx context.Context, c *cli.Context) error {
 	store := c.String("store")
-	origin := c.String("origin")
-	branch := c.String("branch")
+	origin := c.Args().Get(0)
+	branch := c.Args().Get(1)
+
+	if origin == "" || branch == "" {
+		return ExitError(ctx, ExitUsage, nil, "Usage: %s git push <ORIGIN> <BRANCH>", s.Name)
+	}
 	return s.Store.GitPush(ctx, store, origin, branch)
 }

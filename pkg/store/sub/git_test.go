@@ -6,9 +6,10 @@ import (
 	"os"
 	"testing"
 
-	"github.com/blang/semver"
 	"github.com/justwatchcom/gopass/pkg/backend"
 	"github.com/justwatchcom/gopass/pkg/ctxutil"
+
+	"github.com/blang/semver"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -26,11 +27,11 @@ func TestGit(t *testing.T) {
 
 	assert.NotNil(t, s.RCS())
 	assert.Equal(t, "noop", s.RCS().Name())
-	assert.NoError(t, s.GitInitConfig(ctx, "foo", "bar@baz.com"))
-	assert.Equal(t, semver.Version{}, s.GitVersion(ctx))
-	assert.NoError(t, s.GitAddRemote(ctx, "foo", "bar"))
-	assert.NoError(t, s.GitPull(ctx, "origin", "master"))
-	assert.NoError(t, s.GitPush(ctx, "origin", "master"))
+	assert.NoError(t, s.RCS().InitConfig(ctx, "foo", "bar@baz.com"))
+	assert.Equal(t, semver.Version{}, s.RCS().Version(ctx))
+	assert.NoError(t, s.RCS().AddRemote(ctx, "foo", "bar"))
+	assert.NoError(t, s.RCS().Pull(ctx, "origin", "master"))
+	assert.NoError(t, s.RCS().Push(ctx, "origin", "master"))
 
 	assert.NoError(t, s.GitInit(ctx, "", ""))
 	assert.NoError(t, s.GitInit(backend.WithRCSBackend(ctx, backend.Noop), "", ""))
@@ -55,7 +56,7 @@ func TestGitRevisions(t *testing.T) {
 
 	assert.NotNil(t, s.RCS())
 	assert.Equal(t, "noop", s.RCS().Name())
-	assert.NoError(t, s.GitInitConfig(ctx, "foo", "bar@baz.com"))
+	assert.NoError(t, s.RCS().InitConfig(ctx, "foo", "bar@baz.com"))
 
 	_, err = s.ListRevisions(ctx, "foo")
 	assert.Error(t, err)

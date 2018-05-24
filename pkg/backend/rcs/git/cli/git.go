@@ -12,12 +12,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/blang/semver"
 	"github.com/justwatchcom/gopass/pkg/backend"
 	"github.com/justwatchcom/gopass/pkg/ctxutil"
 	"github.com/justwatchcom/gopass/pkg/fsutil"
 	"github.com/justwatchcom/gopass/pkg/out"
 	"github.com/justwatchcom/gopass/pkg/store"
+
+	"github.com/blang/semver"
 	"github.com/pkg/errors"
 )
 
@@ -258,6 +259,11 @@ func (g *Git) Pull(ctx context.Context, remote, branch string) error {
 // AddRemote adds a new remote
 func (g *Git) AddRemote(ctx context.Context, remote, url string) error {
 	return g.Cmd(ctx, "gitAddRemote", "remote", "add", remote, url)
+}
+
+// RemoveRemote removes a remote
+func (g *Git) RemoveRemote(ctx context.Context, remote string) error {
+	return g.Cmd(ctx, "gitRemoveRemote", "remote", "remove", remote)
 }
 
 // Revisions will list all available revisions of the named entity

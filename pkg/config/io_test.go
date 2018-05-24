@@ -10,8 +10,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/pkg/backend"
+
+	"github.com/fatih/color"
 	"github.com/stretchr/testify/assert"
 )
 

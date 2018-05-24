@@ -4,10 +4,11 @@ import (
 	"context"
 	"testing"
 
-	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/pkg/ctxutil"
 	"github.com/justwatchcom/gopass/pkg/out"
 	"github.com/justwatchcom/gopass/tests/gptest"
+
+	"github.com/fatih/color"
 	"github.com/stretchr/testify/assert"
 )
 

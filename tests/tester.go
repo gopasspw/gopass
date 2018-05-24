@@ -3,16 +3,14 @@ package tests
 import (
 	"bytes"
 	"context"
+	"io"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
-
-	"io"
-
-	"runtime"
 
 	shellquote "github.com/kballard/go-shellquote"
 	"github.com/pkg/errors"
@@ -196,7 +194,7 @@ func (ts tester) runWithInputReader(arg string, input io.Reader) ([]byte, error)
 }
 
 func (ts *tester) initStore() {
-	out, err := ts.run("init --nogit " + keyID)
+	out, err := ts.run("init --rcs=noop " + keyID)
 	require.NoError(ts.t, err, "failed to init password store:\n%s", out)
 }
 

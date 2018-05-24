@@ -7,12 +7,14 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/golang/protobuf/proto"
+	"golang.org/x/crypto/nacl/box"
+	"golang.org/x/crypto/nacl/secretbox"
+
 	"github.com/justwatchcom/gopass/pkg/backend/crypto/xc/keyring"
 	"github.com/justwatchcom/gopass/pkg/backend/crypto/xc/xcpb"
+
+	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
-	"golang.org/x/crypto/chacha20poly1305"
-	"golang.org/x/crypto/nacl/box"
 )
 
 const (
@@ -34,25 +36,23 @@ func (x *XC) Decrypt(ctx context.Context, buf []byte) ([]byte, error) {
 		return nil, err
 	}
 
+	var secretKey [32]byte
+	copy(secretKey[:], sk)
+
 	plainBuf := &bytes.Buffer{}
 
 	for i, chunk := range msg.Chunks {
-		// initialize the AEAD cipher with the session key
-		cp, err := chacha20poly1305.New(sk)
-		if err != nil {
-			return nil, err
-		}
-
 		// reconstruct nonce from chunk number
 		// in case chunks have been reordered by some adversary
 		// decryption will fail
-		nonce := make([]byte, 12)
-		binary.BigEndian.PutUint64(nonce, uint64(i))
+		var nonce [24]byte
+		binary.BigEndian.PutUint64(nonce[:], uint64(i))
 
 		// decrypt and verify the ciphertext
-		plaintext, err := cp.Open(nil, nonce, chunk.Body, nil)
-		if err != nil {
-			return nil, err
+		//plaintext, err := cp.Open(nil, nonce, chunk.Body, nil)
+		plaintext, ok := secretbox.Open(nil, chunk.Body, &nonce, &secretKey)
+		if !ok {
+			return nil, fmt.Errorf("failed to decrypt")
 		}
 
 		plainBuf.Write(plaintext)

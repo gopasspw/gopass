@@ -25,6 +25,9 @@ func (c StoreConfig) WithContext(ctx context.Context) context.Context {
 	if !ctxutil.HasClipTimeout(ctx) {
 		ctx = ctxutil.WithClipTimeout(ctx, c.ClipTimeout)
 	}
+	if !ctxutil.HasConcurrency(ctx) {
+		ctx = ctxutil.WithConcurrency(ctx, c.Concurrency)
+	}
 	if !ctxutil.HasNoConfirm(ctx) {
 		ctx = ctxutil.WithNoConfirm(ctx, c.NoConfirm)
 	}

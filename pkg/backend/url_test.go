@@ -3,9 +3,8 @@ package backend
 import (
 	"testing"
 
-	yaml "gopkg.in/yaml.v2"
-
 	"github.com/stretchr/testify/assert"
+	yaml "gopkg.in/yaml.v2"
 )
 
 /*
@@ -140,4 +139,8 @@ func TestMarshalYAML(t *testing.T) {
 	buf, err := yaml.Marshal(&cfg)
 	assert.NoError(t, err)
 	assert.Equal(t, out, string(buf))
+}
+
+func TestFromPath(t *testing.T) {
+	assert.Equal(t, "gpgcli-gitcli-fs+file:///tmp", FromPath("/tmp").String())
 }

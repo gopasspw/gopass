@@ -6,7 +6,6 @@ import (
 	"regexp"
 	"strconv"
 
-	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/pkg/clipboard"
 	"github.com/justwatchcom/gopass/pkg/ctxutil"
 	"github.com/justwatchcom/gopass/pkg/out"
@@ -15,6 +14,8 @@ import (
 	"github.com/justwatchcom/gopass/pkg/store/secret"
 	"github.com/justwatchcom/gopass/pkg/store/sub"
 	"github.com/justwatchcom/gopass/pkg/termio"
+
+	"github.com/fatih/color"
 	"github.com/urfave/cli"
 )
 
@@ -27,7 +28,7 @@ var (
 	reNumber = regexp.MustCompile(`^\d+$`)
 )
 
-// Generate & save a password
+// Generate and save a password
 func (s *Action) Generate(ctx context.Context, c *cli.Context) error {
 	force := c.Bool("force")
 	edit := c.Bool("edit")
@@ -90,6 +91,8 @@ func keyAndLength(c *cli.Context) (string, string) {
 	return key, length
 }
 
+// generateCopyOrPrint will print the password to the screen or copy to the
+// clipboard
 func (s *Action) generateCopyOrPrint(ctx context.Context, c *cli.Context, name, key, password string) error {
 	if c.Bool("print") {
 		if key != "" {
@@ -110,14 +113,15 @@ func (s *Action) generateCopyOrPrint(ctx context.Context, c *cli.Context, name, 
 	return nil
 }
 
+// generatePassword will run through the password generation steps
 func (s *Action) generatePassword(ctx context.Context, c *cli.Context, length string) (string, error) {
 	if c.Bool("xkcd") || c.IsSet("xkcdsep") {
 		return s.generatePasswordXKCD(ctx, c, length)
 	}
 
-	symbols := false
-	if c.Bool("symbols") || ctxutil.IsUseSymbols(ctx) {
-		symbols = true
+	symbols := ctxutil.IsUseSymbols(ctx)
+	if c.IsSet("symbols") {
+		symbols = c.Bool("symbols")
 	}
 
 	var pwlen int
@@ -144,6 +148,8 @@ func (s *Action) generatePassword(ctx context.Context, c *cli.Context, length st
 	return pwgen.GeneratePassword(pwlen, symbols), nil
 }
 
+// generatePasswordXKCD walks through the steps necessary to create an XKCD-style
+// password
 func (s *Action) generatePasswordXKCD(ctx context.Context, c *cli.Context, length string) (string, error) {
 	xkcdSeparator := " "
 	if c.IsSet("xkcdsep") {
@@ -174,6 +180,7 @@ func (s *Action) generatePasswordXKCD(ctx context.Context, c *cli.Context, lengt
 	return xkcdgen.RandomLengthDelim(pwlen, xkcdSeparator, c.String("xkcdlang"))
 }
 
+// generateSetPassword will update or create a secret
 func (s *Action) generateSetPassword(ctx context.Context, name, key, password string) (context.Context, error) {
 	// set a single key in a yaml doc
 	if key != "" {

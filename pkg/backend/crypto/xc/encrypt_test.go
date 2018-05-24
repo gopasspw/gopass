@@ -9,9 +9,10 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/golang/protobuf/proto"
 	"github.com/justwatchcom/gopass/pkg/backend/crypto/xc/keyring"
 	"github.com/justwatchcom/gopass/pkg/backend/crypto/xc/xcpb"
+
+	"github.com/golang/protobuf/proto"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -148,7 +149,7 @@ func TestEncryptChunks(t *testing.T) {
 		_, _ = rand.Read(p)
 		plaintext.Write(p)
 	}
-	assert.Equal(t, 10485760, plaintext.Len())
+	assert.Equal(t, 163840, plaintext.Len())
 
 	ciphertext, err := xc.Encrypt(ctx, plaintext.Bytes(), []string{k1.Fingerprint()})
 	assert.NoError(t, err)
@@ -181,4 +182,53 @@ func TestEncryptChunks(t *testing.T) {
 	// check decryption fails
 	_, err = xc.Decrypt(ctx, ciphertext)
 	assert.Error(t, err)
+}
+
+func TestEncryptCompress(t *testing.T) {
+	ctx := context.Background()
+
+	td, err := ioutil.TempDir("", "gopass-")
+	assert.NoError(t, err)
+	defer func() {
+		_ = os.RemoveAll(td)
+	}()
+	assert.NoError(t, os.Setenv("GOPASS_CONFIG", filepath.Join(td, ".gopass.yml")))
+	assert.NoError(t, os.Setenv("GOPASS_HOMEDIR", td))
+
+	passphrase := "test"
+
+	k1, err := keyring.GenerateKeypair(passphrase)
+	assert.NoError(t, err)
+
+	skr := keyring.NewSecring()
+	assert.NoError(t, skr.Set(k1))
+
+	pkr := keyring.NewPubring(skr)
+
+	xc := &XC{
+		pubring: pkr,
+		secring: skr,
+		client:  &fakeAgent{passphrase},
+	}
+
+	data := &bytes.Buffer{}
+	for i := 0; i < 1024*1024; i++ {
+		data.WriteString("aaaaaaaa")
+	}
+
+	buf, err := xc.Encrypt(ctx, data.Bytes(), []string{k1.Fingerprint()})
+	assert.NoError(t, err)
+
+	recps, err := xc.RecipientIDs(ctx, buf)
+	assert.NoError(t, err)
+	assert.Equal(t, []string{k1.Fingerprint()}, recps)
+
+	// check compress flag
+	msg := &xcpb.Message{}
+	assert.NoError(t, proto.Unmarshal(buf, msg))
+	assert.Equal(t, true, msg.Compressed)
+
+	buf, err = xc.Decrypt(ctx, buf)
+	assert.NoError(t, err)
+	assert.Equal(t, data.String(), string(buf))
 }

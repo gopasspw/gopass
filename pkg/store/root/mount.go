@@ -5,12 +5,14 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/pkg/backend"
 	"github.com/justwatchcom/gopass/pkg/config"
 	"github.com/justwatchcom/gopass/pkg/out"
 	"github.com/justwatchcom/gopass/pkg/store"
 	"github.com/justwatchcom/gopass/pkg/store/sub"
+	"github.com/justwatchcom/gopass/pkg/store/vault"
+
+	"github.com/fatih/color"
 	"github.com/pkg/errors"
 )
 
@@ -29,7 +31,7 @@ func (r *Store) addMount(ctx context.Context, alias, path string, sc *config.Sto
 		return errors.Errorf("alias must not be empty")
 	}
 	if r.mounts == nil {
-		r.mounts = make(map[string]*sub.Store, 1)
+		r.mounts = make(map[string]store.Store, 1)
 	}
 	if _, found := r.mounts[alias]; found {
 		return errors.Errorf("%s is already mounted", alias)
@@ -47,32 +49,22 @@ func (r *Store) addMount(ctx context.Context, alias, path string, sc *config.Sto
 			out.Debug(ctx, "addMount - Using RCS backend %s", backend.RCSBackendName(sc.Path.RCS))
 		}
 	}
-	s, err := sub.New(ctx, alias, path, r.cfg.Directory(), r.agent)
+
+	// parse backend URL
+	pathURL, err := backend.ParseURL(path)
 	if err != nil {
-		return errors.Wrapf(err, "failed to initialize store '%s' at '%s': %s", alias, path, err)
+		return errors.Wrapf(err, "failed to parse backend URL '%s': %s", path, err)
 	}
 
-	if !s.Initialized(ctx) {
-		out.Debug(ctx, "[%s] Mount %s is not initialized", alias, path)
-		if len(keys) < 1 {
-			return errors.Errorf("password store %s is not initialized. Try gopass init --store %s --path %s", alias, alias, path)
-		}
-		if err := s.Init(ctx, path, keys...); err != nil {
-			return errors.Wrapf(err, "failed to initialize store '%s' at '%s'", alias, path)
-		}
-		out.Green(ctx, "Password store %s initialized for:", path)
-		for _, r := range s.Recipients(ctx) {
-			color.Yellow(r)
-		}
+	// initialize sub store
+	s, err := r.initSub(ctx, sc, alias, pathURL, keys)
+	if err != nil {
+		return errors.Wrapf(err, "failed to init sub store")
 	}
 
 	r.mounts[alias] = s
 	if r.cfg.Mounts == nil {
 		r.cfg.Mounts = make(map[string]*config.StoreConfig, 1)
-	}
-	pathURL, err := backend.ParseURL(path)
-	if err != nil {
-		return errors.Wrapf(err, "failed to parse backend URL '%s': %s", path, err)
 	}
 	if sc == nil {
 		// imporant: copy root config to avoid overwriting it with sub store
@@ -91,7 +83,45 @@ func (r *Store) addMount(ctx context.Context, alias, path string, sc *config.Sto
 		sc.Path.Storage = backend.GetStorageBackend(ctx)
 	}
 	r.cfg.Mounts[alias] = sc
+
+	out.Debug(ctx, "Added mount %s -> %s", alias, sc.Path.String())
 	return nil
+}
+
+func (r *Store) initSubVault(ctx context.Context, alias string, path *backend.URL) (store.Store, error) {
+	return vault.New(ctx, alias, path, r.cfg.Directory(), r.agent)
+}
+
+func (r *Store) initSub(ctx context.Context, sc *config.StoreConfig, alias string, path *backend.URL, keys []string) (store.Store, error) {
+	// init vault sub store
+	if backend.GetCryptoBackend(ctx) == backend.Vault || path.Crypto == backend.Vault {
+		out.Debug(ctx, "Initializing Vault Store at %s -> %s", alias, path.String())
+		return r.initSubVault(ctx, alias, path)
+	}
+
+	// init regular sub store
+	s, err := sub.New(ctx, r.cfg, alias, path, r.cfg.Directory(), r.agent)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to initialize store '%s' at '%s': %s", alias, path, err)
+	}
+
+	if s.Initialized(ctx) {
+		return s, nil
+	}
+
+	out.Debug(ctx, "[%s] Mount %s is not initialized", alias, path)
+	if len(keys) < 1 {
+		return s, errors.Errorf("password store %s is not initialized. Try gopass init --store %s --path %s", alias, alias, path)
+	}
+	if err := s.Init(ctx, path.String(), keys...); err != nil {
+		return s, errors.Wrapf(err, "failed to initialize store '%s' at '%s'", alias, path)
+	}
+	out.Green(ctx, "Password store %s initialized for:", path)
+	for _, r := range s.Recipients(ctx) {
+		color.Yellow(r)
+	}
+
+	return s, nil
 }
 
 // RemoveMount removes and existing mount
@@ -141,7 +171,7 @@ func (r *Store) MountPoint(name string) string {
 // getStore returns the Store object at the most-specific mount point for the
 // given key
 // context with sub store options set, sub store reference, truncated path to secret
-func (r *Store) getStore(ctx context.Context, name string) (context.Context, *sub.Store, string) {
+func (r *Store) getStore(ctx context.Context, name string) (context.Context, store.Store, string) {
 	name = strings.TrimSuffix(name, "/")
 	mp := r.MountPoint(name)
 	if sub, found := r.mounts[mp]; found {
@@ -152,7 +182,7 @@ func (r *Store) getStore(ctx context.Context, name string) (context.Context, *su
 
 // GetSubStore returns an exact match for a mount point or an error if this
 // mount point does not exist
-func (r *Store) GetSubStore(name string) (*sub.Store, error) {
+func (r *Store) GetSubStore(name string) (store.Store, error) {
 	if name == "" {
 		return r.store, nil
 	}

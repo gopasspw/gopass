@@ -7,9 +7,7 @@ message Header {
   map<string, bytes> Recipients = 2;
 }
 
-message Chunk {
-    bytes Body = 1;
-}
+message Chunk { bytes Body = 1; }
 
 message Message {
   uint32 Version = 1;

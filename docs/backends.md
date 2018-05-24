@@ -4,8 +4,8 @@ gopass supports pluggable backends for Storage (`store`), Encryption (`crypto`) 
 
 As of today the names and responsibilities of these backends are still unstable and will probably change.
 
-By providing suiteable backends gopass can use differnt kinds of encryption (see XC below) or storage.
-For example it is pretty straight forward to add mercurial or bazaar as an SCM backend or
+By providing suitable backends gopass can use different kinds of encryption (see XC below) or storage.
+For example it is pretty straightforward to add mercurial or bazaar as an SCM backend or
 implement a Vault storage.
 
 All backends are in their own packages below `backend/`. They need to implement the
@@ -16,13 +16,13 @@ the context handlers in the same package.
 
 ### Filesystem (fs)
 
-Right now there is only one storage backend implemented: Storing bytes on disk.
+This is the only stable storage backend. It stores the encrypted (see "Crypto Backends") data directly in the filesystem.
 
 ### In Memory (inmem)
 
 This is a volatile in-memory backend for tests.
 
-WARNING: All data is lost when gopass stops!
+**WARNING**: All data is lost when gopass stops!
 
 ### Consul (consul)
 
@@ -46,7 +46,7 @@ mounts:
 EOF
 ```
 
-This will setup an unecrypted backend, i.e. your secrets in Consul will be only
+This will setup an unencrypted backend, i.e. your secrets in Consul will be only
 protected by Consul's ACLs and anyone who can access your Consul K/V prefix
 can read your secrets.
 
@@ -76,8 +76,8 @@ fails.
 
 This backend is based on the amazing work of [source{d}](https://sourced.tech/)
 and implements a pure-Go SCM backend. It works pretty well but there is one major
-show stopped: It only supports fast-forward merges. Unfortunately this makes
-it unseable for most gopass usecases. However we still keep this backend around
+show stopper: It only supports fast-forward merges. Unfortunately this makes
+it unusable for most gopass usecases. However we still keep this backend around
 in case upstream manages to implement proper merges. In that case this will
 quickly become the default SCM backend.
 
@@ -90,8 +90,8 @@ This is a no-op backend for testing SCM-less support.
 ### CLI-based GPG (gitcli)
 
 This backend is based on calling the gpg binary. This is the recommended backend
-since we believe that it's the most secure and one and it's compatible with
-other implementations of the `password-store` layout. However GPG is notoriously
+since we believe that it's the most secure one and it is compatible with
+other implementations of the `password-store` vault layout. However GPG is notoriously
 difficult to use, there are lot's of different versions being used and the
 output is not very machine readable. We will continue to support this backend
 in the future, but we'd like to to move to a different default backend if possible.
@@ -100,26 +100,64 @@ in the future, but we'd like to to move to a different default backend if possib
 
 This is a no-op backend used for testing.
 
+**WARNING**: Do not use unless you know what you are doing.
+
 ### openpgp pure-Go (openpgp)
 
-We're planning to implement a pure-Go GPG backend based on the [openpgp package](https://godoc.org/golang.org/x/crypto/openpgp),
-but unfortunately this packaged doesn't support recent versions of GPG.
+We started to implement a pure-Go GPG backend based on the [openpgp package](https://godoc.org/golang.org/x/crypto/openpgp),
+but unfortunately this package doesn't support recent versions of GPG.
 If the openpgp package or a proper fork gains support for recent GPG versions
-we'll try to move to this yet-to-be-written backend as the default backend.
+we'll try to move to this backend as the default backend.
 
 ### NaCl-based custom crypto backend (xc)
 
 We implemented a pure-Go backend using a custom message format based on the excellent
 [NaCl library](https://nacl.cr.yp.to/) [packages](https://godoc.org/golang.org/x/crypto/nacl).
 The advantage of this backend that it's properly integrated into gopass, has a stable API,
-stable error handling and only the feature we absolutely need. This makes it
+stable error handling and only the features we absolutely need. This makes it
 very easy to setup, use and support. The big drawback is that it didn't receive
-any of the scrunity and peer review that GPG got. And since it's very easy to
+any of the scrutiny and peer review that GPG got. And since it's very easy to
 make dangerous mistakes when dealing with cryptography - even when it's only
 using existing building blocks - we're a little wary to recommend it for broader use.
 
 Also it requires it's own Keyring/Agent infrastructure as the keyformat is quite
 different from what GPG is using.
 
-Please see the backend [Readme](https://github.com/justwatchcom/gopass/blob/master/backend/crypto/xc/README.md) for more details. Proper documentation for this
+Please see the backend [Readme](https://github.com/justwatchcom/gopass/blob/master/pkg/backend/crypto/xc/README.md) for more details. Proper documentation for this
 backend still needs to written and will be added at a later point.
+
+### Vault (vault)
+
+This is an experimental crypto and storage backend currently available as a
+preview. This backend is special in that it's not implemented as a traditional
+backend but instead as an alternative `sub store` implementation. That was
+necessary as Vault already works with complex Secrets by itself and it didn't
+seem wise to force the internal gopass architecture onto this sophisticated
+storage scheme. That would have worked well for gopass, but would have stopped
+interoperability with other Vault users.
+
+**Note**: This backend fully relies on Vault for encryption and access
+management. It mostly exists as an easy access path to sync static secrets
+between a password store and Vault.
+
+To use the Vault backend manually create a mount in the config like in the
+following example:
+
+```
+cat <<EOF >> $HOME/.config/gopass/config.yml
+mounts:
+  vault:
+    path: vault+https://vault:8200/secret?token=some-token
+EOF
+```
+
+All `TLSConfig` options for Vault are supported as query parameters.
+
+| **Query Parameter** | **TLSConfig Attribute** | Description |
+| ------------------- | ----------------------- | ----------- |
+| tls-cacert | CACert | the Path to a PEM-encoded CA cert file |
+| tls-capath | CAPath | the Path to a directory of PEM-encoded CA cert files |
+| tls-clientcert | ClientCert | the Path to the certificate for Vault communication |
+| tls-clientkey | ClientKey | the path to the private key for Vault communication |
+| tls-servername | TLSServerName | set the SNI host when connecting |
+| tls-insecure | Disables SSL verification |

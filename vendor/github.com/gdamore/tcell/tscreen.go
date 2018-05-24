@@ -398,9 +398,12 @@ func (t *tScreen) Fini() {
 	t.clear = false
 	t.fini = true
 
-	if t.quit != nil {
+	select {
+	case <-t.quit:
+		// do nothing, already closed
+
+	default:
 		close(t.quit)
-		t.quit = nil
 	}
 	
 	t.termioFini()

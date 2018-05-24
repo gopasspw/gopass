@@ -4,10 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/pkg/notify"
 	"github.com/justwatchcom/gopass/pkg/out"
 	"github.com/justwatchcom/gopass/pkg/store"
+
+	"github.com/fatih/color"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"
 )
@@ -61,6 +62,7 @@ func (s *Action) sync(ctx context.Context, c *cli.Context, store string) error {
 	return nil
 }
 
+// syncMount syncs a single mount
 func (s *Action) syncMount(ctx context.Context, mp string) error {
 	ctxno := out.WithNewline(ctx, false)
 	name := mp
@@ -86,7 +88,7 @@ func (s *Action) syncMount(ctx context.Context, mp string) error {
 	}
 
 	out.Print(ctxno, "\n   "+color.GreenString("git pull and push ... "))
-	if err := sub.GitPush(ctx, "", ""); err != nil {
+	if err := sub.RCS().Push(ctx, "", ""); err != nil {
 		if errors.Cause(err) == store.ErrGitNoRemote {
 			out.Yellow(ctx, "Skipped (no remote)")
 			out.Debug(ctx, "Failed to push '%s' to it's remote: %s", name, err)
@@ -132,7 +134,7 @@ func (s *Action) syncMount(ctx context.Context, mp string) error {
 
 	// only run second push if we did export any keys
 	if exported {
-		if err := sub.GitPush(ctx, "", ""); err != nil {
+		if err := sub.RCS().Push(ctx, "", ""); err != nil {
 			out.Red(ctx, "Failed to push '%s' to it's remote: %s", name, err)
 			return err
 		}

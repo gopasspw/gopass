@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/justwatchcom/gopass/pkg/backend/crypto/xc/xcpb"
-
 	"golang.org/x/crypto/sha3"
+
+	"github.com/justwatchcom/gopass/pkg/backend/crypto/xc/xcpb"
 )
 
 // PublicKeyAlgorithm is a type of public key algorithm

@@ -9,12 +9,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/blang/semver"
 	"github.com/justwatchcom/gopass/pkg/backend"
 	"github.com/justwatchcom/gopass/pkg/out"
 	"github.com/justwatchcom/gopass/pkg/store"
-	"github.com/pkg/errors"
 
+	"github.com/blang/semver"
+	"github.com/pkg/errors"
 	git "gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/config"
 	"gopkg.in/src-d/go-git.v4/plumbing"
@@ -283,6 +283,11 @@ func (g *Git) AddRemote(ctx context.Context, remote, url string) error {
 		URLs: []string{url},
 	})
 	return err
+}
+
+// RemoveRemote removes a remote
+func (g *Git) RemoveRemote(ctx context.Context, remote string) error {
+	return g.repo.DeleteRemote(remote)
 }
 
 // Name returns go-git

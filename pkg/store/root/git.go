@@ -3,15 +3,16 @@ package root
 import (
 	"context"
 
-	"github.com/blang/semver"
 	"github.com/justwatchcom/gopass/pkg/backend"
 	"github.com/justwatchcom/gopass/pkg/store"
+
+	"github.com/blang/semver"
 )
 
-// Sync returns the sync backend
-func (r *Store) Sync(ctx context.Context, name string) backend.RCS {
+// RCS returns the sync backend
+func (r *Store) RCS(ctx context.Context, name string) backend.RCS {
 	_, sub, _ := r.getStore(ctx, name)
-	if sub == nil {
+	if sub == nil || !sub.Valid() {
 		return nil
 	}
 	return sub.RCS()
@@ -26,30 +27,36 @@ func (r *Store) GitInit(ctx context.Context, name, userName, userEmail string) e
 // GitInitConfig initializes the git repos local config
 func (r *Store) GitInitConfig(ctx context.Context, name, userName, userEmail string) error {
 	ctx, store, _ := r.getStore(ctx, name)
-	return store.GitInitConfig(ctx, userName, userEmail)
+	return store.RCS().InitConfig(ctx, userName, userEmail)
 }
 
 // GitVersion returns git version information
 func (r *Store) GitVersion(ctx context.Context) semver.Version {
-	return r.store.GitVersion(ctx)
+	return r.store.RCS().Version(ctx)
 }
 
 // GitAddRemote adds a git remote
 func (r *Store) GitAddRemote(ctx context.Context, name, remote, url string) error {
 	ctx, store, _ := r.getStore(ctx, name)
-	return store.GitAddRemote(ctx, remote, url)
+	return store.RCS().AddRemote(ctx, remote, url)
+}
+
+// GitRemoveRemote removes a git remote
+func (r *Store) GitRemoveRemote(ctx context.Context, name, remote string) error {
+	ctx, store, _ := r.getStore(ctx, name)
+	return store.RCS().RemoveRemote(ctx, remote)
 }
 
 // GitPull performs a git pull
 func (r *Store) GitPull(ctx context.Context, name, origin, remote string) error {
 	ctx, store, _ := r.getStore(ctx, name)
-	return store.GitPush(ctx, origin, remote)
+	return store.RCS().Pull(ctx, origin, remote)
 }
 
 // GitPush performs a git push
 func (r *Store) GitPush(ctx context.Context, name, origin, remote string) error {
 	ctx, store, _ := r.getStore(ctx, name)
-	return store.GitPush(ctx, origin, remote)
+	return store.RCS().Push(ctx, origin, remote)
 }
 
 // ListRevisions will list all revisions for the named entity

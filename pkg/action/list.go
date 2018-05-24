@@ -9,17 +9,19 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/pkg/ctxutil"
 	"github.com/justwatchcom/gopass/pkg/out"
 	"github.com/justwatchcom/gopass/pkg/termutil"
 	"github.com/justwatchcom/gopass/pkg/tree"
+
+	"github.com/fatih/color"
 	shellquote "github.com/kballard/go-shellquote"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"
 )
 
-// List all secrets as a tree
+// List all secrets as a tree. If the filter argument is non-empty
+// display only those that have this prefix
 func (s *Action) List(ctx context.Context, c *cli.Context) error {
 	filter := c.Args().First()
 	flat := c.Bool("flat")
@@ -44,6 +46,7 @@ func (s *Action) listFiltered(ctx context.Context, l tree.Tree, limit int, flat,
 		return nil
 	}
 
+	// SetRoot formats the root entry properly
 	subtree.SetRoot(true)
 	subtree.SetName(filter)
 	if flat {
@@ -73,6 +76,8 @@ func (s *Action) listFiltered(ctx context.Context, l tree.Tree, limit int, flat,
 	return nil
 }
 
+// redirectPager returns a redirected io.Writer if the output would exceed
+// the terminal size
 func redirectPager(ctx context.Context, subtree tree.Tree) (io.Writer, *bytes.Buffer) {
 	if ctxutil.IsNoPager(ctx) {
 		return stdout, nil
@@ -89,6 +94,7 @@ func redirectPager(ctx context.Context, subtree tree.Tree) (io.Writer, *bytes.Bu
 	return buf, buf
 }
 
+// listAll will unconditionally list all entries, used if no filter is given
 func (s *Action) listAll(ctx context.Context, l tree.Tree, limit int, flat bool) error {
 	if flat {
 		for _, e := range l.List(limit) {
@@ -109,6 +115,7 @@ func (s *Action) listAll(ctx context.Context, l tree.Tree, limit int, flat bool)
 	return nil
 }
 
+// pager invokes the default pager with the given content
 func (s *Action) pager(ctx context.Context, buf io.Reader) error {
 	pager := os.Getenv("PAGER")
 	if pager == "" {

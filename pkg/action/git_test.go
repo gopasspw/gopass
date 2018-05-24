@@ -10,6 +10,7 @@ import (
 	"github.com/justwatchcom/gopass/pkg/ctxutil"
 	"github.com/justwatchcom/gopass/pkg/out"
 	"github.com/justwatchcom/gopass/tests/gptest"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/urfave/cli"
 )
@@ -51,5 +52,26 @@ func TestGit(t *testing.T) {
 	c := cli.NewContext(app, fs, nil)
 
 	assert.NoError(t, act.GitInit(ctx, c))
+	buf.Reset()
+
+	// getUserData
+	name, email := act.getUserData(ctx, "", "", "")
+	assert.Equal(t, "", name)
+	assert.Equal(t, "", email)
+
+	// GitAddRemote
+	assert.Error(t, act.GitAddRemote(ctx, c))
+	buf.Reset()
+
+	// GitRemoveRemote
+	assert.Error(t, act.GitRemoveRemote(ctx, c))
+	buf.Reset()
+
+	// GitPull
+	assert.Error(t, act.GitPull(ctx, c))
+	buf.Reset()
+
+	// GitPush
+	assert.Error(t, act.GitPush(ctx, c))
 	buf.Reset()
 }

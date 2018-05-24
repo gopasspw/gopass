@@ -8,6 +8,7 @@ import (
 
 	"github.com/justwatchcom/gopass/pkg/backend"
 	"github.com/justwatchcom/gopass/pkg/fsutil"
+
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
 )
@@ -15,6 +16,9 @@ import (
 // Load will try to load the config from one of the default locations
 func Load() *Config {
 	for _, l := range configLocations() {
+		if debug {
+			fmt.Printf("[DEBUG] Trying to load config from %s\n", l)
+		}
 		cfg, err := load(l)
 		if err == ErrConfigNotFound {
 			continue

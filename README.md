@@ -35,7 +35,7 @@ The slightly more awesome Standard Unix Password Manager for Teams. Written in G
 
 ## Demo
 
-[![asciicast](https://asciinema.org/a/101688.png)](https://asciinema.org/a/101688)
+[![asciicast](https://asciinema.org/a/172749.png)](https://asciinema.org/a/172749)
 
 ## Features
 
@@ -61,7 +61,7 @@ Please see [docs/features.md](https://github.com/justwatchcom/gopass/blob/master
 
 ## Installation
 
-If you have [Go](https://golang.org/) installed:
+If you have [Go](https://golang.org/) 1.10 (or greater) installed:
 
 ```bash
 go get github.com/justwatchcom/gopass
@@ -81,6 +81,7 @@ gopass is maintained by the nice folks from [JustWatch](https://www.justwatch.co
 
 Maintainers of this repository:
 
+* Christoph Oelmüller <christoph.oelmueller@justwatch.com> [@zwopir](https://github.com/zwopir)
 * Matthias Loibl <mail@matthiasloibl.com> [@metalmatze](https://github.com/metalmatze)
 * Dominik Schulz <dominik.schulz@justwatch.com> [@dominikschulz](https://github.com/dominikschulz)
 

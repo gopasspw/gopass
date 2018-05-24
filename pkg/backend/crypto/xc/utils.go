@@ -6,9 +6,10 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/golang/protobuf/proto"
 	"github.com/justwatchcom/gopass/pkg/backend/crypto/xc/keyring"
 	"github.com/justwatchcom/gopass/pkg/backend/crypto/xc/xcpb"
+
+	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
 )
 
@@ -108,6 +109,11 @@ func (x *XC) EmailFromKey(ctx context.Context, id string) string {
 	if key := x.secring.Get(id); key != nil {
 		return key.PublicKey.Identity.Email
 	}
+	return id
+}
+
+// Fingerprint returns the full-length native fingerprint
+func (x *XC) Fingerprint(ctx context.Context, id string) string {
 	return id
 }
 

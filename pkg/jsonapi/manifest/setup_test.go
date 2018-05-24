@@ -1,26 +1,36 @@
 package manifest
 
 import (
-	"bytes"
-	"io"
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func TestPrintSummary(t *testing.T) {
-	oldOut := os.Stdout
-	r, w, _ := os.Pipe()
-	os.Stdout = w
-	done := make(chan string)
-	go func() {
-		buf := &bytes.Buffer{}
-		_, _ = io.Copy(buf, r)
-		done <- buf.String()
-	}()
-	assert.NoError(t, PrintSummary("chrome", "/usr/lib/wrapper", "/usr/lib", false))
-	assert.NoError(t, w.Close())
-	os.Stdout = oldOut
-	assert.Contains(t, <-done, "Native Messaging Host Manifest")
+const (
+	manifestGolden = `{
+    "name": "com.justwatch.gopass",
+    "description": "Gopass wrapper to search and return passwords",
+    "path": "/tmp/",
+    "type": "stdio",
+    "allowed_origins": [
+        "chrome-extension://kkhfnlkhiapbiehimabddjbimfaijdhk/"
+    ]
+}`
+)
+
+func TestRender(t *testing.T) {
+	w, m, err := Render("chrome", "/tmp/", "gopass", true)
+	assert.NoError(t, err)
+	assert.Equal(t, wrapperGolden, string(w))
+	assert.Equal(t, manifestGolden, string(m))
+}
+
+func TestValidBrowser(t *testing.T) {
+	for _, b := range []string{"chrome", "chromium", "firefox"} {
+		assert.Equal(t, true, ValidBrowser(b))
+	}
+}
+
+func TestValidBrowsers(t *testing.T) {
+	assert.Equal(t, []string{"chrome", "chromium", "firefox"}, ValidBrowsers())
 }

@@ -6,6 +6,7 @@ import (
 
 	"github.com/justwatchcom/gopass/pkg/store/sub"
 	"github.com/justwatchcom/gopass/pkg/termio"
+
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"
 )
@@ -20,6 +21,7 @@ func (s *Action) Delete(ctx context.Context, c *cli.Context) error {
 		return ExitError(ctx, ExitUsage, nil, "Usage: %s rm name", s.Name)
 	}
 
+	// specifying a key is optional
 	key := c.Args().Get(1)
 
 	if !force { // don't check if it's force anyway
@@ -54,6 +56,7 @@ func (s *Action) Delete(ctx context.Context, c *cli.Context) error {
 	return nil
 }
 
+// deleteKeyFromYAML deletes a single key from YAML
 func (s *Action) deleteKeyFromYAML(ctx context.Context, name, key string) error {
 	sec, err := s.Store.Get(ctx, name)
 	if err != nil {

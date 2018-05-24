@@ -12,6 +12,7 @@ import (
 	"github.com/justwatchcom/gopass/pkg/store/secret"
 	"github.com/justwatchcom/gopass/pkg/store/sub"
 	"github.com/justwatchcom/gopass/pkg/tpl"
+
 	"github.com/urfave/cli"
 )
 
@@ -24,6 +25,7 @@ func (s *Action) Edit(ctx context.Context, c *cli.Context) error {
 
 	ed := editor.Path(c)
 
+	// get existing content or generate new one from a template
 	var content []byte
 	var changed bool
 	if s.Store.Exists(ctx, name) {
@@ -46,6 +48,7 @@ func (s *Action) Edit(ctx context.Context, c *cli.Context) error {
 		}
 	}
 
+	// invoke the editor to let the user edit the content
 	nContent, err := editor.Invoke(ctx, ed, content)
 	if err != nil {
 		return ExitError(ctx, ExitUnknown, err, "failed to invoke editor: %s", err)
@@ -61,10 +64,12 @@ func (s *Action) Edit(ctx context.Context, c *cli.Context) error {
 		out.Red(ctx, "WARNING: Invalid YAML: %s", err)
 	}
 
+	// if the secret has a password, we check it's strength
 	if pw := nSec.Password(); pw != "" {
 		audit.Single(ctx, pw)
 	}
 
+	// write result (back) to store
 	if err := s.Store.Set(sub.WithReason(ctx, fmt.Sprintf("Edited with %s", ed)), name, nSec); err != nil {
 		return ExitError(ctx, ExitEncrypt, err, "failed to encrypt secret %s: %s", name, err)
 	}

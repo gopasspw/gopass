@@ -2,6 +2,7 @@ FIRST_GOPATH              := $(firstword $(subst :, ,$(GOPATH)))
 PKGS                      := $(shell go list ./... | grep -v /tests | grep -v /xcpb | grep -v /openpgp)
 GOFILES_NOVENDOR          := $(shell find . -name vendor -prune -o -type f -name '*.go' -not -name '*.pb.go' -print)
 GOFILES_BUILD             := $(shell find . -type f -name '*.go' -not -name '*_test.go')
+PROTOFILES                := $(shell find . -name vendor -prune -o -type f -name '*.proto' -print)
 GOPASS_VERSION            ?= $(shell cat VERSION)
 GOPASS_OUTPUT             ?= gopass
 GOPASS_REVISION           := $(shell cat COMMIT 2>/dev/null || git rev-parse --short=8 HEAD)
@@ -25,7 +26,7 @@ OK := $(shell tput setaf 6; echo ' [OK]'; tput sgr0;)
 all: build completion
 build: $(GOPASS_OUTPUT)
 completion: $(BASH_COMPLETION_OUTPUT) $(FISH_COMPLETION_OUTPUT) $(ZSH_COMPLETION_OUTPUT)
-travis: sysinfo crosscompile build install test codequality completion
+travis: sysinfo crosscompile build install legal test codequality completion manifests
 
 sysinfo:
 	@echo ">> SYSTEM INFORMATION"
@@ -117,11 +118,31 @@ install-completion: completion
 	@install -m 0755 $(FISH_COMPLETION_OUTPUT) $(DESTDIR)$(PREFIX)/share/fish/vendor_completions.d/gopass.fish
 	@printf '%s\n' '$(OK)'
 
+manifests: $(GOPASS_OUTPUT)
+	@./gopass --yes jsonapi configure --path=. --manifest-path=manifest-chrome.json --browser=chrome --gopass-path=gopass --print=false
+	@./gopass --yes jsonapi configure --path=. --manifest-path=manifest-chromium.json --browser=chromium --gopass-path=gopass --print=false
+	@./gopass --yes jsonapi configure --path=. --manifest-path=manifest-firefox.json --browser=firefox --gopass-path=gopass --print=false
+
+legal:
+	@echo ">> LEGAL"
+	@echo -n "   LICENSES   "
+	@which licenses > /dev/null; if [ $$? -ne 0 ]; then \
+		$(GO) get -u github.com/pmezard/licenses; \
+	fi
+	@licenses . > NOTICE.new
+	@diff NOTICE.txt NOTICE.new || exit 1
+	@printf '%s\n' '$(OK)'
+
 codequality:
 	@echo ">> CODE QUALITY"
 	@echo -n "     FMT       "
 	@$(foreach gofile, $(GOFILES_NOVENDOR),\
 			out=$$(gofmt -s -l -d -e $(gofile) | tee /dev/stderr); if [ -n "$$out" ]; then exit 1; fi;)
+	@printf '%s\n' '$(OK)'
+
+	@echo -n "     CLANGFMT  "
+	@$(foreach pbfile, $(PROTOFILES),\
+			if [ $$(clang-format -output-replacements-xml $(pbfile) | wc -l) -gt 3  ]; then exit 1; fi;)
 	@printf '%s\n' '$(OK)'
 
 	@echo -n "     VET       "
@@ -170,7 +191,7 @@ codequality:
 	@which errcheck > /dev/null; if [ $$? -ne 0  ]; then \
 		$(GO) get -u github.com/kisielk/errcheck; \
 	fi
-	@errcheck $(PKGS) || exit 1
+	@errcheck -exclude .errcheck.excl $(PKGS) || exit 1
 	@printf '%s\n' '$(OK)'
 
 	@echo -n "     UNCONVERT "
@@ -182,6 +203,7 @@ codequality:
 
 fmt:
 	@gofmt -s -l -w $(GOFILES_NOVENDOR)
+	@clang-format -i $(PROTOFILES)
 
 fuzz-gpg:
 	mkdir -p workdir/gpg-cli/corpus

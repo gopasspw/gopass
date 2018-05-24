@@ -18,6 +18,8 @@ const (
 	XC
 	// OpenPGP is a GPG1.x compatible pure-Go crypto backend
 	OpenPGP
+	// Vault is Hashicorp Vault backend
+	Vault
 )
 
 func (c CryptoBackend) String() string {
@@ -38,6 +40,7 @@ type Keyring interface {
 	FormatKey(ctx context.Context, id string) string
 	NameFromKey(ctx context.Context, id string) string
 	EmailFromKey(ctx context.Context, id string) string
+	Fingerprint(ctx context.Context, id string) string
 	ReadNamesFromKey(ctx context.Context, buf []byte) ([]string, error)
 
 	CreatePrivateKeyBatch(ctx context.Context, name, email, passphrase string) error

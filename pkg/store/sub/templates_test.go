@@ -6,8 +6,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/pkg/backend"
+
+	"github.com/fatih/color"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -29,8 +30,9 @@ func TestTemplates(t *testing.T) {
 	ctx = backend.WithRCSBackendString(ctx, "noop")
 	s, err := New(
 		ctx,
+		nil,
 		"",
-		tempdir,
+		backend.FromPath(tempdir),
 		tempdir,
 		nil,
 	)

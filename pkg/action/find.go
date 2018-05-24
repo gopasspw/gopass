@@ -9,6 +9,7 @@ import (
 	"github.com/justwatchcom/gopass/pkg/ctxutil"
 	"github.com/justwatchcom/gopass/pkg/cui"
 	"github.com/justwatchcom/gopass/pkg/out"
+
 	"github.com/schollz/closestmatch"
 	"github.com/urfave/cli"
 )
@@ -18,16 +19,18 @@ func (s *Action) Find(ctx context.Context, c *cli.Context) error {
 	ctx = WithClip(ctx, c.Bool("clip"))
 
 	if !c.Args().Present() {
-		return ExitError(ctx, ExitUsage, nil, "Usage: %s find arg", s.Name)
+		return ExitError(ctx, ExitUsage, nil, "Usage: %s find <NEEDLE>", s.Name)
 	}
 
-	l, err := s.Store.List(ctx, 0)
+	// get all existing entries
+	haystack, err := s.Store.List(ctx, 0)
 	if err != nil {
 		return ExitError(ctx, ExitList, err, "failed to list store: %s", err)
 	}
 
+	// filter our the ones from the haystack matching the needle
 	needle := strings.ToLower(c.Args().First())
-	choices := filter(l, needle)
+	choices := filter(haystack, needle)
 
 	// if we have an exact match print it
 	if len(choices) == 1 {
@@ -38,7 +41,7 @@ func (s *Action) Find(ctx context.Context, c *cli.Context) error {
 	// if we don't have a match yet try a fuzzy search
 	if len(choices) < 1 && ctxutil.IsFuzzySearch(ctx) {
 		// try fuzzy match
-		cm := closestmatch.New(l, []int{2})
+		cm := closestmatch.New(haystack, []int{2})
 		choices = cm.ClosestN(needle, 5)
 	}
 
@@ -59,6 +62,7 @@ func (s *Action) Find(ctx context.Context, c *cli.Context) error {
 	return s.findSelection(ctx, c, choices, needle)
 }
 
+// findSelection runs a wizard that lets the user select an entry
 func (s *Action) findSelection(ctx context.Context, c *cli.Context, choices []string, needle string) error {
 	sort.Strings(choices)
 	act, sel := cui.GetSelection(ctx, "Found secrets - Please select an entry", "<↑/↓> to change the selection, <→> to show, <←> to copy, <s> to sync, <ESC> to quit", choices)

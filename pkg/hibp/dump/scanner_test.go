@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-const testHibpSample = `000000005AD76BD555C1D6D771DE417A4B87E4B4
+const testHibpSampleSorted = `000000005AD76BD555C1D6D771DE417A4B87E4B4
 00000000A8DAE4228F821FB418F59826079BF368:42
 00000000DD7F2A1C68A35673713783CA390C9E93:42
 00000001E225B908BAC31C56DB04D892E47536E0:42
@@ -20,6 +20,16 @@ const testHibpSample = `000000005AD76BD555C1D6D771DE417A4B87E4B4
 0000000A1D4B746FAA3FD526FF6D5BC8052FDB38:42
 0000000CAEF405439D57847A8657218C618160B2:42
 0000000FC1C08E6454BED24F463EA2129E254D43:42
+00000010F4B38525354491E099EB1796278544B1`
+const testHibpSampleUnsorted = `000000005AD76BD555C1D6D771DE417A4B87E4B4
+00000000A8DAE4228F821FB418F59826079BF368:42
+00000008CD1806EB7B9B46A8F87690B2AC16F617:42
+0000000A0E3B9F25FF41DE4B5AC238C2D545C7A8:42
+0000000A1D4B746FAA3FD526FF6D5BC8052FDB38:42
+0000000CAEF405439D57847A8657218C618160B2:42
+0000000FC1C08E6454BED24F463EA2129E254D43:42
+00000000DD7F2A1C68A35673713783CA390C9E93:42
+00000001E225B908BAC31C56DB04D892E47536E0:42
 00000010F4B38525354491E099EB1796278544B1`
 
 func TestScanner(t *testing.T) {
@@ -36,17 +46,25 @@ func TestScanner(t *testing.T) {
 	_, err = New()
 	assert.Error(t, err)
 
-	// setup file and env
+	// setup file and env (sorted)
 	fn := filepath.Join(td, "dump.txt")
-	assert.NoError(t, ioutil.WriteFile(fn, []byte(testHibpSample), 0644))
+	assert.NoError(t, ioutil.WriteFile(fn, []byte(testHibpSampleSorted), 0644))
 
 	scanner, err := New(fn)
 	assert.NoError(t, err)
 	assert.Equal(t, []string{}, scanner.LookupBatch(ctx, []string{"foobar"}))
 
+	// setup file and env (unsorted)
+	fn = filepath.Join(td, "dump.txt")
+	assert.NoError(t, ioutil.WriteFile(fn, []byte(testHibpSampleUnsorted), 0644))
+
+	scanner, err = New(fn)
+	assert.NoError(t, err)
+	assert.Equal(t, []string{}, scanner.LookupBatch(ctx, []string{"foobar"}))
+
 	// gzip
 	fn = filepath.Join(td, "dump.txt.gz")
-	assert.NoError(t, testWriteGZ(fn, []byte(testHibpSample)))
+	assert.NoError(t, testWriteGZ(fn, []byte(testHibpSampleSorted)))
 
 	scanner, err = New(fn)
 	assert.NoError(t, err)

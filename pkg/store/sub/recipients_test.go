@@ -16,6 +16,7 @@ import (
 	noop "github.com/justwatchcom/gopass/pkg/backend/rcs/noop"
 	"github.com/justwatchcom/gopass/pkg/backend/storage/fs"
 	"github.com/justwatchcom/gopass/pkg/out"
+
 	"github.com/stretchr/testify/assert"
 )
 
@@ -43,6 +44,7 @@ func TestGetRecipientsDefault(t *testing.T) {
 		crypto:  plain.New(),
 		rcs:     noop.New(),
 		storage: fs.New(tempdir),
+		sc:      &fakeConfig{},
 	}
 
 	assert.Equal(t, genRecs, s.Recipients(ctx))
@@ -75,6 +77,7 @@ func TestGetRecipientsSubID(t *testing.T) {
 		crypto:  plain.New(),
 		rcs:     noop.New(),
 		storage: fs.New(tempdir),
+		sc:      &fakeConfig{},
 	}
 
 	recs, err := s.GetRecipients(ctx, "")
@@ -113,6 +116,7 @@ func TestSaveRecipients(t *testing.T) {
 		crypto:  plain.New(),
 		rcs:     noop.New(),
 		storage: fs.New(tempdir),
+		sc:      &fakeConfig{},
 	}
 
 	// remove recipients
@@ -167,6 +171,7 @@ func TestAddRecipient(t *testing.T) {
 		crypto:  plain.New(),
 		rcs:     noop.New(),
 		storage: fs.New(tempdir),
+		sc:      &fakeConfig{},
 	}
 
 	newRecp := "A3683834"
@@ -206,6 +211,7 @@ func TestRemoveRecipient(t *testing.T) {
 		crypto:  plain.New(),
 		rcs:     noop.New(),
 		storage: fs.New(tempdir),
+		sc:      &fakeConfig{},
 	}
 
 	err = s.RemoveRecipient(ctx, "0xDEADBEEF")
@@ -238,8 +244,9 @@ func TestListRecipients(t *testing.T) {
 	ctx = backend.WithRCSBackendString(ctx, "noop")
 	s, err := New(
 		ctx,
+		&fakeConfig{},
 		"",
-		tempdir,
+		backend.FromPath(tempdir),
 		tempdir,
 		nil,
 	)

@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/justwatchcom/gopass/pkg/ctxutil"
+
 	"github.com/stretchr/testify/assert"
 )
 

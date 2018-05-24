@@ -11,6 +11,7 @@ import (
 	"github.com/justwatchcom/gopass/pkg/out"
 	"github.com/justwatchcom/gopass/pkg/store/secret"
 	"github.com/justwatchcom/gopass/tests/gptest"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/urfave/cli"
 )
@@ -40,6 +41,13 @@ func TestAudit(t *testing.T) {
 		stdout = os.Stdout
 	}()
 
+	assert.Error(t, act.Audit(ctx, c))
+	buf.Reset()
+
+	// test with filter
+	fs = flag.NewFlagSet("default", flag.ContinueOnError)
+	assert.NoError(t, fs.Parse([]string{"foo"}))
+	c = cli.NewContext(app, fs, nil)
 	assert.Error(t, act.Audit(ctx, c))
 	buf.Reset()
 }

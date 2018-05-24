@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/pkg/agent/client"
 	"github.com/justwatchcom/gopass/pkg/backend"
 	"github.com/justwatchcom/gopass/pkg/config"
@@ -15,6 +14,8 @@ import (
 	"github.com/justwatchcom/gopass/pkg/pwgen/xkcdgen"
 	"github.com/justwatchcom/gopass/pkg/store/sub"
 	"github.com/justwatchcom/gopass/pkg/termio"
+
+	"github.com/fatih/color"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"
 )
@@ -42,20 +43,44 @@ func (s *Action) Initialized(ctx context.Context, c *cli.Context) error {
 func (s *Action) Init(ctx context.Context, c *cli.Context) error {
 	path := c.String("path")
 	alias := c.String("store")
-	nogit := c.Bool("nogit")
-	ctx = backend.WithCryptoBackendString(ctx, c.String("crypto"))
-	ctx = backend.WithRCSBackendString(ctx, c.String("sync"))
 
-	ctx = out.WithPrefix(ctx, "[init] ")
-	out.Cyan(ctx, "Initializing a new password store ...")
+	ctx = initParseContext(ctx, c)
+	if s.Store.Initialized(ctx) {
+		out.Red(ctx, "WARNING: Store is already initialized")
+	}
 
-	if err := s.init(ctx, alias, path, nogit, c.Args()...); err != nil {
-		return ExitError(ctx, ExitUnknown, err, "failed to initialized store: %s", err)
+	if err := s.init(ctx, alias, path, c.Args()...); err != nil {
+		return ExitError(ctx, ExitUnknown, err, "failed to initialize store: %s", err)
 	}
 	return nil
 }
 
-func (s *Action) init(ctx context.Context, alias, path string, nogit bool, keys ...string) error {
+func initParseContext(ctx context.Context, c *cli.Context) context.Context {
+	if c.IsSet("crypto") {
+		ctx = backend.WithCryptoBackendString(ctx, c.String("crypto"))
+	}
+	if c.IsSet("rcs") {
+		ctx = backend.WithRCSBackendString(ctx, c.String("rcs"))
+	} else {
+		if c.IsSet("nogit") && c.Bool("nogit") {
+			out.Red(ctx, "DEPRECATION WARNING: Use '--rcs noop' instead")
+			ctx = backend.WithRCSBackend(ctx, backend.Noop)
+		}
+	}
+
+	// default to git
+	if !backend.HasRCSBackend(ctx) {
+		out.Debug(ctx, "Using default RCS backend (GitCLI)")
+		ctx = backend.WithRCSBackend(ctx, backend.GitCLI)
+	}
+
+	ctx = out.WithPrefix(ctx, "[init] ")
+	out.Cyan(ctx, "Initializing a new password store ...")
+
+	return ctx
+}
+
+func (s *Action) init(ctx context.Context, alias, path string, keys ...string) error {
 	if path == "" {
 		if alias != "" {
 			path = config.PwStoreDir(alias)
@@ -63,7 +88,7 @@ func (s *Action) init(ctx context.Context, alias, path string, nogit bool, keys 
 			path = s.Store.Path()
 		}
 	}
-	out.Debug(ctx, "init(%s, %s, %t, %+v)", alias, path, nogit, keys)
+	out.Debug(ctx, "action.init(%s, %s, %+v)", alias, path, keys)
 
 	out.Debug(ctx, "Checking private keys ...")
 	if len(keys) < 1 {
@@ -86,12 +111,15 @@ func (s *Action) init(ctx context.Context, alias, path string, nogit bool, keys 
 		}
 	}
 
-	if !nogit {
-		out.Debug(ctx, "Initializing RCS ...")
-		if err := s.gitInit(ctx, alias, "", ""); err != nil {
+	if backend.HasRCSBackend(ctx) {
+		bn := backend.RCSBackendName(backend.GetRCSBackend(ctx))
+		out.Debug(ctx, "Initializing RCS (%s) ...", bn)
+		if err := s.rcsInit(ctx, alias, "", ""); err != nil {
 			out.Debug(ctx, "Stacktrace: %+v\n", err)
-			out.Red(ctx, "Failed to init git: %s", err)
+			out.Red(ctx, "Failed to init RCS (%s): %s", bn, err)
 		}
+	} else {
+		out.Debug(ctx, "not initializing RCS backend ...")
 	}
 
 	out.Green(ctx, "Password store %s initialized for:", path)
@@ -123,6 +151,15 @@ func (s *Action) InitOnboarding(ctx context.Context, c *cli.Context) error {
 	create := c.Bool("create")
 	name := c.String("name")
 	email := c.String("email")
+	ctx = backend.WithCryptoBackendString(ctx, c.String("crypto"))
+
+	// default to git
+	if rcs := c.String("rcs"); rcs != "" {
+		ctx = backend.WithRCSBackendString(ctx, c.String("rcs"))
+	} else {
+		out.Debug(ctx, "Using default RCS backend (GitCLI)")
+		ctx = backend.WithRCSBackend(ctx, backend.GitCLI)
+	}
 
 	ctx = out.AddPrefix(ctx, "[init] ")
 	out.Debug(ctx, "Starting Onboarding Wizard - remote: %s - team: %s - create: %t - name: %s - email: %s", remote, team, create, name, email)
@@ -275,7 +312,7 @@ func (s *Action) initLocal(ctx context.Context, c *cli.Context) error {
 	}
 
 	out.Print(ctx, "Initializing your local store ...")
-	if err := s.init(out.WithHidden(ctx, true), "", path, false); err != nil {
+	if err := s.init(out.WithHidden(ctx, true), "", path); err != nil {
 		return errors.Wrapf(err, "failed to init local store")
 	}
 	out.Green(ctx, " -> OK")
@@ -326,7 +363,7 @@ func (s *Action) initCreateTeam(ctx context.Context, c *cli.Context, team, remot
 	ctx = out.AddPrefix(ctx, "["+team+"] ")
 
 	out.Print(ctx, "Initializing your shared store ...")
-	if err := s.init(out.WithHidden(ctx, true), team, "", false); err != nil {
+	if err := s.init(out.WithHidden(ctx, true), team, ""); err != nil {
 		return errors.Wrapf(err, "failed to init shared store")
 	}
 	out.Green(ctx, " -> OK")

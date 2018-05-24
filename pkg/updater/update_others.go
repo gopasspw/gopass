@@ -17,6 +17,7 @@ import (
 	"golang.org/x/sys/unix"
 
 	"github.com/justwatchcom/gopass/pkg/out"
+
 	"github.com/pkg/errors"
 )
 
@@ -80,18 +81,21 @@ func IsUpdateable(ctx context.Context) error {
 	}
 	out.Debug(ctx, "isUpdateable - File: %s", fn)
 	// check if this is a test binary
-	if filepath.Base(fn) == "action.test" {
+	if strings.HasSuffix(filepath.Base(fn), ".test") {
 		return nil
 	}
+
 	// check if we want to force updateability
 	if uf := os.Getenv("GOPASS_FORCE_UPDATE"); uf != "" {
 		out.Debug(ctx, "updateable due to force flag")
 		return nil
 	}
+
 	// check if file is in GOPATH
 	if gp := os.Getenv("GOPATH"); strings.HasPrefix(fn, gp) {
 		return fmt.Errorf("use go get -u to update binary in GOPATH")
 	}
+
 	// check file
 	fi, err := os.Stat(fn)
 	if err != nil {
@@ -103,12 +107,13 @@ func IsUpdateable(ctx context.Context) error {
 	if err := unix.Access(fn, unix.W_OK); err != nil {
 		return err
 	}
+
 	// check dir
 	fdir := filepath.Dir(fn)
 	return unix.Access(fdir, unix.W_OK)
 }
 
-func executable(ctx context.Context) (string, error) {
+var executable = func(ctx context.Context) (string, error) {
 	path, err := os.Executable()
 	if err != nil {
 		return path, err

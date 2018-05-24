@@ -5,12 +5,15 @@ import (
 
 	"github.com/justwatchcom/gopass/pkg/audit"
 	"github.com/justwatchcom/gopass/pkg/out"
+
 	"github.com/urfave/cli"
 )
 
 // Audit validates passwords against common flaws
 func (s *Action) Audit(ctx context.Context, c *cli.Context) error {
 	filter := c.Args().First()
+
+	out.Print(ctx, "Auditing passwords for common flaws ...")
 
 	t, err := s.Store.Tree(ctx)
 	if err != nil {
@@ -19,7 +22,7 @@ func (s *Action) Audit(ctx context.Context, c *cli.Context) error {
 	if filter != "" {
 		subtree, err := t.FindFolder(filter)
 		if err != nil {
-			return err
+			return ExitError(ctx, ExitUnknown, err, "failed to find subtree: %s", err)
 		}
 		t = subtree
 	}

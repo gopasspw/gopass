@@ -8,11 +8,11 @@ import (
 	"path/filepath"
 	"testing"
 
-	"gopkg.in/src-d/go-git.v4/config"
-
 	"github.com/justwatchcom/gopass/pkg/ctxutil"
 	"github.com/justwatchcom/gopass/pkg/store"
+
 	"github.com/stretchr/testify/assert"
+	"gopkg.in/src-d/go-git.v4/config"
 )
 
 func TestCloneLocal(t *testing.T) {
@@ -130,6 +130,8 @@ func TestInit(t *testing.T) {
 	assert.Error(t, g.InitConfig(ctx, "foo", "bar"))
 	assert.Equal(t, "go-git", g.Name())
 	assert.NoError(t, g.AddRemote(ctx, "foo", "file:///tmp/foo"))
+	assert.NoError(t, g.RemoveRemote(ctx, "foo"))
+	assert.Error(t, g.RemoveRemote(ctx, "foo"))
 
 	// list remotes
 	list, err = g.repo.Remotes()

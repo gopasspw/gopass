@@ -8,11 +8,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/pkg/ctxutil"
 	"github.com/justwatchcom/gopass/pkg/out"
 	"github.com/justwatchcom/gopass/pkg/store/secret"
 	"github.com/justwatchcom/gopass/tests/gptest"
+
+	"github.com/fatih/color"
 	"github.com/stretchr/testify/assert"
 	"github.com/urfave/cli"
 )
@@ -39,8 +40,8 @@ func TestFind(t *testing.T) {
 
 	// find
 	c := cli.NewContext(app, flag.NewFlagSet("default", flag.ContinueOnError), nil)
-	if err := act.Find(ctx, c); err == nil || err.Error() != "Usage: action.test find arg" {
-		t.Errorf("Should fail")
+	if err := act.Find(ctx, c); err == nil || err.Error() != "Usage: action.test find <NEEDLE>" {
+		t.Errorf("Should fail: %s", err)
 	}
 
 	// find fo

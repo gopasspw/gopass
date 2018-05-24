@@ -4,9 +4,10 @@ import (
 	"context"
 	"strings"
 
+	"github.com/justwatchcom/gopass/pkg/out"
+
 	"github.com/blang/semver"
 	api "github.com/hashicorp/consul/api"
-	"github.com/justwatchcom/gopass/pkg/out"
 )
 
 // Store is a consul-backed store
@@ -133,4 +134,9 @@ func (s *Store) Version() semver.Version {
 // Available will check if this backend is useable
 func (s *Store) Available(ctx context.Context) error {
 	return s.Set(ctx, ".test", []byte("test"))
+}
+
+// Fsck always returns nil
+func (s *Store) Fsck(ctx context.Context) error {
+	return nil
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/justwatchcom/gopass/pkg/ctxutil"
 	"github.com/justwatchcom/gopass/pkg/out"
 	"github.com/justwatchcom/gopass/pkg/store"
+
 	"github.com/pkg/errors"
 )
 
@@ -51,6 +52,13 @@ func (s *Store) Set(ctx context.Context, name string, sec store.Secret) error {
 
 	if err := s.storage.Set(ctx, p, ciphertext); err != nil {
 		return errors.Wrapf(err, "failed to write secret")
+	}
+
+	// It is not possible to perform concurrent git add and git commit commands
+	// so we need to skip this step when using concurrency and perform them
+	// at the end of the batch processing.
+	if ctxutil.HasConcurrency(ctx) {
+		return nil
 	}
 
 	if err := s.rcs.Add(ctx, p); err != nil {

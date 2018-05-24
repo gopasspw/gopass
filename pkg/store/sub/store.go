@@ -3,8 +3,11 @@ package sub
 import (
 	"context"
 	"fmt"
+	"log"
+	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"github.com/justwatchcom/gopass/pkg/agent/client"
 	"github.com/justwatchcom/gopass/pkg/backend"
@@ -12,9 +15,15 @@ import (
 	"github.com/justwatchcom/gopass/pkg/ctxutil"
 	"github.com/justwatchcom/gopass/pkg/out"
 	"github.com/justwatchcom/gopass/pkg/store"
+
 	"github.com/muesli/goprogressbar"
 	"github.com/pkg/errors"
 )
+
+type recipientHashStorer interface {
+	GetRecipientHash(string, string) string
+	SetRecipientHash(string, string, string) error
+}
 
 // Store is password store
 type Store struct {
@@ -25,15 +34,11 @@ type Store struct {
 	storage backend.Storage
 	cfgdir  string
 	agent   *client.Client
+	sc      recipientHashStorer
 }
 
 // New creates a new store, copying settings from the given root store
-func New(ctx context.Context, alias, path, cfgdir string, agent *client.Client) (*Store, error) {
-	out.Debug(ctx, "sub.New - Path: %s", path)
-	u, err := backend.ParseURL(path)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to parse path URL '%s': %s", path, err)
-	}
+func New(ctx context.Context, sc recipientHashStorer, alias string, u *backend.URL, cfgdir string, agent *client.Client) (*Store, error) {
 	out.Debug(ctx, "sub.New - URL: %s", u.String())
 
 	s := &Store{
@@ -42,6 +47,7 @@ func New(ctx context.Context, alias, path, cfgdir string, agent *client.Client) 
 		rcs:    noop.New(),
 		cfgdir: cfgdir,
 		agent:  agent,
+		sc:     sc,
 	}
 
 	// init store backend
@@ -99,11 +105,11 @@ func (s *Store) idFile(ctx context.Context, name string) string {
 }
 
 // Equals returns true if this.storage has the same on-disk path as the other
-func (s *Store) Equals(other *Store) bool {
+func (s *Store) Equals(other store.Store) bool {
 	if other == nil {
 		return false
 	}
-	return s.url.String() == other.url.String()
+	return s.URL() == other.URL()
 }
 
 // IsDir returns true if the entry is folder inside the store
@@ -165,10 +171,40 @@ func (s *Store) reencrypt(ctx context.Context) error {
 		if !ctxutil.IsTerminal(ctx) || out.IsHidden(ctx) {
 			bar = nil
 		}
+		var wg sync.WaitGroup
+		jobs := make(chan string)
+		// We use a logger to write without race condition on stdout
+		logger := log.New(os.Stdout, "", 0)
+		fmt.Println("Starting rencrypt")
+		// We spawn as many workers as we have set in the concurrency setting
+		// GetConcurrency will return 1 if the concurrency setting is not set
+		// or if it set to a value below 1.
+		for i := 0; i < ctxutil.GetConcurrency(ctx); i++ {
+			wg.Add(1) // we start a new job
+			go func(workerId int) {
+				// the workers are fed through an unbuffered channel
+				for e := range jobs {
+					content, err := s.Get(ctx, e)
+					if err != nil {
+						logger.Printf("Worker %d: Failed to get current value for %s: %s\n", workerId, e, err)
+						continue
+					}
+					if err := s.Set(ctx, e, content); err != nil {
+						logger.Printf("Worker %d: Failed to write %s: %s\n", workerId, e, err)
+						continue
+					}
+				}
+				wg.Done() // report the job as finished
+			}(i)
+		}
 		for _, e := range entries {
 			// check for context cancelation
 			select {
 			case <-ctx.Done():
+				// We close the channel, so the worker will terminate
+				close(jobs)
+				// we wait for all workers to have finished
+				wg.Wait()
 				return errors.New("context canceled")
 			default:
 			}
@@ -179,13 +215,25 @@ func (s *Store) reencrypt(ctx context.Context) error {
 				bar.LazyPrint()
 			}
 
-			content, err := s.Get(ctx, e)
-			if err != nil {
-				out.Red(ctx, "Failed to get current value for %s: %s", e, err)
-				continue
-			}
-			if err := s.Set(ctx, e, content); err != nil {
-				out.Red(ctx, "Failed to write %s: %s", e, err)
+			e = strings.TrimPrefix(e, s.alias)
+			jobs <- e
+		}
+		// We close the channel, so the workers will terminate
+		close(jobs)
+		// we wait for all workers to have finished
+		wg.Wait()
+	}
+
+	// if we were working concurrently, we couldn't git add during the process
+	// to avoid a race condition on git .index.lock file, so we do it now.
+	if ctxutil.HasConcurrency(ctx) {
+		for _, name := range entries {
+			p := s.passfile(name)
+			if err := s.rcs.Add(ctx, p); err != nil {
+				if errors.Cause(err) == store.ErrGitNotInit {
+					return nil
+				}
+				return errors.Wrapf(err, "failed to add '%s' to git", p)
 			}
 		}
 	}
@@ -235,7 +283,17 @@ func (s *Store) Alias() string {
 	return s.alias
 }
 
+// URL returns the store URL
+func (s *Store) URL() string {
+	return s.url.String()
+}
+
 // Storage returns the storage backend used by this.storage
 func (s *Store) Storage() backend.Storage {
 	return s.storage
+}
+
+// Valid returns true if this store is not nil
+func (s *Store) Valid() bool {
+	return s != nil
 }

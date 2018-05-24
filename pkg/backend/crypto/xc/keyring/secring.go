@@ -8,8 +8,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/golang/protobuf/proto"
 	"github.com/justwatchcom/gopass/pkg/backend/crypto/xc/xcpb"
+
+	"github.com/golang/protobuf/proto"
 )
 
 // Secring is private key ring

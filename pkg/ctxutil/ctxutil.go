@@ -12,6 +12,7 @@ const (
 	ctxKeyStdin
 	ctxKeyAskForMore
 	ctxKeyClipTimeout
+	ctxKeyConcurrency
 	ctxKeyNoConfirm
 	ctxKeyNoPager
 	ctxKeyShowSafeContent
@@ -406,4 +407,28 @@ func IsEditRecipients(ctx context.Context) bool {
 		return false
 	}
 	return bv
+}
+
+// WithConcurrency returns a context with the value for clip timeout set
+func WithConcurrency(ctx context.Context, to int) context.Context {
+	return context.WithValue(ctx, ctxKeyConcurrency, to)
+}
+
+// HasConcurrency returns true if a value for Concurrency has been set in this context and is bigger than 1
+// since if it is equal to 1, we are not working concurrently.
+func HasConcurrency(ctx context.Context) bool {
+	iv, ok := ctx.Value(ctxKeyConcurrency).(int)
+	if iv <= 1 {
+		return false
+	}
+	return ok
+}
+
+// GetConcurrency returns the value of concurrent threads or the default (1)
+func GetConcurrency(ctx context.Context) int {
+	iv, ok := ctx.Value(ctxKeyConcurrency).(int)
+	if !ok || iv < 1 {
+		return 1
+	}
+	return iv
 }

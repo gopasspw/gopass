@@ -4,7 +4,6 @@ import (
 	"context"
 	"path/filepath"
 
-	"github.com/fatih/color"
 	"github.com/justwatchcom/gopass/pkg/backend"
 	"github.com/justwatchcom/gopass/pkg/backend/crypto/xc"
 	gitcli "github.com/justwatchcom/gopass/pkg/backend/rcs/git/cli"
@@ -14,6 +13,8 @@ import (
 	"github.com/justwatchcom/gopass/pkg/fsutil"
 	"github.com/justwatchcom/gopass/pkg/out"
 	"github.com/justwatchcom/gopass/pkg/termio"
+
+	"github.com/fatih/color"
 	"github.com/urfave/cli"
 )
 
@@ -63,21 +64,8 @@ func (s *Action) clone(ctx context.Context, repo, mount, path string) error {
 	ctx = backend.WithCryptoBackend(ctx, detectCryptoBackend(ctx, path))
 
 	// add mount
-	if mount != "" {
-		if !s.Store.Initialized(ctx) {
-			return ExitError(ctx, ExitNotInitialized, nil, "Root-Store is not initialized. Clone or init root store first")
-		}
-		if err := s.Store.AddMount(ctx, mount, path); err != nil {
-			return ExitError(ctx, ExitMount, err, "Failed to add mount: %s", err)
-		}
-		out.Green(ctx, "Mounted password store %s at mount point `%s` ...", path, mount)
-		s.cfg.Mounts[mount].Path.Crypto = backend.GetCryptoBackend(ctx)
-		s.cfg.Mounts[mount].Path.RCS = backend.GetRCSBackend(ctx)
-		s.cfg.Mounts[mount].Path.Storage = backend.GetStorageBackend(ctx)
-	} else {
-		s.cfg.Root.Path.Crypto = backend.GetCryptoBackend(ctx)
-		s.cfg.Root.Path.RCS = backend.GetRCSBackend(ctx)
-		s.cfg.Root.Path.Storage = backend.GetStorageBackend(ctx)
+	if err := s.cloneAddMount(ctx, mount, path); err != nil {
+		return err
 	}
 
 	// save new mount in config file
@@ -108,6 +96,27 @@ func (s *Action) clone(ctx context.Context, repo, mount, path string) error {
 	return nil
 }
 
+func (s *Action) cloneAddMount(ctx context.Context, mount, path string) error {
+	if mount == "" {
+		s.cfg.Root.Path.Crypto = backend.GetCryptoBackend(ctx)
+		s.cfg.Root.Path.RCS = backend.GetRCSBackend(ctx)
+		s.cfg.Root.Path.Storage = backend.GetStorageBackend(ctx)
+		return nil
+	}
+
+	if !s.Store.Initialized(ctx) {
+		return ExitError(ctx, ExitNotInitialized, nil, "Root-Store is not initialized. Clone or init root store first")
+	}
+	if err := s.Store.AddMount(ctx, mount, path); err != nil {
+		return ExitError(ctx, ExitMount, err, "Failed to add mount: %s", err)
+	}
+	out.Green(ctx, "Mounted password store %s at mount point `%s` ...", path, mount)
+	s.cfg.Mounts[mount].Path.Crypto = backend.GetCryptoBackend(ctx)
+	s.cfg.Mounts[mount].Path.RCS = backend.GetRCSBackend(ctx)
+	s.cfg.Mounts[mount].Path.Storage = backend.GetStorageBackend(ctx)
+	return nil
+}
+
 func (s *Action) cloneGetGitConfig(ctx context.Context, name string) (string, string, error) {
 	// for convenience, set defaults to user-selected values from available private keys
 	// NB: discarding returned error since this is merely a best-effort look-up for convenience
@@ -129,6 +138,8 @@ func (s *Action) cloneGetGitConfig(ctx context.Context, name string) (string, st
 	return username, email, nil
 }
 
+// detectCryptoBackend tries to detect the crypto backend used in a cloned repo
+// This detection is very shallow and doesn't support all backends, yet
 func detectCryptoBackend(ctx context.Context, path string) backend.CryptoBackend {
 	if fsutil.IsFile(filepath.Join(path, xc.IDFile)) {
 		return backend.XC

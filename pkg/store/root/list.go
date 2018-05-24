@@ -9,6 +9,7 @@ import (
 	"github.com/justwatchcom/gopass/pkg/store"
 	"github.com/justwatchcom/gopass/pkg/tree"
 	"github.com/justwatchcom/gopass/pkg/tree/simple"
+
 	"github.com/pkg/errors"
 )
 
@@ -69,7 +70,7 @@ func (r *Store) Tree(ctx context.Context) (tree.Tree, error) {
 		if err := root.AddMount(alias, substore.Path()); err != nil {
 			return nil, errors.Errorf("failed to add mount: %s", err)
 		}
-		sf, err := substore.List(ctx, alias)
+		sf, err := substore.List(ctx, "")
 		if err != nil {
 			return nil, errors.Errorf("failed to add file: %s", err)
 		}

@@ -5,11 +5,14 @@ import (
 	"fmt"
 
 	ap "github.com/justwatchcom/gopass/pkg/action"
+	"github.com/justwatchcom/gopass/pkg/action/binary"
+	"github.com/justwatchcom/gopass/pkg/action/create"
 	"github.com/justwatchcom/gopass/pkg/action/xc"
 	"github.com/justwatchcom/gopass/pkg/agent"
 	"github.com/justwatchcom/gopass/pkg/agent/client"
 	"github.com/justwatchcom/gopass/pkg/config"
 	"github.com/justwatchcom/gopass/pkg/ctxutil"
+
 	"github.com/urfave/cli"
 )
 
@@ -73,10 +76,10 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 					Description: "" +
 						"This command will decrypt all secrets and check the passwords against the public " +
 						"havibeenpwned.com v2 API or Dumps. " +
-						"To use the dumps you need to download the dumps from https://haveibeenpwned.com/passwords first. This is a very expensive operation for advanced users." +
-						"Most users should probably use the API." +
-						"If you want to use the dumps you need to use 7z to extract the dump: 7z x pwned-passwords-2.0.txt.7z." +
-						"To speed up processing you should sort them and use the --sorted flag: cat pwned-passwords-2.0.txt | LANG=C sort -S 10G --parallel=4 | gzip --fast > pwned-passwords-2.0.txt.gz",
+						"To use the dumps you need to download the dumps from https://haveibeenpwned.com/passwords first. Be sure to grap the one that says '(ordered by hash)'. " +
+						"This is a very expensive operation for advanced users. " +
+						"Most users should probably use the API. " +
+						"If you want to use the dumps you need to use 7z to extract the dump: 7z x pwned-passwords-ordered-2.0.txt.7z.",
 					Before: func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
 					Action: func(c *cli.Context) error {
 						return action.HIBP(withGlobalFlags(ctx, c), c)
@@ -115,7 +118,7 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 						"to a secret.",
 					Before: func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
 					Action: func(c *cli.Context) error {
-						return action.BinaryCat(withGlobalFlags(ctx, c), c)
+						return binary.Cat(withGlobalFlags(ctx, c), c, action.Store)
 					},
 					BashComplete: func(c *cli.Context) { action.Complete(ctx, c) },
 				},
@@ -129,7 +132,7 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 					Aliases: []string{"sha", "sha256"},
 					Before:  func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
 					Action: func(c *cli.Context) error {
-						return action.BinarySum(withGlobalFlags(ctx, c), c)
+						return binary.Sum(withGlobalFlags(ctx, c), c, action.Store)
 					},
 					BashComplete: func(c *cli.Context) { action.Complete(ctx, c) },
 				},
@@ -145,7 +148,7 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 					Before:  func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
 					Aliases: []string{"cp"},
 					Action: func(c *cli.Context) error {
-						return action.BinaryCopy(withGlobalFlags(ctx, c), c)
+						return binary.Copy(withGlobalFlags(ctx, c), c, action.Store)
 					},
 					BashComplete: func(c *cli.Context) { action.Complete(ctx, c) },
 					Flags: []cli.Flag{
@@ -169,7 +172,7 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 					Before:  func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
 					Aliases: []string{"mv"},
 					Action: func(c *cli.Context) error {
-						return action.BinaryMove(withGlobalFlags(ctx, c), c)
+						return binary.Move(withGlobalFlags(ctx, c), c, action.Store)
 					},
 					BashComplete: func(c *cli.Context) { action.Complete(ctx, c) },
 					Flags: []cli.Flag{
@@ -283,7 +286,7 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 				"This command starts a wizard to aid in creation of new secrets.",
 			Before: func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
 			Action: func(c *cli.Context) error {
-				return action.Create(withGlobalFlags(ctx, c), c)
+				return create.Create(withGlobalFlags(ctx, c), c, action.Store)
 			},
 		},
 		{
@@ -353,6 +356,18 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 			},
 		},
 		{
+			Name:  "fsck",
+			Usage: "Check store integrity",
+			Description: "" +
+				"Check the integrity of the given sub store or all stores if none are specified. " +
+				"Will automatically fix all issues found.",
+			Before: func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
+			Action: func(c *cli.Context) error {
+				return action.Fsck(withGlobalFlags(ctx, c), c)
+			},
+			BashComplete: action.MountsComplete,
+		},
+		{
 			Name:  "generate",
 			Usage: "Generate a new password",
 			Description: "" +
@@ -384,11 +399,6 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 					Usage: "Open secret for editing after generating a password",
 				},
 				cli.BoolFlag{
-					Name:   "no-symbols, n",
-					Usage:  "Do not include symbols in the password",
-					Hidden: true,
-				},
-				cli.BoolFlag{
 					Name:  "symbols, s",
 					Usage: "Use symbols in the password",
 				},
@@ -405,6 +415,39 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 					Name:  "xkcdlang, xl",
 					Usage: "Language to generate password from, currently de (german) and en (english, default) are supported",
 					Value: "en",
+				},
+			},
+		},
+		{
+			Name:  "git-credential",
+			Usage: "Use '!gopass git-credential $@' as git's credential.helper",
+			Description: "" +
+				"This command allows you to cache your git-credentials with gopass." +
+				"Activate by using `git config --global credential.helper '!gopass git-credential $@'`",
+			Before: func(c *cli.Context) error {
+				return action.GitCredentialBefore(ctxutil.WithInteractive(withGlobalFlags(ctx, c), false), c)
+			},
+			Subcommands: []cli.Command{
+				{
+					Name:   "get",
+					Hidden: true,
+					Action: func(c *cli.Context) error {
+						return action.GitCredentialGet(withGlobalFlags(ctx, c), c)
+					},
+				},
+				{
+					Name:   "store",
+					Hidden: true,
+					Action: func(c *cli.Context) error {
+						return action.GitCredentialStore(withGlobalFlags(ctx, c), c)
+					},
+				},
+				{
+					Name:   "erase",
+					Hidden: true,
+					Action: func(c *cli.Context) error {
+						return action.GitCredentialErase(withGlobalFlags(ctx, c), c)
+					},
 				},
 			},
 		},
@@ -439,6 +482,10 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 							Name:  "path",
 							Usage: "Path to install 'gopass_wrapper.sh' to",
 						},
+						cli.StringFlag{
+							Name:  "manifest-path",
+							Usage: "Path to install 'com.justwatch.gopass.json' to",
+						},
 						cli.BoolFlag{
 							Name:  "global",
 							Usage: "Install for all users, requires superuser rights",
@@ -447,9 +494,13 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 							Name:  "libpath",
 							Usage: "Library path for global installation on linux. Default is /usr/lib",
 						},
-						cli.BoolFlag{
-							Name:  "print-only",
-							Usage: "only print installation summary but do not actually create any files",
+						cli.StringFlag{
+							Name:  "gopass-path",
+							Usage: "Path to gopass binary. Default is auto detected",
+						},
+						cli.BoolTFlag{
+							Name:  "print",
+							Usage: "Print installation summary before creating any files",
 						},
 					},
 				},
@@ -502,6 +553,10 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 							Name:  "sign-key",
 							Usage: "GPG Key to sign commits",
 						},
+						cli.StringFlag{
+							Name:  "rcs",
+							Usage: "Select sync backend (git, gitcli, gogit, noop)",
+						},
 					},
 				},
 				{
@@ -523,13 +578,20 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 									Name:  "store",
 									Usage: "Store to operate on",
 								},
+							},
+						},
+						{
+							Name:        "remove",
+							Usage:       "Remove git remote",
+							Description: "Remove a git remote",
+							Before:      func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
+							Action: func(c *cli.Context) error {
+								return action.GitRemoveRemote(withGlobalFlags(ctx, c), c)
+							},
+							Flags: []cli.Flag{
 								cli.StringFlag{
-									Name:  "remote",
-									Usage: "Git remote to add",
-								},
-								cli.StringFlag{
-									Name:  "url",
-									Usage: "Git URL",
+									Name:  "store",
+									Usage: "Store to operate on",
 								},
 							},
 						},
@@ -548,14 +610,6 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 							Name:  "store",
 							Usage: "Store to operate on",
 						},
-						cli.StringFlag{
-							Name:  "origin",
-							Usage: "Git Origin to push to",
-						},
-						cli.StringFlag{
-							Name:  "branch",
-							Usage: "Git branch to push",
-						},
 					},
 				},
 				{
@@ -570,14 +624,6 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 						cli.StringFlag{
 							Name:  "store",
 							Usage: "Store to operate on",
-						},
-						cli.StringFlag{
-							Name:  "origin",
-							Usage: "Git Origin to push to",
-						},
-						cli.StringFlag{
-							Name:  "branch",
-							Usage: "Git branch to push",
 						},
 					},
 				},
@@ -629,17 +675,18 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 					Name:  "store, s",
 					Usage: "Set the name of the sub store",
 				},
-				cli.BoolFlag{
-					Name:  "nogit",
-					Usage: "Do not init git repo",
-				},
 				cli.StringFlag{
 					Name:  "crypto",
 					Usage: "Select crypto backend (gpg, gpgcli, plain, xc)",
 				},
 				cli.StringFlag{
-					Name:  "sync",
+					Name:  "rcs",
 					Usage: "Select sync backend (git, gitcli, gogit, noop)",
+				},
+				cli.BoolFlag{
+					Name:   "nogit",
+					Usage:  "(DEPRECATED): Select noop RCS backend. Use '--rcs noop' instead",
+					Hidden: true,
 				},
 			},
 		},
@@ -819,6 +866,17 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 						},
 					},
 				},
+				{
+					Name:  "update",
+					Usage: "Recompute the saved recipient list checksums",
+					Description: "" +
+						"This command will recompute the saved recipient checksum" +
+						"a save them to the config.",
+					Before: func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
+					Action: func(c *cli.Context) error {
+						return action.RecipientsUpdate(withGlobalFlags(ctx, c), c)
+					},
+				},
 			},
 		},
 		{
@@ -852,6 +910,14 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 				cli.StringFlag{
 					Name:  "email",
 					Usage: "EMail for unattended GPG key generation",
+				},
+				cli.StringFlag{
+					Name:  "crypto",
+					Usage: "Select crypto backend (gpg, gpgcli, plain, xc)",
+				},
+				cli.StringFlag{
+					Name:  "rcs",
+					Usage: "Select sync backend (git, gitcli, gogit, noop)",
 				},
 			},
 		},
@@ -1092,6 +1158,37 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 					Flags: []cli.Flag{
 						cli.StringFlag{
 							Name: "id",
+						},
+					},
+				},
+				{
+					Name: "encrypt",
+					Action: func(c *cli.Context) error {
+						return xc.EncryptFile(withGlobalFlags(ctx, c), c)
+					},
+					Flags: []cli.Flag{
+						cli.StringFlag{
+							Name: "file",
+						},
+						cli.StringSliceFlag{
+							Name: "recipients",
+						},
+						cli.BoolFlag{
+							Name: "stream",
+						},
+					},
+				},
+				{
+					Name: "decrypt",
+					Action: func(c *cli.Context) error {
+						return xc.DecryptFile(withGlobalFlags(ctx, c), c)
+					},
+					Flags: []cli.Flag{
+						cli.StringFlag{
+							Name: "file",
+						},
+						cli.BoolFlag{
+							Name: "stream",
 						},
 					},
 				},

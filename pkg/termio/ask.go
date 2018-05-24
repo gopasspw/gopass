@@ -10,6 +10,7 @@ import (
 
 	"github.com/justwatchcom/gopass/pkg/ctxutil"
 	"github.com/justwatchcom/gopass/pkg/out"
+
 	"github.com/pkg/errors"
 )
 
@@ -18,6 +19,8 @@ var (
 	Stdout io.Writer = os.Stdout
 	// Stdin is exported for tests
 	Stdin io.Reader = os.Stdin
+	// ErrAborted is returned if the user aborts an action
+	ErrAborted = fmt.Errorf("user aborted")
 )
 
 const (
@@ -27,14 +30,14 @@ const (
 // AskForString asks for a string once, using the default if the
 // anser is empty. Errors are only returned on I/O errors
 func AskForString(ctx context.Context, text, def string) (string, error) {
-	if ctxutil.IsAlwaysYes(ctx) {
+	if ctxutil.IsAlwaysYes(ctx) || !ctxutil.IsInteractive(ctx) {
 		return def, nil
 	}
 
 	// check for context cancelation
 	select {
 	case <-ctx.Done():
-		return def, errors.New("user aborted")
+		return def, ErrAborted
 	default:
 	}
 
@@ -81,7 +84,7 @@ func AskForBool(ctx context.Context, text string, def bool) (bool, error) {
 	case "n":
 		return false, nil
 	case "q":
-		return false, errors.Errorf("user aborted")
+		return false, ErrAborted
 	default:
 		return false, errors.Errorf("Unknown answer: %s", str)
 	}
@@ -99,7 +102,7 @@ func AskForInt(ctx context.Context, text string, def int) (int, error) {
 		return 0, err
 	}
 	if str == "q" {
-		return 0, errors.Errorf("user aborted")
+		return 0, ErrAborted
 	}
 	intVal, err := strconv.Atoi(str)
 	if err != nil {
@@ -116,8 +119,12 @@ func AskForConfirmation(ctx context.Context, text string) bool {
 	}
 
 	for i := 0; i < maxTries; i++ {
-		if choice, err := AskForBool(ctx, text, false); err == nil {
+		choice, err := AskForBool(ctx, text, false)
+		if err == nil {
 			return choice
+		}
+		if err == ErrAborted {
+			return false
 		}
 	}
 	return false
@@ -151,7 +158,7 @@ func AskForPassword(ctx context.Context, name string) (string, error) {
 		// check for context cancelation
 		select {
 		case <-ctx.Done():
-			return "", errors.New("user aborted")
+			return "", ErrAborted
 		default:
 		}
 

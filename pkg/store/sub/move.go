@@ -8,6 +8,7 @@ import (
 
 	"github.com/justwatchcom/gopass/pkg/out"
 	"github.com/justwatchcom/gopass/pkg/store"
+
 	"github.com/pkg/errors"
 )
 
@@ -104,26 +105,16 @@ func (s *Store) Prune(ctx context.Context, tree string) error {
 }
 
 // delete will either delete one file or an directory tree depending on the
-// RemoveFunc given. Use nil or os.Remove for the single-file mode and
-// os.RemoveAll for the recursive mode.
+// recurse flag
 func (s *Store) delete(ctx context.Context, name string, recurse bool) error {
 	path := s.passfile(name)
 
-	if !recurse && !s.storage.Exists(ctx, path) {
-		return store.ErrNotFound
-	}
-
-	if recurse && !s.storage.IsDir(ctx, name) && !s.storage.Exists(ctx, path) {
-		return store.ErrNotFound
-	}
-
 	if recurse {
-		if err := s.storage.Prune(ctx, name); err != nil {
+		if err := s.deleteRecurse(ctx, name, path); err != nil {
 			return err
 		}
 	}
-
-	if err := s.storage.Delete(ctx, path); err != nil {
+	if err := s.deleteSingle(ctx, path); err != nil {
 		if !recurse {
 			return err
 		}
@@ -135,6 +126,7 @@ func (s *Store) delete(ctx context.Context, name string, recurse bool) error {
 		}
 		return errors.Wrapf(err, "failed to add '%s' to git", path)
 	}
+
 	if err := s.rcs.Commit(ctx, fmt.Sprintf("Remove %s from store.", name)); err != nil {
 		if errors.Cause(err) == store.ErrGitNotInit {
 			return nil
@@ -154,4 +146,20 @@ func (s *Store) delete(ctx context.Context, name string, recurse bool) error {
 	}
 
 	return nil
+}
+
+func (s *Store) deleteRecurse(ctx context.Context, name, path string) error {
+	if !s.storage.IsDir(ctx, name) && !s.storage.Exists(ctx, path) {
+		return store.ErrNotFound
+	}
+
+	return s.storage.Prune(ctx, name)
+}
+
+func (s *Store) deleteSingle(ctx context.Context, path string) error {
+	if !s.storage.Exists(ctx, path) {
+		return store.ErrNotFound
+	}
+
+	return s.storage.Delete(ctx, path)
 }

@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/justwatchcom/gopass/pkg/termio"
+
 	"github.com/urfave/cli"
 )
 
@@ -13,7 +14,7 @@ func (s *Action) Copy(ctx context.Context, c *cli.Context) error {
 	force := c.Bool("force")
 
 	if len(c.Args()) != 2 {
-		return ExitError(ctx, ExitUsage, nil, "Usage: %s cp old-path new-path", s.Name)
+		return ExitError(ctx, ExitUsage, nil, "Usage: %s cp <FROM> <TO>", s.Name)
 	}
 
 	from := c.Args()[0]

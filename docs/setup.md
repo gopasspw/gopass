@@ -232,7 +232,7 @@ gopass ls --flat | dmenu | xargs --no-run-if-empty gopass show -c
 gopass ls --flat | dmenu | xargs --no-run-if-empty gopass show -f | head -n 1 | xdotool type --clearmodifiers --file -
 ```
 
-You can then simply bind these command lines to your preferred shortcuts in your window manager settings, typically under `System Settings > Keyboard > Shortcuts > Custom Shortcuts`.
+You can then bind these command lines to your preferred shortcuts in your window manager settings, typically under `System Settings > Keyboard > Shortcuts > Custom Shortcuts`. In some cases you may need to wrap it with `bash -c 'your command'` in order for it to work (tested and working in Ubuntu 18.04).
 
 ### Filling in passwords from browser
 
@@ -267,7 +267,7 @@ Please be warned that using cloud-based storage may negatively impact to confide
 For example, to use gopass with [Google Drive](https://drive.google.com):
 
 ```bash
-gopass init --nogit
+gopass init --rcs noop
 mv .password-store/ "Google Drive/Password-Store"
 gopass config path "~/Google Drive/Password-Store"
 ```

@@ -35,4 +35,5 @@ type Storage interface {
 
 	Name() string
 	Version() semver.Version
+	Fsck(context.Context) error
 }
