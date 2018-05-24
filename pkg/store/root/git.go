@@ -50,7 +50,7 @@ func (r *Store) GitRemoveRemote(ctx context.Context, name, remote string) error 
 // GitPull performs a git pull
 func (r *Store) GitPull(ctx context.Context, name, origin, remote string) error {
 	ctx, store, _ := r.getStore(ctx, name)
-	return store.RCS().Push(ctx, origin, remote)
+	return store.RCS().Pull(ctx, origin, remote)
 }
 
 // GitPush performs a git push

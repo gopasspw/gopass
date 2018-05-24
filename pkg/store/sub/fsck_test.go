@@ -17,6 +17,13 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+type fakeConfig struct{}
+
+func (f *fakeConfig) GetRecipientHash(string, string) string { return "" }
+func (f *fakeConfig) SetRecipientHash(string, string, string) error {
+	return nil
+}
+
 func TestFsck(t *testing.T) {
 	ctx := context.Background()
 
@@ -36,6 +43,7 @@ func TestFsck(t *testing.T) {
 		crypto:  plain.New(),
 		rcs:     noop.New(),
 		storage: fs.New(tempdir),
+		sc:      &fakeConfig{},
 	}
 	assert.NoError(t, s.saveRecipients(ctx, []string{"john.doe"}, "test", false))
 

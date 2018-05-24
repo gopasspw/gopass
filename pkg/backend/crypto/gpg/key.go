@@ -56,6 +56,9 @@ func (k Key) String() string {
 // OneLine prints a terse representation of this key on one line (includes only
 // the first identity!)
 func (k Key) OneLine() string {
+	if len(k.Fingerprint) < 24 {
+		return fmt.Sprintf("(invalid:%s)", k.Fingerprint)
+	}
 	return fmt.Sprintf("0x%s - %s", k.Fingerprint[24:], k.Identity().ID())
 }
 

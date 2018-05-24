@@ -64,6 +64,7 @@ func TestKey(t *testing.T) {
 	k := Key{
 		Identities: map[string]Identity{},
 	}
+	assert.Equal(t, "(invalid:)", k.OneLine())
 	assert.Equal(t, "", k.Identity().Name)
 	k = genTestKey()
 	assert.Equal(t, k.IsUseable(), true)

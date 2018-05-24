@@ -866,6 +866,17 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 						},
 					},
 				},
+				{
+					Name:  "update",
+					Usage: "Recompute the saved recipient list checksums",
+					Description: "" +
+						"This command will recompute the saved recipient checksum" +
+						"a save them to the config.",
+					Before: func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
+					Action: func(c *cli.Context) error {
+						return action.RecipientsUpdate(withGlobalFlags(ctx, c), c)
+					},
+				},
 			},
 		},
 		{

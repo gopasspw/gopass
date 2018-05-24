@@ -90,6 +90,7 @@ func TestCopy(t *testing.T) {
 			crypto:  plain.New(),
 			rcs:     noop.New(),
 			storage: fs.New(tempdir),
+			sc:      &fakeConfig{},
 		}
 
 		assert.NoError(t, s.saveRecipients(ctx, []string{"john.doe"}, "test", false))
@@ -168,6 +169,7 @@ func TestMove(t *testing.T) {
 			crypto:  plain.New(),
 			rcs:     noop.New(),
 			storage: fs.New(tempdir),
+			sc:      &fakeConfig{},
 		}
 
 		err = s.saveRecipients(ctx, []string{"john.doe"}, "test", false)
@@ -225,6 +227,7 @@ func TestDelete(t *testing.T) {
 			crypto:  plain.New(),
 			rcs:     noop.New(),
 			storage: fs.New(tempdir),
+			sc:      &fakeConfig{},
 		}
 
 		err = s.saveRecipients(ctx, []string{"john.doe"}, "test", false)
@@ -303,6 +306,7 @@ func TestPrune(t *testing.T) {
 			crypto:  plain.New(),
 			rcs:     noop.New(),
 			storage: fs.New(tempdir),
+			sc:      &fakeConfig{},
 		}
 
 		err = s.saveRecipients(ctx, []string{"john.doe"}, "test", false)

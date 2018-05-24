@@ -96,7 +96,7 @@ func (r *Store) RecipientsTree(ctx context.Context, pretty bool) (tree.Tree, err
 		}
 		for _, recp := range substore.Recipients(ctx) {
 			if err := r.addRecipient(ctx, alias+"/", root, recp, pretty); err != nil {
-				color.Yellow("Failed to add recipient to tree %s: %s", recp, err)
+				out.Debug(ctx, "Failed to add recipient to tree %s: %s", recp, err)
 			}
 		}
 	}

@@ -20,6 +20,11 @@ import (
 	"github.com/pkg/errors"
 )
 
+type recipientHashStorer interface {
+	GetRecipientHash(string, string) string
+	SetRecipientHash(string, string, string) error
+}
+
 // Store is password store
 type Store struct {
 	alias   string
@@ -29,10 +34,11 @@ type Store struct {
 	storage backend.Storage
 	cfgdir  string
 	agent   *client.Client
+	sc      recipientHashStorer
 }
 
 // New creates a new store, copying settings from the given root store
-func New(ctx context.Context, alias string, u *backend.URL, cfgdir string, agent *client.Client) (*Store, error) {
+func New(ctx context.Context, sc recipientHashStorer, alias string, u *backend.URL, cfgdir string, agent *client.Client) (*Store, error) {
 	out.Debug(ctx, "sub.New - URL: %s", u.String())
 
 	s := &Store{
@@ -41,6 +47,7 @@ func New(ctx context.Context, alias string, u *backend.URL, cfgdir string, agent
 		rcs:    noop.New(),
 		cfgdir: cfgdir,
 		agent:  agent,
+		sc:     sc,
 	}
 
 	// init store backend

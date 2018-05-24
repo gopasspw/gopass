@@ -57,7 +57,7 @@ func (r *Store) addMount(ctx context.Context, alias, path string, sc *config.Sto
 	}
 
 	// initialize sub store
-	s, err := r.initSub(ctx, alias, pathURL, keys)
+	s, err := r.initSub(ctx, sc, alias, pathURL, keys)
 	if err != nil {
 		return errors.Wrapf(err, "failed to init sub store")
 	}
@@ -92,7 +92,7 @@ func (r *Store) initSubVault(ctx context.Context, alias string, path *backend.UR
 	return vault.New(ctx, alias, path, r.cfg.Directory(), r.agent)
 }
 
-func (r *Store) initSub(ctx context.Context, alias string, path *backend.URL, keys []string) (store.Store, error) {
+func (r *Store) initSub(ctx context.Context, sc *config.StoreConfig, alias string, path *backend.URL, keys []string) (store.Store, error) {
 	// init vault sub store
 	if backend.GetCryptoBackend(ctx) == backend.Vault || path.Crypto == backend.Vault {
 		out.Debug(ctx, "Initializing Vault Store at %s -> %s", alias, path.String())
@@ -100,7 +100,7 @@ func (r *Store) initSub(ctx context.Context, alias string, path *backend.URL, ke
 	}
 
 	// init regular sub store
-	s, err := sub.New(ctx, alias, path, r.cfg.Directory(), r.agent)
+	s, err := sub.New(ctx, r.cfg, alias, path, r.cfg.Directory(), r.agent)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to initialize store '%s' at '%s': %s", alias, path, err)
 	}

@@ -16,7 +16,7 @@ import (
 )
 
 func newMock(ctx context.Context, u *gptest.Unit) (*Action, error) {
-	cfg := config.New()
+	cfg := config.Load()
 	cfg.Root.Path = backend.FromPath(u.StoreDir(""))
 
 	ctx = backend.WithRCSBackend(ctx, backend.Noop)
