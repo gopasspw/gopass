@@ -54,6 +54,13 @@ func (s *Store) Set(ctx context.Context, name string, sec store.Secret) error {
 		return errors.Wrapf(err, "failed to write secret")
 	}
 
+	// It is not possible to perform concurrent git add and git commit commands
+	// so we need to skip this step when using concurrency and perform them
+	// at the end of the batch processing.
+	if ctxutil.HasConcurrency(ctx) {
+		return nil
+	}
+
 	if err := s.rcs.Add(ctx, p); err != nil {
 		if errors.Cause(err) == store.ErrGitNotInit {
 			return nil

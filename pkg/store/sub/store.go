@@ -3,8 +3,11 @@ package sub
 import (
 	"context"
 	"fmt"
+	"log"
+	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"github.com/justwatchcom/gopass/pkg/agent/client"
 	"github.com/justwatchcom/gopass/pkg/backend"
@@ -161,10 +164,40 @@ func (s *Store) reencrypt(ctx context.Context) error {
 		if !ctxutil.IsTerminal(ctx) || out.IsHidden(ctx) {
 			bar = nil
 		}
+		var wg sync.WaitGroup
+		jobs := make(chan string)
+		// We use a logger to write without race condition on stdout
+		logger := log.New(os.Stdout, "", 0)
+		fmt.Println("Starting rencrypt")
+		// We spawn as many workers as we have set in the concurrency setting
+		// GetConcurrency will return 1 if the concurrency setting is not set
+		// or if it set to a value below 1.
+		for i := 0; i < ctxutil.GetConcurrency(ctx); i++ {
+			wg.Add(1) // we start a new job
+			go func(workerId int) {
+				// the workers are fed through an unbuffered channel
+				for e := range jobs {
+					content, err := s.Get(ctx, e)
+					if err != nil {
+						logger.Printf("Worker %d: Failed to get current value for %s: %s\n", workerId, e, err)
+						continue
+					}
+					if err := s.Set(ctx, e, content); err != nil {
+						logger.Printf("Worker %d: Failed to write %s: %s\n", workerId, e, err)
+						continue
+					}
+				}
+				wg.Done() // report the job as finished
+			}(i)
+		}
 		for _, e := range entries {
 			// check for context cancelation
 			select {
 			case <-ctx.Done():
+				// We close the channel, so the worker will terminate
+				close(jobs)
+				// we wait for all workers to have finished
+				wg.Wait()
 				return errors.New("context canceled")
 			default:
 			}
@@ -176,13 +209,24 @@ func (s *Store) reencrypt(ctx context.Context) error {
 			}
 
 			e = strings.TrimPrefix(e, s.alias)
-			content, err := s.Get(ctx, e)
-			if err != nil {
-				out.Red(ctx, "\n[%s] Failed to get current value for '%s': %s", s.alias, e, err)
-				continue
-			}
-			if err := s.Set(ctx, e, content); err != nil {
-				out.Red(ctx, "Failed to write %s: %s", e, err)
+			jobs <- e
+		}
+		// We close the channel, so the workers will terminate
+		close(jobs)
+		// we wait for all workers to have finished
+		wg.Wait()
+	}
+
+	// if we were working concurrently, we couldn't git add during the process
+	// to avoid a race condition on git .index.lock file, so we do it now.
+	if ctxutil.HasConcurrency(ctx) {
+		for _, name := range entries {
+			p := s.passfile(name)
+			if err := s.rcs.Add(ctx, p); err != nil {
+				if errors.Cause(err) == store.ErrGitNotInit {
+					return nil
+				}
+				return errors.Wrapf(err, "failed to add '%s' to git", p)
 			}
 		}
 	}
