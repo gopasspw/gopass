@@ -44,6 +44,7 @@ func New() *Config {
 			AutoImport:    true,
 			AutoSync:      true,
 			ClipTimeout:   45,
+			Concurrency:   1,
 			NoColor:       false,
 			NoConfirm:     false,
 			NoPager:       false,

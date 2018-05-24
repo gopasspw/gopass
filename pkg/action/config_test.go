@@ -44,6 +44,7 @@ func TestConfig(t *testing.T) {
   autoimport: true
   autosync: true
   cliptimeout: 45
+  concurrency: 1
   editrecipients: false
   nocolor: false
   noconfirm: false
@@ -87,6 +88,7 @@ foo/nopager: false`
   autoimport: true
   autosync: true
   cliptimeout: 45
+  concurrency: 1
   editrecipients: false
   nocolor: false
   noconfirm: false
@@ -105,7 +107,7 @@ mount 'foo' config:
   notifications: false
 `
 	want += "  path: " + backend.FromPath("").String()
-	assert.Equal(t, want, strings.TrimSpace(buf.String()), "action.setConfigValues")
+	assert.Equal(t, want, strings.TrimSpace(buf.String()), "action.printConfigValues")
 	buf.Reset()
 
 	delete(act.cfg.Mounts, "foo")
@@ -134,6 +136,7 @@ autoclip
 autoimport
 autosync
 cliptimeout
+concurrency
 editrecipients
 nocolor
 noconfirm
