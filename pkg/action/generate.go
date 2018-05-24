@@ -11,6 +11,7 @@ import (
 	"github.com/justwatchcom/gopass/pkg/out"
 	"github.com/justwatchcom/gopass/pkg/pwgen"
 	"github.com/justwatchcom/gopass/pkg/pwgen/xkcdgen"
+	"github.com/justwatchcom/gopass/pkg/store"
 	"github.com/justwatchcom/gopass/pkg/store/secret"
 	"github.com/justwatchcom/gopass/pkg/store/sub"
 	"github.com/justwatchcom/gopass/pkg/termio"
@@ -33,8 +34,9 @@ func (s *Action) Generate(ctx context.Context, c *cli.Context) error {
 	force := c.Bool("force")
 	edit := c.Bool("edit")
 
-	name := c.Args().Get(0)
-	key, length := keyAndLength(c)
+	args, kvps := parseArgs(c)
+	name := args.Get(0)
+	key, length := keyAndLength(args)
 
 	// ask for name of the secret if it wasn't provided already
 	if name == "" {
@@ -59,7 +61,7 @@ func (s *Action) Generate(ctx context.Context, c *cli.Context) error {
 	}
 
 	// write generated password to store
-	ctx, err = s.generateSetPassword(ctx, name, key, password)
+	ctx, err = s.generateSetPassword(ctx, name, key, password, kvps)
 	if err != nil {
 		return err
 	}
@@ -75,9 +77,9 @@ func (s *Action) Generate(ctx context.Context, c *cli.Context) error {
 	return s.generateCopyOrPrint(ctx, c, name, key, password)
 }
 
-func keyAndLength(c *cli.Context) (string, string) {
-	key := c.Args().Get(1)
-	length := c.Args().Get(2)
+func keyAndLength(args argList) (string, string) {
+	key := args.Get(1)
+	length := args.Get(2)
 
 	// generate can be called with one positional arg or two
 	// one - the desired length for the "master" secret itself
@@ -181,13 +183,14 @@ func (s *Action) generatePasswordXKCD(ctx context.Context, c *cli.Context, lengt
 }
 
 // generateSetPassword will update or create a secret
-func (s *Action) generateSetPassword(ctx context.Context, name, key, password string) (context.Context, error) {
+func (s *Action) generateSetPassword(ctx context.Context, name, key, password string, kvps map[string]string) (context.Context, error) {
 	// set a single key in a yaml doc
 	if key != "" {
 		sec, ctx, err := s.Store.GetContext(ctx, name)
 		if err != nil {
 			return ctx, ExitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
 		}
+		setMetadata(sec, kvps)
 		if err := sec.SetValue(key, password); err != nil {
 			return ctx, ExitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
 		}
@@ -203,6 +206,7 @@ func (s *Action) generateSetPassword(ctx context.Context, name, key, password st
 		if err != nil {
 			return ctx, ExitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
 		}
+		setMetadata(sec, kvps)
 		sec.SetPassword(password)
 		if err := s.Store.Set(sub.WithReason(ctx, "Generated password for YAML key"), name, sec); err != nil {
 			return ctx, ExitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
@@ -217,4 +221,10 @@ func (s *Action) generateSetPassword(ctx context.Context, name, key, password st
 		return ctx, ExitError(ctx, ExitEncrypt, err, "failed to create '%s': %s", name, err)
 	}
 	return ctx, nil
+}
+
+func setMetadata(sec store.Secret, kvps map[string]string) {
+	for k, v := range kvps {
+		_ = sec.SetValue(k, v)
+	}
 }
