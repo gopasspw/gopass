@@ -51,6 +51,7 @@ func createSubStore(dir string) (*Store, error) {
 	ctx = backend.WithRCSBackendString(ctx, "noop")
 	return New(
 		ctx,
+		&fakeConfig{},
 		"",
 		backend.FromPath(sd),
 		sd,
@@ -186,7 +187,7 @@ func TestNew(t *testing.T) {
 			ok:  false,
 		},
 	} {
-		s, err := New(tc.ctx, "", backend.FromPath(tempdir), tempdir, nil)
+		s, err := New(tc.ctx, nil, "", backend.FromPath(tempdir), tempdir, nil)
 		if tc.ok {
 			assert.NoError(t, err)
 			assert.NotNil(t, s)

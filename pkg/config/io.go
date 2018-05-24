@@ -16,6 +16,9 @@ import (
 // Load will try to load the config from one of the default locations
 func Load() *Config {
 	for _, l := range configLocations() {
+		if debug {
+			fmt.Printf("[DEBUG] Trying to load config from %s\n", l)
+		}
 		cfg, err := load(l)
 		if err == ErrConfigNotFound {
 			continue

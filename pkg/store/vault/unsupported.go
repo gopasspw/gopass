@@ -67,6 +67,11 @@ func (s *Store) SaveRecipients(context.Context) error {
 	return fmt.Errorf("not supported")
 }
 
+// SetRecipients is unsupported
+func (s *Store) SetRecipients(context.Context, []string) error {
+	return fmt.Errorf("not supported")
+}
+
 // Recipients is unsupported
 func (s *Store) Recipients(context.Context) []string {
 	return nil

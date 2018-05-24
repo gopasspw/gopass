@@ -36,6 +36,7 @@ type RecipientStore interface {
 	GetRecipients(context.Context, string) ([]string, error)
 	RemoveRecipient(context.Context, string) error
 	SaveRecipients(context.Context) error
+	SetRecipients(context.Context, []string) error
 	Recipients(context.Context) []string
 	ImportMissingPublicKeys(context.Context) error
 	ExportMissingPublicKeys(context.Context, []string) (bool, error)

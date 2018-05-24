@@ -16,8 +16,7 @@ import (
 
 // Store is the public facing password store
 type Store struct {
-	cfg *config.Config
-	//mounts  map[string]*sub.Store
+	cfg     *config.Config
 	mounts  map[string]store.Store
 	url     *backend.URL // url of the root store
 	store   *sub.Store

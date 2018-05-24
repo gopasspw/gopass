@@ -8,6 +8,8 @@ import (
 	"sort"
 	"strings"
 
+	"golang.org/x/crypto/sha3"
+
 	"github.com/justwatchcom/gopass/pkg/out"
 	"github.com/justwatchcom/gopass/pkg/store"
 
@@ -17,6 +19,11 @@ import (
 const (
 	keyDir    = ".public-keys"
 	oldKeyDir = ".gpg-keys"
+)
+
+var (
+	// ErrRecipientChecksumChanged is returned is the recipient checksum has changed
+	ErrRecipientChecksumChanged = fmt.Errorf("checksum changed. Run 'gopass recipients update' to get rid of this warning")
 )
 
 // Recipients returns the list of recipients of this store
@@ -55,9 +62,14 @@ func (s *Store) AddRecipient(ctx context.Context, id string) error {
 func (s *Store) SaveRecipients(ctx context.Context) error {
 	rs, err := s.GetRecipients(ctx, "")
 	if err != nil {
-		return errors.Wrapf(err, "failed get recipients")
+		return errors.Wrapf(err, "failed to get recipients")
 	}
 	return s.saveRecipients(ctx, rs, "Save Recipients", true)
+}
+
+// SetRecipients will update the stored recipients and the associated checksum
+func (s *Store) SetRecipients(ctx context.Context, rs []string) error {
+	return s.saveRecipients(ctx, rs, "Set Recipients", true)
 }
 
 // RemoveRecipient will remove the given recipient from the store
@@ -131,7 +143,8 @@ func (s *Store) OurKeyID(ctx context.Context) string {
 // GetRecipients will load all Recipients from the .gpg-id file for the given
 // secret path
 func (s *Store) GetRecipients(ctx context.Context, name string) ([]string, error) {
-	buf, err := s.storage.Get(ctx, s.idFile(ctx, name))
+	idf := s.idFile(ctx, name)
+	buf, err := s.storage.Get(ctx, idf)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get recipients for %s", name)
 	}
@@ -145,6 +158,17 @@ func (s *Store) GetRecipients(ctx context.Context, name string) ([]string, error
 		}
 		finalRecps = append(finalRecps, fp)
 	}
+
+	computedSum := sha3fp(buf)
+	storedSum := s.sc.GetRecipientHash(s.alias, idf)
+	if storedSum == "" {
+		out.Yellow(ctx, "WARNING: No previous recipient checksum for '%s/%s'. Run 'gopass recipients update' to get rid of this warning", s.alias, idf)
+	} else if storedSum == computedSum {
+		out.Debug(ctx, "[%s/%s] Computed Recipient Checksum matches stored sum (%s)", s.alias, idf, computedSum)
+	} else {
+		return finalRecps, ErrRecipientChecksumChanged
+	}
+
 	return finalRecps, nil
 }
 
@@ -195,8 +219,13 @@ func (s *Store) saveRecipients(ctx context.Context, rs []string, msg string, exp
 	}
 
 	idf := s.idFile(ctx, "")
-	if err := s.storage.Set(ctx, idf, marshalRecipients(rs)); err != nil {
+	buf := marshalRecipients(rs)
+	if err := s.storage.Set(ctx, idf, buf); err != nil {
 		return errors.Wrapf(err, "failed to write recipients file")
+	}
+
+	if err := s.sc.SetRecipientHash(s.alias, idf, sha3fp(buf)); err != nil {
+		return errors.Wrapf(err, "failed to update recipients hash")
 	}
 
 	if err := s.rcs.Add(ctx, idf); err != nil {
@@ -283,4 +312,8 @@ func unmarshalRecipients(buf []byte) []string {
 	sort.Strings(lst)
 
 	return lst
+}
+
+func sha3fp(in []byte) string {
+	return fmt.Sprintf("%x", sha3.New512().Sum(in))
 }

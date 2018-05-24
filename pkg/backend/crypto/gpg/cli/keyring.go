@@ -91,7 +91,9 @@ func (g *GPG) findKey(ctx context.Context, id string) gpg.Key {
 	if len(kl) == 1 {
 		return kl[0]
 	}
-	return gpg.Key{}
+	return gpg.Key{
+		Fingerprint: id,
+	}
 }
 
 // EmailFromKey extracts the email from a key id
