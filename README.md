@@ -60,7 +60,7 @@ Please see [docs/features.md](https://github.com/justwatchcom/gopass/blob/master
 
 ## Installation
 
-If you have [Go](https://golang.org/) installed:
+If you have [Go](https://golang.org/) 1.10 (or greater) installed:
 
 ```bash
 go get github.com/justwatchcom/gopass
