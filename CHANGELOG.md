@@ -1,6 +1,7 @@
-## Next Release
+## 1.7.1 / 2018-05-25
 
 * [BUGFIX] Add nogit compat handler [#792]
+* [BUGFIX] Fix reencrypt [#796]
 
 ## 1.7.0 / 2018-05-22
 
