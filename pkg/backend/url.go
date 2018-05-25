@@ -4,7 +4,10 @@ import (
 	"fmt"
 	"net"
 	"net/url"
+	"path/filepath"
 	"strings"
+
+	homedir "github.com/mitchellh/go-homedir"
 )
 
 // URL is a parsed backend URL
@@ -55,6 +58,14 @@ func ParseURL(us string) (*URL, error) {
 	if nu.User != nil {
 		u.Username = nu.User.Username()
 		u.Password, _ = nu.User.Password()
+	}
+	if nu.Host == "~" {
+		hd, err := homedir.Dir()
+		if err != nil {
+			return u, err
+		}
+		u.Path = filepath.Join(hd, u.Path)
+		nu.Host = ""
 	}
 	u.Query = nu.Query()
 	if nu.Host != "" {

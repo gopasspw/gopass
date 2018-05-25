@@ -2,6 +2,7 @@ package consul
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/justwatchcom/gopass/pkg/out"
@@ -129,6 +130,11 @@ func (s *Store) Name() string {
 // Version returns 1.0.0
 func (s *Store) Version() semver.Version {
 	return semver.Version{Major: 1}
+}
+
+// String implements fmt.Stringer
+func (s *Store) String() string {
+	return fmt.Sprintf("consul(1.0.0,%s)", s.prefix)
 }
 
 // Available will check if this backend is useable

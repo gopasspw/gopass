@@ -67,7 +67,7 @@ func New(ctx context.Context, alias string, u *backend.URL, cfgdir string, agent
 		return nil, errors.Wrapf(err, "failed to init crypto backend: %s", err)
 	}
 
-	out.Debug(ctx, "sub.New - initialized - storage: %p - rcs: %p - crypto: %p", s.storage, s.rcs, s.crypto)
+	out.Debug(ctx, "sub.New - initialized - storage: %s (%p) - rcs: %s (%p) - crypto: %s (%p)", s.storage.Name(), s.storage, s.rcs.Name(), s.rcs, s.crypto.Name(), s.crypto)
 	return s, nil
 }
 
