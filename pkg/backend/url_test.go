@@ -1,9 +1,12 @@
 package backend
 
 import (
+	"path/filepath"
 	"testing"
 
+	homedir "github.com/mitchellh/go-homedir"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	yaml "gopkg.in/yaml.v2"
 )
 
@@ -68,12 +71,15 @@ func TestURLString(t *testing.T) {
 }
 
 func TestParseScheme(t *testing.T) {
+	hd, err := homedir.Dir()
+	require.NoError(t, err)
 	for _, tc := range []struct {
 		Name    string
 		URL     string
 		Crypto  CryptoBackend
 		RCS     RCSBackend
 		Storage StorageBackend
+		Path    string
 	}{
 		{
 			Name:    "legacy file path",
@@ -96,6 +102,14 @@ func TestParseScheme(t *testing.T) {
 			RCS:     Noop,
 			Storage: Consul,
 		},
+		{
+			Name:    "Homedir expansion",
+			URL:     "gpgcli-gitcli-fs+file://~/.local/share/password-store",
+			Crypto:  GPGCLI,
+			RCS:     GitCLI,
+			Storage: FS,
+			Path:    filepath.Join(hd, ".local", "share", "password-store"),
+		},
 		//{
 		//	URL:     "plain+vault-http://localhost:9600/foo/bar",
 		//	Crypto:  Plain,
@@ -109,6 +123,9 @@ func TestParseScheme(t *testing.T) {
 		assert.Equal(t, tc.Crypto, u.Crypto, tc.Name)
 		assert.Equal(t, tc.RCS, u.RCS, tc.Name)
 		assert.Equal(t, tc.Storage, u.Storage, tc.Name)
+		if tc.Path != "" {
+			assert.Equal(t, tc.Path, u.Path, tc.Name)
+		}
 	}
 }
 

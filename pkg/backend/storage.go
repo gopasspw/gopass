@@ -2,6 +2,7 @@ package backend
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/blang/semver"
 )
@@ -24,6 +25,7 @@ func (s StorageBackend) String() string {
 
 // Storage is an storage backend
 type Storage interface {
+	fmt.Stringer
 	Get(ctx context.Context, name string) ([]byte, error)
 	Set(ctx context.Context, name string, value []byte) error
 	Delete(ctx context.Context, name string) error
