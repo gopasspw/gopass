@@ -17,8 +17,8 @@ import (
 func (s *Store) initStorageBackend(ctx context.Context) error {
 	switch s.url.Storage {
 	case backend.FS:
-		out.Debug(ctx, "Using Storage Backend: fs")
 		s.storage = fs.New(s.url.Path)
+		out.Debug(ctx, "Using Storage Backend: %s", s.storage.String())
 	case backend.InMem:
 		out.Debug(ctx, "Using Storage Backend: inmem")
 		s.storage = inmem.New()

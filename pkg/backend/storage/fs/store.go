@@ -2,6 +2,7 @@ package fs
 
 import (
 	"context"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -22,7 +23,7 @@ type Store struct {
 // New creates a new store
 func New(dir string) *Store {
 	return &Store{
-		path: dir,
+		path: filepath.Clean(dir),
 	}
 }
 
@@ -112,6 +113,11 @@ func (s *Store) Name() string {
 // Version returns the version of this backend
 func (s *Store) Version() semver.Version {
 	return semver.Version{Minor: 1}
+}
+
+// String implements fmt.Stringer
+func (s *Store) String() string {
+	return fmt.Sprintf("fs(v0.1.0,path:%s)", s.path)
 }
 
 // Available will check if this backend is useable

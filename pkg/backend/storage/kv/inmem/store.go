@@ -116,6 +116,11 @@ func (m *InMem) Version() semver.Version {
 	return semver.Version{Major: 1}
 }
 
+// String implement fmt.Stringer
+func (m *InMem) String() string {
+	return "inmem()"
+}
+
 // Available will check if this backend is useable
 func (m *InMem) Available(ctx context.Context) error {
 	if m.data == nil {
