@@ -1,3 +1,7 @@
+## 1.7.2 / 2018-05-28
+
+* [BUGFIX] Fix tilde expansion [#802]
+
 ## 1.7.1 / 2018-05-25
 
 * [BUGFIX] Add nogit compat handler [#792]
