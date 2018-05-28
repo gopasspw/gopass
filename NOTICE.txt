@@ -17,6 +17,7 @@ github.com/gopasspw/gopass/vendor/github.com/hashicorp/errwrap                  
 github.com/gopasspw/gopass/vendor/github.com/hashicorp/go-cleanhttp                Mozilla Public License 2.0
 github.com/gopasspw/gopass/vendor/github.com/hashicorp/go-multierror               Mozilla Public License 2.0
 github.com/gopasspw/gopass/vendor/github.com/hashicorp/go-rootcerts                Mozilla Public License 2.0
+github.com/gopasspw/gopass/vendor/github.com/hashicorp/golang-lru/simplelru        Mozilla Public License 2.0
 github.com/gopasspw/gopass/vendor/github.com/hashicorp/hcl                         Mozilla Public License 2.0
 github.com/gopasspw/gopass/vendor/github.com/hashicorp/serf/coordinate             Mozilla Public License 2.0
 github.com/gopasspw/gopass/vendor/github.com/hashicorp/vault                       Mozilla Public License 2.0

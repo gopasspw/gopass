@@ -11,6 +11,7 @@ import (
 
 	"github.com/gopasspw/gopass/pkg/backend/crypto/gpg"
 	"github.com/gopasspw/gopass/pkg/out"
+	lru "github.com/hashicorp/golang-lru"
 )
 
 var (
@@ -28,10 +29,11 @@ var (
 
 // GPG is a gpg wrapper
 type GPG struct {
-	binary   string
-	args     []string
-	pubKeys  gpg.KeyList
-	privKeys gpg.KeyList
+	binary    string
+	args      []string
+	pubKeys   gpg.KeyList
+	privKeys  gpg.KeyList
+	listCache *lru.TwoQueueCache
 }
 
 // Config is the gpg wrapper config
@@ -58,6 +60,12 @@ func New(ctx context.Context, cfg Config) (*GPG, error) {
 		binary: "gpg",
 		args:   append(defaultArgs, cfg.Args...),
 	}
+
+	cache, err := lru.New2Q(1024)
+	if err != nil {
+		return nil, err
+	}
+	g.listCache = cache
 
 	bin, err := Binary(ctx, cfg.Binary)
 	if err != nil {

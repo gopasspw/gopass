@@ -230,21 +230,29 @@ func (s *Store) reencrypt(ctx context.Context) error {
 		for _, name := range entries {
 			p := s.passfile(name)
 			if err := s.rcs.Add(ctx, p); err != nil {
-				if errors.Cause(err) == store.ErrGitNotInit {
-					return nil
+				switch errors.Cause(err) {
+				case store.ErrGitNotInit:
+					out.Debug(ctx, "reencrypt - skipping git add - git not initialized")
+					continue
+				default:
+					return errors.Wrapf(err, "failed to add '%s' to git", p)
 				}
-				return errors.Wrapf(err, "failed to add '%s' to git", p)
 			}
+			out.Debug(ctx, "reencrypt - added %s to git", p)
 		}
 	}
 
 	if err := s.rcs.Commit(ctx, GetReason(ctx)); err != nil {
-		if errors.Cause(err) != store.ErrGitNotInit {
+		switch errors.Cause(err) {
+		case store.ErrGitNotInit:
+			out.Debug(ctx, "reencrypt - skipping git commit - git not initialized")
+		default:
 			return errors.Wrapf(err, "failed to commit changes to git")
 		}
 	}
 
 	if !IsAutoSync(ctx) {
+		out.Debug(ctx, "reencrypt - auto sync is disabled")
 		return nil
 	}
 

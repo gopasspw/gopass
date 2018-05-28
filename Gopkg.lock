@@ -134,6 +134,15 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/hashicorp/golang-lru"
+  packages = [
+    ".",
+    "simplelru"
+  ]
+  revision = "0fb14efe8c47ae851c0034ed7a448854d3d34cf3"
+
+[[projects]]
+  branch = "master"
   name = "github.com/hashicorp/hcl"
   packages = [
     ".",
@@ -500,6 +509,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "6621c915e9488854dd220c56dd228ddbc62255d8da8ad32826141c95d3606ece"
+  inputs-digest = "79eda6dcba4ff7fc121ef23f719575c9235c50ebec47119eaa312f9d9d07c6a1"
   solver-name = "gps-cdcl"
   solver-version = 1
