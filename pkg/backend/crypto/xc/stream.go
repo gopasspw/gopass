@@ -1,13 +1,16 @@
 package xc
 
 import (
+	"bytes"
 	"context"
 	crypto_rand "crypto/rand"
 	stdbin "encoding/binary"
 	"fmt"
 	"io"
+	"runtime"
 
 	"github.com/alecthomas/binary"
+	"github.com/gopasspw/gopass/pkg/backend/crypto/xc/sync"
 	"github.com/gopasspw/gopass/pkg/backend/crypto/xc/xcpb"
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/nacl/secretbox"
@@ -46,22 +49,44 @@ func (x *XC) EncryptStream(ctx context.Context, plaintext io.Reader, recipients 
 		return err
 	}
 	// write body
-	num := 0
-	buf := make([]byte, chunkSizeMax)
-	encbuf := make([]byte, 8)
-	for {
-		n, err := plaintext.Read(buf)
-		if err := x.encryptChunk(sessionKey, num, buf[:n], encbuf, ciphertext); err != nil {
-			return err
-		}
-		if err != nil {
-			if err == io.EOF {
-				return nil
-			}
-			return err
-		}
-		num++
+	pipe := sync.New(runtime.NumCPU()*4, 1024)
+
+	if err := pipe.Work(func(num int, buf []byte) ([]byte, error) {
+		ciphertext := &bytes.Buffer{}
+		encbuf := make([]byte, 8)
+		err := x.encryptChunk(sessionKey, num, buf, encbuf, ciphertext)
+		return ciphertext.Bytes(), err
+	}); err != nil {
+		return err
 	}
+
+	go func() {
+		num := 0
+		readbuf := make([]byte, chunkSizeMax)
+		for {
+			select {
+			case <-ctx.Done():
+				break
+			default:
+			}
+			n, err := plaintext.Read(readbuf)
+			pipe.Write(num, readbuf[:n])
+			if err != nil {
+				if err == io.EOF {
+					break
+				}
+				// TODO
+				break
+			}
+			num++
+		}
+		pipe.Close()
+	}()
+
+	return pipe.Consume(func(num int, buf []byte) error {
+		_, err := ciphertext.Write(buf)
+		return err
+	})
 }
 
 func (x *XC) encryptChunk(sessionKey [32]byte, num int, buf, encbuf []byte, ciphertext io.Writer) error {
@@ -112,31 +137,49 @@ func (x *XC) DecryptStream(ctx context.Context, ciphertext io.Reader, plaintext 
 	var secretKey [32]byte
 	copy(secretKey[:], sk)
 
-	// read body
-	num := 0
-	var buf []byte
-	br := &byteReader{ciphertext}
-	for {
-		l, err := stdbin.ReadUvarint(br)
-		if err != nil {
-			if err == io.EOF {
-				return nil
-			}
-			return err
-		}
-		buf = make([]byte, l)
-		n, err := br.Read(buf)
-		if err := x.decryptChunk(secretKey, num, buf[:n], plaintext); err != nil {
-			return err
-		}
-		if err != nil {
-			if err == io.EOF {
-				return nil
-			}
-			return err
-		}
-		num++
+	pipe := sync.New(runtime.NumCPU()*4, 1024)
+
+	if err := pipe.Work(func(num int, buf []byte) ([]byte, error) {
+		plaintext := &bytes.Buffer{}
+		err := x.decryptChunk(secretKey, num, buf, plaintext)
+		return plaintext.Bytes(), err
+	}); err != nil {
+		return err
 	}
+
+	// read body
+	go func() {
+		num := 0
+		var buf []byte
+		br := &byteReader{ciphertext}
+		for {
+			l, err := stdbin.ReadUvarint(br)
+			if err != nil {
+				if err == io.EOF {
+					break
+				}
+				// TODO
+				break
+			}
+			buf = make([]byte, l)
+			n, err := br.Read(buf)
+			pipe.Write(num, buf[:n])
+			if err != nil {
+				if err == io.EOF {
+					break
+				}
+				// TODO
+				break
+			}
+			num++
+		}
+		pipe.Close()
+	}()
+
+	return pipe.Consume(func(num int, buf []byte) error {
+		_, err := plaintext.Write(buf)
+		return err
+	})
 }
 
 func (x *XC) decryptChunk(secretKey [32]byte, num int, buf []byte, plaintext io.Writer) error {
