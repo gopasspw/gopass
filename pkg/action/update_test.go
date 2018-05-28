@@ -13,10 +13,10 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/justwatchcom/gopass/pkg/ctxutil"
-	"github.com/justwatchcom/gopass/pkg/out"
-	"github.com/justwatchcom/gopass/pkg/updater"
-	"github.com/justwatchcom/gopass/tests/gptest"
+	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/out"
+	"github.com/gopasspw/gopass/pkg/updater"
+	"github.com/gopasspw/gopass/tests/gptest"
 
 	"github.com/dominikschulz/github-releases/ghrel"
 	"github.com/stretchr/testify/assert"

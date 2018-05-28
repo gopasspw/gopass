@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/justwatchcom/gopass/pkg/backend"
-	"github.com/justwatchcom/gopass/pkg/tree"
+	"github.com/gopasspw/gopass/pkg/backend"
+	"github.com/gopasspw/gopass/pkg/tree"
 )
 
 // RecipientCallback is a callback to verify the list of recipients

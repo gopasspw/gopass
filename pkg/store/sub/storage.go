@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/justwatchcom/gopass/pkg/backend"
-	"github.com/justwatchcom/gopass/pkg/backend/storage/fs"
-	kvconsul "github.com/justwatchcom/gopass/pkg/backend/storage/kv/consul"
-	"github.com/justwatchcom/gopass/pkg/backend/storage/kv/inmem"
-	"github.com/justwatchcom/gopass/pkg/config/secrets"
-	"github.com/justwatchcom/gopass/pkg/out"
+	"github.com/gopasspw/gopass/pkg/backend"
+	"github.com/gopasspw/gopass/pkg/backend/storage/fs"
+	kvconsul "github.com/gopasspw/gopass/pkg/backend/storage/kv/consul"
+	"github.com/gopasspw/gopass/pkg/backend/storage/kv/inmem"
+	"github.com/gopasspw/gopass/pkg/config/secrets"
+	"github.com/gopasspw/gopass/pkg/out"
 
 	"github.com/pkg/errors"
 )

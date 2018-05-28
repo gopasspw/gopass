@@ -3,8 +3,8 @@ package jsonapi
 import (
 	"testing"
 
-	"github.com/justwatchcom/gopass/pkg/store"
-	"github.com/justwatchcom/gopass/pkg/store/secret"
+	"github.com/gopasspw/gopass/pkg/store"
+	"github.com/gopasspw/gopass/pkg/store/secret"
 )
 
 func TestGetUsername(t *testing.T) {

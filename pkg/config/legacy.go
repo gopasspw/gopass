@@ -1,6 +1,6 @@
 package config
 
-import "github.com/justwatchcom/gopass/pkg/backend"
+import "github.com/gopasspw/gopass/pkg/backend"
 
 // Pre140 is the gopass config structure before version 1.4.0
 type Pre140 struct {

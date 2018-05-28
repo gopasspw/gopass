@@ -4,10 +4,10 @@ import (
 	"context"
 	"sort"
 
-	"github.com/justwatchcom/gopass/pkg/out"
-	"github.com/justwatchcom/gopass/pkg/store"
-	"github.com/justwatchcom/gopass/pkg/tree"
-	"github.com/justwatchcom/gopass/pkg/tree/simple"
+	"github.com/gopasspw/gopass/pkg/out"
+	"github.com/gopasspw/gopass/pkg/store"
+	"github.com/gopasspw/gopass/pkg/tree"
+	"github.com/gopasspw/gopass/pkg/tree/simple"
 
 	"github.com/pkg/errors"
 )

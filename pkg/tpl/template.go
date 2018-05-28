@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"text/template"
 
-	"github.com/justwatchcom/gopass/pkg/store"
+	"github.com/gopasspw/gopass/pkg/store"
 )
 
 type kvstore interface {

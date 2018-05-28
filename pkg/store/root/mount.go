@@ -5,12 +5,12 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/justwatchcom/gopass/pkg/backend"
-	"github.com/justwatchcom/gopass/pkg/config"
-	"github.com/justwatchcom/gopass/pkg/out"
-	"github.com/justwatchcom/gopass/pkg/store"
-	"github.com/justwatchcom/gopass/pkg/store/sub"
-	"github.com/justwatchcom/gopass/pkg/store/vault"
+	"github.com/gopasspw/gopass/pkg/backend"
+	"github.com/gopasspw/gopass/pkg/config"
+	"github.com/gopasspw/gopass/pkg/out"
+	"github.com/gopasspw/gopass/pkg/store"
+	"github.com/gopasspw/gopass/pkg/store/sub"
+	"github.com/gopasspw/gopass/pkg/store/vault"
 
 	"github.com/fatih/color"
 	"github.com/pkg/errors"

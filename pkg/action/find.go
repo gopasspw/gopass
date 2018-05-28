@@ -6,9 +6,9 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/justwatchcom/gopass/pkg/ctxutil"
-	"github.com/justwatchcom/gopass/pkg/cui"
-	"github.com/justwatchcom/gopass/pkg/out"
+	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/cui"
+	"github.com/gopasspw/gopass/pkg/out"
 
 	"github.com/schollz/closestmatch"
 	"github.com/urfave/cli"

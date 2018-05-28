@@ -4,8 +4,8 @@ import (
 	"context"
 	"io"
 
-	"github.com/justwatchcom/gopass/pkg/out"
-	"github.com/justwatchcom/gopass/pkg/store/root"
+	"github.com/gopasspw/gopass/pkg/out"
+	"github.com/gopasspw/gopass/pkg/store/root"
 )
 
 // API type holding store and context

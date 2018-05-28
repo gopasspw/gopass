@@ -3,8 +3,8 @@ package config
 import (
 	"context"
 
-	"github.com/justwatchcom/gopass/pkg/ctxutil"
-	"github.com/justwatchcom/gopass/pkg/store/sub"
+	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/store/sub"
 )
 
 // WithContext returns a context with all config options set for this store

@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/justwatchcom/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/ctxutil"
 
 	"github.com/stretchr/testify/assert"
 )

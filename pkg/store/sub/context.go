@@ -3,7 +3,7 @@ package sub
 import (
 	"context"
 
-	"github.com/justwatchcom/gopass/pkg/store"
+	"github.com/gopasspw/gopass/pkg/store"
 )
 
 type contextKey int

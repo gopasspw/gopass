@@ -7,12 +7,12 @@ import (
 	"os"
 	"testing"
 
-	"github.com/justwatchcom/gopass/pkg/backend"
-	plain "github.com/justwatchcom/gopass/pkg/backend/crypto/plain"
-	noop "github.com/justwatchcom/gopass/pkg/backend/rcs/noop"
-	"github.com/justwatchcom/gopass/pkg/backend/storage/fs"
-	"github.com/justwatchcom/gopass/pkg/out"
-	"github.com/justwatchcom/gopass/pkg/store/secret"
+	"github.com/gopasspw/gopass/pkg/backend"
+	plain "github.com/gopasspw/gopass/pkg/backend/crypto/plain"
+	noop "github.com/gopasspw/gopass/pkg/backend/rcs/noop"
+	"github.com/gopasspw/gopass/pkg/backend/storage/fs"
+	"github.com/gopasspw/gopass/pkg/out"
+	"github.com/gopasspw/gopass/pkg/store/secret"
 
 	"github.com/stretchr/testify/assert"
 )

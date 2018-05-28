@@ -8,9 +8,9 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/justwatchcom/gopass/pkg/pwgen"
-	"github.com/justwatchcom/gopass/pkg/store"
-	"github.com/justwatchcom/gopass/pkg/store/secret"
+	"github.com/gopasspw/gopass/pkg/pwgen"
+	"github.com/gopasspw/gopass/pkg/store"
+	"github.com/gopasspw/gopass/pkg/store/secret"
 
 	"github.com/pkg/errors"
 )

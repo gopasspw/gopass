@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/justwatchcom/gopass/pkg/termio"
+	"github.com/gopasspw/gopass/pkg/termio"
 
 	"github.com/urfave/cli"
 )

@@ -4,13 +4,13 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/justwatchcom/gopass/pkg/backend"
-	"github.com/justwatchcom/gopass/pkg/backend/crypto/plain"
-	"github.com/justwatchcom/gopass/pkg/backend/rcs/noop"
-	"github.com/justwatchcom/gopass/pkg/backend/storage/kv/inmem"
-	"github.com/justwatchcom/gopass/pkg/store"
-	"github.com/justwatchcom/gopass/pkg/store/secret"
-	"github.com/justwatchcom/gopass/pkg/tree"
+	"github.com/gopasspw/gopass/pkg/backend"
+	"github.com/gopasspw/gopass/pkg/backend/crypto/plain"
+	"github.com/gopasspw/gopass/pkg/backend/rcs/noop"
+	"github.com/gopasspw/gopass/pkg/backend/storage/kv/inmem"
+	"github.com/gopasspw/gopass/pkg/store"
+	"github.com/gopasspw/gopass/pkg/store/secret"
+	"github.com/gopasspw/gopass/pkg/tree"
 )
 
 // MockStore is an mocked store

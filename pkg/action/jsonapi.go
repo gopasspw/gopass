@@ -9,11 +9,11 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/justwatchcom/gopass/pkg/config"
-	"github.com/justwatchcom/gopass/pkg/jsonapi"
-	"github.com/justwatchcom/gopass/pkg/jsonapi/manifest"
-	"github.com/justwatchcom/gopass/pkg/out"
-	"github.com/justwatchcom/gopass/pkg/termio"
+	"github.com/gopasspw/gopass/pkg/config"
+	"github.com/gopasspw/gopass/pkg/jsonapi"
+	"github.com/gopasspw/gopass/pkg/jsonapi/manifest"
+	"github.com/gopasspw/gopass/pkg/out"
+	"github.com/gopasspw/gopass/pkg/termio"
 
 	"github.com/fatih/color"
 	"github.com/pkg/errors"

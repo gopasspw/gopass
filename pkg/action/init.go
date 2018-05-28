@@ -5,15 +5,15 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	"github.com/justwatchcom/gopass/pkg/agent/client"
-	"github.com/justwatchcom/gopass/pkg/backend"
-	"github.com/justwatchcom/gopass/pkg/config"
-	"github.com/justwatchcom/gopass/pkg/ctxutil"
-	"github.com/justwatchcom/gopass/pkg/cui"
-	"github.com/justwatchcom/gopass/pkg/out"
-	"github.com/justwatchcom/gopass/pkg/pwgen/xkcdgen"
-	"github.com/justwatchcom/gopass/pkg/store/sub"
-	"github.com/justwatchcom/gopass/pkg/termio"
+	"github.com/gopasspw/gopass/pkg/agent/client"
+	"github.com/gopasspw/gopass/pkg/backend"
+	"github.com/gopasspw/gopass/pkg/config"
+	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/cui"
+	"github.com/gopasspw/gopass/pkg/out"
+	"github.com/gopasspw/gopass/pkg/pwgen/xkcdgen"
+	"github.com/gopasspw/gopass/pkg/store/sub"
+	"github.com/gopasspw/gopass/pkg/termio"
 
 	"github.com/fatih/color"
 	"github.com/pkg/errors"
@@ -227,7 +227,7 @@ func (s *Action) initCreatePrivateKey(ctx context.Context, crypto backend.Crypto
 	out.Print(ctx, `However, the GPG program can sometimes lock up, displaying the following:
 "We need to generate a lot of random bytes."
 If this happens, please see the following tips:
-https://github.com/justwatchcom/gopass/blob/master/docs/entropy.md`)
+https://github.com/gopasspw/gopass/blob/master/docs/entropy.md`)
 	if name != "" && email != "" {
 		ctx := out.AddPrefix(ctx, " ")
 		passphrase := xkcdgen.Random()

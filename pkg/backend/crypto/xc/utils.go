@@ -6,8 +6,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/justwatchcom/gopass/pkg/backend/crypto/xc/keyring"
-	"github.com/justwatchcom/gopass/pkg/backend/crypto/xc/xcpb"
+	"github.com/gopasspw/gopass/pkg/backend/crypto/xc/keyring"
+	"github.com/gopasspw/gopass/pkg/backend/crypto/xc/xcpb"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"

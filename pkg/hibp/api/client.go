@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/justwatchcom/gopass/pkg/out"
+	"github.com/gopasspw/gopass/pkg/out"
 
 	"github.com/cenkalti/backoff"
 	"github.com/pkg/errors"

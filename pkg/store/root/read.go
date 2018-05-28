@@ -3,7 +3,7 @@ package root
 import (
 	"context"
 
-	"github.com/justwatchcom/gopass/pkg/store"
+	"github.com/gopasspw/gopass/pkg/store"
 )
 
 // Get returns the plaintext of a single key

@@ -8,7 +8,7 @@ import (
 	"os/exec"
 	"syscall"
 
-	"github.com/justwatchcom/gopass/pkg/out"
+	"github.com/gopasspw/gopass/pkg/out"
 
 	"github.com/pkg/errors"
 )

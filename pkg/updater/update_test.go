@@ -123,7 +123,7 @@ func TestCheckHost(t *testing.T) {
 		ok bool
 	}{
 		{
-			in: "https://github.com/justwatchcom/gopass/releases/download/v1.6.8/gopass-1.6.8-linux-amd64.tar.gz",
+			in: "https://github.com/gopasspw/gopass/releases/download/v1.6.8/gopass-1.6.8-linux-amd64.tar.gz",
 			ok: true,
 		},
 		{

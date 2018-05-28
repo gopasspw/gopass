@@ -3,9 +3,9 @@ package sub
 import (
 	"context"
 
-	"github.com/justwatchcom/gopass/pkg/out"
-	"github.com/justwatchcom/gopass/pkg/store"
-	"github.com/justwatchcom/gopass/pkg/store/secret"
+	"github.com/gopasspw/gopass/pkg/out"
+	"github.com/gopasspw/gopass/pkg/store"
+	"github.com/gopasspw/gopass/pkg/store/secret"
 )
 
 // Get returns the plaintext of a single key

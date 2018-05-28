@@ -5,7 +5,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/justwatchcom/gopass/pkg/editor"
+	"github.com/gopasspw/gopass/pkg/editor"
 
 	"github.com/urfave/cli"
 )

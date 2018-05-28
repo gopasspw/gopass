@@ -6,11 +6,11 @@ import (
 	"os"
 	"strings"
 
-	"github.com/justwatchcom/gopass/pkg/clipboard"
-	"github.com/justwatchcom/gopass/pkg/ctxutil"
-	"github.com/justwatchcom/gopass/pkg/out"
-	"github.com/justwatchcom/gopass/pkg/qrcon"
-	"github.com/justwatchcom/gopass/pkg/store"
+	"github.com/gopasspw/gopass/pkg/clipboard"
+	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/out"
+	"github.com/gopasspw/gopass/pkg/qrcon"
+	"github.com/gopasspw/gopass/pkg/store"
 
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"

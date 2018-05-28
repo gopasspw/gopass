@@ -5,7 +5,7 @@ package termio
 import (
 	"context"
 
-	"github.com/justwatchcom/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/ctxutil"
 )
 
 // promptPass will prompt user's for a password by terminal.

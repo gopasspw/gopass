@@ -7,8 +7,8 @@ import (
 	"os"
 	"runtime"
 
-	"github.com/justwatchcom/gopass/pkg/ctxutil"
-	"github.com/justwatchcom/gopass/pkg/termwiz"
+	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/termwiz"
 
 	"github.com/fatih/color"
 	"github.com/jroimartin/gocui"

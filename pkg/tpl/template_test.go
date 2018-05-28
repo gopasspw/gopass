@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/justwatchcom/gopass/pkg/store"
-	"github.com/justwatchcom/gopass/pkg/store/secret"
+	"github.com/gopasspw/gopass/pkg/store"
+	"github.com/gopasspw/gopass/pkg/store/secret"
 )
 
 type kvMock struct{}

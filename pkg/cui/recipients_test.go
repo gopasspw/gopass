@@ -6,9 +6,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/justwatchcom/gopass/pkg/backend/crypto/plain"
-	"github.com/justwatchcom/gopass/pkg/ctxutil"
-	"github.com/justwatchcom/gopass/tests/gptest"
+	"github.com/gopasspw/gopass/pkg/backend/crypto/plain"
+	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/tests/gptest"
 
 	"github.com/stretchr/testify/assert"
 )

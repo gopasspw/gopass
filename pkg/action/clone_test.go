@@ -9,11 +9,11 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/justwatchcom/gopass/pkg/backend"
-	git "github.com/justwatchcom/gopass/pkg/backend/rcs/git/cli"
-	"github.com/justwatchcom/gopass/pkg/ctxutil"
-	"github.com/justwatchcom/gopass/pkg/out"
-	"github.com/justwatchcom/gopass/tests/gptest"
+	"github.com/gopasspw/gopass/pkg/backend"
+	git "github.com/gopasspw/gopass/pkg/backend/rcs/git/cli"
+	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/out"
+	"github.com/gopasspw/gopass/tests/gptest"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/urfave/cli"

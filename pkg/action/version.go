@@ -7,9 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/justwatchcom/gopass/pkg/out"
-	"github.com/justwatchcom/gopass/pkg/protect"
-	"github.com/justwatchcom/gopass/pkg/updater"
+	"github.com/gopasspw/gopass/pkg/out"
+	"github.com/gopasspw/gopass/pkg/protect"
+	"github.com/gopasspw/gopass/pkg/updater"
 
 	"github.com/fatih/color"
 	"github.com/urfave/cli"

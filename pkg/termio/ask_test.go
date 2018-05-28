@@ -7,8 +7,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/justwatchcom/gopass/pkg/ctxutil"
-	"github.com/justwatchcom/gopass/pkg/out"
+	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/out"
 
 	"github.com/stretchr/testify/assert"
 )

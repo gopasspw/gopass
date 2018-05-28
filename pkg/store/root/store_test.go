@@ -6,9 +6,9 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/justwatchcom/gopass/pkg/backend"
-	"github.com/justwatchcom/gopass/pkg/config"
-	"github.com/justwatchcom/gopass/tests/gptest"
+	"github.com/gopasspw/gopass/pkg/backend"
+	"github.com/gopasspw/gopass/pkg/config"
+	"github.com/gopasspw/gopass/tests/gptest"
 
 	"github.com/stretchr/testify/assert"
 )

@@ -9,12 +9,12 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/justwatchcom/gopass/pkg/agent/client"
-	"github.com/justwatchcom/gopass/pkg/backend"
-	"github.com/justwatchcom/gopass/pkg/backend/rcs/noop"
-	"github.com/justwatchcom/gopass/pkg/ctxutil"
-	"github.com/justwatchcom/gopass/pkg/out"
-	"github.com/justwatchcom/gopass/pkg/store"
+	"github.com/gopasspw/gopass/pkg/agent/client"
+	"github.com/gopasspw/gopass/pkg/backend"
+	"github.com/gopasspw/gopass/pkg/backend/rcs/noop"
+	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/out"
+	"github.com/gopasspw/gopass/pkg/store"
 
 	"github.com/muesli/goprogressbar"
 	"github.com/pkg/errors"

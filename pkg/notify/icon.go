@@ -7,8 +7,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/justwatchcom/gopass/pkg/config"
-	"github.com/justwatchcom/gopass/pkg/fsutil"
+	"github.com/gopasspw/gopass/pkg/config"
+	"github.com/gopasspw/gopass/pkg/fsutil"
 )
 
 func iconURI() string {

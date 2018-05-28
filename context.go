@@ -7,10 +7,10 @@ import (
 
 	"golang.org/x/crypto/ssh/terminal"
 
-	"github.com/justwatchcom/gopass/pkg/backend/crypto/gpg"
-	"github.com/justwatchcom/gopass/pkg/config"
-	"github.com/justwatchcom/gopass/pkg/ctxutil"
-	"github.com/justwatchcom/gopass/pkg/store/sub"
+	"github.com/gopasspw/gopass/pkg/backend/crypto/gpg"
+	"github.com/gopasspw/gopass/pkg/config"
+	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/store/sub"
 
 	"github.com/fatih/color"
 )

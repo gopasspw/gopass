@@ -6,12 +6,12 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/justwatchcom/gopass/pkg/ctxutil"
-	"github.com/justwatchcom/gopass/pkg/cui"
-	"github.com/justwatchcom/gopass/pkg/out"
-	"github.com/justwatchcom/gopass/pkg/store"
-	"github.com/justwatchcom/gopass/pkg/store/sub"
-	"github.com/justwatchcom/gopass/pkg/termio"
+	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/cui"
+	"github.com/gopasspw/gopass/pkg/out"
+	"github.com/gopasspw/gopass/pkg/store"
+	"github.com/gopasspw/gopass/pkg/store/sub"
+	"github.com/gopasspw/gopass/pkg/termio"
 
 	"github.com/urfave/cli"
 )

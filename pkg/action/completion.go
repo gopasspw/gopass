@@ -6,8 +6,8 @@ import (
 	"regexp"
 	"strings"
 
-	fishcomp "github.com/justwatchcom/gopass/pkg/completion/fish"
-	zshcomp "github.com/justwatchcom/gopass/pkg/completion/zsh"
+	fishcomp "github.com/gopasspw/gopass/pkg/completion/fish"
+	zshcomp "github.com/gopasspw/gopass/pkg/completion/zsh"
 
 	"github.com/urfave/cli"
 )

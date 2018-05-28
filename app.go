@@ -5,11 +5,11 @@ import (
 	"os"
 	"strings"
 
-	ap "github.com/justwatchcom/gopass/pkg/action"
-	"github.com/justwatchcom/gopass/pkg/config"
-	"github.com/justwatchcom/gopass/pkg/out"
-	"github.com/justwatchcom/gopass/pkg/store/sub"
-	"github.com/justwatchcom/gopass/pkg/termio"
+	ap "github.com/gopasspw/gopass/pkg/action"
+	"github.com/gopasspw/gopass/pkg/config"
+	"github.com/gopasspw/gopass/pkg/out"
+	"github.com/gopasspw/gopass/pkg/store/sub"
+	"github.com/gopasspw/gopass/pkg/termio"
 
 	"github.com/blang/semver"
 	"github.com/urfave/cli"

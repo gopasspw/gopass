@@ -14,10 +14,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/justwatchcom/gopass/pkg/ctxutil"
-	hibpapi "github.com/justwatchcom/gopass/pkg/hibp/api"
-	"github.com/justwatchcom/gopass/pkg/out"
-	"github.com/justwatchcom/gopass/tests/gptest"
+	"github.com/gopasspw/gopass/pkg/ctxutil"
+	hibpapi "github.com/gopasspw/gopass/pkg/hibp/api"
+	"github.com/gopasspw/gopass/pkg/out"
+	"github.com/gopasspw/gopass/tests/gptest"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/urfave/cli"

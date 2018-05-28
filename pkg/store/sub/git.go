@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/justwatchcom/gopass/pkg/backend"
-	gitcli "github.com/justwatchcom/gopass/pkg/backend/rcs/git/cli"
-	"github.com/justwatchcom/gopass/pkg/backend/rcs/git/gogit"
-	"github.com/justwatchcom/gopass/pkg/out"
-	"github.com/justwatchcom/gopass/pkg/store"
-	"github.com/justwatchcom/gopass/pkg/store/secret"
+	"github.com/gopasspw/gopass/pkg/backend"
+	gitcli "github.com/gopasspw/gopass/pkg/backend/rcs/git/cli"
+	"github.com/gopasspw/gopass/pkg/backend/rcs/git/gogit"
+	"github.com/gopasspw/gopass/pkg/out"
+	"github.com/gopasspw/gopass/pkg/store"
+	"github.com/gopasspw/gopass/pkg/store/secret"
 
 	"github.com/pkg/errors"
 )

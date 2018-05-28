@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/blang/semver"
-	"github.com/justwatchcom/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/urfave/cli"
 )

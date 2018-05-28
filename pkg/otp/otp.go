@@ -5,7 +5,7 @@ import (
 	"io/ioutil"
 	"strings"
 
-	"github.com/justwatchcom/gopass/pkg/store"
+	"github.com/gopasspw/gopass/pkg/store"
 
 	"github.com/gokyle/twofactor"
 	"github.com/pkg/errors"

@@ -9,10 +9,10 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/justwatchcom/gopass/pkg/ctxutil"
-	"github.com/justwatchcom/gopass/pkg/out"
-	"github.com/justwatchcom/gopass/pkg/termutil"
-	"github.com/justwatchcom/gopass/pkg/tree"
+	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/out"
+	"github.com/gopasspw/gopass/pkg/termutil"
+	"github.com/gopasspw/gopass/pkg/tree"
 
 	"github.com/fatih/color"
 	shellquote "github.com/kballard/go-shellquote"

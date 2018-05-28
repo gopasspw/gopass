@@ -11,8 +11,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/justwatchcom/gopass/pkg/fsutil"
-	"github.com/justwatchcom/gopass/pkg/out"
+	"github.com/gopasspw/gopass/pkg/fsutil"
+	"github.com/gopasspw/gopass/pkg/out"
 )
 
 // Scanner is a HIBP dump scanner

@@ -5,7 +5,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/justwatchcom/gopass/pkg/clipboard"
+	"github.com/gopasspw/gopass/pkg/clipboard"
 
 	"github.com/urfave/cli"
 )

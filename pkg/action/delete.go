@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/justwatchcom/gopass/pkg/store/sub"
-	"github.com/justwatchcom/gopass/pkg/termio"
+	"github.com/gopasspw/gopass/pkg/store/sub"
+	"github.com/gopasspw/gopass/pkg/termio"
 
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"

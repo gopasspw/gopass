@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/justwatchcom/gopass/pkg/store/sub"
+	"github.com/gopasspw/gopass/pkg/store/sub"
 
 	"github.com/pkg/errors"
 )

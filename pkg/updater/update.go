@@ -17,8 +17,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/justwatchcom/gopass/pkg/out"
-	"github.com/justwatchcom/gopass/pkg/termio"
+	"github.com/gopasspw/gopass/pkg/out"
+	"github.com/gopasspw/gopass/pkg/termio"
 
 	"github.com/blang/semver"
 	"github.com/cenkalti/backoff"

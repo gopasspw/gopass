@@ -5,8 +5,8 @@ import (
 	"context"
 	"os/exec"
 
-	"github.com/justwatchcom/gopass/pkg/backend/crypto/gpg"
-	"github.com/justwatchcom/gopass/pkg/out"
+	"github.com/gopasspw/gopass/pkg/backend/crypto/gpg"
+	"github.com/gopasspw/gopass/pkg/out"
 )
 
 // listKey lists all keys of the given type and matching the search strings

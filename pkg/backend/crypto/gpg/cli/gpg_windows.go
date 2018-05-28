@@ -8,7 +8,7 @@ import (
 
 	"golang.org/x/sys/windows/registry"
 
-	"github.com/justwatchcom/gopass/pkg/fsutil"
+	"github.com/gopasspw/gopass/pkg/fsutil"
 )
 
 func detectBinaryCandidates(bin string) ([]string, error) {

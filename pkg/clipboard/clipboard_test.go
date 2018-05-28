@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/justwatchcom/gopass/pkg/out"
+	"github.com/gopasspw/gopass/pkg/out"
 
 	"github.com/atotto/clipboard"
 	"github.com/stretchr/testify/assert"

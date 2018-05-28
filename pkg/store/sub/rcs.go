@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/justwatchcom/gopass/pkg/backend"
-	gpgcli "github.com/justwatchcom/gopass/pkg/backend/crypto/gpg/cli"
-	gitcli "github.com/justwatchcom/gopass/pkg/backend/rcs/git/cli"
-	"github.com/justwatchcom/gopass/pkg/backend/rcs/git/gogit"
-	"github.com/justwatchcom/gopass/pkg/out"
+	"github.com/gopasspw/gopass/pkg/backend"
+	gpgcli "github.com/gopasspw/gopass/pkg/backend/crypto/gpg/cli"
+	gitcli "github.com/gopasspw/gopass/pkg/backend/rcs/git/cli"
+	"github.com/gopasspw/gopass/pkg/backend/rcs/git/gogit"
+	"github.com/gopasspw/gopass/pkg/out"
 )
 
 func (s *Store) initRCSBackend(ctx context.Context) error {

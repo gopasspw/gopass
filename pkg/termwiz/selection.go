@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/justwatchcom/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/ctxutil"
 
 	"github.com/gdamore/tcell/termbox"
 	runewidth "github.com/mattn/go-runewidth"

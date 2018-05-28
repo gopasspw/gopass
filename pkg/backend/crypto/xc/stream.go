@@ -8,7 +8,7 @@ import (
 	"io"
 
 	"github.com/alecthomas/binary"
-	"github.com/justwatchcom/gopass/pkg/backend/crypto/xc/xcpb"
+	"github.com/gopasspw/gopass/pkg/backend/crypto/xc/xcpb"
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/nacl/secretbox"
 )

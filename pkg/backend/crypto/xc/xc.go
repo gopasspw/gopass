@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/justwatchcom/gopass/pkg/backend/crypto/xc/keyring"
+	"github.com/gopasspw/gopass/pkg/backend/crypto/xc/keyring"
 
 	"github.com/blang/semver"
 )

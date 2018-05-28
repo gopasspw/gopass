@@ -10,9 +10,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/justwatchcom/gopass/pkg/agent/client"
-	"github.com/justwatchcom/gopass/pkg/out"
-	"github.com/justwatchcom/gopass/pkg/pinentry"
+	"github.com/gopasspw/gopass/pkg/agent/client"
+	"github.com/gopasspw/gopass/pkg/out"
+	"github.com/gopasspw/gopass/pkg/pinentry"
 
 	"github.com/pkg/errors"
 )

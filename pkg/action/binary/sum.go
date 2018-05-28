@@ -5,8 +5,8 @@ import (
 	"crypto/sha256"
 	"strings"
 
-	"github.com/justwatchcom/gopass/pkg/action"
-	"github.com/justwatchcom/gopass/pkg/out"
+	"github.com/gopasspw/gopass/pkg/action"
+	"github.com/gopasspw/gopass/pkg/out"
 
 	"github.com/urfave/cli"
 )

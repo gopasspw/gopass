@@ -10,7 +10,7 @@ import (
 
 	"golang.org/x/crypto/openpgp"
 
-	"github.com/justwatchcom/gopass/pkg/out"
+	"github.com/gopasspw/gopass/pkg/out"
 	homedir "github.com/mitchellh/go-homedir"
 )
 

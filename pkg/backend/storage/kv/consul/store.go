@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/justwatchcom/gopass/pkg/out"
+	"github.com/gopasspw/gopass/pkg/out"
 
 	"github.com/blang/semver"
 	api "github.com/hashicorp/consul/api"

@@ -8,10 +8,10 @@ import (
 	"io/ioutil"
 	"strings"
 
-	"github.com/justwatchcom/gopass/pkg/action"
-	"github.com/justwatchcom/gopass/pkg/fsutil"
-	"github.com/justwatchcom/gopass/pkg/store/secret"
-	"github.com/justwatchcom/gopass/pkg/store/sub"
+	"github.com/gopasspw/gopass/pkg/action"
+	"github.com/gopasspw/gopass/pkg/fsutil"
+	"github.com/gopasspw/gopass/pkg/store/secret"
+	"github.com/gopasspw/gopass/pkg/store/sub"
 
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"

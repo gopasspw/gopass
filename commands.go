@@ -4,14 +4,14 @@ import (
 	"context"
 	"fmt"
 
-	ap "github.com/justwatchcom/gopass/pkg/action"
-	"github.com/justwatchcom/gopass/pkg/action/binary"
-	"github.com/justwatchcom/gopass/pkg/action/create"
-	"github.com/justwatchcom/gopass/pkg/action/xc"
-	"github.com/justwatchcom/gopass/pkg/agent"
-	"github.com/justwatchcom/gopass/pkg/agent/client"
-	"github.com/justwatchcom/gopass/pkg/config"
-	"github.com/justwatchcom/gopass/pkg/ctxutil"
+	ap "github.com/gopasspw/gopass/pkg/action"
+	"github.com/gopasspw/gopass/pkg/action/binary"
+	"github.com/gopasspw/gopass/pkg/action/create"
+	"github.com/gopasspw/gopass/pkg/action/xc"
+	"github.com/gopasspw/gopass/pkg/agent"
+	"github.com/gopasspw/gopass/pkg/agent/client"
+	"github.com/gopasspw/gopass/pkg/config"
+	"github.com/gopasspw/gopass/pkg/ctxutil"
 
 	"github.com/urfave/cli"
 )

@@ -4,14 +4,14 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/justwatchcom/gopass/pkg/agent/client"
-	"github.com/justwatchcom/gopass/pkg/backend"
-	gpgcli "github.com/justwatchcom/gopass/pkg/backend/crypto/gpg/cli"
-	"github.com/justwatchcom/gopass/pkg/backend/crypto/gpg/openpgp"
-	"github.com/justwatchcom/gopass/pkg/backend/crypto/plain"
-	"github.com/justwatchcom/gopass/pkg/backend/crypto/xc"
-	"github.com/justwatchcom/gopass/pkg/fsutil"
-	"github.com/justwatchcom/gopass/pkg/out"
+	"github.com/gopasspw/gopass/pkg/agent/client"
+	"github.com/gopasspw/gopass/pkg/backend"
+	gpgcli "github.com/gopasspw/gopass/pkg/backend/crypto/gpg/cli"
+	"github.com/gopasspw/gopass/pkg/backend/crypto/gpg/openpgp"
+	"github.com/gopasspw/gopass/pkg/backend/crypto/plain"
+	"github.com/gopasspw/gopass/pkg/backend/crypto/xc"
+	"github.com/gopasspw/gopass/pkg/fsutil"
+	"github.com/gopasspw/gopass/pkg/out"
 )
 
 func (s *Store) initCryptoBackend(ctx context.Context) error {

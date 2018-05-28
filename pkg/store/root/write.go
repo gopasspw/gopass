@@ -3,7 +3,7 @@ package root
 import (
 	"context"
 
-	"github.com/justwatchcom/gopass/pkg/store"
+	"github.com/gopasspw/gopass/pkg/store"
 )
 
 // Set encodes and write the ciphertext of one entry to disk

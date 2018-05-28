@@ -6,7 +6,7 @@ import (
 	"os/exec"
 	"sort"
 
-	"github.com/justwatchcom/gopass/pkg/out"
+	"github.com/gopasspw/gopass/pkg/out"
 )
 
 // Binary returns the GPG binary location

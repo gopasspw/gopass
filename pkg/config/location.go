@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/justwatchcom/gopass/pkg/fsutil"
+	"github.com/gopasspw/gopass/pkg/fsutil"
 
 	homedir "github.com/mitchellh/go-homedir"
 )

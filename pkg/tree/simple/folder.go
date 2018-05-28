@@ -5,7 +5,7 @@ import (
 	"path"
 	"strings"
 
-	"github.com/justwatchcom/gopass/pkg/tree"
+	"github.com/gopasspw/gopass/pkg/tree"
 
 	"github.com/pkg/errors"
 )

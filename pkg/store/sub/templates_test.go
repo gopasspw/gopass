@@ -6,7 +6,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/justwatchcom/gopass/pkg/backend"
+	"github.com/gopasspw/gopass/pkg/backend"
 
 	"github.com/fatih/color"
 	"github.com/stretchr/testify/assert"

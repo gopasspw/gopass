@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/justwatchcom/gopass/pkg/backend/crypto/gpg"
+	"github.com/gopasspw/gopass/pkg/backend/crypto/gpg"
 
 	"github.com/blang/semver"
 )

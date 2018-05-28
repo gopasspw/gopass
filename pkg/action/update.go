@@ -3,8 +3,8 @@ package action
 import (
 	"context"
 
-	"github.com/justwatchcom/gopass/pkg/out"
-	"github.com/justwatchcom/gopass/pkg/updater"
+	"github.com/gopasspw/gopass/pkg/out"
+	"github.com/gopasspw/gopass/pkg/updater"
 
 	"github.com/urfave/cli"
 )

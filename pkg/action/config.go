@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/justwatchcom/gopass/pkg/out"
+	"github.com/gopasspw/gopass/pkg/out"
 
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"

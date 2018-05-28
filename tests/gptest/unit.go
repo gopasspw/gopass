@@ -10,7 +10,7 @@ import (
 
 	"golang.org/x/crypto/sha3"
 
-	"github.com/justwatchcom/gopass/pkg/backend"
+	"github.com/gopasspw/gopass/pkg/backend"
 
 	aclip "github.com/atotto/clipboard"
 	"github.com/stretchr/testify/assert"

@@ -6,12 +6,12 @@ import (
 	"io/ioutil"
 	"sort"
 
-	"github.com/justwatchcom/gopass/pkg/hashsum"
-	hibpapi "github.com/justwatchcom/gopass/pkg/hibp/api"
-	hibpdump "github.com/justwatchcom/gopass/pkg/hibp/dump"
-	"github.com/justwatchcom/gopass/pkg/notify"
-	"github.com/justwatchcom/gopass/pkg/out"
-	"github.com/justwatchcom/gopass/pkg/termio"
+	"github.com/gopasspw/gopass/pkg/hashsum"
+	hibpapi "github.com/gopasspw/gopass/pkg/hibp/api"
+	hibpdump "github.com/gopasspw/gopass/pkg/hibp/dump"
+	"github.com/gopasspw/gopass/pkg/notify"
+	"github.com/gopasspw/gopass/pkg/out"
+	"github.com/gopasspw/gopass/pkg/termio"
 
 	"github.com/fatih/color"
 	"github.com/muesli/goprogressbar"

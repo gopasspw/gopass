@@ -6,9 +6,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/justwatchcom/gopass/pkg/clipboard"
-	"github.com/justwatchcom/gopass/pkg/otp"
-	"github.com/justwatchcom/gopass/pkg/out"
+	"github.com/gopasspw/gopass/pkg/clipboard"
+	"github.com/gopasspw/gopass/pkg/otp"
+	"github.com/gopasspw/gopass/pkg/out"
 
 	"github.com/urfave/cli"
 )

@@ -7,7 +7,7 @@ import (
 
 	"golang.org/x/crypto/sha3"
 
-	"github.com/justwatchcom/gopass/pkg/backend/crypto/xc/xcpb"
+	"github.com/gopasspw/gopass/pkg/backend/crypto/xc/xcpb"
 )
 
 // PublicKeyAlgorithm is a type of public key algorithm

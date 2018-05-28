@@ -1,55 +1,55 @@
-github.com/justwatchcom/gopass                                                         MIT License
-github.com/justwatchcom/gopass/vendor/github.com/alecthomas/binary                     MIT License (98%)
-github.com/justwatchcom/gopass/vendor/github.com/atotto/clipboard                      BSD 3-clause "New" or "Revised" License (97%)
-github.com/justwatchcom/gopass/vendor/github.com/blang/semver                          MIT License
-github.com/justwatchcom/gopass/vendor/github.com/cenkalti/backoff                      MIT License
-github.com/justwatchcom/gopass/vendor/github.com/emirpasic/gods                        BSD 2-clause "Simplified" License (90%)
-github.com/justwatchcom/gopass/vendor/github.com/fatih/color                           MIT License
-github.com/justwatchcom/gopass/vendor/github.com/fatih/structs                         MIT License
-github.com/justwatchcom/gopass/vendor/github.com/gdamore/encoding                      Apache License 2.0
-github.com/justwatchcom/gopass/vendor/github.com/gdamore/tcell                         Apache License 2.0
-github.com/justwatchcom/gopass/vendor/github.com/godbus/dbus                           BSD 2-clause "Simplified" License
-github.com/justwatchcom/gopass/vendor/github.com/gokyle/twofactor                      MIT License (98%)
-github.com/justwatchcom/gopass/vendor/github.com/golang/protobuf/proto                 BSD 3-clause "New" or "Revised" License (92%)
-github.com/justwatchcom/gopass/vendor/github.com/golang/snappy                         BSD 3-clause "New" or "Revised" License (96%)
-github.com/justwatchcom/gopass/vendor/github.com/hashicorp/consul/api                  Mozilla Public License 2.0
-github.com/justwatchcom/gopass/vendor/github.com/hashicorp/errwrap                     Mozilla Public License 2.0
-github.com/justwatchcom/gopass/vendor/github.com/hashicorp/go-cleanhttp                Mozilla Public License 2.0
-github.com/justwatchcom/gopass/vendor/github.com/hashicorp/go-multierror               Mozilla Public License 2.0
-github.com/justwatchcom/gopass/vendor/github.com/hashicorp/go-rootcerts                Mozilla Public License 2.0
-github.com/justwatchcom/gopass/vendor/github.com/hashicorp/hcl                         Mozilla Public License 2.0
-github.com/justwatchcom/gopass/vendor/github.com/hashicorp/serf/coordinate             Mozilla Public License 2.0
-github.com/justwatchcom/gopass/vendor/github.com/hashicorp/vault                       Mozilla Public License 2.0
-github.com/justwatchcom/gopass/vendor/github.com/jbenet/go-context/io                  MIT License
-github.com/justwatchcom/gopass/vendor/github.com/jroimartin/gocui                      BSD 3-clause "New" or "Revised" License (96%)
-github.com/justwatchcom/gopass/vendor/github.com/kballard/go-shellquote                MIT License (98%)
-github.com/justwatchcom/gopass/vendor/github.com/kevinburke/ssh_config                 MIT License (93%)
-github.com/justwatchcom/gopass/vendor/github.com/lucasb-eyer/go-colorful               MIT License (98%)
-github.com/justwatchcom/gopass/vendor/github.com/martinhoefling/goxkcdpwgen/xkcdpwgen  MIT License
-github.com/justwatchcom/gopass/vendor/github.com/mattn/go-colorable                    MIT License
-github.com/justwatchcom/gopass/vendor/github.com/mattn/go-isatty                       MIT License (95%)
-github.com/justwatchcom/gopass/vendor/github.com/mattn/go-runewidth                    MIT License
-github.com/justwatchcom/gopass/vendor/github.com/mitchellh/go-homedir                  MIT License
-github.com/justwatchcom/gopass/vendor/github.com/mitchellh/mapstructure                MIT License
-github.com/justwatchcom/gopass/vendor/github.com/muesli/crunchy                        MIT License
-github.com/justwatchcom/gopass/vendor/github.com/muesli/goprogressbar                  MIT License
-github.com/justwatchcom/gopass/vendor/github.com/nsf/termbox-go                        MIT License (98%)
-github.com/justwatchcom/gopass/vendor/github.com/pkg/errors                            BSD 2-clause "Simplified" License
-github.com/justwatchcom/gopass/vendor/github.com/ryanuber/go-glob                      MIT License
-github.com/justwatchcom/gopass/vendor/github.com/schollz/closestmatch                  MIT License
-github.com/justwatchcom/gopass/vendor/github.com/sergi/go-diff/diffmatchpatch          MIT License (98%)
-github.com/justwatchcom/gopass/vendor/github.com/sethgrid/pester                       MIT License (98%)
-github.com/justwatchcom/gopass/vendor/github.com/skip2/go-qrcode                       MIT License (98%)
-github.com/justwatchcom/gopass/vendor/github.com/src-d/gcfg                            BSD 3-clause "New" or "Revised" License (97%)
-github.com/justwatchcom/gopass/vendor/github.com/urfave/cli                            MIT License
-github.com/justwatchcom/gopass/vendor/github.com/xanzy/ssh-agent                       Apache License 2.0
-github.com/justwatchcom/gopass/vendor/github.com/xrash/smetrics                        MIT License
-github.com/justwatchcom/gopass/vendor/golang.org/x/crypto                              BSD 3-clause "New" or "Revised" License (96%)
-github.com/justwatchcom/gopass/vendor/golang.org/x/net                                 BSD 3-clause "New" or "Revised" License (96%)
-github.com/justwatchcom/gopass/vendor/golang.org/x/sys/unix                            BSD 3-clause "New" or "Revised" License (96%)
-github.com/justwatchcom/gopass/vendor/golang.org/x/text                                BSD 3-clause "New" or "Revised" License (96%)
-github.com/justwatchcom/gopass/vendor/gopkg.in/src-d/go-billy.v4                       Apache License 2.0
-github.com/justwatchcom/gopass/vendor/gopkg.in/src-d/go-git.v4                         Apache License 2.0
-github.com/justwatchcom/gopass/vendor/gopkg.in/warnings.v0                             BSD 2-clause "Simplified" License (97%)
-github.com/justwatchcom/gopass/vendor/gopkg.in/yaml.v2                                 Apache License 2.0
-github.com/justwatchcom/gopass/vendor/rsc.io/qr                                        BSD 3-clause "New" or "Revised" License (96%)
+github.com/gopasspw/gopass                                                         MIT License
+github.com/gopasspw/gopass/vendor/github.com/alecthomas/binary                     MIT License (98%)
+github.com/gopasspw/gopass/vendor/github.com/atotto/clipboard                      BSD 3-clause "New" or "Revised" License (97%)
+github.com/gopasspw/gopass/vendor/github.com/blang/semver                          MIT License
+github.com/gopasspw/gopass/vendor/github.com/cenkalti/backoff                      MIT License
+github.com/gopasspw/gopass/vendor/github.com/emirpasic/gods                        BSD 2-clause "Simplified" License (90%)
+github.com/gopasspw/gopass/vendor/github.com/fatih/color                           MIT License
+github.com/gopasspw/gopass/vendor/github.com/fatih/structs                         MIT License
+github.com/gopasspw/gopass/vendor/github.com/gdamore/encoding                      Apache License 2.0
+github.com/gopasspw/gopass/vendor/github.com/gdamore/tcell                         Apache License 2.0
+github.com/gopasspw/gopass/vendor/github.com/godbus/dbus                           BSD 2-clause "Simplified" License
+github.com/gopasspw/gopass/vendor/github.com/gokyle/twofactor                      MIT License (98%)
+github.com/gopasspw/gopass/vendor/github.com/golang/protobuf/proto                 BSD 3-clause "New" or "Revised" License (92%)
+github.com/gopasspw/gopass/vendor/github.com/golang/snappy                         BSD 3-clause "New" or "Revised" License (96%)
+github.com/gopasspw/gopass/vendor/github.com/hashicorp/consul/api                  Mozilla Public License 2.0
+github.com/gopasspw/gopass/vendor/github.com/hashicorp/errwrap                     Mozilla Public License 2.0
+github.com/gopasspw/gopass/vendor/github.com/hashicorp/go-cleanhttp                Mozilla Public License 2.0
+github.com/gopasspw/gopass/vendor/github.com/hashicorp/go-multierror               Mozilla Public License 2.0
+github.com/gopasspw/gopass/vendor/github.com/hashicorp/go-rootcerts                Mozilla Public License 2.0
+github.com/gopasspw/gopass/vendor/github.com/hashicorp/hcl                         Mozilla Public License 2.0
+github.com/gopasspw/gopass/vendor/github.com/hashicorp/serf/coordinate             Mozilla Public License 2.0
+github.com/gopasspw/gopass/vendor/github.com/hashicorp/vault                       Mozilla Public License 2.0
+github.com/gopasspw/gopass/vendor/github.com/jbenet/go-context/io                  MIT License
+github.com/gopasspw/gopass/vendor/github.com/jroimartin/gocui                      BSD 3-clause "New" or "Revised" License (96%)
+github.com/gopasspw/gopass/vendor/github.com/kballard/go-shellquote                MIT License (98%)
+github.com/gopasspw/gopass/vendor/github.com/kevinburke/ssh_config                 MIT License (93%)
+github.com/gopasspw/gopass/vendor/github.com/lucasb-eyer/go-colorful               MIT License (98%)
+github.com/gopasspw/gopass/vendor/github.com/martinhoefling/goxkcdpwgen/xkcdpwgen  MIT License
+github.com/gopasspw/gopass/vendor/github.com/mattn/go-colorable                    MIT License
+github.com/gopasspw/gopass/vendor/github.com/mattn/go-isatty                       MIT License (95%)
+github.com/gopasspw/gopass/vendor/github.com/mattn/go-runewidth                    MIT License
+github.com/gopasspw/gopass/vendor/github.com/mitchellh/go-homedir                  MIT License
+github.com/gopasspw/gopass/vendor/github.com/mitchellh/mapstructure                MIT License
+github.com/gopasspw/gopass/vendor/github.com/muesli/crunchy                        MIT License
+github.com/gopasspw/gopass/vendor/github.com/muesli/goprogressbar                  MIT License
+github.com/gopasspw/gopass/vendor/github.com/nsf/termbox-go                        MIT License (98%)
+github.com/gopasspw/gopass/vendor/github.com/pkg/errors                            BSD 2-clause "Simplified" License
+github.com/gopasspw/gopass/vendor/github.com/ryanuber/go-glob                      MIT License
+github.com/gopasspw/gopass/vendor/github.com/schollz/closestmatch                  MIT License
+github.com/gopasspw/gopass/vendor/github.com/sergi/go-diff/diffmatchpatch          MIT License (98%)
+github.com/gopasspw/gopass/vendor/github.com/sethgrid/pester                       MIT License (98%)
+github.com/gopasspw/gopass/vendor/github.com/skip2/go-qrcode                       MIT License (98%)
+github.com/gopasspw/gopass/vendor/github.com/src-d/gcfg                            BSD 3-clause "New" or "Revised" License (97%)
+github.com/gopasspw/gopass/vendor/github.com/urfave/cli                            MIT License
+github.com/gopasspw/gopass/vendor/github.com/xanzy/ssh-agent                       Apache License 2.0
+github.com/gopasspw/gopass/vendor/github.com/xrash/smetrics                        MIT License
+github.com/gopasspw/gopass/vendor/golang.org/x/crypto                              BSD 3-clause "New" or "Revised" License (96%)
+github.com/gopasspw/gopass/vendor/golang.org/x/net                                 BSD 3-clause "New" or "Revised" License (96%)
+github.com/gopasspw/gopass/vendor/golang.org/x/sys/unix                            BSD 3-clause "New" or "Revised" License (96%)
+github.com/gopasspw/gopass/vendor/golang.org/x/text                                BSD 3-clause "New" or "Revised" License (96%)
+github.com/gopasspw/gopass/vendor/gopkg.in/src-d/go-billy.v4                       Apache License 2.0
+github.com/gopasspw/gopass/vendor/gopkg.in/src-d/go-git.v4                         Apache License 2.0
+github.com/gopasspw/gopass/vendor/gopkg.in/warnings.v0                             BSD 2-clause "Simplified" License (97%)
+github.com/gopasspw/gopass/vendor/gopkg.in/yaml.v2                                 Apache License 2.0
+github.com/gopasspw/gopass/vendor/rsc.io/qr                                        BSD 3-clause "New" or "Revised" License (96%)

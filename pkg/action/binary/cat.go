@@ -8,10 +8,10 @@ import (
 	"os"
 	"strings"
 
-	"github.com/justwatchcom/gopass/pkg/action"
-	"github.com/justwatchcom/gopass/pkg/out"
-	"github.com/justwatchcom/gopass/pkg/store/secret"
-	"github.com/justwatchcom/gopass/pkg/store/sub"
+	"github.com/gopasspw/gopass/pkg/action"
+	"github.com/gopasspw/gopass/pkg/out"
+	"github.com/gopasspw/gopass/pkg/store/secret"
+	"github.com/gopasspw/gopass/pkg/store/sub"
 
 	"github.com/urfave/cli"
 )

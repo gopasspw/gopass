@@ -3,7 +3,7 @@ package vault
 import (
 	"context"
 
-	"github.com/justwatchcom/gopass/pkg/config/secrets"
+	"github.com/gopasspw/gopass/pkg/config/secrets"
 )
 
 func (s *Store) storeSecret(ctx context.Context, key, value string) error {

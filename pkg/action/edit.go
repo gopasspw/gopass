@@ -5,13 +5,13 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/justwatchcom/gopass/pkg/audit"
-	"github.com/justwatchcom/gopass/pkg/editor"
-	"github.com/justwatchcom/gopass/pkg/out"
-	"github.com/justwatchcom/gopass/pkg/pwgen"
-	"github.com/justwatchcom/gopass/pkg/store/secret"
-	"github.com/justwatchcom/gopass/pkg/store/sub"
-	"github.com/justwatchcom/gopass/pkg/tpl"
+	"github.com/gopasspw/gopass/pkg/audit"
+	"github.com/gopasspw/gopass/pkg/editor"
+	"github.com/gopasspw/gopass/pkg/out"
+	"github.com/gopasspw/gopass/pkg/pwgen"
+	"github.com/gopasspw/gopass/pkg/store/secret"
+	"github.com/gopasspw/gopass/pkg/store/sub"
+	"github.com/gopasspw/gopass/pkg/tpl"
 
 	"github.com/urfave/cli"
 )

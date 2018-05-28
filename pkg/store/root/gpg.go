@@ -3,7 +3,7 @@ package root
 import (
 	"context"
 
-	"github.com/justwatchcom/gopass/pkg/backend"
+	"github.com/gopasspw/gopass/pkg/backend"
 )
 
 // Crypto returns the crypto backend

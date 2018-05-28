@@ -6,7 +6,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/justwatchcom/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/ctxutil"
 
 	"github.com/fatih/color"
 )

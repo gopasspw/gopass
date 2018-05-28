@@ -6,8 +6,8 @@ import (
 	"io"
 	"testing"
 
-	"github.com/justwatchcom/gopass/pkg/pwgen"
-	"github.com/justwatchcom/gopass/pkg/pwgen/xkcdgen"
+	"github.com/gopasspw/gopass/pkg/pwgen"
+	"github.com/gopasspw/gopass/pkg/pwgen/xkcdgen"
 
 	"github.com/stretchr/testify/assert"
 )

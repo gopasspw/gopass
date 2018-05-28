@@ -10,8 +10,8 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/justwatchcom/gopass/pkg/ctxutil"
-	"github.com/justwatchcom/gopass/pkg/protect"
+	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/protect"
 
 	"github.com/blang/semver"
 	"github.com/fatih/color"

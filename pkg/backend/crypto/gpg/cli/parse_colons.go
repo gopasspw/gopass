@@ -5,7 +5,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/justwatchcom/gopass/pkg/backend/crypto/gpg"
+	"github.com/gopasspw/gopass/pkg/backend/crypto/gpg"
 )
 
 // http://git.gnupg.org/cgi-bin/gitweb.cgi?p=gnupg.git;a=blob_plain;f=doc/DETAILS

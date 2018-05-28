@@ -6,7 +6,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/justwatchcom/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/ctxutil"
 
 	"github.com/fatih/color"
 	"github.com/stretchr/testify/assert"

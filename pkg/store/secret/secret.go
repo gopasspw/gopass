@@ -7,7 +7,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/justwatchcom/gopass/pkg/store"
+	"github.com/gopasspw/gopass/pkg/store"
 )
 
 var debug bool

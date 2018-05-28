@@ -3,7 +3,7 @@ package secret
 import (
 	"testing"
 
-	"github.com/justwatchcom/gopass/pkg/store"
+	"github.com/gopasspw/gopass/pkg/store"
 
 	"github.com/stretchr/testify/assert"
 )

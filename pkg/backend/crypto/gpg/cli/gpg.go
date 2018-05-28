@@ -9,8 +9,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/justwatchcom/gopass/pkg/backend/crypto/gpg"
-	"github.com/justwatchcom/gopass/pkg/out"
+	"github.com/gopasspw/gopass/pkg/backend/crypto/gpg"
+	"github.com/gopasspw/gopass/pkg/out"
 )
 
 var (

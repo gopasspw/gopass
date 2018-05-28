@@ -11,7 +11,7 @@ import (
 	"golang.org/x/crypto/argon2"
 	"golang.org/x/crypto/nacl/secretbox"
 
-	"github.com/justwatchcom/gopass/pkg/fsutil"
+	"github.com/gopasspw/gopass/pkg/fsutil"
 
 	"github.com/pkg/errors"
 )
