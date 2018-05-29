@@ -59,9 +59,9 @@ brew:
     please make sure you have autocompletion for homebrew enabled:
       https://github.com/bobthecow/git-flow-completion/wiki/Install-Bash-git-completion
     More information:
-      https://www.justwatch.com/gopass
+      https://www.gopass.pw/
       https://github.com/gopasspw/gopass/README.md
-  homepage: "https://www.justwatch.com/gopass/"
+  homepage: "https://www.gopass.pw/"
   description: "The slightly more awesome Standard Unix Password Manager for Teams."
   build_dependencies:
     - go
@@ -84,9 +84,9 @@ brew:
   test:  |
     assert_match version.to_s, shell_output("#{bin}/gopass version")
 nfpm:
-  vendor: JustWatch
-  homepage: "https://www.justwatch.com/gopass/"
-  maintainer: "Gopass Authors <gopass@justwatch.com>"
+  vendor: Gopass Authors
+  homepage: "https://www.gopass.pw"
+  maintainer: "Gopass Authors <gopass@gopass.pw>"
   license: MIT
   formats:
     - deb

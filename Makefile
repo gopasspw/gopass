@@ -194,6 +194,13 @@ codequality:
 	@errcheck -exclude .errcheck.excl $(PKGS) || exit 1
 	@printf '%s\n' '$(OK)'
 
+	@echo -n "     INTERFACER"
+	@which interfacer > /dev/null; if [ $$? -ne 0 ]; then \
+		$(GO) get mvdan.cc/interfacer; \
+	fi
+	@interfacer $(PKGS)
+	@printf '%s\n' '$(OK)'
+
 	@echo -n "     UNCONVERT "
 	@which unconvert > /dev/null; if [ $$? -ne 0  ]; then \
 		$(GO) get -u github.com/mdempsky/unconvert; \
@@ -219,4 +226,46 @@ docker-test:
 	docker build -t gopass:$(GOPASS_REVISION) .
 	docker run --rm gopass:$(GOPASS_REVISION) make test
 
-.PHONY: clean build completion install sysinfo crosscompile test codequality
+check-release-env:
+ifndef GITHUB_TOKEN
+	$(error GITHUB_TOKEN is undefined)
+endif
+ifndef BINTRAY_USER
+	$(error BINTRAY_USER is undefined)
+endif
+ifndef BINTRAY_GPG_PASSPHRASE
+	$(error BINTRAY_GPG_PASSPHRASE is undefined)
+endif
+ifndef BINTRAY_API_KEY
+	$(error BINTRAY_API_KEY is undefined)
+endif
+ifndef DEB_SIGN_PASSPHRASE
+	$(error DEB_SIGN_PASSPHRASE)
+endif
+
+release: goreleaser debsign bintray
+
+goreleaser: check-release-env travis clean
+	@echo ">> RELEASE, goreleaser"
+	@goreleaser
+
+debsign: check-release-env
+	@echo ">> SIGN, deb packages"
+	@echo "     SIGNATURE"
+	@dpkg-sig --sign origin -k 97F6B666 --g "--no-tty --passphrase=$(DEB_SIGN_PASSPHRASE) --no-use-agent" ./dist/*.deb
+	@echo "     VERIFY"
+	@dpkg-sig --verify ./dist/*.deb
+
+bintray: check-release-env
+	@echo ">> RELEASE, deb packages"
+	@$(eval AMD64DEB:=$(shell ls ./dist/gopass-*-amd64.deb | xargs -n1 basename))
+	@curl -f -T ./dist/$(AMD64DEB) -H "X-GPG-PASSPHRASE:$(BINTRAY_GPG_PASSPHRASE)" -u$(BINTRAY_USER):$(BINTRAY_API_KEY) "https://api.bintray.com/content/gopasspw/gopass/gopass/v$(GOPASS_VERSION)/pool/main/g/gopass/$(AMD64DEB);deb_distribution=trusty,xenial,wheezy,jessie,buster,sid;deb_component=main;deb_architecture=amd64;publish=1"
+
+	@$(eval I386DEB:=$(shell ls ./dist/gopass-*-386.deb | xargs -n1 basename))
+	curl -f -T ./dist/$(I386DEB) -H "X-GPG-PASSPHRASE:$(BINTRAY_GPG_PASSPHRASE)" -u$(BINTRAY_USER):$(BINTRAY_API_KEY) "https://api.bintray.com/content/gopasspw/gopass/gopass/v$(GOPASS_VERSION)/pool/main/g/gopass/$(I386DEB);deb_distribution=trusty,xenial,wheezy,jessie,buster,sid;deb_component=main;deb_architecture=i386;publish=1"
+
+	@echo "   CALCULATE METADATA, deb repository"
+	@curl -f -X POST -H "X-GPG-PASSPHRASE:$(BINTRAY_GPG_PASSPHRASE)" -u$(BINTRAY_USER):$(BINTRAY_API_KEY) https://api.bintray.com/calc_metadata/gopasspw/gopass
+	@echo ">> DONE"
+
+.PHONY: clean build completion install sysinfo crosscompile test codequality release goreleaser debsign bintray

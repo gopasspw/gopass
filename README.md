@@ -6,10 +6,10 @@
 
 [![Build Status](https://travis-ci.org/gopasspw/gopass.svg?branch=master)](https://travis-ci.org/gopasspw/gopass)
 [![Go Report Card](https://goreportcard.com/badge/github.com/gopasspw/gopass)](https://goreportcard.com/report/github.com/gopasspw/gopass)
-[![Code Climate](https://codeclimate.com/github/gopasspw/gopass/badges/gpa.svg)](https://codeclimate.com/github/gopasspw/gopass)
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/gopasspw/gopass/blob/master/LICENSE)
 [![Github All Releases](https://img.shields.io/github/downloads/gopasspw/gopass/total.svg)](https://github.com/gopasspw/gopass/releases)
 [![codecov](https://codecov.io/gh/gopasspw/gopass/branch/master/graph/badge.svg)](https://codecov.io/gh/gopasspw/gopass)
+[![Download](https://api.bintray.com/packages/gopasspw/gopass/gopass/images/download.svg) ](https://bintray.com/gopasspw/gopass/gopass/_latestVersion)
 
 The slightly more awesome Standard Unix Password Manager for Teams. Written in Go.
 
