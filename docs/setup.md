@@ -126,9 +126,11 @@ When installing on Ubuntu or Debian you can either download the `deb` package an
 First you need to add our archive signing key and add the package source.
 
 ```bash
-wget -O- https://www.justwatch.com/gopass/releases/0x0C92225A97F6B666.pub | sudo apt-key add -
-echo "deb https://www.justwatch.com/gopass/releases/binary-amd64 ./" | sudo tee /etc/apt/sources.list.d/gopass.list
+wget -q -O- https://api.bintray.com/orgs/gopasspw/keys/gpg/public.key | sudo apt-key add -
+echo "deb https://dl.bintray.com/gopasspw/gopass trusty main" | sudo tee /etc/apt/sources.list.d/gopass.list
 ```
+
+The fingerprint of the repository key `4096R/81C083D4` is `C396 F836 273B 06BD C4A5  7334 22C4 6056 81C0 83D4`.
 
 Now you can update your package lists and install using `apt-get`:
 
@@ -136,6 +138,9 @@ Now you can update your package lists and install using `apt-get`:
 sudo apt-get update
 sudo apt-get install gopass
 ```
+
+Update for `gopass` will now be pulled in with the usual `apt-get update` and
+`apt-get upgrade` steps.
 
 #### Manual download
 
