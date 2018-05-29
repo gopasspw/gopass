@@ -32,7 +32,7 @@ trusting our credentials with. The first production release of GPG was on [Septe
 
 With that said, GPG isn't known for being the most user-friendly software. We try to work around some of the usability limitations of GPG but we always do so keeping security in mind. This means that, in some cases, the project carefully makes some security trade-offs in order to achieve better usability.
 
-Since gopass uses GPG to encrypt data, GPG needs to be properly set up beforehand. (GPG installation is covered in the [gopass installation documentation](https://github.com/justwatchcom/gopass/blob/master/docs/setup.md).) However, basic knowledge of how [public-key cryptography](https://en.wikipedia.org/wiki/Public-key_cryptography) and the [web of trust model](https://en.wikipedia.org/wiki/Web_of_trust) is assumed and necessary.
+Since gopass uses GPG to encrypt data, GPG needs to be properly set up beforehand. (GPG installation is covered in the [gopass installation documentation](https://github.com/gopasspw/gopass/blob/master/docs/setup.md).) However, basic knowledge of how [public-key cryptography](https://en.wikipedia.org/wiki/Public-key_cryptography) and the [web of trust model](https://en.wikipedia.org/wiki/Web_of_trust) is assumed and necessary.
 
 ## Generating Passwords
 

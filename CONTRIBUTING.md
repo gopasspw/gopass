@@ -17,7 +17,7 @@
 Should you wish to work on an issue, please claim it first by commenting on the GitHub issue you want to work on it.
 This will prevent duplicated efforts from contributors.
 
-Please check the [`help-wanted`](https://github.com/justwatchcom/gopass/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22) label to find issues that need help.
+Please check the [`help-wanted`](https://github.com/gopasspw/gopass/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22) label to find issues that need help.
 If you have questions about one of the issues please comment on them and one of the maintainers
 will try to clarify it.
 
@@ -55,7 +55,7 @@ gopass ships a ready to use Dockerfile based on Alpine. It allows to run tests
 and build gopass without having to setup a Go stack on the host.
 
 ```bash
-cd $GOPATH/src/github.com/justwatchcom/gopass
+cd $GOPATH/src/github.com/gopasspw/gopass
 make docker-test
 ```
 
@@ -69,7 +69,7 @@ It is also possible mount a local directory into the container to copy files in
 and out of it, but please pay attention to permissions.
 
 ```bash
-docker run -it -v "$PWD":/go/src/github.com/justwatchcom/gopass -w /go/src/github.com/justwatchcom/gopass gopass sh
+docker run -it -v "$PWD":/go/src/github.com/gopasspw/gopass -w /go/src/github.com/gopasspw/gopass gopass sh
 ```
 
 Please note that it is not recommended to actually *use* gopass inside Docker
@@ -83,11 +83,11 @@ as there are issues with random number generation in general and GnuPG.
 Quick Start:
 - `mkdir -p $HOME/go/src`
 - `export GOPATH=$HOME/go`
-- `go get -u github.com/justwatchcom/gopass`
+- `go get -u github.com/gopasspw/gopass`
 - Set `$GOROOT` depending on your OS and Go installation method:
   - MacOS, Go installed via brew: `export GOROOT=/usr/local/opt/go/libexec/`
 - Now you should be able to build from the gopass dir:
-  - `cd $GOPATH/src/github.com/justwatchcom/`
+  - `cd $GOPATH/src/github.com/gopasspw/`
   - `go build -v`
 
 

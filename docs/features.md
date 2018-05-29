@@ -138,7 +138,7 @@ The `edit` command uses the `$EDITOR` environment variable to start your preferr
 
 ### Adding OTP Secrets
 
-*Note: Depending on your security needs, it may not behoove you to store your OTP secrets alongside your passwords! Look into [Multiple Stores](https://github.com/justwatchcom/gopass/blob/master/docs/features.md#multiple-stores) if you need things to be separate!*
+*Note: Depending on your security needs, it may not behoove you to store your OTP secrets alongside your passwords! Look into [Multiple Stores](https://github.com/gopasspw/gopass/blob/master/docs/features.md#multiple-stores) if you need things to be separate!*
 
 Typically sites will display a QR code containing a URL that starts with `oauth://`. This string contains information about generating your OTPs and can be directly added to your password file. For example:
 

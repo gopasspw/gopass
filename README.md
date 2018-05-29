@@ -4,12 +4,12 @@
 
 # gopass
 
-[![Build Status](https://travis-ci.org/justwatchcom/gopass.svg?branch=master)](https://travis-ci.org/justwatchcom/gopass)
-[![Go Report Card](https://goreportcard.com/badge/github.com/justwatchcom/gopass)](https://goreportcard.com/report/github.com/justwatchcom/gopass)
-[![Code Climate](https://codeclimate.com/github/justwatchcom/gopass/badges/gpa.svg)](https://codeclimate.com/github/justwatchcom/gopass)
-[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/justwatchcom/gopass/blob/master/LICENSE)
-[![Github All Releases](https://img.shields.io/github/downloads/justwatchcom/gopass/total.svg)](https://github.com/justwatchcom/gopass/releases)
-[![codecov](https://codecov.io/gh/justwatchcom/gopass/branch/master/graph/badge.svg)](https://codecov.io/gh/justwatchcom/gopass)
+[![Build Status](https://travis-ci.org/gopasspw/gopass.svg?branch=master)](https://travis-ci.org/gopasspw/gopass)
+[![Go Report Card](https://goreportcard.com/badge/github.com/gopasspw/gopass)](https://goreportcard.com/report/github.com/gopasspw/gopass)
+[![Code Climate](https://codeclimate.com/github/gopasspw/gopass/badges/gpa.svg)](https://codeclimate.com/github/gopasspw/gopass)
+[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/gopasspw/gopass/blob/master/LICENSE)
+[![Github All Releases](https://img.shields.io/github/downloads/gopasspw/gopass/total.svg)](https://github.com/gopasspw/gopass/releases)
+[![codecov](https://codecov.io/gh/gopasspw/gopass/branch/master/graph/badge.svg)](https://codecov.io/gh/gopasspw/gopass)
 
 The slightly more awesome Standard Unix Password Manager for Teams. Written in Go.
 
@@ -38,7 +38,7 @@ The slightly more awesome Standard Unix Password Manager for Teams. Written in G
 
 ## Features
 
-Please see [docs/features.md](https://github.com/justwatchcom/gopass/blob/master/docs/features.md) for an extensive list of all features along with several usage examples.
+Please see [docs/features.md](https://github.com/gopasspw/gopass/blob/master/docs/features.md) for an extensive list of all features along with several usage examples.
 
 | **Feature**                 | *pass* | *gopass* | **State** | **Description**                                                   |
 | --------------------------- | ------ | -------- | --------- | ----------------------------------------------------------------- |
@@ -63,10 +63,10 @@ Please see [docs/features.md](https://github.com/justwatchcom/gopass/blob/master
 If you have [Go](https://golang.org/) 1.10 (or greater) installed:
 
 ```bash
-go get github.com/justwatchcom/gopass
+go get github.com/gopasspw/gopass
 ```
 
-Otherwise, please see [docs/setup.md](https://github.com/justwatchcom/gopass/blob/master/docs/setup.md).
+Otherwise, please see [docs/setup.md](https://github.com/gopasspw/gopass/blob/master/docs/setup.md).
 
 ## Development
 
@@ -92,11 +92,11 @@ gopass is developed in the open. Here are some of the channels we use to communi
 
 * IRC: #gopass on [irc.freenode.net](https://freenode.net) ([join via Riot](https://riot.im/app/#/room/#freenode_#gopass:matrix.org))
 * Usage mailing list: [gopass-users](https://groups.google.com/forum/#!forum/gopass-users), for discussions around gopass usage and community support
-* Issue tracker: Use the [GitHub issue tracker](https://github.com/justwatchcom/gopass/issues) to file bugs and feature requests. If you need support, please send your questions to [gopass-user](https://groups.google.com/forum/#!forum/gopass-users) or ask on IRC rather than filing a GitHub issue.
+* Issue tracker: Use the [GitHub issue tracker](https://github.com/gopasspw/gopass/issues) to file bugs and feature requests. If you need support, please send your questions to [gopass-user](https://groups.google.com/forum/#!forum/gopass-users) or ask on IRC rather than filing a GitHub issue.
 
 ## Contributing
 
-We welcome any contributions. Please see the [CONTRIBUTING.md](https://github.com/justwatchcom/gopass/blob/master/CONTRIBUTING.md) file for instructions on how to submit changes. If your are planning on making more elaborate or controversial changes, please discuss them on the [gopass-developers mailing list](https://groups.google.com/forum/#!forum/gopass-developers) or on IRC before sending a pull request.
+We welcome any contributions. Please see the [CONTRIBUTING.md](https://github.com/gopasspw/gopass/blob/master/CONTRIBUTING.md) file for instructions on how to submit changes. If your are planning on making more elaborate or controversial changes, please discuss them on the [gopass-developers mailing list](https://groups.google.com/forum/#!forum/gopass-developers) or on IRC before sending a pull request.
 
 ## Acknowledgements
 
@@ -104,8 +104,8 @@ gopass was initially started by Matthias Loibl and Dominik Schulz. The majority 
 
 ## Further Documentation
 
-* [Security, Known Limitations, and Caveats](https://github.com/justwatchcom/gopass/blob/master/docs/security.md)
-* [Configuration](https://github.com/justwatchcom/gopass/blob/master/docs/config.md)
-* [FAQ](https://github.com/justwatchcom/gopass/blob/master/docs/faq.md)
-* [JSON API](https://github.com/justwatchcom/gopass/blob/master/docs/jsonapi.md)
-* [Gopass as Summon provider](https://github.com/justwatchcom/gopass/blob/master/docs/summon-provider.md)
+* [Security, Known Limitations, and Caveats](https://github.com/gopasspw/gopass/blob/master/docs/security.md)
+* [Configuration](https://github.com/gopasspw/gopass/blob/master/docs/config.md)
+* [FAQ](https://github.com/gopasspw/gopass/blob/master/docs/faq.md)
+* [JSON API](https://github.com/gopasspw/gopass/blob/master/docs/jsonapi.md)
+* [Gopass as Summon provider](https://github.com/gopasspw/gopass/blob/master/docs/summon-provider.md)

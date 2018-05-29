@@ -207,12 +207,12 @@ fmt:
 
 fuzz-gpg:
 	mkdir -p workdir/gpg-cli/corpus
-	go-fuzz-build github.com/justwatchcom/gopass/backend/gpg/cli
+	go-fuzz-build github.com/gopasspw/gopass/backend/gpg/cli
 	go-fuzz -bin=cli-fuzz.zip -workdir=workdir/gpg-cli
 
 fuzz-jsonapi:
 	mkdir -p workdir/jsonapi/corpus
-	go-fuzz-build github.com/justwatchcom/gopass/utils/jsonapi
+	go-fuzz-build github.com/gopasspw/gopass/utils/jsonapi
 	go-fuzz -bin=jsonapi-fuzz.zip -workdir=workdir/jsonapi
 
 docker-test:

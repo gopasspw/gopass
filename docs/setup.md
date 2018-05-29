@@ -115,7 +115,7 @@ If you haven't already, install [homebrew](http://brew.sh). And then:
 brew install gopass
 ```
 
-Alternatively, you can install gopass from the appropriate Darwin release from the repository [releases page](https://github.com/justwatchcom/gopass/releases).
+Alternatively, you can install gopass from the appropriate Darwin release from the repository [releases page](https://github.com/gopasspw/gopass/releases).
 
 ### Ubuntu & Debian
 
@@ -139,7 +139,7 @@ sudo apt-get install gopass
 
 #### Manual download
 
-First, find the latest .deb release from the repository [releases page](https://github.com/justwatchcom/gopass/releases). Then, download and install it:
+First, find the latest .deb release from the repository [releases page](https://github.com/gopasspw/gopass/releases). Then, download and install it:
 
 ```bash
 wget [the URL of the latest .deb release]
@@ -159,14 +159,14 @@ emerge -av gopass
 
 **WARNING**: Windows is not yet officially supported. We try to support it in the future. These are steps are only meant to help you setup gopass on Windows so you can provide us with feedback about the current state of our Windows support.
 
-Download and install a suitable Windows build from the repository [releases page](https://github.com/justwatchcom/gopass/releases).
+Download and install a suitable Windows build from the repository [releases page](https://github.com/gopasspw/gopass/releases).
 
 ### Installing from Source
 
 If you have [Go](https://golang.org/) already installed, you can use `go get` to automatically download the latest version:
 
 ```
-go get -u github.com/justwatchcom/gopass
+go get -u github.com/gopasspw/gopass
 ```
 
 If `$GOPATH/bin` is in your `$PATH`, you can now run `gopass` from anywhere on your system.
@@ -236,7 +236,7 @@ You can then bind these command lines to your preferred shortcuts in your window
 
 ### Filling in passwords from browser
 
-Gopass allows filling in passwords in browsers leveraging a browser plugin like [gopass bridge](https://github.com/martinhoefling/gopassbridge). 
+Gopass allows filling in passwords in browsers leveraging a browser plugin like [gopass bridge](https://github.com/martinhoefling/gopassbridge).
 The browser plugin communicates with gopass via JSON messages. To allow the plugin to start gopass, a [native messaging manifest](https://developer.mozilla.org/en-US/Add-ons/WebExtensions/Native_messaging) must be installed for each browser.
 Chrome, chromium and Firefox are supported, currently. Further a wrapper must be installed to setup gpg-agent and execute `gopass jsonapi listen`.
 
@@ -259,7 +259,7 @@ The user name/login is determined from `login`, `username` and `user` yaml attri
 username: <your username>
 ```
 As fallback, the last part of the path is used, e.g. `theuser1` for `Internet/github.com/theuser1` entry.
- 
+
 ### Storing and Syncing your Password Store with Google Drive / Dropbox / etc.
 
 Please be warned that using cloud-based storage may negatively impact to confidentially of your store. However, if you wish to use one of these services, you can do so.
@@ -284,7 +284,7 @@ Others can be found at the "Compatible Clients" section of the [official pass we
 
 ## Using gopass
 
-Once you have installed gopass, check out the [features documentation](https://github.com/justwatchcom/gopass/blob/master/docs/features.md) for some quick usage examples.
+Once you have installed gopass, check out the [features documentation](https://github.com/gopasspw/gopass/blob/master/docs/features.md) for some quick usage examples.
 
 ### Using the onboarding wizard
 

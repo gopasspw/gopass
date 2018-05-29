@@ -39,14 +39,14 @@ archive:
   wrap_in_directory: true
 release:
   github:
-    owner: justwatchcom
+    owner: gopasspw
     name: gopass
   draft: false
   name_template: '{{ .Version }} / {{ time "2006-01-02" }}'
   body_template: '{{ .ReleaseNotes }}'
 brew:
   github:
-    owner: justwatchcom
+    owner: gopasspw
     name: homebrew-gopass
   caveats:  |
     Gopass has been installed, have fun!
@@ -60,7 +60,7 @@ brew:
       https://github.com/bobthecow/git-flow-completion/wiki/Install-Bash-git-completion
     More information:
       https://www.justwatch.com/gopass
-      https://github.com/justwatchcom/gopass/README.md
+      https://github.com/gopasspw/gopass/README.md
   homepage: "https://www.justwatch.com/gopass/"
   description: "The slightly more awesome Standard Unix Password Manager for Teams."
   build_dependencies:
@@ -70,9 +70,9 @@ brew:
     - gnupg
   install:  |
     ENV["GOPATH"] = buildpath
-    (buildpath/"src/github.com/justwatchcom/gopass").install buildpath.children
+    (buildpath/"src/github.com/gopasspw/gopass").install buildpath.children
 
-    cd "src/github.com/justwatchcom/gopass" do
+    cd "src/github.com/gopasspw/gopass" do
       ENV["PREFIX"] = prefix
       system "make", "install"
     end

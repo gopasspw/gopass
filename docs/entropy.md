@@ -40,4 +40,4 @@ sudo yum install rng-tools
 ## Further Information
 
 * [RNG-Tools on the Arch Linux Wiki](https://wiki.archlinux.org/index.php/Rng-tools)
-* [gopass Issue #486](https://github.com/justwatchcom/gopass/issues/486)
+* [gopass Issue #486](https://github.com/gopasspw/gopass/issues/486)
