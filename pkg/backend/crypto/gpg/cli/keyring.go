@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"os/exec"
+	"strings"
 
 	"github.com/gopasspw/gopass/pkg/backend/crypto/gpg"
 	"github.com/gopasspw/gopass/pkg/out"
@@ -13,6 +14,11 @@ import (
 func (g *GPG) listKeys(ctx context.Context, typ string, search ...string) (gpg.KeyList, error) {
 	args := []string{"--with-colons", "--with-fingerprint", "--fixed-list-mode", "--list-" + typ + "-keys"}
 	args = append(args, search...)
+	if e, found := g.listCache.Get(strings.Join(args, ",")); found {
+		if ev, ok := e.(gpg.KeyList); ok {
+			return ev, nil
+		}
+	}
 	cmd := exec.CommandContext(ctx, g.binary, args...)
 	cmd.Stderr = nil
 
@@ -25,7 +31,9 @@ func (g *GPG) listKeys(ctx context.Context, typ string, search ...string) (gpg.K
 		return gpg.KeyList{}, err
 	}
 
-	return parseColons(bytes.NewBuffer(cmdout)), nil
+	kl := parseColons(bytes.NewBuffer(cmdout))
+	g.listCache.Add(strings.Join(args, ","), kl)
+	return kl, nil
 }
 
 // ListPublicKeyIDs returns a parsed list of GPG public keys
