@@ -715,6 +715,10 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 					Name:  "force, f",
 					Usage: "Overwrite any existing secret and do not prompt to confirm recipients",
 				},
+				cli.BoolFlag{
+					Name:  "append, a",
+					Usage: "Append to any existing data",
+				},
 			},
 		},
 		{

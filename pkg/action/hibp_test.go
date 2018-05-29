@@ -157,7 +157,7 @@ func TestHIBPAPI(t *testing.T) {
 	buf.Reset()
 
 	// add another one
-	assert.NoError(t, act.insertStdin(ctx, "baz", []byte("foobar")))
+	assert.NoError(t, act.insertStdin(ctx, "baz", []byte("foobar"), false))
 	assert.Error(t, act.HIBP(ctx, c))
 	buf.Reset()
 }

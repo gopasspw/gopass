@@ -66,8 +66,8 @@ func TestCopy(t *testing.T) {
 	buf.Reset()
 
 	// insert bam/baz
-	assert.NoError(t, act.insertStdin(ctx, "bam/baz", []byte("foobar")))
-	assert.NoError(t, act.insertStdin(ctx, "bam/zab", []byte("barfoo")))
+	assert.NoError(t, act.insertStdin(ctx, "bam/baz", []byte("foobar"), false))
+	assert.NoError(t, act.insertStdin(ctx, "bam/zab", []byte("barfoo"), false))
 
 	// recursive copy: bam -> zab
 	fs = flag.NewFlagSet("default", flag.ContinueOnError)

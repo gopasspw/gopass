@@ -24,6 +24,7 @@ func (s *Action) Insert(ctx context.Context, c *cli.Context) error {
 	echo := c.Bool("echo")
 	multiline := c.Bool("multiline")
 	force := c.Bool("force")
+	append := c.Bool("append")
 
 	args, kvps := parseArgs(c)
 	name := args.Get(0)
@@ -33,10 +34,10 @@ func (s *Action) Insert(ctx context.Context, c *cli.Context) error {
 		return ExitError(ctx, ExitNoName, nil, "Usage: %s insert name", s.Name)
 	}
 
-	return s.insert(ctx, c, name, key, echo, multiline, force, kvps)
+	return s.insert(ctx, c, name, key, echo, multiline, force, append, kvps)
 }
 
-func (s *Action) insert(ctx context.Context, c *cli.Context, name, key string, echo, multiline, force bool, kvps map[string]string) error {
+func (s *Action) insert(ctx context.Context, c *cli.Context, name, key string, echo, multiline, force, append bool, kvps map[string]string) error {
 	// if force mode is requested we mock the recipient func to just return anything that goes in
 	if force {
 		ctx = sub.WithRecipientFunc(ctx, func(ctx context.Context, msg string, rs []string) ([]string, error) {
@@ -63,7 +64,7 @@ func (s *Action) insert(ctx context.Context, c *cli.Context, name, key string, e
 	}
 
 	if ctxutil.IsStdin(ctx) {
-		return s.insertStdin(ctx, name, content)
+		return s.insertStdin(ctx, name, content, append)
 	}
 
 	// don't check if it's force anyway
@@ -91,7 +92,18 @@ func (s *Action) insert(ctx context.Context, c *cli.Context, name, key string, e
 	return s.insertSingle(ctx, name, pw, kvps)
 }
 
-func (s *Action) insertStdin(ctx context.Context, name string, content []byte) error {
+func (s *Action) insertStdin(ctx context.Context, name string, content []byte, appendTo bool) error {
+	if appendTo && s.Store.Exists(ctx, name) {
+		sec, err := s.Store.Get(ctx, name)
+		if err != nil {
+			return ExitError(ctx, ExitDecrypt, err, "failed to decrypt existing secret: %s", err)
+		}
+		buf, err := sec.Bytes()
+		if err != nil {
+			return ExitError(ctx, ExitDecrypt, err, "failed to decode existing secret: %s", err)
+		}
+		content = append(buf, content...)
+	}
 	sec, err := secret.Parse(content)
 	if err != nil {
 		out.Red(ctx, "WARNING: Invalid YAML: %s", err)

@@ -50,7 +50,7 @@ func TestInsert(t *testing.T) {
 	assert.NoError(t, act.Insert(ctx, c))
 
 	// insert baz via stdin
-	assert.NoError(t, act.insertStdin(ctx, "baz", []byte("foobar")))
+	assert.NoError(t, act.insertStdin(ctx, "baz", []byte("foobar"), false))
 	buf.Reset()
 
 	assert.NoError(t, act.show(ctx, c, "baz", "", false))
