@@ -119,6 +119,11 @@ Alternatively, you can install gopass from the appropriate Darwin release from t
 
 ### Ubuntu & Debian
 
+**WARNING**: The official Debian repositories contain a package named `gopass` that
+is not related to this project in any way. It's a similar tool with a completely
+independent implementation and feature set. We are aware of this issue but can not
+do anything about it.
+
 When installing on Ubuntu or Debian you can either download the `deb` package and install manually or use our repository.
 
 #### Using the gopass repository
