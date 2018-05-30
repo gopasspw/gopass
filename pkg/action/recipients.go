@@ -65,6 +65,7 @@ func (s *Action) RecipientsComplete(ctx context.Context, c *cli.Context) {
 // RecipientsAdd adds new recipients
 func (s *Action) RecipientsAdd(ctx context.Context, c *cli.Context) error {
 	store := c.String("store")
+	force := c.Bool("force")
 	added := 0
 
 	// select store
@@ -77,31 +78,23 @@ func (s *Action) RecipientsAdd(ctx context.Context, c *cli.Context) error {
 	// select recipient
 	recipients := []string(c.Args())
 	if len(recipients) < 1 {
-		choices := []string{}
-		kl, _ := crypto.FindPublicKeys(ctx)
-		for _, key := range kl {
-			choices = append(choices, crypto.FormatKey(ctx, key))
+		r, err := s.recipientsSelectForAdd(ctx, store)
+		if err != nil {
+			return err
 		}
-		if len(choices) > 0 {
-			act, sel := cui.GetSelection(ctx, "Add Recipient -", "<↑/↓> to change the selection, <→> to add this recipient, <ESC> to quit", choices)
-			switch act {
-			case "default":
-				fallthrough
-			case "show":
-				recipients = []string{kl[sel]}
-			default:
-				return ExitError(ctx, ExitAborted, nil, "user aborted")
-			}
-		}
+		recipients = r
 	}
 
 	for _, r := range recipients {
 		keys, err := crypto.FindPublicKeys(ctx, r)
 		if err != nil {
-			out.Cyan(ctx, "Failed to list public key '%s': %s", r, err)
-			continue
+			out.Cyan(ctx, "WARNING: Failed to list public key '%s': %s", r, err)
+			if !force {
+				continue
+			}
+			keys = []string{r}
 		}
-		if len(keys) < 1 {
+		if len(keys) < 1 && !force {
 			out.Cyan(ctx, "Warning: No matching valid key found. If the key is in your keyring you may need to validate it.")
 			out.Cyan(ctx, "If this is your key: gpg --edit-key %s; trust (set to ultimate); quit", r)
 			out.Cyan(ctx, "If this is not your key: gpg --edit-key %s; lsign; trust; save; quit", r)
@@ -227,12 +220,36 @@ func (s *Action) recipientsSelectForRemoval(ctx context.Context, store string) (
 	if len(choices) < 1 {
 		return nil, nil
 	}
+
 	act, sel := cui.GetSelection(ctx, "Remove recipient -", "<↑/↓> to change the selection, <→> to remove this recipient, <ESC> to quit", choices)
 	switch act {
 	case "default":
 		fallthrough
 	case "show":
 		return []string{ids[sel]}, nil
+	default:
+		return nil, ExitError(ctx, ExitAborted, nil, "user aborted")
+	}
+}
+
+func (s *Action) recipientsSelectForAdd(ctx context.Context, store string) ([]string, error) {
+	crypto := s.Store.Crypto(ctx, store)
+
+	choices := []string{}
+	kl, _ := crypto.FindPublicKeys(ctx)
+	for _, key := range kl {
+		choices = append(choices, crypto.FormatKey(ctx, key))
+	}
+	if len(choices) < 1 {
+		return nil, nil
+	}
+
+	act, sel := cui.GetSelection(ctx, "Add Recipient -", "<↑/↓> to change the selection, <→> to add this recipient, <ESC> to quit", choices)
+	switch act {
+	case "default":
+		fallthrough
+	case "show":
+		return []string{kl[sel]}, nil
 	default:
 		return nil, ExitError(ctx, ExitAborted, nil, "user aborted")
 	}

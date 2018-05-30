@@ -841,6 +841,10 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 							Name:  "store",
 							Usage: "Store to operate on",
 						},
+						cli.BoolFlag{
+							Name:  "force",
+							Usage: "Force adding non-existing keys",
+						},
 					},
 				},
 				{
