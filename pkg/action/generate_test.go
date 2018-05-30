@@ -305,3 +305,78 @@ func TestKeyAndLength(t *testing.T) {
 		assert.Equal(t, tc.length, l, "Length from %+v", tc.in)
 	}
 }
+
+func TestExtractEmails(t *testing.T) {
+	for _, tc := range []struct {
+		in  []string
+		out []string
+	}{
+		{
+			out: []string{},
+		},
+		{
+			in:  []string{"some/mount/gmail.com/john.doe@example.org", "example.com/user@example.org"},
+			out: []string{"john.doe@example.org", "user@example.org"},
+		},
+	} {
+		assert.Equal(t, tc.out, extractEmails(tc.in))
+	}
+}
+
+func TestExtractDomains(t *testing.T) {
+	for _, tc := range []struct {
+		in  []string
+		out []string
+	}{
+		{
+			out: []string{},
+		},
+		{
+			in:  []string{"websites/gmail.com", "live.com", "some/mount/websites/web.de"},
+			out: []string{"gmail.com", "live.com", "web.de"},
+		},
+	} {
+		assert.Equal(t, tc.out, extractDomains(tc.in))
+	}
+}
+
+func TestUniq(t *testing.T) {
+	for _, tc := range []struct {
+		in  []string
+		out []string
+	}{
+		{
+			out: []string{},
+		},
+		{
+			in:  []string{"foo", "foo", "bar"},
+			out: []string{"bar", "foo"},
+		},
+	} {
+		assert.Equal(t, tc.out, uniq(tc.in))
+	}
+}
+
+func TestFilterPrefix(t *testing.T) {
+	for _, tc := range []struct {
+		in     []string
+		prefix string
+		out    []string
+	}{
+		{
+			out: []string{},
+		},
+		{
+			in:     []string{"foo", "bar", "baz"},
+			prefix: "foo",
+			out:    []string{"foo"},
+		},
+		{
+			in:     []string{"foo/bar", "foo/baz", "bar/foo"},
+			prefix: "foo/",
+			out:    []string{"foo/bar", "foo/baz"},
+		},
+	} {
+		assert.Equal(t, tc.out, filterPrefix(tc.in, tc.prefix))
+	}
+}

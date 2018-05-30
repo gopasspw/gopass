@@ -3,8 +3,11 @@ package action
 import (
 	"context"
 	"fmt"
+	"path"
 	"regexp"
+	"sort"
 	"strconv"
+	"strings"
 
 	"github.com/gopasspw/gopass/pkg/clipboard"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -227,4 +230,76 @@ func setMetadata(sec store.Secret, kvps map[string]string) {
 	for k, v := range kvps {
 		_ = sec.SetValue(k, v)
 	}
+}
+
+// CompleteGenerate implements the completion heuristic for the generate command
+func (s *Action) CompleteGenerate(ctx context.Context, c *cli.Context) {
+	args := c.Args()
+	if len(args) < 1 {
+		return
+	}
+	needle := args[0]
+
+	s.Store.Initialized(ctx) // important to make sure the structs are not nil
+	list, err := s.Store.List(ctx, 0)
+	if err != nil {
+		return
+	}
+
+	if strings.Contains(needle, "/") {
+		list = filterPrefix(uniq(extractEmails(list)), path.Base(needle))
+	} else {
+		list = filterPrefix(uniq(extractDomains(list)), needle)
+	}
+
+	for _, v := range list {
+		fmt.Fprintln(stdout, bashEscape(v))
+	}
+}
+
+func extractEmails(list []string) []string {
+	results := make([]string, 0, len(list))
+	for _, e := range list {
+		e = path.Base(e)
+		if strings.Contains(e, "@") {
+			results = append(results, e)
+		}
+	}
+	return results
+}
+
+var reDomain = regexp.MustCompile(`^(?i)([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}$`)
+
+func extractDomains(list []string) []string {
+	results := make([]string, 0, len(list))
+	for _, e := range list {
+		e = path.Base(e)
+		if reDomain.MatchString(e) {
+			results = append(results, e)
+		}
+	}
+	return results
+}
+
+func uniq(in []string) []string {
+	set := make(map[string]struct{}, len(in))
+	for _, e := range in {
+		set[e] = struct{}{}
+	}
+	out := make([]string, 0, len(set))
+	for k := range set {
+		out = append(out, k)
+	}
+	sort.Strings(out)
+	return out
+}
+
+func filterPrefix(in []string, prefix string) []string {
+	out := make([]string, 0, len(in))
+	for _, e := range in {
+		if strings.HasPrefix(e, prefix) {
+			out = append(out, e)
+		}
+	}
+	return out
 }
