@@ -29,6 +29,11 @@ func TestPwgenCharset(t *testing.T) {
 	assert.Equal(t, "aaaa", GeneratePassword(4, true))
 }
 
+func TestPwgenExternal(t *testing.T) {
+	_ = os.Setenv("GOPASS_EXTERNAL_PWGEN", "echo foobar")
+	assert.Equal(t, "foobar", GeneratePassword(4, true))
+}
+
 func TestPwgenNoCrand(t *testing.T) {
 	old := rand.Reader
 	rand.Reader = strings.NewReader("")

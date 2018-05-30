@@ -7,8 +7,11 @@ import (
 	"math/big"
 	"math/rand"
 	"os"
+	"os/exec"
+	"strings"
 	"time"
 
+	shellquote "github.com/kballard/go-shellquote"
 	"github.com/muesli/crunchy"
 )
 
@@ -37,7 +40,32 @@ func GeneratePassword(length int, symbols bool) string {
 	if c := os.Getenv("GOPASS_CHARACTER_SET"); c != "" {
 		chars = c
 	}
+	if c := os.Getenv("GOPASS_EXTERNAL_PWGEN"); c != "" {
+		if pw, err := generateExternal(c); err == nil {
+			return pw
+		}
+	}
 	return GeneratePasswordCharsetCheck(length, chars)
+}
+
+func generateExternal(c string) (string, error) {
+	cmdArgs, err := shellquote.Split(c)
+	if err != nil {
+		return "", err
+	}
+	if len(cmdArgs) < 1 {
+		return "", fmt.Errorf("no command")
+	}
+	exe := cmdArgs[0]
+	args := []string{}
+	if len(cmdArgs) > 1 {
+		args = cmdArgs[1:]
+	}
+	out, err := exec.Command(exe, args...).Output()
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(string(out)), nil
 }
 
 // GeneratePasswordCharset generates a random password from a given
