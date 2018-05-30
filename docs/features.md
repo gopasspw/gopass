@@ -394,6 +394,10 @@ To debug gopass, set the environment variable `GOPASS_DEBUG` to `true`.
 
 To restrict the characters used in generated passwords set `GOPASS_CHARACTER_SET` to any non-empty string. Please keep in mind that this can considerably weaken the strength of generated passwords.
 
+### Using custom password generators
+
+To use an external password generator set `GOPASS_EXTERNAL_PWGEN` to any valid executeable with all required arguments. Please note that the command will be run as-is. Not parameters to control length or complexity can be passed. Any errors will be silently ignored and gopass will fall back to the internal password generator instead.
+
 ### In-place updates to existing passwords
 
 Running `gopass [generate|insert] foo/bar` on an existing entry `foo/bar` will only update the first line of the secret, leaving any trailing data in place.
