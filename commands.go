@@ -380,7 +380,7 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 			Action: func(c *cli.Context) error {
 				return action.Generate(withGlobalFlags(ctx, c), c)
 			},
-			BashComplete: func(c *cli.Context) { action.Complete(ctx, c) },
+			BashComplete: func(c *cli.Context) { action.CompleteGenerate(ctx, c) },
 			Flags: []cli.Flag{
 				cli.BoolFlag{
 					Name:  "clip, c",
