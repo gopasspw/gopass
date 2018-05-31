@@ -33,7 +33,7 @@ var (
 )
 
 const (
-	gitHubOrg  = "justwatchcom"
+	gitHubOrg  = "gopasspw"
 	gitHubRepo = "gopass"
 )
 
