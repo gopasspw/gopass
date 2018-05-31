@@ -36,7 +36,6 @@ var commandsWithError = map[string]struct{}{
 	".edit":                  {},
 	".find":                  {},
 	".generate":              {},
-	".git.pull":              {},
 	".git.push":              {},
 	".git.remote.add":        {},
 	".git.remote.remove":     {},

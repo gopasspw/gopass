@@ -68,7 +68,7 @@ func TestGit(t *testing.T) {
 	buf.Reset()
 
 	// GitPull
-	assert.Error(t, act.GitPull(ctx, c))
+	assert.NoError(t, act.GitPull(ctx, c))
 	buf.Reset()
 
 	// GitPush

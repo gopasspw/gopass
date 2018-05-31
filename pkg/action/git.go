@@ -106,8 +106,11 @@ func (s *Action) GitPull(ctx context.Context, c *cli.Context) error {
 	origin := c.Args().Get(0)
 	branch := c.Args().Get(1)
 
-	if origin == "" || branch == "" {
-		return ExitError(ctx, ExitUsage, nil, "Usage: %s git pull <ORIGIN> <BRANCH>", s.Name)
+	if origin == "" {
+		origin = "origin"
+	}
+	if branch == "" {
+		branch = "master"
 	}
 	return s.Store.GitPull(ctx, store, origin, branch)
 }
