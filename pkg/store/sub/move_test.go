@@ -59,23 +59,7 @@ func TestCopy(t *testing.T) {
 				return func(t *testing.T) {
 					assert.NoError(t, s.Set(ctx, "foo/bar/baz", secret.New("baz", "")))
 					assert.NoError(t, s.Set(ctx, "foo/bar/zab", secret.New("zab", "")))
-					assert.NoError(t, s.Copy(ctx, "foo", "bar"))
-
-					sec, err := s.Get(ctx, "bar/bar/baz")
-					assert.NoError(t, err)
-					assert.Equal(t, "baz", sec.Password())
-
-					sec, err = s.Get(ctx, "bar/bar/zab")
-					assert.NoError(t, err)
-					assert.Equal(t, "zab", sec.Password())
-
-					sec, err = s.Get(ctx, "foo/bar/baz")
-					assert.NoError(t, err)
-					assert.Equal(t, "baz", sec.Password())
-
-					sec, err = s.Get(ctx, "foo/bar/zab")
-					assert.NoError(t, err)
-					assert.Equal(t, "zab", sec.Password())
+					assert.Error(t, s.Copy(ctx, "foo", "bar"))
 				}
 			},
 		},
@@ -146,15 +130,7 @@ func TestMove(t *testing.T) {
 				return func(t *testing.T) {
 					assert.NoError(t, s.Set(ctx, "foo/bar/baz", secret.New("baz", "")))
 					assert.NoError(t, s.Set(ctx, "foo/bar/zab", secret.New("zab", "")))
-					assert.NoError(t, s.Move(ctx, "foo", "bar"))
-
-					sec, err := s.Get(ctx, "bar/bar/baz")
-					assert.NoError(t, err)
-					assert.Equal(t, "baz", sec.Password())
-
-					sec, err = s.Get(ctx, "bar/bar/zab")
-					assert.NoError(t, err)
-					assert.Equal(t, "zab", sec.Password())
+					assert.Error(t, s.Move(ctx, "foo", "bar"))
 				}
 			},
 		},

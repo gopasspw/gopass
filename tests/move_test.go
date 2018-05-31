@@ -26,17 +26,17 @@ func TestMove(t *testing.T) {
 
 	out, err = ts.run("move foo bar")
 	assert.Error(t, err)
-	assert.Equal(t, "\nError: failed to decrypt 'foo': Entry is not in the password store\n", out)
+	assert.Equal(t, "\nError: Source foo does not exist in source store : Entry is not in the password store\n", out)
 
 	ts.initSecrets("")
 
-	_, err = ts.run("move foo bar")
+	_, err = ts.run("move foo/ bar")
 	assert.NoError(t, err)
 
 	out, _ = ts.run("move foo/bar foo/baz")
-	assert.Equal(t, "\nError: failed to decrypt 'foo/bar': Entry is not in the password store\n", out)
+	assert.Equal(t, "\nError: Source foo/bar does not exist in source store : Entry is not in the password store\n", out)
 
-	_, err = ts.run("show -f bar/bar")
+	_, err = ts.run("show -f bar/foo/bar")
 	assert.NoError(t, err)
 
 	_, err = ts.run("show -f baz")
