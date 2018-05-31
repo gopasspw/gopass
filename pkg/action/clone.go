@@ -20,8 +20,12 @@ import (
 
 // Clone will fetch and mount a new password store from a git repo
 func (s *Action) Clone(ctx context.Context, c *cli.Context) error {
-	ctx = backend.WithCryptoBackendString(ctx, c.String("crypto"))
-	ctx = backend.WithRCSBackendString(ctx, c.String("sync"))
+	if c.IsSet("crypto") {
+		ctx = backend.WithCryptoBackendString(ctx, c.String("crypto"))
+	}
+	if c.IsSet("sync") {
+		ctx = backend.WithRCSBackendString(ctx, c.String("sync"))
+	}
 
 	if len(c.Args()) < 1 {
 		return ExitError(ctx, ExitUsage, nil, "Usage: %s clone repo [mount]", s.Name)
@@ -55,6 +59,7 @@ func (s *Action) clone(ctx context.Context, repo, mount, path string) error {
 	case backend.GitCLI:
 		fallthrough
 	default:
+		ctx = backend.WithRCSBackend(ctx, backend.GitCLI)
 		if _, err := gitcli.Clone(ctx, repo, path); err != nil {
 			return ExitError(ctx, ExitGit, err, "failed to clone repo '%s' to '%s'", repo, path)
 		}
