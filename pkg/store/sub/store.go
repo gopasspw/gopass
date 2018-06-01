@@ -21,6 +21,7 @@ import (
 )
 
 type recipientHashStorer interface {
+	CheckRecipientHash(string) bool
 	GetRecipientHash(string, string) string
 	SetRecipientHash(string, string, string) error
 }

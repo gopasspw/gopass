@@ -147,3 +147,15 @@ func (c *Config) SetRecipientHash(alias, name, value string) error {
 
 	return c.Save()
 }
+
+// CheckRecipientHash returns true if we should report/fail on any
+// recipient hash errors for this store
+func (c *Config) CheckRecipientHash(alias string) bool {
+	if alias == "" {
+		return c.Root.CheckRecpHash
+	}
+	if sc, found := c.Mounts[alias]; found && sc != nil {
+		return sc.CheckRecpHash
+	}
+	return false
+}

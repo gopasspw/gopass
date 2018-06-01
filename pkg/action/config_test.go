@@ -43,6 +43,7 @@ func TestConfig(t *testing.T) {
   autoclip: true
   autoimport: true
   autosync: true
+  check_recipient_hash: false
   cliptimeout: 45
   concurrency: 1
   editrecipients: false
@@ -87,6 +88,7 @@ foo/nopager: false`
   autoclip: true
   autoimport: true
   autosync: true
+  check_recipient_hash: false
   cliptimeout: 45
   concurrency: 1
   editrecipients: false
@@ -135,6 +137,7 @@ mount 'foo' config:
 autoclip
 autoimport
 autosync
+check_recipient_hash
 cliptimeout
 concurrency
 editrecipients

@@ -23,6 +23,9 @@ func (f *fakeConfig) GetRecipientHash(string, string) string { return "" }
 func (f *fakeConfig) SetRecipientHash(string, string, string) error {
 	return nil
 }
+func (f *fakeConfig) CheckRecipientHash(string) bool {
+	return false
+}
 
 func TestFsck(t *testing.T) {
 	ctx := context.Background()
