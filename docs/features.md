@@ -309,7 +309,8 @@ Commands that support the `--store` flag:
 
 | **Command**                | **Example**                                   | **Description** |
 | -------------------------- | --------------------------------------------- | --------------- |
-| `gopass git`               | `gopass git --store=foo push origin master`   | Push all changes in the sub store *foo* to master |
+| `gopass git push`          | `gopass git push --store=foo origin master`   | Push all changes in the sub store *foo* to master |
+| `gopass git pull`          | `gopass git pull --store=foo origin master`   | Pull all changes in the sub store *foo* from master |
 | `gopass git init`          | `gopass git init --store=foo`                 | Initialize git in the sub store *foo* |
 | `gopass init`              | `gopass init --store=foo`                     | Initialize and mount the new sub store *foo* |
 | `gopass recipients add`    | `gopass recipients add --store=foo GPGxID`    | Add the new recipient *GPGxID* to the store *foo* |
