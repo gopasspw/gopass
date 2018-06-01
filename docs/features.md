@@ -1,5 +1,8 @@
 # Features
 
+This document provides a broad overview over the features and use-cases
+gopass supports.
+
 ## Standard Features
 
 ### Data Organization
@@ -263,7 +266,17 @@ Detected weak secret for 'golang.org/gopher': Password is too short
 
 ### Check Passwords against leaked passwords
 
-gopass can assist you in checking your passwords against those included in recent data breaches. Right now this you still need to download and unpack those dumps yourself, but gopass can take care of the rest.
+gopass can assist you in checking your passwords against those included in recent data breaches. 
+You can either check against the HIBPv2 API (recommended) or download the dumps (v1 or v2) and
+perform the check fully offline.
+
+#### Using the API
+
+```bash
+gopass audit hibp --api
+```
+
+#### Using the Dumps
 
 First go to [haveibeenpwned.com/Passwords](https://haveibeenpwned.com/Passwords) and download the dumps. Then unpack the 7-zip archives somewhere. Note that full path to those files and provide it to gopass in the environment variable `HIBP_DUMPS`.
 
@@ -319,7 +332,7 @@ Commands that support the `--store` flag:
 
 ### Directly edit structured secrets aka. YAML support
 
-gopass supports directly editing structured secrets (only simple key-value maps so far).
+gopass supports directly editing structured secrets (simple key-value maps or YAML).
 
 ```bash
 $ gopass generate -n foo/bar 12
@@ -418,16 +431,3 @@ This makes it easy to use templates for certain kind of secrets such as database
 ### JSON API
 
 `gopass jsonapi` enables communication with gopass via JSON messages. This is particularly useful for browser plugins like [gopassbridge](https://github.com/martinhoefling/gopassbridge) running gopass as native app. More details can be found in [docs/jsonapi.md](docs/jsonapi.md).
-
-## Road map
-
-- [x] Be 100% pass 1.4 compatible
-- [x] Storing binary files in gopass (almost done)
-- [x] Storing structured files and templates (credit cards, DBs, websites...)
-- [ ] UX improvements and more wizards
-- [ ] Tackle the information disclosure issue
-- [ ] Build a great work flow for requesting and granting access
-- [ ] Better and more fine grained ACL
-- [ ] Be nicely usable by semi- and non-technical users
-
-*Note: Being 100% pass compatible is a milestone, not a promise for the future. We will eventually diverge from pass to support more advanced features. This will break compatibility.*
