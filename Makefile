@@ -11,7 +11,7 @@ FISH_COMPLETION_OUTPUT    := fish.completion
 ZSH_COMPLETION_OUTPUT     := zsh.completion
 # Support reproducible builds by embedding date according to SOURCE_DATE_EPOCH if present
 DATE                      := $(shell date -u -d "@$(SOURCE_DATE_EPOCH)" '+%FT%T%z' 2>/dev/null || date -u '+%FT%T%z')
-BUILDFLAGS                := -ldflags="-s -w -X main.version=$(GOPASS_VERSION) -X main.commit=$(GOPASS_REVISION) -X main.date=$(DATE) -extldflags '-static'" -gcflags="-trimpath=$(GOPATH)" -asmflags="-trimpath=$(GOPATH)"
+BUILDFLAGS                := -ldflags="-s -w -X main.version=$(GOPASS_VERSION) -X main.commit=$(GOPASS_REVISION) -X main.date=$(DATE)" -gcflags="-trimpath=$(GOPATH)" -asmflags="-trimpath=$(GOPATH)"
 TESTFLAGS                 ?=
 PWD                       := $(shell pwd)
 PREFIX                    ?= $(GOPATH)
