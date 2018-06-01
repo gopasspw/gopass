@@ -174,7 +174,7 @@ func TestLoadError(t *testing.T) {
 	capture(t, func() error {
 		_, err := load(gcfg)
 		if err == nil {
-			return fmt.Errorf("Should fail")
+			return fmt.Errorf("should fail")
 		}
 		return nil
 	})
@@ -198,7 +198,7 @@ func TestDecodeError(t *testing.T) {
 	capture(t, func() error {
 		_, err := load(gcfg)
 		if err == nil {
-			return fmt.Errorf("Should fail")
+			return fmt.Errorf("should fail")
 		}
 		return nil
 	})

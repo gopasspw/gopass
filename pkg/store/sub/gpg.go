@@ -121,5 +121,5 @@ func (s *Store) importPublicKey(ctx context.Context, r string) error {
 		}
 		return s.crypto.ImportPublicKey(ctx, pk)
 	}
-	return fmt.Errorf("Public Key not found in store")
+	return fmt.Errorf("public key not found in store")
 }

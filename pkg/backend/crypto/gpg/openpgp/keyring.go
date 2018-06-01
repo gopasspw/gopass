@@ -126,6 +126,8 @@ func (g *GPG) writeSecring(fn string) error {
 	return nil
 }
 
+// revive:disable
+
 // KeysById implements openpgp.Keyring
 func (g *GPG) KeysById(id uint64) []openpgp.Key {
 	return append(g.secring.KeysById(id), g.pubring.KeysById(id)...)
@@ -135,6 +137,8 @@ func (g *GPG) KeysById(id uint64) []openpgp.Key {
 func (g *GPG) KeysByIdUsage(id uint64, requiredUsage byte) []openpgp.Key {
 	return append(g.secring.KeysByIdUsage(id, requiredUsage), g.pubring.KeysByIdUsage(id, requiredUsage)...)
 }
+
+// revive:enable
 
 // DecryptionKeys implements openpgp.Keyring
 func (g *GPG) DecryptionKeys() []openpgp.Key {

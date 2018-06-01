@@ -135,6 +135,14 @@ legal:
 
 codequality:
 	@echo ">> CODE QUALITY"
+
+	@echo -n "     REVIVE    "
+	@which revive > /dev/null; if [ $$? -ne 0 ]; then \
+		$(GO) get -u github.com/mgechev/revive; \
+	fi
+	@revive -formatter friendly -exclude vendor/... ./...
+	@printf '%s\n' '$(OK)'
+
 	@echo -n "     FMT       "
 	@$(foreach gofile, $(GOFILES_NOVENDOR),\
 			out=$$(gofmt -s -l -d -e $(gofile) | tee /dev/stderr); if [ -n "$$out" ]; then exit 1; fi;)

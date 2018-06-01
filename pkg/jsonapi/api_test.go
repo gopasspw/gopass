@@ -36,7 +36,7 @@ func TestRespondMessageBrokenInput(t *testing.T) {
 	runRespondMessage(t, "", "", "failed to unmarshal JSON message: unexpected end of JSON input", []storedSecret{})
 
 	// Empty object
-	runRespondMessage(t, "{}", "", "Unknown message of type ", []storedSecret{})
+	runRespondMessage(t, "{}", "", "unknown message of type ", []storedSecret{})
 }
 
 func TestRespondMessageQuery(t *testing.T) {

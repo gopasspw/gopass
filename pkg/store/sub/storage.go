@@ -53,7 +53,7 @@ func (s *Store) initStorageBackend(ctx context.Context) error {
 		}
 		s.storage = store
 	default:
-		return fmt.Errorf("Unknown storage backend")
+		return fmt.Errorf("unknown storage backend")
 	}
 	return nil
 }

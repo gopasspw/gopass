@@ -61,7 +61,7 @@ func TestJSONAPI(t *testing.T) {
 
 	// message with empty object
 	response := getMessageResponse(t, ts, "{}")
-	assert.Equal(t, "{\"error\":\"Unknown message of type \"}", response)
+	assert.Equal(t, "{\"error\":\"unknown message of type \"}", response)
 
 	// query for keys with matching one
 	response = getMessageResponse(t, ts, "{\"type\":\"query\",\"query\":\"foo\"}")
