@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/gopasspw/gopass/pkg/backend/rcs/noop"
 	"github.com/gopasspw/gopass/pkg/notify"
 	"github.com/gopasspw/gopass/pkg/out"
 	"github.com/gopasspw/gopass/pkg/store"
@@ -85,6 +86,10 @@ func (s *Action) syncMount(ctx context.Context, mp string) error {
 	numMP := 0
 	if l, err := sub.List(ctx, ""); err == nil {
 		numMP = len(l)
+	}
+
+	if sub.RCS().Name() == noop.New().Name() {
+		out.Red(ctxno, "\n   WARNING: Mount uses noop RCS backend. Not syncing!")
 	}
 
 	out.Print(ctxno, "\n   "+color.GreenString("git pull and push ... "))
