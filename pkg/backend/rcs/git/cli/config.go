@@ -41,7 +41,7 @@ func (g *Git) fixConfig(ctx context.Context) error {
 // InitConfig initialized and preparse the git config
 func (g *Git) InitConfig(ctx context.Context, userName, userEmail string) error {
 	if userName == "" || userEmail == "" || !strings.Contains(userEmail, "@") {
-		return fmt.Errorf("Username and Email must not be empty and valid")
+		return fmt.Errorf("username and email must not be empty and valid")
 	}
 	// set commit identity
 	if err := g.ConfigSet(ctx, "user.name", userName); err != nil {

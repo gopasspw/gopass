@@ -37,7 +37,7 @@ func (api *API) respondMessage(ctx context.Context, msgBytes []byte) error {
 	case "create":
 		return api.respondCreateEntry(ctx, msgBytes)
 	default:
-		return fmt.Errorf("Unknown message of type %s", message.Type)
+		return fmt.Errorf("unknown message of type %s", message.Type)
 	}
 }
 

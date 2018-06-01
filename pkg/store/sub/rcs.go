@@ -35,7 +35,7 @@ func (s *Store) initRCSBackend(ctx context.Context) error {
 		// no-op
 		out.Debug(ctx, "Using RCS Backend: noop")
 	default:
-		return fmt.Errorf("Unknown RCS Backend")
+		return fmt.Errorf("unknown rcs backend")
 	}
 	return nil
 }

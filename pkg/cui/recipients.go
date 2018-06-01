@@ -183,10 +183,10 @@ func confirmEditRecipients(ctx context.Context, name string, ris recipientInfos)
 // AskForPrivateKey promts the user to select from a list of private keys
 func AskForPrivateKey(ctx context.Context, crypto backend.Crypto, name, prompt string) (string, error) {
 	if !ctxutil.IsInteractive(ctx) {
-		return "", errors.New("Can not select private key without terminal")
+		return "", errors.New("can not select private key without terminal")
 	}
 	if crypto == nil {
-		return "", errors.New("Can not select private key without valid crypto backend")
+		return "", errors.New("can not select private key without valid crypto backend")
 	}
 
 	kl, err := crypto.ListPrivateKeyIDs(gpg.WithAlwaysTrust(ctx, false))
@@ -194,7 +194,7 @@ func AskForPrivateKey(ctx context.Context, crypto backend.Crypto, name, prompt s
 		return "", err
 	}
 	if len(kl) < 1 {
-		return "", errors.New("No useable private keys found")
+		return "", errors.New("no useable private keys found")
 	}
 
 	for i := 0; i < maxTries; i++ {
@@ -241,7 +241,7 @@ func AskForGitConfigUser(ctx context.Context, crypto backend.Crypto, name string
 		return "", "", err
 	}
 	if len(keyList) < 1 {
-		return "", "", errors.New("No usable private keys found")
+		return "", "", errors.New("no usable private keys found")
 	}
 
 	for _, key := range keyList {

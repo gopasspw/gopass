@@ -7,6 +7,8 @@ import (
 	"io"
 	"os/exec"
 	"strings"
+
+	"github.com/pkg/errors"
 )
 
 // Client is a pinentry client
@@ -77,7 +79,7 @@ func (c *Client) Set(key, value string) error {
 	}
 	line, _, _ := c.out.ReadLine()
 	if string(line) != "OK" {
-		return fmt.Errorf("Error: %s", line)
+		return errors.Errorf("error: %s", line)
 	}
 	return nil
 }

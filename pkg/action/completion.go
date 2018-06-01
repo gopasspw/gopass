@@ -45,7 +45,7 @@ set -A complete_gopass -- $PASS_LIST %s
 `
 
 	if a == nil {
-		return fmt.Errorf("Can't parse command options")
+		return fmt.Errorf("can not parse command options")
 	}
 
 	var opts []string

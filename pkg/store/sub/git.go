@@ -41,7 +41,7 @@ func (s *Store) GitInit(ctx context.Context, un, ue string) error {
 		out.Cyan(ctx, "WARNING: Initializing with no-op (mock) git backend")
 		return nil
 	default:
-		return fmt.Errorf("Unknown Sync Backend: %d", backend.GetRCSBackend(ctx))
+		return fmt.Errorf("unknown Sync Backend: %d", backend.GetRCSBackend(ctx))
 	}
 }
 
