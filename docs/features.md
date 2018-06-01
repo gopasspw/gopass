@@ -400,6 +400,22 @@ Running `gopass recipients` will also try to load and save any missing GPG keys 
 
 The commands manipulating recipients, i.e. `gopass recipients add` and `gopass recipients remove` accept a `--store` flag that expects the *name of a mount point* to operate on this mounted sub store.
 
+### Recipient Integrity
+
+gopass will try to warn you if the list of recipients is changed. The way that
+managing recipients works is that gopass maintains a recipient list in the git
+repository and obviously anyone with access to this repository can change the
+recipients used for any *future* changes. Thus it's important to maintain
+awareness whenever this file changes. In the past gopass relied onto the git
+history. This can be rewritten but would cause glaring errors on sync. Additionally
+gopass has the optional feature of client-side integrity checks. Enabling this
+feature will make gopass maintain a hashsum of the recipient list in the local
+configuration. It's transparently updated whenever the local users modifies the
+recipient list but if another team member - or an adversary - modifies this list
+gopass will display an error and ask you to verify and acknowledge these changes.
+
+To enable this set `check_recipient_hash` to true.
+
 ### Debugging
 
 To debug gopass, set the environment variable `GOPASS_DEBUG` to `true`.

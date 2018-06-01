@@ -13,21 +13,22 @@ import (
 
 // StoreConfig is a per-store (root or mount) config
 type StoreConfig struct {
-	AskForMore     bool              `yaml:"askformore"`     // ask for more data on generate
-	AutoClip       bool              `yaml:"autoclip"`       // decide whether passwords are automatically copied or not
-	AutoImport     bool              `yaml:"autoimport"`     // import missing public keys w/o asking
-	AutoSync       bool              `yaml:"autosync"`       // push to git remote after commit, pull before push if necessary
+	AskForMore     bool              `yaml:"askformore"` // ask for more data on generate
+	AutoClip       bool              `yaml:"autoclip"`   // decide whether passwords are automatically copied or not
+	AutoImport     bool              `yaml:"autoimport"` // import missing public keys w/o asking
+	AutoSync       bool              `yaml:"autosync"`   // push to git remote after commit, pull before push if necessary
+	CheckRecpHash  bool              `yaml:"check_recipient_hash"`
 	ClipTimeout    int               `yaml:"cliptimeout"`    // clear clipboard after seconds
 	Concurrency    int               `yaml:"concurrency"`    // allow to run multiple thread when batch processing
 	EditRecipients bool              `yaml:"editrecipients"` // edit recipients when confirming
 	NoColor        bool              `yaml:"nocolor"`        // do not use color when outputing text
 	NoConfirm      bool              `yaml:"noconfirm"`      // do not confirm recipients when encrypting
 	NoPager        bool              `yaml:"nopager"`        // do not invoke a pager to display long lists
-	Path           *backend.URL      `yaml:"path"`           // path to the root store
-	SafeContent    bool              `yaml:"safecontent"`    // avoid showing passwords in terminal
-	UseSymbols     bool              `yaml:"usesymbols"`     // always use symbols when generating passwords
 	Notifications  bool              `yaml:"notifications"`  // enable desktop notifications
+	Path           *backend.URL      `yaml:"path"`           // path to the root store
 	RecipientHash  map[string]string `yaml:"recipient_hash"`
+	SafeContent    bool              `yaml:"safecontent"` // avoid showing passwords in terminal
+	UseSymbols     bool              `yaml:"usesymbols"`  // always use symbols when generating passwords
 }
 
 func (c *StoreConfig) checkDefaults() error {

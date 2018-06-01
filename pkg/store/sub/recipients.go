@@ -159,14 +159,16 @@ func (s *Store) GetRecipients(ctx context.Context, name string) ([]string, error
 		finalRecps = append(finalRecps, fp)
 	}
 
-	computedSum := sha3fp(buf)
-	storedSum := s.sc.GetRecipientHash(s.alias, idf)
-	if storedSum == "" {
-		out.Yellow(ctx, "WARNING: No previous recipient checksum for '%s/%s'. Run 'gopass recipients update' to get rid of this warning", s.alias, idf)
-	} else if storedSum == computedSum {
-		out.Debug(ctx, "[%s/%s] Computed Recipient Checksum matches stored sum (%s)", s.alias, idf, computedSum)
-	} else {
-		return finalRecps, ErrRecipientChecksumChanged
+	if s.sc.CheckRecipientHash(s.alias) {
+		computedSum := sha3fp(buf)
+		storedSum := s.sc.GetRecipientHash(s.alias, idf)
+		if storedSum == "" {
+			out.Yellow(ctx, "WARNING: No previous recipient checksum for '%s/%s'. Run 'gopass recipients update' to get rid of this warning", s.alias, idf)
+		} else if storedSum == computedSum {
+			out.Debug(ctx, "[%s/%s] Computed Recipient Checksum matches stored sum (%s)", s.alias, idf, computedSum)
+		} else {
+			return finalRecps, ErrRecipientChecksumChanged
+		}
 	}
 
 	return finalRecps, nil
