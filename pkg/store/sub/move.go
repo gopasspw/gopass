@@ -3,10 +3,7 @@ package sub
 import (
 	"context"
 	"fmt"
-	"path/filepath"
-	"strings"
 
-	"github.com/gopasspw/gopass/pkg/out"
 	"github.com/gopasspw/gopass/pkg/store"
 
 	"github.com/pkg/errors"
@@ -18,27 +15,7 @@ import (
 func (s *Store) Copy(ctx context.Context, from, to string) error {
 	// recursive copy?
 	if s.IsDir(ctx, from) {
-		if s.Exists(ctx, to) {
-			return errors.Errorf("Can not copy dir to file")
-		}
-		sf, err := s.List(ctx, "")
-		if err != nil {
-			return errors.Wrapf(err, "failed to list store")
-		}
-		destPrefix := to
-		if s.IsDir(ctx, to) {
-			destPrefix = filepath.Join(to, filepath.Base(from))
-		}
-		for _, e := range sf {
-			if !strings.HasPrefix(e, strings.TrimSuffix(from, "/")+"/") {
-				continue
-			}
-			et := filepath.Join(destPrefix, strings.TrimPrefix(e, from))
-			if err := s.Copy(ctx, e, et); err != nil {
-				out.Red(ctx, "Failed to copy '%s' to '%s': %s", e, et, err)
-			}
-		}
-		return nil
+		return errors.Errorf("recursive operations are not supported")
 	}
 
 	content, err := s.Get(ctx, from)
@@ -51,34 +28,14 @@ func (s *Store) Copy(ctx context.Context, from, to string) error {
 	return nil
 }
 
-// Move will move one entry from one location to another. Cross.storage moves are
-// supported. Moving an entry will decode it from the old location, encode it
+// Move will move one entry from one location to another.
+// Moving an entry will decode it from the old location, encode it
 // for the destination store with the right set of recipients and remove it
 // from the old location afterwards.
 func (s *Store) Move(ctx context.Context, from, to string) error {
 	// recursive move?
 	if s.IsDir(ctx, from) {
-		if s.Exists(ctx, to) {
-			return errors.Errorf("Can not move dir to file")
-		}
-		sf, err := s.List(ctx, "")
-		if err != nil {
-			return errors.Wrapf(err, "failed to list store")
-		}
-		destPrefix := to
-		if s.IsDir(ctx, to) {
-			destPrefix = filepath.Join(to, filepath.Base(from))
-		}
-		for _, e := range sf {
-			if !strings.HasPrefix(e, strings.TrimSuffix(from, "/")+"/") {
-				continue
-			}
-			et := filepath.Join(destPrefix, strings.TrimPrefix(e, from))
-			if err := s.Move(ctx, e, et); err != nil {
-				out.Red(ctx, "Failed to move '%s' to '%s': %s", e, et, err)
-			}
-		}
-		return nil
+		return errors.Errorf("recursive operations are not supported")
 	}
 
 	content, err := s.Get(ctx, from)

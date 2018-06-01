@@ -112,11 +112,18 @@ func (u Unit) InitStore(name string) error {
 	if err := os.MkdirAll(dir, 0700); err != nil {
 		return err
 	}
-	if err := ioutil.WriteFile(filepath.Join(dir, ".gpg-id"), u.recipients(), 0600); err != nil {
+	fn := filepath.Join(dir, ".gpg-id")
+	_ = os.Remove(fn)
+	if err := ioutil.WriteFile(fn, u.recipients(), 0600); err != nil {
 		return err
 	}
 	for _, p := range AllPathsToSlash(u.Entries) {
-		if err := ioutil.WriteFile(filepath.Join(dir, p+".txt"), []byte("secret"), 0600); err != nil {
+		fn := filepath.Join(dir, p+".txt")
+		_ = os.Remove(fn)
+		if err := os.MkdirAll(filepath.Dir(fn), 0700); err != nil {
+			return err
+		}
+		if err := ioutil.WriteFile(fn, []byte("secret"), 0600); err != nil {
 			return err
 		}
 	}

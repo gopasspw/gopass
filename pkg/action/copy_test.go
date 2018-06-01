@@ -69,15 +69,15 @@ func TestCopy(t *testing.T) {
 	assert.NoError(t, act.insertStdin(ctx, "bam/baz", []byte("foobar"), false))
 	assert.NoError(t, act.insertStdin(ctx, "bam/zab", []byte("barfoo"), false))
 
-	// recursive copy: bam -> zab
+	// recursive copy: bam/ -> zab
 	fs = flag.NewFlagSet("default", flag.ContinueOnError)
-	assert.NoError(t, fs.Parse([]string{"bam", "zab"}))
+	assert.NoError(t, fs.Parse([]string{"bam/", "zab"}))
 	c = cli.NewContext(app, fs, nil)
 
 	assert.NoError(t, act.Copy(ctx, c))
 	buf.Reset()
 
-	assert.NoError(t, act.show(ctx, c, "zab/zab", "", false))
+	assert.NoError(t, act.show(ctx, c, "zab/bam/zab", "", false))
 	assert.Equal(t, "barfoo\n", buf.String())
 	buf.Reset()
 }

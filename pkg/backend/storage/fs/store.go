@@ -63,6 +63,7 @@ func (s *Store) Exists(ctx context.Context, name string) bool {
 
 // List returns a list of all entities
 func (s *Store) List(ctx context.Context, prefix string) ([]string, error) {
+	prefix = strings.TrimPrefix(prefix, "/")
 	out.Debug(ctx, "fs.List(%s)", prefix)
 	files := make([]string, 0, 100)
 	if err := filepath.Walk(s.path, func(path string, info os.FileInfo, err error) error {
@@ -94,8 +95,9 @@ func (s *Store) List(ctx context.Context, prefix string) ([]string, error) {
 // IsDir returns true if the named entity is a directory
 func (s *Store) IsDir(ctx context.Context, name string) bool {
 	path := filepath.Join(s.path, filepath.Clean(name))
-	out.Debug(ctx, "fs.Isdir(%s) - %s", name, path)
-	return fsutil.IsDir(path)
+	isDir := fsutil.IsDir(path)
+	out.Debug(ctx, "fs.Isdir(%s) - %s -> %t", name, path, isDir)
+	return isDir
 }
 
 // Prune removes a named directory

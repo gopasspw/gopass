@@ -31,7 +31,7 @@ func TestCopy(t *testing.T) {
 	ts.initSecrets("")
 
 	// recursive copy
-	_, err = ts.run("copy foo bar")
+	_, err = ts.run("copy foo/ bar")
 	assert.NoError(t, err)
 
 	out, err = ts.run("copy foo/bar foo/baz")
