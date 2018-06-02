@@ -124,7 +124,7 @@ func ConfirmRecipients(ctx context.Context, crypto backend.Crypto, name string, 
 func confirmAskRecipients(ctx context.Context, name string, ris recipientInfos) ([]string, error) {
 	fmt.Fprintf(Stdout, "gopass: Encrypting %s for these recipients:\n", name)
 	for _, ri := range ris {
-		fmt.Fprintf(Stdout, ri.String())
+		fmt.Fprintf(Stdout, ri.String()+"\n")
 	}
 	fmt.Fprintln(Stdout, "")
 
