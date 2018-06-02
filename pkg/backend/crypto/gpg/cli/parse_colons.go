@@ -3,9 +3,19 @@ package cli
 import (
 	"bufio"
 	"io"
+	"regexp"
 	"strings"
 
 	"github.com/gopasspw/gopass/pkg/backend/crypto/gpg"
+)
+
+var (
+	// John Doe (user) <john.doe@example.com>
+	reUIDComment = regexp.MustCompile(`([^(<]+)\s+(\([^)]+\))\s+<([^>]+)>`)
+	// John Doe <john.doe@example.com>
+	reUID = regexp.MustCompile(`([^(<]+)\s+<([^>]+)>`)
+	// John Doe (user)
+	reUIDNoEmailComment = regexp.MustCompile(`([^(<]+)\s+(\([^)]+\))`)
 )
 
 // http://git.gnupg.org/cgi-bin/gitweb.cgi?p=gnupg.git;a=blob_plain;f=doc/DETAILS
@@ -103,26 +113,33 @@ func parseColons(reader io.Reader) gpg.KeyList {
 
 func parseColonIdentity(fields []string) gpg.Identity {
 	id := fields[9]
-	ni := gpg.Identity{}
+	ni := gpg.Identity{
+		Name:           id,
+		CreationDate:   parseTS(fields[5]),
+		ExpirationDate: parseTS(fields[6]),
+	}
 	if reUIDComment.MatchString(id) {
 		if m := reUIDComment.FindStringSubmatch(id); len(m) > 3 {
 			ni.Name = m[1]
 			ni.Comment = strings.Trim(m[2], "()")
 			ni.Email = m[3]
+			return ni
 		}
-	} else if reUID.MatchString(id) {
-		if m := reUID.FindStringSubmatch(id); len(m) > 2 {
-			ni.Name = m[1]
-			ni.Email = m[2]
-		}
-	} else if reUIDNoEmailComment.MatchString(id) {
-		if m := reUID.FindStringSubmatch(id); len(m) > 2 {
+	}
+	if reUIDNoEmailComment.MatchString(id) {
+		if m := reUIDNoEmailComment.FindStringSubmatch(id); len(m) > 2 {
 			ni.Name = m[1]
 			ni.Comment = strings.Trim(m[2], "()")
 		}
+		return ni
 	}
-	ni.CreationDate = parseTS(fields[5])
-	ni.ExpirationDate = parseTS(fields[6])
+	if reUID.MatchString(id) {
+		if m := reUID.FindStringSubmatch(id); len(m) > 2 {
+			ni.Name = m[1]
+			ni.Email = m[2]
+			return ni
+		}
+	}
 
 	return ni
 }
