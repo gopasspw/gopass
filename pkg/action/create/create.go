@@ -475,6 +475,13 @@ func (s *creator) createGeneratePassword(ctx context.Context) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	corp, err := termio.AskForBool(ctx, "Do you have strict rules to include different character classes?", false)
+	if err != nil {
+		return "", err
+	}
+	if corp {
+		return pwgen.GeneratePasswordWithAllClasses(length)
+	}
 	return pwgen.GeneratePassword(length, symbols), nil
 }
 
