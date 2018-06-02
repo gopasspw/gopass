@@ -58,6 +58,32 @@ func TestPwgenNoCrand(t *testing.T) {
 	assert.Equal(t, "WARNING: No crypto/rand available. Falling back to PRNG\n", <-done)
 }
 
+func TestContainsAllClasses(t *testing.T) {
+	for _, tc := range []struct {
+		pw      string
+		classes []string
+		ok      bool
+	}{
+		{
+			pw:      "foobar",
+			classes: []string{lower},
+			ok:      true,
+		},
+		{
+			pw:      "aB1$",
+			classes: []string{lower, upper, syms, digits},
+			ok:      true,
+		},
+		{
+			pw:      "ab1$",
+			classes: []string{lower, upper, syms, digits},
+			ok:      false,
+		},
+	} {
+		assert.Equal(t, tc.ok, containsAllClasses(tc.pw, tc.classes...))
+	}
+}
+
 func BenchmarkPwgen(b *testing.B) {
 	for n := 0; n < b.N; n++ {
 		GeneratePasswordCharset(24, CharAll)

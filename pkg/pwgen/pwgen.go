@@ -3,6 +3,7 @@ package pwgen
 import (
 	"bytes"
 	crand "crypto/rand"
+	"errors"
 	"fmt"
 	"math/big"
 	"math/rand"
@@ -76,6 +77,34 @@ func GeneratePasswordCharset(length int, chars string) string {
 		_ = pw.WriteByte(chars[randomInteger(len(chars))])
 	}
 	return pw.String()
+}
+
+// GeneratePasswordWithAllClasses tries to enforce a password which
+// contains all character classes instead of only enabling them.
+// This is especially useful for broken (corporate) password policies
+// that mandate the use of certain character classes for not good reason
+func GeneratePasswordWithAllClasses(length int) (string, error) {
+	pw := GeneratePasswordCharset(length, CharAll)
+	for i := 0; i < 100; i++ {
+		if containsAllClasses(pw, digits, upper, lower, syms) {
+			return pw, nil
+		}
+		pw = GeneratePasswordCharset(length, CharAll)
+	}
+	return "", errors.New("failed to generate matching password after 100 rounds")
+}
+
+func containsAllClasses(pw string, classes ...string) bool {
+CLASSES:
+	for _, class := range classes {
+		for _, ch := range class {
+			if strings.Contains(pw, string(ch)) {
+				continue CLASSES
+			}
+		}
+		return false
+	}
+	return true
 }
 
 // GeneratePasswordCharsetCheck generates a random password from a given
