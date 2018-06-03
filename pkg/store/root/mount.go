@@ -180,6 +180,16 @@ func (r *Store) getStore(ctx context.Context, name string) (context.Context, sto
 	return r.cfg.Root.WithContext(ctx), r.store, name
 }
 
+// WithConfig populates the context with the substore config
+func (r *Store) WithConfig(ctx context.Context, name string) context.Context {
+	name = strings.TrimSuffix(name, "/")
+	mp := r.MountPoint(name)
+	if _, found := r.mounts[mp]; found {
+		return r.cfg.Mounts[mp].WithContext(ctx)
+	}
+	return r.cfg.Root.WithContext(ctx)
+}
+
 // GetSubStore returns an exact match for a mount point or an error if this
 // mount point does not exist
 func (r *Store) GetSubStore(name string) (store.Store, error) {

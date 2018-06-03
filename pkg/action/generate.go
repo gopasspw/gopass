@@ -50,6 +50,8 @@ func (s *Action) Generate(ctx context.Context, c *cli.Context) error {
 		}
 	}
 
+	ctx = s.Store.WithConfig(ctx, name)
+
 	// ask for confirmation before overwriting existing entry
 	if !force { // don't check if it's force anyway
 		if s.Store.Exists(ctx, name) && key == "" && !termio.AskForConfirmation(ctx, fmt.Sprintf("An entry already exists for %s. Overwrite the current password?", name)) {
