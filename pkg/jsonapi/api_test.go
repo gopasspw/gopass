@@ -99,6 +99,12 @@ func TestRespondMessageGetData(t *testing.T) {
 	secrets := []storedSecret{
 		{[]string{"foo"}, secret.New("20", "hallo: welt")},
 		{[]string{"bar"}, secret.New("20", "---\nlogin: muh")},
+		{[]string{"complex"}, secret.New("20", `---
+login: hallo
+number: 42
+sub:
+  subentry: 123
+`)},
 	}
 
 	runRespondMessage(t,
@@ -109,6 +115,10 @@ func TestRespondMessageGetData(t *testing.T) {
 	runRespondMessage(t,
 		`{"type":"getData","entry":"bar"}`,
 		`{"login":"muh"}`,
+		"", secrets)
+	runRespondMessage(t,
+		`{"type":"getData","entry":"complex"}`,
+		`{"login":"hallo","number":42,"sub":{"subentry":123}}`,
 		"", secrets)
 }
 
