@@ -270,7 +270,7 @@ bintray: check-release-env
 	@curl -f -T ./dist/$(AMD64DEB) -H "X-GPG-PASSPHRASE:$(BINTRAY_GPG_PASSPHRASE)" -u$(BINTRAY_USER):$(BINTRAY_API_KEY) "https://api.bintray.com/content/gopasspw/gopass/gopass/v$(GOPASS_VERSION)/pool/main/g/gopass/$(AMD64DEB);deb_distribution=trusty,xenial,bionic,wheezy,jessie,buster,sid;deb_component=main;deb_architecture=amd64;publish=1"
 
 	@$(eval I386DEB:=$(shell ls ./dist/gopass-*-386.deb | xargs -n1 basename))
-	curl -f -T ./dist/$(I386DEB) -H "X-GPG-PASSPHRASE:$(BINTRAY_GPG_PASSPHRASE)" -u$(BINTRAY_USER):$(BINTRAY_API_KEY) "https://api.bintray.com/content/gopasspw/gopass/gopass/v$(GOPASS_VERSION)/pool/main/g/gopass/$(I386DEB);deb_distribution=trusty,xenial,wheezy,jessie,buster,sid;deb_component=main;deb_architecture=i386;publish=1"
+	curl -f -T ./dist/$(I386DEB) -H "X-GPG-PASSPHRASE:$(BINTRAY_GPG_PASSPHRASE)" -u$(BINTRAY_USER):$(BINTRAY_API_KEY) "https://api.bintray.com/content/gopasspw/gopass/gopass/v$(GOPASS_VERSION)/pool/main/g/gopass/$(I386DEB);deb_distribution=trusty,xenial,bionic,wheezy,jessie,buster,sid;deb_component=main;deb_architecture=i386;publish=1"
 
 	@echo "   CALCULATE METADATA, deb repository"
 	@curl -f -X POST -H "X-GPG-PASSPHRASE:$(BINTRAY_GPG_PASSPHRASE)" -u$(BINTRAY_USER):$(BINTRAY_API_KEY) https://api.bintray.com/calc_metadata/gopasspw/gopass
