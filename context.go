@@ -58,5 +58,19 @@ func initContext(ctx context.Context, cfg *config.Config) context.Context {
 		ctx = ctxutil.WithColor(ctx, false)
 	}
 
+	// now that defaults have been set, we need to set values from the config.
+	ctx = ctxutil.WithAskForMore(ctx, cfg.Root.AskForMore)
+	ctx = ctxutil.WithAutoClip(ctx, cfg.Root.AutoClip)
+	// AutoImport
+	// AutoSync
+	ctx = ctxutil.WithClipTimeout(ctx, cfg.Root.ClipTimeout)
+	ctx = ctxutil.WithConcurrency(ctx, cfg.Root.Concurrency)
+	ctx = ctxutil.WithNoColor(ctx, cfg.Root.NoColor)
+	ctx = ctxutil.WithNoConfirm(ctx, cfg.Root.NoConfirm)
+	ctx = ctxutil.WithNoPager(ctx, cfg.Root.NoPager)
+	ctx = ctxutil.WithShowSafeContent(ctx, cfg.Root.SafeContent)
+	ctx = ctxutil.WithUseSymbols(ctx, cfg.Root.UseSymbols)
+	ctx = ctxutil.WithNotifications(ctx, cfg.Root.Notifications)
+
 	return ctx
 }
