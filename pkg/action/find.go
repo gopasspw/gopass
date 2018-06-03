@@ -16,7 +16,9 @@ import (
 
 // Find a string in the secret file's name
 func (s *Action) Find(ctx context.Context, c *cli.Context) error {
-	ctx = WithClip(ctx, c.Bool("clip"))
+	if c.IsSet("clip") {
+		ctx = WithClip(ctx, c.Bool("clip"))
+	}
 
 	if !c.Args().Present() {
 		return ExitError(ctx, ExitUsage, nil, "Usage: %s find <NEEDLE>", s.Name)

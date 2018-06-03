@@ -26,6 +26,7 @@ func (s *Action) Show(ctx context.Context, c *cli.Context) error {
 	name := c.Args().First()
 	key := c.Args().Get(1)
 
+	ctx = s.Store.WithConfig(ctx, name)
 	ctx = WithClip(ctx, c.Bool("clip"))
 	ctx = WithForce(ctx, c.Bool("force"))
 	ctx = WithPrintQR(ctx, c.Bool("qr"))

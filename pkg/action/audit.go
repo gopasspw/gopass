@@ -12,6 +12,7 @@ import (
 // Audit validates passwords against common flaws
 func (s *Action) Audit(ctx context.Context, c *cli.Context) error {
 	filter := c.Args().First()
+	ctx = s.Store.WithConfig(ctx, filter)
 
 	out.Print(ctx, "Auditing passwords for common flaws ...")
 
