@@ -33,6 +33,6 @@ func CopyTo(ctx context.Context, name string, content []byte) error {
 		return errors.Wrapf(err, "failed to clear clipboard")
 	}
 
-	out.Print(ctx, "Copied %s to clipboard. Will clear in %d seconds.", color.YellowString(name), ctxutil.GetClipTimeout(ctx))
+	out.Print(ctx, "✔ Copied %s to clipboard. Will clear in %d seconds.", color.YellowString(name), ctxutil.GetClipTimeout(ctx))
 	return nil
 }

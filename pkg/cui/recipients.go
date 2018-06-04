@@ -285,6 +285,9 @@ func AskForStore(ctx context.Context, s mountPointer) string {
 	if len(mps) < 1 {
 		return ""
 	}
+	if len(mps) < 2 {
+		return mps[0]
+	}
 
 	stores := []string{"<root>"}
 	stores = append(stores, mps...)
