@@ -131,7 +131,8 @@ func (api *API) respondGetData(ctx context.Context, msgBytes []byte) error {
 		return errors.Wrapf(err, "failed to get secret")
 	}
 
-	return sendSerializedJSONMessage(sec.Data(), api.Writer)
+	converted := convertMixedMapInterfaces(interface{}(sec.Data()))
+	return sendSerializedJSONMessage(converted, api.Writer)
 }
 
 func (api *API) getUsername(name string, sec store.Secret) string {

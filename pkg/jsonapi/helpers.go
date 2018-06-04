@@ -17,3 +17,25 @@ func isPublicSuffix(host string) bool {
 func regexSafeLower(str string) string {
 	return regexp.QuoteMeta(strings.ToLower(str))
 }
+
+func convertMixedMapInterfaces(i interface{}) interface{} {
+	switch x := i.(type) {
+	case map[string]interface{}:
+		stringMap := map[string]interface{}{}
+		for k, v := range x {
+			stringMap[k] = convertMixedMapInterfaces(v)
+		}
+		return stringMap
+	case map[interface{}]interface{}:
+		stringMap := map[string]interface{}{}
+		for k, v := range x {
+			stringMap[k.(string)] = convertMixedMapInterfaces(v)
+		}
+		return stringMap
+	case []interface{}:
+		for i, v := range x {
+			x[i] = convertMixedMapInterfaces(v)
+		}
+	}
+	return i
+}
