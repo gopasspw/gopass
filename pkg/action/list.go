@@ -28,6 +28,8 @@ func (s *Action) List(ctx context.Context, c *cli.Context) error {
 	stripPrefix := c.Bool("strip-prefix")
 	limit := c.Int("limit")
 
+	ctx = s.Store.WithConfig(ctx, filter)
+
 	l, err := s.Store.Tree(ctx)
 	if err != nil {
 		return ExitError(ctx, ExitList, err, "failed to list store: %s", err)
