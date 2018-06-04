@@ -128,7 +128,7 @@ func (s *Store) Name() string {
 }
 
 // Version returns 1.0.0
-func (s *Store) Version() semver.Version {
+func (s *Store) Version(context.Context) semver.Version {
 	return semver.Version{Major: 1}
 }
 

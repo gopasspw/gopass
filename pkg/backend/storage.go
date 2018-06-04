@@ -36,6 +36,6 @@ type Storage interface {
 	Available(ctx context.Context) error
 
 	Name() string
-	Version() semver.Version
+	Version(context.Context) semver.Version
 	Fsck(context.Context) error
 }

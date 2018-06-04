@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/blang/semver"
 	"github.com/gopasspw/gopass/pkg/out"
 	"github.com/gopasspw/gopass/pkg/protect"
 	"github.com/gopasspw/gopass/pkg/updater"
@@ -24,20 +25,20 @@ func (s *Action) Version(ctx context.Context, c *cli.Context) error {
 
 	cli.VersionPrinter(c)
 
+	cryptoVer := versionInfo(ctx, s.Store.Crypto(ctx, ""))
+	rcsVer := versionInfo(ctx, s.Store.RCS(ctx, ""))
+	storageVer := versionInfo(ctx, s.Store.Storage(ctx, ""))
+
+	fmt.Fprintf(stdout, "<root> - %s - %s - %s\n", cryptoVer, rcsVer, storageVer)
+
 	// report all used crypto, sync and fs backends
-	for _, mp := range append(s.Store.MountPoints(), "") {
-		name := mp
-		if name == "" {
-			name = "<root>"
-		}
-		if crypto := s.Store.Crypto(ctx, mp); crypto != nil {
-			fmt.Fprintf(stdout, "[%s] Crypto: %s %s\n", name, crypto.Name(), crypto.Version(ctx))
-		}
-		if sync := s.Store.RCS(ctx, mp); sync != nil {
-			fmt.Fprintf(stdout, "[%s] RCS: %s %s\n", name, sync.Name(), sync.Version(ctx))
-		}
-		if storer := s.Store.Storage(ctx, mp); storer != nil {
-			fmt.Fprintf(stdout, "[%s] Storage: %s %s\n", name, storer.Name(), storer.Version())
+	for _, mp := range s.Store.MountPoints() {
+		cv := versionInfo(ctx, s.Store.Crypto(ctx, mp))
+		rv := versionInfo(ctx, s.Store.RCS(ctx, mp))
+		sv := versionInfo(ctx, s.Store.Storage(ctx, mp))
+
+		if cv != cryptoVer || rv != rcsVer || sv != storageVer {
+			fmt.Fprintf(stdout, "%s - %s - %s - %s\n", mp, cv, rv, sv)
 		}
 	}
 
@@ -53,6 +54,18 @@ func (s *Action) Version(ctx context.Context, c *cli.Context) error {
 	}
 
 	return nil
+}
+
+type versioner interface {
+	Name() string
+	Version(context.Context) semver.Version
+}
+
+func versionInfo(ctx context.Context, v versioner) string {
+	if v == nil {
+		return "<none>"
+	}
+	return fmt.Sprintf("%s %s", v.Name(), v.Version(ctx))
 }
 
 func (s *Action) checkVersion(ctx context.Context, u chan string) {

@@ -113,7 +113,7 @@ func (s *Store) Name() string {
 }
 
 // Version returns the version of this backend
-func (s *Store) Version() semver.Version {
+func (s *Store) Version(context.Context) semver.Version {
 	return semver.Version{Minor: 1}
 }
 

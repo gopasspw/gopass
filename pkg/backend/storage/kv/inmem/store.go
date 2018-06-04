@@ -112,7 +112,7 @@ func (m *InMem) Name() string {
 }
 
 // Version returns the version of this backend
-func (m *InMem) Version() semver.Version {
+func (m *InMem) Version(context.Context) semver.Version {
 	return semver.Version{Major: 1}
 }
 
