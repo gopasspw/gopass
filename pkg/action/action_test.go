@@ -57,7 +57,7 @@ func TestNew(t *testing.T) {
 	sv := semver.Version{}
 
 	_, err = New(ctx, cfg, sv)
-	assert.Error(t, err)
+	assert.NoError(t, err)
 
 	cfg.Root.Path = backend.FromPath(filepath.Join(td, "store"))
 	cfg.Root.Path.Crypto = backend.Plain
