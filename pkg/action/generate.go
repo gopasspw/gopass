@@ -271,7 +271,7 @@ func extractEmails(list []string) []string {
 	results := make([]string, 0, len(list))
 	for _, e := range list {
 		e = path.Base(e)
-		if strings.Contains(e, "@") {
+		if strings.Contains(e, "@") || strings.Contains(e, "_") {
 			results = append(results, e)
 		}
 	}

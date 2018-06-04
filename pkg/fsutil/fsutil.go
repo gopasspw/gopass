@@ -14,7 +14,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-var reCleanFilename = regexp.MustCompile(`[^\w\d.-]`)
+var reCleanFilename = regexp.MustCompile(`[^\w\d@.-]`)
 
 // CleanFilename strips all possibly suspicious characters from a filename
 // WARNING: NOT suiteable for pathnames as slashes will be stripped as well!

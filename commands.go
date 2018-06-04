@@ -288,6 +288,12 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 			Action: func(c *cli.Context) error {
 				return create.Create(withGlobalFlags(ctx, c), c, action.Store)
 			},
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "store, s",
+					Usage: "Which store to use",
+				},
+			},
 		},
 		{
 			Name:  "delete",

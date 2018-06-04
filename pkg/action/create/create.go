@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/url"
+	"strconv"
 	"strings"
 
 	"github.com/fatih/color"
@@ -37,6 +38,11 @@ type storer interface {
 
 type creator struct {
 	store storer
+}
+
+func fmtfn(d int, n string, t string) string {
+	strlen := 40 - d
+	return fmt.Sprintf("%"+strconv.Itoa(d)+"s%s %-"+strconv.Itoa(strlen)+"s", "", color.GreenString("["+n+"]"), color.CyanString(t))
 }
 
 // Create displays the password creation wizard
@@ -81,16 +87,16 @@ func extractHostname(in string) string {
 // createWebsite walks through the website credential creation wizard
 func (s *creator) createWebsite(ctx context.Context, c *cli.Context) error {
 	var (
-		urlStr   string
-		username string
+		urlStr   = c.Args().Get(0)
+		username = c.Args().Get(1)
 		password string
 		comment  string
-		store    string
+		store    = c.String("store")
 		err      error
 		genPw    bool
 	)
-	out.Green(ctx, "Creating Website login ...")
-	urlStr, err = termio.AskForString(ctx, "Please enter the URL", "")
+	out.Green(ctx, "=> Creating Website login")
+	urlStr, err = termio.AskForString(ctx, fmtfn(2, "1", "URL"), urlStr)
 	if err != nil {
 		return err
 	}
@@ -100,12 +106,12 @@ func (s *creator) createWebsite(ctx context.Context, c *cli.Context) error {
 		return action.ExitError(ctx, action.ExitUnknown, err, "Can not parse URL '%s'. Please use 'gopass edit' to manually create the secret", urlStr)
 	}
 
-	username, err = termio.AskForString(ctx, "Please enter the Username/Login", "")
+	username, err = termio.AskForString(ctx, fmtfn(2, "2", "Login"), username)
 	if err != nil {
 		return err
 	}
 
-	genPw, err = termio.AskForBool(ctx, "Do you want to generate a new password?", true)
+	genPw, err = termio.AskForBool(ctx, fmtfn(2, "3", "Generate Password?"), true)
 	if err != nil {
 		return err
 	}
@@ -121,10 +127,12 @@ func (s *creator) createWebsite(ctx context.Context, c *cli.Context) error {
 			return err
 		}
 	}
-	comment, _ = termio.AskForString(ctx, "Comments (optional)", "")
+	comment, _ = termio.AskForString(ctx, fmtfn(2, "4", "Comments"), "")
 
 	// select store
-	store = cui.AskForStore(ctx, s.store)
+	if store == "" {
+		store = cui.AskForStore(ctx, s.store)
+	}
 
 	// generate name, ask for override if already taken
 	if store != "" {
@@ -133,7 +141,7 @@ func (s *creator) createWebsite(ctx context.Context, c *cli.Context) error {
 
 	name := fmt.Sprintf("%swebsites/%s/%s", store, fsutil.CleanFilename(hostname), fsutil.CleanFilename(username))
 	if s.store.Exists(ctx, name) {
-		name, err = termio.AskForString(ctx, "Secret already exists, please choose another path", name)
+		name, err = termio.AskForString(ctx, fmtfn(2, "5", "Secret already exists, please choose another path"), name)
 		if err != nil {
 			return err
 		}
@@ -174,30 +182,30 @@ func (s *creator) createPrintOrCopy(ctx context.Context, c *cli.Context, name, p
 // createPIN will walk through the numerical password (PIN) wizard
 func (s *creator) createPIN(ctx context.Context, c *cli.Context) error {
 	var (
-		authority   string
-		application string
+		authority   = c.Args().Get(0)
+		application = c.Args().Get(1)
 		password    string
 		comment     string
-		store       string
+		store       = c.String("store")
 		err         error
 		genPw       bool
 	)
-	out.Green(ctx, "Creating numerical PIN ...")
-	authority, err = termio.AskForString(ctx, "Please enter the authoriy (e.g. MyBank) this PIN is for", "")
+	out.Green(ctx, "=> Creating numerical PIN ...")
+	authority, err = termio.AskForString(ctx, fmtfn(2, "1", "Authority"), authority)
 	if err != nil {
 		return err
 	}
 	if authority == "" {
 		return action.ExitError(ctx, action.ExitUnknown, nil, "Authority must not be empty")
 	}
-	application, err = termio.AskForString(ctx, "Please enter the entity (e.g. Credit Card) this PIN is for", "")
+	application, err = termio.AskForString(ctx, fmtfn(2, "2", "Entity"), application)
 	if err != nil {
 		return err
 	}
 	if application == "" {
 		return action.ExitError(ctx, action.ExitUnknown, nil, "Application must not be empty")
 	}
-	genPw, err = termio.AskForBool(ctx, "Do you want to generate a new PIN?", true)
+	genPw, err = termio.AskForBool(ctx, fmtfn(2, "3", "Generate PIN?"), false)
 	if err != nil {
 		return err
 	}
@@ -212,10 +220,12 @@ func (s *creator) createPIN(ctx context.Context, c *cli.Context) error {
 			return err
 		}
 	}
-	comment, _ = termio.AskForString(ctx, "Comments (optional)", "")
+	comment, _ = termio.AskForString(ctx, fmtfn(2, "4", "Comments"), "")
 
 	// select store
-	store = cui.AskForStore(ctx, s.store)
+	if store == "" {
+		store = cui.AskForStore(ctx, s.store)
+	}
 
 	// generate name, ask for override if already taken
 	if store != "" {
@@ -223,7 +233,7 @@ func (s *creator) createPIN(ctx context.Context, c *cli.Context) error {
 	}
 	name := fmt.Sprintf("%spins/%s/%s", store, fsutil.CleanFilename(authority), fsutil.CleanFilename(application))
 	if s.store.Exists(ctx, name) {
-		name, err = termio.AskForString(ctx, "Secret already exists, please choose another path", name)
+		name, err = termio.AskForString(ctx, fmtfn(2, "5", "Secret already exists, please choose another path"), name)
 		if err != nil {
 			return err
 		}
@@ -241,41 +251,43 @@ func (s *creator) createPIN(ctx context.Context, c *cli.Context) error {
 // createAWS will walk through the AWS credential creation wizard
 func (s *creator) createAWS(ctx context.Context, c *cli.Context) error {
 	var (
-		account   string
-		username  string
-		accesskey string
+		account   = c.Args().Get(0)
+		username  = c.Args().Get(1)
+		accesskey = c.Args().Get(2)
 		secretkey string
 		region    string
-		store     string
+		store     = c.String("store")
 		err       error
 	)
-	out.Green(ctx, "Creating AWS credentials ...")
-	account, err = termio.AskForString(ctx, "Please enter the AWS Account this key belongs to", "")
+	out.Green(ctx, "=> Creating AWS credentials ...")
+	account, err = termio.AskForString(ctx, fmtfn(2, "1", "AWS Account"), account)
 	if err != nil {
 		return err
 	}
 	if account == "" {
 		return action.ExitError(ctx, action.ExitUnknown, nil, "Account must not be empty")
 	}
-	username, err = termio.AskForString(ctx, "Please enter the name of the AWS IAM User this key belongs to", "")
+	username, err = termio.AskForString(ctx, fmtfn(2, "2", "AWS IAM User"), username)
 	if err != nil {
 		return err
 	}
 	if username == "" {
 		return action.ExitError(ctx, action.ExitUnknown, nil, "Username must not be empty")
 	}
-	accesskey, err = termio.AskForString(ctx, "Please enter the Access Key ID (AWS_ACCESS_KEY_ID)", "")
+	accesskey, err = termio.AskForString(ctx, fmtfn(2, "3", "AWS_ACCESS_KEY_ID"), accesskey)
 	if err != nil {
 		return err
 	}
-	secretkey, err = termio.AskForPassword(ctx, "Please enter the Secret Access Key (AWS_SECRET_ACCESS_KEY)")
+	secretkey, err = termio.AskForPassword(ctx, "AWS_SECRET_ACCESS_KEY")
 	if err != nil {
 		return err
 	}
-	region, _ = termio.AskForString(ctx, "Please enter the default Region (AWS_DEFAULT_REGION) (optional)", "")
+	region, _ = termio.AskForString(ctx, fmtfn(2, "5", "AWS_DEFAULT_REGION"), "")
 
 	// select store
-	store = cui.AskForStore(ctx, s.store)
+	if store == "" {
+		store = cui.AskForStore(ctx, s.store)
+	}
 
 	// generate name, ask for override if already taken
 	if store != "" {
@@ -304,12 +316,12 @@ func (s *creator) createGCP(ctx context.Context, c *cli.Context) error {
 	var (
 		project  string
 		username string
-		svcaccfn string
-		store    string
+		svcaccfn = c.Args().Get(0)
+		store    = c.String("store")
 		err      error
 	)
-	out.Green(ctx, "Creating GCP credentials ...")
-	svcaccfn, err = termio.AskForString(ctx, "Please enter path to the Service Account JSON file", "")
+	out.Green(ctx, "=> Creating GCP credentials ...")
+	svcaccfn, err = termio.AskForString(ctx, fmtfn(2, "1", "Service Account JSON"), svcaccfn)
 	if err != nil {
 		return err
 	}
@@ -322,7 +334,7 @@ func (s *creator) createGCP(ctx context.Context, c *cli.Context) error {
 		return err
 	}
 	if username == "" {
-		username, err = termio.AskForString(ctx, "Please enter the name of this service account", "")
+		username, err = termio.AskForString(ctx, fmtfn(4, "a", "Account name"), "")
 		if err != nil {
 			return err
 		}
@@ -331,7 +343,7 @@ func (s *creator) createGCP(ctx context.Context, c *cli.Context) error {
 		return action.ExitError(ctx, action.ExitUnknown, nil, "Username must not be empty")
 	}
 	if project == "" {
-		project, err = termio.AskForString(ctx, "Please enter the name of this GCP project", "")
+		project, err = termio.AskForString(ctx, fmtfn(4, "b", "Project name"), "")
 		if err != nil {
 			return err
 		}
@@ -341,7 +353,9 @@ func (s *creator) createGCP(ctx context.Context, c *cli.Context) error {
 	}
 
 	// select store
-	store = cui.AskForStore(ctx, s.store)
+	if store == "" {
+		store = cui.AskForStore(ctx, s.store)
+	}
 
 	// generate name, ask for override if already taken
 	if store != "" {
@@ -349,7 +363,7 @@ func (s *creator) createGCP(ctx context.Context, c *cli.Context) error {
 	}
 	name := fmt.Sprintf("%sgcp/iam/%s/%s", store, fsutil.CleanFilename(project), fsutil.CleanFilename(username))
 	if s.store.Exists(ctx, name) {
-		name, err = termio.AskForString(ctx, "Secret already exists, please choose another path", name)
+		name, err = termio.AskForString(ctx, fmtfn(2, "2", "Secret already exists, please choose another path"), name)
 		if err != nil {
 			return err
 		}
@@ -382,21 +396,21 @@ func extractGCPInfo(buf []byte) (string, string, error) {
 // createGeneric will walk through the generic secret wizard
 func (s *creator) createGeneric(ctx context.Context, c *cli.Context) error {
 	var (
-		shortname string
+		shortname = c.Args().Get(0)
 		password  string
-		store     string
+		store     = c.String("store")
 		err       error
 		genPw     bool
 	)
-	out.Green(ctx, "Creating generic secret ...")
-	shortname, err = termio.AskForString(ctx, "Please enter a name for the secret", "")
+	out.Green(ctx, "=> Creating generic secret ...")
+	shortname, err = termio.AskForString(ctx, fmtfn(2, "1", "Name"), shortname)
 	if err != nil {
 		return err
 	}
 	if shortname == "" {
 		return action.ExitError(ctx, action.ExitUnknown, nil, "Name must not be empty")
 	}
-	genPw, err = termio.AskForBool(ctx, "Do you want to generate a new password?", true)
+	genPw, err = termio.AskForBool(ctx, fmtfn(2, "2", "Generate password?"), true)
 	if err != nil {
 		return err
 	}
@@ -413,7 +427,9 @@ func (s *creator) createGeneric(ctx context.Context, c *cli.Context) error {
 	}
 
 	// select store
-	store = cui.AskForStore(ctx, s.store)
+	if store == "" {
+		store = cui.AskForStore(ctx, s.store)
+	}
 
 	// generate name, ask for override if already taken
 	if store != "" {
@@ -427,16 +443,16 @@ func (s *creator) createGeneric(ctx context.Context, c *cli.Context) error {
 		}
 	}
 	sec := secret.New(password, "")
-	out.Print(ctx, "Enter zero or more key value pairs for this secret:")
+	out.Print(ctx, fmtfn(2, "3", "Enter zero or more key value pairs for this secret:"))
 	for {
-		key, err := termio.AskForString(ctx, "Name for Key Value pair (enter to quit)", "")
+		key, err := termio.AskForString(ctx, fmtfn(4, "a", "Name (enter to quit)"), "")
 		if err != nil {
 			return err
 		}
 		if key == "" {
 			break
 		}
-		val, err := termio.AskForString(ctx, "Value for Key '"+key+"'", "")
+		val, err := termio.AskForString(ctx, fmtfn(4, "b", "Value for Key '"+key+"'"), "")
 		if err != nil {
 			return err
 		}
@@ -451,12 +467,12 @@ func (s *creator) createGeneric(ctx context.Context, c *cli.Context) error {
 
 // createGeneratePasssword will walk through the password generation steps
 func (s *creator) createGeneratePassword(ctx context.Context) (string, error) {
-	xkcd, err := termio.AskForBool(ctx, "Do you want a rememberable password?", true)
+	noXkcd, err := termio.AskForBool(ctx, fmtfn(4, "a", "Cryptic Password?"), true)
 	if err != nil {
 		return "", err
 	}
-	if xkcd {
-		length, err := termio.AskForInt(ctx, "How many words should be combined into a passphrase?", 4)
+	if !noXkcd {
+		length, err := termio.AskForInt(ctx, fmtfn(4, "b", "How many words?"), 4)
 		if err != nil {
 			return "", err
 		}
@@ -467,15 +483,15 @@ func (s *creator) createGeneratePassword(ctx context.Context) (string, error) {
 		return string(g.GeneratePassword()), nil
 	}
 
-	length, err := termio.AskForInt(ctx, "How long should the password be?", defaultLength)
+	length, err := termio.AskForInt(ctx, fmtfn(4, "b", "How long?"), defaultLength)
 	if err != nil {
 		return "", err
 	}
-	symbols, err := termio.AskForBool(ctx, "Do you want to include symbols?", false)
+	symbols, err := termio.AskForBool(ctx, fmtfn(4, "c", "Include symbols?"), false)
 	if err != nil {
 		return "", err
 	}
-	corp, err := termio.AskForBool(ctx, "Do you have strict rules to include different character classes?", false)
+	corp, err := termio.AskForBool(ctx, fmtfn(4, "d", "Strict rules?"), false)
 	if err != nil {
 		return "", err
 	}
@@ -487,7 +503,7 @@ func (s *creator) createGeneratePassword(ctx context.Context) (string, error) {
 
 // createGeneratePIN will walk through the PIN generation steps
 func (s *creator) createGeneratePIN(ctx context.Context) (string, error) {
-	length, err := termio.AskForInt(ctx, "How long should the PIN be?", 4)
+	length, err := termio.AskForInt(ctx, fmtfn(4, "a", "How long?"), 4)
 	if err != nil {
 		return "", err
 	}
