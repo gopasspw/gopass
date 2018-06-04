@@ -1,6 +1,10 @@
 package sync
 
-import "fmt"
+import (
+	"bytes"
+	"fmt"
+	"io"
+)
 
 type chunk struct {
 	num int
@@ -48,7 +52,7 @@ func (s *Stream) Close() {
 	}
 }
 
-func (s *Stream) Work(fn func(int, []byte) ([]byte, error)) error {
+func (s *Stream) Work(fn func(int, []byte, io.Writer) error) error {
 	if len(s.in) != len(s.out) {
 		return fmt.Errorf("misconfiguration")
 	}
@@ -58,18 +62,19 @@ func (s *Stream) Work(fn func(int, []byte) ([]byte, error)) error {
 	return nil
 }
 
-func (s *Stream) doWork(fn func(int, []byte) ([]byte, error), in chan chunk, out chan chunk, slot int) {
+func (s *Stream) doWork(fn func(int, []byte, io.Writer) error, in chan chunk, out chan chunk, slot int) {
+	ob := &bytes.Buffer{}
 	for pl := range in {
-		ob, err := fn(pl.num, pl.buf)
-		if err != nil {
+		ob.Reset()
+		if err := fn(pl.num, pl.buf, ob); err != nil {
 			s.errc <- err
 			continue
 		}
 		plOut := chunk{
 			num: pl.num,
-			buf: make([]byte, len(ob)),
+			buf: make([]byte, ob.Len()),
 		}
-		copy(plOut.buf, ob)
+		copy(plOut.buf, ob.Bytes())
 		out <- plOut
 	}
 	close(out)

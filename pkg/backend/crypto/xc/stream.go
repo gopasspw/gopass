@@ -1,7 +1,6 @@
 package xc
 
 import (
-	"bytes"
 	"context"
 	crypto_rand "crypto/rand"
 	stdbin "encoding/binary"
@@ -16,10 +15,14 @@ import (
 	"golang.org/x/crypto/nacl/secretbox"
 )
 
+var (
+	workFactor = 32
+)
+
 // EncryptStream encrypts the plaintext using a slightly modified on disk-format
 // suitable for streaming
 func (x *XC) EncryptStream(ctx context.Context, plaintext io.Reader, recipients []string, ciphertext io.Writer) error {
-	return x.encryptStreamPar(ctx, plaintext, recipients, ciphertext, runtime.NumCPU()*4)
+	return x.encryptStreamPar(ctx, plaintext, recipients, ciphertext, runtime.NumCPU()*workFactor)
 }
 
 func (x *XC) encryptStreamPar(ctx context.Context, plaintext io.Reader, recipients []string, ciphertext io.Writer, numPar int) error {
@@ -55,11 +58,9 @@ func (x *XC) encryptStreamPar(ctx context.Context, plaintext io.Reader, recipien
 	// write body
 	pipe := sync.New(numPar, 1024)
 
-	if err := pipe.Work(func(num int, buf []byte) ([]byte, error) {
-		ciphertext := &bytes.Buffer{}
+	if err := pipe.Work(func(num int, in []byte, out io.Writer) error {
 		encbuf := make([]byte, 8)
-		err := x.encryptChunk(sessionKey, num, buf, encbuf, ciphertext)
-		return ciphertext.Bytes(), err
+		return x.encryptChunk(sessionKey, num, in, encbuf, out)
 	}); err != nil {
 		return err
 	}
@@ -116,6 +117,10 @@ func (x *XC) encryptChunk(sessionKey [32]byte, num int, buf, encbuf []byte, ciph
 
 // DecryptStream decrypts an stream encrypted with EncryptStream
 func (x *XC) DecryptStream(ctx context.Context, ciphertext io.Reader, plaintext io.Writer) error {
+	return x.decryptStreamNumPar(ctx, ciphertext, plaintext, runtime.NumCPU()*workFactor)
+}
+
+func (x *XC) decryptStreamNumPar(ctx context.Context, ciphertext io.Reader, plaintext io.Writer, numPar int) error {
 	dec := binary.NewDecoder(ciphertext)
 
 	// read version
@@ -141,12 +146,10 @@ func (x *XC) DecryptStream(ctx context.Context, ciphertext io.Reader, plaintext 
 	var secretKey [32]byte
 	copy(secretKey[:], sk)
 
-	pipe := sync.New(runtime.NumCPU()*4, 1024)
+	pipe := sync.New(numPar, 1024)
 
-	if err := pipe.Work(func(num int, buf []byte) ([]byte, error) {
-		plaintext := &bytes.Buffer{}
-		err := x.decryptChunk(secretKey, num, buf, plaintext)
-		return plaintext.Bytes(), err
+	if err := pipe.Work(func(num int, buf []byte, out io.Writer) error {
+		return x.decryptChunk(secretKey, num, buf, out)
 	}); err != nil {
 		return err
 	}

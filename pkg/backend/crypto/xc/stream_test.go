@@ -61,6 +61,7 @@ func TestStream(t *testing.T) {
 	p := make([]byte, 1024)
 	written := 0
 	max := 64 * 1024
+	max = 2 * 1024 * 1024
 	for i := 0; i < max; i++ {
 		n, _ := rand.Read(p)
 		n, err := pfh.Write(p[:n])
