@@ -160,7 +160,7 @@ func (g *Git) Add(ctx context.Context, files ...string) error {
 		files[i] = strings.TrimPrefix(files[i], g.path+"/")
 	}
 
-	args := []string{"add", "--all"}
+	args := []string{"add", "--all", "--force"}
 	args = append(args, files...)
 
 	return g.Cmd(ctx, "gitAdd", args...)
