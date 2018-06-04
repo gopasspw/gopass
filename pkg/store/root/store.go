@@ -10,8 +10,6 @@ import (
 	"github.com/gopasspw/gopass/pkg/config"
 	"github.com/gopasspw/gopass/pkg/store"
 	"github.com/gopasspw/gopass/pkg/store/sub"
-
-	"github.com/pkg/errors"
 )
 
 // Store is the public facing password store
@@ -30,7 +28,7 @@ func New(ctx context.Context, cfg *config.Config) (*Store, error) {
 		cfg = &config.Config{}
 	}
 	if cfg.Root != nil && (cfg.Root.Path == nil || cfg.Root.Path.Path == "") {
-		return nil, errors.Errorf("need path")
+		cfg.Root.Path = backend.FromPath(config.PwStoreDir(""))
 	}
 	r := &Store{
 		cfg:     cfg,
