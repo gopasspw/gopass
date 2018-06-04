@@ -19,6 +19,10 @@ import (
 // EncryptStream encrypts the plaintext using a slightly modified on disk-format
 // suitable for streaming
 func (x *XC) EncryptStream(ctx context.Context, plaintext io.Reader, recipients []string, ciphertext io.Writer) error {
+	return x.encryptStreamPar(ctx, plaintext, recipients, ciphertext, runtime.NumCPU()*4)
+}
+
+func (x *XC) encryptStreamPar(ctx context.Context, plaintext io.Reader, recipients []string, ciphertext io.Writer, numPar int) error {
 	privKeyIDs := x.secring.KeyIDs()
 	if len(privKeyIDs) < 1 {
 		return fmt.Errorf("no signing keys available on our keyring")
@@ -49,7 +53,7 @@ func (x *XC) EncryptStream(ctx context.Context, plaintext io.Reader, recipients 
 		return err
 	}
 	// write body
-	pipe := sync.New(runtime.NumCPU()*4, 1024)
+	pipe := sync.New(numPar, 1024)
 
 	if err := pipe.Work(func(num int, buf []byte) ([]byte, error) {
 		ciphertext := &bytes.Buffer{}
