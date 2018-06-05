@@ -84,6 +84,7 @@ func (s *Store) gitCommitAndPush(ctx context.Context, name string) error {
 		return errors.Wrapf(err, "failed to commit changes to git")
 	}
 
+	// abort if autosync is not set
 	if !IsAutoSync(ctx) {
 		return nil
 	}

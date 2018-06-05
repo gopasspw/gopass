@@ -249,6 +249,11 @@ func (s *Store) saveRecipients(ctx context.Context, rs []string, msg string, exp
 		}
 	}
 
+	// return if autosync is not enabled
+	if !IsAutoSync(ctx) {
+		return nil
+	}
+
 	// push to remote repo
 	if err := s.rcs.Push(ctx, "", ""); err != nil {
 		if errors.Cause(err) == store.ErrGitNotInit {
