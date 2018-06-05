@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"sort"
-	"strings"
 
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/cui"
@@ -102,11 +101,16 @@ func (s *Action) RecipientsAdd(ctx context.Context, c *cli.Context) error {
 			continue
 		}
 
-		if !termio.AskForConfirmation(ctx, fmt.Sprintf("Do you want to add '%s' as an recipient to the store '%s'?", crypto.FormatKey(ctx, keys[0]), store)) {
+		recp := r
+		if len(keys) > 0 {
+			recp = crypto.Fingerprint(ctx, keys[0])
+		}
+
+		if !termio.AskForConfirmation(ctx, fmt.Sprintf("Do you want to add '%s' as an recipient to the store '%s'?", crypto.FormatKey(ctx, recp), store)) {
 			continue
 		}
 
-		if err := s.Store.AddRecipient(ctxutil.WithNoConfirm(ctx, true), store, keys[0]); err != nil {
+		if err := s.Store.AddRecipient(ctxutil.WithNoConfirm(ctx, true), store, recp); err != nil {
 			return ExitError(ctx, ExitRecipients, err, "failed to add recipient '%s': %s", r, err)
 		}
 		added++
@@ -123,6 +127,8 @@ func (s *Action) RecipientsAdd(ctx context.Context, c *cli.Context) error {
 // RecipientsRemove removes recipients
 func (s *Action) RecipientsRemove(ctx context.Context, c *cli.Context) error {
 	store := c.String("store")
+	force := c.Bool("force")
+	removed := 0
 
 	// select store
 	if store == "" {
@@ -141,7 +147,6 @@ func (s *Action) RecipientsRemove(ctx context.Context, c *cli.Context) error {
 		recipients = rs
 	}
 
-	removed := 0
 	for _, r := range recipients {
 		kl, err := crypto.FindPrivateKeys(ctx, r)
 		if err == nil {
@@ -151,11 +156,37 @@ func (s *Action) RecipientsRemove(ctx context.Context, c *cli.Context) error {
 				}
 			}
 		}
-		if err := s.Store.RemoveRecipient(ctxutil.WithNoConfirm(ctx, true), store, strings.TrimPrefix(r, "0x")); err != nil {
-			return ExitError(ctx, ExitRecipients, err, "failed to remove recipient '%s': %s", r, err)
+
+		keys, err := crypto.FindPublicKeys(ctx, r)
+		if err != nil {
+			out.Cyan(ctx, "WARNING: Failed to list public key '%s': %s", r, err)
+			if !force {
+				continue
+			}
+			keys = []string{r}
+		}
+		if len(keys) < 1 && !force {
+			out.Cyan(ctx, "Warning: No matching valid key found. If the key is in your keyring you may need to validate it.")
+			out.Cyan(ctx, "If this is your key: gpg --edit-key %s; trust (set to ultimate); quit", r)
+			out.Cyan(ctx, "If this is not your key: gpg --edit-key %s; lsign; trust; save; quit", r)
+			out.Cyan(ctx, "You may need to run 'gpg --update-trustdb' afterwards")
+			continue
+		}
+
+		recp := r
+		if len(keys) > 0 {
+			recp = crypto.Fingerprint(ctx, keys[0])
+		}
+		fmt.Printf("r: %s - recp: %s\n", r, recp)
+
+		if err := s.Store.RemoveRecipient(ctxutil.WithNoConfirm(ctx, true), store, recp); err != nil {
+			return ExitError(ctx, ExitRecipients, err, "failed to remove recipient '%s': %s", recp, err)
 		}
 		fmt.Fprintf(stdout, removalWarning, r)
 		removed++
+	}
+	if removed < 1 {
+		return ExitError(ctx, ExitUnknown, nil, "no key removed")
 	}
 
 	out.Green(ctx, "\nRemoved %d recipients", removed)
