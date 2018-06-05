@@ -39,9 +39,9 @@ func (s *Store) LookupTemplate(ctx context.Context, name string) ([]byte, bool) 
 	return []byte{}, false
 }
 
-// ListTemplates will list all templates in this.storage
+// ListTemplates will list all templates in this store
 func (s *Store) ListTemplates(ctx context.Context, prefix string) []string {
-	lst, err := s.storage.List(ctx, prefix)
+	lst, err := s.storage.List(ctx, "")
 	if err != nil {
 		out.Debug(ctx, "failed to list templates: %s", err)
 		return nil
@@ -52,6 +52,9 @@ func (s *Store) ListTemplates(ctx context.Context, prefix string) []string {
 			continue
 		}
 		path = strings.TrimSuffix(path, sep+TemplateFile)
+		if prefix != "" {
+			path = prefix + sep + path
+		}
 		tpls[path] = struct{}{}
 	}
 	out := make([]string, 0, len(tpls))
