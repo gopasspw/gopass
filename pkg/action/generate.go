@@ -18,6 +18,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/store/secret"
 	"github.com/gopasspw/gopass/pkg/store/sub"
 	"github.com/gopasspw/gopass/pkg/termio"
+	"github.com/gopasspw/gopass/pkg/tpl"
 
 	"github.com/fatih/color"
 	"github.com/urfave/cli"
@@ -229,7 +230,18 @@ func (s *Action) generateSetPassword(ctx context.Context, name, key, password st
 
 	// generate a completely new secret
 	var err error
-	ctx, err = s.Store.SetContext(sub.WithReason(ctx, "Generated Password"), name, secret.New(password, ""))
+	sec := secret.New(password, "")
+	if tmpl, found := s.Store.LookupTemplate(ctx, name); found {
+		content, err := tpl.Execute(ctx, string(tmpl), name, []byte(password), s.Store)
+		if err != nil {
+			return nil, ExitError(ctx, ExitUnknown, err, "failed to execute template: %s", err)
+		}
+		sec, err = secret.Parse(content)
+		if err != nil {
+			return nil, ExitError(ctx, ExitUnknown, err, "failed to parse secret: %s", err)
+		}
+	}
+	ctx, err = s.Store.SetContext(sub.WithReason(ctx, "Generated Password"), name, sec)
 	if err != nil {
 		return ctx, ExitError(ctx, ExitEncrypt, err, "failed to create '%s': %s", name, err)
 	}
