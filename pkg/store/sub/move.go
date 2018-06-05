@@ -91,6 +91,7 @@ func (s *Store) delete(ctx context.Context, name string, recurse bool) error {
 		return errors.Wrapf(err, "failed to commit changes to git")
 	}
 
+	// abort if auto sync is not set
 	if !IsAutoSync(ctx) {
 		return nil
 	}
