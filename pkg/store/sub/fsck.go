@@ -3,6 +3,7 @@ package sub
 import (
 	"context"
 	"sort"
+	"strings"
 
 	"github.com/gopasspw/gopass/pkg/out"
 
@@ -11,6 +12,8 @@ import (
 
 // Fsck checks all entries matching the given prefix
 func (s *Store) Fsck(ctx context.Context, path string) error {
+	out.Debug(ctx, "Fsck(%s)", path)
+
 	// first let the storage backend check itself
 	if err := s.storage.Fsck(ctx); err != nil {
 		return errors.Wrapf(err, "storage backend found errors: %s", err)
@@ -24,6 +27,10 @@ func (s *Store) Fsck(ctx context.Context, path string) error {
 	}
 	sort.Strings(names)
 	for _, name := range names {
+		if strings.HasPrefix(name, s.alias+"/") {
+			name = strings.TrimPrefix(name, s.alias+"/")
+		}
+		out.Debug(ctx, "sub.Fsck(%s) - Checking %s", path, name)
 		if err := s.fsckCheckEntry(ctx, name); err != nil {
 			return errors.Wrapf(err, "failed to check %s: %s", name, err)
 		}

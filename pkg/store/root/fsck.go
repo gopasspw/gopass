@@ -4,6 +4,7 @@ import (
 	"context"
 	"strings"
 
+	"github.com/gopasspw/gopass/pkg/out"
 	"github.com/pkg/errors"
 )
 
@@ -16,7 +17,9 @@ func (s *Store) Fsck(ctx context.Context, path string) error {
 		if path != "" && !strings.HasPrefix(path, alias+"/") {
 			continue
 		}
-		if err := sub.Fsck(ctx, strings.TrimPrefix(path, alias+"/")); err != nil {
+		path = strings.TrimPrefix(path, alias+"/")
+		out.Debug(ctx, "root.Fsck() - Checking %s", alias)
+		if err := sub.Fsck(ctx, path); err != nil {
 			return errors.Wrapf(err, "fsck failed on sub store %s: %s", alias, err)
 		}
 	}
