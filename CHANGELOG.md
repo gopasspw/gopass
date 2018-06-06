@@ -1,3 +1,36 @@
+## 1.8.0 / 2018-06-06
+
+This release includes several possibly breaking changes.
+The `gopass move` implementation was refactored to properly support moving
+entries and subtrees across mount points. This may change the behaviour slightly.
+Also the build flags were changed to build PIE binaries. This should not affect
+the runtime behaviour, but we could not test this on all platforms, yet.
+
+* [BREAKING] Make move work recursively and across stores [#821]
+* [FEATURE] Add git credential caching [#743]
+* [FEATURE] Add local recipient intregrity checks [#800 #826]
+* [ENHANCEMENT] Handle key-value pairs on generate and insert [#790]
+* [ENHANCEMENT] Add gpg.listKeys caching [#804]
+* [ENHANCEMENT] Add append mode for gopass insert [#807]
+* [ENHANCEMENT] Support external password generators [#811]
+* [ENHANCEMENT] Add gopass generate completion heuristic [#817]
+* [ENHANCEMENT] Add revive linter checks [#822]
+* [ENHANCEMENT] Remove -static build flag, enable CGO and -buildmode=PIE [#823]
+* [ENHANCEMENT] Warn if RCS backend is noop during gopass sync [#825]
+* [ENHANCEMENT] Support for special password rules on generate [#832]
+* [ENHANCEMENT] Improve create wizard [#842]
+* [ENHANCEMENT] Honor templates on generate [#847]
+* [ENHANCEMENT] Support NO_COLOR [#851]
+* [BUGFIX] Reset clipboard timer on repeated copy [#813]
+* [BUGFIX] Add --force to git add invocation [#839]
+* [BUGFIX] Rename updater GitHub Organisation [#818]
+* [BUGFIX] Default to origin master for git pull [#819]
+* [BUGFIX] Properly propagate RCS backend on gopass clone [#820]
+* [BUGFIX] Fix sub store config propagation [#837 #841]
+* [BUGFIX] Use default for password store dir [#846]
+* [BUGFIX] Properly handle autosync on recipients save [#848]
+* [BUGFIX] Resolve key IDs to fingerprints before adding or removing [#850]
+
 ## 1.7.2 / 2018-05-28
 
 * [BUGFIX] Fix tilde expansion [#802]

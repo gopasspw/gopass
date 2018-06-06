@@ -247,33 +247,26 @@ endif
 ifndef BINTRAY_API_KEY
 	$(error BINTRAY_API_KEY is undefined)
 endif
-ifndef DEB_SIGN_PASSPHRASE
-	$(error DEB_SIGN_PASSPHRASE)
-endif
 
-release: goreleaser debsign bintray
+release: goreleaser bintray
 
 goreleaser: check-release-env travis clean
 	@echo ">> RELEASE, goreleaser"
 	@goreleaser
 
-debsign: check-release-env
-	@echo ">> SIGN, deb packages"
-	@echo "     SIGNATURE"
-	@dpkg-sig --sign origin -k 97F6B666 --g "--no-tty --passphrase=$(DEB_SIGN_PASSPHRASE) --no-use-agent" ./dist/*.deb
-	@echo "     VERIFY"
-	@dpkg-sig --verify ./dist/*.deb
-
 bintray: check-release-env
 	@echo ">> RELEASE, deb packages"
 	@$(eval AMD64DEB:=$(shell ls ./dist/gopass-*-amd64.deb | xargs -n1 basename))
 	@curl -f -T ./dist/$(AMD64DEB) -H "X-GPG-PASSPHRASE:$(BINTRAY_GPG_PASSPHRASE)" -u$(BINTRAY_USER):$(BINTRAY_API_KEY) "https://api.bintray.com/content/gopasspw/gopass/gopass/v$(GOPASS_VERSION)/pool/main/g/gopass/$(AMD64DEB);deb_distribution=trusty,xenial,bionic,wheezy,jessie,buster,sid;deb_component=main;deb_architecture=amd64;publish=1"
+	@echo ""
 
 	@$(eval I386DEB:=$(shell ls ./dist/gopass-*-386.deb | xargs -n1 basename))
-	curl -f -T ./dist/$(I386DEB) -H "X-GPG-PASSPHRASE:$(BINTRAY_GPG_PASSPHRASE)" -u$(BINTRAY_USER):$(BINTRAY_API_KEY) "https://api.bintray.com/content/gopasspw/gopass/gopass/v$(GOPASS_VERSION)/pool/main/g/gopass/$(I386DEB);deb_distribution=trusty,xenial,bionic,wheezy,jessie,buster,sid;deb_component=main;deb_architecture=i386;publish=1"
+	@curl -f -T ./dist/$(I386DEB) -H "X-GPG-PASSPHRASE:$(BINTRAY_GPG_PASSPHRASE)" -u$(BINTRAY_USER):$(BINTRAY_API_KEY) "https://api.bintray.com/content/gopasspw/gopass/gopass/v$(GOPASS_VERSION)/pool/main/g/gopass/$(I386DEB);deb_distribution=trusty,xenial,bionic,wheezy,jessie,buster,sid;deb_component=main;deb_architecture=i386;publish=1"
+	@echo ""
 
 	@echo "   CALCULATE METADATA, deb repository"
 	@curl -f -X POST -H "X-GPG-PASSPHRASE:$(BINTRAY_GPG_PASSPHRASE)" -u$(BINTRAY_USER):$(BINTRAY_API_KEY) https://api.bintray.com/calc_metadata/gopasspw/gopass
+	@echo ""
 	@echo ">> DONE"
 
 .PHONY: clean build completion install sysinfo crosscompile test codequality release goreleaser debsign bintray
