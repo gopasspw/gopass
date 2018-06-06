@@ -1,3 +1,7 @@
+## 1.6.12 / 2018-06-06
+
+* [BUGFIX] Add file URL forward compatiblity
+
 ## 1.6.11 / 2017-02-20
 
 * [ENHANCEMENT] Documentation updates [#648] [#656]
