@@ -2,6 +2,7 @@ package config
 
 import (
 	"os"
+	"strings"
 
 	"github.com/pkg/errors"
 )
@@ -57,7 +58,19 @@ func (c *Config) CheckOverflow() error {
 
 // Config will return a current config
 func (c *Config) Config() *Config {
+	c.Root.Path = stripURL(c.Root.Path)
+	for k := range c.Mounts {
+		c.Mounts[k].Path = stripURL(c.Mounts[k].Path)
+	}
 	return c
+}
+
+func stripURL(in string) string {
+	pat := "file://"
+	if !strings.Contains(in, pat) {
+		return in
+	}
+	return in[strings.Index(in, pat)+len(pat):]
 }
 
 // SetConfigValue will try to set the given key to the value in the config struct
