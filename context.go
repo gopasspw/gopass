@@ -36,6 +36,12 @@ func initContext(ctx context.Context, cfg *config.Config) context.Context {
 		ctx = ctxutil.WithColor(ctx, false)
 	}
 
+	// support for no-color.org
+	if nc := os.Getenv("NO_COLOR"); nc != "" {
+		color.NoColor = true
+		ctx = ctxutil.WithColor(ctx, false)
+	}
+
 	// only emit color codes when stdout is a terminal
 	if !terminal.IsTerminal(int(os.Stdout.Fd())) {
 		color.NoColor = true
