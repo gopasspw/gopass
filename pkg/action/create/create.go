@@ -78,8 +78,10 @@ func extractHostname(in string) string {
 		urlStr = "http://" + urlStr
 	}
 	u, err := url.Parse(urlStr)
-	if ch := fsutil.CleanFilename(u.Hostname()); err == nil && ch != "" {
-		return ch
+	if err == nil {
+		if ch := fsutil.CleanFilename(u.Hostname()); ch != "" {
+			return ch
+		}
 	}
 	return fsutil.CleanFilename(in)
 }
