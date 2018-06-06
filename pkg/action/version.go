@@ -29,7 +29,8 @@ func (s *Action) Version(ctx context.Context, c *cli.Context) error {
 	rcsVer := versionInfo(ctx, s.Store.RCS(ctx, ""))
 	storageVer := versionInfo(ctx, s.Store.Storage(ctx, ""))
 
-	fmt.Fprintf(stdout, "<root> - %s - %s - %s\n", cryptoVer, rcsVer, storageVer)
+	tpl := "%-10s - %10s - %10s - %10s\n"
+	fmt.Fprintf(stdout, tpl, "<root>", cryptoVer, rcsVer, storageVer)
 
 	// report all used crypto, sync and fs backends
 	for _, mp := range s.Store.MountPoints() {
@@ -38,7 +39,7 @@ func (s *Action) Version(ctx context.Context, c *cli.Context) error {
 		sv := versionInfo(ctx, s.Store.Storage(ctx, mp))
 
 		if cv != cryptoVer || rv != rcsVer || sv != storageVer {
-			fmt.Fprintf(stdout, "%s - %s - %s - %s\n", mp, cv, rv, sv)
+			fmt.Fprintf(stdout, tpl, mp, cv, rv, sv)
 		}
 	}
 
