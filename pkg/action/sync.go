@@ -89,7 +89,8 @@ func (s *Action) syncMount(ctx context.Context, mp string) error {
 	}
 
 	if sub.RCS().Name() == noop.New().Name() {
-		out.Red(ctxno, "\n   WARNING: Mount uses noop RCS backend. Not syncing!")
+		out.Red(ctxno, "\n   WARNING: Mount uses RCS backend 'noop'. Not syncing!\n")
+		return nil
 	}
 
 	out.Print(ctxno, "\n   "+color.GreenString("git pull and push ... "))
