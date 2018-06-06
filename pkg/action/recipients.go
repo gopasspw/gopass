@@ -177,7 +177,6 @@ func (s *Action) RecipientsRemove(ctx context.Context, c *cli.Context) error {
 		if len(keys) > 0 {
 			recp = crypto.Fingerprint(ctx, keys[0])
 		}
-		fmt.Printf("r: %s - recp: %s\n", r, recp)
 
 		if err := s.Store.RemoveRecipient(ctxutil.WithNoConfirm(ctx, true), store, recp); err != nil {
 			return ExitError(ctx, ExitRecipients, err, "failed to remove recipient '%s': %s", recp, err)
