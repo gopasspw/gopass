@@ -1,3 +1,8 @@
+## 1.8.1 / 2018-06-08
+
+* [BUGFIX] Trim fsck path [#856]
+* [BUGFIX] Handle URL parse errors in create [#855]
+
 ## 1.8.0 / 2018-06-06
 
 This release includes several possibly breaking changes.
