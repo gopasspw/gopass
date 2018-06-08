@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/store"
 
 	"github.com/pkg/errors"
@@ -82,6 +83,10 @@ func (s *Store) delete(ctx context.Context, name string, recurse bool) error {
 			return nil
 		}
 		return errors.Wrapf(err, "failed to add '%s' to git", path)
+	}
+
+	if !ctxutil.IsGitCommit(ctx) {
+		return nil
 	}
 
 	if err := s.rcs.Commit(ctx, fmt.Sprintf("Remove %s from store.", name)); err != nil {
