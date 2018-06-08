@@ -5,11 +5,13 @@ import (
 	"strings"
 
 	"github.com/gopasspw/gopass/pkg/out"
-	"github.com/pkg/errors"
+	multierror "github.com/hashicorp/go-multierror"
 )
 
 // Fsck checks all stores/entries matching the given prefix
 func (s *Store) Fsck(ctx context.Context, path string) error {
+	var result error
+
 	for alias, sub := range s.mounts {
 		if sub == nil {
 			continue
@@ -20,11 +22,14 @@ func (s *Store) Fsck(ctx context.Context, path string) error {
 		path = strings.TrimPrefix(path, alias+"/")
 		out.Debug(ctx, "root.Fsck() - Checking %s", alias)
 		if err := sub.Fsck(ctx, path); err != nil {
-			return errors.Wrapf(err, "fsck failed on sub store %s: %s", alias, err)
+			out.Red(ctx, "fsck failed on sub store %s: %s", alias, err)
+			result = multierror.Append(result, err)
 		}
 	}
 	if err := s.store.Fsck(ctx, path); err != nil {
-		return errors.Wrapf(err, "fsck failed on root store: %s", err)
+		out.Red(ctx, "fsck failed on root store: %s", err)
+		result = multierror.Append(result, err)
 	}
-	return nil
+
+	return result
 }

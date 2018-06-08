@@ -25,7 +25,11 @@ const (
 	ctxKeyAutoClip
 	ctxKeyNotifications
 	ctxKeyEditRecipients
+	ctxKeyProgressCallback
 )
+
+// ProgressCallback is a callback for updateing progress
+type ProgressCallback func()
 
 // WithDebug returns a context with an explizit value for debug
 func WithDebug(ctx context.Context, dbg bool) context.Context {
@@ -431,4 +435,25 @@ func GetConcurrency(ctx context.Context) int {
 		return 1
 	}
 	return iv
+}
+
+// WithProgressCallback returns a context with the value of ProgressCallback set
+func WithProgressCallback(ctx context.Context, cb ProgressCallback) context.Context {
+	return context.WithValue(ctx, ctxKeyProgressCallback, cb)
+}
+
+// HasProgressCallback returns true if a ProgressCallback has been set
+func HasProgressCallback(ctx context.Context) bool {
+	_, ok := ctx.Value(ctxKeyProgressCallback).(ProgressCallback)
+	return ok
+}
+
+// GetProgressCallback return the set progress callback or a default one.
+// It never returns nil
+func GetProgressCallback(ctx context.Context) ProgressCallback {
+	cb, ok := ctx.Value(ctxKeyProgressCallback).(ProgressCallback)
+	if !ok || cb == nil {
+		return func() {}
+	}
+	return cb
 }
