@@ -33,6 +33,8 @@ will try to clarify it.
 
 * Add tests relevant to the fixed bug or new feature.
 
+* Add a [DCO](https://developercertificate.org/) / `Signed-off-by` line in any commit message.
+
 
 ## Building & Testing
 
