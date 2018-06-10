@@ -1,4 +1,4 @@
-// +build !linux,!windows,!darwin
+// +build !linux,!freebsd,!windows,!darwin
 
 package notify
 
