@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -38,4 +39,19 @@ complete -F _gopass_bash_autocomplete gopass`
 	out, err = ts.run("completion fish")
 	assert.NoError(t, err)
 	assert.Contains(t, out, "complete")
+}
+
+func TestCompletionNoPath(t *testing.T) {
+	ts := newTester(t)
+	defer ts.teardown()
+
+	ov := os.Getenv("PATH")
+	assert.NoError(t, os.Setenv("PATH", "/tmp/foobar"))
+	defer func() {
+		_ = os.Setenv("PATH", ov)
+	}()
+
+	out, err := ts.run("--generate-bash-completion")
+	assert.NoError(t, err)
+	assert.Contains(t, out, "Store not initialized")
 }

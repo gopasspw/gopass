@@ -8,6 +8,7 @@ import (
 
 	fishcomp "github.com/gopasspw/gopass/pkg/completion/fish"
 	zshcomp "github.com/gopasspw/gopass/pkg/completion/zsh"
+	"github.com/gopasspw/gopass/pkg/out"
 
 	"github.com/urfave/cli"
 )
@@ -26,7 +27,11 @@ func bashEscape(s string) string {
 
 // Complete prints a list of all password names to os.Stdout
 func (s *Action) Complete(ctx context.Context, c *cli.Context) {
-	s.Store.Initialized(ctx) // important to make sure the structs are not nil
+	_, err := s.Store.Initialized(ctx) // important to make sure the structs are not nil
+	if err != nil {
+		out.Red(ctx, "Store not initialized: %s", err)
+		return
+	}
 	list, err := s.Store.List(ctx, 0)
 	if err != nil {
 		return
