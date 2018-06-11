@@ -23,19 +23,25 @@ import (
 // Initialized returns an error if the store is not properly
 // prepared.
 func (s *Action) Initialized(ctx context.Context, c *cli.Context) error {
-	if !s.Store.Initialized(ctx) {
-		out.Debug(ctx, "Store needs to be initialized")
-		if !ctxutil.IsInteractive(ctx) {
-			return ExitError(ctx, ExitNotInitialized, nil, "password-store is not initialized. Try '%s init'", s.Name)
-		}
-		if ok, err := termio.AskForBool(ctx, "It seems you are new to gopass. Do you want to run the onboarding wizard?", true); err == nil && ok {
-			if err := s.InitOnboarding(ctx, c); err != nil {
-				return ExitError(ctx, ExitUnknown, err, "failed to run onboarding wizard: %s", err)
-			}
-			return nil
-		}
+	inited, err := s.Store.Initialized(ctx)
+	if err != nil {
+		return ExitError(ctx, ExitUnknown, err, "Failed to initialize store: %s", err)
 	}
-	out.Debug(ctx, "Store is already initialized")
+	if inited {
+		out.Debug(ctx, "Store is already initialized")
+		return nil
+	}
+
+	out.Debug(ctx, "Store needs to be initialized")
+	if !ctxutil.IsInteractive(ctx) {
+		return ExitError(ctx, ExitNotInitialized, nil, "password-store is not initialized. Try '%s init'", s.Name)
+	}
+	if ok, err := termio.AskForBool(ctx, "It seems you are new to gopass. Do you want to run the onboarding wizard?", true); err == nil && ok {
+		if err := s.InitOnboarding(ctx, c); err != nil {
+			return ExitError(ctx, ExitUnknown, err, "failed to run onboarding wizard: %s", err)
+		}
+		return nil
+	}
 	return nil
 }
 
@@ -45,7 +51,11 @@ func (s *Action) Init(ctx context.Context, c *cli.Context) error {
 	alias := c.String("store")
 
 	ctx = initParseContext(ctx, c)
-	if s.Store.Initialized(ctx) {
+	inited, err := s.Store.Initialized(ctx)
+	if err != nil {
+		return ExitError(ctx, ExitUnknown, err, "Failed to initialized store: %s", err)
+	}
+	if inited {
 		out.Red(ctx, "WARNING: Store is already initialized")
 	}
 

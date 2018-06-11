@@ -13,15 +13,14 @@ import (
 )
 
 // Initialized checks on disk if .gpg-id was generated and thus returns true.
-func (r *Store) Initialized(ctx context.Context) bool {
+func (r *Store) Initialized(ctx context.Context) (bool, error) {
 	if r.store == nil {
 		out.Debug(ctx, "initializing store and possible sub-stores")
 		if err := r.initialize(ctx); err != nil {
-			out.Red(ctx, "Faild to initialize stores: %s", err)
-			return false
+			return false, errors.Wrapf(err, "failed to initialized stores: %s", err)
 		}
 	}
-	return r.store.Initialized(ctx)
+	return r.store.Initialized(ctx), nil
 }
 
 // Init tries to initialize a new password store location matching the object

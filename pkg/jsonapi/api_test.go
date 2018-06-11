@@ -18,6 +18,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/store/secret"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 type storedSecret struct {
@@ -226,7 +227,9 @@ func runRespondRawMessages(t *testing.T, requests []verifiedRequest, secrets []s
 		},
 	)
 	assert.NoError(t, err)
-	assert.Equal(t, false, store.Initialized(ctx))
+	inited, err := store.Initialized(ctx)
+	require.NoError(t, err)
+	assert.Equal(t, false, inited)
 	assert.NoError(t, populateStore(tempdir, secrets))
 
 	for _, request := range requests {

@@ -14,6 +14,10 @@ var (
 
 // List will list all entries in this store
 func (s *Store) List(ctx context.Context, prefix string) ([]string, error) {
+	if s.storage == nil || s.crypto == nil {
+		return nil, nil
+	}
+
 	lst, err := s.storage.List(ctx, prefix)
 	if err != nil {
 		return nil, err

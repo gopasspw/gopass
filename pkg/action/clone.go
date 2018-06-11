@@ -46,7 +46,11 @@ func (s *Action) clone(ctx context.Context, repo, mount, path string) error {
 	if path == "" {
 		path = config.PwStoreDir(mount)
 	}
-	if mount == "" && s.Store.Initialized(ctx) {
+	inited, err := s.Store.Initialized(ctx)
+	if err != nil {
+		return ExitError(ctx, ExitUnknown, err, "Failed to initialized stores: %s", err)
+	}
+	if mount == "" && inited {
 		return ExitError(ctx, ExitAlreadyInitialized, nil, "Can not clone %s to the root store, as this store is already initialized. Please try cloning to a submount: `%s clone %s sub`", repo, s.Name, repo)
 	}
 
@@ -109,7 +113,11 @@ func (s *Action) cloneAddMount(ctx context.Context, mount, path string) error {
 		return nil
 	}
 
-	if !s.Store.Initialized(ctx) {
+	inited, err := s.Store.Initialized(ctx)
+	if err != nil {
+		return ExitError(ctx, ExitUnknown, err, "Failed to initialize store: %s", err)
+	}
+	if !inited {
 		return ExitError(ctx, ExitNotInitialized, nil, "Root-Store is not initialized. Clone or init root store first")
 	}
 	if err := s.Store.AddMount(ctx, mount, path); err != nil {

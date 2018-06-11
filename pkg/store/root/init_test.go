@@ -11,6 +11,7 @@ import (
 	"github.com/gopasspw/gopass/tests/gptest"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestInit(t *testing.T) {
@@ -27,8 +28,13 @@ func TestInit(t *testing.T) {
 	rs, err := New(ctx, cfg)
 	assert.NoError(t, err)
 
-	assert.Equal(t, false, rs.Initialized(ctx))
+	inited, err := rs.Initialized(ctx)
+	require.NoError(t, err)
+	assert.Equal(t, false, inited)
 	assert.NoError(t, rs.Init(ctx, "", u.StoreDir("rs"), "0xDEADBEEF"))
-	assert.Equal(t, true, rs.Initialized(ctx))
+
+	inited, err = rs.Initialized(ctx)
+	require.NoError(t, err)
+	assert.Equal(t, true, inited)
 	assert.NoError(t, rs.Init(ctx, "rs2", u.StoreDir("rs2"), "0xDEADBEEF"))
 }
