@@ -1,14 +1,17 @@
 FROM golang:1.10-alpine AS builder
 
-RUN apk add -U make git gnupg
+RUN apk add -U make gcc musl-dev ncurses git
 
 ADD .   /go/src/github.com/gopasspw/gopass
 WORKDIR /go/src/github.com/gopasspw/gopass
 
-RUN make install
+RUN TERM=vt100 make install
 
-RUN chown -R 1000:1000 /go/src/github.com/gopasspw/gopass
-ENV HOME /go/src/github.com/gopasspw/gopass
+FROM alpine:3.7
+RUN apk add -U git gnupg
+COPY --from=0 /go/src/github.com/gopasspw/gopass /usr/bin/
+
+RUN chown -Rh 1000:1000 -- /root
+ENV HOME /root
 USER 1000:1000
-
-CMD [ "/go/src/github.com/gopasspw/gopass/gopass" ]
+ENTRYPOINT [ "/usr/bin/gopass" ]

@@ -58,6 +58,20 @@ For OpenBSD 6.2 and earlier, install via `go get`.
 Please note that the OpenBSD builds uses `pledge(2)` to disable some syscalls,
 so some features (e.g. version checks, auto-update) are unavailable.
 
+#### Docker
+
+Build it
+
+```
+docker build -t gopass github.com/gopasspw/gopass#master
+```
+
+Use it
+
+```
+alias gopass="docker run --rm -ti -v $HOME:/root gopass"
+```
+
 ### Set up a GPG key pair
 
 gopass depends on the `gpg` program for encryption and decryption. You **must** have a
