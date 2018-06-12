@@ -165,6 +165,19 @@ layman -a go-overlay
 emerge -av gopass
 ```
 
+### RedHat / CentOS
+
+There is an inoffical RPM build maintained by a contributor.
+
+```bash
+# if you're using dnf (needs dnf-plugins-core)
+dnf copr enable daftaupe/gopass
+dnf install gopass
+# of if you're using an older distribution (needs yum-plugin-copr)
+yum copr enable daftaupe/gopass
+yum install gopass
+```
+
 ### Windows
 
 **WARNING**: Windows is not yet officially supported. We try to support it in the future. These are steps are only meant to help you setup gopass on Windows so you can provide us with feedback about the current state of our Windows support.
