@@ -1,6 +1,10 @@
-FROM golang:1.10-alpine AS builder
+FROM golang:1.10 AS builder
 
-RUN apk add -U make git gnupg
+RUN apt-get update && \
+  apt-get install --yes --force-yes \
+  make \
+  git \
+  gnupg
 
 ADD .   /go/src/github.com/gopasspw/gopass
 WORKDIR /go/src/github.com/gopasspw/gopass
