@@ -14,12 +14,11 @@ import (
 
 // Store is the public facing password store
 type Store struct {
-	cfg     *config.Config
-	mounts  map[string]store.Store
-	url     *backend.URL // url of the root store
-	store   *sub.Store
-	version string
-	agent   *client.Client
+	cfg    *config.Config
+	mounts map[string]store.Store
+	url    *backend.URL // url of the root store
+	store  *sub.Store
+	agent  *client.Client
 }
 
 // New creates a new store
@@ -31,10 +30,9 @@ func New(ctx context.Context, cfg *config.Config) (*Store, error) {
 		cfg.Root.Path = backend.FromPath(config.PwStoreDir(""))
 	}
 	r := &Store{
-		cfg:     cfg,
-		mounts:  make(map[string]store.Store, len(cfg.Mounts)),
-		url:     cfg.Root.Path,
-		version: cfg.Version,
+		cfg:    cfg,
+		mounts: make(map[string]store.Store, len(cfg.Mounts)),
+		url:    cfg.Root.Path,
 	}
 
 	return r, nil

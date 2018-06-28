@@ -25,10 +25,9 @@ func init() {
 
 // Config is the current config struct
 type Config struct {
-	Path    string                  `yaml:"-"`
-	Root    *StoreConfig            `yaml:"root"`
-	Mounts  map[string]*StoreConfig `yaml:"mounts"`
-	Version string                  `yaml:"version"`
+	Path   string                  `yaml:"-"`
+	Root   *StoreConfig            `yaml:"root"`
+	Mounts map[string]*StoreConfig `yaml:"mounts"`
 
 	// Catches all undefined files and must be empty after parsing
 	XXX map[string]interface{} `yaml:",inline"`
@@ -52,8 +51,7 @@ func New() *Config {
 			UseSymbols:    false,
 			Notifications: true,
 		},
-		Mounts:  make(map[string]*StoreConfig),
-		Version: "",
+		Mounts: make(map[string]*StoreConfig),
 	}
 }
 
@@ -115,7 +113,7 @@ func (c *Config) String() string {
 		sc := c.Mounts[alias]
 		mounts += alias + "=>" + sc.String()
 	}
-	return fmt.Sprintf("Config[Root:%s,Mounts(%s),Version:%s]", c.Root.String(), mounts, c.Version)
+	return fmt.Sprintf("Config[Root:%s,Mounts(%s)]", c.Root.String(), mounts)
 }
 
 // Directory returns the directory this config is using
