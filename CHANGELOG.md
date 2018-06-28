@@ -1,3 +1,12 @@
+## 1.8.2 / 2018-06-28
+
+* [ENHANCEMENT] Improve fsck output [#859]
+* [ENHANCEMENT] Enable notifications on FreeBSD [#863]
+* [ENHANCEMENT] Redirect errors to stderr [#880]
+* [ENHANCEMENT] Do not writer version to config [#883]
+* [BUGFIX] Fix commit on move [#860]
+* [BUGFIX] Propery check store initialization [#865]
+
 ## 1.8.1 / 2018-06-08
 
 * [BUGFIX] Trim fsck path [#856]
