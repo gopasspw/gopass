@@ -35,7 +35,7 @@ func (s *Action) Show(ctx context.Context, c *cli.Context) error {
 
 	if c.Bool("sync") {
 		if err := s.sync(out.WithHidden(ctx, true), c, s.Store.MountPoint(name)); err != nil {
-			out.Red(ctx, "Failed to sync %s: %s", name, err)
+			out.Error(ctx, "Failed to sync %s: %s", name, err)
 		}
 	}
 

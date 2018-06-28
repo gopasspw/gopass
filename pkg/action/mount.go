@@ -21,7 +21,7 @@ func (s *Action) MountRemove(ctx context.Context, c *cli.Context) error {
 	}
 
 	if err := s.Store.RemoveMount(ctx, c.Args()[0]); err != nil {
-		out.Red(ctx, "Failed to remove mount: %s", err)
+		out.Error(ctx, "Failed to remove mount: %s", err)
 	}
 
 	if err := s.cfg.Save(); err != nil {
@@ -46,7 +46,7 @@ func (s *Action) MountsPrint(ctx context.Context, c *cli.Context) error {
 	for _, alias := range mps {
 		path := mounts[alias]
 		if err := root.AddMount(alias, path); err != nil {
-			out.Red(ctx, "Failed to add mount to tree: %s", err)
+			out.Error(ctx, "Failed to add mount to tree: %s", err)
 		}
 	}
 

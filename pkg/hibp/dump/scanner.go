@@ -132,7 +132,7 @@ func (s *Scanner) scanSortedFile(ctx context.Context, fn string, in []string, re
 	var rdr io.Reader
 	fh, err := os.Open(fn)
 	if err != nil {
-		out.Red(ctx, "Failed to open file %s: %s", fn, err)
+		out.Error(ctx, "Failed to open file %s: %s", fn, err)
 		return
 	}
 	defer func() {
@@ -143,7 +143,7 @@ func (s *Scanner) scanSortedFile(ctx context.Context, fn string, in []string, re
 	if strings.HasSuffix(fn, ".gz") {
 		gzr, err := gzip.NewReader(fh)
 		if err != nil {
-			out.Red(ctx, "Failed to open the file %s: %s", fn, err)
+			out.Error(ctx, "Failed to open the file %s: %s", fn, err)
 			return
 		}
 		defer func() {
@@ -198,7 +198,7 @@ func (s *Scanner) scanUnsortedFile(ctx context.Context, fn string, in []string, 
 	var rdr io.Reader
 	fh, err := os.Open(fn)
 	if err != nil {
-		out.Red(ctx, "Failed to open file %s: %s", fn, err)
+		out.Error(ctx, "Failed to open file %s: %s", fn, err)
 		return
 	}
 	defer func() {
@@ -209,7 +209,7 @@ func (s *Scanner) scanUnsortedFile(ctx context.Context, fn string, in []string, 
 	if strings.HasSuffix(fn, ".gz") {
 		gzr, err := gzip.NewReader(fh)
 		if err != nil {
-			out.Red(ctx, "Failed to open the file %s: %s", fn, err)
+			out.Error(ctx, "Failed to open the file %s: %s", fn, err)
 			return
 		}
 		defer func() {

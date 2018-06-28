@@ -29,7 +29,7 @@ func (s *Action) Fsck(ctx context.Context, c *cli.Context) error {
 	oldCfg := filepath.Join(config.Homedir(), ".gopass.yml")
 	if fsutil.IsFile(oldCfg) {
 		if err := os.Remove(oldCfg); err != nil {
-			out.Red(ctx, "Failed to remove old gopass config %s: %s", oldCfg, err)
+			out.Error(ctx, "Failed to remove old gopass config %s: %s", oldCfg, err)
 		}
 	}
 

@@ -27,14 +27,14 @@ func setupApp(ctx context.Context, sv semver.Version) *cli.App {
 	if err != nil || csv.LT(sv) {
 		cfg.Version = sv.String()
 		if err := cfg.Save(); err != nil {
-			out.Red(ctx, "Failed to save config: %s", err)
+			out.Error(ctx, "Failed to save config: %s", err)
 		}
 	}
 
 	// initialize action handlers
 	action, err := ap.New(ctx, cfg, sv)
 	if err != nil {
-		out.Red(ctx, "No gpg binary found: %s", err)
+		out.Error(ctx, "No gpg binary found: %s", err)
 		os.Exit(ap.ExitGPG)
 	}
 

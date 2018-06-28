@@ -29,7 +29,7 @@ func bashEscape(s string) string {
 func (s *Action) Complete(ctx context.Context, c *cli.Context) {
 	_, err := s.Store.Initialized(ctx) // important to make sure the structs are not nil
 	if err != nil {
-		out.Red(ctx, "Store not initialized: %s", err)
+		out.Error(ctx, "Store not initialized: %s", err)
 		return
 	}
 	list, err := s.Store.List(ctx, 0)

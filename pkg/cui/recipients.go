@@ -87,7 +87,7 @@ func getRecipientInfo(ctx context.Context, crypto backend.Crypto, name string, r
 
 		kl, err := crypto.FindPublicKeys(ctx, r)
 		if err != nil {
-			out.Red(ctx, "Failed to read public key for '%s': %s", r, err)
+			out.Error(ctx, "Failed to read public key for '%s': %s", r, err)
 			continue
 		}
 		ri := recipientInfo{

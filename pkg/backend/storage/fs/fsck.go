@@ -53,7 +53,7 @@ func (s *Store) fsckCheckFile(ctx context.Context, filename string) error {
 	np := uint32(fi.Mode().Perm() & 0600)
 	out.Green(ctx, "  Fixing permissions from %s to %s", fi.Mode().Perm().String(), os.FileMode(np).Perm().String())
 	if err := syscall.Chmod(filename, np); err != nil {
-		out.Red(ctx, "  Failed to set permissions for %s to rw-------: %s", filename, err)
+		out.Error(ctx, "  Failed to set permissions for %s to rw-------: %s", filename, err)
 	}
 	return nil
 }
@@ -72,7 +72,7 @@ func (s *Store) fsckCheckDir(ctx context.Context, dirname string) error {
 		np := uint32(fi.Mode().Perm() & 0700)
 		out.Green(ctx, "  Fixing permissions from %s to %s", fi.Mode().Perm().String(), os.FileMode(np).Perm().String())
 		if err := syscall.Chmod(dirname, np); err != nil {
-			out.Red(ctx, "  Failed to set permissions for %s to rwx------: %s", dirname, err)
+			out.Error(ctx, "  Failed to set permissions for %s to rwx------: %s", dirname, err)
 		}
 	}
 
@@ -82,7 +82,7 @@ func (s *Store) fsckCheckDir(ctx context.Context, dirname string) error {
 		return err
 	}
 	if isEmpty {
-		out.Red(ctx, "Folder %s is empty. Removing", dirname)
+		out.Error(ctx, "Folder %s is empty. Removing", dirname)
 		return os.Remove(dirname)
 	}
 	return nil

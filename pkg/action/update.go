@@ -14,7 +14,7 @@ func (s *Action) Update(ctx context.Context, c *cli.Context) error {
 	pre := c.Bool("pre")
 
 	if s.version.String() == "0.0.0+HEAD" {
-		out.Red(ctx, "Can not check version against HEAD")
+		out.Error(ctx, "Can not check version against HEAD")
 		return nil
 	}
 
