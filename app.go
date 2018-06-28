@@ -22,15 +22,6 @@ func setupApp(ctx context.Context, sv semver.Version) *cli.App {
 	// set config values
 	ctx = initContext(ctx, cfg)
 
-	// only update version field in config, if it's older than this build
-	csv, err := semver.Parse(cfg.Version)
-	if err != nil || csv.LT(sv) {
-		cfg.Version = sv.String()
-		if err := cfg.Save(); err != nil {
-			out.Error(ctx, "Failed to save config: %s", err)
-		}
-	}
-
 	// initialize action handlers
 	action, err := ap.New(ctx, cfg, sv)
 	if err != nil {

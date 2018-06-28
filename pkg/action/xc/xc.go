@@ -102,7 +102,10 @@ func GenerateKeypair(ctx context.Context, c *cli.Context) error {
 		}
 	}
 
-	return crypto.CreatePrivateKeyBatch(ctx, name, email, pw)
+	if err := crypto.CreatePrivateKeyBatch(ctx, name, email, pw); err != nil {
+		return action.ExitError(ctx, action.ExitUnknown, err, "failed to create private key: %s", err)
+	}
+	return nil
 }
 
 // ExportPublicKey exports an XC key

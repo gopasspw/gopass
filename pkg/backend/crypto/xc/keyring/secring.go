@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"sort"
 	"sync"
 	"time"
@@ -55,6 +56,9 @@ func LoadSecring(file string) (*Secring, error) {
 func (p *Secring) Save() error {
 	buf, err := proto.Marshal(p.data)
 	if err != nil {
+		return err
+	}
+	if err := os.MkdirAll(filepath.Dir(p.File), 0700); err != nil {
 		return err
 	}
 	return ioutil.WriteFile(p.File, buf, 0600)

@@ -89,6 +89,9 @@ func decode(buf []byte) (*Config, error) {
 				AutoSync: true,
 			},
 		},
+		&Pre182{
+			Root: &Pre182StoreConfig{},
+		},
 		&Pre140{
 			AutoSync: true,
 		},
