@@ -56,7 +56,7 @@ func (s *Action) Init(ctx context.Context, c *cli.Context) error {
 		return ExitError(ctx, ExitUnknown, err, "Failed to initialized store: %s", err)
 	}
 	if inited {
-		out.Red(ctx, "WARNING: Store is already initialized")
+		out.Error(ctx, "WARNING: Store is already initialized")
 	}
 
 	if err := s.init(ctx, alias, path, c.Args()...); err != nil {
@@ -73,7 +73,7 @@ func initParseContext(ctx context.Context, c *cli.Context) context.Context {
 		ctx = backend.WithRCSBackendString(ctx, c.String("rcs"))
 	} else {
 		if c.IsSet("nogit") && c.Bool("nogit") {
-			out.Red(ctx, "DEPRECATION WARNING: Use '--rcs noop' instead")
+			out.Error(ctx, "DEPRECATION WARNING: Use '--rcs noop' instead")
 			ctx = backend.WithRCSBackend(ctx, backend.Noop)
 		}
 	}
@@ -126,7 +126,7 @@ func (s *Action) init(ctx context.Context, alias, path string, keys ...string) e
 		out.Debug(ctx, "Initializing RCS (%s) ...", bn)
 		if err := s.rcsInit(ctx, alias, "", ""); err != nil {
 			out.Debug(ctx, "Stacktrace: %+v\n", err)
-			out.Red(ctx, "Failed to init RCS (%s): %s", bn, err)
+			out.Error(ctx, "Failed to init RCS (%s): %s", bn, err)
 		}
 	} else {
 		out.Debug(ctx, "not initializing RCS backend ...")

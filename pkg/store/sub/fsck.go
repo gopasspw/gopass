@@ -70,10 +70,10 @@ func (s *Store) fsckCheckEntry(ctx context.Context, name string) error {
 	// check itemRecps matches storeRecps
 	missing, extra := compareStringSlices(perItemStoreRecps, itemRecps)
 	if len(missing) > 0 {
-		out.Red(ctx, "Missing recipients on %s: %+v", name, missing)
+		out.Error(ctx, "Missing recipients on %s: %+v", name, missing)
 	}
 	if len(extra) > 0 {
-		out.Red(ctx, "Extra recipients on %s: %+v", name, extra)
+		out.Error(ctx, "Extra recipients on %s: %+v", name, extra)
 	}
 	if len(missing) > 0 || len(extra) > 0 {
 		sec, err := s.Get(ctx, name)

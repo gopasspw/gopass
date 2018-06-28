@@ -74,12 +74,12 @@ func (s *Action) syncMount(ctx context.Context, mp string) error {
 
 	sub, err := s.Store.GetSubStore(mp)
 	if err != nil {
-		out.Red(ctx, "Failed to get sub store '%s': %s", name, err)
+		out.Error(ctx, "Failed to get sub store '%s': %s", name, err)
 		return fmt.Errorf("failed to get sub stores (%s)", err)
 	}
 
 	if sub == nil {
-		out.Red(ctx, "Failed to get sub stores '%s: nil'", name)
+		out.Error(ctx, "Failed to get sub stores '%s: nil'", name)
 		return fmt.Errorf("failed to get sub stores (nil)")
 	}
 
@@ -89,7 +89,7 @@ func (s *Action) syncMount(ctx context.Context, mp string) error {
 	}
 
 	if sub.RCS().Name() == noop.New().Name() {
-		out.Red(ctxno, "\n   WARNING: Mount uses RCS backend 'noop'. Not syncing!\n")
+		out.Error(ctxno, "\n   WARNING: Mount uses RCS backend 'noop'. Not syncing!\n")
 		return nil
 	}
 
@@ -101,7 +101,7 @@ func (s *Action) syncMount(ctx context.Context, mp string) error {
 			return err
 		}
 
-		out.Red(ctx, "Failed to push '%s' to it's remote: %s", name, err)
+		out.Error(ctx, "Failed to push '%s' to it's remote: %s", name, err)
 		return err
 	}
 	out.Print(ctxno, color.GreenString("OK"))
@@ -120,7 +120,7 @@ func (s *Action) syncMount(ctx context.Context, mp string) error {
 	// import keys
 	out.Print(ctxno, "\n   "+color.GreenString("importing missing keys ... "))
 	if err := sub.ImportMissingPublicKeys(ctx); err != nil {
-		out.Red(ctx, "Failed to import missing public keys for '%s': %s", name, err)
+		out.Error(ctx, "Failed to import missing public keys for '%s': %s", name, err)
 		return err
 	}
 	out.Print(ctxno, color.GreenString("OK"))
@@ -129,19 +129,19 @@ func (s *Action) syncMount(ctx context.Context, mp string) error {
 	out.Print(ctxno, "\n   "+color.GreenString("exporting missing keys ... "))
 	rs, err := sub.GetRecipients(ctx, "")
 	if err != nil {
-		out.Red(ctx, "Failed to load recipients for '%s': %s", name, err)
+		out.Error(ctx, "Failed to load recipients for '%s': %s", name, err)
 		return err
 	}
 	exported, err := sub.ExportMissingPublicKeys(ctx, rs)
 	if err != nil {
-		out.Red(ctx, "Failed to export missing public keys for '%s': %s", name, err)
+		out.Error(ctx, "Failed to export missing public keys for '%s': %s", name, err)
 		return err
 	}
 
 	// only run second push if we did export any keys
 	if exported {
 		if err := sub.RCS().Push(ctx, "", ""); err != nil {
-			out.Red(ctx, "Failed to push '%s' to it's remote: %s", name, err)
+			out.Error(ctx, "Failed to push '%s' to it's remote: %s", name, err)
 			return err
 		}
 		out.Print(ctxno, color.GreenString("OK"))

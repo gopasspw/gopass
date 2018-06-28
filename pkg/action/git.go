@@ -61,14 +61,14 @@ func (s *Action) getUserData(ctx context.Context, store, un, ue string) (string,
 		var err error
 		userName, err = termio.AskForString(ctx, color.CyanString("Please enter a user name for password store git config"), userName)
 		if err != nil {
-			out.Red(ctx, "Failed to ask for user input: %s", err)
+			out.Error(ctx, "Failed to ask for user input: %s", err)
 		}
 	}
 	if userEmail == "" {
 		var err error
 		userEmail, err = termio.AskForString(ctx, color.CyanString("Please enter an email address for password store git config"), userEmail)
 		if err != nil {
-			out.Red(ctx, "Failed to ask for user input: %s", err)
+			out.Error(ctx, "Failed to ask for user input: %s", err)
 		}
 	}
 

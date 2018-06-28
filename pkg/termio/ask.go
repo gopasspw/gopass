@@ -176,7 +176,7 @@ func AskForPassword(ctx context.Context, name string) (string, error) {
 			return pass, nil
 		}
 
-		out.Red(ctx, "Error: the entered password do not match")
+		out.Error(ctx, "Error: the entered password do not match")
 	}
 	return "", errors.New("no valid user input")
 }

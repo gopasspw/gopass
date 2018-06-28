@@ -22,12 +22,12 @@ func (s *Store) Fsck(ctx context.Context, path string) error {
 		path = strings.TrimPrefix(path, alias+"/")
 		out.Debug(ctx, "root.Fsck() - Checking %s", alias)
 		if err := sub.Fsck(ctx, path); err != nil {
-			out.Red(ctx, "fsck failed on sub store %s: %s", alias, err)
+			out.Error(ctx, "fsck failed on sub store %s: %s", alias, err)
 			result = multierror.Append(result, err)
 		}
 	}
 	if err := s.store.Fsck(ctx, path); err != nil {
-		out.Red(ctx, "fsck failed on root store: %s", err)
+		out.Error(ctx, "fsck failed on root store: %s", err)
 		result = multierror.Append(result, err)
 	}
 

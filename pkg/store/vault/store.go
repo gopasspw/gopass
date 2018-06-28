@@ -161,7 +161,7 @@ func (s *Store) Copy(ctx context.Context, from string, to string) error {
 			}
 			et := filepath.Join(destPrefix, strings.TrimPrefix(e, from))
 			if err := s.Copy(ctx, e, et); err != nil {
-				out.Red(ctx, "Failed to copy '%s' to '%s': %s", e, et, err)
+				out.Error(ctx, "Failed to copy '%s' to '%s': %s", e, et, err)
 			}
 		}
 		return nil
@@ -307,7 +307,7 @@ func (s *Store) Move(ctx context.Context, from string, to string) error {
 			}
 			et := filepath.Join(destPrefix, strings.TrimPrefix(e, from))
 			if err := s.Move(ctx, e, et); err != nil {
-				out.Red(ctx, "Failed to move '%s' to '%s': %s", e, et, err)
+				out.Error(ctx, "Failed to move '%s' to '%s': %s", e, et, err)
 			}
 		}
 		return nil

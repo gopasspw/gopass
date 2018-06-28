@@ -28,10 +28,12 @@ func TestFsck(t *testing.T) {
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
+	out.Stderr = buf
 	stdout = buf
 	defer func() {
 		stdout = os.Stdout
 		out.Stdout = os.Stdout
+		out.Stderr = os.Stderr
 	}()
 	color.NoColor = true
 

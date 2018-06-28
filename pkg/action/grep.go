@@ -27,7 +27,7 @@ func (s *Action) Grep(ctx context.Context, c *cli.Context) error {
 	for _, v := range haystack {
 		sec, err := s.Store.Get(ctx, v)
 		if err != nil {
-			out.Red(ctx, "failed to decrypt %s: %v", v, err)
+			out.Error(ctx, "failed to decrypt %s: %v", v, err)
 			continue
 		}
 

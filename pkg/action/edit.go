@@ -61,7 +61,7 @@ func (s *Action) Edit(ctx context.Context, c *cli.Context) error {
 
 	nSec, err := secret.Parse(nContent)
 	if err != nil {
-		out.Red(ctx, "WARNING: Invalid YAML: %s", err)
+		out.Error(ctx, "WARNING: Invalid YAML: %s", err)
 	}
 
 	// if the secret has a password, we check it's strength

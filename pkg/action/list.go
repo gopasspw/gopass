@@ -44,7 +44,7 @@ func (s *Action) List(ctx context.Context, c *cli.Context) error {
 func (s *Action) listFiltered(ctx context.Context, l tree.Tree, limit int, flat, stripPrefix bool, filter string) error {
 	subtree, err := l.FindFolder(filter)
 	if err != nil {
-		out.Red(ctx, "Entry '%s' not found", filter)
+		out.Error(ctx, "Entry '%s' not found", filter)
 		return nil
 	}
 

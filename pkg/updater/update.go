@@ -40,7 +40,7 @@ const (
 // Update will start hte interactive update assistant
 func Update(ctx context.Context, pre bool, version semver.Version) error {
 	if err := IsUpdateable(ctx); err != nil {
-		out.Red(ctx, "Your gopass binary is externally managed. Can not update.")
+		out.Error(ctx, "Your gopass binary is externally managed. Can not update.")
 		out.Debug(ctx, "Error: %s", err)
 		return nil
 	}

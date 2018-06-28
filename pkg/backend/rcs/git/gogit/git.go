@@ -177,7 +177,7 @@ func (g *Git) addAll() error {
 func (g *Git) HasStagedChanges(ctx context.Context) bool {
 	st, err := g.wt.Status()
 	if err != nil {
-		out.Red(ctx, "Error: Unable to get status: %s", err)
+		out.Error(ctx, "Error: Unable to get status: %s", err)
 		return false
 	}
 	return !st.IsClean()
