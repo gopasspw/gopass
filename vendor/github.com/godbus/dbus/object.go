@@ -1,6 +1,7 @@
 package dbus
 
 import (
+	"context"
 	"errors"
 	"strings"
 )
@@ -9,7 +10,9 @@ import (
 // invoked.
 type BusObject interface {
 	Call(method string, flags Flags, args ...interface{}) *Call
+	CallWithContext(ctx context.Context, method string, flags Flags, args ...interface{}) *Call
 	Go(method string, flags Flags, ch chan *Call, args ...interface{}) *Call
+	GoWithContext(ctx context.Context, method string, flags Flags, ch chan *Call, args ...interface{}) *Call
 	GetProperty(p string) (Variant, error)
 	Destination() string
 	Path() ObjectPath
@@ -24,7 +27,12 @@ type Object struct {
 
 // Call calls a method with (*Object).Go and waits for its reply.
 func (o *Object) Call(method string, flags Flags, args ...interface{}) *Call {
-	return <-o.Go(method, flags, make(chan *Call, 1), args...).Done
+	return <-o.createCall(context.Background(), method, flags, make(chan *Call, 1), args...).Done
+}
+
+// CallWithContext acts like Call but takes a context
+func (o *Object) CallWithContext(ctx context.Context, method string, flags Flags, args ...interface{}) *Call {
+	return <-o.createCall(ctx, method, flags, make(chan *Call, 1), args...).Done
 }
 
 // AddMatchSignal subscribes BusObject to signals from specified interface and
@@ -49,6 +57,18 @@ func (o *Object) AddMatchSignal(iface, member string) *Call {
 // If the method parameter contains a dot ('.'), the part before the last dot
 // specifies the interface on which the method is called.
 func (o *Object) Go(method string, flags Flags, ch chan *Call, args ...interface{}) *Call {
+	return o.createCall(context.Background(), method, flags, ch, args...)
+}
+
+// GoWithContext acts like Go but takes a context
+func (o *Object) GoWithContext(ctx context.Context, method string, flags Flags, ch chan *Call, args ...interface{}) *Call {
+	return o.createCall(ctx, method, flags, ch, args...)
+}
+
+func (o *Object) createCall(ctx context.Context, method string, flags Flags, ch chan *Call, args ...interface{}) *Call {
+	if ctx == nil {
+		panic("nil context")
+	}
 	iface := ""
 	i := strings.LastIndex(method, ".")
 	if i != -1 {
@@ -76,18 +96,26 @@ func (o *Object) Go(method string, flags Flags, ch chan *Call, args ...interface
 		} else if cap(ch) == 0 {
 			panic("dbus: unbuffered channel passed to (*Object).Go")
 		}
+		ctx, cancel := context.WithCancel(ctx)
 		call := &Call{
 			Destination: o.dest,
 			Path:        o.path,
 			Method:      method,
 			Args:        args,
 			Done:        ch,
+			ctxCanceler: cancel,
+			ctx:         ctx,
 		}
 		o.conn.calls.track(msg.serial, call)
 		o.conn.sendMessageAndIfClosed(msg, func() {
-			call.Err = ErrClosed
-			call.Done <- call
+			o.conn.calls.handleSendError(msg, ErrClosed)
+			cancel()
 		})
+		go func() {
+			<-ctx.Done()
+			o.conn.calls.handleSendError(msg, ctx.Err())
+		}()
+
 		return call
 	}
 	done := make(chan *Call, 1)
