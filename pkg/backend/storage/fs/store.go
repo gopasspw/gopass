@@ -22,8 +22,11 @@ type Store struct {
 
 // New creates a new store
 func New(dir string) *Store {
+	if d, err := filepath.EvalSymlinks(dir); err == nil {
+		dir = d
+	}
 	return &Store{
-		path: filepath.Clean(dir),
+		path: dir,
 	}
 }
 
