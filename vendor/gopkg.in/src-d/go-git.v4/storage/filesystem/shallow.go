@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"gopkg.in/src-d/go-git.v4/plumbing"
-	"gopkg.in/src-d/go-git.v4/storage/filesystem/internal/dotgit"
+	"gopkg.in/src-d/go-git.v4/storage/filesystem/dotgit"
 	"gopkg.in/src-d/go-git.v4/utils/ioutil"
 )
 
@@ -40,6 +40,8 @@ func (s *ShallowStorage) Shallow() ([]plumbing.Hash, error) {
 	if f == nil || err != nil {
 		return nil, err
 	}
+
+	defer ioutil.CheckClose(f, &err)
 
 	var hash []plumbing.Hash
 

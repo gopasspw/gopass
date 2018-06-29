@@ -124,17 +124,16 @@ Because a `colorful.Color` implements Go's `color.Color` interface (found in the
 `image/color` package), it can be used anywhere that expects a `color.Color`.
 
 Furthermore, you can convert anything that implements the `color.Color` interface
-into a `colorful.Color` using the `MakeColorful` function:
+into a `colorful.Color` using the `MakeColor` function:
 
 ```go
-c := colorful.MakeColor(color.Gray16{12345})
+c, ok := colorful.MakeColor(color.Gray16{12345})
 ```
 
-**Caveat:** Be aware that for this latter conversion  (using `MakeColor`) hits a corner-case
-when alpha is exactly zero. Because `color.Color` uses pre-multiplied alpha colors,
-this means the RGB values are lost and it's impossible to recover them. The current
-implementation `panic()`s in that case, see [issue 21](https://github.com/lucasb-eyer/go-colorful/issues/21)
-for discussion and suggesting alternatives.
+**Caveat:** Be aware that this latter conversion (using `MakeColor`) hits a
+corner-case when alpha is exactly zero. Because `color.Color` uses pre-multiplied
+alpha colors, this means the RGB values are lost (set to 0) and it's impossible
+to recover them. In such a case `MakeColor` will return `false` as its second value.
 
 ### Comparing colors
 In the RGB color space, the Euclidian distance between colors *doesn't* correspond
@@ -308,7 +307,7 @@ second is the fast one.
 ![Warm, fast warm, happy and fast happy random colors, respectively.](doc/colorgens/colorgens.png)
 
 Don't forget to initialize the random seed! You can see the code used for
-generating this picture in `doc/colorgens/golorgens.go`.
+generating this picture in `doc/colorgens/colorgens.go`.
 
 ### Getting random palettes
 As soon as you need to generate more than one random color, you probably want
@@ -456,16 +455,26 @@ but that is outside the scope of this library.
 Thanks to [@ZirconiumX](https://github.com/ZirconiumX) for starting this investigation,
 see [issue #18](https://github.com/lucasb-eyer/go-colorful/issues/18) for details.
 
-### Q: `MakeColor` panics when alpha is zero!
-A: Because in that case, the conversion is undefined. See
-[issue 21](https://github.com/lucasb-eyer/go-colorful/issues/21)
-as well as the short caveat discussion in the ["The `color.Color` interface"](README.md#the-colorcolor-interface) section above.
+### Q: Why would `MakeColor` ever fail!?
+A: `MakeColor` fails when the alpha channel is zero. In that case, the
+conversion is undefined. See [issue 21](https://github.com/lucasb-eyer/go-colorful/issues/21)
+as well as the short caveat note in the ["The `color.Color` interface"](README.md#the-colorcolor-interface)
+section above.
 
 Who?
 ====
 
 This library has been developed by Lucas Beyer with contributions from
-Bastien Dejean (@baskerville) and Phil Kulak (@pkulak).
+Bastien Dejean (@baskerville), Phil Kulak (@pkulak) and Christian Muehlhaeuser (@muesli).
+
+Release Notes
+=============
+
+### Version 1.0
+- API Breaking change in `MakeColor`: instead of `panic`ing when alpha is zero, it now returns a secondary, boolean return value indicating success. See [the color.Color interface](https://github.com/lucasb-eyer/go-colorful#the-colorcolor-interface) section and [this FAQ entry](https://github.com/lucasb-eyer/go-colorful#q-why-would-makecolor-ever-fail) for details.
+
+### Version 0.9
+- Initial version number after having ignored versioning for a long time :)
 
 License: MIT
 ============

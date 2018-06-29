@@ -35,4 +35,9 @@ There are also some interesting projects using termbox-go:
  - [pinger](https://github.com/hirose31/pinger) helps you to monitor numerous hosts using ICMP ECHO_REQUEST.
  - [vixl44](https://github.com/sebashwa/vixl44) lets you create pixel art inside your terminal using vim movements
  - [zterm](https://github.com/varunrau/zterm) is a typing game inspired by http://zty.pe/
+ - [gotypist](https://github.com/pb-/gotypist) is a fun touch-typing tutor following Steve Yegge's method.
  - [cointop](https://github.com/miguelmota/cointop) is an interactive terminal based UI application for tracking cryptocurrencies.
+ - [pexpo](https://github.com/nnao45/pexpo) is a terminal sending ping tool written in Go.
+
+### API reference
+[godoc.org/github.com/nsf/termbox-go](http://godoc.org/github.com/nsf/termbox-go)

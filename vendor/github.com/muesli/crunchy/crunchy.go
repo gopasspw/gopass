@@ -1,6 +1,6 @@
 /*
  * crunchy - find common flaws in passwords
- *     Copyright (c) 2017, Christian Muehlhaeuser <muesli@gmail.com>
+ *     Copyright (c) 2017-2018, Christian Muehlhaeuser <muesli@gmail.com>
  *
  *   For license see LICENSE
  */
@@ -13,6 +13,8 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"unicode"
+	"unicode/utf8"
 
 	"github.com/xrash/smetrics"
 )
@@ -21,9 +23,9 @@ import (
 type Validator struct {
 	options     Options
 	once        sync.Once
-	wordsMaxLen int
-	words       map[string]struct{}
-	hashedWords map[string]string
+	wordsMaxLen int                 // length of longest word in dictionaries
+	words       map[string]struct{} // map to index parsed dictionaries
+	hashedWords map[string]string   // maps hash-sum to password
 }
 
 // Options contains all the settings for a Validator
@@ -164,4 +166,68 @@ func (v *Validator) Check(password string) error {
 	}
 
 	return v.foundInDictionaries(password)
+}
+
+// Rate grades a password's strength from 0 (weak) to 100 (strong).
+func (v *Validator) Rate(password string) (uint, error) {
+	if err := v.Check(password); err != nil {
+		return 0, err
+	}
+
+	l := len(password)
+	systematics := countSystematicChars(password)
+	repeats := l - countUniqueChars(password)
+	var letters, uLetters, numbers, symbols int
+
+	for len(password) > 0 {
+		r, size := utf8.DecodeRuneInString(password)
+		password = password[size:]
+
+		if unicode.IsLetter(r) {
+			if unicode.IsUpper(r) {
+				uLetters++
+			} else {
+				letters++
+			}
+		} else if unicode.IsNumber(r) {
+			numbers++
+		} else {
+			symbols++
+		}
+	}
+
+	// ADD: number of characters
+	n := l * 4
+	// ADD: uppercase letters
+	if uLetters > 0 {
+		n += (l - uLetters) * 2
+	}
+	// ADD: lowercase letters
+	if letters > 0 {
+		n += (l - letters) * 2
+	}
+	// ADD: numbers
+	n += numbers * 4
+	// ADD: symbols
+	n += symbols * 6
+
+	// REM: letters only
+	if l == letters+uLetters {
+		n -= letters + uLetters
+	}
+	// REM: numbers only
+	if l == numbers {
+		n -= numbers * 4
+	}
+	// REM: repeat characters (case insensitive)
+	n -= repeats * 4
+	// REM: systematic characters
+	n -= systematics * 3
+
+	if n < 0 {
+		n = 0
+	} else if n > 100 {
+		n = 100
+	}
+	return uint(n), nil
 }

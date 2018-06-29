@@ -13,6 +13,7 @@ import (
 	"gopkg.in/src-d/go-git.v4/config"
 	"gopkg.in/src-d/go-git.v4/plumbing"
 	"gopkg.in/src-d/go-git.v4/plumbing/filemode"
+	"gopkg.in/src-d/go-git.v4/plumbing/format/gitignore"
 	"gopkg.in/src-d/go-git.v4/plumbing/format/index"
 	"gopkg.in/src-d/go-git.v4/plumbing/object"
 	"gopkg.in/src-d/go-git.v4/plumbing/storer"
@@ -27,12 +28,15 @@ var (
 	ErrWorktreeNotClean  = errors.New("worktree is not clean")
 	ErrSubmoduleNotFound = errors.New("submodule not found")
 	ErrUnstagedChanges   = errors.New("worktree contains unstaged changes")
+	ErrGitModulesSymlink = errors.New(gitmodulesFile + " is a symlink")
 )
 
 // Worktree represents a git worktree.
 type Worktree struct {
 	// Filesystem underlying filesystem.
 	Filesystem billy.Filesystem
+	// External excludes not found in the repository .gitignore
+	Excludes []gitignore.Pattern
 
 	r *Repository
 }
@@ -554,6 +558,22 @@ func (w *Worktree) checkoutFileSymlink(f *object.File) (err error) {
 	}
 
 	err = w.Filesystem.Symlink(string(bytes), f.Name)
+
+	// On windows, this might fail.
+	// Follow Git on Windows behavior by writing the link as it is.
+	if err != nil && isSymlinkWindowsNonAdmin(err) {
+		mode, _ := f.Mode.ToOSFileMode()
+
+		to, err := w.Filesystem.OpenFile(f.Name, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, mode.Perm())
+		if err != nil {
+			return err
+		}
+
+		defer ioutil.CheckClose(to, &err)
+
+		_, err = to.Write(bytes)
+		return err
+	}
 	return
 }
 
@@ -661,7 +681,18 @@ func (w *Worktree) newSubmodule(fromModules, fromConfig *config.Submodule) *Subm
 	return m
 }
 
+func (w *Worktree) isSymlink(path string) bool {
+	if s, err := w.Filesystem.Lstat(path); err == nil {
+		return s.Mode()&os.ModeSymlink != 0
+	}
+	return false
+}
+
 func (w *Worktree) readGitmodulesFile() (*config.Modules, error) {
+	if w.isSymlink(gitmodulesFile) {
+		return nil, ErrGitModulesSymlink
+	}
+
 	f, err := w.Filesystem.Open(gitmodulesFile)
 	if err != nil {
 		if os.IsNotExist(err) {

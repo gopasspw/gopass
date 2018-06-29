@@ -1,13 +1,10 @@
 language: go
 
 go:
-    - 1.9
+  - 1.9.x
+  - 1.10.x
 
 go_import_path: gopkg.in/src-d/go-billy.v4
-
-matrix:
-    allow_failures:
-        - go: tip
 
 install:
   - go get -v -t ./...
