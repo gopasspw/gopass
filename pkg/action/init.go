@@ -101,8 +101,9 @@ func (s *Action) init(ctx context.Context, alias, path string, keys ...string) e
 	out.Debug(ctx, "action.init(%s, %s, %+v)", alias, path, keys)
 
 	out.Debug(ctx, "Checking private keys ...")
+	crypto := s.getCryptoFor(ctx, alias)
 	if len(keys) < 1 {
-		nk, err := cui.AskForPrivateKey(ctx, s.Store.Crypto(ctx, alias), alias, color.CyanString("Please select a private key for encrypting secrets:"))
+		nk, err := cui.AskForPrivateKey(ctx, crypto, alias, color.CyanString("Please select a private key for encrypting secrets:"))
 		if err != nil {
 			return errors.Wrapf(err, "failed to read user input")
 		}
@@ -154,6 +155,19 @@ func (s *Action) printRecipients(ctx context.Context, alias string) {
 	}
 }
 
+func (s *Action) getCryptoFor(ctx context.Context, name string) backend.Crypto {
+	crypto := s.Store.Crypto(ctx, name)
+	if crypto != nil {
+		return crypto
+	}
+	c, err := sub.GetCryptoBackend(ctx, backend.GetCryptoBackend(ctx), config.Directory(), client.New(config.Directory()))
+	if err != nil {
+		//return errors.Wrapf(err, "failed to init crypto backend")
+		return nil
+	}
+	return c
+}
+
 // InitOnboarding will invoke the onboarding / setup wizard
 func (s *Action) InitOnboarding(ctx context.Context, c *cli.Context) error {
 	remote := c.String("remote")
@@ -174,14 +188,7 @@ func (s *Action) InitOnboarding(ctx context.Context, c *cli.Context) error {
 	ctx = out.AddPrefix(ctx, "[init] ")
 	out.Debug(ctx, "Starting Onboarding Wizard - remote: %s - team: %s - create: %t - name: %s - email: %s", remote, team, create, name, email)
 
-	crypto := s.Store.Crypto(ctx, name)
-	if crypto == nil {
-		c, err := sub.GetCryptoBackend(ctx, backend.GetCryptoBackend(ctx), config.Directory(), client.New(config.Directory()))
-		if err != nil {
-			return errors.Wrapf(err, "failed to init crypto backend")
-		}
-		crypto = c
-	}
+	crypto := s.getCryptoFor(ctx, name)
 
 	out.Debug(ctx, "Crypto Backend initialized as: %s", crypto.Name())
 
