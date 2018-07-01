@@ -11,9 +11,9 @@ After installing `rng-tools` please make sure `rngd` is actually running and
 replenishing your entropy pool.
 
 You can do so by keeping a watch on your available entropy and running an entropy
-consuming process like so.
+consuming process as follows:
 
-```
+```bash
 watch -n1 cat /proc/sys/kernel/random/entropy_avail
 # switch to another terminal / screen
 cat /dev/random | rngtest -c 1000
@@ -27,13 +27,13 @@ You should avoid `havaged`.
 
 ### Debian / Ubuntu
 
-```
+```bash
 sudo apt-get install rng-tools
 ```
 
 ### CentOS / Fedora / Red Hat
 
-```
+```bash
 sudo yum install rng-tools
 ```
 

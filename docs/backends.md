@@ -143,7 +143,7 @@ between a password store and Vault.
 To use the Vault backend manually, create a mount in the config like in the
 following example:
 
-```
+```bash
 cat <<EOF >> $HOME/.config/gopass/config.yml
 mounts:
   vault:
