@@ -2,10 +2,10 @@
 
 gopass supports pluggable backends for Storage (`store`), Encryption (`crypto`) and Source-Control-Management (`sync`).
 
-As of today the names and responsibilities of these backends are still unstable and will probably change.
+As of today, the names and responsibilities of these backends are still unstable and will probably change.
 
-By providing suitable backends gopass can use different kinds of encryption (see XC below) or storage.
-For example it is pretty straightforward to add mercurial or bazaar as an SCM backend or
+By providing suitable backends, gopass can use different kinds of encryption (see XC below) or storage.
+For example, it is pretty straightforward to add mercurial or bazaar as an SCM backend or
 implement a Vault storage.
 
 All backends are in their own packages below `backend/`. They need to implement the
@@ -46,11 +46,11 @@ mounts:
 EOF
 ```
 
-This will setup an unencrypted backend, i.e. your secrets in Consul will be only
+This will setup an unencrypted backend, i.e. your secrets in Consul will only be 
 protected by Consul's ACLs and anyone who can access your Consul K/V prefix
 can read your secrets.
 
-You probably want to use a crypto backend to protect your secrets like in the
+You probably want to use a crypto backend to protect your secrets, like in the
 following example:
 
 ```bash
@@ -62,7 +62,7 @@ gopass mounts
 
 ## RCS Backends (rcs)
 
-These are revision control backends talking to difference source control
+These are revision control backends talking to various source control
 management systems.
 
 ### CLI-based git (gitcli)
@@ -92,7 +92,7 @@ This is a no-op backend for testing SCM-less support.
 This backend is based on calling the `gpg` binary. This is the recommended backend
 since we believe that it's the most secure one and it is compatible with
 other implementations of the `password-store` vault layout. However GPG is notoriously
-difficult to use, there are lot's of different versions being used and the
+difficult to use, there are lots of different versions being used, and the
 output is not very machine readable. We will continue to support this backend
 in the future, but we'd like to to move to a different default backend if possible.
 
@@ -106,7 +106,7 @@ This is a no-op backend used for testing.
 
 We started to implement a pure-Go GPG backend based on the [openpgp package](https://godoc.org/golang.org/x/crypto/openpgp),
 but unfortunately this package doesn't support recent versions of GPG.
-If the openpgp package or a proper fork gains support for recent GPG versions
+If the openpgp package or a proper fork gains support for recent GPG versions,
 we'll try to move to this backend as the default backend.
 
 ### NaCl-based custom crypto backend (xc)
@@ -140,7 +140,7 @@ interoperability with other Vault users.
 management. It mostly exists as an easy access path to sync static secrets
 between a password store and Vault.
 
-To use the Vault backend manually create a mount in the config like in the
+To use the Vault backend manually, create a mount in the config like in the
 following example:
 
 ```
