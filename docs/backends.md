@@ -29,7 +29,7 @@ This is a volatile in-memory backend for tests.
 This is an experimental storage backend that stores data in Consul.
 Make sure to either combine this with a crypto backend or make sure
 the data in Consul is properly protected as this backend does no
-encryption on it's own.
+encryption on its own.
 
 #### Usage
 
@@ -120,7 +120,7 @@ any of the scrutiny and peer review that GPG got. And since it's very easy to
 make dangerous mistakes when dealing with cryptography - even when it's only
 using existing building blocks - we're a little wary to recommend it for broader use.
 
-Also it requires it's own Keyring/Agent infrastructure as the keyformat is quite
+Also it requires its own Keyring/Agent infrastructure, as the keyformat is quite
 different from what GPG is using.
 
 Please see the backend [Readme](https://github.com/gopasspw/gopass/blob/master/pkg/backend/crypto/xc/README.md) for more details. Proper documentation for this
