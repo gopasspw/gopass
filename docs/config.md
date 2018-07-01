@@ -15,12 +15,12 @@ Some configuration options are only available through setting environment variab
 
 During start up, gopass will look for a configuration file at `$HOME/.config/gopass/config.yml`. If one is not present, it will create one. If the config file already exists, it will attempt to parse it and load the settings. If this fails, the program will abort. Thus, if gopass is giving you trouble with a broken or incompatible configuration file, simply rename it or delete it.
 
-All configuration options are also available for reading and writing through the sub command `gopass config`.
+All configuration options are also available for reading and writing through the sub-command `gopass config`.
 
 * To display all values: `gopass config`
 * To display a single value: `gopass config autosync`
 * To update a single value: `gopass config autosync false`
-* As many other sub commands this command accepts a `--store` flag to operate on a given sub-store.
+* As many other sub-commands this command accepts a `--store` flag to operate on a given sub-store.
 
 This is a list of options available:
 

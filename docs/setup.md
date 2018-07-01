@@ -234,7 +234,7 @@ Before migrating to gopass, you may have been using other password managers (suc
 
 ### Enable Bash Auto completion
 
-If you use Bash, you can run one of the following commands to enable auto completion for sub commands like `gopass show`, `gopass ls` and others.
+If you use Bash, you can run one of the following commands to enable auto completion for sub-commands like `gopass show`, `gopass ls` and others.
 
 ```
 source <(gopass completion bash)

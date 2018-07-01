@@ -286,7 +286,7 @@ $ HIBP_DUMPS=/tmp/pwned-passwords-1.0.txt gopass audit hibp
 
 ### Support for Binary Content
 
-gopass provides secure and easy support for working with binary files through the `gopass binary` family of sub commands. One can copy or move secret from or to the store. gopass will attempt to securely overwrite and remove any secret moved to the store.
+gopass provides secure and easy support for working with binary files through the `gopass binary` family of sub-commands. One can copy or move secret from or to the store. gopass will attempt to securely overwrite and remove any secret moved to the store.
 
 ```bash
 # copy file "/some/file.jpg" to "some/secret.b64" in the store
