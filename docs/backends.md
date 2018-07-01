@@ -36,7 +36,7 @@ encryption on its own.
 Until Consul support is fully integrated you need to manually setup a mount
 using the Consul backend.
 
-Add a new mount to your `config.yml` (usually at `.config/gopass/config.yml`):
+Add a new mount to your `config.yml` (usually at `~/.config/gopass/config.yml`):
 
 ```bash
 cat <<EOF >> $HOME/.config/gopass/config.yml
