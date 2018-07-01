@@ -760,7 +760,7 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 			Usage:   "Move secrets from one location to another",
 			Description: "" +
 				"This command moves a secret from one path to another. This works even " +
-				"across different sub stores.",
+				"across different sub-stores.",
 			Before: func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
 			Action: func(c *cli.Context) error {
 				return action.Move(withGlobalFlags(ctx, c), c)
