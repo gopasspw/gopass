@@ -7,7 +7,10 @@ gopass supports.
 
 ### Data Organization
 
-Before you start using gopass, you should know a little bit about how it stores your data. It's actually really simple! Each password (or secret) will live in its own file. And you can stick related passwords (or secrets) together in a directory. So, for example, if you had 3 laptops and wanted to store the root passwords for all 3, then your file system might look something like the following:
+Before you start using gopass, you should know a little bit about how it stores your data.
+It's actually really simple! Each password (or secret) will live in its own file.
+And you can stick related passwords (or secrets) together in a directory.
+So, for example, if you had 3 laptops and wanted to store the root passwords for all 3, then your file system might look something like the following:
 
 ```
 .password-store
@@ -40,23 +43,26 @@ example2.com/john@doe.com
 
 ### Initializing a Password Store
 
-After installing gopass, the first thing you should do is initialize a password store. (If you are migrating to gopass from pass and already have a password store, you can skip this step.)
+After installing gopass, the first thing you should do is initialize a password store.
+(If you are migrating to gopass from pass and already have a password store, you can skip this step.)
 
-Note that this document uses the term *password store* to refer to a directory that is managed by gopass. This is entirely different from any OS-level credential store, your GPG key ring, or your SSH keys.
+Note that this document uses the term *password store* to refer to a directory that is managed by gopass.
+This is entirely different from any OS-level credential store, your GPG key ring, or your SSH keys.
 
-To initialize a password store, just do a:
+To initialize a password store, just do:
 
 ```bash
 gopass init
 ```
 
-This will prompt you for which GPG key you want to associate the store with. Then it will create a `.password-store` directory in your home directory.
+This will prompt you for which GPG key you want to associate the store with.
+Then it will create a `.password-store` directory in your home directory.
 
 If you don't want gopass to use this default directory, you can instead initialize a password store with:
 
 ```bash
 gopass init --path /custom/path/to/password/store
-````
+```
 
 If you don't want gopass to prompt you for the GPG key to use, you can specify it inline. For example, this might be useful if you have a huge number of GPG keys on the system or if you are initializing a password store from a script. You can do this in three different ways:
 
