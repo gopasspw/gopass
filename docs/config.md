@@ -22,7 +22,7 @@ All configuration options are also available for reading and writing through the
 * To update a single value: `gopass config autosync false`
 * As many other sub-commands this command accepts a `--store` flag to operate on a given sub-store.
 
-This is a list of options available:
+This is a list of available options:
 
 | **Option**    | **Type** | Description |
 | ------------- | -------- | ----------- |
