@@ -89,7 +89,7 @@ This is a no-op backend for testing SCM-less support.
 
 ### CLI-based GPG (gitcli)
 
-This backend is based on calling the gpg binary. This is the recommended backend
+This backend is based on calling the `gpg` binary. This is the recommended backend
 since we believe that it's the most secure one and it is compatible with
 other implementations of the `password-store` vault layout. However GPG is notoriously
 difficult to use, there are lot's of different versions being used and the
@@ -155,9 +155,9 @@ All `TLSConfig` options for Vault are supported as query parameters.
 
 | **Query Parameter** | **TLSConfig Attribute** | Description |
 | ------------------- | ----------------------- | ----------- |
-| tls-cacert | CACert | the Path to a PEM-encoded CA cert file |
-| tls-capath | CAPath | the Path to a directory of PEM-encoded CA cert files |
-| tls-clientcert | ClientCert | the Path to the certificate for Vault communication |
-| tls-clientkey | ClientKey | the path to the private key for Vault communication |
-| tls-servername | TLSServerName | set the SNI host when connecting |
-| tls-insecure | Disables SSL verification |
+| `tls-cacert` | `CACert` | the path to a PEM-encoded CA cert file |
+| `tls-capath` | `CAPath` | the path to a directory of PEM-encoded CA cert files |
+| `tls-clientcert` | `ClientCert` | the path to the certificate for Vault communication |
+| `tls-clientkey` | `ClientKey` | the path to the private key for Vault communication |
+| `tls-servername` | `TLSServerName` | set the SNI host when connecting |
+| `tls-insecure` | | Disables SSL verification |
