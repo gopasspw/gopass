@@ -48,9 +48,9 @@ type errorResponse struct {
 }
 
 func readMessage(r io.Reader) ([]byte, error) {
-	stdin := bufio.NewReader(r)
+	input := bufio.NewReader(r)
 	lenBytes := make([]byte, 4)
-	count, err := stdin.Read(lenBytes)
+	count, err := input.Read(lenBytes)
 	if err != nil {
 		return nil, eofReturn(err)
 	}
@@ -64,7 +64,7 @@ func readMessage(r io.Reader) ([]byte, error) {
 	}
 
 	msgBytes := make([]byte, length)
-	count, err = stdin.Read(msgBytes)
+	count, err = input.Read(msgBytes)
 	if err != nil {
 		return nil, eofReturn(err)
 	}

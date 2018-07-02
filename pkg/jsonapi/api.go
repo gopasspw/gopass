@@ -15,7 +15,7 @@ type API struct {
 	Writer io.Writer
 }
 
-// ReadAndRespond a single message via stdin/stdout
+// ReadAndRespond a single message
 func (api *API) ReadAndRespond(ctx context.Context) error {
 	silentCtx := out.WithHidden(ctx, true)
 	message, err := readMessage(api.Reader)
@@ -26,7 +26,7 @@ func (api *API) ReadAndRespond(ctx context.Context) error {
 	return api.respondMessage(silentCtx, message)
 }
 
-// RespondError sends err as JSON response via stdout
+// RespondError sends err as JSON response
 func (api *API) RespondError(err error) error {
 	var response errorResponse
 	response.Error = err.Error()

@@ -276,10 +276,10 @@ func populateStore(dir string, secrets []storedSecret) error {
 }
 
 func readAndVerifyMessageLength(t *testing.T, rawMessage []byte) string {
-	stdin := bytes.NewReader(rawMessage)
+	input := bytes.NewReader(rawMessage)
 	lenBytes := make([]byte, 4)
 
-	_, err := stdin.Read(lenBytes)
+	_, err := input.Read(lenBytes)
 	assert.NoError(t, err)
 
 	length, err := getMessageLength(lenBytes)
@@ -287,7 +287,7 @@ func readAndVerifyMessageLength(t *testing.T, rawMessage []byte) string {
 	assert.Equal(t, len(rawMessage)-4, length)
 
 	msgBytes := make([]byte, length)
-	_, err = stdin.Read(msgBytes)
+	_, err = input.Read(msgBytes)
 	assert.NoError(t, err)
 	return string(msgBytes)
 }
