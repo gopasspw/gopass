@@ -4,15 +4,17 @@ import (
 	"context"
 	"io"
 
+	"github.com/blang/semver"
 	"github.com/gopasspw/gopass/pkg/out"
 	"github.com/gopasspw/gopass/pkg/store/root"
 )
 
 // API type holding store and context
 type API struct {
-	Store  *root.Store
-	Reader io.Reader
-	Writer io.Writer
+	Store   *root.Store
+	Reader  io.Reader
+	Writer  io.Writer
+	Version semver.Version
 }
 
 // ReadAndRespond a single message

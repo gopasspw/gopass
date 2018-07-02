@@ -17,6 +17,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/store/root"
 	"github.com/gopasspw/gopass/pkg/store/secret"
 
+	"github.com/blang/semver"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -38,6 +39,14 @@ func TestRespondMessageBrokenInput(t *testing.T) {
 
 	// Empty object
 	runRespondMessage(t, "{}", "", "unknown message of type ", []storedSecret{})
+}
+
+func TestRespondGetVersion(t *testing.T) {
+	runRespondMessage(t,
+		`{"type": "getVersion"}`,
+		`{"version":"1.2.3-test","major":1,"minor":2,"patch":3}`,
+		"",
+		nil)
 }
 
 func TestRespondMessageQuery(t *testing.T) {
@@ -236,7 +245,7 @@ func runRespondRawMessages(t *testing.T, requests []verifiedRequest, secrets []s
 		var inbuf bytes.Buffer
 		var outbuf bytes.Buffer
 
-		api := API{store, &inbuf, &outbuf}
+		api := API{store, &inbuf, &outbuf, semver.MustParse("1.2.3-test")}
 
 		_, err = inbuf.Write([]byte(request.InputStr))
 		assert.NoError(t, err)
@@ -249,6 +258,7 @@ func runRespondRawMessages(t *testing.T, requests []verifiedRequest, secrets []s
 		}
 		assert.NoError(t, err)
 		outputMessage := readAndVerifyMessageLength(t, outbuf.Bytes())
+		assert.NotEqual(t, "", request.OutputRegexpStr, "Empty string would match any output")
 		assert.Regexp(t, regexp.MustCompile(request.OutputRegexpStr), outputMessage)
 	}
 }

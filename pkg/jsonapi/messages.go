@@ -34,6 +34,13 @@ type getDataMessage struct {
 	Entry string `json:"entry"`
 }
 
+type getVersionMessage struct {
+	Version string `json:"version"`
+	Major   uint64 `json:"major"`
+	Minor   uint64 `json:"minor"`
+	Patch   uint64 `json:"patch"`
+}
+
 type createEntryMessage struct {
 	Name           string `json:"entry_name"`
 	Login          string `json:"login"`
