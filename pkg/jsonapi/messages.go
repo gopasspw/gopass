@@ -55,7 +55,7 @@ func readMessage(r io.Reader) ([]byte, error) {
 		return nil, eofReturn(err)
 	}
 	if count != 4 {
-		return nil, fmt.Errorf("not enough bytes read to deterimine message size")
+		return nil, fmt.Errorf("not enough bytes read to determine message size")
 	}
 
 	length, err := getMessageLength(lenBytes)
@@ -94,7 +94,7 @@ func eofReturn(err error) error {
 
 func sendSerializedJSONMessage(message interface{}, w io.Writer) error {
 	// we can't use json.NewEncoder(w).Encode because we need to send the final
-	// message length before the actul JSON
+	// message length before the actual JSON
 	serialized, err := json.Marshal(message)
 	if err != nil {
 		return err

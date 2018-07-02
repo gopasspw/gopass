@@ -31,7 +31,7 @@ func TestRespondMessageBrokenInput(t *testing.T) {
 	runRespondRawMessage(t, "1234Xabcd", "", "incomplete message read", []storedSecret{})
 
 	// Too short to determine message size
-	runRespondRawMessage(t, " ", "", "not enough bytes read to deterimine message size", []storedSecret{})
+	runRespondRawMessage(t, " ", "", "not enough bytes read to determine message size", []storedSecret{})
 
 	// Empty message
 	runRespondMessage(t, "", "", "failed to unmarshal JSON message: unexpected end of JSON input", []storedSecret{})
