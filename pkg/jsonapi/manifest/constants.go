@@ -4,13 +4,12 @@ var (
 	// DefaultBrowser to select when no browser is specified
 	DefaultBrowser = "chrome"
 
-	// DefaultWrapperPath where the gopass wrapper shell script is installed to
-	DefaultWrapperPath = "/usr/local/bin"
-
 	// Name is the name of the manifest
 	Name = "com.justwatch.gopass"
 	// WrapperName is the name of the gopass wrapper
 	WrapperName = "gopass_wrapper.sh"
+	// WrapperNameWindows is the name of the gopass wrapper binary
+	WrapperNameWindows = "gopass_native_host.exe"
 
 	description    = "Gopass wrapper to search and return passwords"
 	connectionType = "stdio"
@@ -32,6 +31,12 @@ var (
 			"chrome":   "/etc/opt/chrome/native-messaging-hosts",
 			"chromium": "/etc/chromium/native-messaging-hosts",
 		},
+		// windows stores the path to the manifests in the registry
+		"windows": {
+			"firefox":  `Software\Mozilla\NativeMessagingHosts\` + Name,
+			"chrome":   `Software\Google\Chrome\NativeMessagingHosts\` + Name,
+			"chromium": `Software\Google\Chrome\NativeMessagingHosts\` + Name,
+		},
 	}
 
 	manifestPath = map[string]map[string]string{
@@ -44,6 +49,11 @@ var (
 			"firefox":  "~/.mozilla/native-messaging-hosts",
 			"chrome":   "~/.config/google-chrome/NativeMessagingHosts",
 			"chromium": "~/.config/chromium/NativeMessagingHosts",
+		},
+		"windows": {
+			"firefox":  `Software\Mozilla\NativeMessagingHosts\` + Name,
+			"chrome":   `Software\Google\Chrome\NativeMessagingHosts\` + Name,
+			"chromium": `Software\Google\Chrome\NativeMessagingHosts\` + Name,
 		},
 	}
 )

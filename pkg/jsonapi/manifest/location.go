@@ -8,9 +8,9 @@ import (
 	homedir "github.com/mitchellh/go-homedir"
 )
 
-// Path returns the manifest path
+// Path returns the manifest file path
 func Path(browser, libpath string, globalInstall bool) (string, error) {
-	location, err := getLocation(browser, libpath, globalInstall)
+	location, err := GetLocation(browser, libpath, globalInstall)
 	if err != nil {
 		return "", err
 	}
@@ -23,7 +23,8 @@ func Path(browser, libpath string, globalInstall bool) (string, error) {
 	return filepath.Join(expanded, Name+".json"), nil
 }
 
-func getLocation(browser, libpath string, globalInstall bool) (string, error) {
+// GetLocation returns only the manifest path
+func GetLocation(browser, libpath string, globalInstall bool) (string, error) {
 	if globalInstall {
 		return getGlobalLocation(browser, libpath)
 	}
@@ -48,7 +49,7 @@ func getGlobalLocation(browser, libpath string) (string, error) {
 	if !found {
 		return "", fmt.Errorf("browser %s on %s is currently not supported", browser, runtime.GOOS)
 	}
-	if browser == "firefox" {
+	if runtime.GOOS != "windows" && browser == "firefox" {
 		path = libpath + "/" + path
 	}
 	return path, nil
