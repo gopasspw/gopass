@@ -50,12 +50,12 @@ func setupApp(ctx context.Context, sv semver.Version) *cli.App {
 	}
 
 	app.Action = func(c *cli.Context) error {
-		if strings.HasSuffix(os.Args[0], "native_host") || strings.HasSuffix(os.Args[0], "native_host.exe") {
-			return action.JSONAPI(withGlobalFlags(ctx, c), c)
-		}
-
 		if err := action.Initialized(withGlobalFlags(ctx, c), c); err != nil {
 			return err
+		}
+
+		if strings.HasSuffix(os.Args[0], "native_host") || strings.HasSuffix(os.Args[0], "native_host.exe") {
+			return action.JSONAPI(withGlobalFlags(ctx, c), c)
 		}
 
 		if c.Args().Present() {
