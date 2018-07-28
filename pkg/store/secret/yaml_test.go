@@ -54,7 +54,7 @@ func TestYAMLKeyToEmptySecret(t *testing.T) {
 	// read back key
 	content, err := s.Value(yamlKey)
 	assert.NoError(t, err)
-	assert.Equal(t, yamlValue, string(content))
+	assert.Equal(t, yamlValue, content)
 
 	// read back whole entry
 	buf, err := s.Bytes()
@@ -92,7 +92,7 @@ func TestYAMLKeyToPWOnlySecret(t *testing.T) {
 	// read back the key
 	content, err := s.Value(yamlKey)
 	assert.NoError(t, err)
-	assert.Equal(t, yamlValue, string(content))
+	assert.Equal(t, yamlValue, content)
 
 	// read back whole entry
 	bv, err := s.Bytes()
@@ -177,7 +177,7 @@ ccc
 	// read back key
 	content, err := s.Value(yamlKey)
 	assert.NoError(t, err)
-	assert.Equal(t, mlValue, string(content))
+	assert.Equal(t, mlValue, content)
 }
 
 func TestYAMLDocMarkerAsPW(t *testing.T) {
