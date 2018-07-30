@@ -36,7 +36,7 @@ func (s *Action) SetupNativeMessaging(ctx context.Context, c *cli.Context) error
 		defaultWrapperPath = filepath.Join(os.Getenv("PROGRAMDATA"), "gopass")
 	}
 
-	wrapperPath, err := s.getWrapperPath(ctx, c, manifest.WrapperNameWindows)
+	wrapperPath, err := s.getWrapperPath(ctx, c, defaultWrapperPath, manifest.WrapperNameWindows)
 	if err != nil {
 		return ExitError(ctx, ExitIO, err, "failed to get wrapper path: %s", err)
 	}
