@@ -36,6 +36,8 @@ func (api *API) respondMessage(ctx context.Context, msgBytes []byte) error {
 		return api.respondGetData(ctx, msgBytes)
 	case "create":
 		return api.respondCreateEntry(ctx, msgBytes)
+	case "getVersion":
+		return api.respondGetVersion()
 	default:
 		return fmt.Errorf("unknown message of type %s", message.Type)
 	}
@@ -180,5 +182,14 @@ func (api *API) respondCreateEntry(ctx context.Context, msgBytes []byte) error {
 	return sendSerializedJSONMessage(loginResponse{
 		Username: message.Login,
 		Password: message.Password,
+	}, api.Writer)
+}
+
+func (api *API) respondGetVersion() error {
+	return sendSerializedJSONMessage(getVersionMessage{
+		Version: api.Version.String(),
+		Major:   api.Version.Major,
+		Minor:   api.Version.Minor,
+		Patch:   api.Version.Patch,
 	}, api.Writer)
 }

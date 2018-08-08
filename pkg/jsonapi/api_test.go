@@ -17,6 +17,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/store/root"
 	"github.com/gopasspw/gopass/pkg/store/secret"
 
+	"github.com/blang/semver"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -31,13 +32,21 @@ func TestRespondMessageBrokenInput(t *testing.T) {
 	runRespondRawMessage(t, "1234Xabcd", "", "incomplete message read", []storedSecret{})
 
 	// Too short to determine message size
-	runRespondRawMessage(t, " ", "", "not enough bytes read to deterimine message size", []storedSecret{})
+	runRespondRawMessage(t, " ", "", "not enough bytes read to determine message size", []storedSecret{})
 
 	// Empty message
 	runRespondMessage(t, "", "", "failed to unmarshal JSON message: unexpected end of JSON input", []storedSecret{})
 
 	// Empty object
 	runRespondMessage(t, "{}", "", "unknown message of type ", []storedSecret{})
+}
+
+func TestRespondGetVersion(t *testing.T) {
+	runRespondMessage(t,
+		`{"type": "getVersion"}`,
+		`{"version":"1.2.3-test","major":1,"minor":2,"patch":3}`,
+		"",
+		nil)
 }
 
 func TestRespondMessageQuery(t *testing.T) {
@@ -236,7 +245,7 @@ func runRespondRawMessages(t *testing.T, requests []verifiedRequest, secrets []s
 		var inbuf bytes.Buffer
 		var outbuf bytes.Buffer
 
-		api := API{store, &inbuf, &outbuf}
+		api := API{store, &inbuf, &outbuf, semver.MustParse("1.2.3-test")}
 
 		_, err = inbuf.Write([]byte(request.InputStr))
 		assert.NoError(t, err)
@@ -249,6 +258,7 @@ func runRespondRawMessages(t *testing.T, requests []verifiedRequest, secrets []s
 		}
 		assert.NoError(t, err)
 		outputMessage := readAndVerifyMessageLength(t, outbuf.Bytes())
+		assert.NotEqual(t, "", request.OutputRegexpStr, "Empty string would match any output")
 		assert.Regexp(t, regexp.MustCompile(request.OutputRegexpStr), outputMessage)
 	}
 }
@@ -276,10 +286,10 @@ func populateStore(dir string, secrets []storedSecret) error {
 }
 
 func readAndVerifyMessageLength(t *testing.T, rawMessage []byte) string {
-	stdin := bytes.NewReader(rawMessage)
+	input := bytes.NewReader(rawMessage)
 	lenBytes := make([]byte, 4)
 
-	_, err := stdin.Read(lenBytes)
+	_, err := input.Read(lenBytes)
 	assert.NoError(t, err)
 
 	length, err := getMessageLength(lenBytes)
@@ -287,7 +297,7 @@ func readAndVerifyMessageLength(t *testing.T, rawMessage []byte) string {
 	assert.Equal(t, len(rawMessage)-4, length)
 
 	msgBytes := make([]byte, length)
-	_, err = stdin.Read(msgBytes)
+	_, err = input.Read(msgBytes)
 	assert.NoError(t, err)
 	return string(msgBytes)
 }

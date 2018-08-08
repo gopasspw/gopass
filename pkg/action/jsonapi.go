@@ -22,7 +22,7 @@ import (
 
 // JSONAPI reads a json message on stdin and responds on stdout
 func (s *Action) JSONAPI(ctx context.Context, c *cli.Context) error {
-	api := jsonapi.API{Store: s.Store, Reader: stdin, Writer: stdout}
+	api := jsonapi.API{Store: s.Store, Reader: stdin, Writer: stdout, Version: s.version}
 	if err := api.ReadAndRespond(ctx); err != nil {
 		return api.RespondError(err)
 	}
