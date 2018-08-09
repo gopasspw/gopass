@@ -24,6 +24,7 @@ ways.  It also adds substantial functionality beyond termbox.
 * [tview](https://github.com/rivo/tview) - rich interactive widgets for terminal UIs
 * [tui-go](https://github.com/marcusolsson/tui-go) - UI library for terminal apps
 * [gomandelbrot](https://github.com/rgm3/gomandelbrot) - Mandelbrot!
+* [WTF](https://github.com/senorprogrammer/wtf)- Personal information dashboard for your terminal
 
 ## Pure Go Terminfo Database
 
@@ -87,7 +88,7 @@ Tcell maps 16 colors down to 8, for terminals that need it.  (The upper
 Tcell supports enhanced mouse tracking mode, so your application can receive
 regular mouse motion events, and wheel events, if your terminal supports it.
 
-## Termbox Compatibility 
+## Termbox Compatibility
 
 A compatibility layer for termbox is provided in the compat
 directory.  To use it, try importing "github.com/gdamore/tcell/termbox"

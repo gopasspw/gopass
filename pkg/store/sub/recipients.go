@@ -30,7 +30,7 @@ var (
 func (s *Store) Recipients(ctx context.Context) []string {
 	rs, err := s.GetRecipients(ctx, "")
 	if err != nil {
-		out.Red(ctx, "failed to read recipient list: %s", err)
+		out.Error(ctx, "failed to read recipient list: %s", err)
 	}
 	return rs
 }
@@ -186,7 +186,7 @@ func (s *Store) ExportMissingPublicKeys(ctx context.Context, rs []string) (bool,
 		path, err := s.exportPublicKey(ctx, r)
 		if err != nil {
 			ok = false
-			out.Red(ctx, "failed to export public key for '%s': %s", r, err)
+			out.Error(ctx, "failed to export public key for '%s': %s", r, err)
 			continue
 		}
 		if path == "" {
@@ -199,12 +199,12 @@ func (s *Store) ExportMissingPublicKeys(ctx context.Context, rs []string) (bool,
 				continue
 			}
 			ok = false
-			out.Red(ctx, "failed to add public key for '%s' to git: %s", r, err)
+			out.Error(ctx, "failed to add public key for '%s' to git: %s", r, err)
 			continue
 		}
 		if err := s.rcs.Commit(ctx, fmt.Sprintf("Exported Public Keys %s", r)); err != nil && err != store.ErrGitNothingToCommit {
 			ok = false
-			out.Red(ctx, "Failed to git commit: %s", err)
+			out.Error(ctx, "Failed to git commit: %s", err)
 			continue
 		}
 	}
@@ -245,7 +245,7 @@ func (s *Store) saveRecipients(ctx context.Context, rs []string, msg string, exp
 	// save all recipients public keys to the repo
 	if exportKeys {
 		if _, err := s.ExportMissingPublicKeys(ctx, rs); err != nil {
-			out.Red(ctx, "Failed to export missing public keys: %s", err)
+			out.Error(ctx, "Failed to export missing public keys: %s", err)
 		}
 	}
 

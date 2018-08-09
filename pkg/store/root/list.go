@@ -39,7 +39,7 @@ func (r *Store) Tree(ctx context.Context) (tree.Tree, error) {
 				ct = "text/plain"
 			}
 			if err := root.AddFile(f, ct); err != nil {
-				out.Red(ctx, "Failed to add file %s to tree: %s", f, err)
+				out.Error(ctx, "Failed to add file %s to tree: %s", f, err)
 				continue
 			}
 		}
@@ -47,7 +47,7 @@ func (r *Store) Tree(ctx context.Context) (tree.Tree, error) {
 	addTplFunc := func(in ...string) {
 		for _, f := range in {
 			if err := root.AddTemplate(f); err != nil {
-				out.Red(ctx, "Failed to add template %s to tree: %s", f, err)
+				out.Error(ctx, "Failed to add template %s to tree: %s", f, err)
 				continue
 			}
 		}

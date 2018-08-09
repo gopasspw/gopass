@@ -70,7 +70,7 @@ func (s *Store) TemplateTree(ctx context.Context) (tree.Tree, error) {
 	root := simple.New("gopass")
 	for _, t := range s.ListTemplates(ctx, "") {
 		if err := root.AddFile(t, "gopass/template"); err != nil {
-			out.Red(ctx, "Failed to add template: %s", err)
+			out.Error(ctx, "Failed to add template: %s", err)
 		}
 	}
 

@@ -31,7 +31,7 @@ const (
 // ProgressCallback is a callback for updateing progress
 type ProgressCallback func()
 
-// WithDebug returns a context with an explizit value for debug
+// WithDebug returns a context with an explicit value for debug
 func WithDebug(ctx context.Context, dbg bool) context.Context {
 	return context.WithValue(ctx, ctxKeyDebug, dbg)
 }
@@ -51,7 +51,7 @@ func IsDebug(ctx context.Context) bool {
 	return bv
 }
 
-// WithColor returns a context with an explizit value for color
+// WithColor returns a context with an explicit value for color
 func WithColor(ctx context.Context, color bool) context.Context {
 	return context.WithValue(ctx, ctxKeyColor, color)
 }
@@ -71,7 +71,7 @@ func IsColor(ctx context.Context) bool {
 	return bv
 }
 
-// WithTerminal returns a context with an explizit value for terminal
+// WithTerminal returns a context with an explicit value for terminal
 func WithTerminal(ctx context.Context, isTerm bool) context.Context {
 	return context.WithValue(ctx, ctxKeyTerminal, isTerm)
 }
@@ -91,7 +91,7 @@ func IsTerminal(ctx context.Context) bool {
 	return bv
 }
 
-// WithInteractive returns a context with an explizit value for interactive
+// WithInteractive returns a context with an explicit value for interactive
 func WithInteractive(ctx context.Context, isInteractive bool) context.Context {
 	return context.WithValue(ctx, ctxKeyInteractive, isInteractive)
 }

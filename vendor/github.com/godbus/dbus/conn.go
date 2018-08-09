@@ -1,6 +1,7 @@
 package dbus
 
 import (
+	"context"
 	"errors"
 	"io"
 	"os"
@@ -369,8 +370,21 @@ func (conn *Conn) sendMessageAndIfClosed(msg *Message, ifClosed func()) {
 // once the call is complete. Otherwise, ch is ignored and a Call structure is
 // returned of which only the Err member is valid.
 func (conn *Conn) Send(msg *Message, ch chan *Call) *Call {
-	var call *Call
+	return conn.send(context.Background(), msg, ch)
+}
 
+// SendWithContext acts like Send but takes a context
+func (conn *Conn) SendWithContext(ctx context.Context, msg *Message, ch chan *Call) *Call {
+	return conn.send(ctx, msg, ch)
+}
+
+func (conn *Conn) send(ctx context.Context, msg *Message, ch chan *Call) *Call {
+	if ctx == nil {
+		panic("nil context")
+	}
+
+	var call *Call
+	ctx, canceler := context.WithCancel(ctx)
 	msg.serial = conn.getSerial()
 	if msg.Type == TypeMethodCall && msg.Flags&FlagNoReplyExpected == 0 {
 		if ch == nil {
@@ -386,12 +400,19 @@ func (conn *Conn) Send(msg *Message, ch chan *Call) *Call {
 		call.Method = iface + "." + member
 		call.Args = msg.Body
 		call.Done = ch
+		call.ctx = ctx
+		call.ctxCanceler = canceler
 		conn.calls.track(msg.serial, call)
+		go func() {
+			<-ctx.Done()
+			conn.calls.handleSendError(msg, ctx.Err())
+		}()
 		conn.sendMessageAndIfClosed(msg, func() {
-			call.Err = ErrClosed
-			call.Done <- call
+			conn.calls.handleSendError(msg, ErrClosed)
+			canceler()
 		})
 	} else {
+		canceler()
 		call = &Call{Err: nil}
 		conn.sendMessageAndIfClosed(msg, func() {
 			call = &Call{Err: ErrClosed}
@@ -698,36 +719,30 @@ func newCallTracker() *callTracker {
 
 func (tracker *callTracker) track(sn uint32, call *Call) {
 	tracker.lck.Lock()
-	defer tracker.lck.Unlock()
 	tracker.calls[sn] = call
+	tracker.lck.Unlock()
 }
 
 func (tracker *callTracker) handleReply(msg *Message) uint32 {
 	serial := msg.Headers[FieldReplySerial].value.(uint32)
 	tracker.lck.RLock()
-	c, ok := tracker.calls[serial]
+	_, ok := tracker.calls[serial]
 	tracker.lck.RUnlock()
-	if !ok {
-		return serial
+	if ok {
+		tracker.finalizeWithBody(serial, msg.Body)
 	}
-	c.Body = msg.Body
-	c.Done <- c
-	tracker.finalize(serial)
 	return serial
 }
 
 func (tracker *callTracker) handleDBusError(msg *Message) uint32 {
 	serial := msg.Headers[FieldReplySerial].value.(uint32)
 	tracker.lck.RLock()
-	c, ok := tracker.calls[serial]
+	_, ok := tracker.calls[serial]
 	tracker.lck.RUnlock()
-	if !ok {
-		return serial
+	if ok {
+		name, _ := msg.Headers[FieldErrorName].value.(string)
+		tracker.finalizeWithError(serial, Error{name, msg.Body})
 	}
-	name, _ := msg.Headers[FieldErrorName].value.(string)
-	c.Err = Error{name, msg.Body}
-	c.Done <- c
-	tracker.finalize(serial)
 	return serial
 }
 
@@ -736,32 +751,63 @@ func (tracker *callTracker) handleSendError(msg *Message, err error) {
 		return
 	}
 	tracker.lck.RLock()
-	c, ok := tracker.calls[msg.serial]
+	_, ok := tracker.calls[msg.serial]
 	tracker.lck.RUnlock()
-	if !ok {
-		return
+	if ok {
+		tracker.finalizeWithError(msg.serial, err)
 	}
-	c.Err = err
-	c.Done <- c
-	tracker.finalize(msg.serial)
 }
 
+// finalize was the only func that did not strobe Done
 func (tracker *callTracker) finalize(sn uint32) {
 	tracker.lck.Lock()
 	defer tracker.lck.Unlock()
-	delete(tracker.calls, sn)
+	c, ok := tracker.calls[sn]
+	if ok {
+		delete(tracker.calls, sn)
+		c.ContextCancel()
+	}
+	return
+}
+
+func (tracker *callTracker) finalizeWithBody(sn uint32, body []interface{}) {
+	tracker.lck.Lock()
+	c, ok := tracker.calls[sn]
+	if ok {
+		delete(tracker.calls, sn)
+	}
+	tracker.lck.Unlock()
+	if ok {
+		c.Body = body
+		c.done()
+	}
+	return
+}
+
+func (tracker *callTracker) finalizeWithError(sn uint32, err error) {
+	tracker.lck.Lock()
+	c, ok := tracker.calls[sn]
+	if ok {
+		delete(tracker.calls, sn)
+	}
+	tracker.lck.Unlock()
+	if ok {
+		c.Err = err
+		c.done()
+	}
+	return
 }
 
 func (tracker *callTracker) finalizeAllWithError(err error) {
-	closedCalls := make(map[uint32]*Call)
-	tracker.lck.RLock()
-	for sn, v := range tracker.calls {
-		v.Err = err
-		v.Done <- v
-		closedCalls[sn] = v
+	tracker.lck.Lock()
+	closedCalls := make([]*Call, 0, len(tracker.calls))
+	for sn := range tracker.calls {
+		closedCalls = append(closedCalls, tracker.calls[sn])
 	}
-	tracker.lck.RUnlock()
-	for sn := range closedCalls {
-		tracker.finalize(sn)
+	tracker.calls = map[uint32]*Call{}
+	tracker.lck.Unlock()
+	for _, call := range closedCalls {
+		call.Err = err
+		call.done()
 	}
 }

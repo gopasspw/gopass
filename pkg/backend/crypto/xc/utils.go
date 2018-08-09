@@ -121,12 +121,12 @@ func (x *XC) Fingerprint(ctx context.Context, id string) string {
 func (x *XC) CreatePrivateKeyBatch(ctx context.Context, name, email, passphrase string) error {
 	k, err := keyring.GenerateKeypair(passphrase)
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "failed to generate keypair: %s", err)
 	}
 	k.Identity.Name = name
 	k.Identity.Email = email
 	if err := x.secring.Set(k); err != nil {
-		return err
+		return errors.Wrapf(err, "failed to set %s to secring: %s", k, err)
 	}
 	return x.secring.Save()
 }

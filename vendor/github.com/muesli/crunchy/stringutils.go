@@ -11,6 +11,8 @@ import (
 	"encoding/hex"
 	"hash"
 	"strings"
+	"unicode"
+	"unicode/utf8"
 )
 
 // countUniqueChars returns the amount of unique runes in a string
@@ -18,6 +20,7 @@ func countUniqueChars(s string) int {
 	m := make(map[rune]struct{})
 
 	for _, c := range s {
+		c = unicode.ToLower(c)
 		if _, ok := m[c]; !ok {
 			m[c] = struct{}{}
 		}
@@ -45,10 +48,14 @@ func countSystematicChars(s string) int {
 
 // reverse returns the reversed form of a string
 func reverse(s string) string {
-	rs := []rune(s)
-	for i, j := 0, len(rs)-1; i < j; i, j = i+1, j-1 {
-		rs[i], rs[j] = rs[j], rs[i]
+	var rs []rune
+	for len(s) > 0 {
+		r, size := utf8.DecodeLastRuneInString(s)
+		s = s[:len(s)-size]
+
+		rs = append(rs, r)
 	}
+
 	return string(rs)
 }
 
