@@ -62,13 +62,13 @@ so some features (e.g. version checks, auto-update) are unavailable.
 
 Build it
 
-```
+```bash
 docker build -t gopass github.com/gopasspw/gopass#master
 ```
 
 Use it
 
-```
+```bash
 alias gopass="docker run --rm -ti -v $HOME:/root gopass"
 ```
 
@@ -202,7 +202,7 @@ Download and install a suitable Windows build from the repository [releases page
 
 If you have [Go](https://golang.org/) already installed, you can use `go get` to automatically download the latest version:
 
-```
+```bash
 go get -u github.com/gopasspw/gopass
 ```
 
@@ -234,15 +234,15 @@ Before migrating to gopass, you may have been using other password managers (suc
 
 ### Enable Bash Auto completion
 
-If you use Bash, you can run one of the following commands to enable auto completion for sub commands like `gopass show`, `gopass ls` and others.
+If you use Bash, you can run one of the following commands to enable auto completion for sub-commands like `gopass show`, `gopass ls` and others.
 
-```
+```bash
 source <(gopass completion bash)
 ```
 
 **MacOS**: The version of bash shipped with MacOS may [require a workaround](https://stackoverflow.com/questions/32596123/why-source-command-doesnt-work-with-process-substitution-in-bash-3-2) to enable auto completion. If the instructions above do not work try the following one:
 
-```
+```bash
 source /dev/stdin <<<"$(gopass completion bash)"
 ```
 
@@ -286,15 +286,16 @@ gopass jsonapi configure --print-only
 
 # Specify browser and wrapper path
 gopass jsonapi configure --browser chrome --path /home/user/.local/
-
 ```
 
 The user name/login is determined from `login`, `username` and `user` yaml attributes (after the --- separator) like this:
+
 ```
 <your password>
 ---
 username: <your username>
 ```
+
 As fallback, the last part of the path is used, e.g. `theuser1` for `Internet/github.com/theuser1` entry.
 
 ### Storing and Syncing your Password Store with Google Drive / Dropbox / etc.
