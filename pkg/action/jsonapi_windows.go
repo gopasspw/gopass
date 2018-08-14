@@ -36,18 +36,18 @@ func (s *Action) SetupNativeMessaging(ctx context.Context, c *cli.Context) error
 		defaultWrapperPath = filepath.Join(os.Getenv("PROGRAMDATA"), "gopass")
 	}
 
-	wrapperPath, err := s.getWrapperPath(ctx, c, defaultWrapperPath, manifest.WrapperNameWindows)
+	wrapperPath, err := s.getWrapperPath(ctx, c, defaultWrapperPath, manifest.NativeHostExeName)
 	if err != nil {
 		return ExitError(ctx, ExitIO, err, "failed to get wrapper path: %s", err)
 	}
-	wrapperFileName := filepath.Join(wrapperPath, manifest.WrapperNameWindows)
+	wrapperFileName := filepath.Join(wrapperPath, manifest.NativeHostExeName)
 
 	manifestPath := c.String("manifest-path")
 	if manifestPath == "" {
 		manifestPath = filepath.Join(wrapperPath, browser, manifest.Name+".json")
 	}
 
-	regPath, err := manifest.GetLocation(browser, "", globalInstall)
+	regPath, err := manifest.GetRegistryPath(browser)
 	if err != nil {
 		return ExitError(ctx, ExitUnknown, err, "failed to get registry path: %s", err)
 	}
