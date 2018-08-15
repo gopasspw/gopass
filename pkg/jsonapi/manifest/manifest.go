@@ -5,6 +5,22 @@ import (
 	"fmt"
 )
 
+var (
+	// DefaultBrowser to select when no browser is specified
+	DefaultBrowser = "chrome"
+
+	// Name is the name of the manifest
+	Name           = "com.justwatch.gopass"
+	description    = "Gopass wrapper to search and return passwords"
+	connectionType = "stdio"
+	chromeOrigins  = []string{
+		"chrome-extension://kkhfnlkhiapbiehimabddjbimfaijdhk/", // gopassbridge
+	}
+	firefoxOrigins = []string{
+		"{eec37db0-22ad-4bf1-9068-5ae08df8c7e9}", // gopassbridge
+	}
+)
+
 func getManifestContent(browser, wrapperPath string) ([]byte, error) {
 	switch browser {
 	case "firefox":

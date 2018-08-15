@@ -34,3 +34,9 @@ func TestValidBrowser(t *testing.T) {
 func TestValidBrowsers(t *testing.T) {
 	assert.Equal(t, []string{"chrome", "chromium", "firefox"}, ValidBrowsers())
 }
+
+func TestManifest(t *testing.T) {
+	if _, err := getLocation("foobar", "", false); err == nil {
+		t.Error("browser should not exist")
+	}
+}

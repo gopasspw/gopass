@@ -298,6 +298,11 @@ username: <your username>
 
 As fallback, the last part of the path is used, e.g. `theuser1` for `Internet/github.com/theuser1` entry.
 
+**Windows**:
+The jsonapi setup copies the current gopass binary as wrapper (`gopass_native_host.exe` calls directly the listener).
+It is recommend to run `gopass jsonapi configure` after **update** to use also the latest version in the browser.
+The **global** setup requires to run `gopass jsonapi configure` as Administrator.
+
 ### Storing and Syncing your Password Store with Google Drive / Dropbox / etc.
 
 Please be warned that using cloud-based storage may negatively impact to confidentially of your store. However, if you wish to use one of these services, you can do so.
