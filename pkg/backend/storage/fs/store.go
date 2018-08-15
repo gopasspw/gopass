@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"runtime"
 	"sort"
 	"strings"
 
@@ -22,7 +23,10 @@ type Store struct {
 
 // New creates a new store
 func New(dir string) *Store {
-	if d, err := filepath.EvalSymlinks(dir); err == nil {
+	if runtime.GOOS == "windows" && strings.HasPrefix(dir, "/") {
+		// remove leading slash which comes from net/url parse as it expectes it for an correct URI
+		dir = dir[1:]
+	} else if d, err := filepath.EvalSymlinks(dir); err == nil {
 		dir = d
 	}
 	return &Store{

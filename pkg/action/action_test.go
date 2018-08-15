@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/gopasspw/gopass/pkg/backend"
@@ -35,11 +36,15 @@ func newMock(ctx context.Context, u *gptest.Unit) (*Action, error) {
 func TestAction(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 	defer u.Remove()
-
 	ctx := context.Background()
 	act, err := newMock(ctx, u)
 	assert.NoError(t, err)
-	assert.Equal(t, "action.test", act.Name)
+
+	actName := "action.test"
+	if runtime.GOOS == "windows" {
+		actName = actName + ".exe"
+	}
+	assert.Equal(t, actName, act.Name)
 
 	assert.Contains(t, act.String(), u.StoreDir(""))
 	assert.Equal(t, 0, len(act.Store.Mounts()))

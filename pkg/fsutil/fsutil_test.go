@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/user"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -40,14 +41,14 @@ func TestCleanPath(t *testing.T) {
 
 	usr, err := user.Current()
 	if err == nil {
-		m["~/.password-store"] = usr.HomeDir + "/.password-store"
+		m["~/.password-store"] = filepath.Join(usr.HomeDir, ".password-store")
 	}
 
 	for in, out := range m {
 		got := CleanPath(in)
 
 		// filepath.Abs turns /home/bob into C:\home\bob on Windows
-		absOut, err := filepath.Abs(out)
+		absOut, err := Abs(out)
 		assert.NoError(t, err)
 		assert.Equal(t, absOut, got)
 	}
@@ -102,17 +103,20 @@ func TestShred(t *testing.T) {
 	assert.Equal(t, false, IsFile(fn))
 
 	// test failed
-	fh, err = os.OpenFile(fn, os.O_WRONLY|os.O_CREATE, 0400)
-	assert.NoError(t, err)
+	// ignore windows, it has a different permission layout and will be able to perform this
+	if runtime.GOOS != "windows" {
+		fh, err = os.OpenFile(fn, os.O_WRONLY|os.O_CREATE, 0400)
+		assert.NoError(t, err)
 
-	buf = make([]byte, 1024)
-	for i := 0; i < 10*1024; i++ {
-		_, _ = rand.Read(buf)
-		_, _ = fh.Write(buf)
+		buf = make([]byte, 1024)
+		for i := 0; i < 10*1024; i++ {
+			_, _ = rand.Read(buf)
+			_, _ = fh.Write(buf)
+		}
+		_ = fh.Close()
+		assert.Error(t, Shred(fn, 8))
+		assert.Equal(t, true, IsFile(fn))
 	}
-	_ = fh.Close()
-	assert.Error(t, Shred(fn, 8))
-	assert.Equal(t, true, IsFile(fn))
 }
 
 func TestIsEmptyDir(t *testing.T) {

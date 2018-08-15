@@ -16,6 +16,19 @@ import (
 
 var reCleanFilename = regexp.MustCompile(`[^\w\d@.-]`)
 
+// Abs is a wrapper around filepath.Abs with backported fixfor windows
+// will be fixed with go 1.11 - https://github.com/golang/go/issues/24441
+func Abs(path string) (string, error) {
+	if path == "" {
+		// syscall.FullPath returns an error on empty path, because it's not a valid path.
+		// To implement Abs behavior of returning working directory on empty string input,
+		// special-case empty path by changing it to "." path. See golang.org/issue/24441.
+		path = "."
+	}
+
+	return filepath.Abs(path)
+}
+
 // CleanFilename strips all possibly suspicious characters from a filename
 // WARNING: NOT suiteable for pathnames as slashes will be stripped as well!
 func CleanFilename(in string) string {
@@ -30,7 +43,7 @@ func CleanPath(path string) string {
 		dir := usr.HomeDir
 		path = strings.Replace(path, "~/", dir+"/", 1)
 	}
-	if p, err := filepath.Abs(path); err == nil {
+	if p, err := Abs(path); err == nil {
 		return p
 	}
 	return filepath.Clean(path)

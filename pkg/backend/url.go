@@ -5,6 +5,7 @@ import (
 	"net"
 	"net/url"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	homedir "github.com/mitchellh/go-homedir"
@@ -42,7 +43,10 @@ func FromPath(path string) *URL {
 func ParseURL(us string) (*URL, error) {
 	// if it's no URL build file URL and parse that
 	nu, err := url.Parse(us)
-	if err != nil {
+	if err != nil || nu.Path == "" {
+		if runtime.GOOS == "windows" {
+			us = "/" + us
+		}
 		nu, err = url.Parse("gpgcli-gitcli-fs+file://" + us)
 		if err != nil {
 			return nil, err
@@ -54,7 +58,13 @@ func ParseURL(us string) (*URL, error) {
 	if err := u.parseScheme(); err != nil {
 		return u, err
 	}
+
 	u.Path = nu.Path
+	if runtime.GOOS == "windows" && strings.HasPrefix(nu.Path, "/") {
+		// remove leading slash which comes from net/url parse as it expectes it for an correct URI
+		u.Path = nu.Path[1:]
+	}
+
 	if nu.User != nil {
 		u.Username = nu.User.Username()
 		u.Password, _ = nu.User.Password()
@@ -88,6 +98,12 @@ func (u *URL) String() string {
 	if scheme == "" {
 		scheme = "file"
 	}
+
+	u.url.Path = u.Path
+	if scheme == "file" && runtime.GOOS == "windows" && !strings.HasPrefix(u.url.Path, "///") {
+		u.url.Path = "/" + u.Path
+	}
+
 	u.url.Scheme = fmt.Sprintf(
 		"%s-%s-%s+%s",
 		u.Crypto,
@@ -95,7 +111,7 @@ func (u *URL) String() string {
 		u.Storage,
 		scheme,
 	)
-	u.url.Path = u.Path
+
 	if u.Username != "" {
 		u.url.User = url.UserPassword(u.Username, u.Password)
 	}
@@ -105,6 +121,7 @@ func (u *URL) String() string {
 			u.url.Host += ":" + u.Port
 		}
 	}
+
 	u.url.RawQuery = u.Query.Encode()
 	return u.url.String()
 }
