@@ -7,7 +7,7 @@ It is used to execute a process and inject secrets from a separate store. Using 
 
 ## Summon Provider
 
-Gopass can be used as [summon provider](https://cyberark.github.io/summon/#providers) out of the box, since it fulfills the summon provider contract.
+gopass can be used as [summon provider](https://cyberark.github.io/summon/#providers) out of the box, since it fulfills the summon provider contract.
 
 To make use of gopass to retrieve the `test/db-password` secret, you can call summon with full provider path
 
