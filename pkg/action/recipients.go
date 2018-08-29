@@ -106,7 +106,7 @@ func (s *Action) RecipientsAdd(ctx context.Context, c *cli.Context) error {
 			recp = crypto.Fingerprint(ctx, keys[0])
 		}
 
-		if !termio.AskForConfirmation(ctx, fmt.Sprintf("Do you want to add '%s' as an recipient to the store '%s'?", crypto.FormatKey(ctx, recp), store)) {
+		if !termio.AskForConfirmation(ctx, fmt.Sprintf("Do you want to add '%s' as a recipient to the store '%s'?", crypto.FormatKey(ctx, recp), store)) {
 			continue
 		}
 
