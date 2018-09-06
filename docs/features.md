@@ -432,7 +432,7 @@ To restrict the characters used in generated passwords set `GOPASS_CHARACTER_SET
 
 ### Using custom password generators
 
-To use an external password generator set `GOPASS_EXTERNAL_PWGEN` to any valid executeable with all required arguments. Please note that the command will be run as-is. Not parameters to control length or complexity can be passed. Any errors will be silently ignored and gopass will fall back to the internal password generator instead.
+To use an external password generator set `GOPASS_EXTERNAL_PWGEN` to any valid executable with all required arguments. Please note that the command will be run as-is. Not parameters to control length or complexity can be passed. Any errors will be silently ignored and gopass will fall back to the internal password generator instead.
 
 ### In-place updates to existing passwords
 
