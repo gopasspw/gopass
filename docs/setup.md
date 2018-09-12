@@ -87,6 +87,11 @@ If there is no output, then you don't have any keys. To create a new key:
 gpg --gen-key
 ```
 
+For macOS you have to use the following to get all options
+```bash
+gpg --full-generate-key
+```
+
 You will be presented with several options:
 
 * Key type: Choose either "RSA and RSA" or "DSA and ElGamal".
@@ -130,6 +135,13 @@ brew install gopass
 ```
 
 Alternatively, you can install gopass from the appropriate Darwin release from the repository [releases page](https://github.com/gopasspw/gopass/releases).
+
+If you're using a password on your gpg key, you also have to install pinentry-mac from brew and configure it in your ~/gpg/gpg-agent.conf
+
+```bash
+brew install pinentry-mac
+echo "pinentry-program /usr/local/bin/pinentry-mac" >> ~/.gnupg/gpg-agent.conf
+```
 
 ### Ubuntu & Debian
 
