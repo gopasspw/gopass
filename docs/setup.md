@@ -193,7 +193,7 @@ emerge -av gopass
 
 ### RedHat / CentOS
 
-There is an inoffical RPM build maintained by a contributor.
+There is an unofficial RPM build maintained by a contributor.
 
 ```bash
 # if you're using dnf (needs dnf-plugins-core)
