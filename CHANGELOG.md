@@ -5,7 +5,7 @@
 * [ENHANCEMENT] Redirect errors to stderr [#880]
 * [ENHANCEMENT] Do not writer version to config [#883]
 * [BUGFIX] Fix commit on move [#860]
-* [BUGFIX] Propery check store initialization [#865]
+* [BUGFIX] Properly check store initialization [#865]
 
 ## 1.8.1 / 2018-06-08
 
@@ -22,7 +22,7 @@ the runtime behaviour, but we could not test this on all platforms, yet.
 
 * [BREAKING] Make move work recursively and across stores [#821]
 * [FEATURE] Add git credential caching [#743]
-* [FEATURE] Add local recipient intregrity checks [#800 #826]
+* [FEATURE] Add local recipient integrity checks [#800 #826]
 * [ENHANCEMENT] Handle key-value pairs on generate and insert [#790]
 * [ENHANCEMENT] Add gpg.listKeys caching [#804]
 * [ENHANCEMENT] Add append mode for gopass insert [#807]
@@ -62,7 +62,7 @@ the runtime behaviour, but we could not test this on all platforms, yet.
 * [FEATURE] Consul backend [#697]
 * [FEATURE] HIBPv2 Dump and API support [#666] [#706]
 * [FEATURE] Select recipients per secret [#703]
-* [FEATURE] Add experiemental OpenPGP crypto backend [#670]
+* [FEATURE] Add experimental OpenPGP crypto backend [#670]
 * [ENHANCEMENT] Support HIBPv2 API and Dumps [#666]
 * [ENHANCEMENT] Robust K/V parser with YAML fallback [#659]
 * [ENHANCEMENT] Restrict fsck to given path [#721]
