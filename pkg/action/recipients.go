@@ -20,7 +20,7 @@ var (
 
 
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-@ WARNING: REMOVING A USER WILL NOT REVOKE ACCESS FROM OLD REVISONS!     @
+@   WARNING: REMOVING A USER WILL NOT REVOKE ACCESS FROM OLD REVISONS!   @
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 THE USER %s WILL STILL BE ABLE TO ACCESS ANY OLD COPY OF THE STORE AND
 ANY OLD REVISION HE HAD ACCESS TO.
@@ -28,7 +28,7 @@ ANY OLD REVISION HE HAD ACCESS TO.
 ANY CREDENTIALS THIS USER HAD ACCESS TO NEED TO BE CONSIDERED COMPROMISED
 AND SHOULD BE REVOKED.
 
-This feature is only meant from revoking access to any added or changed
+This feature is only meant for revoking access to any added or changed
 credentials.
 
 `
