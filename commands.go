@@ -320,7 +320,7 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 		},
 		{
 			Name:  "edit",
-			Usage: "Edit new or existing secret",
+			Usage: "Edit new or existing secrets",
 			Description: "" +
 				"Use this command to insert a new secret or edit an existing one using " +
 				"your $EDITOR. It will attempt to create a secure temporary directory " +
@@ -337,6 +337,10 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 				cli.StringFlag{
 					Name:  "editor, e",
 					Usage: "Use this editor binary",
+				},
+				cli.BoolFlag{
+					Name:  "create, c",
+					Usage: "Create a new secret if none found",
 				},
 			},
 		},

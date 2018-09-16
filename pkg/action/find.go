@@ -24,6 +24,12 @@ func (s *Action) Find(ctx context.Context, c *cli.Context) error {
 		return ExitError(ctx, ExitUsage, nil, "Usage: %s find <NEEDLE>", s.Name)
 	}
 
+	return s.find(ctx, c, c.Args().First(), s.show)
+}
+
+type showFunc func(context.Context, *cli.Context, string, string, bool) error
+
+func (s *Action) find(ctx context.Context, c *cli.Context, needle string, cb showFunc) error {
 	// get all existing entries
 	haystack, err := s.Store.List(ctx, 0)
 	if err != nil {
@@ -31,13 +37,13 @@ func (s *Action) Find(ctx context.Context, c *cli.Context) error {
 	}
 
 	// filter our the ones from the haystack matching the needle
-	needle := strings.ToLower(c.Args().First())
+	needle = strings.ToLower(needle)
 	choices := filter(haystack, needle)
 
 	// if we have an exact match print it
 	if len(choices) == 1 {
 		out.Green(ctx, "Found exact match in '%s'", choices[0])
-		return s.show(ctx, c, choices[0], "", false)
+		return cb(ctx, c, choices[0], "", false)
 	}
 
 	// if we don't have a match yet try a fuzzy search
@@ -54,18 +60,18 @@ func (s *Action) Find(ctx context.Context, c *cli.Context) error {
 
 	// do not invoke wizard if not printing to terminal or if
 	// gopass find/search was invoked directly (for scripts)
-	if !ctxutil.IsTerminal(ctx) || c.Command.Name == "find" {
+	if !ctxutil.IsTerminal(ctx) || (c != nil && c.Command.Name == "find") {
 		for _, value := range choices {
 			out.Print(ctx, value)
 		}
 		return nil
 	}
 
-	return s.findSelection(ctx, c, choices, needle)
+	return s.findSelection(ctx, c, choices, needle, cb)
 }
 
 // findSelection runs a wizard that lets the user select an entry
-func (s *Action) findSelection(ctx context.Context, c *cli.Context, choices []string, needle string) error {
+func (s *Action) findSelection(ctx context.Context, c *cli.Context, choices []string, needle string, cb showFunc) error {
 	sort.Strings(choices)
 	act, sel := cui.GetSelection(ctx, "Found secrets - Please select an entry", "<↑/↓> to change the selection, <→> to show, <←> to copy, <s> to sync, <ESC> to quit", choices)
 	out.Debug(ctx, "Action: %s - Selection: %d", act, sel)
@@ -73,21 +79,21 @@ func (s *Action) findSelection(ctx context.Context, c *cli.Context, choices []st
 	case "default":
 		// display or copy selected entry
 		fmt.Fprintln(stdout, choices[sel])
-		return s.show(ctx, c, choices[sel], "", false)
+		return cb(ctx, c, choices[sel], "", false)
 	case "copy":
 		// display selected entry
 		fmt.Fprintln(stdout, choices[sel])
-		return s.show(WithClip(ctx, true), c, choices[sel], "", false)
+		return cb(WithClip(ctx, true), c, choices[sel], "", false)
 	case "show":
 		// display selected entry
 		fmt.Fprintln(stdout, choices[sel])
-		return s.show(WithClip(ctx, false), c, choices[sel], "", false)
+		return cb(WithClip(ctx, false), c, choices[sel], "", false)
 	case "sync":
 		// run sync and re-run show/find workflow
 		if err := s.Sync(ctx, c); err != nil {
 			return err
 		}
-		return s.show(ctx, c, needle, "", true)
+		return cb(ctx, c, needle, "", true)
 	default:
 		return ExitError(ctx, ExitAborted, nil, "user aborted")
 	}

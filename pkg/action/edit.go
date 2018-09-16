@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/gopasspw/gopass/pkg/audit"
+	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/editor"
 	"github.com/gopasspw/gopass/pkg/out"
 	"github.com/gopasspw/gopass/pkg/pwgen"
@@ -26,26 +27,9 @@ func (s *Action) Edit(ctx context.Context, c *cli.Context) error {
 	ed := editor.Path(c)
 
 	// get existing content or generate new one from a template
-	var content []byte
-	var changed bool
-	if s.Store.Exists(ctx, name) {
-		sec, err := s.Store.Get(ctx, name)
-		if err != nil {
-			return ExitError(ctx, ExitDecrypt, err, "failed to decrypt %s: %s", name, err)
-		}
-		content, err = sec.Bytes()
-		if err != nil {
-			return ExitError(ctx, ExitDecrypt, err, "failed to decode %s: %s", name, err)
-		}
-	} else if tmpl, found := s.Store.LookupTemplate(ctx, name); found {
-		changed = true
-		// load template if it exists
-		content = []byte(pwgen.GeneratePassword(defaultLength, false))
-		if nc, err := tpl.Execute(ctx, string(tmpl), name, content, s.Store); err == nil {
-			content = nc
-		} else {
-			fmt.Fprintf(stdout, "failed to execute template: %s\n", err)
-		}
+	content, changed, err := s.editGetContent(ctx, name, c.Bool("create"))
+	if err != nil {
+		return err
 	}
 
 	// invoke the editor to let the user edit the content
@@ -74,4 +58,50 @@ func (s *Action) Edit(ctx context.Context, c *cli.Context) error {
 		return ExitError(ctx, ExitEncrypt, err, "failed to encrypt secret %s: %s", name, err)
 	}
 	return nil
+}
+
+func (s *Action) editGetContent(ctx context.Context, name string, create bool) ([]byte, bool, error) {
+	if !s.Store.Exists(ctx, name) {
+		newName := ""
+		// capture only the name of the selected secret
+		cb := func(ctx context.Context, c *cli.Context, name, key string, recurse bool) error {
+			newName = name
+			return nil
+		}
+		if err := s.find(ctxutil.WithFuzzySearch(ctx, false), nil, name, cb); err == nil {
+			name = newName
+		}
+	}
+
+	// edit existing entry
+	if s.Store.Exists(ctx, name) {
+		sec, err := s.Store.Get(ctx, name)
+		if err != nil {
+			return nil, false, ExitError(ctx, ExitDecrypt, err, "failed to decrypt %s: %s", name, err)
+		}
+		content, err := sec.Bytes()
+		if err != nil {
+			return nil, false, ExitError(ctx, ExitDecrypt, err, "failed to decode %s: %s", name, err)
+		}
+		return content, false, nil
+	}
+
+	if !create {
+		return nil, false, ExitError(ctx, ExitNotFound, nil, "entry not %s not found. Use --create to create a new entry with edit", name)
+	}
+
+	// new entry with template
+	if tmpl, found := s.Store.LookupTemplate(ctx, name); found {
+		// load template if it exists
+		content := []byte(pwgen.GeneratePassword(defaultLength, false))
+		if nc, err := tpl.Execute(ctx, string(tmpl), name, content, s.Store); err == nil {
+			content = nc
+		} else {
+			fmt.Fprintf(stdout, "failed to execute template: %s\n", err)
+		}
+		return content, true, nil
+	}
+
+	// new entry, no template
+	return nil, false, nil
 }
