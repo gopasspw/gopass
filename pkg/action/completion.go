@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"sort"
 	"strings"
 
 	fishcomp "github.com/gopasspw/gopass/pkg/completion/fish"
@@ -37,9 +38,36 @@ func (s *Action) Complete(ctx context.Context, c *cli.Context) {
 		return
 	}
 
+	if c != nil {
+		list = filterCompletionList(list, c.Args().First())
+	}
+
 	for _, v := range list {
 		fmt.Fprintln(stdout, bashEscape(v))
 	}
+}
+
+func filterCompletionList(list []string, needle string) []string {
+	set := make(map[string]struct{}, len(list))
+	for _, v := range list {
+		if !strings.HasPrefix(v, needle) {
+			continue
+		}
+		v = strings.TrimPrefix(v, needle)
+		if idx := strings.Index(v, "/"); idx >= 0 {
+			v = v[:idx]
+		}
+		set[v] = struct{}{}
+	}
+	newList := make([]string, 0, len(set))
+	for k := range set {
+		if k == "" {
+			k = "/"
+		}
+		newList = append(newList, needle+k)
+	}
+	sort.Strings(newList)
+	return newList
 }
 
 // CompletionOpenBSDKsh returns an OpenBSD ksh script used for auto completion
