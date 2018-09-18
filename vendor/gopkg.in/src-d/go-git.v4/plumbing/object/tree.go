@@ -2,6 +2,7 @@ package object
 
 import (
 	"bufio"
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -25,6 +26,7 @@ var (
 	ErrMaxTreeDepth      = errors.New("maximum tree depth exceeded")
 	ErrFileNotFound      = errors.New("file not found")
 	ErrDirectoryNotFound = errors.New("directory not found")
+	ErrEntryNotFound     = errors.New("entry not found")
 )
 
 // Tree is basically like a directory - it references a bunch of other trees
@@ -166,8 +168,6 @@ func (t *Tree) dir(baseName string) (*Tree, error) {
 	return tree, err
 }
 
-var errEntryNotFound = errors.New("entry not found")
-
 func (t *Tree) entry(baseName string) (*TreeEntry, error) {
 	if t.m == nil {
 		t.buildMap()
@@ -175,7 +175,7 @@ func (t *Tree) entry(baseName string) (*TreeEntry, error) {
 
 	entry, ok := t.m[baseName]
 	if !ok {
-		return nil, errEntryNotFound
+		return nil, ErrEntryNotFound
 	}
 
 	return entry, nil
@@ -295,15 +295,30 @@ func (from *Tree) Diff(to *Tree) (Changes, error) {
 	return DiffTree(from, to)
 }
 
+// Diff returns a list of changes between this tree and the provided one
+// Error will be returned if context expires
+// Provided context must be non nil
+func (from *Tree) DiffContext(ctx context.Context, to *Tree) (Changes, error) {
+	return DiffTreeContext(ctx, from, to)
+}
+
 // Patch returns a slice of Patch objects with all the changes between trees
 // in chunks. This representation can be used to create several diff outputs.
 func (from *Tree) Patch(to *Tree) (*Patch, error) {
-	changes, err := DiffTree(from, to)
+	return from.PatchContext(context.Background(), to)
+}
+
+// Patch returns a slice of Patch objects with all the changes between trees
+// in chunks. This representation can be used to create several diff outputs.
+// If context expires, an error will be returned
+// Provided context must be non-nil
+func (from *Tree) PatchContext(ctx context.Context, to *Tree) (*Patch, error) {
+	changes, err := DiffTreeContext(ctx, from, to)
 	if err != nil {
 		return nil, err
 	}
 
-	return changes.Patch()
+	return changes.PatchContext(ctx)
 }
 
 // treeEntryIter facilitates iterating through the TreeEntry objects in a Tree.
