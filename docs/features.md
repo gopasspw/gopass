@@ -287,7 +287,7 @@ gopass audit hibp --api
 First go to [haveibeenpwned.com/Passwords](https://haveibeenpwned.com/Passwords) and download the dumps. Then unpack the 7-zip archives somewhere. Note that full path to those files and provide it to gopass in the environment variable `HIBP_DUMPS`.
 
 ```bash
-$ HIBP_DUMPS=/tmp/pwned-passwords-1.0.txt gopass audit hibp
+$ gopass audit hibp --dumps /tmp/pwned-passwords-1.0.txt
 ```
 
 ### Support for Binary Content
