@@ -18,12 +18,12 @@ func TestGrep(t *testing.T) {
 	assert.Equal(t, "\nError: Usage: "+filepath.Base(ts.Binary)+" grep arg\n", out)
 
 	out, err = ts.run("grep BOOM")
-	assert.NoError(t, err)
-	assert.Zero(t, out)
+	assert.Error(t, err)
+	assert.Equal(t, "\nError: no matches found\n", out)
 
 	ts.initSecrets("")
 
 	out, err = ts.run("grep moar")
-	assert.NoError(t, err)
-	assert.Equal(t, "fixed/secret:\nmoar", out)
+	assert.Error(t, err)
+	assert.Equal(t, "fixed/secret:\nmoar\n\nError: no matches found\n", out)
 }
