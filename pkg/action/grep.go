@@ -24,6 +24,8 @@ func (s *Action) Grep(ctx context.Context, c *cli.Context) error {
 		return ExitError(ctx, ExitList, err, "failed to list store: %s", err)
 	}
 
+	var matches int
+	var errors int
 	for _, v := range haystack {
 		sec, err := s.Store.Get(ctx, v)
 		if err != nil {
@@ -39,5 +41,13 @@ func (s *Action) Grep(ctx context.Context, c *cli.Context) error {
 		}
 	}
 
+	if errors > 0 {
+		return ExitError(ctx, ExitDecrypt, nil, "some secrets failed to decrypt")
+	}
+	if matches < 1 {
+		return ExitError(ctx, ExitNotFound, nil, "no matches found")
+	}
+
+	out.Print(ctx, "\nScanned %d secrets. %d matches, %d errors", len(haystack), matches, errors)
 	return nil
 }

@@ -36,11 +36,11 @@ func TestGrep(t *testing.T) {
 	assert.NoError(t, fs.Parse([]string{"foo"}))
 	c := cli.NewContext(app, fs, nil)
 
-	assert.NoError(t, act.Grep(ctx, c))
+	assert.Error(t, act.Grep(ctx, c))
 	buf.Reset()
 
 	// add some secret
 	assert.NoError(t, act.Store.Set(ctx, "foo", secret.New("foobar", "foobar")))
-	assert.NoError(t, act.Grep(ctx, c))
+	assert.Error(t, act.Grep(ctx, c))
 	buf.Reset()
 }
