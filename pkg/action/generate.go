@@ -111,13 +111,23 @@ func (s *Action) generateCopyOrPrint(ctx context.Context, c *cli.Context, name, 
 			"The generated password for %s%s is:\n%s", name, key,
 			color.YellowString(password),
 		)
-		return nil
 	}
+
 	if ctxutil.IsAutoClip(ctx) || c.Bool("clip") {
 		if err := clipboard.CopyTo(ctx, name, []byte(password)); err != nil {
 			return ExitError(ctx, ExitIO, err, "failed to copy to clipboard: %s", err)
 		}
 	}
+
+	if c.Bool("print") || c.Bool("clip") {
+		return nil
+	}
+
+	entry := name
+	if key != "" {
+		entry += ":" + key
+	}
+	out.Print(ctx, "Password for %s generated", entry)
 	return nil
 }
 
