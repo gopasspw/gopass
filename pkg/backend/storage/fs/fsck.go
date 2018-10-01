@@ -22,6 +22,8 @@ func (s *Store) Fsck(ctx context.Context) error {
 	dirs := make(map[string]struct{}, len(entries))
 	for _, entry := range entries {
 		pcb()
+		out.Debug(ctx, "file.Fsck() - Checking %s", entry)
+
 		filename := filepath.Join(s.path, entry)
 		dirs[filepath.Dir(filename)] = struct{}{}
 
