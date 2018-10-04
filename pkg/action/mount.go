@@ -93,7 +93,7 @@ func (s *Action) MountAdd(ctx context.Context, c *cli.Context) error {
 		case root.NotInitializedError:
 			out.Print(ctx, "Mount %s is not yet initialized. Initializing ...", e.Alias())
 			if err := s.init(ctx, e.Alias(), e.Path()); err != nil {
-				return ExitError(ctx, ExitUnknown, err, "failed to add mount '%s': failed to initialize store: %s", err)
+				return ExitError(ctx, ExitUnknown, err, "failed to add mount '%s': failed to initialize store: %s", e.Alias(), err)
 			}
 		default:
 			return ExitError(ctx, ExitMount, err, "failed to add mount '%s' to '%s': %s", alias, localPath, err)
