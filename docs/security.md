@@ -6,7 +6,7 @@ We acknowledge that designing and implementing bullet-proof cryptography is very
 
 ## Security Goals
 
-* **Confidentially** - Ensure that only authorized parties can understand the data.
+* **Confidentiality** - Ensure that only authorized parties can understand the data.
   * gopass attempts to protect the content of the secrets that it manages using [GNU Privacy Guard](#gnu-privacy-guard).
   * gopass does NOT protect the presence of the secrets OR the names of the secrets. Care must be taken not to disclose any confidential information through the
 	name of the secrets.
@@ -42,12 +42,12 @@ This means that, in some cases, the project carefully makes some security trade-
 
 Since gopass uses GPG to encrypt data, GPG needs to be properly set up beforehand.
 (GPG installation is covered in the [gopass installation documentation](https://github.com/gopasspw/gopass/blob/master/docs/setup.md).)
-However, basic knowledge of how [public-key cryptography](https://en.wikipedia.org/wiki/Public-key_cryptography) and the [web of trust model](https://en.wikipedia.org/wiki/Web_of_trust) is assumed and necessary.
+However, basic knowledge of how [public-key cryptography](https://en.wikipedia.org/wiki/Public-key_cryptography) and the [web of trust model](https://en.wikipedia.org/wiki/Web_of_trust) work is assumed and necessary.
 
 ## Generating Passwords
 
 Password generation uses the same approach as the popular tool `pwgen`.
-It reads uses the `crypto/rand` to select random characters from the selected character classes.
+It uses `crypto/rand` to select random characters from the selected character classes.
 
 ## git history and local files
 
