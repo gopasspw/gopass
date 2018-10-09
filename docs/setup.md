@@ -33,6 +33,12 @@ _Note:_ installing in Ubuntu 16.04 will require you to install `gnupg2`.
 yum install gnupg2 git rng-tools
 ```
 
+#### Arch Linux
+
+```bash
+pacman -S gnupg2 git rng-tools
+```
+
 #### MacOS
 
 If you haven't already, install [homebrew](http://brew.sh). And then:
@@ -204,6 +210,12 @@ yum copr enable daftaupe/gopass
 yum install gopass
 ```
 
+### Arch Linux
+```bash
+pacman -S gopass
+```
+
+
 ### Windows
 
 **WARNING**: Windows is not yet officially supported. We try to support it in the future. These are steps are only meant to help you setup gopass on Windows so you can provide us with feedback about the current state of our Windows support.
@@ -348,7 +360,7 @@ will guide you through the setup of gopass.
 
 ### Batch bootstrapping
 
-In order to simplify the setup of gopass for your team members if can be run in a fully scripted bootstrap mode.
+In order to simplify the setup of gopass for your team members it can be run in a fully scripted bootstrap mode.
 
 ```bash
 # First initialize a new shared store and push it to an empty remote
