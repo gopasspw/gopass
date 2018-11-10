@@ -13,6 +13,7 @@ import (
 )
 
 var (
+	// ErrNoTotpEntry signals a failed OTP for a secret with OTP information
 	ErrNoTotpEntry = fmt.Errorf("no totp entry in secret")
 )
 
