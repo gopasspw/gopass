@@ -55,16 +55,22 @@ func (api *API) respondHostQuery(ctx context.Context, msgBytes []byte) error {
 	}
 	choices := make([]string, 0, 10)
 
-	for !isPublicSuffix(message.Host) {
-		// only query for paths and files in the store fully matching the hostname.
-		reQuery := fmt.Sprintf("(^|.*/)%s($|/.*)", regexSafeLower(message.Host))
-		if err := searchAndAppendChoices(reQuery, l, &choices); err != nil {
-			return errors.Wrapf(err, "failed to append search results")
-		}
-		if len(choices) > 0 {
-			break
-		} else {
-			message.Host = strings.SplitN(message.Host, ".", 2)[1]
+	// first time, only query for paths and files in the store fully matching the hostname
+	// if still no matches, try looser matching
+	matchAttempts := []string{ "(^|.*/)%s($|/.*)", "%s" }
+	outer: for _, matchAttempt := range matchAttempts {
+		testHostname := message.Host
+		for !isPublicSuffix(testHostname) {
+			reQuery := fmt.Sprintf(matchAttempt, regexSafeLower(testHostname))
+			if err := searchAndAppendChoices(reQuery, l, &choices); err != nil {
+				return errors.Wrapf(err, "failed to append search results")
+			}
+			if len(choices) > 0 {
+				// break outer as soon as we find any candidates
+				break outer
+			} else {
+				testHostname = strings.SplitN(testHostname, ".", 2)[1]
+			}
 		}
 	}
 
