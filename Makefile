@@ -204,7 +204,7 @@ codequality:
 
 	@echo -n "     INTERFACER"
 	@which interfacer > /dev/null; if [ $$? -ne 0 ]; then \
-		$(GO) get mvdan.cc/interfacer; \
+		$(GO) get -u mvdan.cc/interfacer; \
 	fi
 	@interfacer $(PKGS)
 	@printf '%s\n' '$(OK)'

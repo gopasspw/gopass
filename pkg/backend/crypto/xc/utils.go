@@ -126,7 +126,7 @@ func (x *XC) CreatePrivateKeyBatch(ctx context.Context, name, email, passphrase 
 	k.Identity.Name = name
 	k.Identity.Email = email
 	if err := x.secring.Set(k); err != nil {
-		return errors.Wrapf(err, "failed to set %s to secring: %s", k, err)
+		return errors.Wrapf(err, "failed to set %v to secring: %s", k, err)
 	}
 	return x.secring.Save()
 }

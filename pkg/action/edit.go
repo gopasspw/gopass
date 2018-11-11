@@ -27,7 +27,7 @@ func (s *Action) Edit(ctx context.Context, c *cli.Context) error {
 	ed := editor.Path(c)
 
 	// get existing content or generate new one from a template
-	content, changed, err := s.editGetContent(ctx, name, c.Bool("create"))
+	name, content, changed, err := s.editGetContent(ctx, name, c.Bool("create"))
 	if err != nil {
 		return err
 	}
@@ -60,7 +60,7 @@ func (s *Action) Edit(ctx context.Context, c *cli.Context) error {
 	return nil
 }
 
-func (s *Action) editGetContent(ctx context.Context, name string, create bool) ([]byte, bool, error) {
+func (s *Action) editGetContent(ctx context.Context, name string, create bool) (string, []byte, bool, error) {
 	if !s.Store.Exists(ctx, name) {
 		newName := ""
 		// capture only the name of the selected secret
@@ -77,17 +77,17 @@ func (s *Action) editGetContent(ctx context.Context, name string, create bool) (
 	if s.Store.Exists(ctx, name) {
 		sec, err := s.Store.Get(ctx, name)
 		if err != nil {
-			return nil, false, ExitError(ctx, ExitDecrypt, err, "failed to decrypt %s: %s", name, err)
+			return name, nil, false, ExitError(ctx, ExitDecrypt, err, "failed to decrypt %s: %s", name, err)
 		}
 		content, err := sec.Bytes()
 		if err != nil {
-			return nil, false, ExitError(ctx, ExitDecrypt, err, "failed to decode %s: %s", name, err)
+			return name, nil, false, ExitError(ctx, ExitDecrypt, err, "failed to decode %s: %s", name, err)
 		}
-		return content, false, nil
+		return name, content, false, nil
 	}
 
 	if !create {
-		return nil, false, ExitError(ctx, ExitNotFound, nil, "entry not %s not found. Use --create to create a new entry with edit", name)
+		return name, nil, false, ExitError(ctx, ExitNotFound, nil, "entry not %s not found. Use --create to create a new entry with edit", name)
 	}
 
 	// new entry with template
@@ -99,9 +99,9 @@ func (s *Action) editGetContent(ctx context.Context, name string, create bool) (
 		} else {
 			fmt.Fprintf(stdout, "failed to execute template: %s\n", err)
 		}
-		return content, true, nil
+		return name, content, true, nil
 	}
 
 	// new entry, no template
-	return nil, false, nil
+	return name, nil, false, nil
 }

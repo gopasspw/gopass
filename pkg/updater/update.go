@@ -136,7 +136,7 @@ func extract(ctx context.Context, archive, dest string) error {
 
 	dfh, err := os.OpenFile(dest, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0755)
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "Failed to open file: %s", dest)
 	}
 	defer func() {
 		_ = dfh.Close()
@@ -154,12 +154,12 @@ func extract(ctx context.Context, archive, dest string) error {
 			break
 		}
 		if err != nil {
-			return err
+			return errors.Wrapf(err, "Failed to read from tar file")
 		}
 		name := filepath.Base(header.Name)
-		if header.Typeflag == 0 && name == "gopass" {
+		if header.Typeflag == tar.TypeReg && name == "gopass" {
 			_, err := io.Copy(dfh, tarReader)
-			return err
+			return errors.Wrapf(err, "Failed to read gopass from tar file")
 		}
 	}
 	return errors.Errorf("file not found in archive")
