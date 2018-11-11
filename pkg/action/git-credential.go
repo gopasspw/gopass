@@ -5,7 +5,9 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log"
 	"os"
+	"os/exec"
 	"strings"
 
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -204,4 +206,32 @@ func (s *Action) GitCredentialErase(ctx context.Context, c *cli.Context) error {
 		fmt.Fprintln(os.Stderr, "gopass error: error while writing to store")
 	}
 	return nil
+}
+
+// GitCredentialConfigure configures gopass as git's credential.helper
+func (s *Action) GitCredentialConfigure(ctx context.Context, c *cli.Context) error {
+	flags := 0
+	flag := "--global"
+	if c.Bool("local") {
+		flag = "--local"
+		flags++
+	}
+	if c.Bool("global") {
+		flag = "--global"
+		flags++
+	}
+	if c.Bool("system") {
+		flag = "--system"
+		flags++
+	}
+	if flags >= 2 {
+		return ExitError(ctx, ExitUnsupported, nil, "Error: only specify one target of installation!")
+	}
+	if flags == 0 {
+		log.Println("No target given, assuming --global.")
+	}
+	cmd := exec.Command("git", "config", flag, "credential.helper", "'!gopass git-credential $@'")
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	return cmd.Run()
 }

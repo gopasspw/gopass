@@ -434,15 +434,15 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 			Description: "" +
 				"This command allows you to cache your git-credentials with gopass." +
 				"Activate by using `git config --global credential.helper '!gopass git-credential $@'`",
-			Before: func(c *cli.Context) error {
-				return action.GitCredentialBefore(ctxutil.WithInteractive(withGlobalFlags(ctx, c), false), c)
-			},
 			Subcommands: []cli.Command{
 				{
 					Name:   "get",
 					Hidden: true,
 					Action: func(c *cli.Context) error {
 						return action.GitCredentialGet(withGlobalFlags(ctx, c), c)
+					},
+					Before: func(c *cli.Context) error {
+						return action.GitCredentialBefore(ctxutil.WithInteractive(withGlobalFlags(ctx, c), false), c)
 					},
 				},
 				{
@@ -451,12 +451,39 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 					Action: func(c *cli.Context) error {
 						return action.GitCredentialStore(withGlobalFlags(ctx, c), c)
 					},
+					Before: func(c *cli.Context) error {
+						return action.GitCredentialBefore(ctxutil.WithInteractive(withGlobalFlags(ctx, c), false), c)
+					},
 				},
 				{
 					Name:   "erase",
 					Hidden: true,
 					Action: func(c *cli.Context) error {
 						return action.GitCredentialErase(withGlobalFlags(ctx, c), c)
+					},
+					Before: func(c *cli.Context) error {
+						return action.GitCredentialBefore(ctxutil.WithInteractive(withGlobalFlags(ctx, c), false), c)
+					},
+				},
+				{
+					Name:        "configure",
+					Description: "This command configures gopass as git's credential.helper",
+					Action: func(c *cli.Context) error {
+						return action.GitCredentialConfigure(withGlobalFlags(ctx, c), c)
+					},
+					Flags: []cli.Flag{
+						cli.BoolFlag{
+							Name:  "global",
+							Usage: "Install for current user",
+						},
+						cli.BoolFlag{
+							Name:  "local",
+							Usage: "Install for current repository only",
+						},
+						cli.BoolFlag{
+							Name:  "system",
+							Usage: "Install for all users, requires superuser rights",
+						},
 					},
 				},
 			},
