@@ -306,7 +306,7 @@ Chrome, chromium and Firefox are supported, currently. Further a wrapper must be
 gopass jsonapi configure
 
 # Do not copy / install any files, just print their location and content
-gopass jsonapi configure --print-only
+gopass jsonapi configure --print
 
 # Specify browser and wrapper path
 gopass jsonapi configure --browser chrome --path /home/user/.local/
