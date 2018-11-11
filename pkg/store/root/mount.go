@@ -34,7 +34,7 @@ func (r *Store) addMount(ctx context.Context, alias, path string, sc *config.Sto
 		r.mounts = make(map[string]store.Store, 1)
 	}
 	if _, found := r.mounts[alias]; found {
-		return errors.Errorf("%s is already mounted", alias)
+		return AlreadyMountedError(alias)
 	}
 
 	out.Debug(ctx, "addMount - Path: %s - StoreConfig: %+v", path, sc)
@@ -111,7 +111,7 @@ func (r *Store) initSub(ctx context.Context, sc *config.StoreConfig, alias strin
 
 	out.Debug(ctx, "[%s] Mount %s is not initialized", alias, path)
 	if len(keys) < 1 {
-		return s, errors.Errorf("password store %s is not initialized. Try gopass init --store %s --path %s", alias, alias, path)
+		return s, NotInitializedError{alias, path.String()}
 	}
 	if err := s.Init(ctx, path.String(), keys...); err != nil {
 		return s, errors.Wrapf(err, "failed to initialize store '%s' at '%s'", alias, path)

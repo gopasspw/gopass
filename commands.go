@@ -310,7 +310,7 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 			Flags: []cli.Flag{
 				cli.BoolFlag{
 					Name:  "recursive, r",
-					Usage: "f",
+					Usage: "Recursive delete files and folders",
 				},
 				cli.BoolFlag{
 					Name:  "force, f",
@@ -392,7 +392,7 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 			},
 			BashComplete: func(c *cli.Context) { action.CompleteGenerate(ctx, c) },
 			Flags: []cli.Flag{
-				cli.BoolFlag{
+				cli.BoolTFlag{
 					Name:  "clip, c",
 					Usage: "Copy the generated password to the clipboard",
 				},

@@ -15,7 +15,7 @@ const (
 )
 
 var (
-	colMount = color.New(color.FgRed, color.Bold).SprintfFunc()
+	colMount = color.New(color.FgCyan, color.Bold).SprintfFunc()
 	colDir   = color.New(color.FgBlue, color.Bold).SprintfFunc()
 	colTpl   = color.New(color.FgGreen, color.Bold).SprintfFunc()
 	colBin   = color.New(color.FgYellow, color.Bold).SprintfFunc()

@@ -8,7 +8,9 @@ import (
 	"github.com/gopasspw/gopass/pkg/config"
 	"github.com/gopasspw/gopass/pkg/out"
 	"github.com/gopasspw/gopass/pkg/store"
+	"github.com/gopasspw/gopass/pkg/store/root"
 	"github.com/gopasspw/gopass/pkg/tree/simple"
+	"github.com/pkg/errors"
 
 	"github.com/fatih/color"
 	"github.com/urfave/cli"
@@ -84,7 +86,18 @@ func (s *Action) MountAdd(ctx context.Context, c *cli.Context) error {
 	}
 
 	if err := s.Store.AddMount(ctx, alias, localPath, keys...); err != nil {
-		return ExitError(ctx, ExitMount, err, "failed to add mount '%s' to '%s': %s", alias, localPath, err)
+		switch e := errors.Cause(err).(type) {
+		case root.AlreadyMountedError:
+			out.Print(ctx, "Store is already mounted")
+			return nil
+		case root.NotInitializedError:
+			out.Print(ctx, "Mount %s is not yet initialized. Initializing ...", e.Alias())
+			if err := s.init(ctx, e.Alias(), e.Path()); err != nil {
+				return ExitError(ctx, ExitUnknown, err, "failed to add mount '%s': failed to initialize store: %s", e.Alias(), err)
+			}
+		default:
+			return ExitError(ctx, ExitMount, err, "failed to add mount '%s' to '%s': %s", alias, localPath, err)
+		}
 	}
 
 	if err := s.cfg.Save(); err != nil {

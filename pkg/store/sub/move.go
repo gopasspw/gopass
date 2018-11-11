@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/out"
 	"github.com/gopasspw/gopass/pkg/store"
 
 	"github.com/pkg/errors"
@@ -78,13 +79,6 @@ func (s *Store) delete(ctx context.Context, name string, recurse bool) error {
 		}
 	}
 
-	if err := s.rcs.Add(ctx, path); err != nil {
-		if errors.Cause(err) == store.ErrGitNotInit {
-			return nil
-		}
-		return errors.Wrapf(err, "failed to add '%s' to git", path)
-	}
-
 	if !ctxutil.IsGitCommit(ctx) {
 		return nil
 	}
@@ -116,7 +110,18 @@ func (s *Store) deleteRecurse(ctx context.Context, name, path string) error {
 		return store.ErrNotFound
 	}
 
-	return s.storage.Prune(ctx, name)
+	out.Debug(ctx, "Pruning %s", name)
+	if err := s.storage.Prune(ctx, name); err != nil {
+		return err
+	}
+
+	if err := s.rcs.Add(ctx, name); err != nil {
+		if errors.Cause(err) == store.ErrGitNotInit {
+			return nil
+		}
+		return errors.Wrapf(err, "failed to add '%s' to git", path)
+	}
+	return nil
 }
 
 func (s *Store) deleteSingle(ctx context.Context, path string) error {
@@ -124,5 +129,16 @@ func (s *Store) deleteSingle(ctx context.Context, path string) error {
 		return store.ErrNotFound
 	}
 
-	return s.storage.Delete(ctx, path)
+	out.Debug(ctx, "Deleting %s", path)
+	if err := s.storage.Delete(ctx, path); err != nil {
+		return err
+	}
+
+	if err := s.rcs.Add(ctx, path); err != nil {
+		if errors.Cause(err) == store.ErrGitNotInit {
+			return nil
+		}
+		return errors.Wrapf(err, "failed to add '%s' to git", path)
+	}
+	return nil
 }
