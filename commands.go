@@ -535,7 +535,7 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 				},
 				cli.StringFlag{
 					Name:  "qr, q",
-					Usage: "Write QR code to `FILE`",
+					Usage: "Write QR code to FILE",
 				},
 			},
 		},
