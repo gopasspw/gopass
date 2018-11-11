@@ -10,8 +10,8 @@ import (
 
 func TestPwStoreDirNoEnv(t *testing.T) {
 	for in, out := range map[string]string{
-		"":     filepath.Join(Homedir(), ".password-store"),
-		"work": filepath.Join(Homedir(), ".password-store-work"),
+		"":                          filepath.Join(Homedir(), ".password-store"),
+		"work":                      filepath.Join(Homedir(), ".password-store-work"),
 		filepath.Join("foo", "bar"): filepath.Join(Homedir(), ".password-store-foo-bar"),
 	} {
 		assert.Equal(t, out, PwStoreDir(in))

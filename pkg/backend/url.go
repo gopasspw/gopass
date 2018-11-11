@@ -5,6 +5,7 @@ import (
 	"net"
 	"net/url"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	homedir "github.com/mitchellh/go-homedir"
@@ -74,6 +75,12 @@ func ParseURL(us string) (*URL, error) {
 			u.Host = h
 			u.Port = p
 		}
+	} else if runtime.GOOS == "windows" {
+		// only trim if this is a local path, e. g. file:///C:/Users/...
+		// (specified in https://blogs.msdn.microsoft.com/ie/2006/12/06/file-uris-in-windows/)
+		// In that case, u.Path will contain a leading slash.
+		// (correctly, as per RFC 3986, see https://github.com/golang/go/issues/6027)
+		u.Path = strings.TrimPrefix(u.Path, "/")
 	}
 	return u, nil
 }
@@ -95,7 +102,11 @@ func (u *URL) String() string {
 		u.Storage,
 		scheme,
 	)
-	u.url.Path = u.Path
+	if !strings.HasPrefix(u.Path, "/") && filepath.IsAbs(u.Path) {
+		u.url.Path = "/" + u.Path
+	} else {
+		u.url.Path = u.Path
+	}
 	if u.Username != "" {
 		u.url.User = url.UserPassword(u.Username, u.Password)
 	}

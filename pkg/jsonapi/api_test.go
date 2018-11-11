@@ -62,6 +62,7 @@ func TestRespondMessageQuery(t *testing.T) {
 		{[]string{"awesomePrefix", "evilsome.other.host"}, secret.New("thesecret", "---\nother: meh")},
 		{[]string{"evilsome.other.host", "something"}, secret.New("thesecret", "---\nother: meh")},
 		{[]string{"awesomePrefix", "other.host", "other"}, secret.New("thesecret", "---\nother: meh")},
+		{[]string{"somename", "github.com"}, secret.New("thesecret", "---\nother: meh")},
 	}
 
 	// query for keys without any matching
@@ -86,6 +87,24 @@ func TestRespondMessageQuery(t *testing.T) {
 	runRespondMessage(t,
 		`{"type":"queryHost","host":"find.some.other.host"}`,
 		`\["awesomePrefix/b/some.other.host","awesomePrefix/some.other.host/other"\]`,
+		"", secrets)
+
+	// query for host not matches parent domain
+	runRespondMessage(t,
+		`{"type":"queryHost","host":"other.host"}`,
+		`\["awesomePrefix/other.host/other"\]`,
+		"", secrets)
+
+	// query for host is query has different domain appended does not return partial match
+	runRespondMessage(t,
+		`{"type":"queryHost","host":"some.other.host.different.domain"}`,
+		`\[\]`,
+		"", secrets)
+
+	// query returns result with public suffix at the end
+	runRespondMessage(t,
+		`{"type":"queryHost","host":"github.com"}`,
+		`\["somename/github.com"\]`,
 		"", secrets)
 
 	// get username / password for key without value in yaml
