@@ -86,6 +86,18 @@ func TestRespondMessageQuery(t *testing.T) {
 		`\["awesomePrefix/b/some.other.host","awesomePrefix/some.other.host/other"\]`,
 		"", secrets)
 
+	// query for host not matches parent domain
+	runRespondMessage(t,
+		`{"type":"queryHost","host":"other.host"}`,
+		`\["awesomePrefix/other.host/other"\]`,
+		"", secrets)
+
+	// query for host is query has different domain appended
+	runRespondMessage(t,
+		`{"type":"queryHost","host":"some.other.host.different.domain"}`,
+		`\[\]`,
+		"", secrets)
+
 	// get username / password for key without value in yaml
 	runRespondMessage(t,
 		`{"type":"getLogin","entry":"awesomePrefix/fixed/secret"}`,
