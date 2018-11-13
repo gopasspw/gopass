@@ -77,6 +77,13 @@ func TestList(t *testing.T) {
 `
 	assert.Equal(t, want, buf.String())
 	buf.Reset()
+
+	// list not-present
+	fs = flag.NewFlagSet("default", flag.ContinueOnError)
+	assert.NoError(t, fs.Parse([]string{"not-present"}))
+	c = cli.NewContext(app, fs, nil)
+	assert.Error(t, act.List(ctx, c))
+	buf.Reset()
 }
 
 func TestRedirectPager(t *testing.T) {
