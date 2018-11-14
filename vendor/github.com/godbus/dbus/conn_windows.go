@@ -2,6 +2,7 @@
 
 package dbus
 
+import "os"
 
 const defaultSystemBusAddress = "tcp:host=127.0.0.1,port=12434"
 
