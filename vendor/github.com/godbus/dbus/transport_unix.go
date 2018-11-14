@@ -31,6 +31,7 @@ func (o *oobReader) Read(b []byte) (n int, err error) {
 
 type unixTransport struct {
 	*net.UnixConn
+	rdr        *oobReader
 	hasUnixFDs bool
 }
 
@@ -79,10 +80,15 @@ func (t *unixTransport) ReadMessage() (*Message, error) {
 	// To be sure that all bytes of out-of-band data are read, we use a special
 	// reader that uses ReadUnix on the underlying connection instead of Read
 	// and gathers the out-of-band data in a buffer.
-	rd := &oobReader{conn: t.UnixConn}
+	if t.rdr == nil {
+		t.rdr = &oobReader{conn: t.UnixConn}
+	} else {
+		t.rdr.oob = nil
+	}
+
 	// read the first 16 bytes (the part of the header that has a constant size),
 	// from which we can figure out the length of the rest of the message
-	if _, err := io.ReadFull(rd, csheader[:]); err != nil {
+	if _, err := io.ReadFull(t.rdr, csheader[:]); err != nil {
 		return nil, err
 	}
 	switch csheader[0] {
@@ -104,7 +110,7 @@ func (t *unixTransport) ReadMessage() (*Message, error) {
 	// decode headers and look for unix fds
 	headerdata := make([]byte, hlen+4)
 	copy(headerdata, csheader[12:])
-	if _, err := io.ReadFull(t, headerdata[4:]); err != nil {
+	if _, err := io.ReadFull(t.rdr, headerdata[4:]); err != nil {
 		return nil, err
 	}
 	dec := newDecoder(bytes.NewBuffer(headerdata), order)
@@ -122,7 +128,7 @@ func (t *unixTransport) ReadMessage() (*Message, error) {
 	all := make([]byte, 16+hlen+blen)
 	copy(all, csheader[:])
 	copy(all[16:], headerdata[4:])
-	if _, err := io.ReadFull(rd, all[16+hlen:]); err != nil {
+	if _, err := io.ReadFull(t.rdr, all[16+hlen:]); err != nil {
 		return nil, err
 	}
 	if unixfds != 0 {
@@ -130,7 +136,7 @@ func (t *unixTransport) ReadMessage() (*Message, error) {
 			return nil, errors.New("dbus: got unix fds on unsupported transport")
 		}
 		// read the fds from the OOB data
-		scms, err := syscall.ParseSocketControlMessage(rd.oob)
+		scms, err := syscall.ParseSocketControlMessage(t.rdr.oob)
 		if err != nil {
 			return nil, err
 		}

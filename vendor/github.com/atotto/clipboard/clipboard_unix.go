@@ -12,8 +12,10 @@ import (
 )
 
 const (
-	xsel  = "xsel"
-	xclip = "xclip"
+	xsel               = "xsel"
+	xclip              = "xclip"
+	termuxClipboardGet = "termux-clipboard-get"
+	termuxClipboardSet = "termux-clipboard-set"
 )
 
 var (
@@ -28,7 +30,10 @@ var (
 	xclipPasteArgs = []string{xclip, "-out", "-selection", "clipboard"}
 	xclipCopyArgs  = []string{xclip, "-in", "-selection", "clipboard"}
 
-	missingCommands = errors.New("No clipboard utilities available. Please install xsel or xclip.")
+	termuxPasteArgs = []string{termuxClipboardGet}
+	termuxCopyArgs  = []string{termuxClipboardSet}
+
+	missingCommands = errors.New("No clipboard utilities available. Please install xsel, xclip, or Termux:API add-on for termux-clipboard-get/set.")
 )
 
 func init() {
@@ -44,6 +49,15 @@ func init() {
 
 	if _, err := exec.LookPath(xsel); err == nil {
 		return
+	}
+
+	pasteCmdArgs = termuxPasteArgs
+	copyCmdArgs = termuxCopyArgs
+
+	if _, err := exec.LookPath(termuxClipboardSet); err == nil {
+		if _, err := exec.LookPath(termuxClipboardGet); err == nil {
+			return
+		}
 	}
 
 	Unsupported = true
