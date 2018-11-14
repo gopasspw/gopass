@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"github.com/gopasspw/gopass/pkg/out"
 	"github.com/gopasspw/gopass/pkg/termutil"
 	"github.com/gopasspw/gopass/pkg/tree"
 
@@ -44,8 +43,7 @@ func (s *Action) List(ctx context.Context, c *cli.Context) error {
 func (s *Action) listFiltered(ctx context.Context, l tree.Tree, limit int, flat, stripPrefix bool, filter string) error {
 	subtree, err := l.FindFolder(filter)
 	if err != nil {
-		out.Error(ctx, "Entry '%s' not found", filter)
-		return nil
+		return ExitError(ctx, ExitNotFound, nil, "Entry '%s' not found", filter)
 	}
 
 	// SetRoot formats the root entry properly

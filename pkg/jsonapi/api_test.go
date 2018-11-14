@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/binary"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -13,6 +14,7 @@ import (
 
 	"github.com/gopasspw/gopass/pkg/backend"
 	"github.com/gopasspw/gopass/pkg/config"
+	"github.com/gopasspw/gopass/pkg/otp"
 	"github.com/gopasspw/gopass/pkg/store"
 	"github.com/gopasspw/gopass/pkg/store/root"
 	"github.com/gopasspw/gopass/pkg/store/secret"
@@ -60,6 +62,7 @@ func TestRespondMessageQuery(t *testing.T) {
 		{[]string{"awesomePrefix", "evilsome.other.host"}, secret.New("thesecret", "---\nother: meh")},
 		{[]string{"evilsome.other.host", "something"}, secret.New("thesecret", "---\nother: meh")},
 		{[]string{"awesomePrefix", "other.host", "other"}, secret.New("thesecret", "---\nother: meh")},
+		{[]string{"somename", "github.com"}, secret.New("thesecret", "---\nother: meh")},
 	}
 
 	// query for keys without any matching
@@ -86,6 +89,24 @@ func TestRespondMessageQuery(t *testing.T) {
 		`\["awesomePrefix/b/some.other.host","awesomePrefix/some.other.host/other"\]`,
 		"", secrets)
 
+	// query for host not matches parent domain
+	runRespondMessage(t,
+		`{"type":"queryHost","host":"other.host"}`,
+		`\["awesomePrefix/other.host/other"\]`,
+		"", secrets)
+
+	// query for host is query has different domain appended does not return partial match
+	runRespondMessage(t,
+		`{"type":"queryHost","host":"some.other.host.different.domain"}`,
+		`\[\]`,
+		"", secrets)
+
+	// query returns result with public suffix at the end
+	runRespondMessage(t,
+		`{"type":"queryHost","host":"github.com"}`,
+		`\["somename/github.com"\]`,
+		"", secrets)
+
 	// get username / password for key without value in yaml
 	runRespondMessage(t,
 		`{"type":"getLogin","entry":"awesomePrefix/fixed/secret"}`,
@@ -106,7 +127,12 @@ func TestRespondMessageQuery(t *testing.T) {
 }
 
 func TestRespondMessageGetData(t *testing.T) {
+	totpSuffix := "//totp/github-fake-account?secret=rpna55555qyho42j"
+	totpURL := "otpauth:" + totpSuffix
+	totpSecret := secret.New("totp_are_cool", totpURL)
+
 	secrets := []storedSecret{
+		{[]string{"totp"}, totpSecret},
 		{[]string{"foo"}, secret.New("20", "hallo: welt")},
 		{[]string{"bar"}, secret.New("20", "---\nlogin: muh")},
 		{[]string{"complex"}, secret.New("20", `---
@@ -116,6 +142,12 @@ sub:
   subentry: 123
 `)},
 	}
+
+	totp, _, err := otp.Calculate(context.Background(), "_", totpSecret)
+	if err != nil {
+		assert.NoError(t, err)
+	}
+	expectedTotp := totp.OTP()
 
 	runRespondMessage(t,
 		`{"type":"getData","entry":"foo"}`,
@@ -129,6 +161,11 @@ sub:
 	runRespondMessage(t,
 		`{"type":"getData","entry":"complex"}`,
 		`{"login":"hallo","number":42,"sub":{"subentry":123}}`,
+		"", secrets)
+
+	runRespondMessage(t,
+		`{"type":"getData","entry":"totp"}`,
+		fmt.Sprintf(`{"current_totp":"%s","otpauth":"(.+)"}`, expectedTotp),
 		"", secrets)
 }
 

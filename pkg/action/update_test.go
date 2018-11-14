@@ -69,9 +69,10 @@ func TestUpdate(t *testing.T) {
 		}()
 		body := "foobar"
 		hdr := &tar.Header{
-			Name: "gopass",
-			Mode: 0600,
-			Size: int64(len(body)),
+			Typeflag: tar.TypeReg,
+			Name:     "gopass",
+			Mode:     0600,
+			Size:     int64(len(body)),
 		}
 		if err := tw.WriteHeader(hdr); err != nil {
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)

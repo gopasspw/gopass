@@ -113,7 +113,7 @@ we'll try to move to this backend as the default backend.
 
 We implemented a pure-Go backend using a custom message format based on the excellent
 [NaCl library](https://nacl.cr.yp.to/) [packages](https://godoc.org/golang.org/x/crypto/nacl).
-The advantage of this backend that it's properly integrated into gopass, has a stable API,
+The advantage of this backend is that it's properly integrated into gopass, has a stable API,
 stable error handling and only the features we absolutely need. This makes it
 very easy to setup, use and support. The big drawback is that it didn't receive
 any of the scrutiny and peer review that GPG got. And since it's very easy to

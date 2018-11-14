@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/gopasspw/gopass/pkg/otp"
 	"github.com/gopasspw/gopass/pkg/pwgen"
 	"github.com/gopasspw/gopass/pkg/store"
 	"github.com/gopasspw/gopass/pkg/store/secret"
@@ -133,7 +134,16 @@ func (api *API) respondGetData(ctx context.Context, msgBytes []byte) error {
 		return errors.Wrapf(err, "failed to get secret")
 	}
 
-	converted := convertMixedMapInterfaces(interface{}(sec.Data()))
+	responseData := sec.Data()
+
+	currentTotp, _, err := otp.Calculate(ctx, "_", sec)
+	if err == nil {
+		responseData["current_totp"] = currentTotp.OTP()
+	} else if err != otp.ErrNoTotpEntry {
+		responseData["current_totp"] = "failed to retrieve: " + err.Error()
+	}
+
+	converted := convertMixedMapInterfaces(interface{}(responseData))
 	return sendSerializedJSONMessage(converted, api.Writer)
 }
 

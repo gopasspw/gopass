@@ -32,7 +32,7 @@ func TestCleanPath(t *testing.T) {
 	}()
 
 	m := map[string]string{
-		".": "",
+		".":                                 "",
 		"/home/user/../bob/.password-store": "/home/bob/.password-store",
 		"/home/user//.password-store":       "/home/user/.password-store",
 		tempdir + "/foo.gpg":                tempdir + "/foo.gpg",
