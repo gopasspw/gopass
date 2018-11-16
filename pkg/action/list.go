@@ -26,6 +26,11 @@ func (s *Action) List(ctx context.Context, c *cli.Context) error {
 	flat := c.Bool("flat")
 	stripPrefix := c.Bool("strip-prefix")
 	limit := c.Int("limit")
+	folders := c.Bool("folders")
+	// we only support listing folders in flat mode currently
+	if folders {
+		flat = true
+	}
 
 	ctx = s.Store.WithConfig(ctx, filter)
 
@@ -35,12 +40,12 @@ func (s *Action) List(ctx context.Context, c *cli.Context) error {
 	}
 
 	if filter == "" {
-		return s.listAll(ctx, l, limit, flat)
+		return s.listAll(ctx, l, limit, flat, folders)
 	}
-	return s.listFiltered(ctx, l, limit, flat, stripPrefix, filter)
+	return s.listFiltered(ctx, l, limit, flat, folders, stripPrefix, filter)
 }
 
-func (s *Action) listFiltered(ctx context.Context, l tree.Tree, limit int, flat, stripPrefix bool, filter string) error {
+func (s *Action) listFiltered(ctx context.Context, l tree.Tree, limit int, flat, folders, stripPrefix bool, filter string) error {
 	subtree, err := l.FindFolder(filter)
 	if err != nil {
 		return ExitError(ctx, ExitNotFound, nil, "Entry '%s' not found", filter)
@@ -54,7 +59,11 @@ func (s *Action) listFiltered(ctx context.Context, l tree.Tree, limit int, flat,
 		if strings.HasSuffix(filter, "/") {
 			sep = ""
 		}
-		for _, e := range subtree.List(limit) {
+		listOver := subtree.List
+		if folders {
+			listOver = subtree.ListFolders
+		}
+		for _, e := range listOver(limit) {
 			if stripPrefix {
 				fmt.Fprintln(stdout, e)
 				continue
@@ -95,9 +104,13 @@ func redirectPager(ctx context.Context, subtree tree.Tree) (io.Writer, *bytes.Bu
 }
 
 // listAll will unconditionally list all entries, used if no filter is given
-func (s *Action) listAll(ctx context.Context, l tree.Tree, limit int, flat bool) error {
+func (s *Action) listAll(ctx context.Context, l tree.Tree, limit int, flat, folders bool) error {
 	if flat {
-		for _, e := range l.List(limit) {
+		listOver := l.List
+		if folders {
+			listOver = l.ListFolders
+		}
+		for _, e := range listOver(limit) {
 			fmt.Fprintln(stdout, e)
 		}
 		return nil

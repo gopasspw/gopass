@@ -780,6 +780,10 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 					Usage: "Print flat list",
 				},
 				cli.BoolFlag{
+					Name:  "folders, fo",
+					Usage: "Print flat list of folders",
+				},
+				cli.BoolFlag{
 					Name:  "strip-prefix, s",
 					Usage: "Strip prefix from filtered entries",
 				},
