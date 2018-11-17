@@ -72,19 +72,30 @@ func TestAskForGitConfigUser(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-type fakeMountPointer struct{}
+type fakeMountPointer []string
 
-func (f *fakeMountPointer) MountPoints() []string {
-	return []string{"foo", "bar"}
+func (f fakeMountPointer) MountPoints() []string {
+	return f
 }
 
 func TestAskForStore(t *testing.T) {
 	ctx := context.Background()
 
+	// test non-interactive
 	ctx = ctxutil.WithInteractive(ctx, false)
-	assert.Equal(t, "", AskForStore(ctx, &fakeMountPointer{}))
+	assert.Equal(t, "", AskForStore(ctx, fakeMountPointer{"foo", "bar"}))
 
+	// test interactive
 	ctx = ctxutil.WithInteractive(ctx, true)
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
-	assert.Equal(t, "", AskForStore(ctx, &fakeMountPointer{}))
+	assert.Equal(t, "", AskForStore(ctx, fakeMountPointer{"foo", "bar"}))
+
+	// test zero mps
+	assert.Equal(t, "", AskForStore(ctx, fakeMountPointer{}))
+
+	// test one mp
+	assert.Equal(t, "", AskForStore(ctx, fakeMountPointer{"foo"}))
+
+	// test two mps
+	assert.Equal(t, "", AskForStore(ctx, fakeMountPointer{"foo", "bar"}))
 }

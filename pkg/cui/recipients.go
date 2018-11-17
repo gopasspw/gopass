@@ -281,16 +281,12 @@ func AskForStore(ctx context.Context, s mountPointer) string {
 		return ""
 	}
 
-	mps := s.MountPoints()
-	if len(mps) < 1 {
+	stores := []string{"<root>"}
+	stores = append(stores, s.MountPoints()...)
+	if len(stores) < 2 {
 		return ""
 	}
-	if len(mps) < 2 {
-		return mps[0]
-	}
 
-	stores := []string{"<root>"}
-	stores = append(stores, mps...)
 	act, sel := GetSelection(ctx, "Please select the store you would like to use", "<↑/↓> to change the selection, <→> to select, <ESC> to quit", stores)
 	switch act {
 	case "default":
