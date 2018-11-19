@@ -78,6 +78,30 @@ func TestList(t *testing.T) {
 	assert.Equal(t, want, buf.String())
 	buf.Reset()
 
+	// list --folders
+
+	// add more folders and subfolders
+	assert.NoError(t, act.Store.Set(ctx, "foo/zen/bar", secret.New("123", "")))
+	assert.NoError(t, act.Store.Set(ctx, "foo2/bar2", secret.New("123", "")))
+	buf.Reset()
+
+	fs = flag.NewFlagSet("default", flag.ContinueOnError)
+	bf = cli.BoolFlag{
+		Name:  "folders",
+		Usage: "folders",
+	}
+	assert.NoError(t, bf.ApplyWithError(fs))
+	assert.NoError(t, fs.Parse([]string{"--folders=true"}))
+	c = cli.NewContext(app, fs, nil)
+
+	assert.NoError(t, act.List(ctx, c))
+	want = `foo
+foo/zen
+foo2
+`
+	assert.Equal(t, want, buf.String())
+	buf.Reset()
+
 	// list not-present
 	fs = flag.NewFlagSet("default", flag.ContinueOnError)
 	assert.NoError(t, fs.Parse([]string{"not-present"}))
