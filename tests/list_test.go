@@ -48,8 +48,8 @@ foo
 	assert.NoError(t, err)
 	assert.Equal(t, strings.TrimSpace(list), out)
 
-	list = `fixed/
-foo/
+	list = `fixed
+foo
 `
 	out, err = ts.run("list --folders")
 	assert.NoError(t, err)

@@ -95,9 +95,9 @@ func TestList(t *testing.T) {
 	c = cli.NewContext(app, fs, nil)
 
 	assert.NoError(t, act.List(ctx, c))
-	want = `foo/
-foo/zen/
-foo2/
+	want = `foo
+foo/zen
+foo2
 `
 	assert.Equal(t, want, buf.String())
 	buf.Reset()

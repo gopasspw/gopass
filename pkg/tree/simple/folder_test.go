@@ -57,21 +57,21 @@ func TestFolder(t *testing.T) {
 	// test folders
 	lst = root.ListFolders(0)
 	wants = []string{
-		"zab/",
-		"zab/foo/",
-		"zab2/",
-		"zab2/foo/",
-		"zab2/foo/zen/",
+		"zab",
+		"zab/foo",
+		"zab2",
+		"zab2/foo",
+		"zab2/foo/zen",
 	}
 	assert.Equal(t, wants, lst)
 
 	// test folders maxDepth = 1
 	lst = root.ListFolders(1)
 	wants = []string{
-		"zab/",
-		"zab/foo/",
-		"zab2/",
-		"zab2/foo/",
+		"zab",
+		"zab/foo",
+		"zab2",
+		"zab2/foo",
 	}
 	assert.Equal(t, wants, lst)
 

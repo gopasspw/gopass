@@ -126,8 +126,8 @@ func (f* Folder) listFolders(prefix string, maxDepth, curDepth int) []string {
 
 	for _, key := range sortedFolders(f.Folders) {
 		out = append(out, f.Folders[key].listFolders(prefix, maxDepth, curDepth+1)...)
-		// we add the separator since we are listing folders and path.Join removes it
-		out = append(out, path.Join(prefix, f.Folders[key].Name) + sep)
+		// we want to also list the base folders, not just the leaves
+		out = append(out, path.Join(prefix, f.Folders[key].Name))
 	}
 
 	sort.Strings(out)

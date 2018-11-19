@@ -51,7 +51,7 @@ _{{ $prog }}_complete_passwords () {
 }
 
 _{{ $prog }}_complete_folders () {
-    _values 'folders' $({{ $prog }} ls --folders --flat)
+    _values -s '/' 'folders' $({{ $prog }} ls --folders --flat)
 }
 
 _{{ $prog }}`
