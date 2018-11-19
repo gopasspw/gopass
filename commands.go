@@ -22,7 +22,7 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 			Name:  "agent",
 			Usage: "Start gopass-agent",
 			Description: "" +
-				"This command starts the gopass agent that will cache passphrases" +
+				"This command starts the gopass agent that will cache passphrases " +
 				"so they don't have to be entered repeatedly.",
 			Action: func(c *cli.Context) error {
 				ec := make(chan error)
