@@ -3,8 +3,8 @@ package zsh
 import (
 	"bytes"
 	"fmt"
-	"text/template"
 	"strings"
+	"text/template"
 
 	"github.com/urfave/cli"
 )

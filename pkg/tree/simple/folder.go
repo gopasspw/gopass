@@ -111,7 +111,7 @@ func (f *Folder) list(prefix string, maxDepth, curDepth int) []string {
 
 // listFolders returns a flattened list of all folders with their full path in
 // the tree, e.g. foo foo/bar
-func (f* Folder) listFolders(prefix string, maxDepth, curDepth int) []string {
+func (f *Folder) listFolders(prefix string, maxDepth, curDepth int) []string {
 	out := make([]string, 0)
 	if maxDepth > 0 && curDepth > maxDepth {
 		return out

@@ -55,4 +55,4 @@ foo
 	assert.NoError(t, err)
 	assert.Equal(t, strings.TrimSpace(list), out)
 
-	}
+}
