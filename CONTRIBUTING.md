@@ -45,6 +45,108 @@ will try to clarify it.
 
 If any of the above don't work check out the [troubleshooting section](#troubleshooting-build).
 
+## Releasing
+
+This section is a reference for contributors with write access to the gopass
+repository.
+
+### Preparation
+
+In order to release gopass we currently rely on a patched version of goreleaser.
+While most of our customizations have been submited and merged upstream some had
+to be changed to be accepted and others were rejected. We'd like to switch back
+to vanilla goreleaser in the future, but this requires some tweaks to the build
+and release process.
+
+```bash
+# Install our modified version of goreleaser
+go get -u github.com/goreleaser/goreleaser
+cd $GOPATH/src/github.com/goreleaser/goreleaser
+git remote add gopass git@github.com:gopasspw/goreleaser.git
+git fetch gopass
+git checkout gopass
+git pull gopass gopass
+go install
+```
+
+### Releasing a new minor release
+
+This subsection applies to major or minor releases, i.e. incrementing
+X or Y in X.Y.Z. This is the regular release process.
+
+We develop new features and fixes and feature branches which are frequently
+merged into master in our own forks of the repository.
+
+**Important: Do not push and feature branches to the main repo.**
+
+```bash
+# Change in to the repository
+cd $GOPATH/src/github.com/gopasspw/gopass
+
+# Update the Changelog
+# TODO: Update CHANGELOG.md
+
+# Update the version
+echo v1.X.Y > VERSION
+git commit -am'Tag v1.X.Y'
+
+# Tag the new version
+git tag -s v1.X.Y
+
+# Generate shell completion files
+make completion
+
+# Do a release dry run to detect possible issues
+goreleaser --skip-publish
+
+# Push the tag to GitHub
+git push origin v1.X.Y
+
+# Build and push the release
+GITHUB_TOKEN=ABC goreleaser
+
+# Update the gopass website
+# TODO: Update gopasspw.github.io
+```
+
+After these steps are complete please edit the auto-generated GitHub release
+description and make it match the current CHANGELOG entry.
+
+### Releasing a patch level release
+
+This subsection applies to patch level releases, i.e. incrementing
+Z in X.Y.Z.
+
+If we need to release a patch release and can not base this upon the master
+branch because there have been changes which should not be included in the patch
+release (e.g. new features) we need to summon a new release branch from a past
+release tag. Then we cherry-pick or port the required fixes to this branch and
+create a release from it.
+
+Tips for cherry-picking:
+* Keep the changes small and self contained
+* Squashed commits per feature help (one commit per fix/feature)
+* Keep them in order
+
+```bash
+git checkout vX.Y.Z
+git checkout -b release-X.Y
+git cherry-pick ABC
+git cherry-pick DEF
+git cherry-pick FFF
+make travis
+# TODO: Update CHANGELOG.md and VERSION in ONE COMMIT
+git commit -am'Tag X.Y.Z+1'
+git tag -s vX.Y.Z+1
+goreleaser --skip-publish
+git push origin vX.Y.Z+1
+GITHUB_TOKEN=ABC goreleaser
+git push origin release-X.Y
+```
+
+After these steps are complete please edit the auto-generated GitHub release
+description and make it match the current CHANGELOG entry.
+
 ## Troubleshooting
 
 ### Vendoring
