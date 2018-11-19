@@ -39,7 +39,7 @@ func (f *Folder) List(maxDepth int) []string {
 	return f.list("", maxDepth, 0)
 }
 
-// List returns a flattened list of all nodes without leaf
+// ListFolders returns a flattened list of all nodes without leaf
 func (f *Folder) ListFolders(maxDepth int) []string {
 	return f.listFolders("", maxDepth, 0)
 }
@@ -109,7 +109,7 @@ func (f *Folder) list(prefix string, maxDepth, curDepth int) []string {
 	return out
 }
 
-// list returns a flattened list of all folders with their full path in
+// listFolders returns a flattened list of all folders with their full path in
 // the tree, e.g. foo foo/bar
 func (f* Folder) listFolders(prefix string, maxDepth, curDepth int) []string {
 	out := make([]string, 0)
