@@ -127,7 +127,7 @@
 
 [[constraint]]
   name = "gopkg.in/src-d/go-git.v4"
-  version = "4.1.1"
+  revision = "1241d740739fd0a2a157db9c935cf9272b52ec0f"
 
 [[constraint]]
   name = "gopkg.in/yaml.v2"

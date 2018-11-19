@@ -10,5 +10,5 @@ var ProtectEnabled = true
 // Pledge on OpenBSD lets us "promise" to only run a subset of
 // system calls: http://man.openbsd.org/pledge
 func Pledge(s string) error {
-	return unix.Pledge(s, nil)
+	return unix.Pledge(s, "")
 }
