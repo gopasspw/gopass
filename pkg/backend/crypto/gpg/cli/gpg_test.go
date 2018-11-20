@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestGPG(t *testing.T) {
@@ -16,7 +17,7 @@ func TestGPG(t *testing.T) {
 	assert.Equal(t, "", g.Binary())
 
 	g, err = New(ctx, Config{})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NotEqual(t, "", g.Binary())
 
 	_, err = g.ListPublicKeyIDs(ctx)

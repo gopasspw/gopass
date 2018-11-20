@@ -19,13 +19,14 @@ import (
 	"github.com/gopasspw/gopass/pkg/backend/crypto/xc/keyring"
 	"github.com/gopasspw/gopass/pkg/backend/crypto/xc/xcpb"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestStream(t *testing.T) {
 	ctx := context.Background()
 
 	td, err := ioutil.TempDir("", "gopass-")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(td)
 	}()
@@ -42,10 +43,10 @@ func TestStream(t *testing.T) {
 	passphrase := "test"
 
 	k1, err := keyring.GenerateKeypair(passphrase)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	skr := keyring.NewSecring()
-	assert.NoError(t, skr.Set(k1))
+	require.NoError(t, skr.Set(k1))
 
 	pkr := keyring.NewPubring(skr)
 
@@ -56,7 +57,8 @@ func TestStream(t *testing.T) {
 	}
 
 	pfh, err := os.OpenFile(plainFile, os.O_CREATE|os.O_WRONLY, 0600)
-	assert.NoError(t, err)
+	require.NoError(t, err)
+	require.NotNil(t, pfh)
 
 	p := make([]byte, 1024)
 	written := 0
@@ -64,46 +66,46 @@ func TestStream(t *testing.T) {
 		n, _ := rand.Read(p)
 		n, err := pfh.Write(p[:n])
 		written += n
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		_, _ = plainSum.Write(p[:n])
 	}
 	// add some more bytes to force an uneven block boundary
 	p = make([]byte, 10)
 	rand.Read(p)
 	_, err = pfh.Write(p)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	_, _ = plainSum.Write(p)
 
-	assert.NoError(t, pfh.Close())
+	require.NoError(t, pfh.Close())
 	t.Logf("Wrote %d bytes", written)
 
 	pfh, err = os.Open(plainFile)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	cfh, err := os.OpenFile(cryptFile, os.O_CREATE|os.O_WRONLY, 0600)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	err = xc.EncryptStream(ctx, pfh, []string{k1.Fingerprint()}, cfh)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
-	assert.NoError(t, pfh.Close())
-	assert.NoError(t, cfh.Close())
+	require.NoError(t, pfh.Close())
+	require.NoError(t, cfh.Close())
 
 	cfh, err = os.Open(cryptFile)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	pfh, err = os.OpenFile(plainAgain, os.O_CREATE|os.O_WRONLY, 0600)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// check decryption works and yields exactly the input
 	err = xc.DecryptStream(ctx, cfh, pfh)
 	assert.NoError(t, err)
 
-	assert.NoError(t, cfh.Close())
-	assert.NoError(t, pfh.Close())
+	require.NoError(t, cfh.Close())
+	require.NoError(t, pfh.Close())
 
 	pfh, err = os.Open(plainAgain)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	buf := make([]byte, 1024)
 	for {
 		n, err := pfh.Read(buf)
@@ -112,10 +114,10 @@ func TestStream(t *testing.T) {
 			if err == io.EOF {
 				break
 			}
-			assert.NoError(t, err)
+			require.NoError(t, err)
 		}
 	}
-	assert.NoError(t, pfh.Close())
+	require.NoError(t, pfh.Close())
 
 	assert.Equal(t, fmt.Sprintf("%X", plainSum.Sum(nil)), fmt.Sprintf("%X", againSum.Sum(nil)))
 }
@@ -126,10 +128,10 @@ func BenchmarkEncryptDecrypt(b *testing.B) {
 	passphrase := "test"
 
 	k1, err := keyring.GenerateKeypair(passphrase)
-	assert.NoError(b, err)
+	require.NoError(b, err)
 
 	skr := keyring.NewSecring()
-	assert.NoError(b, skr.Set(k1))
+	require.NoError(b, skr.Set(k1))
 
 	pkr := keyring.NewPubring(skr)
 

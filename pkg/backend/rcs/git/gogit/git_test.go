@@ -12,6 +12,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/store"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"gopkg.in/src-d/go-git.v4/config"
 )
 
@@ -35,12 +36,12 @@ func TestCloneLocal(t *testing.T) {
 	// clone
 	path := filepath.Join(td, "gogit")
 	g, err := Clone(ctx, repo, path)
-	assert.NoError(t, err)
-	assert.NotNil(t, g)
+	require.NoError(t, err)
+	require.NotNil(t, g)
 
 	// list remotes
 	list, err := g.repo.Remotes()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	t.Logf("Remotes: %+v", list)
 
 	// add file
@@ -63,7 +64,7 @@ func TestCloneSSH(t *testing.T) {
 	t.Skip("need remote")
 
 	td, err := ioutil.TempDir("", "gopass-")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(td)
 	}()
@@ -74,18 +75,18 @@ func TestCloneSSH(t *testing.T) {
 	// clone
 	path := filepath.Join(td, "gogit")
 	g, err := Clone(ctx, "", path)
-	assert.NoError(t, err)
-	assert.NotNil(t, g)
+	require.NoError(t, err)
+	require.NotNil(t, g)
 
 	// list remotes
 	list, err := g.repo.Remotes()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	t.Logf("Remotes: %+v", list)
 }
 
 func TestInit(t *testing.T) {
 	td, err := ioutil.TempDir("", "gopass-")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer func() {
 		//_ = os.RemoveAll(td)
 	}()
@@ -100,8 +101,7 @@ func TestInit(t *testing.T) {
 	// init
 	path := filepath.Join(td, "gogit")
 	g, _ := Init(ctx, path)
-	//assert.NoError(t, err)
-	assert.NotNil(t, g)
+	require.NotNil(t, g)
 
 	// add remote
 	_, err = g.repo.CreateRemote(&config.RemoteConfig{
@@ -112,11 +112,11 @@ func TestInit(t *testing.T) {
 
 	// list remotes
 	list, err := g.repo.Remotes()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	t.Logf("Remotes: %+v", list)
 
 	// add file
-	assert.NoError(t, ioutil.WriteFile(filepath.Join(path, "bar.txt"), []byte("zab"), 0644))
+	require.NoError(t, ioutil.WriteFile(filepath.Join(path, "bar.txt"), []byte("zab"), 0644))
 	assert.NoError(t, g.Add(ctx, "bar.txt"))
 	assert.NoError(t, g.Commit(ctx, "Added bar.txt"))
 	assert.EqualError(t, g.Commit(ctx, "boooo"), store.ErrGitNothingToCommit.Error())
@@ -125,7 +125,8 @@ func TestInit(t *testing.T) {
 	assert.NoError(t, g.PushPull(ctx, "push", "", ""))
 
 	g, err = Open(path)
-	assert.NoError(t, err)
+	require.NoError(t, err)
+	require.NotNil(t, g)
 	assert.Error(t, g.Cmd(ctx, "foo", "bar"))
 	assert.Error(t, g.InitConfig(ctx, "foo", "bar"))
 	assert.Equal(t, "go-git", g.Name())
@@ -135,7 +136,7 @@ func TestInit(t *testing.T) {
 
 	// list remotes
 	list, err = g.repo.Remotes()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	t.Logf("Remotes: %+v", list)
 }
 

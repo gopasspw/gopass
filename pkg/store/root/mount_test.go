@@ -9,6 +9,7 @@ import (
 	"github.com/gopasspw/gopass/tests/gptest"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestMount(t *testing.T) {
@@ -20,14 +21,14 @@ func TestMount(t *testing.T) {
 	ctx = out.WithHidden(ctx, true)
 
 	rs, err := createRootStore(ctx, u)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	assert.Equal(t, map[string]string{}, rs.Mounts())
 	assert.Equal(t, []string{}, rs.MountPoints())
 
 	sub, err := rs.GetSubStore("")
-	assert.NoError(t, err)
-	assert.NotNil(t, sub)
+	require.NoError(t, err)
+	require.NotNil(t, sub)
 
 	sub, err = rs.GetSubStore("foo")
 	assert.Error(t, err)

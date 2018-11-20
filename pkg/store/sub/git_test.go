@@ -11,19 +11,20 @@ import (
 
 	"github.com/blang/semver"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestGit(t *testing.T) {
 	ctx := context.Background()
 
 	tempdir, err := ioutil.TempDir("", "gopass-")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(tempdir)
 	}()
 
 	s, err := createSubStore(tempdir)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	assert.NotNil(t, s.RCS())
 	assert.Equal(t, "noop", s.RCS().Name())
@@ -46,13 +47,13 @@ func TestGitRevisions(t *testing.T) {
 	ctx := context.Background()
 
 	tempdir, err := ioutil.TempDir("", "gopass-")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(tempdir)
 	}()
 
 	s, err := createSubStore(tempdir)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	assert.NotNil(t, s.RCS())
 	assert.Equal(t, "noop", s.RCS().Name())
@@ -62,6 +63,6 @@ func TestGitRevisions(t *testing.T) {
 	assert.Error(t, err)
 
 	sec, err := s.GetRevision(ctx, "foo", "bar")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "", sec.Password())
 }

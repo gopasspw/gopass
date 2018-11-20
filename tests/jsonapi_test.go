@@ -7,13 +7,14 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func getMessageLength(t *testing.T, msg []byte) int {
 	var length uint32
 	buf := bytes.NewBuffer(msg)
 	err := binary.Read(buf, binary.LittleEndian, &length)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	return int(length)
 }
 
@@ -22,15 +23,15 @@ func readAndVerifyMessageLength(t *testing.T, rawMessage []byte) string {
 	lenBytes := make([]byte, 4)
 
 	_, err := stdin.Read(lenBytes)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	length := getMessageLength(t, lenBytes)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, len(rawMessage)-4, length)
 
 	msgBytes := make([]byte, length)
 	_, err = stdin.Read(msgBytes)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	return string(msgBytes)
 }
 
@@ -43,7 +44,7 @@ func writeMessageWithLength(message string) io.Reader {
 
 func getMessageResponse(t *testing.T, ts *tester, message string) string {
 	out, err := ts.runWithInputReader("jsonapi listen", writeMessageWithLength(message))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	return readAndVerifyMessageLength(t, out)
 }
 
@@ -56,7 +57,7 @@ func TestJSONAPI(t *testing.T) {
 
 	// message has length specified but invalid json
 	strout, err := ts.runWithInput("jsonapi listen", "1234Xabcd")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "{\"error\":\"incomplete message read\"}", readAndVerifyMessageLength(t, strout))
 
 	// message with empty object

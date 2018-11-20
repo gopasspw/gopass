@@ -15,6 +15,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/store/secret"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 type fakeConfig struct{}
@@ -38,7 +39,7 @@ func TestFsck(t *testing.T) {
 
 	// common setup
 	tempdir, err := ioutil.TempDir("", "gopass-")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	s := &Store{
 		alias:   "",

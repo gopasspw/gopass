@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestYAMLAndSecret(t *testing.T) {
@@ -20,10 +21,10 @@ func TestYAMLAndSecret(t *testing.T) {
 	assert.Equal(t, "\nError: failed to retrieve secret 'foo/bar': Entry is not in the password store\n", out)
 
 	_, err = ts.runCmd([]string{ts.Binary, "insert", "foo/bar"}, []byte("moar"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	_, err = ts.runCmd([]string{ts.Binary, "insert", "foo/bar", "baz"}, []byte("moar"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	out, err = ts.run("foo/bar baz")
 	assert.NoError(t, err)

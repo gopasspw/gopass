@@ -9,6 +9,7 @@ import (
 	"github.com/gopasspw/gopass/tests/gptest"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestList(t *testing.T) {
@@ -20,9 +21,9 @@ func TestList(t *testing.T) {
 	ctx = out.WithHidden(ctx, true)
 
 	rs, err := createRootStore(ctx, u)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	es, err := rs.List(ctx, 0)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, []string{"foo"}, es)
 }

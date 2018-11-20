@@ -15,6 +15,7 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/urfave/cli"
 )
 
@@ -25,7 +26,8 @@ func TestFind(t *testing.T) {
 	ctx := context.Background()
 	ctx = ctxutil.WithTerminal(ctx, false)
 	act, err := newMock(ctx, u)
-	assert.NoError(t, err)
+	require.NoError(t, err)
+	require.NotNil(t, act)
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf

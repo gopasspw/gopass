@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestFind(t *testing.T) {
@@ -18,7 +19,7 @@ func TestFind(t *testing.T) {
 	assert.Equal(t, "\nError: Usage: "+filepath.Base(ts.Binary)+" find <NEEDLE>\n", out)
 
 	_, err = ts.run("config safecontent false")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	out, err = ts.run("find bar")
 	assert.Error(t, err)
