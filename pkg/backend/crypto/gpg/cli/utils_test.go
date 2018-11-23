@@ -33,8 +33,3 @@ func TestSplitPacket(t *testing.T) {
 		assert.Equal(t, out, splitPacket(in))
 	}
 }
-
-func TestTTY(t *testing.T) {
-	fd0 = "/tmp/foobar"
-	assert.Equal(t, "", tty())
-}
