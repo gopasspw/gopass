@@ -55,7 +55,7 @@ func filterCompletionList(list []string, needle string) []string {
 		}
 		v = strings.TrimPrefix(v, needle)
 		if idx := strings.Index(v, "/"); idx >= 0 {
-			v = v[:idx]
+			v = v[:idx+1]
 		}
 		set[v] = struct{}{}
 	}

@@ -85,13 +85,13 @@ func TestFilterCompletionList(t *testing.T) {
 			name:   "empty",
 			in:     []string{"foo", "bar", "misc/baz", "misc/zab"},
 			needle: "",
-			out:    []string{"bar", "foo", "misc"},
+			out:    []string{"bar", "foo", "misc/"},
 		},
 		{
 			name:   "misc/",
 			in:     []string{"foo", "bar", "misc/baz", "misc/zab", "misc/zab/abc"},
 			needle: "misc/",
-			out:    []string{"misc/baz", "misc/zab"},
+			out:    []string{"misc/baz", "misc/zab", "misc/zab/"},
 		},
 		{
 			name:   "misc",
@@ -103,7 +103,7 @@ func TestFilterCompletionList(t *testing.T) {
 			name:   "web",
 			in:     []string{"foo", "bar", "misc/baz", "webmaster/foo", "websites/bar"},
 			needle: "web",
-			out:    []string{"webmaster", "websites"},
+			out:    []string{"webmaster/", "websites/"},
 		},
 	} {
 		assert.Equal(t, tc.out, filterCompletionList(tc.in, tc.needle), tc.name)
