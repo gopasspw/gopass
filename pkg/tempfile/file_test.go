@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestTempdirBase(t *testing.T) {
@@ -23,7 +24,7 @@ func TestTempFiler(t *testing.T) {
 
 	// regular tempfile
 	tf, err := New(ctx, "gp-test-")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer func() {
 		assert.NoError(t, tf.Close())
 	}()

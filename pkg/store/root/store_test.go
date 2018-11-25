@@ -11,6 +11,7 @@ import (
 	"github.com/gopasspw/gopass/tests/gptest"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestSimpleList(t *testing.T) {
@@ -20,10 +21,10 @@ func TestSimpleList(t *testing.T) {
 	defer u.Remove()
 
 	rs, err := createRootStore(ctx, u)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	tree, err := rs.Tree(ctx)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, []string{"foo"}, tree.List(0))
 }
 
@@ -37,7 +38,7 @@ func TestListMulti(t *testing.T) {
 
 	// root store
 	rs, err := createRootStore(ctx, u)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	ents := make([]string, 0, 3*len(u.Entries))
 	ents = append(ents, u.Entries...)
@@ -58,7 +59,7 @@ func TestListMulti(t *testing.T) {
 	assert.NoError(t, rs.AddMount(ctx, "sub2", u.StoreDir("sub2")))
 
 	tree, err := rs.Tree(ctx)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	sort.Strings(ents)
 	lst := tree.List(0)

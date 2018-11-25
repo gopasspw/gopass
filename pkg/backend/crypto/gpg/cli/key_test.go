@@ -7,6 +7,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 const pubkey = `
@@ -69,7 +70,7 @@ func TestReadNamesFromKey(t *testing.T) {
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 
 	g, err := New(ctx, Config{})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NotEqual(t, "", g.Binary())
 
 	names, err := g.ReadNamesFromKey(ctx, []byte(pubkey))

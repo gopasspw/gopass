@@ -11,6 +11,7 @@ import (
 	"github.com/gopasspw/gopass/tests/gptest"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestConfirmRecipients(t *testing.T) {
@@ -26,14 +27,14 @@ func TestConfirmRecipients(t *testing.T) {
 	// AlwaysYes true
 	in := []string{"foo", "bar"}
 	got, err := ConfirmRecipients(ctxutil.WithAlwaysYes(ctx, true), plain.New(), "test", in)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, in, got)
 	buf.Reset()
 
 	// IsNoConfirm true
 	in = []string{"foo", "bar"}
 	got, err = ConfirmRecipients(ctxutil.WithNoConfirm(ctx, true), plain.New(), "test", in)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, in, got)
 	buf.Reset()
 
@@ -55,7 +56,7 @@ func TestAskForPrivateKey(t *testing.T) {
 
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	key, err := AskForPrivateKey(ctx, plain.New(), "test", "test")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "0xDEADBEEF", key)
 	buf.Reset()
 }

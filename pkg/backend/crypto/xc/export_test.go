@@ -10,13 +10,14 @@ import (
 	"github.com/gopasspw/gopass/pkg/backend/crypto/xc/keyring"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestExportKey(t *testing.T) {
 	ctx := context.Background()
 
 	td, err := ioutil.TempDir("", "gopass-")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(td)
 	}()
@@ -26,11 +27,11 @@ func TestExportKey(t *testing.T) {
 	passphrase := "test"
 
 	k1, err := keyring.GenerateKeypair(passphrase)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	k2, err := keyring.GenerateKeypair(passphrase)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	k3, err := keyring.GenerateKeypair(passphrase)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	k3.Identity.Name = "foobar"
 
 	skr := keyring.NewSecring()
@@ -53,10 +54,10 @@ func TestExportKey(t *testing.T) {
 	assert.NoError(t, err)
 
 	buf, err := xc.ExportPublicKey(ctx, k3.Fingerprint())
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	names, err := xc.ReadNamesFromKey(ctx, buf)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, []string{"foobar"}, names)
 
 	_, err = xc.ExportPublicKey(ctx, "foobar")

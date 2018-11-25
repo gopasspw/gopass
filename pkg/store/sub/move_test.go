@@ -15,6 +15,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/store/secret"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestCopy(t *testing.T) {
@@ -45,10 +46,10 @@ func TestCopy(t *testing.T) {
 					assert.NoError(t, s.Set(ctx, "foo", secret.New("bar", "")))
 					assert.NoError(t, s.Copy(ctx, "foo", "bar"))
 					sec, err := s.Get(ctx, "foo")
-					assert.NoError(t, err)
+					require.NoError(t, err)
 					assert.Equal(t, "bar", sec.Password())
 					sec, err = s.Get(ctx, "bar")
-					assert.NoError(t, err)
+					require.NoError(t, err)
 					assert.Equal(t, "bar", sec.Password())
 				}
 			},
@@ -66,7 +67,7 @@ func TestCopy(t *testing.T) {
 	} {
 		// common setup
 		tempdir, err := ioutil.TempDir("", "gopass-")
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		s := &Store{
 			alias:   "",
@@ -119,7 +120,7 @@ func TestMove(t *testing.T) {
 					assert.Error(t, err)
 
 					sec, err := s.Get(ctx, "bar")
-					assert.NoError(t, err)
+					require.NoError(t, err)
 					assert.Equal(t, "bar", sec.Password())
 				}
 			},
@@ -137,7 +138,7 @@ func TestMove(t *testing.T) {
 	} {
 		// common setup
 		tempdir, err := ioutil.TempDir("", "gopass-")
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		s := &Store{
 			alias:   "",
@@ -149,7 +150,7 @@ func TestMove(t *testing.T) {
 		}
 
 		err = s.saveRecipients(ctx, []string{"john.doe"}, "test", false)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		// run test case
 		t.Run(tc.name, tc.tf(s))
@@ -195,7 +196,7 @@ func TestDelete(t *testing.T) {
 	} {
 		// common setup
 		tempdir, err := ioutil.TempDir("", "gopass-")
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		s := &Store{
 			alias:   "",
@@ -207,7 +208,7 @@ func TestDelete(t *testing.T) {
 		}
 
 		err = s.saveRecipients(ctx, []string{"john.doe"}, "test", false)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		// run test case
 		t.Run(tc.name, tc.tf(s))
@@ -274,7 +275,7 @@ func TestPrune(t *testing.T) {
 	} {
 		// common setup
 		tempdir, err := ioutil.TempDir("", "gopass-")
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		s := &Store{
 			alias:   "",

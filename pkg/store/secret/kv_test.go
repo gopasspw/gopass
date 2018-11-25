@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestYAMLFromHereDoc(t *testing.T) {
@@ -16,10 +17,10 @@ foo:  |
 key: value
 `
 	s, err := Parse([]byte(mlValue))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NotNil(t, s)
 	v, err := s.Value("foo")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "bar\nbaz\n", v)
 }
 
@@ -32,10 +33,10 @@ username: myuser@test.com
 password: somepasswd
 url: http://www.test.com/`
 	s, err := Parse([]byte(mlValue))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NotNil(t, s)
 	v, err := s.Value("Test / test.com")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "", v)
 
 	// read back key

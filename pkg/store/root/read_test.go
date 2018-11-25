@@ -9,6 +9,7 @@ import (
 	"github.com/gopasspw/gopass/tests/gptest"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestGet(t *testing.T) {
@@ -20,7 +21,7 @@ func TestGet(t *testing.T) {
 	ctx = out.WithHidden(ctx, true)
 
 	rs, err := createRootStore(ctx, u)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	_, err = rs.Get(ctx, "foo")
 	assert.NoError(t, err)

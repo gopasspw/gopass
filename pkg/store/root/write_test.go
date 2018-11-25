@@ -10,6 +10,7 @@ import (
 	"github.com/gopasspw/gopass/tests/gptest"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestSet(t *testing.T) {
@@ -21,7 +22,7 @@ func TestSet(t *testing.T) {
 	ctx = out.WithHidden(ctx, true)
 
 	rs, err := createRootStore(ctx, u)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	assert.NoError(t, rs.Set(ctx, "zab", secret.New("foo", "bar")))
 }

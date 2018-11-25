@@ -13,6 +13,7 @@ import (
 	"github.com/gopasspw/gopass/tests/gptest"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/urfave/cli"
 )
 
@@ -24,7 +25,8 @@ func TestAudit(t *testing.T) {
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = out.WithHidden(ctx, true)
 	act, err := newMock(ctx, u)
-	assert.NoError(t, err)
+	require.NoError(t, err)
+	require.NotNil(t, act)
 
 	assert.NoError(t, act.Store.Set(ctx, "bar", secret.New("123", "")))
 	assert.NoError(t, act.Store.Set(ctx, "baz", secret.New("123", "")))

@@ -15,6 +15,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/termio"
 	"github.com/gopasspw/gopass/tests/gptest"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/urfave/cli"
 )
 
@@ -84,7 +85,8 @@ func TestGitCredentialHelper(t *testing.T) {
 
 	ctx := context.Background()
 	act, err := newMock(ctx, u)
-	assert.NoError(t, err)
+	require.NoError(t, err)
+	require.NotNil(t, act)
 
 	stdout := &bytes.Buffer{}
 	out.Stdout = stdout

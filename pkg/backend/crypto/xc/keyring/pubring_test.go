@@ -7,11 +7,12 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestPubring(t *testing.T) {
 	td, err := ioutil.TempDir("", "gopass-")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(td)
 	}()
@@ -29,7 +30,7 @@ func TestPubring(t *testing.T) {
 	var k1Pk [32]byte
 	copy(k1Pk[:], k1.PublicKey.PublicKey[:])
 
-	assert.NoError(t, ioutil.WriteFile(fn, []byte("foobar"), 0644))
+	require.NoError(t, ioutil.WriteFile(fn, []byte("foobar"), 0644))
 	kr, err := LoadPubring(fn, nil)
 	assert.Error(t, err)
 	assert.NoError(t, os.Remove(fn))

@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 const testHibpSampleSorted = `000000005AD76BD555C1D6D771DE417A4B87E4B4
@@ -34,7 +35,7 @@ const testHibpSampleUnsorted = `000000005AD76BD555C1D6D771DE417A4B87E4B4
 
 func TestScanner(t *testing.T) {
 	td, err := ioutil.TempDir("", "gopass-")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	defer func() {
 		_ = os.RemoveAll(td)

@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 const (
@@ -53,12 +54,12 @@ func TestYAMLKeyToEmptySecret(t *testing.T) {
 
 	// read back key
 	content, err := s.Value(yamlKey)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, yamlValue, content)
 
 	// read back whole entry
 	buf, err := s.Bytes()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	want := "\n" + yamlKey + ": " + yamlValue + "\n"
 	assert.Equal(t, want, string(buf))
 }
@@ -66,7 +67,7 @@ func TestYAMLKeyToEmptySecret(t *testing.T) {
 func TestYAMLKeyFromPWOnlySecret(t *testing.T) {
 	t.Logf("Get key from password-only secret")
 	s, err := Parse([]byte(yamlPassword))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// read (non-existing) key
 	_, err = s.Value(yamlKey)
@@ -74,14 +75,14 @@ func TestYAMLKeyFromPWOnlySecret(t *testing.T) {
 
 	// read back whole entry
 	content, err := s.Bytes()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, string(yamlPassword), string(content))
 }
 
 func TestYAMLKeyToPWOnlySecret(t *testing.T) {
 	t.Logf("Set key to password-only secret")
 	s, err := Parse([]byte(yamlPassword))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// set new key
 	assert.NoError(t, s.SetValue(yamlKey, yamlValue))
@@ -91,12 +92,12 @@ func TestYAMLKeyToPWOnlySecret(t *testing.T) {
 
 	// read back the key
 	content, err := s.Value(yamlKey)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, yamlValue, content)
 
 	// read back whole entry
 	bv, err := s.Bytes()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	want := yamlPassword + "\nbar: baz\n"
 	assert.Equal(t, want, string(bv))
 }
@@ -105,7 +106,7 @@ func TestBareYAMLReadKey(t *testing.T) {
 	t.Logf("Bare YAML - no document marker - read key")
 	in := "\nbar: baz\nzab: 123\n"
 	s, err := Parse([]byte(in))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// read back a key
 	_, err = s.Value(yamlKey)
@@ -113,14 +114,14 @@ func TestBareYAMLReadKey(t *testing.T) {
 
 	// read back whole entry
 	content, err := s.Bytes()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, in, string(content)+"\n")
 }
 
 func TestYAMLSetMultipleKeys(t *testing.T) {
 	t.Logf("Set multiple keys to a secret")
 	s, err := Parse([]byte(yamlPassword))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	var b strings.Builder
 	_, _ = b.WriteString(yamlPassword)
@@ -159,7 +160,7 @@ func TestYAMLSetMultipleKeys(t *testing.T) {
 
 	// read back whole entry
 	content, err := s.Bytes()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, b.String(), string(content))
 }
 
