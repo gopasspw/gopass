@@ -1,13 +1,13 @@
-package backend_test
+// +build xc
+// +build gogit
+// +build consul
+
+package backend
 
 import (
 	"path/filepath"
 	"testing"
 
-	"github.com/gopasspw/gopass/pkg/backend"
-	_ "github.com/gopasspw/gopass/pkg/backend/crypto"
-	_ "github.com/gopasspw/gopass/pkg/backend/rcs"
-	_ "github.com/gopasspw/gopass/pkg/backend/storage"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -35,50 +35,81 @@ file:///tmp/foo -> gpgcli, gitcli, fs (using defaults)
 
 */
 
-func TestURLString(t *testing.T) {
+func TestURLStringXC(t *testing.T) {
 	for _, tc := range []struct {
 		name string
-		in   *backend.URL
+		in   *URL
 		out  string
 	}{
 		{
-			name: "defaults",
-			in:   &backend.URL{},
-			out:  "plain-noop-fs+file:",
+			name: "xc+gogit",
+			in: &URL{
+				Crypto:  XC,
+				RCS:     GoGit,
+				Storage: FS,
+				Path:    "/tmp/foo",
+			},
+			out: "xc-gogit-fs+file:///tmp/foo",
+		},
+		{
+			name: "xc+consul",
+			in: &URL{
+				Crypto:  XC,
+				RCS:     Noop,
+				Storage: Consul,
+				Scheme:  "http",
+				Host:    "localhost",
+				Port:    "8500",
+				Path:    "/foo/bar",
+			},
+			out: "xc-noop-consul+http://localhost:8500/foo/bar",
 		},
 	} {
 		assert.Equal(t, tc.out, tc.in.String(), tc.name)
 	}
 }
 
-func TestParseScheme(t *testing.T) {
+func TestParseSchemeXC(t *testing.T) {
 	hd, err := homedir.Dir()
 	require.NoError(t, err)
 	for _, tc := range []struct {
 		Name    string
 		URL     string
-		Crypto  backend.CryptoBackend
-		RCS     backend.RCSBackend
-		Storage backend.StorageBackend
+		Crypto  CryptoBackend
+		RCS     RCSBackend
+		Storage StorageBackend
 		Path    string
 	}{
 		{
-			Name:    "legacy file path",
-			URL:     "/tmp/foo",
-			Crypto:  backend.GPGCLI,
-			RCS:     backend.GitCLI,
-			Storage: backend.FS,
+			Name:    "XC+gogit+file",
+			URL:     "xc-gogit-fs+file:///tmp/foo",
+			Crypto:  XC,
+			RCS:     GoGit,
+			Storage: FS,
+		},
+		{
+			Name:    "XC+consul+http",
+			URL:     "xc-noop-consul+http://localhost:8500/api/v1/foo/bar?token=bla",
+			Crypto:  XC,
+			RCS:     Noop,
+			Storage: Consul,
 		},
 		{
 			Name:    "Homedir expansion",
 			URL:     "gpgcli-gitcli-fs+file://~/.local/share/password-store",
-			Crypto:  backend.GPGCLI,
-			RCS:     backend.GitCLI,
-			Storage: backend.FS,
+			Crypto:  GPGCLI,
+			RCS:     GitCLI,
+			Storage: FS,
 			Path:    filepath.Join(hd, ".local", "share", "password-store"),
 		},
+		//{
+		//	URL:     "plain+vault-http://localhost:9600/foo/bar",
+		//	Crypto:  Plain,
+		//	RCS:     Noop,
+		//	Storage: Vault,
+		//},
 	} {
-		u, err := backend.ParseURL(tc.URL)
+		u, err := ParseURL(tc.URL)
 		require.NoError(t, err, tc.Name)
 		require.NotNil(t, u)
 		assert.NotNil(t, u, tc.Name)
@@ -92,34 +123,30 @@ func TestParseScheme(t *testing.T) {
 }
 
 type testConfig struct {
-	Path *backend.URL `yaml:"path"`
+	Path *URL `yaml:"path"`
 }
 
-func TestUnmarshalYAML(t *testing.T) {
+func TestUnmarshalYAMLXC(t *testing.T) {
 	in := `---
-path: gpgcli-gitcli-fs+file:///tmp/foo
+path: xc-gogit-fs+file:///tmp/foo
 `
 	cfg := testConfig{}
 	require.NoError(t, yaml.Unmarshal([]byte(in), &cfg))
 	assert.Equal(t, "/tmp/foo", cfg.Path.Path)
 }
 
-func TestMarshalYAML(t *testing.T) {
-	out := `path: plain-noop-fs+file:///tmp/foo
+func TestMarshalYAMLXC(t *testing.T) {
+	out := `path: xc-gogit-fs+file:///tmp/foo
 `
 	cfg := testConfig{
-		Path: &backend.URL{
-			Crypto:  backend.Plain,
-			RCS:     backend.Noop,
-			Storage: backend.FS,
+		Path: &URL{
+			Crypto:  XC,
+			RCS:     GoGit,
+			Storage: FS,
 			Path:    "/tmp/foo",
 		},
 	}
 	buf, err := yaml.Marshal(&cfg)
 	require.NoError(t, err)
 	assert.Equal(t, out, string(buf))
-}
-
-func TestFromPath(t *testing.T) {
-	assert.Equal(t, "gpgcli-gitcli-fs+file:///tmp", backend.FromPath("/tmp").String())
 }

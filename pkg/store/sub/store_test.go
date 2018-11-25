@@ -12,6 +12,10 @@ import (
 	"github.com/gopasspw/gopass/pkg/backend"
 	"github.com/gopasspw/gopass/pkg/store/secret"
 
+	_ "github.com/gopasspw/gopass/pkg/backend/crypto"
+	_ "github.com/gopasspw/gopass/pkg/backend/rcs"
+	_ "github.com/gopasspw/gopass/pkg/backend/storage"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

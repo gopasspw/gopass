@@ -12,6 +12,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/urfave/cli"
+
+	_ "github.com/gopasspw/gopass/pkg/backend/crypto"
+	_ "github.com/gopasspw/gopass/pkg/backend/rcs"
+	_ "github.com/gopasspw/gopass/pkg/backend/storage"
 )
 
 func TestUnclip(t *testing.T) {

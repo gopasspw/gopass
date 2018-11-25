@@ -59,14 +59,16 @@ func Init(ctx context.Context, path, userName, userEmail string) (*Git, error) {
 	// or already initialized. Only run git init if the folder is completely empty
 	if !g.IsInitialized() {
 		if err := g.Cmd(ctx, "Init", "init"); err != nil {
-			return nil, errors.Errorf("Failed to initialize git: %s", err)
+			return nil, errors.Errorf("failed to initialize git: %s", err)
 		}
+		out.Red(ctx, "git initialized at %s", g.path)
 	}
 
 	// initialize the local git config
 	if err := g.InitConfig(ctx, userName, userEmail); err != nil {
 		return g, errors.Errorf("failed to configure git: %s", err)
 	}
+	out.Red(ctx, "git configured at %s", g.path)
 
 	// add current content of the store
 	if err := g.Add(ctx, g.path); err != nil {

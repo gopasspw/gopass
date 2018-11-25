@@ -11,7 +11,8 @@ FISH_COMPLETION_OUTPUT    := fish.completion
 ZSH_COMPLETION_OUTPUT     := zsh.completion
 # Support reproducible builds by embedding date according to SOURCE_DATE_EPOCH if present
 DATE                      := $(shell date -u -d "@$(SOURCE_DATE_EPOCH)" '+%FT%T%z' 2>/dev/null || date -u '+%FT%T%z')
-BUILDFLAGS                := -ldflags="-s -w -X main.version=$(GOPASS_VERSION) -X main.commit=$(GOPASS_REVISION) -X main.date=$(DATE)" -gcflags="-trimpath=$(GOPATH)" -asmflags="-trimpath=$(GOPATH)" -buildmode=pie
+BUILDFLAGS_NOPIE                := -ldflags="-s -w -X main.version=$(GOPASS_VERSION) -X main.commit=$(GOPASS_REVISION) -X main.date=$(DATE)" -gcflags="-trimpath=$(GOPATH)" -asmflags="-trimpath=$(GOPATH)"
+BUILDFLAGS                := $(BUILDFLAGS_NOPIE) -buildmode=pie
 TESTFLAGS                 ?=
 PWD                       := $(shell pwd)
 PREFIX                    ?= $(GOPATH)
@@ -26,7 +27,7 @@ OK := $(shell tput setaf 6; echo ' [OK]'; tput sgr0;)
 all: build completion
 build: $(GOPASS_OUTPUT)
 completion: $(BASH_COMPLETION_OUTPUT) $(FISH_COMPLETION_OUTPUT) $(ZSH_COMPLETION_OUTPUT)
-travis: sysinfo crosscompile build install legal test codequality completion manifests
+travis: sysinfo crosscompile build install legal fulltest codequality completion manifests full
 
 sysinfo:
 	@echo ">> SYSTEM INFORMATION"
@@ -74,14 +75,22 @@ install: all install-completion
 	@printf '%s\n' '$(OK)'
 
 fulltest: $(GOPASS_OUTPUT)
+	@echo ">> TEST, \"full-mode\": race detector off, build tags: xc, gogit, consul"
+	@echo "mode: atomic" > coverage-all.out
+	@$(foreach pkg, $(PKGS),\
+	    echo -n "     ";\
+		go test -run '(Test|Example)' $(BUILDFLAGS) $(TESTFLAGS) -coverprofile=coverage.out -covermode=atomic $(pkg) -tags 'xc gogit consul' || exit 1;\
+		tail -n +2 coverage.out >> coverage-all.out;)
+	@$(GO) tool cover -html=coverage-all.out -o coverage-all.html
+
+racetest: $(GOPASS_OUTPUT)
 	@echo ">> TEST, \"full-mode\": race detector on"
 	@echo "mode: atomic" > coverage-all.out
 	@$(foreach pkg, $(PKGS),\
 	    echo -n "     ";\
-		go test -run '(Test|Example)' $(BUILDFLAGS) $(TESTFLAGS) -race -coverprofile=coverage.out -covermode=atomic $(pkg) || exit 1;\
+		go test -run '(Test|Example)' $(BUILDFLAGS) $(TESTFLAGS) -race -coverprofile=coverage.out -covermode=atomic $(pkg) -tags 'xc gogit consul' || exit 1;\
 		tail -n +2 coverage.out >> coverage-all.out;)
 	@$(GO) tool cover -html=coverage-all.out -o coverage-all.html
-
 test: $(GOPASS_OUTPUT)
 	@echo ">> TEST, \"fast-mode\": race detector off"
 	@echo "mode: count" > coverage-all.out
@@ -105,6 +114,9 @@ crosscompile:
 	@GOOS=windows GOARCH=amd64 $(GO) build -o $(GOPASS_OUTPUT)-windows-amd64
 	@printf '%s\n' '$(OK)'
 
+full:
+	@echo -n ">> COMPILE linux/amd64 xc gogit consul"
+	$(GO) build -o $(GOPASS_OUTPUT)-linux-amd64-full -tags "xc gogit consul"
 
 %.completion: $(GOPASS_OUTPUT)
 	@printf ">> $* completion, output = $@"
@@ -129,7 +141,7 @@ legal:
 	@which licenses > /dev/null; if [ $$? -ne 0 ]; then \
 		$(GO) get -u github.com/pmezard/licenses; \
 	fi
-	@licenses . > NOTICE.new
+	@GOOS=linux GOARCH=amd64 licenses ./... > NOTICE.new
 	@diff NOTICE.txt NOTICE.new || exit 1
 	@printf '%s\n' '$(OK)'
 
