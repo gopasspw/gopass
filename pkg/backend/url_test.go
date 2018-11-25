@@ -118,7 +118,8 @@ func TestParseScheme(t *testing.T) {
 		//},
 	} {
 		u, err := ParseURL(tc.URL)
-		assert.NoError(t, err, tc.Name)
+		require.NoError(t, err, tc.Name)
+		require.NotNil(t, u)
 		assert.NotNil(t, u, tc.Name)
 		assert.Equal(t, tc.Crypto, u.Crypto, tc.Name)
 		assert.Equal(t, tc.RCS, u.RCS, tc.Name)
@@ -138,7 +139,7 @@ func TestUnmarshalYAML(t *testing.T) {
 path: xc-gogit-fs+file:///tmp/foo
 `
 	cfg := testConfig{}
-	assert.NoError(t, yaml.Unmarshal([]byte(in), &cfg))
+	require.NoError(t, yaml.Unmarshal([]byte(in), &cfg))
 	assert.Equal(t, "/tmp/foo", cfg.Path.Path)
 }
 
@@ -154,7 +155,7 @@ func TestMarshalYAML(t *testing.T) {
 		},
 	}
 	buf, err := yaml.Marshal(&cfg)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, out, string(buf))
 }
 

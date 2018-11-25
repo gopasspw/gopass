@@ -257,7 +257,7 @@ func runRespondRawMessages(t *testing.T, requests []verifiedRequest, secrets []s
 	ctx := context.Background()
 
 	tempdir, err := ioutil.TempDir("", "gopass-")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(tempdir)
 	}()
@@ -272,7 +272,8 @@ func runRespondRawMessages(t *testing.T, requests []verifiedRequest, secrets []s
 			},
 		},
 	)
-	assert.NoError(t, err)
+	require.NoError(t, err)
+	require.NotNil(t, store)
 	inited, err := store.Initialized(ctx)
 	require.NoError(t, err)
 	assert.Equal(t, false, inited)

@@ -14,12 +14,13 @@ import (
 	"github.com/gopasspw/gopass/tests/mockstore"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/urfave/cli"
 )
 
 func TestBinary(t *testing.T) {
 	tempdir, err := ioutil.TempDir("", "gopass-")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(tempdir)
 	}()
@@ -52,7 +53,7 @@ func TestBinary(t *testing.T) {
 
 func TestBinaryCat(t *testing.T) {
 	tempdir, err := ioutil.TempDir("", "gopass-")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(tempdir)
 	}()
@@ -86,7 +87,7 @@ func TestBinaryCat(t *testing.T) {
 
 func TestBinaryCopy(t *testing.T) {
 	tempdir, err := ioutil.TempDir("", "gopass-")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(tempdir)
 	}()
@@ -140,7 +141,7 @@ func TestBinaryCopy(t *testing.T) {
 
 func TestBinarySum(t *testing.T) {
 	tempdir, err := ioutil.TempDir("", "gopass-")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(tempdir)
 	}()

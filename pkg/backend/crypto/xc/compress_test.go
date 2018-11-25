@@ -10,6 +10,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/pwgen/xkcdgen"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestCompressPlain(t *testing.T) {
@@ -26,11 +27,11 @@ func TestCompressPlain(t *testing.T) {
 			pw := pwg(i)
 			buf := &bytes.Buffer{}
 			gzw, err := gzip.NewWriterLevel(buf, gzip.BestCompression)
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			_, _ = gzw.Write([]byte(pw))
 			assert.NoError(t, gzw.Close())
 			gzr, err := gzip.NewReader(bytes.NewReader(buf.Bytes()))
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			out := &bytes.Buffer{}
 			_, err = io.Copy(out, gzr)
 			assert.NoError(t, err)

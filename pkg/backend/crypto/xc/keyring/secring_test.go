@@ -7,11 +7,12 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestSecring(t *testing.T) {
 	td, err := ioutil.TempDir("", "gopass-")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(td)
 	}()
@@ -21,12 +22,12 @@ func TestSecring(t *testing.T) {
 	passphrase := "test"
 
 	k1, err := GenerateKeypair(passphrase)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	k2, err := GenerateKeypair(passphrase)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	kr, err := LoadSecring(fn)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NotNil(t, kr)
 
 	assert.NoError(t, kr.Set(k1))
@@ -50,7 +51,7 @@ func TestSecring(t *testing.T) {
 	assert.Equal(t, true, kr.Contains(k1.Fingerprint()))
 
 	buf, err := kr.Export(k2.Fingerprint(), true)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	assert.Equal(t, true, kr.Contains(k2.Fingerprint()))
 	assert.NoError(t, kr.Remove(k2.Fingerprint()))

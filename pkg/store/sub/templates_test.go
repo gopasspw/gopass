@@ -10,13 +10,14 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestTemplates(t *testing.T) {
 	ctx := context.Background()
 
 	tempdir, err := ioutil.TempDir("", "gopass-")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(tempdir)
 	}()
@@ -24,7 +25,7 @@ func TestTemplates(t *testing.T) {
 	color.NoColor = true
 
 	_, _, err = createStore(tempdir, nil, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	ctx = backend.WithCryptoBackendString(ctx, "plain")
 	ctx = backend.WithRCSBackendString(ctx, "noop")
@@ -36,7 +37,7 @@ func TestTemplates(t *testing.T) {
 		tempdir,
 		nil,
 	)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	assert.Equal(t, 0, len(s.ListTemplates(ctx, "")))
 	assert.NoError(t, s.SetTemplate(ctx, "foo", []byte("foobar")))

@@ -10,6 +10,7 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestRecipients(t *testing.T) {
@@ -22,10 +23,10 @@ func TestRecipients(t *testing.T) {
 	color.NoColor = true
 
 	rs, err := createRootStore(ctx, u)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	assert.Equal(t, []string{"0xDEADBEEF"}, rs.ListRecipients(ctx, ""))
 	rt, err := rs.RecipientsTree(ctx, false)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "gopass\n└── 0xDEADBEEF\n", rt.Format(0))
 }

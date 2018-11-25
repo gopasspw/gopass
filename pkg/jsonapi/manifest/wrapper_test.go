@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 const (
@@ -27,6 +28,6 @@ exit $?
 
 func TestWrapperContent(t *testing.T) {
 	b, err := getWrapperContent("gopass")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, wrapperGolden, string(b))
 }

@@ -2,11 +2,11 @@ package action
 
 import (
 	"context"
+	"crypto/sha1"
 	"fmt"
 	"io/ioutil"
 	"sort"
 
-	"github.com/gopasspw/gopass/pkg/hashsum"
 	hibpapi "github.com/gopasspw/gopass/pkg/hibp/api"
 	hibpdump "github.com/gopasspw/gopass/pkg/hibp/dump"
 	"github.com/gopasspw/gopass/pkg/notify"
@@ -144,7 +144,7 @@ func (s *Action) hibpPrecomputeHashes(ctx context.Context) (map[string]string, [
 		if len(sec.Password()) < 1 {
 			continue
 		}
-		sum := hashsum.SHA1(sec.Password())
+		sum := sha1hex(sec.Password())
 		shaSums[sum] = secret
 		sortedShaSums = append(sortedShaSums, sum)
 	}
@@ -171,4 +171,10 @@ func (s *Action) printHIBPMatches(ctx context.Context, matchList []string) error
 	}
 	out.Cyan(ctx, "The passwords in the listed secrets were included in public leaks in the past. This means they are likely included in many word-list attacks and provide only very little security. Strongly consider changing those passwords!")
 	return ExitError(ctx, ExitAudit, nil, "weak passwords found")
+}
+
+func sha1hex(data string) string {
+	h := sha1.New()
+	_, _ = h.Write([]byte(data))
+	return fmt.Sprintf("%X", h.Sum(nil))
 }

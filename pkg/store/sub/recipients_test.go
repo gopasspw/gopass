@@ -18,13 +18,14 @@ import (
 	"github.com/gopasspw/gopass/pkg/out"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestGetRecipientsDefault(t *testing.T) {
 	ctx := context.Background()
 
 	tempdir, err := ioutil.TempDir("", "gopass-")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(tempdir)
 	}()
@@ -36,7 +37,7 @@ func TestGetRecipientsDefault(t *testing.T) {
 	}()
 
 	genRecs, _, err := createStore(tempdir, nil, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	s := &Store{
 		alias:   "",
@@ -49,7 +50,7 @@ func TestGetRecipientsDefault(t *testing.T) {
 
 	assert.Equal(t, genRecs, s.Recipients(ctx))
 	recs, err := s.GetRecipients(ctx, "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, genRecs, recs)
 }
 
@@ -57,7 +58,7 @@ func TestGetRecipientsSubID(t *testing.T) {
 	ctx := context.Background()
 
 	tempdir, err := ioutil.TempDir("", "gopass-")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(tempdir)
 	}()
@@ -69,7 +70,7 @@ func TestGetRecipientsSubID(t *testing.T) {
 	}()
 
 	genRecs, _, err := createStore(tempdir, nil, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	s := &Store{
 		alias:   "",
@@ -81,14 +82,14 @@ func TestGetRecipientsSubID(t *testing.T) {
 	}
 
 	recs, err := s.GetRecipients(ctx, "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, genRecs, recs)
 
 	err = ioutil.WriteFile(filepath.Join(tempdir, "foo", "bar", s.crypto.IDFile()), []byte("john.doe\n"), 0600)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	recs, err = s.GetRecipients(ctx, "foo/bar/baz")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, []string{"john.doe"}, recs)
 }
 
@@ -96,7 +97,7 @@ func TestSaveRecipients(t *testing.T) {
 	ctx := context.Background()
 
 	tempdir, err := ioutil.TempDir("", "gopass-")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(tempdir)
 	}()
@@ -126,7 +127,7 @@ func TestSaveRecipients(t *testing.T) {
 	assert.Error(t, s.saveRecipients(ctx, nil, "test-save-recipients", true))
 
 	buf, err := s.storage.Get(ctx, s.idFile(ctx, ""))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	foundRecs := []string{}
 	scanner := bufio.NewScanner(bytes.NewReader(buf))
@@ -151,7 +152,7 @@ func TestAddRecipient(t *testing.T) {
 	ctx = out.WithHidden(ctx, true)
 
 	tempdir, err := ioutil.TempDir("", "gopass-")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(tempdir)
 	}()
@@ -180,7 +181,7 @@ func TestAddRecipient(t *testing.T) {
 	assert.NoError(t, err)
 
 	rs, err := s.GetRecipients(ctx, "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, append(genRecs, newRecp), rs)
 
 	err = s.SaveRecipients(ctx)
@@ -192,7 +193,7 @@ func TestRemoveRecipient(t *testing.T) {
 	ctx = out.WithHidden(ctx, true)
 
 	tempdir, err := ioutil.TempDir("", "gopass-")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(tempdir)
 	}()
@@ -218,7 +219,7 @@ func TestRemoveRecipient(t *testing.T) {
 	assert.NoError(t, err)
 
 	rs, err := s.GetRecipients(ctx, "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, []string{"0xFEEDBEEF"}, rs)
 }
 
@@ -226,13 +227,13 @@ func TestListRecipients(t *testing.T) {
 	ctx := context.Background()
 
 	tempdir, err := ioutil.TempDir("", "gopass-")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(tempdir)
 	}()
 
 	genRecs, _, err := createStore(tempdir, nil, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	obuf := &bytes.Buffer{}
 	out.Stdout = obuf
@@ -250,10 +251,10 @@ func TestListRecipients(t *testing.T) {
 		tempdir,
 		nil,
 	)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	rs, err := s.GetRecipients(ctx, "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, genRecs, rs)
 
 	assert.Equal(t, "0xDEADBEEF", s.OurKeyID(ctx))

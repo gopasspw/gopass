@@ -15,6 +15,7 @@ import (
 
 	"github.com/blang/semver"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/urfave/cli"
 )
 
@@ -30,7 +31,8 @@ func TestHistory(t *testing.T) {
 	cfg := config.New()
 	cfg.Root.Path = backend.FromPath(u.StoreDir(""))
 	act, err := newAction(ctx, cfg, semver.Version{})
-	assert.NoError(t, err)
+	require.NoError(t, err)
+	require.NotNil(t, act)
 	assert.NoError(t, act.Initialized(ctx, nil))
 
 	buf := &bytes.Buffer{}

@@ -7,6 +7,6 @@ import (
 )
 
 func TestQRCode(t *testing.T) {
-	_, err := QRCode("http://www.justwatch.com/")
+	_, err := QRCode("https://www.gopass.pw/")
 	assert.NoError(t, err)
 }

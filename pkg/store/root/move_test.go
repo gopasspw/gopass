@@ -27,7 +27,7 @@ func TestMove(t *testing.T) {
 	ctx = out.WithHidden(ctx, true)
 
 	rs, err := createRootStore(ctx, u)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NoError(t, rs.Delete(ctx, "foo"))
 
 	// Initial state:
@@ -101,7 +101,7 @@ func TestCopy(t *testing.T) {
 	ctx = out.WithHidden(ctx, true)
 
 	rs, err := createRootStore(ctx, u)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NoError(t, rs.Delete(ctx, "foo"))
 
 	// Initial state:

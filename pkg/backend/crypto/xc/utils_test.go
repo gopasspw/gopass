@@ -10,13 +10,14 @@ import (
 	"github.com/gopasspw/gopass/pkg/backend/crypto/xc/keyring"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestCreatePrivateKeyBatch(t *testing.T) {
 	ctx := context.Background()
 
 	td, err := ioutil.TempDir("", "gopass-")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(td)
 	}()
@@ -25,9 +26,11 @@ func TestCreatePrivateKeyBatch(t *testing.T) {
 
 	passphrase := "test"
 	skr, err := keyring.LoadSecring(filepath.Join(td, "skr"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
+	require.NotNil(t, skr)
 	pkr, err := keyring.LoadPubring(filepath.Join(td, "pkr"), skr)
-	assert.NoError(t, err)
+	require.NoError(t, err)
+	require.NotNil(t, pkr)
 
 	xc := &XC{
 		pubring: pkr,
@@ -38,10 +41,10 @@ func TestCreatePrivateKeyBatch(t *testing.T) {
 	assert.NoError(t, xc.CreatePrivateKeyBatch(ctx, "foo", "bar@example.org", passphrase))
 
 	pubKeys, err := xc.ListPublicKeyIDs(ctx)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	privKeys, err := xc.ListPrivateKeyIDs(ctx)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	assert.Equal(t, 1, len(pubKeys))
 	assert.Equal(t, len(pubKeys), len(privKeys))

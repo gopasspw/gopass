@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/urfave/cli"
 )
 
@@ -34,7 +35,7 @@ func TestFormatFlag(t *testing.T) {
 func TestGetCompletion(t *testing.T) {
 	app := cli.NewApp()
 	sv, err := GetCompletion(app)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Contains(t, sv, "#compdef zsh.test")
 
 	zshTemplate = "{{.unexported}}"
@@ -64,7 +65,7 @@ func TestFormatflagFunc(t *testing.T) {
 		cli.UintFlag{Name: "foo", Usage: "bar"},
 	} {
 		sv, err := ff(flag)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, "--foo[bar]", sv)
 	}
 	sv, err := ff(unknownFlag{})

@@ -14,6 +14,7 @@ import (
 
 	"github.com/golang/protobuf/proto"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 type fakeAgent struct {
@@ -36,7 +37,7 @@ func TestEncryptSimple(t *testing.T) {
 	ctx := context.Background()
 
 	td, err := ioutil.TempDir("", "gopass-")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(td)
 	}()
@@ -46,7 +47,7 @@ func TestEncryptSimple(t *testing.T) {
 	passphrase := "test"
 
 	k1, err := keyring.GenerateKeypair(passphrase)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	skr := keyring.NewSecring()
 	assert.NoError(t, skr.Set(k1))
@@ -60,14 +61,14 @@ func TestEncryptSimple(t *testing.T) {
 	}
 
 	buf, err := xc.Encrypt(ctx, []byte("foobar"), []string{k1.Fingerprint()})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	recps, err := xc.RecipientIDs(ctx, buf)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, []string{k1.Fingerprint()}, recps)
 
 	buf, err = xc.Decrypt(ctx, buf)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "foobar", string(buf))
 }
 
@@ -75,7 +76,7 @@ func TestEncryptMultiKeys(t *testing.T) {
 	ctx := context.Background()
 
 	td, err := ioutil.TempDir("", "gopass-")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(td)
 	}()
@@ -85,11 +86,11 @@ func TestEncryptMultiKeys(t *testing.T) {
 	passphrase := "test"
 
 	k1, err := keyring.GenerateKeypair(passphrase)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	k2, err := keyring.GenerateKeypair(passphrase)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	k3, err := keyring.GenerateKeypair(passphrase)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	skr := keyring.NewSecring()
 	assert.NoError(t, skr.Set(k1))
@@ -105,14 +106,14 @@ func TestEncryptMultiKeys(t *testing.T) {
 	}
 
 	buf, err := xc.Encrypt(ctx, []byte("foobar"), []string{k1.Fingerprint()})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	recps, err := xc.RecipientIDs(ctx, buf)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, []string{k1.Fingerprint()}, recps)
 
 	buf, err = xc.Decrypt(ctx, buf)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "foobar", string(buf))
 }
 
@@ -120,7 +121,7 @@ func TestEncryptChunks(t *testing.T) {
 	ctx := context.Background()
 
 	td, err := ioutil.TempDir("", "gopass-")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(td)
 	}()
@@ -130,7 +131,7 @@ func TestEncryptChunks(t *testing.T) {
 	passphrase := "test"
 
 	k1, err := keyring.GenerateKeypair(passphrase)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	skr := keyring.NewSecring()
 	assert.NoError(t, skr.Set(k1))
@@ -152,11 +153,11 @@ func TestEncryptChunks(t *testing.T) {
 	assert.Equal(t, 163840, plaintext.Len())
 
 	ciphertext, err := xc.Encrypt(ctx, plaintext.Bytes(), []string{k1.Fingerprint()})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// check recipients
 	recps, err := xc.RecipientIDs(ctx, ciphertext)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, []string{k1.Fingerprint()}, recps)
 
 	// check number of chunks
@@ -188,7 +189,7 @@ func TestEncryptCompress(t *testing.T) {
 	ctx := context.Background()
 
 	td, err := ioutil.TempDir("", "gopass-")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(td)
 	}()

@@ -11,13 +11,14 @@ import (
 
 	"github.com/muesli/goprogressbar"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestGPG(t *testing.T) {
 	ctx := context.Background()
 
 	tempdir, err := ioutil.TempDir("", "gopass-")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(tempdir)
 	}()
@@ -31,7 +32,7 @@ func TestGPG(t *testing.T) {
 	}()
 
 	s, err := createSubStore(tempdir)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	assert.NoError(t, s.ImportMissingPublicKeys(ctx))
 
