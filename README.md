@@ -69,6 +69,16 @@ go get github.com/gopasspw/gopass
 
 Otherwise, please see [docs/setup.md](https://github.com/gopasspw/gopass/blob/master/docs/setup.md).
 
+
+## Upgrade
+
+To upgrade with Go installed, run:
+```bash
+go get -u github.com/gopasspw/gopass
+```
+
+Otherwise, use the setup docs mentioned in the installation section to reinstall the latest version.
+
 ## Development
 
 This project uses [GitHub Flow](https://guides.github.com/introduction/flow/). In other words, create feature branches from master, open an PR against master, and rebase onto master if necessary.
