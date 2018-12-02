@@ -414,11 +414,11 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 				},
 				cli.BoolFlag{
 					Name:  "xkcd, x",
-					Usage: "Use multiple random english words combined to a password. If no separator is specified, the words are combined without spaces/separator and the first character of words is capitalised",
+					Usage: "Use multiple random english words combined to a password. By default, space is used as separator and all words are lowercase",
 				},
 				cli.StringFlag{
 					Name:  "xkcdsep, xs",
-					Usage: "Word separator for generated xkcd style password. Implies -xkcd",
+					Usage: "Word separator for generated xkcd style password. If no separator is specified, the words are combined without spaces/separator and the first character of words is capitalised. This flag implies -xkcd",
 					Value: "",
 				},
 				cli.StringFlag{
