@@ -34,9 +34,9 @@ func Calculate(ctx context.Context, name string, sec store.Secret) (twofactor.OT
 	// check yaml entry and fall back to password if we don't have one
 	label := name
 	secKey, err := sec.Value("totp")
-	if secKey == "" {
+	/*if secKey == "" {
 		return nil, label, ErrNoTotpEntry
-	}
+	}*/
 	if err != nil {
 		secKey = sec.Password()
 	}
