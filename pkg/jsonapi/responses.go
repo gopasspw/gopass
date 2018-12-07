@@ -139,8 +139,6 @@ func (api *API) respondGetData(ctx context.Context, msgBytes []byte) error {
 	currentTotp, _, err := otp.Calculate(ctx, "_", sec)
 	if err == nil {
 		responseData["current_totp"] = currentTotp.OTP()
-	} else if err != otp.ErrNoTotpEntry {
-		responseData["current_totp"] = "failed to retrieve: " + err.Error()
 	}
 
 	converted := convertMixedMapInterfaces(interface{}(responseData))

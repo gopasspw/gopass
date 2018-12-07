@@ -2,7 +2,6 @@ package otp
 
 import (
 	"context"
-	"fmt"
 	"io/ioutil"
 	"strings"
 
@@ -10,11 +9,6 @@ import (
 
 	"github.com/gokyle/twofactor"
 	"github.com/pkg/errors"
-)
-
-var (
-	// ErrNoTotpEntry signals a failed OTP for a secret with OTP information
-	ErrNoTotpEntry = fmt.Errorf("no totp entry in secret")
 )
 
 // Calculate will compute a OTP code from a given secret
@@ -34,9 +28,7 @@ func Calculate(ctx context.Context, name string, sec store.Secret) (twofactor.OT
 	// check yaml entry and fall back to password if we don't have one
 	label := name
 	secKey, err := sec.Value("totp")
-	if secKey == "" {
-		return nil, label, ErrNoTotpEntry
-	}
+
 	if err != nil {
 		secKey = sec.Password()
 	}
