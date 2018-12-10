@@ -97,8 +97,8 @@ set -A complete_gopass -- $PASS_LIST %s
 func (s *Action) CompletionBash(c *cli.Context) error {
 	out := `_gopass_bash_autocomplete() {
      local cur opts base
-	 COMPREPLY=()
-	 compopt -o nospace
+     COMPREPLY=()
+     compopt -o nospace
      cur="${COMP_WORDS[COMP_CWORD]}"
      opts=$( ${COMP_WORDS[0]} ${cur} --generate-bash-completion )
      local IFS=$'\n'
