@@ -56,7 +56,7 @@ func TestOTP(t *testing.T) {
 	buf.Reset()
 
 	// copy to clipboard
-	assert.NoError(t, act.otp(ctx, "bar", "", true))
+	assert.NoError(t, act.otp(ctx, c, "bar", "", true, false))
 	buf.Reset()
 
 	// write QR file

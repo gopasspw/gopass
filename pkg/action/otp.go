@@ -3,12 +3,15 @@ package action
 import (
 	"context"
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
 	"github.com/gopasspw/gopass/pkg/clipboard"
+	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/otp"
 	"github.com/gopasspw/gopass/pkg/out"
+	"github.com/gopasspw/gopass/pkg/store"
 
 	"github.com/urfave/cli"
 )
@@ -29,13 +32,13 @@ func (s *Action) OTP(ctx context.Context, c *cli.Context) error {
 	qrf := c.String("qr")
 	clip := c.Bool("clip")
 
-	return s.otp(ctx, name, qrf, clip)
+	return s.otp(ctx, c, name, qrf, clip, true)
 }
 
-func (s *Action) otp(ctx context.Context, name, qrf string, clip bool) error {
-	sec, err := s.Store.Get(ctx, name)
+func (s *Action) otp(ctx context.Context, c *cli.Context, name, qrf string, clip, recurse bool) error {
+	sec, ctx, err := s.Store.GetContext(ctx, name)
 	if err != nil {
-		return ExitError(ctx, ExitDecrypt, err, "failed to get entry '%s': %s", name, err)
+		return s.otpHandleError(ctx, c, name, qrf, clip, recurse, err)
 	}
 
 	two, label, err := otp.Calculate(ctx, name, sec)
@@ -66,5 +69,20 @@ func (s *Action) otp(ctx context.Context, name, qrf string, clip bool) error {
 	if qrf != "" {
 		return otp.WriteQRFile(ctx, two, label, qrf)
 	}
+	return nil
+}
+
+func (s *Action) otpHandleError(ctx context.Context, c *cli.Context, name, qrf string, clip, recurse bool, err error) error {
+	if err != store.ErrNotFound || !recurse || !ctxutil.IsTerminal(ctx) {
+		return ExitError(ctx, ExitUnknown, err, "failed to retrieve secret '%s': %s", name, err)
+	}
+	out.Yellow(ctx, "Entry '%s' not found. Starting search...", name)
+	cb := func(ctx context.Context, c *cli.Context, name, key string, recurse bool) error {
+		return s.otp(ctx, c, name, qrf, clip, false)
+	}
+	if err := s.find(ctxutil.WithFuzzySearch(ctx, false), nil, name, cb); err == nil {
+		return nil
+	}
+	os.Exit(ExitNotFound)
 	return nil
 }
