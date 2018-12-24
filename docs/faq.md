@@ -10,6 +10,7 @@
 * *gopass can automatically import missing recipient keys but can it export them as well?* - When adding a recipient with `gopass recipients add` their public key will automatically be exported to the store `.gpg-keys/<ID>`.
 * *gopass fails with 'gpg failed to sign the data fatal: failed to write commit object'* - If git is not able to interface with GPG, commits will fail because gopass configures git to sign commits by default. Have a look a [this question](https://stackoverflow.com/questions/39494631/gpg-failed-to-sign-the-data-fatal-failed-to-write-commit-object-git-2-10-0) for more information.
 * *Can gopass be used with Terraform?* - Yes, there is a gopass-based [Terraform provider](https://github.com/camptocamp/terraform-provider-pass) available.
+* *How can I fix ´"gpg: decryption failed: No secret key"` errors?* - Set the ´auto-expand-secmem` option in your gpg-agent.conf, if your version of GnuPG supports it.
 
 ## API Stability
 
