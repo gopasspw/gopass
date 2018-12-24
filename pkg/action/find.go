@@ -27,6 +27,7 @@ func (s *Action) Find(ctx context.Context, c *cli.Context) error {
 	return s.find(ctx, c, c.Args().First(), s.show)
 }
 
+// see action.show - context, cli context, name, key, rescurse
 type showFunc func(context.Context, *cli.Context, string, string, bool) error
 
 func (s *Action) find(ctx context.Context, c *cli.Context, needle string, cb showFunc) error {
@@ -73,7 +74,7 @@ func (s *Action) find(ctx context.Context, c *cli.Context, needle string, cb sho
 // findSelection runs a wizard that lets the user select an entry
 func (s *Action) findSelection(ctx context.Context, c *cli.Context, choices []string, needle string, cb showFunc) error {
 	sort.Strings(choices)
-	act, sel := cui.GetSelection(ctx, "Found secrets - Please select an entry", "<↑/↓> to change the selection, <→> to show, <←> to copy, <s> to sync, <ESC> to quit", choices)
+	act, sel := cui.GetSelection(ctx, "Found secrets - Please select an entry", "<↑/↓> to change the selection, <→> to show, <←> to copy, <s> to sync, <e> to edit, <ESC> to quit", choices)
 	out.Debug(ctx, "Action: %s - Selection: %d", act, sel)
 	switch act {
 	case "default":
@@ -94,6 +95,10 @@ func (s *Action) findSelection(ctx context.Context, c *cli.Context, choices []st
 			return err
 		}
 		return cb(ctx, c, needle, "", true)
+	case "edit":
+		// edit selected entry
+		fmt.Println(stdout, choices[sel])
+		return s.edit(ctx, c, choices[sel])
 	default:
 		return ExitError(ctx, ExitAborted, nil, "user aborted")
 	}

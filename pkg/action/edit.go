@@ -24,6 +24,10 @@ func (s *Action) Edit(ctx context.Context, c *cli.Context) error {
 		return ExitError(ctx, ExitUsage, nil, "Usage: %s edit secret", s.Name)
 	}
 
+	return s.edit(ctx, c, name)
+}
+
+func (s *Action) edit(ctx context.Context, c *cli.Context, name string) error {
 	ed := editor.Path(c)
 
 	// get existing content or generate new one from a template
