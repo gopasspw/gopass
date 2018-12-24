@@ -37,6 +37,9 @@ func searchRegistry(bin string, bins []string) ([]string, error) {
 
 	if v, _, err := k.GetStringValue("Install Directory"); err == nil && v != "" {
 		for _, b := range []string{bin, "gpg2.exe", "gpg.exe"} {
+			if b == "" {
+				continue
+			}
 			gpgPath := filepath.Join(v, "bin", b)
 			if fsutil.IsFile(gpgPath) {
 				bins = append(bins, gpgPath)
@@ -50,6 +53,9 @@ func searchRegistry(bin string, bins []string) ([]string, error) {
 func searchPath(bin string, bins []string) ([]string, error) {
 	// try to detect location for GPG installed somewhere on the PATH
 	for _, b := range []string{bin, "gpg2.exe", "gpg.exe"} {
+		if b == "" {
+			continue
+		}
 		gpgPath, err := exec.LookPath(b)
 		if err != nil {
 			continue
