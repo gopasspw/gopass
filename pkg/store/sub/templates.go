@@ -79,7 +79,7 @@ func (s *Store) TemplateTree(ctx context.Context) (tree.Tree, error) {
 
 // templatefile returns the name of the given template on disk
 func (s *Store) templatefile(name string) string {
-	return filepath.Join(name, TemplateFile)
+	return strings.TrimPrefix(filepath.Join(name, TemplateFile), string(filepath.Separator))
 }
 
 // HasTemplate returns true if the template exists

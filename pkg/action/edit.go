@@ -94,18 +94,27 @@ func (s *Action) editGetContent(ctx context.Context, name string, create bool) (
 		return name, nil, false, ExitError(ctx, ExitNotFound, nil, "entry not %s not found. Use --create to create a new entry with edit", name)
 	}
 
-	// new entry with template
-	if tmpl, found := s.Store.LookupTemplate(ctx, name); found {
-		// load template if it exists
-		content := []byte(pwgen.GeneratePassword(defaultLength, false))
-		if nc, err := tpl.Execute(ctx, string(tmpl), name, content, s.Store); err == nil {
-			content = nc
-		} else {
-			fmt.Fprintf(stdout, "failed to execute template: %s\n", err)
-		}
+	// load template if it exists
+	if content, found := s.renderTemplate(ctx, name, []byte(pwgen.GeneratePassword(defaultLength, false))); found {
 		return name, content, true, nil
 	}
 
 	// new entry, no template
 	return name, nil, false, nil
+}
+
+func (s *Action) renderTemplate(ctx context.Context, name string, content []byte) ([]byte, bool) {
+	tmpl, found := s.Store.LookupTemplate(ctx, name)
+	if !found {
+		return content, false
+	}
+
+	// load template if it exists
+	if nc, err := tpl.Execute(ctx, string(tmpl), name, content, s.Store); err == nil {
+		content = nc
+	} else {
+		fmt.Fprintf(stdout, "failed to execute template: %s\n", err)
+	}
+	return content, true
+
 }
