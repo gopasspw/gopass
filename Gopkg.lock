@@ -82,7 +82,6 @@
   name = "github.com/gokyle/twofactor"
   packages = ["."]
   revision = "bbc82ff8de72400ce39a13077627531d9841ad62"
-  version = "v1.0.1"
 
 [[projects]]
   branch = "master"
@@ -389,7 +388,7 @@
     "ssh/knownhosts",
     "ssh/terminal"
   ]
-  revision = "e4dc69e5b2fd71dcaf8bd5d054eb936deb78d1fa"
+  revision = "505ab145d0a99da450461ae2c1a9f6cd10d1f447"
 
 [[projects]]
   branch = "master"
@@ -402,7 +401,7 @@
     "idna",
     "publicsuffix"
   ]
-  revision = "03003ca0c849e57b6ea29a4bab8d3cb6e4d568fe"
+  revision = "927f97764cc334a6575f4b7a1584a147864d5723"
 
 [[projects]]
   branch = "master"
@@ -413,7 +412,7 @@
     "windows",
     "windows/registry"
   ]
-  revision = "66b7b1311ac80bbafcd2daeef9a5e6e2cd1e2399"
+  revision = "b4a75ba826a64a70990f11a225237acd6ef35c9f"
 
 [[projects]]
   name = "golang.org/x/text"
@@ -511,8 +510,8 @@
 [[projects]]
   name = "gopkg.in/yaml.v2"
   packages = ["."]
-  revision = "5420a8b6744d3b0345ab293f6fcba19c978f1183"
-  version = "v2.2.1"
+  revision = "51d6538a90f86fe93ac480b35f37b2be17fef232"
+  version = "v2.2.2"
 
 [[projects]]
   name = "rsc.io/qr"
@@ -527,6 +526,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "f0c895230d032189c9db79f4160bc4161c8853a207d20173ec85d8aa869dd647"
+  inputs-digest = "5e7f296ef197909a46560faedac8cf6e3ede03e3e35fb450038f005d189af000"
   solver-name = "gps-cdcl"
   solver-version = 1
