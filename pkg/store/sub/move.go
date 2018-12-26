@@ -3,6 +3,8 @@ package sub
 import (
 	"context"
 	"fmt"
+	"path/filepath"
+	"strings"
 
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/out"
@@ -109,6 +111,8 @@ func (s *Store) deleteRecurse(ctx context.Context, name, path string) error {
 	if !s.storage.IsDir(ctx, name) && !s.storage.Exists(ctx, path) {
 		return store.ErrNotFound
 	}
+
+	name = strings.TrimPrefix(name, string(filepath.Separator))
 
 	out.Debug(ctx, "Pruning %s", name)
 	if err := s.storage.Prune(ctx, name); err != nil {
