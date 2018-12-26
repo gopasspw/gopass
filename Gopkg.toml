@@ -54,7 +54,7 @@
   name = "github.com/godbus/dbus"
 
 [[constraint]]
-  branch = "master"
+  revision = "bbc82ff8de72400ce39a13077627531d9841ad62"
   name = "github.com/gokyle/twofactor"
 
 [[constraint]]
