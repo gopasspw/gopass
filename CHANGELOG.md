@@ -1,3 +1,13 @@
+## 1.8.4 / 2018-12-26
+
+* [ENHANCEMENT] Evaluate templates when inserting single secrets [#1023]
+* [ENHANCEMENT] Add fuzzy search dialog for gopass otp [#1021]
+* [ENHANCEMENT] Add edit option to search dialog [#1019]
+* [ENHANCEMENT] Introduce build tags for experimental features [#1000]
+* [BUGFIX] Fix recursive delete [#1024]
+* [BUGFIX] Abort tests on critical failures [#997]
+* [BUGFIX] Zsh autocompletion [#996]
+
 ## 1.8.3 / 2018-11-19
 
 * [ENHANCEMENT] Add zsh autocompletion for insert and generate [#988]
