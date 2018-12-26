@@ -27,13 +27,14 @@ func TestHistory(t *testing.T) {
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = backend.WithRCSBackend(ctx, backend.GitCLI)
 	ctx = backend.WithCryptoBackend(ctx, backend.Plain)
+	ctx = backend.WithStorageBackend(ctx, backend.FS)
 
 	cfg := config.New()
 	cfg.Root.Path = backend.FromPath(u.StoreDir(""))
 	act, err := newAction(ctx, cfg, semver.Version{})
 	require.NoError(t, err)
 	require.NotNil(t, act)
-	assert.NoError(t, act.Initialized(ctx, nil))
+	require.NoError(t, act.Initialized(ctx, nil))
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
@@ -44,7 +45,7 @@ func TestHistory(t *testing.T) {
 	app := cli.NewApp()
 
 	// init git
-	assert.NoError(t, act.rcsInit(ctx, "", "foo bar", "foo.bar@example.org"))
+	require.NoError(t, act.rcsInit(ctx, "", "foo bar", "foo.bar@example.org"))
 	buf.Reset()
 
 	// insert bar

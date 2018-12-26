@@ -1,3 +1,5 @@
+// +build xc
+
 package xc
 
 import (

@@ -1,25 +1,13 @@
 package backend
 
+import "sort"
+
 var (
-	cryptoNameToBackendMap = map[string]CryptoBackend{
-		"plain":   Plain,
-		"gpgcli":  GPGCLI,
-		"xc":      XC,
-		"openpgp": OpenPGP,
-		"vault":   Vault,
-	}
-	cryptoBackendToNameMap = map[CryptoBackend]string{}
-	rcsNameToBackendMap    = map[string]RCSBackend{
-		"gitcli": GitCLI,
-		"noop":   Noop,
-		"gogit":  GoGit,
-	}
+	cryptoNameToBackendMap  = map[string]CryptoBackend{}
+	cryptoBackendToNameMap  = map[CryptoBackend]string{}
+	rcsNameToBackendMap     = map[string]RCSBackend{}
 	rcsBackendToNameMap     = map[RCSBackend]string{}
-	storageNameToBackendMap = map[string]StorageBackend{
-		"inmem":  InMem,
-		"fs":     FS,
-		"consul": Consul,
-	}
+	storageNameToBackendMap = map[string]StorageBackend{}
 	storageBackendToNameMap = map[StorageBackend]string{}
 )
 
@@ -33,6 +21,36 @@ func init() {
 	for k, v := range storageNameToBackendMap {
 		storageBackendToNameMap[v] = k
 	}
+}
+
+// CryptoBackends returns the list of registered crypto backends.
+func CryptoBackends() []string {
+	bes := make([]string, 0, len(cryptoNameToBackendMap))
+	for k := range cryptoNameToBackendMap {
+		bes = append(bes, k)
+	}
+	sort.Strings(bes)
+	return bes
+}
+
+// RCSBackends returns the list of registered RCS backends.
+func RCSBackends() []string {
+	bes := make([]string, 0, len(rcsNameToBackendMap))
+	for k := range rcsNameToBackendMap {
+		bes = append(bes, k)
+	}
+	sort.Strings(bes)
+	return bes
+}
+
+// StorageBackends returns the list of registered storage backends.
+func StorageBackends() []string {
+	bes := make([]string, 0, len(storageNameToBackendMap))
+	for k := range storageNameToBackendMap {
+		bes = append(bes, k)
+	}
+	sort.Strings(bes)
+	return bes
 }
 
 func cryptoBackendFromName(name string) CryptoBackend {

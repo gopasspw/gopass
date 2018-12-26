@@ -3,6 +3,7 @@ github.com/gopasspw/gopass/vendor/github.com/alecthomas/binary                  
 github.com/gopasspw/gopass/vendor/github.com/atotto/clipboard                      BSD 3-clause "New" or "Revised" License (97%)
 github.com/gopasspw/gopass/vendor/github.com/blang/semver                          MIT License
 github.com/gopasspw/gopass/vendor/github.com/cenkalti/backoff                      MIT License
+github.com/gopasspw/gopass/vendor/github.com/davecgh/go-spew/spew                  ISC License (98%)
 github.com/gopasspw/gopass/vendor/github.com/emirpasic/gods                        BSD 2-clause "Simplified" License (90%)
 github.com/gopasspw/gopass/vendor/github.com/fatih/color                           MIT License
 github.com/gopasspw/gopass/vendor/github.com/gdamore/encoding                      Apache License 2.0
@@ -38,11 +39,13 @@ github.com/gopasspw/gopass/vendor/github.com/muesli/goprogressbar               
 github.com/gopasspw/gopass/vendor/github.com/nsf/termbox-go                        MIT License (98%)
 github.com/gopasspw/gopass/vendor/github.com/pierrec/lz4/internal/xxh32            BSD 3-clause "New" or "Revised" License
 github.com/gopasspw/gopass/vendor/github.com/pkg/errors                            BSD 2-clause "Simplified" License
+github.com/gopasspw/gopass/vendor/github.com/pmezard/go-difflib/difflib            BSD 3-clause "New" or "Revised" License (98%)
 github.com/gopasspw/gopass/vendor/github.com/ryanuber/go-glob                      MIT License
 github.com/gopasspw/gopass/vendor/github.com/schollz/closestmatch                  MIT License
 github.com/gopasspw/gopass/vendor/github.com/sergi/go-diff/diffmatchpatch          MIT License (98%)
 github.com/gopasspw/gopass/vendor/github.com/skip2/go-qrcode                       MIT License (98%)
 github.com/gopasspw/gopass/vendor/github.com/src-d/gcfg                            BSD 3-clause "New" or "Revised" License (97%)
+github.com/gopasspw/gopass/vendor/github.com/stretchr/testify                      MIT License (94%)
 github.com/gopasspw/gopass/vendor/github.com/urfave/cli                            MIT License
 github.com/gopasspw/gopass/vendor/github.com/xanzy/ssh-agent                       Apache License 2.0
 github.com/gopasspw/gopass/vendor/github.com/xrash/smetrics                        MIT License

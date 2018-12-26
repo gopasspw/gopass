@@ -18,6 +18,10 @@ import (
 	"github.com/gopasspw/gopass/pkg/updater"
 	"github.com/gopasspw/gopass/tests/gptest"
 
+	_ "github.com/gopasspw/gopass/pkg/backend/crypto"
+	_ "github.com/gopasspw/gopass/pkg/backend/rcs"
+	_ "github.com/gopasspw/gopass/pkg/backend/storage"
+
 	"github.com/dominikschulz/github-releases/ghrel"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

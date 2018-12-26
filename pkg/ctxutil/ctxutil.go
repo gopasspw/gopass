@@ -26,6 +26,8 @@ const (
 	ctxKeyNotifications
 	ctxKeyEditRecipients
 	ctxKeyProgressCallback
+	ctxKeyConfigDir
+	ctxKeyAlias
 )
 
 // ProgressCallback is a callback for updateing progress
@@ -456,4 +458,44 @@ func GetProgressCallback(ctx context.Context) ProgressCallback {
 		return func() {}
 	}
 	return cb
+}
+
+// WithConfigDir returns a context with the config dir set.
+func WithConfigDir(ctx context.Context, cfgdir string) context.Context {
+	return context.WithValue(ctx, ctxKeyConfigDir, cfgdir)
+}
+
+// HasConfigDir returns true if a config dir has been set.
+func HasConfigDir(ctx context.Context) bool {
+	_, ok := ctx.Value(ctxKeyConfigDir).(string)
+	return ok
+}
+
+// GetConfigDir returns the config dir if set or an empty string.
+func GetConfigDir(ctx context.Context) string {
+	cd, ok := ctx.Value(ctxKeyConfigDir).(string)
+	if !ok {
+		return ""
+	}
+	return cd
+}
+
+// WithAlias returns an context with the alias set.
+func WithAlias(ctx context.Context, alias string) context.Context {
+	return context.WithValue(ctx, ctxKeyAlias, alias)
+}
+
+// HasAlias returns true if a value for alias has been set.
+func HasAlias(ctx context.Context) bool {
+	_, ok := ctx.Value(ctxKeyAlias).(string)
+	return ok
+}
+
+// GetAlias returns an alias if it has been set or an empty string otherwise.
+func GetAlias(ctx context.Context) string {
+	a, ok := ctx.Value(ctxKeyAlias).(string)
+	if !ok {
+		return ""
+	}
+	return a
 }

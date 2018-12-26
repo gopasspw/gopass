@@ -15,6 +15,12 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/benbjohnson/clock"
+  packages = ["."]
+  revision = "7dc76406b6d3c05b5f71a86293cbcf3c4ea03b19"
+
+[[projects]]
+  branch = "master"
   name = "github.com/blang/semver"
   packages = ["."]
   revision = "3c1074078d32d767e08ab2c8564867292da86926"
@@ -79,6 +85,7 @@
   revision = "2ff6f7ffd60f0f2410b3105864bdd12c7894f844"
 
 [[projects]]
+  branch = "master"
   name = "github.com/gokyle/twofactor"
   packages = ["."]
   revision = "bbc82ff8de72400ce39a13077627531d9841ad62"

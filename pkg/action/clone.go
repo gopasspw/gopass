@@ -6,8 +6,6 @@ import (
 
 	"github.com/gopasspw/gopass/pkg/backend"
 	"github.com/gopasspw/gopass/pkg/backend/crypto/xc"
-	gitcli "github.com/gopasspw/gopass/pkg/backend/rcs/git/cli"
-	"github.com/gopasspw/gopass/pkg/backend/rcs/git/gogit"
 	"github.com/gopasspw/gopass/pkg/config"
 	"github.com/gopasspw/gopass/pkg/cui"
 	"github.com/gopasspw/gopass/pkg/fsutil"
@@ -55,18 +53,8 @@ func (s *Action) clone(ctx context.Context, repo, mount, path string) error {
 	}
 
 	// clone repo
-	switch backend.GetRCSBackend(ctx) {
-	case backend.GoGit:
-		if _, err := gogit.Clone(ctx, repo, path); err != nil {
-			return ExitError(ctx, ExitGit, err, "failed to clone repo '%s' to '%s'", repo, path)
-		}
-	case backend.GitCLI:
-		fallthrough
-	default:
-		ctx = backend.WithRCSBackend(ctx, backend.GitCLI)
-		if _, err := gitcli.Clone(ctx, repo, path); err != nil {
-			return ExitError(ctx, ExitGit, err, "failed to clone repo '%s' to '%s'", repo, path)
-		}
+	if _, err := backend.CloneRCS(ctx, backend.GetRCSBackend(ctx), repo, path); err != nil {
+		return ExitError(ctx, ExitGit, err, "failed to clone repo '%s' to '%s'", repo, path)
 	}
 
 	// detect crypto backend based on cloned repo
@@ -153,6 +141,7 @@ func (s *Action) cloneGetGitConfig(ctx context.Context, name string) (string, st
 
 // detectCryptoBackend tries to detect the crypto backend used in a cloned repo
 // This detection is very shallow and doesn't support all backends, yet
+// TODO(dschulz) must not depend on xc, move to registry
 func detectCryptoBackend(ctx context.Context, path string) backend.CryptoBackend {
 	if fsutil.IsFile(filepath.Join(path, xc.IDFile)) {
 		return backend.XC
