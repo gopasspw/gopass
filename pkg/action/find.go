@@ -97,7 +97,7 @@ func (s *Action) findSelection(ctx context.Context, c *cli.Context, choices []st
 		return cb(ctx, c, needle, "", true)
 	case "edit":
 		// edit selected entry
-		fmt.Println(stdout, choices[sel])
+		fmt.Fprintln(stdout, choices[sel])
 		return s.edit(ctx, c, choices[sel])
 	default:
 		return ExitError(ctx, ExitAborted, nil, "user aborted")

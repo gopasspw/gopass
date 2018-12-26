@@ -165,6 +165,7 @@ func (s *selection) sync(g *gocui.Gui, v *gocui.View) error {
 }
 
 func (s *selection) edit(g *gocui.Gui, v *gocui.View) error {
+	s.selection = getSelectedLine(v)
 	s.action = "edit"
 	return gocui.ErrQuit
 }
