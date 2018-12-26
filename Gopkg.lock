@@ -15,12 +15,6 @@
 
 [[projects]]
   branch = "master"
-  name = "github.com/benbjohnson/clock"
-  packages = ["."]
-  revision = "7dc76406b6d3c05b5f71a86293cbcf3c4ea03b19"
-
-[[projects]]
-  branch = "master"
   name = "github.com/blang/semver"
   packages = ["."]
   revision = "3c1074078d32d767e08ab2c8564867292da86926"
@@ -85,7 +79,6 @@
   revision = "2ff6f7ffd60f0f2410b3105864bdd12c7894f844"
 
 [[projects]]
-  branch = "master"
   name = "github.com/gokyle/twofactor"
   packages = ["."]
   revision = "bbc82ff8de72400ce39a13077627531d9841ad62"
@@ -200,6 +193,17 @@
   packages = ["."]
   revision = "c055c87ae801372cd74a0839b972db4f7697ae5f"
   version = "v0.4.0"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/jsimonetti/pwscheme"
+  packages = [
+    "md5crypt",
+    "ssha",
+    "ssha256",
+    "ssha512"
+  ]
+  revision = "76804708ecad54773871b35dbaa44f517973e395"
 
 [[projects]]
   branch = "master"
@@ -533,6 +537,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "5e7f296ef197909a46560faedac8cf6e3ede03e3e35fb450038f005d189af000"
+  inputs-digest = "73682d8cdd1a1d31415f38a6b4bb700c501e3e215b9d10e61c6eefcf906016d4"
   solver-name = "gps-cdcl"
   solver-version = 1

@@ -7,6 +7,10 @@ import (
 	"fmt"
 	"text/template"
 
+	"github.com/jsimonetti/pwscheme/md5crypt"
+	"github.com/jsimonetti/pwscheme/ssha"
+	"github.com/jsimonetti/pwscheme/ssha256"
+	"github.com/jsimonetti/pwscheme/ssha512"
 	"github.com/pkg/errors"
 )
 
@@ -14,6 +18,10 @@ import (
 const (
 	FuncMd5sum      = "md5sum"
 	FuncSha1sum     = "sha1sum"
+	FuncMd5Crypt    = "md5crypt"
+	FuncSSHA        = "ssha"
+	FuncSSHA256     = "ssha256"
+	FuncSSHA512     = "ssha512"
 	FuncGet         = "get"
 	FuncGetPassword = "getpw"
 	FuncGetValue    = "getval"
@@ -28,6 +36,30 @@ func md5sum() func(...string) (string, error) {
 func sha1sum() func(...string) (string, error) {
 	return func(s ...string) (string, error) {
 		return fmt.Sprintf("%x", sha1.Sum([]byte(s[0]))), nil
+	}
+}
+
+func md5cryptFunc() func(...string) (string, error) {
+	return func(s ...string) (string, error) {
+		return md5crypt.Generate(s[0], 4)
+	}
+}
+
+func sshaFunc() func(...string) (string, error) {
+	return func(s ...string) (string, error) {
+		return ssha.Generate(s[0], 4)
+	}
+}
+
+func ssha256Func() func(...string) (string, error) {
+	return func(s ...string) (string, error) {
+		return ssha256.Generate(s[0], 4)
+	}
+}
+
+func ssha512Func() func(...string) (string, error) {
+	return func(s ...string) (string, error) {
+		return ssha512.Generate(s[0], 4)
 	}
 }
 
@@ -94,5 +126,9 @@ func funcMap(ctx context.Context, kv kvstore) template.FuncMap {
 		FuncGetValue:    getValue(ctx, kv),
 		FuncMd5sum:      md5sum(),
 		FuncSha1sum:     sha1sum(),
+		FuncMd5Crypt:    md5cryptFunc(),
+		FuncSSHA:        sshaFunc(),
+		FuncSSHA256:     ssha256Func(),
+		FuncSSHA512:     ssha512Func(),
 	}
 }

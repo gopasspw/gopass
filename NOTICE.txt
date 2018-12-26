@@ -25,6 +25,7 @@ github.com/gopasspw/gopass/vendor/github.com/hashicorp/serf/coordinate          
 github.com/gopasspw/gopass/vendor/github.com/hashicorp/vault                       Mozilla Public License 2.0
 github.com/gopasspw/gopass/vendor/github.com/jbenet/go-context/io                  MIT License
 github.com/gopasspw/gopass/vendor/github.com/jroimartin/gocui                      BSD 3-clause "New" or "Revised" License (96%)
+github.com/gopasspw/gopass/vendor/github.com/jsimonetti/pwscheme                   MIT License
 github.com/gopasspw/gopass/vendor/github.com/kballard/go-shellquote                MIT License (98%)
 github.com/gopasspw/gopass/vendor/github.com/kevinburke/ssh_config                 MIT License (93%)
 github.com/gopasspw/gopass/vendor/github.com/lucasb-eyer/go-colorful               MIT License (98%)
