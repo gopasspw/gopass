@@ -58,6 +58,7 @@ Please see [docs/features.md](https://github.com/gopasspw/gopass/blob/master/doc
 | OTP support                 | (✔)    | ✔        | *stable*  | Generate HOTP/TOTP tokens based on the stored secret               |
 | Multiple Crypto Backends    | ❌      | ✔        | *alpha*   | Extensible crypto backend support (GPG, NaCl)                      |
 | Editing Recipients per Secret    | ❌      | ✔        | *beta*   | Select recipients per secret when encrypting |
+| Extensions                  | ✔      | ❌        |           | Extend gopass with custom commands |
 
 ## Installation
 
