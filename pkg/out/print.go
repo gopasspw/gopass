@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"runtime"
+	"strings"
 
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 
@@ -38,7 +40,15 @@ func Debug(ctx context.Context, format string, args ...interface{}) {
 	if !ctxutil.IsDebug(ctx) {
 		return
 	}
-	fmt.Fprintf(Stdout, Prefix(ctx)+"[DEBUG] "+format+newline(ctx), args...)
+
+	var loc string
+	if _, file, line, ok := runtime.Caller(1); ok {
+		file = file[strings.Index(file, "pkg/"):]
+		file = strings.TrimPrefix(file, "pkg/")
+		loc = fmt.Sprintf("%s:%d ", file, line)
+	}
+
+	fmt.Fprintf(Stdout, Prefix(ctx)+"[DEBUG] "+loc+format+newline(ctx), args...)
 }
 
 // Black prints the string in black

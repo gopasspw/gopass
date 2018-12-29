@@ -24,7 +24,7 @@ type TemplateStore interface {
 	GetTemplate(context.Context, string) ([]byte, error)
 	HasTemplate(context.Context, string) bool
 	ListTemplates(context.Context, string) []string
-	LookupTemplate(context.Context, string) ([]byte, bool)
+	LookupTemplate(context.Context, string) (string, []byte, bool)
 	RemoveTemplate(context.Context, string) error
 	SetTemplate(context.Context, string, []byte) error
 	TemplateTree(context.Context) (tree.Tree, error)
