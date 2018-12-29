@@ -28,8 +28,8 @@ func (s *Store) ListTemplates(context.Context, string) []string {
 }
 
 // LookupTemplate is unsupported
-func (s *Store) LookupTemplate(context.Context, string) ([]byte, bool) {
-	return nil, false
+func (s *Store) LookupTemplate(context.Context, string) (string, []byte, bool) {
+	return "", nil, false
 }
 
 // RemoveTemplate is unsupported

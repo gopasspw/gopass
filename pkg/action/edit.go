@@ -12,7 +12,6 @@ import (
 	"github.com/gopasspw/gopass/pkg/pwgen"
 	"github.com/gopasspw/gopass/pkg/store/secret"
 	"github.com/gopasspw/gopass/pkg/store/sub"
-	"github.com/gopasspw/gopass/pkg/tpl"
 
 	"github.com/urfave/cli"
 )
@@ -101,20 +100,4 @@ func (s *Action) editGetContent(ctx context.Context, name string, create bool) (
 
 	// new entry, no template
 	return name, nil, false, nil
-}
-
-func (s *Action) renderTemplate(ctx context.Context, name string, content []byte) ([]byte, bool) {
-	tmpl, found := s.Store.LookupTemplate(ctx, name)
-	if !found {
-		return content, false
-	}
-
-	// load template if it exists
-	if nc, err := tpl.Execute(ctx, string(tmpl), name, content, s.Store); err == nil {
-		content = nc
-	} else {
-		fmt.Fprintf(stdout, "failed to execute template: %s\n", err)
-	}
-	return content, true
-
 }
