@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/gopasspw/gopass/pkg/clipboard"
 	"github.com/gopasspw/gopass/pkg/otp"
 	"github.com/gopasspw/gopass/pkg/pwgen"
 	"github.com/gopasspw/gopass/pkg/store"
@@ -37,6 +38,8 @@ func (api *API) respondMessage(ctx context.Context, msgBytes []byte) error {
 		return api.respondGetData(ctx, msgBytes)
 	case "create":
 		return api.respondCreateEntry(ctx, msgBytes)
+	case "copyToClipboard":
+		return api.respondCopyToClipboard(ctx, msgBytes)
 	case "getVersion":
 		return api.respondGetVersion()
 	default:
@@ -115,6 +118,24 @@ func (api *API) respondGetLogin(ctx context.Context, msgBytes []byte) error {
 	sec, err := api.Store.Get(ctx, message.Entry)
 	if err != nil {
 		return errors.Wrapf(err, "failed to get secret")
+	}
+
+	data := sec.Data()
+	fields := data["login_fields"]
+	if fields != nil {
+		switch fields.(type) {
+		case map[interface{}]interface{}:
+			stringMap := map[string]interface{}{}
+			for k, v := range fields.(map[interface{}]interface{}) {
+				stringMap[k.(string)] = v
+			}
+
+			return sendSerializedJSONMessage(loginResponse{
+				Username:    api.getUsername(message.Entry, sec),
+				Password:    sec.Password(),
+				LoginFields: stringMap,
+			}, api.Writer)
+		}
 	}
 
 	return sendSerializedJSONMessage(loginResponse{
@@ -199,5 +220,33 @@ func (api *API) respondGetVersion() error {
 		Major:   api.Version.Major,
 		Minor:   api.Version.Minor,
 		Patch:   api.Version.Patch,
+	}, api.Writer)
+}
+
+func (api *API) respondCopyToClipboard(ctx context.Context, msgBytes []byte) error {
+	var message copyToClipboard
+	if err := json.Unmarshal(msgBytes, &message); err != nil {
+		return errors.Wrapf(err, "failed to unmarshal JSON message")
+	}
+
+	sec, err := api.Store.Get(ctx, message.Entry)
+	if err != nil {
+		return errors.Wrapf(err, "failed to get secret")
+	}
+	val := sec.Password()
+	if message.Key != "" {
+		val, err = sec.Value(message.Key)
+		if err != nil {
+			return errors.Wrapf(err, "failed to get secret sub entry")
+		}
+	}
+
+	err = clipboard.CopyTo(ctx, message.Entry, []byte(val))
+	if err != nil {
+		return errors.Wrapf(err, "failed to copy to clipboard")
+	}
+
+	return sendSerializedJSONMessage(statusResponse{
+		Status: "ok",
 	}, api.Writer)
 }
