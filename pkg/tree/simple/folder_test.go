@@ -24,7 +24,7 @@ func TestFolder(t *testing.T) {
 		"foo/baz.b64",
 		"foo/zab.yml",
 	}
-	assert.Equal(t, lst, wants)
+	assert.Equal(t, wants, lst)
 
 	// test name
 	assert.Equal(t, "gopass", root.String())
@@ -38,18 +38,40 @@ func TestFolder(t *testing.T) {
     ├── baz.b64 (binary)
     └── zab.yml (yaml)
 `
-	assert.Equal(t, out, want)
+	assert.Equal(t, want, out)
 
 	// test list 1
 	root = New("gopass")
 	assert.NoError(t, root.AddFile("zab/foozen", "text/plain"))
 	assert.NoError(t, root.AddFile("zab/foo/bar", "text/plain"))
-	assert.NoError(t, root.AddFile("zab/foo/baz", "text/plain"))
+	assert.NoError(t, root.AddFile("zab2/foo/baz", "text/plain"))
+	assert.NoError(t, root.AddFile("zab2/foo/zen/baz", "text/plain"))
 
 	lst = root.List(1)
 	sort.Strings(lst)
 	wants = []string{
 		"zab/foozen",
+	}
+	assert.Equal(t, wants, lst)
+
+	// test folders
+	lst = root.ListFolders(0)
+	wants = []string{
+		"zab",
+		"zab/foo",
+		"zab2",
+		"zab2/foo",
+		"zab2/foo/zen",
+	}
+	assert.Equal(t, wants, lst)
+
+	// test folders maxDepth = 1
+	lst = root.ListFolders(1)
+	wants = []string{
+		"zab",
+		"zab/foo",
+		"zab2",
+		"zab2/foo",
 	}
 	assert.Equal(t, wants, lst)
 

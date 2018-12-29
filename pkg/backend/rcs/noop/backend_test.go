@@ -6,6 +6,7 @@ import (
 
 	"github.com/blang/semver"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestNoop(t *testing.T) {
@@ -25,7 +26,7 @@ func TestNoop(t *testing.T) {
 	_, err := g.Revisions(ctx, "foo")
 	assert.Error(t, err)
 	body, err := g.GetRevision(ctx, "foo", "bar")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "", string(body))
 	assert.NoError(t, g.RemoveRemote(ctx, "foo"))
 }

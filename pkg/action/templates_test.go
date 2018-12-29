@@ -11,8 +11,13 @@ import (
 	"github.com/gopasspw/gopass/pkg/out"
 	"github.com/gopasspw/gopass/tests/gptest"
 
+	_ "github.com/gopasspw/gopass/pkg/backend/crypto"
+	_ "github.com/gopasspw/gopass/pkg/backend/rcs"
+	_ "github.com/gopasspw/gopass/pkg/backend/storage"
+
 	"github.com/fatih/color"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/urfave/cli"
 )
 
@@ -24,7 +29,8 @@ func TestTemplates(t *testing.T) {
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithTerminal(ctx, false)
 	act, err := newMock(ctx, u)
-	assert.NoError(t, err)
+	require.NoError(t, err)
+	require.NotNil(t, act)
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf

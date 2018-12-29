@@ -10,6 +10,7 @@ import (
 	"github.com/gopasspw/gopass/tests/gptest"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/urfave/cli"
 )
 
@@ -34,7 +35,8 @@ func TestComplete(t *testing.T) {
 
 	ctx := context.Background()
 	act, err := newMock(ctx, u)
-	assert.NoError(t, err)
+	require.NoError(t, err)
+	require.NotNil(t, act)
 
 	app := cli.NewApp()
 	app.Commands = []cli.Command{
@@ -70,40 +72,4 @@ func TestComplete(t *testing.T) {
 	assert.Contains(t, buf.String(), "complete_gopass")
 	assert.Error(t, act.CompletionOpenBSDKsh(nil, nil))
 	buf.Reset()
-}
-
-func TestFilterCompletionList(t *testing.T) {
-	for _, tc := range []struct {
-		name   string
-		in     []string
-		needle string
-		out    []string
-	}{
-		{
-			name:   "empty",
-			in:     []string{"foo", "bar", "misc/baz", "misc/zab"},
-			needle: "",
-			out:    []string{"bar", "foo", "misc"},
-		},
-		{
-			name:   "misc/",
-			in:     []string{"foo", "bar", "misc/baz", "misc/zab", "misc/zab/abc"},
-			needle: "misc/",
-			out:    []string{"misc/baz", "misc/zab"},
-		},
-		{
-			name:   "misc",
-			in:     []string{"foo", "bar", "misc/baz", "misc/zab", "misc/zab/abc"},
-			needle: "misc",
-			out:    []string{"misc/"},
-		},
-		{
-			name:   "web",
-			in:     []string{"foo", "bar", "misc/baz", "webmaster/foo", "websites/bar"},
-			needle: "web",
-			out:    []string{"webmaster", "websites"},
-		},
-	} {
-		assert.Equal(t, tc.out, filterCompletionList(tc.in, tc.needle), tc.name)
-	}
 }

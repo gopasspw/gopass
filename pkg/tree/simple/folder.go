@@ -3,6 +3,7 @@ package simple
 import (
 	"bytes"
 	"path"
+	"sort"
 	"strings"
 
 	"github.com/gopasspw/gopass/pkg/tree"
@@ -34,8 +35,13 @@ func (f *Folder) Len() int {
 func (f *Folder) IsMount() bool { return f.Path != "" }
 
 // List returns a flattened list of all sub nodes
-func (f Folder) List(maxDepth int) []string {
+func (f *Folder) List(maxDepth int) []string {
 	return f.list("", maxDepth, 0)
+}
+
+// ListFolders returns a flattened list of all nodes without leaf
+func (f *Folder) ListFolders(maxDepth int) []string {
+	return f.listFolders("", maxDepth, 0)
 }
 
 // Format returns a pretty printed tree
@@ -100,6 +106,32 @@ func (f *Folder) list(prefix string, maxDepth, curDepth int) []string {
 	for _, key := range sortedFiles(f.Files) {
 		out = append(out, path.Join(prefix, f.Files[key].Name))
 	}
+	return out
+}
+
+// listFolders returns a flattened list of all folders with their full path in
+// the tree, e.g. foo foo/bar
+func (f *Folder) listFolders(prefix string, maxDepth, curDepth int) []string {
+	out := make([]string, 0)
+	if maxDepth > 0 && curDepth > maxDepth {
+		return out
+	}
+
+	if !f.Root {
+		if prefix != "" {
+			prefix += sep
+		}
+		prefix += f.Name
+	}
+
+	for _, key := range sortedFolders(f.Folders) {
+		out = append(out, f.Folders[key].listFolders(prefix, maxDepth, curDepth+1)...)
+		// we want to also list the base folders, not just the leaves
+		out = append(out, path.Join(prefix, f.Folders[key].Name))
+	}
+
+	sort.Strings(out)
+
 	return out
 }
 

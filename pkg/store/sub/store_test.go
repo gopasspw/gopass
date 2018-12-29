@@ -12,7 +12,12 @@ import (
 	"github.com/gopasspw/gopass/pkg/backend"
 	"github.com/gopasspw/gopass/pkg/store/secret"
 
+	_ "github.com/gopasspw/gopass/pkg/backend/crypto"
+	_ "github.com/gopasspw/gopass/pkg/backend/rcs"
+	_ "github.com/gopasspw/gopass/pkg/backend/storage"
+
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func createSubStore(dir string) (*Store, error) {
@@ -88,13 +93,13 @@ func createStore(dir string, recipients, entries []string) ([]string, []string, 
 
 func TestStore(t *testing.T) {
 	tempdir, err := ioutil.TempDir("", "gopass-")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(tempdir)
 	}()
 
 	s, err := createSubStore(tempdir)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	if !s.Equals(s) {
 		t.Errorf("Should be equal to myself")
@@ -105,21 +110,21 @@ func TestIdFile(t *testing.T) {
 	ctx := context.Background()
 
 	tempdir, err := ioutil.TempDir("", "gopass-")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(tempdir)
 	}()
 
 	s, err := createSubStore(tempdir)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// test sub-id
 	secName := "a"
 	for i := 0; i < 99; i++ {
 		secName += "/a"
 	}
-	assert.NoError(t, s.Set(ctx, secName, secret.New("foo", "bar")))
-	assert.NoError(t, ioutil.WriteFile(filepath.Join(tempdir, "sub", "a", ".gpg-id"), []byte("foobar"), 0600))
+	require.NoError(t, s.Set(ctx, secName, secret.New("foo", "bar")))
+	require.NoError(t, ioutil.WriteFile(filepath.Join(tempdir, "sub", "a", ".gpg-id"), []byte("foobar"), 0600))
 	assert.Equal(t, filepath.Join("a", ".gpg-id"), s.idFile(ctx, secName))
 	assert.Equal(t, true, s.Exists(ctx, secName))
 
@@ -128,8 +133,8 @@ func TestIdFile(t *testing.T) {
 	for i := 0; i < 100; i++ {
 		secName += "/a"
 	}
-	assert.NoError(t, s.Set(ctx, secName, secret.New("foo", "bar")))
-	assert.NoError(t, ioutil.WriteFile(filepath.Join(tempdir, "sub", "a", ".gpg-id"), []byte("foobar"), 0600))
+	require.NoError(t, s.Set(ctx, secName, secret.New("foo", "bar")))
+	require.NoError(t, ioutil.WriteFile(filepath.Join(tempdir, "sub", "a", ".gpg-id"), []byte("foobar"), 0600))
 	assert.Equal(t, ".gpg-id", s.idFile(ctx, secName))
 }
 
@@ -137,7 +142,7 @@ func TestNew(t *testing.T) {
 	ctx := context.Background()
 
 	tempdir, err := ioutil.TempDir("", "gopass-")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(tempdir)
 	}()

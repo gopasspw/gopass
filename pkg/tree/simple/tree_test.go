@@ -8,6 +8,7 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 const (
@@ -91,7 +92,7 @@ func TestFormatSubtree(t *testing.T) {
 	}
 
 	sub, err := root.FindFolder("baz/ing")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	got := strings.TrimSpace(sub.Format(0))
 	want := strings.TrimSpace(goldenSubFormat)

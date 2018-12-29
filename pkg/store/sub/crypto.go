@@ -2,16 +2,11 @@ package sub
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/gopasspw/gopass/pkg/agent/client"
 	"github.com/gopasspw/gopass/pkg/backend"
-	gpgcli "github.com/gopasspw/gopass/pkg/backend/crypto/gpg/cli"
-	"github.com/gopasspw/gopass/pkg/backend/crypto/gpg/openpgp"
-	"github.com/gopasspw/gopass/pkg/backend/crypto/plain"
-	"github.com/gopasspw/gopass/pkg/backend/crypto/xc"
-	"github.com/gopasspw/gopass/pkg/fsutil"
-	"github.com/gopasspw/gopass/pkg/out"
+	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/pkg/errors"
 )
 
 func (s *Store) initCryptoBackend(ctx context.Context) error {
@@ -25,23 +20,11 @@ func (s *Store) initCryptoBackend(ctx context.Context) error {
 
 // GetCryptoBackend initialized the correct crypto backend
 func GetCryptoBackend(ctx context.Context, cb backend.CryptoBackend, cfgdir string, agent *client.Client) (backend.Crypto, error) {
-	switch cb {
-	case backend.GPGCLI:
-		out.Debug(ctx, "Using Crypto Backend: gpg-cli")
-		return gpgcli.New(ctx, gpgcli.Config{
-			Umask: fsutil.Umask(),
-			Args:  gpgcli.GPGOpts(),
-		})
-	case backend.XC:
-		out.Debug(ctx, "Using Crypto Backend: xc (EXPERIMENTAL)")
-		return xc.New(cfgdir, agent)
-	case backend.Plain:
-		out.Debug(ctx, "Using Crypto Backend: plain (NO ENCRYPTION)")
-		return plain.New(), nil
-	case backend.OpenPGP:
-		out.Debug(ctx, "Using Crypto Backend: openpgp (ALPHA)")
-		return openpgp.New(ctx)
-	default:
-		return nil, fmt.Errorf("no valid crypto backend selected")
+	ctx = client.WithClient(ctx, agent)
+	ctx = ctxutil.WithConfigDir(ctx, cfgdir)
+	crypto, err := backend.NewCrypto(ctx, cb)
+	if err != nil {
+		return nil, errors.Wrapf(err, "unknown crypto backend")
 	}
+	return crypto, nil
 }

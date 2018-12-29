@@ -52,7 +52,7 @@ func (s *Secret) Bytes() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-// Data returns the data map. Will never ne nil
+// Data returns the data map. Will never be nil
 func (s *Secret) Data() map[string]interface{} {
 	if s.d == nil {
 		s.d = make(map[string]interface{})

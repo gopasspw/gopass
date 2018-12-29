@@ -12,17 +12,18 @@ import (
 	"github.com/gopasspw/gopass/pkg/out"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestGitConfig(t *testing.T) {
 	td, err := ioutil.TempDir("", "gopass-")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(td)
 	}()
 
 	gitdir := filepath.Join(td, "git")
-	assert.NoError(t, os.Mkdir(gitdir, 0755))
+	require.NoError(t, os.Mkdir(gitdir, 0755))
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
@@ -35,7 +36,7 @@ func TestGitConfig(t *testing.T) {
 	}()
 
 	git, err := Init(ctx, gitdir, "Dead Beef", "dead.beef@example.org")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	un, err := git.ConfigGet(ctx, "user.name")
 	assert.NoError(t, err)
 	assert.Equal(t, "Dead Beef", un)

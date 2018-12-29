@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/urfave/cli"
 )
 
@@ -40,7 +41,7 @@ func TestFormatFlag(t *testing.T) {
 func TestGetCompletion(t *testing.T) {
 	app := cli.NewApp()
 	sv, err := GetCompletion(app)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Contains(t, sv, "#!/usr/bin/env fish")
 
 	fishTemplate = "{{.unexported}}"
@@ -69,15 +70,15 @@ func TestFormatflagFunc(t *testing.T) {
 		cli.UintFlag{Name: "foo", Usage: "bar"},
 	} {
 		sv, err := formatFlagFunc("short")(flag)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, "", sv)
 
 		sv, err = formatFlagFunc("long")(flag)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, "foo", sv)
 
 		sv, err = formatFlagFunc("usage")(flag)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, "bar", sv)
 	}
 

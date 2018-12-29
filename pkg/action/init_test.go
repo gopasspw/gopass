@@ -15,6 +15,7 @@ import (
 	"github.com/gopasspw/gopass/tests/gptest"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/urfave/cli"
 )
 
@@ -27,7 +28,8 @@ func TestInit(t *testing.T) {
 	ctx = ctxutil.WithInteractive(ctx, false)
 	ctx = ctxutil.WithDebug(ctx, true)
 	act, err := newMock(ctx, u)
-	assert.NoError(t, err)
+	require.NoError(t, err)
+	require.NotNil(t, act)
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf

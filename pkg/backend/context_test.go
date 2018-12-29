@@ -10,7 +10,6 @@ import (
 func TestCryptoBackend(t *testing.T) {
 	ctx := context.Background()
 
-	assert.Equal(t, "xc", CryptoBackendName(XC))
 	assert.Equal(t, GPGCLI, GetCryptoBackend(ctx))
 	assert.Equal(t, XC, GetCryptoBackend(WithCryptoBackendString(ctx, "xc")))
 	assert.Equal(t, XC, GetCryptoBackend(WithCryptoBackend(ctx, XC)))

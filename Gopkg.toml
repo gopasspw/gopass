@@ -54,7 +54,7 @@
   name = "github.com/godbus/dbus"
 
 [[constraint]]
-  branch = "master"
+  revision = "bbc82ff8de72400ce39a13077627531d9841ad62"
   name = "github.com/gokyle/twofactor"
 
 [[constraint]]
@@ -127,7 +127,7 @@
 
 [[constraint]]
   name = "gopkg.in/src-d/go-git.v4"
-  version = "4.1.1"
+  revision = "1241d740739fd0a2a157db9c935cf9272b52ec0f"
 
 [[constraint]]
   name = "gopkg.in/yaml.v2"

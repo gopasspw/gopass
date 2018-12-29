@@ -1,3 +1,35 @@
+## 1.8.4 / 2018-12-26
+
+* [ENHANCEMENT] Evaluate templates when inserting single secrets [#1023]
+* [ENHANCEMENT] Add fuzzy search dialog for gopass otp [#1021]
+* [ENHANCEMENT] Add edit option to search dialog [#1019]
+* [ENHANCEMENT] Introduce build tags for experimental features [#1000]
+* [BUGFIX] Fix recursive delete [#1024]
+* [BUGFIX] Abort tests on critical failures [#997]
+* [BUGFIX] Zsh autocompletion [#996]
+
+## 1.8.3 / 2018-11-19
+
+* [ENHANCEMENT] Add zsh autocompletion for insert and generate [#988]
+* [ENHANCEMENT] Set exit code for filtered ls without result [#983]
+* [ENHANCEMENT] Improve generate command [#948]
+* [ENHANCEMENT] Print summary for grep [#943]
+* [ENHANCEMENT] Documentation updates [#924, #890, #918, #919, #920, #944, #952, #958, #969, #985]
+* [ENHANCEMENT] jsonapi: Add windows support for configure [#904]
+* [ENHANCEMENT] jsonapi: Add getVersion [#893]
+* [ENHANCEMENT] Support symlinks for fs storage backend [#886]
+* [BUGFIX] Offer store selection with exactly one mount point as well [#987]
+* [BUGFIX] Edit entry selected by fuzzy search [#979]
+* [BUGFIX] Fix path handling on windows [#970]
+* [BUGFIX] Remove quotes [#967]
+* [BUGFIX] Properly handle git add for removed files [#946]
+* [BUGFIX] HAndle already mounted and not initialized errors [#945]
+* [BUGFIX] Fix HIBP command options [#936]
+* [BUGFIX] Offer secret selection on edit command [#929]
+* [BUGFIX] jsonapi: add initialize [#903]
+* [BUGFIX] Update external dependencies [#884, #932, #981]
+* [BUGFIX] Use valid crypto backend for key selection [#889]
+
 ## 1.8.2 / 2018-06-28
 
 * [ENHANCEMENT] Improve fsck output [#859]

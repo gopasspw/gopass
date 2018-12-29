@@ -19,6 +19,10 @@ import (
 	"github.com/gopasspw/gopass/pkg/store/root"
 	"github.com/gopasspw/gopass/pkg/store/secret"
 
+	_ "github.com/gopasspw/gopass/pkg/backend/crypto"
+	_ "github.com/gopasspw/gopass/pkg/backend/rcs"
+	_ "github.com/gopasspw/gopass/pkg/backend/storage"
+
 	"github.com/blang/semver"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -257,7 +261,7 @@ func runRespondRawMessages(t *testing.T, requests []verifiedRequest, secrets []s
 	ctx := context.Background()
 
 	tempdir, err := ioutil.TempDir("", "gopass-")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(tempdir)
 	}()
@@ -272,7 +276,8 @@ func runRespondRawMessages(t *testing.T, requests []verifiedRequest, secrets []s
 			},
 		},
 	)
-	assert.NoError(t, err)
+	require.NoError(t, err)
+	require.NotNil(t, store)
 	inited, err := store.Initialized(ctx)
 	require.NoError(t, err)
 	assert.Equal(t, false, inited)

@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestNotify(t *testing.T) {
@@ -25,6 +26,7 @@ func TestIcon(t *testing.T) {
 	defer func() {
 		assert.NoError(t, fh.Close())
 	}()
+	require.NotNil(t, fh)
 	_, err = png.Decode(fh)
 	assert.NoError(t, err)
 }

@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestSingleMount(t *testing.T) {
@@ -16,7 +17,7 @@ func TestSingleMount(t *testing.T) {
 
 	// insert some secret at a place that will be shadowed by a mount
 	_, err := ts.runCmd([]string{ts.Binary, "insert", "mnt/m1/secret"}, []byte("moar"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	out, err := ts.run("show -f mnt/m1/secret")
 	assert.NoError(t, err)
@@ -24,7 +25,7 @@ func TestSingleMount(t *testing.T) {
 
 	out, err = ts.run("init --store mnt/m1 --path " + ts.storeDir("m1") + " --rcs=noop " + keyID)
 	t.Logf("Output: %s", out)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	out, err = ts.run("show mnt/m1/secret")
 	assert.Error(t, err)
@@ -64,7 +65,7 @@ func TestMultiMount(t *testing.T) {
 	// mount m1
 	out, err := ts.run("init --store mnt/m1 --path " + ts.storeDir("m1") + " --rcs=noop " + keyID)
 	t.Logf("Output: %s", out)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	ts.initSecrets("mnt/m1/")
 
@@ -92,7 +93,7 @@ func TestMultiMount(t *testing.T) {
 	// mount m2
 	out, err = ts.run("init --store mnt/m2 --path " + ts.storeDir("m2") + " --rcs=noop " + keyID)
 	t.Logf("Output: %s", out)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	ts.initSecrets("mnt/m2/")
 

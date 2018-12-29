@@ -102,6 +102,7 @@ func (s *selection) keybindings(g *gocui.Gui) error {
 		{"list", gocui.KeyArrowRight, s.show},
 		{"list", gocui.KeyEnter, s.def},
 		{"list", 's', s.sync},
+		{"list", 'e', s.edit},
 	} {
 		if err := g.SetKeybinding(kb.name, kb.key, gocui.ModNone, kb.action); err != nil {
 			return err
@@ -160,6 +161,12 @@ func (s *selection) def(g *gocui.Gui, v *gocui.View) error {
 
 func (s *selection) sync(g *gocui.Gui, v *gocui.View) error {
 	s.action = "sync"
+	return gocui.ErrQuit
+}
+
+func (s *selection) edit(g *gocui.Gui, v *gocui.View) error {
+	s.selection = getSelectedLine(v)
+	s.action = "edit"
 	return gocui.ErrQuit
 }
 

@@ -11,6 +11,7 @@ import (
 	"github.com/gopasspw/gopass/tests/gptest"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestConfirmRecipients(t *testing.T) {
@@ -26,14 +27,14 @@ func TestConfirmRecipients(t *testing.T) {
 	// AlwaysYes true
 	in := []string{"foo", "bar"}
 	got, err := ConfirmRecipients(ctxutil.WithAlwaysYes(ctx, true), plain.New(), "test", in)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, in, got)
 	buf.Reset()
 
 	// IsNoConfirm true
 	in = []string{"foo", "bar"}
 	got, err = ConfirmRecipients(ctxutil.WithNoConfirm(ctx, true), plain.New(), "test", in)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, in, got)
 	buf.Reset()
 
@@ -55,7 +56,7 @@ func TestAskForPrivateKey(t *testing.T) {
 
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	key, err := AskForPrivateKey(ctx, plain.New(), "test", "test")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "0xDEADBEEF", key)
 	buf.Reset()
 }
@@ -72,19 +73,30 @@ func TestAskForGitConfigUser(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-type fakeMountPointer struct{}
+type fakeMountPointer []string
 
-func (f *fakeMountPointer) MountPoints() []string {
-	return []string{"foo", "bar"}
+func (f fakeMountPointer) MountPoints() []string {
+	return f
 }
 
 func TestAskForStore(t *testing.T) {
 	ctx := context.Background()
 
+	// test non-interactive
 	ctx = ctxutil.WithInteractive(ctx, false)
-	assert.Equal(t, "", AskForStore(ctx, &fakeMountPointer{}))
+	assert.Equal(t, "", AskForStore(ctx, fakeMountPointer{"foo", "bar"}))
 
+	// test interactive
 	ctx = ctxutil.WithInteractive(ctx, true)
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
-	assert.Equal(t, "", AskForStore(ctx, &fakeMountPointer{}))
+	assert.Equal(t, "", AskForStore(ctx, fakeMountPointer{"foo", "bar"}))
+
+	// test zero mps
+	assert.Equal(t, "", AskForStore(ctx, fakeMountPointer{}))
+
+	// test one mp
+	assert.Equal(t, "", AskForStore(ctx, fakeMountPointer{"foo"}))
+
+	// test two mps
+	assert.Equal(t, "", AskForStore(ctx, fakeMountPointer{"foo", "bar"}))
 }

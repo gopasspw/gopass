@@ -10,7 +10,12 @@ import (
 	"github.com/gopasspw/gopass/pkg/out"
 	"github.com/gopasspw/gopass/tests/gptest"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/urfave/cli"
+
+	_ "github.com/gopasspw/gopass/pkg/backend/crypto"
+	_ "github.com/gopasspw/gopass/pkg/backend/rcs"
+	_ "github.com/gopasspw/gopass/pkg/backend/storage"
 )
 
 func TestUnclip(t *testing.T) {
@@ -27,7 +32,8 @@ func TestUnclip(t *testing.T) {
 
 	ctx := context.Background()
 	act, err := newMock(ctx, u)
-	assert.NoError(t, err)
+	require.NoError(t, err)
+	require.NotNil(t, act)
 
 	app := cli.NewApp()
 

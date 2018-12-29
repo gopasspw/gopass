@@ -26,7 +26,7 @@ func TestInit(t *testing.T) {
 	cfg := config.New()
 	cfg.Root.Path = backend.FromPath(u.StoreDir("rs"))
 	rs, err := New(ctx, cfg)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	inited, err := rs.Initialized(ctx)
 	require.NoError(t, err)

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/blang/semver"
+	"github.com/gopasspw/gopass/pkg/backend"
 	"github.com/gopasspw/gopass/pkg/out"
 	"github.com/gopasspw/gopass/pkg/protect"
 	"github.com/gopasspw/gopass/pkg/updater"
@@ -42,6 +43,10 @@ func (s *Action) Version(ctx context.Context, c *cli.Context) error {
 			fmt.Fprintf(stdout, tpl, mp, cv, rv, sv)
 		}
 	}
+
+	fmt.Fprintf(stdout, "Available Crypto Backends: %s\n", strings.Join(backend.CryptoBackends(), ", "))
+	fmt.Fprintf(stdout, "Available RCS Backends: %s\n", strings.Join(backend.RCSBackends(), ", "))
+	fmt.Fprintf(stdout, "Available Storage Backends: %s\n", strings.Join(backend.StorageBackends(), ", "))
 
 	select {
 	case vi := <-version:

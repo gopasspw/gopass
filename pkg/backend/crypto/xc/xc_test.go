@@ -10,13 +10,14 @@ import (
 	"github.com/blang/semver"
 	"github.com/gopasspw/gopass/pkg/backend/crypto/xc/keyring"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestNew(t *testing.T) {
 	ctx := context.Background()
 
 	td, err := ioutil.TempDir("", "gopass-")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(td)
 	}()
@@ -25,7 +26,7 @@ func TestNew(t *testing.T) {
 
 	passphrase := "test"
 	xc, err := New(td, &fakeAgent{passphrase})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NotNil(t, xc)
 	assert.NoError(t, xc.Initialized(ctx))
 	assert.Equal(t, "xc", xc.Name())
@@ -38,7 +39,7 @@ func TestInitialized(t *testing.T) {
 	ctx := context.Background()
 
 	td, err := ioutil.TempDir("", "gopass-")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(td)
 	}()

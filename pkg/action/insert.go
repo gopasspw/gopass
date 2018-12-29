@@ -124,6 +124,13 @@ func (s *Action) insertSingle(ctx context.Context, name, pw string, kvps map[str
 		}
 	} else {
 		sec = &secret.Secret{}
+
+		if content, found := s.renderTemplate(ctx, name, []byte(pw)); found {
+			nSec, err := secret.Parse(content)
+			if err == nil {
+				sec = nSec
+			}
+		}
 	}
 	setMetadata(sec, kvps)
 	sec.SetPassword(pw)
