@@ -4,8 +4,11 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/gopasspw/gopass/pkg/editor"
+	"github.com/gopasspw/gopass/pkg/out"
+	"github.com/gopasspw/gopass/pkg/tpl"
 
 	"github.com/urfave/cli"
 )
@@ -109,4 +112,29 @@ func (s *Action) TemplatesComplete(ctx context.Context, c *cli.Context) {
 	for _, v := range tree.List(0) {
 		fmt.Fprintln(stdout, v)
 	}
+}
+
+func (s *Action) renderTemplate(ctx context.Context, name string, content []byte) ([]byte, bool) {
+	tName, tmpl, found := s.Store.LookupTemplate(ctx, name)
+	if !found {
+		out.Debug(ctx, "No template found for %s", name)
+		return content, false
+	}
+
+	tmplStr := strings.TrimSpace(string(tmpl))
+	if tmplStr == "" {
+		out.Debug(ctx, "Skipping empty template '%s', for %s", tName, name)
+		return content, false
+	}
+
+	// load template if it exists
+	nc, err := tpl.Execute(ctx, string(tmpl), name, content, s.Store)
+	if err != nil {
+		fmt.Fprintf(stdout, "failed to execute template '%s': %s\n", tName, err)
+		return content, false
+	}
+
+	out.Cyan(ctx, "Note: Using template %s", tName)
+
+	return nc, true
 }

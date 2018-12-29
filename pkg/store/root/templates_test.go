@@ -41,7 +41,7 @@ func TestTemplate(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, "foobar", string(b))
 
-	b, found := rs.LookupTemplate(ctx, "foo/bar")
+	_, b, found := rs.LookupTemplate(ctx, "foo/bar")
 	assert.Equal(t, true, found)
 	assert.Equal(t, "foobar", string(b))
 	assert.NoError(t, rs.RemoveTemplate(ctx, "foo"))
