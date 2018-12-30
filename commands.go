@@ -490,9 +490,9 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 		},
 		{
 			Name:        "jsonapi",
-			Usage:       "Run gopass as jsonapi e.g. for browser plugins",
+			Usage:       "Run and configure gopass as jsonapi e.g. for browser plugins",
 			Description: "Setup and run gopass as native messaging hosts, e.g. for browser plugins.",
-			Hidden:      true,
+			Hidden:      false,
 			Subcommands: []cli.Command{
 				{
 					Name:        "listen",
