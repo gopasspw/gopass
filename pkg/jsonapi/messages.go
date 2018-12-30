@@ -25,9 +25,15 @@ type getLoginMessage struct {
 	Entry string `json:"entry"`
 }
 
+type copyToClipboard struct {
+	Entry string `json:"entry"`
+	Key   string `json:"key"`
+}
+
 type loginResponse struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
+	Username    string                 `json:"username"`
+	Password    string                 `json:"password"`
+	LoginFields map[string]interface{} `json:"login_fields,omitempty"`
 }
 
 type getDataMessage struct {
@@ -48,6 +54,10 @@ type createEntryMessage struct {
 	PasswordLength int    `json:"length"`
 	Generate       bool   `json:"generate"`
 	UseSymbols     bool   `json:"use_symbols"`
+}
+
+type statusResponse struct {
+	Status string `json:"status"`
 }
 
 type errorResponse struct {
