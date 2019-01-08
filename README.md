@@ -51,7 +51,7 @@ Please see [docs/features.md](https://github.com/gopasspw/gopass/blob/master/doc
 | K/V and YAML support        | ❌      | ✔        | *alpha*   | Special handling for Key/Value and YAML content in secrets        |
 | password leak checker       | ❌      | ✔        | *alpha*   | Perform **offline** checks against known leaked passwords         |
 | PAGER support               | ❌      | ✔        | *stable*  | Automatically invoke a pager on long output                       |
-| JSON API                    | ❌      | ✔        | *alpha*   | Allow gopass to be used as a native extension for browser plugins |
+| JSON API                    | ❌      | ✔        | *stable*   | Allow gopass to be used as a native extension for browser plugins |
 | Automatic fuzzy search      | ❌      | ✔        | *stable*  | Automatically search for matching store entries if a literal entry was not found |
 | gopass sync                 | ❌      | ✔        | *beta*    | Easy to use syncing of remote repos and GPG keys |
 | Desktop Notifications       | ❌      | ✔        | *beta*    | Display desktop notifications and completing long running operations |
