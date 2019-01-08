@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/gopasspw/gopass/pkg/out"
 	"github.com/pkg/errors"
 )
 
@@ -18,11 +19,13 @@ var (
 
 // CryptoLoader is the interface for creating a new crypto backend.
 type CryptoLoader interface {
+	fmt.Stringer
 	New(context.Context) (Crypto, error)
 }
 
 // RCSLoader is the interface for creating a new RCS backend.
 type RCSLoader interface {
+	fmt.Stringer
 	Open(context.Context, string) (RCS, error)
 	Clone(context.Context, string, string) (RCS, error)
 	Init(context.Context, string, string, string) (RCS, error)
@@ -30,6 +33,7 @@ type RCSLoader interface {
 
 // StorageLoader is the interface for creating a new storage backend.
 type StorageLoader interface {
+	fmt.Stringer
 	New(context.Context, *URL) (Storage, error)
 }
 
@@ -66,6 +70,7 @@ func OpenRCS(ctx context.Context, id RCSBackend, path string) (RCS, error) {
 // CloneRCS clones an existing repository from a remote.
 func CloneRCS(ctx context.Context, id RCSBackend, repo, path string) (RCS, error) {
 	if be, found := rcsRegistry[id]; found {
+		out.Debug(ctx, "Cloning with %s", be.String())
 		return be.Clone(ctx, repo, path)
 	}
 	return nil, errors.Wrapf(ErrNotFound, "unknown backend: %d", id)

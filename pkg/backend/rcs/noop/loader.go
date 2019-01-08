@@ -6,8 +6,12 @@ import (
 	"github.com/gopasspw/gopass/pkg/backend"
 )
 
+const (
+	name = "noop"
+)
+
 func init() {
-	backend.RegisterRCS(backend.Noop, "noop", &loader{})
+	backend.RegisterRCS(backend.Noop, name, &loader{})
 }
 
 type loader struct{}
@@ -25,4 +29,8 @@ func (l loader) Clone(ctx context.Context, repo, path string) (backend.RCS, erro
 // Init implements backend.RCSLoader
 func (l loader) Init(ctx context.Context, path, username, email string) (backend.RCS, error) {
 	return New(), nil
+}
+
+func (l loader) String() string {
+	return name
 }

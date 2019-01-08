@@ -28,11 +28,11 @@ func TestLookup(t *testing.T) {
 			return
 		}
 		if strings.TrimPrefix(r.URL.String(), "/range/") == matchSum[:5] {
-			fmt.Fprintf(w, matchSum[5:10]+":1\r\n")                            // invalid
-			fmt.Fprintf(w, matchSum[5:39]+":3234879\r\n")                      // invalid
-			fmt.Fprintf(w, matchSum[5:]+":\r\n")                               // invalid
-			fmt.Fprintf(w, matchSum[5:]+"\r\n")                                // invalid
-			fmt.Fprintf(w, fmt.Sprintf("%s:%d\r\n", matchSum[5:], matchCount)) // valid
+			fmt.Fprintf(w, matchSum[5:10]+":1\r\n")               // invalid
+			fmt.Fprintf(w, matchSum[5:39]+":3234879\r\n")         // invalid
+			fmt.Fprintf(w, matchSum[5:]+":\r\n")                  // invalid
+			fmt.Fprintf(w, matchSum[5:]+"\r\n")                   // invalid
+			fmt.Fprintf(w, "%s:%d\r\n", matchSum[5:], matchCount) // valid
 			return
 		}
 		http.Error(w, "not found", http.StatusNotFound)
@@ -67,11 +67,11 @@ func TestLookupCR(t *testing.T) {
 			return
 		}
 		if strings.TrimPrefix(r.URL.String(), "/range/") == matchSum[:5] {
-			fmt.Fprintf(w, matchSum[5:10]+":1\n")                            // invalid
-			fmt.Fprintf(w, matchSum[5:39]+":3234879\n")                      // invalid
-			fmt.Fprintf(w, matchSum[5:]+":\n")                               // invalid
-			fmt.Fprintf(w, matchSum[5:]+"\n")                                // invalid
-			fmt.Fprintf(w, fmt.Sprintf("%s:%d\n", matchSum[5:], matchCount)) // valid
+			fmt.Fprintf(w, matchSum[5:10]+":1\n")               // invalid
+			fmt.Fprintf(w, matchSum[5:39]+":3234879\n")         // invalid
+			fmt.Fprintf(w, matchSum[5:]+":\n")                  // invalid
+			fmt.Fprintf(w, matchSum[5:]+"\n")                   // invalid
+			fmt.Fprintf(w, "%s:%d\n", matchSum[5:], matchCount) // valid
 			return
 		}
 		http.Error(w, "not found", http.StatusNotFound)

@@ -16,6 +16,10 @@ func (l fakeCryptoLoader) New(context.Context) (backend.Crypto, error) {
 	return plain.New(), nil
 }
 
+func (l fakeCryptoLoader) String() string {
+	return "fakecryptoloader"
+}
+
 func TestCryptoLoader(t *testing.T) {
 	ctx := context.Background()
 	backend.RegisterCrypto(backend.Plain, "plain", fakeCryptoLoader{})

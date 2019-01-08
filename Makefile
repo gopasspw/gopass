@@ -201,11 +201,11 @@ codequality:
 			misspell --error $(gofile) || exit 1;)
 	@printf '%s\n' '$(OK)'
 
-	@echo -n "     MEGACHECK "
-	@which megacheck > /dev/null; if [ $$? -ne 0  ]; then \
-		$(GO) get -u honnef.co/go/tools/cmd/megacheck; \
+	@echo -n "     STATICCHECK "
+	@which staticcheck > /dev/null; if [ $$? -ne 0  ]; then \
+		$(GO) get -u honnef.co/go/tools/cmd/staticcheck; \
 	fi
-	@megacheck $(PKGS) || exit 1
+	@staticcheck $(PKGS) || exit 1
 	@printf '%s\n' '$(OK)'
 
 	@echo -n "     ERRCHECK  "

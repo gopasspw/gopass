@@ -40,6 +40,13 @@ func (s *Action) Clone(ctx context.Context, c *cli.Context) error {
 	return s.clone(ctx, repo, mount, path)
 }
 
+func rcsBackendOrDefault(ctx context.Context, def backend.RCSBackend) backend.RCSBackend {
+	if be := backend.GetRCSBackend(ctx); be != backend.Noop {
+		return be
+	}
+	return def
+}
+
 func (s *Action) clone(ctx context.Context, repo, mount, path string) error {
 	if path == "" {
 		path = config.PwStoreDir(mount)
@@ -53,7 +60,8 @@ func (s *Action) clone(ctx context.Context, repo, mount, path string) error {
 	}
 
 	// clone repo
-	if _, err := backend.CloneRCS(ctx, backend.GetRCSBackend(ctx), repo, path); err != nil {
+	out.Debug(ctx, "Cloning repo '%s' to '%s'", repo, path)
+	if _, err := backend.CloneRCS(ctx, rcsBackendOrDefault(ctx, backend.GitCLI), repo, path); err != nil {
 		return ExitError(ctx, ExitGit, err, "failed to clone repo '%s' to '%s'", repo, path)
 	}
 
@@ -61,6 +69,7 @@ func (s *Action) clone(ctx context.Context, repo, mount, path string) error {
 	ctx = backend.WithCryptoBackend(ctx, detectCryptoBackend(ctx, path))
 
 	// add mount
+	out.Debug(ctx, "Mounting cloned repo '%s' at '%s'", path, mount)
 	if err := s.cloneAddMount(ctx, mount, path); err != nil {
 		return err
 	}
