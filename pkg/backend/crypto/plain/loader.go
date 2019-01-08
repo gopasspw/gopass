@@ -7,14 +7,22 @@ import (
 	"github.com/gopasspw/gopass/pkg/out"
 )
 
+const (
+	name = "plain"
+)
+
 func init() {
-	backend.RegisterCrypto(backend.Plain, "plain", &loader{})
+	backend.RegisterCrypto(backend.Plain, name, &loader{})
 }
 
 type loader struct{}
 
 // New implements backend.CryptoLoader.
 func (l loader) New(ctx context.Context) (backend.Crypto, error) {
-	out.Debug(ctx, "Using Crypto Backend: plain (NO ENCRYPTION)")
+	out.Debug(ctx, "Using Crypto Backend: %s (NO ENCRYPTION)", name)
 	return New(), nil
+}
+
+func (l loader) String() string {
+	return name
 }

@@ -12,8 +12,12 @@ import (
 	"github.com/pkg/errors"
 )
 
+const (
+	name = "consul"
+)
+
 func init() {
-	backend.RegisterStorage(backend.Consul, "consul", &loader{})
+	backend.RegisterStorage(backend.Consul, name, &loader{})
 }
 
 type loader struct{}
@@ -24,7 +28,7 @@ func (l loader) New(ctx context.Context, url *backend.URL) (backend.Storage, err
 	agent := client.GetClient(ctx)
 	cfgdir := ctxutil.GetConfigDir(ctx)
 
-	out.Debug(ctx, "Using Storage Backend: consul")
+	out.Debug(ctx, "Using Storage Backend: %s", name)
 	token := url.Query.Get("token")
 	key := fmt.Sprintf("consul-%s-%s", alias, url.String())
 	if token == "" {
@@ -100,4 +104,8 @@ func (l loader) loadSecret(ctx context.Context, key, cfgdir string, agent *clien
 	_ = agent.Remove(ctx, key)
 	err = seccfg.Set(key, t)
 	return t, err
+}
+
+func (l loader) String() string {
+	return name
 }

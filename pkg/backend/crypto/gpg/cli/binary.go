@@ -5,8 +5,6 @@ import (
 	"errors"
 	"os/exec"
 	"sort"
-
-	"github.com/gopasspw/gopass/pkg/out"
 )
 
 // Binary returns the GPG binary location
@@ -25,13 +23,13 @@ func Binary(ctx context.Context, bin string) (string, error) {
 	}
 	bv := make(byVersion, 0, len(bins))
 	for _, b := range bins {
-		out.Debug(ctx, "gpg.detectBinary - Looking for '%s' ...", b)
+		//out.Debug(ctx, "gpg.detectBinary - Looking for '%s' ...", b)
 		if p, err := exec.LookPath(b); err == nil {
 			gb := gpgBin{
 				path: p,
 				ver:  version(ctx, p),
 			}
-			out.Debug(ctx, "gpg.detectBinary - Found '%s' at '%s' (%s)", b, p, gb.ver.String())
+			//out.Debug(ctx, "gpg.detectBinary - Found '%s' at '%s' (%s)", b, p, gb.ver.String())
 			bv = append(bv, gb)
 		}
 	}
@@ -40,6 +38,6 @@ func Binary(ctx context.Context, bin string) (string, error) {
 	}
 	sort.Sort(bv)
 	binary := bv[len(bv)-1].path
-	out.Debug(ctx, "gpg.detectBinary - using '%s'", binary)
+	//out.Debug(ctx, "gpg.detectBinary - using '%s'", binary)
 	return binary, nil
 }

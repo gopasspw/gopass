@@ -7,8 +7,12 @@ import (
 	"github.com/gopasspw/gopass/pkg/out"
 )
 
+const (
+	name = "fs"
+)
+
 func init() {
-	backend.RegisterStorage(backend.FS, "fs", &loader{})
+	backend.RegisterStorage(backend.FS, name, &loader{})
 }
 
 type loader struct{}
@@ -18,4 +22,8 @@ func (l loader) New(ctx context.Context, url *backend.URL) (backend.Storage, err
 	be := New(url.Path)
 	out.Debug(ctx, "Using Storage Backend: %s", be.String())
 	return be, nil
+}
+
+func (l loader) String() string {
+	return name
 }
