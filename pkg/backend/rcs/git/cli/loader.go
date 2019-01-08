@@ -7,8 +7,12 @@ import (
 	gpgcli "github.com/gopasspw/gopass/pkg/backend/crypto/gpg/cli"
 )
 
+const (
+	name = "gitcli"
+)
+
 func init() {
-	backend.RegisterRCS(backend.GitCLI, "gitcli", &loader{})
+	backend.RegisterRCS(backend.GitCLI, name, &loader{})
 }
 
 type loader struct{}
@@ -27,4 +31,8 @@ func (l loader) Clone(ctx context.Context, repo, path string) (backend.RCS, erro
 // Init implements backend.RCSLoader
 func (l loader) Init(ctx context.Context, path, username, email string) (backend.RCS, error) {
 	return Init(ctx, path, username, email)
+}
+
+func (l loader) String() string {
+	return name
 }
