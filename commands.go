@@ -12,7 +12,6 @@ import (
 	"github.com/gopasspw/gopass/pkg/agent/client"
 	"github.com/gopasspw/gopass/pkg/config"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-
 	"github.com/urfave/cli"
 )
 
@@ -548,8 +547,8 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 			Usage:   "Generate time- or hmac-based tokens",
 			Aliases: []string{"totp", "hotp"},
 			Description: "" +
-				"Tries to parse an OTP URL (otpauth://). " +
-				"URL can be TOTP or HOTP.",
+				"Tries to parse an OTP URL (otpauth://). URL can be TOTP or HOTP. " +
+				"The URL can be provided on its own line or on a key value line with a key named 'totp'.",
 			Before: func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
 			Action: func(c *cli.Context) error {
 				return action.OTP(withGlobalFlags(ctx, c), c)
