@@ -94,7 +94,7 @@ Maintainers of this repository:
 
 * Christoph Oelmüller <christoph.oelmueller@justwatch.com> [@zwopir](https://github.com/zwopir)
 * Matthias Loibl <mail@matthiasloibl.com> [@metalmatze](https://github.com/metalmatze)
-* Dominik Schulz <dominik.schulz@justwatch.com> [@dominikschulz](https://github.com/dominikschulz)
+* Dominik Schulz <dominik.schulz@gmail.com> [@dominikschulz](https://github.com/dominikschulz)
 
 Please refer to the Git commit log for a complete list of contributors.
 
