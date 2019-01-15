@@ -53,7 +53,7 @@ func TestTemplates(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "foobar", string(b))
 
-	b, found := s.LookupTemplate(ctx, "foo/bar")
+	_, b, found := s.LookupTemplate(ctx, "foo/bar")
 	assert.Equal(t, true, found)
 	assert.Equal(t, "foobar", string(b))
 

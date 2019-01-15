@@ -297,9 +297,9 @@ You can then bind these command lines to your preferred shortcuts in your window
 
 ### Filling in passwords from browser
 
-Gopass allows filling in passwords in browsers leveraging a browser plugin like [gopass bridge](https://github.com/martinhoefling/gopassbridge).
+Gopass allows filling in passwords in browsers leveraging a browser plugin like [gopass bridge](https://github.com/gopasspw/gopassbridge).
 The browser plugin communicates with gopass via JSON messages. To allow the plugin to start gopass, a [native messaging manifest](https://developer.mozilla.org/en-US/Add-ons/WebExtensions/Native_messaging) must be installed for each browser.
-Chrome, chromium and Firefox are supported, currently. Further a wrapper must be installed to setup gpg-agent and execute `gopass jsonapi listen`.
+Chrome, Chromium and Firefox are supported, currently. Further a wrapper must be installed to setup gpg-agent and execute `gopass jsonapi listen`.
 
 ```bash
 # Asks all questions concerning browser and setup

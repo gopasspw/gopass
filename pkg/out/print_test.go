@@ -42,15 +42,12 @@ func TestDebug(t *testing.T) {
 	}()
 
 	Debug(ctx, "foobar")
-	if buf.String() != "" {
-		t.Errorf("Got output: %s", buf.String())
-	}
+	assert.Equal(t, "", buf.String())
 
 	ctx = ctxutil.WithDebug(ctx, true)
 	Debug(ctx, "foobar")
-	if buf.String() != "[DEBUG] foobar\n" {
-		t.Errorf("Wrong output: %s", buf.String())
-	}
+	assert.Contains(t, buf.String(), "[DEBUG]")
+	assert.Contains(t, buf.String(), "foobar")
 }
 
 func TestColor(t *testing.T) {

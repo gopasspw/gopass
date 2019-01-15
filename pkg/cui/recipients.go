@@ -148,7 +148,7 @@ func confirmEditRecipients(ctx context.Context, name string, ris recipientInfos)
 	fmt.Fprintf(buf, "# Lines starting with # will be ignored.\n")
 	fmt.Fprintf(buf, "# WARNING: Do not edit existing entries.\n")
 	for _, ri := range ris {
-		fmt.Fprintf(buf, ri.String())
+		fmt.Fprint(buf, ri.String())
 	}
 	out, err := editor.Invoke(ctx, editor.Path(nil), buf.Bytes())
 	if err != nil {

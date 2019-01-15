@@ -59,7 +59,7 @@ func (r *Store) addMount(ctx context.Context, alias, path string, sc *config.Sto
 	// initialize sub store
 	s, err := r.initSub(ctx, sc, alias, pathURL, keys)
 	if err != nil {
-		return errors.Wrapf(err, "failed to init sub store")
+		return errors.Wrapf(err, "failed to init sub store '%s' at '%s'", alias, pathURL)
 	}
 
 	r.mounts[alias] = s

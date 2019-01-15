@@ -67,6 +67,18 @@ func TestRespondMessageQuery(t *testing.T) {
 		{[]string{"evilsome.other.host", "something"}, secret.New("thesecret", "---\nother: meh")},
 		{[]string{"awesomePrefix", "other.host", "other"}, secret.New("thesecret", "---\nother: meh")},
 		{[]string{"somename", "github.com"}, secret.New("thesecret", "---\nother: meh")},
+		{[]string{"login_entry"}, secret.New("thepass", `---
+login: thelogin
+ignore: me
+login_fields:
+  first: 42
+  second: ok
+nologin_fields:
+  subentry: 123`)},
+		{[]string{"invalid_login_entry"}, secret.New("thepass", `---
+login: thelogin
+ignore: me
+login_fields: "invalid"`)},
 	}
 
 	// query for keys without any matching
@@ -127,6 +139,18 @@ func TestRespondMessageQuery(t *testing.T) {
 	runRespondMessage(t,
 		`{"type":"getLogin","entry":"awesomePrefix/fixed/yamlother"}`,
 		`{"username":"yamlother","password":"thesecret"}`,
+		"", secrets)
+
+	// get entry with login fields
+	runRespondMessage(t,
+		`{"type":"getLogin","entry":"login_entry"}`,
+		`{"username":"thelogin","password":"thepass","login_fields":{"first":42,"second":"ok"}}`,
+		"", secrets)
+
+	// get entry with invalid login fields
+	runRespondMessage(t,
+		`{"type":"getLogin","entry":"invalid_login_entry"}`,
+		`{"username":"thelogin","password":"thepass"}`,
 		"", secrets)
 }
 
@@ -225,6 +249,41 @@ func TestRespondMessageCreate(t *testing.T) {
 		`{"type":"create","entry_name":"awesomePrefix/overwrite/me","login":"myname","password":"mypass","length":16,"generate":false,"use_symbols":true}`,
 		"",
 		"secret awesomePrefix/overwrite/me already exists",
+		secrets)
+}
+
+func TestCopyToClipboard(t *testing.T) {
+	secrets := []storedSecret{
+		{[]string{"foo", "bar"}, secret.New("20", "")},
+		{[]string{"yamllogin"}, secret.New("thesecret", "---\nlogin: muh")},
+	}
+
+	// copy nonexisting entry returns error
+	runRespondMessage(t,
+		`{"type": "copyToClipboard","entry":"doesnotexist"}`,
+		``,
+		"failed to get secret: Entry is not in the password store",
+		secrets)
+
+	// copy existing entry
+	runRespondMessage(t,
+		`{"type": "copyToClipboard","entry":"foo/bar"}`,
+		`{"status":"ok"}`,
+		"",
+		secrets)
+
+	// copy nonexisting subkey
+	runRespondMessage(t,
+		`{"type": "copyToClipboard","entry":"foo/bar","key":"baz"}`,
+		``,
+		"failed to get secret sub entry: key not found in YAML document",
+		secrets)
+
+	// copy existing subkey
+	runRespondMessage(t,
+		`{"type": "copyToClipboard","entry":"yamllogin","key":"login"}`,
+		`{"status":"ok"}`,
+		"",
 		secrets)
 }
 

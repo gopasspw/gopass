@@ -121,7 +121,7 @@ func (a *Agent) servePassphrase(w http.ResponseWriter, r *http.Request) {
 	reason := r.URL.Query().Get("reason")
 
 	if pass, found := a.cache.get(key); found || a.testing {
-		fmt.Fprintf(w, pass)
+		fmt.Fprint(w, pass)
 		return
 	}
 
@@ -141,5 +141,5 @@ func (a *Agent) servePassphrase(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	a.cache.set(key, string(pw))
-	fmt.Fprintf(w, string(pw))
+	fmt.Fprint(w, string(pw))
 }
