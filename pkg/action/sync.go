@@ -97,11 +97,11 @@ func (s *Action) syncMount(ctx context.Context, mp string) error {
 	if err := sub.RCS().Push(ctx, "", ""); err != nil {
 		if errors.Cause(err) == store.ErrGitNoRemote {
 			out.Yellow(ctx, "Skipped (no remote)")
-			out.Debug(ctx, "Failed to push '%s' to it's remote: %s", name, err)
+			out.Debug(ctx, "Failed to push '%s' to its remote: %s", name, err)
 			return err
 		}
 
-		out.Error(ctx, "Failed to push '%s' to it's remote: %s", name, err)
+		out.Error(ctx, "Failed to push '%s' to its remote: %s", name, err)
 		return err
 	}
 	out.Print(ctxno, color.GreenString("OK"))
@@ -141,7 +141,7 @@ func (s *Action) syncMount(ctx context.Context, mp string) error {
 	// only run second push if we did export any keys
 	if exported {
 		if err := sub.RCS().Push(ctx, "", ""); err != nil {
-			out.Error(ctx, "Failed to push '%s' to it's remote: %s", name, err)
+			out.Error(ctx, "Failed to push '%s' to its remote: %s", name, err)
 			return err
 		}
 		out.Print(ctxno, color.GreenString("OK"))
