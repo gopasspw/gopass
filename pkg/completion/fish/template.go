@@ -31,7 +31,7 @@ function __fish_{{ $prog }}_print_entries
   {{ $prog }} ls --flat
 end
 
-function __fish_{{ $prog }}__print_dirs
+function __fish_{{ $prog }}_print_dir
   for i in ({{ $prog }} ls --flat)
 	  echo (dirname $i)
 	end | sort -u
