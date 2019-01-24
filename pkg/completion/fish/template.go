@@ -40,6 +40,7 @@ end
 # erase any existing completions for {{ $prog }}
 complete -c $PROG -e
 complete -c $PROG -f -n '__fish_{{ $prog }}_needs_command' -a "(__fish_{{ $prog }}_print_entries)"
+complete -c $PROG -f -s c -l clip -r -a "(__fish_{{ $prog }}_print_entries)"
 {{- $gflags := .Flags -}}
 {{ range .Commands }}
 complete -c $PROG -f -n '__fish_{{ $prog }}_needs_command' -a {{ .Name }} -d 'Command: {{ .Usage }}'
