@@ -30,7 +30,7 @@ func TestMove(t *testing.T) {
 
 	ts.initSecrets("")
 
-	_, err = ts.run("move foo/ bar")
+	_, err = ts.run("move foo bar")
 	assert.NoError(t, err)
 
 	out, _ = ts.run("move foo/bar foo/baz")

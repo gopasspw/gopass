@@ -73,7 +73,7 @@ func TestCopy(t *testing.T) {
 
 	// recursive copy: bam/ -> zab
 	fs = flag.NewFlagSet("default", flag.ContinueOnError)
-	assert.NoError(t, fs.Parse([]string{"bam/", "zab"}))
+	assert.NoError(t, fs.Parse([]string{"bam", "zab"}))
 	c = cli.NewContext(app, fs, nil)
 
 	assert.NoError(t, act.Copy(ctx, c))

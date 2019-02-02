@@ -263,8 +263,10 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 			Usage:   "Copy secrets from one location to another",
 			Description: "" +
 				"This command copies an existing secret in the store to another location. " +
-				"It will also handle copying secrets to different sub-stores. " +
-				"If the destination is a directory, it will automatically copy recursively.",
+				"This also works across different sub-stores. If the source is a directory it will " +
+				"automatically copy recursively. In that case, the source directory is re-created " +
+				"at the destination if no trailing slash is found, otherwise the contents are " +
+				"flattened (similar to rsync).",
 			Before: func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
 			Action: func(c *cli.Context) error {
 				return action.Copy(withGlobalFlags(ctx, c), c)
@@ -793,8 +795,10 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 			Aliases: []string{"mv"},
 			Usage:   "Move secrets from one location to another",
 			Description: "" +
-				"This command moves a secret from one path to another. This works even " +
-				"across different sub-stores.",
+				"This command moves a secret from one path to another. This also works " +
+				"across different sub-stores. If the source is a directory, the source directory " +
+				"is re-created at the destination if no trailing slash is found, otherwise the " +
+				"contents are flattened (similar to rsync).",
 			Before: func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
 			Action: func(c *cli.Context) error {
 				return action.Move(withGlobalFlags(ctx, c), c)

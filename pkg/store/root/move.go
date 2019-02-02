@@ -34,12 +34,8 @@ func (r *Store) move(ctx context.Context, from, to string, delete bool) error {
 
 	srcIsDir := r.IsDir(ctx, from)
 	dstIsDir := r.IsDir(ctx, to)
-	// if  source is a directory it must end with a slash
-	if srcIsDir && !strings.HasSuffix(from, "/") {
-		return errors.New("is a directory")
-	}
 	if srcIsDir && r.Exists(ctx, to) && !dstIsDir {
-		return errors.New("is a file")
+		return errors.New("destination is a file")
 	}
 
 	if err := r.moveFromTo(ctxFrom, ctxTo, subFrom, subTo, from, to, fromPrefix, srcIsDir, delete); err != nil {
@@ -123,7 +119,12 @@ func (r *Store) moveFromTo(ctxFrom, ctxTo context.Context, subFrom, subTo store.
 	for _, src := range entries {
 		dst := to
 		if srcIsDir {
-			dst = path.Join(to, path.Base(from), strings.TrimPrefix(src, from))
+			// Follow the rsync convention to not re-create the source folder at the destination when a "/" is found
+			if strings.HasSuffix(from, "/") {
+				dst = path.Join(to, strings.TrimPrefix(src, from))
+			} else {
+				dst = path.Join(to, path.Base(from), strings.TrimPrefix(src, from))
+			}
 		}
 		out.Debug(ctxFrom, "Moving %s (%s) => %s (%s) (sid:%t)\n", from, src, to, dst, srcIsDir)
 
