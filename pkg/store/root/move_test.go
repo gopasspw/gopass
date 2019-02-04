@@ -31,9 +31,6 @@ func TestMove(t *testing.T) {
 	assert.NoError(t, rs.Delete(ctx, "foo"))
 
 	// Initial state:
-	// foo/bar
-	// foo/baz
-	// misc/zab
 	entries, err := rs.List(ctx, 0)
 	require.NoError(t, err)
 	require.Equal(t, []string{
@@ -41,16 +38,13 @@ func TestMove(t *testing.T) {
 		"foo/baz",
 		"misc/zab",
 	}, entries)
-	// -> move foo misc => ERROR: foo is a directory
-	assert.Error(t, rs.Move(ctx, "foo", "misc"))
 	// -> move foo/ misc/zab => ERROR: misc/zab is a file
 	assert.Error(t, rs.Move(ctx, "foo/", "misc/zab"))
+	// -> move foo misc/zab => ERROR: misc/zab is a file
+	assert.Error(t, rs.Move(ctx, "foo", "misc/zab"))
+
 	// -> move foo/ misc => OK
-	assert.NoError(t, rs.Move(ctx, "foo/", "misc"))
-	// New state:
-	// misc/foo/bar
-	// misc/foo/baz
-	// misc/zab
+	assert.NoError(t, rs.Move(ctx, "foo", "misc"))
 	entries, err = rs.List(ctx, 0)
 	require.NoError(t, err)
 	require.Equal(t, []string{
@@ -58,12 +52,9 @@ func TestMove(t *testing.T) {
 		"misc/foo/baz",
 		"misc/zab",
 	}, entries)
+
 	// -> move misc/foo/ bar/ => OK
-	assert.NoError(t, rs.Move(ctx, "misc/foo/", "bar/"))
-	// New state:
-	// bar/foo/bar
-	// bar/foo/baz
-	// misc/zab
+	assert.NoError(t, rs.Move(ctx, "misc/foo", "bar/"))
 	entries, err = rs.List(ctx, 0)
 	require.NoError(t, err)
 	assert.Equal(t, []string{
@@ -71,18 +62,35 @@ func TestMove(t *testing.T) {
 		"bar/foo/baz",
 		"misc/zab",
 	}, entries)
+
 	// -> move misc/zab bar/foo/zab => OK
 	assert.NoError(t, rs.Move(ctx, "misc/zab", "bar/foo/zab"))
-	// New state:
-	// bar/foo/bar
-	// bar/foo/baz
-	// bar/foo/zab
 	entries, err = rs.List(ctx, 0)
 	require.NoError(t, err)
 	assert.Equal(t, []string{
 		"bar/foo/bar",
 		"bar/foo/baz",
 		"bar/foo/zab",
+	}, entries)
+
+	// -> move bar/foo/ baz => OK
+	assert.NoError(t, rs.Move(ctx, "bar/foo/", "baz"))
+	entries, err = rs.List(ctx, 0)
+	require.NoError(t, err)
+	assert.Equal(t, []string{
+		"baz/bar",
+		"baz/baz",
+		"baz/zab",
+	}, entries)
+
+	// -> move baz/ boz/ => OK
+	assert.NoError(t, rs.Move(ctx, "baz/", "boz/"))
+	entries, err = rs.List(ctx, 0)
+	require.NoError(t, err)
+	assert.Equal(t, []string{
+		"boz/bar",
+		"boz/baz",
+		"boz/zab",
 	}, entries)
 }
 
@@ -105,9 +113,6 @@ func TestCopy(t *testing.T) {
 	assert.NoError(t, rs.Delete(ctx, "foo"))
 
 	// Initial state:
-	// foo/bar
-	// foo/baz
-	// misc/zab
 	entries, err := rs.List(ctx, 0)
 	require.NoError(t, err)
 	assert.Equal(t, []string{
@@ -115,16 +120,13 @@ func TestCopy(t *testing.T) {
 		"foo/baz",
 		"misc/zab",
 	}, entries)
-	// -> move foo misc => ERROR: foo is a directory
-	assert.Error(t, rs.Copy(ctx, "foo", "misc"))
-	// -> move foo/ misc/zab => ERROR: misc/zab is a file
+	// -> copy foo/ misc/zab => ERROR: misc/zab is a file
 	assert.Error(t, rs.Copy(ctx, "foo/", "misc/zab"))
-	// -> move foo/ misc => OK
-	assert.NoError(t, rs.Copy(ctx, "foo/", "misc"))
-	// New state:
-	// misc/foo/bar
-	// misc/foo/baz
-	// misc/zab
+	// -> copy foo misc/zab => ERROR: misc/zab is a file
+	assert.Error(t, rs.Copy(ctx, "foo", "misc/zab"))
+
+	// -> copy foo/ misc => OK
+	assert.NoError(t, rs.Copy(ctx, "foo", "misc"))
 	entries, err = rs.List(ctx, 0)
 	require.NoError(t, err)
 	assert.Equal(t, []string{
@@ -134,35 +136,29 @@ func TestCopy(t *testing.T) {
 		"misc/foo/baz",
 		"misc/zab",
 	}, entries)
-	// -> move misc/foo/ bar/ => OK
+
+	// -> copy misc/foo/ bar/ => OK
 	assert.NoError(t, rs.Copy(ctx, "misc/foo/", "bar/"))
-	// New state:
-	// bar/foo/bar
-	// bar/foo/baz
-	// misc/zab
 	entries, err = rs.List(ctx, 0)
 	require.NoError(t, err)
 	assert.Equal(t, []string{
-		"bar/foo/bar",
-		"bar/foo/baz",
+		"bar/bar",
+		"bar/baz",
 		"foo/bar",
 		"foo/baz",
 		"misc/foo/bar",
 		"misc/foo/baz",
 		"misc/zab",
 	}, entries)
-	// -> move misc/zab bar/foo/zab => OK
+
+	// -> copy misc/zab bar/foo/zab => OK
 	assert.NoError(t, rs.Copy(ctx, "misc/zab", "bar/foo/zab"))
-	// New state:
-	// bar/foo/bar
-	// bar/foo/baz
-	// bar/foo/zab
 	entries, err = rs.List(ctx, 0)
 	require.NoError(t, err)
 	assert.Equal(t, []string{
-		"bar/foo/bar",
-		"bar/foo/baz",
 		"bar/foo/zab",
+		"bar/bar",
+		"bar/baz",
 		"foo/bar",
 		"foo/baz",
 		"misc/foo/bar",
