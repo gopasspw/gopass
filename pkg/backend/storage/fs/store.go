@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"syscall"
 
 	"github.com/gopasspw/gopass/pkg/fsutil"
 	"github.com/gopasspw/gopass/pkg/out"
@@ -54,7 +55,25 @@ func (s *Store) Set(ctx context.Context, name string, value []byte) error {
 func (s *Store) Delete(ctx context.Context, name string) error {
 	path := filepath.Join(s.path, filepath.Clean(name))
 	out.Debug(ctx, "fs.Delete(%s) - %s", name, path)
-	return os.Remove(path)
+
+	err := os.Remove(path)
+	if err != nil {
+		return err
+	}
+
+	// remove all empty parent directories
+	for dir := filepath.Dir(path); ; dir = filepath.Dir(dir) {
+		err = os.Remove(dir)
+		switch {
+		case err == nil:
+			continue
+		case err.(*os.PathError).Err == syscall.ENOTEMPTY:
+			// ignore when directory is non-empty
+			return nil
+		default:
+			return err
+		}
+	}
 }
 
 // Exists checks if the named entity exists
