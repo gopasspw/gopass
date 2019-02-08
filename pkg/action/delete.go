@@ -7,7 +7,6 @@ import (
 	"github.com/gopasspw/gopass/pkg/store/sub"
 	"github.com/gopasspw/gopass/pkg/termio"
 
-	"github.com/pkg/errors"
 	"github.com/urfave/cli"
 )
 
@@ -19,6 +18,10 @@ func (s *Action) Delete(ctx context.Context, c *cli.Context) error {
 	name := c.Args().First()
 	if name == "" {
 		return ExitError(ctx, ExitUsage, nil, "Usage: %s rm name", s.Name)
+	}
+
+	if !recursive && s.Store.IsDir(ctx, name) {
+		return ExitError(ctx, ExitUsage, nil, "Cannot remove '%s': Is a directory. Use 'gopass rm -r %s' to delete", name, name)
 	}
 
 	// specifying a key is optional
@@ -39,10 +42,6 @@ func (s *Action) Delete(ctx context.Context, c *cli.Context) error {
 			return ExitError(ctx, ExitUnknown, err, "failed to prune '%s': %s", name, err)
 		}
 		return nil
-	}
-
-	if s.Store.IsDir(ctx, name) {
-		return errors.Errorf("Cannot remove '%s': Is a directory. Use 'gopass rm -r %s' to delete", name, name)
 	}
 
 	// deletes a single key from a YAML doc
