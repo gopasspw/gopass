@@ -15,6 +15,7 @@ import (
 type StoreConfig struct {
 	AskForMore     bool              `yaml:"askformore"` // ask for more data on generate
 	AutoClip       bool              `yaml:"autoclip"`   // decide whether passwords are automatically copied or not
+	AutoPrint      bool              `yaml:"autoprint"`  // decide whether passwords are automatically printed or not
 	AutoImport     bool              `yaml:"autoimport"` // import missing public keys w/o asking
 	AutoSync       bool              `yaml:"autosync"`   // push to git remote after commit, pull before push if necessary
 	CheckRecpHash  bool              `yaml:"check_recipient_hash"`
