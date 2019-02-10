@@ -56,23 +56,31 @@ func (s *Store) Delete(ctx context.Context, name string) error {
 	path := filepath.Join(s.path, filepath.Clean(name))
 	out.Debug(ctx, "fs.Delete(%s) - %s", name, path)
 
-	err := os.Remove(path)
-	if err != nil {
+	if err := os.Remove(path); err != nil {
 		return err
 	}
 
-	// remove all empty parent directories
-	for dir := filepath.Dir(path); ; dir = filepath.Dir(dir) {
-		err = os.Remove(dir)
-		switch {
-		case err == nil:
-			continue
-		case err.(*os.PathError).Err == syscall.ENOTEMPTY:
-			// ignore when directory is non-empty
-			return nil
-		default:
-			return err
-		}
+	return s.removeEmptyParentDirectories(path)
+}
+
+func (s *Store) removeEmptyParentDirectories(path string) error {
+	parent := filepath.Dir(path)
+
+	if relpath, err := filepath.Rel(s.path, parent); err != nil {
+		return err
+	} else if strings.HasPrefix(relpath, ".") {
+		return nil
+	}
+
+	err := os.Remove(parent)
+	switch {
+	case err == nil:
+		return s.removeEmptyParentDirectories(parent)
+	case err.(*os.PathError).Err == syscall.ENOTEMPTY:
+		// ignore when directory is non-empty
+		return nil
+	default:
+		return err
 	}
 }
 
