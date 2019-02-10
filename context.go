@@ -26,7 +26,7 @@ func initContext(ctx context.Context, cfg *config.Config) context.Context {
 	}
 
 	// debug flag
-	if gdb := os.Getenv("GOPASS_DEBUG"); gdb == "true" {
+	if gdb := os.Getenv("GOPASS_DEBUG"); gdb != "" {
 		ctx = ctxutil.WithDebug(ctx, true)
 	}
 
