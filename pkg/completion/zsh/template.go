@@ -21,8 +21,8 @@ _{{ $prog }} () {
               {{- end }}
               {{ if .Flags }}_arguments :{{ range .Flags }} "{{ . | formatFlag }}"{{ end }}{{ end }}
               _describe -t commands "{{ $prog }} {{ .Name }}" subcommands
-              {{ if or (eq .Name "copy") (eq .Name "move") (eq .Name "delete") (eq .Name "show") (eq .Name "edit") }}_{{ $prog }}_complete_passwords{{ else if or (eq .Name "insert") (eq .Name "generate")  (eq .Name "list") }}if ! compset -P '*/'; then _{{ $prog }}_complete_folders
-              fi{{ end }}
+              {{ if or (eq .Name "insert") (eq .Name "generate")  (eq .Name "list") }}_{{ $prog }}_complete_folders{{ end }}
+              {{ if or (eq .Name "copy") (eq .Name "move") (eq .Name "delete") (eq .Name "show") (eq .Name "edit") (eq .Name "insert") (eq .Name "generate") }}_{{ $prog }}_complete_passwords{{ end }}
               ;;
 {{- end }}
           *)
@@ -52,7 +52,9 @@ _{{ $prog }}_complete_passwords () {
 }
 
 _{{ $prog }}_complete_folders () {
-    _values -s '/' 'folders' $({{ $prog }} ls --folders --flat)
+    local -a folders
+    folders=("${(@f)$({{ $prog }} ls --folders --flat)}")
+    _describe -t folders "folders" folders -qS /
 }
 
 _{{ $prog }}`
