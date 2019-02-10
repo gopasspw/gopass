@@ -101,7 +101,7 @@ func keyAndLength(args argList) (string, string) {
 // generateCopyOrPrint will print the password to the screen or copy to the
 // clipboard
 func (s *Action) generateCopyOrPrint(ctx context.Context, c *cli.Context, name, key, password string) error {
-	if c.Bool("print") {
+	if ctxutil.IsAutoPrint(ctx) || c.Bool("print") {
 		if key != "" {
 			key = " " + key
 		}
