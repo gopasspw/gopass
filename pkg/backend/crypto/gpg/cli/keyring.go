@@ -92,11 +92,11 @@ func (g *GPG) FindPrivateKeys(ctx context.Context, search ...string) ([]string, 
 
 func (g *GPG) findKey(ctx context.Context, id string) gpg.Key {
 	kl, _ := g.listKeys(ctx, "secret", id)
-	if len(kl) == 1 {
+	if len(kl) >= 1 {
 		return kl[0]
 	}
 	kl, _ = g.listKeys(ctx, "public", id)
-	if len(kl) == 1 {
+	if len(kl) >= 1 {
 		return kl[0]
 	}
 	return gpg.Key{
