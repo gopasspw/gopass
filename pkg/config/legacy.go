@@ -35,8 +35,25 @@ type Pre182StoreConfig struct {
 
 // StoreConfig returns a current StoreConfig
 func (c *Pre182StoreConfig) StoreConfig() *StoreConfig {
-	sc := StoreConfig(*c)
-	return &sc
+	sc := &StoreConfig{
+		AskForMore:     c.AskForMore,
+		AutoClip:       c.AutoClip,
+		AutoImport:     c.AutoImport,
+		AutoSync:       c.AutoSync,
+		CheckRecpHash:  c.CheckRecpHash,
+		ClipTimeout:    c.ClipTimeout,
+		Concurrency:    c.Concurrency,
+		EditRecipients: c.EditRecipients,
+		NoColor:        c.NoColor,
+		NoConfirm:      c.NoConfirm,
+		NoPager:        c.NoPager,
+		Notifications:  c.Notifications,
+		Path:           c.Path,
+		RecipientHash:  c.RecipientHash,
+		SafeContent:    c.SafeContent,
+		UseSymbols:     c.UseSymbols,
+	}
+	return sc
 }
 
 // CheckOverflow implements configer

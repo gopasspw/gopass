@@ -44,6 +44,7 @@ func TestConfig(t *testing.T) {
   askformore: false
   autoclip: true
   autoimport: true
+  autoprint: false
   autosync: true
   check_recipient_hash: false
   cliptimeout: 45
@@ -89,6 +90,7 @@ foo/nopager: false`
   askformore: false
   autoclip: true
   autoimport: true
+  autoprint: false
   autosync: true
   check_recipient_hash: false
   cliptimeout: 45
@@ -138,6 +140,7 @@ mount 'foo' config:
 	want = `askformore
 autoclip
 autoimport
+autoprint
 autosync
 check_recipient_hash
 cliptimeout
