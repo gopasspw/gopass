@@ -1,6 +1,7 @@
 package fs
 
 import (
+	"context"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"os"
@@ -86,6 +87,85 @@ func TestRemoveEmptyParentDirectories(t *testing.T) {
 				dir = filepath.Join(dir, d)
 				if _, err := os.Stat(dir); err == nil || !os.IsNotExist(err) {
 					t.Errorf("Directory %s should not exist", dir)
+				}
+			}
+		})
+	}
+}
+
+func TestDelete(t *testing.T) {
+	var tests = []struct {
+		name      string
+		location  []string
+		toDelete  []string
+		shouldErr bool
+	}{
+		{
+			name:     "simple paths",
+			location: []string{"a", "b"},
+			toDelete: []string{"a", "b", "secret"},
+		},
+		{
+			name:      "non-existent file",
+			toDelete:  []string{"a", "b", "other"},
+			location:  []string{"a", "b"},
+			shouldErr: true,
+		},
+		{
+			name:      "deletion of non-empty dir not allowed",
+			toDelete:  []string{"a"},
+			location:  []string{"a"},
+			shouldErr: true,
+		},
+		{
+			name:     "unclean path, with parent",
+			location: []string{"a"},
+			toDelete: []string{"a", "..", "a", "secret"},
+		},
+		{
+			name:     "unclean path, with dots",
+			location: []string{"a"},
+			toDelete: []string{".", "a", ".", ".", "secret"},
+		},
+		{
+			name:     "unclean path, with dots and parent",
+			location: []string{"a", "b"},
+			toDelete: []string{".", "a", ".", "b", "..", ".", "b", "secret"},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			path, cleanup := newTempDir(t)
+			defer cleanup()
+
+			subdir := filepath.Join(append([]string{path}, test.location...)...)
+			if err := os.MkdirAll(subdir, 0777); err != nil {
+				t.Error(err)
+			}
+
+			file := filepath.Join(subdir, "secret")
+			if f, err := os.Create(file); err != nil {
+				t.Error(err)
+			} else {
+				_ = f.Close()
+			}
+
+			store := &Store{
+				path,
+			}
+			err := store.Delete(context.Background(), filepath.Join(test.toDelete...))
+
+			if test.shouldErr {
+				if err == nil {
+					t.Error("Deletion should fail")
+				}
+			} else {
+				if err != nil {
+					t.Error("Deletion should not fail")
+				}
+				if _, err = os.Stat(file); !os.IsNotExist(err) {
+					t.Error(err)
 				}
 			}
 		})
