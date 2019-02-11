@@ -60,7 +60,9 @@ func TestRemoveEmptyParentDirectories(t *testing.T) {
 			if err != nil {
 				t.Error(err)
 			}
-			defer os.RemoveAll(td)
+			defer func() {
+				_ = os.RemoveAll(td)
+			}()
 
 			path := filepath.Join(append([]string{td}, test.storeRoot...)...)
 			subdir := filepath.Join(append([]string{path}, test.subdirs...)...)
