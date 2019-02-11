@@ -56,13 +56,8 @@ func TestRemoveEmptyParentDirectories(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			td, err := ioutil.TempDir("", "gopass-")
-			if err != nil {
-				t.Error(err)
-			}
-			defer func() {
-				_ = os.RemoveAll(td)
-			}()
+			td, cleanup := newTempDir(t)
+			defer cleanup()
 
 			path := filepath.Join(append([]string{td}, test.storeRoot...)...)
 			subdir := filepath.Join(append([]string{path}, test.subdirs...)...)
@@ -78,7 +73,7 @@ func TestRemoveEmptyParentDirectories(t *testing.T) {
 			s := &Store{
 				path,
 			}
-			if err = s.removeEmptyParentDirectories(filepath.Join(subdir, "deletedFile")); err != nil {
+			if err := s.removeEmptyParentDirectories(filepath.Join(subdir, "deletedFile")); err != nil {
 				t.Error(err)
 			}
 
@@ -94,5 +89,16 @@ func TestRemoveEmptyParentDirectories(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func newTempDir(t *testing.T) (string, func()) {
+	t.Helper()
+	td, err := ioutil.TempDir("", "gopass-")
+	if err != nil {
+		t.Error(err)
+	}
+	return td, func() {
+		_ = os.RemoveAll(td)
 	}
 }
