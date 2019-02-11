@@ -63,6 +63,7 @@ func (s *Store) Delete(ctx context.Context, name string) error {
 	return s.removeEmptyParentDirectories(path)
 }
 
+// Deletes all empty parent directories up to the store root
 func (s *Store) removeEmptyParentDirectories(path string) error {
 	parent := filepath.Dir(path)
 
