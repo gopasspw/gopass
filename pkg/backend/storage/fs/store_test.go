@@ -9,6 +9,37 @@ import (
 	"testing"
 )
 
+func TestSet(t *testing.T) {
+	initialContent := []byte(`initial file content`)
+	otherContent := []byte(`other file content`)
+	ctx := context.Background()
+
+	path, cleanup := newTempDir(t)
+	defer cleanup()
+
+	fileHasContent := func(filename string, content []byte) {
+		written, _ := ioutil.ReadFile(filepath.Join(path, filename))
+		assert.Equalf(t, content, written, "content of file")
+	}
+
+	s := &Store{path}
+
+	filename := filepath.Join("a", "b", "file")
+	otherFilename := filepath.Join("a", ".", "b", "..", "other")
+
+	// when the folder does not exist
+	_ = s.Set(ctx, filename, initialContent)
+	fileHasContent(filename, initialContent)
+
+	// overwrite file
+	_ = s.Set(ctx, filename, otherContent)
+	fileHasContent(filename, otherContent)
+
+	// when folder already exists, with unclean path
+	_ = s.Set(ctx, otherFilename, initialContent)
+	fileHasContent(otherFilename, initialContent)
+}
+
 func TestRemoveEmptyParentDirectories(t *testing.T) {
 	var tests = []struct {
 		name          string
