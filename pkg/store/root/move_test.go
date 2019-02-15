@@ -43,7 +43,7 @@ func TestMove(t *testing.T) {
 	// -> move foo misc/zab => ERROR: misc/zab is a file
 	assert.Error(t, rs.Move(ctx, "foo", "misc/zab"))
 
-	// -> move foo/ misc => OK
+	// -> move foo misc => OK
 	assert.NoError(t, rs.Move(ctx, "foo", "misc"))
 	entries, err = rs.List(ctx, 0)
 	require.NoError(t, err)
@@ -53,7 +53,7 @@ func TestMove(t *testing.T) {
 		"misc/zab",
 	}, entries)
 
-	// -> move misc/foo/ bar/ => OK
+	// -> move misc/foo bar/ => OK
 	assert.NoError(t, rs.Move(ctx, "misc/foo", "bar/"))
 	entries, err = rs.List(ctx, 0)
 	require.NoError(t, err)
@@ -91,6 +91,17 @@ func TestMove(t *testing.T) {
 		"boz/bar",
 		"boz/baz",
 		"boz/zab",
+	}, entries)
+
+	// this fails if empty directories are not removed, because 'bar' and 'baz' were directories in the root folder
+	// -> move boz/ / => OK
+	assert.NoError(t, rs.Move(ctx, "boz/", "/"))
+	entries, err = rs.List(ctx, 0)
+	require.NoError(t, err)
+	assert.Equal(t, []string{
+		"bar",
+		"baz",
+		"zab",
 	}, entries)
 }
 
