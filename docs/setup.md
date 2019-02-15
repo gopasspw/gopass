@@ -347,6 +347,8 @@ Because gopass is fully backwards compatible with pass, you can use some existin
 * iOS - [Pass for iOS](https://github.com/davidjb/pass-ios#readme)
 * Windows / MacOS / Linux -  [QtPass](https://qtpass.org/)
 
+There is also [Gopass UI](https://github.com/codecentric/gopass-ui) which was exclusively implemented for gopass and is available for MacOS, Linux and Windows.
+
 Others can be found at the "Compatible Clients" section of the [official pass website](https://www.passwordstore.org/).
 
 ## Using gopass
