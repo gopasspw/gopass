@@ -34,6 +34,7 @@ github.com/gopasspw/gopass/vendor/github.com/mattn/go-colorable                 
 github.com/gopasspw/gopass/vendor/github.com/mattn/go-isatty                       MIT License (95%)
 github.com/gopasspw/gopass/vendor/github.com/mattn/go-runewidth                    MIT License
 github.com/gopasspw/gopass/vendor/github.com/mitchellh/go-homedir                  MIT License
+github.com/gopasspw/gopass/vendor/github.com/mitchellh/go-ps                       MIT License
 github.com/gopasspw/gopass/vendor/github.com/mitchellh/mapstructure                MIT License
 github.com/gopasspw/gopass/vendor/github.com/muesli/crunchy                        MIT License
 github.com/gopasspw/gopass/vendor/github.com/muesli/goprogressbar                  MIT License
