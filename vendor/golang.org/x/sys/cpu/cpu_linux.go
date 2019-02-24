@@ -7,7 +7,6 @@
 package cpu
 
 import (
-	"encoding/binary"
 	"io/ioutil"
 )
 
@@ -17,14 +16,14 @@ const (
 
 	procAuxv = "/proc/self/auxv"
 
-	uintSize uint = 32 << (^uint(0) >> 63)
+	uintSize = int(32 << (^uint(0) >> 63))
 )
 
 // For those platforms don't have a 'cpuid' equivalent we use HWCAP/HWCAP2
 // These are initialized in cpu_$GOARCH.go
 // and should not be changed after they are initialized.
-var HWCap uint
-var HWCap2 uint
+var hwCap uint
+var hwCap2 uint
 
 func init() {
 	buf, err := ioutil.ReadFile(procAuxv)
@@ -32,23 +31,24 @@ func init() {
 		panic("read proc auxv failed: " + err.Error())
 	}
 
-	pb := int(uintSize / 8)
-
-	for i := 0; i < len(buf)-pb*2; i += pb * 2 {
+	bo := hostByteOrder()
+	for len(buf) >= 2*(uintSize/8) {
 		var tag, val uint
 		switch uintSize {
 		case 32:
-			tag = uint(binary.LittleEndian.Uint32(buf[i:]))
-			val = uint(binary.LittleEndian.Uint32(buf[i+pb:]))
+			tag = uint(bo.Uint32(buf[0:]))
+			val = uint(bo.Uint32(buf[4:]))
+			buf = buf[8:]
 		case 64:
-			tag = uint(binary.LittleEndian.Uint64(buf[i:]))
-			val = uint(binary.LittleEndian.Uint64(buf[i+pb:]))
+			tag = uint(bo.Uint64(buf[0:]))
+			val = uint(bo.Uint64(buf[8:]))
+			buf = buf[16:]
 		}
 		switch tag {
 		case _AT_HWCAP:
-			HWCap = val
+			hwCap = val
 		case _AT_HWCAP2:
-			HWCap2 = val
+			hwCap2 = val
 		}
 	}
 	doinit()
