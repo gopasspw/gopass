@@ -293,12 +293,7 @@ func (q *QRCode) Image(size int) image.Image {
 	// Saves a few bytes to have them in this order
 	p := color.Palette([]color.Color{q.BackgroundColor, q.ForegroundColor})
 	img := image.NewPaletted(rect, p)
-
-	for i := 0; i < size; i++ {
-		for j := 0; j < size; j++ {
-			img.Set(i, j, q.BackgroundColor)
-		}
-	}
+	fgClr := uint8(img.Palette.Index(q.ForegroundColor))
 
 	bitmap := q.symbol.bitmap()
 	for y, row := range bitmap {
@@ -308,7 +303,8 @@ func (q *QRCode) Image(size int) image.Image {
 				startY := y*pixelsPerModule + offset
 				for i := startX; i < startX+pixelsPerModule; i++ {
 					for j := startY; j < startY+pixelsPerModule; j++ {
-						img.Set(i, j, q.ForegroundColor)
+						pos := img.PixOffset(i, j)
+						img.Pix[pos] = fgClr
 					}
 				}
 			}
@@ -546,6 +542,45 @@ func (q *QRCode) ToString(inverseColor bool) string {
 				buf.WriteString("  ")
 			} else {
 				buf.WriteString("██")
+			}
+		}
+		buf.WriteString("\n")
+	}
+	return buf.String()
+}
+
+// ToSmallString produces a multi-line string that forms a QR-code image, a
+// factor two smaller in x and y then ToString.
+func (q *QRCode) ToSmallString(inverseColor bool) string {
+	bits := q.Bitmap()
+	var buf bytes.Buffer
+	// if there is an odd number of rows, the last one needs special treatment
+	for y := 0; y < len(bits)-1; y += 2 {
+		for x := range bits[y] {
+			if bits[y][x] == bits[y+1][x] {
+				if bits[y][x] != inverseColor {
+					buf.WriteString(" ")
+				} else {
+					buf.WriteString("█")
+				}
+			} else {
+				if bits[y][x] != inverseColor {
+					buf.WriteString("▄")
+				} else {
+					buf.WriteString("▀")
+				}
+			}
+		}
+		buf.WriteString("\n")
+	}
+	// special treatment for the last row if odd
+	if len(bits)%2 == 1 {
+		y := len(bits) - 1
+		for x := range bits[y] {
+			if bits[y][x] != inverseColor {
+				buf.WriteString(" ")
+			} else {
+				buf.WriteString("▀")
 			}
 		}
 		buf.WriteString("\n")

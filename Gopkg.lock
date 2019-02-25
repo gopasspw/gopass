@@ -8,6 +8,12 @@
   revision = "6e8df1b1fb9d591dfc8249e230e0a762524873f3"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/armon/go-metrics"
+  packages = ["."]
+  revision = "f0300d1749da6fa982027e449ec0c7a145510c3c"
+
+[[projects]]
   name = "github.com/atotto/clipboard"
   packages = ["."]
   revision = "aa9549103943c05f3e8951009cdb6a0bec2c8949"
@@ -20,10 +26,10 @@
   revision = "3c1074078d32d767e08ab2c8564867292da86926"
 
 [[projects]]
-  branch = "master"
   name = "github.com/cenkalti/backoff"
   packages = ["."]
-  revision = "62661b46c4093e2c1f38d943e663db1a29873e80"
+  revision = "1e4cf3da559842a91afcb6ea6141451e6c30c618"
+  version = "v2.1.1"
 
 [[projects]]
   name = "github.com/davecgh/go-spew"
@@ -57,26 +63,26 @@
   version = "v1.5.0"
 
 [[projects]]
-  branch = "master"
   name = "github.com/gdamore/encoding"
   packages = ["."]
-  revision = "b23993cbb6353f0e6aa98d0ee318a34728f628b9"
+  revision = "6289cdc94c00ac4aa177771c5fce7af2f96b626d"
+  version = "v1.0.0"
 
 [[projects]]
-  branch = "master"
   name = "github.com/gdamore/tcell"
   packages = [
     ".",
     "termbox",
     "terminfo"
   ]
-  revision = "017915a4d77dabd7af10ab539e618a735d4b9c0a"
+  revision = "aaadc574a6ed8dc3abe56036ca130dcee1ee6b6e"
+  version = "v1.1.1"
 
 [[projects]]
   branch = "master"
   name = "github.com/godbus/dbus"
   packages = ["."]
-  revision = "2ff6f7ffd60f0f2410b3105864bdd12c7894f844"
+  revision = "a31833e1a12623054b23f7ecc37e03a0beff8e87"
 
 [[projects]]
   name = "github.com/gokyle/twofactor"
@@ -87,19 +93,19 @@
   branch = "master"
   name = "github.com/golang/protobuf"
   packages = ["proto"]
-  revision = "951a149f90371fb8858c6c979d03bb2583611052"
+  revision = "c823c79ea1570fb5ff454033735a8e68575d1d0f"
 
 [[projects]]
-  branch = "master"
   name = "github.com/golang/snappy"
   packages = ["."]
-  revision = "2e65f85255dbc3072edf28d6b5b8efc472979f5a"
+  revision = "2a8bb927dd31d8daada140a5d09578521ce5c36a"
+  version = "v0.0.1"
 
 [[projects]]
   name = "github.com/hashicorp/consul"
   packages = ["api"]
-  revision = "e8757838a49feeb682c7e6ad6b78694a78b2096b"
-  version = "v1.3.0"
+  revision = "c97c712e96e0e53308054d5e1180289fe02dce38"
+  version = "v1.4.2"
 
 [[projects]]
   name = "github.com/hashicorp/errwrap"
@@ -114,28 +120,34 @@
   version = "v0.5.0"
 
 [[projects]]
+  name = "github.com/hashicorp/go-immutable-radix"
+  packages = ["."]
+  revision = "27df80928bb34bb1b0d6d0e01b9e679902e7a6b5"
+  version = "v1.0.0"
+
+[[projects]]
   name = "github.com/hashicorp/go-multierror"
   packages = ["."]
   revision = "886a7fbe3eb1c874d46f623bfa70af45f425b3d1"
   version = "v1.0.0"
 
 [[projects]]
-  branch = "master"
   name = "github.com/hashicorp/go-retryablehttp"
   packages = ["."]
-  revision = "e651d75abec6fbd4f2c09508f72ae7af8a8b7171"
+  revision = "73489d0a1476f0c9e6fb03f9c39241523a496dfd"
+  version = "v0.5.2"
 
 [[projects]]
-  branch = "master"
   name = "github.com/hashicorp/go-rootcerts"
   packages = ["."]
-  revision = "6bb64b370b90e7ef1fa532be9e591a81c3493e00"
+  revision = "63503fb4e1eca22f9ae0f90b49c5d5538a0e87eb"
+  version = "v1.0.0"
 
 [[projects]]
-  branch = "master"
   name = "github.com/hashicorp/go-sockaddr"
   packages = ["."]
-  revision = "6d291a969b86c4b633730bfc6b8b9d64c3aafed9"
+  revision = "3aed17b5ee41761cc2b04f2a94c7107d428967e5"
+  version = "v1.0.1"
 
 [[projects]]
   name = "github.com/hashicorp/golang-lru"
@@ -165,8 +177,8 @@
 [[projects]]
   name = "github.com/hashicorp/serf"
   packages = ["coordinate"]
-  revision = "d6574a5bb1226678d7010325fb6c985db20ee458"
-  version = "v0.8.1"
+  revision = "b89a09ebd4b1b570e0076d5097272e67c10ac4f6"
+  version = "v0.8.2"
 
 [[projects]]
   name = "github.com/hashicorp/vault"
@@ -179,8 +191,8 @@
     "helper/parseutil",
     "helper/strutil"
   ]
-  revision = "612120e76de651ef669c9af5e77b27a749b0dba3"
-  version = "v0.11.4"
+  revision = "85909e3373aa743c34a6a0ab59131f61fd9e8e43"
+  version = "v1.0.3"
 
 [[projects]]
   branch = "master"
@@ -230,22 +242,22 @@
   revision = "de898c7414ad5d9ad7a4965993520220200339c0"
 
 [[projects]]
-  branch = "master"
   name = "github.com/mattn/go-colorable"
   packages = ["."]
-  revision = "efa589957cd060542a26d2dd7832fd6a6c6c3ade"
+  revision = "3a70a971f94a22f2fa562ffcc7a0eb45f5daf045"
+  version = "v0.1.1"
 
 [[projects]]
   name = "github.com/mattn/go-isatty"
   packages = ["."]
-  revision = "6ca4dbf54d38eea1a992b3c722a76a5d1c4cb25c"
-  version = "v0.0.4"
+  revision = "a6dda38a851a575e6799957cdd53ffe0b3fdd90f"
+  version = "v0.0.5"
 
 [[projects]]
   branch = "master"
   name = "github.com/mattn/go-runewidth"
   packages = ["."]
-  revision = "b20a3daf6a39840c202fd42cc23d53607162b045"
+  revision = "703b5e6b11ae25aeb2af9ebb5d5fdf8fa2575211"
 
 [[projects]]
   name = "github.com/mitchellh/go-homedir"
@@ -281,7 +293,7 @@
   branch = "master"
   name = "github.com/nsf/termbox-go"
   packages = ["."]
-  revision = "60ab7e3d12ed91bc1b2486559c4b3a6b62297577"
+  revision = "02980233997d87bbda048393d47b4d453f7a398d"
 
 [[projects]]
   name = "github.com/pelletier/go-buffruneio"
@@ -295,14 +307,14 @@
     ".",
     "internal/xxh32"
   ]
-  revision = "635575b42742856941dbc767b44905bb9ba083f6"
-  version = "v2.0.7"
+  revision = "062282ea0dcff40c9fb8525789eef9644b1fbd6e"
+  version = "v2.1.0"
 
 [[projects]]
   branch = "master"
   name = "github.com/pkg/errors"
   packages = ["."]
-  revision = "059132a15dd08d6704c67711dae0cf35ab991756"
+  revision = "856c240a51a2bf8fb8269ea7f3f9b046aadde36e"
 
 [[projects]]
   name = "github.com/pmezard/go-difflib"
@@ -313,8 +325,8 @@
 [[projects]]
   name = "github.com/ryanuber/go-glob"
   packages = ["."]
-  revision = "572520ed46dbddaed19ea3d9541bdd0494163693"
-  version = "v0.1"
+  revision = "51a8f68e6c24dc43f1e371749c89a267de4ebc53"
+  version = "v1.0.0"
 
 [[projects]]
   branch = "master"
@@ -336,7 +348,7 @@
     "bitset",
     "reedsolomon"
   ]
-  revision = "cf5f9fa2f0d847edb8e038db7ed975e239095e1a"
+  revision = "dc11ecdae0a9889dc81a343585516404e8dc6ead"
 
 [[projects]]
   name = "github.com/src-d/gcfg"
@@ -356,19 +368,19 @@
     "assert",
     "require"
   ]
-  revision = "04af85275a5c7ac09d16bb3b9b2e751ed45154e5"
+  revision = "3f658bd5ac42cc0b5de5b427e95a480d5726ea76"
 
 [[projects]]
   branch = "master"
   name = "github.com/urfave/cli"
   packages = ["."]
-  revision = "b67dcf995b6a7b7f14fad5fcb7cc5441b05e814b"
+  revision = "693af58b4d51b8fcc7f9d89576da170765980581"
 
 [[projects]]
   name = "github.com/xanzy/ssh-agent"
   packages = ["."]
-  revision = "640f0ab560aeb89d523bb6ac322b1244d5c3796c"
-  version = "v0.2.0"
+  revision = "6a3e2ff9e7c564f36873c2e36413f634534f1c44"
+  version = "v0.2.1"
 
 [[projects]]
   branch = "master"
@@ -405,7 +417,7 @@
     "ssh/knownhosts",
     "ssh/terminal"
   ]
-  revision = "505ab145d0a99da450461ae2c1a9f6cd10d1f447"
+  revision = "ffb98f73852f696ea2bb21a617a5c4b3e067a439"
 
 [[projects]]
   branch = "master"
@@ -418,7 +430,7 @@
     "idna",
     "publicsuffix"
   ]
-  revision = "927f97764cc334a6575f4b7a1584a147864d5723"
+  revision = "3a22650c66bd7f4fb6d1e8072ffd7b75c8a27898"
 
 [[projects]]
   branch = "master"
@@ -429,7 +441,7 @@
     "windows",
     "windows/registry"
   ]
-  revision = "b4a75ba826a64a70990f11a225237acd6ef35c9f"
+  revision = "cd391775e71e684db52b63df9affd58269495083"
 
 [[projects]]
   name = "golang.org/x/text"
