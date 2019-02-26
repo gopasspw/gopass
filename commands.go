@@ -431,10 +431,10 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 		},
 		{
 			Name:  "git-credential",
-			Usage: "Use '!gopass git-credential $@' as git's credential.helper",
+			Usage: `Use "!gopass git-credential $@" as git's credential.helper`,
 			Description: "" +
 				"This command allows you to cache your git-credentials with gopass." +
-				"Activate by using `git config --global credential.helper '!gopass git-credential $@'`",
+				"Activate by using `git config --global credential.helper \"!gopass git-credential $@\"`",
 			Subcommands: []cli.Command{
 				{
 					Name:   "get",

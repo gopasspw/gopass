@@ -230,7 +230,7 @@ func (s *Action) GitCredentialConfigure(ctx context.Context, c *cli.Context) err
 	if flags == 0 {
 		log.Println("No target given, assuming --global.")
 	}
-	cmd := exec.Command("git", "config", flag, "credential.helper", "'!gopass git-credential $@'")
+	cmd := exec.Command("git", "config", flag, "credential.helper", `"!gopass git-credential $@"`)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	return cmd.Run()
