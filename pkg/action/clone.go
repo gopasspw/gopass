@@ -7,6 +7,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/backend"
 	"github.com/gopasspw/gopass/pkg/backend/crypto/xc"
 	"github.com/gopasspw/gopass/pkg/config"
+	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/cui"
 	"github.com/gopasspw/gopass/pkg/fsutil"
 	"github.com/gopasspw/gopass/pkg/out"
@@ -51,7 +52,7 @@ func (s *Action) clone(ctx context.Context, repo, mount, path string) error {
 	if path == "" {
 		path = config.PwStoreDir(mount)
 	}
-	inited, err := s.Store.Initialized(ctx)
+	inited, err := s.Store.Initialized(ctxutil.WithGitInit(ctx, false))
 	if err != nil {
 		return ExitError(ctx, ExitUnknown, err, "Failed to initialized stores: %s", err)
 	}

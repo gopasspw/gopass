@@ -64,6 +64,10 @@ func Init(ctx context.Context, path, userName, userEmail string) (*Git, error) {
 		out.Red(ctx, "git initialized at %s", g.path)
 	}
 
+	if !ctxutil.IsGitInit(ctx) {
+		return g, nil
+	}
+
 	// initialize the local git config
 	if err := g.InitConfig(ctx, userName, userEmail); err != nil {
 		return g, errors.Errorf("failed to configure git: %s", err)

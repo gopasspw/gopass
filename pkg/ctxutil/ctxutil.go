@@ -29,6 +29,7 @@ const (
 	ctxKeyConfigDir
 	ctxKeyAlias
 	ctxKeyAutoPrint
+	ctxKeyGitInit
 )
 
 // ProgressCallback is a callback for updateing progress
@@ -517,6 +518,26 @@ func IsAutoPrint(ctx context.Context) bool {
 	bv, ok := ctx.Value(ctxKeyAutoPrint).(bool)
 	if !ok {
 		return false
+	}
+	return bv
+}
+
+// WithGitInit returns a context with the value for the git init flag set.
+func WithGitInit(ctx context.Context, bv bool) context.Context {
+	return context.WithValue(ctx, ctxKeyGitInit, bv)
+}
+
+// HasGitInit returns true if the git init flag was set.
+func HasGitInit(ctx context.Context) bool {
+	_, ok := ctx.Value(ctxKeyGitInit).(bool)
+	return ok
+}
+
+// IsGitInit returns the value of the git init flag or ture if none was set.
+func IsGitInit(ctx context.Context) bool {
+	bv, ok := ctx.Value(ctxKeyGitInit).(bool)
+	if !ok {
+		return true
 	}
 	return bv
 }
