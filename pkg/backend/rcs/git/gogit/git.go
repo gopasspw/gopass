@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/gopasspw/gopass/pkg/backend"
+	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/out"
 	"github.com/gopasspw/gopass/pkg/store"
 
@@ -91,6 +92,10 @@ func Init(ctx context.Context, path string) (*Git, error) {
 			return nil, errors.Wrapf(err, "Failed to get worktree: %s", err)
 		}
 		g.wt = wt
+	}
+
+	if !ctxutil.IsGitInit(ctx) {
+		return g, nil
 	}
 
 	// add current content of the store
