@@ -1,3 +1,13 @@
+## 1.8.5 / 2019-03-03
+
+* [ENHANCEMENT] Improve template handling [#1029]
+* [ENHANCEMENT] Remove empty directories [#1009]
+* [ENHANCEMENT] Improve performance of unclip [#923]
+* [ENHANCEMENT] Add AutoPrint option [#1065]
+* [ENHANCEMENT] Follow the rsync convention for cp/mv commands [#1055]
+* [BUGFIX] Fix bash completion for MSYS on Windows [#1053]
+* [BUGFIX] Git clone failing [#1036]
+
 ## 1.8.4 / 2018-12-26
 
 * [ENHANCEMENT] Evaluate templates when inserting single secrets [#1023]
