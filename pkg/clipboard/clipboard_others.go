@@ -12,8 +12,6 @@ import (
 	"os/exec"
 	"strconv"
 	"syscall"
-
-	ps "github.com/mitchellh/go-ps"
 )
 
 // clear will spwan a copy of gopass that waits in a detached background
@@ -57,28 +55,4 @@ func walkFn(pid int, killFn func(int)) {
 	}
 
 	killFn(pid)
-}
-
-func killProc(pid int) {
-	// err should be always nil, but just to be sure
-	proc, err := os.FindProcess(pid)
-	if err != nil {
-		return
-	}
-	// we ignore this error as we're going to return nil anyway
-	_ = proc.Kill()
-}
-
-// killPrecedessors will kill any previous "gopass unclip" invokations to avoid
-// erasing the clipboard prematurely in case the the same content is copied to
-// the clipboard repeately
-func killPrecedessors() error {
-	procs, err := ps.Processes()
-	if err != nil {
-		return err
-	}
-	for _, proc := range procs {
-		walkFn(proc.Pid(), killProc)
-	}
-	return nil
 }

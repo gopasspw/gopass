@@ -14,11 +14,9 @@ build:
     - darwin
     - freebsd
     - linux
-    - netbsd
     - openbsd
     - windows
   goarch:
-    - 386
     - amd64
   goarm:
     - 6

@@ -3,6 +3,7 @@ package clipboard
 import (
 	"context"
 	"fmt"
+	"os"
 
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/out"
@@ -35,4 +36,14 @@ func CopyTo(ctx context.Context, name string, content []byte) error {
 
 	out.Print(ctx, "✔ Copied %s to clipboard. Will clear in %d seconds.", color.YellowString(name), ctxutil.GetClipTimeout(ctx))
 	return nil
+}
+
+func killProc(pid int) {
+	// err should be always nil, but just to be sure
+	proc, err := os.FindProcess(pid)
+	if err != nil {
+		return
+	}
+	// we ignore this error as we're going to return nil anyway
+	_ = proc.Kill()
 }

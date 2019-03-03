@@ -22,3 +22,5 @@ func clear(ctx context.Context, content []byte, timeout int) error {
 	cmd.Env = append(os.Environ(), "GOPASS_UNCLIP_CHECKSUM="+hash)
 	return cmd.Start()
 }
+
+func walkFn(int, func(int)) {}
