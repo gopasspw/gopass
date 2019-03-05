@@ -87,7 +87,7 @@ This is a no-op backend for testing SCM-less support.
 
 ## Crypto Backends (crypto)
 
-### CLI-based GPG (gitcli)
+### CLI-based GPG (gpgcli)
 
 This backend is based on calling the `gpg` binary. This is the recommended backend
 since we believe that it's the most secure one and it is compatible with
