@@ -157,7 +157,7 @@ func TestLoad(t *testing.T) {
 	assert.NoError(t, os.Setenv("GOPASS_HOMEDIR", td))
 
 	cfg := Load()
-	assert.Equal(t, backend.FromPath(filepath.Join(td, ".password-store")).String(), cfg.Root.Path.String())
+	assert.Equal(t, backend.FromPath("~/.password-store").String(), cfg.Root.Path.String())
 	assert.Equal(t, backend.GPGCLI, cfg.Root.Path.Crypto)
 
 	require.NoError(t, ioutil.WriteFile(gcfg, []byte(testConfig), 0600))

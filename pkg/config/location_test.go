@@ -10,9 +10,9 @@ import (
 
 func TestPwStoreDirNoEnv(t *testing.T) {
 	for in, out := range map[string]string{
-		"":                          filepath.Join(Homedir(), ".password-store"),
-		"work":                      filepath.Join(Homedir(), ".password-store-work"),
-		filepath.Join("foo", "bar"): filepath.Join(Homedir(), ".password-store-foo-bar"),
+		"":                          "~/.password-store",
+		"work":                      "~/.password-store-work",
+		filepath.Join("foo", "bar"): "~/.password-store-foo-bar",
 	} {
 		assert.Equal(t, out, PwStoreDir(in))
 	}
@@ -22,14 +22,14 @@ func TestPwStoreDir(t *testing.T) {
 	gph := filepath.Join(os.TempDir(), "home")
 	assert.NoError(t, os.Setenv("GOPASS_HOMEDIR", gph))
 
-	assert.Equal(t, filepath.Join(gph, ".password-store"), PwStoreDir(""))
-	assert.Equal(t, filepath.Join(gph, ".password-store-foo"), PwStoreDir("foo"))
+	assert.Equal(t, "~/.password-store", PwStoreDir(""))
+	assert.Equal(t, "~/.password-store-foo", PwStoreDir("foo"))
 
-	psd := filepath.Join(gph, ".password-store-test")
+	psd := "~/.password-store-test"
 	assert.NoError(t, os.Setenv("PASSWORD_STORE_DIR", psd))
 
 	assert.Equal(t, psd, PwStoreDir(""))
-	assert.Equal(t, filepath.Join(gph, ".password-store-foo"), PwStoreDir("foo"))
+	assert.Equal(t, "~/.password-store-foo", PwStoreDir("foo"))
 }
 
 func TestConfigLocation(t *testing.T) {

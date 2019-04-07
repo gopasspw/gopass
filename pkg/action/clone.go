@@ -61,9 +61,9 @@ func (s *Action) clone(ctx context.Context, repo, mount, path string) error {
 	}
 
 	// clone repo
-	out.Debug(ctx, "Cloning repo '%s' to '%s'", repo, path)
-	if _, err := backend.CloneRCS(ctx, rcsBackendOrDefault(ctx, backend.GitCLI), repo, path); err != nil {
-		return ExitError(ctx, ExitGit, err, "failed to clone repo '%s' to '%s'", repo, path)
+	out.Debug(ctx, "Cloning repo '%s' to '%s'", repo, fsutil.CleanPath(path))
+	if _, err := backend.CloneRCS(ctx, rcsBackendOrDefault(ctx, backend.GitCLI), repo, fsutil.CleanPath(path)); err != nil {
+		return ExitError(ctx, ExitGit, err, "failed to clone repo '%s' to '%s'", repo, fsutil.CleanPath(path))
 	}
 
 	// detect crypto backend based on cloned repo

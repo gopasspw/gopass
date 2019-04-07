@@ -87,7 +87,7 @@ func (s *Store) removeEmptyParentDirectories(path string) error {
 
 // Exists checks if the named entity exists
 func (s *Store) Exists(ctx context.Context, name string) bool {
-	path := filepath.Join(s.path, filepath.Clean(name))
+	path := fsutil.CleanPath(filepath.Join(s.path, filepath.Clean(name)))
 	out.Debug(ctx, "fs.Exists(%s) - %s", name, path)
 	return fsutil.IsFile(path)
 }

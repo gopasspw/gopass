@@ -6,8 +6,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/gopasspw/gopass/pkg/fsutil"
-
 	homedir "github.com/mitchellh/go-homedir"
 )
 
@@ -64,12 +62,12 @@ func configLocations() []string {
 // not set
 func PwStoreDir(mount string) string {
 	if mount != "" {
-		return fsutil.CleanPath(filepath.Join(Homedir(), ".password-store-"+strings.Replace(mount, string(filepath.Separator), "-", -1)))
+		return filepath.Join("~/.password-store-" + strings.Replace(mount, string(filepath.Separator), "-", -1))
 	}
 	if d := os.Getenv("PASSWORD_STORE_DIR"); d != "" {
-		return fsutil.CleanPath(d)
+		return d
 	}
-	return filepath.Join(Homedir(), ".password-store")
+	return filepath.Join("~/.password-store")
 }
 
 // Directory returns the configuration directory for the gopass config file
