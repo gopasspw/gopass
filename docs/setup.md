@@ -220,7 +220,19 @@ pacman -S gopass
 
 **WARNING**: Windows is not yet officially supported. We try to support it in the future. These are steps are only meant to help you setup gopass on Windows so you can provide us with feedback about the current state of our Windows support.
 
-Download and install a suitable Windows build from the repository [releases page](https://github.com/gopasspw/gopass/releases).
+You can install `gopass` by [Chocolatey](https://chocolatey.org/):
+
+```bash
+choco install gopass
+```
+
+Or by [Scoop](https://scoop.sh/):
+
+```bash
+scoop install gopass
+```
+
+Alternatively, download and install a suitable Windows build from the repository [releases page](https://github.com/gopasspw/gopass/releases).
 
 ### Installing from Source
 
