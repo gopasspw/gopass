@@ -31,7 +31,7 @@ func (s *Store) List(ctx context.Context, prefix string) ([]string, error) {
 		}
 		path = strings.TrimSuffix(path, cExt)
 		if s.alias != "" {
-			path = s.alias + sep + path
+			path = s.alias + "/" + path
 		}
 		out = append(out, path)
 	}
