@@ -365,13 +365,12 @@ gopass allows editing the config from the command-line. This is similar to how g
 
 ```bash
 $ gopass config
-alwaystrust: false
 askformore: false
+autoclip: true
 autoimport: false
-autopull: false
-autopush: true
+autoprint: false
+autosync: true
 cliptimeout: 10
-loadkeys: false
 noconfirm: false
 path: /home/user/.password-store
 

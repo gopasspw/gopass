@@ -8,12 +8,15 @@ package clipboard
 
 import (
 	"errors"
+	"os"
 	"os/exec"
 )
 
 const (
 	xsel               = "xsel"
 	xclip              = "xclip"
+	wlcopy = "wl-copy"
+	wlpaste = "wl-paste"
 	termuxClipboardGet = "termux-clipboard-get"
 	termuxClipboardSet = "termux-clipboard-set"
 )
@@ -30,13 +33,27 @@ var (
 	xclipPasteArgs = []string{xclip, "-out", "-selection", "clipboard"}
 	xclipCopyArgs  = []string{xclip, "-in", "-selection", "clipboard"}
 
+	wlpasteArgs = []string{wlpaste, "--no-newline"}
+	wlcopyArgs = []string{wlcopy}
+
 	termuxPasteArgs = []string{termuxClipboardGet}
 	termuxCopyArgs  = []string{termuxClipboardSet}
 
-	missingCommands = errors.New("No clipboard utilities available. Please install xsel, xclip, or Termux:API add-on for termux-clipboard-get/set.")
+	missingCommands = errors.New("No clipboard utilities available. Please install xsel, xclip, wl-clipboard or Termux:API add-on for termux-clipboard-get/set.")
 )
 
 func init() {
+	if os.Getenv("WAYLAND_DISPLAY") != "" {
+		pasteCmdArgs = wlpasteArgs;
+		copyCmdArgs = wlcopyArgs;
+
+		if _, err := exec.LookPath(wlcopy); err == nil {
+			if _, err := exec.LookPath(wlpaste); err == nil {
+				return
+			}
+		}
+	}
+
 	pasteCmdArgs = xclipPasteArgs
 	copyCmdArgs = xclipCopyArgs
 
