@@ -84,7 +84,7 @@ gopass depends on the `gpg` program for encryption and decryption. You **must** 
 suitable key pair. To list your current keys, you can do:
 
 ```bash
-gpg --list-keys
+gpg --list-secret-keys
 ```
 
 If there is no output, then you don't have any keys. To create a new key:
