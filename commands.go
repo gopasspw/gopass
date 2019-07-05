@@ -245,7 +245,10 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 			Name:  "config",
 			Usage: "Edit configuration",
 			Description: "" +
-				"This command allows for easy editing of the configuration",
+				"This command allows for easy printing and editing of the configuration" +
+				"without argument, the entire config is printed" +
+				"with a single argument, a single key can be printend" +
+				"with two arguments a setting specified by key can be set to value",
 			Action: func(c *cli.Context) error {
 				return action.Config(withGlobalFlags(ctx, c), c)
 			},
