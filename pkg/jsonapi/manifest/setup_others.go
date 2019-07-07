@@ -20,11 +20,19 @@ var (
 			"firefox":  "/Library/Application Support/Mozilla/NativeMessagingHosts",
 			"chrome":   "/Library/Google/Chrome/NativeMessagingHosts",
 			"chromium": "/Library/Application Support/Chromium/NativeMessagingHosts",
+			"brave":    "/Library/Application Support/Brave/NativeMessagingHosts",
+			"vivaldi":  "/Library/Application Support/Vivaldi/NativeMessagingHosts",
+			"iridium":  "/Library/Application Support/Iridium/NativeMessagingHosts",
+			"slimjet":  "/Library/Application Support/Slimjet/NativeMessagingHosts",
 		},
 		"linux": {
 			"firefox":  "mozilla/native-messaging-hosts", // will be prefixed with the appropriate lib path
 			"chrome":   "/etc/opt/chrome/native-messaging-hosts",
 			"chromium": "/etc/chromium/native-messaging-hosts",
+			"brave":    "/etc/opt/chrome/native-messaging-hosts",
+			"vivaldi":  "/etc/opt/vivaldi/native-messaging-hosts",
+			"iridium":  "/etc/iridium-browser/native-messaging-hosts",
+			"slimjet":  "/etc/opt/slimjet/native-messaging-hosts",
 		},
 	}
 
@@ -33,11 +41,19 @@ var (
 			"firefox":  "~/Library/Application Support/Mozilla/NativeMessagingHosts",
 			"chrome":   "~/Library/Application Support/Google/Chrome/NativeMessagingHosts",
 			"chromium": "~/Library/Application Support/Chromium/NativeMessagingHosts",
+			"brave":    "~/Library/Application Support/Brave/NativeMessagingHosts",
+			"vivaldi":  "~/Library/Application Support/Vivaldi/NativeMessagingHosts",
+			"iridium":  "~/Library/Application Support/Iridium/NativeMessagingHosts",
+			"slimjet":  "~/Library/Application Support/Slimjet/NativeMessagingHosts",
 		},
 		"linux": {
 			"firefox":  "~/.mozilla/native-messaging-hosts",
 			"chrome":   "~/.config/google-chrome/NativeMessagingHosts",
 			"chromium": "~/.config/chromium/NativeMessagingHosts",
+			"brave":    "~/.config/BraveSoftware/Brave-Browser/NativeMessagingHosts",
+			"vivaldi":  "~/.config/vivaldi/NativeMessagingHosts",
+			"iridium":  "~/.config/iridium/NativeMessagingHosts",
+			"slimjet":  "~/.config/slimjet/NativeMessagingHosts",
 		},
 	}
 )
