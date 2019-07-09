@@ -19,19 +19,14 @@ func (s *Action) Sync(ctx context.Context, c *cli.Context) error {
 	store := c.String("store")
 	return s.sync(ctx, c, store)
 }
-
 func (s *Action) sync(ctx context.Context, c *cli.Context, store string) error {
 	out.Green(ctx, "Sync starting ...")
 
-	numEntries := 0
-	if l, err := s.Store.Tree(ctx); err == nil {
-		numEntries = len(l.List(0))
-	}
 	numMPs := 0
 
 	mps := s.Store.MountPoints()
 	mps = append([]string{""}, mps...)
-
+	changes := make(map[string]int)
 	// sync all stores (root and all mounted sub stores)
 	for _, mp := range mps {
 		if store != "" {
@@ -42,21 +37,34 @@ func (s *Action) sync(ctx context.Context, c *cli.Context, store string) error {
 				continue
 			}
 		}
-
 		numMPs++
-		_ = s.syncMount(ctx, mp)
+		if syncResult, _ := s.syncMount(ctx, mp); syncResult != nil {
+			changes[syncResult.name] = syncResult.changed
+		}
 	}
 	out.Green(ctx, "All done")
 
 	// calculate number of changes entries
-	if l, err := s.Store.Tree(ctx); err == nil {
-		numEntries = len(l.List(0)) - numEntries
+	totalAdded := 0
+	totalRemoved := 0
+	out.Print(ctx, "Sync summary:\n")
+	for k := range changes {
+		if changes[k] > 0 {
+			out.Print(ctx, fmt.Sprintf("Mount %s: Added %d entries", k, changes[k]))
+			totalAdded += changes[k]
+		} else if changes[k] < 0 {
+			out.Print(ctx, fmt.Sprintf("Mount %s: Removed %d entries", k, -1*changes[k]))
+			totalRemoved += -1 * changes[k]
+		} else {
+			out.Print(ctx, fmt.Sprintf("Mount %s: didn't change", k))
+		}
 	}
 	diff := ""
-	if numEntries > 0 {
-		diff = fmt.Sprintf(" Added %d entries", numEntries)
-	} else if numEntries < 0 {
-		diff = fmt.Sprintf(" Removed %d entries", -1*numEntries)
+	if totalAdded > 0 {
+		diff += fmt.Sprintf(" Added %d entries", totalAdded)
+	}
+	if totalRemoved > 0 {
+		diff += fmt.Sprintf("\nRemoved %d entries", totalRemoved)
 	}
 	_ = notify.Notify(ctx, "gopass - sync", fmt.Sprintf("Finished. Synced %d remotes.%s", numMPs, diff))
 
@@ -64,7 +72,7 @@ func (s *Action) sync(ctx context.Context, c *cli.Context, store string) error {
 }
 
 // syncMount syncs a single mount
-func (s *Action) syncMount(ctx context.Context, mp string) error {
+func (s *Action) syncMount(ctx context.Context, mp string) (*syncResult, error) {
 	ctxno := out.WithNewline(ctx, false)
 	name := mp
 	if mp == "" {
@@ -75,12 +83,12 @@ func (s *Action) syncMount(ctx context.Context, mp string) error {
 	sub, err := s.Store.GetSubStore(mp)
 	if err != nil {
 		out.Error(ctx, "Failed to get sub store '%s': %s", name, err)
-		return fmt.Errorf("failed to get sub stores (%s)", err)
+		return nil, fmt.Errorf("failed to get sub stores (%s)", err)
 	}
 
 	if sub == nil {
 		out.Error(ctx, "Failed to get sub stores '%s: nil'", name)
-		return fmt.Errorf("failed to get sub stores (nil)")
+		return nil, fmt.Errorf("failed to get sub stores (nil)")
 	}
 
 	numMP := 0
@@ -90,7 +98,7 @@ func (s *Action) syncMount(ctx context.Context, mp string) error {
 
 	if sub.RCS().Name() == noop.New().Name() {
 		out.Error(ctxno, "\n   WARNING: Mount uses RCS backend 'noop'. Not syncing!\n")
-		return nil
+		return nil, nil
 	}
 
 	out.Print(ctxno, "\n   "+color.GreenString("git pull and push ... "))
@@ -98,16 +106,17 @@ func (s *Action) syncMount(ctx context.Context, mp string) error {
 		if errors.Cause(err) == store.ErrGitNoRemote {
 			out.Yellow(ctx, "Skipped (no remote)")
 			out.Debug(ctx, "Failed to push '%s' to its remote: %s", name, err)
-			return err
+			return nil, err
 		}
 
 		out.Error(ctx, "Failed to push '%s' to its remote: %s", name, err)
-		return err
+		return nil, err
 	}
 	out.Print(ctxno, color.GreenString("OK"))
-
+	syncResult := &syncResult{name, 0}
 	if l, err := sub.List(ctx, ""); err == nil {
 		diff := len(l) - numMP
+		syncResult.changed = diff
 		if diff > 0 {
 			out.Print(ctxno, color.GreenString(" (Added %d entries)", diff))
 		} else if diff < 0 {
@@ -121,7 +130,7 @@ func (s *Action) syncMount(ctx context.Context, mp string) error {
 	out.Print(ctxno, "\n   "+color.GreenString("importing missing keys ... "))
 	if err := sub.ImportMissingPublicKeys(ctx); err != nil {
 		out.Error(ctx, "Failed to import missing public keys for '%s': %s", name, err)
-		return err
+		return syncResult, err
 	}
 	out.Print(ctxno, color.GreenString("OK"))
 
@@ -130,24 +139,29 @@ func (s *Action) syncMount(ctx context.Context, mp string) error {
 	rs, err := sub.GetRecipients(ctx, "")
 	if err != nil {
 		out.Error(ctx, "Failed to load recipients for '%s': %s", name, err)
-		return err
+		return syncResult, err
 	}
 	exported, err := sub.ExportMissingPublicKeys(ctx, rs)
 	if err != nil {
 		out.Error(ctx, "Failed to export missing public keys for '%s': %s", name, err)
-		return err
+		return syncResult, err
 	}
 
 	// only run second push if we did export any keys
 	if exported {
 		if err := sub.RCS().Push(ctx, "", ""); err != nil {
 			out.Error(ctx, "Failed to push '%s' to its remote: %s", name, err)
-			return err
+			return syncResult, err
 		}
 		out.Print(ctxno, color.GreenString("OK"))
 	} else {
 		out.Print(ctxno, color.GreenString("nothing to do"))
 	}
 	out.Print(ctx, "\n   "+color.GreenString("done"))
-	return nil
+	return syncResult, nil
+}
+
+type syncResult struct {
+	name    string
+	changed int
 }
