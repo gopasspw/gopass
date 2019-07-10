@@ -47,7 +47,9 @@ func (s *Action) sync(ctx context.Context, c *cli.Context, store string) error {
 	// calculate number of changes entries
 	totalAdded := 0
 	totalRemoved := 0
-	out.Print(ctx, "Sync summary:\n")
+	if len(changes) > 0 {
+		out.Print(ctx, "Sync summary:\n")
+	}
 	for k := range changes {
 		if changes[k] > 0 {
 			out.Print(ctx, fmt.Sprintf("Mount %s: Added %d entries", k, changes[k]))
@@ -56,7 +58,7 @@ func (s *Action) sync(ctx context.Context, c *cli.Context, store string) error {
 			out.Print(ctx, fmt.Sprintf("Mount %s: Removed %d entries", k, -1*changes[k]))
 			totalRemoved += -1 * changes[k]
 		} else {
-			out.Print(ctx, fmt.Sprintf("Mount %s: didn't change", k))
+			out.Print(ctx, fmt.Sprintf("Mount %s: no changes", k))
 		}
 	}
 	diff := ""
