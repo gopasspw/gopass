@@ -47,9 +47,13 @@ func (s *Action) sync(ctx context.Context, c *cli.Context, store string) error {
 	// calculate number of changes entries
 	totalAdded := 0
 	totalRemoved := 0
+<<<<<<< HEAD
 	if len(changes) > 0 {
 		out.Print(ctx, "Sync summary:\n")
 	}
+=======
+	out.Print(ctx, "Sync summary:\n")
+>>>>>>> issue#1134
 	for k := range changes {
 		if changes[k] > 0 {
 			out.Print(ctx, fmt.Sprintf("Mount %s: Added %d entries", k, changes[k]))
@@ -58,7 +62,11 @@ func (s *Action) sync(ctx context.Context, c *cli.Context, store string) error {
 			out.Print(ctx, fmt.Sprintf("Mount %s: Removed %d entries", k, -1*changes[k]))
 			totalRemoved += -1 * changes[k]
 		} else {
+<<<<<<< HEAD
 			out.Print(ctx, fmt.Sprintf("Mount %s: no changes", k))
+=======
+			out.Print(ctx, fmt.Sprintf("Mount %s: didn't change", k))
+>>>>>>> issue#1134
 		}
 	}
 	diff := ""
@@ -66,7 +74,11 @@ func (s *Action) sync(ctx context.Context, c *cli.Context, store string) error {
 		diff += fmt.Sprintf(" Added %d entries", totalAdded)
 	}
 	if totalRemoved > 0 {
+<<<<<<< HEAD
 		diff += fmt.Sprintf("\nRemoved %d entries", totalRemoved)
+=======
+		diff += fmt.Sprintf(" Removed %d entries", totalRemoved)
+>>>>>>> issue#1134
 	}
 	_ = notify.Notify(ctx, "gopass - sync", fmt.Sprintf("Finished. Synced %d remotes.%s", numMPs, diff))
 
@@ -115,7 +127,11 @@ func (s *Action) syncMount(ctx context.Context, mp string) (*syncResult, error) 
 		return nil, err
 	}
 	out.Print(ctxno, color.GreenString("OK"))
+<<<<<<< HEAD
 	syncResult := &syncResult{name, 0}
+=======
+	syncResult := &syncResult{name: name}
+>>>>>>> issue#1134
 	if l, err := sub.List(ctx, ""); err == nil {
 		diff := len(l) - numMP
 		syncResult.changed = diff
