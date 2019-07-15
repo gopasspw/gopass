@@ -64,7 +64,7 @@ func (s *Action) sync(ctx context.Context, c *cli.Context, store string) error {
 		diff += fmt.Sprintf(" Added %d entries", totalAdded)
 	}
 	if totalRemoved > 0 {
-		diff += fmt.Sprintf("\nRemoved %d entries", totalRemoved)
+		diff += fmt.Sprintf(" Removed %d entries", totalRemoved)
 	}
 	_ = notify.Notify(ctx, "gopass - sync", fmt.Sprintf("Finished. Synced %d remotes.%s", numMPs, diff))
 
@@ -113,7 +113,7 @@ func (s *Action) syncMount(ctx context.Context, mp string) (*syncResult, error) 
 		return nil, err
 	}
 	out.Print(ctxno, color.GreenString("OK"))
-	syncResult := &syncResult{name, 0}
+	syncResult := &syncResult{name: name}
 	if l, err := sub.List(ctx, ""); err == nil {
 		diff := len(l) - numMP
 		syncResult.changed = diff
