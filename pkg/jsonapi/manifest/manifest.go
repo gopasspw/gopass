@@ -27,6 +27,14 @@ func getManifestContent(browser, wrapperPath string) ([]byte, error) {
 		return newFirefoxManifest(wrapperPath).Format()
 	case "chrome":
 		fallthrough
+	case "brave":
+		fallthrough
+	case "vivaldi":
+		fallthrough
+	case "iridium":
+		fallthrough
+	case "slimjet":
+		fallthrough
 	case "chromium":
 		return newChromeManifest(wrapperPath).Format()
 	default:
