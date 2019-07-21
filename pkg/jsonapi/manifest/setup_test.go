@@ -32,7 +32,7 @@ func TestValidBrowser(t *testing.T) {
 }
 
 func TestValidBrowsers(t *testing.T) {
-	assert.Equal(t, []string{"chrome", "chromium", "firefox"}, ValidBrowsers())
+	assert.Equal(t, []string{"brave", "chrome", "chromium", "firefox", "iridium", "slimjet", "vivaldi"}, ValidBrowsers())
 }
 
 func TestManifest(t *testing.T) {
