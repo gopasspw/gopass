@@ -54,7 +54,7 @@ func (s *Action) otp(ctx context.Context, c *cli.Context, name, qrf string, clip
 	secondsLeft := int(time.Until(expiresAt).Seconds())
 
 	if secondsLeft >= otpPeriod {
-		secondsLeft = secondsLeft - otpPeriod
+		secondsLeft -= otpPeriod
 	}
 
 	out.Yellow(ctx, "%s lasts %ds \t|%s%s|", token, secondsLeft, strings.Repeat("-", otpPeriod-secondsLeft), strings.Repeat("=", secondsLeft))
