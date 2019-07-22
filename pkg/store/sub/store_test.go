@@ -148,56 +148,57 @@ func TestNew(t *testing.T) {
 	}()
 
 	for _, tc := range []struct {
+		dsc string
 		ctx context.Context
 		ok  bool
 	}{
 		{
+			dsc: "InMem Storage",
 			ctx: backend.WithStorageBackend(ctx, backend.InMem),
 			ok:  true,
 		},
 		{
+			dsc: "Invalid Storage",
 			ctx: backend.WithStorageBackend(ctx, -1),
 			ok:  false,
 		},
 		{
-			ctx: backend.WithRCSBackend(ctx, backend.GoGit),
-			ok:  true,
-		},
-		{
+			dsc: "GitCLI RCS",
 			ctx: backend.WithRCSBackend(ctx, backend.GitCLI),
 			ok:  true,
 		},
 		{
+			dsc: "Noop RCS",
 			ctx: backend.WithRCSBackend(ctx, backend.Noop),
 			ok:  true,
 		},
 		{
+			dsc: "Invalid RCS",
 			ctx: backend.WithRCSBackend(ctx, -1),
 			ok:  false,
 		},
 		{
+			dsc: "GPG Crypto",
 			ctx: backend.WithCryptoBackend(ctx, backend.GPGCLI),
 			ok:  true,
 		},
 		{
-			ctx: backend.WithCryptoBackend(ctx, backend.XC),
-			ok:  true,
-		},
-		{
+			dsc: "Plain Crypto",
 			ctx: backend.WithCryptoBackend(ctx, backend.Plain),
 			ok:  true,
 		},
 		{
+			dsc: "Invalid Crypto",
 			ctx: backend.WithCryptoBackend(ctx, -1),
 			ok:  false,
 		},
 	} {
 		s, err := New(tc.ctx, nil, "", backend.FromPath(tempdir), tempdir, nil)
 		if tc.ok {
-			assert.NoError(t, err)
-			assert.NotNil(t, s)
+			assert.NoError(t, err, tc.dsc)
+			assert.NotNil(t, s, tc.dsc)
 		} else {
-			assert.Error(t, err)
+			assert.Error(t, err, tc.dsc)
 		}
 	}
 }

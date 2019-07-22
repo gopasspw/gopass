@@ -11,9 +11,9 @@ func TestCryptoBackend(t *testing.T) {
 	ctx := context.Background()
 
 	assert.Equal(t, GPGCLI, GetCryptoBackend(ctx))
-	assert.Equal(t, XC, GetCryptoBackend(WithCryptoBackendString(ctx, "xc")))
-	assert.Equal(t, XC, GetCryptoBackend(WithCryptoBackend(ctx, XC)))
-	assert.Equal(t, true, HasCryptoBackend(WithCryptoBackend(ctx, XC)))
+	assert.Equal(t, GPGCLI, GetCryptoBackend(WithCryptoBackendString(ctx, "gpgcli")))
+	assert.Equal(t, GPGCLI, GetCryptoBackend(WithCryptoBackend(ctx, GPGCLI)))
+	assert.Equal(t, true, HasCryptoBackend(WithCryptoBackend(ctx, GPGCLI)))
 }
 
 func TestRCSBackend(t *testing.T) {
