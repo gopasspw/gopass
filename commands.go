@@ -568,6 +568,10 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 					Name:  "qr, q",
 					Usage: "Write QR code to FILE",
 				},
+				cli.BoolFlag{
+					Name:  "password, o",
+					Usage: "Only display the token",
+				},
 			},
 		},
 		{
