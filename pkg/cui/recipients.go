@@ -275,6 +275,11 @@ type mountPointer interface {
 	MountPoints() []string
 }
 
+func sorted(s []string) []string {
+	sort.Strings(s)
+	return s
+}
+
 // AskForStore shows a store / mount point selection
 func AskForStore(ctx context.Context, s mountPointer) string {
 	if !ctxutil.IsInteractive(ctx) {
@@ -282,7 +287,7 @@ func AskForStore(ctx context.Context, s mountPointer) string {
 	}
 
 	stores := []string{"<root>"}
-	stores = append(stores, s.MountPoints()...)
+	stores = append(stores, sorted(s.MountPoints())...)
 	if len(stores) < 2 {
 		return ""
 	}
