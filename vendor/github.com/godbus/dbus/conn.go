@@ -504,30 +504,51 @@ func (conn *Conn) sendReply(dest string, serial uint32, values ...interface{}) {
 	conn.sendMessage(msg)
 }
 
-func (conn *Conn) defaultSignalAction(fn func(h *defaultSignalHandler, ch chan<- *Signal), ch chan<- *Signal) {
-	if !isDefaultSignalHandler(conn.signalHandler) {
-		return
-	}
-	handler := conn.signalHandler.(*defaultSignalHandler)
-	fn(handler, ch)
+// AddMatchSignal registers the given match rule to receive broadcast
+// signals based on their contents.
+func (conn *Conn) AddMatchSignal(options ...MatchOption) error {
+	options = append([]MatchOption{withMatchType("signal")}, options...)
+	return conn.busObj.Call(
+		"org.freedesktop.DBus.AddMatch", 0,
+		formatMatchOptions(options),
+	).Store()
+}
+
+// RemoveMatchSignal removes the first rule that matches previously registered with AddMatchSignal.
+func (conn *Conn) RemoveMatchSignal(options ...MatchOption) error {
+	options = append([]MatchOption{withMatchType("signal")}, options...)
+	return conn.busObj.Call(
+		"org.freedesktop.DBus.RemoveMatch", 0,
+		formatMatchOptions(options),
+	).Store()
 }
 
 // Signal registers the given channel to be passed all received signal messages.
-// The caller has to make sure that ch is sufficiently buffered; if a message
-// arrives when a write to c is not possible, it is discarded.
 //
 // Multiple of these channels can be registered at the same time.
 //
 // These channels are "overwritten" by Eavesdrop; i.e., if there currently is a
 // channel for eavesdropped messages, this channel receives all signals, and
 // none of the channels passed to Signal will receive any signals.
+//
+// Panics if the signal handler is not a `SignalRegistrar`.
 func (conn *Conn) Signal(ch chan<- *Signal) {
-	conn.defaultSignalAction((*defaultSignalHandler).addSignal, ch)
+	handler, ok := conn.signalHandler.(SignalRegistrar)
+	if !ok {
+		panic("cannot use this method with a non SignalRegistrar handler")
+	}
+	handler.AddSignal(ch)
 }
 
 // RemoveSignal removes the given channel from the list of the registered channels.
+//
+// Panics if the signal handler is not a `SignalRegistrar`.
 func (conn *Conn) RemoveSignal(ch chan<- *Signal) {
-	conn.defaultSignalAction((*defaultSignalHandler).removeSignal, ch)
+	handler, ok := conn.signalHandler.(SignalRegistrar)
+	if !ok {
+		panic("cannot use this method with a non SignalRegistrar handler")
+	}
+	handler.RemoveSignal(ch)
 }
 
 // SupportsUnixFDs returns whether the underlying transport supports passing of

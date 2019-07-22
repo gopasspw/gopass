@@ -270,6 +270,34 @@ func Errorf(t TestingT, err error, msg string, args ...interface{}) {
 	t.FailNow()
 }
 
+// Eventually asserts that given condition will be met in waitFor time,
+// periodically checking target function each tick.
+//
+//    assert.Eventually(t, func() bool { return true; }, time.Second, 10*time.Millisecond)
+func Eventually(t TestingT, condition func() bool, waitFor time.Duration, tick time.Duration, msgAndArgs ...interface{}) {
+	if assert.Eventually(t, condition, waitFor, tick, msgAndArgs...) {
+		return
+	}
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	t.FailNow()
+}
+
+// Eventuallyf asserts that given condition will be met in waitFor time,
+// periodically checking target function each tick.
+//
+//    assert.Eventuallyf(t, func() bool { return true; }, time.Second, 10*time.Millisecond, "error message %s", "formatted")
+func Eventuallyf(t TestingT, condition func() bool, waitFor time.Duration, tick time.Duration, msg string, args ...interface{}) {
+	if assert.Eventuallyf(t, condition, waitFor, tick, msg, args...) {
+		return
+	}
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	t.FailNow()
+}
+
 // Exactly asserts that two objects are equal in value and type.
 //
 //    assert.Exactly(t, int32(123), int64(123))
@@ -383,6 +411,68 @@ func FileExistsf(t TestingT, path string, msg string, args ...interface{}) {
 		h.Helper()
 	}
 	if assert.FileExistsf(t, path, msg, args...) {
+		return
+	}
+	t.FailNow()
+}
+
+// Greater asserts that the first element is greater than the second
+//
+//    assert.Greater(t, 2, 1)
+//    assert.Greater(t, float64(2), float64(1))
+//    assert.Greater(t, "b", "a")
+func Greater(t TestingT, e1 interface{}, e2 interface{}, msgAndArgs ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.Greater(t, e1, e2, msgAndArgs...) {
+		return
+	}
+	t.FailNow()
+}
+
+// GreaterOrEqual asserts that the first element is greater than or equal to the second
+//
+//    assert.GreaterOrEqual(t, 2, 1)
+//    assert.GreaterOrEqual(t, 2, 2)
+//    assert.GreaterOrEqual(t, "b", "a")
+//    assert.GreaterOrEqual(t, "b", "b")
+func GreaterOrEqual(t TestingT, e1 interface{}, e2 interface{}, msgAndArgs ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.GreaterOrEqual(t, e1, e2, msgAndArgs...) {
+		return
+	}
+	t.FailNow()
+}
+
+// GreaterOrEqualf asserts that the first element is greater than or equal to the second
+//
+//    assert.GreaterOrEqualf(t, 2, 1, "error message %s", "formatted")
+//    assert.GreaterOrEqualf(t, 2, 2, "error message %s", "formatted")
+//    assert.GreaterOrEqualf(t, "b", "a", "error message %s", "formatted")
+//    assert.GreaterOrEqualf(t, "b", "b", "error message %s", "formatted")
+func GreaterOrEqualf(t TestingT, e1 interface{}, e2 interface{}, msg string, args ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.GreaterOrEqualf(t, e1, e2, msg, args...) {
+		return
+	}
+	t.FailNow()
+}
+
+// Greaterf asserts that the first element is greater than the second
+//
+//    assert.Greaterf(t, 2, 1, "error message %s", "formatted")
+//    assert.Greaterf(t, float64(2, "error message %s", "formatted"), float64(1))
+//    assert.Greaterf(t, "b", "a", "error message %s", "formatted")
+func Greaterf(t TestingT, e1 interface{}, e2 interface{}, msg string, args ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.Greaterf(t, e1, e2, msg, args...) {
 		return
 	}
 	t.FailNow()
@@ -730,6 +820,28 @@ func JSONEqf(t TestingT, expected string, actual string, msg string, args ...int
 	t.FailNow()
 }
 
+// YAMLEq asserts that two YAML strings are equivalent.
+func YAMLEq(t TestingT, expected string, actual string, msgAndArgs ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.YAMLEq(t, expected, actual, msgAndArgs...) {
+		return
+	}
+	t.FailNow()
+}
+
+// YAMLEqf asserts that two YAML strings are equivalent.
+func YAMLEqf(t TestingT, expected string, actual string, msg string, args ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.YAMLEqf(t, expected, actual, msg, args...) {
+		return
+	}
+	t.FailNow()
+}
+
 // Len asserts that the specified object has specific length.
 // Len also fails if the object has a type that len() not accept.
 //
@@ -753,6 +865,68 @@ func Lenf(t TestingT, object interface{}, length int, msg string, args ...interf
 		h.Helper()
 	}
 	if assert.Lenf(t, object, length, msg, args...) {
+		return
+	}
+	t.FailNow()
+}
+
+// Less asserts that the first element is less than the second
+//
+//    assert.Less(t, 1, 2)
+//    assert.Less(t, float64(1), float64(2))
+//    assert.Less(t, "a", "b")
+func Less(t TestingT, e1 interface{}, e2 interface{}, msgAndArgs ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.Less(t, e1, e2, msgAndArgs...) {
+		return
+	}
+	t.FailNow()
+}
+
+// LessOrEqual asserts that the first element is less than or equal to the second
+//
+//    assert.LessOrEqual(t, 1, 2)
+//    assert.LessOrEqual(t, 2, 2)
+//    assert.LessOrEqual(t, "a", "b")
+//    assert.LessOrEqual(t, "b", "b")
+func LessOrEqual(t TestingT, e1 interface{}, e2 interface{}, msgAndArgs ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.LessOrEqual(t, e1, e2, msgAndArgs...) {
+		return
+	}
+	t.FailNow()
+}
+
+// LessOrEqualf asserts that the first element is less than or equal to the second
+//
+//    assert.LessOrEqualf(t, 1, 2, "error message %s", "formatted")
+//    assert.LessOrEqualf(t, 2, 2, "error message %s", "formatted")
+//    assert.LessOrEqualf(t, "a", "b", "error message %s", "formatted")
+//    assert.LessOrEqualf(t, "b", "b", "error message %s", "formatted")
+func LessOrEqualf(t TestingT, e1 interface{}, e2 interface{}, msg string, args ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.LessOrEqualf(t, e1, e2, msg, args...) {
+		return
+	}
+	t.FailNow()
+}
+
+// Lessf asserts that the first element is less than the second
+//
+//    assert.Lessf(t, 1, 2, "error message %s", "formatted")
+//    assert.Lessf(t, float64(1, "error message %s", "formatted"), float64(2))
+//    assert.Lessf(t, "a", "b", "error message %s", "formatted")
+func Lessf(t TestingT, e1 interface{}, e2 interface{}, msg string, args ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.Lessf(t, e1, e2, msg, args...) {
 		return
 	}
 	t.FailNow()
@@ -1119,6 +1293,38 @@ func Regexpf(t TestingT, rx interface{}, str interface{}, msg string, args ...in
 		h.Helper()
 	}
 	if assert.Regexpf(t, rx, str, msg, args...) {
+		return
+	}
+	t.FailNow()
+}
+
+// Same asserts that two pointers reference the same object.
+//
+//    assert.Same(t, ptr1, ptr2)
+//
+// Both arguments must be pointer variables. Pointer variable sameness is
+// determined based on the equality of both type and value.
+func Same(t TestingT, expected interface{}, actual interface{}, msgAndArgs ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.Same(t, expected, actual, msgAndArgs...) {
+		return
+	}
+	t.FailNow()
+}
+
+// Samef asserts that two pointers reference the same object.
+//
+//    assert.Samef(t, ptr1, ptr2, "error message %s", "formatted")
+//
+// Both arguments must be pointer variables. Pointer variable sameness is
+// determined based on the equality of both type and value.
+func Samef(t TestingT, expected interface{}, actual interface{}, msg string, args ...interface{}) {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+	if assert.Samef(t, expected, actual, msg, args...) {
 		return
 	}
 	t.FailNow()

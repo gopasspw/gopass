@@ -36,7 +36,6 @@ func TestGit(t *testing.T) {
 
 	assert.NoError(t, s.GitInit(ctx, "", ""))
 	assert.NoError(t, s.GitInit(backend.WithRCSBackend(ctx, backend.Noop), "", ""))
-	assert.NoError(t, s.GitInit(backend.WithRCSBackend(ctx, backend.GoGit), "", ""))
 	assert.Error(t, s.GitInit(backend.WithRCSBackend(ctx, -1), "", ""))
 
 	ctx = ctxutil.WithDebug(ctx, true)
