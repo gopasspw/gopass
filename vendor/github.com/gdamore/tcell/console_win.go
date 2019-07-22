@@ -283,7 +283,6 @@ func (s *cScreen) doCursor() {
 	x, y := s.curx, s.cury
 
 	if x < 0 || y < 0 || x >= s.w || y >= s.h {
-		s.setCursorPos(0, 0)
 		s.hideCursor()
 	} else {
 		s.setCursorPos(x, y)

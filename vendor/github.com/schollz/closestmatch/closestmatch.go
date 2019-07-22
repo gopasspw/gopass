@@ -7,6 +7,7 @@ import (
 	"os"
 	"sort"
 	"strings"
+	"sync"
 )
 
 // ClosestMatch is the structure that contains the
@@ -16,6 +17,7 @@ type ClosestMatch struct {
 	SubstringSizes []int
 	SubstringToID  map[string]map[uint32]struct{}
 	ID             map[uint32]IDInfo
+	mux            sync.Mutex
 }
 
 // IDInfo carries the information about the keys
@@ -63,6 +65,22 @@ func Load(filename string) (*ClosestMatch, error) {
 	return cm, err
 }
 
+// Add more words to ClosestMatch structure
+func (cm *ClosestMatch) Add(possible []string) {
+	cm.mux.Lock()
+	for i, s := range possible {
+		substrings := cm.splitWord(strings.ToLower(s))
+		cm.ID[uint32(i)] = IDInfo{Key: s, NumSubstrings: len(substrings)}
+		for substring := range substrings {
+			if _, ok := cm.SubstringToID[substring]; !ok {
+				cm.SubstringToID[substring] = make(map[uint32]struct{})
+			}
+			cm.SubstringToID[substring][uint32(i)] = struct{}{}
+		}
+	}
+	cm.mux.Unlock()
+}
+
 // Save writes the current ClosestSave object as a gzipped JSON file
 func (cm *ClosestMatch) Save(filename string) error {
 	f, err := os.Create(filename)
@@ -80,6 +98,7 @@ func (cm *ClosestMatch) Save(filename string) error {
 func (cm *ClosestMatch) worker(id int, jobs <-chan job, results chan<- result) {
 	for j := range jobs {
 		m := make(map[string]int)
+		cm.mux.Lock()
 		if ids, ok := cm.SubstringToID[j.substring]; ok {
 			weight := 1000 / len(ids)
 			for id := range ids {
@@ -89,6 +108,7 @@ func (cm *ClosestMatch) worker(id int, jobs <-chan job, results chan<- result) {
 				m[cm.ID[id].Key] += 1 + 1000/len(cm.ID[id].Key) + weight
 			}
 		}
+		cm.mux.Unlock()
 		results <- result{m: m}
 	}
 }
@@ -202,6 +222,7 @@ func (cm *ClosestMatch) AccuracyMutatingWords() float64 {
 	for wordTrials := 0; wordTrials < 200; wordTrials++ {
 
 		var testString, originalTestString string
+		cm.mux.Lock()
 		testStringNum := rand.Intn(len(cm.ID))
 		i := 0
 		for id := range cm.ID {
@@ -212,6 +233,7 @@ func (cm *ClosestMatch) AccuracyMutatingWords() float64 {
 			originalTestString = cm.ID[id].Key
 			break
 		}
+		cm.mux.Unlock()
 
 		var words []string
 		choice := rand.Intn(3)
@@ -280,6 +302,7 @@ func (cm *ClosestMatch) AccuracyMutatingLetters() float64 {
 	for wordTrials := 0; wordTrials < 200; wordTrials++ {
 
 		var testString, originalTestString string
+		cm.mux.Lock()
 		testStringNum := rand.Intn(len(cm.ID))
 		i := 0
 		for id := range cm.ID {
@@ -290,6 +313,7 @@ func (cm *ClosestMatch) AccuracyMutatingLetters() float64 {
 			originalTestString = cm.ID[id].Key
 			break
 		}
+		cm.mux.Unlock()
 		testString = originalTestString
 
 		// letters to replace with

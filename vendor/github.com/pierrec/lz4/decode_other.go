@@ -3,11 +3,10 @@
 package lz4
 
 func decodeBlock(dst, src []byte) (ret int) {
+	const hasError = -2
 	defer func() {
-		// It is now faster to let the runtime panic and recover on out of bound slice access
-		// than checking indices as we go along.
 		if recover() != nil {
-			ret = -2
+			ret = hasError
 		}
 	}()
 
@@ -61,7 +60,7 @@ func decodeBlock(dst, src []byte) (ret int) {
 
 		offset := int(src[si]) | int(src[si+1])<<8
 		if offset == 0 {
-			return -2
+			return hasError
 		}
 		si += 2
 
@@ -90,6 +89,4 @@ func decodeBlock(dst, src []byte) (ret int) {
 		}
 		di += copy(dst[di:di+mLen], expanded[:mLen])
 	}
-
-	return di
 }

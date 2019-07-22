@@ -2,7 +2,9 @@ package api
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 )
@@ -82,11 +84,11 @@ type AgentService struct {
 	Address           string
 	Weights           AgentWeights
 	EnableTagOverride bool
-	CreateIndex       uint64 `json:",omitempty"`
-	ModifyIndex       uint64 `json:",omitempty"`
-	ContentHash       string `json:",omitempty"`
+	CreateIndex       uint64 `json:",omitempty" bexpr:"-"`
+	ModifyIndex       uint64 `json:",omitempty" bexpr:"-"`
+	ContentHash       string `json:",omitempty" bexpr:"-"`
 	// DEPRECATED (ProxyDestination) - remove this field
-	ProxyDestination string                          `json:",omitempty"`
+	ProxyDestination string                          `json:",omitempty" bexpr:"-"`
 	Proxy            *AgentServiceConnectProxyConfig `json:",omitempty"`
 	Connect          *AgentServiceConnect            `json:",omitempty"`
 }
@@ -101,8 +103,8 @@ type AgentServiceChecksInfo struct {
 // AgentServiceConnect represents the Connect configuration of a service.
 type AgentServiceConnect struct {
 	Native         bool                      `json:",omitempty"`
-	Proxy          *AgentServiceConnectProxy `json:",omitempty"`
-	SidecarService *AgentServiceRegistration `json:",omitempty"`
+	Proxy          *AgentServiceConnectProxy `json:",omitempty" bexpr:"-"`
+	SidecarService *AgentServiceRegistration `json:",omitempty" bexpr:"-"`
 }
 
 // AgentServiceConnectProxy represents the Connect Proxy configuration of a
@@ -110,7 +112,7 @@ type AgentServiceConnect struct {
 type AgentServiceConnectProxy struct {
 	ExecMode  ProxyExecMode          `json:",omitempty"`
 	Command   []string               `json:",omitempty"`
-	Config    map[string]interface{} `json:",omitempty"`
+	Config    map[string]interface{} `json:",omitempty" bexpr:"-"`
 	Upstreams []Upstream             `json:",omitempty"`
 }
 
@@ -121,7 +123,7 @@ type AgentServiceConnectProxyConfig struct {
 	DestinationServiceID   string                 `json:",omitempty"`
 	LocalServiceAddress    string                 `json:",omitempty"`
 	LocalServicePort       int                    `json:",omitempty"`
-	Config                 map[string]interface{} `json:",omitempty"`
+	Config                 map[string]interface{} `json:",omitempty" bexpr:"-"`
 	Upstreams              []Upstream
 }
 
@@ -276,9 +278,9 @@ type ConnectProxyConfig struct {
 	ContentHash       string
 	// DEPRECATED(managed-proxies) - this struct is re-used for sidecar configs
 	// but they don't need ExecMode or Command
-	ExecMode  ProxyExecMode `json:",omitempty"`
-	Command   []string      `json:",omitempty"`
-	Config    map[string]interface{}
+	ExecMode  ProxyExecMode          `json:",omitempty"`
+	Command   []string               `json:",omitempty"`
+	Config    map[string]interface{} `bexpr:"-"`
 	Upstreams []Upstream
 }
 
@@ -290,7 +292,7 @@ type Upstream struct {
 	Datacenter           string                 `json:",omitempty"`
 	LocalBindAddress     string                 `json:",omitempty"`
 	LocalBindPort        int                    `json:",omitempty"`
-	Config               map[string]interface{} `json:",omitempty"`
+	Config               map[string]interface{} `json:",omitempty" bexpr:"-"`
 }
 
 // Agent can be used to query the Agent endpoints
@@ -385,7 +387,14 @@ func (a *Agent) NodeName() (string, error) {
 
 // Checks returns the locally registered checks
 func (a *Agent) Checks() (map[string]*AgentCheck, error) {
+	return a.ChecksWithFilter("")
+}
+
+// ChecksWithFilter returns a subset of the locally registered checks that match
+// the given filter expression
+func (a *Agent) ChecksWithFilter(filter string) (map[string]*AgentCheck, error) {
 	r := a.c.newRequest("GET", "/v1/agent/checks")
+	r.filterQuery(filter)
 	_, resp, err := requireOK(a.c.doRequest(r))
 	if err != nil {
 		return nil, err
@@ -401,7 +410,14 @@ func (a *Agent) Checks() (map[string]*AgentCheck, error) {
 
 // Services returns the locally registered services
 func (a *Agent) Services() (map[string]*AgentService, error) {
+	return a.ServicesWithFilter("")
+}
+
+// ServicesWithFilter returns a subset of the locally registered services that match
+// the given filter expression
+func (a *Agent) ServicesWithFilter(filter string) (map[string]*AgentService, error) {
 	r := a.c.newRequest("GET", "/v1/agent/services")
+	r.filterQuery(filter)
 	_, resp, err := requireOK(a.c.doRequest(r))
 	if err != nil {
 		return nil, err
@@ -926,41 +942,94 @@ func (a *Agent) Monitor(loglevel string, stopCh <-chan struct{}, q *QueryOptions
 
 // UpdateACLToken updates the agent's "acl_token". See updateToken for more
 // details.
+//
+// DEPRECATED (ACL-Legacy-Compat) - Prefer UpdateDefaultACLToken for v1.4.3 and above
 func (a *Agent) UpdateACLToken(token string, q *WriteOptions) (*WriteMeta, error) {
 	return a.updateToken("acl_token", token, q)
 }
 
 // UpdateACLAgentToken updates the agent's "acl_agent_token". See updateToken
 // for more details.
+//
+// DEPRECATED (ACL-Legacy-Compat) - Prefer UpdateAgentACLToken for v1.4.3 and above
 func (a *Agent) UpdateACLAgentToken(token string, q *WriteOptions) (*WriteMeta, error) {
 	return a.updateToken("acl_agent_token", token, q)
 }
 
 // UpdateACLAgentMasterToken updates the agent's "acl_agent_master_token". See
 // updateToken for more details.
+//
+// DEPRECATED (ACL-Legacy-Compat) - Prefer UpdateAgentMasterACLToken for v1.4.3 and above
 func (a *Agent) UpdateACLAgentMasterToken(token string, q *WriteOptions) (*WriteMeta, error) {
 	return a.updateToken("acl_agent_master_token", token, q)
 }
 
 // UpdateACLReplicationToken updates the agent's "acl_replication_token". See
 // updateToken for more details.
+//
+// DEPRECATED (ACL-Legacy-Compat) - Prefer UpdateReplicationACLToken for v1.4.3 and above
 func (a *Agent) UpdateACLReplicationToken(token string, q *WriteOptions) (*WriteMeta, error) {
 	return a.updateToken("acl_replication_token", token, q)
 }
 
-// updateToken can be used to update an agent's ACL token after the agent has
-// started. The tokens are not persisted, so will need to be updated again if
-// the agent is restarted.
+// UpdateDefaultACLToken updates the agent's "default" token. See updateToken
+// for more details
+func (a *Agent) UpdateDefaultACLToken(token string, q *WriteOptions) (*WriteMeta, error) {
+	return a.updateTokenFallback("default", "acl_token", token, q)
+}
+
+// UpdateAgentACLToken updates the agent's "agent" token. See updateToken
+// for more details
+func (a *Agent) UpdateAgentACLToken(token string, q *WriteOptions) (*WriteMeta, error) {
+	return a.updateTokenFallback("agent", "acl_agent_token", token, q)
+}
+
+// UpdateAgentMasterACLToken updates the agent's "agent_master" token. See updateToken
+// for more details
+func (a *Agent) UpdateAgentMasterACLToken(token string, q *WriteOptions) (*WriteMeta, error) {
+	return a.updateTokenFallback("agent_master", "acl_agent_master_token", token, q)
+}
+
+// UpdateReplicationACLToken updates the agent's "replication" token. See updateToken
+// for more details
+func (a *Agent) UpdateReplicationACLToken(token string, q *WriteOptions) (*WriteMeta, error) {
+	return a.updateTokenFallback("replication", "acl_replication_token", token, q)
+}
+
+// updateToken can be used to update one of an agent's ACL tokens after the agent has
+// started. The tokens are may not be persisted, so will need to be updated again if
+// the agent is restarted unless the agent is configured to persist them.
 func (a *Agent) updateToken(target, token string, q *WriteOptions) (*WriteMeta, error) {
+	meta, _, err := a.updateTokenOnce(target, token, q)
+	return meta, err
+}
+
+func (a *Agent) updateTokenFallback(target, fallback, token string, q *WriteOptions) (*WriteMeta, error) {
+	meta, status, err := a.updateTokenOnce(target, token, q)
+	if err != nil && status == 404 {
+		meta, _, err = a.updateTokenOnce(fallback, token, q)
+	}
+	return meta, err
+}
+
+func (a *Agent) updateTokenOnce(target, token string, q *WriteOptions) (*WriteMeta, int, error) {
 	r := a.c.newRequest("PUT", fmt.Sprintf("/v1/agent/token/%s", target))
 	r.setWriteOptions(q)
 	r.obj = &AgentToken{Token: token}
-	rtt, resp, err := requireOK(a.c.doRequest(r))
+
+	rtt, resp, err := a.c.doRequest(r)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
-	resp.Body.Close()
+	defer resp.Body.Close()
 
 	wm := &WriteMeta{RequestTime: rtt}
-	return wm, nil
+
+	if resp.StatusCode != 200 {
+		var buf bytes.Buffer
+		io.Copy(&buf, resp.Body)
+		return wm, resp.StatusCode, fmt.Errorf("Unexpected response code: %d (%s)", resp.StatusCode, buf.Bytes())
+	}
+
+	return wm, resp.StatusCode, nil
 }
