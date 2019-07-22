@@ -16,7 +16,11 @@ func TestKeyList(t *testing.T) {
 		"0xDEADBEEF": {},
 	}
 
-	assert.Equal(t, []string{"0x62AF4031C82E0019", "0x62AF4031C82E0039", "0x62AF4031C82E2019"}, kl.Recipients())
+	assert.Equal(t, []string{
+		"0x62AF4031C82E0019",
+		"0x62AF4031C82E2019",
+		"0x62AF4031C82E0039",
+	}, kl.Recipients())
 	assert.Equal(t, []string{"0x62AF4031C82E0019", "0x62AF4031C82E0039"}, kl.UseableKeys().Recipients())
 	assert.Equal(t, []string{"0x62AF4031C82E2019"}, kl.UnusableKeys().Recipients())
 

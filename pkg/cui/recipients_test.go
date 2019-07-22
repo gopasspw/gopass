@@ -100,3 +100,7 @@ func TestAskForStore(t *testing.T) {
 	// test two mps
 	assert.Equal(t, "", AskForStore(ctx, fakeMountPointer{"foo", "bar"}))
 }
+
+func TestSorted(t *testing.T) {
+	assert.Equal(t, []string{"a", "b", "c"}, sorted([]string{"c", "a", "b"}))
+}
