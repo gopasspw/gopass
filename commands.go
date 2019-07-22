@@ -572,7 +572,7 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 		},
 		{
 			Name:  "git",
-			Usage: "Run any git command inside a password store",
+			Usage: "Run a git command inside a password store (init, remote, push, pull)",
 			Description: "" +
 				"If the password store is a git repository, execute a git command " +
 				"specified by git-command-args.",
