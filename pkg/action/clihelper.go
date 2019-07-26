@@ -37,7 +37,7 @@ OUTER:
 				continue OUTER
 			}
 			key := p[0]
-			kvps[key] = p[1]
+			kvps[key] = strings.Join(p[1:], ":")
 			continue OUTER
 		}
 		args = append(args, arg)
