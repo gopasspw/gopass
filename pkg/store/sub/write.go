@@ -20,7 +20,7 @@ func (s *Store) Set(ctx context.Context, name string, sec store.Secret) error {
 
 	p := s.passfile(name)
 
-	if s.IsDir(ctx, name) {
+	if s.IsDir(ctx, name) && !ctxutil.IsForce(ctx) {
 		return errors.Errorf("a folder named %s already exists", name)
 	}
 

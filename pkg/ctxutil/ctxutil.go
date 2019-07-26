@@ -30,6 +30,7 @@ const (
 	ctxKeyAlias
 	ctxKeyAutoPrint
 	ctxKeyGitInit
+	ctxKeyForce
 )
 
 // ProgressCallback is a callback for updateing progress
@@ -538,6 +539,26 @@ func IsGitInit(ctx context.Context) bool {
 	bv, ok := ctx.Value(ctxKeyGitInit).(bool)
 	if !ok {
 		return true
+	}
+	return bv
+}
+
+// WithForce returns a context with the force flag set
+func WithForce(ctx context.Context, bv bool) context.Context {
+	return context.WithValue(ctx, ctxKeyForce, bv)
+}
+
+// HasForce returns true if the context has the force flag set
+func HasForce(ctx context.Context) bool {
+	_, ok := ctx.Value(ctxKeyForce).(bool)
+	return ok
+}
+
+// IsForce returns the force flag value of the default (false)
+func IsForce(ctx context.Context) bool {
+	bv, ok := ctx.Value(ctxKeyForce).(bool)
+	if !ok {
+		return false
 	}
 	return bv
 }
