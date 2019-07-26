@@ -112,6 +112,9 @@ func parseColons(reader io.Reader) gpg.KeyList {
 }
 
 func parseColonIdentity(fields []string) gpg.Identity {
+	for i, f := range fields {
+		fields[i] = strings.Replace(f, "\\x3a", ":", -1)
+	}
 	id := fields[9]
 	ni := gpg.Identity{
 		Name:           id,
