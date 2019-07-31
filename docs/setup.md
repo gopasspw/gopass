@@ -289,7 +289,7 @@ If you use zsh, `make install` or `make install-completion` should install the c
 If zsh autocompletion is still not functional, you can run the following commands:
 
 ```
-$ gopass completion zsh > $/_gopass 
+$ gopass completion zsh > ~/_gopass 
 $ sudo mv ~/_gopass /usr/share/zsh/site-functions/_gopass
 $ rm -i ${ZDOTDIR:-${HOME:?No ZDOTDIR or HOME}}/.zcompdump && compinit
 
