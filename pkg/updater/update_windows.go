@@ -15,3 +15,7 @@ func updateGopass(ctx context.Context, version, url string) error {
 func IsUpdateable(ctx context.Context) error {
 	return errors.Errorf("Windows is not yet supported")
 }
+
+var executable = func(ctx context.Context) (string, error) {
+	return "", nil
+}

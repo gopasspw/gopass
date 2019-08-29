@@ -2,6 +2,7 @@ package root
 
 import (
 	"context"
+	"runtime"
 	"testing"
 
 	"github.com/gopasspw/gopass/pkg/backend"
@@ -15,6 +16,9 @@ import (
 )
 
 func TestInit(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("skipping test on windows.")
+	}
 	u := gptest.NewUnitTester(t)
 	defer u.Remove()
 

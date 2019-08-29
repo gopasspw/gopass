@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"context"
 	"flag"
+	"fmt"
 	"os"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -40,9 +42,15 @@ func TestFind(t *testing.T) {
 
 	app := cli.NewApp()
 
+	actName := "action.test"
+
+	if runtime.GOOS == "windows" {
+		actName = "action.test.exe"
+	}
+
 	// find
 	c := cli.NewContext(app, flag.NewFlagSet("default", flag.ContinueOnError), nil)
-	if err := act.Find(ctx, c); err == nil || err.Error() != "Usage: action.test find <NEEDLE>" {
+	if err := act.Find(ctx, c); err == nil || err.Error() != fmt.Sprintf("Usage: %s find <NEEDLE>", actName) {
 		t.Errorf("Should fail: %s", err)
 	}
 

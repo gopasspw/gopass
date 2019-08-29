@@ -2,6 +2,7 @@ package simple
 
 import (
 	"path/filepath"
+	"runtime"
 	"sort"
 	"strings"
 	"testing"
@@ -46,6 +47,10 @@ func getGoldenFormat(t *testing.T) string {
 }
 
 func TestFormat(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("skipping test on windows.")
+	}
+
 	color.NoColor = true
 	root := New("gopass")
 	mounts := map[string]string{
@@ -81,6 +86,10 @@ func TestFormat(t *testing.T) {
 }
 
 func TestFormatSubtree(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("skipping test on windows.")
+	}
+
 	root := New("gopass")
 	for _, f := range []string{
 		"foo/bar",

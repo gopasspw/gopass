@@ -6,6 +6,7 @@ package backend
 
 import (
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	homedir "github.com/mitchellh/go-homedir"
@@ -127,6 +128,9 @@ type testConfig struct {
 }
 
 func TestUnmarshalYAMLXC(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("skipping test on windows.")
+	}
 	in := `---
 path: xc-gogit-fs+file:///tmp/foo
 `

@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -85,6 +86,9 @@ func TestCloneSSH(t *testing.T) {
 }
 
 func TestInit(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("skipping test on windows.")
+	}
 	td, err := ioutil.TempDir("", "gopass-")
 	require.NoError(t, err)
 	defer func() {
