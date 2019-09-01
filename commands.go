@@ -672,6 +672,21 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 						},
 					},
 				},
+				{
+					Name:        "status",
+					Usage:       "RCS status",
+					Description: "Show the RCS status",
+					Before:      func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
+					Action: func(c *cli.Context) error {
+						return action.GitStatus(withGlobalFlags(ctx, c), c)
+					},
+					Flags: []cli.Flag{
+						cli.StringFlag{
+							Name:  "store",
+							Usage: "Store to operate on",
+						},
+					},
+				},
 			},
 		},
 		{

@@ -126,3 +126,10 @@ func (s *Action) GitPush(ctx context.Context, c *cli.Context) error {
 	}
 	return s.Store.GitPush(ctx, store, origin, branch)
 }
+
+// GitStatus prints the rcs status
+func (s *Action) GitStatus(ctx context.Context, c *cli.Context) error {
+	store := c.String("store")
+
+	return s.Store.GitStatus(ctx, store)
+}

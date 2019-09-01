@@ -39,6 +39,8 @@ type RCS interface {
 
 	Revisions(ctx context.Context, name string) ([]Revision, error)
 	GetRevision(ctx context.Context, name, revision string) ([]byte, error)
+
+	Status(ctx context.Context) ([]byte, error)
 }
 
 // Revision is a SCM revision

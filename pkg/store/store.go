@@ -56,6 +56,7 @@ type Store interface {
 	Crypto() backend.Crypto
 	Storage() backend.Storage
 	GitInit(context.Context, string, string) error
+	GitStatus(context.Context, string) error
 	Alias() string
 	Copy(context.Context, string, string) error
 	Delete(context.Context, string) error
