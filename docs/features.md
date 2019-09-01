@@ -74,7 +74,7 @@ gopass init 1E52C1335AC1F4F4FE02F62AB5B44266A3683834 # By specifying the GPG key
 
 ### Cloning an Existing Password Store
 
-If you already have an existing password store that exists in a Git repository, then use `gitpass` to clone it:
+If you already have an existing password store that exists in a Git repository, then use `gopass` to clone it:
 
 ```bash
 gopass clone git@example.com/pass.git
@@ -451,4 +451,4 @@ This makes it easy to use templates for certain kind of secrets such as database
 
 ### JSON API
 
-`gopass jsonapi` enables communication with gopass via JSON messages. This is particularly useful for browser plugins like [gopassbridge](https://github.com/gopasspw/gopassbridge) running gopass as native app. More details can be found in [docs/jsonapi.md](docs/jsonapi.md).
+`gopass jsonapi` enables communication with gopass via JSON messages. This is particularly useful for browser plugins like [gopassbridge](https://github.com/gopasspw/gopassbridge) running gopass as native app. More details can be found in [docs/jsonapi.md](./jsonapi.md).
