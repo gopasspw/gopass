@@ -62,7 +62,7 @@ Please see [docs/features.md](https://github.com/gopasspw/gopass/blob/master/doc
 
 ## Installation
 
-If you have [Go](https://golang.org/) 1.10 (or greater) installed:
+If you have [Go](https://golang.org/) 1.12 (or greater) installed:
 
 ```bash
 go get github.com/gopasspw/gopass
