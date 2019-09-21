@@ -43,9 +43,9 @@ require (
 	github.com/lucasb-eyer/go-colorful v1.0.2
 	github.com/martinhoefling/goxkcdpwgen v0.0.0-20190331205820-7dc3d102eca3
 	github.com/mattn/go-colorable v0.1.2
-	github.com/mattn/go-isatty v0.0.8
+	github.com/mattn/go-isatty v0.0.9
 	github.com/mattn/go-runewidth v0.0.4
-	github.com/mgechev/revive v0.0.0-20190726005920-de49a7b6832f // indirect
+	github.com/mgechev/revive v0.0.0-20190917153825-40564c5052ae // indirect
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/go-ps v0.0.0-20190716172923-621e5597135b
 	github.com/mitchellh/mapstructure v1.1.2
@@ -69,9 +69,10 @@ require (
 	golang.org/x/arch v0.0.0-20190312162104-788fe5ffcd8c // indirect
 	golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4
 	golang.org/x/net v0.0.0-20190724013045-ca1201d0de80
-	golang.org/x/sys v0.0.0-20190726091711-fc99dfbffb4e
+	golang.org/x/sys v0.0.0-20190920190810-ef0ce1748380
 	golang.org/x/text v0.3.2
 	golang.org/x/time v0.0.0-20190308202827-9d24e82272b4
+	golang.org/x/tools v0.0.0-20190920225731-5eefd052ad72 // indirect
 	gopkg.in/src-d/go-billy.v4 v4.2.1
 	gopkg.in/src-d/go-git.v4 v4.0.0-20181022223530-1241d740739f
 	gopkg.in/warnings.v0 v0.1.2
