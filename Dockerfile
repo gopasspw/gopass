@@ -1,4 +1,4 @@
-FROM golang:1.10-alpine AS builder
+FROM golang:1.12-alpine AS builder
 
 RUN apk add -U make gcc musl-dev ncurses git
 
