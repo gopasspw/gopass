@@ -63,7 +63,7 @@ func (s *Action) clone(ctx context.Context, repo, mount, path string) error {
 	// clone repo
 	out.Debug(ctx, "Cloning repo '%s' to '%s'", repo, path)
 	if _, err := backend.CloneRCS(ctx, rcsBackendOrDefault(ctx, backend.GitCLI), repo, path); err != nil {
-		return ExitError(ctx, ExitGit, err, "failed to clone repo '%s' to '%s'", repo, path)
+		return ExitError(ctx, ExitGit, err, "failed to clone repo '%s' to '%s':\n\n%s", repo, path, err.Error())
 	}
 
 	// detect crypto backend based on cloned repo
