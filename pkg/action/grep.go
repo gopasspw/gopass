@@ -30,14 +30,17 @@ func (s *Action) Grep(ctx context.Context, c *cli.Context) error {
 		sec, err := s.Store.Get(ctx, v)
 		if err != nil {
 			out.Error(ctx, "failed to decrypt %s: %v", v, err)
+			errors++
 			continue
 		}
 
 		if strings.Contains(sec.Password(), needle) {
 			out.Print(ctx, "%s:\n%s", color.BlueString(v), sec.Password())
+			matches++
 		}
 		if strings.Contains(sec.Body(), needle) {
 			out.Print(ctx, "%s:\n%s", color.BlueString(v), sec.Body())
+			matches++
 		}
 	}
 

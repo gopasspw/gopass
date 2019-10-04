@@ -43,6 +43,6 @@ func TestGrep(t *testing.T) {
 
 	// add some secret
 	assert.NoError(t, act.Store.Set(ctx, "foo", secret.New("foobar", "foobar")))
-	assert.Error(t, act.Grep(ctx, c))
+	assert.NoError(t, act.Grep(ctx, c))
 	buf.Reset()
 }
