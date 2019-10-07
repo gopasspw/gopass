@@ -25,7 +25,6 @@ func (s *Action) List(ctx context.Context, c *cli.Context) error {
 	filter := c.Args().First()
 	flat := c.Bool("flat")
 	stripPrefix := c.Bool("strip-prefix")
-	limit := c.Int("limit")
 	folders := c.Bool("folders")
 	// we only support listing folders in flat mode currently
 	if folders {
@@ -39,9 +38,16 @@ func (s *Action) List(ctx context.Context, c *cli.Context) error {
 		return ExitError(ctx, ExitList, err, "failed to list store: %s", err)
 	}
 
+	//set limit to len of store to loop over all values later
+	limit := l.Len()
+	if c.IsSet("limit") {
+		limit = c.Int("limit")
+	}
+
 	if filter == "" {
 		return s.listAll(ctx, l, limit, flat, folders)
 	}
+
 	return s.listFiltered(ctx, l, limit, flat, folders, stripPrefix, filter)
 }
 

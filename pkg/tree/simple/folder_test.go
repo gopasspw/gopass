@@ -1,10 +1,10 @@
 package simple
 
 import (
+	"github.com/fatih/color"
 	"sort"
 	"testing"
 
-	"github.com/fatih/color"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -31,7 +31,7 @@ func TestFolder(t *testing.T) {
 
 	// test format
 	color.NoColor = true
-	out := root.Format(2)
+	out := root.Format(1)
 	want := `gopass
 └── foo (template)
     ├── bar
@@ -75,4 +75,33 @@ func TestFolder(t *testing.T) {
 	}
 	assert.Equal(t, wants, lst)
 
+	out = root.Format(0)
+	want = `gopass
+├── zab
+└── zab2
+`
+	assert.Equal(t, want, out)
+
+	out = root.Format(1)
+	want = `gopass
+├── zab
+│   ├── foo
+│   └── foozen
+└── zab2
+    └── foo
+`
+	assert.Equal(t, want, out)
+
+	out = root.Format(2)
+	want = `gopass
+├── zab
+│   ├── foo
+│   │   └── bar
+│   └── foozen
+└── zab2
+    └── foo
+        ├── zen
+        └── baz
+`
+	assert.Equal(t, want, out)
 }

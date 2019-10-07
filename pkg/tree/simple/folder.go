@@ -138,7 +138,7 @@ func (f *Folder) listFolders(prefix string, maxDepth, curDepth int) []string {
 // format returns a pretty printed string of all nodes in and below
 // this node, e.g. ├── baz
 func (f *Folder) format(prefix string, last bool, maxDepth, curDepth int) string {
-	if maxDepth > 0 && curDepth > maxDepth {
+	if (maxDepth == 0 && curDepth > 1) || (curDepth > maxDepth+1) {
 		return ""
 	}
 

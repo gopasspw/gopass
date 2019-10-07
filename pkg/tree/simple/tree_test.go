@@ -73,7 +73,7 @@ func TestFormat(t *testing.T) {
 	} {
 		assert.NoError(t, root.AddFile(f, "text/plain"))
 	}
-	got := strings.TrimSpace(root.Format(0))
+	got := strings.TrimSpace(root.Format(root.Len()))
 	want := strings.TrimSpace(getGoldenFormat(t))
 	if want != got {
 		t.Errorf("Format mismatch:\n---\n%s\n---\n%s\n---", want, got)
