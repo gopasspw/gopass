@@ -63,6 +63,7 @@ brew:
   dependencies:
     - git
     - gnupg
+    - terminal-notifier
   install:  |
     ENV["GOPATH"] = buildpath
     (buildpath/"src/github.com/gopasspw/gopass").install buildpath.children

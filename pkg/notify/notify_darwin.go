@@ -6,23 +6,55 @@ import (
 	"context"
 	"os"
 	"os/exec"
+	"strings"
 
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 )
+
+const (
+	terminalNotifier string = "terminal-notifier"
+	osascript        string = "osascript"
+)
+
+var execCommand = exec.Command
+var execLookPath = exec.LookPath
 
 // Notify displays a desktop notification using osascript
 func Notify(ctx context.Context, subj, msg string) error {
 	if os.Getenv("GOPASS_NO_NOTIFY") != "" || !ctxutil.IsNotifications(ctx) {
 		return nil
 	}
-	osas, err := exec.LookPath("osascript")
+
+	//check if terminal-notifier was installed else use the applescript fallback
+	tn, _ := executableExists(terminalNotifier)
+	if tn {
+		return tnNotification(msg, subj)
+	}
+	return osaNotification(msg, subj)
+}
+
+func osaNotification(msg string, subj string) error {
+	_, err := executableExists(osascript)
 	if err != nil {
 		return err
 	}
+	args := []string{"-e", `display notification "` + msg + `" with title "` + subj + `"`}
+	return execNotification(osascript, args)
+}
 
-	return exec.Command(
-		osas,
-		"-e",
-		`display notification "`+msg+`" with title "`+subj+`"`,
-	).Start()
+func execNotification(executable string, args []string) error {
+	return execCommand(executable, strings.Join(args[:], " ")).Start()
+}
+
+func tnNotification(msg string, subj string) error {
+	arguments := []string{"-title", "Gopass", "-message", msg, "-subtitle", subj, "-appIcon", iconURI()}
+	return execNotification(terminalNotifier, arguments)
+}
+
+func executableExists(executable string) (bool, error) {
+	_, err := execLookPath(executable)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }
