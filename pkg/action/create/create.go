@@ -475,11 +475,11 @@ func (s *creator) createGeneric(ctx context.Context, c *cli.Context) error {
 
 // createGeneratePasssword will walk through the password generation steps
 func (s *creator) createGeneratePassword(ctx context.Context) (string, error) {
-	noXkcd, err := termio.AskForBool(ctx, fmtfn(4, "a", "Cryptic Password?"), true)
+	xkcd, err := termio.AskForBool(ctx, fmtfn(4, "a", "Human-pronounceable passphrase? (see https://xkcd.com/936/)"), false)
 	if err != nil {
 		return "", err
 	}
-	if !noXkcd {
+	if xkcd {
 		length, err := termio.AskForInt(ctx, fmtfn(4, "b", "How many words?"), 4)
 		if err != nil {
 			return "", err
