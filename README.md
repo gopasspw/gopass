@@ -23,9 +23,10 @@ The slightly more awesome Standard Unix Password Manager for Teams. Written in G
 5. [Development](#development)
 6. [Credit & License](#credit-&-license)
 7. [Community](#community)
-8. [Contributing](#contributing)
-9. [Acknowledgements](#acknowledgements)
-10. [Further Documentation](#further-documentation)
+8. [Integrations](#integrations)
+9. [Contributing](#contributing)
+10. [Acknowledgements](#acknowledgements)
+11. [Further Documentation](#further-documentation)
 
 ## Abstract
 
@@ -105,6 +106,12 @@ gopass is developed in the open. Here are some of the channels we use to communi
 * IRC: #gopass on [irc.freenode.net](https://freenode.net) ([join via Riot](https://riot.im/app/#/room/#freenode_#gopass:matrix.org))
 * Usage mailing list: [gopass-users](https://groups.google.com/forum/#!forum/gopass-users), for discussions around gopass usage and community support
 * Issue tracker: Use the [GitHub issue tracker](https://github.com/gopasspw/gopass/issues) to file bugs and feature requests. If you need support, please send your questions to [gopass-user](https://groups.google.com/forum/#!forum/gopass-users) or ask on IRC rather than filing a GitHub issue.
+
+## Integrations
+
+- [gopassbridge](https://github.com/gopasspw/gopassbridge): Browser plugin for Firefox, Chrome and other Chromium based browsers
+- [kubectl gopass](https://github.com/gopasspw/kubectl-gopass): Kubernetes / kubectl plugin to support reading and writing secrets directly from/to gopass.
+- [gopass alfred](https://github.com/gopasspw/gopass-alfred): Alfred workflow to use gopass from the Alfred Mac launcher
 
 ## Contributing
 
