@@ -11,6 +11,9 @@ import (
 	"github.com/pkg/errors"
 )
 
+// globalPrefix is prefixed to all temporary dirs
+var globalPrefix string = ""
+
 // File is a temporary file
 type File struct {
 	dir string
@@ -21,7 +24,7 @@ type File struct {
 
 // New returns a new tempfile wrapper
 func New(ctx context.Context, prefix string) (*File, error) {
-	td, err := ioutil.TempDir(tempdirBase(), prefix)
+	td, err := ioutil.TempDir(tempdirBase(), globalPrefix+prefix)
 	if err != nil {
 		return nil, err
 	}
