@@ -41,11 +41,11 @@ func (s *Action) Clone(ctx context.Context, c *cli.Context) error {
 	return s.clone(ctx, repo, mount, path)
 }
 
-func rcsBackendOrDefault(ctx context.Context, def backend.RCSBackend) backend.RCSBackend {
+func rcsBackendOrDefault(ctx context.Context) backend.RCSBackend {
 	if be := backend.GetRCSBackend(ctx); be != backend.Noop {
 		return be
 	}
-	return def
+	return backend.GitCLI
 }
 
 func (s *Action) clone(ctx context.Context, repo, mount, path string) error {
@@ -62,8 +62,8 @@ func (s *Action) clone(ctx context.Context, repo, mount, path string) error {
 
 	// clone repo
 	out.Debug(ctx, "Cloning repo '%s' to '%s'", repo, path)
-	if _, err := backend.CloneRCS(ctx, rcsBackendOrDefault(ctx, backend.GitCLI), repo, path); err != nil {
-		return ExitError(ctx, ExitGit, err, "failed to clone repo '%s' to '%s':\n\n%s", repo, path, err.Error())
+	if _, err := backend.CloneRCS(ctx, rcsBackendOrDefault(ctx), repo, path); err != nil {
+		return ExitError(ctx, ExitGit, err, "failed to clone repo '%s' to '%s'", repo, path)
 	}
 
 	// detect crypto backend based on cloned repo
@@ -123,7 +123,7 @@ func (s *Action) cloneAddMount(ctx context.Context, mount, path string) error {
 	}
 	out.Green(ctx, "Mounted password store %s at mount point `%s` ...", path, mount)
 	s.cfg.Mounts[mount].Path.Crypto = backend.GetCryptoBackend(ctx)
-	s.cfg.Mounts[mount].Path.RCS = backend.GetRCSBackend(ctx)
+	s.cfg.Mounts[mount].Path.RCS = rcsBackendOrDefault(ctx)
 	s.cfg.Mounts[mount].Path.Storage = backend.GetStorageBackend(ctx)
 	return nil
 }
