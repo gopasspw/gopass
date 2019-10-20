@@ -22,10 +22,10 @@ import (
 	"github.com/urfave/cli"
 )
 
-func aGitRepo(u *gptest.Unit, t *testing.T, err error, ctx context.Context, name string) string {
+func aGitRepo(ctx context.Context, u *gptest.Unit, t *testing.T, name string) string {
 	gd := filepath.Join(u.Dir, name)
 	assert.NoError(t, os.MkdirAll(gd, 0700))
-	_, err = git.Open(gd, "")
+	_, err := git.Open(gd, "")
 	assert.Error(t, err)
 	idf := filepath.Join(gd, ".gpg-id")
 	assert.NoError(t, ioutil.WriteFile(idf, []byte("0xDEADBEEF"), 0600))
@@ -67,7 +67,7 @@ func TestClone(t *testing.T) {
 	assert.Error(t, act.clone(ctx, "/tmp/non-existing-repo.git", "", filepath.Join(u.Dir, "store")))
 
 	// clone to mount
-	gd := aGitRepo(u, t, err, ctx, "other-repo")
+	gd := aGitRepo(ctx, u, t, "other-repo")
 	assert.NoError(t, act.clone(ctx, gd, "gd", filepath.Join(u.Dir, "mount")))
 }
 
@@ -85,7 +85,7 @@ func TestCloneBackendIsStoredForMount(t *testing.T) {
 	require.NotNil(t, act)
 	require.NoError(t, act.Initialized(ctx, nil))
 
-	repo := aGitRepo(u, t, err, ctx, "my-project")
+	repo := aGitRepo(ctx, u, t, "my-project")
 
 	app := cli.NewApp()
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
