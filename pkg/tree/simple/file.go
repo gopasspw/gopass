@@ -12,7 +12,11 @@ func (f File) String() string {
 }
 
 // format will format this leaf node for pretty printing
-func (f File) format(prefix string, last bool, _, _ int) string {
+func (f File) format(prefix string, last bool, maxDepth int, curDepth int) string {
+	if (maxDepth == 0 && curDepth > 1) || (curDepth > maxDepth+1) {
+		return ""
+	}
+
 	sym := symBranch
 	if last {
 		sym = symLeaf
