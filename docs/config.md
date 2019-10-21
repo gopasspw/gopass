@@ -42,14 +42,22 @@ All configuration options are also available for reading and writing through the
 
 This is a list of available options:
 
-| **Option**    | **Type** | Description |
-| ------------- | -------- | ----------- |
-| `askformore`  | `bool`   | If enabled - it will ask to add more data after use of `generate` command. |
-| `autoimport`  | `bool`   | Import missing keys stored in the pass repository without asking. |
-| `autosync`    | `bool`   | Always do a `git push` after a commit to the store. Makes sure your local changes are always available on your git remote. |
-| `cliptimeout` | `int`    | How many seconds the secret is stored when using `-c`. |
-| `noconfirm`   | `bool`   | Do not confirm recipient list when encrypting. |
-| `path`        | `string` | Path to the root store. |
-| `safecontent` | `bool`   | Only output _safe content_ (i.e. everything but the first line of a secret) to the terminal. Use _copy_ (`-c`) to retrieve the password in the clipboard. |
-| `usesymbols`  | `bool`   | If enabled - it will use symbols when generating passwords. |
-| `nocolor`     | `bool`   | Do not use color. |
+| **Option**       | **Type** | Description |
+| ---------------- | -------- | ----------- |
+| `askformore`     | `bool`   | If enabled - it will ask to add more data after use of `generate` command. |
+| `autoclip`       | `bool`   | Always copy the password created by `pass generate`. |
+| `autoprint`      | `bool`   | Always print the password created by `pass generate`. |
+| `autoimport`     | `bool`   | Import missing keys stored in the pass repository without asking. |
+| `autosync`       | `bool`   | Always do a `git push` after a commit to the store. Makes sure your local changes are always available on your git remote. |
+| `concurrency`    | `int`    | Number of threads to use for batch operations (such as reencrypting). |
+| `cliptimeout`    | `int`    | How many seconds the secret is stored when using `-c`. |
+| `noconfirm`      | `bool`   | Do not confirm recipient list when encrypting. |
+| `path`           | `string` | Path to the root store. |
+| `check_recipient_hash` | `string` | If enabled - it will fail on and report recipient hash errors. |
+| `editrecipients` | `bool`   | Modify recipients when creating and editing passwords. |
+| `recipient_hash` | `map`    | Map of recipient ids to their hashes. |
+| `safecontent`    | `bool`   | Only output _safe content_ (i.e. everything but the first line of a secret) to the terminal. Use _copy_ (`-c`) to retrieve the password in the clipboard. |
+| `usesymbols`     | `bool`   | If enabled - it will use symbols when generating passwords. |
+| `notifications`  | `bool`   | Enable desktop notifications. |
+| `nocolor`        | `bool`   | Do not use color. |
+| `nopager`        | `bool`   | Do not invoke a pager to display long lists. |
