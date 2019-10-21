@@ -25,7 +25,7 @@ func Notify(ctx context.Context, subj, msg string) error {
 		return nil
 	}
 
-	//check if terminal-notifier was installed else use the applescript fallback
+	// check if terminal-notifier was installed else use the applescript fallback
 	tn, _ := executableExists(terminalNotifier)
 	if tn {
 		return tnNotification(msg, subj)
@@ -33,6 +33,7 @@ func Notify(ctx context.Context, subj, msg string) error {
 	return osaNotification(msg, subj)
 }
 
+// display notification with osascript
 func osaNotification(msg string, subj string) error {
 	_, err := executableExists(osascript)
 	if err != nil {
@@ -42,15 +43,18 @@ func osaNotification(msg string, subj string) error {
 	return execNotification(osascript, args)
 }
 
+// exec notification program with passed arguments
 func execNotification(executable string, args []string) error {
 	return execCommand(executable, strings.Join(args[:], " ")).Start()
 }
 
+// display notification with terminal-notifier
 func tnNotification(msg string, subj string) error {
 	arguments := []string{"-title", "Gopass", "-message", msg, "-subtitle", subj, "-appIcon", iconURI()}
 	return execNotification(terminalNotifier, arguments)
 }
 
+// check if executable exists
 func executableExists(executable string) (bool, error) {
 	_, err := execLookPath(executable)
 	if err != nil {
