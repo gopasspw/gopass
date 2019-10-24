@@ -257,6 +257,7 @@ func (s *creator) createAWS(ctx context.Context, c *cli.Context) error {
 		username  = c.Args().Get(1)
 		accesskey = c.Args().Get(2)
 		secretkey string
+		password  string
 		region    string
 		store     = c.String("store")
 		err       error
@@ -276,7 +277,11 @@ func (s *creator) createAWS(ctx context.Context, c *cli.Context) error {
 	if username == "" {
 		return action.ExitError(ctx, action.ExitUnknown, nil, "Username must not be empty")
 	}
-	accesskey, err = termio.AskForString(ctx, fmtfn(2, "3", "AWS_ACCESS_KEY_ID"), accesskey)
+	password, err = termio.AskForString(ctx, fmtfn(2, "3", "AWS Account Password"), password)
+	if err != nil {
+		return err
+	}
+	accesskey, err = termio.AskForString(ctx, fmtfn(2, "4", "AWS_ACCESS_KEY_ID"), accesskey)
 	if err != nil {
 		return err
 	}
@@ -302,10 +307,11 @@ func (s *creator) createAWS(ctx context.Context, c *cli.Context) error {
 			return err
 		}
 	}
-	sec := secret.New(secretkey, "")
+	sec := secret.New(password, "")
 	_ = sec.SetValue("account", account)
 	_ = sec.SetValue("username", username)
 	_ = sec.SetValue("accesskey", accesskey)
+	_ = sec.SetValue("secretkey", secretkey)
 	_ = sec.SetValue("region", region)
 	if err := s.store.Set(sub.WithReason(ctx, "Created new entry"), name, sec); err != nil {
 		return action.ExitError(ctx, action.ExitEncrypt, err, "failed to set '%s': %s", name, err)
@@ -469,11 +475,11 @@ func (s *creator) createGeneric(ctx context.Context, c *cli.Context) error {
 
 // createGeneratePasssword will walk through the password generation steps
 func (s *creator) createGeneratePassword(ctx context.Context) (string, error) {
-	noXkcd, err := termio.AskForBool(ctx, fmtfn(4, "a", "Cryptic Password?"), true)
+	xkcd, err := termio.AskForBool(ctx, fmtfn(4, "a", "Human-pronounceable passphrase? (see https://xkcd.com/936/)"), false)
 	if err != nil {
 		return "", err
 	}
-	if !noXkcd {
+	if xkcd {
 		length, err := termio.AskForInt(ctx, fmtfn(4, "b", "How many words?"), 4)
 		if err != nil {
 			return "", err

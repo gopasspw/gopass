@@ -46,6 +46,7 @@ _{{ $prog }}_complete_keys () {
 }
 
 _{{ $prog }}_complete_passwords () {
+    local IFS=$'\n'
     _arguments : \
         "--clip[Copy the first line of the secret into the clipboard]"
     _values 'passwords' $({{ $prog }} ls --flat)

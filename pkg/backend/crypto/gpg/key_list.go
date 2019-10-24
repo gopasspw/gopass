@@ -13,23 +13,23 @@ type KeyList []Key
 // Recipients returns the KeyList formatted as a recipient list
 func (kl KeyList) Recipients() []string {
 	l := make([]string, 0, len(kl))
+	sort.Sort(kl)
 	for _, k := range kl {
 		l = append(l, k.ID())
 	}
-	sort.Strings(l)
 	return l
 }
 
 // UseableKeys returns the list of useable (valid keys)
 func (kl KeyList) UseableKeys() KeyList {
 	nkl := make(KeyList, 0, len(kl))
+	sort.Sort(kl)
 	for _, k := range kl {
 		if !k.IsUseable() {
 			continue
 		}
 		nkl = append(nkl, k)
 	}
-	sort.Sort(nkl)
 	return nkl
 }
 
@@ -78,7 +78,7 @@ func (kl KeyList) Len() int {
 }
 
 func (kl KeyList) Less(i, j int) bool {
-	return kl[i].ID() < kl[j].ID()
+	return kl[i].Identity().Name < kl[j].Identity().Name
 }
 
 func (kl KeyList) Swap(i, j int) {

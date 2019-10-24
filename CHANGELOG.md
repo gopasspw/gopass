@@ -1,3 +1,12 @@
+## 1.8.6 / 2019-07-26
+
+* [ENHANCEMENT] Add --password to otp command [#1150]
+* [ENHANCEMENT] Support adding key values with colons [#1128]
+* [BUGFIX] Allow overwriting directories with --force [#1149]
+* [BUGFIX] Sort list of stores when adding recipients [#1144]
+* [BUGFIX] Sort recipients by Name not by ID [#1143]
+* [BUGFIX] Handle slashes in recipient names [#1139]
+
 ## 1.8.5 / 2019-03-03
 
 * [ENHANCEMENT] Improve template handling [#1029]

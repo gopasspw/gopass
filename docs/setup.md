@@ -84,7 +84,7 @@ gopass depends on the `gpg` program for encryption and decryption. You **must** 
 suitable key pair. To list your current keys, you can do:
 
 ```bash
-gpg --list-keys
+gpg --list-secret-keys
 ```
 
 If there is no output, then you don't have any keys. To create a new key:
@@ -285,6 +285,16 @@ source /dev/stdin <<<"$(gopass completion bash)"
 ### Enable  Z Shell Auto completion
 
 If you use zsh, `make install` or `make install-completion` should install the completion in the correct location.
+
+If zsh autocompletion is still not functional, you can run the following commands:
+
+```
+$ gopass completion zsh > ~/_gopass 
+$ sudo mv ~/_gopass /usr/share/zsh/site-functions/_gopass
+$ rm -i ${ZDOTDIR:-${HOME:?No ZDOTDIR or HOME}}/.zcompdump && compinit
+
+```
+Exit and re-run zsh if the last command failed.
 
 ### Enable fish completion
 

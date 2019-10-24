@@ -74,7 +74,7 @@ gopass init 1E52C1335AC1F4F4FE02F62AB5B44266A3683834 # By specifying the GPG key
 
 ### Cloning an Existing Password Store
 
-If you already have an existing password store that exists in a Git repository, then use `gitpass` to clone it:
+If you already have an existing password store that exists in a Git repository, then use `gopass` to clone it:
 
 ```bash
 gopass clone git@example.com/pass.git
@@ -272,7 +272,7 @@ Detected weak secret for 'golang.org/gopher': Password is too short
 
 ### Check Passwords against leaked passwords
 
-gopass can assist you in checking your passwords against those included in recent data breaches. 
+gopass can assist you in checking your passwords against those included in recent data breaches.
 You can either check against the HIBPv2 API (recommended) or download the dumps (v1 or v2) and
 perform the check fully offline.
 
@@ -451,4 +451,8 @@ This makes it easy to use templates for certain kind of secrets such as database
 
 ### JSON API
 
-`gopass jsonapi` enables communication with gopass via JSON messages. This is particularly useful for browser plugins like [gopassbridge](https://github.com/gopasspw/gopassbridge) running gopass as native app. More details can be found in [docs/jsonapi.md](docs/jsonapi.md).
+`gopass jsonapi` enables communication with gopass via JSON messages. This is particularly useful for browser plugins like [gopassbridge](https://github.com/gopasspw/gopassbridge) running gopass as native app. More details can be found in [docs/jsonapi.md](./jsonapi.md).
+
+### Passphrase Agent
+
+`gopass agent` launches a long-running socket, similar to gpg-agent's socket, for requesting and caching the passphrase used to encrypt passwords. This allows one-off gopass operations (such as storing a password) to retrieve a cached copy of the passphrase. Communication over the socket uses HTTP. The agent is used for custom backends and stores that are encrypted with the passphrase as well as for testing.

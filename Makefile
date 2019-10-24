@@ -17,17 +17,18 @@ TESTFLAGS                 ?=
 PWD                       := $(shell pwd)
 PREFIX                    ?= $(GOPATH)
 BINDIR                    ?= $(PREFIX)/bin
-GO                        := go
+GO                        := GO111MODULE=on go
 GOOS                      ?= $(shell go version | cut -d' ' -f4 | cut -d'/' -f1)
 GOARCH                    ?= $(shell go version | cut -d' ' -f4 | cut -d'/' -f2)
 TAGS                      ?= netgo
+export GO111MODULE=on
 
 OK := $(shell tput setaf 6; echo ' [OK]'; tput sgr0;)
 
 all: build completion
 build: $(GOPASS_OUTPUT)
 completion: $(BASH_COMPLETION_OUTPUT) $(FISH_COMPLETION_OUTPUT) $(ZSH_COMPLETION_OUTPUT)
-travis: sysinfo crosscompile build install legal fulltest codequality completion manifests full
+travis: sysinfo crosscompile build install fulltest codequality completion manifests full
 
 sysinfo:
 	@echo ">> SYSTEM INFORMATION"
@@ -136,16 +137,6 @@ manifests: $(GOPASS_OUTPUT)
 	@./gopass --yes jsonapi configure --path=. --manifest-path=manifest-chromium.json --browser=chromium --gopass-path=gopass --print=false
 	@./gopass --yes jsonapi configure --path=. --manifest-path=manifest-firefox.json --browser=firefox --gopass-path=gopass --print=false
 
-legal:
-	@echo ">> LEGAL"
-	@echo -n "   LICENSES   "
-	@which licenses > /dev/null; if [ $$? -ne 0 ]; then \
-		$(GO) get -u github.com/pmezard/licenses; \
-	fi
-	@GOOS=linux GOARCH=amd64 licenses ./... > NOTICE.new
-	@diff NOTICE.txt NOTICE.new || exit 1
-	@printf '%s\n' '$(OK)'
-
 codequality:
 	@echo ">> CODE QUALITY"
 
@@ -180,7 +171,7 @@ codequality:
 
 	@echo -n "     LINT      "
 	@which golint > /dev/null; if [ $$? -ne 0 ]; then \
-		$(GO) get -u github.com/golang/lint/golint; \
+		$(GO) get -u golang.org/x/lint/golint; \
 	fi
 	@$(foreach pkg, $(PKGS),\
 			golint -set_exit_status $(pkg) || exit 1;)
@@ -208,6 +199,7 @@ codequality:
 	@staticcheck $(PKGS) || exit 1
 	@printf '%s\n' '$(OK)'
 
+codequality-nomod:
 	@echo -n "     ERRCHECK  "
 	@which errcheck > /dev/null; if [ $$? -ne 0  ]; then \
 		$(GO) get -u github.com/kisielk/errcheck; \
@@ -281,5 +273,11 @@ bintray: check-release-env
 	@curl -f -X POST -H "X-GPG-PASSPHRASE:$(BINTRAY_GPG_PASSPHRASE)" -u$(BINTRAY_USER):$(BINTRAY_API_KEY) https://api.bintray.com/calc_metadata/gopasspw/gopass
 	@echo ""
 	@echo ">> DONE"
+
+deps:
+	go build -v ./...
+
+upgrade:
+	go get -u
 
 .PHONY: clean build completion install sysinfo crosscompile test codequality release goreleaser debsign bintray

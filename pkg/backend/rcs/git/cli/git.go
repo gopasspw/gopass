@@ -116,7 +116,7 @@ func (g *Git) Cmd(ctx context.Context, name string, args ...string) error {
 	stdout, stderr, err := g.captureCmd(ctx, name, args...)
 	if err != nil {
 		out.Debug(ctx, "Output:\n  Stdout: '%s'\n  Stderr: '%s'", string(stdout), string(stderr))
-		return err
+		return fmt.Errorf(strings.TrimSpace(string(stderr)))
 	}
 
 	return nil

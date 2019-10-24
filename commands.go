@@ -245,7 +245,10 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 			Name:  "config",
 			Usage: "Edit configuration",
 			Description: "" +
-				"This command allows for easy editing of the configuration",
+				"This command allows for easy printing and editing of the configuration. " +
+				"Without argument, the entire config is printed. " +
+				"With a single argument, a single key can be printed. " +
+				"With two arguments a setting specified by key can be set to value.",
 			Action: func(c *cli.Context) error {
 				return action.Config(withGlobalFlags(ctx, c), c)
 			},
@@ -565,11 +568,15 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 					Name:  "qr, q",
 					Usage: "Write QR code to FILE",
 				},
+				cli.BoolFlag{
+					Name:  "password, o",
+					Usage: "Only display the token",
+				},
 			},
 		},
 		{
 			Name:  "git",
-			Usage: "Run any git command inside a password store",
+			Usage: "Run a git command inside a password store (init, remote, push, pull)",
 			Description: "" +
 				"If the password store is a git repository, execute a git command " +
 				"specified by git-command-args.",
