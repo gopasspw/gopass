@@ -82,7 +82,7 @@ func (s *Action) otpHandleError(ctx context.Context, c *cli.Context, name, qrf s
 		return ExitError(ctx, ExitUnknown, err, "failed to retrieve secret '%s': %s", name, err)
 	}
 	out.Yellow(ctx, "Entry '%s' not found. Starting search...", name)
-	cb := func(ctx context.Context, c *cli.Context, name, key string, recurse bool) error {
+	cb := func(ctx context.Context, c *cli.Context, name string, recurse bool) error {
 		return s.otp(ctx, c, name, qrf, clip, pw, false)
 	}
 	if err := s.find(ctxutil.WithFuzzySearch(ctx, false), nil, name, cb); err == nil {

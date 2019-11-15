@@ -28,7 +28,7 @@ func (s *Action) Find(ctx context.Context, c *cli.Context) error {
 }
 
 // see action.show - context, cli context, name, key, rescurse
-type showFunc func(context.Context, *cli.Context, string, string, bool) error
+type showFunc func(context.Context, *cli.Context, string, bool) error
 
 func (s *Action) find(ctx context.Context, c *cli.Context, needle string, cb showFunc) error {
 	// get all existing entries
@@ -44,7 +44,7 @@ func (s *Action) find(ctx context.Context, c *cli.Context, needle string, cb sho
 	// if we have an exact match print it
 	if len(choices) == 1 {
 		out.Green(ctx, "Found exact match in '%s'", choices[0])
-		return cb(ctx, c, choices[0], "", false)
+		return cb(ctx, c, choices[0], false)
 	}
 
 	// if we don't have a match yet try a fuzzy search
@@ -80,21 +80,21 @@ func (s *Action) findSelection(ctx context.Context, c *cli.Context, choices []st
 	case "default":
 		// display or copy selected entry
 		fmt.Fprintln(stdout, choices[sel])
-		return cb(ctx, c, choices[sel], "", false)
+		return cb(ctx, c, choices[sel], false)
 	case "copy":
 		// display selected entry
 		fmt.Fprintln(stdout, choices[sel])
-		return cb(WithClip(ctx, true), c, choices[sel], "", false)
+		return cb(WithClip(ctx, true), c, choices[sel], false)
 	case "show":
 		// display selected entry
 		fmt.Fprintln(stdout, choices[sel])
-		return cb(WithClip(ctx, false), c, choices[sel], "", false)
+		return cb(WithClip(ctx, false), c, choices[sel], false)
 	case "sync":
 		// run sync and re-run show/find workflow
 		if err := s.Sync(ctx, c); err != nil {
 			return err
 		}
-		return cb(ctx, c, needle, "", true)
+		return cb(ctx, c, needle, true)
 	case "edit":
 		// edit selected entry
 		fmt.Fprintln(stdout, choices[sel])
