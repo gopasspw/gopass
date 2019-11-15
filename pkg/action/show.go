@@ -24,7 +24,6 @@ const (
 // Show the content of a secret file
 func (s *Action) Show(ctx context.Context, c *cli.Context) error {
 	name := c.Args().First()
-	key := c.Args().Get(1)
 
 	ctx = s.Store.WithConfig(ctx, name)
 	ctx = WithClip(ctx, c.Bool("clip"))
@@ -32,6 +31,9 @@ func (s *Action) Show(ctx context.Context, c *cli.Context) error {
 	ctx = WithPrintQR(ctx, c.Bool("qr"))
 	ctx = WithPasswordOnly(ctx, c.Bool("password"))
 	ctx = WithRevision(ctx, c.String("revision"))
+	if key := c.Args().Get(1); key != "" {
+		ctx = WithKey(ctx, key)
+	}
 
 	if c.Bool("sync") {
 		if err := s.sync(out.WithHidden(ctx, true), c, s.Store.MountPoint(name)); err != nil {
@@ -39,14 +41,14 @@ func (s *Action) Show(ctx context.Context, c *cli.Context) error {
 		}
 	}
 
-	if err := s.show(ctx, c, name, key, true); err != nil {
+	if err := s.show(ctx, c, name, true); err != nil {
 		return ExitError(ctx, ExitDecrypt, err, "%s", err)
 	}
 	return nil
 }
 
 // show displays the given secret/key
-func (s *Action) show(ctx context.Context, c *cli.Context, name, key string, recurse bool) error {
+func (s *Action) show(ctx context.Context, c *cli.Context, name string, recurse bool) error {
 	if name == "" {
 		return ExitError(ctx, ExitUsage, nil, "Usage: %s show [name]", s.Name)
 	}
@@ -64,7 +66,7 @@ func (s *Action) show(ctx context.Context, c *cli.Context, name, key string, rec
 	}
 
 	if HasRevision(ctx) {
-		return s.showHandleRevision(ctx, c, name, key, GetRevision(ctx))
+		return s.showHandleRevision(ctx, c, name, GetRevision(ctx))
 	}
 
 	sec, ctx, err := s.Store.GetContext(ctx, name)
@@ -72,22 +74,26 @@ func (s *Action) show(ctx context.Context, c *cli.Context, name, key string, rec
 		return s.showHandleError(ctx, c, name, recurse, err)
 	}
 
-	return s.showHandleOutput(ctx, name, key, sec)
+	return s.showHandleOutput(ctx, name, sec)
 }
 
 // showHandleRevision displays a single revision
-func (s *Action) showHandleRevision(ctx context.Context, c *cli.Context, name, key, revision string) error {
+func (s *Action) showHandleRevision(ctx context.Context, c *cli.Context, name, revision string) error {
 	sec, err := s.Store.GetRevision(ctx, name, revision)
 	if err != nil {
 		return s.showHandleError(ctx, c, name, false, err)
 	}
 
-	return s.showHandleOutput(ctx, name, key, sec)
+	return s.showHandleOutput(ctx, name, sec)
 }
 
 // showHandleOutput displays a secret
-func (s *Action) showHandleOutput(ctx context.Context, name, key string, sec store.Secret) error {
+func (s *Action) showHandleOutput(ctx context.Context, name string, sec store.Secret) error {
 	var content string
+	var key string
+	if HasKey(ctx) {
+		key = GetKey(ctx)
+	}
 
 	switch {
 	case key != "":

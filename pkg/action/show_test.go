@@ -151,7 +151,7 @@ func TestShowHandleRevision(t *testing.T) {
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
 	c := cli.NewContext(app, fs, nil)
 
-	assert.NoError(t, act.showHandleRevision(ctx, c, "foo", "", "baz"))
+	assert.NoError(t, act.showHandleRevision(ctx, c, "foo", "baz"))
 	buf.Reset()
 }
 

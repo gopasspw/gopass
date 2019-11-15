@@ -79,7 +79,7 @@ func TestCopy(t *testing.T) {
 	assert.NoError(t, act.Copy(ctx, c))
 	buf.Reset()
 
-	assert.NoError(t, act.show(ctx, c, "zab/bam/zab", "", false))
+	assert.NoError(t, act.show(ctx, c, "zab/bam/zab", false))
 	assert.Equal(t, "barfoo\n", buf.String())
 	buf.Reset()
 }
