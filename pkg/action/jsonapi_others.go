@@ -62,6 +62,11 @@ func (s *Action) SetupNativeMessaging(ctx context.Context, c *cli.Context) error
 		return err
 	}
 
+	if os.Getenv("GNUPGHOME") != "" {
+		out.Yellow(ctx, "You seem to have GNUPGHOME set. If you intend to use the path in GNUPGHOME, you need to manually add:\n"+
+			"\n  export GNUPGHOME=/path/to/gpg-home\n\n to the wrapper script")
+	}
+
 	if err := os.MkdirAll(filepath.Dir(wrapperPath), 0755); err != nil {
 		return ExitError(ctx, ExitIO, err, "failed to create wrapper path: %s", err)
 	}
