@@ -98,6 +98,25 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 						},
 					},
 				},
+				{
+					Name:  "old",
+					Usage: "Detect old passwords",
+					Description: "" +
+						"This command uses the version control history to find the last time a password was modified. " +
+						"This is not completely accurate yet.  " +
+						"Old passwords are reported. ",
+					Before: func(c *cli.Context) error { return action.Initialized(withGlobalFlags(ctx, c), c) },
+					Action: func(c *cli.Context) error {
+						return action.Old(withGlobalFlags(ctx, c), c)
+					},
+					Flags: []cli.Flag{
+						cli.IntFlag{
+							Name:  "days, d",
+							Usage: "Number of days to define “old”",
+							Value: 30,
+						},
+					},
+				},
 			},
 		},
 		{
