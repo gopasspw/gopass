@@ -41,8 +41,6 @@ func formatFlagFunc(typ string) func(cli.Flag) (string, error) {
 		switch ft := f.(type) {
 		case *cli.BoolFlag:
 			return formatFlag(ft.Name, ft.Usage, typ), nil
-		case *cli.BoolTFlag:
-			return formatFlag(ft.Name, ft.Usage, typ), nil
 		case *cli.Float64Flag:
 			return formatFlag(ft.Name, ft.Usage, typ), nil
 		case *cli.GenericFlag:
