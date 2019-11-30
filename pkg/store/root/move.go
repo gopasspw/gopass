@@ -41,7 +41,7 @@ func (r *Store) move(ctx context.Context, from, to string, delete bool) error {
 	if err := r.moveFromTo(ctxFrom, ctxTo, subFrom, subTo, from, to, fromPrefix, srcIsDir, delete); err != nil {
 		return err
 	}
-	if err := subFrom.RCS().Commit(ctxFrom, fmt.Sprintf("Moved from %s to %s", from, to)); err != nil {
+	if err := subFrom.RCS().Commit(ctxFrom, fmt.Sprintf("Move from %s to %s", from, to)); err != nil {
 		switch errors.Cause(err) {
 		case store.ErrGitNotInit:
 			out.Debug(ctx, "reencrypt - skipping git commit - git not initialized")
@@ -50,7 +50,7 @@ func (r *Store) move(ctx context.Context, from, to string, delete bool) error {
 		}
 	}
 	if !subFrom.Equals(subTo) {
-		if err := subTo.RCS().Commit(ctxTo, fmt.Sprintf("Moved from %s to %s", from, to)); err != nil {
+		if err := subTo.RCS().Commit(ctxTo, fmt.Sprintf("Move from %s to %s", from, to)); err != nil {
 			switch errors.Cause(err) {
 			case store.ErrGitNotInit:
 				out.Debug(ctx, "reencrypt - skipping git commit - git not initialized")
@@ -133,7 +133,7 @@ func (r *Store) moveFromTo(ctxFrom, ctxTo context.Context, subFrom, subTo store.
 			return errors.Errorf("Source %s does not exist in source store %s: %s", from, subFrom.Alias(), err)
 		}
 
-		if err := r.Set(sub.WithReason(ctxTo, fmt.Sprintf("Moved from %s to %s", src, dst)), dst, content); err != nil {
+		if err := r.Set(sub.WithReason(ctxTo, fmt.Sprintf("Move from %s to %s", src, dst)), dst, content); err != nil {
 			return errors.Wrapf(err, "failed to save secret '%s'", to)
 		}
 
