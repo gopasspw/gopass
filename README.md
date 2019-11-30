@@ -105,7 +105,7 @@ gopass is developed in the open. Here are some of the channels we use to communi
 
 * IRC: #gopass on [irc.freenode.net](https://freenode.net) ([join via Riot](https://riot.im/app/#/room/#freenode_#gopass:matrix.org))
 * Usage mailing list: [gopass-users](https://groups.google.com/forum/#!forum/gopass-users), for discussions around gopass usage and community support
-* Issue tracker: Use the [GitHub issue tracker](https://github.com/gopasspw/gopass/issues) to file bugs and feature requests. If you need support, please send your questions to [gopass-user](https://groups.google.com/forum/#!forum/gopass-users) or ask on IRC rather than filing a GitHub issue.
+* Issue tracker: Use the [GitHub issue tracker](https://github.com/gopasspw/gopass/issues) to file bugs and feature requests. If you need support, please send your questions to [gopass-users](https://groups.google.com/forum/#!forum/gopass-users) or ask on IRC rather than filing a GitHub issue.
 
 ## Integrations
 
