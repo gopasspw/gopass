@@ -56,7 +56,7 @@ func TestGetCompletion(t *testing.T) {
 }
 
 func TestFormatflagFunc(t *testing.T) {
-	for _, flag := range []cli.Flag{
+	app := []cli.Flag{
 		cli.BoolFlag{Name: "foo", Usage: "bar"},
 		cli.Float64Flag{Name: "foo", Usage: "bar"},
 		cli.GenericFlag{Name: "foo", Usage: "bar"},
@@ -68,7 +68,8 @@ func TestFormatflagFunc(t *testing.T) {
 		cli.StringSliceFlag{Name: "foo", Usage: "bar"},
 		cli.Uint64Flag{Name: "foo", Usage: "bar"},
 		cli.UintFlag{Name: "foo", Usage: "bar"},
-	} {
+	}
+	for _, flag := range app {
 		sv, err := formatFlagFunc("short")(flag)
 		require.NoError(t, err)
 		assert.Equal(t, "", sv)

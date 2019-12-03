@@ -1,13 +1,13 @@
-// +build xc
-// +build gogit
-// +build consul
-
 package backend
 
 import (
 	"path/filepath"
 	"testing"
 
+	"github.com/gopasspw/gopass/pkg/backend"
+	_ "github.com/gopasspw/gopass/pkg/backend/crypto"
+	_ "github.com/gopasspw/gopass/pkg/backend/rcs"
+	_ "github.com/gopasspw/gopass/pkg/backend/storage"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -38,25 +38,25 @@ file:///tmp/foo -> gpgcli, gitcli, fs (using defaults)
 func TestURLStringXC(t *testing.T) {
 	for _, tc := range []struct {
 		name string
-		in   *URL
+		in   *backend.URL
 		out  string
 	}{
 		{
 			name: "xc+gogit",
-			in: &URL{
-				Crypto:  XC,
-				RCS:     GoGit,
-				Storage: FS,
+			in: &backend.URL{
+				Crypto:  backend.XC,
+				RCS:     backend.GoGit,
+				Storage: backend.FS,
 				Path:    "/tmp/foo",
 			},
 			out: "xc-gogit-fs+file:///tmp/foo",
 		},
 		{
 			name: "xc+consul",
-			in: &URL{
-				Crypto:  XC,
-				RCS:     Noop,
-				Storage: Consul,
+			in: &backend.URL{
+				Crypto:  backend.XC,
+				RCS:     backend.Noop,
+				Storage: backend.Consul,
 				Scheme:  "http",
 				Host:    "localhost",
 				Port:    "8500",
@@ -75,31 +75,31 @@ func TestParseSchemeXC(t *testing.T) {
 	for _, tc := range []struct {
 		Name    string
 		URL     string
-		Crypto  CryptoBackend
-		RCS     RCSBackend
-		Storage StorageBackend
+		Crypto  backend.CryptoBackend
+		RCS     backend.RCSBackend
+		Storage backend.StorageBackend
 		Path    string
 	}{
 		{
 			Name:    "XC+gogit+file",
 			URL:     "xc-gogit-fs+file:///tmp/foo",
-			Crypto:  XC,
-			RCS:     GoGit,
-			Storage: FS,
+			Crypto:  backend.XC,
+			RCS:     backend.GoGit,
+			Storage: backend.FS,
 		},
 		{
 			Name:    "XC+consul+http",
 			URL:     "xc-noop-consul+http://localhost:8500/api/v1/foo/bar?token=bla",
-			Crypto:  XC,
-			RCS:     Noop,
-			Storage: Consul,
+			Crypto:  backend.XC,
+			RCS:     backend.Noop,
+			Storage: backend.Consul,
 		},
 		{
 			Name:    "Homedir expansion",
 			URL:     "gpgcli-gitcli-fs+file://~/.local/share/password-store",
-			Crypto:  GPGCLI,
-			RCS:     GitCLI,
-			Storage: FS,
+			Crypto:  backend.GPGCLI,
+			RCS:     backend.GitCLI,
+			Storage: backend.FS,
 			Path:    filepath.Join(hd, ".local", "share", "password-store"),
 		},
 		//{
@@ -109,7 +109,7 @@ func TestParseSchemeXC(t *testing.T) {
 		//	Storage: Vault,
 		//},
 	} {
-		u, err := ParseURL(tc.URL)
+		u, err := backend.ParseURL(tc.URL)
 		require.NoError(t, err, tc.Name)
 		require.NotNil(t, u)
 		assert.NotNil(t, u, tc.Name)
@@ -123,7 +123,7 @@ func TestParseSchemeXC(t *testing.T) {
 }
 
 type testConfig struct {
-	Path *URL `yaml:"path"`
+	Path *backend.URL `yaml:"path"`
 }
 
 func TestUnmarshalYAMLXC(t *testing.T) {
@@ -139,10 +139,10 @@ func TestMarshalYAMLXC(t *testing.T) {
 	out := `path: xc-gogit-fs+file:///tmp/foo
 `
 	cfg := testConfig{
-		Path: &URL{
-			Crypto:  XC,
-			RCS:     GoGit,
-			Storage: FS,
+		Path: &backend.URL{
+			Crypto:  backend.XC,
+			RCS:     backend.GoGit,
+			Storage: backend.FS,
 			Path:    "/tmp/foo",
 		},
 	}

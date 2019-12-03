@@ -22,27 +22,27 @@ func formatFlag(name, usage string) string {
 func formatFlagFunc() func(cli.Flag) (string, error) {
 	return func(f cli.Flag) (string, error) {
 		switch ft := f.(type) {
-		case *cli.BoolFlag:
+		case cli.BoolFlag:
 			return formatFlag(ft.Name, ft.Usage), nil
-		case *cli.Float64Flag:
+		case cli.Float64Flag:
 			return formatFlag(ft.Name, ft.Usage), nil
-		case *cli.GenericFlag:
+		case cli.GenericFlag:
 			return formatFlag(ft.Name, ft.Usage), nil
-		case *cli.Int64Flag:
+		case cli.Int64Flag:
 			return formatFlag(ft.Name, ft.Usage), nil
-		case *cli.Int64SliceFlag:
+		case cli.Int64SliceFlag:
 			return formatFlag(ft.Name, ft.Usage), nil
-		case *cli.IntFlag:
+		case cli.IntFlag:
 			return formatFlag(ft.Name, ft.Usage), nil
-		case *cli.IntSliceFlag:
+		case cli.IntSliceFlag:
 			return formatFlag(ft.Name, ft.Usage), nil
-		case *cli.StringFlag:
+		case cli.StringFlag:
 			return formatFlag(ft.Name, ft.Usage), nil
-		case *cli.StringSliceFlag:
+		case cli.StringSliceFlag:
 			return formatFlag(ft.Name, ft.Usage), nil
-		case *cli.Uint64Flag:
+		case cli.Uint64Flag:
 			return formatFlag(ft.Name, ft.Usage), nil
-		case *cli.UintFlag:
+		case cli.UintFlag:
 			return formatFlag(ft.Name, ft.Usage), nil
 		default:
 			return "", fmt.Errorf("unknown type: '%T'", f)
