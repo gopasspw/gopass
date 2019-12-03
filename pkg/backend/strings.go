@@ -4,21 +4,21 @@ import "sort"
 
 var (
 	cryptoNameToBackendMap = map[string]CryptoBackend{
-		"Plain CryptoBackend": 0,
-		"GPGCLI":              1,
-		"XC":                  2,
-		"OpenPGP":             3,
-		"Vault":               4,
+		"plain":   0,
+		"gpgcli":  1,
+		"xc":      2,
+		"openpgp": 3,
+		"vault":   4,
 	}
 	rcsNameToBackendMap = map[string]RCSBackend{
-		"Noop RCSBackend": 0,
-		"GitCLI":          1,
-		"GoGit":           2,
+		"noop":   0,
+		"gitcli": 1,
+		"gogit":  2,
 	}
 	storageNameToBackendMap = map[string]StorageBackend{
-		"FS StorageBackend": 0,
-		"InMem":             1,
-		"Consul":            2,
+		"fs":     0,
+		"inmem":  1,
+		"consul": 2,
 	}
 
 	cryptoBackendToNameMap  = map[CryptoBackend]string{}
