@@ -1,4 +1,4 @@
-module github.com/acheron2302/gopass
+module github.com/gopass/gopass
 
 go 1.12
 
