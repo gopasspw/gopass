@@ -11,7 +11,7 @@ const (
 	name = "openpgp"
 )
 
-func init() {
+func Init() {
 	backend.RegisterCrypto(backend.OpenPGP, name, &loader{})
 }
 

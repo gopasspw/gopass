@@ -12,7 +12,7 @@ import (
 
 var debug bool
 
-func init() {
+func Init() {
 	if gdb := os.Getenv("GOPASS_DEBUG"); gdb != "" {
 		debug = true
 	}

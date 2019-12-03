@@ -16,7 +16,7 @@ const (
 	name = "consul"
 )
 
-func init() {
+func Init() {
 	backend.RegisterStorage(backend.Consul, name, &loader{})
 }
 

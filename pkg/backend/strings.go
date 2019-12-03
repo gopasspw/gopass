@@ -11,7 +11,7 @@ var (
 	storageBackendToNameMap = map[StorageBackend]string{}
 )
 
-func init() {
+func Init() {
 	for k, v := range cryptoNameToBackendMap {
 		cryptoBackendToNameMap[v] = k
 	}

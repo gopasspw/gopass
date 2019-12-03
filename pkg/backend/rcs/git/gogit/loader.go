@@ -11,7 +11,7 @@ const (
 	name = "gogit"
 )
 
-func init() {
+func Init() {
 	backend.RegisterRCS(backend.GoGit, name, &loader{})
 }
 

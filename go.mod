@@ -10,6 +10,7 @@ require (
 	github.com/Nvveen/Gotty v0.0.0-20120604004816-cd527374f1e5 // indirect
 	github.com/SAP/go-hdb v0.12.0 // indirect
 	github.com/SermoDigital/jose v0.0.0-20180104203859-803625baeddc // indirect
+	github.com/acheron2302/gopass v1.8.6 // indirect
 	github.com/alecthomas/binary v0.0.0-20190922233330-fb1b1d9c299c
 	github.com/armon/go-metrics v0.0.0-20190430140413-ec5e00d3c878 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20180319081651-7d2e70ef918f // indirect
