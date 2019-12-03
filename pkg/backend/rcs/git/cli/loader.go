@@ -11,7 +11,7 @@ const (
 	name = "gitcli"
 )
 
-func Init() {
+func init() {
 	backend.RegisterRCS(backend.GitCLI, name, &loader{})
 }
 

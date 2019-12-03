@@ -13,7 +13,7 @@ const (
 	name = "xc"
 )
 
-func Init() {
+func init() {
 	backend.RegisterCrypto(backend.XC, name, &loader{})
 }
 

@@ -27,7 +27,7 @@ const (
 	CharAll = digits + upper + lower + syms
 )
 
-func Init() {
+func init() {
 	// seed math/rand in case we have to fall back to using it
 	rand.Seed(time.Now().Unix() + int64(os.Getpid()+os.Getppid()))
 }

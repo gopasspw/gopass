@@ -3,15 +3,30 @@ package backend
 import "sort"
 
 var (
-	cryptoNameToBackendMap  = map[string]CryptoBackend{}
+	cryptoNameToBackendMap = map[string]CryptoBackend{
+		"Plain CryptoBackend": 0,
+		"GPGCLI":              1,
+		"XC":                  2,
+		"OpenPGP":             3,
+		"Vault":               4,
+	}
+	rcsNameToBackendMap = map[string]RCSBackend{
+		"Noop RCSBackend": 0,
+		"GitCLI":          1,
+		"GoGit":           2,
+	}
+	storageNameToBackendMap = map[string]StorageBackend{
+		"FS StorageBackend": 0,
+		"InMem":             1,
+		"Consul":            2,
+	}
+
 	cryptoBackendToNameMap  = map[CryptoBackend]string{}
-	rcsNameToBackendMap     = map[string]RCSBackend{}
 	rcsBackendToNameMap     = map[RCSBackend]string{}
-	storageNameToBackendMap = map[string]StorageBackend{}
 	storageBackendToNameMap = map[StorageBackend]string{}
 )
 
-func Init() {
+func init() {
 	for k, v := range cryptoNameToBackendMap {
 		cryptoBackendToNameMap[v] = k
 	}

@@ -11,7 +11,7 @@ const (
 	name = "fs"
 )
 
-func Init() {
+func init() {
 	backend.RegisterStorage(backend.FS, name, &loader{})
 }
 
