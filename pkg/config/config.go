@@ -17,7 +17,7 @@ var (
 	debug              = false
 )
 
-func Init() {
+func init() {
 	if gdb := os.Getenv("GOPASS_DEBUG"); gdb != "" {
 		debug = true
 	}
