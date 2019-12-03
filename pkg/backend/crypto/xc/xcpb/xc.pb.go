@@ -303,7 +303,7 @@ func (m *Pubring) GetPublicKeys() []*PublicKey {
 	return nil
 }
 
-func init() {
+func Init() {
 	proto.RegisterType((*Header)(nil), "xcpb.Header")
 	proto.RegisterType((*Chunk)(nil), "xcpb.Chunk")
 	proto.RegisterType((*Message)(nil), "xcpb.Message")
@@ -315,7 +315,7 @@ func init() {
 	proto.RegisterEnum("xcpb.PublicKeyAlgorithm", PublicKeyAlgorithm_name, PublicKeyAlgorithm_value)
 }
 
-func init() { proto.RegisterFile("xc.proto", fileDescriptor0) }
+func Init() { proto.RegisterFile("xc.proto", fileDescriptor0) }
 
 var fileDescriptor0 = []byte{
 	// 525 bytes of a gzipped FileDescriptorProto

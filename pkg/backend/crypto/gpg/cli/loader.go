@@ -12,7 +12,7 @@ const (
 	name = "gpgcli"
 )
 
-func init() {
+func Init() {
 	backend.RegisterCrypto(backend.GPGCLI, name, &loader{})
 }
 

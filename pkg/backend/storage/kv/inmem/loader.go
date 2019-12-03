@@ -10,7 +10,7 @@ const (
 	name = "inmem"
 )
 
-func init() {
+func Init() {
 	backend.RegisterStorage(backend.InMem, name, &loader{})
 }
 

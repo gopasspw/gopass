@@ -10,7 +10,7 @@ const (
 	name = "noop"
 )
 
-func init() {
+func Init() {
 	backend.RegisterRCS(backend.Noop, name, &loader{})
 }
 

@@ -11,7 +11,7 @@ const (
 	name = "plain"
 )
 
-func init() {
+func Init() {
 	backend.RegisterCrypto(backend.Plain, name, &loader{})
 }
 
