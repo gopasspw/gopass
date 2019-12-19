@@ -9,7 +9,7 @@ before_install:
   - git config --global user.email foo.bar@example.org
 
 go:
-  - '1.11.x'
+  - '1.13.x'
 
 script:
   - make travis
