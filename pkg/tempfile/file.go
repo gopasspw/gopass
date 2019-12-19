@@ -12,7 +12,7 @@ import (
 )
 
 // globalPrefix is prefixed to all temporary dirs
-var globalPrefix string = ""
+var globalPrefix string
 
 // File is a temporary file
 type File struct {

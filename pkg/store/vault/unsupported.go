@@ -121,3 +121,8 @@ func (s *Store) ListRevisions(context.Context, string) ([]backend.Revision, erro
 func (s *Store) Fsck(ctx context.Context, prefix string) error {
 	return nil
 }
+
+// GitStatus is unsupported
+func (s *Store) GitStatus(context.Context, string) error {
+	return fmt.Errorf("not supported")
+}
