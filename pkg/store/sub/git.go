@@ -53,3 +53,13 @@ func (s *Store) GetRevision(ctx context.Context, name, revision string) (store.S
 	}
 	return sec, nil
 }
+
+// GitStatus shows the git status output
+func (s *Store) GitStatus(ctx context.Context, _ string) error {
+	buf, err := s.rcs.Status(ctx)
+	if err != nil {
+		return err
+	}
+	out.Print(ctx, string(buf))
+	return nil
+}

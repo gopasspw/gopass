@@ -81,3 +81,8 @@ func (g *Noop) Revisions(context.Context, string) ([]backend.Revision, error) {
 func (g *Noop) GetRevision(context.Context, string, string) ([]byte, error) {
 	return []byte(""), nil
 }
+
+// Status is not implemented
+func (g *Noop) Status(context.Context) ([]byte, error) {
+	return []byte(""), nil
+}

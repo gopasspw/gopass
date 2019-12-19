@@ -309,3 +309,8 @@ func (g *Git) Revisions(context.Context, string) ([]backend.Revision, error) {
 func (g *Git) GetRevision(context.Context, string, string) ([]byte, error) {
 	return nil, fmt.Errorf("not yet implemented for %s", g.Name())
 }
+
+// Status is not implemented
+func (g *Git) Status(context.Context) ([]byte, error) {
+	return nil, fmt.Errorf("not yet implemented for %s", g.Name())
+}

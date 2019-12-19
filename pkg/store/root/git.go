@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/gopasspw/gopass/pkg/backend"
+	"github.com/gopasspw/gopass/pkg/out"
 	"github.com/gopasspw/gopass/pkg/store"
 
 	"github.com/blang/semver"
@@ -69,4 +70,11 @@ func (r *Store) ListRevisions(ctx context.Context, name string) ([]backend.Revis
 func (r *Store) GetRevision(ctx context.Context, name, revision string) (store.Secret, error) {
 	ctx, store, name := r.getStore(ctx, name)
 	return store.GetRevision(ctx, name, revision)
+}
+
+// GitStatus show the git status
+func (r *Store) GitStatus(ctx context.Context, name string) error {
+	ctx, store, name := r.getStore(ctx, name)
+	out.Cyan(ctx, "Store: %s", store.Path())
+	return store.GitStatus(ctx, name)
 }
