@@ -11,6 +11,7 @@ const (
 	ctxKeyPrintQR
 	ctxKeyRevision
 	ctxKeyKey
+	ctxKeyOnlyClip
 )
 
 // WithClip returns a context with the value for clip (for copy to clipboard)
@@ -22,6 +23,21 @@ func WithClip(ctx context.Context, clip bool) context.Context {
 // IsClip returns the value of clip or the default (false)
 func IsClip(ctx context.Context) bool {
 	bv, ok := ctx.Value(ctxKeyClip).(bool)
+	if !ok {
+		return false
+	}
+	return bv
+}
+
+// WithOnlyClip returns a context with the value for clip (for copy to clipboard)
+// set
+func WithOnlyClip(ctx context.Context, clip bool) context.Context {
+	return context.WithValue(ctx, ctxKeyOnlyClip, clip)
+}
+
+// IsOnlyClip returns the value of clip or the default (false)
+func IsOnlyClip(ctx context.Context) bool {
+	bv, ok := ctx.Value(ctxKeyOnlyClip).(bool)
 	if !ok {
 		return false
 	}

@@ -73,6 +73,10 @@ func setupApp(ctx context.Context, sv semver.Version) *cli.App {
 			Name:  "clip, c",
 			Usage: "Copy the first line of the secret into the clipboard",
 		},
+		cli.BoolFlag{
+			Name:  "alsoclip, C",
+			Usage: "Copy the first line of the secret into the clipboard and show everything",
+		},
 	}
 
 	app.Commands = getCommands(ctx, action, app)
