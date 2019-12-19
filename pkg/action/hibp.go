@@ -34,7 +34,7 @@ func (s *Action) HIBP(ctx context.Context, c *cli.Context) error {
 }
 
 func (s *Action) hibpAPI(ctx context.Context, force bool) error {
-	if !force && !termio.AskForConfirmation(ctx, fmt.Sprintf("This command is checking all your secrets against the haveibeenpwned.com API.\n\nThis will send five bytes of each passwords SHA1 hash to an untrusted server!\n\nYou will be asked to unlock all your secrets!\nDo you want to continue?")) {
+	if !force && !termio.AskForConfirmation(ctx, "This command is checking all your secrets against the haveibeenpwned.com API.\n\nThis will send five bytes of each passwords SHA1 hash to an untrusted server!\n\nYou will be asked to unlock all your secrets!\nDo you want to continue?") {
 		return ExitError(ctx, ExitAborted, nil, "user aborted")
 	}
 
