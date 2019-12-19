@@ -24,9 +24,10 @@ The slightly more awesome Standard Unix Password Manager for Teams. Written in G
 6. [Credit & License](#credit-&-license)
 7. [Community](#community)
 8. [Integrations](#integrations)
-9. [Contributing](#contributing)
-10. [Acknowledgements](#acknowledgements)
-11. [Further Documentation](#further-documentation)
+9. [Mobile apps](#mobile-apps)
+10. [Contributing](#contributing)
+11. [Acknowledgements](#acknowledgements)
+12. [Further Documentation](#further-documentation)
 
 ## Abstract
 
@@ -112,6 +113,11 @@ gopass is developed in the open. Here are some of the channels we use to communi
 - [gopassbridge](https://github.com/gopasspw/gopassbridge): Browser plugin for Firefox, Chrome and other Chromium based browsers
 - [kubectl gopass](https://github.com/gopasspw/kubectl-gopass): Kubernetes / kubectl plugin to support reading and writing secrets directly from/to gopass.
 - [gopass alfred](https://github.com/gopasspw/gopass-alfred): Alfred workflow to use gopass from the Alfred Mac launcher
+
+## Mobile apps
+
+- [Pass - Password Store](https://apps.apple.com/us/app/pass-password-store/id1205820573) - iOS, [source code](https://github.com/mssun/passforios), [supports only 1 repository now](https://github.com/mssun/passforios/issues/88)
+- [Password Store](https://play.google.com/store/apps/details?id=com.zeapo.pwdstore) - Android
 
 ## Contributing
 
