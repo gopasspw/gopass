@@ -1060,6 +1060,10 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []*cli.Co
 					Usage:   "Copy the first line of the secret into the clipboard",
 				},
 				&cli.BoolFlag{
+					Name:  "alsoclip, C",
+					Usage: "Copy the first line of the secret and show everything",
+				},
+				&cli.BoolFlag{
 					Name:  "qr",
 					Usage: "Print the first line of the secret as QR Code",
 				},
