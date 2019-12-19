@@ -107,7 +107,7 @@ You will be presented with several options:
 * A comment is not necessary.
 * Pass phrase: Make sure to pick a very long pass phrase, not just a simple password. Remember this should be stronger than any of the secrets you store in the password store. You can configure the GPG Agent later to save you repetitive typing.
 
-Now, you have created a public and private key pair. If you don't know what that means, of if you are not familiar with GPG, we highly recommend you do a little reading on the subject. Check out the following manuals:
+Now, you have created a public and private key pair. If you don't know what that means, or if you are not familiar with GPG, we highly recommend you do a little reading on the subject. Check out the following manuals:
 
 * ["git + gpg, know thy commits" at coderwall](https://coderwall.com/p/d3uo3w/git-gpg-know-thy-commits)
 * ["Generating a new GPG key" by GitHub](https://help.github.com/articles/generating-a-new-gpg-key/)
