@@ -81,6 +81,21 @@ func (r *Store) Tree(ctx context.Context) (tree.Tree, error) {
 	return root, nil
 }
 
+// HasSubDirs returns true if the named entity has subdirectories
+func (r *Store) HasSubDirs(ctx context.Context, name string) (bool, error) {
+	ctx, sub, prefix := r.getStore(ctx, name)
+	entries, err := sub.List(ctx, prefix)
+	if err != nil {
+		return false, err
+	}
+	for _, e := range entries {
+		if sub.IsDir(ctx, e) {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
 // Format will pretty print all entries in this store and all substores
 func (r *Store) Format(ctx context.Context, maxDepth int) (string, error) {
 	t, err := r.Tree(ctx)
