@@ -69,15 +69,28 @@ If you have [Go](https://golang.org/) 1.12 (or greater) installed:
 ```bash
 go get github.com/gopasspw/gopass
 ```
+If you get error like [this](https://github.com/gopasspw/gopass/issues/1214).
+Please install with git by follow the step bellow:
+
+Make sure $GOPATH is set. If not follow this [Guide](https://github.com/golang/go/wiki/SettingGOPATH)
+
+Copy and paste this script into your shell
+```bash
+git clone https://github.com/gopasspw/gopass.git $GOPATH/src/github.com/gopasspw/gopass
+cd $GOPATH/src/github.com/gopasspw/gopass
+make install
+```
 
 Otherwise, please see [docs/setup.md](https://github.com/gopasspw/gopass/blob/master/docs/setup.md).
 
 
 ## Upgrade
 
-To upgrade with Go installed, run:
+To upgrade with Git installed, run:
 ```bash
-go get -u github.com/gopasspw/gopass
+cd $GOPATH/src/github.com/gopasspw/gopass
+git pull
+make install
 ```
 
 Otherwise, use the setup docs mentioned in the installation section to reinstall the latest version.
