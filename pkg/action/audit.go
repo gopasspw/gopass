@@ -6,7 +6,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/audit"
 	"github.com/gopasspw/gopass/pkg/out"
 
-	"github.com/urfave/cli"
+	"gopkg.in/urfave/cli.v1"
 )
 
 // Audit validates passwords against common flaws

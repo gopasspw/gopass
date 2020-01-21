@@ -12,7 +12,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/agent/client"
 	"github.com/gopasspw/gopass/pkg/config"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"github.com/urfave/cli"
+	"gopkg.in/urfave/cli.v1"
 )
 
 func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Command {

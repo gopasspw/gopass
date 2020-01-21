@@ -6,7 +6,7 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/urfave/cli"
+	"gopkg.in/urfave/cli.v1"
 )
 
 func longName(name string) string {

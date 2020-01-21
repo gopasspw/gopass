@@ -11,7 +11,7 @@ import (
 	zshcomp "github.com/gopasspw/gopass/pkg/completion/zsh"
 	"github.com/gopasspw/gopass/pkg/out"
 
-	"github.com/urfave/cli"
+	"gopkg.in/urfave/cli.v1"
 )
 
 var escapeRegExp = regexp.MustCompile(`(\s|\(|\)|\<|\>|\&|\;|\#|\\|\||\*|\?)`)

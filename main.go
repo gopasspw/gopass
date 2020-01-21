@@ -19,7 +19,7 @@ import (
 	"github.com/blang/semver"
 	"github.com/fatih/color"
 	colorable "github.com/mattn/go-colorable"
-	"github.com/urfave/cli"
+	"gopkg.in/urfave/cli.v1"
 )
 
 const (

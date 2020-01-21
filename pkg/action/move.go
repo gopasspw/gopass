@@ -6,7 +6,7 @@ import (
 
 	"github.com/gopasspw/gopass/pkg/termio"
 
-	"github.com/urfave/cli"
+	"gopkg.in/urfave/cli.v1"
 )
 
 // Move the content from one secret to another

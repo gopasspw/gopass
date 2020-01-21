@@ -12,7 +12,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/termio"
 
 	"github.com/blang/semver"
-	"github.com/urfave/cli"
+	"gopkg.in/urfave/cli.v1"
 )
 
 func setupApp(ctx context.Context, sv semver.Version) *cli.App {

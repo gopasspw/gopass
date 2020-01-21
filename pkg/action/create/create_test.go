@@ -16,7 +16,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/termio"
 	"github.com/gopasspw/gopass/tests/mockstore"
 	"github.com/stretchr/testify/assert"
-	"github.com/urfave/cli"
+	"gopkg.in/urfave/cli.v1"
 )
 
 func TestExtractHostname(t *testing.T) {

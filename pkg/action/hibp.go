@@ -15,7 +15,7 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/muesli/goprogressbar"
-	"github.com/urfave/cli"
+	"gopkg.in/urfave/cli.v1"
 )
 
 // HIBP compares all entries from the store against the provided SHA1 sum dumps

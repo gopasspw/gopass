@@ -16,7 +16,7 @@ import (
 	"github.com/gokyle/twofactor"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/urfave/cli"
+	"gopkg.in/urfave/cli.v1"
 )
 
 func TestOTP(t *testing.T) {

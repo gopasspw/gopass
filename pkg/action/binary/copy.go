@@ -14,7 +14,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/store/sub"
 
 	"github.com/pkg/errors"
-	"github.com/urfave/cli"
+	"gopkg.in/urfave/cli.v1"
 )
 
 // Copy copies either from the filesystem to the store or from the store

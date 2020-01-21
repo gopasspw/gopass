@@ -7,7 +7,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/out"
 
 	"github.com/fatih/color"
-	"github.com/urfave/cli"
+	"gopkg.in/urfave/cli.v1"
 )
 
 // Grep searches a string inside the content of all files
