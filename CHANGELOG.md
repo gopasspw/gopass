@@ -1,3 +1,7 @@
+## 1.8.7
+
+[ENHANCEMENT] Change from Gopkg to go.mod
+
 ## 1.8.6 / 2019-07-26
 
 * [ENHANCEMENT] Add --password to otp command [#1150]
