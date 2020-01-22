@@ -1,6 +1,7 @@
 ## 1.8.7
 
 * [ENHANCEMENT] Change from Gopkg to go.mod
+* [BUGFIX] Fix cannot install with go get [#1214]
 
 
 ## 1.8.6 / 2019-07-26
