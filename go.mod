@@ -7,7 +7,6 @@ require (
 	github.com/atotto/clipboard v0.1.2
 	github.com/blang/semver v0.0.0-20190414182527-1a9109f8c4a1
 	github.com/cenkalti/backoff v2.2.1+incompatible
-	github.com/cpuguy83/go-md2man/v2 v2.0.0 // indirect
 	github.com/dominikschulz/github-releases v0.0.0-20171016132906-7635b43b2447
 	github.com/fatih/color v1.7.0
 	github.com/frankban/quicktest v1.4.1 // indirect
@@ -55,7 +54,7 @@ require (
 	golang.org/x/time v0.0.0-20191024005414-555d28b269f0 // indirect
 	gopkg.in/square/go-jose.v2 v2.4.1 // indirect
 	gopkg.in/src-d/go-git.v4 v4.13.1
-	gopkg.in/urfave/cli.v1 v1.20.0 // indirect
+	gopkg.in/urfave/cli.v1 v1.20.0
 	gopkg.in/yaml.v2 v2.2.7
 	rsc.io/qr v0.2.0 // indirect
 )
