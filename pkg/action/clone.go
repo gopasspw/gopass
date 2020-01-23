@@ -14,7 +14,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/termio"
 
 	"github.com/fatih/color"
-	"github.com/urfave/cli"
+	"gopkg.in/urfave/cli.v1"
 )
 
 // Clone will fetch and mount a new password store from a git repo

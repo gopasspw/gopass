@@ -6,7 +6,7 @@ import (
 
 	"github.com/gopasspw/gopass/pkg/termio"
 
-	"github.com/urfave/cli"
+	"gopkg.in/urfave/cli.v1"
 )
 
 // Copy the contents of a file to another one

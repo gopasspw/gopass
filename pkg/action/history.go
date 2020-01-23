@@ -6,7 +6,7 @@ import (
 
 	"github.com/gopasspw/gopass/pkg/out"
 
-	"github.com/urfave/cli"
+	"gopkg.in/urfave/cli.v1"
 )
 
 // History displays the history of a given secret

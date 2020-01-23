@@ -11,7 +11,7 @@ import (
 	"github.com/blang/semver"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/stretchr/testify/assert"
-	"github.com/urfave/cli"
+	"gopkg.in/urfave/cli.v1"
 )
 
 func TestGlobalFlags(t *testing.T) {

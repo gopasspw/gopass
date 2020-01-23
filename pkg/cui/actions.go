@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/urfave/cli"
+	"gopkg.in/urfave/cli.v1"
 )
 
 // Action is a action which can be selected

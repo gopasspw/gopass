@@ -14,7 +14,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/termio"
 
 	"github.com/fatih/color"
-	"github.com/urfave/cli"
+	"gopkg.in/urfave/cli.v1"
 )
 
 // SetupNativeMessaging sets up manifest for gopass as native messaging host

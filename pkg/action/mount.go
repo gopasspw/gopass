@@ -13,7 +13,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/fatih/color"
-	"github.com/urfave/cli"
+	"gopkg.in/urfave/cli.v1"
 )
 
 // MountRemove removes an existing mount
