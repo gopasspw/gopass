@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/gopasspw/gopass/pkg/cui"
-	"github.com/urfave/cli"
+	"gopkg.in/urfave/cli.v1"
 )
 
 // ConfirmRecipients asks the user to confirm a given set of recipients

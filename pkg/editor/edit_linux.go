@@ -6,7 +6,7 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/urfave/cli"
+	"gopkg.in/urfave/cli.v1"
 )
 
 // Path return the name/path of the preferred editor

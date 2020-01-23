@@ -19,7 +19,7 @@ import (
 	"github.com/blang/semver"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/urfave/cli"
+	"gopkg.in/urfave/cli.v1"
 )
 
 func aGitRepo(ctx context.Context, u *gptest.Unit, t *testing.T, name string) string {
