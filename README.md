@@ -117,7 +117,7 @@ gopass is developed in the open. Here are some of the channels we use to communi
 ## Mobile apps
 
 - [Pass - Password Store](https://apps.apple.com/us/app/pass-password-store/id1205820573) - iOS, [source code](https://github.com/mssun/passforios), [supports only 1 repository now](https://github.com/mssun/passforios/issues/88)
-- [Password Store](https://play.google.com/store/apps/details?id=com.zeapo.pwdstore) - Android
+- [Password Store](https://play.google.com/store/apps/details?id=dev.msfjarvis.aps) - Android
 
 ## Contributing
 
