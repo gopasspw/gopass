@@ -21,6 +21,9 @@ func clearClipboardHistory(ctx context.Context) error {
 		if strings.HasPrefix(call.Err.Error(), "The name org.kde.klipper was not provided") {
 			return nil
 		}
+		if strings.HasPrefix(call.Err.Error(), "The name is not activatable") {
+			return nil
+		}
 		return call.Err
 	}
 
