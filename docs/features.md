@@ -88,7 +88,7 @@ gopass clone git@example.com/pass-work.git work # This will initialize the passw
 
 Please note that all cloned repositories must already have been initialized with gopass. (See the previous section for more details.)
 
-Note too that unless you are already a recipient of the cloned repository, you must add a the destination's public GPG key as a recipient to the existing store.
+Note too that unless you are already a recipient of the cloned repository, you must add the destination's public GPG key as a recipient to the existing store.
 
 ### Adding Secrets
 
