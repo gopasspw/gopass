@@ -367,6 +367,10 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []cli.Com
 					Name:  "clip, c",
 					Usage: "Copy the password into the clipboard",
 				},
+				cli.BoolFlag{
+					Name:  "force, f",
+					Usage: "In the case of an exact match, display the password even if safecontent is enabled",
+				},
 			},
 		},
 		{

@@ -55,6 +55,48 @@ func TestFind(t *testing.T) {
 	assert.Equal(t, "Found exact match in 'foo'\nsecret", strings.TrimSpace(buf.String()))
 	buf.Reset()
 
+	// testing the safecontent case
+	ctx = ctxutil.WithShowSafeContent(ctx, true)
+	assert.NoError(t, act.Find(ctx, c))
+	out := strings.TrimSpace(buf.String())
+	assert.Contains(t, out, "Found exact match in 'foo'")
+	assert.Contains(t, out, "with -f")
+	assert.Contains(t, out, "Copying password instead.")
+	buf.Reset()
+
+	// testing with the clip flag set
+	bf := cli.BoolFlag{
+		Name:  "clip",
+		Usage: "clip",
+	}
+	assert.NoError(t, bf.ApplyWithError(fs))
+	assert.NoError(t, fs.Parse([]string{"-clip", "fo"}))
+	c = cli.NewContext(app, fs, nil)
+
+	assert.NoError(t, act.Find(ctx, c))
+	out = strings.TrimSpace(buf.String())
+	assert.Contains(t, out, "Found exact match in 'foo'")
+	assert.NotContains(t, out, "Copying password instead.")
+	buf.Reset()
+
+	// safecontent case with force flag set
+	fs = flag.NewFlagSet("default", flag.ContinueOnError)
+	bf = cli.BoolFlag{
+		Name:  "force",
+		Usage: "force",
+	}
+	assert.NoError(t, bf.ApplyWithError(fs))
+	assert.NoError(t, fs.Parse([]string{"-force", "fo"}))
+	c = cli.NewContext(app, fs, nil)
+
+	assert.NoError(t, act.Find(ctx, c))
+	out = strings.TrimSpace(buf.String())
+	assert.Contains(t, out, "Found exact match in 'foo'\nsecret")
+	buf.Reset()
+
+	// stopping with the safecontent tests
+	ctx = ctxutil.WithShowSafeContent(ctx, false)
+
 	// find yo
 	fs = flag.NewFlagSet("default", flag.ContinueOnError)
 	assert.NoError(t, fs.Parse([]string{"yo"}))

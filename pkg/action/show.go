@@ -117,7 +117,8 @@ func (s *Action) showHandleOutput(ctx context.Context, name string, sec store.Se
 			content = sec.Body()
 			if content == "" {
 				if ctxutil.IsAutoClip(ctx) {
-					out.Yellow(ctx, "No safe content to display, you can force display with show -f.\nCopying password instead.")
+					out.Yellow(ctx, "Info: %s.", store.ErrNoBody.Error())
+					out.Yellow(ctx, "Copying password instead.")
 					return clipboard.CopyTo(ctx, name, []byte(sec.Password()))
 				}
 				return ExitError(ctx, ExitNotFound, store.ErrNoBody, store.ErrNoBody.Error())

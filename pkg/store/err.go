@@ -22,7 +22,7 @@ var (
 	// ErrGitNothingToCommit is returned if there are no staged changes
 	ErrGitNothingToCommit = errors.Errorf("git has nothing to commit")
 	// ErrNoBody is returned if a secret exists but has no content beyond a password
-	ErrNoBody = errors.Errorf("no safe content to display, you can force display with show -f")
+	ErrNoBody = errors.Errorf("no safe content to display, you can force display with -f")
 	// ErrNoPassword is returned is a secret exists but has no password, only a body
 	ErrNoPassword = errors.Errorf("no password to display")
 	// ErrYAMLNoMark is returned if a secret contains no valid YAML document marker

@@ -35,7 +35,8 @@ func TestShow(t *testing.T) {
 
 	out, err = ts.run("show fixed/secret")
 	assert.NoError(t, err)
-	assert.Contains(t, out, "safe content to display, you can force display with show -f.\nCopying password instead.")
+	assert.Contains(t, out, "safe content to display, you can force display with -f.")
+	assert.Contains(t, out, "Copying password instead.")
 
 	_, err = ts.run("config autoclip false")
 	assert.NoError(t, err)
