@@ -164,7 +164,7 @@ First you need to add our archive signing key and add the package source.
 
 ```bash
 wget -q -O- https://api.bintray.com/orgs/gopasspw/keys/gpg/public.key | sudo apt-key add -
-echo "deb https://dl.bintray.com/gopasspw/gopass trusty main" | sudo tee /etc/apt/sources.list.d/gopass.list
+echo "deb https://dl.bintray.com/gopasspw/gopass buster main" | sudo tee /etc/apt/sources.list.d/gopass.list
 ```
 
 The fingerprint of the repository key `4096R/81C083D4` is `C396 F836 273B 06BD C4A5  7334 22C4 6056 81C0 83D4`.
