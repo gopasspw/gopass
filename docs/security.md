@@ -55,10 +55,10 @@ Please keep in mind that by default, gopass stores its encrypted secrets in git.
 *This is a deviation from the behavior of `pass`, which does not force you to use `git`.* This has important implications.
 
 First, it means that every user of gopass (and any attacker with access to your git repo) has a local copy with the full history.
-If we revoke access to a store from a user and re-encrypt the whole store, this user won't be able to access any *changed* or *added* secrets -- but he'll be always able to access 
+If we revoke access to a store from a user and re-encrypt the whole store, this user won't be able to access any *changed* or *added* secrets -- but they'll always be able to access
 secrets by checking out old revisions from the repository.
 
-**If you revoke access from a user you SHOULD change all secrets he had access to!**
+**If you revoke access from a user you SHOULD change all secrets they had access to!**
 
 ## Private Keys Required
 
