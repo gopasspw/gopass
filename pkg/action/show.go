@@ -8,6 +8,7 @@ import (
 
 	"github.com/gopasspw/gopass/pkg/clipboard"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/notify"
 	"github.com/gopasspw/gopass/pkg/out"
 	"github.com/gopasspw/gopass/pkg/qrcon"
 	"github.com/gopasspw/gopass/pkg/store"
@@ -139,10 +140,19 @@ func (s *Action) showHandleOutput(ctx context.Context, name string, sec store.Se
 // showHandleError handles errors retrieving secrets
 func (s *Action) showHandleError(ctx context.Context, c *cli.Context, name string, recurse bool, err error) error {
 	if err != store.ErrNotFound || !recurse || !ctxutil.IsTerminal(ctx) {
+		if IsClip(ctx) {
+			_ = notify.Notify(ctx, "gopass - error", fmt.Sprintf("failed to retrieve secret '%s': %s", name, err))
+		}
 		return ExitError(ctx, ExitUnknown, err, "failed to retrieve secret '%s': %s", name, err)
+	}
+	if IsClip(ctx) {
+		_ = notify.Notify(ctx, "gopass - warning", fmt.Sprintf("Entry '%s' not found. Starting search...", name))
 	}
 	out.Yellow(ctx, "Entry '%s' not found. Starting search...", name)
 	if err := s.Find(ctx, c); err != nil {
+		if IsClip(ctx) {
+			_ = notify.Notify(ctx, "gopass - error", fmt.Sprintf("%s", err))
+		}
 		return ExitError(ctx, ExitNotFound, err, "%s", err)
 	}
 	os.Exit(ExitNotFound)
