@@ -40,6 +40,10 @@ github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/dominikschulz/github-releases v0.0.0-20171016132906-7635b43b2447 h1:zfNSuQsjvXoQ+hn1H77odNnbtWTpImr+sSttFDIu7Fg=
 github.com/dominikschulz/github-releases v0.0.0-20171016132906-7635b43b2447/go.mod h1:uByjb2frn7tRe9DiPHBk5TdhI1SmZEZKgMNrrIlIT04=
+github.com/doronbehar/gocui v0.4.2 h1:+AHsDFIRw5PWLmacZ2PrI+QO/oQjsxQxvfCLa5PKBh4=
+github.com/doronbehar/gocui v0.4.2/go.mod h1:SPN6Sdf/CKBk1xtxbjSkD9tmQM4BJO2vZedMJa+rOkA=
+github.com/doronbehar/termbox-go v0.0.0-20191006141301-8c9470559e05 h1:pmXx7j8+mmkFJB2+qoB1C/Mz8SWvMlHTxSWOptJrr7E=
+github.com/doronbehar/termbox-go v0.0.0-20191006141301-8c9470559e05/go.mod h1:cHYbFQiZNC8LPG6clYoLMKAl0xx7KR75RPsHtG/f1Hk=
 github.com/emirpasic/gods v1.12.0 h1:QAUIPSaCu4G+POclxeqb3F+WPpdKqFGlw36+yOzGlrg=
 github.com/emirpasic/gods v1.12.0/go.mod h1:YfzfFFoVP/catgzJb4IKIqXjX78Ha8FMSDh3ymbK86o=
 github.com/fatih/color v1.7.0 h1:DkWD4oS2D8LGGgTQ6IvwJJXSL5Vp2ffcQg58nFV38Ys=
@@ -197,6 +201,8 @@ github.com/mattn/go-runewidth v0.0.4 h1:2BvfKmzob6Bmd4YsL0zygOqfdFnK7GR4QL06Do4/
 github.com/mattn/go-runewidth v0.0.4/go.mod h1:LwmH8dsx7+W8Uxz3IHJYH5QSwggIsqBzpuz5H//U1FU=
 github.com/mattn/go-runewidth v0.0.7 h1:Ei8KR0497xHyKJPAv59M1dkC+rOZCMBJ+t3fZ+twI54=
 github.com/mattn/go-runewidth v0.0.7/go.mod h1:H031xJmbD/WCDINGzjvQ9THkh0rPKHF+m2gUSrubnMI=
+github.com/mattn/go-runewidth v0.0.9 h1:Lm995f3rfxdpd6TSmuVCHVb/QhupuXlYr8sCI/QdE+0=
+github.com/mattn/go-runewidth v0.0.9/go.mod h1:H031xJmbD/WCDINGzjvQ9THkh0rPKHF+m2gUSrubnMI=
 github.com/matttproud/golang_protobuf_extensions v1.0.1/go.mod h1:D8He9yQNgCq6Z5Ld7szi9bcBfOoFv/3dc6xSMkL2PC0=
 github.com/miekg/dns v1.0.14 h1:9jZdLNd/P4+SfEJ0TNyxYpsK8N4GtfylBLqtbYN1sbA=
 github.com/miekg/dns v1.0.14/go.mod h1:W1PPwlIAgtquWBMBEV9nkV9Cazfe8ScdGz/Lj7v3Nrg=

@@ -11,7 +11,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/termwiz"
 
 	"github.com/fatih/color"
-	"github.com/jroimartin/gocui"
+	"github.com/doronbehar/gocui"
 )
 
 type selection struct {

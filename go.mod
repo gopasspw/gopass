@@ -9,6 +9,7 @@ require (
 	github.com/cenkalti/backoff v2.2.1+incompatible
 	github.com/cpuguy83/go-md2man/v2 v2.0.0 // indirect
 	github.com/dominikschulz/github-releases v0.0.0-20171016132906-7635b43b2447
+	github.com/doronbehar/gocui v0.4.2
 	github.com/fatih/color v1.7.0
 	github.com/frankban/quicktest v1.4.1 // indirect
 	github.com/gdamore/tcell v1.3.0
@@ -30,14 +31,13 @@ require (
 	github.com/hashicorp/serf v0.8.5 // indirect
 	github.com/hashicorp/vault/api v1.0.5-0.20191216174727-9d51b36f3ae4
 	github.com/hashicorp/vault/sdk v0.1.14-0.20191218020134-06959d23b502 // indirect
-	github.com/jroimartin/gocui v0.4.0
 	github.com/jsimonetti/pwscheme v0.0.0-20160922125227-76804708ecad
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
 	github.com/lucasb-eyer/go-colorful v1.0.3 // indirect
 	github.com/martinhoefling/goxkcdpwgen v0.0.0-20190331205820-7dc3d102eca3
 	github.com/mattn/go-colorable v0.1.4
 	github.com/mattn/go-isatty v0.0.11 // indirect
-	github.com/mattn/go-runewidth v0.0.7
+	github.com/mattn/go-runewidth v0.0.9
 	github.com/miekg/dns v1.1.15 // indirect
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/go-ps v0.0.0-20190716172923-621e5597135b
