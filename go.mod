@@ -10,6 +10,7 @@ require (
 	github.com/cpuguy83/go-md2man/v2 v2.0.0 // indirect
 	github.com/dominikschulz/github-releases v0.0.0-20171016132906-7635b43b2447
 	github.com/fatih/color v1.9.0
+	github.com/doronbehar/gocui v0.4.2
 	github.com/frankban/quicktest v1.4.1 // indirect
 	github.com/gdamore/tcell v1.3.0
 	github.com/go-git/go-git/v5 v5.0.0
@@ -24,7 +25,6 @@ require (
 	github.com/hashicorp/golang-lru v0.5.4
 	github.com/hashicorp/vault/api v1.0.5-0.20191216174727-9d51b36f3ae4
 	github.com/hashicorp/vault/sdk v0.1.14-0.20191218020134-06959d23b502 // indirect
-	github.com/jroimartin/gocui v0.4.0
 	github.com/jsimonetti/pwscheme v0.0.0-20160922125227-76804708ecad
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
 	github.com/kr/pretty v0.2.0 // indirect
