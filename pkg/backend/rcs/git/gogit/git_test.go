@@ -106,7 +106,7 @@ func TestInit(t *testing.T) {
 	// add remote
 	_, err = g.repo.CreateRemote(&config.RemoteConfig{
 		Name: "origin",
-		URLs: []string{"file://" + repo},
+		URLs: []string{repo},
 	})
 	assert.NoError(t, err)
 
