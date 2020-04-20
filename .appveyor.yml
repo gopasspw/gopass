@@ -20,4 +20,9 @@ install:
 build_script:
     - go build
     - ps: |
-        go.exe test (go.exe list ./... | where { -not $_.Contains('/vendor/') })
+        $path = [Environment]::GetEnvironmentVariable("path", "machine")
+        $newPath = ($path.Split(';') | Where-Object { $_ -eq 'C:\ProgramData\chocolatey\bin' }) -join ';'
+        [Environment]::SetEnvironmentVariable("path", $newPath, "machine")
+    - ps: appveyor-retry choco install gpg4win
+    - ps: |
+        $env:GOPASS_BINARY= "$(Resolve-Path gopass.exe)"; go.exe test (go.exe list ./... | where { -not $_.Contains('/vendor/') })
