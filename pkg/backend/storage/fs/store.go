@@ -80,6 +80,9 @@ func (s *Store) removeEmptyParentDirectories(path string) error {
 	case err.(*os.PathError).Err == syscall.ENOTEMPTY:
 		// ignore when directory is non-empty
 		return nil
+	case err.(*os.PathError).Err == syscall.ERROR_DIR_NOT_EMPTY:
+		// same as above, windows specific
+		return nil
 	default:
 		return err
 	}
