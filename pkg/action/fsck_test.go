@@ -44,7 +44,8 @@ func TestFsck(t *testing.T) {
 	// fsck
 	c := cli.NewContext(app, flag.NewFlagSet("default", flag.ContinueOnError), nil)
 	assert.NoError(t, act.Fsck(ctx, c))
-	assert.Equal(t, "Checking store integrity ...\n\n[] Extra recipients on foo: [0xFEEDBEEF]\n\n[] Pushed changes to git remote", strings.TrimSpace(buf.String()))
+	// windows complains about too open permissions
+	assert.Contains(t, strings.TrimSpace(buf.String()), "Extra recipients on foo: [0xFEEDBEEF]\n\n[] Pushed changes to git remote")
 	buf.Reset()
 
 	// fsck fo
@@ -53,6 +54,7 @@ func TestFsck(t *testing.T) {
 	c = cli.NewContext(app, fs, nil)
 
 	assert.NoError(t, act.Fsck(ctx, c))
-	assert.Equal(t, "Checking store integrity ...\n\n[] Extra recipients on foo: [0xFEEDBEEF]\n\n[] Pushed changes to git remote", strings.TrimSpace(buf.String()))
+	// windows complains about too open permissions
+	assert.Contains(t, strings.TrimSpace(buf.String()), "Extra recipients on foo: [0xFEEDBEEF]\n\n[] Pushed changes to git remote")
 	buf.Reset()
 }

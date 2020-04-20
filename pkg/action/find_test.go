@@ -5,6 +5,7 @@ import (
 	"context"
 	"flag"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -42,7 +43,7 @@ func TestFind(t *testing.T) {
 
 	// find
 	c := cli.NewContext(app, flag.NewFlagSet("default", flag.ContinueOnError), nil)
-	if err := act.Find(ctx, c); err == nil || err.Error() != "Usage: action.test find <NEEDLE>" {
+	if err := act.Find(ctx, c); err == nil || !strings.Contains(err.Error(), "find <NEEDLE>") {
 		t.Errorf("Should fail: %s", err)
 	}
 
@@ -64,8 +65,8 @@ func TestFind(t *testing.T) {
 	buf.Reset()
 
 	// add some secrets
-	assert.NoError(t, act.Store.Set(ctx, "bar/baz", secret.New("foo", "bar")))
-	assert.NoError(t, act.Store.Set(ctx, "bar/zab", secret.New("foo", "bar")))
+	assert.NoError(t, act.Store.Set(ctx, filepath.Join("bar", "baz"), secret.New("foo", "bar")))
+	assert.NoError(t, act.Store.Set(ctx, filepath.Join("bar", "zab"), secret.New("foo", "bar")))
 	buf.Reset()
 
 	// find bar
@@ -74,6 +75,6 @@ func TestFind(t *testing.T) {
 	c = cli.NewContext(app, fs, nil)
 
 	assert.NoError(t, act.Find(ctx, c))
-	assert.Equal(t, "bar/baz\nbar/zab", strings.TrimSpace(buf.String()))
+	assert.Equal(t, filepath.Join("bar", "baz")+"\n"+filepath.Join("bar", "zab"), strings.TrimSpace(buf.String()))
 	buf.Reset()
 }

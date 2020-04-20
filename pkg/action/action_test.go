@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/gopasspw/gopass/pkg/backend"
@@ -42,7 +43,12 @@ func TestAction(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, act)
 
-	assert.Equal(t, "action.test", act.Name)
+	actionName := "action.test"
+	if runtime.GOOS == "windows" {
+		actionName += ".exe"
+	}
+
+	assert.Equal(t, actionName, act.Name)
 
 	assert.Contains(t, act.String(), u.StoreDir(""))
 	assert.Equal(t, 0, len(act.Store.Mounts()))
