@@ -95,15 +95,6 @@ type testConfig struct {
 	Path *backend.URL `yaml:"path"`
 }
 
-func TestUnmarshalYAML(t *testing.T) {
-	in := `---
-path: gpgcli-gitcli-fs+file:///tmp/foo
-`
-	cfg := testConfig{}
-	require.NoError(t, yaml.Unmarshal([]byte(in), &cfg))
-	assert.Equal(t, "/tmp/foo", cfg.Path.Path)
-}
-
 func TestMarshalYAML(t *testing.T) {
 	out := `path: plain-noop-fs+file:///tmp/foo
 `
