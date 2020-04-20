@@ -79,16 +79,20 @@ func newTester(t *testing.T) *tester {
 	require.NoError(t, os.Setenv("GOPASS_NO_NOTIFY", "true"))
 
 	// write config
-	if err := ioutil.WriteFile(ts.gopassConfig(), []byte(gopassConfig+"\n  path: "+ts.storeDir("")+"\n"), 0600); err != nil {
+	schemePrefix := "file://"
+	if runtime.GOOS == "windows" {
+		schemePrefix = "file:///"
+	}
+	if err := ioutil.WriteFile(ts.gopassConfig(), []byte(gopassConfig+"\n  path: "+schemePrefix+ts.storeDir("")+"\n"), 0600); err != nil {
 		t.Fatalf("Failed to write gopass config to %s: %s", ts.gopassConfig(), err)
 	}
 
 	// copy gpg test files
 	files := map[string]string{
-		ts.sourceDir + "/can/gnupg/pubring.gpg": ts.gpgDir() + "/pubring.gpg",
-		ts.sourceDir + "/can/gnupg/random_seed": ts.gpgDir() + "/random_seed",
-		ts.sourceDir + "/can/gnupg/secring.gpg": ts.gpgDir() + "/secring.gpg",
-		ts.sourceDir + "/can/gnupg/trustdb.gpg": ts.gpgDir() + "/trustdb.gpg",
+		filepath.Join(ts.sourceDir, "can", "gnupg", "pubring.gpg"): filepath.Join(ts.gpgDir(), "pubring.gpg"),
+		filepath.Join(ts.sourceDir, "can", "gnupg", "random_seed"): filepath.Join(ts.gpgDir(), "random_seed"),
+		filepath.Join(ts.sourceDir, "can", "gnupg", "secring.gpg"): filepath.Join(ts.gpgDir(), "secring.gpg"),
+		filepath.Join(ts.sourceDir, "can", "gnupg", "trustdb.gpg"): filepath.Join(ts.gpgDir(), "trustdb.gpg"),
 	}
 	for from, to := range files {
 		buf, err := ioutil.ReadFile(from)
@@ -198,15 +202,15 @@ func (ts *tester) initStore() {
 }
 
 func (ts *tester) initSecrets(prefix string) {
-	out, err := ts.run("generate -p " + prefix + "foo/bar 20")
+	out, err := ts.run("generate -p " + filepath.Join(prefix, "foo", "bar") + " 20")
 	require.NoError(ts.t, err, "failed to generate password:\n%s", out)
 
-	out, err = ts.run("generate -p " + prefix + "baz 40")
+	out, err = ts.run("generate -p " + filepath.Join(prefix, "baz") + " 40")
 	require.NoError(ts.t, err, "failed to generate password:\n%s", out)
 
-	out, err = ts.runCmd([]string{ts.Binary, "insert", prefix + "fixed/secret"}, []byte("moar"))
+	out, err = ts.runCmd([]string{ts.Binary, "insert", filepath.Join(prefix, "fixed", "secret")}, []byte("moar"))
 	require.NoError(ts.t, err, "failed to insert password:\n%s", out)
 
-	out, err = ts.runCmd([]string{ts.Binary, "insert", prefix + "fixed/twoliner"}, []byte("and\nmore stuff"))
+	out, err = ts.runCmd([]string{ts.Binary, "insert", filepath.Join(prefix, "fixed", "twoliner")}, []byte("and\nmore stuff"))
 	require.NoError(ts.t, err, "failed to insert password:\n%s", out)
 }

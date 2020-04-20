@@ -2,6 +2,8 @@ package tests
 
 import (
 	"os"
+	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -16,6 +18,11 @@ func TestCompletion(t *testing.T) {
 	assert.Contains(t, out, "Source for auto completion in bash")
 	assert.Contains(t, out, "Source for auto completion in zsh")
 
+	binName := "gopass"
+	if runtime.GOOS == "windows" {
+		binName = "gopass.exe"
+	}
+
 	bash := `_gopass_bash_autocomplete() {
      local cur opts base
      COMPREPLY=()
@@ -26,7 +33,7 @@ func TestCompletion(t *testing.T) {
      return 0
  }
 
-complete -F _gopass_bash_autocomplete gopass`
+complete -F _gopass_bash_autocomplete ` + binName
 
 	out, err = ts.run("completion bash")
 	assert.NoError(t, err)
@@ -46,12 +53,16 @@ func TestCompletionNoPath(t *testing.T) {
 	defer ts.teardown()
 
 	ov := os.Getenv("PATH")
-	assert.NoError(t, os.Setenv("PATH", "/tmp/foobar"))
+	tp := os.TempDir()
+	assert.NoError(t, os.Setenv("PATH", filepath.Join(tp, "foobar")))
 	defer func() {
 		_ = os.Setenv("PATH", ov)
 	}()
 
 	out, err := ts.run("--generate-bash-completion")
+	// gopass looks up gpg path in registry. store init  will not fail
+	if runtime.GOOS != "windows" {
+		assert.Contains(t, out, "Store not initialized")
+	}
 	assert.NoError(t, err)
-	assert.Contains(t, out, "Store not initialized")
 }

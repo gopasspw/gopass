@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -17,5 +18,5 @@ func TestAudit(t *testing.T) {
 	assert.Error(t, err)
 	assert.Contains(t, out, "No shared secrets found")
 	assert.Contains(t, out, "Password is too short:")
-	assert.Contains(t, out, "\t- fixed/secret")
+	assert.Contains(t, out, "\t- "+filepath.Join("fixed", "secret"))
 }

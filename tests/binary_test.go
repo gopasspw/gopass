@@ -21,7 +21,7 @@ func TestBinaryCopy(t *testing.T) {
 
 	out, err := ts.run("binary copy")
 	assert.Error(t, err)
-	assert.Equal(t, "\nError: Usage: "+filepath.Base(ts.Binary)+" binary copy from to\n", out)
+	assert.Contains(t, out, "binary copy from to")
 
 	fn := filepath.Join(ts.tempDir, "copy")
 	dat := []byte("foobar")
@@ -54,7 +54,7 @@ func TestBinaryMove(t *testing.T) {
 
 	out, err := ts.run("binary move")
 	assert.Error(t, err)
-	assert.Equal(t, "\nError: Usage: "+filepath.Base(ts.Binary)+" binary move from to\n", out)
+	assert.Contains(t, out, "binary move from to")
 
 	fn := filepath.Join(ts.tempDir, "move")
 	dat := []byte("foobar")
@@ -87,16 +87,16 @@ func TestBinaryShasum(t *testing.T) {
 
 	out, err := ts.run("binary sha256")
 	assert.Error(t, err)
-	assert.Equal(t, "\nError: Usage: "+filepath.Base(ts.Binary)+" binary sha256 name\n", out)
+	assert.Contains(t, out, "binary sha256 name")
 
 	fn := filepath.Join(ts.tempDir, "shasum")
 	dat := []byte("foobar")
 	require.NoError(t, ioutil.WriteFile(fn, dat, 0644))
 
-	_, err = ts.run("binary move " + fn + " foo/bar")
+	_, err = ts.run("binary move " + fn + " " + filepath.Join("foo", "bar"))
 	assert.NoError(t, err)
 
-	out, err = ts.run("binary sha256 foo/bar")
+	out, err = ts.run("binary sha256 " + filepath.Join("foo", "bar"))
 	assert.NoError(t, err)
 	assert.Equal(t, out, "c3ab8ff13720e8ad9047dd39466b3c8974e592c2fa383d4a3960714caef0c4f2")
 }

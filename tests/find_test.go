@@ -25,18 +25,18 @@ func TestFind(t *testing.T) {
 	assert.Error(t, err)
 	assert.Equal(t, "\nError: no results found\n", out)
 
-	_, err = ts.runCmd([]string{ts.Binary, "insert", "foo/bar"}, []byte("baz"))
+	_, err = ts.runCmd([]string{ts.Binary, "insert", filepath.Join("foo", "bar")}, []byte("baz"))
 	assert.NoError(t, err)
 
 	out, err = ts.run("find bar")
 	assert.NoError(t, err)
-	assert.Equal(t, "Found exact match in 'foo/bar'\nbaz", out)
+	assert.Equal(t, "Found exact match in '"+filepath.Join("foo", "bar")+"'\nbaz", out)
 
 	out, err = ts.run("find Bar")
 	assert.NoError(t, err)
-	assert.Equal(t, "Found exact match in 'foo/bar'\nbaz", out)
+	assert.Equal(t, "Found exact match in '"+filepath.Join("foo", "bar")+"'\nbaz", out)
 
 	out, err = ts.run("find b")
 	assert.NoError(t, err)
-	assert.Equal(t, "Found exact match in 'foo/bar'\nbaz", out)
+	assert.Equal(t, "Found exact match in '"+filepath.Join("foo", "bar")+"'\nbaz", out)
 }
