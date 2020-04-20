@@ -2,6 +2,7 @@ package root
 
 import (
 	"context"
+	"os"
 	"sort"
 	"strings"
 
@@ -15,6 +16,8 @@ import (
 	"github.com/fatih/color"
 	"github.com/pkg/errors"
 )
+
+var sep = string(os.PathSeparator)
 
 // AddMount adds a new mount
 func (r *Store) AddMount(ctx context.Context, alias, path string, keys ...string) error {
@@ -161,7 +164,7 @@ func (r *Store) MountPoints() []string {
 // MountPoint returns the most-specific mount point for the given key
 func (r *Store) MountPoint(name string) string {
 	for _, mp := range r.MountPoints() {
-		if strings.HasPrefix(name+"/", mp+"/") {
+		if strings.HasPrefix(name+sep, mp+sep) {
 			return mp
 		}
 	}
@@ -172,7 +175,7 @@ func (r *Store) MountPoint(name string) string {
 // given key
 // context with sub store options set, sub store reference, truncated path to secret
 func (r *Store) getStore(ctx context.Context, name string) (context.Context, store.Store, string) {
-	name = strings.TrimSuffix(name, "/")
+	name = strings.TrimSuffix(name, sep)
 	mp := r.MountPoint(name)
 	if sub, found := r.mounts[mp]; found {
 		return r.cfg.Mounts[mp].WithContext(ctx), sub, strings.TrimPrefix(name, sub.Alias())
@@ -182,7 +185,7 @@ func (r *Store) getStore(ctx context.Context, name string) (context.Context, sto
 
 // WithConfig populates the context with the substore config
 func (r *Store) WithConfig(ctx context.Context, name string) context.Context {
-	name = strings.TrimSuffix(name, "/")
+	name = strings.TrimSuffix(name, sep)
 	mp := r.MountPoint(name)
 	if _, found := r.mounts[mp]; found {
 		return r.cfg.Mounts[mp].WithContext(ctx)

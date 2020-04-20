@@ -2,7 +2,7 @@ package root
 
 import (
 	"context"
-	"path"
+	"path/filepath"
 	"sort"
 	"testing"
 
@@ -50,13 +50,13 @@ func TestListMulti(t *testing.T) {
 	// sub1 store
 	assert.NoError(t, u.InitStore("sub1"))
 	for _, k := range u.Entries {
-		ents = append(ents, path.Join("sub1", k))
+		ents = append(ents, filepath.Join("sub1", k))
 	}
 
 	// sub2 store
 	assert.NoError(t, u.InitStore("sub2"))
 	for _, k := range u.Entries {
-		ents = append(ents, path.Join("sub2", k))
+		ents = append(ents, filepath.Join("sub2", k))
 	}
 
 	assert.NoError(t, rs.AddMount(ctx, "sub1", u.StoreDir("sub1")))
@@ -89,24 +89,24 @@ func TestListNested(t *testing.T) {
 	// sub1 store
 	assert.NoError(t, u.InitStore("sub1"))
 	for _, k := range u.Entries {
-		ents = append(ents, path.Join("sub1", k))
+		ents = append(ents, filepath.Join("sub1", k))
 	}
 
 	// sub2 store
 	assert.NoError(t, u.InitStore("sub2"))
 	for _, k := range u.Entries {
-		ents = append(ents, path.Join("sub2", k))
+		ents = append(ents, filepath.Join("sub2", k))
 	}
 
 	// sub3 store
 	assert.NoError(t, u.InitStore("sub3"))
 	for _, k := range u.Entries {
-		ents = append(ents, path.Join("sub2", "sub3", k))
+		ents = append(ents, filepath.Join("sub2", "sub3", k))
 	}
 
 	assert.NoError(t, rs.AddMount(ctx, "sub1", u.StoreDir("sub1")))
 	assert.NoError(t, rs.AddMount(ctx, "sub2", u.StoreDir("sub2")))
-	assert.NoError(t, rs.AddMount(ctx, "sub2/sub3", u.StoreDir("sub3")))
+	assert.NoError(t, rs.AddMount(ctx, filepath.Join("sub2", "sub3"), u.StoreDir("sub3")))
 
 	tree, err := rs.Tree(ctx)
 	assert.NoError(t, err)
