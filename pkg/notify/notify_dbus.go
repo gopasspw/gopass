@@ -22,7 +22,11 @@ func Notify(ctx context.Context, subj, msg string) error {
 	}
 
 	obj := conn.Object("org.freedesktop.Notifications", "/org/freedesktop/Notifications")
-	call := obj.Call("org.freedesktop.Notifications.Notify", 0, "gopass", uint32(0), iconURI(), subj, msg, []string{}, map[string]dbus.Variant{}, int32(5000))
+	icon, err := ensureIcon()
+	if err != nil {
+		return err
+	}
+	call := obj.Call("org.freedesktop.Notifications.Notify", 0, "gopass", uint32(0), icon, subj, msg, []string{}, map[string]dbus.Variant{}, int32(5000))
 	if call.Err != nil {
 		return err
 	}

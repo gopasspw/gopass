@@ -3,37 +3,50 @@ package notify
 import (
 	"bytes"
 	"compress/gzip"
+	"errors"
 	"io"
 	"os"
 	"path/filepath"
+	"runtime"
 
 	"github.com/gopasspw/gopass/pkg/config"
 	"github.com/gopasspw/gopass/pkg/fsutil"
 )
 
-func iconURI() string {
-	iconFN := filepath.Join(config.Directory(), "gopass-logo-small.png")
+func ensureIcon() (string, error) {
+	return iconURI("")
+}
+
+func iconURI(prefix string) (string, error) {
+	if prefix == "" {
+		prefix = config.Directory()
+	}
+	iconFN := filepath.Join(prefix, "gopass-logo-small.png")
 	if !fsutil.IsFile(iconFN) {
 		fh, err := os.OpenFile(iconFN, os.O_WRONLY|os.O_CREATE, 0644)
 		if err != nil {
-			return ""
+			return "", err
 		}
 		defer func() {
 			_ = fh.Close()
 		}()
 
 		if err = bindataWrite(assetLogoSmallPng(), fh); err != nil {
-			return ""
+			return "", err
 		}
 		if err = fh.Close(); err != nil {
-			return ""
+			return "", err
 		}
 	}
 
 	if fsutil.IsFile(iconFN) {
-		return "file://" + iconFN
+		prefix := "file://"
+		if runtime.GOOS == "windows" {
+			prefix = "file:///"
+		}
+		return prefix + iconFN, nil
 	}
-	return ""
+	return "", errors.New("file does not exist")
 }
 
 func bindataWrite(in []byte, out io.Writer) error {

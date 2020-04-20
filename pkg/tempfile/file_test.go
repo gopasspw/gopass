@@ -46,14 +46,11 @@ func TestTempFiler(t *testing.T) {
 }
 
 func TestGlobalPrefix(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		t.Skip("skipping test on windows.")
-	}
-
 	assertPrefix := func(file *File, prefix string) {
 		requirePrefix := filepath.Join(tempdirBase(), prefix)
 		fileOrDirName := file.Name()
-		if runtime.GOOS == "darwin" {
+		// windows + darwin do not have /dev/shm
+		if runtime.GOOS != "linux" {
 			dir := filepath.Dir(fileOrDirName)
 			fileOrDirName = filepath.Base(dir)
 		}

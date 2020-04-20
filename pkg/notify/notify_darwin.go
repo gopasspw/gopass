@@ -50,7 +50,11 @@ func execNotification(executable string, args []string) error {
 
 // display notification with terminal-notifier
 func tnNotification(msg string, subj string) error {
-	arguments := []string{"-title", "Gopass", "-message", msg, "-subtitle", subj, "-appIcon", iconURI()}
+	icon, err := ensureIcon()
+	if err != nil {
+		return err
+	}
+	arguments := []string{"-title", "Gopass", "-message", msg, "-subtitle", subj, "-appIcon", icon}
 	return execNotification(terminalNotifier, arguments)
 }
 

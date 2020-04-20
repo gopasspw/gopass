@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"context"
 	"flag"
+	"fmt"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -97,10 +99,10 @@ func TestList(t *testing.T) {
 	c = cli.NewContext(app, fs, nil)
 
 	assert.NoError(t, act.List(ctx, c))
-	want = `foo
-foo/zen
-foo2
-`
+	want = fmt.Sprintln("foo")
+	want += fmt.Sprintln(filepath.Join("foo", "zen"))
+	want += fmt.Sprintln("foo2")
+
 	assert.Equal(t, want, buf.String())
 	buf.Reset()
 

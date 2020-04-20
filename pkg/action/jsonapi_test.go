@@ -20,7 +20,7 @@ func TestJSONAPI(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 	defer u.Remove()
 
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	act, err := newMock(ctx, u)
 	require.NoError(t, err)
@@ -37,4 +37,5 @@ func TestJSONAPI(t *testing.T) {
 	}()
 
 	assert.NoError(t, act.JSONAPI(ctx, c))
+	cancel()
 }

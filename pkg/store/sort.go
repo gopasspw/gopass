@@ -1,14 +1,19 @@
 package store
 
-import "strings"
+import (
+	"os"
+	"strings"
+)
 
 // ByPathLen sorts mount points by the number of level / path separators
 type ByPathLen []string
 
+var sep = string(os.PathSeparator)
+
 func (s ByPathLen) Len() int { return len(s) }
 
 func (s ByPathLen) Less(i, j int) bool {
-	return strings.Count(s[i], "/") < strings.Count(s[j], "/")
+	return strings.Count(s[i], sep) < strings.Count(s[j], sep)
 }
 
 func (s ByPathLen) Swap(i, j int) {

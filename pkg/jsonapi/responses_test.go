@@ -1,6 +1,7 @@
 package jsonapi
 
 import (
+	"path/filepath"
 	"testing"
 
 	"github.com/gopasspw/gopass/pkg/store"
@@ -15,12 +16,12 @@ func TestGetUsername(t *testing.T) {
 		Out  string
 	}{
 		{
-			Name: "some/fixed/yamlother",
+			Name: filepath.Join("some", "fixed", "yamlother"),
 			Sec:  secret.New("thesecret", "---\nother: meh"),
 			Out:  "yamlother",
 		},
 		{
-			Name: "some/key/withaname",
+			Name: filepath.Join("some", "key", "withaname"),
 			Sec:  secret.New("thesecret", "---\nlogin: foo"),
 			Out:  "foo",
 		},

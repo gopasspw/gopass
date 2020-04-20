@@ -4,7 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"path"
+	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -18,7 +19,7 @@ import (
 )
 
 var (
-	sep = "/"
+	sep = string(os.PathSeparator)
 )
 
 func (api *API) respondMessage(ctx context.Context, msgBytes []byte) error {
@@ -61,7 +62,7 @@ func (api *API) respondHostQuery(ctx context.Context, msgBytes []byte) error {
 
 	for !isPublicSuffix(message.Host) {
 		// only query for paths and files in the store fully matching the hostname.
-		reQuery := fmt.Sprintf("(^|.*/)%s($|/.*)", regexSafeLower(message.Host))
+		reQuery := fmt.Sprintf("(^|.*\\%s)%s($|\\%s.*)", sep, regexSafeLower(message.Host), sep)
 		if err := searchAndAppendChoices(reQuery, l, &choices); err != nil {
 			return errors.Wrapf(err, "failed to append search results")
 		}
@@ -179,7 +180,7 @@ func (api *API) getUsername(name string, sec store.Secret) string {
 	// if no meta-data was found return the name of the secret itself
 	// as the username, e.g. providers/amazon.com/foobar -> foobar
 	if strings.Contains(name, sep) {
-		return path.Base(name)
+		return filepath.Base(name)
 	}
 
 	return ""

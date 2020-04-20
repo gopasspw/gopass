@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"os"
-	"runtime"
 	"strings"
 	"testing"
 
@@ -201,45 +200,6 @@ z
 	assert.Equal(t, true, AskForKeyImport(ctx, "", nil))
 	assert.Equal(t, false, AskForKeyImport(ctx, "", nil))
 	assert.Equal(t, false, AskForKeyImport(ctx, "", nil))
-}
-
-func TestAskForPasswordNonInteractive(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		t.Skip("skipping test on windows.")
-	}
-
-	buf := &bytes.Buffer{}
-	out.Stdout = buf
-	Stdout = buf
-	defer func() {
-		out.Stdout = os.Stdout
-		Stdout = os.Stdout
-	}()
-
-	ctx := context.Background()
-	ctx = ctxutil.WithInteractive(ctx, false)
-
-	_, err := AskForPassword(ctx, "test")
-	assert.Error(t, err)
-
-	// provide value on redirected stdin
-	input := `foo
-foo
-foobar
-foobaz
-`
-
-	Stdin = strings.NewReader(input)
-	ctx = ctxutil.WithAlwaysYes(ctx, false)
-	ctx = ctxutil.WithInteractive(ctx, true)
-	ctx = ctxutil.WithTerminal(ctx, false)
-	sv, err := AskForPassword(ctx, "test")
-	assert.NoError(t, err)
-	assert.Equal(t, "foo", sv)
-
-	sv, err = AskForPassword(ctx, "test")
-	assert.NoError(t, err)
-	assert.Equal(t, "", sv)
 }
 
 func TestAskForPasswordInteractive(t *testing.T) {

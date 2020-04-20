@@ -9,22 +9,18 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-	"runtime"
 	"strings"
 	"testing"
+	"time"
 
+	"github.com/blang/semver"
 	"github.com/gopasspw/gopass/pkg/backend"
 	"github.com/gopasspw/gopass/pkg/config"
 	"github.com/gopasspw/gopass/pkg/otp"
 	"github.com/gopasspw/gopass/pkg/store"
 	"github.com/gopasspw/gopass/pkg/store/root"
 	"github.com/gopasspw/gopass/pkg/store/secret"
-
-	_ "github.com/gopasspw/gopass/pkg/backend/crypto"
-	_ "github.com/gopasspw/gopass/pkg/backend/rcs"
-	_ "github.com/gopasspw/gopass/pkg/backend/storage"
-
-	"github.com/blang/semver"
+	"github.com/gopasspw/gopass/tests/gptest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -56,109 +52,34 @@ func TestRespondGetVersion(t *testing.T) {
 		nil)
 }
 
-func TestRespondMessageQuery(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		t.Skip("skipping test on windows.")
-	}
+func TestRespondMessageGetData(t *testing.T) {
 	secrets := []storedSecret{
-		{[]string{"awesomePrefix", "foo", "bar"}, secret.New("20", "")},
-		{[]string{"awesomePrefix", "fixed", "secret"}, secret.New("moar", "")},
-		{[]string{"awesomePrefix", "fixed", "yamllogin"}, secret.New("thesecret", "---\nlogin: muh")},
-		{[]string{"awesomePrefix", "fixed", "yamlother"}, secret.New("thesecret", "---\nother: meh")},
-		{[]string{"awesomePrefix", "some.other.host", "other"}, secret.New("thesecret", "---\nother: meh")},
-		{[]string{"awesomePrefix", "b", "some.other.host"}, secret.New("thesecret", "---\nother: meh")},
-		{[]string{"awesomePrefix", "evilsome.other.host"}, secret.New("thesecret", "---\nother: meh")},
-		{[]string{"evilsome.other.host", "something"}, secret.New("thesecret", "---\nother: meh")},
-		{[]string{"awesomePrefix", "other.host", "other"}, secret.New("thesecret", "---\nother: meh")},
-		{[]string{"somename", "github.com"}, secret.New("thesecret", "---\nother: meh")},
-		{[]string{"login_entry"}, secret.New("thepass", `---
-login: thelogin
-ignore: me
-login_fields:
-  first: 42
-  second: ok
-nologin_fields:
-  subentry: 123`)},
-		{[]string{"invalid_login_entry"}, secret.New("thepass", `---
-login: thelogin
-ignore: me
-login_fields: "invalid"`)},
+		{[]string{"foo"}, secret.New("20", "hallo: welt")},
+		{[]string{"bar"}, secret.New("20", "---\nlogin: muh")},
+		{[]string{"complex"}, secret.New("20", `---
+login: hallo
+number: 42
+sub:
+  subentry: 123
+`)},
 	}
 
-	// query for keys without any matching
 	runRespondMessage(t,
-		`{"type":"query","query":"notfound"}`,
-		`\[\]`,
+		`{"type":"getData","entry":"foo"}`,
+		`{"hallo":"welt"}`,
 		"", secrets)
 
-	// query for keys with matching one
 	runRespondMessage(t,
-		`{"type":"query","query":"foo"}`,
-		`\["awesomePrefix/foo/bar"\]`,
+		`{"type":"getData","entry":"bar"}`,
+		`{"login":"muh"}`,
 		"", secrets)
-
-	// query for keys with matching multiple
 	runRespondMessage(t,
-		`{"type":"query","query":"yaml"}`,
-		`\["awesomePrefix/fixed/yamllogin","awesomePrefix/fixed/yamlother"\]`,
-		"", secrets)
-
-	// query for host
-	runRespondMessage(t,
-		`{"type":"queryHost","host":"find.some.other.host"}`,
-		`\["awesomePrefix/b/some.other.host","awesomePrefix/some.other.host/other"\]`,
-		"", secrets)
-
-	// query for host not matches parent domain
-	runRespondMessage(t,
-		`{"type":"queryHost","host":"other.host"}`,
-		`\["awesomePrefix/other.host/other"\]`,
-		"", secrets)
-
-	// query for host is query has different domain appended does not return partial match
-	runRespondMessage(t,
-		`{"type":"queryHost","host":"some.other.host.different.domain"}`,
-		`\[\]`,
-		"", secrets)
-
-	// query returns result with public suffix at the end
-	runRespondMessage(t,
-		`{"type":"queryHost","host":"github.com"}`,
-		`\["somename/github.com"\]`,
-		"", secrets)
-
-	// get username / password for key without value in yaml
-	runRespondMessage(t,
-		`{"type":"getLogin","entry":"awesomePrefix/fixed/secret"}`,
-		`{"username":"secret","password":"moar"}`,
-		"", secrets)
-
-	// get username / password for key with login in yaml
-	runRespondMessage(t,
-		`{"type":"getLogin","entry":"awesomePrefix/fixed/yamllogin"}`,
-		`{"username":"muh","password":"thesecret"}`,
-		"", secrets)
-
-	// get username / password for key with no login in yaml (fallback)
-	runRespondMessage(t,
-		`{"type":"getLogin","entry":"awesomePrefix/fixed/yamlother"}`,
-		`{"username":"yamlother","password":"thesecret"}`,
-		"", secrets)
-
-	// get entry with login fields
-	runRespondMessage(t,
-		`{"type":"getLogin","entry":"login_entry"}`,
-		`{"username":"thelogin","password":"thepass","login_fields":{"first":42,"second":"ok"}}`,
-		"", secrets)
-
-	// get entry with invalid login fields
-	runRespondMessage(t,
-		`{"type":"getLogin","entry":"invalid_login_entry"}`,
-		`{"username":"thelogin","password":"thepass"}`,
+		`{"type":"getData","entry":"complex"}`,
+		`{"login":"hallo","number":42,"sub":{"subentry":123}}`,
 		"", secrets)
 }
 
-func TestRespondMessageGetData(t *testing.T) {
+func TestRespondMessageGetDataTOTP(t *testing.T) {
 	totpSuffix := "//totp/github-fake-account?secret=rpna55555qyho42j"
 	totpURL := "otpauth:" + totpSuffix
 	totpSecret := secret.New("totp_are_cool", totpURL)
@@ -174,31 +95,61 @@ sub:
   subentry: 123
 `)},
 	}
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
-	totp, _, err := otp.Calculate(context.Background(), "_", totpSecret)
-	if err != nil {
+	// this fails if the time second switches between `otp.Calculate` below and in pkg/jsonapi/responses
+	// if this is the case a different (wrong) totp is generated
+	// we need this in order to make it testable: https://github.com/gokyle/twofactor/pull/17
+	ok := gptest.Retry(t, 10, time.Millisecond*5, func(r *gptest.R) {
+		totp, _, err := otp.Calculate(ctx, "_", totpSecret)
+		if err != nil {
+			assert.NoError(t, err)
+		}
+		expectedTotp := totp.OTP()
+		input := writeMessageWithLength(`{"type":"getData","entry":"totp"}`)
+		outRegex := regexp.MustCompile(fmt.Sprintf(`{"current_totp":"%s","otpauth":"(.+)"}`, expectedTotp))
+
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+		tempdir, err := ioutil.TempDir("", "gopass-")
+		require.NoError(t, err)
+		defer func() {
+			_ = os.RemoveAll(tempdir)
+		}()
+
+		assert.NoError(t, os.Setenv("GOPASS_DISABLE_ENCRYPTION", "true"))
+		ctx = backend.WithCryptoBackendString(ctx, "plain")
+		store, err := root.New(
+			ctx,
+			&config.Config{
+				Root: &config.StoreConfig{
+					Path: backend.FromPath(tempdir),
+				},
+			},
+		)
+		require.NoError(t, err)
+		require.NotNil(t, store)
+		inited, err := store.Initialized(ctx)
+		require.NoError(t, err)
+		assert.Equal(t, false, inited)
+		assert.NoError(t, populateStore(tempdir, secrets))
+		var inbuf bytes.Buffer
+		var outbuf bytes.Buffer
+		api := API{store, &inbuf, &outbuf, semver.MustParse("1.2.3-test")}
+		_, err = inbuf.Write([]byte(input))
 		assert.NoError(t, err)
-	}
-	expectedTotp := totp.OTP()
+		err = api.ReadAndRespond(ctx)
+		assert.NoError(t, err, "api should not respond with error")
+		outputMessage := readAndVerifyMessageLength(t, outbuf.Bytes())
 
-	runRespondMessage(t,
-		`{"type":"getData","entry":"foo"}`,
-		`{"hallo":"welt"}`,
-		"", secrets)
+		if !outRegex.MatchString(outputMessage) {
+			r.Fail()
+		}
+	})
 
-	runRespondMessage(t,
-		`{"type":"getData","entry":"bar"}`,
-		`{"login":"muh"}`,
-		"", secrets)
-	runRespondMessage(t,
-		`{"type":"getData","entry":"complex"}`,
-		`{"login":"hallo","number":42,"sub":{"subentry":123}}`,
-		"", secrets)
+	assert.True(t, ok, "getting totp should not fail")
 
-	runRespondMessage(t,
-		`{"type":"getData","entry":"totp"}`,
-		fmt.Sprintf(`{"current_totp":"%s","otpauth":"(.+)"}`, expectedTotp),
-		"", secrets)
 }
 
 func TestRespondMessageCreate(t *testing.T) {
@@ -321,8 +272,8 @@ func runRespondMessages(t *testing.T, requests []verifiedRequest, secrets []stor
 }
 
 func runRespondRawMessages(t *testing.T, requests []verifiedRequest, secrets []storedSecret) {
-	ctx := context.Background()
-
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 	tempdir, err := ioutil.TempDir("", "gopass-")
 	require.NoError(t, err)
 	defer func() {

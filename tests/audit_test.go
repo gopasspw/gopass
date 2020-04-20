@@ -1,16 +1,13 @@
 package tests
 
 import (
-	"runtime"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestAudit(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		t.Skip("skipping test on windows.")
-	}
 	ts := newTester(t)
 	defer ts.teardown()
 
@@ -21,5 +18,5 @@ func TestAudit(t *testing.T) {
 	assert.Error(t, err)
 	assert.Contains(t, out, "No shared secrets found")
 	assert.Contains(t, out, "Password is too short:")
-	assert.Contains(t, out, "\t- fixed/secret")
+	assert.Contains(t, out, "\t- "+filepath.Join("fixed", "secret"))
 }

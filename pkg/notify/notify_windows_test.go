@@ -3,6 +3,7 @@ package notify
 import (
 	"context"
 	"image/png"
+	"io/ioutil"
 	"os"
 	"strings"
 	"testing"
@@ -18,9 +19,15 @@ func TestNotify(t *testing.T) {
 }
 
 func TestIcon(t *testing.T) {
-	fn := strings.TrimPrefix(iconURI(), "file://")
+	tmp, err := ioutil.TempDir("", "gopass-ico")
+	assert.NoError(t, err)
+	icon, err := iconURI(tmp)
+	assert.NoError(t, err)
+	fn := strings.TrimPrefix(icon, "file:///")
+	t.Logf("icon path: %s", fn)
 	_ = os.Remove(fn)
-	_ = iconURI()
+	icon, err = iconURI(tmp)
+	assert.NoError(t, err)
 	fh, err := os.Open(fn)
 	assert.NoError(t, err)
 	defer func() {

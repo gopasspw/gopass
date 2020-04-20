@@ -5,7 +5,7 @@ import (
 	"context"
 	"io/ioutil"
 	"os"
-	"runtime"
+	"path/filepath"
 	"testing"
 
 	"github.com/gopasspw/gopass/pkg/backend"
@@ -20,10 +20,6 @@ import (
 )
 
 func TestList(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		t.Skip("skipping test on windows.")
-	}
-
 	ctx := context.Background()
 
 	obuf := &bytes.Buffer{}
@@ -64,14 +60,18 @@ func TestList(t *testing.T) {
 		{
 			name: "Multi-entry-multi-level",
 			prep: func(s *Store) error {
-				for _, e := range []string{"foo/bar", "foo/baz", "foo/zab"} {
+				for _, e := range []string{
+					filepath.Join("foo", "bar"),
+					filepath.Join("foo", "baz"),
+					filepath.Join("foo", "zab"),
+				} {
 					if err := s.Set(ctx, e, secret.New("bar", "")); err != nil {
 						return err
 					}
 				}
 				return nil
 			},
-			out: []string{"foo/bar", "foo/baz", "foo/zab"},
+			out: []string{filepath.Join("foo", "bar"), filepath.Join("foo", "baz"), filepath.Join("foo", "zab")},
 		},
 	} {
 		// common setup

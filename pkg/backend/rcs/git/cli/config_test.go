@@ -25,7 +25,7 @@ func TestGitConfig(t *testing.T) {
 	gitdir := filepath.Join(td, "git")
 	require.NoError(t, os.Mkdir(gitdir, 0755))
 
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithDebug(ctx, true)
 
@@ -50,4 +50,5 @@ func TestGitConfig(t *testing.T) {
 	un, err = git.ConfigGet(ctx, "user.name")
 	assert.NoError(t, err)
 	assert.Equal(t, "foo", un)
+	cancel()
 }

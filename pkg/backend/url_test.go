@@ -2,7 +2,6 @@ package backend_test
 
 import (
 	"path/filepath"
-	"runtime"
 	"testing"
 
 	"github.com/gopasspw/gopass/pkg/backend"
@@ -94,18 +93,6 @@ func TestParseScheme(t *testing.T) {
 
 type testConfig struct {
 	Path *backend.URL `yaml:"path"`
-}
-
-func TestUnmarshalYAML(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		t.Skip("skipping test on windows.")
-	}
-	in := `---
-path: gpgcli-gitcli-fs+file:///tmp/foo
-`
-	cfg := testConfig{}
-	require.NoError(t, yaml.Unmarshal([]byte(in), &cfg))
-	assert.Equal(t, "/tmp/foo", cfg.Path.Path)
 }
 
 func TestMarshalYAML(t *testing.T) {

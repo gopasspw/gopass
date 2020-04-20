@@ -1,7 +1,7 @@
 package tests
 
 import (
-	"runtime"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -10,9 +10,6 @@ import (
 )
 
 func TestSingleMount(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		t.Skip("skipping test on windows.")
-	}
 	ts := newTester(t)
 	defer ts.teardown()
 
@@ -20,22 +17,24 @@ func TestSingleMount(t *testing.T) {
 	ts.initSecrets("")
 
 	// insert some secret at a place that will be shadowed by a mount
-	_, err := ts.runCmd([]string{ts.Binary, "insert", "mnt/m1/secret"}, []byte("moar"))
+	_, err := ts.runCmd([]string{ts.Binary, "insert", filepath.Join("mnt", "m1", "secret")}, []byte("moar"))
 	require.NoError(t, err)
 
-	out, err := ts.run("show -f mnt/m1/secret")
+	out, err := ts.run("show -f " + filepath.Join("mnt", "m1", "secret"))
 	assert.NoError(t, err)
 	assert.Equal(t, "moar", out)
 
-	out, err = ts.run("init --store mnt/m1 --path " + ts.storeDir("m1") + " --rcs=noop " + keyID)
+	out, err = ts.run("init --store " + filepath.Join("mnt", "m1") + " --path " + ts.storeDir("m1") + " --rcs=noop " + keyID)
 	t.Logf("Output: %s", out)
+	out, _ = ts.run("ls")
+	t.Logf("Output after mount: %s", out)
 	require.NoError(t, err)
 
-	out, err = ts.run("show mnt/m1/secret")
+	out, err = ts.run("show -f " + filepath.Join("mnt", "m1", "secret"))
 	assert.Error(t, err)
-	assert.Equal(t, "\nError: failed to retrieve secret 'mnt/m1/secret': Entry is not in the password store\n", out)
+	assert.Equal(t, "\nError: failed to retrieve secret '"+filepath.Join("mnt", "m1", "secret")+"': Entry is not in the password store\n", out)
 
-	ts.initSecrets("mnt/m1/")
+	ts.initSecrets(filepath.Join("mnt", "m1"))
 
 	list := `gopass
 ├── fixed
@@ -60,9 +59,6 @@ func TestSingleMount(t *testing.T) {
 }
 
 func TestMultiMount(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		t.Skip("skipping test on windows.")
-	}
 	ts := newTester(t)
 	defer ts.teardown()
 
@@ -70,11 +66,11 @@ func TestMultiMount(t *testing.T) {
 	ts.initSecrets("")
 
 	// mount m1
-	out, err := ts.run("init --store mnt/m1 --path " + ts.storeDir("m1") + " --rcs=noop " + keyID)
+	out, err := ts.run("init --store " + filepath.Join("mnt", "m1") + " --path " + ts.storeDir("m1") + " --rcs=noop " + keyID)
 	t.Logf("Output: %s", out)
 	require.NoError(t, err)
 
-	ts.initSecrets("mnt/m1/")
+	ts.initSecrets(filepath.Join("mnt", "m1"))
 
 	list := `gopass
 ├── fixed
@@ -98,11 +94,11 @@ func TestMultiMount(t *testing.T) {
 	assert.Equal(t, strings.TrimSpace(list), out)
 
 	// mount m2
-	out, err = ts.run("init --store mnt/m2 --path " + ts.storeDir("m2") + " --rcs=noop " + keyID)
+	out, err = ts.run("init --store " + filepath.Join("mnt", "m2") + " --path " + ts.storeDir("m2") + " --rcs=noop " + keyID)
 	t.Logf("Output: %s", out)
 	require.NoError(t, err)
 
-	ts.initSecrets("mnt/m2/")
+	ts.initSecrets(filepath.Join("mnt", "m2"))
 
 	list = `gopass
 ├── fixed

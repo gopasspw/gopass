@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -126,7 +127,7 @@ func (s *Action) GitCredentialGet(ctx context.Context, c *cli.Context) error {
 		return ExitError(ctx, ExitUnsupported, err, "Error: %v while parsing git-credential", err)
 	}
 	// try git/host/username... If username is empty, simply try git/host
-	path := "git/" + fsutil.CleanFilename(cred.Host) + "/" + fsutil.CleanFilename(cred.Username)
+	path := filepath.Join("git", fsutil.CleanFilename(cred.Host), fsutil.CleanFilename(cred.Username))
 	if !s.Store.Exists(ctx, path) {
 		// if the looked up path is a directory with only one entry (e.g. one user per host), take the subentry instead
 		if !s.Store.IsDir(ctx, path) {
@@ -172,7 +173,7 @@ func (s *Action) GitCredentialStore(ctx context.Context, c *cli.Context) error {
 	if err != nil {
 		return ExitError(ctx, ExitUnsupported, err, "Error: %v while parsing git-credential", err)
 	}
-	path := "git/" + fsutil.CleanFilename(cred.Host) + "/" + fsutil.CleanFilename(cred.Username)
+	path := filepath.Join("git", fsutil.CleanFilename(cred.Host), fsutil.CleanFilename(cred.Username))
 	// This should never really be an issue because git automatically removes invalid credentials first
 	if s.Store.Exists(ctx, path) {
 		fmt.Fprintf(os.Stderr, ""+

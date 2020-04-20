@@ -2,8 +2,7 @@ package simple
 
 import (
 	"bytes"
-	"path"
-	"sort"
+	"path/filepath"
 	"strings"
 
 	"github.com/gopasspw/gopass/pkg/tree"
@@ -104,7 +103,7 @@ func (f *Folder) list(prefix string, maxDepth, curDepth int) []string {
 		out = append(out, f.Folders[key].list(prefix, maxDepth, curDepth+1)...)
 	}
 	for _, key := range sortedFiles(f.Files) {
-		out = append(out, path.Join(prefix, f.Files[key].Name))
+		out = append(out, filepath.Join(prefix, f.Files[key].Name))
 	}
 	return out
 }
@@ -127,10 +126,10 @@ func (f *Folder) listFolders(prefix string, maxDepth, curDepth int) []string {
 	for _, key := range sortedFolders(f.Folders) {
 		out = append(out, f.Folders[key].listFolders(prefix, maxDepth, curDepth+1)...)
 		// we want to also list the base folders, not just the leaves
-		out = append(out, path.Join(prefix, f.Folders[key].Name))
+		out = append(out, filepath.Join(prefix, f.Folders[key].Name))
 	}
 
-	sort.Strings(out)
+	sortPaths(out)
 
 	return out
 }

@@ -1,6 +1,7 @@
 package store
 
 import (
+	"path/filepath"
 	"sort"
 	"testing"
 )
@@ -28,11 +29,11 @@ func TestMountPointReverseSort(t *testing.T) {
 	mps := []string{
 		"sub2",
 		"sub1isveryverylong",
-		"sub2/sub3",
+		filepath.Join("sub2", "sub3"),
 	}
 	sort.Sort(sort.Reverse(ByPathLen(mps)))
 	for i, v := range []string{
-		"sub2/sub3",
+		filepath.Join("sub2", "sub3"),
 		"sub2",
 		"sub1isveryverylong",
 	} {

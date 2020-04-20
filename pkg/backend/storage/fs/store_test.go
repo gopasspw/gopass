@@ -5,7 +5,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -45,9 +44,6 @@ func TestSetAndGet(t *testing.T) {
 }
 
 func TestRemoveEmptyParentDirectories(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		t.Skip("skipping test on windows.")
-	}
 	var tests = []struct {
 		name          string
 		storeRoot     []string
