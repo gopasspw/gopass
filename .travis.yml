@@ -6,7 +6,7 @@ matrix:
     - os: windows
       env: SLOW_TEST_FACTOR=100 BUILDFLAGS='' GOPASS_OUTPUT=gopass.exe
       before_install:
-        - choco install --yes --force make gpg4win-light
+        - choco install --yes --force make gpg4win
     - os: osx
       env: SLOW_TEST_FACTOR=100
       before_install:
