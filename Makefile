@@ -12,7 +12,11 @@ ZSH_COMPLETION_OUTPUT     := zsh.completion
 # Support reproducible builds by embedding date according to SOURCE_DATE_EPOCH if present
 DATE                      := $(shell date -u -d "@$(SOURCE_DATE_EPOCH)" '+%FT%T%z' 2>/dev/null || date -u '+%FT%T%z')
 BUILDFLAGS_NOPIE                := -ldflags="-s -w -X main.version=$(GOPASS_VERSION) -X main.commit=$(GOPASS_REVISION) -X main.date=$(DATE)" -gcflags="-trimpath=$(GOPATH)" -asmflags="-trimpath=$(GOPATH)"
+ifeq ($(OS),Windows_NT)
+BUILDFLAGS                ?= $(BUILDFLAGS_NOPIE)
+else
 BUILDFLAGS                ?= $(BUILDFLAGS_NOPIE) -buildmode=pie
+endif
 TESTFLAGS                 ?=
 PWD                       := $(shell pwd)
 PREFIX                    ?= $(GOPATH)
@@ -30,7 +34,7 @@ build: $(GOPASS_OUTPUT)
 completion: $(BASH_COMPLETION_OUTPUT) $(FISH_COMPLETION_OUTPUT) $(ZSH_COMPLETION_OUTPUT)
 travis: sysinfo crosscompile build install fulltest codequality completion manifests full
 travis-osx: sysinfo build install fulltest completion manifests full
-travis-windows: sysinfo build install fulltest completion manifests full
+travis-windows: sysinfo build install fulltest-nocover completion manifests full
 
 sysinfo:
 	@echo ">> SYSTEM INFORMATION"
