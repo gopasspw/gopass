@@ -11,7 +11,7 @@ FISH_COMPLETION_OUTPUT    := fish.completion
 ZSH_COMPLETION_OUTPUT     := zsh.completion
 # Support reproducible builds by embedding date according to SOURCE_DATE_EPOCH if present
 DATE                      := $(shell date -u -d "@$(SOURCE_DATE_EPOCH)" '+%FT%T%z' 2>/dev/null || date -u '+%FT%T%z')
-BUILDFLAGS_NOPIE                := -ldflags="-s -w -X main.version=$(GOPASS_VERSION) -X main.commit=$(GOPASS_REVISION) -X main.date=$(DATE)" -gcflags="-trimpath=$(GOPATH)" -asmflags="-trimpath=$(GOPATH)"
+BUILDFLAGS_NOPIE          := -ldflags="-s -w -X main.version=$(GOPASS_VERSION) -X main.commit=$(GOPASS_REVISION) -X main.date=$(DATE)" -gcflags="-trimpath=$(GOPATH)" -asmflags="-trimpath=$(GOPATH)"
 ifeq ($(OS),Windows_NT)
 BUILDFLAGS                ?= $(BUILDFLAGS_NOPIE)
 else
@@ -34,7 +34,7 @@ build: $(GOPASS_OUTPUT)
 completion: $(BASH_COMPLETION_OUTPUT) $(FISH_COMPLETION_OUTPUT) $(ZSH_COMPLETION_OUTPUT)
 travis: sysinfo crosscompile build install fulltest codequality completion manifests full
 travis-osx: sysinfo build install fulltest completion manifests full
-travis-windows: sysinfo build install fulltest-nocover completion manifests full
+travis-windows: sysinfo build install fulltest completion manifests full
 
 sysinfo:
 	@echo ">> SYSTEM INFORMATION"
@@ -84,38 +84,28 @@ install: all install-completion
 fulltest: $(GOPASS_OUTPUT)
 	@echo ">> TEST, \"full-mode\": race detector off, build tags: xc, gogit, consul"
 	@echo "mode: atomic" > coverage-all.out
-	@$(foreach pkg, $(PKGS),\
-	    echo -n "     ";\
-		go test -run '(Test|Example)' $(BUILDFLAGS) $(TESTFLAGS) -coverprofile=coverage.out -covermode=atomic $(pkg) -tags 'xc gogit consul' || exit 1;\
-		tail -n +2 coverage.out >> coverage-all.out;)
+	for pkg in "$(PKGS)"; do \
+		go test -run '(Test|Example)' $(BUILDFLAGS) $(TESTFLAGS) -coverprofile=coverage.out -covermode=atomic $$pkg -tags 'xc gogit consul' || exit 1;\
+		tail -n +2 coverage.out >> coverage-all.out; \
+		done
 	@$(GO) tool cover -html=coverage-all.out -o coverage-all.html
-
-fulltest-nocover: $(GOPASS_OUTPUT)
-	@echo ">> TEST, \"full-mode-no-coverage\": race detector off, build tags: xc, gogit, consul"
-	@echo "mode: atomic" > coverage-all.out
-	@$(foreach pkg, $(PKGS),\
-	    echo -n "     "; \
-		powershell kill -n gpg -erroraction 'silentlycontinue'; \
-		powershell kill -n clipboard.test -erroraction 'silentlycontinue'; \
-		powershell kill -n jsonapi.test -erroraction 'silentlycontinue'; \
-		go test -run '(Test|Example)' $(BUILDFLAGS) $(TESTFLAGS) $(pkg) -tags 'xc gogit consul' || exit 1;)
 
 racetest: $(GOPASS_OUTPUT)
 	@echo ">> TEST, \"full-mode\": race detector on"
 	@echo "mode: atomic" > coverage-all.out
-	@$(foreach pkg, $(PKGS),\
-	    echo -n "     ";\
-		go test -run '(Test|Example)' $(BUILDFLAGS) $(TESTFLAGS) -race -coverprofile=coverage.out -covermode=atomic $(pkg) -tags 'xc gogit consul' || exit 1;\
-		tail -n +2 coverage.out >> coverage-all.out;)
+	for pkg in "$(PKGS)"; do \
+		go test -run '(Test|Example)' $(BUILDFLAGS) $(TESTFLAGS) -race -coverprofile=coverage.out -covermode=atomic $$pkg -tags 'xc gogit consul' || exit 1;\
+		tail -n +2 coverage.out >> coverage-all.out; \
+		done
 	@$(GO) tool cover -html=coverage-all.out -o coverage-all.html
 
 test: $(GOPASS_OUTPUT)
 	@echo ">> TEST, \"fast-mode\": race detector off"
 	@echo "mode: count" > coverage-all.out
-	@$(foreach pkg, $(PKGS),\
-	    echo -n "     ";\
-		$(GO) test  -run '(Test|Example)' $(BUILDFLAGS) $(TESTFLAGS) -coverprofile=coverage.out -covermode=count $(pkg) || exit 1;\
-		tail -n +2 coverage.out >> coverage-all.out;)
+	for pkg in "$(PKGS)"; do \
+		$(GO) test  -run '(Test|Example)' $(BUILDFLAGS) $(TESTFLAGS) -coverprofile=coverage.out -covermode=count $$pkg || exit 1;\
+		tail -n +2 coverage.out >> coverage-all.out;\
+		done
 	@$(GO) tool cover -html=coverage-all.out -o coverage-all.html
 
 test-integration: $(GOPASS_OUTPUT)
@@ -133,8 +123,8 @@ crosscompile:
 	@printf '%s\n' '$(OK)'
 
 full:
-	@echo -n ">> COMPILE linux/amd64 xc gogit consul"
-	$(GO) build -o $(GOPASS_OUTPUT)-linux-amd64-full -tags "xc gogit consul"
+	@echo -n ">> COMPILE $(GOOS)/$(GOARCH) xc gogit consul"
+	$(GO) build -o $(GOPASS_OUTPUT)-$(GOOS)-$(GOARCH)-full -tags "xc gogit consul"
 
 %.completion: $(GOPASS_OUTPUT)
 	@printf ">> $* completion, output = $@"
