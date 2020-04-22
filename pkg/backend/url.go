@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"net/url"
+	"os"
 	"path/filepath"
 	"regexp"
 	"runtime"
@@ -11,6 +12,8 @@ import (
 
 	homedir "github.com/mitchellh/go-homedir"
 )
+
+var sep = string(os.PathSeparator)
 
 // URL is a parsed backend URL
 type URL struct {
@@ -111,8 +114,8 @@ func (u *URL) String() string {
 		u.Storage,
 		scheme,
 	)
-	if !strings.HasPrefix(u.Path, "/") && filepath.IsAbs(u.Path) {
-		u.url.Path = "/" + u.Path
+	if !strings.HasPrefix(u.Path, sep) && filepath.IsAbs(u.Path) && runtime.GOOS != "windows" {
+		u.url.Path = sep + u.Path
 	} else {
 		u.url.Path = u.Path
 	}
@@ -126,6 +129,9 @@ func (u *URL) String() string {
 		}
 	}
 	u.url.RawQuery = u.Query.Encode()
+	if scheme == "file" && winPath.MatchString(u.url.Path) {
+		return fmt.Sprintf("%s:///%s", u.url.Scheme, u.url.Path)
+	}
 	return u.url.String()
 }
 

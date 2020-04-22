@@ -30,7 +30,7 @@ build: $(GOPASS_OUTPUT)
 completion: $(BASH_COMPLETION_OUTPUT) $(FISH_COMPLETION_OUTPUT) $(ZSH_COMPLETION_OUTPUT)
 travis: sysinfo crosscompile build install fulltest codequality completion manifests full
 travis-osx: sysinfo build install fulltest completion manifests full
-travis-windows: sysinfo build install fulltest-nocover completion manifests full
+travis-windows: sysinfo build install fulltest completion manifests full
 
 sysinfo:
 	@echo ">> SYSTEM INFORMATION"
