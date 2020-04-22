@@ -1,5 +1,6 @@
 FIRST_GOPATH              := $(firstword $(subst :, ,$(GOPATH)))
 PKGS                      := $(shell go list ./... | grep -v /tests | grep -v /xcpb | grep -v /openpgp)
+PKGSWIN                   := $(shell go list ./... | grep -v /tests | grep -v /xcpb | grep -v /openpgp | grep -v /clipboard | grep -v /jsonapi)
 GOFILES_NOVENDOR          := $(shell find . -name vendor -prune -o -type f -name '*.go' -not -name '*.pb.go' -print)
 GOFILES_BUILD             := $(shell find . -type f -name '*.go' -not -name '*_test.go')
 PROTOFILES                := $(shell find . -name vendor -prune -o -type f -name '*.proto' -print)
@@ -89,11 +90,8 @@ fulltest: $(GOPASS_OUTPUT)
 fulltest-nocover: $(GOPASS_OUTPUT)
 	@echo ">> TEST, \"full-mode-no-coverage\": race detector off, build tags: xc, gogit, consul"
 	@echo "mode: atomic" > coverage-all.out
-	@$(foreach pkg, $(PKGS),\
+	@$(foreach pkg, $(PKGSWIN),\
 	    echo -n "     "; \
-		powershell kill -n gpg -erroraction 'silentlycontinue'; \
-		powershell kill -n clipboard.test -erroraction 'silentlycontinue'; \
-		powershell kill -n jsonapi.test -erroraction 'silentlycontinue'; \
 		go test -run '(Test|Example)' $(BUILDFLAGS) $(TESTFLAGS) $(pkg) -tags 'xc gogit consul' || exit 1;)
 
 racetest: $(GOPASS_OUTPUT)
