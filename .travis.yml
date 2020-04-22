@@ -14,7 +14,11 @@ filter_secrets: false
 before_install:
   - if [ $TRAVIS_OS_NAME = linux ]; then sudo apt-get install git gnupg2 clang-format-3.9; fi
   - if [ $TRAVIS_OS_NAME = osx ]; then brew install git gnupg clang-format || true; fi
-  - if [ $TRAVIS_OS_NAME = windows ]; then yes | choco install --yes --force make gpg4win || true; fi
+  - |
+      if [ $TRAVIS_OS_NAME = windows ]; then 
+        powershell.exe -Command '$path = [Environment]::GetEnvironmentVariable("path", "machine"); $newPath = ($path.Split(";") | Where-Object { $_ -eq "C:\ProgramData\chocolatey\bin" }) -join ";"; [Environment]::SetEnvironmentVariable("path", $newPath, "machine")';
+        powershell.exe -Command 'choco install --yes --force make gpg4win';
+      fi
   - git config --global user.name nobody
   - git config --global user.email foo.bar@example.org
 
