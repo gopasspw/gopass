@@ -90,7 +90,10 @@ fulltest-nocover: $(GOPASS_OUTPUT)
 	@echo ">> TEST, \"full-mode-no-coverage\": race detector off, build tags: xc, gogit, consul"
 	@echo "mode: atomic" > coverage-all.out
 	@$(foreach pkg, $(PKGS),\
-	    echo -n "     ";\
+	    echo -n "     "; \
+		powershell kill -n gpg -erroraction 'silentlycontinue'; \
+		powershell kill -n clipboard.test -erroraction 'silentlycontinue'; \
+		powershell kill -n jsonapi.test -erroraction 'silentlycontinue'; \
 		go test -run '(Test|Example)' $(BUILDFLAGS) $(TESTFLAGS) $(pkg) -tags 'xc gogit consul' || exit 1;)
 
 racetest: $(GOPASS_OUTPUT)
