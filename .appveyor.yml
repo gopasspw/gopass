@@ -14,20 +14,14 @@ init:
   - git config --global core.safecrlf false
 
 install:
-    - echo %PATH%
-    - echo %GOPATH%
-    - go version
-    - go env
-#    - ps: |
-#        go.exe get -t -d (go.exe list ./... `
-#        |? { -not $_.Contains('/vendor/') })
+  - echo %PATH%
+  - echo %GOPATH%
+  - go version
+  - go env
+  - ps: appveyor-retry choco install make gnupg
 
 build_script:
-    - go build
-    - ps: |
-        $path = [Environment]::GetEnvironmentVariable("path", "machine")
-        $newPath = ($path.Split(';') | Where-Object { $_ -eq 'C:\ProgramData\chocolatey\bin' }) -join ';'
-        [Environment]::SetEnvironmentVariable("path", $newPath, "machine")
-    - ps: appveyor-retry choco install gpg4win
-    - ps: go.exe mod download
-    - ps: $env:GOPASS_BINARY= "$(Resolve-Path gopass.exe)"; go.exe test (go.exe list ./... | where { -not $_.Contains('/vendor') })
+  - ps: go.exe mod download
+  - make travis-windows
+  - test-integration
+

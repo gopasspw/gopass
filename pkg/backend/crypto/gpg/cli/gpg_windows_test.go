@@ -10,7 +10,7 @@ import (
 func TestDetectBinaryCandidates(t *testing.T) {
 	bins, err := detectBinaryCandidates("foobar")
 	assert.NoError(t, err)
-	assert.Contains(t, bins, "C:\\Program Files (x86)\\GnuPG\\bin\\gpg.exe")
+	assert.Contains(t, bins, "C:\\Program Files (x86)\\gnupg\\bin\\gpg.exe")
 }
 
 func TestEncrypt(t *testing.T) {

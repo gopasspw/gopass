@@ -3,8 +3,6 @@ dist: trusty
 
 matrix:
   include:
-    - os: windows
-      env: SLOW_TEST_FACTOR=100 BUILDFLAGS='' GOPASS_OUTPUT=gopass.exe
     - os: osx
       env: SLOW_TEST_FACTOR=100
     - os: linux
@@ -12,7 +10,6 @@ matrix:
 before_install:
   - if [ $TRAVIS_OS_NAME = linux ]; then sudo apt-get install git gnupg2 clang-format-3.9; fi
   - if [ $TRAVIS_OS_NAME = osx ]; then brew install git gnupg clang-format || true; fi
-  - if [ $TRAVIS_OS_NAME = windows ]; then choco install --yes --force make gpg4win || true; fi
   - git config --global user.name nobody
   - git config --global user.email foo.bar@example.org
 
