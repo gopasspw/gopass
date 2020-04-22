@@ -5,14 +5,14 @@ import (
 	"strings"
 )
 
-type PathSlice []string
+type pathSlice []string
 
-func (p PathSlice) Len() int { return len(p) }
-func (p PathSlice) Less(i, j int) bool {
+func (p pathSlice) Len() int { return len(p) }
+func (p pathSlice) Less(i, j int) bool {
 	return strings.Replace(p[i], "\\", "/", -1) < strings.Replace(p[j], "\\", "/", -1)
 }
-func (p PathSlice) Swap(i, j int) { p[i], p[j] = p[j], p[i] }
+func (p pathSlice) Swap(i, j int) { p[i], p[j] = p[j], p[i] }
 
 func sortPaths(paths []string) {
-	sort.Sort(PathSlice(paths))
+	sort.Sort(pathSlice(paths))
 }

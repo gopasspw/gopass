@@ -16,11 +16,11 @@ func TestRespondMessageQuery(t *testing.T) {
 		{[]string{"awesomePrefix", "fixed", "secret"}, secret.New("moar", "")},
 		{[]string{"awesomePrefix", "fixed", "yamllogin"}, secret.New("thesecret", "---\nlogin: muh")},
 		{[]string{"awesomePrefix", "fixed", "yamlother"}, secret.New("thesecret", "---\nother: meh")},
-		{[]string{"awesomePrefix", "some.other.host", "other"}, secret.New("thesecret", "---\nother: meh")},
+		{[]string{"awesomePrefix", "some.other.host", "there"}, secret.New("thesecret", "---\nother: meh")},
 		{[]string{"awesomePrefix", "b", "some.other.host"}, secret.New("thesecret", "---\nother: meh")},
 		{[]string{"awesomePrefix", "evilsome.other.host"}, secret.New("thesecret", "---\nother: meh")},
 		{[]string{"evilsome.other.host", "something"}, secret.New("thesecret", "---\nother: meh")},
-		{[]string{"awesomePrefix", "other.host", "other"}, secret.New("thesecret", "---\nother: meh")},
+		{[]string{"awesomePrefix", "other.host", "there"}, secret.New("thesecret", "---\nother: meh")},
 		{[]string{"somename", "github.com"}, secret.New("thesecret", "---\nother: meh")},
 		{[]string{"login_entry"}, secret.New("thepass", `---
 login: thelogin
@@ -57,13 +57,13 @@ login_fields: "invalid"`)},
 	// query for host
 	runRespondMessage(t,
 		`{"type":"queryHost","host":"find.some.other.host"}`,
-		`\["awesomePrefix\\\\b\\\\some.other.host","awesomePrefix\\\\some.other.host\\\\other"\]`,
+		`\["awesomePrefix\\\\b\\\\some.other.host","awesomePrefix\\\\some.other.host\\\\there"\]`,
 		"", secrets)
 
 	// query for host not matches parent domain
 	runRespondMessage(t,
 		`{"type":"queryHost","host":"other.host"}`,
-		`\["awesomePrefix\\\\other.host\\\\other"\]`,
+		`\["awesomePrefix\\\\other.host\\\\there"\]`,
 		"", secrets)
 
 	// query for host is query has different domain appended does not return partial match

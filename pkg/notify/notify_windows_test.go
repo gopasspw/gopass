@@ -26,7 +26,7 @@ func TestIcon(t *testing.T) {
 	fn := strings.TrimPrefix(icon, "file:///")
 	t.Logf("icon path: %s", fn)
 	_ = os.Remove(fn)
-	icon, err = iconURI(tmp)
+	_, _ = iconURI(tmp)
 	assert.NoError(t, err)
 	fh, err := os.Open(fn)
 	assert.NoError(t, err)
