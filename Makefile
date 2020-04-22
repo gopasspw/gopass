@@ -24,7 +24,7 @@ TAGS                      ?= netgo
 export GO111MODULE=on
 
 ifeq ($(OS),Windows_NT)
-BUILDFLAGS                ?= $(BUILDFLAGS_NOPIE)
+BUILDFLAGS                = $(BUILDFLAGS_NOPIE)
 GOPASS_OUTPUT             = gopass.exe
 endif
 
