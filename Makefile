@@ -12,11 +12,7 @@ ZSH_COMPLETION_OUTPUT     := zsh.completion
 # Support reproducible builds by embedding date according to SOURCE_DATE_EPOCH if present
 DATE                      := $(shell date -u -d "@$(SOURCE_DATE_EPOCH)" '+%FT%T%z' 2>/dev/null || date -u '+%FT%T%z')
 BUILDFLAGS_NOPIE          := -ldflags="-s -w -X main.version=$(GOPASS_VERSION) -X main.commit=$(GOPASS_REVISION) -X main.date=$(DATE)" -gcflags="-trimpath=$(GOPATH)" -asmflags="-trimpath=$(GOPATH)"
-ifeq ($(OS),Windows_NT)
-BUILDFLAGS                ?= $(BUILDFLAGS_NOPIE)
-else
 BUILDFLAGS                ?= $(BUILDFLAGS_NOPIE) -buildmode=pie
-endif
 TESTFLAGS                 ?=
 PWD                       := $(shell pwd)
 PREFIX                    ?= $(GOPATH)
@@ -26,6 +22,11 @@ GOOS                      ?= $(shell go version | cut -d' ' -f4 | cut -d'/' -f1)
 GOARCH                    ?= $(shell go version | cut -d' ' -f4 | cut -d'/' -f2)
 TAGS                      ?= netgo
 export GO111MODULE=on
+
+ifeq ($(OS),Windows_NT)
+BUILDFLAGS                ?= $(BUILDFLAGS_NOPIE)
+GOPASS_OUTPUT             = gopass.exe
+endif
 
 OK := $(shell tput setaf 6; echo ' [OK]'; tput sgr0;)
 

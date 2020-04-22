@@ -27,5 +27,5 @@ install:
 build_script:
   - ps: go.exe mod download
   - make travis-windows
-  - test-integration
+  - make test-integration
 
