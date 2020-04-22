@@ -14,7 +14,7 @@ filter_secrets: false
 before_install:
   - if [ $TRAVIS_OS_NAME = linux ]; then sudo apt-get install git gnupg2 clang-format-3.9; fi
   - if [ $TRAVIS_OS_NAME = osx ]; then brew install git gnupg clang-format || true; fi
-  - if [ $TRAVIS_OS_NAME = windows ]; then choco install --yes --force make gpg4win || true; fi
+  - if [ $TRAVIS_OS_NAME = windows ]; then yes | choco install --yes --force make gpg4win || true; fi
   - git config --global user.name nobody
   - git config --global user.email foo.bar@example.org
 
