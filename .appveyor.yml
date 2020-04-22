@@ -18,6 +18,10 @@ install:
   - echo %GOPATH%
   - go version
   - go env
+  - ps: |
+      $path = [Environment]::GetEnvironmentVariable("path", "machine")
+      $newPath = ($path.Split(';') | Where-Object { $_ -eq 'C:\ProgramData\chocolatey\bin' }) -join ';'
+      [Environment]::SetEnvironmentVariable("path", $newPath, "machine")
   - ps: appveyor-retry choco install make gnupg
 
 build_script:
