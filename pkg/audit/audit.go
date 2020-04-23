@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"runtime"
 
 	"github.com/gopasspw/gopass/pkg/notify"
 	"github.com/gopasspw/gopass/pkg/out"
@@ -47,7 +46,14 @@ func Batch(ctx context.Context, secrets []string, secStore secretGetter) error {
 
 	// Spawn workers that run the auditing of all secrets concurrently.
 	validator := crunchy.NewValidator()
-	maxJobs := runtime.NumCPU()
+
+	// It would be nice to parallelize this operation and limit the maxJobs to
+	// runtime.NumCPU(), but sadly this causes various problems with multiple
+	// gnupg jobs running parallelly. See the entire discussion here:
+	//
+	// https://github.com/gopasspw/gopass/pull/245
+
+	maxJobs := 1 // do not change
 	done := make(chan struct{}, maxJobs)
 	for jobs := 0; jobs < maxJobs; jobs++ {
 		go audit(ctx, secStore, validator, pending, checked, done)
