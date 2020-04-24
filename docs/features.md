@@ -170,7 +170,7 @@ totp: ABC123
 
 Some sites will not directly show you the URL contained in the QR code. If this is the case, you can use something like [zbar](http://zbar.sourceforge.net/) to extract the URL.
 
-Both TOTP and HOTP are supported.
+Both TOTP and HOTP are supported. However, to generate HOTP tokens, the counter in the stored URL must be manually incremented (e.g. via `gopass edit myhotpsecret`). 
 
 ### Listing existing secrets
 
