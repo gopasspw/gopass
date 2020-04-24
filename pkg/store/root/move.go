@@ -3,7 +3,7 @@ package root
 import (
 	"context"
 	"fmt"
-	"path"
+	"path/filepath"
 	"strings"
 
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -120,10 +120,10 @@ func (r *Store) moveFromTo(ctxFrom, ctxTo context.Context, subFrom, subTo store.
 		dst := to
 		if srcIsDir {
 			// Follow the rsync convention to not re-create the source folder at the destination when a "/" is found
-			if strings.HasSuffix(from, "/") {
-				dst = path.Join(to, strings.TrimPrefix(src, from))
+			if strings.HasSuffix(from, sep) {
+				dst = filepath.Join(to, strings.TrimPrefix(src, from))
 			} else {
-				dst = path.Join(to, path.Base(from), strings.TrimPrefix(src, from))
+				dst = filepath.Join(to, filepath.Base(from), strings.TrimPrefix(src, from))
 			}
 		}
 		out.Debug(ctxFrom, "Moving %s (%s) => %s (%s) (sid:%t)\n", from, src, to, dst, srcIsDir)

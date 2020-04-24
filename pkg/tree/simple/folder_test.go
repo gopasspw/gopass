@@ -1,7 +1,6 @@
 package simple
 
 import (
-	"runtime"
 	"sort"
 	"testing"
 
@@ -11,10 +10,6 @@ import (
 )
 
 func TestFolder(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		t.Skip("skipping test on windows.")
-	}
-
 	root := New("gopass")
 	assert.NoError(t, root.AddFile("foo/bar", "text/plain"))
 	assert.NoError(t, root.AddTemplate("foo"))

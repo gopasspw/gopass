@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"runtime"
 
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/out"
@@ -49,13 +50,18 @@ func Invoke(ctx context.Context, editor string, content []byte) ([]byte, error) 
 		return []byte{}, errors.Errorf("failed to close tmpfile to start with %s %v: %s", editor, tmpfile.Name(), err)
 	}
 
-	cmdArgs, err := shellquote.Split(editor)
-	if err != nil {
-		return []byte{}, errors.Errorf("failed to parse EDITOR command `%s`", editor)
-	}
+	var args []string
+	if runtime.GOOS != "windows" {
+		cmdArgs, err := shellquote.Split(editor)
+		if err != nil {
+			return []byte{}, errors.Errorf("failed to parse EDITOR command `%s`", editor)
+		}
 
-	editor = cmdArgs[0]
-	args := append(cmdArgs[1:], tmpfile.Name())
+		editor = cmdArgs[0]
+		args = append(cmdArgs[1:], tmpfile.Name())
+	} else {
+		args = []string{tmpfile.Name()}
+	}
 
 	cmd := exec.Command(editor, args...)
 	cmd.Stdin = Stdin

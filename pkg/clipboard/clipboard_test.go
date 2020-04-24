@@ -18,7 +18,9 @@ import (
 )
 
 func TestCopyToClipboard(t *testing.T) {
-	ctx := context.Background()
+	_ = os.Setenv("GOPASS_NO_NOTIFY", "true")
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 	clipboard.Unsupported = true
 
 	buf := &bytes.Buffer{}
@@ -28,8 +30,9 @@ func TestCopyToClipboard(t *testing.T) {
 }
 
 func TestClearClipboard(t *testing.T) {
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
 	assert.NoError(t, clear(ctx, []byte("bar"), 0))
+	cancel()
 	time.Sleep(50 * time.Millisecond)
 }
 

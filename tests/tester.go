@@ -85,10 +85,10 @@ func newTester(t *testing.T) *tester {
 
 	// copy gpg test files
 	files := map[string]string{
-		ts.sourceDir + "/can/gnupg/pubring.gpg": ts.gpgDir() + "/pubring.gpg",
-		ts.sourceDir + "/can/gnupg/random_seed": ts.gpgDir() + "/random_seed",
-		ts.sourceDir + "/can/gnupg/secring.gpg": ts.gpgDir() + "/secring.gpg",
-		ts.sourceDir + "/can/gnupg/trustdb.gpg": ts.gpgDir() + "/trustdb.gpg",
+		filepath.Join(ts.sourceDir, "can", "gnupg", "pubring.gpg"): filepath.Join(ts.gpgDir(), "pubring.gpg"),
+		filepath.Join(ts.sourceDir, "can", "gnupg", "random_seed"): filepath.Join(ts.gpgDir(), "random_seed"),
+		filepath.Join(ts.sourceDir, "can", "gnupg", "secring.gpg"): filepath.Join(ts.gpgDir(), "secring.gpg"),
+		filepath.Join(ts.sourceDir, "can", "gnupg", "trustdb.gpg"): filepath.Join(ts.gpgDir(), "trustdb.gpg"),
 	}
 	for from, to := range files {
 		buf, err := ioutil.ReadFile(from)

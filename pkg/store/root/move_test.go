@@ -2,7 +2,6 @@ package root
 
 import (
 	"context"
-	"runtime"
 	"testing"
 
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -14,9 +13,6 @@ import (
 )
 
 func TestMove(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		t.Skip("skipping test on windows.")
-	}
 	u := gptest.NewUnitTester(t)
 	u.Entries = []string{
 		"foo/bar",
@@ -99,7 +95,7 @@ func TestMove(t *testing.T) {
 
 	// this fails if empty directories are not removed, because 'bar' and 'baz' were directories in the root folder
 	// -> move boz/ / => OK
-	assert.NoError(t, rs.Move(ctx, "boz/", "/"))
+	assert.NoError(t, rs.Move(ctx, "boz"+sep, "/"))
 	entries, err = rs.List(ctx, 0)
 	require.NoError(t, err)
 	assert.Equal(t, []string{
@@ -110,10 +106,6 @@ func TestMove(t *testing.T) {
 }
 
 func TestCopy(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		t.Skip("skipping test on windows.")
-	}
-
 	u := gptest.NewUnitTester(t)
 	u.Entries = []string{
 		"foo/bar",
@@ -140,7 +132,7 @@ func TestCopy(t *testing.T) {
 		"misc/zab",
 	}, entries)
 	// -> copy foo/ misc/zab => ERROR: misc/zab is a file
-	assert.Error(t, rs.Copy(ctx, "foo/", "misc/zab"))
+	assert.Error(t, rs.Copy(ctx, "foo"+sep, "misc/zab"))
 	// -> copy foo misc/zab => ERROR: misc/zab is a file
 	assert.Error(t, rs.Copy(ctx, "foo", "misc/zab"))
 
@@ -157,7 +149,7 @@ func TestCopy(t *testing.T) {
 	}, entries)
 
 	// -> copy misc/foo/ bar/ => OK
-	assert.NoError(t, rs.Copy(ctx, "misc/foo/", "bar/"))
+	assert.NoError(t, rs.Copy(ctx, "misc/foo"+sep, "bar"+sep))
 	entries, err = rs.List(ctx, 0)
 	require.NoError(t, err)
 	assert.Equal(t, []string{

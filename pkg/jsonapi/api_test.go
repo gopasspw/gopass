@@ -9,7 +9,6 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-	"runtime"
 	"strings"
 	"testing"
 
@@ -57,9 +56,6 @@ func TestRespondGetVersion(t *testing.T) {
 }
 
 func TestRespondMessageQuery(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		t.Skip("skipping test on windows.")
-	}
 	secrets := []storedSecret{
 		{[]string{"awesomePrefix", "foo", "bar"}, secret.New("20", "")},
 		{[]string{"awesomePrefix", "fixed", "secret"}, secret.New("moar", "")},
@@ -321,12 +317,13 @@ func runRespondMessages(t *testing.T, requests []verifiedRequest, secrets []stor
 }
 
 func runRespondRawMessages(t *testing.T, requests []verifiedRequest, secrets []storedSecret) {
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
 
 	tempdir, err := ioutil.TempDir("", "gopass-")
 	require.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(tempdir)
+		cancel()
 	}()
 
 	assert.NoError(t, os.Setenv("GOPASS_DISABLE_ENCRYPTION", "true"))

@@ -1,6 +1,5 @@
 FIRST_GOPATH              := $(firstword $(subst :, ,$(GOPATH)))
 PKGS                      := $(shell go list ./... | grep -v /tests | grep -v /xcpb | grep -v /openpgp)
-PKGSWIN                   := $(shell go list ./... | grep -v /tests | grep -v /xcpb | grep -v /openpgp | grep -v /clipboard | grep -v /jsonapi)
 GOFILES_NOVENDOR          := $(shell find . -name vendor -prune -o -type f -name '*.go' -not -name '*.pb.go' -print)
 GOFILES_BUILD             := $(shell find . -type f -name '*.go' -not -name '*_test.go')
 PROTOFILES                := $(shell find . -name vendor -prune -o -type f -name '*.proto' -print)
@@ -45,9 +44,11 @@ sysinfo:
 	@printf '%s\n' '$(OK)'
 	@echo -n "     GIT     : $(shell git version)"
 	@printf '%s\n' '$(OK)'
-	@echo -n "     GPG1    : $(shell gpg --version | head -1)"
+	@echo -n "     GPG1    : $(shell which gpg) $(shell gpg --version | head -1)"
 	@printf '%s\n' '$(OK)'
-	@echo -n "     GPG2    : $(shell gpg2 --version | head -1)"
+	@echo -n "     GPG2    : $(shell which gpg2) $(shell gpg2 --version | head -1)"
+	@printf '%s\n' '$(OK)'
+	@echo -n "     GPG-Agent    : $(shell which gpg-agent) $(shell gpg-agent --version | head -1)"
 	@printf '%s\n' '$(OK)'
 
 clean:
@@ -90,8 +91,8 @@ fulltest: $(GOPASS_OUTPUT)
 fulltest-nocover: $(GOPASS_OUTPUT)
 	@echo ">> TEST, \"full-mode-no-coverage\": race detector off, build tags: xc"
 	@echo "mode: atomic" > coverage-all.out
-	@$(foreach pkg, $(PKGSWIN),\
-	    echo -n "     "; \
+	@$(foreach pkg, $(PKGS),\
+	    echo -n "     ";\
 		go test -run '(Test|Example)' $(BUILDFLAGS) $(TESTFLAGS) $(pkg) -tags 'xc' || exit 1;)
 
 racetest: $(GOPASS_OUTPUT)

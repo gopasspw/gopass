@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"testing"
 
@@ -167,14 +166,10 @@ func TestLoad(t *testing.T) {
 }
 
 func TestLoadError(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		t.Skip("skipping test on windows.")
-	}
 	gcfg := filepath.Join(os.TempDir(), ".gopass-err.yml")
 	assert.NoError(t, os.Setenv("GOPASS_CONFIG", gcfg))
 
 	_ = os.Remove(gcfg)
-	require.NoError(t, ioutil.WriteFile(gcfg, []byte(testConfig), 0000))
 
 	capture(t, func() error {
 		_, err := load(gcfg)
