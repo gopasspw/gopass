@@ -1,6 +1,5 @@
 // +build xc
 // +build gogit
-// +build consul
 
 package backend
 
@@ -29,8 +28,6 @@ crypto-sync-store+url
 
 - examples
 gpgcli-gitcli-fs+file:///tmp/foo
-xc-noop-consul+http://localhost:8500/v1/foo/bar
-xc-noop-consul+https://localhost:8500/v1/foo/bar
 file:///tmp/foo -> gpgcli, gitcli, fs (using defaults)
 /tmp/foo -> gpgcli, gitcli, fs (using defaults)
 
@@ -51,19 +48,6 @@ func TestURLStringXC(t *testing.T) {
 				Path:    "/tmp/foo",
 			},
 			out: "xc-gogit-fs+file:///tmp/foo",
-		},
-		{
-			name: "xc+consul",
-			in: &URL{
-				Crypto:  XC,
-				RCS:     Noop,
-				Storage: Consul,
-				Scheme:  "http",
-				Host:    "localhost",
-				Port:    "8500",
-				Path:    "/foo/bar",
-			},
-			out: "xc-noop-consul+http://localhost:8500/foo/bar",
 		},
 	} {
 		assert.Equal(t, tc.out, tc.in.String(), tc.name)
@@ -87,13 +71,6 @@ func TestParseSchemeXC(t *testing.T) {
 			Crypto:  XC,
 			RCS:     GoGit,
 			Storage: FS,
-		},
-		{
-			Name:    "XC+consul+http",
-			URL:     "xc-noop-consul+http://localhost:8500/api/v1/foo/bar?token=bla",
-			Crypto:  XC,
-			RCS:     Noop,
-			Storage: Consul,
 		},
 		{
 			Name:    "Homedir expansion",

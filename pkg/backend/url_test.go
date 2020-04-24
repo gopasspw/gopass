@@ -29,8 +29,6 @@ crypto-sync-store+url
 
 - examples
 gpgcli-gitcli-fs+file:///tmp/foo
-xc-noop-consul+http://localhost:8500/v1/foo/bar
-xc-noop-consul+https://localhost:8500/v1/foo/bar
 file:///tmp/foo -> gpgcli, gitcli, fs (using defaults)
 /tmp/foo -> gpgcli, gitcli, fs (using defaults)
 
