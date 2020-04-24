@@ -24,42 +24,6 @@ This is a volatile in-memory backend for tests.
 
 **WARNING**: All data is lost when gopass stops!
 
-### Consul (consul)
-
-This is an experimental storage backend that stores data in Consul.
-Make sure to either combine this with a crypto backend or make sure
-the data in Consul is properly protected as this backend does no
-encryption on its own.
-
-#### Usage
-
-Until Consul support is fully integrated you need to manually setup a mount
-using the Consul backend.
-
-Add a new mount to your `config.yml` (usually at `~/.config/gopass/config.yml`):
-
-```bash
-cat <<EOF >> $HOME/.config/gopass/config.yml
-mounts:
-  consul:
-    path: plain-noop-consul+https://consul:8500/some/prefix/?token=some-token&datacenter=your-dc
-EOF
-```
-
-This will setup an unencrypted backend, i.e. your secrets in Consul will only be 
-protected by Consul's ACLs and anyone who can access your Consul K/V prefix
-can read your secrets.
-
-You probably want to use a crypto backend to protect your secrets, like in the
-following example:
-
-```bash
-gopass xc generate
-KEY=$(gopass xc list-private-keys | tail -1 | cut -d' ' -f1)
-gopass init --path='xc-noop-consul+https://consul:8500/foo/bar/?token=some-token&datacenter=you-dc' --store=consul --crypto=xc --sync=noop $KEY
-gopass mounts
-```
-
 ## RCS Backends (rcs)
 
 These are revision control backends talking to various source control

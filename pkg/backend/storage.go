@@ -15,8 +15,6 @@ const (
 	FS StorageBackend = iota
 	// InMem is an in-memory mock store for tests
 	InMem
-	// Consul is a consul backend storage
-	Consul
 )
 
 func (s StorageBackend) String() string {
