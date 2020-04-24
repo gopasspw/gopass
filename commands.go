@@ -213,7 +213,7 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []*cli.Co
 				},
 				&cli.StringFlag{
 					Name:  "sync",
-					Usage: "Select sync backend (git, gitcli, gogit, noop)",
+					Usage: "Select sync backend (git, gitcli, noop)",
 				},
 			},
 		},
@@ -630,7 +630,7 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []*cli.Co
 						},
 						&cli.StringFlag{
 							Name:  "rcs",
-							Usage: "Select sync backend (git, gitcli, gogit, noop)",
+							Usage: "Select sync backend (git, gitcli, noop)",
 						},
 					},
 				},
@@ -774,7 +774,7 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []*cli.Co
 				},
 				&cli.StringFlag{
 					Name:  "rcs",
-					Usage: "Select sync backend (git, gitcli, gogit, noop)",
+					Usage: "Select sync backend (git, gitcli, noop)",
 				},
 				&cli.BoolFlag{
 					Name:   "nogit",
@@ -1038,7 +1038,7 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []*cli.Co
 				},
 				&cli.StringFlag{
 					Name:  "rcs",
-					Usage: "Select sync backend (git, gitcli, gogit, noop)",
+					Usage: "Select sync backend (git, gitcli, noop)",
 				},
 			},
 		},

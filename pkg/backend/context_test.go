@@ -40,10 +40,8 @@ func TestStorageBackend(t *testing.T) {
 func TestComposite(t *testing.T) {
 	ctx := context.Background()
 	ctx = WithCryptoBackend(ctx, XC)
-	ctx = WithRCSBackend(ctx, GoGit)
 	ctx = WithStorageBackend(ctx, FS)
 
 	assert.Equal(t, XC, GetCryptoBackend(ctx))
-	assert.Equal(t, GoGit, GetRCSBackend(ctx))
 	assert.Equal(t, FS, GetStorageBackend(ctx))
 }

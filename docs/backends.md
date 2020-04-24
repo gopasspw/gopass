@@ -36,15 +36,6 @@ most features of all SCM backends and is pretty stable. One major drawback is th
 it sometimes fails if commit signing is enabled and the interaction with GPG
 fails.
 
-### gogit.v4 (gogit)
-
-This backend is based on the amazing work of [source{d}](https://sourced.tech/)
-and implements a pure-Go SCM backend. It works pretty well but there is one major
-show stopper: It only supports fast-forward merges. Unfortunately this makes
-it unusable for most gopass usecases. However we still keep this backend around
-in case upstream manages to implement proper merges. In that case this will
-quickly become the default SCM backend.
-
 ### Noop (noop)
 
 This is a no-op backend for testing SCM-less support.

@@ -15,8 +15,6 @@ const (
 	Noop RCSBackend = iota
 	// GitCLI is a git-cli based sync backend
 	GitCLI
-	// GoGit is an src-d/go-git.v4 based sync backend
-	GoGit
 )
 
 func (s RCSBackend) String() string {

@@ -1,5 +1,5 @@
 // +build xc
-// +build gogit
+// +build gitcli
 
 package backend
 
@@ -40,14 +40,14 @@ func TestURLStringXC(t *testing.T) {
 		out  string
 	}{
 		{
-			name: "xc+gogit",
+			name: "xc+gitcli",
 			in: &URL{
 				Crypto:  XC,
-				RCS:     GoGit,
+				RCS:     gitcli,
 				Storage: FS,
 				Path:    "/tmp/foo",
 			},
-			out: "xc-gogit-fs+file:///tmp/foo",
+			out: "xc-gitcli-fs+file:///tmp/foo",
 		},
 	} {
 		assert.Equal(t, tc.out, tc.in.String(), tc.name)
@@ -66,10 +66,10 @@ func TestParseSchemeXC(t *testing.T) {
 		Path    string
 	}{
 		{
-			Name:    "XC+gogit+file",
-			URL:     "xc-gogit-fs+file:///tmp/foo",
+			Name:    "XC+gitcli+file",
+			URL:     "xc-gitcli-fs+file:///tmp/foo",
 			Crypto:  XC,
-			RCS:     GoGit,
+			RCS:     gitcli,
 			Storage: FS,
 		},
 		{
@@ -109,7 +109,7 @@ func TestUnmarshalYAMLXC(t *testing.T) {
 		t.Skip("skipping test on windows.")
 	}
 	in := `---
-path: xc-gogit-fs+file:///tmp/foo
+path: xc-gitcli-fs+file:///tmp/foo
 `
 	cfg := testConfig{}
 	require.NoError(t, yaml.Unmarshal([]byte(in), &cfg))
@@ -117,12 +117,12 @@ path: xc-gogit-fs+file:///tmp/foo
 }
 
 func TestMarshalYAMLXC(t *testing.T) {
-	out := `path: xc-gogit-fs+file:///tmp/foo
+	out := `path: xc-gitcli-fs+file:///tmp/foo
 `
 	cfg := testConfig{
 		Path: &URL{
 			Crypto:  XC,
-			RCS:     GoGit,
+			RCS:     GitCLI,
 			Storage: FS,
 			Path:    "/tmp/foo",
 		},
