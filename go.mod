@@ -12,6 +12,7 @@ require (
 	github.com/fatih/color v1.7.0
 	github.com/frankban/quicktest v1.4.1 // indirect
 	github.com/gdamore/tcell v1.3.0
+	github.com/go-git/go-git/v5 v5.0.0
 	github.com/go-test/deep v1.0.2 // indirect
 	github.com/godbus/dbus v0.0.0-20190623212516-8a1682060722
 	github.com/gokyle/twofactor v1.0.1
@@ -50,12 +51,11 @@ require (
 	github.com/stretchr/testify v1.4.0
 	github.com/urfave/cli v1.22.2
 	github.com/xrash/smetrics v0.0.0-20170218160415-a3153f7040e9 // indirect
-	golang.org/x/crypto v0.0.0-20191206172530-e9b2fee46413
-	golang.org/x/net v0.0.0-20191209160850-c0dbc17a3553
-	golang.org/x/sys v0.0.0-20191218084908-4a24b4065292
+	golang.org/x/crypto v0.0.0-20200302210943-78000ba7a073
+	golang.org/x/net v0.0.0-20200301022130-244492dfa37a
+	golang.org/x/sys v0.0.0-20200302150141-5c8b2ff67527
 	golang.org/x/time v0.0.0-20191024005414-555d28b269f0 // indirect
 	gopkg.in/square/go-jose.v2 v2.4.1 // indirect
-	gopkg.in/src-d/go-git.v4 v4.13.1
 	gopkg.in/yaml.v2 v2.2.7
 	rsc.io/qr v0.2.0 // indirect
 )
