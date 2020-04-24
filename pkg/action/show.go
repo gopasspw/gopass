@@ -27,7 +27,8 @@ func (s *Action) Show(ctx context.Context, c *cli.Context) error {
 	name := c.Args().First()
 
 	ctx = s.Store.WithConfig(ctx, name)
-	ctx = WithClip(ctx, c.Bool("clip"))
+	ctx = WithOnlyClip(ctx, c.Bool("clip"))
+	ctx = WithClip(ctx, c.Bool("alsoclip"))
 	ctx = WithForce(ctx, c.Bool("force"))
 	ctx = WithPrintQR(ctx, c.Bool("qr"))
 	ctx = WithPasswordOnly(ctx, c.Bool("password"))
@@ -103,13 +104,24 @@ func (s *Action) showHandleOutput(ctx context.Context, name string, sec store.Se
 			return s.showHandleYAMLError(ctx, name, key, err)
 		}
 		if IsClip(ctx) {
-			return clipboard.CopyTo(ctx, name, []byte(val))
+			if err := clipboard.CopyTo(ctx, name, []byte(val)); err != nil {
+				return err
+			}
+			if IsOnlyClip(ctx) {
+				return nil
+			}
 		}
 		content = val
 	case IsPrintQR(ctx):
 		return s.showPrintQR(ctx, name, sec.Password())
 	case IsClip(ctx):
-		return clipboard.CopyTo(ctx, name, []byte(sec.Password()))
+		if err := clipboard.CopyTo(ctx, name, []byte(sec.Password())); err != nil {
+			return err
+		}
+		if IsOnlyClip(ctx) {
+			return nil
+		}
+		fallthrough
 	default:
 		switch {
 		case IsPasswordOnly(ctx):

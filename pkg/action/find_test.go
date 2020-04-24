@@ -84,7 +84,6 @@ func TestFind(t *testing.T) {
 	assert.NoError(t, act.Find(ctx, c))
 	out = strings.TrimSpace(buf.String())
 	assert.Contains(t, out, "Found exact match in 'foo'")
-	assert.NotContains(t, out, "Copying password instead.")
 	buf.Reset()
 
 	// safecontent case with force flag set
