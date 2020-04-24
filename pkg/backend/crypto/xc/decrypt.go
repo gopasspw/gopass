@@ -13,8 +13,8 @@ import (
 	"github.com/gopasspw/gopass/pkg/backend/crypto/xc/keyring"
 	"github.com/gopasspw/gopass/pkg/backend/crypto/xc/xcpb"
 
-	"google.golang.org/protobuf/proto"
 	"github.com/pkg/errors"
+	"google.golang.org/protobuf/proto"
 )
 
 const (

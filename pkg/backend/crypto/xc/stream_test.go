@@ -15,11 +15,11 @@ import (
 	stdbin "encoding/binary"
 
 	"github.com/alecthomas/binary"
-	"google.golang.org/protobuf/proto"
 	"github.com/gopasspw/gopass/pkg/backend/crypto/xc/keyring"
 	"github.com/gopasspw/gopass/pkg/backend/crypto/xc/xcpb"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/protobuf/proto"
 )
 
 func TestStream(t *testing.T) {
