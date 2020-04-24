@@ -16,7 +16,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/out"
 	"github.com/stretchr/testify/assert"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 )
 
 func TestListPrivateKeys(t *testing.T) {
@@ -67,17 +67,17 @@ func TestGenerateKeypair(t *testing.T) {
 		Name:  "name",
 		Usage: "name",
 	}
-	assert.NoError(t, nf.ApplyWithError(fs))
+	assert.NoError(t, nf.Apply(fs))
 	ef := cli.StringFlag{
 		Name:  "email",
 		Usage: "email",
 	}
-	assert.NoError(t, ef.ApplyWithError(fs))
+	assert.NoError(t, ef.Apply(fs))
 	pf := cli.StringFlag{
 		Name:  "passphrase",
 		Usage: "passphrase",
 	}
-	assert.NoError(t, pf.ApplyWithError(fs))
+	assert.NoError(t, pf.Apply(fs))
 
 	c := cli.NewContext(app, fs, nil)
 	assert.Error(t, GenerateKeypair(ctx, c))
@@ -105,12 +105,12 @@ func TestExportPublicKey(t *testing.T) {
 		Name:  "id",
 		Usage: "id",
 	}
-	assert.NoError(t, id.ApplyWithError(fs))
+	assert.NoError(t, id.Apply(fs))
 	ff := cli.StringFlag{
 		Name:  "file",
 		Usage: "file",
 	}
-	assert.NoError(t, ff.ApplyWithError(fs))
+	assert.NoError(t, ff.Apply(fs))
 	assert.NoError(t, fs.Parse([]string{"--id=foo", "--file=/tmp/foo.pub"}))
 	c := cli.NewContext(app, fs, nil)
 
@@ -133,7 +133,7 @@ func TestImportPublicKey(t *testing.T) {
 		Name:  "file",
 		Usage: "file",
 	}
-	assert.NoError(t, ff.ApplyWithError(fs))
+	assert.NoError(t, ff.Apply(fs))
 	assert.NoError(t, fs.Parse([]string{"--file=/tmp/foo.pub"}))
 	c := cli.NewContext(app, fs, nil)
 
@@ -156,12 +156,12 @@ func TestExportPrivateKey(t *testing.T) {
 		Name:  "id",
 		Usage: "id",
 	}
-	assert.NoError(t, id.ApplyWithError(fs))
+	assert.NoError(t, id.Apply(fs))
 	ff := cli.StringFlag{
 		Name:  "file",
 		Usage: "file",
 	}
-	assert.NoError(t, ff.ApplyWithError(fs))
+	assert.NoError(t, ff.Apply(fs))
 	assert.NoError(t, fs.Parse([]string{"--id=foo", "--file=/tmp/foo.pub"}))
 	c := cli.NewContext(app, fs, nil)
 
@@ -184,7 +184,7 @@ func TestImportPrivateKey(t *testing.T) {
 		Name:  "file",
 		Usage: "file",
 	}
-	assert.NoError(t, ff.ApplyWithError(fs))
+	assert.NoError(t, ff.Apply(fs))
 	assert.NoError(t, fs.Parse([]string{"--file=/tmp/foo.pub"}))
 	c := cli.NewContext(app, fs, nil)
 
@@ -228,7 +228,7 @@ func TestEncryptDecryptFile(t *testing.T) {
 		Name:  "file",
 		Usage: "file",
 	}
-	assert.NoError(t, ff.ApplyWithError(fs))
+	assert.NoError(t, ff.Apply(fs))
 	assert.NoError(t, fs.Parse([]string{"--file=" + plain}))
 	c := cli.NewContext(app, fs, nil)
 	assert.NoError(t, EncryptFile(ctx, c))
@@ -275,7 +275,7 @@ func TestEncryptDecryptStream(t *testing.T) {
 		Name:  "file",
 		Usage: "file",
 	}
-	assert.NoError(t, ff.ApplyWithError(fs))
+	assert.NoError(t, ff.Apply(fs))
 	assert.NoError(t, fs.Parse([]string{"--file=" + plain}))
 	c := cli.NewContext(app, fs, nil)
 	assert.NoError(t, EncryptFileStream(ctx, c))

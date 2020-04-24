@@ -16,7 +16,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/store/secret"
 	"github.com/gopasspw/gopass/pkg/store/sub"
 	"github.com/gopasspw/gopass/pkg/termio"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 )
 
 type gitCredentials struct {

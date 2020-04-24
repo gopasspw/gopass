@@ -8,7 +8,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/action"
 	"github.com/gopasspw/gopass/pkg/out"
 
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 )
 
 // Sum decodes binary content and computes the SHA256 checksum

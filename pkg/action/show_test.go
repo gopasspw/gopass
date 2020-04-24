@@ -16,7 +16,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 )
 
 func TestShow(t *testing.T) {
@@ -56,7 +56,7 @@ func TestShow(t *testing.T) {
 		Name:  "sync",
 		Usage: "sync",
 	}
-	assert.NoError(t, bf.ApplyWithError(fs))
+	assert.NoError(t, bf.Apply(fs))
 	assert.NoError(t, fs.Parse([]string{"--sync", "foo"}))
 	c = cli.NewContext(app, fs, nil)
 
@@ -101,7 +101,7 @@ func TestShow(t *testing.T) {
 		Name:  "force",
 		Usage: "force",
 	}
-	assert.NoError(t, bf.ApplyWithError(fs))
+	assert.NoError(t, bf.Apply(fs))
 	assert.NoError(t, fs.Parse([]string{"--force", "foo"}))
 	c = cli.NewContext(app, fs, nil)
 
@@ -116,7 +116,7 @@ func TestShow(t *testing.T) {
 		Name:  "clip",
 		Usage: "clip",
 	}
-	assert.NoError(t, bf.ApplyWithError(fs))
+	assert.NoError(t, bf.Apply(fs))
 	assert.NoError(t, fs.Parse([]string{"--clip", "bar/baz"}))
 	c = cli.NewContext(app, fs, nil)
 

@@ -11,7 +11,7 @@ import (
 	"github.com/gopasspw/gopass/tests/gptest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 
 	_ "github.com/gopasspw/gopass/pkg/backend/crypto"
 	_ "github.com/gopasspw/gopass/pkg/backend/rcs"
@@ -42,7 +42,7 @@ func TestUnclip(t *testing.T) {
 		Name:  "timeout",
 		Usage: "timeout",
 	}
-	assert.NoError(t, sf.ApplyWithError(fs))
+	assert.NoError(t, sf.Apply(fs))
 	assert.NoError(t, fs.Parse([]string{"--timeout=0"}))
 	c := cli.NewContext(app, fs, nil)
 

@@ -13,7 +13,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/out"
 	"github.com/muesli/goprogressbar"
 
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 )
 
 // Fsck checks the store integrity

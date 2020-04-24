@@ -6,19 +6,19 @@ import (
 
 	"github.com/gopasspw/gopass/pkg/termio"
 
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 )
 
 // Copy the contents of a file to another one
 func (s *Action) Copy(ctx context.Context, c *cli.Context) error {
 	force := c.Bool("force")
 
-	if len(c.Args()) != 2 {
+	if c.Args().Len() != 2 {
 		return ExitError(ctx, ExitUsage, nil, "Usage: %s cp <FROM> <TO>", s.Name)
 	}
 
-	from := c.Args()[0]
-	to := c.Args()[1]
+	from := c.Args().Get(0)
+	to := c.Args().Get(1)
 
 	return s.copy(ctx, from, to, force)
 }

@@ -5,7 +5,7 @@ package xc
 import (
 	"context"
 
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 )
 
 // ListPrivateKeys list the XC private keys

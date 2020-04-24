@@ -7,7 +7,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/store/sub"
 	"github.com/gopasspw/gopass/pkg/termio"
 
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 )
 
 // Delete a secret file with its content

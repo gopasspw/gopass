@@ -8,26 +8,26 @@ import (
 	"github.com/gopasspw/gopass/pkg/out"
 
 	"github.com/pkg/errors"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 )
 
 // Config handles changes to the gopass configuration
 func (s *Action) Config(ctx context.Context, c *cli.Context) error {
-	if len(c.Args()) < 1 {
+	if c.Args().Len() < 1 {
 		s.printConfigValues(ctx, "")
 		return nil
 	}
 
-	if len(c.Args()) == 1 {
-		s.printConfigValues(ctx, "", c.Args()[0])
+	if c.Args().Len() == 1 {
+		s.printConfigValues(ctx, "", c.Args().Get(0))
 		return nil
 	}
 
-	if len(c.Args()) > 2 {
+	if c.Args().Len() > 2 {
 		return ExitError(ctx, ExitUsage, nil, "Usage: %s config key value", s.Name)
 	}
 
-	if err := s.setConfigValue(ctx, c.String("store"), c.Args()[0], c.Args()[1]); err != nil {
+	if err := s.setConfigValue(ctx, c.String("store"), c.Args().Get(0), c.Args().Get(1)); err != nil {
 		return ExitError(ctx, ExitUnknown, err, "Error setting config value")
 	}
 	return nil

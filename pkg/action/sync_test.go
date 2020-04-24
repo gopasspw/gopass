@@ -13,7 +13,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 )
 
 func TestSync(t *testing.T) {
@@ -47,7 +47,7 @@ func TestSync(t *testing.T) {
 		Name:  "store",
 		Usage: "store",
 	}
-	assert.NoError(t, sf.ApplyWithError(fs))
+	assert.NoError(t, sf.Apply(fs))
 	assert.NoError(t, fs.Parse([]string{"--store=root"}))
 	c = cli.NewContext(app, fs, nil)
 

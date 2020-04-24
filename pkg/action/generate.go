@@ -20,7 +20,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/termio"
 
 	"github.com/fatih/color"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 )
 
 const (
@@ -265,11 +265,10 @@ func setMetadata(sec store.Secret, kvps map[string]string) {
 
 // CompleteGenerate implements the completion heuristic for the generate command
 func (s *Action) CompleteGenerate(ctx context.Context, c *cli.Context) {
-	args := c.Args()
-	if len(args) < 1 {
+	if c.Args().Len() < 1 {
 		return
 	}
-	needle := args[0]
+	needle := c.Args().Get(0)
 
 	_, err := s.Store.Initialized(ctx) // important to make sure the structs are not nil
 	if err != nil {

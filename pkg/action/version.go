@@ -14,7 +14,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/updater"
 
 	"github.com/fatih/color"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 )
 
 // Version prints the gopass version

@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 )
 
 // Action is a action which can be selected

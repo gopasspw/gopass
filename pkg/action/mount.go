@@ -13,16 +13,16 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/fatih/color"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 )
 
 // MountRemove removes an existing mount
 func (s *Action) MountRemove(ctx context.Context, c *cli.Context) error {
-	if len(c.Args()) != 1 {
+	if c.Args().Len() != 1 {
 		return ExitError(ctx, ExitUsage, nil, "Usage: %s mount remove [alias]", s.Name)
 	}
 
-	if err := s.Store.RemoveMount(ctx, c.Args()[0]); err != nil {
+	if err := s.Store.RemoveMount(ctx, c.Args().Get(0)); err != nil {
 		out.Error(ctx, "Failed to remove mount: %s", err)
 	}
 
@@ -30,7 +30,7 @@ func (s *Action) MountRemove(ctx context.Context, c *cli.Context) error {
 		return ExitError(ctx, ExitConfig, err, "failed to write config: %s", err)
 	}
 
-	out.Green(ctx, "Password Store %s umounted", c.Args()[0])
+	out.Green(ctx, "Password Store %s umounted", c.Args().Get(0))
 	return nil
 }
 

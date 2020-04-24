@@ -12,7 +12,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/termio"
 
 	"github.com/blang/semver"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 )
 
 func setupApp(ctx context.Context, sv semver.Version) *cli.App {
@@ -65,11 +65,11 @@ func setupApp(ctx context.Context, sv semver.Version) *cli.App {
 	}
 
 	app.Flags = []cli.Flag{
-		cli.BoolFlag{
+		&cli.BoolFlag{
 			Name:  "yes",
 			Usage: "Assume yes on all yes/no questions or use the default on all others",
 		},
-		cli.BoolFlag{
+		&cli.BoolFlag{
 			Name:  "clip, c",
 			Usage: "Copy the first line of the secret into the clipboard",
 		},

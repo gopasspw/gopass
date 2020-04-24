@@ -14,7 +14,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/store"
 
 	"github.com/pkg/errors"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 )
 
 const (

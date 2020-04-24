@@ -15,7 +15,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 )
 
 func TestEdit(t *testing.T) {
@@ -62,7 +62,7 @@ func TestGetEditor(t *testing.T) {
 		Name:  "editor",
 		Usage: "editor",
 	}
-	require.NoError(t, sf.ApplyWithError(fs))
+	require.NoError(t, sf.Apply(fs))
 	require.NoError(t, fs.Parse([]string{"--editor", "fooed"}))
 	c := cli.NewContext(app, fs, nil)
 

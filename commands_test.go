@@ -17,7 +17,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/out"
 	"github.com/gopasspw/gopass/tests/gptest"
 	"github.com/stretchr/testify/assert"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 )
 
 // commandsWithError is a list of commands that return an error when
@@ -95,7 +95,7 @@ func TestGetCommands(t *testing.T) {
 	testCommands(t, c, commands, prefix)
 }
 
-func testCommands(t *testing.T, c *cli.Context, commands []cli.Command, prefix string) {
+func testCommands(t *testing.T, c *cli.Context, commands []*cli.Command, prefix string) {
 	for _, cmd := range commands {
 		if cmd.Name == "agent" || cmd.Name == "update" {
 			// the agent command is blocking
@@ -118,13 +118,11 @@ func testCommands(t *testing.T, c *cli.Context, commands []cli.Command, prefix s
 		}
 		if cmd.Action != nil {
 			fullName := prefix + "." + cmd.Name
-			if av, ok := cmd.Action.(func(c *cli.Context) error); ok {
-				if _, found := commandsWithError[fullName]; found {
-					assert.Error(t, av(c), fullName)
-					continue
-				}
-				assert.NoError(t, av(c), fullName)
+			if _, found := commandsWithError[fullName]; found {
+				assert.Error(t, cmd.Action(c), fullName)
+				continue
 			}
+			assert.NoError(t, cmd.Action(c), fullName)
 		}
 	}
 }
