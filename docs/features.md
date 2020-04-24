@@ -405,6 +405,8 @@ Running `gopass recipients` will also try to load and save any missing GPG keys 
 
 The commands manipulating recipients, i.e. `gopass recipients add` and `gopass recipients remove` accept a `--store` flag that expects the *name of a mount point* to operate on this mounted sub store.
 
+To check and reencrypt secrets if recipients are missing, run `gopass fsck`.
+
 ### Recipient Integrity
 
 gopass will try to warn you if the list of recipients is changed. The way that
