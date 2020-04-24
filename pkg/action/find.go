@@ -20,6 +20,10 @@ func (s *Action) Find(ctx context.Context, c *cli.Context) error {
 		ctx = WithClip(ctx, c.Bool("clip"))
 	}
 
+	if c.IsSet("force") {
+		ctx = WithForce(ctx, c.Bool("force"))
+	}
+
 	if !c.Args().Present() {
 		return ExitError(ctx, ExitUsage, nil, "Usage: %s find <NEEDLE>", s.Name)
 	}

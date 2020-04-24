@@ -92,7 +92,7 @@ func TestShow(t *testing.T) {
 	c = cli.NewContext(app, fs, nil)
 
 	assert.NoError(t, act.Show(ctx, c))
-	assert.Contains(t, buf.String(), "No safe content to display, you can force display with show -f.")
+	assert.Contains(t, buf.String(), "no safe content to display, you can force display with -f.")
 	buf.Reset()
 
 	// show foo with safecontent enabled, with the force flag
