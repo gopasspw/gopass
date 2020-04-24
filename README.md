@@ -10,7 +10,6 @@
 [![Github All Releases](https://img.shields.io/github/downloads/gopasspw/gopass/total.svg)](https://github.com/gopasspw/gopass/releases)
 [![codecov](https://codecov.io/gh/gopasspw/gopass/branch/master/graph/badge.svg)](https://codecov.io/gh/gopasspw/gopass)
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/1899/badge)](https://bestpractices.coreinfrastructure.org/projects/1899)
-[![Download](https://api.bintray.com/packages/gopasspw/gopass/gopass/images/download.svg) ](https://bintray.com/gopasspw/gopass/gopass/_latestVersion)
 
 The slightly more awesome Standard Unix Password Manager for Teams. Written in Go.
 
@@ -90,13 +89,13 @@ We aim for compatibility with the [latest stable Go Release](https://golang.org/
 
 ## Credit & License
 
-gopass is maintained by the nice folks from [JustWatch](https://www.justwatch.com/gopass) and licensed under the terms of the MIT license.
+gopass was created by the nice folks from [JustWatch](https://www.justwatch.com/gopass) and licensed under the terms of the MIT license.
 
 Maintainers of this repository:
 
-* Christoph Oelmüller <christoph.oelmueller@justwatch.com> [@zwopir](https://github.com/zwopir)
-* Matthias Loibl <mail@matthiasloibl.com> [@metalmatze](https://github.com/metalmatze)
 * Dominik Schulz <dominik.schulz@gmail.com> [@dominikschulz](https://github.com/dominikschulz)
+* Martin Hoefling [@martinhoefling](https://github.com/martinhoefling)
+* Matthias Loibl <mail@matthiasloibl.com> [@metalmatze](https://github.com/metalmatze)
 
 Please refer to the Git commit log for a complete list of contributors.
 
