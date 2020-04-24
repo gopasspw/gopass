@@ -15,7 +15,7 @@ import (
 	stdbin "encoding/binary"
 
 	"github.com/alecthomas/binary"
-	"github.com/golang/protobuf/proto"
+	"google.golang.org/protobuf/proto"
 	"github.com/gopasspw/gopass/pkg/backend/crypto/xc/keyring"
 	"github.com/gopasspw/gopass/pkg/backend/crypto/xc/xcpb"
 	"github.com/stretchr/testify/assert"

@@ -10,7 +10,7 @@ import (
 
 	"github.com/gopasspw/gopass/pkg/backend/crypto/xc/xcpb"
 
-	"github.com/golang/protobuf/proto"
+	"google.golang.org/protobuf/proto"
 )
 
 // Pubring is a public key ring
