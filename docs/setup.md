@@ -52,6 +52,10 @@ brew install gnupg2 git
 * Download and install [GPG4Win](https://www.gpg4win.org/).
 * Download and install [the Windows git installer](https://git-scm.com/download/win).
 
+Alternatively, it can be installed via [chocolatey](https://chocolatey.org/packages/gopass)
+
+* `choco install gopass` (requires admin privileges)
+
 #### OpenBSD
 
 For OpenBSD -current:
