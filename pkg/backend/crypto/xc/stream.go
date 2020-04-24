@@ -11,6 +11,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/backend/crypto/xc/xcpb"
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/nacl/secretbox"
+	"google.golang.org/protobuf/proto"
 )
 
 // EncryptStream encrypts the plaintext using a slightly modified on disk-format
@@ -42,7 +43,11 @@ func (x *XC) EncryptStream(ctx context.Context, plaintext io.Reader, recipients 
 		return err
 	}
 	// write header
-	if err := enc.Encode(header); err != nil {
+	hbuf, err := proto.Marshal(header)
+	if err != nil {
+		return err
+	}
+	if err := enc.Encode(hbuf); err != nil {
 		return err
 	}
 	// write body
@@ -98,8 +103,12 @@ func (x *XC) DecryptStream(ctx context.Context, ciphertext io.Reader, plaintext 
 		return fmt.Errorf("wrong version")
 	}
 	// read header
+	hbuf := []byte{}
+	if err := dec.Decode(&hbuf); err != nil {
+		return err
+	}
 	header := &xcpb.Header{}
-	if err := dec.Decode(header); err != nil {
+	if err := proto.Unmarshal(hbuf, header); err != nil {
 		return err
 	}
 

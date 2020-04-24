@@ -11,7 +11,7 @@ import (
 
 	"github.com/gopasspw/gopass/pkg/backend/crypto/xc/xcpb"
 
-	"github.com/golang/protobuf/proto"
+	"google.golang.org/protobuf/proto"
 )
 
 // Secring is private key ring
