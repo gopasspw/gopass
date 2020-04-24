@@ -43,7 +43,6 @@ require (
 	github.com/mitchellh/go-ps v0.0.0-20190716172923-621e5597135b
 	github.com/muesli/crunchy v0.0.0-20191002192727-c0afa2da818f
 	github.com/muesli/goprogressbar v0.0.0-20190807022807-e540249d2ac1
-	github.com/nsf/termbox-go v0.0.0-20190817171036-93860e161317 // indirect
 	github.com/pierrec/lz4 v2.4.0+incompatible // indirect
 	github.com/pkg/errors v0.8.1
 	github.com/schollz/closestmatch v0.0.0-20190308193919-1fbe626be92e
