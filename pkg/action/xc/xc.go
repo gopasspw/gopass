@@ -15,7 +15,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/fsutil"
 	"github.com/gopasspw/gopass/pkg/out"
 	"github.com/gopasspw/gopass/pkg/termio"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 )
 
 var crypto *xc.XC

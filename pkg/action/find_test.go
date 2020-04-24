@@ -18,7 +18,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 )
 
 func TestFind(t *testing.T) {
@@ -77,7 +77,7 @@ func TestFind(t *testing.T) {
 		Name:  "clip",
 		Usage: "clip",
 	}
-	assert.NoError(t, bf.ApplyWithError(fs))
+	assert.NoError(t, bf.Apply(fs))
 	assert.NoError(t, fs.Parse([]string{"-clip", "fo"}))
 	c = cli.NewContext(app, fs, nil)
 
@@ -93,7 +93,7 @@ func TestFind(t *testing.T) {
 		Name:  "force",
 		Usage: "force",
 	}
-	assert.NoError(t, bf.ApplyWithError(fs))
+	assert.NoError(t, bf.Apply(fs))
 	assert.NoError(t, fs.Parse([]string{"-force", "fo"}))
 	c = cli.NewContext(app, fs, nil)
 

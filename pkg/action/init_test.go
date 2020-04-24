@@ -17,7 +17,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 )
 
 func TestInit(t *testing.T) {
@@ -119,17 +119,17 @@ func TestInitParseContext(t *testing.T) {
 			Name:  "crypto",
 			Usage: "crypto",
 		}
-		assert.NoError(t, sf.ApplyWithError(fs))
+		assert.NoError(t, sf.Apply(fs))
 		sf = cli.StringFlag{
 			Name:  "rcs",
 			Usage: "rcs",
 		}
-		assert.NoError(t, sf.ApplyWithError(fs))
+		assert.NoError(t, sf.Apply(fs))
 		bf := cli.BoolFlag{
 			Name:  "nogit",
 			Usage: "nogit",
 		}
-		assert.NoError(t, bf.ApplyWithError(fs))
+		assert.NoError(t, bf.Apply(fs))
 		assert.NoError(t, fs.Parse(tc.args), tc.name)
 		c := cli.NewContext(app, fs, nil)
 		assert.NoError(t, tc.check(initParseContext(context.Background(), c)), tc.name)

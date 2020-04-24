@@ -11,7 +11,7 @@ import (
 	"github.com/blang/semver"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/stretchr/testify/assert"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 )
 
 func TestGlobalFlags(t *testing.T) {
@@ -23,7 +23,7 @@ func TestGlobalFlags(t *testing.T) {
 		Name:  "yes",
 		Usage: "yes",
 	}
-	assert.NoError(t, sf.ApplyWithError(fs))
+	assert.NoError(t, sf.Apply(fs))
 	assert.NoError(t, fs.Parse([]string{"--yes"}))
 	c := cli.NewContext(app, fs, nil)
 

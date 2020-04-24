@@ -15,7 +15,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 )
 
 func TestList(t *testing.T) {
@@ -70,7 +70,7 @@ func TestList(t *testing.T) {
 		Name:  "flat",
 		Usage: "flat",
 	}
-	assert.NoError(t, bf.ApplyWithError(fs))
+	assert.NoError(t, bf.Apply(fs))
 	assert.NoError(t, fs.Parse([]string{"--flat=true", "foo"}))
 	c = cli.NewContext(app, fs, nil)
 
@@ -92,7 +92,7 @@ func TestList(t *testing.T) {
 		Name:  "folders",
 		Usage: "folders",
 	}
-	assert.NoError(t, bf.ApplyWithError(fs))
+	assert.NoError(t, bf.Apply(fs))
 	assert.NoError(t, fs.Parse([]string{"--folders=true"}))
 	c = cli.NewContext(app, fs, nil)
 

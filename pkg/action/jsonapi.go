@@ -12,7 +12,7 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/pkg/errors"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 )
 
 // JSONAPI reads a json message on stdin and responds on stdout

@@ -16,7 +16,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 )
 
 func TestDelete(t *testing.T) {
@@ -75,7 +75,7 @@ func TestDelete(t *testing.T) {
 		Name:  "recursive",
 		Usage: "recursive",
 	}
-	assert.NoError(t, sf.ApplyWithError(fs))
+	assert.NoError(t, sf.Apply(fs))
 	assert.NoError(t, fs.Parse([]string{"--recursive=true", "foo"}))
 	c = cli.NewContext(app, fs, nil)
 

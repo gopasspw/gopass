@@ -14,7 +14,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/termio"
 
 	"github.com/fatih/color"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 )
 
 // Clone will fetch and mount a new password store from a git repo
@@ -26,14 +26,14 @@ func (s *Action) Clone(ctx context.Context, c *cli.Context) error {
 		ctx = backend.WithRCSBackendString(ctx, c.String("sync"))
 	}
 
-	if len(c.Args()) < 1 {
+	if c.Args().Len() < 1 {
 		return ExitError(ctx, ExitUsage, nil, "Usage: %s clone repo [mount]", s.Name)
 	}
 
-	repo := c.Args()[0]
+	repo := c.Args().Get(0)
 	mount := ""
-	if len(c.Args()) > 1 {
-		mount = c.Args()[1]
+	if c.Args().Len() > 1 {
+		mount = c.Args().Get(1)
 	}
 
 	path := c.String("path")

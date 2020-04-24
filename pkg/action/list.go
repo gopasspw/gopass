@@ -16,7 +16,7 @@ import (
 	"github.com/fatih/color"
 	shellquote "github.com/kballard/go-shellquote"
 	"github.com/pkg/errors"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 )
 
 // List all secrets as a tree. If the filter argument is non-empty

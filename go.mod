@@ -50,6 +50,7 @@ require (
 	github.com/skip2/go-qrcode v0.0.0-20191027152451-9434209cb086
 	github.com/stretchr/testify v1.4.0
 	github.com/urfave/cli v1.22.2
+	github.com/urfave/cli/v2 v2.2.0
 	github.com/xrash/smetrics v0.0.0-20170218160415-a3153f7040e9 // indirect
 	golang.org/x/crypto v0.0.0-20200302210943-78000ba7a073
 	golang.org/x/net v0.0.0-20200301022130-244492dfa37a

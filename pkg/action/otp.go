@@ -13,7 +13,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/out"
 	"github.com/gopasspw/gopass/pkg/store"
 
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 )
 
 const (

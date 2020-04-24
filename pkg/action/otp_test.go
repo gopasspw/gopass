@@ -16,7 +16,7 @@ import (
 	"github.com/gokyle/twofactor"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 )
 
 func TestOTP(t *testing.T) {
@@ -65,7 +65,7 @@ func TestOTP(t *testing.T) {
 		Name:  "qr",
 		Usage: "qr",
 	}
-	assert.NoError(t, sf.ApplyWithError(fs))
+	assert.NoError(t, sf.Apply(fs))
 	fn := filepath.Join(u.Dir, "qr.png")
 	assert.NoError(t, fs.Parse([]string{"--qr=" + fn, "bar"}))
 	c = cli.NewContext(app, fs, nil)

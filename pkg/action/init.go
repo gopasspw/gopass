@@ -17,7 +17,7 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/pkg/errors"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 )
 
 // Initialized returns an error if the store is not properly
@@ -59,7 +59,7 @@ func (s *Action) Init(ctx context.Context, c *cli.Context) error {
 		out.Error(ctx, "WARNING: Store is already initialized")
 	}
 
-	if err := s.init(ctx, alias, path, c.Args()...); err != nil {
+	if err := s.init(ctx, alias, path, c.Args().Slice()...); err != nil {
 		return ExitError(ctx, ExitUnknown, err, "failed to initialize store: %s", err)
 	}
 	return nil

@@ -21,7 +21,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/store/sub"
 	"github.com/gopasspw/gopass/pkg/termio"
 	"github.com/martinhoefling/goxkcdpwgen/xkcdpwgen"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 )
 
 const (

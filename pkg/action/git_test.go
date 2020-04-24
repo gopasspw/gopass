@@ -13,7 +13,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 )
 
 func TestGit(t *testing.T) {
@@ -44,12 +44,12 @@ func TestGit(t *testing.T) {
 		Name:  "username",
 		Usage: "username",
 	}
-	assert.NoError(t, un.ApplyWithError(fs))
+	assert.NoError(t, un.Apply(fs))
 	ue := cli.StringFlag{
 		Name:  "useremail",
 		Usage: "useremail",
 	}
-	assert.NoError(t, ue.ApplyWithError(fs))
+	assert.NoError(t, ue.Apply(fs))
 	assert.NoError(t, fs.Parse([]string{"--username", "foobar", "--useremail", "foo.bar@example.org"}))
 	c := cli.NewContext(app, fs, nil)
 

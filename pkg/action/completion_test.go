@@ -11,7 +11,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 )
 
 func TestBashEscape(t *testing.T) {
@@ -39,7 +39,7 @@ func TestComplete(t *testing.T) {
 	require.NotNil(t, act)
 
 	app := cli.NewApp()
-	app.Commands = []cli.Command{
+	app.Commands = []*cli.Command{
 		{
 			Name:    "test",
 			Aliases: []string{"foo", "bar"},

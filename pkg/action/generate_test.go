@@ -16,7 +16,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 )
 
 func TestGenerate(t *testing.T) {
@@ -66,7 +66,7 @@ func TestGenerate(t *testing.T) {
 		Name:  "force",
 		Usage: "force",
 	}
-	assert.NoError(t, bf.ApplyWithError(fs))
+	assert.NoError(t, bf.Apply(fs))
 	assert.NoError(t, fs.Parse([]string{"--force=true", "foobar"}))
 	c = cli.NewContext(app, fs, nil)
 
@@ -79,7 +79,7 @@ func TestGenerate(t *testing.T) {
 		Name:  "force",
 		Usage: "force",
 	}
-	assert.NoError(t, bf.ApplyWithError(fs))
+	assert.NoError(t, bf.Apply(fs))
 	assert.NoError(t, fs.Parse([]string{"--force=true", "foobar", "32"}))
 	c = cli.NewContext(app, fs, nil)
 
@@ -92,17 +92,17 @@ func TestGenerate(t *testing.T) {
 		Name:  "force",
 		Usage: "force",
 	}
-	assert.NoError(t, bf.ApplyWithError(fs))
+	assert.NoError(t, bf.Apply(fs))
 	bf = cli.BoolFlag{
 		Name:  "symbols",
 		Usage: "symbols",
 	}
-	assert.NoError(t, bf.ApplyWithError(fs))
+	assert.NoError(t, bf.Apply(fs))
 	bf = cli.BoolFlag{
 		Name:  "print",
 		Usage: "print",
 	}
-	assert.NoError(t, bf.ApplyWithError(fs))
+	assert.NoError(t, bf.Apply(fs))
 	assert.NoError(t, fs.Parse([]string{"--force=true", "--print=true", "--symbols", "foobar", "32"}))
 	c = cli.NewContext(app, fs, nil)
 
@@ -116,17 +116,17 @@ func TestGenerate(t *testing.T) {
 		Name:  "force",
 		Usage: "force",
 	}
-	assert.NoError(t, bf.ApplyWithError(fs))
+	assert.NoError(t, bf.Apply(fs))
 	bf = cli.BoolFlag{
 		Name:  "symbols",
 		Usage: "symbols",
 	}
-	assert.NoError(t, bf.ApplyWithError(fs))
+	assert.NoError(t, bf.Apply(fs))
 	bf = cli.BoolFlag{
 		Name:  "print",
 		Usage: "print",
 	}
-	assert.NoError(t, bf.ApplyWithError(fs))
+	assert.NoError(t, bf.Apply(fs))
 	assert.NoError(t, fs.Parse([]string{"--force=true", "--print=true", "--symbols=true", "foobar", "32"}))
 	c = cli.NewContext(app, fs, nil)
 
@@ -140,17 +140,17 @@ func TestGenerate(t *testing.T) {
 		Name:  "force",
 		Usage: "force",
 	}
-	assert.NoError(t, bf.ApplyWithError(fs))
+	assert.NoError(t, bf.Apply(fs))
 	bf = cli.BoolFlag{
 		Name:  "symbols",
 		Usage: "symbols",
 	}
-	assert.NoError(t, bf.ApplyWithError(fs))
+	assert.NoError(t, bf.Apply(fs))
 	bf = cli.BoolFlag{
 		Name:  "print",
 		Usage: "print",
 	}
-	assert.NoError(t, bf.ApplyWithError(fs))
+	assert.NoError(t, bf.Apply(fs))
 	assert.NoError(t, fs.Parse([]string{"--force=true", "--print=true", "--symbols=false", "foobar", "32"}))
 	c = cli.NewContext(app, fs, nil)
 
@@ -164,18 +164,18 @@ func TestGenerate(t *testing.T) {
 		Name:  "force",
 		Usage: "force",
 	}
-	assert.NoError(t, bf.ApplyWithError(fs))
+	assert.NoError(t, bf.Apply(fs))
 	bf = cli.BoolFlag{
 		Name:  "xkcd",
 		Usage: "xkcd",
 	}
-	assert.NoError(t, bf.ApplyWithError(fs))
+	assert.NoError(t, bf.Apply(fs))
 	sf := cli.StringFlag{
 		Name:  "xkcdlang",
 		Usage: "xkcdlange",
 		Value: "en",
 	}
-	assert.NoError(t, sf.ApplyWithError(fs))
+	assert.NoError(t, sf.Apply(fs))
 	assert.NoError(t, fs.Parse([]string{"--force=true", "--xkcd=true", "foobar", "32"}))
 	c = cli.NewContext(app, fs, nil)
 
@@ -188,18 +188,18 @@ func TestGenerate(t *testing.T) {
 		Name:  "force",
 		Usage: "force",
 	}
-	assert.NoError(t, bf.ApplyWithError(fs))
+	assert.NoError(t, bf.Apply(fs))
 	bf = cli.BoolFlag{
 		Name:  "xkcd",
 		Usage: "xkcd",
 	}
-	assert.NoError(t, bf.ApplyWithError(fs))
+	assert.NoError(t, bf.Apply(fs))
 	sf = cli.StringFlag{
 		Name:  "xkcdlang",
 		Usage: "xkcdlange",
 		Value: "en",
 	}
-	assert.NoError(t, sf.ApplyWithError(fs))
+	assert.NoError(t, sf.Apply(fs))
 	assert.NoError(t, fs.Parse([]string{"--force=true", "--xkcd=true", "foobar", "baz", "32"}))
 	c = cli.NewContext(app, fs, nil)
 
@@ -212,18 +212,18 @@ func TestGenerate(t *testing.T) {
 		Name:  "force",
 		Usage: "force",
 	}
-	assert.NoError(t, bf.ApplyWithError(fs))
+	assert.NoError(t, bf.Apply(fs))
 	bf = cli.BoolFlag{
 		Name:  "xkcd",
 		Usage: "xkcd",
 	}
-	assert.NoError(t, bf.ApplyWithError(fs))
+	assert.NoError(t, bf.Apply(fs))
 	sf = cli.StringFlag{
 		Name:  "xkcdlang",
 		Usage: "xkcdlange",
 		Value: "en",
 	}
-	assert.NoError(t, sf.ApplyWithError(fs))
+	assert.NoError(t, sf.Apply(fs))
 	assert.NoError(t, fs.Parse([]string{"--force=true", "--xkcd=true", "foobar", "baz"}))
 	c = cli.NewContext(app, fs, nil)
 
@@ -236,23 +236,23 @@ func TestGenerate(t *testing.T) {
 		Name:  "force",
 		Usage: "force",
 	}
-	assert.NoError(t, bf.ApplyWithError(fs))
+	assert.NoError(t, bf.Apply(fs))
 	bf = cli.BoolFlag{
 		Name:  "xkcd",
 		Usage: "xkcd",
 	}
-	assert.NoError(t, bf.ApplyWithError(fs))
+	assert.NoError(t, bf.Apply(fs))
 	bf = cli.BoolFlag{
 		Name:  "print",
 		Usage: "print",
 	}
-	assert.NoError(t, bf.ApplyWithError(fs))
+	assert.NoError(t, bf.Apply(fs))
 	sf = cli.StringFlag{
 		Name:  "xkcdlang",
 		Usage: "xkcdlange",
 		Value: "en",
 	}
-	assert.NoError(t, sf.ApplyWithError(fs))
+	assert.NoError(t, sf.Apply(fs))
 	assert.NoError(t, fs.Parse([]string{"--force=true", "--print=true", "--xkcd=true", "foobar", "baz"}))
 	c = cli.NewContext(app, fs, nil)
 

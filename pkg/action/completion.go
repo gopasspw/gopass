@@ -7,11 +7,9 @@ import (
 	"runtime"
 	"strings"
 
-	fishcomp "github.com/gopasspw/gopass/pkg/completion/fish"
 	zshcomp "github.com/gopasspw/gopass/pkg/completion/zsh"
 	"github.com/gopasspw/gopass/pkg/out"
-
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 )
 
 var escapeRegExp = regexp.MustCompile(`(\s|\(|\)|\<|\>|\&|\;|\#|\\|\||\*|\?)`)
@@ -90,7 +88,10 @@ func (s *Action) CompletionBash(c *cli.Context) error {
 
 // CompletionFish returns an autocompletion script for fish
 func (s *Action) CompletionFish(c *cli.Context, a *cli.App) error {
-	comp, err := fishcomp.GetCompletion(a)
+	if a == nil {
+		return fmt.Errorf("app is nil")
+	}
+	comp, err := a.ToFishCompletion()
 	if err != nil {
 		return err
 	}

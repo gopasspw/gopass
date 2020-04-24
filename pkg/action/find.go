@@ -11,7 +11,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/out"
 
 	"github.com/schollz/closestmatch"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 )
 
 // Find a string in the secret file's name

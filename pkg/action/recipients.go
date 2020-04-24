@@ -12,7 +12,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/store/sub"
 	"github.com/gopasspw/gopass/pkg/termio"
 
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 )
 
 var (
@@ -75,7 +75,7 @@ func (s *Action) RecipientsAdd(ctx context.Context, c *cli.Context) error {
 	crypto := s.Store.Crypto(ctx, store)
 
 	// select recipient
-	recipients := []string(c.Args())
+	recipients := []string(c.Args().Slice())
 	if len(recipients) < 1 {
 		r, err := s.recipientsSelectForAdd(ctx, store)
 		if err != nil {
@@ -138,7 +138,7 @@ func (s *Action) RecipientsRemove(ctx context.Context, c *cli.Context) error {
 	crypto := s.Store.Crypto(ctx, store)
 
 	// select recipient
-	recipients := []string(c.Args())
+	recipients := []string(c.Args().Slice())
 	if len(recipients) < 1 {
 		rs, err := s.recipientsSelectForRemoval(ctx, store)
 		if err != nil {

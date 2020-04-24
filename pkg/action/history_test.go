@@ -16,7 +16,7 @@ import (
 	"github.com/blang/semver"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 )
 
 func TestHistory(t *testing.T) {
@@ -70,7 +70,7 @@ func TestHistory(t *testing.T) {
 		Name:  "password",
 		Usage: "password",
 	}
-	assert.NoError(t, sf.ApplyWithError(fs))
+	assert.NoError(t, sf.Apply(fs))
 	assert.NoError(t, fs.Parse([]string{"--password=true", "bar"}))
 	c = cli.NewContext(app, fs, nil)
 
