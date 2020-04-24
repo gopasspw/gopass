@@ -37,7 +37,7 @@ func Clear(ctx context.Context, checksum string, force bool) error {
 		return errors.Wrapf(err, "failed to clear clipboard history: %s", err)
 	}
 
-	if err := notify.Notify(ctx, "gopass -clipboard", "Clipboard has been cleared"); err != nil {
+	if err := notify.Notify(ctx, "gopass - clipboard", "Clipboard has been cleared"); err != nil {
 		return errors.Wrapf(err, "failed to send unclip notification: %s", err)
 	}
 
