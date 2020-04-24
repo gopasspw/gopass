@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/gopasspw/gopass/pkg/backend"
@@ -36,6 +37,9 @@ func aGitRepo(ctx context.Context, u *gptest.Unit, t *testing.T, name string) st
 }
 
 func TestClone(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("skipping test on windows.")
+	}
 	u := gptest.NewUnitTester(t)
 	defer u.Remove()
 
@@ -72,6 +76,9 @@ func TestClone(t *testing.T) {
 }
 
 func TestCloneBackendIsStoredForMount(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("skipping test on windows.")
+	}
 	u := gptest.NewUnitTester(t)
 	defer u.Remove()
 

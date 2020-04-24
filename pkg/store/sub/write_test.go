@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"runtime"
 	"testing"
 
 	"github.com/gopasspw/gopass/pkg/store/secret"
@@ -14,6 +15,10 @@ import (
 )
 
 func TestSet(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("skipping test on windows.")
+	}
+
 	ctx := context.Background()
 
 	tempdir, err := ioutil.TempDir("", "gopass-")

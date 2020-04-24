@@ -1,14 +1,20 @@
 package simple
 
 import (
-	"github.com/fatih/color"
+	"runtime"
 	"sort"
 	"testing"
+
+	"github.com/fatih/color"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestFolder(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("skipping test on windows.")
+	}
+
 	root := New("gopass")
 	assert.NoError(t, root.AddFile("foo/bar", "text/plain"))
 	assert.NoError(t, root.AddTemplate("foo"))

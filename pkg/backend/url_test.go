@@ -2,6 +2,7 @@ package backend_test
 
 import (
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/gopasspw/gopass/pkg/backend"
@@ -96,6 +97,9 @@ type testConfig struct {
 }
 
 func TestUnmarshalYAML(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("skipping test on windows.")
+	}
 	in := `---
 path: gpgcli-gitcli-fs+file:///tmp/foo
 `

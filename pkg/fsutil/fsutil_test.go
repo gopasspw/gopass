@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/user"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -82,6 +83,9 @@ func TestIsFile(t *testing.T) {
 }
 
 func TestShred(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("skipping test on windows.")
+	}
 	tempdir, err := ioutil.TempDir("", "gopass-")
 	require.NoError(t, err)
 	defer func() {

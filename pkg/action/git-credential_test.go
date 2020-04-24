@@ -6,6 +6,7 @@ import (
 	"flag"
 	"io"
 	"os"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -80,6 +81,9 @@ func TestGitCredentialFormat(t *testing.T) {
 }
 
 func TestGitCredentialHelper(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("skipping test on windows.")
+	}
 	u := gptest.NewUnitTester(t)
 	defer u.Remove()
 

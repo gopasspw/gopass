@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -8,6 +9,9 @@ import (
 )
 
 func TestYAMLAndSecret(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("skipping test on windows.")
+	}
 	ts := newTester(t)
 	defer ts.teardown()
 
@@ -32,6 +36,9 @@ func TestYAMLAndSecret(t *testing.T) {
 }
 
 func TestInvalidYAML(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("skipping test on windows.")
+	}
 	var testBody = `somepasswd
 ---
 Test / test.com

@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"context"
 	"flag"
+	"fmt"
 	"os"
+	"runtime"
 	"testing"
 
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -38,7 +40,13 @@ func TestDelete(t *testing.T) {
 	// delete
 	c := cli.NewContext(app, flag.NewFlagSet("default", flag.ContinueOnError), nil)
 
-	if err := act.Delete(ctx, c); err == nil || err.Error() != "Usage: action.test rm name" {
+	actName := "action.test"
+
+	if runtime.GOOS == "windows" {
+		actName = "action.test.exe"
+	}
+
+	if err := act.Delete(ctx, c); err == nil || err.Error() != fmt.Sprintf("Usage: %s rm name", actName) {
 		t.Errorf("Should fail")
 	}
 	buf.Reset()

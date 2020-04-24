@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -56,6 +57,9 @@ func TestRespondGetVersion(t *testing.T) {
 }
 
 func TestRespondMessageQuery(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("skipping test on windows.")
+	}
 	secrets := []storedSecret{
 		{[]string{"awesomePrefix", "foo", "bar"}, secret.New("20", "")},
 		{[]string{"awesomePrefix", "fixed", "secret"}, secret.New("moar", "")},

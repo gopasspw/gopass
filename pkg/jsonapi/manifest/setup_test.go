@@ -1,6 +1,7 @@
 package manifest
 
 import (
+	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -32,11 +33,10 @@ func TestValidBrowser(t *testing.T) {
 }
 
 func TestValidBrowsers(t *testing.T) {
-	assert.Equal(t, []string{"brave", "chrome", "chromium", "firefox", "iridium", "slimjet", "vivaldi"}, ValidBrowsers())
-}
-
-func TestManifest(t *testing.T) {
-	if _, err := getLocation("foobar", "", false); err == nil {
-		t.Error("browser should not exist")
+	if runtime.GOOS == "windows" {
+		assert.Equal(t, []string{"chrome", "chromium", "firefox"}, ValidBrowsers())
+	} else {
+		assert.Equal(t, []string{"brave", "chrome", "chromium", "firefox", "iridium", "slimjet", "vivaldi"}, ValidBrowsers())
 	}
+
 }

@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -45,9 +46,18 @@ func TestTempFiler(t *testing.T) {
 }
 
 func TestGlobalPrefix(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("skipping test on windows.")
+	}
+
 	assertPrefix := func(file *File, prefix string) {
 		requirePrefix := filepath.Join(tempdirBase(), prefix)
-		assert.True(t, strings.HasPrefix(file.Name(), requirePrefix))
+		fileOrDirName := file.Name()
+		if runtime.GOOS == "darwin" {
+			dir := filepath.Dir(fileOrDirName)
+			fileOrDirName = filepath.Base(dir)
+		}
+		assert.True(t, strings.HasPrefix(fileOrDirName, requirePrefix))
 	}
 	ctx := context.Background()
 	assert.Equal(t, "", globalPrefix)

@@ -3,6 +3,7 @@ package root
 import (
 	"context"
 	"path"
+	"runtime"
 	"sort"
 	"testing"
 
@@ -33,6 +34,10 @@ func TestSimpleList(t *testing.T) {
 }
 
 func TestListMulti(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("skipping test on windows.")
+	}
+
 	ctx := context.Background()
 	ctx = backend.WithCryptoBackend(ctx, backend.Plain)
 	ctx = backend.WithRCSBackend(ctx, backend.Noop)
@@ -72,6 +77,10 @@ func TestListMulti(t *testing.T) {
 }
 
 func TestListNested(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("skipping test on windows.")
+	}
+
 	ctx := context.Background()
 	ctx = backend.WithCryptoBackend(ctx, backend.Plain)
 	ctx = backend.WithRCSBackend(ctx, backend.Noop)

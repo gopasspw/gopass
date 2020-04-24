@@ -6,6 +6,7 @@ import (
 	"flag"
 	"os"
 	"os/exec"
+	"runtime"
 	"testing"
 
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -34,6 +35,9 @@ func TestEdit(t *testing.T) {
 }
 
 func TestEditor(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("skipping test on windows.")
+	}
 	u := gptest.NewUnitTester(t)
 	defer u.Remove()
 
@@ -80,6 +84,12 @@ func TestGetEditor(t *testing.T) {
 	// vi
 	op := os.Getenv("PATH")
 	assert.NoError(t, os.Setenv("PATH", "/tmp"))
-	assert.Equal(t, "vi", Path(c))
+	if runtime.GOOS == "windows" {
+		assert.Equal(t, "notepad.exe", Path(c))
+
+	} else {
+		assert.Equal(t, "vi", Path(c))
+
+	}
 	assert.NoError(t, os.Setenv("PATH", op))
 }

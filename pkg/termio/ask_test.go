@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"os"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -203,6 +204,10 @@ z
 }
 
 func TestAskForPasswordNonInteractive(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("skipping test on windows.")
+	}
+
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
 	Stdout = buf
