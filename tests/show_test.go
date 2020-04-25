@@ -55,11 +55,11 @@ func TestShow(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "more stuff", out)
 
-	out, err = ts.run("show fixed/twoliner -f")
+	out, err = ts.run("show -f fixed/twoliner")
 	assert.NoError(t, err)
 	assert.Equal(t, "and\nmore stuff", out)
 
-	out, err = ts.run("show fixed/twoliner -c")
+	out, err = ts.run("show -c fixed/twoliner")
 	assert.NoError(t, err)
 	assert.NotContains(t, out, "safe content to display")
 

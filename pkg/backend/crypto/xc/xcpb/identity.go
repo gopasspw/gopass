@@ -1,7 +1,7 @@
 package xcpb
 
 // ID returns the GPG ID format
-func (i Identity) ID() string {
+func (i *Identity) ID() string {
 	out := i.Name
 	if i.Comment != "" {
 		out += " (" + i.Comment + ")"

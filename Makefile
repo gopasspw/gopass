@@ -79,27 +79,27 @@ install: all install-completion
 	@printf '%s\n' '$(OK)'
 
 fulltest: $(GOPASS_OUTPUT)
-	@echo ">> TEST, \"full-mode\": race detector off, build tags: xc, gogit, consul"
+	@echo ">> TEST, \"full-mode\": race detector off, build tags: xc"
 	@echo "mode: atomic" > coverage-all.out
 	@$(foreach pkg, $(PKGS),\
 	    echo -n "     ";\
-		go test -run '(Test|Example)' $(BUILDFLAGS) $(TESTFLAGS) -coverprofile=coverage.out -covermode=atomic $(pkg) -tags 'xc gogit consul' || exit 1;\
+		go test -run '(Test|Example)' $(BUILDFLAGS) $(TESTFLAGS) -coverprofile=coverage.out -covermode=atomic $(pkg) -tags 'xc' || exit 1;\
 		tail -n +2 coverage.out >> coverage-all.out;)
 	@$(GO) tool cover -html=coverage-all.out -o coverage-all.html
 
 fulltest-nocover: $(GOPASS_OUTPUT)
-	@echo ">> TEST, \"full-mode-no-coverage\": race detector off, build tags: xc, gogit, consul"
+	@echo ">> TEST, \"full-mode-no-coverage\": race detector off, build tags: xc"
 	@echo "mode: atomic" > coverage-all.out
 	@$(foreach pkg, $(PKGSWIN),\
 	    echo -n "     "; \
-		go test -run '(Test|Example)' $(BUILDFLAGS) $(TESTFLAGS) $(pkg) -tags 'xc gogit consul' || exit 1;)
+		go test -run '(Test|Example)' $(BUILDFLAGS) $(TESTFLAGS) $(pkg) -tags 'xc' || exit 1;)
 
 racetest: $(GOPASS_OUTPUT)
 	@echo ">> TEST, \"full-mode\": race detector on"
 	@echo "mode: atomic" > coverage-all.out
 	@$(foreach pkg, $(PKGS),\
 	    echo -n "     ";\
-		go test -run '(Test|Example)' $(BUILDFLAGS) $(TESTFLAGS) -race -coverprofile=coverage.out -covermode=atomic $(pkg) -tags 'xc gogit consul' || exit 1;\
+		go test -run '(Test|Example)' $(BUILDFLAGS) $(TESTFLAGS) -race -coverprofile=coverage.out -covermode=atomic $(pkg) -tags 'xc' || exit 1;\
 		tail -n +2 coverage.out >> coverage-all.out;)
 	@$(GO) tool cover -html=coverage-all.out -o coverage-all.html
 
@@ -127,8 +127,8 @@ crosscompile:
 	@printf '%s\n' '$(OK)'
 
 full:
-	@echo -n ">> COMPILE linux/amd64 xc gogit consul"
-	$(GO) build -o $(GOPASS_OUTPUT)-linux-amd64-full -tags "xc gogit consul"
+	@echo -n ">> COMPILE linux/amd64 xc"
+	$(GO) build -o $(GOPASS_OUTPUT)-linux-amd64-full -tags "xc"
 
 %.completion: $(GOPASS_OUTPUT)
 	@printf ">> $* completion, output = $@"
