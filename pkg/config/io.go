@@ -17,7 +17,9 @@ import (
 func Load() *Config {
 	// check PASSWORD_STORE_DIR first for compatiability
 	if psd := os.Getenv("PASSWORD_STORE_DIR"); psd != "" {
-		return loadDefault()
+		cfg := loadDefault()
+		cfg.readOnly = true
+		return cfg
 	}
 	for _, l := range configLocations() {
 		if debug {
@@ -129,6 +131,10 @@ func (c *Config) Save() error {
 		return err
 	}
 
+	if c.readOnly {
+		fmt.Printf("[DEBUG] No saving read only config\n")
+		return nil
+	}
 	buf, err := yaml.Marshal(c)
 	if err != nil {
 		return errors.Wrapf(err, "failed to marshal YAML")

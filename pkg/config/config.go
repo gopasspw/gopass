@@ -25,9 +25,10 @@ func init() {
 
 // Config is the current config struct
 type Config struct {
-	Path   string                  `yaml:"-"`
-	Root   *StoreConfig            `yaml:"root"`
-	Mounts map[string]*StoreConfig `yaml:"mounts"`
+	Path     string                  `yaml:"-"`
+	Root     *StoreConfig            `yaml:"root"`
+	Mounts   map[string]*StoreConfig `yaml:"mounts"`
+	readOnly bool                    `yaml:"-"`
 
 	// Catches all undefined files and must be empty after parsing
 	XXX map[string]interface{} `yaml:",inline"`
