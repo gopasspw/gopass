@@ -15,6 +15,10 @@ import (
 
 // Load will try to load the config from one of the default locations
 func Load() *Config {
+	// check PASSWORD_STORE_DIR first for compatiability
+	if psd := os.Getenv("PASSWORD_STORE_DIR"); psd != "" {
+		return loadDefault()
+	}
 	for _, l := range configLocations() {
 		if debug {
 			fmt.Printf("[DEBUG] Trying to load config from %s\n", l)
@@ -32,6 +36,10 @@ func Load() *Config {
 		}
 		return cfg
 	}
+	return loadDefault()
+}
+
+func loadDefault() *Config {
 	cfg := New()
 	cfg.Root.Path = backend.FromPath(PwStoreDir(""))
 	_ = cfg.checkDefaults()
