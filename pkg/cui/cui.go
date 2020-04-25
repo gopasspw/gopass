@@ -10,8 +10,8 @@ import (
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/termwiz"
 
-	"github.com/fatih/color"
 	"github.com/doronbehar/gocui"
+	"github.com/fatih/color"
 )
 
 type selection struct {
