@@ -10,7 +10,6 @@ import (
 	"github.com/gopasspw/gopass/pkg/out"
 	"github.com/gopasspw/gopass/pkg/store"
 	"github.com/gopasspw/gopass/pkg/store/sub"
-	"github.com/gopasspw/gopass/pkg/store/vault"
 
 	"github.com/fatih/color"
 	"github.com/pkg/errors"
@@ -88,17 +87,7 @@ func (r *Store) addMount(ctx context.Context, alias, path string, sc *config.Sto
 	return nil
 }
 
-func (r *Store) initSubVault(ctx context.Context, alias string, path *backend.URL) (store.Store, error) {
-	return vault.New(ctx, alias, path, r.cfg.Directory(), r.agent)
-}
-
 func (r *Store) initSub(ctx context.Context, sc *config.StoreConfig, alias string, path *backend.URL, keys []string) (store.Store, error) {
-	// init vault sub store
-	if backend.GetCryptoBackend(ctx) == backend.Vault || path.Crypto == backend.Vault {
-		out.Debug(ctx, "Initializing Vault Store at %s -> %s", alias, path.String())
-		return r.initSubVault(ctx, alias, path)
-	}
-
 	// init regular sub store
 	s, err := sub.New(ctx, r.cfg, alias, path, r.cfg.Directory(), r.agent)
 	if err != nil {
