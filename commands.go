@@ -440,6 +440,10 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []*cli.Co
 					Usage:   "Use symbols in the password",
 				},
 				&cli.BoolFlag{
+					Name:  "strict",
+					Usage: "Require strict character class rules",
+				},
+				&cli.BoolFlag{
 					Name:    "xkcd",
 					Aliases: []string{"x"},
 					Usage:   "Use multiple random english words combined to a password. By default, space is used as separator and all words are lowercase",

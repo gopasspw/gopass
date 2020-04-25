@@ -130,6 +130,10 @@ func confirmAskRecipients(ctx context.Context, name string, ris recipientInfos) 
 
 	recipients := ris.Recipients()
 
+	if ctxutil.IsForce(ctx) {
+		return recipients, nil
+	}
+
 	yes, err := termio.AskForBool(ctx, "Do you want to continue?", true)
 	if err != nil {
 		return recipients, errors.Wrapf(err, "failed to read user input")

@@ -164,9 +164,15 @@ func (s *Action) generatePassword(ctx context.Context, c *cli.Context, length st
 		return "", ExitError(ctx, ExitUsage, nil, "password length must not be zero")
 	}
 
-	corp, err := termio.AskForBool(ctx, "Do you have strict rules to include different character classes?", false)
-	if err != nil {
-		return "", err
+	var corp bool
+	if c.IsSet("strict") || c.Bool("force") {
+		corp = c.Bool("strict")
+	} else {
+		var err error
+		corp, err = termio.AskForBool(ctx, "Do you have strict rules to include different character classes?", false)
+		if err != nil {
+			return "", err
+		}
 	}
 	if corp {
 		return pwgen.GeneratePasswordWithAllClasses(pwlen)
