@@ -22,7 +22,7 @@ Variables not exclusively used by gopass
 
 | **Option**             | **Type** | **Description**                                                                                        |
 |------------------------|----------|--------------------------------------------------------------------------------------------------------|
-| `PASSWORD_STORE`       | `string` | absolute path containing the password store (a directory)                                              |
+| `PASSWORD_STORE_DIR`   | `string` | absolute path containing the password store (a directory)                                              |
 | `PASSWORD_STORE_UMASK` | `string` | Set to any valid umask to mask bits of files created by gopass (GOPASS_UMASK has precedence over this) |
 | `EDITOR`               | `string` | command name to execute for editing password entries                                                  |
 | `PAGER`                | `string` | the pager program used for `gopass list`. See [Features](features.md#auto-pager) for details          |
