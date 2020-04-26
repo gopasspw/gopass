@@ -17,6 +17,7 @@ const (
 	ctxKeyRecipientFunc
 	ctxKeyFsckFunc
 	ctxKeyCheckRecipients
+	ctxKeyFsckDecrypt
 )
 
 // WithFsckCheck returns a context with the flag for fscks check set
@@ -27,8 +28,7 @@ func WithFsckCheck(ctx context.Context, check bool) context.Context {
 // HasFsckCheck returns true if a value for fsck check has been set in this
 // context
 func HasFsckCheck(ctx context.Context) bool {
-	_, ok := ctx.Value(ctxKeyFsckCheck).(bool)
-	return ok
+	return hasBool(ctx, ctxKeyFsckCheck)
 }
 
 // IsFsckCheck returns the value of fsck check
@@ -48,8 +48,7 @@ func WithFsckForce(ctx context.Context, force bool) context.Context {
 // HasFsckForce returns true if a value for fsck force has been set in this
 // context
 func HasFsckForce(ctx context.Context) bool {
-	_, ok := ctx.Value(ctxKeyFsckForce).(bool)
-	return ok
+	return hasBool(ctx, ctxKeyFsckForce)
 }
 
 // IsFsckForce returns the value of fsck force
@@ -69,8 +68,7 @@ func WithAutoSync(ctx context.Context, sync bool) context.Context {
 // HasAutoSync has been set if a value for auto sync has been set in this
 // context
 func HasAutoSync(ctx context.Context) bool {
-	_, ok := ctx.Value(ctxKeyAutoSync).(bool)
-	return ok
+	return hasBool(ctx, ctxKeyAutoSync)
 }
 
 // IsAutoSync returns the value of autosync
@@ -184,8 +182,7 @@ func WithCheckRecipients(ctx context.Context, cr bool) context.Context {
 // HasCheckRecipients returns true if check recipients has been set in this
 // context
 func HasCheckRecipients(ctx context.Context) bool {
-	_, ok := ctx.Value(ctxKeyCheckRecipients).(bool)
-	return ok
+	return hasBool(ctx, ctxKeyCheckRecipients)
 }
 
 // IsCheckRecipients will return the value of the check recipients flag or the
@@ -194,6 +191,35 @@ func IsCheckRecipients(ctx context.Context) bool {
 	bv, ok := ctx.Value(ctxKeyCheckRecipients).(bool)
 	if !ok {
 		return false
+	}
+	return bv
+}
+
+// WithFsckDecrypt will return a context with the value for the decrypt
+// during fsck flag set.
+func WithFsckDecrypt(ctx context.Context, d bool) context.Context {
+	return context.WithValue(ctx, ctxKeyFsckDecrypt, d)
+}
+
+// IsFsckDecrypt will return the value for the decrypt during fsck, defaulting
+// to false.
+func IsFsckDecrypt(ctx context.Context) bool {
+	return is(ctx, ctxKeyFsckDecrypt, false)
+}
+
+// hasBool is a helper function for checking if a bool has been set in
+// the provided context.
+func hasBool(ctx context.Context, key contextKey) bool {
+	_, ok := ctx.Value(key).(bool)
+	return ok
+}
+
+// is is a helper function for returning the value of a bool from the context
+// or the provided default.
+func is(ctx context.Context, key contextKey, def bool) bool {
+	bv, ok := ctx.Value(key).(bool)
+	if !ok {
+		return def
 	}
 	return bv
 }
