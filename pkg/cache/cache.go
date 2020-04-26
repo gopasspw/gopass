@@ -1,4 +1,4 @@
-package agent
+package cache
 
 import (
 	"sync"
@@ -22,14 +22,24 @@ func (ce *cacheEntry) isExpired() bool {
 	return false
 }
 
-type cache struct {
+// TTL implements a simple TTLed cache. It is concurrency safe.
+type TTL struct {
 	sync.Mutex
 	ttl     time.Duration
 	maxTTL  time.Duration
 	entries map[string]cacheEntry
 }
 
-func (c *cache) get(key string) (string, bool) {
+// NewTTL creates a new TTLed cache.
+func NewTTL(ttl time.Duration, maxTTL time.Duration) *TTL {
+	return &TTL{
+		ttl:    ttl,
+		maxTTL: maxTTL,
+	}
+}
+
+// Get retrieves a single entry, extending it's TTL.
+func (c *TTL) Get(key string) (string, bool) {
 	c.Lock()
 	defer c.Unlock()
 
@@ -51,7 +61,8 @@ func (c *cache) get(key string) (string, bool) {
 	return ce.value, true
 }
 
-func (c *cache) purgeExpired() {
+// purgeExpire will remove expired entries. It is called by Set.
+func (c *TTL) purgeExpired() {
 	for k, ce := range c.entries {
 		if ce.isExpired() {
 			delete(c.entries, k)
@@ -59,7 +70,8 @@ func (c *cache) purgeExpired() {
 	}
 }
 
-func (c *cache) set(key, value string) {
+// Set creates or overwrites an entry.
+func (c *TTL) Set(key, value string) {
 	c.Lock()
 	defer c.Unlock()
 
@@ -78,14 +90,16 @@ func (c *cache) set(key, value string) {
 	c.purgeExpired()
 }
 
-func (c *cache) remove(key string) {
+// Remove removes a single entry from the cache.
+func (c *TTL) Remove(key string) {
 	c.Lock()
 	defer c.Unlock()
 
 	delete(c.entries, key)
 }
 
-func (c *cache) purge() {
+// Purge removes all entries from the cache.
+func (c *TTL) Purge() {
 	c.Lock()
 	defer c.Unlock()
 

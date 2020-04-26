@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/gopasspw/gopass/pkg/agent/client"
+	"github.com/gopasspw/gopass/pkg/cache"
 	"github.com/gopasspw/gopass/pkg/out"
 	"github.com/gopasspw/gopass/pkg/pinentry"
 
@@ -24,13 +25,20 @@ type piner interface {
 	GetPin() ([]byte, error)
 }
 
+type cacher interface {
+	Get(string) (string, bool)
+	Set(string, string)
+	Remove(string)
+	Purge()
+}
+
 // Agent is a gopass agent
 type Agent struct {
 	sync.Mutex
 	socket   string
 	testing  bool
 	server   *http.Server
-	cache    *cache
+	cache    cacher
 	pinentry func() (piner, error)
 }
 
@@ -38,10 +46,7 @@ type Agent struct {
 func New(dir string) *Agent {
 	a := &Agent{
 		socket: filepath.Join(dir, ".gopass-agent.sock"),
-		cache: &cache{
-			ttl:    time.Hour,
-			maxTTL: 24 * time.Hour,
-		},
+		cache:  cache.NewTTL(time.Hour, 24*time.Hour),
 		pinentry: func() (piner, error) {
 			return pinentry.New()
 		},
@@ -60,7 +65,7 @@ func New(dir string) *Agent {
 // NewForTesting creates a new agent for testing
 func NewForTesting(dir, key, pass string) *Agent {
 	a := New(dir)
-	a.cache.set(key, pass)
+	a.cache.Set(key, pass)
 	a.testing = true
 	return a
 }
@@ -98,7 +103,7 @@ func (a *Agent) serveRemove(w http.ResponseWriter, r *http.Request) {
 
 	key := r.URL.Query().Get("key")
 	if !a.testing {
-		a.cache.remove(key)
+		a.cache.Remove(key)
 	}
 	fmt.Fprintf(w, "OK")
 }
@@ -108,7 +113,7 @@ func (a *Agent) servePurge(w http.ResponseWriter, r *http.Request) {
 	defer a.Unlock()
 
 	if !a.testing {
-		a.cache.purge()
+		a.cache.Purge()
 	}
 	fmt.Fprintf(w, "OK")
 }
@@ -120,7 +125,7 @@ func (a *Agent) servePassphrase(w http.ResponseWriter, r *http.Request) {
 	key := r.URL.Query().Get("key")
 	reason := r.URL.Query().Get("reason")
 
-	if pass, found := a.cache.get(key); found || a.testing {
+	if pass, found := a.cache.Get(key); found || a.testing {
 		fmt.Fprint(w, pass)
 		return
 	}
@@ -140,6 +145,6 @@ func (a *Agent) servePassphrase(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf("Pinentry Error: %s", err), http.StatusInternalServerError)
 		return
 	}
-	a.cache.set(key, string(pw))
+	a.cache.Set(key, string(pw))
 	fmt.Fprint(w, string(pw))
 }

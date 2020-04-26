@@ -1,3 +1,5 @@
+// Package pinentry implements a cross platform pinentry client. It can be used
+// to obtain credentials from the user through a simple UI application.
 package pinentry
 
 import (
