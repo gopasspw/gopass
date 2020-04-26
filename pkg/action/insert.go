@@ -64,6 +64,9 @@ func (s *Action) insert(ctx context.Context, c *cli.Context, name, key string, e
 	}
 
 	if ctxutil.IsStdin(ctx) {
+		if !force && !append && s.Store.Exists(ctx, name) {
+			return ExitError(ctx, ExitAborted, nil, "not overwriting your current secret")
+		}
 		return s.insertStdin(ctx, name, content, append)
 	}
 
