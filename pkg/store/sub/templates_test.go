@@ -40,7 +40,6 @@ func TestTemplates(t *testing.T) {
 		"",
 		backend.FromPath(tempdir),
 		tempdir,
-		nil,
 	)
 	require.NoError(t, err)
 

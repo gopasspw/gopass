@@ -2,55 +2,17 @@ package main
 
 import (
 	"context"
-	"fmt"
 
 	ap "github.com/gopasspw/gopass/pkg/action"
 	"github.com/gopasspw/gopass/pkg/action/binary"
 	"github.com/gopasspw/gopass/pkg/action/create"
 	"github.com/gopasspw/gopass/pkg/action/xc"
-	"github.com/gopasspw/gopass/pkg/agent"
-	"github.com/gopasspw/gopass/pkg/agent/client"
-	"github.com/gopasspw/gopass/pkg/config"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/urfave/cli/v2"
 )
 
 func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []*cli.Command {
 	return []*cli.Command{
-		{
-			Name:  "agent",
-			Usage: "Start gopass-agent",
-			Description: "" +
-				"This command starts the gopass agent that will cache passphrases " +
-				"so they don't have to be entered repeatedly.",
-			Action: func(c *cli.Context) error {
-				ec := make(chan error)
-				go func() {
-					ec <- agent.New(config.Directory()).ListenAndServe(ctx)
-				}()
-				select {
-				case <-ctx.Done():
-					return fmt.Errorf("aborted")
-				case e := <-ec:
-					return e
-				}
-			},
-			Subcommands: []*cli.Command{
-				{
-					Name:   "client",
-					Usage:  "Start a simple agent test client",
-					Hidden: true,
-					Action: func(c *cli.Context) error {
-						pw, err := client.New(config.Directory()).Passphrase(ctx, "test", "test")
-						if err != nil {
-							return err
-						}
-						fmt.Println("Passphrase:" + pw)
-						return nil
-					},
-				},
-			},
-		},
 		{
 			Name:  "audit",
 			Usage: "Scan for weak passwords",

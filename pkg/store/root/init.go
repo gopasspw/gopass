@@ -3,7 +3,6 @@ package root
 import (
 	"context"
 
-	"github.com/gopasspw/gopass/pkg/agent/client"
 	"github.com/gopasspw/gopass/pkg/backend"
 	"github.com/gopasspw/gopass/pkg/config"
 	"github.com/gopasspw/gopass/pkg/out"
@@ -31,7 +30,7 @@ func (r *Store) Init(ctx context.Context, alias, path string, ids ...string) err
 	if err != nil {
 		return errors.Wrapf(err, "failed to parse backend URL '%s': %s", path, err)
 	}
-	sub, err := sub.New(ctx, r.cfg, alias, pathURL, r.cfg.Directory(), r.agent)
+	sub, err := sub.New(ctx, r.cfg, alias, pathURL, r.cfg.Directory())
 	if err != nil {
 		return errors.Wrapf(err, "failed to instantiate new sub store: %s", err)
 	}
@@ -88,9 +87,6 @@ func (r *Store) initialize(ctx context.Context) error {
 		return nil
 	}
 
-	// init agent client
-	r.agent = client.New(config.Directory())
-
 	// create the base store
 	{
 		// capture ctx to limit effect on the next sub.New call and to not
@@ -109,7 +105,7 @@ func (r *Store) initialize(ctx context.Context) error {
 		if err != nil {
 			return errors.Wrapf(err, "failed to parse backend URL '%s': %s", r.url.String(), err)
 		}
-		s, err := sub.New(ctx, r.cfg, "", bu, r.cfg.Directory(), r.agent)
+		s, err := sub.New(ctx, r.cfg, "", bu, r.cfg.Directory())
 		if err != nil {
 			return errors.Wrapf(err, "failed to initialize the root store at '%s': %s", r.url.String(), err)
 		}

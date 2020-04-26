@@ -1,4 +1,4 @@
-package agent
+package cache
 
 import (
 	"os"
@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCache(t *testing.T) {
+func TestTTL(t *testing.T) {
 	testFactor := time.Duration(1)
 
 	if value, ok := os.LookupEnv("SLOW_TEST_FACTOR"); ok {
@@ -20,48 +20,48 @@ func TestCache(t *testing.T) {
 		testFactor = time.Duration(factor)
 	}
 
-	c := &cache{
+	c := &TTL{
 		ttl:    10 * time.Millisecond * testFactor,
 		maxTTL: 50 * time.Millisecond * testFactor,
 	}
 
-	val, found := c.get("foo")
+	val, found := c.Get("foo")
 	assert.Equal(t, "", val)
 	assert.Equal(t, false, found)
 
-	c.set("foo", "bar")
-	val, found = c.get("foo")
+	c.Set("foo", "bar")
+	val, found = c.Get("foo")
 	assert.Equal(t, "bar", val)
 	assert.Equal(t, true, found)
 
 	time.Sleep(5 * time.Millisecond * testFactor)
-	val, found = c.get("foo")
+	val, found = c.Get("foo")
 	assert.Equal(t, "bar", val)
 	assert.Equal(t, true, found)
 
 	time.Sleep(12 * time.Millisecond * testFactor)
-	val, found = c.get("foo")
+	val, found = c.Get("foo")
 	assert.Equal(t, "", val)
 	assert.Equal(t, false, found)
 
-	c.set("bar", "baz")
-	val, found = c.get("bar")
+	c.Set("bar", "baz")
+	val, found = c.Get("bar")
 	assert.Equal(t, "baz", val)
 	assert.Equal(t, true, found)
 
-	c.remove("bar")
-	val, found = c.get("bar")
+	c.Remove("bar")
+	val, found = c.Get("bar")
 	assert.Equal(t, "", val)
 	assert.Equal(t, false, found)
 
-	c.set("foo", "bar")
-	c.set("bar", "baz")
-	val, found = c.get("bar")
+	c.Set("foo", "bar")
+	c.Set("bar", "baz")
+	val, found = c.Get("bar")
 	assert.Equal(t, "baz", val)
 	assert.Equal(t, true, found)
 
-	c.purge()
-	val, found = c.get("bar")
+	c.Purge()
+	val, found = c.Get("bar")
 	assert.Equal(t, "", val)
 	assert.Equal(t, false, found)
 }

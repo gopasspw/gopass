@@ -9,7 +9,6 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/gopasspw/gopass/pkg/agent/client"
 	"github.com/gopasspw/gopass/pkg/backend"
 	"github.com/gopasspw/gopass/pkg/backend/rcs/noop"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -34,12 +33,11 @@ type Store struct {
 	rcs     backend.RCS
 	storage backend.Storage
 	cfgdir  string
-	agent   *client.Client
 	sc      recipientHashStorer
 }
 
 // New creates a new store, copying settings from the given root store
-func New(ctx context.Context, sc recipientHashStorer, alias string, u *backend.URL, cfgdir string, agent *client.Client) (*Store, error) {
+func New(ctx context.Context, sc recipientHashStorer, alias string, u *backend.URL, cfgdir string) (*Store, error) {
 	out.Debug(ctx, "sub.New - URL: %s", u.String())
 
 	s := &Store{
@@ -47,7 +45,6 @@ func New(ctx context.Context, sc recipientHashStorer, alias string, u *backend.U
 		url:    u,
 		rcs:    noop.New(),
 		cfgdir: cfgdir,
-		agent:  agent,
 		sc:     sc,
 	}
 
