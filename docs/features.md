@@ -455,6 +455,3 @@ This makes it easy to use templates for certain kind of secrets such as database
 
 `gopass jsonapi` enables communication with gopass via JSON messages. This is particularly useful for browser plugins like [gopassbridge](https://github.com/gopasspw/gopassbridge) running gopass as native app. More details can be found in [docs/jsonapi.md](./jsonapi.md).
 
-### Passphrase Agent
-
-`gopass agent` launches a long-running socket, similar to gpg-agent's socket, for requesting and caching the passphrase used to encrypt passwords. This allows one-off gopass operations (such as storing a password) to retrieve a cached copy of the passphrase. Communication over the socket uses HTTP. The agent is used for custom backends and stores that are encrypted with the passphrase as well as for testing.

@@ -37,6 +37,9 @@ type XC struct {
 func New(dir string, client agentClient) (*XC, error) {
 	skr, _ := keyring.LoadSecring(filepath.Join(dir, secringFilename))
 	pkr, _ := keyring.LoadPubring(filepath.Join(dir, pubringFilename), skr)
+	if client == nil {
+		client = newAskPass()
+	}
 	return &XC{
 		dir:     dir,
 		pubring: pkr,

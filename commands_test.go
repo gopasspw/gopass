@@ -89,7 +89,7 @@ func TestGetCommands(t *testing.T) {
 	c := cli.NewContext(app, fs, nil)
 
 	commands := getCommands(ctx, act, app)
-	assert.Equal(t, 33, len(commands))
+	assert.Equal(t, 32, len(commands))
 
 	prefix := ""
 	testCommands(t, c, commands, prefix)
@@ -97,8 +97,7 @@ func TestGetCommands(t *testing.T) {
 
 func testCommands(t *testing.T, c *cli.Context, commands []*cli.Command, prefix string) {
 	for _, cmd := range commands {
-		if cmd.Name == "agent" || cmd.Name == "update" {
-			// the agent command is blocking
+		if cmd.Name == "update" {
 			continue
 		}
 		if cmd.Name == "configure" && prefix == ".jsonapi" {

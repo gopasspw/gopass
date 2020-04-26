@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/gopasspw/gopass/pkg/action"
-	"github.com/gopasspw/gopass/pkg/agent/client"
 	"github.com/gopasspw/gopass/pkg/backend/crypto/xc"
 	"github.com/gopasspw/gopass/pkg/config"
 	"github.com/gopasspw/gopass/pkg/fsutil"
@@ -26,7 +25,7 @@ func initCrypto() error {
 	}
 
 	cfgdir := config.Directory()
-	c, err := xc.New(cfgdir, client.New(cfgdir))
+	c, err := xc.New(cfgdir, nil)
 	if err != nil {
 		return err
 	}

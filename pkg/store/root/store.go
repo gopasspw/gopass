@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/gopasspw/gopass/pkg/agent/client"
 	"github.com/gopasspw/gopass/pkg/backend"
 	"github.com/gopasspw/gopass/pkg/config"
 	"github.com/gopasspw/gopass/pkg/store"
@@ -18,7 +17,6 @@ type Store struct {
 	mounts map[string]store.Store
 	url    *backend.URL // url of the root store
 	store  *sub.Store
-	agent  *client.Client
 }
 
 // New creates a new store

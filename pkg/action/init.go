@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	"github.com/gopasspw/gopass/pkg/agent/client"
 	"github.com/gopasspw/gopass/pkg/backend"
 	"github.com/gopasspw/gopass/pkg/config"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -160,7 +159,7 @@ func (s *Action) getCryptoFor(ctx context.Context, name string) backend.Crypto {
 	if crypto != nil {
 		return crypto
 	}
-	c, err := sub.GetCryptoBackend(ctx, backend.GetCryptoBackend(ctx), config.Directory(), client.New(config.Directory()))
+	c, err := sub.GetCryptoBackend(ctx, backend.GetCryptoBackend(ctx), config.Directory())
 	if err != nil {
 		//return errors.Wrapf(err, "failed to init crypto backend")
 		return nil

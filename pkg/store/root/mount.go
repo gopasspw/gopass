@@ -89,7 +89,7 @@ func (r *Store) addMount(ctx context.Context, alias, path string, sc *config.Sto
 
 func (r *Store) initSub(ctx context.Context, sc *config.StoreConfig, alias string, path *backend.URL, keys []string) (store.Store, error) {
 	// init regular sub store
-	s, err := sub.New(ctx, r.cfg, alias, path, r.cfg.Directory(), r.agent)
+	s, err := sub.New(ctx, r.cfg, alias, path, r.cfg.Directory())
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to initialize store '%s' at '%s': %s", alias, path, err)
 	}
