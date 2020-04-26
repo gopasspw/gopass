@@ -11,13 +11,16 @@ import (
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/fsutil"
 	"github.com/gopasspw/gopass/pkg/out"
+	"github.com/gopasspw/gopass/pkg/store/sub"
 	"github.com/muesli/goprogressbar"
-
 	"github.com/urfave/cli/v2"
 )
 
 // Fsck checks the store integrity
 func (s *Action) Fsck(ctx context.Context, c *cli.Context) error {
+	if c.IsSet("decrypt") {
+		ctx = sub.WithFsckDecrypt(ctx, c.Bool("decrypt"))
+	}
 	out.Print(ctx, "Checking store integrity ...")
 	// make sure config is in the right place
 	// we may have loaded it from one of the fallback locations
@@ -64,5 +67,6 @@ func (s *Action) Fsck(ctx context.Context, c *cli.Context) error {
 	if err := s.Store.Fsck(ctx, c.Args().Get(0)); err != nil {
 		return ExitError(ctx, ExitFsck, err, "fsck found errors: %s", err)
 	}
+	fmt.Println()
 	return nil
 }

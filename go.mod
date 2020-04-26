@@ -4,7 +4,6 @@ go 1.12
 
 require (
 	github.com/alecthomas/binary v0.0.0-20190922233330-fb1b1d9c299c
-	github.com/alexflint/go-arg v1.3.0 // indirect
 	github.com/atotto/clipboard v0.1.2
 	github.com/blang/semver v0.0.0-20190414182527-1a9109f8c4a1
 	github.com/cenkalti/backoff v2.2.1+incompatible

@@ -47,9 +47,11 @@ func (s *Store) Fsck(ctx context.Context, path string) error {
 func (s *Store) fsckCheckEntry(ctx context.Context, name string) error {
 	// make sure we can actually decode this secret
 	// if this fails there is no way we could fix this
-	_, err := s.Get(ctx, name)
-	if err != nil {
-		return errors.Wrapf(err, "failed to decode secret %s: %s", name, err)
+	if IsFsckDecrypt(ctx) {
+		_, err := s.Get(ctx, name)
+		if err != nil {
+			return errors.Wrapf(err, "failed to decode secret %s: %s", name, err)
+		}
 	}
 
 	// now compare the recipients this secret was encoded for and fix it if

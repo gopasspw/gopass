@@ -397,6 +397,12 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []*cli.Co
 				return action.Fsck(withGlobalFlags(ctx, c), c)
 			},
 			BashComplete: action.MountsComplete,
+			Flags: []cli.Flag{
+				&cli.BoolFlag{
+					Name:  "decrypt",
+					Usage: "Decrypt during fsck",
+				},
+			},
 		},
 		{
 			Name:  "generate",
