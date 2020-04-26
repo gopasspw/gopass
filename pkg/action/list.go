@@ -9,11 +9,11 @@ import (
 	"os/exec"
 	"strings"
 
+	"github.com/fatih/color"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/termutil"
 	"github.com/gopasspw/gopass/pkg/tree"
 
-	"github.com/fatih/color"
 	shellquote "github.com/kballard/go-shellquote"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
@@ -102,6 +102,9 @@ func redirectPager(ctx context.Context, subtree tree.Tree) (io.Writer, *bytes.Bu
 		return stdout, nil
 	}
 	if subtree == nil || subtree.Len() < rows {
+		return stdout, nil
+	}
+	if pager := os.Getenv("PAGER"); pager == "" {
 		return stdout, nil
 	}
 	color.NoColor = true
