@@ -78,12 +78,6 @@ func TestParseSchemeXC(t *testing.T) {
 			Storage: FS,
 			Path:    filepath.Join(hd, ".local", "share", "password-store"),
 		},
-		//{
-		//	URL:     "plain+vault-http://localhost:9600/foo/bar",
-		//	Crypto:  Plain,
-		//	RCS:     Noop,
-		//	Storage: Vault,
-		//},
 	} {
 		u, err := ParseURL(tc.URL)
 		require.NoError(t, err, tc.Name)
