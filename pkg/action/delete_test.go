@@ -39,6 +39,7 @@ func TestDelete(t *testing.T) {
 
 	// delete
 	c := cli.NewContext(app, flag.NewFlagSet("default", flag.ContinueOnError), nil)
+	c.Context = ctx
 
 	actName := "action.test"
 
@@ -46,7 +47,7 @@ func TestDelete(t *testing.T) {
 		actName = "action.test.exe"
 	}
 
-	if err := act.Delete(ctx, c); err == nil || err.Error() != fmt.Sprintf("Usage: %s rm name", actName) {
+	if err := act.Delete(c); err == nil || err.Error() != fmt.Sprintf("Usage: %s rm name", actName) {
 		t.Errorf("Should fail")
 	}
 	buf.Reset()
@@ -55,8 +56,9 @@ func TestDelete(t *testing.T) {
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
 	assert.NoError(t, fs.Parse([]string{"foo"}))
 	c = cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
-	assert.NoError(t, act.Delete(ctx, c))
+	assert.NoError(t, act.Delete(c))
 	buf.Reset()
 
 	// delete foo bar
@@ -64,8 +66,9 @@ func TestDelete(t *testing.T) {
 	fs = flag.NewFlagSet("default", flag.ContinueOnError)
 	assert.NoError(t, fs.Parse([]string{"foo", "bar"}))
 	c = cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
-	assert.NoError(t, act.Delete(ctx, c))
+	assert.NoError(t, act.Delete(c))
 	buf.Reset()
 
 	// delete -r foo
@@ -78,8 +81,8 @@ func TestDelete(t *testing.T) {
 	assert.NoError(t, sf.Apply(fs))
 	assert.NoError(t, fs.Parse([]string{"--recursive=true", "foo"}))
 	c = cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
-	assert.NoError(t, act.Delete(ctx, c))
+	assert.NoError(t, act.Delete(c))
 	buf.Reset()
-
 }

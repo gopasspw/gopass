@@ -2,6 +2,7 @@ package action
 
 import (
 	"context"
+	"flag"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -15,6 +16,7 @@ import (
 	"github.com/blang/semver"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/urfave/cli/v2"
 )
 
 func newMock(ctx context.Context, u *gptest.Unit) (*Action, error) {
@@ -28,7 +30,10 @@ func newMock(ctx context.Context, u *gptest.Unit) (*Action, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err := act.Initialized(ctx, nil); err != nil {
+	fs := flag.NewFlagSet("default", flag.ContinueOnError)
+	c := cli.NewContext(cli.NewApp(), fs, nil)
+	c.Context = ctx
+	if err := act.Initialized(c); err != nil {
 		return nil, err
 	}
 	return act, nil

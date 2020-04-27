@@ -37,8 +37,9 @@ func TestSync(t *testing.T) {
 	// default
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
 	c := cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
-	assert.NoError(t, act.Sync(ctx, c))
+	assert.NoError(t, act.Sync(c))
 	buf.Reset()
 
 	// sync --store=root
@@ -50,7 +51,8 @@ func TestSync(t *testing.T) {
 	assert.NoError(t, sf.Apply(fs))
 	assert.NoError(t, fs.Parse([]string{"--store=root"}))
 	c = cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
-	assert.NoError(t, act.Sync(ctx, c))
+	assert.NoError(t, act.Sync(c))
 	buf.Reset()
 }

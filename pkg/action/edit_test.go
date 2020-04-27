@@ -37,14 +37,17 @@ func TestEdit(t *testing.T) {
 
 	// edit
 	c := cli.NewContext(app, flag.NewFlagSet("default", flag.ContinueOnError), nil)
-	assert.Error(t, act.Edit(ctx, c))
+	c.Context = ctx
+
+	assert.Error(t, act.Edit(c))
 	buf.Reset()
 
 	// edit foo
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
 	assert.NoError(t, fs.Parse([]string{"foo"}))
 	c = cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
-	assert.Error(t, act.Edit(ctx, c))
+	assert.Error(t, act.Edit(c))
 	buf.Reset()
 }

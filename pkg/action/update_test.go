@@ -61,6 +61,7 @@ func TestUpdate(t *testing.T) {
 	app := cli.NewApp()
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
 	c := cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
 	// github release download mock
 	ghdl := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -106,6 +107,6 @@ func TestUpdate(t *testing.T) {
 		stdout = os.Stdout
 	}()
 
-	assert.NoError(t, act.Update(ctx, c))
+	assert.NoError(t, act.Update(c))
 	buf.Reset()
 }

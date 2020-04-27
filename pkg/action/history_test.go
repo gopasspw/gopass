@@ -29,12 +29,17 @@ func TestHistory(t *testing.T) {
 	ctx = backend.WithCryptoBackend(ctx, backend.Plain)
 	ctx = backend.WithStorageBackend(ctx, backend.FS)
 
+	app := cli.NewApp()
+	fs := flag.NewFlagSet("default", flag.ContinueOnError)
+	c := cli.NewContext(app, fs, nil)
+	c.Context = ctx
+
 	cfg := config.New()
 	cfg.Root.Path = backend.FromPath(u.StoreDir(""))
 	act, err := newAction(ctx, cfg, semver.Version{})
 	require.NoError(t, err)
 	require.NotNil(t, act)
-	require.NoError(t, act.Initialized(ctx, nil))
+	require.NoError(t, act.Initialized(c))
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
@@ -42,26 +47,26 @@ func TestHistory(t *testing.T) {
 		out.Stdout = os.Stdout
 	}()
 
-	app := cli.NewApp()
-
 	// init git
 	require.NoError(t, act.rcsInit(ctx, "", "foo bar", "foo.bar@example.org"))
 	buf.Reset()
 
 	// insert bar
-	fs := flag.NewFlagSet("default", flag.ContinueOnError)
+	fs = flag.NewFlagSet("default", flag.ContinueOnError)
 	assert.NoError(t, fs.Parse([]string{"bar"}))
-	c := cli.NewContext(app, fs, nil)
+	c = cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
-	assert.NoError(t, act.Insert(ctx, c))
+	assert.NoError(t, act.Insert(c))
 	buf.Reset()
 
 	// history bar
 	fs = flag.NewFlagSet("default", flag.ContinueOnError)
 	assert.NoError(t, fs.Parse([]string{"bar"}))
 	c = cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
-	assert.NoError(t, act.History(ctx, c))
+	assert.NoError(t, act.History(c))
 	buf.Reset()
 
 	// history --password bar
@@ -73,7 +78,8 @@ func TestHistory(t *testing.T) {
 	assert.NoError(t, sf.Apply(fs))
 	assert.NoError(t, fs.Parse([]string{"--password=true", "bar"}))
 	c = cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
-	assert.NoError(t, act.History(ctx, c))
+	assert.NoError(t, act.History(c))
 	buf.Reset()
 }

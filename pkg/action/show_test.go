@@ -45,8 +45,9 @@ func TestShow(t *testing.T) {
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
 	assert.NoError(t, fs.Parse([]string{"foo"}))
 	c := cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
-	assert.NoError(t, act.Show(ctx, c))
+	assert.NoError(t, act.Show(c))
 	assert.Equal(t, "secret", buf.String())
 	buf.Reset()
 
@@ -59,8 +60,9 @@ func TestShow(t *testing.T) {
 	assert.NoError(t, bf.Apply(fs))
 	assert.NoError(t, fs.Parse([]string{"--sync", "foo"}))
 	c = cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
-	assert.NoError(t, act.Show(ctx, c))
+	assert.NoError(t, act.Show(c))
 	assert.Equal(t, "secret", buf.String())
 	buf.Reset()
 
@@ -71,8 +73,9 @@ func TestShow(t *testing.T) {
 	fs = flag.NewFlagSet("default", flag.ContinueOnError)
 	assert.NoError(t, fs.Parse([]string{"bar"}))
 	c = cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
-	assert.NoError(t, act.Show(ctx, c))
+	assert.NoError(t, act.Show(c))
 	assert.Equal(t, "bar\n└── baz\n\n", buf.String())
 	buf.Reset()
 
@@ -81,8 +84,9 @@ func TestShow(t *testing.T) {
 	fs = flag.NewFlagSet("default", flag.ContinueOnError)
 	assert.NoError(t, fs.Parse([]string{"bar/baz"}))
 	c = cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
-	assert.NoError(t, act.Show(ctx, c))
+	assert.NoError(t, act.Show(c))
 	assert.Equal(t, "---\nbar: zab", buf.String())
 	buf.Reset()
 
@@ -90,8 +94,9 @@ func TestShow(t *testing.T) {
 	fs = flag.NewFlagSet("default", flag.ContinueOnError)
 	assert.NoError(t, fs.Parse([]string{"foo"}))
 	c = cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
-	assert.NoError(t, act.Show(ctx, c))
+	assert.NoError(t, act.Show(c))
 	assert.Contains(t, buf.String(), "no safe content to display, you can force display with -f.")
 	buf.Reset()
 
@@ -104,8 +109,9 @@ func TestShow(t *testing.T) {
 	assert.NoError(t, bf.Apply(fs))
 	assert.NoError(t, fs.Parse([]string{"--force", "foo"}))
 	c = cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
-	assert.NoError(t, act.Show(ctx, c))
+	assert.NoError(t, act.Show(c))
 	assert.Equal(t, "secret", buf.String())
 	buf.Reset()
 
@@ -119,8 +125,9 @@ func TestShow(t *testing.T) {
 	assert.NoError(t, bf.Apply(fs))
 	assert.NoError(t, fs.Parse([]string{"--clip", "bar/baz"}))
 	c = cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
-	assert.NoError(t, act.Show(ctx, c))
+	assert.NoError(t, act.Show(c))
 	assert.NotContains(t, buf.String(), "123")
 	buf.Reset()
 }
@@ -150,6 +157,7 @@ func TestShowHandleRevision(t *testing.T) {
 	// show foo
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
 	c := cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
 	assert.NoError(t, act.showHandleRevision(ctx, c, "foo", "baz"))
 	buf.Reset()
@@ -180,6 +188,7 @@ func TestShowHandleError(t *testing.T) {
 	// show foo
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
 	c := cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
 	assert.Error(t, act.showHandleError(ctx, c, "foo", false, fmt.Errorf("test")))
 	buf.Reset()

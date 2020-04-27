@@ -1,9 +1,9 @@
 package action
 
 import (
-	"context"
 	"strings"
 
+	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/out"
 
 	"github.com/fatih/color"
@@ -11,7 +11,8 @@ import (
 )
 
 // Grep searches a string inside the content of all files
-func (s *Action) Grep(ctx context.Context, c *cli.Context) error {
+func (s *Action) Grep(c *cli.Context) error {
+	ctx := ctxutil.WithGlobalFlags(c)
 	if !c.Args().Present() {
 		return ExitError(ctx, ExitUsage, nil, "Usage: %s grep arg", s.Name)
 	}

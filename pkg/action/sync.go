@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/gopasspw/gopass/pkg/backend/rcs/noop"
+	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/notify"
 	"github.com/gopasspw/gopass/pkg/out"
 	"github.com/gopasspw/gopass/pkg/store"
@@ -15,7 +16,8 @@ import (
 )
 
 // Sync all stores with their remotes
-func (s *Action) Sync(ctx context.Context, c *cli.Context) error {
+func (s *Action) Sync(c *cli.Context) error {
+	ctx := ctxutil.WithGlobalFlags(c)
 	store := c.String("store")
 	return s.sync(ctx, c, store)
 }

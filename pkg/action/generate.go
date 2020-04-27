@@ -33,7 +33,8 @@ var (
 )
 
 // Generate and save a password
-func (s *Action) Generate(ctx context.Context, c *cli.Context) error {
+func (s *Action) Generate(c *cli.Context) error {
+	ctx := ctxutil.WithGlobalFlags(c)
 	force := c.Bool("force")
 	edit := c.Bool("edit")
 
@@ -75,7 +76,8 @@ func (s *Action) Generate(ctx context.Context, c *cli.Context) error {
 
 	// if requested launch editor to add more data to the generated secret
 	if (edit || ctxutil.IsAskForMore(ctx)) && termio.AskForConfirmation(ctx, fmt.Sprintf("Do you want to add more data for %s?", name)) {
-		if err := s.Edit(ctx, c); err != nil {
+		c.Context = ctx
+		if err := s.Edit(c); err != nil {
 			return ExitError(ctx, ExitUnknown, err, "failed to edit '%s': %s", name, err)
 		}
 	}
@@ -270,7 +272,8 @@ func setMetadata(sec store.Secret, kvps map[string]string) {
 }
 
 // CompleteGenerate implements the completion heuristic for the generate command
-func (s *Action) CompleteGenerate(ctx context.Context, c *cli.Context) {
+func (s *Action) CompleteGenerate(c *cli.Context) {
+	ctx := ctxutil.WithGlobalFlags(c)
 	if c.Args().Len() < 1 {
 		return
 	}

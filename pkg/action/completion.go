@@ -1,13 +1,13 @@
 package action
 
 import (
-	"context"
 	"fmt"
 	"regexp"
 	"runtime"
 	"strings"
 
 	zshcomp "github.com/gopasspw/gopass/pkg/completion/zsh"
+	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/out"
 	"github.com/urfave/cli/v2"
 )
@@ -25,7 +25,8 @@ func bashEscape(s string) string {
 }
 
 // Complete prints a list of all password names to os.Stdout
-func (s *Action) Complete(ctx context.Context, c *cli.Context) {
+func (s *Action) Complete(c *cli.Context) {
+	ctx := ctxutil.WithGlobalFlags(c)
 	_, err := s.Store.Initialized(ctx) // important to make sure the structs are not nil
 	if err != nil {
 		out.Error(ctx, "Store not initialized: %s", err)

@@ -20,7 +20,8 @@ import (
 )
 
 // Insert a string as content to a secret file
-func (s *Action) Insert(ctx context.Context, c *cli.Context) error {
+func (s *Action) Insert(c *cli.Context) error {
+	ctx := ctxutil.WithGlobalFlags(c)
 	echo := c.Bool("echo")
 	multiline := c.Bool("multiline")
 	force := c.Bool("force")

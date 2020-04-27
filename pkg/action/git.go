@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/gopasspw/gopass/pkg/backend"
+	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/cui"
 	"github.com/gopasspw/gopass/pkg/out"
 	"github.com/gopasspw/gopass/pkg/termio"
@@ -15,7 +16,8 @@ import (
 )
 
 // GitInit initializes a git repo including basic configuration
-func (s *Action) GitInit(ctx context.Context, c *cli.Context) error {
+func (s *Action) GitInit(c *cli.Context) error {
+	ctx := ctxutil.WithGlobalFlags(c)
 	store := c.String("store")
 	un := c.String("username")
 	ue := c.String("useremail")
@@ -76,7 +78,8 @@ func (s *Action) getUserData(ctx context.Context, store, un, ue string) (string,
 }
 
 // GitAddRemote adds a new git remote
-func (s *Action) GitAddRemote(ctx context.Context, c *cli.Context) error {
+func (s *Action) GitAddRemote(c *cli.Context) error {
+	ctx := ctxutil.WithGlobalFlags(c)
 	store := c.String("store")
 	remote := c.Args().Get(0)
 	url := c.Args().Get(1)
@@ -89,7 +92,8 @@ func (s *Action) GitAddRemote(ctx context.Context, c *cli.Context) error {
 }
 
 // GitRemoveRemote removes a git remote
-func (s *Action) GitRemoveRemote(ctx context.Context, c *cli.Context) error {
+func (s *Action) GitRemoveRemote(c *cli.Context) error {
+	ctx := ctxutil.WithGlobalFlags(c)
 	store := c.String("store")
 	remote := c.Args().Get(0)
 
@@ -101,7 +105,8 @@ func (s *Action) GitRemoveRemote(ctx context.Context, c *cli.Context) error {
 }
 
 // GitPull pulls from a git remote
-func (s *Action) GitPull(ctx context.Context, c *cli.Context) error {
+func (s *Action) GitPull(c *cli.Context) error {
+	ctx := ctxutil.WithGlobalFlags(c)
 	store := c.String("store")
 	origin := c.Args().Get(0)
 	branch := c.Args().Get(1)
@@ -116,7 +121,8 @@ func (s *Action) GitPull(ctx context.Context, c *cli.Context) error {
 }
 
 // GitPush pushes to a git remote
-func (s *Action) GitPush(ctx context.Context, c *cli.Context) error {
+func (s *Action) GitPush(c *cli.Context) error {
+	ctx := ctxutil.WithGlobalFlags(c)
 	store := c.String("store")
 	origin := c.Args().Get(0)
 	branch := c.Args().Get(1)
@@ -128,7 +134,8 @@ func (s *Action) GitPush(ctx context.Context, c *cli.Context) error {
 }
 
 // GitStatus prints the rcs status
-func (s *Action) GitStatus(ctx context.Context, c *cli.Context) error {
+func (s *Action) GitStatus(c *cli.Context) error {
+	ctx := ctxutil.WithGlobalFlags(c)
 	store := c.String("store")
 
 	return s.Store.GitStatus(ctx, store)

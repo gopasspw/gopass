@@ -21,7 +21,8 @@ import (
 
 // Initialized returns an error if the store is not properly
 // prepared.
-func (s *Action) Initialized(ctx context.Context, c *cli.Context) error {
+func (s *Action) Initialized(c *cli.Context) error {
+	ctx := ctxutil.WithGlobalFlags(c)
 	inited, err := s.Store.Initialized(ctx)
 	if err != nil {
 		return ExitError(ctx, ExitUnknown, err, "Failed to initialize store: %s", err)
@@ -36,7 +37,8 @@ func (s *Action) Initialized(ctx context.Context, c *cli.Context) error {
 		return ExitError(ctx, ExitNotInitialized, nil, "password-store is not initialized. Try '%s init'", s.Name)
 	}
 	if ok, err := termio.AskForBool(ctx, "It seems you are new to gopass. Do you want to run the onboarding wizard?", true); err == nil && ok {
-		if err := s.InitOnboarding(ctx, c); err != nil {
+		c.Context = ctx
+		if err := s.InitOnboarding(c); err != nil {
 			return ExitError(ctx, ExitUnknown, err, "failed to run onboarding wizard: %s", err)
 		}
 		return nil
@@ -45,7 +47,8 @@ func (s *Action) Initialized(ctx context.Context, c *cli.Context) error {
 }
 
 // Init a new password store with a first gpg id
-func (s *Action) Init(ctx context.Context, c *cli.Context) error {
+func (s *Action) Init(c *cli.Context) error {
+	ctx := ctxutil.WithGlobalFlags(c)
 	path := c.String("path")
 	alias := c.String("store")
 
@@ -168,7 +171,8 @@ func (s *Action) getCryptoFor(ctx context.Context, name string) backend.Crypto {
 }
 
 // InitOnboarding will invoke the onboarding / setup wizard
-func (s *Action) InitOnboarding(ctx context.Context, c *cli.Context) error {
+func (s *Action) InitOnboarding(c *cli.Context) error {
+	ctx := ctxutil.WithGlobalFlags(c)
 	remote := c.String("remote")
 	team := c.String("alias")
 	create := c.Bool("create")

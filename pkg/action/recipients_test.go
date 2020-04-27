@@ -31,6 +31,7 @@ func TestRecipients(t *testing.T) {
 	app := cli.NewApp()
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
 	c := cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
@@ -44,7 +45,7 @@ func TestRecipients(t *testing.T) {
 	}()
 
 	// RecipientsPrint
-	assert.NoError(t, act.RecipientsPrint(ctx, c))
+	assert.NoError(t, act.RecipientsPrint(c))
 	want := `Hint: run 'gopass sync' to import any missing public keys
 gopass
 └── 0xDEADBEEF
@@ -54,36 +55,40 @@ gopass
 	buf.Reset()
 
 	// RecipientsComplete
-	act.RecipientsComplete(ctx, c)
+	act.RecipientsComplete(c)
 	want = "0xDEADBEEF\n"
 	assert.Equal(t, want, buf.String())
 	buf.Reset()
 
 	// RecipientsAdd
-	assert.Error(t, act.RecipientsAdd(ctx, c))
+	assert.Error(t, act.RecipientsAdd(c))
 	buf.Reset()
 
 	// RecipientsRemove
-	assert.Error(t, act.RecipientsRemove(ctx, c))
+	assert.Error(t, act.RecipientsRemove(c))
 	buf.Reset()
 
 	// RecipientsAdd 0xFEEDBEEF
 	fs = flag.NewFlagSet("default", flag.ContinueOnError)
 	assert.NoError(t, fs.Parse([]string{"0xFEEDBEEF"}))
 	c = cli.NewContext(app, fs, nil)
-	assert.NoError(t, act.RecipientsAdd(ctx, c))
+	c.Context = ctx
+
+	assert.NoError(t, act.RecipientsAdd(c))
 	buf.Reset()
 
 	// RecipientsAdd 0xBEEFFEED
 	fs = flag.NewFlagSet("default", flag.ContinueOnError)
 	assert.NoError(t, fs.Parse([]string{"0xBEEFFEED"}))
 	c = cli.NewContext(app, fs, nil)
-	assert.Error(t, act.RecipientsAdd(ctx, c))
+	c.Context = ctx
+	assert.Error(t, act.RecipientsAdd(c))
 	buf.Reset()
 
 	// RecipientsRemove 0xDEADBEEF
 	fs = flag.NewFlagSet("default", flag.ContinueOnError)
 	assert.NoError(t, fs.Parse([]string{"0xDEADBEEF"}))
 	c = cli.NewContext(app, fs, nil)
-	assert.NoError(t, act.RecipientsRemove(ctx, c))
+	c.Context = ctx
+	assert.NoError(t, act.RecipientsRemove(c))
 }

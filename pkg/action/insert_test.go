@@ -41,15 +41,17 @@ func TestInsert(t *testing.T) {
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
 	assert.NoError(t, fs.Parse([]string{"bar"}))
 	c := cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
-	assert.NoError(t, act.Insert(ctx, c))
+	assert.NoError(t, act.Insert(c))
 
 	// insert bar baz
 	fs = flag.NewFlagSet("default", flag.ContinueOnError)
 	assert.NoError(t, fs.Parse([]string{"bar", "baz"}))
 	c = cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
-	assert.NoError(t, act.Insert(ctx, c))
+	assert.NoError(t, act.Insert(c))
 
 	// insert baz via stdin
 	assert.NoError(t, act.insertStdin(ctx, "baz", []byte("foobar"), false))
@@ -71,6 +73,7 @@ func TestInsert(t *testing.T) {
 	assert.NoError(t, bf.Apply(fs))
 	assert.NoError(t, fs.Parse([]string{"--multiline=true", "bar", "baz"}))
 	c = cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
-	assert.NoError(t, act.Insert(ctx, c))
+	assert.NoError(t, act.Insert(c))
 }

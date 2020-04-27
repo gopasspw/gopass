@@ -2,33 +2,13 @@ package main
 
 import (
 	"bytes"
-	"context"
-	"flag"
 	"fmt"
 	"runtime"
 	"testing"
 
 	"github.com/blang/semver"
-	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/stretchr/testify/assert"
-	"github.com/urfave/cli/v2"
 )
-
-func TestGlobalFlags(t *testing.T) {
-	ctx := context.Background()
-	app := cli.NewApp()
-
-	fs := flag.NewFlagSet("default", flag.ContinueOnError)
-	sf := cli.BoolFlag{
-		Name:  "yes",
-		Usage: "yes",
-	}
-	assert.NoError(t, sf.Apply(fs))
-	assert.NoError(t, fs.Parse([]string{"--yes"}))
-	c := cli.NewContext(app, fs, nil)
-
-	assert.Equal(t, true, ctxutil.IsAlwaysYes(withGlobalFlags(ctx, c)))
-}
 
 func TestVersionPrinter(t *testing.T) {
 	buf := &bytes.Buffer{}

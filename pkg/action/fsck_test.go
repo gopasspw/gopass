@@ -43,20 +43,21 @@ func TestFsck(t *testing.T) {
 
 	// fsck
 	c := cli.NewContext(app, flag.NewFlagSet("default", flag.ContinueOnError), nil)
-	assert.NoError(t, act.Fsck(ctx, c))
+	c.Context = ctx
+	assert.NoError(t, act.Fsck(c))
 	out := strings.TrimSpace(buf.String())
 	assert.Contains(t, out, "Checking store integrity ...")
 	assert.Contains(t, out, "[] Extra recipients on foo: [0xFEEDBEEF]")
 	assert.Contains(t, out, "[] Pushed changes to git remote")
-
 	buf.Reset()
 
 	// fsck fo
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
 	assert.NoError(t, fs.Parse([]string{"fo"}))
 	c = cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
-	assert.NoError(t, act.Fsck(ctx, c))
+	assert.NoError(t, act.Fsck(c))
 	out = strings.TrimSpace(buf.String())
 	assert.Contains(t, out, "Checking store integrity ...")
 	assert.Contains(t, out, "[] Extra recipients on foo: [0xFEEDBEEF]")

@@ -40,15 +40,17 @@ func TestCopy(t *testing.T) {
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
 	assert.NoError(t, fs.Parse([]string{"foo", "bar"}))
 	c := cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
-	assert.NoError(t, act.Copy(ctx, c))
+	assert.NoError(t, act.Copy(c))
 	buf.Reset()
 
 	// copy foo bar (again, should fail)
 	{
 		ctx := ctxutil.WithAlwaysYes(ctx, false)
 		ctx = ctxutil.WithInteractive(ctx, false)
-		assert.Error(t, act.Copy(ctx, c))
+		c.Context = ctx
+		assert.Error(t, act.Copy(c))
 		buf.Reset()
 	}
 
@@ -56,15 +58,17 @@ func TestCopy(t *testing.T) {
 	fs = flag.NewFlagSet("default", flag.ContinueOnError)
 	assert.NoError(t, fs.Parse([]string{"not-found", "still-not-there"}))
 	c = cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
-	assert.Error(t, act.Copy(ctx, c))
+	assert.Error(t, act.Copy(c))
 	buf.Reset()
 
 	// copy
 	fs = flag.NewFlagSet("default", flag.ContinueOnError)
 	c = cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
-	assert.Error(t, act.Copy(ctx, c))
+	assert.Error(t, act.Copy(c))
 	buf.Reset()
 
 	// insert bam/baz
@@ -75,8 +79,9 @@ func TestCopy(t *testing.T) {
 	fs = flag.NewFlagSet("default", flag.ContinueOnError)
 	assert.NoError(t, fs.Parse([]string{"bam", "zab"}))
 	c = cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
-	assert.NoError(t, act.Copy(ctx, c))
+	assert.NoError(t, act.Copy(c))
 	buf.Reset()
 
 	assert.NoError(t, act.show(ctx, c, "zab/bam/zab", false))

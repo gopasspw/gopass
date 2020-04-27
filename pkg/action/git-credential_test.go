@@ -103,35 +103,37 @@ func TestGitCredentialHelper(t *testing.T) {
 
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
 	c := cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
 	// before without stdin
-	assert.Error(t, act.GitCredentialBefore(ctx, c))
+	assert.Error(t, act.GitCredentialBefore(c))
 
 	// before with stdin
 	ctx = ctxutil.WithStdin(ctx, true)
-	assert.NoError(t, act.GitCredentialBefore(ctx, c))
+	c.Context = ctx
+	assert.NoError(t, act.GitCredentialBefore(c))
 
 	s := "protocol=https\n" +
 		"host=example.com\n" +
 		"username=bob\n"
 
 	termio.Stdin = strings.NewReader(s)
-	assert.NoError(t, act.GitCredentialGet(ctx, c))
+	assert.NoError(t, act.GitCredentialGet(c))
 	assert.Equal(t, "", stdout.String())
 
 	termio.Stdin = strings.NewReader(s + "password=secr3=t\n")
-	assert.NoError(t, act.GitCredentialStore(ctx, c))
+	assert.NoError(t, act.GitCredentialStore(c))
 	stdout.Reset()
 
 	termio.Stdin = strings.NewReader(s)
-	assert.NoError(t, act.GitCredentialGet(ctx, c))
+	assert.NoError(t, act.GitCredentialGet(c))
 	read, err := parseGitCredentials(stdout)
 	assert.NoError(t, err)
 	assert.Equal(t, "secr3=t", read.Password)
 	stdout.Reset()
 
 	termio.Stdin = strings.NewReader("host=example.com\n")
-	assert.NoError(t, act.GitCredentialGet(ctx, c))
+	assert.NoError(t, act.GitCredentialGet(c))
 	read, err = parseGitCredentials(stdout)
 	assert.NoError(t, err)
 	assert.Equal(t, "secr3=t", read.Password)
@@ -139,17 +141,17 @@ func TestGitCredentialHelper(t *testing.T) {
 	stdout.Reset()
 
 	termio.Stdin = strings.NewReader(s)
-	assert.NoError(t, act.GitCredentialErase(ctx, c))
+	assert.NoError(t, act.GitCredentialErase(c))
 	assert.Equal(t, "", stdout.String())
 
 	termio.Stdin = strings.NewReader(s)
-	assert.NoError(t, act.GitCredentialGet(ctx, c))
+	assert.NoError(t, act.GitCredentialGet(c))
 	assert.Equal(t, "", stdout.String())
 
 	termio.Stdin = strings.NewReader("a")
-	assert.Error(t, act.GitCredentialGet(ctx, c))
+	assert.Error(t, act.GitCredentialGet(c))
 	termio.Stdin = strings.NewReader("a")
-	assert.Error(t, act.GitCredentialStore(ctx, c))
+	assert.Error(t, act.GitCredentialStore(c))
 	termio.Stdin = strings.NewReader("a")
-	assert.Error(t, act.GitCredentialErase(ctx, c))
+	assert.Error(t, act.GitCredentialErase(c))
 }

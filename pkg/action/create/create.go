@@ -12,6 +12,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/gopasspw/gopass/pkg/action"
 	"github.com/gopasspw/gopass/pkg/clipboard"
+	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/cui"
 	"github.com/gopasspw/gopass/pkg/fsutil"
 	"github.com/gopasspw/gopass/pkg/out"
@@ -46,7 +47,8 @@ func fmtfn(d int, n string, t string) string {
 }
 
 // Create displays the password creation wizard
-func Create(ctx context.Context, c *cli.Context, store storer) error {
+func Create(c *cli.Context, store storer) error {
+	ctx := ctxutil.WithGlobalFlags(c)
 	s := creator{store: store}
 	acts := make(cui.Actions, 0, 5)
 	acts = append(acts, cui.Action{Name: "Website Login", Fn: s.createWebsite})

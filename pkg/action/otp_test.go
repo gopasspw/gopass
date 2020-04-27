@@ -41,18 +41,20 @@ func TestOTP(t *testing.T) {
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
 	assert.NoError(t, fs.Parse([]string{"foo"}))
 	c := cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
-	assert.Error(t, act.OTP(ctx, c))
+	assert.Error(t, act.OTP(c))
 	buf.Reset()
 
 	// create and display valid OTP
 	fs = flag.NewFlagSet("default", flag.ContinueOnError)
 	assert.NoError(t, fs.Parse([]string{"bar"}))
 	c = cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
 	assert.NoError(t, act.Store.Set(ctx, "bar", secret.New("foo", twofactor.GenerateGoogleTOTP().URL("foo"))))
 
-	assert.NoError(t, act.OTP(ctx, c))
+	assert.NoError(t, act.OTP(c))
 	buf.Reset()
 
 	// copy to clipboard
@@ -69,8 +71,9 @@ func TestOTP(t *testing.T) {
 	fn := filepath.Join(u.Dir, "qr.png")
 	assert.NoError(t, fs.Parse([]string{"--qr=" + fn, "bar"}))
 	c = cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
-	assert.NoError(t, act.OTP(ctx, c))
+	assert.NoError(t, act.OTP(c))
 	assert.FileExists(t, fn)
 	buf.Reset()
 }

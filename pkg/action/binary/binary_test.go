@@ -34,6 +34,7 @@ func TestBinary(t *testing.T) {
 	app := cli.NewApp()
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
 	c := cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
@@ -45,10 +46,10 @@ func TestBinary(t *testing.T) {
 	assert.NoError(t, ioutil.WriteFile(infile, []byte("0xDEADBEEF"), 0644))
 	assert.NoError(t, binaryCopy(ctx, c, infile, "bar", true, store))
 
-	assert.Error(t, Cat(ctx, c, store))
-	assert.Error(t, Copy(ctx, c, store))
-	assert.Error(t, Move(ctx, c, store))
-	assert.Error(t, Sum(ctx, c, store))
+	assert.Error(t, Cat(c, store))
+	assert.Error(t, Copy(c, store))
+	assert.Error(t, Move(c, store))
+	assert.Error(t, Sum(c, store))
 }
 
 func TestBinaryCat(t *testing.T) {
@@ -67,6 +68,7 @@ func TestBinaryCat(t *testing.T) {
 	app := cli.NewApp()
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
 	c := cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
@@ -82,7 +84,7 @@ func TestBinaryCat(t *testing.T) {
 	fs = flag.NewFlagSet("default", flag.ContinueOnError)
 	assert.NoError(t, fs.Parse([]string{"bar"}))
 	c = cli.NewContext(app, fs, nil)
-	assert.NoError(t, Cat(ctx, c, store))
+	assert.NoError(t, Cat(c, store))
 }
 
 func TestBinaryCopy(t *testing.T) {
@@ -101,6 +103,7 @@ func TestBinaryCopy(t *testing.T) {
 	app := cli.NewApp()
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
 	c := cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
@@ -118,25 +121,33 @@ func TestBinaryCopy(t *testing.T) {
 	fs = flag.NewFlagSet("default", flag.ContinueOnError)
 	assert.NoError(t, fs.Parse([]string{"bar", outfile}))
 	c = cli.NewContext(app, fs, nil)
-	assert.NoError(t, Copy(ctx, c, store))
+	c.Context = ctx
+
+	assert.NoError(t, Copy(c, store))
 
 	// binary copy tempdir/bar tempdir/bar
 	fs = flag.NewFlagSet("default", flag.ContinueOnError)
 	assert.NoError(t, fs.Parse([]string{outfile, outfile}))
 	c = cli.NewContext(app, fs, nil)
-	assert.Error(t, Copy(ctx, c, store))
+	c.Context = ctx
+
+	assert.Error(t, Copy(c, store))
 
 	// binary copy bar bar
 	fs = flag.NewFlagSet("default", flag.ContinueOnError)
 	assert.NoError(t, fs.Parse([]string{"bar", "bar"}))
 	c = cli.NewContext(app, fs, nil)
-	assert.Error(t, Copy(ctx, c, store))
+	c.Context = ctx
+
+	assert.Error(t, Copy(c, store))
 
 	// binary move tempdir/bar bar2
 	fs = flag.NewFlagSet("default", flag.ContinueOnError)
 	assert.NoError(t, fs.Parse([]string{outfile, "bar2"}))
 	c = cli.NewContext(app, fs, nil)
-	assert.NoError(t, Move(ctx, c, store))
+	c.Context = ctx
+
+	assert.NoError(t, Move(c, store))
 }
 
 func TestBinarySum(t *testing.T) {
@@ -155,6 +166,7 @@ func TestBinarySum(t *testing.T) {
 	app := cli.NewApp()
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
 	c := cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
@@ -170,5 +182,7 @@ func TestBinarySum(t *testing.T) {
 	fs = flag.NewFlagSet("default", flag.ContinueOnError)
 	assert.NoError(t, fs.Parse([]string{"bar"}))
 	c = cli.NewContext(app, fs, nil)
-	assert.NoError(t, Sum(ctx, c, store))
+	c.Context = ctx
+
+	assert.NoError(t, Sum(c, store))
 }

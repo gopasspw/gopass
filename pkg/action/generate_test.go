@@ -43,21 +43,23 @@ func TestGenerate(t *testing.T) {
 	// generate
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
 	c := cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
-	assert.Error(t, act.Generate(ctx, c))
+	assert.Error(t, act.Generate(c))
 	buf.Reset()
 
 	// generate foobar
 	fs = flag.NewFlagSet("default", flag.ContinueOnError)
 	assert.NoError(t, fs.Parse([]string{"foobar"}))
 	c = cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
-	assert.NoError(t, act.Generate(ctx, c))
+	assert.NoError(t, act.Generate(c))
 	buf.Reset()
 
 	// generate foobar
 	// should succeed because of always yes
-	assert.NoError(t, act.Generate(ctx, c))
+	assert.NoError(t, act.Generate(c))
 	buf.Reset()
 
 	// generate --force foobar
@@ -69,8 +71,9 @@ func TestGenerate(t *testing.T) {
 	assert.NoError(t, bf.Apply(fs))
 	assert.NoError(t, fs.Parse([]string{"--force=true", "foobar"}))
 	c = cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
-	assert.NoError(t, act.Generate(ctx, c))
+	assert.NoError(t, act.Generate(c))
 	buf.Reset()
 
 	// generate --force foobar 32
@@ -82,8 +85,9 @@ func TestGenerate(t *testing.T) {
 	assert.NoError(t, bf.Apply(fs))
 	assert.NoError(t, fs.Parse([]string{"--force=true", "foobar", "32"}))
 	c = cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
-	assert.NoError(t, act.Generate(ctx, c))
+	assert.NoError(t, act.Generate(c))
 	buf.Reset()
 
 	// generate --force --symbols foobar 32
@@ -105,8 +109,9 @@ func TestGenerate(t *testing.T) {
 	assert.NoError(t, bf.Apply(fs))
 	assert.NoError(t, fs.Parse([]string{"--force=true", "--print=true", "--symbols", "foobar", "32"}))
 	c = cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
-	assert.NoError(t, act.Generate(ctx, c))
+	assert.NoError(t, act.Generate(c))
 	passIsAlphaNum(t, buf.String(), false)
 	buf.Reset()
 
@@ -129,8 +134,9 @@ func TestGenerate(t *testing.T) {
 	assert.NoError(t, bf.Apply(fs))
 	assert.NoError(t, fs.Parse([]string{"--force=true", "--print=true", "--symbols=true", "foobar", "32"}))
 	c = cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
-	assert.NoError(t, act.Generate(ctx, c))
+	assert.NoError(t, act.Generate(c))
 	passIsAlphaNum(t, buf.String(), false)
 	buf.Reset()
 
@@ -153,8 +159,9 @@ func TestGenerate(t *testing.T) {
 	assert.NoError(t, bf.Apply(fs))
 	assert.NoError(t, fs.Parse([]string{"--force=true", "--print=true", "--symbols=false", "foobar", "32"}))
 	c = cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
-	assert.NoError(t, act.Generate(ctx, c))
+	assert.NoError(t, act.Generate(c))
 	passIsAlphaNum(t, buf.String(), true)
 	buf.Reset()
 
@@ -178,8 +185,9 @@ func TestGenerate(t *testing.T) {
 	assert.NoError(t, sf.Apply(fs))
 	assert.NoError(t, fs.Parse([]string{"--force=true", "--xkcd=true", "foobar", "32"}))
 	c = cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
-	assert.NoError(t, act.Generate(ctx, c))
+	assert.NoError(t, act.Generate(c))
 	buf.Reset()
 
 	// generate --force --xkcd foobar baz 32
@@ -202,8 +210,9 @@ func TestGenerate(t *testing.T) {
 	assert.NoError(t, sf.Apply(fs))
 	assert.NoError(t, fs.Parse([]string{"--force=true", "--xkcd=true", "foobar", "baz", "32"}))
 	c = cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
-	assert.NoError(t, act.Generate(ctx, c))
+	assert.NoError(t, act.Generate(c))
 	buf.Reset()
 
 	// generate --force --xkcd foobar baz
@@ -226,8 +235,9 @@ func TestGenerate(t *testing.T) {
 	assert.NoError(t, sf.Apply(fs))
 	assert.NoError(t, fs.Parse([]string{"--force=true", "--xkcd=true", "foobar", "baz"}))
 	c = cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
-	assert.NoError(t, act.Generate(ctx, c))
+	assert.NoError(t, act.Generate(c))
 	buf.Reset()
 
 	// generate --force --xkcd --print foobar baz
@@ -255,8 +265,9 @@ func TestGenerate(t *testing.T) {
 	assert.NoError(t, sf.Apply(fs))
 	assert.NoError(t, fs.Parse([]string{"--force=true", "--print=true", "--xkcd=true", "foobar", "baz"}))
 	c = cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
-	assert.NoError(t, act.Generate(ctx, c))
+	assert.NoError(t, act.Generate(c))
 	buf.Reset()
 }
 

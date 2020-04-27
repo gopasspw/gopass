@@ -3,7 +3,6 @@
 package xc
 
 import (
-	"context"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -11,6 +10,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/action"
 	"github.com/gopasspw/gopass/pkg/backend/crypto/xc"
 	"github.com/gopasspw/gopass/pkg/config"
+	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/fsutil"
 	"github.com/gopasspw/gopass/pkg/out"
 	"github.com/gopasspw/gopass/pkg/termio"
@@ -34,7 +34,8 @@ func initCrypto() error {
 }
 
 // ListPrivateKeys list the XC private keys
-func ListPrivateKeys(ctx context.Context, c *cli.Context) error {
+func ListPrivateKeys(c *cli.Context) error {
+	ctx := ctxutil.WithGlobalFlags(c)
 	if err := initCrypto(); err != nil {
 		return action.ExitError(ctx, action.ExitUnknown, err, "failed to init XC")
 	}
@@ -53,7 +54,8 @@ func ListPrivateKeys(ctx context.Context, c *cli.Context) error {
 }
 
 // ListPublicKeys lists the XC public keys
-func ListPublicKeys(ctx context.Context, c *cli.Context) error {
+func ListPublicKeys(c *cli.Context) error {
+	ctx := ctxutil.WithGlobalFlags(c)
 	if err := initCrypto(); err != nil {
 		return action.ExitError(ctx, action.ExitUnknown, err, "failed to init XC")
 	}
@@ -72,7 +74,8 @@ func ListPublicKeys(ctx context.Context, c *cli.Context) error {
 }
 
 // GenerateKeypair generates a new XC keypair
-func GenerateKeypair(ctx context.Context, c *cli.Context) error {
+func GenerateKeypair(c *cli.Context) error {
+	ctx := ctxutil.WithGlobalFlags(c)
 	if err := initCrypto(); err != nil {
 		return action.ExitError(ctx, action.ExitUnknown, err, "failed to init XC")
 	}
@@ -110,7 +113,8 @@ func GenerateKeypair(ctx context.Context, c *cli.Context) error {
 }
 
 // ExportPublicKey exports an XC key
-func ExportPublicKey(ctx context.Context, c *cli.Context) error {
+func ExportPublicKey(c *cli.Context) error {
+	ctx := ctxutil.WithGlobalFlags(c)
 	if err := initCrypto(); err != nil {
 		return action.ExitError(ctx, action.ExitUnknown, err, "failed to init XC")
 	}
@@ -141,7 +145,8 @@ func ExportPublicKey(ctx context.Context, c *cli.Context) error {
 }
 
 // ImportPublicKey imports an XC key
-func ImportPublicKey(ctx context.Context, c *cli.Context) error {
+func ImportPublicKey(c *cli.Context) error {
+	ctx := ctxutil.WithGlobalFlags(c)
 	if err := initCrypto(); err != nil {
 		return action.ExitError(ctx, action.ExitUnknown, err, "failed to init XC")
 	}
@@ -164,7 +169,8 @@ func ImportPublicKey(ctx context.Context, c *cli.Context) error {
 }
 
 // RemoveKey removes a key from the keyring
-func RemoveKey(ctx context.Context, c *cli.Context) error {
+func RemoveKey(c *cli.Context) error {
+	ctx := ctxutil.WithGlobalFlags(c)
 	if err := initCrypto(); err != nil {
 		return action.ExitError(ctx, action.ExitUnknown, err, "failed to init XC")
 	}
@@ -179,7 +185,8 @@ func RemoveKey(ctx context.Context, c *cli.Context) error {
 }
 
 // ExportPrivateKey exports an XC key
-func ExportPrivateKey(ctx context.Context, c *cli.Context) error {
+func ExportPrivateKey(c *cli.Context) error {
+	ctx := ctxutil.WithGlobalFlags(c)
 	if err := initCrypto(); err != nil {
 		return action.ExitError(ctx, action.ExitUnknown, err, "failed to init XC")
 	}
@@ -210,7 +217,8 @@ func ExportPrivateKey(ctx context.Context, c *cli.Context) error {
 }
 
 // ImportPrivateKey imports an XC key
-func ImportPrivateKey(ctx context.Context, c *cli.Context) error {
+func ImportPrivateKey(c *cli.Context) error {
+	ctx := ctxutil.WithGlobalFlags(c)
 	if err := initCrypto(); err != nil {
 		return action.ExitError(ctx, action.ExitUnknown, err, "failed to init XC")
 	}
@@ -233,13 +241,14 @@ func ImportPrivateKey(ctx context.Context, c *cli.Context) error {
 }
 
 // EncryptFile encrypts a single file
-func EncryptFile(ctx context.Context, c *cli.Context) error {
+func EncryptFile(c *cli.Context) error {
+	ctx := ctxutil.WithGlobalFlags(c)
 	if err := initCrypto(); err != nil {
 		return action.ExitError(ctx, action.ExitUnknown, err, "failed to init XC")
 	}
 
 	if c.Bool("stream") {
-		return EncryptFileStream(ctx, c)
+		return EncryptFileStream(c)
 	}
 
 	inFile := c.String("file")
@@ -272,13 +281,14 @@ func EncryptFile(ctx context.Context, c *cli.Context) error {
 }
 
 // DecryptFile decrypts a single file
-func DecryptFile(ctx context.Context, c *cli.Context) error {
+func DecryptFile(c *cli.Context) error {
+	ctx := ctxutil.WithGlobalFlags(c)
 	if err := initCrypto(); err != nil {
 		return action.ExitError(ctx, action.ExitUnknown, err, "failed to init XC")
 	}
 
 	if c.Bool("stream") {
-		return DecryptFileStream(ctx, c)
+		return DecryptFileStream(c)
 	}
 
 	inFile := c.String("file")
@@ -314,7 +324,8 @@ func DecryptFile(ctx context.Context, c *cli.Context) error {
 }
 
 // EncryptFileStream encrypts a single file
-func EncryptFileStream(ctx context.Context, c *cli.Context) error {
+func EncryptFileStream(c *cli.Context) error {
+	ctx := ctxutil.WithGlobalFlags(c)
 	if err := initCrypto(); err != nil {
 		return action.ExitError(ctx, action.ExitUnknown, err, "failed to init XC")
 	}
@@ -355,7 +366,8 @@ func EncryptFileStream(ctx context.Context, c *cli.Context) error {
 }
 
 // DecryptFileStream decrypts a single file
-func DecryptFileStream(ctx context.Context, c *cli.Context) error {
+func DecryptFileStream(c *cli.Context) error {
+	ctx := ctxutil.WithGlobalFlags(c)
 	if err := initCrypto(); err != nil {
 		return action.ExitError(ctx, action.ExitUnknown, err, "failed to init XC")
 	}

@@ -21,6 +21,7 @@ func TestJSONAPI(t *testing.T) {
 	defer u.Remove()
 
 	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	act, err := newMock(ctx, u)
 	require.NoError(t, err)
@@ -29,6 +30,7 @@ func TestJSONAPI(t *testing.T) {
 	app := cli.NewApp()
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
 	c := cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
@@ -36,6 +38,5 @@ func TestJSONAPI(t *testing.T) {
 		out.Stdout = os.Stdout
 	}()
 
-	assert.NoError(t, act.JSONAPI(ctx, c))
-	cancel()
+	assert.NoError(t, act.JSONAPI(c))
 }

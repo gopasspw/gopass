@@ -13,7 +13,6 @@ import (
 	_ "github.com/gopasspw/gopass/pkg/backend/crypto"
 	_ "github.com/gopasspw/gopass/pkg/backend/rcs"
 	_ "github.com/gopasspw/gopass/pkg/backend/storage"
-	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/protect"
 
 	"github.com/blang/semver"
@@ -63,8 +62,8 @@ func main() {
 	sv := getVersion()
 	cli.VersionPrinter = makeVersionPrinter(os.Stdout, sv)
 
-	app := setupApp(ctx, sv)
-	if err := app.Run(os.Args); err != nil {
+	ctx, app := setupApp(ctx, sv)
+	if err := app.RunContext(ctx, os.Args); err != nil {
 		log.Fatal(err)
 	}
 }
@@ -107,13 +106,6 @@ type errorWriter struct {
 
 func (e errorWriter) Write(p []byte) (int, error) {
 	return e.out.Write([]byte("\n" + color.RedString("Error: %s", p)))
-}
-
-func withGlobalFlags(ctx context.Context, c *cli.Context) context.Context {
-	if c.Bool("yes") {
-		ctx = ctxutil.WithAlwaysYes(ctx, true)
-	}
-	return ctx
 }
 
 func getVersion() semver.Version {

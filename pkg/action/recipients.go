@@ -35,7 +35,8 @@ credentials.
 )
 
 // RecipientsPrint prints all recipients per store
-func (s *Action) RecipientsPrint(ctx context.Context, c *cli.Context) error {
+func (s *Action) RecipientsPrint(c *cli.Context) error {
+	ctx := ctxutil.WithGlobalFlags(c)
 	out.Cyan(ctx, "Hint: run 'gopass sync' to import any missing public keys")
 
 	tree, err := s.Store.RecipientsTree(ctx, true)
@@ -49,7 +50,8 @@ func (s *Action) RecipientsPrint(ctx context.Context, c *cli.Context) error {
 
 // RecipientsComplete will print a list of recipients for bash
 // completion
-func (s *Action) RecipientsComplete(ctx context.Context, c *cli.Context) {
+func (s *Action) RecipientsComplete(c *cli.Context) {
+	ctx := ctxutil.WithGlobalFlags(c)
 	tree, err := s.Store.RecipientsTree(out.WithHidden(ctx, true), false)
 	if err != nil {
 		fmt.Fprintln(stdout, err)
@@ -62,7 +64,8 @@ func (s *Action) RecipientsComplete(ctx context.Context, c *cli.Context) {
 }
 
 // RecipientsAdd adds new recipients
-func (s *Action) RecipientsAdd(ctx context.Context, c *cli.Context) error {
+func (s *Action) RecipientsAdd(c *cli.Context) error {
+	ctx := ctxutil.WithGlobalFlags(c)
 	store := c.String("store")
 	force := c.Bool("force")
 	added := 0
@@ -125,7 +128,8 @@ func (s *Action) RecipientsAdd(ctx context.Context, c *cli.Context) error {
 }
 
 // RecipientsRemove removes recipients
-func (s *Action) RecipientsRemove(ctx context.Context, c *cli.Context) error {
+func (s *Action) RecipientsRemove(c *cli.Context) error {
+	ctx := ctxutil.WithGlobalFlags(c)
 	store := c.String("store")
 	force := c.Bool("force")
 	removed := 0
@@ -194,7 +198,8 @@ func (s *Action) RecipientsRemove(ctx context.Context, c *cli.Context) error {
 }
 
 // RecipientsUpdate will recompute and update any changed recipients list checksums
-func (s *Action) RecipientsUpdate(ctx context.Context, c *cli.Context) error {
+func (s *Action) RecipientsUpdate(c *cli.Context) error {
+	ctx := ctxutil.WithGlobalFlags(c)
 	changed := 0
 
 	mps := s.Store.MountPoints()

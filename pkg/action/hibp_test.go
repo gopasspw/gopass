@@ -55,9 +55,10 @@ func TestHIBPDump(t *testing.T) {
 	app := cli.NewApp()
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
 	c := cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
 	// no hibp dump, no env var
-	assert.Error(t, act.HIBP(ctx, c))
+	assert.Error(t, act.HIBP(c))
 	buf.Reset()
 
 	// setup file and env
@@ -70,9 +71,10 @@ func TestHIBPDump(t *testing.T) {
 	assert.NoError(t, bf.Apply(fs))
 	assert.NoError(t, fs.Parse([]string{"--dumps=" + fn}))
 	c = cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
 	assert.NoError(t, ioutil.WriteFile(fn, []byte(testHibpSample), 0644))
-	assert.NoError(t, act.HIBP(ctx, c))
+	assert.NoError(t, act.HIBP(c))
 	buf.Reset()
 
 	// gzip
@@ -84,9 +86,12 @@ func TestHIBPDump(t *testing.T) {
 	}
 	assert.NoError(t, bf.Apply(fs))
 	assert.NoError(t, fs.Parse([]string{"--dumps=" + fn}))
+
 	c = cli.NewContext(app, fs, nil)
+	c.Context = ctx
+
 	assert.NoError(t, testWriteGZ(fn, []byte(testHibpSample)))
-	assert.NoError(t, act.HIBP(ctx, c))
+	assert.NoError(t, act.HIBP(c))
 	buf.Reset()
 }
 
@@ -134,6 +139,7 @@ func TestHIBPAPI(t *testing.T) {
 	assert.NoError(t, bf.Apply(fs))
 	assert.NoError(t, fs.Parse([]string{"--api=true"}))
 	c := cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
 	reqCnt := 0
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -156,11 +162,11 @@ func TestHIBPAPI(t *testing.T) {
 	hibpapi.URL = ts.URL
 
 	// test with one entry
-	assert.NoError(t, act.HIBP(ctx, c))
+	assert.NoError(t, act.HIBP(c))
 	buf.Reset()
 
 	// add another one
 	assert.NoError(t, act.insertStdin(ctx, "baz", []byte("foobar"), false))
-	assert.Error(t, act.HIBP(ctx, c))
+	assert.Error(t, act.HIBP(c))
 	buf.Reset()
 }

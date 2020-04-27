@@ -21,7 +21,8 @@ import (
 
 // List all secrets as a tree. If the filter argument is non-empty
 // display only those that have this prefix
-func (s *Action) List(ctx context.Context, c *cli.Context) error {
+func (s *Action) List(c *cli.Context) error {
+	ctx := ctxutil.WithGlobalFlags(c)
 	filter := c.Args().First()
 	flat := c.Bool("flat")
 	stripPrefix := c.Bool("strip-prefix")

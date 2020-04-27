@@ -15,7 +15,7 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-func setupApp(ctx context.Context, sv semver.Version) *cli.App {
+func setupApp(ctx context.Context, sv semver.Version) (context.Context, *cli.App) {
 	// try to read config (if it exists)
 	cfg := config.Load()
 
@@ -46,22 +46,22 @@ func setupApp(ctx context.Context, sv semver.Version) *cli.App {
 	app.EnableBashCompletion = true
 	app.BashComplete = func(c *cli.Context) {
 		cli.DefaultAppComplete(c)
-		action.Complete(ctx, c)
+		action.Complete(c)
 	}
 
 	app.Action = func(c *cli.Context) error {
-		if err := action.Initialized(withGlobalFlags(ctx, c), c); err != nil {
+		if err := action.Initialized(c); err != nil {
 			return err
 		}
 
 		if strings.HasSuffix(os.Args[0], "native_host") || strings.HasSuffix(os.Args[0], "native_host.exe") {
-			return action.JSONAPI(withGlobalFlags(ctx, c), c)
+			return action.JSONAPI(c)
 		}
 
 		if c.Args().Present() {
-			return action.Show(withGlobalFlags(ctx, c), c)
+			return action.Show(c)
 		}
-		return action.List(withGlobalFlags(ctx, c), c)
+		return action.List(c)
 	}
 
 	app.Flags = []cli.Flag{
@@ -80,5 +80,5 @@ func setupApp(ctx context.Context, sv semver.Version) *cli.App {
 	}
 
 	app.Commands = getCommands(ctx, action, app)
-	return app
+	return ctx, app
 }

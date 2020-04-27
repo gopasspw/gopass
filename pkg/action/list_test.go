@@ -39,8 +39,9 @@ func TestList(t *testing.T) {
 	app := cli.NewApp()
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
 	c := cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
-	assert.NoError(t, act.List(ctx, c))
+	assert.NoError(t, act.List(c))
 	want := `gopass
 └── foo
 
@@ -55,8 +56,9 @@ func TestList(t *testing.T) {
 	fs = flag.NewFlagSet("default", flag.ContinueOnError)
 	assert.NoError(t, fs.Parse([]string{"foo"}))
 	c = cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
-	assert.NoError(t, act.List(ctx, c))
+	assert.NoError(t, act.List(c))
 	want = `foo
 └── bar
 
@@ -73,8 +75,9 @@ func TestList(t *testing.T) {
 	assert.NoError(t, bf.Apply(fs))
 	assert.NoError(t, fs.Parse([]string{"--flat=true", "foo"}))
 	c = cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
-	assert.NoError(t, act.List(ctx, c))
+	assert.NoError(t, act.List(c))
 	want = `foo/bar
 `
 	assert.Equal(t, want, buf.String())
@@ -95,8 +98,9 @@ func TestList(t *testing.T) {
 	assert.NoError(t, bf.Apply(fs))
 	assert.NoError(t, fs.Parse([]string{"--folders=true"}))
 	c = cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
-	assert.NoError(t, act.List(ctx, c))
+	assert.NoError(t, act.List(c))
 	want = `foo
 foo/zen
 foo2
@@ -108,7 +112,9 @@ foo2
 	fs = flag.NewFlagSet("default", flag.ContinueOnError)
 	assert.NoError(t, fs.Parse([]string{"not-present"}))
 	c = cli.NewContext(app, fs, nil)
-	assert.Error(t, act.List(ctx, c))
+	c.Context = ctx
+
+	assert.Error(t, act.List(c))
 	buf.Reset()
 }
 
