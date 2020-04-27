@@ -15,8 +15,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-var sep = "/"
-
 // AddMount adds a new mount
 func (r *Store) AddMount(ctx context.Context, alias, path string, keys ...string) error {
 	if err := r.addMount(ctx, alias, path, nil, keys...); err != nil {
@@ -152,7 +150,7 @@ func (r *Store) MountPoints() []string {
 // MountPoint returns the most-specific mount point for the given key
 func (r *Store) MountPoint(name string) string {
 	for _, mp := range r.MountPoints() {
-		if strings.HasPrefix(name+sep, mp+sep) {
+		if strings.HasPrefix(name+"/", mp+"/") {
 			return mp
 		}
 	}
@@ -163,7 +161,7 @@ func (r *Store) MountPoint(name string) string {
 // given key
 // context with sub store options set, sub store reference, truncated path to secret
 func (r *Store) getStore(ctx context.Context, name string) (context.Context, store.Store, string) {
-	name = strings.TrimSuffix(name, sep)
+	name = strings.TrimSuffix(name, "/")
 	mp := r.MountPoint(name)
 	if sub, found := r.mounts[mp]; found {
 		return r.cfg.Mounts[mp].WithContext(ctx), sub, strings.TrimPrefix(name, sub.Alias())
@@ -173,7 +171,7 @@ func (r *Store) getStore(ctx context.Context, name string) (context.Context, sto
 
 // WithConfig populates the context with the substore config
 func (r *Store) WithConfig(ctx context.Context, name string) context.Context {
-	name = strings.TrimSuffix(name, sep)
+	name = strings.TrimSuffix(name, "/")
 	mp := r.MountPoint(name)
 	if _, found := r.mounts[mp]; found {
 		return r.cfg.Mounts[mp].WithContext(ctx)
