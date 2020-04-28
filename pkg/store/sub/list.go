@@ -2,14 +2,13 @@ package sub
 
 import (
 	"context"
-	"path/filepath"
 	"strings"
 
 	"github.com/gopasspw/gopass/pkg/out"
 )
 
 var (
-	sep = string(filepath.Separator)
+	sep = "/"
 )
 
 // List will list all entries in this store

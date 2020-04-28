@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/binary"
 	"io"
-	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -50,9 +49,6 @@ func getMessageResponse(t *testing.T, ts *tester, message string) string {
 }
 
 func TestJSONAPI(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		t.Skip("skipping test on windows.")
-	}
 	ts := newTester(t)
 	defer ts.teardown()
 

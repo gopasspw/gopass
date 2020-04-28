@@ -1,26 +1,29 @@
 package manifest
 
 import (
+	"os"
 	"runtime"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
-const (
-	manifestGolden = `{
+func TestRender(t *testing.T) {
+	// windows: C:\Users\johndoe\AppData...
+	// *nix: /tmp
+	binDir := os.TempDir()
+
+	manifestGolden := `{
     "name": "com.justwatch.gopass",
     "description": "Gopass wrapper to search and return passwords",
-    "path": "/tmp/",
+    "path": "` + strings.Replace(binDir, "\\", "\\\\", -1) + `",
     "type": "stdio",
     "allowed_origins": [
         "chrome-extension://kkhfnlkhiapbiehimabddjbimfaijdhk/"
     ]
 }`
-)
-
-func TestRender(t *testing.T) {
-	w, m, err := Render("chrome", "/tmp/", "gopass", true)
+	w, m, err := Render("chrome", binDir, "gopass", true)
 	assert.NoError(t, err)
 	assert.Equal(t, wrapperGolden, string(w))
 	assert.Equal(t, manifestGolden, string(m))

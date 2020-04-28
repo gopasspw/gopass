@@ -2,7 +2,6 @@ package root
 
 import (
 	"context"
-	"runtime"
 	"testing"
 
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -14,9 +13,6 @@ import (
 )
 
 func TestMove(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		t.Skip("skipping test on windows.")
-	}
 	u := gptest.NewUnitTester(t)
 	u.Entries = []string{
 		"foo/bar",
@@ -110,10 +106,6 @@ func TestMove(t *testing.T) {
 }
 
 func TestCopy(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		t.Skip("skipping test on windows.")
-	}
-
 	u := gptest.NewUnitTester(t)
 	u.Entries = []string{
 		"foo/bar",

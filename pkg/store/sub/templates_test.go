@@ -4,7 +4,6 @@ import (
 	"context"
 	"io/ioutil"
 	"os"
-	"runtime"
 	"testing"
 
 	"github.com/gopasspw/gopass/pkg/backend"
@@ -15,10 +14,6 @@ import (
 )
 
 func TestTemplates(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		t.Skip("skipping test on windows.")
-	}
-
 	ctx := context.Background()
 
 	tempdir, err := ioutil.TempDir("", "gopass-")

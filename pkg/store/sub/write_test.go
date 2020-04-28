@@ -15,10 +15,6 @@ import (
 )
 
 func TestSet(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		t.Skip("skipping test on windows.")
-	}
-
 	ctx := context.Background()
 
 	tempdir, err := ioutil.TempDir("", "gopass-")
@@ -31,7 +27,11 @@ func TestSet(t *testing.T) {
 	require.NoError(t, err)
 
 	require.NoError(t, s.Set(ctx, "zab/zab", secret.New("foo", "bar")))
-	assert.Error(t, s.Set(ctx, "../../../../../etc/passwd", secret.New("foo", "bar")))
+	if runtime.GOOS != "windows" {
+		assert.Error(t, s.Set(ctx, "../../../../../etc/passwd", secret.New("foo", "bar")))
+	} else {
+		assert.NoError(t, s.Set(ctx, "../../../../../etc/passwd", secret.New("foo", "bar")))
+	}
 	assert.Error(t, s.Set(ctx, "zab", secret.New("foo", "bar")))
 	assert.Error(t, s.Set(WithRecipientFunc(ctx, func(ctx context.Context, prompt string, list []string) ([]string, error) {
 		return nil, fmt.Errorf("aborted")

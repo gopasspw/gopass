@@ -6,7 +6,6 @@ import (
 	"flag"
 	"os"
 	"path/filepath"
-	"runtime"
 	"testing"
 
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -19,9 +18,6 @@ import (
 )
 
 func TestMounts(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		t.Skip("skipping test on windows.")
-	}
 	u := gptest.NewUnitTester(t)
 	defer u.Remove()
 

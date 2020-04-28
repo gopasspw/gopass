@@ -5,7 +5,6 @@ import (
 	"context"
 	"flag"
 	"os"
-	"runtime"
 	"strings"
 	"testing"
 
@@ -20,9 +19,6 @@ import (
 )
 
 func TestFsck(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		t.Skip("skipping test on windows.")
-	}
 	u := gptest.NewUnitTester(t)
 	defer u.Remove()
 
@@ -48,7 +44,11 @@ func TestFsck(t *testing.T) {
 	// fsck
 	c := cli.NewContext(app, flag.NewFlagSet("default", flag.ContinueOnError), nil)
 	assert.NoError(t, act.Fsck(ctx, c))
-	assert.Equal(t, "Checking store integrity ...\n\n[] Extra recipients on foo: [0xFEEDBEEF]\n\n[] Pushed changes to git remote", strings.TrimSpace(buf.String()))
+	out := strings.TrimSpace(buf.String())
+	assert.Contains(t, out, "Checking store integrity ...")
+	assert.Contains(t, out, "[] Extra recipients on foo: [0xFEEDBEEF]")
+	assert.Contains(t, out, "[] Pushed changes to git remote")
+
 	buf.Reset()
 
 	// fsck fo
@@ -57,6 +57,10 @@ func TestFsck(t *testing.T) {
 	c = cli.NewContext(app, fs, nil)
 
 	assert.NoError(t, act.Fsck(ctx, c))
-	assert.Equal(t, "Checking store integrity ...\n\n[] Extra recipients on foo: [0xFEEDBEEF]\n\n[] Pushed changes to git remote", strings.TrimSpace(buf.String()))
+	out = strings.TrimSpace(buf.String())
+	assert.Contains(t, out, "Checking store integrity ...")
+	assert.Contains(t, out, "[] Extra recipients on foo: [0xFEEDBEEF]")
+	assert.Contains(t, out, "[] Pushed changes to git remote")
+
 	buf.Reset()
 }

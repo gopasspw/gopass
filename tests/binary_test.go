@@ -4,7 +4,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -12,9 +11,6 @@ import (
 )
 
 func TestBinaryCopy(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		t.Skip("skipping test on windows.")
-	}
 	ts := newTester(t)
 	defer ts.teardown()
 
@@ -25,7 +21,7 @@ func TestBinaryCopy(t *testing.T) {
 
 	out, err := ts.run("binary copy")
 	assert.Error(t, err)
-	assert.Equal(t, "\nError: Usage: "+filepath.Base(ts.Binary)+" binary copy from to\n", out)
+	assert.Equal(t, "\nError: Usage: gopass binary copy from to\n", out)
 
 	fn := filepath.Join(ts.tempDir, "copy")
 	dat := []byte("foobar")
@@ -48,9 +44,6 @@ func TestBinaryCopy(t *testing.T) {
 }
 
 func TestBinaryMove(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		t.Skip("skipping test on windows.")
-	}
 	ts := newTester(t)
 	defer ts.teardown()
 
@@ -61,7 +54,7 @@ func TestBinaryMove(t *testing.T) {
 
 	out, err := ts.run("binary move")
 	assert.Error(t, err)
-	assert.Equal(t, "\nError: Usage: "+filepath.Base(ts.Binary)+" binary move from to\n", out)
+	assert.Equal(t, "\nError: Usage: gopass binary move from to\n", out)
 
 	fn := filepath.Join(ts.tempDir, "move")
 	dat := []byte("foobar")
@@ -84,9 +77,6 @@ func TestBinaryMove(t *testing.T) {
 }
 
 func TestBinaryShasum(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		t.Skip("skipping test on windows.")
-	}
 	ts := newTester(t)
 	defer ts.teardown()
 
@@ -97,7 +87,7 @@ func TestBinaryShasum(t *testing.T) {
 
 	out, err := ts.run("binary sha256")
 	assert.Error(t, err)
-	assert.Equal(t, "\nError: Usage: "+filepath.Base(ts.Binary)+" binary sha256 name\n", out)
+	assert.Equal(t, "\nError: Usage: gopass binary sha256 name\n", out)
 
 	fn := filepath.Join(ts.tempDir, "shasum")
 	dat := []byte("foobar")

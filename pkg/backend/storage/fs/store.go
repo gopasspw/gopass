@@ -6,9 +6,9 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"runtime"
 	"sort"
 	"strings"
-	"syscall"
 
 	"github.com/gopasspw/gopass/pkg/fsutil"
 	"github.com/gopasspw/gopass/pkg/out"
@@ -33,6 +33,9 @@ func New(dir string) *Store {
 
 // Get retrieves the named content
 func (s *Store) Get(ctx context.Context, name string) ([]byte, error) {
+	if runtime.GOOS == "windows" {
+		name = filepath.FromSlash(name)
+	}
 	path := filepath.Join(s.path, filepath.Clean(name))
 	out.Debug(ctx, "fs.Get(%s) - %s", name, path)
 	return ioutil.ReadFile(path)
@@ -40,6 +43,9 @@ func (s *Store) Get(ctx context.Context, name string) ([]byte, error) {
 
 // Set writes the given content
 func (s *Store) Set(ctx context.Context, name string, value []byte) error {
+	if runtime.GOOS == "windows" {
+		name = filepath.FromSlash(name)
+	}
 	filename := filepath.Join(s.path, filepath.Clean(name))
 	filedir := filepath.Dir(filename)
 	if !fsutil.IsDir(filedir) {
@@ -53,6 +59,9 @@ func (s *Store) Set(ctx context.Context, name string, value []byte) error {
 
 // Delete removes the named entity
 func (s *Store) Delete(ctx context.Context, name string) error {
+	if runtime.GOOS == "windows" {
+		name = filepath.FromSlash(name)
+	}
 	path := filepath.Join(s.path, filepath.Clean(name))
 	out.Debug(ctx, "fs.Delete(%s) - %s", name, path)
 
@@ -65,6 +74,9 @@ func (s *Store) Delete(ctx context.Context, name string) error {
 
 // Deletes all empty parent directories up to the store root
 func (s *Store) removeEmptyParentDirectories(path string) error {
+	if runtime.GOOS == "windows" {
+		path = filepath.FromSlash(path)
+	}
 	parent := filepath.Dir(path)
 
 	if relpath, err := filepath.Rel(s.path, parent); err != nil {
@@ -77,7 +89,7 @@ func (s *Store) removeEmptyParentDirectories(path string) error {
 	switch {
 	case err == nil:
 		return s.removeEmptyParentDirectories(parent)
-	case err.(*os.PathError).Err == syscall.ENOTEMPTY:
+	case notEmptyErr(err):
 		// ignore when directory is non-empty
 		return nil
 	default:
@@ -87,12 +99,17 @@ func (s *Store) removeEmptyParentDirectories(path string) error {
 
 // Exists checks if the named entity exists
 func (s *Store) Exists(ctx context.Context, name string) bool {
+	if runtime.GOOS == "windows" {
+		name = filepath.FromSlash(name)
+	}
 	path := filepath.Join(s.path, filepath.Clean(name))
 	out.Debug(ctx, "fs.Exists(%s) - %s", name, path)
 	return fsutil.IsFile(path)
 }
 
 // List returns a list of all entities
+// e.g. foo, far/bar baz/.bang
+// directory separator are normalized using `/`
 func (s *Store) List(ctx context.Context, prefix string) ([]string, error) {
 	prefix = strings.TrimPrefix(prefix, "/")
 	out.Debug(ctx, "fs.List(%s)", prefix)
@@ -111,6 +128,9 @@ func (s *Store) List(ctx context.Context, prefix string) ([]string, error) {
 			return nil
 		}
 		name := strings.TrimPrefix(path, s.path+string(filepath.Separator))
+		if runtime.GOOS == "windows" {
+			name = filepath.ToSlash(name)
+		}
 		if !strings.HasPrefix(name, prefix) {
 			return nil
 		}
@@ -125,6 +145,9 @@ func (s *Store) List(ctx context.Context, prefix string) ([]string, error) {
 
 // IsDir returns true if the named entity is a directory
 func (s *Store) IsDir(ctx context.Context, name string) bool {
+	if runtime.GOOS == "windows" {
+		name = filepath.FromSlash(name)
+	}
 	path := filepath.Join(s.path, filepath.Clean(name))
 	isDir := fsutil.IsDir(path)
 	out.Debug(ctx, "fs.Isdir(%s) - %s -> %t", name, path, isDir)
