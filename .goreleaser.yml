@@ -3,6 +3,12 @@
 #
 # Build customization
 project_name: gopass
+
+before:
+  hooks:
+    - make clean
+    - make completion
+
 builds:
   - id: gopass
     binary: gopass
