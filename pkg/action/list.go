@@ -27,6 +27,13 @@ func (s *Action) List(c *cli.Context) error {
 	flat := c.Bool("flat")
 	stripPrefix := c.Bool("strip-prefix")
 	folders := c.Bool("folders")
+
+	// print the path if the argument is a direct hit
+	if s.Store.Exists(ctx, filter) && !s.Store.IsDir(ctx, filter) {
+		fmt.Println(filter)
+		return nil
+	}
+
 	// we only support listing folders in flat mode currently
 	if folders {
 		flat = true
