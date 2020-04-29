@@ -86,6 +86,8 @@ This project uses [GitHub Flow](https://guides.github.com/introduction/flow/). I
 
 We aim for compatibility with the [latest stable Go Release](https://golang.org/dl/) only.
 
+While this project is maintained by volunteers in their free time we aim to triage issues weekly and release a new version at least every quarter.
+
 ## Credit & License
 
 gopass was created by the nice folks from [JustWatch](https://www.justwatch.com/gopass) and licensed under the terms of the MIT license.

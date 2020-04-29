@@ -35,6 +35,7 @@ will try to clarify it.
 
 * Add a [DCO](https://developercertificate.org/) / `Signed-off-by` line in any commit message.
 
+* Add a RELEASE_NOTES entry in every commit. Set it to n/a for minor changes that are not noteworthy for the changelog.
 
 ## Building & Testing
 
@@ -52,20 +53,11 @@ repository.
 
 ### Preparation
 
-In order to release gopass we currently rely on a patched version of goreleaser.
-While most of our customizations have been submited and merged upstream some had
-to be changed to be accepted and others were rejected. We'd like to switch back
-to vanilla goreleaser in the future, but this requires some tweaks to the build
-and release process.
+gopass release should work with the latest upstream version of goreleaser.
 
 ```bash
-# Install our modified version of goreleaser
 go get -u github.com/goreleaser/goreleaser
 cd $GOPATH/src/github.com/goreleaser/goreleaser
-git remote add gopass git@github.com:gopasspw/goreleaser.git
-git fetch gopass
-git checkout gopass
-git pull gopass gopass
 go install
 ```
 

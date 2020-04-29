@@ -235,6 +235,7 @@ codequality-nomod:
 fmt:
 	@gofmt -s -l -w $(GOFILES_NOVENDOR)
 	@clang-format -i $(PROTOFILES)
+	@go mod tidy
 
 fuzz-gpg:
 	mkdir -p workdir/gpg-cli/corpus
@@ -254,36 +255,12 @@ check-release-env:
 ifndef GITHUB_TOKEN
 	$(error GITHUB_TOKEN is undefined)
 endif
-ifndef BINTRAY_USER
-	$(error BINTRAY_USER is undefined)
-endif
-ifndef BINTRAY_GPG_PASSPHRASE
-	$(error BINTRAY_GPG_PASSPHRASE is undefined)
-endif
-ifndef BINTRAY_API_KEY
-	$(error BINTRAY_API_KEY is undefined)
-endif
 
-release: goreleaser bintray
+release: goreleaser
 
 goreleaser: check-release-env travis clean
 	@echo ">> RELEASE, goreleaser"
 	@goreleaser
-
-bintray: check-release-env
-	@echo ">> RELEASE, deb packages"
-	@$(eval AMD64DEB:=$(shell ls ./dist/gopass-*-amd64.deb | xargs -n1 basename))
-	@curl -f -T ./dist/$(AMD64DEB) -H "X-GPG-PASSPHRASE:$(BINTRAY_GPG_PASSPHRASE)" -u$(BINTRAY_USER):$(BINTRAY_API_KEY) "https://api.bintray.com/content/gopasspw/gopass/gopass/v$(GOPASS_VERSION)/pool/main/g/gopass/$(AMD64DEB);deb_distribution=trusty,xenial,bionic,wheezy,jessie,buster,sid;deb_component=main;deb_architecture=amd64;publish=1"
-	@echo ""
-
-	@$(eval I386DEB:=$(shell ls ./dist/gopass-*-386.deb | xargs -n1 basename))
-	@curl -f -T ./dist/$(I386DEB) -H "X-GPG-PASSPHRASE:$(BINTRAY_GPG_PASSPHRASE)" -u$(BINTRAY_USER):$(BINTRAY_API_KEY) "https://api.bintray.com/content/gopasspw/gopass/gopass/v$(GOPASS_VERSION)/pool/main/g/gopass/$(I386DEB);deb_distribution=trusty,xenial,bionic,wheezy,jessie,buster,sid;deb_component=main;deb_architecture=i386;publish=1"
-	@echo ""
-
-	@echo "   CALCULATE METADATA, deb repository"
-	@curl -f -X POST -H "X-GPG-PASSPHRASE:$(BINTRAY_GPG_PASSPHRASE)" -u$(BINTRAY_USER):$(BINTRAY_API_KEY) https://api.bintray.com/calc_metadata/gopasspw/gopass
-	@echo ""
-	@echo ">> DONE"
 
 deps:
 	go build -v ./...
@@ -291,4 +268,4 @@ deps:
 upgrade:
 	go get -u
 
-.PHONY: clean build completion install sysinfo crosscompile test codequality release goreleaser debsign bintray
+.PHONY: clean build completion install sysinfo crosscompile test codequality release goreleaser debsign
