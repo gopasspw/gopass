@@ -170,6 +170,14 @@ func (s *Action) GetCommands() []*cli.Command {
 			},
 		},
 		{
+			Name:         "env",
+			Usage:        "Run a subprocess with a pre-populated environment",
+			Description:  "This command runs a sub process with the environment populated from the keys of a secret.",
+			Before:       s.Initialized,
+			Action:       s.Env,
+			BashComplete: s.Complete,
+		},
+		{
 			Name:  "find",
 			Usage: "Search for secrets",
 			Description: "" +

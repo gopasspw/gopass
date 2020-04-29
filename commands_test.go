@@ -34,6 +34,7 @@ var commandsWithError = map[string]struct{}{
 	".create":            {},
 	".delete":            {},
 	".edit":              {},
+	".env":               {},
 	".find":              {},
 	".generate":          {},
 	".git.push":          {},
@@ -90,7 +91,7 @@ func TestGetCommands(t *testing.T) {
 	c.Context = ctx
 
 	commands := getCommands(ctx, act, app)
-	assert.Equal(t, 32, len(commands))
+	assert.Equal(t, 33, len(commands))
 
 	prefix := ""
 	testCommands(t, c, commands, prefix)
