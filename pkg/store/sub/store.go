@@ -187,7 +187,7 @@ func (s *Store) reencrypt(ctx context.Context) error {
 						logger.Printf("Worker %d: Failed to get current value for %s: %s\n", workerId, e, err)
 						continue
 					}
-					if err := s.Set(ctx, e, content); err != nil {
+					if err := s.Set(WithNoGitOps(ctx, true), e, content); err != nil {
 						logger.Printf("Worker %d: Failed to write %s: %s\n", workerId, e, err)
 						continue
 					}
