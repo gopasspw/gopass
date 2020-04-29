@@ -176,6 +176,7 @@ func (s *Action) GetCommands() []*cli.Command {
 			Before:       s.Initialized,
 			Action:       s.Env,
 			BashComplete: s.Complete,
+			Hidden:       true,
 		},
 		{
 			Name:  "find",
@@ -389,6 +390,7 @@ func (s *Action) GetCommands() []*cli.Command {
 			Description: "" +
 				"This command allows you to cache your git-credentials with gopass." +
 				"Activate by using `git config --global credential.helper \"!gopass git-credential $@\"`",
+			Hidden: true,
 			Subcommands: []*cli.Command{
 				{
 					Name:   "get",
@@ -437,6 +439,7 @@ func (s *Action) GetCommands() []*cli.Command {
 				"content.",
 			Before: s.Initialized,
 			Action: s.Grep,
+			Hidden: true,
 		},
 		{
 			Name:    "history",

@@ -147,6 +147,8 @@ The `edit` command uses the `$EDITOR` environment variable to start your preferr
 
 ### Adding OTP Secrets
 
+Warning: OTP support is deprecated.
+
 *Note: Depending on your security needs, it may not behoove you to store your OTP secrets alongside your passwords! Look into [Multiple Stores](https://github.com/gopasspw/gopass/blob/master/docs/features.md#multiple-stores) if you need things to be separate!*
 
 Typically sites will display a QR code containing a URL that starts with `oauth://`. This string contains information about generating your OTPs and can be directly added to your password file. For example:
@@ -292,6 +294,8 @@ $ gopass audit hibp --dumps /tmp/pwned-passwords-1.0.txt
 
 ### Support for Binary Content
 
+Warning: Binary support is deprecated.
+
 gopass provides secure and easy support for working with binary files through the `gopass binary` family of sub-commands. One can copy or move secret from or to the store. gopass will attempt to securely overwrite and remove any secret moved to the store.
 
 ```bash
@@ -337,6 +341,8 @@ Commands that support the `--store` flag:
 | `gopass config`            | `gopass config --store=foo autosync false`    | Set the config flag `autosync` to `false` for the store *foo* |
 
 ### Directly edit structured secrets aka. YAML support
+
+Warning: YAML support is deprecated.
 
 gopass supports directly editing structured secrets (simple key-value maps or YAML).
 
@@ -406,22 +412,6 @@ Running `gopass recipients` will also try to load and save any missing GPG keys 
 The commands manipulating recipients, i.e. `gopass recipients add` and `gopass recipients remove` accept a `--store` flag that expects the *name of a mount point* to operate on this mounted sub store.
 
 To check and reencrypt secrets if recipients are missing, run `gopass fsck`.
-
-### Recipient Integrity
-
-gopass will try to warn you if the list of recipients is changed. The way that
-managing recipients works is that gopass maintains a recipient list in the git
-repository and obviously anyone with access to this repository can change the
-recipients used for any *future* changes. Thus it's important to maintain
-awareness whenever this file changes. In the past gopass relied onto the git
-history. This can be rewritten but would cause glaring errors on sync. Additionally
-gopass has the optional feature of client-side integrity checks. Enabling this
-feature will make gopass maintain a hashsum of the recipient list in the local
-configuration. It's transparently updated whenever the local users modifies the
-recipient list but if another team member - or an adversary - modifies this list
-gopass will display an error and ask you to verify and acknowledge these changes.
-
-To enable this set `check_recipient_hash` to true.
 
 ### Debugging
 

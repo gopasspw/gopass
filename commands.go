@@ -98,6 +98,7 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []*cli.Co
 			Name:    "otp",
 			Usage:   "Generate time- or hmac-based tokens",
 			Aliases: []string{"totp", "hotp"},
+			Hidden:  true,
 			Description: "" +
 				"Tries to parse an OTP URL (otpauth://). URL can be TOTP or HOTP. " +
 				"The URL can be provided on its own line or on a key value line with a key named 'totp'.",
