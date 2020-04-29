@@ -18,6 +18,7 @@ func GetCommands(i initializer, store storer) []*cli.Command {
 			Description: "" +
 				"These commands directly convert binary files from/to base64 encoding.",
 			Aliases: []string{"bin"},
+			Hidden:  true,
 			Subcommands: []*cli.Command{
 				{
 					Name:  "cat",

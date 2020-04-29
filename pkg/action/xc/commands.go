@@ -10,8 +10,9 @@ import (
 func GetCommands() []*cli.Command {
 	return []*cli.Command{
 		{
-			Name:  "xc",
-			Usage: "Experimental Crypto",
+			Name:   "xc",
+			Usage:  "Experimental Crypto",
+			Hidden: true,
 			Description: "" +
 				"These subcommands are used to control and test the experimental crypto" +
 				"implementation.",

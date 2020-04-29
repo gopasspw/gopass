@@ -56,14 +56,13 @@ Please see [docs/features.md](https://github.com/gopasspw/gopass/blob/master/doc
 | Automatic fuzzy search      | ❌      | ✔        | *stable*  | Automatically search for matching store entries if a literal entry was not found |
 | gopass sync                 | ❌      | ✔        | *beta*    | Easy to use syncing of remote repos and GPG keys |
 | Desktop Notifications       | ❌      | ✔        | *beta*    | Display desktop notifications and completing long running operations |
-| OTP support                 | (✔)    | ✔        | *stable*  | Generate TOTP/(HOTP) tokens based on the stored secret               |
 | Multiple Crypto Backends    | ❌      | ✔        | *alpha*   | Extensible crypto backend support (GPG, NaCl)                      |
 | Editing Recipients per Secret    | ❌      | ✔        | *beta*   | Select recipients per secret when encrypting |
 | Extensions                  | ✔      | ❌        |           | Extend gopass with custom commands |
 
 ## Installation
 
-If you have [Go](https://golang.org/) 1.12 (or greater) installed:
+If you have [Go](https://golang.org/) 1.14 (or greater) installed:
 
 ```bash
 go get github.com/gopasspw/gopass
@@ -124,7 +123,8 @@ We welcome any contributions. Please see the [CONTRIBUTING.md](https://github.co
 
 ## Acknowledgements
 
-gopass was initially started by Matthias Loibl and Dominik Schulz. The majority of its development has been sponsored by [JustWatch](https://www.justwatch.com/).
+gopass was initially started by Matthias Loibl and Dominik Schulz.
+The majority of its development has been sponsored by [JustWatch](https://www.justwatch.com/).
 
 ## Further Documentation
 
@@ -135,5 +135,5 @@ gopass was initially started by Matthias Loibl and Dominik Schulz. The majority 
 * [Gopass as Summon provider](https://github.com/gopasspw/gopass/blob/master/docs/summon-provider.md)
 
 ## External Documentation
-* [gopass cheat sheet](https://woile.github.io/gopass-cheat-sheet/) ([source on github])https://github.com/Woile/gopass-presentation)
+* [gopass cheat sheet](https://woile.github.io/gopass-cheat-sheet/) ([source on github](https://github.com/Woile/gopass-presentation))
 * [gopass presentation](https://woile.github.io/gopass-presentation/) ([source on github](https://github.com/Woile/gopass-presentation))
