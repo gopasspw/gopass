@@ -2,7 +2,6 @@ package action
 
 import (
 	"bufio"
-	"context"
 	"fmt"
 	"io"
 	"log"
@@ -107,9 +106,10 @@ func parseGitCredentials(r io.Reader) (*gitCredentials, error) {
 }
 
 // GitCredentialBefore is executed before another git-credential command
-func (s *Action) GitCredentialBefore(ctx context.Context, c *cli.Context) error {
-	err := s.Initialized(ctx, c)
-	if err != nil {
+func (s *Action) GitCredentialBefore(c *cli.Context) error {
+	ctx := ctxutil.WithGlobalFlags(c)
+	ctx = ctxutil.WithInteractive(ctx, false)
+	if err := s.Initialized(c); err != nil {
 		return err
 	}
 	if !ctxutil.IsStdin(ctx) {
@@ -119,7 +119,8 @@ func (s *Action) GitCredentialBefore(ctx context.Context, c *cli.Context) error 
 }
 
 // GitCredentialGet returns a credential to git
-func (s *Action) GitCredentialGet(ctx context.Context, c *cli.Context) error {
+func (s *Action) GitCredentialGet(c *cli.Context) error {
+	ctx := ctxutil.WithGlobalFlags(c)
 	ctx = sub.WithAutoSync(ctx, false)
 	cred, err := parseGitCredentials(termio.Stdin)
 	if err != nil {
@@ -167,7 +168,8 @@ func (s *Action) GitCredentialGet(ctx context.Context, c *cli.Context) error {
 }
 
 // GitCredentialStore stores a credential got from git
-func (s *Action) GitCredentialStore(ctx context.Context, c *cli.Context) error {
+func (s *Action) GitCredentialStore(c *cli.Context) error {
+	ctx := ctxutil.WithGlobalFlags(c)
 	cred, err := parseGitCredentials(termio.Stdin)
 	if err != nil {
 		return ExitError(ctx, ExitUnsupported, err, "Error: %v while parsing git-credential", err)
@@ -195,7 +197,8 @@ func (s *Action) GitCredentialStore(ctx context.Context, c *cli.Context) error {
 }
 
 // GitCredentialErase removes a credential got from git
-func (s *Action) GitCredentialErase(ctx context.Context, c *cli.Context) error {
+func (s *Action) GitCredentialErase(c *cli.Context) error {
+	ctx := ctxutil.WithGlobalFlags(c)
 	cred, err := parseGitCredentials(termio.Stdin)
 	if err != nil {
 		return ExitError(ctx, ExitUnsupported, err, "Error: %v while parsing git-credential", err)
@@ -209,7 +212,8 @@ func (s *Action) GitCredentialErase(ctx context.Context, c *cli.Context) error {
 }
 
 // GitCredentialConfigure configures gopass as git's credential.helper
-func (s *Action) GitCredentialConfigure(ctx context.Context, c *cli.Context) error {
+func (s *Action) GitCredentialConfigure(c *cli.Context) error {
+	ctx := ctxutil.WithGlobalFlags(c)
 	flags := 0
 	flag := "--global"
 	if c.Bool("local") {

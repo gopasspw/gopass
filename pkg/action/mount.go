@@ -1,11 +1,11 @@
 package action
 
 import (
-	"context"
 	"fmt"
 	"sort"
 
 	"github.com/gopasspw/gopass/pkg/config"
+	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/out"
 	"github.com/gopasspw/gopass/pkg/store"
 	"github.com/gopasspw/gopass/pkg/store/root"
@@ -17,7 +17,8 @@ import (
 )
 
 // MountRemove removes an existing mount
-func (s *Action) MountRemove(ctx context.Context, c *cli.Context) error {
+func (s *Action) MountRemove(c *cli.Context) error {
+	ctx := ctxutil.WithGlobalFlags(c)
 	if c.Args().Len() != 1 {
 		return ExitError(ctx, ExitUsage, nil, "Usage: %s mount remove [alias]", s.Name)
 	}
@@ -35,7 +36,8 @@ func (s *Action) MountRemove(ctx context.Context, c *cli.Context) error {
 }
 
 // MountsPrint prints all existing mounts
-func (s *Action) MountsPrint(ctx context.Context, c *cli.Context) error {
+func (s *Action) MountsPrint(c *cli.Context) error {
+	ctx := ctxutil.WithGlobalFlags(c)
 	if len(s.Store.Mounts()) < 1 {
 		out.Cyan(ctx, "No mounts")
 		return nil
@@ -65,7 +67,8 @@ func (s *Action) MountsComplete(*cli.Context) {
 }
 
 // MountAdd adds a new mount
-func (s *Action) MountAdd(ctx context.Context, c *cli.Context) error {
+func (s *Action) MountAdd(c *cli.Context) error {
+	ctx := ctxutil.WithGlobalFlags(c)
 	alias := c.Args().Get(0)
 	localPath := c.Args().Get(1)
 	if alias == "" {

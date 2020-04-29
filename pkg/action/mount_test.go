@@ -40,8 +40,9 @@ func TestMounts(t *testing.T) {
 	// print mounts
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
 	c := cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
-	assert.NoError(t, act.MountsPrint(ctx, c))
+	assert.NoError(t, act.MountsPrint(c))
 	buf.Reset()
 
 	// complete mounts
@@ -54,24 +55,27 @@ func TestMounts(t *testing.T) {
 	// remove no non-existing mount
 	fs = flag.NewFlagSet("default", flag.ContinueOnError)
 	c = cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
-	assert.Error(t, act.MountRemove(ctx, c))
+	assert.Error(t, act.MountRemove(c))
 	buf.Reset()
 
 	// remove non-existing mount
 	fs = flag.NewFlagSet("default", flag.ContinueOnError)
 	assert.NoError(t, fs.Parse([]string{"foo"}))
 	c = cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
-	assert.NoError(t, act.MountRemove(ctx, c))
+	assert.NoError(t, act.MountRemove(c))
 	buf.Reset()
 
 	// add non-existing mount
 	fs = flag.NewFlagSet("default", flag.ContinueOnError)
 	assert.NoError(t, fs.Parse([]string{"foo", filepath.Join(u.Dir, "mount1")}))
 	c = cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
-	assert.Error(t, act.MountAdd(ctx, c))
+	assert.Error(t, act.MountAdd(c))
 	buf.Reset()
 
 	// add some mounts
@@ -83,7 +87,8 @@ func TestMounts(t *testing.T) {
 	// print mounts
 	fs = flag.NewFlagSet("default", flag.ContinueOnError)
 	c = cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
-	assert.NoError(t, act.MountsPrint(ctx, c))
+	assert.NoError(t, act.MountsPrint(c))
 	buf.Reset()
 }

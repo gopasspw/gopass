@@ -41,10 +41,11 @@ func TestInit(t *testing.T) {
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
 	assert.NoError(t, fs.Parse([]string{"foo.bar@example.org"}))
 	c := cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
-	assert.NoError(t, act.Initialized(ctx, c))
-	assert.Error(t, act.Init(ctx, c))
-	assert.Error(t, act.InitOnboarding(ctx, c))
+	assert.NoError(t, act.Initialized(c))
+	assert.Error(t, act.Init(c))
+	assert.Error(t, act.InitOnboarding(c))
 	crypto := act.Store.Crypto(ctx, "")
 	assert.Equal(t, true, act.initHasUseablePrivateKeys(ctx, crypto, ""))
 	assert.Error(t, act.initCreatePrivateKey(ctx, crypto, "", "foo bar", "foo.bar@example.org"))
@@ -52,7 +53,7 @@ func TestInit(t *testing.T) {
 
 	// un-initialize the store
 	assert.NoError(t, os.Remove(filepath.Join(u.StoreDir(""), ".gpg-id")))
-	assert.Error(t, act.Initialized(ctx, c))
+	assert.Error(t, act.Initialized(c))
 	buf.Reset()
 }
 

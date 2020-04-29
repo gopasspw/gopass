@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"sort"
 
+	"github.com/gopasspw/gopass/pkg/ctxutil"
 	hibpapi "github.com/gopasspw/gopass/pkg/hibp/api"
 	hibpdump "github.com/gopasspw/gopass/pkg/hibp/dump"
 	"github.com/gopasspw/gopass/pkg/notify"
@@ -19,7 +20,8 @@ import (
 )
 
 // HIBP compares all entries from the store against the provided SHA1 sum dumps
-func (s *Action) HIBP(ctx context.Context, c *cli.Context) error {
+func (s *Action) HIBP(c *cli.Context) error {
+	ctx := ctxutil.WithGlobalFlags(c)
 	force := c.Bool("force")
 	api := c.Bool("api")
 

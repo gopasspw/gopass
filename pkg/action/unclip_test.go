@@ -45,6 +45,7 @@ func TestUnclip(t *testing.T) {
 	assert.NoError(t, sf.Apply(fs))
 	assert.NoError(t, fs.Parse([]string{"--timeout=0"}))
 	c := cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
-	assert.Error(t, act.Unclip(ctx, c))
+	assert.Error(t, act.Unclip(c))
 }

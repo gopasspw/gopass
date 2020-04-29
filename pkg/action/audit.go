@@ -1,17 +1,18 @@
 package action
 
 import (
-	"context"
-
 	"github.com/gopasspw/gopass/pkg/audit"
+	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/out"
 
 	"github.com/urfave/cli/v2"
 )
 
 // Audit validates passwords against common flaws
-func (s *Action) Audit(ctx context.Context, c *cli.Context) error {
+func (s *Action) Audit(c *cli.Context) error {
 	filter := c.Args().First()
+
+	ctx := ctxutil.WithGlobalFlags(c)
 	ctx = s.Store.WithConfig(ctx, filter)
 
 	out.Print(ctx, "Auditing passwords for common flaws ...")

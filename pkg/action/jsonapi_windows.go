@@ -3,12 +3,12 @@
 package action
 
 import (
-	"context"
 	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 
+	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/jsonapi/manifest"
 	"github.com/gopasspw/gopass/pkg/out"
 	"github.com/gopasspw/gopass/pkg/termio"
@@ -19,7 +19,8 @@ import (
 )
 
 // SetupNativeMessaging sets up manifest for gopass as native messaging host
-func (s *Action) SetupNativeMessaging(ctx context.Context, c *cli.Context) error {
+func (s *Action) SetupNativeMessaging(c *cli.Context) error {
+	ctx := ctxutil.WithGlobalFlags(c)
 	browser, err := s.getBrowser(ctx, c)
 	if err != nil {
 		return ExitError(ctx, ExitIO, err, "failed to get browser: %s", err)

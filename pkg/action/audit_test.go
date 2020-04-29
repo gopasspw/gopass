@@ -43,13 +43,15 @@ func TestAudit(t *testing.T) {
 		stdout = os.Stdout
 	}()
 
-	assert.Error(t, act.Audit(ctx, c))
+	c.Context = ctx
+	assert.Error(t, act.Audit(c))
 	buf.Reset()
 
 	// test with filter
 	fs = flag.NewFlagSet("default", flag.ContinueOnError)
 	assert.NoError(t, fs.Parse([]string{"foo"}))
 	c = cli.NewContext(app, fs, nil)
-	assert.Error(t, act.Audit(ctx, c))
+	c.Context = ctx
+	assert.Error(t, act.Audit(c))
 	buf.Reset()
 }

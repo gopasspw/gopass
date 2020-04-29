@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/gopasspw/gopass/pkg/action"
+	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/fsutil"
 	"github.com/gopasspw/gopass/pkg/store/secret"
 	"github.com/gopasspw/gopass/pkg/store/sub"
@@ -19,7 +20,8 @@ import (
 
 // Copy copies either from the filesystem to the store or from the store
 // to the filesystem
-func Copy(ctx context.Context, c *cli.Context, store storer) error {
+func Copy(c *cli.Context, store storer) error {
+	ctx := ctxutil.WithGlobalFlags(c)
 	from := c.Args().Get(0)
 	to := c.Args().Get(1)
 
@@ -33,7 +35,8 @@ func Copy(ctx context.Context, c *cli.Context, store storer) error {
 // Move works like Copy but will remove (shred/wipe) the source
 // after a successful copy. Mostly useful for securely moving secrets into
 // the store if they are no longer needed / wanted on disk afterwards
-func Move(ctx context.Context, c *cli.Context, store storer) error {
+func Move(c *cli.Context, store storer) error {
+	ctx := ctxutil.WithGlobalFlags(c)
 	from := c.Args().Get(0)
 	to := c.Args().Get(1)
 

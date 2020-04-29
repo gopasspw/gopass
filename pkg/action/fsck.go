@@ -1,7 +1,6 @@
 package action
 
 import (
-	"context"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -17,7 +16,8 @@ import (
 )
 
 // Fsck checks the store integrity
-func (s *Action) Fsck(ctx context.Context, c *cli.Context) error {
+func (s *Action) Fsck(c *cli.Context) error {
+	ctx := ctxutil.WithGlobalFlags(c)
 	if c.IsSet("decrypt") {
 		ctx = sub.WithFsckDecrypt(ctx, c.Bool("decrypt"))
 	}

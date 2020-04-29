@@ -49,8 +49,9 @@ func TestCreate(t *testing.T) {
 	// create
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
 	c := cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
-	assert.Error(t, Create(ctx, c, store))
+	assert.Error(t, Create(c, store))
 	buf.Reset()
 }
 

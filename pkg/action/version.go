@@ -9,6 +9,7 @@ import (
 
 	"github.com/blang/semver"
 	"github.com/gopasspw/gopass/pkg/backend"
+	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/out"
 	"github.com/gopasspw/gopass/pkg/protect"
 	"github.com/gopasspw/gopass/pkg/updater"
@@ -18,11 +19,12 @@ import (
 )
 
 // Version prints the gopass version
-func (s *Action) Version(ctx context.Context, c *cli.Context) error {
+func (s *Action) Version(c *cli.Context) error {
+	ctx := ctxutil.WithGlobalFlags(c)
 	version := make(chan string, 1)
 	go s.checkVersion(ctx, version)
 
-	_ = s.Initialized(ctx, c)
+	_ = s.Initialized(c)
 
 	cli.VersionPrinter(c)
 

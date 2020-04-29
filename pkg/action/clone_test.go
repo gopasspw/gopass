@@ -51,6 +51,7 @@ func TestClone(t *testing.T) {
 	app := cli.NewApp()
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
 	c := cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
@@ -61,7 +62,7 @@ func TestClone(t *testing.T) {
 	}()
 
 	// no args
-	assert.Error(t, act.Clone(ctx, c))
+	assert.Error(t, act.Clone(c))
 
 	// clone to initialized store
 	assert.Error(t, act.clone(ctx, "/tmp/non-existing-repo.git", "", filepath.Join(u.Dir, "store")))
@@ -77,22 +78,27 @@ func TestCloneBackendIsStoredForMount(t *testing.T) {
 
 	ctx := context.Background()
 
+	app := cli.NewApp()
+	fs := flag.NewFlagSet("default", flag.ContinueOnError)
+	c := cli.NewContext(app, fs, nil)
+	c.Context = ctx
+
 	cfg := config.Load()
 	cfg.Root.Path = backend.FromPath(u.StoreDir(""))
 
 	act, err := newAction(ctx, cfg, semver.Version{})
 	require.NoError(t, err)
 	require.NotNil(t, act)
-	require.NoError(t, act.Initialized(ctx, nil))
+	require.NoError(t, act.Initialized(c))
 
 	repo := aGitRepo(ctx, u, t, "my-project")
 
-	app := cli.NewApp()
-	fs := flag.NewFlagSet("default", flag.ContinueOnError)
+	fs = flag.NewFlagSet("default", flag.ContinueOnError)
 	assert.NoError(t, fs.Parse([]string{repo, "the-project"}))
-	c := cli.NewContext(app, fs, nil)
+	c = cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
-	assert.NoError(t, act.Clone(ctx, c))
+	assert.NoError(t, act.Clone(c))
 
 	require.NotNil(t, act.cfg.Mounts["the-project"])
 	require.Equal(t, act.cfg.Mounts["the-project"].Path.RCS, backend.GitCLI)

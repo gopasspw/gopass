@@ -2,9 +2,11 @@ package ctxutil
 
 import (
 	"context"
+	"flag"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/urfave/cli/v2"
 )
 
 func TestDebug(t *testing.T) {
@@ -247,4 +249,21 @@ func TestComposite(t *testing.T) {
 
 	assert.Equal(t, true, IsAutoClip(ctx))
 	assert.Equal(t, true, HasAutoClip(ctx))
+}
+
+func TestGlobalFlags(t *testing.T) {
+	ctx := context.Background()
+	app := cli.NewApp()
+
+	fs := flag.NewFlagSet("default", flag.ContinueOnError)
+	sf := cli.BoolFlag{
+		Name:  "yes",
+		Usage: "yes",
+	}
+	assert.NoError(t, sf.Apply(fs))
+	assert.NoError(t, fs.Parse([]string{"--yes"}))
+	c := cli.NewContext(app, fs, nil)
+	c.Context = ctx
+
+	assert.Equal(t, true, IsAlwaysYes(WithGlobalFlags(c)))
 }

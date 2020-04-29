@@ -32,6 +32,7 @@ func TestVersion(t *testing.T) {
 	app := cli.NewApp()
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
 	c := cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
@@ -45,5 +46,5 @@ func TestVersion(t *testing.T) {
 		out.Print(ctx, "gopass version 0.0.0-test")
 	}
 
-	assert.NoError(t, act.Version(ctx, c))
+	assert.NoError(t, act.Version(c))
 }

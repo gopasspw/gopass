@@ -14,8 +14,15 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
+// FindNoFuzzy runs find without fuzzy search
+func (s *Action) FindNoFuzzy(c *cli.Context) error {
+	c.Context = ctxutil.WithFuzzySearch(c.Context, false)
+	return s.Find(c)
+}
+
 // Find a string in the secret file's name
-func (s *Action) Find(ctx context.Context, c *cli.Context) error {
+func (s *Action) Find(c *cli.Context) error {
+	ctx := ctxutil.WithGlobalFlags(c)
 	if c.IsSet("clip") {
 		ctx = WithClip(ctx, c.Bool("clip"))
 	}
@@ -95,7 +102,7 @@ func (s *Action) findSelection(ctx context.Context, c *cli.Context, choices []st
 		return cb(WithClip(ctx, false), c, choices[sel], false)
 	case "sync":
 		// run sync and re-run show/find workflow
-		if err := s.Sync(ctx, c); err != nil {
+		if err := s.Sync(c); err != nil {
 			return err
 		}
 		return cb(ctx, c, needle, true)

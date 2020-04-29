@@ -23,7 +23,8 @@ const (
 )
 
 // OTP implements OTP token handling for TOTP and HOTP
-func (s *Action) OTP(ctx context.Context, c *cli.Context) error {
+func (s *Action) OTP(c *cli.Context) error {
+	ctx := ctxutil.WithGlobalFlags(c)
 	name := c.Args().First()
 	if name == "" {
 		return ExitError(ctx, ExitUsage, nil, "Usage: %s otp <NAME>", s.Name)

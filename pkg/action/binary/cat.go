@@ -2,13 +2,13 @@ package binary
 
 import (
 	"bytes"
-	"context"
 	"encoding/base64"
 	"io"
 	"os"
 	"strings"
 
 	"github.com/gopasspw/gopass/pkg/action"
+	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/out"
 	"github.com/gopasspw/gopass/pkg/store/secret"
 	"github.com/gopasspw/gopass/pkg/store/sub"
@@ -17,7 +17,8 @@ import (
 )
 
 // Cat prints to or reads from STDIN/STDOUT
-func Cat(ctx context.Context, c *cli.Context, store storer) error {
+func Cat(c *cli.Context, store storer) error {
+	ctx := ctxutil.WithGlobalFlags(c)
 	name := c.Args().First()
 	if name == "" {
 		return action.ExitError(ctx, action.ExitNoName, nil, "Usage: %s binary cat <NAME>", c.App.Name)

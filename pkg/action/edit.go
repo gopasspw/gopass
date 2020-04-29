@@ -17,7 +17,8 @@ import (
 )
 
 // Edit the content of a password file
-func (s *Action) Edit(ctx context.Context, c *cli.Context) error {
+func (s *Action) Edit(c *cli.Context) error {
+	ctx := ctxutil.WithGlobalFlags(c)
 	name := c.Args().First()
 	if name == "" {
 		return ExitError(ctx, ExitUsage, nil, "Usage: %s edit secret", s.Name)

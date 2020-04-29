@@ -1,8 +1,7 @@
 package action
 
 import (
-	"context"
-
+	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/out"
 	"github.com/gopasspw/gopass/pkg/updater"
 
@@ -10,7 +9,8 @@ import (
 )
 
 // Update will start the interactive update assistant
-func (s *Action) Update(ctx context.Context, c *cli.Context) error {
+func (s *Action) Update(c *cli.Context) error {
+	ctx := ctxutil.WithGlobalFlags(c)
 	pre := c.Bool("pre")
 
 	if s.version.String() == "0.0.0+HEAD" {

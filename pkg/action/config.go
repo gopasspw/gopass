@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"sort"
 
+	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/out"
 
 	"github.com/pkg/errors"
@@ -12,7 +13,8 @@ import (
 )
 
 // Config handles changes to the gopass configuration
-func (s *Action) Config(ctx context.Context, c *cli.Context) error {
+func (s *Action) Config(c *cli.Context) error {
+	ctx := ctxutil.WithGlobalFlags(c)
 	if c.Args().Len() < 1 {
 		s.printConfigValues(ctx, "")
 		return nil

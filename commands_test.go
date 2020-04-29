@@ -87,6 +87,7 @@ func TestGetCommands(t *testing.T) {
 	app := cli.NewApp()
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
 	c := cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
 	commands := getCommands(ctx, act, app)
 	assert.Equal(t, 32, len(commands))

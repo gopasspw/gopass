@@ -50,7 +50,8 @@ func TestFind(t *testing.T) {
 
 	// find
 	c := cli.NewContext(app, flag.NewFlagSet("default", flag.ContinueOnError), nil)
-	if err := act.Find(ctx, c); err == nil || err.Error() != fmt.Sprintf("Usage: %s find <NEEDLE>", actName) {
+	c.Context = ctx
+	if err := act.Find(c); err == nil || err.Error() != fmt.Sprintf("Usage: %s find <NEEDLE>", actName) {
 		t.Errorf("Should fail: %s", err)
 	}
 
@@ -58,14 +59,17 @@ func TestFind(t *testing.T) {
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
 	assert.NoError(t, fs.Parse([]string{"fo"}))
 	c = cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
-	assert.NoError(t, act.Find(ctx, c))
+	assert.NoError(t, act.Find(c))
 	assert.Equal(t, "Found exact match in 'foo'\nsecret", strings.TrimSpace(buf.String()))
 	buf.Reset()
 
 	// testing the safecontent case
 	ctx = ctxutil.WithShowSafeContent(ctx, true)
-	assert.NoError(t, act.Find(ctx, c))
+	c.Context = ctx
+	assert.NoError(t, act.Find(c))
+
 	out := strings.TrimSpace(buf.String())
 	assert.Contains(t, out, "Found exact match in 'foo'")
 	assert.Contains(t, out, "with -f")
@@ -80,8 +84,9 @@ func TestFind(t *testing.T) {
 	assert.NoError(t, bf.Apply(fs))
 	assert.NoError(t, fs.Parse([]string{"-clip", "fo"}))
 	c = cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
-	assert.NoError(t, act.Find(ctx, c))
+	assert.NoError(t, act.Find(c))
 	out = strings.TrimSpace(buf.String())
 	assert.Contains(t, out, "Found exact match in 'foo'")
 	buf.Reset()
@@ -95,8 +100,9 @@ func TestFind(t *testing.T) {
 	assert.NoError(t, bf.Apply(fs))
 	assert.NoError(t, fs.Parse([]string{"-force", "fo"}))
 	c = cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
-	assert.NoError(t, act.Find(ctx, c))
+	assert.NoError(t, act.Find(c))
 	out = strings.TrimSpace(buf.String())
 	assert.Contains(t, out, "Found exact match in 'foo'\nsecret")
 	buf.Reset()
@@ -108,8 +114,9 @@ func TestFind(t *testing.T) {
 	fs = flag.NewFlagSet("default", flag.ContinueOnError)
 	assert.NoError(t, fs.Parse([]string{"yo"}))
 	c = cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
-	assert.Error(t, act.Find(ctx, c))
+	assert.Error(t, act.Find(c))
 	buf.Reset()
 
 	// add some secrets
@@ -121,8 +128,9 @@ func TestFind(t *testing.T) {
 	fs = flag.NewFlagSet("default", flag.ContinueOnError)
 	assert.NoError(t, fs.Parse([]string{"bar"}))
 	c = cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
-	assert.NoError(t, act.Find(ctx, c))
+	assert.NoError(t, act.Find(c))
 	assert.Equal(t, "bar/baz\nbar/zab", strings.TrimSpace(buf.String()))
 	buf.Reset()
 }

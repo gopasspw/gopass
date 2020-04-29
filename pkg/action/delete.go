@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/store/sub"
 	"github.com/gopasspw/gopass/pkg/termio"
 
@@ -11,7 +12,8 @@ import (
 )
 
 // Delete a secret file with its content
-func (s *Action) Delete(ctx context.Context, c *cli.Context) error {
+func (s *Action) Delete(c *cli.Context) error {
+	ctx := ctxutil.WithGlobalFlags(c)
 	force := c.Bool("force")
 	recursive := c.Bool("recursive")
 

@@ -52,8 +52,9 @@ func TestGit(t *testing.T) {
 	assert.NoError(t, ue.Apply(fs))
 	assert.NoError(t, fs.Parse([]string{"--username", "foobar", "--useremail", "foo.bar@example.org"}))
 	c := cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
-	assert.NoError(t, act.GitInit(ctx, c))
+	assert.NoError(t, act.GitInit(c))
 	buf.Reset()
 
 	// getUserData
@@ -62,18 +63,18 @@ func TestGit(t *testing.T) {
 	assert.Equal(t, "", email)
 
 	// GitAddRemote
-	assert.Error(t, act.GitAddRemote(ctx, c))
+	assert.Error(t, act.GitAddRemote(c))
 	buf.Reset()
 
 	// GitRemoveRemote
-	assert.Error(t, act.GitRemoveRemote(ctx, c))
+	assert.Error(t, act.GitRemoveRemote(c))
 	buf.Reset()
 
 	// GitPull
-	assert.NoError(t, act.GitPull(ctx, c))
+	assert.NoError(t, act.GitPull(c))
 	buf.Reset()
 
 	// GitPush
-	assert.Error(t, act.GitPush(ctx, c))
+	assert.Error(t, act.GitPush(c))
 	buf.Reset()
 }

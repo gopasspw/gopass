@@ -4,13 +4,15 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/termio"
 
 	"github.com/urfave/cli/v2"
 )
 
 // Copy the contents of a file to another one
-func (s *Action) Copy(ctx context.Context, c *cli.Context) error {
+func (s *Action) Copy(c *cli.Context) error {
+	ctx := ctxutil.WithGlobalFlags(c)
 	force := c.Bool("force")
 
 	if c.Args().Len() != 2 {

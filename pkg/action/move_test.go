@@ -31,6 +31,7 @@ func TestMove(t *testing.T) {
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
 	assert.NoError(t, fs.Parse([]string{"foo", "bar"}))
 	c := cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
@@ -38,6 +39,6 @@ func TestMove(t *testing.T) {
 		out.Stdout = os.Stdout
 	}()
 
-	assert.NoError(t, act.Move(ctx, c))
+	assert.NoError(t, act.Move(c))
 	buf.Reset()
 }

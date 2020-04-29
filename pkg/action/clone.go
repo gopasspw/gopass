@@ -18,7 +18,8 @@ import (
 )
 
 // Clone will fetch and mount a new password store from a git repo
-func (s *Action) Clone(ctx context.Context, c *cli.Context) error {
+func (s *Action) Clone(c *cli.Context) error {
+	ctx := ctxutil.WithGlobalFlags(c)
 	if c.IsSet("crypto") {
 		ctx = backend.WithCryptoBackendString(ctx, c.String("crypto"))
 	}

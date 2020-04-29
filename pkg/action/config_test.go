@@ -29,6 +29,7 @@ func TestConfig(t *testing.T) {
 
 	app := cli.NewApp()
 	c := cli.NewContext(app, flag.NewFlagSet("default", flag.ContinueOnError), nil)
+	c.Context = ctx
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
@@ -39,7 +40,7 @@ func TestConfig(t *testing.T) {
 	}()
 
 	// action.Config
-	assert.NoError(t, act.Config(ctx, c))
+	assert.NoError(t, act.Config(c))
 	want := `root store config:
   askformore: false
   autoclip: true
@@ -123,7 +124,8 @@ mount 'foo' config:
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
 	assert.NoError(t, fs.Parse([]string{"autoimport"}))
 	c = cli.NewContext(app, fs, nil)
-	assert.NoError(t, act.Config(ctx, c))
+	c.Context = ctx
+	assert.NoError(t, act.Config(c))
 	assert.Equal(t, "autoimport: true", strings.TrimSpace(buf.String()))
 	buf.Reset()
 
@@ -131,7 +133,8 @@ mount 'foo' config:
 	fs = flag.NewFlagSet("default", flag.ContinueOnError)
 	assert.NoError(t, fs.Parse([]string{"autoimport", "false"}))
 	c = cli.NewContext(app, fs, nil)
-	assert.NoError(t, act.Config(ctx, c))
+	c.Context = ctx
+	assert.NoError(t, act.Config(c))
 	assert.Equal(t, "autoimport: false", strings.TrimSpace(buf.String()))
 	buf.Reset()
 
@@ -161,6 +164,7 @@ usesymbols
 	fs = flag.NewFlagSet("default", flag.ContinueOnError)
 	assert.NoError(t, fs.Parse([]string{"autoimport", "false", "42"}))
 	c = cli.NewContext(app, fs, nil)
-	assert.Error(t, act.Config(ctx, c))
+	c.Context = ctx
+	assert.Error(t, act.Config(c))
 	buf.Reset()
 }

@@ -1,16 +1,17 @@
 package action
 
 import (
-	"context"
 	"time"
 
+	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/out"
 
 	"github.com/urfave/cli/v2"
 )
 
 // History displays the history of a given secret
-func (s *Action) History(ctx context.Context, c *cli.Context) error {
+func (s *Action) History(c *cli.Context) error {
+	ctx := ctxutil.WithGlobalFlags(c)
 	name := c.Args().Get(0)
 	showPassword := c.Bool("password")
 

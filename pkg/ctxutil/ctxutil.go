@@ -1,6 +1,10 @@
 package ctxutil
 
-import "context"
+import (
+	"context"
+
+	"github.com/urfave/cli/v2"
+)
 
 type contextKey int
 
@@ -32,6 +36,15 @@ const (
 	ctxKeyGitInit
 	ctxKeyForce
 )
+
+// WithGlobalFlags parses any global flags from the cli context and returns
+// a regular context
+func WithGlobalFlags(c *cli.Context) context.Context {
+	if c.Bool("yes") {
+		return WithAlwaysYes(c.Context, true)
+	}
+	return c.Context
+}
 
 // ProgressCallback is a callback for updateing progress
 type ProgressCallback func()

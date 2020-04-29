@@ -47,14 +47,15 @@ func TestTemplates(t *testing.T) {
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
 	assert.NoError(t, fs.Parse([]string{"foo"}))
 	c := cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
-	assert.NoError(t, act.TemplatesPrint(ctx, c))
+	assert.NoError(t, act.TemplatesPrint(c))
 	assert.Equal(t, "gopass\n\n", buf.String())
 	buf.Reset()
 
 	// add template
 	assert.NoError(t, act.Store.SetTemplate(ctx, "foo", []byte("foobar")))
-	assert.NoError(t, act.TemplatesPrint(ctx, c))
+	assert.NoError(t, act.TemplatesPrint(c))
 	want := `Pushed changes to git remote
 gopass
 └── foo
@@ -64,20 +65,20 @@ gopass
 	buf.Reset()
 
 	// complete templates
-	act.TemplatesComplete(ctx, c)
+	act.TemplatesComplete(c)
 	assert.Equal(t, "foo\n", buf.String())
 	buf.Reset()
 
 	// print template
-	assert.NoError(t, act.TemplatePrint(ctx, c))
+	assert.NoError(t, act.TemplatePrint(c))
 	assert.Equal(t, "foobar\n", buf.String())
 	buf.Reset()
 
 	// edit template
-	assert.Error(t, act.TemplateEdit(ctx, c))
+	assert.Error(t, act.TemplateEdit(c))
 	buf.Reset()
 
 	// remove template
-	assert.NoError(t, act.TemplateRemove(ctx, c))
+	assert.NoError(t, act.TemplateRemove(c))
 	buf.Reset()
 }

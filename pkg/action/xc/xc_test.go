@@ -32,7 +32,8 @@ func TestListPrivateKeys(t *testing.T) {
 	app := cli.NewApp()
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
 	c := cli.NewContext(app, fs, nil)
-	assert.NoError(t, ListPrivateKeys(ctx, c))
+	c.Context = ctx
+	assert.NoError(t, ListPrivateKeys(c))
 }
 
 func TestListPublicKeys(t *testing.T) {
@@ -48,7 +49,8 @@ func TestListPublicKeys(t *testing.T) {
 	app := cli.NewApp()
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
 	c := cli.NewContext(app, fs, nil)
-	assert.NoError(t, ListPublicKeys(ctx, c))
+	c.Context = ctx
+	assert.NoError(t, ListPublicKeys(c))
 }
 
 func TestGenerateKeypair(t *testing.T) {
@@ -80,19 +82,23 @@ func TestGenerateKeypair(t *testing.T) {
 	assert.NoError(t, pf.Apply(fs))
 
 	c := cli.NewContext(app, fs, nil)
-	assert.Error(t, GenerateKeypair(ctx, c))
+	c.Context = ctx
+	assert.Error(t, GenerateKeypair(c))
 
 	assert.NoError(t, fs.Parse([]string{"--name=foo"}))
 	c = cli.NewContext(app, fs, nil)
-	assert.Error(t, GenerateKeypair(ctx, c))
+	c.Context = ctx
+	assert.Error(t, GenerateKeypair(c))
 
 	assert.NoError(t, fs.Parse([]string{"--name=foo", "--email=bar"}))
 	c = cli.NewContext(app, fs, nil)
-	assert.Error(t, GenerateKeypair(ctx, c))
+	c.Context = ctx
+	assert.Error(t, GenerateKeypair(c))
 
 	assert.NoError(t, fs.Parse([]string{"--name=foo", "--email=bar", "--passphrase=foobar"}))
 	c = cli.NewContext(app, fs, nil)
-	assert.NoError(t, GenerateKeypair(ctx, c))
+	c.Context = ctx
+	assert.NoError(t, GenerateKeypair(c))
 }
 
 func TestExportPublicKey(t *testing.T) {
@@ -113,6 +119,7 @@ func TestExportPublicKey(t *testing.T) {
 	assert.NoError(t, ff.Apply(fs))
 	assert.NoError(t, fs.Parse([]string{"--id=foo", "--file=/tmp/foo.pub"}))
 	c := cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
@@ -120,7 +127,7 @@ func TestExportPublicKey(t *testing.T) {
 		out.Stdout = os.Stdout
 	}()
 
-	assert.Error(t, ExportPublicKey(ctx, c))
+	assert.Error(t, ExportPublicKey(c))
 }
 
 func TestImportPublicKey(t *testing.T) {
@@ -136,6 +143,7 @@ func TestImportPublicKey(t *testing.T) {
 	assert.NoError(t, ff.Apply(fs))
 	assert.NoError(t, fs.Parse([]string{"--file=/tmp/foo.pub"}))
 	c := cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
@@ -143,7 +151,7 @@ func TestImportPublicKey(t *testing.T) {
 		out.Stdout = os.Stdout
 	}()
 
-	assert.Error(t, ImportPublicKey(ctx, c))
+	assert.Error(t, ImportPublicKey(c))
 }
 
 func TestExportPrivateKey(t *testing.T) {
@@ -164,6 +172,7 @@ func TestExportPrivateKey(t *testing.T) {
 	assert.NoError(t, ff.Apply(fs))
 	assert.NoError(t, fs.Parse([]string{"--id=foo", "--file=/tmp/foo.pub"}))
 	c := cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
@@ -171,7 +180,7 @@ func TestExportPrivateKey(t *testing.T) {
 		out.Stdout = os.Stdout
 	}()
 
-	assert.Error(t, ExportPrivateKey(ctx, c))
+	assert.Error(t, ExportPrivateKey(c))
 }
 
 func TestImportPrivateKey(t *testing.T) {
@@ -187,6 +196,7 @@ func TestImportPrivateKey(t *testing.T) {
 	assert.NoError(t, ff.Apply(fs))
 	assert.NoError(t, fs.Parse([]string{"--file=/tmp/foo.pub"}))
 	c := cli.NewContext(app, fs, nil)
+	c.Context = ctx
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
@@ -194,7 +204,7 @@ func TestImportPrivateKey(t *testing.T) {
 		out.Stdout = os.Stdout
 	}()
 
-	assert.Error(t, ImportPrivateKey(ctx, c))
+	assert.Error(t, ImportPrivateKey(c))
 }
 
 func TestEncryptDecryptFile(t *testing.T) {
@@ -231,13 +241,16 @@ func TestEncryptDecryptFile(t *testing.T) {
 	assert.NoError(t, ff.Apply(fs))
 	assert.NoError(t, fs.Parse([]string{"--file=" + plain}))
 	c := cli.NewContext(app, fs, nil)
-	assert.NoError(t, EncryptFile(ctx, c))
+	c.Context = ctx
 
+	assert.NoError(t, EncryptFile(c))
 	assert.NoError(t, os.Remove(plain))
 
 	assert.NoError(t, fs.Parse([]string{"--file=" + plain + ".xc"}))
+
 	c = cli.NewContext(app, fs, nil)
-	assert.NoError(t, DecryptFile(ctx, c))
+	c.Context = ctx
+	assert.NoError(t, DecryptFile(c))
 
 	content, err := ioutil.ReadFile(plain)
 	assert.NoError(t, err)
@@ -277,14 +290,18 @@ func TestEncryptDecryptStream(t *testing.T) {
 	}
 	assert.NoError(t, ff.Apply(fs))
 	assert.NoError(t, fs.Parse([]string{"--file=" + plain}))
-	c := cli.NewContext(app, fs, nil)
-	assert.NoError(t, EncryptFileStream(ctx, c))
 
+	c := cli.NewContext(app, fs, nil)
+	c.Context = ctx
+
+	assert.NoError(t, EncryptFileStream(c))
 	assert.NoError(t, os.Remove(plain))
 
 	assert.NoError(t, fs.Parse([]string{"--file=" + plain + ".xc"}))
 	c = cli.NewContext(app, fs, nil)
-	assert.NoError(t, DecryptFileStream(ctx, c))
+	c.Context = ctx
+
+	assert.NoError(t, DecryptFileStream(c))
 
 	content, err := ioutil.ReadFile(plain)
 	assert.NoError(t, err)

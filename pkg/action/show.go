@@ -23,7 +23,8 @@ const (
 )
 
 // Show the content of a secret file
-func (s *Action) Show(ctx context.Context, c *cli.Context) error {
+func (s *Action) Show(c *cli.Context) error {
+	ctx := ctxutil.WithGlobalFlags(c)
 	name := c.Args().First()
 
 	ctx = s.Store.WithConfig(ctx, name)
@@ -56,7 +57,7 @@ func (s *Action) show(ctx context.Context, c *cli.Context, name string, recurse 
 	}
 
 	if s.Store.IsDir(ctx, name) && !s.Store.Exists(ctx, name) {
-		return s.List(ctx, c)
+		return s.List(c)
 	}
 	if s.Store.IsDir(ctx, name) && ctxutil.IsTerminal(ctx) {
 		out.Cyan(ctx, "Warning: %s is a secret and a folder. Use 'gopass show %s' to display the secret and 'gopass list %s' to show the content of the folder", name, name, name)
@@ -162,7 +163,7 @@ func (s *Action) showHandleError(ctx context.Context, c *cli.Context, name strin
 		_ = notify.Notify(ctx, "gopass - warning", fmt.Sprintf("Entry '%s' not found. Starting search...", name))
 	}
 	out.Yellow(ctx, "Entry '%s' not found. Starting search...", name)
-	if err := s.Find(ctx, c); err != nil {
+	if err := s.Find(c); err != nil {
 		if IsClip(ctx) {
 			_ = notify.Notify(ctx, "gopass - error", fmt.Sprintf("%s", err))
 		}

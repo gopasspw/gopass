@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/editor"
 	"github.com/gopasspw/gopass/pkg/out"
 	"github.com/gopasspw/gopass/pkg/tpl"
@@ -35,7 +36,8 @@ const (
 )
 
 // TemplatesPrint will pretty-print a tree of templates
-func (s *Action) TemplatesPrint(ctx context.Context, c *cli.Context) error {
+func (s *Action) TemplatesPrint(c *cli.Context) error {
+	ctx := ctxutil.WithGlobalFlags(c)
 	tree, err := s.Store.TemplateTree(ctx)
 	if err != nil {
 		return ExitError(ctx, ExitList, err, "failed to list templates: %s", err)
@@ -45,7 +47,8 @@ func (s *Action) TemplatesPrint(ctx context.Context, c *cli.Context) error {
 }
 
 // TemplatePrint will lookup and print a single template
-func (s *Action) TemplatePrint(ctx context.Context, c *cli.Context) error {
+func (s *Action) TemplatePrint(c *cli.Context) error {
+	ctx := ctxutil.WithGlobalFlags(c)
 	name := c.Args().First()
 
 	content, err := s.Store.GetTemplate(ctx, name)
@@ -59,7 +62,8 @@ func (s *Action) TemplatePrint(ctx context.Context, c *cli.Context) error {
 
 // TemplateEdit will load and existing or new template into an
 // editor
-func (s *Action) TemplateEdit(ctx context.Context, c *cli.Context) error {
+func (s *Action) TemplateEdit(c *cli.Context) error {
+	ctx := ctxutil.WithGlobalFlags(c)
 	name := c.Args().First()
 
 	var content []byte
@@ -88,7 +92,8 @@ func (s *Action) TemplateEdit(ctx context.Context, c *cli.Context) error {
 }
 
 // TemplateRemove will remove a single template
-func (s *Action) TemplateRemove(ctx context.Context, c *cli.Context) error {
+func (s *Action) TemplateRemove(c *cli.Context) error {
+	ctx := ctxutil.WithGlobalFlags(c)
 	name := c.Args().First()
 	if name == "" {
 		return ExitError(ctx, ExitUsage, nil, "usage: %s templates remove [name]", s.Name)
@@ -102,7 +107,8 @@ func (s *Action) TemplateRemove(ctx context.Context, c *cli.Context) error {
 }
 
 // TemplatesComplete prints a list of all templates for bash completion
-func (s *Action) TemplatesComplete(ctx context.Context, c *cli.Context) {
+func (s *Action) TemplatesComplete(c *cli.Context) {
+	ctx := ctxutil.WithGlobalFlags(c)
 	tree, err := s.Store.TemplateTree(ctx)
 	if err != nil {
 		fmt.Fprintln(stdout, err)

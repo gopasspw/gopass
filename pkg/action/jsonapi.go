@@ -6,6 +6,7 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/jsonapi"
 	"github.com/gopasspw/gopass/pkg/jsonapi/manifest"
 	"github.com/gopasspw/gopass/pkg/termio"
@@ -16,7 +17,8 @@ import (
 )
 
 // JSONAPI reads a json message on stdin and responds on stdout
-func (s *Action) JSONAPI(ctx context.Context, c *cli.Context) error {
+func (s *Action) JSONAPI(c *cli.Context) error {
+	ctx := ctxutil.WithGlobalFlags(c)
 	api := jsonapi.API{Store: s.Store, Reader: stdin, Writer: stdout, Version: s.version}
 	if err := api.ReadAndRespond(ctx); err != nil {
 		return api.RespondError(err)

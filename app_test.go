@@ -10,6 +10,6 @@ import (
 
 func TestSetupApp(t *testing.T) {
 	ctx := context.Background()
-	app := setupApp(ctx, semver.Version{})
+	_, app := setupApp(ctx, semver.Version{})
 	assert.NotNil(t, app)
 }
