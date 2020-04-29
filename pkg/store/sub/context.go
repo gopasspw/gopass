@@ -18,6 +18,7 @@ const (
 	ctxKeyFsckFunc
 	ctxKeyCheckRecipients
 	ctxKeyFsckDecrypt
+	ctxKeyNoGitOps
 )
 
 // WithFsckCheck returns a context with the flag for fscks check set
@@ -205,6 +206,18 @@ func WithFsckDecrypt(ctx context.Context, d bool) context.Context {
 // to false.
 func IsFsckDecrypt(ctx context.Context) bool {
 	return is(ctx, ctxKeyFsckDecrypt, false)
+}
+
+// WithNoGitOps returns a context with the value for NoGitOps set.
+// This will skip any git operations in concurrent goroutines.
+func WithNoGitOps(ctx context.Context, d bool) context.Context {
+	return context.WithValue(ctx, ctxKeyNoGitOps, d)
+}
+
+// IsNoGitOps returns the value for NoGitOps from the context
+// or the default (false).
+func IsNoGitOps(ctx context.Context) bool {
+	return is(ctx, ctxKeyNoGitOps, false)
 }
 
 // hasBool is a helper function for checking if a bool has been set in

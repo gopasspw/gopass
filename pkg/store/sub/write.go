@@ -57,7 +57,7 @@ func (s *Store) Set(ctx context.Context, name string, sec store.Secret) error {
 	// It is not possible to perform concurrent git add and git commit commands
 	// so we need to skip this step when using concurrency and perform them
 	// at the end of the batch processing.
-	if ctxutil.HasConcurrency(ctx) {
+	if IsNoGitOps(ctx) {
 		out.Debug(ctx, "sub.Set(%s) - skipping git ops due to concurrency", p)
 		return nil
 	}
