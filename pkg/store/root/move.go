@@ -41,7 +41,7 @@ func (r *Store) move(ctx context.Context, from, to string, delete bool) error {
 	if err := r.moveFromTo(ctxFrom, ctxTo, subFrom, subTo, from, to, fromPrefix, srcIsDir, delete); err != nil {
 		return err
 	}
-	if err := subFrom.RCS().Commit(ctxFrom, fmt.Sprintf("Move from %s to %s", from, to)); err != nil {
+	if err := subFrom.RCS().Commit(ctxFrom, fmt.Sprintf("Move from %s to %s", from, to)); delete && err != nil {
 		switch errors.Cause(err) {
 		case store.ErrGitNotInit:
 			out.Debug(ctx, "reencrypt - skipping git commit - git not initialized")
@@ -126,7 +126,7 @@ func (r *Store) moveFromTo(ctxFrom, ctxTo context.Context, subFrom, subTo store.
 				dst = path.Join(to, path.Base(from), strings.TrimPrefix(src, from))
 			}
 		}
-		out.Debug(ctxFrom, "Moving %s (%s) => %s (%s) (sid:%t)\n", from, src, to, dst, srcIsDir)
+		out.Debug(ctxFrom, "Moving %s (%s) => %s (%s) (sid:%t, delete:%t)\n", from, src, to, dst, srcIsDir, delete)
 
 		content, err := r.Get(ctxFrom, src)
 		if err != nil {
@@ -138,6 +138,7 @@ func (r *Store) moveFromTo(ctxFrom, ctxTo context.Context, subFrom, subTo store.
 		}
 
 		if delete {
+			out.Debug(ctxFrom, "Deleting %s from source %s", from, src)
 			if err := r.Delete(ctxFrom, src); err != nil {
 				return errors.Wrapf(err, "failed to delete secret '%s'", src)
 			}
