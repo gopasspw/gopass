@@ -244,6 +244,8 @@ func (s *Store) reencrypt(ctx context.Context) error {
 		switch errors.Cause(err) {
 		case store.ErrGitNotInit:
 			out.Debug(ctx, "reencrypt - skipping git commit - git not initialized")
+		case store.ErrGitNothingToCommit:
+			out.Debug(ctx, "reencrypt - skipping git commit - nothing to commit")
 		default:
 			return errors.Wrapf(err, "failed to commit changes to git")
 		}

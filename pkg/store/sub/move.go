@@ -86,10 +86,14 @@ func (s *Store) delete(ctx context.Context, name string, recurse bool) error {
 	}
 
 	if err := s.rcs.Commit(ctx, fmt.Sprintf("Remove %s from store.", name)); err != nil {
-		if errors.Cause(err) == store.ErrGitNotInit {
-			return nil
+		switch errors.Cause(err) {
+		case store.ErrGitNotInit:
+			out.Debug(ctx, "move - skipping git commit - git not initialized")
+		case store.ErrGitNothingToCommit:
+			out.Debug(ctx, "move - skipping git commit - nothing to commit")
+		default:
+			return errors.Wrapf(err, "failed to commit changes to git")
 		}
-		return errors.Wrapf(err, "failed to commit changes to git")
 	}
 
 	// abort if auto sync is not set
