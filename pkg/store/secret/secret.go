@@ -40,10 +40,10 @@ func Parse(buf []byte) (*Secret, error) {
 	s := &Secret{}
 	lines := bytes.SplitN(buf, []byte("\n"), 2)
 	if len(lines) > 0 {
-		s.password = string(bytes.TrimSpace(lines[0]))
+		s.password = string(lines[0])
 	}
 	if len(lines) > 1 {
-		s.body = string(bytes.TrimSpace(lines[1]))
+		s.body = string(lines[1])
 	}
 	if err := s.decode(); err != nil {
 		return s, err
