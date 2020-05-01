@@ -91,7 +91,7 @@ func (s *Action) editGetContent(ctx context.Context, name string, create bool) (
 	}
 
 	if !create {
-		return name, nil, false, ExitError(ctx, ExitNotFound, nil, "entry not %s not found. Use --create to create a new entry with edit", name)
+		out.Yellow(ctx, "Entry %s not found. Creating new secret ...", name)
 	}
 
 	// load template if it exists
