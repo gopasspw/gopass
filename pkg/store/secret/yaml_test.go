@@ -115,7 +115,7 @@ func TestBareYAMLReadKey(t *testing.T) {
 	// read back whole entry
 	content, err := s.Bytes()
 	require.NoError(t, err)
-	assert.Equal(t, in, string(content)+"\n")
+	assert.Equal(t, in, string(content))
 }
 
 func TestYAMLSetMultipleKeys(t *testing.T) {

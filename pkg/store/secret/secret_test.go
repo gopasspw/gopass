@@ -191,6 +191,23 @@ key2: value2`),
 			Body: `key1: value1
 key2: value2`,
 		},
+		{
+			Desc: "empty line at the beginning of the body",
+			In: []byte(`this
+
+is
+
+a
+
+test`),
+			Password: "this",
+			Body: `
+is
+
+a
+
+test`,
+		},
 	} {
 		sec, err := Parse(tc.In)
 		if tc.Fail {
