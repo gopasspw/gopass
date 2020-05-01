@@ -1,3 +1,17 @@
+## 1.9.0 / 2020-05-01
+
+* [ENHANCEMENT] Add pwgen subcommand [#1308]
+* [ENHANCEMENT] Only decrypt when needed [#1289]
+* [ENHANCEMENT] Full unattended password generation [#1259]
+* [BUGFIX] Do not fail if nothing to commit [#1168, #1103]
+* [BUGFIX] Restore PASSWORD_STORE_DIR support [#1213]
+* [BUGFIX] Do not remove empty second line [#1235]
+* [BUGFIX] Do not disable color if no PAGER is available [#1244]
+* [BUGFIX] Do not overwrite entry when reading from STDIN [#1245]
+* [BUGFIX] Commit when using concurrency gt 1 [#1246]
+* [BUGFIX] Do not error out when listing a leaf node [#1300]
+* [BUGFIX] Do not overwrite config if PASSWORD_STORE_DIR is set [#1286]
+
 ## 1.8.6 / 2019-07-26
 
 * [ENHANCEMENT] Add --password to otp command [#1150]
