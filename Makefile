@@ -66,6 +66,7 @@ clean:
 	@rm -f gopass-*-*
 	@rm -f tests/tests
 	@rm -rf dist/*
+	@rm -f *.completion
 	@printf '%s\n' '$(OK)'
 
 $(GOPASS_OUTPUT): $(GOFILES_BUILD)
@@ -246,10 +247,6 @@ fuzz-jsonapi:
 	mkdir -p workdir/jsonapi/corpus
 	go-fuzz-build github.com/gopasspw/gopass/utils/jsonapi
 	go-fuzz -bin=jsonapi-fuzz.zip -workdir=workdir/jsonapi
-
-docker-test:
-	docker build -t gopass:$(GOPASS_REVISION) .
-	docker run --rm gopass:$(GOPASS_REVISION) make test
 
 check-release-env:
 ifndef GITHUB_TOKEN

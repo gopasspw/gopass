@@ -53,7 +53,6 @@ This is a list of available options:
 | `cliptimeout`    | `int`    | How many seconds the secret is stored when using `-c`. |
 | `noconfirm`      | `bool`   | Do not confirm recipient list when encrypting. |
 | `path`           | `string` | Path to the root store. |
-| `check_recipient_hash` | `string` | If enabled - it will fail on and report recipient hash errors. |
 | `editrecipients` | `bool`   | Modify recipients when creating and editing passwords. |
 | `recipient_hash` | `map`    | Map of recipient ids to their hashes. |
 | `safecontent`    | `bool`   | Only output _safe content_ (i.e. everything but the first line of a secret) to the terminal. Use _copy_ (`-c`) to retrieve the password in the clipboard. |
