@@ -7,6 +7,7 @@ import (
 	ap "github.com/gopasspw/gopass/pkg/action"
 	"github.com/gopasspw/gopass/pkg/action/binary"
 	"github.com/gopasspw/gopass/pkg/action/create"
+	"github.com/gopasspw/gopass/pkg/action/pwgen"
 	"github.com/gopasspw/gopass/pkg/action/xc"
 	"github.com/urfave/cli/v2"
 )
@@ -128,6 +129,7 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []*cli.Co
 	cmds = append(cmds, xc.GetCommands()...)
 	cmds = append(cmds, create.GetCommands(action, action.Store)...)
 	cmds = append(cmds, binary.GetCommands(action, action.Store)...)
+	cmds = append(cmds, pwgen.GetCommands()...)
 	sort.Slice(cmds, func(i, j int) bool { return cmds[i].Name < cmds[j].Name })
 	return cmds
 }
