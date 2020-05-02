@@ -1,8 +1,12 @@
 ## 1.9.0 / 2020-05-01
 
+* [ENHANCEMENT] Proper windows support [#1295]
 * [ENHANCEMENT] Add pwgen subcommand [#1308]
 * [ENHANCEMENT] Only decrypt when needed [#1289]
 * [ENHANCEMENT] Full unattended password generation [#1259]
+* [ENHANCEMENT] Add -C flag [#1272]
+* [ENHANCEMENT] Migrate to urface/cli/v2 [#1276]
+* [ENHANCEMENT] Support Termux [#913]
 * [BUGFIX] Do not fail if nothing to commit [#1168, #1103]
 * [BUGFIX] Restore PASSWORD_STORE_DIR support [#1213]
 * [BUGFIX] Do not remove empty second line [#1235]
@@ -11,6 +15,11 @@
 * [BUGFIX] Commit when using concurrency gt 1 [#1246]
 * [BUGFIX] Do not error out when listing a leaf node [#1300]
 * [BUGFIX] Do not overwrite config if PASSWORD_STORE_DIR is set [#1286]
+* [BUGFIX] Fix go get support [#1288]
+* [DEPRECATION] Remove Dockerfile [#1309]
+* [DEPRECATION] Remove Bintray [#1304]
+* [DEPRECATION] Deprecate OTP, Binary, YAML git-credentials and xc support [#1301]
+* [DEPRECATION] Remove support for OpenPGP (library), GoGit, Vault, Consul and encrypted configs [#1290, #1283, #1282, #1279]
 
 ## 1.8.6 / 2019-07-26
 
