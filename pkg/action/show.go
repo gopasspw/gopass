@@ -22,18 +22,33 @@ const (
 	BinarySuffix = ".b64"
 )
 
+func showParseArgs(c *cli.Context) context.Context {
+	ctx := ctxutil.WithGlobalFlags(c)
+	if c.IsSet("clip") {
+		ctx = WithOnlyClip(ctx, c.Bool("clip"))
+	}
+	if c.IsSet("force") {
+		ctx = WithForce(ctx, c.Bool("force"))
+	}
+	if c.IsSet("qr") {
+		ctx = WithPrintQR(ctx, c.Bool("qr"))
+	}
+	if c.IsSet("password") {
+		ctx = WithPasswordOnly(ctx, c.Bool("password"))
+	}
+	if c.IsSet("revision") {
+		ctx = WithRevision(ctx, c.String("revision"))
+	}
+	ctx = WithClip(ctx, IsOnlyClip(ctx) || c.Bool("alsoclip"))
+	return ctx
+}
+
 // Show the content of a secret file
 func (s *Action) Show(c *cli.Context) error {
-	ctx := ctxutil.WithGlobalFlags(c)
 	name := c.Args().First()
 
-	ctx = s.Store.WithConfig(ctx, name)
-	ctx = WithOnlyClip(ctx, c.Bool("clip"))
-	ctx = WithClip(ctx, c.Bool("alsoclip"))
-	ctx = WithForce(ctx, c.Bool("force"))
-	ctx = WithPrintQR(ctx, c.Bool("qr"))
-	ctx = WithPasswordOnly(ctx, c.Bool("password"))
-	ctx = WithRevision(ctx, c.String("revision"))
+	ctx := showParseArgs(c)
+
 	if key := c.Args().Get(1); key != "" {
 		ctx = WithKey(ctx, key)
 	}
@@ -82,7 +97,7 @@ func (s *Action) show(ctx context.Context, c *cli.Context, name string, recurse 
 
 // showHandleRevision displays a single revision
 func (s *Action) showHandleRevision(ctx context.Context, c *cli.Context, name, revision string) error {
-	sec, err := s.Store.GetRevision(ctx, name, revision)
+	ctx, sec, err := s.Store.GetRevision(ctx, name, revision)
 	if err != nil {
 		return s.showHandleError(ctx, c, name, false, err)
 	}
@@ -92,63 +107,72 @@ func (s *Action) showHandleRevision(ctx context.Context, c *cli.Context, name, r
 
 // showHandleOutput displays a secret
 func (s *Action) showHandleOutput(ctx context.Context, name string, sec store.Secret) error {
-	var content string
-	var key string
-	if HasKey(ctx) {
-		key = GetKey(ctx)
+	pw, body, err := s.showGetContent(ctx, name, sec)
+	if err != nil {
+		return err
 	}
 
-	switch {
-	case key != "":
-		val, err := sec.Value(key)
-		if err != nil {
-			return s.showHandleYAMLError(ctx, name, key, err)
-		}
-		if IsClip(ctx) {
-			if err := clipboard.CopyTo(ctx, name, []byte(val)); err != nil {
-				return err
-			}
-			if IsOnlyClip(ctx) {
-				return nil
-			}
-		}
-		content = val
-	case IsPrintQR(ctx):
-		return s.showPrintQR(ctx, name, sec.Password())
-	case IsClip(ctx):
-		if err := clipboard.CopyTo(ctx, name, []byte(sec.Password())); err != nil {
+	// we need to set AutoClip here because it's a per store config option
+	if ctxutil.IsAutoClip(ctx) {
+		ctx = WithClip(ctx, true)
+	}
+
+	if pw == "" && body == "" {
+		return ExitError(ctx, ExitNotFound, store.ErrNoBody, store.ErrNoBody.Error())
+	}
+
+	if IsPrintQR(ctx) && pw != "" {
+		return s.showPrintQR(ctx, name, pw)
+	}
+
+	if IsClip(ctx) && pw != "" {
+		if err := clipboard.CopyTo(ctx, name, []byte(pw)); err != nil {
 			return err
 		}
-		if IsOnlyClip(ctx) {
-			return nil
-		}
-		fallthrough
-	default:
-		switch {
-		case IsPasswordOnly(ctx):
-			content = sec.Password()
-		case ctxutil.IsShowSafeContent(ctx) && !IsForce(ctx):
-			content = sec.Body()
-			if content == "" {
-				if ctxutil.IsAutoClip(ctx) {
-					out.Yellow(ctx, "Info: %s.", store.ErrNoBody.Error())
-					out.Yellow(ctx, "Copying password instead.")
-					return clipboard.CopyTo(ctx, name, []byte(sec.Password()))
-				}
-				return ExitError(ctx, ExitNotFound, store.ErrNoBody, store.ErrNoBody.Error())
-			}
-		default:
-			buf, err := sec.Bytes()
-			if err != nil {
-				return ExitError(ctx, ExitUnknown, err, "failed to encode secret: %s", err)
-			}
-			content = string(buf)
-		}
 	}
 
-	ctx = out.WithNewline(ctx, ctxutil.IsTerminal(ctx) && !strings.HasSuffix(content, "\n"))
-	out.Yellow(ctx, content)
+	if body == "" {
+		return nil
+	}
+
+	ctx = out.WithNewline(ctx, ctxutil.IsTerminal(ctx) && !strings.HasSuffix(body, "\n"))
+	out.Yellow(ctx, body)
 	return nil
+}
+
+func (s *Action) showGetContent(ctx context.Context, name string, sec store.Secret) (string, string, error) {
+	// YAML key
+	if HasKey(ctx) {
+		key := GetKey(ctx)
+		val, err := sec.Value(key)
+		if err != nil {
+			return "", "", s.showHandleYAMLError(ctx, name, key, err)
+		}
+		return val, val, nil
+	}
+
+	// first line of the secret only
+	if IsPrintQR(ctx) || IsOnlyClip(ctx) {
+		return sec.Password(), "", nil
+	}
+	if IsPasswordOnly(ctx) {
+		return sec.Password(), sec.Password(), nil
+	}
+	if ctxutil.IsAutoClip(ctx) && !IsForce(ctx) {
+		return sec.Password(), "", nil
+	}
+
+	// everything but the first line
+	if ctxutil.IsShowSafeContent(ctx) && !IsForce(ctx) {
+		return "", sec.Body(), nil
+	}
+
+	// everything (default)
+	buf, err := sec.Bytes()
+	if err != nil {
+		return "", "", ExitError(ctx, ExitUnknown, err, "failed to encode secret: %s", err)
+	}
+	return sec.Password(), string(buf), nil
 }
 
 // showHandleError handles errors retrieving secrets

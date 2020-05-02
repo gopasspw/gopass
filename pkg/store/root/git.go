@@ -67,9 +67,10 @@ func (r *Store) ListRevisions(ctx context.Context, name string) ([]backend.Revis
 }
 
 // GetRevision will try to retrieve the given revision from the sync backend
-func (r *Store) GetRevision(ctx context.Context, name, revision string) (store.Secret, error) {
+func (r *Store) GetRevision(ctx context.Context, name, revision string) (context.Context, store.Secret, error) {
 	ctx, store, name := r.getStore(ctx, name)
-	return store.GetRevision(ctx, name, revision)
+	sec, err := store.GetRevision(ctx, name, revision)
+	return ctx, sec, err
 }
 
 // GitStatus show the git status

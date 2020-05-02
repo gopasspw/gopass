@@ -40,7 +40,7 @@ func New() *Config {
 		Path: configLocation(),
 		Root: &StoreConfig{
 			AskForMore:    false,
-			AutoClip:      true,
+			AutoClip:      false,
 			AutoImport:    true,
 			AutoSync:      true,
 			ClipTimeout:   45,

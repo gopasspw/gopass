@@ -35,6 +35,7 @@ var (
 // Generate and save a password
 func (s *Action) Generate(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
+	ctx = WithClip(ctx, c.Bool("clip"))
 	force := c.Bool("force")
 	edit := c.Bool("edit")
 
@@ -116,13 +117,13 @@ func (s *Action) generateCopyOrPrint(ctx context.Context, c *cli.Context, name, 
 		)
 	}
 
-	if ctxutil.IsAutoClip(ctx) || c.Bool("clip") {
+	if ctxutil.IsAutoClip(ctx) || IsClip(ctx) {
 		if err := clipboard.CopyTo(ctx, name, []byte(password)); err != nil {
 			return ExitError(ctx, ExitIO, err, "failed to copy to clipboard: %s", err)
 		}
 	}
 
-	if c.Bool("print") || c.Bool("clip") {
+	if c.Bool("print") || IsClip(ctx) {
 		return nil
 	}
 
@@ -166,17 +167,7 @@ func (s *Action) generatePassword(ctx context.Context, c *cli.Context, length st
 		return "", ExitError(ctx, ExitUsage, nil, "password length must not be zero")
 	}
 
-	var corp bool
-	if c.IsSet("strict") || c.Bool("force") {
-		corp = c.Bool("strict")
-	} else {
-		var err error
-		corp, err = termio.AskForBool(ctx, "Do you have strict rules to include different character classes?", false)
-		if err != nil {
-			return "", err
-		}
-	}
-	if corp {
+	if c.Bool("strict") {
 		return pwgen.GeneratePasswordWithAllClasses(pwlen)
 	}
 
