@@ -20,10 +20,6 @@ func (s *Store) Set(ctx context.Context, name string, sec store.Secret) error {
 
 	p := s.passfile(name)
 
-	if s.IsDir(ctx, name) && !ctxutil.IsForce(ctx) {
-		return errors.Errorf("a folder named %s already exists", name)
-	}
-
 	recipients, err := s.useableKeys(ctx, name)
 	if err != nil {
 		return errors.Wrapf(err, "failed to list useable keys for '%s'", p)
@@ -58,7 +54,7 @@ func (s *Store) Set(ctx context.Context, name string, sec store.Secret) error {
 	// so we need to skip this step when using concurrency and perform them
 	// at the end of the batch processing.
 	if IsNoGitOps(ctx) {
-		out.Debug(ctx, "sub.Set(%s) - skipping git ops due to concurrency", p)
+		out.Debug(ctx, "sub.Set(%s) - skipping git ops (disabled)")
 		return nil
 	}
 
