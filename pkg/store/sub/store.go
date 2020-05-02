@@ -173,11 +173,12 @@ func (s *Store) reencrypt(ctx context.Context) error {
 		jobs := make(chan string)
 		// We use a logger to write without race condition on stdout
 		logger := log.New(os.Stdout, "", 0)
-		fmt.Println("Starting rencrypt")
+		fmt.Println("Starting reencrypt")
 		// We spawn as many workers as we have set in the concurrency setting
 		// GetConcurrency will return 1 if the concurrency setting is not set
 		// or if it set to a value below 1.
-		for i := 0; i < ctxutil.GetConcurrency(ctx); i++ {
+		conc := ctxutil.GetConcurrency(ctx)
+		for i := 0; i < conc; i++ {
 			wg.Add(1) // we start a new job
 			go func(workerId int) {
 				// the workers are fed through an unbuffered channel
@@ -187,7 +188,7 @@ func (s *Store) reencrypt(ctx context.Context) error {
 						logger.Printf("Worker %d: Failed to get current value for %s: %s\n", workerId, e, err)
 						continue
 					}
-					if err := s.Set(WithNoGitOps(ctx, true), e, content); err != nil {
+					if err := s.Set(WithNoGitOps(ctx, conc > 1), e, content); err != nil {
 						logger.Printf("Worker %d: Failed to write %s: %s\n", workerId, e, err)
 						continue
 					}

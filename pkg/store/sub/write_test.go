@@ -32,7 +32,7 @@ func TestSet(t *testing.T) {
 	} else {
 		assert.NoError(t, s.Set(ctx, "../../../../../etc/passwd", secret.New("foo", "bar")))
 	}
-	assert.Error(t, s.Set(ctx, "zab", secret.New("foo", "bar")))
+	assert.NoError(t, s.Set(ctx, "zab", secret.New("foo", "bar")))
 	assert.Error(t, s.Set(WithRecipientFunc(ctx, func(ctx context.Context, prompt string, list []string) ([]string, error) {
 		return nil, fmt.Errorf("aborted")
 	}), "zab/baz", secret.New("foo", "bar")))
