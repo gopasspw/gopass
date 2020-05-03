@@ -45,6 +45,7 @@ func New() *Config {
 			AutoSync:      true,
 			ClipTimeout:   45,
 			Concurrency:   1,
+			ExportKeys:    true,
 			NoColor:       false,
 			NoConfirm:     false,
 			NoPager:       false,

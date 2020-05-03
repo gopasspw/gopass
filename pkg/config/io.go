@@ -96,7 +96,8 @@ func decode(buf []byte) (*Config, error) {
 	cfgs := []configer{
 		&Config{
 			Root: &StoreConfig{
-				AutoSync: true,
+				AutoSync:   true,
+				ExportKeys: true,
 			},
 		},
 		&Pre182{
@@ -131,6 +132,7 @@ func (c *Config) Save() error {
 		return err
 	}
 
+	// this is important to prevent temporary setting PASSWORD_STORE_DIR from overwriting the main gopass config.
 	if c.readOnly {
 		fmt.Printf("[DEBUG] No saving read only config\n")
 		return nil

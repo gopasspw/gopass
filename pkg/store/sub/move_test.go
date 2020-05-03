@@ -20,6 +20,7 @@ import (
 
 func TestCopy(t *testing.T) {
 	ctx := context.Background()
+	ctx = WithExportKeys(ctx, false)
 
 	obuf := &bytes.Buffer{}
 	out.Stdout = obuf
@@ -78,7 +79,7 @@ func TestCopy(t *testing.T) {
 			sc:      &fakeConfig{},
 		}
 
-		assert.NoError(t, s.saveRecipients(ctx, []string{"john.doe"}, "test", false))
+		assert.NoError(t, s.saveRecipients(ctx, []string{"john.doe"}, "test"))
 
 		// run test case
 		t.Run(tc.name, tc.tf(s))
@@ -91,6 +92,7 @@ func TestCopy(t *testing.T) {
 
 func TestMove(t *testing.T) {
 	ctx := context.Background()
+	ctx = WithExportKeys(ctx, false)
 
 	obuf := &bytes.Buffer{}
 	out.Stdout = obuf
@@ -149,7 +151,7 @@ func TestMove(t *testing.T) {
 			sc:      &fakeConfig{},
 		}
 
-		err = s.saveRecipients(ctx, []string{"john.doe"}, "test", false)
+		err = s.saveRecipients(ctx, []string{"john.doe"}, "test")
 		require.NoError(t, err)
 
 		// run test case
@@ -163,6 +165,7 @@ func TestMove(t *testing.T) {
 
 func TestDelete(t *testing.T) {
 	ctx := context.Background()
+	ctx = WithExportKeys(ctx, false)
 
 	obuf := &bytes.Buffer{}
 	out.Stdout = obuf
@@ -207,7 +210,7 @@ func TestDelete(t *testing.T) {
 			sc:      &fakeConfig{},
 		}
 
-		err = s.saveRecipients(ctx, []string{"john.doe"}, "test", false)
+		err = s.saveRecipients(ctx, []string{"john.doe"}, "test")
 		require.NoError(t, err)
 
 		// run test case
@@ -221,6 +224,7 @@ func TestDelete(t *testing.T) {
 
 func TestPrune(t *testing.T) {
 	ctx := context.Background()
+	ctx = WithExportKeys(ctx, false)
 
 	obuf := &bytes.Buffer{}
 	out.Stdout = obuf
@@ -286,7 +290,7 @@ func TestPrune(t *testing.T) {
 			sc:      &fakeConfig{},
 		}
 
-		err = s.saveRecipients(ctx, []string{"john.doe"}, "test", false)
+		err = s.saveRecipients(ctx, []string{"john.doe"}, "test")
 		assert.NoError(t, err)
 
 		// run test case
