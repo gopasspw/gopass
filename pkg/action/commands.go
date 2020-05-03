@@ -741,8 +741,9 @@ func (s *Action) GetCommands() []*cli.Command {
 					Usage:   "Copy the first line of the secret into the clipboard",
 				},
 				&cli.BoolFlag{
-					Name:  "alsoclip, C",
-					Usage: "Copy the first line of the secret and show everything",
+					Name:    "alsoclip",
+					Aliases: []string{"C"},
+					Usage:   "Copy the first line of the secret and show everything",
 				},
 				&cli.BoolFlag{
 					Name:  "qr",

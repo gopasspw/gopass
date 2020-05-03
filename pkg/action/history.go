@@ -31,7 +31,7 @@ func (s *Action) History(c *cli.Context) error {
 	for _, rev := range revs {
 		pw := ""
 		if showPassword {
-			sec, err := s.Store.GetRevision(ctx, name, rev.Hash)
+			ctx, sec, err := s.Store.GetRevision(ctx, name, rev.Hash)
 			if err != nil {
 				out.Debug(ctx, "Failed to get revision '%s' of '%s': %s", rev.Hash, name, err)
 			}

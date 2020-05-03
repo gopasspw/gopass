@@ -63,5 +63,5 @@ func TestGitRevisions(t *testing.T) {
 
 	sec, err := s.GetRevision(ctx, "foo", "bar")
 	require.NoError(t, err)
-	assert.Equal(t, "", sec.Password())
+	assert.Equal(t, "foo", sec.Password())
 }

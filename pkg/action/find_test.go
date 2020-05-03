@@ -27,6 +27,7 @@ func TestFind(t *testing.T) {
 
 	ctx := context.Background()
 	ctx = ctxutil.WithTerminal(ctx, false)
+	ctx = ctxutil.WithAutoClip(ctx, false)
 	act, err := newMock(ctx, u)
 	require.NoError(t, err)
 	require.NotNil(t, act)
@@ -68,12 +69,7 @@ func TestFind(t *testing.T) {
 	// testing the safecontent case
 	ctx = ctxutil.WithShowSafeContent(ctx, true)
 	c.Context = ctx
-	assert.NoError(t, act.Find(c))
-
-	out := strings.TrimSpace(buf.String())
-	assert.Contains(t, out, "Found exact match in 'foo'")
-	assert.Contains(t, out, "with -f")
-	assert.Contains(t, out, "Copying password instead.")
+	assert.Error(t, act.Find(c))
 	buf.Reset()
 
 	// testing with the clip flag set
@@ -87,7 +83,7 @@ func TestFind(t *testing.T) {
 	c.Context = ctx
 
 	assert.NoError(t, act.Find(c))
-	out = strings.TrimSpace(buf.String())
+	out := strings.TrimSpace(buf.String())
 	assert.Contains(t, out, "Found exact match in 'foo'")
 	buf.Reset()
 

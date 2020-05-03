@@ -20,7 +20,7 @@ import (
 const (
 	gopassConfig = `root:
   askformore: false
-  autoclip: true
+  autoclip: false
   autoimport: true
   autosync: false
   cliptimeout: 45

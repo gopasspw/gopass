@@ -27,6 +27,6 @@ func TestNoop(t *testing.T) {
 	assert.Error(t, err)
 	body, err := g.GetRevision(ctx, "foo", "bar")
 	require.NoError(t, err)
-	assert.Equal(t, "", string(body))
+	assert.Equal(t, "foo\nbar", string(body))
 	assert.NoError(t, g.RemoveRemote(ctx, "foo"))
 }

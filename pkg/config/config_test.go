@@ -27,7 +27,7 @@ func TestNewConfig(t *testing.T) {
 	assert.Equal(t, backend.GPGCLI, cfg.Root.Path.Crypto)
 	assert.Equal(t, backend.GitCLI, cfg.Root.Path.RCS)
 	assert.Equal(t, backend.FS, cfg.Root.Path.Storage)
-	assert.Equal(t, "Config[Root:StoreConfig[AskForMore:false,AutoClip:true,AutoImport:true,AutoSync:true,ClipTimeout:45,Concurrency:1,EditRecipients:false,NoColor:false,NoConfirm:false,NoPager:false,Notifications:true,Path:gpgcli-gitcli-fs+file:,SafeContent:false,UseSymbols:false],Mounts()]", cfg.String())
+	assert.Equal(t, "Config[Root:StoreConfig[AskForMore:false,AutoClip:false,AutoImport:true,AutoSync:true,ClipTimeout:45,Concurrency:1,EditRecipients:false,NoColor:false,NoConfirm:false,NoPager:false,Notifications:true,Path:gpgcli-gitcli-fs+file:,SafeContent:false,UseSymbols:false],Mounts()]", cfg.String())
 
 	cfg = nil
 	assert.Error(t, cfg.checkDefaults())

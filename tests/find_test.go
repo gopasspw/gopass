@@ -30,24 +30,25 @@ func TestFind(t *testing.T) {
 
 	out, err = ts.run("find bar")
 	assert.NoError(t, err)
-	assert.Equal(t, "Found exact match in 'foo/bar'\nbaz", out)
+	assert.Contains(t, "Found exact match in 'foo/bar'\nbaz", out)
 
 	out, err = ts.run("find Bar")
 	assert.NoError(t, err)
-	assert.Equal(t, "Found exact match in 'foo/bar'\nbaz", out)
+	assert.Contains(t, "Found exact match in 'foo/bar'\nbaz", out)
 
 	out, err = ts.run("find b")
 	assert.NoError(t, err)
-	assert.Equal(t, "Found exact match in 'foo/bar'\nbaz", out)
+	assert.Contains(t, "Found exact match in 'foo/bar'\nbaz", out)
 
 	_, err = ts.run("config safecontent true")
 	require.NoError(t, err)
 
 	out, err = ts.run("find bar")
-	assert.NoError(t, err)
+	assert.Error(t, err)
 	assert.Contains(t, out, "no safe content to display")
 
 	out, err = ts.run("find -f bar")
 	assert.NoError(t, err)
-	assert.Contains(t, "Found exact match in 'foo/bar'\nbaz", out)
+	assert.Contains(t, out, "Found exact match in 'foo/bar'")
+	assert.Contains(t, out, "baz")
 }

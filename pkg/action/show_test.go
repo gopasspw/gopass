@@ -26,6 +26,7 @@ func TestShow(t *testing.T) {
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithTerminal(ctx, false)
+	ctx = ctxutil.WithAutoClip(ctx, false)
 	act, err := newMock(ctx, u)
 	require.NoError(t, err)
 	require.NotNil(t, act)
@@ -90,14 +91,13 @@ func TestShow(t *testing.T) {
 	assert.Equal(t, "---\nbar: zab", buf.String())
 	buf.Reset()
 
-	// show foo with safecontent enabled, should warn and copy the stuff
+	// show foo with safecontent enabled, should error out
 	fs = flag.NewFlagSet("default", flag.ContinueOnError)
 	assert.NoError(t, fs.Parse([]string{"foo"}))
 	c = cli.NewContext(app, fs, nil)
 	c.Context = ctx
 
-	assert.NoError(t, act.Show(c))
-	assert.Contains(t, buf.String(), "no safe content to display, you can force display with -f.")
+	assert.Error(t, act.Show(c))
 	buf.Reset()
 
 	// show foo with safecontent enabled, with the force flag
@@ -139,6 +139,7 @@ func TestShowHandleRevision(t *testing.T) {
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithTerminal(ctx, false)
+	ctx = ctxutil.WithAutoClip(ctx, false)
 	act, err := newMock(ctx, u)
 	require.NoError(t, err)
 	require.NotNil(t, act)
@@ -159,7 +160,7 @@ func TestShowHandleRevision(t *testing.T) {
 	c := cli.NewContext(app, fs, nil)
 	c.Context = ctx
 
-	assert.NoError(t, act.showHandleRevision(ctx, c, "foo", "baz"))
+	assert.NoError(t, act.showHandleRevision(ctx, c, "foo", "HEAD"))
 	buf.Reset()
 }
 
@@ -170,6 +171,7 @@ func TestShowHandleError(t *testing.T) {
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithTerminal(ctx, false)
+	ctx = ctxutil.WithAutoClip(ctx, false)
 	act, err := newMock(ctx, u)
 	require.NoError(t, err)
 	require.NotNil(t, act)
@@ -201,6 +203,7 @@ func TestShowHandleYAMLError(t *testing.T) {
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithTerminal(ctx, false)
+	ctx = ctxutil.WithAutoClip(ctx, false)
 	act, err := newMock(ctx, u)
 	require.NoError(t, err)
 	require.NotNil(t, act)
@@ -225,6 +228,7 @@ func TestShowPrintQR(t *testing.T) {
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithTerminal(ctx, false)
+	ctx = ctxutil.WithAutoClip(ctx, false)
 	act, err := newMock(ctx, u)
 	require.NoError(t, err)
 	require.NotNil(t, act)

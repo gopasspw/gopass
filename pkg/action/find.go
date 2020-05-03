@@ -24,9 +24,9 @@ func (s *Action) FindNoFuzzy(c *cli.Context) error {
 func (s *Action) Find(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	if c.IsSet("clip") {
+		ctx = WithOnlyClip(ctx, c.Bool("clip"))
 		ctx = WithClip(ctx, c.Bool("clip"))
 	}
-
 	if c.IsSet("force") {
 		ctx = WithForce(ctx, c.Bool("force"))
 	}
