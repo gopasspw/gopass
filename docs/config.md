@@ -54,6 +54,7 @@ This is a list of available options:
 | `noconfirm`      | `bool`   | Do not confirm recipient list when encrypting. |
 | `path`           | `string` | Path to the root store. |
 | `editrecipients` | `bool`   | Modify recipients when creating and editing passwords. |
+| `exportkeys`     | `bool`   | Export public keys of all recipients to the store. |
 | `recipient_hash` | `map`    | Map of recipient ids to their hashes. |
 | `safecontent`    | `bool`   | Only output _safe content_ (i.e. everything but the first line of a secret) to the terminal. Use _copy_ (`-c`) to retrieve the password in the clipboard. |
 | `usesymbols`     | `bool`   | If enabled - it will use symbols when generating passwords. |

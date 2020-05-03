@@ -30,6 +30,7 @@ func (f *fakeConfig) CheckRecipientHash(string) bool {
 
 func TestFsck(t *testing.T) {
 	ctx := context.Background()
+	ctx = WithExportKeys(ctx, false)
 
 	obuf := &bytes.Buffer{}
 	out.Stdout = obuf
@@ -49,7 +50,7 @@ func TestFsck(t *testing.T) {
 		storage: fs.New(tempdir),
 		sc:      &fakeConfig{},
 	}
-	assert.NoError(t, s.saveRecipients(ctx, []string{"john.doe"}, "test", false))
+	assert.NoError(t, s.saveRecipients(ctx, []string{"john.doe"}, "test"))
 
 	for _, e := range []string{"foo/bar", "foo/baz", "foo/zab"} {
 		assert.NoError(t, s.Set(ctx, e, secret.New("bar", "")))

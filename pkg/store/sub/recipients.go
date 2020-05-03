@@ -50,7 +50,7 @@ func (s *Store) AddRecipient(ctx context.Context, id string) error {
 
 	rs = append(rs, id)
 
-	if err := s.saveRecipients(ctx, rs, "Added Recipient "+id, true); err != nil {
+	if err := s.saveRecipients(ctx, rs, "Added Recipient "+id); err != nil {
 		return errors.Wrapf(err, "failed to save recipients")
 	}
 
@@ -64,12 +64,12 @@ func (s *Store) SaveRecipients(ctx context.Context) error {
 	if err != nil {
 		return errors.Wrapf(err, "failed to get recipients")
 	}
-	return s.saveRecipients(ctx, rs, "Save Recipients", true)
+	return s.saveRecipients(ctx, rs, "Save Recipients")
 }
 
 // SetRecipients will update the stored recipients and the associated checksum
 func (s *Store) SetRecipients(ctx context.Context, rs []string) error {
-	return s.saveRecipients(ctx, rs, "Set Recipients", true)
+	return s.saveRecipients(ctx, rs, "Set Recipients")
 }
 
 // RemoveRecipient will remove the given recipient from the store
@@ -106,7 +106,7 @@ RECIPIENTS:
 		return errors.Errorf("recipient not in store")
 	}
 
-	if err := s.saveRecipients(ctx, nk, "Removed Recipient "+id, true); err != nil {
+	if err := s.saveRecipients(ctx, nk, "Removed Recipient "+id); err != nil {
 		return errors.Wrapf(err, "failed to save recipients")
 	}
 
@@ -215,7 +215,7 @@ func (s *Store) ExportMissingPublicKeys(ctx context.Context, rs []string) (bool,
 }
 
 // Save all Recipients in memory to the .gpg-id file on disk.
-func (s *Store) saveRecipients(ctx context.Context, rs []string, msg string, exportKeys bool) error {
+func (s *Store) saveRecipients(ctx context.Context, rs []string, msg string) error {
 	if len(rs) < 1 {
 		return errors.New("can not remove all recipients")
 	}
@@ -243,7 +243,7 @@ func (s *Store) saveRecipients(ctx context.Context, rs []string, msg string, exp
 	}
 
 	// save all recipients public keys to the repo
-	if exportKeys {
+	if IsExportKeys(ctx) {
 		if _, err := s.ExportMissingPublicKeys(ctx, rs); err != nil {
 			out.Error(ctx, "Failed to export missing public keys: %s", err)
 		}

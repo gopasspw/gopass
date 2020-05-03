@@ -56,7 +56,7 @@ You can add secondary stores with gopass init --path <path to secondary store> -
 		return errors.Errorf("None of the recipients has a secret key. You will not be able to decrypt the secrets you add")
 	}
 
-	if err := s.saveRecipients(ctx, recipients, "Initialized Store for "+strings.Join(recipients, ", "), true); err != nil {
+	if err := s.saveRecipients(ctx, recipients, "Initialized Store for "+strings.Join(recipients, ", ")); err != nil {
 		return errors.Wrapf(err, "failed to initialize store: %s", err)
 	}
 

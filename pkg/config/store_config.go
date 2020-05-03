@@ -22,6 +22,7 @@ type StoreConfig struct {
 	ClipTimeout    int               `yaml:"cliptimeout"`    // clear clipboard after seconds
 	Concurrency    int               `yaml:"concurrency"`    // allow to run multiple thread when batch processing
 	EditRecipients bool              `yaml:"editrecipients"` // edit recipients when confirming
+	ExportKeys     bool              `yaml:"exportkeys"`     // automatically export public keys of all recipients
 	NoColor        bool              `yaml:"nocolor"`        // do not use color when outputing text
 	NoConfirm      bool              `yaml:"noconfirm"`      // do not confirm recipients when encrypting
 	NoPager        bool              `yaml:"nopager"`        // do not invoke a pager to display long lists

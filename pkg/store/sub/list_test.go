@@ -20,6 +20,7 @@ import (
 
 func TestList(t *testing.T) {
 	ctx := context.Background()
+	ctx = WithExportKeys(ctx, false)
 
 	obuf := &bytes.Buffer{}
 	out.Stdout = obuf
@@ -82,7 +83,7 @@ func TestList(t *testing.T) {
 			sc:      &fakeConfig{},
 		}
 
-		assert.NoError(t, s.saveRecipients(ctx, []string{"john.doe"}, "test", false))
+		assert.NoError(t, s.saveRecipients(ctx, []string{"john.doe"}, "test"))
 
 		// prepare store
 		assert.NoError(t, tc.prep(s))

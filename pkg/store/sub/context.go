@@ -19,6 +19,7 @@ const (
 	ctxKeyCheckRecipients
 	ctxKeyFsckDecrypt
 	ctxKeyNoGitOps
+	ctxKeyExportKeys
 )
 
 // WithFsckCheck returns a context with the flag for fscks check set
@@ -218,6 +219,21 @@ func WithNoGitOps(ctx context.Context, d bool) context.Context {
 // or the default (false).
 func IsNoGitOps(ctx context.Context) bool {
 	return is(ctx, ctxKeyNoGitOps, false)
+}
+
+// WithExportKeys returns a context with the value for export keys set.
+func WithExportKeys(ctx context.Context, d bool) context.Context {
+	return context.WithValue(ctx, ctxKeyExportKeys, d)
+}
+
+// HasExportKeys returns true if Export Keys was set in the context.
+func HasExportKeys(ctx context.Context) bool {
+	return hasBool(ctx, ctxKeyExportKeys)
+}
+
+// IsExportKeys returns the value of export keys or the default (true).
+func IsExportKeys(ctx context.Context) bool {
+	return is(ctx, ctxKeyExportKeys, true)
 }
 
 // hasBool is a helper function for checking if a bool has been set in

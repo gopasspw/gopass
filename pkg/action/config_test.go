@@ -51,6 +51,7 @@ func TestConfig(t *testing.T) {
   cliptimeout: 45
   concurrency: 1
   editrecipients: false
+  exportkeys: true
   nocolor: false
   noconfirm: false
   nopager: false
@@ -97,6 +98,7 @@ foo/nopager: false`
   cliptimeout: 45
   concurrency: 1
   editrecipients: false
+  exportkeys: true
   nocolor: false
   noconfirm: false
   nopager: true
@@ -110,6 +112,7 @@ mount 'foo' config:
   autoimport: false
   autosync: false
   cliptimeout: 23
+  exportkeys: false
   nopager: false
   notifications: false
 `
@@ -149,6 +152,7 @@ check_recipient_hash
 cliptimeout
 concurrency
 editrecipients
+exportkeys
 nocolor
 noconfirm
 nopager

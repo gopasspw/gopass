@@ -43,5 +43,8 @@ func (c StoreConfig) WithContext(ctx context.Context) context.Context {
 	if !ctxutil.HasUseSymbols(ctx) {
 		ctx = ctxutil.WithUseSymbols(ctx, c.UseSymbols)
 	}
+	if !sub.HasExportKeys(ctx) {
+		ctx = sub.WithExportKeys(ctx, c.ExportKeys)
+	}
 	return ctx
 }

@@ -95,6 +95,7 @@ func TestGetRecipientsSubID(t *testing.T) {
 
 func TestSaveRecipients(t *testing.T) {
 	ctx := context.Background()
+	ctx = WithExportKeys(ctx, true)
 
 	tempdir, err := ioutil.TempDir("", "gopass-")
 	require.NoError(t, err)
@@ -123,8 +124,8 @@ func TestSaveRecipients(t *testing.T) {
 	// remove recipients
 	_ = os.Remove(filepath.Join(tempdir, s.crypto.IDFile()))
 
-	assert.NoError(t, s.saveRecipients(ctx, recp, "test-save-recipients", true))
-	assert.Error(t, s.saveRecipients(ctx, nil, "test-save-recipients", true))
+	assert.NoError(t, s.saveRecipients(ctx, recp, "test-save-recipients"))
+	assert.Error(t, s.saveRecipients(ctx, nil, "test-save-recipients"))
 
 	buf, err := s.storage.Get(ctx, s.idFile(ctx, ""))
 	require.NoError(t, err)
