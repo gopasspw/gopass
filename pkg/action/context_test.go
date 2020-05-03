@@ -19,18 +19,6 @@ func TestWithClip(t *testing.T) {
 	}
 }
 
-func TestWithForce(t *testing.T) {
-	ctx := context.Background()
-
-	if IsForce(ctx) {
-		t.Errorf("Should be false")
-	}
-
-	if !IsForce(WithForce(ctx, true)) {
-		t.Errorf("Should be true")
-	}
-}
-
 func TestWithPasswordOnly(t *testing.T) {
 	ctx := context.Background()
 

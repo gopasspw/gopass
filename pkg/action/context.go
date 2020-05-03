@@ -6,7 +6,6 @@ type contextKey int
 
 const (
 	ctxKeyClip contextKey = iota
-	ctxKeyForce
 	ctxKeyPasswordOnly
 	ctxKeyPrintQR
 	ctxKeyRevision
@@ -38,20 +37,6 @@ func WithOnlyClip(ctx context.Context, clip bool) context.Context {
 // IsOnlyClip returns the value of clip or the default (false)
 func IsOnlyClip(ctx context.Context) bool {
 	bv, ok := ctx.Value(ctxKeyOnlyClip).(bool)
-	if !ok {
-		return false
-	}
-	return bv
-}
-
-// WithForce returns a context with the value for force set
-func WithForce(ctx context.Context, force bool) context.Context {
-	return context.WithValue(ctx, ctxKeyForce, force)
-}
-
-// IsForce returns the value of force or the default (false)
-func IsForce(ctx context.Context) bool {
-	bv, ok := ctx.Value(ctxKeyForce).(bool)
 	if !ok {
 		return false
 	}

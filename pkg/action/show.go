@@ -28,7 +28,7 @@ func showParseArgs(c *cli.Context) context.Context {
 		ctx = WithOnlyClip(ctx, c.Bool("clip"))
 	}
 	if c.IsSet("force") {
-		ctx = WithForce(ctx, c.Bool("force"))
+		ctx = ctxutil.WithForce(ctx, c.Bool("force"))
 	}
 	if c.IsSet("qr") {
 		ctx = WithPrintQR(ctx, c.Bool("qr"))
@@ -158,12 +158,12 @@ func (s *Action) showGetContent(ctx context.Context, name string, sec store.Secr
 	if IsPasswordOnly(ctx) {
 		return sec.Password(), sec.Password(), nil
 	}
-	if ctxutil.IsAutoClip(ctx) && !IsForce(ctx) {
+	if ctxutil.IsAutoClip(ctx) && !ctxutil.IsForce(ctx) {
 		return sec.Password(), "", nil
 	}
 
 	// everything but the first line
-	if ctxutil.IsShowSafeContent(ctx) && !IsForce(ctx) {
+	if ctxutil.IsShowSafeContent(ctx) && !ctxutil.IsForce(ctx) {
 		return "", sec.Body(), nil
 	}
 
