@@ -28,7 +28,7 @@ func (s *Action) Find(c *cli.Context) error {
 		ctx = WithClip(ctx, c.Bool("clip"))
 	}
 	if c.IsSet("force") {
-		ctx = WithForce(ctx, c.Bool("force"))
+		ctx = ctxutil.WithForce(ctx, c.Bool("force"))
 	}
 
 	if !c.Args().Present() {
