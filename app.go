@@ -70,12 +70,14 @@ func setupApp(ctx context.Context, sv semver.Version) (context.Context, *cli.App
 			Usage: "Assume yes on all yes/no questions or use the default on all others",
 		},
 		&cli.BoolFlag{
-			Name:  "clip, c",
-			Usage: "Copy the first line of the secret into the clipboard",
+			Name:    "clip",
+			Aliases: []string{"c"},
+			Usage:   "Copy the first line of the secret into the clipboard",
 		},
 		&cli.BoolFlag{
-			Name:  "alsoclip, C",
-			Usage: "Copy the first line of the secret into the clipboard and show everything",
+			Name:    "alsoclip",
+			Aliases: []string{"C"},
+			Usage:   "Copy the first line of the secret into the clipboard and show everything",
 		},
 	}
 
