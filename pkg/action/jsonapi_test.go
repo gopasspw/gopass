@@ -3,7 +3,6 @@ package action
 import (
 	"bytes"
 	"context"
-	"flag"
 	"os"
 	"testing"
 
@@ -13,7 +12,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/urfave/cli/v2"
 )
 
 func TestJSONAPI(t *testing.T) {
@@ -27,16 +25,12 @@ func TestJSONAPI(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, act)
 
-	app := cli.NewApp()
-	fs := flag.NewFlagSet("default", flag.ContinueOnError)
-	c := cli.NewContext(app, fs, nil)
-	c.Context = ctx
-
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
 	defer func() {
 		out.Stdout = os.Stdout
 	}()
 
-	assert.NoError(t, act.JSONAPI(c))
+	assert.NoError(t, act.JSONAPI(clictx(ctx, t)))
+	buf.Reset()
 }

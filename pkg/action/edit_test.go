@@ -3,7 +3,6 @@ package action
 import (
 	"bytes"
 	"context"
-	"flag"
 	"os"
 	"testing"
 
@@ -13,7 +12,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/urfave/cli/v2"
 )
 
 func TestEdit(t *testing.T) {
@@ -33,21 +31,11 @@ func TestEdit(t *testing.T) {
 		out.Stdout = os.Stdout
 	}()
 
-	app := cli.NewApp()
-
 	// edit
-	c := cli.NewContext(app, flag.NewFlagSet("default", flag.ContinueOnError), nil)
-	c.Context = ctx
-
-	assert.Error(t, act.Edit(c))
+	assert.Error(t, act.Edit(clictx(ctx, t)))
 	buf.Reset()
 
 	// edit foo
-	fs := flag.NewFlagSet("default", flag.ContinueOnError)
-	assert.NoError(t, fs.Parse([]string{"foo"}))
-	c = cli.NewContext(app, fs, nil)
-	c.Context = ctx
-
-	assert.Error(t, act.Edit(c))
+	assert.Error(t, act.Edit(clictx(ctx, t, "foo")))
 	buf.Reset()
 }

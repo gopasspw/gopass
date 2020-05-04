@@ -3,7 +3,6 @@ package action
 import (
 	"bytes"
 	"context"
-	"flag"
 	"os"
 	"testing"
 
@@ -15,7 +14,6 @@ import (
 	"github.com/muesli/goprogressbar"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/urfave/cli/v2"
 )
 
 func TestRecipients(t *testing.T) {
@@ -28,24 +26,21 @@ func TestRecipients(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, act)
 
-	app := cli.NewApp()
-	fs := flag.NewFlagSet("default", flag.ContinueOnError)
-	c := cli.NewContext(app, fs, nil)
-	c.Context = ctx
-
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
+	out.Stderr = buf
 	stdout = buf
 	goprogressbar.Stdout = buf
 	color.NoColor = true
 	defer func() {
 		out.Stdout = os.Stdout
+		out.Stderr = os.Stderr
 		stdout = os.Stdout
 		goprogressbar.Stdout = os.Stdout
 	}()
 
 	// RecipientsPrint
-	assert.NoError(t, act.RecipientsPrint(c))
+	assert.NoError(t, act.RecipientsPrint(clictx(ctx, t)))
 	want := `Hint: run 'gopass sync' to import any missing public keys
 gopass
 └── 0xDEADBEEF
@@ -55,40 +50,28 @@ gopass
 	buf.Reset()
 
 	// RecipientsComplete
-	act.RecipientsComplete(c)
+	act.RecipientsComplete(clictx(ctx, t))
 	want = "0xDEADBEEF\n"
 	assert.Equal(t, want, buf.String())
 	buf.Reset()
 
 	// RecipientsAdd
-	assert.Error(t, act.RecipientsAdd(c))
+	assert.Error(t, act.RecipientsAdd(clictx(ctx, t)))
 	buf.Reset()
 
 	// RecipientsRemove
-	assert.Error(t, act.RecipientsRemove(c))
+	assert.Error(t, act.RecipientsRemove(clictx(ctx, t)))
 	buf.Reset()
 
 	// RecipientsAdd 0xFEEDBEEF
-	fs = flag.NewFlagSet("default", flag.ContinueOnError)
-	assert.NoError(t, fs.Parse([]string{"0xFEEDBEEF"}))
-	c = cli.NewContext(app, fs, nil)
-	c.Context = ctx
-
-	assert.NoError(t, act.RecipientsAdd(c))
+	assert.NoError(t, act.RecipientsAdd(clictx(ctx, t, "0xFEEDBEEF")))
 	buf.Reset()
 
 	// RecipientsAdd 0xBEEFFEED
-	fs = flag.NewFlagSet("default", flag.ContinueOnError)
-	assert.NoError(t, fs.Parse([]string{"0xBEEFFEED"}))
-	c = cli.NewContext(app, fs, nil)
-	c.Context = ctx
-	assert.Error(t, act.RecipientsAdd(c))
+	assert.Error(t, act.RecipientsAdd(clictx(ctx, t, "0xBEEFFEED")))
 	buf.Reset()
 
 	// RecipientsRemove 0xDEADBEEF
-	fs = flag.NewFlagSet("default", flag.ContinueOnError)
-	assert.NoError(t, fs.Parse([]string{"0xDEADBEEF"}))
-	c = cli.NewContext(app, fs, nil)
-	c.Context = ctx
-	assert.NoError(t, act.RecipientsRemove(c))
+	assert.NoError(t, act.RecipientsRemove(clictx(ctx, t, "0xDEADBEEF")))
+	buf.Reset()
 }

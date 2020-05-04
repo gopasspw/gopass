@@ -67,6 +67,6 @@ func (s *Action) Fsck(c *cli.Context) error {
 	if err := s.Store.Fsck(ctx, c.Args().Get(0)); err != nil {
 		return ExitError(ctx, ExitFsck, err, "fsck found errors: %s", err)
 	}
-	fmt.Println()
+	out.Print(ctx, "")
 	return nil
 }

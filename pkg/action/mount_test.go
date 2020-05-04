@@ -3,7 +3,6 @@ package action
 import (
 	"bytes"
 	"context"
-	"flag"
 	"os"
 	"path/filepath"
 	"testing"
@@ -14,7 +13,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/urfave/cli/v2"
 )
 
 func TestMounts(t *testing.T) {
@@ -23,59 +21,40 @@ func TestMounts(t *testing.T) {
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
+	ctx = ctxutil.WithTerminal(ctx, false)
 	act, err := newMock(ctx, u)
 	require.NoError(t, err)
 	require.NotNil(t, act)
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
+	out.Stderr = buf
 	stdout = buf
 	defer func() {
 		out.Stdout = os.Stdout
+		out.Stderr = os.Stderr
 		stdout = os.Stdout
 	}()
 
-	app := cli.NewApp()
-
 	// print mounts
-	fs := flag.NewFlagSet("default", flag.ContinueOnError)
-	c := cli.NewContext(app, fs, nil)
-	c.Context = ctx
-
-	assert.NoError(t, act.MountsPrint(c))
+	assert.NoError(t, act.MountsPrint(clictx(ctx, t)))
 	buf.Reset()
 
 	// complete mounts
-	act.MountsComplete(c)
-	if buf.String() != "" {
-		t.Errorf("Should be empty")
-	}
+	act.MountsComplete(clictx(ctx, t))
+	assert.Equal(t, buf.String(), "")
 	buf.Reset()
 
 	// remove no non-existing mount
-	fs = flag.NewFlagSet("default", flag.ContinueOnError)
-	c = cli.NewContext(app, fs, nil)
-	c.Context = ctx
-
-	assert.Error(t, act.MountRemove(c))
+	assert.Error(t, act.MountRemove(clictx(ctx, t)))
 	buf.Reset()
 
 	// remove non-existing mount
-	fs = flag.NewFlagSet("default", flag.ContinueOnError)
-	assert.NoError(t, fs.Parse([]string{"foo"}))
-	c = cli.NewContext(app, fs, nil)
-	c.Context = ctx
-
-	assert.NoError(t, act.MountRemove(c))
+	assert.NoError(t, act.MountRemove(clictx(ctx, t, "foo")))
 	buf.Reset()
 
 	// add non-existing mount
-	fs = flag.NewFlagSet("default", flag.ContinueOnError)
-	assert.NoError(t, fs.Parse([]string{"foo", filepath.Join(u.Dir, "mount1")}))
-	c = cli.NewContext(app, fs, nil)
-	c.Context = ctx
-
-	assert.Error(t, act.MountAdd(c))
+	assert.Error(t, act.MountAdd(clictx(ctx, t, "foo", filepath.Join(u.Dir, "mount1"))))
 	buf.Reset()
 
 	// add some mounts
@@ -85,10 +64,6 @@ func TestMounts(t *testing.T) {
 	assert.NoError(t, act.Store.AddMount(ctx, "mount2", u.StoreDir("mount2")))
 
 	// print mounts
-	fs = flag.NewFlagSet("default", flag.ContinueOnError)
-	c = cli.NewContext(app, fs, nil)
-	c.Context = ctx
-
-	assert.NoError(t, act.MountsPrint(c))
+	assert.NoError(t, act.MountsPrint(clictx(ctx, t)))
 	buf.Reset()
 }

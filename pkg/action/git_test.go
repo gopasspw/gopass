@@ -3,7 +3,6 @@ package action
 import (
 	"bytes"
 	"context"
-	"flag"
 	"os"
 	"testing"
 
@@ -13,7 +12,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/urfave/cli/v2"
 )
 
 func TestGit(t *testing.T) {
@@ -36,24 +34,8 @@ func TestGit(t *testing.T) {
 		stdout = os.Stdout
 	}()
 
-	app := cli.NewApp()
-
 	// git init
-	fs := flag.NewFlagSet("default", flag.ContinueOnError)
-	un := cli.StringFlag{
-		Name:  "username",
-		Usage: "username",
-	}
-	assert.NoError(t, un.Apply(fs))
-	ue := cli.StringFlag{
-		Name:  "useremail",
-		Usage: "useremail",
-	}
-	assert.NoError(t, ue.Apply(fs))
-	assert.NoError(t, fs.Parse([]string{"--username", "foobar", "--useremail", "foo.bar@example.org"}))
-	c := cli.NewContext(app, fs, nil)
-	c.Context = ctx
-
+	c := clictxf(ctx, t, map[string]string{"username": "foobar", "useremail": "foo.bar@example.org"})
 	assert.NoError(t, act.GitInit(c))
 	buf.Reset()
 

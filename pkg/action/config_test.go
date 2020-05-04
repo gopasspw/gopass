@@ -3,7 +3,6 @@ package action
 import (
 	"bytes"
 	"context"
-	"flag"
 	"os"
 	"strings"
 	"testing"
@@ -15,7 +14,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/urfave/cli/v2"
 )
 
 func TestConfig(t *testing.T) {
@@ -27,10 +25,6 @@ func TestConfig(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, act)
 
-	app := cli.NewApp()
-	c := cli.NewContext(app, flag.NewFlagSet("default", flag.ContinueOnError), nil)
-	c.Context = ctx
-
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
 	stdout = buf
@@ -40,6 +34,7 @@ func TestConfig(t *testing.T) {
 	}()
 
 	// action.Config
+	c := clictx(ctx, t)
 	assert.NoError(t, act.Config(c))
 	want := `root store config:
   askformore: false
@@ -124,19 +119,13 @@ mount 'foo' config:
 	buf.Reset()
 
 	// config autoimport
-	fs := flag.NewFlagSet("default", flag.ContinueOnError)
-	assert.NoError(t, fs.Parse([]string{"autoimport"}))
-	c = cli.NewContext(app, fs, nil)
-	c.Context = ctx
+	c = clictx(ctx, t, "autoimport")
 	assert.NoError(t, act.Config(c))
 	assert.Equal(t, "autoimport: true", strings.TrimSpace(buf.String()))
 	buf.Reset()
 
 	// config autoimport false
-	fs = flag.NewFlagSet("default", flag.ContinueOnError)
-	assert.NoError(t, fs.Parse([]string{"autoimport", "false"}))
-	c = cli.NewContext(app, fs, nil)
-	c.Context = ctx
+	c = clictx(ctx, t, "autoimport", "false")
 	assert.NoError(t, act.Config(c))
 	assert.Equal(t, "autoimport: false", strings.TrimSpace(buf.String()))
 	buf.Reset()
@@ -165,10 +154,7 @@ usesymbols
 	buf.Reset()
 
 	// config autoimport false 42
-	fs = flag.NewFlagSet("default", flag.ContinueOnError)
-	assert.NoError(t, fs.Parse([]string{"autoimport", "false", "42"}))
-	c = cli.NewContext(app, fs, nil)
-	c.Context = ctx
+	c = clictx(ctx, t, "autoimport", "false", "42")
 	assert.Error(t, act.Config(c))
 	buf.Reset()
 }

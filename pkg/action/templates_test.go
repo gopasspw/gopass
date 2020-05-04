@@ -3,7 +3,6 @@ package action
 import (
 	"bytes"
 	"context"
-	"flag"
 	"os"
 	"testing"
 
@@ -18,7 +17,6 @@ import (
 	"github.com/fatih/color"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/urfave/cli/v2"
 )
 
 func TestTemplates(t *testing.T) {
@@ -28,6 +26,7 @@ func TestTemplates(t *testing.T) {
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithTerminal(ctx, false)
+
 	act, err := newMock(ctx, u)
 	require.NoError(t, err)
 	require.NotNil(t, act)
@@ -41,21 +40,14 @@ func TestTemplates(t *testing.T) {
 		out.Stdout = os.Stdout
 	}()
 
-	app := cli.NewApp()
-
 	// display empty template tree
-	fs := flag.NewFlagSet("default", flag.ContinueOnError)
-	assert.NoError(t, fs.Parse([]string{"foo"}))
-	c := cli.NewContext(app, fs, nil)
-	c.Context = ctx
-
-	assert.NoError(t, act.TemplatesPrint(c))
+	assert.NoError(t, act.TemplatesPrint(clictx(ctx, t, "foo")))
 	assert.Equal(t, "gopass\n\n", buf.String())
 	buf.Reset()
 
 	// add template
 	assert.NoError(t, act.Store.SetTemplate(ctx, "foo", []byte("foobar")))
-	assert.NoError(t, act.TemplatesPrint(c))
+	assert.NoError(t, act.TemplatesPrint(clictx(ctx, t, "foo")))
 	want := `Pushed changes to git remote
 gopass
 └── foo
@@ -65,20 +57,20 @@ gopass
 	buf.Reset()
 
 	// complete templates
-	act.TemplatesComplete(c)
+	act.TemplatesComplete(clictx(ctx, t, "foo"))
 	assert.Equal(t, "foo\n", buf.String())
 	buf.Reset()
 
 	// print template
-	assert.NoError(t, act.TemplatePrint(c))
+	assert.NoError(t, act.TemplatePrint(clictx(ctx, t, "foo")))
 	assert.Equal(t, "foobar\n", buf.String())
 	buf.Reset()
 
 	// edit template
-	assert.Error(t, act.TemplateEdit(c))
+	assert.Error(t, act.TemplateEdit(clictx(ctx, t, "foo")))
 	buf.Reset()
 
 	// remove template
-	assert.NoError(t, act.TemplateRemove(c))
+	assert.NoError(t, act.TemplateRemove(clictx(ctx, t, "foo")))
 	buf.Reset()
 }

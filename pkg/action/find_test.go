@@ -63,41 +63,24 @@ func TestFind(t *testing.T) {
 	c.Context = ctx
 
 	assert.NoError(t, act.Find(c))
-	assert.Equal(t, "Found exact match in 'foo'\nsecret", strings.TrimSpace(buf.String()))
+	assert.Contains(t, strings.TrimSpace(buf.String()), "Found exact match in 'foo'\nsecret")
 	buf.Reset()
 
 	// testing the safecontent case
 	ctx = ctxutil.WithShowSafeContent(ctx, true)
 	c.Context = ctx
-	assert.Error(t, act.Find(c))
+	assert.NoError(t, act.Find(c))
 	buf.Reset()
 
 	// testing with the clip flag set
-	bf := cli.BoolFlag{
-		Name:  "clip",
-		Usage: "clip",
-	}
-	assert.NoError(t, bf.Apply(fs))
-	assert.NoError(t, fs.Parse([]string{"-clip", "fo"}))
-	c = cli.NewContext(app, fs, nil)
-	c.Context = ctx
-
+	c = clictxf(ctx, t, map[string]string{"clip": "true"}, "fo")
 	assert.NoError(t, act.Find(c))
 	out := strings.TrimSpace(buf.String())
 	assert.Contains(t, out, "Found exact match in 'foo'")
 	buf.Reset()
 
 	// safecontent case with force flag set
-	fs = flag.NewFlagSet("default", flag.ContinueOnError)
-	bf = cli.BoolFlag{
-		Name:  "force",
-		Usage: "force",
-	}
-	assert.NoError(t, bf.Apply(fs))
-	assert.NoError(t, fs.Parse([]string{"-force", "fo"}))
-	c = cli.NewContext(app, fs, nil)
-	c.Context = ctx
-
+	c = clictxf(ctx, t, map[string]string{"force": "true"}, "fo")
 	assert.NoError(t, act.Find(c))
 	out = strings.TrimSpace(buf.String())
 	assert.Contains(t, out, "Found exact match in 'foo'\nsecret")
@@ -107,11 +90,7 @@ func TestFind(t *testing.T) {
 	ctx = ctxutil.WithShowSafeContent(ctx, false)
 
 	// find yo
-	fs = flag.NewFlagSet("default", flag.ContinueOnError)
-	assert.NoError(t, fs.Parse([]string{"yo"}))
-	c = cli.NewContext(app, fs, nil)
-	c.Context = ctx
-
+	c = clictx(ctx, t, "yo")
 	assert.Error(t, act.Find(c))
 	buf.Reset()
 
@@ -121,11 +100,7 @@ func TestFind(t *testing.T) {
 	buf.Reset()
 
 	// find bar
-	fs = flag.NewFlagSet("default", flag.ContinueOnError)
-	assert.NoError(t, fs.Parse([]string{"bar"}))
-	c = cli.NewContext(app, fs, nil)
-	c.Context = ctx
-
+	c = clictx(ctx, t, "bar")
 	assert.NoError(t, act.Find(c))
 	assert.Equal(t, "bar/baz\nbar/zab", strings.TrimSpace(buf.String()))
 	buf.Reset()
