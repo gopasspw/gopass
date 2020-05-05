@@ -107,12 +107,9 @@ racetest: $(GOPASS_OUTPUT)
 
 test: $(GOPASS_OUTPUT)
 	@echo ">> TEST, \"fast-mode\": race detector off"
-	@echo "mode: count" > coverage-all.out
 	@$(foreach pkg, $(PKGS),\
 	    echo -n "     ";\
-		$(GO) test  -run '(Test|Example)' $(BUILDFLAGS) $(TESTFLAGS) -coverprofile=coverage.out -covermode=count $(pkg) || exit 1;\
-		tail -n +2 coverage.out >> coverage-all.out;)
-	@$(GO) tool cover -html=coverage-all.out -o coverage-all.html
+		$(GO) test -test.short -run '(Test|Example)' $(BUILDFLAGS) $(TESTFLAGS) $(pkg) -tags 'xc' || exit 1)
 
 test-integration: $(GOPASS_OUTPUT)
 	cd tests && GOPASS_BINARY=$(PWD)/$(GOPASS_OUTPUT) GOPASS_TEST_DIR=$(PWD)/tests go test -v

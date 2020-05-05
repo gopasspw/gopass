@@ -52,34 +52,14 @@ func TestHistory(t *testing.T) {
 	buf.Reset()
 
 	// insert bar
-	fs = flag.NewFlagSet("default", flag.ContinueOnError)
-	assert.NoError(t, fs.Parse([]string{"bar"}))
-	c = cli.NewContext(app, fs, nil)
-	c.Context = ctx
-
-	assert.NoError(t, act.Insert(c))
+	assert.NoError(t, act.Insert(clictx(ctx, t, "bar")))
 	buf.Reset()
 
 	// history bar
-	fs = flag.NewFlagSet("default", flag.ContinueOnError)
-	assert.NoError(t, fs.Parse([]string{"bar"}))
-	c = cli.NewContext(app, fs, nil)
-	c.Context = ctx
-
-	assert.NoError(t, act.History(c))
+	assert.NoError(t, act.History(clictx(ctx, t, "bar")))
 	buf.Reset()
 
 	// history --password bar
-	fs = flag.NewFlagSet("default", flag.ContinueOnError)
-	sf := cli.StringFlag{
-		Name:  "password",
-		Usage: "password",
-	}
-	assert.NoError(t, sf.Apply(fs))
-	assert.NoError(t, fs.Parse([]string{"--password=true", "bar"}))
-	c = cli.NewContext(app, fs, nil)
-	c.Context = ctx
-
-	assert.NoError(t, act.History(c))
+	assert.NoError(t, act.History(clictxf(ctx, t, map[string]string{"password": "true"}, "bar")))
 	buf.Reset()
 }

@@ -23,6 +23,10 @@ import (
 )
 
 func TestStream(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
+	}
+
 	ctx := context.Background()
 
 	td, err := ioutil.TempDir("", "gopass-")

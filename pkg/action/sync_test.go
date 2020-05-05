@@ -3,7 +3,6 @@ package action
 import (
 	"bytes"
 	"context"
-	"flag"
 	"os"
 	"testing"
 
@@ -13,7 +12,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/urfave/cli/v2"
 )
 
 func TestSync(t *testing.T) {
@@ -22,8 +20,10 @@ func TestSync(t *testing.T) {
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
+	out.Stderr = buf
 	defer func() {
 		out.Stdout = os.Stdout
+		out.Stderr = os.Stderr
 	}()
 
 	ctx := context.Background()
@@ -32,27 +32,11 @@ func TestSync(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, act)
 
-	app := cli.NewApp()
-
 	// default
-	fs := flag.NewFlagSet("default", flag.ContinueOnError)
-	c := cli.NewContext(app, fs, nil)
-	c.Context = ctx
-
-	assert.NoError(t, act.Sync(c))
+	assert.NoError(t, act.Sync(clictx(ctx, t)))
 	buf.Reset()
 
 	// sync --store=root
-	fs = flag.NewFlagSet("default", flag.ContinueOnError)
-	sf := cli.StringFlag{
-		Name:  "store",
-		Usage: "store",
-	}
-	assert.NoError(t, sf.Apply(fs))
-	assert.NoError(t, fs.Parse([]string{"--store=root"}))
-	c = cli.NewContext(app, fs, nil)
-	c.Context = ctx
-
-	assert.NoError(t, act.Sync(c))
+	assert.NoError(t, act.Sync(clictxf(ctx, t, map[string]string{"store": "root"})))
 	buf.Reset()
 }

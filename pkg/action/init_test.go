@@ -3,7 +3,6 @@ package action
 import (
 	"bytes"
 	"context"
-	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -16,7 +15,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/urfave/cli/v2"
 )
 
 func TestInit(t *testing.T) {
@@ -26,26 +24,24 @@ func TestInit(t *testing.T) {
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithInteractive(ctx, false)
-	ctx = ctxutil.WithDebug(ctx, true)
+	ctx = ctxutil.WithDebug(ctx, false)
 	act, err := newMock(ctx, u)
 	require.NoError(t, err)
 	require.NotNil(t, act)
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
+	out.Stderr = buf
 	defer func() {
 		out.Stdout = os.Stdout
+		out.Stderr = os.Stderr
 	}()
 
-	app := cli.NewApp()
-	fs := flag.NewFlagSet("default", flag.ContinueOnError)
-	assert.NoError(t, fs.Parse([]string{"foo.bar@example.org"}))
-	c := cli.NewContext(app, fs, nil)
-	c.Context = ctx
-
+	c := clictx(ctx, t, "foo.bar@example.org")
 	assert.NoError(t, act.Initialized(c))
 	assert.Error(t, act.Init(c))
 	assert.Error(t, act.InitOnboarding(c))
+
 	crypto := act.Store.Crypto(ctx, "")
 	assert.Equal(t, true, act.initHasUseablePrivateKeys(ctx, crypto, ""))
 	assert.Error(t, act.initCreatePrivateKey(ctx, crypto, "", "foo bar", "foo.bar@example.org"))
@@ -60,18 +56,20 @@ func TestInit(t *testing.T) {
 func TestInitParseContext(t *testing.T) {
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
+	out.Stderr = buf
 	defer func() {
 		out.Stdout = os.Stdout
+		out.Stderr = os.Stderr
 	}()
 
 	for _, tc := range []struct {
 		name  string
-		args  []string
+		flags map[string]string
 		check func(context.Context) error
 	}{
 		{
-			name: "crypto xc",
-			args: []string{"--crypto=xc"},
+			name:  "crypto xc",
+			flags: map[string]string{"crypto": "xc"},
 			check: func(ctx context.Context) error {
 				if backend.GetCryptoBackend(ctx) != backend.XC {
 					return fmt.Errorf("wrong backend")
@@ -80,8 +78,8 @@ func TestInitParseContext(t *testing.T) {
 			},
 		},
 		{
-			name: "rcs noop",
-			args: []string{"--rcs=noop"},
+			name:  "rcs noop",
+			flags: map[string]string{"rcs": "noop"},
 			check: func(ctx context.Context) error {
 				if backend.GetRCSBackend(ctx) != backend.Noop {
 					return fmt.Errorf("wrong backend")
@@ -90,8 +88,8 @@ func TestInitParseContext(t *testing.T) {
 			},
 		},
 		{
-			name: "nogit",
-			args: []string{"--nogit"},
+			name:  "nogit",
+			flags: map[string]string{"nogit": "true"},
 			check: func(ctx context.Context) error {
 				if backend.GetRCSBackend(ctx) != backend.Noop {
 					return fmt.Errorf("wrong backend")
@@ -101,7 +99,6 @@ func TestInitParseContext(t *testing.T) {
 		},
 		{
 			name: "default",
-			args: []string{},
 			check: func(ctx context.Context) error {
 				if backend.GetRCSBackend(ctx) != backend.GitCLI {
 					return fmt.Errorf("wrong backend")
@@ -110,26 +107,11 @@ func TestInitParseContext(t *testing.T) {
 			},
 		},
 	} {
-		app := cli.NewApp()
-		fs := flag.NewFlagSet("default", flag.ContinueOnError)
-		sf := cli.StringFlag{
-			Name:  "crypto",
-			Usage: "crypto",
-		}
-		assert.NoError(t, sf.Apply(fs))
-		sf = cli.StringFlag{
-			Name:  "rcs",
-			Usage: "rcs",
-		}
-		assert.NoError(t, sf.Apply(fs))
-		bf := cli.BoolFlag{
-			Name:  "nogit",
-			Usage: "nogit",
-		}
-		assert.NoError(t, bf.Apply(fs))
-		assert.NoError(t, fs.Parse(tc.args), tc.name)
-		c := cli.NewContext(app, fs, nil)
-		assert.NoError(t, tc.check(initParseContext(context.Background(), c)), tc.name)
-		buf.Reset()
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			c := clictxf(context.Background(), t, tc.flags)
+			assert.NoError(t, tc.check(initParseContext(context.Background(), c)), tc.name)
+			buf.Reset()
+		})
 	}
 }

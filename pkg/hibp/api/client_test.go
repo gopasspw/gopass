@@ -13,6 +13,10 @@ import (
 )
 
 func TestLookup(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
+	}
+
 	ctx := context.Background()
 
 	match := "match"
@@ -52,6 +56,10 @@ func TestLookup(t *testing.T) {
 }
 
 func TestLookupCR(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
+	}
+
 	ctx := context.Background()
 
 	match := "match"

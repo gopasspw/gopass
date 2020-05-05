@@ -3,10 +3,10 @@ package action
 import (
 	"bytes"
 	"context"
-	"flag"
 	"os"
 	"testing"
 
+	"github.com/fatih/color"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/out"
 	"github.com/gopasspw/gopass/pkg/store/secret"
@@ -15,7 +15,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/urfave/cli/v2"
 )
 
 func TestList(t *testing.T) {
@@ -24,6 +23,7 @@ func TestList(t *testing.T) {
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
+
 	act, err := newMock(ctx, u)
 	require.NoError(t, err)
 	require.NotNil(t, act)
@@ -35,13 +35,9 @@ func TestList(t *testing.T) {
 		stdout = os.Stdout
 		out.Stdout = os.Stdout
 	}()
+	color.NoColor = true
 
-	app := cli.NewApp()
-	fs := flag.NewFlagSet("default", flag.ContinueOnError)
-	c := cli.NewContext(app, fs, nil)
-	c.Context = ctx
-
-	assert.NoError(t, act.List(c))
+	assert.NoError(t, act.List(clictx(ctx, t)))
 	want := `gopass
 └── foo
 
@@ -53,12 +49,7 @@ func TestList(t *testing.T) {
 	assert.NoError(t, act.Store.Set(ctx, "foo/bar", secret.New("123", "---\nbar: zab")))
 	buf.Reset()
 
-	fs = flag.NewFlagSet("default", flag.ContinueOnError)
-	assert.NoError(t, fs.Parse([]string{"foo"}))
-	c = cli.NewContext(app, fs, nil)
-	c.Context = ctx
-
-	assert.NoError(t, act.List(c))
+	assert.NoError(t, act.List(clictx(ctx, t, "foo")))
 	want = `foo
 └── bar
 
@@ -67,17 +58,7 @@ func TestList(t *testing.T) {
 	buf.Reset()
 
 	// list --flat foo
-	fs = flag.NewFlagSet("default", flag.ContinueOnError)
-	bf := cli.BoolFlag{
-		Name:  "flat",
-		Usage: "flat",
-	}
-	assert.NoError(t, bf.Apply(fs))
-	assert.NoError(t, fs.Parse([]string{"--flat=true", "foo"}))
-	c = cli.NewContext(app, fs, nil)
-	c.Context = ctx
-
-	assert.NoError(t, act.List(c))
+	assert.NoError(t, act.List(clictxf(ctx, t, map[string]string{"flat": "true"}, "foo")))
 	want = `foo/bar
 `
 	assert.Equal(t, want, buf.String())
@@ -90,17 +71,7 @@ func TestList(t *testing.T) {
 	assert.NoError(t, act.Store.Set(ctx, "foo2/bar2", secret.New("123", "")))
 	buf.Reset()
 
-	fs = flag.NewFlagSet("default", flag.ContinueOnError)
-	bf = cli.BoolFlag{
-		Name:  "folders",
-		Usage: "folders",
-	}
-	assert.NoError(t, bf.Apply(fs))
-	assert.NoError(t, fs.Parse([]string{"--folders=true"}))
-	c = cli.NewContext(app, fs, nil)
-	c.Context = ctx
-
-	assert.NoError(t, act.List(c))
+	assert.NoError(t, act.List(clictxf(ctx, t, map[string]string{"folders": "true"})))
 	want = `foo
 foo/zen
 foo2
@@ -109,12 +80,7 @@ foo2
 	buf.Reset()
 
 	// list not-present
-	fs = flag.NewFlagSet("default", flag.ContinueOnError)
-	assert.NoError(t, fs.Parse([]string{"not-present"}))
-	c = cli.NewContext(app, fs, nil)
-	c.Context = ctx
-
-	assert.Error(t, act.List(c))
+	assert.Error(t, act.List(clictx(ctx, t, "not-present")))
 	buf.Reset()
 }
 

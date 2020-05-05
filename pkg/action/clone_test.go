@@ -3,7 +3,6 @@ package action
 import (
 	"bytes"
 	"context"
-	"flag"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -19,19 +18,23 @@ import (
 	"github.com/blang/semver"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/urfave/cli/v2"
 )
 
+// aGitRepo creates and initializes a small git repo
 func aGitRepo(ctx context.Context, u *gptest.Unit, t *testing.T, name string) string {
 	gd := filepath.Join(u.Dir, name)
 	assert.NoError(t, os.MkdirAll(gd, 0700))
+
 	_, err := git.Open(gd, "")
 	assert.Error(t, err)
+
 	idf := filepath.Join(gd, ".gpg-id")
 	assert.NoError(t, ioutil.WriteFile(idf, []byte("0xDEADBEEF"), 0600))
+
 	gr, err := git.Init(ctx, gd, "Nobody", "foo.bar@example.org")
 	assert.NoError(t, err)
 	assert.NotNil(t, gr)
+
 	return gd
 }
 
@@ -48,20 +51,18 @@ func TestClone(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, act)
 
-	app := cli.NewApp()
-	fs := flag.NewFlagSet("default", flag.ContinueOnError)
-	c := cli.NewContext(app, fs, nil)
-	c.Context = ctx
-
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
+	out.Stderr = buf
 	stdout = buf
 	defer func() {
 		out.Stdout = os.Stdout
+		out.Stderr = os.Stderr
 		stdout = os.Stdout
 	}()
 
 	// no args
+	c := clictx(ctx, t)
 	assert.Error(t, act.Clone(c))
 
 	// clone to initialized store
@@ -76,12 +77,19 @@ func TestCloneBackendIsStoredForMount(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 	defer u.Remove()
 
-	ctx := context.Background()
+	buf := &bytes.Buffer{}
+	out.Stdout = buf
+	out.Stderr = buf
+	stdout = buf
+	defer func() {
+		out.Stdout = os.Stdout
+		out.Stderr = os.Stderr
+		stdout = os.Stdout
+	}()
 
-	app := cli.NewApp()
-	fs := flag.NewFlagSet("default", flag.ContinueOnError)
-	c := cli.NewContext(app, fs, nil)
-	c.Context = ctx
+	ctx := context.Background()
+	ctx = ctxutil.WithAlwaysYes(ctx, true)
+	ctx = ctxutil.WithInteractive(ctx, false)
 
 	cfg := config.Load()
 	cfg.Root.Path = backend.FromPath(u.StoreDir(""))
@@ -89,15 +97,13 @@ func TestCloneBackendIsStoredForMount(t *testing.T) {
 	act, err := newAction(ctx, cfg, semver.Version{})
 	require.NoError(t, err)
 	require.NotNil(t, act)
+
+	c := clictx(ctx, t)
 	require.NoError(t, act.Initialized(c))
 
 	repo := aGitRepo(ctx, u, t, "my-project")
 
-	fs = flag.NewFlagSet("default", flag.ContinueOnError)
-	assert.NoError(t, fs.Parse([]string{repo, "the-project"}))
-	c = cli.NewContext(app, fs, nil)
-	c.Context = ctx
-
+	c = clictx(ctx, t, repo, "the-project")
 	assert.NoError(t, act.Clone(c))
 
 	require.NotNil(t, act.cfg.Mounts["the-project"])

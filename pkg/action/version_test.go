@@ -3,7 +3,6 @@ package action
 import (
 	"bytes"
 	"context"
-	"flag"
 	"os"
 	"testing"
 
@@ -29,11 +28,6 @@ func TestVersion(t *testing.T) {
 	act, err := newMock(ctx, u)
 	require.NoError(t, err)
 
-	app := cli.NewApp()
-	fs := flag.NewFlagSet("default", flag.ContinueOnError)
-	c := cli.NewContext(app, fs, nil)
-	c.Context = ctx
-
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
 	stdout = buf
@@ -46,5 +40,5 @@ func TestVersion(t *testing.T) {
 		out.Print(ctx, "gopass version 0.0.0-test")
 	}
 
-	assert.NoError(t, act.Version(c))
+	assert.NoError(t, act.Version(clictx(ctx, t)))
 }

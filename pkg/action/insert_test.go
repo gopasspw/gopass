@@ -3,7 +3,6 @@ package action
 import (
 	"bytes"
 	"context"
-	"flag"
 	"os"
 	"testing"
 
@@ -14,7 +13,6 @@ import (
 	"github.com/fatih/color"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/urfave/cli/v2"
 )
 
 func TestInsert(t *testing.T) {
@@ -36,45 +34,23 @@ func TestInsert(t *testing.T) {
 		out.Stdout = os.Stdout
 	}()
 
-	app := cli.NewApp()
-
 	// insert bar
-	fs := flag.NewFlagSet("default", flag.ContinueOnError)
-	assert.NoError(t, fs.Parse([]string{"bar"}))
-	c := cli.NewContext(app, fs, nil)
-	c.Context = ctx
-
-	assert.NoError(t, act.Insert(c))
+	assert.NoError(t, act.Insert(clictx(ctx, t, "bar")))
 
 	// insert bar baz
-	fs = flag.NewFlagSet("default", flag.ContinueOnError)
-	assert.NoError(t, fs.Parse([]string{"bar", "baz"}))
-	c = cli.NewContext(app, fs, nil)
-	c.Context = ctx
-
-	assert.NoError(t, act.Insert(c))
+	assert.NoError(t, act.Insert(clictx(ctx, t, "bar", "baz")))
 
 	// insert baz via stdin
 	assert.NoError(t, act.insertStdin(ctx, "baz", []byte("foobar"), false))
 	buf.Reset()
 
-	assert.NoError(t, act.show(ctx, c, "baz", false))
+	assert.NoError(t, act.show(ctx, clictx(ctx, t), "baz", false))
 	assert.Equal(t, "foobar", buf.String())
 	buf.Reset()
 
 	// insert zab#key
 	assert.NoError(t, act.insertYAML(ctx, "zab", "key", []byte("foobar"), nil))
 
-	// insert --multiline foo
-	fs = flag.NewFlagSet("default", flag.ContinueOnError)
-	bf := cli.BoolFlag{
-		Name:  "multiline",
-		Usage: "multiline",
-	}
-	assert.NoError(t, bf.Apply(fs))
-	assert.NoError(t, fs.Parse([]string{"--multiline=true", "bar", "baz"}))
-	c = cli.NewContext(app, fs, nil)
-	c.Context = ctx
-
-	assert.NoError(t, act.Insert(c))
+	// insert --multiline bar baz
+	assert.NoError(t, act.Insert(clictxf(ctx, t, map[string]string{"multiline": "true"}, "bar", "baz")))
 }

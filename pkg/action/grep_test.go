@@ -3,7 +3,6 @@ package action
 import (
 	"bytes"
 	"context"
-	"flag"
 	"os"
 	"testing"
 
@@ -14,7 +13,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/urfave/cli/v2"
 )
 
 func TestGrep(t *testing.T) {
@@ -33,12 +31,7 @@ func TestGrep(t *testing.T) {
 		out.Stdout = os.Stdout
 	}()
 
-	app := cli.NewApp()
-	fs := flag.NewFlagSet("default", flag.ContinueOnError)
-	assert.NoError(t, fs.Parse([]string{"foo"}))
-	c := cli.NewContext(app, fs, nil)
-	c.Context = ctx
-
+	c := clictx(ctx, t, "foo")
 	assert.Error(t, act.Grep(c))
 	buf.Reset()
 

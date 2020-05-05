@@ -9,6 +9,10 @@ import (
 )
 
 func TestGPG(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
+	}
+
 	ctx := context.Background()
 
 	var err error

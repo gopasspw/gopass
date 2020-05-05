@@ -39,7 +39,10 @@ func showParseArgs(c *cli.Context) context.Context {
 	if c.IsSet("revision") {
 		ctx = WithRevision(ctx, c.String("revision"))
 	}
-	ctx = WithClip(ctx, IsOnlyClip(ctx) || c.Bool("alsoclip"))
+	if c.IsSet("alsoclip") {
+		ctx = WithAlsoClip(ctx, c.Bool("alsoclip"))
+	}
+	ctx = WithClip(ctx, IsOnlyClip(ctx) || IsAlsoClip(ctx))
 	return ctx
 }
 
@@ -158,12 +161,15 @@ func (s *Action) showGetContent(ctx context.Context, name string, sec store.Secr
 	if IsPasswordOnly(ctx) {
 		return sec.Password(), sec.Password(), nil
 	}
-	if ctxutil.IsAutoClip(ctx) && !ctxutil.IsForce(ctx) {
+	if ctxutil.IsAutoClip(ctx) && !ctxutil.IsForce(ctx) && !IsAlsoClip(ctx) {
 		return sec.Password(), "", nil
 	}
 
 	// everything but the first line
 	if ctxutil.IsShowSafeContent(ctx) && !ctxutil.IsForce(ctx) {
+		if IsAlsoClip(ctx) {
+			return sec.Password(), sec.Body(), nil
+		}
 		return "", sec.Body(), nil
 	}
 

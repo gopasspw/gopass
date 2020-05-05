@@ -59,17 +59,21 @@ func TestParseArgs(t *testing.T) {
 			kvOut:  map[string]string{"baz": "bam"},
 		},
 	} {
-		if tc.argOut == nil {
-			tc.argOut = argList{}
-		}
-		if tc.kvOut == nil {
-			tc.kvOut = map[string]string{}
-		}
-		app := cli.NewApp()
-		fs := flag.NewFlagSet("default", flag.ContinueOnError)
-		assert.NoError(t, fs.Parse(tc.argIn), tc.name)
-		args, kvps := parseArgs(cli.NewContext(app, fs, nil))
-		assert.Equal(t, tc.argOut, args, tc.name)
-		assert.Equal(t, tc.kvOut, kvps, tc.name)
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			if tc.argOut == nil {
+				tc.argOut = argList{}
+			}
+			if tc.kvOut == nil {
+				tc.kvOut = map[string]string{}
+			}
+			app := cli.NewApp()
+			fs := flag.NewFlagSet("default", flag.ContinueOnError)
+			assert.NoError(t, fs.Parse(tc.argIn), tc.name)
+			args, kvps := parseArgs(cli.NewContext(app, fs, nil))
+			assert.Equal(t, tc.argOut, args, tc.name)
+			assert.Equal(t, tc.kvOut, kvps, tc.name)
+		})
 	}
 }

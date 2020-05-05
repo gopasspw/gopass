@@ -13,10 +13,10 @@ import (
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/out"
 	"github.com/gopasspw/gopass/tests/gptest"
+	"github.com/urfave/cli/v2"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/urfave/cli/v2"
 )
 
 func TestGenerate(t *testing.T) {
@@ -33,242 +33,105 @@ func TestGenerate(t *testing.T) {
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
+	out.Stderr = buf
 	defer func() {
 		out.Stdout = os.Stdout
+		out.Stderr = os.Stderr
 	}()
 	color.NoColor = true
 
-	app := cli.NewApp()
-
 	// generate
-	fs := flag.NewFlagSet("default", flag.ContinueOnError)
-	c := cli.NewContext(app, fs, nil)
-	c.Context = ctx
-
-	assert.Error(t, act.Generate(c))
-	buf.Reset()
+	t.Run("generate", func(t *testing.T) {
+		assert.Error(t, act.Generate(clictx(ctx, t)))
+		buf.Reset()
+	})
 
 	// generate foobar
-	fs = flag.NewFlagSet("default", flag.ContinueOnError)
-	assert.NoError(t, fs.Parse([]string{"foobar"}))
-	c = cli.NewContext(app, fs, nil)
-	c.Context = ctx
+	t.Run("generate foobar", func(t *testing.T) {
+		if testing.Short() {
+			t.Skip("skipping test in short mode.")
+		}
 
-	assert.NoError(t, act.Generate(c))
-	buf.Reset()
+		assert.NoError(t, act.Generate(clictx(ctx, t, "foobar")))
+		buf.Reset()
+	})
 
 	// generate foobar
 	// should succeed because of always yes
-	assert.NoError(t, act.Generate(c))
-	buf.Reset()
+	t.Run("generate foobar again", func(t *testing.T) {
+		if testing.Short() {
+			t.Skip("skipping test in short mode.")
+		}
+
+		assert.NoError(t, act.Generate(clictx(ctx, t, "foobar")))
+		buf.Reset()
+	})
 
 	// generate --force foobar
-	fs = flag.NewFlagSet("default", flag.ContinueOnError)
-	bf := cli.BoolFlag{
-		Name:  "force",
-		Usage: "force",
-	}
-	assert.NoError(t, bf.Apply(fs))
-	assert.NoError(t, fs.Parse([]string{"--force=true", "foobar"}))
-	c = cli.NewContext(app, fs, nil)
-	c.Context = ctx
+	t.Run("generate --force foobar", func(t *testing.T) {
+		if testing.Short() {
+			t.Skip("skipping test in short mode.")
+		}
 
-	assert.NoError(t, act.Generate(c))
-	buf.Reset()
+		assert.NoError(t, act.Generate(clictxf(ctx, t, map[string]string{"force": "true"}, "foobar")))
+		buf.Reset()
+	})
 
 	// generate --force foobar 32
-	fs = flag.NewFlagSet("default", flag.ContinueOnError)
-	bf = cli.BoolFlag{
-		Name:  "force",
-		Usage: "force",
-	}
-	assert.NoError(t, bf.Apply(fs))
-	assert.NoError(t, fs.Parse([]string{"--force=true", "foobar", "32"}))
-	c = cli.NewContext(app, fs, nil)
-	c.Context = ctx
+	t.Run("generate --force foobar 32", func(t *testing.T) {
+		if testing.Short() {
+			t.Skip("skipping test in short mode.")
+		}
 
-	assert.NoError(t, act.Generate(c))
-	buf.Reset()
+		assert.NoError(t, act.Generate(clictxf(ctx, t, map[string]string{"force": "true"}, "foobar", "32")))
+		buf.Reset()
+	})
 
 	// generate --force --symbols foobar 32
-	fs = flag.NewFlagSet("default", flag.ContinueOnError)
-	bf = cli.BoolFlag{
-		Name:  "force",
-		Usage: "force",
-	}
-	assert.NoError(t, bf.Apply(fs))
-	bf = cli.BoolFlag{
-		Name:  "symbols",
-		Usage: "symbols",
-	}
-	assert.NoError(t, bf.Apply(fs))
-	bf = cli.BoolFlag{
-		Name:  "print",
-		Usage: "print",
-	}
-	assert.NoError(t, bf.Apply(fs))
-	assert.NoError(t, fs.Parse([]string{"--force=true", "--print=true", "--symbols", "foobar", "32"}))
-	c = cli.NewContext(app, fs, nil)
-	c.Context = ctx
+	t.Run("generate --force --symbols foobar 32", func(t *testing.T) {
+		if testing.Short() {
+			t.Skip("skipping test in short mode.")
+		}
 
-	assert.NoError(t, act.Generate(c))
-	passIsAlphaNum(t, buf.String(), false)
-	buf.Reset()
-
-	// generate --force --symbols=true foobar 32
-	fs = flag.NewFlagSet("default", flag.ContinueOnError)
-	bf = cli.BoolFlag{
-		Name:  "force",
-		Usage: "force",
-	}
-	assert.NoError(t, bf.Apply(fs))
-	bf = cli.BoolFlag{
-		Name:  "symbols",
-		Usage: "symbols",
-	}
-	assert.NoError(t, bf.Apply(fs))
-	bf = cli.BoolFlag{
-		Name:  "print",
-		Usage: "print",
-	}
-	assert.NoError(t, bf.Apply(fs))
-	assert.NoError(t, fs.Parse([]string{"--force=true", "--print=true", "--symbols=true", "foobar", "32"}))
-	c = cli.NewContext(app, fs, nil)
-	c.Context = ctx
-
-	assert.NoError(t, act.Generate(c))
-	passIsAlphaNum(t, buf.String(), false)
-	buf.Reset()
+		assert.NoError(t, act.Generate(clictxf(ctx, t, map[string]string{"force": "true", "print": "true", "symbols": "true"}, "foobar", "32")))
+		passIsAlphaNum(t, buf.String(), false)
+		buf.Reset()
+	})
 
 	// generate --force --symbols=false foobar 32
-	fs = flag.NewFlagSet("default", flag.ContinueOnError)
-	bf = cli.BoolFlag{
-		Name:  "force",
-		Usage: "force",
-	}
-	assert.NoError(t, bf.Apply(fs))
-	bf = cli.BoolFlag{
-		Name:  "symbols",
-		Usage: "symbols",
-	}
-	assert.NoError(t, bf.Apply(fs))
-	bf = cli.BoolFlag{
-		Name:  "print",
-		Usage: "print",
-	}
-	assert.NoError(t, bf.Apply(fs))
-	assert.NoError(t, fs.Parse([]string{"--force=true", "--print=true", "--symbols=false", "foobar", "32"}))
-	c = cli.NewContext(app, fs, nil)
-	c.Context = ctx
+	t.Run("generate --force --symbols=False foobar 32", func(t *testing.T) {
+		if testing.Short() {
+			t.Skip("skipping test in short mode.")
+		}
 
-	assert.NoError(t, act.Generate(c))
-	passIsAlphaNum(t, buf.String(), true)
-	buf.Reset()
+		assert.NoError(t, act.Generate(clictxf(ctx, t, map[string]string{"force": "true", "print": "true", "symbols": "false"}, "foobar", "32")))
+		passIsAlphaNum(t, buf.String(), true)
+		buf.Reset()
+	})
 
 	// generate --force --xkcd foobar 32
-	fs = flag.NewFlagSet("default", flag.ContinueOnError)
-	bf = cli.BoolFlag{
-		Name:  "force",
-		Usage: "force",
-	}
-	assert.NoError(t, bf.Apply(fs))
-	bf = cli.BoolFlag{
-		Name:  "xkcd",
-		Usage: "xkcd",
-	}
-	assert.NoError(t, bf.Apply(fs))
-	sf := cli.StringFlag{
-		Name:  "xkcdlang",
-		Usage: "xkcdlange",
-		Value: "en",
-	}
-	assert.NoError(t, sf.Apply(fs))
-	assert.NoError(t, fs.Parse([]string{"--force=true", "--xkcd=true", "foobar", "32"}))
-	c = cli.NewContext(app, fs, nil)
-	c.Context = ctx
-
-	assert.NoError(t, act.Generate(c))
-	buf.Reset()
+	t.Run("generate --force --xkcd foobar 32", func(t *testing.T) {
+		assert.NoError(t, act.Generate(clictxf(ctx, t, map[string]string{"force": "true", "xkcd": "true", "xkcdlang": "en"}, "foobar", "32")))
+		buf.Reset()
+	})
 
 	// generate --force --xkcd foobar baz 32
-	fs = flag.NewFlagSet("default", flag.ContinueOnError)
-	bf = cli.BoolFlag{
-		Name:  "force",
-		Usage: "force",
-	}
-	assert.NoError(t, bf.Apply(fs))
-	bf = cli.BoolFlag{
-		Name:  "xkcd",
-		Usage: "xkcd",
-	}
-	assert.NoError(t, bf.Apply(fs))
-	sf = cli.StringFlag{
-		Name:  "xkcdlang",
-		Usage: "xkcdlange",
-		Value: "en",
-	}
-	assert.NoError(t, sf.Apply(fs))
-	assert.NoError(t, fs.Parse([]string{"--force=true", "--xkcd=true", "foobar", "baz", "32"}))
-	c = cli.NewContext(app, fs, nil)
-	c.Context = ctx
-
-	assert.NoError(t, act.Generate(c))
-	buf.Reset()
+	t.Run("generate --force --xkcd foobar baz 32", func(t *testing.T) {
+		assert.NoError(t, act.Generate(clictxf(ctx, t, map[string]string{"force": "true", "xkcd": "true", "xkcdlang": "en"}, "foobar", "baz", "32")))
+		buf.Reset()
+	})
 
 	// generate --force --xkcd foobar baz
-	fs = flag.NewFlagSet("default", flag.ContinueOnError)
-	bf = cli.BoolFlag{
-		Name:  "force",
-		Usage: "force",
-	}
-	assert.NoError(t, bf.Apply(fs))
-	bf = cli.BoolFlag{
-		Name:  "xkcd",
-		Usage: "xkcd",
-	}
-	assert.NoError(t, bf.Apply(fs))
-	sf = cli.StringFlag{
-		Name:  "xkcdlang",
-		Usage: "xkcdlange",
-		Value: "en",
-	}
-	assert.NoError(t, sf.Apply(fs))
-	assert.NoError(t, fs.Parse([]string{"--force=true", "--xkcd=true", "foobar", "baz"}))
-	c = cli.NewContext(app, fs, nil)
-	c.Context = ctx
-
-	assert.NoError(t, act.Generate(c))
-	buf.Reset()
+	t.Run("generate --force --xkcd foobar baz", func(t *testing.T) {
+		assert.NoError(t, act.Generate(clictxf(ctx, t, map[string]string{"force": "true", "xkcd": "true", "xkcdlang": "en"}, "foobar", "baz")))
+		buf.Reset()
+	})
 
 	// generate --force --xkcd --print foobar baz
-	fs = flag.NewFlagSet("default", flag.ContinueOnError)
-	bf = cli.BoolFlag{
-		Name:  "force",
-		Usage: "force",
-	}
-	assert.NoError(t, bf.Apply(fs))
-	bf = cli.BoolFlag{
-		Name:  "xkcd",
-		Usage: "xkcd",
-	}
-	assert.NoError(t, bf.Apply(fs))
-	bf = cli.BoolFlag{
-		Name:  "print",
-		Usage: "print",
-	}
-	assert.NoError(t, bf.Apply(fs))
-	sf = cli.StringFlag{
-		Name:  "xkcdlang",
-		Usage: "xkcdlange",
-		Value: "en",
-	}
-	assert.NoError(t, sf.Apply(fs))
-	assert.NoError(t, fs.Parse([]string{"--force=true", "--print=true", "--xkcd=true", "foobar", "baz"}))
-	c = cli.NewContext(app, fs, nil)
-	c.Context = ctx
-
-	assert.NoError(t, act.Generate(c))
-	buf.Reset()
+	t.Run("generate --force --xkcd --print foobar baz", func(t *testing.T) {
+		assert.NoError(t, act.Generate(clictxf(ctx, t, map[string]string{"force": "true", "xkcd": "true", "print": "true", "xkcdlang": "en"}, "foobar", "baz")))
+		buf.Reset()
+	})
 }
 
 func passIsAlphaNum(t *testing.T, buf string, want bool) {

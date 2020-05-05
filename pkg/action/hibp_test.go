@@ -114,6 +114,10 @@ func testWriteGZ(fn string, buf []byte) error {
 }
 
 func TestHIBPAPI(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
+	}
+
 	u := gptest.NewUnitTester(t)
 	defer u.Remove()
 
@@ -130,16 +134,7 @@ func TestHIBPAPI(t *testing.T) {
 		out.Stdout = os.Stdout
 	}()
 
-	app := cli.NewApp()
-	fs := flag.NewFlagSet("default", flag.ContinueOnError)
-	bf := cli.BoolFlag{
-		Name:  "api",
-		Usage: "api",
-	}
-	assert.NoError(t, bf.Apply(fs))
-	assert.NoError(t, fs.Parse([]string{"--api=true"}))
-	c := cli.NewContext(app, fs, nil)
-	c.Context = ctx
+	c := clictxf(ctx, t, map[string]string{"api": "true"})
 
 	reqCnt := 0
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
