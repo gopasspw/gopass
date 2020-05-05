@@ -80,3 +80,44 @@ func TestNew(t *testing.T) {
 	_, err = New(ctx, cfg, sv)
 	assert.NoError(t, err)
 }
+
+func clictx(ctx context.Context, t *testing.T, args ...string) *cli.Context {
+	return clictxf(ctx, t, nil, args...)
+}
+
+func clictxf(ctx context.Context, t *testing.T, flags map[string]string, args ...string) *cli.Context {
+	app := cli.NewApp()
+
+	fs := flagset(t, flags, args)
+	c := cli.NewContext(app, fs, nil)
+	c.Context = ctx
+
+	return c
+}
+
+func flagset(t *testing.T, flags map[string]string, args []string) *flag.FlagSet {
+	fs := flag.NewFlagSet("default", flag.ContinueOnError)
+	for k, v := range flags {
+		if v == "true" || v == "false" {
+			f := cli.BoolFlag{
+				Name:  k,
+				Usage: k,
+			}
+			assert.NoError(t, f.Apply(fs))
+		} else {
+			f := cli.StringFlag{
+				Name:  k,
+				Usage: k,
+			}
+			assert.NoError(t, f.Apply(fs))
+		}
+	}
+	argl := []string{}
+	for k, v := range flags {
+		argl = append(argl, "--"+k+"="+v)
+	}
+	argl = append(argl, args...)
+	assert.NoError(t, fs.Parse(argl))
+
+	return fs
+}

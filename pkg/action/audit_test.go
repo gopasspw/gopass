@@ -3,7 +3,6 @@ package action
 import (
 	"bytes"
 	"context"
-	"flag"
 	"os"
 	"testing"
 
@@ -12,9 +11,9 @@ import (
 	"github.com/gopasspw/gopass/pkg/store/secret"
 	"github.com/gopasspw/gopass/tests/gptest"
 
+	"github.com/muesli/goprogressbar"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/urfave/cli/v2"
 )
 
 func TestAudit(t *testing.T) {
@@ -28,30 +27,26 @@ func TestAudit(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, act)
 
-	assert.NoError(t, act.Store.Set(ctx, "bar", secret.New("123", "")))
-	assert.NoError(t, act.Store.Set(ctx, "baz", secret.New("123", "")))
-
-	app := cli.NewApp()
-	fs := flag.NewFlagSet("default", flag.ContinueOnError)
-	c := cli.NewContext(app, fs, nil)
-
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
 	stdout = buf
+	goprogressbar.Stdout = buf
 	defer func() {
 		out.Stdout = os.Stdout
 		stdout = os.Stdout
+		goprogressbar.Stdout = os.Stdout
 	}()
 
-	c.Context = ctx
+	// add some entries
+	assert.NoError(t, act.Store.Set(ctx, "bar", secret.New("123", "")))
+	assert.NoError(t, act.Store.Set(ctx, "baz", secret.New("123", "")))
+
+	c := clictx(ctx, t)
 	assert.Error(t, act.Audit(c))
 	buf.Reset()
 
 	// test with filter
-	fs = flag.NewFlagSet("default", flag.ContinueOnError)
-	assert.NoError(t, fs.Parse([]string{"foo"}))
-	c = cli.NewContext(app, fs, nil)
-	c.Context = ctx
+	c = clictx(ctx, t, "foo")
 	assert.Error(t, act.Audit(c))
 	buf.Reset()
 }

@@ -3,7 +3,6 @@ package action
 import (
 	"bytes"
 	"context"
-	"flag"
 	"os"
 	"path/filepath"
 	"testing"
@@ -16,7 +15,6 @@ import (
 	"github.com/gokyle/twofactor"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/urfave/cli/v2"
 )
 
 func TestOTP(t *testing.T) {
@@ -35,45 +33,23 @@ func TestOTP(t *testing.T) {
 		out.Stdout = os.Stdout
 	}()
 
-	app := cli.NewApp()
-
 	// display non-otp secret
-	fs := flag.NewFlagSet("default", flag.ContinueOnError)
-	assert.NoError(t, fs.Parse([]string{"foo"}))
-	c := cli.NewContext(app, fs, nil)
-	c.Context = ctx
-
-	assert.Error(t, act.OTP(c))
+	assert.Error(t, act.OTP(clictx(ctx, t, "foo")))
 	buf.Reset()
 
 	// create and display valid OTP
-	fs = flag.NewFlagSet("default", flag.ContinueOnError)
-	assert.NoError(t, fs.Parse([]string{"bar"}))
-	c = cli.NewContext(app, fs, nil)
-	c.Context = ctx
-
 	assert.NoError(t, act.Store.Set(ctx, "bar", secret.New("foo", twofactor.GenerateGoogleTOTP().URL("foo"))))
 
-	assert.NoError(t, act.OTP(c))
+	assert.NoError(t, act.OTP(clictx(ctx, t, "bar")))
 	buf.Reset()
 
 	// copy to clipboard
-	assert.NoError(t, act.otp(ctx, c, "bar", "", true, false, false))
+	assert.NoError(t, act.otp(ctx, clictx(ctx, t), "bar", "", true, false, false))
 	buf.Reset()
 
 	// write QR file
-	fs = flag.NewFlagSet("default", flag.ContinueOnError)
-	sf := cli.StringFlag{
-		Name:  "qr",
-		Usage: "qr",
-	}
-	assert.NoError(t, sf.Apply(fs))
 	fn := filepath.Join(u.Dir, "qr.png")
-	assert.NoError(t, fs.Parse([]string{"--qr=" + fn, "bar"}))
-	c = cli.NewContext(app, fs, nil)
-	c.Context = ctx
-
-	assert.NoError(t, act.OTP(c))
+	assert.NoError(t, act.OTP(clictxf(ctx, t, map[string]string{"qr": fn}, "bar")))
 	assert.FileExists(t, fn)
 	buf.Reset()
 }

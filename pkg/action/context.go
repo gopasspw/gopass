@@ -11,6 +11,7 @@ const (
 	ctxKeyRevision
 	ctxKeyKey
 	ctxKeyOnlyClip
+	ctxKeyAlsoClip
 )
 
 // WithClip returns a context with the value for clip (for copy to clipboard)
@@ -22,6 +23,21 @@ func WithClip(ctx context.Context, clip bool) context.Context {
 // IsClip returns the value of clip or the default (false)
 func IsClip(ctx context.Context) bool {
 	bv, ok := ctx.Value(ctxKeyClip).(bool)
+	if !ok {
+		return false
+	}
+	return bv
+}
+
+// WithAlsoClip returns a context with the value for alsoclip (copy to
+// clipboard and print to stdout) set.
+func WithAlsoClip(ctx context.Context, clip bool) context.Context {
+	return context.WithValue(ctx, ctxKeyAlsoClip, clip)
+}
+
+// IsAlsoClip returns the value for alsoclip of the dfeault (false).
+func IsAlsoClip(ctx context.Context) bool {
+	bv, ok := ctx.Value(ctxKeyAlsoClip).(bool)
 	if !ok {
 		return false
 	}

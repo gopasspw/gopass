@@ -198,6 +198,10 @@ sub:
 }
 
 func TestRespondMessageCreate(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
+	}
+
 	secrets := []storedSecret{
 		{[]string{"awesomePrefix", "overwrite", "me"}, secret.New("20", "")},
 	}

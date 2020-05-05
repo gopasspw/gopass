@@ -3,6 +3,7 @@ package xc
 import (
 	"bytes"
 	"compress/gzip"
+	"fmt"
 	"io"
 	"testing"
 
@@ -42,6 +43,10 @@ func TestCompressPlain(t *testing.T) {
 }
 
 func TestCompress(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
+	}
+
 	for _, pwg := range []func(n int) string{
 		func(n int) string { return pwgen.GeneratePasswordCharset(n+1, pwgen.CharAll) },
 		func(n int) string {
@@ -49,17 +54,21 @@ func TestCompress(t *testing.T) {
 			return pw
 		},
 	} {
-		for i := 256; i < 512; i++ {
-			pw := pwg(i)
-			compPlain, compressed := compress([]byte(pw))
-			decompPlain := []byte(pw)
-			if compressed {
-				var err error
-				decompPlain, err = decompress(compPlain)
-				assert.NoError(t, err)
+		pwg := pwg // capture range variable
+		t.Run(fmt.Sprintf("%p", pwg), func(t *testing.T) {
+			t.Parallel()
+			for i := 256; i < 512; i++ {
+				pw := pwg(i)
+				compPlain, compressed := compress([]byte(pw))
+				decompPlain := []byte(pw)
+				if compressed {
+					var err error
+					decompPlain, err = decompress(compPlain)
+					assert.NoError(t, err)
+				}
+				assert.True(t, len(compPlain) <= len([]byte(pw)))
+				assert.Equal(t, pw, string(decompPlain))
 			}
-			assert.True(t, len(compPlain) <= len([]byte(pw)))
-			assert.Equal(t, pw, string(decompPlain))
-		}
+		})
 	}
 }

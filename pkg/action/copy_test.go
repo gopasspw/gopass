@@ -3,7 +3,6 @@ package action
 import (
 	"bytes"
 	"context"
-	"flag"
 	"os"
 	"testing"
 
@@ -14,7 +13,6 @@ import (
 	"github.com/fatih/color"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/urfave/cli/v2"
 )
 
 func TestCopy(t *testing.T) {
@@ -24,6 +22,7 @@ func TestCopy(t *testing.T) {
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithAutoClip(ctx, false)
+
 	act, err := newMock(ctx, u)
 	require.NoError(t, err)
 	require.NotNil(t, act)
@@ -35,14 +34,8 @@ func TestCopy(t *testing.T) {
 		out.Stdout = os.Stdout
 	}()
 
-	app := cli.NewApp()
-
 	// copy foo bar
-	fs := flag.NewFlagSet("default", flag.ContinueOnError)
-	assert.NoError(t, fs.Parse([]string{"foo", "bar"}))
-	c := cli.NewContext(app, fs, nil)
-	c.Context = ctx
-
+	c := clictx(ctx, t, "foo", "bar")
 	assert.NoError(t, act.Copy(c))
 	buf.Reset()
 
@@ -56,19 +49,12 @@ func TestCopy(t *testing.T) {
 	}
 
 	// copy not-found still-not-there
-	fs = flag.NewFlagSet("default", flag.ContinueOnError)
-	assert.NoError(t, fs.Parse([]string{"not-found", "still-not-there"}))
-	c = cli.NewContext(app, fs, nil)
-	c.Context = ctx
-
+	c = clictx(ctx, t, "not-found", "still-not-there")
 	assert.Error(t, act.Copy(c))
 	buf.Reset()
 
 	// copy
-	fs = flag.NewFlagSet("default", flag.ContinueOnError)
-	c = cli.NewContext(app, fs, nil)
-	c.Context = ctx
-
+	c = clictx(ctx, t)
 	assert.Error(t, act.Copy(c))
 	buf.Reset()
 
@@ -77,11 +63,7 @@ func TestCopy(t *testing.T) {
 	assert.NoError(t, act.insertStdin(ctx, "bam/zab", []byte("barfoo"), false))
 
 	// recursive copy: bam/ -> zab
-	fs = flag.NewFlagSet("default", flag.ContinueOnError)
-	assert.NoError(t, fs.Parse([]string{"bam", "zab"}))
-	c = cli.NewContext(app, fs, nil)
-	c.Context = ctx
-
+	c = clictx(ctx, t, "bam", "zab")
 	assert.NoError(t, act.Copy(c))
 	buf.Reset()
 
