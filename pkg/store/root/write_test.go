@@ -25,4 +25,8 @@ func TestSet(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.NoError(t, rs.Set(ctx, "zab", secret.New("foo", "bar")))
+
+	ctx, err = rs.SetContext(ctx, "zab2", secret.New("foo", "bar"))
+	assert.NoError(t, err)
+	assert.NotNil(t, ctx)
 }

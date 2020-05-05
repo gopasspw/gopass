@@ -41,12 +41,20 @@ func TestAudit(t *testing.T) {
 	assert.NoError(t, act.Store.Set(ctx, "bar", secret.New("123", "")))
 	assert.NoError(t, act.Store.Set(ctx, "baz", secret.New("123", "")))
 
-	c := clictx(ctx, t)
-	assert.Error(t, act.Audit(c))
+	assert.Error(t, act.Audit(clictx(ctx, t)))
 	buf.Reset()
 
 	// test with filter
-	c = clictx(ctx, t, "foo")
+	c := clictx(ctx, t, "foo")
 	assert.Error(t, act.Audit(c))
 	buf.Reset()
+
+	// test empty store
+	for _, v := range []string{"foo", "bar", "baz"} {
+		assert.NoError(t, act.Store.Delete(ctx, v))
+	}
+	assert.NoError(t, act.Audit(clictx(ctx, t)))
+	assert.Contains(t, "No secrets found", buf.String())
+	buf.Reset()
+
 }

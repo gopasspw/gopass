@@ -54,3 +54,56 @@ func TestInsert(t *testing.T) {
 	// insert --multiline bar baz
 	assert.NoError(t, act.Insert(clictxf(ctx, t, map[string]string{"multiline": "true"}, "bar", "baz")))
 }
+
+func TestInsertStdin(t *testing.T) {
+	u := gptest.NewUnitTester(t)
+	defer u.Remove()
+
+	ctx := context.Background()
+	ctx = ctxutil.WithAlwaysYes(ctx, true)
+	ctx = ctxutil.WithTerminal(ctx, false)
+	ctx = ctxutil.WithAutoClip(ctx, false)
+	ctx = ctxutil.WithStdin(ctx, true)
+	act, err := newMock(ctx, u)
+	require.NoError(t, err)
+	require.NotNil(t, act)
+
+	buf := &bytes.Buffer{}
+	ibuf := &bytes.Buffer{}
+	out.Stdout = buf
+	stdin = ibuf
+	color.NoColor = true
+	defer func() {
+		out.Stdout = os.Stdout
+		stdin = os.Stdin
+	}()
+
+	ibuf.WriteString("foobar")
+	assert.Error(t, act.insert(ctx, clictx(ctx, t), "foo", "", false, false, false, false, nil))
+	ibuf.Reset()
+	buf.Reset()
+
+	// force
+	ibuf.WriteString("foobar")
+	assert.NoError(t, act.insert(ctx, clictx(ctx, t), "foo", "", false, false, true, false, nil))
+	ibuf.Reset()
+	buf.Reset()
+
+	// append
+	ibuf.WriteString("foobar")
+	assert.NoError(t, act.insert(ctx, clictx(ctx, t), "foo", "", false, false, false, true, nil))
+	ibuf.Reset()
+	buf.Reset()
+
+	// echo
+	ibuf.WriteString("foobar")
+	assert.NoError(t, act.insert(ctx, clictx(ctx, t), "bar", "", true, false, false, false, nil))
+	ibuf.Reset()
+	buf.Reset()
+
+	// multiline
+	ibuf.WriteString("foobar")
+	assert.NoError(t, act.insert(ctx, clictx(ctx, t), "baz", "", false, true, false, false, nil))
+	ibuf.Reset()
+	buf.Reset()
+}

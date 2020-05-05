@@ -47,6 +47,10 @@ func TestInit(t *testing.T) {
 	assert.Error(t, act.initCreatePrivateKey(ctx, crypto, "", "foo bar", "foo.bar@example.org"))
 	buf.Reset()
 
+	act.printRecipients(ctx, "")
+	assert.Contains(t, buf.String(), "0xDEADBEEF")
+	buf.Reset()
+
 	// un-initialize the store
 	assert.NoError(t, os.Remove(filepath.Join(u.StoreDir(""), ".gpg-id")))
 	assert.Error(t, act.Initialized(c))

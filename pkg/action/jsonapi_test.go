@@ -33,4 +33,8 @@ func TestJSONAPI(t *testing.T) {
 
 	assert.NoError(t, act.JSONAPI(clictx(ctx, t)))
 	buf.Reset()
+
+	b, err := act.getBrowser(ctx, clictx(ctx, t))
+	assert.NoError(t, err)
+	assert.Equal(t, b, "chrome")
 }
