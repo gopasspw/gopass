@@ -42,6 +42,10 @@ func (s *Action) edit(ctx context.Context, c *cli.Context, name string) error {
 		return ExitError(ctx, ExitUnknown, err, "failed to invoke editor: %s", err)
 	}
 
+	return s.editUpdate(ctx, name, content, nContent, changed, ed)
+}
+
+func (s *Action) editUpdate(ctx context.Context, name string, content, nContent []byte, changed bool, ed string) error {
 	// If content is equal, nothing changed, exiting
 	if bytes.Equal(content, nContent) && !changed {
 		return nil

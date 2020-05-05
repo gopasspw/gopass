@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"os"
 
 	"github.com/gopasspw/gopass/pkg/audit"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -52,7 +51,7 @@ func (s *Action) insert(ctx context.Context, c *cli.Context, name, key string, e
 	if ctxutil.IsStdin(ctx) {
 		buf := &bytes.Buffer{}
 
-		if written, err := io.Copy(buf, os.Stdin); err != nil {
+		if written, err := io.Copy(buf, stdin); err != nil {
 			return ExitError(ctx, ExitIO, err, "failed to copy after %d bytes: %s", written, err)
 		}
 

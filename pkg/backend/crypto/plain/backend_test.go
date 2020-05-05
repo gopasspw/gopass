@@ -69,6 +69,7 @@ func TestPlain(t *testing.T) {
 	assert.Equal(t, "", m.EmailFromKey(ctx, ""))
 	assert.Equal(t, "", m.NameFromKey(ctx, ""))
 	assert.Equal(t, "", m.FormatKey(ctx, ""))
+	assert.Equal(t, "", m.Fingerprint(ctx, ""))
 	assert.Nil(t, m.Initialized(ctx))
 	assert.Equal(t, "plain", m.Name())
 	assert.Equal(t, "txt", m.Ext())
@@ -76,6 +77,14 @@ func TestPlain(t *testing.T) {
 	names, err := m.ReadNamesFromKey(ctx, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, []string{"unsupported"}, names)
+}
+
+func TestLoader(t *testing.T) {
+	l := &loader{}
+	b, err := l.New(context.Background())
+	assert.NoError(t, err)
+	assert.Equal(t, name, l.String())
+	assert.Equal(t, "plain", b.Name())
 }
 
 func TestSignVerify(t *testing.T) {

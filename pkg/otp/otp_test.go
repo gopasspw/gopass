@@ -3,8 +3,12 @@ package otp
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 	"testing"
 
+	"github.com/gokyle/twofactor"
 	"github.com/gopasspw/gopass/pkg/store/secret"
 	"github.com/stretchr/testify/assert"
 )
@@ -31,4 +35,17 @@ func TestCalculate(t *testing.T) {
 		assert.Nil(t, err)
 		assert.NotNil(t, otp)
 	}
+}
+
+func TestWrite(t *testing.T) {
+	td, err := ioutil.TempDir("", "gopass-")
+	assert.NoError(t, err)
+	defer func() {
+		os.RemoveAll(td)
+	}()
+	tf := filepath.Join(td, "qr.png")
+
+	otp, label, err := twofactor.FromURL(totpURL)
+	assert.NoError(t, err)
+	assert.NoError(t, WriteQRFile(context.Background(), otp, label, tf))
 }
