@@ -16,6 +16,8 @@ const (
 	GPGCLI
 	// XC is an experimental crypto backend
 	XC
+	// Age - age-encryption.org
+	Age
 )
 
 func (c CryptoBackend) String() string {
