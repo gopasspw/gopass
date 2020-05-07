@@ -162,27 +162,6 @@ do anything about it.
 
 When installing on Ubuntu or Debian you can either download the `deb` package and install manually or use our repository.
 
-#### Using the gopass repository
-
-First you need to add our archive signing key and add the package source.
-
-```bash
-wget -q -O- https://api.bintray.com/orgs/gopasspw/keys/gpg/public.key | sudo apt-key add -
-echo "deb https://dl.bintray.com/gopasspw/gopass buster main" | sudo tee /etc/apt/sources.list.d/gopass.list
-```
-
-The fingerprint of the repository key `4096R/81C083D4` is `C396 F836 273B 06BD C4A5  7334 22C4 6056 81C0 83D4`.
-
-Now you can update your package lists and install using `apt-get`:
-
-```bash
-sudo apt-get update
-sudo apt-get install gopass
-```
-
-Update for `gopass` will now be pulled in with the usual `apt-get update` and
-`apt-get upgrade` steps.
-
 #### Manual download
 
 First, find the latest .deb release from the repository [releases page](https://github.com/gopasspw/gopass/releases). Then, download and install it:
