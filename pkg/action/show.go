@@ -128,7 +128,7 @@ func (s *Action) showHandleOutput(ctx context.Context, name string, sec store.Se
 		return s.showPrintQR(ctx, name, pw)
 	}
 
-	if IsClip(ctx) && pw != "" {
+	if IsClip(ctx) && pw != "" && !ctxutil.IsForce(ctx) {
 		if err := clipboard.CopyTo(ctx, name, []byte(pw)); err != nil {
 			return err
 		}

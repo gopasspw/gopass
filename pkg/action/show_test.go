@@ -152,11 +152,11 @@ func TestShowAutoClip(t *testing.T) {
 	})
 
 	// gopass show -f foo
-	// -> Copy to clipboard AND print
+	// -> ONLY print
 	t.Run("gopass show -f foo", func(t *testing.T) {
 		c := clictxf(ctx, t, map[string]string{"force": "true"}, "foo")
 		assert.NoError(t, act.Show(c))
-		assert.Contains(t, buf.String(), "WARNING")
+		assert.NotContains(t, buf.String(), "WARNING")
 		assert.Contains(t, buf.String(), "secret")
 		assert.Contains(t, buf.String(), "second")
 		buf.Reset()
@@ -196,7 +196,7 @@ func TestShowAutoClip(t *testing.T) {
 	})
 
 	// gopass show -f foo
-	// -> Copy to clipboard AND print
+	// -> ONLY Print
 	t.Run("gopass show -f foo", func(t *testing.T) {
 		c := clictxf(ctx, t, map[string]string{"force": "true"}, "foo")
 		assert.NoError(t, act.Show(c))
