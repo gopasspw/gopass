@@ -42,7 +42,7 @@ func (s *Action) TemplatesPrint(c *cli.Context) error {
 	if err != nil {
 		return ExitError(ctx, ExitList, err, "failed to list templates: %s", err)
 	}
-	fmt.Fprintln(stdout, tree.Format(0))
+	fmt.Fprintln(stdout, tree.Format(-1))
 	return nil
 }
 

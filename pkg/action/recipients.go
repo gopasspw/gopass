@@ -44,7 +44,7 @@ func (s *Action) RecipientsPrint(c *cli.Context) error {
 		return ExitError(ctx, ExitList, err, "failed to list recipients: %s", err)
 	}
 
-	fmt.Fprintln(stdout, tree.Format(0))
+	fmt.Fprintln(stdout, tree.Format(-1))
 	return nil
 }
 
