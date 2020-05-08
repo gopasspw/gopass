@@ -177,7 +177,7 @@ func (s *Action) GitCredentialStore(c *cli.Context) error {
 	path := "git/" + fsutil.CleanFilename(cred.Host) + "/" + fsutil.CleanFilename(cred.Username)
 	// This should never really be an issue because git automatically removes invalid credentials first
 	if s.Store.Exists(ctx, path) {
-		fmt.Fprintf(os.Stderr, ""+
+		out.Debug(ctx, ""+
 			"gopass: did not store \"%s\" because it already exists. "+
 			"If you want to overwrite it, delete it first by doing: "+
 			"\"gopass rm %s\"\n",
