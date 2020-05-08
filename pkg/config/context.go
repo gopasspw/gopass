@@ -16,6 +16,9 @@ func (c StoreConfig) WithContext(ctx context.Context) context.Context {
 	if !ctxutil.HasAutoClip(ctx) {
 		ctx = ctxutil.WithAutoClip(ctx, c.AutoClip)
 	}
+	if !ctxutil.HasAutoPrint(ctx) {
+		ctx = ctxutil.WithAutoPrint(ctx, c.AutoPrint)
+	}
 	if !c.AutoImport {
 		ctx = sub.WithImportFunc(ctx, nil)
 	}
@@ -31,20 +34,23 @@ func (c StoreConfig) WithContext(ctx context.Context) context.Context {
 	if !ctxutil.HasEditRecipients(ctx) {
 		ctx = ctxutil.WithEditRecipients(ctx, c.EditRecipients)
 	}
+	if !sub.HasExportKeys(ctx) {
+		ctx = sub.WithExportKeys(ctx, c.ExportKeys)
+	}
 	if !ctxutil.HasNoConfirm(ctx) {
 		ctx = ctxutil.WithNoConfirm(ctx, c.NoConfirm)
 	}
 	if !ctxutil.HasNoPager(ctx) {
 		ctx = ctxutil.WithNoPager(ctx, c.NoPager)
 	}
+	if !ctxutil.HasNotifications(ctx) {
+		ctx = ctxutil.WithNotifications(ctx, c.Notifications)
+	}
 	if !ctxutil.HasShowSafeContent(ctx) {
 		ctx = ctxutil.WithShowSafeContent(ctx, c.SafeContent)
 	}
 	if !ctxutil.HasUseSymbols(ctx) {
 		ctx = ctxutil.WithUseSymbols(ctx, c.UseSymbols)
-	}
-	if !sub.HasExportKeys(ctx) {
-		ctx = sub.WithExportKeys(ctx, c.ExportKeys)
 	}
 	return ctx
 }
