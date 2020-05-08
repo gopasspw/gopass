@@ -13,8 +13,8 @@ Some configuration options are only available through setting environment variab
 | `GOPASS_EXTERNAL_PWGEN` | `string` | Use an external password generator. See [Features](features.md#using-custom-password-generators) for details |
 | `GOPASS_NOCOLOR`        | `bool`   | Set to true to disable colored output                                                                        |
 | `GOPASS_CHARACTER_SET`  | `bool`   | Set to any non-empty value to restrict the characters used in generated passwords                            |
-| `GOPASS_CONFIG`         | `string` | Set this to the absolute path to the configuration file                                                     |
-| `GOPASS_HOMEDIR`        | `string` | Set this to the absolute path of the directory containing the `.config/` tree                               |
+| `GOPASS_CONFIG`         | `string` | Set this to the absolute path to the configuration file                                                      |
+| `GOPASS_HOMEDIR`        | `string` | Set this to the absolute path of the directory containing the `.config/` tree                                |
 | `GOPASS_FORCE_UPDATE`   | `bool`   | Set to any non-empty value to force an update (if available)                                                 |
 | `GOPASS_NO_NOTIFY`      | `bool`   | Set to any non-empty value to prevent notifications                                                          |
 
@@ -22,10 +22,10 @@ Variables not exclusively used by gopass
 
 | **Option**             | **Type** | **Description**                                                                                        |
 |------------------------|----------|--------------------------------------------------------------------------------------------------------|
-| `PASSWORD_STORE_DIR`   | `string` | absolute path containing the password store (a directory)                                              |
+| `PASSWORD_STORE_DIR`   | `string` | absolute path containing the password store (a directory). Only supported during initialization!       |
 | `PASSWORD_STORE_UMASK` | `string` | Set to any valid umask to mask bits of files created by gopass (GOPASS_UMASK has precedence over this) |
-| `EDITOR`               | `string` | command name to execute for editing password entries                                                  |
-| `PAGER`                | `string` | the pager program used for `gopass list`. See [Features](features.md#auto-pager) for details          |
+| `EDITOR`               | `string` | command name to execute for editing password entries                                                   |
+| `PAGER`                | `string` | the pager program used for `gopass list`. See [Features](features.md#auto-pager) for details           |
 | `GIT_AUTHOR_NAME`      | `string` | name of the author, used by the rcs backend to create a commit                                         |
 | `GIT_AUTHOR_EMAIL`     | `string` | email of the author, used by the rcs backend to create a commit                                        |
 

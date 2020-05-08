@@ -15,12 +15,6 @@ import (
 
 // Load will try to load the config from one of the default locations
 func Load() *Config {
-	// check PASSWORD_STORE_DIR first for compatiability
-	if psd := os.Getenv("PASSWORD_STORE_DIR"); psd != "" {
-		cfg := loadDefault()
-		cfg.readOnly = true
-		return cfg
-	}
 	for _, l := range configLocations() {
 		if debug {
 			fmt.Printf("[DEBUG] Trying to load config from %s\n", l)
@@ -132,11 +126,6 @@ func (c *Config) Save() error {
 		return err
 	}
 
-	// this is important to prevent temporary setting PASSWORD_STORE_DIR from overwriting the main gopass config.
-	if c.readOnly {
-		fmt.Printf("[DEBUG] No saving read only config\n")
-		return nil
-	}
 	buf, err := yaml.Marshal(c)
 	if err != nil {
 		return errors.Wrapf(err, "failed to marshal YAML")
