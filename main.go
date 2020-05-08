@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/signal"
 	"runtime"
+	"strings"
 	"time"
 
 	_ "github.com/gopasspw/gopass/pkg/backend/crypto"
@@ -109,8 +110,11 @@ func (e errorWriter) Write(p []byte) (int, error) {
 }
 
 func getVersion() semver.Version {
-	sv, err := semver.Parse(version)
+	sv, err := semver.Parse(strings.TrimPrefix(version, "v"))
 	if err == nil {
+		if commit != "" {
+			sv.Build = []string{commit}
+		}
 		return sv
 	}
 	return semver.Version{
