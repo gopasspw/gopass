@@ -12,6 +12,8 @@ import (
 	"os/exec"
 	"strconv"
 	"syscall"
+
+	"github.com/gopasspw/gopass/pkg/ctxutil"
 )
 
 // clear will spwan a copy of gopass that waits in a detached background
@@ -30,6 +32,9 @@ func clear(ctx context.Context, content []byte, timeout int) error {
 		Setpgid: true,
 	}
 	cmd.Env = append(os.Environ(), "GOPASS_UNCLIP_CHECKSUM="+hash)
+	if !ctxutil.IsNotifications(ctx) {
+		cmd.Env = append(cmd.Env, "GOPASS_NO_NOTIFY=true")
+	}
 	return cmd.Start()
 }
 
