@@ -38,6 +38,7 @@ func TestCreate(t *testing.T) {
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithClipTimeout(ctx, 1)
+	ctx = ctxutil.WithNotifications(ctx, false)
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
@@ -62,6 +63,7 @@ func TestCreateWebsite(t *testing.T) {
 	ctx := context.Background()
 	ctx = ctxutil.WithInteractive(ctx, true)
 	ctx = ctxutil.WithClipTimeout(ctx, 1)
+	ctx = ctxutil.WithNotifications(ctx, false)
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
@@ -120,6 +122,7 @@ func TestCreatePIN(t *testing.T) {
 
 	ctx := context.Background()
 	ctx = ctxutil.WithInteractive(ctx, true)
+	ctx = ctxutil.WithNotifications(ctx, false)
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
@@ -167,6 +170,7 @@ func TestCreateGeneric(t *testing.T) {
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithClipTimeout(ctx, 1)
+	ctx = ctxutil.WithNotifications(ctx, false)
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
@@ -206,12 +210,15 @@ func TestCreateAWS(t *testing.T) {
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithTerminal(ctx, false)
 	ctx = ctxutil.WithClipTimeout(ctx, 1)
+	ctx = ctxutil.WithNotifications(ctx, false)
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
+	out.Stderr = buf
 	termio.Stdout = buf
 	defer func() {
 		out.Stdout = os.Stdout
+		out.Stderr = os.Stderr
 		termio.Stdout = os.Stdout
 	}()
 
@@ -251,6 +258,7 @@ func TestCreateGCP(t *testing.T) {
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithClipTimeout(ctx, 1)
+	ctx = ctxutil.WithNotifications(ctx, false)
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
