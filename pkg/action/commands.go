@@ -259,6 +259,11 @@ func (s *Action) GetCommands() []*cli.Command {
 					Usage:   "Use symbols in the password",
 				},
 				&cli.BoolFlag{
+					Name:    "memorable",
+					Aliases: []string{"m"},
+					Usage:   "Generate a memorable password",
+				},
+				&cli.BoolFlag{
 					Name:  "strict",
 					Usage: "Require strict character class rules",
 				},
