@@ -84,7 +84,7 @@ func GeneratePasswordCharset(length int, chars string) string {
 // GeneratePasswordWithAllClasses tries to enforce a password which
 // contains all character classes instead of only enabling them.
 // This is especially useful for broken (corporate) password policies
-// that mandate the use of certain character classes for not good reason
+// that mandate the use of certain character classes for no good reason
 func GeneratePasswordWithAllClasses(length int) (string, error) {
 	pw := GeneratePasswordCharset(length, CharAll)
 	for i := 0; i < 100; i++ {
@@ -94,6 +94,21 @@ func GeneratePasswordWithAllClasses(length int) (string, error) {
 		pw = GeneratePasswordCharset(length, CharAll)
 	}
 	return "", errors.New("failed to generate matching password after 100 rounds")
+}
+
+// GenerateMemorablePassword will generate a memorable password
+// with a minimum length
+func GenerateMemorablePassword(minLength int, symbols bool) string {
+	var sb strings.Builder
+	for sb.Len() < minLength {
+		sb.WriteString(randomWord())
+		sb.WriteByte(digits[randomInteger(len(digits))])
+		if !symbols {
+			continue
+		}
+		sb.WriteByte(syms[randomInteger(len(syms))])
+	}
+	return sb.String()
 }
 
 func containsAllClasses(pw string, classes ...string) bool {
@@ -137,4 +152,8 @@ func randomInteger(max int) int {
 	}
 	fmt.Println("WARNING: No crypto/rand available. Falling back to PRNG")
 	return rand.Intn(max)
+}
+
+func randomWord() string {
+	return wordlist[randomInteger(len(wordlist))]
 }

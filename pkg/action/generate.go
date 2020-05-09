@@ -170,6 +170,9 @@ func (s *Action) generatePassword(ctx context.Context, c *cli.Context, length st
 	if c.Bool("strict") {
 		return pwgen.GeneratePasswordWithAllClasses(pwlen)
 	}
+	if c.Bool("memorable") {
+		return pwgen.GenerateMemorablePassword(pwlen, symbols), nil
+	}
 
 	return pwgen.GeneratePassword(pwlen, symbols), nil
 }
