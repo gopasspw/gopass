@@ -1,3 +1,16 @@
+## 1.9.1 / 2020-05-09
+
+* [BUGFIX] Do not copy to clipboard with -f
+* [BUGFIX] Encrypt parent directory if leaf node exists.
+* [BUGFIX] Fix -c and -C for default show action.
+* [BUGFIX] Hide git-credential store warning.
+* [BUGFIX] Honor notifications setting.
+* [BUGFIX] Simplify autoclip behavior
+* [DEPRECATION] Remove PASSWORD_STORE_DIR support
+* [ENHANCEMENT] Add exportkeys option.
+* [ENHANCEMENT] Add memorable password generator
+* [ENHANCEMENT] Add preliminary age encryption support.
+
 ## 1.9.0 / 2020-05-01
 
 * [ENHANCEMENT] Proper windows support [#1295]
