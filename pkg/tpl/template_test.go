@@ -74,6 +74,12 @@ func TestVars(t *testing.T) {
 			Output:   "barfoo\n---\nbarkey: barvalue\n",
 		},
 		{
+			Template: `{{getpw "testdir"}}`,
+			Name:     "testdir",
+			Content:  []byte("foobar"),
+			Output:   "barfoo",
+		},
+		{
 			Template: `{{getval "testdir" "barkey"}}`,
 			Name:     "testdir",
 			Content:  []byte("foobar"),
@@ -93,15 +99,19 @@ func TestVars(t *testing.T) {
 			ShouldFail: true,
 		},
 	} {
-		buf, err := Execute(ctx, tc.Template, tc.Name, tc.Content, kv)
-		if err != nil && !tc.ShouldFail {
-			t.Fatalf("[%s] Failed to execute template %s: %s", tc.Template, tc.Template, err)
-		}
-		if err == nil && tc.ShouldFail {
-			t.Errorf("[%s] Should fail", tc.Template)
-		}
-		if string(buf) != tc.Output {
-			t.Errorf("[%s] Wrong templated output %s vs %s", tc.Template, string(buf), tc.Output)
-		}
+		tc := tc
+		t.Run(tc.Template, func(t *testing.T) {
+			t.Parallel()
+			buf, err := Execute(ctx, tc.Template, tc.Name, tc.Content, kv)
+			if err != nil && !tc.ShouldFail {
+				t.Fatalf("[%s] Failed to execute template %s: %s", tc.Template, tc.Template, err)
+			}
+			if err == nil && tc.ShouldFail {
+				t.Errorf("[%s] Should fail", tc.Template)
+			}
+			if string(buf) != tc.Output {
+				t.Errorf("[%s] Wrong templated output %s vs %s", tc.Template, string(buf), tc.Output)
+			}
+		})
 	}
 }
