@@ -12,7 +12,9 @@ import (
 
 	"github.com/blang/semver"
 	"github.com/google/go-github/github"
+	"github.com/gopasspw/gopass/pkg/fsutil"
 	"github.com/gopasspw/gopass/pkg/out"
+	"github.com/gopasspw/gopass/pkg/termio"
 )
 
 const (
@@ -40,7 +42,7 @@ func New() (*Age, error) {
 		binary:  "age",
 		ghc:     github.NewClient(nil),
 		ghCache: &ghCache{},
-		keyring: filepath.Join(ucd, "gopass", "age.txt"),
+		keyring: filepath.Join(ucd, "gopass", "age.age"),
 	}, nil
 }
 
@@ -112,6 +114,10 @@ func (a *Age) Encrypt(ctx context.Context, plaintext []byte, recipients []string
 		args = append(args, "--recipient", r)
 	}
 
+	return a.encrypt(ctx, plaintext, args...)
+}
+
+func (a *Age) encrypt(ctx context.Context, plaintext []byte, args ...string) ([]byte, error) {
 	buf := &bytes.Buffer{}
 
 	cmd := exec.CommandContext(ctx, a.binary, args...)
@@ -119,19 +125,46 @@ func (a *Age) Encrypt(ctx context.Context, plaintext []byte, recipients []string
 	cmd.Stdout = buf
 	cmd.Stderr = os.Stderr
 
-	out.Debug(ctx, "age.Encrypt: %s %+v", cmd.Path, cmd.Args)
-	err = cmd.Run()
+	out.Debug(ctx, "age.encrypt: %s %+v", cmd.Path, cmd.Args)
+	err := cmd.Run()
 	return buf.Bytes(), err
+}
+
+func (a *Age) encryptFile(ctx context.Context, filename string, plaintext []byte) error {
+	buf, err := a.encrypt(ctx, plaintext, "-p")
+	if err != nil {
+		return err
+	}
+
+	return ioutil.WriteFile(filename, buf, 0600)
 }
 
 // Decrypt will attempt to decrypt the given payload
 func (a *Age) Decrypt(ctx context.Context, ciphertext []byte) ([]byte, error) {
-	args := []string{"--decrypt"}
+	args := []string{}
 	for _, k := range a.listPrivateKeyFiles(ctx) {
+		if k == "native-keyring" {
+			out.Debug(ctx, "age.Decrypt - decrypting native keyring for file decrypt")
+			td, err := ioutil.TempDir("", "gpa")
+			if err != nil {
+				return nil, err
+			}
+			defer os.RemoveAll(td)
+			fn := filepath.Join(td, "keys.txt")
+			if err := a.decryptFileTo(ctx, a.keyring, fn); err != nil {
+				return nil, err
+			}
+			k = fn
+		}
 		args = append(args, "--identity")
 		args = append(args, k)
 	}
 
+	return a.decrypt(ctx, ciphertext, args...)
+}
+
+func (a *Age) decrypt(ctx context.Context, ciphertext []byte, args ...string) ([]byte, error) {
+	args = append(args, "--decrypt")
 	cmd := exec.CommandContext(ctx, a.binary, args...)
 	cmd.Stdin = bytes.NewReader(ciphertext)
 	cmd.Stderr = os.Stderr
@@ -140,36 +173,74 @@ func (a *Age) Decrypt(ctx context.Context, ciphertext []byte) ([]byte, error) {
 	return cmd.Output()
 }
 
-// CreatePrivateKey will create a new native private key
-func (a *Age) CreatePrivateKey(ctx context.Context) error {
+func (a *Age) decryptFile(ctx context.Context, filename string) ([]byte, error) {
+	ciphertext, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return nil, err
+	}
+	return a.decrypt(ctx, ciphertext)
+}
+
+func (a *Age) decryptFileTo(ctx context.Context, src, dst string) error {
+	buf, err := a.decryptFile(ctx, src)
+	if err != nil {
+		return err
+	}
+	return ioutil.WriteFile(dst, buf, 0600)
+}
+
+// CreatePrivateKeyBatch will create a new native private key
+func (a *Age) CreatePrivateKeyBatch(ctx context.Context, name, email, pw string) error {
 	buf := &bytes.Buffer{}
 	cmd := exec.CommandContext(ctx, "age-keygen")
 	cmd.Stdout = buf
 	cmd.Stderr = os.Stderr
 
+	// decrypt and prepend existing keyring content
+	if fsutil.IsFile(a.keyring) {
+		b2, err := a.decryptFile(ctx, a.keyring)
+		if err != nil {
+			return err
+		}
+		if _, err := buf.Write(b2); err != nil {
+			return err
+		}
+	}
+
+	// write gopass metadata of new entry
+	fmt.Fprintf(buf, "# gopass-age-keypair\n")
+	fmt.Fprintf(buf, "# Name: %s\n", name)
+	fmt.Fprintf(buf, "# Email: %s\n", email)
+
+	// create new keypair
 	if err := cmd.Run(); err != nil {
 		return err
 	}
+
+	out.Debug(ctx, "age.CreatePrivateKey: %s", buf.String())
 
 	if err := os.MkdirAll(filepath.Dir(a.keyring), 0700); err != nil {
 		return err
 	}
 
-	fh, err := os.OpenFile(a.keyring, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
+	// encrypt final keyring
+	return a.encryptFile(ctx, a.keyring, buf.Bytes())
+}
+
+// CreatePrivateKey is TODO
+func (a *Age) CreatePrivateKey(ctx context.Context) error {
+	out.Print(ctx, "Generating new Age keypair ...")
+	name, err := termio.AskForString(ctx, "What is your name?", "")
 	if err != nil {
 		return err
 	}
-	defer fh.Close()
 
-	out.Debug(ctx, "age.CreatePrivateKey: %s", buf.String())
+	email, err := termio.AskForString(ctx, "What is your email?", "")
+	if err != nil {
+		return err
+	}
 
-	_, err = fh.Write(buf.Bytes())
-	return err
-}
-
-// CreatePrivateKeyBatch is TODO
-func (a *Age) CreatePrivateKeyBatch(ctx context.Context, name, email, pw string) error {
-	return a.CreatePrivateKey(ctx)
+	return a.CreatePrivateKeyBatch(ctx, name, email, "unused")
 }
 
 // ListPrivateKeyIDs is TODO
@@ -198,16 +269,20 @@ func (a *Age) listPrivateKeyFiles(ctx context.Context) []string {
 	if err != nil {
 		out.Debug(ctx, "Error fetching keys: %s", err)
 	}
-	ids := make([]string, 0, len(keys))
+	idSet := map[string]struct{}{}
 	for _, v := range keys {
-		ids = append(ids, v)
+		idSet[v] = struct{}{}
+	}
+	ids := make([]string, 0, len(keys))
+	for k := range idSet {
+		ids = append(ids, k)
 	}
 	return ids
 }
 
 // ExportPublicKey is not implemented
 func (a *Age) ExportPublicKey(ctx context.Context, id string) ([]byte, error) {
-	return nil, fmt.Errorf("not implemented")
+	return []byte(id), nil
 }
 
 // map[public key]filename
@@ -261,11 +336,13 @@ func (a *Age) getNativeKeypairs(ctx context.Context) (map[string]string, error) 
 			return nil, err
 		}
 	}
-	buf, err := ioutil.ReadFile(a.keyring)
+	out.Debug(ctx, "age.getNativeKeypairs - decrypting keyring")
+	buf, err := a.decryptFile(ctx, a.keyring)
 	if err != nil {
 		return nil, err
 	}
-	var pub, priv string
+	var pub string
+	keys := map[string]string{}
 	lines := strings.Split(string(buf), "\n")
 	for _, line := range lines {
 		if strings.HasPrefix(line, "# public key: age1") {
@@ -273,13 +350,13 @@ func (a *Age) getNativeKeypairs(ctx context.Context) (map[string]string, error) 
 			continue
 		}
 		if strings.HasPrefix(line, "AGE-SECRET-KEY") {
-			priv = a.keyring
-			break
+			if pub != "" {
+				keys[pub] = "native-keyring"
+				pub = ""
+			}
 		}
 	}
-	return map[string]string{
-		pub: priv,
-	}, nil
+	return keys, nil
 }
 
 func (a *Age) getAllKeypairs(ctx context.Context) (map[string]string, error) {
