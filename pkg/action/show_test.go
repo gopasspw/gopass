@@ -104,7 +104,6 @@ func TestShowAutoClip(t *testing.T) {
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
-	ctx = ctxutil.WithTerminal(ctx, false)
 	act, err := newMock(ctx, u)
 	require.NoError(t, err)
 	require.NotNil(t, act)
@@ -120,6 +119,24 @@ func TestShowAutoClip(t *testing.T) {
 
 	// autoclip=true
 	ctx = ctxutil.WithAutoClip(ctx, true)
+	// terminal=false
+	ctx = ctxutil.WithTerminal(ctx, false)
+
+	// gopass show foo
+	// -> Print password
+	t.Run("gopass show foo", func(t *testing.T) {
+		c := clictx(ctx, t, "foo")
+		assert.NoError(t, act.Show(c))
+		assert.NotContains(t, buf.String(), "WARNING")
+		assert.Contains(t, buf.String(), "secret")
+		buf.Reset()
+	})
+
+	// autoclip=true
+	ctx = ctxutil.WithAutoClip(ctx, true)
+	// terminal=true
+	ctx = ctxutil.WithTerminal(ctx, true)
+
 	// gopass show foo
 	// -> Copy to clipboard
 	t.Run("gopass show foo", func(t *testing.T) {
