@@ -52,5 +52,9 @@ func (c StoreConfig) WithContext(ctx context.Context) context.Context {
 	if !ctxutil.HasUseSymbols(ctx) {
 		ctx = ctxutil.WithUseSymbols(ctx, c.UseSymbols)
 	}
+	// always disable autoclip when redirecting stdout
+	if !ctxutil.IsTerminal(ctx) {
+		ctx = ctxutil.WithAutoClip(ctx, false)
+	}
 	return ctx
 }
