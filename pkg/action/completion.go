@@ -6,6 +6,7 @@ import (
 	"runtime"
 	"strings"
 
+	fishcomp "github.com/gopasspw/gopass/pkg/completion/fish"
 	zshcomp "github.com/gopasspw/gopass/pkg/completion/zsh"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/out"
@@ -92,7 +93,7 @@ func (s *Action) CompletionFish(c *cli.Context, a *cli.App) error {
 	if a == nil {
 		return fmt.Errorf("app is nil")
 	}
-	comp, err := a.ToFishCompletion()
+	comp, err := fishcomp.GetCompletion(a)
 	if err != nil {
 		return err
 	}
