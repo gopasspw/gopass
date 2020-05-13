@@ -1,3 +1,9 @@
+## 1.9.2 / 2020-05-13
+
+* [BUGFIX] Bring back the custom fish completion.
+* [BUGFIX] Disable AutoClip when redirecting stdout
+* [ENHANCEMENT] Create new sub stores in XDG compliant locations.
+
 ## 1.9.1 / 2020-05-09
 
 * [BUGFIX] Do not copy to clipboard with -f
