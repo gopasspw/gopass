@@ -2,6 +2,7 @@ package action
 
 import (
 	"context"
+	"os"
 	"path/filepath"
 
 	"github.com/gopasspw/gopass/pkg/backend"
@@ -59,6 +60,13 @@ func (s *Action) clone(ctx context.Context, repo, mount, path string) error {
 	}
 	if mount == "" && inited {
 		return ExitError(ctx, ExitAlreadyInitialized, nil, "Can not clone %s to the root store, as this store is already initialized. Please try cloning to a submount: `%s clone %s sub`", repo, s.Name, repo)
+	}
+
+	// make sure the parent directory exists
+	if parentPath := filepath.Dir(path); !fsutil.IsDir(parentPath) {
+		if err := os.MkdirAll(parentPath, 0700); err != nil {
+			return ExitError(ctx, ExitUnknown, err, "Failed to create parent directory for clone: %s", err)
+		}
 	}
 
 	// clone repo

@@ -37,11 +37,7 @@ func configLocation() string {
 	// Second, check for the "XDG_CONFIG_HOME" environment variable
 	// (which is part of the XDG Base Directory Specification for Linux and
 	// other Unix-like operating sytstems)
-	if xch := os.Getenv("XDG_CONFIG_HOME"); xch != "" {
-		return filepath.Join(xch, "gopass", "config.yml")
-	}
-
-	return filepath.Join(Homedir(), ".config", "gopass", "config.yml")
+	return filepath.Join(UserConfig(), "config.yml")
 }
 
 // configLocations returns the possible locations of gopass config files,
@@ -51,9 +47,7 @@ func configLocations() []string {
 	if cf := os.Getenv("GOPASS_CONFIG"); cf != "" {
 		l = append(l, cf)
 	}
-	if xch := os.Getenv("XDG_CONFIG_HOME"); xch != "" {
-		l = append(l, filepath.Join(xch, "gopass", "config.yml"))
-	}
+	l = append(l, filepath.Join(UserConfig(), "config.yml"))
 	l = append(l, filepath.Join(Homedir(), ".config", "gopass", "config.yml"))
 	l = append(l, filepath.Join(Homedir(), ".gopass.yml"))
 	return l
@@ -64,11 +58,13 @@ func configLocations() []string {
 // not set
 func PwStoreDir(mount string) string {
 	if mount != "" {
-		return fsutil.CleanPath(filepath.Join(Homedir(), ".password-store-"+strings.Replace(mount, string(filepath.Separator), "-", -1)))
+		cleanName := strings.Replace(mount, string(filepath.Separator), "-", -1)
+		return fsutil.CleanPath(filepath.Join(UserData(), "stores", cleanName))
 	}
 	if d := os.Getenv("PASSWORD_STORE_DIR"); d != "" {
 		return fsutil.CleanPath(d)
 	}
+	// TODO: the default should also comply with the XDG spec
 	return filepath.Join(Homedir(), ".password-store")
 }
 
