@@ -281,7 +281,11 @@ Exit and re-run zsh if the last command failed.
 
 ### Enable fish completion
 
-If you use the [fish](https://fishshell.com/) shell, you can enable experimental shell completion. Copy the file `fish.completion` to `~/.config/fish/completions/gopass.fish` and start a new shell.
+If you use the [fish](https://fishshell.com/) shell, you can enable experimental shell completion by the following command:
+```fish
+$ mkdir -p ~/.config/fish/completions and; gopass completion fish > ~/.config/fish/completions/gopass.fish
+```
+and start a new shell afterwards.
 
 Since writing fish completion scripts is not yet supported by the CLI library we use, this completion script is missing a few features. Feel free to contribute if you want to improve it.
 
