@@ -15,6 +15,8 @@ const (
 	Noop RCSBackend = iota
 	// GitCLI is a git-cli based sync backend
 	GitCLI
+	// OnDiskRCS is the OnDisk storage backend in disguise as an RCS backend
+	OnDiskRCS
 )
 
 func (s RCSBackend) String() string {

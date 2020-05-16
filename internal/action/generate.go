@@ -229,16 +229,11 @@ func (s *Action) generateSetPassword(ctx context.Context, name, key, password st
 
 	// replace password in existing secret
 	if s.Store.Exists(ctx, name) {
-		sec, ctx, err := s.Store.GetContext(ctx, name)
-		if err != nil {
-			return ctx, ExitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
+		ctx, err := s.generateReplaceExisting(ctx, name, key, password, kvps)
+		if err == nil {
+			return ctx, nil
 		}
-		setMetadata(sec, kvps)
-		sec.SetPassword(password)
-		if err := s.Store.Set(sub.WithReason(ctx, "Generated password for YAML key"), name, sec); err != nil {
-			return ctx, ExitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
-		}
-		return ctx, nil
+		out.Error(ctx, "Failed to read existing secret. Creating anew. Error: %s", err.Error())
 	}
 
 	// generate a completely new secret
@@ -255,6 +250,19 @@ func (s *Action) generateSetPassword(ctx context.Context, name, key, password st
 	ctx, err = s.Store.SetContext(sub.WithReason(ctx, "Generated Password"), name, sec)
 	if err != nil {
 		return ctx, ExitError(ctx, ExitEncrypt, err, "failed to create '%s': %s", name, err)
+	}
+	return ctx, nil
+}
+
+func (s *Action) generateReplaceExisting(ctx context.Context, name, key, password string, kvps map[string]string) (context.Context, error) {
+	sec, ctx, err := s.Store.GetContext(ctx, name)
+	if err != nil {
+		return ctx, ExitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
+	}
+	setMetadata(sec, kvps)
+	sec.SetPassword(password)
+	if err := s.Store.Set(sub.WithReason(ctx, "Generated password for YAML key"), name, sec); err != nil {
+		return ctx, ExitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
 	}
 	return ctx, nil
 }

@@ -86,6 +86,10 @@ func initParseContext(ctx context.Context, c *cli.Context) context.Context {
 			ctx = backend.WithRCSBackend(ctx, backend.Noop)
 		}
 	}
+	if c.IsSet("storage") {
+		out.Debug(ctx, "Using Storage: %s", c.String("storage"))
+		ctx = backend.WithStorageBackendString(ctx, c.String("storage"))
+	}
 
 	// default to git
 	if !backend.HasRCSBackend(ctx) {
