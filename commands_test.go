@@ -10,7 +10,7 @@ import (
 	"github.com/atotto/clipboard"
 	"github.com/blang/semver"
 	"github.com/fatih/color"
-	"github.com/gopasspw/gopass/pkg/action"
+	"github.com/gopasspw/gopass/internal/action"
 	"github.com/gopasspw/gopass/pkg/backend"
 	"github.com/gopasspw/gopass/pkg/config"
 	"github.com/gopasspw/gopass/pkg/ctxutil"

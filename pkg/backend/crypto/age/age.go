@@ -12,6 +12,7 @@ import (
 
 	"github.com/blang/semver"
 	"github.com/google/go-github/github"
+	"github.com/gopasspw/gopass/pkg/cache"
 	"github.com/gopasspw/gopass/pkg/fsutil"
 	"github.com/gopasspw/gopass/pkg/out"
 	"github.com/gopasspw/gopass/pkg/termio"
@@ -29,7 +30,7 @@ type Age struct {
 	binary  string
 	keyring string
 	ghc     *github.Client
-	ghCache *ghCache
+	ghCache *cache.OnDisk
 }
 
 // New creates a new Age backend
@@ -38,10 +39,14 @@ func New() (*Age, error) {
 	if err != nil {
 		return nil, err
 	}
+	cDir, err := cache.NewOnDisk("age-github")
+	if err != nil {
+		return nil, err
+	}
 	return &Age{
 		binary:  "age",
 		ghc:     github.NewClient(nil),
-		ghCache: &ghCache{},
+		ghCache: cDir,
 		keyring: filepath.Join(ucd, "gopass", "age.age"),
 	}, nil
 }

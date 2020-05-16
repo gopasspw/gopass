@@ -3,7 +3,6 @@ module github.com/gopasspw/gopass
 go 1.12
 
 require (
-	github.com/ProtonMail/go-appdir v1.1.0
 	github.com/alecthomas/binary v0.0.0-20190922233330-fb1b1d9c299c
 	github.com/atotto/clipboard v0.1.2
 	github.com/blang/semver v0.0.0-20190414182527-1a9109f8c4a1

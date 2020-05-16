@@ -4,11 +4,11 @@ import (
 	"context"
 	"sort"
 
-	ap "github.com/gopasspw/gopass/pkg/action"
-	"github.com/gopasspw/gopass/pkg/action/binary"
-	"github.com/gopasspw/gopass/pkg/action/create"
-	"github.com/gopasspw/gopass/pkg/action/pwgen"
-	"github.com/gopasspw/gopass/pkg/action/xc"
+	ap "github.com/gopasspw/gopass/internal/action"
+	"github.com/gopasspw/gopass/internal/action/binary"
+	"github.com/gopasspw/gopass/internal/action/create"
+	"github.com/gopasspw/gopass/internal/action/pwgen"
+	"github.com/gopasspw/gopass/internal/action/xc"
 	"github.com/urfave/cli/v2"
 )
 

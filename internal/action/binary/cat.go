@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/gopasspw/gopass/pkg/action"
+	"github.com/gopasspw/gopass/internal/action"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/out"
 	"github.com/gopasspw/gopass/pkg/store/secret"

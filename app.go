@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	ap "github.com/gopasspw/gopass/pkg/action"
+	ap "github.com/gopasspw/gopass/internal/action"
 	"github.com/gopasspw/gopass/pkg/config"
 	"github.com/gopasspw/gopass/pkg/out"
 	"github.com/gopasspw/gopass/pkg/store/sub"
