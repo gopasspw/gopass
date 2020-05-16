@@ -7,7 +7,11 @@ import (
 
 func (a *Age) getPublicKeysGithub(ctx context.Context, user string) ([]string, error) {
 	// TODO: recheck SoT if cache is too old
-	if pk := a.ghCache.Get(user); len(pk) > 0 {
+	pk, err := a.ghCache.Get(user)
+	if err != nil {
+		return nil, err
+	}
+	if len(pk) > 0 {
 		return pk, nil
 	}
 

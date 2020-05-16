@@ -22,24 +22,24 @@ func (ce *cacheEntry) isExpired() bool {
 	return false
 }
 
-// TTL implements a simple TTLed cache. It is concurrency safe.
-type TTL struct {
+// InMemTTL implements a simple TTLed cache in memory. It is concurrency safe.
+type InMemTTL struct {
 	sync.Mutex
 	ttl     time.Duration
 	maxTTL  time.Duration
 	entries map[string]cacheEntry
 }
 
-// NewTTL creates a new TTLed cache.
-func NewTTL(ttl time.Duration, maxTTL time.Duration) *TTL {
-	return &TTL{
+// NewInMemTTL creates a new TTLed cache.
+func NewInMemTTL(ttl time.Duration, maxTTL time.Duration) *InMemTTL {
+	return &InMemTTL{
 		ttl:    ttl,
 		maxTTL: maxTTL,
 	}
 }
 
 // Get retrieves a single entry, extending it's TTL.
-func (c *TTL) Get(key string) (string, bool) {
+func (c *InMemTTL) Get(key string) (string, bool) {
 	c.Lock()
 	defer c.Unlock()
 
@@ -62,7 +62,7 @@ func (c *TTL) Get(key string) (string, bool) {
 }
 
 // purgeExpire will remove expired entries. It is called by Set.
-func (c *TTL) purgeExpired() {
+func (c *InMemTTL) purgeExpired() {
 	for k, ce := range c.entries {
 		if ce.isExpired() {
 			delete(c.entries, k)
@@ -71,7 +71,7 @@ func (c *TTL) purgeExpired() {
 }
 
 // Set creates or overwrites an entry.
-func (c *TTL) Set(key, value string) {
+func (c *InMemTTL) Set(key, value string) {
 	c.Lock()
 	defer c.Unlock()
 
@@ -91,7 +91,7 @@ func (c *TTL) Set(key, value string) {
 }
 
 // Remove removes a single entry from the cache.
-func (c *TTL) Remove(key string) {
+func (c *InMemTTL) Remove(key string) {
 	c.Lock()
 	defer c.Unlock()
 
@@ -99,7 +99,7 @@ func (c *TTL) Remove(key string) {
 }
 
 // Purge removes all entries from the cache.
-func (c *TTL) Purge() {
+func (c *InMemTTL) Purge() {
 	c.Lock()
 	defer c.Unlock()
 

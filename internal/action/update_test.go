@@ -13,9 +13,9 @@ import (
 	"runtime"
 	"testing"
 
+	"github.com/gopasspw/gopass/internal/updater"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/out"
-	"github.com/gopasspw/gopass/pkg/updater"
 	"github.com/gopasspw/gopass/tests/gptest"
 
 	_ "github.com/gopasspw/gopass/pkg/backend/crypto"
@@ -38,9 +38,9 @@ const testUpdateJSON = `[
     "published_at": "2017-12-20T14:38:21Z",
     "assets": [
       {
-        "browser_download_url": "%s/gopass.tar.gz",
-        "id": 5676623,
-        "name": "gopass-1.6.6-%s-%s.tar.gz"
+	"browser_download_url": "%s/gopass.tar.gz",
+	"id": 5676623,
+	"name": "gopass-1.6.6-%s-%s.tar.gz"
       }
     ]
   }

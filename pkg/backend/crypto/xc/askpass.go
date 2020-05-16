@@ -30,7 +30,7 @@ type askPass struct {
 
 func newAskPass() *askPass {
 	return &askPass{
-		cache: cache.NewTTL(time.Hour, 24*time.Hour),
+		cache: cache.NewInMemTTL(time.Hour, 24*time.Hour),
 		pinentry: func() (piner, error) {
 			return pinentry.New()
 		},

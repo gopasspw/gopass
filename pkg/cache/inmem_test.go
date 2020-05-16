@@ -20,7 +20,7 @@ func TestTTL(t *testing.T) {
 		testFactor = time.Duration(factor)
 	}
 
-	c := &TTL{
+	c := &InMemTTL{
 		ttl:    10 * time.Millisecond * testFactor,
 		maxTTL: 50 * time.Millisecond * testFactor,
 	}

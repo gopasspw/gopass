@@ -2,8 +2,6 @@ github.com/BurntSushi/toml v0.3.1 h1:WXkYYl6Yr3qBf1K79EBnL4mak0OimBfB0XUf9Vl28OQ
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/DATA-DOG/go-sqlmock v1.3.3 h1:CWUqKXe0s8A2z6qCgkP4Kru7wC11YoAnoupUKFDnH08=
 github.com/DATA-DOG/go-sqlmock v1.3.3/go.mod h1:f/Ixk793poVmq4qj/V1dPUg2JEAKC73Q5eFN3EC/SaM=
-github.com/ProtonMail/go-appdir v1.1.0 h1:9hdNDlU9kTqRKVNzmoqah8qqrj5QZyLByQdwQNlFWig=
-github.com/ProtonMail/go-appdir v1.1.0/go.mod h1:3d8Y9F5mbEUjrYbcJ3rcDxcWbqbttF+011nVZmdRdzc=
 github.com/alecthomas/binary v0.0.0-20190922233330-fb1b1d9c299c h1:SnUAzBu0FguUHChHbuy2HInhc2YBBTmbDcZOOByAVt8=
 github.com/alecthomas/binary v0.0.0-20190922233330-fb1b1d9c299c/go.mod h1:v4e05/vzE8ubOim1No9Xx5eIQ/WRq6AtcnQIy/Z/JPs=
 github.com/atotto/clipboard v0.1.2 h1:YZCtFu5Ie8qX2VmVTBnrqLSiU9XOWwqNRmdT3gIQzbY=

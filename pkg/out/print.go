@@ -43,9 +43,15 @@ func Debug(ctx context.Context, format string, args ...interface{}) {
 
 	var loc string
 	if _, file, line, ok := runtime.Caller(1); ok {
-		file = file[strings.Index(file, "pkg/"):]
-		file = strings.TrimPrefix(file, "pkg/")
-		loc = fmt.Sprintf("%s:%d ", file, line)
+		for _, prefix := range []string{"pkg", "internal"} {
+			si := strings.Index(file, prefix+"/")
+			if si < 0 {
+				continue
+			}
+			file = file[si:]
+			file = strings.TrimPrefix(file, "pkg/")
+			loc = fmt.Sprintf("%s:%d ", file, line)
+		}
 	}
 
 	fmt.Fprintf(Stdout, Prefix(ctx)+"[DEBUG] "+loc+format+newline(ctx), args...)
