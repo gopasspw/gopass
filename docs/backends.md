@@ -24,6 +24,17 @@ This is a volatile in-memory backend for tests.
 
 **WARNING**: All data is lost when gopass stops!
 
+### On Disk (ondisk)
+
+This is an experimental on disk K/V backend. It stores the encrypted data in the
+filesystem in a content adressable manner. Currently the metadata is NOT encrypted
+but that is planned to be added soon.
+
+This might become the default storage and RCS backend in gopass 2.x.
+
+**WARNING**: The metadata is currently not encrypted and the disk format is
+still experimental. **DO NOT USE** unless you want to help with the implementation.
+
 ## RCS Backends (rcs)
 
 These are revision control backends talking to various source control

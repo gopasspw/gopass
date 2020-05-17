@@ -99,12 +99,14 @@ func (r *Store) initialize(ctx context.Context) error {
 			ctx = backend.WithRCSBackend(ctx, r.cfg.Root.Path.RCS)
 		}
 		if !backend.HasStorageBackend(ctx) {
+			out.Debug(ctx, "Using default storage backend: %s", r.cfg.Root.Path.Storage)
 			ctx = backend.WithStorageBackend(ctx, r.cfg.Root.Path.Storage)
 		}
 		bu, err := backend.ParseURL(r.url.String())
 		if err != nil {
 			return errors.Wrapf(err, "failed to parse backend URL '%s': %s", r.url.String(), err)
 		}
+		out.Debug(ctx, "initialize - %s", bu.String())
 		s, err := sub.New(ctx, r.cfg, "", bu, r.cfg.Directory())
 		if err != nil {
 			return errors.Wrapf(err, "failed to initialize the root store at '%s': %s", r.url.String(), err)

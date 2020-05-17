@@ -35,6 +35,7 @@ const (
 	ctxKeyAutoPrint
 	ctxKeyGitInit
 	ctxKeyForce
+	ctxKeyCommitMessage
 )
 
 // WithGlobalFlags parses any global flags from the cli context and returns
@@ -563,15 +564,29 @@ func WithForce(ctx context.Context, bv bool) context.Context {
 
 // HasForce returns true if the context has the force flag set
 func HasForce(ctx context.Context) bool {
-	_, ok := ctx.Value(ctxKeyForce).(bool)
-	return ok
+	return hasBool(ctx, ctxKeyForce)
 }
 
 // IsForce returns the force flag value of the default (false)
 func IsForce(ctx context.Context) bool {
-	bv, ok := ctx.Value(ctxKeyForce).(bool)
+	return is(ctx, ctxKeyForce, false)
+}
+
+// WithCommitMessage returns a context with a commit message set
+func WithCommitMessage(ctx context.Context, sv string) context.Context {
+	return context.WithValue(ctx, ctxKeyCommitMessage, sv)
+}
+
+// HasCommitMessage returns true if the commit message was set
+func HasCommitMessage(ctx context.Context) bool {
+	return hasBool(ctx, ctxKeyCommitMessage)
+}
+
+// GetCommitMessage returns the set commit message or an empty string
+func GetCommitMessage(ctx context.Context) string {
+	sv, ok := ctx.Value(ctxKeyCommitMessage).(string)
 	if !ok {
-		return false
+		return ""
 	}
-	return bv
+	return sv
 }

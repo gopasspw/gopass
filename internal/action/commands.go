@@ -498,6 +498,10 @@ func (s *Action) GetCommands() []*cli.Command {
 					Name:  "rcs",
 					Usage: "Select sync backend (git, gitcli, noop)",
 				},
+				&cli.StringFlag{
+					Name:  "storage",
+					Usage: "Select storage backend (fs, inmen, ondisk)",
+				},
 				&cli.BoolFlag{
 					Name:   "nogit",
 					Usage:  "(DEPRECATED): Select noop RCS backend. Use '--rcs noop' instead",

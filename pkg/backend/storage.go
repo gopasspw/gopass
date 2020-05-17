@@ -15,6 +15,8 @@ const (
 	FS StorageBackend = iota
 	// InMem is an in-memory mock store for tests
 	InMem
+	// OnDisk is an on-disk store
+	OnDisk
 )
 
 func (s StorageBackend) String() string {
