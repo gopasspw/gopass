@@ -259,6 +259,10 @@ func AskForGitConfigUser(ctx context.Context, crypto backend.Crypto, name string
 		name := crypto.NameFromKey(ctx, key)
 		email := crypto.EmailFromKey(ctx, key)
 
+		if name == "" && email == "" {
+			continue
+		}
+
 		useCurrent, err = termio.AskForBool(
 			ctx,
 			fmt.Sprintf("Use %s (%s) for password store git config?", name, email),

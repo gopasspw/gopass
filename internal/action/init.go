@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
+	"os"
 
 	"github.com/gopasspw/gopass/pkg/backend"
 	"github.com/gopasspw/gopass/pkg/config"
@@ -53,6 +54,12 @@ func (s *Action) Init(c *cli.Context) error {
 	alias := c.String("store")
 
 	ctx = initParseContext(ctx, c)
+	if name := detectName(c); name != "" {
+		ctx = WithUsername(ctx, name)
+	}
+	if email := detectEmail(c); email != "" {
+		ctx = WithEmail(ctx, email)
+	}
 	inited, err := s.Store.Initialized(ctx)
 	if err != nil {
 		return ExitError(ctx, ExitUnknown, err, "Failed to initialized store: %s", err)
@@ -104,6 +111,10 @@ func (s *Action) init(ctx context.Context, alias, path string, keys ...string) e
 
 	out.Debug(ctx, "Checking private keys ...")
 	crypto := s.getCryptoFor(ctx, alias)
+	// private key selection doesn't matter for plain. save one question.
+	if crypto.Name() == "plain" {
+		keys, _ = crypto.ListPrivateKeyIDs(ctx)
+	}
 	if len(keys) < 1 {
 		nk, err := cui.AskForPrivateKey(ctx, crypto, alias, color.CyanString("Please select a private key for encrypting secrets:"))
 		if err != nil {
@@ -127,7 +138,7 @@ func (s *Action) init(ctx context.Context, alias, path string, keys ...string) e
 	if backend.HasRCSBackend(ctx) {
 		bn := backend.RCSBackendName(backend.GetRCSBackend(ctx))
 		out.Debug(ctx, "Initializing RCS (%s) ...", bn)
-		if err := s.rcsInit(ctx, alias, "", ""); err != nil {
+		if err := s.rcsInit(ctx, alias, GetUsername(ctx), GetEmail(ctx)); err != nil {
 			out.Debug(ctx, "Stacktrace: %+v\n", err)
 			out.Error(ctx, "Failed to init RCS (%s): %s", bn, err)
 		}
@@ -164,10 +175,37 @@ func (s *Action) getCryptoFor(ctx context.Context, name string) backend.Crypto {
 	}
 	c, err := sub.GetCryptoBackend(ctx, backend.GetCryptoBackend(ctx), config.Directory())
 	if err != nil {
-		//return errors.Wrapf(err, "failed to init crypto backend")
+		out.Debug(ctx, "getCryptoFor(%s) failed to init crypto backend: %s", name, err)
 		return nil
 	}
 	return c
+}
+
+func detectName(c *cli.Context) string {
+	for _, e := range []string{
+		c.String("name"),
+		os.Getenv("GIT_AUTHOR_NAME"),
+		os.Getenv("DEBFULLNAME"),
+		os.Getenv("USER"),
+	} {
+		if e != "" {
+			return e
+		}
+	}
+	return ""
+}
+func detectEmail(c *cli.Context) string {
+	for _, e := range []string{
+		c.String("email"),
+		os.Getenv("GIT_AUTHOR_EMAIL"),
+		os.Getenv("DEBEMAIL"),
+		os.Getenv("EMAIL"),
+	} {
+		if e != "" {
+			return e
+		}
+	}
+	return ""
 }
 
 // InitOnboarding will invoke the onboarding / setup wizard
@@ -176,8 +214,14 @@ func (s *Action) InitOnboarding(c *cli.Context) error {
 	remote := c.String("remote")
 	team := c.String("alias")
 	create := c.Bool("create")
-	name := c.String("name")
-	email := c.String("email")
+	name := detectName(c)
+	if name != "" {
+		ctx = WithUsername(ctx, name)
+	}
+	email := detectEmail(c)
+	if email != "" {
+		ctx = WithEmail(ctx, email)
+	}
 	ctx = backend.WithCryptoBackendString(ctx, c.String("crypto"))
 
 	// default to git
@@ -353,7 +397,7 @@ func (s *Action) initLocal(ctx context.Context, c *cli.Context) error {
 	}
 
 	// noconfirm
-	if want, err := termio.AskForBool(ctx, out.Prefix(ctx)+"Do you want to always confirm recipients when encrypting?", false); err == nil {
+	if want, err := termio.AskForBool(ctx, out.Prefix(ctx)+"Do you want to always confirm recipients when encrypting?", true); err == nil {
 		s.cfg.Root.NoConfirm = !want
 	}
 

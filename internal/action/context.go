@@ -12,6 +12,8 @@ const (
 	ctxKeyKey
 	ctxKeyOnlyClip
 	ctxKeyAlsoClip
+	ctxKeyUsername
+	ctxKeyEmail
 )
 
 // WithClip returns a context with the value for clip (for copy to clipboard)
@@ -121,6 +123,34 @@ func HasKey(ctx context.Context) bool {
 // GetKey returns the value of key or the default (empty string)
 func GetKey(ctx context.Context) string {
 	sv, ok := ctx.Value(ctxKeyKey).(string)
+	if !ok {
+		return ""
+	}
+	return sv
+}
+
+// WithUsername returns a context with the username set in the context
+func WithUsername(ctx context.Context, sv string) context.Context {
+	return context.WithValue(ctx, ctxKeyUsername, sv)
+}
+
+// GetUsername returns the username from the context
+func GetUsername(ctx context.Context) string {
+	sv, ok := ctx.Value(ctxKeyUsername).(string)
+	if !ok {
+		return ""
+	}
+	return sv
+}
+
+// WithEmail returns a context with the email set in the context
+func WithEmail(ctx context.Context, sv string) context.Context {
+	return context.WithValue(ctx, ctxKeyEmail, sv)
+}
+
+// GetEmail returns the email from the context
+func GetEmail(ctx context.Context) string {
+	sv, ok := ctx.Value(ctxKeyEmail).(string)
 	if !ok {
 		return ""
 	}
