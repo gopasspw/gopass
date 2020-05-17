@@ -309,6 +309,16 @@ func (s *Action) GetCommands() []*cli.Command {
 							Usage: "GPG Key to sign commits",
 						},
 						&cli.StringFlag{
+							Name:    "name",
+							Aliases: []string{"username"},
+							Usage:   "Git Author Name",
+						},
+						&cli.StringFlag{
+							Name:    "email",
+							Aliases: []string{"useremail"},
+							Usage:   "Git Author Email",
+						},
+						&cli.StringFlag{
 							Name:  "rcs",
 							Usage: "Select sync backend (git, gitcli, noop)",
 						},
