@@ -205,7 +205,7 @@ func (s *Action) RecipientsUpdate(c *cli.Context) error {
 	mps := s.Store.MountPoints()
 	sort.Sort(store.ByPathLen(mps))
 	for _, alias := range append(mps, "") {
-		subs, err := s.Store.GetSubStore(alias)
+		ctx, subs, err := s.Store.GetSubStore(ctx, alias)
 		if err != nil || subs == nil {
 			continue
 		}

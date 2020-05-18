@@ -26,11 +26,11 @@ func TestMount(t *testing.T) {
 	assert.Equal(t, map[string]string{}, rs.Mounts())
 	assert.Equal(t, []string{}, rs.MountPoints())
 
-	sub, err := rs.GetSubStore("")
+	_, sub, err := rs.GetSubStore(ctx, "")
 	require.NoError(t, err)
 	require.NotNil(t, sub)
 
-	sub, err = rs.GetSubStore("foo")
+	_, sub, err = rs.GetSubStore(ctx, "foo")
 	assert.Error(t, err)
 	assert.Nil(t, sub)
 
