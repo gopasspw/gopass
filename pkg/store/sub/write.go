@@ -73,7 +73,7 @@ func (s *Store) Set(ctx context.Context, name string, sec store.Secret) error {
 }
 
 func (s *Store) gitCommitAndPush(ctx context.Context, name string) error {
-	if err := s.rcs.Commit(ctx, fmt.Sprintf("Save secret to %s: %s", name, GetReason(ctx))); err != nil {
+	if err := s.rcs.Commit(ctx, fmt.Sprintf("Save secret to %s: %s", name, ctxutil.GetCommitMessage(ctx))); err != nil {
 		switch errors.Cause(err) {
 		case store.ErrGitNotInit:
 			out.Debug(ctx, "commitAndPush - skipping git commit - git not initialized")

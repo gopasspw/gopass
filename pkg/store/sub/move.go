@@ -26,7 +26,7 @@ func (s *Store) Copy(ctx context.Context, from, to string) error {
 	if err != nil {
 		return errors.Wrapf(err, "failed to get '%s' from store", from)
 	}
-	if err := s.Set(WithReason(ctx, fmt.Sprintf("Copied from %s to %s", from, to)), to, content); err != nil {
+	if err := s.Set(ctxutil.WithCommitMessage(ctx, fmt.Sprintf("Copied from %s to %s", from, to)), to, content); err != nil {
 		return errors.Wrapf(err, "failed to save '%s' to store", to)
 	}
 	return nil
@@ -46,7 +46,7 @@ func (s *Store) Move(ctx context.Context, from, to string) error {
 	if err != nil {
 		return errors.Wrapf(err, "failed to decrypt '%s'", from)
 	}
-	if err := s.Set(WithReason(ctx, fmt.Sprintf("Move from %s to %s", from, to)), to, content); err != nil {
+	if err := s.Set(ctxutil.WithCommitMessage(ctx, fmt.Sprintf("Move from %s to %s", from, to)), to, content); err != nil {
 		return errors.Wrapf(err, "failed to write '%s'", to)
 	}
 	if err := s.Delete(ctx, from); err != nil {

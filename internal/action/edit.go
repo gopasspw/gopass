@@ -11,7 +11,6 @@ import (
 	"github.com/gopasspw/gopass/pkg/out"
 	"github.com/gopasspw/gopass/pkg/pwgen"
 	"github.com/gopasspw/gopass/pkg/store/secret"
-	"github.com/gopasspw/gopass/pkg/store/sub"
 
 	"github.com/urfave/cli/v2"
 )
@@ -62,7 +61,7 @@ func (s *Action) editUpdate(ctx context.Context, name string, content, nContent 
 	}
 
 	// write result (back) to store
-	if err := s.Store.Set(sub.WithReason(ctx, fmt.Sprintf("Edited with %s", ed)), name, nSec); err != nil {
+	if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, fmt.Sprintf("Edited with %s", ed)), name, nSec); err != nil {
 		return ExitError(ctx, ExitEncrypt, err, "failed to encrypt secret %s: %s", name, err)
 	}
 	return nil

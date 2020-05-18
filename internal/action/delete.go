@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"github.com/gopasspw/gopass/pkg/store/sub"
 	"github.com/gopasspw/gopass/pkg/termio"
 
 	"github.com/urfave/cli/v2"
@@ -66,7 +65,7 @@ func (s *Action) deleteKeyFromYAML(ctx context.Context, name, key string) error 
 	if err := sec.DeleteKey(key); err != nil {
 		return ExitError(ctx, ExitIO, err, "Can not delete key '%s' from '%s': %s", key, name, err)
 	}
-	if err := s.Store.Set(sub.WithReason(ctx, "Updated Key in YAML"), name, sec); err != nil {
+	if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, "Updated Key in YAML"), name, sec); err != nil {
 		return ExitError(ctx, ExitIO, err, "Can not delete key '%s' from '%s': %s", key, name, err)
 	}
 	return nil

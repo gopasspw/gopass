@@ -19,7 +19,6 @@ import (
 	"github.com/gopasspw/gopass/pkg/pwgen"
 	"github.com/gopasspw/gopass/pkg/store"
 	"github.com/gopasspw/gopass/pkg/store/secret"
-	"github.com/gopasspw/gopass/pkg/store/sub"
 	"github.com/gopasspw/gopass/pkg/termio"
 	"github.com/martinhoefling/goxkcdpwgen/xkcdpwgen"
 	"github.com/urfave/cli/v2"
@@ -155,7 +154,7 @@ func (s *creator) createWebsite(ctx context.Context, c *cli.Context) error {
 	_ = sec.SetValue("url", urlStr)
 	_ = sec.SetValue("username", username)
 	_ = sec.SetValue("comment", comment)
-	if err := s.store.Set(sub.WithReason(ctx, "Created new entry"), name, sec); err != nil {
+	if err := s.store.Set(ctxutil.WithCommitMessage(ctx, "Created new entry"), name, sec); err != nil {
 		return action.ExitError(ctx, action.ExitEncrypt, err, "failed to set '%s': %s", name, err)
 	}
 
@@ -245,7 +244,7 @@ func (s *creator) createPIN(ctx context.Context, c *cli.Context) error {
 	sec := secret.New(password, "")
 	_ = sec.SetValue("application", application)
 	_ = sec.SetValue("comment", comment)
-	if err := s.store.Set(sub.WithReason(ctx, "Created new entry"), name, sec); err != nil {
+	if err := s.store.Set(ctxutil.WithCommitMessage(ctx, "Created new entry"), name, sec); err != nil {
 		return action.ExitError(ctx, action.ExitEncrypt, err, "failed to set '%s': %s", name, err)
 	}
 
@@ -315,7 +314,7 @@ func (s *creator) createAWS(ctx context.Context, c *cli.Context) error {
 	_ = sec.SetValue("accesskey", accesskey)
 	_ = sec.SetValue("secretkey", secretkey)
 	_ = sec.SetValue("region", region)
-	if err := s.store.Set(sub.WithReason(ctx, "Created new entry"), name, sec); err != nil {
+	if err := s.store.Set(ctxutil.WithCommitMessage(ctx, "Created new entry"), name, sec); err != nil {
 		return action.ExitError(ctx, action.ExitEncrypt, err, "failed to set '%s': %s", name, err)
 	}
 	return nil
@@ -379,7 +378,7 @@ func (s *creator) createGCP(ctx context.Context, c *cli.Context) error {
 		}
 	}
 	sec := secret.New("", string(buf))
-	if err := s.store.Set(sub.WithReason(ctx, "Created new entry"), name, sec); err != nil {
+	if err := s.store.Set(ctxutil.WithCommitMessage(ctx, "Created new entry"), name, sec); err != nil {
 		return action.ExitError(ctx, action.ExitEncrypt, err, "failed to set '%s': %s", name, err)
 	}
 	return nil
@@ -468,7 +467,7 @@ func (s *creator) createGeneric(ctx context.Context, c *cli.Context) error {
 		}
 		_ = sec.SetValue(key, val)
 	}
-	if err := s.store.Set(sub.WithReason(ctx, "Created new entry"), name, sec); err != nil {
+	if err := s.store.Set(ctxutil.WithCommitMessage(ctx, "Created new entry"), name, sec); err != nil {
 		return action.ExitError(ctx, action.ExitEncrypt, err, "failed to set '%s': %s", name, err)
 	}
 

@@ -241,7 +241,7 @@ func (s *Store) reencrypt(ctx context.Context) error {
 		}
 	}
 
-	if err := s.rcs.Commit(ctx, GetReason(ctx)); err != nil {
+	if err := s.rcs.Commit(ctx, ctxutil.GetCommitMessage(ctx)); err != nil {
 		switch errors.Cause(err) {
 		case store.ErrGitNotInit:
 			out.Debug(ctx, "reencrypt - skipping git commit - git not initialized")
