@@ -85,9 +85,11 @@ func (c *StoreConfig) ConfigMap() map[string]string {
 
 // SetConfigValue will try to set the given key to the value in the config struct
 func (c *StoreConfig) SetConfigValue(key, value string) error {
-	if key != "path" {
-		value = strings.ToLower(value)
+	if key == "path" {
+		c.Path = backend.FromPath(value)
+		return nil
 	}
+	value = strings.ToLower(value)
 	o := reflect.ValueOf(c).Elem()
 	for i := 0; i < o.NumField(); i++ {
 		jsonArg := o.Type().Field(i).Tag.Get("yaml")

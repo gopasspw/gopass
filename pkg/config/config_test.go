@@ -48,7 +48,7 @@ func TestSetConfigValue(t *testing.T) {
 	assert.NoError(t, cfg.SetConfigValue("", "autosync", "false"))
 	assert.NoError(t, cfg.SetConfigValue("", "askformore", "true"))
 	assert.NoError(t, cfg.SetConfigValue("", "cliptimeout", "900"))
-	assert.Error(t, cfg.SetConfigValue("", "path", "/tmp"))
+	assert.NoError(t, cfg.SetConfigValue("", "path", "/tmp"))
 	assert.Error(t, cfg.SetConfigValue("", "askformore", "yo"))
 
 	cfg.Mounts["foo"] = &StoreConfig{}
