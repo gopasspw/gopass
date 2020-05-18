@@ -34,14 +34,6 @@ func TestAutoSync(t *testing.T) {
 	assert.Equal(t, true, HasAutoSync(WithAutoSync(ctx, true)))
 }
 
-func TestReason(t *testing.T) {
-	ctx := context.Background()
-
-	assert.Equal(t, "", GetReason(ctx))
-	assert.Equal(t, "foobar", GetReason(WithReason(ctx, "foobar")))
-	assert.Equal(t, true, HasReason(WithReason(ctx, "foobar")))
-}
-
 func TestImportFunc(t *testing.T) {
 	ctx := context.Background()
 

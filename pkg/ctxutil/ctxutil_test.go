@@ -103,6 +103,14 @@ func TestGitCommit(t *testing.T) {
 	assert.Equal(t, false, IsGitCommit(WithGitCommit(ctx, false)))
 }
 
+func TestAlwaysYes(t *testing.T) {
+	ctx := context.Background()
+
+	assert.Equal(t, false, IsAlwaysYes(ctx))
+	assert.Equal(t, true, IsAlwaysYes(WithAlwaysYes(ctx, true)))
+	assert.Equal(t, false, IsAlwaysYes(WithAlwaysYes(ctx, false)))
+}
+
 func TestUseSymbols(t *testing.T) {
 	ctx := context.Background()
 
@@ -117,14 +125,6 @@ func TestNoColor(t *testing.T) {
 	assert.Equal(t, false, IsNoColor(ctx))
 	assert.Equal(t, true, IsNoColor(WithNoColor(ctx, true)))
 	assert.Equal(t, false, IsNoColor(WithNoColor(ctx, false)))
-}
-
-func TestAlwaysYes(t *testing.T) {
-	ctx := context.Background()
-
-	assert.Equal(t, false, IsAlwaysYes(ctx))
-	assert.Equal(t, true, IsAlwaysYes(WithAlwaysYes(ctx, true)))
-	assert.Equal(t, false, IsAlwaysYes(WithAlwaysYes(ctx, false)))
 }
 
 func TestFuzzySearch(t *testing.T) {
@@ -143,6 +143,14 @@ func TestVerbose(t *testing.T) {
 	assert.Equal(t, false, IsVerbose(WithVerbose(ctx, false)))
 }
 
+func TestAutoClip(t *testing.T) {
+	ctx := context.Background()
+
+	assert.Equal(t, true, IsAutoClip(ctx))
+	assert.Equal(t, true, IsAutoClip(WithAutoClip(ctx, true)))
+	assert.Equal(t, false, IsAutoClip(WithAutoClip(ctx, false)))
+}
+
 func TestNotifications(t *testing.T) {
 	ctx := context.Background()
 
@@ -159,12 +167,59 @@ func TestEditRecipients(t *testing.T) {
 	assert.Equal(t, false, IsEditRecipients(WithEditRecipients(ctx, false)))
 }
 
-func TestAutoClip(t *testing.T) {
+func TestProgressCallback(t *testing.T) {
 	ctx := context.Background()
 
-	assert.Equal(t, true, IsAutoClip(ctx))
-	assert.Equal(t, true, IsAutoClip(WithAutoClip(ctx, true)))
-	assert.Equal(t, false, IsAutoClip(WithAutoClip(ctx, false)))
+	var foo bool
+	pc := func() { foo = true }
+	GetProgressCallback(WithProgressCallback(ctx, pc))()
+	assert.Equal(t, true, foo)
+}
+
+func TestConfigDir(t *testing.T) {
+	ctx := context.Background()
+
+	assert.Equal(t, "", GetConfigDir(ctx))
+	assert.Equal(t, "", GetConfigDir(WithConfigDir(ctx, "")))
+}
+
+func TestAlias(t *testing.T) {
+	ctx := context.Background()
+
+	assert.Equal(t, "", GetAlias(ctx))
+	assert.Equal(t, "", GetAlias(WithAlias(ctx, "")))
+}
+
+func TestAutoPrint(t *testing.T) {
+	ctx := context.Background()
+
+	assert.Equal(t, false, IsAutoPrint(ctx))
+	assert.Equal(t, true, IsAutoPrint(WithAutoPrint(ctx, true)))
+	assert.Equal(t, false, IsAutoPrint(WithAutoPrint(ctx, false)))
+}
+
+func TestGitInit(t *testing.T) {
+	ctx := context.Background()
+
+	assert.Equal(t, true, IsGitInit(ctx))
+	assert.Equal(t, true, IsGitInit(WithGitInit(ctx, true)))
+	assert.Equal(t, false, IsGitInit(WithGitInit(ctx, false)))
+}
+
+func TestForce(t *testing.T) {
+	ctx := context.Background()
+
+	assert.Equal(t, false, IsForce(ctx))
+	assert.Equal(t, true, IsForce(WithForce(ctx, true)))
+	assert.Equal(t, false, IsForce(WithForce(ctx, false)))
+}
+
+func TestCommitMessage(t *testing.T) {
+	ctx := context.Background()
+
+	assert.Equal(t, "", GetCommitMessage(ctx))
+	assert.Equal(t, "foo", GetCommitMessage(WithCommitMessage(ctx, "foo")))
+	assert.Equal(t, "", GetCommitMessage(WithCommitMessage(ctx, "")))
 }
 
 func TestComposite(t *testing.T) {

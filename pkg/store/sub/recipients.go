@@ -10,6 +10,7 @@ import (
 
 	"golang.org/x/crypto/sha3"
 
+	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/out"
 	"github.com/gopasspw/gopass/pkg/store"
 
@@ -55,7 +56,7 @@ func (s *Store) AddRecipient(ctx context.Context, id string) error {
 	}
 
 	out.Cyan(ctx, "Reencrypting existing secrets. This may take some time ...")
-	return s.reencrypt(WithReason(ctx, "Added Recipient "+id))
+	return s.reencrypt(ctxutil.WithCommitMessage(ctx, "Added Recipient "+id))
 }
 
 // SaveRecipients persists the current recipients on disk
@@ -110,7 +111,7 @@ RECIPIENTS:
 		return errors.Wrapf(err, "failed to save recipients")
 	}
 
-	return s.reencrypt(WithReason(ctx, "Removed Recipient "+id))
+	return s.reencrypt(ctxutil.WithCommitMessage(ctx, "Removed Recipient "+id))
 }
 
 func (s *Store) ensureOurKeyID(ctx context.Context, rs []string) []string {

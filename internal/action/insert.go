@@ -111,7 +111,7 @@ func (s *Action) insertStdin(ctx context.Context, name string, content []byte, a
 	if err != nil {
 		out.Error(ctx, "WARNING: Invalid YAML: %s", err)
 	}
-	if err := s.Store.Set(sub.WithReason(ctx, "Read secret from STDIN"), name, sec); err != nil {
+	if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, "Read secret from STDIN"), name, sec); err != nil {
 		return ExitError(ctx, ExitEncrypt, err, "failed to set '%s': %s", name, err)
 	}
 	return nil
@@ -139,7 +139,7 @@ func (s *Action) insertSingle(ctx context.Context, name, pw string, kvps map[str
 	sec.SetPassword(pw)
 	audit.Single(ctx, sec.Password())
 
-	if err := s.Store.Set(sub.WithReason(ctx, "Inserted user supplied password"), name, sec); err != nil {
+	if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, "Inserted user supplied password"), name, sec); err != nil {
 		return ExitError(ctx, ExitEncrypt, err, "failed to write secret '%s': %s", name, err)
 	}
 	return nil
@@ -168,7 +168,7 @@ func (s *Action) insertYAML(ctx context.Context, name, key string, content []byt
 	if err := sec.SetValue(key, string(content)); err != nil {
 		return ExitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
 	}
-	if err := s.Store.Set(sub.WithReason(ctx, "Inserted YAML value from STDIN"), name, sec); err != nil {
+	if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, "Inserted YAML value from STDIN"), name, sec); err != nil {
 		return ExitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
 	}
 	return nil
@@ -196,7 +196,7 @@ func (s *Action) insertMultiline(ctx context.Context, c *cli.Context, name strin
 	if err != nil {
 		out.Error(ctx, "WARNING: Invalid YAML: %s", err)
 	}
-	if err := s.Store.Set(sub.WithReason(ctx, fmt.Sprintf("Inserted user supplied password with %s", ed)), name, sec); err != nil {
+	if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, fmt.Sprintf("Inserted user supplied password with %s", ed)), name, sec); err != nil {
 		return ExitError(ctx, ExitEncrypt, err, "failed to store secret '%s': %s", name, err)
 	}
 	return nil

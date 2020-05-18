@@ -82,7 +82,7 @@ func (s *Store) fsckCheckEntry(ctx context.Context, name string) error {
 		if err != nil {
 			return errors.Wrapf(err, "failed to decode secret: %s", err)
 		}
-		if err := s.Set(WithReason(ctx, "fsck fix recipients"), name, sec); err != nil {
+		if err := s.Set(ctxutil.WithCommitMessage(ctx, "fsck fix recipients"), name, sec); err != nil {
 			return errors.Wrapf(err, "failed to write secret: %s", err)
 		}
 	}

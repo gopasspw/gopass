@@ -16,7 +16,6 @@ import (
 	"github.com/gopasspw/gopass/pkg/pwgen/xkcdgen"
 	"github.com/gopasspw/gopass/pkg/store"
 	"github.com/gopasspw/gopass/pkg/store/secret"
-	"github.com/gopasspw/gopass/pkg/store/sub"
 	"github.com/gopasspw/gopass/pkg/termio"
 
 	"github.com/fatih/color"
@@ -221,7 +220,7 @@ func (s *Action) generateSetPassword(ctx context.Context, name, key, password st
 		if err := sec.SetValue(key, password); err != nil {
 			return ctx, ExitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
 		}
-		if err := s.Store.Set(sub.WithReason(ctx, "Generated password for YAML key"), name, sec); err != nil {
+		if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, "Generated password for YAML key"), name, sec); err != nil {
 			return ctx, ExitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
 		}
 		return ctx, nil
@@ -247,7 +246,7 @@ func (s *Action) generateSetPassword(ctx context.Context, name, key, password st
 		}
 	}
 
-	ctx, err = s.Store.SetContext(sub.WithReason(ctx, "Generated Password"), name, sec)
+	ctx, err = s.Store.SetContext(ctxutil.WithCommitMessage(ctx, "Generated Password"), name, sec)
 	if err != nil {
 		return ctx, ExitError(ctx, ExitEncrypt, err, "failed to create '%s': %s", name, err)
 	}
@@ -261,7 +260,7 @@ func (s *Action) generateReplaceExisting(ctx context.Context, name, key, passwor
 	}
 	setMetadata(sec, kvps)
 	sec.SetPassword(password)
-	if err := s.Store.Set(sub.WithReason(ctx, "Generated password for YAML key"), name, sec); err != nil {
+	if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, "Generated password for YAML key"), name, sec); err != nil {
 		return ctx, ExitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
 	}
 	return ctx, nil

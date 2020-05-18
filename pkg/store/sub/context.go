@@ -12,7 +12,6 @@ const (
 	ctxKeyFsckCheck contextKey = iota
 	ctxKeyFsckForce
 	ctxKeyAutoSync
-	ctxKeyReason
 	ctxKeyImportFunc
 	ctxKeyRecipientFunc
 	ctxKeyFsckFunc
@@ -80,26 +79,6 @@ func IsAutoSync(ctx context.Context) bool {
 		return true
 	}
 	return bv
-}
-
-// WithReason returns a context with a commit/change reason set
-func WithReason(ctx context.Context, msg string) context.Context {
-	return context.WithValue(ctx, ctxKeyReason, msg)
-}
-
-// HasReason returns true if a value for reason has been set in this context
-func HasReason(ctx context.Context) bool {
-	_, ok := ctx.Value(ctxKeyReason).(string)
-	return ok
-}
-
-// GetReason returns the value of reason
-func GetReason(ctx context.Context) string {
-	sv, ok := ctx.Value(ctxKeyReason).(string)
-	if !ok {
-		return ""
-	}
-	return sv
 }
 
 // WithImportFunc will return a context with the import callback set

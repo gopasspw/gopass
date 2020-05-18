@@ -11,7 +11,6 @@ import (
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/out"
 	"github.com/gopasspw/gopass/pkg/store/secret"
-	"github.com/gopasspw/gopass/pkg/store/sub"
 
 	"github.com/urfave/cli/v2"
 )
@@ -43,7 +42,7 @@ func Cat(c *cli.Context, store storer) error {
 		}
 
 		return store.Set(
-			sub.WithReason(ctx, "Read secret from STDIN"),
+			ctxutil.WithCommitMessage(ctx, "Read secret from STDIN"),
 			name,
 			secret.New("", base64.StdEncoding.EncodeToString(content.Bytes())),
 		)

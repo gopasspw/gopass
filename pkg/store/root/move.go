@@ -133,7 +133,7 @@ func (r *Store) moveFromTo(ctxFrom, ctxTo context.Context, subFrom, subTo store.
 			return errors.Errorf("Source %s does not exist in source store %s: %s", from, subFrom.Alias(), err)
 		}
 
-		if err := r.Set(sub.WithReason(ctxTo, fmt.Sprintf("Move from %s to %s", src, dst)), dst, content); err != nil {
+		if err := r.Set(ctxutil.WithCommitMessage(ctxTo, fmt.Sprintf("Move from %s to %s", src, dst)), dst, content); err != nil {
 			return errors.Wrapf(err, "failed to save secret '%s'", to)
 		}
 

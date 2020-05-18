@@ -12,7 +12,6 @@ import (
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/fsutil"
 	"github.com/gopasspw/gopass/pkg/store/secret"
-	"github.com/gopasspw/gopass/pkg/store/sub"
 
 	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
@@ -92,7 +91,7 @@ func binaryCopyFromFileToStore(ctx context.Context, from, to string, deleteSourc
 		return errors.Wrapf(err, "failed to read file from '%s'", from)
 	}
 
-	if err := store.Set(sub.WithReason(ctx, fmt.Sprintf("Copied data from %s to %s", from, to)), to, secret.New("", base64.StdEncoding.EncodeToString(buf))); err != nil {
+	if err := store.Set(ctxutil.WithCommitMessage(ctx, fmt.Sprintf("Copied data from %s to %s", from, to)), to, secret.New("", base64.StdEncoding.EncodeToString(buf))); err != nil {
 		return errors.Wrapf(err, "failed to save buffer to store")
 	}
 
