@@ -256,7 +256,7 @@ func (s *Action) recipientsSelectForRemoval(ctx context.Context, store string) (
 		return nil, nil
 	}
 
-	act, sel := cui.GetSelection(ctx, "Remove recipient -", "<↑/↓> to change the selection, <→> to remove this recipient, <ESC> to quit", choices)
+	act, sel := cui.GetSelection(ctx, "Remove recipient -", choices)
 	switch act {
 	case "default":
 		fallthrough
@@ -279,7 +279,7 @@ func (s *Action) recipientsSelectForAdd(ctx context.Context, store string) ([]st
 		return nil, nil
 	}
 
-	act, sel := cui.GetSelection(ctx, "Add Recipient -", "<↑/↓> to change the selection, <→> to add this recipient, <ESC> to quit", choices)
+	act, sel := cui.GetSelection(ctx, "Add Recipient -", choices)
 	switch act {
 	case "default":
 		fallthrough

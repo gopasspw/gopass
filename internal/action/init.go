@@ -270,7 +270,7 @@ func (s *Action) InitOnboarding(c *cli.Context) error {
 		"Create a Team",
 		"Join an existing Team",
 	}
-	act, sel := cui.GetSelection(ctx, "Select action", "<↑/↓> to change the selection, <→> to select, <ESC> to quit", choices)
+	act, sel := cui.GetSelection(ctx, "Select action", choices)
 	switch act {
 	case "default":
 		fallthrough

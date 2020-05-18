@@ -55,7 +55,7 @@ func Create(c *cli.Context, store storer) error {
 	acts = append(acts, cui.Action{Name: "Generic", Fn: s.createGeneric})
 	acts = append(acts, cui.Action{Name: "AWS Secret Key", Fn: s.createAWS})
 	acts = append(acts, cui.Action{Name: "GCP Service Account", Fn: s.createGCP})
-	act, sel := cui.GetSelection(ctx, "Please select the type of secret you would like to create", "<↑/↓> to change the selection, <→> to select, <ESC> to quit", acts.Selection())
+	act, sel := cui.GetSelection(ctx, "Please select the type of secret you would like to create", acts.Selection())
 	switch act {
 	case "default":
 		fallthrough

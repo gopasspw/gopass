@@ -85,7 +85,7 @@ func (s *Action) find(ctx context.Context, c *cli.Context, needle string, cb sho
 // findSelection runs a wizard that lets the user select an entry
 func (s *Action) findSelection(ctx context.Context, c *cli.Context, choices []string, needle string, cb showFunc) error {
 	sort.Strings(choices)
-	act, sel := cui.GetSelection(ctx, "Found secrets - Please select an entry", "<↑/↓> to change the selection, <→> to show, <←> to copy, <s> to sync, <e> to edit, <ESC> to quit", choices)
+	act, sel := cui.GetSelection(ctx, "Found secrets - Please select an entry", choices)
 	out.Debug(ctx, "Action: %s - Selection: %d", act, sel)
 	switch act {
 	case "default":

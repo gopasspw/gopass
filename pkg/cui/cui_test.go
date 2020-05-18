@@ -13,7 +13,7 @@ func TestGetSelection(t *testing.T) {
 	ctx := context.Background()
 	ctx = ctxutil.WithInteractive(ctx, false)
 
-	act, sel := GetSelection(ctx, "foo", "bar", []string{"foo", "bar"})
+	act, sel := GetSelection(ctx, "foo", []string{"foo", "bar"})
 	assert.Equal(t, "impossible", act)
 	assert.Equal(t, 0, sel)
 }
