@@ -300,7 +300,7 @@ func AskForStore(ctx context.Context, s mountPointer) string {
 		return ""
 	}
 
-	act, sel := GetSelection(ctx, "Please select the store you would like to use", "<↑/↓> to change the selection, <→> to select, <ESC> to quit", stores)
+	act, sel := GetSelection(ctx, "Please select the store you would like to use", stores)
 	switch act {
 	case "default":
 		fallthrough
