@@ -20,7 +20,7 @@ func (s *Store) Get(ctx context.Context, name string) (store.Secret, error) {
 
 	content, err := s.crypto.Decrypt(ctx, ciphertext)
 	if err != nil {
-		out.Debug(ctx, "Decryption failed: %s", err)
+		out.Error(ctx, "Decryption failed: %s\n%s", err, string(content))
 		return nil, store.ErrDecrypt
 	}
 
