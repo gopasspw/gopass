@@ -181,14 +181,14 @@ func (r *Store) WithConfig(ctx context.Context, name string) context.Context {
 
 // GetSubStore returns an exact match for a mount point or an error if this
 // mount point does not exist
-func (r *Store) GetSubStore(name string) (store.Store, error) {
+func (r *Store) GetSubStore(ctx context.Context, name string) (context.Context, store.Store, error) {
 	if name == "" {
-		return r.store, nil
+		return r.cfg.Root.WithContext(ctx), r.store, nil
 	}
 	if sub, found := r.mounts[name]; found {
-		return sub, nil
+		return r.cfg.Mounts[name].WithContext(ctx), sub, nil
 	}
-	return nil, errors.Errorf("no such mount point '%s'", name)
+	return nil, nil, errors.Errorf("no such mount point '%s'", name)
 }
 
 // checkMounts performs some sanity checks on our mounts. At the moment it
