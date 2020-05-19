@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/gopasspw/gopass/pkg/backend"
+	"github.com/gopasspw/gopass/pkg/backend/crypto/gpg"
 	"github.com/gopasspw/gopass/pkg/config"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/cui"
@@ -14,10 +15,10 @@ import (
 	"github.com/gopasspw/gopass/pkg/pwgen/xkcdgen"
 	"github.com/gopasspw/gopass/pkg/store/sub"
 	"github.com/gopasspw/gopass/pkg/termio"
+	"github.com/urfave/cli/v2"
 
 	"github.com/fatih/color"
 	"github.com/pkg/errors"
-	"github.com/urfave/cli/v2"
 )
 
 // Initialized returns an error if the store is not properly
@@ -340,7 +341,7 @@ https://github.com/gopasspw/gopass/blob/master/docs/entropy.md`)
 }
 
 func (s *Action) initHasUseablePrivateKeys(ctx context.Context, crypto backend.Crypto, mount string) bool {
-	kl, err := crypto.ListPrivateKeyIDs(ctx)
+	kl, err := crypto.ListPrivateKeyIDs(gpg.WithAlwaysTrust(ctx, false))
 	if err != nil {
 		return false
 	}

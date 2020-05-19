@@ -198,7 +198,7 @@ func AskForPrivateKey(ctx context.Context, crypto backend.Crypto, name, prompt s
 		return "", err
 	}
 	if len(kl) < 1 {
-		return "", errors.New("no useable private keys found")
+		return "", errors.New("no useable private keys found. make sure you have valid private keys with sufficient trust")
 	}
 
 	for i := 0; i < maxTries; i++ {
