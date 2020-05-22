@@ -1,3 +1,5 @@
+// Package ondisk implements an encrypted on-disk storage backend with
+// integrated revision control as well as automatic synchronization (soon).
 package ondisk
 
 import (
@@ -22,8 +24,9 @@ import (
 var (
 	idxFile    = "index.pb"
 	idxBakFile = "index.pb.back"
-	maxRev     = 256
-	delTTL     = time.Hour * 24 * 365
+	//lockFile   = "index.lock"
+	maxRev = 256
+	delTTL = time.Hour * 24 * 365
 )
 
 // OnDisk is an on disk key-value store

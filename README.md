@@ -48,15 +48,12 @@ Please see [docs/features.md](https://github.com/gopasspw/gopass/blob/master/doc
 | Recipient management        | ❌      | ✔        | *beta*    | Easily manage multiple users of each store                        |
 | Multiple stores             | ❌      | ✔        | *beta*    | Mount multiple stores in your root store, like file systems       |
 | password quality assistance | ❌      | ✔        | *beta*    | Checks existing or new passwords for common flaws                 |
-| Binary support              | ❌      | ✔        | *alpha*   | Special handling of binary files (automatic Base64 encoding)      |
-| K/V and YAML support        | ❌      | ✔        | *alpha*   | Special handling for Key/Value and YAML content in secrets        |
 | password leak checker       | ❌      | ✔        | *alpha*   | Perform **offline** checks against known leaked passwords         |
 | PAGER support               | ❌      | ✔        | *stable*  | Automatically invoke a pager on long output                       |
 | JSON API                    | ❌      | ✔        | *stable*   | Allow gopass to be used as a native extension for browser plugins |
 | Automatic fuzzy search      | ❌      | ✔        | *stable*  | Automatically search for matching store entries if a literal entry was not found |
 | gopass sync                 | ❌      | ✔        | *beta*    | Easy to use syncing of remote repos and GPG keys |
 | Desktop Notifications       | ❌      | ✔        | *beta*    | Display desktop notifications and completing long running operations |
-| Multiple Crypto Backends    | ❌      | ✔        | *alpha*   | Extensible crypto backend support (GPG, NaCl)                      |
 | Editing Recipients per Secret    | ❌      | ✔        | *beta*   | Select recipients per secret when encrypting |
 | Extensions                  | ✔      | ❌        |           | Extend gopass with custom commands |
 

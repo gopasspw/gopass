@@ -1,3 +1,6 @@
+// Package noop implements a ineffective RCS backend for use with external
+// synchronization solutions.
+// TODO(2.x) DEPRECATED and slated for removal in the 2.0.0 release.
 package noop
 
 import (
