@@ -1,6 +1,8 @@
 package action
 
 import (
+	"context"
+
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/updater"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -18,7 +20,13 @@ func (s *Action) Update(c *cli.Context) error {
 		return nil
 	}
 
-	if err := updater.Update(ctx, pre, s.version); err != nil {
+	// migration check is not yet implemented. returning false will bock
+	// updates to the next major release.
+	mc := func(ctx context.Context) bool {
+		return false
+	}
+
+	if err := updater.Update(ctx, pre, s.version, mc); err != nil {
 		return ExitError(ctx, ExitUnknown, err, "Failed to update gopass: %s", err)
 	}
 	return nil

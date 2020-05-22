@@ -37,8 +37,8 @@ const (
 	gitHubRepo = "gopass"
 )
 
-// Update will start hte interactive update assistant
-func Update(ctx context.Context, pre bool, version semver.Version) error {
+// Update will start th interactive update assistant
+func Update(ctx context.Context, pre bool, version semver.Version, migrationCheck func(context.Context) bool) error {
 	if err := IsUpdateable(ctx); err != nil {
 		out.Error(ctx, "Your gopass binary is externally managed. Can not update.")
 		out.Debug(ctx, "Error: %s", err)
@@ -53,17 +53,61 @@ func Update(ctx context.Context, pre bool, version semver.Version) error {
 		return nil
 	}
 
-	r, err := LatestRelease(ctx, pre || len(version.Pre) > 0)
+	rs, err := FetchReleases(ctx, pre || len(version.Pre) > 0)
 	if err != nil {
 		return err
 	}
+	if len(rs) < 1 {
+		return fmt.Errorf("no releases available")
+	}
 
-	out.Debug(ctx, "Current: %s - Latest: %s", version.String(), r.Version().String())
-	if version.GTE(r.Version()) {
+	out.Debug(ctx, "Current: %s - Latest: %s", version.String(), rs[0].Version().String())
+	// binary is newer or equal to the latest release -> nothing to do
+	if version.GTE(rs[0].Version()) {
 		out.Green(ctx, "gopass is up to date (%s)", version.String())
 		return nil
 	}
 
+	// binary has the same major version as the latest release -> simple update
+	//if version.Major == rs[0].Version().Major || version.Major == 0 {
+	if version.Major == rs[0].Version().Major {
+		return simpleUpdate(ctx, rs[0])
+	}
+
+	// binary has a previous major version -> need to update to the latest
+	// release of the previous minor version first, run update check and then
+	// update to the next major version.
+	latestMinorReleases := filterMajor(rs, version.Major)
+	if len(latestMinorReleases) < 1 {
+		return fmt.Errorf("no suitable releases")
+	}
+
+	// we're already at the latest release of the previous stable release
+	// cycle. We attempt to migrate the any outdated data of config and
+	// if the succeeds we can go straight to the latest release.
+	if version.EQ(latestMinorReleases[0].Version()) && migrationCheck(ctx) {
+		return simpleUpdate(ctx, rs[0])
+	}
+
+	// before we can move to the next major release we first need to update to
+	// the latest release of the current major release and pass the migration
+	// check.
+	return simpleUpdate(ctx, latestMinorReleases[0])
+}
+
+func filterMajor(rs []ghrel.Release, major uint64) []ghrel.Release {
+	out := make([]ghrel.Release, 0, len(rs)-1)
+	for _, r := range rs {
+		v := r.Version()
+		if v.Major != major {
+			continue
+		}
+		out = append(out, r)
+	}
+	return out
+}
+
+func simpleUpdate(ctx context.Context, r ghrel.Release) error {
 	out.Debug(ctx, "Assets: %+v", r.Assets)
 	for _, asset := range r.Assets {
 		name := strings.TrimSuffix(strings.TrimPrefix(asset.Name, "gopass-"), ".tar.gz")
@@ -88,12 +132,24 @@ func Update(ctx context.Context, pre bool, version semver.Version) error {
 	return errors.New("no supported binary found")
 }
 
-// LatestRelease fetches and return the latest release of gopass from GitHub
-func LatestRelease(ctx context.Context, pre bool) (ghrel.Release, error) {
+// FetchReleases fetches and returns all releases of gopass from GitHub
+func FetchReleases(ctx context.Context, pre bool) ([]ghrel.Release, error) {
 	if pre {
-		return ghrel.FetchLatestRelease(gitHubOrg, gitHubRepo)
+		return ghrel.FetchAllReleases(gitHubOrg, gitHubRepo)
 	}
-	return ghrel.FetchLatestStableRelease(gitHubOrg, gitHubRepo)
+	return ghrel.FetchAllStableReleases(gitHubOrg, gitHubRepo)
+}
+
+// LatestRelease fetches and returns the latest gopass release from GitHub
+func LatestRelease(ctx context.Context, pre bool) (ghrel.Release, error) {
+	rs, err := FetchReleases(ctx, pre)
+	if err != nil {
+		return ghrel.Release{}, err
+	}
+	if len(rs) < 1 {
+		return ghrel.Release{}, fmt.Errorf("no releases")
+	}
+	return rs[0], nil
 }
 
 func updateCheckHost(ctx context.Context, u *url.URL) error {
