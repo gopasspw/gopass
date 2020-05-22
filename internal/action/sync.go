@@ -5,11 +5,11 @@ import (
 	"fmt"
 
 	"github.com/gopasspw/gopass/internal/backend/rcs/noop"
+	"github.com/gopasspw/gopass/internal/notify"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
 	subs "github.com/gopasspw/gopass/internal/store/sub"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"github.com/gopasspw/gopass/pkg/notify"
 
 	"github.com/fatih/color"
 	"github.com/pkg/errors"

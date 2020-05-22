@@ -7,10 +7,10 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/jsonapi/manifest"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/termio"
-	"github.com/gopasspw/gopass/pkg/config"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 
 	"github.com/fatih/color"

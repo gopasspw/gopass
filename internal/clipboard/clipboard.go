@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/gopasspw/gopass/internal/notify"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"github.com/gopasspw/gopass/pkg/notify"
 
 	"github.com/atotto/clipboard"
 	"github.com/fatih/color"

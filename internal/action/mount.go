@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"sort"
 
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/internal/store/root"
 	"github.com/gopasspw/gopass/internal/tree/simple"
-	"github.com/gopasspw/gopass/pkg/config"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/pkg/errors"
 

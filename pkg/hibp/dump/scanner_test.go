@@ -3,6 +3,7 @@ package dump
 import (
 	"compress/gzip"
 	"context"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -32,6 +33,21 @@ const testHibpSampleUnsorted = `000000005AD76BD555C1D6D771DE417A4B87E4B4
 00000000DD7F2A1C68A35673713783CA390C9E93:42
 00000001E225B908BAC31C56DB04D892E47536E0:42
 00000010F4B38525354491E099EB1796278544B1`
+
+func Example() {
+	ctx := context.Background()
+	scanner, err := New("path/to/hibp-dump")
+	if err != nil {
+		panic(err)
+	}
+	matches := scanner.LookupBatch(ctx, []string{
+		"list",
+		"of",
+		"sha1",
+		"hashes",
+	})
+	fmt.Println(matches)
+}
 
 func TestScanner(t *testing.T) {
 	td, err := ioutil.TempDir("", "gopass-")

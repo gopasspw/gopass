@@ -13,26 +13,41 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-// Load will try to load the config from one of the default locations
-func Load() *Config {
+// LoadWithFallback will try to load the config from one of the default locations
+// TODO(2.x) This method is DEPRECATED
+func LoadWithFallback() *Config {
 	for _, l := range configLocations() {
-		if debug {
-			fmt.Printf("[DEBUG] Trying to load config from %s\n", l)
+		if cfg := loadConfig(l); cfg != nil {
+			return cfg
 		}
-		cfg, err := load(l)
-		if err == ErrConfigNotFound {
-			continue
-		}
-		if err != nil {
-			panic(err)
-		}
-		_ = cfg.checkDefaults()
-		if debug {
-			fmt.Printf("[DEBUG] Loaded config from %s: %+v\n", l, cfg)
-		}
+	}
+	return loadDefault()
+}
+
+// Load will load the config from the default location or return a default config
+func Load() *Config {
+	if cfg := loadConfig(configLocation()); cfg != nil {
 		return cfg
 	}
 	return loadDefault()
+}
+
+func loadConfig(l string) *Config {
+	if debug {
+		fmt.Printf("[DEBUG] Trying to load config from %s\n", l)
+	}
+	cfg, err := load(l)
+	if err == ErrConfigNotFound {
+		return nil
+	}
+	if err != nil {
+		panic(err)
+	}
+	_ = cfg.checkDefaults()
+	if debug {
+		fmt.Printf("[DEBUG] Loaded config from %s: %+v\n", l, cfg)
+	}
+	return cfg
 }
 
 func loadDefault() *Config {

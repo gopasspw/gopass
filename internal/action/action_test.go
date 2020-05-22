@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/gopasspw/gopass/internal/backend"
-	"github.com/gopasspw/gopass/pkg/config"
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/tests/gptest"
 
 	"github.com/blang/semver"

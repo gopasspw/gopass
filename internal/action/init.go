@@ -8,11 +8,11 @@ import (
 
 	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/internal/backend/crypto/gpg"
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/cui"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store/sub"
 	"github.com/gopasspw/gopass/internal/termio"
-	"github.com/gopasspw/gopass/pkg/config"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/pwgen/xkcdgen"
 	"github.com/urfave/cli/v2"

@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"io/ioutil"
 
+	"github.com/gopasspw/gopass/internal/notify"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
-	"github.com/gopasspw/gopass/pkg/notify"
 
 	"github.com/fatih/color"
 	"github.com/muesli/crunchy"

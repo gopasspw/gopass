@@ -6,13 +6,13 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/gopasspw/gopass/internal/audit"
 	"github.com/gopasspw/gopass/internal/editor"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/internal/store/secret"
 	"github.com/gopasspw/gopass/internal/store/sub"
 	"github.com/gopasspw/gopass/internal/termio"
-	"github.com/gopasspw/gopass/pkg/audit"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 
 	"github.com/urfave/cli/v2"

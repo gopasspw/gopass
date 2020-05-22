@@ -9,9 +9,9 @@ import (
 
 	"github.com/gopasspw/gopass/internal/action"
 	"github.com/gopasspw/gopass/internal/backend/crypto/xc"
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/termio"
-	"github.com/gopasspw/gopass/pkg/config"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/fsutil"
 	"github.com/urfave/cli/v2"

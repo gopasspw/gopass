@@ -12,6 +12,15 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func Example() {
+	ctx := context.Background()
+	matches, err := Lookup(ctx, "sha1sum of secret")
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("Number of matches: %d", matches)
+}
+
 func TestLookup(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping test in short mode.")

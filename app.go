@@ -6,10 +6,10 @@ import (
 	"strings"
 
 	ap "github.com/gopasspw/gopass/internal/action"
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store/sub"
 	"github.com/gopasspw/gopass/internal/termio"
-	"github.com/gopasspw/gopass/pkg/config"
 
 	"github.com/blang/semver"
 	"github.com/urfave/cli/v2"
@@ -17,7 +17,7 @@ import (
 
 func setupApp(ctx context.Context, sv semver.Version) (context.Context, *cli.App) {
 	// try to read config (if it exists)
-	cfg := config.Load()
+	cfg := config.LoadWithFallback()
 
 	// set config values
 	ctx = initContext(ctx, cfg)
