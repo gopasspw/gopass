@@ -30,6 +30,21 @@ import (
 
 const testUpdateJSON = `[
   {
+    "id": 8979832,
+    "name": "0.0.1 / 2017-12-02",
+    "tag_name": "v0.0.1",
+    "draft": false,
+    "prerelease": false,
+    "published_at": "2017-12-02T14:38:21Z",
+    "assets": [
+      {
+	"browser_download_url": "%s/gopass.tar.gz",
+	"id": 5676622,
+	"name": "gopass-0.0.1-%s-%s.tar.gz"
+      }
+    ]
+  },
+  {
     "id": 8979833,
     "name": "1.6.6 / 2017-12-20",
     "tag_name": "v1.6.6",
@@ -92,7 +107,7 @@ func TestUpdate(t *testing.T) {
 	defer ghdl.Close()
 	// github api mock
 	ghapi := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		json := fmt.Sprintf(testUpdateJSON, ghdl.URL, runtime.GOOS, runtime.GOARCH)
+		json := fmt.Sprintf(testUpdateJSON, ghdl.URL, runtime.GOOS, runtime.GOARCH, ghdl.URL, runtime.GOOS, runtime.GOARCH)
 		fmt.Fprint(w, json)
 	}))
 	defer ghapi.Close()
@@ -108,5 +123,6 @@ func TestUpdate(t *testing.T) {
 	}()
 
 	assert.NoError(t, act.Update(c))
+	t.Logf("Output: %s", buf.String())
 	buf.Reset()
 }
