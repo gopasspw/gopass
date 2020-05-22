@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gopasspw/gopass/pkg/out"
+	"github.com/gopasspw/gopass/internal/out"
 	ps "github.com/mitchellh/go-ps"
 
 	"github.com/atotto/clipboard"

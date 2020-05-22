@@ -8,10 +8,10 @@ import (
 	"time"
 
 	"github.com/blang/semver"
+	"github.com/gopasspw/gopass/internal/backend"
+	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/updater"
-	"github.com/gopasspw/gopass/pkg/backend"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"github.com/gopasspw/gopass/pkg/out"
 	"github.com/gopasspw/gopass/pkg/protect"
 
 	"github.com/fatih/color"

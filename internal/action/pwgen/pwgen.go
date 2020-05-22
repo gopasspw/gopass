@@ -8,8 +8,8 @@ import (
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/pwgen"
 	"github.com/gopasspw/gopass/pkg/pwgen/xkcdgen"
-	"github.com/gopasspw/gopass/pkg/termutil"
 	"github.com/urfave/cli/v2"
+	"golang.org/x/crypto/ssh/terminal"
 )
 
 // Pwgen handles the pwgen subcommand
@@ -77,8 +77,8 @@ func pwGen(c *cli.Context, pwLen, pwNum int) error {
 }
 
 func numPerLine(pwLen int) int {
-	_, cols := termutil.GetTermsize()
-	if cols < 1 {
+	cols, _, err := terminal.GetSize(0)
+	if err != nil {
 		return 1
 	}
 

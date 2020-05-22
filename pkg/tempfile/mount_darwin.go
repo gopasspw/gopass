@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"github.com/gopasspw/gopass/pkg/out"
 
 	"github.com/cenkalti/backoff"
 	"github.com/pkg/errors"

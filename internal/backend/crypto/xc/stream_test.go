@@ -1,0 +1,364 @@
+package xc
+
+import (
+	"bytes"
+	"context"
+	"crypto/sha512"
+	"fmt"
+	"io"
+	"io/ioutil"
+	"math/rand"
+	"os"
+	"path/filepath"
+	"testing"
+
+	stdbin "encoding/binary"
+
+	"github.com/alecthomas/binary"
+	"github.com/gopasspw/gopass/internal/backend/crypto/xc/keyring"
+	"github.com/gopasspw/gopass/internal/backend/crypto/xc/xcpb"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"google.golang.org/protobuf/proto"
+)
+
+func TestStream(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
+	}
+
+	ctx := context.Background()
+
+	td, err := ioutil.TempDir("", "gopass-")
+	require.NoError(t, err)
+	defer func() {
+		_ = os.RemoveAll(td)
+	}()
+	assert.NoError(t, os.Setenv("GOPASS_CONFIG", filepath.Join(td, ".gopass.yml")))
+	assert.NoError(t, os.Setenv("GOPASS_HOMEDIR", td))
+
+	plainFile := filepath.Join(td, "data.bin")
+	cryptFile := plainFile + ".xc"
+	plainAgain := plainFile + ".dec"
+
+	plainSum := sha512.New()
+	againSum := sha512.New()
+
+	passphrase := "test"
+
+	k1, err := keyring.GenerateKeypair(passphrase)
+	require.NoError(t, err)
+
+	skr := keyring.NewSecring()
+	require.NoError(t, skr.Set(k1))
+
+	pkr := keyring.NewPubring(skr)
+
+	xc := &XC{
+		pubring: pkr,
+		secring: skr,
+		client:  &fakeAgent{passphrase},
+	}
+
+	pfh, err := os.OpenFile(plainFile, os.O_CREATE|os.O_WRONLY, 0600)
+	require.NoError(t, err)
+	require.NotNil(t, pfh)
+
+	p := make([]byte, 1024)
+	written := 0
+	for i := 0; i < 64*1024; i++ {
+		n, _ := rand.Read(p)
+		n, err := pfh.Write(p[:n])
+		written += n
+		require.NoError(t, err)
+		_, _ = plainSum.Write(p[:n])
+	}
+	// add some more bytes to force an uneven block boundary
+	p = make([]byte, 10)
+	rand.Read(p)
+	_, err = pfh.Write(p)
+	require.NoError(t, err)
+	_, _ = plainSum.Write(p)
+
+	require.NoError(t, pfh.Close())
+	t.Logf("Wrote %d bytes", written)
+
+	pfh, err = os.Open(plainFile)
+	require.NoError(t, err)
+
+	cfh, err := os.OpenFile(cryptFile, os.O_CREATE|os.O_WRONLY, 0600)
+	require.NoError(t, err)
+
+	err = xc.EncryptStream(ctx, pfh, []string{k1.Fingerprint()}, cfh)
+	require.NoError(t, err)
+
+	require.NoError(t, pfh.Close())
+	require.NoError(t, cfh.Close())
+
+	cfh, err = os.Open(cryptFile)
+	require.NoError(t, err)
+
+	pfh, err = os.OpenFile(plainAgain, os.O_CREATE|os.O_WRONLY, 0600)
+	require.NoError(t, err)
+
+	// check decryption works and yields exactly the input
+	err = xc.DecryptStream(ctx, cfh, pfh)
+	assert.NoError(t, err)
+
+	require.NoError(t, cfh.Close())
+	require.NoError(t, pfh.Close())
+
+	pfh, err = os.Open(plainAgain)
+	require.NoError(t, err)
+	buf := make([]byte, 1024)
+	for {
+		n, err := pfh.Read(buf)
+		_, _ = againSum.Write(buf[:n])
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			require.NoError(t, err)
+		}
+	}
+	require.NoError(t, pfh.Close())
+
+	assert.Equal(t, fmt.Sprintf("%X", plainSum.Sum(nil)), fmt.Sprintf("%X", againSum.Sum(nil)))
+}
+
+func BenchmarkEncryptDecrypt(b *testing.B) {
+	b.StopTimer()
+	ctx := context.Background()
+	passphrase := "test"
+
+	k1, err := keyring.GenerateKeypair(passphrase)
+	require.NoError(b, err)
+
+	skr := keyring.NewSecring()
+	require.NoError(b, skr.Set(k1))
+
+	pkr := keyring.NewPubring(skr)
+
+	xc := &XC{
+		pubring: pkr,
+		secring: skr,
+		client:  &fakeAgent{passphrase},
+	}
+
+	plaintext := &bytes.Buffer{}
+	for i := 0; i < 1024*1024; i++ {
+		plaintext.WriteString("a")
+	}
+	plainagain := &bytes.Buffer{}
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		buf := &bytes.Buffer{}
+		err := xc.EncryptStream(ctx, bytes.NewReader(plaintext.Bytes()), []string{k1.Fingerprint()}, buf)
+		assert.NoError(b, err)
+
+		err = xc.DecryptStream(ctx, bytes.NewReader(buf.Bytes()), plainagain)
+		assert.NoError(b, err)
+
+		buf.Reset()
+		plainagain.Reset()
+	}
+}
+
+var benchInner = 1
+
+func BenchmarkByteSlice(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		buf := &bytes.Buffer{}
+		data := []byte("foobar")
+
+		for j := 0; j < benchInner; j++ {
+			enc := binary.NewEncoder(buf)
+			_ = enc.Encode(data)
+		}
+		dec := binary.NewDecoder(bytes.NewReader(buf.Bytes()))
+		for {
+			if err := dec.Decode(&data); err != nil {
+				if err == io.EOF {
+					break
+				}
+				b.Fatalf("Error: %s", err)
+			}
+		}
+	}
+}
+
+func BenchmarkEncodeByteSlice(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		buf := &bytes.Buffer{}
+		data := []byte("foobar")
+
+		for j := 0; j < benchInner; j++ {
+			enc := binary.NewEncoder(buf)
+			_ = enc.Encode(data)
+		}
+	}
+}
+
+func BenchmarkDecodeByteSlice(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		b.StopTimer()
+		buf := &bytes.Buffer{}
+		data := []byte("foobar")
+
+		for j := 0; j < benchInner; j++ {
+			enc := binary.NewEncoder(buf)
+			_ = enc.Encode(data)
+		}
+		b.StartTimer()
+		dec := binary.NewDecoder(bytes.NewReader(buf.Bytes()))
+		for {
+			if err := dec.Decode(&data); err != nil {
+				if err == io.EOF {
+					break
+				}
+				b.Fatalf("Error: %s", err)
+			}
+		}
+	}
+}
+
+func BenchmarkChunk(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		buf := &bytes.Buffer{}
+		data := &xcpb.Chunk{
+			Body: []byte("foobar"),
+		}
+
+		for j := 0; j < benchInner; j++ {
+			enc := binary.NewEncoder(buf)
+			_ = enc.Encode(data)
+		}
+		dec := binary.NewDecoder(bytes.NewReader(buf.Bytes()))
+		for {
+			if err := dec.Decode(data); err != nil {
+				if err == io.EOF {
+					break
+				}
+				b.Fatalf("Error: %s", err)
+			}
+		}
+	}
+}
+
+type chunkEncoder struct {
+	d *xcpb.Chunk
+}
+
+func (c *chunkEncoder) MarshalBinary() ([]byte, error) {
+	return proto.Marshal(c.d)
+}
+
+func (c *chunkEncoder) UnmarshalBinary(data []byte) error {
+	return proto.Unmarshal(data, c.d)
+}
+
+func BenchmarkChunkEncoder(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		buf := &bytes.Buffer{}
+		data := &chunkEncoder{
+			d: &xcpb.Chunk{Body: []byte("foobar")},
+		}
+
+		for j := 0; j < benchInner; j++ {
+			enc := binary.NewEncoder(buf)
+			_ = enc.Encode(data)
+		}
+		dec := binary.NewDecoder(bytes.NewReader(buf.Bytes()))
+		for {
+			if err := dec.Decode(data); err != nil {
+				if err == io.EOF {
+					break
+				}
+				b.Fatalf("Error: %s", err)
+			}
+		}
+	}
+}
+
+func BenchmarkProtoEncoder(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		buf := &bytes.Buffer{}
+		data := &xcpb.Chunk{Body: []byte("foobar")}
+
+		for j := 0; j < benchInner; j++ {
+			b, _ := proto.Marshal(data)
+			buf.Write(b)
+			d2 := &xcpb.Chunk{}
+			_ = proto.Unmarshal(b, d2)
+		}
+	}
+}
+
+func BenchmarkCustomEncoder(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		buf := &bytes.Buffer{}
+		data := []byte("foobar")
+		encbuf := make([]byte, 8)
+
+		for j := 0; j < benchInner; j++ {
+			l := stdbin.PutUvarint(encbuf, uint64(len(data)))
+			buf.Write(encbuf[:l])
+			buf.Write(data)
+		}
+		r := bytes.NewReader(buf.Bytes())
+		for {
+			l, err := stdbin.ReadUvarint(r)
+			if err != nil {
+				if err == io.EOF {
+					break
+				}
+				b.Fatalf("read error: %s", err)
+			}
+			encbuf = make([]byte, l)
+			_, err = r.Read(encbuf)
+			if err != nil {
+				if err == io.EOF {
+					break
+				}
+				b.Fatalf("read error: %s", err)
+			}
+			if string(data) != string(encbuf) {
+				b.Logf("invalid data: '%s' vs. '%s'", data, encbuf)
+			}
+		}
+	}
+}
+
+func BenchmarkCustomDecoder(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		buf := &bytes.Buffer{}
+		data := []byte("foobar")
+		var encbuf []byte
+
+		for j := 0; j < benchInner; j++ {
+			enc := binary.NewEncoder(buf)
+			_ = enc.Encode(data)
+		}
+		r := bytes.NewReader(buf.Bytes())
+		for {
+			l, err := stdbin.ReadUvarint(r)
+			if err != nil {
+				if err == io.EOF {
+					break
+				}
+				b.Fatalf("read error: %s", err)
+			}
+			encbuf = make([]byte, l)
+			_, err = r.Read(encbuf)
+			if err != nil {
+				if err == io.EOF {
+					break
+				}
+				b.Fatalf("read error: %s", err)
+			}
+			if string(data) != string(encbuf) {
+				b.Logf("invalid data: '%s' vs. '%s'", data, encbuf)
+			}
+		}
+	}
+}

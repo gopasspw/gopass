@@ -4,11 +4,11 @@ import (
 	"context"
 	"os"
 
-	"github.com/gopasspw/gopass/pkg/backend"
+	"github.com/gopasspw/gopass/internal/backend"
+	"github.com/gopasspw/gopass/internal/cui"
+	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/internal/termio"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"github.com/gopasspw/gopass/pkg/cui"
-	"github.com/gopasspw/gopass/pkg/out"
-	"github.com/gopasspw/gopass/pkg/termio"
 
 	"github.com/fatih/color"
 	"github.com/pkg/errors"

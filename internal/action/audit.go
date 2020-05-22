@@ -1,9 +1,9 @@
 package action
 
 import (
+	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/audit"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"github.com/gopasspw/gopass/pkg/out"
 
 	"github.com/urfave/cli/v2"
 )

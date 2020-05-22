@@ -5,12 +5,12 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/gopasspw/gopass/internal/editor"
+	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/internal/store/secret"
 	"github.com/gopasspw/gopass/pkg/audit"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"github.com/gopasspw/gopass/pkg/editor"
-	"github.com/gopasspw/gopass/pkg/out"
 	"github.com/gopasspw/gopass/pkg/pwgen"
-	"github.com/gopasspw/gopass/pkg/store/secret"
 
 	"github.com/urfave/cli/v2"
 )

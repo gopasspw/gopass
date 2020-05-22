@@ -4,7 +4,7 @@ import (
 	"context"
 	"strings"
 
-	"github.com/gopasspw/gopass/pkg/cui"
+	"github.com/gopasspw/gopass/internal/cui"
 	"github.com/urfave/cli/v2"
 )
 

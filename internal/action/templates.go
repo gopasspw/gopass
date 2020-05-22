@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/gopasspw/gopass/internal/editor"
+	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/internal/tpl"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"github.com/gopasspw/gopass/pkg/editor"
-	"github.com/gopasspw/gopass/pkg/out"
-	"github.com/gopasspw/gopass/pkg/tpl"
 
 	"github.com/urfave/cli/v2"
 )

@@ -7,9 +7,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/gopasspw/gopass/pkg/backend"
+	"github.com/gopasspw/gopass/internal/backend"
+	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/config"
-	"github.com/gopasspw/gopass/pkg/out"
 	"github.com/gopasspw/gopass/tests/gptest"
 
 	"github.com/stretchr/testify/assert"

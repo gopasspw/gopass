@@ -10,9 +10,9 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
+	"github.com/gopasspw/gopass/internal/tree"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"github.com/gopasspw/gopass/pkg/termutil"
-	"github.com/gopasspw/gopass/pkg/tree"
+	"golang.org/x/crypto/ssh/terminal"
 
 	shellquote "github.com/kballard/go-shellquote"
 	"github.com/pkg/errors"
@@ -105,8 +105,8 @@ func redirectPager(ctx context.Context, subtree tree.Tree) (io.Writer, *bytes.Bu
 	if ctxutil.IsNoPager(ctx) {
 		return stdout, nil
 	}
-	rows, _ := termutil.GetTermsize()
-	if rows <= 0 {
+	_, rows, err := terminal.GetSize(0)
+	if err != nil {
 		return stdout, nil
 	}
 	if subtree == nil || subtree.Len() < rows {

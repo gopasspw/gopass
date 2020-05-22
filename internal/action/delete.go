@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/gopasspw/gopass/internal/termio"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"github.com/gopasspw/gopass/pkg/termio"
 
 	"github.com/urfave/cli/v2"
 )

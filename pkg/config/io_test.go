@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/gopasspw/gopass/pkg/backend"
+	"github.com/gopasspw/gopass/internal/backend"
 
 	"github.com/fatih/color"
 	"github.com/stretchr/testify/assert"

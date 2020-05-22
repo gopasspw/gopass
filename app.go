@@ -6,10 +6,10 @@ import (
 	"strings"
 
 	ap "github.com/gopasspw/gopass/internal/action"
+	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/internal/store/sub"
+	"github.com/gopasspw/gopass/internal/termio"
 	"github.com/gopasspw/gopass/pkg/config"
-	"github.com/gopasspw/gopass/pkg/out"
-	"github.com/gopasspw/gopass/pkg/store/sub"
-	"github.com/gopasspw/gopass/pkg/termio"
 
 	"github.com/blang/semver"
 	"github.com/urfave/cli/v2"

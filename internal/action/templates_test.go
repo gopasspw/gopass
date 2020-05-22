@@ -6,13 +6,13 @@ import (
 	"os"
 	"testing"
 
+	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"github.com/gopasspw/gopass/pkg/out"
 	"github.com/gopasspw/gopass/tests/gptest"
 
-	_ "github.com/gopasspw/gopass/pkg/backend/crypto"
-	_ "github.com/gopasspw/gopass/pkg/backend/rcs"
-	_ "github.com/gopasspw/gopass/pkg/backend/storage"
+	_ "github.com/gopasspw/gopass/internal/backend/crypto"
+	_ "github.com/gopasspw/gopass/internal/backend/rcs"
+	_ "github.com/gopasspw/gopass/internal/backend/storage"
 
 	"github.com/fatih/color"
 	"github.com/stretchr/testify/assert"

@@ -3,7 +3,7 @@ package binary
 import (
 	"context"
 
-	"github.com/gopasspw/gopass/pkg/store"
+	"github.com/gopasspw/gopass/internal/store"
 )
 
 const (

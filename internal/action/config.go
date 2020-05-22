@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"sort"
 
+	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"github.com/gopasspw/gopass/pkg/out"
 
 	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"

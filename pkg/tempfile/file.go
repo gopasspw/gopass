@@ -1,3 +1,5 @@
+// Package tempfile is a wrapper around ioutil.TempDir, providing an OO pattern
+// as well as secure placement on a temporary ramdisk.
 package tempfile
 
 import (
