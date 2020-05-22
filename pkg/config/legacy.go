@@ -1,6 +1,6 @@
 package config
 
-import "github.com/gopasspw/gopass/pkg/backend"
+import "github.com/gopasspw/gopass/internal/backend"
 
 // Pre182 is the current config struct
 type Pre182 struct {

@@ -9,14 +9,14 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/internal/store"
+	"github.com/gopasspw/gopass/internal/store/secret"
+	"github.com/gopasspw/gopass/internal/termio"
 	"github.com/gopasspw/gopass/pkg/clipboard"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"github.com/gopasspw/gopass/pkg/out"
 	"github.com/gopasspw/gopass/pkg/pwgen"
 	"github.com/gopasspw/gopass/pkg/pwgen/xkcdgen"
-	"github.com/gopasspw/gopass/pkg/store"
-	"github.com/gopasspw/gopass/pkg/store/secret"
-	"github.com/gopasspw/gopass/pkg/termio"
 
 	"github.com/fatih/color"
 	"github.com/urfave/cli/v2"

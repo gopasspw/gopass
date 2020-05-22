@@ -16,7 +16,7 @@ import (
 
 	"golang.org/x/sys/unix"
 
-	"github.com/gopasspw/gopass/pkg/out"
+	"github.com/gopasspw/gopass/internal/out"
 
 	"github.com/pkg/errors"
 )

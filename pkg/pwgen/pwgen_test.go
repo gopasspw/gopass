@@ -3,6 +3,7 @@ package pwgen
 import (
 	"bytes"
 	"crypto/rand"
+	"fmt"
 	"io"
 	mrand "math/rand"
 	"os"
@@ -11,6 +12,10 @@ import (
 
 	"github.com/stretchr/testify/assert"
 )
+
+func ExampleGenerateMemorablePassword() {
+	fmt.Println(GenerateMemorablePassword(12, false))
+}
 
 func TestPwgen(t *testing.T) {
 	for _, sym := range []bool{true, false} {

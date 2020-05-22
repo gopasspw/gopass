@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"sort"
 
+	"github.com/gopasspw/gopass/internal/cui"
+	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/internal/store"
+	"github.com/gopasspw/gopass/internal/store/sub"
+	"github.com/gopasspw/gopass/internal/termio"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"github.com/gopasspw/gopass/pkg/cui"
-	"github.com/gopasspw/gopass/pkg/out"
-	"github.com/gopasspw/gopass/pkg/store"
-	"github.com/gopasspw/gopass/pkg/store/sub"
-	"github.com/gopasspw/gopass/pkg/termio"
 
 	"github.com/urfave/cli/v2"
 )

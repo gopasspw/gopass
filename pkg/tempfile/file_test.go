@@ -14,6 +14,31 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func Example() {
+	ctx := context.Background()
+
+	tempfile, err := New(ctx, "gopass-secure-")
+	if err != nil {
+		panic(err)
+	}
+	defer func() {
+		if err := tempfile.Remove(ctx); err != nil {
+			panic(err)
+		}
+	}()
+
+	fmt.Fprintln(tempfile, "foobar")
+	if err := tempfile.Close(); err != nil {
+		panic(err)
+	}
+	out, err := ioutil.ReadFile(tempfile.Name())
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(string(out))
+	// Output: foobar
+}
+
 func TestTempdirBase(t *testing.T) {
 	tempdir, err := ioutil.TempDir(tempdirBase(), "gopass-")
 	assert.NoError(t, err)

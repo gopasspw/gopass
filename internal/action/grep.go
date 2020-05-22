@@ -3,8 +3,8 @@ package action
 import (
 	"strings"
 
+	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"github.com/gopasspw/gopass/pkg/out"
 
 	"github.com/fatih/color"
 	"github.com/urfave/cli/v2"

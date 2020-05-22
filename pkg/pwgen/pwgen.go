@@ -1,3 +1,8 @@
+// Package pwgen implements multiple popular password generate algorithms.
+// It supports creating classic cryptic passwords with different character
+// classes as well as more recent memorable approaches.
+//
+// Some methods try to ensure certain requirements are met and can be very slow.
 package pwgen
 
 import (

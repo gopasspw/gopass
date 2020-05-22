@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/gopasspw/gopass/pkg/backend/rcs/noop"
+	"github.com/gopasspw/gopass/internal/backend/rcs/noop"
+	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/internal/store"
+	subs "github.com/gopasspw/gopass/internal/store/sub"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/notify"
-	"github.com/gopasspw/gopass/pkg/out"
-	"github.com/gopasspw/gopass/pkg/store"
-	subs "github.com/gopasspw/gopass/pkg/store/sub"
 
 	"github.com/fatih/color"
 	"github.com/pkg/errors"

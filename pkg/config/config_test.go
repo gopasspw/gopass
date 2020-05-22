@@ -5,11 +5,11 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/gopasspw/gopass/pkg/backend"
+	"github.com/gopasspw/gopass/internal/backend"
 
-	_ "github.com/gopasspw/gopass/pkg/backend/crypto"
-	_ "github.com/gopasspw/gopass/pkg/backend/rcs"
-	_ "github.com/gopasspw/gopass/pkg/backend/storage"
+	_ "github.com/gopasspw/gopass/internal/backend/crypto"
+	_ "github.com/gopasspw/gopass/internal/backend/rcs"
+	_ "github.com/gopasspw/gopass/internal/backend/storage"
 
 	"github.com/stretchr/testify/assert"
 )

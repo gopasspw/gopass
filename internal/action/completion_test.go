@@ -7,7 +7,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/gopasspw/gopass/pkg/out"
+	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/tests/gptest"
 
 	"github.com/stretchr/testify/assert"

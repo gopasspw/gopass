@@ -8,11 +8,11 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/gopasspw/gopass/pkg/backend"
-	git "github.com/gopasspw/gopass/pkg/backend/rcs/git/cli"
+	"github.com/gopasspw/gopass/internal/backend"
+	git "github.com/gopasspw/gopass/internal/backend/rcs/git/cli"
+	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/config"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"github.com/gopasspw/gopass/pkg/out"
 	"github.com/gopasspw/gopass/tests/gptest"
 
 	"github.com/blang/semver"

@@ -9,7 +9,7 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/gopasspw/gopass/pkg/backend"
+	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/pkg/config"
 	"github.com/gopasspw/gopass/tests/gptest"
 

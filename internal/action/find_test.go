@@ -10,9 +10,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/internal/store/secret"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"github.com/gopasspw/gopass/pkg/out"
-	"github.com/gopasspw/gopass/pkg/store/secret"
 	"github.com/gopasspw/gopass/tests/gptest"
 
 	"github.com/fatih/color"

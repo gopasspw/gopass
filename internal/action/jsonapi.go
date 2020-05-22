@@ -6,10 +6,10 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/gopasspw/gopass/internal/jsonapi"
+	"github.com/gopasspw/gopass/internal/jsonapi/manifest"
+	"github.com/gopasspw/gopass/internal/termio"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"github.com/gopasspw/gopass/pkg/jsonapi"
-	"github.com/gopasspw/gopass/pkg/jsonapi/manifest"
-	"github.com/gopasspw/gopass/pkg/termio"
 
 	"github.com/fatih/color"
 	"github.com/pkg/errors"

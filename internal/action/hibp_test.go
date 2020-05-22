@@ -14,9 +14,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	hibpapi "github.com/gopasspw/gopass/pkg/hibp/api"
-	"github.com/gopasspw/gopass/pkg/out"
 	"github.com/gopasspw/gopass/tests/gptest"
 
 	"github.com/stretchr/testify/assert"

@@ -1,3 +1,5 @@
+// Package qrcon implements a QR Code ANSI printer for displaying QR codes on
+// the console.
 package qrcon
 
 import (

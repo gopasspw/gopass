@@ -8,8 +8,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"github.com/gopasspw/gopass/pkg/out"
 
 	"github.com/stretchr/testify/assert"
 )

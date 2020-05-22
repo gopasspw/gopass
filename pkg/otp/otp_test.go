@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/gokyle/twofactor"
-	"github.com/gopasspw/gopass/pkg/store/secret"
+	"github.com/gopasspw/gopass/internal/store/secret"
 	"github.com/stretchr/testify/assert"
 )
 

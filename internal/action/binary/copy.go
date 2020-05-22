@@ -9,9 +9,9 @@ import (
 	"strings"
 
 	"github.com/gopasspw/gopass/internal/action"
+	"github.com/gopasspw/gopass/internal/store/secret"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/fsutil"
-	"github.com/gopasspw/gopass/pkg/store/secret"
 
 	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
