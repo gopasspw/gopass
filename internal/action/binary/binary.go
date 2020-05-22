@@ -1,3 +1,6 @@
+// Package binary implements gopass subcommands to assist in handling
+// binary data in secrets.
+// TODO(2.x) DEPRECATED and slated for removal in the 2.0.0 release.
 package binary
 
 import (

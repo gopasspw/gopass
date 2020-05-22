@@ -1,3 +1,5 @@
+// Package inmem implements an in memory storage backend for tests.
+// TODO(2.x) DEPRECATED and slated for removal in the 2.0.0 release.
 package inmem
 
 import (

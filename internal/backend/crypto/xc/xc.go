@@ -1,3 +1,5 @@
+// Package xc implements a modern crypto backend for gopass.
+// TODO(2.x) DEPRECATED and slated for removal in the 2.0.0 release.
 package xc
 
 import (

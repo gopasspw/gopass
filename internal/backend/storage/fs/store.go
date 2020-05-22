@@ -1,3 +1,6 @@
+// Package fs implement a password-store compatible on disk storage layout
+// with unencrypted paths.
+// TODO(2.x) DEPRECATED and slated for removal in the 2.0.0 release.
 package fs
 
 import (
