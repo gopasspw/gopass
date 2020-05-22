@@ -6,11 +6,11 @@ import (
 	"os"
 	"strings"
 
+	"github.com/gopasspw/gopass/internal/clipboard"
+	"github.com/gopasspw/gopass/internal/notify"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
-	"github.com/gopasspw/gopass/pkg/clipboard"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"github.com/gopasspw/gopass/pkg/notify"
 	"github.com/gopasspw/gopass/pkg/qrcon"
 
 	"github.com/pkg/errors"

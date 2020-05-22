@@ -10,8 +10,8 @@ import (
 
 	"github.com/gopasspw/gopass/internal/backend"
 	git "github.com/gopasspw/gopass/internal/backend/rcs/git/cli"
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
-	"github.com/gopasspw/gopass/pkg/config"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/tests/gptest"
 

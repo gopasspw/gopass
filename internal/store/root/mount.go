@@ -6,10 +6,10 @@ import (
 	"strings"
 
 	"github.com/gopasspw/gopass/internal/backend"
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/internal/store/sub"
-	"github.com/gopasspw/gopass/pkg/config"
 
 	"github.com/fatih/color"
 	"github.com/pkg/errors"

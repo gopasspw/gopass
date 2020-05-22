@@ -1,3 +1,4 @@
+// Package api implements an HIBP API client.
 package api
 
 import (

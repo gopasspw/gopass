@@ -6,9 +6,9 @@ import (
 	"strings"
 
 	"github.com/gopasspw/gopass/internal/backend"
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/internal/store/sub"
-	"github.com/gopasspw/gopass/pkg/config"
 )
 
 // Store is the public facing password store

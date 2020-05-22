@@ -8,8 +8,8 @@ import (
 	"golang.org/x/crypto/ssh/terminal"
 
 	"github.com/gopasspw/gopass/internal/backend/crypto/gpg"
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/store/sub"
-	"github.com/gopasspw/gopass/pkg/config"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 
 	"github.com/fatih/color"

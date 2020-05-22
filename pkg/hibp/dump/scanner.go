@@ -1,3 +1,10 @@
+// Package dump implements an haveibeenpwned.com dump scanner. It is designed
+// to operate on HIBP SHA-1 dumps which are ordered by hash. It will work with
+// dumps ordered by prevalence, too. But processing those will take much, much
+// longer.
+//
+// Unfortunately these dumps need to be unpacked before use, since there is no
+// 7z implementation for Go at the time of this writing.
 package dump
 
 import (
@@ -20,7 +27,8 @@ type Scanner struct {
 	dumps []string
 }
 
-// New creates a new scanner
+// New creates a new scanner. Provide a list of filenames to HIBP SHA-1 dumps.
+// Those should be ordered by hash or lookups will take forever.
 func New(dumps ...string) (*Scanner, error) {
 	ok := make([]string, 0, len(dumps))
 	for _, dump := range dumps {

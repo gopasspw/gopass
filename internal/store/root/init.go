@@ -4,9 +4,9 @@ import (
 	"context"
 
 	"github.com/gopasspw/gopass/internal/backend"
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store/sub"
-	"github.com/gopasspw/gopass/pkg/config"
 
 	"github.com/pkg/errors"
 )
