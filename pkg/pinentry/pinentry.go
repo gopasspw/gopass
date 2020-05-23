@@ -91,15 +91,20 @@ func (c *Client) GetPin() ([]byte, error) {
 	if _, err := c.in.Write([]byte("GETPIN\n")); err != nil {
 		return nil, err
 	}
-	pin, _, err := c.out.ReadLine()
+	buf, _, err := c.out.ReadLine()
 	if err != nil {
 		return nil, err
 	}
-	if bytes.HasPrefix(pin, []byte("OK")) {
+	if bytes.HasPrefix(buf, []byte("OK")) {
 		return nil, nil
 	}
-	if !bytes.HasPrefix(pin, []byte("D ")) {
-		return nil, fmt.Errorf("unexpected response: %s", pin)
+	if !bytes.HasPrefix(buf, []byte("D ")) {
+		return nil, fmt.Errorf("unexpected response: %s", buf)
+	}
+
+	pin := make([]byte, len(buf))
+	if n := copy(pin, buf); n != len(buf) {
+		return nil, fmt.Errorf("failed to copy pin: expected %d bytes only copied %d", len(buf), n)
 	}
 
 	ok, _, err := c.out.ReadLine()
