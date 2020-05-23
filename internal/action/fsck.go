@@ -58,6 +58,9 @@ func (s *Action) Fsck(c *cli.Context) error {
 
 	ctx = ctxutil.WithProgressCallback(ctx, func() {
 		bar.Current++
+		if bar.Current > bar.Total {
+			bar.Total = bar.Current
+		}
 		bar.Text = fmt.Sprintf("%d of %d objects checked", bar.Current, bar.Total)
 		bar.LazyPrint()
 	})
