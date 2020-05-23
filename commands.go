@@ -44,58 +44,6 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []*cli.Co
 			}},
 		},
 		{
-			Name:        "jsonapi",
-			Usage:       "Run and configure gopass as jsonapi e.g. for browser plugins",
-			Description: "Setup and run gopass as native messaging hosts, e.g. for browser plugins.",
-			Hidden:      false,
-			Subcommands: []*cli.Command{
-				{
-					Name:        "listen",
-					Usage:       "Listen and respond to messages via stdin/stdout",
-					Description: "Gopass is started in listen mode from browser plugins using a wrapper specified in native messaging host manifests",
-					Action:      action.JSONAPI,
-					Before:      action.Initialized,
-				},
-				{
-					Name:        "configure",
-					Usage:       "Setup gopass native messaging manifest for selected browser",
-					Description: "To access gopass from browser plugins, a native app manifest must be installed at the correct location",
-					Action:      action.SetupNativeMessaging,
-					Flags: []cli.Flag{
-						&cli.StringFlag{
-							Name:  "browser",
-							Usage: "One of 'chrome' and 'firefox'",
-						},
-						&cli.StringFlag{
-							Name:  "path",
-							Usage: "Path to install 'gopass_wrapper.sh' to",
-						},
-						&cli.StringFlag{
-							Name:  "manifest-path",
-							Usage: "Path to install 'com.justwatch.gopass.json' to",
-						},
-						&cli.BoolFlag{
-							Name:  "global",
-							Usage: "Install for all users, requires superuser rights",
-						},
-						&cli.StringFlag{
-							Name:  "libpath",
-							Usage: "Library path for global installation on linux. Default is /usr/lib",
-						},
-						&cli.StringFlag{
-							Name:  "gopass-path",
-							Usage: "Path to gopass binary. Default is auto detected",
-						},
-						&cli.BoolFlag{
-							Name:  "print",
-							Usage: "Print installation summary before creating any files",
-							Value: true,
-						},
-					},
-				},
-			},
-		},
-		{
 			Name:    "otp",
 			Usage:   "Generate time- or hmac-based tokens",
 			Aliases: []string{"totp", "hotp"},

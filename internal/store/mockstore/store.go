@@ -194,8 +194,8 @@ func (m *MockStore) IsDir(ctx context.Context, name string) bool {
 }
 
 // List does nothing
-func (m *MockStore) List(context.Context, string) ([]string, error) {
-	return nil, nil
+func (m *MockStore) List(ctx context.Context, name string) ([]string, error) {
+	return m.storage.List(ctx, name)
 }
 
 // ListRevisions does nothing
@@ -211,7 +211,7 @@ func (m *MockStore) Move(ctx context.Context, from string, to string) error {
 }
 
 // Set does nothing
-func (m *MockStore) Set(ctx context.Context, name string, sec store.Secret) error {
+func (m *MockStore) Set(ctx context.Context, name string, sec store.Byter) error {
 	buf, err := sec.Bytes()
 	if err != nil {
 		return err

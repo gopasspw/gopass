@@ -6,9 +6,9 @@ import (
 	"os"
 	"testing"
 
+	"github.com/gopasspw/gopass/internal/gptest"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"github.com/gopasspw/gopass/tests/gptest"
 
 	"github.com/fatih/color"
 	"github.com/stretchr/testify/assert"
@@ -35,7 +35,7 @@ func TestCopy(t *testing.T) {
 	}()
 
 	// copy foo bar
-	c := clictx(ctx, t, "foo", "bar")
+	c := gptest.CliCtx(ctx, t, "foo", "bar")
 	assert.NoError(t, act.Copy(c))
 	buf.Reset()
 
@@ -49,12 +49,12 @@ func TestCopy(t *testing.T) {
 	}
 
 	// copy not-found still-not-there
-	c = clictx(ctx, t, "not-found", "still-not-there")
+	c = gptest.CliCtx(ctx, t, "not-found", "still-not-there")
 	assert.Error(t, act.Copy(c))
 	buf.Reset()
 
 	// copy
-	c = clictx(ctx, t)
+	c = gptest.CliCtx(ctx, t)
 	assert.Error(t, act.Copy(c))
 	buf.Reset()
 
@@ -63,7 +63,7 @@ func TestCopy(t *testing.T) {
 	assert.NoError(t, act.insertStdin(ctx, "bam/zab", []byte("barfoo"), false))
 
 	// recursive copy: bam/ -> zab
-	c = clictx(ctx, t, "bam", "zab")
+	c = gptest.CliCtx(ctx, t, "bam", "zab")
 	assert.NoError(t, act.Copy(c))
 	buf.Reset()
 

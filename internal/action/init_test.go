@@ -9,9 +9,9 @@ import (
 	"testing"
 
 	"github.com/gopasspw/gopass/internal/backend"
+	"github.com/gopasspw/gopass/internal/gptest"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"github.com/gopasspw/gopass/tests/gptest"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -37,7 +37,7 @@ func TestInit(t *testing.T) {
 		out.Stderr = os.Stderr
 	}()
 
-	c := clictx(ctx, t, "foo.bar@example.org")
+	c := gptest.CliCtx(ctx, t, "foo.bar@example.org")
 	assert.NoError(t, act.Initialized(c))
 	assert.Error(t, act.Init(c))
 	assert.Error(t, act.InitOnboarding(c))
@@ -113,7 +113,7 @@ func TestInitParseContext(t *testing.T) {
 	} {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
-			c := clictxf(context.Background(), t, tc.flags)
+			c := gptest.CliCtxWithFlags(context.Background(), t, tc.flags)
 			assert.NoError(t, tc.check(initParseContext(context.Background(), c)), tc.name)
 			buf.Reset()
 		})

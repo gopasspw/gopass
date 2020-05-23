@@ -48,14 +48,14 @@ Please see [docs/features.md](https://github.com/gopasspw/gopass/blob/master/doc
 | Recipient management        | ❌      | ✔        | *beta*    | Easily manage multiple users of each store                        |
 | Multiple stores             | ❌      | ✔        | *beta*    | Mount multiple stores in your root store, like file systems       |
 | password quality assistance | ❌      | ✔        | *beta*    | Checks existing or new passwords for common flaws                 |
-| password leak checker       | ❌      | ✔        | *alpha*   | Perform **offline** checks against known leaked passwords         |
+| password leak checker       | ❌      | ✔        | *integration*   | Perform **offline** checks against known leaked passwords         |
 | PAGER support               | ❌      | ✔        | *stable*  | Automatically invoke a pager on long output                       |
-| JSON API                    | ❌      | ✔        | *stable*   | Allow gopass to be used as a native extension for browser plugins |
+| JSON API                    | ❌      | ✔        | *integration*   | Allow gopass to be used as a native extension for browser plugins |
 | Automatic fuzzy search      | ❌      | ✔        | *stable*  | Automatically search for matching store entries if a literal entry was not found |
 | gopass sync                 | ❌      | ✔        | *beta*    | Easy to use syncing of remote repos and GPG keys |
 | Desktop Notifications       | ❌      | ✔        | *beta*    | Display desktop notifications and completing long running operations |
 | Editing Recipients per Secret    | ❌      | ✔        | *beta*   | Select recipients per secret when encrypting |
-| Extensions                  | ✔      | ❌        |           | Extend gopass with custom commands |
+| Extensions                  | ✔      | ✔        |           | Extend gopass with custom commands using our API |
 
 ## Installation
 
@@ -93,7 +93,6 @@ Maintainers of this repository:
 
 * Dominik Schulz <dominik.schulz@gmail.com> [@dominikschulz](https://github.com/dominikschulz)
 * Martin Hoefling [@martinhoefling](https://github.com/martinhoefling)
-* Matthias Loibl <mail@matthiasloibl.com> [@metalmatze](https://github.com/metalmatze)
 
 Please refer to the Git commit log for a complete list of contributors.
 
@@ -110,6 +109,9 @@ gopass is developed in the open. Here are some of the channels we use to communi
 - [gopassbridge](https://github.com/gopasspw/gopassbridge): Browser plugin for Firefox, Chrome and other Chromium based browsers
 - [kubectl gopass](https://github.com/gopasspw/kubectl-gopass): Kubernetes / kubectl plugin to support reading and writing secrets directly from/to gopass.
 - [gopass alfred](https://github.com/gopasspw/gopass-alfred): Alfred workflow to use gopass from the Alfred Mac launcher
+- `gopass-git-credentials`: Integrate gopass as an git-credential helper
+- `gopass-hibp`: haveibeenpwned.com leak checker
+- `gopass-jsonapi`: native messaging for browser plugins, e.g. gopassbridge
 
 ## Mobile apps
 

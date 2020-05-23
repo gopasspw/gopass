@@ -1,4 +1,4 @@
-package action
+package main
 
 import (
 	"bytes"
@@ -14,13 +14,13 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/gopasspw/gopass/internal/gptest"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/gopass/apimock"
 	hibpapi "github.com/gopasspw/gopass/pkg/hibp/api"
-	"github.com/gopasspw/gopass/tests/gptest"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"github.com/urfave/cli/v2"
 )
 
@@ -36,15 +36,19 @@ const testHibpSample = `000000005AD76BD555C1D6D771DE417A4B87E4B4
 00000010F4B38525354491E099EB1796278544B1`
 
 func TestHIBPDump(t *testing.T) {
-	u := gptest.NewUnitTester(t)
-	defer u.Remove()
+	dir, err := ioutil.TempDir("", "gopass-hibp")
+	if err != nil {
+		t.Fatalf("failed to create temp dir: %s", err)
+	}
+	defer os.RemoveAll(dir)
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = out.WithHidden(ctx, true)
-	act, err := newMock(ctx, u)
-	require.NoError(t, err)
-	require.NotNil(t, act)
+
+	act := &hibp{
+		gp: apimock.New(),
+	}
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
@@ -57,12 +61,8 @@ func TestHIBPDump(t *testing.T) {
 	c := cli.NewContext(app, fs, nil)
 	c.Context = ctx
 
-	// no hibp dump, no env var
-	assert.Error(t, act.HIBP(c))
-	buf.Reset()
-
 	// setup file and env
-	fn := filepath.Join(u.Dir, "dump.txt")
+	fn := filepath.Join(dir, "dump.txt")
 	fs = flag.NewFlagSet("default", flag.ContinueOnError)
 	bf := cli.StringSliceFlag{
 		Name:  "dumps",
@@ -74,11 +74,11 @@ func TestHIBPDump(t *testing.T) {
 	c.Context = ctx
 
 	assert.NoError(t, ioutil.WriteFile(fn, []byte(testHibpSample), 0644))
-	assert.NoError(t, act.HIBP(c))
+	assert.NoError(t, act.CheckDump(c.Context, false, []string{fn}))
 	buf.Reset()
 
 	// gzip
-	fn = filepath.Join(u.Dir, "dump.txt.gz")
+	fn = filepath.Join(dir, "dump.txt.gz")
 	fs = flag.NewFlagSet("default", flag.ContinueOnError)
 	bf = cli.StringSliceFlag{
 		Name:  "dumps",
@@ -91,7 +91,7 @@ func TestHIBPDump(t *testing.T) {
 	c.Context = ctx
 
 	assert.NoError(t, testWriteGZ(fn, []byte(testHibpSample)))
-	assert.NoError(t, act.HIBP(c))
+	assert.NoError(t, act.CheckDump(c.Context, false, []string{fn}))
 	buf.Reset()
 }
 
@@ -118,15 +118,13 @@ func TestHIBPAPI(t *testing.T) {
 		t.Skip("skipping test in short mode.")
 	}
 
-	u := gptest.NewUnitTester(t)
-	defer u.Remove()
-
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = out.WithHidden(ctx, true)
-	act, err := newMock(ctx, u)
-	require.NoError(t, err)
-	require.NotNil(t, act)
+
+	act := &hibp{
+		gp: apimock.New(),
+	}
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
@@ -134,7 +132,7 @@ func TestHIBPAPI(t *testing.T) {
 		out.Stdout = os.Stdout
 	}()
 
-	c := clictxf(ctx, t, map[string]string{"api": "true"})
+	c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"api": "true"})
 
 	reqCnt := 0
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -157,11 +155,11 @@ func TestHIBPAPI(t *testing.T) {
 	hibpapi.URL = ts.URL
 
 	// test with one entry
-	assert.NoError(t, act.HIBP(c))
+	assert.NoError(t, act.CheckAPI(c.Context, false))
 	buf.Reset()
 
 	// add another one
-	assert.NoError(t, act.insertStdin(ctx, "baz", []byte("foobar"), false))
-	assert.Error(t, act.HIBP(c))
+	assert.NoError(t, act.gp.Set(ctx, "baz", &apimock.Secret{Buf: []byte("foobar")}))
+	assert.Error(t, act.CheckAPI(c.Context, false))
 	buf.Reset()
 }

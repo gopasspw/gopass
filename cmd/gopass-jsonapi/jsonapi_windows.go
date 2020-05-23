@@ -1,6 +1,6 @@
 // +build windows
 
-package action
+package main
 
 import (
 	"io"
@@ -8,7 +8,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/gopasspw/gopass/internal/jsonapi/manifest"
+	"github.com/gopasspw/gopass/cmd/gopass-jsonapi/internal/jsonapi/manifest"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/termio"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -18,8 +18,8 @@ import (
 	"golang.org/x/sys/windows/registry"
 )
 
-// SetupNativeMessaging sets up manifest for gopass as native messaging host
-func (s *Action) SetupNativeMessaging(c *cli.Context) error {
+// setup sets up manifest for gopass as native messaging host
+func (s *jsonapiCLI) setup(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	browser, err := s.getBrowser(ctx, c)
 	if err != nil {
@@ -89,7 +89,7 @@ func (s *Action) SetupNativeMessaging(c *cli.Context) error {
 	return nil
 }
 
-func (s *Action) setRegistryValue(path string, value string, globalInstall bool) error {
+func (s *jsonapiCLI) setRegistryValue(path string, value string, globalInstall bool) error {
 	key := registry.CURRENT_USER
 	if globalInstall {
 		key = registry.LOCAL_MACHINE
@@ -109,7 +109,7 @@ func (s *Action) setRegistryValue(path string, value string, globalInstall bool)
 	return k.SetStringValue("", value)
 }
 
-func (s *Action) copyExecutionBinary(destFileName string) error {
+func (s *jsonapiCLI) copyExecutionBinary(destFileName string) error {
 	srcFileName, err := os.Executable()
 	if err != nil {
 		return err

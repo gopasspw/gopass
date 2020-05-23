@@ -6,9 +6,9 @@ import (
 	"os"
 	"testing"
 
+	"github.com/gopasspw/gopass/internal/gptest"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"github.com/gopasspw/gopass/tests/gptest"
 
 	_ "github.com/gopasspw/gopass/internal/backend/crypto"
 	_ "github.com/gopasspw/gopass/internal/backend/rcs"
@@ -41,13 +41,13 @@ func TestTemplates(t *testing.T) {
 	}()
 
 	// display empty template tree
-	assert.NoError(t, act.TemplatesPrint(clictx(ctx, t, "foo")))
+	assert.NoError(t, act.TemplatesPrint(gptest.CliCtx(ctx, t, "foo")))
 	assert.Equal(t, "gopass\n\n", buf.String())
 	buf.Reset()
 
 	// add template
 	assert.NoError(t, act.Store.SetTemplate(ctx, "foo", []byte("foobar")))
-	assert.NoError(t, act.TemplatesPrint(clictx(ctx, t, "foo")))
+	assert.NoError(t, act.TemplatesPrint(gptest.CliCtx(ctx, t, "foo")))
 	want := `Pushed changes to git remote
 gopass
 └── foo
@@ -57,20 +57,20 @@ gopass
 	buf.Reset()
 
 	// complete templates
-	act.TemplatesComplete(clictx(ctx, t, "foo"))
+	act.TemplatesComplete(gptest.CliCtx(ctx, t, "foo"))
 	assert.Equal(t, "foo\n", buf.String())
 	buf.Reset()
 
 	// print template
-	assert.NoError(t, act.TemplatePrint(clictx(ctx, t, "foo")))
+	assert.NoError(t, act.TemplatePrint(gptest.CliCtx(ctx, t, "foo")))
 	assert.Equal(t, "foobar\n", buf.String())
 	buf.Reset()
 
 	// edit template
-	assert.Error(t, act.TemplateEdit(clictx(ctx, t, "foo")))
+	assert.Error(t, act.TemplateEdit(gptest.CliCtx(ctx, t, "foo")))
 	buf.Reset()
 
 	// remove template
-	assert.NoError(t, act.TemplateRemove(clictx(ctx, t, "foo")))
+	assert.NoError(t, act.TemplateRemove(gptest.CliCtx(ctx, t, "foo")))
 	buf.Reset()
 }

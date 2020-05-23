@@ -1,4 +1,4 @@
-package action
+package main
 
 import (
 	"bytes"
@@ -6,24 +6,20 @@ import (
 	"os"
 	"testing"
 
+	"github.com/gopasspw/gopass/internal/gptest"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"github.com/gopasspw/gopass/tests/gptest"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestJSONAPI(t *testing.T) {
-	u := gptest.NewUnitTester(t)
-	defer u.Remove()
-
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
+
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
-	act, err := newMock(ctx, u)
-	require.NoError(t, err)
-	require.NotNil(t, act)
+
+	act := &jsonapiCLI{}
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
@@ -31,10 +27,11 @@ func TestJSONAPI(t *testing.T) {
 		out.Stdout = os.Stdout
 	}()
 
-	assert.NoError(t, act.JSONAPI(clictx(ctx, t)))
+	assert.NoError(t, act.listen(gptest.CliCtx(ctx, t)))
 	buf.Reset()
 
-	b, err := act.getBrowser(ctx, clictx(ctx, t))
+	b, err := act.getBrowser(ctx, gptest.CliCtx(ctx, t))
 	assert.NoError(t, err)
 	assert.Equal(t, b, "chrome")
+	buf.Reset()
 }

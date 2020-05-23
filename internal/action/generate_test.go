@@ -10,9 +10,9 @@ import (
 	"testing"
 
 	"github.com/fatih/color"
+	"github.com/gopasspw/gopass/internal/gptest"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"github.com/gopasspw/gopass/tests/gptest"
 	"github.com/urfave/cli/v2"
 
 	"github.com/stretchr/testify/assert"
@@ -42,7 +42,7 @@ func TestGenerate(t *testing.T) {
 
 	// generate
 	t.Run("generate", func(t *testing.T) {
-		assert.Error(t, act.Generate(clictx(ctx, t)))
+		assert.Error(t, act.Generate(gptest.CliCtx(ctx, t)))
 		buf.Reset()
 	})
 
@@ -52,7 +52,7 @@ func TestGenerate(t *testing.T) {
 			t.Skip("skipping test in short mode.")
 		}
 
-		assert.NoError(t, act.Generate(clictx(ctx, t, "foobar")))
+		assert.NoError(t, act.Generate(gptest.CliCtx(ctx, t, "foobar")))
 		buf.Reset()
 	})
 
@@ -63,7 +63,7 @@ func TestGenerate(t *testing.T) {
 			t.Skip("skipping test in short mode.")
 		}
 
-		assert.NoError(t, act.Generate(clictx(ctx, t, "foobar")))
+		assert.NoError(t, act.Generate(gptest.CliCtx(ctx, t, "foobar")))
 		buf.Reset()
 	})
 
@@ -73,7 +73,7 @@ func TestGenerate(t *testing.T) {
 			t.Skip("skipping test in short mode.")
 		}
 
-		assert.NoError(t, act.Generate(clictxf(ctx, t, map[string]string{"force": "true"}, "foobar")))
+		assert.NoError(t, act.Generate(gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true"}, "foobar")))
 		buf.Reset()
 	})
 
@@ -83,7 +83,7 @@ func TestGenerate(t *testing.T) {
 			t.Skip("skipping test in short mode.")
 		}
 
-		assert.NoError(t, act.Generate(clictxf(ctx, t, map[string]string{"force": "true"}, "foobar", "32")))
+		assert.NoError(t, act.Generate(gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true"}, "foobar", "32")))
 		buf.Reset()
 	})
 
@@ -93,7 +93,7 @@ func TestGenerate(t *testing.T) {
 			t.Skip("skipping test in short mode.")
 		}
 
-		assert.NoError(t, act.Generate(clictxf(ctx, t, map[string]string{"force": "true", "print": "true", "symbols": "true"}, "foobar", "32")))
+		assert.NoError(t, act.Generate(gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true", "print": "true", "symbols": "true"}, "foobar", "32")))
 		passIsAlphaNum(t, buf.String(), false)
 		buf.Reset()
 	})
@@ -104,32 +104,32 @@ func TestGenerate(t *testing.T) {
 			t.Skip("skipping test in short mode.")
 		}
 
-		assert.NoError(t, act.Generate(clictxf(ctx, t, map[string]string{"force": "true", "print": "true", "symbols": "false"}, "foobar", "32")))
+		assert.NoError(t, act.Generate(gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true", "print": "true", "symbols": "false"}, "foobar", "32")))
 		passIsAlphaNum(t, buf.String(), true)
 		buf.Reset()
 	})
 
 	// generate --force --xkcd foobar 32
 	t.Run("generate --force --xkcd foobar 32", func(t *testing.T) {
-		assert.NoError(t, act.Generate(clictxf(ctx, t, map[string]string{"force": "true", "xkcd": "true", "xkcdlang": "en"}, "foobar", "32")))
+		assert.NoError(t, act.Generate(gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true", "xkcd": "true", "xkcdlang": "en"}, "foobar", "32")))
 		buf.Reset()
 	})
 
 	// generate --force --xkcd foobar baz 32
 	t.Run("generate --force --xkcd foobar baz 32", func(t *testing.T) {
-		assert.NoError(t, act.Generate(clictxf(ctx, t, map[string]string{"force": "true", "xkcd": "true", "xkcdlang": "en"}, "foobar", "baz", "32")))
+		assert.NoError(t, act.Generate(gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true", "xkcd": "true", "xkcdlang": "en"}, "foobar", "baz", "32")))
 		buf.Reset()
 	})
 
 	// generate --force --xkcd foobar baz
 	t.Run("generate --force --xkcd foobar baz", func(t *testing.T) {
-		assert.NoError(t, act.Generate(clictxf(ctx, t, map[string]string{"force": "true", "xkcd": "true", "xkcdlang": "en"}, "foobar", "baz")))
+		assert.NoError(t, act.Generate(gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true", "xkcd": "true", "xkcdlang": "en"}, "foobar", "baz")))
 		buf.Reset()
 	})
 
 	// generate --force --xkcd --print foobar baz
 	t.Run("generate --force --xkcd --print foobar baz", func(t *testing.T) {
-		assert.NoError(t, act.Generate(clictxf(ctx, t, map[string]string{"force": "true", "xkcd": "true", "print": "true", "xkcdlang": "en"}, "foobar", "baz")))
+		assert.NoError(t, act.Generate(gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true", "xkcd": "true", "print": "true", "xkcdlang": "en"}, "foobar", "baz")))
 		buf.Reset()
 	})
 }

@@ -1,4 +1,4 @@
-package action
+package main
 
 import (
 	"bufio"
@@ -15,6 +15,7 @@ import (
 	"github.com/gopasspw/gopass/internal/termio"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/fsutil"
+	"github.com/gopasspw/gopass/pkg/gopass"
 	"github.com/urfave/cli/v2"
 )
 
@@ -105,53 +106,61 @@ func parseGitCredentials(r io.Reader) (*gitCredentials, error) {
 	}
 }
 
-// GitCredentialBefore is executed before another git-credential command
-func (s *Action) GitCredentialBefore(c *cli.Context) error {
+type gc struct {
+	gp gopass.Store
+}
+
+// Before is executed before another git-credential command
+func (s *gc) Before(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	ctx = ctxutil.WithInteractive(ctx, false)
-	if err := s.Initialized(c); err != nil {
-		return err
-	}
 	if !ctxutil.IsStdin(ctx) {
-		return ExitError(ctx, ExitUsage, nil, "missing stdin from git")
+		return fmt.Errorf("missing stdin from git")
 	}
 	return nil
 }
 
-// GitCredentialGet returns a credential to git
-func (s *Action) GitCredentialGet(c *cli.Context) error {
+func filter(ls []string, prefix string) []string {
+	out := make([]string, 0, len(ls))
+	for _, e := range ls {
+		if !strings.HasPrefix(e, prefix) {
+			continue
+		}
+		out = append(out, e)
+	}
+	return out
+}
+
+// Get returns a credential to git
+func (s *gc) Get(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	ctx = sub.WithAutoSync(ctx, false)
 	cred, err := parseGitCredentials(termio.Stdin)
 	if err != nil {
-		return ExitError(ctx, ExitUnsupported, err, "Error: %v while parsing git-credential", err)
+		return fmt.Errorf("error: %v while parsing git-credential", err)
 	}
 	// try git/host/username... If username is empty, simply try git/host
 	path := "git/" + fsutil.CleanFilename(cred.Host) + "/" + fsutil.CleanFilename(cred.Username)
-	if !s.Store.Exists(ctx, path) {
+	if _, err := s.gp.Get(ctx, path); err != nil {
 		// if the looked up path is a directory with only one entry (e.g. one user per host), take the subentry instead
-		if !s.Store.IsDir(ctx, path) {
+		ls, err := s.gp.List(ctx)
+		if err != nil {
+			return fmt.Errorf("error: %v while listing the storage", err)
+		}
+		entries := filter(ls, path)
+		if len(entries) < 1 {
+			// no entry found, this is not an error
 			return nil
 		}
-		tree, err := s.Store.Tree(ctx)
-		if err != nil {
-			return ExitError(ctx, ExitDecrypt, err, "Error: %v while listing the storage", err)
-		}
-		sub, err := tree.FindFolder(path)
-		if err != nil {
-			// no entry found... this is not an error
-			return nil
-		}
-		entries := sub.List(0)
-		if len(entries) != 1 {
+		if len(entries) > 1 {
 			fmt.Fprintln(os.Stderr, "gopass error: too many entries")
 			return nil
 		}
-		path = "git/" + entries[0]
+		path = entries[0]
 	}
-	secret, err := s.Store.Get(ctx, path)
+	secret, err := s.gp.Get(ctx, path)
 	if err != nil {
-		return ExitError(ctx, ExitDecrypt, err, "")
+		return err
 	}
 	cred.Password = secret.Password()
 	username, err := secret.Value("login")
@@ -162,21 +171,21 @@ func (s *Action) GitCredentialGet(c *cli.Context) error {
 
 	_, err = cred.WriteTo(out.Stdout)
 	if err != nil {
-		return ExitError(ctx, ExitIO, err, "Could not write to stdout")
+		return fmt.Errorf("could not write to stdout: %s", err)
 	}
 	return nil
 }
 
-// GitCredentialStore stores a credential got from git
-func (s *Action) GitCredentialStore(c *cli.Context) error {
+// Store stores a credential got from git
+func (s *gc) Store(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	cred, err := parseGitCredentials(termio.Stdin)
 	if err != nil {
-		return ExitError(ctx, ExitUnsupported, err, "Error: %v while parsing git-credential", err)
+		return fmt.Errorf("error: %v while parsing git-credential", err)
 	}
 	path := "git/" + fsutil.CleanFilename(cred.Host) + "/" + fsutil.CleanFilename(cred.Username)
 	// This should never really be an issue because git automatically removes invalid credentials first
-	if s.Store.Exists(ctx, path) {
+	if _, err := s.gp.Get(ctx, path); err == nil {
 		out.Debug(ctx, ""+
 			"gopass: did not store \"%s\" because it already exists. "+
 			"If you want to overwrite it, delete it first by doing: "+
@@ -189,30 +198,30 @@ func (s *Action) GitCredentialStore(c *cli.Context) error {
 	if cred.Username != "" {
 		_ = secret.SetValue("login", cred.Username)
 	}
-	err = s.Store.Set(ctx, path, secret)
-	if err != nil {
+
+	if err := s.gp.Set(ctx, path, secret); err != nil {
 		fmt.Fprintf(os.Stderr, "gopass error: error while writing to store: %v\n", err)
 	}
 	return nil
 }
 
-// GitCredentialErase removes a credential got from git
-func (s *Action) GitCredentialErase(c *cli.Context) error {
+// Erase removes a credential got from git
+func (s *gc) Erase(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	cred, err := parseGitCredentials(termio.Stdin)
 	if err != nil {
-		return ExitError(ctx, ExitUnsupported, err, "Error: %v while parsing git-credential", err)
+		return fmt.Errorf("error: %v while parsing git-credential", err)
 	}
+
 	path := "git/" + fsutil.CleanFilename(cred.Host) + "/" + fsutil.CleanFilename(cred.Username)
-	err = s.Store.Delete(ctx, path)
-	if err != nil {
+	if err := s.gp.Remove(ctx, path); err != nil {
 		fmt.Fprintln(os.Stderr, "gopass error: error while writing to store")
 	}
 	return nil
 }
 
-// GitCredentialConfigure configures gopass as git's credential.helper
-func (s *Action) GitCredentialConfigure(c *cli.Context) error {
+// Configure configures gopass as git's credential.helper
+func (s *gc) Configure(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	flags := 0
 	flag := "--global"
@@ -229,12 +238,12 @@ func (s *Action) GitCredentialConfigure(c *cli.Context) error {
 		flags++
 	}
 	if flags >= 2 {
-		return ExitError(ctx, ExitUnsupported, nil, "Error: only specify one target of installation!")
+		return fmt.Errorf("only specify one target of installation")
 	}
 	if flags == 0 {
 		log.Println("No target given, assuming --global.")
 	}
-	cmd := exec.Command("git", "config", flag, "credential.helper", `"!gopass git-credential $@"`)
+	cmd := exec.CommandContext(ctx, "git", "config", flag, "credential.helper", `"!gopass-git-credentials $@"`)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	return cmd.Run()

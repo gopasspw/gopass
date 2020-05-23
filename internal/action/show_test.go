@@ -8,10 +8,10 @@ import (
 	"testing"
 
 	"github.com/atotto/clipboard"
+	"github.com/gopasspw/gopass/internal/gptest"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store/secret"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"github.com/gopasspw/gopass/tests/gptest"
 
 	"github.com/fatih/color"
 	"github.com/stretchr/testify/assert"
@@ -40,13 +40,13 @@ func TestShow(t *testing.T) {
 	}()
 
 	// show foo
-	c := clictx(ctx, t, "foo")
+	c := gptest.CliCtx(ctx, t, "foo")
 	assert.NoError(t, act.Show(c))
 	assert.Contains(t, buf.String(), "secret")
 	buf.Reset()
 
 	// show --sync foo
-	c = clictxf(ctx, t, map[string]string{"sync": "true"}, "foo")
+	c = gptest.CliCtxWithFlags(ctx, t, map[string]string{"sync": "true"}, "foo")
 	assert.NoError(t, act.Show(c))
 	assert.Contains(t, buf.String(), "secret")
 	buf.Reset()
@@ -57,7 +57,7 @@ func TestShow(t *testing.T) {
 	assert.NoError(t, act.Store.Set(ctx, "bar/baz", secret.New("123", "---\nbar: zab")))
 	buf.Reset()
 
-	c = clictx(ctx, t, "bar")
+	c = gptest.CliCtx(ctx, t, "bar")
 	assert.NoError(t, act.Show(c))
 	assert.Equal(t, "bar\n└── baz\n\n", buf.String())
 	buf.Reset()
@@ -65,26 +65,26 @@ func TestShow(t *testing.T) {
 	// show twoliner with safecontent enabled
 	ctx = ctxutil.WithShowSafeContent(ctx, true)
 
-	c = clictx(ctx, t, "bar/baz")
+	c = gptest.CliCtx(ctx, t, "bar/baz")
 	assert.NoError(t, act.Show(c))
 	assert.Equal(t, "---\nbar: zab", buf.String())
 	buf.Reset()
 
 	// show foo with safecontent enabled, should error out
-	c = clictx(ctx, t, "foo")
+	c = gptest.CliCtx(ctx, t, "foo")
 	assert.NoError(t, act.Show(c))
 	assert.NotContains(t, buf.String(), "secret")
 	buf.Reset()
 
 	// show foo with safecontent enabled, with the force flag
-	c = clictxf(ctx, t, map[string]string{"force": "true"}, "foo")
+	c = gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true"}, "foo")
 	assert.NoError(t, act.Show(c))
 	assert.Contains(t, buf.String(), "secret")
 	buf.Reset()
 
 	// show twoliner with safecontent enabled, but with the clip flag, which should copy just the secret
 	ctx = ctxutil.WithShowSafeContent(ctx, true)
-	c = clictxf(ctx, t, map[string]string{"clip": "true"}, "bar/baz")
+	c = gptest.CliCtxWithFlags(ctx, t, map[string]string{"clip": "true"}, "bar/baz")
 
 	assert.NoError(t, act.Show(c))
 	assert.NotContains(t, buf.String(), "123")
@@ -125,7 +125,7 @@ func TestShowAutoClip(t *testing.T) {
 	// gopass show foo
 	// -> Print password
 	t.Run("gopass show foo", func(t *testing.T) {
-		c := clictx(ctx, t, "foo")
+		c := gptest.CliCtx(ctx, t, "foo")
 		assert.NoError(t, act.Show(c))
 		assert.NotContains(t, buf.String(), "WARNING")
 		assert.Contains(t, buf.String(), "secret")
@@ -140,7 +140,7 @@ func TestShowAutoClip(t *testing.T) {
 	// gopass show foo
 	// -> Copy to clipboard
 	t.Run("gopass show foo", func(t *testing.T) {
-		c := clictx(ctx, t, "foo")
+		c := gptest.CliCtx(ctx, t, "foo")
 		assert.NoError(t, act.Show(c))
 		assert.Contains(t, buf.String(), "WARNING")
 		assert.NotContains(t, buf.String(), "secret")
@@ -150,7 +150,7 @@ func TestShowAutoClip(t *testing.T) {
 	// gopass show -c foo
 	// -> Copy to clipboard
 	t.Run("gopass show -c foo", func(t *testing.T) {
-		c := clictxf(ctx, t, map[string]string{"clip": "true"}, "foo")
+		c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"clip": "true"}, "foo")
 		assert.NoError(t, act.Show(c))
 		assert.Contains(t, buf.String(), "WARNING")
 		assert.NotContains(t, buf.String(), "secret")
@@ -160,7 +160,7 @@ func TestShowAutoClip(t *testing.T) {
 	// gopass show -C foo
 	// -> Copy to clipboard AND print
 	t.Run("gopass show -C foo", func(t *testing.T) {
-		c := clictxf(ctx, t, map[string]string{"alsoclip": "true"}, "foo")
+		c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"alsoclip": "true"}, "foo")
 		assert.NoError(t, act.Show(c))
 		assert.Contains(t, buf.String(), "WARNING")
 		assert.Contains(t, buf.String(), "secret")
@@ -171,7 +171,7 @@ func TestShowAutoClip(t *testing.T) {
 	// gopass show -f foo
 	// -> ONLY print
 	t.Run("gopass show -f foo", func(t *testing.T) {
-		c := clictxf(ctx, t, map[string]string{"force": "true"}, "foo")
+		c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true"}, "foo")
 		assert.NoError(t, act.Show(c))
 		assert.NotContains(t, buf.String(), "WARNING")
 		assert.Contains(t, buf.String(), "secret")
@@ -184,7 +184,7 @@ func TestShowAutoClip(t *testing.T) {
 	// gopass show foo
 	// -> Copy to clipboard
 	t.Run("gopass show foo", func(t *testing.T) {
-		c := clictx(ctx, t, "foo")
+		c := gptest.CliCtx(ctx, t, "foo")
 		assert.NoError(t, act.Show(c))
 		assert.NotContains(t, buf.String(), "WARNING")
 		assert.Contains(t, buf.String(), "secret")
@@ -194,7 +194,7 @@ func TestShowAutoClip(t *testing.T) {
 	// gopass show -c foo
 	// -> Copy to clipboard
 	t.Run("gopass show -c foo", func(t *testing.T) {
-		c := clictxf(ctx, t, map[string]string{"clip": "true"}, "foo")
+		c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"clip": "true"}, "foo")
 		assert.NoError(t, act.Show(c))
 		assert.Contains(t, buf.String(), "WARNING")
 		assert.NotContains(t, buf.String(), "secret")
@@ -204,7 +204,7 @@ func TestShowAutoClip(t *testing.T) {
 	// gopass show -C foo
 	// -> Copy to clipboard AND print
 	t.Run("gopass show -C foo", func(t *testing.T) {
-		c := clictxf(ctx, t, map[string]string{"alsoclip": "true"}, "foo")
+		c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"alsoclip": "true"}, "foo")
 		assert.NoError(t, act.Show(c))
 		assert.Contains(t, buf.String(), "WARNING")
 		assert.Contains(t, buf.String(), "secret")
@@ -215,7 +215,7 @@ func TestShowAutoClip(t *testing.T) {
 	// gopass show -f foo
 	// -> ONLY Print
 	t.Run("gopass show -f foo", func(t *testing.T) {
-		c := clictxf(ctx, t, map[string]string{"force": "true"}, "foo")
+		c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true"}, "foo")
 		assert.NoError(t, act.Show(c))
 		assert.NotContains(t, buf.String(), "WARNING")
 		assert.Contains(t, buf.String(), "secret")
@@ -246,7 +246,7 @@ func TestShowHandleRevision(t *testing.T) {
 	}()
 
 	// show foo
-	c := clictx(ctx, t)
+	c := gptest.CliCtx(ctx, t)
 	assert.NoError(t, act.showHandleRevision(ctx, c, "foo", "HEAD"))
 	buf.Reset()
 }
@@ -273,7 +273,7 @@ func TestShowHandleError(t *testing.T) {
 	}()
 
 	// show foo
-	c := clictx(ctx, t)
+	c := gptest.CliCtx(ctx, t)
 	assert.Error(t, act.showHandleError(ctx, c, "foo", false, fmt.Errorf("test")))
 	buf.Reset()
 }

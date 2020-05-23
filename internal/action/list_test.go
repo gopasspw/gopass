@@ -7,11 +7,11 @@ import (
 	"testing"
 
 	"github.com/fatih/color"
+	"github.com/gopasspw/gopass/internal/gptest"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store/secret"
 	"github.com/gopasspw/gopass/internal/tree"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"github.com/gopasspw/gopass/tests/gptest"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -37,7 +37,7 @@ func TestList(t *testing.T) {
 	}()
 	color.NoColor = true
 
-	assert.NoError(t, act.List(clictx(ctx, t)))
+	assert.NoError(t, act.List(gptest.CliCtx(ctx, t)))
 	want := `gopass
 └── foo
 
@@ -49,7 +49,7 @@ func TestList(t *testing.T) {
 	assert.NoError(t, act.Store.Set(ctx, "foo/bar", secret.New("123", "---\nbar: zab")))
 	buf.Reset()
 
-	assert.NoError(t, act.List(clictx(ctx, t, "foo")))
+	assert.NoError(t, act.List(gptest.CliCtx(ctx, t, "foo")))
 	want = `foo
 └── bar
 
@@ -58,7 +58,7 @@ func TestList(t *testing.T) {
 	buf.Reset()
 
 	// list --flat foo
-	assert.NoError(t, act.List(clictxf(ctx, t, map[string]string{"flat": "true"}, "foo")))
+	assert.NoError(t, act.List(gptest.CliCtxWithFlags(ctx, t, map[string]string{"flat": "true"}, "foo")))
 	want = `foo/bar
 `
 	assert.Equal(t, want, buf.String())
@@ -71,7 +71,7 @@ func TestList(t *testing.T) {
 	assert.NoError(t, act.Store.Set(ctx, "foo2/bar2", secret.New("123", "")))
 	buf.Reset()
 
-	assert.NoError(t, act.List(clictxf(ctx, t, map[string]string{"folders": "true"})))
+	assert.NoError(t, act.List(gptest.CliCtxWithFlags(ctx, t, map[string]string{"folders": "true"})))
 	want = `foo
 foo/zen
 foo2
@@ -80,7 +80,7 @@ foo2
 	buf.Reset()
 
 	// list not-present
-	assert.Error(t, act.List(clictx(ctx, t, "not-present")))
+	assert.Error(t, act.List(gptest.CliCtx(ctx, t, "not-present")))
 	buf.Reset()
 }
 

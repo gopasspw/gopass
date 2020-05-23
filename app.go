@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"os"
-	"strings"
 
 	ap "github.com/gopasspw/gopass/internal/action"
 	"github.com/gopasspw/gopass/internal/config"
@@ -52,10 +51,6 @@ func setupApp(ctx context.Context, sv semver.Version) (context.Context, *cli.App
 	app.Action = func(c *cli.Context) error {
 		if err := action.Initialized(c); err != nil {
 			return err
-		}
-
-		if strings.HasSuffix(os.Args[0], "native_host") || strings.HasSuffix(os.Args[0], "native_host.exe") {
-			return action.JSONAPI(c)
 		}
 
 		if c.Args().Present() {

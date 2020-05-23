@@ -9,8 +9,8 @@ import (
 
 	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/internal/config"
+	"github.com/gopasspw/gopass/internal/gptest"
 	"github.com/gopasspw/gopass/internal/out"
-	"github.com/gopasspw/gopass/tests/gptest"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -34,7 +34,7 @@ func TestConfig(t *testing.T) {
 	}()
 
 	// action.Config
-	c := clictx(ctx, t)
+	c := gptest.CliCtx(ctx, t)
 	assert.NoError(t, act.Config(c))
 	want := `root store config:
   askformore: false
@@ -119,13 +119,13 @@ mount 'foo' config:
 	buf.Reset()
 
 	// config autoimport
-	c = clictx(ctx, t, "autoimport")
+	c = gptest.CliCtx(ctx, t, "autoimport")
 	assert.NoError(t, act.Config(c))
 	assert.Equal(t, "autoimport: true", strings.TrimSpace(buf.String()))
 	buf.Reset()
 
 	// config autoimport false
-	c = clictx(ctx, t, "autoimport", "false")
+	c = gptest.CliCtx(ctx, t, "autoimport", "false")
 	assert.NoError(t, act.Config(c))
 	assert.Equal(t, "autoimport: false", strings.TrimSpace(buf.String()))
 	buf.Reset()
@@ -154,7 +154,7 @@ usesymbols
 	buf.Reset()
 
 	// config autoimport false 42
-	c = clictx(ctx, t, "autoimport", "false", "42")
+	c = gptest.CliCtx(ctx, t, "autoimport", "false", "42")
 	assert.Error(t, act.Config(c))
 	buf.Reset()
 }

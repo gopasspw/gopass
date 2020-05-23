@@ -7,10 +7,10 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/gopasspw/gopass/internal/gptest"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store/secret"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"github.com/gopasspw/gopass/tests/gptest"
 
 	"github.com/gokyle/twofactor"
 	"github.com/stretchr/testify/assert"
@@ -34,22 +34,22 @@ func TestOTP(t *testing.T) {
 	}()
 
 	// display non-otp secret
-	assert.Error(t, act.OTP(clictx(ctx, t, "foo")))
+	assert.Error(t, act.OTP(gptest.CliCtx(ctx, t, "foo")))
 	buf.Reset()
 
 	// create and display valid OTP
 	assert.NoError(t, act.Store.Set(ctx, "bar", secret.New("foo", twofactor.GenerateGoogleTOTP().URL("foo"))))
 
-	assert.NoError(t, act.OTP(clictx(ctx, t, "bar")))
+	assert.NoError(t, act.OTP(gptest.CliCtx(ctx, t, "bar")))
 	buf.Reset()
 
 	// copy to clipboard
-	assert.NoError(t, act.otp(ctx, clictx(ctx, t), "bar", "", true, false, false))
+	assert.NoError(t, act.otp(ctx, gptest.CliCtx(ctx, t), "bar", "", true, false, false))
 	buf.Reset()
 
 	// write QR file
 	fn := filepath.Join(u.Dir, "qr.png")
-	assert.NoError(t, act.OTP(clictxf(ctx, t, map[string]string{"qr": fn}, "bar")))
+	assert.NoError(t, act.OTP(gptest.CliCtxWithFlags(ctx, t, map[string]string{"qr": fn}, "bar")))
 	assert.FileExists(t, fn)
 	buf.Reset()
 }

@@ -13,7 +13,7 @@ import (
 )
 
 // Set encodes and writes the cipertext of one entry to disk
-func (s *Store) Set(ctx context.Context, name string, sec store.Secret) error {
+func (s *Store) Set(ctx context.Context, name string, sec store.Byter) error {
 	if strings.Contains(name, "//") {
 		return errors.Errorf("invalid secret name: %s", name)
 	}

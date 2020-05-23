@@ -6,9 +6,9 @@ import (
 	"os"
 	"testing"
 
+	"github.com/gopasspw/gopass/internal/gptest"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"github.com/gopasspw/gopass/tests/gptest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -34,6 +34,6 @@ func TestEnv(t *testing.T) {
 		stdout = os.Stdout
 	}()
 
-	assert.NoError(t, act.Env(clictx(ctx, t, "foo", "env")))
+	assert.NoError(t, act.Env(gptest.CliCtx(ctx, t, "foo", "env")))
 	assert.Contains(t, buf.String(), "secret")
 }
