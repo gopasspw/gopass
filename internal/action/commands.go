@@ -23,37 +23,6 @@ func (s *Action) GetCommands() []*cli.Command {
 					Value:   1,
 				},
 			},
-			Subcommands: []*cli.Command{
-				{
-					Name:  "hibp",
-					Usage: "Detect leaked passwords",
-					Description: "" +
-						"This command will decrypt all secrets and check the passwords against the public " +
-						"havibeenpwned.com v2 API or dumps. " +
-						"To use the dumps you need to download the dumps from https://haveibeenpwned.com/passwords first. Be sure to grab the one that says '(ordered by hash)'. " +
-						"This is a very expensive operation, for advanced users. " +
-						"Most users should probably use the API. " +
-						"If you want to use the dumps you need to use 7z to extract the dump: 7z x pwned-passwords-ordered-2.0.txt.7z.",
-					Before: s.Initialized,
-					Action: s.HIBP,
-					Flags: []cli.Flag{
-						&cli.BoolFlag{
-							Name:    "force",
-							Aliases: []string{"f"},
-							Usage:   "Force to move the secret and overwrite existing one",
-						},
-						&cli.BoolFlag{
-							Name:    "api",
-							Aliases: []string{"a"},
-							Usage:   "Use HIBP API",
-						},
-						&cli.StringSliceFlag{
-							Name:  "dumps",
-							Usage: "One or more HIBP v1/v2 dumps",
-						},
-					},
-				},
-			},
 		},
 		{
 			Name:  "clone",
@@ -394,53 +363,6 @@ func (s *Action) GetCommands() []*cli.Command {
 						&cli.StringFlag{
 							Name:  "store",
 							Usage: "Store to operate on",
-						},
-					},
-				},
-			},
-		},
-		{
-			Name:  "git-credential",
-			Usage: `Use "!gopass git-credential $@" as git's credential.helper`,
-			Description: "" +
-				"This command allows you to cache your git-credentials with gopass." +
-				"Activate by using `git config --global credential.helper \"!gopass git-credential $@\"`",
-			Hidden: true,
-			Subcommands: []*cli.Command{
-				{
-					Name:   "get",
-					Hidden: true,
-					Action: s.GitCredentialGet,
-					Before: s.GitCredentialBefore,
-				},
-				{
-					Name:   "store",
-					Hidden: true,
-					Action: s.GitCredentialStore,
-					Before: s.GitCredentialBefore,
-				},
-				{
-					Name:   "erase",
-					Hidden: true,
-					Action: s.GitCredentialErase,
-					Before: s.GitCredentialBefore,
-				},
-				{
-					Name:        "configure",
-					Description: "This command configures gopass as git's credential.helper",
-					Action:      s.GitCredentialConfigure,
-					Flags: []cli.Flag{
-						&cli.BoolFlag{
-							Name:  "global",
-							Usage: "Install for current user",
-						},
-						&cli.BoolFlag{
-							Name:  "local",
-							Usage: "Install for current repository only",
-						},
-						&cli.BoolFlag{
-							Name:  "system",
-							Usage: "Install for all users, requires superuser rights",
 						},
 					},
 				},

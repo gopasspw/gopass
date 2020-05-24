@@ -70,7 +70,7 @@ type Store interface {
 	List(context.Context, string) ([]string, error)
 	ListRevisions(context.Context, string) ([]backend.Revision, error)
 	Move(context.Context, string, string) error
-	Set(context.Context, string, Secret) error
+	Set(context.Context, string, Byter) error
 	Prune(context.Context, string) error
 	Valid() bool
 }

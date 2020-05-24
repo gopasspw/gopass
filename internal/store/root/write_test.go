@@ -4,10 +4,10 @@ import (
 	"context"
 	"testing"
 
+	"github.com/gopasspw/gopass/internal/gptest"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store/secret"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"github.com/gopasspw/gopass/tests/gptest"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

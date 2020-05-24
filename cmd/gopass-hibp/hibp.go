@@ -1,4 +1,4 @@
-package action
+package main
 
 import (
 	"context"
@@ -10,37 +10,25 @@ import (
 	"github.com/gopasspw/gopass/internal/notify"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/termio"
-	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/gopass"
 	hibpapi "github.com/gopasspw/gopass/pkg/hibp/api"
 	hibpdump "github.com/gopasspw/gopass/pkg/hibp/dump"
 
 	"github.com/fatih/color"
 	"github.com/muesli/goprogressbar"
-	"github.com/urfave/cli/v2"
 )
 
-// HIBP compares all entries from the store against the provided SHA1 sum dumps
-func (s *Action) HIBP(c *cli.Context) error {
-	ctx := ctxutil.WithGlobalFlags(c)
-	force := c.Bool("force")
-	api := c.Bool("api")
-
-	if api {
-		return s.hibpAPI(ctx, force)
-	}
-
-	out.Yellow(ctx, "WARNING: Using the HIBPv2 dumps is very expensive. If you can condone leaking a few bits of entropy per secret you should probably use the '--api' flag.")
-
-	dumps := c.StringSlice("dumps")
-	return s.hibpDump(ctx, force, dumps)
+type hibp struct {
+	gp gopass.Store
 }
 
-func (s *Action) hibpAPI(ctx context.Context, force bool) error {
+// CheckAPI checks your secrets against the HIBPv2 API
+func (s *hibp) CheckAPI(ctx context.Context, force bool) error {
 	if !force && !termio.AskForConfirmation(ctx, "This command is checking all your secrets against the haveibeenpwned.com API.\n\nThis will send five bytes of each passwords SHA1 hash to an untrusted server!\n\nYou will be asked to unlock all your secrets!\nDo you want to continue?") {
-		return ExitError(ctx, ExitAborted, nil, "user aborted")
+		return fmt.Errorf("user aborted")
 	}
 
-	shaSums, sortedShaSums, err := s.hibpPrecomputeHashes(ctx)
+	shaSums, sortedShaSums, err := s.precomputeHashes(ctx)
 	if err != nil {
 		return err
 	}
@@ -63,22 +51,25 @@ func (s *Action) hibpAPI(ctx context.Context, force bool) error {
 		}
 	}
 
-	return s.printHIBPMatches(ctx, matchList)
+	return s.printMatches(ctx, matchList)
 }
 
-func (s *Action) hibpDump(ctx context.Context, force bool, dumps []string) error {
+// CheckDump checks your secrets against the provided HIBPv2 Dumps
+func (s *hibp) CheckDump(ctx context.Context, force bool, dumps []string) error {
+	out.Yellow(ctx, "WARNING: Using the HIBPv2 dumps is very expensive. If you can condone leaking a few bits of entropy per secret you should probably use the '--api' flag.")
+
 	if !force && !termio.AskForConfirmation(ctx, fmt.Sprintf("This command is checking all your secrets against the haveibeenpwned.com hashes in %+v.\nYou will be asked to unlock all your secrets!\nDo you want to continue?", dumps)) {
-		return ExitError(ctx, ExitAborted, nil, "user aborted")
+		return fmt.Errorf("user aborted")
 	}
 
-	shaSums, sortedShaSums, err := s.hibpPrecomputeHashes(ctx)
+	shaSums, sortedShaSums, err := s.precomputeHashes(ctx)
 	if err != nil {
 		return err
 	}
 
 	scanner, err := hibpdump.New(dumps...)
 	if err != nil {
-		return ExitError(ctx, ExitUsage, err, "Failed to create new HIBP Dump scanner: %s", err)
+		return fmt.Errorf("failed to create new HIBP Dump scanner: %s", err)
 	}
 
 	matchedSums := scanner.LookupBatch(ctx, sortedShaSums)
@@ -90,19 +81,17 @@ func (s *Action) hibpDump(ctx context.Context, force bool, dumps []string) error
 		}
 	}
 
-	return s.printHIBPMatches(ctx, matchList)
+	return s.printMatches(ctx, matchList)
 }
 
-func (s *Action) hibpPrecomputeHashes(ctx context.Context) (map[string]string, []string, error) {
+func (s *hibp) precomputeHashes(ctx context.Context) (map[string]string, []string, error) {
 	// build a map of all secrets sha sums to their names and also build a sorted (!)
 	// list of this shasums. As the hibp dump is already sorted this allows for
 	// a very efficient stream compare in O(n)
-	t, err := s.Store.Tree(ctx)
+	pwList, err := s.gp.List(ctx)
 	if err != nil {
-		return nil, nil, ExitError(ctx, ExitList, err, "failed to list store: %s", err)
+		return nil, nil, err
 	}
-
-	pwList := t.List(0)
 	// map sha1sum back to secret name for reporting
 	shaSums := make(map[string]string, len(pwList))
 	// build list of sha1sums (must be sorted later!) for stream comparison
@@ -125,28 +114,33 @@ func (s *Action) hibpPrecomputeHashes(ctx context.Context) (map[string]string, [
 		// check for context cancelation
 		select {
 		case <-ctx.Done():
-			return nil, nil, ExitError(ctx, ExitAborted, nil, "user aborted")
+			return nil, nil, fmt.Errorf("user aborted")
 		default:
 		}
 
 		bar.Current++
+		if bar.Current > bar.Total {
+			bar.Total = bar.Current
+		}
 		bar.Text = fmt.Sprintf("%d of %d secrets computed", bar.Current, bar.Total)
 		bar.LazyPrint()
 		// only handle secrets / passwords, never the body
 		// comparing the body is super hard, as every user may choose to use
 		// the body of a secret differently. In the future we may support
 		// go templates to extract and compare data from the body
-		sec, err := s.Store.Get(ctx, secret)
+		sec, err := s.gp.Get(ctx, secret)
 		if err != nil {
 			out.Print(ctx, "\n"+color.YellowString("Failed to retrieve secret '%s': %s", secret, err))
 			continue
 		}
+
+		pw := sec.Password()
 		// do not check empty passwords, there should be caught by `gopass audit`
 		// anyway
-		if len(sec.Password()) < 1 {
+		if len(pw) < 1 {
 			continue
 		}
-		sum := sha1hex(sec.Password())
+		sum := sha1hex(pw)
 		shaSums[sum] = secret
 		sortedShaSums = append(sortedShaSums, sum)
 	}
@@ -158,21 +152,21 @@ func (s *Action) hibpPrecomputeHashes(ctx context.Context) (map[string]string, [
 	return shaSums, sortedShaSums, nil
 }
 
-func (s *Action) printHIBPMatches(ctx context.Context, matchList []string) error {
+func (s *hibp) printMatches(ctx context.Context, matchList []string) error {
 	if len(matchList) < 1 {
-		_ = notify.Notify(ctx, "gopass - audit HIBP", "Good news - No matches found!")
+		_ = notify.Notify(ctx, name, "Good news - No matches found!")
 		out.Green(ctx, "Good news - No matches found!")
 		return nil
 	}
 
 	sort.Strings(matchList)
-	_ = notify.Notify(ctx, "gopass - audit HIBP", fmt.Sprintf("Oh no - found %d matches", len(matchList)))
+	_ = notify.Notify(ctx, name, fmt.Sprintf("Oh no - found %d matches", len(matchList)))
 	out.Error(ctx, "Oh no - Found some matches:")
 	for _, m := range matchList {
 		out.Error(ctx, "\t- %s", m)
 	}
 	out.Cyan(ctx, "The passwords in the listed secrets were included in public leaks in the past. This means they are likely included in many word-list attacks and provide only very little security. Strongly consider changing those passwords!")
-	return ExitError(ctx, ExitAudit, nil, "weak passwords found")
+	return fmt.Errorf("weak passwords found")
 }
 
 func sha1hex(data string) string {

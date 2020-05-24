@@ -7,9 +7,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/gopasspw/gopass/internal/gptest"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"github.com/gopasspw/gopass/tests/gptest"
 	"github.com/muesli/goprogressbar"
 
 	"github.com/fatih/color"
@@ -41,7 +41,7 @@ func TestFsck(t *testing.T) {
 	color.NoColor = true
 
 	// fsck
-	assert.NoError(t, act.Fsck(clictx(ctx, t)))
+	assert.NoError(t, act.Fsck(gptest.CliCtx(ctx, t)))
 	out := strings.TrimSpace(buf.String())
 	assert.Contains(t, out, "Checking store integrity ...")
 	assert.Contains(t, out, "[] Extra recipients on foo: [0xFEEDBEEF]")
@@ -49,7 +49,7 @@ func TestFsck(t *testing.T) {
 	buf.Reset()
 
 	// fsck fo
-	assert.NoError(t, act.Fsck(clictx(ctx, t, "fo")))
+	assert.NoError(t, act.Fsck(gptest.CliCtx(ctx, t, "fo")))
 	out = strings.TrimSpace(buf.String())
 	assert.Contains(t, out, "Checking store integrity ...")
 	assert.Contains(t, out, "[] Extra recipients on foo: [0xFEEDBEEF]")

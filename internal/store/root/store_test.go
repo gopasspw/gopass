@@ -8,7 +8,7 @@ import (
 
 	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/internal/config"
-	"github.com/gopasspw/gopass/tests/gptest"
+	"github.com/gopasspw/gopass/internal/gptest"
 
 	_ "github.com/gopasspw/gopass/internal/backend/crypto"
 	_ "github.com/gopasspw/gopass/internal/backend/rcs"

@@ -28,9 +28,9 @@ OK := $(shell tput setaf 6; echo ' [OK]'; tput sgr0;)
 all: build completion
 build: $(GOPASS_OUTPUT)
 completion: $(BASH_COMPLETION_OUTPUT) $(FISH_COMPLETION_OUTPUT) $(ZSH_COMPLETION_OUTPUT)
-travis: sysinfo crosscompile build install fulltest codequality completion manifests full
-travis-osx: sysinfo build install fulltest completion manifests full
-travis-windows: sysinfo build install fulltest-nocover completion manifests full
+travis: sysinfo crosscompile build install fulltest codequality completion full
+travis-osx: sysinfo build install fulltest completion full
+travis-windows: sysinfo build install fulltest-nocover completion full
 
 sysinfo:
 	@echo ">> SYSTEM INFORMATION"
@@ -141,11 +141,6 @@ install-completion: completion
 	@install -m 0755 $(FISH_COMPLETION_OUTPUT) $(DESTDIR)$(PREFIX)/share/fish/vendor_completions.d/gopass.fish
 	@printf '%s\n' '$(OK)'
 
-manifests: $(GOPASS_OUTPUT)
-	@./gopass --yes jsonapi configure --path=. --manifest-path=manifest-chrome.json --browser=chrome --gopass-path=gopass --print=false
-	@./gopass --yes jsonapi configure --path=. --manifest-path=manifest-chromium.json --browser=chromium --gopass-path=gopass --print=false
-	@./gopass --yes jsonapi configure --path=. --manifest-path=manifest-firefox.json --browser=firefox --gopass-path=gopass --print=false
-
 codequality:
 	@echo ">> CODE QUALITY"
 
@@ -239,11 +234,6 @@ fuzz-gpg:
 	mkdir -p workdir/gpg-cli/corpus
 	go-fuzz-build github.com/gopasspw/gopass/backend/gpg/cli
 	go-fuzz -bin=cli-fuzz.zip -workdir=workdir/gpg-cli
-
-fuzz-jsonapi:
-	mkdir -p workdir/jsonapi/corpus
-	go-fuzz-build github.com/gopasspw/gopass/utils/jsonapi
-	go-fuzz -bin=jsonapi-fuzz.zip -workdir=workdir/jsonapi
 
 check-release-env:
 ifndef GITHUB_TOKEN

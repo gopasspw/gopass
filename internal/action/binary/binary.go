@@ -16,7 +16,7 @@ const (
 
 type storer interface {
 	Get(context.Context, string) (store.Secret, error)
-	Set(context.Context, string, store.Secret) error
+	Set(context.Context, string, store.Byter) error
 	Exists(context.Context, string) bool
 	Delete(context.Context, string) error
 }

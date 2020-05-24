@@ -6,10 +6,10 @@ import (
 	"os"
 	"testing"
 
+	"github.com/gopasspw/gopass/internal/gptest"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store/secret"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"github.com/gopasspw/gopass/tests/gptest"
 
 	"github.com/muesli/goprogressbar"
 	"github.com/stretchr/testify/assert"
@@ -41,11 +41,11 @@ func TestAudit(t *testing.T) {
 	assert.NoError(t, act.Store.Set(ctx, "bar", secret.New("123", "")))
 	assert.NoError(t, act.Store.Set(ctx, "baz", secret.New("123", "")))
 
-	assert.Error(t, act.Audit(clictx(ctx, t)))
+	assert.Error(t, act.Audit(gptest.CliCtx(ctx, t)))
 	buf.Reset()
 
 	// test with filter
-	c := clictx(ctx, t, "foo")
+	c := gptest.CliCtx(ctx, t, "foo")
 	assert.Error(t, act.Audit(c))
 	buf.Reset()
 
@@ -53,7 +53,7 @@ func TestAudit(t *testing.T) {
 	for _, v := range []string{"foo", "bar", "baz"} {
 		assert.NoError(t, act.Store.Delete(ctx, v))
 	}
-	assert.NoError(t, act.Audit(clictx(ctx, t)))
+	assert.NoError(t, act.Audit(gptest.CliCtx(ctx, t)))
 	assert.Contains(t, "No secrets found", buf.String())
 	buf.Reset()
 

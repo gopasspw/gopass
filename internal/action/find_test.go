@@ -10,10 +10,10 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/gopasspw/gopass/internal/gptest"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store/secret"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"github.com/gopasspw/gopass/tests/gptest"
 
 	"github.com/fatih/color"
 	"github.com/stretchr/testify/assert"
@@ -73,14 +73,14 @@ func TestFind(t *testing.T) {
 	buf.Reset()
 
 	// testing with the clip flag set
-	c = clictxf(ctx, t, map[string]string{"clip": "true"}, "fo")
+	c = gptest.CliCtxWithFlags(ctx, t, map[string]string{"clip": "true"}, "fo")
 	assert.NoError(t, act.Find(c))
 	out := strings.TrimSpace(buf.String())
 	assert.Contains(t, out, "Found exact match in 'foo'")
 	buf.Reset()
 
 	// safecontent case with force flag set
-	c = clictxf(ctx, t, map[string]string{"force": "true"}, "fo")
+	c = gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true"}, "fo")
 	assert.NoError(t, act.Find(c))
 	out = strings.TrimSpace(buf.String())
 	assert.Contains(t, out, "Found exact match in 'foo'\nsecret")
@@ -90,7 +90,7 @@ func TestFind(t *testing.T) {
 	ctx = ctxutil.WithShowSafeContent(ctx, false)
 
 	// find yo
-	c = clictx(ctx, t, "yo")
+	c = gptest.CliCtx(ctx, t, "yo")
 	assert.Error(t, act.Find(c))
 	buf.Reset()
 
@@ -100,7 +100,7 @@ func TestFind(t *testing.T) {
 	buf.Reset()
 
 	// find bar
-	c = clictx(ctx, t, "bar")
+	c = gptest.CliCtx(ctx, t, "bar")
 	assert.NoError(t, act.Find(c))
 	assert.Equal(t, "bar/baz\nbar/zab", strings.TrimSpace(buf.String()))
 	buf.Reset()

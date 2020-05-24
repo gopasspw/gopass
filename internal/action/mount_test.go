@@ -7,9 +7,9 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/gopasspw/gopass/internal/gptest"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"github.com/gopasspw/gopass/tests/gptest"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -37,24 +37,24 @@ func TestMounts(t *testing.T) {
 	}()
 
 	// print mounts
-	assert.NoError(t, act.MountsPrint(clictx(ctx, t)))
+	assert.NoError(t, act.MountsPrint(gptest.CliCtx(ctx, t)))
 	buf.Reset()
 
 	// complete mounts
-	act.MountsComplete(clictx(ctx, t))
+	act.MountsComplete(gptest.CliCtx(ctx, t))
 	assert.Equal(t, buf.String(), "")
 	buf.Reset()
 
 	// remove no non-existing mount
-	assert.Error(t, act.MountRemove(clictx(ctx, t)))
+	assert.Error(t, act.MountRemove(gptest.CliCtx(ctx, t)))
 	buf.Reset()
 
 	// remove non-existing mount
-	assert.NoError(t, act.MountRemove(clictx(ctx, t, "foo")))
+	assert.NoError(t, act.MountRemove(gptest.CliCtx(ctx, t, "foo")))
 	buf.Reset()
 
 	// add non-existing mount
-	assert.Error(t, act.MountAdd(clictx(ctx, t, "foo", filepath.Join(u.Dir, "mount1"))))
+	assert.Error(t, act.MountAdd(gptest.CliCtx(ctx, t, "foo", filepath.Join(u.Dir, "mount1"))))
 	buf.Reset()
 
 	// add some mounts
@@ -64,6 +64,6 @@ func TestMounts(t *testing.T) {
 	assert.NoError(t, act.Store.AddMount(ctx, "mount2", u.StoreDir("mount2")))
 
 	// print mounts
-	assert.NoError(t, act.MountsPrint(clictx(ctx, t)))
+	assert.NoError(t, act.MountsPrint(gptest.CliCtx(ctx, t)))
 	buf.Reset()
 }

@@ -9,9 +9,9 @@ import (
 
 	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/internal/config"
+	"github.com/gopasspw/gopass/internal/gptest"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"github.com/gopasspw/gopass/tests/gptest"
 
 	"github.com/blang/semver"
 	"github.com/stretchr/testify/assert"
@@ -52,14 +52,14 @@ func TestHistory(t *testing.T) {
 	buf.Reset()
 
 	// insert bar
-	assert.NoError(t, act.Insert(clictx(ctx, t, "bar")))
+	assert.NoError(t, act.Insert(gptest.CliCtx(ctx, t, "bar")))
 	buf.Reset()
 
 	// history bar
-	assert.NoError(t, act.History(clictx(ctx, t, "bar")))
+	assert.NoError(t, act.History(gptest.CliCtx(ctx, t, "bar")))
 	buf.Reset()
 
 	// history --password bar
-	assert.NoError(t, act.History(clictxf(ctx, t, map[string]string{"password": "true"}, "bar")))
+	assert.NoError(t, act.History(gptest.CliCtxWithFlags(ctx, t, map[string]string{"password": "true"}, "bar")))
 	buf.Reset()
 }

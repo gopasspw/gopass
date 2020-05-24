@@ -6,9 +6,9 @@ import (
 	"os"
 	"testing"
 
+	"github.com/gopasspw/gopass/internal/gptest"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"github.com/gopasspw/gopass/tests/gptest"
 
 	"github.com/fatih/color"
 	"github.com/muesli/goprogressbar"
@@ -40,7 +40,7 @@ func TestRecipients(t *testing.T) {
 	}()
 
 	// RecipientsPrint
-	assert.NoError(t, act.RecipientsPrint(clictx(ctx, t)))
+	assert.NoError(t, act.RecipientsPrint(gptest.CliCtx(ctx, t)))
 	want := `Hint: run 'gopass sync' to import any missing public keys
 gopass
 └── 0xDEADBEEF
@@ -50,28 +50,28 @@ gopass
 	buf.Reset()
 
 	// RecipientsComplete
-	act.RecipientsComplete(clictx(ctx, t))
+	act.RecipientsComplete(gptest.CliCtx(ctx, t))
 	want = "0xDEADBEEF\n"
 	assert.Equal(t, want, buf.String())
 	buf.Reset()
 
 	// RecipientsAdd
-	assert.Error(t, act.RecipientsAdd(clictx(ctx, t)))
+	assert.Error(t, act.RecipientsAdd(gptest.CliCtx(ctx, t)))
 	buf.Reset()
 
 	// RecipientsRemove
-	assert.Error(t, act.RecipientsRemove(clictx(ctx, t)))
+	assert.Error(t, act.RecipientsRemove(gptest.CliCtx(ctx, t)))
 	buf.Reset()
 
 	// RecipientsAdd 0xFEEDBEEF
-	assert.NoError(t, act.RecipientsAdd(clictx(ctx, t, "0xFEEDBEEF")))
+	assert.NoError(t, act.RecipientsAdd(gptest.CliCtx(ctx, t, "0xFEEDBEEF")))
 	buf.Reset()
 
 	// RecipientsAdd 0xBEEFFEED
-	assert.Error(t, act.RecipientsAdd(clictx(ctx, t, "0xBEEFFEED")))
+	assert.Error(t, act.RecipientsAdd(gptest.CliCtx(ctx, t, "0xBEEFFEED")))
 	buf.Reset()
 
 	// RecipientsRemove 0xDEADBEEF
-	assert.NoError(t, act.RecipientsRemove(clictx(ctx, t, "0xDEADBEEF")))
+	assert.NoError(t, act.RecipientsRemove(gptest.CliCtx(ctx, t, "0xDEADBEEF")))
 	buf.Reset()
 }

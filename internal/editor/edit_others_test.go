@@ -10,7 +10,7 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/gopasspw/gopass/tests/gptest"
+	"github.com/gopasspw/gopass/internal/gptest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/urfave/cli/v2"

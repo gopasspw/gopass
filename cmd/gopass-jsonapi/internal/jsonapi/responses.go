@@ -10,8 +10,8 @@ import (
 
 	"github.com/gopasspw/gopass/internal/clipboard"
 	"github.com/gopasspw/gopass/internal/otp"
-	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/internal/store/secret"
+	"github.com/gopasspw/gopass/pkg/gopass"
 	"github.com/gopasspw/gopass/pkg/pwgen"
 
 	"github.com/pkg/errors"
@@ -53,7 +53,7 @@ func (api *API) respondHostQuery(ctx context.Context, msgBytes []byte) error {
 		return errors.Wrapf(err, "failed to unmarshal JSON message")
 	}
 
-	l, err := api.Store.List(ctx, 0)
+	l, err := api.Store.List(ctx)
 	if err != nil {
 		return errors.Wrapf(err, "failed to list store")
 	}
@@ -81,7 +81,7 @@ func (api *API) respondQuery(ctx context.Context, msgBytes []byte) error {
 		return errors.Wrapf(err, "failed to unmarshal JSON message")
 	}
 
-	l, err := api.Store.List(ctx, 0)
+	l, err := api.Store.List(ctx)
 	if err != nil {
 		return errors.Wrapf(err, "failed to list store")
 	}
@@ -156,7 +156,6 @@ func (api *API) respondGetData(ctx context.Context, msgBytes []byte) error {
 	}
 
 	responseData := sec.Data()
-
 	currentTotp, _, err := otp.Calculate(ctx, "_", sec)
 	if err == nil {
 		responseData["current_totp"] = currentTotp.OTP()
@@ -166,7 +165,7 @@ func (api *API) respondGetData(ctx context.Context, msgBytes []byte) error {
 	return sendSerializedJSONMessage(converted, api.Writer)
 }
 
-func (api *API) getUsername(name string, sec store.Secret) string {
+func (api *API) getUsername(name string, sec gopass.Secret) string {
 	// look for a meta-data entry containing the username first
 	for _, key := range []string{"login", "username", "user"} {
 		value, err := sec.Value(key)
@@ -191,7 +190,7 @@ func (api *API) respondCreateEntry(ctx context.Context, msgBytes []byte) error {
 		return errors.Wrapf(err, "failed to unmarshal JSON message")
 	}
 
-	if api.Store.Exists(ctx, message.Name) {
+	if _, err := api.Store.Get(ctx, message.Name); err == nil {
 		return fmt.Errorf("secret %s already exists", message.Name)
 	}
 

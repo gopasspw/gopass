@@ -6,10 +6,10 @@ import (
 	"os"
 	"testing"
 
+	"github.com/gopasspw/gopass/internal/gptest"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store/secret"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"github.com/gopasspw/gopass/tests/gptest"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -31,7 +31,7 @@ func TestGrep(t *testing.T) {
 		out.Stdout = os.Stdout
 	}()
 
-	c := clictx(ctx, t, "foo")
+	c := gptest.CliCtx(ctx, t, "foo")
 	assert.Error(t, act.Grep(c))
 	buf.Reset()
 

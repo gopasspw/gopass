@@ -5,24 +5,16 @@ import (
 	"context"
 	"encoding/binary"
 	"fmt"
-	"io/ioutil"
-	"os"
-	"path/filepath"
 	"regexp"
 	"strings"
 	"testing"
 
-	"github.com/gopasspw/gopass/internal/backend"
-	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/otp"
 	"github.com/gopasspw/gopass/internal/store"
-	"github.com/gopasspw/gopass/internal/store/root"
 	"github.com/gopasspw/gopass/internal/store/secret"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-
-	_ "github.com/gopasspw/gopass/internal/backend/crypto"
-	_ "github.com/gopasspw/gopass/internal/backend/rcs"
-	_ "github.com/gopasspw/gopass/internal/backend/storage"
+	"github.com/gopasspw/gopass/pkg/gopass"
+	"github.com/gopasspw/gopass/pkg/gopass/apimock"
 
 	"github.com/blang/semver"
 	"github.com/stretchr/testify/assert"
@@ -323,44 +315,31 @@ func runRespondMessages(t *testing.T, requests []verifiedRequest, secrets []stor
 
 func runRespondRawMessages(t *testing.T, requests []verifiedRequest, secrets []storedSecret) {
 	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	ctx = ctxutil.WithNotifications(ctx, false)
 
-	tempdir, err := ioutil.TempDir("", "gopass-")
-	require.NoError(t, err)
-	defer func() {
-		_ = os.RemoveAll(tempdir)
-		cancel()
-	}()
-
-	assert.NoError(t, os.Setenv("GOPASS_DISABLE_ENCRYPTION", "true"))
-	ctx = backend.WithCryptoBackendString(ctx, "plain")
-	store, err := root.New(
-		ctx,
-		&config.Config{
-			Root: &config.StoreConfig{
-				Path: backend.FromPath(tempdir),
-			},
-		},
-	)
-	require.NoError(t, err)
+	store := apimock.New()
 	require.NotNil(t, store)
-	inited, err := store.Initialized(ctx)
-	require.NoError(t, err)
-	assert.Equal(t, false, inited)
-	assert.NoError(t, populateStore(tempdir, secrets))
+	assert.NoError(t, populateStore(ctx, store, secrets))
 
 	for _, request := range requests {
 		var inbuf bytes.Buffer
 		var outbuf bytes.Buffer
 
-		api := API{store, &inbuf, &outbuf, semver.MustParse("1.2.3-test")}
+		api := API{
+			store,
+			&inbuf,
+			&outbuf,
+			semver.MustParse("1.2.3-test"),
+		}
 
-		_, err = inbuf.Write([]byte(request.InputStr))
+		_, err := inbuf.Write([]byte(request.InputStr))
 		assert.NoError(t, err)
 
 		err = api.ReadAndRespond(ctx)
 		if len(request.ErrorStr) > 0 {
-			assert.EqualError(t, err, request.ErrorStr)
+			assert.Error(t, err)
 			assert.Equal(t, len(outbuf.String()), 0)
 			continue
 		}
@@ -371,26 +350,13 @@ func runRespondRawMessages(t *testing.T, requests []verifiedRequest, secrets []s
 	}
 }
 
-func populateStore(dir string, secrets []storedSecret) error {
-	recipients := []string{
-		"0xDEADBEEF",
-		"0xFEEDBEEF",
-	}
+func populateStore(ctx context.Context, s gopass.Store, secrets []storedSecret) error {
 	for _, sec := range secrets {
-		file := filepath.Join(sec.Name...)
-		filename := filepath.Join(dir, file+".txt")
-		if err := os.MkdirAll(filepath.Dir(filename), 0700); err != nil {
-			return err
-		}
-		secBytes, err := sec.Secret.Bytes()
-		if err != nil {
-			return err
-		}
-		if err := ioutil.WriteFile(filename, secBytes, 0644); err != nil {
+		if err := s.Set(ctx, strings.Join(sec.Name, "/"), sec.Secret); err != nil {
 			return err
 		}
 	}
-	return ioutil.WriteFile(filepath.Join(dir, ".gpg-id"), []byte(strings.Join(recipients, "\n")), 0600)
+	return nil
 }
 
 func readAndVerifyMessageLength(t *testing.T, rawMessage []byte) string {

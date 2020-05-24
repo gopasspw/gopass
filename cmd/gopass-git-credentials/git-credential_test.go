@@ -1,22 +1,21 @@
-package action
+package main
 
 import (
 	"bytes"
 	"context"
-	"flag"
 	"io"
 	"os"
 	"strings"
 	"testing"
 
 	"github.com/fatih/color"
+	"github.com/gopasspw/gopass/internal/gptest"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/termio"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"github.com/gopasspw/gopass/tests/gptest"
+	"github.com/gopasspw/gopass/pkg/gopass/apimock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/urfave/cli/v2"
 )
 
 func TestGitCredentialFormat(t *testing.T) {
@@ -80,60 +79,51 @@ func TestGitCredentialFormat(t *testing.T) {
 }
 
 func TestGitCredentialHelper(t *testing.T) {
-	u := gptest.NewUnitTester(t)
-	defer u.Remove()
-
 	ctx := context.Background()
-	act, err := newMock(ctx, u)
-	require.NoError(t, err)
-	require.NotNil(t, act)
+	act := &gc{
+		gp: apimock.New(),
+	}
+	require.NoError(t, act.gp.Set(ctx, "foo", &apimock.Secret{Buf: []byte("bar")}))
 
 	stdout := &bytes.Buffer{}
 	out.Stdout = stdout
 	color.NoColor = true
 	defer func() {
 		out.Stdout = os.Stdout
-	}()
-
-	defer func() {
 		termio.Stdin = os.Stdin
 	}()
 
-	app := cli.NewApp()
-
-	fs := flag.NewFlagSet("default", flag.ContinueOnError)
-	c := cli.NewContext(app, fs, nil)
-	c.Context = ctx
+	c := gptest.CliCtx(ctx, t)
 
 	// before without stdin
-	assert.Error(t, act.GitCredentialBefore(c))
+	assert.Error(t, act.Before(c))
 
 	// before with stdin
 	ctx = ctxutil.WithStdin(ctx, true)
 	c.Context = ctx
-	assert.NoError(t, act.GitCredentialBefore(c))
+	assert.NoError(t, act.Before(c))
 
 	s := "protocol=https\n" +
 		"host=example.com\n" +
 		"username=bob\n"
 
 	termio.Stdin = strings.NewReader(s)
-	assert.NoError(t, act.GitCredentialGet(c))
+	assert.NoError(t, act.Get(c))
 	assert.Equal(t, "", stdout.String())
 
 	termio.Stdin = strings.NewReader(s + "password=secr3=t\n")
-	assert.NoError(t, act.GitCredentialStore(c))
+	assert.NoError(t, act.Store(c))
 	stdout.Reset()
 
 	termio.Stdin = strings.NewReader(s)
-	assert.NoError(t, act.GitCredentialGet(c))
+	assert.NoError(t, act.Get(c))
 	read, err := parseGitCredentials(stdout)
 	assert.NoError(t, err)
 	assert.Equal(t, "secr3=t", read.Password)
 	stdout.Reset()
 
 	termio.Stdin = strings.NewReader("host=example.com\n")
-	assert.NoError(t, act.GitCredentialGet(c))
+	assert.NoError(t, act.Get(c))
 	read, err = parseGitCredentials(stdout)
 	assert.NoError(t, err)
 	assert.Equal(t, "secr3=t", read.Password)
@@ -141,17 +131,17 @@ func TestGitCredentialHelper(t *testing.T) {
 	stdout.Reset()
 
 	termio.Stdin = strings.NewReader(s)
-	assert.NoError(t, act.GitCredentialErase(c))
+	assert.NoError(t, act.Erase(c))
 	assert.Equal(t, "", stdout.String())
 
 	termio.Stdin = strings.NewReader(s)
-	assert.NoError(t, act.GitCredentialGet(c))
+	assert.NoError(t, act.Get(c))
 	assert.Equal(t, "", stdout.String())
 
 	termio.Stdin = strings.NewReader("a")
-	assert.Error(t, act.GitCredentialGet(c))
+	assert.Error(t, act.Get(c))
 	termio.Stdin = strings.NewReader("a")
-	assert.Error(t, act.GitCredentialStore(c))
+	assert.Error(t, act.Store(c))
 	termio.Stdin = strings.NewReader("a")
-	assert.Error(t, act.GitCredentialErase(c))
+	assert.Error(t, act.Erase(c))
 }

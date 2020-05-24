@@ -6,9 +6,9 @@ import (
 	"os"
 	"testing"
 
+	"github.com/gopasspw/gopass/internal/gptest"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"github.com/gopasspw/gopass/tests/gptest"
 
 	"github.com/fatih/color"
 	"github.com/stretchr/testify/assert"
@@ -35,16 +35,16 @@ func TestInsert(t *testing.T) {
 	}()
 
 	// insert bar
-	assert.NoError(t, act.Insert(clictx(ctx, t, "bar")))
+	assert.NoError(t, act.Insert(gptest.CliCtx(ctx, t, "bar")))
 
 	// insert bar baz
-	assert.NoError(t, act.Insert(clictx(ctx, t, "bar", "baz")))
+	assert.NoError(t, act.Insert(gptest.CliCtx(ctx, t, "bar", "baz")))
 
 	// insert baz via stdin
 	assert.NoError(t, act.insertStdin(ctx, "baz", []byte("foobar"), false))
 	buf.Reset()
 
-	assert.NoError(t, act.show(ctx, clictx(ctx, t), "baz", false))
+	assert.NoError(t, act.show(ctx, gptest.CliCtx(ctx, t), "baz", false))
 	assert.Equal(t, "foobar", buf.String())
 	buf.Reset()
 
@@ -52,7 +52,7 @@ func TestInsert(t *testing.T) {
 	assert.NoError(t, act.insertYAML(ctx, "zab", "key", []byte("foobar"), nil))
 
 	// insert --multiline bar baz
-	assert.NoError(t, act.Insert(clictxf(ctx, t, map[string]string{"multiline": "true"}, "bar", "baz")))
+	assert.NoError(t, act.Insert(gptest.CliCtxWithFlags(ctx, t, map[string]string{"multiline": "true"}, "bar", "baz")))
 }
 
 func TestInsertStdin(t *testing.T) {
@@ -79,31 +79,31 @@ func TestInsertStdin(t *testing.T) {
 	}()
 
 	ibuf.WriteString("foobar")
-	assert.Error(t, act.insert(ctx, clictx(ctx, t), "foo", "", false, false, false, false, nil))
+	assert.Error(t, act.insert(ctx, gptest.CliCtx(ctx, t), "foo", "", false, false, false, false, nil))
 	ibuf.Reset()
 	buf.Reset()
 
 	// force
 	ibuf.WriteString("foobar")
-	assert.NoError(t, act.insert(ctx, clictx(ctx, t), "foo", "", false, false, true, false, nil))
+	assert.NoError(t, act.insert(ctx, gptest.CliCtx(ctx, t), "foo", "", false, false, true, false, nil))
 	ibuf.Reset()
 	buf.Reset()
 
 	// append
 	ibuf.WriteString("foobar")
-	assert.NoError(t, act.insert(ctx, clictx(ctx, t), "foo", "", false, false, false, true, nil))
+	assert.NoError(t, act.insert(ctx, gptest.CliCtx(ctx, t), "foo", "", false, false, false, true, nil))
 	ibuf.Reset()
 	buf.Reset()
 
 	// echo
 	ibuf.WriteString("foobar")
-	assert.NoError(t, act.insert(ctx, clictx(ctx, t), "bar", "", true, false, false, false, nil))
+	assert.NoError(t, act.insert(ctx, gptest.CliCtx(ctx, t), "bar", "", true, false, false, false, nil))
 	ibuf.Reset()
 	buf.Reset()
 
 	// multiline
 	ibuf.WriteString("foobar")
-	assert.NoError(t, act.insert(ctx, clictx(ctx, t), "baz", "", false, true, false, false, nil))
+	assert.NoError(t, act.insert(ctx, gptest.CliCtx(ctx, t), "baz", "", false, true, false, false, nil))
 	ibuf.Reset()
 	buf.Reset()
 }

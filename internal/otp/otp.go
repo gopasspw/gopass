@@ -5,14 +5,18 @@ import (
 	"io/ioutil"
 	"strings"
 
-	"github.com/gopasspw/gopass/internal/store"
-
 	"github.com/gokyle/twofactor"
 	"github.com/pkg/errors"
 )
 
+type otpSecret interface {
+	Body() string
+	Value(string) (string, error)
+	Password() string
+}
+
 // Calculate will compute a OTP code from a given secret
-func Calculate(ctx context.Context, name string, sec store.Secret) (twofactor.OTP, string, error) {
+func Calculate(ctx context.Context, name string, sec otpSecret) (twofactor.OTP, string, error) {
 	otpURL := ""
 	// check body
 	for _, line := range strings.Split(sec.Body(), "\n") {

@@ -6,12 +6,12 @@ import (
 
 	"github.com/blang/semver"
 	"github.com/gopasspw/gopass/internal/out"
-	"github.com/gopasspw/gopass/internal/store/root"
+	"github.com/gopasspw/gopass/pkg/gopass"
 )
 
 // API type holding store and context
 type API struct {
-	Store   *root.Store
+	Store   gopass.Store
 	Reader  io.Reader
 	Writer  io.Writer
 	Version semver.Version

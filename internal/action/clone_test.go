@@ -11,9 +11,9 @@ import (
 	"github.com/gopasspw/gopass/internal/backend"
 	git "github.com/gopasspw/gopass/internal/backend/rcs/git/cli"
 	"github.com/gopasspw/gopass/internal/config"
+	"github.com/gopasspw/gopass/internal/gptest"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"github.com/gopasspw/gopass/tests/gptest"
 
 	"github.com/blang/semver"
 	"github.com/stretchr/testify/assert"
@@ -62,7 +62,7 @@ func TestClone(t *testing.T) {
 	}()
 
 	// no args
-	c := clictx(ctx, t)
+	c := gptest.CliCtx(ctx, t)
 	assert.Error(t, act.Clone(c))
 
 	// clone to initialized store
@@ -98,12 +98,12 @@ func TestCloneBackendIsStoredForMount(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, act)
 
-	c := clictx(ctx, t)
+	c := gptest.CliCtx(ctx, t)
 	require.NoError(t, act.Initialized(c))
 
 	repo := aGitRepo(ctx, u, t, "my-project")
 
-	c = clictx(ctx, t, repo, "the-project")
+	c = gptest.CliCtx(ctx, t, repo, "the-project")
 	assert.NoError(t, act.Clone(c))
 
 	require.NotNil(t, act.cfg.Mounts["the-project"])

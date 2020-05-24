@@ -6,9 +6,9 @@ import (
 	"os"
 	"testing"
 
+	"github.com/gopasspw/gopass/internal/gptest"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"github.com/gopasspw/gopass/tests/gptest"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -32,15 +32,15 @@ func TestEdit(t *testing.T) {
 	}()
 
 	// edit
-	assert.Error(t, act.Edit(clictx(ctx, t)))
+	assert.Error(t, act.Edit(gptest.CliCtx(ctx, t)))
 	buf.Reset()
 
 	// edit foo (existing)
-	assert.Error(t, act.Edit(clictx(ctx, t, "foo")))
+	assert.Error(t, act.Edit(gptest.CliCtx(ctx, t, "foo")))
 	buf.Reset()
 
 	// edit bar (new)
-	assert.Error(t, act.Edit(clictx(ctx, t, "foo")))
+	assert.Error(t, act.Edit(gptest.CliCtx(ctx, t, "foo")))
 	buf.Reset()
 }
 

@@ -1,32 +1,44 @@
-package action
+package main
 
 import (
 	"context"
+	"os"
 
 	"runtime"
 	"strings"
 
-	"github.com/gopasspw/gopass/internal/jsonapi"
-	"github.com/gopasspw/gopass/internal/jsonapi/manifest"
+	"github.com/blang/semver"
+	"github.com/gopasspw/gopass/cmd/gopass-jsonapi/internal/jsonapi"
+	"github.com/gopasspw/gopass/cmd/gopass-jsonapi/internal/jsonapi/manifest"
 	"github.com/gopasspw/gopass/internal/termio"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/gopass"
 
 	"github.com/fatih/color"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
 )
 
-// JSONAPI reads a json message on stdin and responds on stdout
-func (s *Action) JSONAPI(c *cli.Context) error {
+var (
+	stdin  = os.Stdin
+	stdout = os.Stdout
+)
+
+type jsonapiCLI struct {
+	gp gopass.Store
+}
+
+// listen reads a json message on stdin and responds on stdout
+func (s *jsonapiCLI) listen(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
-	api := jsonapi.API{Store: s.Store, Reader: stdin, Writer: stdout, Version: s.version}
+	api := jsonapi.API{Store: s.gp, Reader: stdin, Writer: stdout, Version: semver.Version{}}
 	if err := api.ReadAndRespond(ctx); err != nil {
 		return api.RespondError(err)
 	}
 	return nil
 }
 
-func (s *Action) getBrowser(ctx context.Context, c *cli.Context) (string, error) {
+func (s *jsonapiCLI) getBrowser(ctx context.Context, c *cli.Context) (string, error) {
 	browser := c.String("browser")
 	if browser != "" {
 		return browser, nil
@@ -42,21 +54,21 @@ func (s *Action) getBrowser(ctx context.Context, c *cli.Context) (string, error)
 	return browser, nil
 }
 
-func (s *Action) getGlobalInstall(ctx context.Context, c *cli.Context) (bool, error) {
+func (s *jsonapiCLI) getGlobalInstall(ctx context.Context, c *cli.Context) (bool, error) {
 	if !c.IsSet("global") {
 		return termio.AskForBool(ctx, color.BlueString("Install for all users? (might require sudo gopass)"), false)
 	}
 	return c.Bool("global"), nil
 }
 
-func (s *Action) getLibPath(ctx context.Context, c *cli.Context, browser string, global bool) (string, error) {
+func (s *jsonapiCLI) getLibPath(ctx context.Context, c *cli.Context, browser string, global bool) (string, error) {
 	if !c.IsSet("libpath") && runtime.GOOS == "linux" && browser == "firefox" && global {
 		return termio.AskForString(ctx, color.BlueString("What is your lib path?"), "/usr/lib")
 	}
 	return c.String("libpath"), nil
 }
 
-func (s *Action) getWrapperPath(ctx context.Context, c *cli.Context, defaultWrapperPath string, wrapperName string) (string, error) {
+func (s *jsonapiCLI) getWrapperPath(ctx context.Context, c *cli.Context, defaultWrapperPath string, wrapperName string) (string, error) {
 	path := c.String("path")
 	if path != "" {
 		return path, nil

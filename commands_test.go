@@ -13,9 +13,9 @@ import (
 	"github.com/gopasspw/gopass/internal/action"
 	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/internal/config"
+	"github.com/gopasspw/gopass/internal/gptest"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"github.com/gopasspw/gopass/tests/gptest"
 	"github.com/stretchr/testify/assert"
 	"github.com/urfave/cli/v2"
 )
@@ -91,7 +91,7 @@ func TestGetCommands(t *testing.T) {
 	c.Context = ctx
 
 	commands := getCommands(ctx, act, app)
-	assert.Equal(t, 34, len(commands))
+	assert.Equal(t, 32, len(commands))
 
 	prefix := ""
 	testCommands(t, c, commands, prefix)
