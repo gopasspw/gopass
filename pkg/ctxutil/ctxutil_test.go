@@ -190,14 +190,6 @@ func TestAlias(t *testing.T) {
 	assert.Equal(t, "", GetAlias(WithAlias(ctx, "")))
 }
 
-func TestAutoPrint(t *testing.T) {
-	ctx := context.Background()
-
-	assert.Equal(t, false, IsAutoPrint(ctx))
-	assert.Equal(t, true, IsAutoPrint(WithAutoPrint(ctx, true)))
-	assert.Equal(t, false, IsAutoPrint(WithAutoPrint(ctx, false)))
-}
-
 func TestGitInit(t *testing.T) {
 	ctx := context.Background()
 

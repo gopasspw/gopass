@@ -32,7 +32,6 @@ const (
 	ctxKeyProgressCallback
 	ctxKeyConfigDir
 	ctxKeyAlias
-	ctxKeyAutoPrint
 	ctxKeyGitInit
 	ctxKeyForce
 	ctxKeyCommitMessage
@@ -515,26 +514,6 @@ func GetAlias(ctx context.Context) string {
 		return ""
 	}
 	return a
-}
-
-// WithAutoPrint returns a context with the value for auto print set.
-func WithAutoPrint(ctx context.Context, bv bool) context.Context {
-	return context.WithValue(ctx, ctxKeyAutoPrint, bv)
-}
-
-// HasAutoPrint returns true if a specific value for auto print was set.
-func HasAutoPrint(ctx context.Context) bool {
-	_, ok := ctx.Value(ctxKeyAutoPrint).(bool)
-	return ok
-}
-
-// IsAutoPrint returns the value of auto print or false if none was set.
-func IsAutoPrint(ctx context.Context) bool {
-	bv, ok := ctx.Value(ctxKeyAutoPrint).(bool)
-	if !ok {
-		return false
-	}
-	return bv
 }
 
 // WithGitInit returns a context with the value for the git init flag set.
