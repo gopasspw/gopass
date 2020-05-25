@@ -11,7 +11,7 @@ import (
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/cui"
 	"github.com/gopasspw/gopass/internal/out"
-	"github.com/gopasspw/gopass/internal/store/sub"
+	"github.com/gopasspw/gopass/internal/store/leaf"
 	"github.com/gopasspw/gopass/internal/termio"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/pwgen/xkcdgen"
@@ -178,7 +178,7 @@ func (s *Action) getCryptoFor(ctx context.Context, name string) backend.Crypto {
 	if crypto != nil {
 		return crypto
 	}
-	c, err := sub.GetCryptoBackend(ctx, backend.GetCryptoBackend(ctx), config.Directory())
+	c, err := leaf.GetCryptoBackend(ctx, backend.GetCryptoBackend(ctx), config.Directory())
 	if err != nil {
 		out.Debug(ctx, "getCryptoFor(%s) failed to init crypto backend: %s", name, err)
 		return nil

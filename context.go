@@ -9,7 +9,7 @@ import (
 
 	"github.com/gopasspw/gopass/internal/backend/crypto/gpg"
 	"github.com/gopasspw/gopass/internal/config"
-	"github.com/gopasspw/gopass/internal/store/sub"
+	"github.com/gopasspw/gopass/internal/store/leaf"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 
 	"github.com/fatih/color"
@@ -22,7 +22,7 @@ func initContext(ctx context.Context, cfg *config.Config) context.Context {
 	// check recipients conflicts with always trust, make sure it's not enabled
 	// when always trust is
 	if gpg.IsAlwaysTrust(ctx) {
-		ctx = sub.WithCheckRecipients(ctx, false)
+		ctx = leaf.WithCheckRecipients(ctx, false)
 	}
 
 	// debug flag

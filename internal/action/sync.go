@@ -8,7 +8,7 @@ import (
 	"github.com/gopasspw/gopass/internal/notify"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
-	subs "github.com/gopasspw/gopass/internal/store/sub"
+	subs "github.com/gopasspw/gopass/internal/store/leaf"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 
 	"github.com/fatih/color"

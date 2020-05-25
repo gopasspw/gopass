@@ -7,16 +7,15 @@ import (
 
 	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/internal/config"
-	"github.com/gopasspw/gopass/internal/store"
-	"github.com/gopasspw/gopass/internal/store/sub"
+	"github.com/gopasspw/gopass/internal/store/leaf"
 )
 
 // Store is the public facing password store
 type Store struct {
 	cfg    *config.Config
-	mounts map[string]store.Store
+	mounts map[string]*leaf.Store
 	url    *backend.URL // url of the root store
-	store  *sub.Store
+	store  *leaf.Store
 }
 
 // New creates a new store
@@ -29,7 +28,7 @@ func New(ctx context.Context, cfg *config.Config) (*Store, error) {
 	}
 	r := &Store{
 		cfg:    cfg,
-		mounts: make(map[string]store.Store, len(cfg.Mounts)),
+		mounts: make(map[string]*leaf.Store, len(cfg.Mounts)),
 		url:    cfg.Root.Path,
 	}
 

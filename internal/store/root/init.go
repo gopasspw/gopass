@@ -6,7 +6,7 @@ import (
 	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
-	"github.com/gopasspw/gopass/internal/store/sub"
+	"github.com/gopasspw/gopass/internal/store/leaf"
 
 	"github.com/pkg/errors"
 )
@@ -30,7 +30,7 @@ func (r *Store) Init(ctx context.Context, alias, path string, ids ...string) err
 	if err != nil {
 		return errors.Wrapf(err, "failed to parse backend URL '%s': %s", path, err)
 	}
-	sub, err := sub.New(ctx, r.cfg, alias, pathURL, r.cfg.Directory())
+	sub, err := leaf.New(ctx, r.cfg, alias, pathURL, r.cfg.Directory())
 	if err != nil {
 		return errors.Wrapf(err, "failed to instantiate new sub store: %s", err)
 	}
@@ -107,7 +107,7 @@ func (r *Store) initialize(ctx context.Context) error {
 			return errors.Wrapf(err, "failed to parse backend URL '%s': %s", r.url.String(), err)
 		}
 		out.Debug(ctx, "initialize - %s", bu.String())
-		s, err := sub.New(ctx, r.cfg, "", bu, r.cfg.Directory())
+		s, err := leaf.New(ctx, r.cfg, "", bu, r.cfg.Directory())
 		if err != nil {
 			return errors.Wrapf(err, "failed to initialize the root store at '%s': %s", r.url.String(), err)
 		}

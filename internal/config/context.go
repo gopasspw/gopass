@@ -3,7 +3,7 @@ package config
 import (
 	"context"
 
-	"github.com/gopasspw/gopass/internal/store/sub"
+	"github.com/gopasspw/gopass/internal/store/leaf"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 )
 
@@ -17,10 +17,10 @@ func (c StoreConfig) WithContext(ctx context.Context) context.Context {
 		ctx = ctxutil.WithAutoClip(ctx, c.AutoClip)
 	}
 	if !c.AutoImport {
-		ctx = sub.WithImportFunc(ctx, nil)
+		ctx = leaf.WithImportFunc(ctx, nil)
 	}
-	if !sub.HasAutoSync(ctx) {
-		ctx = sub.WithAutoSync(ctx, c.AutoSync)
+	if !leaf.HasAutoSync(ctx) {
+		ctx = leaf.WithAutoSync(ctx, c.AutoSync)
 	}
 	if !ctxutil.HasClipTimeout(ctx) {
 		ctx = ctxutil.WithClipTimeout(ctx, c.ClipTimeout)
@@ -31,8 +31,8 @@ func (c StoreConfig) WithContext(ctx context.Context) context.Context {
 	if !ctxutil.HasEditRecipients(ctx) {
 		ctx = ctxutil.WithEditRecipients(ctx, c.EditRecipients)
 	}
-	if !sub.HasExportKeys(ctx) {
-		ctx = sub.WithExportKeys(ctx, c.ExportKeys)
+	if !leaf.HasExportKeys(ctx) {
+		ctx = leaf.WithExportKeys(ctx, c.ExportKeys)
 	}
 	if !ctxutil.HasNoConfirm(ctx) {
 		ctx = ctxutil.WithNoConfirm(ctx, c.NoConfirm)

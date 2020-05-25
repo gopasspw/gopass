@@ -26,6 +26,9 @@ type Secret struct {
 	data     map[string]interface{}
 }
 
+// make sure that *Secret implements store.Secret
+var _ store.Secret = &Secret{}
+
 // New creates a new secret
 func New(password, body string) *Secret {
 	return &Secret{

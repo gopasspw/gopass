@@ -155,7 +155,7 @@ func (m *MockStore) Delete(ctx context.Context, name string) error {
 }
 
 // Equals does nothing
-func (m *MockStore) Equals(other store.Store) bool {
+func (m *MockStore) Equals(other *MockStore) bool {
 	return false
 }
 

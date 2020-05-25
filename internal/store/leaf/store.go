@@ -1,4 +1,4 @@
-package sub
+package leaf
 
 import (
 	"context"
@@ -103,7 +103,7 @@ func (s *Store) idFile(ctx context.Context, name string) string {
 }
 
 // Equals returns true if this.storage has the same on-disk path as the other
-func (s *Store) Equals(other store.Store) bool {
+func (s *Store) Equals(other *Store) bool {
 	if other == nil {
 		return false
 	}
