@@ -3,6 +3,7 @@
 package main
 
 import (
+	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -23,12 +24,12 @@ func (s *jsonapiCLI) setup(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	browser, err := s.getBrowser(ctx, c)
 	if err != nil {
-		return ExitError(ctx, ExitIO, err, "failed to get browser: %s", err)
+		return fmt.Errorf("failed to get browser: %s", err)
 	}
 
 	globalInstall, err := s.getGlobalInstall(ctx, c)
 	if err != nil {
-		return ExitError(ctx, ExitIO, err, "failed to get global flag: %s", err)
+		return fmt.Errorf("failed to get global flag: %s", err)
 	}
 
 	// Use windows specific folder to store wrapper and manifests
@@ -39,7 +40,7 @@ func (s *jsonapiCLI) setup(c *cli.Context) error {
 
 	wrapperPath, err := s.getWrapperPath(ctx, c, defaultWrapperPath, manifest.NativeHostExeName)
 	if err != nil {
-		return ExitError(ctx, ExitIO, err, "failed to get wrapper path: %s", err)
+		return fmt.Errorf("failed to get wrapper path: %s", err)
 	}
 	wrapperFileName := filepath.Join(wrapperPath, manifest.NativeHostExeName)
 
@@ -50,12 +51,12 @@ func (s *jsonapiCLI) setup(c *cli.Context) error {
 
 	regPath, err := manifest.GetRegistryPath(browser)
 	if err != nil {
-		return ExitError(ctx, ExitUnknown, err, "failed to get registry path: %s", err)
+		return fmt.Errorf("failed to get registry path: %s", err)
 	}
 
 	_, mf, err := manifest.Render(browser, wrapperFileName, c.String("gopass-path"), globalInstall)
 	if err != nil {
-		return ExitError(ctx, ExitUnknown, err, "failed to render manifest: %s", err)
+		return fmt.Errorf("failed to render manifest: %s", err)
 	}
 
 	if c.Bool("print") {
@@ -67,23 +68,23 @@ func (s *jsonapiCLI) setup(c *cli.Context) error {
 	}
 
 	if err := os.MkdirAll(filepath.Dir(wrapperFileName), 0755); err != nil {
-		return ExitError(ctx, ExitIO, err, "failed to create wrapper path: %s", err)
+		return fmt.Errorf("failed to create wrapper path: %s", err)
 	}
 
 	if err := s.setRegistryValue(regPath, manifestPath, globalInstall); err != nil {
-		return ExitError(ctx, ExitIO, err, "failed to set registry value: %s", err)
+		return fmt.Errorf("failed to set registry value: %s", err)
 	}
 
 	// If the calling binary has native_host.exe as suffix listener will be started.
 	if err := s.copyExecutionBinary(wrapperFileName); err != nil {
-		return ExitError(ctx, ExitIO, err, "failed to copy gopass binary to wrapper path: %s", err)
+		return fmt.Errorf("failed to copy gopass binary to wrapper path: %s", err)
 	}
 
 	if err := os.MkdirAll(filepath.Dir(manifestPath), 0755); err != nil {
-		return ExitError(ctx, ExitIO, err, "failed to create manifest path: %s", err)
+		return fmt.Errorf("failed to create manifest path: %s", err)
 	}
 	if err := ioutil.WriteFile(manifestPath, mf, 0644); err != nil {
-		return ExitError(ctx, ExitIO, err, "failed to write manifest file: %s", err)
+		return fmt.Errorf("failed to write manifest file: %s", err)
 	}
 
 	return nil

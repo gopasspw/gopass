@@ -1,7 +1,9 @@
 language: go
 dist: trusty
 
-matrix:
+jobs:
+  allow_failures:
+    - os: windows
   include:
     - os: windows
       env: SLOW_TEST_FACTOR=100 BUILDFLAGS='' GOPASS_OUTPUT=gopass.exe
