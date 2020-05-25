@@ -46,7 +46,6 @@ This is a list of available options:
 | ---------------- | -------- | ----------- |
 | `askformore`     | `bool`   | If enabled - it will ask to add more data after use of `generate` command. |
 | `autoclip`       | `bool`   | Always copy the password created by `pass generate`. |
-| `autoprint`      | `bool`   | Always print the password created by `pass generate`. |
 | `autoimport`     | `bool`   | Import missing keys stored in the pass repository without asking. |
 | `autosync`       | `bool`   | Always do a `git push` after a commit to the store. Makes sure your local changes are always available on your git remote. |
 | `concurrency`    | `int`    | Number of threads to use for batch operations (such as reencrypting). |

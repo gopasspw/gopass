@@ -16,9 +16,6 @@ func (c StoreConfig) WithContext(ctx context.Context) context.Context {
 	if !ctxutil.HasAutoClip(ctx) {
 		ctx = ctxutil.WithAutoClip(ctx, c.AutoClip)
 	}
-	if !ctxutil.HasAutoPrint(ctx) {
-		ctx = ctxutil.WithAutoPrint(ctx, c.AutoPrint)
-	}
 	if !c.AutoImport {
 		ctx = sub.WithImportFunc(ctx, nil)
 	}

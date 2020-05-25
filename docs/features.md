@@ -374,7 +374,6 @@ $ gopass config
 askformore: false
 autoclip: true
 autoimport: false
-autoprint: false
 autosync: true
 cliptimeout: 10
 noconfirm: false

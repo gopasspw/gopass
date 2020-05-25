@@ -205,7 +205,6 @@ func (s *Action) GetCommands() []*cli.Command {
 					Name:    "clip",
 					Aliases: []string{"c"},
 					Usage:   "Copy the generated password to the clipboard",
-					Value:   true,
 				},
 				&cli.BoolFlag{
 					Name:    "print",
