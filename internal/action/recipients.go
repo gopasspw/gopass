@@ -8,7 +8,7 @@ import (
 	"github.com/gopasspw/gopass/internal/cui"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
-	"github.com/gopasspw/gopass/internal/store/sub"
+	"github.com/gopasspw/gopass/internal/store/leaf"
 	"github.com/gopasspw/gopass/internal/termio"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 
@@ -211,7 +211,7 @@ func (s *Action) RecipientsUpdate(c *cli.Context) error {
 		}
 		recp, err := subs.GetRecipients(ctx, "")
 		if err != nil {
-			if err != sub.ErrRecipientChecksumChanged {
+			if err != leaf.ErrRecipientChecksumChanged {
 				return err
 			}
 		}

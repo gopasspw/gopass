@@ -10,8 +10,8 @@ import (
 	"strings"
 
 	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/internal/store/leaf"
 	"github.com/gopasspw/gopass/internal/store/secret"
-	"github.com/gopasspw/gopass/internal/store/sub"
 	"github.com/gopasspw/gopass/internal/termio"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/fsutil"
@@ -134,7 +134,7 @@ func filter(ls []string, prefix string) []string {
 // Get returns a credential to git
 func (s *gc) Get(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
-	ctx = sub.WithAutoSync(ctx, false)
+	ctx = leaf.WithAutoSync(ctx, false)
 	cred, err := parseGitCredentials(termio.Stdin)
 	if err != nil {
 		return fmt.Errorf("error: %v while parsing git-credential", err)

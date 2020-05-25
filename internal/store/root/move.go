@@ -8,7 +8,7 @@ import (
 
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
-	"github.com/gopasspw/gopass/internal/store/sub"
+	"github.com/gopasspw/gopass/internal/store/leaf"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/pkg/errors"
 )
@@ -60,7 +60,7 @@ func (r *Store) move(ctx context.Context, from, to string, delete bool) error {
 		}
 	}
 
-	if !sub.IsAutoSync(ctx) {
+	if !leaf.IsAutoSync(ctx) {
 		out.Debug(ctx, "reencrypt - auto sync is disabled")
 		return nil
 	}
@@ -100,9 +100,9 @@ func (r *Store) move(ctx context.Context, from, to string, delete bool) error {
 	return nil
 }
 
-func (r *Store) moveFromTo(ctxFrom, ctxTo context.Context, subFrom, subTo store.Store, from, to, fromPrefix string, srcIsDir, delete bool) error {
-	ctxFrom = ctxutil.WithGitCommit(sub.WithAutoSync(ctxFrom, false), false)
-	ctxTo = ctxutil.WithGitCommit(sub.WithAutoSync(ctxTo, false), false)
+func (r *Store) moveFromTo(ctxFrom, ctxTo context.Context, subFrom, subTo *leaf.Store, from, to, fromPrefix string, srcIsDir, delete bool) error {
+	ctxFrom = ctxutil.WithGitCommit(leaf.WithAutoSync(ctxFrom, false), false)
+	ctxTo = ctxutil.WithGitCommit(leaf.WithAutoSync(ctxTo, false), false)
 
 	entries := []string{from}
 	if r.IsDir(ctxFrom, from) {

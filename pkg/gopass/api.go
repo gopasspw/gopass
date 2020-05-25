@@ -52,6 +52,9 @@ type Gopass struct {
 	rs *root.Store
 }
 
+// make sure that *Gopass implements Store
+var _ Store = &Gopass{}
+
 // New creates a new secret store
 // WARNING: This will need to change to accommodate for runtime configuration.
 func New(ctx context.Context) (*Gopass, error) {

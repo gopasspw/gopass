@@ -8,7 +8,7 @@ import (
 
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
-	"github.com/gopasspw/gopass/internal/store/sub"
+	"github.com/gopasspw/gopass/internal/store/leaf"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/fsutil"
 	"github.com/muesli/goprogressbar"
@@ -19,7 +19,7 @@ import (
 func (s *Action) Fsck(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	if c.IsSet("decrypt") {
-		ctx = sub.WithFsckDecrypt(ctx, c.Bool("decrypt"))
+		ctx = leaf.WithFsckDecrypt(ctx, c.Bool("decrypt"))
 	}
 	out.Print(ctx, "Checking store integrity ...")
 	// make sure config is in the right place

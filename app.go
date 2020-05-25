@@ -7,7 +7,7 @@ import (
 	ap "github.com/gopasspw/gopass/internal/action"
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
-	"github.com/gopasspw/gopass/internal/store/sub"
+	"github.com/gopasspw/gopass/internal/store/leaf"
 	"github.com/gopasspw/gopass/internal/termio"
 
 	"github.com/blang/semver"
@@ -30,12 +30,12 @@ func setupApp(ctx context.Context, sv semver.Version) (context.Context, *cli.App
 
 	// set some action callbacks
 	if !cfg.Root.AutoImport {
-		ctx = sub.WithImportFunc(ctx, termio.AskForKeyImport)
+		ctx = leaf.WithImportFunc(ctx, termio.AskForKeyImport)
 	}
 	if !cfg.Root.NoConfirm {
-		ctx = sub.WithRecipientFunc(ctx, action.ConfirmRecipients)
+		ctx = leaf.WithRecipientFunc(ctx, action.ConfirmRecipients)
 	}
-	ctx = sub.WithFsckFunc(ctx, termio.AskForConfirmation)
+	ctx = leaf.WithFsckFunc(ctx, termio.AskForConfirmation)
 
 	app := cli.NewApp()
 
