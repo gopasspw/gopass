@@ -8,7 +8,6 @@ import (
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/internal/tree"
-	"github.com/gopasspw/gopass/internal/tree/simple"
 
 	"github.com/pkg/errors"
 )
@@ -23,8 +22,8 @@ func (r *Store) List(ctx context.Context, maxDepth int) ([]string, error) {
 }
 
 // Tree returns the tree representation of the entries
-func (r *Store) Tree(ctx context.Context) (tree.Tree, error) {
-	root := simple.New("gopass")
+func (r *Store) Tree(ctx context.Context) (*tree.Root, error) {
+	root := tree.New("gopass")
 	addFileFunc := func(in ...string) {
 		for _, f := range in {
 			var ct string

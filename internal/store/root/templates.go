@@ -9,7 +9,6 @@ import (
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/internal/tree"
-	"github.com/gopasspw/gopass/internal/tree/simple"
 
 	"github.com/pkg/errors"
 )
@@ -24,8 +23,8 @@ func (r *Store) LookupTemplate(ctx context.Context, name string) (string, []byte
 }
 
 // TemplateTree returns a tree of all templates
-func (r *Store) TemplateTree(ctx context.Context) (tree.Tree, error) {
-	root := simple.New("gopass")
+func (r *Store) TemplateTree(ctx context.Context) (*tree.Root, error) {
+	root := tree.New("gopass")
 
 	for _, t := range r.store.ListTemplates(ctx, "") {
 		debug.Log("[<root>] Adding template %s", t)

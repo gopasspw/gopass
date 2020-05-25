@@ -63,7 +63,7 @@ func (m *MockStore) SetTemplate(context.Context, string, []byte) error {
 }
 
 // TemplateTree does nothing
-func (m *MockStore) TemplateTree(context.Context) (tree.Tree, error) {
+func (m *MockStore) TemplateTree(context.Context) (*tree.Root, error) {
 	return nil, nil
 }
 

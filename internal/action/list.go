@@ -57,14 +57,12 @@ func (s *Action) List(c *cli.Context) error {
 	return s.listFiltered(ctx, l, limit, flat, folders, stripPrefix, filter)
 }
 
-func (s *Action) listFiltered(ctx context.Context, l tree.Tree, limit int, flat, folders, stripPrefix bool, filter string) error {
+func (s *Action) listFiltered(ctx context.Context, l *tree.Root, limit int, flat, folders, stripPrefix bool, filter string) error {
 	subtree, err := l.FindFolder(filter)
 	if err != nil {
 		return ExitError(ExitNotFound, nil, "Entry '%s' not found", filter)
 	}
 
-	// SetRoot formats the root entry properly
-	subtree.SetRoot(true)
 	subtree.SetName(filter)
 	if flat {
 		sep := "/"
@@ -99,7 +97,7 @@ func (s *Action) listFiltered(ctx context.Context, l tree.Tree, limit int, flat,
 
 // redirectPager returns a redirected io.Writer if the output would exceed
 // the terminal size
-func redirectPager(ctx context.Context, subtree tree.Tree) (io.Writer, *bytes.Buffer) {
+func redirectPager(ctx context.Context, subtree *tree.Root) (io.Writer, *bytes.Buffer) {
 	if ctxutil.IsNoPager(ctx) {
 		return stdout, nil
 	}
@@ -119,7 +117,7 @@ func redirectPager(ctx context.Context, subtree tree.Tree) (io.Writer, *bytes.Bu
 }
 
 // listAll will unconditionally list all entries, used if no filter is given
-func (s *Action) listAll(ctx context.Context, l tree.Tree, limit int, flat, folders bool) error {
+func (s *Action) listAll(ctx context.Context, l *tree.Root, limit int, flat, folders bool) error {
 	if flat {
 		listOver := l.List
 		if folders {

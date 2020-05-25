@@ -121,9 +121,7 @@ func decode(buf []byte) (*Config, error) {
 		debug.Log("Loaded config: %T: %+v", cfg, cfg)
 		conf := cfg.Config()
 		if i > 0 {
-			if err := conf.Save(); err != nil {
-				return nil, err
-			}
+			debug.Log("Loaded legacy config. Should rewrite config.")
 		}
 		return conf, nil
 	}

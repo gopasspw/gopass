@@ -32,7 +32,6 @@ func (s *Action) Env(c *cli.Context) error {
 		if err != nil {
 			return ExitError(ExitNotFound, nil, "Entry '%s' not found", name)
 		}
-		subtree.SetRoot(true)
 		subtree.SetName(name)
 		for _, e := range subtree.List(0) {
 			en := path.Join(name, e)

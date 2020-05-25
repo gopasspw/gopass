@@ -167,9 +167,9 @@ func TestCopy(t *testing.T) {
 	entries, err = rs.List(ctx, 0)
 	require.NoError(t, err)
 	assert.Equal(t, []string{
-		"bar/foo/zab",
 		"bar/bar",
 		"bar/baz",
+		"bar/foo/zab",
 		"foo/bar",
 		"foo/baz",
 		"misc/foo/bar",

@@ -63,7 +63,7 @@ mounts:
   personal: /Users/johndoe/secrets
   teststore: /Users/johndoe/tmp/teststore
 noconfirm: false
-path: /home/tex/.password-store
+path: /home/foo/.password-store
 safecontent: true
 version: "1.3.0"`,
 		}, {
@@ -83,7 +83,7 @@ mounts:
   teststore: /Users/johndoe/tmp/teststore
 nocolor: false
 noconfirm: false
-path: /home/tex/.password-store
+path: /home/foo/.password-store
 persistkeys: true
 safecontent: true
 version: "1.2.0"`,
@@ -120,7 +120,7 @@ mounts:
   personal: /Users/johndoe/secrets
   teststore: /Users/johndoe/tmp/teststore
 noconfirm: false
-path: /home/tex/.password-store
+path: /home/foo/.password-store
 persistkeys: false
 version: "1.0.0"`,
 		},
