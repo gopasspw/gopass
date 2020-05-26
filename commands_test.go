@@ -102,10 +102,6 @@ func testCommands(t *testing.T, c *cli.Context, commands []*cli.Command, prefix 
 		if cmd.Name == "update" {
 			continue
 		}
-		if cmd.Name == "configure" && prefix == ".jsonapi" {
-			// running jsonapi configure will overwrite the chrome manifest
-			continue
-		}
 		if len(cmd.Subcommands) > 0 {
 			testCommands(t, c, cmd.Subcommands, prefix+"."+cmd.Name)
 		}

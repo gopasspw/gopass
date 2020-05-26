@@ -556,6 +556,35 @@ func (s *Action) GetCommands() []*cli.Command {
 			},
 		},
 		{
+			Name:    "otp",
+			Usage:   "Generate time- or hmac-based tokens",
+			Aliases: []string{"totp", "hotp"},
+			Hidden:  true,
+			Description: "" +
+				"Tries to parse an OTP URL (otpauth://). URL can be TOTP or HOTP. " +
+				"The URL can be provided on its own line or on a key value line with a key named 'totp'.",
+			Before:       s.Initialized,
+			Action:       s.OTP,
+			BashComplete: s.Complete,
+			Flags: []cli.Flag{
+				&cli.BoolFlag{
+					Name:    "clip",
+					Aliases: []string{"c"},
+					Usage:   "Copy the time-based token into the clipboard",
+				},
+				&cli.StringFlag{
+					Name:    "qr",
+					Aliases: []string{"q"},
+					Usage:   "Write QR code to FILE",
+				},
+				&cli.BoolFlag{
+					Name:    "password",
+					Aliases: []string{"o"},
+					Usage:   "Only display the token",
+				},
+			},
+		},
+		{
 			Name:  "recipients",
 			Usage: "Edit recipient permissions",
 			Description: "" +

@@ -7,9 +7,17 @@ jobs:
   include:
     - os: windows
       env: SLOW_TEST_FACTOR=100 BUILDFLAGS='' GOPASS_OUTPUT=gopass.exe
+      script:
+      - make travis-windows
     - os: osx
       env: SLOW_TEST_FACTOR=100
+      script:
+      - make travis-osx
     - os: linux
+      script:
+      - make travis
+      - make test-integration
+      - make install-completion
 
 before_install:
   - if [ $TRAVIS_OS_NAME = linux ]; then sudo apt-get install git gnupg2 clang-format-3.9; fi
@@ -25,11 +33,6 @@ before_install:
 
 go:
   - '1.14.x'
-
-script:
-  - ./travis_helper.sh travis
-  - make test-integration
-  - make install-completion
 
 after_success:
   - bash <(curl -s https://codecov.io/bash) -f coverage-all.out
