@@ -3,6 +3,7 @@ package ctxutil
 import (
 	"context"
 
+	"github.com/gopasspw/gopass/internal/store"
 	"github.com/urfave/cli/v2"
 )
 
@@ -14,15 +15,13 @@ const (
 	ctxKeyTerminal
 	ctxKeyInteractive
 	ctxKeyStdin
-	ctxKeyAskForMore
 	ctxKeyClipTimeout
 	ctxKeyConcurrency
-	ctxKeyNoConfirm
+	ctxKeyConfirm
 	ctxKeyNoPager
 	ctxKeyShowSafeContent
 	ctxKeyGitCommit
 	ctxKeyAlwaysYes
-	ctxKeyUseSymbols
 	ctxKeyNoColor
 	ctxKeyFuzzySearch
 	ctxKeyVerbose
@@ -30,11 +29,15 @@ const (
 	ctxKeyNotifications
 	ctxKeyEditRecipients
 	ctxKeyProgressCallback
-	ctxKeyConfigDir
 	ctxKeyAlias
 	ctxKeyGitInit
 	ctxKeyForce
 	ctxKeyCommitMessage
+	ctxKeyNoNetwork
+	ctxKeyUsername
+	ctxKeyEmail
+	ctxKeyImportFunc
+	ctxKeyExportKeys
 )
 
 // WithGlobalFlags parses any global flags from the cli context and returns
@@ -151,26 +154,6 @@ func IsStdin(ctx context.Context) bool {
 	return bv
 }
 
-// WithAskForMore returns a context with the value for ask for more set
-func WithAskForMore(ctx context.Context, afm bool) context.Context {
-	return context.WithValue(ctx, ctxKeyAskForMore, afm)
-}
-
-// HasAskForMore returns true if a value for AskForMore has been set in this context
-func HasAskForMore(ctx context.Context) bool {
-	_, ok := ctx.Value(ctxKeyAskForMore).(bool)
-	return ok
-}
-
-// IsAskForMore returns the value of ask for more or the default (false)
-func IsAskForMore(ctx context.Context) bool {
-	bv, ok := ctx.Value(ctxKeyAskForMore).(bool)
-	if !ok {
-		return false
-	}
-	return bv
-}
-
 // WithClipTimeout returns a context with the value for clip timeout set
 func WithClipTimeout(ctx context.Context, to int) context.Context {
 	return context.WithValue(ctx, ctxKeyClipTimeout, to)
@@ -191,20 +174,20 @@ func GetClipTimeout(ctx context.Context) int {
 	return iv
 }
 
-// WithNoConfirm returns a context with the value for ask for more set
-func WithNoConfirm(ctx context.Context, bv bool) context.Context {
-	return context.WithValue(ctx, ctxKeyNoConfirm, bv)
+// WithConfirm returns a context with the value for ask for more set
+func WithConfirm(ctx context.Context, bv bool) context.Context {
+	return context.WithValue(ctx, ctxKeyConfirm, bv)
 }
 
-// HasNoConfirm returns true if a value for NoConfirm has been set in this context
-func HasNoConfirm(ctx context.Context) bool {
-	_, ok := ctx.Value(ctxKeyNoConfirm).(bool)
+// HasConfirm returns true if a value for Confirm has been set in this context
+func HasConfirm(ctx context.Context) bool {
+	_, ok := ctx.Value(ctxKeyConfirm).(bool)
 	return ok
 }
 
-// IsNoConfirm returns the value of ask for more or the default (false)
-func IsNoConfirm(ctx context.Context) bool {
-	bv, ok := ctx.Value(ctxKeyNoConfirm).(bool)
+// IsConfirm returns the value of ask for more or the default (false)
+func IsConfirm(ctx context.Context) bool {
+	bv, ok := ctx.Value(ctxKeyConfirm).(bool)
 	if !ok {
 		return false
 	}
@@ -267,26 +250,6 @@ func IsGitCommit(ctx context.Context) bool {
 	bv, ok := ctx.Value(ctxKeyGitCommit).(bool)
 	if !ok {
 		return true
-	}
-	return bv
-}
-
-// WithUseSymbols returns a context with the value for ask for more set
-func WithUseSymbols(ctx context.Context, bv bool) context.Context {
-	return context.WithValue(ctx, ctxKeyUseSymbols, bv)
-}
-
-// HasUseSymbols returns true if a value for UseSymbols has been set in this context
-func HasUseSymbols(ctx context.Context) bool {
-	_, ok := ctx.Value(ctxKeyUseSymbols).(bool)
-	return ok
-}
-
-// IsUseSymbols returns the value of ask for more or the default (false)
-func IsUseSymbols(ctx context.Context) bool {
-	bv, ok := ctx.Value(ctxKeyUseSymbols).(bool)
-	if !ok {
-		return false
 	}
 	return bv
 }
@@ -476,26 +439,6 @@ func GetProgressCallback(ctx context.Context) ProgressCallback {
 	return cb
 }
 
-// WithConfigDir returns a context with the config dir set.
-func WithConfigDir(ctx context.Context, cfgdir string) context.Context {
-	return context.WithValue(ctx, ctxKeyConfigDir, cfgdir)
-}
-
-// HasConfigDir returns true if a config dir has been set.
-func HasConfigDir(ctx context.Context) bool {
-	_, ok := ctx.Value(ctxKeyConfigDir).(string)
-	return ok
-}
-
-// GetConfigDir returns the config dir if set or an empty string.
-func GetConfigDir(ctx context.Context) string {
-	cd, ok := ctx.Value(ctxKeyConfigDir).(string)
-	if !ok {
-		return ""
-	}
-	return cd
-}
-
 // WithAlias returns an context with the alias set.
 func WithAlias(ctx context.Context, alias string) context.Context {
 	return context.WithValue(ctx, ctxKeyAlias, alias)
@@ -568,4 +511,86 @@ func GetCommitMessage(ctx context.Context) string {
 		return ""
 	}
 	return sv
+}
+
+// WithNoNetwork returns a context with the value of no network set
+func WithNoNetwork(ctx context.Context, bv bool) context.Context {
+	return context.WithValue(ctx, ctxKeyNoNetwork, bv)
+}
+
+// HasNoNetwork returns true if no network was set
+func HasNoNetwork(ctx context.Context) bool {
+	return hasBool(ctx, ctxKeyNoNetwork)
+}
+
+// IsNoNetwork returns the value of no network or false
+func IsNoNetwork(ctx context.Context) bool {
+	return is(ctx, ctxKeyNoNetwork, false)
+}
+
+// WithUsername returns a context with the username set in the context
+func WithUsername(ctx context.Context, sv string) context.Context {
+	return context.WithValue(ctx, ctxKeyUsername, sv)
+}
+
+// GetUsername returns the username from the context
+func GetUsername(ctx context.Context) string {
+	sv, ok := ctx.Value(ctxKeyUsername).(string)
+	if !ok {
+		return ""
+	}
+	return sv
+}
+
+// WithEmail returns a context with the email set in the context
+func WithEmail(ctx context.Context, sv string) context.Context {
+	return context.WithValue(ctx, ctxKeyEmail, sv)
+}
+
+// GetEmail returns the email from the context
+func GetEmail(ctx context.Context) string {
+	sv, ok := ctx.Value(ctxKeyEmail).(string)
+	if !ok {
+		return ""
+	}
+	return sv
+}
+
+// WithImportFunc will return a context with the import callback set
+func WithImportFunc(ctx context.Context, imf store.ImportCallback) context.Context {
+	return context.WithValue(ctx, ctxKeyImportFunc, imf)
+}
+
+// HasImportFunc returns true if a value for import func has been set in this
+// context
+func HasImportFunc(ctx context.Context) bool {
+	imf, ok := ctx.Value(ctxKeyImportFunc).(store.ImportCallback)
+	return ok && imf != nil
+}
+
+// GetImportFunc will return the import callback or a default one returning true
+// Note: will never return nil
+func GetImportFunc(ctx context.Context) store.ImportCallback {
+	imf, ok := ctx.Value(ctxKeyImportFunc).(store.ImportCallback)
+	if !ok || imf == nil {
+		return func(context.Context, string, []string) bool {
+			return true
+		}
+	}
+	return imf
+}
+
+// WithExportKeys returns a context with the value for export keys set.
+func WithExportKeys(ctx context.Context, d bool) context.Context {
+	return context.WithValue(ctx, ctxKeyExportKeys, d)
+}
+
+// HasExportKeys returns true if Export Keys was set in the context.
+func HasExportKeys(ctx context.Context) bool {
+	return hasBool(ctx, ctxKeyExportKeys)
+}
+
+// IsExportKeys returns the value of export keys or the default (true).
+func IsExportKeys(ctx context.Context) bool {
+	return is(ctx, ctxKeyExportKeys, true)
 }

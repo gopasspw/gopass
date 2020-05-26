@@ -18,8 +18,8 @@ func (s *Store) RCS() backend.RCS {
 }
 
 // GitInit initializes the the git repo in the store
-func (s *Store) GitInit(ctx context.Context, un, ue string) error {
-	rcs, err := backend.InitRCS(ctx, backend.GetRCSBackend(ctx), s.url.Path, un, ue)
+func (s *Store) GitInit(ctx context.Context) error {
+	rcs, err := backend.InitRCS(ctx, backend.GetRCSBackend(ctx), s.path)
 	if err != nil {
 		return err
 	}

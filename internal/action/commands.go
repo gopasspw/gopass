@@ -423,11 +423,6 @@ func (s *Action) GetCommands() []*cli.Command {
 					Name:  "storage",
 					Usage: "Select storage backend (fs, inmen, ondisk)",
 				},
-				&cli.BoolFlag{
-					Name:   "nogit",
-					Usage:  "(DEPRECATED): Select noop RCS backend. Use '--rcs noop' instead",
-					Hidden: true,
-				},
 			},
 		},
 		{

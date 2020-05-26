@@ -92,7 +92,7 @@ func TestCloneBackendIsStoredForMount(t *testing.T) {
 	ctx = ctxutil.WithInteractive(ctx, false)
 
 	cfg := config.Load()
-	cfg.Root.Path = backend.FromPath(u.StoreDir(""))
+	cfg.Path = u.StoreDir("")
 
 	act, err := newAction(ctx, cfg, semver.Version{})
 	require.NoError(t, err)
@@ -107,7 +107,6 @@ func TestCloneBackendIsStoredForMount(t *testing.T) {
 	assert.NoError(t, act.Clone(c))
 
 	require.NotNil(t, act.cfg.Mounts["the-project"])
-	require.Equal(t, act.cfg.Mounts["the-project"].Path.RCS, backend.GitCLI)
 }
 
 func TestCloneGetGitConfig(t *testing.T) {

@@ -25,14 +25,14 @@ func TestPlain(t *testing.T) {
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 
 	m := New()
-	kl, err := m.ListPrivateKeyIDs(ctx)
+	kl, err := m.ListIdentities(ctx)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, kl)
 	assert.Equal(t, "0xDEADBEEF", kl[0])
 
-	kl, err = m.ListPublicKeyIDs(ctx)
+	kl, err = m.ListRecipients(ctx)
 	assert.NoError(t, err)
-	assert.NotEmpty(t, kl, "ListPublicKeyIDs")
+	assert.NotEmpty(t, kl, "ListRecipients")
 
 	rcs, err := m.RecipientIDs(ctx, []byte{})
 	assert.NoError(t, err)
@@ -73,7 +73,7 @@ func TestPlain(t *testing.T) {
 	assert.Nil(t, m.Initialized(ctx))
 	assert.Equal(t, "plain", m.Name())
 	assert.Equal(t, "txt", m.Ext())
-	assert.Equal(t, ".gpg-id", m.IDFile())
+	assert.Equal(t, ".plain-id", m.IDFile())
 	names, err := m.ReadNamesFromKey(ctx, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, []string{"unsupported"}, names)

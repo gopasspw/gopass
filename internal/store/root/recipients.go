@@ -57,7 +57,6 @@ func (r *Store) addRecipient(ctx context.Context, prefix string, root tree.Tree,
 // ImportMissingPublicKeys import missing public keys in any substore
 func (r *Store) ImportMissingPublicKeys(ctx context.Context) error {
 	for alias, sub := range r.mounts {
-		ctx := r.cfg.Mounts[alias].WithContext(ctx)
 		if err := sub.ImportMissingPublicKeys(ctx); err != nil {
 			out.Error(ctx, "[%s] Failed to import missing public keys: %s", alias, err)
 		}
@@ -70,7 +69,6 @@ func (r *Store) ImportMissingPublicKeys(ctx context.Context) error {
 // enabled
 func (r *Store) SaveRecipients(ctx context.Context) error {
 	for alias, sub := range r.mounts {
-		ctx := r.cfg.Mounts[alias].WithContext(ctx)
 		if err := sub.SaveRecipients(ctx); err != nil {
 			out.Error(ctx, "[%s] Failed to save recipients: %s", alias, err)
 		}

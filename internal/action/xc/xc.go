@@ -40,7 +40,7 @@ func ListPrivateKeys(c *cli.Context) error {
 		return action.ExitError(ctx, action.ExitUnknown, err, "failed to init XC")
 	}
 
-	kl, err := crypto.ListPrivateKeyIDs(ctx)
+	kl, err := crypto.ListIdentities(ctx)
 	if err != nil {
 		return action.ExitError(ctx, action.ExitUnknown, err, "failed to list private keys")
 	}
@@ -60,7 +60,7 @@ func ListPublicKeys(c *cli.Context) error {
 		return action.ExitError(ctx, action.ExitUnknown, err, "failed to init XC")
 	}
 
-	kl, err := crypto.ListPublicKeyIDs(ctx)
+	kl, err := crypto.ListRecipients(ctx)
 	if err != nil {
 		return action.ExitError(ctx, action.ExitUnknown, err, "failed to list public keys")
 	}

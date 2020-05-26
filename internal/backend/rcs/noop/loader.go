@@ -27,10 +27,17 @@ func (l loader) Clone(ctx context.Context, repo, path string) (backend.RCS, erro
 }
 
 // Init implements backend.RCSLoader
-func (l loader) Init(ctx context.Context, path, username, email string) (backend.RCS, error) {
+func (l loader) InitRCS(ctx context.Context, path string) (backend.RCS, error) {
 	return New(), nil
 }
 
+func (l loader) Handles(_ string) error {
+	return nil
+}
+
+func (l loader) Priority() int {
+	return 1000
+}
 func (l loader) String() string {
 	return name
 }

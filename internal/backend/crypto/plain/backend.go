@@ -54,8 +54,8 @@ func New() *Mocker {
 	return &Mocker{}
 }
 
-// ListPublicKeyIDs does nothing
-func (m *Mocker) ListPublicKeyIDs(context.Context) ([]string, error) {
+// ListRecipients does nothing
+func (m *Mocker) ListRecipients(context.Context) ([]string, error) {
 	return staticPrivateKeyList.Recipients(), nil
 }
 
@@ -73,8 +73,8 @@ func (m *Mocker) FindPublicKeys(ctx context.Context, keys ...string) ([]string, 
 	return res, nil
 }
 
-// ListPrivateKeyIDs does nothing
-func (m *Mocker) ListPrivateKeyIDs(context.Context) ([]string, error) {
+// ListIdentities does nothing
+func (m *Mocker) ListIdentities(context.Context) ([]string, error) {
 	return staticPrivateKeyList.Recipients(), nil
 }
 
@@ -189,17 +189,26 @@ func (m *Mocker) Initialized(context.Context) error {
 
 // Name returns plain
 func (m *Mocker) Name() string {
-	return "plain"
+	return Name
 }
 
 // Ext returns gpg
 func (m *Mocker) Ext() string {
-	return "txt"
+	return Ext
 }
+
+const (
+	// Name is the name of this backend
+	Name = "plain"
+	// Ext is the file extension used by this backend
+	Ext = "txt"
+	// IDFile is the name of the recipients file used by this backend
+	IDFile = ".plain-id"
+)
 
 // IDFile returns .gpg-id
 func (m *Mocker) IDFile() string {
-	return ".gpg-id"
+	return IDFile
 }
 
 // ReadNamesFromKey does nothing

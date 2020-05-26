@@ -16,7 +16,7 @@ import (
 
 var (
 	// ErrNotSupported is returned when the clipboard is not accessible
-	ErrNotSupported = fmt.Errorf("WARNING: No clipboard available. Install xsel or xclip or use -p to print to console")
+	ErrNotSupported = fmt.Errorf("WARNING: No clipboard available. Install xsel or xclip or use -f to print to console")
 )
 
 // CopyTo copies the given data to the clipboard and enqueues automatic

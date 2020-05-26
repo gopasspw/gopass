@@ -60,11 +60,6 @@ func (r *Store) move(ctx context.Context, from, to string, delete bool) error {
 		}
 	}
 
-	if !leaf.IsAutoSync(ctx) {
-		out.Debug(ctx, "reencrypt - auto sync is disabled")
-		return nil
-	}
-
 	if err := subFrom.RCS().Push(ctx, "", ""); err != nil {
 		if errors.Cause(err) == store.ErrGitNotInit {
 			msg := "Warning: git is not initialized for this.storage. Ignoring auto-push option\n" +
@@ -101,8 +96,8 @@ func (r *Store) move(ctx context.Context, from, to string, delete bool) error {
 }
 
 func (r *Store) moveFromTo(ctxFrom, ctxTo context.Context, subFrom, subTo *leaf.Store, from, to, fromPrefix string, srcIsDir, delete bool) error {
-	ctxFrom = ctxutil.WithGitCommit(leaf.WithAutoSync(ctxFrom, false), false)
-	ctxTo = ctxutil.WithGitCommit(leaf.WithAutoSync(ctxTo, false), false)
+	ctxFrom = ctxutil.WithGitCommit(ctxFrom, false)
+	ctxTo = ctxutil.WithGitCommit(ctxTo, false)
 
 	entries := []string{from}
 	if r.IsDir(ctxFrom, from) {

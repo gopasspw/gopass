@@ -16,6 +16,7 @@ import (
 	noop "github.com/gopasspw/gopass/internal/backend/rcs/noop"
 	"github.com/gopasspw/gopass/internal/backend/storage/fs"
 	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/pkg/ctxutil"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -41,11 +42,10 @@ func TestGetRecipientsDefault(t *testing.T) {
 
 	s := &Store{
 		alias:   "",
-		url:     backend.FromPath(tempdir),
+		path:    tempdir,
 		crypto:  plain.New(),
 		rcs:     noop.New(),
 		storage: fs.New(tempdir),
-		sc:      &fakeConfig{},
 	}
 
 	assert.Equal(t, genRecs, s.Recipients(ctx))
@@ -74,11 +74,10 @@ func TestGetRecipientsSubID(t *testing.T) {
 
 	s := &Store{
 		alias:   "",
-		url:     backend.FromPath(tempdir),
+		path:    tempdir,
 		crypto:  plain.New(),
 		rcs:     noop.New(),
 		storage: fs.New(tempdir),
-		sc:      &fakeConfig{},
 	}
 
 	recs, err := s.GetRecipients(ctx, "")
@@ -95,7 +94,7 @@ func TestGetRecipientsSubID(t *testing.T) {
 
 func TestSaveRecipients(t *testing.T) {
 	ctx := context.Background()
-	ctx = WithExportKeys(ctx, true)
+	ctx = ctxutil.WithExportKeys(ctx, true)
 
 	tempdir, err := ioutil.TempDir("", "gopass-")
 	require.NoError(t, err)
@@ -114,11 +113,10 @@ func TestSaveRecipients(t *testing.T) {
 	recp := []string{"john.doe"}
 	s := &Store{
 		alias:   "",
-		url:     backend.FromPath(tempdir),
+		path:    tempdir,
 		crypto:  plain.New(),
 		rcs:     noop.New(),
 		storage: fs.New(tempdir),
-		sc:      &fakeConfig{},
 	}
 
 	// remove recipients
@@ -169,11 +167,10 @@ func TestAddRecipient(t *testing.T) {
 
 	s := &Store{
 		alias:   "",
-		url:     backend.FromPath(tempdir),
+		path:    tempdir,
 		crypto:  plain.New(),
 		rcs:     noop.New(),
 		storage: fs.New(tempdir),
-		sc:      &fakeConfig{},
 	}
 
 	newRecp := "A3683834"
@@ -209,11 +206,10 @@ func TestRemoveRecipient(t *testing.T) {
 
 	s := &Store{
 		alias:   "",
-		url:     backend.FromPath(tempdir),
+		path:    tempdir,
 		crypto:  plain.New(),
 		rcs:     noop.New(),
 		storage: fs.New(tempdir),
-		sc:      &fakeConfig{},
 	}
 
 	err = s.RemoveRecipient(ctx, "0xDEADBEEF")
@@ -246,9 +242,7 @@ func TestListRecipients(t *testing.T) {
 	ctx = backend.WithRCSBackendString(ctx, "noop")
 	s, err := New(
 		ctx,
-		&fakeConfig{},
 		"",
-		backend.FromPath(tempdir),
 		tempdir,
 	)
 	require.NoError(t, err)

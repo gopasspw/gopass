@@ -55,9 +55,6 @@ func TestCompletionNoPath(t *testing.T) {
 		_ = os.Setenv("PATH", ov)
 	}()
 
-	out, err := ts.run("--generate-bash-completion")
+	_, err := ts.run("--generate-bash-completion")
 	assert.NoError(t, err)
-	if runtime.GOOS != "windows" {
-		assert.Contains(t, out, "Store not initialized")
-	}
 }

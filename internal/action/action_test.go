@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/gopasspw/gopass/internal/backend"
+	"github.com/gopasspw/gopass/internal/backend/crypto/plain"
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/gptest"
 
@@ -21,7 +22,7 @@ import (
 
 func newMock(ctx context.Context, u *gptest.Unit) (*Action, error) {
 	cfg := config.Load()
-	cfg.Root.Path = backend.FromPath(u.StoreDir(""))
+	cfg.Path = u.StoreDir("")
 
 	ctx = backend.WithRCSBackend(ctx, backend.Noop)
 	ctx = backend.WithCryptoBackend(ctx, backend.Plain)
@@ -74,9 +75,9 @@ func TestNew(t *testing.T) {
 	_, err = New(ctx, cfg, sv)
 	require.NoError(t, err)
 
-	cfg.Root.Path = backend.FromPath(filepath.Join(td, "store"))
-	cfg.Root.Path.Crypto = backend.Plain
-	cfg.Root.Path.RCS = backend.Noop
+	cfg.Path = filepath.Join(td, "store")
+	assert.NoError(t, os.MkdirAll(cfg.Path, 0700))
+	assert.NoError(t, ioutil.WriteFile(filepath.Join(cfg.Path, plain.IDFile), []byte("foobar"), 0600))
 	_, err = New(ctx, cfg, sv)
 	assert.NoError(t, err)
 }

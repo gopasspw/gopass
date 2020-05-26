@@ -84,11 +84,6 @@ func (s *Store) gitCommitAndPush(ctx context.Context, name string) error {
 		}
 	}
 
-	// abort if autosync is not set
-	if !IsAutoSync(ctx) {
-		return nil
-	}
-
 	if err := s.rcs.Push(ctx, "", ""); err != nil {
 		if errors.Cause(err) == store.ErrGitNotInit {
 			msg := "Warning: git is not initialized for this.storage. Ignoring auto-push option\n" +

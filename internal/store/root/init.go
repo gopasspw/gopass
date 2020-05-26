@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/gopasspw/gopass/internal/backend"
-	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store/leaf"
 
@@ -25,12 +24,16 @@ func (r *Store) Initialized(ctx context.Context) (bool, error) {
 // Init tries to initialize a new password store location matching the object
 func (r *Store) Init(ctx context.Context, alias, path string, ids ...string) error {
 	out.Debug(ctx, "Instantiating new sub store %s at %s for %+v", alias, path, ids)
-	// parse backend URL
-	pathURL, err := backend.ParseURL(path)
-	if err != nil {
-		return errors.Wrapf(err, "failed to parse backend URL '%s': %s", path, err)
+	if !backend.HasCryptoBackend(ctx) {
+		ctx = backend.WithCryptoBackend(ctx, backend.GPGCLI)
 	}
-	sub, err := leaf.New(ctx, r.cfg, alias, pathURL, r.cfg.Directory())
+	if !backend.HasRCSBackend(ctx) {
+		ctx = backend.WithRCSBackend(ctx, backend.GitCLI)
+	}
+	if !backend.HasStorageBackend(ctx) {
+		ctx = backend.WithStorageBackend(ctx, backend.FS)
+	}
+	sub, err := leaf.New(ctx, alias, path)
 	if err != nil {
 		return errors.Wrapf(err, "failed to instantiate new sub store: %s", err)
 	}
@@ -43,41 +46,14 @@ func (r *Store) Init(ctx context.Context, alias, path string, ids ...string) err
 		return errors.Wrapf(err, "failed to initialize new sub store: %s", err)
 	}
 
-	return r.initConfig(ctx, alias, path)
-}
-
-func (r *Store) initConfig(ctx context.Context, alias, path string) error {
 	if alias == "" {
-		if r.cfg.Root.Path == nil {
-			r.cfg.Root.Path = backend.FromPath(path)
-		}
-		if backend.HasCryptoBackend(ctx) {
-			r.cfg.Root.Path.Crypto = backend.GetCryptoBackend(ctx)
-		}
-		if backend.HasRCSBackend(ctx) {
-			r.cfg.Root.Path.RCS = backend.GetRCSBackend(ctx)
-		}
-		if backend.HasStorageBackend(ctx) {
-			r.cfg.Root.Path.Storage = backend.GetStorageBackend(ctx)
-		}
-		return nil
+		out.Debug(ctx, "initialized root at %s", path)
+		r.cfg.Path = path
+	} else {
+		out.Debug(ctx, "mounted %s at %s", alias, path)
+		r.cfg.Mounts[alias] = path
 	}
 
-	if sc := r.cfg.Mounts[alias]; sc == nil {
-		r.cfg.Mounts[alias] = &config.StoreConfig{}
-	}
-	if r.cfg.Mounts[alias].Path == nil {
-		r.cfg.Mounts[alias].Path = backend.FromPath(path)
-	}
-	if backend.HasCryptoBackend(ctx) {
-		r.cfg.Mounts[alias].Path.Crypto = backend.GetCryptoBackend(ctx)
-	}
-	if backend.HasRCSBackend(ctx) {
-		r.cfg.Mounts[alias].Path.RCS = backend.GetRCSBackend(ctx)
-	}
-	if backend.HasStorageBackend(ctx) {
-		r.cfg.Mounts[alias].Path.Storage = backend.GetStorageBackend(ctx)
-	}
 	return nil
 }
 
@@ -88,40 +64,21 @@ func (r *Store) initialize(ctx context.Context) error {
 	}
 
 	// create the base store
-	{
-		// capture ctx to limit effect on the next sub.New call and to not
-		// propagate it's effects to the mounts below
-		ctx := ctx
-		if !backend.HasCryptoBackend(ctx) {
-			ctx = backend.WithCryptoBackend(ctx, r.cfg.Root.Path.Crypto)
-		}
-		if !backend.HasRCSBackend(ctx) {
-			ctx = backend.WithRCSBackend(ctx, r.cfg.Root.Path.RCS)
-		}
-		if !backend.HasStorageBackend(ctx) {
-			out.Debug(ctx, "Using default storage backend: %s", r.cfg.Root.Path.Storage)
-			ctx = backend.WithStorageBackend(ctx, r.cfg.Root.Path.Storage)
-		}
-		bu, err := backend.ParseURL(r.url.String())
-		if err != nil {
-			return errors.Wrapf(err, "failed to parse backend URL '%s': %s", r.url.String(), err)
-		}
-		out.Debug(ctx, "initialize - %s", bu.String())
-		s, err := leaf.New(ctx, r.cfg, "", bu, r.cfg.Directory())
-		if err != nil {
-			return errors.Wrapf(err, "failed to initialize the root store at '%s': %s", r.url.String(), err)
-		}
-		out.Debug(ctx, "Root Store initialized with URL %s", r.url.String())
-		r.store = s
+	out.Debug(ctx, "initialize - %s", r.cfg.Path)
+	s, err := leaf.New(ctx, "", r.cfg.Path)
+	if err != nil {
+		return errors.Wrapf(err, "failed to initialize the root store at '%s': %s", r.cfg.Path, err)
 	}
+	out.Debug(ctx, "Root Store initialized at %s", r.cfg.Path)
+	r.store = s
 
 	// initialize all mounts
-	for alias, sc := range r.cfg.Mounts {
-		if err := r.addMount(ctx, alias, sc.Path.String(), sc); err != nil {
-			out.Error(ctx, "Failed to initialize mount %s (%s). Ignoring: %s", alias, sc.Path.String(), err)
+	for alias, path := range r.cfg.Mounts {
+		if err := r.addMount(ctx, alias, path); err != nil {
+			out.Error(ctx, "Failed to initialize mount %s (%s). Ignoring: %s", alias, path, err)
 			continue
 		}
-		out.Debug(ctx, "Sub-Store mounted at %s from %s", alias, sc.Path.String())
+		out.Debug(ctx, "Sub-Store mounted at %s from %s", alias, path)
 	}
 
 	// check for duplicate mounts

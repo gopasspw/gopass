@@ -98,10 +98,10 @@ func setupApp(ctx context.Context, sv semver.Version) (context.Context, *cli.App
 	}
 
 	// set some action callbacks
-	if !cfg.Root.AutoImport {
-		ctx = leaf.WithImportFunc(ctx, termio.AskForKeyImport)
+	if !cfg.AutoImport {
+		ctx = ctxutil.WithImportFunc(ctx, termio.AskForKeyImport)
 	}
-	if !cfg.Root.NoConfirm {
+	if cfg.ConfirmRecipients {
 		ctx = leaf.WithRecipientFunc(ctx, action.ConfirmRecipients)
 	}
 	ctx = leaf.WithFsckFunc(ctx, termio.AskForConfirmation)

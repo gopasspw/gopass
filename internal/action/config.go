@@ -42,27 +42,18 @@ func (s *Action) printConfigValues(ctx context.Context, store string, needles ..
 		prefix = "  "
 	}
 
-	m := s.cfg.Root.ConfigMap()
+	m := s.cfg.ConfigMap()
 	if store == "" {
 		for _, k := range filterMap(m, needles) {
 			out.Print(ctx, "%s%s: %s", prefix, k, m[k])
 		}
 	}
-	for mp, sc := range s.cfg.Mounts {
-		if store != "" && mp != store {
+	for alias, path := range s.cfg.Mounts {
+		if store != "" && alias != store {
 			continue
 		}
 		if len(needles) < 1 {
-			out.Print(ctx, "mount '%s' config:", mp)
-			mp = "  "
-		} else {
-			mp += "/"
-		}
-		sm := sc.ConfigMap()
-		for _, k := range filterMap(sm, needles) {
-			if sm[k] != m[k] || store != "" {
-				out.Print(ctx, "%s%s: %s", mp, k, sm[k])
-			}
+			out.Print(ctx, "mount '%s' => '%s'", alias, path)
 		}
 	}
 }
@@ -92,7 +83,7 @@ func contains(haystack []string, needle string) bool {
 }
 
 func (s *Action) setConfigValue(ctx context.Context, store, key, value string) error {
-	if err := s.cfg.SetConfigValue(store, key, value); err != nil {
+	if err := s.cfg.SetConfigValue(key, value); err != nil {
 		return errors.Wrapf(err, "failed to set config value '%s'", key)
 	}
 	s.printConfigValues(ctx, store, key)
@@ -101,7 +92,7 @@ func (s *Action) setConfigValue(ctx context.Context, store, key, value string) e
 
 // ConfigComplete will print the list of valid config keys
 func (s *Action) ConfigComplete(c *cli.Context) {
-	cm := s.cfg.Root.ConfigMap()
+	cm := s.cfg.ConfigMap()
 	keys := make([]string, 0, len(cm))
 	for k := range cm {
 		keys = append(keys, k)

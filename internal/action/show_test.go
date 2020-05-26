@@ -123,7 +123,10 @@ func TestShowAutoClip(t *testing.T) {
 	ctx = ctxutil.WithTerminal(ctx, false)
 
 	// gopass show foo
+	// -> with AutoClip
+	// -> w/o terminal
 	// -> Print password
+	// for use in scripts
 	t.Run("gopass show foo", func(t *testing.T) {
 		c := gptest.CliCtx(ctx, t, "foo")
 		assert.NoError(t, act.Show(c))
@@ -138,7 +141,10 @@ func TestShowAutoClip(t *testing.T) {
 	ctx = ctxutil.WithTerminal(ctx, true)
 
 	// gopass show foo
+	// -> with AutoClip
+	// -> with terminal
 	// -> Copy to clipboard
+	// for interactive use
 	t.Run("gopass show foo", func(t *testing.T) {
 		c := gptest.CliCtx(ctx, t, "foo")
 		assert.NoError(t, act.Show(c))

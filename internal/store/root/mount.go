@@ -5,8 +5,6 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/gopasspw/gopass/internal/backend"
-	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/internal/store/leaf"
@@ -17,7 +15,7 @@ import (
 
 // AddMount adds a new mount
 func (r *Store) AddMount(ctx context.Context, alias, path string, keys ...string) error {
-	if err := r.addMount(ctx, alias, path, nil, keys...); err != nil {
+	if err := r.addMount(ctx, alias, path, keys...); err != nil {
 		return errors.Wrapf(err, "failed to add mount")
 	}
 
@@ -25,7 +23,7 @@ func (r *Store) AddMount(ctx context.Context, alias, path string, keys ...string
 	return r.checkMounts()
 }
 
-func (r *Store) addMount(ctx context.Context, alias, path string, sc *config.StoreConfig, keys ...string) error {
+func (r *Store) addMount(ctx context.Context, alias, path string, keys ...string) error {
 	if alias == "" {
 		return errors.Errorf("alias must not be empty")
 	}
@@ -36,60 +34,27 @@ func (r *Store) addMount(ctx context.Context, alias, path string, sc *config.Sto
 		return AlreadyMountedError(alias)
 	}
 
-	out.Debug(ctx, "addMount - Path: %s - StoreConfig: %+v", path, sc)
-	// propagate our config settings to the sub store
-	if sc != nil {
-		if !backend.HasCryptoBackend(ctx) {
-			ctx = backend.WithCryptoBackend(ctx, sc.Path.Crypto)
-			out.Debug(ctx, "addMount - Using crypto backend %s", backend.CryptoBackendName(sc.Path.Crypto))
-		}
-		if !backend.HasRCSBackend(ctx) {
-			ctx = backend.WithRCSBackend(ctx, sc.Path.RCS)
-			out.Debug(ctx, "addMount - Using RCS backend %s", backend.RCSBackendName(sc.Path.RCS))
-		}
-	}
-
-	// parse backend URL
-	pathURL, err := backend.ParseURL(path)
-	if err != nil {
-		return errors.Wrapf(err, "failed to parse backend URL '%s': %s", path, err)
-	}
+	out.Debug(ctx, "addMount - Path: %s", path)
 
 	// initialize sub store
-	s, err := r.initSub(ctx, sc, alias, pathURL, keys)
+	s, err := r.initSub(ctx, alias, path, keys)
 	if err != nil {
-		return errors.Wrapf(err, "failed to init sub store '%s' at '%s'", alias, pathURL)
+		return errors.Wrapf(err, "failed to init sub store '%s' at '%s'", alias, path)
 	}
 
 	r.mounts[alias] = s
 	if r.cfg.Mounts == nil {
-		r.cfg.Mounts = make(map[string]*config.StoreConfig, 1)
+		r.cfg.Mounts = make(map[string]string, 1)
 	}
-	if sc == nil {
-		// imporant: copy root config to avoid overwriting it with sub store
-		// values
-		cp := *r.cfg.Root
-		sc = &cp
-	}
-	sc.Path = pathURL
-	if backend.HasCryptoBackend(ctx) {
-		sc.Path.Crypto = backend.GetCryptoBackend(ctx)
-	}
-	if backend.HasRCSBackend(ctx) {
-		sc.Path.RCS = backend.GetRCSBackend(ctx)
-	}
-	if backend.HasStorageBackend(ctx) {
-		sc.Path.Storage = backend.GetStorageBackend(ctx)
-	}
-	r.cfg.Mounts[alias] = sc
+	r.cfg.Mounts[alias] = path
 
-	out.Debug(ctx, "Added mount %s -> %s", alias, sc.Path.String())
+	out.Debug(ctx, "Added mount %s -> %s", alias, path)
 	return nil
 }
 
-func (r *Store) initSub(ctx context.Context, sc *config.StoreConfig, alias string, path *backend.URL, keys []string) (*leaf.Store, error) {
+func (r *Store) initSub(ctx context.Context, alias, path string, keys []string) (*leaf.Store, error) {
 	// init regular sub store
-	s, err := leaf.New(ctx, r.cfg, alias, path, r.cfg.Directory())
+	s, err := leaf.New(ctx, alias, path)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to initialize store '%s' at '%s': %s", alias, path, err)
 	}
@@ -100,9 +65,9 @@ func (r *Store) initSub(ctx context.Context, sc *config.StoreConfig, alias strin
 
 	out.Debug(ctx, "[%s] Mount %s is not initialized", alias, path)
 	if len(keys) < 1 {
-		return s, NotInitializedError{alias, path.String()}
+		return s, NotInitializedError{alias, path}
 	}
-	if err := s.Init(ctx, path.String(), keys...); err != nil {
+	if err := s.Init(ctx, path, keys...); err != nil {
 		return s, errors.Wrapf(err, "failed to initialize store '%s' at '%s'", alias, path)
 	}
 	out.Green(ctx, "Password store %s initialized for:", path)
@@ -160,33 +125,26 @@ func (r *Store) MountPoint(name string) string {
 // getStore returns the Store object at the most-specific mount point for the
 // given key
 // context with sub store options set, sub store reference, truncated path to secret
+// TODO: do not return ctx
 func (r *Store) getStore(ctx context.Context, name string) (context.Context, *leaf.Store, string) {
+	ctx = r.cfg.WithContext(ctx)
 	name = strings.TrimSuffix(name, "/")
 	mp := r.MountPoint(name)
 	if sub, found := r.mounts[mp]; found {
-		return r.cfg.Mounts[mp].WithContext(ctx), sub, strings.TrimPrefix(name, sub.Alias())
+		return ctx, sub, strings.TrimPrefix(name, sub.Alias())
 	}
-	return r.cfg.Root.WithContext(ctx), r.store, name
-}
-
-// WithConfig populates the context with the substore config
-func (r *Store) WithConfig(ctx context.Context, name string) context.Context {
-	name = strings.TrimSuffix(name, "/")
-	mp := r.MountPoint(name)
-	if _, found := r.mounts[mp]; found {
-		return r.cfg.Mounts[mp].WithContext(ctx)
-	}
-	return r.cfg.Root.WithContext(ctx)
+	return ctx, r.store, name
 }
 
 // GetSubStore returns an exact match for a mount point or an error if this
 // mount point does not exist
+// TODO do not return ctx
 func (r *Store) GetSubStore(ctx context.Context, name string) (context.Context, *leaf.Store, error) {
 	if name == "" {
-		return r.cfg.Root.WithContext(ctx), r.store, nil
+		return ctx, r.store, nil
 	}
 	if sub, found := r.mounts[name]; found {
-		return r.cfg.Mounts[name].WithContext(ctx), sub, nil
+		return ctx, sub, nil
 	}
 	return nil, nil, errors.Errorf("no such mount point '%s'", name)
 }

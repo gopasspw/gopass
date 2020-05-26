@@ -2,6 +2,7 @@ package cli
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/internal/out"
@@ -25,6 +26,17 @@ func (l loader) New(ctx context.Context) (backend.Crypto, error) {
 		Umask: fsutil.Umask(),
 		Args:  GPGOpts(),
 	})
+}
+
+func (l loader) Handles(s backend.Storage) error {
+	if s.Exists(context.TODO(), IDFile) {
+		return nil
+	}
+	return fmt.Errorf("not supported")
+}
+
+func (l loader) Priority() int {
+	return 1
 }
 
 func (l loader) String() string {

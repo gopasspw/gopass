@@ -114,9 +114,6 @@ func (s *Action) clone(ctx context.Context, repo, mount, path string) error {
 
 func (s *Action) cloneAddMount(ctx context.Context, mount, path string) error {
 	if mount == "" {
-		s.cfg.Root.Path.Crypto = backend.GetCryptoBackend(ctx)
-		s.cfg.Root.Path.RCS = backend.GetRCSBackend(ctx)
-		s.cfg.Root.Path.Storage = backend.GetStorageBackend(ctx)
 		return nil
 	}
 
@@ -131,9 +128,6 @@ func (s *Action) cloneAddMount(ctx context.Context, mount, path string) error {
 		return ExitError(ctx, ExitMount, err, "Failed to add mount: %s", err)
 	}
 	out.Green(ctx, "Mounted password store %s at mount point `%s` ...", path, mount)
-	s.cfg.Mounts[mount].Path.Crypto = backend.GetCryptoBackend(ctx)
-	s.cfg.Mounts[mount].Path.RCS = rcsBackendOrDefault(ctx)
-	s.cfg.Mounts[mount].Path.Storage = backend.GetStorageBackend(ctx)
 	return nil
 }
 

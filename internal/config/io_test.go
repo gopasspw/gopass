@@ -10,16 +10,19 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/gopasspw/gopass/internal/backend"
-
 	"github.com/fatih/color"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestConfigs(t *testing.T) {
-	for _, cfg := range []string{
-		`root:
+	for _, tc := range []struct {
+		name string
+		cfg  string
+	}{
+		{
+			name: "1.4.0",
+			cfg: `root:
   askformore: false
   autoimport: false
   autosync: false
@@ -48,7 +51,9 @@ mounts:
     path: /home/johndoe/.password-store-work
     safecontent: false
 version: 1.4.0`,
-		`askformore: false
+		}, {
+			name: "1.3.0",
+			cfg: `askformore: false
 autoimport: true
 autosync: false
 cliptimeout: 45
@@ -61,7 +66,9 @@ noconfirm: false
 path: /home/tex/.password-store
 safecontent: true
 version: "1.3.0"`,
-		`alwaystrust: true
+		}, {
+			name: "1.2.0",
+			cfg: `alwaystrust: true
 askformore: false
 autoimport: true
 autopull: true
@@ -80,7 +87,9 @@ path: /home/tex/.password-store
 persistkeys: true
 safecontent: true
 version: "1.2.0"`,
-		`alwaystrust: false
+		}, {
+			name: "1.1.0",
+			cfg: `alwaystrust: false
 autoimport: false
 autopull: true
 autopush: true
@@ -97,7 +106,9 @@ path: /home/johndoe/.password-store
 persistkeys: true
 safecontent: false
 version: 1.1.0`,
-		`alwaystrust: false
+		}, {
+			name: "1.0.0",
+			cfg: `alwaystrust: false
 autoimport: false
 autopull: true
 autopush: false
@@ -112,10 +123,14 @@ noconfirm: false
 path: /home/tex/.password-store
 persistkeys: false
 version: "1.0.0"`,
+		},
 	} {
-		if _, err := decode([]byte(cfg)); err != nil {
-			t.Errorf("Failed to load config: %s\n%s", err, cfg)
+		t.Logf("Loading config %s ...", tc.name)
+		if _, err := decode([]byte(tc.cfg)); err != nil {
+			t.Errorf("Giving up. Failed to load config %s: %s\n%s", tc.name, err, tc.cfg)
+			continue
 		}
+		t.Logf("Success: %s", tc.name)
 	}
 }
 
@@ -152,17 +167,14 @@ version: 1.4.0`
 func TestLoad(t *testing.T) {
 	td := os.TempDir()
 	gcfg := filepath.Join(td, ".gopass.yml")
-	assert.NoError(t, os.Remove(gcfg))
+	_ = os.Remove(gcfg)
 	assert.NoError(t, os.Setenv("GOPASS_CONFIG", gcfg))
 	assert.NoError(t, os.Setenv("GOPASS_HOMEDIR", td))
 
-	cfg := Load()
-	assert.Equal(t, backend.FromPath(filepath.Join(td, ".password-store")).String(), cfg.Root.Path.String())
-	assert.Equal(t, backend.GPGCLI, cfg.Root.Path.Crypto)
-
 	require.NoError(t, ioutil.WriteFile(gcfg, []byte(testConfig), 0600))
-	cfg = Load()
-	assert.Equal(t, true, cfg.Root.SafeContent)
+
+	cfg := Load()
+	assert.Equal(t, true, cfg.SafeContent)
 }
 
 func TestLoadError(t *testing.T) {
@@ -185,7 +197,7 @@ func TestLoadError(t *testing.T) {
 
 	gcfg = filepath.Join(os.TempDir(), "foo", ".gopass.yml")
 	assert.NoError(t, os.Setenv("GOPASS_CONFIG", gcfg))
-	assert.Error(t, cfg.Save())
+	assert.NoError(t, cfg.Save())
 }
 
 func TestDecodeError(t *testing.T) {

@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"sort"
+	"reflect"
+	"strconv"
+	"strings"
 
 	"github.com/pkg/errors"
 )
@@ -25,9 +27,20 @@ func init() {
 
 // Config is the current config struct
 type Config struct {
-	Path   string                  `yaml:"-"`
-	Root   *StoreConfig            `yaml:"root"`
-	Mounts map[string]*StoreConfig `yaml:"mounts"`
+	AutoClip          bool              `yaml:"autoclip"`       // decide whether passwords are automatically copied or not
+	AutoImport        bool              `yaml:"autoimport"`     // import missing public keys w/o asking
+	ClipTimeout       int               `yaml:"cliptimeout"`    // clear clipboard after seconds
+	ConfirmRecipients bool              `yaml:"confirm"`        // confirm recipients when encrypting
+	EditRecipients    bool              `yaml:"editrecipients"` // edit recipients when confirming
+	ExportKeys        bool              `yaml:"exportkeys"`     // automatically export public keys of all recipients
+	NoColor           bool              `yaml:"nocolor"`        // do not use color when outputing text
+	NoPager           bool              `yaml:"nopager"`        // do not invoke a pager to display long lists
+	Notifications     bool              `yaml:"notifications"`  // enable desktop notifications
+	Path              string            `yaml:"path"`
+	SafeContent       bool              `yaml:"safecontent"` // avoid showing passwords in terminal
+	Mounts            map[string]string `yaml:"mounts"`
+
+	configPath string `yaml:"-"`
 
 	// Catches all undefined files and must be empty after parsing
 	XXX map[string]interface{} `yaml:",inline"`
@@ -36,23 +49,13 @@ type Config struct {
 // New creates a new config with sane default values
 func New() *Config {
 	return &Config{
-		Path: configLocation(),
-		Root: &StoreConfig{
-			AskForMore:    false,
-			AutoClip:      false,
-			AutoImport:    true,
-			AutoSync:      true,
-			ClipTimeout:   45,
-			Concurrency:   1,
-			ExportKeys:    true,
-			NoColor:       false,
-			NoConfirm:     false,
-			NoPager:       false,
-			SafeContent:   false,
-			UseSymbols:    false,
-			Notifications: true,
-		},
-		Mounts: make(map[string]*StoreConfig),
+		AutoImport:    true,
+		ClipTimeout:   45,
+		ExportKeys:    true,
+		Mounts:        make(map[string]string),
+		Notifications: true,
+		Path:          PwStoreDir(""),
+		configPath:    configLocation(),
 	}
 }
 
@@ -68,53 +71,56 @@ func (c *Config) Config() *Config {
 }
 
 // SetConfigValue will try to set the given key to the value in the config struct
-func (c *Config) SetConfigValue(mount, key, value string) error {
-	if mount == "" {
-		if err := c.Root.SetConfigValue(key, value); err != nil {
-			return err
-		}
-		return c.Save()
-	}
-
-	if sc, found := c.Mounts[mount]; found {
-		if err := sc.SetConfigValue(key, value); err != nil {
-			return err
-		}
+func (c *Config) SetConfigValue(key, value string) error {
+	if err := c.setConfigValue(key, value); err != nil {
+		return err
 	}
 	return c.Save()
 }
 
-func (c *Config) checkDefaults() error {
-	if c == nil {
-		return fmt.Errorf("config is nil")
-	}
-	if c.Root == nil {
-		c.Root = &StoreConfig{}
-	}
-	if err := c.Root.checkDefaults(); err != nil {
-		return err
-	}
-	for _, sc := range c.Mounts {
-		if err := sc.checkDefaults(); err != nil {
-			return err
+// setConfigValue will try to set the given key to the value in the config struct
+func (c *Config) setConfigValue(key, value string) error {
+	value = strings.ToLower(value)
+	o := reflect.ValueOf(c).Elem()
+	for i := 0; i < o.NumField(); i++ {
+		jsonArg := o.Type().Field(i).Tag.Get("yaml")
+		if jsonArg == "" || jsonArg == "-" {
+			continue
+		}
+		if jsonArg != key {
+			continue
+		}
+		f := o.Field(i)
+		switch f.Kind() {
+		case reflect.String:
+			f.SetString(value)
+			return nil
+		case reflect.Bool:
+			if value == "true" {
+				f.SetBool(true)
+				return nil
+			} else if value == "false" {
+				f.SetBool(false)
+				return nil
+			} else {
+				return errors.Errorf("not a bool: %s", value)
+			}
+		case reflect.Int:
+			iv, err := strconv.Atoi(value)
+			if err != nil {
+				return errors.Wrapf(err, "failed to convert '%s' to int", value)
+			}
+			f.SetInt(int64(iv))
+			return nil
+		default:
+			continue
 		}
 	}
-	return nil
+	return fmt.Errorf("unknown config option '%s'", key)
 }
 
 func (c *Config) String() string {
-	mounts := ""
-	keys := make([]string, 0, len(c.Mounts))
-	for alias := range c.Mounts {
-		keys = append(keys, alias)
-	}
-	sort.Strings(keys)
-
-	for _, alias := range keys {
-		sc := c.Mounts[alias]
-		mounts += alias + "=>" + sc.String()
-	}
-	return fmt.Sprintf("Config[Root:%s,Mounts(%s)]", c.Root.String(), mounts)
+	return fmt.Sprintf("%#v", c)
 }
 
 // Directory returns the directory this config is using
@@ -122,39 +128,28 @@ func (c *Config) Directory() string {
 	return filepath.Dir(c.Path)
 }
 
-// GetRecipientHash returns the recipients hash for the given store and file
-func (c *Config) GetRecipientHash(alias, name string) string {
-	if alias == "" {
-		return c.Root.RecipientHash[name]
-	}
-	if sc, found := c.Mounts[alias]; found && sc != nil {
-		return sc.RecipientHash[name]
-	}
-	return ""
-}
-
-// SetRecipientHash will set and save the recipient hash for the given store
-// and file
-func (c *Config) SetRecipientHash(alias, name, value string) error {
-	if alias == "" {
-		c.Root.setRecipientHash(name, value)
-	} else {
-		if sc, found := c.Mounts[alias]; found && sc != nil {
-			sc.setRecipientHash(name, value)
+// ConfigMap returns a map of stringified config values for easy printing
+func (c *Config) ConfigMap() map[string]string {
+	m := make(map[string]string, 20)
+	o := reflect.ValueOf(c).Elem()
+	for i := 0; i < o.NumField(); i++ {
+		jsonArg := o.Type().Field(i).Tag.Get("yaml")
+		if jsonArg == "" || jsonArg == "-" {
+			continue
 		}
+		f := o.Field(i)
+		var strVal string
+		switch f.Kind() {
+		case reflect.String:
+			strVal = f.String()
+		case reflect.Bool:
+			strVal = fmt.Sprintf("%t", f.Bool())
+		case reflect.Int:
+			strVal = fmt.Sprintf("%d", f.Int())
+		default:
+			continue
+		}
+		m[jsonArg] = strVal
 	}
-
-	return c.Save()
-}
-
-// CheckRecipientHash returns true if we should report/fail on any
-// recipient hash errors for this store
-func (c *Config) CheckRecipientHash(alias string) bool {
-	if alias == "" {
-		return c.Root.CheckRecpHash
-	}
-	if sc, found := c.Mounts[alias]; found && sc != nil {
-		return sc.CheckRecpHash
-	}
-	return false
+	return m
 }

@@ -24,12 +24,13 @@ func TestInit(t *testing.T) {
 	ctx = backend.WithCryptoBackend(ctx, backend.Plain)
 
 	cfg := config.New()
-	cfg.Root.Path = backend.FromPath(u.StoreDir("rs"))
+	cfg.Path = u.StoreDir("rs")
 	rs, err := New(ctx, cfg)
 	require.NoError(t, err)
 
+	ctx = ctxutil.WithDebug(ctx, true)
 	inited, err := rs.Initialized(ctx)
-	require.NoError(t, err)
+	assert.NoError(t, err)
 	assert.Equal(t, false, inited)
 	assert.NoError(t, rs.Init(ctx, "", u.StoreDir("rs"), "0xDEADBEEF"))
 

@@ -2,8 +2,11 @@ package backend
 
 import (
 	"context"
+	"sort"
 
 	"github.com/blang/semver"
+	"github.com/gopasspw/gopass/internal/out"
+	"github.com/pkg/errors"
 )
 
 // CryptoBackend is a cryptographic backend
@@ -29,8 +32,8 @@ type Keyring interface {
 	ImportPublicKey(ctx context.Context, key []byte) error
 	ExportPublicKey(ctx context.Context, id string) ([]byte, error)
 
-	ListPublicKeyIDs(ctx context.Context) ([]string, error)
-	ListPrivateKeyIDs(ctx context.Context) ([]string, error)
+	ListRecipients(ctx context.Context) ([]string, error)
+	ListIdentities(ctx context.Context) ([]string, error)
 
 	FindPublicKeys(ctx context.Context, needles ...string) ([]string, error)
 	FindPrivateKeys(ctx context.Context, needles ...string) ([]string, error)
@@ -58,4 +61,48 @@ type Crypto interface {
 	Initialized(ctx context.Context) error
 	Ext() string    // filename extension
 	IDFile() string // recipient IDs
+}
+
+// RegisterCrypto registers a new crypto backend with the backend registry.
+func RegisterCrypto(id CryptoBackend, name string, loader CryptoLoader) {
+	cryptoRegistry[id] = loader
+	cryptoNameToBackendMap[name] = id
+	cryptoBackendToNameMap[id] = name
+}
+
+// NewCrypto instantiates a new crypto backend.
+func NewCrypto(ctx context.Context, id CryptoBackend) (Crypto, error) {
+	if be, found := cryptoRegistry[id]; found {
+		return be.New(ctx)
+	}
+	return nil, errors.Wrapf(ErrNotFound, "unknown backend: %d", id)
+}
+
+// DetectCrypto tries to detect the crypto backend used
+func DetectCrypto(ctx context.Context, storage Storage) (Crypto, error) {
+	if HasCryptoBackend(ctx) {
+		if be, found := cryptoRegistry[GetCryptoBackend(ctx)]; found {
+			return be.New(ctx)
+		}
+	}
+
+	bes := make([]CryptoBackend, 0, len(cryptoRegistry))
+	for id := range cryptoRegistry {
+		bes = append(bes, id)
+	}
+	sort.Slice(bes, func(i, j int) bool {
+		return cryptoRegistry[bes[i]].Priority() < cryptoRegistry[bes[j]].Priority()
+	})
+	for _, id := range bes {
+		be := cryptoRegistry[id]
+		out.Debug(ctx, "DetectCrypto(%s) - trying %s", storage, be)
+		if err := be.Handles(storage); err != nil {
+			out.Debug(ctx, "failed to use crypto %s for %s", id, storage)
+			continue
+		}
+		out.Debug(ctx, "DetectCrypto(%s) - using %s", storage, be)
+		return be.New(ctx)
+	}
+	out.Debug(ctx, "DetectCrypto(%s) - no valid crypto provider found", storage)
+	return nil, nil
 }

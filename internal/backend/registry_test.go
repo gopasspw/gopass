@@ -5,7 +5,10 @@ import (
 	"testing"
 
 	"github.com/gopasspw/gopass/internal/backend"
+	_ "github.com/gopasspw/gopass/internal/backend/crypto"
 	"github.com/gopasspw/gopass/internal/backend/crypto/plain"
+	_ "github.com/gopasspw/gopass/internal/backend/rcs"
+	_ "github.com/gopasspw/gopass/internal/backend/storage"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -18,6 +21,14 @@ func (l fakeCryptoLoader) New(context.Context) (backend.Crypto, error) {
 
 func (l fakeCryptoLoader) String() string {
 	return "fakecryptoloader"
+}
+
+func (l fakeCryptoLoader) Handles(_ backend.Storage) error {
+	return nil
+}
+
+func (l fakeCryptoLoader) Priority() int {
+	return 1
 }
 
 func TestCryptoLoader(t *testing.T) {

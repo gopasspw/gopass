@@ -3,39 +3,29 @@ package config
 import (
 	"context"
 
-	"github.com/gopasspw/gopass/internal/store/leaf"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 )
 
 // WithContext returns a context with all config options set for this store
 // config, iff they have not been already set in the context
-func (c StoreConfig) WithContext(ctx context.Context) context.Context {
-	if !ctxutil.HasAskForMore(ctx) {
-		ctx = ctxutil.WithAskForMore(ctx, c.AskForMore)
-	}
+func (c *Config) WithContext(ctx context.Context) context.Context {
 	if !ctxutil.HasAutoClip(ctx) {
 		ctx = ctxutil.WithAutoClip(ctx, c.AutoClip)
 	}
 	if !c.AutoImport {
-		ctx = leaf.WithImportFunc(ctx, nil)
-	}
-	if !leaf.HasAutoSync(ctx) {
-		ctx = leaf.WithAutoSync(ctx, c.AutoSync)
+		ctx = ctxutil.WithImportFunc(ctx, nil)
 	}
 	if !ctxutil.HasClipTimeout(ctx) {
 		ctx = ctxutil.WithClipTimeout(ctx, c.ClipTimeout)
 	}
-	if !ctxutil.HasConcurrency(ctx) {
-		ctx = ctxutil.WithConcurrency(ctx, c.Concurrency)
-	}
 	if !ctxutil.HasEditRecipients(ctx) {
 		ctx = ctxutil.WithEditRecipients(ctx, c.EditRecipients)
 	}
-	if !leaf.HasExportKeys(ctx) {
-		ctx = leaf.WithExportKeys(ctx, c.ExportKeys)
+	if !ctxutil.HasExportKeys(ctx) {
+		ctx = ctxutil.WithExportKeys(ctx, c.ExportKeys)
 	}
-	if !ctxutil.HasNoConfirm(ctx) {
-		ctx = ctxutil.WithNoConfirm(ctx, c.NoConfirm)
+	if !ctxutil.HasConfirm(ctx) {
+		ctx = ctxutil.WithConfirm(ctx, c.ConfirmRecipients)
 	}
 	if !ctxutil.HasNoPager(ctx) {
 		ctx = ctxutil.WithNoPager(ctx, c.NoPager)
@@ -45,9 +35,6 @@ func (c StoreConfig) WithContext(ctx context.Context) context.Context {
 	}
 	if !ctxutil.HasShowSafeContent(ctx) {
 		ctx = ctxutil.WithShowSafeContent(ctx, c.SafeContent)
-	}
-	if !ctxutil.HasUseSymbols(ctx) {
-		ctx = ctxutil.WithUseSymbols(ctx, c.UseSymbols)
 	}
 	// always disable autoclip when redirecting stdout
 	if !ctxutil.IsTerminal(ctx) {

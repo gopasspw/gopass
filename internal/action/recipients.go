@@ -8,7 +8,6 @@ import (
 	"github.com/gopasspw/gopass/internal/cui"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
-	"github.com/gopasspw/gopass/internal/store/leaf"
 	"github.com/gopasspw/gopass/internal/termio"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 
@@ -113,7 +112,7 @@ func (s *Action) RecipientsAdd(c *cli.Context) error {
 			continue
 		}
 
-		if err := s.Store.AddRecipient(ctxutil.WithNoConfirm(ctx, true), store, recp); err != nil {
+		if err := s.Store.AddRecipient(ctxutil.WithConfirm(ctx, true), store, recp); err != nil {
 			return ExitError(ctx, ExitRecipients, err, "failed to add recipient '%s': %s", r, err)
 		}
 		added++
@@ -182,7 +181,7 @@ func (s *Action) RecipientsRemove(c *cli.Context) error {
 			recp = crypto.Fingerprint(ctx, keys[0])
 		}
 
-		if err := s.Store.RemoveRecipient(ctxutil.WithNoConfirm(ctx, true), store, recp); err != nil {
+		if err := s.Store.RemoveRecipient(ctxutil.WithConfirm(ctx, true), store, recp); err != nil {
 			return ExitError(ctx, ExitRecipients, err, "failed to remove recipient '%s': %s", recp, err)
 		}
 		fmt.Fprintf(stdout, removalWarning, r)
@@ -211,12 +210,7 @@ func (s *Action) RecipientsUpdate(c *cli.Context) error {
 		}
 		recp, err := subs.GetRecipients(ctx, "")
 		if err != nil {
-			if err != leaf.ErrRecipientChecksumChanged {
-				return err
-			}
-		}
-		if err == nil && s.cfg.GetRecipientHash(alias, subs.Crypto().IDFile()) != "" {
-			continue
+			return err
 		}
 		if alias == "" {
 			alias = "<root>"

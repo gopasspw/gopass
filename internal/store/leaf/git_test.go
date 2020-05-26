@@ -34,12 +34,13 @@ func TestGit(t *testing.T) {
 	assert.NoError(t, s.RCS().Pull(ctx, "origin", "master"))
 	assert.NoError(t, s.RCS().Push(ctx, "origin", "master"))
 
-	assert.NoError(t, s.GitInit(ctx, "", ""))
-	assert.NoError(t, s.GitInit(backend.WithRCSBackend(ctx, backend.Noop), "", ""))
-	assert.Error(t, s.GitInit(backend.WithRCSBackend(ctx, -1), "", ""))
+	assert.NoError(t, s.GitInit(ctx))
+	assert.NoError(t, s.GitInit(backend.WithRCSBackend(ctx, backend.Noop)))
+	assert.Error(t, s.GitInit(backend.WithRCSBackend(ctx, -1)))
 
-	ctx = ctxutil.WithDebug(ctx, true)
-	assert.NoError(t, s.GitInit(backend.WithRCSBackend(ctx, backend.GitCLI), "Foo Bar", "foo.bar@example.org"))
+	ctx = ctxutil.WithUsername(ctx, "foo")
+	ctx = ctxutil.WithEmail(ctx, "foo@baz.com")
+	assert.NoError(t, s.GitInit(backend.WithRCSBackend(ctx, backend.GitCLI)))
 }
 
 func TestGitRevisions(t *testing.T) {

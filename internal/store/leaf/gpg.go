@@ -7,6 +7,7 @@ import (
 
 	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/pkg/ctxutil"
 
 	"github.com/pkg/errors"
 )
@@ -47,7 +48,7 @@ func (s *Store) ImportMissingPublicKeys(ctx context.Context) error {
 
 		// we need to ask the user before importing
 		// any key material into his keyring!
-		if imf := GetImportFunc(ctx); imf != nil {
+		if imf := ctxutil.GetImportFunc(ctx); imf != nil {
 			if !imf(ctx, r, names) {
 				continue
 			}

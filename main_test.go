@@ -52,7 +52,6 @@ func TestSetupApp(t *testing.T) {
 // invoked without arguments
 var commandsWithError = map[string]struct{}{
 	".audit":             {},
-	".audit.hibp":        {},
 	".binary.cat":        {},
 	".binary.copy":       {},
 	".binary.move":       {},
@@ -98,7 +97,7 @@ func TestGetCommands(t *testing.T) {
 	}()
 
 	cfg := config.New()
-	cfg.Root.Path = backend.FromPath(u.StoreDir(""))
+	cfg.Path = u.StoreDir("")
 
 	clipboard.Unsupported = true
 

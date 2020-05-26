@@ -24,10 +24,10 @@ func TestGPG(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotEqual(t, "", g.Binary())
 
-	_, err = g.ListPublicKeyIDs(ctx)
+	_, err = g.ListRecipients(ctx)
 	assert.NoError(t, err)
 
-	_, err = g.ListPrivateKeyIDs(ctx)
+	_, err = g.ListIdentities(ctx)
 	assert.NoError(t, err)
 
 	_, err = g.RecipientIDs(ctx, []byte{})

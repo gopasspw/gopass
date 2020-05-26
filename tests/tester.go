@@ -19,13 +19,10 @@ import (
 
 const (
 	gopassConfig = `root:
-  askformore: false
   autoclip: false
   autoimport: true
-  autosync: false
   cliptimeout: 45
-  noconfirm: true
-  safecontent: true
+  confirm: false
 `
 	keyID = "BE73F104"
 )
@@ -52,7 +49,7 @@ func newTester(t *testing.T) *tester {
 	}
 	fi, err := os.Stat(gopassBin)
 	if err != nil {
-		t.Fatalf("Failed to stat GOPASS_BINARY %s: %s", gopassBin, err)
+		t.Skipf("Failed to stat GOPASS_BINARY %s: %s", gopassBin, err)
 	}
 	if !strings.HasSuffix(gopassBin, ".exe") && fi.Mode()&0111 == 0 {
 		t.Fatalf("GOPASS_BINARY is not executeable")
@@ -79,6 +76,7 @@ func newTester(t *testing.T) *tester {
 	require.NoError(t, os.Setenv("GOPASS_NO_NOTIFY", "true"))
 
 	// write config
+	require.NoError(t, os.MkdirAll(filepath.Dir(ts.gopassConfig()), 0700))
 	if err := ioutil.WriteFile(ts.gopassConfig(), []byte(gopassConfig+"\n  path: "+ts.storeDir("")+"\n"), 0600); err != nil {
 		t.Fatalf("Failed to write gopass config to %s: %s", ts.gopassConfig(), err)
 	}
@@ -109,14 +107,11 @@ func (ts tester) gpgDir() string {
 }
 
 func (ts tester) gopassConfig() string {
-	return filepath.Join(ts.tempDir, ".gopass.yml")
+	return filepath.Join(ts.tempDir, ".config", "gopass", "config.yml")
 }
 
 func (ts tester) storeDir(mount string) string {
-	if mount != "" {
-		mount = "-" + mount
-	}
-	return filepath.Join(ts.tempDir, ".password-store"+mount)
+	return filepath.Join(ts.tempDir, ".local", "share", "gopass", "stores", mount)
 }
 
 func (ts tester) workDir() string {
@@ -193,7 +188,7 @@ func (ts tester) runWithInputReader(arg string, input io.Reader) ([]byte, error)
 }
 
 func (ts *tester) initStore() {
-	out, err := ts.run("init --rcs=noop " + keyID)
+	out, err := ts.run("init --crypto=gpgcli --rcs=noop " + keyID)
 	require.NoError(ts.t, err, "failed to init password store:\n%s", out)
 }
 
