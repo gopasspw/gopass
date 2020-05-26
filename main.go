@@ -8,18 +8,32 @@ import (
 	"os"
 	"os/signal"
 	"runtime"
+	"sort"
 	"strings"
 	"time"
 
+	"github.com/gopasspw/gopass/internal/action/binary"
+	"github.com/gopasspw/gopass/internal/action/create"
+	"github.com/gopasspw/gopass/internal/action/pwgen"
+	"github.com/gopasspw/gopass/internal/action/xc"
 	_ "github.com/gopasspw/gopass/internal/backend/crypto"
+	"github.com/gopasspw/gopass/internal/backend/crypto/gpg"
 	_ "github.com/gopasspw/gopass/internal/backend/rcs"
 	_ "github.com/gopasspw/gopass/internal/backend/storage"
+	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/protect"
+	"golang.org/x/crypto/ssh/terminal"
 
 	"github.com/blang/semver"
 	"github.com/fatih/color"
 	colorable "github.com/mattn/go-colorable"
 	"github.com/urfave/cli/v2"
+
+	ap "github.com/gopasspw/gopass/internal/action"
+	"github.com/gopasspw/gopass/internal/config"
+	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/internal/store/leaf"
+	"github.com/gopasspw/gopass/internal/termio"
 )
 
 const (
@@ -69,6 +83,112 @@ func main() {
 	}
 }
 
+func setupApp(ctx context.Context, sv semver.Version) (context.Context, *cli.App) {
+	// try to read config (if it exists)
+	cfg := config.LoadWithFallback()
+
+	// set config values
+	ctx = initContext(ctx, cfg)
+
+	// initialize action handlers
+	action, err := ap.New(ctx, cfg, sv)
+	if err != nil {
+		out.Error(ctx, "No gpg binary found: %s", err)
+		os.Exit(ap.ExitGPG)
+	}
+
+	// set some action callbacks
+	if !cfg.Root.AutoImport {
+		ctx = leaf.WithImportFunc(ctx, termio.AskForKeyImport)
+	}
+	if !cfg.Root.NoConfirm {
+		ctx = leaf.WithRecipientFunc(ctx, action.ConfirmRecipients)
+	}
+	ctx = leaf.WithFsckFunc(ctx, termio.AskForConfirmation)
+
+	app := cli.NewApp()
+
+	app.Name = name
+	app.Version = sv.String()
+	app.Usage = "The standard unix password manager - rewritten in Go"
+	app.EnableBashCompletion = true
+	app.BashComplete = func(c *cli.Context) {
+		cli.DefaultAppComplete(c)
+		action.Complete(c)
+	}
+
+	app.Action = func(c *cli.Context) error {
+		if err := action.Initialized(c); err != nil {
+			return err
+		}
+
+		if c.Args().Present() {
+			return action.Show(c)
+		}
+		return action.List(c)
+	}
+
+	app.Flags = []cli.Flag{
+		&cli.BoolFlag{
+			Name:  "yes",
+			Usage: "Assume yes on all yes/no questions or use the default on all others",
+		},
+		&cli.BoolFlag{
+			Name:    "clip",
+			Aliases: []string{"c"},
+			Usage:   "Copy the first line of the secret into the clipboard",
+		},
+		&cli.BoolFlag{
+			Name:    "alsoclip",
+			Aliases: []string{"C"},
+			Usage:   "Copy the first line of the secret into the clipboard and show everything",
+		},
+	}
+
+	app.Commands = getCommands(ctx, action, app)
+	return ctx, app
+}
+
+func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []*cli.Command {
+	cmds := []*cli.Command{
+		{
+			Name:  "completion",
+			Usage: "Bash and ZSH completion",
+			Description: "" +
+				"Source the output of this command with bash or zsh to get auto completion",
+			Subcommands: []*cli.Command{{
+				Name:   "bash",
+				Usage:  "Source for auto completion in bash",
+				Action: action.CompletionBash,
+			}, {
+				Name:  "zsh",
+				Usage: "Source for auto completion in zsh",
+				Action: func(c *cli.Context) error {
+					return action.CompletionZSH(c, app)
+				},
+			}, {
+				Name:  "fish",
+				Usage: "Source for auto completion in fish",
+				Action: func(c *cli.Context) error {
+					return action.CompletionFish(c, app)
+				},
+			}, {
+				Name:  "openbsdksh",
+				Usage: "Source for auto completion in OpenBSD's ksh",
+				Action: func(c *cli.Context) error {
+					return action.CompletionOpenBSDKsh(c, app)
+				},
+			}},
+		},
+	}
+	cmds = append(cmds, action.GetCommands()...)
+	cmds = append(cmds, xc.GetCommands()...)
+	cmds = append(cmds, create.GetCommands(action, action.Store)...)
+	cmds = append(cmds, binary.GetCommands(action, action.Store)...)
+	cmds = append(cmds, pwgen.GetCommands()...)
+	sort.Slice(cmds, func(i, j int) bool { return cmds[i].Name < cmds[j].Name })
+	return cmds
+}
 func makeVersionPrinter(out io.Writer, sv semver.Version) func(c *cli.Context) {
 	return func(c *cli.Context) {
 		buildtime := ""
@@ -126,4 +246,56 @@ func getVersion() semver.Version {
 		},
 		Build: []string{"HEAD"},
 	}
+}
+
+func initContext(ctx context.Context, cfg *config.Config) context.Context {
+	// always trust
+	ctx = gpg.WithAlwaysTrust(ctx, true)
+
+	// check recipients conflicts with always trust, make sure it's not enabled
+	// when always trust is
+	if gpg.IsAlwaysTrust(ctx) {
+		ctx = leaf.WithCheckRecipients(ctx, false)
+	}
+
+	// debug flag
+	if gdb := os.Getenv("GOPASS_DEBUG"); gdb != "" {
+		ctx = ctxutil.WithDebug(ctx, true)
+	}
+
+	// need this override for our integration tests
+	if nc := os.Getenv("GOPASS_NOCOLOR"); nc == "true" || ctxutil.IsNoColor(ctx) {
+		color.NoColor = true
+		ctx = ctxutil.WithColor(ctx, false)
+	}
+
+	// support for no-color.org
+	if nc := os.Getenv("NO_COLOR"); nc != "" {
+		color.NoColor = true
+		ctx = ctxutil.WithColor(ctx, false)
+	}
+
+	// only emit color codes when stdout is a terminal
+	if !terminal.IsTerminal(int(os.Stdout.Fd())) {
+		color.NoColor = true
+		ctx = ctxutil.WithColor(ctx, false)
+		ctx = ctxutil.WithTerminal(ctx, false)
+		ctx = ctxutil.WithInteractive(ctx, false)
+	}
+
+	// reading from stdin?
+	if info, err := os.Stdin.Stat(); err == nil && info.Mode()&os.ModeCharDevice == 0 {
+		ctx = ctxutil.WithInteractive(ctx, false)
+		ctx = ctxutil.WithStdin(ctx, true)
+	}
+
+	// disable colored output on windows since cmd.exe doesn't support ANSI color
+	// codes. Other terminal may do, but until we can figure that out better
+	// disable this for all terms on this platform
+	if runtime.GOOS == "windows" {
+		color.NoColor = true
+		ctx = ctxutil.WithColor(ctx, false)
+	}
+
+	return ctx
 }
