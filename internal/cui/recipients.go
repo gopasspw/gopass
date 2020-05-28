@@ -74,7 +74,7 @@ func (r recipientInfos) Less(i, j int) bool {
 	return r[i].name < r[j].name
 }
 
-func getRecipientInfo(ctx context.Context, crypto backend.Crypto, name string, recipients []string) (recipientInfos, error) {
+func getRecipientInfo(ctx context.Context, crypto backend.Crypto, recipients []string) (recipientInfos, error) {
 	ris := make(recipientInfos, 0, len(recipients))
 
 	for _, r := range recipients {
@@ -109,7 +109,7 @@ func ConfirmRecipients(ctx context.Context, crypto backend.Crypto, name string, 
 		return recipients, nil
 	}
 
-	ris, err := getRecipientInfo(ctx, crypto, name, recipients)
+	ris, err := getRecipientInfo(ctx, crypto, recipients)
 	if err != nil {
 		return nil, err
 	}
@@ -185,7 +185,7 @@ func confirmEditRecipients(ctx context.Context, name string, ris recipientInfos)
 }
 
 // AskForPrivateKey promts the user to select from a list of private keys
-func AskForPrivateKey(ctx context.Context, crypto backend.Crypto, name, prompt string) (string, error) {
+func AskForPrivateKey(ctx context.Context, crypto backend.Crypto, prompt string) (string, error) {
 	if !ctxutil.IsInteractive(ctx) {
 		return "", errors.New("can not select private key without terminal")
 	}
@@ -237,7 +237,7 @@ func AskForPrivateKey(ctx context.Context, crypto backend.Crypto, name, prompt s
 // On error or no selection, name and email will be empty.
 // If s.isTerm is false (i.e., the user cannot be prompted), however,
 // the first identity's name/email pair found is returned.
-func AskForGitConfigUser(ctx context.Context, crypto backend.Crypto, name string) (string, string, error) {
+func AskForGitConfigUser(ctx context.Context, crypto backend.Crypto) (string, string, error) {
 	var useCurrent bool
 
 	keyList, err := crypto.ListIdentities(ctx)

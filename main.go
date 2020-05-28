@@ -91,7 +91,7 @@ func setupApp(ctx context.Context, sv semver.Version) (context.Context, *cli.App
 	ctx = initContext(ctx, cfg)
 
 	// initialize action handlers
-	action, err := ap.New(ctx, cfg, sv)
+	action, err := ap.New(cfg, sv)
 	if err != nil {
 		out.Error(ctx, "No gpg binary found: %s", err)
 		os.Exit(ap.ExitGPG)
@@ -145,11 +145,11 @@ func setupApp(ctx context.Context, sv semver.Version) (context.Context, *cli.App
 		},
 	}
 
-	app.Commands = getCommands(ctx, action, app)
+	app.Commands = getCommands(action, app)
 	return ctx, app
 }
 
-func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []*cli.Command {
+func getCommands(action *ap.Action, app *cli.App) []*cli.Command {
 	cmds := []*cli.Command{
 		{
 			Name:  "completion",
@@ -164,19 +164,19 @@ func getCommands(ctx context.Context, action *ap.Action, app *cli.App) []*cli.Co
 				Name:  "zsh",
 				Usage: "Source for auto completion in zsh",
 				Action: func(c *cli.Context) error {
-					return action.CompletionZSH(c, app)
+					return action.CompletionZSH(app)
 				},
 			}, {
 				Name:  "fish",
 				Usage: "Source for auto completion in fish",
 				Action: func(c *cli.Context) error {
-					return action.CompletionFish(c, app)
+					return action.CompletionFish(app)
 				},
 			}, {
 				Name:  "openbsdksh",
 				Usage: "Source for auto completion in OpenBSD's ksh",
 				Action: func(c *cli.Context) error {
-					return action.CompletionOpenBSDKsh(c, app)
+					return action.CompletionOpenBSDKsh(app)
 				},
 			}},
 		},
@@ -249,6 +249,9 @@ func getVersion() semver.Version {
 }
 
 func initContext(ctx context.Context, cfg *config.Config) context.Context {
+	// initialize from config, may be overridden by env vars
+	ctx = cfg.WithContext(ctx)
+
 	// always trust
 	ctx = gpg.WithAlwaysTrust(ctx, true)
 
@@ -256,11 +259,6 @@ func initContext(ctx context.Context, cfg *config.Config) context.Context {
 	// when always trust is
 	if gpg.IsAlwaysTrust(ctx) {
 		ctx = leaf.WithCheckRecipients(ctx, false)
-	}
-
-	// debug flag
-	if gdb := os.Getenv("GOPASS_DEBUG"); gdb != "" {
-		ctx = ctxutil.WithDebug(ctx, true)
 	}
 
 	// need this override for our integration tests

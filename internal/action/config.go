@@ -26,11 +26,11 @@ func (s *Action) Config(c *cli.Context) error {
 	}
 
 	if c.Args().Len() > 2 {
-		return ExitError(ctx, ExitUsage, nil, "Usage: %s config key value", s.Name)
+		return ExitError(ExitUsage, nil, "Usage: %s config key value", s.Name)
 	}
 
 	if err := s.setConfigValue(ctx, c.String("store"), c.Args().Get(0), c.Args().Get(1)); err != nil {
-		return ExitError(ctx, ExitUnknown, err, "Error setting config value")
+		return ExitError(ExitUnknown, err, "Error setting config value")
 	}
 	return nil
 }

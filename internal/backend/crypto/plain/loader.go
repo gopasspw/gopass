@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/gopasspw/gopass/internal/backend"
-	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/internal/debug"
 )
 
 const (
@@ -20,7 +20,7 @@ type loader struct{}
 
 // New implements backend.CryptoLoader.
 func (l loader) New(ctx context.Context) (backend.Crypto, error) {
-	out.Debug(ctx, "Using Crypto Backend: %s (NO ENCRYPTION)", name)
+	debug.Log("Using Crypto Backend: %s (NO ENCRYPTION)", name)
 	return New(), nil
 }
 

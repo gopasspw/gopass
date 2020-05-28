@@ -6,6 +6,7 @@ import (
 	"path"
 	"strings"
 
+	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/internal/store/leaf"
@@ -38,13 +39,13 @@ func (r *Store) move(ctx context.Context, from, to string, delete bool) error {
 		return errors.New("destination is a file")
 	}
 
-	if err := r.moveFromTo(ctxFrom, ctxTo, subFrom, subTo, from, to, fromPrefix, srcIsDir, delete); err != nil {
+	if err := r.moveFromTo(ctxFrom, ctxTo, subFrom, from, to, fromPrefix, srcIsDir, delete); err != nil {
 		return err
 	}
 	if err := subFrom.RCS().Commit(ctxFrom, fmt.Sprintf("Move from %s to %s", from, to)); delete && err != nil {
 		switch errors.Cause(err) {
 		case store.ErrGitNotInit:
-			out.Debug(ctx, "reencrypt - skipping git commit - git not initialized")
+			debug.Log("reencrypt - skipping git commit - git not initialized")
 		default:
 			return errors.Wrapf(err, "failed to commit changes to git (from)")
 		}
@@ -53,7 +54,7 @@ func (r *Store) move(ctx context.Context, from, to string, delete bool) error {
 		if err := subTo.RCS().Commit(ctxTo, fmt.Sprintf("Move from %s to %s", from, to)); err != nil {
 			switch errors.Cause(err) {
 			case store.ErrGitNotInit:
-				out.Debug(ctx, "reencrypt - skipping git commit - git not initialized")
+				debug.Log("reencrypt - skipping git commit - git not initialized")
 			default:
 				return errors.Wrapf(err, "failed to commit changes to git (to)")
 			}
@@ -95,7 +96,7 @@ func (r *Store) move(ctx context.Context, from, to string, delete bool) error {
 	return nil
 }
 
-func (r *Store) moveFromTo(ctxFrom, ctxTo context.Context, subFrom, subTo *leaf.Store, from, to, fromPrefix string, srcIsDir, delete bool) error {
+func (r *Store) moveFromTo(ctxFrom, ctxTo context.Context, subFrom *leaf.Store, from, to, fromPrefix string, srcIsDir, delete bool) error {
 	ctxFrom = ctxutil.WithGitCommit(ctxFrom, false)
 	ctxTo = ctxutil.WithGitCommit(ctxTo, false)
 
@@ -121,7 +122,7 @@ func (r *Store) moveFromTo(ctxFrom, ctxTo context.Context, subFrom, subTo *leaf.
 				dst = path.Join(to, path.Base(from), strings.TrimPrefix(src, from))
 			}
 		}
-		out.Debug(ctxFrom, "Moving %s (%s) => %s (%s) (sid:%t, delete:%t)\n", from, src, to, dst, srcIsDir, delete)
+		debug.Log("Moving %s (%s) => %s (%s) (sid:%t, delete:%t)\n", from, src, to, dst, srcIsDir, delete)
 
 		content, err := r.Get(ctxFrom, src)
 		if err != nil {
@@ -133,7 +134,7 @@ func (r *Store) moveFromTo(ctxFrom, ctxTo context.Context, subFrom, subTo *leaf.
 		}
 
 		if delete {
-			out.Debug(ctxFrom, "Deleting %s from source %s", from, src)
+			debug.Log("Deleting %s from source %s", from, src)
 			if err := r.Delete(ctxFrom, src); err != nil {
 				return errors.Wrapf(err, "failed to delete secret '%s'", src)
 			}

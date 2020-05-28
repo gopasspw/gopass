@@ -40,8 +40,7 @@ func TestTemplates(t *testing.T) {
 	assert.NoError(t, s.SetTemplate(ctx, "foo", []byte("foobar")))
 	assert.Equal(t, 1, len(s.ListTemplates(ctx, "")))
 
-	tt, err := s.TemplateTree(ctx)
-	assert.NoError(t, err)
+	tt := s.TemplateTree(ctx)
 	assert.Equal(t, "gopass\n└── foo\n", tt.Format(0))
 
 	assert.Equal(t, true, s.HasTemplate(ctx, "foo"))

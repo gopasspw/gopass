@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/gopasspw/gopass/internal/backend"
+	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 
@@ -25,7 +26,7 @@ func (s *Store) ImportMissingPublicKeys(ctx context.Context) error {
 		return errors.Wrapf(err, "failed to get recipients")
 	}
 	for _, r := range rs {
-		out.Debug(ctx, "Checking recipients %s ...", r)
+		debug.Log("Checking recipients %s ...", r)
 		// check if this recipient is missing
 		// we could list all keys outside the loop and just do the lookup here
 		// but this way we ensure to use the exact same lookup logic as
@@ -35,7 +36,7 @@ func (s *Store) ImportMissingPublicKeys(ctx context.Context) error {
 			out.Error(ctx, "[%s] Failed to get public key for %s: %s", s.alias, r, err)
 		}
 		if len(kl) > 0 {
-			out.Debug(ctx, "[%s] Keyring contains %d public keys for %s", s.alias, len(kl), r)
+			debug.Log("[%s] Keyring contains %d public keys for %s", s.alias, len(kl), r)
 			continue
 		}
 
@@ -54,7 +55,7 @@ func (s *Store) ImportMissingPublicKeys(ctx context.Context) error {
 			}
 		}
 
-		out.Debug(ctx, "[%s] Public Key %s not found in keyring, importing", s.alias, r)
+		debug.Log("[%s] Public Key %s not found in keyring, importing", s.alias, r)
 
 		// try to load this recipient
 		if err := s.importPublicKey(ctx, r); err != nil {
@@ -70,7 +71,7 @@ func (s *Store) decodePublicKey(ctx context.Context, r string) ([]string, error)
 	for _, kd := range []string{keyDir, oldKeyDir} {
 		filename := filepath.Join(kd, r)
 		if !s.storage.Exists(ctx, filename) {
-			out.Debug(ctx, "Public Key %s not found at %s", r, filename)
+			debug.Log("Public Key %s not found at %s", r, filename)
 			continue
 		}
 		buf, err := s.storage.Get(ctx, filename)
@@ -113,7 +114,7 @@ func (s *Store) importPublicKey(ctx context.Context, r string) error {
 	for _, kd := range []string{keyDir, oldKeyDir} {
 		filename := filepath.Join(kd, r)
 		if !s.storage.Exists(ctx, filename) {
-			out.Debug(ctx, "Public Key %s not found at %s", r, filename)
+			debug.Log("Public Key %s not found at %s", r, filename)
 			continue
 		}
 		pk, err := s.storage.Get(ctx, filename)

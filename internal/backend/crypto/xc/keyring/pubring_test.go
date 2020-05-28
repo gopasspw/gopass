@@ -40,8 +40,8 @@ func TestPubring(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, kr)
 
-	assert.NoError(t, kr.Set(&k1.PublicKey))
-	assert.NoError(t, kr.Set(&k2.PublicKey))
+	kr.Set(&k1.PublicKey)
+	kr.Set(&k2.PublicKey)
 
 	assert.NoError(t, kr.Save())
 

@@ -5,7 +5,7 @@ import (
 	"sort"
 
 	"github.com/blang/semver"
-	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/pkg/errors"
 )
 
@@ -95,14 +95,14 @@ func DetectCrypto(ctx context.Context, storage Storage) (Crypto, error) {
 	})
 	for _, id := range bes {
 		be := cryptoRegistry[id]
-		out.Debug(ctx, "DetectCrypto(%s) - trying %s", storage, be)
+		debug.Log("DetectCrypto(%s) - trying %s", storage, be)
 		if err := be.Handles(storage); err != nil {
-			out.Debug(ctx, "failed to use crypto %s for %s", id, storage)
+			debug.Log("failed to use crypto %s for %s", id, storage)
 			continue
 		}
-		out.Debug(ctx, "DetectCrypto(%s) - using %s", storage, be)
+		debug.Log("DetectCrypto(%s) - using %s", storage, be)
 		return be.New(ctx)
 	}
-	out.Debug(ctx, "DetectCrypto(%s) - no valid crypto provider found", storage)
+	debug.Log("DetectCrypto(%s) - no valid crypto provider found", storage)
 	return nil, nil
 }

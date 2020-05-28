@@ -41,7 +41,7 @@ func (s *Action) List(c *cli.Context) error {
 
 	l, err := s.Store.Tree(ctx)
 	if err != nil {
-		return ExitError(ctx, ExitList, err, "failed to list store: %s", err)
+		return ExitError(ExitList, err, "failed to list store: %s", err)
 	}
 
 	//set limit to len of store to loop over all values later
@@ -60,7 +60,7 @@ func (s *Action) List(c *cli.Context) error {
 func (s *Action) listFiltered(ctx context.Context, l tree.Tree, limit int, flat, folders, stripPrefix bool, filter string) error {
 	subtree, err := l.FindFolder(filter)
 	if err != nil {
-		return ExitError(ctx, ExitNotFound, nil, "Entry '%s' not found", filter)
+		return ExitError(ExitNotFound, nil, "Entry '%s' not found", filter)
 	}
 
 	// SetRoot formats the root entry properly
@@ -91,7 +91,7 @@ func (s *Action) listFiltered(ctx context.Context, l tree.Tree, limit int, flat,
 	fmt.Fprintln(so, subtree.Format(limit))
 	if buf != nil {
 		if err := s.pager(ctx, buf); err != nil {
-			return ExitError(ctx, ExitUnknown, err, "failed to invoke pager: %s", err)
+			return ExitError(ExitUnknown, err, "failed to invoke pager: %s", err)
 		}
 	}
 	return nil
@@ -137,7 +137,7 @@ func (s *Action) listAll(ctx context.Context, l tree.Tree, limit int, flat, fold
 	fmt.Fprintln(so, l.Format(limit))
 	if buf != nil {
 		if err := s.pager(ctx, buf); err != nil {
-			return ExitError(ctx, ExitUnknown, err, "failed to invoke pager: %s", err)
+			return ExitError(ExitUnknown, err, "failed to invoke pager: %s", err)
 		}
 	}
 	return nil

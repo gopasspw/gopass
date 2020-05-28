@@ -17,6 +17,6 @@ func (x *XC) ExportPublicKey(ctx context.Context, id string) ([]byte, error) {
 }
 
 // ExportPrivateKey exports a given private key
-func (x *XC) ExportPrivateKey(ctx context.Context, id string) ([]byte, error) {
+func (x *XC) ExportPrivateKey(id string) ([]byte, error) {
 	return x.secring.Export(id, true)
 }

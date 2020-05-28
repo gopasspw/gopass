@@ -203,31 +203,19 @@ codequality:
 	@staticcheck $(PKGS) || exit 1
 	@printf '%s\n' '$(OK)'
 
-codequality-nomod:
-	@echo -n "     ERRCHECK  "
-	@which errcheck > /dev/null; if [ $$? -ne 0  ]; then \
-		$(GO) get -u github.com/kisielk/errcheck; \
+	@echo -n "     UNPARAM "
+	@which unparam > /dev/null; if [ $$? -ne 0 ]; then \
+		$(GO) get -u mvdan.cc/unparam; \
 	fi
-	@errcheck -exclude .errcheck.excl $(PKGS) || exit 1
-	@printf '%s\n' '$(OK)'
-
-	@echo -n "     INTERFACER"
-	@which interfacer > /dev/null; if [ $$? -ne 0 ]; then \
-		$(GO) get -u mvdan.cc/interfacer; \
-	fi
-	@interfacer $(PKGS)
-	@printf '%s\n' '$(OK)'
-
-	@echo -n "     UNCONVERT "
-	@which unconvert > /dev/null; if [ $$? -ne 0  ]; then \
-		$(GO) get -u github.com/mdempsky/unconvert; \
-	fi
-	@unconvert -v $(PKGS) || exit 1
+	@unparam -exported=true $(PKGS) || extit 1
 	@printf '%s\n' '$(OK)'
 
 fmt:
 	@gofmt -s -l -w $(GOFILES_NOVENDOR)
-	@clang-format -i $(PROTOFILES)
+	@goimports -l -w $(GOFILES_NOVENDOR)
+	@which clang-format > /dev/null; if [ $$? -eq 0 ]; then \
+		clang-format -i $(PROTOFILES); \
+	fi
 	@go mod tidy
 
 fuzz-gpg:

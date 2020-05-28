@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 
 	"github.com/gopasspw/gopass/internal/backend"
-	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/pkg/fsutil"
 )
 
@@ -25,14 +25,14 @@ type loader struct{}
 // New creates a new ondisk loader
 func (l loader) New(ctx context.Context, path string) (backend.Storage, error) {
 	be, err := New(path)
-	out.Debug(ctx, "Using Storage Backend: %s", path)
+	debug.Log("Using Storage Backend: %s", path)
 	return be, err
 }
 
 // Open loads an existing ondisk repo
 func (l loader) Open(ctx context.Context, path string) (backend.RCS, error) {
 	be, err := New(path)
-	out.Debug(ctx, "Using RCS Backend: %s", be.String())
+	debug.Log("Using RCS Backend: %s", be.String())
 	return be, err
 }
 
@@ -40,7 +40,7 @@ func (l loader) Open(ctx context.Context, path string) (backend.RCS, error) {
 // WARNING: DOES NOT SUPPORT CLONE (yet)
 func (l loader) Clone(ctx context.Context, repo, path string) (backend.RCS, error) {
 	be, err := New(path)
-	out.Debug(ctx, "Using RCS Backend: %s", be.String())
+	debug.Log("Using RCS Backend: %s", be.String())
 	return be, err
 }
 
@@ -50,7 +50,7 @@ func (l loader) InitRCS(ctx context.Context, path string) (backend.RCS, error) {
 		return nil, err
 	}
 	be, err := New(path)
-	out.Debug(ctx, "Using RCS Backend: %s", be.String())
+	debug.Log("Using RCS Backend: %s", be.String())
 	return be, err
 }
 
@@ -59,7 +59,7 @@ func (l loader) Init(ctx context.Context, path string) (backend.Storage, error) 
 		return nil, err
 	}
 	be, err := New(path)
-	out.Debug(ctx, "Using RCS Backend: %s", be.String())
+	debug.Log("Using RCS Backend: %s", be.String())
 	return be, err
 }
 

@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/gopasspw/gopass/internal/backend/rcs/noop"
+	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/internal/notify"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
@@ -17,12 +18,10 @@ import (
 
 // Sync all stores with their remotes
 func (s *Action) Sync(c *cli.Context) error {
-	ctx := ctxutil.WithGlobalFlags(c)
-	store := c.String("store")
-	return s.sync(ctx, c, store)
+	return s.sync(ctxutil.WithGlobalFlags(c), c.String("store"))
 }
 
-func (s *Action) sync(ctx context.Context, c *cli.Context, store string) error {
+func (s *Action) sync(ctx context.Context, store string) error {
 	out.Green(ctx, "Sync starting ...")
 
 	numEntries := 0
@@ -97,7 +96,7 @@ func (s *Action) syncMount(ctx context.Context, mp string) error {
 		if err := sub.RCS().Push(ctx, "", ""); err != nil {
 			if errors.Cause(err) == store.ErrGitNoRemote {
 				out.Yellow(ctx, "Skipped (no remote)")
-				out.Debug(ctx, "Failed to push '%s' to its remote: %s", name, err)
+				debug.Log("Failed to push '%s' to its remote: %s", name, err)
 				return err
 			}
 
@@ -118,7 +117,7 @@ func (s *Action) syncMount(ctx context.Context, mp string) error {
 		}
 	}
 
-	out.Debug(ctx, "syncMount(%s) - exportkeys: %t", mp, ctxutil.IsExportKeys(ctx))
+	debug.Log("syncMount(%s) - exportkeys: %t", mp, ctxutil.IsExportKeys(ctx))
 	var exported bool
 	if ctxutil.IsExportKeys(ctx) {
 		// import keys

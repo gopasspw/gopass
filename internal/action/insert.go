@@ -31,7 +31,7 @@ func (s *Action) Insert(c *cli.Context) error {
 	key := args.Get(1)
 
 	if name == "" {
-		return ExitError(ctx, ExitNoName, nil, "Usage: %s insert name", s.Name)
+		return ExitError(ExitNoName, nil, "Usage: %s insert name", s.Name)
 	}
 
 	return s.insert(ctx, c, name, key, echo, multiline, force, append, kvps)
@@ -52,7 +52,7 @@ func (s *Action) insert(ctx context.Context, c *cli.Context, name, key string, e
 		buf := &bytes.Buffer{}
 
 		if written, err := io.Copy(buf, stdin); err != nil {
-			return ExitError(ctx, ExitIO, err, "failed to copy after %d bytes: %s", written, err)
+			return ExitError(ExitIO, err, "failed to copy after %d bytes: %s", written, err)
 		}
 
 		content = buf.Bytes()
@@ -65,14 +65,14 @@ func (s *Action) insert(ctx context.Context, c *cli.Context, name, key string, e
 
 	if ctxutil.IsStdin(ctx) {
 		if !force && !append && s.Store.Exists(ctx, name) {
-			return ExitError(ctx, ExitAborted, nil, "not overwriting your current secret")
+			return ExitError(ExitAborted, nil, "not overwriting your current secret")
 		}
 		return s.insertStdin(ctx, name, content, append)
 	}
 
 	// don't check if it's force anyway
 	if !force && s.Store.Exists(ctx, name) && !termio.AskForConfirmation(ctx, fmt.Sprintf("An entry already exists for %s. Overwrite it?", name)) {
-		return ExitError(ctx, ExitAborted, nil, "not overwriting your current secret")
+		return ExitError(ExitAborted, nil, "not overwriting your current secret")
 	}
 
 	// if multi-line input is requested start an editor
@@ -89,7 +89,7 @@ func (s *Action) insert(ctx context.Context, c *cli.Context, name, key string, e
 
 	pw, err := termio.AskForPassword(ctx, name)
 	if err != nil {
-		return ExitError(ctx, ExitIO, err, "failed to ask for password: %s", err)
+		return ExitError(ExitIO, err, "failed to ask for password: %s", err)
 	}
 
 	return s.insertSingle(ctx, name, pw, kvps)
@@ -99,11 +99,11 @@ func (s *Action) insertStdin(ctx context.Context, name string, content []byte, a
 	if appendTo && s.Store.Exists(ctx, name) {
 		sec, err := s.Store.Get(ctx, name)
 		if err != nil {
-			return ExitError(ctx, ExitDecrypt, err, "failed to decrypt existing secret: %s", err)
+			return ExitError(ExitDecrypt, err, "failed to decrypt existing secret: %s", err)
 		}
 		buf, err := sec.Bytes()
 		if err != nil {
-			return ExitError(ctx, ExitDecrypt, err, "failed to decode existing secret: %s", err)
+			return ExitError(ExitDecrypt, err, "failed to decode existing secret: %s", err)
 		}
 		content = append(buf, content...)
 	}
@@ -112,7 +112,7 @@ func (s *Action) insertStdin(ctx context.Context, name string, content []byte, a
 		out.Error(ctx, "WARNING: Invalid YAML: %s", err)
 	}
 	if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, "Read secret from STDIN"), name, sec); err != nil {
-		return ExitError(ctx, ExitEncrypt, err, "failed to set '%s': %s", name, err)
+		return ExitError(ExitEncrypt, err, "failed to set '%s': %s", name, err)
 	}
 	return nil
 }
@@ -123,7 +123,7 @@ func (s *Action) insertSingle(ctx context.Context, name, pw string, kvps map[str
 		var err error
 		sec, err = s.Store.Get(ctx, name)
 		if err != nil {
-			return ExitError(ctx, ExitDecrypt, err, "failed to decrypt existing secret: %s", err)
+			return ExitError(ExitDecrypt, err, "failed to decrypt existing secret: %s", err)
 		}
 	} else {
 		sec = &secret.Secret{}
@@ -140,7 +140,7 @@ func (s *Action) insertSingle(ctx context.Context, name, pw string, kvps map[str
 	audit.Single(ctx, sec.Password())
 
 	if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, "Inserted user supplied password"), name, sec); err != nil {
-		return ExitError(ctx, ExitEncrypt, err, "failed to write secret '%s': %s", name, err)
+		return ExitError(ExitEncrypt, err, "failed to write secret '%s': %s", name, err)
 	}
 	return nil
 }
@@ -149,7 +149,7 @@ func (s *Action) insertYAML(ctx context.Context, name, key string, content []byt
 	if ctxutil.IsInteractive(ctx) {
 		pw, err := termio.AskForString(ctx, name+":"+key, "")
 		if err != nil {
-			return ExitError(ctx, ExitIO, err, "failed to ask for user input: %s", err)
+			return ExitError(ExitIO, err, "failed to ask for user input: %s", err)
 		}
 		content = []byte(pw)
 	}
@@ -159,17 +159,17 @@ func (s *Action) insertYAML(ctx context.Context, name, key string, content []byt
 		var err error
 		sec, err = s.Store.Get(ctx, name)
 		if err != nil {
-			return ExitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
+			return ExitError(ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
 		}
 	} else {
 		sec = &secret.Secret{}
 	}
 	setMetadata(sec, kvps)
 	if err := sec.SetValue(key, string(content)); err != nil {
-		return ExitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
+		return ExitError(ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
 	}
 	if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, "Inserted YAML value from STDIN"), name, sec); err != nil {
-		return ExitError(ctx, ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
+		return ExitError(ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
 	}
 	return nil
 }
@@ -180,24 +180,24 @@ func (s *Action) insertMultiline(ctx context.Context, c *cli.Context, name strin
 		var err error
 		sec, err := s.Store.Get(ctx, name)
 		if err != nil {
-			return ExitError(ctx, ExitDecrypt, err, "failed to decrypt existing secret: %s", err)
+			return ExitError(ExitDecrypt, err, "failed to decrypt existing secret: %s", err)
 		}
 		buf, err = sec.Bytes()
 		if err != nil {
-			return ExitError(ctx, ExitUnknown, err, "failed to encode secret: %s", err)
+			return ExitError(ExitUnknown, err, "failed to encode secret: %s", err)
 		}
 	}
 	ed := editor.Path(c)
 	content, err := editor.Invoke(ctx, ed, buf)
 	if err != nil {
-		return ExitError(ctx, ExitUnknown, err, "failed to start editor: %s", err)
+		return ExitError(ExitUnknown, err, "failed to start editor: %s", err)
 	}
 	sec, err := secret.Parse(content)
 	if err != nil {
 		out.Error(ctx, "WARNING: Invalid YAML: %s", err)
 	}
 	if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, fmt.Sprintf("Inserted user supplied password with %s", ed)), name, sec); err != nil {
-		return ExitError(ctx, ExitEncrypt, err, "failed to store secret '%s': %s", name, err)
+		return ExitError(ExitEncrypt, err, "failed to store secret '%s': %s", name, err)
 	}
 	return nil
 }

@@ -226,9 +226,7 @@ func TestEncryptDecryptFile(t *testing.T) {
 	plain := filepath.Join(td, "plain.txt")
 	assert.NoError(t, ioutil.WriteFile(plain, []byte("foobar"), 0600))
 
-	cr, err := xc.New(td, &fakeAgent{"foobar"})
-	assert.NoError(t, err)
-	crypto = cr
+	crypto = xc.New(td, &fakeAgent{"foobar"})
 
 	assert.NoError(t, crypto.CreatePrivateKeyBatch(ctx, "foobar", "foo.bar@example.org", "foobar"))
 
@@ -276,9 +274,7 @@ func TestEncryptDecryptStream(t *testing.T) {
 	plain := filepath.Join(td, "plain.txt")
 	assert.NoError(t, ioutil.WriteFile(plain, []byte("foobar"), 0600))
 
-	cr, err := xc.New(td, &fakeAgent{"foobar"})
-	assert.NoError(t, err)
-	crypto = cr
+	crypto = xc.New(td, &fakeAgent{"foobar"})
 
 	assert.NoError(t, crypto.CreatePrivateKeyBatch(ctx, "foobar", "foo.bar@example.org", "foobar"))
 

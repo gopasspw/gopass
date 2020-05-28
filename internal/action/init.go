@@ -10,6 +10,7 @@ import (
 	"github.com/gopasspw/gopass/internal/backend/crypto/gpg"
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/cui"
+	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/termio"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -26,21 +27,21 @@ func (s *Action) Initialized(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	inited, err := s.Store.Initialized(ctx)
 	if err != nil {
-		return ExitError(ctx, ExitUnknown, err, "Failed to initialize store: %s", err)
+		return ExitError(ExitUnknown, err, "Failed to initialize store: %s", err)
 	}
 	if inited {
-		out.Debug(ctx, "Store is already initialized")
+		debug.Log("Store is already initialized")
 		return nil
 	}
 
-	out.Debug(ctx, "Store needs to be initialized")
+	debug.Log("Store needs to be initialized")
 	if !ctxutil.IsInteractive(ctx) {
-		return ExitError(ctx, ExitNotInitialized, nil, "password-store is not initialized. Try '%s init'", s.Name)
+		return ExitError(ExitNotInitialized, nil, "password-store is not initialized. Try '%s init'", s.Name)
 	}
 	if ok, err := termio.AskForBool(ctx, "It seems you are new to gopass. Do you want to run the onboarding wizard?", true); err == nil && ok {
 		c.Context = ctx
 		if err := s.InitOnboarding(c); err != nil {
-			return ExitError(ctx, ExitUnknown, err, "failed to run onboarding wizard: %s", err)
+			return ExitError(ExitUnknown, err, "failed to run onboarding wizard: %s", err)
 		}
 		return nil
 	}
@@ -62,14 +63,14 @@ func (s *Action) Init(c *cli.Context) error {
 	}
 	inited, err := s.Store.Initialized(ctx)
 	if err != nil {
-		return ExitError(ctx, ExitUnknown, err, "Failed to initialized store: %s", err)
+		return ExitError(ExitUnknown, err, "Failed to initialized store: %s", err)
 	}
 	if inited {
 		out.Error(ctx, "WARNING: Store is already initialized")
 	}
 
 	if err := s.init(ctx, alias, path, c.Args().Slice()...); err != nil {
-		return ExitError(ctx, ExitUnknown, err, "failed to initialize store: %s", err)
+		return ExitError(ExitUnknown, err, "failed to initialize store: %s", err)
 	}
 	return nil
 }
@@ -86,15 +87,15 @@ func initParseContext(ctx context.Context, c *cli.Context) context.Context {
 	}
 
 	if !backend.HasCryptoBackend(ctx) {
-		out.Debug(ctx, "Using default Crypto Backend (GPGCLI)")
+		debug.Log("Using default Crypto Backend (GPGCLI)")
 		ctx = backend.WithCryptoBackend(ctx, backend.GPGCLI)
 	}
 	if !backend.HasRCSBackend(ctx) {
-		out.Debug(ctx, "Using default RCS backend (GitCLI)")
+		debug.Log("Using default RCS backend (GitCLI)")
 		ctx = backend.WithRCSBackend(ctx, backend.GitCLI)
 	}
 	if !backend.HasStorageBackend(ctx) {
-		out.Debug(ctx, "Using default storage backend (FS)")
+		debug.Log("Using default storage backend (FS)")
 		ctx = backend.WithStorageBackend(ctx, backend.FS)
 	}
 
@@ -112,29 +113,29 @@ func (s *Action) init(ctx context.Context, alias, path string, keys ...string) e
 			path = s.Store.Path()
 		}
 	}
-	out.Debug(ctx, "action.init(%s, %s, %+v)", alias, path, keys)
+	debug.Log("action.init(%s, %s, %+v)", alias, path, keys)
 
-	out.Debug(ctx, "Checking private keys ...")
+	debug.Log("Checking private keys ...")
 	crypto := s.getCryptoFor(ctx, alias)
 	// private key selection doesn't matter for plain. save one question.
 	if crypto.Name() == "plain" {
 		keys, _ = crypto.ListIdentities(ctx)
 	}
 	if len(keys) < 1 {
-		nk, err := cui.AskForPrivateKey(ctx, crypto, alias, color.CyanString("Please select a private key for encrypting secrets:"))
+		nk, err := cui.AskForPrivateKey(ctx, crypto, color.CyanString("Please select a private key for encrypting secrets:"))
 		if err != nil {
 			return errors.Wrapf(err, "failed to read user input")
 		}
 		keys = []string{nk}
 	}
 
-	out.Debug(ctx, "Initializing sub store - Alias: %s - Path: %s - Keys: %+v", alias, path, keys)
+	debug.Log("Initializing sub store - Alias: %s - Path: %s - Keys: %+v", alias, path, keys)
 	if err := s.Store.Init(ctx, alias, path, keys...); err != nil {
 		return errors.Wrapf(err, "failed to init store '%s' at '%s'", alias, path)
 	}
 
 	if alias != "" && path != "" {
-		out.Debug(ctx, "Mounting sub store %s -> %s", alias, path)
+		debug.Log("Mounting sub store %s -> %s", alias, path)
 		if err := s.Store.AddMount(ctx, alias, path); err != nil {
 			return errors.Wrapf(err, "failed to add mount '%s'", alias)
 		}
@@ -142,13 +143,13 @@ func (s *Action) init(ctx context.Context, alias, path string, keys ...string) e
 
 	if backend.HasRCSBackend(ctx) {
 		bn := backend.RCSBackendName(backend.GetRCSBackend(ctx))
-		out.Debug(ctx, "Initializing RCS (%s) ...", bn)
+		debug.Log("Initializing RCS (%s) ...", bn)
 		if err := s.rcsInit(ctx, alias, ctxutil.GetUsername(ctx), ctxutil.GetEmail(ctx)); err != nil {
-			out.Debug(ctx, "Stacktrace: %+v\n", err)
+			debug.Log("Stacktrace: %+v\n", err)
 			out.Error(ctx, "Failed to init RCS (%s): %s", bn, err)
 		}
 	} else {
-		out.Debug(ctx, "not initializing RCS backend ...")
+		debug.Log("not initializing RCS backend ...")
 	}
 
 	out.Green(ctx, "Password store %s initialized for:", path)
@@ -156,7 +157,7 @@ func (s *Action) init(ctx context.Context, alias, path string, keys ...string) e
 
 	// write config
 	if err := s.cfg.Save(); err != nil {
-		return ExitError(ctx, ExitConfig, err, "failed to write config: %s", err)
+		return ExitError(ExitConfig, err, "failed to write config: %s", err)
 	}
 
 	return nil
@@ -224,36 +225,36 @@ func (s *Action) InitOnboarding(c *cli.Context) error {
 	if rcs := c.String("rcs"); rcs != "" {
 		ctx = backend.WithRCSBackendString(ctx, c.String("rcs"))
 	} else {
-		out.Debug(ctx, "Using default RCS backend (GitCLI)")
+		debug.Log("Using default RCS backend (GitCLI)")
 		ctx = backend.WithRCSBackend(ctx, backend.GitCLI)
 	}
 
 	ctx = out.AddPrefix(ctx, "[init] ")
-	out.Debug(ctx, "Starting Onboarding Wizard - remote: %s - team: %s - create: %t - name: %s - email: %s", remote, team, create, name, email)
+	debug.Log("Starting Onboarding Wizard - remote: %s - team: %s - create: %t - name: %s - email: %s", remote, team, create, name, email)
 
 	crypto := s.getCryptoFor(ctx, name)
 
-	out.Debug(ctx, "Crypto Backend initialized as: %s", crypto.Name())
+	debug.Log("Crypto Backend initialized as: %s", crypto.Name())
 
 	// check for existing GPG keypairs (private/secret keys). We need at least
 	// one useable key pair. If none exists try to create one
-	if !s.initHasUseablePrivateKeys(ctx, crypto, team) {
+	if !s.initHasUseablePrivateKeys(ctx, crypto) {
 		out.Yellow(ctx, "No useable crypto keys. Generating new key pair")
 		ctx := out.AddPrefix(ctx, "[crypto] ")
 		out.Print(ctx, "Key generation may take up to a few minutes")
-		if err := s.initCreatePrivateKey(ctx, crypto, team, name, email); err != nil {
+		if err := s.initCreatePrivateKey(ctx, crypto, name, email); err != nil {
 			return errors.Wrapf(err, "failed to create new private key")
 		}
 	}
 
-	out.Debug(ctx, "Has useable private keys")
+	debug.Log("Has useable private keys")
 
 	// if a git remote and a team name are given attempt unattended team setup
 	if remote != "" && team != "" {
 		if create {
-			return s.initCreateTeam(ctx, c, team, remote)
+			return s.initCreateTeam(ctx, team, remote)
 		}
-		return s.initJoinTeam(ctx, c, team, remote)
+		return s.initJoinTeam(ctx, team, remote)
 	}
 
 	// no flags given, run interactively
@@ -269,11 +270,11 @@ func (s *Action) InitOnboarding(c *cli.Context) error {
 	case "show":
 		switch sel {
 		case 0:
-			return s.initLocal(ctx, c)
+			return s.initLocal(ctx)
 		case 1:
-			return s.initCreateTeam(ctx, c, "", "")
+			return s.initCreateTeam(ctx, "", "")
 		case 2:
-			return s.initJoinTeam(ctx, c, "", "")
+			return s.initJoinTeam(ctx, "", "")
 		}
 	default:
 		return fmt.Errorf("user aborted")
@@ -281,7 +282,7 @@ func (s *Action) InitOnboarding(c *cli.Context) error {
 	return nil
 }
 
-func (s *Action) initCreatePrivateKey(ctx context.Context, crypto backend.Crypto, mount, name, email string) error {
+func (s *Action) initCreatePrivateKey(ctx context.Context, crypto backend.Crypto, name, email string) error {
 	out.Green(ctx, "Creating key pair ...")
 	out.Yellow(ctx, "WARNING: We are about to generate some GPG keys.")
 	out.Print(ctx, `However, the GPG program can sometimes lock up, displaying the following:
@@ -316,7 +317,7 @@ https://github.com/gopasspw/gopass/blob/master/docs/entropy.md`)
 		return nil
 	}
 	if len(kl) < 1 {
-		out.Debug(ctx, "Private Keys: %+v", kl)
+		debug.Log("Private Keys: %+v", kl)
 		return errors.New("failed to create a useable key pair")
 	}
 	key := kl[0]
@@ -331,7 +332,7 @@ https://github.com/gopasspw/gopass/blob/master/docs/entropy.md`)
 	return nil
 }
 
-func (s *Action) initHasUseablePrivateKeys(ctx context.Context, crypto backend.Crypto, mount string) bool {
+func (s *Action) initHasUseablePrivateKeys(ctx context.Context, crypto backend.Crypto) bool {
 	kl, err := crypto.ListIdentities(gpg.WithAlwaysTrust(ctx, false))
 	if err != nil {
 		return false
@@ -352,7 +353,7 @@ func (s *Action) initSetupGitRemote(ctx context.Context, team, remote string) er
 		}
 		// initial pull, in case the remote is non-empty
 		if err := s.Store.GitPull(ctx, team, "origin", "master"); err != nil {
-			out.Debug(ctx, "Initial git pull failed: %s", err)
+			debug.Log("Initial git pull failed: %s", err)
 		}
 		if err := s.Store.GitPush(ctx, team, "origin", "master"); err != nil {
 			return errors.Wrapf(err, "failed to push to git remote")
@@ -363,7 +364,7 @@ func (s *Action) initSetupGitRemote(ctx context.Context, team, remote string) er
 
 // initLocal will initialize a local store, useful for local-only setups or as
 // part of team setups to create the root store
-func (s *Action) initLocal(ctx context.Context, c *cli.Context) error {
+func (s *Action) initLocal(ctx context.Context) error {
 	ctx = out.AddPrefix(ctx, "[local] ")
 
 	path := ""
@@ -401,11 +402,11 @@ func (s *Action) initLocal(ctx context.Context, c *cli.Context) error {
 }
 
 // initCreateTeam will create a local root store and a shared team store
-func (s *Action) initCreateTeam(ctx context.Context, c *cli.Context, team, remote string) error {
+func (s *Action) initCreateTeam(ctx context.Context, team, remote string) error {
 	var err error
 
 	out.Print(ctx, "Creating a new team ...")
-	if err := s.initLocal(ctx, c); err != nil {
+	if err := s.initLocal(ctx); err != nil {
 		return errors.Wrapf(err, "failed to create local store")
 	}
 
@@ -433,11 +434,11 @@ func (s *Action) initCreateTeam(ctx context.Context, c *cli.Context, team, remot
 
 // initJoinTeam will create a local root store and clone and existing store to
 // a mount
-func (s *Action) initJoinTeam(ctx context.Context, c *cli.Context, team, remote string) error {
+func (s *Action) initJoinTeam(ctx context.Context, team, remote string) error {
 	var err error
 
 	out.Print(ctx, "Joining existing team ...")
-	if err := s.initLocal(ctx, c); err != nil {
+	if err := s.initLocal(ctx); err != nil {
 		return errors.Wrapf(err, "failed to create local store")
 	}
 

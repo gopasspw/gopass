@@ -4,15 +4,13 @@ import (
 	"context"
 
 	"github.com/gopasspw/gopass/internal/backend"
-	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/internal/debug"
 )
 
-func (s *Store) initRCSBackend(ctx context.Context) error {
+func (s *Store) initRCSBackend(ctx context.Context) {
 	rcs, err := backend.DetectRCS(ctx, s.path)
 	if err != nil {
-		out.Debug(ctx, "Failed to initialized RCS backend: %s", err)
-		return nil
+		debug.Log("Failed to initialized RCS backend: %s", err)
 	}
 	s.rcs = rcs
-	return nil
 }

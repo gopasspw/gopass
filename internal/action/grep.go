@@ -14,7 +14,7 @@ import (
 func (s *Action) Grep(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	if !c.Args().Present() {
-		return ExitError(ctx, ExitUsage, nil, "Usage: %s grep arg", s.Name)
+		return ExitError(ExitUsage, nil, "Usage: %s grep arg", s.Name)
 	}
 
 	// get the search term
@@ -22,7 +22,7 @@ func (s *Action) Grep(c *cli.Context) error {
 
 	haystack, err := s.Store.List(ctx, 0)
 	if err != nil {
-		return ExitError(ctx, ExitList, err, "failed to list store: %s", err)
+		return ExitError(ExitList, err, "failed to list store: %s", err)
 	}
 
 	var matches int
@@ -43,10 +43,10 @@ func (s *Action) Grep(c *cli.Context) error {
 	}
 
 	if errors > 0 {
-		return ExitError(ctx, ExitDecrypt, nil, "some secrets failed to decrypt")
+		return ExitError(ExitDecrypt, nil, "some secrets failed to decrypt")
 	}
 	if matches < 1 {
-		return ExitError(ctx, ExitNotFound, nil, "no matches found")
+		return ExitError(ExitNotFound, nil, "no matches found")
 	}
 
 	out.Print(ctx, "\nScanned %d secrets. %d matches, %d errors", len(haystack), matches, errors)

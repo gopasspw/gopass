@@ -11,7 +11,7 @@ import (
 	"strings"
 
 	"github.com/gopasspw/gopass/internal/backend/crypto/gpg"
-	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/internal/debug"
 	lru "github.com/hashicorp/golang-lru"
 )
 
@@ -82,7 +82,7 @@ func (g *GPG) RecipientIDs(ctx context.Context, buf []byte) ([]string, error) {
 	args := []string{"--batch", "--list-only", "--list-packets", "--no-default-keyring", "--secret-keyring", "/dev/null"}
 	cmd := exec.CommandContext(ctx, g.binary, args...)
 	cmd.Stdin = bytes.NewReader(buf)
-	out.Debug(ctx, "gpg.GetRecipients: %s %+v", cmd.Path, cmd.Args)
+	debug.Log("gpg.GetRecipients: %s %+v", cmd.Path, cmd.Args)
 
 	cmdout, err := cmd.CombinedOutput()
 	if err != nil {
@@ -92,7 +92,7 @@ func (g *GPG) RecipientIDs(ctx context.Context, buf []byte) ([]string, error) {
 	scanner := bufio.NewScanner(bytes.NewBuffer(cmdout))
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
-		out.Debug(ctx, "gpg Output: %s", line)
+		debug.Log("gpg Output: %s", line)
 		if !strings.HasPrefix(line, ":pubkey enc packet:") {
 			continue
 		}
@@ -130,7 +130,7 @@ func (g *GPG) Encrypt(ctx context.Context, plaintext []byte, recipients []string
 	cmd.Stdout = buf
 	cmd.Stderr = os.Stderr
 
-	out.Debug(ctx, "gpg.Encrypt: %s %+v", cmd.Path, cmd.Args)
+	debug.Log("gpg.Encrypt: %s %+v", cmd.Path, cmd.Args)
 	err := cmd.Run()
 	return buf.Bytes(), err
 }
@@ -142,7 +142,7 @@ func (g *GPG) Decrypt(ctx context.Context, ciphertext []byte) ([]byte, error) {
 	cmd.Stdin = bytes.NewReader(ciphertext)
 	cmd.Stderr = os.Stderr
 
-	out.Debug(ctx, "gpg.Decrypt: %s %+v", cmd.Path, cmd.Args)
+	debug.Log("gpg.Decrypt: %s %+v", cmd.Path, cmd.Args)
 	return cmd.Output()
 }
 

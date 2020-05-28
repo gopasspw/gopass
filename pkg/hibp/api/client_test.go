@@ -1,7 +1,6 @@
 package api
 
 import (
-	"context"
 	"crypto/sha1"
 	"fmt"
 	"net/http"
@@ -13,8 +12,7 @@ import (
 )
 
 func Example() {
-	ctx := context.Background()
-	matches, err := Lookup(ctx, "sha1sum of secret")
+	matches, err := Lookup("sha1sum of secret")
 	if err != nil {
 		panic(err)
 	}
@@ -25,8 +23,6 @@ func TestLookup(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping test in short mode.")
 	}
-
-	ctx := context.Background()
 
 	match := "match"
 	noMatch := "no match"
@@ -54,12 +50,12 @@ func TestLookup(t *testing.T) {
 	URL = ts.URL
 
 	// test with one entry
-	count, err := Lookup(ctx, matchSum)
+	count, err := Lookup(matchSum)
 	assert.NoError(t, err)
 	assert.Equal(t, matchCount, count)
 
 	// add another one
-	count, err = Lookup(ctx, sha1sum(noMatch))
+	count, err = Lookup(sha1sum(noMatch))
 	assert.NoError(t, err)
 	assert.Equal(t, uint64(0), count)
 }
@@ -68,8 +64,6 @@ func TestLookupCR(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping test in short mode.")
 	}
-
-	ctx := context.Background()
 
 	match := "match"
 	noMatch := "no match"
@@ -97,12 +91,12 @@ func TestLookupCR(t *testing.T) {
 	URL = ts.URL
 
 	// test with one entry
-	count, err := Lookup(ctx, matchSum)
+	count, err := Lookup(matchSum)
 	assert.NoError(t, err)
 	assert.Equal(t, matchCount, count)
 
 	// add another one
-	count, err = Lookup(ctx, sha1sum(noMatch))
+	count, err = Lookup(sha1sum(noMatch))
 	assert.NoError(t, err)
 	assert.Equal(t, uint64(0), count)
 }

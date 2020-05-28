@@ -119,8 +119,6 @@ func TestIsUpdateable(t *testing.T) {
 }
 
 func TestCheckHost(t *testing.T) {
-	ctx := context.Background()
-
 	for _, tc := range []struct {
 		in string
 		ok bool
@@ -136,7 +134,7 @@ func TestCheckHost(t *testing.T) {
 	} {
 		u, err := url.Parse(tc.in)
 		require.NoError(t, err)
-		err = updateCheckHost(ctx, u)
+		err = updateCheckHost(u)
 		if tc.ok {
 			assert.NoError(t, err)
 		} else {

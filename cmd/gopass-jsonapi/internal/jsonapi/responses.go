@@ -156,7 +156,7 @@ func (api *API) respondGetData(ctx context.Context, msgBytes []byte) error {
 	}
 
 	responseData := sec.Data()
-	currentTotp, _, err := otp.Calculate(ctx, "_", sec)
+	currentTotp, _, err := otp.Calculate("_", sec)
 	if err == nil {
 		responseData["current_totp"] = currentTotp.OTP()
 	}

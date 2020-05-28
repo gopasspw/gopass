@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/internal/editor"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/tpl"
@@ -40,7 +41,7 @@ func (s *Action) TemplatesPrint(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	tree, err := s.Store.TemplateTree(ctx)
 	if err != nil {
-		return ExitError(ctx, ExitList, err, "failed to list templates: %s", err)
+		return ExitError(ExitList, err, "failed to list templates: %s", err)
 	}
 	fmt.Fprintln(stdout, tree.Format(-1))
 	return nil
@@ -53,7 +54,7 @@ func (s *Action) TemplatePrint(c *cli.Context) error {
 
 	content, err := s.Store.GetTemplate(ctx, name)
 	if err != nil {
-		return ExitError(ctx, ExitIO, err, "failed to retrieve template: %s", err)
+		return ExitError(ExitIO, err, "failed to retrieve template: %s", err)
 	}
 
 	fmt.Fprintln(stdout, string(content))
@@ -71,7 +72,7 @@ func (s *Action) TemplateEdit(c *cli.Context) error {
 		var err error
 		content, err = s.Store.GetTemplate(ctx, name)
 		if err != nil {
-			return ExitError(ctx, ExitIO, err, "failed to retrieve template: %s", err)
+			return ExitError(ExitIO, err, "failed to retrieve template: %s", err)
 		}
 	} else {
 		content = []byte(templateExample)
@@ -80,7 +81,7 @@ func (s *Action) TemplateEdit(c *cli.Context) error {
 	ed := editor.Path(c)
 	nContent, err := editor.Invoke(ctx, ed, content)
 	if err != nil {
-		return ExitError(ctx, ExitUnknown, err, "failed to invoke editor %s: %s", ed, err)
+		return ExitError(ExitUnknown, err, "failed to invoke editor %s: %s", ed, err)
 	}
 
 	// If content is equal, nothing changed, exiting
@@ -96,11 +97,11 @@ func (s *Action) TemplateRemove(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	name := c.Args().First()
 	if name == "" {
-		return ExitError(ctx, ExitUsage, nil, "usage: %s templates remove [name]", s.Name)
+		return ExitError(ExitUsage, nil, "usage: %s templates remove [name]", s.Name)
 	}
 
 	if !s.Store.HasTemplate(ctx, name) {
-		return ExitError(ctx, ExitNotFound, nil, "template '%s' not found", name)
+		return ExitError(ExitNotFound, nil, "template '%s' not found", name)
 	}
 
 	return s.Store.RemoveTemplate(ctx, name)
@@ -123,13 +124,13 @@ func (s *Action) TemplatesComplete(c *cli.Context) {
 func (s *Action) renderTemplate(ctx context.Context, name string, content []byte) ([]byte, bool) {
 	tName, tmpl, found := s.Store.LookupTemplate(ctx, name)
 	if !found {
-		out.Debug(ctx, "No template found for %s", name)
+		debug.Log("No template found for %s", name)
 		return content, false
 	}
 
 	tmplStr := strings.TrimSpace(string(tmpl))
 	if tmplStr == "" {
-		out.Debug(ctx, "Skipping empty template '%s', for %s", tName, name)
+		debug.Log("Skipping empty template '%s', for %s", tName, name)
 		return content, false
 	}
 

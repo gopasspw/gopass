@@ -6,6 +6,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/internal/tree"
@@ -34,7 +35,7 @@ func (s *Store) LookupTemplate(ctx context.Context, name string) (string, []byte
 		tpl := filepath.Join(name, TemplateFile)
 		if s.storage.Exists(ctx, tpl) {
 			if content, err := s.storage.Get(ctx, tpl); err == nil {
-				out.Debug(ctx, "Found template '%s' for '%s'", tpl, oName)
+				debug.Log("Found template '%s' for '%s'", tpl, oName)
 				return tpl, content, true
 			}
 		}
@@ -46,7 +47,7 @@ func (s *Store) LookupTemplate(ctx context.Context, name string) (string, []byte
 func (s *Store) ListTemplates(ctx context.Context, prefix string) []string {
 	lst, err := s.storage.List(ctx, "")
 	if err != nil {
-		out.Debug(ctx, "failed to list templates: %s", err)
+		debug.Log("failed to list templates: %s", err)
 		return nil
 	}
 	tpls := make(map[string]struct{}, len(lst))
@@ -69,7 +70,7 @@ func (s *Store) ListTemplates(ctx context.Context, prefix string) []string {
 }
 
 // TemplateTree returns a tree of all templates
-func (s *Store) TemplateTree(ctx context.Context) (tree.Tree, error) {
+func (s *Store) TemplateTree(ctx context.Context) tree.Tree {
 	root := simple.New("gopass")
 	for _, t := range s.ListTemplates(ctx, "") {
 		if err := root.AddFile(t, "gopass/template"); err != nil {
@@ -77,7 +78,7 @@ func (s *Store) TemplateTree(ctx context.Context) (tree.Tree, error) {
 		}
 	}
 
-	return root, nil
+	return root
 }
 
 // templatefile returns the name of the given template on disk

@@ -58,7 +58,7 @@ func (s *Action) Version(c *cli.Context) error {
 	case <-time.After(2 * time.Second):
 		out.Error(ctx, "Version check timed out")
 	case <-ctx.Done():
-		return ExitError(ctx, ExitAborted, nil, "user aborted")
+		return ExitError(ExitAborted, nil, "user aborted")
 	}
 
 	return nil
@@ -89,7 +89,7 @@ func (s *Action) checkVersion(ctx context.Context, u chan string) {
 		return
 	}
 
-	r, err := updater.LatestRelease(ctx, len(s.version.Pre) > 0)
+	r, err := updater.LatestRelease(len(s.version.Pre) > 0)
 	if err != nil {
 		u <- color.RedString("\nError checking latest version: %s", err)
 		return

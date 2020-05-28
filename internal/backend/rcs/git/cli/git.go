@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/gopasspw/gopass/internal/backend"
+	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -30,7 +31,7 @@ type Git struct {
 }
 
 // Open creates a new git cli based git backend
-func Open(path, gpg string) (*Git, error) {
+func Open(path string) (*Git, error) {
 	if !fsutil.IsDir(filepath.Join(path, ".git")) {
 		return nil, fmt.Errorf("git repo does not exist")
 	}
@@ -83,7 +84,7 @@ func Init(ctx context.Context, path, userName, userEmail string) (*Git, error) {
 
 	// commit if there is something to commit
 	if !g.HasStagedChanges(ctx) {
-		out.Debug(ctx, "No staged changes")
+		debug.Log("No staged changes")
 		return g, nil
 	}
 
@@ -103,12 +104,12 @@ func (g *Git) captureCmd(ctx context.Context, name string, args ...string) ([]by
 	cmd.Stdout = bufOut
 	cmd.Stderr = bufErr
 
-	if ctxutil.IsDebug(ctx) || ctxutil.IsVerbose(ctx) {
+	if debug.IsEnabled() || ctxutil.IsVerbose(ctx) {
 		cmd.Stdout = io.MultiWriter(bufOut, os.Stdout)
 		cmd.Stderr = io.MultiWriter(bufErr, os.Stderr)
 	}
 
-	out.Debug(ctx, "store.%s: %s %+v (%s)", name, cmd.Path, cmd.Args, g.path)
+	debug.Log("store.%s: %s %+v (%s)", name, cmd.Path, cmd.Args, g.path)
 	err := cmd.Run()
 	return bufOut.Bytes(), bufErr.Bytes(), err
 }
@@ -117,7 +118,7 @@ func (g *Git) captureCmd(ctx context.Context, name string, args ...string) ([]by
 func (g *Git) Cmd(ctx context.Context, name string, args ...string) error {
 	stdout, stderr, err := g.captureCmd(ctx, name, args...)
 	if err != nil {
-		out.Debug(ctx, "CMD: %s %+v\nError: %s\nOutput:\n  Stdout: '%s'\n  Stderr: '%s'", name, args, err, string(stdout), string(stderr))
+		debug.Log("CMD: %s %+v\nError: %s\nOutput:\n  Stdout: '%s'\n  Stderr: '%s'", name, args, err, string(stdout), string(stderr))
 		return fmt.Errorf("%s: %s", err, strings.TrimSpace(string(stderr)))
 	}
 
@@ -136,7 +137,7 @@ func (g *Git) Version(ctx context.Context) semver.Version {
 	cmd := exec.CommandContext(ctx, "git", "version")
 	cmdout, err := cmd.Output()
 	if err != nil {
-		out.Debug(ctx, "Failed to run 'git version': %s", err)
+		debug.Log("Failed to run 'git version': %s", err)
 		return v
 	}
 
@@ -147,7 +148,7 @@ func (g *Git) Version(ctx context.Context) semver.Version {
 
 	sv, err := semver.ParseTolerant(svStr)
 	if err != nil {
-		out.Debug(ctx, "Failed to parse '%s' as semver: %s", svStr, err)
+		debug.Log("Failed to parse '%s' as semver: %s", svStr, err)
 		return v
 	}
 	return sv
@@ -227,7 +228,7 @@ func (g *Git) defaultBranch(ctx context.Context) string {
 // optional arguments: remote and branch
 func (g *Git) PushPull(ctx context.Context, op, remote, branch string) error {
 	if ctxutil.IsNoNetwork(ctx) {
-		out.Debug(ctx, "Skipping network ops. NoNetwork=true")
+		debug.Log("Skipping network ops. NoNetwork=true")
 		return nil
 	}
 	if !g.IsInitialized() {
@@ -261,7 +262,7 @@ func (g *Git) PushPull(ctx context.Context, op, remote, branch string) error {
 // Push pushes to the git remote
 func (g *Git) Push(ctx context.Context, remote, branch string) error {
 	if ctxutil.IsNoNetwork(ctx) {
-		out.Debug(ctx, "Skipping network ops. NoNetwork=true")
+		debug.Log("Skipping network ops. NoNetwork=true")
 		return nil
 	}
 	return g.PushPull(ctx, "push", remote, branch)
@@ -270,7 +271,7 @@ func (g *Git) Push(ctx context.Context, remote, branch string) error {
 // Pull pulls from the git remote
 func (g *Git) Pull(ctx context.Context, remote, branch string) error {
 	if ctxutil.IsNoNetwork(ctx) {
-		out.Debug(ctx, "Skipping network ops. NoNetwork=true")
+		debug.Log("Skipping network ops. NoNetwork=true")
 		return nil
 	}
 	return g.PushPull(ctx, "pull", remote, branch)
@@ -298,7 +299,7 @@ func (g *Git) Revisions(ctx context.Context, name string) ([]backend.Revision, e
 	}
 	stdout, stderr, err := g.captureCmd(ctx, "Revisions", args...)
 	if err != nil {
-		out.Debug(ctx, "Command failed: %s", string(stderr))
+		debug.Log("Command failed: %s", string(stderr))
 		return nil, err
 	}
 	so := string(stdout)
@@ -349,7 +350,7 @@ func (g *Git) GetRevision(ctx context.Context, name, revision string) ([]byte, e
 	}
 	stdout, stderr, err := g.captureCmd(ctx, "GetRevision", args...)
 	if err != nil {
-		out.Debug(ctx, "Command failed: %s", string(stderr))
+		debug.Log("Command failed: %s", string(stderr))
 		return nil, err
 	}
 	return stdout, nil
@@ -359,7 +360,7 @@ func (g *Git) GetRevision(ctx context.Context, name, revision string) ([]byte, e
 func (g *Git) Status(ctx context.Context) ([]byte, error) {
 	stdout, stderr, err := g.captureCmd(ctx, "GitStatus", "status")
 	if err != nil {
-		out.Debug(ctx, "Command failed: %s\n%s", string(stdout), string(stderr))
+		debug.Log("Command failed: %s\n%s", string(stdout), string(stderr))
 		return nil, err
 	}
 	return stdout, nil

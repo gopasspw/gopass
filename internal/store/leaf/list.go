@@ -4,7 +4,7 @@ import (
 	"context"
 	"strings"
 
-	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/internal/debug"
 )
 
 var (
@@ -21,7 +21,7 @@ func (s *Store) List(ctx context.Context, prefix string) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	out.Debug(ctx, "sub.List(%s): %+v\n", prefix, lst)
+	debug.Log("sub.List(%s): %+v\n", prefix, lst)
 	out := make([]string, 0, len(lst))
 	cExt := "." + s.crypto.Ext()
 	for _, path := range lst {

@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 
@@ -88,9 +88,9 @@ func (s *Store) delete(ctx context.Context, name string, recurse bool) error {
 	if err := s.rcs.Commit(ctx, fmt.Sprintf("Remove %s from store.", name)); err != nil {
 		switch errors.Cause(err) {
 		case store.ErrGitNotInit:
-			out.Debug(ctx, "move - skipping git commit - git not initialized")
+			debug.Log("move - skipping git commit - git not initialized")
 		case store.ErrGitNothingToCommit:
-			out.Debug(ctx, "move - skipping git commit - nothing to commit")
+			debug.Log("move - skipping git commit - nothing to commit")
 		default:
 			return errors.Wrapf(err, "failed to commit changes to git")
 		}
@@ -113,7 +113,7 @@ func (s *Store) deleteRecurse(ctx context.Context, name, path string) error {
 
 	name = strings.TrimPrefix(name, string(filepath.Separator))
 
-	out.Debug(ctx, "Pruning %s", name)
+	debug.Log("Pruning %s", name)
 	if err := s.storage.Prune(ctx, name); err != nil {
 		return err
 	}
@@ -132,7 +132,7 @@ func (s *Store) deleteSingle(ctx context.Context, path string) error {
 		return store.ErrNotFound
 	}
 
-	out.Debug(ctx, "Deleting %s", path)
+	debug.Log("Deleting %s", path)
 	if err := s.storage.Delete(ctx, path); err != nil {
 		return err
 	}

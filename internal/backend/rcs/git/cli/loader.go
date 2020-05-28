@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 
 	"github.com/gopasspw/gopass/internal/backend"
-	gpgcli "github.com/gopasspw/gopass/internal/backend/crypto/gpg/cli"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/fsutil"
 )
@@ -23,8 +22,7 @@ type loader struct{}
 
 // Open implements backend.RCSLoader
 func (l loader) Open(ctx context.Context, path string) (backend.RCS, error) {
-	gpgBin, _ := gpgcli.Binary(ctx, "")
-	return Open(path, gpgBin)
+	return Open(path)
 }
 
 // Clone implements backend.RCSLoader

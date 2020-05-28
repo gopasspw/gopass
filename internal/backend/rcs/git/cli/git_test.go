@@ -52,7 +52,7 @@ func TestGit(t *testing.T) {
 	assert.Error(t, git.Push(ctx, "origin", "master"))
 	assert.Error(t, git.Pull(ctx, "origin", "master"))
 
-	git, err = Open(gitdir, "")
+	git, err = Open(gitdir)
 	require.NoError(t, err)
 	require.NotNil(t, git)
 	assert.Equal(t, "git", git.Name())

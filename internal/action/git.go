@@ -29,7 +29,7 @@ func (s *Action) GitInit(c *cli.Context) error {
 	}
 
 	if err := s.rcsInit(ctx, store, un, ue); err != nil {
-		return ExitError(ctx, ExitGit, err, "failed to initialize git: %s", err)
+		return ExitError(ExitGit, err, "failed to initialize git: %s", err)
 	}
 	return nil
 }
@@ -57,7 +57,7 @@ func (s *Action) getUserData(ctx context.Context, store, un, ue string) (string,
 
 	// for convenience, set defaults to user-selected values from available private keys
 	// NB: discarding returned error since this is merely a best-effort look-up for convenience
-	userName, userEmail, _ := cui.AskForGitConfigUser(ctx, s.Store.Crypto(ctx, store), store)
+	userName, userEmail, _ := cui.AskForGitConfigUser(ctx, s.Store.Crypto(ctx, store))
 
 	if userName == "" {
 		var err error
@@ -85,7 +85,7 @@ func (s *Action) GitAddRemote(c *cli.Context) error {
 	url := c.Args().Get(1)
 
 	if remote == "" || url == "" {
-		return ExitError(ctx, ExitUsage, nil, "Usage: %s git remote add <REMOTE> <URL>", s.Name)
+		return ExitError(ExitUsage, nil, "Usage: %s git remote add <REMOTE> <URL>", s.Name)
 	}
 
 	return s.Store.GitAddRemote(ctx, store, remote, url)
@@ -98,7 +98,7 @@ func (s *Action) GitRemoveRemote(c *cli.Context) error {
 	remote := c.Args().Get(0)
 
 	if remote == "" {
-		return ExitError(ctx, ExitUsage, nil, "Usage: %s git remote rm <REMOTE>", s.Name)
+		return ExitError(ExitUsage, nil, "Usage: %s git remote rm <REMOTE>", s.Name)
 	}
 
 	return s.Store.GitRemoveRemote(ctx, store, remote)
@@ -128,7 +128,7 @@ func (s *Action) GitPush(c *cli.Context) error {
 	branch := c.Args().Get(1)
 
 	if origin == "" || branch == "" {
-		return ExitError(ctx, ExitUsage, nil, "Usage: %s git push <ORIGIN> <BRANCH>", s.Name)
+		return ExitError(ExitUsage, nil, "Usage: %s git push <ORIGIN> <BRANCH>", s.Name)
 	}
 	return s.Store.GitPush(ctx, store, origin, branch)
 }

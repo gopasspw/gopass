@@ -25,10 +25,8 @@ func TestInit(t *testing.T) {
 
 	cfg := config.New()
 	cfg.Path = u.StoreDir("rs")
-	rs, err := New(ctx, cfg)
-	require.NoError(t, err)
+	rs := New(cfg)
 
-	ctx = ctxutil.WithDebug(ctx, true)
 	inited, err := rs.Initialized(ctx)
 	assert.NoError(t, err)
 	assert.Equal(t, false, inited)

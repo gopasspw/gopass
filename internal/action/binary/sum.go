@@ -16,7 +16,7 @@ func Sum(c *cli.Context, store storer) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	name := c.Args().First()
 	if name == "" {
-		return action.ExitError(ctx, action.ExitUsage, nil, "Usage: %s sha256 name", c.App.Name)
+		return action.ExitError(action.ExitUsage, nil, "Usage: %s sha256 name", c.App.Name)
 	}
 
 	if !strings.HasSuffix(name, Suffix) {
@@ -25,7 +25,7 @@ func Sum(c *cli.Context, store storer) error {
 
 	buf, err := binaryGet(ctx, name, store)
 	if err != nil {
-		return action.ExitError(ctx, action.ExitDecrypt, err, "failed to read secret: %s", err)
+		return action.ExitError(action.ExitDecrypt, err, "failed to read secret: %s", err)
 	}
 
 	h := sha256.New()

@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/gopasspw/gopass/internal/backend"
-	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/internal/debug"
 
 	"github.com/pkg/errors"
 )
@@ -23,7 +23,7 @@ type Store struct {
 
 // Init initialized this sub store
 func Init(ctx context.Context, alias, path string) (*Store, error) {
-	out.Debug(ctx, "sub.Init(%s, %s) ...", alias, path)
+	debug.Log("sub.Init(%s, %s) ...", alias, path)
 	s := &Store{
 		alias: alias,
 		path:  path,
@@ -52,7 +52,7 @@ func Init(ctx context.Context, alias, path string) (*Store, error) {
 
 // New creates a new store
 func New(ctx context.Context, alias, path string) (*Store, error) {
-	out.Debug(ctx, "sub.New(%s, %s)", alias, path)
+	debug.Log("sub.New(%s, %s)", alias, path)
 
 	s := &Store{
 		alias: alias,
@@ -65,16 +65,14 @@ func New(ctx context.Context, alias, path string) (*Store, error) {
 	}
 
 	// init sync backend
-	if err := s.initRCSBackend(ctx); err != nil {
-		return nil, errors.Wrapf(err, "failed to init RCS backend: %s", err)
-	}
+	s.initRCSBackend(ctx)
 
 	// init crypto backend
 	if err := s.initCryptoBackend(ctx); err != nil {
 		return nil, errors.Wrapf(err, "failed to init crypto backend: %s", err)
 	}
 
-	out.Debug(ctx, "sub.New(%s, %s) - initialized - storage: %+#v - rcs: %+#v - crypto: %+#v", alias, path, s.storage, s.rcs, s.crypto)
+	debug.Log("sub.New(%s, %s) - initialized - storage: %+#v - rcs: %+#v - crypto: %+#v", alias, path, s.storage, s.rcs, s.crypto)
 	return s, nil
 }
 

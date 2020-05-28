@@ -6,6 +6,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/internal/tree"
@@ -99,7 +100,7 @@ func (r *Store) RecipientsTree(ctx context.Context, pretty bool) (tree.Tree, err
 		}
 		for _, recp := range substore.Recipients(ctx) {
 			if err := r.addRecipient(ctx, alias+"/", root, recp, pretty); err != nil {
-				out.Debug(ctx, "Failed to add recipient to tree %s: %s", recp, err)
+				debug.Log("Failed to add recipient to tree %s: %s", recp, err)
 			}
 		}
 	}

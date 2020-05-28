@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -42,7 +43,7 @@ func (s *Store) Set(ctx context.Context, name string, sec store.Byter) error {
 
 	ciphertext, err := s.crypto.Encrypt(ctx, buf, recipients)
 	if err != nil {
-		out.Debug(ctx, "Failed encrypt secret: %s", err)
+		debug.Log("Failed encrypt secret: %s", err)
 		return store.ErrEncrypt
 	}
 
@@ -54,7 +55,7 @@ func (s *Store) Set(ctx context.Context, name string, sec store.Byter) error {
 	// so we need to skip this step when using concurrency and perform them
 	// at the end of the batch processing.
 	if IsNoGitOps(ctx) {
-		out.Debug(ctx, "sub.Set(%s) - skipping git ops (disabled)")
+		debug.Log("sub.Set(%s) - skipping git ops (disabled)")
 		return nil
 	}
 
@@ -76,9 +77,9 @@ func (s *Store) gitCommitAndPush(ctx context.Context, name string) error {
 	if err := s.rcs.Commit(ctx, fmt.Sprintf("Save secret to %s: %s", name, ctxutil.GetCommitMessage(ctx))); err != nil {
 		switch errors.Cause(err) {
 		case store.ErrGitNotInit:
-			out.Debug(ctx, "commitAndPush - skipping git commit - git not initialized")
+			debug.Log("commitAndPush - skipping git commit - git not initialized")
 		case store.ErrGitNothingToCommit:
-			out.Debug(ctx, "commitAndPush - skipping git commit - nothing to commit")
+			debug.Log("commitAndPush - skipping git commit - nothing to commit")
 		default:
 			return errors.Wrapf(err, "failed to commit changes to git")
 		}

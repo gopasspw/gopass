@@ -94,22 +94,19 @@ func TestSignVerify(t *testing.T) {
 		_ = os.RemoveAll(td)
 	}()
 
-	ctx := context.Background()
-	ctx = ctxutil.WithAlwaysYes(ctx, true)
-
 	m := New()
 
 	in := filepath.Join(td, "in")
 	assert.NoError(t, ioutil.WriteFile(in, []byte("in"), 0644))
 	sigf := filepath.Join(td, "sigf")
 
-	assert.NoError(t, m.Sign(ctx, in, sigf))
-	assert.NoError(t, m.Verify(ctx, sigf, in))
+	assert.NoError(t, m.Sign(in, sigf))
+	assert.NoError(t, m.Verify(sigf, in))
 
-	assert.Error(t, m.Sign(ctx, "/tmp", sigf))
-	assert.Error(t, m.Verify(ctx, sigf, "/tmp"))
-	assert.Error(t, m.Verify(ctx, "/tmp", in))
+	assert.Error(t, m.Sign("/tmp", sigf))
+	assert.Error(t, m.Verify(sigf, "/tmp"))
+	assert.Error(t, m.Verify("/tmp", in))
 
 	assert.NoError(t, ioutil.WriteFile(sigf, []byte("in"), 0644))
-	assert.Error(t, m.Verify(ctx, sigf, in))
+	assert.Error(t, m.Verify(sigf, in))
 }

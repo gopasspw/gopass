@@ -16,6 +16,9 @@ type Secret struct {
 
 // Bytes returns the underlying bytes
 func (m *Secret) Bytes() ([]byte, error) {
+	if m.Buf == nil {
+		return nil, fmt.Errorf("empty")
+	}
 	return m.Buf, nil
 }
 

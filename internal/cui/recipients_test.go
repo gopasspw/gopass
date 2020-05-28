@@ -55,7 +55,7 @@ func TestAskForPrivateKey(t *testing.T) {
 	ctx := context.Background()
 
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
-	key, err := AskForPrivateKey(ctx, plain.New(), "test", "test")
+	key, err := AskForPrivateKey(ctx, plain.New(), "test")
 	require.NoError(t, err)
 	assert.Equal(t, "0xDEADBEEF", key)
 	buf.Reset()
@@ -69,7 +69,7 @@ func TestAskForGitConfigUser(t *testing.T) {
 	ctx = ctxutil.WithTerminal(ctx, true)
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 
-	_, _, err := AskForGitConfigUser(ctx, plain.New(), "test")
+	_, _, err := AskForGitConfigUser(ctx, plain.New())
 	assert.NoError(t, err)
 }
 

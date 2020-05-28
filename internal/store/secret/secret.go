@@ -2,21 +2,12 @@ package secret
 
 import (
 	"bytes"
-	"os"
 	"reflect"
 	"strings"
 	"sync"
 
 	"github.com/gopasspw/gopass/internal/store"
 )
-
-var debug bool
-
-func init() {
-	if gdb := os.Getenv("GOPASS_DEBUG"); gdb != "" {
-		debug = true
-	}
-}
 
 // Secret is a decoded secret
 type Secret struct {

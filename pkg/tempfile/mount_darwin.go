@@ -9,8 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gopasspw/gopass/internal/out"
-	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/internal/debug"
 
 	"github.com/cenkalti/backoff"
 	"github.com/pkg/errors"
@@ -25,13 +24,13 @@ func (t *File) mount(ctx context.Context) error {
 	cmd := exec.CommandContext(ctx, "hdid", "-drivekey", "system-image=yes", "-nomount", "ram://32768")
 	cmd.Stderr = os.Stderr
 
-	out.Debug(ctx, "CMD: %s %+v", cmd.Path, cmd.Args)
+	debug.Log("CMD: %s %+v", cmd.Path, cmd.Args)
 	cmdout, err := cmd.Output()
 	if err != nil {
 		return errors.Errorf("Failed to create disk with hdid: %s", err)
 	}
 
-	out.Debug(ctx, "Output: %s\n", cmdout)
+	debug.Log("Output: %s\n", cmdout)
 
 	p := strings.Split(string(cmdout), " ")
 	if len(p) < 1 {
@@ -43,11 +42,11 @@ func (t *File) mount(ctx context.Context) error {
 	cmd = exec.CommandContext(ctx, "newfs_hfs", "-M", "700", t.dev)
 	cmd.Stderr = os.Stderr
 
-	if ctxutil.IsDebug(ctx) {
+	if debug.IsEnabled() {
 		cmd.Stdout = os.Stdout
 	}
 
-	out.Debug(ctx, "CMD: %s %+v", cmd.Path, cmd.Args)
+	debug.Log("CMD: %s %+v", cmd.Path, cmd.Args)
 	if err := cmd.Run(); err != nil {
 		return errors.Errorf("Failed to make filesystem on %s: %s", t.dev, err)
 	}
@@ -55,11 +54,11 @@ func (t *File) mount(ctx context.Context) error {
 	// mount ramdisk
 	cmd = exec.CommandContext(ctx, "mount", "-t", "hfs", "-o", "noatime", "-o", "nobrowse", t.dev, t.dir)
 	cmd.Stderr = os.Stderr
-	if ctxutil.IsDebug(ctx) {
+	if debug.IsEnabled() {
 		cmd.Stdout = os.Stdout
 	}
 
-	out.Debug(ctx, "CMD: %s %+v", cmd.Path, cmd.Args)
+	debug.Log("CMD: %s %+v", cmd.Path, cmd.Args)
 	if err := cmd.Run(); err != nil {
 		return errors.Errorf("Failed to mount filesystem %s to %s: %s", t.dev, t.dir, err)
 	}
@@ -84,11 +83,11 @@ func (t *File) tryUnmount(ctx context.Context) error {
 	// unmount ramdisk
 	cmd := exec.CommandContext(ctx, "diskutil", "unmountDisk", t.dev)
 	cmd.Stderr = os.Stderr
-	if ctxutil.IsDebug(ctx) {
+	if debug.IsEnabled() {
 		cmd.Stdout = os.Stdout
 	}
 
-	out.Debug(ctx, "CMD: %s %+v", cmd.Path, cmd.Args)
+	debug.Log("CMD: %s %+v", cmd.Path, cmd.Args)
 	if err := cmd.Run(); err != nil {
 		return errors.Wrapf(err, "failed to run command '%+v'", cmd.Args)
 	}
@@ -96,10 +95,10 @@ func (t *File) tryUnmount(ctx context.Context) error {
 	// eject disk
 	cmd = exec.CommandContext(ctx, "diskutil", "quiet", "eject", t.dev)
 	cmd.Stderr = os.Stderr
-	if ctxutil.IsDebug(ctx) {
+	if debug.IsEnabled() {
 		cmd.Stdout = os.Stdout
 	}
 
-	out.Debug(ctx, "CMD: %s %+v", cmd.Path, cmd.Args)
+	debug.Log("CMD: %s %+v", cmd.Path, cmd.Args)
 	return cmd.Run()
 }

@@ -57,13 +57,13 @@ func (s *Action) Show(c *cli.Context) error {
 	}
 
 	if c.Bool("sync") {
-		if err := s.sync(out.WithHidden(ctx, true), c, s.Store.MountPoint(name)); err != nil {
+		if err := s.sync(out.WithHidden(ctx, true), s.Store.MountPoint(name)); err != nil {
 			out.Error(ctx, "Failed to sync %s: %s", name, err)
 		}
 	}
 
 	if err := s.show(ctx, c, name, true); err != nil {
-		return ExitError(ctx, ExitDecrypt, err, "%s", err)
+		return ExitError(ExitDecrypt, err, "%s", err)
 	}
 	return nil
 }
@@ -71,7 +71,7 @@ func (s *Action) Show(c *cli.Context) error {
 // show displays the given secret/key
 func (s *Action) show(ctx context.Context, c *cli.Context, name string, recurse bool) error {
 	if name == "" {
-		return ExitError(ctx, ExitUsage, nil, "Usage: %s show [name]", s.Name)
+		return ExitError(ExitUsage, nil, "Usage: %s show [name]", s.Name)
 	}
 
 	if s.Store.IsDir(ctx, name) && !s.Store.Exists(ctx, name) {
@@ -120,11 +120,11 @@ func (s *Action) showHandleOutput(ctx context.Context, name string, sec store.Se
 	}
 
 	if pw == "" && body == "" {
-		return ExitError(ctx, ExitNotFound, store.ErrNoBody, store.ErrNoBody.Error())
+		return ExitError(ExitNotFound, store.ErrNoBody, store.ErrNoBody.Error())
 	}
 
 	if IsPrintQR(ctx) && pw != "" {
-		return s.showPrintQR(ctx, name, pw)
+		return s.showPrintQR(name, pw)
 	}
 
 	if IsClip(ctx) && pw != "" && !ctxutil.IsForce(ctx) {
@@ -148,7 +148,7 @@ func (s *Action) showGetContent(ctx context.Context, name string, sec store.Secr
 		key := GetKey(ctx)
 		val, err := sec.Value(key)
 		if err != nil {
-			return "", "", s.showHandleYAMLError(ctx, name, key, err)
+			return "", "", s.showHandleYAMLError(name, key, err)
 		}
 		return val, val, nil
 	}
@@ -175,7 +175,7 @@ func (s *Action) showGetContent(ctx context.Context, name string, sec store.Secr
 	// everything (default)
 	buf, err := sec.Bytes()
 	if err != nil {
-		return "", "", ExitError(ctx, ExitUnknown, err, "failed to encode secret: %s", err)
+		return "", "", ExitError(ExitUnknown, err, "failed to encode secret: %s", err)
 	}
 	return sec.Password(), string(buf), nil
 }
@@ -186,7 +186,7 @@ func (s *Action) showHandleError(ctx context.Context, c *cli.Context, name strin
 		if IsClip(ctx) {
 			_ = notify.Notify(ctx, "gopass - error", fmt.Sprintf("failed to retrieve secret '%s': %s", name, err))
 		}
-		return ExitError(ctx, ExitUnknown, err, "failed to retrieve secret '%s': %s", name, err)
+		return ExitError(ExitUnknown, err, "failed to retrieve secret '%s': %s", name, err)
 	}
 	if IsClip(ctx) {
 		_ = notify.Notify(ctx, "gopass - warning", fmt.Sprintf("Entry '%s' not found. Starting search...", name))
@@ -196,26 +196,26 @@ func (s *Action) showHandleError(ctx context.Context, c *cli.Context, name strin
 		if IsClip(ctx) {
 			_ = notify.Notify(ctx, "gopass - error", fmt.Sprintf("%s", err))
 		}
-		return ExitError(ctx, ExitNotFound, err, "%s", err)
+		return ExitError(ExitNotFound, err, "%s", err)
 	}
 	os.Exit(ExitNotFound)
 	return nil
 }
 
-func (s *Action) showHandleYAMLError(ctx context.Context, name, key string, err error) error {
+func (s *Action) showHandleYAMLError(name, key string, err error) error {
 	if errors.Cause(err) == store.ErrYAMLValueUnsupported {
-		return ExitError(ctx, ExitUnsupported, err, "Can not show nested key directly. Use 'gopass show %s'", name)
+		return ExitError(ExitUnsupported, err, "Can not show nested key directly. Use 'gopass show %s'", name)
 	}
 	if errors.Cause(err) == store.ErrNotFound {
-		return ExitError(ctx, ExitNotFound, err, "Secret '%s' not found", name)
+		return ExitError(ExitNotFound, err, "Secret '%s' not found", name)
 	}
-	return ExitError(ctx, ExitUnknown, err, "failed to retrieve key '%s' from '%s': %s", key, name, err)
+	return ExitError(ExitUnknown, err, "failed to retrieve key '%s' from '%s': %s", key, name, err)
 }
 
-func (s *Action) showPrintQR(ctx context.Context, name, pw string) error {
+func (s *Action) showPrintQR(name, pw string) error {
 	qr, err := qrcon.QRCode(pw)
 	if err != nil {
-		return ExitError(ctx, ExitUnknown, err, "failed to encode '%s' as QR: %s", name, err)
+		return ExitError(ExitUnknown, err, "failed to encode '%s' as QR: %s", name, err)
 	}
 	fmt.Fprintln(stdout, qr)
 	return nil

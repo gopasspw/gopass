@@ -10,8 +10,7 @@ import (
 type contextKey int
 
 const (
-	ctxKeyDebug contextKey = iota
-	ctxKeyColor
+	ctxKeyColor contextKey = iota
 	ctxKeyTerminal
 	ctxKeyInteractive
 	ctxKeyStdin
@@ -51,26 +50,6 @@ func WithGlobalFlags(c *cli.Context) context.Context {
 
 // ProgressCallback is a callback for updateing progress
 type ProgressCallback func()
-
-// WithDebug returns a context with an explicit value for debug
-func WithDebug(ctx context.Context, dbg bool) context.Context {
-	return context.WithValue(ctx, ctxKeyDebug, dbg)
-}
-
-// HasDebug returns true if a value for debug has been set in this context
-func HasDebug(ctx context.Context) bool {
-	_, ok := ctx.Value(ctxKeyDebug).(bool)
-	return ok
-}
-
-// IsDebug returns the value of debug or the default (false)
-func IsDebug(ctx context.Context) bool {
-	bv, ok := ctx.Value(ctxKeyDebug).(bool)
-	if !ok {
-		return false
-	}
-	return bv
-}
 
 // WithColor returns a context with an explicit value for color
 func WithColor(ctx context.Context, color bool) context.Context {

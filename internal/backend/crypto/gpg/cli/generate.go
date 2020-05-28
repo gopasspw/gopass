@@ -6,8 +6,7 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/gopasspw/gopass/internal/out"
-
+	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/pkg/errors"
 )
 
@@ -32,7 +31,7 @@ Expire-Date: 0
 	cmd.Stdout = nil
 	cmd.Stderr = nil
 
-	out.Debug(ctx, "gpg.CreatePrivateKeyBatch: %s %+v", cmd.Path, cmd.Args)
+	debug.Log("gpg.CreatePrivateKeyBatch: %s %+v", cmd.Path, cmd.Args)
 	if err := cmd.Run(); err != nil {
 		return errors.Wrapf(err, "failed to run command: '%s %+v'", cmd.Path, cmd.Args)
 	}
@@ -49,7 +48,7 @@ func (g *GPG) CreatePrivateKey(ctx context.Context) error {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
-	out.Debug(ctx, "gpg.CreatePrivateKey: %s %+v", cmd.Path, cmd.Args)
+	debug.Log("gpg.CreatePrivateKey: %s %+v", cmd.Path, cmd.Args)
 	if err := cmd.Run(); err != nil {
 		return errors.Wrapf(err, "failed to run command: '%s %+v'", cmd.Path, cmd.Args)
 	}

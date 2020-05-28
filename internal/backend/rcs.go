@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/blang/semver"
-	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/pkg/errors"
 )
 
@@ -87,22 +87,22 @@ func DetectRCS(ctx context.Context, path string) (RCS, error) {
 	})
 	for _, id := range bes {
 		be := rcsRegistry[id]
-		out.Debug(ctx, "DetectRCS(%s) - trying %s", path, be)
+		debug.Log("DetectRCS(%s) - trying %s", path, be)
 		if err := be.Handles(path); err != nil {
-			out.Debug(ctx, "failed to use RCS %s for %s", id, path)
+			debug.Log("failed to use RCS %s for %s", id, path)
 			continue
 		}
-		out.Debug(ctx, "DetectRCS(%s) - using %s", path, be)
+		debug.Log("DetectRCS(%s) - using %s", path, be)
 		return be.Open(ctx, path)
 	}
-	out.Debug(ctx, "DetectRCS(%s) - no supported RCS found. using NOOP", path)
+	debug.Log("DetectRCS(%s) - no supported RCS found. using NOOP", path)
 	return rcsRegistry[Noop].InitRCS(ctx, path)
 }
 
 // CloneRCS clones an existing repository from a remote.
 func CloneRCS(ctx context.Context, id RCSBackend, repo, path string) (RCS, error) {
 	if be, found := rcsRegistry[id]; found {
-		out.Debug(ctx, "Cloning with %s", be.String())
+		debug.Log("Cloning with %s", be.String())
 		return be.Clone(ctx, repo, path)
 	}
 	return nil, errors.Wrapf(ErrNotFound, "unknown backend: %d", id)

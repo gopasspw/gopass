@@ -2,9 +2,10 @@ package secret
 
 import (
 	"bufio"
-	"fmt"
 	"sort"
 	"strings"
+
+	"github.com/gopasspw/gopass/internal/debug"
 )
 
 func (s *Secret) decodeKV() error {
@@ -38,16 +39,12 @@ func (s *Secret) decodeKV() error {
 	}
 	if mayBeYAML {
 		docSep, err := s.decodeYAML()
-		if debug {
-			fmt.Printf("[DEBUG] decodeKV() - mayBeYAML - err: %s\n", err)
-		}
+		debug.Log("decodeKV() - mayBeYAML - err: %s", err)
 		if docSep && err == nil && s.data != nil {
 			return nil
 		}
 	}
-	if debug {
-		fmt.Printf("[DEBUG] decodeKV() - simple KV\n")
-	}
+	debug.Log("decodeKV() - simple KV")
 	s.data = data
 	return nil
 }
@@ -79,15 +76,11 @@ func (s *Secret) encodeKV() error {
 	}
 	if mayBeYAML {
 		if err := s.encodeYAML(); err == nil {
-			if debug {
-				fmt.Printf("[DEBUG] encodeKV() - mayBeYAML - OK\n")
-			}
+			debug.Log("encodeKV() - mayBeYAML - OK")
 			return nil
 		}
 	}
-	if debug {
-		fmt.Printf("[DEBUG] encodeKV() - simple KV\n")
-	}
+	debug.Log("encodeKV() - simple KV")
 	s.body = buf.String()
 	return nil
 }

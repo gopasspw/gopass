@@ -11,7 +11,7 @@ func (x *XC) ImportPublicKey(ctx context.Context, buf []byte) error {
 }
 
 // ImportPrivateKey imports a given private key into the keyring
-func (x *XC) ImportPrivateKey(ctx context.Context, buf []byte) error {
+func (x *XC) ImportPrivateKey(buf []byte) error {
 	if err := x.secring.Import(buf); err != nil {
 		return err
 	}

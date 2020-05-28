@@ -61,20 +61,20 @@ func TestComplete(t *testing.T) {
 	buf.Reset()
 
 	// fish
-	assert.NoError(t, act.CompletionFish(nil, app))
+	assert.NoError(t, act.CompletionFish(app))
 	assert.Contains(t, buf.String(), "action.test")
-	assert.Error(t, act.CompletionFish(nil, nil))
+	assert.Error(t, act.CompletionFish(nil))
 	buf.Reset()
 
 	// zsh
-	assert.NoError(t, act.CompletionZSH(nil, app))
+	assert.NoError(t, act.CompletionZSH(app))
 	assert.Contains(t, buf.String(), "action.test")
-	assert.Error(t, act.CompletionZSH(nil, nil))
+	assert.Error(t, act.CompletionZSH(nil))
 	buf.Reset()
 
 	// openbsdksh
-	assert.NoError(t, act.CompletionOpenBSDKsh(nil, app))
+	assert.NoError(t, act.CompletionOpenBSDKsh(app))
 	assert.Contains(t, buf.String(), "complete_gopass")
-	assert.Error(t, act.CompletionOpenBSDKsh(nil, nil))
+	assert.Error(t, act.CompletionOpenBSDKsh(nil))
 	buf.Reset()
 }

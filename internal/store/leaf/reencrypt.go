@@ -8,6 +8,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -97,22 +98,22 @@ func (s *Store) reencrypt(ctx context.Context) error {
 			if err := s.rcs.Add(ctx, p); err != nil {
 				switch errors.Cause(err) {
 				case store.ErrGitNotInit:
-					out.Debug(ctx, "reencrypt - skipping git add - git not initialized")
+					debug.Log("reencrypt - skipping git add - git not initialized")
 					continue
 				default:
 					return errors.Wrapf(err, "failed to add '%s' to git", p)
 				}
 			}
-			out.Debug(ctx, "reencrypt - added %s to git", p)
+			debug.Log("reencrypt - added %s to git", p)
 		}
 	}
 
 	if err := s.rcs.Commit(ctx, ctxutil.GetCommitMessage(ctx)); err != nil {
 		switch errors.Cause(err) {
 		case store.ErrGitNotInit:
-			out.Debug(ctx, "reencrypt - skipping git commit - git not initialized")
+			debug.Log("reencrypt - skipping git commit - git not initialized")
 		case store.ErrGitNothingToCommit:
-			out.Debug(ctx, "reencrypt - skipping git commit - nothing to commit")
+			debug.Log("reencrypt - skipping git commit - nothing to commit")
 		default:
 			return errors.Wrapf(err, "failed to commit changes to git")
 		}

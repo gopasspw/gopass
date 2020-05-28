@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/pkg/fsutil"
 
 	"github.com/pkg/errors"
@@ -32,9 +33,7 @@ func Load() *Config {
 }
 
 func loadConfig(l string) *Config {
-	if debug {
-		fmt.Printf("[DEBUG] Trying to load config from %s\n", l)
-	}
+	debug.Log("Trying to load config from %s", l)
 	cfg, err := load(l)
 	if err == ErrConfigNotFound {
 		return nil
@@ -43,18 +42,14 @@ func loadConfig(l string) *Config {
 		fmt.Fprintf(os.Stderr, "ERROR: Failed to load config from %s", l)
 		return nil
 	}
-	if debug {
-		fmt.Printf("  [DEBUG] Loaded config from %s: %+v\n", l, cfg)
-	}
+	debug.Log("Loaded config from %s: %+v", l, cfg)
 	return cfg
 }
 
 func loadDefault() *Config {
 	cfg := New()
 	cfg.Path = PwStoreDir("")
-	if debug {
-		fmt.Printf("[DEBUG] config.Load(): %+v\n", cfg)
-	}
+	debug.Log("config.Load(): %+v", cfg)
 	return cfg
 }
 
@@ -82,7 +77,7 @@ func load(cf string) (*Config, error) {
 	return cfg, nil
 }
 
-func checkOverflow(m map[string]interface{}, section string) error {
+func checkOverflow(m map[string]interface{}) error {
 	if len(m) < 1 {
 		return nil
 	}
@@ -91,7 +86,7 @@ func checkOverflow(m map[string]interface{}, section string) error {
 	for k := range m {
 		keys = append(keys, k)
 	}
-	return errors.Errorf("unknown fields in %s: %+v", section, keys)
+	return errors.Errorf("unknown fields: %+v", keys)
 }
 
 type configer interface {
@@ -114,24 +109,16 @@ func decode(buf []byte) (*Config, error) {
 		&Pre130{},
 	}
 	for i, cfg := range cfgs {
-		if debug {
-			fmt.Printf("[DEBUG] Trying to unmarshal config into %T\n", cfg)
-		}
+		debug.Log("Trying to unmarshal config into %T", cfg)
 		if err := yaml.Unmarshal(buf, cfg); err != nil {
-			if debug {
-				fmt.Printf("[DEBUG] Loading config %T failed: %s\n", cfg, err)
-			}
+			debug.Log("Loading config %T failed: %s", cfg, err)
 			continue
 		}
 		if err := cfg.CheckOverflow(); err != nil {
-			if debug {
-				fmt.Printf("[DEBUG] Extra elements in config: %s\n", err)
-			}
+			debug.Log("Extra elements in config: %s", err)
 			continue
 		}
-		if debug {
-			fmt.Printf("[DEBUG] Loaded config: %T: %+v\n", cfg, cfg)
-		}
+		debug.Log("Loaded config: %T: %+v", cfg, cfg)
 		conf := cfg.Config()
 		if i > 0 {
 			if err := conf.Save(); err != nil {
@@ -160,8 +147,6 @@ func (c *Config) Save() error {
 	if err := ioutil.WriteFile(cfgLoc, buf, 0600); err != nil {
 		return errors.Wrapf(err, "failed to write config file to '%s'", cfgLoc)
 	}
-	if debug {
-		fmt.Printf("[DEBUG] Saved config to %s: %+v\n", cfgLoc, c)
-	}
+	debug.Log("Saved config to %s: %+v\n", cfgLoc, c)
 	return nil
 }

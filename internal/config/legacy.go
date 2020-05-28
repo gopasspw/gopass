@@ -37,7 +37,7 @@ type Pre193StoreConfig struct {
 
 // CheckOverflow implements configer
 func (c *Pre193) CheckOverflow() error {
-	return checkOverflow(c.XXX, "config")
+	return checkOverflow(c.XXX)
 }
 
 // Config converts the Pre140 config to the current config struct
@@ -101,7 +101,7 @@ type Pre182StoreConfig struct {
 
 // CheckOverflow implements configer
 func (c *Pre182) CheckOverflow() error {
-	return checkOverflow(c.XXX, "config")
+	return checkOverflow(c.XXX)
 }
 
 // Config converts the Pre140 config to the current config struct
@@ -150,7 +150,7 @@ type Pre140 struct {
 
 // CheckOverflow implements configer
 func (c *Pre140) CheckOverflow() error {
-	return checkOverflow(c.XXX, "config")
+	return checkOverflow(c.XXX)
 }
 
 // Config converts the Pre140 config to the current config struct
@@ -191,7 +191,7 @@ type Pre130 struct {
 
 // CheckOverflow implements configer
 func (c *Pre130) CheckOverflow() error {
-	return checkOverflow(c.XXX, "config")
+	return checkOverflow(c.XXX)
 }
 
 // Config converts the Pre130 config to the current config struct

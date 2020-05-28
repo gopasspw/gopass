@@ -1,11 +1,9 @@
 package action
 
 import (
-	"context"
 	"fmt"
 
-	"github.com/gopasspw/gopass/internal/out"
-
+	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/urfave/cli/v2"
 )
 
@@ -55,9 +53,9 @@ const (
 )
 
 // ExitError returns a user friendly CLI error
-func ExitError(ctx context.Context, exitCode int, err error, format string, args ...interface{}) error {
+func ExitError(exitCode int, err error, format string, args ...interface{}) error {
 	if err != nil {
-		out.Debug(ctx, "Stacktrace: %+v", err)
+		debug.Log("Stacktrace: %+v", err)
 	}
 	return cli.NewExitError(fmt.Sprintf(format, args...), exitCode)
 }

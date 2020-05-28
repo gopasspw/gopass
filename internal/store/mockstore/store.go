@@ -144,9 +144,11 @@ func (m *MockStore) Alias() string {
 
 // Copy does nothing
 func (m *MockStore) Copy(ctx context.Context, from string, to string) error {
-	content, _ := m.storage.Get(ctx, from)
-	m.storage.Set(ctx, to, content)
-	return nil
+	content, err := m.storage.Get(ctx, from)
+	if err != nil {
+		return err
+	}
+	return m.storage.Set(ctx, to, content)
 }
 
 // Delete does nothing

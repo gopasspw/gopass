@@ -8,8 +8,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/gopasspw/gopass/pkg/ctxutil"
-
 	"github.com/pkg/errors"
 )
 
@@ -21,7 +19,6 @@ type File struct {
 	dir string
 	dev string
 	fh  *os.File
-	dbg bool
 }
 
 // New returns a new tempfile wrapper
@@ -33,7 +30,6 @@ func New(ctx context.Context, prefix string) (*File, error) {
 
 	tf := &File{
 		dir: td,
-		dbg: ctxutil.IsDebug(ctx),
 	}
 
 	if err := tf.mount(ctx); err != nil {

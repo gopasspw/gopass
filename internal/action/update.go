@@ -27,7 +27,7 @@ func (s *Action) Update(c *cli.Context) error {
 	}
 
 	if err := updater.Update(ctx, pre, s.version, mc); err != nil {
-		return ExitError(ctx, ExitUnknown, err, "Failed to update gopass: %s", err)
+		return ExitError(ExitUnknown, err, "Failed to update gopass: %s", err)
 	}
 	return nil
 }

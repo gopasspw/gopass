@@ -19,18 +19,18 @@ func (s *Action) Env(c *cli.Context) error {
 	args := c.Args().Tail()
 
 	if !s.Store.Exists(ctx, name) && !s.Store.IsDir(ctx, name) {
-		return ExitError(ctx, ExitNotFound, nil, "Secret %s not found", name)
+		return ExitError(ExitNotFound, nil, "Secret %s not found", name)
 	}
 
 	keys := make([]string, 0, 1)
 	if s.Store.IsDir(ctx, name) {
 		l, err := s.Store.Tree(ctx)
 		if err != nil {
-			return ExitError(ctx, ExitList, err, "failed to list store: %s", err)
+			return ExitError(ExitList, err, "failed to list store: %s", err)
 		}
 		subtree, err := l.FindFolder(name)
 		if err != nil {
-			return ExitError(ctx, ExitNotFound, nil, "Entry '%s' not found", name)
+			return ExitError(ExitNotFound, nil, "Entry '%s' not found", name)
 		}
 		subtree.SetRoot(true)
 		subtree.SetName(name)

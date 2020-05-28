@@ -27,7 +27,6 @@ func TestGitConfig(t *testing.T) {
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
-	ctx = ctxutil.WithDebug(ctx, true)
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf

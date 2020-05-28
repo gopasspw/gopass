@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/gopasspw/gopass/internal/backend"
-	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/pkg/fsutil"
 )
 
@@ -26,7 +26,7 @@ func (l loader) New(ctx context.Context, path string) (backend.Storage, error) {
 		return nil, err
 	}
 	be := New(path)
-	out.Debug(ctx, "Using Storage Backend: %s", be.String())
+	debug.Log("Using Storage Backend: %s", be.String())
 	return be, nil
 }
 

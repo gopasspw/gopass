@@ -6,7 +6,7 @@ import (
 
 	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/internal/config"
-	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/internal/debug"
 )
 
 const (
@@ -21,8 +21,8 @@ type loader struct{}
 
 // New implements backend.CryptoLoader.
 func (l loader) New(ctx context.Context) (backend.Crypto, error) {
-	out.Debug(ctx, "Using Crypto Backend: %s (EXPERIMENTAL)", name)
-	return New(config.Directory(), nil)
+	debug.Log("Using Crypto Backend: %s (EXPERIMENTAL)", name)
+	return New(config.Directory(), nil), nil
 }
 
 func (l loader) Handles(s backend.Storage) error {

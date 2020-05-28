@@ -2,7 +2,6 @@ package config
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 	"reflect"
 	"strconv"
@@ -16,14 +15,7 @@ var (
 	ErrConfigNotFound = errors.Errorf("config not found")
 	// ErrConfigNotParsed is returned on load if the config could not be decoded
 	ErrConfigNotParsed = errors.Errorf("config not parseable")
-	debug              = false
 )
-
-func init() {
-	if gdb := os.Getenv("GOPASS_DEBUG"); gdb != "" {
-		debug = true
-	}
-}
 
 // Config is the current config struct
 type Config struct {
@@ -62,7 +54,7 @@ func New() *Config {
 // CheckOverflow implements configer. It will check for any extra config values not
 // handled by the current struct
 func (c *Config) CheckOverflow() error {
-	return checkOverflow(c.XXX, "config")
+	return checkOverflow(c.XXX)
 }
 
 // Config will return a current config

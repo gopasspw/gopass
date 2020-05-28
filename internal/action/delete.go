@@ -18,11 +18,11 @@ func (s *Action) Delete(c *cli.Context) error {
 
 	name := c.Args().First()
 	if name == "" {
-		return ExitError(ctx, ExitUsage, nil, "Usage: %s rm name", s.Name)
+		return ExitError(ExitUsage, nil, "Usage: %s rm name", s.Name)
 	}
 
 	if !recursive && s.Store.IsDir(ctx, name) {
-		return ExitError(ctx, ExitUsage, nil, "Cannot remove '%s': Is a directory. Use 'gopass rm -r %s' to delete", name, name)
+		return ExitError(ExitUsage, nil, "Cannot remove '%s': Is a directory. Use 'gopass rm -r %s' to delete", name, name)
 	}
 
 	// specifying a key is optional
@@ -40,7 +40,7 @@ func (s *Action) Delete(c *cli.Context) error {
 
 	if recursive {
 		if err := s.Store.Prune(ctx, name); err != nil {
-			return ExitError(ctx, ExitUnknown, err, "failed to prune '%s': %s", name, err)
+			return ExitError(ExitUnknown, err, "failed to prune '%s': %s", name, err)
 		}
 		return nil
 	}
@@ -51,7 +51,7 @@ func (s *Action) Delete(c *cli.Context) error {
 	}
 
 	if err := s.Store.Delete(ctx, name); err != nil {
-		return ExitError(ctx, ExitIO, err, "Can not delete '%s': %s", name, err)
+		return ExitError(ExitIO, err, "Can not delete '%s': %s", name, err)
 	}
 	return nil
 }
@@ -60,13 +60,13 @@ func (s *Action) Delete(c *cli.Context) error {
 func (s *Action) deleteKeyFromYAML(ctx context.Context, name, key string) error {
 	sec, err := s.Store.Get(ctx, name)
 	if err != nil {
-		return ExitError(ctx, ExitIO, err, "Can not delete key '%s' from '%s': %s", key, name, err)
+		return ExitError(ExitIO, err, "Can not delete key '%s' from '%s': %s", key, name, err)
 	}
 	if err := sec.DeleteKey(key); err != nil {
-		return ExitError(ctx, ExitIO, err, "Can not delete key '%s' from '%s': %s", key, name, err)
+		return ExitError(ExitIO, err, "Can not delete key '%s' from '%s': %s", key, name, err)
 	}
 	if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, "Updated Key in YAML"), name, sec); err != nil {
-		return ExitError(ctx, ExitIO, err, "Can not delete key '%s' from '%s': %s", key, name, err)
+		return ExitError(ExitIO, err, "Can not delete key '%s' from '%s': %s", key, name, err)
 	}
 	return nil
 }

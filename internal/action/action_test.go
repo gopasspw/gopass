@@ -27,7 +27,7 @@ func newMock(ctx context.Context, u *gptest.Unit) (*Action, error) {
 	ctx = backend.WithRCSBackend(ctx, backend.Noop)
 	ctx = backend.WithCryptoBackend(ctx, backend.Plain)
 	ctx = backend.WithStorageBackend(ctx, backend.FS)
-	act, err := newAction(ctx, cfg, semver.Version{})
+	act, err := newAction(cfg, semver.Version{})
 	if err != nil {
 		return nil, err
 	}
@@ -68,16 +68,15 @@ func TestNew(t *testing.T) {
 		_ = os.RemoveAll(td)
 	}()
 
-	ctx := context.Background()
 	cfg := config.New()
 	sv := semver.Version{}
 
-	_, err = New(ctx, cfg, sv)
+	_, err = New(cfg, sv)
 	require.NoError(t, err)
 
 	cfg.Path = filepath.Join(td, "store")
 	assert.NoError(t, os.MkdirAll(cfg.Path, 0700))
 	assert.NoError(t, ioutil.WriteFile(filepath.Join(cfg.Path, plain.IDFile), []byte("foobar"), 0600))
-	_, err = New(ctx, cfg, sv)
+	_, err = New(cfg, sv)
 	assert.NoError(t, err)
 }

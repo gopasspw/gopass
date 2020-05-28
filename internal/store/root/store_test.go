@@ -125,15 +125,11 @@ func TestListNested(t *testing.T) {
 func createRootStore(ctx context.Context, u *gptest.Unit) (*Store, error) {
 	ctx = backend.WithRCSBackendString(ctx, "noop")
 	ctx = backend.WithCryptoBackendString(ctx, "plain")
-	s, err := New(
-		ctx,
+	s := New(
 		&config.Config{
 			Path: u.StoreDir(""),
 		},
 	)
-	if err != nil {
-		return nil, err
-	}
 	if _, err := s.Initialized(ctx); err != nil {
 		return nil, err
 	}

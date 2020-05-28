@@ -5,7 +5,6 @@ import (
 	"strconv"
 
 	"github.com/gopasspw/gopass/internal/action"
-	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/pwgen"
 	"github.com/gopasspw/gopass/pkg/pwgen/xkcdgen"
 	"github.com/urfave/cli/v2"
@@ -14,13 +13,11 @@ import (
 
 // Pwgen handles the pwgen subcommand
 func Pwgen(c *cli.Context) error {
-	ctx := ctxutil.WithGlobalFlags(c)
-
 	pwLen := 12
 	if lenStr := c.Args().Get(0); lenStr != "" {
 		i, err := strconv.Atoi(lenStr)
 		if err != nil {
-			return action.ExitError(ctx, action.ExitUsage, err, "Failed to convert password length arg: %s", err)
+			return action.ExitError(action.ExitUsage, err, "Failed to convert password length arg: %s", err)
 		}
 		if i > 0 {
 			pwLen = i
@@ -31,7 +28,7 @@ func Pwgen(c *cli.Context) error {
 	if numStr := c.Args().Get(1); numStr != "" {
 		i, err := strconv.Atoi(numStr)
 		if err != nil {
-			return action.ExitError(ctx, action.ExitUsage, err, "Failed to convert password number arg: %s", err)
+			return action.ExitError(action.ExitUsage, err, "Failed to convert password number arg: %s", err)
 		}
 		if i > 0 {
 			pwNum = i

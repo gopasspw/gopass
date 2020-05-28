@@ -17,6 +17,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/termio"
 
@@ -41,7 +42,7 @@ const (
 func Update(ctx context.Context, pre bool, version semver.Version, migrationCheck func(context.Context) bool) error {
 	if err := IsUpdateable(ctx); err != nil {
 		out.Error(ctx, "Your gopass binary is externally managed. Can not update.")
-		out.Debug(ctx, "Error: %s", err)
+		debug.Log("Error: %s", err)
 		return nil
 	}
 
@@ -53,7 +54,7 @@ func Update(ctx context.Context, pre bool, version semver.Version, migrationChec
 		return nil
 	}
 
-	rs, err := FetchReleases(ctx, pre || len(version.Pre) > 0)
+	rs, err := FetchReleases(pre || len(version.Pre) > 0)
 	if err != nil {
 		return err
 	}
@@ -61,7 +62,7 @@ func Update(ctx context.Context, pre bool, version semver.Version, migrationChec
 		return fmt.Errorf("no releases available")
 	}
 
-	out.Debug(ctx, "Current: %s - Latest: %s", version.String(), rs[0].Version().String())
+	debug.Log("Current: %s - Latest: %s", version.String(), rs[0].Version().String())
 	// binary is newer or equal to the latest release -> nothing to do
 	if version.GTE(rs[0].Version()) {
 		out.Green(ctx, "gopass is up to date (%s)", version.String())
@@ -108,7 +109,7 @@ func filterMajor(rs []ghrel.Release, major uint64) []ghrel.Release {
 }
 
 func simpleUpdate(ctx context.Context, r ghrel.Release) error {
-	out.Debug(ctx, "Assets: %+v", r.Assets)
+	debug.Log("Assets: %+v", r.Assets)
 	for _, asset := range r.Assets {
 		name := strings.TrimSuffix(strings.TrimPrefix(asset.Name, "gopass-"), ".tar.gz")
 		p := strings.Split(name, "-")
@@ -133,7 +134,7 @@ func simpleUpdate(ctx context.Context, r ghrel.Release) error {
 }
 
 // FetchReleases fetches and returns all releases of gopass from GitHub
-func FetchReleases(ctx context.Context, pre bool) ([]ghrel.Release, error) {
+func FetchReleases(pre bool) ([]ghrel.Release, error) {
 	if pre {
 		return ghrel.FetchAllReleases(gitHubOrg, gitHubRepo)
 	}
@@ -141,8 +142,8 @@ func FetchReleases(ctx context.Context, pre bool) ([]ghrel.Release, error) {
 }
 
 // LatestRelease fetches and returns the latest gopass release from GitHub
-func LatestRelease(ctx context.Context, pre bool) (ghrel.Release, error) {
-	rs, err := FetchReleases(ctx, pre)
+func LatestRelease(pre bool) (ghrel.Release, error) {
+	rs, err := FetchReleases(pre)
 	if err != nil {
 		return ghrel.Release{}, err
 	}
@@ -152,10 +153,10 @@ func LatestRelease(ctx context.Context, pre bool) (ghrel.Release, error) {
 	return rs[0], nil
 }
 
-func updateCheckHost(ctx context.Context, u *url.URL) error {
+func updateCheckHost(u *url.URL) error {
 	host, _, err := net.SplitHostPort(u.Host)
 	if err != nil {
-		out.Debug(ctx, "failed to split host port: %s", err)
+		debug.Log("failed to split host port: %s", err)
 		if e, ok := err.(*net.AddrError); ok && e.Err != "missing port in address" {
 			return errors.Wrapf(err, "failed to split host port")
 		}
@@ -168,7 +169,7 @@ func updateCheckHost(ctx context.Context, u *url.URL) error {
 }
 
 func updateTo(ctx context.Context, version, url string) error {
-	out.Debug(ctx, "URL: %s", url)
+	debug.Log("URL: %s", url)
 	out.Green(ctx, "Update available!")
 	ok, err := termio.AskForBool(ctx, fmt.Sprintf("Do you want to update gopass to %s?", version), true)
 	if err != nil {
@@ -180,8 +181,8 @@ func updateTo(ctx context.Context, version, url string) error {
 	return updateGopass(ctx, version, url)
 }
 
-func extract(ctx context.Context, archive, dest string) error {
-	out.Debug(ctx, "Reading from %s", archive)
+func extract(archive, dest string) error {
+	debug.Log("Reading from %s", archive)
 	fh, err := os.Open(archive)
 	if err != nil {
 		return err
@@ -274,7 +275,7 @@ func download(ctx context.Context, dest, url string) error {
 		return err
 	}
 	fmt.Fprintln(goprogressbar.Stdout, "")
-	out.Debug(ctx, "Transferred %d bytes from %s to %s", count, url, dest)
+	debug.Log("Transferred %d bytes from %s to %s", count, url, dest)
 	return nil
 }
 

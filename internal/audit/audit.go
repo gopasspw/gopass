@@ -143,7 +143,7 @@ func audit(ctx context.Context, secStore secretGetter, validator *crunchy.Valida
 	done <- struct{}{}
 }
 
-func printAuditResults(ctx context.Context, m map[string][]string, format string, color func(format string, a ...interface{}) string) bool {
+func printAuditResults(m map[string][]string, format string, color func(format string, a ...interface{}) string) bool {
 	b := false
 
 	for msg, secrets := range m {
@@ -181,11 +181,11 @@ func auditPrintResults(ctx context.Context, duplicates, messages, errors map[str
 		out.Green(ctx, "No shared secrets found.")
 	}
 
-	foundWeakPasswords := printAuditResults(ctx, messages, "%s:\n", color.CyanString)
+	foundWeakPasswords := printAuditResults(messages, "%s:\n", color.CyanString)
 	if !foundWeakPasswords {
 		out.Green(ctx, "No weak secrets detected.")
 	}
-	foundErrors := printAuditResults(ctx, errors, "%s:\n", color.RedString)
+	foundErrors := printAuditResults(errors, "%s:\n", color.RedString)
 
 	if foundWeakPasswords || foundDuplicates || foundErrors {
 		_ = notify.Notify(ctx, "gopass - audit", "Finished. Found weak passwords and/or duplicates")
