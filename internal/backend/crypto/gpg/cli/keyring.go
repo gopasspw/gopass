@@ -38,8 +38,8 @@ func (g *GPG) listKeys(ctx context.Context, typ string, search ...string) (gpg.K
 	return kl, nil
 }
 
-// ListPublicKeyIDs returns a parsed list of GPG public keys
-func (g *GPG) ListPublicKeyIDs(ctx context.Context) ([]string, error) {
+// ListRecipients returns a parsed list of GPG public keys
+func (g *GPG) ListRecipients(ctx context.Context) ([]string, error) {
 	if g.pubKeys == nil {
 		kl, err := g.listKeys(ctx, "public")
 		if err != nil {
@@ -65,8 +65,8 @@ func (g *GPG) FindPublicKeys(ctx context.Context, search ...string) ([]string, e
 	return kl.UseableKeys().Recipients(), nil
 }
 
-// ListPrivateKeyIDs returns a parsed list of GPG secret keys
-func (g *GPG) ListPrivateKeyIDs(ctx context.Context) ([]string, error) {
+// ListIdentities returns a parsed list of GPG secret keys
+func (g *GPG) ListIdentities(ctx context.Context) ([]string, error) {
 	if g.privKeys == nil {
 		kl, err := g.listKeys(ctx, "secret")
 		if err != nil {

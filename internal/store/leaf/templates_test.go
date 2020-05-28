@@ -31,9 +31,7 @@ func TestTemplates(t *testing.T) {
 	ctx = backend.WithRCSBackendString(ctx, "noop")
 	s, err := New(
 		ctx,
-		nil,
 		"",
-		backend.FromPath(tempdir),
 		tempdir,
 	)
 	require.NoError(t, err)

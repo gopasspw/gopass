@@ -35,8 +35,8 @@ func (a *Age) Sign(ctx context.Context, in string, sigf string) error {
 	return fmt.Errorf("not implemented")
 }
 
-// ListPublicKeyIDs is TODO
-func (a *Age) ListPublicKeyIDs(context.Context) ([]string, error) {
+// ListRecipients is TODO
+func (a *Age) ListRecipients(context.Context) ([]string, error) {
 	return nil, fmt.Errorf("not implemented")
 }
 

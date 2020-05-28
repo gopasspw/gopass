@@ -11,14 +11,11 @@ type contextKey int
 const (
 	ctxKeyFsckCheck contextKey = iota
 	ctxKeyFsckForce
-	ctxKeyAutoSync
-	ctxKeyImportFunc
 	ctxKeyRecipientFunc
 	ctxKeyFsckFunc
 	ctxKeyCheckRecipients
 	ctxKeyFsckDecrypt
 	ctxKeyNoGitOps
-	ctxKeyExportKeys
 )
 
 // WithFsckCheck returns a context with the flag for fscks check set
@@ -59,50 +56,6 @@ func IsFsckForce(ctx context.Context) bool {
 		return false
 	}
 	return bv
-}
-
-// WithAutoSync returns a context with the flag for autosync set
-func WithAutoSync(ctx context.Context, sync bool) context.Context {
-	return context.WithValue(ctx, ctxKeyAutoSync, sync)
-}
-
-// HasAutoSync has been set if a value for auto sync has been set in this
-// context
-func HasAutoSync(ctx context.Context) bool {
-	return hasBool(ctx, ctxKeyAutoSync)
-}
-
-// IsAutoSync returns the value of autosync
-func IsAutoSync(ctx context.Context) bool {
-	bv, ok := ctx.Value(ctxKeyAutoSync).(bool)
-	if !ok {
-		return true
-	}
-	return bv
-}
-
-// WithImportFunc will return a context with the import callback set
-func WithImportFunc(ctx context.Context, imf store.ImportCallback) context.Context {
-	return context.WithValue(ctx, ctxKeyImportFunc, imf)
-}
-
-// HasImportFunc returns true if a value for import func has been set in this
-// context
-func HasImportFunc(ctx context.Context) bool {
-	imf, ok := ctx.Value(ctxKeyImportFunc).(store.ImportCallback)
-	return ok && imf != nil
-}
-
-// GetImportFunc will return the import callback or a default one returning true
-// Note: will never return nil
-func GetImportFunc(ctx context.Context) store.ImportCallback {
-	imf, ok := ctx.Value(ctxKeyImportFunc).(store.ImportCallback)
-	if !ok || imf == nil {
-		return func(context.Context, string, []string) bool {
-			return true
-		}
-	}
-	return imf
 }
 
 // WithRecipientFunc will return a context with the recipient callback set
@@ -198,21 +151,6 @@ func WithNoGitOps(ctx context.Context, d bool) context.Context {
 // or the default (false).
 func IsNoGitOps(ctx context.Context) bool {
 	return is(ctx, ctxKeyNoGitOps, false)
-}
-
-// WithExportKeys returns a context with the value for export keys set.
-func WithExportKeys(ctx context.Context, d bool) context.Context {
-	return context.WithValue(ctx, ctxKeyExportKeys, d)
-}
-
-// HasExportKeys returns true if Export Keys was set in the context.
-func HasExportKeys(ctx context.Context) bool {
-	return hasBool(ctx, ctxKeyExportKeys)
-}
-
-// IsExportKeys returns the value of export keys or the default (true).
-func IsExportKeys(ctx context.Context) bool {
-	return is(ctx, ctxKeyExportKeys, true)
 }
 
 // hasBool is a helper function for checking if a bool has been set in

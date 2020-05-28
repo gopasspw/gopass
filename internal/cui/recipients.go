@@ -105,7 +105,7 @@ func getRecipientInfo(ctx context.Context, crypto backend.Crypto, name string, r
 
 // ConfirmRecipients asks the user to confirm a given set of recipients
 func ConfirmRecipients(ctx context.Context, crypto backend.Crypto, name string, recipients []string) ([]string, error) {
-	if ctxutil.IsNoConfirm(ctx) || !ctxutil.IsInteractive(ctx) {
+	if ctxutil.IsConfirm(ctx) || !ctxutil.IsInteractive(ctx) {
 		return recipients, nil
 	}
 
@@ -193,7 +193,7 @@ func AskForPrivateKey(ctx context.Context, crypto backend.Crypto, name, prompt s
 		return "", errors.New("can not select private key without valid crypto backend")
 	}
 
-	kl, err := crypto.ListPrivateKeyIDs(gpg.WithAlwaysTrust(ctx, false))
+	kl, err := crypto.ListIdentities(gpg.WithAlwaysTrust(ctx, false))
 	if err != nil {
 		return "", err
 	}
@@ -240,7 +240,7 @@ func AskForPrivateKey(ctx context.Context, crypto backend.Crypto, name, prompt s
 func AskForGitConfigUser(ctx context.Context, crypto backend.Crypto, name string) (string, string, error) {
 	var useCurrent bool
 
-	keyList, err := crypto.ListPrivateKeyIDs(ctx)
+	keyList, err := crypto.ListIdentities(ctx)
 	if err != nil {
 		return "", "", err
 	}

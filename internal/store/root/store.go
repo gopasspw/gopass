@@ -14,7 +14,6 @@ import (
 type Store struct {
 	cfg    *config.Config
 	mounts map[string]*leaf.Store
-	url    *backend.URL // url of the root store
 	store  *leaf.Store
 }
 
@@ -23,13 +22,9 @@ func New(ctx context.Context, cfg *config.Config) (*Store, error) {
 	if cfg == nil {
 		cfg = &config.Config{}
 	}
-	if cfg.Root != nil && (cfg.Root.Path == nil || cfg.Root.Path.Path == "") {
-		cfg.Root.Path = backend.FromPath(config.PwStoreDir(""))
-	}
 	r := &Store{
 		cfg:    cfg,
 		mounts: make(map[string]*leaf.Store, len(cfg.Mounts)),
-		url:    cfg.Root.Path,
 	}
 
 	return r, nil
@@ -61,18 +56,10 @@ func (r *Store) String() string {
 
 // Path returns the store path
 func (r *Store) Path() string {
-	if r.url == nil {
+	if r.store == nil {
 		return ""
 	}
-	return r.url.Path
-}
-
-// URL returns the store URL
-func (r *Store) URL() string {
-	if r.url == nil {
-		return ""
-	}
-	return r.url.String()
+	return r.store.Path()
 }
 
 // Alias always returns an empty string

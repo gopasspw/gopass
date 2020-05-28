@@ -6,6 +6,7 @@ import (
 	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
+	"github.com/gopasspw/gopass/pkg/ctxutil"
 
 	"github.com/blang/semver"
 )
@@ -22,7 +23,9 @@ func (r *Store) RCS(ctx context.Context, name string) backend.RCS {
 // GitInit initializes the git repo
 func (r *Store) GitInit(ctx context.Context, name, userName, userEmail string) error {
 	ctx, store, _ := r.getStore(ctx, name)
-	return store.GitInit(ctx, userName, userEmail)
+	ctx = ctxutil.WithUsername(ctx, userName)
+	ctx = ctxutil.WithEmail(ctx, userEmail)
+	return store.GitInit(ctx)
 }
 
 // GitInitConfig initializes the git repos local config

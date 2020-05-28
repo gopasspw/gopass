@@ -2,9 +2,13 @@ package cli
 
 import (
 	"context"
+	"fmt"
+	"path/filepath"
 
 	"github.com/gopasspw/gopass/internal/backend"
 	gpgcli "github.com/gopasspw/gopass/internal/backend/crypto/gpg/cli"
+	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/fsutil"
 )
 
 const (
@@ -29,10 +33,20 @@ func (l loader) Clone(ctx context.Context, repo, path string) (backend.RCS, erro
 }
 
 // Init implements backend.RCSLoader
-func (l loader) Init(ctx context.Context, path, username, email string) (backend.RCS, error) {
-	return Init(ctx, path, username, email)
+func (l loader) InitRCS(ctx context.Context, path string) (backend.RCS, error) {
+	return Init(ctx, path, ctxutil.GetUsername(ctx), ctxutil.GetEmail(ctx))
 }
 
+func (l loader) Handles(path string) error {
+	if !fsutil.IsDir(filepath.Join(path, ".git")) {
+		return fmt.Errorf("no .git")
+	}
+	return nil
+}
+
+func (l loader) Priority() int {
+	return 1
+}
 func (l loader) String() string {
 	return name
 }

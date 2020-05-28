@@ -13,7 +13,6 @@ func (s *Action) Audit(c *cli.Context) error {
 	filter := c.Args().First()
 
 	ctx := ctxutil.WithGlobalFlags(c)
-	ctx = s.Store.WithConfig(ctx, filter)
 
 	out.Print(ctx, "Auditing passwords for common flaws ...")
 

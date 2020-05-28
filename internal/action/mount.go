@@ -53,8 +53,9 @@ func (s *Action) MountsPrint(c *cli.Context) error {
 			out.Error(ctx, "Failed to add mount to tree: %s", err)
 		}
 	}
+	out.Debug(ctx, "MountsPrint - %+v - %+v", mounts, mps)
 
-	fmt.Fprintln(stdout, root.Format(0))
+	fmt.Fprintln(stdout, root.Format(-1))
 	return nil
 }
 

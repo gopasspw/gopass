@@ -2,9 +2,12 @@ package backend
 
 import (
 	"context"
+	"sort"
 	"time"
 
 	"github.com/blang/semver"
+	"github.com/gopasspw/gopass/internal/out"
+	"github.com/pkg/errors"
 )
 
 // RCSBackend is a remote-sync backend
@@ -51,4 +54,64 @@ type Revision struct {
 	Date        time.Time
 	Subject     string
 	Body        string
+}
+
+// RegisterRCS registers a new RCS backend with the backend registry.
+func RegisterRCS(id RCSBackend, name string, loader RCSLoader) {
+	rcsRegistry[id] = loader
+	rcsNameToBackendMap[name] = id
+	rcsBackendToNameMap[id] = name
+}
+
+// DetectRCS tried to detect the RCS backend being used
+func DetectRCS(ctx context.Context, path string) (RCS, error) {
+	if HasRCSBackend(ctx) {
+		if be, found := rcsRegistry[GetRCSBackend(ctx)]; found {
+			rcs, err := be.Open(ctx, path)
+			if err == nil {
+				return rcs, nil
+			}
+			rcs, err = be.InitRCS(ctx, path)
+			if err == nil {
+				return rcs, nil
+			}
+			return rcsRegistry[Noop].InitRCS(ctx, path)
+		}
+	}
+	bes := make([]RCSBackend, 0, len(rcsRegistry))
+	for id := range rcsRegistry {
+		bes = append(bes, id)
+	}
+	sort.Slice(bes, func(i, j int) bool {
+		return rcsRegistry[bes[i]].Priority() < rcsRegistry[bes[j]].Priority()
+	})
+	for _, id := range bes {
+		be := rcsRegistry[id]
+		out.Debug(ctx, "DetectRCS(%s) - trying %s", path, be)
+		if err := be.Handles(path); err != nil {
+			out.Debug(ctx, "failed to use RCS %s for %s", id, path)
+			continue
+		}
+		out.Debug(ctx, "DetectRCS(%s) - using %s", path, be)
+		return be.Open(ctx, path)
+	}
+	out.Debug(ctx, "DetectRCS(%s) - no supported RCS found. using NOOP", path)
+	return rcsRegistry[Noop].InitRCS(ctx, path)
+}
+
+// CloneRCS clones an existing repository from a remote.
+func CloneRCS(ctx context.Context, id RCSBackend, repo, path string) (RCS, error) {
+	if be, found := rcsRegistry[id]; found {
+		out.Debug(ctx, "Cloning with %s", be.String())
+		return be.Clone(ctx, repo, path)
+	}
+	return nil, errors.Wrapf(ErrNotFound, "unknown backend: %d", id)
+}
+
+// InitRCS initializes a new repository.
+func InitRCS(ctx context.Context, id RCSBackend, path string) (RCS, error) {
+	if be, found := rcsRegistry[id]; found {
+		return be.InitRCS(ctx, path)
+	}
+	return nil, errors.Wrapf(ErrNotFound, "unknown backend: %d", id)
 }

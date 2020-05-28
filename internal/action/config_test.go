@@ -7,8 +7,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/gopasspw/gopass/internal/backend"
-	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/gptest"
 	"github.com/gopasspw/gopass/internal/out"
 
@@ -37,23 +35,18 @@ func TestConfig(t *testing.T) {
 	c := gptest.CliCtx(ctx, t)
 	assert.NoError(t, act.Config(c))
 	want := `root store config:
-  askformore: false
   autoclip: true
   autoimport: true
-  autosync: true
-  check_recipient_hash: false
   cliptimeout: 45
-  concurrency: 1
+  confirm: false
   editrecipients: false
-  exportkeys: true
+  exportkeys: false
   nocolor: false
-  noconfirm: false
   nopager: false
   notifications: true
 `
-	want += "  path: " + backend.FromPath(u.StoreDir("")).String() + "\n"
+	want += "  path: " + u.StoreDir("") + "\n"
 	want += `  safecontent: false
-  usesymbols: false
 `
 	assert.Equal(t, want, buf.String())
 	buf.Reset()
@@ -68,48 +61,26 @@ func TestConfig(t *testing.T) {
 	buf.Reset()
 
 	// action.printConfigValues
-	act.cfg.Mounts["foo"] = &config.StoreConfig{}
 	act.printConfigValues(ctx, "", "nopager")
-	want = `nopager: true
-foo/nopager: false`
+	want = "nopager: true"
 	assert.Equal(t, want, strings.TrimSpace(buf.String()), "action.printConfigValues")
-	buf.Reset()
-
-	// action.setConfigValue on substore
-	assert.NoError(t, act.setConfigValue(ctx, "foo", "cliptimeout", "23"))
-	assert.Equal(t, "foo/cliptimeout: 23", strings.TrimSpace(buf.String()), "action.setConfigValue on substore")
 	buf.Reset()
 
 	// action.printConfigValues
 	act.printConfigValues(ctx, "")
 	want = `root store config:
-  askformore: false
   autoclip: true
   autoimport: true
-  autosync: true
-  check_recipient_hash: false
   cliptimeout: 45
-  concurrency: 1
+  confirm: false
   editrecipients: false
-  exportkeys: true
+  exportkeys: false
   nocolor: false
-  noconfirm: false
   nopager: true
   notifications: true
 `
-	want += "  path: " + backend.FromPath(u.StoreDir("")).String() + "\n"
-	want += `  safecontent: false
-  usesymbols: false
-mount 'foo' config:
-  autoclip: false
-  autoimport: false
-  autosync: false
-  cliptimeout: 23
-  exportkeys: false
-  nopager: false
-  notifications: false
-`
-	want += "  path: " + backend.FromPath("").String()
+	want += "  path: " + u.StoreDir("") + "\n"
+	want += `  safecontent: false`
 	assert.Equal(t, want, strings.TrimSpace(buf.String()), "action.printConfigValues")
 	buf.Reset()
 
@@ -130,22 +101,17 @@ mount 'foo' config:
 
 	// action.ConfigComplete
 	act.ConfigComplete(c)
-	want = `askformore
-autoclip
+	want = `autoclip
 autoimport
-autosync
-check_recipient_hash
 cliptimeout
-concurrency
+confirm
 editrecipients
 exportkeys
 nocolor
-noconfirm
 nopager
 notifications
 path
 safecontent
-usesymbols
 `
 	assert.Equal(t, want, buf.String())
 	buf.Reset()

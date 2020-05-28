@@ -25,27 +25,6 @@ func TestFsckForce(t *testing.T) {
 	assert.Equal(t, true, HasFsckForce(WithFsckForce(ctx, true)))
 }
 
-func TestAutoSync(t *testing.T) {
-	ctx := context.Background()
-
-	assert.Equal(t, true, IsAutoSync(ctx))
-	assert.Equal(t, true, IsAutoSync(WithAutoSync(ctx, true)))
-	assert.Equal(t, false, IsAutoSync(WithAutoSync(ctx, false)))
-	assert.Equal(t, true, HasAutoSync(WithAutoSync(ctx, true)))
-}
-
-func TestImportFunc(t *testing.T) {
-	ctx := context.Background()
-
-	ifunc := func(context.Context, string, []string) bool {
-		return true
-	}
-	assert.NotNil(t, GetImportFunc(ctx))
-	assert.Equal(t, true, GetImportFunc(WithImportFunc(ctx, ifunc))(ctx, "", nil))
-	assert.Equal(t, true, HasImportFunc(WithImportFunc(ctx, ifunc)))
-	assert.Equal(t, true, GetImportFunc(WithImportFunc(ctx, nil))(ctx, "", nil))
-}
-
 func TestRecipientFunc(t *testing.T) {
 	ctx := context.Background()
 

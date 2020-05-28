@@ -1,31 +1,25 @@
 package gptest
 
 import (
-	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 
-	"golang.org/x/crypto/sha3"
-
-	"github.com/gopasspw/gopass/internal/backend"
-
 	aclip "github.com/atotto/clipboard"
+	"github.com/gopasspw/gopass/internal/backend/crypto/plain"
 	"github.com/stretchr/testify/assert"
 )
 
 const (
 	gopassConfig = `root:
-  askformore: false
   autoclip: true
   autoimport: true
-  autosync: true
   cliptimeout: 45
-  noconfirm: false
-  notifications: true
-  safecontent: false`
+  confirm: false
+  exportkeys: true
+  notifications: true`
 )
 
 var (
@@ -44,7 +38,7 @@ type Unit struct {
 
 // GPConfig returns the gopass config location
 func (u Unit) GPConfig() string {
-	return filepath.Join(u.Dir, ".gopass.yml")
+	return filepath.Join(u.Dir, "config.yml")
 }
 
 // GPGHome returns the gopass homedir
@@ -84,12 +78,9 @@ func NewUnitTester(t *testing.T) *Unit {
 }
 
 func (u Unit) initConfig() error {
-	url := backend.FromPath(u.StoreDir(""))
-	url.Crypto = backend.Plain
-	url.RCS = backend.Noop
 	return ioutil.WriteFile(
 		u.GPConfig(),
-		[]byte(gopassConfig+"\n  path: "+url.String()+"\n"+"  recipient_hash:\n    .gpg-id: "+fmt.Sprintf("%x", sha3.New512().Sum(u.recipients()))),
+		[]byte(gopassConfig+"\n  path: "+u.StoreDir("")+"\n"),
 		0600,
 	)
 }
@@ -99,7 +90,7 @@ func (u Unit) StoreDir(mount string) string {
 	if mount != "" {
 		mount = "-" + mount
 	}
-	return filepath.Join(u.Dir, ".password-store"+mount)
+	return filepath.Join(u.Dir, "password-store"+mount)
 }
 
 func (u Unit) recipients() []byte {
@@ -112,13 +103,13 @@ func (u Unit) InitStore(name string) error {
 	if err := os.MkdirAll(dir, 0700); err != nil {
 		return err
 	}
-	fn := filepath.Join(dir, ".gpg-id")
+	fn := filepath.Join(dir, plain.IDFile)
 	_ = os.Remove(fn)
 	if err := ioutil.WriteFile(fn, u.recipients(), 0600); err != nil {
 		return err
 	}
 	for _, p := range AllPathsToSlash(u.Entries) {
-		fn := filepath.Join(dir, p+".txt")
+		fn := filepath.Join(dir, p+"."+plain.Ext)
 		_ = os.Remove(fn)
 		if err := os.MkdirAll(filepath.Dir(fn), 0700); err != nil {
 			return err

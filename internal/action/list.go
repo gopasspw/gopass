@@ -39,8 +39,6 @@ func (s *Action) List(c *cli.Context) error {
 		flat = true
 	}
 
-	ctx = s.Store.WithConfig(ctx, filter)
-
 	l, err := s.Store.Tree(ctx)
 	if err != nil {
 		return ExitError(ctx, ExitList, err, "failed to list store: %s", err)

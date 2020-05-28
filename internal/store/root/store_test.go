@@ -128,9 +128,7 @@ func createRootStore(ctx context.Context, u *gptest.Unit) (*Store, error) {
 	s, err := New(
 		ctx,
 		&config.Config{
-			Root: &config.StoreConfig{
-				Path: backend.FromPath(u.StoreDir("")),
-			},
+			Path: u.StoreDir(""),
 		},
 	)
 	if err != nil {

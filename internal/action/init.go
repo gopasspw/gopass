@@ -11,7 +11,6 @@ import (
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/cui"
 	"github.com/gopasspw/gopass/internal/out"
-	"github.com/gopasspw/gopass/internal/store/leaf"
 	"github.com/gopasspw/gopass/internal/termio"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/pwgen/xkcdgen"
@@ -56,10 +55,10 @@ func (s *Action) Init(c *cli.Context) error {
 
 	ctx = initParseContext(ctx, c)
 	if name := detectName(c); name != "" {
-		ctx = WithUsername(ctx, name)
+		ctx = ctxutil.WithUsername(ctx, name)
 	}
 	if email := detectEmail(c); email != "" {
-		ctx = WithEmail(ctx, email)
+		ctx = ctxutil.WithEmail(ctx, email)
 	}
 	inited, err := s.Store.Initialized(ctx)
 	if err != nil {
@@ -81,21 +80,22 @@ func initParseContext(ctx context.Context, c *cli.Context) context.Context {
 	}
 	if c.IsSet("rcs") {
 		ctx = backend.WithRCSBackendString(ctx, c.String("rcs"))
-	} else {
-		if c.IsSet("nogit") && c.Bool("nogit") {
-			out.Error(ctx, "DEPRECATION WARNING: Use '--rcs noop' instead")
-			ctx = backend.WithRCSBackend(ctx, backend.Noop)
-		}
 	}
 	if c.IsSet("storage") {
-		out.Debug(ctx, "Using Storage: %s", c.String("storage"))
 		ctx = backend.WithStorageBackendString(ctx, c.String("storage"))
 	}
 
-	// default to git
+	if !backend.HasCryptoBackend(ctx) {
+		out.Debug(ctx, "Using default Crypto Backend (GPGCLI)")
+		ctx = backend.WithCryptoBackend(ctx, backend.GPGCLI)
+	}
 	if !backend.HasRCSBackend(ctx) {
 		out.Debug(ctx, "Using default RCS backend (GitCLI)")
 		ctx = backend.WithRCSBackend(ctx, backend.GitCLI)
+	}
+	if !backend.HasStorageBackend(ctx) {
+		out.Debug(ctx, "Using default storage backend (FS)")
+		ctx = backend.WithStorageBackend(ctx, backend.FS)
 	}
 
 	ctx = out.WithPrefix(ctx, "[init] ")
@@ -118,7 +118,7 @@ func (s *Action) init(ctx context.Context, alias, path string, keys ...string) e
 	crypto := s.getCryptoFor(ctx, alias)
 	// private key selection doesn't matter for plain. save one question.
 	if crypto.Name() == "plain" {
-		keys, _ = crypto.ListPrivateKeyIDs(ctx)
+		keys, _ = crypto.ListIdentities(ctx)
 	}
 	if len(keys) < 1 {
 		nk, err := cui.AskForPrivateKey(ctx, crypto, alias, color.CyanString("Please select a private key for encrypting secrets:"))
@@ -143,7 +143,7 @@ func (s *Action) init(ctx context.Context, alias, path string, keys ...string) e
 	if backend.HasRCSBackend(ctx) {
 		bn := backend.RCSBackendName(backend.GetRCSBackend(ctx))
 		out.Debug(ctx, "Initializing RCS (%s) ...", bn)
-		if err := s.rcsInit(ctx, alias, GetUsername(ctx), GetEmail(ctx)); err != nil {
+		if err := s.rcsInit(ctx, alias, ctxutil.GetUsername(ctx), ctxutil.GetEmail(ctx)); err != nil {
 			out.Debug(ctx, "Stacktrace: %+v\n", err)
 			out.Error(ctx, "Failed to init RCS (%s): %s", bn, err)
 		}
@@ -174,16 +174,7 @@ func (s *Action) printRecipients(ctx context.Context, alias string) {
 }
 
 func (s *Action) getCryptoFor(ctx context.Context, name string) backend.Crypto {
-	crypto := s.Store.Crypto(ctx, name)
-	if crypto != nil {
-		return crypto
-	}
-	c, err := leaf.GetCryptoBackend(ctx, backend.GetCryptoBackend(ctx), config.Directory())
-	if err != nil {
-		out.Debug(ctx, "getCryptoFor(%s) failed to init crypto backend: %s", name, err)
-		return nil
-	}
-	return c
+	return s.Store.Crypto(ctx, name)
 }
 
 func detectName(c *cli.Context) string {
@@ -221,11 +212,11 @@ func (s *Action) InitOnboarding(c *cli.Context) error {
 	create := c.Bool("create")
 	name := detectName(c)
 	if name != "" {
-		ctx = WithUsername(ctx, name)
+		ctx = ctxutil.WithUsername(ctx, name)
 	}
 	email := detectEmail(c)
 	if email != "" {
-		ctx = WithEmail(ctx, email)
+		ctx = ctxutil.WithEmail(ctx, email)
 	}
 	ctx = backend.WithCryptoBackendString(ctx, c.String("crypto"))
 
@@ -316,7 +307,7 @@ https://github.com/gopasspw/gopass/blob/master/docs/entropy.md`)
 		out.Green(ctx, "-> OK")
 	}
 
-	kl, err := crypto.ListPrivateKeyIDs(ctx)
+	kl, err := crypto.ListIdentities(ctx)
 	if err != nil {
 		return errors.Wrapf(err, "failed to list private keys")
 	}
@@ -341,7 +332,7 @@ https://github.com/gopasspw/gopass/blob/master/docs/entropy.md`)
 }
 
 func (s *Action) initHasUseablePrivateKeys(ctx context.Context, crypto backend.Crypto, mount string) bool {
-	kl, err := crypto.ListPrivateKeyIDs(gpg.WithAlwaysTrust(ctx, false))
+	kl, err := crypto.ListIdentities(gpg.WithAlwaysTrust(ctx, false))
 	if err != nil {
 		return false
 	}
@@ -377,7 +368,7 @@ func (s *Action) initLocal(ctx context.Context, c *cli.Context) error {
 
 	path := ""
 	if s.Store != nil {
-		path = s.Store.URL()
+		path = s.Store.Path()
 	}
 
 	out.Print(ctx, "Initializing your local store ...")
@@ -393,17 +384,11 @@ func (s *Action) initLocal(ctx context.Context, c *cli.Context) error {
 		if err := s.initSetupGitRemote(ctx, "", ""); err != nil {
 			return errors.Wrapf(err, "failed to setup git remote")
 		}
-		// autosync
-		if want, err := termio.AskForBool(ctx, out.Prefix(ctx)+"Do you want to automatically push any changes to the git remote (if any)?", true); err == nil {
-			s.cfg.Root.AutoSync = want
-		}
-	} else {
-		s.cfg.Root.AutoSync = false
 	}
 
 	// noconfirm
 	if want, err := termio.AskForBool(ctx, out.Prefix(ctx)+"Do you want to always confirm recipients when encrypting?", true); err == nil {
-		s.cfg.Root.NoConfirm = !want
+		s.cfg.ConfirmRecipients = !want
 	}
 
 	// save config

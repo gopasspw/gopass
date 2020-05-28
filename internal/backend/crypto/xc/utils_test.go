@@ -40,10 +40,10 @@ func TestCreatePrivateKeyBatch(t *testing.T) {
 
 	assert.NoError(t, xc.CreatePrivateKeyBatch(ctx, "foo", "bar@example.org", passphrase))
 
-	pubKeys, err := xc.ListPublicKeyIDs(ctx)
+	pubKeys, err := xc.ListRecipients(ctx)
 	require.NoError(t, err)
 
-	privKeys, err := xc.ListPrivateKeyIDs(ctx)
+	privKeys, err := xc.ListIdentities(ctx)
 	require.NoError(t, err)
 
 	assert.Equal(t, 1, len(pubKeys))

@@ -53,8 +53,6 @@ func (s *Action) Generate(c *cli.Context) error {
 		}
 	}
 
-	ctx = s.Store.WithConfig(ctx, name)
-
 	// ask for confirmation before overwriting existing entry
 	if !force { // don't check if it's force anyway
 		if s.Store.Exists(ctx, name) && key == "" && !termio.AskForConfirmation(ctx, fmt.Sprintf("An entry already exists for %s. Overwrite the current password?", name)) {
@@ -75,7 +73,7 @@ func (s *Action) Generate(c *cli.Context) error {
 	}
 
 	// if requested launch editor to add more data to the generated secret
-	if (edit || ctxutil.IsAskForMore(ctx)) && termio.AskForConfirmation(ctx, fmt.Sprintf("Do you want to add more data for %s?", name)) {
+	if edit && termio.AskForConfirmation(ctx, fmt.Sprintf("Do you want to add more data for %s?", name)) {
 		c.Context = ctx
 		if err := s.Edit(c); err != nil {
 			return ExitError(ctx, ExitUnknown, err, "failed to edit '%s': %s", name, err)
@@ -135,7 +133,7 @@ func (s *Action) generatePassword(ctx context.Context, c *cli.Context, length st
 		return s.generatePasswordXKCD(ctx, c, length)
 	}
 
-	symbols := ctxutil.IsUseSymbols(ctx)
+	symbols := false
 	if c.IsSet("symbols") {
 		symbols = c.Bool("symbols")
 	}

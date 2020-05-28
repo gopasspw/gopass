@@ -96,11 +96,6 @@ func (s *Store) delete(ctx context.Context, name string, recurse bool) error {
 		}
 	}
 
-	// abort if auto sync is not set
-	if !IsAutoSync(ctx) {
-		return nil
-	}
-
 	if err := s.rcs.Push(ctx, "", ""); err != nil {
 		if errors.Cause(err) == store.ErrGitNotInit || errors.Cause(err) == store.ErrGitNoRemote {
 			return nil

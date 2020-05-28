@@ -8,7 +8,6 @@ import (
 	"github.com/gopasspw/gopass/internal/notify"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
-	subs "github.com/gopasspw/gopass/internal/store/leaf"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 
 	"github.com/fatih/color"
@@ -119,9 +118,9 @@ func (s *Action) syncMount(ctx context.Context, mp string) error {
 		}
 	}
 
-	out.Debug(ctx, "syncMount(%s) - exportkeys: %t", mp, subs.IsExportKeys(ctx))
+	out.Debug(ctx, "syncMount(%s) - exportkeys: %t", mp, ctxutil.IsExportKeys(ctx))
 	var exported bool
-	if subs.IsExportKeys(ctx) {
+	if ctxutil.IsExportKeys(ctx) {
 		// import keys
 		out.Print(ctxno, "\n   "+color.GreenString("importing missing keys ... "))
 		if err := sub.ImportMissingPublicKeys(ctx); err != nil {

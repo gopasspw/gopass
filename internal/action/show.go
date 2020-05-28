@@ -115,7 +115,6 @@ func (s *Action) showHandleOutput(ctx context.Context, name string, sec store.Se
 		return err
 	}
 
-	// we need to set AutoClip here because it's a per store config option
 	if ctxutil.IsAutoClip(ctx) {
 		ctx = WithClip(ctx, true)
 	}

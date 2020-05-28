@@ -248,8 +248,8 @@ func (a *Age) CreatePrivateKey(ctx context.Context) error {
 	return a.CreatePrivateKeyBatch(ctx, name, email, "unused")
 }
 
-// ListPrivateKeyIDs is TODO
-func (a *Age) ListPrivateKeyIDs(ctx context.Context) ([]string, error) {
+// ListIdentities is TODO
+func (a *Age) ListIdentities(ctx context.Context) ([]string, error) {
 	native, err := a.getNativeKeypairs(ctx)
 	if err != nil {
 		return nil, err

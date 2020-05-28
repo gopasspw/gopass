@@ -39,20 +39,20 @@ func (x *XC) ReadNamesFromKey(ctx context.Context, buf []byte) ([]string, error)
 	return []string{pk.Identity.Name}, nil
 }
 
-// ListPublicKeyIDs lists all public key IDs
-func (x *XC) ListPublicKeyIDs(ctx context.Context) ([]string, error) {
+// ListRecipients lists all public key IDs
+func (x *XC) ListRecipients(ctx context.Context) ([]string, error) {
 	return x.pubring.KeyIDs(), nil
 }
 
-// ListPrivateKeyIDs lists all private key IDs
-func (x *XC) ListPrivateKeyIDs(ctx context.Context) ([]string, error) {
+// ListIdentities lists all private key IDs
+func (x *XC) ListIdentities(ctx context.Context) ([]string, error) {
 	return x.secring.KeyIDs(), nil
 }
 
 // FindPublicKeys finds all matching public keys
 func (x *XC) FindPublicKeys(ctx context.Context, search ...string) ([]string, error) {
 	ids := make([]string, 0, 1)
-	candidates, _ := x.ListPublicKeyIDs(ctx)
+	candidates, _ := x.ListRecipients(ctx)
 	for _, needle := range search {
 		for _, fp := range candidates {
 			if strings.HasSuffix(fp, needle) {
@@ -67,7 +67,7 @@ func (x *XC) FindPublicKeys(ctx context.Context, search ...string) ([]string, er
 // FindPrivateKeys finds all matching private keys
 func (x *XC) FindPrivateKeys(ctx context.Context, search ...string) ([]string, error) {
 	ids := make([]string, 0, 1)
-	candidates, _ := x.ListPrivateKeyIDs(ctx)
+	candidates, _ := x.ListIdentities(ctx)
 	for _, needle := range search {
 		for _, fp := range candidates {
 			if strings.HasSuffix(fp, needle) {

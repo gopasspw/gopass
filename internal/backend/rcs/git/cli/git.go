@@ -117,8 +117,8 @@ func (g *Git) captureCmd(ctx context.Context, name string, args ...string) ([]by
 func (g *Git) Cmd(ctx context.Context, name string, args ...string) error {
 	stdout, stderr, err := g.captureCmd(ctx, name, args...)
 	if err != nil {
-		out.Debug(ctx, "Output:\n  Stdout: '%s'\n  Stderr: '%s'", string(stdout), string(stderr))
-		return fmt.Errorf(strings.TrimSpace(string(stderr)))
+		out.Debug(ctx, "CMD: %s %+v\nError: %s\nOutput:\n  Stdout: '%s'\n  Stderr: '%s'", name, args, err, string(stdout), string(stderr))
+		return fmt.Errorf("%s: %s", err, strings.TrimSpace(string(stderr)))
 	}
 
 	return nil
@@ -226,6 +226,10 @@ func (g *Git) defaultBranch(ctx context.Context) string {
 // PushPull pushes the repo to it's origin.
 // optional arguments: remote and branch
 func (g *Git) PushPull(ctx context.Context, op, remote, branch string) error {
+	if ctxutil.IsNoNetwork(ctx) {
+		out.Debug(ctx, "Skipping network ops. NoNetwork=true")
+		return nil
+	}
 	if !g.IsInitialized() {
 		return store.ErrGitNotInit
 	}
@@ -256,11 +260,19 @@ func (g *Git) PushPull(ctx context.Context, op, remote, branch string) error {
 
 // Push pushes to the git remote
 func (g *Git) Push(ctx context.Context, remote, branch string) error {
+	if ctxutil.IsNoNetwork(ctx) {
+		out.Debug(ctx, "Skipping network ops. NoNetwork=true")
+		return nil
+	}
 	return g.PushPull(ctx, "push", remote, branch)
 }
 
 // Pull pulls from the git remote
 func (g *Git) Pull(ctx context.Context, remote, branch string) error {
+	if ctxutil.IsNoNetwork(ctx) {
+		out.Debug(ctx, "Skipping network ops. NoNetwork=true")
+		return nil
+	}
 	return g.PushPull(ctx, "pull", remote, branch)
 }
 

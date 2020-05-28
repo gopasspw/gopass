@@ -49,14 +49,6 @@ func TestStdin(t *testing.T) {
 	assert.Equal(t, false, IsStdin(WithStdin(ctx, false)))
 }
 
-func TestAskForMore(t *testing.T) {
-	ctx := context.Background()
-
-	assert.Equal(t, false, IsAskForMore(ctx))
-	assert.Equal(t, true, IsAskForMore(WithAskForMore(ctx, true)))
-	assert.Equal(t, false, IsAskForMore(WithAskForMore(ctx, false)))
-}
-
 func TestClipTimeout(t *testing.T) {
 	ctx := context.Background()
 
@@ -71,12 +63,12 @@ func TestConcurrency(t *testing.T) {
 	assert.Equal(t, 3, GetConcurrency(WithConcurrency(ctx, 3)))
 }
 
-func TestNoConfirm(t *testing.T) {
+func TestConfirm(t *testing.T) {
 	ctx := context.Background()
 
-	assert.Equal(t, false, IsNoConfirm(ctx))
-	assert.Equal(t, true, IsNoConfirm(WithNoConfirm(ctx, true)))
-	assert.Equal(t, false, IsNoConfirm(WithNoConfirm(ctx, false)))
+	assert.Equal(t, false, IsConfirm(ctx))
+	assert.Equal(t, true, IsConfirm(WithConfirm(ctx, true)))
+	assert.Equal(t, false, IsConfirm(WithConfirm(ctx, false)))
 }
 
 func TestNoPager(t *testing.T) {
@@ -109,14 +101,6 @@ func TestAlwaysYes(t *testing.T) {
 	assert.Equal(t, false, IsAlwaysYes(ctx))
 	assert.Equal(t, true, IsAlwaysYes(WithAlwaysYes(ctx, true)))
 	assert.Equal(t, false, IsAlwaysYes(WithAlwaysYes(ctx, false)))
-}
-
-func TestUseSymbols(t *testing.T) {
-	ctx := context.Background()
-
-	assert.Equal(t, false, IsUseSymbols(ctx))
-	assert.Equal(t, true, IsUseSymbols(WithUseSymbols(ctx, true)))
-	assert.Equal(t, false, IsUseSymbols(WithUseSymbols(ctx, false)))
 }
 
 func TestNoColor(t *testing.T) {
@@ -176,13 +160,6 @@ func TestProgressCallback(t *testing.T) {
 	assert.Equal(t, true, foo)
 }
 
-func TestConfigDir(t *testing.T) {
-	ctx := context.Background()
-
-	assert.Equal(t, "", GetConfigDir(ctx))
-	assert.Equal(t, "", GetConfigDir(WithConfigDir(ctx, "")))
-}
-
 func TestAlias(t *testing.T) {
 	ctx := context.Background()
 
@@ -221,14 +198,12 @@ func TestComposite(t *testing.T) {
 	ctx = WithTerminal(ctx, false)
 	ctx = WithInteractive(ctx, false)
 	ctx = WithStdin(ctx, true)
-	ctx = WithAskForMore(ctx, true)
 	ctx = WithClipTimeout(ctx, 10)
 	ctx = WithConcurrency(ctx, 5)
-	ctx = WithNoConfirm(ctx, true)
+	ctx = WithConfirm(ctx, true)
 	ctx = WithNoPager(ctx, true)
 	ctx = WithShowSafeContent(ctx, true)
 	ctx = WithGitCommit(ctx, false)
-	ctx = WithUseSymbols(ctx, false)
 	ctx = WithAlwaysYes(ctx, true)
 	ctx = WithNoColor(ctx, true)
 	ctx = WithFuzzySearch(ctx, false)
@@ -252,17 +227,14 @@ func TestComposite(t *testing.T) {
 	assert.Equal(t, true, IsStdin(ctx))
 	assert.Equal(t, true, HasStdin(ctx))
 
-	assert.Equal(t, true, IsAskForMore(ctx))
-	assert.Equal(t, true, HasAskForMore(ctx))
-
 	assert.Equal(t, 10, GetClipTimeout(ctx))
 	assert.Equal(t, true, HasClipTimeout(ctx))
 
 	assert.Equal(t, 5, GetConcurrency(ctx))
 	assert.Equal(t, true, HasConcurrency(ctx))
 
-	assert.Equal(t, true, IsNoConfirm(ctx))
-	assert.Equal(t, true, HasNoConfirm(ctx))
+	assert.Equal(t, true, IsConfirm(ctx))
+	assert.Equal(t, true, HasConfirm(ctx))
 
 	assert.Equal(t, true, IsNoPager(ctx))
 	assert.Equal(t, true, HasNoPager(ctx))
@@ -272,9 +244,6 @@ func TestComposite(t *testing.T) {
 
 	assert.Equal(t, false, IsGitCommit(ctx))
 	assert.Equal(t, true, HasGitCommit(ctx))
-
-	assert.Equal(t, false, IsUseSymbols(ctx))
-	assert.Equal(t, true, HasUseSymbols(ctx))
 
 	assert.Equal(t, true, IsAlwaysYes(ctx))
 	assert.Equal(t, true, HasAlwaysYes(ctx))
@@ -313,4 +282,16 @@ func TestGlobalFlags(t *testing.T) {
 	c.Context = ctx
 
 	assert.Equal(t, true, IsAlwaysYes(WithGlobalFlags(c)))
+}
+
+func TestImportFunc(t *testing.T) {
+	ctx := context.Background()
+
+	ifunc := func(context.Context, string, []string) bool {
+		return true
+	}
+	assert.NotNil(t, GetImportFunc(ctx))
+	assert.Equal(t, true, GetImportFunc(WithImportFunc(ctx, ifunc))(ctx, "", nil))
+	assert.Equal(t, true, HasImportFunc(WithImportFunc(ctx, ifunc)))
+	assert.Equal(t, true, GetImportFunc(WithImportFunc(ctx, nil))(ctx, "", nil))
 }

@@ -6,7 +6,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/pkg/fsutil"
 
 	"github.com/pkg/errors"
@@ -41,19 +40,18 @@ func loadConfig(l string) *Config {
 		return nil
 	}
 	if err != nil {
-		panic(err)
+		fmt.Fprintf(os.Stderr, "ERROR: Failed to load config from %s", l)
+		return nil
 	}
-	_ = cfg.checkDefaults()
 	if debug {
-		fmt.Printf("[DEBUG] Loaded config from %s: %+v\n", l, cfg)
+		fmt.Printf("  [DEBUG] Loaded config from %s: %+v\n", l, cfg)
 	}
 	return cfg
 }
 
 func loadDefault() *Config {
 	cfg := New()
-	cfg.Root.Path = backend.FromPath(PwStoreDir(""))
-	_ = cfg.checkDefaults()
+	cfg.Path = PwStoreDir("")
 	if debug {
 		fmt.Printf("[DEBUG] config.Load(): %+v\n", cfg)
 	}
@@ -74,13 +72,13 @@ func load(cf string) (*Config, error) {
 
 	cfg, err := decode(buf)
 	if err != nil {
-		fmt.Printf("Error reading config from %s: %s\n", cf, err)
+		fmt.Printf("Error reading config from %s: %s\n%s", cf, err, string(buf))
 		return nil, ErrConfigNotParsed
 	}
 	if cfg.Mounts == nil {
-		cfg.Mounts = make(map[string]*StoreConfig)
+		cfg.Mounts = make(map[string]string)
 	}
-	cfg.Path = cf
+	cfg.configPath = cf
 	return cfg, nil
 }
 
@@ -104,21 +102,25 @@ type configer interface {
 func decode(buf []byte) (*Config, error) {
 	cfgs := []configer{
 		&Config{
-			Root: &StoreConfig{
-				AutoSync:   true,
-				ExportKeys: true,
-			},
+			ExportKeys: true,
+		},
+		&Pre193{
+			Root: &Pre193StoreConfig{},
 		},
 		&Pre182{
 			Root: &Pre182StoreConfig{},
 		},
-		&Pre140{
-			AutoSync: true,
-		},
+		&Pre140{},
 		&Pre130{},
 	}
-	for _, cfg := range cfgs {
+	for i, cfg := range cfgs {
+		if debug {
+			fmt.Printf("[DEBUG] Trying to unmarshal config into %T\n", cfg)
+		}
 		if err := yaml.Unmarshal(buf, cfg); err != nil {
+			if debug {
+				fmt.Printf("[DEBUG] Loading config %T failed: %s\n", cfg, err)
+			}
 			continue
 		}
 		if err := cfg.CheckOverflow(); err != nil {
@@ -128,19 +130,21 @@ func decode(buf []byte) (*Config, error) {
 			continue
 		}
 		if debug {
-			fmt.Printf("[DEBUG] Loaded config: %+v\n", cfg)
+			fmt.Printf("[DEBUG] Loaded config: %T: %+v\n", cfg, cfg)
 		}
-		return cfg.Config(), nil
+		conf := cfg.Config()
+		if i > 0 {
+			if err := conf.Save(); err != nil {
+				return nil, err
+			}
+		}
+		return conf, nil
 	}
 	return nil, ErrConfigNotParsed
 }
 
 // Save saves the config
 func (c *Config) Save() error {
-	if err := c.checkDefaults(); err != nil {
-		return err
-	}
-
 	buf, err := yaml.Marshal(c)
 	if err != nil {
 		return errors.Wrapf(err, "failed to marshal YAML")

@@ -15,7 +15,7 @@ func TestPwStoreDir(t *testing.T) {
 	gph := filepath.Join(os.TempDir(), "home")
 	require.NoError(t, os.Setenv("GOPASS_HOMEDIR", gph))
 
-	assert.Equal(t, filepath.Join(gph, ".password-store"), PwStoreDir(""))
+	assert.Equal(t, filepath.Join(gph, ".local", "share", "gopass", "stores", "root"), PwStoreDir(""))
 	assert.Equal(t, filepath.Join(gph, ".local", "share", "gopass", "stores", "foo"), PwStoreDir("foo"))
 
 	psd := filepath.Join(gph, ".password-store-test")

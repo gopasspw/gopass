@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/gopasspw/gopass/internal/backend"
+	"github.com/gopasspw/gopass/internal/backend/crypto/plain"
 	"github.com/gopasspw/gopass/internal/gptest"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -52,7 +53,7 @@ func TestInit(t *testing.T) {
 	buf.Reset()
 
 	// un-initialize the store
-	assert.NoError(t, os.Remove(filepath.Join(u.StoreDir(""), ".gpg-id")))
+	assert.NoError(t, os.Remove(filepath.Join(u.StoreDir(""), plain.IDFile)))
 	assert.Error(t, act.Initialized(c))
 	buf.Reset()
 }
@@ -84,16 +85,6 @@ func TestInitParseContext(t *testing.T) {
 		{
 			name:  "rcs noop",
 			flags: map[string]string{"rcs": "noop"},
-			check: func(ctx context.Context) error {
-				if backend.GetRCSBackend(ctx) != backend.Noop {
-					return fmt.Errorf("wrong backend")
-				}
-				return nil
-			},
-		},
-		{
-			name:  "nogit",
-			flags: map[string]string{"nogit": "true"},
 			check: func(ctx context.Context) error {
 				if backend.GetRCSBackend(ctx) != backend.Noop {
 					return fmt.Errorf("wrong backend")

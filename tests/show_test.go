@@ -34,12 +34,12 @@ func TestShow(t *testing.T) {
 	assert.NoError(t, err)
 
 	_, err = ts.run("show fixed/secret")
-	assert.Error(t, err)
+	assert.NoError(t, err)
 
 	_, err = ts.run("config autoclip false")
 	assert.NoError(t, err)
 	_, err = ts.run("show fixed/secret")
-	assert.Error(t, err)
+	assert.NoError(t, err)
 
 	out, err = ts.run("show -f fixed/secret")
 	assert.NoError(t, err)
@@ -47,7 +47,7 @@ func TestShow(t *testing.T) {
 
 	out, err = ts.run("show fixed/twoliner")
 	assert.NoError(t, err)
-	assert.Equal(t, "more stuff", out)
+	assert.Contains(t, out, "more stuff")
 
 	out, err = ts.run("show -f fixed/twoliner")
 	assert.NoError(t, err)

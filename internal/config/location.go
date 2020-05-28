@@ -55,8 +55,7 @@ func configLocations() []string {
 }
 
 // PwStoreDir reads the password store dir from the environment
-// or returns the default location ~/.password-store if the env is
-// not set
+// or returns the default location if the env is not set
 func PwStoreDir(mount string) string {
 	if mount != "" {
 		cleanName := strings.Replace(mount, string(filepath.Separator), "-", -1)
@@ -66,8 +65,7 @@ func PwStoreDir(mount string) string {
 	if d := os.Getenv("PASSWORD_STORE_DIR"); d != "" {
 		return fsutil.CleanPath(d)
 	}
-	// TODO: the default should also comply with the XDG spec
-	return filepath.Join(Homedir(), ".password-store")
+	return fsutil.CleanPath(filepath.Join(appdir.UserData(), "stores", "root"))
 }
 
 // Directory returns the configuration directory for the gopass config file

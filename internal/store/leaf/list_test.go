@@ -7,12 +7,12 @@ import (
 	"os"
 	"testing"
 
-	"github.com/gopasspw/gopass/internal/backend"
 	plain "github.com/gopasspw/gopass/internal/backend/crypto/plain"
 	noop "github.com/gopasspw/gopass/internal/backend/rcs/noop"
 	"github.com/gopasspw/gopass/internal/backend/storage/fs"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store/secret"
+	"github.com/gopasspw/gopass/pkg/ctxutil"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -20,7 +20,7 @@ import (
 
 func TestList(t *testing.T) {
 	ctx := context.Background()
-	ctx = WithExportKeys(ctx, false)
+	ctx = ctxutil.WithExportKeys(ctx, false)
 
 	obuf := &bytes.Buffer{}
 	out.Stdout = obuf
@@ -76,11 +76,10 @@ func TestList(t *testing.T) {
 
 		s := &Store{
 			alias:   "",
-			url:     backend.FromPath(tempdir),
+			path:    tempdir,
 			crypto:  plain.New(),
 			rcs:     noop.New(),
 			storage: fs.New(tempdir),
-			sc:      &fakeConfig{},
 		}
 
 		assert.NoError(t, s.saveRecipients(ctx, []string{"john.doe"}, "test"))

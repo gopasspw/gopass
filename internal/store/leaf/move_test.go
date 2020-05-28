@@ -7,12 +7,12 @@ import (
 	"os"
 	"testing"
 
-	"github.com/gopasspw/gopass/internal/backend"
 	plain "github.com/gopasspw/gopass/internal/backend/crypto/plain"
 	noop "github.com/gopasspw/gopass/internal/backend/rcs/noop"
 	"github.com/gopasspw/gopass/internal/backend/storage/fs"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store/secret"
+	"github.com/gopasspw/gopass/pkg/ctxutil"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -20,7 +20,7 @@ import (
 
 func TestCopy(t *testing.T) {
 	ctx := context.Background()
-	ctx = WithExportKeys(ctx, false)
+	ctx = ctxutil.WithExportKeys(ctx, false)
 
 	obuf := &bytes.Buffer{}
 	out.Stdout = obuf
@@ -72,11 +72,10 @@ func TestCopy(t *testing.T) {
 
 		s := &Store{
 			alias:   "",
-			url:     backend.FromPath(tempdir),
+			path:    tempdir,
 			crypto:  plain.New(),
 			rcs:     noop.New(),
 			storage: fs.New(tempdir),
-			sc:      &fakeConfig{},
 		}
 
 		assert.NoError(t, s.saveRecipients(ctx, []string{"john.doe"}, "test"))
@@ -92,7 +91,7 @@ func TestCopy(t *testing.T) {
 
 func TestMove(t *testing.T) {
 	ctx := context.Background()
-	ctx = WithExportKeys(ctx, false)
+	ctx = ctxutil.WithExportKeys(ctx, false)
 
 	obuf := &bytes.Buffer{}
 	out.Stdout = obuf
@@ -144,11 +143,10 @@ func TestMove(t *testing.T) {
 
 		s := &Store{
 			alias:   "",
-			url:     backend.FromPath(tempdir),
+			path:    tempdir,
 			crypto:  plain.New(),
 			rcs:     noop.New(),
 			storage: fs.New(tempdir),
-			sc:      &fakeConfig{},
 		}
 
 		err = s.saveRecipients(ctx, []string{"john.doe"}, "test")
@@ -165,7 +163,7 @@ func TestMove(t *testing.T) {
 
 func TestDelete(t *testing.T) {
 	ctx := context.Background()
-	ctx = WithExportKeys(ctx, false)
+	ctx = ctxutil.WithExportKeys(ctx, false)
 
 	obuf := &bytes.Buffer{}
 	out.Stdout = obuf
@@ -203,11 +201,10 @@ func TestDelete(t *testing.T) {
 
 		s := &Store{
 			alias:   "",
-			url:     backend.FromPath(tempdir),
+			path:    tempdir,
 			crypto:  plain.New(),
 			rcs:     noop.New(),
 			storage: fs.New(tempdir),
-			sc:      &fakeConfig{},
 		}
 
 		err = s.saveRecipients(ctx, []string{"john.doe"}, "test")
@@ -224,7 +221,7 @@ func TestDelete(t *testing.T) {
 
 func TestPrune(t *testing.T) {
 	ctx := context.Background()
-	ctx = WithExportKeys(ctx, false)
+	ctx = ctxutil.WithExportKeys(ctx, false)
 
 	obuf := &bytes.Buffer{}
 	out.Stdout = obuf
@@ -283,11 +280,10 @@ func TestPrune(t *testing.T) {
 
 		s := &Store{
 			alias:   "",
-			url:     backend.FromPath(tempdir),
+			path:    tempdir,
 			crypto:  plain.New(),
 			rcs:     noop.New(),
 			storage: fs.New(tempdir),
-			sc:      &fakeConfig{},
 		}
 
 		err = s.saveRecipients(ctx, []string{"john.doe"}, "test")

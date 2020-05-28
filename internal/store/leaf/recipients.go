@@ -8,8 +8,6 @@ import (
 	"sort"
 	"strings"
 
-	"golang.org/x/crypto/sha3"
-
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -20,11 +18,6 @@ import (
 const (
 	keyDir    = ".public-keys"
 	oldKeyDir = ".gpg-keys"
-)
-
-var (
-	// ErrRecipientChecksumChanged is returned is the recipient checksum has changed
-	ErrRecipientChecksumChanged = fmt.Errorf("checksum changed. Run 'gopass recipients update' to get rid of this warning")
 )
 
 // Recipients returns the list of recipients of this store
@@ -160,18 +153,6 @@ func (s *Store) GetRecipients(ctx context.Context, name string) ([]string, error
 		finalRecps = append(finalRecps, fp)
 	}
 
-	if s.sc.CheckRecipientHash(s.alias) {
-		computedSum := sha3fp(buf)
-		storedSum := s.sc.GetRecipientHash(s.alias, idf)
-		if storedSum == "" {
-			out.Yellow(ctx, "WARNING: No previous recipient checksum for '%s/%s'. Run 'gopass recipients update' to get rid of this warning", s.alias, idf)
-		} else if storedSum == computedSum {
-			out.Debug(ctx, "[%s/%s] Computed Recipient Checksum matches stored sum (%s)", s.alias, idf, computedSum)
-		} else {
-			return finalRecps, ErrRecipientChecksumChanged
-		}
-	}
-
 	return finalRecps, nil
 }
 
@@ -227,10 +208,6 @@ func (s *Store) saveRecipients(ctx context.Context, rs []string, msg string) err
 		return errors.Wrapf(err, "failed to write recipients file")
 	}
 
-	if err := s.sc.SetRecipientHash(s.alias, idf, sha3fp(buf)); err != nil {
-		return errors.Wrapf(err, "failed to update recipients hash")
-	}
-
 	if err := s.rcs.Add(ctx, idf); err != nil {
 		if err != store.ErrGitNotInit {
 			return errors.Wrapf(err, "failed to add file '%s' to git", idf)
@@ -244,15 +221,10 @@ func (s *Store) saveRecipients(ctx context.Context, rs []string, msg string) err
 	}
 
 	// save all recipients public keys to the repo
-	if IsExportKeys(ctx) {
+	if ctxutil.IsExportKeys(ctx) {
 		if _, err := s.ExportMissingPublicKeys(ctx, rs); err != nil {
 			out.Error(ctx, "Failed to export missing public keys: %s", err)
 		}
-	}
-
-	// return if autosync is not enabled
-	if !IsAutoSync(ctx) {
-		return nil
 	}
 
 	// push to remote repo
@@ -320,8 +292,4 @@ func unmarshalRecipients(buf []byte) []string {
 	sort.Strings(lst)
 
 	return lst
-}
-
-func sha3fp(in []byte) string {
-	return fmt.Sprintf("%x", sha3.New512().Sum(in))
 }

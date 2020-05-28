@@ -7,30 +7,20 @@ import (
 	"os"
 	"testing"
 
-	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/internal/backend/crypto/plain"
 	"github.com/gopasspw/gopass/internal/backend/rcs/noop"
 	"github.com/gopasspw/gopass/internal/backend/storage/fs"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store/secret"
+	"github.com/gopasspw/gopass/pkg/ctxutil"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-type fakeConfig struct{}
-
-func (f *fakeConfig) GetRecipientHash(string, string) string { return "" }
-func (f *fakeConfig) SetRecipientHash(string, string, string) error {
-	return nil
-}
-func (f *fakeConfig) CheckRecipientHash(string) bool {
-	return false
-}
-
 func TestFsck(t *testing.T) {
 	ctx := context.Background()
-	ctx = WithExportKeys(ctx, false)
+	ctx = ctxutil.WithExportKeys(ctx, false)
 
 	obuf := &bytes.Buffer{}
 	out.Stdout = obuf
@@ -44,11 +34,10 @@ func TestFsck(t *testing.T) {
 
 	s := &Store{
 		alias:   "",
-		url:     backend.FromPath(tempdir),
+		path:    tempdir,
 		crypto:  plain.New(),
 		rcs:     noop.New(),
 		storage: fs.New(tempdir),
-		sc:      &fakeConfig{},
 	}
 	assert.NoError(t, s.saveRecipients(ctx, []string{"john.doe"}, "test"))
 
