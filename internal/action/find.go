@@ -18,11 +18,15 @@ import (
 // FindNoFuzzy runs find without fuzzy search
 func (s *Action) FindNoFuzzy(c *cli.Context) error {
 	c.Context = ctxutil.WithFuzzySearch(c.Context, false)
-	return s.Find(c)
+	return s.findCmd(c, nil)
 }
 
-// Find a string in the secret file's name
+// Find runs find
 func (s *Action) Find(c *cli.Context) error {
+	return s.findCmd(c, s.show)
+}
+
+func (s *Action) findCmd(c *cli.Context, cb showFunc) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	if c.IsSet("clip") {
 		ctx = WithOnlyClip(ctx, c.Bool("clip"))
@@ -36,7 +40,7 @@ func (s *Action) Find(c *cli.Context) error {
 		return ExitError(ExitUsage, nil, "Usage: %s find <NEEDLE>", s.Name)
 	}
 
-	return s.find(ctx, c, c.Args().First(), s.show)
+	return s.find(ctx, c, c.Args().First(), cb)
 }
 
 // see action.show - context, cli context, name, key, rescurse
@@ -55,6 +59,10 @@ func (s *Action) find(ctx context.Context, c *cli.Context, needle string, cb sho
 
 	// if we have an exact match print it
 	if len(choices) == 1 {
+		if cb == nil {
+			out.Print(ctx, choices[0])
+			return nil
+		}
 		out.Green(ctx, "Found exact match in '%s'", choices[0])
 		return cb(ctx, c, choices[0], false)
 	}
