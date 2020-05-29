@@ -45,7 +45,7 @@ func (r *Store) move(ctx context.Context, from, to string, delete bool) error {
 	if err := subFrom.RCS().Commit(ctxFrom, fmt.Sprintf("Move from %s to %s", from, to)); delete && err != nil {
 		switch errors.Cause(err) {
 		case store.ErrGitNotInit:
-			debug.Log("reencrypt - skipping git commit - git not initialized")
+			debug.Log("skipping git commit - git not initialized")
 		default:
 			return errors.Wrapf(err, "failed to commit changes to git (from)")
 		}
@@ -54,7 +54,7 @@ func (r *Store) move(ctx context.Context, from, to string, delete bool) error {
 		if err := subTo.RCS().Commit(ctxTo, fmt.Sprintf("Move from %s to %s", from, to)); err != nil {
 			switch errors.Cause(err) {
 			case store.ErrGitNotInit:
-				debug.Log("reencrypt - skipping git commit - git not initialized")
+				debug.Log("skipping git commit - git not initialized")
 			default:
 				return errors.Wrapf(err, "failed to commit changes to git (to)")
 			}

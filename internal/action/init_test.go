@@ -45,7 +45,7 @@ func TestInit(t *testing.T) {
 
 	crypto := act.Store.Crypto(ctx, "")
 	assert.Equal(t, true, act.initHasUseablePrivateKeys(ctx, crypto))
-	assert.Error(t, act.initCreatePrivateKey(ctx, crypto, "foo bar", "foo.bar@example.org"))
+	assert.Error(t, act.initGenerateIdentity(ctx, crypto, "foo bar", "foo.bar@example.org"))
 	buf.Reset()
 
 	act.printRecipients(ctx, "")

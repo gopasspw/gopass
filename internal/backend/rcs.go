@@ -44,6 +44,7 @@ type RCS interface {
 	GetRevision(ctx context.Context, name, revision string) ([]byte, error)
 
 	Status(ctx context.Context) ([]byte, error)
+	Compact(ctx context.Context) error
 }
 
 // Revision is a SCM revision
@@ -87,15 +88,15 @@ func DetectRCS(ctx context.Context, path string) (RCS, error) {
 	})
 	for _, id := range bes {
 		be := rcsRegistry[id]
-		debug.Log("DetectRCS(%s) - trying %s", path, be)
+		debug.Log("Trying %s for %s", be, path)
 		if err := be.Handles(path); err != nil {
 			debug.Log("failed to use RCS %s for %s", id, path)
 			continue
 		}
-		debug.Log("DetectRCS(%s) - using %s", path, be)
+		debug.Log("Using %s for %s", be, path)
 		return be.Open(ctx, path)
 	}
-	debug.Log("DetectRCS(%s) - no supported RCS found. using NOOP", path)
+	debug.Log("No supported RCS found for %s. using NOOP", path)
 	return rcsRegistry[Noop].InitRCS(ctx, path)
 }
 

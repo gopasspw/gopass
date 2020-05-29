@@ -12,6 +12,7 @@ import (
 
 	"github.com/gopasspw/gopass/internal/backend/crypto/gpg"
 	"github.com/gopasspw/gopass/internal/debug"
+	"github.com/gopasspw/gopass/internal/out"
 	lru "github.com/hashicorp/golang-lru"
 )
 
@@ -82,7 +83,7 @@ func (g *GPG) RecipientIDs(ctx context.Context, buf []byte) ([]string, error) {
 	args := []string{"--batch", "--list-only", "--list-packets", "--no-default-keyring", "--secret-keyring", "/dev/null"}
 	cmd := exec.CommandContext(ctx, g.binary, args...)
 	cmd.Stdin = bytes.NewReader(buf)
-	debug.Log("gpg.GetRecipients: %s %+v", cmd.Path, cmd.Args)
+	debug.Log("%s %+v", cmd.Path, cmd.Args)
 
 	cmdout, err := cmd.CombinedOutput()
 	if err != nil {
@@ -92,7 +93,7 @@ func (g *GPG) RecipientIDs(ctx context.Context, buf []byte) ([]string, error) {
 	scanner := bufio.NewScanner(bytes.NewBuffer(cmdout))
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
-		debug.Log("gpg Output: %s", line)
+		debug.Log("GPG Output: %s", line)
 		if !strings.HasPrefix(line, ":pubkey enc packet:") {
 			continue
 		}
@@ -120,6 +121,13 @@ func (g *GPG) Encrypt(ctx context.Context, plaintext []byte, recipients []string
 		args = append(args, "--trust-model=always")
 	}
 	for _, r := range recipients {
+		kl, err := g.listKeys(ctx, "public", r)
+		if err != nil {
+			debug.Log("Failed to check key %s. Adding anyway. %s", err)
+		} else if len(kl.UseableKeys(gpg.IsAlwaysTrust(ctx))) < 1 {
+			out.Red(ctx, "Not using expired key %s for encryption", r)
+			continue
+		}
 		args = append(args, "--recipient", r)
 	}
 
@@ -130,7 +138,7 @@ func (g *GPG) Encrypt(ctx context.Context, plaintext []byte, recipients []string
 	cmd.Stdout = buf
 	cmd.Stderr = os.Stderr
 
-	debug.Log("gpg.Encrypt: %s %+v", cmd.Path, cmd.Args)
+	debug.Log("%s %+v", cmd.Path, cmd.Args)
 	err := cmd.Run()
 	return buf.Bytes(), err
 }
@@ -142,7 +150,7 @@ func (g *GPG) Decrypt(ctx context.Context, ciphertext []byte) ([]byte, error) {
 	cmd.Stdin = bytes.NewReader(ciphertext)
 	cmd.Stderr = os.Stderr
 
-	debug.Log("gpg.Decrypt: %s %+v", cmd.Path, cmd.Args)
+	debug.Log("%s %+v", cmd.Path, cmd.Args)
 	return cmd.Output()
 }
 

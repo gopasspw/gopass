@@ -14,7 +14,6 @@ import (
 	"github.com/google/go-github/github"
 	"github.com/gopasspw/gopass/internal/cache"
 	"github.com/gopasspw/gopass/internal/debug"
-	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/termio"
 	"github.com/gopasspw/gopass/pkg/fsutil"
 )
@@ -131,7 +130,7 @@ func (a *Age) encrypt(ctx context.Context, plaintext []byte, args ...string) ([]
 	cmd.Stdout = buf
 	cmd.Stderr = os.Stderr
 
-	debug.Log("age.encrypt: %s %+v", cmd.Path, cmd.Args)
+	debug.Log("%s %+v", cmd.Path, cmd.Args)
 	err := cmd.Run()
 	return buf.Bytes(), err
 }
@@ -150,7 +149,7 @@ func (a *Age) Decrypt(ctx context.Context, ciphertext []byte) ([]byte, error) {
 	args := []string{}
 	for _, k := range a.listPrivateKeyFiles(ctx) {
 		if k == "native-keyring" {
-			debug.Log("age.Decrypt - decrypting native keyring for file decrypt")
+			debug.Log("decrypting native keyring for file decrypt")
 			td, err := ioutil.TempDir("", "gpa")
 			if err != nil {
 				return nil, err
@@ -175,7 +174,7 @@ func (a *Age) decrypt(ctx context.Context, ciphertext []byte, args ...string) ([
 	cmd.Stdin = bytes.NewReader(ciphertext)
 	cmd.Stderr = os.Stderr
 
-	debug.Log("age.Decrypt: %s %+v", cmd.Path, cmd.Args)
+	debug.Log("%s %+v", cmd.Path, cmd.Args)
 	return cmd.Output()
 }
 
@@ -195,8 +194,8 @@ func (a *Age) decryptFileTo(ctx context.Context, src, dst string) error {
 	return ioutil.WriteFile(dst, buf, 0600)
 }
 
-// CreatePrivateKeyBatch will create a new native private key
-func (a *Age) CreatePrivateKeyBatch(ctx context.Context, name, email, pw string) error {
+// GenerateIdentity will create a new native private key
+func (a *Age) GenerateIdentity(ctx context.Context, name, email, pw string) error {
 	buf := &bytes.Buffer{}
 	cmd := exec.CommandContext(ctx, "age-keygen")
 	cmd.Stdout = buf
@@ -223,7 +222,7 @@ func (a *Age) CreatePrivateKeyBatch(ctx context.Context, name, email, pw string)
 		return err
 	}
 
-	debug.Log("age.CreatePrivateKey: %s", buf.String())
+	debug.Log("%s", buf.String())
 
 	if err := os.MkdirAll(filepath.Dir(a.keyring), 0700); err != nil {
 		return err
@@ -231,22 +230,6 @@ func (a *Age) CreatePrivateKeyBatch(ctx context.Context, name, email, pw string)
 
 	// encrypt final keyring
 	return a.encryptFile(ctx, a.keyring, buf.Bytes())
-}
-
-// CreatePrivateKey is TODO
-func (a *Age) CreatePrivateKey(ctx context.Context) error {
-	out.Print(ctx, "Generating new Age keypair ...")
-	name, err := termio.AskForString(ctx, "What is your name?", "")
-	if err != nil {
-		return err
-	}
-
-	email, err := termio.AskForString(ctx, "What is your email?", "")
-	if err != nil {
-		return err
-	}
-
-	return a.CreatePrivateKeyBatch(ctx, name, email, "unused")
 }
 
 // ListIdentities is TODO
@@ -338,11 +321,15 @@ func (a *Age) getNativeKeypairs(ctx context.Context) (map[string]string, error) 
 	_, err := os.Stat(a.keyring)
 	if os.IsNotExist(err) {
 		debug.Log("No native age key found. Generating ...")
-		if err := a.CreatePrivateKey(ctx); err != nil {
+		pw, err := termio.AskForPassword(ctx, "Please enter a passphrase for your new Age key")
+		if err != nil {
+			return nil, err
+		}
+		if err := a.GenerateIdentity(ctx, termio.DetectName(ctx, nil), termio.DetectEmail(ctx, nil), pw); err != nil {
 			return nil, err
 		}
 	}
-	debug.Log("age.getNativeKeypairs - decrypting keyring")
+	debug.Log("decrypting keyring")
 	buf, err := a.decryptFile(ctx, a.keyring)
 	if err != nil {
 		return nil, err
@@ -385,8 +372,8 @@ func (a *Age) getAllKeypairs(ctx context.Context) (map[string]string, error) {
 	return keys, nil
 }
 
-// FindPublicKeys it TODO
-func (a *Age) FindPublicKeys(ctx context.Context, keys ...string) ([]string, error) {
+// FindRecipients it TODO
+func (a *Age) FindRecipients(ctx context.Context, keys ...string) ([]string, error) {
 	nk, err := a.getAllKeypairs(ctx)
 	if err != nil {
 		return nil, err
@@ -400,7 +387,7 @@ func (a *Age) FindPublicKeys(ctx context.Context, keys ...string) ([]string, err
 	return matches, nil
 }
 
-// FindPrivateKeys is TODO
-func (a *Age) FindPrivateKeys(ctx context.Context, keys ...string) ([]string, error) {
-	return a.FindPublicKeys(ctx, keys...)
+// FindIdentities is TODO
+func (a *Age) FindIdentities(ctx context.Context, keys ...string) ([]string, error) {
+	return a.FindRecipients(ctx, keys...)
 }

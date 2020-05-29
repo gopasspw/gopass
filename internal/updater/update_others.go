@@ -80,7 +80,7 @@ func IsUpdateable(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	debug.Log("isUpdateable - File: %s", fn)
+	debug.Log("File: %s", fn)
 	// check if this is a test binary
 	if strings.HasSuffix(filepath.Base(fn), ".test") {
 		return nil

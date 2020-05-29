@@ -1,13 +1,15 @@
 package xc
 
 import (
+	"bytes"
 	"context"
-	"fmt"
 	"sort"
 	"strings"
+	"text/template"
 
 	"github.com/gopasspw/gopass/internal/backend/crypto/xc/keyring"
 	"github.com/gopasspw/gopass/internal/backend/crypto/xc/xcpb"
+	"github.com/gopasspw/gopass/internal/debug"
 
 	"github.com/pkg/errors"
 	"google.golang.org/protobuf/proto"
@@ -49,8 +51,8 @@ func (x *XC) ListIdentities(ctx context.Context) ([]string, error) {
 	return x.secring.KeyIDs(), nil
 }
 
-// FindPublicKeys finds all matching public keys
-func (x *XC) FindPublicKeys(ctx context.Context, search ...string) ([]string, error) {
+// FindRecipients finds all matching public keys
+func (x *XC) FindRecipients(ctx context.Context, search ...string) ([]string, error) {
 	ids := make([]string, 0, 1)
 	candidates, _ := x.ListRecipients(ctx)
 	for _, needle := range search {
@@ -64,8 +66,8 @@ func (x *XC) FindPublicKeys(ctx context.Context, search ...string) ([]string, er
 	return ids, nil
 }
 
-// FindPrivateKeys finds all matching private keys
-func (x *XC) FindPrivateKeys(ctx context.Context, search ...string) ([]string, error) {
+// FindIdentities finds all matching private keys
+func (x *XC) FindIdentities(ctx context.Context, search ...string) ([]string, error) {
 	ids := make([]string, 0, 1)
 	candidates, _ := x.ListIdentities(ctx)
 	for _, needle := range search {
@@ -79,46 +81,43 @@ func (x *XC) FindPrivateKeys(ctx context.Context, search ...string) ([]string, e
 	return ids, nil
 }
 
-// FormatKey formats a key
-func (x *XC) FormatKey(ctx context.Context, id string) string {
+func (x *XC) findID(id string) *xcpb.Identity {
 	if key := x.pubring.Get(id); key != nil {
-		return id + " - " + key.Identity.ID()
+		return key.Identity
 	}
 	if key := x.secring.Get(id); key != nil {
-		return id + " - " + key.PublicKey.Identity.ID()
+		return key.PublicKey.Identity
 	}
-	return id
+	return &xcpb.Identity{}
 }
 
-// NameFromKey extracts the name from a key
-func (x *XC) NameFromKey(ctx context.Context, id string) string {
-	if key := x.pubring.Get(id); key != nil {
-		return key.Identity.Name
-	}
-	if key := x.secring.Get(id); key != nil {
-		return key.PublicKey.Identity.Name
-	}
-	return id
-}
-
-// EmailFromKey extracts the email from a key
-func (x *XC) EmailFromKey(ctx context.Context, id string) string {
-	if key := x.pubring.Get(id); key != nil {
-		return key.Identity.Email
-	}
-	if key := x.secring.Get(id); key != nil {
-		return key.PublicKey.Identity.Email
-	}
-	return id
-}
-
-// Fingerprint returns the full-length native fingerprint
+// Fingerprint returns the id
 func (x *XC) Fingerprint(ctx context.Context, id string) string {
 	return id
 }
 
-// CreatePrivateKeyBatch creates a new keypair
-func (x *XC) CreatePrivateKeyBatch(ctx context.Context, name, email, passphrase string) error {
+// FormatKey formats a key
+func (x *XC) FormatKey(ctx context.Context, id, tpl string) string {
+	if tpl == "" {
+		tpl = "{{ .ID }} - {{ .Name }} <{{ .Email }}>"
+	}
+
+	tmpl, err := template.New(tpl).Parse(tpl)
+	if err != nil {
+		return ""
+	}
+
+	buf := &bytes.Buffer{}
+	if err := tmpl.Execute(buf, x.findID(id)); err != nil {
+		debug.Log("Failed to render template '%s': %s", tpl, err)
+		return ""
+	}
+
+	return buf.String()
+}
+
+// GenerateIdentity creates a new keypair
+func (x *XC) GenerateIdentity(ctx context.Context, name, email, passphrase string) error {
 	k, err := keyring.GenerateKeypair(passphrase)
 	if err != nil {
 		return errors.Wrapf(err, "failed to generate keypair: %s", err)
@@ -129,9 +128,4 @@ func (x *XC) CreatePrivateKeyBatch(ctx context.Context, name, email, passphrase 
 		return errors.Wrapf(err, "failed to set %v to secring: %s", k, err)
 	}
 	return x.secring.Save()
-}
-
-// CreatePrivateKey is not implemented
-func (x *XC) CreatePrivateKey(ctx context.Context) error {
-	return fmt.Errorf("not yet implemented")
 }

@@ -4,9 +4,7 @@ package plain
 
 import (
 	"context"
-	"crypto/sha256"
 	"fmt"
-	"io/ioutil"
 	"strings"
 	"time"
 
@@ -59,8 +57,8 @@ func (m *Mocker) ListRecipients(context.Context) ([]string, error) {
 	return staticPrivateKeyList.Recipients(), nil
 }
 
-// FindPublicKeys does nothing
-func (m *Mocker) FindPublicKeys(ctx context.Context, keys ...string) ([]string, error) {
+// FindRecipients does nothing
+func (m *Mocker) FindRecipients(ctx context.Context, keys ...string) ([]string, error) {
 	rs := staticPrivateKeyList.Recipients()
 	res := make([]string, 0, len(rs))
 	for _, r := range rs {
@@ -78,9 +76,9 @@ func (m *Mocker) ListIdentities(context.Context) ([]string, error) {
 	return staticPrivateKeyList.Recipients(), nil
 }
 
-// FindPrivateKeys does nothing
-func (m *Mocker) FindPrivateKeys(ctx context.Context, keys ...string) ([]string, error) {
-	return m.FindPublicKeys(ctx, keys...)
+// FindIdentities does nothing
+func (m *Mocker) FindIdentities(ctx context.Context, keys ...string) ([]string, error) {
+	return m.FindRecipients(ctx, keys...)
 }
 
 // RecipientIDs does nothing
@@ -118,67 +116,18 @@ func (m *Mocker) Binary() string {
 	return "gpg"
 }
 
-// Sign writes the hashsum to the given file
-func (m *Mocker) Sign(in string, sigf string) error {
-	buf, err := ioutil.ReadFile(in)
-	if err != nil {
-		return err
-	}
-	sum := sha256.New()
-	_, _ = sum.Write(buf)
-	hexsum := fmt.Sprintf("%X", sum.Sum(nil))
-	return ioutil.WriteFile(sigf, []byte(hexsum), 0644)
-}
-
-// Verify does a pseudo-verification
-func (m *Mocker) Verify(sigf string, in string) error {
-	sigb, err := ioutil.ReadFile(sigf)
-	if err != nil {
-		return err
-	}
-
-	buf, err := ioutil.ReadFile(in)
-	if err != nil {
-		return err
-	}
-	sum := sha256.New()
-	_, _ = sum.Write(buf)
-	hexsum := fmt.Sprintf("%X", sum.Sum(nil))
-
-	if string(sigb) != hexsum {
-		return fmt.Errorf("hashsum mismatch")
-	}
-
-	return nil
-}
-
-// CreatePrivateKey is not implemented
-func (m *Mocker) CreatePrivateKey(ctx context.Context) error {
+// GenerateIdentity is not implemented
+func (m *Mocker) GenerateIdentity(ctx context.Context, name, email, pw string) error {
 	return fmt.Errorf("not yet implemented")
 }
 
-// CreatePrivateKeyBatch is not implemented
-func (m *Mocker) CreatePrivateKeyBatch(ctx context.Context, name, email, pw string) error {
-	return fmt.Errorf("not yet implemented")
-}
-
-// EmailFromKey returns nothing
-func (m *Mocker) EmailFromKey(context.Context, string) string {
-	return ""
-}
-
-// NameFromKey returns nothing
-func (m *Mocker) NameFromKey(context.Context, string) string {
-	return ""
-}
-
-// FormatKey returns the id
-func (m *Mocker) FormatKey(ctx context.Context, id string) string {
+// Fingerprint returns thd id
+func (m *Mocker) Fingerprint(ctx context.Context, id string) string {
 	return id
 }
 
-// Fingerprint returns the full-length native fingerprint
-func (m *Mocker) Fingerprint(ctx context.Context, id string) string {
+// FormatKey returns the id
+func (m *Mocker) FormatKey(ctx context.Context, id, tpl string) string {
 	return id
 }
 

@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestCreatePrivateKeyBatch(t *testing.T) {
+func TestGenerateIdentity(t *testing.T) {
 	ctx := context.Background()
 
 	td, err := ioutil.TempDir("", "gopass-")
@@ -38,7 +38,7 @@ func TestCreatePrivateKeyBatch(t *testing.T) {
 		client:  &fakeAgent{passphrase},
 	}
 
-	assert.NoError(t, xc.CreatePrivateKeyBatch(ctx, "foo", "bar@example.org", passphrase))
+	assert.NoError(t, xc.GenerateIdentity(ctx, "foo", "bar@example.org", passphrase))
 
 	pubKeys, err := xc.ListRecipients(ctx)
 	require.NoError(t, err)
@@ -50,25 +50,15 @@ func TestCreatePrivateKeyBatch(t *testing.T) {
 	assert.Equal(t, len(pubKeys), len(privKeys))
 
 	id := pubKeys[0]
-	assert.Contains(t, xc.FormatKey(ctx, id), "foo <bar@example.org>")
-	assert.Equal(t, "foo", xc.NameFromKey(ctx, id))
-	assert.Equal(t, "bar@example.org", xc.EmailFromKey(ctx, id))
+	assert.Contains(t, xc.FormatKey(ctx, id, ""), "foo <bar@example.org>")
 
-	pubKeys, err = xc.FindPublicKeys(ctx, id)
+	pubKeys, err = xc.FindRecipients(ctx, id)
 	assert.NoError(t, err)
 	assert.Equal(t, []string{id}, pubKeys)
 
-	privKeys, err = xc.FindPrivateKeys(ctx, id)
+	privKeys, err = xc.FindIdentities(ctx, id)
 	assert.NoError(t, err)
 	assert.Equal(t, []string{id}, privKeys)
 
 	assert.NoError(t, xc.RemoveKey(id))
-}
-
-func TestCreatePrivateKey(t *testing.T) {
-	ctx := context.Background()
-
-	var x *XC
-
-	assert.Error(t, x.CreatePrivateKey(ctx))
 }

@@ -39,12 +39,12 @@ func (s *Secret) decodeKV() error {
 	}
 	if mayBeYAML {
 		docSep, err := s.decodeYAML()
-		debug.Log("decodeKV() - mayBeYAML - err: %s", err)
+		debug.Log("Content my be YAML, but decoding failed: %s", err)
 		if docSep && err == nil && s.data != nil {
 			return nil
 		}
 	}
-	debug.Log("decodeKV() - simple KV")
+	debug.Log("Content is simple KV (no valid YAML)")
 	s.data = data
 	return nil
 }
@@ -76,11 +76,11 @@ func (s *Secret) encodeKV() error {
 	}
 	if mayBeYAML {
 		if err := s.encodeYAML(); err == nil {
-			debug.Log("encodeKV() - mayBeYAML - OK")
+			debug.Log("Content may be YAML. Successfully encoded")
 			return nil
 		}
 	}
-	debug.Log("encodeKV() - simple KV")
+	debug.Log("Content is no valid YAML. Encoded as simple KV")
 	s.body = buf.String()
 	return nil
 }

@@ -69,7 +69,7 @@ func Invoke(ctx context.Context, editor string, content []byte) ([]byte, error) 
 	cmd.Stderr = Stderr
 
 	if err := cmd.Run(); err != nil {
-		debug.Log("editor - cmd: %s %+v - error: %+v", cmd.Path, cmd.Args, err)
+		debug.Log("cmd: %s %+v - error: %+v", cmd.Path, cmd.Args, err)
 		return []byte{}, errors.Errorf("failed to run %s with %s file: %s", editor, tmpfile.Name(), err)
 	}
 

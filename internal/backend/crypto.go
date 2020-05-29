@@ -35,17 +35,14 @@ type Keyring interface {
 	ListRecipients(ctx context.Context) ([]string, error)
 	ListIdentities(ctx context.Context) ([]string, error)
 
-	FindPublicKeys(ctx context.Context, needles ...string) ([]string, error)
-	FindPrivateKeys(ctx context.Context, needles ...string) ([]string, error)
+	FindRecipients(ctx context.Context, needles ...string) ([]string, error)
+	FindIdentities(ctx context.Context, needles ...string) ([]string, error)
 
-	FormatKey(ctx context.Context, id string) string
-	NameFromKey(ctx context.Context, id string) string
-	EmailFromKey(ctx context.Context, id string) string
 	Fingerprint(ctx context.Context, id string) string
+	FormatKey(ctx context.Context, id, tpl string) string
 	ReadNamesFromKey(ctx context.Context, buf []byte) ([]string, error)
 
-	CreatePrivateKeyBatch(ctx context.Context, name, email, passphrase string) error
-	CreatePrivateKey(ctx context.Context) error
+	GenerateIdentity(ctx context.Context, name, email, passphrase string) error
 }
 
 // Crypto is a crypto backend
@@ -95,14 +92,14 @@ func DetectCrypto(ctx context.Context, storage Storage) (Crypto, error) {
 	})
 	for _, id := range bes {
 		be := cryptoRegistry[id]
-		debug.Log("DetectCrypto(%s) - trying %s", storage, be)
+		debug.Log("Trying %s for %s", be, storage)
 		if err := be.Handles(storage); err != nil {
 			debug.Log("failed to use crypto %s for %s", id, storage)
 			continue
 		}
-		debug.Log("DetectCrypto(%s) - using %s", storage, be)
+		debug.Log("Using %s for %s", be, storage)
 		return be.New(ctx)
 	}
-	debug.Log("DetectCrypto(%s) - no valid crypto provider found", storage)
+	debug.Log("No valid crypto provider found for %s", storage)
 	return nil, nil
 }

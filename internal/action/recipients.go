@@ -87,7 +87,7 @@ func (s *Action) RecipientsAdd(c *cli.Context) error {
 	}
 
 	for _, r := range recipients {
-		keys, err := crypto.FindPublicKeys(ctx, r)
+		keys, err := crypto.FindRecipients(ctx, r)
 		if err != nil {
 			out.Cyan(ctx, "WARNING: Failed to list public key '%s': %s", r, err)
 			if !force {
@@ -108,7 +108,7 @@ func (s *Action) RecipientsAdd(c *cli.Context) error {
 			recp = crypto.Fingerprint(ctx, keys[0])
 		}
 
-		if !termio.AskForConfirmation(ctx, fmt.Sprintf("Do you want to add '%s' as a recipient to the store '%s'?", crypto.FormatKey(ctx, recp), store)) {
+		if !termio.AskForConfirmation(ctx, fmt.Sprintf("Do you want to add '%s' as a recipient to the store '%s'?", crypto.FormatKey(ctx, recp, ""), store)) {
 			continue
 		}
 
@@ -151,7 +151,7 @@ func (s *Action) RecipientsRemove(c *cli.Context) error {
 	}
 
 	for _, r := range recipients {
-		kl, err := crypto.FindPrivateKeys(ctx, r)
+		kl, err := crypto.FindIdentities(ctx, r)
 		if err == nil {
 			if len(kl) > 0 {
 				if !termio.AskForConfirmation(ctx, fmt.Sprintf("Do you want to remove yourself (%s) from the recipients?", r)) {
@@ -160,7 +160,7 @@ func (s *Action) RecipientsRemove(c *cli.Context) error {
 			}
 		}
 
-		keys, err := crypto.FindPublicKeys(ctx, r)
+		keys, err := crypto.FindRecipients(ctx, r)
 		if err != nil {
 			out.Cyan(ctx, "WARNING: Failed to list public key '%s': %s", r, err)
 			if !force {
@@ -217,7 +217,7 @@ func (s *Action) RecipientsUpdate(c *cli.Context) error {
 		}
 		out.Cyan(ctx, "Please confirm Recipients for %s:", alias)
 		for _, r := range recp {
-			out.Print(ctx, "- %s", subs.Crypto().FormatKey(ctx, r))
+			out.Print(ctx, "- %s", subs.Crypto().FormatKey(ctx, r, ""))
 		}
 		if !termio.AskForConfirmation(ctx, fmt.Sprintf("Do you trust these recipients for %s?", alias)) {
 			continue
@@ -244,7 +244,7 @@ func (s *Action) recipientsSelectForRemoval(ctx context.Context, store string) (
 	ids := s.Store.ListRecipients(ctx, store)
 	choices := make([]string, 0, len(ids))
 	for _, id := range ids {
-		choices = append(choices, crypto.FormatKey(ctx, id))
+		choices = append(choices, crypto.FormatKey(ctx, id, ""))
 	}
 	if len(choices) < 1 {
 		return nil, nil
@@ -265,9 +265,9 @@ func (s *Action) recipientsSelectForAdd(ctx context.Context, store string) ([]st
 	crypto := s.Store.Crypto(ctx, store)
 
 	choices := []string{}
-	kl, _ := crypto.FindPublicKeys(ctx)
+	kl, _ := crypto.FindRecipients(ctx)
 	for _, key := range kl {
-		choices = append(choices, crypto.FormatKey(ctx, key))
+		choices = append(choices, crypto.FormatKey(ctx, key, ""))
 	}
 	if len(choices) < 1 {
 		return nil, nil

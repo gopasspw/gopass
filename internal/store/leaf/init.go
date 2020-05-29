@@ -31,7 +31,7 @@ You can add secondary stores with gopass init --path <path to secondary store> -
 		if id == "" {
 			continue
 		}
-		kl, err := s.crypto.FindPublicKeys(ctx, id)
+		kl, err := s.crypto.FindRecipients(ctx, id)
 		if err != nil {
 			out.Error(ctx, "Failed to fetch public key for '%s': %s", id, err)
 			continue
@@ -47,7 +47,7 @@ You can add secondary stores with gopass init --path <path to secondary store> -
 		return errors.Errorf("failed to initialize store: no valid recipients given in %+v", ids)
 	}
 
-	kl, err := s.crypto.FindPrivateKeys(ctx, recipients...)
+	kl, err := s.crypto.FindIdentities(ctx, recipients...)
 	if err != nil {
 		return errors.Errorf("Failed to get available private keys: %s", err)
 	}

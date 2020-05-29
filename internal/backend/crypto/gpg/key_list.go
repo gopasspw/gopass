@@ -21,11 +21,11 @@ func (kl KeyList) Recipients() []string {
 }
 
 // UseableKeys returns the list of useable (valid keys)
-func (kl KeyList) UseableKeys() KeyList {
+func (kl KeyList) UseableKeys(alwaysTrust bool) KeyList {
 	nkl := make(KeyList, 0, len(kl))
 	sort.Sort(kl)
 	for _, k := range kl {
-		if !k.IsUseable() {
+		if !k.IsUseable(alwaysTrust) {
 			continue
 		}
 		nkl = append(nkl, k)
@@ -34,10 +34,10 @@ func (kl KeyList) UseableKeys() KeyList {
 }
 
 // UnusableKeys returns the list of unusable keys (invalid keys)
-func (kl KeyList) UnusableKeys() KeyList {
+func (kl KeyList) UnusableKeys(alwaysTrust bool) KeyList {
 	nkl := make(KeyList, 0, len(kl))
 	for _, k := range kl {
-		if k.IsUseable() {
+		if k.IsUseable(alwaysTrust) {
 			continue
 		}
 		nkl = append(nkl, k)

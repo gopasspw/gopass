@@ -88,7 +88,7 @@ func (g *Git) ConfigGet(ctx context.Context, key string) (string, error) {
 	cmd.Stdout = buf
 	cmd.Stderr = os.Stderr
 
-	debug.Log("store.gitConfigGet: %s %+v", cmd.Path, cmd.Args)
+	debug.Log("%s %+v", cmd.Path, cmd.Args)
 	if err := cmd.Run(); err != nil {
 		return "", err
 	}
@@ -109,7 +109,7 @@ func (g *Git) ConfigList(ctx context.Context) (map[string]string, error) {
 	cmd.Stdout = buf
 	cmd.Stderr = os.Stderr
 
-	debug.Log("store.gitConfigList: %s %+v", cmd.Path, cmd.Args)
+	debug.Log("%s %+v", cmd.Path, cmd.Args)
 	if err := cmd.Run(); err != nil {
 		return nil, err
 	}

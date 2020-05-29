@@ -41,8 +41,8 @@ func TestGit(t *testing.T) {
 
 	// getUserData
 	name, email := act.getUserData(ctx, "", "", "")
-	assert.Equal(t, "", name)
-	assert.Equal(t, "", email)
+	assert.Equal(t, "0xDEADBEEF", name)
+	assert.Equal(t, "0xDEADBEEF", email)
 
 	// GitAddRemote
 	assert.Error(t, act.GitAddRemote(c))

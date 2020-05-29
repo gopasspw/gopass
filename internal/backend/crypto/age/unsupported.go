@@ -5,22 +5,12 @@ import (
 	"fmt"
 )
 
-// EmailFromKey is TODO
-func (a *Age) EmailFromKey(context.Context, string) string {
-	return ""
-}
-
-// NameFromKey is TODO
-func (a *Age) NameFromKey(context.Context, string) string {
-	return ""
-}
-
 // FormatKey is TODO
-func (a *Age) FormatKey(ctx context.Context, id string) string {
+func (a *Age) FormatKey(ctx context.Context, id, tpl string) string {
 	return id
 }
 
-// Fingerprint is TODO
+// Fingerprint return the id
 func (a *Age) Fingerprint(ctx context.Context, id string) string {
 	return id
 }
@@ -28,11 +18,6 @@ func (a *Age) Fingerprint(ctx context.Context, id string) string {
 // ImportPublicKey is TODO
 func (a *Age) ImportPublicKey(ctx context.Context, buf []byte) error {
 	return nil
-}
-
-// Sign is TODO
-func (a *Age) Sign(ctx context.Context, in string, sigf string) error {
-	return fmt.Errorf("not implemented")
 }
 
 // ListRecipients is TODO

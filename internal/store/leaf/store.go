@@ -23,7 +23,7 @@ type Store struct {
 
 // Init initialized this sub store
 func Init(ctx context.Context, alias, path string) (*Store, error) {
-	debug.Log("sub.Init(%s, %s) ...", alias, path)
+	debug.Log("Initializing %s at %s", alias, path)
 	s := &Store{
 		alias: alias,
 		path:  path,
@@ -52,7 +52,7 @@ func Init(ctx context.Context, alias, path string) (*Store, error) {
 
 // New creates a new store
 func New(ctx context.Context, alias, path string) (*Store, error) {
-	debug.Log("sub.New(%s, %s)", alias, path)
+	debug.Log("Instantiating %s at %s", alias, path)
 
 	s := &Store{
 		alias: alias,
@@ -72,7 +72,7 @@ func New(ctx context.Context, alias, path string) (*Store, error) {
 		return nil, errors.Wrapf(err, "failed to init crypto backend: %s", err)
 	}
 
-	debug.Log("sub.New(%s, %s) - initialized - storage: %+#v - rcs: %+#v - crypto: %+#v", alias, path, s.storage, s.rcs, s.crypto)
+	debug.Log("Instantiated %s at %s - storage: %+#v - rcs: %+#v - crypto: %+#v", alias, path, s.storage, s.rcs, s.crypto)
 	return s, nil
 }
 
@@ -130,7 +130,7 @@ func (s *Store) useableKeys(ctx context.Context, name string) ([]string, error) 
 		return rs, nil
 	}
 
-	kl, err := s.crypto.FindPublicKeys(ctx, rs...)
+	kl, err := s.crypto.FindRecipients(ctx, rs...)
 	if err != nil {
 		return rs, err
 	}

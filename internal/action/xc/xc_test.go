@@ -228,7 +228,7 @@ func TestEncryptDecryptFile(t *testing.T) {
 
 	crypto = xc.New(td, &fakeAgent{"foobar"})
 
-	assert.NoError(t, crypto.CreatePrivateKeyBatch(ctx, "foobar", "foo.bar@example.org", "foobar"))
+	assert.NoError(t, crypto.GenerateIdentity(ctx, "foobar", "foo.bar@example.org", "foobar"))
 
 	app := cli.NewApp()
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
@@ -276,7 +276,7 @@ func TestEncryptDecryptStream(t *testing.T) {
 
 	crypto = xc.New(td, &fakeAgent{"foobar"})
 
-	assert.NoError(t, crypto.CreatePrivateKeyBatch(ctx, "foobar", "foo.bar@example.org", "foobar"))
+	assert.NoError(t, crypto.GenerateIdentity(ctx, "foobar", "foo.bar@example.org", "foobar"))
 
 	app := cli.NewApp()
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)

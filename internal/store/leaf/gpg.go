@@ -31,7 +31,7 @@ func (s *Store) ImportMissingPublicKeys(ctx context.Context) error {
 		// we could list all keys outside the loop and just do the lookup here
 		// but this way we ensure to use the exact same lookup logic as
 		// gpg does on encryption
-		kl, err := s.crypto.FindPublicKeys(ctx, r)
+		kl, err := s.crypto.FindRecipients(ctx, r)
 		if err != nil {
 			out.Error(ctx, "[%s] Failed to get public key for %s: %s", s.alias, r, err)
 		}

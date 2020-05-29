@@ -123,6 +123,6 @@ func TestCloneGetGitConfig(t *testing.T) {
 
 	name, email, err := act.cloneGetGitConfig(ctx, "foobar")
 	assert.NoError(t, err)
-	assert.Equal(t, "", name)
-	assert.Equal(t, "", email)
+	assert.Equal(t, "0xDEADBEEF", name)
+	assert.Equal(t, "0xDEADBEEF", email)
 }

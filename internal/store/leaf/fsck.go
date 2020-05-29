@@ -15,11 +15,16 @@ import (
 // Fsck checks all entries matching the given prefix
 func (s *Store) Fsck(ctx context.Context, path string) error {
 	ctx = out.AddPrefix(ctx, "["+s.alias+"] ")
-	debug.Log("Fsck(%s)", path)
+	debug.Log("Checking %s", path)
 
 	// first let the storage backend check itself
 	if err := s.storage.Fsck(ctx); err != nil {
 		return errors.Wrapf(err, "storage backend found errors: %s", err)
+	}
+
+	// second give a chance to the RCS backend
+	if err := s.rcs.Compact(ctx); err != nil {
+		return errors.Wrapf(err, "rcs backend compaction failed: %s", err)
 	}
 
 	pcb := ctxutil.GetProgressCallback(ctx)
@@ -36,10 +41,15 @@ func (s *Store) Fsck(ctx context.Context, path string) error {
 		if strings.HasPrefix(name, s.alias+"/") {
 			name = strings.TrimPrefix(name, s.alias+"/")
 		}
-		debug.Log("sub.Fsck(%s) - Checking %s", path, name)
+		ctx := ctxutil.WithNoNetwork(ctx, true)
+		debug.Log("[%s] Checking %s", path, name)
 		if err := s.fsckCheckEntry(ctx, name); err != nil {
 			return errors.Wrapf(err, "failed to check %s: %s", name, err)
 		}
+	}
+
+	if err := s.rcs.Push(ctx, "", ""); err != nil {
+		out.Red(ctx, "RCS Push failed: %s", err)
 	}
 
 	return nil

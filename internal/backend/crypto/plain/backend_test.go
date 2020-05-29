@@ -4,7 +4,6 @@ import (
 	"context"
 	"io/ioutil"
 	"os"
-	"path/filepath"
 	"testing"
 
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -47,18 +46,17 @@ func TestPlain(t *testing.T) {
 
 	assert.Equal(t, "gpg", m.Binary())
 
-	assert.Error(t, m.CreatePrivateKey(ctx))
-	assert.Error(t, m.CreatePrivateKeyBatch(ctx, "", "", ""))
+	assert.Error(t, m.GenerateIdentity(ctx, "", "", ""))
 
-	kl, err = m.FindPublicKeys(ctx)
+	kl, err = m.FindRecipients(ctx)
 	assert.NoError(t, err)
-	assert.Empty(t, kl, "FindPublicKeys()")
+	assert.Empty(t, kl, "FindRecipients()")
 
-	kl, err = m.FindPublicKeys(ctx, "0xDEADBEEF")
+	kl, err = m.FindRecipients(ctx, "0xDEADBEEF")
 	assert.NoError(t, err)
-	assert.NotEmpty(t, kl, "FindPublicKeys(0xDEADBEEF)")
+	assert.NotEmpty(t, kl, "FindRecipients(0xDEADBEEF)")
 
-	_, err = m.FindPrivateKeys(ctx)
+	_, err = m.FindIdentities(ctx)
 	assert.NoError(t, err)
 
 	buf, err = m.ExportPublicKey(ctx, "")
@@ -66,9 +64,7 @@ func TestPlain(t *testing.T) {
 	assert.NoError(t, m.ImportPublicKey(ctx, buf))
 	assert.Equal(t, semver.Version{}, m.Version(ctx))
 
-	assert.Equal(t, "", m.EmailFromKey(ctx, ""))
-	assert.Equal(t, "", m.NameFromKey(ctx, ""))
-	assert.Equal(t, "", m.FormatKey(ctx, ""))
+	assert.Equal(t, "", m.FormatKey(ctx, "", ""))
 	assert.Equal(t, "", m.Fingerprint(ctx, ""))
 	assert.Nil(t, m.Initialized(ctx))
 	assert.Equal(t, "plain", m.Name())
@@ -85,28 +81,4 @@ func TestLoader(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, name, l.String())
 	assert.Equal(t, "plain", b.Name())
-}
-
-func TestSignVerify(t *testing.T) {
-	td, err := ioutil.TempDir("", "gopass-")
-	assert.NoError(t, err)
-	defer func() {
-		_ = os.RemoveAll(td)
-	}()
-
-	m := New()
-
-	in := filepath.Join(td, "in")
-	assert.NoError(t, ioutil.WriteFile(in, []byte("in"), 0644))
-	sigf := filepath.Join(td, "sigf")
-
-	assert.NoError(t, m.Sign(in, sigf))
-	assert.NoError(t, m.Verify(sigf, in))
-
-	assert.Error(t, m.Sign("/tmp", sigf))
-	assert.Error(t, m.Verify(sigf, "/tmp"))
-	assert.Error(t, m.Verify("/tmp", in))
-
-	assert.NoError(t, ioutil.WriteFile(sigf, []byte("in"), 0644))
-	assert.Error(t, m.Verify(sigf, in))
 }
