@@ -1,7 +1,6 @@
 package otp
 
 import (
-	"context"
 	"io/ioutil"
 	"strings"
 
@@ -16,7 +15,7 @@ type otpSecret interface {
 }
 
 // Calculate will compute a OTP code from a given secret
-func Calculate(ctx context.Context, name string, sec otpSecret) (twofactor.OTP, string, error) {
+func Calculate(name string, sec otpSecret) (twofactor.OTP, string, error) {
 	otpURL := ""
 	// check body
 	for _, line := range strings.Split(sec.Body(), "\n") {
@@ -46,7 +45,7 @@ func Calculate(ctx context.Context, name string, sec otpSecret) (twofactor.OTP, 
 }
 
 // WriteQRFile writes the given OTP code as a QR image to disk
-func WriteQRFile(ctx context.Context, otp twofactor.OTP, label, file string) error {
+func WriteQRFile(otp twofactor.OTP, label, file string) error {
 	var qr []byte
 	var err error
 	switch otp.Type() {

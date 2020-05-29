@@ -36,7 +36,7 @@ type XC struct {
 }
 
 // New creates a new XC backend
-func New(dir string, client agentClient) (*XC, error) {
+func New(dir string, client agentClient) *XC {
 	skr, _ := keyring.LoadSecring(filepath.Join(dir, secringFilename))
 	pkr, _ := keyring.LoadPubring(filepath.Join(dir, pubringFilename), skr)
 	if client == nil {
@@ -47,7 +47,7 @@ func New(dir string, client agentClient) (*XC, error) {
 		pubring: pkr,
 		secring: skr,
 		client:  client,
-	}, nil
+	}
 }
 
 // RemoveKey removes a single key from the keyring

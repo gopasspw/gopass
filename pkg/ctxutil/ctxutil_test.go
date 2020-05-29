@@ -9,14 +9,6 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-func TestDebug(t *testing.T) {
-	ctx := context.Background()
-
-	assert.Equal(t, false, IsDebug(ctx))
-	assert.Equal(t, true, IsDebug(WithDebug(ctx, true)))
-	assert.Equal(t, false, IsDebug(WithDebug(ctx, false)))
-}
-
 func TestColor(t *testing.T) {
 	ctx := context.Background()
 
@@ -193,7 +185,6 @@ func TestCommitMessage(t *testing.T) {
 
 func TestComposite(t *testing.T) {
 	ctx := context.Background()
-	ctx = WithDebug(ctx, true)
 	ctx = WithColor(ctx, false)
 	ctx = WithTerminal(ctx, false)
 	ctx = WithInteractive(ctx, false)
@@ -211,9 +202,6 @@ func TestComposite(t *testing.T) {
 	ctx = WithNotifications(ctx, true)
 	ctx = WithEditRecipients(ctx, true)
 	ctx = WithAutoClip(ctx, true)
-
-	assert.Equal(t, true, IsDebug(ctx))
-	assert.Equal(t, true, HasDebug(ctx))
 
 	assert.Equal(t, false, IsColor(ctx))
 	assert.Equal(t, true, HasColor(ctx))

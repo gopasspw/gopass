@@ -26,7 +26,7 @@ func Copy(c *cli.Context, store storer) error {
 
 	// argument checking is in s.binaryCopy
 	if err := binaryCopy(ctx, c, from, to, false, store); err != nil {
-		return action.ExitError(ctx, action.ExitUnknown, err, "%s", err)
+		return action.ExitError(action.ExitUnknown, err, "%s", err)
 	}
 	return nil
 }
@@ -41,7 +41,7 @@ func Move(c *cli.Context, store storer) error {
 
 	// argument checking is in s.binaryCopy
 	if err := binaryCopy(ctx, c, from, to, true, store); err != nil {
-		return action.ExitError(ctx, action.ExitUnknown, err, "%s", err)
+		return action.ExitError(action.ExitUnknown, err, "%s", err)
 	}
 	return nil
 }

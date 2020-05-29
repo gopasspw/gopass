@@ -1,7 +1,6 @@
 package otp
 
 import (
-	"context"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -31,7 +30,7 @@ func TestCalculate(t *testing.T) {
 
 	for _, tc := range testCases {
 		s := secret.New(tc.password, tc.secretContents)
-		otp, _, err := Calculate(context.Background(), "test", s)
+		otp, _, err := Calculate("test", s)
 		assert.Nil(t, err)
 		assert.NotNil(t, otp)
 	}
@@ -47,5 +46,5 @@ func TestWrite(t *testing.T) {
 
 	otp, label, err := twofactor.FromURL(totpURL)
 	assert.NoError(t, err)
-	assert.NoError(t, WriteQRFile(context.Background(), otp, label, tf))
+	assert.NoError(t, WriteQRFile(otp, label, tf))
 }

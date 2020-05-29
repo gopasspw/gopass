@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/gopasspw/gopass/internal/cui"
+	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 
@@ -32,7 +33,7 @@ func (s *Action) Find(c *cli.Context) error {
 	}
 
 	if !c.Args().Present() {
-		return ExitError(ctx, ExitUsage, nil, "Usage: %s find <NEEDLE>", s.Name)
+		return ExitError(ExitUsage, nil, "Usage: %s find <NEEDLE>", s.Name)
 	}
 
 	return s.find(ctx, c, c.Args().First(), s.show)
@@ -45,7 +46,7 @@ func (s *Action) find(ctx context.Context, c *cli.Context, needle string, cb sho
 	// get all existing entries
 	haystack, err := s.Store.List(ctx, 0)
 	if err != nil {
-		return ExitError(ctx, ExitList, err, "failed to list store: %s", err)
+		return ExitError(ExitList, err, "failed to list store: %s", err)
 	}
 
 	// filter our the ones from the haystack matching the needle
@@ -67,7 +68,7 @@ func (s *Action) find(ctx context.Context, c *cli.Context, needle string, cb sho
 
 	// if there are still no results we abort
 	if len(choices) < 1 {
-		return ExitError(ctx, ExitNotFound, nil, "no results found")
+		return ExitError(ExitNotFound, nil, "no results found")
 	}
 
 	// do not invoke wizard if not printing to terminal or if
@@ -86,7 +87,7 @@ func (s *Action) find(ctx context.Context, c *cli.Context, needle string, cb sho
 func (s *Action) findSelection(ctx context.Context, c *cli.Context, choices []string, needle string, cb showFunc) error {
 	sort.Strings(choices)
 	act, sel := cui.GetSelection(ctx, "Found secrets - Please select an entry", choices)
-	out.Debug(ctx, "Action: %s - Selection: %d", act, sel)
+	debug.Log("Action: %s - Selection: %d", act, sel)
 	switch act {
 	case "default":
 		// display or copy selected entry
@@ -111,7 +112,7 @@ func (s *Action) findSelection(ctx context.Context, c *cli.Context, choices []st
 		fmt.Fprintln(stdout, choices[sel])
 		return s.edit(ctx, c, choices[sel])
 	default:
-		return ExitError(ctx, ExitAborted, nil, "user aborted")
+		return ExitError(ExitAborted, nil, "user aborted")
 	}
 }
 

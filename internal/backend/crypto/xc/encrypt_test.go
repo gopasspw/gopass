@@ -96,8 +96,8 @@ func TestEncryptMultiKeys(t *testing.T) {
 	assert.NoError(t, skr.Set(k1))
 
 	pkr := keyring.NewPubring(skr)
-	assert.NoError(t, pkr.Set(&k2.PublicKey))
-	assert.NoError(t, pkr.Set(&k3.PublicKey))
+	pkr.Set(&k2.PublicKey)
+	pkr.Set(&k3.PublicKey)
 
 	xc := &XC{
 		pubring: pkr,

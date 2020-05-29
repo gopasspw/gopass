@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"sort"
 
+	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/internal/tree"
@@ -27,7 +28,7 @@ func (r *Store) TemplateTree(ctx context.Context) (tree.Tree, error) {
 	root := simple.New("gopass")
 
 	for _, t := range r.store.ListTemplates(ctx, "") {
-		out.Debug(ctx, "[<root>] Adding template %s", t)
+		debug.Log("[<root>] Adding template %s", t)
 		if err := root.AddFile(t, "gopass/template"); err != nil {
 			out.Error(ctx, "Failed to add file to tree: %s", err)
 		}
@@ -44,7 +45,7 @@ func (r *Store) TemplateTree(ctx context.Context) (tree.Tree, error) {
 			return nil, errors.Errorf("failed to add mount: %s", err)
 		}
 		for _, t := range substore.ListTemplates(ctx, alias) {
-			out.Debug(ctx, "[%s] Adding template %s", alias, t)
+			debug.Log("[%s] Adding template %s", alias, t)
 			if err := root.AddFile(t, "gopass/template"); err != nil {
 				out.Error(ctx, "Failed to add file to tree: %s", err)
 			}

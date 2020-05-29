@@ -18,12 +18,12 @@ func (s *Action) Audit(c *cli.Context) error {
 
 	t, err := s.Store.Tree(ctx)
 	if err != nil {
-		return ExitError(ctx, ExitList, err, "failed to get store tree: %s", err)
+		return ExitError(ExitList, err, "failed to get store tree: %s", err)
 	}
 	if filter != "" {
 		subtree, err := t.FindFolder(filter)
 		if err != nil {
-			return ExitError(ctx, ExitUnknown, err, "failed to find subtree: %s", err)
+			return ExitError(ExitUnknown, err, "failed to find subtree: %s", err)
 		}
 		t = subtree
 	}

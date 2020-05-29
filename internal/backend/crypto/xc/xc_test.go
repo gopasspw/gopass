@@ -25,8 +25,7 @@ func TestNew(t *testing.T) {
 	assert.NoError(t, os.Setenv("GOPASS_HOMEDIR", td))
 
 	passphrase := "test"
-	xc, err := New(td, &fakeAgent{passphrase})
-	require.NoError(t, err)
+	xc := New(td, &fakeAgent{passphrase})
 	assert.NotNil(t, xc)
 	assert.NoError(t, xc.Initialized(ctx))
 	assert.Equal(t, "xc", xc.Name())

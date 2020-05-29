@@ -18,6 +18,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/fsutil"
 )
@@ -85,11 +86,11 @@ func (s *Scanner) scanFile(ctx context.Context, fn string, in []string, results 
 	}()
 
 	if isSorted(fn) {
-		out.Debug(ctx, "file %s appears to be sorted", fn)
+		debug.Log("file %s appears to be sorted", fn)
 		s.scanSortedFile(ctx, fn, in, results)
 		return
 	}
-	out.Debug(ctx, "file %s is not sorted", fn)
+	debug.Log("file %s is not sorted", fn)
 	s.scanUnsortedFile(ctx, fn, in, results)
 }
 
@@ -160,7 +161,7 @@ func (s *Scanner) scanSortedFile(ctx context.Context, fn string, in []string, re
 		rdr = gzr
 	}
 
-	out.Debug(ctx, "Checking file %s ...\n", fn)
+	debug.Log("Checking file %s ...\n", fn)
 
 	// index in input (sorted SHA sums)
 	i := 0
@@ -186,7 +187,7 @@ SCAN:
 
 		if hash == in[i] {
 			results <- hash
-			out.Debug(ctx, "[%s] MATCH at line %d: %s", fn, lineNo, hash)
+			debug.Log("[%s] MATCH at line %d: %s", fn, lineNo, hash)
 			numMatches++
 			// advance to next sha sum from store and next line in file
 			i++
@@ -199,7 +200,7 @@ SCAN:
 		}
 	}
 
-	out.Debug(ctx, "Finished checking file %s", fn)
+	debug.Log("Finished checking file %s", fn)
 }
 
 func (s *Scanner) scanUnsortedFile(ctx context.Context, fn string, in []string, results chan string) {
@@ -230,11 +231,11 @@ func (s *Scanner) scanUnsortedFile(ctx context.Context, fn string, in []string, 
 	worker := runtime.NumCPU()
 	done := make(chan struct{}, worker)
 	for i := 0; i < worker; i++ {
-		out.Debug(ctx, "[%d] Starting matcher ...", i)
+		debug.Log("[%d] Starting matcher ...", i)
 		go s.matcher(ctx, in, lines, results, done)
 	}
 
-	out.Debug(ctx, "Checking file %s ...\n", fn)
+	debug.Log("Checking file %s ...\n", fn)
 	scanner := bufio.NewScanner(rdr)
 SCAN:
 	for scanner.Scan() {
@@ -253,7 +254,7 @@ SCAN:
 		<-done
 	}
 
-	out.Debug(ctx, "Finished checking file %s", fn)
+	debug.Log("Finished checking file %s", fn)
 }
 
 func (s *Scanner) matcher(ctx context.Context, in []string, lines chan string, results chan string, done chan struct{}) {

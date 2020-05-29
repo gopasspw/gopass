@@ -6,7 +6,7 @@ import (
 	"sort"
 
 	"github.com/blang/semver"
-	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/pkg/errors"
 )
 
@@ -70,12 +70,12 @@ func DetectStorage(ctx context.Context, path string) (Storage, error) {
 	})
 	for _, id := range bes {
 		be := storageRegistry[id]
-		out.Debug(ctx, "DetectStorage(%s) - trying %s", path, be)
+		debug.Log("DetectStorage(%s) - trying %s", path, be)
 		if err := be.Handles(path); err != nil {
-			out.Debug(ctx, "failed to use %s for %s: %s", id, path, err)
+			debug.Log("failed to use %s for %s: %s", id, path, err)
 			continue
 		}
-		out.Debug(ctx, "DetectStorage(%s) - using %s", path, be)
+		debug.Log("DetectStorage(%s) - using %s", path, be)
 		return be.New(ctx, path)
 	}
 	return storageRegistry[FS].Init(ctx, path)

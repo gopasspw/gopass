@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"syscall"
 
+	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/fsutil"
@@ -22,7 +23,7 @@ func (s *Store) Fsck(ctx context.Context) error {
 	dirs := make(map[string]struct{}, len(entries))
 	for _, entry := range entries {
 		pcb()
-		out.Debug(ctx, "file.Fsck() - Checking %s", entry)
+		debug.Log("file.Fsck() - Checking %s", entry)
 
 		filename := filepath.Join(s.path, entry)
 		dirs[filepath.Dir(filename)] = struct{}{}

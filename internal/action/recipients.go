@@ -40,7 +40,7 @@ func (s *Action) RecipientsPrint(c *cli.Context) error {
 
 	tree, err := s.Store.RecipientsTree(ctx, true)
 	if err != nil {
-		return ExitError(ctx, ExitList, err, "failed to list recipients: %s", err)
+		return ExitError(ExitList, err, "failed to list recipients: %s", err)
 	}
 
 	fmt.Fprintln(stdout, tree.Format(-1))
@@ -113,12 +113,12 @@ func (s *Action) RecipientsAdd(c *cli.Context) error {
 		}
 
 		if err := s.Store.AddRecipient(ctxutil.WithConfirm(ctx, true), store, recp); err != nil {
-			return ExitError(ctx, ExitRecipients, err, "failed to add recipient '%s': %s", r, err)
+			return ExitError(ExitRecipients, err, "failed to add recipient '%s': %s", r, err)
 		}
 		added++
 	}
 	if added < 1 {
-		return ExitError(ctx, ExitUnknown, nil, "no key added")
+		return ExitError(ExitUnknown, nil, "no key added")
 	}
 
 	out.Green(ctx, "\nAdded %d recipients", added)
@@ -182,13 +182,13 @@ func (s *Action) RecipientsRemove(c *cli.Context) error {
 		}
 
 		if err := s.Store.RemoveRecipient(ctxutil.WithConfirm(ctx, true), store, recp); err != nil {
-			return ExitError(ctx, ExitRecipients, err, "failed to remove recipient '%s': %s", recp, err)
+			return ExitError(ExitRecipients, err, "failed to remove recipient '%s': %s", recp, err)
 		}
 		fmt.Fprintf(stdout, removalWarning, r)
 		removed++
 	}
 	if removed < 1 {
-		return ExitError(ctx, ExitUnknown, nil, "no key removed")
+		return ExitError(ExitUnknown, nil, "no key removed")
 	}
 
 	out.Green(ctx, "\nRemoved %d recipients", removed)
@@ -257,7 +257,7 @@ func (s *Action) recipientsSelectForRemoval(ctx context.Context, store string) (
 	case "show":
 		return []string{ids[sel]}, nil
 	default:
-		return nil, ExitError(ctx, ExitAborted, nil, "user aborted")
+		return nil, ExitError(ExitAborted, nil, "user aborted")
 	}
 }
 
@@ -280,6 +280,6 @@ func (s *Action) recipientsSelectForAdd(ctx context.Context, store string) ([]st
 	case "show":
 		return []string{kl[sel]}, nil
 	default:
-		return nil, ExitError(ctx, ExitAborted, nil, "user aborted")
+		return nil, ExitError(ExitAborted, nil, "user aborted")
 	}
 }

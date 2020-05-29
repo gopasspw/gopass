@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
 
@@ -87,7 +88,7 @@ func (g *Git) ConfigGet(ctx context.Context, key string) (string, error) {
 	cmd.Stdout = buf
 	cmd.Stderr = os.Stderr
 
-	out.Debug(ctx, "store.gitConfigGet: %s %+v", cmd.Path, cmd.Args)
+	debug.Log("store.gitConfigGet: %s %+v", cmd.Path, cmd.Args)
 	if err := cmd.Run(); err != nil {
 		return "", err
 	}
@@ -108,7 +109,7 @@ func (g *Git) ConfigList(ctx context.Context) (map[string]string, error) {
 	cmd.Stdout = buf
 	cmd.Stderr = os.Stderr
 
-	out.Debug(ctx, "store.gitConfigList: %s %+v", cmd.Path, cmd.Args)
+	debug.Log("store.gitConfigList: %s %+v", cmd.Path, cmd.Args)
 	if err := cmd.Run(); err != nil {
 		return nil, err
 	}

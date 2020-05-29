@@ -19,7 +19,7 @@ func (s *Action) Unclip(c *cli.Context) error {
 
 	time.Sleep(time.Second * time.Duration(timeout))
 	if err := clipboard.Clear(ctx, checksum, force); err != nil {
-		return ExitError(ctx, ExitIO, err, "Failed to clear clipboard: %s", err)
+		return ExitError(ExitIO, err, "Failed to clear clipboard: %s", err)
 	}
 	return nil
 }

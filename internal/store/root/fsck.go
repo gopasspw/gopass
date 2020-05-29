@@ -4,6 +4,7 @@ import (
 	"context"
 	"strings"
 
+	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/internal/out"
 	multierror "github.com/hashicorp/go-multierror"
 )
@@ -20,7 +21,7 @@ func (s *Store) Fsck(ctx context.Context, path string) error {
 			continue
 		}
 		path = strings.TrimPrefix(path, alias+"/")
-		out.Debug(ctx, "root.Fsck() - Checking %s", alias)
+		debug.Log("root.Fsck() - Checking %s", alias)
 		if err := sub.Fsck(ctx, path); err != nil {
 			out.Error(ctx, "fsck failed on sub store %s: %s", alias, err)
 			result = multierror.Append(result, err)

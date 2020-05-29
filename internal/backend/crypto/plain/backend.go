@@ -119,7 +119,7 @@ func (m *Mocker) Binary() string {
 }
 
 // Sign writes the hashsum to the given file
-func (m *Mocker) Sign(ctx context.Context, in string, sigf string) error {
+func (m *Mocker) Sign(in string, sigf string) error {
 	buf, err := ioutil.ReadFile(in)
 	if err != nil {
 		return err
@@ -131,7 +131,7 @@ func (m *Mocker) Sign(ctx context.Context, in string, sigf string) error {
 }
 
 // Verify does a pseudo-verification
-func (m *Mocker) Verify(ctx context.Context, sigf string, in string) error {
+func (m *Mocker) Verify(sigf string, in string) error {
 	sigb, err := ioutil.ReadFile(sigf)
 	if err != nil {
 		return err

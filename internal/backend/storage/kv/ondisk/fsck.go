@@ -10,6 +10,7 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/fsutil"
@@ -19,7 +20,7 @@ import (
 func (o *OnDisk) Fsck(ctx context.Context) error {
 	pcb := ctxutil.GetProgressCallback(ctx)
 
-	if err := o.Compact(ctx); err != nil {
+	if err := o.Compact(); err != nil {
 		return err
 	}
 
@@ -45,7 +46,7 @@ func (o *OnDisk) Fsck(ctx context.Context) error {
 			out.Print(ctx, "Skipping unknown dir: %s", path)
 			return filepath.SkipDir
 		}
-		out.Debug(ctx, "Checking: %s", path)
+		debug.Log("Checking: %s", path)
 		if fi.IsDir() {
 			return o.fsckCheckDir(ctx, path, fi)
 		}

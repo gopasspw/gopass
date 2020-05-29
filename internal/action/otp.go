@@ -27,25 +27,25 @@ func (s *Action) OTP(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	name := c.Args().First()
 	if name == "" {
-		return ExitError(ctx, ExitUsage, nil, "Usage: %s otp <NAME>", s.Name)
+		return ExitError(ExitUsage, nil, "Usage: %s otp <NAME>", s.Name)
 	}
 
 	qrf := c.String("qr")
 	clip := c.Bool("clip")
 	pw := c.Bool("password")
 
-	return s.otp(ctx, c, name, qrf, clip, pw, true)
+	return s.otp(ctx, name, qrf, clip, pw, true)
 }
 
-func (s *Action) otp(ctx context.Context, c *cli.Context, name, qrf string, clip, pw, recurse bool) error {
+func (s *Action) otp(ctx context.Context, name, qrf string, clip, pw, recurse bool) error {
 	sec, ctx, err := s.Store.GetContext(ctx, name)
 	if err != nil {
-		return s.otpHandleError(ctx, c, name, qrf, clip, pw, recurse, err)
+		return s.otpHandleError(ctx, name, qrf, clip, pw, recurse, err)
 	}
 
-	two, label, err := otp.Calculate(ctx, name, sec)
+	two, label, err := otp.Calculate(name, sec)
 	if err != nil {
-		return ExitError(ctx, ExitUnknown, err, "No OTP entry found for %s: %s", name, err)
+		return ExitError(ExitUnknown, err, "No OTP entry found for %s: %s", name, err)
 	}
 	token := two.OTP()
 
@@ -67,24 +67,24 @@ func (s *Action) otp(ctx context.Context, c *cli.Context, name, qrf string, clip
 
 	if clip {
 		if err := clipboard.CopyTo(ctx, fmt.Sprintf("token for %s", name), []byte(token)); err != nil {
-			return ExitError(ctx, ExitIO, err, "failed to copy to clipboard: %s", err)
+			return ExitError(ExitIO, err, "failed to copy to clipboard: %s", err)
 		}
 		return nil
 	}
 
 	if qrf != "" {
-		return otp.WriteQRFile(ctx, two, label, qrf)
+		return otp.WriteQRFile(two, label, qrf)
 	}
 	return nil
 }
 
-func (s *Action) otpHandleError(ctx context.Context, c *cli.Context, name, qrf string, clip, pw, recurse bool, err error) error {
+func (s *Action) otpHandleError(ctx context.Context, name, qrf string, clip, pw, recurse bool, err error) error {
 	if err != store.ErrNotFound || !recurse || !ctxutil.IsTerminal(ctx) {
-		return ExitError(ctx, ExitUnknown, err, "failed to retrieve secret '%s': %s", name, err)
+		return ExitError(ExitUnknown, err, "failed to retrieve secret '%s': %s", name, err)
 	}
 	out.Yellow(ctx, "Entry '%s' not found. Starting search...", name)
 	cb := func(ctx context.Context, c *cli.Context, name string, recurse bool) error {
-		return s.otp(ctx, c, name, qrf, clip, pw, false)
+		return s.otp(ctx, name, qrf, clip, pw, false)
 	}
 	if err := s.find(ctxutil.WithFuzzySearch(ctx, false), nil, name, cb); err == nil {
 		return nil

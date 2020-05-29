@@ -3,10 +3,11 @@ package notify
 import (
 	"context"
 	"fmt"
-	"github.com/stretchr/testify/assert"
 	"os"
 	"os/exec"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 //to test cmd.exec correctly we use the same functionality as go itself see exec_test.go

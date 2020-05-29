@@ -5,6 +5,7 @@ import (
 
 	"github.com/gopasspw/gopass/internal/backend"
 	_ "github.com/gopasspw/gopass/internal/backend/rcs" // register RCS backends
+	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/internal/store/secret"
@@ -43,13 +44,13 @@ func (s *Store) GetRevision(ctx context.Context, name, revision string) (store.S
 
 	content, err := s.crypto.Decrypt(ctx, ciphertext)
 	if err != nil {
-		out.Debug(ctx, "Decryption failed: %s", err)
+		debug.Log("Decryption failed: %s", err)
 		return nil, store.ErrDecrypt
 	}
 
 	sec, err := secret.Parse(content)
 	if err != nil {
-		out.Debug(ctx, "Failed to parse YAML: %s", err)
+		debug.Log("Failed to parse YAML: %s", err)
 	}
 	return sec, nil
 }

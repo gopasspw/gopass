@@ -20,7 +20,7 @@ func (s *Action) Edit(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	name := c.Args().First()
 	if name == "" {
-		return ExitError(ctx, ExitUsage, nil, "Usage: %s edit secret", s.Name)
+		return ExitError(ExitUsage, nil, "Usage: %s edit secret", s.Name)
 	}
 
 	return s.edit(ctx, c, name)
@@ -38,7 +38,7 @@ func (s *Action) edit(ctx context.Context, c *cli.Context, name string) error {
 	// invoke the editor to let the user edit the content
 	nContent, err := editor.Invoke(ctx, ed, content)
 	if err != nil {
-		return ExitError(ctx, ExitUnknown, err, "failed to invoke editor: %s", err)
+		return ExitError(ExitUnknown, err, "failed to invoke editor: %s", err)
 	}
 
 	return s.editUpdate(ctx, name, content, nContent, changed, ed)
@@ -62,7 +62,7 @@ func (s *Action) editUpdate(ctx context.Context, name string, content, nContent 
 
 	// write result (back) to store
 	if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, fmt.Sprintf("Edited with %s", ed)), name, nSec); err != nil {
-		return ExitError(ctx, ExitEncrypt, err, "failed to encrypt secret %s: %s", name, err)
+		return ExitError(ExitEncrypt, err, "failed to encrypt secret %s: %s", name, err)
 	}
 	return nil
 }
@@ -84,11 +84,11 @@ func (s *Action) editGetContent(ctx context.Context, name string, create bool) (
 	if s.Store.Exists(ctx, name) {
 		sec, err := s.Store.Get(ctx, name)
 		if err != nil {
-			return name, nil, false, ExitError(ctx, ExitDecrypt, err, "failed to decrypt %s: %s", name, err)
+			return name, nil, false, ExitError(ExitDecrypt, err, "failed to decrypt %s: %s", name, err)
 		}
 		content, err := sec.Bytes()
 		if err != nil {
-			return name, nil, false, ExitError(ctx, ExitDecrypt, err, "failed to decode %s: %s", name, err)
+			return name, nil, false, ExitError(ExitDecrypt, err, "failed to decode %s: %s", name, err)
 		}
 		return name, content, false, nil
 	}

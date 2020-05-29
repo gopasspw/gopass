@@ -305,7 +305,7 @@ func TestShowHandleYAMLError(t *testing.T) {
 		out.Stdout = os.Stdout
 	}()
 
-	assert.Error(t, act.showHandleYAMLError(ctx, "foo", "bar", fmt.Errorf("test")))
+	assert.Error(t, act.showHandleYAMLError("foo", "bar", fmt.Errorf("test")))
 	buf.Reset()
 }
 
@@ -330,6 +330,6 @@ func TestShowPrintQR(t *testing.T) {
 		out.Stdout = os.Stdout
 	}()
 
-	assert.NoError(t, act.showPrintQR(ctx, "foo", "bar"))
+	assert.NoError(t, act.showPrintQR("foo", "bar"))
 	buf.Reset()
 }

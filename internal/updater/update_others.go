@@ -16,6 +16,7 @@ import (
 
 	"golang.org/x/sys/unix"
 
+	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/internal/out"
 
 	"github.com/pkg/errors"
@@ -26,14 +27,14 @@ func updateGopass(ctx context.Context, version string, urlStr string) error {
 	if err != nil {
 		return errors.Wrapf(err, "failed to detect executable location")
 	}
-	out.Debug(ctx, "Excuteable is at '%s'", exe)
+	debug.Log("Excuteable is at '%s'", exe)
 
 	u, err := url.Parse(urlStr)
 	if err != nil {
 		return errors.Wrapf(err, "failed to parse URL")
 	}
 
-	if err := updateCheckHost(ctx, u); err != nil {
+	if err := updateCheckHost(u); err != nil {
 		return err
 	}
 
@@ -45,15 +46,15 @@ func updateGopass(ctx context.Context, version string, urlStr string) error {
 		_ = os.RemoveAll(td)
 	}()
 
-	out.Debug(ctx, "Tempdir: %s", td)
-	out.Debug(ctx, "URL: %s", u.String())
+	debug.Log("Tempdir: %s", td)
+	debug.Log("URL: %s", u.String())
 	archive := filepath.Join(td, path.Base(u.Path))
 	if err := tryDownload(ctx, archive, u.String()); err != nil {
 		return err
 	}
 	binDst := exe + "_new"
 	_ = os.Remove(binDst)
-	if err := extract(ctx, archive, binDst); err != nil {
+	if err := extract(archive, binDst); err != nil {
 		return err
 	}
 
@@ -79,7 +80,7 @@ func IsUpdateable(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	out.Debug(ctx, "isUpdateable - File: %s", fn)
+	debug.Log("isUpdateable - File: %s", fn)
 	// check if this is a test binary
 	if strings.HasSuffix(filepath.Base(fn), ".test") {
 		return nil
@@ -87,7 +88,7 @@ func IsUpdateable(ctx context.Context) error {
 
 	// check if we want to force updateability
 	if uf := os.Getenv("GOPASS_FORCE_UPDATE"); uf != "" {
-		out.Debug(ctx, "updateable due to force flag")
+		debug.Log("updateable due to force flag")
 		return nil
 	}
 

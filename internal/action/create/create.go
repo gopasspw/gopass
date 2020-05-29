@@ -62,7 +62,7 @@ func Create(c *cli.Context, store storer) error {
 	case "show":
 		return acts.Run(ctx, c, sel)
 	default:
-		return action.ExitError(ctx, action.ExitAborted, nil, "user aborted")
+		return action.ExitError(action.ExitAborted, nil, "user aborted")
 	}
 }
 
@@ -106,7 +106,7 @@ func (s *creator) createWebsite(ctx context.Context, c *cli.Context) error {
 	// the hostname is used as part of the name
 	hostname := extractHostname(urlStr)
 	if hostname == "" {
-		return action.ExitError(ctx, action.ExitUnknown, err, "Can not parse URL '%s'. Please use 'gopass edit' to manually create the secret", urlStr)
+		return action.ExitError(action.ExitUnknown, err, "Can not parse URL '%s'. Please use 'gopass edit' to manually create the secret", urlStr)
 	}
 
 	username, err = termio.AskForString(ctx, fmtfn(2, "2", "Login"), username)
@@ -155,7 +155,7 @@ func (s *creator) createWebsite(ctx context.Context, c *cli.Context) error {
 	_ = sec.SetValue("username", username)
 	_ = sec.SetValue("comment", comment)
 	if err := s.store.Set(ctxutil.WithCommitMessage(ctx, "Created new entry"), name, sec); err != nil {
-		return action.ExitError(ctx, action.ExitEncrypt, err, "failed to set '%s': %s", name, err)
+		return action.ExitError(action.ExitEncrypt, err, "failed to set '%s': %s", name, err)
 	}
 
 	return s.createPrintOrCopy(ctx, c, name, password, genPw)
@@ -177,7 +177,7 @@ func (s *creator) createPrintOrCopy(ctx context.Context, c *cli.Context, name, p
 	}
 
 	if err := clipboard.CopyTo(ctx, name, []byte(password)); err != nil {
-		return action.ExitError(ctx, action.ExitIO, err, "failed to copy to clipboard: %s", err)
+		return action.ExitError(action.ExitIO, err, "failed to copy to clipboard: %s", err)
 	}
 	return nil
 }
@@ -199,14 +199,14 @@ func (s *creator) createPIN(ctx context.Context, c *cli.Context) error {
 		return err
 	}
 	if authority == "" {
-		return action.ExitError(ctx, action.ExitUnknown, nil, "Authority must not be empty")
+		return action.ExitError(action.ExitUnknown, nil, "Authority must not be empty")
 	}
 	application, err = termio.AskForString(ctx, fmtfn(2, "2", "Entity"), application)
 	if err != nil {
 		return err
 	}
 	if application == "" {
-		return action.ExitError(ctx, action.ExitUnknown, nil, "Application must not be empty")
+		return action.ExitError(action.ExitUnknown, nil, "Application must not be empty")
 	}
 	genPw, err = termio.AskForBool(ctx, fmtfn(2, "3", "Generate PIN?"), false)
 	if err != nil {
@@ -245,7 +245,7 @@ func (s *creator) createPIN(ctx context.Context, c *cli.Context) error {
 	_ = sec.SetValue("application", application)
 	_ = sec.SetValue("comment", comment)
 	if err := s.store.Set(ctxutil.WithCommitMessage(ctx, "Created new entry"), name, sec); err != nil {
-		return action.ExitError(ctx, action.ExitEncrypt, err, "failed to set '%s': %s", name, err)
+		return action.ExitError(action.ExitEncrypt, err, "failed to set '%s': %s", name, err)
 	}
 
 	return s.createPrintOrCopy(ctx, c, name, password, genPw)
@@ -269,14 +269,14 @@ func (s *creator) createAWS(ctx context.Context, c *cli.Context) error {
 		return err
 	}
 	if account == "" {
-		return action.ExitError(ctx, action.ExitUnknown, nil, "Account must not be empty")
+		return action.ExitError(action.ExitUnknown, nil, "Account must not be empty")
 	}
 	username, err = termio.AskForString(ctx, fmtfn(2, "2", "AWS IAM User"), username)
 	if err != nil {
 		return err
 	}
 	if username == "" {
-		return action.ExitError(ctx, action.ExitUnknown, nil, "Username must not be empty")
+		return action.ExitError(action.ExitUnknown, nil, "Username must not be empty")
 	}
 	password, err = termio.AskForString(ctx, fmtfn(2, "3", "AWS Account Password"), password)
 	if err != nil {
@@ -315,7 +315,7 @@ func (s *creator) createAWS(ctx context.Context, c *cli.Context) error {
 	_ = sec.SetValue("secretkey", secretkey)
 	_ = sec.SetValue("region", region)
 	if err := s.store.Set(ctxutil.WithCommitMessage(ctx, "Created new entry"), name, sec); err != nil {
-		return action.ExitError(ctx, action.ExitEncrypt, err, "failed to set '%s': %s", name, err)
+		return action.ExitError(action.ExitEncrypt, err, "failed to set '%s': %s", name, err)
 	}
 	return nil
 }
@@ -349,7 +349,7 @@ func (s *creator) createGCP(ctx context.Context, c *cli.Context) error {
 		}
 	}
 	if username == "" {
-		return action.ExitError(ctx, action.ExitUnknown, nil, "Username must not be empty")
+		return action.ExitError(action.ExitUnknown, nil, "Username must not be empty")
 	}
 	if project == "" {
 		project, err = termio.AskForString(ctx, fmtfn(4, "b", "Project name"), "")
@@ -358,7 +358,7 @@ func (s *creator) createGCP(ctx context.Context, c *cli.Context) error {
 		}
 	}
 	if project == "" {
-		return action.ExitError(ctx, action.ExitUnknown, nil, "Project must not be empty")
+		return action.ExitError(action.ExitUnknown, nil, "Project must not be empty")
 	}
 
 	// select store
@@ -379,7 +379,7 @@ func (s *creator) createGCP(ctx context.Context, c *cli.Context) error {
 	}
 	sec := secret.New("", string(buf))
 	if err := s.store.Set(ctxutil.WithCommitMessage(ctx, "Created new entry"), name, sec); err != nil {
-		return action.ExitError(ctx, action.ExitEncrypt, err, "failed to set '%s': %s", name, err)
+		return action.ExitError(action.ExitEncrypt, err, "failed to set '%s': %s", name, err)
 	}
 	return nil
 }
@@ -417,7 +417,7 @@ func (s *creator) createGeneric(ctx context.Context, c *cli.Context) error {
 		return err
 	}
 	if shortname == "" {
-		return action.ExitError(ctx, action.ExitUnknown, nil, "Name must not be empty")
+		return action.ExitError(action.ExitUnknown, nil, "Name must not be empty")
 	}
 	genPw, err = termio.AskForBool(ctx, fmtfn(2, "2", "Generate password?"), true)
 	if err != nil {
@@ -468,7 +468,7 @@ func (s *creator) createGeneric(ctx context.Context, c *cli.Context) error {
 		_ = sec.SetValue(key, val)
 	}
 	if err := s.store.Set(ctxutil.WithCommitMessage(ctx, "Created new entry"), name, sec); err != nil {
-		return action.ExitError(ctx, action.ExitEncrypt, err, "failed to set '%s': %s", name, err)
+		return action.ExitError(action.ExitEncrypt, err, "failed to set '%s': %s", name, err)
 	}
 
 	return s.createPrintOrCopy(ctx, c, name, password, genPw)

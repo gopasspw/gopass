@@ -44,7 +44,7 @@ func (s *Action) Complete(c *cli.Context) {
 }
 
 // CompletionOpenBSDKsh returns an OpenBSD ksh script used for auto completion
-func (s *Action) CompletionOpenBSDKsh(c *cli.Context, a *cli.App) error {
+func (s *Action) CompletionOpenBSDKsh(a *cli.App) error {
 	out := `
 PASS_LIST=$(gopass ls -f)
 set -A complete_gopass -- $PASS_LIST %s
@@ -89,7 +89,7 @@ func (s *Action) CompletionBash(c *cli.Context) error {
 }
 
 // CompletionFish returns an autocompletion script for fish
-func (s *Action) CompletionFish(c *cli.Context, a *cli.App) error {
+func (s *Action) CompletionFish(a *cli.App) error {
 	if a == nil {
 		return fmt.Errorf("app is nil")
 	}
@@ -103,7 +103,7 @@ func (s *Action) CompletionFish(c *cli.Context, a *cli.App) error {
 }
 
 // CompletionZSH returns a zsh completion script
-func (s *Action) CompletionZSH(c *cli.Context, a *cli.App) error {
+func (s *Action) CompletionZSH(a *cli.App) error {
 	comp, err := zshcomp.GetCompletion(a)
 	if err != nil {
 		return err

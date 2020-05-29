@@ -152,12 +152,11 @@ func (p *Pubring) Import(buf []byte) error {
 }
 
 // Set inserts a key, possibly overwriting and existing entry
-func (p *Pubring) Set(pk *PublicKey) error {
+func (p *Pubring) Set(pk *PublicKey) {
 	p.Lock()
 	defer p.Unlock()
 
 	p.insert(pubKRToPB(pk))
-	return nil
 }
 
 func (p *Pubring) insert(xpk *xcpb.PublicKey) {

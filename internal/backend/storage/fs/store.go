@@ -13,7 +13,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/pkg/fsutil"
 
 	"github.com/blang/semver"
@@ -40,7 +40,7 @@ func (s *Store) Get(ctx context.Context, name string) ([]byte, error) {
 		name = filepath.FromSlash(name)
 	}
 	path := filepath.Join(s.path, filepath.Clean(name))
-	out.Debug(ctx, "fs.Get(%s) - %s", name, path)
+	debug.Log("fs.Get(%s) - %s", name, path)
 	return ioutil.ReadFile(path)
 }
 
@@ -56,7 +56,7 @@ func (s *Store) Set(ctx context.Context, name string, value []byte) error {
 			return err
 		}
 	}
-	out.Debug(ctx, "fs.Set(%s) - %s", name, filepath.Join(s.path, name))
+	debug.Log("fs.Set(%s) - %s", name, filepath.Join(s.path, name))
 	return ioutil.WriteFile(filepath.Join(s.path, name), value, 0644)
 }
 
@@ -66,7 +66,7 @@ func (s *Store) Delete(ctx context.Context, name string) error {
 		name = filepath.FromSlash(name)
 	}
 	path := filepath.Join(s.path, filepath.Clean(name))
-	out.Debug(ctx, "fs.Delete(%s) - %s", name, path)
+	debug.Log("fs.Delete(%s) - %s", name, path)
 
 	if err := os.Remove(path); err != nil {
 		return err
@@ -106,7 +106,7 @@ func (s *Store) Exists(ctx context.Context, name string) bool {
 		name = filepath.FromSlash(name)
 	}
 	path := filepath.Join(s.path, filepath.Clean(name))
-	out.Debug(ctx, "fs.Exists(%s) - %s", name, path)
+	debug.Log("fs.Exists(%s) - %s", name, path)
 	return fsutil.IsFile(path)
 }
 
@@ -115,7 +115,7 @@ func (s *Store) Exists(ctx context.Context, name string) bool {
 // directory separator are normalized using `/`
 func (s *Store) List(ctx context.Context, prefix string) ([]string, error) {
 	prefix = strings.TrimPrefix(prefix, "/")
-	out.Debug(ctx, "fs.List(%s)", prefix)
+	debug.Log("fs.List(%s)", prefix)
 	files := make([]string, 0, 100)
 	if err := filepath.Walk(s.path, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -153,14 +153,14 @@ func (s *Store) IsDir(ctx context.Context, name string) bool {
 	}
 	path := filepath.Join(s.path, filepath.Clean(name))
 	isDir := fsutil.IsDir(path)
-	out.Debug(ctx, "fs.Isdir(%s) - %s -> %t", name, path, isDir)
+	debug.Log("fs.Isdir(%s) - %s -> %t", name, path, isDir)
 	return isDir
 }
 
 // Prune removes a named directory
 func (s *Store) Prune(ctx context.Context, prefix string) error {
 	path := filepath.Join(s.path, filepath.Clean(prefix))
-	out.Debug(ctx, "fs.Prune(%s) - %s", prefix, path)
+	debug.Log("fs.Prune(%s) - %s", prefix, path)
 	return os.RemoveAll(path)
 }
 

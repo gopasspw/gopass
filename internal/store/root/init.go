@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/gopasspw/gopass/internal/backend"
+	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store/leaf"
 
@@ -13,7 +14,7 @@ import (
 // Initialized checks on disk if .gpg-id was generated and thus returns true.
 func (r *Store) Initialized(ctx context.Context) (bool, error) {
 	if r.store == nil {
-		out.Debug(ctx, "initializing store and possible sub-stores")
+		debug.Log("initializing store and possible sub-stores")
 		if err := r.initialize(ctx); err != nil {
 			return false, errors.Wrapf(err, "failed to initialized stores: %s", err)
 		}
@@ -23,7 +24,7 @@ func (r *Store) Initialized(ctx context.Context) (bool, error) {
 
 // Init tries to initialize a new password store location matching the object
 func (r *Store) Init(ctx context.Context, alias, path string, ids ...string) error {
-	out.Debug(ctx, "Instantiating new sub store %s at %s for %+v", alias, path, ids)
+	debug.Log("Instantiating new sub store %s at %s for %+v", alias, path, ids)
 	if !backend.HasCryptoBackend(ctx) {
 		ctx = backend.WithCryptoBackend(ctx, backend.GPGCLI)
 	}
@@ -41,16 +42,16 @@ func (r *Store) Init(ctx context.Context, alias, path string, ids ...string) err
 		r.store = sub
 	}
 
-	out.Debug(ctx, "Initializing sub store at %s for %+v", path, ids)
+	debug.Log("Initializing sub store at %s for %+v", path, ids)
 	if err := sub.Init(ctx, path, ids...); err != nil {
 		return errors.Wrapf(err, "failed to initialize new sub store: %s", err)
 	}
 
 	if alias == "" {
-		out.Debug(ctx, "initialized root at %s", path)
+		debug.Log("initialized root at %s", path)
 		r.cfg.Path = path
 	} else {
-		out.Debug(ctx, "mounted %s at %s", alias, path)
+		debug.Log("mounted %s at %s", alias, path)
 		r.cfg.Mounts[alias] = path
 	}
 
@@ -64,12 +65,12 @@ func (r *Store) initialize(ctx context.Context) error {
 	}
 
 	// create the base store
-	out.Debug(ctx, "initialize - %s", r.cfg.Path)
+	debug.Log("initialize - %s", r.cfg.Path)
 	s, err := leaf.New(ctx, "", r.cfg.Path)
 	if err != nil {
 		return errors.Wrapf(err, "failed to initialize the root store at '%s': %s", r.cfg.Path, err)
 	}
-	out.Debug(ctx, "Root Store initialized at %s", r.cfg.Path)
+	debug.Log("Root Store initialized at %s", r.cfg.Path)
 	r.store = s
 
 	// initialize all mounts
@@ -78,7 +79,7 @@ func (r *Store) initialize(ctx context.Context) error {
 			out.Error(ctx, "Failed to initialize mount %s (%s). Ignoring: %s", alias, path, err)
 			continue
 		}
-		out.Debug(ctx, "Sub-Store mounted at %s from %s", alias, path)
+		debug.Log("Sub-Store mounted at %s from %s", alias, path)
 	}
 
 	// check for duplicate mounts

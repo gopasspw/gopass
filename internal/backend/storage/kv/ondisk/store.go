@@ -15,7 +15,7 @@ import (
 
 	"github.com/blang/semver"
 	"github.com/gopasspw/gopass/internal/backend/storage/kv/ondisk/gpb"
-	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -82,7 +82,7 @@ func (o *OnDisk) Get(ctx context.Context, name string) ([]byte, error) {
 		return nil, fmt.Errorf("not found")
 	}
 	path := filepath.Join(o.dir, r.GetFilename())
-	out.Debug(ctx, "Get(%s) - Reading from %s", name, path)
+	debug.Log("Get(%s) - Reading from %s", name, path)
 	return ioutil.ReadFile(path)
 }
 
@@ -101,8 +101,8 @@ func (o *OnDisk) Set(ctx context.Context, name string, value []byte) error {
 	if err := ioutil.WriteFile(fp, value, 0600); err != nil {
 		return err
 	}
-	out.Debug(ctx, "Set(%s) - Wrote to %s", name, fp)
-	e := o.getOrCreateEntry(ctx, name)
+	debug.Log("Set(%s) - Wrote to %s", name, fp)
+	e := o.getOrCreateEntry(name)
 	msg := "Updated " + fn
 	if cm := ctxutil.GetCommitMessage(ctx); cm != "" {
 		msg = cm
@@ -114,7 +114,7 @@ func (o *OnDisk) Set(ctx context.Context, name string, value []byte) error {
 		Message:  msg,
 		Filename: fn,
 	})
-	out.Debug(ctx, "Set(%s) - Added Revision", name)
+	debug.Log("Set(%s) - Added Revision", name)
 	o.idx.Entries[name] = e
 	return o.saveIndex()
 }
@@ -131,11 +131,11 @@ func (o *OnDisk) getEntry(name string) (*gpb.Entry, error) {
 	return e, nil
 }
 
-func (o *OnDisk) getOrCreateEntry(ctx context.Context, name string) *gpb.Entry {
+func (o *OnDisk) getOrCreateEntry(name string) *gpb.Entry {
 	if e, found := o.idx.Entries[name]; found && e != nil {
 		return e
 	}
-	out.Debug(ctx, "getEntry(%s) - Created new Entry", name)
+	debug.Log("getEntry(%s) - Created new Entry", name)
 	return &gpb.Entry{
 		Name:      name,
 		Revisions: make([]*gpb.Revision, 0, 1),
@@ -145,22 +145,22 @@ func (o *OnDisk) getOrCreateEntry(ctx context.Context, name string) *gpb.Entry {
 // Delete removes an entry
 func (o *OnDisk) Delete(ctx context.Context, name string) error {
 	if !o.Exists(ctx, name) {
-		out.Debug(ctx, "Delete(%s) - Not adding tombstone for non-existing entry", name)
+		debug.Log("Delete(%s) - Not adding tombstone for non-existing entry", name)
 		return nil
 	}
 	// add tombstone
-	e := o.getOrCreateEntry(ctx, name)
+	e := o.getOrCreateEntry(name)
 	e.Delete(ctxutil.GetCommitMessage(ctx))
 	o.idx.Entries[name] = e
 
-	out.Debug(ctx, "Delete(%s) - Added tombstone")
+	debug.Log("Delete(%s) - Added tombstone")
 	return o.saveIndex()
 }
 
 // Exists checks if an entry exists
 func (o *OnDisk) Exists(ctx context.Context, name string) bool {
 	_, found := o.idx.Entries[name]
-	out.Debug(ctx, "Exists(%s): %t", name, found)
+	debug.Log("Exists(%s): %t", name, found)
 	return found
 }
 
@@ -216,7 +216,7 @@ func (o *OnDisk) Available(ctx context.Context) error {
 
 // Compact will prune all deleted entries and truncate every other entry
 // to the last 10 revisions.
-func (o *OnDisk) Compact(ctx context.Context) error {
+func (o *OnDisk) Compact() error {
 	for k, v := range o.idx.Entries {
 		if v.IsDeleted() && time.Since(v.Latest().Time()) > delTTL {
 			delete(o.idx.Entries, k)

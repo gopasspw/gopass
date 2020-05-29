@@ -164,7 +164,7 @@ sub:
 `)},
 	}
 
-	totp, _, err := otp.Calculate(context.Background(), "_", totpSecret)
+	totp, _, err := otp.Calculate("_", totpSecret)
 	if err != nil {
 		assert.NoError(t, err)
 	}

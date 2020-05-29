@@ -6,8 +6,7 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/gopasspw/gopass/internal/out"
-
+	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/pkg/errors"
 )
 
@@ -23,7 +22,7 @@ func (g *GPG) ImportPublicKey(ctx context.Context, buf []byte) error {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
-	out.Debug(ctx, "gpg.ImportPublicKey: %s %+v", cmd.Path, cmd.Args)
+	debug.Log("gpg.ImportPublicKey: %s %+v", cmd.Path, cmd.Args)
 	if err := cmd.Run(); err != nil {
 		return errors.Wrapf(err, "failed to run command: '%s %+v'", cmd.Path, cmd.Args)
 	}

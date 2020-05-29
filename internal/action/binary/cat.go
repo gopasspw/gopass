@@ -20,7 +20,7 @@ func Cat(c *cli.Context, store storer) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	name := c.Args().First()
 	if name == "" {
-		return action.ExitError(ctx, action.ExitNoName, nil, "Usage: %s binary cat <NAME>", c.App.Name)
+		return action.ExitError(action.ExitNoName, nil, "Usage: %s binary cat <NAME>", c.App.Name)
 	}
 
 	if !strings.HasSuffix(name, Suffix) {
@@ -30,7 +30,7 @@ func Cat(c *cli.Context, store storer) error {
 	// handle pipe to stdin
 	info, err := os.Stdin.Stat()
 	if err != nil {
-		return action.ExitError(ctx, action.ExitIO, err, "failed to stat stdin: %s", err)
+		return action.ExitError(action.ExitIO, err, "failed to stat stdin: %s", err)
 	}
 
 	// if content is piped to stdin, read and save it
@@ -38,7 +38,7 @@ func Cat(c *cli.Context, store storer) error {
 		content := &bytes.Buffer{}
 
 		if written, err := io.Copy(content, os.Stdin); err != nil {
-			return action.ExitError(ctx, action.ExitIO, err, "Failed to copy after %d bytes: %s", written, err)
+			return action.ExitError(action.ExitIO, err, "Failed to copy after %d bytes: %s", written, err)
 		}
 
 		return store.Set(
@@ -50,7 +50,7 @@ func Cat(c *cli.Context, store storer) error {
 
 	buf, err := binaryGet(ctx, name, store)
 	if err != nil {
-		return action.ExitError(ctx, action.ExitDecrypt, err, "failed to read secret: %s", err)
+		return action.ExitError(action.ExitDecrypt, err, "failed to read secret: %s", err)
 	}
 
 	out.Yellow(ctx, string(buf))

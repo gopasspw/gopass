@@ -42,8 +42,8 @@ func TestImportKey(t *testing.T) {
 	x1pkrfn := filepath.Join(td, "x1pkr")
 	x1pkr, err := keyring.LoadPubring(x1pkrfn, x1skr)
 	require.NoError(t, err)
-	assert.NoError(t, x1pkr.Set(&x1k2.PublicKey))
-	assert.NoError(t, x1pkr.Set(&x1k3.PublicKey))
+	x1pkr.Set(&x1k2.PublicKey)
+	x1pkr.Set(&x1k3.PublicKey)
 
 	xc1 := &XC{
 		pubring: x1pkr,
@@ -67,8 +67,8 @@ func TestImportKey(t *testing.T) {
 	x2pkrfn := filepath.Join(td, "x2pkr")
 	x2pkr, err := keyring.LoadPubring(x2pkrfn, x2skr)
 	require.NoError(t, err)
-	assert.NoError(t, x2pkr.Set(&x2k2.PublicKey))
-	assert.NoError(t, x2pkr.Set(&x2k3.PublicKey))
+	x2pkr.Set(&x2k2.PublicKey)
+	x2pkr.Set(&x2k3.PublicKey)
 
 	xc2 := &XC{
 		pubring: x2pkr,
@@ -84,10 +84,10 @@ func TestImportKey(t *testing.T) {
 	assert.Equal(t, true, x2pkr.Contains(x1k1.Fingerprint()))
 
 	// export & import private key from X2 -> X1
-	buf, err = xc2.ExportPrivateKey(ctx, x2k1.Fingerprint())
+	buf, err = xc2.ExportPrivateKey(x2k1.Fingerprint())
 	require.NoError(t, err)
 
-	assert.NoError(t, xc1.ImportPrivateKey(ctx, buf))
+	assert.NoError(t, xc1.ImportPrivateKey(buf))
 	assert.Equal(t, true, x1pkr.Contains(x2k1.Fingerprint()))
 	assert.Equal(t, true, x1skr.Contains(x2k1.Fingerprint()))
 }

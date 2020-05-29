@@ -1,13 +1,11 @@
 package action
 
 import (
-	"context"
 	"io"
 	"os"
 	"path/filepath"
 
 	"github.com/gopasspw/gopass/internal/config"
-	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store/root"
 
 	"github.com/blang/semver"
@@ -27,11 +25,11 @@ type Action struct {
 }
 
 // New returns a new Action wrapper
-func New(ctx context.Context, cfg *config.Config, sv semver.Version) (*Action, error) {
-	return newAction(ctx, cfg, sv)
+func New(cfg *config.Config, sv semver.Version) (*Action, error) {
+	return newAction(cfg, sv)
 }
 
-func newAction(ctx context.Context, cfg *config.Config, sv semver.Version) (*Action, error) {
+func newAction(cfg *config.Config, sv semver.Version) (*Action, error) {
 	name := "gopass"
 	if len(os.Args) > 0 {
 		name = filepath.Base(os.Args[0])
@@ -41,15 +39,8 @@ func newAction(ctx context.Context, cfg *config.Config, sv semver.Version) (*Act
 		Name:    name,
 		cfg:     cfg,
 		version: sv,
+		Store:   root.New(cfg),
 	}
-
-	ctx = out.AddPrefix(ctx, "[action] ")
-
-	store, err := root.New(ctx, cfg)
-	if err != nil {
-		return nil, ExitError(ctx, ExitUnknown, err, "failed to init root store: %s", err)
-	}
-	act.Store = store
 
 	return act, nil
 }

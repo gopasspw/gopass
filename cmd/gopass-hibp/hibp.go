@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"sort"
 
+	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/internal/notify"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/termio"
@@ -38,7 +39,7 @@ func (s *hibp) CheckAPI(ctx context.Context, force bool) error {
 	// compare the prepared list against all provided files
 	matchList := make([]string, 0, len(sortedShaSums))
 	for _, shaSum := range sortedShaSums {
-		freq, err := hibpapi.Lookup(ctx, shaSum)
+		freq, err := hibpapi.Lookup(shaSum)
 		if err != nil {
 			out.Error(ctx, "Failed to check HIBP API: %s", err)
 			continue
@@ -73,7 +74,7 @@ func (s *hibp) CheckDump(ctx context.Context, force bool, dumps []string) error 
 	}
 
 	matchedSums := scanner.LookupBatch(ctx, sortedShaSums)
-	out.Debug(ctx, "In: %+v - Out: %+v", sortedShaSums, matchedSums)
+	debug.Log("In: %+v - Out: %+v", sortedShaSums, matchedSums)
 	matchList := make([]string, 0, len(matchedSums))
 	for _, matchedSum := range matchedSums {
 		if pw, found := shaSums[matchedSum]; found {

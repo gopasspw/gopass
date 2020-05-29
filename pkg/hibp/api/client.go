@@ -2,7 +2,6 @@
 package api
 
 import (
-	"context"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -10,9 +9,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gopasspw/gopass/internal/out"
-
 	"github.com/cenkalti/backoff"
+	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/pkg/errors"
 )
 
@@ -20,7 +18,7 @@ import (
 var URL = "https://api.pwnedpasswords.com"
 
 // Lookup performs a lookup against the HIBP v2 API
-func Lookup(ctx context.Context, shaSum string) (uint64, error) {
+func Lookup(shaSum string) (uint64, error) {
 	if len(shaSum) != 40 {
 		return 0, errors.Errorf("invalid shasum")
 	}
@@ -33,7 +31,7 @@ func Lookup(ctx context.Context, shaSum string) (uint64, error) {
 	url := fmt.Sprintf("%s/range/%s", URL, prefix)
 
 	op := func() error {
-		out.Debug(ctx, "[%s] HTTP Request: %s", shaSum, url)
+		debug.Log("[%s] HTTP Request: %s", shaSum, url)
 		resp, err := http.Get(url)
 		if err != nil {
 			return err

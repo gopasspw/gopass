@@ -25,7 +25,7 @@ func (s *Action) Fsck(c *cli.Context) error {
 	// make sure config is in the right place
 	// we may have loaded it from one of the fallback locations
 	if err := s.cfg.Save(); err != nil {
-		return ExitError(ctx, ExitConfig, err, "failed to save config: %s", err)
+		return ExitError(ExitConfig, err, "failed to save config: %s", err)
 	}
 
 	// clean up any previous config locations
@@ -39,7 +39,7 @@ func (s *Action) Fsck(c *cli.Context) error {
 	// display progress bar
 	t, err := s.Store.Tree(ctx)
 	if err != nil {
-		return ExitError(ctx, ExitUnknown, err, "failed to list stores: %s", err)
+		return ExitError(ExitUnknown, err, "failed to list stores: %s", err)
 	}
 
 	pwList := t.List(0)
@@ -68,7 +68,7 @@ func (s *Action) Fsck(c *cli.Context) error {
 
 	// the main work in done by the sub stores
 	if err := s.Store.Fsck(ctx, c.Args().Get(0)); err != nil {
-		return ExitError(ctx, ExitFsck, err, "fsck found errors: %s", err)
+		return ExitError(ExitFsck, err, "fsck found errors: %s", err)
 	}
 	out.Print(ctx, "")
 	return nil

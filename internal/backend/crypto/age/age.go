@@ -13,6 +13,7 @@ import (
 	"github.com/blang/semver"
 	"github.com/google/go-github/github"
 	"github.com/gopasspw/gopass/internal/cache"
+	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/termio"
 	"github.com/gopasspw/gopass/pkg/fsutil"
@@ -130,7 +131,7 @@ func (a *Age) encrypt(ctx context.Context, plaintext []byte, args ...string) ([]
 	cmd.Stdout = buf
 	cmd.Stderr = os.Stderr
 
-	out.Debug(ctx, "age.encrypt: %s %+v", cmd.Path, cmd.Args)
+	debug.Log("age.encrypt: %s %+v", cmd.Path, cmd.Args)
 	err := cmd.Run()
 	return buf.Bytes(), err
 }
@@ -149,7 +150,7 @@ func (a *Age) Decrypt(ctx context.Context, ciphertext []byte) ([]byte, error) {
 	args := []string{}
 	for _, k := range a.listPrivateKeyFiles(ctx) {
 		if k == "native-keyring" {
-			out.Debug(ctx, "age.Decrypt - decrypting native keyring for file decrypt")
+			debug.Log("age.Decrypt - decrypting native keyring for file decrypt")
 			td, err := ioutil.TempDir("", "gpa")
 			if err != nil {
 				return nil, err
@@ -174,7 +175,7 @@ func (a *Age) decrypt(ctx context.Context, ciphertext []byte, args ...string) ([
 	cmd.Stdin = bytes.NewReader(ciphertext)
 	cmd.Stderr = os.Stderr
 
-	out.Debug(ctx, "age.Decrypt: %s %+v", cmd.Path, cmd.Args)
+	debug.Log("age.Decrypt: %s %+v", cmd.Path, cmd.Args)
 	return cmd.Output()
 }
 
@@ -222,7 +223,7 @@ func (a *Age) CreatePrivateKeyBatch(ctx context.Context, name, email, pw string)
 		return err
 	}
 
-	out.Debug(ctx, "age.CreatePrivateKey: %s", buf.String())
+	debug.Log("age.CreatePrivateKey: %s", buf.String())
 
 	if err := os.MkdirAll(filepath.Dir(a.keyring), 0700); err != nil {
 		return err
@@ -272,7 +273,7 @@ func (a *Age) ListIdentities(ctx context.Context) ([]string, error) {
 func (a *Age) listPrivateKeyFiles(ctx context.Context) []string {
 	keys, err := a.getAllKeypairs(ctx)
 	if err != nil {
-		out.Debug(ctx, "Error fetching keys: %s", err)
+		debug.Log("Error fetching keys: %s", err)
 	}
 	idSet := map[string]struct{}{}
 	for _, v := range keys {
@@ -336,12 +337,12 @@ func (a *Age) pkself(ctx context.Context) string {
 func (a *Age) getNativeKeypairs(ctx context.Context) (map[string]string, error) {
 	_, err := os.Stat(a.keyring)
 	if os.IsNotExist(err) {
-		out.Debug(ctx, "No native age key found. Generating ...")
+		debug.Log("No native age key found. Generating ...")
 		if err := a.CreatePrivateKey(ctx); err != nil {
 			return nil, err
 		}
 	}
-	out.Debug(ctx, "age.getNativeKeypairs - decrypting keyring")
+	debug.Log("age.getNativeKeypairs - decrypting keyring")
 	buf, err := a.decryptFile(ctx, a.keyring)
 	if err != nil {
 		return nil, err

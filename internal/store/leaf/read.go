@@ -3,6 +3,7 @@ package leaf
 import (
 	"context"
 
+	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/internal/store/secret"
@@ -14,7 +15,7 @@ func (s *Store) Get(ctx context.Context, name string) (store.Secret, error) {
 
 	ciphertext, err := s.storage.Get(ctx, p)
 	if err != nil {
-		out.Debug(ctx, "File %s not found: %s", p, err)
+		debug.Log("File %s not found: %s", p, err)
 		return nil, store.ErrNotFound
 	}
 
@@ -26,7 +27,7 @@ func (s *Store) Get(ctx context.Context, name string) (store.Secret, error) {
 
 	sec, err := secret.Parse(content)
 	if err != nil {
-		out.Debug(ctx, "Failed to parse YAML: %s", err)
+		debug.Log("Failed to parse YAML: %s", err)
 	}
 	return sec, nil
 }

@@ -25,7 +25,7 @@ func TestInit(t *testing.T) {
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithInteractive(ctx, false)
-	ctx = ctxutil.WithDebug(ctx, false)
+
 	act, err := newMock(ctx, u)
 	require.NoError(t, err)
 	require.NotNil(t, act)
@@ -44,8 +44,8 @@ func TestInit(t *testing.T) {
 	assert.Error(t, act.InitOnboarding(c))
 
 	crypto := act.Store.Crypto(ctx, "")
-	assert.Equal(t, true, act.initHasUseablePrivateKeys(ctx, crypto, ""))
-	assert.Error(t, act.initCreatePrivateKey(ctx, crypto, "", "foo bar", "foo.bar@example.org"))
+	assert.Equal(t, true, act.initHasUseablePrivateKeys(ctx, crypto))
+	assert.Error(t, act.initCreatePrivateKey(ctx, crypto, "foo bar", "foo.bar@example.org"))
 	buf.Reset()
 
 	act.printRecipients(ctx, "")
@@ -76,8 +76,8 @@ func TestInitParseContext(t *testing.T) {
 			name:  "crypto xc",
 			flags: map[string]string{"crypto": "xc"},
 			check: func(ctx context.Context) error {
-				if backend.GetCryptoBackend(ctx) != backend.XC {
-					return fmt.Errorf("wrong backend")
+				if be := backend.GetCryptoBackend(ctx); be != backend.XC {
+					return fmt.Errorf("wrong backend: %d", be)
 				}
 				return nil
 			},
@@ -86,8 +86,8 @@ func TestInitParseContext(t *testing.T) {
 			name:  "rcs noop",
 			flags: map[string]string{"rcs": "noop"},
 			check: func(ctx context.Context) error {
-				if backend.GetRCSBackend(ctx) != backend.Noop {
-					return fmt.Errorf("wrong backend")
+				if be := backend.GetRCSBackend(ctx); be != backend.Noop {
+					return fmt.Errorf("wrong backend: %d", be)
 				}
 				return nil
 			},
@@ -105,7 +105,7 @@ func TestInitParseContext(t *testing.T) {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			c := gptest.CliCtxWithFlags(context.Background(), t, tc.flags)
-			assert.NoError(t, tc.check(initParseContext(context.Background(), c)), tc.name)
+			assert.NoError(t, tc.check(initParseContext(c.Context, c)), tc.name)
 			buf.Reset()
 		})
 	}

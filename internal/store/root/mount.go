@@ -5,6 +5,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/internal/store/leaf"
@@ -34,7 +35,7 @@ func (r *Store) addMount(ctx context.Context, alias, path string, keys ...string
 		return AlreadyMountedError(alias)
 	}
 
-	out.Debug(ctx, "addMount - Path: %s", path)
+	debug.Log("addMount - Path: %s", path)
 
 	// initialize sub store
 	s, err := r.initSub(ctx, alias, path, keys)
@@ -48,7 +49,7 @@ func (r *Store) addMount(ctx context.Context, alias, path string, keys ...string
 	}
 	r.cfg.Mounts[alias] = path
 
-	out.Debug(ctx, "Added mount %s -> %s", alias, path)
+	debug.Log("Added mount %s -> %s", alias, path)
 	return nil
 }
 
@@ -63,7 +64,7 @@ func (r *Store) initSub(ctx context.Context, alias, path string, keys []string) 
 		return s, nil
 	}
 
-	out.Debug(ctx, "[%s] Mount %s is not initialized", alias, path)
+	debug.Log("[%s] Mount %s is not initialized", alias, path)
 	if len(keys) < 1 {
 		return s, NotInitializedError{alias, path}
 	}

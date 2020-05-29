@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/gopasspw/gopass/internal/backend/crypto/gpg"
-	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/internal/debug"
 )
 
 // listKey lists all keys of the given type and matching the search strings
@@ -24,7 +24,7 @@ func (g *GPG) listKeys(ctx context.Context, typ string, search ...string) (gpg.K
 	var errBuf = bytes.Buffer{}
 	cmd.Stderr = &errBuf
 
-	out.Debug(ctx, "gpg.listKeys: %s %+v\n", cmd.Path, cmd.Args)
+	debug.Log("gpg.listKeys: %s %+v\n", cmd.Path, cmd.Args)
 	cmdout, err := cmd.Output()
 	if err != nil {
 		if bytes.Contains(cmdout, []byte("secret key not available")) {

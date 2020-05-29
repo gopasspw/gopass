@@ -9,6 +9,7 @@ import (
 	"os/exec"
 	"strings"
 
+	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store/secret"
 	"github.com/gopasspw/gopass/internal/termio"
@@ -185,7 +186,7 @@ func (s *gc) Store(c *cli.Context) error {
 	path := "git/" + fsutil.CleanFilename(cred.Host) + "/" + fsutil.CleanFilename(cred.Username)
 	// This should never really be an issue because git automatically removes invalid credentials first
 	if _, err := s.gp.Get(ctx, path); err == nil {
-		out.Debug(ctx, ""+
+		debug.Log(""+
 			"gopass: did not store \"%s\" because it already exists. "+
 			"If you want to overwrite it, delete it first by doing: "+
 			"\"gopass rm %s\"\n",

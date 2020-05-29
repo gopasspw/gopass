@@ -18,7 +18,7 @@ type Store struct {
 }
 
 // New creates a new store
-func New(ctx context.Context, cfg *config.Config) (*Store, error) {
+func New(cfg *config.Config) *Store {
 	if cfg == nil {
 		cfg = &config.Config{}
 	}
@@ -27,7 +27,7 @@ func New(ctx context.Context, cfg *config.Config) (*Store, error) {
 		mounts: make(map[string]*leaf.Store, len(cfg.Mounts)),
 	}
 
-	return r, nil
+	return r
 }
 
 // Exists checks the existence of a single entry

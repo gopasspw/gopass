@@ -5,6 +5,7 @@ import (
 	"sort"
 
 	"github.com/gopasspw/gopass/internal/config"
+	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/internal/store/root"
@@ -20,7 +21,7 @@ import (
 func (s *Action) MountRemove(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	if c.Args().Len() != 1 {
-		return ExitError(ctx, ExitUsage, nil, "Usage: %s mount remove [alias]", s.Name)
+		return ExitError(ExitUsage, nil, "Usage: %s mount remove [alias]", s.Name)
 	}
 
 	if err := s.Store.RemoveMount(ctx, c.Args().Get(0)); err != nil {
@@ -28,7 +29,7 @@ func (s *Action) MountRemove(c *cli.Context) error {
 	}
 
 	if err := s.cfg.Save(); err != nil {
-		return ExitError(ctx, ExitConfig, err, "failed to write config: %s", err)
+		return ExitError(ExitConfig, err, "failed to write config: %s", err)
 	}
 
 	out.Green(ctx, "Password Store %s umounted", c.Args().Get(0))
@@ -53,7 +54,7 @@ func (s *Action) MountsPrint(c *cli.Context) error {
 			out.Error(ctx, "Failed to add mount to tree: %s", err)
 		}
 	}
-	out.Debug(ctx, "MountsPrint - %+v - %+v", mounts, mps)
+	debug.Log("MountsPrint - %+v - %+v", mounts, mps)
 
 	fmt.Fprintln(stdout, root.Format(-1))
 	return nil
@@ -73,7 +74,7 @@ func (s *Action) MountAdd(c *cli.Context) error {
 	alias := c.Args().Get(0)
 	localPath := c.Args().Get(1)
 	if alias == "" {
-		return ExitError(ctx, ExitUsage, nil, "usage: %s mounts add <alias> [local path]", s.Name)
+		return ExitError(ExitUsage, nil, "usage: %s mounts add <alias> [local path]", s.Name)
 	}
 
 	if localPath == "" {
@@ -97,15 +98,15 @@ func (s *Action) MountAdd(c *cli.Context) error {
 		case root.NotInitializedError:
 			out.Print(ctx, "Mount %s is not yet initialized. Initializing ...", e.Alias())
 			if err := s.init(ctx, e.Alias(), e.Path()); err != nil {
-				return ExitError(ctx, ExitUnknown, err, "failed to add mount '%s': failed to initialize store: %s", e.Alias(), err)
+				return ExitError(ExitUnknown, err, "failed to add mount '%s': failed to initialize store: %s", e.Alias(), err)
 			}
 		default:
-			return ExitError(ctx, ExitMount, err, "failed to add mount '%s' to '%s': %s", alias, localPath, err)
+			return ExitError(ExitMount, err, "failed to add mount '%s' to '%s': %s", alias, localPath, err)
 		}
 	}
 
 	if err := s.cfg.Save(); err != nil {
-		return ExitError(ctx, ExitConfig, err, "failed to save config: %s", err)
+		return ExitError(ExitConfig, err, "failed to save config: %s", err)
 	}
 
 	out.Green(ctx, "Mounted %s as %s", alias, localPath)

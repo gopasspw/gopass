@@ -6,8 +6,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/gopasspw/gopass/pkg/ctxutil"
-
 	"github.com/fatih/color"
 	"github.com/stretchr/testify/assert"
 )
@@ -31,23 +29,6 @@ func TestPrint(t *testing.T) {
 	Print(WithNewline(ctx, false), "%s = %d", "foo", 42)
 	assert.Equal(t, "foo = 42", buf.String())
 	buf.Reset()
-}
-
-func TestDebug(t *testing.T) {
-	ctx := context.Background()
-	buf := &bytes.Buffer{}
-	Stdout = buf
-	defer func() {
-		Stdout = os.Stdout
-	}()
-
-	Debug(ctx, "foobar")
-	assert.Equal(t, "", buf.String())
-
-	ctx = ctxutil.WithDebug(ctx, true)
-	Debug(ctx, "foobar")
-	assert.Contains(t, buf.String(), "[DEBUG]")
-	assert.Contains(t, buf.String(), "foobar")
 }
 
 func TestColor(t *testing.T) {

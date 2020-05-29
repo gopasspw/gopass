@@ -1,11 +1,11 @@
 package config
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/pkg/appdir"
 	"github.com/gopasspw/gopass/pkg/fsutil"
 
@@ -19,9 +19,7 @@ func Homedir() string {
 	}
 	hd, err := homedir.Dir()
 	if err != nil {
-		if debug {
-			fmt.Printf("[DEBUG] Failed to get homedir: %s\n", err)
-		}
+		debug.Log("Failed to get homedir: %s\n", err)
 		return ""
 	}
 	return hd

@@ -9,7 +9,7 @@ import (
 	"os/exec"
 	"runtime"
 
-	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/tempfile"
 
@@ -69,7 +69,7 @@ func Invoke(ctx context.Context, editor string, content []byte) ([]byte, error) 
 	cmd.Stderr = Stderr
 
 	if err := cmd.Run(); err != nil {
-		out.Debug(ctx, "editor - cmd: %s %+v - error: %+v", cmd.Path, cmd.Args, err)
+		debug.Log("editor - cmd: %s %+v - error: %+v", cmd.Path, cmd.Args, err)
 		return []byte{}, errors.Errorf("failed to run %s with %s file: %s", editor, tmpfile.Name(), err)
 	}
 

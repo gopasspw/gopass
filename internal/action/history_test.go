@@ -36,7 +36,7 @@ func TestHistory(t *testing.T) {
 
 	cfg := config.New()
 	cfg.Path = u.StoreDir("")
-	act, err := newAction(ctx, cfg, semver.Version{})
+	act, err := newAction(cfg, semver.Version{})
 	require.NoError(t, err)
 	require.NotNil(t, act)
 	require.NoError(t, act.Initialized(c))

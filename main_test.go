@@ -109,7 +109,7 @@ func TestGetCommands(t *testing.T) {
 	ctx = backend.WithRCSBackendString(ctx, "noop")
 	ctx = backend.WithCryptoBackendString(ctx, "plain")
 
-	act, err := action.New(ctx, cfg, semver.Version{})
+	act, err := action.New(cfg, semver.Version{})
 	assert.NoError(t, err)
 
 	app := cli.NewApp()
@@ -117,7 +117,7 @@ func TestGetCommands(t *testing.T) {
 	c := cli.NewContext(app, fs, nil)
 	c.Context = ctx
 
-	commands := getCommands(ctx, act, app)
+	commands := getCommands(act, app)
 	assert.Equal(t, 32, len(commands))
 
 	prefix := ""
@@ -160,7 +160,6 @@ func TestInitContext(t *testing.T) {
 
 	assert.NoError(t, os.Setenv("GOPASS_DEBUG", "true"))
 	ctx = initContext(ctx, cfg)
-	assert.Equal(t, true, ctxutil.IsDebug(ctx))
 
 	assert.NoError(t, os.Setenv("GOPASS_NOCOLOR", "true"))
 	ctx = initContext(ctx, cfg)

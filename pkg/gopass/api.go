@@ -59,10 +59,7 @@ var _ Store = &Gopass{}
 // WARNING: This will need to change to accommodate for runtime configuration.
 func New(ctx context.Context) (*Gopass, error) {
 	cfg := config.Load()
-	store, err := root.New(ctx, cfg)
-	if err != nil {
-		return nil, err
-	}
+	store := root.New(cfg)
 	initialized, err := store.Initialized(ctx)
 	if err != nil {
 		return nil, err

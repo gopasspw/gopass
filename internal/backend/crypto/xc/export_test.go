@@ -38,8 +38,8 @@ func TestExportKey(t *testing.T) {
 	assert.NoError(t, skr.Set(k1))
 
 	pkr := keyring.NewPubring(skr)
-	assert.NoError(t, pkr.Set(&k2.PublicKey))
-	assert.NoError(t, pkr.Set(&k3.PublicKey))
+	pkr.Set(&k2.PublicKey)
+	pkr.Set(&k3.PublicKey)
 
 	xc := &XC{
 		pubring: pkr,
@@ -63,9 +63,9 @@ func TestExportKey(t *testing.T) {
 	_, err = xc.ExportPublicKey(ctx, "foobar")
 	assert.Error(t, err)
 
-	_, err = xc.ExportPrivateKey(ctx, k1.Fingerprint())
+	_, err = xc.ExportPrivateKey(k1.Fingerprint())
 	assert.NoError(t, err)
 
-	_, err = xc.ExportPrivateKey(ctx, k2.Fingerprint())
+	_, err = xc.ExportPrivateKey(k2.Fingerprint())
 	assert.Error(t, err)
 }

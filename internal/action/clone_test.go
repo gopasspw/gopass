@@ -25,7 +25,7 @@ func aGitRepo(ctx context.Context, u *gptest.Unit, t *testing.T, name string) st
 	gd := filepath.Join(u.Dir, name)
 	assert.NoError(t, os.MkdirAll(gd, 0700))
 
-	_, err := git.Open(gd, "")
+	_, err := git.Open(gd)
 	assert.Error(t, err)
 
 	idf := filepath.Join(gd, ".gpg-id")
@@ -94,7 +94,7 @@ func TestCloneBackendIsStoredForMount(t *testing.T) {
 	cfg := config.Load()
 	cfg.Path = u.StoreDir("")
 
-	act, err := newAction(ctx, cfg, semver.Version{})
+	act, err := newAction(cfg, semver.Version{})
 	require.NoError(t, err)
 	require.NotNil(t, act)
 
@@ -125,27 +125,4 @@ func TestCloneGetGitConfig(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "", name)
 	assert.Equal(t, "", email)
-}
-
-func TestDetectCryptoBackend(t *testing.T) {
-	ctx := context.Background()
-
-	tempdir, err := ioutil.TempDir("", "gopass-")
-	require.NoError(t, err)
-	defer func() {
-		_ = os.RemoveAll(tempdir)
-	}()
-
-	gpgdir := filepath.Join(tempdir, ".password-store-gpg")
-	gpgfn := filepath.Join(gpgdir, ".gpg-id")
-	assert.NoError(t, os.Mkdir(gpgdir, 0755))
-	assert.NoError(t, ioutil.WriteFile(gpgfn, []byte("foobar"), 0644))
-
-	xcdir := filepath.Join(tempdir, ".password-store-xc")
-	xcfn := filepath.Join(xcdir, ".xc-ids")
-	assert.NoError(t, os.Mkdir(xcdir, 0755))
-	assert.NoError(t, ioutil.WriteFile(xcfn, []byte("foobar"), 0644))
-
-	assert.Equal(t, backend.GPGCLI, detectCryptoBackend(ctx, gpgdir))
-	assert.Equal(t, backend.XC, detectCryptoBackend(ctx, xcdir))
 }
