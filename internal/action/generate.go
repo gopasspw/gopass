@@ -66,6 +66,11 @@ func (s *Action) Generate(c *cli.Context) error {
 		return err
 	}
 
+	// display or copy to clipboard
+	if err := s.generateCopyOrPrint(ctx, c, name, key, password); err != nil {
+		return err
+	}
+
 	// write generated password to store
 	ctx, err = s.generateSetPassword(ctx, name, key, password, kvps)
 	if err != nil {
@@ -80,8 +85,7 @@ func (s *Action) Generate(c *cli.Context) error {
 		}
 	}
 
-	// display or copy to clipboard
-	return s.generateCopyOrPrint(ctx, c, name, key, password)
+	return nil
 }
 
 func keyAndLength(args argList) (string, string) {
