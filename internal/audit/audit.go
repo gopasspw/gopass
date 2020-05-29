@@ -6,7 +6,9 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"time"
 
+	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/internal/notify"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
@@ -24,7 +26,7 @@ type auditedSecret struct {
 	content string
 
 	// message to the user about some flaw in the secret
-	message string
+	messages []string
 
 	// real error that something in the pipeline went wrong
 	err error
@@ -32,6 +34,7 @@ type auditedSecret struct {
 
 type secretGetter interface {
 	Get(context.Context, string) (store.Secret, error)
+	ListRevisions(context.Context, string) ([]backend.Revision, error)
 }
 
 // Batch runs a password strength audit on multiple secrets
@@ -91,16 +94,20 @@ func Batch(ctx context.Context, secrets []string, secStore secretGetter) error {
 	i := 0
 	for secret := range checked {
 		if secret.err != nil {
-			errors[secret.err.Error()] = append(errors[secret.err.Error()], secret.name)
+			en := secret.err.Error()
+			errors[en] = append(errors[en], secret.name)
 		} else {
 			duplicates[secret.content] = append(duplicates[secret.content], secret.name)
 		}
-		if secret.message != "" {
-			messages[secret.message] = append(messages[secret.message], secret.name)
+		for _, m := range secret.messages {
+			messages[m] = append(messages[m], secret.name)
 		}
 
 		i++
 		bar.Current = int64(i)
+		if bar.Current > bar.Total {
+			bar.Total = bar.Current
+		}
 		bar.Text = fmt.Sprintf("%d of %d secrets checked", bar.Current, bar.Total)
 		bar.LazyPrint()
 
@@ -115,30 +122,50 @@ func Batch(ctx context.Context, secrets []string, secStore secretGetter) error {
 
 func audit(ctx context.Context, secStore secretGetter, validator *crunchy.Validator, secrets <-chan string, checked chan<- auditedSecret, done chan struct{}) {
 	for secret := range secrets {
+		as := auditedSecret{
+			name: secret,
+		}
 		// check for context cancelation
 		select {
 		case <-ctx.Done():
-			checked <- auditedSecret{name: secret, content: "", err: errors.New("user aborted")}
+			as.err = errors.New("user aborted")
+			checked <- as
 			continue
 		default:
 		}
 
 		sec, err := secStore.Get(ctx, secret)
 		if err != nil {
-			pw := ""
+			as.err = err
 			if sec != nil {
-				pw = sec.Password()
+				as.content = sec.Password()
 			}
-			checked <- auditedSecret{name: secret, content: pw, err: err}
+			// failed to properly retrieve the secret
+			checked <- as
 			continue
 		}
 
-		if err := validator.Check(sec.Password()); err != nil {
-			checked <- auditedSecret{name: secret, content: sec.Password(), message: err.Error()}
+		as.content = sec.Password()
+
+		// handle password validation errors
+		if err := validator.Check(as.content); err != nil {
+			as.messages = append(as.messages, err.Error())
+			checked <- as
 			continue
 		}
 
-		checked <- auditedSecret{name: secret, content: sec.Password()}
+		// handle old passwords
+		revs, err := secStore.ListRevisions(ctx, secret)
+		if err != nil {
+			as.messages = append(as.messages, err.Error())
+		} else {
+			if len(revs) > 0 && time.Since(revs[0].Date) > 90*24*time.Hour {
+				as.messages = append(as.messages, "Password too old (90d)")
+			}
+		}
+
+		// record every password for possible duplicates
+		checked <- as
 	}
 	done <- struct{}{}
 }
