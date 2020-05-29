@@ -6,9 +6,11 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"strings"
 	"time"
 
 	"github.com/gopasspw/gopass/internal/backend"
+	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/internal/notify"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
@@ -96,7 +98,7 @@ func Batch(ctx context.Context, secrets []string, secStore secretGetter) error {
 		if secret.err != nil {
 			en := secret.err.Error()
 			errors[en] = append(errors[en], secret.name)
-		} else {
+		} else if secret.content != "" {
 			duplicates[secret.content] = append(duplicates[secret.content], secret.name)
 		}
 		for _, m := range secret.messages {
@@ -134,6 +136,7 @@ func audit(ctx context.Context, secStore secretGetter, validator *crunchy.Valida
 		default:
 		}
 
+		debug.Log("Checking %s", secret)
 		sec, err := secStore.Get(ctx, secret)
 		if err != nil {
 			as.err = err
@@ -146,6 +149,12 @@ func audit(ctx context.Context, secStore secretGetter, validator *crunchy.Valida
 		}
 
 		as.content = sec.Password()
+
+		// do not check binary secrets
+		if as.content == "" || strings.HasSuffix(secret, ".b64") {
+			checked <- as
+			continue
+		}
 
 		// handle password validation errors
 		if err := validator.Check(as.content); err != nil {
