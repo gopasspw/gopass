@@ -88,7 +88,7 @@ func TestRedirectPager(t *testing.T) {
 	ctx := context.Background()
 
 	var buf *bytes.Buffer
-	var subtree tree.Tree
+	var subtree *tree.Root
 
 	// no pager
 	ctx = ctxutil.WithNoPager(ctx, true)

@@ -9,7 +9,7 @@ import (
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/internal/store/root"
-	"github.com/gopasspw/gopass/internal/tree/simple"
+	"github.com/gopasspw/gopass/internal/tree"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/pkg/errors"
 
@@ -44,7 +44,7 @@ func (s *Action) MountsPrint(c *cli.Context) error {
 		return nil
 	}
 
-	root := simple.New(color.GreenString(fmt.Sprintf("gopass (%s)", s.Store.Path())))
+	root := tree.New(color.GreenString(fmt.Sprintf("gopass (%s)", s.Store.Path())))
 	mounts := s.Store.Mounts()
 	mps := s.Store.MountPoints()
 	sort.Sort(store.ByPathLen(mps))

@@ -10,7 +10,6 @@ import (
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/internal/tree"
-	"github.com/gopasspw/gopass/internal/tree/simple"
 
 	"github.com/fatih/color"
 	"github.com/pkg/errors"
@@ -34,7 +33,7 @@ func (r *Store) RemoveRecipient(ctx context.Context, store, rec string) error {
 	return sub.RemoveRecipient(ctx, rec)
 }
 
-func (r *Store) addRecipient(ctx context.Context, prefix string, root tree.Tree, recp string, pretty bool) error {
+func (r *Store) addRecipient(ctx context.Context, prefix string, root *tree.Root, recp string, pretty bool) error {
 	ctx, sub, _ := r.getStore(ctx, prefix)
 	key := fmt.Sprintf("%s (missing public key)", recp)
 	kl, err := sub.Crypto().FindPublicKeys(ctx, recp)
@@ -79,8 +78,8 @@ func (r *Store) SaveRecipients(ctx context.Context) error {
 }
 
 // RecipientsTree returns a tree view of all stores' recipients
-func (r *Store) RecipientsTree(ctx context.Context, pretty bool) (tree.Tree, error) {
-	root := simple.New("gopass")
+func (r *Store) RecipientsTree(ctx context.Context, pretty bool) (*tree.Root, error) {
+	root := tree.New("gopass")
 
 	for _, recp := range r.store.Recipients(ctx) {
 		if err := r.addRecipient(ctx, "", root, recp, pretty); err != nil {

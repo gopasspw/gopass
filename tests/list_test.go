@@ -29,12 +29,12 @@ func TestList(t *testing.T) {
 
 	list := `
 gopass
+├── baz
 ├── fixed
 │   ├── secret
 │   └── twoliner
-├── foo
-│   └── bar
-└── baz
+└── foo
+    └── bar
 `
 	out, err = ts.run("list")
 	assert.NoError(t, err)

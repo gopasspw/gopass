@@ -10,7 +10,6 @@ import (
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/internal/tree"
-	"github.com/gopasspw/gopass/internal/tree/simple"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 
 	"github.com/pkg/errors"
@@ -70,8 +69,8 @@ func (s *Store) ListTemplates(ctx context.Context, prefix string) []string {
 }
 
 // TemplateTree returns a tree of all templates
-func (s *Store) TemplateTree(ctx context.Context) tree.Tree {
-	root := simple.New("gopass")
+func (s *Store) TemplateTree(ctx context.Context) *tree.Root {
+	root := tree.New("gopass")
 	for _, t := range s.ListTemplates(ctx, "") {
 		if err := root.AddFile(t, "gopass/template"); err != nil {
 			out.Error(ctx, "Failed to add template: %s", err)
