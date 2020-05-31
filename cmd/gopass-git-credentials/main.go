@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/signal"
 
+	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/gopass"
 	"github.com/urfave/cli/v2"
 )
@@ -32,6 +33,12 @@ func main() {
 		case <-ctx.Done():
 		}
 	}()
+
+	// reading from stdin?
+	if info, err := os.Stdin.Stat(); err == nil && info.Mode()&os.ModeCharDevice == 0 {
+		ctx = ctxutil.WithInteractive(ctx, false)
+		ctx = ctxutil.WithStdin(ctx, true)
+	}
 
 	gp, err := gopass.New(ctx)
 	if err != nil {
