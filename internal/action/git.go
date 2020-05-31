@@ -19,8 +19,8 @@ import (
 func (s *Action) GitInit(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	store := c.String("store")
-	un := detectName(c)
-	ue := detectEmail(c)
+	un := termio.DetectName(c.Context, c)
+	ue := termio.DetectEmail(c.Context, c)
 	ctx = backend.WithRCSBackendString(ctx, c.String("rcs"))
 
 	// default to git

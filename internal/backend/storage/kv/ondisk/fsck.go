@@ -20,10 +20,6 @@ import (
 func (o *OnDisk) Fsck(ctx context.Context) error {
 	pcb := ctxutil.GetProgressCallback(ctx)
 
-	if err := o.Compact(); err != nil {
-		return err
-	}
-
 	// build a list of existing files
 	files := make(map[string]struct{}, len(o.idx.Entries)+1)
 	files[idxFile] = struct{}{}

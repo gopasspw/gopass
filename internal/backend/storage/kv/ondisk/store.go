@@ -82,7 +82,7 @@ func (o *OnDisk) Get(ctx context.Context, name string) ([]byte, error) {
 		return nil, fmt.Errorf("not found")
 	}
 	path := filepath.Join(o.dir, r.GetFilename())
-	debug.Log("Get(%s) - Reading from %s", name, path)
+	debug.Log("Reading %s from %s", name, path)
 	return ioutil.ReadFile(path)
 }
 
@@ -101,7 +101,7 @@ func (o *OnDisk) Set(ctx context.Context, name string, value []byte) error {
 	if err := ioutil.WriteFile(fp, value, 0600); err != nil {
 		return err
 	}
-	debug.Log("Set(%s) - Wrote to %s", name, fp)
+	debug.Log("Wrote %s to %s", name, fp)
 	e := o.getOrCreateEntry(name)
 	msg := "Updated " + fn
 	if cm := ctxutil.GetCommitMessage(ctx); cm != "" {
@@ -114,7 +114,7 @@ func (o *OnDisk) Set(ctx context.Context, name string, value []byte) error {
 		Message:  msg,
 		Filename: fn,
 	})
-	debug.Log("Set(%s) - Added Revision", name)
+	debug.Log("Added Revision for %s", name)
 	o.idx.Entries[name] = e
 	return o.saveIndex()
 }
@@ -135,7 +135,7 @@ func (o *OnDisk) getOrCreateEntry(name string) *gpb.Entry {
 	if e, found := o.idx.Entries[name]; found && e != nil {
 		return e
 	}
-	debug.Log("getEntry(%s) - Created new Entry", name)
+	debug.Log("Created new Entry for %s", name)
 	return &gpb.Entry{
 		Name:      name,
 		Revisions: make([]*gpb.Revision, 0, 1),
@@ -145,7 +145,7 @@ func (o *OnDisk) getOrCreateEntry(name string) *gpb.Entry {
 // Delete removes an entry
 func (o *OnDisk) Delete(ctx context.Context, name string) error {
 	if !o.Exists(ctx, name) {
-		debug.Log("Delete(%s) - Not adding tombstone for non-existing entry", name)
+		debug.Log("Not adding tombstone for non-existing entry for %s", name)
 		return nil
 	}
 	// add tombstone
@@ -153,14 +153,14 @@ func (o *OnDisk) Delete(ctx context.Context, name string) error {
 	e.Delete(ctxutil.GetCommitMessage(ctx))
 	o.idx.Entries[name] = e
 
-	debug.Log("Delete(%s) - Added tombstone")
+	debug.Log("Added tombstone for %s")
 	return o.saveIndex()
 }
 
 // Exists checks if an entry exists
 func (o *OnDisk) Exists(ctx context.Context, name string) bool {
 	_, found := o.idx.Entries[name]
-	debug.Log("Exists(%s): %t", name, found)
+	debug.Log("%s exists? %t", name, found)
 	return found
 }
 
@@ -216,7 +216,7 @@ func (o *OnDisk) Available(ctx context.Context) error {
 
 // Compact will prune all deleted entries and truncate every other entry
 // to the last 10 revisions.
-func (o *OnDisk) Compact() error {
+func (o *OnDisk) Compact(_ context.Context) error {
 	for k, v := range o.idx.Entries {
 		if v.IsDeleted() && time.Since(v.Latest().Time()) > delTTL {
 			delete(o.idx.Entries, k)

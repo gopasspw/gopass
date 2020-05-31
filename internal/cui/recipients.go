@@ -85,7 +85,7 @@ func getRecipientInfo(ctx context.Context, crypto backend.Crypto, recipients []s
 		default:
 		}
 
-		kl, err := crypto.FindPublicKeys(ctx, r)
+		kl, err := crypto.FindRecipients(ctx, r)
 		if err != nil {
 			out.Error(ctx, "Failed to read public key for '%s': %s", r, err)
 			continue
@@ -95,7 +95,7 @@ func getRecipientInfo(ctx context.Context, crypto backend.Crypto, recipients []s
 			name: "key not found",
 		}
 		if len(kl) > 0 {
-			ri.name = crypto.FormatKey(ctx, kl[0])
+			ri.name = crypto.FormatKey(ctx, kl[0], "")
 		}
 		ris = append(ris, ri)
 	}
@@ -214,7 +214,7 @@ func AskForPrivateKey(ctx context.Context, crypto backend.Crypto, prompt string)
 
 		fmt.Fprintln(Stdout, prompt)
 		for i, k := range kl {
-			fmt.Fprintf(Stdout, "[%d] %s - %s\n", i, crypto.Name(), crypto.FormatKey(ctx, k))
+			fmt.Fprintf(Stdout, "[%d] %s - %s\n", i, crypto.Name(), crypto.FormatKey(ctx, k, ""))
 		}
 		iv, err := termio.AskForInt(ctx, fmt.Sprintf("Please enter the number of a key (0-%d, [q]uit)", len(kl)-1), 0)
 		if err != nil {
@@ -256,8 +256,8 @@ func AskForGitConfigUser(ctx context.Context, crypto backend.Crypto) (string, st
 		default:
 		}
 
-		name := crypto.NameFromKey(ctx, key)
-		email := crypto.EmailFromKey(ctx, key)
+		name := crypto.FormatKey(ctx, key, "{{ .Identity.Name }}")
+		email := crypto.FormatKey(ctx, key, "{{ .Identity.Email }}")
 
 		if name == "" && email == "" {
 			continue

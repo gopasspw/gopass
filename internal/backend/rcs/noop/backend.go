@@ -89,3 +89,8 @@ func (g *Noop) GetRevision(context.Context, string, string) ([]byte, error) {
 func (g *Noop) Status(context.Context) ([]byte, error) {
 	return []byte(""), nil
 }
+
+// Compact is not implemented
+func (g *Noop) Compact(context.Context) error {
+	return nil
+}

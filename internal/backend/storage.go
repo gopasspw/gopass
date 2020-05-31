@@ -70,12 +70,12 @@ func DetectStorage(ctx context.Context, path string) (Storage, error) {
 	})
 	for _, id := range bes {
 		be := storageRegistry[id]
-		debug.Log("DetectStorage(%s) - trying %s", path, be)
+		debug.Log("Trying %s for %s", be, path)
 		if err := be.Handles(path); err != nil {
 			debug.Log("failed to use %s for %s: %s", id, path, err)
 			continue
 		}
-		debug.Log("DetectStorage(%s) - using %s", path, be)
+		debug.Log("Using %s for %s", be, path)
 		return be.New(ctx, path)
 	}
 	return storageRegistry[FS].Init(ctx, path)

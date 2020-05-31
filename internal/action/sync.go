@@ -117,7 +117,7 @@ func (s *Action) syncMount(ctx context.Context, mp string) error {
 		}
 	}
 
-	debug.Log("syncMount(%s) - exportkeys: %t", mp, ctxutil.IsExportKeys(ctx))
+	debug.Log("Syncing Mount %s. Exportkeys: %t", mp, ctxutil.IsExportKeys(ctx))
 	var exported bool
 	if ctxutil.IsExportKeys(ctx) {
 		// import keys

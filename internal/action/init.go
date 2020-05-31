@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
-	"os"
 
 	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/internal/backend/crypto/gpg"
@@ -55,10 +54,10 @@ func (s *Action) Init(c *cli.Context) error {
 	alias := c.String("store")
 
 	ctx = initParseContext(ctx, c)
-	if name := detectName(c); name != "" {
+	if name := termio.DetectName(c.Context, c); name != "" {
 		ctx = ctxutil.WithUsername(ctx, name)
 	}
-	if email := detectEmail(c); email != "" {
+	if email := termio.DetectEmail(c.Context, c); email != "" {
 		ctx = ctxutil.WithEmail(ctx, email)
 	}
 	inited, err := s.Store.Initialized(ctx)
@@ -167,8 +166,8 @@ func (s *Action) printRecipients(ctx context.Context, alias string) {
 	crypto := s.Store.Crypto(ctx, alias)
 	for _, recipient := range s.Store.ListRecipients(ctx, alias) {
 		r := "0x" + recipient
-		if kl, err := crypto.FindPublicKeys(ctx, recipient); err == nil && len(kl) > 0 {
-			r = crypto.FormatKey(ctx, kl[0])
+		if kl, err := crypto.FindRecipients(ctx, recipient); err == nil && len(kl) > 0 {
+			r = crypto.FormatKey(ctx, kl[0], "")
 		}
 		out.Yellow(ctx, "  "+r)
 	}
@@ -178,44 +177,17 @@ func (s *Action) getCryptoFor(ctx context.Context, name string) backend.Crypto {
 	return s.Store.Crypto(ctx, name)
 }
 
-func detectName(c *cli.Context) string {
-	for _, e := range []string{
-		c.String("name"),
-		os.Getenv("GIT_AUTHOR_NAME"),
-		os.Getenv("DEBFULLNAME"),
-		os.Getenv("USER"),
-	} {
-		if e != "" {
-			return e
-		}
-	}
-	return ""
-}
-func detectEmail(c *cli.Context) string {
-	for _, e := range []string{
-		c.String("email"),
-		os.Getenv("GIT_AUTHOR_EMAIL"),
-		os.Getenv("DEBEMAIL"),
-		os.Getenv("EMAIL"),
-	} {
-		if e != "" {
-			return e
-		}
-	}
-	return ""
-}
-
 // InitOnboarding will invoke the onboarding / setup wizard
 func (s *Action) InitOnboarding(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	remote := c.String("remote")
 	team := c.String("alias")
 	create := c.Bool("create")
-	name := detectName(c)
+	name := termio.DetectName(c.Context, c)
 	if name != "" {
 		ctx = ctxutil.WithUsername(ctx, name)
 	}
-	email := detectEmail(c)
+	email := termio.DetectEmail(c.Context, c)
 	if email != "" {
 		ctx = ctxutil.WithEmail(ctx, email)
 	}
@@ -242,7 +214,7 @@ func (s *Action) InitOnboarding(c *cli.Context) error {
 		out.Yellow(ctx, "No useable crypto keys. Generating new key pair")
 		ctx := out.AddPrefix(ctx, "[crypto] ")
 		out.Print(ctx, "Key generation may take up to a few minutes")
-		if err := s.initCreatePrivateKey(ctx, crypto, name, email); err != nil {
+		if err := s.initGenerateIdentity(ctx, crypto, name, email); err != nil {
 			return errors.Wrapf(err, "failed to create new private key")
 		}
 	}
@@ -282,31 +254,32 @@ func (s *Action) InitOnboarding(c *cli.Context) error {
 	return nil
 }
 
-func (s *Action) initCreatePrivateKey(ctx context.Context, crypto backend.Crypto, name, email string) error {
+func (s *Action) initGenerateIdentity(ctx context.Context, crypto backend.Crypto, name, email string) error {
 	out.Green(ctx, "Creating key pair ...")
 	out.Yellow(ctx, "WARNING: We are about to generate some GPG keys.")
 	out.Print(ctx, `However, the GPG program can sometimes lock up, displaying the following:
 "We need to generate a lot of random bytes."
 If this happens, please see the following tips:
 https://github.com/gopasspw/gopass/blob/master/docs/entropy.md`)
-	if name != "" && email != "" {
-		ctx := out.AddPrefix(ctx, " ")
-		passphrase := xkcdgen.Random()
-		if err := crypto.CreatePrivateKeyBatch(ctx, name, email, passphrase); err != nil {
-			return errors.Wrapf(err, "failed to create new private key in batch mode")
-		}
-		out.Green(ctx, "-> OK")
-		out.Print(ctx, color.MagentaString("Passphrase: ")+color.HiGreenString(passphrase))
-	} else {
-		if want, err := termio.AskForBool(ctx, "Continue?", true); err != nil || !want {
-			return errors.Wrapf(err, "User aborted")
-		}
-		ctx := out.WithPrefix(ctx, " ")
-		if err := crypto.CreatePrivateKey(ctx); err != nil {
-			return errors.Wrapf(err, "failed to create new private key in interactive mode")
-		}
-		out.Green(ctx, "-> OK")
+	name, err := termio.AskForString(ctx, "What is your name?", name)
+	if err != nil {
+		return err
 	}
+
+	email, err = termio.AskForString(ctx, "What is your email?", email)
+	if err != nil {
+		return err
+	}
+
+	if want, err := termio.AskForBool(ctx, "Continue?", true); err != nil || !want {
+		return errors.Wrapf(err, "User aborted")
+	}
+	passphrase := xkcdgen.Random()
+	if err := crypto.GenerateIdentity(ctx, name, email, passphrase); err != nil {
+		return errors.Wrapf(err, "failed to create new private key in batch mode")
+	}
+	out.Green(ctx, "-> OK")
+	out.Print(ctx, color.MagentaString("Passphrase: ")+color.HiGreenString(passphrase))
 
 	kl, err := crypto.ListIdentities(ctx)
 	if err != nil {

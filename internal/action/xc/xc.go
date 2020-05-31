@@ -43,7 +43,7 @@ func ListPrivateKeys(c *cli.Context) error {
 
 	out.Print(ctx, "XC Private Keys:")
 	for _, key := range kl {
-		out.Print(ctx, "%s - %s", key, crypto.FormatKey(ctx, key))
+		out.Print(ctx, "%s - %s", key, crypto.FormatKey(ctx, key, ""))
 	}
 
 	return nil
@@ -63,7 +63,7 @@ func ListPublicKeys(c *cli.Context) error {
 
 	out.Print(ctx, "XC Public Keys:")
 	for _, key := range kl {
-		out.Print(ctx, "%s - %s", key, crypto.FormatKey(ctx, key))
+		out.Print(ctx, "%s - %s", key, crypto.FormatKey(ctx, key, ""))
 	}
 
 	return nil
@@ -102,7 +102,7 @@ func GenerateKeypair(c *cli.Context) error {
 		}
 	}
 
-	if err := crypto.CreatePrivateKeyBatch(ctx, name, email, pw); err != nil {
+	if err := crypto.GenerateIdentity(ctx, name, email, pw); err != nil {
 		return action.ExitError(action.ExitUnknown, err, "failed to create private key: %s", err)
 	}
 	return nil

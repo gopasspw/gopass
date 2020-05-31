@@ -17,7 +17,7 @@ func (g *GPG) ExportPublicKey(ctx context.Context, id string) ([]byte, error) {
 	args := append(g.args, "--armor", "--export", id)
 	cmd := exec.CommandContext(ctx, g.binary, args...)
 
-	debug.Log("gpg.ExportPublicKey: %s %+v", cmd.Path, cmd.Args)
+	debug.Log("%s %+v", cmd.Path, cmd.Args)
 	out, err := cmd.Output()
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to run command '%s %+v'", cmd.Path, cmd.Args)

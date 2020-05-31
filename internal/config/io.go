@@ -49,7 +49,7 @@ func loadConfig(l string) *Config {
 func loadDefault() *Config {
 	cfg := New()
 	cfg.Path = PwStoreDir("")
-	debug.Log("config.Load(): %+v", cfg)
+	debug.Log("Loaded default config: %+v", cfg)
 	return cfg
 }
 

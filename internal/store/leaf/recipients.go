@@ -70,7 +70,7 @@ func (s *Store) SetRecipients(ctx context.Context, rs []string) error {
 // but if this key is not available on this machine we
 // just try to remove it literally
 func (s *Store) RemoveRecipient(ctx context.Context, id string) error {
-	keys, err := s.crypto.FindPublicKeys(ctx, id)
+	keys, err := s.crypto.FindRecipients(ctx, id)
 	if err != nil {
 		out.Cyan(ctx, "Warning: Failed to get GPG Key Info for %s: %s", id, err)
 	}
@@ -125,7 +125,7 @@ func (s *Store) ensureOurKeyID(ctx context.Context, rs []string) []string {
 // (if any)
 func (s *Store) OurKeyID(ctx context.Context) string {
 	for _, r := range s.Recipients(ctx) {
-		kl, err := s.crypto.FindPrivateKeys(ctx, r)
+		kl, err := s.crypto.FindIdentities(ctx, r)
 		if err != nil || len(kl) < 1 {
 			continue
 		}

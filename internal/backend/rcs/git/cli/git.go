@@ -365,3 +365,8 @@ func (g *Git) Status(ctx context.Context) ([]byte, error) {
 	}
 	return stdout, nil
 }
+
+// Compact will run git gc
+func (g *Git) Compact(ctx context.Context) error {
+	return g.Cmd(ctx, "gitGC", "gc", "--aggressive")
+}
