@@ -22,7 +22,7 @@ func NewOnDisk(name string) (*OnDisk, error) {
 		return nil, err
 	}
 	d := filepath.Join(ucd, "gopass", name)
-	if err := os.MkdirAll(d, 0644); err != nil {
+	if err := os.MkdirAll(d, 0755); err != nil {
 		return nil, err
 	}
 	return &OnDisk{

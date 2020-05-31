@@ -18,98 +18,132 @@ func GetCommands() []*cli.Command {
 				"implementation.",
 			Subcommands: []*cli.Command{
 				{
-					Name:   "list-private-keys",
-					Action: ListPrivateKeys,
+					Name:        "list-private-keys",
+					Action:      ListPrivateKeys,
+					Usage:       "List private Keys",
+					Description: "List private Keys",
 				},
 				{
-					Name:   "list-public-keys",
-					Action: ListPublicKeys,
+					Name:        "list-public-keys",
+					Action:      ListPublicKeys,
+					Usage:       "List public keys",
+					Description: "List private Keys",
 				},
 				{
-					Name:   "generate",
-					Action: GenerateKeypair,
+					Name:        "generate",
+					Action:      GenerateKeypair,
+					Usage:       "Generate new keypair",
+					Description: "Generate new keypair",
 				},
 				{
-					Name:   "export",
-					Action: ExportPublicKey,
+					Name:        "export",
+					Usage:       "Export a public key",
+					Description: "Export a public key",
+					Action:      ExportPublicKey,
 					Flags: []cli.Flag{
 						&cli.StringFlag{
-							Name: "id",
+							Name:  "id",
+							Usage: "Key ID",
 						},
 						&cli.StringFlag{
-							Name: "file",
+							Name:  "file",
+							Usage: "Filename",
 						},
 					},
 				},
 				{
-					Name:   "import",
-					Action: ImportPublicKey,
+					Name:        "import",
+					Usage:       "Import a public key",
+					Description: "Import a public key",
+					Action:      ImportPublicKey,
 					Flags: []cli.Flag{
 						&cli.StringFlag{
-							Name: "id",
+							Name:  "id",
+							Usage: "Key ID",
 						},
 						&cli.StringFlag{
-							Name: "file",
+							Name:  "file",
+							Usage: "Filename",
 						},
 					},
 				},
 				{
-					Name:   "export-private-key",
-					Action: ExportPrivateKey,
+					Name:        "export-private-key",
+					Usage:       "Export a private key",
+					Description: "Export a private key",
+					Action:      ExportPrivateKey,
 					Flags: []cli.Flag{
 						&cli.StringFlag{
-							Name: "id",
+							Name:  "id",
+							Usage: "Key ID",
 						},
 						&cli.StringFlag{
-							Name: "file",
+							Name:  "file",
+							Usage: "Filename",
 						},
 					},
 				},
 				{
-					Name:   "import-private-key",
-					Action: ImportPrivateKey,
+					Name:        "import-private-key",
+					Usage:       "Import a private key",
+					Description: "Import a private key",
+					Action:      ImportPrivateKey,
 					Flags: []cli.Flag{
 						&cli.StringFlag{
-							Name: "id",
+							Name:  "id",
+							Usage: "Key ID",
 						},
 						&cli.StringFlag{
-							Name: "file",
-						},
-					},
-				},
-				{
-					Name:   "remove",
-					Action: RemoveKey,
-					Flags: []cli.Flag{
-						&cli.StringFlag{
-							Name: "id",
+							Name:  "file",
+							Usage: "Filename",
 						},
 					},
 				},
 				{
-					Name:   "encrypt",
-					Action: EncryptFile,
+					Name:        "remove",
+					Usage:       "Remove a public key",
+					Description: "Remove a public key",
+					Action:      RemoveKey,
 					Flags: []cli.Flag{
 						&cli.StringFlag{
-							Name: "file",
+							Name:  "id",
+							Usage: "Key ID",
+						},
+					},
+				},
+				{
+					Name:        "encrypt",
+					Usage:       "Encrypt a file",
+					Description: "Encrypt a file for recipients",
+					Action:      EncryptFile,
+					Flags: []cli.Flag{
+						&cli.StringFlag{
+							Name:  "file",
+							Usage: "Filename",
 						},
 						&cli.StringSliceFlag{
-							Name: "recipients",
+							Name:  "recipients",
+							Usage: "List of recipients",
 						},
 						&cli.BoolFlag{
-							Name: "stream",
+							Name:  "stream",
+							Usage: "Encrypt in streaming mode",
 						},
 					},
 				},
 				{
-					Name:   "decrypt",
-					Action: DecryptFile,
+					Name:        "decrypt",
+					Usage:       "Decrypt a file",
+					Description: "Decrypt a file encrypted for you",
+					Action:      DecryptFile,
 					Flags: []cli.Flag{
 						&cli.StringFlag{
-							Name: "file",
+							Name:  "file",
+							Usage: "Filename",
 						},
 						&cli.BoolFlag{
-							Name: "stream",
+							Name:  "stream",
+							Usage: "Decrypt in streaming mode",
 						},
 					},
 				},

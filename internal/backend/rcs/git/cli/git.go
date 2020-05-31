@@ -64,7 +64,7 @@ func Init(ctx context.Context, path, userName, userEmail string) (*Git, error) {
 		if err := g.Cmd(ctx, "Init", "init"); err != nil {
 			return nil, errors.Errorf("failed to initialize git: %s", err)
 		}
-		out.Red(ctx, "git initialized at %s", g.path)
+		out.Green(ctx, "git initialized at %s", g.path)
 	}
 
 	if !ctxutil.IsGitInit(ctx) {
@@ -75,7 +75,7 @@ func Init(ctx context.Context, path, userName, userEmail string) (*Git, error) {
 	if err := g.InitConfig(ctx, userName, userEmail); err != nil {
 		return g, errors.Errorf("failed to configure git: %s", err)
 	}
-	out.Red(ctx, "git configured at %s", g.path)
+	out.Green(ctx, "git configured at %s", g.path)
 
 	// add current content of the store
 	if err := g.Add(ctx, g.path); err != nil {

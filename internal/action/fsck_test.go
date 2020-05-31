@@ -42,18 +42,33 @@ func TestFsck(t *testing.T) {
 
 	// fsck
 	assert.NoError(t, act.Fsck(gptest.CliCtx(ctx, t)))
-	out := strings.TrimSpace(buf.String())
-	assert.Contains(t, out, "Checking store integrity ...")
-	assert.Contains(t, out, "[] Extra recipients on foo: [0xFEEDBEEF]")
-	assert.Contains(t, out, "[] Pushed changes to git remote")
+	output := strings.TrimSpace(buf.String())
+	assert.Contains(t, output, "Checking store integrity ...")
+	assert.Contains(t, output, "[] Extra recipients on foo: [0xFEEDBEEF]")
+	assert.Contains(t, output, "[] Pushed changes to git remote")
+	buf.Reset()
+
+	// fsck (hidden)
+	assert.NoError(t, act.Fsck(gptest.CliCtx(out.WithHidden(ctx, true), t)))
+	output = strings.TrimSpace(buf.String())
+	assert.NotContains(t, output, "Checking store integrity ...")
+	assert.NotContains(t, output, "[] Extra recipients on foo: [0xFEEDBEEF]")
+	assert.NotContains(t, output, "[] Pushed changes to git remote")
+	buf.Reset()
+
+	// fsck --decrypt
+	assert.NoError(t, act.Fsck(gptest.CliCtxWithFlags(ctx, t, map[string]string{"decrypt": "true"})))
+	output = strings.TrimSpace(buf.String())
+	assert.Contains(t, output, "Checking store integrity ...")
+	assert.Contains(t, output, "[] Extra recipients on foo: [0xFEEDBEEF]")
+	assert.Contains(t, output, "[] Pushed changes to git remote")
 	buf.Reset()
 
 	// fsck fo
 	assert.NoError(t, act.Fsck(gptest.CliCtx(ctx, t, "fo")))
-	out = strings.TrimSpace(buf.String())
-	assert.Contains(t, out, "Checking store integrity ...")
-	assert.Contains(t, out, "[] Extra recipients on foo: [0xFEEDBEEF]")
-	assert.Contains(t, out, "[] Pushed changes to git remote")
-
+	output = strings.TrimSpace(buf.String())
+	assert.Contains(t, output, "Checking store integrity ...")
+	assert.Contains(t, output, "[] Extra recipients on foo: [0xFEEDBEEF]")
+	assert.Contains(t, output, "[] Pushed changes to git remote")
 	buf.Reset()
 }

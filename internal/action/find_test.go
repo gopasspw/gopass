@@ -3,7 +3,6 @@ package action
 import (
 	"bytes"
 	"context"
-	"flag"
 	"fmt"
 	"os"
 	"runtime"
@@ -14,11 +13,11 @@ import (
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store/secret"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/urfave/cli/v2"
 
 	"github.com/fatih/color"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/urfave/cli/v2"
 )
 
 func TestFind(t *testing.T) {
@@ -41,29 +40,27 @@ func TestFind(t *testing.T) {
 	}()
 	color.NoColor = true
 
-	app := cli.NewApp()
-
 	actName := "action.test"
-
 	if runtime.GOOS == "windows" {
 		actName = "action.test.exe"
 	}
 
 	// find
-	c := cli.NewContext(app, flag.NewFlagSet("default", flag.ContinueOnError), nil)
-	c.Context = ctx
+	c := gptest.CliCtx(ctx, t)
 	if err := act.Find(c); err == nil || err.Error() != fmt.Sprintf("Usage: %s find <NEEDLE>", actName) {
 		t.Errorf("Should fail: %s", err)
 	}
 
 	// find fo
-	fs := flag.NewFlagSet("default", flag.ContinueOnError)
-	assert.NoError(t, fs.Parse([]string{"fo"}))
-	c = cli.NewContext(app, fs, nil)
-	c.Context = ctx
-
+	c = gptest.CliCtxWithFlags(ctx, t, nil, "fo")
 	assert.NoError(t, act.Find(c))
 	assert.Contains(t, strings.TrimSpace(buf.String()), "Found exact match in 'foo'\nsecret")
+	buf.Reset()
+
+	// find fo (no fuzzy search)
+	c = gptest.CliCtxWithFlags(ctx, t, nil, "fo")
+	assert.NoError(t, act.FindNoFuzzy(c))
+	assert.Equal(t, strings.TrimSpace(buf.String()), "foo")
 	buf.Reset()
 
 	// testing the safecontent case
@@ -104,4 +101,18 @@ func TestFind(t *testing.T) {
 	assert.NoError(t, act.Find(c))
 	assert.Equal(t, "bar/baz\nbar/zab", strings.TrimSpace(buf.String()))
 	buf.Reset()
+
+	// find w/o callback
+	c = gptest.CliCtx(ctx, t)
+	assert.NoError(t, act.find(ctx, c, "foo", nil))
+	assert.Equal(t, "foo", strings.TrimSpace(buf.String()))
+	buf.Reset()
+
+	// findSelection w/o callback
+	c = gptest.CliCtx(ctx, t)
+	assert.Error(t, act.findSelection(ctx, c, []string{"foo", "bar"}, "fo", nil))
+
+	// findSelection w/o options
+	c = gptest.CliCtx(ctx, t)
+	assert.Error(t, act.findSelection(ctx, c, nil, "fo", func(_ context.Context, _ *cli.Context, _ string, _ bool) error { return nil }))
 }

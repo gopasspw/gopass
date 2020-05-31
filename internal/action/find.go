@@ -93,6 +93,13 @@ func (s *Action) find(ctx context.Context, c *cli.Context, needle string, cb sho
 
 // findSelection runs a wizard that lets the user select an entry
 func (s *Action) findSelection(ctx context.Context, c *cli.Context, choices []string, needle string, cb showFunc) error {
+	if cb == nil {
+		return fmt.Errorf("callback is nil")
+	}
+	if len(choices) < 1 {
+		return fmt.Errorf("out of options")
+	}
+
 	sort.Strings(choices)
 	act, sel := cui.GetSelection(ctx, "Found secrets - Please select an entry", choices)
 	debug.Log("Action: %s - Selection: %d", act, sel)

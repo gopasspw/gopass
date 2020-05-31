@@ -2,7 +2,6 @@ package cli
 
 import (
 	"context"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -41,15 +40,20 @@ func (g *Git) fixConfig(ctx context.Context) error {
 
 // InitConfig initialized and preparse the git config
 func (g *Git) InitConfig(ctx context.Context, userName, userEmail string) error {
-	if userName == "" || userEmail == "" || !strings.Contains(userEmail, "@") {
-		return fmt.Errorf("username and email must not be empty and valid")
-	}
 	// set commit identity
-	if err := g.ConfigSet(ctx, "user.name", userName); err != nil {
-		return errors.Wrapf(err, "failed to set git config user.name")
+	if userName != "" {
+		if err := g.ConfigSet(ctx, "user.name", userName); err != nil {
+			return errors.Wrapf(err, "failed to set git config user.name")
+		}
+	} else {
+		out.Red(ctx, "Git Username not set")
 	}
-	if err := g.ConfigSet(ctx, "user.email", userEmail); err != nil {
-		return errors.Wrapf(err, "failed to set git config user.email")
+	if userEmail != "" && strings.Contains(userEmail, "@") {
+		if err := g.ConfigSet(ctx, "user.email", userEmail); err != nil {
+			return errors.Wrapf(err, "failed to set git config user.email")
+		}
+	} else {
+		out.Red(ctx, "Git Email not set")
 	}
 
 	// ensure sane git config
