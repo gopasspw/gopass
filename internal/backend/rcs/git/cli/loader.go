@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/gopasspw/gopass/internal/backend"
-	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/internal/termio"
 	"github.com/gopasspw/gopass/pkg/fsutil"
 )
 
@@ -32,7 +32,7 @@ func (l loader) Clone(ctx context.Context, repo, path string) (backend.RCS, erro
 
 // Init implements backend.RCSLoader
 func (l loader) InitRCS(ctx context.Context, path string) (backend.RCS, error) {
-	return Init(ctx, path, ctxutil.GetUsername(ctx), ctxutil.GetEmail(ctx))
+	return Init(ctx, path, termio.DetectName(ctx, nil), termio.DetectEmail(ctx, nil))
 }
 
 func (l loader) Handles(path string) error {

@@ -67,6 +67,16 @@ func TestGenerate(t *testing.T) {
 		buf.Reset()
 	})
 
+	// generate --edit foobar
+	t.Run("generate --edit foobar", func(t *testing.T) {
+		if testing.Short() {
+			t.Skip("skipping test in short mode.")
+		}
+
+		assert.NoError(t, act.Generate(gptest.CliCtxWithFlags(ctx, t, map[string]string{"edit": "true", "editor": "/bin/cat"}, "foobar")))
+		buf.Reset()
+	})
+
 	// generate --force foobar
 	t.Run("generate --force foobar", func(t *testing.T) {
 		if testing.Short() {
