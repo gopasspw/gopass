@@ -240,6 +240,9 @@ func AskForPrivateKey(ctx context.Context, crypto backend.Crypto, prompt string)
 func AskForGitConfigUser(ctx context.Context, crypto backend.Crypto) (string, string, error) {
 	var useCurrent bool
 
+	if crypto == nil {
+		return "", "", fmt.Errorf("crypto not available")
+	}
 	keyList, err := crypto.ListIdentities(ctx)
 	if err != nil {
 		return "", "", err
