@@ -47,6 +47,15 @@ func TestTempdirBase(t *testing.T) {
 	}()
 }
 
+func TestTempdirBaseEmpty(t *testing.T) {
+	oldShm := shmDir
+	defer func() {
+		shmDir = oldShm
+	}()
+	shmDir = "/this/should/not/exist"
+	assert.Equal(t, "", tempdirBase())
+}
+
 func TestTempFiler(t *testing.T) {
 	ctx := context.Background()
 

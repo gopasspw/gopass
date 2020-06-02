@@ -39,5 +39,6 @@ require (
 	google.golang.org/protobuf v1.21.0
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
 	gopkg.in/yaml.v2 v2.2.8
+	gotest.tools v2.2.0+incompatible
 	rsc.io/qr v0.2.0 // indirect
 )

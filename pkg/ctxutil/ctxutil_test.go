@@ -202,6 +202,13 @@ func TestComposite(t *testing.T) {
 	ctx = WithNotifications(ctx, true)
 	ctx = WithEditRecipients(ctx, true)
 	ctx = WithAutoClip(ctx, true)
+	ctx = WithExportKeys(ctx, false)
+	ctx = WithEmail(ctx, "foo@bar.com")
+	ctx = WithUsername(ctx, "foo")
+	ctx = WithNoNetwork(ctx, true)
+	ctx = WithCommitMessage(ctx, "foobar")
+	ctx = WithForce(ctx, true)
+	ctx = WithGitInit(ctx, false)
 
 	assert.Equal(t, false, IsColor(ctx))
 	assert.Equal(t, true, HasColor(ctx))
@@ -253,6 +260,24 @@ func TestComposite(t *testing.T) {
 
 	assert.Equal(t, true, IsAutoClip(ctx))
 	assert.Equal(t, true, HasAutoClip(ctx))
+
+	assert.Equal(t, false, IsExportKeys(ctx))
+	assert.Equal(t, true, HasExportKeys(ctx))
+
+	assert.Equal(t, "foo@bar.com", GetEmail(ctx))
+	assert.Equal(t, "foo", GetUsername(ctx))
+
+	assert.Equal(t, true, IsNoNetwork(ctx))
+	assert.Equal(t, true, HasNoNetwork(ctx))
+
+	assert.Equal(t, "foobar", GetCommitMessage(ctx))
+	assert.Equal(t, true, HasCommitMessage(ctx))
+
+	assert.Equal(t, true, IsForce(ctx))
+	assert.Equal(t, true, HasForce(ctx))
+
+	assert.Equal(t, false, IsGitInit(ctx))
+	assert.Equal(t, true, HasGitInit(ctx))
 }
 
 func TestGlobalFlags(t *testing.T) {

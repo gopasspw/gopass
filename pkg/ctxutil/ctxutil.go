@@ -58,17 +58,12 @@ func WithColor(ctx context.Context, color bool) context.Context {
 
 // HasColor returns true if a value for Color has been set in this context
 func HasColor(ctx context.Context) bool {
-	_, ok := ctx.Value(ctxKeyColor).(bool)
-	return ok
+	return hasBool(ctx, ctxKeyColor)
 }
 
 // IsColor returns the value of color or the default (true)
 func IsColor(ctx context.Context) bool {
-	bv, ok := ctx.Value(ctxKeyColor).(bool)
-	if !ok {
-		return true
-	}
-	return bv
+	return is(ctx, ctxKeyColor, true)
 }
 
 // WithTerminal returns a context with an explicit value for terminal
@@ -226,11 +221,7 @@ func HasGitCommit(ctx context.Context) bool {
 
 // IsGitCommit returns the value of git commit or the default (true)
 func IsGitCommit(ctx context.Context) bool {
-	bv, ok := ctx.Value(ctxKeyGitCommit).(bool)
-	if !ok {
-		return true
-	}
-	return bv
+	return is(ctx, ctxKeyGitCommit, true)
 }
 
 // WithNoColor returns a context with the value for ask for more set
@@ -306,11 +297,7 @@ func HasVerbose(ctx context.Context) bool {
 
 // IsVerbose returns the value of verbose or the default (false)
 func IsVerbose(ctx context.Context) bool {
-	bv, ok := ctx.Value(ctxKeyVerbose).(bool)
-	if !ok {
-		return false
-	}
-	return bv
+	return is(ctx, ctxKeyVerbose, false)
 }
 
 // WithNotifications returns a context with the value for Notifications set
@@ -320,17 +307,12 @@ func WithNotifications(ctx context.Context, verbose bool) context.Context {
 
 // HasNotifications returns true if a value for Notifications has been set in this context
 func HasNotifications(ctx context.Context) bool {
-	_, ok := ctx.Value(ctxKeyNotifications).(bool)
-	return ok
+	return hasBool(ctx, ctxKeyNotifications)
 }
 
 // IsNotifications returns the value of Notifications or the default (true)
 func IsNotifications(ctx context.Context) bool {
-	bv, ok := ctx.Value(ctxKeyNotifications).(bool)
-	if !ok {
-		return true
-	}
-	return bv
+	return is(ctx, ctxKeyNotifications, true)
 }
 
 // WithAutoClip returns a context with the value for AutoClip set
@@ -340,17 +322,12 @@ func WithAutoClip(ctx context.Context, bv bool) context.Context {
 
 // HasAutoClip returns true if a value for AutoClip has been set in this context
 func HasAutoClip(ctx context.Context) bool {
-	_, ok := ctx.Value(ctxKeyAutoClip).(bool)
-	return ok
+	return hasBool(ctx, ctxKeyAutoClip)
 }
 
 // IsAutoClip returns the value of AutoClip or the default (true)
 func IsAutoClip(ctx context.Context) bool {
-	bv, ok := ctx.Value(ctxKeyAutoClip).(bool)
-	if !ok {
-		return true
-	}
-	return bv
+	return is(ctx, ctxKeyAutoClip, true)
 }
 
 // WithEditRecipients returns a context with the value for EditRecipients set
@@ -360,8 +337,7 @@ func WithEditRecipients(ctx context.Context, bv bool) context.Context {
 
 // HasEditRecipients returns true if a value for EditRecipients has been set in this context
 func HasEditRecipients(ctx context.Context) bool {
-	_, ok := ctx.Value(ctxKeyEditRecipients).(bool)
-	return ok
+	return hasBool(ctx, ctxKeyEditRecipients)
 }
 
 // IsEditRecipients returns the value of EditRecipients or the default (false)
@@ -381,11 +357,7 @@ func WithConcurrency(ctx context.Context, to int) context.Context {
 // HasConcurrency returns true if a value for Concurrency has been set in this context and is bigger than 1
 // since if it is equal to 1, we are not working concurrently.
 func HasConcurrency(ctx context.Context) bool {
-	iv, ok := ctx.Value(ctxKeyConcurrency).(int)
-	if iv <= 1 {
-		return false
-	}
-	return ok
+	return hasInt(ctx, ctxKeyConcurrency)
 }
 
 // GetConcurrency returns the value of concurrent threads or the default (1)
@@ -425,8 +397,7 @@ func WithAlias(ctx context.Context, alias string) context.Context {
 
 // HasAlias returns true if a value for alias has been set.
 func HasAlias(ctx context.Context) bool {
-	_, ok := ctx.Value(ctxKeyAlias).(string)
-	return ok
+	return hasString(ctx, ctxKeyAlias)
 }
 
 // GetAlias returns an alias if it has been set or an empty string otherwise.
@@ -445,17 +416,12 @@ func WithGitInit(ctx context.Context, bv bool) context.Context {
 
 // HasGitInit returns true if the git init flag was set.
 func HasGitInit(ctx context.Context) bool {
-	_, ok := ctx.Value(ctxKeyGitInit).(bool)
-	return ok
+	return hasBool(ctx, ctxKeyGitInit)
 }
 
 // IsGitInit returns the value of the git init flag or ture if none was set.
 func IsGitInit(ctx context.Context) bool {
-	bv, ok := ctx.Value(ctxKeyGitInit).(bool)
-	if !ok {
-		return true
-	}
-	return bv
+	return is(ctx, ctxKeyGitInit, true)
 }
 
 // WithForce returns a context with the force flag set
@@ -480,7 +446,7 @@ func WithCommitMessage(ctx context.Context, sv string) context.Context {
 
 // HasCommitMessage returns true if the commit message was set
 func HasCommitMessage(ctx context.Context) bool {
-	return hasBool(ctx, ctxKeyCommitMessage)
+	return hasString(ctx, ctxKeyCommitMessage)
 }
 
 // GetCommitMessage returns the set commit message or an empty string

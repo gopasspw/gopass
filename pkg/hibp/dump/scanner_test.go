@@ -78,6 +78,7 @@ func TestScanner(t *testing.T) {
 	scanner, err = New(fn)
 	assert.NoError(t, err)
 	assert.Equal(t, []string{}, scanner.LookupBatch(ctx, []string{"foobar"}))
+	assert.Equal(t, []string(nil), scanner.LookupBatch(ctx, []string{}))
 
 	// gzip
 	fn = filepath.Join(td, "dump.txt.gz")

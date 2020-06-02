@@ -58,6 +58,11 @@ func TestLookup(t *testing.T) {
 	count, err = Lookup(sha1sum(noMatch))
 	assert.NoError(t, err)
 	assert.Equal(t, uint64(0), count)
+
+	// invalid input
+	count, err = Lookup("")
+	assert.Error(t, err)
+	assert.Equal(t, uint64(0), count)
 }
 
 func TestLookupCR(t *testing.T) {

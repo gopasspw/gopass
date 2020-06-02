@@ -15,6 +15,8 @@ import (
 	"github.com/pkg/errors"
 )
 
+var shmDir = ""
+
 func tempdirBase() string {
 	return ""
 }

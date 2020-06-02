@@ -84,6 +84,17 @@ func TestContainsAllClasses(t *testing.T) {
 	}
 }
 
+func TestGeneratePasswordWithAllClasses(t *testing.T) {
+	pw, err := GeneratePasswordWithAllClasses(50)
+	assert.NoError(t, err)
+	assert.Equal(t, 50, len(pw))
+}
+
+func TestGenerateMemorablePassword(t *testing.T) {
+	pw := GenerateMemorablePassword(20, false)
+	assert.GreaterOrEqual(t, len(pw), 20)
+}
+
 func BenchmarkPwgen(b *testing.B) {
 	for n := 0; n < b.N; n++ {
 		GeneratePasswordCharset(24, CharAll)
