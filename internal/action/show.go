@@ -120,7 +120,7 @@ func (s *Action) showHandleOutput(ctx context.Context, name string, sec store.Se
 	}
 
 	if pw == "" && body == "" {
-		return ExitError(ExitNotFound, store.ErrNoBody, store.ErrNoBody.Error())
+		return ExitError(ExitNotFound, store.ErrEmptySecret, store.ErrEmptySecret.Error())
 	}
 
 	if IsPrintQR(ctx) && pw != "" {

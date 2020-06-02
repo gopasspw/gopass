@@ -25,6 +25,9 @@ func TestInit(t *testing.T) {
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithInteractive(ctx, false)
+	ctx = backend.WithRCSBackend(ctx, backend.Noop)
+	ctx = backend.WithCryptoBackend(ctx, backend.Plain)
+	ctx = backend.WithStorageBackend(ctx, backend.FS)
 
 	act, err := newMock(ctx, u)
 	require.NoError(t, err)
@@ -41,9 +44,11 @@ func TestInit(t *testing.T) {
 	c := gptest.CliCtx(ctx, t, "foo.bar@example.org")
 	assert.NoError(t, act.Initialized(c))
 	assert.Error(t, act.Init(c))
-	assert.Error(t, act.InitOnboarding(c))
+	assert.NoError(t, act.InitOnboarding(c))
 
 	crypto := act.Store.Crypto(ctx, "")
+	require.NotNil(t, crypto)
+	assert.Equal(t, "plain", crypto.Name())
 	assert.Equal(t, true, act.initHasUseablePrivateKeys(ctx, crypto))
 	assert.Error(t, act.initGenerateIdentity(ctx, crypto, "foo bar", "foo.bar@example.org"))
 	buf.Reset()

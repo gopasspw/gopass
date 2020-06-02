@@ -21,6 +21,8 @@ var (
 	ErrGitNoRemote = errors.Errorf("git has no remote origin")
 	// ErrGitNothingToCommit is returned if there are no staged changes
 	ErrGitNothingToCommit = errors.Errorf("git has nothing to commit")
+	// ErrEmptySecret is returned if a secret exists but has no content
+	ErrEmptySecret = errors.Errorf("empty secret")
 	// ErrNoBody is returned if a secret exists but has no content beyond a password
 	ErrNoBody = errors.Errorf("no safe content to display, you can force display with -f")
 	// ErrNoPassword is returned is a secret exists but has no password, only a body

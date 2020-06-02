@@ -78,3 +78,17 @@ func flagset(t *testing.T, flags map[string]string, args []string) *flag.FlagSet
 
 	return fs
 }
+
+// UnsetVars will unset the specified env vars and return a restore func
+func UnsetVars(ls []string) func() {
+	old := make(map[string]string, len(ls))
+	for _, k := range ls {
+		old[k] = os.Getenv(k)
+		os.Unsetenv(k)
+	}
+	return func() {
+		for k, v := range old {
+			os.Setenv(k, v)
+		}
+	}
+}

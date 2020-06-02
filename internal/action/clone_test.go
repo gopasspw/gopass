@@ -13,6 +13,7 @@ import (
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/gptest"
 	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/internal/termio"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 
 	"github.com/blang/semver"
@@ -112,6 +113,11 @@ func TestCloneBackendIsStoredForMount(t *testing.T) {
 func TestCloneGetGitConfig(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 	defer u.Remove()
+
+	r1 := gptest.UnsetVars(termio.NameVars)
+	defer r1()
+	r2 := gptest.UnsetVars(termio.EmailVars)
+	defer r2()
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)

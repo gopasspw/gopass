@@ -413,15 +413,18 @@ func (s *Action) GetCommands() []*cli.Command {
 				},
 				&cli.StringFlag{
 					Name:  "crypto",
-					Usage: "Select crypto backend (gpg, gpgcli, plain, xc)",
+					Usage: "Select crypto backend (gpgcli, plain, xc)",
+					Value: "gpgcli",
 				},
 				&cli.StringFlag{
 					Name:  "rcs",
 					Usage: "Select sync backend (git, gitcli, noop)",
+					Value: "gitcli",
 				},
 				&cli.StringFlag{
 					Name:  "storage",
 					Usage: "Select storage backend (fs, inmen, ondisk)",
+					Value: "fs",
 				},
 			},
 		},

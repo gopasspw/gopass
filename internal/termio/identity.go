@@ -8,6 +8,21 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
+var (
+	// NameVars are the env vars checked for a valid name
+	NameVars = []string{
+		"GIT_AUTHOR_NAME",
+		"DEBFULLNAME",
+		"USER",
+	}
+	// EmailVars are the env vars checked for a valid email
+	EmailVars = []string{
+		"GIT_AUTHOR_EMAIL",
+		"DEBEMAIL",
+		"EMAIL",
+	}
+)
+
 // DetectName tries to guess the name of the logged in user
 func DetectName(ctx context.Context, c *cli.Context) string {
 	cand := make([]string, 0, 5)
@@ -15,11 +30,9 @@ func DetectName(ctx context.Context, c *cli.Context) string {
 	if c != nil {
 		cand = append(cand, c.String("name"))
 	}
-	cand = append(cand,
-		os.Getenv("GIT_AUTHOR_NAME"),
-		os.Getenv("DEBFULLNAME"),
-		os.Getenv("USER"),
-	)
+	for _, k := range NameVars {
+		cand = append(cand, os.Getenv(k))
+	}
 	for _, e := range cand {
 		if e != "" {
 			return e
@@ -35,11 +48,9 @@ func DetectEmail(ctx context.Context, c *cli.Context) string {
 	if c != nil {
 		cand = append(cand, c.String("email"))
 	}
-	cand = append(cand,
-		os.Getenv("GIT_AUTHOR_EMAIL"),
-		os.Getenv("DEBEMAIL"),
-		os.Getenv("EMAIL"),
-	)
+	for _, k := range EmailVars {
+		cand = append(cand, os.Getenv(k))
+	}
 	for _, e := range cand {
 		if e != "" {
 			return e

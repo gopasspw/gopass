@@ -77,7 +77,6 @@ var commandsWithError = map[string]struct{}{
 	".otp":               {},
 	".recipients.add":    {},
 	".recipients.remove": {},
-	".setup":             {},
 	".show":              {},
 	".templates.edit":    {},
 	".templates.remove":  {},
