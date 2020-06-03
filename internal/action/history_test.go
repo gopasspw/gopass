@@ -11,6 +11,7 @@ import (
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/gptest"
 	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/internal/termio"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 
 	"github.com/blang/semver"
@@ -22,6 +23,11 @@ import (
 func TestHistory(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 	defer u.Remove()
+
+	r1 := gptest.UnsetVars(termio.NameVars)
+	r2 := gptest.UnsetVars(termio.EmailVars)
+	defer r1()
+	defer r2()
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
@@ -49,6 +55,7 @@ func TestHistory(t *testing.T) {
 
 	// init git
 	require.NoError(t, act.rcsInit(ctx, "", "foo bar", "foo.bar@example.org"))
+	t.Logf("init git: %s", buf.String())
 	buf.Reset()
 
 	// insert bar

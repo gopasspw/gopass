@@ -106,8 +106,9 @@ func (s *Store) Exists(ctx context.Context, name string) bool {
 		name = filepath.FromSlash(name)
 	}
 	path := filepath.Join(s.path, filepath.Clean(name))
-	debug.Log("%s exists at %s", name, path)
-	return fsutil.IsFile(path)
+	found := fsutil.IsFile(path)
+	debug.Log("Checking if %s exists at %s: %t", name, path, found)
+	return found
 }
 
 // List returns a list of all entities

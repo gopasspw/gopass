@@ -11,6 +11,7 @@ import (
 	"github.com/gopasspw/gopass/internal/cui"
 	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/internal/store/root"
 	"github.com/gopasspw/gopass/internal/termio"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/pwgen/xkcdgen"
@@ -183,29 +184,33 @@ func (s *Action) InitOnboarding(c *cli.Context) error {
 	remote := c.String("remote")
 	team := c.String("alias")
 	create := c.Bool("create")
-	name := termio.DetectName(c.Context, c)
-	if name != "" {
+
+	ctx = initParseContext(ctx, c)
+	if name := termio.DetectName(c.Context, c); name != "" {
 		ctx = ctxutil.WithUsername(ctx, name)
 	}
-	email := termio.DetectEmail(c.Context, c)
-	if email != "" {
+	if email := termio.DetectEmail(c.Context, c); email != "" {
 		ctx = ctxutil.WithEmail(ctx, email)
 	}
-	ctx = backend.WithCryptoBackendString(ctx, c.String("crypto"))
-
-	// default to git
-	if rcs := c.String("rcs"); rcs != "" {
-		ctx = backend.WithRCSBackendString(ctx, c.String("rcs"))
-	} else {
-		debug.Log("Using default RCS backend (GitCLI)")
-		ctx = backend.WithRCSBackend(ctx, backend.GitCLI)
+	// need to re-initialize the root store or it's already initialized
+	// and won't properly set up crypto according to our context.
+	s.Store = root.New(s.cfg)
+	inited, err := s.Store.Initialized(ctx)
+	if err != nil {
+		return ExitError(ExitUnknown, err, "Failed to initialized store: %s", err)
+	}
+	if inited {
+		out.Error(ctx, "WARNING: Store is already initialized")
+		return nil
 	}
 
 	ctx = out.AddPrefix(ctx, "[init] ")
-	debug.Log("Starting Onboarding Wizard - remote: %s - team: %s - create: %t - name: %s - email: %s", remote, team, create, name, email)
+	debug.Log("Starting Onboarding Wizard - remote: %s - team: %s - create: %t - name: %s - email: %s", remote, team, create, ctxutil.GetUsername(ctx), ctxutil.GetEmail(ctx))
 
-	crypto := s.getCryptoFor(ctx, name)
-
+	crypto := s.getCryptoFor(ctx, team)
+	if crypto == nil {
+		return fmt.Errorf("can not continue without crypto")
+	}
 	debug.Log("Crypto Backend initialized as: %s", crypto.Name())
 
 	// check for existing GPG keypairs (private/secret keys). We need at least
@@ -214,7 +219,7 @@ func (s *Action) InitOnboarding(c *cli.Context) error {
 		out.Yellow(ctx, "No useable crypto keys. Generating new key pair")
 		ctx := out.AddPrefix(ctx, "[crypto] ")
 		out.Print(ctx, "Key generation may take up to a few minutes")
-		if err := s.initGenerateIdentity(ctx, crypto, name, email); err != nil {
+		if err := s.initGenerateIdentity(ctx, crypto, ctxutil.GetUsername(ctx), ctxutil.GetEmail(ctx)); err != nil {
 			return errors.Wrapf(err, "failed to create new private key")
 		}
 	}

@@ -133,6 +133,7 @@ func (s *Action) cloneGetGitConfig(ctx context.Context, name string) (string, st
 	// NB: discarding returned error since this is merely a best-effort look-up for convenience
 	username, email, _ := cui.AskForGitConfigUser(ctx, s.Store.Crypto(ctx, name))
 	if username == "" {
+		username = termio.DetectName(ctx, nil)
 		var err error
 		username, err = termio.AskForString(ctx, color.CyanString("Please enter a user name for password store git config"), username)
 		if err != nil {
@@ -140,6 +141,7 @@ func (s *Action) cloneGetGitConfig(ctx context.Context, name string) (string, st
 		}
 	}
 	if email == "" {
+		email = termio.DetectEmail(ctx, nil)
 		var err error
 		email, err = termio.AskForString(ctx, color.CyanString("Please enter an email address for password store git config"), email)
 		if err != nil {

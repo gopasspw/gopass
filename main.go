@@ -134,6 +134,11 @@ func setupApp(ctx context.Context, sv semver.Version) (context.Context, *cli.App
 			Usage: "Assume yes on all yes/no questions or use the default on all others",
 		},
 		&cli.BoolFlag{
+			Name:    "force",
+			Aliases: []string{"f"},
+			Usage:   "Force displaying content",
+		},
+		&cli.BoolFlag{
 			Name:    "clip",
 			Aliases: []string{"c"},
 			Usage:   "Copy the first line of the secret into the clipboard",

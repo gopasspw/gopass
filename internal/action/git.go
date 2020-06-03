@@ -6,6 +6,7 @@ import (
 
 	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/internal/cui"
+	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/termio"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -36,7 +37,7 @@ func (s *Action) GitInit(c *cli.Context) error {
 
 func (s *Action) rcsInit(ctx context.Context, store, un, ue string) error {
 	bn := backend.RCSBackendName(backend.GetRCSBackend(ctx))
-	out.Green(ctx, "Initializing git repository (%s) ...", bn)
+	out.Green(ctx, "Initializing git repository (%s) for %s / %s...", bn, un, ue)
 
 	userName, userEmail := s.getUserData(ctx, store, un, ue)
 	if err := s.Store.GitInit(ctx, store, userName, userEmail); err != nil {
@@ -50,31 +51,39 @@ func (s *Action) rcsInit(ctx context.Context, store, un, ue string) error {
 	return nil
 }
 
-func (s *Action) getUserData(ctx context.Context, store, un, ue string) (string, string) {
-	if un != "" && ue != "" {
-		return un, ue
+func (s *Action) getUserData(ctx context.Context, store, name, email string) (string, string) {
+	if name != "" && email != "" {
+		debug.Log("Username: %s, Email: %s (provided)", name, email)
+		return name, email
 	}
 
 	// for convenience, set defaults to user-selected values from available private keys
 	// NB: discarding returned error since this is merely a best-effort look-up for convenience
 	userName, userEmail, _ := cui.AskForGitConfigUser(ctx, s.Store.Crypto(ctx, store))
 
-	if userName == "" {
+	if name == "" {
+		if userName == "" {
+			userName = termio.DetectName(ctx, nil)
+		}
 		var err error
-		userName, err = termio.AskForString(ctx, color.CyanString("Please enter a user name for password store git config"), userName)
+		name, err = termio.AskForString(ctx, color.CyanString("Please enter a user name for password store git config"), userName)
 		if err != nil {
 			out.Error(ctx, "Failed to ask for user input: %s", err)
 		}
 	}
-	if userEmail == "" {
+	if email == "" {
+		if userEmail == "" {
+			userEmail = termio.DetectEmail(ctx, nil)
+		}
 		var err error
-		userEmail, err = termio.AskForString(ctx, color.CyanString("Please enter an email address for password store git config"), userEmail)
+		email, err = termio.AskForString(ctx, color.CyanString("Please enter an email address for password store git config"), userEmail)
 		if err != nil {
 			out.Error(ctx, "Failed to ask for user input: %s", err)
 		}
 	}
 
-	return userName, userEmail
+	debug.Log("Username: %s, Email: %s (detected)", name, email)
+	return name, email
 }
 
 // GitAddRemote adds a new git remote
