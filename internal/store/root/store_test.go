@@ -69,6 +69,8 @@ func TestListMulti(t *testing.T) {
 	lst := tree.List(0)
 	sort.Strings(lst)
 	assert.Equal(t, ents, lst)
+
+	assert.Contains(t, rs.String(), "Store(Path:")
 }
 
 func TestListNested(t *testing.T) {
