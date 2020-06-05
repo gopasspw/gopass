@@ -40,7 +40,7 @@ func (s *Action) rcsInit(ctx context.Context, store, un, ue string) error {
 	out.Green(ctx, "Initializing git repository (%s) for %s / %s...", bn, un, ue)
 
 	userName, userEmail := s.getUserData(ctx, store, un, ue)
-	if err := s.Store.GitInit(ctx, store, userName, userEmail); err != nil {
+	if err := s.Store.RCSInit(ctx, store, userName, userEmail); err != nil {
 		if gtv := os.Getenv("GPG_TTY"); gtv == "" {
 			out.Yellow(ctx, "Git initialization failed. You may want to try to 'export GPG_TTY=$(tty)' and start over.")
 		}
@@ -97,7 +97,7 @@ func (s *Action) GitAddRemote(c *cli.Context) error {
 		return ExitError(ExitUsage, nil, "Usage: %s git remote add <REMOTE> <URL>", s.Name)
 	}
 
-	return s.Store.GitAddRemote(ctx, store, remote, url)
+	return s.Store.RCSAddRemote(ctx, store, remote, url)
 }
 
 // GitRemoveRemote removes a git remote
@@ -110,7 +110,7 @@ func (s *Action) GitRemoveRemote(c *cli.Context) error {
 		return ExitError(ExitUsage, nil, "Usage: %s git remote rm <REMOTE>", s.Name)
 	}
 
-	return s.Store.GitRemoveRemote(ctx, store, remote)
+	return s.Store.RCSRemoveRemote(ctx, store, remote)
 }
 
 // GitPull pulls from a git remote
@@ -126,7 +126,7 @@ func (s *Action) GitPull(c *cli.Context) error {
 	if branch == "" {
 		branch = "master"
 	}
-	return s.Store.GitPull(ctx, store, origin, branch)
+	return s.Store.RCSPull(ctx, store, origin, branch)
 }
 
 // GitPush pushes to a git remote
@@ -139,7 +139,7 @@ func (s *Action) GitPush(c *cli.Context) error {
 	if origin == "" || branch == "" {
 		return ExitError(ExitUsage, nil, "Usage: %s git push <ORIGIN> <BRANCH>", s.Name)
 	}
-	return s.Store.GitPush(ctx, store, origin, branch)
+	return s.Store.RCSPush(ctx, store, origin, branch)
 }
 
 // GitStatus prints the rcs status
@@ -147,5 +147,5 @@ func (s *Action) GitStatus(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	store := c.String("store")
 
-	return s.Store.GitStatus(ctx, store)
+	return s.Store.RCSStatus(ctx, store)
 }

@@ -209,7 +209,7 @@ func (s *Action) generatePasswordXKCD(ctx context.Context, c *cli.Context, lengt
 func (s *Action) generateSetPassword(ctx context.Context, name, key, password string, kvps map[string]string) (context.Context, error) {
 	// set a single key in a yaml doc
 	if key != "" {
-		sec, ctx, err := s.Store.GetContext(ctx, name)
+		sec, err := s.Store.Get(ctx, name)
 		if err != nil {
 			return ctx, ExitError(ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
 		}
@@ -251,7 +251,7 @@ func (s *Action) generateSetPassword(ctx context.Context, name, key, password st
 }
 
 func (s *Action) generateReplaceExisting(ctx context.Context, name, key, password string, kvps map[string]string) (context.Context, error) {
-	sec, ctx, err := s.Store.GetContext(ctx, name)
+	sec, err := s.Store.Get(ctx, name)
 	if err != nil {
 		return ctx, ExitError(ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
 	}

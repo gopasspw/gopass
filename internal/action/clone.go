@@ -96,7 +96,7 @@ func (s *Action) clone(ctx context.Context, repo, mount, path string) error {
 	}
 
 	// initialize git config
-	if err := s.Store.GitInitConfig(ctx, mount, username, email); err != nil {
+	if err := s.Store.RCSInitConfig(ctx, mount, username, email); err != nil {
 		debug.Log("Stacktrace: %+v\n", err)
 		out.Error(ctx, "Failed to configure git: %s", err)
 	}

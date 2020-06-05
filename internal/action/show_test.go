@@ -122,6 +122,8 @@ func TestShowAutoClip(t *testing.T) {
 	// terminal=false
 	ctx = ctxutil.WithTerminal(ctx, false)
 
+	ctx = act.Store.WithContext(ctx)
+
 	// gopass show foo
 	// -> with AutoClip
 	// -> w/o terminal

@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/gopasspw/gopass/internal/gptest"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store/mockstore"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -65,11 +66,6 @@ func TestBinaryCat(t *testing.T) {
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = out.WithHidden(ctx, true)
 
-	app := cli.NewApp()
-	fs := flag.NewFlagSet("default", flag.ContinueOnError)
-	c := cli.NewContext(app, fs, nil)
-	c.Context = ctx
-
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
 	defer func() {
@@ -78,13 +74,24 @@ func TestBinaryCat(t *testing.T) {
 
 	infile := filepath.Join(tempdir, "input.txt")
 	assert.NoError(t, ioutil.WriteFile(infile, []byte("0xDEADBEEF"), 0644))
-	assert.NoError(t, binaryCopy(ctx, c, infile, "bar", true, store))
+	assert.NoError(t, binaryCopy(ctx, gptest.CliCtx(ctx, t), infile, "bar", true, store))
 
 	// binary cat bar
-	fs = flag.NewFlagSet("default", flag.ContinueOnError)
-	assert.NoError(t, fs.Parse([]string{"bar"}))
-	c = cli.NewContext(app, fs, nil)
-	assert.NoError(t, Cat(c, store))
+	assert.NoError(t, Cat(gptest.CliCtx(ctx, t, "bar"), store))
+
+	// binary cat baz from stdin
+	stdinfile := filepath.Join(tempdir, "stdin")
+	assert.NoError(t, ioutil.WriteFile(stdinfile, []byte("foo"), 0644))
+	fd, err := os.Open(stdinfile)
+	assert.NoError(t, err)
+	stdin = fd
+	defer func() {
+		stdin = os.Stdin
+	}()
+	assert.NoError(t, Cat(gptest.CliCtx(ctx, t, "baz"), store))
+	sec, err := binaryGet(ctx, "baz.b64", store)
+	require.NoError(t, err)
+	assert.Equal(t, "foo", string(sec))
 }
 
 func TestBinaryCopy(t *testing.T) {

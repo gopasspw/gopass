@@ -7,8 +7,6 @@ import (
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-
-	"github.com/blang/semver"
 )
 
 // RCS returns the sync backend
@@ -20,45 +18,40 @@ func (r *Store) RCS(ctx context.Context, name string) backend.RCS {
 	return sub.RCS()
 }
 
-// GitInit initializes the git repo
-func (r *Store) GitInit(ctx context.Context, name, userName, userEmail string) error {
+// RCSInit initializes the version control repo
+func (r *Store) RCSInit(ctx context.Context, name, userName, userEmail string) error {
 	ctx, store, _ := r.getStore(ctx, name)
 	ctx = ctxutil.WithUsername(ctx, userName)
 	ctx = ctxutil.WithEmail(ctx, userEmail)
 	return store.GitInit(ctx)
 }
 
-// GitInitConfig initializes the git repos local config
-func (r *Store) GitInitConfig(ctx context.Context, name, userName, userEmail string) error {
+// RCSInitConfig initializes the git repos local config
+func (r *Store) RCSInitConfig(ctx context.Context, name, userName, userEmail string) error {
 	ctx, store, _ := r.getStore(ctx, name)
 	return store.RCS().InitConfig(ctx, userName, userEmail)
 }
 
-// GitVersion returns git version information
-func (r *Store) GitVersion(ctx context.Context) semver.Version {
-	return r.store.RCS().Version(ctx)
-}
-
-// GitAddRemote adds a git remote
-func (r *Store) GitAddRemote(ctx context.Context, name, remote, url string) error {
+// RCSAddRemote adds a git remote
+func (r *Store) RCSAddRemote(ctx context.Context, name, remote, url string) error {
 	ctx, store, _ := r.getStore(ctx, name)
 	return store.RCS().AddRemote(ctx, remote, url)
 }
 
-// GitRemoveRemote removes a git remote
-func (r *Store) GitRemoveRemote(ctx context.Context, name, remote string) error {
+// RCSRemoveRemote removes a git remote
+func (r *Store) RCSRemoveRemote(ctx context.Context, name, remote string) error {
 	ctx, store, _ := r.getStore(ctx, name)
 	return store.RCS().RemoveRemote(ctx, remote)
 }
 
-// GitPull performs a git pull
-func (r *Store) GitPull(ctx context.Context, name, origin, remote string) error {
+// RCSPull performs a git pull
+func (r *Store) RCSPull(ctx context.Context, name, origin, remote string) error {
 	ctx, store, _ := r.getStore(ctx, name)
 	return store.RCS().Pull(ctx, origin, remote)
 }
 
-// GitPush performs a git push
-func (r *Store) GitPush(ctx context.Context, name, origin, remote string) error {
+// RCSPush performs a git push
+func (r *Store) RCSPush(ctx context.Context, name, origin, remote string) error {
 	ctx, store, _ := r.getStore(ctx, name)
 	return store.RCS().Push(ctx, origin, remote)
 }
@@ -76,8 +69,8 @@ func (r *Store) GetRevision(ctx context.Context, name, revision string) (context
 	return ctx, sec, err
 }
 
-// GitStatus show the git status
-func (r *Store) GitStatus(ctx context.Context, name string) error {
+// RCSStatus show the git status
+func (r *Store) RCSStatus(ctx context.Context, name string) error {
 	ctx, store, name := r.getStore(ctx, name)
 	out.Cyan(ctx, "Store: %s", store.Path())
 	return store.GitStatus(ctx, name)

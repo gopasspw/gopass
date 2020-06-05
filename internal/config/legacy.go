@@ -40,7 +40,7 @@ func (c *Pre193) CheckOverflow() error {
 	return checkOverflow(c.XXX)
 }
 
-// Config converts the Pre140 config to the current config struct
+// Config converts the Pre193 config to the current config struct
 func (c *Pre193) Config() *Config {
 	cfg := &Config{
 		AutoClip:          c.Root.AutoClip,

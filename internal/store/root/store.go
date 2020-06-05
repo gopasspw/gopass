@@ -30,6 +30,11 @@ func New(cfg *config.Config) *Store {
 	return r
 }
 
+// WithContext populates the context with the store config
+func (r *Store) WithContext(ctx context.Context) context.Context {
+	return r.cfg.WithContext(ctx)
+}
+
 // Exists checks the existence of a single entry
 func (r *Store) Exists(ctx context.Context, name string) bool {
 	_, store, name := r.getStore(ctx, name)

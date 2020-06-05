@@ -21,6 +21,70 @@ func TestConfigs(t *testing.T) {
 		cfg  string
 	}{
 		{
+			name: "1.9.3",
+			cfg: `autoclip: true
+autoimport: false
+cliptimeout: 45
+confirm: false
+editrecipients: true
+exportkeys: true
+nopager: false
+notifications: true
+path: /home/johndoe/.password-store
+safecontent: false
+mounts:
+  foo/sub: /home/johndoe/.password-store-foo-sub
+  work: /home/johndoe/.password-store-work`,
+		}, {
+			name: "1.8.2",
+			cfg: `root:
+  autoclip: true
+  autoimport: false
+  autosync: false
+  check_recipient_hash: false
+  cliptimeout: 45
+  concurrency: 50
+  editrecipients: true
+  exportkeys: true
+  confirm: false
+  nopager: false
+  notficiations: true
+  path: /home/johndoe/.password-store
+  safecontent: false
+  usesymbols: true
+mounts:
+  foo/sub:
+    autoclip: true
+    autoimport: false
+    autosync: false
+    check_recipient_hash: false
+    cliptimeout: 45
+    concurrency: 50
+    editrecipients: true
+    exportkeys: true
+    confirm: false
+    nopager: false
+    notficiations: true
+    path: /home/johndoe/.password-store-foo-sub
+    safecontent: false
+    usesymbols: true
+  work:
+    autoclip: true
+    autoimport: false
+    autosync: false
+    check_recipient_hash: false
+    cliptimeout: 45
+    concurrency: 50
+    editrecipients: true
+    exportkeys: true
+    confirm: false
+    nopager: false
+    notficiations: true
+    path: /home/johndoe/.password-store-work
+    safecontent: false
+    usesymbols: true
+`,
+		}, {
 			name: "1.4.0",
 			cfg: `root:
   askformore: false
