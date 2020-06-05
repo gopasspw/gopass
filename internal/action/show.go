@@ -90,7 +90,7 @@ func (s *Action) show(ctx context.Context, c *cli.Context, name string, recurse 
 		return s.showHandleRevision(ctx, c, name, GetRevision(ctx))
 	}
 
-	sec, ctx, err := s.Store.GetContext(ctx, name)
+	sec, err := s.Store.Get(ctx, name)
 	if err != nil {
 		return s.showHandleError(ctx, c, name, recurse, err)
 	}

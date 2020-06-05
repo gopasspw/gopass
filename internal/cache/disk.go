@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/gopasspw/gopass/internal/debug"
+	"github.com/gopasspw/gopass/pkg/appdir"
 	"github.com/gopasspw/gopass/pkg/fsutil"
 )
 
@@ -17,14 +19,11 @@ type OnDisk struct {
 
 // NewOnDisk creates a new on disk cache.
 func NewOnDisk(name string) (*OnDisk, error) {
-	ucd, err := os.UserCacheDir()
-	if err != nil {
-		return nil, err
-	}
-	d := filepath.Join(ucd, "gopass", name)
+	d := filepath.Join(appdir.UserCache(), "gopass", name)
 	if err := os.MkdirAll(d, 0755); err != nil {
 		return nil, err
 	}
+	debug.Log("New on disk cache %s created at %s", name, d)
 	return &OnDisk{
 		name: name,
 		dir:  d,

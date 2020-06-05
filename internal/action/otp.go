@@ -38,7 +38,7 @@ func (s *Action) OTP(c *cli.Context) error {
 }
 
 func (s *Action) otp(ctx context.Context, name, qrf string, clip, pw, recurse bool) error {
-	sec, ctx, err := s.Store.GetContext(ctx, name)
+	sec, err := s.Store.Get(ctx, name)
 	if err != nil {
 		return s.otpHandleError(ctx, name, qrf, clip, pw, recurse, err)
 	}

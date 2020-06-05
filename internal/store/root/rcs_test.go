@@ -25,7 +25,7 @@ func TestRCS(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.NotNil(t, rs.RCS(ctx, ""))
-	assert.NoError(t, rs.GitStatus(ctx, ""))
+	assert.NoError(t, rs.RCSStatus(ctx, ""))
 
 	revs, err := rs.ListRevisions(ctx, "foo")
 	assert.Error(t, err)

@@ -25,7 +25,4 @@ func TestGet(t *testing.T) {
 
 	_, err = rs.Get(ctx, "foo")
 	assert.NoError(t, err)
-
-	_, _, err = rs.GetContext(ctx, "foo")
-	assert.NoError(t, err)
 }
