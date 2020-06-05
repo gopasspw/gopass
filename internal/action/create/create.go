@@ -2,9 +2,7 @@ package create
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/url"
 	"strconv"
 	"strings"
@@ -14,11 +12,11 @@ import (
 	"github.com/gopasspw/gopass/internal/clipboard"
 	"github.com/gopasspw/gopass/internal/cui"
 	"github.com/gopasspw/gopass/internal/out"
-	"github.com/gopasspw/gopass/internal/store"
-	"github.com/gopasspw/gopass/internal/store/secret"
 	"github.com/gopasspw/gopass/internal/termio"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/fsutil"
+	"github.com/gopasspw/gopass/pkg/gopass"
+	gpsec "github.com/gopasspw/gopass/pkg/gopass/secret"
 	"github.com/gopasspw/gopass/pkg/pwgen"
 	"github.com/martinhoefling/goxkcdpwgen/xkcdpwgen"
 	"github.com/urfave/cli/v2"
@@ -29,10 +27,8 @@ const (
 )
 
 type storer interface {
-	//Get(context.Context, string) (store.Secret, error)
-	Set(context.Context, string, store.Byter) error
+	Set(context.Context, string, gopass.Byter) error
 	Exists(context.Context, string) bool
-	//Delete(context.Context, string) error
 	MountPoints() []string
 }
 
@@ -53,8 +49,6 @@ func Create(c *cli.Context, store storer) error {
 	acts = append(acts, cui.Action{Name: "Website Login", Fn: s.createWebsite})
 	acts = append(acts, cui.Action{Name: "PIN Code (numerical)", Fn: s.createPIN})
 	acts = append(acts, cui.Action{Name: "Generic", Fn: s.createGeneric})
-	acts = append(acts, cui.Action{Name: "AWS Secret Key", Fn: s.createAWS})
-	acts = append(acts, cui.Action{Name: "GCP Service Account", Fn: s.createGCP})
 	act, sel := cui.GetSelection(ctx, "Please select the type of secret you would like to create", acts.Selection())
 	switch act {
 	case "default":
@@ -150,10 +144,11 @@ func (s *creator) createWebsite(ctx context.Context, c *cli.Context) error {
 		}
 	}
 
-	sec := secret.New(password, "")
-	_ = sec.SetValue("url", urlStr)
-	_ = sec.SetValue("username", username)
-	_ = sec.SetValue("comment", comment)
+	sec := gpsec.New()
+	sec.Set("password", password)
+	sec.Set("url", urlStr)
+	sec.Set("username", username)
+	sec.Set("comment", comment)
 	if err := s.store.Set(ctxutil.WithCommitMessage(ctx, "Created new entry"), name, sec); err != nil {
 		return action.ExitError(action.ExitEncrypt, err, "failed to set '%s': %s", name, err)
 	}
@@ -241,165 +236,15 @@ func (s *creator) createPIN(ctx context.Context, c *cli.Context) error {
 			return err
 		}
 	}
-	sec := secret.New(password, "")
-	_ = sec.SetValue("application", application)
-	_ = sec.SetValue("comment", comment)
+	sec := gpsec.New()
+	sec.Set("password", password)
+	sec.Set("application", application)
+	sec.Set("comment", comment)
 	if err := s.store.Set(ctxutil.WithCommitMessage(ctx, "Created new entry"), name, sec); err != nil {
 		return action.ExitError(action.ExitEncrypt, err, "failed to set '%s': %s", name, err)
 	}
 
 	return s.createPrintOrCopy(ctx, c, name, password, genPw)
-}
-
-// createAWS will walk through the AWS credential creation wizard
-func (s *creator) createAWS(ctx context.Context, c *cli.Context) error {
-	var (
-		account   = c.Args().Get(0)
-		username  = c.Args().Get(1)
-		accesskey = c.Args().Get(2)
-		secretkey string
-		password  string
-		region    string
-		store     = c.String("store")
-		err       error
-	)
-	out.Green(ctx, "=> Creating AWS credentials ...")
-	account, err = termio.AskForString(ctx, fmtfn(2, "1", "AWS Account"), account)
-	if err != nil {
-		return err
-	}
-	if account == "" {
-		return action.ExitError(action.ExitUnknown, nil, "Account must not be empty")
-	}
-	username, err = termio.AskForString(ctx, fmtfn(2, "2", "AWS IAM User"), username)
-	if err != nil {
-		return err
-	}
-	if username == "" {
-		return action.ExitError(action.ExitUnknown, nil, "Username must not be empty")
-	}
-	password, err = termio.AskForString(ctx, fmtfn(2, "3", "AWS Account Password"), password)
-	if err != nil {
-		return err
-	}
-	accesskey, err = termio.AskForString(ctx, fmtfn(2, "4", "AWS_ACCESS_KEY_ID"), accesskey)
-	if err != nil {
-		return err
-	}
-	secretkey, err = termio.AskForPassword(ctx, "AWS_SECRET_ACCESS_KEY")
-	if err != nil {
-		return err
-	}
-	region, _ = termio.AskForString(ctx, fmtfn(2, "5", "AWS_DEFAULT_REGION"), "")
-
-	// select store
-	if store == "" {
-		store = cui.AskForStore(ctx, s.store)
-	}
-
-	// generate name, ask for override if already taken
-	if store != "" {
-		store += "/"
-	}
-	name := fmt.Sprintf("%saws/iam/%s/%s", store, fsutil.CleanFilename(account), fsutil.CleanFilename(username))
-	if s.store.Exists(ctx, name) {
-		name, err = termio.AskForString(ctx, "Secret already exists, please choose another path", name)
-		if err != nil {
-			return err
-		}
-	}
-	sec := secret.New(password, "")
-	_ = sec.SetValue("account", account)
-	_ = sec.SetValue("username", username)
-	_ = sec.SetValue("accesskey", accesskey)
-	_ = sec.SetValue("secretkey", secretkey)
-	_ = sec.SetValue("region", region)
-	if err := s.store.Set(ctxutil.WithCommitMessage(ctx, "Created new entry"), name, sec); err != nil {
-		return action.ExitError(action.ExitEncrypt, err, "failed to set '%s': %s", name, err)
-	}
-	return nil
-}
-
-// createGCP will walk through the GCP credential creation wizard
-func (s *creator) createGCP(ctx context.Context, c *cli.Context) error {
-	var (
-		project  string
-		username string
-		svcaccfn = c.Args().Get(0)
-		store    = c.String("store")
-		err      error
-	)
-	out.Green(ctx, "=> Creating GCP credentials ...")
-	svcaccfn, err = termio.AskForString(ctx, fmtfn(2, "1", "Service Account JSON"), svcaccfn)
-	if err != nil {
-		return err
-	}
-	buf, err := ioutil.ReadFile(svcaccfn)
-	if err != nil {
-		return err
-	}
-	username, project, err = extractGCPInfo(buf)
-	if err != nil {
-		return err
-	}
-	if username == "" {
-		username, err = termio.AskForString(ctx, fmtfn(4, "a", "Account name"), "")
-		if err != nil {
-			return err
-		}
-	}
-	if username == "" {
-		return action.ExitError(action.ExitUnknown, nil, "Username must not be empty")
-	}
-	if project == "" {
-		project, err = termio.AskForString(ctx, fmtfn(4, "b", "Project name"), "")
-		if err != nil {
-			return err
-		}
-	}
-	if project == "" {
-		return action.ExitError(action.ExitUnknown, nil, "Project must not be empty")
-	}
-
-	// select store
-	if store == "" {
-		store = cui.AskForStore(ctx, s.store)
-	}
-
-	// generate name, ask for override if already taken
-	if store != "" {
-		store += "/"
-	}
-	name := fmt.Sprintf("%sgcp/iam/%s/%s", store, fsutil.CleanFilename(project), fsutil.CleanFilename(username))
-	if s.store.Exists(ctx, name) {
-		name, err = termio.AskForString(ctx, fmtfn(2, "2", "Secret already exists, please choose another path"), name)
-		if err != nil {
-			return err
-		}
-	}
-	sec := secret.New("", string(buf))
-	if err := s.store.Set(ctxutil.WithCommitMessage(ctx, "Created new entry"), name, sec); err != nil {
-		return action.ExitError(action.ExitEncrypt, err, "failed to set '%s': %s", name, err)
-	}
-	return nil
-}
-
-// extractGCPInfo will extract the GCP details from the given json blob
-func extractGCPInfo(buf []byte) (string, string, error) {
-	var m map[string]string
-	if err := json.Unmarshal(buf, &m); err != nil {
-		return "", "", err
-	}
-	p := strings.Split(m["client_email"], "@")
-	if len(p) < 2 {
-		return "", "", fmt.Errorf("client_email contains no email")
-	}
-	username := p[0]
-	p = strings.Split(p[1], ".")
-	if len(p) < 1 {
-		return username, "", fmt.Errorf("hostname contains not enough separators")
-	}
-	return username, p[0], nil
 }
 
 // createGeneric will walk through the generic secret wizard
@@ -451,7 +296,8 @@ func (s *creator) createGeneric(ctx context.Context, c *cli.Context) error {
 			return err
 		}
 	}
-	sec := secret.New(password, "")
+	sec := gpsec.New()
+	sec.Set("password", password)
 	out.Print(ctx, fmtfn(2, "3", "Enter zero or more key value pairs for this secret:"))
 	for {
 		key, err := termio.AskForString(ctx, fmtfn(4, "a", "Name (enter to quit)"), "")
@@ -465,7 +311,7 @@ func (s *creator) createGeneric(ctx context.Context, c *cli.Context) error {
 		if err != nil {
 			return err
 		}
-		_ = sec.SetValue(key, val)
+		sec.Set(key, val)
 	}
 	if err := s.store.Set(ctxutil.WithCommitMessage(ctx, "Created new entry"), name, sec); err != nil {
 		return action.ExitError(action.ExitEncrypt, err, "failed to set '%s': %s", name, err)

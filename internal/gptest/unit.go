@@ -13,13 +13,12 @@ import (
 )
 
 const (
-	gopassConfig = `root:
-  autoclip: true
-  autoimport: true
-  cliptimeout: 45
-  confirm: false
-  exportkeys: true
-  notifications: true`
+	gopassConfig = `autoclip: true
+autoimport: true
+cliptimeout: 45
+confirm: false
+exportkeys: true
+notifications: true`
 )
 
 var (
@@ -80,7 +79,7 @@ func NewUnitTester(t *testing.T) *Unit {
 func (u Unit) initConfig() error {
 	return ioutil.WriteFile(
 		u.GPConfig(),
-		[]byte(gopassConfig+"\n  path: "+u.StoreDir("")+"\n"),
+		[]byte(gopassConfig+"\npath: "+u.StoreDir("")+"\n"),
 		0600,
 	)
 }

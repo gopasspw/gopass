@@ -6,11 +6,12 @@ import (
 	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
-	"github.com/gopasspw/gopass/internal/store/secret"
+	"github.com/gopasspw/gopass/pkg/gopass"
+	"github.com/gopasspw/gopass/pkg/gopass/secret/secparse"
 )
 
 // Get returns the plaintext of a single key
-func (s *Store) Get(ctx context.Context, name string) (store.Secret, error) {
+func (s *Store) Get(ctx context.Context, name string) (gopass.Secret, error) {
 	p := s.passfile(name)
 
 	ciphertext, err := s.storage.Get(ctx, p)
@@ -25,9 +26,9 @@ func (s *Store) Get(ctx context.Context, name string) (store.Secret, error) {
 		return nil, store.ErrDecrypt
 	}
 
-	sec, err := secret.Parse(content)
+	sec, err := secparse.Parse(content)
 	if err != nil {
-		debug.Log("Failed to parse YAML: %s", err)
+		debug.Log("Failed to parse secret: %s", err)
 	}
 	return sec, nil
 }

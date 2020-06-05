@@ -4,9 +4,7 @@ import (
 	"bytes"
 	"context"
 	"flag"
-	"io/ioutil"
 	"os"
-	"path/filepath"
 	"strings"
 	"testing"
 
@@ -199,93 +197,5 @@ y
 	c := cli.NewContext(app, fs, nil)
 
 	assert.NoError(t, s.createGeneric(ctx, c))
-	buf.Reset()
-}
-
-func TestCreateAWS(t *testing.T) {
-	aclip.Unsupported = true
-	s := creator{mockstore.New("")}
-
-	ctx := context.Background()
-	ctx = ctxutil.WithAlwaysYes(ctx, true)
-	ctx = ctxutil.WithTerminal(ctx, false)
-	ctx = ctxutil.WithClipTimeout(ctx, 1)
-	ctx = ctxutil.WithNotifications(ctx, false)
-
-	buf := &bytes.Buffer{}
-	out.Stdout = buf
-	out.Stderr = buf
-	termio.Stdout = buf
-	defer func() {
-		out.Stdout = os.Stdout
-		out.Stderr = os.Stderr
-		termio.Stdout = os.Stdout
-	}()
-
-	// provide values on redirected stdin
-	input := `account
-user
-ACCESSKEY
-SECRETKEY
-SECRETKEY
-
-`
-	termio.Stdin = strings.NewReader(input)
-	ctx = ctxutil.WithAlwaysYes(ctx, false)
-	defer func() {
-		termio.Stdin = os.Stdin
-	}()
-
-	app := cli.NewApp()
-	// create
-	fs := flag.NewFlagSet("default", flag.ContinueOnError)
-	c := cli.NewContext(app, fs, nil)
-
-	assert.NoError(t, s.createAWS(ctx, c))
-	buf.Reset()
-}
-
-func TestCreateGCP(t *testing.T) {
-	aclip.Unsupported = true
-	tempdir, err := ioutil.TempDir("", "gopass-")
-	assert.NoError(t, err)
-	defer func() {
-		_ = os.RemoveAll(tempdir)
-	}()
-
-	s := creator{mockstore.New("")}
-
-	ctx := context.Background()
-	ctx = ctxutil.WithAlwaysYes(ctx, true)
-	ctx = ctxutil.WithClipTimeout(ctx, 1)
-	ctx = ctxutil.WithNotifications(ctx, false)
-
-	buf := &bytes.Buffer{}
-	out.Stdout = buf
-	termio.Stdout = buf
-	defer func() {
-		out.Stdout = os.Stdout
-		termio.Stdout = os.Stdout
-	}()
-
-	tf := filepath.Join(tempdir, "service-account.json")
-	assert.NoError(t, ioutil.WriteFile(tf, []byte(`{"client_email": "foobar@example.org"}`), 0600))
-	// provide values on redirected stdin
-	input := tf
-	input += `
-
-`
-	termio.Stdin = strings.NewReader(input)
-	ctx = ctxutil.WithAlwaysYes(ctx, false)
-	defer func() {
-		termio.Stdin = os.Stdin
-	}()
-
-	app := cli.NewApp()
-	// create
-	fs := flag.NewFlagSet("default", flag.ContinueOnError)
-	c := cli.NewContext(app, fs, nil)
-
-	assert.NoError(t, s.createGCP(ctx, c))
 	buf.Reset()
 }

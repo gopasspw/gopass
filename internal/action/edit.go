@@ -8,8 +8,9 @@ import (
 	"github.com/gopasspw/gopass/internal/audit"
 	"github.com/gopasspw/gopass/internal/editor"
 	"github.com/gopasspw/gopass/internal/out"
-	"github.com/gopasspw/gopass/internal/store/secret"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/gopass/secret"
+	"github.com/gopasspw/gopass/pkg/gopass/secret/secparse"
 	"github.com/gopasspw/gopass/pkg/pwgen"
 
 	"github.com/urfave/cli/v2"
@@ -35,10 +36,18 @@ func (s *Action) edit(ctx context.Context, c *cli.Context, name string) error {
 		return err
 	}
 
+	fromMIME := false
+	if bytes.HasPrefix(content, []byte(secret.Ident)) {
+		fromMIME = true
+		content = bytes.TrimPrefix(content, []byte(secret.Ident+"\n"))
+	}
 	// invoke the editor to let the user edit the content
 	nContent, err := editor.Invoke(ctx, ed, content)
 	if err != nil {
 		return ExitError(ExitUnknown, err, "failed to invoke editor: %s", err)
+	}
+	if fromMIME {
+		nContent = append([]byte(secret.Ident+"\n"), nContent...)
 	}
 
 	return s.editUpdate(ctx, name, content, nContent, changed, ed)
@@ -50,13 +59,13 @@ func (s *Action) editUpdate(ctx context.Context, name string, content, nContent 
 		return nil
 	}
 
-	nSec, err := secret.Parse(nContent)
+	nSec, err := secparse.Parse(nContent)
 	if err != nil {
 		out.Error(ctx, "WARNING: Invalid YAML: %s", err)
 	}
 
 	// if the secret has a password, we check it's strength
-	if pw := nSec.Password(); pw != "" {
+	if pw := nSec.Get("password"); pw != "" {
 		audit.Single(ctx, pw)
 	}
 
@@ -86,11 +95,7 @@ func (s *Action) editGetContent(ctx context.Context, name string, create bool) (
 		if err != nil {
 			return name, nil, false, ExitError(ExitDecrypt, err, "failed to decrypt %s: %s", name, err)
 		}
-		content, err := sec.Bytes()
-		if err != nil {
-			return name, nil, false, ExitError(ExitDecrypt, err, "failed to decode %s: %s", name, err)
-		}
-		return name, content, false, nil
+		return name, sec.Bytes(), false, nil
 	}
 
 	if !create {

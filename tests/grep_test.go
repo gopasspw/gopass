@@ -25,5 +25,5 @@ func TestGrep(t *testing.T) {
 
 	out, err = ts.run("grep moar")
 	assert.Error(t, err)
-	assert.Equal(t, "fixed/secret:\nmoar\n\nError: no matches found\n", out)
+	assert.Contains(t, out, "fixed/secret matches")
 }

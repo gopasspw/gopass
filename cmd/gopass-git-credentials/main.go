@@ -7,7 +7,7 @@ import (
 	"os/signal"
 
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"github.com/gopasspw/gopass/pkg/gopass"
+	"github.com/gopasspw/gopass/pkg/gopass/api"
 	"github.com/urfave/cli/v2"
 )
 
@@ -40,7 +40,7 @@ func main() {
 		ctx = ctxutil.WithStdin(ctx, true)
 	}
 
-	gp, err := gopass.New(ctx)
+	gp, err := api.New(ctx)
 	if err != nil {
 		panic(err)
 	}

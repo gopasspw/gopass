@@ -11,6 +11,8 @@ import (
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/gopass"
+	"github.com/gopasspw/gopass/pkg/gopass/secret"
 	"github.com/gopasspw/gopass/pkg/qrcon"
 
 	"github.com/pkg/errors"
@@ -109,11 +111,8 @@ func (s *Action) showHandleRevision(ctx context.Context, c *cli.Context, name, r
 }
 
 // showHandleOutput displays a secret
-func (s *Action) showHandleOutput(ctx context.Context, name string, sec store.Secret) error {
-	pw, body, err := s.showGetContent(ctx, name, sec)
-	if err != nil {
-		return err
-	}
+func (s *Action) showHandleOutput(ctx context.Context, name string, sec gopass.Secret) error {
+	pw, body := s.showGetContent(ctx, sec)
 
 	if ctxutil.IsAutoClip(ctx) {
 		ctx = WithClip(ctx, true)
@@ -142,42 +141,45 @@ func (s *Action) showHandleOutput(ctx context.Context, name string, sec store.Se
 	return nil
 }
 
-func (s *Action) showGetContent(ctx context.Context, name string, sec store.Secret) (string, string, error) {
+func (s *Action) showGetContent(ctx context.Context, sec gopass.Secret) (string, string) {
 	// YAML key
 	if HasKey(ctx) {
-		key := GetKey(ctx)
-		val, err := sec.Value(key)
-		if err != nil {
-			return "", "", s.showHandleYAMLError(name, key, err)
-		}
-		return val, val, nil
+		val := sec.Get(GetKey(ctx))
+		return val, val
 	}
 
 	// first line of the secret only
 	if IsPrintQR(ctx) || IsOnlyClip(ctx) {
-		return sec.Password(), "", nil
+		return sec.Get("password"), ""
 	}
 	if IsPasswordOnly(ctx) {
-		return sec.Password(), sec.Password(), nil
+		return sec.Get("password"), sec.Get("password")
 	}
 	if ctxutil.IsAutoClip(ctx) && !ctxutil.IsForce(ctx) && !IsAlsoClip(ctx) {
-		return sec.Password(), "", nil
+		return sec.Get("password"), ""
 	}
 
 	// everything but the first line
 	if ctxutil.IsShowSafeContent(ctx) && !ctxutil.IsForce(ctx) {
-		if IsAlsoClip(ctx) {
-			return sec.Password(), sec.Body(), nil
+		var sb strings.Builder
+		for _, k := range sec.Keys() {
+			if k == "Password" {
+				continue
+			}
+			sb.WriteString(k)
+			sb.WriteString(": ")
+			sb.WriteString(sec.Get(k))
 		}
-		return "", sec.Body(), nil
+		sb.WriteString(sec.GetBody())
+		if IsAlsoClip(ctx) {
+			return sec.Get("password"), sb.String()
+		}
+		return "", sb.String()
 	}
 
 	// everything (default)
-	buf, err := sec.Bytes()
-	if err != nil {
-		return "", "", ExitError(ExitUnknown, err, "failed to encode secret: %s", err)
-	}
-	return sec.Password(), string(buf), nil
+	fullBody := strings.TrimPrefix(string(sec.Bytes()), secret.Ident+"\n")
+	return sec.Get("password"), fullBody
 }
 
 // showHandleError handles errors retrieving secrets

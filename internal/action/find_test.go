@@ -11,8 +11,8 @@ import (
 
 	"github.com/gopasspw/gopass/internal/gptest"
 	"github.com/gopasspw/gopass/internal/out"
-	"github.com/gopasspw/gopass/internal/store/secret"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/gopass/secret"
 	"github.com/urfave/cli/v2"
 
 	"github.com/fatih/color"
@@ -92,8 +92,11 @@ func TestFind(t *testing.T) {
 	buf.Reset()
 
 	// add some secrets
-	assert.NoError(t, act.Store.Set(ctx, "bar/baz", secret.New("foo", "bar")))
-	assert.NoError(t, act.Store.Set(ctx, "bar/zab", secret.New("foo", "bar")))
+	sec := secret.New()
+	sec.Set("password", "foo")
+	sec.WriteString("bar")
+	assert.NoError(t, act.Store.Set(ctx, "bar/baz", sec))
+	assert.NoError(t, act.Store.Set(ctx, "bar/zab", sec))
 	buf.Reset()
 
 	// find bar

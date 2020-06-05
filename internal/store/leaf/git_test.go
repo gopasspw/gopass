@@ -59,10 +59,11 @@ func TestGitRevisions(t *testing.T) {
 	assert.Equal(t, "noop", s.RCS().Name())
 	assert.NoError(t, s.RCS().InitConfig(ctx, "foo", "bar@baz.com"))
 
-	_, err = s.ListRevisions(ctx, "foo")
-	assert.Error(t, err)
+	revs, err := s.ListRevisions(ctx, "foo")
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(revs))
 
 	sec, err := s.GetRevision(ctx, "foo", "bar")
 	require.NoError(t, err)
-	assert.Equal(t, "foo", sec.Password())
+	assert.Equal(t, "foo", sec.Get("password"))
 }

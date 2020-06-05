@@ -34,25 +34,43 @@ func TestInsert(t *testing.T) {
 		out.Stdout = os.Stdout
 	}()
 
-	// insert bar
-	assert.NoError(t, act.Insert(gptest.CliCtx(ctx, t, "bar")))
+	t.Run("insert bar", func(t *testing.T) {
+		assert.NoError(t, act.Insert(gptest.CliCtx(ctx, t, "bar")))
+		buf.Reset()
+	})
 
-	// insert bar baz
-	assert.NoError(t, act.Insert(gptest.CliCtx(ctx, t, "bar", "baz")))
+	t.Run("insert bar baz", func(t *testing.T) {
+		assert.NoError(t, act.Insert(gptest.CliCtx(ctx, t, "bar", "baz")))
+		buf.Reset()
+	})
 
-	// insert baz via stdin
-	assert.NoError(t, act.insertStdin(ctx, "baz", []byte("foobar"), false))
-	buf.Reset()
+	t.Run("insert baz via stdin w/o newline", func(t *testing.T) {
+		assert.NoError(t, act.insertStdin(ctx, "baz", []byte("foobar"), false))
+		buf.Reset()
 
-	assert.NoError(t, act.show(ctx, gptest.CliCtx(ctx, t), "baz", false))
-	assert.Equal(t, "foobar", buf.String())
-	buf.Reset()
+		assert.NoError(t, act.show(ctx, gptest.CliCtx(ctx, t), "baz", false))
+		assert.Equal(t, "\nfoobar", buf.String())
+		buf.Reset()
+	})
 
-	// insert zab#key
-	assert.NoError(t, act.insertYAML(ctx, "zab", "key", []byte("foobar"), nil))
+	t.Run("insert baz via stdin w/ newline", func(t *testing.T) {
+		assert.NoError(t, act.insertStdin(ctx, "baz", []byte("foobar\n"), false))
+		buf.Reset()
 
-	// insert --multiline bar baz
-	assert.NoError(t, act.Insert(gptest.CliCtxWithFlags(ctx, t, map[string]string{"multiline": "true"}, "bar", "baz")))
+		assert.NoError(t, act.show(ctx, gptest.CliCtx(ctx, t), "baz", false))
+		assert.Equal(t, "\nfoobar\n", buf.String())
+		buf.Reset()
+	})
+
+	t.Run("insert zab#key", func(t *testing.T) {
+		assert.NoError(t, act.insertYAML(ctx, "zab", "key", []byte("foobar"), nil))
+		buf.Reset()
+	})
+
+	t.Run("insert --multiline bar baz", func(t *testing.T) {
+		assert.NoError(t, act.Insert(gptest.CliCtxWithFlags(ctx, t, map[string]string{"multiline": "true"}, "bar", "baz")))
+		buf.Reset()
+	})
 }
 
 func TestInsertStdin(t *testing.T) {

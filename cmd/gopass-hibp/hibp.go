@@ -129,13 +129,13 @@ func (s *hibp) precomputeHashes(ctx context.Context) (map[string]string, []strin
 		// comparing the body is super hard, as every user may choose to use
 		// the body of a secret differently. In the future we may support
 		// go templates to extract and compare data from the body
-		sec, err := s.gp.Get(ctx, secret)
+		sec, err := s.gp.Get(ctx, secret, "latest")
 		if err != nil {
 			out.Print(ctx, "\n"+color.YellowString("Failed to retrieve secret '%s': %s", secret, err))
 			continue
 		}
 
-		pw := sec.Password()
+		pw := sec.Get("password")
 		// do not check empty passwords, there should be caught by `gopass audit`
 		// anyway
 		if len(pw) < 1 {

@@ -39,8 +39,6 @@ func initDebug() bool {
 	initDebugTags()
 	logFn = doLog
 
-	fmt.Fprintf(Stderr, "debug enabled\n")
-
 	return true
 }
 
@@ -49,8 +47,6 @@ func initDebugLogger() {
 	if debugfile == "" {
 		return
 	}
-
-	fmt.Fprintf(Stderr, "debug log file %v\n", debugfile)
 
 	f, err := os.OpenFile(debugfile, os.O_WRONLY|os.O_APPEND, 0600)
 	if err == nil {

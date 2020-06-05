@@ -10,11 +10,13 @@ import (
 	"strings"
 
 	"github.com/gopasspw/gopass/internal/clipboard"
+	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/internal/out"
-	"github.com/gopasspw/gopass/internal/store"
-	"github.com/gopasspw/gopass/internal/store/secret"
 	"github.com/gopasspw/gopass/internal/termio"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/gopass"
+	"github.com/gopasspw/gopass/pkg/gopass/secret"
+	"github.com/gopasspw/gopass/pkg/gopass/secret/secparse"
 	"github.com/gopasspw/gopass/pkg/pwgen"
 	"github.com/gopasspw/gopass/pkg/pwgen/xkcdgen"
 
@@ -209,14 +211,13 @@ func (s *Action) generatePasswordXKCD(ctx context.Context, c *cli.Context, lengt
 func (s *Action) generateSetPassword(ctx context.Context, name, key, password string, kvps map[string]string) (context.Context, error) {
 	// set a single key in a yaml doc
 	if key != "" {
-		sec, err := s.Store.Get(ctx, name)
+		gs, err := s.Store.Get(ctx, name)
 		if err != nil {
 			return ctx, ExitError(ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
 		}
+		sec := gs.MIME()
 		setMetadata(sec, kvps)
-		if err := sec.SetValue(key, password); err != nil {
-			return ctx, ExitError(ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
-		}
+		sec.Set(key, password)
 		if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, "Generated password for YAML key"), name, sec); err != nil {
 			return ctx, ExitError(ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
 		}
@@ -234,16 +235,20 @@ func (s *Action) generateSetPassword(ctx context.Context, name, key, password st
 
 	// generate a completely new secret
 	var err error
-	sec := secret.New(password, "")
+	var sec gopass.Secret
+	sec = secret.New()
+	sec.Set("password", password)
 
 	if content, found := s.renderTemplate(ctx, name, []byte(password)); found {
-		nSec, err := secret.Parse(content)
+		nSec, err := secparse.Parse(content)
 		if err == nil {
 			sec = nSec
+		} else {
+			debug.Log("failed to parse template: %s", err)
 		}
 	}
 
-	ctx, err = s.Store.SetContext(ctxutil.WithCommitMessage(ctx, "Generated Password"), name, sec)
+	err = s.Store.Set(ctxutil.WithCommitMessage(ctx, "Generated Password"), name, sec)
 	if err != nil {
 		return ctx, ExitError(ExitEncrypt, err, "failed to create '%s': %s", name, err)
 	}
@@ -256,16 +261,16 @@ func (s *Action) generateReplaceExisting(ctx context.Context, name, key, passwor
 		return ctx, ExitError(ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
 	}
 	setMetadata(sec, kvps)
-	sec.SetPassword(password)
+	sec.Set("password", password)
 	if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, "Generated password for YAML key"), name, sec); err != nil {
 		return ctx, ExitError(ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
 	}
 	return ctx, nil
 }
 
-func setMetadata(sec store.Secret, kvps map[string]string) {
+func setMetadata(sec gopass.Secret, kvps map[string]string) {
 	for k, v := range kvps {
-		_ = sec.SetValue(k, v)
+		sec.Set(k, v)
 	}
 }
 

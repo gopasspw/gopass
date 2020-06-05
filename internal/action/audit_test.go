@@ -8,8 +8,8 @@ import (
 
 	"github.com/gopasspw/gopass/internal/gptest"
 	"github.com/gopasspw/gopass/internal/out"
-	"github.com/gopasspw/gopass/internal/store/secret"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/gopass/secret"
 
 	"github.com/muesli/goprogressbar"
 	"github.com/stretchr/testify/assert"
@@ -37,24 +37,28 @@ func TestAudit(t *testing.T) {
 		goprogressbar.Stdout = os.Stdout
 	}()
 
-	// add some entries
-	assert.NoError(t, act.Store.Set(ctx, "bar", secret.New("123", "")))
-	assert.NoError(t, act.Store.Set(ctx, "baz", secret.New("123", "")))
+	t.Run("expect audit complaints on very weak passwords", func(t *testing.T) {
+		sec := secret.New()
+		sec.Set("password", "123")
+		assert.NoError(t, act.Store.Set(ctx, "bar", sec))
+		assert.NoError(t, act.Store.Set(ctx, "baz", sec))
 
-	assert.Error(t, act.Audit(gptest.CliCtx(ctx, t)))
-	buf.Reset()
+		assert.Error(t, act.Audit(gptest.CliCtx(ctx, t)))
+		buf.Reset()
+	})
 
-	// test with filter
-	c := gptest.CliCtx(ctx, t, "foo")
-	assert.Error(t, act.Audit(c))
-	buf.Reset()
+	t.Run("test with filter and very passwords", func(t *testing.T) {
+		c := gptest.CliCtx(ctx, t, "foo")
+		assert.Error(t, act.Audit(c))
+		buf.Reset()
+	})
 
-	// test empty store
-	for _, v := range []string{"foo", "bar", "baz"} {
-		assert.NoError(t, act.Store.Delete(ctx, v))
-	}
-	assert.NoError(t, act.Audit(gptest.CliCtx(ctx, t)))
-	assert.Contains(t, "No secrets found", buf.String())
-	buf.Reset()
-
+	t.Run("test empty store", func(t *testing.T) {
+		for _, v := range []string{"foo", "bar", "baz"} {
+			assert.NoError(t, act.Store.Delete(ctx, v))
+		}
+		assert.NoError(t, act.Audit(gptest.CliCtx(ctx, t)))
+		assert.Contains(t, "No secrets found", buf.String())
+		buf.Reset()
+	})
 }

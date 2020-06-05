@@ -5,20 +5,15 @@ import (
 	"strings"
 
 	"github.com/gokyle/twofactor"
+	"github.com/gopasspw/gopass/pkg/gopass"
 	"github.com/pkg/errors"
 )
 
-type otpSecret interface {
-	Body() string
-	Value(string) (string, error)
-	Password() string
-}
-
 // Calculate will compute a OTP code from a given secret
-func Calculate(name string, sec otpSecret) (twofactor.OTP, string, error) {
+func Calculate(name string, sec gopass.Secret) (twofactor.OTP, string, error) {
 	otpURL := ""
 	// check body
-	for _, line := range strings.Split(sec.Body(), "\n") {
+	for _, line := range strings.Split(sec.GetBody(), "\n") {
 		if strings.HasPrefix(line, "otpauth://") {
 			otpURL = line
 			break
@@ -31,9 +26,9 @@ func Calculate(name string, sec otpSecret) (twofactor.OTP, string, error) {
 	// check yaml entry and fall back to password if we don't have one
 	label := name
 
-	secKey, err := sec.Value("totp")
-	if err != nil {
-		secKey = sec.Password()
+	secKey := sec.Get("totp")
+	if secKey == "" {
+		secKey = sec.Get("password")
 	}
 
 	if strings.HasPrefix(secKey, "otpauth://") {

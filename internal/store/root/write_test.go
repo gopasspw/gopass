@@ -6,8 +6,8 @@ import (
 
 	"github.com/gopasspw/gopass/internal/gptest"
 	"github.com/gopasspw/gopass/internal/out"
-	"github.com/gopasspw/gopass/internal/store/secret"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/gopass/secret"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -24,9 +24,11 @@ func TestSet(t *testing.T) {
 	rs, err := createRootStore(ctx, u)
 	require.NoError(t, err)
 
-	assert.NoError(t, rs.Set(ctx, "zab", secret.New("foo", "bar")))
+	sec := secret.New()
+	sec.Set("password", "foo")
+	sec.WriteString("bar")
+	assert.NoError(t, rs.Set(ctx, "zab", sec))
 
-	ctx, err = rs.SetContext(ctx, "zab2", secret.New("foo", "bar"))
+	err = rs.Set(ctx, "zab2", sec)
 	assert.NoError(t, err)
-	assert.NotNil(t, ctx)
 }

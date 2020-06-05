@@ -8,8 +8,8 @@ import (
 
 	"github.com/gopasspw/gopass/internal/gptest"
 	"github.com/gopasspw/gopass/internal/out"
-	"github.com/gopasspw/gopass/internal/store/secret"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/gopass/secret"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -36,7 +36,10 @@ func TestGrep(t *testing.T) {
 	buf.Reset()
 
 	// add some secret
-	assert.NoError(t, act.Store.Set(ctx, "foo", secret.New("foobar", "foobar")))
+	sec := secret.New()
+	sec.Set("password", "foobar")
+	sec.WriteString("foobar")
+	assert.NoError(t, act.Store.Set(ctx, "foo", sec))
 	assert.Error(t, act.Grep(c))
 	buf.Reset()
 }

@@ -10,8 +10,8 @@ import (
 
 	"github.com/gopasspw/gopass/internal/clipboard"
 	"github.com/gopasspw/gopass/internal/otp"
-	"github.com/gopasspw/gopass/internal/store/secret"
 	"github.com/gopasspw/gopass/pkg/gopass"
+	"github.com/gopasspw/gopass/pkg/gopass/secret"
 	"github.com/gopasspw/gopass/pkg/pwgen"
 
 	"github.com/pkg/errors"
@@ -115,32 +115,14 @@ func (api *API) respondGetLogin(ctx context.Context, msgBytes []byte) error {
 		return errors.Wrapf(err, "failed to unmarshal JSON message")
 	}
 
-	sec, err := api.Store.Get(ctx, message.Entry)
+	sec, err := api.Store.Get(ctx, message.Entry, "latest")
 	if err != nil {
 		return errors.Wrapf(err, "failed to get secret")
 	}
 
-	data := sec.Data()
-	fields := data["login_fields"]
-	if fields != nil {
-		switch fields.(type) {
-		case map[interface{}]interface{}:
-			stringMap := map[string]interface{}{}
-			for k, v := range fields.(map[interface{}]interface{}) {
-				stringMap[k.(string)] = v
-			}
-
-			return sendSerializedJSONMessage(loginResponse{
-				Username:    api.getUsername(message.Entry, sec),
-				Password:    sec.Password(),
-				LoginFields: stringMap,
-			}, api.Writer)
-		}
-	}
-
 	return sendSerializedJSONMessage(loginResponse{
 		Username: api.getUsername(message.Entry, sec),
-		Password: sec.Password(),
+		Password: sec.Get("password"),
 	}, api.Writer)
 }
 
@@ -150,12 +132,16 @@ func (api *API) respondGetData(ctx context.Context, msgBytes []byte) error {
 		return errors.Wrapf(err, "failed to unmarshal JSON message")
 	}
 
-	sec, err := api.Store.Get(ctx, message.Entry)
+	sec, err := api.Store.Get(ctx, message.Entry, "latest")
 	if err != nil {
 		return errors.Wrapf(err, "failed to get secret")
 	}
 
-	responseData := sec.Data()
+	keys := sec.Keys()
+	responseData := make(map[string]string, len(keys))
+	for _, k := range keys {
+		responseData[k] = sec.Get(k)
+	}
 	currentTotp, _, err := otp.Calculate("_", sec)
 	if err == nil {
 		responseData["current_totp"] = currentTotp.OTP()
@@ -168,11 +154,9 @@ func (api *API) respondGetData(ctx context.Context, msgBytes []byte) error {
 func (api *API) getUsername(name string, sec gopass.Secret) string {
 	// look for a meta-data entry containing the username first
 	for _, key := range []string{"login", "username", "user"} {
-		value, err := sec.Value(key)
-		if err != nil {
-			continue
+		if v := sec.Get(key); v != "" {
+			return v
 		}
-		return value
 	}
 
 	// if no meta-data was found return the name of the secret itself
@@ -190,7 +174,7 @@ func (api *API) respondCreateEntry(ctx context.Context, msgBytes []byte) error {
 		return errors.Wrapf(err, "failed to unmarshal JSON message")
 	}
 
-	if _, err := api.Store.Get(ctx, message.Name); err == nil {
+	if _, err := api.Store.Get(ctx, message.Name, "latest"); err == nil {
 		return fmt.Errorf("secret %s already exists", message.Name)
 	}
 
@@ -198,12 +182,12 @@ func (api *API) respondCreateEntry(ctx context.Context, msgBytes []byte) error {
 		message.Password = pwgen.GeneratePassword(message.PasswordLength, message.UseSymbols)
 	}
 
-	var body = ""
+	sec := secret.New()
+	sec.Set("password", message.Password)
 	if len(message.Login) > 0 {
-		body = fmt.Sprintf("---\nuser: %s", message.Login)
+		sec.Set("user", message.Login)
 	}
-
-	if err := api.Store.Set(ctx, message.Name, secret.New(message.Password, body)); err != nil {
+	if err := api.Store.Set(ctx, message.Name, sec); err != nil {
 		return errors.Wrapf(err, "failed to store secret")
 	}
 
@@ -228,20 +212,22 @@ func (api *API) respondCopyToClipboard(ctx context.Context, msgBytes []byte) err
 		return errors.Wrapf(err, "failed to unmarshal JSON message")
 	}
 
-	sec, err := api.Store.Get(ctx, message.Entry)
+	sec, err := api.Store.Get(ctx, message.Entry, "latest")
 	if err != nil {
 		return errors.Wrapf(err, "failed to get secret")
 	}
-	val := sec.Password()
-	if message.Key != "" {
-		val, err = sec.Value(message.Key)
-		if err != nil {
-			return errors.Wrapf(err, "failed to get secret sub entry")
-		}
+	var val string
+	if message.Key == "" {
+		val = sec.Get("password")
+	} else {
+		val = sec.Get(message.Key)
 	}
 
-	err = clipboard.CopyTo(ctx, message.Entry, []byte(val))
-	if err != nil {
+	if val == "" {
+		return fmt.Errorf("entry not found")
+	}
+
+	if err := clipboard.CopyTo(ctx, message.Entry, []byte(val)); err != nil {
 		return errors.Wrapf(err, "failed to copy to clipboard")
 	}
 

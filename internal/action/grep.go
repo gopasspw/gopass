@@ -34,11 +34,8 @@ func (s *Action) Grep(c *cli.Context) error {
 			continue
 		}
 
-		if strings.Contains(sec.Password(), needle) {
-			out.Print(ctx, "%s:\n%s", color.BlueString(v), sec.Password())
-		}
-		if strings.Contains(sec.Body(), needle) {
-			out.Print(ctx, "%s:\n%s", color.BlueString(v), sec.Body())
+		if strings.Contains(string(sec.Bytes()), needle) {
+			out.Print(ctx, "%s matches", color.BlueString(v))
 		}
 	}
 

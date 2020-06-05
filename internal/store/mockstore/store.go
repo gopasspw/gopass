@@ -8,9 +8,9 @@ import (
 	"github.com/gopasspw/gopass/internal/backend/crypto/plain"
 	"github.com/gopasspw/gopass/internal/backend/rcs/noop"
 	"github.com/gopasspw/gopass/internal/backend/storage/kv/inmem"
-	"github.com/gopasspw/gopass/internal/store"
-	"github.com/gopasspw/gopass/internal/store/secret"
 	"github.com/gopasspw/gopass/internal/tree"
+	"github.com/gopasspw/gopass/pkg/gopass"
+	"github.com/gopasspw/gopass/pkg/gopass/secret/secparse"
 )
 
 // MockStore is an mocked store
@@ -167,16 +167,16 @@ func (m *MockStore) Exists(ctx context.Context, name string) bool {
 }
 
 // Get does nothing
-func (m *MockStore) Get(ctx context.Context, name string) (store.Secret, error) {
+func (m *MockStore) Get(ctx context.Context, name string) (gopass.Secret, error) {
 	content, err := m.storage.Get(ctx, name)
 	if err != nil {
 		return nil, err
 	}
-	return secret.Parse(content)
+	return secparse.Parse(content)
 }
 
 // GetRevision does nothing
-func (m *MockStore) GetRevision(context.Context, string, string) (store.Secret, error) {
+func (m *MockStore) GetRevision(context.Context, string, string) (gopass.Secret, error) {
 	return nil, fmt.Errorf("not supported")
 }
 
@@ -213,12 +213,8 @@ func (m *MockStore) Move(ctx context.Context, from string, to string) error {
 }
 
 // Set does nothing
-func (m *MockStore) Set(ctx context.Context, name string, sec store.Byter) error {
-	buf, err := sec.Bytes()
-	if err != nil {
-		return err
-	}
-	return m.storage.Set(ctx, name, buf)
+func (m *MockStore) Set(ctx context.Context, name string, sec gopass.Byter) error {
+	return m.storage.Set(ctx, name, sec.Bytes())
 }
 
 // Prune does nothing

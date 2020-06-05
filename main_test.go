@@ -52,10 +52,7 @@ func TestSetupApp(t *testing.T) {
 // invoked without arguments
 var commandsWithError = map[string]struct{}{
 	".audit":             {},
-	".binary.cat":        {},
-	".binary.copy":       {},
-	".binary.move":       {},
-	".binary.sum":        {},
+	".cat":               {},
 	".clone":             {},
 	".copy":              {},
 	".create":            {},
@@ -63,6 +60,8 @@ var commandsWithError = map[string]struct{}{
 	".edit":              {},
 	".env":               {},
 	".find":              {},
+	".fscopy":            {},
+	".fsmove":            {},
 	".generate":          {},
 	".git.push":          {},
 	".git.remote.add":    {},
@@ -78,6 +77,7 @@ var commandsWithError = map[string]struct{}{
 	".recipients.add":    {},
 	".recipients.remove": {},
 	".show":              {},
+	".sum":               {},
 	".templates.edit":    {},
 	".templates.remove":  {},
 	".templates.show":    {},
@@ -117,7 +117,7 @@ func TestGetCommands(t *testing.T) {
 	c.Context = ctx
 
 	commands := getCommands(act, app)
-	assert.Equal(t, 32, len(commands))
+	assert.Equal(t, 35, len(commands))
 
 	prefix := ""
 	testCommands(t, c, commands, prefix)

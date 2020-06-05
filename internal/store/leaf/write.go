@@ -9,12 +9,13 @@ import (
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/gopass"
 
 	"github.com/pkg/errors"
 )
 
 // Set encodes and writes the cipertext of one entry to disk
-func (s *Store) Set(ctx context.Context, name string, sec store.Byter) error {
+func (s *Store) Set(ctx context.Context, name string, sec gopass.Byter) error {
 	if strings.Contains(name, "//") {
 		return errors.Errorf("invalid secret name: %s", name)
 	}
@@ -36,12 +37,7 @@ func (s *Store) Set(ctx context.Context, name string, sec store.Byter) error {
 	// make sure the encryptor can decrypt later
 	recipients = s.ensureOurKeyID(ctx, recipients)
 
-	buf, err := sec.Bytes()
-	if err != nil {
-		return errors.Wrapf(err, "failed to encode secret")
-	}
-
-	ciphertext, err := s.crypto.Encrypt(ctx, buf, recipients)
+	ciphertext, err := s.crypto.Encrypt(ctx, sec.Bytes(), recipients)
 	if err != nil {
 		debug.Log("Failed encrypt secret: %s", err)
 		return store.ErrEncrypt

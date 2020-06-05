@@ -7,7 +7,7 @@ import (
 	"os/signal"
 	"strings"
 
-	"github.com/gopasspw/gopass/pkg/gopass"
+	"github.com/gopasspw/gopass/pkg/gopass/api"
 	"github.com/urfave/cli/v2"
 )
 
@@ -34,7 +34,7 @@ func main() {
 		}
 	}()
 
-	gp, err := gopass.New(ctx)
+	gp, err := api.New(ctx)
 	if err != nil {
 		panic(err)
 	}

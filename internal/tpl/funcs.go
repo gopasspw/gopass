@@ -75,11 +75,7 @@ func get(ctx context.Context, kv kvstore) func(...string) (string, error) {
 		if err != nil {
 			return err.Error(), nil
 		}
-		buf, err := sec.Bytes()
-		if err != nil {
-			return err.Error(), nil
-		}
-		return string(buf), nil
+		return string(sec.Bytes()), nil
 	}
 }
 
@@ -95,7 +91,7 @@ func getPassword(ctx context.Context, kv kvstore) func(...string) (string, error
 		if err != nil {
 			return err.Error(), nil
 		}
-		return sec.Password(), nil
+		return sec.Get("password"), nil
 	}
 }
 
@@ -111,11 +107,7 @@ func getValue(ctx context.Context, kv kvstore) func(...string) (string, error) {
 		if err != nil {
 			return err.Error(), nil
 		}
-		val, err := sec.Value(s[1])
-		if err != nil {
-			return err.Error(), nil
-		}
-		return val, nil
+		return sec.Get(s[1]), nil
 	}
 }
 

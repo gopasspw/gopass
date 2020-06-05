@@ -5,7 +5,7 @@ package noop
 
 import (
 	"context"
-	"fmt"
+	"time"
 
 	"github.com/gopasspw/gopass/internal/backend"
 
@@ -77,7 +77,11 @@ func (g *Noop) RemoveRemote(ctx context.Context, remote string) error {
 
 // Revisions is not implemented
 func (g *Noop) Revisions(context.Context, string) ([]backend.Revision, error) {
-	return nil, fmt.Errorf("not yet implemented for %s", g.Name())
+	return []backend.Revision{
+		{
+			Hash: "latest",
+			Date: time.Now(),
+		}}, nil
 }
 
 // GetRevision is not implemented

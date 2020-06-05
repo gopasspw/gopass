@@ -8,8 +8,8 @@ import (
 
 	"github.com/gopasspw/gopass/internal/gptest"
 	"github.com/gopasspw/gopass/internal/out"
-	"github.com/gopasspw/gopass/internal/store/secret"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/gopass/secret"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -44,14 +44,17 @@ func TestDelete(t *testing.T) {
 	buf.Reset()
 
 	// delete foo bar
-	assert.NoError(t, act.Store.Set(ctx, "foo", secret.New("123", "---\nbar: zab")))
+	sec := secret.New()
+	sec.Set("password", "123")
+	sec.WriteString("---\nbar: zab")
+	assert.NoError(t, act.Store.Set(ctx, "foo", sec))
 
 	c = gptest.CliCtx(ctx, t, "foo", "bar")
 	assert.NoError(t, act.Delete(c))
 	buf.Reset()
 
 	// delete -r foo
-	assert.NoError(t, act.Store.Set(ctx, "foo", secret.New("123", "---\nbar: zab")))
+	assert.NoError(t, act.Store.Set(ctx, "foo", sec))
 
 	c = gptest.CliCtxWithFlags(ctx, t, map[string]string{"recursive": "true"}, "foo")
 	assert.NoError(t, act.Delete(c))

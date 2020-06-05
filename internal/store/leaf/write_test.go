@@ -8,8 +8,7 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/gopasspw/gopass/internal/store/secret"
-
+	"github.com/gopasspw/gopass/pkg/gopass/secret"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -26,14 +25,17 @@ func TestSet(t *testing.T) {
 	s, err := createSubStore(tempdir)
 	require.NoError(t, err)
 
-	require.NoError(t, s.Set(ctx, "zab/zab", secret.New("foo", "bar")))
+	sec := secret.New()
+	sec.Set("password", "foo")
+	sec.WriteString("bar")
+	require.NoError(t, s.Set(ctx, "zab/zab", sec))
 	if runtime.GOOS != "windows" {
-		assert.Error(t, s.Set(ctx, "../../../../../etc/passwd", secret.New("foo", "bar")))
+		assert.Error(t, s.Set(ctx, "../../../../../etc/passwd", sec))
 	} else {
-		assert.NoError(t, s.Set(ctx, "../../../../../etc/passwd", secret.New("foo", "bar")))
+		assert.NoError(t, s.Set(ctx, "../../../../../etc/passwd", sec))
 	}
-	assert.NoError(t, s.Set(ctx, "zab", secret.New("foo", "bar")))
+	assert.NoError(t, s.Set(ctx, "zab", sec))
 	assert.Error(t, s.Set(WithRecipientFunc(ctx, func(ctx context.Context, prompt string, list []string) ([]string, error) {
 		return nil, fmt.Errorf("aborted")
-	}), "zab/baz", secret.New("foo", "bar")))
+	}), "zab/baz", sec))
 }

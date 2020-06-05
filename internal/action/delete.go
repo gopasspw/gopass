@@ -62,9 +62,7 @@ func (s *Action) deleteKeyFromYAML(ctx context.Context, name, key string) error 
 	if err != nil {
 		return ExitError(ExitIO, err, "Can not delete key '%s' from '%s': %s", key, name, err)
 	}
-	if err := sec.DeleteKey(key); err != nil {
-		return ExitError(ExitIO, err, "Can not delete key '%s' from '%s': %s", key, name, err)
-	}
+	sec.Del(key)
 	if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, "Updated Key in YAML"), name, sec); err != nil {
 		return ExitError(ExitIO, err, "Can not delete key '%s' from '%s': %s", key, name, err)
 	}
