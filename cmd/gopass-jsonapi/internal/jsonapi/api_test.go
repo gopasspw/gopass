@@ -9,12 +9,12 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/internal/otp"
-	"github.com/gopasspw/gopass/internal/store"
-	"github.com/gopasspw/gopass/internal/store/secret"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/gopass"
 	"github.com/gopasspw/gopass/pkg/gopass/apimock"
+	"github.com/gopasspw/gopass/pkg/gopass/secret/secparse"
 
 	"github.com/blang/semver"
 	"github.com/stretchr/testify/assert"
@@ -23,7 +23,7 @@ import (
 
 type storedSecret struct {
 	Name   []string
-	Secret store.Secret
+	Secret gopass.Secret
 }
 
 func TestRespondMessageBrokenInput(t *testing.T) {
@@ -48,19 +48,27 @@ func TestRespondGetVersion(t *testing.T) {
 		nil)
 }
 
+func newSec(t *testing.T, in string) gopass.Secret {
+	debug.Log("in: %s", in)
+	sec, err := secparse.Parse([]byte(in))
+	require.NoError(t, err)
+	return sec
+}
+
 func TestRespondMessageQuery(t *testing.T) {
 	secrets := []storedSecret{
-		{[]string{"awesomePrefix", "foo", "bar"}, secret.New("20", "")},
-		{[]string{"awesomePrefix", "fixed", "secret"}, secret.New("moar", "")},
-		{[]string{"awesomePrefix", "fixed", "yamllogin"}, secret.New("thesecret", "---\nlogin: muh")},
-		{[]string{"awesomePrefix", "fixed", "yamlother"}, secret.New("thesecret", "---\nother: meh")},
-		{[]string{"awesomePrefix", "some.other.host", "other"}, secret.New("thesecret", "---\nother: meh")},
-		{[]string{"awesomePrefix", "b", "some.other.host"}, secret.New("thesecret", "---\nother: meh")},
-		{[]string{"awesomePrefix", "evilsome.other.host"}, secret.New("thesecret", "---\nother: meh")},
-		{[]string{"evilsome.other.host", "something"}, secret.New("thesecret", "---\nother: meh")},
-		{[]string{"awesomePrefix", "other.host", "other"}, secret.New("thesecret", "---\nother: meh")},
-		{[]string{"somename", "github.com"}, secret.New("thesecret", "---\nother: meh")},
-		{[]string{"login_entry"}, secret.New("thepass", `---
+		{[]string{"awesomePrefix", "foo", "bar"}, newSec(t, "20\n")},
+		{[]string{"awesomePrefix", "fixed", "secret"}, newSec(t, "moar\n")},
+		{[]string{"awesomePrefix", "fixed", "yamllogin"}, newSec(t, "thesecret\n---\nlogin: muh")},
+		{[]string{"awesomePrefix", "fixed", "yamlother"}, newSec(t, "thesecret\n---\nother: meh")},
+		{[]string{"awesomePrefix", "some.other.host", "other"}, newSec(t, "thesecret\n---\nother: meh")},
+		{[]string{"awesomePrefix", "b", "some.other.host"}, newSec(t, "thesecret\n---\nother: meh")},
+		{[]string{"awesomePrefix", "evilsome.other.host"}, newSec(t, "thesecret\n---\nother: meh")},
+		{[]string{"evilsome.other.host", "something"}, newSec(t, "thesecret\n---\nother: meh")},
+		{[]string{"awesomePrefix", "other.host", "other"}, newSec(t, "thesecret\n---\nother: meh")},
+		{[]string{"somename", "github.com"}, newSec(t, "thesecret\n---\nother: meh")},
+		{[]string{"login_entry"}, newSec(t, `thepass
+---
 login: thelogin
 ignore: me
 login_fields:
@@ -68,95 +76,92 @@ login_fields:
   second: ok
 nologin_fields:
   subentry: 123`)},
-		{[]string{"invalid_login_entry"}, secret.New("thepass", `---
+		{[]string{"invalid_login_entry"}, newSec(t, `thepass
+---
 login: thelogin
 ignore: me
 login_fields: "invalid"`)},
 	}
 
-	// query for keys without any matching
-	runRespondMessage(t,
-		`{"type":"query","query":"notfound"}`,
-		`\[\]`,
-		"", secrets)
+	for _, tc := range []struct {
+		desc string
+		in   string
+		out  string
+	}{
+		{
+			desc: "query for keys without any matches",
+			in:   `{"type":"query","query":"notfound"}`,
+			out:  `\[\]`,
+		},
+		{
+			desc: "query for keys with matching one",
+			in:   `{"type":"query","query":"foo"}`,
+			out:  `\["awesomePrefix/foo/bar"\]`,
+		},
+		{
+			desc: "query for keys with matching multiple",
+			in:   `{"type":"query","query":"yaml"}`,
+			out:  `\["awesomePrefix/fixed/yamllogin","awesomePrefix/fixed/yamlother"\]`,
+		},
+		{
+			desc: "query for host",
+			in:   `{"type":"queryHost","host":"find.some.other.host"}`,
+			out:  `\["awesomePrefix/b/some.other.host","awesomePrefix/some.other.host/other"\]`,
+		},
+		{
+			desc: "query for host not matches parent domain",
+			in:   `{"type":"queryHost","host":"other.host"}`,
+			out:  `\["awesomePrefix/other.host/other"\]`,
+		},
+		{
+			desc: "query for host is query has different domain appended does not return partial match",
+			in:   `{"type":"queryHost","host":"some.other.host.different.domain"}`,
+			out:  `\[\]`,
+		},
+		{
+			desc: "query returns result with public suffix at the end",
+			in:   `{"type":"queryHost","host":"github.com"}`,
+			out:  `\["somename/github.com"\]`,
+		},
+		{
+			desc: "get username and password for key without value in yaml",
+			in:   `{"type":"getLogin","entry":"awesomePrefix/fixed/secret"}`,
+			out:  `{"username":"secret","password":"moar"}`,
+		},
+		{
+			desc: "get username and password for key with login in yaml",
+			in:   `{"type":"getLogin","entry":"awesomePrefix/fixed/yamllogin"}`,
+			out:  `{"username":"muh","password":"thesecret"}`,
+		},
+		{
+			desc: "get username and password for key with no login in yaml (fallback)",
+			in:   `{"type":"getLogin","entry":"awesomePrefix/fixed/yamlother"}`,
+			out:  `{"username":"yamlother","password":"thesecret"}`,
+		},
+		{
+			desc: "get entry with invalid login fields",
+			in:   `{"type":"getLogin","entry":"invalid_login_entry"}`,
+			out:  `{"username":"thelogin","password":"thepass"}`,
+		},
+	} {
+		t.Run(tc.desc, func(t *testing.T) {
+			runRespondMessage(t, tc.in, tc.out, "", secrets)
+		})
+	}
 
-	// query for keys with matching one
-	runRespondMessage(t,
-		`{"type":"query","query":"foo"}`,
-		`\["awesomePrefix/foo/bar"\]`,
-		"", secrets)
-
-	// query for keys with matching multiple
-	runRespondMessage(t,
-		`{"type":"query","query":"yaml"}`,
-		`\["awesomePrefix/fixed/yamllogin","awesomePrefix/fixed/yamlother"\]`,
-		"", secrets)
-
-	// query for host
-	runRespondMessage(t,
-		`{"type":"queryHost","host":"find.some.other.host"}`,
-		`\["awesomePrefix/b/some.other.host","awesomePrefix/some.other.host/other"\]`,
-		"", secrets)
-
-	// query for host not matches parent domain
-	runRespondMessage(t,
-		`{"type":"queryHost","host":"other.host"}`,
-		`\["awesomePrefix/other.host/other"\]`,
-		"", secrets)
-
-	// query for host is query has different domain appended does not return partial match
-	runRespondMessage(t,
-		`{"type":"queryHost","host":"some.other.host.different.domain"}`,
-		`\[\]`,
-		"", secrets)
-
-	// query returns result with public suffix at the end
-	runRespondMessage(t,
-		`{"type":"queryHost","host":"github.com"}`,
-		`\["somename/github.com"\]`,
-		"", secrets)
-
-	// get username / password for key without value in yaml
-	runRespondMessage(t,
-		`{"type":"getLogin","entry":"awesomePrefix/fixed/secret"}`,
-		`{"username":"secret","password":"moar"}`,
-		"", secrets)
-
-	// get username / password for key with login in yaml
-	runRespondMessage(t,
-		`{"type":"getLogin","entry":"awesomePrefix/fixed/yamllogin"}`,
-		`{"username":"muh","password":"thesecret"}`,
-		"", secrets)
-
-	// get username / password for key with no login in yaml (fallback)
-	runRespondMessage(t,
-		`{"type":"getLogin","entry":"awesomePrefix/fixed/yamlother"}`,
-		`{"username":"yamlother","password":"thesecret"}`,
-		"", secrets)
-
-	// get entry with login fields
-	runRespondMessage(t,
-		`{"type":"getLogin","entry":"login_entry"}`,
-		`{"username":"thelogin","password":"thepass","login_fields":{"first":42,"second":"ok"}}`,
-		"", secrets)
-
-	// get entry with invalid login fields
-	runRespondMessage(t,
-		`{"type":"getLogin","entry":"invalid_login_entry"}`,
-		`{"username":"thelogin","password":"thepass"}`,
-		"", secrets)
 }
 
 func TestRespondMessageGetData(t *testing.T) {
 	totpSuffix := "//totp/github-fake-account?secret=rpna55555qyho42j"
 	totpURL := "otpauth:" + totpSuffix
-	totpSecret := secret.New("totp_are_cool", totpURL)
+	totpSecret := newSec(t, "totp_are_cool\n"+totpURL)
 
 	secrets := []storedSecret{
 		{[]string{"totp"}, totpSecret},
-		{[]string{"foo"}, secret.New("20", "hallo: welt")},
-		{[]string{"bar"}, secret.New("20", "---\nlogin: muh")},
-		{[]string{"complex"}, secret.New("20", `---
+		{[]string{"foo"}, newSec(t, "20\nhallo: welt")},
+		{[]string{"bar"}, newSec(t, "20\n---\nlogin: muh")},
+		{[]string{"complex"}, newSec(t, `20
+---
 login: hallo
 number: 42
 sub:
@@ -181,12 +186,12 @@ sub:
 		"", secrets)
 	runRespondMessage(t,
 		`{"type":"getData","entry":"complex"}`,
-		`{"login":"hallo","number":42,"sub":{"subentry":123}}`,
+		`{"login":"hallo","number":"42","sub":"map.subentry:123."}`,
 		"", secrets)
 
 	runRespondMessage(t,
 		`{"type":"getData","entry":"totp"}`,
-		fmt.Sprintf(`{"current_totp":"%s","otpauth":"(.+)"}`, expectedTotp),
+		fmt.Sprintf(`{"current_totp":"%s"}`, expectedTotp),
 		"", secrets)
 }
 
@@ -196,7 +201,7 @@ func TestRespondMessageCreate(t *testing.T) {
 	}
 
 	secrets := []storedSecret{
-		{[]string{"awesomePrefix", "overwrite", "me"}, secret.New("20", "")},
+		{[]string{"awesomePrefix", "overwrite", "me"}, newSec(t, "20\n")},
 	}
 
 	// store new secret with given password
@@ -251,8 +256,8 @@ func TestRespondMessageCreate(t *testing.T) {
 
 func TestCopyToClipboard(t *testing.T) {
 	secrets := []storedSecret{
-		{[]string{"foo", "bar"}, secret.New("20", "")},
-		{[]string{"yamllogin"}, secret.New("thesecret", "---\nlogin: muh")},
+		{[]string{"foo", "bar"}, newSec(t, "20\n")},
+		{[]string{"yamllogin"}, newSec(t, "thesecret\n---\nlogin: muh")},
 	}
 
 	// copy nonexisting entry returns error
@@ -339,7 +344,7 @@ func runRespondRawMessages(t *testing.T, requests []verifiedRequest, secrets []s
 
 		err = api.ReadAndRespond(ctx)
 		if len(request.ErrorStr) > 0 {
-			assert.Error(t, err)
+			require.Error(t, err)
 			assert.Equal(t, len(outbuf.String()), 0)
 			continue
 		}

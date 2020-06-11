@@ -22,7 +22,7 @@ fi
 export PATH="$PATH:/usr/local/bin" # required on MacOS/brew
 export GPG_TTY="$(tty)"
 
-{{ .Gopass }} jsonapi listen
+{{ .Gopass }} listen
 
 exit $?
 `

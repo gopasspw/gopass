@@ -199,7 +199,7 @@ func (ts *tester) initSecrets(prefix string) {
 	out, err = ts.run("generate -p " + prefix + "baz 40")
 	require.NoError(ts.t, err, "failed to generate password:\n%s", out)
 
-	out, err = ts.runCmd([]string{ts.Binary, "insert", prefix + "fixed/secret"}, []byte("moar"))
+	out, err = ts.runCmd([]string{ts.Binary, "insert", prefix + "fixed/secret", "password"}, []byte("moar"))
 	require.NoError(ts.t, err, "failed to insert password:\n%s", out)
 
 	out, err = ts.runCmd([]string{ts.Binary, "insert", prefix + "fixed/twoliner"}, []byte("and\nmore stuff"))

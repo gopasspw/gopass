@@ -8,7 +8,8 @@ import (
 	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
-	"github.com/gopasspw/gopass/internal/store/secret"
+	"github.com/gopasspw/gopass/pkg/gopass"
+	"github.com/gopasspw/gopass/pkg/gopass/secret/secparse"
 
 	"github.com/pkg/errors"
 )
@@ -35,7 +36,7 @@ func (s *Store) ListRevisions(ctx context.Context, name string) ([]backend.Revis
 }
 
 // GetRevision will retrieve a single revision from the backend
-func (s *Store) GetRevision(ctx context.Context, name, revision string) (store.Secret, error) {
+func (s *Store) GetRevision(ctx context.Context, name, revision string) (gopass.Secret, error) {
 	p := s.passfile(name)
 	ciphertext, err := s.rcs.GetRevision(ctx, p, revision)
 	if err != nil {
@@ -48,7 +49,7 @@ func (s *Store) GetRevision(ctx context.Context, name, revision string) (store.S
 		return nil, store.ErrDecrypt
 	}
 
-	sec, err := secret.Parse(content)
+	sec, err := secparse.Parse(content)
 	if err != nil {
 		debug.Log("Failed to parse YAML: %s", err)
 	}

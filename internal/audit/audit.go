@@ -13,7 +13,7 @@ import (
 	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/internal/notify"
 	"github.com/gopasspw/gopass/internal/out"
-	"github.com/gopasspw/gopass/internal/store"
+	"github.com/gopasspw/gopass/pkg/gopass"
 
 	"github.com/fatih/color"
 	"github.com/muesli/crunchy"
@@ -35,7 +35,7 @@ type auditedSecret struct {
 }
 
 type secretGetter interface {
-	Get(context.Context, string) (store.Secret, error)
+	Get(context.Context, string) (gopass.Secret, error)
 	ListRevisions(context.Context, string) ([]backend.Revision, error)
 }
 
@@ -141,14 +141,14 @@ func audit(ctx context.Context, secStore secretGetter, validator *crunchy.Valida
 		if err != nil {
 			as.err = err
 			if sec != nil {
-				as.content = sec.Password()
+				as.content = sec.Get("password")
 			}
 			// failed to properly retrieve the secret
 			checked <- as
 			continue
 		}
 
-		as.content = sec.Password()
+		as.content = sec.Get("password")
 
 		// do not check binary secrets
 		if as.content == "" || strings.HasSuffix(secret, ".b64") {

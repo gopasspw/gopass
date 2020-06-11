@@ -12,7 +12,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gopasspw/gopass/internal/action/binary"
 	"github.com/gopasspw/gopass/internal/action/create"
 	"github.com/gopasspw/gopass/internal/action/pwgen"
 	"github.com/gopasspw/gopass/internal/action/xc"
@@ -189,7 +188,6 @@ func getCommands(action *ap.Action, app *cli.App) []*cli.Command {
 	cmds = append(cmds, action.GetCommands()...)
 	cmds = append(cmds, xc.GetCommands()...)
 	cmds = append(cmds, create.GetCommands(action, action.Store)...)
-	cmds = append(cmds, binary.GetCommands(action, action.Store)...)
 	cmds = append(cmds, pwgen.GetCommands()...)
 	sort.Slice(cmds, func(i, j int) bool { return cmds[i].Name < cmds[j].Name })
 	return cmds

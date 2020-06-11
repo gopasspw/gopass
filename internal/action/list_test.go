@@ -9,9 +9,9 @@ import (
 	"github.com/fatih/color"
 	"github.com/gopasspw/gopass/internal/gptest"
 	"github.com/gopasspw/gopass/internal/out"
-	"github.com/gopasspw/gopass/internal/store/secret"
 	"github.com/gopasspw/gopass/internal/tree"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/gopass/secret"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -46,7 +46,10 @@ func TestList(t *testing.T) {
 	buf.Reset()
 
 	// add foo/bar and list folder foo
-	assert.NoError(t, act.Store.Set(ctx, "foo/bar", secret.New("123", "---\nbar: zab")))
+	sec := secret.New()
+	sec.Set("password", "123")
+	sec.Set("bar", "zab")
+	assert.NoError(t, act.Store.Set(ctx, "foo/bar", sec))
 	buf.Reset()
 
 	assert.NoError(t, act.List(gptest.CliCtx(ctx, t, "foo")))
@@ -67,8 +70,10 @@ func TestList(t *testing.T) {
 	// list --folders
 
 	// add more folders and subfolders
-	assert.NoError(t, act.Store.Set(ctx, "foo/zen/bar", secret.New("123", "")))
-	assert.NoError(t, act.Store.Set(ctx, "foo2/bar2", secret.New("123", "")))
+	sec = secret.New()
+	sec.Set("password", "123")
+	assert.NoError(t, act.Store.Set(ctx, "foo/zen/bar", sec))
+	assert.NoError(t, act.Store.Set(ctx, "foo2/bar2", sec))
 	buf.Reset()
 
 	assert.NoError(t, act.List(gptest.CliCtxWithFlags(ctx, t, map[string]string{"folders": "true"})))

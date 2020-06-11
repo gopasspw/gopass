@@ -1,4 +1,4 @@
-package gopass
+package api
 
 import (
 	"context"
@@ -8,44 +8,9 @@ import (
 	_ "github.com/gopasspw/gopass/internal/backend/rcs"     // load rcs backends
 	_ "github.com/gopasspw/gopass/internal/backend/storage" // load storage backends
 	"github.com/gopasspw/gopass/internal/config"
-	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/internal/store/root"
+	"github.com/gopasspw/gopass/pkg/gopass"
 )
-
-// Secret is a secret type.
-// WARNING: the secret implementation is pending a major rewrite.
-// This API will change.
-type Secret interface {
-	//fmt.Stringer
-
-	//Password() string
-	// Revisions() []string
-	// Unwrap() error
-
-	// WARNING: Everything below is subject to change!
-	store.Secret
-}
-
-// Store is a secret store.
-type Store interface {
-	fmt.Stringer
-
-	// List all secrets
-	List(context.Context) ([]string, error)
-	// Get an encrypted secret. Check existence with Get; err != nil
-	Get(ctx context.Context, name string) (Secret, error)
-	// Set (add) a new revision of an secret
-	Set(ctx context.Context, name string, sec store.Byter) error
-	// Remove a single secret
-	Remove(ctx context.Context, name string) error
-	// RemoveAll secrets with a common prefix
-	RemoveAll(ctx context.Context, prefix string) error
-	// Rename a path (secret of prefix) without decrypting
-	Rename(ctx context.Context, src, dest string) error
-	// Sync with a remote (if configured)
-	// WARNING: This might be dropped if we decide to always auto-sync!
-	Sync(ctx context.Context) error
-}
 
 // Gopass is a secret store implementation
 type Gopass struct {
@@ -53,7 +18,7 @@ type Gopass struct {
 }
 
 // make sure that *Gopass implements Store
-var _ Store = &Gopass{}
+var _ gopass.Store = &Gopass{}
 
 // New creates a new secret store
 // WARNING: This will need to change to accommodate for runtime configuration.
@@ -78,12 +43,12 @@ func (g *Gopass) List(ctx context.Context) ([]string, error) {
 }
 
 // Get returns a single, encrypted secret. It must be unwrapped before use.
-func (g *Gopass) Get(ctx context.Context, name string) (Secret, error) {
+func (g *Gopass) Get(ctx context.Context, name, revision string) (gopass.Secret, error) {
 	return g.rs.Get(ctx, name)
 }
 
 // Set adds a new revision to an existing secret or creates a new one.
-func (g *Gopass) Set(ctx context.Context, name string, sec store.Byter) error {
+func (g *Gopass) Set(ctx context.Context, name string, sec gopass.Byter) error {
 	return g.rs.Set(ctx, name, sec)
 }
 
@@ -105,6 +70,11 @@ func (g *Gopass) Rename(ctx context.Context, src, dest string) error {
 // Sync synchronizes a secret with a remote
 func (g *Gopass) Sync(ctx context.Context) error {
 	return fmt.Errorf("not yet implemented")
+}
+
+// Revisions lists all revisions of this secret
+func (g *Gopass) Revisions(ctx context.Context, name string) ([]string, error) {
+	return nil, fmt.Errorf("not yet implemented")
 }
 
 func (g *Gopass) String() string {

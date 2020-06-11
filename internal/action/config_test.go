@@ -40,7 +40,7 @@ func TestConfig(t *testing.T) {
   cliptimeout: 45
   confirm: false
   editrecipients: false
-  exportkeys: false
+  exportkeys: true
   nocolor: false
   nopager: false
   notifications: true
@@ -74,7 +74,7 @@ func TestConfig(t *testing.T) {
   cliptimeout: 45
   confirm: false
   editrecipients: false
-  exportkeys: false
+  exportkeys: true
   nocolor: false
   nopager: true
   notifications: true

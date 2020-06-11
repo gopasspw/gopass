@@ -49,7 +49,7 @@ func (s *Action) Env(c *cli.Context) error {
 		if err != nil {
 			return err
 		}
-		env = append(env, fmt.Sprintf("%s=%s", strings.ToUpper(path.Base(key)), sec.Password()))
+		env = append(env, fmt.Sprintf("%s=%s", strings.ToUpper(path.Base(key)), sec.Get("password")))
 	}
 
 	cmd := exec.CommandContext(ctx, args[0], args[1:]...)

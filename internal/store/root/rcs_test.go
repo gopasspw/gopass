@@ -28,6 +28,6 @@ func TestRCS(t *testing.T) {
 	assert.NoError(t, rs.RCSStatus(ctx, ""))
 
 	revs, err := rs.ListRevisions(ctx, "foo")
-	assert.Error(t, err)
-	assert.Equal(t, 0, len(revs))
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(revs))
 }

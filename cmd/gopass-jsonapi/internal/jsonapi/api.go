@@ -19,19 +19,18 @@ type API struct {
 
 // ReadAndRespond a single message
 func (api *API) ReadAndRespond(ctx context.Context) error {
-	silentCtx := out.WithHidden(ctx, true)
+	ctx = out.WithHidden(ctx, true)
 	message, err := readMessage(api.Reader)
 	if message == nil || err != nil {
 		return err
 	}
 
-	return api.respondMessage(silentCtx, message)
+	return api.respondMessage(ctx, message)
 }
 
 // RespondError sends err as JSON response
 func (api *API) RespondError(err error) error {
-	var response errorResponse
-	response.Error = err.Error()
-
-	return sendSerializedJSONMessage(response, api.Writer)
+	return sendSerializedJSONMessage(errorResponse{
+		Error: err.Error(),
+	}, api.Writer)
 }

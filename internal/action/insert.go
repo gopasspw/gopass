@@ -9,11 +9,12 @@ import (
 	"github.com/gopasspw/gopass/internal/audit"
 	"github.com/gopasspw/gopass/internal/editor"
 	"github.com/gopasspw/gopass/internal/out"
-	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/internal/store/leaf"
-	"github.com/gopasspw/gopass/internal/store/secret"
 	"github.com/gopasspw/gopass/internal/termio"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/gopass"
+	"github.com/gopasspw/gopass/pkg/gopass/secret"
+	"github.com/gopasspw/gopass/pkg/gopass/secret/secparse"
 
 	"github.com/urfave/cli/v2"
 )
@@ -96,21 +97,15 @@ func (s *Action) insert(ctx context.Context, c *cli.Context, name, key string, e
 }
 
 func (s *Action) insertStdin(ctx context.Context, name string, content []byte, appendTo bool) error {
+	sec := secret.New()
 	if appendTo && s.Store.Exists(ctx, name) {
-		sec, err := s.Store.Get(ctx, name)
+		eSec, err := s.Store.Get(ctx, name)
 		if err != nil {
 			return ExitError(ExitDecrypt, err, "failed to decrypt existing secret: %s", err)
 		}
-		buf, err := sec.Bytes()
-		if err != nil {
-			return ExitError(ExitDecrypt, err, "failed to decode existing secret: %s", err)
-		}
-		content = append(buf, content...)
+		sec = eSec.MIME()
 	}
-	sec, err := secret.Parse(content)
-	if err != nil {
-		out.Error(ctx, "WARNING: Invalid YAML: %s", err)
-	}
+	sec.Write(content)
 	if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, "Read secret from STDIN"), name, sec); err != nil {
 		return ExitError(ExitEncrypt, err, "failed to set '%s': %s", name, err)
 	}
@@ -118,26 +113,24 @@ func (s *Action) insertStdin(ctx context.Context, name string, content []byte, a
 }
 
 func (s *Action) insertSingle(ctx context.Context, name, pw string, kvps map[string]string) error {
-	var sec store.Secret
+	sec := secret.New()
 	if s.Store.Exists(ctx, name) {
-		var err error
-		sec, err = s.Store.Get(ctx, name)
+		gs, err := s.Store.Get(ctx, name)
 		if err != nil {
 			return ExitError(ExitDecrypt, err, "failed to decrypt existing secret: %s", err)
 		}
+		sec = gs.MIME()
 	} else {
-		sec = &secret.Secret{}
-
 		if content, found := s.renderTemplate(ctx, name, []byte(pw)); found {
-			nSec, err := secret.Parse(content)
+			nSec, err := secparse.Parse(content)
 			if err == nil {
-				sec = nSec
+				sec = nSec.MIME()
 			}
 		}
 	}
 	setMetadata(sec, kvps)
-	sec.SetPassword(pw)
-	audit.Single(ctx, sec.Password())
+	sec.Set("password", pw)
+	audit.Single(ctx, pw)
 
 	if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, "Inserted user supplied password"), name, sec); err != nil {
 		return ExitError(ExitEncrypt, err, "failed to write secret '%s': %s", name, err)
@@ -154,7 +147,7 @@ func (s *Action) insertYAML(ctx context.Context, name, key string, content []byt
 		content = []byte(pw)
 	}
 
-	var sec store.Secret
+	var sec gopass.Secret
 	if s.Store.Exists(ctx, name) {
 		var err error
 		sec, err = s.Store.Get(ctx, name)
@@ -162,12 +155,10 @@ func (s *Action) insertYAML(ctx context.Context, name, key string, content []byt
 			return ExitError(ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
 		}
 	} else {
-		sec = &secret.Secret{}
+		sec = secret.New()
 	}
 	setMetadata(sec, kvps)
-	if err := sec.SetValue(key, string(content)); err != nil {
-		return ExitError(ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
-	}
+	sec.Set(key, string(content))
 	if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, "Inserted YAML value from STDIN"), name, sec); err != nil {
 		return ExitError(ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
 	}
@@ -182,17 +173,14 @@ func (s *Action) insertMultiline(ctx context.Context, c *cli.Context, name strin
 		if err != nil {
 			return ExitError(ExitDecrypt, err, "failed to decrypt existing secret: %s", err)
 		}
-		buf, err = sec.Bytes()
-		if err != nil {
-			return ExitError(ExitUnknown, err, "failed to encode secret: %s", err)
-		}
+		buf = sec.Bytes()
 	}
 	ed := editor.Path(c)
 	content, err := editor.Invoke(ctx, ed, buf)
 	if err != nil {
 		return ExitError(ExitUnknown, err, "failed to start editor: %s", err)
 	}
-	sec, err := secret.Parse(content)
+	sec, err := secparse.Parse(content)
 	if err != nil {
 		out.Error(ctx, "WARNING: Invalid YAML: %s", err)
 	}

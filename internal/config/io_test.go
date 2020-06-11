@@ -259,7 +259,12 @@ func TestLoadError(t *testing.T) {
 	cfg, err := load(gcfg)
 	assert.Error(t, err)
 
-	gcfg = filepath.Join(os.TempDir(), "foo", ".gopass.yml")
+	td, err := ioutil.TempDir("", "gopass-")
+	require.NoError(t, err)
+	defer func() {
+		os.RemoveAll(td)
+	}()
+	gcfg = filepath.Join(td, "foo", ".gopass.yml")
 	assert.NoError(t, os.Setenv("GOPASS_CONFIG", gcfg))
 	assert.NoError(t, cfg.Save())
 }

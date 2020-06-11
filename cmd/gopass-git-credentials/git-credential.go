@@ -11,11 +11,11 @@ import (
 
 	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/internal/out"
-	"github.com/gopasspw/gopass/internal/store/secret"
 	"github.com/gopasspw/gopass/internal/termio"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/fsutil"
 	"github.com/gopasspw/gopass/pkg/gopass"
+	"github.com/gopasspw/gopass/pkg/gopass/secret"
 	"github.com/urfave/cli/v2"
 )
 
@@ -141,7 +141,7 @@ func (s *gc) Get(c *cli.Context) error {
 	}
 	// try git/host/username... If username is empty, simply try git/host
 	path := "git/" + fsutil.CleanFilename(cred.Host) + "/" + fsutil.CleanFilename(cred.Username)
-	if _, err := s.gp.Get(ctx, path); err != nil {
+	if _, err := s.gp.Get(ctx, path, "latest"); err != nil {
 		// if the looked up path is a directory with only one entry (e.g. one user per host), take the subentry instead
 		ls, err := s.gp.List(ctx)
 		if err != nil {
@@ -158,13 +158,12 @@ func (s *gc) Get(c *cli.Context) error {
 		}
 		path = entries[0]
 	}
-	secret, err := s.gp.Get(ctx, path)
+	secret, err := s.gp.Get(ctx, path, "latest")
 	if err != nil {
 		return err
 	}
-	cred.Password = secret.Password()
-	username, err := secret.Value("login")
-	if err == nil {
+	cred.Password = secret.Get("password")
+	if username := secret.Get("login"); username != "" {
 		// leave the username as is otherwise
 		cred.Username = username
 	}
@@ -185,7 +184,7 @@ func (s *gc) Store(c *cli.Context) error {
 	}
 	path := "git/" + fsutil.CleanFilename(cred.Host) + "/" + fsutil.CleanFilename(cred.Username)
 	// This should never really be an issue because git automatically removes invalid credentials first
-	if _, err := s.gp.Get(ctx, path); err == nil {
+	if _, err := s.gp.Get(ctx, path, "latest"); err == nil {
 		debug.Log(""+
 			"gopass: did not store \"%s\" because it already exists. "+
 			"If you want to overwrite it, delete it first by doing: "+
@@ -194,9 +193,10 @@ func (s *gc) Store(c *cli.Context) error {
 		)
 		return nil
 	}
-	secret := secret.New(cred.Password, "")
+	secret := secret.New()
+	secret.Set("password", cred.Password)
 	if cred.Username != "" {
-		_ = secret.SetValue("login", cred.Username)
+		secret.Set("login", cred.Username)
 	}
 
 	if err := s.gp.Set(ctx, path, secret); err != nil {

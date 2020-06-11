@@ -9,8 +9,8 @@ import (
 
 	"github.com/gopasspw/gopass/internal/gptest"
 	"github.com/gopasspw/gopass/internal/out"
-	"github.com/gopasspw/gopass/internal/store/secret"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/gopass/secret"
 
 	"github.com/gokyle/twofactor"
 	"github.com/stretchr/testify/assert"
@@ -38,7 +38,10 @@ func TestOTP(t *testing.T) {
 	buf.Reset()
 
 	// create and display valid OTP
-	assert.NoError(t, act.Store.Set(ctx, "bar", secret.New("foo", twofactor.GenerateGoogleTOTP().URL("foo"))))
+	sec := secret.New()
+	sec.Set("password", "foo")
+	sec.WriteString(twofactor.GenerateGoogleTOTP().URL("foo"))
+	assert.NoError(t, act.Store.Set(ctx, "bar", sec))
 
 	assert.NoError(t, act.OTP(gptest.CliCtx(ctx, t, "bar")))
 	buf.Reset()

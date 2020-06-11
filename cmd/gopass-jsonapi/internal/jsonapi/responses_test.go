@@ -3,25 +3,24 @@ package jsonapi
 import (
 	"testing"
 
-	"github.com/gopasspw/gopass/internal/store"
-	"github.com/gopasspw/gopass/internal/store/secret"
+	"github.com/gopasspw/gopass/pkg/gopass"
 )
 
 func TestGetUsername(t *testing.T) {
 	a := &API{}
 	for _, tc := range []struct {
 		Name string
-		Sec  store.Secret
+		Sec  gopass.Secret
 		Out  string
 	}{
 		{
 			Name: "some/fixed/yamlother",
-			Sec:  secret.New("thesecret", "---\nother: meh"),
+			Sec:  newSec(t, "thesecret\n---\nother: meh"),
 			Out:  "yamlother",
 		},
 		{
 			Name: "some/key/withaname",
-			Sec:  secret.New("thesecret", "---\nlogin: foo"),
+			Sec:  newSec(t, "thesecret\n---\nlogin: foo"),
 			Out:  "foo",
 		},
 	} {

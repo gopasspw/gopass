@@ -4,14 +4,15 @@ import (
 	"context"
 	"testing"
 
-	"github.com/gopasspw/gopass/internal/store"
-	"github.com/gopasspw/gopass/internal/store/secret"
+	"github.com/gopasspw/gopass/pkg/gopass"
+	"github.com/gopasspw/gopass/pkg/gopass/secret/secparse"
+	"github.com/stretchr/testify/assert"
 )
 
 type kvMock struct{}
 
-func (k kvMock) Get(ctx context.Context, key string) (store.Secret, error) {
-	return secret.New("barfoo", "---\nbarkey: barvalue\n"), nil
+func (k kvMock) Get(ctx context.Context, key string) (gopass.Secret, error) {
+	return secparse.Parse([]byte("barfoo\n---\nbarkey: barvalue\n"))
 }
 
 func TestVars(t *testing.T) {
@@ -71,7 +72,7 @@ func TestVars(t *testing.T) {
 			Template: `{{get "testdir"}}`,
 			Name:     "testdir",
 			Content:  []byte("foobar"),
-			Output:   "barfoo\n---\nbarkey: barvalue\n",
+			Output:   "barfoo\n\n---\nbarkey: barvalue\n",
 		},
 		{
 			Template: `{{getpw "testdir"}}`,
@@ -103,15 +104,12 @@ func TestVars(t *testing.T) {
 		t.Run(tc.Template, func(t *testing.T) {
 			t.Parallel()
 			buf, err := Execute(ctx, tc.Template, tc.Name, tc.Content, kv)
-			if err != nil && !tc.ShouldFail {
-				t.Fatalf("[%s] Failed to execute template %s: %s", tc.Template, tc.Template, err)
+			if tc.ShouldFail {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
 			}
-			if err == nil && tc.ShouldFail {
-				t.Errorf("[%s] Should fail", tc.Template)
-			}
-			if string(buf) != tc.Output {
-				t.Errorf("[%s] Wrong templated output %s vs %s", tc.Template, string(buf), tc.Output)
-			}
+			assert.Equal(t, tc.Output, string(buf), tc.Template)
 		})
 	}
 }

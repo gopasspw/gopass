@@ -20,14 +20,14 @@ fi
 export PATH="$PATH:/usr/local/bin" # required on MacOS/brew
 export GPG_TTY="$(tty)"
 
-gopass jsonapi listen
+gopass-jsonapi listen
 
 exit $?
 `
 )
 
 func TestWrapperContent(t *testing.T) {
-	b, err := getWrapperContent("gopass")
+	b, err := getWrapperContent("gopass-jsonapi")
 	require.NoError(t, err)
 	assert.Equal(t, wrapperGolden, string(b))
 }

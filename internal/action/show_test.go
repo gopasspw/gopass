@@ -10,15 +10,15 @@ import (
 	"github.com/atotto/clipboard"
 	"github.com/gopasspw/gopass/internal/gptest"
 	"github.com/gopasspw/gopass/internal/out"
-	"github.com/gopasspw/gopass/internal/store/secret"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/gopass/secret"
 
 	"github.com/fatih/color"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func TestShow(t *testing.T) {
+func TestShowMulti(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 	defer u.Remove()
 
@@ -39,56 +39,65 @@ func TestShow(t *testing.T) {
 		out.Stdout = os.Stdout
 	}()
 
-	// show foo
-	c := gptest.CliCtx(ctx, t, "foo")
-	assert.NoError(t, act.Show(c))
-	assert.Contains(t, buf.String(), "secret")
-	buf.Reset()
+	t.Run("show foo", func(t *testing.T) {
+		defer buf.Reset()
+		c := gptest.CliCtx(ctx, t, "foo")
+		assert.NoError(t, act.Show(c))
+		assert.Contains(t, buf.String(), "secret")
+	})
 
-	// show --sync foo
-	c = gptest.CliCtxWithFlags(ctx, t, map[string]string{"sync": "true"}, "foo")
-	assert.NoError(t, act.Show(c))
-	assert.Contains(t, buf.String(), "secret")
-	buf.Reset()
+	t.Run("show --sync foo", func(t *testing.T) {
+		defer buf.Reset()
+		c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"sync": "true"}, "foo")
+		assert.NoError(t, act.Show(c))
+		assert.Contains(t, buf.String(), "secret")
+	})
 
-	// show dir
+	t.Run("show dir", func(t *testing.T) {
+		// first add another entry in a subdir
+		sec := secret.New()
+		sec.Set("password", "123")
+		sec.Set("bar", "zab")
+		assert.NoError(t, act.Store.Set(ctx, "bar/baz", sec))
+		buf.Reset()
 
-	// first add another entry in a subdir
-	assert.NoError(t, act.Store.Set(ctx, "bar/baz", secret.New("123", "---\nbar: zab")))
-	buf.Reset()
+		c := gptest.CliCtx(ctx, t, "bar")
+		assert.NoError(t, act.Show(c))
+		assert.Equal(t, "bar\n└── baz\n\n", buf.String())
+		buf.Reset()
+	})
 
-	c = gptest.CliCtx(ctx, t, "bar")
-	assert.NoError(t, act.Show(c))
-	assert.Equal(t, "bar\n└── baz\n\n", buf.String())
-	buf.Reset()
+	t.Run("show twoliner with safecontent enabled", func(t *testing.T) {
+		ctx = ctxutil.WithShowSafeContent(ctx, true)
+		c := gptest.CliCtx(ctx, t, "bar/baz")
 
-	// show twoliner with safecontent enabled
-	ctx = ctxutil.WithShowSafeContent(ctx, true)
+		assert.NoError(t, act.Show(c))
+		assert.Equal(t, "Bar: zab", buf.String())
+		buf.Reset()
+	})
 
-	c = gptest.CliCtx(ctx, t, "bar/baz")
-	assert.NoError(t, act.Show(c))
-	assert.Equal(t, "---\nbar: zab", buf.String())
-	buf.Reset()
+	t.Run("show foo with safecontent enabled, should error out", func(t *testing.T) {
+		c := gptest.CliCtx(ctx, t, "foo")
+		assert.NoError(t, act.Show(c))
+		assert.NotContains(t, buf.String(), "secret")
+		buf.Reset()
+	})
 
-	// show foo with safecontent enabled, should error out
-	c = gptest.CliCtx(ctx, t, "foo")
-	assert.NoError(t, act.Show(c))
-	assert.NotContains(t, buf.String(), "secret")
-	buf.Reset()
+	t.Run("show foo with safecontent enabled, with the force flag", func(t *testing.T) {
+		c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true"}, "foo")
+		assert.NoError(t, act.Show(c))
+		assert.Contains(t, buf.String(), "secret")
+		buf.Reset()
+	})
 
-	// show foo with safecontent enabled, with the force flag
-	c = gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true"}, "foo")
-	assert.NoError(t, act.Show(c))
-	assert.Contains(t, buf.String(), "secret")
-	buf.Reset()
+	t.Run("show twoliner with safecontent enabled, but with the clip flag, which should copy just the secret", func(t *testing.T) {
+		ctx = ctxutil.WithShowSafeContent(ctx, true)
+		c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"clip": "true"}, "bar/baz")
 
-	// show twoliner with safecontent enabled, but with the clip flag, which should copy just the secret
-	ctx = ctxutil.WithShowSafeContent(ctx, true)
-	c = gptest.CliCtxWithFlags(ctx, t, map[string]string{"clip": "true"}, "bar/baz")
-
-	assert.NoError(t, act.Show(c))
-	assert.NotContains(t, buf.String(), "123")
-	buf.Reset()
+		assert.NoError(t, act.Show(c))
+		assert.NotContains(t, buf.String(), "123")
+		buf.Reset()
+	})
 }
 
 func TestShowAutoClip(t *testing.T) {

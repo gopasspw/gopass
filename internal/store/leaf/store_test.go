@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/gopasspw/gopass/internal/backend"
-	"github.com/gopasspw/gopass/internal/store/secret"
+	"github.com/gopasspw/gopass/pkg/gopass/secret"
 
 	_ "github.com/gopasspw/gopass/internal/backend/crypto"
 	"github.com/gopasspw/gopass/internal/backend/crypto/plain"
@@ -121,7 +121,10 @@ func TestIdFile(t *testing.T) {
 	for i := 0; i < 99; i++ {
 		secName += "/a"
 	}
-	require.NoError(t, s.Set(ctx, secName, secret.New("foo", "bar")))
+	sec := secret.New()
+	sec.Set("foo", "bar")
+	sec.WriteString("bar")
+	require.NoError(t, s.Set(ctx, secName, sec))
 	require.NoError(t, ioutil.WriteFile(filepath.Join(tempdir, "sub", "a", plain.IDFile), []byte("foobar"), 0600))
 	assert.Equal(t, filepath.Join("a", plain.IDFile), s.idFile(ctx, secName))
 	assert.Equal(t, true, s.Exists(ctx, secName))
@@ -131,7 +134,7 @@ func TestIdFile(t *testing.T) {
 	for i := 0; i < 100; i++ {
 		secName += "/a"
 	}
-	require.NoError(t, s.Set(ctx, secName, secret.New("foo", "bar")))
+	require.NoError(t, s.Set(ctx, secName, sec))
 	require.NoError(t, ioutil.WriteFile(filepath.Join(tempdir, "sub", "a", ".gpg-id"), []byte("foobar"), 0600))
 	assert.Equal(t, plain.IDFile, s.idFile(ctx, secName))
 }

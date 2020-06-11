@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/internal/store/mockstore"
 	"github.com/gopasspw/gopass/pkg/gopass"
 )
@@ -15,11 +14,8 @@ type Secret struct {
 }
 
 // Bytes returns the underlying bytes
-func (m *Secret) Bytes() ([]byte, error) {
-	if m.Buf == nil {
-		return nil, fmt.Errorf("empty")
-	}
-	return m.Buf, nil
+func (m *Secret) Bytes() []byte {
+	return m.Buf
 }
 
 // MockAPI is a gopass API mock
@@ -45,12 +41,25 @@ func (a *MockAPI) List(ctx context.Context) ([]string, error) {
 }
 
 // Get does nothing
-func (a *MockAPI) Get(ctx context.Context, name string) (gopass.Secret, error) {
+func (a *MockAPI) Get(ctx context.Context, name, _ string) (gopass.Secret, error) {
 	return a.store.Get(ctx, name)
 }
 
+// Revisions does nothing
+func (a *MockAPI) Revisions(ctx context.Context, name string) ([]string, error) {
+	rs, err := a.store.ListRevisions(ctx, name)
+	if err != nil {
+		return nil, err
+	}
+	revs := make([]string, 0, len(rs))
+	for _, r := range rs {
+		revs = append(revs, r.Hash)
+	}
+	return revs, nil
+}
+
 // Set does nothing
-func (a *MockAPI) Set(ctx context.Context, name string, sec store.Byter) error {
+func (a *MockAPI) Set(ctx context.Context, name string, sec gopass.Byter) error {
 	return a.store.Set(ctx, name, sec)
 }
 

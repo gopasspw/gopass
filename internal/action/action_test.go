@@ -71,12 +71,16 @@ func TestNew(t *testing.T) {
 	cfg := config.New()
 	sv := semver.Version{}
 
-	_, err = New(cfg, sv)
-	require.NoError(t, err)
+	t.Run("init a new store", func(t *testing.T) {
+		_, err = New(cfg, sv)
+		require.NoError(t, err)
+	})
 
-	cfg.Path = filepath.Join(td, "store")
-	assert.NoError(t, os.MkdirAll(cfg.Path, 0700))
-	assert.NoError(t, ioutil.WriteFile(filepath.Join(cfg.Path, plain.IDFile), []byte("foobar"), 0600))
-	_, err = New(cfg, sv)
-	assert.NoError(t, err)
+	t.Run("init an existing plain store", func(t *testing.T) {
+		cfg.Path = filepath.Join(td, "store")
+		assert.NoError(t, os.MkdirAll(cfg.Path, 0700))
+		assert.NoError(t, ioutil.WriteFile(filepath.Join(cfg.Path, plain.IDFile), []byte("foobar"), 0600))
+		_, err = New(cfg, sv)
+		assert.NoError(t, err)
+	})
 }

@@ -6,11 +6,11 @@ import (
 	"path/filepath"
 	"text/template"
 
-	"github.com/gopasspw/gopass/internal/store"
+	"github.com/gopasspw/gopass/pkg/gopass"
 )
 
 type kvstore interface {
-	Get(context.Context, string) (store.Secret, error)
+	Get(context.Context, string) (gopass.Secret, error)
 }
 
 type payload struct {

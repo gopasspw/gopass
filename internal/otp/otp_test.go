@@ -8,8 +8,9 @@ import (
 	"testing"
 
 	"github.com/gokyle/twofactor"
-	"github.com/gopasspw/gopass/internal/store/secret"
+	"github.com/gopasspw/gopass/pkg/gopass/secret/secparse"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 const pw string = "password"
@@ -17,22 +18,20 @@ const totpSecret string = "GJWTGMTNN5YWW2TNPJXWG2DHMIFA===="
 const totpURL string = "otpauth://totp/example-otp.com?secret=2m32moqkjmzochgb&issuer=authenticator&digits=6"
 
 func TestCalculate(t *testing.T) {
-	testCases := []struct {
-		password       string
-		secretContents string
-	}{
-		{totpSecret, ""},
-		{pw, fmt.Sprintf("---\ntotp:%s", totpSecret)},
-		{pw, fmt.Sprintf("---\ntotp: %s", totpSecret)},
-		{pw, totpURL},
-		{pw, fmt.Sprintf("---\n%s", totpURL)},
+	testCases := [][]byte{
+		[]byte(totpSecret),
+		[]byte(fmt.Sprintf("%s\ntotp: %s", pw, totpSecret)),
+		[]byte(fmt.Sprintf("%s\n---\ntotp: %s", pw, totpSecret)),
+		[]byte(fmt.Sprintf("%s\n%s", pw, totpURL)),
+		[]byte(fmt.Sprintf("%s\n---\n%s", pw, totpURL)),
 	}
 
 	for _, tc := range testCases {
-		s := secret.New(tc.password, tc.secretContents)
+		s, err := secparse.Parse(tc)
+		require.NoError(t, err)
 		otp, _, err := Calculate("test", s)
-		assert.Nil(t, err)
-		assert.NotNil(t, otp)
+		assert.NoError(t, err, string(tc))
+		assert.NotNil(t, otp, string(tc))
 	}
 }
 

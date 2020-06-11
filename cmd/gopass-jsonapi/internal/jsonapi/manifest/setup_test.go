@@ -23,7 +23,7 @@ func TestRender(t *testing.T) {
         "chrome-extension://kkhfnlkhiapbiehimabddjbimfaijdhk/"
     ]
 }`
-	w, m, err := Render("chrome", binDir, "gopass", true)
+	w, m, err := Render("chrome", binDir, "gopass-jsonapi", true)
 	assert.NoError(t, err)
 	assert.Equal(t, wrapperGolden, string(w))
 	assert.Equal(t, manifestGolden, string(m))
