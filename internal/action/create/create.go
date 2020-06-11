@@ -18,6 +18,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/gopass"
 	gpsec "github.com/gopasspw/gopass/pkg/gopass/secret"
 	"github.com/gopasspw/gopass/pkg/pwgen"
+	"github.com/gopasspw/gopass/pkg/pwgen/pwrules"
 	"github.com/martinhoefling/goxkcdpwgen/xkcdpwgen"
 	"github.com/urfave/cli/v2"
 )
@@ -114,7 +115,7 @@ func (s *creator) createWebsite(ctx context.Context, c *cli.Context) error {
 	}
 
 	if genPw {
-		password, err = s.createGeneratePassword(ctx)
+		password, err = s.createGeneratePassword(ctx, hostname)
 		if err != nil {
 			return err
 		}
@@ -149,6 +150,9 @@ func (s *creator) createWebsite(ctx context.Context, c *cli.Context) error {
 	sec.Set("url", urlStr)
 	sec.Set("username", username)
 	sec.Set("comment", comment)
+	if u := pwrules.LookupChangeURL(hostname); u != "" {
+		sec.Set("password-change-url", u)
+	}
 	if err := s.store.Set(ctxutil.WithCommitMessage(ctx, "Created new entry"), name, sec); err != nil {
 		return action.ExitError(action.ExitEncrypt, err, "failed to set '%s': %s", name, err)
 	}
@@ -269,7 +273,7 @@ func (s *creator) createGeneric(ctx context.Context, c *cli.Context) error {
 		return err
 	}
 	if genPw {
-		password, err = s.createGeneratePassword(ctx)
+		password, err = s.createGeneratePassword(ctx, "")
 		if err != nil {
 			return err
 		}
@@ -321,7 +325,15 @@ func (s *creator) createGeneric(ctx context.Context, c *cli.Context) error {
 }
 
 // createGeneratePasssword will walk through the password generation steps
-func (s *creator) createGeneratePassword(ctx context.Context) (string, error) {
+func (s *creator) createGeneratePassword(ctx context.Context, hostname string) (string, error) {
+	if _, found := pwrules.LookupRule(hostname); found {
+		out.Yellow(ctx, "Using password rules for %s ...", hostname)
+		length, err := termio.AskForInt(ctx, fmtfn(4, "b", "How long?"), defaultLength)
+		if err != nil {
+			return "", err
+		}
+		return pwgen.NewCrypticForDomain(length, hostname).Password(), nil
+	}
 	xkcd, err := termio.AskForBool(ctx, fmtfn(4, "a", "Human-pronounceable passphrase? (see https://xkcd.com/936/)"), false)
 	if err != nil {
 		return "", err

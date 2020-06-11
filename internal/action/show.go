@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path"
 	"strings"
 
 	"github.com/gopasspw/gopass/internal/clipboard"
@@ -13,15 +14,11 @@ import (
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/gopass"
 	"github.com/gopasspw/gopass/pkg/gopass/secret"
+	"github.com/gopasspw/gopass/pkg/pwgen/pwrules"
 	"github.com/gopasspw/gopass/pkg/qrcon"
 
 	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
-)
-
-const (
-	// BinarySuffix is the suffix that is appended to binaries in the store
-	BinarySuffix = ".b64"
 )
 
 func showParseArgs(c *cli.Context) context.Context {
@@ -81,11 +78,6 @@ func (s *Action) show(ctx context.Context, c *cli.Context, name string, recurse 
 	}
 	if s.Store.IsDir(ctx, name) && ctxutil.IsTerminal(ctx) {
 		out.Cyan(ctx, "Warning: %s is a secret and a folder. Use 'gopass show %s' to display the secret and 'gopass list %s' to show the content of the folder", name, name, name)
-	}
-
-	// auto-fallback to binary files with b64 suffix, if unique
-	if !s.Store.Exists(ctx, name) && s.Store.Exists(ctx, name+BinarySuffix) {
-		name += BinarySuffix
 	}
 
 	if HasRevision(ctx) {
@@ -182,6 +174,23 @@ func (s *Action) showGetContent(ctx context.Context, sec gopass.Secret) (string,
 	return sec.Get("password"), fullBody
 }
 
+func (s *Action) hasAliasDomain(ctx context.Context, name string) string {
+	p := strings.Split(name, "/")
+	for i := len(p) - 1; i > 0; i-- {
+		d := p[i]
+		for _, alias := range pwrules.LookupAliases(d) {
+			sn := append(p[0:i], alias)
+			sn = append(sn, p[i+1:]...)
+			aliasName := strings.Join(sn, "/")
+			if s.Store.Exists(ctx, aliasName) {
+				return aliasName
+			}
+		}
+		name = path.Dir(name)
+	}
+	return ""
+}
+
 // showHandleError handles errors retrieving secrets
 func (s *Action) showHandleError(ctx context.Context, c *cli.Context, name string, recurse bool, err error) error {
 	if err != store.ErrNotFound || !recurse || !ctxutil.IsTerminal(ctx) {
@@ -189,6 +198,9 @@ func (s *Action) showHandleError(ctx context.Context, c *cli.Context, name strin
 			_ = notify.Notify(ctx, "gopass - error", fmt.Sprintf("failed to retrieve secret '%s': %s", name, err))
 		}
 		return ExitError(ExitUnknown, err, "failed to retrieve secret '%s': %s", name, err)
+	}
+	if newName := s.hasAliasDomain(ctx, name); newName != "" {
+		return s.show(ctx, nil, newName, false)
 	}
 	if IsClip(ctx) {
 		_ = notify.Notify(ctx, "gopass - warning", fmt.Sprintf("Entry '%s' not found. Starting search...", name))

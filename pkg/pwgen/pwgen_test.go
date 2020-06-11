@@ -19,7 +19,7 @@ func ExampleGenerateMemorablePassword() {
 
 func TestPwgen(t *testing.T) {
 	for _, sym := range []bool{true, false} {
-		for i := 0; i < 50; i++ {
+		for i := 1; i < 50; i++ {
 			syms := CharAlphaNum
 			if sym {
 				syms = CharAll
@@ -32,6 +32,7 @@ func TestPwgen(t *testing.T) {
 func TestPwgenCharset(t *testing.T) {
 	_ = os.Setenv("GOPASS_CHARACTER_SET", "a")
 	assert.Equal(t, "aaaa", GeneratePassword(4, true))
+	assert.Equal(t, "", GeneratePasswordCharsetCheck(4, "a"))
 }
 
 func TestPwgenNoCrand(t *testing.T) {
@@ -43,6 +44,7 @@ func TestPwgenNoCrand(t *testing.T) {
 	oldOut := os.Stdout
 	r, w, _ := os.Pipe()
 	os.Stdout = w
+	os.Stderr = w
 	done := make(chan string)
 	go func() {
 		buf := &bytes.Buffer{}

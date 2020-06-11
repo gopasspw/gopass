@@ -13,7 +13,7 @@ require (
 	github.com/fatih/color v1.9.0
 	github.com/godbus/dbus v0.0.0-20190623212516-8a1682060722
 	github.com/gokyle/twofactor v1.0.1
-	github.com/golang/protobuf v1.4.0
+	github.com/golang/protobuf v1.4.2
 	github.com/google/go-github v17.0.0+incompatible
 	github.com/google/go-querystring v1.0.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.0
@@ -30,15 +30,15 @@ require (
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/schollz/closestmatch v0.0.0-20190308193919-1fbe626be92e
-	github.com/skip2/go-qrcode v0.0.0-20191027152451-9434209cb086
+	github.com/skip2/go-qrcode v0.0.0-20200526175731-7ac0b40b2038
 	github.com/stretchr/testify v1.5.1
 	github.com/urfave/cli/v2 v2.2.0
-	golang.org/x/crypto v0.0.0-20200423211502-4bdfaf469ed5
+	golang.org/x/crypto v0.0.0-20200604202706-70a84ac30bf9
 	golang.org/x/net v0.0.0-20200421231249-e086a090c8fd
-	golang.org/x/sys v0.0.0-20200420163511-1957bb5e6d1f
-	google.golang.org/protobuf v1.21.0
+	golang.org/x/sys v0.0.0-20200610111108-226ff32320da
+	google.golang.org/protobuf v1.24.0
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
-	gopkg.in/yaml.v2 v2.2.8
+	gopkg.in/yaml.v2 v2.3.0
 	gopkg.in/yaml.v3 v3.0.0-20200605160147-a5ece683394c
 	gotest.tools v2.2.0+incompatible
 	rsc.io/qr v0.2.0 // indirect

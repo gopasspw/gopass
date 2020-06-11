@@ -210,6 +210,9 @@ codequality:
 	@unparam -exported=true $(PKGS) || extit 1
 	@printf '%s\n' '$(OK)'
 
+gen:
+	@go generate ./...
+
 fmt:
 	@gofmt -s -l -w $(GOFILES_NOVENDOR)
 	@goimports -l -w $(GOFILES_NOVENDOR)
@@ -235,9 +238,9 @@ goreleaser: check-release-env travis clean
 	@goreleaser
 
 deps:
-	go build -v ./...
+	@go build -v ./...
 
-upgrade:
-	go get -u
+upgrade: gen fmt
+	@go get -u
 
 .PHONY: clean build completion install sysinfo crosscompile test codequality release goreleaser debsign

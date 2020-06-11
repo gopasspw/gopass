@@ -51,6 +51,9 @@ func TestSetupApp(t *testing.T) {
 // commandsWithError is a list of commands that return an error when
 // invoked without arguments
 var commandsWithError = map[string]struct{}{
+	".alias.add":         {},
+	".alias.remove":      {},
+	".alias.delete":      {},
 	".audit":             {},
 	".cat":               {},
 	".clone":             {},
@@ -117,7 +120,7 @@ func TestGetCommands(t *testing.T) {
 	c.Context = ctx
 
 	commands := getCommands(act, app)
-	assert.Equal(t, 35, len(commands))
+	assert.Equal(t, 36, len(commands))
 
 	prefix := ""
 	testCommands(t, c, commands, prefix)
