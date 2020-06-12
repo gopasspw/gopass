@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestParsePlain(t *testing.T) {
@@ -34,6 +35,19 @@ func TestParsePlain(t *testing.T) {
 			assert.Equal(t, tc.body, sec.GetBody())
 		})
 	}
+}
+
+func TestPlainModify(t *testing.T) {
+	in := "foobar\nhello world\nhow are you?"
+	sec := ParsePlain([]byte(in))
+	require.NotNil(t, sec)
+	assert.Equal(t, in, string(sec.Bytes()))
+	assert.Equal(t, 0, len(sec.Keys()))
+	sec.Set("foozen", "zab")
+	assert.Equal(t, "", sec.Get("foozen"))
+	assert.Equal(t, "foobar", sec.Get("password"))
+	sec.Set("password", "zab")
+	assert.Equal(t, "zab", sec.Get("password"))
 }
 
 func TestPlainMIME(t *testing.T) {

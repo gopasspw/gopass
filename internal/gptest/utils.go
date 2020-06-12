@@ -5,6 +5,7 @@ import (
 	"flag"
 	"os"
 	"path/filepath"
+	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -61,6 +62,12 @@ func flagset(t *testing.T, flags map[string]string, args []string) *flag.FlagSet
 				Usage: k,
 			}
 			assert.NoError(t, f.Apply(fs))
+		} else if _, err := strconv.Atoi(v); err == nil {
+			f := cli.IntFlag{
+				Name:  k,
+				Usage: k,
+			}
+			assert.NoError(t, f.Apply(fs))
 		} else {
 			f := cli.StringFlag{
 				Name:  k,
@@ -80,7 +87,7 @@ func flagset(t *testing.T, flags map[string]string, args []string) *flag.FlagSet
 }
 
 // UnsetVars will unset the specified env vars and return a restore func
-func UnsetVars(ls []string) func() {
+func UnsetVars(ls ...string) func() {
 	old := make(map[string]string, len(ls))
 	for _, k := range ls {
 		old[k] = os.Getenv(k)

@@ -62,16 +62,22 @@ func TestClone(t *testing.T) {
 		stdout = os.Stdout
 	}()
 
-	// no args
-	c := gptest.CliCtx(ctx, t)
-	assert.Error(t, act.Clone(c))
+	t.Run("no args", func(t *testing.T) {
+		defer buf.Reset()
+		c := gptest.CliCtx(ctx, t)
+		assert.Error(t, act.Clone(c))
+	})
 
-	// clone to initialized store
-	assert.Error(t, act.clone(ctx, "/tmp/non-existing-repo.git", "", filepath.Join(u.Dir, "store")))
+	t.Run("clone to initialized store", func(t *testing.T) {
+		defer buf.Reset()
+		assert.Error(t, act.clone(ctx, "/tmp/non-existing-repo.git", "", filepath.Join(u.Dir, "store")))
+	})
 
-	// clone to mount
-	gd := aGitRepo(ctx, u, t, "other-repo")
-	assert.NoError(t, act.clone(ctx, gd, "gd", filepath.Join(u.Dir, "mount")))
+	t.Run("clone to mount", func(t *testing.T) {
+		defer buf.Reset()
+		gd := aGitRepo(ctx, u, t, "other-repo")
+		assert.NoError(t, act.clone(ctx, gd, "gd", filepath.Join(u.Dir, "mount")))
+	})
 }
 
 func TestCloneBackendIsStoredForMount(t *testing.T) {
@@ -114,9 +120,9 @@ func TestCloneGetGitConfig(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 	defer u.Remove()
 
-	r1 := gptest.UnsetVars(termio.NameVars)
+	r1 := gptest.UnsetVars(termio.NameVars...)
 	defer r1()
-	r2 := gptest.UnsetVars(termio.EmailVars)
+	r2 := gptest.UnsetVars(termio.EmailVars...)
 	defer r2()
 
 	ctx := context.Background()

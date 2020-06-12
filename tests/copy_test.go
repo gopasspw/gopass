@@ -12,38 +12,49 @@ func TestCopy(t *testing.T) {
 	ts := newTester(t)
 	defer ts.teardown()
 
-	_, err := ts.run("copy")
-	assert.Error(t, err)
+	t.Run("copy w/ empty store", func(t *testing.T) {
+		_, err := ts.run("copy")
+		assert.Error(t, err)
+	})
 
 	ts.initStore()
 
-	out, err := ts.run("copy")
-	assert.Error(t, err)
-	assert.Equal(t, "\nError: Usage: "+filepath.Base(ts.Binary)+" cp <FROM> <TO>\n", out)
+	t.Run("copy usage", func(t *testing.T) {
+		out, err := ts.run("copy")
+		assert.Error(t, err)
+		assert.Equal(t, "\nError: Usage: "+filepath.Base(ts.Binary)+" cp <FROM> <TO>\n", out)
+	})
 
-	out, err = ts.run("copy foo")
-	assert.Error(t, err)
-	assert.Equal(t, "\nError: Usage: "+filepath.Base(ts.Binary)+" cp <FROM> <TO>\n", out)
+	t.Run("copy w/o destination", func(t *testing.T) {
+		out, err := ts.run("copy foo")
+		assert.Error(t, err)
+		assert.Equal(t, "\nError: Usage: "+filepath.Base(ts.Binary)+" cp <FROM> <TO>\n", out)
+	})
 
-	out, err = ts.run("copy foo bar")
-	assert.Error(t, err)
-	assert.Equal(t, "\nError: foo does not exist\n", out)
+	t.Run("copy non existing source", func(t *testing.T) {
+		out, err := ts.run("copy foo bar")
+		assert.Error(t, err)
+		assert.Equal(t, "\nError: foo does not exist\n", out)
+	})
 
 	ts.initSecrets("")
 
-	// recursive copy
-	_, err = ts.run("copy foo/ bar")
-	require.NoError(t, err)
+	t.Run("recursive copy", func(t *testing.T) {
+		_, err := ts.run("copy foo/ bar")
+		require.NoError(t, err)
+	})
 
-	out, err = ts.run("copy foo/bar foo/baz")
-	require.NoError(t, err)
-	assert.Equal(t, "", out)
+	t.Run("copy existing secret to non-existing destination", func(t *testing.T) {
+		out, err := ts.run("copy foo/bar foo/baz")
+		require.NoError(t, err)
+		assert.Equal(t, "", out)
 
-	orig, err := ts.run("show -f foo/bar")
-	assert.NoError(t, err)
+		orig, err := ts.run("show -f foo/bar")
+		assert.NoError(t, err)
 
-	copy, err := ts.run("show -f foo/baz")
-	assert.NoError(t, err)
+		copy, err := ts.run("show -f foo/baz")
+		assert.NoError(t, err)
 
-	assert.Equal(t, orig, copy)
+		assert.Equal(t, orig, copy)
+	})
 }

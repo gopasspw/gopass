@@ -126,12 +126,8 @@ func TestShowAutoClip(t *testing.T) {
 		out.Stdout = os.Stdout
 	}()
 
-	// autoclip=true
-	ctx = ctxutil.WithAutoClip(ctx, true)
 	// terminal=false
 	ctx = ctxutil.WithTerminal(ctx, false)
-
-	ctx = act.Store.WithContext(ctx)
 
 	// gopass show foo
 	// -> with AutoClip
@@ -139,6 +135,13 @@ func TestShowAutoClip(t *testing.T) {
 	// -> Print password
 	// for use in scripts
 	t.Run("gopass show foo", func(t *testing.T) {
+		// autoclip=true
+		ctx := ctxutil.WithAutoClip(ctx, true)
+		// terminal=false
+		ctx = ctxutil.WithTerminal(ctx, false)
+		// initialize context with config values, also detects if we're running in a termnial
+		ctx = act.Store.WithContext(ctx)
+
 		c := gptest.CliCtx(ctx, t, "foo")
 		assert.NoError(t, act.Show(c))
 		assert.NotContains(t, buf.String(), "WARNING")
@@ -146,17 +149,19 @@ func TestShowAutoClip(t *testing.T) {
 		buf.Reset()
 	})
 
-	// autoclip=true
-	ctx = ctxutil.WithAutoClip(ctx, true)
-	// terminal=true
-	ctx = ctxutil.WithTerminal(ctx, true)
-
 	// gopass show foo
 	// -> with AutoClip
 	// -> with terminal
 	// -> Copy to clipboard
 	// for interactive use
 	t.Run("gopass show foo", func(t *testing.T) {
+		// autoclip=true
+		ctx := ctxutil.WithAutoClip(ctx, true)
+		// terminal=true
+		ctx = ctxutil.WithTerminal(ctx, true)
+		// initialize context with config values, also detects if we're running in a termnial
+		ctx = act.Store.WithContext(ctx)
+
 		c := gptest.CliCtx(ctx, t, "foo")
 		assert.NoError(t, act.Show(c))
 		assert.Contains(t, buf.String(), "WARNING")
@@ -196,11 +201,11 @@ func TestShowAutoClip(t *testing.T) {
 		buf.Reset()
 	})
 
-	// autoclip=false
-	ctx = ctxutil.WithAutoClip(ctx, false)
 	// gopass show foo
 	// -> Copy to clipboard
 	t.Run("gopass show foo", func(t *testing.T) {
+		// autoclip=false
+		ctx := ctxutil.WithAutoClip(ctx, false)
 		c := gptest.CliCtx(ctx, t, "foo")
 		assert.NoError(t, act.Show(c))
 		assert.NotContains(t, buf.String(), "WARNING")
@@ -211,6 +216,8 @@ func TestShowAutoClip(t *testing.T) {
 	// gopass show -c foo
 	// -> Copy to clipboard
 	t.Run("gopass show -c foo", func(t *testing.T) {
+		// autoclip=false
+		ctx := ctxutil.WithAutoClip(ctx, false)
 		c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"clip": "true"}, "foo")
 		assert.NoError(t, act.Show(c))
 		assert.Contains(t, buf.String(), "WARNING")
@@ -221,6 +228,8 @@ func TestShowAutoClip(t *testing.T) {
 	// gopass show -C foo
 	// -> Copy to clipboard AND print
 	t.Run("gopass show -C foo", func(t *testing.T) {
+		// autoclip=false
+		ctx := ctxutil.WithAutoClip(ctx, false)
 		c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"alsoclip": "true"}, "foo")
 		assert.NoError(t, act.Show(c))
 		assert.Contains(t, buf.String(), "WARNING")
@@ -232,6 +241,8 @@ func TestShowAutoClip(t *testing.T) {
 	// gopass show -f foo
 	// -> ONLY Print
 	t.Run("gopass show -f foo", func(t *testing.T) {
+		// autoclip=false
+		ctx := ctxutil.WithAutoClip(ctx, false)
 		c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true"}, "foo")
 		assert.NoError(t, act.Show(c))
 		assert.NotContains(t, buf.String(), "WARNING")
@@ -262,10 +273,11 @@ func TestShowHandleRevision(t *testing.T) {
 		out.Stdout = os.Stdout
 	}()
 
-	// show foo
-	c := gptest.CliCtx(ctx, t)
-	assert.NoError(t, act.showHandleRevision(ctx, c, "foo", "HEAD"))
-	buf.Reset()
+	t.Run("show foo", func(t *testing.T) {
+		defer buf.Reset()
+		c := gptest.CliCtx(ctx, t)
+		assert.NoError(t, act.showHandleRevision(ctx, c, "foo", "HEAD"))
+	})
 }
 
 func TestShowHandleError(t *testing.T) {

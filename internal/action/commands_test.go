@@ -41,6 +41,8 @@ func TestCommands(t *testing.T) {
 	require.NotNil(t, act)
 
 	for _, cmd := range act.GetCommands() {
-		testCommand(t, cmd)
+		t.Run(cmd.Name, func(t *testing.T) {
+			testCommand(t, cmd)
+		})
 	}
 }

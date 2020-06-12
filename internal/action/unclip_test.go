@@ -3,7 +3,6 @@ package action
 import (
 	"bytes"
 	"context"
-	"flag"
 	"os"
 	"testing"
 
@@ -11,7 +10,6 @@ import (
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/urfave/cli/v2"
 
 	_ "github.com/gopasspw/gopass/internal/backend/crypto"
 	_ "github.com/gopasspw/gopass/internal/backend/rcs"
@@ -35,17 +33,7 @@ func TestUnclip(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, act)
 
-	app := cli.NewApp()
-
-	fs := flag.NewFlagSet("default", flag.ContinueOnError)
-	sf := cli.IntFlag{
-		Name:  "timeout",
-		Usage: "timeout",
-	}
-	assert.NoError(t, sf.Apply(fs))
-	assert.NoError(t, fs.Parse([]string{"--timeout=0"}))
-	c := cli.NewContext(app, fs, nil)
-	c.Context = ctx
-
-	assert.Error(t, act.Unclip(c))
+	t.Run("unlcip should fail", func(t *testing.T) {
+		assert.Error(t, act.Unclip(gptest.CliCtxWithFlags(ctx, t, map[string]string{"timeout": "0"})))
+	})
 }
