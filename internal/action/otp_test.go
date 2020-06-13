@@ -33,26 +33,30 @@ func TestOTP(t *testing.T) {
 		out.Stdout = os.Stdout
 	}()
 
-	// display non-otp secret
-	assert.Error(t, act.OTP(gptest.CliCtx(ctx, t, "foo")))
-	buf.Reset()
+	t.Run("display non-otp secret", func(t *testing.T) {
+		defer buf.Reset()
+		assert.Error(t, act.OTP(gptest.CliCtx(ctx, t, "foo")))
+	})
 
-	// create and display valid OTP
-	sec := secret.New()
-	sec.Set("password", "foo")
-	sec.WriteString(twofactor.GenerateGoogleTOTP().URL("foo"))
-	assert.NoError(t, act.Store.Set(ctx, "bar", sec))
+	t.Run("create and display valid OTP", func(t *testing.T) {
+		defer buf.Reset()
+		sec := secret.New()
+		sec.Set("password", "foo")
+		sec.WriteString(twofactor.GenerateGoogleTOTP().URL("foo"))
+		assert.NoError(t, act.Store.Set(ctx, "bar", sec))
 
-	assert.NoError(t, act.OTP(gptest.CliCtx(ctx, t, "bar")))
-	buf.Reset()
+		assert.NoError(t, act.OTP(gptest.CliCtx(ctx, t, "bar")))
+	})
 
-	// copy to clipboard
-	assert.NoError(t, act.otp(ctx, "bar", "", true, false, false))
-	buf.Reset()
+	t.Run("copy to clipboard", func(t *testing.T) {
+		defer buf.Reset()
+		assert.NoError(t, act.otp(ctx, "bar", "", true, false, false))
+	})
 
-	// write QR file
-	fn := filepath.Join(u.Dir, "qr.png")
-	assert.NoError(t, act.OTP(gptest.CliCtxWithFlags(ctx, t, map[string]string{"qr": fn}, "bar")))
-	assert.FileExists(t, fn)
-	buf.Reset()
+	t.Run("write QR file", func(t *testing.T) {
+		defer buf.Reset()
+		fn := filepath.Join(u.Dir, "qr.png")
+		assert.NoError(t, act.OTP(gptest.CliCtxWithFlags(ctx, t, map[string]string{"qr": fn}, "bar")))
+		assert.FileExists(t, fn)
+	})
 }

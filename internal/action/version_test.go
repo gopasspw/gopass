@@ -40,5 +40,7 @@ func TestVersion(t *testing.T) {
 		out.Print(ctx, "gopass version 0.0.0-test")
 	}
 
-	assert.NoError(t, act.Version(gptest.CliCtx(ctx, t)))
+	t.Run("print fixed version", func(t *testing.T) {
+		assert.NoError(t, act.Version(gptest.CliCtx(ctx, t)))
+	})
 }

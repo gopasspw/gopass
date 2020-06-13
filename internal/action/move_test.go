@@ -32,6 +32,8 @@ func TestMove(t *testing.T) {
 		out.Stderr = os.Stderr
 	}()
 
-	assert.NoError(t, act.Move(gptest.CliCtx(ctx, t, "foo", "bar")))
-	buf.Reset()
+	t.Run("move foo to bar", func(t *testing.T) {
+		defer buf.Reset()
+		assert.NoError(t, act.Move(gptest.CliCtx(ctx, t, "foo", "bar")))
+	})
 }

@@ -39,39 +39,47 @@ func TestRecipients(t *testing.T) {
 		goprogressbar.Stdout = os.Stdout
 	}()
 
-	// RecipientsPrint
-	assert.NoError(t, act.RecipientsPrint(gptest.CliCtx(ctx, t)))
-	want := `Hint: run 'gopass sync' to import any missing public keys
+	t.Run("print recipients tree", func(t *testing.T) {
+		defer buf.Reset()
+		assert.NoError(t, act.RecipientsPrint(gptest.CliCtx(ctx, t)))
+		want := `Hint: run 'gopass sync' to import any missing public keys
 gopass
 └── 0xDEADBEEF
 
 `
-	assert.Equal(t, want, buf.String())
-	buf.Reset()
 
-	// RecipientsComplete
-	act.RecipientsComplete(gptest.CliCtx(ctx, t))
-	want = "0xDEADBEEF\n"
-	assert.Equal(t, want, buf.String())
-	buf.Reset()
+		assert.Equal(t, want, buf.String())
+	})
 
-	// RecipientsAdd
-	assert.Error(t, act.RecipientsAdd(gptest.CliCtx(ctx, t)))
-	buf.Reset()
+	t.Run("complete recipients", func(t *testing.T) {
+		defer buf.Reset()
+		act.RecipientsComplete(gptest.CliCtx(ctx, t))
+		want := "0xDEADBEEF\n"
+		assert.Equal(t, want, buf.String())
+	})
 
-	// RecipientsRemove
-	assert.Error(t, act.RecipientsRemove(gptest.CliCtx(ctx, t)))
-	buf.Reset()
+	t.Run("add recipients w/o args", func(t *testing.T) {
+		defer buf.Reset()
+		assert.Error(t, act.RecipientsAdd(gptest.CliCtx(ctx, t)))
+	})
 
-	// RecipientsAdd 0xFEEDBEEF
-	assert.NoError(t, act.RecipientsAdd(gptest.CliCtx(ctx, t, "0xFEEDBEEF")))
-	buf.Reset()
+	t.Run("remove recipients w/o args", func(t *testing.T) {
+		defer buf.Reset()
+		assert.Error(t, act.RecipientsRemove(gptest.CliCtx(ctx, t)))
+	})
 
-	// RecipientsAdd 0xBEEFFEED
-	assert.Error(t, act.RecipientsAdd(gptest.CliCtx(ctx, t, "0xBEEFFEED")))
-	buf.Reset()
+	t.Run("add recipient 0xFEEDBEEF", func(t *testing.T) {
+		defer buf.Reset()
+		assert.NoError(t, act.RecipientsAdd(gptest.CliCtx(ctx, t, "0xFEEDBEEF")))
+	})
 
-	// RecipientsRemove 0xDEADBEEF
-	assert.NoError(t, act.RecipientsRemove(gptest.CliCtx(ctx, t, "0xDEADBEEF")))
-	buf.Reset()
+	t.Run("add recipient 0xBEEFFEED", func(t *testing.T) {
+		defer buf.Reset()
+		assert.Error(t, act.RecipientsAdd(gptest.CliCtx(ctx, t, "0xBEEFFEED")))
+	})
+
+	t.Run("remove recipient 0xDEADBEEF", func(t *testing.T) {
+		defer buf.Reset()
+		assert.NoError(t, act.RecipientsRemove(gptest.CliCtx(ctx, t, "0xDEADBEEF")))
+	})
 }

@@ -31,10 +31,12 @@ func TestConfig(t *testing.T) {
 		stdout = os.Stdout
 	}()
 
-	// action.Config
-	c := gptest.CliCtx(ctx, t)
-	assert.NoError(t, act.Config(c))
-	want := `root store config:
+	t.Run("display config", func(t *testing.T) {
+		defer buf.Reset()
+
+		c := gptest.CliCtx(ctx, t)
+		assert.NoError(t, act.Config(c))
+		want := `root store config:
   autoclip: true
   autoimport: true
   cliptimeout: 45
@@ -45,30 +47,39 @@ func TestConfig(t *testing.T) {
   nopager: false
   notifications: true
 `
-	want += "  path: " + u.StoreDir("") + "\n"
-	want += `  safecontent: false
+		want += "  path: " + u.StoreDir("") + "\n"
+		want += `  safecontent: false
 `
-	assert.Equal(t, want, buf.String())
-	buf.Reset()
+		assert.Equal(t, want, buf.String())
+	})
 
-	// action.setConfigValue
-	assert.NoError(t, act.setConfigValue(ctx, "", "nopager", "true"))
-	assert.Equal(t, "nopager: true", strings.TrimSpace(buf.String()), "action.setConfigValue")
-	buf.Reset()
+	t.Run("set valid config value", func(t *testing.T) {
+		defer buf.Reset()
 
-	// action.setConfigValue (invalid)
-	assert.Error(t, act.setConfigValue(ctx, "", "foobar", "true"))
-	buf.Reset()
+		assert.NoError(t, act.setConfigValue(ctx, "", "nopager", "true"))
+		assert.Equal(t, "nopager: true", strings.TrimSpace(buf.String()), "action.setConfigValue")
+	})
 
-	// action.printConfigValues
-	act.printConfigValues(ctx, "", "nopager")
-	want = "nopager: true"
-	assert.Equal(t, want, strings.TrimSpace(buf.String()), "action.printConfigValues")
-	buf.Reset()
+	t.Run("set invalid config value", func(t *testing.T) {
+		defer buf.Reset()
 
-	// action.printConfigValues
-	act.printConfigValues(ctx, "")
-	want = `root store config:
+		assert.Error(t, act.setConfigValue(ctx, "", "foobar", "true"))
+	})
+
+	t.Run("print single config value", func(t *testing.T) {
+		defer buf.Reset()
+
+		act.printConfigValues(ctx, "", "nopager")
+
+		want := "nopager: true"
+		assert.Equal(t, want, strings.TrimSpace(buf.String()), "action.printConfigValues")
+	})
+
+	t.Run("print all config values", func(t *testing.T) {
+		defer buf.Reset()
+
+		act.printConfigValues(ctx, "")
+		want := `root store config:
   autoclip: true
   autoimport: true
   cliptimeout: 45
@@ -79,29 +90,34 @@ func TestConfig(t *testing.T) {
   nopager: true
   notifications: true
 `
-	want += "  path: " + u.StoreDir("") + "\n"
-	want += `  safecontent: false`
-	assert.Equal(t, want, strings.TrimSpace(buf.String()), "action.printConfigValues")
-	buf.Reset()
+		want += "  path: " + u.StoreDir("") + "\n"
+		want += `  safecontent: false`
+		assert.Equal(t, want, strings.TrimSpace(buf.String()), "action.printConfigValues")
 
-	delete(act.cfg.Mounts, "foo")
-	buf.Reset()
+		delete(act.cfg.Mounts, "foo")
+	})
 
-	// config autoimport
-	c = gptest.CliCtx(ctx, t, "autoimport")
-	assert.NoError(t, act.Config(c))
-	assert.Equal(t, "autoimport: true", strings.TrimSpace(buf.String()))
-	buf.Reset()
+	t.Run("show autoimport value", func(t *testing.T) {
+		defer buf.Reset()
 
-	// config autoimport false
-	c = gptest.CliCtx(ctx, t, "autoimport", "false")
-	assert.NoError(t, act.Config(c))
-	assert.Equal(t, "autoimport: false", strings.TrimSpace(buf.String()))
-	buf.Reset()
+		c := gptest.CliCtx(ctx, t, "autoimport")
+		assert.NoError(t, act.Config(c))
+		assert.Equal(t, "autoimport: true", strings.TrimSpace(buf.String()))
+	})
 
-	// action.ConfigComplete
-	act.ConfigComplete(c)
-	want = `autoclip
+	t.Run("disable autoimport", func(t *testing.T) {
+		defer buf.Reset()
+
+		c := gptest.CliCtx(ctx, t, "autoimport", "false")
+		assert.NoError(t, act.Config(c))
+		assert.Equal(t, "autoimport: false", strings.TrimSpace(buf.String()))
+	})
+
+	t.Run("complete config items", func(t *testing.T) {
+		defer buf.Reset()
+
+		act.ConfigComplete(gptest.CliCtx(ctx, t))
+		want := `autoclip
 autoimport
 cliptimeout
 confirm
@@ -113,11 +129,13 @@ notifications
 path
 safecontent
 `
-	assert.Equal(t, want, buf.String())
-	buf.Reset()
+		assert.Equal(t, want, buf.String())
+	})
 
-	// config autoimport false 42
-	c = gptest.CliCtx(ctx, t, "autoimport", "false", "42")
-	assert.Error(t, act.Config(c))
-	buf.Reset()
+	t.Run("set autoimport to invalid value", func(t *testing.T) {
+		defer buf.Reset()
+
+		c := gptest.CliCtx(ctx, t, "autoimport", "false", "42")
+		assert.Error(t, act.Config(c))
+	})
 }

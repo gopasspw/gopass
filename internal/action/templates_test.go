@@ -40,37 +40,43 @@ func TestTemplates(t *testing.T) {
 		out.Stdout = os.Stdout
 	}()
 
-	// display empty template tree
-	assert.NoError(t, act.TemplatesPrint(gptest.CliCtx(ctx, t, "foo")))
-	assert.Equal(t, "gopass\n\n", buf.String())
-	buf.Reset()
+	t.Run("display empty template tree", func(t *testing.T) {
+		defer buf.Reset()
+		assert.NoError(t, act.TemplatesPrint(gptest.CliCtx(ctx, t, "foo")))
+		assert.Equal(t, "gopass\n\n", buf.String())
+	})
 
-	// add template
-	assert.NoError(t, act.Store.SetTemplate(ctx, "foo", []byte("foobar")))
-	assert.NoError(t, act.TemplatesPrint(gptest.CliCtx(ctx, t, "foo")))
-	want := `Pushed changes to git remote
+	t.Run("add template", func(t *testing.T) {
+		defer buf.Reset()
+		assert.NoError(t, act.Store.SetTemplate(ctx, "foo", []byte("foobar")))
+		assert.NoError(t, act.TemplatesPrint(gptest.CliCtx(ctx, t, "foo")))
+		want := `Pushed changes to git remote
 gopass
 └── foo
 
 `
-	assert.Equal(t, want, buf.String())
-	buf.Reset()
+		assert.Equal(t, want, buf.String())
+	})
 
-	// complete templates
-	act.TemplatesComplete(gptest.CliCtx(ctx, t, "foo"))
-	assert.Equal(t, "foo\n", buf.String())
-	buf.Reset()
+	t.Run("complete templates", func(t *testing.T) {
+		defer buf.Reset()
+		act.TemplatesComplete(gptest.CliCtx(ctx, t, "foo"))
+		assert.Equal(t, "foo\n", buf.String())
+	})
 
-	// print template
-	assert.NoError(t, act.TemplatePrint(gptest.CliCtx(ctx, t, "foo")))
-	assert.Equal(t, "foobar\n", buf.String())
-	buf.Reset()
+	t.Run("print template", func(t *testing.T) {
+		defer buf.Reset()
+		assert.NoError(t, act.TemplatePrint(gptest.CliCtx(ctx, t, "foo")))
+		assert.Equal(t, "foobar\n", buf.String())
+	})
 
-	// edit template
-	assert.Error(t, act.TemplateEdit(gptest.CliCtx(ctx, t, "foo")))
-	buf.Reset()
+	t.Run("edit template", func(t *testing.T) {
+		defer buf.Reset()
+		assert.Error(t, act.TemplateEdit(gptest.CliCtx(ctx, t, "foo")))
+	})
 
-	// remove template
-	assert.NoError(t, act.TemplateRemove(gptest.CliCtx(ctx, t, "foo")))
-	buf.Reset()
+	t.Run("remove template", func(t *testing.T) {
+		defer buf.Reset()
+		assert.NoError(t, act.TemplateRemove(gptest.CliCtx(ctx, t, "foo")))
+	})
 }

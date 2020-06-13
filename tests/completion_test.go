@@ -15,12 +15,15 @@ func TestCompletion(t *testing.T) {
 	ts := newTester(t)
 	defer ts.teardown()
 
-	out, err := ts.run("completion")
-	assert.NoError(t, err)
-	assert.Contains(t, out, "Source for auto completion in bash")
-	assert.Contains(t, out, "Source for auto completion in zsh")
+	t.Run("completion help", func(t *testing.T) {
+		out, err := ts.run("completion")
+		assert.NoError(t, err)
+		assert.Contains(t, out, "Source for auto completion in bash")
+		assert.Contains(t, out, "Source for auto completion in zsh")
+	})
 
-	bash := `_gopass_bash_autocomplete() {
+	t.Run("bash completion", func(t *testing.T) {
+		bash := `_gopass_bash_autocomplete() {
      local cur opts base
      COMPREPLY=()
      cur="${COMP_WORDS[COMP_CWORD]}"
@@ -32,17 +35,22 @@ func TestCompletion(t *testing.T) {
 
 complete -F _gopass_bash_autocomplete gopass`
 
-	out, err = ts.run("completion bash")
-	assert.NoError(t, err)
-	assert.Equal(t, bash, out)
+		out, err := ts.run("completion bash")
+		assert.NoError(t, err)
+		assert.Equal(t, bash, out)
+	})
 
-	out, err = ts.run("completion zsh")
-	assert.NoError(t, err)
-	assert.Contains(t, out, "compdef gopass")
+	t.Run("zsh completion", func(t *testing.T) {
+		out, err := ts.run("completion zsh")
+		assert.NoError(t, err)
+		assert.Contains(t, out, "compdef gopass")
+	})
 
-	out, err = ts.run("completion fish")
-	assert.NoError(t, err)
-	assert.Contains(t, out, "complete")
+	t.Run("fish completion", func(t *testing.T) {
+		out, err := ts.run("completion fish")
+		assert.NoError(t, err)
+		assert.Contains(t, out, "complete")
+	})
 }
 
 func TestCompletionNoPath(t *testing.T) {
@@ -55,6 +63,8 @@ func TestCompletionNoPath(t *testing.T) {
 		_ = os.Setenv("PATH", ov)
 	}()
 
-	_, err := ts.run("--generate-bash-completion")
-	assert.NoError(t, err)
+	t.Run("generate bash", func(t *testing.T) {
+		_, err := ts.run("--generate-bash-completion")
+		assert.NoError(t, err)
+	})
 }

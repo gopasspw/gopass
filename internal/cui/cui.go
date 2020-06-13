@@ -22,7 +22,7 @@ func GetSelection(ctx context.Context, prompt string, choices []string) (string,
 	for {
 		var err error
 		i, err = termio.AskForInt(ctx, prompt, 0)
-		if err == nil {
+		if err == nil && i < len(choices) {
 			break
 		}
 		if err == termio.ErrAborted {

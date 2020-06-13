@@ -13,9 +13,11 @@ func TestAudit(t *testing.T) {
 	ts.initStore()
 	ts.initSecrets("")
 
-	out, err := ts.run("audit")
-	assert.Error(t, err)
-	assert.Contains(t, out, "No shared secrets found")
-	assert.Contains(t, out, "Password is too short:")
-	assert.Contains(t, out, "\t- fixed/secret")
+	t.Run("audit the test store", func(t *testing.T) {
+		out, err := ts.run("audit")
+		assert.Error(t, err)
+		assert.Contains(t, out, "No shared secrets found")
+		assert.Contains(t, out, "Password is too short:")
+		assert.Contains(t, out, "\t- fixed/secret")
+	})
 }

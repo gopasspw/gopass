@@ -32,11 +32,13 @@ func TestSync(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, act)
 
-	// default
-	assert.NoError(t, act.Sync(gptest.CliCtx(ctx, t)))
-	buf.Reset()
+	t.Run("default", func(t *testing.T) {
+		defer buf.Reset()
+		assert.NoError(t, act.Sync(gptest.CliCtx(ctx, t)))
+	})
 
-	// sync --store=root
-	assert.NoError(t, act.Sync(gptest.CliCtxWithFlags(ctx, t, map[string]string{"store": "root"})))
-	buf.Reset()
+	t.Run("sync --store=root", func(t *testing.T) {
+		defer buf.Reset()
+		assert.NoError(t, act.Sync(gptest.CliCtxWithFlags(ctx, t, map[string]string{"store": "root"})))
+	})
 }

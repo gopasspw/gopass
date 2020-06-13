@@ -29,8 +29,33 @@ url: http://www.test.com/
 username: myuser@test.com
 Test / test.com
 `
-	// read back the secret
-	assert.Equal(t, mlOut, string(s.Bytes()))
+	t.Run("read back the secret", func(t *testing.T) {
+		assert.Equal(t, mlOut, string(s.Bytes()))
+	})
+
+	t.Run("read some keys", func(t *testing.T) {
+		for k, v := range map[string]string{
+			"password": "somepasswd",
+			"url":      "http://www.test.com/",
+			"username": "myuser@test.com",
+		} {
+			assert.Equal(t, v, s.Get(k))
+		}
+	})
+
+	t.Run("remove a key", func(t *testing.T) {
+		s.Set("foobar", "baz")
+		assert.Equal(t, "baz", s.Get("foobar"))
+		s.Del("foobar")
+		assert.Equal(t, "", s.Get("foobar"))
+	})
+
+	t.Run("read the body", func(t *testing.T) {
+		body := "Test / test.com\n"
+		assert.Equal(t, body, s.GetBody())
+		assert.Equal(t, body, s.GetBody())
+		assert.Equal(t, body, s.GetBody())
+	})
 }
 
 func TestKVNoNewLine(t *testing.T) {

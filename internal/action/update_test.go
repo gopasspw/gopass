@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"compress/gzip"
 	"context"
-	"flag"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -25,7 +24,6 @@ import (
 	"github.com/dominikschulz/github-releases/ghrel"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/urfave/cli/v2"
 )
 
 const testUpdateJSON = `[
@@ -73,11 +71,6 @@ func TestUpdate(t *testing.T) {
 	act, err := newMock(ctx, u)
 	require.NoError(t, err)
 
-	app := cli.NewApp()
-	fs := flag.NewFlagSet("default", flag.ContinueOnError)
-	c := cli.NewContext(app, fs, nil)
-	c.Context = ctx
-
 	// github release download mock
 	ghdl := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		gzw := gzip.NewWriter(w)
@@ -122,7 +115,6 @@ func TestUpdate(t *testing.T) {
 		stdout = os.Stdout
 	}()
 
-	assert.NoError(t, act.Update(c))
-	t.Logf("Output: %s", buf.String())
+	assert.NoError(t, act.Update(gptest.CliCtx(ctx, t)))
 	buf.Reset()
 }

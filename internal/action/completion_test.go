@@ -3,7 +3,6 @@ package action
 import (
 	"bytes"
 	"context"
-	"flag"
 	"os"
 	"testing"
 
@@ -47,34 +46,41 @@ func TestComplete(t *testing.T) {
 		},
 	}
 
-	fs := flag.NewFlagSet("default", flag.ContinueOnError)
-	c := cli.NewContext(app, fs, nil)
-	c.Context = ctx
+	t.Run("complete foo", func(t *testing.T) {
+		defer buf.Reset()
 
-	act.Complete(c)
-	assert.Equal(t, "foo\n", buf.String())
-	buf.Reset()
+		act.Complete(gptest.CliCtx(ctx, t))
+		assert.Equal(t, "foo\n", buf.String())
+	})
 
-	// bash
-	assert.NoError(t, act.CompletionBash(nil))
-	assert.Contains(t, buf.String(), "action.test")
-	buf.Reset()
+	t.Run("bash completion", func(t *testing.T) {
+		defer buf.Reset()
 
-	// fish
-	assert.NoError(t, act.CompletionFish(app))
-	assert.Contains(t, buf.String(), "action.test")
-	assert.Error(t, act.CompletionFish(nil))
-	buf.Reset()
+		assert.NoError(t, act.CompletionBash(nil))
+		assert.Contains(t, buf.String(), "action.test")
+	})
 
-	// zsh
-	assert.NoError(t, act.CompletionZSH(app))
-	assert.Contains(t, buf.String(), "action.test")
-	assert.Error(t, act.CompletionZSH(nil))
-	buf.Reset()
+	t.Run("fish completion", func(t *testing.T) {
+		defer buf.Reset()
 
-	// openbsdksh
-	assert.NoError(t, act.CompletionOpenBSDKsh(app))
-	assert.Contains(t, buf.String(), "complete_gopass")
-	assert.Error(t, act.CompletionOpenBSDKsh(nil))
-	buf.Reset()
+		assert.NoError(t, act.CompletionFish(app))
+		assert.Contains(t, buf.String(), "action.test")
+		assert.Error(t, act.CompletionFish(nil))
+	})
+
+	t.Run("zsh completion", func(t *testing.T) {
+		defer buf.Reset()
+
+		assert.NoError(t, act.CompletionZSH(app))
+		assert.Contains(t, buf.String(), "action.test")
+		assert.Error(t, act.CompletionZSH(nil))
+	})
+
+	t.Run("openbsdksh completion", func(t *testing.T) {
+		defer buf.Reset()
+
+		assert.NoError(t, act.CompletionOpenBSDKsh(app))
+		assert.Contains(t, buf.String(), "complete_gopass")
+		assert.Error(t, act.CompletionOpenBSDKsh(nil))
+	})
 }

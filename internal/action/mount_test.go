@@ -36,34 +36,42 @@ func TestMounts(t *testing.T) {
 		stdout = os.Stdout
 	}()
 
-	// print mounts
-	assert.NoError(t, act.MountsPrint(gptest.CliCtx(ctx, t)))
-	buf.Reset()
+	t.Run("print mounts", func(t *testing.T) {
+		defer buf.Reset()
+		assert.NoError(t, act.MountsPrint(gptest.CliCtx(ctx, t)))
+	})
 
-	// complete mounts
-	act.MountsComplete(gptest.CliCtx(ctx, t))
-	assert.Equal(t, buf.String(), "")
-	buf.Reset()
+	t.Run("complete mounts", func(t *testing.T) {
+		defer buf.Reset()
+		act.MountsComplete(gptest.CliCtx(ctx, t))
+		assert.Equal(t, buf.String(), "")
+	})
 
-	// remove no non-existing mount
-	assert.Error(t, act.MountRemove(gptest.CliCtx(ctx, t)))
-	buf.Reset()
+	t.Run("remove no non-existing mount", func(t *testing.T) {
+		defer buf.Reset()
+		assert.Error(t, act.MountRemove(gptest.CliCtx(ctx, t)))
+	})
 
-	// remove non-existing mount
-	assert.NoError(t, act.MountRemove(gptest.CliCtx(ctx, t, "foo")))
-	buf.Reset()
+	t.Run("remove non-existing mount", func(t *testing.T) {
+		defer buf.Reset()
+		assert.NoError(t, act.MountRemove(gptest.CliCtx(ctx, t, "foo")))
+	})
 
-	// add non-existing mount
-	assert.Error(t, act.MountAdd(gptest.CliCtx(ctx, t, "foo", filepath.Join(u.Dir, "mount1"))))
-	buf.Reset()
+	t.Run("add non-existing mount", func(t *testing.T) {
+		defer buf.Reset()
+		assert.Error(t, act.MountAdd(gptest.CliCtx(ctx, t, "foo", filepath.Join(u.Dir, "mount1"))))
+	})
 
-	// add some mounts
-	assert.NoError(t, u.InitStore("mount1"))
-	assert.NoError(t, u.InitStore("mount2"))
-	assert.NoError(t, act.Store.AddMount(ctx, "mount1", u.StoreDir("mount1")))
-	assert.NoError(t, act.Store.AddMount(ctx, "mount2", u.StoreDir("mount2")))
+	t.Run("add some mounts", func(t *testing.T) {
+		defer buf.Reset()
+		assert.NoError(t, u.InitStore("mount1"))
+		assert.NoError(t, u.InitStore("mount2"))
+		assert.NoError(t, act.Store.AddMount(ctx, "mount1", u.StoreDir("mount1")))
+		assert.NoError(t, act.Store.AddMount(ctx, "mount2", u.StoreDir("mount2")))
+	})
 
-	// print mounts
-	assert.NoError(t, act.MountsPrint(gptest.CliCtx(ctx, t)))
-	buf.Reset()
+	t.Run("print mounts", func(t *testing.T) {
+		defer buf.Reset()
+		assert.NoError(t, act.MountsPrint(gptest.CliCtx(ctx, t)))
+	})
 }

@@ -3,7 +3,6 @@ package action
 import (
 	"bytes"
 	"context"
-	"flag"
 	"os"
 	"testing"
 
@@ -17,15 +16,14 @@ import (
 	"github.com/blang/semver"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/urfave/cli/v2"
 )
 
 func TestHistory(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 	defer u.Remove()
 
-	r1 := gptest.UnsetVars(termio.NameVars)
-	r2 := gptest.UnsetVars(termio.EmailVars)
+	r1 := gptest.UnsetVars(termio.NameVars...)
+	r2 := gptest.UnsetVars(termio.EmailVars...)
 	defer r1()
 	defer r2()
 
@@ -35,17 +33,15 @@ func TestHistory(t *testing.T) {
 	ctx = backend.WithCryptoBackend(ctx, backend.Plain)
 	ctx = backend.WithStorageBackend(ctx, backend.FS)
 
-	app := cli.NewApp()
-	fs := flag.NewFlagSet("default", flag.ContinueOnError)
-	c := cli.NewContext(app, fs, nil)
-	c.Context = ctx
-
 	cfg := config.New()
 	cfg.Path = u.StoreDir("")
 	act, err := newAction(cfg, semver.Version{})
 	require.NoError(t, err)
 	require.NotNil(t, act)
-	require.NoError(t, act.Initialized(c))
+
+	t.Run("can initialize", func(t *testing.T) {
+		require.NoError(t, act.Initialized(gptest.CliCtx(ctx, t)))
+	})
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
@@ -53,20 +49,24 @@ func TestHistory(t *testing.T) {
 		out.Stdout = os.Stdout
 	}()
 
-	// init git
-	require.NoError(t, act.rcsInit(ctx, "", "foo bar", "foo.bar@example.org"))
-	t.Logf("init git: %s", buf.String())
-	buf.Reset()
+	t.Run("init git", func(t *testing.T) {
+		defer buf.Reset()
+		require.NoError(t, act.rcsInit(ctx, "", "foo bar", "foo.bar@example.org"))
+		t.Logf("init git: %s", buf.String())
+	})
 
-	// insert bar
-	assert.NoError(t, act.Insert(gptest.CliCtx(ctx, t, "bar")))
-	buf.Reset()
+	t.Run("insert bar", func(t *testing.T) {
+		defer buf.Reset()
+		assert.NoError(t, act.Insert(gptest.CliCtx(ctx, t, "bar")))
+	})
 
-	// history bar
-	assert.NoError(t, act.History(gptest.CliCtx(ctx, t, "bar")))
-	buf.Reset()
+	t.Run("history bar", func(t *testing.T) {
+		defer buf.Reset()
+		assert.NoError(t, act.History(gptest.CliCtx(ctx, t, "bar")))
+	})
 
-	// history --password bar
-	assert.NoError(t, act.History(gptest.CliCtxWithFlags(ctx, t, map[string]string{"password": "true"}, "bar")))
-	buf.Reset()
+	t.Run("history --password bar", func(t *testing.T) {
+		defer buf.Reset()
+		assert.NoError(t, act.History(gptest.CliCtxWithFlags(ctx, t, map[string]string{"password": "true"}, "bar")))
+	})
 }

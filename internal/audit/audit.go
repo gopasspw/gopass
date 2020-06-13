@@ -54,7 +54,7 @@ func Batch(ctx context.Context, secrets []string, secStore secretGetter) error {
 
 	// It would be nice to parallelize this operation and limit the maxJobs to
 	// runtime.NumCPU(), but sadly this causes various problems with multiple
-	// gnupg jobs running parallelly. See the entire discussion here:
+	// gnupg jobs running in parallel. See the entire discussion here:
 	//
 	// https://github.com/gopasspw/gopass/pull/245
 
