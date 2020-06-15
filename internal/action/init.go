@@ -38,12 +38,13 @@ func (s *Action) Initialized(c *cli.Context) error {
 	if !ctxutil.IsInteractive(ctx) {
 		return ExitError(ExitNotInitialized, nil, "password-store is not initialized. Try '%s init'", s.Name)
 	}
-	if ok, err := termio.AskForBool(ctx, "It seems you are new to gopass. Do you want to run the onboarding wizard?", true); err == nil && ok {
-		c.Context = ctx
-		if err := s.InitOnboarding(c); err != nil {
-			return ExitError(ExitUnknown, err, "failed to run onboarding wizard: %s", err)
-		}
-		return nil
+	ok, err := termio.AskForBool(ctx, "It seems you are new to gopass. Do you want to run the onboarding wizard?", true)
+	if err != nil || !ok {
+		return ExitError(ExitNotInitialized, err, "can run onboarding wizard")
+	}
+	c.Context = ctx
+	if err := s.InitOnboarding(c); err != nil {
+		return ExitError(ExitUnknown, err, "failed to run onboarding wizard: %s", err)
 	}
 	return nil
 }

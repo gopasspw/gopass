@@ -18,6 +18,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/gopass/secret"
 	"github.com/gopasspw/gopass/pkg/gopass/secret/secparse"
 	"github.com/gopasspw/gopass/pkg/pwgen"
+	"github.com/gopasspw/gopass/pkg/pwgen/pwrules"
 	"github.com/gopasspw/gopass/pkg/pwgen/xkcdgen"
 
 	"github.com/fatih/color"
@@ -63,7 +64,7 @@ func (s *Action) Generate(c *cli.Context) error {
 	}
 
 	// generate password
-	password, err := s.generatePassword(ctx, c, length)
+	password, err := s.generatePassword(ctx, c, length, name)
 	if err != nil {
 		return err
 	}
@@ -133,8 +134,43 @@ func (s *Action) generateCopyOrPrint(ctx context.Context, c *cli.Context, name, 
 	return nil
 }
 
+func hasPwRuleForSecret(name string) (string, pwrules.Rule) {
+	for name != "" && name != "." {
+		d := path.Base(name)
+		if r, found := pwrules.LookupRule(d); found {
+			return d, r
+		}
+		name = path.Dir(name)
+	}
+	return "", pwrules.Rule{}
+}
+
 // generatePassword will run through the password generation steps
-func (s *Action) generatePassword(ctx context.Context, c *cli.Context, length string) (string, error) {
+func (s *Action) generatePassword(ctx context.Context, c *cli.Context, length, name string) (string, error) {
+	if domain, rule := hasPwRuleForSecret(name); domain != "" {
+		out.Yellow(ctx, "Using password rules for %s ...", domain)
+		wl := 16
+		if iv, err := strconv.Atoi(length); err == nil {
+			if iv < rule.Minlen {
+				iv = rule.Minlen
+			}
+			if iv > rule.Maxlen {
+				iv = rule.Maxlen
+			}
+			wl = iv
+		}
+		question := fmt.Sprintf("How long should the password be? (min: %d, max: %d)", rule.Minlen, rule.Maxlen)
+		iv, err := termio.AskForInt(ctx, question, wl)
+		if err != nil {
+			return "", ExitError(ExitUsage, err, "password length must be a number")
+		}
+		pw := pwgen.NewCrypticForDomain(iv, domain).Password()
+		if pw == "" {
+			return "", fmt.Errorf("failed to generate password for %s", domain)
+		}
+		return pw, nil
+	}
+
 	if c.Bool("xkcd") || c.IsSet("xkcdsep") {
 		return s.generatePasswordXKCD(ctx, c, length)
 	}
@@ -234,10 +270,12 @@ func (s *Action) generateSetPassword(ctx context.Context, name, key, password st
 	}
 
 	// generate a completely new secret
-	var err error
 	var sec gopass.Secret
 	sec = secret.New()
 	sec.Set("password", password)
+	if u := hasChangeURL(name); u != "" {
+		sec.Set("password-change-url", u)
+	}
 
 	if content, found := s.renderTemplate(ctx, name, []byte(password)); found {
 		nSec, err := secparse.Parse(content)
@@ -248,11 +286,20 @@ func (s *Action) generateSetPassword(ctx context.Context, name, key, password st
 		}
 	}
 
-	err = s.Store.Set(ctxutil.WithCommitMessage(ctx, "Generated Password"), name, sec)
-	if err != nil {
+	if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, "Generated Password"), name, sec); err != nil {
 		return ctx, ExitError(ExitEncrypt, err, "failed to create '%s': %s", name, err)
 	}
 	return ctx, nil
+}
+
+func hasChangeURL(name string) string {
+	p := strings.Split(name, "/")
+	for i := len(p) - 1; i > 0; i-- {
+		if u := pwrules.LookupChangeURL(p[i]); u != "" {
+			return u
+		}
+	}
+	return ""
 }
 
 func (s *Action) generateReplaceExisting(ctx context.Context, name, key, password string, kvps map[string]string) (context.Context, error) {

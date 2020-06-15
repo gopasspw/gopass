@@ -8,6 +8,33 @@ import (
 func (s *Action) GetCommands() []*cli.Command {
 	return []*cli.Command{
 		{
+			Name:        "alias",
+			Usage:       "Manage domain aliases",
+			Description: "Manages domain aliases. Note: this command might change or go away.",
+			Action:      s.AliasesPrint,
+			Hidden:      true,
+			Subcommands: []*cli.Command{
+				{
+					Name:        "add",
+					Action:      s.AliasesAdd,
+					Usage:       "Add a new alias",
+					Description: "Adds a new alias",
+				},
+				{
+					Name:        "remove",
+					Action:      s.AliasesRemove,
+					Usage:       "Remove an alias from a domain",
+					Description: "Remove an alias from a domain",
+				},
+				{
+					Name:        "delete",
+					Action:      s.AliasesDelete,
+					Usage:       "Delete an entire domain",
+					Description: "Delete an entire domain",
+				},
+			},
+		},
+		{
 			Name:  "audit",
 			Usage: "Scan for weak passwords",
 			Description: "" +

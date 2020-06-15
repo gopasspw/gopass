@@ -19,6 +19,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestRuleLookup(t *testing.T) {
+	domain, _ := hasPwRuleForSecret("foo/amazon.de")
+	assert.Equal(t, "", domain)
+}
+
 func TestGenerate(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 	defer u.Remove()
