@@ -11,7 +11,6 @@ import (
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/gopass/secret"
 
-	"github.com/muesli/goprogressbar"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -30,11 +29,9 @@ func TestAudit(t *testing.T) {
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
 	stdout = buf
-	goprogressbar.Stdout = buf
 	defer func() {
 		out.Stdout = os.Stdout
 		stdout = os.Stdout
-		goprogressbar.Stdout = os.Stdout
 	}()
 
 	t.Run("expect audit complaints on very weak passwords", func(t *testing.T) {

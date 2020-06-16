@@ -11,7 +11,6 @@ import (
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 
 	"github.com/fatih/color"
-	"github.com/muesli/goprogressbar"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -30,13 +29,11 @@ func TestRecipients(t *testing.T) {
 	out.Stdout = buf
 	out.Stderr = buf
 	stdout = buf
-	goprogressbar.Stdout = buf
 	color.NoColor = true
 	defer func() {
 		out.Stdout = os.Stdout
 		out.Stderr = os.Stderr
 		stdout = os.Stdout
-		goprogressbar.Stdout = os.Stdout
 	}()
 
 	t.Run("print recipients tree", func(t *testing.T) {

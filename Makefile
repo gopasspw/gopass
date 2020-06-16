@@ -207,7 +207,7 @@ codequality:
 	@which unparam > /dev/null; if [ $$? -ne 0 ]; then \
 		$(GO) get -u mvdan.cc/unparam; \
 	fi
-	@unparam -exported=true $(PKGS) || extit 1
+	@unparam -exported=true $(PKGS) || exit 1
 	@printf '%s\n' '$(OK)'
 
 gen:

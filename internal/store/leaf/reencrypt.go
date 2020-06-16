@@ -2,7 +2,6 @@ package leaf
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -12,7 +11,6 @@ import (
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"github.com/muesli/goprogressbar"
 	"github.com/pkg/errors"
 )
 
@@ -29,10 +27,7 @@ func (s *Store) reencrypt(ctx context.Context) error {
 		ctx := ctxutil.WithGitCommit(ctx, false)
 
 		// progress bar
-		bar := &goprogressbar.ProgressBar{
-			Total: int64(len(entries)),
-			Width: 120,
-		}
+		bar := out.NewProgressBar(ctx, int64(len(entries)))
 		if !ctxutil.IsTerminal(ctx) || out.IsHidden(ctx) {
 			bar = nil
 		}
@@ -76,9 +71,7 @@ func (s *Store) reencrypt(ctx context.Context) error {
 			}
 
 			if bar != nil {
-				bar.Current++
-				bar.Text = fmt.Sprintf("%d of %d secrets reencrypted", bar.Current, bar.Total)
-				bar.LazyPrint()
+				bar.Inc()
 			}
 
 			e = strings.TrimPrefix(e, s.alias)
@@ -88,6 +81,7 @@ func (s *Store) reencrypt(ctx context.Context) error {
 		close(jobs)
 		// we wait for all workers to have finished
 		wg.Wait()
+		bar.Done()
 	}
 
 	// if we were working concurrently, we couldn't git add during the process

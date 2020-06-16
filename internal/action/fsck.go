@@ -1,8 +1,6 @@
 package action
 
 import (
-	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -11,7 +9,6 @@ import (
 	"github.com/gopasspw/gopass/internal/store/leaf"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/fsutil"
-	"github.com/muesli/goprogressbar"
 	"github.com/urfave/cli/v2"
 )
 
@@ -44,25 +41,9 @@ func (s *Action) Fsck(c *cli.Context) error {
 
 	pwList := t.List(0)
 
-	bar := &goprogressbar.ProgressBar{
-		Total: int64(len(pwList) * 2),
-		Width: 120,
-	}
-	if out.IsHidden(ctx) {
-		old := goprogressbar.Stdout
-		goprogressbar.Stdout = ioutil.Discard
-		defer func() {
-			goprogressbar.Stdout = old
-		}()
-	}
-
+	bar := out.NewProgressBar(ctx, int64(len(pwList)*2))
 	ctx = ctxutil.WithProgressCallback(ctx, func() {
-		bar.Current++
-		if bar.Current > bar.Total {
-			bar.Total = bar.Current
-		}
-		bar.Text = fmt.Sprintf("%d of %d objects checked", bar.Current, bar.Total)
-		bar.LazyPrint()
+		bar.Inc()
 	})
 	ctx = out.AddPrefix(ctx, "\n")
 
@@ -70,6 +51,6 @@ func (s *Action) Fsck(c *cli.Context) error {
 	if err := s.Store.Fsck(ctx, c.Args().Get(0)); err != nil {
 		return ExitError(ExitFsck, err, "fsck found errors: %s", err)
 	}
-	out.Print(ctx, "")
+	bar.Done()
 	return nil
 }

@@ -26,7 +26,6 @@ require (
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/go-ps v1.0.0
 	github.com/muesli/crunchy v0.4.0
-	github.com/muesli/goprogressbar v0.0.0-20190807022807-e540249d2ac1
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/schollz/closestmatch v0.0.0-20190308193919-1fbe626be92e
