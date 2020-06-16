@@ -18,6 +18,7 @@ func TestAudit(t *testing.T) {
 		assert.Error(t, err)
 		assert.Contains(t, out, "No shared secrets found")
 		assert.Contains(t, out, "Password is too short:")
+		assert.Contains(t, out, "weak password")
 		assert.Contains(t, out, "\t- fixed/secret")
 	})
 }
