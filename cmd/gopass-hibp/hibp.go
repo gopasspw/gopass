@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/sha1"
 	"fmt"
-	"io/ioutil"
 	"sort"
 
 	"github.com/gopasspw/gopass/internal/debug"
@@ -16,7 +15,6 @@ import (
 	hibpdump "github.com/gopasspw/gopass/pkg/hibp/dump"
 
 	"github.com/fatih/color"
-	"github.com/muesli/goprogressbar"
 )
 
 type hibp struct {
@@ -98,17 +96,7 @@ func (s *hibp) precomputeHashes(ctx context.Context) (map[string]string, []strin
 	// build list of sha1sums (must be sorted later!) for stream comparison
 	sortedShaSums := make([]string, 0, len(shaSums))
 	// display progress bar
-	bar := &goprogressbar.ProgressBar{
-		Total: int64(len(pwList)),
-		Width: 120,
-	}
-	if out.IsHidden(ctx) {
-		old := goprogressbar.Stdout
-		goprogressbar.Stdout = ioutil.Discard
-		defer func() {
-			goprogressbar.Stdout = old
-		}()
-	}
+	bar := out.NewProgressBar(ctx, int64(len(pwList)))
 
 	out.Print(ctx, "Computing SHA1 hashes of all your secrets ...")
 	for _, secret := range pwList {
@@ -119,12 +107,8 @@ func (s *hibp) precomputeHashes(ctx context.Context) (map[string]string, []strin
 		default:
 		}
 
-		bar.Current++
-		if bar.Current > bar.Total {
-			bar.Total = bar.Current
-		}
-		bar.Text = fmt.Sprintf("%d of %d secrets computed", bar.Current, bar.Total)
-		bar.LazyPrint()
+		bar.Inc()
+
 		// only handle secrets / passwords, never the body
 		// comparing the body is super hard, as every user may choose to use
 		// the body of a secret differently. In the future we may support
@@ -145,7 +129,7 @@ func (s *hibp) precomputeHashes(ctx context.Context) (map[string]string, []strin
 		shaSums[sum] = secret
 		sortedShaSums = append(sortedShaSums, sum)
 	}
-	out.Print(ctx, "")
+	bar.Done()
 	// IMPORTANT: sort after all entries have been added. without the sort
 	// the stream compare will not work
 	sort.Strings(sortedShaSums)

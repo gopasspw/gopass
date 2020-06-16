@@ -6,12 +6,10 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"net/url"
 	"os"
-	"path"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -24,7 +22,6 @@ import (
 	"github.com/blang/semver"
 	"github.com/cenkalti/backoff"
 	"github.com/dominikschulz/github-releases/ghrel"
-	"github.com/muesli/goprogressbar"
 	"github.com/pkg/errors"
 )
 
@@ -246,25 +243,11 @@ func download(ctx context.Context, dest, url string) error {
 		return err
 	}
 	var body io.ReadCloser
+	bar := out.NewProgressBar(ctx, resp.ContentLength)
 	if resp.ContentLength > 0 {
 		body = &passThru{
 			ReadCloser: resp.Body,
-			Bar: &goprogressbar.ProgressBar{
-				Text:    path.Base(url),
-				Total:   resp.ContentLength,
-				Current: 0,
-				Width:   80,
-				PrependTextFunc: func(p *goprogressbar.ProgressBar) string {
-					return fmt.Sprintf("%d / %d byte", p.Current, p.Total)
-				},
-			},
-		}
-		if out.IsHidden(ctx) {
-			old := goprogressbar.Stdout
-			goprogressbar.Stdout = ioutil.Discard
-			defer func() {
-				goprogressbar.Stdout = old
-			}()
+			Bar:        bar,
 		}
 
 	} else {
@@ -274,21 +257,24 @@ func download(ctx context.Context, dest, url string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Fprintln(goprogressbar.Stdout, "")
+	bar.Done()
 	debug.Log("Transferred %d bytes from %s to %s", count, url, dest)
 	return nil
 }
 
+type setter interface {
+	Set(int64)
+}
+
 type passThru struct {
 	io.ReadCloser
-	Bar *goprogressbar.ProgressBar
+	Bar setter
 }
 
 func (pt *passThru) Read(p []byte) (int, error) {
 	n, err := pt.ReadCloser.Read(p)
 	if pt.Bar != nil {
-		pt.Bar.Current += int64(n)
-		pt.Bar.LazyPrint()
+		pt.Bar.Set(int64(n))
 	}
 	return n, err
 }

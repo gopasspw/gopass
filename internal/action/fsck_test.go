@@ -10,7 +10,6 @@ import (
 	"github.com/gopasspw/gopass/internal/gptest"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"github.com/muesli/goprogressbar"
 
 	"github.com/fatih/color"
 	"github.com/stretchr/testify/assert"
@@ -31,12 +30,10 @@ func TestFsck(t *testing.T) {
 	out.Stdout = buf
 	out.Stderr = buf
 	stdout = buf
-	goprogressbar.Stdout = buf
 	defer func() {
 		stdout = os.Stdout
 		out.Stdout = os.Stdout
 		out.Stderr = os.Stderr
-		goprogressbar.Stdout = os.Stdout
 	}()
 	color.NoColor = true
 

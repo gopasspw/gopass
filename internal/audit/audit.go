@@ -5,7 +5,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"strings"
 	"time"
 
@@ -17,7 +16,6 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/muesli/crunchy"
-	"github.com/muesli/goprogressbar"
 )
 
 // auditedSecret with its name, content a warning message and a pipeline error.
@@ -81,17 +79,7 @@ func Batch(ctx context.Context, secrets []string, secStore secretGetter) error {
 	messages := make(map[string][]string)
 	errors := make(map[string][]string)
 
-	bar := &goprogressbar.ProgressBar{
-		Total: int64(len(secrets)),
-		Width: 120,
-	}
-	if out.IsHidden(ctx) {
-		old := goprogressbar.Stdout
-		goprogressbar.Stdout = ioutil.Discard
-		defer func() {
-			goprogressbar.Stdout = old
-		}()
-	}
+	bar := out.NewProgressBar(ctx, int64(len(secrets)))
 
 	i := 0
 	for secret := range checked {
@@ -105,19 +93,13 @@ func Batch(ctx context.Context, secrets []string, secStore secretGetter) error {
 			messages[m] = append(messages[m], secret.name)
 		}
 
+		bar.Inc()
 		i++
-		bar.Current = int64(i)
-		if bar.Current > bar.Total {
-			bar.Total = bar.Current
-		}
-		bar.Text = fmt.Sprintf("%d of %d secrets checked", bar.Current, bar.Total)
-		bar.LazyPrint()
-
 		if i == len(secrets) {
 			break
 		}
 	}
-	fmt.Fprintln(goprogressbar.Stdout) // Print empty line after the progressbar.
+	bar.Done()
 
 	return auditPrintResults(ctx, duplicates, messages, errors)
 }
@@ -184,9 +166,9 @@ func printAuditResults(m map[string][]string, format string, color func(format s
 
 	for msg, secrets := range m {
 		b = true
-		fmt.Fprint(goprogressbar.Stdout, color(format, msg))
+		fmt.Fprint(out.Stdout, color(format, msg))
 		for _, secret := range secrets {
-			fmt.Fprint(goprogressbar.Stdout, color("\t- %s\n", secret))
+			fmt.Fprint(out.Stdout, color("\t- %s\n", secret))
 		}
 	}
 
