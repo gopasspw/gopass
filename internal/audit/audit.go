@@ -13,6 +13,7 @@ import (
 	"github.com/gopasspw/gopass/internal/notify"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/gopass"
+	"github.com/nbutton23/zxcvbn-go"
 
 	"github.com/fatih/color"
 	"github.com/muesli/crunchy"
@@ -37,6 +38,8 @@ type secretGetter interface {
 	ListRevisions(context.Context, string) ([]backend.Revision, error)
 }
 
+type validator func(string, gopass.Secret) error
+
 // Batch runs a password strength audit on multiple secrets
 func Batch(ctx context.Context, secrets []string, secStore secretGetter) error {
 	out.Print(ctx, "Checking %d secrets. This may take some time ...\n", len(secrets))
@@ -48,7 +51,33 @@ func Batch(ctx context.Context, secrets []string, secStore secretGetter) error {
 	checked := make(chan auditedSecret, 100)
 
 	// Spawn workers that run the auditing of all secrets concurrently.
-	validator := crunchy.NewValidator()
+	cv := crunchy.NewValidator()
+	validators := []validator{
+		func(_ string, sec gopass.Secret) error {
+			return cv.Check(sec.Get("password"))
+		},
+		func(name string, sec gopass.Secret) error {
+			ui := make([]string, 0, len(sec.Keys())+1)
+			for _, k := range sec.Keys() {
+				if strings.ToLower(k) == "password" {
+					continue
+				}
+				ui = append(ui, sec.Get(k))
+			}
+			ui = append(ui, name)
+			match := zxcvbn.PasswordStrength(sec.Get("password"), ui)
+			if match.Score < 3 {
+				return fmt.Errorf("weak password (%d / 4)", match.Score)
+			}
+			return nil
+		},
+		func(name string, sec gopass.Secret) error {
+			if name == sec.Get("password") {
+				return fmt.Errorf("password equals name")
+			}
+			return nil
+		},
+	}
 
 	// It would be nice to parallelize this operation and limit the maxJobs to
 	// runtime.NumCPU(), but sadly this causes various problems with multiple
@@ -59,7 +88,7 @@ func Batch(ctx context.Context, secrets []string, secStore secretGetter) error {
 	maxJobs := 1 // do not change
 	done := make(chan struct{}, maxJobs)
 	for jobs := 0; jobs < maxJobs; jobs++ {
-		go audit(ctx, secStore, validator, pending, checked, done)
+		go audit(ctx, secStore, validators, pending, checked, done)
 	}
 
 	go func() {
@@ -104,7 +133,7 @@ func Batch(ctx context.Context, secrets []string, secStore secretGetter) error {
 	return auditPrintResults(ctx, duplicates, messages, errors)
 }
 
-func audit(ctx context.Context, secStore secretGetter, validator *crunchy.Validator, secrets <-chan string, checked chan<- auditedSecret, done chan struct{}) {
+func audit(ctx context.Context, secStore secretGetter, validators []validator, secrets <-chan string, checked chan<- auditedSecret, done chan struct{}) {
 	for secret := range secrets {
 		as := auditedSecret{
 			name: secret,
@@ -132,15 +161,17 @@ func audit(ctx context.Context, secStore secretGetter, validator *crunchy.Valida
 
 		as.content = sec.Get("password")
 
-		// do not check binary secrets
-		if as.content == "" || strings.HasSuffix(secret, ".b64") {
+		// do not check empty secrets
+		if as.content == "" {
 			checked <- as
 			continue
 		}
 
 		// handle password validation errors
-		if err := validator.Check(as.content); err != nil {
-			as.messages = append(as.messages, err.Error())
+		if errs := allValid(validators, secret, sec); len(errs) > 0 {
+			for _, e := range errs {
+				as.messages = append(as.messages, e.Error())
+			}
 			checked <- as
 			continue
 		}
@@ -159,6 +190,16 @@ func audit(ctx context.Context, secStore secretGetter, validator *crunchy.Valida
 		checked <- as
 	}
 	done <- struct{}{}
+}
+
+func allValid(vs []validator, name string, sec gopass.Secret) []error {
+	errs := make([]error, 0, len(vs))
+	for _, v := range vs {
+		if err := v(name, sec); err != nil {
+			errs = append(errs, err)
+		}
+	}
+	return errs
 }
 
 func printAuditResults(m map[string][]string, format string, color func(format string, a ...interface{}) string) bool {
