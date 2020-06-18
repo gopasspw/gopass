@@ -21,7 +21,8 @@ func TestYAMLAndSecret(t *testing.T) {
 	t.Run("default action (show) from initialized store", func(t *testing.T) {
 		out, err := ts.run("foo/bar baz")
 		assert.Error(t, err)
-		assert.Equal(t, "\nError: failed to retrieve secret 'foo/bar': Entry is not in the password store\n", out)
+		assert.Contains(t, out, "DEPRECATION WARNING")
+		assert.Contains(t, out, "Error: failed to retrieve secret 'foo/bar': Entry is not in the password store")
 	})
 
 	t.Run("insert key", func(t *testing.T) {
@@ -40,13 +41,13 @@ func TestYAMLAndSecret(t *testing.T) {
 	})
 
 	t.Run("show a key", func(t *testing.T) {
-		out, err := ts.run("foo/bar baz")
+		out, err := ts.run("show foo/bar baz")
 		assert.NoError(t, err)
 		assert.Equal(t, "moar", out)
 	})
 
 	t.Run("show the whole secret", func(t *testing.T) {
-		out, err := ts.run("foo/bar")
+		out, err := ts.run("show foo/bar")
 		assert.NoError(t, err)
 		assert.Equal(t, "Baz: moar\nPassword: moar\n\nbody", out)
 	})
@@ -73,7 +74,7 @@ url: http://www.test.com/`
 	t.Run("show non-existing secret", func(t *testing.T) {
 		out, err := ts.run("foo/bar")
 		assert.Error(t, err)
-		assert.Equal(t, "\nError: failed to retrieve secret 'foo/bar': Entry is not in the password store\n", out)
+		assert.Contains(t, out, "Error: failed to retrieve secret 'foo/bar': Entry is not in the password store")
 	})
 
 	t.Run("insert new secret", func(t *testing.T) {

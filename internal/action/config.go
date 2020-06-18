@@ -90,15 +90,20 @@ func (s *Action) setConfigValue(ctx context.Context, store, key, value string) e
 	return nil
 }
 
-// ConfigComplete will print the list of valid config keys
-func (s *Action) ConfigComplete(c *cli.Context) {
+func (s *Action) configKeys() []string {
 	cm := s.cfg.ConfigMap()
 	keys := make([]string, 0, len(cm))
 	for k := range cm {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
-	for _, k := range keys {
+
+	return keys
+}
+
+// ConfigComplete will print the list of valid config keys
+func (s *Action) ConfigComplete(c *cli.Context) {
+	for _, k := range s.configKeys() {
 		fmt.Fprintln(stdout, k)
 	}
 }

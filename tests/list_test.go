@@ -15,7 +15,7 @@ func TestList(t *testing.T) {
 
 	out, err := ts.run("")
 	assert.NoError(t, err)
-	assert.Equal(t, "gopass", out)
+	assert.Equal(t, "", out)
 
 	out, err = ts.run("list")
 	assert.NoError(t, err)

@@ -122,31 +122,10 @@ func setupApp(ctx context.Context, sv semver.Version) (context.Context, *cli.App
 		}
 
 		if c.Args().Present() {
+			out.Red(c.Context, "DEPRECATION WARNING: Use gopass show")
 			return action.Show(c)
 		}
-		return action.List(c)
-	}
-
-	app.Flags = []cli.Flag{
-		&cli.BoolFlag{
-			Name:  "yes",
-			Usage: "Assume yes on all yes/no questions or use the default on all others",
-		},
-		&cli.BoolFlag{
-			Name:    "force",
-			Aliases: []string{"f"},
-			Usage:   "Force displaying content",
-		},
-		&cli.BoolFlag{
-			Name:    "clip",
-			Aliases: []string{"c"},
-			Usage:   "Copy the first line of the secret into the clipboard",
-		},
-		&cli.BoolFlag{
-			Name:    "alsoclip",
-			Aliases: []string{"C"},
-			Usage:   "Copy the first line of the secret into the clipboard and show everything",
-		},
+		return action.REPL(c)
 	}
 
 	app.Commands = getCommands(action, app)
@@ -192,6 +171,7 @@ func getCommands(action *ap.Action, app *cli.App) []*cli.Command {
 	sort.Slice(cmds, func(i, j int) bool { return cmds[i].Name < cmds[j].Name })
 	return cmds
 }
+
 func makeVersionPrinter(out io.Writer, sv semver.Version) func(c *cli.Context) {
 	return func(c *cli.Context) {
 		buildtime := ""
