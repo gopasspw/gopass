@@ -32,7 +32,7 @@ func TestGrep(t *testing.T) {
 	}()
 
 	c := gptest.CliCtx(ctx, t, "foo")
-	assert.Error(t, act.Grep(c))
+	assert.NoError(t, act.Grep(c))
 	buf.Reset()
 
 	// add some secret
@@ -40,6 +40,6 @@ func TestGrep(t *testing.T) {
 	sec.Set("password", "foobar")
 	sec.WriteString("foobar")
 	assert.NoError(t, act.Store.Set(ctx, "foo", sec))
-	assert.Error(t, act.Grep(c))
+	assert.NoError(t, act.Grep(c))
 	buf.Reset()
 }
