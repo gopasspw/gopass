@@ -13,11 +13,7 @@ func TestList(t *testing.T) {
 
 	ts.initStore()
 
-	out, err := ts.run("")
-	assert.NoError(t, err)
-	assert.Equal(t, "", out)
-
-	out, err = ts.run("list")
+	out, err := ts.run("list")
 	assert.NoError(t, err)
 	assert.Equal(t, "gopass", out)
 

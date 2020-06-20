@@ -6,6 +6,7 @@ import (
 	"sort"
 
 	"github.com/gopasspw/gopass/internal/cui"
+	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/internal/termio"
@@ -47,17 +48,21 @@ func (s *Action) RecipientsPrint(c *cli.Context) error {
 	return nil
 }
 
+func (s *Action) recipientsList(ctx context.Context) []string {
+	tree, err := s.Store.RecipientsTree(out.WithHidden(ctx, true), false)
+	if err != nil {
+		debug.Log("failed to list recipients: %s", err)
+		return nil
+	}
+
+	return tree.List(0)
+}
+
 // RecipientsComplete will print a list of recipients for bash
 // completion
 func (s *Action) RecipientsComplete(c *cli.Context) {
 	ctx := ctxutil.WithGlobalFlags(c)
-	tree, err := s.Store.RecipientsTree(out.WithHidden(ctx, true), false)
-	if err != nil {
-		fmt.Fprintln(stdout, err)
-		return
-	}
-
-	for _, v := range tree.List(0) {
+	for _, v := range s.recipientsList(ctx) {
 		fmt.Fprintln(stdout, v)
 	}
 }
