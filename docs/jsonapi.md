@@ -1,5 +1,7 @@
 # JSON API
 
+Note: The gopass JSON API has been moved to it's own binary. See `cmd/gopass-jsonapi`.
+
 ## Overview
 
 The API follows the specification for native messaging from [Mozilla](https://developer.mozilla.org/en-US/Add-ons/WebExtensions/Native_messaging) and [Chrome](https://developer.chrome.com/apps/nativeMessaging).

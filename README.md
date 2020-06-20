@@ -45,6 +45,7 @@ Please see [docs/features.md](https://github.com/gopasspw/gopass/blob/master/doc
 | Automatic fuzzy search      | *stable*      | Automatically search for matching store entries if a literal entry was not found |
 | gopass sync                 | *beta*        | Easy to use syncing of remote repos and GPG keys                  |
 | Desktop Notifications       | *stable*      | Display desktop notifications and completing long running operations |
+| REPL                        | *beta*        | Integrated Read-Execute-Printline shell with autocompletion. |
 | Extensions                  |               | Extend gopass with custom commands using our API                  |
 
 ## Installation

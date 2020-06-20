@@ -3,7 +3,6 @@ package action
 import (
 	"context"
 	"fmt"
-	"os"
 	"strings"
 	"time"
 
@@ -86,9 +85,8 @@ func (s *Action) otpHandleError(ctx context.Context, name, qrf string, clip, pw,
 	cb := func(ctx context.Context, c *cli.Context, name string, recurse bool) error {
 		return s.otp(ctx, name, qrf, clip, pw, false)
 	}
-	if err := s.find(ctxutil.WithFuzzySearch(ctx, false), nil, name, cb); err == nil {
-		return nil
+	if err := s.find(ctxutil.WithFuzzySearch(ctx, false), nil, name, cb); err != nil {
+		return ExitError(ExitNotFound, err, "%s", err)
 	}
-	os.Exit(ExitNotFound)
 	return nil
 }
