@@ -24,6 +24,34 @@ func (s *Action) entriesForCompleter(ctx context.Context) ([]readline.PrefixComp
 	return args, nil
 }
 
+func (s *Action) replCompleteRecipients(ctx context.Context, cmd *cli.Command) []readline.PrefixCompleterInterface {
+	subCmds := []readline.PrefixCompleterInterface{}
+	if cmd.Name == "remove" {
+		for _, r := range s.recipientsList(ctx) {
+			subCmds = append(subCmds, readline.PcItem(r))
+		}
+	}
+	args := []readline.PrefixCompleterInterface{}
+	args = append(args, readline.PcItem(cmd.Name, subCmds...))
+	for _, alias := range cmd.Aliases {
+		args = append(args, readline.PcItem(alias, subCmds...))
+	}
+	return args
+}
+
+func (s *Action) replCompleteTemplates(ctx context.Context, cmd *cli.Command) []readline.PrefixCompleterInterface {
+	subCmds := []readline.PrefixCompleterInterface{}
+	for _, r := range s.templatesList(ctx) {
+		subCmds = append(subCmds, readline.PcItem(r))
+	}
+	args := []readline.PrefixCompleterInterface{}
+	args = append(args, readline.PcItem(cmd.Name, subCmds...))
+	for _, alias := range cmd.Aliases {
+		args = append(args, readline.PcItem(alias, subCmds...))
+	}
+	return args
+}
+
 func (s *Action) prefixCompleter(c *cli.Context) *readline.PrefixCompleter {
 	secrets, err := s.entriesForCompleter(c.Context)
 	if err != nil {
@@ -40,6 +68,10 @@ func (s *Action) prefixCompleter(c *cli.Context) *readline.PrefixCompleter {
 			for _, k := range s.configKeys() {
 				subCmds = append(subCmds, readline.PcItem(k))
 			}
+		case "recipients":
+			subCmds = append(subCmds, s.replCompleteRecipients(c.Context, cmd)...)
+		case "templates":
+			subCmds = append(subCmds, s.replCompleteTemplates(c.Context, cmd)...)
 		case "cat":
 			fallthrough
 		case "delete":
@@ -86,9 +118,9 @@ func (s *Action) REPL(c *cli.Context) error {
 	}
 	defer rl.Close()
 
-	rl.Config.AutoComplete = s.prefixCompleter(c)
-
+READ:
 	for {
+		rl.Config.AutoComplete = s.prefixCompleter(c)
 		line, err := rl.Readline()
 		if err != nil {
 			if err == io.EOF {
@@ -104,8 +136,13 @@ func (s *Action) REPL(c *cli.Context) error {
 		if len(args) < 1 {
 			continue
 		}
-		if strings.ToLower(args[0]) == "quit" {
-			break
+		switch strings.ToLower(args[0]) {
+		case "quit":
+			break READ
+		case "clear":
+			readline.ClearScreen(stdout)
+			continue
+		default:
 		}
 		// need to reinitialize the config to pick up any changes from the
 		// previous iteration
@@ -116,6 +153,5 @@ func (s *Action) REPL(c *cli.Context) error {
 			continue
 		}
 	}
-
 	return nil
 }

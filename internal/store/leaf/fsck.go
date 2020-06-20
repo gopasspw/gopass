@@ -66,6 +66,7 @@ func (s *Store) fsckCheckEntry(ctx context.Context, name string) error {
 		// check if we need to convert the secret it self
 		nSec := oSec.MIME()
 		if string(nSec.Bytes()) != string(oSec.Bytes()) {
+			debug.Log("converting %s from legacy format to MIME", name)
 			if err := s.Set(ctx, name, nSec); err != nil {
 				return errors.Wrapf(err, "failed to convert secret %s: %s", name, err)
 			}

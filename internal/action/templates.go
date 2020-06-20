@@ -107,16 +107,21 @@ func (s *Action) TemplateRemove(c *cli.Context) error {
 	return s.Store.RemoveTemplate(ctx, name)
 }
 
+func (s *Action) templatesList(ctx context.Context) []string {
+	tree, err := s.Store.TemplateTree(ctx)
+	if err != nil {
+		debug.Log("failed to list templates: %s", err)
+		return nil
+	}
+
+	return tree.List(0)
+}
+
 // TemplatesComplete prints a list of all templates for bash completion
 func (s *Action) TemplatesComplete(c *cli.Context) {
 	ctx := ctxutil.WithGlobalFlags(c)
-	tree, err := s.Store.TemplateTree(ctx)
-	if err != nil {
-		fmt.Fprintln(stdout, err)
-		return
-	}
 
-	for _, v := range tree.List(0) {
+	for _, v := range s.templatesList(ctx) {
 		fmt.Fprintln(stdout, v)
 	}
 }
