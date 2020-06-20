@@ -3,7 +3,6 @@ package action
 import (
 	"context"
 	"fmt"
-	"os"
 	"path"
 	"strings"
 
@@ -212,7 +211,6 @@ func (s *Action) showHandleError(ctx context.Context, c *cli.Context, name strin
 		}
 		return ExitError(ExitNotFound, err, "%s", err)
 	}
-	os.Exit(ExitNotFound)
 	return nil
 }
 

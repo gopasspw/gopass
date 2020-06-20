@@ -193,19 +193,23 @@ If your terminal supports colors the output will use ANSI color codes to highlig
 ### Show a secret
 
 ```bash
-$ gopass golang.org/gopher
+$ gopass show golang.org/gopher
 
 Eech4ahRoy2oowi0ohl
 ```
 
 The default action of `gopass` is show, so the previous command is exactly the same as typing `gopass show golang.org/gopher`. It also accepts the `-c` flag to copy the content of the secret directly to the clipboard.
 
+WARNING: The short form `gopass <secret>` is deprecated. Use `gopass show <secret>`.
+
 Since it may be dangerous to always display the password, the `safecontent` setting may be set to `true` to allow one to display only the rest of the password entries by default and display the whole entry, with password, only when the `-f` flag is used.
+
+WARNING: The `safecontent` setting is not perfect and *might* be removed in the future.
 
 #### Copy a secret to the clipboard
 
 ```bash
-$ gopass -c golang.org/gopher
+$ gopass show -c golang.org/gopher
 
 Copied golang.org/gopher to clipboard. Will clear in 45 seconds.
 ```
@@ -294,19 +298,45 @@ $ gopass audit hibp --dumps /tmp/pwned-passwords-1.0.txt
 
 ### Support for Binary Content
 
-Warning: Binary support is deprecated.
+WARNING: Binary support is undergoing changes. Expect changes to these commands.
 
-gopass provides secure and easy support for working with binary files through the `gopass binary` family of sub-commands. One can copy or move secret from or to the store. gopass will attempt to securely overwrite and remove any secret moved to the store.
+gopass provides secure and easy support for working with binary files through the `cat`, `fscopy`, `fsmove` and `sum` family of sub-commands. One can copy or move secret from or to the store. gopass will attempt to securely overwrite and remove any secret moved to the store.
 
 ```bash
-# copy file "/some/file.jpg" to "some/secret.b64" in the store
-$ gopass binary cp /some/file.jpg some/secret
-# move file "/home/user/private.key" to "my/private.key.b64", removing the file on disk
+# copy file "/some/file.jpg" to "some/secret" in the store
+$ gopass fscopy /some/file.jpg some/secret
+# move file "/home/user/private.key" to "my/private.key", removing the file on disk
 # after the file has been encoded, stored and verified to be intact (SHA256)
-$ gopass binary mv /home/user/private.key my/private.key
+$ gopass fsmove /home/user/private.key my/private.key
 # Calculate the checksum of some asset
-$ gopass binary sha256 my/private.key
+$ gopass sha256 my/private.key
 ```
+
+### MIME Secrets
+
+gopass has introduced a meta data format for secrets that is simliar to MIME headers. It allow flexible and safe handling of per-secret metadata and makes dealing with e.g. Binary content much more streamlined. This has allowed us to remove several known-flaky heuristics in favor of a cleaner implementation. The drawback of this change is that it is not fully compatible with other password store implementations.
+
+gopass will happyliy decrypt and encrypt legacy secrets, even the previous YAML and KV types. But if you create a new secret it will be created in the new format. If you want to convert all your secrets to the new format you can run `gopass fsck --decrypt` to re-encrypt every secret in your store.
+
+WARNING: Make sure that all recipients of your store use gopass > 1.9.2 before doing that.
+
+The secret format is simple:
+
+* fixed identifier for format detection
+* a MIME header
+* exactly one empty line
+* the body of the secret
+
+Example:
+
+```
+GOPASS-SECRET-1.0
+Password: foobar
+
+more content in the body
+```
+
+The identifier line is usually hidden when you use `show`, `edit`, etc.
 
 ### Multiple Stores
 
@@ -442,5 +472,5 @@ This makes it easy to use templates for certain kind of secrets such as database
 
 ### JSON API
 
-`gopass jsonapi` enables communication with gopass via JSON messages. This is particularly useful for browser plugins like [gopassbridge](https://github.com/gopasspw/gopassbridge) running gopass as native app. More details can be found in [docs/jsonapi.md](./jsonapi.md).
+`gopass-jsonapi` enables communication with gopass via JSON messages. This is particularly useful for browser plugins like [gopassbridge](https://github.com/gopasspw/gopassbridge) running gopass as native app. More details can be found in [docs/jsonapi.md](./jsonapi.md).
 
