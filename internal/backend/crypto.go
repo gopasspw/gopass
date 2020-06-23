@@ -24,7 +24,7 @@ const (
 )
 
 func (c CryptoBackend) String() string {
-	return cryptoNameFromBackend(c)
+	return CryptoNameFromBackend(c)
 }
 
 // Keyring is a public/private key manager

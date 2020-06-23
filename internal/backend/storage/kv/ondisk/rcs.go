@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	"github.com/gopasspw/gopass/internal/backend"
+	"github.com/gopasspw/gopass/internal/out"
 )
 
 // Add is not supported / necessary
@@ -21,12 +22,14 @@ func (o *OnDisk) Commit(ctx context.Context, msg string) error {
 
 // Push is not implemented, yet
 func (o *OnDisk) Push(ctx context.Context, remote, location string) error {
-	return fmt.Errorf("not yet implemented")
+	out.Red(ctx, "WARNING: Push not yet implemented")
+	return nil
 }
 
 // Pull is not implemented, yet
 func (o *OnDisk) Pull(ctx context.Context, remote, location string) error {
-	return fmt.Errorf("not yet implemented")
+	out.Red(ctx, "WARNING: Pull not yet implemented")
+	return nil
 }
 
 // InitConfig is not necessary
@@ -56,7 +59,7 @@ func (o *OnDisk) Revisions(ctx context.Context, name string) ([]backend.Revision
 	revs := make([]backend.Revision, 0, len(e.Revisions))
 	for _, rev := range e.SortedRevisions() {
 		revs = append(revs, backend.Revision{
-			Hash:    fmt.Sprintf("%d", rev.GetCreated().GetSeconds()),
+			Hash:    rev.ID(),
 			Subject: rev.Message,
 			Date:    rev.Time(),
 		})
@@ -74,7 +77,7 @@ func (o *OnDisk) GetRevision(ctx context.Context, name, revision string) ([]byte
 		return nil, err
 	}
 	for _, rev := range e.SortedRevisions() {
-		if revision == fmt.Sprintf("%d", rev.GetCreated().GetSeconds()) {
+		if revision == rev.ID() {
 			path := filepath.Join(o.dir, rev.GetFilename())
 			return ioutil.ReadFile(path)
 		}

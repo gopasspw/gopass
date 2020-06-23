@@ -104,7 +104,7 @@ func (g *Git) captureCmd(ctx context.Context, name string, args ...string) ([]by
 	cmd.Stdout = bufOut
 	cmd.Stderr = bufErr
 
-	if debug.IsEnabled() || ctxutil.IsVerbose(ctx) {
+	if debug.IsEnabled() && ctxutil.IsVerbose(ctx) {
 		cmd.Stdout = io.MultiWriter(bufOut, os.Stdout)
 		cmd.Stderr = io.MultiWriter(bufErr, os.Stderr)
 	}

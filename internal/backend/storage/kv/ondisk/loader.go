@@ -71,7 +71,7 @@ func (l loader) Handles(path string) error {
 }
 
 func (l loader) Priority() int {
-	return 100
+	return 49
 }
 
 // String returns ondisk

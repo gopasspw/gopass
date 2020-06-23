@@ -147,6 +147,7 @@ func (r *Store) GetSubStore(ctx context.Context, name string) (context.Context, 
 	if sub, found := r.mounts[name]; found {
 		return ctx, sub, nil
 	}
+	debug.Log("mounts available: %+v", r.mounts)
 	return nil, nil, errors.Errorf("no such mount point '%s'", name)
 }
 

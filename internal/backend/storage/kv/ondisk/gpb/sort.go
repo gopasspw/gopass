@@ -1,6 +1,7 @@
 package gpb
 
 import (
+	"fmt"
 	"sort"
 	"time"
 )
@@ -8,9 +9,11 @@ import (
 // ByRevision sorts to latest revision to the top, i.e. [0]
 type ByRevision []*Revision
 
-func (r ByRevision) Len() int           { return len(r) }
-func (r ByRevision) Swap(i, j int)      { r[i], r[j] = r[j], r[i] }
-func (r ByRevision) Less(i, j int) bool { return r[i].Created.Seconds > r[j].Created.Seconds }
+func (r ByRevision) Len() int      { return len(r) }
+func (r ByRevision) Swap(i, j int) { r[i], r[j] = r[j], r[i] }
+func (r ByRevision) Less(i, j int) bool {
+	return r[i].Created.AsTime().Before(r[j].Created.AsTime())
+}
 
 // SortedRevisions returns a list of sorted revisions
 func (e *Entry) SortedRevisions() []*Revision {
@@ -44,4 +47,10 @@ func (e *Entry) Delete(msg string) bool {
 // Time returns the time a revision was created
 func (r *Revision) Time() time.Time {
 	return time.Unix(r.Created.GetSeconds(), int64(r.Created.GetNanos()))
+}
+
+// ID returns the unique ID of this entry
+// TODO: It's not really unique. Need to fix that.
+func (r *Revision) ID() string {
+	return fmt.Sprintf("%d", r.Created.AsTime().UnixNano())
 }

@@ -45,7 +45,7 @@ func (l loader) Handles(path string) error {
 }
 
 func (l loader) Priority() int {
-	return 1
+	return 50
 }
 func (l loader) String() string {
 	return name
