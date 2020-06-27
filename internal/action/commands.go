@@ -344,7 +344,9 @@ func (s *Action) GetCommands() []*cli.Command {
 			Usage: "Run a git command inside a password store (init, remote, push, pull)",
 			Description: "" +
 				"If the password store is a git repository, execute a git command " +
-				"specified by git-command-args.",
+				"specified by git-command-args." +
+				"WARNING: Deprecated. Please use gopass sync.",
+			Hidden: true,
 			Subcommands: []*cli.Command{
 				{
 					Name:        "init",
