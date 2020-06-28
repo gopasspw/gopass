@@ -6,6 +6,7 @@ require (
 	github.com/alecthomas/binary v0.0.0-20190922233330-fb1b1d9c299c
 	github.com/atotto/clipboard v0.1.2
 	github.com/blang/semver v0.0.0-20190414182527-1a9109f8c4a1
+	github.com/caspr-io/yamlpath v0.0.1
 	github.com/cenkalti/backoff v2.2.1+incompatible
 	github.com/chzyer/logex v1.1.10 // indirect
 	github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e
