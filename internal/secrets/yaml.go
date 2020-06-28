@@ -8,8 +8,8 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/caspr-io/yamlpath"
 	"github.com/gopasspw/gopass/internal/debug"
-	"github.com/gopasspw/gopass/internal/yamlpath"
 	"github.com/gopasspw/gopass/pkg/gopass"
 	"github.com/gopasspw/gopass/pkg/gopass/secret"
 	yaml "gopkg.in/yaml.v3"
@@ -46,7 +46,7 @@ func (y *YAML) Get(key string) string {
 	if v, found := y.data[key]; found {
 		return fmt.Sprintf("%v", v)
 	}
-	if v, err := yamlpath.YAMLPath(y.data, key); err == nil {
+	if v, err := yamlpath.YamlPath(y.data, key); err == nil && v != nil {
 		return fmt.Sprintf("%v", v)
 	}
 	return ""
