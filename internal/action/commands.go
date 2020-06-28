@@ -108,6 +108,37 @@ func (s *Action) GetCommands() []*cli.Command {
 			},
 		},
 		{
+			Name:        "convert",
+			Usage:       "Convert a store",
+			Description: "Convert a store to a different set of backends",
+			Action:      s.Convert,
+			Before:      s.Initialized,
+			Hidden:      true,
+			Flags: []cli.Flag{
+				&cli.StringFlag{
+					Name:  "store",
+					Usage: "Specify which store to convert",
+				},
+				&cli.BoolFlag{
+					Name:  "move",
+					Value: true,
+					Usage: "Replace store?",
+				},
+				&cli.StringFlag{
+					Name:  "crypto",
+					Usage: "Which crypto backend? (gpgcli, age, xc)",
+				},
+				&cli.StringFlag{
+					Name:  "storage",
+					Usage: "Which storage backend? (fs, ondisk)",
+				},
+				&cli.StringFlag{
+					Name:  "rcs",
+					Usage: "Which RCS backend? (gitcli, ondisk)",
+				},
+			},
+		},
+		{
 			Name:    "copy",
 			Aliases: []string{"cp"},
 			Usage:   "Copy secrets from one location to another",

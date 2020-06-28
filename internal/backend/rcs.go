@@ -23,7 +23,7 @@ const (
 )
 
 func (s RCSBackend) String() string {
-	return rcsNameFromBackend(s)
+	return RcsNameFromBackend(s)
 }
 
 // RCS is a revision control backend
@@ -55,6 +55,21 @@ type Revision struct {
 	Date        time.Time
 	Subject     string
 	Body        string
+}
+
+// Revisions implements the sort interface
+type Revisions []Revision
+
+func (r Revisions) Len() int {
+	return len(r)
+}
+
+func (r Revisions) Less(i, j int) bool {
+	return r[i].Date.After(r[j].Date)
+}
+
+func (r Revisions) Swap(i, j int) {
+	r[i], r[j] = r[j], r[i]
 }
 
 // RegisterRCS registers a new RCS backend with the backend registry.

@@ -53,42 +53,54 @@ func StorageBackends() []string {
 	return bes
 }
 
-func cryptoBackendFromName(name string) CryptoBackend {
+// CryptoBackendFromName parses the identifier into a crypto backend
+func CryptoBackendFromName(name string) CryptoBackend {
+	if name == "gpg" {
+		name = "gpgcli"
+	}
 	if b, found := cryptoNameToBackendMap[name]; found {
 		return b
 	}
 	return -1
 }
 
-func cryptoNameFromBackend(be CryptoBackend) string {
+// CryptoNameFromBackend returns the name of a given crypto backend
+func CryptoNameFromBackend(be CryptoBackend) string {
 	if b, found := cryptoBackendToNameMap[be]; found {
 		return b
 	}
 	return ""
 }
 
-func rcsBackendFromName(name string) RCSBackend {
+// RcsBackendFromName parses the identifier into a rcs backend
+func RcsBackendFromName(name string) RCSBackend {
+	if name == "git" {
+		name = "gitcli"
+	}
 	if b, found := rcsNameToBackendMap[name]; found {
 		return b
 	}
 	return -1
 }
 
-func rcsNameFromBackend(be RCSBackend) string {
+// RcsNameFromBackend returns the name of a given RCS backend
+func RcsNameFromBackend(be RCSBackend) string {
 	if b, found := rcsBackendToNameMap[be]; found {
 		return b
 	}
 	return ""
 }
 
-func storageBackendFromName(name string) StorageBackend {
+// StorageBackendFromName parses the identifier into a storage backend
+func StorageBackendFromName(name string) StorageBackend {
 	if b, found := storageNameToBackendMap[name]; found {
 		return b
 	}
 	return FS
 }
 
-func storageNameFromBackend(be StorageBackend) string {
+// StorageNameFromBackend returns the name of a given storage backend
+func StorageNameFromBackend(be StorageBackend) string {
 	if b, found := storageBackendToNameMap[be]; found {
 		return b
 	}

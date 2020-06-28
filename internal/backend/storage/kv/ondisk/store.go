@@ -108,9 +108,7 @@ func (o *OnDisk) Set(ctx context.Context, name string, value []byte) error {
 		msg = cm
 	}
 	e.Revisions = append(e.Revisions, &gpb.Revision{
-		Created: &timestamppb.Timestamp{
-			Seconds: time.Now().Unix(),
-		},
+		Created:  timestamppb.Now(),
 		Message:  msg,
 		Filename: fn,
 	})

@@ -23,7 +23,7 @@ const (
 )
 
 func (s StorageBackend) String() string {
-	return storageNameFromBackend(s)
+	return StorageNameFromBackend(s)
 }
 
 // Storage is an storage backend

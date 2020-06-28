@@ -40,7 +40,7 @@ func (s *Action) History(c *cli.Context) error {
 				pw = " - " + sec.Get("password")
 			}
 		}
-		out.Print(ctx, "%s - %s <%s> - %s - %s%s", rev.Hash[:8], rev.AuthorName, rev.AuthorEmail, rev.Date.Format(time.RFC3339), rev.Subject, pw)
+		out.Print(ctx, "%s - %s <%s> - %s - %s%s\n", rev.Hash, rev.AuthorName, rev.AuthorEmail, rev.Date.Format(time.RFC3339), rev.Subject, pw)
 	}
 	return nil
 }
