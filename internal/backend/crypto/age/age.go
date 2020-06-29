@@ -4,18 +4,19 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"io"
 	"io/ioutil"
-	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 
+	"filippo.io/age"
+	"filippo.io/age/agessh"
 	"github.com/blang/semver"
 	"github.com/google/go-github/github"
 	"github.com/gopasspw/gopass/internal/cache"
 	"github.com/gopasspw/gopass/internal/debug"
-	"github.com/gopasspw/gopass/internal/termio"
-	"github.com/gopasspw/gopass/pkg/fsutil"
+	"github.com/gopasspw/gopass/pkg/appdir"
+	"github.com/gopasspw/gopass/pkg/ctxutil"
 )
 
 const (
@@ -31,14 +32,11 @@ type Age struct {
 	keyring string
 	ghc     *github.Client
 	ghCache *cache.OnDisk
+	askPass *askPass
 }
 
 // New creates a new Age backend
 func New() (*Age, error) {
-	ucd, err := os.UserConfigDir()
-	if err != nil {
-		return nil, err
-	}
 	cDir, err := cache.NewOnDisk("age-github")
 	if err != nil {
 		return nil, err
@@ -47,7 +45,8 @@ func New() (*Age, error) {
 		binary:  "age",
 		ghc:     github.NewClient(nil),
 		ghCache: cDir,
-		keyring: filepath.Join(ucd, "gopass", "age.age"),
+		keyring: filepath.Join(appdir.UserConfig(), "age-keyring.age"),
+		askPass: newAskPass(),
 	}, nil
 }
 
@@ -82,19 +81,25 @@ func (a *Age) IDFile() string {
 	return IDFile
 }
 
-func (a *Age) filterRecipients(ctx context.Context, recipients []string) ([]string, error) {
-	out := make([]string, 0, len(recipients))
+func (a *Age) parseRecipients(ctx context.Context, recipients []string) ([]age.Recipient, error) {
+	out := make([]age.Recipient, 0, len(recipients))
 	for _, r := range recipients {
 		if strings.HasPrefix(r, "age1") {
-			out = append(out, r)
+			id, err := age.ParseX25519Recipient(r)
+			if err != nil {
+				debug.Log("Failed to parse recipient '%s' as X25519: %s", r, err)
+				continue
+			}
+			out = append(out, id)
 			continue
 		}
-		if strings.HasPrefix(r, "ssh-ed25519 ") {
-			out = append(out, r)
-			continue
-		}
-		if strings.HasPrefix(r, "ssh-rsa ") {
-			out = append(out, r)
+		if strings.HasPrefix(r, "ssh-") {
+			id, err := agessh.ParseRecipient(r)
+			if err != nil {
+				debug.Log("Failed to parse recipient '%s' as SSH: %s", r, err)
+				continue
+			}
+			out = append(out, id)
 			continue
 		}
 		if strings.HasPrefix(r, "github:") {
@@ -102,7 +107,14 @@ func (a *Age) filterRecipients(ctx context.Context, recipients []string) ([]stri
 			if err != nil {
 				return out, err
 			}
-			out = append(out, pks...)
+			for _, pk := range pks {
+				id, err := agessh.ParseRecipient(r)
+				if err != nil {
+					debug.Log("Failed to parse GitHub recipient '%s': '%s': %s", r, pk, err)
+					continue
+				}
+				out = append(out, id)
+			}
 		}
 	}
 	return out, nil
@@ -110,33 +122,46 @@ func (a *Age) filterRecipients(ctx context.Context, recipients []string) ([]stri
 
 // Encrypt will encrypt the given payload
 func (a *Age) Encrypt(ctx context.Context, plaintext []byte, recipients []string) ([]byte, error) {
-	args := []string{"--recipient", a.pkself(ctx)}
-	recp, err := a.filterRecipients(ctx, recipients)
+	// add our own public key
+	pks, err := a.pkself(ctx)
 	if err != nil {
 		return nil, err
 	}
-	for _, r := range recp {
-		args = append(args, "--recipient", r)
+	recp, err := a.parseRecipients(ctx, recipients)
+	if err != nil {
+		return nil, err
 	}
-
-	return a.encrypt(ctx, plaintext, args...)
+	recp = append(recp, pks)
+	return a.encrypt(plaintext, recp...)
 }
 
-func (a *Age) encrypt(ctx context.Context, plaintext []byte, args ...string) ([]byte, error) {
-	buf := &bytes.Buffer{}
-
-	cmd := exec.CommandContext(ctx, a.binary, args...)
-	cmd.Stdin = bytes.NewReader(plaintext)
-	cmd.Stdout = buf
-	cmd.Stderr = os.Stderr
-
-	debug.Log("%s %+v", cmd.Path, cmd.Args)
-	err := cmd.Run()
-	return buf.Bytes(), err
+func (a *Age) encrypt(plaintext []byte, recp ...age.Recipient) ([]byte, error) {
+	out := &bytes.Buffer{}
+	w, err := age.Encrypt(out, recp...)
+	if err != nil {
+		return nil, err
+	}
+	n, err := w.Write(plaintext)
+	if err != nil {
+		return nil, err
+	}
+	if err := w.Close(); err != nil {
+		return nil, err
+	}
+	debug.Log("Wrote %d bytes of plaintext (%s) for %+v", n, plaintext, recp)
+	return out.Bytes(), nil
 }
 
-func (a *Age) encryptFile(ctx context.Context, filename string, plaintext []byte) error {
-	buf, err := a.encrypt(ctx, plaintext, "-p")
+func (a *Age) encryptFile(filename string, plaintext []byte) error {
+	pw, err := a.askPass.Passphrase(filename, "index")
+	if err != nil {
+		return err
+	}
+	id, err := age.NewScryptRecipient(pw)
+	if err != nil {
+		return err
+	}
+	buf, err := a.encrypt(plaintext, id)
 	if err != nil {
 		return err
 	}
@@ -146,248 +171,107 @@ func (a *Age) encryptFile(ctx context.Context, filename string, plaintext []byte
 
 // Decrypt will attempt to decrypt the given payload
 func (a *Age) Decrypt(ctx context.Context, ciphertext []byte) ([]byte, error) {
-	args := []string{}
-	for _, k := range a.listPrivateKeyFiles(ctx) {
-		if k == "native-keyring" {
-			debug.Log("decrypting native keyring for file decrypt")
-			td, err := ioutil.TempDir("", "gpa")
-			if err != nil {
-				return nil, err
-			}
-			defer os.RemoveAll(td)
-			fn := filepath.Join(td, "keys.txt")
-			if err := a.decryptFileTo(ctx, a.keyring, fn); err != nil {
-				return nil, err
-			}
-			k = fn
-		}
-		args = append(args, "--identity")
-		args = append(args, k)
+	ctx = ctxutil.WithPasswordCallback(ctx, func(prompt string) ([]byte, error) {
+		pw, err := a.askPass.Passphrase(prompt, "Decrypting")
+		return []byte(pw), err
+	})
+	ids, err := a.getAllIds(ctx)
+	if err != nil {
+		return nil, err
 	}
-
-	return a.decrypt(ctx, ciphertext, args...)
+	return a.decrypt(ciphertext, ids...)
 }
 
-func (a *Age) decrypt(ctx context.Context, ciphertext []byte, args ...string) ([]byte, error) {
-	args = append(args, "--decrypt")
-	cmd := exec.CommandContext(ctx, a.binary, args...)
-	cmd.Stdin = bytes.NewReader(ciphertext)
-	cmd.Stderr = os.Stderr
-
-	debug.Log("%s %+v", cmd.Path, cmd.Args)
-	return cmd.Output()
+func (a *Age) decrypt(ciphertext []byte, ids ...age.Identity) ([]byte, error) {
+	out := &bytes.Buffer{}
+	f := bytes.NewReader(ciphertext)
+	r, err := age.Decrypt(f, ids...)
+	if err != nil {
+		return nil, err
+	}
+	if _, err := io.Copy(out, r); err != nil {
+		return nil, err
+	}
+	return out.Bytes(), nil
 }
 
-func (a *Age) decryptFile(ctx context.Context, filename string) ([]byte, error) {
+func (a *Age) decryptFile(filename string) ([]byte, error) {
+	pw, err := a.askPass.Passphrase(filename, "index")
+	if err != nil {
+		return nil, err
+	}
+	id, err := age.NewScryptIdentity(pw)
+	if err != nil {
+		return nil, err
+	}
 	ciphertext, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}
-	return a.decrypt(ctx, ciphertext)
-}
-
-func (a *Age) decryptFileTo(ctx context.Context, src, dst string) error {
-	buf, err := a.decryptFile(ctx, src)
-	if err != nil {
-		return err
-	}
-	return ioutil.WriteFile(dst, buf, 0600)
-}
-
-// GenerateIdentity will create a new native private key
-func (a *Age) GenerateIdentity(ctx context.Context, name, email, pw string) error {
-	buf := &bytes.Buffer{}
-	cmd := exec.CommandContext(ctx, "age-keygen")
-	cmd.Stdout = buf
-	cmd.Stderr = os.Stderr
-
-	// decrypt and prepend existing keyring content
-	if fsutil.IsFile(a.keyring) {
-		b2, err := a.decryptFile(ctx, a.keyring)
-		if err != nil {
-			return err
-		}
-		if _, err := buf.Write(b2); err != nil {
-			return err
-		}
-	}
-
-	// write gopass metadata of new entry
-	fmt.Fprintf(buf, "# gopass-age-keypair\n")
-	fmt.Fprintf(buf, "# Name: %s\n", name)
-	fmt.Fprintf(buf, "# Email: %s\n", email)
-
-	// create new keypair
-	if err := cmd.Run(); err != nil {
-		return err
-	}
-
-	debug.Log("%s", buf.String())
-
-	if err := os.MkdirAll(filepath.Dir(a.keyring), 0700); err != nil {
-		return err
-	}
-
-	// encrypt final keyring
-	return a.encryptFile(ctx, a.keyring, buf.Bytes())
+	return a.decrypt(ciphertext, id)
 }
 
 // ListIdentities is TODO
 func (a *Age) ListIdentities(ctx context.Context) ([]string, error) {
-	native, err := a.getNativeKeypairs(ctx)
-	if err != nil {
-		return nil, err
-	}
-	ssh, err := a.getSSHKeypairs()
+	ids, err := a.getAllIdentities(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	ids := make([]string, 0, len(native)+len(ssh))
-	for k := range native {
-		ids = append(ids, k)
+	idStr := make([]string, 0, len(ids))
+	for k := range ids {
+		idStr = append(idStr, k)
 	}
-	for k := range ssh {
-		ids = append(ids, k)
-	}
-	return ids, nil
+	return idStr, nil
 }
 
-func (a *Age) listPrivateKeyFiles(ctx context.Context) []string {
-	keys, err := a.getAllKeypairs(ctx)
-	if err != nil {
-		debug.Log("Error fetching keys: %s", err)
-	}
-	idSet := map[string]struct{}{}
-	for _, v := range keys {
-		idSet[v] = struct{}{}
-	}
-	ids := make([]string, 0, len(keys))
-	for k := range idSet {
-		ids = append(ids, k)
-	}
-	return ids
-}
-
-// ExportPublicKey is not implemented
-func (a *Age) ExportPublicKey(ctx context.Context, id string) ([]byte, error) {
-	return []byte(id), nil
-}
-
-// map[public key]filename
-func (a *Age) getSSHKeypairs() (map[string]string, error) {
-	uhd, err := os.UserHomeDir()
+func (a *Age) getAllIds(ctx context.Context) ([]age.Identity, error) {
+	ids, err := a.getAllIdentities(ctx)
 	if err != nil {
 		return nil, err
 	}
-	files, err := ioutil.ReadDir(filepath.Join(uhd, ".ssh"))
-	if err != nil {
-		return nil, err
+	idl := make([]age.Identity, 0, len(ids))
+	for _, id := range ids {
+		idl = append(idl, id)
 	}
-	keys := make(map[string]string, len(files))
-	for _, file := range files {
-		fn := file.Name()
-		if !strings.HasSuffix(fn, ".pub") {
-			continue
-		}
-		pfn := strings.TrimSuffix(fn, ".pub")
-		_, err := os.Stat(pfn)
-		if err != nil {
-			continue
-		}
-		pbuf, err := ioutil.ReadFile(fn)
-		if err != nil {
-			continue
-		}
-		p := strings.Split(string(pbuf), " ")
-		if len(p) < 2 {
-			continue
-		}
-		keys[strings.Join(p[0:1], " ")] = pfn
-	}
-	return keys, nil
+	return idl, nil
 }
 
-func (a *Age) pkself(ctx context.Context) string {
-	keys, _ := a.getNativeKeypairs(ctx)
-	for k := range keys {
-		return k
-	}
-	return ""
-}
-
-// map[public key]filename
-func (a *Age) getNativeKeypairs(ctx context.Context) (map[string]string, error) {
-	_, err := os.Stat(a.keyring)
-	if os.IsNotExist(err) {
-		debug.Log("No native age key found. Generating ...")
-		pw, err := termio.AskForPassword(ctx, "Please enter a passphrase for your new Age key")
-		if err != nil {
-			return nil, err
-		}
-		if err := a.GenerateIdentity(ctx, termio.DetectName(ctx, nil), termio.DetectEmail(ctx, nil), pw); err != nil {
-			return nil, err
-		}
-	}
-	debug.Log("decrypting keyring")
-	buf, err := a.decryptFile(ctx, a.keyring)
+func (a *Age) getAllIdentities(ctx context.Context) (map[string]age.Identity, error) {
+	native, err := a.getNativeIdentities(ctx)
 	if err != nil {
 		return nil, err
 	}
-	var pub string
-	keys := map[string]string{}
-	lines := strings.Split(string(buf), "\n")
-	for _, line := range lines {
-		if strings.HasPrefix(line, "# public key: age1") {
-			pub = strings.TrimPrefix(line, "# public key: ")
-			continue
-		}
-		if strings.HasPrefix(line, "AGE-SECRET-KEY") {
-			if pub != "" {
-				keys[pub] = "native-keyring"
-				pub = ""
-			}
-		}
-	}
-	return keys, nil
-}
-
-func (a *Age) getAllKeypairs(ctx context.Context) (map[string]string, error) {
-	native, err := a.getNativeKeypairs(ctx)
+	ssh, err := a.getSSHIdentities(ctx)
 	if err != nil {
 		return nil, err
-	}
-	ssh, err := a.getSSHKeypairs()
-	if err != nil {
-		return nil, err
-	}
-
-	keys := make(map[string]string, len(native)+len(ssh))
-	for k, v := range native {
-		keys[k] = v
 	}
 	for k, v := range ssh {
-		keys[k] = v
+		native[k] = v
 	}
-	return keys, nil
+
+	return native, nil
 }
 
-// FindRecipients it TODO
-func (a *Age) FindRecipients(ctx context.Context, keys ...string) ([]string, error) {
-	nk, err := a.getAllKeypairs(ctx)
-	if err != nil {
-		return nil, err
-	}
-	matches := make([]string, 0, len(nk))
-	for _, k := range keys {
-		if _, found := nk[k]; found {
-			matches = append(matches, k)
+func (a *Age) getNativeIdentities(ctx context.Context) (map[string]age.Identity, error) {
+	kr, err := a.loadKeyring()
+	if len(kr) < 1 || err != nil {
+		id, err := a.genKey(ctx)
+		if err != nil {
+			return nil, err
 		}
+		return map[string]age.Identity{
+			id.Recipient().String(): id,
+		}, nil
 	}
-	return matches, nil
-}
-
-// FindIdentities is TODO
-func (a *Age) FindIdentities(ctx context.Context, keys ...string) ([]string, error) {
-	return a.FindRecipients(ctx, keys...)
+	ids := make(map[string]age.Identity, len(kr))
+	for _, k := range kr {
+		id, err := age.ParseX25519Identity(k.Identity)
+		if err != nil {
+			debug.Log("Failed to parse identity '%s': %s", k, err)
+			continue
+		}
+		ids[id.Recipient().String()] = id
+	}
+	return ids, nil
 }

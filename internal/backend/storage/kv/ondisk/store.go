@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/blang/semver"
+	"github.com/gopasspw/gopass/internal/backend/crypto/age"
 	"github.com/gopasspw/gopass/internal/backend/storage/kv/ondisk/gpb"
 	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -33,21 +34,28 @@ var (
 type OnDisk struct {
 	dir string
 	idx *gpb.Store
+	age *age.Age
 }
 
 // New creates a new ondisk store
 func New(baseDir string) (*OnDisk, error) {
-	idx, err := loadOrCreate(baseDir)
+	a, err := age.New()
 	if err != nil {
 		return nil, err
 	}
-	return &OnDisk{
+	o := &OnDisk{
 		dir: baseDir,
-		idx: idx,
-	}, nil
+		age: a,
+	}
+	idx, err := o.loadOrCreate(baseDir)
+	if err != nil {
+		return nil, err
+	}
+	o.idx = idx
+	return o, nil
 }
 
-func loadOrCreate(path string) (*gpb.Store, error) {
+func (o *OnDisk) loadOrCreate(path string) (*gpb.Store, error) {
 	path = filepath.Join(path, idxFile)
 	buf, err := ioutil.ReadFile(path)
 	if os.IsNotExist(err) {
@@ -55,6 +63,10 @@ func loadOrCreate(path string) (*gpb.Store, error) {
 			Name:    filepath.Base(path),
 			Entries: make(map[string]*gpb.Entry),
 		}, nil
+	}
+	buf, err = o.age.Decrypt(context.TODO(), buf)
+	if err != nil {
+		return nil, err
 	}
 	idx := &gpb.Store{}
 	err = proto.Unmarshal(buf, idx)
@@ -66,8 +78,11 @@ func (o *OnDisk) saveIndex() error {
 	if err != nil {
 		return err
 	}
-	// TODO the index should be encrypted
 	os.Rename(filepath.Join(o.dir, idxFile), filepath.Join(o.dir, idxBakFile))
+	buf, err = o.age.Encrypt(context.TODO(), buf, []string{})
+	if err != nil {
+		return err
+	}
 	return ioutil.WriteFile(filepath.Join(o.dir, idxFile), buf, 0600)
 }
 

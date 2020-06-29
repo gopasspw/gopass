@@ -2,6 +2,7 @@ package ctxutil
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/gopasspw/gopass/internal/store"
 	"github.com/urfave/cli/v2"
@@ -37,6 +38,7 @@ const (
 	ctxKeyEmail
 	ctxKeyImportFunc
 	ctxKeyExportKeys
+	ctxKeyPasswordCallback
 )
 
 // WithGlobalFlags parses any global flags from the cli context and returns
@@ -538,4 +540,29 @@ func HasExportKeys(ctx context.Context) bool {
 // IsExportKeys returns the value of export keys or the default (true).
 func IsExportKeys(ctx context.Context) bool {
 	return is(ctx, ctxKeyExportKeys, true)
+}
+
+// PasswordCallback is a password prompt callback
+type PasswordCallback func(string) ([]byte, error)
+
+// WithPasswordCallback returns a context with the password callback set
+func WithPasswordCallback(ctx context.Context, cb PasswordCallback) context.Context {
+	return context.WithValue(ctx, ctxKeyPasswordCallback, cb)
+}
+
+// HasPasswordCallback returns true if a password callback was set in the context
+func HasPasswordCallback(ctx context.Context) bool {
+	_, ok := ctx.Value(ctxKeyPasswordCallback).(PasswordCallback)
+	return ok
+}
+
+// GetPasswordCallback returns the password callback or a default (which always fails)
+func GetPasswordCallback(ctx context.Context) PasswordCallback {
+	pwcb, ok := ctx.Value(ctxKeyPasswordCallback).(PasswordCallback)
+	if !ok || pwcb == nil {
+		return func(string) ([]byte, error) {
+			return nil, fmt.Errorf("no callback")
+		}
+	}
+	return pwcb
 }
