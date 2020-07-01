@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/gopasspw/gopass/internal/clipboard"
+	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/internal/notify"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
@@ -51,6 +52,7 @@ func (s *Action) Show(c *cli.Context) error {
 	ctx := showParseArgs(c)
 
 	if key := c.Args().Get(1); key != "" {
+		debug.Log("Setting key: %s", key)
 		ctx = WithKey(ctx, key)
 	}
 
@@ -135,7 +137,9 @@ func (s *Action) showHandleOutput(ctx context.Context, name string, sec gopass.S
 func (s *Action) showGetContent(ctx context.Context, sec gopass.Secret) (string, string) {
 	// YAML key
 	if HasKey(ctx) {
+		key := GetKey(ctx)
 		val := sec.Get(GetKey(ctx))
+		debug.Log("got key %s: %s", key, val)
 		return val, val
 	}
 
@@ -205,6 +209,7 @@ func (s *Action) showHandleError(ctx context.Context, c *cli.Context, name strin
 		_ = notify.Notify(ctx, "gopass - warning", fmt.Sprintf("Entry '%s' not found. Starting search...", name))
 	}
 	out.Yellow(ctx, "Entry '%s' not found. Starting search...", name)
+	c.Context = ctx
 	if err := s.Find(c); err != nil {
 		if IsClip(ctx) {
 			_ = notify.Notify(ctx, "gopass - error", fmt.Sprintf("%s", err))
