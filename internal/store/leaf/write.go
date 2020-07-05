@@ -96,6 +96,6 @@ func (s *Store) gitCommitAndPush(ctx context.Context, name string) error {
 		}
 		return errors.Wrapf(err, "failed to push to git remote")
 	}
-	out.Green(ctx, "Pushed changes to git remote")
+	out.Green(ctx, "Pushed changes to remote")
 	return nil
 }

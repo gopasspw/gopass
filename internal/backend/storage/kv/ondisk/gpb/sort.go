@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"sort"
 	"time"
+
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // ByRevision sorts to latest revision to the top, i.e. [0]
@@ -24,7 +26,7 @@ func (e *Entry) SortedRevisions() []*Revision {
 // Latest returns the latest revision
 func (e *Entry) Latest() *Revision {
 	sort.Sort(ByRevision(e.Revisions))
-	return e.Revisions[0]
+	return e.Revisions[len(e.Revisions)-1]
 }
 
 // IsDeleted returns true is an entry was marked as deleted
@@ -38,6 +40,7 @@ func (e *Entry) Delete(msg string) bool {
 		return false
 	}
 	e.Revisions = append(e.Revisions, &Revision{
+		Created:   timestamppb.Now(),
 		Message:   msg,
 		Tombstone: true,
 	})
