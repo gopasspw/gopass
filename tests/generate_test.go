@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestGenerate(t *testing.T) {
@@ -25,7 +26,7 @@ func TestGenerate(t *testing.T) {
 	out, err = ts.run("generate -p baz 42")
 	assert.NoError(t, err)
 	lines := strings.Split(out, "\n")
-	assert.Len(t, lines, 4)
+	require.Greater(t, len(lines), 2)
 	assert.Contains(t, out, "The generated password is:")
 	assert.Len(t, lines[2], 42)
 
@@ -33,7 +34,7 @@ func TestGenerate(t *testing.T) {
 	out, err = ts.run("generate -p zab 4")
 	assert.NoError(t, err)
 	lines = strings.Split(out, "\n")
-	assert.Len(t, lines, 4)
+	require.Greater(t, len(lines), 2)
 	assert.Contains(t, out, "The generated password is:")
 	assert.Equal(t, lines[2], "aaaa")
 }

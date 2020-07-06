@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 
 	"github.com/gopasspw/gopass/internal/backend"
-	"github.com/gopasspw/gopass/internal/out"
 )
 
 // Add is not supported / necessary
@@ -22,14 +21,25 @@ func (o *OnDisk) Commit(ctx context.Context, msg string) error {
 
 // Push is not implemented, yet
 func (o *OnDisk) Push(ctx context.Context, remote, location string) error {
-	out.Red(ctx, "WARNING: Push not yet implemented")
-	return nil
+	o.mux.Lock()
+	defer o.mux.Unlock()
+	if err := o.uploadFiles(ctx); err != nil {
+		return err
+	}
+	if err := o.syncIndex(ctx); err != nil {
+		return err
+	}
+	return o.downloadFiles(ctx)
 }
 
 // Pull is not implemented, yet
 func (o *OnDisk) Pull(ctx context.Context, remote, location string) error {
-	out.Red(ctx, "WARNING: Pull not yet implemented")
-	return nil
+	o.mux.Lock()
+	defer o.mux.Unlock()
+	if err := o.syncIndex(ctx); err != nil {
+		return err
+	}
+	return o.downloadFiles(ctx)
 }
 
 // InitConfig is not necessary

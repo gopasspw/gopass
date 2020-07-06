@@ -184,3 +184,8 @@ func (s *Store) String() string {
 func (s *Store) Available(ctx context.Context) error {
 	return s.Set(ctx, ".test", []byte("test"))
 }
+
+// Path returns the ondisk path
+func (s *Store) Path() string {
+	return s.path
+}

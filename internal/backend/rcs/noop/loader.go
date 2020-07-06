@@ -17,7 +17,7 @@ func init() {
 type loader struct{}
 
 // Open implements backend.RCSLoader
-func (l loader) Open(ctx context.Context, path string) (backend.RCS, error) {
+func (l loader) Open(ctx context.Context, _ string) (backend.RCS, error) {
 	return New(), nil
 }
 

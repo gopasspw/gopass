@@ -42,7 +42,6 @@ func TestFsck(t *testing.T) {
 	output := strings.TrimSpace(buf.String())
 	assert.Contains(t, output, "Checking store integrity ...")
 	assert.Contains(t, output, "[] Extra recipients on foo: [0xFEEDBEEF]")
-	assert.Contains(t, output, "[] Pushed changes to remote")
 	buf.Reset()
 
 	// fsck (hidden)
@@ -50,7 +49,6 @@ func TestFsck(t *testing.T) {
 	output = strings.TrimSpace(buf.String())
 	assert.NotContains(t, output, "Checking store integrity ...")
 	assert.NotContains(t, output, "[] Extra recipients on foo: [0xFEEDBEEF]")
-	assert.NotContains(t, output, "[] Pushed changes to remote")
 	buf.Reset()
 
 	// fsck --decrypt
@@ -58,7 +56,6 @@ func TestFsck(t *testing.T) {
 	output = strings.TrimSpace(buf.String())
 	assert.Contains(t, output, "Checking store integrity ...")
 	assert.Contains(t, output, "[] Extra recipients on foo: [0xFEEDBEEF]")
-	assert.Contains(t, output, "[] Pushed changes to remote")
 	buf.Reset()
 
 	// fsck fo
@@ -66,6 +63,5 @@ func TestFsck(t *testing.T) {
 	output = strings.TrimSpace(buf.String())
 	assert.Contains(t, output, "Checking store integrity ...")
 	assert.Contains(t, output, "[] Extra recipients on foo: [0xFEEDBEEF]")
-	assert.Contains(t, output, "[] Pushed changes to remote")
 	buf.Reset()
 }

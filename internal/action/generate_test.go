@@ -155,7 +155,7 @@ func passIsAlphaNum(t *testing.T, buf string, want bool) {
 	if len(lines) < 1 {
 		t.Errorf("buffer empty (no lines)")
 	}
-	line := strings.TrimSpace(lines[len(lines)-2])
+	line := strings.TrimSpace(lines[len(lines)-1])
 	if reAlphaNum.MatchString(line) != want {
 		t.Errorf("buffer did not match alpha num re: %s (%s)", line, buf)
 	}

@@ -19,6 +19,7 @@ import (
 	"github.com/gopasspw/gopass/internal/backend/crypto/gpg"
 	_ "github.com/gopasspw/gopass/internal/backend/rcs"
 	_ "github.com/gopasspw/gopass/internal/backend/storage"
+	"github.com/gopasspw/gopass/internal/queue"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/protect"
 	"golang.org/x/crypto/ssh/terminal"
@@ -80,6 +81,7 @@ func main() {
 	if err := app.RunContext(ctx, os.Args); err != nil {
 		log.Fatal(err)
 	}
+	queue.Close(ctx)
 }
 
 func setupApp(ctx context.Context, sv semver.Version) (context.Context, *cli.App) {
