@@ -50,7 +50,7 @@ func TestTemplates(t *testing.T) {
 		defer buf.Reset()
 		assert.NoError(t, act.Store.SetTemplate(ctx, "foo", []byte("foobar")))
 		assert.NoError(t, act.TemplatesPrint(gptest.CliCtx(ctx, t, "foo")))
-		want := `Pushed changes to git remote
+		want := `Pushed changes to remote
 gopass
 └── foo
 

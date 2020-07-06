@@ -7,6 +7,7 @@ import (
 	"io"
 	"io/ioutil"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"filippo.io/age"
@@ -46,7 +47,7 @@ func New() (*Age, error) {
 		ghc:     github.NewClient(nil),
 		ghCache: cDir,
 		keyring: filepath.Join(appdir.UserConfig(), "age-keyring.age"),
-		askPass: newAskPass(),
+		askPass: defaultAskPass,
 	}, nil
 }
 
@@ -148,7 +149,7 @@ func (a *Age) encrypt(plaintext []byte, recp ...age.Recipient) ([]byte, error) {
 	if err := w.Close(); err != nil {
 		return nil, err
 	}
-	debug.Log("Wrote %d bytes of plaintext (%s) for %+v", n, plaintext, recp)
+	debug.Log("Wrote %d bytes of plaintext for %+v", n, recp)
 	return out.Bytes(), nil
 }
 
@@ -222,6 +223,7 @@ func (a *Age) ListIdentities(ctx context.Context) ([]string, error) {
 	for k := range ids {
 		idStr = append(idStr, k)
 	}
+	sort.Strings(idStr)
 	return idStr, nil
 }
 

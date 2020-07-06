@@ -3,6 +3,7 @@ package age
 import (
 	"context"
 	"fmt"
+	"sort"
 
 	"github.com/gopasspw/gopass/internal/debug"
 )
@@ -28,6 +29,7 @@ func (a *Age) FindRecipients(ctx context.Context, keys ...string) ([]string, err
 		}
 		debug.Log("not found in %+v", nk)
 	}
+	sort.Strings(matches)
 	return matches, nil
 }
 

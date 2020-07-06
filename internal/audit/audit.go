@@ -150,6 +150,7 @@ func audit(ctx context.Context, secStore secretGetter, validators []validator, s
 		debug.Log("Checking %s", secret)
 		sec, err := secStore.Get(ctx, secret)
 		if err != nil {
+			debug.Log("Failed to check %s: %s", secret, err)
 			as.err = err
 			if sec != nil {
 				as.content = sec.Get("password")

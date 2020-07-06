@@ -127,19 +127,30 @@ func (o *OnDisk) Set(ctx context.Context, name string, value []byte) error {
 		Message:  msg,
 		Filename: fn,
 	})
-	debug.Log("Added Revision for %s", name)
+	debug.Log("Added Revision for %s: %+v", name, e)
 	o.idx.Entries[name] = e
 	return o.saveIndex()
+}
+
+// Exists checks if an entry exists
+func (o *OnDisk) Exists(ctx context.Context, name string) bool {
+	e, found := o.idx.Entries[name]
+	if !found {
+		return false
+	}
+	found = !e.IsDeleted()
+	debug.Log("%s exists? %t in %+v", name, found, o.idx.Entries)
+	return found
 }
 
 func (o *OnDisk) getEntry(name string) (*gpb.Entry, error) {
 	em := o.idx.GetEntries()
 	if em == nil {
-		return nil, fmt.Errorf("not found")
+		return nil, fmt.Errorf("%s not found (empty index)", name)
 	}
 	e, found := em[name]
 	if !found {
-		return nil, fmt.Errorf("not found")
+		return nil, fmt.Errorf("%s not found", name)
 	}
 	return e, nil
 }
@@ -166,15 +177,8 @@ func (o *OnDisk) Delete(ctx context.Context, name string) error {
 	e.Delete(ctxutil.GetCommitMessage(ctx))
 	o.idx.Entries[name] = e
 
-	debug.Log("Added tombstone for %s")
+	debug.Log("Added tombstone for %s", name)
 	return o.saveIndex()
-}
-
-// Exists checks if an entry exists
-func (o *OnDisk) Exists(ctx context.Context, name string) bool {
-	_, found := o.idx.Entries[name]
-	debug.Log("%s exists? %t", name, found)
-	return found
 }
 
 // List lists all entries

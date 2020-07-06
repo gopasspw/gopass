@@ -29,6 +29,10 @@ type askPass struct {
 	pinentry func() (piner, error)
 }
 
+var (
+	defaultAskPass = newAskPass()
+)
+
 func newAskPass() *askPass {
 	return &askPass{
 		cache: cache.NewInMemTTL(time.Hour, 24*time.Hour),
@@ -47,6 +51,7 @@ func (a *askPass) Passphrase(key string, reason string) (string, error) {
 		debug.Log("Read value for %s from cache", key)
 		return value, nil
 	}
+	debug.Log("Value for %s not found in cache", key)
 
 	pi, err := a.pinentry()
 	if err != nil {
