@@ -1,15 +1,11 @@
 package main
 
 import (
-	"io"
-	"fmt"
-
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/gopass"
 	"github.com/urfave/cli/v2"
 )
-
 
 type gc struct {
 	gp gopass.Store
@@ -24,11 +20,6 @@ func (s *gc) Get(c *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	password := secret.Get("password")
-	i, err := io.WriteString(out.Stdout, password+"\n")
-	_ = i
-	if err != nil {
-		return fmt.Errorf("could not write to stdout: %s", err)
-	}
+	out.Print(ctx, secret.Get("password"))
 	return nil
 }
