@@ -45,14 +45,14 @@ func main() {
 	app := cli.NewApp()
 	app.Name = name
 	app.Version = "0.0.1"
-	app.Usage = `Use "summon-gopass" as provider for "summon"`
+	app.Usage = `Use "gopass-summon-provider" as provider for "summon"`
 	app.Description = "" +
-		"This command allows use gopass as a secret provider for summon." +
-		"To use it set the 'SUMMON_PROVIDER' variable to this executabel or" +
-		"copy or link it into the summon provider direcotry '/usr/local/lib/summon/'."+
-		"See 'summon' documentaion for more details."
+		"This command allows to use gopass as a secret provider for summon." +
+		"To use it set the 'SUMMON_PROVIDER' variable to this executable or" +
+		"copy or link it (as `gopass`) into the summon provider directory" +
+		"'/usr/local/lib/summon/'. See 'summon' documentation for more details."
 	app.Action = gc.Get
-	
+
 	if err := app.RunContext(ctx, os.Args); err != nil {
 		log.Fatal(err)
 	}
