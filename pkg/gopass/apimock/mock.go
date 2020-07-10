@@ -82,3 +82,6 @@ func (a *MockAPI) Rename(ctx context.Context, src, dest string) error {
 func (a *MockAPI) Sync(ctx context.Context) error {
 	return fmt.Errorf("not yet implemented")
 }
+
+// Close does nothing
+func (a *MockAPI) Close(ctx context.Context) {}

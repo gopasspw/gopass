@@ -5,36 +5,42 @@ package ondisk
 import (
 	"context"
 	"crypto/sha256"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"sort"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/blang/semver"
 	"github.com/gopasspw/gopass/internal/backend/crypto/age"
-	"github.com/gopasspw/gopass/internal/backend/storage/kv/ondisk/gpb"
+	"github.com/gopasspw/gopass/internal/backend/storage/kv/ondisk/gjs"
 	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"google.golang.org/protobuf/proto"
-	"google.golang.org/protobuf/types/known/timestamppb"
+	"github.com/minio/minio-go/v6"
 )
 
 var (
-	idxFile    = "index.pb"
-	idxBakFile = "index.pb.back"
-	//lockFile   = "index.lock"
-	maxRev = 256
-	delTTL = time.Hour * 24 * 365
+	idxFile     = "index.gp"
+	idxBakFile  = "index.gp.back"
+	idxLockFile = "index.lock"
+	maxRev      = 256
+	delTTL      = time.Hour * 24 * 365
 )
 
 // OnDisk is an on disk key-value store
 type OnDisk struct {
 	dir string
-	idx *gpb.Store
+	idx *gjs.Store
 	age *age.Age
+	// TODO those should likely move to their own struct
+	mux sync.Mutex
+	mio *minio.Client
+	mbu string // bucket
+	mpf string // prefix
 }
 
 // New creates a new ondisk store
@@ -52,38 +58,93 @@ func New(baseDir string) (*OnDisk, error) {
 		return nil, err
 	}
 	o.idx = idx
+	if err := o.initRemote(); err != nil {
+		return nil, err
+	}
 	return o, nil
 }
 
-func (o *OnDisk) loadOrCreate(path string) (*gpb.Store, error) {
+// Path returns the on disk path
+func (o *OnDisk) Path() string {
+	return o.dir
+}
+
+func (o *OnDisk) initRemote() error {
+	ac := os.Getenv("GOPASS_ACCESS_KEY_ID")
+	if ac == "" {
+		debug.Log("GOPASS_ACCESS_KEY_ID not set")
+		return nil
+	}
+	as := os.Getenv("GOPASS_SECRET_ACCESS_KEY")
+	if as == "" {
+		debug.Log("GOPASS_SECRET_ACCESS_KEY not set")
+		return nil
+	}
+	host := os.Getenv("GOPASS_REMOTE_HOST")
+	if host == "" {
+		host = "storage.googleapis.com"
+	}
+	bucket := os.Getenv("GOPASS_REMOTE_BUCKET")
+	if bucket == "" {
+		debug.Log("GOPASS_REMOTE_BUCKET not set")
+		return nil
+	}
+	o.mbu = bucket
+
+	ssl := true
+	if strings.HasPrefix(host, "localhost") || strings.HasPrefix(host, "127.0.0.1") {
+		ssl = false
+	}
+	mioClient, err := minio.New(host, ac, as, ssl)
+	if err != nil {
+		return err
+	}
+	o.mio = mioClient
+	debug.Log("Remote initialized with host: %s - ssl: %t - bucket: %s - key id: %s - key: %s", host, ssl, o.mbu, ac, as)
+	return nil
+}
+
+func (o *OnDisk) loadOrCreate(path string) (*gjs.Store, error) {
 	path = filepath.Join(path, idxFile)
 	buf, err := ioutil.ReadFile(path)
 	if os.IsNotExist(err) {
-		return &gpb.Store{
+		return &gjs.Store{
 			Name:    filepath.Base(path),
-			Entries: make(map[string]*gpb.Entry),
+			Entries: make(map[string]*gjs.Entry),
 		}, nil
 	}
-	buf, err = o.age.Decrypt(context.TODO(), buf)
+	return o.loadIndex(context.TODO(), buf)
+}
+
+func (o *OnDisk) loadIndex(ctx context.Context, buf []byte) (*gjs.Store, error) {
+	buf, err := o.age.Decrypt(ctx, buf)
 	if err != nil {
 		return nil, err
 	}
-	idx := &gpb.Store{}
-	err = proto.Unmarshal(buf, idx)
+	debug.Log("JSON: %p %s", o, string(buf))
+	idx := &gjs.Store{}
+	err = json.Unmarshal(buf, idx)
 	return idx, err
 }
 
-func (o *OnDisk) saveIndex() error {
-	buf, err := proto.Marshal(o.idx)
+func (o *OnDisk) saveIndex(ctx context.Context) ([]byte, error) {
+	buf, err := json.Marshal(o.idx)
+	if err != nil {
+		return nil, err
+	}
+	debug.Log("JSON from %p %p: %s", o, o.idx, string(buf))
+	return o.age.Encrypt(ctx, buf, []string{})
+}
+
+func (o *OnDisk) saveIndexToDisk(ctx context.Context) error {
+	buf, err := o.saveIndex(ctx)
 	if err != nil {
 		return err
 	}
-	os.Rename(filepath.Join(o.dir, idxFile), filepath.Join(o.dir, idxBakFile))
-	buf, err = o.age.Encrypt(context.TODO(), buf, []string{})
-	if err != nil {
-		return err
-	}
-	return ioutil.WriteFile(filepath.Join(o.dir, idxFile), buf, 0600)
+	fn := filepath.Join(o.dir, idxFile)
+	os.Rename(fn, filepath.Join(o.dir, idxBakFile))
+	debug.Log("saving index to %s (%d bytes)", fn, len(buf))
+	return ioutil.WriteFile(fn, buf, 0600)
 }
 
 // Get returns an entry
@@ -122,14 +183,19 @@ func (o *OnDisk) Set(ctx context.Context, name string, value []byte) error {
 	if cm := ctxutil.GetCommitMessage(ctx); cm != "" {
 		msg = cm
 	}
-	e.Revisions = append(e.Revisions, &gpb.Revision{
-		Created:  timestamppb.Now(),
+	e.Revisions = append(e.Revisions, &gjs.Revision{
+		Created:  gjs.Now(),
 		Message:  msg,
 		Filename: fn,
 	})
 	debug.Log("Added Revision for %s: %+v", name, e)
 	o.idx.Entries[name] = e
-	return o.saveIndex()
+	debug.Log("Local: %p %+v", o.idx, o.idx)
+	if err := o.saveIndexToDisk(ctx); err != nil {
+		return err
+	}
+	debug.Log("Local: %p %p %+v", o, o.idx, o.idx)
+	return nil
 }
 
 // Exists checks if an entry exists
@@ -143,7 +209,7 @@ func (o *OnDisk) Exists(ctx context.Context, name string) bool {
 	return found
 }
 
-func (o *OnDisk) getEntry(name string) (*gpb.Entry, error) {
+func (o *OnDisk) getEntry(name string) (*gjs.Entry, error) {
 	em := o.idx.GetEntries()
 	if em == nil {
 		return nil, fmt.Errorf("%s not found (empty index)", name)
@@ -155,14 +221,14 @@ func (o *OnDisk) getEntry(name string) (*gpb.Entry, error) {
 	return e, nil
 }
 
-func (o *OnDisk) getOrCreateEntry(name string) *gpb.Entry {
+func (o *OnDisk) getOrCreateEntry(name string) *gjs.Entry {
 	if e, found := o.idx.Entries[name]; found && e != nil {
 		return e
 	}
 	debug.Log("Created new Entry for %s", name)
-	return &gpb.Entry{
+	return &gjs.Entry{
 		Name:      name,
-		Revisions: make([]*gpb.Revision, 0, 1),
+		Revisions: make([]*gjs.Revision, 0, 1),
 	}
 }
 
@@ -178,7 +244,7 @@ func (o *OnDisk) Delete(ctx context.Context, name string) error {
 	o.idx.Entries[name] = e
 
 	debug.Log("Added tombstone for %s", name)
-	return o.saveIndex()
+	return o.saveIndexToDisk(ctx)
 }
 
 // List lists all entries
@@ -192,6 +258,8 @@ func (o *OnDisk) List(ctx context.Context, prefix string) ([]string, error) {
 			res = append(res, k)
 		}
 	}
+	sort.Strings(res)
+	debug.Log("Entries: %+v", res)
 	return res, nil
 }
 
@@ -233,16 +301,16 @@ func (o *OnDisk) Available(ctx context.Context) error {
 
 // Compact will prune all deleted entries and truncate every other entry
 // to the last 10 revisions.
-func (o *OnDisk) Compact(_ context.Context) error {
+func (o *OnDisk) Compact(ctx context.Context) error {
 	for k, v := range o.idx.Entries {
 		if v.IsDeleted() && time.Since(v.Latest().Time()) > delTTL {
 			delete(o.idx.Entries, k)
 			continue
 		}
-		sort.Sort(gpb.ByRevision(o.idx.Entries[k].Revisions))
+		sort.Sort(gjs.ByRevision(o.idx.Entries[k].Revisions))
 		if len(o.idx.Entries[k].Revisions) > maxRev {
 			o.idx.Entries[k].Revisions = o.idx.Entries[k].Revisions[0:maxRev]
 		}
 	}
-	return o.saveIndex()
+	return o.saveIndexToDisk(ctx)
 }

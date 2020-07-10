@@ -55,4 +55,6 @@ type Store interface {
 	// NOTE: We will always auto-sync when mutating the store. Use this to
 	// manually pull in changes.
 	Sync(ctx context.Context) error
+	// Clean up any resources. MUST be called before the process exists.
+	Close(ctx context.Context)
 }

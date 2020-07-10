@@ -8,6 +8,7 @@ import (
 	_ "github.com/gopasspw/gopass/internal/backend/rcs"     // load rcs backends
 	_ "github.com/gopasspw/gopass/internal/backend/storage" // load storage backends
 	"github.com/gopasspw/gopass/internal/config"
+	"github.com/gopasspw/gopass/internal/queue"
 	"github.com/gopasspw/gopass/internal/store/root"
 	"github.com/gopasspw/gopass/pkg/gopass"
 )
@@ -79,4 +80,9 @@ func (g *Gopass) Revisions(ctx context.Context, name string) ([]string, error) {
 
 func (g *Gopass) String() string {
 	return "gopass"
+}
+
+// Close shuts down all background processes
+func (g *Gopass) Close(ctx context.Context) {
+	queue.Close(ctx)
 }

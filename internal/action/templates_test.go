@@ -50,12 +50,11 @@ func TestTemplates(t *testing.T) {
 		defer buf.Reset()
 		assert.NoError(t, act.Store.SetTemplate(ctx, "foo", []byte("foobar")))
 		assert.NoError(t, act.TemplatesPrint(gptest.CliCtx(ctx, t, "foo")))
-		want := `Pushed changes to remote
-gopass
+		want := `gopass
 └── foo
 
 `
-		assert.Equal(t, want, buf.String())
+		assert.Contains(t, buf.String(), want)
 	})
 
 	t.Run("complete templates", func(t *testing.T) {

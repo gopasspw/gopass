@@ -1,6 +1,7 @@
 gopass
 gopass-*-amd64
 gopass-full
+dev.sh
 !pkg/gopass/
 coverage.out
 coverage-all.*

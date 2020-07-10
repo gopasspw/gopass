@@ -123,6 +123,11 @@ func (m *InMem) String() string {
 	return "inmem()"
 }
 
+// Path returns inmem
+func (m *InMem) Path() string {
+	return "inmem"
+}
+
 // Available will check if this backend is useable
 func (m *InMem) Available(ctx context.Context) error {
 	if m.data == nil {

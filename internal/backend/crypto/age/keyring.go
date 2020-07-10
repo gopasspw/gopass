@@ -82,8 +82,16 @@ func (a *Age) loadKeyring() (Keyring, error) {
 		debug.Log("can't parse keyring at %s: %s", a.keyring, err)
 		return kr, err
 	}
+	// remove invalid IDs
+	valid := make(Keyring, 0, len(kr))
+	for _, k := range kr {
+		if k.Identity == "" {
+			continue
+		}
+		valid = append(valid, k)
+	}
 	debug.Log("loaded keyring from %s", a.keyring)
-	return kr, nil
+	return valid, nil
 }
 
 func (a *Age) saveKeyring(k Keyring) error {

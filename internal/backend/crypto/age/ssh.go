@@ -9,7 +9,6 @@ import (
 
 	"filippo.io/age"
 	"filippo.io/age/agessh"
-	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"golang.org/x/crypto/ssh"
 )
@@ -32,10 +31,10 @@ func (a *Age) getSSHIdentities(ctx context.Context) (map[string]age.Identity, er
 		}
 		recp, id, err := a.parseSSHIdentity(ctx, fn)
 		if err != nil {
-			debug.Log("Failed to parse SSH identity %s: %s", fn, err)
+			//debug.Log("Failed to parse SSH identity %s: %s", fn, err)
 			continue
 		}
-		debug.Log("parsed SSH identity %s from %s", recp, fn)
+		//debug.Log("parsed SSH identity %s from %s", recp, fn)
 		ids[recp] = id
 	}
 	return ids, nil

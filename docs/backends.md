@@ -27,13 +27,21 @@ This is a volatile in-memory backend for tests.
 ### On Disk (ondisk)
 
 This is an experimental on disk K/V backend. It stores the encrypted data in the
-filesystem in a content adressable manner. Currently the metadata is NOT encrypted
-but that is planned to be added soon.
+filesystem in a content adressable manner. It is fully encrypted, including
+metadata. Content can be encrypted using any of the supported encryption
+backend but it's only being tested with age. Metadata is always encrypted with
+age.
 
 This might become the default storage and RCS backend in gopass 2.x.
 
-**WARNING**: The metadata is currently not encrypted and the disk format is
-still experimental. **DO NOT USE** unless you want to help with the implementation.
+**WARNING**: The disk format is still experimental and will change. **DO NOT USE** unless you want to help with the implementation.
+
+This backend can be fully decrypted and parsed without gopass. The index is
+age encrypted serialized JSON. It maps the keys (secret names) to content
+addressable blobs on the filesystem. Those are usually encrypted with age.
+The age keyring itself is also age encrypted serialized JSON.
+
+TODO: Add commands to decrypt an ondisk/age store without gopass.
 
 ## RCS Backends (rcs)
 
@@ -86,3 +94,12 @@ different from what GPG is using.
 
 Please see the backend [Readme](https://github.com/gopasspw/gopass/blob/master/internal/backend/crypto/xc/README.md) for more details. Proper documentation for this
 backend still needs to written and will be added at a later point.
+
+### Age crypto backend (age)
+
+This backend is based the [age](https://github.com/FiloSottile/age). It adds an
+encrypted keyring on top (using age in scrypt password mode). It also has
+(largely untested) support for specifying recipients as github users. This will
+use their ssh public keys for age encryption.
+
+This backend might very well become the new default backend.

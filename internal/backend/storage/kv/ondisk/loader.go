@@ -25,7 +25,7 @@ type loader struct{}
 // New creates a new ondisk loader
 func (l loader) New(ctx context.Context, path string) (backend.Storage, error) {
 	be, err := New(path)
-	debug.Log("Using Storage Backend: %s", path)
+	debug.Log("Using Storage Backend %p: %s", be, path)
 	return be, err
 }
 
@@ -40,27 +40,26 @@ func (l loader) Open(ctx context.Context, path string) (backend.RCS, error) {
 // WARNING: DOES NOT SUPPORT CLONE (yet)
 func (l loader) Clone(ctx context.Context, repo, path string) (backend.RCS, error) {
 	be, err := New(path)
-	debug.Log("Using RCS Backend: %s", be.String())
+	debug.Log("Using RCS Backend %p: %s", be, be.String())
 	return be, err
 }
 
-// Init creates a new ondisk repo
+// InitRCS creates a new ondisk repo
 func (l loader) InitRCS(ctx context.Context, path string) (backend.RCS, error) {
+	return l.init(ctx, path)
+}
+
+func (l loader) init(ctx context.Context, path string) (*OnDisk, error) {
 	if err := os.MkdirAll(path, 0700); err != nil {
 		return nil, err
 	}
 	be, err := New(path)
-	debug.Log("Using RCS Backend: %s", be.String())
+	debug.Log("Using RCS Backend %p: %s", be, be.String())
 	return be, err
 }
 
 func (l loader) Init(ctx context.Context, path string) (backend.Storage, error) {
-	if err := os.MkdirAll(path, 0700); err != nil {
-		return nil, err
-	}
-	be, err := New(path)
-	debug.Log("Using RCS Backend: %s", be.String())
-	return be, err
+	return l.init(ctx, path)
 }
 
 func (l loader) Handles(path string) error {

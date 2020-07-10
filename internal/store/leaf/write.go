@@ -66,10 +66,15 @@ func (s *Store) Set(ctx context.Context, name string, sec gopass.Byter) error {
 		return nil
 	}
 
+	//queue.Add(func() error {
+	//	return s.gitCommitAndPush(ctx, name)
+	//})
+	//return nil
 	return s.gitCommitAndPush(ctx, name)
 }
 
 func (s *Store) gitCommitAndPush(ctx context.Context, name string) error {
+	debug.Log("syncing with remote ...")
 	if err := s.rcs.Commit(ctx, fmt.Sprintf("Save secret to %s: %s", name, ctxutil.GetCommitMessage(ctx))); err != nil {
 		switch errors.Cause(err) {
 		case store.ErrGitNotInit:
@@ -96,6 +101,7 @@ func (s *Store) gitCommitAndPush(ctx context.Context, name string) error {
 		}
 		return errors.Wrapf(err, "failed to push to git remote")
 	}
-	out.Green(ctx, "Pushed changes to remote")
+	debug.Log("synced with remote")
+	//out.Green(ctx, "Pushed changes to remote")
 	return nil
 }
