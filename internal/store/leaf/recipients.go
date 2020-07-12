@@ -1,14 +1,14 @@
 package leaf
 
 import (
-	"bufio"
-	"bytes"
 	"context"
 	"fmt"
-	"sort"
 	"strings"
 
+	"github.com/gopasspw/gopass/internal/backend/crypto/age"
+	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/internal/recipients"
 	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 
@@ -143,7 +143,7 @@ func (s *Store) GetRecipients(ctx context.Context, name string) ([]string, error
 		return nil, errors.Wrapf(err, "failed to get recipients for %s", name)
 	}
 
-	rawRecps := unmarshalRecipients(buf)
+	rawRecps := recipients.Unmarshal(buf)
 	finalRecps := make([]string, 0, len(rawRecps))
 	for _, r := range rawRecps {
 		fp := s.crypto.Fingerprint(ctx, r)
@@ -159,6 +159,11 @@ func (s *Store) GetRecipients(ctx context.Context, name string) ([]string, error
 // ExportMissingPublicKeys will export any possibly missing public keys to the
 // stores .public-keys directory
 func (s *Store) ExportMissingPublicKeys(ctx context.Context, rs []string) (bool, error) {
+	// do not export any keys for age, where public key == key id
+	if _, ok := s.crypto.(*age.Age); ok {
+		debug.Log("not exporting public keys for age")
+		return false, nil
+	}
 	ok := true
 	exported := false
 	for _, r := range rs {
@@ -203,7 +208,7 @@ func (s *Store) saveRecipients(ctx context.Context, rs []string, msg string) err
 	}
 
 	idf := s.idFile(ctx, "")
-	buf := marshalRecipients(rs)
+	buf := recipients.Marshal(rs)
 	if err := s.storage.Set(ctx, idf, buf); err != nil {
 		return errors.Wrapf(err, "failed to write recipients file")
 	}
@@ -242,54 +247,4 @@ func (s *Store) saveRecipients(ctx context.Context, rs []string, msg string) err
 	}
 
 	return nil
-}
-
-// marshal all in memory Recipients line by line to []byte.
-func marshalRecipients(r []string) []byte {
-	if len(r) == 0 {
-		return []byte("\n")
-	}
-
-	// deduplicate
-	m := make(map[string]struct{}, len(r))
-	for _, k := range r {
-		m[k] = struct{}{}
-	}
-	// sort
-	keys := make([]string, 0, len(m))
-	for k := range m {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
-
-	out := bytes.Buffer{}
-	for _, k := range keys {
-		_, _ = out.WriteString(k)
-		_, _ = out.WriteString("\n")
-	}
-
-	return out.Bytes()
-}
-
-// unmarshal Recipients line by line from a io.Reader.
-func unmarshalRecipients(buf []byte) []string {
-	m := make(map[string]struct{}, 5)
-	scanner := bufio.NewScanner(bytes.NewReader(buf))
-
-	for scanner.Scan() {
-		line := strings.TrimSpace(scanner.Text())
-		if line != "" {
-			// deduplicate
-			m[line] = struct{}{}
-		}
-	}
-
-	lst := make([]string, 0, len(m))
-	for k := range m {
-		lst = append(lst, k)
-	}
-	// sort
-	sort.Strings(lst)
-
-	return lst
 }

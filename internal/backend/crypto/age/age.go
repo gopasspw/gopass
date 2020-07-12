@@ -27,6 +27,10 @@ const (
 	IDFile = ".age-ids"
 )
 
+var (
+	krCache map[string]age.Identity
+)
+
 // Age is an age backend
 type Age struct {
 	binary  string
@@ -256,6 +260,9 @@ func (a *Age) getAllIdentities(ctx context.Context) (map[string]age.Identity, er
 }
 
 func (a *Age) getNativeIdentities(ctx context.Context) (map[string]age.Identity, error) {
+	if krCache != nil {
+		return krCache, nil
+	}
 	kr, err := a.loadKeyring()
 	if len(kr) < 1 || err != nil {
 		id, err := a.genKey(ctx)
@@ -275,5 +282,6 @@ func (a *Age) getNativeIdentities(ctx context.Context) (map[string]age.Identity,
 		}
 		ids[id.Recipient().String()] = id
 	}
+	krCache = ids
 	return ids, nil
 }

@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/gopasspw/gopass/internal/backend"
+	"github.com/gopasspw/gopass/internal/backend/crypto/age"
 	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -19,8 +20,13 @@ func (s *Store) Crypto() backend.Crypto {
 }
 
 // ImportMissingPublicKeys will try to import any missing public keys from the
-// .gpg-keys folder in the password store
+// .public-keys folder in the password store
 func (s *Store) ImportMissingPublicKeys(ctx context.Context) error {
+	// do not import any keys for age, where public key == key id
+	if _, ok := s.crypto.(*age.Age); ok {
+		debug.Log("not importing public keys for age")
+		return nil
+	}
 	rs, err := s.GetRecipients(ctx, "")
 	if err != nil {
 		return errors.Wrapf(err, "failed to get recipients")

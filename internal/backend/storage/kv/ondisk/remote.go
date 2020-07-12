@@ -11,8 +11,10 @@ import (
 	"time"
 
 	"github.com/cenkalti/backoff"
+	"github.com/gopasspw/gopass/internal/backend/crypto/age"
 	"github.com/gopasspw/gopass/internal/backend/storage/kv/ondisk/gjs"
 	"github.com/gopasspw/gopass/internal/debug"
+	"github.com/gopasspw/gopass/internal/recipients"
 	"github.com/gopasspw/gopass/pkg/fsutil"
 	"github.com/minio/minio-go/v6"
 )
@@ -100,14 +102,6 @@ func (o *OnDisk) uploadFile(ctx context.Context, name string, force bool) error 
 		debug.Log("file %s doesn't exist (this should not happen, please report a bug)", fp)
 		return nil
 	}
-	if !force {
-		_, err := o.mio.StatObjectWithContext(ctx, o.mbu, o.remoteFn(name), minio.StatObjectOptions{})
-		if err == nil {
-			// TODO also compare sizes
-			debug.Log("file %s already exists on the remote", fp)
-			return nil
-		}
-	}
 	fh, err := os.Open(fp)
 	if err != nil {
 		return err
@@ -116,6 +110,13 @@ func (o *OnDisk) uploadFile(ctx context.Context, name string, force bool) error 
 	fi, err := fh.Stat()
 	if err != nil {
 		return err
+	}
+	if !force {
+		stat, err := o.mio.StatObjectWithContext(ctx, o.mbu, o.remoteFn(name), minio.StatObjectOptions{})
+		if err == nil && stat.Size == fi.Size() {
+			debug.Log("file %s already exists on the remote with the same size", fp, stat.Size)
+			return nil
+		}
 	}
 	n, err := o.mio.PutObjectWithContext(ctx, o.mbu, o.remoteFn(name), fh, fi.Size(), minio.PutObjectOptions{ContentType: "application/octet-stream"})
 	if err != nil {
@@ -127,7 +128,7 @@ func (o *OnDisk) uploadFile(ctx context.Context, name string, force bool) error 
 
 // uploadBlob uploads a single blob
 func (o *OnDisk) uploadBlob(ctx context.Context, name string, buf []byte) error {
-	n, err := o.mio.PutObjectWithContext(ctx, o.mbu, o.remoteFn(name), bytes.NewReader(buf), int64(len(buf)), minio.PutObjectOptions{ContentType: "text/plain"})
+	n, err := o.mio.PutObjectWithContext(ctx, o.mbu, o.remoteFn(name), bytes.NewReader(buf), int64(len(buf)), minio.PutObjectOptions{ContentType: "application/octet-stream"})
 	if err != nil {
 		return err
 	}
@@ -216,7 +217,7 @@ func (o *OnDisk) trySyncIndex(ctx context.Context) error {
 	// remove lock file when we're done
 	defer o.removeLock()
 	// download remote index
-	buf, err := o.downloadBlob(ctx, idxFile)
+	buf, err := o.downloadBlob(ctx, idxFileRemote)
 	// not found is not an error, if the remote has no index
 	// we'll just upload ours
 	if err != nil && !isNotFound(err) {
@@ -236,13 +237,24 @@ func (o *OnDisk) trySyncIndex(ctx context.Context) error {
 	debug.Log("merging local index (%d blobs) with remote index (%d blobs)", len(o.idx.ListBlobs()), len(idxRemote.ListBlobs()))
 	o.idx.Merge(idxRemote)
 	debug.Log("merged indices after %s (%d blobs)", time.Since(t0), len(o.idx.ListBlobs()))
-	// upload local index
-	err = o.saveIndexToDisk(ctx)
-	if err != nil {
+	// updated local index
+	if err := o.saveIndexToDisk(ctx); err != nil {
 		return err
 	}
 	debug.Log("saved index after %s", time.Since(t0))
-	if err := o.uploadFile(ctx, idxFile, true); err != nil {
+	// encrypt remote index for all current recipients of the store
+	aIds, err := o.Get(ctx, age.IDFile)
+	if err != nil {
+		return err
+	}
+	rs := recipients.Unmarshal(aIds)
+	buf, err = o.saveIndex(ctx, rs...)
+	if err != nil {
+		return err
+	}
+	debug.Log("remote index encrypted for %+v after %s", rs, time.Since(t0))
+	// update remote index
+	if err := o.uploadBlob(ctx, idxFileRemote, buf); err != nil {
 		return err
 	}
 	debug.Log("uploaded index after %s", time.Since(t0))
