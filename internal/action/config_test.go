@@ -127,6 +127,7 @@ nocolor
 nopager
 notifications
 path
+remote
 safecontent
 `
 		assert.Equal(t, want, buf.String())

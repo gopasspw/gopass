@@ -41,6 +41,9 @@ func (l loader) Open(ctx context.Context, path string) (backend.RCS, error) {
 func (l loader) Clone(ctx context.Context, repo, path string) (backend.RCS, error) {
 	be, err := New(path)
 	debug.Log("Using RCS Backend %p: %s", be, be.String())
+	if err := be.SetRemote(ctx, repo); err != nil {
+		return nil, err
+	}
 	return be, err
 }
 
