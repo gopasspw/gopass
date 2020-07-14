@@ -13,7 +13,14 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
+var (
+	sshCache map[string]age.Identity
+)
+
 func (a *Age) getSSHIdentities(ctx context.Context) (map[string]age.Identity, error) {
+	if sshCache != nil {
+		return sshCache, nil
+	}
 	uhd, err := os.UserHomeDir()
 	if err != nil {
 		return nil, err
@@ -37,6 +44,7 @@ func (a *Age) getSSHIdentities(ctx context.Context) (map[string]age.Identity, er
 		//debug.Log("parsed SSH identity %s from %s", recp, fn)
 		ids[recp] = id
 	}
+	sshCache = ids
 	return ids, nil
 }
 

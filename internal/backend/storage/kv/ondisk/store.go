@@ -24,11 +24,12 @@ import (
 )
 
 var (
-	idxFile     = "index.gp"
-	idxBakFile  = "index.gp.back"
-	idxLockFile = "index.lock"
-	maxRev      = 256
-	delTTL      = time.Hour * 24 * 365
+	idxFile       = "index.gp1"
+	idxBakFile    = "index.gp1.back"
+	idxLockFile   = "index.gp1.lock"
+	idxFileRemote = "index.gp1.remote"
+	maxRev        = 256
+	delTTL        = time.Hour * 24 * 365
 )
 
 // OnDisk is an on disk key-value store
@@ -70,6 +71,10 @@ func (o *OnDisk) Path() string {
 }
 
 func (o *OnDisk) initRemote() error {
+	// TODO reading this config from env is good for prototyping
+	// but this won't work with multiple stores using different
+	// remotes. The remote config either needs to go into the config
+	// of into the leaf store itself (but not get synced).
 	ac := os.Getenv("GOPASS_ACCESS_KEY_ID")
 	if ac == "" {
 		debug.Log("GOPASS_ACCESS_KEY_ID not set")
@@ -127,13 +132,13 @@ func (o *OnDisk) loadIndex(ctx context.Context, buf []byte) (*gjs.Store, error) 
 	return idx, err
 }
 
-func (o *OnDisk) saveIndex(ctx context.Context) ([]byte, error) {
+func (o *OnDisk) saveIndex(ctx context.Context, recipients ...string) ([]byte, error) {
 	buf, err := json.Marshal(o.idx)
 	if err != nil {
 		return nil, err
 	}
 	debug.Log("JSON from %p %p: %s", o, o.idx, string(buf))
-	return o.age.Encrypt(ctx, buf, []string{})
+	return o.age.Encrypt(ctx, buf, recipients)
 }
 
 func (o *OnDisk) saveIndexToDisk(ctx context.Context) error {
