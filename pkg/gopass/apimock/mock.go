@@ -84,4 +84,6 @@ func (a *MockAPI) Sync(ctx context.Context) error {
 }
 
 // Close does nothing
-func (a *MockAPI) Close(ctx context.Context) {}
+func (a *MockAPI) Close(ctx context.Context) error {
+	return nil
+}

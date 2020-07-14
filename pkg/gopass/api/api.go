@@ -83,6 +83,6 @@ func (g *Gopass) String() string {
 }
 
 // Close shuts down all background processes
-func (g *Gopass) Close(ctx context.Context) {
-	queue.Close(ctx)
+func (g *Gopass) Close(ctx context.Context) error {
+	return queue.GetQueue(ctx).Wait(ctx)
 }

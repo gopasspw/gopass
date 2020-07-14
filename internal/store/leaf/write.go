@@ -7,6 +7,7 @@ import (
 
 	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/internal/queue"
 	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/gopass"
@@ -66,11 +67,12 @@ func (s *Store) Set(ctx context.Context, name string, sec gopass.Byter) error {
 		return nil
 	}
 
-	//queue.Add(func() error {
-	//	return s.gitCommitAndPush(ctx, name)
-	//})
-	//return nil
-	return s.gitCommitAndPush(ctx, name)
+	// try to enqueue this task, if the queue is not available
+	// it will return the task and we will execut it inline
+	t := queue.GetQueue(ctx).Add(func(ctx context.Context) error {
+		return s.gitCommitAndPush(ctx, name)
+	})
+	return t(ctx)
 }
 
 func (s *Store) gitCommitAndPush(ctx context.Context, name string) error {

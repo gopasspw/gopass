@@ -77,11 +77,13 @@ func main() {
 	sv := getVersion()
 	cli.VersionPrinter = makeVersionPrinter(os.Stdout, sv)
 
+	q := queue.New(ctx)
+	ctx = queue.WithQueue(ctx, q)
 	ctx, app := setupApp(ctx, sv)
 	if err := app.RunContext(ctx, os.Args); err != nil {
 		log.Fatal(err)
 	}
-	queue.Close(ctx)
+	q.Wait(ctx)
 }
 
 func setupApp(ctx context.Context, sv semver.Version) (context.Context, *cli.App) {
