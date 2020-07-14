@@ -136,8 +136,11 @@ func (s *Action) GitPush(c *cli.Context) error {
 	origin := c.Args().Get(0)
 	branch := c.Args().Get(1)
 
-	if origin == "" || branch == "" {
-		return ExitError(ExitUsage, nil, "Usage: %s git push <ORIGIN> <BRANCH>", s.Name)
+	if origin == "" {
+		origin = "origin"
+	}
+	if branch == "" {
+		branch = "master"
 	}
 	return s.Store.RCSPush(ctx, store, origin, branch)
 }
