@@ -28,6 +28,7 @@ var (
 	idxBakFile    = "index.gp1.back"
 	idxLockFile   = "index.gp1.lock"
 	idxFileRemote = "index.gp1.remote"
+	cfgRemote     = "remote.gp1"
 	maxRev        = 256
 	delTTL        = time.Hour * 24 * 365
 )
@@ -71,52 +72,48 @@ func (o *OnDisk) Path() string {
 }
 
 func (o *OnDisk) initRemote() error {
-	// TODO reading this config from env is good for prototyping
-	// but this won't work with multiple stores using different
-	// remotes. The remote config either needs to go into the config
-	// of into the leaf store itself (but not get synced).
-	ac := os.Getenv("GOPASS_ACCESS_KEY_ID")
-	if ac == "" {
-		debug.Log("GOPASS_ACCESS_KEY_ID not set")
+	cfg, err := o.loadRemoteConfig(context.TODO())
+	if err != nil {
+		return err
+	}
+	if cfg.KeyID == "" {
+		debug.Log("KeyID not set")
 		return nil
 	}
-	as := os.Getenv("GOPASS_SECRET_ACCESS_KEY")
-	if as == "" {
-		debug.Log("GOPASS_SECRET_ACCESS_KEY not set")
+	if cfg.Secret == "" {
+		debug.Log("Secret not set")
 		return nil
 	}
-	host := os.Getenv("GOPASS_REMOTE_HOST")
-	if host == "" {
-		host = "storage.googleapis.com"
+	if cfg.Host == "" {
+		cfg.Host = "storage.googleapis.com"
 	}
-	bucket := os.Getenv("GOPASS_REMOTE_BUCKET")
-	if bucket == "" {
-		debug.Log("GOPASS_REMOTE_BUCKET not set")
+	if cfg.Bucket == "" {
+		debug.Log("Bucket not set")
 		return nil
 	}
-	o.mbu = bucket
+	o.mbu = cfg.Bucket
+	o.mpf = cfg.Prefix
 
-	ssl := true
-	if strings.HasPrefix(host, "localhost") || strings.HasPrefix(host, "127.0.0.1") {
-		ssl = false
-	}
-	mioClient, err := minio.New(host, ac, as, ssl)
+	mioClient, err := minio.New(cfg.Host, cfg.KeyID, cfg.Secret, cfg.SSL)
 	if err != nil {
 		return err
 	}
 	o.mio = mioClient
-	debug.Log("Remote initialized with host: %s - ssl: %t - bucket: %s - key id: %s - key: %s", host, ssl, o.mbu, ac, as)
+	debug.Log("Remote initialized with host: %s - ssl: %t - bucket: %s - key id: %s - key: %s - prefix: %s", cfg.Host, cfg.SSL, o.mbu, cfg.KeyID, cfg.Secret, o.mpf)
 	return nil
 }
 
 func (o *OnDisk) loadOrCreate(path string) (*gjs.Store, error) {
 	path = filepath.Join(path, idxFile)
 	buf, err := ioutil.ReadFile(path)
-	if os.IsNotExist(err) {
-		return &gjs.Store{
-			Name:    filepath.Base(path),
-			Entries: make(map[string]*gjs.Entry),
-		}, nil
+	if err != nil {
+		if os.IsNotExist(err) {
+			return &gjs.Store{
+				Name:    filepath.Base(path),
+				Entries: make(map[string]*gjs.Entry),
+			}, nil
+		}
+		return nil, err
 	}
 	return o.loadIndex(context.TODO(), buf)
 }

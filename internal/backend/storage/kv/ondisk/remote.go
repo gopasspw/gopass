@@ -3,11 +3,15 @@ package ondisk
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
+	"net/url"
 	"os"
 	"path"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/cenkalti/backoff"
@@ -18,6 +22,100 @@ import (
 	"github.com/gopasspw/gopass/pkg/fsutil"
 	"github.com/minio/minio-go/v6"
 )
+
+// RemoteConfig is a remote config
+type RemoteConfig struct {
+	SSL    bool   `json:"ssl"`
+	KeyID  string `json:"key"`
+	Secret string `json:"secret"`
+	Host   string `json:"host"`
+	Bucket string `json:"bucket"`
+	Prefix string `json:"prefix"`
+}
+
+// String implements fmt.Stringer
+func (r *RemoteConfig) String() string {
+	if r == nil {
+		return "<empty>"
+	}
+	return fmt.Sprintf("Host: %s, SSL: %t, Key: %s, Bucket: %s, Prefix: %s, Secret: <omitted>", r.Host, r.SSL, r.KeyID, r.Bucket, r.Prefix)
+}
+
+// SetRemote updates the remote config for this store
+func (o *OnDisk) SetRemote(ctx context.Context, urlStr string) error {
+	if urlStr == "" {
+		debug.Log("removing remote config")
+		return o.saveRemoteConfig(ctx, &RemoteConfig{})
+	}
+	u, err := url.Parse(urlStr)
+	if err != nil {
+		return err
+	}
+	keyid := ""
+	secret := ""
+	if u.User != nil {
+		keyid = u.User.Username()
+		secret, _ = u.User.Password()
+	}
+	bucket := ""
+	prefix := ""
+	p := strings.Split(u.Path, "/")
+	if len(p) < 1 {
+		return fmt.Errorf("need bucket")
+	}
+	bucket = p[0]
+	if len(p) > 1 {
+		prefix = p[1]
+	}
+	cfg := &RemoteConfig{
+		SSL:    u.Scheme == "https",
+		KeyID:  keyid,
+		Secret: secret,
+		Host:   u.Host,
+		Bucket: bucket,
+		Prefix: prefix,
+	}
+	return o.saveRemoteConfig(ctx, cfg)
+}
+
+// GetRemote reads the remote config from disk
+func (o *OnDisk) GetRemote(ctx context.Context) (*RemoteConfig, error) {
+	return o.loadRemoteConfig(ctx)
+}
+
+func (o *OnDisk) loadRemoteConfig(ctx context.Context) (*RemoteConfig, error) {
+	path := filepath.Join(o.dir, cfgRemote)
+	buf, err := ioutil.ReadFile(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			debug.Log("no remote config found")
+			return &RemoteConfig{}, nil
+		}
+		return nil, err
+	}
+	plain, err := o.age.Decrypt(ctx, buf)
+	if err != nil {
+		return nil, err
+	}
+	debug.Log("JSON: %s", string(plain))
+	cfg := &RemoteConfig{}
+	err = json.Unmarshal(plain, cfg)
+	return cfg, err
+}
+
+func (o *OnDisk) saveRemoteConfig(ctx context.Context, cfg *RemoteConfig) error {
+	plain, err := json.Marshal(cfg)
+	if err != nil {
+		return err
+	}
+	buf, err := o.age.Encrypt(ctx, plain, []string{}) // only encrypt for ourself
+	if err != nil {
+		return err
+	}
+	fn := filepath.Join(o.dir, cfgRemote)
+	debug.Log("saving remote config to %s (%d bytes)", fn, len(buf))
+	return ioutil.WriteFile(fn, buf, 0600)
+}
 
 // downloadFiles fetchs all blobs from the remote
 func (o *OnDisk) downloadFiles(ctx context.Context) error {
