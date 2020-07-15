@@ -19,7 +19,7 @@ func (o *OnDisk) Commit(ctx context.Context, msg string) error {
 	return nil
 }
 
-// Push is not implemented, yet
+// Push fetches the index from the remote, merges it and uploads the result
 func (o *OnDisk) Push(ctx context.Context, remote, location string) error {
 	o.mux.Lock()
 	defer o.mux.Unlock()
@@ -32,7 +32,7 @@ func (o *OnDisk) Push(ctx context.Context, remote, location string) error {
 	return o.downloadFiles(ctx)
 }
 
-// Pull is not implemented, yet
+// Pull fetches the index from the remote but does not upload it.
 func (o *OnDisk) Pull(ctx context.Context, remote, location string) error {
 	o.mux.Lock()
 	defer o.mux.Unlock()
@@ -47,14 +47,14 @@ func (o *OnDisk) InitConfig(ctx context.Context, name, email string) error {
 	return nil
 }
 
-// AddRemote is not implemented, yet
-func (o *OnDisk) AddRemote(ctx context.Context, remote, location string) error {
-	return fmt.Errorf("not yet implemented")
+// AddRemote sets the remote
+func (o *OnDisk) AddRemote(ctx context.Context, _, location string) error {
+	return o.SetRemote(ctx, location)
 }
 
-// RemoveRemote is not implemented, yet
-func (o *OnDisk) RemoveRemote(ctx context.Context, remote string) error {
-	return fmt.Errorf("not yet implemented")
+// RemoveRemote removes the remote
+func (o *OnDisk) RemoveRemote(ctx context.Context, _ string) error {
+	return o.SetRemote(ctx, "")
 }
 
 // Revisions returns a list of revisions for this entry
