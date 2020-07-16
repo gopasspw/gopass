@@ -123,7 +123,7 @@ func (o *OnDisk) loadIndex(ctx context.Context, buf []byte) (*gjs.Store, error) 
 	if err != nil {
 		return nil, err
 	}
-	debug.Log("JSON: %p %s", o, string(buf))
+	debug.Log("JSON: %s", string(buf))
 	idx := &gjs.Store{}
 	err = json.Unmarshal(buf, idx)
 	return idx, err
@@ -134,7 +134,7 @@ func (o *OnDisk) saveIndex(ctx context.Context, recipients ...string) ([]byte, e
 	if err != nil {
 		return nil, err
 	}
-	debug.Log("JSON from %p %p: %s", o, o.idx, string(buf))
+	debug.Log("JSON: %s", string(buf))
 	return o.age.Encrypt(ctx, buf, recipients)
 }
 
@@ -294,11 +294,6 @@ func (o *OnDisk) Version(context.Context) semver.Version {
 // String returns the name and path
 func (o *OnDisk) String() string {
 	return fmt.Sprintf("%s(path: %s)", name, o.dir)
-}
-
-// Available always returns nil
-func (o *OnDisk) Available(ctx context.Context) error {
-	return nil
 }
 
 // Compact will prune all deleted entries and truncate every other entry

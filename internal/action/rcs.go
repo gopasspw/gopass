@@ -16,8 +16,8 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-// GitInit initializes a git repo including basic configuration
-func (s *Action) GitInit(c *cli.Context) error {
+// RCSInit initializes a git repo including basic configuration
+func (s *Action) RCSInit(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	store := c.String("store")
 	un := termio.DetectName(c.Context, c)
@@ -86,8 +86,8 @@ func (s *Action) getUserData(ctx context.Context, store, name, email string) (st
 	return name, email
 }
 
-// GitAddRemote adds a new git remote
-func (s *Action) GitAddRemote(c *cli.Context) error {
+// RCSAddRemote adds a new git remote
+func (s *Action) RCSAddRemote(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	store := c.String("store")
 	remote := c.Args().Get(0)
@@ -100,8 +100,8 @@ func (s *Action) GitAddRemote(c *cli.Context) error {
 	return s.Store.RCSAddRemote(ctx, store, remote, url)
 }
 
-// GitRemoveRemote removes a git remote
-func (s *Action) GitRemoveRemote(c *cli.Context) error {
+// RCSRemoveRemote removes a git remote
+func (s *Action) RCSRemoveRemote(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	store := c.String("store")
 	remote := c.Args().Get(0)
@@ -113,24 +113,18 @@ func (s *Action) GitRemoveRemote(c *cli.Context) error {
 	return s.Store.RCSRemoveRemote(ctx, store, remote)
 }
 
-// GitPull pulls from a git remote
-func (s *Action) GitPull(c *cli.Context) error {
+// RCSPull pulls from a git remote
+func (s *Action) RCSPull(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	store := c.String("store")
 	origin := c.Args().Get(0)
 	branch := c.Args().Get(1)
 
-	if origin == "" {
-		origin = "origin"
-	}
-	if branch == "" {
-		branch = "master"
-	}
 	return s.Store.RCSPull(ctx, store, origin, branch)
 }
 
-// GitPush pushes to a git remote
-func (s *Action) GitPush(c *cli.Context) error {
+// RCSPush pushes to a git remote
+func (s *Action) RCSPush(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	store := c.String("store")
 	origin := c.Args().Get(0)
@@ -142,8 +136,8 @@ func (s *Action) GitPush(c *cli.Context) error {
 	return s.Store.RCSPush(ctx, store, origin, branch)
 }
 
-// GitStatus prints the rcs status
-func (s *Action) GitStatus(c *cli.Context) error {
+// RCSStatus prints the rcs status
+func (s *Action) RCSStatus(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	store := c.String("store")
 

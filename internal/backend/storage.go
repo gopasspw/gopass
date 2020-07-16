@@ -36,7 +36,6 @@ type Storage interface {
 	List(ctx context.Context, prefix string) ([]string, error)
 	IsDir(ctx context.Context, name string) bool
 	Prune(ctx context.Context, prefix string) error
-	Available(ctx context.Context) error
 
 	Name() string
 	Path() string

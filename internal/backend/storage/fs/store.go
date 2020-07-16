@@ -180,11 +180,6 @@ func (s *Store) String() string {
 	return fmt.Sprintf("fs(v0.1.0,path:%s)", s.path)
 }
 
-// Available will check if this backend is useable
-func (s *Store) Available(ctx context.Context) error {
-	return s.Set(ctx, ".test", []byte("test"))
-}
-
 // Path returns the ondisk path
 func (s *Store) Path() string {
 	return s.path

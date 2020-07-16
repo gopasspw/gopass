@@ -384,7 +384,7 @@ func (s *Action) GetCommands() []*cli.Command {
 					Usage:       "Init git repo",
 					Description: "Create and initialize a new git repo in the store",
 					Before:      s.Initialized,
-					Action:      s.GitInit,
+					Action:      s.RCSInit,
 					Flags: []cli.Flag{
 						&cli.StringFlag{
 							Name:  "store",
@@ -421,7 +421,7 @@ func (s *Action) GetCommands() []*cli.Command {
 							Usage:       "Add git remote",
 							Description: "Add a new git remote",
 							Before:      s.Initialized,
-							Action:      s.GitAddRemote,
+							Action:      s.RCSAddRemote,
 							Flags: []cli.Flag{
 								&cli.StringFlag{
 									Name:  "store",
@@ -434,7 +434,7 @@ func (s *Action) GetCommands() []*cli.Command {
 							Usage:       "Remove git remote",
 							Description: "Remove a git remote",
 							Before:      s.Initialized,
-							Action:      s.GitRemoveRemote,
+							Action:      s.RCSRemoveRemote,
 							Flags: []cli.Flag{
 								&cli.StringFlag{
 									Name:  "store",
@@ -449,7 +449,7 @@ func (s *Action) GetCommands() []*cli.Command {
 					Usage:       "Push to remote",
 					Description: "Push to a git remote",
 					Before:      s.Initialized,
-					Action:      s.GitPush,
+					Action:      s.RCSPush,
 					Flags: []cli.Flag{
 						&cli.StringFlag{
 							Name:  "store",
@@ -462,7 +462,7 @@ func (s *Action) GetCommands() []*cli.Command {
 					Usage:       "Pull from remote",
 					Description: "Pull from a git remote",
 					Before:      s.Initialized,
-					Action:      s.GitPull,
+					Action:      s.RCSPull,
 					Flags: []cli.Flag{
 						&cli.StringFlag{
 							Name:  "store",
@@ -475,7 +475,7 @@ func (s *Action) GetCommands() []*cli.Command {
 					Usage:       "RCS status",
 					Description: "Show the RCS status",
 					Before:      s.Initialized,
-					Action:      s.GitStatus,
+					Action:      s.RCSStatus,
 					Flags: []cli.Flag{
 						&cli.StringFlag{
 							Name:  "store",
