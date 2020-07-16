@@ -1,4 +1,4 @@
-// +build darwin freebsd,amd64 linux solaris windows
+// +build darwin freebsd,amd64 linux solaris windows freebsd,arm freebsd,arm64
 
 package clipboard
 
