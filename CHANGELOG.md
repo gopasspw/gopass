@@ -1,3 +1,51 @@
+## 1.9.3-rc.0
+
+WARNING: This release contains a few breaking changes.
+
+This release is building the foundation for an eventual 2.0 release
+which will drop many legacy features and significantly shrink the
+codebase to ensure long term maintainability. The goal is to remove
+the support for multiple backends and any external dependencies,
+including git and gpg. By default the tool should be easy to use,
+secure and modern. We will still support our flagship use cases,
+like working in teams. Also gopass will eventually move to an
+fully encrypted backend where we don't leak information through
+filenames.
+
+Any gopass 1.x release should still be compatible with any
+password store implementation (possibly with some caveats).
+Beyond that we plan to drop any compatibility goals.
+
+* [BREAKING] New secrets format
+* [FEATURE] REPL
+* [FEATURE] Add summon provider
+* [FEATURE] Add remote sync support for the ondisk backend
+* [FEATURE] Add remote config for ondisk storage
+* [FEATURE] Add Password Rules and Domain Alias support
+* [FEATURE] Add experimental backend converter
+* [ENHANCEMENT] Support changing path with gopass config
+* [ENHANCEMENT] Rewrite tree implementation
+* [ENHANCEMENT] Print password before sync
+* [ENHANCEMENT] New progress bar
+* [ENHANCEMENT] New Debug package
+* [ENHANCEMENT] Make audit report passwords not changed
+* [ENHANCEMENT] Ignore binary secrets for audit
+* [ENHANCEMENT] Avoid direct show on gopass search
+* [ENHANCEMENT] Add zxcvbn password strength checker
+* [ENHANCEMENT] Add gopass API (unstable)
+* [ENHANCEMENT] Add arm and arm64 binaries
+* [DEPRECATION] Remove AutoPrint
+* [DEPRECATION] Remove askformore, autosync
+* [DEPRECATION] Mark gopass git as deprecated
+* [CLEANUP] Move internal packages to internal
+* [BUGFIX] Correctly handle exportkeys and auto import for noop
+* [BUGFIX] Remove curses UI
+* [BUGFIX] Properly initialize crypto during onboarding and
+* [BUGFIX] Honor trust level during onboarding.
+* [BUGFIX] Fix optional key passed through find
+* [BUGFIX] Fix fsck progress bar.
+* [BUGFIX] Do not return error on no grep matches
+
 ## 1.9.2 / 2020-05-13
 
 * [BUGFIX] Bring back the custom fish completion.
