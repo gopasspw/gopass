@@ -3,8 +3,11 @@ package leaf
 import (
 	"context"
 	"fmt"
+	"path/filepath"
+	"sort"
 	"strings"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/gopasspw/gopass/internal/backend/crypto/age"
 	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/internal/out"
@@ -27,6 +30,32 @@ func (s *Store) Recipients(ctx context.Context) []string {
 		out.Error(ctx, "failed to read recipient list: %s", err)
 	}
 	return rs
+}
+
+// RecipientsTree returns a mapping of secrets to recipients
+func (s *Store) RecipientsTree(ctx context.Context) map[string][]string {
+	idfs := s.idFiles(ctx)
+	out := make(map[string][]string, len(idfs))
+
+	root := s.Recipients(ctx)
+	for _, idf := range idfs {
+		if strings.HasPrefix(idf, ".") {
+			continue
+		}
+		srs, err := s.getRecipients(ctx, idf)
+		if err != nil {
+			debug.Log("failed to list recipients: %s", err)
+			continue
+		}
+		if cmp.Equal(out[""], srs) {
+			debug.Log("root recipients equal secret recipients from %s", idf)
+			continue
+		}
+		dir := filepath.Dir(idf)
+		out[dir] = srs
+	}
+	out[""] = root
+	return out
 }
 
 // AddRecipient adds a new recipient to the list
@@ -137,10 +166,13 @@ func (s *Store) OurKeyID(ctx context.Context) string {
 // GetRecipients will load all Recipients from the .gpg-id file for the given
 // secret path
 func (s *Store) GetRecipients(ctx context.Context, name string) ([]string, error) {
-	idf := s.idFile(ctx, name)
+	return s.getRecipients(ctx, s.idFile(ctx, name))
+}
+
+func (s *Store) getRecipients(ctx context.Context, idf string) ([]string, error) {
 	buf, err := s.storage.Get(ctx, idf)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get recipients for %s", name)
+		return nil, errors.Wrapf(err, "failed to get recipients from %s", idf)
 	}
 
 	rawRecps := recipients.Unmarshal(buf)
@@ -152,7 +184,7 @@ func (s *Store) GetRecipients(ctx context.Context, name string) ([]string, error
 		}
 		finalRecps = append(finalRecps, fp)
 	}
-
+	sort.Strings(finalRecps)
 	return finalRecps, nil
 }
 
