@@ -21,7 +21,7 @@ func (s *Action) Delete(c *cli.Context) error {
 		return ExitError(ExitUsage, nil, "Usage: %s rm name", s.Name)
 	}
 
-	if !recursive && s.Store.IsDir(ctx, name) {
+	if !recursive && s.Store.IsDir(ctx, name) && !s.Store.Exists(ctx, name) {
 		return ExitError(ExitUsage, nil, "Cannot remove '%s': Is a directory. Use 'gopass rm -r %s' to delete", name, name)
 	}
 
