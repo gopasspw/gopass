@@ -14,6 +14,7 @@ import (
 	"github.com/gopasspw/gopass/internal/store/root"
 	"github.com/gopasspw/gopass/internal/termio"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/fsutil"
 	"github.com/gopasspw/gopass/pkg/pwgen/xkcdgen"
 	"github.com/urfave/cli/v2"
 
@@ -114,6 +115,7 @@ func (s *Action) init(ctx context.Context, alias, path string, keys ...string) e
 			path = s.Store.Path()
 		}
 	}
+	path = fsutil.CleanPath(path)
 	debug.Log("action.init(%s, %s, %+v)", alias, path, keys)
 
 	debug.Log("Checking private keys ...")
