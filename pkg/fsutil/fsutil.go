@@ -1,7 +1,6 @@
 package fsutil
 
 import (
-	"fmt"
 	"io"
 	"math/rand"
 	"os"
@@ -11,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/pkg/errors"
 )
 
@@ -46,7 +46,7 @@ func IsDir(path string) bool {
 			// not found
 			return false
 		}
-		fmt.Printf("failed to check dir %s: %s\n", path, err)
+		debug.Log("failed to check dir %s: %s\n", path, err)
 		return false
 	}
 
@@ -61,7 +61,7 @@ func IsFile(path string) bool {
 			// not found
 			return false
 		}
-		fmt.Printf("failed to check dir %s: %s\n", path, err)
+		debug.Log("failed to check dir %s: %s\n", path, err)
 		return false
 	}
 

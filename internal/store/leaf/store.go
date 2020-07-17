@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/gopasspw/gopass/internal/backend"
@@ -78,7 +79,7 @@ func New(ctx context.Context, alias, path string) (*Store, error) {
 
 // idFile returns the path to the recipient list for this store
 // it walks up from the given filename until it finds a directory containing
-// a gpg id file or it leaves the scope of this.storage.
+// a gpg id file or it leaves the scope of storage.
 func (s *Store) idFile(ctx context.Context, name string) string {
 	if s.crypto == nil {
 		return ""
@@ -100,6 +101,33 @@ func (s *Store) idFile(ctx context.Context, name string) string {
 		fn = filepath.Dir(fn)
 	}
 	return s.crypto.IDFile()
+}
+
+// idFiles returns the path to all id files in this store.
+func (s *Store) idFiles(ctx context.Context) []string {
+	if s.crypto == nil {
+		return nil
+	}
+	files, err := s.Storage().List(ctx, "")
+	if err != nil {
+		return nil
+	}
+	fileSet := make(map[string]struct{}, len(files))
+	for _, file := range files {
+		if strings.HasPrefix(filepath.Base(file), ".") {
+			continue
+		}
+		idf := s.idFile(ctx, file)
+		if s.storage.Exists(ctx, idf) {
+			fileSet[idf] = struct{}{}
+		}
+	}
+	out := make([]string, 0, len(fileSet))
+	for file := range fileSet {
+		out = append(out, file)
+	}
+	sort.Strings(out)
+	return out
 }
 
 // Equals returns true if this.storage has the same on-disk path as the other

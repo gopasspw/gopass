@@ -81,9 +81,14 @@ func (r *Store) SaveRecipients(ctx context.Context) error {
 func (r *Store) RecipientsTree(ctx context.Context, pretty bool) (*tree.Root, error) {
 	root := tree.New("gopass")
 
-	for _, recp := range r.store.Recipients(ctx) {
-		if err := r.addRecipient(ctx, "", root, recp, pretty); err != nil {
-			color.Yellow("Failed to add recipient to tree %s: %s", recp, err)
+	for name, recps := range r.store.RecipientsTree(ctx) {
+		if name != "" {
+			name += "/"
+		}
+		for _, recp := range recps {
+			if err := r.addRecipient(ctx, name, root, recp, pretty); err != nil {
+				color.Yellow("Failed to add recipient to tree %s: %s", recp, err)
+			}
 		}
 	}
 
@@ -97,9 +102,14 @@ func (r *Store) RecipientsTree(ctx context.Context, pretty bool) (*tree.Root, er
 		if err := root.AddMount(alias, substore.Path()); err != nil {
 			return nil, errors.Errorf("failed to add mount: %s", err)
 		}
-		for _, recp := range substore.Recipients(ctx) {
-			if err := r.addRecipient(ctx, alias+"/", root, recp, pretty); err != nil {
-				debug.Log("Failed to add recipient to tree %s: %s", recp, err)
+		for name, recps := range substore.RecipientsTree(ctx) {
+			if name != "" {
+				name += "/"
+			}
+			for _, recp := range recps {
+				if err := r.addRecipient(ctx, alias+"/"+name, root, recp, pretty); err != nil {
+					debug.Log("Failed to add recipient to tree %s: %s", recp, err)
+				}
 			}
 		}
 	}
