@@ -72,7 +72,7 @@ func (s *Action) clone(ctx context.Context, repo, mount, path string) error {
 	// clone repo
 	debug.Log("Cloning repo '%s' to '%s'", repo, path)
 	if _, err := backend.CloneRCS(ctx, rcsBackendOrDefault(ctx), repo, path); err != nil {
-		return ExitError(ExitGit, err, "failed to clone repo '%s' to '%s'", repo, path)
+		return ExitError(ExitGit, err, "failed to clone repo '%s' to '%s': %s", repo, path, err)
 	}
 
 	// add mount
