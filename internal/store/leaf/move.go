@@ -85,7 +85,7 @@ func (s *Store) delete(ctx context.Context, name string, recurse bool) error {
 		return nil
 	}
 
-	if err := s.rcs.Commit(ctx, fmt.Sprintf("Remove %s from store.", name)); err != nil {
+	if err := s.storage.Commit(ctx, fmt.Sprintf("Remove %s from store.", name)); err != nil {
 		switch errors.Cause(err) {
 		case store.ErrGitNotInit:
 			debug.Log("skipping git commit - git not initialized")
@@ -96,7 +96,7 @@ func (s *Store) delete(ctx context.Context, name string, recurse bool) error {
 		}
 	}
 
-	if err := s.rcs.Push(ctx, "", ""); err != nil {
+	if err := s.storage.Push(ctx, "", ""); err != nil {
 		if errors.Cause(err) == store.ErrGitNotInit || errors.Cause(err) == store.ErrGitNoRemote {
 			return nil
 		}
@@ -118,7 +118,7 @@ func (s *Store) deleteRecurse(ctx context.Context, name, path string) error {
 		return err
 	}
 
-	if err := s.rcs.Add(ctx, name); err != nil {
+	if err := s.storage.Add(ctx, name); err != nil {
 		if errors.Cause(err) == store.ErrGitNotInit {
 			return nil
 		}
@@ -137,7 +137,7 @@ func (s *Store) deleteSingle(ctx context.Context, path string) error {
 		return err
 	}
 
-	if err := s.rcs.Add(ctx, path); err != nil {
+	if err := s.storage.Add(ctx, path); err != nil {
 		if errors.Cause(err) == store.ErrGitNotInit {
 			return nil
 		}

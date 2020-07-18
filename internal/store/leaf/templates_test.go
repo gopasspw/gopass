@@ -28,7 +28,7 @@ func TestTemplates(t *testing.T) {
 	require.NoError(t, err)
 
 	ctx = backend.WithCryptoBackendString(ctx, "plain")
-	ctx = backend.WithRCSBackendString(ctx, "noop")
+	ctx = backend.WithStorageBackendString(ctx, "fs")
 	s, err := New(
 		ctx,
 		"",

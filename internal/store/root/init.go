@@ -28,9 +28,6 @@ func (r *Store) Init(ctx context.Context, alias, path string, ids ...string) err
 	if !backend.HasCryptoBackend(ctx) {
 		ctx = backend.WithCryptoBackend(ctx, backend.GPGCLI)
 	}
-	if !backend.HasRCSBackend(ctx) {
-		ctx = backend.WithRCSBackend(ctx, backend.GitCLI)
-	}
 	if !backend.HasStorageBackend(ctx) {
 		ctx = backend.WithStorageBackend(ctx, backend.FS)
 	}

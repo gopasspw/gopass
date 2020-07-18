@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/gopasspw/gopass/internal/backend/rcs/noop"
 	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/internal/notify"
 	"github.com/gopasspw/gopass/internal/out"
@@ -89,11 +88,11 @@ func (s *Action) syncMount(ctx context.Context, mp string) error {
 		numMP = len(l)
 	}
 
-	if sub.RCS().Name() == noop.New().Name() {
-		out.Error(ctxno, "\n   WARNING: Mount uses RCS backend 'noop'. Not syncing!\n")
+	if sub.Storage().Name() == "fs" {
+		out.Yellow(ctxno, "\n   WARNING: Mount uses Storage backend 'fs'. Not syncing!\n")
 	} else {
 		out.Print(ctxno, "\n   "+color.GreenString("git pull and push ... "))
-		if err := sub.RCS().Push(ctx, "", ""); err != nil {
+		if err := sub.Storage().Push(ctx, "", ""); err != nil {
 			if errors.Cause(err) == store.ErrGitNoRemote {
 				out.Yellow(ctx, "Skipped (no remote)")
 				debug.Log("Failed to push '%s' to its remote: %s", name, err)
@@ -144,7 +143,7 @@ func (s *Action) syncMount(ctx context.Context, mp string) error {
 
 	// only run second push if we did export any keys
 	if exported {
-		if err := sub.RCS().Push(ctx, "", ""); err != nil {
+		if err := sub.Storage().Push(ctx, "", ""); err != nil {
 			out.Error(ctx, "Failed to push '%s' to its remote: %s", name, err)
 			return err
 		}

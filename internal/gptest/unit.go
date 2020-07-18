@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	aclip "github.com/atotto/clipboard"
-	"github.com/gopasspw/gopass/internal/backend/crypto/plain"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -102,13 +101,13 @@ func (u Unit) InitStore(name string) error {
 	if err := os.MkdirAll(dir, 0700); err != nil {
 		return err
 	}
-	fn := filepath.Join(dir, plain.IDFile)
+	fn := filepath.Join(dir, ".plain-id") // plain.IDFile
 	_ = os.Remove(fn)
 	if err := ioutil.WriteFile(fn, u.recipients(), 0600); err != nil {
 		return err
 	}
 	for _, p := range AllPathsToSlash(u.Entries) {
-		fn := filepath.Join(dir, p+"."+plain.Ext)
+		fn := filepath.Join(dir, p+".txt") // plain.Ext
 		_ = os.Remove(fn)
 		if err := os.MkdirAll(filepath.Dir(fn), 0700); err != nil {
 			return err

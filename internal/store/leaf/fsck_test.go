@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"github.com/gopasspw/gopass/internal/backend/crypto/plain"
-	"github.com/gopasspw/gopass/internal/backend/rcs/noop"
 	"github.com/gopasspw/gopass/internal/backend/storage/fs"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -36,7 +35,6 @@ func TestFsck(t *testing.T) {
 		alias:   "",
 		path:    tempdir,
 		crypto:  plain.New(),
-		rcs:     noop.New(),
 		storage: fs.New(tempdir),
 	}
 	assert.NoError(t, s.saveRecipients(ctx, []string{"john.doe"}, "test"))
@@ -53,6 +51,7 @@ func TestFsck(t *testing.T) {
 	// common tear down
 	_ = os.RemoveAll(tempdir)
 }
+
 func TestCompareStringSlices(t *testing.T) {
 	want := []string{"foo", "bar"}
 	have := []string{"baz", "bar"}

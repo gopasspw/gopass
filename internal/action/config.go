@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/gopasspw/gopass/internal/backend/storage/kv/ondisk"
+	"github.com/gopasspw/gopass/internal/backend/storage/ondisk"
 	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"

@@ -29,25 +29,22 @@ func (s *Action) Version(c *cli.Context) error {
 	cli.VersionPrinter(c)
 
 	cryptoVer := versionInfo(ctx, s.Store.Crypto(ctx, ""))
-	rcsVer := versionInfo(ctx, s.Store.RCS(ctx, ""))
 	storageVer := versionInfo(ctx, s.Store.Storage(ctx, ""))
 
-	tpl := "%-10s - %10s - %10s - %10s\n"
-	fmt.Fprintf(stdout, tpl, "<root>", cryptoVer, rcsVer, storageVer)
+	tpl := "%-10s - %10s - %10s\n"
+	fmt.Fprintf(stdout, tpl, "<root>", cryptoVer, storageVer)
 
 	// report all used crypto, sync and fs backends
 	for _, mp := range s.Store.MountPoints() {
 		cv := versionInfo(ctx, s.Store.Crypto(ctx, mp))
-		rv := versionInfo(ctx, s.Store.RCS(ctx, mp))
 		sv := versionInfo(ctx, s.Store.Storage(ctx, mp))
 
-		if cv != cryptoVer || rv != rcsVer || sv != storageVer {
-			fmt.Fprintf(stdout, tpl, mp, cv, rv, sv)
+		if cv != cryptoVer || sv != storageVer {
+			fmt.Fprintf(stdout, tpl, mp, cv, sv)
 		}
 	}
 
 	fmt.Fprintf(stdout, "Available Crypto Backends: %s\n", strings.Join(backend.CryptoBackends(), ", "))
-	fmt.Fprintf(stdout, "Available RCS Backends: %s\n", strings.Join(backend.RCSBackends(), ", "))
 	fmt.Fprintf(stdout, "Available Storage Backends: %s\n", strings.Join(backend.StorageBackends(), ", "))
 
 	select {

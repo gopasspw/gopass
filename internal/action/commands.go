@@ -82,11 +82,7 @@ func (s *Action) GetCommands() []*cli.Command {
 				},
 				&cli.StringFlag{
 					Name:  "crypto",
-					Usage: "Select crypto backend (gpg, gpgcli, plain, xc)",
-				},
-				&cli.StringFlag{
-					Name:  "sync",
-					Usage: "Select sync backend (git, gitcli, noop)",
+					Usage: "Select crypto backend (gpgcli, age, plain, xc)",
 				},
 			},
 		},
@@ -268,7 +264,6 @@ func (s *Action) GetCommands() []*cli.Command {
 				"must be a file and the other one a secret. If you want the source to " +
 				"be securely removed after copying, use 'gopass binary move'",
 			Before:       s.Initialized,
-			Aliases:      []string{"cp"},
 			Action:       s.BinaryCopy,
 			BashComplete: s.Complete,
 			Hidden:       true,
@@ -292,7 +287,6 @@ func (s *Action) GetCommands() []*cli.Command {
 				"and validated. If you don't want the source to be removed use " +
 				"'gopass binary copy'",
 			Before:       s.Initialized,
-			Aliases:      []string{"mv"},
 			Action:       s.BinaryMove,
 			BashComplete: s.Complete,
 			Hidden:       true,

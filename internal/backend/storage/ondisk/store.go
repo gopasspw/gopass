@@ -17,7 +17,7 @@ import (
 
 	"github.com/blang/semver"
 	"github.com/gopasspw/gopass/internal/backend/crypto/age"
-	"github.com/gopasspw/gopass/internal/backend/storage/kv/ondisk/gjs"
+	"github.com/gopasspw/gopass/internal/backend/storage/ondisk/gjs"
 	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/minio/minio-go/v6"
@@ -46,7 +46,7 @@ type OnDisk struct {
 }
 
 // New creates a new ondisk store
-func New(baseDir string) (*OnDisk, error) {
+func New(ctx context.Context, baseDir string) (*OnDisk, error) {
 	a, err := age.New()
 	if err != nil {
 		return nil, err
@@ -55,12 +55,12 @@ func New(baseDir string) (*OnDisk, error) {
 		dir: baseDir,
 		age: a,
 	}
-	idx, err := o.loadOrCreate(baseDir)
+	idx, err := o.loadOrCreate(ctx, baseDir)
 	if err != nil {
 		return nil, err
 	}
 	o.idx = idx
-	if err := o.initRemote(); err != nil {
+	if err := o.initRemote(ctx); err != nil {
 		return nil, err
 	}
 	return o, nil
@@ -71,8 +71,8 @@ func (o *OnDisk) Path() string {
 	return o.dir
 }
 
-func (o *OnDisk) initRemote() error {
-	cfg, err := o.loadRemoteConfig(context.TODO())
+func (o *OnDisk) initRemote(ctx context.Context) error {
+	cfg, err := o.loadRemoteConfig(ctx)
 	if err != nil {
 		return err
 	}
@@ -103,7 +103,7 @@ func (o *OnDisk) initRemote() error {
 	return nil
 }
 
-func (o *OnDisk) loadOrCreate(path string) (*gjs.Store, error) {
+func (o *OnDisk) loadOrCreate(ctx context.Context, path string) (*gjs.Store, error) {
 	path = filepath.Join(path, idxFile)
 	buf, err := ioutil.ReadFile(path)
 	if err != nil {
@@ -115,7 +115,8 @@ func (o *OnDisk) loadOrCreate(path string) (*gjs.Store, error) {
 		}
 		return nil, err
 	}
-	return o.loadIndex(context.TODO(), buf)
+	debug.Log("loading index from %s", path)
+	return o.loadIndex(ctx, buf)
 }
 
 func (o *OnDisk) loadIndex(ctx context.Context, buf []byte) (*gjs.Store, error) {

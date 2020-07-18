@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sort"
+	"strings"
 
 	"github.com/gopasspw/gopass/internal/debug"
 )
@@ -13,8 +14,8 @@ func (a *Age) ExportPublicKey(ctx context.Context, id string) ([]byte, error) {
 	return []byte(id), nil
 }
 
-// FindRecipients it TODO
-func (a *Age) FindRecipients(ctx context.Context, keys ...string) ([]string, error) {
+// FindIdentities it TODO
+func (a *Age) FindIdentities(ctx context.Context, keys ...string) ([]string, error) {
 	nk, err := a.getAllIdentities(ctx)
 	if err != nil {
 		return nil, err
@@ -33,9 +34,28 @@ func (a *Age) FindRecipients(ctx context.Context, keys ...string) ([]string, err
 	return matches, nil
 }
 
-// FindIdentities is TODO
-func (a *Age) FindIdentities(ctx context.Context, keys ...string) ([]string, error) {
-	return a.FindRecipients(ctx, keys...)
+// FindRecipients is TODO
+func (a *Age) FindRecipients(ctx context.Context, keys ...string) ([]string, error) {
+	// TODO should not need to decrypt keyring
+	remote := make([]string, 0, len(keys))
+	local := make([]string, 0, len(keys))
+	for _, key := range keys {
+		if !strings.HasPrefix(key, "github:") {
+			local = append(local, key)
+			continue
+		}
+		pks, err := a.getPublicKeysGithub(ctx, strings.TrimPrefix(key, "github:"))
+		if err != nil {
+			debug.Log("Failed to get key %s from github: %s", key, err)
+			continue
+		}
+		remote = append(remote, pks...)
+	}
+	ids, err := a.FindIdentities(ctx, local...)
+	if err != nil {
+		return nil, err
+	}
+	return append(ids, remote...), nil
 }
 
 // FormatKey is TODO

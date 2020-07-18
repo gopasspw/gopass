@@ -17,9 +17,9 @@ import (
 )
 
 // Convert will convert an existing store to a new store with possibly
-// different set of crypto, RCS and storage backend. Please note that it
-// will happily convert to the same set of backend if requested.
-func (s *Store) Convert(ctx context.Context, cryptoBe backend.CryptoBackend, rcsBe backend.RCSBackend, storageBe backend.StorageBackend, move bool) error {
+// different set of crypto and storage backends. Please note that it
+// will happily convert to the same set of backends if requested.
+func (s *Store) Convert(ctx context.Context, cryptoBe backend.CryptoBackend, storageBe backend.StorageBackend, move bool) error {
 
 	// create temp path
 	tmpPath := s.path + "-autoconvert"
@@ -35,12 +35,6 @@ func (s *Store) Convert(ctx context.Context, cryptoBe backend.CryptoBackend, rcs
 	}
 	debug.Log("initialized storage %s at %s", st, tmpPath)
 
-	rcs, err := backend.InitRCS(ctx, rcsBe, tmpPath)
-	if err != nil {
-		return err
-	}
-	debug.Log("initialized RCS %s at %s", rcs, tmpPath)
-
 	crypto, err := backend.NewCrypto(ctx, cryptoBe)
 	if err != nil {
 		return err
@@ -52,7 +46,6 @@ func (s *Store) Convert(ctx context.Context, cryptoBe backend.CryptoBackend, rcs
 		alias:   s.alias,
 		path:    tmpPath,
 		crypto:  crypto,
-		rcs:     rcs,
 		storage: st,
 	}
 

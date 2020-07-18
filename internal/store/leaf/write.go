@@ -56,7 +56,7 @@ func (s *Store) Set(ctx context.Context, name string, sec gopass.Byter) error {
 		return nil
 	}
 
-	if err := s.rcs.Add(ctx, p); err != nil {
+	if err := s.storage.Add(ctx, p); err != nil {
 		if errors.Cause(err) == store.ErrGitNotInit {
 			return nil
 		}
@@ -77,7 +77,7 @@ func (s *Store) Set(ctx context.Context, name string, sec gopass.Byter) error {
 
 func (s *Store) gitCommitAndPush(ctx context.Context, name string) error {
 	debug.Log("syncing with remote ...")
-	if err := s.rcs.Commit(ctx, fmt.Sprintf("Save secret to %s: %s", name, ctxutil.GetCommitMessage(ctx))); err != nil {
+	if err := s.storage.Commit(ctx, fmt.Sprintf("Save secret to %s: %s", name, ctxutil.GetCommitMessage(ctx))); err != nil {
 		switch errors.Cause(err) {
 		case store.ErrGitNotInit:
 			debug.Log("commitAndPush - skipping git commit - git not initialized")
@@ -88,7 +88,7 @@ func (s *Store) gitCommitAndPush(ctx context.Context, name string) error {
 		}
 	}
 
-	if err := s.rcs.Push(ctx, "", ""); err != nil {
+	if err := s.storage.Push(ctx, "", ""); err != nil {
 		if errors.Cause(err) == store.ErrGitNotInit {
 			msg := "Warning: git is not initialized for this.storage. Ignoring auto-push option\n" +
 				"Run: gopass git init"

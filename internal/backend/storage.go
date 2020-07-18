@@ -14,10 +14,10 @@ import (
 type StorageBackend int
 
 const (
-	// FS is a filesystem-backend storage
+	// FS is a filesystem-backed storage
 	FS StorageBackend = iota
-	// InMem is an in-memory mock store for tests
-	InMem
+	// GitFS is a filesystem-backed storage with Git
+	GitFS
 	// OnDisk is an on-disk store
 	OnDisk
 )
@@ -29,6 +29,7 @@ func (s StorageBackend) String() string {
 // Storage is an storage backend
 type Storage interface {
 	fmt.Stringer
+	rcs
 	Get(ctx context.Context, name string) ([]byte, error)
 	Set(ctx context.Context, name string, value []byte) error
 	Delete(ctx context.Context, name string) error

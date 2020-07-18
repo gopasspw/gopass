@@ -7,7 +7,6 @@ import (
 	"github.com/gopasspw/gopass/internal/backend"
 	_ "github.com/gopasspw/gopass/internal/backend/crypto"
 	"github.com/gopasspw/gopass/internal/backend/crypto/plain"
-	_ "github.com/gopasspw/gopass/internal/backend/rcs"
 	_ "github.com/gopasspw/gopass/internal/backend/storage"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

@@ -1,28 +1,27 @@
 # Backends
 
-gopass supports pluggable backends for Storage (`store`), Encryption (`crypto`) and Source-Control-Management (`sync`).
+gopass supports pluggable backends for Storage and Revision Control System (`storage`) and Encryption (`crypto`).
 
 As of today, the names and responsibilities of these backends are still unstable and will probably change.
 
-By providing suitable backends, gopass can use different kinds of encryption (see XC below) or storage.
-For example, it is pretty straightforward to add mercurial or bazaar as an SCM backend or
-implement a Vault storage.
+By providing suitable backends, gopass can use different kinds of encryption or storage.
+For example, it is pretty straightforward to add mercurial or bazaar as an SCM backend.
 
 All backends are in their own packages below `backend/`. They need to implement the
 interfaces defined in the backend package and have their identification added to
 the context handlers in the same package.
 
-## Storage Backends (storage)
+## Storage and RCS Backends (storage)
 
 ### Filesystem (fs)
 
-This is the only stable storage backend. It stores the encrypted (see "Crypto Backends") data directly in the filesystem.
+This is the simplest storage backend. It stores the encrypted (see "Crypto Backends") data directly in the filesystem. It does not use version control and the relevant operations are no ops.
 
-### In Memory (inmem)
+### Filesystem with Git (gitfs)
 
-This is a volatile in-memory backend for tests.
-
-**WARNING**: All data is lost when gopass stops!
+This is the default storage backend. It stores the encrypted data directly in the
+filesystem. It uses an external git binary to provide history and remote sync
+operations.
 
 ### On Disk (ondisk)
 
@@ -43,21 +42,22 @@ The age keyring itself is also age encrypted serialized JSON.
 
 TODO: Add commands to decrypt an ondisk/age store without gopass.
 
-## RCS Backends (rcs)
+#### Background: How do access ondisk secrets without gopass
 
-These are revision control backends talking to various source control
-management systems.
+This section assumes `age` and `jq` are properly installed.
 
-### CLI-based git (gitcli)
-
-The CLI-based git backend requires a properly configured git binary. It has the
-most features of all SCM backends and is pretty stable. One major drawback is that
-it sometimes fails if commit signing is enabled and the interaction with GPG
-fails.
-
-### Noop (noop)
-
-This is a no-op backend for testing SCM-less support.
+```
+# Decrypt the gopass-age keyring
+age -d -o /tmp/keyring ~/.config/gopass/age-keyring.age
+# Extract the private key
+cat /tmp/keyring | jq ".[1].identity" | cut -d'"' -f2 > /tmp/private-key
+# Decrypt the index
+# TODO
+# Locate the latest secrets
+# TODO
+# Decrypt it
+age -d -i /tmp/private-key -o /tmp/plaintext ~/.local/share/gopass/stores/root/foo.age
+```
 
 ## Crypto Backends (crypto)
 
@@ -103,3 +103,4 @@ encrypted keyring on top (using age in scrypt password mode). It also has
 use their ssh public keys for age encryption.
 
 This backend might very well become the new default backend.
+

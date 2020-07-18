@@ -29,9 +29,8 @@ func TestHistory(t *testing.T) {
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
-	ctx = backend.WithRCSBackend(ctx, backend.GitCLI)
 	ctx = backend.WithCryptoBackend(ctx, backend.Plain)
-	ctx = backend.WithStorageBackend(ctx, backend.FS)
+	ctx = backend.WithStorageBackend(ctx, backend.GitFS)
 
 	cfg := config.New()
 	cfg.Path = u.StoreDir("")

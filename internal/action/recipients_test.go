@@ -72,7 +72,7 @@ gopass
 
 	t.Run("add recipient 0xBEEFFEED", func(t *testing.T) {
 		defer buf.Reset()
-		assert.Error(t, act.RecipientsAdd(gptest.CliCtx(ctx, t, "0xBEEFFEED")))
+		assert.NoError(t, act.RecipientsAdd(gptest.CliCtx(ctx, t, "0xBEEFFEED")))
 	})
 
 	t.Run("remove recipient 0xDEADBEEF", func(t *testing.T) {

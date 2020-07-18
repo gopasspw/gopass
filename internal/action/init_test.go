@@ -25,7 +25,6 @@ func TestInit(t *testing.T) {
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithInteractive(ctx, false)
-	ctx = backend.WithRCSBackend(ctx, backend.Noop)
 	ctx = backend.WithCryptoBackend(ctx, backend.Plain)
 	ctx = backend.WithStorageBackend(ctx, backend.FS)
 
@@ -88,19 +87,9 @@ func TestInitParseContext(t *testing.T) {
 			},
 		},
 		{
-			name:  "rcs noop",
-			flags: map[string]string{"rcs": "noop"},
-			check: func(ctx context.Context) error {
-				if be := backend.GetRCSBackend(ctx); be != backend.Noop {
-					return fmt.Errorf("wrong backend: %d", be)
-				}
-				return nil
-			},
-		},
-		{
 			name: "default",
 			check: func(ctx context.Context) error {
-				if backend.GetRCSBackend(ctx) != backend.GitCLI {
+				if backend.GetStorageBackend(ctx) != backend.GitFS {
 					return fmt.Errorf("wrong backend")
 				}
 				return nil

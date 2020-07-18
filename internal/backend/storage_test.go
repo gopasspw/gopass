@@ -7,6 +7,9 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/gopasspw/gopass/internal/debug"
+	"github.com/gopasspw/gopass/internal/gptest"
+	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -14,35 +17,41 @@ import (
 func TestDetectStorage(t *testing.T) {
 	ctx := context.Background()
 
+	uv := gptest.UnsetVars("GOPASS_HOMEDIR")
+	defer uv()
+
 	td, err := ioutil.TempDir("", "gopass-")
 	require.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(td)
 	}()
 
+	// all tests involving ondisk/age should set GOPASS_HOMEDIR
+	os.Setenv("GOPASS_HOMEDIR", td)
+	ctx = ctxutil.WithPasswordCallback(ctx, func(_ string) ([]byte, error) {
+		debug.Log("static test password callback")
+		return []byte("gopass"), nil
+	})
+
 	fsDir := filepath.Join(td, "fs")
 	assert.NoError(t, os.MkdirAll(fsDir, 0700))
 
-	inmemDir := "//gopass/inmem"
-
 	ondiskDir := filepath.Join(td, "ondisk")
 	assert.NoError(t, os.MkdirAll(ondiskDir, 0700))
-	assert.NoError(t, ioutil.WriteFile(filepath.Join(ondiskDir, "index.pb"), []byte("null"), 0600))
+	assert.NoError(t, ioutil.WriteFile(filepath.Join(ondiskDir, "index.gp1"), []byte("null"), 0600))
 
-	r, err := DetectStorage(ctx, fsDir)
-	assert.NoError(t, err)
-	assert.NotNil(t, r)
-	assert.Equal(t, "fs", r.Name())
+	t.Run("detect fs", func(t *testing.T) {
+		r, err := DetectStorage(ctx, fsDir)
+		assert.NoError(t, err)
+		assert.NotNil(t, r)
+		assert.Equal(t, "fs", r.Name())
+	})
 
-	r, err = DetectStorage(ctx, inmemDir)
-	assert.NoError(t, err)
-	assert.NotNil(t, r)
-	assert.Equal(t, "inmem", r.Name())
-
-	t.Skip("WIP")
-
-	r, err = DetectStorage(ctx, ondiskDir)
-	assert.NoError(t, err)
-	assert.NotNil(t, r)
-	assert.Equal(t, "ondisk", r.Name())
+	t.Run("detect ondisk", func(t *testing.T) {
+		r, err := DetectStorage(ctx, ondiskDir)
+		// the "fake" index can't be decoded, so it must fail
+		assert.Error(t, err)
+		assert.Nil(t, r)
+		assert.Equal(t, "ondisk", r.Name())
+	})
 }

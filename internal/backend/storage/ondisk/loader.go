@@ -17,28 +17,27 @@ const (
 
 func init() {
 	backend.RegisterStorage(backend.OnDisk, name, &loader{})
-	backend.RegisterRCS(backend.OnDiskRCS, name, &loader{})
 }
 
 type loader struct{}
 
 // New creates a new ondisk loader
 func (l loader) New(ctx context.Context, path string) (backend.Storage, error) {
-	be, err := New(path)
+	be, err := New(ctx, path)
 	debug.Log("Using Storage Backend %p: %s", be, path)
 	return be, err
 }
 
 // Open loads an existing ondisk repo
-func (l loader) Open(ctx context.Context, path string) (backend.RCS, error) {
-	be, err := New(path)
+func (l loader) Open(ctx context.Context, path string) (backend.Storage, error) {
+	be, err := New(ctx, path)
 	debug.Log("Using RCS Backend: %s", be.String())
 	return be, err
 }
 
 // Clone loads an existing ondisk repo
-func (l loader) Clone(ctx context.Context, repo, path string) (backend.RCS, error) {
-	be, err := New(path)
+func (l loader) Clone(ctx context.Context, repo, path string) (backend.Storage, error) {
+	be, err := New(ctx, path)
 	debug.Log("Using RCS Backend %p: %s", be, be.String())
 	if err := be.SetRemote(ctx, repo); err != nil {
 		return nil, err
@@ -49,22 +48,13 @@ func (l loader) Clone(ctx context.Context, repo, path string) (backend.RCS, erro
 	return be, err
 }
 
-// InitRCS creates a new ondisk repo
-func (l loader) InitRCS(ctx context.Context, path string) (backend.RCS, error) {
-	return l.init(ctx, path)
-}
-
-func (l loader) init(ctx context.Context, path string) (*OnDisk, error) {
+func (l loader) Init(ctx context.Context, path string) (backend.Storage, error) {
 	if err := os.MkdirAll(path, 0700); err != nil {
 		return nil, err
 	}
-	be, err := New(path)
+	be, err := New(ctx, path)
 	debug.Log("Using RCS Backend %p: %s", be, be.String())
 	return be, err
-}
-
-func (l loader) Init(ctx context.Context, path string) (backend.Storage, error) {
-	return l.init(ctx, path)
 }
 
 func (l loader) Handles(path string) error {

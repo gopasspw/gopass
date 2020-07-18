@@ -100,7 +100,7 @@ func (s *Action) RecipientsAdd(c *cli.Context) error {
 			}
 			keys = []string{r}
 		}
-		if len(keys) < 1 && !force {
+		if len(keys) < 1 && !force && crypto.Name() == "gpgcli" {
 			out.Cyan(ctx, "Warning: No matching valid key found. If the key is in your keyring you may need to validate it.")
 			out.Cyan(ctx, "If this is your key: gpg --edit-key %s; trust (set to ultimate); quit", r)
 			out.Cyan(ctx, "If this is not your key: gpg --edit-key %s; lsign; trust; save; quit", r)

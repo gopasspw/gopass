@@ -22,9 +22,9 @@ func (s *Store) Fsck(ctx context.Context, path string) error {
 		return errors.Wrapf(err, "storage backend found errors: %s", err)
 	}
 
-	// second give a chance to the RCS backend
-	if err := s.rcs.Compact(ctx); err != nil {
-		return errors.Wrapf(err, "rcs backend compaction failed: %s", err)
+	// then try to compact storage / rcs
+	if err := s.storage.Compact(ctx); err != nil {
+		return errors.Wrapf(err, "storage backend compaction failed: %s", err)
 	}
 
 	pcb := ctxutil.GetProgressCallback(ctx)
@@ -48,7 +48,7 @@ func (s *Store) Fsck(ctx context.Context, path string) error {
 		}
 	}
 
-	if err := s.rcs.Push(ctx, "", ""); err != nil {
+	if err := s.storage.Push(ctx, "", ""); err != nil {
 		out.Red(ctx, "RCS Push failed: %s", err)
 	}
 

@@ -18,7 +18,6 @@ type Store struct {
 	alias   string
 	path    string
 	crypto  backend.Crypto
-	rcs     backend.RCS
 	storage backend.Storage
 }
 
@@ -35,12 +34,6 @@ func Init(ctx context.Context, alias, path string) (*Store, error) {
 		return nil, err
 	}
 	s.storage = st
-
-	rcs, err := backend.InitRCS(ctx, backend.GetRCSBackend(ctx), path)
-	if err != nil {
-		return nil, err
-	}
-	s.rcs = rcs
 
 	crypto, err := backend.NewCrypto(ctx, backend.GetCryptoBackend(ctx))
 	if err != nil {
@@ -60,20 +53,17 @@ func New(ctx context.Context, alias, path string) (*Store, error) {
 		path:  path,
 	}
 
-	// init store backend
+	// init storage and rcs backend
 	if err := s.initStorageBackend(ctx); err != nil {
 		return nil, errors.Wrapf(err, "failed to init storage backend: %s", err)
 	}
-
-	// init sync backend
-	s.initRCSBackend(ctx)
 
 	// init crypto backend
 	if err := s.initCryptoBackend(ctx); err != nil {
 		return nil, errors.Wrapf(err, "failed to init crypto backend: %s", err)
 	}
 
-	debug.Log("Instantiated %s at %s - storage: %+#v - rcs: %+#v - crypto: %+#v", alias, path, s.storage, s.rcs, s.crypto)
+	debug.Log("Instantiated %s at %s - storage: %+#v - crypto: %+#v", alias, path, s.storage, s.crypto)
 	return s, nil
 }
 

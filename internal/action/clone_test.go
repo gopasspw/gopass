@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/gopasspw/gopass/internal/backend"
-	git "github.com/gopasspw/gopass/internal/backend/rcs/git/cli"
+	git "github.com/gopasspw/gopass/internal/backend/storage/gitfs"
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/gptest"
 	"github.com/gopasspw/gopass/internal/out"
@@ -26,7 +26,7 @@ func aGitRepo(ctx context.Context, u *gptest.Unit, t *testing.T, name string) st
 	gd := filepath.Join(u.Dir, name)
 	assert.NoError(t, os.MkdirAll(gd, 0700))
 
-	_, err := git.Open(gd)
+	_, err := git.New(gd)
 	assert.Error(t, err)
 
 	idf := filepath.Join(gd, ".gpg-id")
@@ -46,7 +46,7 @@ func TestClone(t *testing.T) {
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithInteractive(ctx, false)
-	ctx = backend.WithRCSBackend(ctx, backend.GitCLI)
+	ctx = backend.WithStorageBackend(ctx, backend.GitFS)
 
 	act, err := newMock(ctx, u)
 	require.NoError(t, err)

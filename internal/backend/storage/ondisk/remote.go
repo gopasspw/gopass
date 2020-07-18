@@ -88,6 +88,7 @@ func (o *OnDisk) loadRemoteConfig(ctx context.Context) (*RemoteConfig, error) {
 		}
 		return nil, err
 	}
+	debug.Log("loading remote config from %s", path)
 	plain, err := o.age.Decrypt(ctx, buf)
 	if err != nil {
 		return nil, err

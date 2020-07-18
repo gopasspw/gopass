@@ -24,9 +24,6 @@ func (s *Action) Clone(c *cli.Context) error {
 	if c.IsSet("crypto") {
 		ctx = backend.WithCryptoBackendString(ctx, c.String("crypto"))
 	}
-	if c.IsSet("sync") {
-		ctx = backend.WithRCSBackendString(ctx, c.String("sync"))
-	}
 
 	if c.Args().Len() < 1 {
 		return ExitError(ExitUsage, nil, "Usage: %s clone repo [mount]", s.Name)
@@ -43,11 +40,11 @@ func (s *Action) Clone(c *cli.Context) error {
 	return s.clone(ctx, repo, mount, path)
 }
 
-func rcsBackendOrDefault(ctx context.Context) backend.RCSBackend {
-	if be := backend.GetRCSBackend(ctx); be != backend.Noop {
+func storageBackendOrDefault(ctx context.Context) backend.StorageBackend {
+	if be := backend.GetStorageBackend(ctx); be != backend.FS {
 		return be
 	}
-	return backend.GitCLI
+	return backend.GitFS
 }
 
 func (s *Action) clone(ctx context.Context, repo, mount, path string) error {
@@ -71,7 +68,7 @@ func (s *Action) clone(ctx context.Context, repo, mount, path string) error {
 
 	// clone repo
 	debug.Log("Cloning repo '%s' to '%s'", repo, path)
-	if _, err := backend.CloneRCS(ctx, rcsBackendOrDefault(ctx), repo, path); err != nil {
+	if _, err := backend.Clone(ctx, storageBackendOrDefault(ctx), repo, path); err != nil {
 		return ExitError(ExitGit, err, "failed to clone repo '%s' to '%s': %s", repo, path, err)
 	}
 

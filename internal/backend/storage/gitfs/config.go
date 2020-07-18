@@ -1,4 +1,4 @@
-package cli
+package gitfs
 
 import (
 	"context"
@@ -61,10 +61,10 @@ func (g *Git) InitConfig(ctx context.Context, userName, userEmail string) error 
 		return errors.Wrapf(err, "failed to fix git config")
 	}
 
-	if err := ioutil.WriteFile(filepath.Join(g.path, ".gitattributes"), []byte("*.gpg diff=gpg\n"), fileMode); err != nil {
+	if err := ioutil.WriteFile(filepath.Join(g.fs.Path(), ".gitattributes"), []byte("*.gpg diff=gpg\n"), fileMode); err != nil {
 		return errors.Errorf("Failed to initialize git: %s", err)
 	}
-	if err := g.Add(ctx, g.path+"/.gitattributes"); err != nil {
+	if err := g.Add(ctx, g.fs.Path()+"/.gitattributes"); err != nil {
 		out.Yellow(ctx, "Warning: Failed to add .gitattributes to git")
 	}
 	if err := g.Commit(ctx, "Configure git repository for gpg file diff."); err != nil {
@@ -88,7 +88,7 @@ func (g *Git) ConfigGet(ctx context.Context, key string) (string, error) {
 	buf := &strings.Builder{}
 
 	cmd := exec.CommandContext(ctx, "git", "config", "--get", key)
-	cmd.Dir = g.path
+	cmd.Dir = g.fs.Path()
 	cmd.Stdout = buf
 	cmd.Stderr = os.Stderr
 
@@ -109,7 +109,7 @@ func (g *Git) ConfigList(ctx context.Context) (map[string]string, error) {
 	buf := &strings.Builder{}
 
 	cmd := exec.CommandContext(ctx, "git", "config", "--list")
-	cmd.Dir = g.path
+	cmd.Dir = g.fs.Path()
 	cmd.Stdout = buf
 	cmd.Stderr = os.Stderr
 
