@@ -89,7 +89,7 @@ func (s *Store) reencrypt(ctx context.Context) error {
 	if ctxutil.HasConcurrency(ctx) {
 		for _, name := range entries {
 			p := s.passfile(name)
-			if err := s.rcs.Add(ctx, p); err != nil {
+			if err := s.storage.Add(ctx, p); err != nil {
 				switch errors.Cause(err) {
 				case store.ErrGitNotInit:
 					debug.Log("skipping git add - git not initialized")
@@ -102,7 +102,7 @@ func (s *Store) reencrypt(ctx context.Context) error {
 		}
 	}
 
-	if err := s.rcs.Commit(ctx, ctxutil.GetCommitMessage(ctx)); err != nil {
+	if err := s.storage.Commit(ctx, ctxutil.GetCommitMessage(ctx)); err != nil {
 		switch errors.Cause(err) {
 		case store.ErrGitNotInit:
 			debug.Log("skipping git commit - git not initialized")
@@ -117,7 +117,7 @@ func (s *Store) reencrypt(ctx context.Context) error {
 }
 
 func (s *Store) reencryptGitPush(ctx context.Context) error {
-	if err := s.rcs.Push(ctx, "", ""); err != nil {
+	if err := s.storage.Push(ctx, "", ""); err != nil {
 		if errors.Cause(err) == store.ErrGitNotInit {
 			msg := "Warning: git is not initialized for this.storage. Ignoring auto-push option\n" +
 				"Run: gopass git init"

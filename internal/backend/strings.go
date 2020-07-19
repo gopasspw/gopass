@@ -5,8 +5,6 @@ import "sort"
 var (
 	cryptoNameToBackendMap  = map[string]CryptoBackend{}
 	cryptoBackendToNameMap  = map[CryptoBackend]string{}
-	rcsNameToBackendMap     = map[string]RCSBackend{}
-	rcsBackendToNameMap     = map[RCSBackend]string{}
 	storageNameToBackendMap = map[string]StorageBackend{}
 	storageBackendToNameMap = map[StorageBackend]string{}
 )
@@ -14,9 +12,6 @@ var (
 func init() {
 	for k, v := range cryptoNameToBackendMap {
 		cryptoBackendToNameMap[v] = k
-	}
-	for k, v := range rcsNameToBackendMap {
-		rcsBackendToNameMap[v] = k
 	}
 	for k, v := range storageNameToBackendMap {
 		storageBackendToNameMap[v] = k
@@ -27,16 +22,6 @@ func init() {
 func CryptoBackends() []string {
 	bes := make([]string, 0, len(cryptoNameToBackendMap))
 	for k := range cryptoNameToBackendMap {
-		bes = append(bes, k)
-	}
-	sort.Strings(bes)
-	return bes
-}
-
-// RCSBackends returns the list of registered RCS backends.
-func RCSBackends() []string {
-	bes := make([]string, 0, len(rcsNameToBackendMap))
-	for k := range rcsNameToBackendMap {
 		bes = append(bes, k)
 	}
 	sort.Strings(bes)
@@ -67,25 +52,6 @@ func CryptoBackendFromName(name string) CryptoBackend {
 // CryptoNameFromBackend returns the name of a given crypto backend
 func CryptoNameFromBackend(be CryptoBackend) string {
 	if b, found := cryptoBackendToNameMap[be]; found {
-		return b
-	}
-	return ""
-}
-
-// RcsBackendFromName parses the identifier into a rcs backend
-func RcsBackendFromName(name string) RCSBackend {
-	if name == "git" {
-		name = "gitcli"
-	}
-	if b, found := rcsNameToBackendMap[name]; found {
-		return b
-	}
-	return -1
-}
-
-// RcsNameFromBackend returns the name of a given RCS backend
-func RcsNameFromBackend(be RCSBackend) string {
-	if b, found := rcsBackendToNameMap[be]; found {
 		return b
 	}
 	return ""

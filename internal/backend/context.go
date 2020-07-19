@@ -43,39 +43,6 @@ func GetCryptoBackend(ctx context.Context) CryptoBackend {
 	return be
 }
 
-// RCSBackendName returns the name of the given backend
-func RCSBackendName(sb RCSBackend) string {
-	return RcsNameFromBackend(sb)
-}
-
-// WithRCSBackendString returns a context with the given sync backend set
-func WithRCSBackendString(ctx context.Context, sb string) context.Context {
-	if be := RcsBackendFromName(sb); be >= 0 {
-		return WithRCSBackend(ctx, be)
-	}
-	return WithRCSBackend(ctx, Noop)
-}
-
-// WithRCSBackend returns a context with the given sync backend set
-func WithRCSBackend(ctx context.Context, sb RCSBackend) context.Context {
-	return context.WithValue(ctx, ctxKeyRCSBackend, sb)
-}
-
-// HasRCSBackend returns true if a value for sync backend has been set in the context
-func HasRCSBackend(ctx context.Context) bool {
-	_, ok := ctx.Value(ctxKeyRCSBackend).(RCSBackend)
-	return ok
-}
-
-// GetRCSBackend returns the sync backend or the default (Git Mock)
-func GetRCSBackend(ctx context.Context) RCSBackend {
-	be, ok := ctx.Value(ctxKeyRCSBackend).(RCSBackend)
-	if !ok {
-		return Noop
-	}
-	return be
-}
-
 // WithStorageBackendString returns a context with the given store backend set
 func WithStorageBackendString(ctx context.Context, sb string) context.Context {
 	return WithStorageBackend(ctx, StorageBackendFromName(sb))

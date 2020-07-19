@@ -7,7 +7,7 @@ import (
 
 	"github.com/cenkalti/backoff"
 	"github.com/gopasspw/gopass/internal/backend/crypto/age"
-	"github.com/gopasspw/gopass/internal/backend/storage/kv/ondisk/gjs"
+	"github.com/gopasspw/gopass/internal/backend/storage/ondisk/gjs"
 	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/internal/recipients"
 	"github.com/minio/minio-go/v6"

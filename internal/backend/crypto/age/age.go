@@ -1,11 +1,8 @@
 package age
 
 import (
-	"bytes"
 	"context"
 	"fmt"
-	"io"
-	"io/ioutil"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -17,7 +14,6 @@ import (
 	"github.com/gopasspw/gopass/internal/cache"
 	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/pkg/appdir"
-	"github.com/gopasspw/gopass/pkg/ctxutil"
 )
 
 const (
@@ -51,7 +47,7 @@ func New() (*Age, error) {
 		ghc:     github.NewClient(nil),
 		ghCache: cDir,
 		keyring: filepath.Join(appdir.UserConfig(), "age-keyring.age"),
-		askPass: defaultAskPass,
+		askPass: DefaultAskPass,
 	}, nil
 }
 
@@ -125,98 +121,7 @@ func (a *Age) parseRecipients(ctx context.Context, recipients []string) ([]age.R
 	return out, nil
 }
 
-// Encrypt will encrypt the given payload
-func (a *Age) Encrypt(ctx context.Context, plaintext []byte, recipients []string) ([]byte, error) {
-	// add our own public key
-	pks, err := a.pkself(ctx)
-	if err != nil {
-		return nil, err
-	}
-	recp, err := a.parseRecipients(ctx, recipients)
-	if err != nil {
-		return nil, err
-	}
-	recp = append(recp, pks)
-	return a.encrypt(plaintext, recp...)
-}
-
-func (a *Age) encrypt(plaintext []byte, recp ...age.Recipient) ([]byte, error) {
-	out := &bytes.Buffer{}
-	w, err := age.Encrypt(out, recp...)
-	if err != nil {
-		return nil, err
-	}
-	n, err := w.Write(plaintext)
-	if err != nil {
-		return nil, err
-	}
-	if err := w.Close(); err != nil {
-		return nil, err
-	}
-	debug.Log("Wrote %d bytes of plaintext for %+v", n, recp)
-	return out.Bytes(), nil
-}
-
-func (a *Age) encryptFile(filename string, plaintext []byte) error {
-	pw, err := a.askPass.Passphrase(filename, "index")
-	if err != nil {
-		return err
-	}
-	id, err := age.NewScryptRecipient(pw)
-	if err != nil {
-		return err
-	}
-	buf, err := a.encrypt(plaintext, id)
-	if err != nil {
-		return err
-	}
-
-	return ioutil.WriteFile(filename, buf, 0600)
-}
-
-// Decrypt will attempt to decrypt the given payload
-func (a *Age) Decrypt(ctx context.Context, ciphertext []byte) ([]byte, error) {
-	ctx = ctxutil.WithPasswordCallback(ctx, func(prompt string) ([]byte, error) {
-		pw, err := a.askPass.Passphrase(prompt, "Decrypting")
-		return []byte(pw), err
-	})
-	ids, err := a.getAllIds(ctx)
-	if err != nil {
-		return nil, err
-	}
-	return a.decrypt(ciphertext, ids...)
-}
-
-func (a *Age) decrypt(ciphertext []byte, ids ...age.Identity) ([]byte, error) {
-	out := &bytes.Buffer{}
-	f := bytes.NewReader(ciphertext)
-	r, err := age.Decrypt(f, ids...)
-	if err != nil {
-		return nil, err
-	}
-	if _, err := io.Copy(out, r); err != nil {
-		return nil, err
-	}
-	return out.Bytes(), nil
-}
-
-func (a *Age) decryptFile(filename string) ([]byte, error) {
-	pw, err := a.askPass.Passphrase(filename, "index")
-	if err != nil {
-		return nil, err
-	}
-	id, err := age.NewScryptIdentity(pw)
-	if err != nil {
-		return nil, err
-	}
-	ciphertext, err := ioutil.ReadFile(filename)
-	if err != nil {
-		return nil, err
-	}
-	return a.decrypt(ciphertext, id)
-}
-
-// ListIdentities is TODO
+// ListIdentities lists all identities
 func (a *Age) ListIdentities(ctx context.Context) ([]string, error) {
 	ids, err := a.getAllIdentities(ctx)
 	if err != nil {
@@ -263,7 +168,7 @@ func (a *Age) getNativeIdentities(ctx context.Context) (map[string]age.Identity,
 	if krCache != nil {
 		return krCache, nil
 	}
-	kr, err := a.loadKeyring()
+	kr, err := a.loadKeyring(ctx)
 	if len(kr) < 1 || err != nil {
 		id, err := a.genKey(ctx)
 		if err != nil {

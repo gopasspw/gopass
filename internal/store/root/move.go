@@ -42,7 +42,7 @@ func (r *Store) move(ctx context.Context, from, to string, delete bool) error {
 	if err := r.moveFromTo(ctxFrom, ctxTo, subFrom, from, to, fromPrefix, srcIsDir, delete); err != nil {
 		return err
 	}
-	if err := subFrom.RCS().Commit(ctxFrom, fmt.Sprintf("Move from %s to %s", from, to)); delete && err != nil {
+	if err := subFrom.Storage().Commit(ctxFrom, fmt.Sprintf("Move from %s to %s", from, to)); delete && err != nil {
 		switch errors.Cause(err) {
 		case store.ErrGitNotInit:
 			debug.Log("skipping git commit - git not initialized")
@@ -51,7 +51,7 @@ func (r *Store) move(ctx context.Context, from, to string, delete bool) error {
 		}
 	}
 	if !subFrom.Equals(subTo) {
-		if err := subTo.RCS().Commit(ctxTo, fmt.Sprintf("Move from %s to %s", from, to)); err != nil {
+		if err := subTo.Storage().Commit(ctxTo, fmt.Sprintf("Move from %s to %s", from, to)); err != nil {
 			switch errors.Cause(err) {
 			case store.ErrGitNotInit:
 				debug.Log("skipping git commit - git not initialized")
@@ -61,7 +61,7 @@ func (r *Store) move(ctx context.Context, from, to string, delete bool) error {
 		}
 	}
 
-	if err := subFrom.RCS().Push(ctx, "", ""); err != nil {
+	if err := subFrom.Storage().Push(ctx, "", ""); err != nil {
 		if errors.Cause(err) == store.ErrGitNotInit {
 			msg := "Warning: git is not initialized for this.storage. Ignoring auto-push option\n" +
 				"Run: gopass git init"
@@ -77,7 +77,7 @@ func (r *Store) move(ctx context.Context, from, to string, delete bool) error {
 		return errors.Wrapf(err, "failed to push change to git remote")
 	}
 	if !subFrom.Equals(subTo) {
-		if err := subTo.RCS().Push(ctx, "", ""); err != nil {
+		if err := subTo.Storage().Push(ctx, "", ""); err != nil {
 			if errors.Cause(err) == store.ErrGitNotInit {
 				msg := "Warning: git is not initialized for this.storage. Ignoring auto-push option\n" +
 					"Run: gopass git init"

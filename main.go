@@ -17,7 +17,6 @@ import (
 	"github.com/gopasspw/gopass/internal/action/xc"
 	_ "github.com/gopasspw/gopass/internal/backend/crypto"
 	"github.com/gopasspw/gopass/internal/backend/crypto/gpg"
-	_ "github.com/gopasspw/gopass/internal/backend/rcs"
 	_ "github.com/gopasspw/gopass/internal/backend/storage"
 	"github.com/gopasspw/gopass/internal/queue"
 	"github.com/gopasspw/gopass/pkg/ctxutil"

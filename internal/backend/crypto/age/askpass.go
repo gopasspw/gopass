@@ -30,7 +30,8 @@ type askPass struct {
 }
 
 var (
-	defaultAskPass = newAskPass()
+	// DefaultAskPass is the default password cache
+	DefaultAskPass = newAskPass()
 )
 
 func newAskPass() *askPass {

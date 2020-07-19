@@ -213,7 +213,7 @@ func (s *Store) ExportMissingPublicKeys(ctx context.Context, rs []string) (bool,
 		}
 		// at least one key has been exported
 		exported = true
-		if err := s.rcs.Add(ctx, path); err != nil {
+		if err := s.storage.Add(ctx, path); err != nil {
 			if errors.Cause(err) == store.ErrGitNotInit {
 				continue
 			}
@@ -221,7 +221,7 @@ func (s *Store) ExportMissingPublicKeys(ctx context.Context, rs []string) (bool,
 			out.Error(ctx, "failed to add public key for '%s' to git: %s", r, err)
 			continue
 		}
-		if err := s.rcs.Commit(ctx, fmt.Sprintf("Exported Public Keys %s", r)); err != nil && err != store.ErrGitNothingToCommit {
+		if err := s.storage.Commit(ctx, fmt.Sprintf("Exported Public Keys %s", r)); err != nil && err != store.ErrGitNothingToCommit {
 			ok = false
 			out.Error(ctx, "Failed to git commit: %s", err)
 			continue
@@ -245,13 +245,13 @@ func (s *Store) saveRecipients(ctx context.Context, rs []string, msg string) err
 		return errors.Wrapf(err, "failed to write recipients file")
 	}
 
-	if err := s.rcs.Add(ctx, idf); err != nil {
+	if err := s.storage.Add(ctx, idf); err != nil {
 		if err != store.ErrGitNotInit {
 			return errors.Wrapf(err, "failed to add file '%s' to git", idf)
 		}
 	}
 
-	if err := s.rcs.Commit(ctx, msg); err != nil {
+	if err := s.storage.Commit(ctx, msg); err != nil {
 		if err != store.ErrGitNotInit && err != store.ErrGitNothingToCommit {
 			return errors.Wrapf(err, "failed to commit changes to git")
 		}
@@ -265,7 +265,7 @@ func (s *Store) saveRecipients(ctx context.Context, rs []string, msg string) err
 	}
 
 	// push to remote repo
-	if err := s.rcs.Push(ctx, "", ""); err != nil {
+	if err := s.storage.Push(ctx, "", ""); err != nil {
 		if errors.Cause(err) == store.ErrGitNotInit {
 			return nil
 		}

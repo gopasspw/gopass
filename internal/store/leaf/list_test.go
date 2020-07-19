@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	plain "github.com/gopasspw/gopass/internal/backend/crypto/plain"
-	noop "github.com/gopasspw/gopass/internal/backend/rcs/noop"
 	"github.com/gopasspw/gopass/internal/backend/storage/fs"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -84,7 +83,6 @@ func TestList(t *testing.T) {
 			alias:   "",
 			path:    tempdir,
 			crypto:  plain.New(),
-			rcs:     noop.New(),
 			storage: fs.New(tempdir),
 		}
 

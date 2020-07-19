@@ -12,6 +12,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/gopasspw/gopass/internal/gptest"
 	shellquote "github.com/kballard/go-shellquote"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
@@ -34,6 +35,7 @@ type tester struct {
 	Binary    string
 	sourceDir string
 	tempDir   string
+	resetFn   func()
 }
 
 func newTester(t *testing.T) *tester {
@@ -69,11 +71,13 @@ func newTester(t *testing.T) *tester {
 	ts.tempDir = td
 
 	// prepare ENVIRONMENT
+	ts.resetFn = gptest.UnsetVars("GNUPGHOME", "GOPASS_DEBUG", "GOPASS_NOCOLOR", "GOPASS_CONFIG", "GOPASS_NO_NOTIFY", "GOPASS_HOMEDIR")
 	require.NoError(t, os.Setenv("GNUPGHOME", ts.gpgDir()))
 	require.NoError(t, os.Setenv("GOPASS_DEBUG", ""))
 	require.NoError(t, os.Setenv("GOPASS_NOCOLOR", "true"))
 	require.NoError(t, os.Setenv("GOPASS_CONFIG", ts.gopassConfig()))
 	require.NoError(t, os.Setenv("GOPASS_NO_NOTIFY", "true"))
+	require.NoError(t, os.Setenv("GOPASS_HOMEDIR", td))
 
 	// write config
 	require.NoError(t, os.MkdirAll(filepath.Dir(ts.gopassConfig()), 0700))
@@ -119,6 +123,7 @@ func (ts tester) workDir() string {
 }
 
 func (ts tester) teardown() {
+	ts.resetFn() // restore env vars
 	if ts.tempDir == "" {
 		return
 	}
@@ -188,7 +193,7 @@ func (ts tester) runWithInputReader(arg string, input io.Reader) ([]byte, error)
 }
 
 func (ts *tester) initStore() {
-	out, err := ts.run("init --crypto=gpgcli --rcs=noop " + keyID)
+	out, err := ts.run("init --crypto=gpgcli --storage=fs " + keyID)
 	require.NoError(ts.t, err, "failed to init password store:\n%s", out)
 }
 

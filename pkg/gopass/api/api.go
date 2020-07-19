@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	_ "github.com/gopasspw/gopass/internal/backend/crypto"  // load crypto backends
-	_ "github.com/gopasspw/gopass/internal/backend/rcs"     // load rcs backends
 	_ "github.com/gopasspw/gopass/internal/backend/storage" // load storage backends
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/queue"

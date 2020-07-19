@@ -12,7 +12,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	_ "github.com/gopasspw/gopass/internal/backend/crypto"
-	_ "github.com/gopasspw/gopass/internal/backend/rcs"
 	_ "github.com/gopasspw/gopass/internal/backend/storage"
 )
 

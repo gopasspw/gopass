@@ -9,13 +9,13 @@ import (
 
 // Convert will try to convert a given mount to a different set of
 // backends.
-func (r *Store) Convert(ctx context.Context, name string, cryptoBe backend.CryptoBackend, rcsBe backend.RCSBackend, storageBe backend.StorageBackend, move bool) error {
+func (r *Store) Convert(ctx context.Context, name string, cryptoBe backend.CryptoBackend, storageBe backend.StorageBackend, move bool) error {
 	_, sub, err := r.GetSubStore(ctx, name)
 	if err != nil {
 		return err
 	}
-	debug.Log("converting %s to crypto: %s, rcs: %s, storage: %s", name, cryptoBe, rcsBe, storageBe)
-	if err := sub.Convert(ctx, cryptoBe, rcsBe, storageBe, move); err != nil {
+	debug.Log("converting %s to crypto: %s, rcs: %s, storage: %s", name, cryptoBe, storageBe)
+	if err := sub.Convert(ctx, cryptoBe, storageBe, move); err != nil {
 		return err
 	}
 	if name == "" {

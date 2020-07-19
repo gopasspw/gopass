@@ -103,7 +103,7 @@ func (s *Store) SetTemplate(ctx context.Context, name string, content []byte) er
 		return errors.Wrapf(err, "failed to write template")
 	}
 
-	if err := s.rcs.Add(ctx, p); err != nil {
+	if err := s.storage.Add(ctx, p); err != nil {
 		if errors.Cause(err) == store.ErrGitNotInit {
 			return nil
 		}
@@ -125,7 +125,7 @@ func (s *Store) RemoveTemplate(ctx context.Context, name string) error {
 		return errors.Wrapf(err, "failed to remote template")
 	}
 
-	if err := s.rcs.Add(ctx, p); err != nil {
+	if err := s.storage.Add(ctx, p); err != nil {
 		if errors.Cause(err) == store.ErrGitNotInit {
 			return nil
 		}

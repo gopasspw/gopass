@@ -16,17 +16,6 @@ func TestCryptoBackend(t *testing.T) {
 	assert.Equal(t, true, HasCryptoBackend(WithCryptoBackend(ctx, GPGCLI)))
 }
 
-func TestRCSBackend(t *testing.T) {
-	ctx := context.Background()
-
-	assert.Equal(t, "gitcli", RCSBackendName(GitCLI))
-	assert.Equal(t, Noop, GetRCSBackend(ctx))
-	assert.Equal(t, GitCLI, GetRCSBackend(WithRCSBackendString(ctx, "gitcli")))
-	assert.Equal(t, GitCLI, GetRCSBackend(WithRCSBackend(ctx, GitCLI)))
-	assert.Equal(t, Noop, GetRCSBackend(WithRCSBackendString(ctx, "foobar")))
-	assert.Equal(t, true, HasRCSBackend(WithRCSBackend(ctx, GitCLI)))
-}
-
 func TestStorageBackend(t *testing.T) {
 	ctx := context.Background()
 

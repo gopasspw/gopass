@@ -22,11 +22,11 @@ func (s *Action) RCSInit(c *cli.Context) error {
 	store := c.String("store")
 	un := termio.DetectName(c.Context, c)
 	ue := termio.DetectEmail(c.Context, c)
-	ctx = backend.WithRCSBackendString(ctx, c.String("rcs"))
+	ctx = backend.WithStorageBackendString(ctx, c.String("storage"))
 
 	// default to git
-	if !backend.HasRCSBackend(ctx) {
-		ctx = backend.WithRCSBackend(ctx, backend.GitCLI)
+	if !backend.HasStorageBackend(ctx) {
+		ctx = backend.WithStorageBackend(ctx, backend.GitFS)
 	}
 
 	if err := s.rcsInit(ctx, store, un, ue); err != nil {
@@ -36,7 +36,11 @@ func (s *Action) RCSInit(c *cli.Context) error {
 }
 
 func (s *Action) rcsInit(ctx context.Context, store, un, ue string) error {
-	bn := backend.RCSBackendName(backend.GetRCSBackend(ctx))
+	// TODO this is a hack
+	if backend.GetStorageBackend(ctx) == backend.FS {
+		return nil
+	}
+	bn := backend.StorageBackendName(backend.GetStorageBackend(ctx))
 	out.Green(ctx, "Initializing git repository (%s) for %s / %s...", bn, un, ue)
 
 	userName, userEmail := s.getUserData(ctx, store, un, ue)

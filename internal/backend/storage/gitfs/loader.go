@@ -1,4 +1,4 @@
-package cli
+package gitfs
 
 import (
 	"context"
@@ -11,27 +11,31 @@ import (
 )
 
 const (
-	name = "gitcli"
+	name = "gitfs"
 )
 
 func init() {
-	backend.RegisterRCS(backend.GitCLI, name, &loader{})
+	backend.RegisterStorage(backend.GitFS, name, &loader{})
 }
 
 type loader struct{}
 
+func (l loader) New(ctx context.Context, path string) (backend.Storage, error) {
+	return New(path)
+}
+
 // Open implements backend.RCSLoader
-func (l loader) Open(ctx context.Context, path string) (backend.RCS, error) {
-	return Open(path)
+func (l loader) Open(ctx context.Context, path string) (backend.Storage, error) {
+	return New(path)
 }
 
 // Clone implements backend.RCSLoader
-func (l loader) Clone(ctx context.Context, repo, path string) (backend.RCS, error) {
+func (l loader) Clone(ctx context.Context, repo, path string) (backend.Storage, error) {
 	return Clone(ctx, repo, path)
 }
 
 // Init implements backend.RCSLoader
-func (l loader) InitRCS(ctx context.Context, path string) (backend.RCS, error) {
+func (l loader) Init(ctx context.Context, path string) (backend.Storage, error) {
 	return Init(ctx, path, termio.DetectName(ctx, nil), termio.DetectEmail(ctx, nil))
 }
 

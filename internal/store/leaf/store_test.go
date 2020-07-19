@@ -14,7 +14,6 @@ import (
 
 	_ "github.com/gopasspw/gopass/internal/backend/crypto"
 	"github.com/gopasspw/gopass/internal/backend/crypto/plain"
-	_ "github.com/gopasspw/gopass/internal/backend/rcs"
 	_ "github.com/gopasspw/gopass/internal/backend/storage"
 
 	"github.com/stretchr/testify/assert"
@@ -54,7 +53,7 @@ func createSubStore(dir string) (*Store, error) {
 
 	ctx := context.Background()
 	ctx = backend.WithCryptoBackendString(ctx, "plain")
-	ctx = backend.WithRCSBackendString(ctx, "noop")
+	ctx = backend.WithStorageBackendString(ctx, "fs")
 	return New(
 		ctx,
 		"",
@@ -155,35 +154,22 @@ func TestNew(t *testing.T) {
 		ok  bool
 	}{
 		{
-			dsc: "InMem Storage",
-			dir: "//gopass/inmem",
-			ctx: backend.WithCryptoBackend(backend.WithStorageBackend(ctx, backend.InMem), backend.Plain),
-			ok:  true,
-		},
-		{
 			dsc: "Invalid Storage",
 			ctx: backend.WithStorageBackend(ctx, -1),
 			// ok:  false, // TODO clarify
 			ok: true,
 		},
 		{
-			dsc: "GitCLI RCS",
+			dsc: "GitFS Storage",
 			dir: tempdir,
-			ctx: backend.WithCryptoBackend(backend.WithRCSBackend(ctx, backend.GitCLI), backend.Plain),
+			ctx: backend.WithCryptoBackend(backend.WithStorageBackend(ctx, backend.GitFS), backend.Plain),
 			ok:  true,
 		},
 		{
-			dsc: "Noop RCS",
+			dsc: "FS Storage",
 			dir: tempdir,
-			ctx: backend.WithCryptoBackend(backend.WithRCSBackend(ctx, backend.Noop), backend.Plain),
+			ctx: backend.WithCryptoBackend(backend.WithStorageBackend(ctx, backend.FS), backend.Plain),
 			ok:  true,
-		},
-		{
-			dsc: "Invalid RCS",
-			dir: tempdir,
-			ctx: backend.WithRCSBackend(ctx, -1),
-			// ok:  false, // TODO clarify
-			ok: true,
 		},
 		{
 			dsc: "GPG Crypto",

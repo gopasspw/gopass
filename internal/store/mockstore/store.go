@@ -6,8 +6,7 @@ import (
 
 	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/internal/backend/crypto/plain"
-	"github.com/gopasspw/gopass/internal/backend/rcs/noop"
-	"github.com/gopasspw/gopass/internal/backend/storage/kv/inmem"
+	"github.com/gopasspw/gopass/internal/store/mockstore/inmem"
 	"github.com/gopasspw/gopass/internal/tree"
 	"github.com/gopasspw/gopass/pkg/gopass"
 	"github.com/gopasspw/gopass/pkg/gopass/secret/secparse"
@@ -115,11 +114,6 @@ func (m *MockStore) Path() string {
 // URL does nothing
 func (m *MockStore) URL() string {
 	return "mockstore://"
-}
-
-// RCS does nothing
-func (m *MockStore) RCS() backend.RCS {
-	return noop.New()
 }
 
 // Crypto does nothing

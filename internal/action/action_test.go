@@ -24,9 +24,8 @@ func newMock(ctx context.Context, u *gptest.Unit) (*Action, error) {
 	cfg := config.Load()
 	cfg.Path = u.StoreDir("")
 
-	ctx = backend.WithRCSBackend(ctx, backend.Noop)
 	ctx = backend.WithCryptoBackend(ctx, backend.Plain)
-	ctx = backend.WithStorageBackend(ctx, backend.FS)
+	ctx = backend.WithStorageBackend(ctx, backend.GitFS)
 	act, err := newAction(cfg, semver.Version{})
 	if err != nil {
 		return nil, err

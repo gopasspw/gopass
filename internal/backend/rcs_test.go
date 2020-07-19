@@ -14,33 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestDetectRCS(t *testing.T) {
-	ctx := context.Background()
-
-	td, err := ioutil.TempDir("", "gopass-")
-	require.NoError(t, err)
-	defer func() {
-		_ = os.RemoveAll(td)
-	}()
-
-	noopDir := filepath.Join(td, "noop")
-	assert.NoError(t, os.MkdirAll(noopDir, 0700))
-
-	gitDir := filepath.Join(td, "git")
-	assert.NoError(t, os.MkdirAll(filepath.Join(gitDir, ".git"), 0700))
-
-	r, err := DetectRCS(ctx, noopDir)
-	assert.NoError(t, err)
-	assert.NotNil(t, r)
-	assert.Equal(t, "noop", r.Name())
-
-	r, err = DetectRCS(ctx, gitDir)
-	assert.NoError(t, err)
-	assert.NotNil(t, r)
-	assert.Equal(t, "git", r.Name())
-}
-
-func TestCloneRCS(t *testing.T) {
+func TestClone(t *testing.T) {
 	ctx := context.Background()
 
 	td, err := ioutil.TempDir("", "gopass-")
@@ -58,7 +32,7 @@ func TestCloneRCS(t *testing.T) {
 	cmd := exec.Command("git", "init", repo)
 	assert.NoError(t, cmd.Run())
 
-	r, err := CloneRCS(ctx, GitCLI, repo, store)
+	r, err := Clone(ctx, GitFS, repo, store)
 	assert.NoError(t, err)
 	assert.NotNil(t, r)
 }
@@ -83,7 +57,7 @@ func TestInitRCS(t *testing.T) {
 	gitDir := filepath.Join(td, "git")
 	assert.NoError(t, os.MkdirAll(filepath.Join(gitDir, ".git"), 0700))
 
-	r, err := InitRCS(ctx, GitCLI, gitDir)
+	r, err := InitStorage(ctx, GitFS, gitDir)
 	assert.NoError(t, err)
 	assert.NotNil(t, r)
 }

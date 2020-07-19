@@ -14,7 +14,6 @@ func (s *Action) Convert(c *cli.Context) error {
 	move := c.Bool("move")
 	storage := backend.StorageBackendFromName(c.String("storage"))
 	crypto := backend.CryptoBackendFromName(c.String("crypto"))
-	rcs := backend.RcsBackendFromName(c.String("rcs"))
 
-	return s.Store.Convert(ctx, store, crypto, rcs, storage, move)
+	return s.Store.Convert(ctx, store, crypto, storage, move)
 }

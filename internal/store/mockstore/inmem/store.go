@@ -8,8 +8,10 @@ import (
 	"sort"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/blang/semver"
+	"github.com/gopasspw/gopass/internal/backend"
 )
 
 // InMem is a in-memory store
@@ -130,5 +132,74 @@ func (m *InMem) Path() string {
 
 // Fsck always returns nil
 func (m *InMem) Fsck(ctx context.Context) error {
+	return nil
+}
+
+// Add does nothing
+func (m *InMem) Add(ctx context.Context, args ...string) error {
+	return nil
+}
+
+// Commit does nothing
+func (m *InMem) Commit(ctx context.Context, msg string) error {
+	return nil
+}
+
+// Push does nothing
+func (m *InMem) Push(ctx context.Context, origin, branch string) error {
+	return nil
+}
+
+// Pull does nothing
+func (m *InMem) Pull(ctx context.Context, origin, branch string) error {
+	return nil
+}
+
+// Cmd does nothing
+func (m *InMem) Cmd(ctx context.Context, name string, args ...string) error {
+	return nil
+}
+
+// Init does nothing
+func (m *InMem) Init(context.Context, string, string) error {
+	return nil
+}
+
+// InitConfig does nothing
+func (m *InMem) InitConfig(context.Context, string, string) error {
+	return nil
+}
+
+// AddRemote does nothing
+func (m *InMem) AddRemote(ctx context.Context, remote, url string) error {
+	return nil
+}
+
+// RemoveRemote does nothing
+func (m *InMem) RemoveRemote(ctx context.Context, remote string) error {
+	return nil
+}
+
+// Revisions is not implemented
+func (m *InMem) Revisions(context.Context, string) ([]backend.Revision, error) {
+	return []backend.Revision{
+		{
+			Hash: "latest",
+			Date: time.Now(),
+		}}, nil
+}
+
+// GetRevision is not implemented
+func (m *InMem) GetRevision(context.Context, string, string) ([]byte, error) {
+	return []byte("foo\nbar"), nil
+}
+
+// Status is not implemented
+func (m *InMem) Status(context.Context) ([]byte, error) {
+	return []byte(""), nil
+}
+
+// Compact is not implemented
+func (m *InMem) Compact(context.Context) error {
 	return nil
 }

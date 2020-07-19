@@ -9,6 +9,7 @@ import (
 	"filippo.io/age"
 	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/internal/termio"
+	"github.com/gopasspw/gopass/pkg/ctxutil"
 )
 
 // Keyring is an age keyring
@@ -22,7 +23,7 @@ type Keypair struct {
 }
 
 func (a *Age) pkself(ctx context.Context) (age.Recipient, error) {
-	kr, err := a.loadKeyring()
+	kr, err := a.loadKeyring(ctx)
 
 	var id *age.X25519Identity
 	if err != nil || len(kr) < 1 {
@@ -38,7 +39,7 @@ func (a *Age) pkself(ctx context.Context) (age.Recipient, error) {
 
 func (a *Age) genKey(ctx context.Context) (*age.X25519Identity, error) {
 	debug.Log("No native age key found. Generating ...")
-	id, err := a.generateIdentity(termio.DetectName(ctx, nil), termio.DetectEmail(ctx, nil))
+	id, err := a.generateIdentity(ctx, termio.DetectName(ctx, nil), termio.DetectEmail(ctx, nil))
 	if err != nil {
 		return nil, err
 	}
@@ -47,17 +48,17 @@ func (a *Age) genKey(ctx context.Context) (*age.X25519Identity, error) {
 
 // GenerateIdentity will create a new native private key
 func (a *Age) GenerateIdentity(ctx context.Context, name, email, _ string) error {
-	_, err := a.generateIdentity(name, email)
+	_, err := a.generateIdentity(ctx, name, email)
 	return err
 }
 
-func (a *Age) generateIdentity(name, email string) (*age.X25519Identity, error) {
+func (a *Age) generateIdentity(ctx context.Context, name, email string) (*age.X25519Identity, error) {
 	id, err := age.GenerateX25519Identity()
 	if err != nil {
 		return id, err
 	}
 
-	kr, err := a.loadKeyring()
+	kr, err := a.loadKeyring(ctx)
 	if err != nil {
 		debug.Log("Warning: Failed to load keyring from %s: %s", a.keyring, err)
 	}
@@ -68,12 +69,19 @@ func (a *Age) generateIdentity(name, email string) (*age.X25519Identity, error) 
 		Identity: id.String(),
 	})
 
-	return id, a.saveKeyring(kr)
+	return id, a.saveKeyring(ctx, kr)
 }
 
-func (a *Age) loadKeyring() (Keyring, error) {
+func (a *Age) loadKeyring(ctx context.Context) (Keyring, error) {
+	if !ctxutil.HasPasswordCallback(ctx) {
+		debug.Log("no password callback found, redirecting to askPass")
+		ctx = ctxutil.WithPasswordCallback(ctx, func(prompt string) ([]byte, error) {
+			pw, err := a.askPass.Passphrase(prompt, "to unlock the age keyring")
+			return []byte(pw), err
+		})
+	}
 	kr := make(Keyring, 1)
-	buf, err := a.decryptFile(a.keyring)
+	buf, err := a.decryptFile(ctx, a.keyring)
 	if err != nil {
 		debug.Log("can't decrypt keyring at %s: %s", a.keyring, err)
 		return kr, err
@@ -94,7 +102,15 @@ func (a *Age) loadKeyring() (Keyring, error) {
 	return valid, nil
 }
 
-func (a *Age) saveKeyring(k Keyring) error {
+func (a *Age) saveKeyring(ctx context.Context, k Keyring) error {
+	if !ctxutil.HasPasswordCallback(ctx) {
+		debug.Log("no password callback found, redirecting to askPass")
+		ctx = ctxutil.WithPasswordCallback(ctx, func(prompt string) ([]byte, error) {
+			pw, err := a.askPass.Passphrase(prompt, "to unlock the age keyring")
+			return []byte(pw), err
+		})
+	}
+
 	if err := os.MkdirAll(filepath.Dir(a.keyring), 0700); err != nil {
 		return err
 	}
@@ -104,7 +120,7 @@ func (a *Age) saveKeyring(k Keyring) error {
 	if err != nil {
 		return err
 	}
-	if err := a.encryptFile(a.keyring, buf); err != nil {
+	if err := a.encryptFile(ctx, a.keyring, buf); err != nil {
 		return err
 	}
 	debug.Log("saved encrypted keyring to %s", a.keyring)

@@ -1,4 +1,4 @@
-package noop
+package fs
 
 import (
 	"context"
@@ -9,10 +9,12 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestNoop(t *testing.T) {
+func TestRCS(t *testing.T) {
 	ctx := context.Background()
+	path, cleanup := newTempDir(t)
+	defer cleanup()
 
-	g := New()
+	g := New(path)
 	assert.NoError(t, g.Add(ctx, "foo", "bar"))
 	assert.NoError(t, g.Commit(ctx, "foobar"))
 	assert.NoError(t, g.Push(ctx, "foo", "bar"))
@@ -20,8 +22,8 @@ func TestNoop(t *testing.T) {
 	assert.NoError(t, g.Cmd(ctx, "foo", "bar"))
 	assert.NoError(t, g.Init(ctx, "foo", "bar"))
 	assert.NoError(t, g.InitConfig(ctx, "foo", "bar"))
-	assert.Equal(t, g.Version(ctx), semver.Version{})
-	assert.Equal(t, "noop", g.Name())
+	assert.Equal(t, g.Version(ctx), semver.Version{Minor: 1})
+	assert.Equal(t, "fs", g.Name())
 	assert.NoError(t, g.AddRemote(ctx, "foo", "bar"))
 	revs, err := g.Revisions(ctx, "foo")
 	assert.NoError(t, err)

@@ -1,6 +1,6 @@
-// Package cli implements a git cli based RCS backend.
+// Package gitfs implements a git cli based RCS backend.
 // TODO(2.x) DEPRECATED and slated for removal in the 2.0.0 release.
-package cli
+package gitfs
 
 import (
 	"bytes"
@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/gopasspw/gopass/internal/backend"
+	"github.com/gopasspw/gopass/internal/backend/storage/fs"
 	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
@@ -25,18 +26,35 @@ import (
 	"github.com/pkg/errors"
 )
 
-// Git is a cli based git backend
-type Git struct {
-	path string
+type contextKey int
+
+const (
+	ctxKeyPathOverride contextKey = iota
+)
+
+func withPathOverride(ctx context.Context, path string) context.Context {
+	return context.WithValue(ctx, ctxKeyPathOverride, path)
 }
 
-// Open creates a new git cli based git backend
-func Open(path string) (*Git, error) {
+func getPathOverride(ctx context.Context, def string) string {
+	if sv, ok := ctx.Value(ctxKeyPathOverride).(string); ok && sv != "" {
+		return sv
+	}
+	return def
+}
+
+// Git is a cli based git backend
+type Git struct {
+	fs *fs.Store
+}
+
+// New creates a new git cli based git backend
+func New(path string) (*Git, error) {
 	if !fsutil.IsDir(filepath.Join(path, ".git")) {
 		return nil, fmt.Errorf("git repo does not exist")
 	}
 	return &Git{
-		path: path,
+		fs: fs.New(path),
 	}, nil
 }
 
@@ -44,19 +62,18 @@ func Open(path string) (*Git, error) {
 // configured for this clone repo
 func Clone(ctx context.Context, repo, path string) (*Git, error) {
 	g := &Git{
-		path: filepath.Dir(path),
+		fs: fs.New(path),
 	}
-	if err := g.Cmd(ctx, "Clone", "clone", repo, path); err != nil {
+	if err := g.Cmd(withPathOverride(ctx, filepath.Dir(path)), "Clone", "clone", repo, path); err != nil {
 		return nil, err
 	}
-	g.path = path
 	return g, nil
 }
 
 // Init initializes this store's git repo
 func Init(ctx context.Context, path, userName, userEmail string) (*Git, error) {
 	g := &Git{
-		path: path,
+		fs: fs.New(path),
 	}
 	// the git repo may be empty (i.e. no branches, cloned from a fresh remote)
 	// or already initialized. Only run git init if the folder is completely empty
@@ -64,7 +81,7 @@ func Init(ctx context.Context, path, userName, userEmail string) (*Git, error) {
 		if err := g.Cmd(ctx, "Init", "init"); err != nil {
 			return nil, errors.Errorf("failed to initialize git: %s", err)
 		}
-		out.Green(ctx, "git initialized at %s", g.path)
+		out.Green(ctx, "git initialized at %s", g.fs.Path())
 	}
 
 	if !ctxutil.IsGitInit(ctx) {
@@ -75,11 +92,11 @@ func Init(ctx context.Context, path, userName, userEmail string) (*Git, error) {
 	if err := g.InitConfig(ctx, userName, userEmail); err != nil {
 		return g, errors.Errorf("failed to configure git: %s", err)
 	}
-	out.Green(ctx, "git configured at %s", g.path)
+	out.Green(ctx, "git configured at %s", g.fs.Path())
 
 	// add current content of the store
-	if err := g.Add(ctx, g.path); err != nil {
-		return g, errors.Wrapf(err, "failed to add '%s' to git", g.path)
+	if err := g.Add(ctx, g.fs.Path()); err != nil {
+		return g, errors.Wrapf(err, "failed to add '%s' to git", g.fs.Path())
 	}
 
 	// commit if there is something to commit
@@ -100,7 +117,7 @@ func (g *Git) captureCmd(ctx context.Context, name string, args ...string) ([]by
 	bufErr := &bytes.Buffer{}
 
 	cmd := exec.CommandContext(ctx, "git", args[0:]...)
-	cmd.Dir = g.path
+	cmd.Dir = getPathOverride(ctx, g.fs.Path())
 	cmd.Stdout = bufOut
 	cmd.Stderr = bufErr
 
@@ -109,7 +126,7 @@ func (g *Git) captureCmd(ctx context.Context, name string, args ...string) ([]by
 		cmd.Stderr = io.MultiWriter(bufErr, os.Stderr)
 	}
 
-	debug.Log("store.%s: %s %+v (%s)", name, cmd.Path, cmd.Args, g.path)
+	debug.Log("store.%s: %s %+v (%s)", name, cmd.Path, cmd.Args, g.fs.Path())
 	err := cmd.Run()
 	return bufOut.Bytes(), bufErr.Bytes(), err
 }
@@ -156,7 +173,7 @@ func (g *Git) Version(ctx context.Context) semver.Version {
 
 // IsInitialized returns true if this stores has an (probably) initialized .git folder
 func (g *Git) IsInitialized() bool {
-	return fsutil.IsFile(filepath.Join(g.path, ".git", "config"))
+	return fsutil.IsFile(filepath.Join(g.fs.Path(), ".git", "config"))
 }
 
 // Add adds the listed files to the git index
@@ -166,7 +183,7 @@ func (g *Git) Add(ctx context.Context, files ...string) error {
 	}
 
 	for i := range files {
-		files[i] = strings.TrimPrefix(files[i], g.path+"/")
+		files[i] = strings.TrimPrefix(files[i], g.fs.Path()+"/")
 	}
 
 	args := []string{"add", "--all", "--force"}

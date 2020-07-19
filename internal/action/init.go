@@ -81,9 +81,6 @@ func initParseContext(ctx context.Context, c *cli.Context) context.Context {
 	if c.IsSet("crypto") {
 		ctx = backend.WithCryptoBackendString(ctx, c.String("crypto"))
 	}
-	if c.IsSet("rcs") {
-		ctx = backend.WithRCSBackendString(ctx, c.String("rcs"))
-	}
 	if c.IsSet("storage") {
 		ctx = backend.WithStorageBackendString(ctx, c.String("storage"))
 	}
@@ -92,13 +89,9 @@ func initParseContext(ctx context.Context, c *cli.Context) context.Context {
 		debug.Log("Using default Crypto Backend (GPGCLI)")
 		ctx = backend.WithCryptoBackend(ctx, backend.GPGCLI)
 	}
-	if !backend.HasRCSBackend(ctx) {
-		debug.Log("Using default RCS backend (GitCLI)")
-		ctx = backend.WithRCSBackend(ctx, backend.GitCLI)
-	}
 	if !backend.HasStorageBackend(ctx) {
-		debug.Log("Using default storage backend (FS)")
-		ctx = backend.WithStorageBackend(ctx, backend.FS)
+		debug.Log("Using default storage backend (GitFS)")
+		ctx = backend.WithStorageBackend(ctx, backend.GitFS)
 	}
 
 	ctx = out.WithPrefix(ctx, "[init] ")
@@ -144,8 +137,8 @@ func (s *Action) init(ctx context.Context, alias, path string, keys ...string) e
 		}
 	}
 
-	if backend.HasRCSBackend(ctx) {
-		bn := backend.RCSBackendName(backend.GetRCSBackend(ctx))
+	if backend.HasStorageBackend(ctx) {
+		bn := backend.StorageBackendName(backend.GetStorageBackend(ctx))
 		debug.Log("Initializing RCS (%s) ...", bn)
 		if err := s.rcsInit(ctx, alias, ctxutil.GetUsername(ctx), ctxutil.GetEmail(ctx)); err != nil {
 			debug.Log("Stacktrace: %+v\n", err)

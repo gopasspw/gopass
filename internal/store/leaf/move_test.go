@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	plain "github.com/gopasspw/gopass/internal/backend/crypto/plain"
-	noop "github.com/gopasspw/gopass/internal/backend/rcs/noop"
 	"github.com/gopasspw/gopass/internal/backend/storage/fs"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -79,7 +78,6 @@ func TestCopy(t *testing.T) {
 			alias:   "",
 			path:    tempdir,
 			crypto:  plain.New(),
-			rcs:     noop.New(),
 			storage: fs.New(tempdir),
 		}
 
@@ -155,7 +153,6 @@ func TestMove(t *testing.T) {
 			alias:   "",
 			path:    tempdir,
 			crypto:  plain.New(),
-			rcs:     noop.New(),
 			storage: fs.New(tempdir),
 		}
 
@@ -215,7 +212,6 @@ func TestDelete(t *testing.T) {
 			alias:   "",
 			path:    tempdir,
 			crypto:  plain.New(),
-			rcs:     noop.New(),
 			storage: fs.New(tempdir),
 		}
 
@@ -298,7 +294,6 @@ func TestPrune(t *testing.T) {
 			alias:   "",
 			path:    tempdir,
 			crypto:  plain.New(),
-			rcs:     noop.New(),
 			storage: fs.New(tempdir),
 		}
 

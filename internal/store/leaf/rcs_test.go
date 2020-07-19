@@ -26,21 +26,21 @@ func TestGit(t *testing.T) {
 	s, err := createSubStore(tempdir)
 	require.NoError(t, err)
 
-	assert.NotNil(t, s.RCS())
-	assert.Equal(t, "noop", s.RCS().Name())
-	assert.NoError(t, s.RCS().InitConfig(ctx, "foo", "bar@baz.com"))
-	assert.Equal(t, semver.Version{}, s.RCS().Version(ctx))
-	assert.NoError(t, s.RCS().AddRemote(ctx, "foo", "bar"))
-	assert.NoError(t, s.RCS().Pull(ctx, "origin", "master"))
-	assert.NoError(t, s.RCS().Push(ctx, "origin", "master"))
+	require.NotNil(t, s.Storage())
+	require.Equal(t, "fs", s.Storage().Name())
+	assert.NoError(t, s.Storage().InitConfig(ctx, "foo", "bar@baz.com"))
+	assert.Equal(t, semver.Version{Minor: 1}, s.Storage().Version(ctx))
+	assert.NoError(t, s.Storage().AddRemote(ctx, "foo", "bar"))
+	assert.NoError(t, s.Storage().Pull(ctx, "origin", "master"))
+	assert.NoError(t, s.Storage().Push(ctx, "origin", "master"))
 
 	assert.NoError(t, s.GitInit(ctx))
-	assert.NoError(t, s.GitInit(backend.WithRCSBackend(ctx, backend.Noop)))
-	assert.Error(t, s.GitInit(backend.WithRCSBackend(ctx, -1)))
+	assert.NoError(t, s.GitInit(backend.WithStorageBackend(ctx, backend.FS)))
+	assert.Error(t, s.GitInit(backend.WithStorageBackend(ctx, -1)))
 
 	ctx = ctxutil.WithUsername(ctx, "foo")
 	ctx = ctxutil.WithEmail(ctx, "foo@baz.com")
-	assert.NoError(t, s.GitInit(backend.WithRCSBackend(ctx, backend.GitCLI)))
+	assert.NoError(t, s.GitInit(backend.WithStorageBackend(ctx, backend.GitFS)))
 }
 
 func TestGitRevisions(t *testing.T) {
@@ -55,9 +55,9 @@ func TestGitRevisions(t *testing.T) {
 	s, err := createSubStore(tempdir)
 	require.NoError(t, err)
 
-	assert.NotNil(t, s.RCS())
-	assert.Equal(t, "noop", s.RCS().Name())
-	assert.NoError(t, s.RCS().InitConfig(ctx, "foo", "bar@baz.com"))
+	require.NotNil(t, s.Storage())
+	require.Equal(t, "fs", s.Storage().Name())
+	assert.NoError(t, s.Storage().InitConfig(ctx, "foo", "bar@baz.com"))
 
 	revs, err := s.ListRevisions(ctx, "foo")
 	assert.NoError(t, err)
