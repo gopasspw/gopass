@@ -398,10 +398,6 @@ func (s *Action) GetCommands() []*cli.Command {
 							Aliases: []string{"useremail"},
 							Usage:   "Git Author Email",
 						},
-						&cli.StringFlag{
-							Name:  "rcs",
-							Usage: "Select sync backend (git, gitcli, noop)",
-						},
 					},
 				},
 				{
@@ -525,18 +521,13 @@ func (s *Action) GetCommands() []*cli.Command {
 				},
 				&cli.StringFlag{
 					Name:  "crypto",
-					Usage: "Select crypto backend (gpgcli, plain, xc)",
+					Usage: "Select crypto backend (gpgcli, age, xc, plain)",
 					Value: "gpgcli",
 				},
 				&cli.StringFlag{
-					Name:  "rcs",
-					Usage: "Select sync backend (git, gitcli, noop)",
-					Value: "gitcli",
-				},
-				&cli.StringFlag{
 					Name:  "storage",
-					Usage: "Select storage backend (fs, inmen, ondisk)",
-					Value: "fs",
+					Usage: "Select storage backend (gitfs, fs, ondisk)",
+					Value: "gitfs",
 				},
 			},
 		},
@@ -644,13 +635,6 @@ func (s *Action) GetCommands() []*cli.Command {
 						"at any path in an existing root store.",
 					Before: s.Initialized,
 					Action: s.MountAdd,
-					Flags: []cli.Flag{
-						&cli.StringFlag{
-							Name:    "init",
-							Aliases: []string{"i"},
-							Usage:   "Init the store with the given recipient key",
-						},
-					},
 				},
 				{
 					Name:    "remove",

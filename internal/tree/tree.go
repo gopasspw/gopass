@@ -44,6 +44,10 @@ func (t *Tree) Equals(other *Tree) bool {
 func (t *Tree) Insert(node *Node) (*Node, error) {
 	pos, found := t.find(node.Name)
 	if found != nil {
+		if node.Mount {
+			t.Nodes[pos] = node
+			return node, nil
+		}
 		return t.Nodes[pos], fmt.Errorf("node %q already preset", node.Name)
 	}
 

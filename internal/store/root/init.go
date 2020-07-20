@@ -29,7 +29,7 @@ func (r *Store) Init(ctx context.Context, alias, path string, ids ...string) err
 		ctx = backend.WithCryptoBackend(ctx, backend.GPGCLI)
 	}
 	if !backend.HasStorageBackend(ctx) {
-		ctx = backend.WithStorageBackend(ctx, backend.FS)
+		ctx = backend.WithStorageBackend(ctx, backend.GitFS)
 	}
 	sub, err := leaf.New(ctx, alias, path)
 	if err != nil {
