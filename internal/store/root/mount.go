@@ -66,8 +66,10 @@ func (r *Store) initSub(ctx context.Context, alias, path string, keys []string) 
 
 	debug.Log("[%s] Mount %s is not initialized", alias, path)
 	if len(keys) < 1 {
+		debug.Log("[%s] No keys available", alias)
 		return s, NotInitializedError{alias, path}
 	}
+	debug.Log("[%s] Trying to initialize at %s for %+v", alias, path, keys)
 	if err := s.Init(ctx, path, keys...); err != nil {
 		return s, errors.Wrapf(err, "failed to initialize store '%s' at '%s'", alias, path)
 	}

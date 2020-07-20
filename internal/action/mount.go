@@ -81,25 +81,18 @@ func (s *Action) MountAdd(c *cli.Context) error {
 		localPath = config.PwStoreDir(alias)
 	}
 
-	keys := make([]string, 0, 1)
-	if k := c.String("init"); k != "" {
-		keys = append(keys, k)
-	}
-
 	if s.Store.Exists(ctx, alias) {
 		out.Yellow(ctx, "WARNING: shadowing %s entry", alias)
 	}
 
-	if err := s.Store.AddMount(ctx, alias, localPath, keys...); err != nil {
+	if err := s.Store.AddMount(ctx, alias, localPath); err != nil {
 		switch e := errors.Cause(err).(type) {
 		case root.AlreadyMountedError:
 			out.Print(ctx, "Store is already mounted")
 			return nil
 		case root.NotInitializedError:
-			out.Print(ctx, "Mount %s is not yet initialized. Initializing ...", e.Alias())
-			if err := s.init(ctx, e.Alias(), e.Path()); err != nil {
-				return ExitError(ExitUnknown, err, "failed to add mount '%s': failed to initialize store: %s", e.Alias(), err)
-			}
+			out.Print(ctx, "Mount %s is not yet initialized. Please use 'gopass init --store %s' instead", e.Alias(), e.Alias())
+			return e
 		default:
 			return ExitError(ExitMount, err, "failed to add mount '%s' to '%s': %s", alias, localPath, err)
 		}

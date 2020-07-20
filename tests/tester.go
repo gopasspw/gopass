@@ -81,7 +81,7 @@ func newTester(t *testing.T) *tester {
 
 	// write config
 	require.NoError(t, os.MkdirAll(filepath.Dir(ts.gopassConfig()), 0700))
-	if err := ioutil.WriteFile(ts.gopassConfig(), []byte(gopassConfig+"\n  path: "+ts.storeDir("")+"\n"), 0600); err != nil {
+	if err := ioutil.WriteFile(ts.gopassConfig(), []byte(gopassConfig+"\n  path: "+ts.storeDir("root")+"\n"), 0600); err != nil {
 		t.Fatalf("Failed to write gopass config to %s: %s", ts.gopassConfig(), err)
 	}
 

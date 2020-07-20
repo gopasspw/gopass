@@ -57,6 +57,9 @@ func (s *Action) Init(c *cli.Context) error {
 	alias := c.String("store")
 
 	ctx = initParseContext(ctx, c)
+	ctx = out.WithPrefix(ctx, "[init] ")
+	out.Cyan(ctx, "Initializing a new password store ...")
+
 	if name := termio.DetectName(c.Context, c); name != "" {
 		ctx = ctxutil.WithUsername(ctx, name)
 	}
@@ -93,9 +96,6 @@ func initParseContext(ctx context.Context, c *cli.Context) context.Context {
 		debug.Log("Using default storage backend (GitFS)")
 		ctx = backend.WithStorageBackend(ctx, backend.GitFS)
 	}
-
-	ctx = out.WithPrefix(ctx, "[init] ")
-	out.Cyan(ctx, "Initializing a new password store ...")
 
 	return ctx
 }
@@ -182,6 +182,9 @@ func (s *Action) InitOnboarding(c *cli.Context) error {
 	create := c.Bool("create")
 
 	ctx = initParseContext(ctx, c)
+	ctx = out.WithPrefix(ctx, "[init] ")
+	out.Cyan(ctx, "Initializing a new password store ...")
+
 	if name := termio.DetectName(c.Context, c); name != "" {
 		ctx = ctxutil.WithUsername(ctx, name)
 	}

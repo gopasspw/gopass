@@ -48,3 +48,31 @@ func TestRoot(t *testing.T) {
     └── bar
 `, f.Format(-1))
 }
+
+func TestMountShadow(t *testing.T) {
+	color.NoColor = true
+
+	r := New("gopass")
+	r.AddTemplate("foo")
+	r.AddFile("foo/bar/baz", "")
+	r.AddFile("foo/bar/zab", "")
+	r.AddMount("foo", "/tmp/m1")
+	r.AddFile("foo/zab", "")
+	r.AddFile("foo/baz", "")
+	t.Logf("%+#v", r)
+	assert.Equal(t, `gopass
+└── foo (/tmp/m1)
+    ├── baz
+    └── zab
+`, r.Format(-1))
+
+	assert.Equal(t, []string{
+		"foo/baz",
+		"foo/zab",
+	}, r.List(-1))
+	assert.Equal(t, []string{
+		"foo",
+	}, r.ListFolders(-1))
+	_, err := r.FindFolder("mnt/m1")
+	assert.Error(t, err)
+}

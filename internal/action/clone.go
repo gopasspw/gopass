@@ -40,6 +40,8 @@ func (s *Action) Clone(c *cli.Context) error {
 	return s.clone(ctx, repo, mount, path)
 }
 
+// storageBackendOrDefault will return a storage backend that can be clone,
+// i.e. specifically backend.FS can't be cloned.
 func storageBackendOrDefault(ctx context.Context) backend.StorageBackend {
 	if be := backend.GetStorageBackend(ctx); be != backend.FS {
 		return be
