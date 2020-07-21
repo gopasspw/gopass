@@ -81,6 +81,7 @@ func newTester(t *testing.T) *tester {
 
 	// write config
 	require.NoError(t, os.MkdirAll(filepath.Dir(ts.gopassConfig()), 0700))
+	// we need to set the root path to something else than the root directory otherwise the mounts will show as regular entries
 	if err := ioutil.WriteFile(ts.gopassConfig(), []byte(gopassConfig+"\n  path: "+ts.storeDir("root")+"\n"), 0600); err != nil {
 		t.Fatalf("Failed to write gopass config to %s: %s", ts.gopassConfig(), err)
 	}

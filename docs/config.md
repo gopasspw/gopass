@@ -41,25 +41,25 @@ All configuration options are also available for reading and writing through the
 * To display all values: `gopass config`
 * To display a single value: `gopass config autosync`
 * To update a single value: `gopass config autosync false`
-* As many other sub-commands this command accepts a `--store` flag to operate on a given sub-store.
+* As many other sub-commands this command accepts a `--store` flag to operate on a given sub-store, provided the sub-store is a remote one. Support for different local configurations per mount was dropped in v1.9.3.
 
 This is a list of available options:
 
 | **Option**       | **Type** | Description |
 | ---------------- | -------- | ----------- |
-| `askformore`     | `bool`   | If enabled - it will ask to add more data after use of `generate` command. |
+| `askformore`     | `bool`   | If enabled - it will ask to add more data after use of `generate` command.  DEPRECATED in v1.9.3 |
 | `autoclip`       | `bool`   | Always copy the password created by `pass generate`. |
 | `autoimport`     | `bool`   | Import missing keys stored in the pass repository without asking. |
-| `autosync`       | `bool`   | Always do a `git push` after a commit to the store. Makes sure your local changes are always available on your git remote. |
-| `concurrency`    | `int`    | Number of threads to use for batch operations (such as reencrypting). |
+| `autosync`       | `bool`   | Always do a `git push` after a commit to the store. Makes sure your local changes are always available on your git remote. DEPRECATED in v1.9.3 |
+| `concurrency`    | `int`    | Number of threads to use for batch operations (such as reencrypting).  DEPRECATED in v1.9.3 |
 | `cliptimeout`    | `int`    | How many seconds the secret is stored when using `-c`. |
-| `noconfirm`      | `bool`   | Do not confirm recipient list when encrypting. |
-| `path`           | `string` | Path to the root store. |
+| `confirm`      | `bool`   | Confirm recipient list when encrypting. |
 | `editrecipients` | `bool`   | Modify recipients when creating and editing passwords. |
 | `exportkeys`     | `bool`   | Export public keys of all recipients to the store. |
-| `recipient_hash` | `map`    | Map of recipient ids to their hashes. |
-| `safecontent`    | `bool`   | Only output _safe content_ (i.e. everything but the first line of a secret) to the terminal. Use _copy_ (`-c`) to retrieve the password in the clipboard. |
-| `usesymbols`     | `bool`   | If enabled - it will use symbols when generating passwords. |
-| `notifications`  | `bool`   | Enable desktop notifications. |
+| `recipient_hash` | `map`    | Map of recipient ids to their hashes.  DEPRECATED in v1.9.3 |
+| `usesymbols`     | `bool`   | If enabled - it will use symbols when generating passwords.  DEPRECATED in v1.9.3 |
 | `nocolor`        | `bool`   | Do not use color. |
 | `nopager`        | `bool`   | Do not invoke a pager to display long lists. |
+| `notifications`  | `bool`   | Enable desktop notifications. |
+| `path`           | `string` | Path to the root store. |
+| `safecontent`    | `bool`   | Only output _safe content_ (i.e. everything but the first line of a secret) to the terminal. Use _copy_ (`-c`) to retrieve the password in the clipboard, or _force_ (`-f`) to still print it. |

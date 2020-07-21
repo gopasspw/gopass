@@ -69,7 +69,7 @@ func TestConfig(t *testing.T) {
 	t.Run("print single config value", func(t *testing.T) {
 		defer buf.Reset()
 
-		act.printConfigValues(ctx, "", "nopager")
+		act.printConfigValues(ctx, "nopager")
 
 		want := "nopager: true"
 		assert.Equal(t, want, strings.TrimSpace(buf.String()), "action.printConfigValues")
@@ -78,7 +78,7 @@ func TestConfig(t *testing.T) {
 	t.Run("print all config values", func(t *testing.T) {
 		defer buf.Reset()
 
-		act.printConfigValues(ctx, "")
+		act.printConfigValues(ctx)
 		want := `root store config:
   autoclip: true
   autoimport: true

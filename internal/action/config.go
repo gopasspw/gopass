@@ -18,12 +18,12 @@ import (
 func (s *Action) Config(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	if c.Args().Len() < 1 {
-		s.printConfigValues(ctx, "")
+		s.printConfigValues(ctx)
 		return nil
 	}
 
 	if c.Args().Len() == 1 {
-		s.printConfigValues(ctx, "", c.Args().Get(0))
+		s.printConfigValues(ctx, c.Args().Get(0))
 		return nil
 	}
 
@@ -37,7 +37,7 @@ func (s *Action) Config(c *cli.Context) error {
 	return nil
 }
 
-func (s *Action) printConfigValues(ctx context.Context, store string, needles ...string) {
+func (s *Action) printConfigValues(ctx context.Context, needles ...string) {
 	prefix := ""
 	if len(needles) < 1 {
 		out.Print(ctx, "root store config:")
@@ -45,19 +45,14 @@ func (s *Action) printConfigValues(ctx context.Context, store string, needles ..
 	}
 
 	m := s.cfg.ConfigMap()
-	if store == "" {
-		for _, k := range filterMap(m, needles) {
-			out.Print(ctx, "%s%s: %s", prefix, k, m[k])
-		}
+	for _, k := range filterMap(m, needles) {
+		out.Print(ctx, "%s%s: %s", prefix, k, m[k])
 	}
 	for alias, path := range s.cfg.Mounts {
-		if store != "" && alias != store {
-			continue
-		}
 		if len(needles) < 1 {
 			out.Print(ctx, "mount '%s' => '%s'", alias, path)
 		}
-		storage, ok := s.getOnDiskStorage(ctx, store)
+		storage, ok := s.getOnDiskStorage(ctx, alias)
 		if !ok {
 			// not ondisk
 			continue
@@ -96,13 +91,13 @@ func contains(haystack []string, needle string) bool {
 }
 
 func (s *Action) setConfigValue(ctx context.Context, store, key, value string) error {
-	if key == "remote" && value != "" {
+	if key == "remote" && value != "" && store != "" {
 		return s.setRemoteConfig(ctx, store, value)
 	}
 	if err := s.cfg.SetConfigValue(key, value); err != nil {
 		return errors.Wrapf(err, "failed to set config value '%s'", key)
 	}
-	s.printConfigValues(ctx, store, key)
+	s.printConfigValues(ctx, key)
 	return nil
 }
 
