@@ -99,7 +99,7 @@ func (s *Action) GetCommands() []*cli.Command {
 			Flags: []cli.Flag{
 				&cli.StringFlag{
 					Name:  "store",
-					Usage: "Set value to substore config",
+					Usage: "Set value to remote substore config",
 				},
 			},
 		},

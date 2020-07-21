@@ -1,22 +1,35 @@
 package tests
 
 import (
+	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func TestConfig(t *testing.T) {
+func TestBaseConfig(t *testing.T) {
 	ts := newTester(t)
 	defer ts.teardown()
 
 	out, err := ts.run("config")
 	assert.NoError(t, err)
-	assert.Contains(t, out, "autoimport: true")
-	assert.Contains(t, out, "cliptimeout: 45")
-	assert.Contains(t, out, "confirm: false")
-	assert.Contains(t, out, "path: ")
-	assert.Contains(t, out, "safecontent: false")
+	wanted := `root store config:
+  autoclip: false
+  autoimport: true
+  cliptimeout: 45
+  confirm: false
+  editrecipients: false
+  exportkeys: false
+  nocolor: false
+  nopager: false
+  notifications: false
+`
+	wanted += "  path: " + ts.storeDir("root") + "\n"
+	wanted += "  safecontent: false"
+
+	assert.Equal(t, wanted, out)
 
 	invertables := []string{
 		"autoimport",
@@ -45,4 +58,36 @@ func TestConfig(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, "cliptimeout: 120", out)
 	})
+}
+
+func TestMountConfig(t *testing.T) {
+	ts := newTester(t)
+	defer ts.teardown()
+
+	// we add a mount:
+	_, err := ts.run("init --store mnt/m1 --path " + ts.storeDir("m1") + " --storage=fs " + keyID)
+	require.NoError(t, err)
+
+	_, err = ts.run("config")
+	assert.NoError(t, err)
+
+	wanted := `root store config:
+  autoclip: false
+  autoimport: true
+  cliptimeout: 45
+  confirm: false
+  editrecipients: false
+  exportkeys: false
+  nocolor: false
+  nopager: false
+  notifications: false
+  path: `
+	wanted += ts.storeDir("root") + "\n"
+	wanted += `  safecontent: false
+mount 'mnt/m1' => '`
+	wanted += ts.storeDir("m1") + "'\n"
+
+	out, err := ts.run("config")
+	assert.NoError(t, err)
+	assert.Equal(t, strings.TrimSpace(wanted), out)
 }

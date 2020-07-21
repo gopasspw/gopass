@@ -16,6 +16,53 @@ func TestSingleMount(t *testing.T) {
 	ts.initStore()
 	ts.initSecrets("")
 
+	out, err := ts.run("init --store mnt/m1 --path " + ts.storeDir("m1") + " --storage=fs " + keyID)
+	t.Logf("Output: %s", out)
+	require.NoError(t, err)
+
+	out, err = ts.run("mounts")
+	assert.NoError(t, err)
+	want := "gopass (" + ts.storeDir("root") + ")\n"
+	want += "└── mnt\n    └── m1 (" + ts.storeDir("m1") + ")"
+	assert.Equal(t, strings.TrimSpace(want), out)
+
+	out, err = ts.run("show mnt/m1/secret")
+	assert.Error(t, err)
+	assert.Equal(t, "\nError: failed to retrieve secret 'mnt/m1/secret': Entry is not in the password store\n", out)
+
+	ts.initSecrets("mnt/m1/")
+
+	list := `
+gopass
+├── baz
+├── fixed
+│   ├── secret
+│   └── twoliner
+├── foo
+│   └── bar
+└── mnt
+    └── m1 (%s)
+        ├── baz
+        ├── fixed
+        │   ├── secret
+        │   └── twoliner
+        └── foo
+            └── bar
+`
+	list = fmt.Sprintf(list, ts.storeDir("m1"))
+
+	out, err = ts.run("list")
+	assert.NoError(t, err)
+	assert.Equal(t, strings.TrimSpace(list), out)
+}
+
+func TestMountShadowing(t *testing.T) {
+	ts := newTester(t)
+	defer ts.teardown()
+
+	ts.initStore()
+	ts.initSecrets("")
+
 	// insert some secret at a place that will be shadowed by a mount
 	_, err := ts.runCmd([]string{ts.Binary, "insert", "mnt/m1/secret"}, []byte("moar"))
 	require.NoError(t, err)
@@ -28,33 +75,79 @@ func TestSingleMount(t *testing.T) {
 	t.Logf("Output: %s", out)
 	require.NoError(t, err)
 
-	out, err = ts.run("show mnt/m1/secret")
+	// check the mount is there
+	out, err = ts.run("mounts")
+	assert.NoError(t, err)
+	want := "gopass (" + ts.storeDir("root") + ")\n"
+	want += "└── mnt\n    └── m1 (" + ts.storeDir("m1") + ")"
+	assert.Equal(t, strings.TrimSpace(want), out)
+
+	// check that the mount is not containing our shadowed secret
+	out, err = ts.run("show -f mnt/m1/secret")
 	assert.Error(t, err)
 	assert.Equal(t, "\nError: failed to retrieve secret 'mnt/m1/secret': Entry is not in the password store\n", out)
 
+	// insert some secret at the place that is shadowed by the mount
+	_, err = ts.runCmd([]string{ts.Binary, "insert", "mnt/m1/secret"}, []byte("food"))
+	require.NoError(t, err)
+
+	// check that the mount is containing our new secret shadowing the old one
+	out, err = ts.run("show -f mnt/m1/secret")
+	assert.NoError(t, err)
+	assert.Equal(t, "food", out)
+
+	// add more secrets
 	ts.initSecrets("mnt/m1/")
 
-	list := `gopass
+	// check that the mount is listed
+	list := `
+gopass
+├── baz
 ├── fixed
 │   ├── secret
 │   └── twoliner
 ├── foo
 │   └── bar
-├── mnt
+└── mnt
+    └── m1 (%s)
+        ├── baz
+        ├── fixed
+        │   ├── secret
+        │   └── twoliner
+        ├── foo
+        │   └── bar
+        └── secret
 `
-	list += "│   └── m1 (" + ts.storeDir("m1") + ")\n"
-	list += `│       ├── fixed
-│       │   ├── secret
-│       │   └── twoliner
-│       ├── foo
-│       │   └── bar
-│       └── baz
-└── baz`
+	list = fmt.Sprintf(list, ts.storeDir("m1"))
 
 	out, err = ts.run("list")
 	assert.NoError(t, err)
-	t.Skip("integration test seems broken, but not manual tests")
 	assert.Equal(t, strings.TrimSpace(list), out)
+
+	// check that unmounting works:
+	_, err = ts.run("mounts rm mnt/m1")
+	assert.NoError(t, err)
+
+	list = `
+gopass
+├── baz
+├── fixed
+│   ├── secret
+│   └── twoliner
+├── foo
+│   └── bar
+└── mnt
+    └── m1
+        └── secret
+`
+
+	out, err = ts.run("list")
+	assert.NoError(t, err)
+	assert.Equal(t, strings.TrimSpace(list), out)
+
+	out, err = ts.run("show -f mnt/m1/secret")
+	assert.NoError(t, err)
+	assert.Equal(t, "moar", out)
 }
 
 func TestMultiMount(t *testing.T) {
