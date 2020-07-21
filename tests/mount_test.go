@@ -96,6 +96,9 @@ func TestMountShadowing(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "food", out)
 
+	// add more secrets
+	ts.initSecrets("mnt/m1/")
+
 	// check that the mount is listed
 	list := `
 gopass
@@ -111,16 +114,40 @@ gopass
         ├── fixed
         │   ├── secret
         │   └── twoliner
-        └── foo
-            └── bar
+        ├── foo
+        │   └── bar
+        └── secret
 `
 	list = fmt.Sprintf(list, ts.storeDir("m1"))
 
 	out, err = ts.run("list")
 	assert.NoError(t, err)
-
-	t.Skip("this test is currently failing because the list is shadowing the mount")
 	assert.Equal(t, strings.TrimSpace(list), out)
+
+	// check that unmounting works:
+	_, err = ts.run("mounts rm mnt/m1")
+	assert.NoError(t, err)
+
+	list = `
+gopass
+├── baz
+├── fixed
+│   ├── secret
+│   └── twoliner
+├── foo
+│   └── bar
+└── mnt
+    └── m1
+        └── secret
+`
+
+	out, err = ts.run("list")
+	assert.NoError(t, err)
+	assert.Equal(t, strings.TrimSpace(list), out)
+
+	out, err = ts.run("show -f mnt/m1/secret")
+	assert.NoError(t, err)
+	assert.Equal(t, "moar", out)
 }
 
 func TestMultiMount(t *testing.T) {
