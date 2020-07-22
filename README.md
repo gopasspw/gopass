@@ -55,7 +55,7 @@ Please see [docs/setup.md](https://github.com/gopasspw/gopass/blob/master/docs/s
 If you have [Go](https://golang.org/) 1.14 (or greater) installed:
 
 ```bash
-go get github.com/gopasspw/gopass
+GO111MODULE=on go get github.com/gopasspw/gopass
 ```
 
 WARNING: Please prefer releases, unless you want to contribute to the
