@@ -86,6 +86,19 @@ func (c *Client) Set(key, value string) error {
 	return nil
 }
 
+// Option sets an option, e.g. "default-cancel=Abbruch" or "allow-external-password-cache"
+func (c *Client) Option(value string) error {
+	val := "OPTION " + value + "\n"
+	if _, err := c.in.Write([]byte(val)); err != nil {
+		return err
+	}
+	line, _, _ := c.out.ReadLine()
+	if string(line) != "OK" {
+		return errors.Errorf("error: %s", line)
+	}
+	return nil
+}
+
 // GetPin asks for the pin
 func (c *Client) GetPin() ([]byte, error) {
 	if _, err := c.in.Write([]byte("GETPIN\n")); err != nil {
