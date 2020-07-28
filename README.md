@@ -101,6 +101,7 @@ gopass is developed in the open. Here are some of the channels we use to communi
 - [`gopass-git-credentials`](https://github.com/gopasspw/gopass/tree/master/cmd/gopass-git-credentials): Integrate gopass as an git-credential helper
 - [`gopass-hibp`](https://github.com/gopasspw/gopass/tree/master/cmd/gopass-hibp): haveibeenpwned.com leak checker
 - [`gopass-jsonapi`](https://github.com/gopasspw/gopass/tree/master/cmd/gopass-jsonapi): native messaging for browser plugins, e.g. gopassbridge
+- [`terraform-provider-gopass`](https://github.com/camptocamp/terraform-provider-pass): a Terraform provider to interact with gopass
 
 ## Mobile apps
 
