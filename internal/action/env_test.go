@@ -43,3 +43,19 @@ func TestEnvLeafHappyPath(t *testing.T) {
 	assert.NoError(t, act.Env(gptest.CliCtx(ctx, t, "foo", "env")))
 	assert.Contains(t, buf.String(), "FOO=secret\n")
 }
+
+func TestEnvSecretNotFound(t *testing.T) {
+	u := gptest.NewUnitTester(t)
+	defer u.Remove()
+
+	ctx := context.Background()
+	ctx = ctxutil.WithAlwaysYes(ctx, true)
+	ctx = ctxutil.WithTerminal(ctx, false)
+	act, err := newMock(ctx, u)
+	require.NoError(t, err)
+	require.NotNil(t, act)
+
+	// Command-line would be: "gopass env non-existing true".
+	assert.EqualError(t, act.Env(gptest.CliCtx(ctx, t, "non-existing", "true")),
+		"Secret non-existing not found")
+}
