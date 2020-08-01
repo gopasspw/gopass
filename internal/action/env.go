@@ -20,6 +20,10 @@ func (s *Action) Env(c *cli.Context) error {
 	name := c.Args().First()
 	args := c.Args().Tail()
 
+	if len(args) == 0 {
+		return ExitError(ExitUsage, nil, "Missing subcommand to execute")
+	}
+
 	if !s.Store.Exists(ctx, name) && !s.Store.IsDir(ctx, name) {
 		return ExitError(ExitNotFound, nil, "Secret %s not found", name)
 	}
