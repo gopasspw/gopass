@@ -59,3 +59,19 @@ func TestEnvSecretNotFound(t *testing.T) {
 	assert.EqualError(t, act.Env(gptest.CliCtx(ctx, t, "non-existing", "true")),
 		"Secret non-existing not found")
 }
+
+func TestEnvProgramNotFound(t *testing.T) {
+	u := gptest.NewUnitTester(t)
+	defer u.Remove()
+
+	ctx := context.Background()
+	ctx = ctxutil.WithAlwaysYes(ctx, true)
+	ctx = ctxutil.WithTerminal(ctx, false)
+	act, err := newMock(ctx, u)
+	require.NoError(t, err)
+	require.NotNil(t, act)
+
+	// Command-line would be: "gopass env foo non-existing".
+	assert.EqualError(t, act.Env(gptest.CliCtx(ctx, t, "foo", "non-existing")),
+		"exec: \"non-existing\": executable file not found in $PATH")
+}
