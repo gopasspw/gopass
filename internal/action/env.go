@@ -2,12 +2,12 @@ package action
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
 	"path"
 	"strings"
 
+	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/urfave/cli/v2"
 )
@@ -35,7 +35,7 @@ func (s *Action) Env(c *cli.Context) error {
 		subtree.SetName(name)
 		for _, e := range subtree.List(0) {
 			en := path.Join(name, e)
-			log.Println(en)
+			debug.Log("found key: %s", en)
 			keys = append(keys, en)
 		}
 	} else {
@@ -44,7 +44,7 @@ func (s *Action) Env(c *cli.Context) error {
 
 	env := make([]string, 0, 1)
 	for _, key := range keys {
-		log.Println(key)
+		debug.Log("exporting to environment key: %s", key)
 		sec, err := s.Store.Get(ctx, key)
 		if err != nil {
 			return err
