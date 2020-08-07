@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestEnv(t *testing.T) {
+func TestEnvLeafHappyPath(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 	defer u.Remove()
 
@@ -34,6 +34,61 @@ func TestEnv(t *testing.T) {
 		stdout = os.Stdout
 	}()
 
+	// Command-line would be: "gopass env foo env", where "foo" is an existing
+	// secret with value "secret". We expect to see the key/value in the output
+	// of the /usr/bin/env utility in the form "FOO=secret".
+	//
+	// TODO(@dominikschulz): consider populating foo with a long, random password to
+	// absolutely ensure that the correct secret is displayed.
 	assert.NoError(t, act.Env(gptest.CliCtx(ctx, t, "foo", "env")))
-	assert.Contains(t, buf.String(), "secret")
+	assert.Contains(t, buf.String(), "FOO=secret\n")
+}
+
+func TestEnvSecretNotFound(t *testing.T) {
+	u := gptest.NewUnitTester(t)
+	defer u.Remove()
+
+	ctx := context.Background()
+	ctx = ctxutil.WithAlwaysYes(ctx, true)
+	ctx = ctxutil.WithTerminal(ctx, false)
+	act, err := newMock(ctx, u)
+	require.NoError(t, err)
+	require.NotNil(t, act)
+
+	// Command-line would be: "gopass env non-existing true".
+	assert.EqualError(t, act.Env(gptest.CliCtx(ctx, t, "non-existing", "true")),
+		"Secret non-existing not found")
+}
+
+func TestEnvProgramNotFound(t *testing.T) {
+	u := gptest.NewUnitTester(t)
+	defer u.Remove()
+
+	ctx := context.Background()
+	ctx = ctxutil.WithAlwaysYes(ctx, true)
+	ctx = ctxutil.WithTerminal(ctx, false)
+	act, err := newMock(ctx, u)
+	require.NoError(t, err)
+	require.NotNil(t, act)
+
+	// Command-line would be: "gopass env foo non-existing".
+	assert.EqualError(t, act.Env(gptest.CliCtx(ctx, t, "foo", "non-existing")),
+		"exec: \"non-existing\": executable file not found in $PATH")
+}
+
+// Crash regression
+func TestEnvProgramNotSpecified(t *testing.T) {
+	u := gptest.NewUnitTester(t)
+	defer u.Remove()
+
+	ctx := context.Background()
+	ctx = ctxutil.WithAlwaysYes(ctx, true)
+	ctx = ctxutil.WithTerminal(ctx, false)
+	act, err := newMock(ctx, u)
+	require.NoError(t, err)
+	require.NotNil(t, act)
+
+	// Command-line would be: "gopass env foo".
+	assert.EqualError(t, act.Env(gptest.CliCtx(ctx, t, "foo")),
+		"Missing subcommand to execute")
 }

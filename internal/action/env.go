@@ -12,11 +12,17 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-// Env implements an env subcommand the populates the env of an subprocess with a set of secrets
+// Env implements the env subcommand. It populates the environment of a subprocess with
+// a set of environment variables corresponding to the secret subtree specified on the
+// command line.
 func (s *Action) Env(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	name := c.Args().First()
 	args := c.Args().Tail()
+
+	if len(args) == 0 {
+		return ExitError(ExitUsage, nil, "Missing subcommand to execute")
+	}
 
 	if !s.Store.Exists(ctx, name) && !s.Store.IsDir(ctx, name) {
 		return ExitError(ExitNotFound, nil, "Secret %s not found", name)
