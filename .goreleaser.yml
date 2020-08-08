@@ -8,16 +8,17 @@ before:
   hooks:
     - make clean
     - make completion
+    - go mod download
 
 builds:
   - id: gopass
     binary: gopass
     flags: |
-      -tags netgo -gcflags="-trimpath=$GOPATH" -asmflags="-trimpath=$GOPATH"
+      -trimpath -tags netgo -gcflags="-trimpath=$GOPATH" -asmflags="-trimpath=$GOPATH"
     env:
       - CGO_ENABLED=0
     ldflags: |
-      -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}} -extldflags '-static'
+      -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.CommitDate}} -extldflags '-static'
     goos:
       - darwin
       - freebsd
@@ -31,6 +32,71 @@ builds:
     goarm:
       - 6
       - 7
+    mod_timestamp: '{{ .CommitTimestamp }}'
+  - id: gopass-git-credentials
+    dir: cmd/gopass-git-credentials
+    binary: gopass-git-credentials
+    flags: |
+      -trimpath -tags netgo -gcflags="-trimpath=$GOPATH" -asmflags="-trimpath=$GOPATH"
+    env:
+      - CGO_ENABLED=0
+    ldflags: |
+      -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.CommitDate}} -extldflags '-static'
+    goos:
+      - darwin
+      - linux
+      - windows
+    goarch:
+      - amd64
+    mod_timestamp: '{{ .CommitTimestamp }}'
+  - id: gopass-hibp
+    dir: cmd/gopass-hibp
+    binary: gopass-hibp
+    flags: |
+      -trimpath -tags netgo -gcflags="-trimpath=$GOPATH" -asmflags="-trimpath=$GOPATH"
+    env:
+      - CGO_ENABLED=0
+    ldflags: |
+      -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.CommitDate}} -extldflags '-static'
+    goos:
+      - darwin
+      - linux
+      - windows
+    goarch:
+      - amd64
+    mod_timestamp: '{{ .CommitTimestamp }}'
+  - id: gopass-jsonapi
+    dir: cmd/gopass-jsonapi
+    binary: gopass-jsonapi
+    flags: |
+      -tags netgo -gcflags="-trimpath=$GOPATH" -asmflags="-trimpath=$GOPATH"
+    env:
+      - CGO_ENABLED=0
+    ldflags: |
+      -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.CommitDate}} -extldflags '-static'
+    goos:
+      - darwin
+      - linux
+      - windows
+    goarch:
+      - amd64
+    mod_timestamp: '{{ .CommitTimestamp }}'
+  - id: gopass-summon-provider
+    dir: cmd/gopass-summon-provider
+    binary: gopass-summon-provider
+    flags: |
+      -trimpath -tags netgo -gcflags="-trimpath=$GOPATH" -asmflags="-trimpath=$GOPATH"
+    env:
+      - CGO_ENABLED=0
+    ldflags: |
+      -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.CommitDate}} -extldflags '-static'
+    goos:
+      - darwin
+      - linux
+      - windows
+    goarch:
+      - amd64
+    mod_timestamp: '{{ .CommitTimestamp }}'
 archives:
   - id: gopass
     name_template: "{{.Binary}}-{{.Version}}-{{.Os}}-{{.Arch}}{{ if .Arm }}v{{.Arm }}{{ end }}"
@@ -45,14 +111,17 @@ archives:
       - bash.completion
       - fish.completion
       - zsh.completion
+
 release:
   github:
     owner: gopasspw
     name: gopass
   draft: false
+  prerelease: auto
+
 brews:
   - name: gopass
-    github:
+    tap:
       owner: gopasspw
       name: homebrew-gopass
     caveats:  |
@@ -109,3 +178,12 @@ source:
   
 checksum:
   name_template: "{{.ProjectName}}_{{.Version}}_SHA256SUMS"
+
+milestones:
+  -
+    repo:
+      owner: gopasspw
+      name: gopass
+    close: true
+    fail_on_error: false
+    name_template: "{{ .Major }}.{{ .Minor }}.{{ .Patch }}"
