@@ -398,6 +398,11 @@ func (s *Action) GetCommands() []*cli.Command {
 							Aliases: []string{"useremail"},
 							Usage:   "Git Author Email",
 						},
+						&cli.StringFlag{
+							Name:  "storage",
+							Usage: "Storage type",
+							Value: "gitfs",
+						},
 					},
 				},
 				{
