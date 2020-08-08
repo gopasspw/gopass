@@ -1,3 +1,20 @@
+## 1.9.3-rc.1
+
+This release adds additional binaries which should be included in
+any binary re-distribution of gopass.
+
+* [BUGFIX] Allow deleting shadowed secret
+* [BUGFIX] env command: do not crash if called without a command to execute
+* [BUGFIX] Fix config panic with mounts
+* [BUGFIX] Fix tree shadowing.
+* [BUGFIX] Handle relative path during init
+* [BUGFIX] Print RCS error message
+* [CLEANUP] Merge Storage and RCS backends
+* [ENHANCEMENT] env command: more tests
+* [ENHANCEMENT] Show recipients from subfolder id files
+* [FEATURE] Pinentry API: support OPTION API call
+* [TESTING] Add a test to detect shadowing issue with mount
+
 ## 1.9.3-rc.0
 
 WARNING: This release contains a few breaking changes.
