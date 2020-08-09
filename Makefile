@@ -5,6 +5,10 @@ GOFILES_BUILD             := $(shell find . -type f -name '*.go' -not -name '*_t
 PROTOFILES                := $(shell find . -name vendor -prune -o -type f -name '*.proto' -print)
 GOPASS_VERSION            ?= $(shell cat VERSION)
 GOPASS_OUTPUT             ?= gopass
+GOPASS_GITCRED            ?= cmd/gopass-git-credentials/gopass-git-credentials
+GOPASS_HIBP               ?= cmd/gopass-hibp/gopass-hibp
+GOPASS_JSONAPI            ?= cmd/gopass-jsonapi/gopass-jsonapi
+GOPASS_SUMMON             ?= cmd/gopass-summon-provider/gopass-summon-provider
 GOPASS_REVISION           := $(shell cat COMMIT 2>/dev/null || git rev-parse --short=8 HEAD)
 BASH_COMPLETION_OUTPUT    := bash.completion
 FISH_COMPLETION_OUTPUT    := fish.completion
@@ -26,7 +30,7 @@ export GO111MODULE=on
 OK := $(shell tput setaf 6; echo ' [OK]'; tput sgr0;)
 
 all: build completion
-build: $(GOPASS_OUTPUT)
+build: $(GOPASS_OUTPUT) $(GOPASS_GITCRED) $(GOPASS_HIBP) $(GOPASS_JSONAPI) $(GOPASS_SUMMON)
 completion: $(BASH_COMPLETION_OUTPUT) $(FISH_COMPLETION_OUTPUT) $(ZSH_COMPLETION_OUTPUT)
 travis: sysinfo crosscompile build install fulltest codequality completion full
 travis-osx: sysinfo build install test completion full
@@ -74,10 +78,34 @@ $(GOPASS_OUTPUT): $(GOFILES_BUILD)
 	@$(GO) build -o $@ $(BUILDFLAGS)
 	@printf '%s\n' '$(OK)'
 
+$(GOPASS_GITCRED): $(GOFILES_BUILD)
+	@echo -n ">> BUILD, version = $(GOPASS_VERSION)/$(GOPASS_REVISION), output = $@"
+	@$(GO) build -o $@ $(BUILDFLAGS)
+	@printf '%s\n' '$(OK)'
+
+$(GOPASS_HIBP): $(GOFILES_BUILD)
+	@echo -n ">> BUILD, version = $(GOPASS_VERSION)/$(GOPASS_REVISION), output = $@"
+	@$(GO) build -o $@ $(BUILDFLAGS)
+	@printf '%s\n' '$(OK)'
+
+$(GOPASS_JSONAPI): $(GOFILES_BUILD)
+	@echo -n ">> BUILD, version = $(GOPASS_VERSION)/$(GOPASS_REVISION), output = $@"
+	@$(GO) build -o $@ $(BUILDFLAGS)
+	@printf '%s\n' '$(OK)'
+
+$(GOPASS_SUMMON): $(GOFILES_BUILD)
+	@echo -n ">> BUILD, version = $(GOPASS_VERSION)/$(GOPASS_REVISION), output = $@"
+	@$(GO) build -o $@ $(BUILDFLAGS)
+	@printf '%s\n' '$(OK)'
+
 install: all install-completion
 	@echo -n ">> INSTALL, version = $(GOPASS_VERSION)"
 	@install -m 0755 -d $(DESTDIR)$(BINDIR)
 	@install -m 0755 $(GOPASS_OUTPUT) $(DESTDIR)$(BINDIR)/gopass
+	@install -m 0755 $(GOPASS_GITCRED) $(DESTDIR)$(BINDIR)/gopass-git-credentials
+	@install -m 0755 $(GOPASS_HIBP) $(DESTDIR)$(BINDIR)/gopass-hibp
+	@install -m 0755 $(GOPASS_JSONAPI) $(DESTDIR)$(BINDIR)/gopass-jsonapi
+	@install -m 0755 $(GOPASS_SUMMON) $(DESTDIR)$(BINDIR)/gopass-summon-provider
 	@printf '%s\n' '$(OK)'
 
 fulltest: $(GOPASS_OUTPUT)

@@ -23,7 +23,7 @@ var _ gopass.Store = &Gopass{}
 // New creates a new secret store
 // WARNING: This will need to change to accommodate for runtime configuration.
 func New(ctx context.Context) (*Gopass, error) {
-	cfg := config.Load()
+	cfg := config.LoadWithFallback() // TODO(dominikschulz) Consider removing WithFallback
 	store := root.New(cfg)
 	initialized, err := store.Initialized(ctx)
 	if err != nil {
