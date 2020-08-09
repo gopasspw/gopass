@@ -6,12 +6,18 @@ import (
 	"os"
 	"os/signal"
 
+	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/gopass/api"
 	"github.com/urfave/cli/v2"
 )
 
 const (
 	name = "summon-gopass"
+)
+
+var (
+	// Version is the released version of gopass
+	version string
 )
 
 func main() {
@@ -35,7 +41,8 @@ func main() {
 
 	gp, err := api.New(ctx)
 	if err != nil {
-		panic(err)
+		out.Red(ctx, "Failed to initialize gopass API: %s", err)
+		os.Exit(1)
 	}
 
 	gc := &gc{
@@ -44,7 +51,7 @@ func main() {
 
 	app := cli.NewApp()
 	app.Name = name
-	app.Version = "0.0.1"
+	app.Version = version
 	app.Usage = `Use "gopass-summon-provider" as provider for "summon"`
 	app.Description = "" +
 		"This command allows to use gopass as a secret provider for summon." +
