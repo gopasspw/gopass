@@ -2,7 +2,7 @@ package action
 
 import (
 	"context"
-	"io"
+	"fmt"
 	"strings"
 
 	"github.com/chzyer/readline"
@@ -120,13 +120,17 @@ func (s *Action) REPL(c *cli.Context) error {
 
 READ:
 	for {
+		// check for context cancelation
+		select {
+		case <-c.Context.Done():
+			return fmt.Errorf("user aborted")
+		default:
+		}
 		rl.Config.AutoComplete = s.prefixCompleter(c)
 		line, err := rl.Readline()
 		if err != nil {
-			if err == io.EOF {
-				break
-			}
 			debug.Log("Readline error: %s", err)
+			break
 		}
 		args, err := shellquote.Split(line)
 		if err != nil {
