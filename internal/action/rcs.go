@@ -36,7 +36,7 @@ func (s *Action) RCSInit(c *cli.Context) error {
 }
 
 func (s *Action) rcsInit(ctx context.Context, store, un, ue string) error {
-	// TODO this is a hack, we just skip rcsInit is the backend is FS, which
+	// TODO this is a hack, we just skip rcsInit if the backend is FS, which
 	// doesn't support this. The check should rather ask the backend if it
 	// can be initialized for RCS.
 	if backend.GetStorageBackend(ctx) == backend.FS {
