@@ -13,10 +13,14 @@ before:
 builds:
   - id: gopass
     binary: gopass
-    flags: |
-      -trimpath -tags netgo -gcflags="-trimpath=$GOPATH" -asmflags="-trimpath=$GOPATH"
+    flags:
+      - -trimpath -tags netgo
     env:
       - CGO_ENABLED=0
+    asmflags:
+      - all=-trimpath={{.Env.GOPATH}}
+    gcflags:
+      - all=-trimpath={{.Env.GOPATH}}
     ldflags: |
       -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.CommitDate}} -extldflags '-static'
     goos:
@@ -36,10 +40,14 @@ builds:
   - id: gopass-git-credentials
     dir: cmd/gopass-git-credentials
     binary: gopass-git-credentials
-    flags: |
-      -trimpath -tags netgo -gcflags="-trimpath=$GOPATH" -asmflags="-trimpath=$GOPATH"
+    flags:
+      - -trimpath -tags netgo
     env:
       - CGO_ENABLED=0
+    asmflags:
+      - all=-trimpath={{.Env.GOPATH}}
+    gcflags:
+      - all=-trimpath={{.Env.GOPATH}}
     ldflags: |
       -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.CommitDate}} -extldflags '-static'
     goos:
@@ -52,10 +60,14 @@ builds:
   - id: gopass-hibp
     dir: cmd/gopass-hibp
     binary: gopass-hibp
-    flags: |
-      -trimpath -tags netgo -gcflags="-trimpath=$GOPATH" -asmflags="-trimpath=$GOPATH"
+    flags:
+      - -trimpath
     env:
       - CGO_ENABLED=0
+    asmflags:
+      - all=-trimpath={{.Env.GOPATH}}
+    gcflags:
+      - all=-trimpath={{.Env.GOPATH}}
     ldflags: |
       -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.CommitDate}} -extldflags '-static'
     goos:
@@ -68,10 +80,14 @@ builds:
   - id: gopass-jsonapi
     dir: cmd/gopass-jsonapi
     binary: gopass-jsonapi
-    flags: |
-      -tags netgo -gcflags="-trimpath=$GOPATH" -asmflags="-trimpath=$GOPATH"
+    flags:
+      - -trimpath -tags netgo
     env:
       - CGO_ENABLED=0
+    asmflags:
+      - all=-trimpath={{.Env.GOPATH}}
+    gcflags:
+      - all=-trimpath={{.Env.GOPATH}}
     ldflags: |
       -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.CommitDate}} -extldflags '-static'
     goos:
@@ -84,10 +100,14 @@ builds:
   - id: gopass-summon-provider
     dir: cmd/gopass-summon-provider
     binary: gopass-summon-provider
-    flags: |
-      -trimpath -tags netgo -gcflags="-trimpath=$GOPATH" -asmflags="-trimpath=$GOPATH"
+    flags:
+      - -trimpath -tags netgo
     env:
       - CGO_ENABLED=0
+    asmflags:
+      - all=-trimpath={{.Env.GOPATH}}
+    gcflags:
+      - all=-trimpath={{.Env.GOPATH}}
     ldflags: |
       -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.CommitDate}} -extldflags '-static'
     goos:

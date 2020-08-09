@@ -7,12 +7,18 @@ import (
 	"os/signal"
 	"strings"
 
+	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/gopass/api"
 	"github.com/urfave/cli/v2"
 )
 
 const (
 	name = "gopass-jsonapi"
+)
+
+var (
+	// Version is the released version of gopass
+	version string
 )
 
 func main() {
@@ -36,7 +42,8 @@ func main() {
 
 	gp, err := api.New(ctx)
 	if err != nil {
-		panic(err)
+		out.Red(ctx, "Failed to initialize gopass API: %s", err)
+		os.Exit(1)
 	}
 
 	ja := &jsonapiCLI{
@@ -45,7 +52,7 @@ func main() {
 
 	app := cli.NewApp()
 	app.Name = name
-	app.Version = "TODO"
+	app.Version = version
 	app.Usage = "Setup and run gopass-jsonapi as native messaging hosts, e.g. for browser plugins"
 	app.EnableBashCompletion = true
 	app.Action = func(c *cli.Context) error {
