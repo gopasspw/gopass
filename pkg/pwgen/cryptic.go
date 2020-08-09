@@ -51,8 +51,12 @@ func NewCrypticForDomain(length int, domain string) *Cryptic {
 		c.Chars = chars
 	}
 	for _, req := range r.Required {
+		chars := charsFromRule(req)
+		debug.Log("Adding validator for %s: Requires '%s' -> '%s'", domain, req, chars)
+		if chars == "" {
+			continue
+		}
 		c.Validators = append(c.Validators, func(pw string) error {
-			chars := charsFromRule(req)
 			if containsAllClasses(pw, charsFromRule(req)) {
 				return nil
 			}
@@ -81,6 +85,8 @@ func charsFromRule(rules ...string) string {
 			chars += upper
 		case "digit":
 			chars += digits
+		case "special":
+			chars += syms
 		default:
 			if strings.HasPrefix(req, "[") && strings.HasSuffix(req, "]") {
 				chars += strings.Trim(req, "[]")
@@ -135,7 +141,7 @@ func (c *Cryptic) Password() string {
 		if c.MaxTries < 1 {
 			return false
 		}
-		if c.MaxTries == 0 && round > 128 {
+		if c.MaxTries == 0 && round >= 64 {
 			return true
 		}
 		if round > c.MaxTries {
