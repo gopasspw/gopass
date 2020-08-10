@@ -126,6 +126,13 @@ func (s *Action) generateCopyOrPrint(ctx context.Context, c *cli.Context, name, 
 		}
 	}
 
+	if !c.Bool("print") {
+		return nil
+	}
+	if c.IsSet("print") && !c.Bool("print") && ctxutil.IsShowSafeContent(ctx) {
+		return nil
+	}
+
 	out.Print(
 		ctx,
 		"The generated password is:\n%s",
@@ -171,7 +178,7 @@ func (s *Action) generatePassword(ctx context.Context, c *cli.Context, length, n
 		return pw, nil
 	}
 
-	if c.Bool("xkcd") || c.IsSet("xkcdsep") {
+	if c.Bool("xkcd") || c.IsSet("xkcdsep") || c.IsSet("xkcdlang") {
 		return s.generatePasswordXKCD(ctx, c, length)
 	}
 

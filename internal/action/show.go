@@ -112,6 +112,9 @@ func (s *Action) showHandleOutput(ctx context.Context, name string, sec gopass.S
 	}
 
 	if pw == "" && body == "" {
+		if ctxutil.IsShowSafeContent(ctx) {
+			out.Yellow(ctx, "Warning: safecontent=true. Use -f to display password, if any")
+		}
 		return ExitError(ExitNotFound, store.ErrEmptySecret, store.ErrEmptySecret.Error())
 	}
 
