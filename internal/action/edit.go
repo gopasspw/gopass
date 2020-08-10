@@ -8,6 +8,7 @@ import (
 	"github.com/gopasspw/gopass/internal/audit"
 	"github.com/gopasspw/gopass/internal/editor"
 	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/internal/termio"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/gopass/secret"
 	"github.com/gopasspw/gopass/pkg/gopass/secret/secparse"
@@ -41,16 +42,28 @@ func (s *Action) edit(ctx context.Context, c *cli.Context, name string) error {
 		fromMIME = true
 		content = bytes.TrimPrefix(content, []byte(secret.Ident+"\n"))
 	}
-	// invoke the editor to let the user edit the content
-	nContent, err := editor.Invoke(ctx, ed, content)
-	if err != nil {
-		return ExitError(ExitUnknown, err, "failed to invoke editor: %s", err)
-	}
-	if fromMIME {
-		nContent = append([]byte(secret.Ident+"\n"), nContent...)
-	}
 
-	return s.editUpdate(ctx, name, content, nContent, changed, ed)
+	for {
+		// invoke the editor to let the user edit the content
+		nContent, err := editor.Invoke(ctx, ed, content)
+		if err != nil {
+			return ExitError(ExitUnknown, err, "failed to invoke editor: %s", err)
+		}
+		if fromMIME {
+			nContent = append([]byte(secret.Ident+"\n"), nContent...)
+			if _, err := secparse.Parse(nContent); err != nil {
+				cont, err := termio.AskForBool(ctx, "ERROR: Can not parse Gopass native Secret. Retry?", true)
+				if err != nil {
+					return err
+				}
+				if !cont {
+					return fmt.Errorf("malformed secret")
+				}
+				continue
+			}
+		}
+		return s.editUpdate(ctx, name, content, nContent, changed, ed)
+	}
 }
 
 func (s *Action) editUpdate(ctx context.Context, name string, content, nContent []byte, changed bool, ed string) error {
@@ -61,7 +74,7 @@ func (s *Action) editUpdate(ctx context.Context, name string, content, nContent 
 
 	nSec, err := secparse.Parse(nContent)
 	if err != nil {
-		out.Error(ctx, "WARNING: Invalid YAML: %s", err)
+		out.Error(ctx, "WARNING: Invalid Secret: %s", err)
 	}
 
 	// if the secret has a password, we check it's strength
