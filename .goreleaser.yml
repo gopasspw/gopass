@@ -14,7 +14,8 @@ builds:
   - id: gopass
     binary: gopass
     flags:
-      - -trimpath -tags netgo
+      - -trimpath
+      - -tags=netgo
     env:
       - CGO_ENABLED=0
     asmflags:
@@ -41,7 +42,8 @@ builds:
     dir: cmd/gopass-git-credentials
     binary: gopass-git-credentials
     flags:
-      - -trimpath -tags netgo
+      - -trimpath
+      - -tags=netgo
     env:
       - CGO_ENABLED=0
     asmflags:
@@ -62,6 +64,7 @@ builds:
     binary: gopass-hibp
     flags:
       - -trimpath
+      - -tags=netgo
     env:
       - CGO_ENABLED=0
     asmflags:
@@ -81,7 +84,8 @@ builds:
     dir: cmd/gopass-jsonapi
     binary: gopass-jsonapi
     flags:
-      - -trimpath -tags netgo
+      - -trimpath
+      - -tags=netgo
     env:
       - CGO_ENABLED=0
     asmflags:
@@ -101,7 +105,8 @@ builds:
     dir: cmd/gopass-summon-provider
     binary: gopass-summon-provider
     flags:
-      - -trimpath -tags netgo
+      - -trimpath
+      - -tags=netgo
     env:
       - CGO_ENABLED=0
     asmflags:

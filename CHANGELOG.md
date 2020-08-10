@@ -1,3 +1,10 @@
+## 1.10.0-rc.0
+
+Note: We have accumulated too many changes so we've decided to skip the 1.9.3
+release and issue the first release of the 1.10. series.
+
+* [BUGFIX] Fix git init
+
 ## 1.9.3-rc.1
 
 This release adds additional binaries which should be included in
