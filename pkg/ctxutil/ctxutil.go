@@ -27,7 +27,6 @@ const (
 	ctxKeyVerbose
 	ctxKeyAutoClip
 	ctxKeyNotifications
-	ctxKeyEditRecipients
 	ctxKeyProgressCallback
 	ctxKeyAlias
 	ctxKeyGitInit
@@ -330,25 +329,6 @@ func HasAutoClip(ctx context.Context) bool {
 // IsAutoClip returns the value of AutoClip or the default (true)
 func IsAutoClip(ctx context.Context) bool {
 	return is(ctx, ctxKeyAutoClip, true)
-}
-
-// WithEditRecipients returns a context with the value for EditRecipients set
-func WithEditRecipients(ctx context.Context, bv bool) context.Context {
-	return context.WithValue(ctx, ctxKeyEditRecipients, bv)
-}
-
-// HasEditRecipients returns true if a value for EditRecipients has been set in this context
-func HasEditRecipients(ctx context.Context) bool {
-	return hasBool(ctx, ctxKeyEditRecipients)
-}
-
-// IsEditRecipients returns the value of EditRecipients or the default (false)
-func IsEditRecipients(ctx context.Context) bool {
-	bv, ok := ctx.Value(ctxKeyEditRecipients).(bool)
-	if !ok {
-		return false
-	}
-	return bv
 }
 
 // WithConcurrency returns a context with the value for clip timeout set

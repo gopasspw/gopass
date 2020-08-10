@@ -1,18 +1,14 @@
 package cui
 
 import (
-	"bufio"
-	"bytes"
 	"context"
 	"fmt"
 	"io"
 	"os"
 	"sort"
-	"strings"
 
 	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/internal/backend/crypto/gpg"
-	"github.com/gopasspw/gopass/internal/editor"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/termio"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -114,10 +110,6 @@ func ConfirmRecipients(ctx context.Context, crypto backend.Crypto, name string, 
 		return nil, err
 	}
 
-	if ctxutil.IsEditRecipients(ctx) {
-		return confirmEditRecipients(ctx, name, ris)
-	}
-
 	return confirmAskRecipients(ctx, name, ris)
 }
 
@@ -143,45 +135,6 @@ func confirmAskRecipients(ctx context.Context, name string, ris recipientInfos) 
 	}
 
 	return recipients, errors.New("user aborted")
-}
-
-func confirmEditRecipients(ctx context.Context, name string, ris recipientInfos) ([]string, error) {
-	buf := &bytes.Buffer{}
-	fmt.Fprintf(buf, "# gopass - Encrypting %s\n", name)
-	fmt.Fprintf(buf, "# Please review and remove any recipient you don't want to include.\n")
-	fmt.Fprintf(buf, "# Lines starting with # will be ignored.\n")
-	fmt.Fprintf(buf, "# WARNING: Do not edit existing entries.\n")
-	for _, ri := range ris {
-		fmt.Fprint(buf, ri.String())
-	}
-	out, err := editor.Invoke(ctx, editor.Path(nil), buf.Bytes())
-	if err != nil {
-		return nil, err
-	}
-
-	recipients := make([]string, 0, len(ris))
-	scanner := bufio.NewScanner(bytes.NewReader(out))
-	for scanner.Scan() {
-		line := strings.TrimSpace(scanner.Text())
-		if strings.HasPrefix(line, "#") {
-			continue
-		}
-		line = strings.TrimPrefix(line, "- ")
-		p := strings.SplitN(line, "-", 2)
-		if len(p) < 2 {
-			continue
-		}
-		recipients = append(recipients, strings.TrimSpace(p[0]))
-	}
-	if err := scanner.Err(); err != nil {
-		return nil, err
-	}
-
-	if len(recipients) < 1 {
-		return recipients, errors.New("user aborted")
-	}
-
-	return recipients, nil
 }
 
 // AskForPrivateKey promts the user to select from a list of private keys

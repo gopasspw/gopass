@@ -20,7 +20,6 @@ func TestBaseConfig(t *testing.T) {
   autoimport: true
   cliptimeout: 45
   confirm: false
-  editrecipients: false
   exportkeys: false
   nocolor: false
   nopager: false
@@ -76,7 +75,6 @@ func TestMountConfig(t *testing.T) {
   autoimport: true
   cliptimeout: 45
   confirm: false
-  editrecipients: false
   exportkeys: false
   nocolor: false
   nopager: false
