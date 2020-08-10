@@ -565,7 +565,7 @@ func (s *Action) GetCommands() []*cli.Command {
 				&cli.BoolFlag{
 					Name:    "append",
 					Aliases: []string{"a"},
-					Usage:   "Append to any existing data",
+					Usage:   "Append data read from STDIN to existing data",
 				},
 			},
 		},
