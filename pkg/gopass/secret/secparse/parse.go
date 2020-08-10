@@ -18,6 +18,9 @@ func Parse(in []byte) (gopass.Secret, error) {
 		return s, nil
 	}
 	debug.Log("failed to parse as MIME: %s", err)
+	if _, ok := err.(*secret.PermanentError); ok {
+		return secrets.ParsePlain(in), err
+	}
 	s, err = secrets.ParseYAML(in)
 	if err == nil {
 		debug.Log("parsed as YAML: %+v", s)

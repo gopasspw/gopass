@@ -15,6 +15,15 @@ const (
 	Ident = "GOPASS-SECRET-1.0"
 )
 
+// PermanentError signal that parsing should not attempt other formats.
+type PermanentError struct {
+	Err error
+}
+
+func (p *PermanentError) Error() string {
+	return p.Err.Error()
+}
+
 // MIME is a gopass MIME secret
 type MIME struct {
 	Header textproto.MIMEHeader
@@ -64,10 +73,10 @@ func ParseMIME(buf []byte) (*MIME, error) {
 	tpr := textproto.NewReader(r)
 	m.Header, err = tpr.ReadMIMEHeader()
 	if err != nil {
-		return nil, err
+		return nil, &PermanentError{Err: err}
 	}
 	if _, err := io.Copy(m.body, r); err != nil {
-		return nil, err
+		return nil, &PermanentError{err}
 	}
 	return m, nil
 }
