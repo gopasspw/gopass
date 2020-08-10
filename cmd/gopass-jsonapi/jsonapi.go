@@ -31,7 +31,13 @@ type jsonapiCLI struct {
 // listen reads a json message on stdin and responds on stdout
 func (s *jsonapiCLI) listen(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
-	api := jsonapi.API{Store: s.gp, Reader: stdin, Writer: stdout, Version: semver.Version{}}
+
+	version, err := semver.Parse(c.App.Version)
+	if err != nil {
+		version = semver.Version{}
+	}
+
+	api := jsonapi.API{Store: s.gp, Reader: stdin, Writer: stdout, Version: version}
 	if err := api.ReadAndRespond(ctx); err != nil {
 		return api.RespondError(err)
 	}
