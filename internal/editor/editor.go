@@ -7,10 +7,15 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"path/filepath"
+	"regexp"
 	"runtime"
+	"strings"
 
 	"github.com/gopasspw/gopass/internal/debug"
+	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/fsutil"
 	"github.com/gopasspw/gopass/pkg/tempfile"
 
 	"github.com/fatih/color"
@@ -24,8 +29,38 @@ var (
 	// Stdout is exported for tests
 	Stdout io.Writer = os.Stdout
 	// Stderr is exported for tests
-	Stderr io.Writer = os.Stderr
+	Stderr    io.Writer = os.Stderr
+	vimOptsRe           = regexp.MustCompile(`au\s+BufNewFile,BufRead\s+.*gopass.*setlocal\s+noswapfile\s+nobackup\s+noundofile`)
 )
+
+// Check will validate the editor config
+func Check(ctx context.Context, editor string) error {
+	if !strings.Contains(editor, "vi") {
+		return nil
+	}
+	uhd, err := os.UserHomeDir()
+	if err != nil {
+		return err
+	}
+	vrc := filepath.Join(uhd, ".vimrc")
+	if runtime.GOOS == "windows" {
+		vrc = filepath.Join(uhd, "_vimrc")
+	}
+	if !fsutil.IsFile(vrc) {
+		return nil
+	}
+	buf, err := ioutil.ReadFile(vrc)
+	if err != nil {
+		return err
+	}
+	if vimOptsRe.Match(buf) {
+		debug.Log("Recommended settings found in %s", vrc)
+		return nil
+	}
+	debug.Log("%s did not match %s", string(buf), vimOptsRe)
+	out.Yellow(ctx, "Warning: Vim might leak credentials. Check your setup.")
+	return nil
+}
 
 // Invoke will start the given editor and return the content
 func Invoke(ctx context.Context, editor string, content []byte) ([]byte, error) {
