@@ -52,10 +52,15 @@ func getWrapperContent(gopassPath string) ([]byte, error) {
 	}
 
 	buf := &bytes.Buffer{}
-	if err := tmpl.Execute(buf, struct{ Gopass string }{Gopass: gopassPath}); err != nil {
-		return nil, err
-	}
-	return buf.Bytes(), nil
+	err = tmpl.Execute(
+		buf,
+		struct {
+			Gopass string
+		}{
+			Gopass: gopassPath,
+		},
+	)
+	return buf.Bytes(), err
 }
 
 func gopassPath(global bool) string {
@@ -66,8 +71,8 @@ func gopassPath(global bool) string {
 			}
 		}
 	}
-	if gpp, err := exec.LookPath("gopass"); err == nil {
+	if gpp, err := exec.LookPath("gopass-jsonapi"); err == nil {
 		return gpp
 	}
-	return "gopass"
+	return "gopass-jsonapi"
 }
