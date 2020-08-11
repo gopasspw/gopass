@@ -135,14 +135,6 @@ func TestNotifications(t *testing.T) {
 	assert.Equal(t, false, IsNotifications(WithNotifications(ctx, false)))
 }
 
-func TestEditRecipients(t *testing.T) {
-	ctx := context.Background()
-
-	assert.Equal(t, false, IsEditRecipients(ctx))
-	assert.Equal(t, true, IsEditRecipients(WithEditRecipients(ctx, true)))
-	assert.Equal(t, false, IsEditRecipients(WithEditRecipients(ctx, false)))
-}
-
 func TestProgressCallback(t *testing.T) {
 	ctx := context.Background()
 
@@ -200,7 +192,6 @@ func TestComposite(t *testing.T) {
 	ctx = WithFuzzySearch(ctx, false)
 	ctx = WithVerbose(ctx, true)
 	ctx = WithNotifications(ctx, true)
-	ctx = WithEditRecipients(ctx, true)
 	ctx = WithAutoClip(ctx, true)
 	ctx = WithExportKeys(ctx, false)
 	ctx = WithEmail(ctx, "foo@bar.com")
@@ -254,9 +245,6 @@ func TestComposite(t *testing.T) {
 
 	assert.Equal(t, true, IsNotifications(ctx))
 	assert.Equal(t, true, HasNotifications(ctx))
-
-	assert.Equal(t, true, IsEditRecipients(ctx))
-	assert.Equal(t, true, HasEditRecipients(ctx))
 
 	assert.Equal(t, true, IsAutoClip(ctx))
 	assert.Equal(t, true, HasAutoClip(ctx))

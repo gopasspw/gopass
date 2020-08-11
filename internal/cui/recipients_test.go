@@ -37,12 +37,6 @@ func TestConfirmRecipients(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, in, got)
 	buf.Reset()
-
-	// IsEditRecipients true
-	in = []string{"foo", "bar"}
-	_, err = ConfirmRecipients(ctxutil.WithEditRecipients(ctx, true), plain.New(), "test", in)
-	assert.Error(t, err)
-	buf.Reset()
 }
 
 func TestAskForPrivateKey(t *testing.T) {

@@ -26,7 +26,6 @@ func TestConfigs(t *testing.T) {
 autoimport: false
 cliptimeout: 45
 confirm: false
-editrecipients: true
 exportkeys: true
 nopager: false
 notifications: true

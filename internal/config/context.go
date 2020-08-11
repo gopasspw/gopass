@@ -18,9 +18,6 @@ func (c *Config) WithContext(ctx context.Context) context.Context {
 	if !ctxutil.HasClipTimeout(ctx) {
 		ctx = ctxutil.WithClipTimeout(ctx, c.ClipTimeout)
 	}
-	if !ctxutil.HasEditRecipients(ctx) {
-		ctx = ctxutil.WithEditRecipients(ctx, c.EditRecipients)
-	}
 	if !ctxutil.HasExportKeys(ctx) {
 		ctx = ctxutil.WithExportKeys(ctx, c.ExportKeys)
 	}
