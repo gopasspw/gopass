@@ -61,13 +61,13 @@ func load(cf string) (*Config, error) {
 	}
 	buf, err := ioutil.ReadFile(cf)
 	if err != nil {
-		fmt.Printf("Error reading config from %s: %s\n", cf, err)
+		fmt.Fprintf(os.Stderr, "Error reading config from %s: %s\n", cf, err)
 		return nil, ErrConfigNotFound
 	}
 
 	cfg, err := decode(buf)
 	if err != nil {
-		fmt.Printf("Error reading config from %s: %s\n%s", cf, err, string(buf))
+		fmt.Fprintf(os.Stderr, "Error reading config from %s: %s\n%s", cf, err, string(buf))
 		return nil, ErrConfigNotParsed
 	}
 	if cfg.Mounts == nil {
