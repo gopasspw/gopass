@@ -178,7 +178,7 @@ func (s *Action) generatePassword(ctx context.Context, c *cli.Context, length, n
 		return pw, nil
 	}
 
-	if c.Bool("xkcd") || c.IsSet("xkcdsep") || c.IsSet("xkcdlang") {
+	if c.Bool("xkcd") {
 		return s.generatePasswordXKCD(ctx, c, length)
 	}
 
@@ -222,8 +222,8 @@ func (s *Action) generatePassword(ctx context.Context, c *cli.Context, length, n
 // password
 func (s *Action) generatePasswordXKCD(ctx context.Context, c *cli.Context, length string) (string, error) {
 	xkcdSeparator := " "
-	if c.IsSet("xkcdsep") {
-		xkcdSeparator = c.String("xkcdsep")
+	if c.IsSet("sep") {
+		xkcdSeparator = c.String("sep")
 	}
 
 	var pwlen int
@@ -247,7 +247,7 @@ func (s *Action) generatePasswordXKCD(ctx context.Context, c *cli.Context, lengt
 		return "", ExitError(ExitUsage, nil, "password length must not be zero")
 	}
 
-	return xkcdgen.RandomLengthDelim(pwlen, xkcdSeparator, c.String("xkcdlang"))
+	return xkcdgen.RandomLengthDelim(pwlen, xkcdSeparator, c.String("lang"))
 }
 
 // generateSetPassword will update or create a secret
