@@ -126,25 +126,25 @@ func TestGenerate(t *testing.T) {
 
 	// generate --force --xkcd foobar 32
 	t.Run("generate --force --xkcd foobar 32", func(t *testing.T) {
-		assert.NoError(t, act.Generate(gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true", "xkcd": "true", "xkcdlang": "en"}, "foobar", "32")))
+		assert.NoError(t, act.Generate(gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true", "xkcd": "true", "lang": "en"}, "foobar", "32")))
 		buf.Reset()
 	})
 
 	// generate --force --xkcd foobar baz 32
 	t.Run("generate --force --xkcd foobar baz 32", func(t *testing.T) {
-		assert.NoError(t, act.Generate(gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true", "xkcd": "true", "xkcdlang": "en"}, "foobar", "baz", "32")))
+		assert.NoError(t, act.Generate(gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true", "xkcd": "true", "lang": "en"}, "foobar", "baz", "32")))
 		buf.Reset()
 	})
 
 	// generate --force --xkcd foobar baz
 	t.Run("generate --force --xkcd foobar baz", func(t *testing.T) {
-		assert.NoError(t, act.Generate(gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true", "xkcd": "true", "xkcdlang": "en"}, "foobar", "baz")))
+		assert.NoError(t, act.Generate(gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true", "xkcd": "true", "lang": "en"}, "foobar", "baz")))
 		buf.Reset()
 	})
 
 	// generate --force --xkcd --print foobar baz
 	t.Run("generate --force --xkcd --print foobar baz", func(t *testing.T) {
-		assert.NoError(t, act.Generate(gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true", "xkcd": "true", "print": "true", "xkcdlang": "en"}, "foobar", "baz")))
+		assert.NoError(t, act.Generate(gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true", "xkcd": "true", "print": "true", "lang": "en"}, "foobar", "baz")))
 		buf.Reset()
 	})
 }
