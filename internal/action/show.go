@@ -56,12 +56,6 @@ func (s *Action) Show(c *cli.Context) error {
 		ctx = WithKey(ctx, key)
 	}
 
-	if c.Bool("sync") {
-		if err := s.sync(out.WithHidden(ctx, true), s.Store.MountPoint(name)); err != nil {
-			out.Error(ctx, "Failed to sync %s: %s", name, err)
-		}
-	}
-
 	if err := s.show(ctx, c, name, true); err != nil {
 		return ExitError(ExitDecrypt, err, "%s", err)
 	}
