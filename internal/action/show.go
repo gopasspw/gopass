@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"path"
+	"strconv"
 	"strings"
 
 	"github.com/gopasspw/gopass/internal/clipboard"
@@ -95,12 +96,40 @@ func (s *Action) show(ctx context.Context, c *cli.Context, name string, recurse 
 
 // showHandleRevision displays a single revision
 func (s *Action) showHandleRevision(ctx context.Context, c *cli.Context, name, revision string) error {
+	revision, err := s.parseRevision(ctx, name, revision)
+	if err != nil {
+		return ExitError(ExitUnknown, err, "Failed to get revisions: %s", err)
+	}
 	ctx, sec, err := s.Store.GetRevision(ctx, name, revision)
 	if err != nil {
 		return s.showHandleError(ctx, c, name, false, err)
 	}
 
 	return s.showHandleOutput(ctx, name, sec)
+}
+
+func (s *Action) parseRevision(ctx context.Context, name, revision string) (string, error) {
+	debug.Log("Revision: %s", revision)
+	if !strings.HasPrefix(revision, "-") {
+		return revision, nil
+	}
+	revStr := strings.TrimPrefix(revision, "-")
+	offset, err := strconv.Atoi(revStr)
+	if err != nil {
+		return "", err
+	}
+	debug.Log("Offset: %d", offset)
+	revs, err := s.Store.ListRevisions(ctx, name)
+	if err != nil {
+		return "", err
+	}
+	if len(revs) < offset {
+		debug.Log("Not enough revisions (%d)", len(revs))
+		return revStr, nil
+	}
+	revision = revs[len(revs)-offset].Hash
+	debug.Log("Found %s for offset %d", revision, offset)
+	return revision, nil
 }
 
 // showHandleOutput displays a secret
