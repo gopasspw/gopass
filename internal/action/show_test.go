@@ -84,7 +84,7 @@ func TestShowMulti(t *testing.T) {
 	})
 
 	t.Run("show foo with safecontent enabled, with the force flag", func(t *testing.T) {
-		c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true"}, "foo")
+		c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"unsafe": "true"}, "foo")
 		assert.NoError(t, act.Show(c))
 		assert.Contains(t, buf.String(), "secret")
 		buf.Reset()
@@ -193,7 +193,7 @@ func TestShowAutoClip(t *testing.T) {
 	// gopass show -f foo
 	// -> ONLY print
 	t.Run("gopass show -f foo", func(t *testing.T) {
-		c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true"}, "foo")
+		c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"unsafe": "true"}, "foo")
 		assert.NoError(t, act.Show(c))
 		assert.NotContains(t, buf.String(), "WARNING")
 		assert.Contains(t, buf.String(), "secret")
@@ -243,7 +243,7 @@ func TestShowAutoClip(t *testing.T) {
 	t.Run("gopass show -f foo", func(t *testing.T) {
 		// autoclip=false
 		ctx := ctxutil.WithAutoClip(ctx, false)
-		c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true"}, "foo")
+		c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"unsafe": "true"}, "foo")
 		assert.NoError(t, act.Show(c))
 		assert.NotContains(t, buf.String(), "WARNING")
 		assert.Contains(t, buf.String(), "secret")

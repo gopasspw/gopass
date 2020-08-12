@@ -817,9 +817,9 @@ func (s *Action) GetCommands() []*cli.Command {
 					Usage: "Print the first line of the secret as QR Code",
 				},
 				&cli.BoolFlag{
-					Name:    "force",
-					Aliases: []string{"f"},
-					Usage:   "Display the password even if safecontent is enabled",
+					Name:    "unsafe",
+					Aliases: []string{"u", "force", "f"},
+					Usage:   "Display unsafe content (e.g. the password) even if safecontent is enabled",
 				},
 				&cli.BoolFlag{
 					Name:    "password",
