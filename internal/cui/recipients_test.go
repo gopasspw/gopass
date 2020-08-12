@@ -14,31 +14,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestConfirmRecipients(t *testing.T) {
-	ctx := context.Background()
-	ctx = ctxutil.WithTerminal(ctx, false)
-
-	buf := &bytes.Buffer{}
-	Stdout = buf
-	defer func() {
-		Stdout = os.Stdout
-	}()
-
-	// AlwaysYes true
-	in := []string{"foo", "bar"}
-	got, err := ConfirmRecipients(ctxutil.WithAlwaysYes(ctx, true), plain.New(), "test", in)
-	require.NoError(t, err)
-	assert.Equal(t, in, got)
-	buf.Reset()
-
-	// IsConfirm true
-	in = []string{"foo", "bar"}
-	got, err = ConfirmRecipients(ctxutil.WithConfirm(ctx, true), plain.New(), "test", in)
-	require.NoError(t, err)
-	assert.Equal(t, in, got)
-	buf.Reset()
-}
-
 func TestAskForPrivateKey(t *testing.T) {
 	buf := &bytes.Buffer{}
 	Stdout = buf

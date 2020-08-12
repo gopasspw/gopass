@@ -15,7 +15,6 @@ const (
 	gopassConfig = `autoclip: true
 autoimport: true
 cliptimeout: 45
-confirm: false
 exportkeys: true
 notifications: true`
 )

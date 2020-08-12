@@ -43,16 +43,15 @@ func (c *Pre193) CheckOverflow() error {
 // Config converts the Pre193 config to the current config struct
 func (c *Pre193) Config() *Config {
 	cfg := &Config{
-		AutoClip:          c.Root.AutoClip,
-		AutoImport:        c.Root.AutoImport,
-		ClipTimeout:       c.Root.ClipTimeout,
-		NoColor:           c.Root.NoColor,
-		ConfirmRecipients: c.Root.Confirm,
-		NoPager:           c.Root.NoPager,
-		Notifications:     c.Root.Notifications,
-		Path:              c.Root.Path,
-		SafeContent:       c.Root.SafeContent,
-		Mounts:            make(map[string]string, len(c.Mounts)),
+		AutoClip:      c.Root.AutoClip,
+		AutoImport:    c.Root.AutoImport,
+		ClipTimeout:   c.Root.ClipTimeout,
+		NoColor:       c.Root.NoColor,
+		NoPager:       c.Root.NoPager,
+		Notifications: c.Root.Notifications,
+		Path:          c.Root.Path,
+		SafeContent:   c.Root.SafeContent,
+		Mounts:        make(map[string]string, len(c.Mounts)),
 	}
 	if p, err := pathFromURL(c.Root.Path); err == nil {
 		cfg.Path = p
@@ -106,16 +105,15 @@ func (c *Pre182) CheckOverflow() error {
 // Config converts the Pre140 config to the current config struct
 func (c *Pre182) Config() *Config {
 	cfg := &Config{
-		AutoClip:          c.Root.AutoClip,
-		AutoImport:        c.Root.AutoImport,
-		ClipTimeout:       c.Root.ClipTimeout,
-		NoColor:           c.Root.NoColor,
-		ConfirmRecipients: c.Root.Confirm,
-		NoPager:           c.Root.NoPager,
-		Notifications:     c.Root.Notifications,
-		Path:              c.Root.Path,
-		SafeContent:       c.Root.SafeContent,
-		Mounts:            make(map[string]string, len(c.Mounts)),
+		AutoClip:      c.Root.AutoClip,
+		AutoImport:    c.Root.AutoImport,
+		ClipTimeout:   c.Root.ClipTimeout,
+		NoColor:       c.Root.NoColor,
+		NoPager:       c.Root.NoPager,
+		Notifications: c.Root.Notifications,
+		Path:          c.Root.Path,
+		SafeContent:   c.Root.SafeContent,
+		Mounts:        make(map[string]string, len(c.Mounts)),
 	}
 	if p, err := pathFromURL(c.Root.Path); err == nil {
 		c.Path = p
@@ -154,12 +152,11 @@ func (c *Pre140) CheckOverflow() error {
 // Config converts the Pre140 config to the current config struct
 func (c *Pre140) Config() *Config {
 	cfg := &Config{
-		AutoImport:        c.AutoImport,
-		ClipTimeout:       c.ClipTimeout,
-		ConfirmRecipients: c.Confirm,
-		Path:              c.Path,
-		SafeContent:       c.SafeContent,
-		Mounts:            make(map[string]string, len(c.Mounts)),
+		AutoImport:  c.AutoImport,
+		ClipTimeout: c.ClipTimeout,
+		Path:        c.Path,
+		SafeContent: c.SafeContent,
+		Mounts:      make(map[string]string, len(c.Mounts)),
 	}
 	return cfg
 }
@@ -195,12 +192,11 @@ func (c *Pre130) CheckOverflow() error {
 // Config converts the Pre130 config to the current config struct
 func (c *Pre130) Config() *Config {
 	cfg := &Config{
-		AutoImport:        c.AutoImport,
-		ClipTimeout:       c.ClipTimeout,
-		ConfirmRecipients: c.Confirm,
-		Path:              c.Path,
-		SafeContent:       c.SafeContent,
-		Mounts:            make(map[string]string, len(c.Mounts)),
+		AutoImport:  c.AutoImport,
+		ClipTimeout: c.ClipTimeout,
+		Path:        c.Path,
+		SafeContent: c.SafeContent,
+		Mounts:      make(map[string]string, len(c.Mounts)),
 	}
 	return cfg
 }

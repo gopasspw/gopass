@@ -55,14 +55,6 @@ func TestConcurrency(t *testing.T) {
 	assert.Equal(t, 3, GetConcurrency(WithConcurrency(ctx, 3)))
 }
 
-func TestConfirm(t *testing.T) {
-	ctx := context.Background()
-
-	assert.Equal(t, false, IsConfirm(ctx))
-	assert.Equal(t, true, IsConfirm(WithConfirm(ctx, true)))
-	assert.Equal(t, false, IsConfirm(WithConfirm(ctx, false)))
-}
-
 func TestNoPager(t *testing.T) {
 	ctx := context.Background()
 
@@ -183,7 +175,6 @@ func TestComposite(t *testing.T) {
 	ctx = WithStdin(ctx, true)
 	ctx = WithClipTimeout(ctx, 10)
 	ctx = WithConcurrency(ctx, 5)
-	ctx = WithConfirm(ctx, true)
 	ctx = WithNoPager(ctx, true)
 	ctx = WithShowSafeContent(ctx, true)
 	ctx = WithGitCommit(ctx, false)
@@ -218,9 +209,6 @@ func TestComposite(t *testing.T) {
 
 	assert.Equal(t, 5, GetConcurrency(ctx))
 	assert.Equal(t, true, HasConcurrency(ctx))
-
-	assert.Equal(t, true, IsConfirm(ctx))
-	assert.Equal(t, true, HasConfirm(ctx))
 
 	assert.Equal(t, true, IsNoPager(ctx))
 	assert.Equal(t, true, HasNoPager(ctx))

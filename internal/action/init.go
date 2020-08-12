@@ -364,11 +364,6 @@ func (s *Action) initLocal(ctx context.Context) error {
 		}
 	}
 
-	// noconfirm
-	if want, err := termio.AskForBool(ctx, out.Prefix(ctx)+"Do you want to always confirm recipients when encrypting?", true); err == nil {
-		s.cfg.ConfirmRecipients = !want
-	}
-
 	// save config
 	if err := s.cfg.Save(); err != nil {
 		return errors.Wrapf(err, "failed to save config")

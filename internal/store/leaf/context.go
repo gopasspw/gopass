@@ -11,7 +11,6 @@ type contextKey int
 const (
 	ctxKeyFsckCheck contextKey = iota
 	ctxKeyFsckForce
-	ctxKeyRecipientFunc
 	ctxKeyFsckFunc
 	ctxKeyCheckRecipients
 	ctxKeyFsckDecrypt
@@ -56,31 +55,6 @@ func IsFsckForce(ctx context.Context) bool {
 		return false
 	}
 	return bv
-}
-
-// WithRecipientFunc will return a context with the recipient callback set
-func WithRecipientFunc(ctx context.Context, imf store.RecipientCallback) context.Context {
-	return context.WithValue(ctx, ctxKeyRecipientFunc, imf)
-}
-
-// HasRecipientFunc returns true if a recipient func has been set in this
-// context
-func HasRecipientFunc(ctx context.Context) bool {
-	imf, ok := ctx.Value(ctxKeyRecipientFunc).(store.RecipientCallback)
-	return ok && imf != nil
-}
-
-// GetRecipientFunc will return the recipient callback or a default one returning
-// the unaltered list of recipients.
-// Note: will never return nil
-func GetRecipientFunc(ctx context.Context) store.RecipientCallback {
-	imf, ok := ctx.Value(ctxKeyRecipientFunc).(store.RecipientCallback)
-	if !ok || imf == nil {
-		return func(ctx context.Context, msg string, rs []string) ([]string, error) {
-			return rs, nil
-		}
-	}
-	return imf
 }
 
 // WithFsckFunc will return a context with the fsck confirmation callback set

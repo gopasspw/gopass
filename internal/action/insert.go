@@ -9,7 +9,6 @@ import (
 	"github.com/gopasspw/gopass/internal/audit"
 	"github.com/gopasspw/gopass/internal/editor"
 	"github.com/gopasspw/gopass/internal/out"
-	"github.com/gopasspw/gopass/internal/store/leaf"
 	"github.com/gopasspw/gopass/internal/termio"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/gopass"
@@ -39,13 +38,6 @@ func (s *Action) Insert(c *cli.Context) error {
 }
 
 func (s *Action) insert(ctx context.Context, c *cli.Context, name, key string, echo, multiline, force, append bool, kvps map[string]string) error {
-	// if force mode is requested we mock the recipient func to just return anything that goes in
-	if force {
-		ctx = leaf.WithRecipientFunc(ctx, func(ctx context.Context, msg string, rs []string) ([]string, error) {
-			return rs, nil
-		})
-	}
-
 	var content []byte
 
 	// if content is piped to stdin, read and save it

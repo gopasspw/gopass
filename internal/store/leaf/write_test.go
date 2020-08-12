@@ -2,7 +2,6 @@ package leaf
 
 import (
 	"context"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"runtime"
@@ -35,7 +34,4 @@ func TestSet(t *testing.T) {
 		assert.NoError(t, s.Set(ctx, "../../../../../etc/passwd", sec))
 	}
 	assert.NoError(t, s.Set(ctx, "zab", sec))
-	assert.Error(t, s.Set(WithRecipientFunc(ctx, func(ctx context.Context, prompt string, list []string) ([]string, error) {
-		return nil, fmt.Errorf("aborted")
-	}), "zab/baz", sec))
 }
