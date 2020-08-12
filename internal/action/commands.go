@@ -826,11 +826,6 @@ func (s *Action) GetCommands() []*cli.Command {
 					Aliases: []string{"o"},
 					Usage:   "Display only the password",
 				},
-				&cli.BoolFlag{
-					Name:    "sync",
-					Aliases: []string{"s"},
-					Usage:   "Sync before attempting to display the secret",
-				},
 				&cli.StringFlag{
 					Name:  "revision",
 					Usage: "Show a past revision. Does NOT support RCS specific shortcuts. Use exact revision or -N to select the Nth oldest revision of this entry.",
