@@ -142,7 +142,9 @@ func (s *Action) showHandleOutput(ctx context.Context, name string, sec gopass.S
 	}
 
 	if IsPrintQR(ctx) && pw != "" {
-		return s.showPrintQR(name, pw)
+		if err := s.showPrintQR(name, pw); err != nil {
+			return err
+		}
 	}
 
 	if IsClip(ctx) && pw != "" && !ctxutil.IsForce(ctx) {
