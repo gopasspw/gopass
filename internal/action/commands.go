@@ -833,7 +833,7 @@ func (s *Action) GetCommands() []*cli.Command {
 				},
 				&cli.StringFlag{
 					Name:  "revision",
-					Usage: "Show a past revision",
+					Usage: "Show a past revision. Does NOT support RCS specific shortcuts. Use exact revision or -N to select the Nth oldest revision of this entry.",
 				},
 			},
 		},
