@@ -27,8 +27,8 @@ func showParseArgs(c *cli.Context) context.Context {
 	if c.IsSet("clip") {
 		ctx = WithOnlyClip(ctx, c.Bool("clip"))
 	}
-	if c.IsSet("force") {
-		ctx = ctxutil.WithForce(ctx, c.Bool("force"))
+	if c.IsSet("unsafe") {
+		ctx = ctxutil.WithForce(ctx, c.Bool("unsafe"))
 	}
 	if c.IsSet("qr") {
 		ctx = WithPrintQR(ctx, c.Bool("qr"))
