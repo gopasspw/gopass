@@ -32,11 +32,6 @@ func GeneratePassword(length int, symbols bool) string {
 	if c := os.Getenv("GOPASS_CHARACTER_SET"); c != "" {
 		chars = c
 	}
-	if c := os.Getenv("GOPASS_EXTERNAL_PWGEN"); c != "" {
-		if pw, err := generateExternal(c); err == nil {
-			return pw
-		}
-	}
 	return GeneratePasswordCharset(length, chars)
 }
 

@@ -178,10 +178,6 @@ func (s *Action) generatePassword(ctx context.Context, c *cli.Context, length, n
 		return pw, nil
 	}
 
-	if c.Bool("xkcd") {
-		return s.generatePasswordXKCD(ctx, c, length)
-	}
-
 	symbols := false
 	if c.IsSet("symbols") {
 		symbols = c.Bool("symbols")
@@ -208,14 +204,19 @@ func (s *Action) generatePassword(ctx context.Context, c *cli.Context, length, n
 		return "", ExitError(ExitUsage, nil, "password length must not be zero")
 	}
 
-	if c.Bool("strict") {
-		return pwgen.GeneratePasswordWithAllClasses(pwlen)
-	}
-	if c.Bool("memorable") {
+	switch c.String("generator") {
+	case "xkcd":
+		return s.generatePasswordXKCD(ctx, c, length)
+	case "memorable":
 		return pwgen.GenerateMemorablePassword(pwlen, symbols), nil
+	case "external":
+		return pwgen.GenerateExternal(pwlen)
+	default:
+		if c.Bool("strict") {
+			return pwgen.GeneratePasswordWithAllClasses(pwlen)
+		}
+		return pwgen.GeneratePassword(pwlen, symbols), nil
 	}
-
-	return pwgen.GeneratePassword(pwlen, symbols), nil
 }
 
 // generatePasswordXKCD walks through the steps necessary to create an XKCD-style

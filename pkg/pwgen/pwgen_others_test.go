@@ -12,5 +12,7 @@ import (
 func TestPwgenExternal(t *testing.T) {
 	_ = os.Setenv("GOPASS_EXTERNAL_PWGEN", "echo foobar")
 	defer os.Unsetenv("GOPASS_EXTERNAL_PWGEN")
-	assert.Equal(t, "foobar", GeneratePassword(4, true))
+	pw, err := GenerateExternal(4)
+	assert.NoError(t, err)
+	assert.Equal(t, "foobar 4", pw)
 }
