@@ -48,7 +48,7 @@ This is a list of available options:
 | **Option**       | **Type** | Description |
 | ---------------- | -------- | ----------- |
 | `askformore`     | `bool`   | If enabled - it will ask to add more data after use of `generate` command.  DEPRECATED in v1.9.3 |
-| `autoclip`       | `bool`   | Always copy the password created by `pass generate`. |
+| `autoclip`       | `bool`   | Always copy the password created by `gopass generate`. Only applies to generate. |
 | `autoimport`     | `bool`   | Import missing keys stored in the pass repository without asking. |
 | `autosync`       | `bool`   | Always do a `git push` after a commit to the store. Makes sure your local changes are always available on your git remote. DEPRECATED in v1.9.3 |
 | `concurrency`    | `int`    | Number of threads to use for batch operations (such as reencrypting).  DEPRECATED in v1.9.3 |

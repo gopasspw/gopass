@@ -130,10 +130,6 @@ func (s *Action) parseRevision(ctx context.Context, name, revision string) (stri
 func (s *Action) showHandleOutput(ctx context.Context, name string, sec gopass.Secret) error {
 	pw, body := s.showGetContent(ctx, sec)
 
-	if ctxutil.IsAutoClip(ctx) {
-		ctx = WithClip(ctx, true)
-	}
-
 	if pw == "" && body == "" {
 		if ctxutil.IsShowSafeContent(ctx) {
 			out.Yellow(ctx, "Warning: safecontent=true. Use -f to display password, if any")
@@ -177,9 +173,6 @@ func (s *Action) showGetContent(ctx context.Context, sec gopass.Secret) (string,
 	}
 	if IsPasswordOnly(ctx) {
 		return sec.Get("password"), sec.Get("password")
-	}
-	if ctxutil.IsAutoClip(ctx) && !ctxutil.IsForce(ctx) && !IsAlsoClip(ctx) {
-		return sec.Get("password"), ""
 	}
 
 	// everything but the first line

@@ -25,7 +25,6 @@ func TestShowMulti(t *testing.T) {
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithTerminal(ctx, false)
-	ctx = ctxutil.WithAutoClip(ctx, false)
 	act, err := newMock(ctx, u)
 	require.NoError(t, err)
 	require.NotNil(t, act)
@@ -130,13 +129,10 @@ func TestShowAutoClip(t *testing.T) {
 	ctx = ctxutil.WithTerminal(ctx, false)
 
 	// gopass show foo
-	// -> with AutoClip
 	// -> w/o terminal
 	// -> Print password
 	// for use in scripts
 	t.Run("gopass show foo", func(t *testing.T) {
-		// autoclip=true
-		ctx := ctxutil.WithAutoClip(ctx, true)
 		// terminal=false
 		ctx = ctxutil.WithTerminal(ctx, false)
 		// initialize context with config values, also detects if we're running in a termnial
@@ -146,26 +142,6 @@ func TestShowAutoClip(t *testing.T) {
 		assert.NoError(t, act.Show(c))
 		assert.NotContains(t, buf.String(), "WARNING")
 		assert.Contains(t, buf.String(), "secret")
-		buf.Reset()
-	})
-
-	// gopass show foo
-	// -> with AutoClip
-	// -> with terminal
-	// -> Copy to clipboard
-	// for interactive use
-	t.Run("gopass show foo", func(t *testing.T) {
-		// autoclip=true
-		ctx := ctxutil.WithAutoClip(ctx, true)
-		// terminal=true
-		ctx = ctxutil.WithTerminal(ctx, true)
-		// initialize context with config values, also detects if we're running in a termnial
-		ctx = act.Store.WithContext(ctx)
-
-		c := gptest.CliCtx(ctx, t, "foo")
-		assert.NoError(t, act.Show(c))
-		assert.Contains(t, buf.String(), "WARNING")
-		assert.NotContains(t, buf.String(), "secret")
 		buf.Reset()
 	})
 
@@ -204,8 +180,6 @@ func TestShowAutoClip(t *testing.T) {
 	// gopass show foo
 	// -> Copy to clipboard
 	t.Run("gopass show foo", func(t *testing.T) {
-		// autoclip=false
-		ctx := ctxutil.WithAutoClip(ctx, false)
 		c := gptest.CliCtx(ctx, t, "foo")
 		assert.NoError(t, act.Show(c))
 		assert.NotContains(t, buf.String(), "WARNING")
@@ -216,8 +190,6 @@ func TestShowAutoClip(t *testing.T) {
 	// gopass show -c foo
 	// -> Copy to clipboard
 	t.Run("gopass show -c foo", func(t *testing.T) {
-		// autoclip=false
-		ctx := ctxutil.WithAutoClip(ctx, false)
 		c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"clip": "true"}, "foo")
 		assert.NoError(t, act.Show(c))
 		assert.Contains(t, buf.String(), "WARNING")
@@ -228,8 +200,6 @@ func TestShowAutoClip(t *testing.T) {
 	// gopass show -C foo
 	// -> Copy to clipboard AND print
 	t.Run("gopass show -C foo", func(t *testing.T) {
-		// autoclip=false
-		ctx := ctxutil.WithAutoClip(ctx, false)
 		c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"alsoclip": "true"}, "foo")
 		assert.NoError(t, act.Show(c))
 		assert.Contains(t, buf.String(), "WARNING")
@@ -241,8 +211,6 @@ func TestShowAutoClip(t *testing.T) {
 	// gopass show -f foo
 	// -> ONLY Print
 	t.Run("gopass show -f foo", func(t *testing.T) {
-		// autoclip=false
-		ctx := ctxutil.WithAutoClip(ctx, false)
 		c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"unsafe": "true"}, "foo")
 		assert.NoError(t, act.Show(c))
 		assert.NotContains(t, buf.String(), "WARNING")
@@ -259,7 +227,6 @@ func TestShowHandleRevision(t *testing.T) {
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithTerminal(ctx, false)
-	ctx = ctxutil.WithAutoClip(ctx, false)
 	act, err := newMock(ctx, u)
 	require.NoError(t, err)
 	require.NotNil(t, act)
@@ -287,7 +254,6 @@ func TestShowHandleError(t *testing.T) {
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithTerminal(ctx, false)
-	ctx = ctxutil.WithAutoClip(ctx, false)
 	act, err := newMock(ctx, u)
 	require.NoError(t, err)
 	require.NotNil(t, act)
@@ -314,7 +280,6 @@ func TestShowHandleYAMLError(t *testing.T) {
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithTerminal(ctx, false)
-	ctx = ctxutil.WithAutoClip(ctx, false)
 	act, err := newMock(ctx, u)
 	require.NoError(t, err)
 	require.NotNil(t, act)
@@ -339,7 +304,6 @@ func TestShowPrintQR(t *testing.T) {
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithTerminal(ctx, false)
-	ctx = ctxutil.WithAutoClip(ctx, false)
 	act, err := newMock(ctx, u)
 	require.NoError(t, err)
 	require.NotNil(t, act)
