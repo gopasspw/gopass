@@ -40,8 +40,6 @@ age encrypted serialized JSON. It maps the keys (secret names) to content
 addressable blobs on the filesystem. Those are usually encrypted with age.
 The age keyring itself is also age encrypted serialized JSON.
 
-TODO: Add commands to decrypt an ondisk/age store without gopass.
-
 #### Background: How do access ondisk secrets without gopass
 
 This section assumes `age` and `jq` are properly installed.
@@ -78,7 +76,7 @@ This is a no-op backend used for testing.
 
 ### NaCl-based custom crypto backend (xc)
 
-**WARNING**: The future of this backend is unclear. If [age](https://github.com/FiloSottile/age) proves feasible this backend will be dropped. Do not use in production!
+**WARNING**: The future of this backend is unclear. It will likely go away soon. If [age](https://github.com/FiloSottile/age) proves feasible this backend will be dropped. Do not use in production!
 
 We implemented a pure-Go backend using a custom message format based on the excellent
 [NaCl library](https://nacl.cr.yp.to/) [packages](https://godoc.org/golang.org/x/crypto/nacl).
@@ -92,15 +90,15 @@ using existing building blocks - we're a little wary to recommend it for broader
 Also it requires its own Keyring/Agent infrastructure, as the keyformat is quite
 different from what GPG is using.
 
-Please see the backend [Readme](https://github.com/gopasspw/gopass/blob/master/internal/backend/crypto/xc/README.md) for more details. Proper documentation for this
-backend still needs to written and will be added at a later point.
+Please see the backend [Readme](https://github.com/gopasspw/gopass/blob/master/internal/backend/crypto/xc/README.md) for more details.
 
 ### Age crypto backend (age)
 
-This backend is based the [age](https://github.com/FiloSottile/age). It adds an
+This backend is based on [age](https://github.com/FiloSottile/age). It adds an
 encrypted keyring on top (using age in scrypt password mode). It also has
 (largely untested) support for specifying recipients as github users. This will
 use their ssh public keys for age encryption.
 
 This backend might very well become the new default backend.
 
+See [backends/age.md](backends/age.md).
