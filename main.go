@@ -103,9 +103,6 @@ func setupApp(ctx context.Context, sv semver.Version) (context.Context, *cli.App
 	if !cfg.AutoImport {
 		ctx = ctxutil.WithImportFunc(ctx, termio.AskForKeyImport)
 	}
-	if cfg.ConfirmRecipients {
-		ctx = leaf.WithRecipientFunc(ctx, action.ConfirmRecipients)
-	}
 	ctx = leaf.WithFsckFunc(ctx, termio.AskForConfirmation)
 
 	app := cli.NewApp()

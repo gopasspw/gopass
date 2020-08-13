@@ -25,18 +25,6 @@ func TestFsckForce(t *testing.T) {
 	assert.Equal(t, true, HasFsckForce(WithFsckForce(ctx, true)))
 }
 
-func TestRecipientFunc(t *testing.T) {
-	ctx := context.Background()
-
-	rfunc := func(context.Context, string, []string) ([]string, error) {
-		return nil, nil
-	}
-	assert.NotNil(t, GetRecipientFunc(ctx))
-	_, err := GetRecipientFunc(WithRecipientFunc(ctx, rfunc))(ctx, "", nil)
-	assert.NoError(t, err)
-	assert.Equal(t, true, HasRecipientFunc(WithRecipientFunc(ctx, rfunc)))
-}
-
 func TestFsckFunc(t *testing.T) {
 	ctx := context.Background()
 

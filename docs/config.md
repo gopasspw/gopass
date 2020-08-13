@@ -53,8 +53,6 @@ This is a list of available options:
 | `autosync`       | `bool`   | Always do a `git push` after a commit to the store. Makes sure your local changes are always available on your git remote. DEPRECATED in v1.9.3 |
 | `concurrency`    | `int`    | Number of threads to use for batch operations (such as reencrypting).  DEPRECATED in v1.9.3 |
 | `cliptimeout`    | `int`    | How many seconds the secret is stored when using `-c`. |
-| `confirm`      | `bool`   | Confirm recipient list when encrypting. |
-| `editrecipients` | `bool`   | Modify recipients when creating and editing passwords. |
 | `exportkeys`     | `bool`   | Export public keys of all recipients to the store. |
 | `recipient_hash` | `map`    | Map of recipient ids to their hashes.  DEPRECATED in v1.9.3 |
 | `usesymbols`     | `bool`   | If enabled - it will use symbols when generating passwords.  DEPRECATED in v1.9.3 |

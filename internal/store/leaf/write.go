@@ -28,13 +28,6 @@ func (s *Store) Set(ctx context.Context, name string, sec gopass.Byter) error {
 		return errors.Wrapf(err, "failed to list useable keys for '%s'", p)
 	}
 
-	// confirm recipients
-	newRecipients, err := GetRecipientFunc(ctx)(ctx, name, recipients)
-	if err != nil {
-		return errors.Wrapf(err, "user aborted")
-	}
-	recipients = newRecipients
-
 	// make sure the encryptor can decrypt later
 	recipients = s.ensureOurKeyID(ctx, recipients)
 

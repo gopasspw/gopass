@@ -17,7 +17,6 @@ const (
 	ctxKeyStdin
 	ctxKeyClipTimeout
 	ctxKeyConcurrency
-	ctxKeyConfirm
 	ctxKeyNoPager
 	ctxKeyShowSafeContent
 	ctxKeyGitCommit
@@ -149,27 +148,7 @@ func GetClipTimeout(ctx context.Context) int {
 	return iv
 }
 
-// WithConfirm returns a context with the value for ask for more set
-func WithConfirm(ctx context.Context, bv bool) context.Context {
-	return context.WithValue(ctx, ctxKeyConfirm, bv)
-}
-
-// HasConfirm returns true if a value for Confirm has been set in this context
-func HasConfirm(ctx context.Context) bool {
-	_, ok := ctx.Value(ctxKeyConfirm).(bool)
-	return ok
-}
-
-// IsConfirm returns the value of ask for more or the default (false)
-func IsConfirm(ctx context.Context) bool {
-	bv, ok := ctx.Value(ctxKeyConfirm).(bool)
-	if !ok {
-		return false
-	}
-	return bv
-}
-
-// WithNoPager returns a context with the value for ask for more set
+// WithNoPager returns a context with the value for pager set
 func WithNoPager(ctx context.Context, bv bool) context.Context {
 	return context.WithValue(ctx, ctxKeyNoPager, bv)
 }
@@ -180,7 +159,7 @@ func HasNoPager(ctx context.Context) bool {
 	return ok
 }
 
-// IsNoPager returns the value of ask for more or the default (false)
+// IsNoPager returns the value of pager or the default (false)
 func IsNoPager(ctx context.Context) bool {
 	bv, ok := ctx.Value(ctxKeyNoPager).(bool)
 	if !ok {

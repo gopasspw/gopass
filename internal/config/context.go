@@ -21,9 +21,6 @@ func (c *Config) WithContext(ctx context.Context) context.Context {
 	if !ctxutil.HasExportKeys(ctx) {
 		ctx = ctxutil.WithExportKeys(ctx, c.ExportKeys)
 	}
-	if !ctxutil.HasConfirm(ctx) {
-		ctx = ctxutil.WithConfirm(ctx, c.ConfirmRecipients)
-	}
 	if !ctxutil.HasNoPager(ctx) {
 		ctx = ctxutil.WithNoPager(ctx, c.NoPager)
 	}

@@ -25,7 +25,6 @@ func TestConfigs(t *testing.T) {
 			cfg: `autoclip: true
 autoimport: false
 cliptimeout: 45
-confirm: false
 exportkeys: true
 nopager: false
 notifications: true

@@ -40,7 +40,6 @@ func TestConfig(t *testing.T) {
   autoclip: true
   autoimport: true
   cliptimeout: 45
-  confirm: false
   exportkeys: true
   nocolor: false
   nopager: false
@@ -82,7 +81,6 @@ func TestConfig(t *testing.T) {
   autoclip: true
   autoimport: true
   cliptimeout: 45
-  confirm: false
   exportkeys: true
   nocolor: false
   nopager: true
@@ -118,7 +116,6 @@ func TestConfig(t *testing.T) {
 		want := `autoclip
 autoimport
 cliptimeout
-confirm
 exportkeys
 nocolor
 nopager

@@ -23,7 +23,6 @@ const (
   autoclip: false
   autoimport: true
   cliptimeout: 45
-  confirm: false
 `
 	keyID = "BE73F104"
 )
