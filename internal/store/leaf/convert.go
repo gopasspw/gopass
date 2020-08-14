@@ -105,6 +105,7 @@ func (s *Store) Convert(ctx context.Context, cryptoBe backend.CryptoBackend, sto
 				r.AuthorEmail,
 			)
 			ctx := ctxutil.WithCommitMessage(ctx, msg)
+			ctx = ctxutil.WithCommitTimestamp(ctx, r.Date)
 			if err := tmpStore.Set(ctx, e, sec.MIME()); err != nil {
 				return err
 			}

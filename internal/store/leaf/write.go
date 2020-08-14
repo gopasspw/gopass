@@ -69,7 +69,6 @@ func (s *Store) Set(ctx context.Context, name string, sec gopass.Byter) error {
 }
 
 func (s *Store) gitCommitAndPush(ctx context.Context, name string) error {
-	debug.Log("syncing with remote ...")
 	if err := s.storage.Commit(ctx, fmt.Sprintf("Save secret to %s: %s", name, ctxutil.GetCommitMessage(ctx))); err != nil {
 		switch errors.Cause(err) {
 		case store.ErrGitNotInit:
@@ -81,6 +80,7 @@ func (s *Store) gitCommitAndPush(ctx context.Context, name string) error {
 		}
 	}
 
+	debug.Log("syncing with remote ...")
 	if err := s.storage.Push(ctx, "", ""); err != nil {
 		if errors.Cause(err) == store.ErrGitNotInit {
 			msg := "Warning: git is not initialized for this.storage. Ignoring auto-push option\n" +

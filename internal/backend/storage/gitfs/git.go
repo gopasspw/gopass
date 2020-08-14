@@ -210,7 +210,7 @@ func (g *Git) Commit(ctx context.Context, msg string) error {
 		return store.ErrGitNothingToCommit
 	}
 
-	return g.Cmd(ctx, "gitCommit", "commit", "-m", msg)
+	return g.Cmd(ctx, "gitCommit", "commit", fmt.Sprintf("--date=%d +00:00", ctxutil.GetCommitTimestamp(ctx).UTC().Unix()), "-m", msg)
 }
 
 func (g *Git) defaultRemote(ctx context.Context, branch string) string {
