@@ -3,6 +3,7 @@ package ctxutil
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/gopasspw/gopass/internal/store"
 	"github.com/urfave/cli/v2"
@@ -37,6 +38,7 @@ const (
 	ctxKeyImportFunc
 	ctxKeyExportKeys
 	ctxKeyPasswordCallback
+	ctxKeyCommitTimestamp
 )
 
 // WithGlobalFlags parses any global flags from the cli context and returns
@@ -524,4 +526,26 @@ func GetPasswordCallback(ctx context.Context) PasswordCallback {
 		}
 	}
 	return pwcb
+}
+
+// WithCommitTimestamp returns a context with the value for the commit
+// timestamp set.
+func WithCommitTimestamp(ctx context.Context, ts time.Time) context.Context {
+	return context.WithValue(ctx, ctxKeyCommitTimestamp, ts)
+}
+
+// HasCommitTimestamp returns true if the value for the commit timestamp
+// was set in the context.
+func HasCommitTimestamp(ctx context.Context) bool {
+	_, ok := ctx.Value(ctxKeyCommitTimestamp).(time.Time)
+	return ok
+}
+
+// GetCommitTimestamp returns the commit timestamp from the context if
+// set or the default (now) otherwise.
+func GetCommitTimestamp(ctx context.Context) time.Time {
+	if ts, ok := ctx.Value(ctxKeyCommitTimestamp).(time.Time); ok {
+		return ts
+	}
+	return time.Now()
 }
