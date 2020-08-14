@@ -819,7 +819,7 @@ func (s *Action) GetCommands() []*cli.Command {
 				&cli.BoolFlag{
 					Name:    "password",
 					Aliases: []string{"o"},
-					Usage:   "Display only the password. Takes precedence over othe flags.",
+					Usage:   "Display only the password. Takes precedence over all other flags.",
 				},
 				&cli.StringFlag{
 					Name:  "revision",

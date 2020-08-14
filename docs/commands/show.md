@@ -36,7 +36,7 @@ Note: This section desribed the expected behaviour, not necessarily the observed
 
 TODO: We need to specify the expecations around new lines.
 
-* When no flag is set the `show` command will display the full content of the secret. If the `safecontent` option is set to `false` any secret fields (currently only `Password`) are replaced with a random number of '*' characters (length: 5-10). Using the `--unsafe` flag will reveal these fields even if `safecontent` is enabled. `--password` takes precedence of `safecontent=true` as well.
+* When no flag is set the `show` command will display the full content of the secret. If the `safecontent` option is set to `true` any secret fields (currently only `Password`) are replaced with a random number of '*' characters (length: 5-10). Using the `--unsafe` flag will reveal these fields even if `safecontent` is enabled. `--password` takes precedence of `safecontent=true` as well and displays only the password.
 * The `--clip` flag will copy the value of the `Password` field to the clipboard and doesn't display any part of the secret.
 * The `--alsoclip` option will copy the value of the `Password` field but also display the secret content depending on the `safecontent` setting, i.e. obstructing the `Password` field if `safecontent` is `true` or just displaying it if not.
 * The `--qr` flags operates complementary to other flags. It will *additionally* format the value of the `Password` entry as a QR code and display it. Other than that it will honor the other options, e.g. `gopass show --qr` will display the QR code *and* the whole secret content below. One special case is the `-o` flag, this flag doesn't make a lot of sense in combination, so if both `--qr` and `-o` are given only the QR code will be displayed.
