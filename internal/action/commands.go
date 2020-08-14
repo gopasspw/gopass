@@ -336,19 +336,14 @@ func (s *Action) GetCommands() []*cli.Command {
 					Aliases: []string{"s"},
 					Usage:   "Use symbols in the password",
 				},
-				&cli.BoolFlag{
-					Name:    "memorable",
-					Aliases: []string{"m"},
-					Usage:   "Generate a memorable password",
+				&cli.StringFlag{
+					Name:    "generator",
+					Aliases: []string{"g"},
+					Usage:   "Choose a password generator, use one of: cryptic, memorable, xkcd or external. Default: cryptic",
 				},
 				&cli.BoolFlag{
 					Name:  "strict",
 					Usage: "Require strict character class rules",
-				},
-				&cli.BoolFlag{
-					Name:    "xkcd",
-					Aliases: []string{"x"},
-					Usage:   "Use multiple random english words combined to a password. By default, space is used as separator and all words are lowercase",
 				},
 				&cli.StringFlag{
 					Name:    "sep",

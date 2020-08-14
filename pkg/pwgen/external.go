@@ -2,13 +2,21 @@ package pwgen
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 
 	shellquote "github.com/kballard/go-shellquote"
 )
 
-func generateExternal(c string) (string, error) {
+// GenerateExternal will invoke an external password generator,
+// if set, and return it's output.
+func GenerateExternal(pwlen int) (string, error) {
+	c := os.Getenv("GOPASS_EXTERNAL_PWGEN")
+	if c == "" {
+		return "", fmt.Errorf("no external generator")
+	}
 	cmdArgs, err := shellquote.Split(c)
 	if err != nil {
 		return "", err
@@ -21,6 +29,7 @@ func generateExternal(c string) (string, error) {
 	if len(cmdArgs) > 1 {
 		args = cmdArgs[1:]
 	}
+	args = append(args, strconv.Itoa(pwlen))
 	out, err := exec.Command(exe, args...).Output()
 	if err != nil {
 		return "", err
