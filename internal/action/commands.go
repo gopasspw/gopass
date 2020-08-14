@@ -805,16 +805,16 @@ func (s *Action) GetCommands() []*cli.Command {
 				&cli.BoolFlag{
 					Name:    "clip",
 					Aliases: []string{"c"},
-					Usage:   "Copy the first line of the secret into the clipboard",
+					Usage:   "Copy the password value into the clipboard",
 				},
 				&cli.BoolFlag{
 					Name:    "alsoclip",
 					Aliases: []string{"C"},
-					Usage:   "Copy the first line of the secret and show everything",
+					Usage:   "Copy the password and show everything",
 				},
 				&cli.BoolFlag{
 					Name:  "qr",
-					Usage: "Print the first line of the secret as QR Code",
+					Usage: "Print the password as a QR Code",
 				},
 				&cli.BoolFlag{
 					Name:    "unsafe",
@@ -824,7 +824,7 @@ func (s *Action) GetCommands() []*cli.Command {
 				&cli.BoolFlag{
 					Name:    "password",
 					Aliases: []string{"o"},
-					Usage:   "Display only the password",
+					Usage:   "Display only the password. Takes precedence over othe flags.",
 				},
 				&cli.StringFlag{
 					Name:  "revision",
