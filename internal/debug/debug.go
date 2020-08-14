@@ -65,7 +65,7 @@ func initDebugLogger() {
 		os.Exit(2)
 	}
 
-	opts.logger = log.New(f, "", log.LstdFlags)
+	opts.logger = log.New(f, "", log.Ldate|log.Lmicroseconds)
 }
 
 func parseFilter(envname string, pad func(string) string) map[string]bool {

@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
-	"github.com/gopasspw/gopass/internal/debug"
 )
 
 const (
@@ -72,10 +71,7 @@ func (r *Root) insert(path string, template bool, mountPath string) error {
 				n.Path = mountPath
 			}
 		}
-		node, err := t.Insert(n)
-		if err != nil {
-			debug.Log("failed to insert: %s", err)
-		}
+		node, _ := t.Insert(n)
 		// do we need to extend an existing subtree?
 		if i < len(p)-1 && node.Subtree == nil {
 			node.Subtree = NewTree()

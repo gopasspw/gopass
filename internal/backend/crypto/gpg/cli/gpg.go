@@ -60,17 +60,21 @@ func New(ctx context.Context, cfg Config) (*GPG, error) {
 		args:   append(defaultArgs, cfg.Args...),
 	}
 
+	debug.Log("initializing LRU cache")
 	cache, err := lru.New2Q(1024)
 	if err != nil {
 		return nil, err
 	}
 	g.listCache = cache
+	debug.Log("LRU cache initialized")
 
+	debug.Log("detecting binary")
 	bin, err := Binary(ctx, cfg.Binary)
 	if err != nil {
 		return nil, err
 	}
 	g.binary = bin
+	debug.Log("binary detected")
 
 	return g, nil
 }

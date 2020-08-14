@@ -21,7 +21,7 @@ type Store struct {
 	storage backend.Storage
 }
 
-// Init initialized this sub store
+// Init initializes this sub store
 func Init(ctx context.Context, alias, path string) (*Store, error) {
 	debug.Log("Initializing %s at %s", alias, path)
 	s := &Store{
@@ -34,12 +34,14 @@ func Init(ctx context.Context, alias, path string) (*Store, error) {
 		return nil, err
 	}
 	s.storage = st
+	debug.Log("Storage initialized")
 
 	crypto, err := backend.NewCrypto(ctx, backend.GetCryptoBackend(ctx))
 	if err != nil {
 		return nil, err
 	}
 	s.crypto = crypto
+	debug.Log("Crypto initialized")
 
 	return s, nil
 }
@@ -57,11 +59,13 @@ func New(ctx context.Context, alias, path string) (*Store, error) {
 	if err := s.initStorageBackend(ctx); err != nil {
 		return nil, errors.Wrapf(err, "failed to init storage backend: %s", err)
 	}
+	debug.Log("Storage initialized")
 
 	// init crypto backend
 	if err := s.initCryptoBackend(ctx); err != nil {
 		return nil, errors.Wrapf(err, "failed to init crypto backend: %s", err)
 	}
+	debug.Log("Crypto initialized")
 
 	debug.Log("Instantiated %s at %s - storage: %+#v - crypto: %+#v", alias, path, s.storage, s.crypto)
 	return s, nil
