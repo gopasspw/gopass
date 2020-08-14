@@ -16,7 +16,7 @@ $ gopass insert entry key
 * Create and change any field of a new or existing secret: `gopass insert entry key`
 * Read data from STDIN and insert (or append) to a secret
 
-Insert is simliar in effect to `gopass edit` with the advantage of not displaying any content of the secret when changing a key.
+Insert is similar in effect to `gopass edit` with the advantage of not displaying any content of the secret when changing a key.
 
 Note: `insert` will not change anything but the `Password` field (using the `insert entry` invocation) or the specified key (using the `insert entry key` invocation).
 

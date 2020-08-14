@@ -15,7 +15,7 @@ $ gopass generate entry key [length]
 
 * Generate a new entry with a new password, e.g. a new login. Setting the `Password` field, `gopass generate entry [chars]`
 * Re-generating a new password and setting it in the `Password` field of an existing entry
-* Generate a new password and setting it to a new key of an existing secret, e.g. `gopass generate entry key [chars]
+* Generate a new password and setting it to a new key of an existing secret, e.g. `gopass generate entry key [chars]`
 * Re-generate a new password for an existing key in an existing entry
 
 ## Flags
@@ -45,5 +45,5 @@ Generator | Description
 
 ## Relevant configuration options
 
-* `autoclip` only applies to `generate`. If set the generated password is automatically copied to the clipboard - unless `--clip` is `false`
+* `autoclip` only applies to `generate`. If set the generated password is automatically copied to the clipboard - unless `--clip` is explicitly set to `--clip=false`
 * `safecontent` will suppress printing of the password, unless `-p` is set. The password will not be copied, unless `-c` or the `autoclip` option are set.
