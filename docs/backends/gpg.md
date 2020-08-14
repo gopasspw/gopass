@@ -1,4 +1,4 @@
-# gpg backend
+# gpg crypto backend
 
 The `gpgcli` backend is the default crypto backend based on the `gpg` CLI. It depends on the GPG installation to be working and having a properly initialized keyring.
 

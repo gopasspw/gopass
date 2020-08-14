@@ -1,4 +1,4 @@
-# age backend
+# age crypto backend
 
 The `age` backend is an experimental crypto backend based on [age](https://age-encryption.org). It adds an
 encrypted keyring on top (using age in scrypt password mode). It also has

@@ -47,3 +47,11 @@ Generator | Description
 
 * `autoclip` only applies to `generate`. If set the generated password is automatically copied to the clipboard - unless `--clip` is explicitly set to `--clip=false`
 * `safecontent` will suppress printing of the password, unless `-p` is set. The password will not be copied, unless `-c` or the `autoclip` option are set.
+
+## Templates
+
+When creating a new entry gopass will look for the most specific template
+by going up in the secret path looking for a file called `.pass-template`.
+
+If any such file is found it will be used to pre-populate the generated
+secret.
