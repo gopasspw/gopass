@@ -255,15 +255,27 @@ source /dev/stdin <<<"$(gopass completion bash)"
 
 If you use zsh, `make install` or `make install-completion` should install the completion in the correct location.
 
-If zsh autocompletion is still not functional, you can run the following commands:
+If zsh autocompletion is still not functional, or if you want to install it manually, you can run the following commands:
 
-```
+```bash
 $ gopass completion zsh > ~/_gopass 
 $ sudo mv ~/_gopass /usr/share/zsh/site-functions/_gopass
 $ rm -i ${ZDOTDIR:-${HOME:?No ZDOTDIR or HOME}}/.zcompdump && compinit
 
 ```
-Exit and re-run zsh if the last command failed.
+Then exit and re-run zsh if the last command failed.
+
+Notice that it is important to directly redirect Gopass' output to a file,
+using pipes or echo mess up the output. Also notice that the generated `_gopass` file is
+a completion file that is supposed to be handled by zsh and to be installed in the zsh
+completions directory, as defined by either the standard `/usr/share/zsh/site-functions/` path,
+or by a user-specified `fpath` folder. It is not meant to used with `source`.
+
+If zsh completion is still not working, you might want to add the following to your `.zshrc` file:
+```bash
+autoload -U compinit && compinit
+```
+if you don't have it already.
 
 ### Enable fish completion
 
