@@ -187,7 +187,7 @@ func (o *OnDisk) Set(ctx context.Context, name string, value []byte) error {
 		msg = cm
 	}
 	e.Revisions = append(e.Revisions, &gjs.Revision{
-		Created:  gjs.Now(),
+		Created:  gjs.New(ctxutil.GetCommitTimestamp(ctx)),
 		Message:  msg,
 		Filename: fn,
 	})
