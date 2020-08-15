@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/textproto"
+	"os"
 	"sort"
 	"strings"
 )
@@ -81,8 +82,41 @@ func ParseMIME(buf []byte) (*MIME, error) {
 	return m, nil
 }
 
+// bytesCompat writes a pass compatible representation
+// of the secret.
+func (s *MIME) bytesCompat() []byte {
+	buf := &bytes.Buffer{}
+	fmt.Fprint(buf, s.Header.Get("Password"))
+	fmt.Fprintln(buf)
+
+	keys := make([]string, 0, len(s.Header))
+	for k := range s.Header {
+		if strings.ToLower(k) == "password" {
+			continue
+		}
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	for _, k := range keys {
+		vs := s.Header[k]
+		sort.Strings(vs)
+		for _, v := range vs {
+			fmt.Fprint(buf, k)
+			fmt.Fprint(buf, ": ")
+			fmt.Fprint(buf, v)
+			fmt.Fprint(buf, "\n")
+		}
+	}
+	fmt.Fprint(buf, "\n")
+	buf.Write(s.body.Bytes())
+	return buf.Bytes()
+}
+
 // Bytes serializes the secret
 func (s *MIME) Bytes() []byte {
+	if compat := os.Getenv("GOPASS_DISABLE_MIME"); compat != "" {
+		return s.bytesCompat()
+	}
 	buf := &bytes.Buffer{}
 	fmt.Fprint(buf, Ident)
 	fmt.Fprint(buf, "\n")
