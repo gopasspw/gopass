@@ -6,6 +6,9 @@ dev.sh
 coverage.out
 coverage-all.*
 
+# Profiling
+*.out
+
 # Compiled Object files, Static and Dynamic libs (Shared Objects)
 *.o
 *.a

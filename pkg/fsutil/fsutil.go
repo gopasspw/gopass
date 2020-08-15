@@ -61,7 +61,7 @@ func IsFile(path string) bool {
 			// not found
 			return false
 		}
-		debug.Log("failed to check dir %s: %s\n", path, err)
+		debug.Log("failed to check file %s: %s\n", path, err)
 		return false
 	}
 
