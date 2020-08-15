@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/signal"
 	"runtime"
+	"runtime/pprof"
 	"sort"
 	"strings"
 	"time"
@@ -49,6 +50,17 @@ var (
 )
 
 func main() {
+	if cp := os.Getenv("GOPASS_CPU_PROFILE"); cp != "" {
+		f, err := os.Create(cp)
+		if err != nil {
+			log.Fatalf("could not create CPU profile at %s: %s", cp, err)
+		}
+		defer f.Close()
+		if err := pprof.StartCPUProfile(f); err != nil {
+			log.Fatalf("could not start CPU profile: %s", err)
+		}
+		defer pprof.StopCPUProfile()
+	}
 	if err := protect.Pledge("stdio rpath wpath cpath tty proc exec"); err != nil {
 		panic(err)
 	}
@@ -83,6 +95,17 @@ func main() {
 		log.Fatal(err)
 	}
 	q.Wait(ctx)
+	if mp := os.Getenv("GOPASS_MEM_PROFILE"); mp != "" {
+		f, err := os.Create(mp)
+		if err != nil {
+			log.Fatalf("could not write mem profile to %s: %s", mp, err)
+		}
+		defer f.Close()
+		runtime.GC()
+		if err := pprof.WriteHeapProfile(f); err != nil {
+			log.Fatalf("could not write heap profile: %s", err)
+		}
+	}
 }
 
 func setupApp(ctx context.Context, sv semver.Version) (context.Context, *cli.App) {
