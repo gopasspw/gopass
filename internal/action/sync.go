@@ -88,6 +88,7 @@ func (s *Action) syncMount(ctx context.Context, mp string) error {
 		numMP = len(l)
 	}
 
+	// TODO: Remove this hard coded check
 	if sub.Storage().Name() == "fs" {
 		out.Yellow(ctxno, "\n   WARNING: Mount uses Storage backend 'fs'. Not syncing!\n")
 	} else {

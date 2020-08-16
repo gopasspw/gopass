@@ -1,6 +1,6 @@
 # `show` command
 
-This `show` command is the most important and most frequently used command.
+The `show` command is the most important and most frequently used command.
 It allows displaying and copying the content of the secrets managed by gopass.
 
 ## Synopsis
@@ -28,7 +28,7 @@ Flag | Aliases | Description
 `--password` | `-o` | Display only the password. For use in scripts. Takes precedence over other flags.
 `--revision` | `-r` | Display a specific revision of the entry. Use an exact version identifier from `gopass history` or the special `-N` syntax. Does not work with native (e.g. git) refs.
 
-## Modes of operation
+## Details
 
 This section describes the expected behaviour of the `show` command with respect to different combinations of flags and config options.
 
