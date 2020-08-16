@@ -444,7 +444,7 @@ To check and reencrypt secrets if recipients are missing, run `gopass fsck`.
 
 ### Debugging
 
-To debug gopass, set the environment variable `GOPASS_DEBUG` to `true`.
+To debug gopass, set the environment variable `GOPASS_DEBUG_LOG` to a output filename.
 
 ### Restricting the characters in generated passwords
 
@@ -473,4 +473,13 @@ This makes it easy to use templates for certain kind of secrets such as database
 ### JSON API
 
 `gopass-jsonapi` enables communication with gopass via JSON messages. This is particularly useful for browser plugins like [gopassbridge](https://github.com/gopasspw/gopassbridge) running gopass as native app. More details can be found in [docs/jsonapi.md](./jsonapi.md).
+
+### Safecontent
+
+Gopass can limit display of certain *unsafe* fields in secrets.
+By default no fields are obstructed, but if the `safecontent`
+config option is set to `true` the `Password` field is obstructed.
+Also the special `Unsafe-Keys` key is evaluated. It expectes
+a comma separated list of keys that will be obstructed when
+printing the secret.
 

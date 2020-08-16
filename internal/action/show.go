@@ -3,6 +3,7 @@ package action
 import (
 	"context"
 	"fmt"
+	"math/rand"
 	"path"
 	"strconv"
 	"strings"
@@ -184,7 +185,12 @@ func (s *Action) showGetContent(ctx context.Context, sec gopass.Secret) (string,
 			}
 			sb.WriteString(k)
 			sb.WriteString(": ")
-			sb.WriteString(sec.Get(k))
+			// check is this key should be obstructed
+			if isUnsafeKey(k, sec) {
+				sb.WriteString(randAsterisk())
+			} else {
+				sb.WriteString(sec.Get(k))
+			}
 		}
 		sb.WriteString(sec.GetBody())
 		if IsAlsoClip(ctx) {
@@ -196,6 +202,30 @@ func (s *Action) showGetContent(ctx context.Context, sec gopass.Secret) (string,
 	// everything (default)
 	fullBody := strings.TrimPrefix(string(sec.Bytes()), secret.Ident+"\n")
 	return sec.Get("password"), fullBody
+}
+
+func isUnsafeKey(key string, sec gopass.Secret) bool {
+	if strings.ToLower(key) == "password" {
+		return true
+	}
+	uks := sec.Get("Unsafe-Keys")
+	if uks == "" {
+		return false
+	}
+	for _, uk := range strings.Split(uks, ",") {
+		uk = strings.TrimSpace(uk)
+		if uk == "" {
+			continue
+		}
+		if strings.EqualFold(uk, key) {
+			return true
+		}
+	}
+	return false
+}
+
+func randAsterisk() string {
+	return strings.Repeat("*", 5+rand.Intn(5))
 }
 
 func (s *Action) hasAliasDomain(ctx context.Context, name string) string {

@@ -97,6 +97,34 @@ func TestShowMulti(t *testing.T) {
 		assert.NotContains(t, buf.String(), "123")
 		buf.Reset()
 	})
+
+	t.Run("show entry with unsafe keys", func(t *testing.T) {
+		sec := secret.New()
+		sec.Set("password", "123")
+		sec.Set("bar", "zab")
+		sec.Set("foo", "baz")
+		sec.Set("hello", "world")
+		sec.Set("Unsafe-Keys", "foo, bar")
+		assert.NoError(t, act.Store.Set(ctx, "unsafe/keys", sec))
+		buf.Reset()
+
+		ctx = ctxutil.WithShowSafeContent(ctx, true)
+		c := gptest.CliCtx(ctx, t, "unsafe/keys")
+		assert.NoError(t, act.Show(c))
+		assert.Contains(t, buf.String(), "*****")
+		assert.NotContains(t, buf.String(), "zab")
+		assert.NotContains(t, buf.String(), "baz")
+		buf.Reset()
+	})
+
+	t.Run("show twoliner with safecontent enabled", func(t *testing.T) {
+		ctx = ctxutil.WithShowSafeContent(ctx, true)
+		c := gptest.CliCtx(ctx, t, "bar/baz")
+
+		assert.NoError(t, act.Show(c))
+		assert.Equal(t, "Bar: zab", buf.String())
+		buf.Reset()
+	})
 }
 
 func TestShowAutoClip(t *testing.T) {
