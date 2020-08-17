@@ -9,7 +9,7 @@ $ gopass insert entry
 $ gopass insert entry key
 ```
 
-## Modes of operations
+## Modes of operation
 
 * Create a new entry with a user-supplied password, e.g. a new site with a user-generated password or one picked from `gopass pwgen`: `gopass insert entry`
 * Change an existing entry to a user-supplied password

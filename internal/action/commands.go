@@ -218,8 +218,7 @@ func (s *Action) GetCommands() []*cli.Command {
 			Usage: "Search for secrets",
 			Description: "" +
 				"This command will first attempt a simple pattern match on the name of the " +
-				"secret. If that yields no results, it will trigger a fuzzy search. " +
-				"If there is an exact match it will be shown directly; if there are " +
+				"secret.  If there is an exact match it will be shown directly; if there are " +
 				"multiple matches, a selection will be shown.",
 			Before:       s.Initialized,
 			Action:       s.FindNoFuzzy,
@@ -232,8 +231,8 @@ func (s *Action) GetCommands() []*cli.Command {
 					Usage:   "Copy the password into the clipboard",
 				},
 				&cli.BoolFlag{
-					Name:    "force",
-					Aliases: []string{"f"},
+					Name:    "unsafe",
+					Aliases: []string{"u", "force", "f"},
 					Usage:   "In the case of an exact match, display the password even if safecontent is enabled",
 				},
 			},
@@ -587,7 +586,7 @@ func (s *Action) GetCommands() []*cli.Command {
 				},
 				&cli.BoolFlag{
 					Name:    "folders",
-					Aliases: []string{"fo"},
+					Aliases: []string{"d"},
 					Usage:   "Print flat list of folders",
 				},
 				&cli.BoolFlag{
