@@ -22,7 +22,7 @@ func TestIcon(t *testing.T) {
 	_ = os.Remove(fn)
 	_ = iconURI()
 	fh, err := os.Open(fn)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer func() {
 		assert.NoError(t, fh.Close())
 	}()

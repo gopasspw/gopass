@@ -120,7 +120,7 @@ func TestGetCommands(t *testing.T) {
 	c.Context = ctx
 
 	commands := getCommands(act, app)
-	assert.Equal(t, 37, len(commands))
+	assert.Equal(t, 36, len(commands))
 
 	prefix := ""
 	testCommands(t, c, commands, prefix)

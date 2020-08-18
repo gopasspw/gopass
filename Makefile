@@ -69,6 +69,7 @@ clean:
 	@rm -f gopass-*.tar.gz
 	@rm -f gopass-*-*
 	@rm -f tests/tests
+	@rm -f *.test
 	@rm -rf dist/*
 	@rm -f *.completion
 	@printf '%s\n' '$(OK)'
@@ -113,7 +114,7 @@ fulltest: $(GOPASS_OUTPUT)
 	@echo "mode: atomic" > coverage-all.out
 	@$(foreach pkg, $(PKGS),\
 	    echo -n "     ";\
-		go test -run '(Test|Example)' $(BUILDFLAGS) $(TESTFLAGS) -coverprofile=coverage.out -covermode=atomic $(pkg) -tags 'xc' || exit 1;\
+		go test -run '(Test|Example)' $(BUILDFLAGS) $(TESTFLAGS) -coverprofile=coverage.out -covermode=atomic $(pkg) || exit 1;\
 		tail -n +2 coverage.out >> coverage-all.out;)
 	@$(GO) tool cover -html=coverage-all.out -o coverage-all.html
 
@@ -122,14 +123,14 @@ fulltest-nocover: $(GOPASS_OUTPUT)
 	@echo "mode: atomic" > coverage-all.out
 	@$(foreach pkg, $(PKGS),\
 	    echo -n "     ";\
-		go test -run '(Test|Example)' $(BUILDFLAGS) $(TESTFLAGS) $(pkg) -tags 'xc' || exit 1;)
+		go test -run '(Test|Example)' $(BUILDFLAGS) $(TESTFLAGS) $(pkg) || exit 1;)
 
 racetest: $(GOPASS_OUTPUT)
 	@echo ">> TEST, \"full-mode\": race detector on"
 	@echo "mode: atomic" > coverage-all.out
 	@$(foreach pkg, $(PKGS),\
 	    echo -n "     ";\
-		go test -run '(Test|Example)' $(BUILDFLAGS) $(TESTFLAGS) -race -coverprofile=coverage.out -covermode=atomic $(pkg) -tags 'xc' || exit 1;\
+		go test -run '(Test|Example)' $(BUILDFLAGS) $(TESTFLAGS) -race -coverprofile=coverage.out -covermode=atomic $(pkg) || exit 1;\
 		tail -n +2 coverage.out >> coverage-all.out;)
 	@$(GO) tool cover -html=coverage-all.out -o coverage-all.html
 
@@ -137,7 +138,7 @@ test: $(GOPASS_OUTPUT)
 	@echo ">> TEST, \"fast-mode\": race detector off"
 	@$(foreach pkg, $(PKGS),\
 	    echo -n "     ";\
-		$(GO) test -test.short -run '(Test|Example)' $(BUILDFLAGS) $(TESTFLAGS) $(pkg) -tags 'xc' || exit 1)
+		$(GO) test -test.short -run '(Test|Example)' $(BUILDFLAGS) $(TESTFLAGS) $(pkg) || exit 1)
 
 test-integration: $(GOPASS_OUTPUT)
 	cd tests && GOPASS_BINARY=$(PWD)/$(GOPASS_OUTPUT) GOPASS_TEST_DIR=$(PWD)/tests go test -v
@@ -155,7 +156,7 @@ crosscompile:
 
 full:
 	@echo -n ">> COMPILE linux/amd64 xc"
-	$(GO) build -o $(GOPASS_OUTPUT)-full -tags "xc"
+	$(GO) build -o $(GOPASS_OUTPUT)-full
 
 %.completion: $(GOPASS_OUTPUT)
 	@printf ">> $* completion, output = $@"
