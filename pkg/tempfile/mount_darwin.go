@@ -22,7 +22,7 @@ func tempdirBase() string {
 }
 
 func (t *File) mount(ctx context.Context) error {
-	// create 16MB ramdisk
+	// create 32MB ramdisk
 	cmd := exec.CommandContext(ctx, "hdid", "-drivekey", "system-image=yes", "-nomount", "ram://32768")
 	cmd.Stderr = os.Stderr
 

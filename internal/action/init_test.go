@@ -77,10 +77,10 @@ func TestInitParseContext(t *testing.T) {
 		check func(context.Context) error
 	}{
 		{
-			name:  "crypto xc",
-			flags: map[string]string{"crypto": "xc"},
+			name:  "crypto age",
+			flags: map[string]string{"crypto": "age"},
 			check: func(ctx context.Context) error {
-				if be := backend.GetCryptoBackend(ctx); be != backend.XC {
+				if be := backend.GetCryptoBackend(ctx); be != backend.Age {
 					return fmt.Errorf("wrong backend: %d", be)
 				}
 				return nil
