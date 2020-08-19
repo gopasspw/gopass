@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"sort"
 
 	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/pkg/fsutil"
@@ -39,7 +40,6 @@ func loadConfig(l string) *Config {
 		return nil
 	}
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "ERROR: Failed to load config from %s", l)
 		return nil
 	}
 	debug.Log("Loaded config from %s: %+v", l, cfg)
@@ -67,7 +67,7 @@ func load(cf string) (*Config, error) {
 
 	cfg, err := decode(buf)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error reading config from %s: %s\n%s", cf, err, string(buf))
+		fmt.Fprintf(os.Stderr, "Error reading config from %s: %s\n", cf, err)
 		return nil, ErrConfigNotParsed
 	}
 	if cfg.Mounts == nil {
@@ -86,6 +86,7 @@ func checkOverflow(m map[string]interface{}) error {
 	for k := range m {
 		keys = append(keys, k)
 	}
+	sort.Strings(keys)
 	return errors.Errorf("unknown fields: %+v", keys)
 }
 
@@ -116,6 +117,9 @@ func decode(buf []byte) (*Config, error) {
 		}
 		if err := cfg.CheckOverflow(); err != nil {
 			debug.Log("Extra elements in config: %s", err)
+			if i == 0 {
+				fmt.Fprintf(os.Stderr, "Failed to load config %T. %s\n", cfg, err)
+			}
 			continue
 		}
 		debug.Log("Loaded config: %T: %+v", cfg, cfg)
