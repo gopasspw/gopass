@@ -71,7 +71,8 @@ func TestShowMulti(t *testing.T) {
 		c := gptest.CliCtx(ctx, t, "bar/baz")
 
 		assert.NoError(t, act.Show(c))
-		assert.Equal(t, "Bar: zab", buf.String())
+		assert.Contains(t, buf.String(), "Bar: zab")
+		assert.Contains(t, buf.String(), "Password: ***")
 		buf.Reset()
 	})
 
@@ -122,7 +123,8 @@ func TestShowMulti(t *testing.T) {
 		c := gptest.CliCtx(ctx, t, "bar/baz")
 
 		assert.NoError(t, act.Show(c))
-		assert.Equal(t, "Bar: zab", buf.String())
+		assert.Contains(t, buf.String(), "Bar: zab")
+		assert.Contains(t, buf.String(), "Password: ***")
 		buf.Reset()
 	})
 }

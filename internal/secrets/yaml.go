@@ -27,10 +27,11 @@ type YAML struct {
 
 // Keys returns all keys
 func (y *YAML) Keys() []string {
-	keys := make([]string, 0, len(y.data))
+	keys := make([]string, 0, len(y.data)+1)
 	for key := range y.data {
 		keys = append(keys, key)
 	}
+	keys = append(keys, "password")
 	sort.Strings(keys)
 	return keys
 }

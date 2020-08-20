@@ -180,18 +180,18 @@ func (s *Action) showGetContent(ctx context.Context, sec gopass.Secret) (string,
 	if ctxutil.IsShowSafeContent(ctx) && !ctxutil.IsForce(ctx) {
 		var sb strings.Builder
 		for _, k := range sec.Keys() {
-			if k == "Password" {
-				continue
-			}
 			sb.WriteString(k)
 			sb.WriteString(": ")
 			// check is this key should be obstructed
 			if isUnsafeKey(k, sec) {
+				debug.Log("obstructing unsafe key %s", k)
 				sb.WriteString(randAsterisk())
 			} else {
 				sb.WriteString(sec.Get(k))
 			}
+			sb.WriteString("\n")
 		}
+		sb.WriteString("\n")
 		sb.WriteString(sec.GetBody())
 		if IsAlsoClip(ctx) {
 			return sec.Get("password"), sb.String()

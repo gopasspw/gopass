@@ -56,10 +56,11 @@ func (k *KV) Bytes() []byte {
 
 // Keys returns all keys
 func (k *KV) Keys() []string {
-	keys := make([]string, 0, len(k.data))
+	keys := make([]string, 0, len(k.data)+1)
 	for key := range k.data {
 		keys = append(keys, key)
 	}
+	keys = append(keys, "password")
 	sort.Strings(keys)
 	return keys
 }
