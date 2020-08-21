@@ -483,6 +483,13 @@ func (s *Action) GetCommands() []*cli.Command {
 			Before: s.Initialized,
 			Action: s.Grep,
 			Hidden: true,
+			Flags: []cli.Flag{
+				&cli.BoolFlag{
+					Name:    "regexp",
+					Aliases: []string{"r"},
+					Usage:   "Interpret pattern as RE2 regular expression",
+				},
+			},
 		},
 		{
 			Name:    "history",

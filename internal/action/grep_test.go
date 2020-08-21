@@ -32,14 +32,27 @@ func TestGrep(t *testing.T) {
 	}()
 
 	c := gptest.CliCtx(ctx, t, "foo")
-	assert.NoError(t, act.Grep(c))
-	buf.Reset()
+	t.Run("empty store", func(t *testing.T) {
+		defer buf.Reset()
+		assert.NoError(t, act.Grep(c))
+	})
 
-	// add some secret
-	sec := secret.New()
-	sec.Set("password", "foobar")
-	sec.WriteString("foobar")
-	assert.NoError(t, act.Store.Set(ctx, "foo", sec))
-	assert.NoError(t, act.Grep(c))
-	buf.Reset()
+	t.Run("add some secret", func(t *testing.T) {
+		defer buf.Reset()
+		sec := secret.New()
+		sec.Set("password", "foobar")
+		sec.WriteString("foobar")
+		assert.NoError(t, act.Store.Set(ctx, "foo", sec))
+	})
+
+	t.Run("should find existing", func(t *testing.T) {
+		defer buf.Reset()
+		assert.NoError(t, act.Grep(c))
+	})
+
+	t.Run("RE2", func(t *testing.T) {
+		defer buf.Reset()
+		c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"regexp": "true"}, "f..bar")
+		assert.NoError(t, act.Grep(c))
+	})
 }

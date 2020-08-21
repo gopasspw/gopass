@@ -1,6 +1,7 @@
 package action
 
 import (
+	"regexp"
 	"strings"
 
 	"github.com/gopasspw/gopass/internal/out"
@@ -25,6 +26,18 @@ func (s *Action) Grep(c *cli.Context) error {
 		return ExitError(ExitList, err, "failed to list store: %s", err)
 	}
 
+	matchFn := func(haystack string) bool {
+		return strings.Contains(haystack, needle)
+	}
+
+	if c.Bool("regexp") {
+		re, err := regexp.Compile(needle)
+		if err != nil {
+			return ExitError(ExitUsage, err, "failed to compile regexp '%s': %s", needle, err)
+		}
+		matchFn = re.MatchString
+	}
+
 	var matches int
 	var errors int
 	for _, v := range haystack {
@@ -34,7 +47,7 @@ func (s *Action) Grep(c *cli.Context) error {
 			continue
 		}
 
-		if strings.Contains(string(sec.Bytes()), needle) {
+		if matchFn(string(sec.Bytes())) {
 			out.Print(ctx, "%s matches", color.BlueString(v))
 		}
 	}
