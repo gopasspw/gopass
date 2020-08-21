@@ -742,15 +742,6 @@ func (s *Action) GetCommands() []*cli.Command {
 						},
 					},
 				},
-				{
-					Name:  "update",
-					Usage: "Recompute the saved recipient list checksums",
-					Description: "" +
-						"This command will recompute the saved recipient checksum" +
-						"and save them to the config.",
-					Before: s.Initialized,
-					Action: s.RecipientsUpdate,
-				},
 			},
 		},
 		{
