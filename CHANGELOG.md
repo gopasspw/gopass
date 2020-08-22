@@ -1,38 +1,15 @@
-## 1.10.0-rc.0
+## 1.10.0-rc.1
 
-Note: We have accumulated too many changes so we've decided to skip the 1.9.3
-release and issue the first release of the 1.10. series.
-
-* [BUGFIX] Fix git init
-
-## 1.9.3-rc.1
-
-This release adds additional binaries which should be included in
-any binary re-distribution of gopass.
-
-* [BUGFIX] Allow deleting shadowed secret
-* [BUGFIX] env command: do not crash if called without a command to execute
-* [BUGFIX] Fix config panic with mounts
-* [BUGFIX] Fix tree shadowing.
-* [BUGFIX] Handle relative path during init
-* [BUGFIX] Print RCS error message
-* [CLEANUP] Merge Storage and RCS backends
-* [ENHANCEMENT] env command: more tests
-* [ENHANCEMENT] Show recipients from subfolder id files
-* [FEATURE] Pinentry API: support OPTION API call
-* [TESTING] Add a test to detect shadowing issue with mount
-
-## 1.9.3-rc.0
-
-WARNING: This release contains a few breaking changes.
+WARNING: This release contains a few breaking changes as well as necessary
+packaging changes.
 
 This release is building the foundation for an eventual 2.0 release
 which will drop many legacy features and significantly shrink the
 codebase to ensure long term maintainability. The goal is to remove
 the support for multiple backends and any external dependencies,
-including git and gpg. By default the tool should be easy to use,
+including `git` and `gpg` binaries. By default the tool should be easy to use,
 secure and modern. We will still support our flagship use cases,
-like working in teams. Also gopass will eventually move to an
+like working in teams. Also gopass might eventually move to an
 fully encrypted backend where we don't leak information through
 filenames.
 
@@ -40,35 +17,86 @@ Any gopass 1.x release should still be compatible with any
 password store implementation (possibly with some caveats).
 Beyond that we plan to drop any compatibility goals.
 
+If you are using different Password Store implementations to access your
+secrets, e.g. on mobile devices, you might want to run `gopass config mime false`
+before performing any kind of write operation on the password store. Otherwise
+mutated secrets will be written using the new native gopass MIME format and
+might not be readable from other implementations.
+
+This release adds documentation for all supported subcommands in the `docs/commands`
+folder and starts define our core use cases in the `docs/usecases` folder.
+Please note that the command documentation also serves as a specification on
+how these commands are supposed to operate.
+
+Note: We have accumulated too many changes so we've decided to skip the 1.9.3
+release and issue the first release of the 1.10. series.
+
+Note to package maintainers: This release adds additional binaries which should
+be included in any binary re-distribution of gopass.
+
 * [BREAKING] New secrets format
-* [FEATURE] REPL
-* [FEATURE] Add summon provider
-* [FEATURE] Add remote sync support for the ondisk backend
-* [FEATURE] Add remote config for ondisk storage
-* [FEATURE] Add Password Rules and Domain Alias support
-* [FEATURE] Add experimental backend converter
-* [ENHANCEMENT] Support changing path with gopass config
-* [ENHANCEMENT] Rewrite tree implementation
-* [ENHANCEMENT] Print password before sync
-* [ENHANCEMENT] New progress bar
-* [ENHANCEMENT] New Debug package
-* [ENHANCEMENT] Make audit report passwords not changed
-* [ENHANCEMENT] Ignore binary secrets for audit
-* [ENHANCEMENT] Avoid direct show on gopass search
-* [ENHANCEMENT] Add zxcvbn password strength checker
-* [ENHANCEMENT] Add gopass API (unstable)
-* [ENHANCEMENT] Add arm and arm64 binaries
+* [BUGFIX] Allow deleting shadowed secret
+* [BUGFIX] Correctly handle exportkeys and auto import for noop
+* [BUGFIX] Do not allow malformed secrets
+* [BUGFIX] Do not return error on no grep matches
+* [BUGFIX] Fix config panic with mounts
+* [BUGFIX] Fix fsck progress bar.
+* [BUGFIX] Fix git init
+* [BUGFIX] Fix optional key passed through find
+* [BUGFIX] Fix tree shadowing.
+* [BUGFIX] Handle relative path during init
+* [BUGFIX] Honor generate --print
+* [BUGFIX] Honor trust level during onboarding.
+* [BUGFIX] Print RCS error message
+* [BUGFIX] Print config parse error to STDERR
+* [BUGFIX] Properly initialize crypto during onboarding and
+* [BUGFIX] env command: do not crash if called without a command to execute
+* [CLEANUP] Merge Storage and RCS backends
+* [CLEANUP] Move internal packages to internal
+* [CLEANUP] Remove autoclip for gopass show
+* [CLEANUP] Remove config option confirm
+* [CLEANUP] Remove curses UI
+* [CLEANUP] Remove the --sync flag to gopass show
+* [CLEANUP] Rename --force to --unsafe for show
+* [CLEANUP] Rename xkcd generator options
+* [DEPRECATION] Mark gopass git as deprecated
 * [DEPRECATION] Remove AutoPrint
 * [DEPRECATION] Remove askformore, autosync
-* [DEPRECATION] Mark gopass git as deprecated
-* [CLEANUP] Move internal packages to internal
-* [BUGFIX] Correctly handle exportkeys and auto import for noop
-* [BUGFIX] Remove curses UI
-* [BUGFIX] Properly initialize crypto during onboarding and
-* [BUGFIX] Honor trust level during onboarding.
-* [BUGFIX] Fix optional key passed through find
-* [BUGFIX] Fix fsck progress bar.
-* [BUGFIX] Do not return error on no grep matches
+* [DEPRECATION] Retire editrecipients option
+* [DOCUMENTATION] Document audit, generate, insert and show
+* [DOCUMENTATION] Document list flags
+* [DOCUMENTATION] Improve documentation of Zsh completion setup
+* [ENHANCEMENT] Add GOPASS_DISABLE_MIME to disable new
+* [ENHANCEMENT] Add arm and arm64 binaries
+* [ENHANCEMENT] Add gopass API (unstable)
+* [ENHANCEMENT] Add regexp support to gopass grep
+* [ENHANCEMENT] Add zxcvbn password strength checker
+* [ENHANCEMENT] Avoid direct show on gopass search
+* [ENHANCEMENT] Cache gpg binary location
+* [ENHANCEMENT] Ignore binary secrets for audit
+* [ENHANCEMENT] Introduce --generator flag
+* [ENHANCEMENT] Introduce unsafe-keys
+* [ENHANCEMENT] Make audit report passwords not changed
+* [ENHANCEMENT] Make show --qr flag complementary
+* [ENHANCEMENT] New Debug package
+* [ENHANCEMENT] New progress bar
+* [ENHANCEMENT] Print password before sync
+* [ENHANCEMENT] Provide more helpful config parse errors
+* [ENHANCEMENT] Rewrite tree implementation
+* [ENHANCEMENT] Show recipients from subfolder id files
+* [ENHANCEMENT] Speed up gpg store init
+* [ENHANCEMENT] Support changing path with gopass config
+* [ENHANCEMENT] Support relative revisions for show
+* [ENHANCEMENT] Warn if vim might be leaking secrets
+* [ENHANCEMENT] env command: more tests
+* [FEATURE] Add Password Rules and Domain Alias support
+* [FEATURE] Add experimental backend converter
+* [FEATURE] Add remote config for ondisk storage
+* [FEATURE] Add remote sync support for the ondisk backend
+* [FEATURE] Add summon provider
+* [FEATURE] Pinentry API: support OPTION API call
+* [FEATURE] REPL
+* [TESTING] Add a test to detect shadowing issue with mount
 
 ## 1.9.2 / 2020-05-13
 
