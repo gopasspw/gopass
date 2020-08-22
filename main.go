@@ -21,6 +21,7 @@ import (
 	_ "github.com/gopasspw/gopass/internal/backend/storage"
 	"github.com/gopasspw/gopass/internal/queue"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/gopass/secret"
 	"github.com/gopasspw/gopass/pkg/protect"
 	"golang.org/x/crypto/ssh/terminal"
 
@@ -300,6 +301,9 @@ func initContext(ctx context.Context, cfg *config.Config) context.Context {
 		color.NoColor = true
 		ctx = ctxutil.WithColor(ctx, false)
 	}
+
+	// secrets compat mode
+	secret.WriteMIME = cfg.MIME
 
 	return ctx
 }

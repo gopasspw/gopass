@@ -36,17 +36,17 @@ func TestConfig(t *testing.T) {
 
 		c := gptest.CliCtx(ctx, t)
 		assert.NoError(t, act.Config(c))
-		want := `root store config:
-  autoclip: true
-  autoimport: true
-  cliptimeout: 45
-  exportkeys: true
-  nocolor: false
-  nopager: false
-  notifications: true
+		want := `autoclip: true
+autoimport: true
+cliptimeout: 45
+exportkeys: true
+mime: true
+nocolor: false
+nopager: false
+notifications: true
 `
-		want += "  path: " + u.StoreDir("") + "\n"
-		want += `  safecontent: false
+		want += "path: " + u.StoreDir("") + "\n"
+		want += `safecontent: false
 `
 		assert.Equal(t, want, buf.String())
 	})
@@ -77,17 +77,17 @@ func TestConfig(t *testing.T) {
 		defer buf.Reset()
 
 		act.printConfigValues(ctx)
-		want := `root store config:
-  autoclip: true
-  autoimport: true
-  cliptimeout: 45
-  exportkeys: true
-  nocolor: false
-  nopager: true
-  notifications: true
+		want := `autoclip: true
+autoimport: true
+cliptimeout: 45
+exportkeys: true
+mime: true
+nocolor: false
+nopager: true
+notifications: true
 `
-		want += "  path: " + u.StoreDir("") + "\n"
-		want += `  safecontent: false`
+		want += "path: " + u.StoreDir("") + "\n"
+		want += `safecontent: false`
 		assert.Equal(t, want, strings.TrimSpace(buf.String()), "action.printConfigValues")
 
 		delete(act.cfg.Mounts, "foo")
@@ -117,6 +117,7 @@ func TestConfig(t *testing.T) {
 autoimport
 cliptimeout
 exportkeys
+mime
 nocolor
 nopager
 notifications

@@ -23,6 +23,7 @@ const (
 autoimport: true
 cliptimeout: 45
 exportkeys: false
+mime: true
 `
 	keyID = "BE73F104"
 )

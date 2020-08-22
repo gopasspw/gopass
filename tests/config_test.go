@@ -15,22 +15,23 @@ func TestBaseConfig(t *testing.T) {
 
 	out, err := ts.run("config")
 	assert.NoError(t, err)
-	wanted := `root store config:
-  autoclip: false
-  autoimport: true
-  cliptimeout: 45
-  exportkeys: false
-  nocolor: false
-  nopager: false
-  notifications: false
+	wanted := `autoclip: false
+autoimport: true
+cliptimeout: 45
+exportkeys: false
+mime: true
+nocolor: false
+nopager: false
+notifications: false
 `
-	wanted += "  path: " + ts.storeDir("root") + "\n"
-	wanted += "  safecontent: false"
+	wanted += "path: " + ts.storeDir("root") + "\n"
+	wanted += "safecontent: false"
 
 	assert.Equal(t, wanted, out)
 
 	invertables := []string{
 		"autoimport",
+		"mime",
 		"safecontent",
 	}
 
@@ -68,17 +69,17 @@ func TestMountConfig(t *testing.T) {
 	_, err = ts.run("config")
 	assert.NoError(t, err)
 
-	wanted := `root store config:
-  autoclip: false
-  autoimport: true
-  cliptimeout: 45
-  exportkeys: false
-  nocolor: false
-  nopager: false
-  notifications: false
-  path: `
+	wanted := `autoclip: false
+autoimport: true
+cliptimeout: 45
+exportkeys: false
+mime: true
+nocolor: false
+nopager: false
+notifications: false
+path: `
 	wanted += ts.storeDir("root") + "\n"
-	wanted += `  safecontent: false
+	wanted += `safecontent: false
 mount 'mnt/m1' => '`
 	wanted += ts.storeDir("m1") + "'\n"
 
