@@ -177,16 +177,16 @@ sub:
 
 	runRespondMessage(t,
 		`{"type":"getData","entry":"foo"}`,
-		`{"hallo":"welt"}`,
+		`{"hallo":"welt","password":"20"}`,
 		"", secrets)
 
 	runRespondMessage(t,
 		`{"type":"getData","entry":"bar"}`,
-		`{"login":"muh"}`,
+		`{"login":"muh","password":"20"}`,
 		"", secrets)
 	runRespondMessage(t,
 		`{"type":"getData","entry":"complex"}`,
-		`{"login":"hallo","number":"42","sub":"map.subentry:123."}`,
+		`{"login":"hallo","number":"42","password":"20","sub":"map.subentry:123."}`,
 		"", secrets)
 
 	runRespondMessage(t,

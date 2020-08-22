@@ -12,7 +12,6 @@ func TestKV(t *testing.T) {
 	mlValue := `somepasswd
 Test / test.com
 username: myuser@test.com
-password: somepasswd
 url: http://www.test.com/
 `
 	s, err := ParseKV([]byte(mlValue))
@@ -24,7 +23,6 @@ url: http://www.test.com/
 	t.Logf("Secret:\n%+v\n%s\n", s, string(s.Bytes()))
 
 	mlOut := `somepasswd
-password: somepasswd
 url: http://www.test.com/
 username: myuser@test.com
 Test / test.com
