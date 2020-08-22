@@ -3,12 +3,10 @@ package action
 import (
 	"context"
 	"fmt"
-	"sort"
 
 	"github.com/gopasspw/gopass/internal/cui"
 	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/internal/out"
-	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/internal/termio"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 
@@ -198,48 +196,6 @@ func (s *Action) RecipientsRemove(c *cli.Context) error {
 
 	out.Green(ctx, "\nRemoved %d recipients", removed)
 	out.Cyan(ctx, "You need to run 'gopass sync' to push these changes")
-	return nil
-}
-
-// RecipientsUpdate will recompute and update any changed recipients list checksums
-func (s *Action) RecipientsUpdate(c *cli.Context) error {
-	ctx := ctxutil.WithGlobalFlags(c)
-	changed := 0
-
-	mps := s.Store.MountPoints()
-	sort.Sort(store.ByPathLen(mps))
-	for _, alias := range append(mps, "") {
-		ctx, subs, err := s.Store.GetSubStore(ctx, alias)
-		if err != nil || subs == nil {
-			continue
-		}
-		recp, err := subs.GetRecipients(ctx, "")
-		if err != nil {
-			return err
-		}
-		if alias == "" {
-			alias = "<root>"
-		}
-		out.Cyan(ctx, "Please confirm Recipients for %s:", alias)
-		for _, r := range recp {
-			out.Print(ctx, "- %s", subs.Crypto().FormatKey(ctx, r, ""))
-		}
-		if !termio.AskForConfirmation(ctx, fmt.Sprintf("Do you trust these recipients for %s?", alias)) {
-			continue
-		}
-		if err := subs.SetRecipients(ctx, recp); err != nil {
-			return err
-		}
-		out.Print(ctx, "")
-		changed++
-	}
-
-	if changed > 0 {
-		out.Green(ctx, "Updated %d stores", changed)
-	} else {
-		out.Green(ctx, "Nothing to do")
-	}
-
 	return nil
 }
 
