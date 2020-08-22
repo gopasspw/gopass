@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"net/textproto"
-	"os"
 	"sort"
 	"strings"
 )
@@ -14,6 +13,13 @@ import (
 const (
 	// Ident is the Gopass MIME secret header
 	Ident = "GOPASS-SECRET-1.0"
+)
+
+var (
+	// WriteMIME can be disabled to disable writing the new secrets format.
+	// Use this to ensure secrets written by gopass can be correctly consumed
+	// by other Password Store implementations, too.
+	WriteMIME = true
 )
 
 // PermanentError signal that parsing should not attempt other formats.
@@ -114,7 +120,7 @@ func (s *MIME) bytesCompat() []byte {
 
 // Bytes serializes the secret
 func (s *MIME) Bytes() []byte {
-	if compat := os.Getenv("GOPASS_DISABLE_MIME"); compat != "" {
+	if !WriteMIME {
 		return s.bytesCompat()
 	}
 	buf := &bytes.Buffer{}

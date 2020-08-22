@@ -46,6 +46,7 @@ func (c *Pre193) Config() *Config {
 		AutoClip:      c.Root.AutoClip,
 		AutoImport:    c.Root.AutoImport,
 		ClipTimeout:   c.Root.ClipTimeout,
+		MIME:          true,
 		NoColor:       c.Root.NoColor,
 		NoPager:       c.Root.NoPager,
 		Notifications: c.Root.Notifications,
@@ -108,6 +109,7 @@ func (c *Pre182) Config() *Config {
 		AutoClip:      c.Root.AutoClip,
 		AutoImport:    c.Root.AutoImport,
 		ClipTimeout:   c.Root.ClipTimeout,
+		MIME:          true,
 		NoColor:       c.Root.NoColor,
 		NoPager:       c.Root.NoPager,
 		Notifications: c.Root.Notifications,
@@ -156,6 +158,7 @@ func (c *Pre140) Config() *Config {
 		ClipTimeout: c.ClipTimeout,
 		Path:        c.Path,
 		SafeContent: c.SafeContent,
+		MIME:        true,
 		Mounts:      make(map[string]string, len(c.Mounts)),
 	}
 	return cfg
@@ -196,6 +199,7 @@ func (c *Pre130) Config() *Config {
 		ClipTimeout: c.ClipTimeout,
 		Path:        c.Path,
 		SafeContent: c.SafeContent,
+		MIME:        true,
 		Mounts:      make(map[string]string, len(c.Mounts)),
 	}
 	return cfg
