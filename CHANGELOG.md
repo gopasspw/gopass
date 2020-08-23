@@ -1,4 +1,4 @@
-## 1.10.0-rc.1
+## 1.10.0
 
 WARNING: This release contains a few breaking changes as well as necessary
 packaging changes.
