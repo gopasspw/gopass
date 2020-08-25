@@ -109,6 +109,7 @@ func decode(buf []byte) (*Config, error) {
 		&Pre140{},
 		&Pre130{},
 	}
+	var warn string
 	for i, cfg := range cfgs {
 		debug.Log("Trying to unmarshal config into %T", cfg)
 		if err := yaml.Unmarshal(buf, cfg); err != nil {
@@ -118,7 +119,7 @@ func decode(buf []byte) (*Config, error) {
 		if err := cfg.CheckOverflow(); err != nil {
 			debug.Log("Extra elements in config: %s", err)
 			if i == 0 {
-				fmt.Fprintf(os.Stderr, "Failed to load config %T. %s\n", cfg, err)
+				warn = fmt.Sprintf("Failed to load config %T. Do you need to remove deprecated fields? %s\n", cfg, err)
 			}
 			continue
 		}
@@ -128,6 +129,20 @@ func decode(buf []byte) (*Config, error) {
 			debug.Log("Loaded legacy config. Should rewrite config.")
 		}
 		return conf, nil
+	}
+	// We try to provide a seamless config upgrade path for users of our
+	// released versions. But some users build gopass from the master branch
+	// and these might run into issues when we remove config options.
+	// Since our config parser is pedantic (it has to) we fail parsing on
+	// unknown config options. If we remove one and the user rebuilds it's
+	// gopass binary without changing the config, it will fail to parse the
+	// current config and the legacy configs will likely fail as well.
+	// But if we always display the warning users with configs from previous
+	// releases will always see the warning. So instead we only display the
+	// warning if parsing of the most up to date config struct fails AND
+	// not other succeeds.
+	if warn != "" {
+		fmt.Fprint(os.Stderr, warn)
 	}
 	return nil, ErrConfigNotParsed
 }
