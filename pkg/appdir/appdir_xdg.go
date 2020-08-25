@@ -1,4 +1,4 @@
-// +build !darwin,!windows
+// +build !windows
 
 package appdir
 
