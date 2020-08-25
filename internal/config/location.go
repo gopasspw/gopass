@@ -63,6 +63,10 @@ func PwStoreDir(mount string) string {
 	if d := os.Getenv("PASSWORD_STORE_DIR"); d != "" {
 		return fsutil.CleanPath(d)
 	}
+	if ld := filepath.Join(appdir.UserHome(), ".password-store"); fsutil.IsDir(ld) {
+		debug.Log("re-using existing legacy dir for root store: %s", ld)
+		return ld
+	}
 	return fsutil.CleanPath(filepath.Join(appdir.UserData(), "stores", "root"))
 }
 
