@@ -1,3 +1,10 @@
+## 1.10.1
+
+[BUGFIX] Fix the Makefile
+[BUGFIX] Remove misleading config error message
+[BUGFIX] Re-use existing root store
+[BUGFIX] Use standard Unix directories on MacOS
+
 ## 1.10.0
 
 WARNING: This release contains a few breaking changes as well as necessary
