@@ -3,6 +3,7 @@ package action
 import (
 	"github.com/gopasspw/gopass/internal/audit"
 	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/internal/tree"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 
 	"github.com/urfave/cli/v2"
@@ -27,7 +28,7 @@ func (s *Action) Audit(c *cli.Context) error {
 		}
 		t = subtree
 	}
-	list := t.List(0)
+	list := t.List(tree.INF)
 
 	if len(list) < 1 {
 		out.Yellow(ctx, "No secrets found")

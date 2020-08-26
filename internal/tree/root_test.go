@@ -19,34 +19,34 @@ func TestRoot(t *testing.T) {
 	r.AddFile("mnt/m1/foo/bar", "")
 	t.Logf("%+#v", r)
 	assert.Equal(t, `gopass
-├── foo (template)
-│   └── bar
+├── foo/ (template)
+│   └── bar/
 │       ├── baz
 │       └── zab
-└── mnt
+└── mnt/
     └── m1 (/tmp/m1)
-        └── foo
+        └── foo/
             └── bar
-`, r.Format(-1))
+`, r.Format(INF))
 
 	assert.Equal(t, []string{
 		"foo/bar/baz",
 		"foo/bar/zab",
 		"mnt/m1/foo/bar",
-	}, r.List(-1))
+	}, r.List(INF))
 	assert.Equal(t, []string{
-		"foo",
-		"foo/bar",
-		"mnt",
-		"mnt/m1",
-		"mnt/m1/foo",
-	}, r.ListFolders(-1))
+		"foo/",
+		"foo/bar/",
+		"mnt/",
+		"mnt/m1/",
+		"mnt/m1/foo/",
+	}, r.ListFolders(INF))
 	f, err := r.FindFolder("mnt/m1")
 	assert.NoError(t, err)
 	assert.Equal(t, `gopass
-└── foo
+└── foo/
     └── bar
-`, f.Format(-1))
+`, f.Format(INF))
 }
 
 func TestMountShadow(t *testing.T) {
@@ -64,15 +64,15 @@ func TestMountShadow(t *testing.T) {
 └── foo (/tmp/m1)
     ├── baz
     └── zab
-`, r.Format(-1))
+`, r.Format(INF))
 
 	assert.Equal(t, []string{
 		"foo/baz",
 		"foo/zab",
-	}, r.List(-1))
+	}, r.List(INF))
 	assert.Equal(t, []string{
-		"foo",
-	}, r.ListFolders(-1))
+		"foo/",
+	}, r.ListFolders(INF))
 	_, err := r.FindFolder("mnt/m1")
 	assert.Error(t, err)
 }

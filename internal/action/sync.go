@@ -3,6 +3,7 @@ package action
 import (
 	"context"
 	"fmt"
+	"github.com/gopasspw/gopass/internal/tree"
 
 	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/internal/notify"
@@ -25,7 +26,7 @@ func (s *Action) sync(ctx context.Context, store string) error {
 
 	numEntries := 0
 	if l, err := s.Store.Tree(ctx); err == nil {
-		numEntries = len(l.List(0))
+		numEntries = len(l.List(tree.INF))
 	}
 	numMPs := 0
 
@@ -50,7 +51,7 @@ func (s *Action) sync(ctx context.Context, store string) error {
 
 	// calculate number of changes entries
 	if l, err := s.Store.Tree(ctx); err == nil {
-		numEntries = len(l.List(0)) - numEntries
+		numEntries = len(l.List(tree.INF)) - numEntries
 	}
 	diff := ""
 	if numEntries > 0 {

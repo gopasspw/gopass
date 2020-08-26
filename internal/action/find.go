@@ -3,6 +3,7 @@ package action
 import (
 	"context"
 	"fmt"
+	"github.com/gopasspw/gopass/internal/tree"
 	"sort"
 	"strings"
 
@@ -48,7 +49,7 @@ type showFunc func(context.Context, *cli.Context, string, bool) error
 
 func (s *Action) find(ctx context.Context, c *cli.Context, needle string, cb showFunc) error {
 	// get all existing entries
-	haystack, err := s.Store.List(ctx, 0)
+	haystack, err := s.Store.List(ctx, tree.INF)
 	if err != nil {
 		return ExitError(ExitList, err, "failed to list store: %s", err)
 	}

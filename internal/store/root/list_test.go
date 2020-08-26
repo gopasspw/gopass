@@ -2,6 +2,7 @@ package root
 
 import (
 	"context"
+	"github.com/gopasspw/gopass/internal/tree"
 	"testing"
 
 	"github.com/fatih/color"
@@ -25,7 +26,7 @@ func TestList(t *testing.T) {
 	rs, err := createRootStore(ctx, u)
 	require.NoError(t, err)
 
-	es, err := rs.List(ctx, 0)
+	es, err := rs.List(ctx, tree.INF)
 	require.NoError(t, err)
 	assert.Equal(t, []string{"foo"}, es)
 

@@ -1,6 +1,7 @@
 package action
 
 import (
+	"github.com/gopasspw/gopass/internal/tree"
 	"regexp"
 	"strings"
 
@@ -21,7 +22,7 @@ func (s *Action) Grep(c *cli.Context) error {
 	// get the search term
 	needle := c.Args().First()
 
-	haystack, err := s.Store.List(ctx, 0)
+	haystack, err := s.Store.List(ctx, tree.INF)
 	if err != nil {
 		return ExitError(ExitList, err, "failed to list store: %s", err)
 	}

@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 
 	"github.com/fatih/color"
@@ -50,28 +51,35 @@ func (s *Action) List(c *cli.Context) error {
 		limit = c.Int("limit")
 	}
 
-	if filter == "" {
-		return s.listAll(ctx, l, limit, flat, folders)
-	}
-
 	return s.listFiltered(ctx, l, limit, flat, folders, stripPrefix, filter)
 }
 
 func (s *Action) listFiltered(ctx context.Context, l *tree.Root, limit int, flat, folders, stripPrefix bool, filter string) error {
-	subtree, err := l.FindFolder(filter)
-	if err != nil {
-		return ExitError(ExitNotFound, nil, "Entry '%s' not found", filter)
+
+	sep := string(filepath.Separator)
+
+	if filter == "" || filter == sep {
+		// We list all entries then
+		stripPrefix = true
+	} else {
+		// If the filter ends with a separator, we still want to find the content of that folder
+		if strings.HasSuffix(filter, sep) {
+			filter = filter[:len(filter)-1]
+		}
+		// To avoid shadowing l since we need it outside of the else scope
+		var err error
+		// We restrict ourselves to the filter
+		l, err = l.FindFolder(filter)
+		if err != nil {
+			return ExitError(ExitNotFound, nil, "Entry '%s' not found", filter)
+		}
+		l.SetName(filter + sep)
 	}
 
-	subtree.SetName(filter)
 	if flat {
-		sep := "/"
-		if strings.HasSuffix(filter, "/") {
-			sep = ""
-		}
-		listOver := subtree.List
+		listOver := l.List
 		if folders {
-			listOver = subtree.ListFolders
+			listOver = l.ListFolders
 		}
 		for _, e := range listOver(limit) {
 			if stripPrefix {
@@ -84,9 +92,9 @@ func (s *Action) listFiltered(ctx context.Context, l *tree.Root, limit int, flat
 	}
 
 	// we may need to redirect stdout for the pager support
-	so, buf := redirectPager(ctx, subtree)
+	so, buf := redirectPager(ctx, l)
 
-	fmt.Fprintln(so, subtree.Format(limit))
+	fmt.Fprintln(so, l.Format(limit))
 	if buf != nil {
 		if err := s.pager(ctx, buf); err != nil {
 			return ExitError(ExitUnknown, err, "failed to invoke pager: %s", err)
@@ -114,31 +122,6 @@ func redirectPager(ctx context.Context, subtree *tree.Root) (io.Writer, *bytes.B
 	color.NoColor = true
 	buf := &bytes.Buffer{}
 	return buf, buf
-}
-
-// listAll will unconditionally list all entries, used if no filter is given
-func (s *Action) listAll(ctx context.Context, l *tree.Root, limit int, flat, folders bool) error {
-	if flat {
-		listOver := l.List
-		if folders {
-			listOver = l.ListFolders
-		}
-		for _, e := range listOver(limit) {
-			fmt.Fprintln(stdout, e)
-		}
-		return nil
-	}
-
-	// we may need to redirect stdout for the pager support
-	so, buf := redirectPager(ctx, l)
-
-	fmt.Fprintln(so, l.Format(limit))
-	if buf != nil {
-		if err := s.pager(ctx, buf); err != nil {
-			return ExitError(ExitUnknown, err, "failed to invoke pager: %s", err)
-		}
-	}
-	return nil
 }
 
 // pager invokes the default pager with the given content

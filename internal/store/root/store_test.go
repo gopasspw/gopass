@@ -2,6 +2,7 @@ package root
 
 import (
 	"context"
+	"github.com/gopasspw/gopass/internal/tree"
 	"path"
 	"sort"
 	"testing"
@@ -26,9 +27,9 @@ func TestSimpleList(t *testing.T) {
 	rs, err := createRootStore(ctx, u)
 	require.NoError(t, err)
 
-	tree, err := rs.Tree(ctx)
+	st, err := rs.Tree(ctx)
 	require.NoError(t, err)
-	assert.Equal(t, []string{"foo"}, tree.List(0))
+	assert.Equal(t, []string{"foo"}, st.List(tree.INF))
 }
 
 func TestListMulti(t *testing.T) {
@@ -60,11 +61,11 @@ func TestListMulti(t *testing.T) {
 	assert.NoError(t, rs.AddMount(ctx, "sub1", u.StoreDir("sub1")))
 	assert.NoError(t, rs.AddMount(ctx, "sub2", u.StoreDir("sub2")))
 
-	tree, err := rs.Tree(ctx)
+	st, err := rs.Tree(ctx)
 	require.NoError(t, err)
 
 	sort.Strings(ents)
-	lst := tree.List(0)
+	lst := st.List(tree.INF)
 	sort.Strings(lst)
 	assert.Equal(t, ents, lst)
 
@@ -107,11 +108,11 @@ func TestListNested(t *testing.T) {
 	assert.NoError(t, rs.AddMount(ctx, "sub2", u.StoreDir("sub2")))
 	assert.NoError(t, rs.AddMount(ctx, "sub2/sub3", u.StoreDir("sub3")))
 
-	tree, err := rs.Tree(ctx)
+	st, err := rs.Tree(ctx)
 	assert.NoError(t, err)
 
 	sort.Strings(ents)
-	lst := tree.List(0)
+	lst := st.List(tree.INF)
 	sort.Strings(lst)
 	assert.Equal(t, ents, lst)
 

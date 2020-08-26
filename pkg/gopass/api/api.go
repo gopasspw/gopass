@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"fmt"
+	"github.com/gopasspw/gopass/internal/tree"
 
 	_ "github.com/gopasspw/gopass/internal/backend/crypto"  // load crypto backends
 	_ "github.com/gopasspw/gopass/internal/backend/storage" // load storage backends
@@ -39,7 +40,7 @@ func New(ctx context.Context) (*Gopass, error) {
 
 // List returns a list of all secrets.
 func (g *Gopass) List(ctx context.Context) ([]string, error) {
-	return g.rs.List(ctx, 0)
+	return g.rs.List(ctx, tree.INF)
 }
 
 // Get returns a single, encrypted secret. It must be unwrapped before use.

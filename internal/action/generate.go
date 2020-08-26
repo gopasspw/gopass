@@ -3,6 +3,7 @@ package action
 import (
 	"context"
 	"fmt"
+	"github.com/gopasspw/gopass/internal/tree"
 	"path"
 	"regexp"
 	"sort"
@@ -342,7 +343,7 @@ func (s *Action) CompleteGenerate(c *cli.Context) {
 		out.Error(ctx, "Store not initialized: %s", err)
 		return
 	}
-	list, err := s.Store.List(ctx, 0)
+	list, err := s.Store.List(ctx, tree.INF)
 	if err != nil {
 		return
 	}

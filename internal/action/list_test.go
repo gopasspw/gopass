@@ -53,7 +53,7 @@ func TestList(t *testing.T) {
 	buf.Reset()
 
 	assert.NoError(t, act.List(gptest.CliCtx(ctx, t, "foo")))
-	want = `foo
+	want = `foo/
 └── bar
 
 `
@@ -77,9 +77,9 @@ func TestList(t *testing.T) {
 	buf.Reset()
 
 	assert.NoError(t, act.List(gptest.CliCtxWithFlags(ctx, t, map[string]string{"folders": "true"})))
-	want = `foo
-foo/zen
-foo2
+	want = `foo/
+foo/zen/
+foo2/
 `
 	assert.Equal(t, want, buf.String())
 	buf.Reset()
@@ -87,6 +87,90 @@ foo2
 	// list not-present
 	assert.Error(t, act.List(gptest.CliCtx(ctx, t, "not-present")))
 	buf.Reset()
+}
+
+func TestListLimit(t *testing.T) {
+
+	u := gptest.NewUnitTester(t)
+	defer u.Remove()
+
+	ctx := context.Background()
+	ctx = ctxutil.WithAlwaysYes(ctx, true)
+
+	act, err := newMock(ctx, u)
+	require.NoError(t, err)
+	require.NotNil(t, act)
+
+	buf := &bytes.Buffer{}
+	out.Stdout = buf
+	stdout = buf
+	defer func() {
+		stdout = os.Stdout
+		out.Stdout = os.Stdout
+	}()
+	color.NoColor = true
+
+	assert.NoError(t, act.List(gptest.CliCtx(ctx, t)))
+	want := `gopass
+└── foo
+
+`
+	sec := secret.New()
+	sec.Set("password", "123")
+	assert.NoError(t, act.Store.Set(ctx, "foo/bar", sec))
+	assert.NoError(t, act.Store.Set(ctx, "foo/zen/baz/bar", sec))
+	assert.NoError(t, act.Store.Set(ctx, "foo2/bar2", sec))
+	assert.Equal(t, want, buf.String())
+	buf.Reset()
+
+	assert.NoError(t, act.List(gptest.CliCtxWithFlags(ctx, t, map[string]string{"folders": "true", "limit": "0"})))
+	want = `foo/
+foo2/
+`
+	assert.Equal(t, want, buf.String())
+	buf.Reset()
+
+	assert.NoError(t, act.List(gptest.CliCtxWithFlags(ctx, t, map[string]string{"folders": "true", "limit": "1"})))
+	want = `foo/
+foo/zen/
+foo2/
+`
+	assert.Equal(t, want, buf.String())
+	buf.Reset()
+
+	assert.NoError(t, act.List(gptest.CliCtxWithFlags(ctx, t, map[string]string{"folders": "true", "limit": "-1"})))
+	want = `foo/
+foo/zen/
+foo/zen/baz/
+foo2/
+`
+	assert.Equal(t, want, buf.String())
+	buf.Reset()
+
+	assert.NoError(t, act.List(gptest.CliCtxWithFlags(ctx, t, map[string]string{"flat": "true", "limit": "-1"})))
+	want = `foo/bar
+foo/zen/baz/bar
+foo2/bar2
+`
+	assert.Equal(t, want, buf.String())
+	buf.Reset()
+
+	assert.NoError(t, act.List(gptest.CliCtxWithFlags(ctx, t, map[string]string{"flat": "true", "limit": "0"})))
+	want = `foo/
+foo2/
+`
+	assert.Equal(t, want, buf.String())
+	buf.Reset()
+
+	assert.NoError(t, act.List(gptest.CliCtxWithFlags(ctx, t, map[string]string{"flat": "true", "limit": "2"})))
+	want = `foo/bar
+foo/zen/baz/
+foo2/bar2
+`
+
+	assert.Equal(t, want, buf.String())
+	buf.Reset()
+
 }
 
 func TestRedirectPager(t *testing.T) {

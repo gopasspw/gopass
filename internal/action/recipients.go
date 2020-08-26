@@ -3,6 +3,7 @@ package action
 import (
 	"context"
 	"fmt"
+	"github.com/gopasspw/gopass/internal/tree"
 
 	"github.com/gopasspw/gopass/internal/cui"
 	"github.com/gopasspw/gopass/internal/debug"
@@ -37,23 +38,23 @@ func (s *Action) RecipientsPrint(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	out.Cyan(ctx, "Hint: run 'gopass sync' to import any missing public keys")
 
-	tree, err := s.Store.RecipientsTree(ctx, true)
+	t, err := s.Store.RecipientsTree(ctx, true)
 	if err != nil {
 		return ExitError(ExitList, err, "failed to list recipients: %s", err)
 	}
 
-	fmt.Fprintln(stdout, tree.Format(-1))
+	fmt.Fprintln(stdout, t.Format(tree.INF))
 	return nil
 }
 
 func (s *Action) recipientsList(ctx context.Context) []string {
-	tree, err := s.Store.RecipientsTree(out.WithHidden(ctx, true), false)
+	t, err := s.Store.RecipientsTree(out.WithHidden(ctx, true), false)
 	if err != nil {
 		debug.Log("failed to list recipients: %s", err)
 		return nil
 	}
 
-	return tree.List(0)
+	return t.List(tree.INF)
 }
 
 // RecipientsComplete will print a list of recipients for bash

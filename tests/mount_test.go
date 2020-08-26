@@ -23,7 +23,7 @@ func TestSingleMount(t *testing.T) {
 	out, err = ts.run("mounts")
 	assert.NoError(t, err)
 	want := "gopass (" + ts.storeDir("root") + ")\n"
-	want += "└── mnt\n    └── m1 (" + ts.storeDir("m1") + ")"
+	want += "└── mnt/\n    └── m1 (" + ts.storeDir("m1") + ")"
 	assert.Equal(t, strings.TrimSpace(want), out)
 
 	out, err = ts.run("show mnt/m1/secret")
@@ -35,18 +35,18 @@ func TestSingleMount(t *testing.T) {
 	list := `
 gopass
 ├── baz
-├── fixed
+├── fixed/
 │   ├── secret
 │   └── twoliner
-├── foo
+├── foo/
 │   └── bar
-└── mnt
+└── mnt/
     └── m1 (%s)
         ├── baz
-        ├── fixed
+        ├── fixed/
         │   ├── secret
         │   └── twoliner
-        └── foo
+        └── foo/
             └── bar
 `
 	list = fmt.Sprintf(list, ts.storeDir("m1"))
@@ -79,7 +79,7 @@ func TestMountShadowing(t *testing.T) {
 	out, err = ts.run("mounts")
 	assert.NoError(t, err)
 	want := "gopass (" + ts.storeDir("root") + ")\n"
-	want += "└── mnt\n    └── m1 (" + ts.storeDir("m1") + ")"
+	want += "└── mnt/\n    └── m1 (" + ts.storeDir("m1") + ")"
 	assert.Equal(t, strings.TrimSpace(want), out)
 
 	// check that the mount is not containing our shadowed secret
@@ -103,18 +103,18 @@ func TestMountShadowing(t *testing.T) {
 	list := `
 gopass
 ├── baz
-├── fixed
+├── fixed/
 │   ├── secret
 │   └── twoliner
-├── foo
+├── foo/
 │   └── bar
-└── mnt
+└── mnt/
     └── m1 (%s)
         ├── baz
-        ├── fixed
+        ├── fixed/
         │   ├── secret
         │   └── twoliner
-        ├── foo
+        ├── foo/
         │   └── bar
         └── secret
 `
@@ -131,13 +131,13 @@ gopass
 	list = `
 gopass
 ├── baz
-├── fixed
+├── fixed/
 │   ├── secret
 │   └── twoliner
-├── foo
+├── foo/
 │   └── bar
-└── mnt
-    └── m1
+└── mnt/
+    └── m1/
         └── secret
 `
 
@@ -167,18 +167,18 @@ func TestMultiMount(t *testing.T) {
 	list := `
 gopass
 ├── baz
-├── fixed
+├── fixed/
 │   ├── secret
 │   └── twoliner
-├── foo
+├── foo/
 │   └── bar
-└── mnt
+└── mnt/
     └── m1 (%s)
         ├── baz
-        ├── fixed
+        ├── fixed/
         │   ├── secret
         │   └── twoliner
-        └── foo
+        └── foo/
             └── bar
 `
 	list = fmt.Sprintf(list, ts.storeDir("m1"))
@@ -197,25 +197,25 @@ gopass
 	list = `
 gopass
 ├── baz
-├── fixed
+├── fixed/
 │   ├── secret
 │   └── twoliner
-├── foo
+├── foo/
 │   └── bar
-└── mnt
+└── mnt/
     ├── m1 (%s)
     │   ├── baz
-    │   ├── fixed
+    │   ├── fixed/
     │   │   ├── secret
     │   │   └── twoliner
-    │   └── foo
+    │   └── foo/
     │       └── bar
     └── m2 (%s)
         ├── baz
-        ├── fixed
+        ├── fixed/
         │   ├── secret
         │   └── twoliner
-        └── foo
+        └── foo/
             └── bar
 `
 	list = fmt.Sprintf(list, ts.storeDir("m1"), ts.storeDir("m2"))

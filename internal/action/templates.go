@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/gopasspw/gopass/internal/tree"
 	"strings"
 
 	"github.com/gopasspw/gopass/internal/debug"
@@ -39,11 +40,11 @@ const (
 // TemplatesPrint will pretty-print a tree of templates
 func (s *Action) TemplatesPrint(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
-	tree, err := s.Store.TemplateTree(ctx)
+	t, err := s.Store.TemplateTree(ctx)
 	if err != nil {
 		return ExitError(ExitList, err, "failed to list templates: %s", err)
 	}
-	fmt.Fprintln(stdout, tree.Format(-1))
+	fmt.Fprintln(stdout, t.Format(tree.INF))
 	return nil
 }
 
@@ -108,13 +109,13 @@ func (s *Action) TemplateRemove(c *cli.Context) error {
 }
 
 func (s *Action) templatesList(ctx context.Context) []string {
-	tree, err := s.Store.TemplateTree(ctx)
+	t, err := s.Store.TemplateTree(ctx)
 	if err != nil {
 		debug.Log("failed to list templates: %s", err)
 		return nil
 	}
 
-	return tree.List(0)
+	return t.List(tree.INF)
 }
 
 // TemplatesComplete prints a list of all templates for bash completion

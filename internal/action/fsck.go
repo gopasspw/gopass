@@ -1,6 +1,7 @@
 package action
 
 import (
+	"github.com/gopasspw/gopass/internal/tree"
 	"os"
 	"path/filepath"
 
@@ -39,7 +40,7 @@ func (s *Action) Fsck(c *cli.Context) error {
 		return ExitError(ExitUnknown, err, "failed to list stores: %s", err)
 	}
 
-	pwList := t.List(0)
+	pwList := t.List(tree.INF)
 
 	bar := out.NewProgressBar(ctx, int64(len(pwList)*2))
 	ctx = ctxutil.WithProgressCallback(ctx, func() {
