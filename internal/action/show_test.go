@@ -62,7 +62,7 @@ func TestShowMulti(t *testing.T) {
 
 		c := gptest.CliCtx(ctx, t, "bar")
 		assert.NoError(t, act.Show(c))
-		assert.Equal(t, "bar\n└── baz\n\n", buf.String())
+		assert.Equal(t, "bar/\n└── baz\n\n", buf.String())
 		buf.Reset()
 	})
 

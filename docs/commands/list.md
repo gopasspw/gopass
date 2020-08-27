@@ -47,17 +47,17 @@ a depth of 0 only lists the items in the root gopass store:
 ```bash
 $ gopass list -l 0
 gopass
-├── bar
-├── foo
+├── bar/
+├── foo/
 └── test (/home/user/.local/share/gopass/stores/substore1)
 ```
 A value of 1 would list all the items in the root, plus their sub-items but no more:
 ```bash
 $ gopass list -l 1
 gopass
-├── bar
+├── bar/
 │   └── bar
-├── foo
+├── foo/
 │   ├── bar
 │   └── foo
 └── test (/home/user/.local/share/gopass/stores/substore1)
@@ -67,11 +67,11 @@ A negative value lists all the items without any depth limit.
 ```bash
 $ gopass list -l -1
 gopass
-├── bar
+├── bar/
 │   └── bar
-├── foo
-│   ├── bar
-│   │   ├── bar
+├── foo/
+│   ├── bar/
+│   │   ├── bar/
 │   │   │   └── bar
 │   │   └── baz
 │   └── foo
@@ -82,11 +82,11 @@ gopass
 The flags can be used together: `gopass -l 1 -d` will list only the folders up to a depth of 1:
 ```bash
 $ gopass list -l 1 -d
-bar
-foo
-foo/bar
-test
-test/foo
+bar/
+foo/
+foo/bar/
+test/
+test/foo/
 ```
 
 ## Shadowing
@@ -104,10 +104,10 @@ but since the substore is mounted as `test/`, it only displays the content of th
 Unmounting it reveals its shadowed entries:
 ```bash
 $ gopass list test
-test 
+test/ 
 └── foo
 $ gopass mounts rm test
 $ gopass list test
-test 
+test/ 
 └── zaz
 ```

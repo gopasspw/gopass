@@ -3,6 +3,7 @@ package action
 import (
 	"context"
 	"fmt"
+	"github.com/gopasspw/gopass/internal/tree"
 	"strings"
 
 	"github.com/chzyer/readline"
@@ -14,7 +15,7 @@ import (
 
 func (s *Action) entriesForCompleter(ctx context.Context) ([]readline.PrefixCompleterInterface, error) {
 	args := []readline.PrefixCompleterInterface{}
-	list, err := s.Store.List(ctx, 0)
+	list, err := s.Store.List(ctx, tree.INF)
 	if err != nil {
 		return args, err
 	}

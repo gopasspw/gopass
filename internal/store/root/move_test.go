@@ -2,6 +2,7 @@ package root
 
 import (
 	"context"
+	"github.com/gopasspw/gopass/internal/tree"
 	"testing"
 
 	"github.com/gopasspw/gopass/internal/gptest"
@@ -31,7 +32,7 @@ func TestMove(t *testing.T) {
 	assert.NoError(t, rs.Delete(ctx, "foo"))
 
 	// Initial state:
-	entries, err := rs.List(ctx, 0)
+	entries, err := rs.List(ctx, tree.INF)
 	require.NoError(t, err)
 	require.Equal(t, []string{
 		"foo/bar",
@@ -45,7 +46,7 @@ func TestMove(t *testing.T) {
 
 	// -> move foo misc => OK
 	assert.NoError(t, rs.Move(ctx, "foo", "misc"))
-	entries, err = rs.List(ctx, 0)
+	entries, err = rs.List(ctx, tree.INF)
 	require.NoError(t, err)
 	require.Equal(t, []string{
 		"misc/foo/bar",
@@ -55,7 +56,7 @@ func TestMove(t *testing.T) {
 
 	// -> move misc/foo bar/ => OK
 	assert.NoError(t, rs.Move(ctx, "misc/foo", "bar/"))
-	entries, err = rs.List(ctx, 0)
+	entries, err = rs.List(ctx, tree.INF)
 	require.NoError(t, err)
 	assert.Equal(t, []string{
 		"bar/foo/bar",
@@ -65,7 +66,7 @@ func TestMove(t *testing.T) {
 
 	// -> move misc/zab bar/foo/zab => OK
 	assert.NoError(t, rs.Move(ctx, "misc/zab", "bar/foo/zab"))
-	entries, err = rs.List(ctx, 0)
+	entries, err = rs.List(ctx, tree.INF)
 	require.NoError(t, err)
 	assert.Equal(t, []string{
 		"bar/foo/bar",
@@ -75,7 +76,7 @@ func TestMove(t *testing.T) {
 
 	// -> move bar/foo/ baz => OK
 	assert.NoError(t, rs.Move(ctx, "bar/foo/", "baz"))
-	entries, err = rs.List(ctx, 0)
+	entries, err = rs.List(ctx, tree.INF)
 	require.NoError(t, err)
 	assert.Equal(t, []string{
 		"baz/bar",
@@ -85,7 +86,7 @@ func TestMove(t *testing.T) {
 
 	// -> move baz/ boz/ => OK
 	assert.NoError(t, rs.Move(ctx, "baz/", "boz/"))
-	entries, err = rs.List(ctx, 0)
+	entries, err = rs.List(ctx, tree.INF)
 	require.NoError(t, err)
 	assert.Equal(t, []string{
 		"boz/bar",
@@ -96,7 +97,7 @@ func TestMove(t *testing.T) {
 	// this fails if empty directories are not removed, because 'bar' and 'baz' were directories in the root folder
 	// -> move boz/ / => OK
 	assert.NoError(t, rs.Move(ctx, "boz/", "/"))
-	entries, err = rs.List(ctx, 0)
+	entries, err = rs.List(ctx, tree.INF)
 	require.NoError(t, err)
 	assert.Equal(t, []string{
 		"bar",
@@ -124,7 +125,7 @@ func TestCopy(t *testing.T) {
 	assert.NoError(t, rs.Delete(ctx, "foo"))
 
 	// Initial state:
-	entries, err := rs.List(ctx, 0)
+	entries, err := rs.List(ctx, tree.INF)
 	require.NoError(t, err)
 	assert.Equal(t, []string{
 		"foo/bar",
@@ -138,7 +139,7 @@ func TestCopy(t *testing.T) {
 
 	// -> copy foo/ misc => OK
 	assert.NoError(t, rs.Copy(ctx, "foo", "misc"))
-	entries, err = rs.List(ctx, 0)
+	entries, err = rs.List(ctx, tree.INF)
 	require.NoError(t, err)
 	assert.Equal(t, []string{
 		"foo/bar",
@@ -150,7 +151,7 @@ func TestCopy(t *testing.T) {
 
 	// -> copy misc/foo/ bar/ => OK
 	assert.NoError(t, rs.Copy(ctx, "misc/foo/", "bar/"))
-	entries, err = rs.List(ctx, 0)
+	entries, err = rs.List(ctx, tree.INF)
 	require.NoError(t, err)
 	assert.Equal(t, []string{
 		"bar/bar",
@@ -164,7 +165,7 @@ func TestCopy(t *testing.T) {
 
 	// -> copy misc/zab bar/foo/zab => OK
 	assert.NoError(t, rs.Copy(ctx, "misc/zab", "bar/foo/zab"))
-	entries, err = rs.List(ctx, 0)
+	entries, err = rs.List(ctx, tree.INF)
 	require.NoError(t, err)
 	assert.Equal(t, []string{
 		"bar/bar",

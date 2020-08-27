@@ -2,6 +2,7 @@ package action
 
 import (
 	"fmt"
+	"github.com/gopasspw/gopass/internal/tree"
 	"os"
 	"os/exec"
 	"path"
@@ -39,7 +40,7 @@ func (s *Action) Env(c *cli.Context) error {
 			return ExitError(ExitNotFound, nil, "Entry '%s' not found", name)
 		}
 		subtree.SetName(name)
-		for _, e := range subtree.List(0) {
+		for _, e := range subtree.List(tree.INF) {
 			en := path.Join(name, e)
 			debug.Log("found key: %s", en)
 			keys = append(keys, en)

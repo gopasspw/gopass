@@ -56,7 +56,7 @@ func (s *Action) MountsPrint(c *cli.Context) error {
 	}
 	debug.Log("MountsPrint - %+v - %+v", mounts, mps)
 
-	fmt.Fprintln(stdout, root.Format(-1))
+	fmt.Fprintln(stdout, root.Format(tree.INF))
 	return nil
 }
 

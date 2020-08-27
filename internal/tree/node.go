@@ -1,6 +1,8 @@
 package tree
 
-import "bytes"
+import (
+	"bytes"
+)
 
 // Node is a tree node
 type Node struct {
@@ -11,6 +13,11 @@ type Node struct {
 	Path     string
 	Subtree  *Tree
 }
+
+const (
+	// INF allows to have a full recursion until the leaves of a tree
+	INF = -1
+)
 
 // Nodes is a slice of nodes which can be sorted
 type Nodes []*Node
@@ -53,7 +60,7 @@ func (n Node) Equals(other Node) bool {
 // format returns a pretty printed string of all nodes in and below
 // this node, e.g. ├── baz
 func (n *Node) format(prefix string, last bool, maxDepth, curDepth int) string {
-	if maxDepth >= 0 && ((maxDepth == 0 && curDepth > 1) || (curDepth > maxDepth+1)) {
+	if maxDepth > INF && (curDepth > maxDepth+1) {
 		return ""
 	}
 
@@ -78,7 +85,7 @@ func (n *Node) format(prefix string, last bool, maxDepth, curDepth int) string {
 	case n.Mount:
 		_, _ = out.WriteString(colMount(n.Name + " (" + n.Path + ")"))
 	case n.Type == "dir":
-		_, _ = out.WriteString(colDir(n.Name))
+		_, _ = out.WriteString(colDir(n.Name + sep))
 	default:
 		_, _ = out.WriteString(n.Name)
 	}
@@ -86,7 +93,7 @@ func (n *Node) format(prefix string, last bool, maxDepth, curDepth int) string {
 	if n.Template {
 		_, _ = out.WriteString(" " + colTpl("(template)"))
 	}
-	// finish this folders output
+	// finish this output
 	_, _ = out.WriteString("\n")
 
 	if n.Subtree == nil {
@@ -114,7 +121,7 @@ func (n *Node) Len() int {
 }
 
 func (n *Node) list(prefix string, maxDepth, curDepth int, files bool) []string {
-	if maxDepth > 0 && curDepth > maxDepth {
+	if maxDepth >= 0 && curDepth > maxDepth {
 		return nil
 	}
 
@@ -123,17 +130,29 @@ func (n *Node) list(prefix string, maxDepth, curDepth int, files bool) []string 
 	}
 	prefix += n.Name
 
+	// if it's a file and we are looking for files
 	if n.Type == "file" && files {
+		// we return the file
 		return []string{prefix}
+	} else if curDepth == maxDepth && n.Type != "file" {
+		// otherwise if we are "at the bottom" and it's not a file
+		// we return the directory name with a separator at the end
+		return []string{prefix + sep}
 	}
 
 	out := make([]string, 0, n.Len())
+	// if we don't have subitems, then it's a leaf and we return
+	// (notice that this is what ends the recursion when maxDepth is set to -1)
 	if n.Subtree == nil {
 		return out
 	}
+
+	// this is the part that will list the subdirectories on their own line when using the -d option
 	if !files {
-		out = append(out, prefix)
+		out = append(out, prefix+sep)
 	}
+
+	// we keep listing the subtree nodes if we haven't exited yet.
 	for _, t := range n.Subtree.Nodes {
 		out = append(out, t.list(prefix, maxDepth, curDepth+1, files)...)
 	}
