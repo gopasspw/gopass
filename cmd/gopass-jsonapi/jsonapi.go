@@ -32,7 +32,7 @@ type jsonapiCLI struct {
 func (s *jsonapiCLI) listen(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 
-	version, err := semver.Parse(c.App.Version)
+	version, err := semver.Parse(strings.TrimPrefix(c.App.Version, "v"))
 	if err != nil {
 		version = semver.Version{}
 	}
