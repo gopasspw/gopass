@@ -140,6 +140,18 @@ func setupApp(ctx context.Context, sv semver.Version) (context.Context, *cli.App
 		action.Complete(c)
 	}
 
+	app.Flags = []cli.Flag{
+		&cli.BoolFlag{
+			Name:    "clip",
+			Aliases: []string{"c"},
+			Usage:   "Copy the password value into the clipboard",
+		},
+		&cli.BoolFlag{
+			Name:    "unsafe",
+			Aliases: []string{"u", "force", "f"},
+			Usage:   "Display unsafe content (e.g. the password) even if safecontent is enabled",
+		},
+	}
 	app.Action = func(c *cli.Context) error {
 		if err := action.Initialized(c); err != nil {
 			return err
