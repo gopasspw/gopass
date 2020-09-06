@@ -94,7 +94,7 @@ func (s *Action) checkVersion(ctx context.Context, u chan string) {
 
 	if s.version.LT(r.Version()) {
 		notice := fmt.Sprintf("\nYour version (%s) of gopass is out of date!\nThe latest version is %s.\n", s.version, r.Version().String())
-		notice += "You can update by downloading from www.justwatch.com/gopass"
+		notice += "You can update by downloading from https://www.gopass.pw/#install"
 		if err := updater.IsUpdateable(ctx); err == nil {
 			notice += " by running 'gopass update'"
 		}
