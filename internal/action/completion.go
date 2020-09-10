@@ -2,10 +2,11 @@ package action
 
 import (
 	"fmt"
-	"github.com/gopasspw/gopass/internal/tree"
 	"regexp"
 	"runtime"
 	"strings"
+
+	"github.com/gopasspw/gopass/internal/tree"
 
 	fishcomp "github.com/gopasspw/gopass/internal/completion/fish"
 	zshcomp "github.com/gopasspw/gopass/internal/completion/zsh"

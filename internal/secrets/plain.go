@@ -71,7 +71,10 @@ func (p *Plain) Set(key, value string) {
 	if err != nil {
 		debug.Log("failed to discard password line: %s", err)
 	}
-	io.Copy(buf, br)
+	_, err = io.Copy(buf, br)
+	if err != nil {
+		debug.Log("failed to copy buffer: %s", err)
+	}
 	p.Body = buf.Bytes()
 }
 

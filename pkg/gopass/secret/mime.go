@@ -79,7 +79,8 @@ func ParseMIME(buf []byte) (*MIME, error) {
 	}
 	tpr := textproto.NewReader(r)
 	m.Header, err = tpr.ReadMIMEHeader()
-	if err != nil {
+	// we can reach EOF is there are no new line at the end of the secret file after the MIME header.
+	if err != nil && err != io.EOF {
 		return nil, &PermanentError{Err: err}
 	}
 	if _, err := io.Copy(m.body, r); err != nil {
@@ -92,29 +93,37 @@ func ParseMIME(buf []byte) (*MIME, error) {
 // of the secret.
 func (s *MIME) bytesCompat() []byte {
 	buf := &bytes.Buffer{}
-	fmt.Fprint(buf, s.Header.Get("Password"))
-	fmt.Fprintln(buf)
+	if len(s.Header) > 0 {
+		fmt.Fprint(buf, s.Header.Get("Password"))
+		fmt.Fprintln(buf)
 
-	keys := make([]string, 0, len(s.Header))
-	for k := range s.Header {
-		if strings.ToLower(k) == "password" {
-			continue
+		keys := make([]string, 0, len(s.Header))
+		for k := range s.Header {
+			if strings.ToLower(k) == "password" {
+				continue
+			}
+			keys = append(keys, k)
 		}
-		keys = append(keys, k)
+		sort.Strings(keys)
+		for _, k := range keys {
+			vs := s.Header[k]
+			sort.Strings(vs)
+			for _, v := range vs {
+				fmt.Fprint(buf, k)
+				fmt.Fprint(buf, ": ")
+				fmt.Fprint(buf, v)
+				fmt.Fprint(buf, "\n")
+			}
+		}
 	}
-	sort.Strings(keys)
-	for _, k := range keys {
-		vs := s.Header[k]
-		sort.Strings(vs)
-		for _, v := range vs {
-			fmt.Fprint(buf, k)
-			fmt.Fprint(buf, ": ")
-			fmt.Fprint(buf, v)
+
+	if body := s.body.Bytes(); s.body != nil && len(body) > 0 {
+		if len(s.Header) > 0 {
 			fmt.Fprint(buf, "\n")
 		}
+		buf.Write(s.body.Bytes())
 	}
-	fmt.Fprint(buf, "\n")
-	buf.Write(s.body.Bytes())
+
 	return buf.Bytes()
 }
 
@@ -124,6 +133,7 @@ func (s *MIME) Bytes() []byte {
 		return s.bytesCompat()
 	}
 	buf := &bytes.Buffer{}
+	// We first have the Mime magic
 	fmt.Fprint(buf, Ident)
 	fmt.Fprint(buf, "\n")
 
@@ -131,7 +141,9 @@ func (s *MIME) Bytes() []byte {
 	for k := range s.Header {
 		keys = append(keys, k)
 	}
+	// we need to sort the keys to be deterministic since maps aren't.
 	sort.Strings(keys)
+	// then the header (containing typically an entry 'password')
 	for _, k := range keys {
 		vs := s.Header[k]
 		sort.Strings(vs)
@@ -142,8 +154,12 @@ func (s *MIME) Bytes() []byte {
 			fmt.Fprint(buf, "\n")
 		}
 	}
-	fmt.Fprint(buf, "\n")
-	buf.Write(s.body.Bytes())
+
+	// finally the body if any
+	if body := s.body.Bytes(); s.body != nil && len(body) > 0 {
+		fmt.Fprint(buf, "\n")
+		buf.Write(body)
+	}
 	return buf.Bytes()
 }
 

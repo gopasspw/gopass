@@ -73,7 +73,22 @@ zab: 123`
 Foo: bar
 Password: passw0rd
 Zab: 123
+`
+	sec, err := ParseKV([]byte(in))
+	require.NoError(t, err)
+	msec := sec.MIME()
+	assert.Equal(t, out, string(msec.Bytes()))
+}
 
+func TestMultiKeyKVMIME(t *testing.T) {
+	in := `passw0rd
+foo: baz
+foo: bar
+zab: 123`
+	out := `GOPASS-SECRET-1.0
+Foo: bar
+Password: passw0rd
+Zab: 123
 `
 	sec, err := ParseKV([]byte(in))
 	require.NoError(t, err)

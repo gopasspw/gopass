@@ -1,9 +1,10 @@
 package action
 
 import (
-	"github.com/gopasspw/gopass/internal/tree"
 	"regexp"
 	"strings"
+
+	"github.com/gopasspw/gopass/internal/tree"
 
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"

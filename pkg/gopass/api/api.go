@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"fmt"
+
 	"github.com/gopasspw/gopass/internal/tree"
 
 	_ "github.com/gopasspw/gopass/internal/backend/crypto"  // load crypto backends

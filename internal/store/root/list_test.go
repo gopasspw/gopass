@@ -2,8 +2,9 @@ package root
 
 import (
 	"context"
-	"github.com/gopasspw/gopass/internal/tree"
 	"testing"
+
+	"github.com/gopasspw/gopass/internal/tree"
 
 	"github.com/fatih/color"
 	"github.com/gopasspw/gopass/internal/gptest"

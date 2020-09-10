@@ -3,12 +3,13 @@ package action
 import (
 	"context"
 	"fmt"
-	"github.com/gopasspw/gopass/internal/tree"
 	"path"
 	"regexp"
 	"sort"
 	"strconv"
 	"strings"
+
+	"github.com/gopasspw/gopass/internal/tree"
 
 	"github.com/gopasspw/gopass/internal/clipboard"
 	"github.com/gopasspw/gopass/internal/debug"

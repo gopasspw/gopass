@@ -4,8 +4,9 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"github.com/gopasspw/gopass/internal/tree"
 	"strings"
+
+	"github.com/gopasspw/gopass/internal/tree"
 
 	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/internal/editor"
