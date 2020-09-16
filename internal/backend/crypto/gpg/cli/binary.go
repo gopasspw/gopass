@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"sort"
@@ -12,6 +13,7 @@ import (
 
 	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/pkg/appdir"
+	"github.com/gopasspw/gopass/pkg/fsutil"
 )
 
 var (
@@ -26,12 +28,21 @@ func (g *GPG) Binary() string {
 	return g.binary
 }
 
-func binaryLocCacheFn() string {
-	return filepath.Join(appdir.UserCache(), "gpg-binary.loc")
+func binaryLocCacheFn() (string, error) {
+	userCache := appdir.UserCache()
+	if !fsutil.IsDir(userCache) {
+		if err := os.MkdirAll(userCache, 0755); err != nil {
+			return "", err
+		}
+	}
+	return filepath.Join(userCache, "gpg-binary.loc"), nil
 }
 
 func readBinaryLocFromCache() (string, error) {
-	fn := binaryLocCacheFn()
+	fn, err := binaryLocCacheFn()
+	if err != nil {
+		return "", err
+	}
 	buf, err := ioutil.ReadFile(fn)
 	if err != nil {
 		return "", err
@@ -44,7 +55,11 @@ func readBinaryLocFromCache() (string, error) {
 }
 
 func writeBinaryLocToCache(fn string) error {
-	return ioutil.WriteFile(binaryLocCacheFn(), []byte(fn), 0644)
+	binaryLoc, err := binaryLocCacheFn()
+	if err != nil {
+		return err
+	}
+	return ioutil.WriteFile(binaryLoc, []byte(fn), 0644)
 }
 
 // Binary returns the GPG binary location
