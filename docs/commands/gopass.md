@@ -8,6 +8,7 @@ has two different modes.
 ```
 $ gopass
 $ gopass entry
+$ gopass -c entry
 ```
 
 ## Modes of operation
@@ -18,4 +19,10 @@ $ gopass entry
 
 ## Flags
 
-Note: `gopass` intentionally does not support any flags. If you need to use any flag consider using `gopass show` instead.
+Note: DO NOT use in scripts! Use `gopass show` instead.
+
+Flag | Aliases | Description
+---- | ------- | -----------
+`--clip` | `-c` | Copy the password value into the clipboard and don't show the content.
+`--unsafe` | `-u` | Display unsafe content (e.g. the password) even when the `safecontent` option is set. No-op when `safecontent` is `false`.
+
