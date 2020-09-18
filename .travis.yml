@@ -11,17 +11,25 @@ jobs:
       - make travis-windows
     - os: osx
       env: SLOW_TEST_FACTOR=100
+      addons:
+        homebrew:
+          update: true
+          brewfile: true
       script:
       - make travis-osx
     - os: linux
+      addons:
+        apt:
+          packages:
+          - git
+          - gnupg2
+          - clang-format-3.9
       script:
       - make travis
       - make test-integration
       - make install-completion
 
 before_install:
-  - if [ $TRAVIS_OS_NAME = linux ]; then sudo apt-get install git gnupg2 clang-format-3.9; fi
-  - if [ $TRAVIS_OS_NAME = osx ]; then brew install git gnupg clang-format || true; fi
   - | 
       if [ $TRAVIS_OS_NAME = windows ]; then 
       choco install --yes --force --debug make gnupg || true; 
