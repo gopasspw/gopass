@@ -6,7 +6,6 @@ import (
 	"context"
 	"os"
 	"os/exec"
-	"strings"
 
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 )
@@ -45,7 +44,7 @@ func osaNotification(msg string, subj string) error {
 
 // exec notification program with passed arguments
 func execNotification(executable string, args []string) error {
-	return execCommand(executable, strings.Join(args[:], " ")).Start()
+	return execCommand(executable, args...).Start()
 }
 
 // display notification with terminal-notifier
