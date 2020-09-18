@@ -21,6 +21,5 @@ the context handlers in the same package.
 
 * [gpgcli](backends/gpg.md) - depends on a working gpg installation
 * plain -  A no-op backend used for testing. WARNING: DOES NOT ENCRYPT!
-* [xc](../internal/backend/crypto/xc/README.md) - EXPERIMENTAL custom crypto backend. WARNING: DO NOT USE!
 * [age](backends/age.md) -  This backend is based on [age](https://github.com/FiloSottile/age). It adds an encrypted keyring on top (using age in scrypt password mode). It also has (largely untested) support for specifying recipients as github users. This will use their ssh public keys for age encryption. This backend might very well become the new default backend.
 
