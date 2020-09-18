@@ -12,7 +12,14 @@ import (
 )
 
 func iconURI() string {
-	iconFN := filepath.Join(appdir.UserCache(), "gopass-logo-small.png")
+	userCache := appdir.UserCache()
+	if !fsutil.IsDir(userCache) {
+		if err := os.MkdirAll(userCache, 0755); err != nil {
+			return ""
+		}
+	}
+
+	iconFN := filepath.Join(userCache, "gopass-logo-small.png")
 	if !fsutil.IsFile(iconFN) {
 		fh, err := os.OpenFile(iconFN, os.O_WRONLY|os.O_CREATE, 0644)
 		if err != nil {
