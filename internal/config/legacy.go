@@ -118,7 +118,7 @@ func (c *Pre182) Config() *Config {
 		Mounts:        make(map[string]string, len(c.Mounts)),
 	}
 	if p, err := pathFromURL(c.Root.Path); err == nil {
-		c.Path = p
+		cfg.Path = p
 	}
 	for k, v := range c.Mounts {
 		p, err := pathFromURL(v.Path)
