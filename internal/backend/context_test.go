@@ -28,9 +28,9 @@ func TestStorageBackend(t *testing.T) {
 
 func TestComposite(t *testing.T) {
 	ctx := context.Background()
-	ctx = WithCryptoBackend(ctx, XC)
+	ctx = WithCryptoBackend(ctx, Age)
 	ctx = WithStorageBackend(ctx, FS)
 
-	assert.Equal(t, XC, GetCryptoBackend(ctx))
+	assert.Equal(t, Age, GetCryptoBackend(ctx))
 	assert.Equal(t, FS, GetStorageBackend(ctx))
 }

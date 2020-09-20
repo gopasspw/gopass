@@ -4,7 +4,6 @@ go 1.12
 
 require (
 	filippo.io/age v1.0.0-beta4
-	github.com/alecthomas/binary v0.0.0-20190922233330-fb1b1d9c299c
 	github.com/atotto/clipboard v0.1.2
 	github.com/blang/semver v0.0.0-20190414182527-1a9109f8c4a1
 	github.com/caspr-io/yamlpath v0.0.0-20200722075116-502e8d113a9b
@@ -17,7 +16,6 @@ require (
 	github.com/fatih/color v1.9.0
 	github.com/godbus/dbus v0.0.0-20190623212516-8a1682060722
 	github.com/gokyle/twofactor v1.0.1
-	github.com/golang/protobuf v1.4.2
 	github.com/google/go-cmp v0.5.2
 	github.com/google/go-github v17.0.0+incompatible
 	github.com/google/go-querystring v1.0.0 // indirect
@@ -51,7 +49,6 @@ require (
 	golang.org/x/sys v0.0.0-20200824131525-c12d262b63d8
 	golang.org/x/text v0.3.3 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
-	google.golang.org/protobuf v1.25.0
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
 	gopkg.in/ini.v1 v1.60.1 // indirect
 	gopkg.in/yaml.v2 v2.3.0
