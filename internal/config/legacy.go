@@ -67,7 +67,7 @@ func (c *Pre193) Config() *Config {
 	return cfg
 }
 
-// Pre182 is the current config struct
+// Pre182 is the gopass config structure before version 1.8.2
 type Pre182 struct {
 	Path    string                        `yaml:"-"`
 	Root    *Pre182StoreConfig            `yaml:"root"`
@@ -103,7 +103,7 @@ func (c *Pre182) CheckOverflow() error {
 	return checkOverflow(c.XXX)
 }
 
-// Config converts the Pre140 config to the current config struct
+// Config converts the Pre182 config to the current config struct
 func (c *Pre182) Config() *Config {
 	cfg := &Config{
 		AutoClip:      c.Root.AutoClip,
