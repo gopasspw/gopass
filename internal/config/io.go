@@ -73,7 +73,7 @@ func load(cf string) (*Config, error) {
 	if cfg.Mounts == nil {
 		cfg.Mounts = make(map[string]string)
 	}
-	cfg.configPath = cf
+	cfg.ConfigPath = cf
 	return cfg, nil
 }
 

@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/fatih/color"
+	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -19,6 +20,7 @@ func TestConfigs(t *testing.T) {
 	for _, tc := range []struct {
 		name string
 		cfg  string
+		want *Config
 	}{
 		{
 			name: "1.9.3",
@@ -33,6 +35,22 @@ safecontent: false
 mounts:
   foo/sub: /home/johndoe/.password-store-foo-sub
   work: /home/johndoe/.password-store-work`,
+			want: &Config{
+				AutoClip:      true,
+				AutoImport:    false,
+				ClipTimeout:   45,
+				ExportKeys:    true,
+				MIME:          false,
+				NoColor:       false,
+				NoPager:       false,
+				Notifications: true,
+				Path:          "/home/johndoe/.password-store",
+				SafeContent:   false,
+				Mounts: map[string]string{
+					"foo/sub": "/home/johndoe/.password-store-foo-sub",
+					"work":    "/home/johndoe/.password-store-work",
+				},
+			},
 		}, {
 			name: "1.8.2",
 			cfg: `root:
@@ -47,7 +65,7 @@ mounts:
   confirm: false
   nopager: false
   notficiations: true
-  path: /home/johndoe/.password-store
+  path: gpgcli-gitcli-fs+file:///home/johndoe/.password-store
   safecontent: false
   usesymbols: true
 mounts:
@@ -63,7 +81,7 @@ mounts:
     confirm: false
     nopager: false
     notficiations: true
-    path: /home/johndoe/.password-store-foo-sub
+    path: gpgcli-gitcli-fs+file:///home/johndoe/.password-store-foo-sub
     safecontent: false
     usesymbols: true
   work:
@@ -78,10 +96,26 @@ mounts:
     confirm: false
     nopager: false
     notficiations: true
-    path: /home/johndoe/.password-store-work
+    path: gpgcli-gitcli-fs+file:///home/johndoe/.password-store-work
     safecontent: false
     usesymbols: true
 `,
+			want: &Config{
+				AutoClip:      true,
+				AutoImport:    false,
+				ClipTimeout:   45,
+				ExportKeys:    false,
+				MIME:          true,
+				NoColor:       false,
+				NoPager:       false,
+				Notifications: false,
+				Path:          "/home/johndoe/.password-store",
+				SafeContent:   false,
+				Mounts: map[string]string{
+					"foo/sub": "/home/johndoe/.password-store-foo-sub",
+					"work":    "/home/johndoe/.password-store-work",
+				},
+			},
 		}, {
 			name: "1.4.0",
 			cfg: `root:
@@ -113,6 +147,22 @@ mounts:
     path: /home/johndoe/.password-store-work
     safecontent: false
 version: 1.4.0`,
+			want: &Config{
+				AutoClip:      false,
+				AutoImport:    false,
+				ClipTimeout:   45,
+				ExportKeys:    false,
+				MIME:          true,
+				NoColor:       false,
+				NoPager:       false,
+				Notifications: false,
+				Path:          "/home/johndoe/.password-store",
+				SafeContent:   false,
+				Mounts: map[string]string{
+					"foo/sub": "/home/johndoe/.password-store-foo-sub",
+					"work":    "/home/johndoe/.password-store-work",
+				},
+			},
 		}, {
 			name: "1.3.0",
 			cfg: `askformore: false
@@ -128,6 +178,24 @@ noconfirm: false
 path: /home/foo/.password-store
 safecontent: true
 version: "1.3.0"`,
+			want: &Config{
+				AutoClip:      false,
+				AutoImport:    true,
+				ClipTimeout:   45,
+				ExportKeys:    false,
+				MIME:          true,
+				NoColor:       false,
+				NoPager:       false,
+				Notifications: false,
+				Path:          "/home/foo/.password-store",
+				SafeContent:   true,
+				Mounts: map[string]string{
+					"dev":       "/Users/johndoe/.password-store-dev",
+					"ops":       "/Users/johndoe/.password-store-ops",
+					"personal":  "/Users/johndoe/secrets",
+					"teststore": "/Users/johndoe/tmp/teststore",
+				},
+			},
 		}, {
 			name: "1.2.0",
 			cfg: `alwaystrust: true
@@ -149,6 +217,24 @@ path: /home/foo/.password-store
 persistkeys: true
 safecontent: true
 version: "1.2.0"`,
+			want: &Config{
+				AutoClip:      false,
+				AutoImport:    true,
+				ClipTimeout:   45,
+				ExportKeys:    false,
+				MIME:          true,
+				NoColor:       false,
+				NoPager:       false,
+				Notifications: false,
+				Path:          "/home/foo/.password-store",
+				SafeContent:   true,
+				Mounts: map[string]string{
+					"dev":       "/Users/johndoe/.password-store-dev",
+					"ops":       "/Users/johndoe/.password-store-ops",
+					"personal":  "/Users/johndoe/secrets",
+					"teststore": "/Users/johndoe/tmp/teststore",
+				},
+			},
 		}, {
 			name: "1.1.0",
 			cfg: `alwaystrust: false
@@ -168,6 +254,24 @@ path: /home/johndoe/.password-store
 persistkeys: true
 safecontent: false
 version: 1.1.0`,
+			want: &Config{
+				AutoClip:      false,
+				AutoImport:    false,
+				ClipTimeout:   45,
+				ExportKeys:    false,
+				MIME:          true,
+				NoColor:       false,
+				NoPager:       false,
+				Notifications: false,
+				Path:          "/home/johndoe/.password-store",
+				SafeContent:   false,
+				Mounts: map[string]string{
+					"dev":       "/home/johndoe/.password-store-dev",
+					"ops":       "/home/johndoe/.password-store-ops",
+					"personal":  "/home/johndoe/secrets",
+					"teststore": "/home/johndoe/tmp/teststore",
+				},
+			},
 		}, {
 			name: "1.0.0",
 			cfg: `alwaystrust: false
@@ -185,14 +289,33 @@ noconfirm: false
 path: /home/foo/.password-store
 persistkeys: false
 version: "1.0.0"`,
+			want: &Config{
+				AutoClip:      false,
+				AutoImport:    false,
+				ClipTimeout:   45,
+				ExportKeys:    false,
+				MIME:          true,
+				NoColor:       false,
+				NoPager:       false,
+				Notifications: false,
+				Path:          "/home/foo/.password-store",
+				SafeContent:   false,
+				Mounts: map[string]string{
+					"dev":       "/Users/johndoe/.password-store-dev",
+					"ops":       "/Users/johndoe/.password-store-ops",
+					"personal":  "/Users/johndoe/secrets",
+					"teststore": "/Users/johndoe/tmp/teststore",
+				},
+			},
 		},
 	} {
-		t.Logf("Loading config %s ...", tc.name)
-		if _, err := decode([]byte(tc.cfg)); err != nil {
-			t.Errorf("Giving up. Failed to load config %s: %s\n%s", tc.name, err, tc.cfg)
-			continue
-		}
-		t.Logf("Success: %s", tc.name)
+		t.Run(tc.name, func(t *testing.T) {
+			got, err := decode([]byte(tc.cfg))
+			require.NoError(t, err)
+			if diff := cmp.Diff(tc.want, got); diff != "" {
+				t.Errorf("decode(%v) mismatch (-want +got):\n%s", tc.cfg, diff)
+			}
+		})
 	}
 }
 

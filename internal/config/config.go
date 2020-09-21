@@ -31,7 +31,7 @@ type Config struct {
 	SafeContent   bool              `yaml:"safecontent"` // avoid showing passwords in terminal
 	Mounts        map[string]string `yaml:"mounts"`
 
-	configPath string `yaml:"-"`
+	ConfigPath string `yaml:"-"`
 
 	// Catches all undefined files and must be empty after parsing
 	XXX map[string]interface{} `yaml:",inline"`
@@ -47,7 +47,7 @@ func New() *Config {
 		Mounts:        make(map[string]string),
 		Notifications: true,
 		Path:          PwStoreDir(""),
-		configPath:    configLocation(),
+		ConfigPath:    configLocation(),
 	}
 }
 
