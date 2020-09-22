@@ -161,6 +161,9 @@ func (c *Pre140) Config() *Config {
 		MIME:        true,
 		Mounts:      make(map[string]string, len(c.Mounts)),
 	}
+	for k, v := range c.Mounts {
+		cfg.Mounts[k] = v
+	}
 	return cfg
 }
 
@@ -201,6 +204,9 @@ func (c *Pre130) Config() *Config {
 		SafeContent: c.SafeContent,
 		MIME:        true,
 		Mounts:      make(map[string]string, len(c.Mounts)),
+	}
+	for k, v := range c.Mounts {
+		cfg.Mounts[k] = v
 	}
 	return cfg
 }
