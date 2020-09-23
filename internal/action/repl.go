@@ -3,8 +3,9 @@ package action
 import (
 	"context"
 	"fmt"
-	"github.com/gopasspw/gopass/internal/tree"
 	"strings"
+
+	"github.com/gopasspw/gopass/internal/tree"
 
 	"github.com/chzyer/readline"
 	"github.com/gopasspw/gopass/internal/debug"

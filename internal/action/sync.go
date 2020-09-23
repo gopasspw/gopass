@@ -3,6 +3,7 @@ package action
 import (
 	"context"
 	"fmt"
+
 	"github.com/gopasspw/gopass/internal/tree"
 
 	"github.com/gopasspw/gopass/internal/debug"

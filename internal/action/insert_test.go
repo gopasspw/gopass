@@ -49,7 +49,9 @@ func TestInsert(t *testing.T) {
 		buf.Reset()
 
 		assert.NoError(t, act.show(ctx, gptest.CliCtx(ctx, t), "baz", false))
-		assert.Equal(t, "\nfoobar", buf.String())
+		// Notice that the new MIME content is adding a newline after the key-value
+		// this was not the case previously.
+		assert.Equal(t, "Password: foobar\n", buf.String())
 		buf.Reset()
 	})
 
@@ -58,12 +60,34 @@ func TestInsert(t *testing.T) {
 		buf.Reset()
 
 		assert.NoError(t, act.show(ctx, gptest.CliCtx(ctx, t), "baz", false))
-		assert.Equal(t, "\nfoobar\n", buf.String())
+		assert.Equal(t, "Password: foobar\n", buf.String())
+		buf.Reset()
+	})
+
+	t.Run("insert baz via stdin w/ yaml", func(t *testing.T) {
+		assert.NoError(t, act.insertStdin(ctx, "baz", []byte("foobar\n---\nuser: name\nother: meh"), false))
+		buf.Reset()
+
+		assert.NoError(t, act.show(ctx, gptest.CliCtx(ctx, t), "baz", false))
+		assert.Equal(t, "Content-Type: text/yaml\nPassword: foobar\n\nother: meh\nuser: name\n", buf.String())
+		buf.Reset()
+	})
+
+	t.Run("insert baz via stdin w/ k-v", func(t *testing.T) {
+		assert.NoError(t, act.insertStdin(ctx, "baz", []byte("foobar\ninvalid key-value\nOther: meh\nUser: name\nbody text"), false))
+		buf.Reset()
+
+		assert.NoError(t, act.show(ctx, gptest.CliCtx(ctx, t), "baz", false))
+		assert.Equal(t, "Other: meh\nPassword: foobar\nUser: name\n\ninvalid key-value\nbody text\n", buf.String())
 		buf.Reset()
 	})
 
 	t.Run("insert zab#key", func(t *testing.T) {
+		ctx = ctxutil.WithInteractive(ctx, false)
+		ctx = ctxutil.WithShowSafeContent(ctx, true)
 		assert.NoError(t, act.insertYAML(ctx, "zab", "key", []byte("foobar"), nil))
+		assert.NoError(t, act.show(ctx, gptest.CliCtx(ctx, t), "zab", false))
+		assert.Equal(t, "Key: foobar\n", buf.String())
 		buf.Reset()
 	})
 

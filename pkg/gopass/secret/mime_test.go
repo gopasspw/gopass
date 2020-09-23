@@ -42,8 +42,16 @@ func TestNewline(t *testing.T) {
 	assert.Equal(t, "bar", sec.Get("Foo"))
 
 	assert.Equal(t, in, string(sec.Bytes()))
-	assert.Equal(t, in, string(sec.Bytes()))
-	assert.Equal(t, in, string(sec.Bytes()))
+}
+
+func TestNoNewline(t *testing.T) {
+	in := "GOPASS-SECRET-1.0\nFoo: bar"
+	sec, err := ParseMIME([]byte(in))
+	require.NoError(t, err)
+	assert.Equal(t, "", sec.GetBody())
+	assert.Equal(t, "bar", sec.Get("Foo"))
+
+	assert.Equal(t, in+"\n", string(sec.Bytes()))
 }
 
 func TestEquals(t *testing.T) {

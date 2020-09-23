@@ -1,9 +1,10 @@
 package action
 
 import (
-	"github.com/gopasspw/gopass/internal/tree"
 	"os"
 	"path/filepath"
+
+	"github.com/gopasspw/gopass/internal/tree"
 
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"

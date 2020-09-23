@@ -303,30 +303,6 @@ func TestShowHandleError(t *testing.T) {
 	buf.Reset()
 }
 
-func TestShowHandleYAMLError(t *testing.T) {
-	u := gptest.NewUnitTester(t)
-	defer u.Remove()
-
-	ctx := context.Background()
-	ctx = ctxutil.WithAlwaysYes(ctx, true)
-	ctx = ctxutil.WithTerminal(ctx, false)
-	act, err := newMock(ctx, u)
-	require.NoError(t, err)
-	require.NotNil(t, act)
-
-	color.NoColor = true
-	buf := &bytes.Buffer{}
-	out.Stdout = buf
-	stdout = buf
-	defer func() {
-		stdout = os.Stdout
-		out.Stdout = os.Stdout
-	}()
-
-	assert.Error(t, act.showHandleYAMLError("foo", "bar", fmt.Errorf("test")))
-	buf.Reset()
-}
-
 func TestShowPrintQR(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 	defer u.Remove()

@@ -89,15 +89,21 @@ func (s *Action) insert(ctx context.Context, c *cli.Context, name, key string, e
 }
 
 func (s *Action) insertStdin(ctx context.Context, name string, content []byte, appendTo bool) error {
-	sec := secret.New()
+	var sec *secret.MIME
 	if appendTo && s.Store.Exists(ctx, name) {
 		eSec, err := s.Store.Get(ctx, name)
 		if err != nil {
 			return ExitError(ExitDecrypt, err, "failed to decrypt existing secret: %s", err)
 		}
 		sec = eSec.MIME()
+		sec.Write(content)
+	} else {
+		plain, err := secparse.Parse(content)
+		if err != nil {
+			return ExitError(ExitAborted, err, "failed to parse secret from stdin: %s", err)
+		}
+		sec = plain.MIME()
 	}
-	sec.Write(content)
 	if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, "Read secret from STDIN"), name, sec); err != nil {
 		return ExitError(ExitEncrypt, err, "failed to set '%s': %s", name, err)
 	}

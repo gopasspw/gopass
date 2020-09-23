@@ -19,7 +19,6 @@ import (
 	"github.com/gopasspw/gopass/pkg/pwgen/pwrules"
 	"github.com/gopasspw/gopass/pkg/qrcon"
 
-	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
 )
 
@@ -132,7 +131,7 @@ func (s *Action) showHandleOutput(ctx context.Context, name string, sec gopass.S
 	pw, body := s.showGetContent(ctx, sec)
 
 	if pw == "" && body == "" {
-		if ctxutil.IsShowSafeContent(ctx) {
+		if ctxutil.IsShowSafeContent(ctx) && !ctxutil.IsForce(ctx) {
 			out.Yellow(ctx, "Warning: safecontent=true. Use -f to display password, if any")
 		}
 		return ExitError(ExitNotFound, store.ErrEmptySecret, store.ErrEmptySecret.Error())
@@ -144,7 +143,7 @@ func (s *Action) showHandleOutput(ctx context.Context, name string, sec gopass.S
 		}
 	}
 
-	if IsClip(ctx) && pw != "" && !ctxutil.IsForce(ctx) {
+	if IsClip(ctx) && pw != "" {
 		if err := clipboard.CopyTo(ctx, name, []byte(pw)); err != nil {
 			return err
 		}
@@ -168,12 +167,15 @@ func (s *Action) showGetContent(ctx context.Context, sec gopass.Secret) (string,
 		return val, val
 	}
 
+	pw := sec.Get("password")
+	fullBody := strings.TrimPrefix(string(sec.Bytes()), secret.Ident+"\n")
+
 	// first line of the secret only
 	if IsPrintQR(ctx) || IsOnlyClip(ctx) {
-		return sec.Get("password"), ""
+		return pw, ""
 	}
 	if IsPasswordOnly(ctx) {
-		return sec.Get("password"), sec.Get("password")
+		return pw, pw
 	}
 
 	// everything but the first line
@@ -191,16 +193,17 @@ func (s *Action) showGetContent(ctx context.Context, sec gopass.Secret) (string,
 			}
 			sb.WriteString("\n")
 		}
-		sb.WriteString("\n")
+		if len(sec.Keys()) > 0 && len(sec.GetBody()) > 0 {
+			sb.WriteString("\n")
+		}
 		sb.WriteString(sec.GetBody())
 		if IsAlsoClip(ctx) {
-			return sec.Get("password"), sb.String()
+			return pw, sb.String()
 		}
 		return "", sb.String()
 	}
 
 	// everything (default)
-	fullBody := strings.TrimPrefix(string(sec.Bytes()), secret.Ident+"\n")
 	return sec.Get("password"), fullBody
 }
 
@@ -268,16 +271,6 @@ func (s *Action) showHandleError(ctx context.Context, c *cli.Context, name strin
 		return ExitError(ExitNotFound, err, "%s", err)
 	}
 	return nil
-}
-
-func (s *Action) showHandleYAMLError(name, key string, err error) error {
-	if errors.Cause(err) == store.ErrYAMLValueUnsupported {
-		return ExitError(ExitUnsupported, err, "Can not show nested key directly. Use 'gopass show %s'", name)
-	}
-	if errors.Cause(err) == store.ErrNotFound {
-		return ExitError(ExitNotFound, err, "Secret '%s' not found", name)
-	}
-	return ExitError(ExitUnknown, err, "failed to retrieve key '%s' from '%s': %s", key, name, err)
 }
 
 func (s *Action) showPrintQR(name, pw string) error {

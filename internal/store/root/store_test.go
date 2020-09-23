@@ -2,10 +2,11 @@ package root
 
 import (
 	"context"
-	"github.com/gopasspw/gopass/internal/tree"
 	"path"
 	"sort"
 	"testing"
+
+	"github.com/gopasspw/gopass/internal/tree"
 
 	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/internal/config"

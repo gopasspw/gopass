@@ -2,11 +2,12 @@ package action
 
 import (
 	"fmt"
-	"github.com/gopasspw/gopass/internal/tree"
 	"os"
 	"os/exec"
 	"path"
 	"strings"
+
+	"github.com/gopasspw/gopass/internal/tree"
 
 	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/pkg/ctxutil"

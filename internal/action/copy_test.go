@@ -68,6 +68,6 @@ func TestCopy(t *testing.T) {
 	buf.Reset()
 
 	assert.NoError(t, act.show(ctx, c, "zab/bam/zab", false))
-	assert.Equal(t, "\nbarfoo\n", buf.String())
+	assert.Equal(t, "Password: barfoo\n", buf.String())
 	buf.Reset()
 }
