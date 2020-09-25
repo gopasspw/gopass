@@ -14,7 +14,7 @@ import (
 )
 
 const pw string = "password"
-const totpSecret string = "GJWTGMTNN5YWW2TNPJXWG2DHMIFA===="
+const totpSecret string = "GJWTGMTNN5YWW2TNPJXWG2DHMIFA"
 const totpURL string = "otpauth://totp/example-otp.com?secret=2m32moqkjmzochgb&issuer=authenticator&digits=6"
 
 func TestCalculate(t *testing.T) {

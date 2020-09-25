@@ -35,7 +35,7 @@ func Calculate(name string, sec gopass.Secret) (twofactor.OTP, string, error) {
 		return twofactor.FromURL(secKey)
 	}
 
-	otp, err := twofactor.NewGoogleTOTP(secKey)
+	otp, err := twofactor.NewGoogleTOTP(twofactor.Pad(secKey))
 	return otp, label, err
 }
 
