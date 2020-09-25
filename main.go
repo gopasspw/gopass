@@ -150,6 +150,10 @@ func setupApp(ctx context.Context, sv semver.Version) (context.Context, *cli.App
 			Aliases: []string{"u", "force", "f"},
 			Usage:   "Display unsafe content (e.g. the password) even if safecontent is enabled",
 		},
+		&cli.BoolFlag{
+			Name:  "yes",
+			Usage: "Assume yes on all yes/no questions or use the default on all others",
+		},
 	}
 	app.Action = func(c *cli.Context) error {
 		if err := action.Initialized(c); err != nil {

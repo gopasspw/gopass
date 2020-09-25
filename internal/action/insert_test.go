@@ -95,6 +95,13 @@ func TestInsert(t *testing.T) {
 		assert.NoError(t, act.Insert(gptest.CliCtxWithFlags(ctx, t, map[string]string{"multiline": "true"}, "bar", "baz")))
 		buf.Reset()
 	})
+
+	t.Run("insert key:value", func(t *testing.T) {
+		assert.NoError(t, act.Insert(gptest.CliCtxWithFlags(ctx, t, nil, "keyvaltest", "baz:val")))
+		assert.NoError(t, act.show(ctx, gptest.CliCtx(ctx, t), "keyvaltest", false))
+		assert.Equal(t, "Baz: val\n", buf.String())
+		buf.Reset()
+	})
 }
 
 func TestInsertStdin(t *testing.T) {

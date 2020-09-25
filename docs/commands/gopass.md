@@ -25,4 +25,5 @@ Flag | Aliases | Description
 ---- | ------- | -----------
 `--clip` | `-c` | Copy the password value into the clipboard and don't show the content.
 `--unsafe` | `-u` | Display unsafe content (e.g. the password) even when the `safecontent` option is set. No-op when `safecontent` is `false`.
+`--yes` |  | Assume yes on all yes/no questions or use the default on all others.
 
