@@ -126,9 +126,14 @@ func (s *Action) insertSingle(ctx context.Context, name, pw string, kvps map[str
 			}
 		}
 	}
+
 	setMetadata(sec, kvps)
-	sec.Set("password", pw)
-	audit.Single(ctx, pw)
+
+	// we only update the pw if the kvps were not set or if it's non-empty, because otherwise we were updating the kvps
+	if pw != "" || len(kvps) == 0 {
+		sec.Set("password", pw)
+		audit.Single(ctx, pw)
+	}
 
 	if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, "Inserted user supplied password"), name, sec); err != nil {
 		return ExitError(ExitEncrypt, err, "failed to write secret '%s': %s", name, err)
