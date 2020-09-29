@@ -2,6 +2,7 @@ package cui
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/gopasspw/gopass/internal/termio"
@@ -25,10 +26,12 @@ func GetSelection(ctx context.Context, prompt string, choices []string) (string,
 		if err == nil && i < len(choices) {
 			break
 		}
-		if err == termio.ErrAborted {
+		if errors.Is(err, termio.ErrAborted) {
 			return "aborted", 0
 		}
-		fmt.Println(err.Error())
+		if err != nil {
+			fmt.Println(err.Error())
+		}
 	}
 	fmt.Println(i)
 	return "default", i
