@@ -7,9 +7,11 @@ import (
 	"path"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/gopasspw/gopass/internal/clipboard"
 	"github.com/gopasspw/gopass/internal/otp"
+	"github.com/gopasspw/gopass/internal/stoken"
 	"github.com/gopasspw/gopass/pkg/gopass"
 	"github.com/gopasspw/gopass/pkg/gopass/secret"
 	"github.com/gopasspw/gopass/pkg/pwgen"
@@ -146,6 +148,12 @@ func (api *API) respondGetData(ctx context.Context, msgBytes []byte) error {
 	if err == nil {
 		responseData["current_totp"] = currentTotp.OTP()
 	}
+	now := time.Now()
+	rsacode, interval, err := stoken.Compute(now, "", "", "", sec)
+	if err == nil {
+		responseData["rsa_totp"] = rsacode
+		responseData["rsa_expire"] = fmt.Sprintf("%ds", interval-(now.Unix()%interval))
+	}
 
 	converted := convertMixedMapInterfaces(interface{}(responseData))
 	return sendSerializedJSONMessage(converted, api.Writer)
@@ -219,6 +227,17 @@ func (api *API) respondCopyToClipboard(ctx context.Context, msgBytes []byte) err
 	var val string
 	if message.Key == "" {
 		val = sec.Get("password")
+	} else if message.Key == "otp" {
+		currentTotp, _, err := otp.Calculate("_", sec)
+		if err == nil {
+			val = currentTotp.OTP()
+		}
+	} else if message.Key == "stoken" {
+		now := time.Now()
+		rsacode, _, err := stoken.Compute(now, "", "", "", sec)
+		if err == nil {
+			val = rsacode
+		}
 	} else {
 		val = sec.Get(message.Key)
 	}

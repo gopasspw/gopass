@@ -825,6 +825,51 @@ func (s *Action) GetCommands() []*cli.Command {
 			},
 		},
 		{
+			Name:  "stoken",
+			Usage: "Generate RSA token",
+			Description: "" +
+				"Parses token string with libstoken. Accepts the following keys in the store. " +
+				"Password: a token string (nominally a string of ~71 digits, starting with'1' r '2') " +
+				"Pin: *optional PIN if required to genreate tokencode " +
+				"DeviceID: *optional The Device ID if required to genreate tokencode " +
+				"SeedPassword: *optional The password used to encrypt seed into token string",
+			Before:       s.Initialized,
+			Action:       s.SToken,
+			BashComplete: s.Complete,
+			Flags: []cli.Flag{
+				&cli.BoolFlag{
+					Name:    "clip",
+					Aliases: []string{"c"},
+					Usage:   "Copy the token into the clipboard",
+				},
+				&cli.BoolFlag{
+					Name:    "unsafe",
+					Aliases: []string{"u", "force", "f"},
+					Usage:   "Display token seed",
+				},
+				&cli.BoolFlag{
+					Name:    "password",
+					Aliases: []string{"o"},
+					Usage:   "Display only the token. Takes precedence over all other flags.",
+				},
+				&cli.StringFlag{
+					Name:    "pin",
+					Aliases: []string{"p"},
+					Usage:   "Pin used if required to generate token",
+				},
+				&cli.StringFlag{
+					Name:    "device",
+					Aliases: []string{"d", "id"},
+					Usage:   "DeviceID used if required to generate token",
+				},
+				&cli.StringFlag{
+					Name:    "seedpw",
+					Aliases: []string{"sp"},
+					Usage:   "Password used to encrypt seed",
+				},
+			},
+		},
+		{
 			Name:  "sum",
 			Usage: "Compute the SHA256 checksum",
 			Description: "" +
