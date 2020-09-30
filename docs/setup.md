@@ -298,6 +298,8 @@ This also makes it easier to call gopass with any drop-in replacement of dmenu, 
 gopass ls --flat | dmenu | xargs --no-run-if-empty gopass show -c
 # First pipe the selected name to gopass, encrypt it and type the password with xdotool.
 gopass ls --flat | dmenu | xargs --no-run-if-empty gopass show -f | head -n 1 | xdotool type --clearmodifiers --file -
+# First pipe the selected name to gopass, and type the username with xdotool.
+gopass ls --flat | dmenu | xargs --no-run-if-empty -- bash -c 'gopass show -f $0 username' | head -n 1 | xdotool type --clearmodifiers --file -
 ```
 
 You can then bind these command lines to your preferred shortcuts in your window manager settings, typically under `System Settings > Keyboard > Shortcuts > Custom Shortcuts`. In some cases you may need to wrap it with `bash -c 'your command'` in order for it to work (tested and working in Ubuntu 18.04).
