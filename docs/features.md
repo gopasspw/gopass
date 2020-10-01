@@ -200,9 +200,12 @@ Eech4ahRoy2oowi0ohl
 
 The default action of `gopass` is show, so the previous command is exactly the same as typing `gopass show golang.org/gopher`. It also accepts the `-c` flag to copy the content of the secret directly to the clipboard.
 
+In order to display only the password, the flag `-o` can be used. One can also copy the password to the clipboard while still showing the entry using the flag `-C`.
+
 WARNING: The short form `gopass <secret>` is deprecated. Use `gopass show <secret>`.
 
-Since it may be dangerous to always display the password, the `safecontent` setting may be set to `true` to allow one to display only the rest of the password entries by default and display the whole entry, with password, only when the `-f` flag is used.
+Since it may be dangerous to always display the password, the `safecontent` setting may be set to `true` to allow one to display only the rest of the password entries by default but hiding the password. In order to display the whole entry, with the password in clear, the `-u`/`--unsafe` flag must then be used.
+The password can still be shown using the `-o` flag.
 
 WARNING: The `safecontent` setting is not perfect and *might* be removed in the future.
 
@@ -332,11 +335,13 @@ Example:
 ```
 GOPASS-SECRET-1.0
 Password: foobar
+User: name
 
 more content in the body
 ```
 
 The identifier line is usually hidden when you use `show`, `edit`, etc.
+When `show`ing a secret, you can specify a key and it will `show` you its value instead of the whole entry: `gopass show example user`
 
 ### Multiple Stores
 
