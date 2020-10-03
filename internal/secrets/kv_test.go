@@ -13,6 +13,7 @@ func TestKV(t *testing.T) {
 Test / test.com
 username: myuser@test.com
 url: http://www.test.com/
+password: bar
 `
 	s, err := ParseKV([]byte(mlValue))
 	require.NoError(t, err)
@@ -23,12 +24,17 @@ url: http://www.test.com/
 	t.Logf("Secret:\n%+v\n%s\n", s, string(s.Bytes()))
 
 	mlOut := `somepasswd
+password: bar
 url: http://www.test.com/
 username: myuser@test.com
 Test / test.com
 `
 	t.Run("read back the secret", func(t *testing.T) {
 		assert.Equal(t, mlOut, string(s.Bytes()))
+	})
+
+	t.Run("no_duplicate_keys", func(t *testing.T) {
+		assert.Equal(t, []string{"password", "url", "username"}, s.Keys())
 	})
 
 	t.Run("read some keys", func(t *testing.T) {

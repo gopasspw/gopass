@@ -60,7 +60,9 @@ func (k *KV) Keys() []string {
 	for key := range k.data {
 		keys = append(keys, key)
 	}
-	keys = append(keys, "password")
+	if _, found := k.data["password"]; !found {
+		keys = append(keys, "password")
+	}
 	sort.Strings(keys)
 	return keys
 }

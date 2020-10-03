@@ -169,6 +169,22 @@ url: http://www.test.com/`
 	assert.Equal(t, "myuser@test.com", s.Get("username"))
 }
 
+func TestYAMLBodyWithPW(t *testing.T) {
+	t.Logf("YAML Body with Password (#1607)")
+	mlValue := `password
+---
+username: myuser@test.com
+password: somepasswd
+url: http://www.test.com/`
+	s, err := ParseYAML([]byte(mlValue))
+	require.NoError(t, err)
+	assert.NotNil(t, s)
+
+	t.Logf("Secret: \n%+v\n%s", s, string(s.Bytes()))
+
+	// read back key
+	assert.Equal(t, []string{"password", "url", "username"}, s.Keys())
+}
 func TestYAMLValues(t *testing.T) {
 	s := &YAML{
 		data: map[string]interface{}{
