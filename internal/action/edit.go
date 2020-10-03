@@ -46,16 +46,22 @@ func (s *Action) edit(ctx context.Context, c *cli.Context, name string) error {
 		content = bytes.TrimPrefix(content, []byte(secret.Ident+"\n"))
 	}
 
+	// preserve intermediate state across retries
+	tmpContent := content
 	for {
 		// invoke the editor to let the user edit the content
-		nContent, err := editor.Invoke(ctx, ed, content)
+		newContent, err := editor.Invoke(ctx, ed, tmpContent)
 		if err != nil {
 			return ExitError(ExitUnknown, err, "failed to invoke editor: %s", err)
 		}
+		// retain edited content for next try
+		tmpContent = newContent
 		if fromMIME {
-			nContent = append([]byte(secret.Ident+"\n"), nContent...)
-			if _, err := secparse.Parse(nContent); err != nil {
-				cont, err := termio.AskForBool(ctx, "ERROR: Can not parse Gopass native Secret. Retry?", true)
+			newContent = append([]byte(secret.Ident+"\n"), newContent...)
+			if _, err := secparse.Parse(newContent); err != nil {
+				out.Red(ctx, "ERROR: Cannot parse Gopass native Secret: %s", err)
+				out.Yellow(ctx, "Hint: Does your Key-Value section end with a new line?")
+				cont, err := termio.AskForBool(ctx, "Retry?", true)
 				if err != nil {
 					return err
 				}
@@ -65,7 +71,7 @@ func (s *Action) edit(ctx context.Context, c *cli.Context, name string) error {
 				continue
 			}
 		}
-		return s.editUpdate(ctx, name, content, nContent, changed, ed)
+		return s.editUpdate(ctx, name, content, newContent, changed, ed)
 	}
 }
 
