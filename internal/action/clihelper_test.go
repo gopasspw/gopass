@@ -24,6 +24,11 @@ func TestParseArgs(t *testing.T) {
 			argOut: argList{"foo/bar"},
 		},
 		{
+			name:   "secret with colon",
+			argIn:  []string{"foo/bar:test"},
+			argOut: argList{"foo/bar:test"},
+		},
+		{
 			name:   "with key",
 			argIn:  []string{"foo/bar", "baz"},
 			argOut: argList{"foo/bar", "baz"},
