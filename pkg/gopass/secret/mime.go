@@ -3,11 +3,14 @@ package secret
 import (
 	"bufio"
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"net/textproto"
 	"sort"
 	"strings"
+
+	"github.com/gopasspw/gopass/internal/debug"
 )
 
 const (
@@ -80,7 +83,10 @@ func ParseMIME(buf []byte) (*MIME, error) {
 	tpr := textproto.NewReader(r)
 	m.Header, err = tpr.ReadMIMEHeader()
 	if err != nil {
-		return nil, &PermanentError{Err: err}
+		if !errors.Is(err, io.EOF) {
+			return nil, &PermanentError{Err: err}
+		}
+		debug.Log("Ignoring EOF error when parsing MIME header")
 	}
 	if _, err := io.Copy(m.body, r); err != nil {
 		return nil, &PermanentError{err}
