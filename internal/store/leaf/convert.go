@@ -84,7 +84,7 @@ func (s *Store) Convert(ctx context.Context, cryptoBe backend.CryptoBackend, sto
 			if err != nil {
 				return err
 			}
-			if err := tmpStore.Set(ctx, e, sec.MIME()); err != nil {
+			if err := tmpStore.Set(ctx, e, sec); err != nil {
 				return err
 			}
 			continue
@@ -106,7 +106,7 @@ func (s *Store) Convert(ctx context.Context, cryptoBe backend.CryptoBackend, sto
 			)
 			ctx := ctxutil.WithCommitMessage(ctx, msg)
 			ctx = ctxutil.WithCommitTimestamp(ctx, r.Date)
-			if err := tmpStore.Set(ctx, e, sec.MIME()); err != nil {
+			if err := tmpStore.Set(ctx, e, sec); err != nil {
 				return err
 			}
 		}

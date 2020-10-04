@@ -7,7 +7,7 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/gopasspw/gopass/pkg/gopass/secret"
+	"github.com/gopasspw/gopass/internal/secrets"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -24,8 +24,8 @@ func TestSet(t *testing.T) {
 	s, err := createSubStore(tempdir)
 	require.NoError(t, err)
 
-	sec := secret.New()
-	sec.Set("password", "foo")
+	sec := &secrets.Plain{}
+	sec.SetPassword("foo")
 	sec.WriteString("bar")
 	require.NoError(t, s.Set(ctx, "zab/zab", sec))
 	if runtime.GOOS != "windows" {

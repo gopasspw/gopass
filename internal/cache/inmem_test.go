@@ -27,41 +27,41 @@ func TestTTL(t *testing.T) {
 
 	val, found := c.Get("foo")
 	assert.Equal(t, "", val)
-	assert.Equal(t, false, found)
+	assert.False(t, found)
 
 	c.Set("foo", "bar")
 	val, found = c.Get("foo")
 	assert.Equal(t, "bar", val)
-	assert.Equal(t, true, found)
+	assert.True(t, found)
 
 	time.Sleep(5 * time.Millisecond * testFactor)
 	val, found = c.Get("foo")
 	assert.Equal(t, "bar", val)
-	assert.Equal(t, true, found)
+	assert.True(t, found)
 
 	time.Sleep(12 * time.Millisecond * testFactor)
 	val, found = c.Get("foo")
 	assert.Equal(t, "", val)
-	assert.Equal(t, false, found)
+	assert.False(t, found)
 
 	c.Set("bar", "baz")
 	val, found = c.Get("bar")
 	assert.Equal(t, "baz", val)
-	assert.Equal(t, true, found)
+	assert.True(t, found)
 
 	c.Remove("bar")
 	val, found = c.Get("bar")
 	assert.Equal(t, "", val)
-	assert.Equal(t, false, found)
+	assert.False(t, found)
 
 	c.Set("foo", "bar")
 	c.Set("bar", "baz")
 	val, found = c.Get("bar")
 	assert.Equal(t, "baz", val)
-	assert.Equal(t, true, found)
+	assert.True(t, found)
 
 	c.Purge()
 	val, found = c.Get("bar")
 	assert.Equal(t, "", val)
-	assert.Equal(t, false, found)
+	assert.False(t, found)
 }

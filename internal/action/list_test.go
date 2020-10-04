@@ -9,9 +9,9 @@ import (
 	"github.com/fatih/color"
 	"github.com/gopasspw/gopass/internal/gptest"
 	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/internal/secrets"
 	"github.com/gopasspw/gopass/internal/tree"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"github.com/gopasspw/gopass/pkg/gopass/secret"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -46,8 +46,8 @@ func TestList(t *testing.T) {
 	buf.Reset()
 
 	// add foo/bar and list folder foo
-	sec := secret.New()
-	sec.Set("password", "123")
+	sec := &secrets.Plain{}
+	sec.SetPassword("123")
 	sec.Set("bar", "zab")
 	assert.NoError(t, act.Store.Set(ctx, "foo/bar", sec))
 	buf.Reset()
@@ -70,8 +70,8 @@ func TestList(t *testing.T) {
 	// list --folders
 
 	// add more folders and subfolders
-	sec = secret.New()
-	sec.Set("password", "123")
+	sec = &secrets.Plain{}
+	sec.SetPassword("123")
 	assert.NoError(t, act.Store.Set(ctx, "foo/zen/bar", sec))
 	assert.NoError(t, act.Store.Set(ctx, "foo2/bar2", sec))
 	buf.Reset()
@@ -90,7 +90,6 @@ foo2/
 }
 
 func TestListLimit(t *testing.T) {
-
 	u := gptest.NewUnitTester(t)
 	defer u.Remove()
 
@@ -115,8 +114,8 @@ func TestListLimit(t *testing.T) {
 └── foo
 
 `
-	sec := secret.New()
-	sec.Set("password", "123")
+	sec := &secrets.Plain{}
+	sec.SetPassword("123")
 	assert.NoError(t, act.Store.Set(ctx, "foo/bar", sec))
 	assert.NoError(t, act.Store.Set(ctx, "foo/zen/baz/bar", sec))
 	assert.NoError(t, act.Store.Set(ctx, "foo2/bar2", sec))

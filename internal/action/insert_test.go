@@ -49,9 +49,7 @@ func TestInsert(t *testing.T) {
 		buf.Reset()
 
 		assert.NoError(t, act.show(ctx, gptest.CliCtx(ctx, t), "baz", false))
-		// Notice that the new MIME content is adding a newline after the key-value
-		// this was not the case previously.
-		assert.Equal(t, "Password: foobar\n", buf.String())
+		assert.Equal(t, "foobar", buf.String())
 		buf.Reset()
 	})
 
@@ -60,7 +58,7 @@ func TestInsert(t *testing.T) {
 		buf.Reset()
 
 		assert.NoError(t, act.show(ctx, gptest.CliCtx(ctx, t), "baz", false))
-		assert.Equal(t, "Password: foobar\n", buf.String())
+		assert.Equal(t, "foobar\n", buf.String())
 		buf.Reset()
 	})
 
@@ -69,7 +67,7 @@ func TestInsert(t *testing.T) {
 		buf.Reset()
 
 		assert.NoError(t, act.show(ctx, gptest.CliCtx(ctx, t), "baz", false))
-		assert.Equal(t, "Content-Type: text/yaml\nPassword: foobar\n\nother: meh\nuser: name\n", buf.String())
+		assert.Equal(t, "foobar\n---\nother: meh\nuser: name\n", buf.String())
 		buf.Reset()
 	})
 
@@ -78,7 +76,7 @@ func TestInsert(t *testing.T) {
 		buf.Reset()
 
 		assert.NoError(t, act.show(ctx, gptest.CliCtx(ctx, t), "baz", false))
-		assert.Equal(t, "Other: meh\nPassword: foobar\nUser: name\n\ninvalid key-value\nbody text\n", buf.String())
+		assert.Equal(t, "foobar\nOther: meh\nUser: name\ninvalid key-value\nbody text", buf.String())
 		buf.Reset()
 	})
 
@@ -87,7 +85,7 @@ func TestInsert(t *testing.T) {
 		ctx = ctxutil.WithShowSafeContent(ctx, true)
 		assert.NoError(t, act.insertYAML(ctx, "zab", "key", []byte("foobar"), nil))
 		assert.NoError(t, act.show(ctx, gptest.CliCtx(ctx, t), "zab", false))
-		assert.Equal(t, "Key: foobar\n", buf.String())
+		assert.Contains(t, buf.String(), "key: foobar\npassword: ***")
 		buf.Reset()
 	})
 
@@ -99,7 +97,7 @@ func TestInsert(t *testing.T) {
 	t.Run("insert key:value", func(t *testing.T) {
 		assert.NoError(t, act.Insert(gptest.CliCtxWithFlags(ctx, t, nil, "keyvaltest", "baz:val")))
 		assert.NoError(t, act.show(ctx, gptest.CliCtx(ctx, t), "keyvaltest", false))
-		assert.Equal(t, "Baz: val\n", buf.String())
+		assert.Contains(t, buf.String(), "baz: val\npassword: ****")
 		buf.Reset()
 	})
 }

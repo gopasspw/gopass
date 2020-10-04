@@ -100,7 +100,7 @@ func TestUseability(t *testing.T) {
 			Validity:       "z",
 		},
 	} {
-		assert.Equal(t, false, k.IsUseable(false))
+		assert.False(t, k.IsUseable(false))
 	}
 	// valid
 	for _, k := range []Key{
@@ -117,6 +117,6 @@ func TestUseability(t *testing.T) {
 			Validity:       "u",
 		},
 	} {
-		assert.Equal(t, true, k.IsUseable(false))
+		assert.True(t, k.IsUseable(false))
 	}
 }

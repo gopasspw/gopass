@@ -59,17 +59,9 @@ func (s *Store) fsckCheckEntry(ctx context.Context, name string) error {
 	// make sure we can actually decode this secret
 	// if this fails there is no way we could fix this
 	if IsFsckDecrypt(ctx) {
-		oSec, err := s.Get(ctx, name)
+		_, err := s.Get(ctx, name)
 		if err != nil {
 			return errors.Wrapf(err, "failed to decode secret %s: %s", name, err)
-		}
-		// check if we need to convert the secret it self
-		nSec := oSec.MIME()
-		if string(nSec.Bytes()) != string(oSec.Bytes()) {
-			debug.Log("converting %s from legacy format to MIME", name)
-			if err := s.Set(ctx, name, nSec); err != nil {
-				return errors.Wrapf(err, "failed to convert secret %s: %s", name, err)
-			}
 		}
 	}
 

@@ -44,13 +44,13 @@ func TestGit(t *testing.T) {
 		sv := git.Version(ctx)
 		assert.NotEqual(t, "", sv.String())
 
-		assert.Equal(t, true, git.IsInitialized())
+		assert.True(t, git.IsInitialized())
 		tf := filepath.Join(gitdir, "some-file")
 		require.NoError(t, ioutil.WriteFile(tf, []byte("foobar"), 0644))
 		assert.NoError(t, git.Add(ctx, "some-file"))
-		assert.Equal(t, true, git.HasStagedChanges(ctx))
+		assert.True(t, git.HasStagedChanges(ctx))
 		assert.NoError(t, git.Commit(ctx, "added some-file"))
-		assert.Equal(t, false, git.HasStagedChanges(ctx))
+		assert.False(t, git.HasStagedChanges(ctx))
 
 		assert.Error(t, git.Push(ctx, "origin", "master"))
 		assert.Error(t, git.Pull(ctx, "origin", "master"))
@@ -79,7 +79,7 @@ func TestGit(t *testing.T) {
 
 		revs, err := git.Revisions(ctx, "some-other-file")
 		require.NoError(t, err)
-		assert.Equal(t, true, len(revs) == 1)
+		assert.True(t, len(revs) == 1)
 
 		content, err := git.GetRevision(ctx, "some-other-file", revs[0].Hash)
 		require.NoError(t, err)

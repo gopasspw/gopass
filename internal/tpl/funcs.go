@@ -91,7 +91,7 @@ func getPassword(ctx context.Context, kv kvstore) func(...string) (string, error
 		if err != nil {
 			return err.Error(), nil
 		}
-		return sec.Get("password"), nil
+		return sec.Password(), nil
 	}
 }
 
@@ -107,7 +107,11 @@ func getValue(ctx context.Context, kv kvstore) func(...string) (string, error) {
 		if err != nil {
 			return err.Error(), nil
 		}
-		return sec.Get(s[1]), nil
+		sv, found := sec.Get(s[1])
+		if !found {
+			return "", fmt.Errorf("key %q not found", s[1])
+		}
+		return sv, nil
 	}
 }
 

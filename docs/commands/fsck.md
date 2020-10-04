@@ -19,4 +19,4 @@ $ gopass fsck
 
 Flag | Aliases | Description
 ---- | ------- | -----------
-`--decrypt` | | Decrypt and reencrypt all secrets. WARNING: This will update all secrets to the native `gopass` MIME format. This might be incompatible with other password store clients.
+`--decrypt` | | Decrypt and reencrypt all secrets.

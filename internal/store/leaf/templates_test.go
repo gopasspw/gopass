@@ -43,14 +43,14 @@ func TestTemplates(t *testing.T) {
 	tt := s.TemplateTree(ctx)
 	assert.Equal(t, "gopass\n└── foo\n", tt.Format(0))
 
-	assert.Equal(t, true, s.HasTemplate(ctx, "foo"))
+	assert.True(t, s.HasTemplate(ctx, "foo"))
 
 	b, err := s.GetTemplate(ctx, "foo")
 	assert.NoError(t, err)
 	assert.Equal(t, "foobar", string(b))
 
 	_, b, found := s.LookupTemplate(ctx, "foo/bar")
-	assert.Equal(t, true, found)
+	assert.True(t, found)
 	assert.Equal(t, "foobar", string(b))
 
 	assert.NoError(t, s.RemoveTemplate(ctx, "foo"))

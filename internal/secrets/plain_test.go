@@ -31,8 +31,8 @@ func TestParsePlain(t *testing.T) {
 			t.Parallel()
 			sec := ParsePlain([]byte(tc.in))
 			t.Logf("Secret: %+v", sec)
-			assert.Equal(t, tc.pw, sec.Get("password"))
-			assert.Equal(t, tc.body, sec.GetBody())
+			assert.Equal(t, tc.pw, sec.Password())
+			assert.Equal(t, tc.body, sec.Body())
 		})
 	}
 }
@@ -44,25 +44,10 @@ func TestPlainModify(t *testing.T) {
 	assert.Equal(t, in, string(sec.Bytes()))
 	assert.Equal(t, 0, len(sec.Keys()))
 	sec.Set("foozen", "zab")
-	assert.Equal(t, "", sec.Get("foozen"))
-	assert.Equal(t, "foobar", sec.Get("password"))
-	sec.Set("password", "zab")
-	assert.Equal(t, "zab", sec.Get("password"))
-}
-
-func TestPlainMIME(t *testing.T) {
-	in := `passw0rd
-and some
-more content
-in the body`
-	out := `GOPASS-SECRET-1.0
-Password: passw0rd
-
-and some
-more content
-in the body`
-	sec := ParsePlain([]byte(in))
-	msec := sec.MIME()
-	assert.Equal(t, out, string(msec.Bytes()))
-	assert.Equal(t, "and some\nmore content\nin the body", sec.GetBody())
+	v, ok := sec.Get("foozen")
+	assert.False(t, ok)
+	assert.Equal(t, "", v)
+	assert.Equal(t, "foobar", sec.Password())
+	sec.SetPassword("zab")
+	assert.Equal(t, "zab", sec.Password())
 }

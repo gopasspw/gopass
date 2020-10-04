@@ -7,12 +7,13 @@ import (
 	"io"
 
 	"github.com/gopasspw/gopass/internal/audit"
+	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/internal/editor"
 	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/internal/secrets"
 	"github.com/gopasspw/gopass/internal/termio"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/gopass"
-	"github.com/gopasspw/gopass/pkg/gopass/secret"
 	"github.com/gopasspw/gopass/pkg/gopass/secret/secparse"
 
 	"github.com/urfave/cli/v2"
@@ -89,20 +90,28 @@ func (s *Action) insert(ctx context.Context, c *cli.Context, name, key string, e
 }
 
 func (s *Action) insertStdin(ctx context.Context, name string, content []byte, appendTo bool) error {
-	var sec *secret.MIME
+	var sec gopass.Secret
 	if appendTo && s.Store.Exists(ctx, name) {
 		eSec, err := s.Store.Get(ctx, name)
 		if err != nil {
 			return ExitError(ExitDecrypt, err, "failed to decrypt existing secret: %s", err)
 		}
-		sec = eSec.MIME()
-		sec.Write(content)
+		secW, ok := eSec.(io.Writer)
+		if !ok {
+			return fmt.Errorf("%T is not an io.Writer", eSec)
+		}
+		if _, err := secW.Write(content); err != nil {
+			return ExitError(ExitEncrypt, err, "failed to write %q: %q", content, err)
+		}
+		debug.Log("wrote to secretWriter")
+		sec = eSec
 	} else {
 		plain, err := secparse.Parse(content)
 		if err != nil {
 			return ExitError(ExitAborted, err, "failed to parse secret from stdin: %s", err)
 		}
-		sec = plain.MIME()
+		sec = plain
+		debug.Log("parsed new plain")
 	}
 	if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, "Read secret from STDIN"), name, sec); err != nil {
 		return ExitError(ExitEncrypt, err, "failed to set '%s': %s", name, err)
@@ -111,18 +120,19 @@ func (s *Action) insertStdin(ctx context.Context, name string, content []byte, a
 }
 
 func (s *Action) insertSingle(ctx context.Context, name, pw string, kvps map[string]string) error {
-	sec := secret.New()
+	var sec gopass.Secret
+	sec = secrets.New()
 	if s.Store.Exists(ctx, name) {
 		gs, err := s.Store.Get(ctx, name)
 		if err != nil {
 			return ExitError(ExitDecrypt, err, "failed to decrypt existing secret: %s", err)
 		}
-		sec = gs.MIME()
+		sec = gs
 	} else {
 		if content, found := s.renderTemplate(ctx, name, []byte(pw)); found {
 			nSec, err := secparse.Parse(content)
 			if err == nil {
-				sec = nSec.MIME()
+				sec = nSec
 			}
 		}
 	}
@@ -131,7 +141,7 @@ func (s *Action) insertSingle(ctx context.Context, name, pw string, kvps map[str
 
 	// we only update the pw if the kvps were not set or if it's non-empty, because otherwise we were updating the kvps
 	if pw != "" || len(kvps) == 0 {
-		sec.Set("password", pw)
+		sec.SetPassword(pw)
 		audit.Single(ctx, pw)
 	}
 
@@ -158,10 +168,12 @@ func (s *Action) insertYAML(ctx context.Context, name, key string, content []byt
 			return ExitError(ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
 		}
 	} else {
-		sec = secret.New()
+		sec = secrets.New()
 	}
 	setMetadata(sec, kvps)
-	sec.Set(key, string(content))
+	if err := sec.Set(key, string(content)); err != nil {
+		return ExitError(ExitUsage, err, "failed set key %q of %q: %q", key, name, err)
+	}
 	if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, "Inserted YAML value from STDIN"), name, sec); err != nil {
 		return ExitError(ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
 	}

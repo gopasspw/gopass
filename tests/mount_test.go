@@ -69,7 +69,7 @@ func TestMountShadowing(t *testing.T) {
 
 	out, err := ts.run("show -f mnt/m1/secret")
 	assert.NoError(t, err)
-	assert.Equal(t, "Password: moar", out)
+	assert.Equal(t, "moar", out)
 
 	out, err = ts.run("init --store mnt/m1 --path " + ts.storeDir("m1") + " --storage=fs " + keyID)
 	t.Logf("Output: %s", out)
@@ -94,7 +94,7 @@ func TestMountShadowing(t *testing.T) {
 	// check that the mount is containing our new secret shadowing the old one
 	out, err = ts.run("show -f mnt/m1/secret")
 	assert.NoError(t, err)
-	assert.Equal(t, "Password: food", out)
+	assert.Equal(t, "food", out)
 
 	// add more secrets
 	ts.initSecrets("mnt/m1/")

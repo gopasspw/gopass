@@ -5,6 +5,49 @@ import (
 	"strings"
 )
 
+// Pre1102 is a pre-1.10.2 config
+type Pre1102 struct {
+	AutoClip      bool              `yaml:"autoclip"`      // decide whether passwords are automatically copied or not
+	AutoImport    bool              `yaml:"autoimport"`    // import missing public keys w/o asking
+	ClipTimeout   int               `yaml:"cliptimeout"`   // clear clipboard after seconds
+	ExportKeys    bool              `yaml:"exportkeys"`    // automatically export public keys of all recipients
+	MIME          bool              `yaml:"mime"`          // enable gopass native MIME secrets
+	NoColor       bool              `yaml:"nocolor"`       // do not use color when outputing text
+	NoPager       bool              `yaml:"nopager"`       // do not invoke a pager to display long lists
+	Notifications bool              `yaml:"notifications"` // enable desktop notifications
+	Path          string            `yaml:"path"`
+	SafeContent   bool              `yaml:"safecontent"` // avoid showing passwords in terminal
+	Mounts        map[string]string `yaml:"mounts"`
+
+	// Catches all undefined files and must be empty after parsing
+	XXX map[string]interface{} `yaml:",inline"`
+}
+
+// CheckOverflow implements configer
+func (c *Pre1102) CheckOverflow() error {
+	return checkOverflow(c.XXX)
+}
+
+// Config converts the Pre1102 config to the current config struct
+func (c *Pre1102) Config() *Config {
+	cfg := &Config{
+		AutoClip:      c.AutoClip,
+		AutoImport:    c.AutoImport,
+		ClipTimeout:   c.ClipTimeout,
+		ExportKeys:    c.ExportKeys,
+		NoColor:       c.NoColor,
+		NoPager:       c.NoPager,
+		Notifications: c.Notifications,
+		Path:          c.Path,
+		SafeContent:   c.SafeContent,
+		Mounts:        make(map[string]string, len(c.Mounts)),
+	}
+	for k, v := range c.Mounts {
+		cfg.Mounts[k] = v
+	}
+	return cfg
+}
+
 // Pre193 is is pre-1.9.3 config
 type Pre193 struct {
 	Path   string `yaml:"-"`
@@ -46,7 +89,6 @@ func (c *Pre193) Config() *Config {
 		AutoClip:      c.Root.AutoClip,
 		AutoImport:    c.Root.AutoImport,
 		ClipTimeout:   c.Root.ClipTimeout,
-		MIME:          true,
 		NoColor:       c.Root.NoColor,
 		NoPager:       c.Root.NoPager,
 		Notifications: c.Root.Notifications,
@@ -109,7 +151,6 @@ func (c *Pre182) Config() *Config {
 		AutoClip:      c.Root.AutoClip,
 		AutoImport:    c.Root.AutoImport,
 		ClipTimeout:   c.Root.ClipTimeout,
-		MIME:          true,
 		NoColor:       c.Root.NoColor,
 		NoPager:       c.Root.NoPager,
 		Notifications: c.Root.Notifications,
@@ -158,7 +199,6 @@ func (c *Pre140) Config() *Config {
 		ClipTimeout: c.ClipTimeout,
 		Path:        c.Path,
 		SafeContent: c.SafeContent,
-		MIME:        true,
 		Mounts:      make(map[string]string, len(c.Mounts)),
 	}
 	for k, v := range c.Mounts {
@@ -202,7 +242,6 @@ func (c *Pre130) Config() *Config {
 		ClipTimeout: c.ClipTimeout,
 		Path:        c.Path,
 		SafeContent: c.SafeContent,
-		MIME:        true,
 		Mounts:      make(map[string]string, len(c.Mounts)),
 	}
 	for k, v := range c.Mounts {

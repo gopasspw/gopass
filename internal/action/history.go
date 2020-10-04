@@ -37,7 +37,7 @@ func (s *Action) History(c *cli.Context) error {
 				debug.Log("Failed to get revision '%s' of '%s': %s", rev.Hash, name, err)
 			}
 			if err == nil {
-				pw = " - " + sec.Get("password")
+				pw = " - " + sec.Password()
 			}
 		}
 		out.Print(ctx, "%s - %s <%s> - %s - %s%s\n", rev.Hash, rev.AuthorName, rev.AuthorEmail, rev.Date.Format(time.RFC3339), rev.Subject, pw)

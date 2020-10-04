@@ -25,13 +25,13 @@ func TestPrefix(t *testing.T) {
 func TestHidden(t *testing.T) {
 	ctx := context.Background()
 
-	assert.Equal(t, false, IsHidden(ctx))
-	assert.Equal(t, true, IsHidden(WithHidden(ctx, true)))
+	assert.False(t, IsHidden(ctx))
+	assert.True(t, IsHidden(WithHidden(ctx, true)))
 }
 
 func TestNewline(t *testing.T) {
 	ctx := context.Background()
 
-	assert.Equal(t, true, HasNewline(ctx))
-	assert.Equal(t, false, HasNewline(WithNewline(ctx, false)))
+	assert.True(t, HasNewline(ctx))
+	assert.False(t, HasNewline(WithNewline(ctx, false)))
 }

@@ -33,7 +33,7 @@ func TestList(t *testing.T) {
 
 	sd, err := rs.HasSubDirs(ctx, "foo")
 	assert.NoError(t, err)
-	assert.Equal(t, false, sd)
+	assert.False(t, sd)
 
 	str, err := rs.Format(ctx, -1)
 	assert.NoError(t, err)

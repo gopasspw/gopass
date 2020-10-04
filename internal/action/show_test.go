@@ -10,8 +10,8 @@ import (
 	"github.com/atotto/clipboard"
 	"github.com/gopasspw/gopass/internal/gptest"
 	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/internal/secrets"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"github.com/gopasspw/gopass/pkg/gopass/secret"
 
 	"github.com/fatih/color"
 	"github.com/stretchr/testify/assert"
@@ -54,8 +54,8 @@ func TestShowMulti(t *testing.T) {
 
 	t.Run("show dir", func(t *testing.T) {
 		// first add another entry in a subdir
-		sec := secret.New()
-		sec.Set("password", "123")
+		sec := secrets.NewKV()
+		sec.SetPassword("123")
 		sec.Set("bar", "zab")
 		assert.NoError(t, act.Store.Set(ctx, "bar/baz", sec))
 		buf.Reset()
@@ -71,8 +71,8 @@ func TestShowMulti(t *testing.T) {
 		c := gptest.CliCtx(ctx, t, "bar/baz")
 
 		assert.NoError(t, act.Show(c))
-		assert.Contains(t, buf.String(), "Bar: zab")
-		assert.Contains(t, buf.String(), "Password: ***")
+		assert.Contains(t, buf.String(), "bar: zab")
+		assert.Contains(t, buf.String(), "password: ***")
 		buf.Reset()
 	})
 
@@ -100,12 +100,12 @@ func TestShowMulti(t *testing.T) {
 	})
 
 	t.Run("show entry with unsafe keys", func(t *testing.T) {
-		sec := secret.New()
-		sec.Set("password", "123")
+		sec := secrets.NewKV()
+		sec.SetPassword("123")
 		sec.Set("bar", "zab")
 		sec.Set("foo", "baz")
 		sec.Set("hello", "world")
-		sec.Set("Unsafe-Keys", "foo, bar")
+		sec.Set("unsafe-keys", "foo, bar")
 		assert.NoError(t, act.Store.Set(ctx, "unsafe/keys", sec))
 		buf.Reset()
 
@@ -123,8 +123,8 @@ func TestShowMulti(t *testing.T) {
 		c := gptest.CliCtx(ctx, t, "bar/baz")
 
 		assert.NoError(t, act.Show(c))
-		assert.Contains(t, buf.String(), "Bar: zab")
-		assert.Contains(t, buf.String(), "Password: ***")
+		assert.Contains(t, buf.String(), "bar: zab")
+		assert.Contains(t, buf.String(), "password: ***")
 		buf.Reset()
 	})
 }

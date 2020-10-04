@@ -125,6 +125,6 @@ func TestBinaryShasum(t *testing.T) {
 	t.Run("shasum on binary secret", func(t *testing.T) {
 		out, err := ts.run("sha256 foo/bar")
 		assert.NoError(t, err)
-		assert.Equal(t, out, "c3ab8ff13720e8ad9047dd39466b3c8974e592c2fa383d4a3960714caef0c4f2")
+		assert.Equal(t, "c3ab8ff13720e8ad9047dd39466b3c8974e592c2fa383d4a3960714caef0c4f2", out)
 	})
 }

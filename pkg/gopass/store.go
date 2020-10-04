@@ -3,8 +3,6 @@ package gopass
 import (
 	"context"
 	"fmt"
-
-	"github.com/gopasspw/gopass/pkg/gopass/secret"
 )
 
 // Byter is a minimal secrets write interface
@@ -19,18 +17,17 @@ type Secret interface {
 	Keys() []string
 	// Get returns a single header value, use Get("Password") to get the
 	// password value.
-	Get(key string) string
+	Get(key string) (string, bool)
 	// Set sets a single header value, use Set("Password") to set the password
 	// value.
-	Set(key, value string)
+	Set(key string, value interface{}) error
 	// Del removes a single header value
-	Del(key string)
+	Del(key string) bool
 
 	// GetBody returns everything except the header. Use Bytes to get everything
-	GetBody() string
-
-	// MIME converts the secret to a MIME secret
-	MIME() *secret.MIME
+	Body() string
+	Password() string
+	SetPassword(string)
 }
 
 // Store is a secret store.

@@ -19,6 +19,7 @@ require (
 	github.com/google/go-cmp v0.5.2
 	github.com/google/go-github v17.0.0+incompatible
 	github.com/google/go-querystring v1.0.0 // indirect
+	github.com/hashicorp/consul v1.9.1 // indirect
 	github.com/hashicorp/go-multierror v1.1.0
 	github.com/hashicorp/golang-lru v0.5.4
 	github.com/jsimonetti/pwscheme v0.0.0-20160922125227-76804708ecad
@@ -45,9 +46,9 @@ require (
 	github.com/stretchr/testify v1.6.1
 	github.com/urfave/cli/v2 v2.2.0
 	github.com/xrash/smetrics v0.0.0-20200730060457-89a2a8a1fb0b // indirect
-	golang.org/x/crypto v0.0.0-20200820211705-5c72a883971a
+	golang.org/x/crypto v0.0.0-20200930160638-afb6bcd081ae
 	golang.org/x/net v0.0.0-20201021035429-f5854403a974
-	golang.org/x/sys v0.0.0-20200930185726-fdedc70b468f
+	golang.org/x/sys v0.0.0-20201024232916-9f70ab9862d5
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
 	gopkg.in/ini.v1 v1.60.1 // indirect

@@ -10,8 +10,8 @@ import (
 	plain "github.com/gopasspw/gopass/internal/backend/crypto/plain"
 	"github.com/gopasspw/gopass/internal/backend/storage/fs"
 	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/internal/secrets"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"github.com/gopasspw/gopass/pkg/gopass/secret"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -40,8 +40,8 @@ func TestList(t *testing.T) {
 		{
 			name: "Single entry",
 			prep: func(s *Store) error {
-				sec := secret.New()
-				sec.Set("password", "bar")
+				sec := secrets.New()
+				sec.SetPassword("bar")
 				return s.Set(ctx, "foo", sec)
 			},
 			out: []string{"foo"},
@@ -50,8 +50,8 @@ func TestList(t *testing.T) {
 			name: "Multi-entry-single-level",
 			prep: func(s *Store) error {
 				for _, e := range []string{"foo", "bar", "baz"} {
-					sec := secret.New()
-					sec.Set("password", "bar")
+					sec := secrets.New()
+					sec.SetPassword("bar")
 					if err := s.Set(ctx, e, sec); err != nil {
 						return err
 					}
@@ -64,8 +64,8 @@ func TestList(t *testing.T) {
 			name: "Multi-entry-multi-level",
 			prep: func(s *Store) error {
 				for _, e := range []string{"foo/bar", "foo/baz", "foo/zab"} {
-					sec := secret.New()
-					sec.Set("password", "bar")
+					sec := secrets.New()
+					sec.SetPassword("bar")
 					if err := s.Set(ctx, e, sec); err != nil {
 						return err
 					}

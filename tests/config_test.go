@@ -19,7 +19,6 @@ func TestBaseConfig(t *testing.T) {
 autoimport: true
 cliptimeout: 45
 exportkeys: false
-mime: true
 nocolor: false
 nopager: false
 notifications: false
@@ -31,7 +30,6 @@ notifications: false
 
 	invertables := []string{
 		"autoimport",
-		"mime",
 		"safecontent",
 	}
 
@@ -73,7 +71,6 @@ func TestMountConfig(t *testing.T) {
 autoimport: true
 cliptimeout: 45
 exportkeys: false
-mime: true
 nocolor: false
 nopager: false
 notifications: false
