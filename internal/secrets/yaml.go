@@ -31,7 +31,9 @@ func (y *YAML) Keys() []string {
 	for key := range y.data {
 		keys = append(keys, key)
 	}
-	keys = append(keys, "password")
+	if _, found := y.data["password"]; !found {
+		keys = append(keys, "password")
+	}
 	sort.Strings(keys)
 	return keys
 }
