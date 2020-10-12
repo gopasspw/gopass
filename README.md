@@ -91,8 +91,7 @@ Please refer to the Git commit log for a complete list of contributors.
 
 gopass is developed in the open. Here are some of the channels we use to communicate and contribute:
 
-* Usage mailing list: [gopass-users](https://groups.google.com/forum/#!forum/gopass-users), for discussions around gopass usage and community support
-* Issue tracker: Use the [GitHub issue tracker](https://github.com/gopasspw/gopass/issues) to file bugs and feature requests. If you need support, please send your questions to [gopass-users](https://groups.google.com/forum/#!forum/gopass-users) or ask on IRC rather than filing a GitHub issue.
+* Issue tracker: Use the [GitHub issue tracker](https://github.com/gopasspw/gopass/issues) to file bugs and feature requests.
 
 ## Integrations
 
@@ -111,7 +110,7 @@ gopass is developed in the open. Here are some of the channels we use to communi
 
 ## Contributing
 
-We welcome any contributions. Please see the [CONTRIBUTING.md](https://github.com/gopasspw/gopass/blob/master/CONTRIBUTING.md) file for instructions on how to submit changes. If your are planning on making more elaborate or controversial changes, please discuss them on the [gopass-developers mailing list](https://groups.google.com/forum/#!forum/gopass-developers) or on IRC before sending a pull request.
+We welcome any contributions. Please see the [CONTRIBUTING.md](https://github.com/gopasspw/gopass/blob/master/CONTRIBUTING.md) file for instructions on how to submit changes.
 
 ## Further Documentation
 
