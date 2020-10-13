@@ -56,7 +56,7 @@ func (s *Action) Delete(c *cli.Context) error {
 	return nil
 }
 
-// deleteKeyFromYAML deletes a single key from YAML
+// deleteKeyFromYAML deletes a single key from YAML (it will delete all values linked to that key)
 func (s *Action) deleteKeyFromYAML(ctx context.Context, name, key string) error {
 	sec, err := s.Store.Get(ctx, name)
 	if err != nil {

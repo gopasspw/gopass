@@ -26,7 +26,11 @@ func TestMIME(t *testing.T) {
 	msec.Set("password", "foobar")
 	assert.Equal(t, goldenPlain, string(msec.Bytes()))
 	msec.Set("foo", "bar")
-	assert.Equal(t, []string{"Content-Type", "Foo", "Password"}, msec.Keys())
+	// Let us add a second foo entry:
+	msec.Add("foo", "zab")
+	assert.Equal(t, []string{"Content-Type", "Password", "Foo", "Foo"}, msec.Keys())
+	assert.Equal(t, []string{"bar", "zab"}, msec.Values("foo"))
+
 	msec.Del("foo")
 	assert.Equal(t, []string{"Content-Type", "Password"}, msec.Keys())
 	add := "\nbar"

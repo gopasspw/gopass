@@ -69,16 +69,16 @@ func TestInsert(t *testing.T) {
 		buf.Reset()
 
 		assert.NoError(t, act.show(ctx, gptest.CliCtx(ctx, t), "baz", false))
-		assert.Equal(t, "Content-Type: text/yaml\nPassword: foobar\n\nother: meh\nuser: name\n", buf.String())
+		assert.Equal(t, "Password: foobar\nContent-Type: text/yaml\n\nother: meh\nuser: name\n", buf.String())
 		buf.Reset()
 	})
 
 	t.Run("insert baz via stdin w/ k-v", func(t *testing.T) {
-		assert.NoError(t, act.insertStdin(ctx, "baz", []byte("foobar\ninvalid key-value\nOther: meh\nUser: name\nbody text"), false))
+		assert.NoError(t, act.insertStdin(ctx, "baz", []byte("foobar\ninvalid key-value\nOther: meh\nuser: name\nbody text"), false))
 		buf.Reset()
 
 		assert.NoError(t, act.show(ctx, gptest.CliCtx(ctx, t), "baz", false))
-		assert.Equal(t, "Other: meh\nPassword: foobar\nUser: name\n\ninvalid key-value\nbody text\n", buf.String())
+		assert.Equal(t, "Password: foobar\nOther: meh\nUser: name\n\ninvalid key-value\nbody text\n", buf.String())
 		buf.Reset()
 	})
 

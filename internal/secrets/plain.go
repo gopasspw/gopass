@@ -52,11 +52,17 @@ func (p *Plain) Keys() []string {
 // Get returns the first line (for password) or the empty string
 func (p *Plain) Get(key string) string {
 	if strings.ToLower(key) != "password" {
+		debug.Log("Plain secrets do not support key-values calls. Key ", key, " could not be used. Returning empty secret.")
 		return ""
 	}
 	br := bufio.NewReader(bytes.NewReader(p.Body))
 	pw, _ := br.ReadString('\n')
 	return strings.TrimSuffix(pw, "\n")
+}
+
+// Values returns the first line (for password) or the empty string
+func (p *Plain) Values(key string) []string {
+	return []string{p.Get(key)}
 }
 
 // Set updates the first line (for password) or does nothing

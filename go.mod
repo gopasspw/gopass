@@ -3,7 +3,7 @@ module github.com/gopasspw/gopass
 go 1.12
 
 require (
-	filippo.io/age v1.0.0-beta4
+	filippo.io/age v1.0.0-beta5
 	github.com/atotto/clipboard v0.1.2
 	github.com/blang/semver v0.0.0-20190414182527-1a9109f8c4a1
 	github.com/caspr-io/yamlpath v0.0.0-20200722075116-502e8d113a9b
@@ -19,6 +19,7 @@ require (
 	github.com/google/go-cmp v0.5.2
 	github.com/google/go-github v17.0.0+incompatible
 	github.com/google/go-querystring v1.0.0 // indirect
+	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.0
 	github.com/hashicorp/golang-lru v0.5.4
 	github.com/jsimonetti/pwscheme v0.0.0-20160922125227-76804708ecad
@@ -27,7 +28,7 @@ require (
 	github.com/klauspost/cpuid v1.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/martinhoefling/goxkcdpwgen v0.0.0-20190331205820-7dc3d102eca3
-	github.com/mattn/go-colorable v0.1.7
+	github.com/mattn/go-colorable v0.1.8
 	github.com/minio/minio-go/v6 v6.0.57
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/go-ps v1.0.0
@@ -44,13 +45,12 @@ require (
 	github.com/stretchr/testify v1.6.1
 	github.com/urfave/cli/v2 v2.2.0
 	github.com/xrash/smetrics v0.0.0-20200730060457-89a2a8a1fb0b // indirect
-	golang.org/x/crypto v0.0.0-20200820211705-5c72a883971a
-	golang.org/x/net v0.0.0-20200822124328-c89045814202
-	golang.org/x/sys v0.0.0-20200824131525-c12d262b63d8
-	golang.org/x/text v0.3.3 // indirect
+	golang.org/x/crypto v0.0.0-20201012173705-84dcc777aaee
+	golang.org/x/net v0.0.0-20201010224723-4f7140c49acb
+	golang.org/x/sys v0.0.0-20201015000850-e3ed0017c211
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
-	gopkg.in/ini.v1 v1.60.1 // indirect
+	gopkg.in/ini.v1 v1.62.0 // indirect
 	gopkg.in/yaml.v2 v2.3.0
 	gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776
 	gotest.tools v2.2.0+incompatible

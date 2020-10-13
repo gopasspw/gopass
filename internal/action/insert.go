@@ -1,10 +1,15 @@
 package action
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/gopasspw/gopass/internal/secrets"
 	"io"
+	"strings"
+
+	"github.com/gopasspw/gopass/internal/debug"
 
 	"github.com/gopasspw/gopass/internal/audit"
 	"github.com/gopasspw/gopass/internal/editor"
@@ -53,6 +58,7 @@ func (s *Action) insert(ctx context.Context, c *cli.Context, name, key string, e
 
 	// update to a single YAML entry
 	if key != "" {
+		debug.Log("inserting a single key: ", key)
 		return s.insertYAML(ctx, name, key, content, kvps)
 	}
 
@@ -70,6 +76,7 @@ func (s *Action) insert(ctx context.Context, c *cli.Context, name, key string, e
 
 	// if multi-line input is requested start an editor
 	if multiline && ctxutil.IsInteractive(ctx) {
+		debug.Log("inserting multi-line input")
 		return s.insertMultiline(ctx, c, name)
 	}
 
@@ -89,6 +96,7 @@ func (s *Action) insert(ctx context.Context, c *cli.Context, name, key string, e
 }
 
 func (s *Action) insertStdin(ctx context.Context, name string, content []byte, appendTo bool) error {
+	debug.Log("calling insertStdin on name ", name)
 	var sec *secret.MIME
 	if appendTo && s.Store.Exists(ctx, name) {
 		eSec, err := s.Store.Get(ctx, name)
@@ -98,9 +106,19 @@ func (s *Action) insertStdin(ctx context.Context, name string, content []byte, a
 		sec = eSec.MIME()
 		sec.Write(content)
 	} else {
+		debug.Log("creating a new secret ", name)
 		plain, err := secparse.Parse(content)
 		if err != nil {
 			return ExitError(ExitAborted, err, "failed to parse secret from stdin: %s", err)
+		}
+		switch plain.(type) {
+		// if we parsed it as a KV, we can easily convert it to Mime if Mime is enabled.
+		case *secrets.KV:
+			content = checkMime(content)
+			tmp, err := secparse.Parse(content)
+			if err == nil {
+				plain = tmp
+			}
 		}
 		sec = plain.MIME()
 	}
@@ -180,6 +198,7 @@ func (s *Action) insertMultiline(ctx context.Context, c *cli.Context, name strin
 	}
 	ed := editor.Path(c)
 	content, err := editor.Invoke(ctx, ed, buf)
+	content = checkMime(content)
 	if err != nil {
 		return ExitError(ExitUnknown, err, "failed to start editor: %s", err)
 	}
@@ -191,4 +210,29 @@ func (s *Action) insertMultiline(ctx context.Context, c *cli.Context, name strin
 		return ExitError(ExitEncrypt, err, "failed to store secret '%s': %s", name, err)
 	}
 	return nil
+}
+
+func checkMime(content []byte) []byte {
+	// we return the content if not in WriteMime mode
+	if !secret.WriteMIME {
+		return content
+	}
+	scanner := bufio.NewScanner(bytes.NewReader(content))
+	if !scanner.Scan() {
+		debug.Log("checkMime reached unexpected end of content on first Scan")
+		return content
+	}
+	magic := scanner.Text()
+	// if there is already the magic, no need to add it
+	if magic == secret.Ident {
+		return content
+	}
+	// if there is no magic, let's add it
+	prepend := []byte(secret.Ident + "\n")
+	if strings.HasSuffix(strings.ToLower(magic), "password:") {
+		return append(prepend, content...)
+	}
+
+	prepend = append(prepend, []byte("Password: ")...)
+	return append(prepend, content...)
 }

@@ -31,14 +31,16 @@ func (y *YAML) Keys() []string {
 	for key := range y.data {
 		keys = append(keys, key)
 	}
-	if _, found := y.data["password"]; !found {
-		keys = append(keys, "password")
-	}
 	sort.Strings(keys)
+	// we let Password be the first one if it's not already used
+	if _, found := y.data["password"]; !found {
+		keys = append([]string{"password"}, keys...)
+	}
+
 	return keys
 }
 
-// Get returns the value of a single key
+// Get returns the value of a key
 func (y *YAML) Get(key string) string {
 	if y.data == nil {
 		y.data = make(map[string]interface{})
@@ -53,6 +55,12 @@ func (y *YAML) Get(key string) string {
 		return fmt.Sprintf("%v", v)
 	}
 	return ""
+}
+
+// Values returns all the entries of a given key
+// currently not implemented in YAML
+func (y *YAML) Values(key string) []string {
+	return []string{y.Get(key)}
 }
 
 // Set sets a key to a given value

@@ -139,8 +139,12 @@ func (api *API) respondGetData(ctx context.Context, msgBytes []byte) error {
 
 	keys := sec.Keys()
 	responseData := make(map[string]string, len(keys))
+	preserveOrder := make(map[string]int)
+
 	for _, k := range keys {
-		responseData[k] = sec.Get(k)
+		currentIndex, _ := preserveOrder[k]
+		responseData[k] = sec.Values(k)[currentIndex]
+		preserveOrder[k]++
 	}
 	currentTotp, _, err := otp.Calculate("_", sec)
 	if err == nil {

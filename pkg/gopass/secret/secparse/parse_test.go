@@ -10,12 +10,13 @@ import (
 
 func TestParse(t *testing.T) {
 	for _, tc := range []string{
-		"foo\n",                                 // Plain
-		"foo\nbar\n",                            // Plain
-		"foo\nbar: baz\n",                       // KV
-		"foo\nbar\n---\nzab: 1\n",               // YAML
-		secret.Ident + "\nFoo: Bar\n\nBarfoo\n", // MIME
-		secret.Ident + "\nFoo: Bar\n\nBarfoo",   // MIME
+		"foo\n",                                         // Plain
+		"foo\nbar\n",                                    // Plain
+		"foo\nbar: baz\n",                               // KV
+		"foo\nbar\n---\nzab: 1\n",                       // YAML
+		secret.Ident + "\nFoo: Bar\n\nBarfoo\n",         // MIME
+		secret.Ident + "\nFoo: Bar\n\nBarfoo",           // MIME
+		secret.Ident + "\nFoo: Bar\nFoo: Zab\n\nBarfoo", // MIME same keys
 	} {
 		sec, err := Parse([]byte(tc))
 		require.NoError(t, err)

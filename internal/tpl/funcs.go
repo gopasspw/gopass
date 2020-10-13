@@ -25,6 +25,7 @@ const (
 	FuncGet         = "get"
 	FuncGetPassword = "getpw"
 	FuncGetValue    = "getval"
+	FuncGetValues   = "getvals"
 )
 
 func md5sum() func(...string) (string, error) {
@@ -111,11 +112,28 @@ func getValue(ctx context.Context, kv kvstore) func(...string) (string, error) {
 	}
 }
 
+func getValues(ctx context.Context, kv kvstore) func(...string) ([]string, error) {
+	return func(s ...string) ([]string, error) {
+		if len(s) < 2 {
+			return nil, nil
+		}
+		if kv == nil {
+			return nil, errors.Errorf("KV is nil")
+		}
+		sec, err := kv.Get(ctx, s[0])
+		if err != nil {
+			return nil, err
+		}
+		return sec.Values(s[1]), nil
+	}
+}
+
 func funcMap(ctx context.Context, kv kvstore) template.FuncMap {
 	return template.FuncMap{
 		FuncGet:         get(ctx, kv),
 		FuncGetPassword: getPassword(ctx, kv),
 		FuncGetValue:    getValue(ctx, kv),
+		FuncGetValues:   getValues(ctx, kv),
 		FuncMd5sum:      md5sum(),
 		FuncSha1sum:     sha1sum(),
 		FuncMd5Crypt:    md5cryptFunc(),

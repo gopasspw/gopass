@@ -217,17 +217,19 @@ sub:
 	assert.Equal(t, "hallo", s.Get("login"))
 	assert.Equal(t, "42", s.Get("number"))
 	assert.Equal(t, "map[subentry:123]", s.Get("sub"))
-	assert.Equal(t, []string{"login", "number", "password", "sub"}, s.Keys())
+	assert.Equal(t, []string{"password", "login", "number", "sub"}, s.Keys())
 }
 
+// We order the keys in lexicographic order when converted to MIME
 func TestYAMLMIME(t *testing.T) {
 	in := `passw0rd
 ---
+zab: 123
 foo: bar
-zab: 123`
+`
 	out := `GOPASS-SECRET-1.0
-Content-Type: text/yaml
 Password: passw0rd
+Content-Type: text/yaml
 
 foo: bar
 zab: 123

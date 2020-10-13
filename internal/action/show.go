@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"math/rand"
+	"net/textproto"
 	"path"
 	"strconv"
 	"strings"
@@ -162,9 +163,16 @@ func (s *Action) showGetContent(ctx context.Context, sec gopass.Secret) (string,
 	// YAML key
 	if HasKey(ctx) {
 		key := GetKey(ctx)
-		val := sec.Get(GetKey(ctx))
-		debug.Log("got key %s: %s", key, val)
-		return val, val
+		val := sec.Values(key)
+		if len(val) == 0 {
+			return "", ""
+		}
+		body := val[0]
+		if len(val) > 1 {
+			body = strings.Join(val[1:], "\n")
+		}
+		debug.Log("Getting values for key %s: %s", key, len(val))
+		return val[0], body
 	}
 
 	pw := sec.Get("password")
@@ -178,10 +186,15 @@ func (s *Action) showGetContent(ctx context.Context, sec gopass.Secret) (string,
 		return pw, pw
 	}
 
-	// everything but the first line
+	// everything but the passwords and "unsafe" keys
 	if ctxutil.IsShowSafeContent(ctx) && !ctxutil.IsForce(ctx) {
 		var sb strings.Builder
+		// Since we can have multiple entries per key, we need to make sure to keep track of the index to be able to preserve the ordering
+		preserveOrder := make(map[string]int)
 		for _, k := range sec.Keys() {
+			currentIndex, _ := preserveOrder[k]
+			v := sec.Values(k)[currentIndex]
+			preserveOrder[k]++
 			sb.WriteString(k)
 			sb.WriteString(": ")
 			// check is this key should be obstructed
@@ -189,7 +202,7 @@ func (s *Action) showGetContent(ctx context.Context, sec gopass.Secret) (string,
 				debug.Log("obstructing unsafe key %s", k)
 				sb.WriteString(randAsterisk())
 			} else {
-				sb.WriteString(sec.Get(k))
+				sb.WriteString(v)
 			}
 			sb.WriteString("\n")
 		}
@@ -208,7 +221,7 @@ func (s *Action) showGetContent(ctx context.Context, sec gopass.Secret) (string,
 }
 
 func isUnsafeKey(key string, sec gopass.Secret) bool {
-	if strings.ToLower(key) == "password" {
+	if textproto.CanonicalMIMEHeaderKey(key) == "Password" {
 		return true
 	}
 	uks := sec.Get("Unsafe-Keys")

@@ -175,7 +175,7 @@ func TestShow(t *testing.T) {
 
 		out, err = ts.run("show -u fo2")
 		assert.NoError(t, err)
-		assert.Equal(t, out, "aaaaa")
+		assert.Equal(t, "aaaaa", out)
 
 		_, err = ts.run("config mime true")
 		assert.NoError(t, err)
@@ -190,7 +190,7 @@ func TestShow(t *testing.T) {
 
 		out, err = ts.run("show -u fo6")
 		assert.NoError(t, err)
-		assert.Equal(t, out, "Password: aaaaa")
+		assert.Equal(t, "Password: aaaaa", out)
 		assert.NotContains(t, out, "\n\n")
 	})
 }

@@ -8,6 +8,8 @@ import (
 	"net/textproto"
 	"sort"
 	"strings"
+
+	"github.com/gopasspw/gopass/internal/debug"
 )
 
 const (
@@ -86,6 +88,22 @@ func ParseMIME(buf []byte) (*MIME, error) {
 	if _, err := io.Copy(m.body, r); err != nil {
 		return nil, &PermanentError{err}
 	}
+
+	// let us try to store the keys' order:
+	scanner := bufio.NewScanner(bytes.NewReader(buf))
+	// we skip the magic Ident
+	scanner.Scan()
+	var order []string
+	for scanner.Scan() {
+		p := strings.Split(scanner.Text(), ":")
+		// we stop once we're past the header
+		if p[0] == "" {
+			break
+		}
+		order = append(order, p[0])
+	}
+	m.Set("Gopass-Key-Order", strings.Join(order, ","))
+
 	return m, nil
 }
 
@@ -97,23 +115,20 @@ func (s *MIME) bytesCompat() []byte {
 		fmt.Fprint(buf, s.Header.Get("Password"))
 		fmt.Fprintln(buf)
 
-		keys := make([]string, 0, len(s.Header))
-		for k := range s.Header {
-			if strings.ToLower(k) == "password" {
+		preserveOrder := make(map[string]int)
+		// then the header (containing typically an entry 'password')
+		for _, k := range s.Keys() {
+			if key := textproto.CanonicalMIMEHeaderKey(k); key == "Password" || key == "Gopass-Key-Order" {
+				debug.Log("Skipping key", key, "in bytesCompat mode")
 				continue
 			}
-			keys = append(keys, k)
-		}
-		sort.Strings(keys)
-		for _, k := range keys {
-			vs := s.Header[k]
-			sort.Strings(vs)
-			for _, v := range vs {
-				fmt.Fprint(buf, k)
-				fmt.Fprint(buf, ": ")
-				fmt.Fprint(buf, v)
-				fmt.Fprint(buf, "\n")
-			}
+			currentIndex, _ := preserveOrder[k]
+			v := s.Values(k)[currentIndex]
+			preserveOrder[k]++
+			fmt.Fprint(buf, k)
+			fmt.Fprint(buf, ": ")
+			fmt.Fprint(buf, v)
+			fmt.Fprint(buf, "\n")
 		}
 	}
 
@@ -130,6 +145,7 @@ func (s *MIME) bytesCompat() []byte {
 // Bytes serializes the secret
 func (s *MIME) Bytes() []byte {
 	if !WriteMIME {
+		debug.Log("WriteMIME set to false, falling back to bytesCompat()")
 		return s.bytesCompat()
 	}
 	buf := &bytes.Buffer{}
@@ -137,22 +153,16 @@ func (s *MIME) Bytes() []byte {
 	fmt.Fprint(buf, Ident)
 	fmt.Fprint(buf, "\n")
 
-	keys := make([]string, 0, len(s.Header))
-	for k := range s.Header {
-		keys = append(keys, k)
-	}
-	// we need to sort the keys to be deterministic since maps aren't.
-	sort.Strings(keys)
+	preserveOrder := make(map[string]int)
 	// then the header (containing typically an entry 'password')
-	for _, k := range keys {
-		vs := s.Header[k]
-		sort.Strings(vs)
-		for _, v := range vs {
-			fmt.Fprint(buf, k)
-			fmt.Fprint(buf, ": ")
-			fmt.Fprint(buf, v)
-			fmt.Fprint(buf, "\n")
-		}
+	for _, k := range s.Keys() {
+		currentIndex, _ := preserveOrder[k]
+		v := s.Values(k)[currentIndex]
+		preserveOrder[k]++
+		fmt.Fprint(buf, k)
+		fmt.Fprint(buf, ": ")
+		fmt.Fprint(buf, v)
+		fmt.Fprint(buf, "\n")
 	}
 
 	// finally the body if any
@@ -166,26 +176,71 @@ func (s *MIME) Bytes() []byte {
 // Keys returns all keys
 func (s *MIME) Keys() []string {
 	keys := make([]string, 0, len(s.Header))
-	for k := range s.Header {
-		keys = append(keys, k)
+
+	order := s.Get("Gopass-Key-Order")
+	if order != "" {
+		keys = strings.Split(order, ",")
+	} else {
+		for k := range s.Header {
+			for i := 0; i < len(s.Header[k]); i++ {
+				keys = append(keys, k)
+			}
+		}
+		// we need to sort the keys to be deterministic since maps aren't.
+		sort.Strings(keys)
 	}
-	sort.Strings(keys)
 	return keys
 }
 
-// Get returns the value of a single key
+// Get returns the values of a given key
 func (s *MIME) Get(key string) string {
 	return s.Header.Get(key)
 }
 
+// Values returns the values of a given key
+func (s *MIME) Values(key string) []string {
+	return s.Header.Values(key)
+}
+
 // Set sets a value of a key
 func (s *MIME) Set(key, value string) {
+	key = textproto.CanonicalMIMEHeaderKey(key)
 	s.Header.Set(key, value)
+	if key == "Gopass-Key-Order" {
+		return
+	}
+	if keys := s.Get("Gopass-Key-Order"); !strings.Contains(keys, key) {
+		if keys != "" {
+			keys += ","
+		}
+		// we add the key after the others
+		keys += key
+		s.Header.Set("Gopass-Key-Order", keys)
+	}
+}
+
+// Add adds a value for a key, it appends to any existing values associated with key
+func (s *MIME) Add(key, value string) {
+	key = textproto.CanonicalMIMEHeaderKey(key)
+	// check if we are to preserve the order
+	if keys := s.Get("Gopass-Key-Order"); keys != "" {
+		// we add the key after the others
+		keys += "," + key
+		s.Header.Set("Gopass-Key-Order", keys)
+	}
+	s.Header.Add(key, value)
 }
 
 // Del removes a key
 func (s *MIME) Del(key string) {
 	s.Header.Del(key)
+	key = textproto.CanonicalMIMEHeaderKey(key)
+	// check if we are to preserve the order
+	if keys := s.Get("Gopass-Key-Order"); keys != "" {
+		// we delete all the keys
+		keys = strings.ReplaceAll(keys, ","+key, "")
+		s.Set("Gopass-Key-Order", keys)
+	}
 }
 
 // GetBody returns the body

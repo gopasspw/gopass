@@ -49,7 +49,7 @@ func TestYAMLAndSecret(t *testing.T) {
 	t.Run("show the whole secret", func(t *testing.T) {
 		out, err := ts.run("show foo/bar")
 		assert.NoError(t, err)
-		assert.Equal(t, "Baz: moar\nPassword: moar\n\nbody", out)
+		assert.Equal(t, "Password: moar\nBaz: moar\n\nbody", out)
 	})
 }
 

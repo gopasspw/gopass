@@ -44,6 +44,8 @@ func (s *Action) edit(ctx context.Context, c *cli.Context, name string) error {
 	if bytes.HasPrefix(content, []byte(secret.Ident)) {
 		fromMIME = true
 		content = bytes.TrimPrefix(content, []byte(secret.Ident+"\n"))
+	} else if secret.WriteMIME {
+		fromMIME = true
 	}
 
 	// preserve intermediate state across retries

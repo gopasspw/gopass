@@ -76,8 +76,8 @@ func TestKVMIME(t *testing.T) {
 foo: bar
 zab: 123`
 	out := `GOPASS-SECRET-1.0
-Foo: bar
 Password: passw0rd
+Foo: bar
 Zab: 123
 `
 	sec, err := ParseKV([]byte(in))
@@ -86,14 +86,16 @@ Zab: 123
 	assert.Equal(t, out, string(msec.Bytes()))
 }
 
+// We currently do not support multiple keys in KV, and we order them in lexicographic order when converted to MIME
 func TestMultiKeyKVMIME(t *testing.T) {
 	in := `passw0rd
+zab: 123
 foo: baz
 foo: bar
-zab: 123`
+`
 	out := `GOPASS-SECRET-1.0
-Foo: bar
 Password: passw0rd
+Foo: bar
 Zab: 123
 `
 	sec, err := ParseKV([]byte(in))

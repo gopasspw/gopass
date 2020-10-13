@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"net/textproto"
 	"sort"
 	"strings"
 
@@ -25,11 +26,18 @@ type KV struct {
 func (k *KV) MIME() *secret.MIME {
 	m := secret.New()
 	m.Set("password", k.password)
+	var order []string
 	for k, v := range k.data {
 		if strings.ToLower(k) == "password" {
 			continue
 		}
 		m.Set(k, v)
+		order = append(order, textproto.CanonicalMIMEHeaderKey(k))
+	}
+	if len(order) != 0 {
+		// we need to sort the keys otherwise the order is not deterministic since data is a map
+		sort.Strings(order)
+		m.Set("Gopass-Key-Order", "Password,"+strings.Join(order, ","))
 	}
 	m.WriteString(k.body)
 	return m
@@ -67,12 +75,18 @@ func (k *KV) Keys() []string {
 	return keys
 }
 
-// Get returns a single key
+// Get returns the first entry of a given key
 func (k *KV) Get(key string) string {
 	if strings.ToLower(key) == "password" {
 		return k.password
 	}
 	return k.data[key]
+}
+
+// Values returns all the entries of a given key
+// currently not implemented in KV
+func (k *KV) Values(key string) []string {
+	return []string{k.Get(key)}
 }
 
 // Set writes a single key
