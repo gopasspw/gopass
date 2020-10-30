@@ -4,9 +4,11 @@ package termio
 
 import (
 	"context"
+	"fmt"
+	"os"
 
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"github.com/pkg/errors"
+	"golang.org/x/crypto/ssh/terminal"
 )
 
 // promptPass will prompt user's for a password by terminal.
@@ -15,5 +17,8 @@ func promptPass(ctx context.Context, prompt string) (string, error) {
 		return AskForString(ctx, prompt, "")
 	}
 
-	return "", errors.New("not a terminal")
+	fmt.Fprintf(Stdout, "%s: ", prompt)
+	passBytes, err := terminal.ReadPassword(int(os.Stdin.Fd()))
+	fmt.Fprintln(Stdout, "")
+	return string(passBytes), err
 }
