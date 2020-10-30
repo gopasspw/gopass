@@ -192,7 +192,7 @@ codequality:
 
 	@echo -n "     CYCLO     "
 	@which gocyclo > /dev/null; if [ $$? -ne 0 ]; then \
-		$(GO) get -u github.com/fzipp/gocyclo; \
+		$(GO) get -u github.com/fzipp/gocyclo/cmd/gocyclo; \
 	fi
 	@$(foreach gofile, $(GOFILES_NOVENDOR),\
 			gocyclo -over 22 $(gofile) || exit 1;)
