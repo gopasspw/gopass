@@ -121,5 +121,5 @@ We welcome any contributions. Please see the [CONTRIBUTING.md](https://github.co
 * [Gopass as Summon provider](https://github.com/gopasspw/gopass/blob/master/docs/summon-provider.md)
 
 ## External Documentation
-* [gopass cheat sheet](https://woile.github.io/gopass-cheat-sheet/) ([source on github](https://github.com/Woile/gopass-presentation))
+* [gopass cheat sheet](https://woile.github.io/gopass-cheat-sheet/) ([source on github](https://github.com/Woile/gopass-cheat-sheet))
 * [gopass presentation](https://woile.github.io/gopass-presentation/) ([source on github](https://github.com/Woile/gopass-presentation))
