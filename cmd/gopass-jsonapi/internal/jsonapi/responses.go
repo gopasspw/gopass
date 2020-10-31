@@ -38,6 +38,8 @@ func (api *API) respondMessage(ctx context.Context, msgBytes []byte) error {
 		return api.respondGetData(ctx, msgBytes)
 	case "create":
 		return api.respondCreateEntry(ctx, msgBytes)
+	case "edit":
+		return api.respondEditEntry(ctx, msgBytes)
 	case "copyToClipboard":
 		return api.respondCopyToClipboard(ctx, msgBytes)
 	case "getVersion":
@@ -194,6 +196,35 @@ func (api *API) respondCreateEntry(ctx context.Context, msgBytes []byte) error {
 	return sendSerializedJSONMessage(loginResponse{
 		Username: message.Login,
 		Password: message.Password,
+	}, api.Writer)
+}
+
+func (api *API) respondEditEntry(ctx context.Context, msgBytes []byte) error {
+	var message editEntryMessage
+	if err := json.Unmarshal(msgBytes, &message); err != nil {
+		return errors.Wrapf(err, "failed to unmarshal JSON message")
+	}
+
+	if _, err := api.Store.Get(ctx, message.Name, "latest"); err != nil {
+		return fmt.Errorf("secret %s does not exist", message.Name)
+	}
+
+	if message.Generate {
+		message.NewPassword = pwgen.GeneratePassword(message.NewPasswordLength, message.UseSymbols)
+	}
+
+	sec := secret.New()
+	sec.Set("password", message.NewPassword)
+	if len(message.Login) > 0 {
+		sec.Set("user", message.Login)
+	}
+	if err := api.Store.Set(ctx, message.Name, sec); err != nil {
+		return errors.Wrapf(err, "failed to store secret")
+	}
+
+	return sendSerializedJSONMessage(loginResponse{
+		Username: message.Login,
+		Password: message.NewPassword,
 	}, api.Writer)
 }
 
