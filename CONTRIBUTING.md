@@ -33,9 +33,16 @@ will try to clarify it.
 
 * Add tests relevant to the fixed bug or new feature.
 
-* Add a [DCO](https://developercertificate.org/) / `Signed-off-by` line in any commit message.
+* Commit messages must contain both a [Developer Certificate of Origin](https://developercertificate.org/) / `Signed-off-by` line and a `RELEASE_NOTES=` entry, for example:
 
-* Add a RELEASE_NOTES entry in every commit. Set it to n/a for minor changes that are not noteworthy for the changelog.
+      One line description of commit
+
+      More detailed description of commit, if needed.
+
+      RELEASE_NOTES=Description for release notes, or n/a if trivial.
+
+      Signed-off-by: Your Name <your@email.com>
+
 
 ## Building & Testing
 
