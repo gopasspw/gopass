@@ -111,6 +111,13 @@ func (c *Client) GetPin() ([]byte, error) {
 	if bytes.HasPrefix(buf, []byte("OK")) {
 		return nil, nil
 	}
+	if bytes.HasPrefix(buf, []byte("S PASSWORD_FROM_CACHE")) {
+		// handle pinentry cache notification
+		buf, _, err = c.out.ReadLine()
+		if err != nil {
+			return nil, err
+		}
+	}
 	if !bytes.HasPrefix(buf, []byte("D ")) {
 		return nil, fmt.Errorf("unexpected response: %s", buf)
 	}
