@@ -39,10 +39,14 @@ will try to clarify it.
 
       More detailed description of commit, if needed.
 
-      RELEASE_NOTES=Description for release notes, or n/a if trivial.
+      RELEASE_NOTES=[TAG] Description for release notes.
 
       Signed-off-by: Your Name <your@email.com>
 
+  Valid `[TAG]`s are `[BREAKING]`, `[BUGFIX]`, `[CLEANUP]`, `[DEPRECATION]`,
+  `[DOCUMENTATION]`, `[ENHANCEMENT]`, `[FEATURE]`, `[TESTING]`, and `[UX]`.
+  Trivial changes should have no tag and the description `n/a`, i.e.
+  `RELEASE_NOTES=n/a`.
 
 ## Building & Testing
 
