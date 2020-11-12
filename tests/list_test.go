@@ -50,5 +50,32 @@ foo/
 	out, err = ts.run("list --folders")
 	assert.NoError(t, err)
 	assert.Equal(t, strings.TrimSpace(list), out)
+}
 
+// regression test for #1628
+func TestListRegressions1628(t *testing.T) {
+	ts := newTester(t)
+	defer ts.teardown()
+
+	ts.initStore()
+
+	out, err := ts.run("list")
+	assert.NoError(t, err)
+	assert.Equal(t, "gopass", out)
+
+	_, err = ts.run("insert misc/file1")
+	assert.NoError(t, err)
+	_, err = ts.run("insert misc/folder1/folder2/folder3/file2")
+	assert.NoError(t, err)
+
+	out, err = ts.run("list")
+	assert.NoError(t, err)
+	exp := `gopass
+└── misc/
+    ├── file1
+    └── folder1/
+        └── folder2/
+            └── folder3/
+                └── file2`
+	assert.Equal(t, exp, out)
 }
