@@ -45,8 +45,8 @@ func (s *Action) List(c *cli.Context) error {
 		return ExitError(ExitList, err, "failed to list store: %s", err)
 	}
 
-	//set limit to len of store to loop over all values later
-	limit := l.Len()
+	//set limit to infinite by default unless it's set with the flag
+	limit := tree.INF
 	if c.IsSet("limit") {
 		limit = c.Int("limit")
 	}
