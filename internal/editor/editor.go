@@ -58,7 +58,7 @@ func Check(ctx context.Context, editor string) error {
 		return nil
 	}
 	debug.Log("%s did not match %s", string(buf), vimOptsRe)
-	out.Yellow(ctx, "Warning: Vim might leak credentials. Check your setup.")
+	out.Yellow(ctx, "Warning: Vim might leak credentials. Check your setup.\nhttps://github.com/gopasspw/gopass/blob/master/docs/setup.md#securing-your-editor")
 	return nil
 }
 
