@@ -56,15 +56,6 @@ type createEntryMessage struct {
 	UseSymbols     bool   `json:"use_symbols"`
 }
 
-type editEntryMessage struct {
-	Name              string `json:"entry_name"`
-	Login             string `json:"login"`
-	NewPassword       string `json:"new_password"`
-	NewPasswordLength int    `json:"length"`
-	Generate          bool   `json:"generate"`
-	UseSymbols        bool   `json:"use_symbols"`
-}
-
 type statusResponse struct {
 	Status string `json:"status"`
 }

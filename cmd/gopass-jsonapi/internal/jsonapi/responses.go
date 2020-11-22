@@ -170,16 +170,7 @@ func (api *API) getUsername(name string, sec gopass.Secret) string {
 	return ""
 }
 
-func (api *API) respondCreateEntry(ctx context.Context, msgBytes []byte) error {
-	var message createEntryMessage
-	if err := json.Unmarshal(msgBytes, &message); err != nil {
-		return errors.Wrapf(err, "failed to unmarshal JSON message")
-	}
-
-	if _, err := api.Store.Get(ctx, message.Name, "latest"); err == nil {
-		return fmt.Errorf("secret %s already exists", message.Name)
-	}
-
+func (api *API) constructNewEntry(ctx context.Context, message createEntryMessage) error {
 	if message.Generate {
 		message.Password = pwgen.GeneratePassword(message.PasswordLength, message.UseSymbols)
 	}
@@ -199,8 +190,21 @@ func (api *API) respondCreateEntry(ctx context.Context, msgBytes []byte) error {
 	}, api.Writer)
 }
 
+func (api *API) respondCreateEntry(ctx context.Context, msgBytes []byte) error {
+	var message createEntryMessage
+	if err := json.Unmarshal(msgBytes, &message); err != nil {
+		return errors.Wrapf(err, "failed to unmarshal JSON message")
+	}
+
+	if _, err := api.Store.Get(ctx, message.Name, "latest"); err == nil {
+		return fmt.Errorf("secret %s already exists", message.Name)
+	}
+
+	return api.constructNewEntry(ctx, message)
+}
+
 func (api *API) respondEditEntry(ctx context.Context, msgBytes []byte) error {
-	var message editEntryMessage
+	var message createEntryMessage
 	if err := json.Unmarshal(msgBytes, &message); err != nil {
 		return errors.Wrapf(err, "failed to unmarshal JSON message")
 	}
@@ -209,23 +213,7 @@ func (api *API) respondEditEntry(ctx context.Context, msgBytes []byte) error {
 		return fmt.Errorf("secret %s does not exist", message.Name)
 	}
 
-	if message.Generate {
-		message.NewPassword = pwgen.GeneratePassword(message.NewPasswordLength, message.UseSymbols)
-	}
-
-	sec := secret.New()
-	sec.Set("password", message.NewPassword)
-	if len(message.Login) > 0 {
-		sec.Set("user", message.Login)
-	}
-	if err := api.Store.Set(ctx, message.Name, sec); err != nil {
-		return errors.Wrapf(err, "failed to store secret")
-	}
-
-	return sendSerializedJSONMessage(loginResponse{
-		Username: message.Login,
-		Password: message.NewPassword,
-	}, api.Writer)
+	return api.constructNewEntry(ctx, message)
 }
 
 func (api *API) respondGetVersion() error {
