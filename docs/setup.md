@@ -208,7 +208,7 @@ Alternatively, download and install a suitable Windows build from the repository
 If you have [Go](https://golang.org/) already installed, you can use `go get` to automatically download the latest version:
 
 ```bash
-go get -u github.com/gopasspw/gopass
+GO111MODULE=on go get -u github.com/gopasspw/gopass
 ```
 
 If `$GOPATH/bin` is in your `$PATH`, you can now run `gopass` from anywhere on your system.
