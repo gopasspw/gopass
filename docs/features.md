@@ -272,7 +272,7 @@ try to show desktop notifications [Linux only].
 If you want gopass to always push changes in git to your default remote server (origin), enable auto sync:
 
 ```bash
-$ gopass config autosync true
+$ gopass config autosync=true
 ```
 
 ### Check Passwords for Common Flaws
