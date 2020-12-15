@@ -192,7 +192,7 @@ func (s *Action) showGetContent(ctx context.Context, sec gopass.Secret) (string,
 		// Since we can have multiple entries per key, we need to make sure to keep track of the index to be able to preserve the ordering
 		preserveOrder := make(map[string]int)
 		for _, k := range sec.Keys() {
-			currentIndex, _ := preserveOrder[k]
+			currentIndex := preserveOrder[k]
 			v := sec.Values(k)[currentIndex]
 			preserveOrder[k]++
 			sb.WriteString(k)

@@ -102,6 +102,7 @@ gopass is developed in the open. Here are some of the channels we use to communi
 - [`gopass-hibp`](https://github.com/gopasspw/gopass/tree/master/cmd/gopass-hibp): haveibeenpwned.com leak checker
 - [`gopass-jsonapi`](https://github.com/gopasspw/gopass/tree/master/cmd/gopass-jsonapi): native messaging for browser plugins, e.g. gopassbridge
 - [`terraform-provider-gopass`](https://github.com/camptocamp/terraform-provider-pass): a Terraform provider to interact with gopass
+- [chezmoi](https://github.com/twpayne/chezmoi): dotfile manager with gopass support
 
 ## Mobile apps
 
@@ -121,5 +122,5 @@ We welcome any contributions. Please see the [CONTRIBUTING.md](https://github.co
 * [Gopass as Summon provider](https://github.com/gopasspw/gopass/blob/master/docs/summon-provider.md)
 
 ## External Documentation
-* [gopass cheat sheet](https://woile.github.io/gopass-cheat-sheet/) ([source on github](https://github.com/Woile/gopass-presentation))
+* [gopass cheat sheet](https://woile.github.io/gopass-cheat-sheet/) ([source on github](https://github.com/Woile/gopass-cheat-sheet))
 * [gopass presentation](https://woile.github.io/gopass-presentation/) ([source on github](https://github.com/Woile/gopass-presentation))

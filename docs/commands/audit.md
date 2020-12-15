@@ -5,7 +5,7 @@ The `audit` command will decrypt all secrets and scan for weak passwords or othe
 ## Synopsis
 
 ```
-$ gopass aduit
+$ gopass audit
 ```
 
 ## Password strength backends

@@ -22,11 +22,11 @@ import (
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/gopass/secret"
 	"github.com/gopasspw/gopass/pkg/protect"
-	"golang.org/x/crypto/ssh/terminal"
 
 	"github.com/blang/semver"
 	"github.com/fatih/color"
 	colorable "github.com/mattn/go-colorable"
+	"github.com/mattn/go-isatty"
 	"github.com/urfave/cli/v2"
 
 	ap "github.com/gopasspw/gopass/internal/action"
@@ -161,7 +161,7 @@ func setupApp(ctx context.Context, sv semver.Version) (context.Context, *cli.App
 		}
 
 		if c.Args().Present() {
-			out.Red(c.Context, "DEPRECATION WARNING: Use gopass show")
+			out.Error(c.Context, "DEPRECATION WARNING: Use gopass show")
 			return action.Show(c)
 		}
 		return action.REPL(c)
@@ -295,7 +295,7 @@ func initContext(ctx context.Context, cfg *config.Config) context.Context {
 	}
 
 	// only emit color codes when stdout is a terminal
-	if !terminal.IsTerminal(int(os.Stdout.Fd())) {
+	if !isatty.IsTerminal(os.Stdout.Fd()) {
 		color.NoColor = true
 		ctx = ctxutil.WithColor(ctx, false)
 		ctx = ctxutil.WithTerminal(ctx, false)

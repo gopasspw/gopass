@@ -142,7 +142,7 @@ func (api *API) respondGetData(ctx context.Context, msgBytes []byte) error {
 	preserveOrder := make(map[string]int)
 
 	for _, k := range keys {
-		currentIndex, _ := preserveOrder[k]
+		currentIndex := preserveOrder[k]
 		responseData[k] = sec.Values(k)[currentIndex]
 		preserveOrder[k]++
 	}

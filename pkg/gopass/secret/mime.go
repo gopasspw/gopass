@@ -122,7 +122,7 @@ func (s *MIME) bytesCompat() []byte {
 				debug.Log("Skipping key", key, "in bytesCompat mode")
 				continue
 			}
-			currentIndex, _ := preserveOrder[k]
+			currentIndex := preserveOrder[k]
 			v := s.Values(k)[currentIndex]
 			preserveOrder[k]++
 			fmt.Fprint(buf, k)
@@ -156,7 +156,7 @@ func (s *MIME) Bytes() []byte {
 	preserveOrder := make(map[string]int)
 	// then the header (containing typically an entry 'password')
 	for _, k := range s.Keys() {
-		currentIndex, _ := preserveOrder[k]
+		currentIndex := preserveOrder[k]
 		v := s.Values(k)[currentIndex]
 		preserveOrder[k]++
 		fmt.Fprint(buf, k)

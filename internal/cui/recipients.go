@@ -28,7 +28,7 @@ const (
 	maxTries = 42
 )
 
-// AskForPrivateKey promts the user to select from a list of private keys
+// AskForPrivateKey prompts the user to select from a list of private keys
 func AskForPrivateKey(ctx context.Context, crypto backend.Crypto, prompt string) (string, error) {
 	if !ctxutil.IsInteractive(ctx) {
 		return "", errors.New("can not select private key without terminal")
