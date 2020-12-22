@@ -166,7 +166,7 @@ layman -a go-overlay
 emerge -av gopass
 ```
 
-### RedHat / CentOS
+### Fedora / Red Hat / CentOS
 
 There is an unofficial RPM build maintained by a contributor.
 
