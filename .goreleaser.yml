@@ -38,9 +38,9 @@ builds:
       - 6
       - 7
     mod_timestamp: '{{ .CommitTimestamp }}'
-  - id: gopass-git-credentials
-    dir: cmd/gopass-git-credentials
-    binary: gopass-git-credentials
+  - id: git-credential-gopass
+    dir: cmd/git-credential-gopass
+    binary: git-credential-gopass
     flags:
       - -trimpath
       - -tags=netgo

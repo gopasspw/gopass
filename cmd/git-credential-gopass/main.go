@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	name = "gopass-git-credentials"
+	name = "git-credential-gopass"
 )
 
 var (
@@ -59,10 +59,10 @@ func main() {
 	app := cli.NewApp()
 	app.Name = name
 	app.Version = version
-	app.Usage = `Use "!gopass-git-credentials $@" as git's credential.helper`
+	app.Usage = `Use "gopass" as git's credential.helper`
 	app.Description = "" +
 		"This command allows you to cache your git-credentials with gopass." +
-		"Activate by using `git config --global credential.helper \"!gopass-git-credentials $@\"`"
+		"Activate by using `git config --global credential.helper gopass"
 	app.EnableBashCompletion = true
 	app.Commands = []*cli.Command{
 		{
@@ -85,7 +85,7 @@ func main() {
 		},
 		{
 			Name:        "configure",
-			Description: "This command configures gopass-git-credential as git's credential.helper",
+			Description: "This command configures git-credential-gopass as git's credential.helper",
 			Action:      gc.Configure,
 			Flags: []cli.Flag{
 				&cli.BoolFlag{

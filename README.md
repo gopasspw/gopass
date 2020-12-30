@@ -98,7 +98,7 @@ gopass is developed in the open. Here are some of the channels we use to communi
 - [gopassbridge](https://github.com/gopasspw/gopassbridge): Browser plugin for Firefox, Chrome and other Chromium based browsers
 - [kubectl gopass](https://github.com/gopasspw/kubectl-gopass): Kubernetes / kubectl plugin to support reading and writing secrets directly from/to gopass.
 - [gopass alfred](https://github.com/gopasspw/gopass-alfred): Alfred workflow to use gopass from the Alfred Mac launcher
-- [`gopass-git-credentials`](https://github.com/gopasspw/gopass/tree/master/cmd/gopass-git-credentials): Integrate gopass as an git-credential helper
+- [`git-credential-gopass`](https://github.com/gopasspw/gopass/tree/master/cmd/git-credential-gopass): Integrate gopass as an git-credential helper
 - [`gopass-hibp`](https://github.com/gopasspw/gopass/tree/master/cmd/gopass-hibp): haveibeenpwned.com leak checker
 - [`gopass-jsonapi`](https://github.com/gopasspw/gopass/tree/master/cmd/gopass-jsonapi): native messaging for browser plugins, e.g. gopassbridge
 - [`terraform-provider-gopass`](https://github.com/camptocamp/terraform-provider-pass): a Terraform provider to interact with gopass

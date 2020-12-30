@@ -243,7 +243,7 @@ func (s *gc) Configure(c *cli.Context) error {
 	if flags == 0 {
 		log.Println("No target given, assuming --global.")
 	}
-	cmd := exec.CommandContext(ctx, "git", "config", flag, "credential.helper", `"!gopass-git-credentials $@"`)
+	cmd := exec.CommandContext(ctx, "git", "config", flag, "credential.helper", "gopass")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	return cmd.Run()

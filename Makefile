@@ -26,7 +26,7 @@ export GO111MODULE=on
 OK := $(shell tput setaf 6; echo ' [OK]'; tput sgr0;)
 
 all: build completion
-build: $(GOPASS_OUTPUT) gopass-git-credentials gopass-hibp gopass-jsonapi gopass-summon-provider
+build: $(GOPASS_OUTPUT) git-credential-gopass gopass-hibp gopass-jsonapi gopass-summon-provider
 completion: $(BASH_COMPLETION_OUTPUT) $(FISH_COMPLETION_OUTPUT) $(ZSH_COMPLETION_OUTPUT)
 travis: sysinfo crosscompile build install fulltest codequality completion full
 travis-osx: sysinfo build install test completion full
@@ -75,9 +75,9 @@ $(GOPASS_OUTPUT): $(GOFILES_BUILD)
 	@$(GO) build -o $@ $(BUILDFLAGS)
 	@printf '%s\n' '$(OK)'
 
-gopass-git-credentials: $(GOFILES_BUILD)
+git-credential-gopass: $(GOFILES_BUILD)
 	@echo -n ">> BUILD, version = $(GOPASS_VERSION)/$(GOPASS_REVISION), output = $@"
-	@cd cmd/gopass-git-credentials && $(GO) build -o gopass-git-credentials $(BUILDFLAGS)
+	@cd cmd/git-credential-gopass && $(GO) build -o git-credential-gopass $(BUILDFLAGS)
 	@printf '%s\n' '$(OK)'
 
 gopass-hibp: $(GOFILES_BUILD)
@@ -99,7 +99,7 @@ install: all install-completion
 	@echo -n ">> INSTALL, version = $(GOPASS_VERSION)"
 	@install -m 0755 -d $(DESTDIR)$(BINDIR)
 	@install -m 0755 $(GOPASS_OUTPUT) $(DESTDIR)$(BINDIR)/gopass
-	@install -m 0755 cmd/gopass-git-credentials/gopass-git-credentials $(DESTDIR)$(BINDIR)/gopass-git-credentials
+	@install -m 0755 cmd/git-credential-gopass/git-credential-gopass $(DESTDIR)$(BINDIR)/git-credential-gopass
 	@install -m 0755 cmd/gopass-hibp/gopass-hibp $(DESTDIR)$(BINDIR)/gopass-hibp
 	@install -m 0755 cmd/gopass-jsonapi/gopass-jsonapi $(DESTDIR)$(BINDIR)/gopass-jsonapi
 	@install -m 0755 cmd/gopass-summon-provider/gopass-summon-provider $(DESTDIR)$(BINDIR)/gopass-summon-provider
