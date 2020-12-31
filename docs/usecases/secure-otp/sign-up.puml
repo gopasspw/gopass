@@ -1,0 +1,23 @@
+@startuml
+title Sign-Up with local otp
+
+actor User
+database "Git-Passwordstore"
+database "Local-Passwordstore"
+database "gpg-key"
+
+activate User
+activate Website
+User -> Website: sign-up(login,password)
+Website -> Website: create otp-token
+User <-- Website: show otp-token
+deactivate Website
+
+User -> "Git-Passwordstore": store (login,password) for Website
+"Git-Passwordstore" -> "gpg-key": encrypt
+
+User -> "Local-Passwordstore": store (otp-token) for Website
+"Local-Passwordstore" -> "gpg-key": encrypt
+
+
+@enduml
