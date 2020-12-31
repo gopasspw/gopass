@@ -16,7 +16,7 @@ yourPassword
 ---
 login: yourLogin
 url: https://website.com
-otpauth://totp/Website:yourLogin?secret=YourOtpTokenBase32Encoded&issuer=Website
+totp: YourOtpTokenBase32Encoded
 
 ```
 
