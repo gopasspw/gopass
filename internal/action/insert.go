@@ -11,10 +11,10 @@ import (
 	"github.com/gopasspw/gopass/internal/editor"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/secrets"
-	"github.com/gopasspw/gopass/internal/termio"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/gopass"
 	"github.com/gopasspw/gopass/pkg/gopass/secret/secparse"
+	"github.com/gopasspw/gopass/pkg/termio"
 
 	"github.com/urfave/cli/v2"
 )

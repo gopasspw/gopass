@@ -11,8 +11,8 @@ import (
 	aclip "github.com/atotto/clipboard"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store/mockstore"
-	"github.com/gopasspw/gopass/internal/termio"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/termio"
 	"github.com/stretchr/testify/assert"
 	"github.com/urfave/cli/v2"
 )

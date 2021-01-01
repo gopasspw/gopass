@@ -9,10 +9,10 @@ import (
 	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/internal/notify"
 	"github.com/gopasspw/gopass/internal/out"
-	"github.com/gopasspw/gopass/internal/termio"
 	"github.com/gopasspw/gopass/pkg/gopass"
 	hibpapi "github.com/gopasspw/gopass/pkg/hibp/api"
 	hibpdump "github.com/gopasspw/gopass/pkg/hibp/dump"
+	"github.com/gopasspw/gopass/pkg/termio"
 
 	"github.com/fatih/color"
 )
