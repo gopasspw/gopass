@@ -1,5 +1,6 @@
 FIRST_GOPATH              := $(firstword $(subst :, ,$(GOPATH)))
 PKGS                      := $(shell go list ./... | grep -v /tests | grep -v /xcpb | grep -v /gpb)
+PKGSWIN                   := $(shell go list ./... | grep -v /tests | grep -v /xcpb | grep -v /gpb | grep -v "jsonapi")
 GOFILES_NOVENDOR          := $(shell find . -name vendor -prune -o -type f -name '*.go' -not -name '*.pb.go' -print)
 GOFILES_BUILD             := $(shell find . -type f -name '*.go' -not -name '*_test.go')
 PROTOFILES                := $(shell find . -name vendor -prune -o -type f -name '*.proto' -print)
@@ -30,7 +31,7 @@ build: $(GOPASS_OUTPUT) gopass-git-credentials gopass-hibp gopass-jsonapi gopass
 completion: $(BASH_COMPLETION_OUTPUT) $(FISH_COMPLETION_OUTPUT) $(ZSH_COMPLETION_OUTPUT)
 travis: sysinfo crosscompile build install fulltest codequality completion full
 travis-osx: sysinfo build install test completion full
-travis-windows: sysinfo build install test completion
+travis-windows: sysinfo build install test-win completion
 
 sysinfo:
 	@echo ">> SYSTEM INFORMATION"
@@ -119,7 +120,7 @@ fulltest-nocover: $(GOPASS_OUTPUT)
 	@echo "mode: atomic" > coverage-all.out
 	@$(foreach pkg, $(PKGS),\
 	    echo -n "     ";\
-		go test -run '(Test|Example)' $(BUILDFLAGS) $(TESTFLAGS) $(pkg) || exit 1;)
+		go test -run '(Test|Example)' $(TESTFLAGS) $(pkg) || exit 1;)
 
 racetest: $(GOPASS_OUTPUT)
 	@echo ">> TEST, \"full-mode\": race detector on"
@@ -134,7 +135,12 @@ test: $(GOPASS_OUTPUT)
 	@echo ">> TEST, \"fast-mode\": race detector off"
 	@$(foreach pkg, $(PKGS),\
 	    echo -n "     ";\
-		$(GO) test -test.short -run '(Test|Example)' $(BUILDFLAGS) $(TESTFLAGS) $(pkg) || exit 1)
+		$(GO) test -test.short -run '(Test|Example)' $(BUILDFLAGS) $(TESTFLAGS) $(pkg) || exit 1;)
+
+test-win: $(GOPASS_OUTPUT)
+	@echo ">> TEST, \"fast-mode-win\": race detector off"
+	@$(foreach pkg, $(PKGSWIN),\
+		$(GO) test -test.short -run '(Test|Example)' $(pkg) || exit 1;)
 
 test-integration: $(GOPASS_OUTPUT)
 	cd tests && GOPASS_BINARY=$(PWD)/$(GOPASS_OUTPUT) GOPASS_TEST_DIR=$(PWD)/tests go test -v

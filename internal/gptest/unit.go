@@ -1,14 +1,13 @@
 package gptest
 
 import (
+	aclip "github.com/atotto/clipboard"
+	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
-
-	aclip "github.com/atotto/clipboard"
-	"github.com/stretchr/testify/assert"
 )
 
 const (

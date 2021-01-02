@@ -8,7 +8,8 @@ import (
 )
 
 var (
-	sep = "/"
+	// Sep is the separator used in lists to separate folders from entries
+	Sep = "/"
 )
 
 // List will list all entries in this store
@@ -30,7 +31,7 @@ func (s *Store) List(ctx context.Context, prefix string) ([]string, error) {
 		}
 		path = strings.TrimSuffix(path, cExt)
 		if s.alias != "" {
-			path = s.alias + sep + path
+			path = s.alias + Sep + path
 		}
 		out = append(out, path)
 	}

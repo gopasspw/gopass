@@ -2,8 +2,6 @@ language: go
 dist: trusty
 
 jobs:
-  allow_failures:
-    - os: windows
   include:
     - os: windows
       env: SLOW_TEST_FACTOR=100 BUILDFLAGS='' GOPASS_OUTPUT=gopass.exe
@@ -32,7 +30,7 @@ before_install:
   - git config --global user.email foo.bar@example.org
 
 go:
-  - '1.14.x'
+  - '1.15.x'
 
 after_success:
   - bash <(curl -s https://codecov.io/bash) -f coverage-all.out

@@ -6,6 +6,7 @@ import (
 	"flag"
 	"os"
 	"regexp"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -74,7 +75,7 @@ func TestGenerate(t *testing.T) {
 
 	// generate --edit foobar
 	t.Run("generate --edit foobar", func(t *testing.T) {
-		if testing.Short() {
+		if testing.Short() || runtime.GOOS == "windows" {
 			t.Skip("skipping test in short mode.")
 		}
 

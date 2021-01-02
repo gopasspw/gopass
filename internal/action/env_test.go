@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"os"
+	"runtime"
 	"testing"
 
 	"github.com/gopasspw/gopass/internal/gptest"
@@ -71,9 +72,16 @@ func TestEnvProgramNotFound(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, act)
 
+	wanted := "exec: \"non-existing\": executable file not found in "
+	if runtime.GOOS == "windows" {
+		wanted += "%PATH%"
+	} else {
+		wanted += "$PATH"
+	}
+
 	// Command-line would be: "gopass env foo non-existing".
 	assert.EqualError(t, act.Env(gptest.CliCtx(ctx, t, "foo", "non-existing")),
-		"exec: \"non-existing\": executable file not found in $PATH")
+		wanted)
 }
 
 // Crash regression

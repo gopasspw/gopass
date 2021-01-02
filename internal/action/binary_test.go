@@ -81,6 +81,7 @@ func TestBinaryCat(t *testing.T) {
 		binstdin = fd
 		defer func() {
 			binstdin = os.Stdin
+			fd.Close()
 		}()
 
 		assert.NoError(t, act.Cat(gptest.CliCtx(ctx, t, "baz")))

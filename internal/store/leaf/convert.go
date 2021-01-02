@@ -72,7 +72,7 @@ func (s *Store) Convert(ctx context.Context, cryptoBe backend.CryptoBackend, sto
 
 	ctx = ctxutil.WithNoNetwork(ctx, true)
 	for _, e := range entries {
-		e = strings.TrimPrefix(e, s.alias+sep)
+		e = strings.TrimPrefix(e, s.alias+Sep)
 		debug.Log("converting %s", e)
 		revs, err := s.ListRevisions(ctx, e)
 		if err != nil {
