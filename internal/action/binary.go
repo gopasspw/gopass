@@ -15,10 +15,10 @@ import (
 
 	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/internal/secrets"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/fsutil"
 	"github.com/gopasspw/gopass/pkg/gopass"
-	"github.com/gopasspw/gopass/pkg/gopass/secret"
 	"github.com/pkg/errors"
 
 	"github.com/urfave/cli/v2"
@@ -72,15 +72,21 @@ func secFromBytes(dst, src string, in []byte) gopass.Secret {
 
 	debug.Log("Read %d bytes of %s from %s to %s", len(in), ct, src, dst)
 
-	sec := secret.New()
-	sec.Set("Content-Type", http.DetectContentType(in))
-	sec.Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", filepath.Base(src)))
+	sec := secrets.NewKV()
+	if err := sec.Set("Content-Type", ct); err != nil {
+		debug.Log("Failed to set Content-Type %q: %q", ct, err)
+	}
+	if err := sec.Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", filepath.Base(src))); err != nil {
+		debug.Log("Failed to set Content-Disposition: %q", err)
+	}
 
 	if strings.HasPrefix(ct, "text/") {
-		sec.WriteString(string(in))
+		sec.Write(in)
 	} else {
-		sec.WriteString(base64.StdEncoding.EncodeToString(in))
-		sec.Set("Content-Transfer-Encoding", "Base64")
+		sec.Write([]byte(base64.StdEncoding.EncodeToString(in)))
+		if err := sec.Set("Content-Transfer-Encoding", "Base64"); err != nil {
+			debug.Log("Failed to set Content-Transfer-Encoding: %q", err)
+		}
 	}
 
 	return sec
@@ -235,11 +241,11 @@ func (s *Action) binaryGet(ctx context.Context, name string) ([]byte, error) {
 		return nil, errors.Wrapf(err, "failed to read '%s' from the store", name)
 	}
 
-	if cte := sec.Get("Content-Transfer-Encoding"); cte != "Base64" {
-		return []byte(sec.GetBody()), nil
+	if cte, _ := sec.Get("content-transfer-encoding"); cte != "Base64" {
+		return []byte(sec.Body()), nil
 	}
 
-	buf, err := base64.StdEncoding.DecodeString(sec.GetBody())
+	buf, err := base64.StdEncoding.DecodeString(sec.Body())
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to encode to base64")
 	}

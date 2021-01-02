@@ -12,11 +12,11 @@ import (
 	"github.com/gopasspw/gopass/internal/clipboard"
 	"github.com/gopasspw/gopass/internal/cui"
 	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/internal/secrets"
 	"github.com/gopasspw/gopass/internal/termio"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/fsutil"
 	"github.com/gopasspw/gopass/pkg/gopass"
-	gpsec "github.com/gopasspw/gopass/pkg/gopass/secret"
 	"github.com/gopasspw/gopass/pkg/pwgen"
 	"github.com/gopasspw/gopass/pkg/pwgen/pwrules"
 	"github.com/martinhoefling/goxkcdpwgen/xkcdpwgen"
@@ -145,8 +145,8 @@ func (s *creator) createWebsite(ctx context.Context, c *cli.Context) error {
 		}
 	}
 
-	sec := gpsec.New()
-	sec.Set("password", password)
+	sec := secrets.New()
+	sec.SetPassword(password)
 	sec.Set("url", urlStr)
 	sec.Set("username", username)
 	sec.Set("comment", comment)
@@ -240,8 +240,8 @@ func (s *creator) createPIN(ctx context.Context, c *cli.Context) error {
 			return err
 		}
 	}
-	sec := gpsec.New()
-	sec.Set("password", password)
+	sec := secrets.New()
+	sec.SetPassword(password)
 	sec.Set("application", application)
 	sec.Set("comment", comment)
 	if err := s.store.Set(ctxutil.WithCommitMessage(ctx, "Created new entry"), name, sec); err != nil {
@@ -300,8 +300,8 @@ func (s *creator) createGeneric(ctx context.Context, c *cli.Context) error {
 			return err
 		}
 	}
-	sec := gpsec.New()
-	sec.Set("password", password)
+	sec := secrets.New()
+	sec.SetPassword(password)
 	out.Print(ctx, fmtfn(2, "3", "Enter zero or more key value pairs for this secret:"))
 	for {
 		key, err := termio.AskForString(ctx, fmtfn(4, "a", "Name (enter to quit)"), "")

@@ -34,7 +34,7 @@ func TestMergeEntry(t *testing.T) {
 			},
 		},
 	}
-	assert.Equal(t, false, a.Equals(b))
+	assert.False(t, a.Equals(b))
 	c := b.Merge(a)
 	assert.Equal(t, b, c)
 	d := &Entry{
@@ -48,7 +48,7 @@ func TestMergeEntry(t *testing.T) {
 		},
 	}
 	e := d.Merge(c)
-	assert.Equal(t, false, e.Equals(c))
+	assert.False(t, e.Equals(c))
 	assert.Equal(t, 3, len(e.Revisions))
 }
 

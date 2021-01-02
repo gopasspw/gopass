@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/gopasspw/gopass/internal/secrets"
 	"github.com/gopasspw/gopass/internal/tree"
 
 	"github.com/gopasspw/gopass/internal/clipboard"
@@ -17,7 +18,6 @@ import (
 	"github.com/gopasspw/gopass/internal/termio"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/gopass"
-	"github.com/gopasspw/gopass/pkg/gopass/secret"
 	"github.com/gopasspw/gopass/pkg/gopass/secret/secparse"
 	"github.com/gopasspw/gopass/pkg/pwgen"
 	"github.com/gopasspw/gopass/pkg/pwgen/pwrules"
@@ -257,11 +257,10 @@ func (s *Action) generatePasswordXKCD(ctx context.Context, c *cli.Context, lengt
 func (s *Action) generateSetPassword(ctx context.Context, name, key, password string, kvps map[string]string) (context.Context, error) {
 	// set a single key in a yaml doc
 	if key != "" {
-		gs, err := s.Store.Get(ctx, name)
+		sec, err := s.Store.Get(ctx, name)
 		if err != nil {
 			return ctx, ExitError(ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
 		}
-		sec := gs.MIME()
 		setMetadata(sec, kvps)
 		sec.Set(key, password)
 		if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, "Generated password for YAML key"), name, sec); err != nil {
@@ -281,8 +280,8 @@ func (s *Action) generateSetPassword(ctx context.Context, name, key, password st
 
 	// generate a completely new secret
 	var sec gopass.Secret
-	sec = secret.New()
-	sec.Set("password", password)
+	sec = secrets.New()
+	sec.SetPassword(password)
 	if u := hasChangeURL(name); u != "" {
 		sec.Set("password-change-url", u)
 	}
@@ -318,7 +317,7 @@ func (s *Action) generateReplaceExisting(ctx context.Context, name, key, passwor
 		return ctx, ExitError(ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
 	}
 	setMetadata(sec, kvps)
-	sec.Set("password", password)
+	sec.SetPassword(password)
 	if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, "Generated password for YAML key"), name, sec); err != nil {
 		return ctx, ExitError(ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
 	}

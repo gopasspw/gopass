@@ -11,11 +11,11 @@ import (
 
 	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/internal/secrets"
 	"github.com/gopasspw/gopass/internal/termio"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/fsutil"
 	"github.com/gopasspw/gopass/pkg/gopass"
-	"github.com/gopasspw/gopass/pkg/gopass/secret"
 	"github.com/urfave/cli/v2"
 )
 
@@ -162,8 +162,8 @@ func (s *gc) Get(c *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	cred.Password = secret.Get("password")
-	if username := secret.Get("login"); username != "" {
+	cred.Password = secret.Password()
+	if username, _ := secret.Get("login"); username != "" {
 		// leave the username as is otherwise
 		cred.Username = username
 	}
@@ -193,8 +193,8 @@ func (s *gc) Store(c *cli.Context) error {
 		)
 		return nil
 	}
-	secret := secret.New()
-	secret.Set("password", cred.Password)
+	secret := secrets.New()
+	secret.SetPassword(cred.Password)
 	if cred.Username != "" {
 		secret.Set("login", cred.Username)
 	}

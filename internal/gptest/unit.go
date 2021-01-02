@@ -16,7 +16,6 @@ const (
 autoimport: true
 cliptimeout: 45
 exportkeys: true
-mime: true
 notifications: true`
 )
 

@@ -100,6 +100,7 @@ func decode(buf []byte) (*Config, error) {
 		&Config{
 			ExportKeys: true,
 		},
+		&Pre1102{},
 		&Pre193{
 			Root: &Pre193StoreConfig{},
 		},

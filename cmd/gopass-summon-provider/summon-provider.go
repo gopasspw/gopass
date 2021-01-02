@@ -20,6 +20,6 @@ func (s *gc) Get(c *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	out.Print(ctx, secret.Get("password"))
+	out.Print(ctx, secret.Password())
 	return nil
 }

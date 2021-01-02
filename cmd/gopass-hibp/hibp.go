@@ -119,7 +119,7 @@ func (s *hibp) precomputeHashes(ctx context.Context) (map[string]string, []strin
 			continue
 		}
 
-		pw := sec.Get("password")
+		pw := sec.Password()
 		// do not check empty passwords, there should be caught by `gopass audit`
 		// anyway
 		if len(pw) < 1 {

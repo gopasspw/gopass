@@ -28,13 +28,17 @@ key: value
 	s, err := ParseYAML([]byte(mlValue))
 	require.NoError(t, err)
 	assert.NotNil(t, s)
-	assert.Equal(t, "bar\nbaz\n", s.Get("foo"))
+	v, ok := s.Get("foo")
+	assert.True(t, ok)
+	assert.Equal(t, "bar\nbaz\n", v)
 }
 
 func TestYAMLKeyFromEmptySecret(t *testing.T) {
 	t.Logf("Get Key from empty Secret")
 	s := &YAML{}
-	assert.Equal(t, "", s.Get(yamlKey))
+	v, ok := s.Get(yamlKey)
+	assert.False(t, ok)
+	assert.Equal(t, "", v)
 }
 
 type inlineB struct {
@@ -65,10 +69,12 @@ func TestYAMLKeyToEmptySecret(t *testing.T) {
 	s.Set(yamlKey, yamlValue)
 
 	// read back key
-	assert.Equal(t, yamlValue, s.Get(yamlKey))
+	v, ok := s.Get(yamlKey)
+	assert.True(t, ok)
+	assert.Equal(t, yamlValue, v)
 
 	// read back whole entry
-	want := "\n\n---\n" + yamlKey + ": " + yamlValue + "\n"
+	want := "\n---\n" + yamlKey + ": " + yamlValue + "\n"
 	assert.Equal(t, want, string(s.Bytes()))
 }
 
@@ -100,8 +106,6 @@ func TestYAMLSetMultipleKeys(t *testing.T) {
 	var b strings.Builder
 	_, _ = b.WriteString(yamlPassword)
 	_, _ = b.WriteString("\n")
-	// no body
-	_, _ = b.WriteString("\n")
 	numKey := 100
 	keys := make([]string, 0, numKey)
 	for i := 0; i < numKey; i++ {
@@ -120,11 +124,13 @@ func TestYAMLSetMultipleKeys(t *testing.T) {
 	}
 
 	// read back the password
-	assert.Equal(t, yamlPassword, s.Get("password"))
+	assert.Equal(t, yamlPassword, s.Password())
 
 	// read back the keys
 	for _, key := range keys {
-		assert.Equal(t, yamlValue, s.Get(key))
+		v, ok := s.Get(key)
+		assert.True(t, ok)
+		assert.Equal(t, yamlValue, v)
 	}
 
 	// read back whole entry
@@ -143,7 +149,9 @@ ccc
 	s.Set(yamlKey, mlValue)
 
 	// read back key
-	assert.Equal(t, mlValue, s.Get(yamlKey))
+	v, ok := s.Get(yamlKey)
+	assert.True(t, ok)
+	assert.Equal(t, mlValue, v)
 }
 
 func TestYAMLDocMarkerAsPW(t *testing.T) {
@@ -166,7 +174,9 @@ url: http://www.test.com/`
 	t.Logf("Secret: \n%+v\n%s", s, string(s.Bytes()))
 
 	// read back key
-	assert.Equal(t, "myuser@test.com", s.Get("username"))
+	v, ok := s.Get("username")
+	assert.True(t, ok)
+	assert.Equal(t, "myuser@test.com", v)
 }
 
 func TestYAMLBodyWithPW(t *testing.T) {
@@ -196,11 +206,16 @@ func TestYAMLValues(t *testing.T) {
 		},
 	}
 
-	assert.Equal(t, "string", s.Get("string"))
-	assert.Equal(t, "32", s.Get("int"))
-	assert.Equal(t, "2.3", s.Get("float"))
-	assert.Equal(t, "[1 2 3]", s.Get("slice"))
-	assert.Equal(t, "map[a:b]", s.Get("map"))
+	get := func(k string) string {
+		v, _ := s.Get(k)
+		return v
+	}
+
+	assert.Equal(t, "string", get("string"))
+	assert.Equal(t, "32", get("int"))
+	assert.Equal(t, "2.3", get("float"))
+	assert.Equal(t, "[1 2 3]", get("slice"))
+	assert.Equal(t, "map[a:b]", get("map"))
 }
 
 func TestYAMLComplex(t *testing.T) {
@@ -214,26 +229,14 @@ sub:
 	s, err := ParseYAML([]byte(in))
 	require.NoError(t, err)
 	assert.NotNil(t, s)
-	assert.Equal(t, "hallo", s.Get("login"))
-	assert.Equal(t, "42", s.Get("number"))
-	assert.Equal(t, "map[subentry:123]", s.Get("sub"))
+
+	get := func(k string) string {
+		v, _ := s.Get(k)
+		return v
+	}
+
+	assert.Equal(t, "hallo", get("login"))
+	assert.Equal(t, "42", get("number"))
+	assert.Equal(t, "map[subentry:123]", get("sub"))
 	assert.Equal(t, []string{"login", "number", "password", "sub"}, s.Keys())
-}
-
-func TestYAMLMIME(t *testing.T) {
-	in := `passw0rd
----
-foo: bar
-zab: 123`
-	out := `GOPASS-SECRET-1.0
-Content-Type: text/yaml
-Password: passw0rd
-
-foo: bar
-zab: 123
-`
-	sec, err := ParseYAML([]byte(in))
-	require.NoError(t, err)
-	msec := sec.MIME()
-	assert.Equal(t, out, string(msec.Bytes()))
 }

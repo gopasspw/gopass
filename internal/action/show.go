@@ -162,12 +162,12 @@ func (s *Action) showGetContent(ctx context.Context, sec gopass.Secret) (string,
 	// YAML key
 	if HasKey(ctx) {
 		key := GetKey(ctx)
-		val := sec.Get(GetKey(ctx))
-		debug.Log("got key %s: %s", key, val)
+		val, found := sec.Get(GetKey(ctx))
+		debug.Log("got(found: %t) key %s: %s", found, key, val)
 		return val, val
 	}
 
-	pw := sec.Get("password")
+	pw := sec.Password()
 	fullBody := strings.TrimPrefix(string(sec.Bytes()), secret.Ident+"\n")
 
 	// first line of the secret only
@@ -189,14 +189,18 @@ func (s *Action) showGetContent(ctx context.Context, sec gopass.Secret) (string,
 				debug.Log("obstructing unsafe key %s", k)
 				sb.WriteString(randAsterisk())
 			} else {
-				sb.WriteString(sec.Get(k))
+				v, found := sec.Get(k)
+				if !found {
+					continue
+				}
+				sb.WriteString(v)
 			}
 			sb.WriteString("\n")
 		}
-		if len(sec.Keys()) > 0 && len(sec.GetBody()) > 0 {
+		if len(sec.Keys()) > 0 && len(sec.Body()) > 0 {
 			sb.WriteString("\n")
 		}
-		sb.WriteString(sec.GetBody())
+		sb.WriteString(sec.Body())
 		if IsAlsoClip(ctx) {
 			return pw, sb.String()
 		}
@@ -204,15 +208,15 @@ func (s *Action) showGetContent(ctx context.Context, sec gopass.Secret) (string,
 	}
 
 	// everything (default)
-	return sec.Get("password"), fullBody
+	return sec.Password(), fullBody
 }
 
 func isUnsafeKey(key string, sec gopass.Secret) bool {
 	if strings.ToLower(key) == "password" {
 		return true
 	}
-	uks := sec.Get("Unsafe-Keys")
-	if uks == "" {
+	uks, found := sec.Get("unsafe-keys")
+	if !found || uks == "" {
 		return false
 	}
 	for _, uk := range strings.Split(uks, ",") {

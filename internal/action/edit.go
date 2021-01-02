@@ -10,7 +10,6 @@ import (
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/termio"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"github.com/gopasspw/gopass/pkg/gopass/secret"
 	"github.com/gopasspw/gopass/pkg/gopass/secret/secparse"
 	"github.com/gopasspw/gopass/pkg/pwgen"
 
@@ -40,39 +39,12 @@ func (s *Action) edit(ctx context.Context, c *cli.Context, name string) error {
 		return err
 	}
 
-	fromMIME := false
-	if bytes.HasPrefix(content, []byte(secret.Ident)) {
-		fromMIME = true
-		content = bytes.TrimPrefix(content, []byte(secret.Ident+"\n"))
+	// invoke the editor to let the user edit the content
+	newContent, err := editor.Invoke(ctx, ed, content)
+	if err != nil {
+		return ExitError(ExitUnknown, err, "failed to invoke editor: %s", err)
 	}
-
-	// preserve intermediate state across retries
-	tmpContent := content
-	for {
-		// invoke the editor to let the user edit the content
-		newContent, err := editor.Invoke(ctx, ed, tmpContent)
-		if err != nil {
-			return ExitError(ExitUnknown, err, "failed to invoke editor: %s", err)
-		}
-		// retain edited content for next try
-		tmpContent = newContent
-		if fromMIME {
-			newContent = append([]byte(secret.Ident+"\n"), newContent...)
-			if _, err := secparse.Parse(newContent); err != nil {
-				out.Red(ctx, "ERROR: Cannot parse Gopass native Secret: %s", err)
-				out.Yellow(ctx, "Hint: Does your Key-Value section end with a new line?")
-				cont, err := termio.AskForBool(ctx, "Retry?", true)
-				if err != nil {
-					return err
-				}
-				if !cont {
-					return fmt.Errorf("malformed secret")
-				}
-				continue
-			}
-		}
-		return s.editUpdate(ctx, name, content, newContent, changed, ed)
-	}
+	return s.editUpdate(ctx, name, content, newContent, changed, ed)
 }
 
 func (s *Action) editUpdate(ctx context.Context, name string, content, nContent []byte, changed bool, ed string) error {
@@ -87,7 +59,7 @@ func (s *Action) editUpdate(ctx context.Context, name string, content, nContent 
 	}
 
 	// if the secret has a password, we check it's strength
-	if pw := nSec.Get("password"); pw != "" {
+	if pw := nSec.Password(); pw != "" {
 		audit.Single(ctx, pw)
 	}
 

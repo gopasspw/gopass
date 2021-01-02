@@ -10,19 +10,19 @@ import (
 func TestFsckCheck(t *testing.T) {
 	ctx := context.Background()
 
-	assert.Equal(t, false, IsFsckCheck(ctx))
-	assert.Equal(t, true, IsFsckCheck(WithFsckCheck(ctx, true)))
-	assert.Equal(t, false, IsFsckCheck(WithFsckCheck(ctx, false)))
-	assert.Equal(t, true, HasFsckCheck(WithFsckCheck(ctx, true)))
+	assert.False(t, IsFsckCheck(ctx))
+	assert.True(t, IsFsckCheck(WithFsckCheck(ctx, true)))
+	assert.False(t, IsFsckCheck(WithFsckCheck(ctx, false)))
+	assert.True(t, HasFsckCheck(WithFsckCheck(ctx, true)))
 }
 
 func TestFsckForce(t *testing.T) {
 	ctx := context.Background()
 
-	assert.Equal(t, false, IsFsckForce(ctx))
-	assert.Equal(t, true, IsFsckForce(WithFsckForce(ctx, true)))
-	assert.Equal(t, false, IsFsckForce(WithFsckForce(ctx, false)))
-	assert.Equal(t, true, HasFsckForce(WithFsckForce(ctx, true)))
+	assert.False(t, IsFsckForce(ctx))
+	assert.True(t, IsFsckForce(WithFsckForce(ctx, true)))
+	assert.False(t, IsFsckForce(WithFsckForce(ctx, false)))
+	assert.True(t, HasFsckForce(WithFsckForce(ctx, true)))
 }
 
 func TestFsckFunc(t *testing.T) {
@@ -32,16 +32,16 @@ func TestFsckFunc(t *testing.T) {
 		return true
 	}
 	assert.NotNil(t, GetFsckFunc(ctx))
-	assert.Equal(t, true, GetFsckFunc(ctx)(ctx, ""))
-	assert.Equal(t, true, GetFsckFunc(WithFsckFunc(ctx, ffunc))(ctx, ""))
-	assert.Equal(t, true, HasFsckFunc(WithFsckFunc(ctx, ffunc)))
+	assert.True(t, GetFsckFunc(ctx)(ctx, ""))
+	assert.True(t, GetFsckFunc(WithFsckFunc(ctx, ffunc))(ctx, ""))
+	assert.True(t, HasFsckFunc(WithFsckFunc(ctx, ffunc)))
 }
 
 func TestCheckRecipients(t *testing.T) {
 	ctx := context.Background()
 
-	assert.Equal(t, false, IsCheckRecipients(ctx))
-	assert.Equal(t, true, IsCheckRecipients(WithCheckRecipients(ctx, true)))
-	assert.Equal(t, false, IsCheckRecipients(WithCheckRecipients(ctx, false)))
-	assert.Equal(t, true, HasCheckRecipients(WithCheckRecipients(ctx, true)))
+	assert.False(t, IsCheckRecipients(ctx))
+	assert.True(t, IsCheckRecipients(WithCheckRecipients(ctx, true)))
+	assert.False(t, IsCheckRecipients(WithCheckRecipients(ctx, false)))
+	assert.True(t, HasCheckRecipients(WithCheckRecipients(ctx, true)))
 }

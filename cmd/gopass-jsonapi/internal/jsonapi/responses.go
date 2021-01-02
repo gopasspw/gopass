@@ -10,8 +10,8 @@ import (
 
 	"github.com/gopasspw/gopass/internal/clipboard"
 	"github.com/gopasspw/gopass/internal/otp"
+	"github.com/gopasspw/gopass/internal/secrets"
 	"github.com/gopasspw/gopass/pkg/gopass"
-	"github.com/gopasspw/gopass/pkg/gopass/secret"
 	"github.com/gopasspw/gopass/pkg/pwgen"
 
 	"github.com/pkg/errors"
@@ -122,7 +122,7 @@ func (api *API) respondGetLogin(ctx context.Context, msgBytes []byte) error {
 
 	return sendSerializedJSONMessage(loginResponse{
 		Username: api.getUsername(message.Entry, sec),
-		Password: sec.Get("password"),
+		Password: sec.Password(),
 	}, api.Writer)
 }
 
@@ -140,7 +140,11 @@ func (api *API) respondGetData(ctx context.Context, msgBytes []byte) error {
 	keys := sec.Keys()
 	responseData := make(map[string]string, len(keys))
 	for _, k := range keys {
-		responseData[k] = sec.Get(k)
+		v, ok := sec.Get(k)
+		if !ok {
+			continue
+		}
+		responseData[k] = v
 	}
 	currentTotp, _, err := otp.Calculate("_", sec)
 	if err == nil {
@@ -154,7 +158,7 @@ func (api *API) respondGetData(ctx context.Context, msgBytes []byte) error {
 func (api *API) getUsername(name string, sec gopass.Secret) string {
 	// look for a meta-data entry containing the username first
 	for _, key := range []string{"login", "username", "user"} {
-		if v := sec.Get(key); v != "" {
+		if v, ok := sec.Get(key); ok && v != "" {
 			return v
 		}
 	}
@@ -182,8 +186,8 @@ func (api *API) respondCreateEntry(ctx context.Context, msgBytes []byte) error {
 		message.Password = pwgen.GeneratePassword(message.PasswordLength, message.UseSymbols)
 	}
 
-	sec := secret.New()
-	sec.Set("password", message.Password)
+	sec := secrets.New()
+	sec.SetPassword(message.Password)
 	if len(message.Login) > 0 {
 		sec.Set("user", message.Login)
 	}
@@ -218,9 +222,9 @@ func (api *API) respondCopyToClipboard(ctx context.Context, msgBytes []byte) err
 	}
 	var val string
 	if message.Key == "" {
-		val = sec.Get("password")
+		val = sec.Password()
 	} else {
-		val = sec.Get(message.Key)
+		val, _ = sec.Get(message.Key)
 	}
 
 	if val == "" {

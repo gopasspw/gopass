@@ -12,7 +12,7 @@ import (
 func Parse(in []byte) (gopass.Secret, error) {
 	var s gopass.Secret
 	var err error
-	s, err = secret.ParseMIME(in)
+	s, err = secrets.ParseLegacyMIME(in)
 	if err == nil {
 		debug.Log("parsed as MIME: %+v", s)
 		return s, nil

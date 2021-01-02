@@ -13,7 +13,7 @@ import (
 func Calculate(name string, sec gopass.Secret) (twofactor.OTP, string, error) {
 	otpURL := ""
 	// check body
-	for _, line := range strings.Split(sec.GetBody(), "\n") {
+	for _, line := range strings.Split(sec.Body(), "\n") {
 		if strings.HasPrefix(line, "otpauth://") {
 			otpURL = line
 			break
@@ -26,9 +26,9 @@ func Calculate(name string, sec gopass.Secret) (twofactor.OTP, string, error) {
 	// check yaml entry and fall back to password if we don't have one
 	label := name
 
-	secKey := sec.Get("totp")
-	if secKey == "" {
-		secKey = sec.Get("password")
+	secKey, found := sec.Get("totp")
+	if !found {
+		secKey = sec.Password()
 	}
 
 	if strings.HasPrefix(secKey, "otpauth://") {

@@ -11,7 +11,6 @@ import (
 	"github.com/caspr-io/yamlpath"
 	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/pkg/gopass"
-	"github.com/gopasspw/gopass/pkg/gopass/secret"
 	yaml "gopkg.in/yaml.v3"
 )
 
@@ -39,36 +38,33 @@ func (y *YAML) Keys() []string {
 }
 
 // Get returns the value of a single key
-func (y *YAML) Get(key string) string {
+func (y *YAML) Get(key string) (string, bool) {
 	if y.data == nil {
 		y.data = make(map[string]interface{})
 	}
-	if strings.ToLower(key) == "password" && y.password != "" {
-		return y.password
-	}
 	if v, found := y.data[key]; found {
-		return fmt.Sprintf("%v", v)
+		return fmt.Sprintf("%v", v), found
 	}
 	if v, err := yamlpath.YamlPath(y.data, key); err == nil && v != nil {
-		return fmt.Sprintf("%v", v)
+		return fmt.Sprintf("%v", v), true
 	}
-	return ""
+	return "", false
 }
 
 // Set sets a key to a given value
-func (y *YAML) Set(key, value string) {
-	if strings.ToLower(key) == "password" {
-		y.password = value
-	}
+func (y *YAML) Set(key string, value interface{}) error {
 	if y.data == nil {
 		y.data = make(map[string]interface{}, 1)
 	}
 	y.data[key] = value
+	return nil
 }
 
 // Del removes a single key
-func (y *YAML) Del(key string) {
+func (y *YAML) Del(key string) bool {
+	_, found := y.data[key]
 	delete(y.data, key)
+	return found
 }
 
 // ParseYAML will try to parse a YAML secret.
@@ -98,9 +94,19 @@ func ParseYAML(in []byte) (*YAML, error) {
 	return y, nil
 }
 
-// GetBody returns the body
-func (y *YAML) GetBody() string {
+// Body returns the body
+func (y *YAML) Body() string {
 	return y.body
+}
+
+// Password returns the password
+func (y *YAML) Password() string {
+	return y.password
+}
+
+// SetPassword updates the password
+func (y *YAML) SetPassword(v string) {
+	y.password = v
 }
 
 func parseBody(r *bufio.Reader) (string, error) {
@@ -129,18 +135,6 @@ func parseBody(r *bufio.Reader) (string, error) {
 	return "", fmt.Errorf("no YAML marker")
 }
 
-// MIME converts this secret to a gopass MIME secret
-func (y *YAML) MIME() *secret.MIME {
-	m := secret.New()
-	m.Set("password", y.password)
-	m.Set("Content-Type", "text/yaml")
-	m.WriteString(y.body)
-	if err := yaml.NewEncoder(m).Encode(y.data); err != nil {
-		debug.Log("failed to encode YAML: %s", err)
-	}
-	return m
-}
-
 // Bytes serialized this secret
 func (y *YAML) Bytes() []byte {
 	defer func() {
@@ -153,9 +147,9 @@ func (y *YAML) Bytes() []byte {
 	buf.WriteString("\n")
 	if y.body != "" {
 		buf.WriteString(y.body)
-	}
-	if !strings.HasSuffix(y.body, "\n") {
-		buf.WriteString("\n")
+		if !strings.HasSuffix(y.body, "\n") {
+			buf.WriteString("\n")
+		}
 	}
 	if len(y.data) > 0 {
 		buf.WriteString("---\n")
@@ -164,4 +158,9 @@ func (y *YAML) Bytes() []byte {
 		}
 	}
 	return buf.Bytes()
+}
+
+func (y *YAML) Write(buf []byte) (int, error) {
+	y.body += string(buf)
+	return len(buf), nil
 }

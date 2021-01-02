@@ -320,34 +320,6 @@ $ gopass fsmove /home/user/private.key my/private.key
 $ gopass sha256 my/private.key
 ```
 
-### MIME Secrets
-
-gopass has introduced a meta data format for secrets that is simliar to MIME headers. It allow flexible and safe handling of per-secret metadata and makes dealing with e.g. Binary content much more streamlined. This has allowed us to remove several known-flaky heuristics in favor of a cleaner implementation. The drawback of this change is that it is not fully compatible with other password store implementations.
-
-gopass will happyliy decrypt and encrypt legacy secrets, even the previous YAML and KV types. But if you create a new secret it will be created in the new format. If you want to convert all your secrets to the new format you can run `gopass fsck --decrypt` to re-encrypt every secret in your store.
-
-WARNING: Make sure that all recipients of your store use gopass > 1.9.2 before doing that.
-
-The secret format is simple:
-
-* fixed identifier for format detection
-* a MIME header
-* exactly one empty line
-* the body of the secret
-
-Example:
-
-```
-GOPASS-SECRET-1.0
-Password: foobar
-User: name
-
-more content in the body
-```
-
-The identifier line is usually hidden when you use `show`, `edit`, etc.
-When `show`ing a secret, you can specify a key and it will `show` you its value instead of the whole entry: `gopass show example user`
-
 ### Multiple Stores
 
 gopass supports multi-stores that can be mounted over each other like file systems on Linux/UNIX systems. Mounting new stores can be done through gopass:
@@ -489,7 +461,7 @@ This makes it easy to use templates for certain kind of secrets such as database
 Gopass can limit display of certain *unsafe* fields in secrets.
 By default no fields are obstructed, but if the `safecontent`
 config option is set to `true` the `Password` field is obstructed.
-Also the special `Unsafe-Keys` key is evaluated. It expectes
+Also the special `unsafe-keys` key is evaluated. It expectes
 a comma separated list of keys that will be obstructed when
 printing the secret.
 

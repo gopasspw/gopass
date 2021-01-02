@@ -10,8 +10,8 @@ import (
 	plain "github.com/gopasspw/gopass/internal/backend/crypto/plain"
 	"github.com/gopasspw/gopass/internal/backend/storage/fs"
 	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/internal/secrets"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"github.com/gopasspw/gopass/pkg/gopass/secret"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -43,16 +43,16 @@ func TestCopy(t *testing.T) {
 			name: "Single entry",
 			tf: func(s *Store) func(t *testing.T) {
 				return func(t *testing.T) {
-					nsec := secret.New()
-					nsec.Set("password", "bar")
+					nsec := &secrets.Plain{}
+					nsec.SetPassword("bar")
 					assert.NoError(t, s.Set(ctx, "foo", nsec))
 					assert.NoError(t, s.Copy(ctx, "foo", "bar"))
 					sec, err := s.Get(ctx, "foo")
 					require.NoError(t, err)
-					assert.Equal(t, "bar", sec.Get("password"))
+					assert.Equal(t, "bar", sec.Password())
 					sec, err = s.Get(ctx, "bar")
 					require.NoError(t, err)
-					assert.Equal(t, "bar", sec.Get("password"))
+					assert.Equal(t, "bar", sec.Password())
 				}
 			},
 		},
@@ -60,10 +60,10 @@ func TestCopy(t *testing.T) {
 			name: "Recursive",
 			tf: func(s *Store) func(t *testing.T) {
 				return func(t *testing.T) {
-					sec := secret.New()
-					sec.Set("password", "baz")
+					sec := &secrets.Plain{}
+					sec.SetPassword("baz")
 					assert.NoError(t, s.Set(ctx, "foo/bar/baz", sec))
-					sec.Set("password", "zab")
+					sec.SetPassword("zab")
 					assert.NoError(t, s.Set(ctx, "foo/bar/zab", sec))
 					assert.Error(t, s.Copy(ctx, "foo", "bar"))
 				}
@@ -118,8 +118,8 @@ func TestMove(t *testing.T) {
 			name: "Single entry",
 			tf: func(s *Store) func(t *testing.T) {
 				return func(t *testing.T) {
-					nsec := secret.New()
-					nsec.Set("password", "bar")
+					nsec := &secrets.Plain{}
+					nsec.SetPassword("bar")
 					assert.NoError(t, s.Set(ctx, "foo", nsec))
 					assert.NoError(t, s.Move(ctx, "foo", "bar"))
 					_, err := s.Get(ctx, "foo")
@@ -127,7 +127,7 @@ func TestMove(t *testing.T) {
 
 					sec, err := s.Get(ctx, "bar")
 					require.NoError(t, err)
-					assert.Equal(t, "bar", sec.Get("password"))
+					assert.Equal(t, "bar", sec.Password())
 				}
 			},
 		},
@@ -135,10 +135,10 @@ func TestMove(t *testing.T) {
 			name: "Recursive",
 			tf: func(s *Store) func(t *testing.T) {
 				return func(t *testing.T) {
-					sec := secret.New()
-					sec.Set("password", "baz")
+					sec := &secrets.Plain{}
+					sec.SetPassword("baz")
 					assert.NoError(t, s.Set(ctx, "foo/bar/baz", sec))
-					sec.Set("password", "zab")
+					sec.SetPassword("zab")
 					assert.NoError(t, s.Set(ctx, "foo/bar/zab", sec))
 					assert.Error(t, s.Move(ctx, "foo", "bar"))
 				}
@@ -194,8 +194,8 @@ func TestDelete(t *testing.T) {
 			name: "Single entry",
 			tf: func(s *Store) func(t *testing.T) {
 				return func(t *testing.T) {
-					sec := secret.New()
-					sec.Set("password", "bar")
+					sec := &secrets.Plain{}
+					sec.SetPassword("bar")
 					assert.NoError(t, s.Set(ctx, "foo", sec))
 					assert.NoError(t, s.Delete(ctx, "foo"))
 					_, err := s.Get(ctx, "foo")
@@ -253,8 +253,8 @@ func TestPrune(t *testing.T) {
 			name: "Single entry",
 			tf: func(s *Store) func(t *testing.T) {
 				return func(t *testing.T) {
-					sec := secret.New()
-					sec.Set("password", "bar")
+					sec := &secrets.Plain{}
+					sec.SetPassword("bar")
 					assert.NoError(t, s.Set(ctx, "foo", sec))
 					assert.NoError(t, s.Prune(ctx, "foo"))
 
@@ -267,8 +267,8 @@ func TestPrune(t *testing.T) {
 			name: "Multi entry nested",
 			tf: func(s *Store) func(t *testing.T) {
 				return func(t *testing.T) {
-					sec := secret.New()
-					sec.Set("password", "bar")
+					sec := &secrets.Plain{}
+					sec.SetPassword("bar")
 					assert.NoError(t, s.Set(ctx, "foo/bar/baz", sec))
 					assert.NoError(t, s.Set(ctx, "foo/bar/zab", sec))
 					assert.NoError(t, s.Prune(ctx, "foo/bar"))

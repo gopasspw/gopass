@@ -117,8 +117,8 @@ func TestListNested(t *testing.T) {
 	sort.Strings(lst)
 	assert.Equal(t, ents, lst)
 
-	assert.Equal(t, false, rs.Exists(ctx, "sub1"))
-	assert.Equal(t, true, rs.IsDir(ctx, "sub1"))
+	assert.False(t, rs.Exists(ctx, "sub1"))
+	assert.True(t, rs.IsDir(ctx, "sub1"))
 	assert.Equal(t, "", rs.Alias())
 	assert.NotNil(t, rs.Storage(ctx, "sub1"))
 }

@@ -8,8 +8,8 @@ import (
 
 	"github.com/gopasspw/gopass/internal/gptest"
 	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/internal/secrets"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"github.com/gopasspw/gopass/pkg/gopass/secret"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -44,8 +44,8 @@ func TestDelete(t *testing.T) {
 	buf.Reset()
 
 	// delete foo bar
-	sec := secret.New()
-	sec.Set("password", "123")
+	sec := &secrets.Plain{}
+	sec.SetPassword("123")
 	sec.WriteString("---\nbar: zab")
 	assert.NoError(t, act.Store.Set(ctx, "foo", sec))
 

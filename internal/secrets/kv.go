@@ -8,31 +8,24 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/pkg/gopass"
-	"github.com/gopasspw/gopass/pkg/gopass/secret"
 )
 
 var _ gopass.Secret = &KV{}
+
+// NewKV creates a new KV secret
+func NewKV() *KV {
+	return &KV{
+		data: make(map[string]string, 10),
+	}
+}
 
 // KV is a simple key value secret
 type KV struct {
 	password string
 	data     map[string]string
 	body     string
-}
-
-// MIME converts this secret to a gopass MIME secret
-func (k *KV) MIME() *secret.MIME {
-	m := secret.New()
-	m.Set("password", k.password)
-	for k, v := range k.data {
-		if strings.ToLower(k) == "password" {
-			continue
-		}
-		m.Set(k, v)
-	}
-	m.WriteString(k.body)
-	return m
 }
 
 // Bytes serializes
@@ -68,32 +61,40 @@ func (k *KV) Keys() []string {
 }
 
 // Get returns a single key
-func (k *KV) Get(key string) string {
-	if strings.ToLower(key) == "password" {
-		return k.password
-	}
-	return k.data[key]
+func (k *KV) Get(key string) (string, bool) {
+	key = strings.ToLower(key)
+	v, found := k.data[key]
+	return v, found
 }
 
 // Set writes a single key
-func (k *KV) Set(key, value string) {
+func (k *KV) Set(key string, value interface{}) error {
 	key = strings.ToLower(key)
-	if key == "password" {
-		k.password = value
-		return
-	}
-	k.data[key] = value
+	k.data[key] = fmt.Sprintf("%s", value)
+	return nil
 }
 
 // Del removes a key
-func (k *KV) Del(key string) {
+func (k *KV) Del(key string) bool {
 	key = strings.ToLower(key)
+	_, found := k.data[key]
 	delete(k.data, key)
+	return found
 }
 
-// GetBody returns the body
-func (k *KV) GetBody() string {
+// Body returns the body
+func (k *KV) Body() string {
 	return k.body
+}
+
+// Password returns the password
+func (k *KV) Password() string {
+	return k.password
+}
+
+// SetPassword updates the password
+func (k *KV) SetPassword(p string) {
+	k.password = p
 }
 
 // ParseKV tries to parse a KV secret
@@ -117,13 +118,12 @@ func ParseKV(in []byte) (*KV, error) {
 			}
 			return nil, err
 		}
-		line = strings.TrimRight(line, "\n")
 		// append non KV pairs to the body
 		if !strings.Contains(line, ": ") {
 			sb.WriteString(line)
-			sb.WriteString("\n")
 			continue
 		}
+		line = strings.TrimRight(line, "\n")
 
 		parts := strings.SplitN(line, ":", 2)
 		// should not happen
@@ -141,8 +141,14 @@ func ParseKV(in []byte) (*KV, error) {
 		k.data[parts[0]] = parts[1]
 	}
 	if len(k.data) < 1 {
-		return nil, fmt.Errorf("no KV entries")
+		debug.Log("no KV entries")
+		//return nil, fmt.Errorf("no KV entries")
 	}
 	k.body = sb.String()
 	return k, nil
+}
+
+func (k *KV) Write(buf []byte) (int, error) {
+	k.body += string(buf)
+	return len(buf), nil
 }

@@ -71,7 +71,7 @@ func TestAskForBool(t *testing.T) {
 
 	bv, err := AskForBool(ctx, "test", false)
 	assert.NoError(t, err)
-	assert.Equal(t, false, bv)
+	assert.False(t, bv)
 
 	// provide value on redirected stdin
 	input := `n
@@ -86,31 +86,31 @@ z
 	ctx = ctxutil.WithAlwaysYes(ctx, false)
 	bv, err = AskForBool(ctx, "test", true)
 	assert.NoError(t, err)
-	assert.Equal(t, false, bv)
+	assert.False(t, bv)
 
 	bv, err = AskForBool(ctx, "test", false)
 	assert.NoError(t, err)
-	assert.Equal(t, true, bv)
+	assert.True(t, bv)
 
 	bv, err = AskForBool(ctx, "test", true)
 	assert.NoError(t, err)
-	assert.Equal(t, false, bv)
+	assert.False(t, bv)
 
 	bv, err = AskForBool(ctx, "test", false)
 	assert.NoError(t, err)
-	assert.Equal(t, true, bv)
+	assert.True(t, bv)
 
 	bv, err = AskForBool(ctx, "test", true)
 	assert.NoError(t, err)
-	assert.Equal(t, true, bv)
+	assert.True(t, bv)
 
 	bv, err = AskForBool(ctx, "test", false)
 	assert.NoError(t, err)
-	assert.Equal(t, false, bv)
+	assert.False(t, bv)
 
 	bv, err = AskForBool(ctx, "test", false)
 	assert.Error(t, err)
-	assert.Equal(t, false, bv)
+	assert.False(t, bv)
 }
 
 func TestAskForInt(t *testing.T) {
@@ -156,7 +156,7 @@ func TestAskForConfirmation(t *testing.T) {
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
-	assert.Equal(t, true, AskForConfirmation(ctx, "test"))
+	assert.True(t, AskForConfirmation(ctx, "test"))
 
 	// provide value on redirected stdin
 	input := `y
@@ -169,9 +169,9 @@ n
 	Stdin = strings.NewReader(input)
 	ctx = ctxutil.WithAlwaysYes(ctx, false)
 
-	assert.Equal(t, true, AskForConfirmation(ctx, "test"))
-	assert.Equal(t, false, AskForConfirmation(ctx, "test"))
-	assert.Equal(t, false, AskForConfirmation(ctx, "test"))
+	assert.True(t, AskForConfirmation(ctx, "test"))
+	assert.False(t, AskForConfirmation(ctx, "test"))
+	assert.False(t, AskForConfirmation(ctx, "test"))
 }
 
 func TestAskForKeyImport(t *testing.T) {
@@ -186,7 +186,7 @@ func TestAskForKeyImport(t *testing.T) {
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 
-	assert.Equal(t, true, AskForKeyImport(ctx, "test", []string{}))
+	assert.True(t, AskForKeyImport(ctx, "test", []string{}))
 
 	// provide value on redirected stdin
 	input := `y
@@ -196,10 +196,10 @@ z
 
 	Stdin = strings.NewReader(input)
 	ctx = ctxutil.WithAlwaysYes(ctx, false)
-	assert.Equal(t, false, AskForKeyImport(ctxutil.WithInteractive(ctx, false), "", nil))
-	assert.Equal(t, true, AskForKeyImport(ctx, "", nil))
-	assert.Equal(t, false, AskForKeyImport(ctx, "", nil))
-	assert.Equal(t, false, AskForKeyImport(ctx, "", nil))
+	assert.False(t, AskForKeyImport(ctxutil.WithInteractive(ctx, false), "", nil))
+	assert.True(t, AskForKeyImport(ctx, "", nil))
+	assert.False(t, AskForKeyImport(ctx, "", nil))
+	assert.False(t, AskForKeyImport(ctx, "", nil))
 }
 
 func TestAskForPasswordNonInteractive(t *testing.T) {

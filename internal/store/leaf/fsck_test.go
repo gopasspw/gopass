@@ -10,8 +10,8 @@ import (
 	"github.com/gopasspw/gopass/internal/backend/crypto/plain"
 	"github.com/gopasspw/gopass/internal/backend/storage/fs"
 	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/internal/secrets"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"github.com/gopasspw/gopass/pkg/gopass/secret"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -40,8 +40,8 @@ func TestFsck(t *testing.T) {
 	assert.NoError(t, s.saveRecipients(ctx, []string{"john.doe"}, "test"))
 
 	for _, e := range []string{"foo/bar", "foo/baz", "foo/zab"} {
-		sec := secret.New()
-		sec.Set("password", "bar")
+		sec := &secrets.Plain{}
+		sec.SetPassword("bar")
 		assert.NoError(t, s.Set(ctx, e, sec))
 	}
 

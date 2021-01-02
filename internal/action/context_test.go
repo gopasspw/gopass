@@ -34,8 +34,8 @@ func TestWithPasswordOnly(t *testing.T) {
 func TestWithPrintQR(t *testing.T) {
 	ctx := context.Background()
 
-	assert.Equal(t, false, IsPrintQR(ctx))
-	assert.Equal(t, true, IsPrintQR(WithPrintQR(ctx, true)))
+	assert.False(t, IsPrintQR(ctx))
+	assert.True(t, IsPrintQR(WithPrintQR(ctx, true)))
 }
 
 func TestWithRevision(t *testing.T) {
@@ -43,8 +43,8 @@ func TestWithRevision(t *testing.T) {
 
 	assert.Equal(t, "", GetRevision(ctx))
 	assert.Equal(t, "foo", GetRevision(WithRevision(ctx, "foo")))
-	assert.Equal(t, false, HasRevision(ctx))
-	assert.Equal(t, true, HasRevision(WithRevision(ctx, "foo")))
+	assert.False(t, HasRevision(ctx))
+	assert.True(t, HasRevision(WithRevision(ctx, "foo")))
 }
 
 func TestWithKey(t *testing.T) {
@@ -57,13 +57,13 @@ func TestWithKey(t *testing.T) {
 func TestWithOnlyClip(t *testing.T) {
 	ctx := context.Background()
 
-	assert.Equal(t, false, IsOnlyClip(ctx))
-	assert.Equal(t, true, IsOnlyClip(WithOnlyClip(ctx, true)))
+	assert.False(t, IsOnlyClip(ctx))
+	assert.True(t, IsOnlyClip(WithOnlyClip(ctx, true)))
 }
 
 func TestWithAlsoClip(t *testing.T) {
 	ctx := context.Background()
 
-	assert.Equal(t, false, IsAlsoClip(ctx))
-	assert.Equal(t, true, IsAlsoClip(WithAlsoClip(ctx, true)))
+	assert.False(t, IsAlsoClip(ctx))
+	assert.True(t, IsAlsoClip(WithAlsoClip(ctx, true)))
 }

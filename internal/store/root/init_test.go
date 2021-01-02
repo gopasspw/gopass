@@ -29,11 +29,11 @@ func TestInit(t *testing.T) {
 
 	inited, err := rs.Initialized(ctx)
 	assert.NoError(t, err)
-	assert.Equal(t, false, inited)
+	assert.False(t, inited)
 	assert.NoError(t, rs.Init(ctx, "", u.StoreDir("rs"), "0xDEADBEEF"))
 
 	inited, err = rs.Initialized(ctx)
 	require.NoError(t, err)
-	assert.Equal(t, true, inited)
+	assert.True(t, inited)
 	assert.NoError(t, rs.Init(ctx, "rs2", u.StoreDir("rs2"), "0xDEADBEEF"))
 }

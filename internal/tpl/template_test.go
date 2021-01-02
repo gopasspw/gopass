@@ -72,7 +72,7 @@ func TestVars(t *testing.T) {
 			Template: `{{get "testdir"}}`,
 			Name:     "testdir",
 			Content:  []byte("foobar"),
-			Output:   "barfoo\n\n---\nbarkey: barvalue\n",
+			Output:   "barfoo\n---\nbarkey: barvalue\n",
 		},
 		{
 			Template: `{{getpw "testdir"}}`,

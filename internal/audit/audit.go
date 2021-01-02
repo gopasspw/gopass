@@ -5,7 +5,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/gopasspw/gopass/internal/backend"
@@ -54,25 +53,26 @@ func Batch(ctx context.Context, secrets []string, secStore secretGetter) error {
 	cv := crunchy.NewValidator()
 	validators := []validator{
 		func(_ string, sec gopass.Secret) error {
-			return cv.Check(sec.Get("password"))
+			return cv.Check(sec.Password())
 		},
 		func(name string, sec gopass.Secret) error {
 			ui := make([]string, 0, len(sec.Keys())+1)
 			for _, k := range sec.Keys() {
-				if strings.ToLower(k) == "password" {
+				pw, found := sec.Get(k)
+				if !found {
 					continue
 				}
-				ui = append(ui, sec.Get(k))
+				ui = append(ui, pw)
 			}
 			ui = append(ui, name)
-			match := zxcvbn.PasswordStrength(sec.Get("password"), ui)
+			match := zxcvbn.PasswordStrength(sec.Password(), ui)
 			if match.Score < 3 {
 				return fmt.Errorf("weak password (%d / 4)", match.Score)
 			}
 			return nil
 		},
 		func(name string, sec gopass.Secret) error {
-			if name == sec.Get("password") {
+			if name == sec.Password() {
 				return fmt.Errorf("password equals name")
 			}
 			return nil
@@ -153,14 +153,14 @@ func audit(ctx context.Context, secStore secretGetter, validators []validator, s
 			debug.Log("Failed to check %s: %s", secret, err)
 			as.err = err
 			if sec != nil {
-				as.content = sec.Get("password")
+				as.content = sec.Password()
 			}
 			// failed to properly retrieve the secret
 			checked <- as
 			continue
 		}
 
-		as.content = sec.Get("password")
+		as.content = sec.Password()
 
 		// do not check empty secrets
 		if as.content == "" {

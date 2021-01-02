@@ -19,7 +19,9 @@ password: bar
 	require.NoError(t, err)
 	assert.NotNil(t, s)
 
-	assert.Equal(t, "", s.Get("Test / test.com"))
+	v, found := s.Get("Test / test.com")
+	assert.False(t, found)
+	assert.Equal(t, "", v)
 
 	t.Logf("Secret:\n%+v\n%s\n", s, string(s.Bytes()))
 
@@ -39,26 +41,33 @@ Test / test.com
 
 	t.Run("read some keys", func(t *testing.T) {
 		for k, v := range map[string]string{
-			"password": "somepasswd",
+			"password": "bar",
 			"url":      "http://www.test.com/",
 			"username": "myuser@test.com",
 		} {
-			assert.Equal(t, v, s.Get(k))
+			fv, found := s.Get(k)
+			assert.True(t, found)
+			assert.Equal(t, v, fv)
 		}
+		assert.Equal(t, "somepasswd", s.Password())
 	})
 
 	t.Run("remove a key", func(t *testing.T) {
 		s.Set("foobar", "baz")
-		assert.Equal(t, "baz", s.Get("foobar"))
+		v, ok := s.Get("foobar")
+		assert.True(t, ok)
+		assert.Equal(t, "baz", v)
 		s.Del("foobar")
-		assert.Equal(t, "", s.Get("foobar"))
+		v, ok = s.Get("foobar")
+		assert.False(t, ok)
+		assert.Equal(t, "", v)
 	})
 
 	t.Run("read the body", func(t *testing.T) {
 		body := "Test / test.com\n"
-		assert.Equal(t, body, s.GetBody())
-		assert.Equal(t, body, s.GetBody())
-		assert.Equal(t, body, s.GetBody())
+		assert.Equal(t, body, s.Body())
+		assert.Equal(t, body, s.Body())
+		assert.Equal(t, body, s.Body())
 	})
 }
 
@@ -68,36 +77,6 @@ ab: cd`
 	s, err := ParseKV([]byte(mlValue))
 	require.NoError(t, err)
 	assert.NotNil(t, s)
-	assert.Equal(t, "cd", s.Get("ab"))
-}
-
-func TestKVMIME(t *testing.T) {
-	in := `passw0rd
-foo: bar
-zab: 123`
-	out := `GOPASS-SECRET-1.0
-Foo: bar
-Password: passw0rd
-Zab: 123
-`
-	sec, err := ParseKV([]byte(in))
-	require.NoError(t, err)
-	msec := sec.MIME()
-	assert.Equal(t, out, string(msec.Bytes()))
-}
-
-func TestMultiKeyKVMIME(t *testing.T) {
-	in := `passw0rd
-foo: baz
-foo: bar
-zab: 123`
-	out := `GOPASS-SECRET-1.0
-Foo: bar
-Password: passw0rd
-Zab: 123
-`
-	sec, err := ParseKV([]byte(in))
-	require.NoError(t, err)
-	msec := sec.MIME()
-	assert.Equal(t, out, string(msec.Bytes()))
+	v, _ := s.Get("ab")
+	assert.Equal(t, "cd", v)
 }
