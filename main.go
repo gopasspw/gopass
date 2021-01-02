@@ -32,7 +32,7 @@ import (
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store/leaf"
-	"github.com/gopasspw/gopass/internal/termio"
+	"github.com/gopasspw/gopass/pkg/termio"
 )
 
 const (

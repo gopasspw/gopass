@@ -10,9 +10,8 @@ import (
 
 	"github.com/gopasspw/gopass/cmd/gopass-jsonapi/internal/jsonapi/manifest"
 	"github.com/gopasspw/gopass/internal/config"
-	"github.com/gopasspw/gopass/internal/out"
-	"github.com/gopasspw/gopass/internal/termio"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/termio"
 
 	"github.com/fatih/color"
 	"github.com/urfave/cli/v2"
@@ -57,7 +56,7 @@ func (s *jsonapiCLI) setup(c *cli.Context) error {
 	}
 
 	if c.Bool("print") {
-		out.Print(ctx, "Native Messaging Setup Preview:\nWrapper Script (%s):\n%s\n\nManifest File (%s):\n%s\n", wrapperPath, string(wrap), manifestPath, string(mf))
+		fmt.Printf("Native Messaging Setup Preview:\nWrapper Script (%s):\n%s\n\nManifest File (%s):\n%s\n", wrapperPath, string(wrap), manifestPath, string(mf))
 	}
 
 	if install, err := termio.AskForBool(ctx, color.BlueString("Install manifest and wrapper?"), true); err != nil || !install {
@@ -65,7 +64,7 @@ func (s *jsonapiCLI) setup(c *cli.Context) error {
 	}
 
 	if os.Getenv("GNUPGHOME") != "" {
-		out.Yellow(ctx, "You seem to have GNUPGHOME set. If you intend to use the path in GNUPGHOME, you need to manually add:\n"+
+		fmt.Printf("You seem to have GNUPGHOME set. If you intend to use the path in GNUPGHOME, you need to manually add:\n" +
 			"\n  export GNUPGHOME=/path/to/gpg-home\n\n to the wrapper script")
 	}
 

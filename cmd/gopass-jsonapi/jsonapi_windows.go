@@ -10,9 +10,8 @@ import (
 	"path/filepath"
 
 	"github.com/gopasspw/gopass/cmd/gopass-jsonapi/internal/jsonapi/manifest"
-	"github.com/gopasspw/gopass/internal/out"
-	"github.com/gopasspw/gopass/internal/termio"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/termio"
 
 	"github.com/fatih/color"
 	"github.com/urfave/cli/v2"
@@ -60,7 +59,7 @@ func (s *jsonapiCLI) setup(c *cli.Context) error {
 	}
 
 	if c.Bool("print") {
-		out.Print(ctx, "Native Messaging Setup Preview:\nWrapper Script (%s)\n\nManifest File (%s = %s):\n%s\n", wrapperFileName, regPath, manifestPath, string(mf))
+		fmt.Printf("Native Messaging Setup Preview:\nWrapper Script (%s)\n\nManifest File (%s = %s):\n%s\n", wrapperFileName, regPath, manifestPath, string(mf))
 	}
 
 	if install, err := termio.AskForBool(ctx, color.BlueString("Install manifest and wrapper?"), true); err != nil || !install {

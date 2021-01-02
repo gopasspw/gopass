@@ -8,8 +8,8 @@ import (
 
 	"filippo.io/age"
 	"github.com/gopasspw/gopass/internal/debug"
-	"github.com/gopasspw/gopass/internal/termio"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/termio"
 )
 
 // Keyring is an age keyring

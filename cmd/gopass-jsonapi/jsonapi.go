@@ -10,9 +10,9 @@ import (
 	"github.com/blang/semver"
 	"github.com/gopasspw/gopass/cmd/gopass-jsonapi/internal/jsonapi"
 	"github.com/gopasspw/gopass/cmd/gopass-jsonapi/internal/jsonapi/manifest"
-	"github.com/gopasspw/gopass/internal/termio"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/gopass"
+	"github.com/gopasspw/gopass/pkg/termio"
 
 	"github.com/fatih/color"
 	"github.com/pkg/errors"
