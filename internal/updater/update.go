@@ -168,6 +168,10 @@ func updateCheckHost(u *url.URL) error {
 func updateTo(ctx context.Context, version, url string) error {
 	debug.Log("URL: %s", url)
 	out.Green(ctx, "Update available!")
+	if true {
+		out.Red(ctx, "Gopass Updater is disabled (insecure, see #1676")
+		return nil
+	}
 	ok, err := termio.AskForBool(ctx, fmt.Sprintf("Do you want to update gopass to %s?", version), true)
 	if err != nil {
 		return err

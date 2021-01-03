@@ -914,6 +914,7 @@ func (s *Action) GetCommands() []*cli.Command {
 				"This command checks for gopass updates at GitHub and automatically " +
 				"downloads and installs any missing update.",
 			Action: s.Update,
+			Hidden: true,
 			Flags: []cli.Flag{
 				&cli.BoolFlag{
 					Name:  "pre",
