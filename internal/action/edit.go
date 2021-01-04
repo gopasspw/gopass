@@ -71,7 +71,7 @@ func (s *Action) editUpdate(ctx context.Context, name string, content, nContent 
 }
 
 func (s *Action) editGetContent(ctx context.Context, name string, create bool) (string, []byte, bool, error) {
-	if !s.Store.Exists(ctx, name) {
+	if !s.Store.Exists(ctx, name) && !create {
 		newName := ""
 		// capture only the name of the selected secret
 		cb := func(ctx context.Context, c *cli.Context, name string, recurse bool) error {
