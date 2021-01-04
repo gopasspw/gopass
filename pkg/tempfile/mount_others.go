@@ -4,6 +4,8 @@ package tempfile
 
 import "context"
 
+var shmDir = ""
+
 // tempdir returns a temporary directory suiteable for sensitive data. On
 // Windows, just return empty string for ioutil.TempFile.
 func tempdirBase() string {

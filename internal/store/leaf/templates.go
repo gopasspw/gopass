@@ -54,9 +54,9 @@ func (s *Store) ListTemplates(ctx context.Context, prefix string) []string {
 		if !strings.HasSuffix(path, TemplateFile) {
 			continue
 		}
-		path = strings.TrimSuffix(path, sep+TemplateFile)
+		path = strings.TrimSuffix(path, Sep+TemplateFile)
 		if prefix != "" {
-			path = prefix + sep + path
+			path = prefix + Sep + path
 		}
 		tpls[path] = struct{}{}
 	}

@@ -85,7 +85,7 @@ func (s *Store) idFile(ctx context.Context, name string) string {
 		if cnt > 100 {
 			break
 		}
-		if fn == "" || fn == sep {
+		if fn == "" || fn == Sep {
 			break
 		}
 		gfn := filepath.Join(fn, s.crypto.IDFile())

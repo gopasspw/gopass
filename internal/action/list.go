@@ -4,10 +4,10 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/gopasspw/gopass/internal/store/leaf"
 	"io"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"strings"
 
 	"github.com/fatih/color"
@@ -56,7 +56,7 @@ func (s *Action) List(c *cli.Context) error {
 
 func (s *Action) listFiltered(ctx context.Context, l *tree.Root, limit int, flat, folders, stripPrefix bool, filter string) error {
 
-	sep := string(filepath.Separator)
+	sep := string(leaf.Sep)
 
 	if filter == "" || filter == sep {
 		// We list all entries then
