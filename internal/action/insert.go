@@ -13,7 +13,6 @@ import (
 	"github.com/gopasspw/gopass/internal/secrets"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/gopass"
-	"github.com/gopasspw/gopass/pkg/gopass/secret/secparse"
 	"github.com/gopasspw/gopass/pkg/termio"
 
 	"github.com/urfave/cli/v2"
@@ -106,12 +105,12 @@ func (s *Action) insertStdin(ctx context.Context, name string, content []byte, a
 		debug.Log("wrote to secretWriter")
 		sec = eSec
 	} else {
-		plain, err := secparse.Parse(content)
-		if err != nil {
-			return ExitError(ExitAborted, err, "failed to parse secret from stdin: %s", err)
+		plain := &secrets.Plain{}
+		if n, err := plain.Write(content); err != nil || n < 0 {
+			return ExitError(ExitAborted, err, "failed to write secret from stdin: %s", err)
 		}
 		sec = plain
-		debug.Log("parsed new plain")
+		debug.Log("Created new plain secret with input")
 	}
 	if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, "Read secret from STDIN"), name, sec); err != nil {
 		return ExitError(ExitEncrypt, err, "failed to set '%s': %s", name, err)
@@ -130,9 +129,11 @@ func (s *Action) insertSingle(ctx context.Context, name, pw string, kvps map[str
 		sec = gs
 	} else {
 		if content, found := s.renderTemplate(ctx, name, []byte(pw)); found {
-			nSec, err := secparse.Parse(content)
-			if err == nil {
+			nSec := &secrets.Plain{}
+			if _, err := nSec.Write(content); err == nil {
 				sec = nSec
+			} else {
+				debug.Log("failed to handle template: %s", err)
 			}
 		}
 	}
@@ -195,9 +196,10 @@ func (s *Action) insertMultiline(ctx context.Context, c *cli.Context, name strin
 	if err != nil {
 		return ExitError(ExitUnknown, err, "failed to start editor: %s", err)
 	}
-	sec, err := secparse.Parse(content)
-	if err != nil {
-		out.Error(ctx, "WARNING: Invalid YAML: %s", err)
+	sec := &secrets.Plain{}
+	n, err := sec.Write(content)
+	if err != nil || n < 0 {
+		out.Error(ctx, "WARNING: Invalid secret: %s of len %d", err, n)
 	}
 	if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, fmt.Sprintf("Inserted user supplied password with %s", ed)), name, sec); err != nil {
 		return ExitError(ExitEncrypt, err, "failed to store secret '%s': %s", name, err)

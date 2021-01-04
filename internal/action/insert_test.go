@@ -23,6 +23,8 @@ func TestInsert(t *testing.T) {
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithTerminal(ctx, false)
 	ctx = ctxutil.WithAutoClip(ctx, false)
+	ctx = ctxutil.WithShowParsing(ctx, true)
+
 	act, err := newMock(ctx, u)
 	require.NoError(t, err)
 	require.NotNil(t, act)
@@ -99,6 +101,28 @@ func TestInsert(t *testing.T) {
 		assert.NoError(t, act.show(ctx, gptest.CliCtx(ctx, t), "keyvaltest", false))
 		assert.Contains(t, buf.String(), "baz: val\npassword: ****")
 		buf.Reset()
+	})
+
+	t.Run("insert baz via stdin w/ yaml and input parsing and safecontent", func(t *testing.T) {
+		assert.NoError(t, act.insertStdin(ctx, "baz", []byte("foobar\n---\nuser: name\nother: 0123"), false))
+		buf.Reset()
+
+		assert.NoError(t, act.show(ctx, gptest.CliCtx(ctx, t), "baz", false))
+		assert.Equal(t, "other: 83\npassword: *****\nuser: name\n", buf.String())
+		buf.Reset()
+	})
+
+	t.Run("insert baz via stdin w/ yaml and no input parsing", func(t *testing.T) {
+		ctx = ctxutil.WithShowParsing(ctx, false)
+		ctx = ctxutil.WithShowSafeContent(ctx, false)
+		assert.NoError(t, act.insertStdin(ctx, "baz", []byte("foobar\n---\nuser: name\nother: 0123"), false))
+		buf.Reset()
+
+		assert.NoError(t, act.show(ctx, gptest.CliCtx(ctx, t), "baz", false))
+		assert.Equal(t, "foobar\n---\nuser: name\nother: 0123", buf.String())
+		buf.Reset()
+
+		ctx = ctxutil.WithShowParsing(ctx, true)
 	})
 }
 

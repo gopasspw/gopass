@@ -55,7 +55,7 @@ func (s *hibp) CheckAPI(ctx context.Context, force bool) error {
 
 // CheckDump checks your secrets against the provided HIBPv2 Dumps
 func (s *hibp) CheckDump(ctx context.Context, force bool, dumps []string) error {
-	out.Yellow(ctx, "WARNING: Using the HIBPv2 dumps is very expensive. If you can condone leaking a few bits of entropy per secret you should probably use the '--api' flag.")
+	out.Warning(ctx, "Using the HIBPv2 dumps is very expensive. If you can condone leaking a few bits of entropy per secret you should probably use the '--api' flag.")
 
 	if !force && !termio.AskForConfirmation(ctx, fmt.Sprintf("This command is checking all your secrets against the haveibeenpwned.com hashes in %+v.\nYou will be asked to unlock all your secrets!\nDo you want to continue?", dumps)) {
 		return fmt.Errorf("user aborted")

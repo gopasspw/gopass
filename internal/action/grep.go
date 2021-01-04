@@ -54,7 +54,7 @@ func (s *Action) Grep(c *cli.Context) error {
 		}
 	}
 
-	out.Red(ctx, "WARNING: some secrets failed to decrypt")
+	out.Warning(ctx, "some secrets failed to decrypt")
 	out.Print(ctx, "\nScanned %d secrets. %d matches, %d errors", len(haystack), matches, errors)
 	return nil
 }

@@ -8,8 +8,8 @@ import (
 	"github.com/gopasspw/gopass/internal/audit"
 	"github.com/gopasspw/gopass/internal/editor"
 	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/internal/secrets"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"github.com/gopasspw/gopass/pkg/gopass/secret/secparse"
 	"github.com/gopasspw/gopass/pkg/pwgen"
 	"github.com/gopasspw/gopass/pkg/termio"
 
@@ -53,10 +53,7 @@ func (s *Action) editUpdate(ctx context.Context, name string, content, nContent 
 		return nil
 	}
 
-	nSec, err := secparse.Parse(nContent)
-	if err != nil {
-		out.Error(ctx, "WARNING: Invalid Secret: %s", err)
-	}
+	nSec := secrets.ParsePlain(nContent)
 
 	// if the secret has a password, we check it's strength
 	if pw := nSec.Password(); pw != "" {
@@ -91,7 +88,8 @@ func (s *Action) editGetContent(ctx context.Context, name string, create bool) (
 
 	// edit existing entry
 	if s.Store.Exists(ctx, name) {
-		sec, err := s.Store.Get(ctx, name)
+		// we make sure we are not parsing the content of the file when editing
+		sec, err := s.Store.Get(ctxutil.WithShowParsing(ctx, false), name)
 		if err != nil {
 			return name, nil, false, ExitError(ExitDecrypt, err, "failed to decrypt %s: %s", name, err)
 		}

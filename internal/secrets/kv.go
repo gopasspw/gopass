@@ -119,7 +119,7 @@ func ParseKV(in []byte) (*KV, error) {
 			return nil, err
 		}
 		// append non KV pairs to the body
-		if !strings.Contains(line, ": ") {
+		if !strings.Contains(line, ":") {
 			sb.WriteString(line)
 			continue
 		}

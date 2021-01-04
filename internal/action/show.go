@@ -3,7 +3,6 @@ package action
 import (
 	"context"
 	"fmt"
-	"math/rand"
 	"path"
 	"strconv"
 	"strings"
@@ -41,6 +40,9 @@ func showParseArgs(c *cli.Context) context.Context {
 	}
 	if c.IsSet("alsoclip") {
 		ctx = WithAlsoClip(ctx, c.Bool("alsoclip"))
+	}
+	if c.IsSet("noparsing") {
+		ctx = ctxutil.WithShowParsing(ctx, !c.Bool("noparsing"))
 	}
 	ctx = WithClip(ctx, IsOnlyClip(ctx) || IsAlsoClip(ctx))
 	return ctx
@@ -128,11 +130,14 @@ func (s *Action) parseRevision(ctx context.Context, name, revision string) (stri
 
 // showHandleOutput displays a secret
 func (s *Action) showHandleOutput(ctx context.Context, name string, sec gopass.Secret) error {
-	pw, body := s.showGetContent(ctx, sec)
+	pw, body, err := s.showGetContent(ctx, sec)
+	if err != nil {
+		return err
+	}
 
 	if pw == "" && body == "" {
 		if ctxutil.IsShowSafeContent(ctx) && !ctxutil.IsForce(ctx) {
-			out.Yellow(ctx, "Warning: safecontent=true. Use -f to display password, if any")
+			out.Warning(ctx, "safecontent=true. Use -f to display password, if any")
 		}
 		return ExitError(ExitNotFound, store.ErrEmptySecret, store.ErrEmptySecret.Error())
 	}
@@ -158,13 +163,19 @@ func (s *Action) showHandleOutput(ctx context.Context, name string, sec gopass.S
 	return nil
 }
 
-func (s *Action) showGetContent(ctx context.Context, sec gopass.Secret) (string, string) {
+func (s *Action) showGetContent(ctx context.Context, sec gopass.Secret) (string, string, error) {
 	// YAML key
-	if HasKey(ctx) {
+	if HasKey(ctx) && ctxutil.IsShowParsing(ctx) {
 		key := GetKey(ctx)
-		val, found := sec.Get(GetKey(ctx))
+		val, found := sec.Get(key)
+		if !found {
+			return "", "", ExitError(ExitNotFound, store.ErrNoKey, store.ErrNoKey.Error())
+		}
 		debug.Log("got(found: %t) key %s: %s", found, key, val)
-		return val, val
+		return val, val, nil
+	} else if HasKey(ctx) {
+		out.Warning(ctx, "parsing is disabled but a key was provided.")
+		debug.Log("attempting to parse key %s with parsing disabled", GetKey(ctx))
 	}
 
 	pw := sec.Password()
@@ -172,10 +183,10 @@ func (s *Action) showGetContent(ctx context.Context, sec gopass.Secret) (string,
 
 	// first line of the secret only
 	if IsPrintQR(ctx) || IsOnlyClip(ctx) {
-		return pw, ""
+		return pw, "", nil
 	}
 	if IsPasswordOnly(ctx) {
-		return pw, pw
+		return pw, pw, nil
 	}
 
 	// everything but the first line
@@ -202,13 +213,13 @@ func (s *Action) showGetContent(ctx context.Context, sec gopass.Secret) (string,
 		}
 		sb.WriteString(sec.Body())
 		if IsAlsoClip(ctx) {
-			return pw, sb.String()
+			return pw, sb.String(), nil
 		}
-		return "", sb.String()
+		return "", sb.String(), nil
 	}
 
 	// everything (default)
-	return sec.Password(), fullBody
+	return sec.Password(), fullBody, nil
 }
 
 func isUnsafeKey(key string, sec gopass.Secret) bool {
@@ -232,7 +243,8 @@ func isUnsafeKey(key string, sec gopass.Secret) bool {
 }
 
 func randAsterisk() string {
-	return strings.Repeat("*", 5+rand.Intn(5))
+	// we could also have a random number of asterisks but testing becomes painful
+	return strings.Repeat("*", 5)
 }
 
 func (s *Action) hasAliasDomain(ctx context.Context, name string) string {

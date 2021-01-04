@@ -102,3 +102,11 @@ func Yellow(ctx context.Context, format string, args ...interface{}) {
 	}
 	fmt.Fprint(Stdout, color.YellowString(Prefix(ctx)+format+newline(ctx), args...))
 }
+
+// Warning prints the string in yellow to stderr and prepends "Warning: "
+func Warning(ctx context.Context, format string, args ...interface{}) {
+	if IsHidden(ctx) {
+		return
+	}
+	fmt.Fprint(Stderr, color.YellowString(Prefix(ctx)+"WARNING: "+format+newline(ctx), args...))
+}

@@ -16,7 +16,8 @@ const (
 autoimport: true
 cliptimeout: 45
 exportkeys: true
-notifications: true`
+notifications: true
+parsing: true`
 )
 
 var (

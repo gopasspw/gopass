@@ -17,7 +17,6 @@ import (
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/gopass"
-	"github.com/gopasspw/gopass/pkg/gopass/secret/secparse"
 	"github.com/gopasspw/gopass/pkg/pwgen"
 	"github.com/gopasspw/gopass/pkg/pwgen/pwrules"
 	"github.com/gopasspw/gopass/pkg/pwgen/xkcdgen"
@@ -255,7 +254,7 @@ func (s *Action) generatePasswordXKCD(ctx context.Context, c *cli.Context, lengt
 
 // generateSetPassword will update or create a secret
 func (s *Action) generateSetPassword(ctx context.Context, name, key, password string, kvps map[string]string) (context.Context, error) {
-	// set a single key in a yaml doc
+	// set a single key in an entry
 	if key != "" {
 		sec, err := s.Store.Get(ctx, name)
 		if err != nil {
@@ -263,7 +262,7 @@ func (s *Action) generateSetPassword(ctx context.Context, name, key, password st
 		}
 		setMetadata(sec, kvps)
 		sec.Set(key, password)
-		if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, "Generated password for YAML key"), name, sec); err != nil {
+		if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, "Generated password for key"), name, sec); err != nil {
 			return ctx, ExitError(ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
 		}
 		return ctx, nil
@@ -287,11 +286,11 @@ func (s *Action) generateSetPassword(ctx context.Context, name, key, password st
 	}
 
 	if content, found := s.renderTemplate(ctx, name, []byte(password)); found {
-		nSec, err := secparse.Parse(content)
-		if err == nil {
+		nSec := &secrets.Plain{}
+		if _, err := nSec.Write(content); err == nil {
 			sec = nSec
 		} else {
-			debug.Log("failed to parse template: %s", err)
+			debug.Log("failed to handle template: %s", err)
 		}
 	}
 

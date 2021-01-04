@@ -26,6 +26,7 @@ type Config struct {
 	NoColor       bool              `yaml:"nocolor"`       // do not use color when outputing text
 	NoPager       bool              `yaml:"nopager"`       // do not invoke a pager to display long lists
 	Notifications bool              `yaml:"notifications"` // enable desktop notifications
+	Parsing       bool              `yaml:"parsing"`       // allows to switch off all output parsing
 	Path          string            `yaml:"path"`
 	SafeContent   bool              `yaml:"safecontent"` // avoid showing passwords in terminal
 	Mounts        map[string]string `yaml:"mounts"`
@@ -44,6 +45,7 @@ func New() *Config {
 		ExportKeys:    true,
 		Mounts:        make(map[string]string),
 		Notifications: true,
+		Parsing:       true,
 		Path:          PwStoreDir(""),
 		ConfigPath:    configLocation(),
 	}
