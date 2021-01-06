@@ -9,12 +9,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestDetectBinaryCandidates(t *testing.T) {
-	bins, err := detectBinaryCandidates("foobar")
-	assert.NoError(t, err)
-	assert.Equal(t, []string{"gpg2", "gpg1", "gpg", "foobar"}, bins)
-}
-
 func TestEncrypt(t *testing.T) {
 	ctx := context.Background()
 

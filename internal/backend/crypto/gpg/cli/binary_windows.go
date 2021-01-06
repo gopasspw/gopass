@@ -3,13 +3,43 @@
 package cli
 
 import (
+	"context"
+	"errors"
 	"os/exec"
 	"path/filepath"
+	"sort"
 
 	"golang.org/x/sys/windows/registry"
 
+	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/pkg/fsutil"
 )
+
+func detectBinary(bin string) (string, error) {
+	bins, err := detectBinaryCandidates(bin)
+	if err != nil {
+		return "", err
+	}
+	bv := make(byVersion, 0, len(bins))
+	for _, b := range bins {
+		debug.Log("Looking for '%s' ...", b)
+		if p, err := exec.LookPath(b); err == nil {
+			gb := gpgBin{
+				path: p,
+				ver:  version(context.TODO(), p),
+			}
+			debug.Log("Found '%s' at '%s' (%s)", b, p, gb.ver.String())
+			bv = append(bv, gb)
+		}
+	}
+	if len(bv) < 1 {
+		return "", errors.New("no gpg binary found")
+	}
+	sort.Sort(bv)
+	binary := bv[len(bv)-1].path
+	debug.Log("using '%s'", binary)
+	return binary, nil
+}
 
 func detectBinaryCandidates(bin string) ([]string, error) {
 	// gpg.exe for GPG4Win 3.0.0; would be gpg2.exe for 2.x

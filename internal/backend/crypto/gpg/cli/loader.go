@@ -3,6 +3,7 @@ package cli
 import (
 	"context"
 	"fmt"
+	"os"
 
 	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/internal/debug"
@@ -23,8 +24,9 @@ type loader struct{}
 func (l loader) New(ctx context.Context) (backend.Crypto, error) {
 	debug.Log("Using Crypto Backend: %s", name)
 	return New(ctx, Config{
-		Umask: fsutil.Umask(),
-		Args:  GPGOpts(),
+		Umask:  fsutil.Umask(),
+		Args:   GPGOpts(),
+		Binary: os.Getenv("GOPASS_GPG_BINARY"),
 	})
 }
 
