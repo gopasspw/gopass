@@ -11,14 +11,19 @@ import (
 
 // Calculate will compute a OTP code from a given secret
 func Calculate(name string, sec gopass.Secret) (twofactor.OTP, string, error) {
-	otpURL := ""
-	// check body
-	for _, line := range strings.Split(sec.Body(), "\n") {
-		if strings.HasPrefix(line, "otpauth://") {
-			otpURL = line
-			break
+	otpURL, found := sec.Get("otpauth")
+	if found && strings.HasPrefix(otpURL, "//") {
+		otpURL = "otpauth:" + otpURL
+	} else {
+		// check body
+		for _, line := range strings.Split(sec.Body(), "\n") {
+			if strings.HasPrefix(line, "otpauth://") {
+				otpURL = line
+				break
+			}
 		}
 	}
+
 	if otpURL != "" {
 		return twofactor.FromURL(otpURL)
 	}

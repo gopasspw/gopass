@@ -30,6 +30,9 @@ func (c *Config) WithContext(ctx context.Context) context.Context {
 	if !ctxutil.HasShowSafeContent(ctx) {
 		ctx = ctxutil.WithShowSafeContent(ctx, c.SafeContent)
 	}
+	if !ctxutil.HasShowParsing(ctx) {
+		ctx = ctxutil.WithShowParsing(ctx, c.Parsing)
+	}
 	// always disable autoclip when redirecting stdout
 	if !ctxutil.IsTerminal(ctx) {
 		ctx = ctxutil.WithAutoClip(ctx, false)

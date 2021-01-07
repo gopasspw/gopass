@@ -43,6 +43,7 @@ exportkeys: true
 nocolor: false
 nopager: false
 notifications: true
+parsing: true
 `
 		want += "path: " + u.StoreDir("") + "\n"
 		want += `safecontent: false
@@ -83,6 +84,7 @@ exportkeys: true
 nocolor: false
 nopager: true
 notifications: true
+parsing: true
 `
 		want += "path: " + u.StoreDir("") + "\n"
 		want += `safecontent: false`
@@ -118,6 +120,7 @@ exportkeys
 nocolor
 nopager
 notifications
+parsing
 path
 remote
 safecontent

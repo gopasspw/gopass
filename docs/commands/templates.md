@@ -3,9 +3,9 @@
 The template support is one of the more unique `gopass` features. It allows
 password stores to define templates that will automatically apply to any new
 secret create at or below the template path. For example this can be useful
-to generate a new email password and the salted hash at the same time. Or a
+to generate a new email password and its salted hash at the same time. Or a
 PostgreSQL password with the custom salted hash. This is certainly a feature
-that's not used very often, but if used corretly it can greatly reduce the
+that's not used very often, but if used correctly it can greatly reduce the
 toil of some common operations.
 
 ## Synopsis
@@ -53,7 +53,7 @@ Function | Example | Description
 `ssha512` | `{{ .Content \| ssha512 }}` | Calculate the slated SHA-512 of the input.
 `get` | `{{ get "foo/bar" }}` | Insert the full secret.
 `getpw` | `{{ getpw "foo/bar" }}` | Insert the value of the password field from the given secret.
-`getval` | `{{ getval "foo/bar" "baz" }}` | Insert the value of the named filed from the given secret.
+`getval` | `{{ getval "foo/bar" "baz" }}` | Insert the value of the named field from the given secret.
 
 ## Template variables
 

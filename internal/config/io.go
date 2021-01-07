@@ -99,6 +99,7 @@ func decode(buf []byte) (*Config, error) {
 	cfgs := []configer{
 		&Config{
 			ExportKeys: true,
+			Parsing:    true,
 		},
 		&Pre1102{},
 		&Pre193{

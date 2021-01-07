@@ -2,6 +2,8 @@ package leaf
 
 import (
 	"context"
+	"github.com/gopasspw/gopass/internal/secrets"
+	"github.com/gopasspw/gopass/pkg/ctxutil"
 
 	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/internal/out"
@@ -25,10 +27,14 @@ func (s *Store) Get(ctx context.Context, name string) (gopass.Secret, error) {
 		out.Error(ctx, "Decryption failed: %s\n%s", err, string(content))
 		return nil, store.ErrDecrypt
 	}
-
-	sec, err := secparse.Parse(content)
-	if err != nil {
-		debug.Log("Failed to parse secret: %s", err)
+	var sec gopass.Secret
+	sec = secrets.ParsePlain(content)
+	if ctxutil.IsShowParsing(ctx) {
+		sec, err = secparse.Parse(content)
+		if err != nil {
+			debug.Log("Failed to parse secret: %s", err)
+		}
 	}
+
 	return sec, nil
 }

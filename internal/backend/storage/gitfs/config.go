@@ -65,10 +65,10 @@ func (g *Git) InitConfig(ctx context.Context, userName, userEmail string) error 
 		return errors.Errorf("Failed to initialize git: %s", err)
 	}
 	if err := g.Add(ctx, g.fs.Path()+"/.gitattributes"); err != nil {
-		out.Yellow(ctx, "Warning: Failed to add .gitattributes to git")
+		out.Warning(ctx, "Failed to add .gitattributes to git")
 	}
 	if err := g.Commit(ctx, "Configure git repository for gpg file diff."); err != nil {
-		out.Yellow(ctx, "Warning: Failed to commit .gitattributes to git")
+		out.Warning(ctx, "Failed to commit .gitattributes to git")
 	}
 
 	return nil

@@ -22,6 +22,7 @@ exportkeys: false
 nocolor: false
 nopager: false
 notifications: false
+parsing: true
 `
 	wanted += "path: " + ts.storeDir("root") + "\n"
 	wanted += "safecontent: false"
@@ -31,6 +32,7 @@ notifications: false
 	invertables := []string{
 		"autoimport",
 		"safecontent",
+		"parsing",
 	}
 
 	for _, invert := range invertables {
@@ -74,6 +76,7 @@ exportkeys: false
 nocolor: false
 nopager: false
 notifications: false
+parsing: true
 path: `
 	wanted += ts.storeDir("root") + "\n"
 	wanted += `safecontent: false

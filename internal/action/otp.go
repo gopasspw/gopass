@@ -41,7 +41,6 @@ func (s *Action) otp(ctx context.Context, name, qrf string, clip, pw, recurse bo
 	if err != nil {
 		return s.otpHandleError(ctx, name, qrf, clip, pw, recurse, err)
 	}
-
 	two, label, err := otp.Calculate(name, sec)
 	if err != nil {
 		return ExitError(ExitUnknown, err, "No OTP entry found for %s: %s", name, err)

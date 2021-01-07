@@ -140,6 +140,10 @@ func (api *API) respondGetData(ctx context.Context, msgBytes []byte) error {
 	keys := sec.Keys()
 	responseData := make(map[string]string, len(keys))
 	for _, k := range keys {
+		// we ignore the otpauth key
+		if k == "otpauth" {
+			continue
+		}
 		v, ok := sec.Get(k)
 		if !ok {
 			continue

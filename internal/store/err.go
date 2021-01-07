@@ -29,8 +29,8 @@ var (
 	ErrNoPassword = errors.Errorf("no password to display")
 	// ErrYAMLNoMark is returned if a secret contains no valid YAML document marker
 	ErrYAMLNoMark = errors.Errorf("no YAML document marker found")
-	// ErrYAMLNoKey is returned if a YAML document doesn't contain a key
-	ErrYAMLNoKey = errors.Errorf("key not found in YAML document")
+	// ErrNoKey is returned if a KV or YAML entry doesn't contain a key
+	ErrNoKey = errors.Errorf("key not found in entry")
 	// ErrYAMLValueUnsupported is returned is the user tries to unmarshal an nested struct
 	ErrYAMLValueUnsupported = errors.Errorf("can not unmarshal nested YAML value")
 )

@@ -82,7 +82,7 @@ func (s *Action) MountAdd(c *cli.Context) error {
 	}
 
 	if s.Store.Exists(ctx, alias) {
-		out.Yellow(ctx, "WARNING: shadowing %s entry", alias)
+		out.Warning(ctx, "shadowing %s entry", alias)
 	}
 
 	if err := s.Store.AddMount(ctx, alias, localPath); err != nil {
