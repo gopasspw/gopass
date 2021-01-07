@@ -20,7 +20,8 @@ import (
 	"github.com/gopasspw/gopass/internal/backend/storage/ondisk/gjs"
 	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"github.com/minio/minio-go/v6"
+	"github.com/minio/minio-go/v7"
+	"github.com/minio/minio-go/v7/pkg/credentials"
 )
 
 var (
@@ -94,7 +95,10 @@ func (o *OnDisk) initRemote(ctx context.Context) error {
 	o.mbu = cfg.Bucket
 	o.mpf = cfg.Prefix
 
-	mioClient, err := minio.New(cfg.Host, cfg.KeyID, cfg.Secret, cfg.SSL)
+	mioClient, err := minio.New(cfg.Host, &minio.Options{
+		Creds:  credentials.NewStaticV4(cfg.KeyID, cfg.Secret, ""),
+		Secure: cfg.SSL,
+	})
 	if err != nil {
 		return err
 	}

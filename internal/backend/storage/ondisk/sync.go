@@ -10,7 +10,7 @@ import (
 	"github.com/gopasspw/gopass/internal/backend/storage/ondisk/gjs"
 	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/internal/recipients"
-	"github.com/minio/minio-go/v6"
+	"github.com/minio/minio-go/v7"
 )
 
 // awaitLock waits up to 10s to acquire the lock on the remote
@@ -20,7 +20,7 @@ func (o *OnDisk) awaitLock(ctx context.Context) error {
 	boc := backoff.WithContext(bo, ctx)
 	debug.Log("waiting for sync lock up to %s", bo.MaxElapsedTime)
 	return backoff.RetryNotify(func() error {
-		oi, err := o.mio.StatObjectWithContext(ctx, o.mbu, idxLockFile, minio.StatObjectOptions{})
+		oi, err := o.mio.StatObject(ctx, o.mbu, idxLockFile, minio.StatObjectOptions{})
 		if err != nil {
 			if isNotFound(err) {
 				return nil
@@ -38,8 +38,8 @@ func (o *OnDisk) awaitLock(ctx context.Context) error {
 }
 
 // removeLock tries to remove the lock from the remote
-func (o *OnDisk) removeLock() error {
-	err := o.mio.RemoveObject(o.mbu, idxLockFile)
+func (o *OnDisk) removeLock(ctx context.Context) error {
+	err := o.mio.RemoveObject(ctx, o.mbu, idxLockFile, minio.RemoveObjectOptions{})
 	if err != nil {
 		debug.Log("Failed to remove lock %s: %s", idxLockFile, err)
 	}
@@ -76,7 +76,7 @@ func (o *OnDisk) trySyncIndex(ctx context.Context) error {
 	}
 	debug.Log("created lock after %s", time.Since(t0))
 	// remove lock file when we're done
-	defer o.removeLock()
+	defer o.removeLock(ctx)
 	// download remote index
 	buf, err := o.downloadBlob(ctx, idxFileRemote)
 	// not found is not an error, if the remote has no index

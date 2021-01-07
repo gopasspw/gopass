@@ -15,7 +15,7 @@ import (
 
 	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/pkg/fsutil"
-	"github.com/minio/minio-go/v6"
+	"github.com/minio/minio-go/v7"
 )
 
 // RemoteConfig is a remote config
@@ -135,7 +135,7 @@ func (o *OnDisk) downloadFile(ctx context.Context, name string, force bool) erro
 		debug.Log("file %s already exists", fp)
 		return nil
 	}
-	obj, err := o.mio.GetObjectWithContext(ctx, o.mbu, o.remoteFn(name), minio.GetObjectOptions{})
+	obj, err := o.mio.GetObject(ctx, o.mbu, o.remoteFn(name), minio.GetObjectOptions{})
 	if err != nil {
 		debug.Log("failed to stat %s: %s", name, err)
 		return nil
@@ -158,7 +158,7 @@ func (o *OnDisk) downloadFile(ctx context.Context, name string, force bool) erro
 
 // downloadBlob fetches a single blob
 func (o *OnDisk) downloadBlob(ctx context.Context, name string) ([]byte, error) {
-	obj, err := o.mio.GetObjectWithContext(ctx, o.mbu, o.remoteFn(name), minio.GetObjectOptions{})
+	obj, err := o.mio.GetObject(ctx, o.mbu, o.remoteFn(name), minio.GetObjectOptions{})
 	if err != nil {
 		debug.Log("failed to stat %s: %s", name, err)
 		return nil, err
@@ -206,13 +206,13 @@ func (o *OnDisk) uploadFile(ctx context.Context, name string, force bool) error 
 		return err
 	}
 	if !force {
-		stat, err := o.mio.StatObjectWithContext(ctx, o.mbu, o.remoteFn(name), minio.StatObjectOptions{})
+		stat, err := o.mio.StatObject(ctx, o.mbu, o.remoteFn(name), minio.StatObjectOptions{})
 		if err == nil && stat.Size == fi.Size() {
 			debug.Log("file %s already exists on the remote with the same size", fp, stat.Size)
 			return nil
 		}
 	}
-	n, err := o.mio.PutObjectWithContext(ctx, o.mbu, o.remoteFn(name), fh, fi.Size(), minio.PutObjectOptions{ContentType: "application/octet-stream"})
+	n, err := o.mio.PutObject(ctx, o.mbu, o.remoteFn(name), fh, fi.Size(), minio.PutObjectOptions{ContentType: "application/octet-stream"})
 	if err != nil {
 		return err
 	}
@@ -222,7 +222,7 @@ func (o *OnDisk) uploadFile(ctx context.Context, name string, force bool) error 
 
 // uploadBlob uploads a single blob
 func (o *OnDisk) uploadBlob(ctx context.Context, name string, buf []byte) error {
-	n, err := o.mio.PutObjectWithContext(ctx, o.mbu, o.remoteFn(name), bytes.NewReader(buf), int64(len(buf)), minio.PutObjectOptions{ContentType: "application/octet-stream"})
+	n, err := o.mio.PutObject(ctx, o.mbu, o.remoteFn(name), bytes.NewReader(buf), int64(len(buf)), minio.PutObjectOptions{ContentType: "application/octet-stream"})
 	if err != nil {
 		return err
 	}
