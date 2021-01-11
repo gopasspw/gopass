@@ -160,6 +160,7 @@ func (y *YAML) Bytes() []byte {
 	return buf.Bytes()
 }
 
+// Write appends the buffer to the secret's body
 func (y *YAML) Write(buf []byte) (int, error) {
 	y.body += string(buf)
 	return len(buf), nil

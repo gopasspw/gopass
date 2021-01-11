@@ -26,6 +26,7 @@ type KV struct {
 	password string
 	data     map[string]string
 	body     string
+	fromMime bool
 }
 
 // Bytes serializes
@@ -148,7 +149,13 @@ func ParseKV(in []byte) (*KV, error) {
 	return k, nil
 }
 
+// Write appends the buffer to the secret's body
 func (k *KV) Write(buf []byte) (int, error) {
 	k.body += string(buf)
 	return len(buf), nil
+}
+
+// FromMime returns which whether this secret was converted from a Mime secret of not
+func (k *KV) FromMime() bool {
+	return k.fromMime
 }
