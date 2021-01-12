@@ -46,6 +46,7 @@ func ParseLegacyMIME(buf []byte) (*KV, error) {
 		password: pw,
 		data:     make(map[string]string, len(hdr)),
 		body:     body.String(),
+		fromMime: true,
 	}
 
 	for k := range hdr {
