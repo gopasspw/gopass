@@ -2,7 +2,7 @@
 
 This is an important bugfix release that should resolve several outstanding
 issues and concerns. Since 1.10.0 was released was engaged in a lot of
-dicussions and realized that compatability is more important than we first
+discussions and realized that compatibility is more important than we first
 thought. So we're rolling back some breaking changes and revise some parts of
 our roadmap. We will strive to remain compatible with other password store
 implementations - but remember this is a goal, not a promise. This means we'll
