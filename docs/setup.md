@@ -225,6 +225,12 @@ For `vim` on Linux, the following setting may be helpful:
 au BufNewFile,BufRead /dev/shm/gopass.* setlocal noswapfile nobackup noundofile
 ```
 
+For MacOS consider this setting:
+
+```
+au BufNewFile,BufRead /private/**/gopass** setlocal noswapfile nobackup noundofile
+```
+
 ### Migrating from pass to gopass
 
 If you are migrating from pass to gopass, you can simply use your existing password store and everything should just work. Furthermore, it may be helpful to link the gopass binary so that you can use it as a drop-in replacement. For example, assuming `$HOME/bin/` exists and is present in your `$PATH`:
