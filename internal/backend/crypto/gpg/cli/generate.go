@@ -27,12 +27,14 @@ Expire-Date: 0
 	args := []string{"--batch", "--gen-key"}
 	cmd := exec.CommandContext(ctx, g.binary, args...)
 	cmd.Stdin = bytes.NewReader(buf.Bytes())
-	cmd.Stdout = nil
-	cmd.Stderr = nil
+
+	out := &bytes.Buffer{}
+	cmd.Stdout = out
+	cmd.Stderr = out
 
 	debug.Log("%s %+v", cmd.Path, cmd.Args)
 	if err := cmd.Run(); err != nil {
-		return errors.Wrapf(err, "failed to run command: '%s %+v'", cmd.Path, cmd.Args)
+		return errors.Wrapf(err, "failed to run command: '%s %+v': %q", cmd.Path, cmd.Args, out.String())
 	}
 	g.privKeys = nil
 	g.pubKeys = nil
