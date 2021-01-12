@@ -8,6 +8,7 @@ import (
 	"github.com/gopasspw/gopass/internal/cache"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/pinentry"
+	"github.com/gopasspw/gopass/pkg/pinentry/cli"
 )
 
 type piner interface {
@@ -38,7 +39,12 @@ func newAskPass() *askPass {
 	return &askPass{
 		cache: cache.NewInMemTTL(time.Hour, 24*time.Hour),
 		pinentry: func() (piner, error) {
-			return pinentry.New()
+			p, err := pinentry.New()
+			if err == nil {
+				return p, nil
+			}
+			debug.Log("Pinentry not found: %q", err)
+			return cli.New()
 		},
 	}
 }
