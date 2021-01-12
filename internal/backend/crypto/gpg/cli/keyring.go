@@ -16,7 +16,7 @@ import (
 func (g *GPG) listKeys(ctx context.Context, typ string, search ...string) (gpg.KeyList, error) {
 	args := []string{"--with-colons", "--with-fingerprint", "--fixed-list-mode", "--list-" + typ + "-keys"}
 	args = append(args, search...)
-	if e, found := g.listCache.Get(strings.Join(args, ",")); found {
+	if e, found := g.listCache.Get(strings.Join(args, ",")); found && gpg.UseCache(ctx) {
 		if ev, ok := e.(gpg.KeyList); ok {
 			return ev, nil
 		}

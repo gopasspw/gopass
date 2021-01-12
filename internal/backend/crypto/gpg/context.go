@@ -6,6 +6,7 @@ type contextKey int
 
 const (
 	ctxKeyAlwaysTrust contextKey = iota
+	ctxKeyUseCache
 )
 
 // WithAlwaysTrust will return a context with the flag for always trust set
@@ -21,4 +22,18 @@ func IsAlwaysTrust(ctx context.Context) bool {
 		return false
 	}
 	return bv
+}
+
+// WithUseCache returns a context with the value of NoCache set
+func WithUseCache(ctx context.Context, nc bool) context.Context {
+	return context.WithValue(ctx, ctxKeyUseCache, nc)
+}
+
+// UseCache returns true if this request should ignore the cache
+func UseCache(ctx context.Context) bool {
+	nc, ok := ctx.Value(ctxKeyUseCache).(bool)
+	if !ok {
+		return false
+	}
+	return nc
 }
