@@ -203,7 +203,6 @@ func (s *Action) InitOnboarding(c *cli.Context) error {
 		return nil
 	}
 
-	ctx = out.AddPrefix(ctx, "[init] ")
 	debug.Log("Starting Onboarding Wizard - remote: %s - team: %s - create: %t - name: %s - email: %s", remote, team, create, ctxutil.GetUsername(ctx), ctxutil.GetEmail(ctx))
 
 	crypto := s.getCryptoFor(ctx, team)
@@ -285,7 +284,7 @@ https://github.com/gopasspw/gopass/blob/master/docs/entropy.md`)
 	out.Green(ctx, "-> OK")
 	out.Print(ctx, color.MagentaString("Passphrase: ")+color.HiGreenString(passphrase))
 
-	kl, err := crypto.ListIdentities(ctx)
+	kl, err := crypto.ListIdentities(gpg.WithUseCache(ctx, false))
 	if err != nil {
 		return errors.Wrapf(err, "failed to list private keys")
 	}
@@ -297,14 +296,17 @@ https://github.com/gopasspw/gopass/blob/master/docs/entropy.md`)
 		debug.Log("Private Keys: %+v", kl)
 		return errors.New("failed to create a useable key pair")
 	}
-	key := kl[0]
-	fn := key + ".pub.key"
-	pk, err := crypto.ExportPublicKey(ctx, key)
-	if err != nil {
-		return errors.Wrapf(err, "failed to export public key")
+
+	if want, err := termio.AskForBool(ctx, "Do you want to export your public key?", false); err == nil && want {
+		key := kl[0]
+		fn := key + ".pub.key"
+		pk, err := crypto.ExportPublicKey(ctx, key)
+		if err != nil {
+			return errors.Wrapf(err, "failed to export public key")
+		}
+		_ = ioutil.WriteFile(fn, pk, 06444)
+		out.Cyan(ctx, "Public key exported to '%s'", fn)
 	}
-	_ = ioutil.WriteFile(fn, pk, 06444)
-	out.Cyan(ctx, "Public key exported to '%s'", fn)
 	out.Green(ctx, "Done")
 	return nil
 }
