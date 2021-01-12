@@ -9,6 +9,9 @@ import (
 	"text/template"
 
 	"github.com/gopasspw/gopass/internal/debug"
+	"github.com/gopasspw/gopass/internal/pwschemes/argon2i"
+	"github.com/gopasspw/gopass/internal/pwschemes/argon2id"
+	"github.com/gopasspw/gopass/internal/pwschemes/bcrypt"
 	"github.com/jsimonetti/pwscheme/md5crypt"
 	"github.com/jsimonetti/pwscheme/ssha"
 	"github.com/jsimonetti/pwscheme/ssha256"
@@ -27,6 +30,9 @@ const (
 	FuncGet         = "get"
 	FuncGetPassword = "getpw"
 	FuncGetValue    = "getval"
+	FuncArgon2i     = "argon2i"
+	FuncArgon2id    = "argon2id"
+	FuncBcrypt      = "bcrypt"
 )
 
 func md5sum() func(...string) (string, error) {
@@ -68,7 +74,11 @@ func saltLen(s []string) (saltLen int) {
 
 func md5cryptFunc() func(...string) (string, error) {
 	return func(s ...string) (string, error) {
-		return md5crypt.Generate(s[0], uint8(saltLen(s)))
+		sl := uint8(saltLen(s))
+		if sl > 8 || sl < 1 {
+			sl = 4
+		}
+		return md5crypt.Generate(s[0], sl)
 	}
 }
 
@@ -90,6 +100,23 @@ func ssha512Func() func(...string) (string, error) {
 	}
 }
 
+func argon2iFunc() func(...string) (string, error) {
+	return func(s ...string) (string, error) {
+		return argon2i.Generate(s[0], uint8(saltLen(s)))
+	}
+}
+
+func argon2idFunc() func(...string) (string, error) {
+	return func(s ...string) (string, error) {
+		return argon2id.Generate(s[0], uint8(saltLen(s)))
+	}
+}
+
+func bcryptFunc() func(...string) (string, error) {
+	return func(s ...string) (string, error) {
+		return bcrypt.Generate(s[0])
+	}
+}
 func get(ctx context.Context, kv kvstore) func(...string) (string, error) {
 	return func(s ...string) (string, error) {
 		if len(s) < 1 {
@@ -153,5 +180,8 @@ func funcMap(ctx context.Context, kv kvstore) template.FuncMap {
 		FuncSSHA:        sshaFunc(),
 		FuncSSHA256:     ssha256Func(),
 		FuncSSHA512:     ssha512Func(),
+		FuncArgon2i:     argon2iFunc(),
+		FuncArgon2id:    argon2idFunc(),
+		FuncBcrypt:      bcryptFunc(),
 	}
 }
