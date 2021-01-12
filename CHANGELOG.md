@@ -1,3 +1,56 @@
+## 1.11.0 / 2020-01-12
+
+This is an important bugfix release that should resolve several outstanding
+issues and concerns. Since 1.10.0 was released was engaged in a lot of
+dicussions and realized that compatability is more important than we first
+thought. So we're rolling back some breaking changes and revise some parts of
+our roadmap. We will strive to remain compatible with other password store
+implementations - but remember this is a goal, not a promise. This means we'll
+continue using compatible secrets formats as well as GPG and Git.
+
+[BUGFIX] Allow secret names to have a colon in the name
+[BUGFIX] Apply limit in list correctly
+[BUGFIX] Correcting newlines handling
+[BUGFIX] Correct missing padding to TOTP entry
+[BUGFIX] Create cache folder if doesn't exist. Relevant
+[BUGFIX] Disable gopass update
+[BUGFIX] Disabling all kind of parsing of the input
+[BUGFIX] Do not duplicate key password in K/V secrets
+[BUGFIX] Do not search for new secrets
+[BUGFIX] fixes gopass-jsonapi for MacTools GPGSuite users.
+[BUGFIX] Fix legacy config parsing
+[BUGFIX] fsck won't correct recipients without --decrypt
+[BUGFIX] Insert is not resetting the pw now if a key:value pair is specified inline
+[BUGFIX] Insert is now parsing its stdin input
+[BUGFIX] Invalidate GPG key list after generation
+[BUGFIX] List no longer uses the store size as its default depth
+[BUGFIX] Nil dereference in cui
+[BUGFIX] Pass arguments to a notification program
+[BUGFIX] Password insert prompt now works on Windows but
+[BUGFIX] Re-adding the global --yes flag
+[BUGFIX] Remove GPG location caching
+[BUGFIX] Restore path-removal from old config-format
+[BUGFIX] Show now correctly handles -C and -u together
+[BUGFIX] The deprecation warning is now output on stderr
+[BUGFIX] Trim version prefix in jsonapi
+[CLEANUP] Remove MIME
+[CLEANUP] Remove the unfinished xc backend
+[CLEANUP] Update to minio/v7
+[DOCUMENTATION] Edited features.md
+[DOCUMENTATION] Improve contributing guide.
+[DOCUMENTATION] Slight updates to reflect the recent code
+[ENHANCEMENT] Adding a trailing separator to the listed folders
+[ENHANCEMENT] Adding the flag show -n to disable output parsing
+[ENHANCEMENT] Adding the option parsing to disable all parsing
+[ENHANCEMENT] fsck now detects leftover Mime secrets
+[ENHANCEMENT] Full windows support
+[ENHANCEMENT] Prompt for edit search result
+[ENHANCEMENT] Re-introduce gopass -c
+[ENHANCEMENT] Show GPG --gen-key error to the user
+[ENHANCEMENT] This is required when using e.g. Gnome Keyring.
+[ENHANCEMENT] Use 32 byte salt by default
+[UX] Preserve content across retries
+
 ## 1.10.1
 
 [BUGFIX] Fix the Makefile
