@@ -18,8 +18,8 @@ import (
 	"github.com/blang/semver"
 	"github.com/gopasspw/gopass/internal/backend/crypto/age"
 	"github.com/gopasspw/gopass/internal/backend/storage/ondisk/gjs"
-	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 )

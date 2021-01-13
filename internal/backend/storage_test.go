@@ -7,9 +7,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/internal/gptest"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

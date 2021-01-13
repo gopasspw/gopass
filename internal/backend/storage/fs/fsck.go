@@ -6,9 +6,9 @@ import (
 	"path/filepath"
 	"syscall"
 
-	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/fsutil"
 )
 

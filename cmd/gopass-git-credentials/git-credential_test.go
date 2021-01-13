@@ -87,9 +87,11 @@ func TestGitCredentialHelper(t *testing.T) {
 
 	stdout := &bytes.Buffer{}
 	out.Stdout = stdout
+	Stdout = stdout
 	color.NoColor = true
 	defer func() {
 		out.Stdout = os.Stdout
+		Stdout = os.Stdout
 		termio.Stdin = os.Stdin
 	}()
 

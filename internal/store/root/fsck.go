@@ -4,8 +4,8 @@ import (
 	"context"
 	"strings"
 
-	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/pkg/debug"
 	multierror "github.com/hashicorp/go-multierror"
 )
 

@@ -8,8 +8,8 @@ import (
 	"github.com/cenkalti/backoff"
 	"github.com/gopasspw/gopass/internal/backend/crypto/age"
 	"github.com/gopasspw/gopass/internal/backend/storage/ondisk/gjs"
-	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/internal/recipients"
+	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/minio/minio-go/v7"
 )
 

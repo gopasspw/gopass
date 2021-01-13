@@ -8,10 +8,10 @@ import (
 	"strconv"
 	"text/template"
 
-	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/internal/pwschemes/argon2i"
 	"github.com/gopasspw/gopass/internal/pwschemes/argon2id"
 	"github.com/gopasspw/gopass/internal/pwschemes/bcrypt"
+	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/jsimonetti/pwscheme/md5crypt"
 	"github.com/jsimonetti/pwscheme/ssha"
 	"github.com/jsimonetti/pwscheme/ssha256"

@@ -9,7 +9,7 @@ import (
 	"text/template"
 
 	"github.com/gopasspw/gopass/internal/backend/crypto/gpg"
-	"github.com/gopasspw/gopass/internal/debug"
+	"github.com/gopasspw/gopass/pkg/debug"
 )
 
 // listKey lists all keys of the given type and matching the search strings

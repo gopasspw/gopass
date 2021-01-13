@@ -6,7 +6,7 @@ package appdir
 import (
 	"os"
 
-	"github.com/gopasspw/gopass/internal/debug"
+	"github.com/gopasspw/gopass/pkg/debug"
 )
 
 // UserHome returns the users home dir

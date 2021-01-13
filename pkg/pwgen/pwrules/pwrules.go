@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/gopasspw/gopass/internal/debug"
+	"github.com/gopasspw/gopass/pkg/debug"
 )
 
 //go:generate go run gen.go

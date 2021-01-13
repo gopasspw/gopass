@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 
 	"filippo.io/age"
-	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/termio"
 )
 

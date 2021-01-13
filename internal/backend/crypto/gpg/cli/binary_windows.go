@@ -11,7 +11,7 @@ import (
 
 	"golang.org/x/sys/windows/registry"
 
-	"github.com/gopasspw/gopass/internal/debug"
+	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/fsutil"
 )
 

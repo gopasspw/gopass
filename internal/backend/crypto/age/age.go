@@ -12,8 +12,8 @@ import (
 	"github.com/blang/semver"
 	"github.com/google/go-github/github"
 	"github.com/gopasspw/gopass/internal/cache"
-	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/pkg/appdir"
+	"github.com/gopasspw/gopass/pkg/debug"
 )
 
 const (

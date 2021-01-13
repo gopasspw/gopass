@@ -10,7 +10,7 @@ package queue
 import (
 	"context"
 
-	"github.com/gopasspw/gopass/internal/debug"
+	"github.com/gopasspw/gopass/pkg/debug"
 )
 
 type contextKey int

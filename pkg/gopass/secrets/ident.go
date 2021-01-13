@@ -1,4 +1,4 @@
-package secret
+package secrets
 
 const (
 	// Ident is the header of the deprecated Gopass MIME secret

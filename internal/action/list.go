@@ -4,11 +4,12 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"github.com/gopasspw/gopass/internal/store/leaf"
 	"io"
 	"os"
 	"os/exec"
 	"strings"
+
+	"github.com/gopasspw/gopass/internal/store/leaf"
 
 	"github.com/fatih/color"
 	"github.com/gopasspw/gopass/internal/tree"

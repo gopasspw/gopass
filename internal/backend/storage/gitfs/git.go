@@ -1,5 +1,4 @@
 // Package gitfs implements a git cli based RCS backend.
-// TODO(2.x) DEPRECATED and slated for removal in the 2.0.0 release.
 package gitfs
 
 import (
@@ -16,10 +15,10 @@ import (
 
 	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/internal/backend/storage/fs"
-	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/fsutil"
 
 	"github.com/blang/semver"
