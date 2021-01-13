@@ -7,14 +7,20 @@ import (
 	"io"
 	"strings"
 
-	"github.com/gopasspw/gopass/internal/debug"
+	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/gopass"
 )
 
 // make sure that Plain implements Secret
 var _ gopass.Secret = &Plain{}
 
-// Plain is the fallback secret that only contains plain text
+// Plain is a fallback secret type that is used if none of the other secret
+// parsers accept the input. This secret only contains a byte slice of the
+// input data. We attempt to support retrieving and even writing the password
+// by looking for the first line break. The body (everything after the first
+// line break) can also be retrieved. Key-value operations are not supported.
+//
+// DO NOT use this, if possible.
 type Plain struct {
 	buf []byte
 }

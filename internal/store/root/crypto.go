@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/gopasspw/gopass/internal/backend"
-	"github.com/gopasspw/gopass/internal/debug"
+	"github.com/gopasspw/gopass/pkg/debug"
 )
 
 // Crypto returns the crypto backend

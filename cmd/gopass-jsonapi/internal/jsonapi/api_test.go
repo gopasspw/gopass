@@ -5,15 +5,16 @@ import (
 	"context"
 	"encoding/binary"
 	"fmt"
-	"github.com/gopasspw/gopass/pkg/gopass/secret/secparse"
 	"regexp"
 	"strings"
 	"testing"
 
+	"github.com/gopasspw/gopass/pkg/gopass/secrets/secparse"
+
 	"github.com/blang/semver"
-	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/internal/otp"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/gopass"
 	"github.com/gopasspw/gopass/pkg/gopass/apimock"
 	"github.com/stretchr/testify/assert"

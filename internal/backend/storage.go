@@ -6,7 +6,7 @@ import (
 	"sort"
 
 	"github.com/blang/semver"
-	"github.com/gopasspw/gopass/internal/debug"
+	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/pkg/errors"
 )
 

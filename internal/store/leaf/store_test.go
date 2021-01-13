@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/gopasspw/gopass/internal/backend"
-	"github.com/gopasspw/gopass/internal/secrets"
+	"github.com/gopasspw/gopass/pkg/gopass/secrets"
 
 	_ "github.com/gopasspw/gopass/internal/backend/crypto"
 	"github.com/gopasspw/gopass/internal/backend/crypto/plain"

@@ -3,7 +3,7 @@ package action
 import (
 	"fmt"
 
-	"github.com/gopasspw/gopass/internal/debug"
+	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/urfave/cli/v2"
 )
 

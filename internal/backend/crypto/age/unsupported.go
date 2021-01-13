@@ -6,7 +6,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/gopasspw/gopass/internal/debug"
+	"github.com/gopasspw/gopass/pkg/debug"
 )
 
 // ExportPublicKey is not implemented

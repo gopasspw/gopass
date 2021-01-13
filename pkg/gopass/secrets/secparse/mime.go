@@ -1,4 +1,4 @@
-package secrets
+package secparse
 
 import (
 	"bufio"
@@ -8,13 +8,12 @@ import (
 	"net/textproto"
 	"strings"
 
-	"github.com/gopasspw/gopass/pkg/gopass/secret"
+	"github.com/gopasspw/gopass/pkg/gopass/secrets"
 )
 
-// ParseLegacyMIME is a fallback parser for the transient MIME format
-// TODO Unexport this
+// parseLegacyMIME is a fallback parser for the transient MIME format
 // TODO Add tests
-func ParseLegacyMIME(buf []byte) (*KV, error) {
+func parseLegacyMIME(buf []byte) (*secrets.KV, error) {
 	var hdr textproto.MIMEHeader
 	body := &bytes.Buffer{}
 	var pw string
@@ -24,17 +23,17 @@ func ParseLegacyMIME(buf []byte) (*KV, error) {
 	if err != nil {
 		return nil, err
 	}
-	if strings.TrimSpace(line) != secret.Ident {
+	if strings.TrimSpace(line) != secrets.Ident {
 		return nil, fmt.Errorf("unknown secrets type: %s", line)
 	}
 	tpr := textproto.NewReader(r)
 	hdr, err = tpr.ReadMIMEHeader()
 	// we can reach EOF is there are no new line at the end of the secret file after the MIME header.
 	if err != nil && err != io.EOF {
-		return nil, &secret.PermanentError{Err: err}
+		return nil, &secrets.PermanentError{Err: err}
 	}
 	if _, err := io.Copy(body, r); err != nil {
-		return nil, &secret.PermanentError{Err: err}
+		return nil, &secrets.PermanentError{Err: err}
 	}
 
 	if sv := hdr.Get("Password"); sv != "" {
@@ -42,16 +41,10 @@ func ParseLegacyMIME(buf []byte) (*KV, error) {
 		hdr.Del("Password")
 	}
 
-	kv := &KV{
-		password: pw,
-		data:     make(map[string]string, len(hdr)),
-		body:     body.String(),
-		fromMime: true,
-	}
-
+	data := make(map[string]string, len(hdr))
 	for k := range hdr {
-		kv.data[strings.ToLower(k)] = hdr.Get(k)
+		data[strings.ToLower(k)] = hdr.Get(k)
 	}
 
-	return kv, nil
+	return secrets.NewKVWithData(pw, data, body.String(), true), nil
 }

@@ -2,13 +2,14 @@ package leaf
 
 import (
 	"context"
-	"github.com/gopasspw/gopass/internal/secrets"
 	"sort"
 	"strings"
 
-	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/debug"
+	"github.com/gopasspw/gopass/pkg/gopass"
 
 	"github.com/pkg/errors"
 )
@@ -53,10 +54,17 @@ func (s *Store) Fsck(ctx context.Context, path string) error {
 	}
 
 	if err := s.storage.Push(ctx, "", ""); err != nil {
-		out.Red(ctx, "RCS Push failed: %s", err)
+		if errors.Cause(err) != store.ErrGitNoRemote {
+			out.Red(ctx, "RCS Push failed: %s", err)
+		}
 	}
 
 	return nil
+}
+
+type convertedSecret interface {
+	gopass.Secret
+	FromMime() bool
 }
 
 func (s *Store) fsckCheckEntry(ctx context.Context, name string) error {
@@ -69,7 +77,7 @@ func (s *Store) fsckCheckEntry(ctx context.Context, name string) error {
 		if err != nil {
 			return errors.Wrapf(err, "failed to decode secret %s: %s", name, err)
 		}
-		if kv, ok := secret.(*secrets.KV); ok && kv.FromMime() {
+		if cs, ok := secret.(convertedSecret); ok && cs.FromMime() {
 			out.Warning(ctx, "leftover Mime secret: %s\nYou should consider editing it to re-encrypt it.", name)
 		}
 	}

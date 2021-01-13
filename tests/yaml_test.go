@@ -21,7 +21,6 @@ func TestYAMLAndSecret(t *testing.T) {
 	t.Run("default action (show) from initialized store", func(t *testing.T) {
 		out, err := ts.run("foo/bar baz")
 		assert.Error(t, err)
-		assert.Contains(t, out, "DEPRECATION WARNING")
 		assert.Contains(t, out, "Error: failed to retrieve secret 'foo/bar': Entry is not in the password store")
 	})
 

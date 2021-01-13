@@ -9,11 +9,11 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/gopasspw/gopass/internal/backend/crypto/age"
-	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/recipients"
 	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/debug"
 
 	"github.com/pkg/errors"
 )

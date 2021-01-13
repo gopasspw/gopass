@@ -160,7 +160,6 @@ func setupApp(ctx context.Context, sv semver.Version) (context.Context, *cli.App
 		}
 
 		if c.Args().Present() {
-			out.Error(c.Context, "DEPRECATION WARNING: Use gopass show")
 			return action.Show(c)
 		}
 		return action.REPL(c)

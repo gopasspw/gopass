@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/caspr-io/yamlpath"
-	"github.com/gopasspw/gopass/internal/debug"
+	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/gopass"
 	yaml "gopkg.in/yaml.v3"
 )
@@ -17,7 +17,18 @@ import (
 // make sure that YAML implements Secret
 var _ gopass.Secret = &YAML{}
 
-// YAML is a YAML secret
+// YAML is a gopass secret that contains a parsed YAML data structure.
+// This is a legacy data type that is discouraged for new users as YAML
+// is neither trivial nor intuitive for users manually editing secrets (e.g.
+// unquoted phone numbers being parsed as octal and such).
+//
+// Format
+// ------
+// Line | Description
+//    0 | Password
+//  1-n | Body
+//  n+1 | Separator ("---")
+//  n+2 | YAML content
 type YAML struct {
 	password string
 	data     map[string]interface{}

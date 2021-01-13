@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/gopasspw/gopass/pkg/gopass"
-	"github.com/gopasspw/gopass/pkg/gopass/secret/secparse"
+	"github.com/gopasspw/gopass/pkg/gopass/secrets/secparse"
 	"github.com/stretchr/testify/assert"
 )
 

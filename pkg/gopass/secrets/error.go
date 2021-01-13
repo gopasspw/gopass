@@ -1,4 +1,4 @@
-package secret
+package secrets
 
 // PermanentError signal that parsing should not attempt other formats.
 type PermanentError struct {

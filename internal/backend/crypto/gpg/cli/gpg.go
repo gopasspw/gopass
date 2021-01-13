@@ -11,8 +11,8 @@ import (
 	"strings"
 
 	"github.com/gopasspw/gopass/internal/backend/crypto/gpg"
-	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/pkg/debug"
 	lru "github.com/hashicorp/golang-lru"
 )
 

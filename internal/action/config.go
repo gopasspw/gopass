@@ -6,9 +6,9 @@ import (
 	"sort"
 
 	"github.com/gopasspw/gopass/internal/backend/storage/ondisk"
-	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/debug"
 
 	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"

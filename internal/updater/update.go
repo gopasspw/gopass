@@ -15,8 +15,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/termio"
 
 	"github.com/blang/semver"

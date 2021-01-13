@@ -6,10 +6,10 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/internal/tree"
+	"github.com/gopasspw/gopass/pkg/debug"
 
 	"github.com/fatih/color"
 	"github.com/pkg/errors"

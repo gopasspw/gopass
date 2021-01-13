@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gopasspw/gopass/internal/debug"
+	"github.com/gopasspw/gopass/pkg/debug"
 )
 
 func (a *Age) getPublicKeysGithub(ctx context.Context, user string) ([]string, error) {

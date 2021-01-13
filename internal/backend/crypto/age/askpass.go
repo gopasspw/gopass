@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/gopasspw/gopass/internal/cache"
-	"github.com/gopasspw/gopass/internal/debug"
+	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/pinentry"
 )
 

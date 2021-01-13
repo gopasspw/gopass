@@ -9,14 +9,18 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/gopasspw/gopass/internal/debug"
-	"github.com/gopasspw/gopass/internal/out"
-	"github.com/gopasspw/gopass/internal/secrets"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/fsutil"
 	"github.com/gopasspw/gopass/pkg/gopass"
+	"github.com/gopasspw/gopass/pkg/gopass/secrets"
 	"github.com/gopasspw/gopass/pkg/termio"
 	"github.com/urfave/cli/v2"
+)
+
+var (
+	// Stdout is exported for tests
+	Stdout io.Writer = os.Stdout
 )
 
 type gitCredentials struct {
@@ -168,7 +172,7 @@ func (s *gc) Get(c *cli.Context) error {
 		cred.Username = username
 	}
 
-	_, err = cred.WriteTo(out.Stdout)
+	_, err = cred.WriteTo(Stdout)
 	if err != nil {
 		return fmt.Errorf("could not write to stdout: %s", err)
 	}

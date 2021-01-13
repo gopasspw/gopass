@@ -9,8 +9,8 @@ import (
 
 	"github.com/gopasspw/gopass/internal/tree"
 
-	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/urfave/cli/v2"
 )
 

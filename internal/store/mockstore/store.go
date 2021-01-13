@@ -9,7 +9,7 @@ import (
 	"github.com/gopasspw/gopass/internal/store/mockstore/inmem"
 	"github.com/gopasspw/gopass/internal/tree"
 	"github.com/gopasspw/gopass/pkg/gopass"
-	"github.com/gopasspw/gopass/pkg/gopass/secret/secparse"
+	"github.com/gopasspw/gopass/pkg/gopass/secrets/secparse"
 )
 
 // MockStore is an mocked store

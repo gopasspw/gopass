@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/gopasspw/gopass/internal/debug"
 	"github.com/gopasspw/gopass/internal/notify"
 	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/gopass"
 	hibpapi "github.com/gopasspw/gopass/pkg/hibp/api"
 	hibpdump "github.com/gopasspw/gopass/pkg/hibp/dump"
