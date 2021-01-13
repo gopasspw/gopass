@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/gopasspw/gopass/internal/gptest"
-	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 
 	"github.com/fatih/color"
@@ -19,7 +18,7 @@ func TestRecipients(t *testing.T) {
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
-	ctx = out.WithHidden(ctx, true)
+	ctx = ctxutil.WithHidden(ctx, true)
 	color.NoColor = true
 
 	rs, err := createRootStore(ctx, u)

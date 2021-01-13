@@ -15,7 +15,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -157,7 +157,7 @@ func TestDownload(t *testing.T) {
 	}()
 
 	ctx := context.Background()
-	ctx = out.WithHidden(ctx, true)
+	ctx = ctxutil.WithHidden(ctx, true)
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		gzw := gzip.NewWriter(w)
 		defer gzw.Close()

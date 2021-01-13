@@ -9,8 +9,8 @@ import (
 	"path/filepath"
 
 	"github.com/gopasspw/gopass/cmd/gopass-jsonapi/internal/jsonapi/manifest"
-	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/gopass/api"
 	"github.com/gopasspw/gopass/pkg/termio"
 
 	"github.com/fatih/color"
@@ -35,7 +35,7 @@ func (s *jsonapiCLI) setup(c *cli.Context) error {
 		return fmt.Errorf("failed to get lib path: %s", err)
 	}
 
-	wrapperPath, err := s.getWrapperPath(ctx, c, config.Directory(), manifest.WrapperName)
+	wrapperPath, err := s.getWrapperPath(ctx, c, api.ConfigDir(), manifest.WrapperName)
 	if err != nil {
 		return fmt.Errorf("failed to get wrapper path: %s", err)
 	}

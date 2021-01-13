@@ -5,7 +5,7 @@ import (
 	"io"
 
 	"github.com/blang/semver"
-	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/gopass"
 )
 
@@ -19,7 +19,7 @@ type API struct {
 
 // ReadAndRespond a single message
 func (api *API) ReadAndRespond(ctx context.Context) error {
-	ctx = out.WithHidden(ctx, true)
+	ctx = ctxutil.WithHidden(ctx, true)
 	message, err := readMessage(api.Reader)
 	if message == nil || err != nil {
 		return err

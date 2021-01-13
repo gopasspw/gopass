@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"compress/gzip"
 	"context"
 	"flag"
@@ -15,7 +14,6 @@ import (
 	"testing"
 
 	"github.com/gopasspw/gopass/internal/gptest"
-	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/gopass/apimock"
 	hibpapi "github.com/gopasspw/gopass/pkg/hibp/api"
@@ -44,17 +42,10 @@ func TestHIBPDump(t *testing.T) {
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
-	ctx = out.WithHidden(ctx, true)
 
 	act := &hibp{
 		gp: apimock.New(),
 	}
-
-	buf := &bytes.Buffer{}
-	out.Stdout = buf
-	defer func() {
-		out.Stdout = os.Stdout
-	}()
 
 	app := cli.NewApp()
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
@@ -75,7 +66,6 @@ func TestHIBPDump(t *testing.T) {
 
 	assert.NoError(t, ioutil.WriteFile(fn, []byte(testHibpSample), 0644))
 	assert.NoError(t, act.CheckDump(c.Context, false, []string{fn}))
-	buf.Reset()
 
 	// gzip
 	fn = filepath.Join(dir, "dump.txt.gz")
@@ -92,7 +82,6 @@ func TestHIBPDump(t *testing.T) {
 
 	assert.NoError(t, testWriteGZ(fn, []byte(testHibpSample)))
 	assert.NoError(t, act.CheckDump(c.Context, false, []string{fn}))
-	buf.Reset()
 }
 
 func testWriteGZ(fn string, buf []byte) error {
@@ -120,17 +109,10 @@ func TestHIBPAPI(t *testing.T) {
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
-	ctx = out.WithHidden(ctx, true)
 
 	act := &hibp{
 		gp: apimock.New(),
 	}
-
-	buf := &bytes.Buffer{}
-	out.Stdout = buf
-	defer func() {
-		out.Stdout = os.Stdout
-	}()
 
 	c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"api": "true"})
 
@@ -156,10 +138,8 @@ func TestHIBPAPI(t *testing.T) {
 
 	// test with one entry
 	assert.NoError(t, act.CheckAPI(c.Context, false))
-	buf.Reset()
 
 	// add another one
 	assert.NoError(t, act.gp.Set(ctx, "baz", &apimock.Secret{Buf: []byte("foobar")}))
 	assert.Error(t, act.CheckAPI(c.Context, false))
-	buf.Reset()
 }

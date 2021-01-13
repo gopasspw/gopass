@@ -108,7 +108,7 @@ func TestGetCommands(t *testing.T) {
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithInteractive(ctx, false)
 	ctx = ctxutil.WithTerminal(ctx, false)
-	ctx = out.WithHidden(ctx, true)
+	ctx = ctxutil.WithHidden(ctx, true)
 	ctx = backend.WithCryptoBackendString(ctx, "plain")
 
 	act, err := action.New(cfg, semver.Version{})

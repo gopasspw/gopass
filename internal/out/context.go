@@ -6,7 +6,6 @@ type contextKey int
 
 const (
 	ctxKeyPrefix contextKey = iota
-	ctxKeyHidden
 	ctxKeyNewline
 )
 
@@ -35,20 +34,6 @@ func Prefix(ctx context.Context) string {
 		return ""
 	}
 	return sv
-}
-
-// WithHidden returns a context with the flag value for hidden set
-func WithHidden(ctx context.Context, hidden bool) context.Context {
-	return context.WithValue(ctx, ctxKeyHidden, hidden)
-}
-
-// IsHidden returns true if any output should be hidden in this context
-func IsHidden(ctx context.Context) bool {
-	bv, ok := ctx.Value(ctxKeyHidden).(bool)
-	if !ok {
-		return false
-	}
-	return bv
 }
 
 // WithNewline returns a context with the flag value for newline set

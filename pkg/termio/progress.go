@@ -1,7 +1,6 @@
-package out
+package termio
 
 import (
-	"context"
 	"fmt"
 	"math"
 	"strings"
@@ -31,9 +30,9 @@ type ProgressBar struct {
 }
 
 // NewProgressBar creates a new progress bar
-func NewProgressBar(ctx context.Context, total int64) *ProgressBar {
+func NewProgressBar(total int64, hidden bool) *ProgressBar {
 	return &ProgressBar{
-		hidden:  IsHidden(ctx),
+		hidden:  hidden,
 		total:   total,
 		current: 0,
 		mutex:   make(chan struct{}, 1),

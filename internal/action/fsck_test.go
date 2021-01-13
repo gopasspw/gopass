@@ -45,7 +45,7 @@ func TestFsck(t *testing.T) {
 	buf.Reset()
 
 	// fsck (hidden)
-	assert.NoError(t, act.Fsck(gptest.CliCtx(out.WithHidden(ctx, true), t)))
+	assert.NoError(t, act.Fsck(gptest.CliCtx(ctxutil.WithHidden(ctx, true), t)))
 	output = strings.TrimSpace(buf.String())
 	assert.NotContains(t, output, "Checking store integrity ...")
 	assert.NotContains(t, output, "[] Extra recipients on foo: [0xFEEDBEEF]")

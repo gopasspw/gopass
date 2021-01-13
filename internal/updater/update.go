@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/termio"
 
@@ -247,7 +248,7 @@ func download(ctx context.Context, dest, url string) error {
 		return err
 	}
 	var body io.ReadCloser
-	bar := out.NewProgressBar(ctx, resp.ContentLength)
+	bar := termio.NewProgressBar(resp.ContentLength, ctxutil.IsHidden(ctx))
 	if resp.ContentLength > 0 {
 		body = &passThru{
 			ReadCloser: resp.Body,

@@ -8,6 +8,7 @@ import (
 
 	"github.com/gopasspw/gopass/internal/notify"
 	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/gopass"
 	hibpapi "github.com/gopasspw/gopass/pkg/hibp/api"
@@ -32,14 +33,14 @@ func (s *hibp) CheckAPI(ctx context.Context, force bool) error {
 		return err
 	}
 
-	out.Print(ctx, "Checking pre-computed SHA1 hashes against the HIBP API ...")
+	fmt.Println("Checking pre-computed SHA1 hashes against the HIBP API ...")
 
 	// compare the prepared list against all provided files
 	matchList := make([]string, 0, len(sortedShaSums))
 	for _, shaSum := range sortedShaSums {
 		freq, err := hibpapi.Lookup(shaSum)
 		if err != nil {
-			out.Error(ctx, "Failed to check HIBP API: %s", err)
+			fmt.Printf("Failed to check HIBP API: %s\n", err)
 			continue
 		}
 		if freq < 1 {
@@ -55,7 +56,7 @@ func (s *hibp) CheckAPI(ctx context.Context, force bool) error {
 
 // CheckDump checks your secrets against the provided HIBPv2 Dumps
 func (s *hibp) CheckDump(ctx context.Context, force bool, dumps []string) error {
-	out.Warning(ctx, "Using the HIBPv2 dumps is very expensive. If you can condone leaking a few bits of entropy per secret you should probably use the '--api' flag.")
+	fmt.Println("Using the HIBPv2 dumps is very expensive. If you can condone leaking a few bits of entropy per secret you should probably use the '--api' flag.")
 
 	if !force && !termio.AskForConfirmation(ctx, fmt.Sprintf("This command is checking all your secrets against the haveibeenpwned.com hashes in %+v.\nYou will be asked to unlock all your secrets!\nDo you want to continue?", dumps)) {
 		return fmt.Errorf("user aborted")
@@ -96,7 +97,7 @@ func (s *hibp) precomputeHashes(ctx context.Context) (map[string]string, []strin
 	// build list of sha1sums (must be sorted later!) for stream comparison
 	sortedShaSums := make([]string, 0, len(shaSums))
 	// display progress bar
-	bar := out.NewProgressBar(ctx, int64(len(pwList)))
+	bar := termio.NewProgressBar(int64(len(pwList)), ctxutil.IsHidden(ctx))
 
 	out.Print(ctx, "Computing SHA1 hashes of all your secrets ...")
 	for _, secret := range pwList {

@@ -23,7 +23,7 @@ func TestBinary(t *testing.T) {
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
-	ctx = out.WithHidden(ctx, true)
+	ctx = ctxutil.WithHidden(ctx, true)
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
@@ -47,7 +47,7 @@ func TestBinaryCat(t *testing.T) {
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
-	ctx = out.WithHidden(ctx, true)
+	ctx = ctxutil.WithHidden(ctx, true)
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
@@ -102,7 +102,7 @@ func TestBinaryCopy(t *testing.T) {
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
-	ctx = out.WithHidden(ctx, true)
+	ctx = ctxutil.WithHidden(ctx, true)
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
@@ -164,7 +164,7 @@ func TestBinarySum(t *testing.T) {
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
-	ctx = out.WithHidden(ctx, true)
+	ctx = ctxutil.WithHidden(ctx, true)
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf

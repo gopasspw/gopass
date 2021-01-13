@@ -144,7 +144,7 @@ func TestSaveRecipients(t *testing.T) {
 
 func TestAddRecipient(t *testing.T) {
 	ctx := context.Background()
-	ctx = out.WithHidden(ctx, true)
+	ctx = ctxutil.WithHidden(ctx, true)
 
 	tempdir, err := ioutil.TempDir("", "gopass-")
 	require.NoError(t, err)
@@ -183,7 +183,7 @@ func TestAddRecipient(t *testing.T) {
 
 func TestRemoveRecipient(t *testing.T) {
 	ctx := context.Background()
-	ctx = out.WithHidden(ctx, true)
+	ctx = ctxutil.WithHidden(ctx, true)
 
 	tempdir, err := ioutil.TempDir("", "gopass-")
 	require.NoError(t, err)

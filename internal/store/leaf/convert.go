@@ -14,6 +14,7 @@ import (
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
+	"github.com/gopasspw/gopass/pkg/termio"
 )
 
 // Convert will convert an existing store to a new store with possibly
@@ -65,8 +66,8 @@ func (s *Store) Convert(ctx context.Context, cryptoBe backend.CryptoBackend, sto
 	}
 
 	out.Green(ctx, "Converting store ...")
-	bar := out.NewProgressBar(ctx, int64(len(entries)))
-	if !ctxutil.IsTerminal(ctx) || out.IsHidden(ctx) {
+	bar := termio.NewProgressBar(int64(len(entries)), ctxutil.IsHidden(ctx))
+	if !ctxutil.IsTerminal(ctx) || ctxutil.IsHidden(ctx) {
 		bar = nil
 	}
 

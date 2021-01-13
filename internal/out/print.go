@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/fatih/color"
+	"github.com/gopasspw/gopass/pkg/ctxutil"
 )
 
 var (
@@ -25,7 +26,7 @@ func newline(ctx context.Context) string {
 
 // Print formats and prints the given string
 func Print(ctx context.Context, format string, args ...interface{}) {
-	if IsHidden(ctx) {
+	if ctxutil.IsHidden(ctx) {
 		return
 	}
 	fmt.Fprintf(Stdout, Prefix(ctx)+format+newline(ctx), args...)
@@ -33,7 +34,7 @@ func Print(ctx context.Context, format string, args ...interface{}) {
 
 // Black prints the string in black
 func Black(ctx context.Context, format string, args ...interface{}) {
-	if IsHidden(ctx) {
+	if ctxutil.IsHidden(ctx) {
 		return
 	}
 	fmt.Fprint(Stdout, color.BlackString(Prefix(ctx)+format+newline(ctx), args...))
@@ -41,7 +42,7 @@ func Black(ctx context.Context, format string, args ...interface{}) {
 
 // Blue prints the string in blue
 func Blue(ctx context.Context, format string, args ...interface{}) {
-	if IsHidden(ctx) {
+	if ctxutil.IsHidden(ctx) {
 		return
 	}
 	fmt.Fprint(Stdout, color.BlueString(Prefix(ctx)+format+newline(ctx), args...))
@@ -49,7 +50,7 @@ func Blue(ctx context.Context, format string, args ...interface{}) {
 
 // Cyan prints the string in cyan
 func Cyan(ctx context.Context, format string, args ...interface{}) {
-	if IsHidden(ctx) {
+	if ctxutil.IsHidden(ctx) {
 		return
 	}
 	fmt.Fprint(Stdout, color.CyanString(Prefix(ctx)+format+newline(ctx), args...))
@@ -57,7 +58,7 @@ func Cyan(ctx context.Context, format string, args ...interface{}) {
 
 // Green prints the string in green
 func Green(ctx context.Context, format string, args ...interface{}) {
-	if IsHidden(ctx) {
+	if ctxutil.IsHidden(ctx) {
 		return
 	}
 	fmt.Fprint(Stdout, color.GreenString(Prefix(ctx)+format+newline(ctx), args...))
@@ -65,7 +66,7 @@ func Green(ctx context.Context, format string, args ...interface{}) {
 
 // Magenta prints the string in magenta
 func Magenta(ctx context.Context, format string, args ...interface{}) {
-	if IsHidden(ctx) {
+	if ctxutil.IsHidden(ctx) {
 		return
 	}
 	fmt.Fprint(Stdout, color.MagentaString(Prefix(ctx)+format+newline(ctx), args...))
@@ -73,7 +74,7 @@ func Magenta(ctx context.Context, format string, args ...interface{}) {
 
 // Red prints the string in red
 func Red(ctx context.Context, format string, args ...interface{}) {
-	if IsHidden(ctx) {
+	if ctxutil.IsHidden(ctx) {
 		return
 	}
 	fmt.Fprint(Stdout, color.RedString(Prefix(ctx)+format+newline(ctx), args...))
@@ -81,7 +82,7 @@ func Red(ctx context.Context, format string, args ...interface{}) {
 
 // Error prints the string in red to stderr
 func Error(ctx context.Context, format string, args ...interface{}) {
-	if IsHidden(ctx) {
+	if ctxutil.IsHidden(ctx) {
 		return
 	}
 	fmt.Fprint(Stderr, color.RedString(Prefix(ctx)+format+newline(ctx), args...))
@@ -89,7 +90,7 @@ func Error(ctx context.Context, format string, args ...interface{}) {
 
 // White prints the string in white
 func White(ctx context.Context, format string, args ...interface{}) {
-	if IsHidden(ctx) {
+	if ctxutil.IsHidden(ctx) {
 		return
 	}
 	fmt.Fprint(Stdout, color.WhiteString(Prefix(ctx)+format+newline(ctx), args...))
@@ -97,7 +98,7 @@ func White(ctx context.Context, format string, args ...interface{}) {
 
 // Yellow prints the string in yellow
 func Yellow(ctx context.Context, format string, args ...interface{}) {
-	if IsHidden(ctx) {
+	if ctxutil.IsHidden(ctx) {
 		return
 	}
 	fmt.Fprint(Stdout, color.YellowString(Prefix(ctx)+format+newline(ctx), args...))
@@ -105,7 +106,7 @@ func Yellow(ctx context.Context, format string, args ...interface{}) {
 
 // Warning prints the string in yellow to stderr and prepends "Warning: "
 func Warning(ctx context.Context, format string, args ...interface{}) {
-	if IsHidden(ctx) {
+	if ctxutil.IsHidden(ctx) {
 		return
 	}
 	fmt.Fprint(Stderr, color.YellowString(Prefix(ctx)+"WARNING: "+format+newline(ctx), args...))

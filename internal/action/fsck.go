@@ -11,6 +11,7 @@ import (
 	"github.com/gopasspw/gopass/internal/store/leaf"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/fsutil"
+	"github.com/gopasspw/gopass/pkg/termio"
 	"github.com/urfave/cli/v2"
 )
 
@@ -43,7 +44,7 @@ func (s *Action) Fsck(c *cli.Context) error {
 
 	pwList := t.List(tree.INF)
 
-	bar := out.NewProgressBar(ctx, int64(len(pwList)*2))
+	bar := termio.NewProgressBar(int64(len(pwList)*2), ctxutil.IsHidden(ctx))
 	ctx = ctxutil.WithProgressCallback(ctx, func() {
 		bar.Inc()
 	})
