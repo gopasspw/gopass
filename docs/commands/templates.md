@@ -50,10 +50,13 @@ Function | Example | Description
 `md5crypt` | `{{ .Content \| md5crypt }}` | Calculate the md5crypt of the input.
 `ssha` | `{{ .Content \| ssha }}` | Calculate the salted SHA-1 of the input.
 `ssha256` | `{{ .Content \| ssha256 }}` | Calculate the salted SHA-256 of the input.
-`ssha512` | `{{ .Content \| ssha512 }}` | Calculate the slated SHA-512 of the input.
+`ssha512` | `{{ .Content \| ssha512 }}` | Calculate the salted SHA-512 of the input.
 `get` | `{{ get "foo/bar" }}` | Insert the full secret.
 `getpw` | `{{ getpw "foo/bar" }}` | Insert the value of the password field from the given secret.
 `getval` | `{{ getval "foo/bar" "baz" }}` | Insert the value of the named field from the given secret.
+`argon2i` | `{{ .Content \| argon2i }}` | Calculate the Argon2i hash of the input.
+`argon2id` | `{{ .Content \| argon2id }}` | Calculate the Argon2id hash of the input.
+`bcrypt` | `{{ .Content \| bcrypt }}` | Calculate the Bcrypt hash of the input.
 
 ## Template variables
 
