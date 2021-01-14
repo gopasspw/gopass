@@ -1,10 +1,18 @@
 package main
 
 import (
-	"github.com/gopasspw/gopass/internal/out"
+	"fmt"
+	"io"
+	"os"
+
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/gopass"
 	"github.com/urfave/cli/v2"
+)
+
+var (
+	// Stdout is exported for tests
+	Stdout io.Writer = os.Stdout
 )
 
 type gc struct {
@@ -20,6 +28,6 @@ func (s *gc) Get(c *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	out.Print(ctx, secret.Password())
+	fmt.Fprintln(Stdout, secret.Password())
 	return nil
 }

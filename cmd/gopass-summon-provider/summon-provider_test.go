@@ -7,17 +7,15 @@ import (
 	"testing"
 
 	"github.com/fatih/color"
-	"github.com/gopasspw/gopass/internal/gptest"
-	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/gopass/apimock"
 	"github.com/gopasspw/gopass/pkg/termio"
+	"github.com/gopasspw/gopass/tests/gptest"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestSummonProviderOutputsOnlySecret(t *testing.T) {
-
 	ctx := context.Background()
 	act := &gc{
 		gp: apimock.New(),
@@ -25,11 +23,11 @@ func TestSummonProviderOutputsOnlySecret(t *testing.T) {
 	require.NoError(t, act.gp.Set(ctx, "foo", &apimock.Secret{Buf: []byte("bar\nbaz: zab")}))
 
 	buf := &bytes.Buffer{}
-	out.Stdout = buf
+	Stdout = buf
 	color.NoColor = true
 	defer func() {
-		out.Stdout = os.Stdout
 		termio.Stdin = os.Stdin
+		Stdout = os.Stdout
 	}()
 
 	assert.NoError(t, act.Get(gptest.CliCtx(ctx, t, "foo")))

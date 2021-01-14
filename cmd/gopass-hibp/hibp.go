@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/gopasspw/gopass/internal/notify"
-	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/gopass"
@@ -51,7 +49,7 @@ func (s *hibp) CheckAPI(ctx context.Context, force bool) error {
 		}
 	}
 
-	return s.printMatches(ctx, matchList)
+	return s.printMatches(matchList)
 }
 
 // CheckDump checks your secrets against the provided HIBPv2 Dumps
@@ -81,7 +79,7 @@ func (s *hibp) CheckDump(ctx context.Context, force bool, dumps []string) error 
 		}
 	}
 
-	return s.printMatches(ctx, matchList)
+	return s.printMatches(matchList)
 }
 
 func (s *hibp) precomputeHashes(ctx context.Context) (map[string]string, []string, error) {
@@ -99,7 +97,7 @@ func (s *hibp) precomputeHashes(ctx context.Context) (map[string]string, []strin
 	// display progress bar
 	bar := termio.NewProgressBar(int64(len(pwList)), ctxutil.IsHidden(ctx))
 
-	out.Print(ctx, "Computing SHA1 hashes of all your secrets ...")
+	fmt.Println("Computing SHA1 hashes of all your secrets ...")
 	for _, secret := range pwList {
 		// check for context cancelation
 		select {
@@ -116,7 +114,7 @@ func (s *hibp) precomputeHashes(ctx context.Context) (map[string]string, []strin
 		// go templates to extract and compare data from the body
 		sec, err := s.gp.Get(ctx, secret, "latest")
 		if err != nil {
-			out.Print(ctx, "\n"+color.YellowString("Failed to retrieve secret '%s': %s", secret, err))
+			fmt.Printf("\n" + color.YellowString("Failed to retrieve secret '%s': %s\n", secret, err))
 			continue
 		}
 
@@ -138,20 +136,18 @@ func (s *hibp) precomputeHashes(ctx context.Context) (map[string]string, []strin
 	return shaSums, sortedShaSums, nil
 }
 
-func (s *hibp) printMatches(ctx context.Context, matchList []string) error {
+func (s *hibp) printMatches(matchList []string) error {
 	if len(matchList) < 1 {
-		_ = notify.Notify(ctx, name, "Good news - No matches found!")
-		out.Green(ctx, "Good news - No matches found!")
+		fmt.Println("Good news - No matches found!")
 		return nil
 	}
 
 	sort.Strings(matchList)
-	_ = notify.Notify(ctx, name, fmt.Sprintf("Oh no - found %d matches", len(matchList)))
-	out.Error(ctx, "Oh no - Found some matches:")
+	fmt.Println("Oh no - Found some matches:")
 	for _, m := range matchList {
-		out.Error(ctx, "\t- %s", m)
+		fmt.Printf("\t- %s\n", m)
 	}
-	out.Cyan(ctx, "The passwords in the listed secrets were included in public leaks in the past. This means they are likely included in many word-list attacks and provide only very little security. Strongly consider changing those passwords!")
+	fmt.Println("The passwords in the listed secrets were included in public leaks in the past. This means they are likely included in many word-list attacks and provide only very little security. Strongly consider changing those passwords!")
 	return fmt.Errorf("weak passwords found")
 }
 

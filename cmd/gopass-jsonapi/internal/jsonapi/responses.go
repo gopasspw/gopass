@@ -8,10 +8,10 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/gopasspw/gopass/internal/clipboard"
-	"github.com/gopasspw/gopass/internal/otp"
+	"github.com/gopasspw/gopass/pkg/clipboard"
 	"github.com/gopasspw/gopass/pkg/gopass"
 	"github.com/gopasspw/gopass/pkg/gopass/secrets"
+	"github.com/gopasspw/gopass/pkg/otp"
 	"github.com/gopasspw/gopass/pkg/pwgen"
 
 	"github.com/pkg/errors"

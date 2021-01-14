@@ -12,7 +12,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/gopasspw/gopass/internal/gptest"
+	"github.com/gopasspw/gopass/tests/gptest"
 	shellquote "github.com/kballard/go-shellquote"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"

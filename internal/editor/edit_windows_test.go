@@ -7,7 +7,7 @@ import (
 	"os/exec"
 	"testing"
 
-	"github.com/gopasspw/gopass/internal/gptest"
+	"github.com/gopasspw/gopass/tests/gptest"
 	"github.com/urfave/cli/v2"
 
 	"github.com/stretchr/testify/assert"
