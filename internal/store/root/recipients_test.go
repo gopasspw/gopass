@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/gopasspw/gopass/internal/gptest"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/tests/gptest"
 
 	"github.com/fatih/color"
 	"github.com/stretchr/testify/assert"

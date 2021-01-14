@@ -10,12 +10,12 @@ import (
 	"testing"
 
 	"github.com/blang/semver"
-	"github.com/gopasspw/gopass/internal/otp"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/gopass"
 	"github.com/gopasspw/gopass/pkg/gopass/apimock"
 	"github.com/gopasspw/gopass/pkg/gopass/secrets/secparse"
+	"github.com/gopasspw/gopass/pkg/otp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

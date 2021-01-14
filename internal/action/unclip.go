@@ -4,7 +4,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/gopasspw/gopass/internal/clipboard"
+	"github.com/gopasspw/gopass/pkg/clipboard"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 
 	"github.com/urfave/cli/v2"

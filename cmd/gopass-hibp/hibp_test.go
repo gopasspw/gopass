@@ -13,10 +13,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/gopasspw/gopass/internal/gptest"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/gopass/apimock"
 	hibpapi "github.com/gopasspw/gopass/pkg/hibp/api"
+	"github.com/gopasspw/gopass/tests/gptest"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/urfave/cli/v2"
