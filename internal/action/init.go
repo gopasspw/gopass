@@ -326,7 +326,7 @@ func (s *Action) initSetupGitRemote(ctx context.Context, team, remote string) er
 		return errors.Wrapf(err, "failed to read user input")
 	}
 	{
-		ctx := out.WithHidden(ctx, true)
+		ctx := ctxutil.WithHidden(ctx, true)
 		if err := s.Store.RCSAddRemote(ctx, team, "origin", remote); err != nil {
 			return errors.Wrapf(err, "failed to add git remote")
 		}
@@ -352,7 +352,7 @@ func (s *Action) initLocal(ctx context.Context) error {
 	}
 
 	out.Print(ctx, "Initializing your local store ...")
-	if err := s.init(out.WithHidden(ctx, true), "", path); err != nil {
+	if err := s.init(ctxutil.WithHidden(ctx, true), "", path); err != nil {
 		return errors.Wrapf(err, "failed to init local store")
 	}
 	out.Green(ctx, " -> OK")
@@ -392,7 +392,7 @@ func (s *Action) initCreateTeam(ctx context.Context, team, remote string) error 
 	ctx = out.AddPrefix(ctx, "["+team+"] ")
 
 	out.Print(ctx, "Initializing your shared store ...")
-	if err := s.init(out.WithHidden(ctx, true), team, ""); err != nil {
+	if err := s.init(ctxutil.WithHidden(ctx, true), team, ""); err != nil {
 		return errors.Wrapf(err, "failed to init shared store")
 	}
 	out.Green(ctx, " -> OK")
@@ -430,7 +430,7 @@ func (s *Action) initJoinTeam(ctx context.Context, team, remote string) error {
 	}
 
 	out.Print(ctx, "Cloning from the git remote ...")
-	if err := s.clone(out.WithHidden(ctx, true), remote, team, ""); err != nil {
+	if err := s.clone(ctxutil.WithHidden(ctx, true), remote, team, ""); err != nil {
 		return errors.Wrapf(err, "failed to clone repo")
 	}
 	out.Green(ctx, " -> OK")

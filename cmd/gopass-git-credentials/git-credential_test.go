@@ -10,7 +10,6 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/gopasspw/gopass/internal/gptest"
-	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/gopass/apimock"
 	"github.com/gopasspw/gopass/pkg/termio"
@@ -86,11 +85,9 @@ func TestGitCredentialHelper(t *testing.T) {
 	require.NoError(t, act.gp.Set(ctx, "foo", &apimock.Secret{Buf: []byte("bar")}))
 
 	stdout := &bytes.Buffer{}
-	out.Stdout = stdout
 	Stdout = stdout
 	color.NoColor = true
 	defer func() {
-		out.Stdout = os.Stdout
 		Stdout = os.Stdout
 		termio.Stdin = os.Stdin
 	}()

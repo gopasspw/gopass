@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/gopasspw/gopass/internal/gptest"
-	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 
 	"github.com/stretchr/testify/assert"
@@ -18,7 +17,7 @@ func TestGet(t *testing.T) {
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
-	ctx = out.WithHidden(ctx, true)
+	ctx = ctxutil.WithHidden(ctx, true)
 
 	rs, err := createRootStore(ctx, u)
 	require.NoError(t, err)

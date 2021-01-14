@@ -40,6 +40,7 @@ const (
 	ctxKeyPasswordCallback
 	ctxKeyCommitTimestamp
 	ctxKeyShowParsing
+	ctxKeyHidden
 )
 
 // WithGlobalFlags parses any global flags from the cli context and returns
@@ -569,4 +570,18 @@ func GetCommitTimestamp(ctx context.Context) time.Time {
 		return ts
 	}
 	return time.Now()
+}
+
+// WithHidden returns a context with the flag value for hidden set
+func WithHidden(ctx context.Context, hidden bool) context.Context {
+	return context.WithValue(ctx, ctxKeyHidden, hidden)
+}
+
+// IsHidden returns true if any output should be hidden in this context
+func IsHidden(ctx context.Context) bool {
+	bv, ok := ctx.Value(ctxKeyHidden).(bool)
+	if !ok {
+		return false
+	}
+	return bv
 }

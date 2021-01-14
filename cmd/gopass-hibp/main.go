@@ -2,11 +2,11 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
 	"os/signal"
 
-	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/gopass/api"
 	"github.com/urfave/cli/v2"
 )
@@ -41,7 +41,7 @@ func main() {
 
 	gp, err := api.New(ctx)
 	if err != nil {
-		out.Red(ctx, "Failed to initialize gopass API: %s", err)
+		fmt.Printf("Failed to initialize gopass API: %s\n", err)
 		os.Exit(1)
 	}
 

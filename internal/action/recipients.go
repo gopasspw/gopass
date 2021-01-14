@@ -49,7 +49,7 @@ func (s *Action) RecipientsPrint(c *cli.Context) error {
 }
 
 func (s *Action) recipientsList(ctx context.Context) []string {
-	t, err := s.Store.RecipientsTree(out.WithHidden(ctx, true), false)
+	t, err := s.Store.RecipientsTree(ctxutil.WithHidden(ctx, true), false)
 	if err != nil {
 		debug.Log("failed to list recipients: %s", err)
 		return nil

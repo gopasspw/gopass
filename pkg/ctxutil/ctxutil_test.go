@@ -284,3 +284,10 @@ func TestImportFunc(t *testing.T) {
 	assert.Equal(t, true, HasImportFunc(WithImportFunc(ctx, ifunc)))
 	assert.Equal(t, true, GetImportFunc(WithImportFunc(ctx, nil))(ctx, "", nil))
 }
+
+func TestHidden(t *testing.T) {
+	ctx := context.Background()
+
+	assert.False(t, IsHidden(ctx))
+	assert.True(t, IsHidden(WithHidden(ctx, true)))
+}

@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/fatih/color"
+	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -22,7 +23,7 @@ func TestPrint(t *testing.T) {
 	assert.Equal(t, "foo = 42\n", buf.String())
 	buf.Reset()
 
-	Print(WithHidden(ctx, true), "%s = %d", "foo", 42)
+	Print(ctxutil.WithHidden(ctx, true), "%s = %d", "foo", 42)
 	assert.Equal(t, "", buf.String())
 	buf.Reset()
 
@@ -54,7 +55,7 @@ func TestColor(t *testing.T) {
 		fn(ctx, "foobar")
 		assert.Equal(t, "foobar\n", buf.String())
 		buf.Reset()
-		fn(WithHidden(ctx, true), "foobar")
+		fn(ctxutil.WithHidden(ctx, true), "foobar")
 		assert.Equal(t, "", buf.String())
 	}
 }

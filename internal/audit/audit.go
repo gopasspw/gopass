@@ -10,8 +10,10 @@ import (
 	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/internal/notify"
 	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/gopass"
+	"github.com/gopasspw/gopass/pkg/termio"
 	"github.com/nbutton23/zxcvbn-go"
 
 	"github.com/fatih/color"
@@ -108,7 +110,7 @@ func Batch(ctx context.Context, secrets []string, secStore secretGetter) error {
 	messages := make(map[string][]string)
 	errors := make(map[string][]string)
 
-	bar := out.NewProgressBar(ctx, int64(len(secrets)))
+	bar := termio.NewProgressBar(int64(len(secrets)), ctxutil.IsHidden(ctx))
 
 	i := 0
 	for secret := range checked {

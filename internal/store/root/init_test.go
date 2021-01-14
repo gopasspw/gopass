@@ -7,7 +7,6 @@ import (
 	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/gptest"
-	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 
 	"github.com/stretchr/testify/assert"
@@ -20,7 +19,7 @@ func TestInit(t *testing.T) {
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
-	ctx = out.WithHidden(ctx, true)
+	ctx = ctxutil.WithHidden(ctx, true)
 	ctx = backend.WithCryptoBackend(ctx, backend.Plain)
 
 	cfg := config.New()

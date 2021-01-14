@@ -7,13 +7,13 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestFsck(t *testing.T) {
 	ctx := context.Background()
-	ctx = out.WithHidden(ctx, true)
+	ctx = ctxutil.WithHidden(ctx, true)
 
 	path, cleanup := newTempDir(t)
 	defer cleanup()

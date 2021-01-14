@@ -87,3 +87,8 @@ func (g *Gopass) String() string {
 func (g *Gopass) Close(ctx context.Context) error {
 	return queue.GetQueue(ctx).Wait(ctx)
 }
+
+// ConfigDir returns gopass' configuration directory
+func ConfigDir() string {
+	return config.Directory()
+}

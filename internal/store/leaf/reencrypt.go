@@ -11,6 +11,7 @@ import (
 	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
+	"github.com/gopasspw/gopass/pkg/termio"
 	"github.com/pkg/errors"
 )
 
@@ -27,8 +28,8 @@ func (s *Store) reencrypt(ctx context.Context) error {
 		ctx := ctxutil.WithGitCommit(ctx, false)
 
 		// progress bar
-		bar := out.NewProgressBar(ctx, int64(len(entries)))
-		if !ctxutil.IsTerminal(ctx) || out.IsHidden(ctx) {
+		bar := termio.NewProgressBar(int64(len(entries)), ctxutil.IsHidden(ctx))
+		if !ctxutil.IsTerminal(ctx) || ctxutil.IsHidden(ctx) {
 			bar = nil
 		}
 		var wg sync.WaitGroup
