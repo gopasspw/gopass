@@ -7,11 +7,25 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"net/url"
+	"os"
 	"os/exec"
 	"strings"
 
 	"github.com/pkg/errors"
 )
+
+var (
+	// Unescape enables unescaping of percent encoded values,
+	// disabled by default for backward compatibility. See #1621
+	Unescape bool
+)
+
+func init() {
+	if sv := os.Getenv("GOPASS_PINENTRY_UNESCAPE"); sv == "on" || sv == "true" {
+		Unescape = true
+	}
+}
 
 // Client is a pinentry client
 type Client struct {
@@ -134,5 +148,15 @@ func (c *Client) GetPin() ([]byte, error) {
 	if !bytes.HasPrefix(ok, []byte("OK")) {
 		return nil, fmt.Errorf("unexpected response: %s", ok)
 	}
-	return pin[2:], nil
+	pin = pin[2:]
+
+	// Handle unescaping, if enabled
+	if bytes.Contains(pin, []byte("%")) && Unescape {
+		sv, err := url.QueryUnescape(string(pin))
+		if err != nil {
+			return nil, fmt.Errorf("failed to unescape pin: %q", err)
+		}
+		pin = []byte(sv)
+	}
+	return pin, nil
 }
