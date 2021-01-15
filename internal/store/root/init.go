@@ -7,6 +7,7 @@ import (
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store/leaf"
 	"github.com/gopasspw/gopass/pkg/debug"
+	"github.com/gopasspw/gopass/pkg/fsutil"
 
 	"github.com/pkg/errors"
 )
@@ -62,16 +63,18 @@ func (r *Store) initialize(ctx context.Context) error {
 	}
 
 	// create the base store
-	debug.Log("initialize - %s", r.cfg.Path)
-	s, err := leaf.New(ctx, "", r.cfg.Path)
+	path := fsutil.CleanPath(r.cfg.Path)
+	debug.Log("initialize - %s", path)
+	s, err := leaf.New(ctx, "", path)
 	if err != nil {
 		return errors.Wrapf(err, "failed to initialize the root store at '%s': %s", r.cfg.Path, err)
 	}
-	debug.Log("Root Store initialized at %s", r.cfg.Path)
+	debug.Log("Root Store initialized at %s", path)
 	r.store = s
 
 	// initialize all mounts
 	for alias, path := range r.cfg.Mounts {
+		path := fsutil.CleanPath(path)
 		if err := r.addMount(ctx, alias, path); err != nil {
 			out.Error(ctx, "Failed to initialize mount %s (%s). Ignoring: %s", alias, path, err)
 			continue
