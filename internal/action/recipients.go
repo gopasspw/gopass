@@ -168,6 +168,7 @@ func (s *Action) RecipientsRemove(c *cli.Context) error {
 		keys, err := crypto.FindRecipients(ctx, r)
 		if err != nil {
 			out.Cyan(ctx, "WARNING: Failed to list public key '%s': %s", r, err)
+			out.Yellow(ctx, "Hint: You can use `--force` to remove unknown keys.")
 			if !force {
 				continue
 			}
