@@ -9,6 +9,7 @@ import (
 	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/internal/store/leaf"
 	"github.com/gopasspw/gopass/pkg/debug"
+	"github.com/gopasspw/gopass/pkg/fsutil"
 
 	"github.com/fatih/color"
 	"github.com/pkg/errors"
@@ -35,12 +36,13 @@ func (r *Store) addMount(ctx context.Context, alias, path string, keys ...string
 		return AlreadyMountedError(alias)
 	}
 
-	debug.Log("addMount - Path: %s", path)
+	fullPath := fsutil.CleanPath(path)
+	debug.Log("addMount - Path: %s - Full: %s", path, fullPath)
 
 	// initialize sub store
-	s, err := r.initSub(ctx, alias, path, keys)
+	s, err := r.initSub(ctx, alias, fullPath, keys)
 	if err != nil {
-		return errors.Wrapf(err, "failed to init sub store '%s' at '%s'", alias, path)
+		return errors.Wrapf(err, "failed to init sub store '%s' at '%s'", alias, fullPath)
 	}
 
 	r.mounts[alias] = s
@@ -49,7 +51,7 @@ func (r *Store) addMount(ctx context.Context, alias, path string, keys ...string
 	}
 	r.cfg.Mounts[alias] = path
 
-	debug.Log("Added mount %s -> %s", alias, path)
+	debug.Log("Added mount %s -> %s (%s)", alias, path, fullPath)
 	return nil
 }
 
