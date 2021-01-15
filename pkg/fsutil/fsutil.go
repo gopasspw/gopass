@@ -29,6 +29,9 @@ func CleanPath(path string) string {
 	if len(path) > 1 && path[:2] == "~/" {
 		usr, _ := user.Current()
 		dir := usr.HomeDir
+		if hd := os.Getenv("GOPASS_HOMEDIR"); hd != "" {
+			dir = hd
+		}
 		path = strings.Replace(path, "~/", dir+"/", 1)
 	}
 	if p, err := filepath.Abs(path); err == nil {
