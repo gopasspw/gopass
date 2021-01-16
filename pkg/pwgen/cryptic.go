@@ -26,7 +26,7 @@ func NewCryptic(length int) *Cryptic {
 		length = 16
 	}
 	return &Cryptic{
-		Chars:    digits + upper + lower,
+		Chars:    Digits + Upper + Lower,
 		Length:   length,
 		MaxTries: 128,
 	}
@@ -80,13 +80,13 @@ func charsFromRule(rules ...string) string {
 	for _, req := range rules {
 		switch req {
 		case "lower":
-			chars += lower
+			chars += Lower
 		case "upper":
-			chars += upper
+			chars += Upper
 		case "digit":
-			chars += digits
+			chars += Digits
 		case "special":
-			chars += syms
+			chars += Syms
 		default:
 			if strings.HasPrefix(req, "[") && strings.HasSuffix(req, "]") {
 				chars += strings.Trim(req, "[]")

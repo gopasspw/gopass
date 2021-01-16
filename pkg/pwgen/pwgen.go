@@ -8,26 +8,29 @@ package pwgen
 import (
 	"fmt"
 	"os"
+	"strings"
 )
 
+// Character classes
 const (
-	digits = "0123456789"
-	upper  = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	lower  = "abcdefghijklmnopqrstuvwxyz"
-	syms   = "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~"
+	Digits = "0123456789"
+	Upper  = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	Lower  = "abcdefghijklmnopqrstuvwxyz"
+	Syms   = "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~"
+	Ambiq  = "0ODQ1IlB8G6S5Z2"
 	// CharAlpha is the class of letters
-	CharAlpha = upper + lower
+	CharAlpha = Upper + Lower
 	// CharAlphaNum is the class of alpha-numeric characters
-	CharAlphaNum = digits + upper + lower
+	CharAlphaNum = Digits + Upper + Lower
 	// CharAll is the class of all characters
-	CharAll = digits + upper + lower + syms
+	CharAll = Digits + Upper + Lower + Syms
 )
 
 // GeneratePassword generates a random, hard to remember password
 func GeneratePassword(length int, symbols bool) string {
-	chars := digits + upper + lower
+	chars := Digits + Upper + Lower
 	if symbols {
-		chars += syms
+		chars += Syms
 	}
 	if c := os.Getenv("GOPASS_CHARACTER_SET"); c != "" {
 		chars = c
@@ -61,4 +64,16 @@ func GeneratePasswordCharsetCheck(length int, chars string) string {
 	c := NewCrypticWithCrunchy(length)
 	c.Chars = chars
 	return c.Password()
+}
+
+// Prune removes all characters in cutset from the input
+func Prune(in string, cutset string) string {
+	out := make([]rune, 0, len(in))
+	for _, r := range in {
+		if strings.Contains(cutset, string(r)) {
+			continue
+		}
+		out = append(out, r)
+	}
+	return string(out)
 }
