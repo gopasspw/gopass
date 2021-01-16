@@ -128,3 +128,8 @@ milestones:
     close: true
     fail_on_error: false
     name_template: "{{ .Major }}.{{ .Minor }}.{{ .Patch }}"
+
+signs:
+  -
+    id: gopass
+    artifacts: checksum
