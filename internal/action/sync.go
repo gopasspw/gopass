@@ -23,7 +23,7 @@ func (s *Action) Sync(c *cli.Context) error {
 }
 
 func (s *Action) sync(ctx context.Context, store string) error {
-	out.Green(ctx, "Sync starting ...")
+	out.Print(ctx, "🚥 Syncing with all remotes ...")
 
 	numEntries := 0
 	if l, err := s.Store.Tree(ctx); err == nil {
@@ -48,9 +48,11 @@ func (s *Action) sync(ctx context.Context, store string) error {
 		numMPs++
 		_ = s.syncMount(ctx, mp)
 	}
-	out.Green(ctx, "All done")
+	out.Green(ctx, "✅ All done")
 
-	// calculate number of changes entries
+	// Calculate number of changed entries.
+	// This is a rough estimate as additions and deletions
+	// might cancel each other out.
 	if l, err := s.Store.Tree(ctx); err == nil {
 		numEntries = len(l.List(tree.INF)) - numEntries
 	}

@@ -138,24 +138,11 @@ func setupApp(ctx context.Context, sv semver.Version) (context.Context, *cli.App
 		action.Complete(c)
 	}
 
-	app.Flags = []cli.Flag{
-		&cli.BoolFlag{
-			Name:    "clip",
-			Aliases: []string{"c"},
-			Usage:   "Copy the password value into the clipboard",
-		},
-		&cli.BoolFlag{
-			Name:    "unsafe",
-			Aliases: []string{"u", "force", "f"},
-			Usage:   "Display unsafe content (e.g. the password) even if safecontent is enabled",
-		},
-		&cli.BoolFlag{
-			Name:  "yes",
-			Usage: "Assume yes on all yes/no questions or use the default on all others",
-		},
-	}
+	// default action ("show") flags, keep in sync with the show flags in
+	// intneral/action/commands.go
+	app.Flags = ap.ShowFlags()
 	app.Action = func(c *cli.Context) error {
-		if err := action.Initialized(c); err != nil {
+		if err := action.IsInitialized(c); err != nil {
 			return err
 		}
 

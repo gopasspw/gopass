@@ -85,7 +85,7 @@ func Error(ctx context.Context, format string, args ...interface{}) {
 	if ctxutil.IsHidden(ctx) {
 		return
 	}
-	fmt.Fprint(Stderr, color.RedString(Prefix(ctx)+format+newline(ctx), args...))
+	fmt.Fprint(Stderr, color.RedString(Prefix(ctx)+"❌ "+format+newline(ctx), args...))
 }
 
 // White prints the string in white
@@ -109,5 +109,5 @@ func Warning(ctx context.Context, format string, args ...interface{}) {
 	if ctxutil.IsHidden(ctx) {
 		return
 	}
-	fmt.Fprint(Stderr, color.YellowString(Prefix(ctx)+"WARNING: "+format+newline(ctx), args...))
+	fmt.Fprint(Stderr, color.YellowString(Prefix(ctx)+"⚠ "+format+newline(ctx), args...))
 }

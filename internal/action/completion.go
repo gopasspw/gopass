@@ -30,7 +30,7 @@ func bashEscape(s string) string {
 // Complete prints a list of all password names to os.Stdout
 func (s *Action) Complete(c *cli.Context) {
 	ctx := ctxutil.WithGlobalFlags(c)
-	_, err := s.Store.Initialized(ctx) // important to make sure the structs are not nil
+	_, err := s.Store.IsInitialized(ctx) // important to make sure the structs are not nil
 	if err != nil {
 		out.Error(ctx, "Store not initialized: %s", err)
 		return

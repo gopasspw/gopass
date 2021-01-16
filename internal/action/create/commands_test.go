@@ -40,7 +40,7 @@ func TestCommands(t *testing.T) {
 
 type fakeInitializer struct{}
 
-func (f *fakeInitializer) Initialized(*cli.Context) error {
+func (f *fakeInitializer) IsInitialized(*cli.Context) error {
 	return nil
 }
 

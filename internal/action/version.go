@@ -24,7 +24,7 @@ func (s *Action) Version(c *cli.Context) error {
 	version := make(chan string, 1)
 	go s.checkVersion(ctx, version)
 
-	_ = s.Initialized(c)
+	_ = s.IsInitialized(c)
 
 	cli.VersionPrinter(c)
 

@@ -5,7 +5,7 @@ import (
 )
 
 type initializer interface {
-	Initialized(*cli.Context) error
+	IsInitialized(*cli.Context) error
 }
 
 // GetCommands returns the CLI commands exported for the create commands
@@ -17,7 +17,7 @@ func GetCommands(i initializer, store storer) []*cli.Command {
 			Usage:   "Easy creation of new secrets",
 			Description: "" +
 				"This command starts a wizard to aid in creation of new secrets.",
-			Before: i.Initialized,
+			Before: i.IsInitialized,
 			Action: func(c *cli.Context) error {
 				return Create(c, store)
 			},

@@ -130,7 +130,7 @@ func createRootStore(ctx context.Context, u *gptest.Unit) (*Store, error) {
 			Path: u.StoreDir(""),
 		},
 	)
-	if _, err := s.Initialized(ctx); err != nil {
+	if _, err := s.IsInitialized(ctx); err != nil {
 		return nil, err
 	}
 	return s, nil

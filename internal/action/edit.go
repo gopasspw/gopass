@@ -30,7 +30,7 @@ func (s *Action) Edit(c *cli.Context) error {
 func (s *Action) edit(ctx context.Context, c *cli.Context, name string) error {
 	ed := editor.Path(c)
 	if err := editor.Check(ctx, ed); err != nil {
-		out.Red(ctx, "Failed to check editor config: %s", err)
+		out.Warning(ctx, "Failed to check editor config: %s", err)
 	}
 
 	// get existing content or generate new one from a template
@@ -76,7 +76,7 @@ func (s *Action) editGetContent(ctx context.Context, name string, create bool) (
 			return nil
 		}
 		if err := s.find(ctxutil.WithFuzzySearch(ctx, false), nil, name, cb); err == nil {
-			cont, err := termio.AskForBool(ctx, fmt.Sprintf("No secret at '%s'. Found possible match in '%s'. Edit existing entry?", name, newName), true)
+			cont, err := termio.AskForBool(ctx, fmt.Sprintf("Secret does not exist %q. Found possible match in %q. Edit existing entry?", name, newName), true)
 			if err != nil {
 				return "", nil, false, err
 			}
@@ -97,7 +97,7 @@ func (s *Action) editGetContent(ctx context.Context, name string, create bool) (
 	}
 
 	if !create {
-		out.Yellow(ctx, "Entry %s not found. Creating new secret ...", name)
+		out.Warning(ctx, "Entry %s not found. Creating new secret ...", name)
 	}
 
 	// load template if it exists

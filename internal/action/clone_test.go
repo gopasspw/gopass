@@ -106,7 +106,7 @@ func TestCloneBackendIsStoredForMount(t *testing.T) {
 	require.NotNil(t, act)
 
 	c := gptest.CliCtx(ctx, t)
-	require.NoError(t, act.Initialized(c))
+	require.NoError(t, act.IsInitialized(c))
 
 	repo := aGitRepo(ctx, u, t, "my-project")
 

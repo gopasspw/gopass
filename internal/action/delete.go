@@ -33,7 +33,7 @@ func (s *Action) Delete(c *cli.Context) error {
 		if recursive {
 			recStr = "recursively "
 		}
-		if (s.Store.Exists(ctx, name) || s.Store.IsDir(ctx, name)) && key == "" && !termio.AskForConfirmation(ctx, fmt.Sprintf("Are you sure you would like to %sdelete %s?", recStr, name)) {
+		if (s.Store.Exists(ctx, name) || s.Store.IsDir(ctx, name)) && key == "" && !termio.AskForConfirmation(ctx, fmt.Sprintf("☠ Are you sure you would like to %sdelete %s?", recStr, name)) {
 			return nil
 		}
 	}
@@ -63,7 +63,7 @@ func (s *Action) deleteKeyFromYAML(ctx context.Context, name, key string) error 
 		return ExitError(ExitIO, err, "Can not delete key '%s' from '%s': %s", key, name, err)
 	}
 	sec.Del(key)
-	if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, "Updated Key in YAML"), name, sec); err != nil {
+	if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, "Updated Key"), name, sec); err != nil {
 		return ExitError(ExitIO, err, "Can not delete key '%s' from '%s': %s", key, name, err)
 	}
 	return nil

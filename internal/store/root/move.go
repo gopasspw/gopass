@@ -6,7 +6,6 @@ import (
 	"path"
 	"strings"
 
-	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/internal/store/leaf"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -65,13 +64,13 @@ func (r *Store) move(ctx context.Context, from, to string, delete bool) error {
 		if errors.Cause(err) == store.ErrGitNotInit {
 			msg := "Warning: git is not initialized for this.storage. Ignoring auto-push option\n" +
 				"Run: gopass git init"
-			out.Error(ctx, msg)
+			debug.Log(msg)
 			return nil
 		}
 		if errors.Cause(err) == store.ErrGitNoRemote {
 			msg := "Warning: git has no remote. Ignoring auto-push option\n" +
 				"Run: gopass git remote add origin ..."
-			out.Yellow(ctx, msg)
+			debug.Log(msg)
 			return nil
 		}
 		return errors.Wrapf(err, "failed to push change to git remote")
@@ -81,13 +80,13 @@ func (r *Store) move(ctx context.Context, from, to string, delete bool) error {
 			if errors.Cause(err) == store.ErrGitNotInit {
 				msg := "Warning: git is not initialized for this.storage. Ignoring auto-push option\n" +
 					"Run: gopass git init"
-				out.Error(ctx, msg)
+				debug.Log(msg)
 				return nil
 			}
 			if errors.Cause(err) == store.ErrGitNoRemote {
 				msg := "Warning: git has no remote. Ignoring auto-push option\n" +
 					"Run: gopass git remote add origin ..."
-				out.Yellow(ctx, msg)
+				debug.Log(msg)
 				return nil
 			}
 			return errors.Wrapf(err, "failed to push change to git remote")
