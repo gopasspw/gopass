@@ -155,7 +155,7 @@ func AskForPassword(ctx context.Context, name string) (string, error) {
 
 	askFn := GetPassPromptFunc(ctx)
 	for i := 0; i < maxTries; i++ {
-		// check for context cancelation
+		// check for context cancellation
 		select {
 		case <-ctx.Done():
 			return "", ErrAborted
@@ -172,7 +172,7 @@ func AskForPassword(ctx context.Context, name string) (string, error) {
 			return "", err
 		}
 
-		if pass == passAgain || pass == "" {
+		if pass == passAgain {
 			return pass, nil
 		}
 
