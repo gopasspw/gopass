@@ -33,6 +33,6 @@ func TestContainsOnly(t *testing.T) {
 	for _, tc := range []string{
 		"aBcDeF",
 	} {
-		assert.Equal(t, true, containsOnlyClasses(tc, upper+lower))
+		assert.Equal(t, true, containsOnlyClasses(tc, Upper+Lower))
 	}
 }

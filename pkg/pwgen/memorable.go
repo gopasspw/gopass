@@ -8,11 +8,11 @@ func GenerateMemorablePassword(minLength int, symbols bool) string {
 	var sb strings.Builder
 	for sb.Len() < minLength {
 		sb.WriteString(randomWord())
-		sb.WriteByte(digits[randomInteger(len(digits))])
+		sb.WriteByte(Digits[randomInteger(len(Digits))])
 		if !symbols {
 			continue
 		}
-		sb.WriteByte(syms[randomInteger(len(syms))])
+		sb.WriteByte(Syms[randomInteger(len(Syms))])
 	}
 	return sb.String()
 }

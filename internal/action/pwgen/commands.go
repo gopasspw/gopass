@@ -19,6 +19,16 @@ func GetCommands() []*cli.Command {
 					Usage:   "Do not include numerals in the generated passwords.",
 				},
 				&cli.BoolFlag{
+					Name:    "no-capitalize",
+					Aliases: []string{"A"},
+					Usage:   "Do not include capital letter in the generated passwords.",
+				},
+				&cli.BoolFlag{
+					Name:    "ambiguous",
+					Aliases: []string{"B"},
+					Usage:   "Do not include characters that could be easily confused with each other, like '1' and 'l' or '0' and 'O'",
+				},
+				&cli.BoolFlag{
 					Name:    "one-per-line",
 					Aliases: []string{"1"},
 					Usage:   "Print one password per line",

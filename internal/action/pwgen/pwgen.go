@@ -59,8 +59,16 @@ func pwGen(c *cli.Context, pwLen, pwNum int) error {
 		perLine = 1
 	}
 	charset := pwgen.CharAlphaNum
-	if c.Bool("no-numerals") {
+	switch {
+	case c.Bool("no-numerals") && c.Bool("no-capitalize"):
+		charset = pwgen.Lower
+	case c.Bool("no-numerals"):
 		charset = pwgen.CharAlpha
+	case c.Bool("no-capitalize"):
+		charset = pwgen.Digits + pwgen.Lower
+	}
+	if c.Bool("ambiguous") {
+		charset = pwgen.Prune(charset, pwgen.Ambiq)
 	}
 	for i := 0; i < pwNum; i++ {
 		for j := 0; j < perLine; j++ {

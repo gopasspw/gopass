@@ -20,11 +20,11 @@ func ExampleGenerateMemorablePassword() {
 func TestPwgen(t *testing.T) {
 	for _, sym := range []bool{true, false} {
 		for i := 1; i < 50; i++ {
-			syms := CharAlphaNum
+			Syms := CharAlphaNum
 			if sym {
-				syms = CharAll
+				Syms = CharAll
 			}
-			assert.Equal(t, i, len(GeneratePasswordCharset(i, syms)))
+			assert.Equal(t, i, len(GeneratePasswordCharset(i, Syms)))
 		}
 	}
 }
@@ -68,17 +68,17 @@ func TestContainsAllClasses(t *testing.T) {
 	}{
 		{
 			pw:      "foobar",
-			classes: []string{lower},
+			classes: []string{Lower},
 			ok:      true,
 		},
 		{
 			pw:      "aB1$",
-			classes: []string{lower, upper, syms, digits},
+			classes: []string{Lower, Upper, Syms, Digits},
 			ok:      true,
 		},
 		{
 			pw:      "ab1$",
-			classes: []string{lower, upper, syms, digits},
+			classes: []string{Lower, Upper, Syms, Digits},
 			ok:      false,
 		},
 	} {
@@ -95,6 +95,27 @@ func TestGeneratePasswordWithAllClasses(t *testing.T) {
 func TestGenerateMemorablePassword(t *testing.T) {
 	pw := GenerateMemorablePassword(20, false)
 	assert.GreaterOrEqual(t, len(pw), 20)
+}
+
+func TestPrune(t *testing.T) {
+	for _, tc := range []struct {
+		In     string
+		Cutset string
+		Out    string
+	}{
+		{
+			"abc",
+			"b",
+			"ac",
+		},
+		{
+			"01lZO",
+			"01lO",
+			"Z",
+		},
+	} {
+		assert.Equal(t, tc.Out, Prune(tc.In, tc.Cutset))
+	}
 }
 
 func BenchmarkPwgen(b *testing.B) {
