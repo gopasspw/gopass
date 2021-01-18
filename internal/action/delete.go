@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/termio"
 
 	"github.com/urfave/cli/v2"
@@ -39,17 +40,21 @@ func (s *Action) Delete(c *cli.Context) error {
 	}
 
 	if recursive {
+		debug.Log("pruning %q", name)
 		if err := s.Store.Prune(ctx, name); err != nil {
 			return ExitError(ExitUnknown, err, "failed to prune '%s': %s", name, err)
 		}
+		debug.Log("pruned %q", name)
 		return nil
 	}
 
 	// deletes a single key from a YAML doc
 	if key != "" {
+		debug.Log("removing key %q from %q", key, name)
 		return s.deleteKeyFromYAML(ctx, name, key)
 	}
 
+	debug.Log("removing entry %q", name)
 	if err := s.Store.Delete(ctx, name); err != nil {
 		return ExitError(ExitIO, err, "Can not delete '%s': %s", name, err)
 	}

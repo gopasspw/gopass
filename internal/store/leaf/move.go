@@ -76,6 +76,8 @@ func (s *Store) delete(ctx context.Context, name string, recurse bool) error {
 		}
 	}
 	if err := s.deleteSingle(ctx, path); err != nil {
+		// might fail if we deleted the root of a tree which isn't a secret
+		// itself
 		if !recurse {
 			return err
 		}
@@ -115,6 +117,7 @@ func (s *Store) deleteRecurse(ctx context.Context, name, path string) error {
 
 	debug.Log("Pruning %s", name)
 	if err := s.storage.Prune(ctx, name); err != nil {
+		debug.Log("storage.Prune(%v) failed", name)
 		return err
 	}
 
@@ -124,6 +127,7 @@ func (s *Store) deleteRecurse(ctx context.Context, name, path string) error {
 		}
 		return errors.Wrapf(err, "failed to add '%s' to git", path)
 	}
+	debug.Log("pruned")
 	return nil
 }
 
