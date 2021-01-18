@@ -9,11 +9,6 @@ import (
 	"github.com/gopasspw/gopass/pkg/debug"
 )
 
-// ExportPublicKey is not implemented
-func (a *Age) ExportPublicKey(ctx context.Context, id string) ([]byte, error) {
-	return []byte(id), nil
-}
-
 // FindIdentities it TODO
 func (a *Age) FindIdentities(ctx context.Context, keys ...string) ([]string, error) {
 	nk, err := a.getAllIdentities(ctx)

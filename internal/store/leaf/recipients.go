@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/gopasspw/gopass/internal/backend/crypto/age"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/recipients"
 	"github.com/gopasspw/gopass/internal/store"
@@ -188,23 +187,27 @@ func (s *Store) getRecipients(ctx context.Context, idf string) ([]string, error)
 	return finalRecps, nil
 }
 
+type keyExporter interface {
+	ExportPublicKey(ctx context.Context, id string) ([]byte, error)
+}
+
 // ExportMissingPublicKeys will export any possibly missing public keys to the
 // stores .public-keys directory
 func (s *Store) ExportMissingPublicKeys(ctx context.Context, rs []string) (bool, error) {
-	// do not export any keys for age, where public key == key id
-	if _, ok := s.crypto.(*age.Age); ok {
-		debug.Log("not exporting public keys for age")
+	exp, ok := s.crypto.(keyExporter)
+	if !ok {
+		debug.Log("not exporting public keys for %T", s.crypto)
 		return false, nil
 	}
-	ok := true
-	exported := false
+
+	var failed, exported bool
 	for _, r := range rs {
 		if r == "" {
 			continue
 		}
-		path, err := s.exportPublicKey(ctx, r)
+		path, err := s.exportPublicKey(ctx, exp, r)
 		if err != nil {
-			ok = false
+			failed = true
 			out.Error(ctx, "failed to export public key for '%s': %s", r, err)
 			continue
 		}
@@ -217,17 +220,17 @@ func (s *Store) ExportMissingPublicKeys(ctx context.Context, rs []string) (bool,
 			if errors.Cause(err) == store.ErrGitNotInit {
 				continue
 			}
-			ok = false
+			failed = true
 			out.Error(ctx, "failed to add public key for '%s' to git: %s", r, err)
 			continue
 		}
 		if err := s.storage.Commit(ctx, fmt.Sprintf("Exported Public Keys %s", r)); err != nil && err != store.ErrGitNothingToCommit {
-			ok = false
+			failed = true
 			out.Error(ctx, "Failed to git commit: %s", err)
 			continue
 		}
 	}
-	if !ok {
+	if failed {
 		return exported, errors.New("some keys failed")
 	}
 	return exported, nil

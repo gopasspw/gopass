@@ -38,7 +38,7 @@ require (
 	github.com/urfave/cli/v2 v2.2.0
 	github.com/xrash/smetrics v0.0.0-20200730060457-89a2a8a1fb0b // indirect
 	golang.org/x/crypto v0.0.0-20200930160638-afb6bcd081ae
-	golang.org/x/net v0.0.0-20190404232315-eb5bcb51f2a3
+	golang.org/x/net v0.0.0-20201021035429-f5854403a974
 	golang.org/x/sys v0.0.0-20201024232916-9f70ab9862d5
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
