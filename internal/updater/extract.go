@@ -2,6 +2,7 @@ package updater
 
 import (
 	"archive/tar"
+	"archive/zip"
 	"bytes"
 	"compress/bzip2"
 	"compress/gzip"
@@ -23,20 +24,6 @@ func extractFile(buf []byte, filename, dest string) error {
 		mode = fi.Mode()
 	}
 
-	var rd io.Reader = bytes.NewReader(buf)
-	switch filepath.Ext(filename) {
-	case ".gz":
-		gzr, err := gzip.NewReader(rd)
-		if err != nil {
-			return err
-		}
-		rd = gzr
-	case ".bz2":
-		rd = bzip2.NewReader(rd)
-	case ".zip":
-		return fmt.Errorf("zip archives are not supported, yet")
-	}
-
 	if err := os.Remove(dest); err != nil {
 		if !os.IsNotExist(err) {
 			return fmt.Errorf("unable to remove destination file: %q", err)
@@ -51,6 +38,54 @@ func extractFile(buf []byte, filename, dest string) error {
 		_ = dfh.Close()
 	}()
 
+	var rd io.Reader = bytes.NewReader(buf)
+	switch filepath.Ext(filename) {
+	case ".gz":
+		gzr, err := gzip.NewReader(rd)
+		if err != nil {
+			return err
+		}
+		return extractTar(gzr, dfh, dest)
+	case ".bz2":
+		return extractTar(bzip2.NewReader(rd), dfh, dest)
+	case ".zip":
+		return extractZip(buf, dfh, dest)
+	default:
+		return fmt.Errorf("unsupported")
+	}
+}
+
+func extractZip(buf []byte, dfh io.WriteCloser, dest string) error {
+	zrd, err := zip.NewReader(bytes.NewReader(buf), int64(len(buf)))
+	if err != nil {
+		return err
+	}
+
+	for i := 0; i < len(zrd.File); i++ {
+		if zrd.File[i].Name != "gopass.exe" {
+			continue
+		}
+
+		file, err := zrd.File[i].Open()
+		if err != nil {
+			return errors.Wrapf(err, "failed to read from zip file")
+		}
+
+		n, err := io.Copy(dfh, file)
+		if err != nil {
+			dfh.Close()
+			os.Remove(dest)
+			return errors.Wrapf(err, "failed to read gopass.exe from zip file")
+		}
+		// success
+		debug.Log("wrote %d bytes to %v", n, dest)
+		return nil
+	}
+
+	return errors.Errorf("file not found in archive")
+}
+
+func extractTar(rd io.Reader, dfh io.WriteCloser, dest string) error {
 	tarReader := tar.NewReader(rd)
 	for {
 		header, err := tarReader.Next()
@@ -58,20 +93,25 @@ func extractFile(buf []byte, filename, dest string) error {
 			break
 		}
 		if err != nil {
-			return errors.Wrapf(err, "Failed to read from tar file")
+			return errors.Wrapf(err, "failed to read from tar file")
 		}
 		name := filepath.Base(header.Name)
-		if header.Typeflag == tar.TypeReg && name == "gopass" {
-			n, err := io.Copy(dfh, tarReader)
-			if err != nil {
-				dfh.Close()
-				os.Remove(dest)
-				return errors.Wrapf(err, "Failed to read gopass from tar file")
-			}
-			// success
-			debug.Log("wrote %d bytes to %v", n, dest)
-			return nil
+		if header.Typeflag != tar.TypeReg {
+			continue
 		}
+		if name != "gopass" {
+			continue
+		}
+
+		n, err := io.Copy(dfh, tarReader)
+		if err != nil {
+			dfh.Close()
+			os.Remove(dest)
+			return errors.Wrapf(err, "Failed to read gopass from tar file")
+		}
+		// success
+		debug.Log("wrote %d bytes to %v", n, dest)
+		return nil
 	}
 	return errors.Errorf("file not found in archive")
 }
