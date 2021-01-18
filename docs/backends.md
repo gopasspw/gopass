@@ -15,7 +15,6 @@ the context handlers in the same package.
 
 * [fs](backends/fs.md) - Filesystem storage without RCS support
 * [gitfs](backends/gitfs.md) - Filesystem storage with Git RCS
-* [ondisk](backends/ondisk.md) - EXPERIMENTAL Fully encrypted filesystem storage with custom RCS
 
 ## Crypto Backends (crypto)
 

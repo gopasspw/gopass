@@ -54,14 +54,14 @@ parsing: true
 	t.Run("set valid config value", func(t *testing.T) {
 		defer buf.Reset()
 
-		assert.NoError(t, act.setConfigValue(ctx, "", "nopager", "true"))
+		assert.NoError(t, act.setConfigValue(ctx, "nopager", "true"))
 		assert.Equal(t, "nopager: true", strings.TrimSpace(buf.String()), "action.setConfigValue")
 	})
 
 	t.Run("set invalid config value", func(t *testing.T) {
 		defer buf.Reset()
 
-		assert.Error(t, act.setConfigValue(ctx, "", "foobar", "true"))
+		assert.Error(t, act.setConfigValue(ctx, "foobar", "true"))
 	})
 
 	t.Run("print single config value", func(t *testing.T) {

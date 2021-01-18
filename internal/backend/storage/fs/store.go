@@ -180,7 +180,7 @@ func (s *Store) String() string {
 	return fmt.Sprintf("fs(v0.1.0,path:%s)", s.path)
 }
 
-// Path returns the ondisk path
+// Path returns the path to this storage
 func (s *Store) Path() string {
 	return s.path
 }

@@ -1,6 +1,9 @@
 package action
 
 import (
+	"fmt"
+
+	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/urfave/cli/v2"
 )
 
@@ -105,7 +108,7 @@ func (s *Action) GetCommands() []*cli.Command {
 		},
 		{
 			Name:  "clone",
-			Usage: "Clone a store from a git repository",
+			Usage: "Clone a password store from a git repository",
 			Description: "" +
 				"This command clones an existing password store from a git remote to " +
 				"a local password store. Can be either used to initialize a new root store " +
@@ -122,7 +125,7 @@ func (s *Action) GetCommands() []*cli.Command {
 				},
 				&cli.StringFlag{
 					Name:  "crypto",
-					Usage: "Select crypto backend (gpgcli, age, plain, xc)",
+					Usage: fmt.Sprintf("Select crypto backend %v", backend.CryptoBackends()),
 				},
 			},
 		},
@@ -162,15 +165,11 @@ func (s *Action) GetCommands() []*cli.Command {
 				},
 				&cli.StringFlag{
 					Name:  "crypto",
-					Usage: "Which crypto backend? (gpgcli, age, xc)",
+					Usage: fmt.Sprintf("Which crypto backend? %v", backend.CryptoBackends()),
 				},
 				&cli.StringFlag{
 					Name:  "storage",
-					Usage: "Which storage backend? (fs, ondisk)",
-				},
-				&cli.StringFlag{
-					Name:  "rcs",
-					Usage: "Which RCS backend? (gitcli, ondisk)",
+					Usage: fmt.Sprintf("Which storage backend? %v", backend.StorageBackends()),
 				},
 			},
 		},
@@ -567,12 +566,12 @@ func (s *Action) GetCommands() []*cli.Command {
 				},
 				&cli.StringFlag{
 					Name:  "crypto",
-					Usage: "Select crypto backend (gpgcli, age, xc, plain)",
+					Usage: fmt.Sprintf("Select crypto backend %v", backend.CryptoBackends()),
 					Value: "gpgcli",
 				},
 				&cli.StringFlag{
 					Name:  "storage",
-					Usage: "Select storage backend (gitfs, fs, ondisk)",
+					Usage: fmt.Sprintf("Select storage backend %v", backend.StorageBackends()),
 					Value: "gitfs",
 				},
 			},
@@ -815,17 +814,17 @@ func (s *Action) GetCommands() []*cli.Command {
 				},
 				&cli.StringFlag{
 					Name:  "crypto",
-					Usage: "Select crypto backend (gpg, gpgcli, plain, xc)",
+					Usage: fmt.Sprintf("Select crypto backend %v", backend.CryptoBackends()),
 				},
 				&cli.StringFlag{
 					Name:  "rcs",
-					Usage: "Select sync backend (git, gitcli, noop)",
+					Usage: fmt.Sprintf("Select RCS backend %v", backend.StorageBackends()),
 				},
 			},
 		},
 		{
 			Name:  "show",
-			Usage: "Display a secret",
+			Usage: "Display the content of a secret",
 			Description: "" +
 				"Show an existing secret and optionally put its first line on the clipboard. " +
 				"If put on the clipboard, it will be cleared after 45 seconds.",
