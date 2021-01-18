@@ -1,29 +1,17 @@
 package updater
 
 import (
-	"archive/tar"
-	"compress/gzip"
+	"bytes"
 	"context"
+	"crypto/sha256"
 	"fmt"
-	"io"
-	"net"
-	"net/http"
-	"net/url"
-	"os"
-	"path/filepath"
 	"runtime"
-	"strings"
-	"time"
 
 	"github.com/gopasspw/gopass/internal/out"
-	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
-	"github.com/gopasspw/gopass/pkg/termio"
+	"github.com/pkg/errors"
 
 	"github.com/blang/semver"
-	"github.com/cenkalti/backoff"
-	"github.com/dominikschulz/github-releases/ghrel"
-	"github.com/pkg/errors"
 )
 
 var (
@@ -31,255 +19,83 @@ var (
 	UpdateMoveAfterQuit = true
 )
 
-const (
-	gitHubOrg  = "gopasspw"
-	gitHubRepo = "gopass"
-)
-
 // Update will start th interactive update assistant
-func Update(ctx context.Context, pre bool, version semver.Version, migrationCheck func(context.Context) bool) error {
+func Update(ctx context.Context, currentVersion semver.Version) error {
 	if err := IsUpdateable(ctx); err != nil {
-		out.Error(ctx, "Your gopass binary is externally managed. Can not update.")
-		debug.Log("Error: %s", err)
-		return nil
+		out.Error(ctx, "Your gopass binary is externally managed. Can not update: %q", err)
+		return err
 	}
 
-	ok, err := termio.AskForBool(ctx, "Do you want to check for available updates?", true)
+	dest, err := executable(ctx)
 	if err != nil {
 		return err
 	}
-	if !ok {
-		return nil
-	}
 
-	rs, err := FetchReleases(pre || len(version.Pre) > 0)
+	rel, err := FetchLatestRelease(ctx)
 	if err != nil {
 		return err
 	}
-	if len(rs) < 1 {
-		return fmt.Errorf("no releases available")
-	}
 
-	debug.Log("Current: %s - Latest: %s", version.String(), rs[0].Version().String())
+	debug.Log("Current: %s - Latest: %s", currentVersion.String(), rel.Version.String())
 	// binary is newer or equal to the latest release -> nothing to do
-	if version.GTE(rs[0].Version()) {
-		out.Green(ctx, "gopass is up to date (%s)", version.String())
+	if currentVersion.GTE(rel.Version) {
+		out.Green(ctx, "gopass is up to date (%s)", currentVersion.String())
 		return nil
 	}
 
-	// binary has the same major version as the latest release -> simple update
-	//if version.Major == rs[0].Version().Major || version.Major == 0 {
-	if version.Major == rs[0].Version().Major {
-		return simpleUpdate(ctx, rs[0])
-	}
-
-	// binary has a previous major version -> need to update to the latest
-	// release of the previous minor version first, run update check and then
-	// update to the next major version.
-	latestMinorReleases := filterMajor(rs, version.Major)
-	if len(latestMinorReleases) < 1 {
-		return fmt.Errorf("no suitable releases")
-	}
-
-	// we're already at the latest release of the previous stable release
-	// cycle. We attempt to migrate the any outdated data of config and
-	// if the succeeds we can go straight to the latest release.
-	if version.EQ(latestMinorReleases[0].Version()) && migrationCheck(ctx) {
-		return simpleUpdate(ctx, rs[0])
-	}
-
-	// before we can move to the next major release we first need to update to
-	// the latest release of the current major release and pass the migration
-	// check.
-	return simpleUpdate(ctx, latestMinorReleases[0])
-}
-
-func filterMajor(rs []ghrel.Release, major uint64) []ghrel.Release {
-	out := make([]ghrel.Release, 0, len(rs)-1)
-	for _, r := range rs {
-		v := r.Version()
-		if v.Major != major {
-			continue
-		}
-		out = append(out, r)
-	}
-	return out
-}
-
-func simpleUpdate(ctx context.Context, r ghrel.Release) error {
-	debug.Log("Assets: %+v", r.Assets)
-	for _, asset := range r.Assets {
-		name := strings.TrimSuffix(strings.TrimPrefix(asset.Name, "gopass-"), ".tar.gz")
-		p := strings.Split(name, "-")
-		if len(p) < 3 {
-			continue
-		}
-		if p[len(p)-2] != runtime.GOOS {
-			continue
-		}
-		if p[len(p)-1] != runtime.GOARCH {
-			continue
-		}
-		if asset.URL == "" {
-			continue
-		}
-		if err := updateTo(ctx, r.Version().String(), asset.URL); err != nil {
-			return errors.Wrapf(err, "Failed to update gopass: %s", err)
-		}
-		return nil
-	}
-	return errors.New("no supported binary found")
-}
-
-// FetchReleases fetches and returns all releases of gopass from GitHub
-func FetchReleases(pre bool) ([]ghrel.Release, error) {
-	if pre {
-		return ghrel.FetchAllReleases(gitHubOrg, gitHubRepo)
-	}
-	return ghrel.FetchAllStableReleases(gitHubOrg, gitHubRepo)
-}
-
-// LatestRelease fetches and returns the latest gopass release from GitHub
-func LatestRelease(pre bool) (ghrel.Release, error) {
-	rs, err := FetchReleases(pre)
-	if err != nil {
-		return ghrel.Release{}, err
-	}
-	if len(rs) < 1 {
-		return ghrel.Release{}, fmt.Errorf("no releases")
-	}
-	return rs[0], nil
-}
-
-func updateCheckHost(u *url.URL) error {
-	host, _, err := net.SplitHostPort(u.Host)
-	if err != nil {
-		debug.Log("failed to split host port: %s", err)
-		if e, ok := err.(*net.AddrError); ok && e.Err != "missing port in address" {
-			return errors.Wrapf(err, "failed to split host port")
-		}
-		host = u.Host
-	}
-	if u.Scheme != "https" && host != "localhost" && host != "127.0.0.1" {
-		return errors.Errorf("refusing non-https URL '%s'", u.String())
-	}
-	return nil
-}
-
-func updateTo(ctx context.Context, version, url string) error {
-	debug.Log("URL: %s", url)
-	out.Green(ctx, "Update available!")
-	if true {
-		out.Red(ctx, "Gopass Updater is disabled (insecure, see #1676")
-		return nil
-	}
-	ok, err := termio.AskForBool(ctx, fmt.Sprintf("Do you want to update gopass to %s?", version), true)
+	debug.Log("downloading SHA256SUMS ...")
+	_, sha256sums, err := downloadAsset(ctx, rel.Assets, "SHA256SUMS")
 	if err != nil {
 		return err
+	}
+
+	debug.Log("downloading SHA256SUMS.sig ...")
+	_, sig, err := downloadAsset(ctx, rel.Assets, "SHA256SUMS.sig")
+	if err != nil {
+		return err
+	}
+
+	debug.Log("verifying GPG signature ...")
+	ok, err := gpgVerify(sha256sums, sig)
+	if err != nil {
+		return errors.Wrapf(err, "signature verification failed")
 	}
 	if !ok {
-		return nil
+		return fmt.Errorf("GPG signature verification for SHA256SUMS failed")
 	}
-	return updateGopass(ctx, version, url)
-}
+	debug.Log("GPG signature OK!")
 
-func extract(archive, dest string) error {
-	debug.Log("Reading from %s", archive)
-	fh, err := os.Open(archive)
+	ext := "tar.gz"
+	if runtime.GOOS == "windows" {
+		ext = "zip"
+	}
+
+	suffix := fmt.Sprintf("%s-%s.%s", runtime.GOOS, runtime.GOARCH, ext)
+	debug.Log("downloading tarball %q ...", suffix)
+	dlFilename, buf, err := downloadAsset(ctx, rel.Assets, suffix)
 	if err != nil {
 		return err
 	}
-	defer func() {
-		_ = fh.Close()
-	}()
 
-	dfh, err := os.OpenFile(dest, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0755)
-	if err != nil {
-		return errors.Wrapf(err, "Failed to open file: %s", dest)
-	}
-	defer func() {
-		_ = dfh.Close()
-	}()
-
-	gzr, err := gzip.NewReader(fh)
+	debug.Log("finding hashsum entry for %q", dlFilename)
+	wantHash, err := findHashForFile(sha256sums, dlFilename)
 	if err != nil {
 		return err
 	}
-	tarReader := tar.NewReader(gzr)
 
-	for {
-		header, err := tarReader.Next()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			return errors.Wrapf(err, "Failed to read from tar file")
-		}
-		name := filepath.Base(header.Name)
-		if header.Typeflag == tar.TypeReg && name == "gopass" {
-			_, err := io.Copy(dfh, tarReader)
-			return errors.Wrapf(err, "Failed to read gopass from tar file")
-		}
+	debug.Log("calculating hashsum of downloaded archive ...")
+	gotHash := sha256.Sum256(buf)
+	if !bytes.Equal(wantHash, gotHash[:]) {
+		return fmt.Errorf("SHA256 hash mismatch, want %02x, got %02x", wantHash, gotHash)
 	}
-	return errors.Errorf("file not found in archive")
-}
+	debug.Log("hashsums match!")
 
-func tryDownload(ctx context.Context, dest, url string) error {
-	bo := backoff.NewExponentialBackOff()
-	bo.MaxElapsedTime = 5 * time.Minute
-
-	return backoff.Retry(func() error {
-		select {
-		case <-ctx.Done():
-			return backoff.Permanent(errors.New("user aborted"))
-		default:
-		}
-		return download(ctx, dest, url)
-	}, bo)
-}
-
-func download(ctx context.Context, dest, url string) error {
-	fh, err := os.OpenFile(dest, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0755)
-	if err != nil {
+	debug.Log("extracting binary from tarball ...")
+	if err := extractFile(buf, dlFilename, dest); err != nil {
 		return err
 	}
-	resp, err := http.Get(url)
-	if err != nil {
-		return err
-	}
-	var body io.ReadCloser
-	bar := termio.NewProgressBar(resp.ContentLength, ctxutil.IsHidden(ctx))
-	if resp.ContentLength > 0 {
-		body = &passThru{
-			ReadCloser: resp.Body,
-			Bar:        bar,
-		}
+	debug.Log("extracted %q to %q", dlFilename, dest)
 
-	} else {
-		body = resp.Body
-	}
-	count, err := io.Copy(fh, body)
-	if err != nil {
-		return err
-	}
-	bar.Done()
-	debug.Log("Transferred %d bytes from %s to %s", count, url, dest)
+	debug.Log("success!")
 	return nil
-}
-
-type setter interface {
-	Set(int64)
-}
-
-type passThru struct {
-	io.ReadCloser
-	Bar setter
-}
-
-func (pt *passThru) Read(p []byte) (int, error) {
-	n, err := pt.ReadCloser.Read(p)
-	if pt.Bar != nil {
-		pt.Bar.Set(int64(n))
-	}
-	return n, err
 }
