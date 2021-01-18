@@ -98,7 +98,7 @@ func (s *Store) decodePublicKey(ctx context.Context, r string) ([]string, error)
 }
 
 // export an ASCII armored public key
-func (s *Store) exportPublicKey(ctx context.Context, r string) (string, error) {
+func (s *Store) exportPublicKey(ctx context.Context, exp keyExporter, r string) (string, error) {
 	filename := filepath.Join(keyDir, r)
 
 	// do not overwrite existing keys
@@ -106,7 +106,7 @@ func (s *Store) exportPublicKey(ctx context.Context, r string) (string, error) {
 		return "", nil
 	}
 
-	pk, err := s.crypto.ExportPublicKey(ctx, r)
+	pk, err := exp.ExportPublicKey(ctx, r)
 	if err != nil {
 		return "", errors.Wrapf(err, "failed to export public key")
 	}

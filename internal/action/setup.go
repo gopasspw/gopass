@@ -146,7 +146,17 @@ func (s *Action) initGenerateIdentity(ctx context.Context, crypto backend.Crypto
 	return nil
 }
 
+type keyExporter interface {
+	ExportPublicKey(ctx context.Context, id string) ([]byte, error)
+}
+
 func (s *Action) initExportPublicKey(ctx context.Context, crypto backend.Crypto, key string) error {
+	exp, ok := crypto.(keyExporter)
+	if !ok {
+		debug.Log("crypto backend %T can not export public keys", crypto)
+		return nil
+	}
+
 	fn := key + ".pub.key"
 	want, err := termio.AskForBool(ctx, fmt.Sprintf("Do you want to export your public key to %q?", fn), false)
 	if err != nil {
@@ -155,7 +165,7 @@ func (s *Action) initExportPublicKey(ctx context.Context, crypto backend.Crypto,
 	if !want {
 		return nil
 	}
-	pk, err := crypto.ExportPublicKey(ctx, key)
+	pk, err := exp.ExportPublicKey(ctx, key)
 	if err != nil {
 		return errors.Wrapf(err, "failed to export public key")
 	}
