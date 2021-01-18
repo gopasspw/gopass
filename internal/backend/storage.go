@@ -18,8 +18,6 @@ const (
 	FS StorageBackend = iota
 	// GitFS is a filesystem-backed storage with Git
 	GitFS
-	// OnDisk is an on-disk store
-	OnDisk
 )
 
 func (s StorageBackend) String() string {

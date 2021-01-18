@@ -12,7 +12,7 @@ Warning: Converting between different RCS backends will loose part of the histor
 ## Synopsis
 
 ```
-$ gopass convert --store=foo --move=true --storage=ondisk --crypto=age
+$ gopass convert --store=foo --move=true --storage=gitfs --crypto=age
 $ gopass convert --store=bar --move=false --storage=fs --crypto=plain
 ```
 

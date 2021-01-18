@@ -5,10 +5,8 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/gopasspw/gopass/internal/backend/storage/ondisk"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"github.com/gopasspw/gopass/pkg/debug"
 
 	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
@@ -31,7 +29,7 @@ func (s *Action) Config(c *cli.Context) error {
 		return ExitError(ExitUsage, nil, "Usage: %s config key value", s.Name)
 	}
 
-	if err := s.setConfigValue(ctx, c.String("store"), c.Args().Get(0), c.Args().Get(1)); err != nil {
+	if err := s.setConfigValue(ctx, c.Args().Get(0), c.Args().Get(1)); err != nil {
 		return ExitError(ExitUnknown, err, "Error setting config value")
 	}
 	return nil
@@ -46,17 +44,6 @@ func (s *Action) printConfigValues(ctx context.Context, needles ...string) {
 		if len(needles) < 1 {
 			out.Print(ctx, "mount '%s' => '%s'", alias, path)
 		}
-		storage, ok := s.getOnDiskStorage(ctx, alias)
-		if !ok {
-			// not ondisk
-			continue
-		}
-		rcfg, err := storage.GetRemote(ctx)
-		if err != nil {
-			debug.Log("failed to read remote config: %s", err)
-			continue
-		}
-		out.Print(ctx, "  remote: %s", rcfg)
 	}
 }
 
@@ -84,39 +71,12 @@ func contains(haystack []string, needle string) bool {
 	return false
 }
 
-func (s *Action) setConfigValue(ctx context.Context, store, key, value string) error {
-	if key == "remote" && value != "" && store != "" {
-		return s.setRemoteConfig(ctx, store, value)
-	}
+func (s *Action) setConfigValue(ctx context.Context, key, value string) error {
 	if err := s.cfg.SetConfigValue(key, value); err != nil {
 		return errors.Wrapf(err, "failed to set config value '%s'", key)
 	}
 	s.printConfigValues(ctx, key)
 	return nil
-}
-
-func (s *Action) getOnDiskStorage(ctx context.Context, store string) (*ondisk.OnDisk, bool) {
-	_, sub, err := s.Store.GetSubStore(ctx, store)
-	if err != nil {
-		debug.Log("failed to get sub store: %s", err)
-		return nil, false
-	}
-
-	storage, ok := sub.Storage().(*ondisk.OnDisk)
-	if !ok {
-		return nil, false
-	}
-
-	return storage, true
-}
-
-func (s *Action) setRemoteConfig(ctx context.Context, store, urlStr string) error {
-	storage, ok := s.getOnDiskStorage(ctx, store)
-	if !ok {
-		debug.Log("setting remote not supported")
-		return nil
-	}
-	return storage.SetRemote(ctx, urlStr)
 }
 
 func (s *Action) configKeys() []string {

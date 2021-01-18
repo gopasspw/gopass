@@ -47,7 +47,7 @@ func (g *Git) String() string {
 	return fmt.Sprintf("gitfs(v0.1.0,path:%s)", g.fs.Path())
 }
 
-// Path returns the ondisk path
+// Path returns the path to this storage
 func (g *Git) Path() string {
 	return g.fs.Path()
 }
