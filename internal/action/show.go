@@ -75,7 +75,7 @@ func (s *Action) show(ctx context.Context, c *cli.Context, name string, recurse 
 		return s.List(c)
 	}
 	if s.Store.IsDir(ctx, name) && ctxutil.IsTerminal(ctx) {
-		out.Cyan(ctx, "Warning: %s is a secret and a folder. Use 'gopass show %s' to display the secret and 'gopass list %s' to show the content of the folder", name, name, name)
+		out.Warning(ctx, "%s is a secret and a folder. Use 'gopass show %s' to display the secret and 'gopass list %s' to show the content of the folder", name, name, name)
 	}
 
 	if HasRevision(ctx) {
@@ -159,7 +159,14 @@ func (s *Action) showHandleOutput(ctx context.Context, name string, sec gopass.S
 	}
 
 	ctx = out.WithNewline(ctx, ctxutil.IsTerminal(ctx) && !strings.HasSuffix(body, "\n"))
-	out.Yellow(ctx, body)
+	if ctxutil.IsTerminal(ctx) {
+		out.Print(ctx, "Secret: %s\n\n", name)
+	}
+	// output the actual secret
+	out.Print(ctx, body)
+	if ctxutil.IsTerminal(ctx) {
+		out.Print(ctx, "\n")
+	}
 	return nil
 }
 
@@ -174,7 +181,7 @@ func (s *Action) showGetContent(ctx context.Context, sec gopass.Secret) (string,
 		debug.Log("got(found: %t) key %s: %s", found, key, val)
 		return val, val, nil
 	} else if HasKey(ctx) {
-		out.Warning(ctx, "parsing is disabled but a key was provided.")
+		out.Warning(ctx, "Parsing is disabled but a key was provided.")
 		debug.Log("attempting to parse key %s with parsing disabled", GetKey(ctx))
 	}
 
@@ -279,7 +286,7 @@ func (s *Action) showHandleError(ctx context.Context, c *cli.Context, name strin
 	if IsClip(ctx) {
 		_ = notify.Notify(ctx, "gopass - warning", fmt.Sprintf("Entry '%s' not found. Starting search...", name))
 	}
-	out.Yellow(ctx, "Entry '%s' not found. Starting search...", name)
+	out.Warning(ctx, "Entry '%s' not found. Starting search...", name)
 	c.Context = ctx
 	if err := s.Find(c); err != nil {
 		if IsClip(ctx) {

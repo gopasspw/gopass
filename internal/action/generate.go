@@ -337,7 +337,7 @@ func (s *Action) CompleteGenerate(c *cli.Context) {
 	}
 	needle := c.Args().Get(0)
 
-	_, err := s.Store.Initialized(ctx) // important to make sure the structs are not nil
+	_, err := s.Store.IsInitialized(ctx) // important to make sure the structs are not nil
 	if err != nil {
 		out.Error(ctx, "Store not initialized: %s", err)
 		return

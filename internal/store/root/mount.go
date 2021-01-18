@@ -62,7 +62,7 @@ func (r *Store) initSub(ctx context.Context, alias, path string, keys []string) 
 		return nil, errors.Wrapf(err, "failed to initialize store '%s' at '%s': %s", alias, path, err)
 	}
 
-	if s.Initialized(ctx) {
+	if s.IsInitialized(ctx) {
 		return s, nil
 	}
 

@@ -4,6 +4,46 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
+// ShowFlags returns the flags for the show command. Exported to re-use in main
+// for the default command.
+func ShowFlags() []cli.Flag {
+	return []cli.Flag{
+		&cli.BoolFlag{
+			Name:    "clip",
+			Aliases: []string{"c"},
+			Usage:   "Copy the password value into the clipboard",
+		},
+		&cli.BoolFlag{
+			Name:    "alsoclip",
+			Aliases: []string{"C"},
+			Usage:   "Copy the password and show everything",
+		},
+		&cli.BoolFlag{
+			Name:  "qr",
+			Usage: "Print the password as a QR Code",
+		},
+		&cli.BoolFlag{
+			Name:    "unsafe",
+			Aliases: []string{"u", "force", "f"},
+			Usage:   "Display unsafe content (e.g. the password) even if safecontent is enabled",
+		},
+		&cli.BoolFlag{
+			Name:    "password",
+			Aliases: []string{"o"},
+			Usage:   "Display only the password. Takes precedence over all other flags.",
+		},
+		&cli.StringFlag{
+			Name:  "revision",
+			Usage: "Show a past revision. Does NOT support RCS specific shortcuts. Use exact revision or -N to select the Nth oldest revision of this entry.",
+		},
+		&cli.BoolFlag{
+			Name:    "noparsing",
+			Aliases: []string{"n"},
+			Usage:   "Do not parse the output.",
+		},
+	}
+}
+
 // GetCommands returns the cli commands exported by this module
 func (s *Action) GetCommands() []*cli.Command {
 	return []*cli.Command{
@@ -36,11 +76,11 @@ func (s *Action) GetCommands() []*cli.Command {
 		},
 		{
 			Name:  "audit",
-			Usage: "Scan for weak passwords",
+			Usage: "Decrypt all secrets and scan for weak or leaked passwords",
 			Description: "" +
 				"This command decrypts all secrets and checks for common flaws and (optionally) " +
 				"against a list of previously leaked passwords.",
-			Before: s.Initialized,
+			Before: s.IsInitialized,
 			Action: s.Audit,
 			Flags: []cli.Flag{
 				&cli.IntFlag{
@@ -59,13 +99,13 @@ func (s *Action) GetCommands() []*cli.Command {
 				"It can either be used to retrieve the decoded content of a secret " +
 				"similar to 'cat file' or vice versa to encode the content from STDIN " +
 				"to a secret.",
-			Before:       s.Initialized,
+			Before:       s.IsInitialized,
 			Action:       s.Cat,
 			BashComplete: s.Complete,
 		},
 		{
 			Name:  "clone",
-			Usage: "Clone a store from git",
+			Usage: "Clone a store from a git repository",
 			Description: "" +
 				"This command clones an existing password store from a git remote to " +
 				"a local password store. Can be either used to initialize a new root store " +
@@ -88,7 +128,7 @@ func (s *Action) GetCommands() []*cli.Command {
 		},
 		{
 			Name:  "config",
-			Usage: "Edit configuration",
+			Usage: "Configuration editor",
 			Description: "" +
 				"This command allows for easy printing and editing of the configuration. " +
 				"Without argument, the entire config is printed. " +
@@ -105,10 +145,10 @@ func (s *Action) GetCommands() []*cli.Command {
 		},
 		{
 			Name:        "convert",
-			Usage:       "Convert a store",
+			Usage:       "Convert a store to different backends",
 			Description: "Convert a store to a different set of backends",
 			Action:      s.Convert,
-			Before:      s.Initialized,
+			Before:      s.IsInitialized,
 			Hidden:      true,
 			Flags: []cli.Flag{
 				&cli.StringFlag{
@@ -144,7 +184,7 @@ func (s *Action) GetCommands() []*cli.Command {
 				"automatically copy recursively. In that case, the source directory is re-created " +
 				"at the destination if no trailing slash is found, otherwise the contents are " +
 				"flattened (similar to rsync).",
-			Before:       s.Initialized,
+			Before:       s.IsInitialized,
 			Action:       s.Copy,
 			BashComplete: s.Complete,
 			Flags: []cli.Flag{
@@ -157,12 +197,12 @@ func (s *Action) GetCommands() []*cli.Command {
 		},
 		{
 			Name:  "delete",
-			Usage: "Remove secrets",
+			Usage: "Remove one or many secrets from the store",
 			Description: "" +
 				"This command removes secrets. It can work recursively on folders. " +
 				"Recursing across stores is purposefully not supported.",
 			Aliases:      []string{"remove", "rm"},
-			Before:       s.Initialized,
+			Before:       s.IsInitialized,
 			Action:       s.Delete,
 			BashComplete: s.Complete,
 			Flags: []cli.Flag{
@@ -187,7 +227,7 @@ func (s *Action) GetCommands() []*cli.Command {
 				"for storing your secret while the editor is accessing it. Please make " +
 				"sure your editor doesn't leak sensitive data to other locations while " +
 				"editing.",
-			Before:       s.Initialized,
+			Before:       s.IsInitialized,
 			Action:       s.Edit,
 			Aliases:      []string{"set"},
 			BashComplete: s.Complete,
@@ -208,7 +248,7 @@ func (s *Action) GetCommands() []*cli.Command {
 			Name:         "env",
 			Usage:        "Run a subprocess with a pre-populated environment",
 			Description:  "This command runs a sub process with the environment populated from the keys of a secret.",
-			Before:       s.Initialized,
+			Before:       s.IsInitialized,
 			Action:       s.Env,
 			BashComplete: s.Complete,
 			Hidden:       true,
@@ -220,7 +260,7 @@ func (s *Action) GetCommands() []*cli.Command {
 				"This command will first attempt a simple pattern match on the name of the " +
 				"secret.  If there is an exact match it will be shown directly; if there are " +
 				"multiple matches, a selection will be shown.",
-			Before:       s.Initialized,
+			Before:       s.IsInitialized,
 			Action:       s.FindNoFuzzy,
 			Aliases:      []string{"search"},
 			BashComplete: s.Complete,
@@ -243,7 +283,7 @@ func (s *Action) GetCommands() []*cli.Command {
 			Description: "" +
 				"Check the integrity of the given sub-store or all stores if none are specified. " +
 				"Will automatically fix all issues found.",
-			Before:       s.Initialized,
+			Before:       s.IsInitialized,
 			Action:       s.Fsck,
 			BashComplete: s.MountsComplete,
 			Flags: []cli.Flag{
@@ -262,7 +302,7 @@ func (s *Action) GetCommands() []*cli.Command {
 				"a secret and writes the result to a file. Either source or destination " +
 				"must be a file and the other one a secret. If you want the source to " +
 				"be securely removed after copying, use 'gopass binary move'",
-			Before:       s.Initialized,
+			Before:       s.IsInitialized,
 			Action:       s.BinaryCopy,
 			BashComplete: s.Complete,
 			Hidden:       true,
@@ -285,7 +325,7 @@ func (s *Action) GetCommands() []*cli.Command {
 				"from disk or from the store after it has been copied successfully " +
 				"and validated. If you don't want the source to be removed use " +
 				"'gopass binary copy'",
-			Before:       s.Initialized,
+			Before:       s.IsInitialized,
 			Action:       s.BinaryMove,
 			BashComplete: s.Complete,
 			Hidden:       true,
@@ -306,7 +346,7 @@ func (s *Action) GetCommands() []*cli.Command {
 				"Optionally put it on the clipboard and clear clipboard after 45 seconds. " +
 				"Prompt before overwriting existing password unless forced. " +
 				"It will replace only the first line of an existing file with a new password.",
-			Before:       s.Initialized,
+			Before:       s.IsInitialized,
 			Action:       s.Generate,
 			BashComplete: s.CompleteGenerate,
 			Flags: []cli.Flag{
@@ -371,7 +411,7 @@ func (s *Action) GetCommands() []*cli.Command {
 					Name:        "init",
 					Usage:       "Init git repo",
 					Description: "Create and initialize a new git repo in the store",
-					Before:      s.Initialized,
+					Before:      s.IsInitialized,
 					Action:      s.RCSInit,
 					Flags: []cli.Flag{
 						&cli.StringFlag{
@@ -403,13 +443,13 @@ func (s *Action) GetCommands() []*cli.Command {
 					Name:        "remote",
 					Usage:       "Manage git remotes",
 					Description: "These subcommands can be used to manage git remotes",
-					Before:      s.Initialized,
+					Before:      s.IsInitialized,
 					Subcommands: []*cli.Command{
 						{
 							Name:        "add",
 							Usage:       "Add git remote",
 							Description: "Add a new git remote",
-							Before:      s.Initialized,
+							Before:      s.IsInitialized,
 							Action:      s.RCSAddRemote,
 							Flags: []cli.Flag{
 								&cli.StringFlag{
@@ -422,7 +462,7 @@ func (s *Action) GetCommands() []*cli.Command {
 							Name:        "remove",
 							Usage:       "Remove git remote",
 							Description: "Remove a git remote",
-							Before:      s.Initialized,
+							Before:      s.IsInitialized,
 							Action:      s.RCSRemoveRemote,
 							Flags: []cli.Flag{
 								&cli.StringFlag{
@@ -437,7 +477,7 @@ func (s *Action) GetCommands() []*cli.Command {
 					Name:        "push",
 					Usage:       "Push to remote",
 					Description: "Push to a git remote",
-					Before:      s.Initialized,
+					Before:      s.IsInitialized,
 					Action:      s.RCSPush,
 					Flags: []cli.Flag{
 						&cli.StringFlag{
@@ -450,7 +490,7 @@ func (s *Action) GetCommands() []*cli.Command {
 					Name:        "pull",
 					Usage:       "Pull from remote",
 					Description: "Pull from a git remote",
-					Before:      s.Initialized,
+					Before:      s.IsInitialized,
 					Action:      s.RCSPull,
 					Flags: []cli.Flag{
 						&cli.StringFlag{
@@ -463,7 +503,7 @@ func (s *Action) GetCommands() []*cli.Command {
 					Name:        "status",
 					Usage:       "RCS status",
 					Description: "Show the RCS status",
-					Before:      s.Initialized,
+					Before:      s.IsInitialized,
 					Action:      s.RCSStatus,
 					Flags: []cli.Flag{
 						&cli.StringFlag{
@@ -480,7 +520,7 @@ func (s *Action) GetCommands() []*cli.Command {
 			Description: "" +
 				"This command decrypts all secrets and performs a pattern matching on the " +
 				"content.",
-			Before: s.Initialized,
+			Before: s.IsInitialized,
 			Action: s.Grep,
 			Hidden: true,
 			Flags: []cli.Flag{
@@ -497,7 +537,7 @@ func (s *Action) GetCommands() []*cli.Command {
 			Aliases: []string{"hist"},
 			Description: "" +
 				"Display the change history for a secret",
-			Before:       s.Initialized,
+			Before:       s.IsInitialized,
 			Action:       s.History,
 			BashComplete: s.Complete,
 			Flags: []cli.Flag{
@@ -544,7 +584,7 @@ func (s *Action) GetCommands() []*cli.Command {
 				"Insert a new secret. Optionally, echo the secret back to the console during entry. " +
 				"Or, optionally, the entry may be multiline. " +
 				"Prompt before overwriting existing secret unless forced.",
-			Before:       s.Initialized,
+			Before:       s.IsInitialized,
 			Action:       s.Insert,
 			BashComplete: s.Complete,
 			Flags: []cli.Flag{
@@ -577,7 +617,7 @@ func (s *Action) GetCommands() []*cli.Command {
 				"This command will list all existing secrets. Provide a folder prefix to list " +
 				"only certain subfolders of the store.",
 			Aliases:      []string{"ls"},
-			Before:       s.Initialized,
+			Before:       s.IsInitialized,
 			Action:       s.List,
 			BashComplete: s.Complete,
 			Flags: []cli.Flag{
@@ -612,7 +652,7 @@ func (s *Action) GetCommands() []*cli.Command {
 				"across different sub-stores. If the source is a directory, the source directory " +
 				"is re-created at the destination if no trailing slash is found, otherwise the " +
 				"contents are flattened (similar to rsync).",
-			Before:       s.Initialized,
+			Before:       s.IsInitialized,
 			Action:       s.Move,
 			BashComplete: s.Complete,
 			Flags: []cli.Flag{
@@ -629,7 +669,7 @@ func (s *Action) GetCommands() []*cli.Command {
 			Description: "" +
 				"This command displays all mounted password stores. It offers several " +
 				"subcommands to create or remove mounts.",
-			Before: s.Initialized,
+			Before: s.IsInitialized,
 			Action: s.MountsPrint,
 			Subcommands: []*cli.Command{
 				{
@@ -639,7 +679,7 @@ func (s *Action) GetCommands() []*cli.Command {
 					Description: "" +
 						"This command allows for mounting an existing or new password store " +
 						"at any path in an existing root store.",
-					Before: s.Initialized,
+					Before: s.IsInitialized,
 					Action: s.MountAdd,
 				},
 				{
@@ -649,7 +689,7 @@ func (s *Action) GetCommands() []*cli.Command {
 					Description: "" +
 						"This command allows to unmount an mounted password store. This will " +
 						"only updated the configuration and not delete the password store.",
-					Before:       s.Initialized,
+					Before:       s.IsInitialized,
 					Action:       s.MountRemove,
 					BashComplete: s.MountsComplete,
 				},
@@ -662,7 +702,7 @@ func (s *Action) GetCommands() []*cli.Command {
 			Description: "" +
 				"Tries to parse an OTP URL (otpauth://). URL can be TOTP or HOTP. " +
 				"The URL can be provided on its own line or on a key value line with a key named 'totp'.",
-			Before:       s.Initialized,
+			Before:       s.IsInitialized,
 			Action:       s.OTP,
 			BashComplete: s.Complete,
 			Flags: []cli.Flag{
@@ -689,7 +729,7 @@ func (s *Action) GetCommands() []*cli.Command {
 			Description: "" +
 				"This command displays all existing recipients for all mounted stores. " +
 				"The subcommands allow adding or removing recipients.",
-			Before: s.Initialized,
+			Before: s.IsInitialized,
 			Action: s.RecipientsPrint,
 			Subcommands: []*cli.Command{
 				{
@@ -702,7 +742,7 @@ func (s *Action) GetCommands() []*cli.Command {
 						"After adding the recipient to the list it will re-encrypt the whole " +
 						"affected store to make sure the recipient has access to all existing " +
 						"secrets.",
-					Before: s.Initialized,
+					Before: s.IsInitialized,
 					Action: s.RecipientsAdd,
 					Flags: []cli.Flag{
 						&cli.StringFlag{
@@ -728,7 +768,7 @@ func (s *Action) GetCommands() []*cli.Command {
 						"be able to decrypt old revisions of the password store and any local " +
 						"copies they might have. The only way to reliably remove a recipient is to " +
 						"rotate all existing secrets.",
-					Before:       s.Initialized,
+					Before:       s.IsInitialized,
 					Action:       s.RecipientsRemove,
 					BashComplete: s.RecipientsComplete,
 					Flags: []cli.Flag{
@@ -751,8 +791,7 @@ func (s *Action) GetCommands() []*cli.Command {
 				"This command is automatically invoked if gopass is started without any " +
 				"existing password store. This command exists so users can be provided with " +
 				"simple one-command setup instructions.",
-			Hidden: true,
-			Action: s.InitOnboarding,
+			Action: s.Setup,
 			Flags: []cli.Flag{
 				&cli.StringFlag{
 					Name:  "remote",
@@ -790,44 +829,10 @@ func (s *Action) GetCommands() []*cli.Command {
 			Description: "" +
 				"Show an existing secret and optionally put its first line on the clipboard. " +
 				"If put on the clipboard, it will be cleared after 45 seconds.",
-			Before:       s.Initialized,
+			Before:       s.IsInitialized,
 			Action:       s.Show,
 			BashComplete: s.Complete,
-			Flags: []cli.Flag{
-				&cli.BoolFlag{
-					Name:    "clip",
-					Aliases: []string{"c"},
-					Usage:   "Copy the password value into the clipboard",
-				},
-				&cli.BoolFlag{
-					Name:    "alsoclip",
-					Aliases: []string{"C"},
-					Usage:   "Copy the password and show everything",
-				},
-				&cli.BoolFlag{
-					Name:  "qr",
-					Usage: "Print the password as a QR Code",
-				},
-				&cli.BoolFlag{
-					Name:    "unsafe",
-					Aliases: []string{"u", "force", "f"},
-					Usage:   "Display unsafe content (e.g. the password) even if safecontent is enabled",
-				},
-				&cli.BoolFlag{
-					Name:    "password",
-					Aliases: []string{"o"},
-					Usage:   "Display only the password. Takes precedence over all other flags.",
-				},
-				&cli.StringFlag{
-					Name:  "revision",
-					Usage: "Show a past revision. Does NOT support RCS specific shortcuts. Use exact revision or -N to select the Nth oldest revision of this entry.",
-				},
-				&cli.BoolFlag{
-					Name:    "noparsing",
-					Aliases: []string{"n"},
-					Usage:   "Do not parse the output.",
-				},
-			},
+			Flags:        ShowFlags(),
 		},
 		{
 			Name:  "sum",
@@ -837,7 +842,7 @@ func (s *Action) GetCommands() []*cli.Command {
 				"over the decoded data. This is useful to verify the integrity of an " +
 				"inserted secret.",
 			Aliases:      []string{"sha", "sha256"},
-			Before:       s.Initialized,
+			Before:       s.IsInitialized,
 			Action:       s.Sum,
 			BashComplete: s.Complete,
 		},
@@ -847,7 +852,7 @@ func (s *Action) GetCommands() []*cli.Command {
 			Description: "" +
 				"Sync all local stores with their git remotes, if any, and check " +
 				"any possibly affected gpg keys.",
-			Before: s.Initialized,
+			Before: s.IsInitialized,
 			Action: s.Sync,
 			Flags: []cli.Flag{
 				&cli.StringFlag{
@@ -863,7 +868,7 @@ func (s *Action) GetCommands() []*cli.Command {
 			Description: "" +
 				"List existing templates in the password store and allow for editing " +
 				"and creating them.",
-			Before: s.Initialized,
+			Before: s.IsInitialized,
 			Action: s.TemplatesPrint,
 			Subcommands: []*cli.Command{
 				{
@@ -871,7 +876,7 @@ func (s *Action) GetCommands() []*cli.Command {
 					Usage:        "Show a secret template.",
 					Description:  "Display an existing template",
 					Aliases:      []string{"cat"},
-					Before:       s.Initialized,
+					Before:       s.IsInitialized,
 					Action:       s.TemplatePrint,
 					BashComplete: s.TemplatesComplete,
 				},
@@ -880,7 +885,7 @@ func (s *Action) GetCommands() []*cli.Command {
 					Usage:        "Edit secret templates.",
 					Description:  "Edit an existing or new template",
 					Aliases:      []string{"create", "new"},
-					Before:       s.Initialized,
+					Before:       s.IsInitialized,
 					Action:       s.TemplateEdit,
 					BashComplete: s.TemplatesComplete,
 				},
@@ -889,7 +894,7 @@ func (s *Action) GetCommands() []*cli.Command {
 					Aliases:      []string{"rm"},
 					Usage:        "Remove secret templates.",
 					Description:  "Remove an existing template",
-					Before:       s.Initialized,
+					Before:       s.IsInitialized,
 					Action:       s.TemplateRemove,
 					BashComplete: s.TemplatesComplete,
 				},

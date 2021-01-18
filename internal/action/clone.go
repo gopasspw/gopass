@@ -53,7 +53,7 @@ func (s *Action) clone(ctx context.Context, repo, mount, path string) error {
 	if path == "" {
 		path = config.PwStoreDir(mount)
 	}
-	inited, err := s.Store.Initialized(ctxutil.WithGitInit(ctx, false))
+	inited, err := s.Store.IsInitialized(ctxutil.WithGitInit(ctx, false))
 	if err != nil {
 		return ExitError(ExitUnknown, err, "Failed to initialized stores: %s", err)
 	}
@@ -113,7 +113,7 @@ func (s *Action) cloneAddMount(ctx context.Context, mount, path string) error {
 		return nil
 	}
 
-	inited, err := s.Store.Initialized(ctx)
+	inited, err := s.Store.IsInitialized(ctx)
 	if err != nil {
 		return ExitError(ExitUnknown, err, "Failed to initialize store: %s", err)
 	}

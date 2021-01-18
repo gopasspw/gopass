@@ -12,15 +12,15 @@ import (
 	"github.com/pkg/errors"
 )
 
-// Initialized checks on disk if .gpg-id was generated and thus returns true.
-func (r *Store) Initialized(ctx context.Context) (bool, error) {
+// IsInitialized checks on disk if .gpg-id was generated and thus returns true.
+func (r *Store) IsInitialized(ctx context.Context) (bool, error) {
 	if r.store == nil {
 		debug.Log("initializing store and possible sub-stores")
 		if err := r.initialize(ctx); err != nil {
 			return false, errors.Wrapf(err, "failed to initialized stores: %s", err)
 		}
 	}
-	return r.store.Initialized(ctx), nil
+	return r.store.IsInitialized(ctx), nil
 }
 
 // Init tries to initialize a new password store location matching the object
@@ -36,7 +36,7 @@ func (r *Store) Init(ctx context.Context, alias, path string, ids ...string) err
 	if err != nil {
 		return errors.Wrapf(err, "failed to instantiate new sub store: %s", err)
 	}
-	if !r.store.Initialized(ctx) && alias == "" {
+	if !r.store.IsInitialized(ctx) && alias == "" {
 		r.store = sub
 	}
 

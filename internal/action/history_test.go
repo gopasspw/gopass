@@ -39,7 +39,7 @@ func TestHistory(t *testing.T) {
 	require.NotNil(t, act)
 
 	t.Run("can initialize", func(t *testing.T) {
-		require.NoError(t, act.Initialized(gptest.CliCtx(ctx, t)))
+		require.NoError(t, act.IsInitialized(gptest.CliCtx(ctx, t)))
 	})
 
 	buf := &bytes.Buffer{}

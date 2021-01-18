@@ -112,8 +112,13 @@ func (s *Action) REPL(c *cli.Context) error {
 		if err == nil {
 			return
 		}
-		out.Red(c.Context, "Error: %s", err)
+		out.Error(c.Context, "%s", err)
 	}
+
+	out.Print(c.Context, logo)
+	out.Print(c.Context, "🌟 Welcome to gopass!")
+	out.Print(c.Context, "⚠ This is the built-in shell. Type 'help' for a list of commands.")
+
 	rl, err := readline.New("gopass> ")
 	if err != nil {
 		return err

@@ -9,8 +9,8 @@ import (
 	"github.com/pkg/errors"
 )
 
-// Initialized returns true if the store is properly initialized
-func (s *Store) Initialized(ctx context.Context) bool {
+// IsInitialized returns true if the store is properly initialized
+func (s *Store) IsInitialized(ctx context.Context) bool {
 	if s == nil || s.storage == nil {
 		return false
 	}
@@ -19,7 +19,7 @@ func (s *Store) Initialized(ctx context.Context) bool {
 
 // Init tries to initialize a new password store location matching the object
 func (s *Store) Init(ctx context.Context, path string, ids ...string) error {
-	if s.Initialized(ctx) {
+	if s.IsInitialized(ctx) {
 		return errors.Errorf(`Found already initialized store at %s.
 You can add secondary stores with gopass init --path <path to secondary store> --store <mount name>`, path)
 	}

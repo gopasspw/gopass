@@ -33,7 +33,7 @@ func newMock(ctx context.Context, u *gptest.Unit) (*Action, error) {
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
 	c := cli.NewContext(cli.NewApp(), fs, nil)
 	c.Context = ctx
-	if err := act.Initialized(c); err != nil {
+	if err := act.IsInitialized(c); err != nil {
 		return nil, err
 	}
 	return act, nil

@@ -65,7 +65,7 @@ func (s *Action) find(ctx context.Context, c *cli.Context, needle string, cb sho
 			out.Print(ctx, choices[0])
 			return nil
 		}
-		out.Green(ctx, "Found exact match in '%s'", choices[0])
+		out.Print(ctx, "✅ Found exact match in '%s'", choices[0])
 		return cb(ctx, c, choices[0], false)
 	}
 

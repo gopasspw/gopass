@@ -67,7 +67,8 @@ func TestCopy(t *testing.T) {
 	assert.NoError(t, act.Copy(c))
 	buf.Reset()
 
+	ctx = ctxutil.WithTerminal(ctx, false)
 	assert.NoError(t, act.show(ctx, c, "zab/bam/zab", false))
-	assert.Equal(t, "barfoo\n", buf.String())
+	assert.Equal(t, "barfoo", buf.String())
 	buf.Reset()
 }

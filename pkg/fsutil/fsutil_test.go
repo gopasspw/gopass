@@ -41,7 +41,11 @@ func TestCleanPath(t *testing.T) {
 
 	usr, err := user.Current()
 	if err == nil {
-		m["~/.password-store"] = usr.HomeDir + "/.password-store"
+		hd := usr.HomeDir
+		if gph := os.Getenv("GOPASS_HOMEDIR"); gph != "" {
+			hd = gph
+		}
+		m["~/.password-store"] = hd + "/.password-store"
 	}
 
 	for in, out := range m {

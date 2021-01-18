@@ -272,7 +272,7 @@ func (s *Store) saveRecipients(ctx context.Context, rs []string, msg string) err
 		if errors.Cause(err) == store.ErrGitNoRemote {
 			msg := "Warning: git has no remote. Ignoring auto-push option\n" +
 				"Run: gopass git remote add origin ..."
-			out.Yellow(ctx, msg)
+			debug.Log(msg)
 			return nil
 		}
 		return errors.Wrapf(err, "failed to push changes to git")

@@ -41,9 +41,9 @@ func TestInit(t *testing.T) {
 	}()
 
 	c := gptest.CliCtx(ctx, t, "foo.bar@example.org")
-	assert.NoError(t, act.Initialized(c))
+	assert.NoError(t, act.IsInitialized(c))
 	assert.Error(t, act.Init(c))
-	assert.NoError(t, act.InitOnboarding(c))
+	assert.NoError(t, act.Setup(c))
 
 	crypto := act.Store.Crypto(ctx, "")
 	require.NotNil(t, crypto)
@@ -58,7 +58,7 @@ func TestInit(t *testing.T) {
 
 	// un-initialize the store
 	assert.NoError(t, os.Remove(filepath.Join(u.StoreDir(""), plain.IDFile)))
-	assert.Error(t, act.Initialized(c))
+	assert.Error(t, act.IsInitialized(c))
 	buf.Reset()
 }
 
