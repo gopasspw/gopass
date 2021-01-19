@@ -29,9 +29,9 @@ OK := $(shell tput setaf 6; echo ' [OK]'; tput sgr0;)
 all: build completion
 build: $(GOPASS_OUTPUT)
 completion: $(BASH_COMPLETION_OUTPUT) $(FISH_COMPLETION_OUTPUT) $(ZSH_COMPLETION_OUTPUT)
-travis: sysinfo crosscompile build install fulltest codequality completion full
-travis-osx: sysinfo build install test completion full
-travis-windows: sysinfo build install test-win completion
+travis: sysinfo crosscompile build fulltest codequality completion full
+travis-osx: sysinfo build test completion full
+travis-windows: sysinfo build test-win completion
 
 sysinfo:
 	@echo ">> SYSTEM INFORMATION"

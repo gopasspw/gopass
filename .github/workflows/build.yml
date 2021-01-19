@@ -8,7 +8,7 @@ on:
 
 jobs:
 
-  build:
+  linux:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -21,10 +21,57 @@ jobs:
         go-version: 1.x
 
     - name: Ubuntu Dependencies
-      run: apt install --yes git gnupg2
-      
-    - name: Build
-      run: go build -v ./...
+      run: sudo apt-get install --yes git gnupg2
 
-    - name: Test
-      run: go test -v ./...
+    - run: git config --global user.name nobody
+    - run: git config --global user.email foo.bar@example.org
+      
+    - name: Build and Unit Test
+      run: make travis
+    - name: Integration Test
+      run: make test-integration
+
+  windows:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.x
+
+    - name: Windows Dependencies
+      uses: crazy-max/ghaction-chocolatey@v1
+      with:
+        args: install --yes --force make gnupg
+
+    - run: git config --global user.name nobody
+    - run: git config --global user.email foo.bar@example.org
+      
+    - name: Build and Unit Test
+      run: make travis-windows
+
+  macos:
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.x
+
+    - name: MacOS Dependencies
+      run: brew install git gnupg
+
+    - run: git config --global user.name nobody
+    - run: git config --global user.email foo.bar@example.org
+      
+    - name: Build and Unit Test
+      run: make travis-osx
+
