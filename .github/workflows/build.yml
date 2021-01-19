@@ -32,9 +32,19 @@ jobs:
       run: make test-integration
 
   windows:
-    if: false # skip job
     runs-on: windows-latest
+    defaults:
+      run:
+          shell: msys2 {0}
     steps:
+    - uses: msys2/setup-msys2@v2
+      with:
+        release: false
+        path-type: inherit
+        install: >-
+          base-devel
+          git
+
     - uses: actions/checkout@v2
       with:
         fetch-depth: 0
@@ -43,11 +53,6 @@ jobs:
       uses: actions/setup-go@v2
       with:
         go-version: 1.x
-
-    - name: Windows Dependencies
-      uses: crazy-max/ghaction-chocolatey@v1
-      with:
-        args: install --yes --force make gnupg
 
     - run: git config --global user.name nobody
     - run: git config --global user.email foo.bar@example.org
