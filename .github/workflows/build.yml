@@ -32,6 +32,7 @@ jobs:
       run: make test-integration
 
   windows:
+    if: false # skip job
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v2
@@ -74,4 +75,6 @@ jobs:
       
     - name: Build and Unit Test
       run: make travis-osx
+      env:
+        SLOW_TEST_FACTOR: 100 
 
