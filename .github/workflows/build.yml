@@ -1,0 +1,36 @@
+name: "Build gopass"
+on: [push]
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: install go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.x
+      - name: setup
+        run: apt install --yes git gnupg2
+      - name: build
+        run: make travis
+  windows:
+    runs-on: windows-latest
+    steps:
+      - name: install go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.x
+      - name: setup
+        run: choco install --yes --force make gnupg
+      - name: build
+        run: make travis-windows
+  macos:
+    runs-on: macos-latest
+    steps:
+      - name: install go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.x
+      - name: setup
+        run: brew install git gnupg
+      - name: build
+        run: make travis-osx
