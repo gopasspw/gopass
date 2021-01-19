@@ -88,6 +88,7 @@ func (s *Store) removeEmptyParentDirectories(path string) error {
 		return nil
 	}
 
+	debug.Log("removing empty parent dir: %q", parent)
 	err := os.Remove(parent)
 	switch {
 	case err == nil:
@@ -162,7 +163,12 @@ func (s *Store) IsDir(ctx context.Context, name string) bool {
 func (s *Store) Prune(ctx context.Context, prefix string) error {
 	path := filepath.Join(s.path, filepath.Clean(prefix))
 	debug.Log("Purning %s from %s", prefix, path)
-	return os.RemoveAll(path)
+
+	if err := os.RemoveAll(path); err != nil {
+		return err
+	}
+
+	return s.removeEmptyParentDirectories(path)
 }
 
 // Name returns the name of this backend

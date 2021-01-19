@@ -2,8 +2,11 @@ package fs
 
 import (
 	"context"
+	"io/ioutil"
 	"os"
 	"path/filepath"
+	"sort"
+	"strings"
 	"syscall"
 
 	"github.com/gopasspw/gopass/internal/out"
@@ -23,7 +26,7 @@ func (s *Store) Fsck(ctx context.Context) error {
 	dirs := make(map[string]struct{}, len(entries))
 	for _, entry := range entries {
 		pcb()
-		debug.Log("Checking %s", entry)
+		debug.Log("checking entry %q", entry)
 
 		filename := filepath.Join(s.path, entry)
 		dirs[filepath.Dir(filename)] = struct{}{}
@@ -34,11 +37,18 @@ func (s *Store) Fsck(ctx context.Context) error {
 	}
 
 	for dir := range dirs {
+		debug.Log("checking dir %q", dir)
 		if err := s.fsckCheckDir(ctx, dir); err != nil {
 			return err
 		}
 	}
-	return nil
+
+	if err := s.fsckCheckEmptyDirs(); err != nil {
+		return err
+	}
+
+	debug.Log("checking root dir %q", s.path)
+	return s.fsckCheckDir(ctx, s.path)
 }
 
 func (s *Store) fsckCheckFile(ctx context.Context, filename string) error {
@@ -89,4 +99,55 @@ func (s *Store) fsckCheckDir(ctx context.Context, dirname string) error {
 		return os.Remove(dirname)
 	}
 	return nil
+}
+
+func (s *Store) fsckCheckEmptyDirs() error {
+	v := []string{}
+	if err := filepath.Walk(s.path, func(fp string, fi os.FileInfo, ferr error) error {
+		if ferr != nil {
+			return ferr
+		}
+		if !fi.IsDir() {
+			return nil
+		}
+		if strings.HasPrefix(fi.Name(), ".") {
+			return filepath.SkipDir
+		}
+		if fp == s.path {
+			return nil
+		}
+
+		// add candidate
+		debug.Log("adding candidate %q", fp)
+		v = append(v, fp)
+		return nil
+	}); err != nil {
+		return err
+	}
+
+	// start with longest path (deepest dir)
+	sort.Slice(v, func(i, j int) bool {
+		return len(v[i]) > len(v[j])
+	})
+
+	for _, d := range v {
+		if err := fsckRemoveEmptyDir(d); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func fsckRemoveEmptyDir(fp string) error {
+	ls, err := ioutil.ReadDir(fp)
+	if err != nil {
+		return err
+	}
+	if len(ls) > 0 {
+		debug.Log("dir %q is not empty (%d)", fp, len(ls))
+		return nil
+	}
+
+	debug.Log("removing %q ...", fp)
+	return os.Remove(fp)
 }

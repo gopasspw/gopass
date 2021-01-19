@@ -280,8 +280,7 @@ func TestPrune(t *testing.T) {
 					assert.Error(t, err)
 
 					// delete empty folder
-					assert.NoError(t, s.Prune(ctx, "foo/"))
-					assert.Error(t, s.Prune(ctx, "foo/"))
+					assert.Error(t, s.Prune(ctx, "foo/"), "delete non-existing entry")
 				}
 			},
 		},
