@@ -2,7 +2,9 @@ package age
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"os"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -169,7 +171,13 @@ func (a *Age) getNativeIdentities(ctx context.Context) (map[string]age.Identity,
 		return krCache, nil
 	}
 	kr, err := a.loadKeyring(ctx)
-	if len(kr) < 1 || err != nil {
+	if err != nil && !errors.Is(err, os.ErrNotExist) {
+		debug.Log("failed to load native identities: %+v", err)
+		return nil, err
+	}
+	debug.Log("keyring: %+v", kr)
+	if len(kr) < 1 {
+		debug.Log("generating new age keypair")
 		id, err := a.genKey(ctx)
 		if err != nil {
 			return nil, err

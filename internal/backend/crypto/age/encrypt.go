@@ -64,7 +64,7 @@ func (a *Age) encrypt(plaintext []byte, recp ...age.Recipient) ([]byte, error) {
 }
 
 func (a *Age) encryptFile(ctx context.Context, filename string, plaintext []byte) error {
-	pw, err := ctxutil.GetPasswordCallback(ctx)("index") // TODO should pass filename?
+	pw, err := ctxutil.GetPasswordCallback(ctx)(filename)
 	if err != nil {
 		return err
 	}
