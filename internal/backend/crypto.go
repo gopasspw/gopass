@@ -27,8 +27,6 @@ func (c CryptoBackend) String() string {
 
 // Keyring is a public/private key manager
 type Keyring interface {
-	ImportPublicKey(ctx context.Context, key []byte) error
-
 	ListRecipients(ctx context.Context) ([]string, error)
 	ListIdentities(ctx context.Context) ([]string, error)
 

@@ -63,11 +63,6 @@ func (a *Age) Fingerprint(ctx context.Context, id string) string {
 	return id
 }
 
-// ImportPublicKey is TODO
-func (a *Age) ImportPublicKey(ctx context.Context, buf []byte) error {
-	return nil
-}
-
 // ListRecipients is TODO
 func (a *Age) ListRecipients(context.Context) ([]string, error) {
 	return nil, fmt.Errorf("not implemented")

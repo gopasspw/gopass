@@ -123,8 +123,18 @@ func (s *Store) exportPublicKey(ctx context.Context, exp keyExporter, r string) 
 	return filename, nil
 }
 
+type keyImporter interface {
+	ImportPublicKey(ctx context.Context, key []byte) error
+}
+
 // import an public key into the default keyring
 func (s *Store) importPublicKey(ctx context.Context, r string) error {
+	im, ok := s.crypto.(keyImporter)
+	if !ok {
+		debug.Log("importing public keys not supported by %T", s.crypto)
+		return nil
+	}
+
 	for _, kd := range []string{keyDir, oldKeyDir} {
 		filename := filepath.Join(kd, r)
 		if !s.storage.Exists(ctx, filename) {
@@ -135,7 +145,7 @@ func (s *Store) importPublicKey(ctx context.Context, r string) error {
 		if err != nil {
 			return err
 		}
-		return s.crypto.ImportPublicKey(ctx, pk)
+		return im.ImportPublicKey(ctx, pk)
 	}
 	return fmt.Errorf("public key not found in store")
 }
