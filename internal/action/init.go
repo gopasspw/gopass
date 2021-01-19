@@ -42,6 +42,7 @@ func (s *Action) IsInitialized(c *cli.Context) error {
 	if !ctxutil.IsInteractive(ctx) {
 		return ExitError(ExitNotInitialized, nil, "password-store is not initialized. Try '%s init'", s.Name)
 	}
+
 	out.Print(ctx, logo)
 	out.Print(ctx, "🌟 Welcome to gopass!")
 	out.Print(ctx, "⚠ No existing configuration found.")

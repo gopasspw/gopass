@@ -77,7 +77,7 @@ func TestFind(t *testing.T) {
 	buf.Reset()
 
 	// safecontent case with force flag set
-	c = gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true"}, "fo")
+	c = gptest.CliCtxWithFlags(ctx, t, map[string]string{"unsafe": "true"}, "fo")
 	assert.NoError(t, act.Find(c))
 	out = strings.TrimSpace(buf.String())
 	assert.Contains(t, out, "Found exact match in 'foo'\nsecret")

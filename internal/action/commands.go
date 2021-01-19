@@ -85,14 +85,6 @@ func (s *Action) GetCommands() []*cli.Command {
 				"against a list of previously leaked passwords.",
 			Before: s.IsInitialized,
 			Action: s.Audit,
-			Flags: []cli.Flag{
-				&cli.IntFlag{
-					Name:    "jobs",
-					Aliases: []string{"j"},
-					Usage:   "The number of jobs to run concurrently when auditing",
-					Value:   1,
-				},
-			},
 		},
 		{
 			Name:  "cat",
@@ -131,7 +123,7 @@ func (s *Action) GetCommands() []*cli.Command {
 		},
 		{
 			Name:  "config",
-			Usage: "Configuration editor",
+			Usage: "Display and edit the configuration file",
 			Description: "" +
 				"This command allows for easy printing and editing of the configuration. " +
 				"Without argument, the entire config is printed. " +
@@ -139,12 +131,6 @@ func (s *Action) GetCommands() []*cli.Command {
 				"With two arguments a setting specified by key can be set to value.",
 			Action:       s.Config,
 			BashComplete: s.ConfigComplete,
-			Flags: []cli.Flag{
-				&cli.StringFlag{
-					Name:  "store",
-					Usage: "Set value to remote substore config",
-				},
-			},
 		},
 		{
 			Name:        "convert",
@@ -305,13 +291,6 @@ func (s *Action) GetCommands() []*cli.Command {
 			Action:       s.BinaryCopy,
 			BashComplete: s.Complete,
 			Hidden:       true,
-			Flags: []cli.Flag{
-				&cli.BoolFlag{
-					Name:    "force",
-					Aliases: []string{"f"},
-					Usage:   "Force to move the secret and overwrite existing one",
-				},
-			},
 		},
 		{
 			Name:  "fsmove",
@@ -328,13 +307,6 @@ func (s *Action) GetCommands() []*cli.Command {
 			Action:       s.BinaryMove,
 			BashComplete: s.Complete,
 			Hidden:       true,
-			Flags: []cli.Flag{
-				&cli.BoolFlag{
-					Name:    "force",
-					Aliases: []string{"f"},
-					Usage:   "Force to move the secret and overwrite existing one",
-				},
-			},
 		},
 		{
 			Name:  "generate",
@@ -433,7 +405,7 @@ func (s *Action) GetCommands() []*cli.Command {
 						},
 						&cli.StringFlag{
 							Name:  "storage",
-							Usage: "Storage type",
+							Usage: fmt.Sprintf("Select storage backend %v", backend.StorageBackends()),
 							Value: "gitfs",
 						},
 					},
@@ -623,22 +595,22 @@ func (s *Action) GetCommands() []*cli.Command {
 				&cli.IntFlag{
 					Name:    "limit",
 					Aliases: []string{"l"},
-					Usage:   "Max tree depth",
+					Usage:   "Display no more than this many levels of the tree",
 				},
 				&cli.BoolFlag{
 					Name:    "flat",
 					Aliases: []string{"f"},
-					Usage:   "Print flat list",
+					Usage:   "Print a flat list",
 				},
 				&cli.BoolFlag{
 					Name:    "folders",
 					Aliases: []string{"d"},
-					Usage:   "Print flat list of folders",
+					Usage:   "Print a flat list of folders",
 				},
 				&cli.BoolFlag{
 					Name:    "strip-prefix",
 					Aliases: []string{"s"},
-					Usage:   "Strip prefix from filtered entries",
+					Usage:   "Strip this prefix from filtered entries",
 				},
 			},
 		},
@@ -817,8 +789,8 @@ func (s *Action) GetCommands() []*cli.Command {
 					Usage: fmt.Sprintf("Select crypto backend %v", backend.CryptoBackends()),
 				},
 				&cli.StringFlag{
-					Name:  "rcs",
-					Usage: fmt.Sprintf("Select RCS backend %v", backend.StorageBackends()),
+					Name:  "storage",
+					Usage: fmt.Sprintf("Select storage backend %v", backend.StorageBackends()),
 				},
 			},
 		},

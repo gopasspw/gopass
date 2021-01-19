@@ -24,18 +24,18 @@ func (s *Action) Clone(c *cli.Context) error {
 	if c.IsSet("crypto") {
 		ctx = backend.WithCryptoBackendString(ctx, c.String("crypto"))
 	}
+	path := c.String("path")
 
 	if c.Args().Len() < 1 {
 		return ExitError(ExitUsage, nil, "Usage: %s clone repo [mount]", s.Name)
 	}
 
+	// gopass clone [--crypto=foo] [--path=/some/store] git://foo/bar team0
 	repo := c.Args().Get(0)
 	mount := ""
 	if c.Args().Len() > 1 {
 		mount = c.Args().Get(1)
 	}
-
-	path := c.String("path")
 
 	return s.clone(ctx, repo, mount, path)
 }
