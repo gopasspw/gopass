@@ -25,6 +25,17 @@ jobs:
 
     - run: git config --global user.name nobody
     - run: git config --global user.email foo.bar@example.org
+
+    -
+      name: Debug
+      run:  |
+        echo "Go env ------------------"
+        pwd
+        echo ${HOME}
+        echo ${GITHUB_WORKSPACE}
+        echo ${GOPATH}
+        echo ${GOROOT}
+        env
       
     - name: Build and Unit Test
       run: make travis

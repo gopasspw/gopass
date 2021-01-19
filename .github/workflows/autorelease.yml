@@ -24,6 +24,27 @@ jobs:
         with:
           go-version: 1.15
       -
+        name: Import GPG signing key
+        uses: crazy-max/ghaction-import-gpg@v3
+        with:
+          gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.PASSPHRASE }}
+      -
+        name: Debug
+        run:  |
+          echo "GPG ---------------------"
+          echo "fingerprint: ${{ steps.import_gpg.outputs.fingerprint }}"
+          echo "keyid:       ${{ steps.import_gpg.outputs.keyid }}"
+          echo "name:        ${{ steps.import_gpg.outputs.name }}"
+          echo "email:       ${{ steps.import_gpg.outputs.email }}"
+          echo "Go env ------------------"
+          pwd
+          echo ${HOME}
+          echo ${GITHUB_WORKSPACE}
+          echo ${GOPATH}
+          echo ${GOROOT}
+          env
+      -
         name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v2
         with:
@@ -31,3 +52,4 @@ jobs:
           args: release --rm-dist
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GOPATH: /home/runner/go
