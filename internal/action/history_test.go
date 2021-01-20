@@ -13,7 +13,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/termio"
 	"github.com/gopasspw/gopass/tests/gptest"
 
-	"github.com/blang/semver"
+	"github.com/blang/semver/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

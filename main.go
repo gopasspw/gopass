@@ -10,7 +10,6 @@ import (
 	"runtime"
 	"runtime/pprof"
 	"sort"
-	"strings"
 	"time"
 
 	"github.com/gopasspw/gopass/internal/action/create"
@@ -22,7 +21,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/protect"
 
-	"github.com/blang/semver"
+	"github.com/blang/semver/v4"
 	"github.com/fatih/color"
 	colorable "github.com/mattn/go-colorable"
 	"github.com/mattn/go-isatty"
@@ -233,25 +232,6 @@ type errorWriter struct {
 
 func (e errorWriter) Write(p []byte) (int, error) {
 	return e.out.Write([]byte("\n" + color.RedString("Error: %s", p)))
-}
-
-func getVersion() semver.Version {
-	sv, err := semver.Parse(strings.TrimPrefix(version, "v"))
-	if err == nil {
-		if commit != "" {
-			sv.Build = []string{commit}
-		}
-		return sv
-	}
-	return semver.Version{
-		Major: 1,
-		Minor: 11,
-		Patch: 0,
-		Pre: []semver.PRVersion{
-			{VersionStr: "git"},
-		},
-		Build: []string{"HEAD"},
-	}
 }
 
 func initContext(ctx context.Context, cfg *config.Config) context.Context {

@@ -16,7 +16,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/fsutil"
 
-	"github.com/blang/semver"
+	"github.com/blang/semver/v4"
 )
 
 // Store is a fs based store

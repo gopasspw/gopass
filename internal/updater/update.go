@@ -11,7 +11,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/pkg/errors"
 
-	"github.com/blang/semver"
+	"github.com/blang/semver/v4"
 )
 
 var (

@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/blang/semver"
+	"github.com/blang/semver/v4"
 	"golang.org/x/net/context/ctxhttp"
 )
 

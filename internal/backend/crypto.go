@@ -4,7 +4,7 @@ import (
 	"context"
 	"sort"
 
-	"github.com/blang/semver"
+	"github.com/blang/semver/v4"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/pkg/errors"
 )

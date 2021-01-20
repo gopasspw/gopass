@@ -4,7 +4,7 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/blang/semver"
+	"github.com/blang/semver/v4"
 )
 
 func TestSort(t *testing.T) {
