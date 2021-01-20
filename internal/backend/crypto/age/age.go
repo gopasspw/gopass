@@ -16,6 +16,7 @@ import (
 	"github.com/gopasspw/gopass/internal/cache"
 	"github.com/gopasspw/gopass/pkg/appdir"
 	"github.com/gopasspw/gopass/pkg/debug"
+	"github.com/gopasspw/gopass/pkg/termio"
 )
 
 const (
@@ -177,6 +178,14 @@ func (a *Age) getNativeIdentities(ctx context.Context) (map[string]age.Identity,
 	}
 	debug.Log("keyring: %+v", kr)
 	if len(kr) < 1 {
+		// TODO we shouldn't print in here, use a callback
+		ok, err := termio.AskForBool(ctx, "🔑 No existing age identities found. Do you want to generate a new one?", true)
+		if err != nil {
+			return nil, err
+		}
+		if !ok {
+			return nil, fmt.Errorf("user aborted")
+		}
 		debug.Log("generating new age keypair")
 		id, err := a.genKey(ctx)
 		if err != nil {
