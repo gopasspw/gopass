@@ -133,4 +133,4 @@ signs:
   -
     id: gopass
     artifacts: checksum
-    args: ["-u", "0x21FF4D8F35D1AEE5", "--armor", "--output", "${signature}", "--detach-sign", "${artifact}"]
+    args: ["-u", "0x2F752B2CA00248FC", "--armor", "--output", "${signature}", "--detach-sign", "${artifact}"]
