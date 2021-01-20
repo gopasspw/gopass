@@ -41,15 +41,15 @@ func (a *Age) decrypt(ciphertext []byte, ids ...age.Identity) ([]byte, error) {
 }
 
 func (a *Age) decryptFile(ctx context.Context, filename string) ([]byte, error) {
+	ciphertext, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return nil, err
+	}
 	pw, err := ctxutil.GetPasswordCallback(ctx)(filename)
 	if err != nil {
 		return nil, err
 	}
 	id, err := age.NewScryptIdentity(string(pw))
-	if err != nil {
-		return nil, err
-	}
-	ciphertext, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}

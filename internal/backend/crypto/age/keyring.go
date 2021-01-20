@@ -3,10 +3,13 @@ package age
 import (
 	"context"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 
 	"filippo.io/age"
+	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/termio"
@@ -60,7 +63,11 @@ func (a *Age) generateIdentity(ctx context.Context, name, email string) (*age.X2
 
 	kr, err := a.loadKeyring(ctx)
 	if err != nil {
-		debug.Log("Warning: Failed to load keyring from %s: %s", a.keyring, err)
+		debug.Log("failed to load existing keyring from %s: %s", a.keyring, err)
+		if !errors.Is(err, os.ErrNotExist) {
+			return nil, err
+		}
+		debug.Log("no existing keyring, creating new one")
 	}
 
 	kr = append(kr, Keypair{
@@ -69,6 +76,8 @@ func (a *Age) generateIdentity(ctx context.Context, name, email string) (*age.X2
 		Identity: id.String(),
 	})
 
+	// TODO we must ask for the (new) passphrase twice when creating a new
+	// keyring
 	return id, a.saveKeyring(ctx, kr)
 }
 
@@ -76,20 +85,25 @@ func (a *Age) loadKeyring(ctx context.Context) (Keyring, error) {
 	if !ctxutil.HasPasswordCallback(ctx) {
 		debug.Log("no password callback found, redirecting to askPass")
 		ctx = ctxutil.WithPasswordCallback(ctx, func(prompt string) ([]byte, error) {
-			pw, err := a.askPass.Passphrase(prompt, "to unlock the age keyring")
+			pw, err := a.askPass.Passphrase(prompt, fmt.Sprintf("to load the age keyring at %s", a.keyring))
 			return []byte(pw), err
 		})
 	}
-	kr := make(Keyring, 0)
+
+	// TODO we shouldn't print in here, use a callback
+	out.Print(ctx, "🔑 Please enter your passphrase to load the age keyring")
 	buf, err := a.decryptFile(ctx, a.keyring)
 	if err != nil {
 		debug.Log("can't decrypt keyring at %s: %s", a.keyring, err)
-		return kr, err
+		return Keyring{}, err
 	}
+
+	var kr Keyring
 	if err := json.Unmarshal(buf, &kr); err != nil {
 		debug.Log("can't parse keyring at %s: %s", a.keyring, err)
-		return kr, err
+		return Keyring{}, err
 	}
+
 	// remove invalid IDs
 	valid := make(Keyring, 0, len(kr))
 	for _, k := range kr {
@@ -98,7 +112,7 @@ func (a *Age) loadKeyring(ctx context.Context) (Keyring, error) {
 		}
 		valid = append(valid, k)
 	}
-	debug.Log("loaded keyring from %s", a.keyring)
+	debug.Log("loaded keyring with %d valid entries from %s", len(kr), a.keyring)
 	return valid, nil
 }
 
@@ -106,12 +120,13 @@ func (a *Age) saveKeyring(ctx context.Context, k Keyring) error {
 	if !ctxutil.HasPasswordCallback(ctx) {
 		debug.Log("no password callback found, redirecting to askPass")
 		ctx = ctxutil.WithPasswordCallback(ctx, func(prompt string) ([]byte, error) {
-			pw, err := a.askPass.Passphrase(prompt, "to unlock the age keyring")
+			pw, err := a.askPass.Passphrase(prompt, fmt.Sprintf("to save the age keyring to %s", a.keyring))
 			return []byte(pw), err
 		})
 	}
 
 	if err := os.MkdirAll(filepath.Dir(a.keyring), 0700); err != nil {
+		debug.Log("failed to create directory for the keyring at %s", a.keyring)
 		return err
 	}
 
@@ -120,9 +135,13 @@ func (a *Age) saveKeyring(ctx context.Context, k Keyring) error {
 	if err != nil {
 		return err
 	}
+
+	// TODO we shouldn't print in here, use a callback
+	out.Print(ctx, "🔑 Please enter your passphrase to save the age keyring")
 	if err := a.encryptFile(ctx, a.keyring, buf); err != nil {
 		return err
 	}
-	debug.Log("saved encrypted keyring to %s", a.keyring)
+
+	debug.Log("saved encrypted keyring with %d entries to %s", len(k), a.keyring)
 	return nil
 }
