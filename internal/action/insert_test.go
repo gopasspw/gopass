@@ -87,7 +87,7 @@ func TestInsert(t *testing.T) {
 		ctx = ctxutil.WithShowSafeContent(ctx, true)
 		assert.NoError(t, act.insertYAML(ctx, "zab", "key", []byte("foobar"), nil))
 		assert.NoError(t, act.show(ctx, gptest.CliCtx(ctx, t), "zab", false))
-		assert.Contains(t, buf.String(), "key: foobar\npassword: ***")
+		assert.Contains(t, buf.String(), "key: foobar")
 		buf.Reset()
 	})
 
@@ -99,7 +99,7 @@ func TestInsert(t *testing.T) {
 	t.Run("insert key:value", func(t *testing.T) {
 		assert.NoError(t, act.Insert(gptest.CliCtxWithFlags(ctx, t, nil, "keyvaltest", "baz:val")))
 		assert.NoError(t, act.show(ctx, gptest.CliCtx(ctx, t), "keyvaltest", false))
-		assert.Contains(t, buf.String(), "baz: val\npassword: ****")
+		assert.Contains(t, buf.String(), "baz: val")
 		buf.Reset()
 	})
 
@@ -108,7 +108,7 @@ func TestInsert(t *testing.T) {
 		buf.Reset()
 
 		assert.NoError(t, act.show(ctx, gptest.CliCtx(ctx, t), "baz", false))
-		assert.Equal(t, "other: 83\npassword: *****\nuser: name\n", buf.String())
+		assert.Equal(t, "other: 83\nuser: name\n", buf.String())
 		buf.Reset()
 	})
 

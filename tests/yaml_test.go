@@ -57,7 +57,7 @@ func TestInvalidYAML(t *testing.T) {
 ---
 Test / test.com
 username: myuser@test.com
-password: somepasswd
+password: someotherpasswd
 url: http://www.test.com/`
 
 	ts := newTester(t)

@@ -41,9 +41,9 @@ func parseLegacyMIME(buf []byte) (*secrets.KV, error) {
 		hdr.Del("Password")
 	}
 
-	data := make(map[string]string, len(hdr))
+	data := make(map[string][]string, len(hdr))
 	for k := range hdr {
-		data[strings.ToLower(k)] = hdr.Get(k)
+		data[strings.ToLower(k)] = hdr.Values(k)
 	}
 
 	return secrets.NewKVWithData(pw, data, body.String(), true), nil

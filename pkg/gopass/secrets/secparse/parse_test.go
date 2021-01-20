@@ -1,6 +1,7 @@
 package secparse
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/gopasspw/gopass/pkg/gopass/secrets"
@@ -32,6 +33,7 @@ func TestParsedIsSerialized(t *testing.T) {
 	} {
 		sec, err := Parse([]byte(tc))
 		require.NoError(t, err)
+		fmt.Println()
 		assert.Equal(t, tc, string(sec.Bytes()))
 	}
 }

@@ -80,3 +80,18 @@ ab: cd`
 	v, _ := s.Get("ab")
 	assert.Equal(t, "cd", v)
 }
+
+func TestMultiKeyKVMIME(t *testing.T) {
+	in := `passw0rd
+foo: baz
+foo: bar
+zab: 123`
+	out := `passw0rd
+foo: baz
+foo: bar
+zab: 123
+`
+	sec, err := ParseKV([]byte(in))
+	require.NoError(t, err)
+	assert.Equal(t, out, string(sec.Bytes()))
+}

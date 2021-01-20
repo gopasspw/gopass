@@ -238,5 +238,5 @@ sub:
 	assert.Equal(t, "hallo", get("login"))
 	assert.Equal(t, "42", get("number"))
 	assert.Equal(t, "map[subentry:123]", get("sub"))
-	assert.Equal(t, []string{"login", "number", "password", "sub"}, s.Keys())
+	assert.Equal(t, []string{"login", "number", "sub"}, s.Keys())
 }

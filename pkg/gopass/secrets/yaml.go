@@ -41,14 +41,11 @@ func (y *YAML) Keys() []string {
 	for key := range y.data {
 		keys = append(keys, key)
 	}
-	if _, found := y.data["password"]; !found {
-		keys = append(keys, "password")
-	}
 	sort.Strings(keys)
 	return keys
 }
 
-// Get returns the value of a single key
+// Get returns the first value of a single key
 func (y *YAML) Get(key string) (string, bool) {
 	if y.data == nil {
 		y.data = make(map[string]interface{})
@@ -62,6 +59,12 @@ func (y *YAML) Get(key string) (string, bool) {
 	return "", false
 }
 
+// Values returns Get since as per YAML specification keys must be unique
+func (y *YAML) Values(key string) ([]string, bool) {
+	data, found := y.Get(key)
+	return []string{data}, found
+}
+
 // Set sets a key to a given value
 func (y *YAML) Set(key string, value interface{}) error {
 	if y.data == nil {
@@ -69,6 +72,11 @@ func (y *YAML) Set(key string, value interface{}) error {
 	}
 	y.data[key] = value
 	return nil
+}
+
+// Add doesn't work since as per YAML specification keys must be unique
+func (y *YAML) Add(key string, value interface{}) error {
+	return fmt.Errorf("not supported for YAML")
 }
 
 // Del removes a single key
@@ -155,14 +163,14 @@ func (y *YAML) Bytes() []byte {
 	}()
 	buf := &bytes.Buffer{}
 	buf.WriteString(y.password)
-	buf.WriteString("\n")
 	if y.body != "" {
+		buf.WriteString("\n")
 		buf.WriteString(y.body)
+	}
+	if len(y.data) > 0 {
 		if !strings.HasSuffix(y.body, "\n") {
 			buf.WriteString("\n")
 		}
-	}
-	if len(y.data) > 0 {
 		buf.WriteString("---\n")
 		if err := yaml.NewEncoder(buf).Encode(y.data); err != nil {
 			debug.Log("failed to encode YAML: %s", err)

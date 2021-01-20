@@ -77,10 +77,7 @@ func TestShow(t *testing.T) {
 
 		out, err = ts.run("show fixed/twoliner")
 		assert.NoError(t, err)
-		assert.Contains(t, out, "password: ***")
-
-		out, err = ts.run("show fixed/twoliner")
-		assert.NoError(t, err)
+		assert.NotContains(t, out, "password: ***")
 		assert.Contains(t, out, "more stuff")
 		assert.NotContains(t, out, "and")
 	})
@@ -108,11 +105,13 @@ func TestShow(t *testing.T) {
 		out, err = ts.run("show -c fixed/twoliner")
 		assert.NoError(t, err)
 		assert.NotContains(t, out, "***")
+		assert.NotContains(t, out, "safecontent=true")
 		assert.NotContains(t, out, "and")
+		assert.NotContains(t, out, "more stuff")
 
 		out, err = ts.run("show -C fixed/twoliner")
 		assert.NoError(t, err)
-		assert.Contains(t, out, "***")
+		assert.Contains(t, out, "more stuff")
 		assert.NotContains(t, out, "and")
 	})
 
@@ -123,12 +122,13 @@ func TestShow(t *testing.T) {
 		_, err := ts.run("generate fo2 5")
 		assert.NoError(t, err)
 
-		// TODO fix this
-		//out, err := ts.run("show fo2")
-		//assert.Error(t, err)
-		//assert.Contains(t, out, "Warning: safecontent=true")
+		out, err := ts.run("show fo2")
+		assert.Error(t, err)
+		assert.NotContains(t, out, "password: *****")
+		assert.NotContains(t, out, "aaaaa")
+		assert.Contains(t, out, "safecontent=true")
 
-		out, err := ts.run("show -u fo2")
+		out, err = ts.run("show -u fo2")
 		assert.NoError(t, err)
 		assert.Equal(t, out, "aaaaa")
 
@@ -136,10 +136,10 @@ func TestShow(t *testing.T) {
 		assert.NoError(t, err)
 
 		out, err = ts.run("show fo6")
-		assert.NoError(t, err)
-		assert.Contains(t, out, "password: ***")
+		assert.Error(t, err)
+		assert.NotContains(t, out, "password: ***")
 		assert.NotContains(t, out, "aaaaa")
-		assert.NotContains(t, out, "\n\n")
+		assert.Contains(t, out, "safecontent=true")
 
 		out, err = ts.run("show -u fo6")
 		assert.NoError(t, err)

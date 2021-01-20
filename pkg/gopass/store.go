@@ -15,10 +15,14 @@ type Secret interface {
 	Byter
 
 	Keys() []string
-	// Get returns a single header value, use Password() to get the password value.
+	// Get returns a single value for that key, use Password() to get the password value.
 	Get(key string) (string, bool)
+	// Values returns all values for  that key, use Password() to get the password value.
+	Values(key string) ([]string, bool)
 	// Set sets a single header value, use SetPassword() to set the password value.
 	Set(key string, value interface{}) error
+	// Add appends the value to that key, use SetPassword() to set the password value.
+	Add(key string, value interface{}) error
 	// Del removes a single header value
 	Del(key string) bool
 

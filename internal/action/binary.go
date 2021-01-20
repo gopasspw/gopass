@@ -139,21 +139,21 @@ func (s *Action) binaryCopy(ctx context.Context, c *cli.Context, from, to string
 	switch {
 	case fsutil.IsFile(from) && fsutil.IsFile(to):
 		// copying from on file to another file is not supported
-		return errors.New("ambiquity detected. Only from or to can be a file")
+		return errors.New("ambiguity detected. Only from or to can be a file")
 	case s.Store.Exists(ctx, from) && s.Store.Exists(ctx, to):
 		// copying from one secret to another secret is not supported
-		return errors.New("ambiquity detected. Either from or to must be a file")
+		return errors.New("ambiguity detected. Either from or to must be a file")
 	case fsutil.IsFile(from) && !fsutil.IsFile(to):
 		return s.binaryCopyFromFileToStore(ctx, from, to, deleteSource)
 	case !fsutil.IsFile(from):
 		return s.binaryCopyFromStoreToFile(ctx, from, to, deleteSource)
 	default:
-		return errors.Errorf("ambiquity detected. Unhandled case. Please report a bug")
+		return errors.Errorf("ambiguity detected. Unhandled case. Please report a bug")
 	}
 }
 
 func (s *Action) binaryCopyFromFileToStore(ctx context.Context, from, to string, deleteSource bool) error {
-	// if the source is a file the destination must no to avoid ambiquities
+	// if the source is a file the destination must no to avoid ambiguities
 	// if necessary this can be resolved by using a absolute path for the file
 	// and a relative one for the secret
 
