@@ -80,7 +80,7 @@ func (a *Age) loadKeyring(ctx context.Context) (Keyring, error) {
 			return []byte(pw), err
 		})
 	}
-	kr := make(Keyring, 1)
+	kr := make(Keyring, 0)
 	buf, err := a.decryptFile(ctx, a.keyring)
 	if err != nil {
 		debug.Log("can't decrypt keyring at %s: %s", a.keyring, err)

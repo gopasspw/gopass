@@ -41,7 +41,7 @@ func (a *Age) decrypt(ciphertext []byte, ids ...age.Identity) ([]byte, error) {
 }
 
 func (a *Age) decryptFile(ctx context.Context, filename string) ([]byte, error) {
-	pw, err := ctxutil.GetPasswordCallback(ctx)("index") // TODO should pass filename?
+	pw, err := ctxutil.GetPasswordCallback(ctx)(filename)
 	if err != nil {
 		return nil, err
 	}
