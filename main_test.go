@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/atotto/clipboard"
-	"github.com/blang/semver"
+	"github.com/blang/semver/v4"
 	"github.com/fatih/color"
 	"github.com/gopasspw/gopass/internal/action"
 	"github.com/gopasspw/gopass/internal/backend"

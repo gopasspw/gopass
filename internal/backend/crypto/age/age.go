@@ -11,7 +11,7 @@ import (
 
 	"filippo.io/age"
 	"filippo.io/age/agessh"
-	"github.com/blang/semver"
+	"github.com/blang/semver/v4"
 	"github.com/google/go-github/github"
 	"github.com/gopasspw/gopass/internal/cache"
 	"github.com/gopasspw/gopass/pkg/appdir"

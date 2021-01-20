@@ -8,7 +8,7 @@ import (
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/store/root"
 
-	"github.com/blang/semver"
+	"github.com/blang/semver/v4"
 )
 
 var (

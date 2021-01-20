@@ -5,7 +5,7 @@ go 1.12
 require (
 	filippo.io/age v1.0.0-beta4
 	github.com/atotto/clipboard v0.1.2
-	github.com/blang/semver v0.0.0-20190414182527-1a9109f8c4a1
+	github.com/blang/semver/v4 v4.0.0
 	github.com/caspr-io/yamlpath v0.0.0-20200722075116-502e8d113a9b
 	github.com/cenkalti/backoff v2.2.1+incompatible
 	github.com/chzyer/logex v1.1.10 // indirect

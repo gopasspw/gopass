@@ -10,7 +10,7 @@ import (
 
 	"github.com/gopasspw/gopass/internal/backend/crypto/gpg"
 
-	"github.com/blang/semver"
+	"github.com/blang/semver/v4"
 )
 
 var staticPrivateKeyList = gpg.KeyList{
