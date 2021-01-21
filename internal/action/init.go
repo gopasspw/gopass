@@ -45,7 +45,7 @@ func (s *Action) IsInitialized(c *cli.Context) error {
 
 	out.Print(ctx, logo)
 	out.Print(ctx, "🌟 Welcome to gopass!")
-	out.Print(ctx, "⚠ No existing configuration found.")
+	out.Notice(ctx, "No existing configuration found.")
 	out.Print(ctx, "☝ Please run 'gopass setup'")
 
 	return ExitError(ExitNotInitialized, err, "not initialized")

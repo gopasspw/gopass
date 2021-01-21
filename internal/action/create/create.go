@@ -93,7 +93,7 @@ func (s *creator) createWebsite(ctx context.Context, c *cli.Context) error {
 		err      error
 		genPw    bool
 	)
-	out.Green(ctx, "=> Creating Website login")
+	out.Print(ctx, "=> Creating Website login")
 	urlStr, err = termio.AskForString(ctx, fmtfn(2, "1", "URL"), urlStr)
 	if err != nil {
 		return err
@@ -192,7 +192,7 @@ func (s *creator) createPIN(ctx context.Context, c *cli.Context) error {
 		err         error
 		genPw       bool
 	)
-	out.Green(ctx, "=> Creating numerical PIN ...")
+	out.Print(ctx, "=> Creating numerical PIN ...")
 	authority, err = termio.AskForString(ctx, fmtfn(2, "1", "Authority"), authority)
 	if err != nil {
 		return err
@@ -260,7 +260,7 @@ func (s *creator) createGeneric(ctx context.Context, c *cli.Context) error {
 		err       error
 		genPw     bool
 	)
-	out.Green(ctx, "=> Creating generic secret ...")
+	out.Print(ctx, "=> Creating generic secret ...")
 	shortname, err = termio.AskForString(ctx, fmtfn(2, "1", "Name"), shortname)
 	if err != nil {
 		return err
@@ -327,7 +327,7 @@ func (s *creator) createGeneric(ctx context.Context, c *cli.Context) error {
 // createGeneratePasssword will walk through the password generation steps
 func (s *creator) createGeneratePassword(ctx context.Context, hostname string) (string, error) {
 	if _, found := pwrules.LookupRule(hostname); found {
-		out.Yellow(ctx, "Using password rules for %s ...", hostname)
+		out.Print(ctx, "Using password rules for %s ...", hostname)
 		length, err := termio.AskForInt(ctx, fmtfn(4, "b", "How long?"), defaultLength)
 		if err != nil {
 			return "", err

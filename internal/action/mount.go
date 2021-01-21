@@ -32,7 +32,7 @@ func (s *Action) MountRemove(c *cli.Context) error {
 		return ExitError(ExitConfig, err, "failed to write config: %s", err)
 	}
 
-	out.Green(ctx, "Password Store %s umounted", c.Args().Get(0))
+	out.Print(ctx, "Password Store %s umounted", c.Args().Get(0))
 	return nil
 }
 
@@ -40,7 +40,7 @@ func (s *Action) MountRemove(c *cli.Context) error {
 func (s *Action) MountsPrint(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	if len(s.Store.Mounts()) < 1 {
-		out.Cyan(ctx, "No mounts")
+		out.Print(ctx, "No mounts")
 		return nil
 	}
 
@@ -102,6 +102,6 @@ func (s *Action) MountAdd(c *cli.Context) error {
 		return ExitError(ExitConfig, err, "failed to save config: %s", err)
 	}
 
-	out.Green(ctx, "Mounted %s as %s", alias, localPath)
+	out.Print(ctx, "Mounted %s as %s", alias, localPath)
 	return nil
 }

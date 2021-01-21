@@ -39,7 +39,7 @@ func Update(ctx context.Context, currentVersion semver.Version) error {
 	debug.Log("Current: %s - Latest: %s", currentVersion.String(), rel.Version.String())
 	// binary is newer or equal to the latest release -> nothing to do
 	if currentVersion.GTE(rel.Version) {
-		out.Green(ctx, "gopass is up to date (%s)", currentVersion.String())
+		out.Print(ctx, "gopass is up to date (%s)", currentVersion.String())
 		return nil
 	}
 

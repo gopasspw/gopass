@@ -129,7 +129,7 @@ func (g *GPG) Encrypt(ctx context.Context, plaintext []byte, recipients []string
 		if err != nil {
 			debug.Log("Failed to check key %s. Adding anyway. %s", err)
 		} else if len(kl.UseableKeys(gpg.IsAlwaysTrust(ctx))) < 1 {
-			out.Red(ctx, "Not using expired key %s for encryption", r)
+			out.Print(ctx, "Not using expired key %s for encryption", r)
 			continue
 		}
 		args = append(args, "--recipient", r)

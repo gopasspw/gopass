@@ -76,7 +76,7 @@ func (s *Store) ImportMissingPublicKeys(ctx context.Context) error {
 			out.Error(ctx, "[%s] Failed to import public key for %s: %s", s.alias, r, err)
 			continue
 		}
-		out.Green(ctx, "[%s] Imported public key for %s into Keyring", s.alias, r)
+		out.Print(ctx, "[%s] Imported public key for %s into Keyring", s.alias, r)
 	}
 	return nil
 }

@@ -28,6 +28,6 @@ func (s *Action) Update(c *cli.Context) error {
 	if err := updater.Update(ctx, s.version); err != nil {
 		return ExitError(ExitUnknown, err, "Failed to update gopass: %s", err)
 	}
-	out.Print(ctx, "✅ gopass is up to date")
+	out.OK(ctx, "gopass is up to date")
 	return nil
 }

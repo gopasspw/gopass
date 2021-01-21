@@ -76,7 +76,7 @@ func (s *Store) AddRecipient(ctx context.Context, id string) error {
 		return errors.Wrapf(err, "failed to save recipients")
 	}
 
-	out.Cyan(ctx, "Reencrypting existing secrets. This may take some time ...")
+	out.Print(ctx, "Reencrypting existing secrets. This may take some time ...")
 	return s.reencrypt(ctxutil.WithCommitMessage(ctx, "Added Recipient "+id))
 }
 
@@ -100,7 +100,7 @@ func (s *Store) SetRecipients(ctx context.Context, rs []string) error {
 func (s *Store) RemoveRecipient(ctx context.Context, id string) error {
 	keys, err := s.crypto.FindRecipients(ctx, id)
 	if err != nil {
-		out.Cyan(ctx, "Warning: Failed to get GPG Key Info for %s: %s", id, err)
+		out.Print(ctx, "Warning: Failed to get GPG Key Info for %s: %s", id, err)
 	}
 
 	rs, err := s.GetRecipients(ctx, "")

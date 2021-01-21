@@ -29,10 +29,10 @@ func (g *Git) fixConfig(ctx context.Context) error {
 
 	// setup for proper diffs
 	if err := g.ConfigSet(ctx, "diff.gpg.binary", "true"); err != nil {
-		out.Yellow(ctx, "Error while initializing git: %s", err)
+		out.Print(ctx, "Error while initializing git: %s", err)
 	}
 	if err := g.ConfigSet(ctx, "diff.gpg.textconv", "gpg --no-tty --decrypt"); err != nil {
-		out.Yellow(ctx, "Error while initializing git: %s", err)
+		out.Print(ctx, "Error while initializing git: %s", err)
 	}
 
 	return nil
@@ -46,14 +46,14 @@ func (g *Git) InitConfig(ctx context.Context, userName, userEmail string) error 
 			return errors.Wrapf(err, "failed to set git config user.name")
 		}
 	} else {
-		out.Red(ctx, "Git Username not set")
+		out.Print(ctx, "Git Username not set")
 	}
 	if userEmail != "" && strings.Contains(userEmail, "@") {
 		if err := g.ConfigSet(ctx, "user.email", userEmail); err != nil {
 			return errors.Wrapf(err, "failed to set git config user.email")
 		}
 	} else {
-		out.Red(ctx, "Git Email not set")
+		out.Print(ctx, "Git Email not set")
 	}
 
 	// ensure sane git config

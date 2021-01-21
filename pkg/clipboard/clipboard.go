@@ -23,7 +23,7 @@ var (
 // clearing of the clipboard
 func CopyTo(ctx context.Context, name string, content []byte) error {
 	if clipboard.Unsupported {
-		out.Yellow(ctx, "%s", ErrNotSupported)
+		out.Print(ctx, "%s", ErrNotSupported)
 		_ = notify.Notify(ctx, "gopass - clipboard", fmt.Sprintf("%s", ErrNotSupported))
 		return nil
 	}

@@ -28,7 +28,7 @@ func TestGenerate(t *testing.T) {
 	lines := strings.Split(out, "\n")
 	require.Greater(t, len(lines), 2)
 	assert.Contains(t, out, "The generated password is:")
-	assert.Len(t, lines[2], 42)
+	assert.Len(t, lines[3], 42)
 
 	_ = os.Setenv("GOPASS_CHARACTER_SET", "a")
 	out, err = ts.run("generate -p zab 4")
@@ -36,5 +36,5 @@ func TestGenerate(t *testing.T) {
 	lines = strings.Split(out, "\n")
 	require.Greater(t, len(lines), 2)
 	assert.Contains(t, out, "The generated password is:")
-	assert.Equal(t, lines[2], "aaaa")
+	assert.Equal(t, lines[3], "aaaa")
 }

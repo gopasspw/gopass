@@ -267,7 +267,7 @@ func (s *Action) Sum(c *cli.Context) error {
 
 	h := sha256.New()
 	_, _ = h.Write(buf)
-	out.Yellow(ctx, "%x", h.Sum(nil))
+	out.Print(ctx, "%x", h.Sum(nil))
 
 	return nil
 }
