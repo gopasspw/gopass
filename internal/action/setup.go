@@ -98,9 +98,13 @@ func (s *Action) initGenerateIdentity(ctx context.Context, crypto backend.Crypto
 
 	passphrase := xkcdgen.Random()
 	pwGenerated := true
-	if bv, err := termio.AskForBool(ctx, "⚠ Do you want to enter a passphrase? (otherwise we generate one for you)", false); err == nil && bv {
+	want, err := termio.AskForBool(ctx, "⚠ Do you want to enter a passphrase? (otherwise we generate one for you)", false)
+	if err != nil {
+		return err
+	}
+	if want {
 		pwGenerated = false
-		sv, err := termio.AskForPassword(ctx, "✍ Please enter your passphrase")
+		sv, err := termio.AskForPassword(ctx, "your new keypair")
 		if err != nil {
 			return errors.Wrapf(err, "Failed to read passphrase")
 		}
