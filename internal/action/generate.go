@@ -22,7 +22,6 @@ import (
 	"github.com/gopasspw/gopass/pkg/pwgen/xkcdgen"
 	"github.com/gopasspw/gopass/pkg/termio"
 
-	"github.com/fatih/color"
 	"github.com/urfave/cli/v2"
 )
 
@@ -116,28 +115,33 @@ func (s *Action) generateCopyOrPrint(ctx context.Context, c *cli.Context, name, 
 		entry += ":" + key
 	}
 
-	out.Print(ctx, "Password for %s generated", entry)
+	out.OK(ctx, "Password for entry %q generated", entry)
 
 	if ctxutil.IsAutoClip(ctx) || IsClip(ctx) {
 		if err := clipboard.CopyTo(ctx, name, []byte(password)); err != nil {
+			fmt.Println("1")
 			return ExitError(ExitIO, err, "failed to copy to clipboard: %s", err)
 		}
 		if ctxutil.IsAutoClip(ctx) && !c.Bool("print") {
+			fmt.Println("2")
+			out.Print(ctx, "Copied to clipboard")
 			return nil
 		}
 	}
 
 	if !c.Bool("print") {
+		out.Print(ctx, "Not printing secrets by default. Use 'gopass show %s' to display the password.", entry)
 		return nil
 	}
 	if c.IsSet("print") && !c.Bool("print") && ctxutil.IsShowSafeContent(ctx) {
+		debug.Log("safecontent suppresing printing")
 		return nil
 	}
 
 	out.Print(
 		ctx,
-		"The generated password is:\n%s",
-		color.YellowString(password),
+		"⚠ The generated password is:\n\n%s\n",
+		password,
 	)
 	return nil
 }
@@ -156,7 +160,7 @@ func hasPwRuleForSecret(name string) (string, pwrules.Rule) {
 // generatePassword will run through the password generation steps
 func (s *Action) generatePassword(ctx context.Context, c *cli.Context, length, name string) (string, error) {
 	if domain, rule := hasPwRuleForSecret(name); domain != "" {
-		out.Yellow(ctx, "Using password rules for %s ...", domain)
+		out.Print(ctx, "Using password rules for %s ...", domain)
 		wl := 16
 		if iv, err := strconv.Atoi(length); err == nil {
 			if iv < rule.Minlen {

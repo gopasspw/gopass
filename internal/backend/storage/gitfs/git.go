@@ -80,7 +80,7 @@ func Init(ctx context.Context, path, userName, userEmail string) (*Git, error) {
 		if err := g.Cmd(ctx, "Init", "init"); err != nil {
 			return nil, errors.Errorf("failed to initialize git: %s", err)
 		}
-		out.Green(ctx, "git initialized at %s", g.fs.Path())
+		out.Print(ctx, "git initialized at %s", g.fs.Path())
 	}
 
 	if !ctxutil.IsGitInit(ctx) {
@@ -91,7 +91,7 @@ func Init(ctx context.Context, path, userName, userEmail string) (*Git, error) {
 	if err := g.InitConfig(ctx, userName, userEmail); err != nil {
 		return g, errors.Errorf("failed to configure git: %s", err)
 	}
-	out.Green(ctx, "git configured at %s", g.fs.Path())
+	out.Print(ctx, "git configured at %s", g.fs.Path())
 
 	// add current content of the store
 	if err := g.Add(ctx, g.fs.Path()); err != nil {
@@ -266,7 +266,7 @@ func (g *Git) PushPull(ctx context.Context, op, remote, branch string) error {
 		if op == "pull" {
 			return err
 		}
-		out.Yellow(ctx, "Failed to pull before git push: %s", err)
+		out.Warning(ctx, "Failed to pull before git push: %s", err)
 	}
 	if op == "pull" {
 		return nil

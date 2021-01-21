@@ -141,7 +141,7 @@ READ:
 		}
 		args, err := shellquote.Split(line)
 		if err != nil {
-			out.Red(c.Context, "Error: %s", err)
+			out.Print(c.Context, "Error: %s", err)
 			continue
 		}
 		if len(args) < 1 {

@@ -43,17 +43,17 @@ func (s *Action) rcsInit(ctx context.Context, store, un, ue string) error {
 		return nil
 	}
 	bn := backend.StorageBackendName(backend.GetStorageBackend(ctx))
-	out.Green(ctx, "Initializing git repository (%s) for %s / %s...", bn, un, ue)
+	out.Print(ctx, "Initializing git repository (%s) for %s / %s...", bn, un, ue)
 
 	userName, userEmail := s.getUserData(ctx, store, un, ue)
 	if err := s.Store.RCSInit(ctx, store, userName, userEmail); err != nil {
 		if gtv := os.Getenv("GPG_TTY"); gtv == "" {
-			out.Yellow(ctx, "Git initialization failed. You may want to try to 'export GPG_TTY=$(tty)' and start over.")
+			out.Print(ctx, "Git initialization failed. You may want to try to 'export GPG_TTY=$(tty)' and start over.")
 		}
 		return errors.Wrapf(err, "failed to run git init")
 	}
 
-	out.Green(ctx, "Git initialized")
+	out.Print(ctx, "Git initialized")
 	return nil
 }
 
@@ -139,7 +139,11 @@ func (s *Action) RCSPush(c *cli.Context) error {
 	if origin == "" || branch == "" {
 		return ExitError(ExitUsage, nil, "Usage: %s git push <ORIGIN> <BRANCH>", s.Name)
 	}
-	return s.Store.RCSPush(ctx, store, origin, branch)
+	if err := s.Store.RCSPush(ctx, store, origin, branch); err != nil {
+		return ExitError(ExitGit, err, "Failed to push to remote")
+	}
+	out.OK(ctx, "Pushed to git remote")
+	return nil
 }
 
 // RCSStatus prints the rcs status

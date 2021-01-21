@@ -223,7 +223,7 @@ func printAuditResults(m map[string][]string, format string, color func(format s
 func Single(ctx context.Context, password string) {
 	validator := crunchy.NewValidator()
 	if err := validator.Check(password); err != nil {
-		out.Cyan(ctx, fmt.Sprintf("Warning: %s", err))
+		out.Print(ctx, fmt.Sprintf("Warning: %s", err))
 	}
 }
 
@@ -233,19 +233,19 @@ func auditPrintResults(ctx context.Context, duplicates, messages, errors map[str
 		if len(secrets) > 1 {
 			foundDuplicates = true
 
-			out.Cyan(ctx, "Detected a shared secret for:")
+			out.Print(ctx, "Detected a shared secret for:")
 			for _, secret := range secrets {
-				out.Cyan(ctx, "\t- %s", secret)
+				out.Print(ctx, "\t- %s", secret)
 			}
 		}
 	}
 	if !foundDuplicates {
-		out.Green(ctx, "No shared secrets found.")
+		out.Print(ctx, "No shared secrets found.")
 	}
 
 	foundWeakPasswords := printAuditResults(messages, "%s:\n", color.CyanString)
 	if !foundWeakPasswords {
-		out.Green(ctx, "No weak secrets detected.")
+		out.Print(ctx, "No weak secrets detected.")
 	}
 	foundErrors := printAuditResults(errors, "%s:\n", color.RedString)
 

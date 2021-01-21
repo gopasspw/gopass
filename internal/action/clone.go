@@ -86,7 +86,7 @@ func (s *Action) clone(ctx context.Context, repo, mount, path string) error {
 	}
 
 	// try to init git config
-	out.Green(ctx, "Configuring git repository ...")
+	out.Print(ctx, "Configuring git repository ...")
 
 	// ask for git config values
 	username, email, err := s.cloneGetGitConfig(ctx, mount)
@@ -103,7 +103,7 @@ func (s *Action) clone(ctx context.Context, repo, mount, path string) error {
 	if mount != "" {
 		mount = " " + mount
 	}
-	out.Green(ctx, "Your password store is ready to use! Have a look around: `%s list%s`\n", s.Name, mount)
+	out.Print(ctx, "Your password store is ready to use! Have a look around: `%s list%s`\n", s.Name, mount)
 
 	return nil
 }
@@ -123,7 +123,7 @@ func (s *Action) cloneAddMount(ctx context.Context, mount, path string) error {
 	if err := s.Store.AddMount(ctx, mount, path); err != nil {
 		return ExitError(ExitMount, err, "Failed to add mount: %s", err)
 	}
-	out.Green(ctx, "Mounted password store %s at mount point `%s` ...", path, mount)
+	out.Print(ctx, "Mounted password store %s at mount point `%s` ...", path, mount)
 	return nil
 }
 

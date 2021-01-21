@@ -83,7 +83,7 @@ func (s *Action) Setup(c *cli.Context) error {
 }
 
 func (s *Action) initGenerateIdentity(ctx context.Context, crypto backend.Crypto, name, email string) error {
-	out.Green(ctx, "🧪 Creating cryptographic key pair (%s) ...", crypto.Name())
+	out.Print(ctx, "🧪 Creating cryptographic key pair (%s) ...", crypto.Name())
 
 	out.Print(ctx, "🎩 Gathering information for the key pair ...")
 	name, err := termio.AskForString(ctx, "🚶 What is your name?", name)
@@ -98,7 +98,7 @@ func (s *Action) initGenerateIdentity(ctx context.Context, crypto backend.Crypto
 
 	passphrase := xkcdgen.Random()
 	pwGenerated := true
-	if bv, err := termio.AskForBool(ctx, "⚠ Do you want to enter a passphrase? (otherwise we generate one for you)", false); err != nil && bv {
+	if bv, err := termio.AskForBool(ctx, "⚠ Do you want to enter a passphrase? (otherwise we generate one for you)", false); err == nil && bv {
 		pwGenerated = false
 		sv, err := termio.AskForPassword(ctx, "✍ Please enter your passphrase")
 		if err != nil {
@@ -109,7 +109,7 @@ func (s *Action) initGenerateIdentity(ctx context.Context, crypto backend.Crypto
 
 	// Note: This issue shouldn't matter much past Linux Kernel 5.6,
 	// eventually we might want to remove this notice.
-	out.Yellow(ctx, "⏳ This can take a long time. If you get impatient see https://github.com/gopasspw/gopass/blob/master/docs/entropy.md")
+	out.Print(ctx, "⏳ This can take a long time. If you get impatient see https://github.com/gopasspw/gopass/blob/master/docs/entropy.md")
 	if want, err := termio.AskForBool(ctx, "Continue?", true); err != nil || !want {
 		return errors.Wrapf(err, "User aborted")
 	}
@@ -118,11 +118,11 @@ func (s *Action) initGenerateIdentity(ctx context.Context, crypto backend.Crypto
 		return errors.Wrapf(err, "failed to create new private key")
 	}
 
-	out.Print(ctx, "✅ Key pair generated")
+	out.OK(ctx, "Key pair generated")
 
 	if pwGenerated {
 		out.Print(ctx, color.MagentaString("Passphrase: ")+passphrase)
-		out.Print(ctx, "⚠ You need to remember this very well!")
+		out.Notice(ctx, "You need to remember this very well!")
 	}
 
 	// avoid the gpg cache or we won't find the newly created key
@@ -131,7 +131,7 @@ func (s *Action) initGenerateIdentity(ctx context.Context, crypto backend.Crypto
 		return errors.Wrapf(err, "failed to list private keys")
 	}
 	if len(kl) > 1 {
-		out.Print(ctx, "⚠ More than one private key detected. Make sure to use the correct one!")
+		out.Notice(ctx, "More than one private key detected. Make sure to use the correct one!")
 		return nil
 	}
 	if len(kl) < 1 {
@@ -142,7 +142,7 @@ func (s *Action) initGenerateIdentity(ctx context.Context, crypto backend.Crypto
 	if err := s.initExportPublicKey(ctx, crypto, kl[0]); err != nil {
 		return err
 	}
-	out.Green(ctx, "✅ Key pair validated")
+	out.OK(ctx, "Key pair validated")
 	return nil
 }
 
@@ -236,7 +236,7 @@ func (s *Action) initLocal(ctx context.Context) error {
 		return errors.Wrapf(err, "failed to save config")
 	}
 
-	out.Green(ctx, "✅ Configured")
+	out.OK(ctx, "Configured")
 	return nil
 }
 
@@ -260,13 +260,13 @@ func (s *Action) initCreateTeam(ctx context.Context, team, remote string) error 
 	if err := s.init(ctxutil.WithHidden(ctx, true), team, ""); err != nil {
 		return errors.Wrapf(err, "failed to init shared store")
 	}
-	out.Print(ctx, "✅ Done. Initialized the store.")
+	out.OK(ctx, "Done. Initialized the store.")
 
 	out.Print(ctx, "Configuring the git remote ...")
 	if err := s.initSetupGitRemote(ctx, team, remote); err != nil {
 		return errors.Wrapf(err, "failed to setup git remote")
 	}
-	out.Print(ctx, "✅ Done. Created Team %q", team)
+	out.OK(ctx, "Done. Created Team %q", team)
 	return nil
 }
 
@@ -297,7 +297,7 @@ func (s *Action) initJoinTeam(ctx context.Context, team, remote string) error {
 	if err := s.clone(ctxutil.WithHidden(ctx, true), remote, team, ""); err != nil {
 		return errors.Wrapf(err, "failed to clone repo")
 	}
-	out.Print(ctx, "✅ Done. Joined Team %q", team)
-	out.Print(ctx, "⚠ You still need to request access to decrypt secrets!")
+	out.OK(ctx, "Done. Joined Team %q", team)
+	out.Notice(ctx, "You still need to request access to decrypt secrets!")
 	return nil
 }

@@ -48,7 +48,7 @@ func (s *Action) sync(ctx context.Context, store string) error {
 		numMPs++
 		_ = s.syncMount(ctx, mp)
 	}
-	out.Green(ctx, "✅ All done")
+	out.OK(ctx, "All done")
 
 	// Calculate number of changed entries.
 	// This is a rough estimate as additions and deletions
@@ -94,12 +94,12 @@ func (s *Action) syncMount(ctx context.Context, mp string) error {
 
 	// TODO: Remove this hard coded check
 	if sub.Storage().Name() == "fs" {
-		out.Yellow(ctxno, "\n   WARNING: Mount uses Storage backend 'fs'. Not syncing!\n")
+		out.Print(ctxno, "\n   WARNING: Mount uses Storage backend 'fs'. Not syncing!\n")
 	} else {
 		out.Print(ctxno, "\n   "+color.GreenString("git pull and push ... "))
 		if err := sub.Storage().Push(ctx, "", ""); err != nil {
 			if errors.Cause(err) == store.ErrGitNoRemote {
-				out.Yellow(ctx, "Skipped (no remote)")
+				out.Print(ctx, "Skipped (no remote)")
 				debug.Log("Failed to push '%s' to its remote: %s", name, err)
 				return err
 			}

@@ -31,7 +31,7 @@ func (s *Action) Audit(c *cli.Context) error {
 	list := t.List(tree.INF)
 
 	if len(list) < 1 {
-		out.Yellow(ctx, "No secrets found")
+		out.Print(ctx, "No secrets found")
 		return nil
 	}
 

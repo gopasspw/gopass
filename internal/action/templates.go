@@ -148,7 +148,7 @@ func (s *Action) renderTemplate(ctx context.Context, name string, content []byte
 		return content, false
 	}
 
-	out.Cyan(ctx, "Note: Using template %s", tName)
+	out.Print(ctx, "Note: Using template %s", tName)
 
 	return nc, true
 }
