@@ -22,6 +22,7 @@ type cacher interface {
 	Get(string) (string, bool)
 	Set(string, string)
 	Remove(string)
+	Purge()
 }
 
 type askPass struct {
@@ -84,4 +85,10 @@ func (a *askPass) Passphrase(key string, reason string) (string, error) {
 
 func (a *askPass) Remove(key string) {
 	a.cache.Remove(key)
+}
+
+// Lock flushes the password cache
+func (a *Age) Lock() {
+	a.askPass.cache.Purge()
+	krCache = nil
 }

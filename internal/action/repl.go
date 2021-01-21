@@ -150,6 +150,9 @@ READ:
 		switch strings.ToLower(args[0]) {
 		case "quit":
 			break READ
+		case "lock":
+			s.replLock(c.Context)
+			continue
 		case "clear":
 			readline.ClearScreen(stdout)
 			continue
@@ -165,4 +168,12 @@ READ:
 		}
 	}
 	return nil
+}
+
+func (s *Action) replLock(ctx context.Context) {
+	if err := s.Store.Lock(); err != nil {
+		out.Error(ctx, "Failed to lock stores: %s", err)
+		return
+	}
+	out.OK(ctx, "Locked")
 }

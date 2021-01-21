@@ -149,3 +149,22 @@ func (s *Store) importPublicKey(ctx context.Context, r string) error {
 	}
 	return fmt.Errorf("public key not found in store")
 }
+
+type locker interface {
+	Lock()
+}
+
+// Lock clears the credential caches of all supported backends
+func (s *Store) Lock() error {
+	f, ok := s.crypto.(locker)
+	if !ok {
+		debug.Log("locking not supported by %T in %q", s.crypto, s.alias)
+	}
+	if f == nil {
+		debug.Log("backend %q invalid", s.alias)
+		return nil
+	}
+	f.Lock()
+	debug.Log("locked backend %T for %q", s.crypto, s.alias)
+	return nil
+}
