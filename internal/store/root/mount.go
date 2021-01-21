@@ -127,6 +127,16 @@ func (r *Store) MountPoint(name string) string {
 	return ""
 }
 
+// Lock drops all cached credentials
+func (r *Store) Lock() error {
+	for _, sub := range r.mounts {
+		if err := sub.Lock(); err != nil {
+			return err
+		}
+	}
+	return r.store.Lock()
+}
+
 // getStore returns the Store object at the most-specific mount point for the
 // given key
 // context with sub store options set, sub store reference, truncated path to secret
