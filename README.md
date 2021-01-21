@@ -26,13 +26,14 @@ Gopass is a versatile command line based password manager that is being develope
 - **Secure**: Security is hard. We aim to make it as easy as possible while still providing a good level of protection against common adversaries. *Caution*: If your personal threat level is very high, we might not offer a good tool for you.
 - **Extensible**: While Gopass includes a fair amount of useful features, we can't cover every use-case. To support more special use cases we want to provide a clean and simple API to integration gopass into your own binaries.
 
-## Demo
+## Screenshot
 
-[![asciicast](https://asciinema.org/a/172749.png)](https://asciinema.org/a/172749)
+![screenshot](docs/showcase.png)
 
 ## Features
 
-Please see [docs/features.md](https://github.com/gopasspw/gopass/blob/master/docs/features.md) for an extensive list of all features along with several usage examples.
+Please see [docs/features.md](https://github.com/gopasspw/gopass/blob/master/docs/features.md) for an extensive list of all features along with several usage examples. Some examples are available in our
+[example password store](https://github.com/gopasspw/password-store-example).
 
 | **Feature**                 | **State**     | **Description**                                                   |
 | --------------------------- | ------------- | ----------------------------------------------------------------- |
