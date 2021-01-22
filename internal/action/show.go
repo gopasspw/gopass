@@ -55,7 +55,7 @@ func (s *Action) Show(c *cli.Context) error {
 	ctx := showParseArgs(c)
 
 	if key := c.Args().Get(1); key != "" {
-		debug.Log("Setting key: %s", key)
+		debug.Log("Adding key to ctx: %s", key)
 		ctx = WithKey(ctx, key)
 	}
 
@@ -158,15 +158,17 @@ func (s *Action) showHandleOutput(ctx context.Context, name string, sec gopass.S
 		return nil
 	}
 
-	ctx = out.WithNewline(ctx, ctxutil.IsTerminal(ctx) && !strings.HasSuffix(body, "\n"))
+	ctx = out.WithNewline(ctx, ctxutil.IsTerminal(ctx))
 	if ctxutil.IsTerminal(ctx) {
-		out.Print(ctx, "Secret: %s\n\n", name)
+		header := fmt.Sprintf("Secret: %s\n", name)
+		if HasKey(ctx) {
+			header += fmt.Sprintf("Key: %s\n", GetKey(ctx))
+		}
+		out.Print(ctx, "%s", header)
 	}
-	// output the actual secret
+	// output the actual secret, newlines are handled by ctx and Print
 	out.Print(ctx, body)
-	if ctxutil.IsTerminal(ctx) {
-		out.Print(ctx, "\n")
-	}
+
 	return nil
 }
 
@@ -174,11 +176,13 @@ func (s *Action) showGetContent(ctx context.Context, sec gopass.Secret) (string,
 	// YAML key
 	if HasKey(ctx) && ctxutil.IsShowParsing(ctx) {
 		key := GetKey(ctx)
-		val, found := sec.Get(key)
+		values, found := sec.Values(key)
 		if !found {
 			return "", "", ExitError(ExitNotFound, store.ErrNoKey, store.ErrNoKey.Error())
 		}
-		debug.Log("got(found: %t) key %s: %s", found, key, val)
+		val := strings.Join(values, "\n")
+		//TODO: consider if we really want to have the value of the keys output in the debug logs
+		debug.Log("got(found: %t) key %s: %v", found, key, values)
 		return val, val, nil
 	} else if HasKey(ctx) {
 		out.Warning(ctx, "Parsing is disabled but a key was provided.")
@@ -203,22 +207,20 @@ func (s *Action) showGetContent(ctx context.Context, sec gopass.Secret) (string,
 		for _, k := range sec.Keys() {
 			sb.WriteString(k)
 			sb.WriteString(": ")
-			// check is this key should be obstructed
+			// check if this key should be obstructed
 			if isUnsafeKey(k, sec) {
 				debug.Log("obstructing unsafe key %s", k)
 				sb.WriteString(randAsterisk())
 			} else {
-				v, found := sec.Get(k)
+				v, found := sec.Values(k)
 				if !found {
 					continue
 				}
-				sb.WriteString(v)
+				sb.WriteString(strings.Join(v, "\n"+k+": "))
 			}
 			sb.WriteString("\n")
 		}
-		if len(sec.Keys()) > 0 && len(sec.Body()) > 0 {
-			sb.WriteString("\n")
-		}
+
 		sb.WriteString(sec.Body())
 		if IsAlsoClip(ctx) {
 			return pw, sb.String(), nil

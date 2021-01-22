@@ -72,7 +72,8 @@ func TestShowMulti(t *testing.T) {
 
 		assert.NoError(t, act.Show(c))
 		assert.Contains(t, buf.String(), "bar: zab")
-		assert.Contains(t, buf.String(), "password: ***")
+		assert.NotContains(t, buf.String(), "password: ***")
+		assert.NotContains(t, buf.String(), "123")
 		buf.Reset()
 	})
 
@@ -124,7 +125,8 @@ func TestShowMulti(t *testing.T) {
 
 		assert.NoError(t, act.Show(c))
 		assert.Contains(t, buf.String(), "bar: zab")
-		assert.Contains(t, buf.String(), "password: ***")
+		assert.NotContains(t, buf.String(), "password: ***")
+		assert.NotContains(t, buf.String(), "123")
 		buf.Reset()
 	})
 

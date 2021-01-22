@@ -53,10 +53,16 @@ func (p *Plain) Keys() []string {
 	return nil
 }
 
-// Get returns the first line (for password) or the empty string
+// Get returns the empty string for Plain secrets
 func (p *Plain) Get(key string) (string, bool) {
 	debug.Log("Trying to access key %q on a Plain secret", key)
 	return "", false
+}
+
+// Values returns the empty string for Plain secrets
+func (p *Plain) Values(key string) ([]string, bool) {
+	debug.Log("Trying to access key %q on a Plain secret", key)
+	return []string{""}, false
 }
 
 // Password returns the first line
@@ -68,6 +74,11 @@ func (p *Plain) Password() string {
 
 // Set does nothing
 func (p *Plain) Set(_ string, _ interface{}) error {
+	return fmt.Errorf("not supported for PLAIN")
+}
+
+// Add does nothing
+func (p *Plain) Add(_ string, _ interface{}) error {
 	return fmt.Errorf("not supported for PLAIN")
 }
 

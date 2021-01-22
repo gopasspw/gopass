@@ -17,15 +17,15 @@ var _ gopass.Secret = &KV{}
 // NewKV creates a new KV secret
 func NewKV() *KV {
 	return &KV{
-		data: make(map[string]string, 10),
+		data: make(map[string][]string, 10),
 	}
 }
 
 // NewKVWithData returns a new KV secret populated with data
-func NewKVWithData(pw string, kvps map[string]string, body string, converted bool) *KV {
+func NewKVWithData(pw string, kvps map[string][]string, body string, converted bool) *KV {
 	kv := &KV{
 		password: pw,
-		data:     make(map[string]string, len(kvps)),
+		data:     make(map[string][]string, len(kvps)),
 		body:     body,
 		fromMime: converted,
 	}
@@ -72,7 +72,7 @@ func NewKVWithData(pw string, kvps map[string]string, body string, converted boo
 //   - body: "Yo\nHi"
 type KV struct {
 	password string
-	data     map[string]string
+	data     map[string][]string
 	body     string
 	fromMime bool
 }
@@ -87,10 +87,12 @@ func (k *KV) Bytes() []byte {
 		if !ok {
 			continue
 		}
-		_, _ = buf.WriteString(key)
-		_, _ = buf.WriteString(": ")
-		_, _ = buf.WriteString(sv)
-		_, _ = buf.WriteString("\n")
+		for _, v := range sv {
+			_, _ = buf.WriteString(key)
+			_, _ = buf.WriteString(": ")
+			_, _ = buf.WriteString(v)
+			_, _ = buf.WriteString("\n")
+		}
 	}
 	buf.WriteString(k.body)
 	return buf.Bytes()
@@ -102,15 +104,23 @@ func (k *KV) Keys() []string {
 	for key := range k.data {
 		keys = append(keys, key)
 	}
-	if _, found := k.data["password"]; !found {
-		keys = append(keys, "password")
-	}
 	sort.Strings(keys)
 	return keys
 }
 
-// Get returns a single key
+// Get returns the first value of that key
 func (k *KV) Get(key string) (string, bool) {
+	key = strings.ToLower(key)
+
+	if v, found := k.data[key]; found {
+		return v[0], true
+	}
+
+	return "", false
+}
+
+// Values returns all values for that key
+func (k *KV) Values(key string) ([]string, bool) {
 	key = strings.ToLower(key)
 	v, found := k.data[key]
 	return v, found
@@ -119,11 +129,21 @@ func (k *KV) Get(key string) (string, bool) {
 // Set writes a single key
 func (k *KV) Set(key string, value interface{}) error {
 	key = strings.ToLower(key)
-	k.data[key] = fmt.Sprintf("%s", value)
+	if v, ok := k.data[key]; ok && len(v) > 1 {
+		return fmt.Errorf("cannot set key %s: this entry contains multiple same keys. Please use 'gopass edit' instead", key)
+	}
+	k.data[key] = []string{fmt.Sprintf("%s", value)}
 	return nil
 }
 
-// Del removes a key
+// Add appends data to a given key
+func (k *KV) Add(key string, value interface{}) error {
+	key = strings.ToLower(key)
+	k.data[key] = append(k.data[key], fmt.Sprintf("%s", value))
+	return nil
+}
+
+// Del removes a given key and all of its values
 func (k *KV) Del(key string) bool {
 	key = strings.ToLower(key)
 	_, found := k.data[key]
@@ -149,7 +169,7 @@ func (k *KV) SetPassword(p string) {
 // ParseKV tries to parse a KV secret
 func ParseKV(in []byte) (*KV, error) {
 	k := &KV{
-		data: make(map[string]string, 10),
+		data: make(map[string][]string, 10),
 	}
 	r := bufio.NewReader(bytes.NewReader(in))
 	line, err := r.ReadString('\n')
@@ -184,14 +204,14 @@ func ParseKV(in []byte) (*KV, error) {
 		}
 		// preserve key only entries
 		if len(parts) < 2 {
-			k.data[parts[0]] = ""
+			k.data[parts[0]] = append(k.data[parts[0]], "")
 			continue
 		}
-		k.data[parts[0]] = parts[1]
+
+		k.data[parts[0]] = append(k.data[parts[0]], parts[1])
 	}
 	if len(k.data) < 1 {
 		debug.Log("no KV entries")
-		//return nil, fmt.Errorf("no KV entries")
 	}
 	k.body = sb.String()
 	return k, nil
@@ -203,7 +223,7 @@ func (k *KV) Write(buf []byte) (int, error) {
 	return len(buf), nil
 }
 
-// FromMime returns which whether this secret was converted from a Mime secret of not
+// FromMime returns whether this secret was converted from a Mime secret of not
 func (k *KV) FromMime() bool {
 	return k.fromMime
 }
