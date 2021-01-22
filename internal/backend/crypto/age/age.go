@@ -26,10 +26,6 @@ const (
 	IDFile = ".age-ids"
 )
 
-var (
-	krCache map[string]age.Identity
-)
-
 // Age is an age backend
 type Age struct {
 	binary  string
@@ -37,6 +33,7 @@ type Age struct {
 	ghc     *github.Client
 	ghCache *cache.OnDisk
 	askPass *askPass
+	krCache map[string]age.Identity
 }
 
 // New creates a new Age backend
@@ -168,8 +165,8 @@ func (a *Age) getAllIdentities(ctx context.Context) (map[string]age.Identity, er
 }
 
 func (a *Age) getNativeIdentities(ctx context.Context) (map[string]age.Identity, error) {
-	if krCache != nil {
-		return krCache, nil
+	if len(a.krCache) > 0 {
+		return a.krCache, nil
 	}
 	kr, err := a.loadKeyring(ctx)
 	if err != nil && !errors.Is(err, os.ErrNotExist) {
@@ -204,6 +201,6 @@ func (a *Age) getNativeIdentities(ctx context.Context) (map[string]age.Identity,
 		}
 		ids[id.Recipient().String()] = id
 	}
-	krCache = ids
+	a.krCache = ids
 	return ids, nil
 }

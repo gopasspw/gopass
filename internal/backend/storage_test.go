@@ -28,7 +28,7 @@ func TestDetectStorage(t *testing.T) {
 
 	// all tests involving age should set GOPASS_HOMEDIR
 	os.Setenv("GOPASS_HOMEDIR", td)
-	ctx = ctxutil.WithPasswordCallback(ctx, func(_ string) ([]byte, error) {
+	ctx = ctxutil.WithPasswordCallback(ctx, func(_ string, _ bool) ([]byte, error) {
 		debug.Log("static test password callback")
 		return []byte("gopass"), nil
 	})

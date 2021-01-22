@@ -72,7 +72,7 @@ func (a *Age) parseSSHIdentity(ctx context.Context, pubFn string) (string, age.I
 		// handle encrypted SSH identities here
 		if _, ok := err.(*ssh.PassphraseMissingError); ok {
 			id, err := agessh.NewEncryptedSSHIdentity(pubkey, privBuf, func() ([]byte, error) {
-				return ctxutil.GetPasswordCallback(ctx)(pubFn)
+				return ctxutil.GetPasswordCallback(ctx)(pubFn, false)
 			})
 			return recp, id, err
 		}

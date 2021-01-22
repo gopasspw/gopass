@@ -3,6 +3,7 @@ package age
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"io"
 	"io/ioutil"
 
@@ -15,8 +16,8 @@ import (
 func (a *Age) Decrypt(ctx context.Context, ciphertext []byte) ([]byte, error) {
 	if !ctxutil.HasPasswordCallback(ctx) {
 		debug.Log("no password callback found, redirecting to askPass")
-		ctx = ctxutil.WithPasswordCallback(ctx, func(prompt string) ([]byte, error) {
-			pw, err := a.askPass.Passphrase(prompt, "Decrypting")
+		ctx = ctxutil.WithPasswordCallback(ctx, func(prompt string, _ bool) ([]byte, error) {
+			pw, err := a.askPass.Passphrase(prompt, fmt.Sprintf("to load the keyring at %s", a.keyring), false)
 			return []byte(pw), err
 		})
 	}
@@ -45,7 +46,7 @@ func (a *Age) decryptFile(ctx context.Context, filename string) ([]byte, error) 
 	if err != nil {
 		return nil, err
 	}
-	pw, err := ctxutil.GetPasswordCallback(ctx)(filename)
+	pw, err := ctxutil.GetPasswordCallback(ctx)(filename, false)
 	if err != nil {
 		return nil, err
 	}

@@ -63,11 +63,12 @@ func (a *Age) encrypt(plaintext []byte, recp ...age.Recipient) ([]byte, error) {
 	return out.Bytes(), nil
 }
 
-func (a *Age) encryptFile(ctx context.Context, filename string, plaintext []byte) error {
-	pw, err := ctxutil.GetPasswordCallback(ctx)(filename)
+func (a *Age) encryptFile(ctx context.Context, filename string, plaintext []byte, confirm bool) error {
+	pw, err := ctxutil.GetPasswordCallback(ctx)(filename, confirm)
 	if err != nil {
 		return err
 	}
+
 	id, err := age.NewScryptRecipient(string(pw))
 	if err != nil {
 		return err

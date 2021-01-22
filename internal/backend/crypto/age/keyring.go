@@ -9,7 +9,6 @@ import (
 	"path/filepath"
 
 	"filippo.io/age"
-	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/termio"
@@ -61,6 +60,7 @@ func (a *Age) generateIdentity(ctx context.Context, name, email string) (*age.X2
 		return id, err
 	}
 
+	var newKeyring bool
 	kr, err := a.loadKeyring(ctx)
 	if err != nil {
 		debug.Log("failed to load existing keyring from %s: %s", a.keyring, err)
@@ -68,6 +68,7 @@ func (a *Age) generateIdentity(ctx context.Context, name, email string) (*age.X2
 			return nil, err
 		}
 		debug.Log("no existing keyring, creating new one")
+		newKeyring = true
 	}
 
 	kr = append(kr, Keypair{
@@ -76,22 +77,18 @@ func (a *Age) generateIdentity(ctx context.Context, name, email string) (*age.X2
 		Identity: id.String(),
 	})
 
-	// TODO we must ask for the (new) passphrase twice when creating a new
-	// keyring
-	return id, a.saveKeyring(ctx, kr)
+	return id, a.saveKeyring(ctx, kr, newKeyring)
 }
 
 func (a *Age) loadKeyring(ctx context.Context) (Keyring, error) {
 	if !ctxutil.HasPasswordCallback(ctx) {
 		debug.Log("no password callback found, redirecting to askPass")
-		ctx = ctxutil.WithPasswordCallback(ctx, func(prompt string) ([]byte, error) {
-			pw, err := a.askPass.Passphrase(prompt, fmt.Sprintf("to load the age keyring at %s", a.keyring))
+		ctx = ctxutil.WithPasswordCallback(ctx, func(prompt string, _ bool) ([]byte, error) {
+			pw, err := a.askPass.Passphrase(prompt, fmt.Sprintf("to load the age keyring at %s", a.keyring), false)
 			return []byte(pw), err
 		})
 	}
 
-	// TODO we shouldn't print in here, use a callback
-	out.Print(ctx, "🔑 Please enter your passphrase to load the age keyring")
 	buf, err := a.decryptFile(ctx, a.keyring)
 	if err != nil {
 		debug.Log("can't decrypt keyring at %s: %s", a.keyring, err)
@@ -116,11 +113,11 @@ func (a *Age) loadKeyring(ctx context.Context) (Keyring, error) {
 	return valid, nil
 }
 
-func (a *Age) saveKeyring(ctx context.Context, k Keyring) error {
+func (a *Age) saveKeyring(ctx context.Context, k Keyring, newKeyring bool) error {
 	if !ctxutil.HasPasswordCallback(ctx) {
 		debug.Log("no password callback found, redirecting to askPass")
-		ctx = ctxutil.WithPasswordCallback(ctx, func(prompt string) ([]byte, error) {
-			pw, err := a.askPass.Passphrase(prompt, fmt.Sprintf("to save the age keyring to %s", a.keyring))
+		ctx = ctxutil.WithPasswordCallback(ctx, func(prompt string, confirm bool) ([]byte, error) {
+			pw, err := a.askPass.Passphrase(prompt, fmt.Sprintf("to save the age keyring to %s", a.keyring), confirm)
 			return []byte(pw), err
 		})
 	}
@@ -136,9 +133,7 @@ func (a *Age) saveKeyring(ctx context.Context, k Keyring) error {
 		return err
 	}
 
-	// TODO we shouldn't print in here, use a callback
-	out.Print(ctx, "🔑 Please enter your passphrase to save the age keyring")
-	if err := a.encryptFile(ctx, a.keyring, buf); err != nil {
+	if err := a.encryptFile(ctx, a.keyring, buf, newKeyring); err != nil {
 		return err
 	}
 
