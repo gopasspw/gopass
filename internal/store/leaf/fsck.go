@@ -2,6 +2,8 @@ package leaf
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"sort"
 	"strings"
 
@@ -10,8 +12,6 @@ import (
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/gopass"
-
-	"github.com/pkg/errors"
 )
 
 // Fsck checks all entries matching the given prefix
@@ -22,13 +22,13 @@ func (s *Store) Fsck(ctx context.Context, path string) error {
 	// first let the storage backend check itself
 	out.Print(ctx, "Checking storage backend")
 	if err := s.storage.Fsck(ctx); err != nil {
-		return errors.Wrapf(err, "storage backend found errors: %s", err)
+		return fmt.Errorf("storage backend found: %w", err)
 	}
 
 	// then try to compact storage / rcs
 	out.Print(ctx, "Compacting storage if possible")
 	if err := s.storage.Compact(ctx); err != nil {
-		return errors.Wrapf(err, "storage backend compaction failed: %s", err)
+		return fmt.Errorf("storage backend compaction failed: %w", err)
 	}
 
 	pcb := ctxutil.GetProgressCallback(ctx)
@@ -38,8 +38,9 @@ func (s *Store) Fsck(ctx context.Context, path string) error {
 	out.Print(ctx, "Checking all secrets in store")
 	names, err := s.List(ctx, path)
 	if err != nil {
-		return errors.Wrapf(err, "failed to list entries: %s", err)
+		return fmt.Errorf("failed to list entries: %w", err)
 	}
+
 	sort.Strings(names)
 	for _, name := range names {
 		pcb()
@@ -49,12 +50,12 @@ func (s *Store) Fsck(ctx context.Context, path string) error {
 		ctx := ctxutil.WithNoNetwork(ctx, true)
 		debug.Log("[%s] Checking %s", path, name)
 		if err := s.fsckCheckEntry(ctx, name); err != nil {
-			return errors.Wrapf(err, "failed to check %s: %s", name, err)
+			return fmt.Errorf("failed to check %q: %w", name, err)
 		}
 	}
 
 	if err := s.storage.Push(ctx, "", ""); err != nil {
-		if errors.Cause(err) != store.ErrGitNoRemote {
+		if errors.Is(err, store.ErrGitNoRemote) {
 			out.Print(ctx, "RCS Push failed: %s", err)
 		}
 	}
@@ -75,7 +76,7 @@ func (s *Store) fsckCheckEntry(ctx context.Context, name string) error {
 		ctx = ctxutil.WithShowParsing(ctx, true)
 		secret, err := s.Get(ctx, name)
 		if err != nil {
-			return errors.Wrapf(err, "failed to decode secret %s: %s", name, err)
+			return fmt.Errorf("failed to decode secret %s: %w", name, err)
 		}
 		if cs, ok := secret.(convertedSecret); ok && cs.FromMime() {
 			out.Warning(ctx, "leftover Mime secret: %s\nYou should consider editing it to re-encrypt it.", name)
@@ -86,15 +87,17 @@ func (s *Store) fsckCheckEntry(ctx context.Context, name string) error {
 	// if doesn't match
 	ciphertext, err := s.storage.Get(ctx, s.passfile(name))
 	if err != nil {
-		return errors.Wrapf(err, "failed to get raw secret: %s", err)
+		return fmt.Errorf("failed to get raw secret: %w", err)
 	}
+
 	itemRecps, err := s.crypto.RecipientIDs(ctx, ciphertext)
 	if err != nil {
-		return errors.Wrapf(err, "failed to read recipient IDs from raw secret: %s", err)
+		return fmt.Errorf("failed to read recipient IDs from raw secret: %w", err)
 	}
+
 	perItemStoreRecps, err := s.GetRecipients(ctx, name)
 	if err != nil {
-		return errors.Wrapf(err, "failed to get recipients from store: %s", err)
+		return fmt.Errorf("failed to get recipients from store: %w", err)
 	}
 
 	// check itemRecps matches storeRecps
@@ -102,17 +105,19 @@ func (s *Store) fsckCheckEntry(ctx context.Context, name string) error {
 	if len(missing) > 0 {
 		out.Error(ctx, "Missing recipients on %s: %+v\nRun fsck with the --decrypt flag to re-encrypt it automatically, or edit this secret yourself.", name, missing)
 	}
+
 	if len(extra) > 0 {
 		out.Error(ctx, "Extra recipients on %s: %+v\nRun fsck with the --decrypt flag to re-encrypt it automatically, or edit this secret yourself.", name, extra)
 	}
+
 	if IsFsckDecrypt(ctx) && (len(missing) > 0 || len(extra) > 0) {
 		out.Print(ctx, "Re-encrypting automatically %s to fix the recipients.", name)
 		sec, err := s.Get(ctx, name)
 		if err != nil {
-			return errors.Wrapf(err, "failed to decode secret: %s", err)
+			return fmt.Errorf("failed to decode secret: %w", err)
 		}
 		if err := s.Set(ctxutil.WithCommitMessage(ctx, "fsck fix recipients"), name, sec); err != nil {
-			return errors.Wrapf(err, "failed to write secret: %s", err)
+			return fmt.Errorf("failed to write secret: %w", err)
 		}
 	}
 

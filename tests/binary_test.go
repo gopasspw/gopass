@@ -24,7 +24,7 @@ func TestBinaryCopy(t *testing.T) {
 	t.Run("no args", func(t *testing.T) {
 		out, err := ts.run("fscopy")
 		assert.Error(t, err)
-		assert.Equal(t, "\nError: Usage: gopass fscopy from to\n", out)
+		assert.Equal(t, "\nError: usage: gopass fscopy from to\n", out)
 	})
 
 	fn := filepath.Join(ts.tempDir, "copy")
@@ -67,7 +67,7 @@ func TestBinaryMove(t *testing.T) {
 	t.Run("no args", func(t *testing.T) {
 		out, err := ts.run("fsmove")
 		assert.Error(t, err)
-		assert.Equal(t, "\nError: Usage: gopass fsmove from to\n", out)
+		assert.Equal(t, "\nError: usage: gopass fsmove from to\n", out)
 	})
 
 	fn := filepath.Join(ts.tempDir, "move")

@@ -3,6 +3,7 @@ package updater
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"io"
 	"net/http"
 	"time"
@@ -11,7 +12,6 @@ import (
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/termio"
-	"github.com/pkg/errors"
 	"golang.org/x/net/context/ctxhttp"
 )
 
@@ -24,7 +24,7 @@ func tryDownload(ctx context.Context, url string) ([]byte, error) {
 	return buf, backoff.Retry(func() error {
 		select {
 		case <-ctx.Done():
-			return backoff.Permanent(errors.New("user aborted"))
+			return backoff.Permanent(fmt.Errorf("user aborted"))
 		default:
 		}
 		d, err := download(ctx, url)

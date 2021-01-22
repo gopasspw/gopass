@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"sort"
 
+	"errors"
+
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
@@ -11,7 +13,6 @@ import (
 	"github.com/gopasspw/gopass/internal/tree"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
-	"github.com/pkg/errors"
 
 	"github.com/fatih/color"
 	"github.com/urfave/cli/v2"
@@ -86,7 +87,7 @@ func (s *Action) MountAdd(c *cli.Context) error {
 	}
 
 	if err := s.Store.AddMount(ctx, alias, localPath); err != nil {
-		switch e := errors.Cause(err).(type) {
+		switch e := errors.Unwrap(err).(type) {
 		case root.AlreadyMountedError:
 			out.Print(ctx, "Store is already mounted")
 			return nil

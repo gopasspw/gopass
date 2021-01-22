@@ -10,12 +10,10 @@ import (
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/fsutil"
 
-	"github.com/pkg/errors"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 )
 
 // LoadWithFallback will try to load the config from one of the default locations
-// TODO(2.x) This method is DEPRECATED
 func LoadWithFallback() *Config {
 	for _, l := range configLocations() {
 		if cfg := loadConfig(l); cfg != nil {
@@ -87,7 +85,7 @@ func checkOverflow(m map[string]interface{}) error {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
-	return errors.Errorf("unknown fields: %+v", keys)
+	return fmt.Errorf("unknown fields: %+v", keys)
 }
 
 type configer interface {
@@ -153,18 +151,18 @@ func decode(buf []byte) (*Config, error) {
 func (c *Config) Save() error {
 	buf, err := yaml.Marshal(c)
 	if err != nil {
-		return errors.Wrapf(err, "failed to marshal YAML")
+		return fmt.Errorf("failed to marshal YAML: %w", err)
 	}
 
 	cfgLoc := configLocation()
 	cfgDir := filepath.Dir(cfgLoc)
 	if !fsutil.IsDir(cfgDir) {
 		if err := os.MkdirAll(cfgDir, 0700); err != nil {
-			return errors.Wrapf(err, "failed to create dir '%s'", cfgDir)
+			return fmt.Errorf("failed to create dir %q: %w", cfgDir, err)
 		}
 	}
 	if err := ioutil.WriteFile(cfgLoc, buf, 0600); err != nil {
-		return errors.Wrapf(err, "failed to write config file to '%s'", cfgLoc)
+		return fmt.Errorf("failed to write config file to %q: %w", cfgLoc, err)
 	}
 	debug.Log("Saved config to %s: %+v\n", cfgLoc, c)
 	return nil

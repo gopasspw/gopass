@@ -8,7 +8,6 @@ import (
 	"github.com/gopasspw/gopass/internal/notify"
 
 	"github.com/atotto/clipboard"
-	"github.com/pkg/errors"
 )
 
 // Clear will attempt to erase the clipboard
@@ -19,7 +18,7 @@ func Clear(ctx context.Context, checksum string, force bool) error {
 
 	cur, err := clipboard.ReadAll()
 	if err != nil {
-		return errors.Wrapf(err, "failed to read clipboard: %s", err)
+		return fmt.Errorf("failed to read clipboard: %w", err)
 	}
 
 	hash := fmt.Sprintf("%x", sha256.Sum256([]byte(cur)))
@@ -29,16 +28,16 @@ func Clear(ctx context.Context, checksum string, force bool) error {
 
 	if err := clipboard.WriteAll(""); err != nil {
 		_ = notify.Notify(ctx, "gopass - clipboard", "Failed to clear clipboard")
-		return errors.Wrapf(err, "failed to write clipboard: %s", err)
+		return fmt.Errorf("failed to write clipboard: %w", err)
 	}
 
 	if err := clearClipboardHistory(ctx); err != nil {
 		_ = notify.Notify(ctx, "gopass - clipboard", "Failed to clear clipboard history")
-		return errors.Wrapf(err, "failed to clear clipboard history: %s", err)
+		return fmt.Errorf("failed to clear clipboard history: %w", err)
 	}
 
 	if err := notify.Notify(ctx, "gopass - clipboard", "Clipboard has been cleared"); err != nil {
-		return errors.Wrapf(err, "failed to send unclip notification: %s", err)
+		return fmt.Errorf("failed to send unclip notification: %w", err)
 	}
 
 	return nil

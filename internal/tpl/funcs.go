@@ -16,7 +16,6 @@ import (
 	"github.com/jsimonetti/pwscheme/ssha"
 	"github.com/jsimonetti/pwscheme/ssha256"
 	"github.com/jsimonetti/pwscheme/ssha512"
-	"github.com/pkg/errors"
 )
 
 // These constants defined the template function names used
@@ -124,7 +123,7 @@ func get(ctx context.Context, kv kvstore) func(...string) (string, error) {
 			return "", nil
 		}
 		if kv == nil {
-			return "", errors.Errorf("KV is nil")
+			return "", fmt.Errorf("KV is nil")
 		}
 		sec, err := kv.Get(ctx, s[0])
 		if err != nil {
@@ -140,7 +139,7 @@ func getPassword(ctx context.Context, kv kvstore) func(...string) (string, error
 			return "", nil
 		}
 		if kv == nil {
-			return "", errors.Errorf("KV is nil")
+			return "", fmt.Errorf("KV is nil")
 		}
 		sec, err := kv.Get(ctx, s[0])
 		if err != nil {
@@ -156,7 +155,7 @@ func getValue(ctx context.Context, kv kvstore) func(...string) (string, error) {
 			return "", nil
 		}
 		if kv == nil {
-			return "", errors.Errorf("KV is nil")
+			return "", fmt.Errorf("KV is nil")
 		}
 		sec, err := kv.Get(ctx, s[0])
 		if err != nil {
@@ -176,7 +175,7 @@ func getValues(ctx context.Context, kv kvstore) func(...string) ([]string, error
 			return nil, nil
 		}
 		if kv == nil {
-			return nil, errors.Errorf("KV is nil")
+			return nil, fmt.Errorf("KV is nil")
 		}
 		sec, err := kv.Get(ctx, s[0])
 		if err != nil {

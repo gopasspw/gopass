@@ -12,7 +12,6 @@ import (
 	"path/filepath"
 
 	"github.com/gopasspw/gopass/pkg/debug"
-	"github.com/pkg/errors"
 )
 
 func extractFile(buf []byte, filename, dest string) error {
@@ -32,7 +31,7 @@ func extractFile(buf []byte, filename, dest string) error {
 
 	dfh, err := os.OpenFile(dest, os.O_WRONLY|os.O_CREATE|os.O_EXCL, mode)
 	if err != nil {
-		return errors.Wrapf(err, "Failed to open file: %s", dest)
+		return fmt.Errorf("failed to open file %q: %w", dest, err)
 	}
 	defer func() {
 		_ = dfh.Close()
@@ -68,21 +67,21 @@ func extractZip(buf []byte, dfh io.WriteCloser, dest string) error {
 
 		file, err := zrd.File[i].Open()
 		if err != nil {
-			return errors.Wrapf(err, "failed to read from zip file")
+			return fmt.Errorf("failed to read from zip file: %w", err)
 		}
 
 		n, err := io.Copy(dfh, file)
 		if err != nil {
 			dfh.Close()
 			os.Remove(dest)
-			return errors.Wrapf(err, "failed to read gopass.exe from zip file")
+			return fmt.Errorf("failed to read gopass.exe from zip file: %w", err)
 		}
 		// success
 		debug.Log("wrote %d bytes to %v", n, dest)
 		return nil
 	}
 
-	return errors.Errorf("file not found in archive")
+	return fmt.Errorf("file not found in archive")
 }
 
 func extractTar(rd io.Reader, dfh io.WriteCloser, dest string) error {
@@ -93,7 +92,7 @@ func extractTar(rd io.Reader, dfh io.WriteCloser, dest string) error {
 			break
 		}
 		if err != nil {
-			return errors.Wrapf(err, "failed to read from tar file")
+			return fmt.Errorf("failed to read from tar file: %w", err)
 		}
 		name := filepath.Base(header.Name)
 		if header.Typeflag != tar.TypeReg {
@@ -107,11 +106,11 @@ func extractTar(rd io.Reader, dfh io.WriteCloser, dest string) error {
 		if err != nil {
 			dfh.Close()
 			os.Remove(dest)
-			return errors.Wrapf(err, "Failed to read gopass from tar file")
+			return fmt.Errorf("failed to read gopass from tar file: %w", err)
 		}
 		// success
 		debug.Log("wrote %d bytes to %v", n, dest)
 		return nil
 	}
-	return errors.Errorf("file not found in archive")
+	return fmt.Errorf("file not found in archive")
 }

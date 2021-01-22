@@ -2,6 +2,7 @@ package leaf
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"path/filepath"
 	"strings"
@@ -9,8 +10,6 @@ import (
 	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
-
-	"github.com/pkg/errors"
 )
 
 // Copy will copy one entry to another location. Multi-store copies are
@@ -19,15 +18,15 @@ import (
 func (s *Store) Copy(ctx context.Context, from, to string) error {
 	// recursive copy?
 	if s.IsDir(ctx, from) {
-		return errors.Errorf("recursive operations are not supported")
+		return fmt.Errorf("recursive operations are not supported")
 	}
 
 	content, err := s.Get(ctx, from)
 	if err != nil {
-		return errors.Wrapf(err, "failed to get '%s' from store", from)
+		return fmt.Errorf("failed to get %q from store: %w", from, err)
 	}
 	if err := s.Set(ctxutil.WithCommitMessage(ctx, fmt.Sprintf("Copied from %s to %s", from, to)), to, content); err != nil {
-		return errors.Wrapf(err, "failed to save '%s' to store", to)
+		return fmt.Errorf("failed to save %q to store: %w", to, err)
 	}
 	return nil
 }
@@ -39,18 +38,18 @@ func (s *Store) Copy(ctx context.Context, from, to string) error {
 func (s *Store) Move(ctx context.Context, from, to string) error {
 	// recursive move?
 	if s.IsDir(ctx, from) {
-		return errors.Errorf("recursive operations are not supported")
+		return fmt.Errorf("recursive operations are not supported")
 	}
 
 	content, err := s.Get(ctx, from)
 	if err != nil {
-		return errors.Wrapf(err, "failed to decrypt '%s'", from)
+		return fmt.Errorf("failed to decrypt %q: %w", from, err)
 	}
 	if err := s.Set(ctxutil.WithCommitMessage(ctx, fmt.Sprintf("Move from %s to %s", from, to)), to, content); err != nil {
-		return errors.Wrapf(err, "failed to write '%s'", to)
+		return fmt.Errorf("failed to write %q: %w", to, err)
 	}
 	if err := s.Delete(ctx, from); err != nil {
-		return errors.Wrapf(err, "failed to delete '%s'", from)
+		return fmt.Errorf("failed to delete %q: %w", from, err)
 	}
 	return nil
 }
@@ -88,21 +87,21 @@ func (s *Store) delete(ctx context.Context, name string, recurse bool) error {
 	}
 
 	if err := s.storage.Commit(ctx, fmt.Sprintf("Remove %s from store.", name)); err != nil {
-		switch errors.Cause(err) {
+		switch errors.Unwrap(err) {
 		case store.ErrGitNotInit:
 			debug.Log("skipping git commit - git not initialized")
 		case store.ErrGitNothingToCommit:
 			debug.Log("skipping git commit - nothing to commit")
 		default:
-			return errors.Wrapf(err, "failed to commit changes to git")
+			return fmt.Errorf("failed to commit changes to git: %w", err)
 		}
 	}
 
 	if err := s.storage.Push(ctx, "", ""); err != nil {
-		if errors.Cause(err) == store.ErrGitNotInit || errors.Cause(err) == store.ErrGitNoRemote {
+		if errors.Is(err, store.ErrGitNotInit) || errors.Is(err, store.ErrGitNoRemote) {
 			return nil
 		}
-		return errors.Wrapf(err, "failed to push change to git remote")
+		return fmt.Errorf("failed to push change to git remote: %w", err)
 	}
 
 	return nil
@@ -122,10 +121,10 @@ func (s *Store) deleteRecurse(ctx context.Context, name, path string) error {
 	}
 
 	if err := s.storage.Add(ctx, name); err != nil {
-		if errors.Cause(err) == store.ErrGitNotInit {
+		if errors.Is(err, store.ErrGitNotInit) {
 			return nil
 		}
-		return errors.Wrapf(err, "failed to add '%s' to git", path)
+		return fmt.Errorf("failed to add %q to git: %w", path, err)
 	}
 	debug.Log("pruned")
 	return nil
@@ -142,10 +141,10 @@ func (s *Store) deleteSingle(ctx context.Context, path string) error {
 	}
 
 	if err := s.storage.Add(ctx, path); err != nil {
-		if errors.Cause(err) == store.ErrGitNotInit {
+		if errors.Is(err, store.ErrGitNotInit) {
 			return nil
 		}
-		return errors.Wrapf(err, "failed to add '%s' to git", path)
+		return fmt.Errorf("failed to add %q to git: %w", path, err)
 	}
 	return nil
 }

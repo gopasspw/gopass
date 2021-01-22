@@ -7,7 +7,6 @@ import (
 
 	"github.com/blang/semver/v4"
 	"github.com/gopasspw/gopass/pkg/debug"
-	"github.com/pkg/errors"
 )
 
 // StorageBackend is a type of storage backend
@@ -85,7 +84,7 @@ func NewStorage(ctx context.Context, id StorageBackend, path string) (Storage, e
 	if be, found := storageRegistry[id]; found {
 		return be.New(ctx, path)
 	}
-	return nil, errors.Wrapf(ErrNotFound, "unknown backend: %s", path)
+	return nil, fmt.Errorf("unknown backend %q: %w", path, ErrNotFound)
 }
 
 // InitStorage initilizes a new storage location.
@@ -93,5 +92,5 @@ func InitStorage(ctx context.Context, id StorageBackend, path string) (Storage, 
 	if be, found := storageRegistry[id]; found {
 		return be.Init(ctx, path)
 	}
-	return nil, errors.Wrapf(ErrNotFound, "unknown backend: %s", path)
+	return nil, fmt.Errorf("unknown backend %q: %w", path, ErrNotFound)
 }

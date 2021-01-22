@@ -32,7 +32,7 @@ func TestInit(t *testing.T) {
 	assert.Error(t, err)
 
 	for _, o := range []string{
-		"Found already initialized store at ",
+		"found already initialized store at ",
 		"You can add secondary stores with gopass init --path <path to secondary store> --store <mount name>",
 	} {
 		assert.Contains(t, out, o)

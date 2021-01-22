@@ -2,6 +2,7 @@ package gitfs
 
 import (
 	"context"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -11,8 +12,6 @@ import (
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/pkg/debug"
-
-	"github.com/pkg/errors"
 )
 
 const (
@@ -24,7 +23,7 @@ func (g *Git) fixConfig(ctx context.Context) error {
 	// "fatal: The current branch master has multiple upstream branches, refusing to push"
 	// https://stackoverflow.com/questions/948354/default-behavior-of-git-push-without-a-branch-specified
 	if err := g.ConfigSet(ctx, "push.default", "matching"); err != nil {
-		return errors.Wrapf(err, "failed to set git config for push.default")
+		return fmt.Errorf("failed to set git config for push.default: %w", err)
 	}
 
 	// setup for proper diffs
@@ -43,14 +42,14 @@ func (g *Git) InitConfig(ctx context.Context, userName, userEmail string) error 
 	// set commit identity
 	if userName != "" {
 		if err := g.ConfigSet(ctx, "user.name", userName); err != nil {
-			return errors.Wrapf(err, "failed to set git config user.name")
+			return fmt.Errorf("failed to set git config user.name: %w", err)
 		}
 	} else {
 		out.Print(ctx, "Git Username not set")
 	}
 	if userEmail != "" && strings.Contains(userEmail, "@") {
 		if err := g.ConfigSet(ctx, "user.email", userEmail); err != nil {
-			return errors.Wrapf(err, "failed to set git config user.email")
+			return fmt.Errorf("failed to set git config user.email: %w", err)
 		}
 	} else {
 		out.Print(ctx, "Git Email not set")
@@ -58,11 +57,11 @@ func (g *Git) InitConfig(ctx context.Context, userName, userEmail string) error 
 
 	// ensure sane git config
 	if err := g.fixConfig(ctx); err != nil {
-		return errors.Wrapf(err, "failed to fix git config")
+		return fmt.Errorf("failed to fix git config: %w", err)
 	}
 
 	if err := ioutil.WriteFile(filepath.Join(g.fs.Path(), ".gitattributes"), []byte("*.gpg diff=gpg\n"), fileMode); err != nil {
-		return errors.Errorf("Failed to initialize git: %s", err)
+		return fmt.Errorf("failed to initialize git: %w", err)
 	}
 	if err := g.Add(ctx, g.fs.Path()+"/.gitattributes"); err != nil {
 		out.Warning(ctx, "Failed to add .gitattributes to git")

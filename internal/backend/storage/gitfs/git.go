@@ -22,7 +22,6 @@ import (
 	"github.com/gopasspw/gopass/pkg/fsutil"
 
 	"github.com/blang/semver/v4"
-	"github.com/pkg/errors"
 )
 
 type contextKey int
@@ -78,7 +77,7 @@ func Init(ctx context.Context, path, userName, userEmail string) (*Git, error) {
 	// or already initialized. Only run git init if the folder is completely empty
 	if !g.IsInitialized() {
 		if err := g.Cmd(ctx, "Init", "init"); err != nil {
-			return nil, errors.Errorf("failed to initialize git: %s", err)
+			return nil, fmt.Errorf("failed to initialize git: %s", err)
 		}
 		out.Print(ctx, "git initialized at %s", g.fs.Path())
 	}
@@ -89,13 +88,13 @@ func Init(ctx context.Context, path, userName, userEmail string) (*Git, error) {
 
 	// initialize the local git config
 	if err := g.InitConfig(ctx, userName, userEmail); err != nil {
-		return g, errors.Errorf("failed to configure git: %s", err)
+		return g, fmt.Errorf("failed to configure git: %s", err)
 	}
 	out.Print(ctx, "git configured at %s", g.fs.Path())
 
 	// add current content of the store
 	if err := g.Add(ctx, g.fs.Path()); err != nil {
-		return g, errors.Wrapf(err, "failed to add '%s' to git", g.fs.Path())
+		return g, fmt.Errorf("failed to add %q to git: %w", g.fs.Path(), err)
 	}
 
 	// commit if there is something to commit
@@ -105,7 +104,7 @@ func Init(ctx context.Context, path, userName, userEmail string) (*Git, error) {
 	}
 
 	if err := g.Commit(ctx, "Add current content of password store"); err != nil {
-		return g, errors.Wrapf(err, "failed to commit changes to git")
+		return g, fmt.Errorf("failed to commit changes to git: %w", err)
 	}
 
 	return g, nil

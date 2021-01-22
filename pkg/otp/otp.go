@@ -1,12 +1,12 @@
 package otp
 
 import (
+	"fmt"
 	"io/ioutil"
 	"strings"
 
 	"github.com/gokyle/twofactor"
 	"github.com/gopasspw/gopass/pkg/gopass"
-	"github.com/pkg/errors"
 )
 
 // Calculate will compute a OTP code from a given secret
@@ -56,14 +56,14 @@ func WriteQRFile(otp twofactor.OTP, label, file string) error {
 		totp := otp.(*twofactor.TOTP)
 		qr, err = totp.QR(label)
 	default:
-		err = errors.New("QR codes can only be generated for OATH OTPs")
+		err = fmt.Errorf("QR codes can only be generated for OATH OTPs")
 	}
 	if err != nil {
-		return errors.Wrapf(err, "%s", err)
+		return fmt.Errorf("failed to write qr file: %w", err)
 	}
 
 	if err := ioutil.WriteFile(file, qr, 0600); err != nil {
-		return errors.Wrapf(err, "failed to write QR code: %s", err)
+		return fmt.Errorf("failed to write QR code: %w", err)
 	}
 	return nil
 }

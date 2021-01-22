@@ -6,15 +6,13 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
-
-	"github.com/pkg/errors"
 )
 
 var (
 	// ErrConfigNotFound is returned on load if the config was not found
-	ErrConfigNotFound = errors.Errorf("config not found")
+	ErrConfigNotFound = fmt.Errorf("config not found")
 	// ErrConfigNotParsed is returned on load if the config could not be decoded
-	ErrConfigNotParsed = errors.Errorf("config not parseable")
+	ErrConfigNotParsed = fmt.Errorf("config not parseable")
 )
 
 // Config is the current config struct
@@ -88,19 +86,19 @@ func (c *Config) setConfigValue(key, value string) error {
 			f.SetString(value)
 			return nil
 		case reflect.Bool:
-			if value == "true" {
+			if value == "true" || value == "on" {
 				f.SetBool(true)
 				return nil
-			} else if value == "false" {
+			} else if value == "false" || value == "off" {
 				f.SetBool(false)
 				return nil
 			} else {
-				return errors.Errorf("not a bool: %s", value)
+				return fmt.Errorf("not a bool: %s", value)
 			}
 		case reflect.Int:
 			iv, err := strconv.Atoi(value)
 			if err != nil {
-				return errors.Wrapf(err, "failed to convert '%s' to int", value)
+				return fmt.Errorf("failed to convert %q to integer: %w", value, err)
 			}
 			f.SetInt(int64(iv))
 			return nil
@@ -108,7 +106,7 @@ func (c *Config) setConfigValue(key, value string) error {
 			continue
 		}
 	}
-	return fmt.Errorf("unknown config option '%s'", key)
+	return fmt.Errorf("unknown config option %q", key)
 }
 
 func (c *Config) String() string {

@@ -11,7 +11,6 @@ import (
 
 	"github.com/atotto/clipboard"
 	"github.com/fatih/color"
-	"github.com/pkg/errors"
 )
 
 var (
@@ -30,12 +29,12 @@ func CopyTo(ctx context.Context, name string, content []byte) error {
 
 	if err := clipboard.WriteAll(string(content)); err != nil {
 		_ = notify.Notify(ctx, "gopass - clipboard", "failed to write to clipboard")
-		return errors.Wrapf(err, "failed to write to clipboard")
+		return fmt.Errorf("failed to write to clipboard: %w", err)
 	}
 
 	if err := clear(ctx, content, ctxutil.GetClipTimeout(ctx)); err != nil {
 		_ = notify.Notify(ctx, "gopass - clipboard", "failed to clear clipboard")
-		return errors.Wrapf(err, "failed to clear clipboard")
+		return fmt.Errorf("failed to clear clipboard: %w", err)
 	}
 
 	out.Print(ctx, "✔ Copied %s to clipboard. Will clear in %d seconds.", color.YellowString(name), ctxutil.GetClipTimeout(ctx))

@@ -8,7 +8,6 @@ import (
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 
-	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
 )
 
@@ -73,7 +72,7 @@ func contains(haystack []string, needle string) bool {
 
 func (s *Action) setConfigValue(ctx context.Context, key, value string) error {
 	if err := s.cfg.SetConfigValue(key, value); err != nil {
-		return errors.Wrapf(err, "failed to set config value '%s'", key)
+		return fmt.Errorf("failed to set config value %q: %w", key, err)
 	}
 	s.printConfigValues(ctx, key)
 	return nil

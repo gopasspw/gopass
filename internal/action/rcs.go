@@ -2,6 +2,7 @@ package action
 
 import (
 	"context"
+	"fmt"
 	"os"
 
 	"github.com/gopasspw/gopass/internal/backend"
@@ -12,7 +13,6 @@ import (
 	"github.com/gopasspw/gopass/pkg/termio"
 
 	"github.com/fatih/color"
-	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
 )
 
@@ -50,7 +50,7 @@ func (s *Action) rcsInit(ctx context.Context, store, un, ue string) error {
 		if gtv := os.Getenv("GPG_TTY"); gtv == "" {
 			out.Print(ctx, "Git initialization failed. You may want to try to 'export GPG_TTY=$(tty)' and start over.")
 		}
-		return errors.Wrapf(err, "failed to run git init")
+		return fmt.Errorf("failed to run git init: %w", err)
 	}
 
 	out.Print(ctx, "Git initialized")

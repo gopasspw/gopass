@@ -9,7 +9,6 @@ import (
 
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/debug"
-	"github.com/pkg/errors"
 
 	"github.com/blang/semver/v4"
 )
@@ -58,7 +57,7 @@ func Update(ctx context.Context, currentVersion semver.Version) error {
 	debug.Log("verifying GPG signature ...")
 	ok, err := gpgVerify(sha256sums, sig)
 	if err != nil {
-		return errors.Wrapf(err, "signature verification failed")
+		return fmt.Errorf("signature verification failed: %w", err)
 	}
 	if !ok {
 		return fmt.Errorf("GPG signature verification for SHA256SUMS failed")

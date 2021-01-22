@@ -10,8 +10,6 @@ import (
 
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-
-	"github.com/pkg/errors"
 )
 
 var (
@@ -44,7 +42,7 @@ func AskForString(ctx context.Context, text, def string) (string, error) {
 	fmt.Fprintf(Stdout, "%s [%s]: ", text, def)
 	input, err := NewReader(Stdin).ReadLine()
 	if err != nil {
-		return "", errors.Wrapf(err, "failed to read user input")
+		return "", fmt.Errorf("failed to read user input: %w", err)
 	}
 	input = strings.TrimSpace(input)
 	if input == "" {
@@ -68,7 +66,7 @@ func AskForBool(ctx context.Context, text string, def bool) (bool, error) {
 
 	str, err := AskForString(ctx, text, choices)
 	if err != nil {
-		return false, errors.Wrapf(err, "failed to read user input")
+		return false, fmt.Errorf("failed to read user input: %w", err)
 	}
 	switch str {
 	case "Y/n/q":
@@ -86,7 +84,7 @@ func AskForBool(ctx context.Context, text string, def bool) (bool, error) {
 	case "q":
 		return false, ErrAborted
 	default:
-		return false, errors.Errorf("Unknown answer: %s", str)
+		return false, fmt.Errorf("unknown answer: %s", str)
 	}
 }
 
@@ -106,7 +104,7 @@ func AskForInt(ctx context.Context, text string, def int) (int, error) {
 	}
 	intVal, err := strconv.Atoi(str)
 	if err != nil {
-		return 0, errors.Wrapf(err, "failed to convert to number")
+		return 0, fmt.Errorf("failed to convert to number: %w", err)
 	}
 	return intVal, nil
 }
@@ -178,5 +176,5 @@ func AskForPassword(ctx context.Context, name string) (string, error) {
 
 		out.Error(ctx, "Error: the entered password do not match")
 	}
-	return "", errors.New("no valid user input")
+	return "", fmt.Errorf("no valid user input")
 }

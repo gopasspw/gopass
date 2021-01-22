@@ -14,10 +14,9 @@ import (
 	"github.com/fatih/color"
 	"github.com/gopasspw/gopass/internal/tree"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"golang.org/x/crypto/ssh/terminal"
+	"golang.org/x/term"
 
 	shellquote "github.com/kballard/go-shellquote"
-	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
 )
 
@@ -110,7 +109,7 @@ func redirectPager(ctx context.Context, subtree *tree.Root) (io.Writer, *bytes.B
 	if ctxutil.IsNoPager(ctx) {
 		return stdout, nil
 	}
-	_, rows, err := terminal.GetSize(0)
+	_, rows, err := term.GetSize(0)
 	if err != nil {
 		return stdout, nil
 	}
@@ -135,7 +134,7 @@ func (s *Action) pager(ctx context.Context, buf io.Reader) error {
 
 	args, err := shellquote.Split(pager)
 	if err != nil {
-		return errors.Wrapf(err, "failed to split pager command")
+		return fmt.Errorf("failed to split pager command: %w", err)
 	}
 
 	cmd := exec.CommandContext(ctx, args[0], args[1:]...)

@@ -57,5 +57,5 @@ func ExitError(exitCode int, err error, format string, args ...interface{}) erro
 	if err != nil {
 		debug.Log("Stacktrace: %+v", err)
 	}
-	return cli.NewExitError(fmt.Sprintf(format, args...), exitCode)
+	return cli.Exit(fmt.Sprintf(format, args...), exitCode)
 }

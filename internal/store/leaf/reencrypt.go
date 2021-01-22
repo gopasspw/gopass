@@ -2,6 +2,8 @@ package leaf
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -12,14 +14,13 @@ import (
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/termio"
-	"github.com/pkg/errors"
 )
 
 // reencrypt will re-encrypt all entries for the current recipients
 func (s *Store) reencrypt(ctx context.Context) error {
 	entries, err := s.List(ctx, "")
 	if err != nil {
-		return errors.Wrapf(err, "failed to list store")
+		return fmt.Errorf("failed to list store: %w", err)
 	}
 
 	// save original value of auto push
@@ -67,7 +68,7 @@ func (s *Store) reencrypt(ctx context.Context) error {
 				close(jobs)
 				// we wait for all workers to have finished
 				wg.Wait()
-				return errors.New("context canceled")
+				return fmt.Errorf("context canceled")
 			default:
 			}
 
@@ -91,26 +92,24 @@ func (s *Store) reencrypt(ctx context.Context) error {
 		for _, name := range entries {
 			p := s.passfile(name)
 			if err := s.storage.Add(ctx, p); err != nil {
-				switch errors.Cause(err) {
-				case store.ErrGitNotInit:
+				if errors.Is(err, store.ErrGitNotInit) {
 					debug.Log("skipping git add - git not initialized")
 					continue
-				default:
-					return errors.Wrapf(err, "failed to add '%s' to git", p)
 				}
+				return fmt.Errorf("failed to add %q to git: %w", p, err)
 			}
 			debug.Log("added %s to git", p)
 		}
 	}
 
 	if err := s.storage.Commit(ctx, ctxutil.GetCommitMessage(ctx)); err != nil {
-		switch errors.Cause(err) {
+		switch errors.Unwrap(err) {
 		case store.ErrGitNotInit:
 			debug.Log("skipping git commit - git not initialized")
 		case store.ErrGitNothingToCommit:
 			debug.Log("skipping git commit - nothing to commit")
 		default:
-			return errors.Wrapf(err, "failed to commit changes to git")
+			return fmt.Errorf("failed to commit changes to git: %w", err)
 		}
 	}
 
@@ -119,19 +118,19 @@ func (s *Store) reencrypt(ctx context.Context) error {
 
 func (s *Store) reencryptGitPush(ctx context.Context) error {
 	if err := s.storage.Push(ctx, "", ""); err != nil {
-		if errors.Cause(err) == store.ErrGitNotInit {
+		if errors.Is(err, store.ErrGitNotInit) {
 			msg := "Warning: git is not initialized for this.storage. Ignoring auto-push option\n" +
 				"Run: gopass git init"
 			debug.Log(msg)
 			return nil
 		}
-		if errors.Cause(err) == store.ErrGitNoRemote {
+		if errors.Is(err, store.ErrGitNoRemote) {
 			msg := "Warning: git has no remote. Ignoring auto-push option\n" +
 				"Run: gopass git remote add origin ..."
 			debug.Log(msg)
 			return nil
 		}
-		return errors.Wrapf(err, "failed to push change to git remote")
+		return fmt.Errorf("failed to push change to git remote: %w", err)
 	}
 	return nil
 }

@@ -3,17 +3,17 @@ package cli
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"os"
 	"os/exec"
 
 	"github.com/gopasspw/gopass/pkg/debug"
-	"github.com/pkg/errors"
 )
 
 // ImportPublicKey will import a key from the given location
 func (g *GPG) ImportPublicKey(ctx context.Context, buf []byte) error {
 	if len(buf) < 1 {
-		return errors.Errorf("empty input")
+		return fmt.Errorf("empty input")
 	}
 
 	args := append(g.args, "--import")
@@ -24,7 +24,7 @@ func (g *GPG) ImportPublicKey(ctx context.Context, buf []byte) error {
 
 	debug.Log("gpg.ImportPublicKey: %s %+v", cmd.Path, cmd.Args)
 	if err := cmd.Run(); err != nil {
-		return errors.Wrapf(err, "failed to run command: '%s %+v'", cmd.Path, cmd.Args)
+		return fmt.Errorf("failed to run command: '%s %+v': %w", cmd.Path, cmd.Args, err)
 	}
 
 	// clear key cache

@@ -3,6 +3,7 @@ package editor
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -20,7 +21,6 @@ import (
 
 	"github.com/fatih/color"
 	shellquote "github.com/kballard/go-shellquote"
-	"github.com/pkg/errors"
 )
 
 var (
@@ -65,12 +65,12 @@ func Check(ctx context.Context, editor string) error {
 // Invoke will start the given editor and return the content
 func Invoke(ctx context.Context, editor string, content []byte) ([]byte, error) {
 	if !ctxutil.IsTerminal(ctx) {
-		return nil, errors.New("need terminal")
+		return nil, fmt.Errorf("need terminal")
 	}
 
 	tmpfile, err := tempfile.New(ctx, "gopass-edit")
 	if err != nil {
-		return []byte{}, errors.Errorf("failed to create tmpfile %s: %s", editor, err)
+		return []byte{}, fmt.Errorf("failed to create tmpfile %s: %w", editor, err)
 	}
 	defer func() {
 		if err := tmpfile.Remove(ctx); err != nil {
@@ -79,17 +79,17 @@ func Invoke(ctx context.Context, editor string, content []byte) ([]byte, error) 
 	}()
 
 	if _, err := tmpfile.Write(content); err != nil {
-		return []byte{}, errors.Errorf("failed to write tmpfile to start with %s %v: %s", editor, tmpfile.Name(), err)
+		return []byte{}, fmt.Errorf("failed to write tmpfile to start with %s %v: %w", editor, tmpfile.Name(), err)
 	}
 	if err := tmpfile.Close(); err != nil {
-		return []byte{}, errors.Errorf("failed to close tmpfile to start with %s %v: %s", editor, tmpfile.Name(), err)
+		return []byte{}, fmt.Errorf("failed to close tmpfile to start with %s %v: %w", editor, tmpfile.Name(), err)
 	}
 
 	var args []string
 	if runtime.GOOS != "windows" {
 		cmdArgs, err := shellquote.Split(editor)
 		if err != nil {
-			return []byte{}, errors.Errorf("failed to parse EDITOR command `%s`", editor)
+			return []byte{}, fmt.Errorf("failed to parse EDITOR command `%s`", editor)
 		}
 
 		editor = cmdArgs[0]
@@ -105,12 +105,12 @@ func Invoke(ctx context.Context, editor string, content []byte) ([]byte, error) 
 
 	if err := cmd.Run(); err != nil {
 		debug.Log("cmd: %s %+v - error: %+v", cmd.Path, cmd.Args, err)
-		return []byte{}, errors.Errorf("failed to run %s with %s file: %s", editor, tmpfile.Name(), err)
+		return []byte{}, fmt.Errorf("failed to run %s with %s file: %w", editor, tmpfile.Name(), err)
 	}
 
 	nContent, err := ioutil.ReadFile(tmpfile.Name())
 	if err != nil {
-		return []byte{}, errors.Errorf("failed to read from tmpfile: %v", err)
+		return []byte{}, fmt.Errorf("failed to read from tmpfile: %w", err)
 	}
 
 	// enforce unix line endings in the password store

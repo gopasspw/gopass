@@ -13,7 +13,6 @@ import (
 	"strings"
 
 	"github.com/gopasspw/gopass/pkg/debug"
-	"github.com/pkg/errors"
 )
 
 var (
@@ -96,7 +95,7 @@ func (c *Client) Set(key, value string) error {
 	}
 	line, _, _ := c.out.ReadLine()
 	if string(line) != "OK" {
-		return errors.Errorf("error: %s", line)
+		return fmt.Errorf("error: %s", line)
 	}
 	return nil
 }
@@ -109,7 +108,7 @@ func (c *Client) Option(value string) error {
 	}
 	line, _, _ := c.out.ReadLine()
 	if string(line) != "OK" {
-		return errors.Errorf("error: %s", line)
+		return fmt.Errorf("error: %s", line)
 	}
 	return nil
 }

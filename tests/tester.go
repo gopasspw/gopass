@@ -3,6 +3,7 @@ package tests
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -14,7 +15,6 @@ import (
 
 	"github.com/gopasspw/gopass/tests/gptest"
 	shellquote "github.com/kballard/go-shellquote"
-	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 )
 
@@ -134,7 +134,7 @@ func (ts tester) teardown() {
 
 func (ts tester) runCmd(args []string, in []byte) (string, error) {
 	if len(args) < 1 {
-		return "", errors.Errorf("no command")
+		return "", fmt.Errorf("no command")
 	}
 
 	cmd := exec.CommandContext(context.Background(), args[0], args[1:]...)

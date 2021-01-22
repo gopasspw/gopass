@@ -2,6 +2,7 @@ package leaf
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -11,21 +12,19 @@ import (
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/gopass"
-
-	"github.com/pkg/errors"
 )
 
 // Set encodes and writes the cipertext of one entry to disk
 func (s *Store) Set(ctx context.Context, name string, sec gopass.Byter) error {
 	if strings.Contains(name, "//") {
-		return errors.Errorf("invalid secret name: %s", name)
+		return fmt.Errorf("invalid secret name: %s", name)
 	}
 
 	p := s.passfile(name)
 
 	recipients, err := s.useableKeys(ctx, name)
 	if err != nil {
-		return errors.Wrapf(err, "failed to list useable keys for '%s'", p)
+		return fmt.Errorf("failed to list useable keys for %q: %w", p, err)
 	}
 
 	// make sure the encryptor can decrypt later
@@ -38,7 +37,7 @@ func (s *Store) Set(ctx context.Context, name string, sec gopass.Byter) error {
 	}
 
 	if err := s.storage.Set(ctx, p, ciphertext); err != nil {
-		return errors.Wrapf(err, "failed to write secret")
+		return fmt.Errorf("failed to write secret: %w", err)
 	}
 
 	// It is not possible to perform concurrent git add and git commit commands
@@ -50,10 +49,10 @@ func (s *Store) Set(ctx context.Context, name string, sec gopass.Byter) error {
 	}
 
 	if err := s.storage.Add(ctx, p); err != nil {
-		if errors.Cause(err) == store.ErrGitNotInit {
+		if errors.Is(err, store.ErrGitNotInit) {
 			return nil
 		}
-		return errors.Wrapf(err, "failed to add '%s' to git", p)
+		return fmt.Errorf("failed to add %q to git: %w", p, err)
 	}
 
 	if !ctxutil.IsGitCommit(ctx) {
@@ -70,31 +69,31 @@ func (s *Store) Set(ctx context.Context, name string, sec gopass.Byter) error {
 
 func (s *Store) gitCommitAndPush(ctx context.Context, name string) error {
 	if err := s.storage.Commit(ctx, fmt.Sprintf("Save secret to %s: %s", name, ctxutil.GetCommitMessage(ctx))); err != nil {
-		switch errors.Cause(err) {
+		switch errors.Unwrap(err) {
 		case store.ErrGitNotInit:
 			debug.Log("commitAndPush - skipping git commit - git not initialized")
 		case store.ErrGitNothingToCommit:
 			debug.Log("commitAndPush - skipping git commit - nothing to commit")
 		default:
-			return errors.Wrapf(err, "failed to commit changes to git")
+			return fmt.Errorf("failed to commit changes to git: %w", err)
 		}
 	}
 
 	debug.Log("syncing with remote ...")
 	if err := s.storage.Push(ctx, "", ""); err != nil {
-		if errors.Cause(err) == store.ErrGitNotInit {
+		if errors.Is(err, store.ErrGitNotInit) {
 			msg := "Warning: git is not initialized for this.storage. Ignoring auto-push option\n" +
 				"Run: gopass git init"
 			out.Error(ctx, msg)
 			return nil
 		}
-		if errors.Cause(err) == store.ErrGitNoRemote {
+		if errors.Is(err, store.ErrGitNoRemote) {
 			msg := "Warning: git has no remote. Ignoring auto-push option\n" +
 				"Run: gopass git remote add origin ..."
 			debug.Log(msg)
 			return nil
 		}
-		return errors.Wrapf(err, "failed to push to git remote")
+		return fmt.Errorf("failed to push to git remote: %w", err)
 	}
 	debug.Log("synced with remote")
 	return nil

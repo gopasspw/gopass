@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/fatih/color"
-	"golang.org/x/crypto/ssh/terminal"
+	"golang.org/x/term"
 )
 
 const (
@@ -103,7 +103,7 @@ func (p *ProgressBar) doPrint() {
 		pctStr = " " + pctStr
 	}
 
-	termWidth, _, _ := terminal.GetSize(int(syscall.Stdin))
+	termWidth, _, _ := term.GetSize(int(syscall.Stdin))
 	if termWidth < 0 {
 		// if we can determine the size (e.g. windows, fake term, mock)
 		// assume a sane default of 80

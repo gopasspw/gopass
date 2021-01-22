@@ -2,6 +2,7 @@ package leaf
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/internal/out"
@@ -9,7 +10,6 @@ import (
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/gopass"
 	"github.com/gopasspw/gopass/pkg/gopass/secrets/secparse"
-	"github.com/pkg/errors"
 )
 
 // GitInit initializes the git storage
@@ -33,7 +33,7 @@ func (s *Store) GetRevision(ctx context.Context, name, revision string) (gopass.
 	p := s.passfile(name)
 	ciphertext, err := s.storage.GetRevision(ctx, p, revision)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get ciphertext of '%s'@'%s'", name, revision)
+		return nil, fmt.Errorf("failed to get ciphertext of %q@%q: %w", name, revision, err)
 	}
 
 	content, err := s.crypto.Decrypt(ctx, ciphertext)

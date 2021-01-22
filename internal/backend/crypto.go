@@ -2,11 +2,11 @@ package backend
 
 import (
 	"context"
+	"fmt"
 	"sort"
 
 	"github.com/blang/semver/v4"
 	"github.com/gopasspw/gopass/pkg/debug"
-	"github.com/pkg/errors"
 )
 
 // CryptoBackend is a cryptographic backend
@@ -67,7 +67,7 @@ func NewCrypto(ctx context.Context, id CryptoBackend) (Crypto, error) {
 	if be, found := cryptoRegistry[id]; found {
 		return be.New(ctx)
 	}
-	return nil, errors.Wrapf(ErrNotFound, "unknown backend: %d", id)
+	return nil, fmt.Errorf("unknown backend %d: %w", id, ErrNotFound)
 }
 
 // DetectCrypto tries to detect the crypto backend used
