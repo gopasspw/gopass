@@ -33,5 +33,6 @@ func TestMount(t *testing.T) {
 	assert.Error(t, err)
 	assert.Nil(t, sub)
 
-	assert.Error(t, rs.RemoveMount(ctx, "foo"))
+	// removing mounts should never fail
+	assert.NoError(t, rs.RemoveMount(ctx, "foo"))
 }
