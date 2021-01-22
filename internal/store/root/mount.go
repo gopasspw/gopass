@@ -86,10 +86,10 @@ func (r *Store) initSub(ctx context.Context, alias, path string, keys []string) 
 // RemoveMount removes and existing mount
 func (r *Store) RemoveMount(ctx context.Context, alias string) error {
 	if _, found := r.mounts[alias]; !found {
-		return errors.Errorf("%s is not mounted", alias)
+		out.Warning(ctx, "%s is not mounted", alias)
 	}
 	if _, found := r.mounts[alias]; !found {
-		out.Print(ctx, "%s is not initialized", alias)
+		out.Warning(ctx, "%s is not initialized", alias)
 	}
 	delete(r.mounts, alias)
 	delete(r.cfg.Mounts, alias)
