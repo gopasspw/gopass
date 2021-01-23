@@ -69,10 +69,10 @@ func (s *Store) Set(ctx context.Context, name string, sec gopass.Byter) error {
 
 func (s *Store) gitCommitAndPush(ctx context.Context, name string) error {
 	if err := s.storage.Commit(ctx, fmt.Sprintf("Save secret to %s: %s", name, ctxutil.GetCommitMessage(ctx))); err != nil {
-		switch errors.Unwrap(err) {
-		case store.ErrGitNotInit:
+		switch {
+		case errors.Is(err, store.ErrGitNotInit):
 			debug.Log("commitAndPush - skipping git commit - git not initialized")
-		case store.ErrGitNothingToCommit:
+		case errors.Is(err, store.ErrGitNothingToCommit):
 			debug.Log("commitAndPush - skipping git commit - nothing to commit")
 		default:
 			return fmt.Errorf("failed to commit changes to git: %w", err)

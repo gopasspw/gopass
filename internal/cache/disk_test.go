@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -23,7 +24,7 @@ func TestOnDisk(t *testing.T) {
 		os.Setenv("GOPASS_HOMEDIR", ogh)
 	}()
 
-	odc, err := NewOnDisk("test")
+	odc, err := NewOnDisk("test", time.Hour)
 	assert.NoError(t, err)
 
 	assert.NoError(t, odc.Set("foo", []string{"bar"}))

@@ -30,8 +30,8 @@ func (r *Store) Move(ctx context.Context, from, to string) error {
 }
 
 func (r *Store) move(ctx context.Context, from, to string, delete bool) error {
-	ctxFrom, subFrom, fromPrefix := r.getStore(ctx, from)
-	ctxTo, subTo, _ := r.getStore(ctx, to)
+	subFrom, fromPrefix := r.getStore(from)
+	subTo, _ := r.getStore(to)
 
 	srcIsDir := r.IsDir(ctx, from)
 	dstIsDir := r.IsDir(ctx, to)
@@ -39,19 +39,19 @@ func (r *Store) move(ctx context.Context, from, to string, delete bool) error {
 		return fmt.Errorf("destination is a file")
 	}
 
-	if err := r.moveFromTo(ctxFrom, ctxTo, subFrom, from, to, fromPrefix, srcIsDir, delete); err != nil {
+	if err := r.moveFromTo(ctx, subFrom, from, to, fromPrefix, srcIsDir, delete); err != nil {
 		return err
 	}
-	if err := subFrom.Storage().Commit(ctxFrom, fmt.Sprintf("Move from %s to %s", from, to)); delete && err != nil {
-		switch errors.Unwrap(err) {
-		case store.ErrGitNotInit:
+	if err := subFrom.Storage().Commit(ctx, fmt.Sprintf("Move from %s to %s", from, to)); delete && err != nil {
+		switch {
+		case errors.Is(err, store.ErrGitNotInit):
 			debug.Log("skipping git commit - git not initialized")
 		default:
 			return fmt.Errorf("failed to commit changes to git (from): %w", err)
 		}
 	}
 	if !subFrom.Equals(subTo) {
-		if err := subTo.Storage().Commit(ctxTo, fmt.Sprintf("Move from %s to %s", from, to)); err != nil {
+		if err := subTo.Storage().Commit(ctx, fmt.Sprintf("Move from %s to %s", from, to)); err != nil {
 			switch errors.Unwrap(err) {
 			case store.ErrGitNotInit:
 				debug.Log("skipping git commit - git not initialized")
@@ -96,14 +96,13 @@ func (r *Store) move(ctx context.Context, from, to string, delete bool) error {
 	return nil
 }
 
-func (r *Store) moveFromTo(ctxFrom, ctxTo context.Context, subFrom *leaf.Store, from, to, fromPrefix string, srcIsDir, delete bool) error {
-	ctxFrom = ctxutil.WithGitCommit(ctxFrom, false)
-	ctxTo = ctxutil.WithGitCommit(ctxTo, false)
+func (r *Store) moveFromTo(ctx context.Context, subFrom *leaf.Store, from, to, fromPrefix string, srcIsDir, delete bool) error {
+	ctx = ctxutil.WithGitCommit(ctx, false)
 
 	entries := []string{from}
-	if r.IsDir(ctxFrom, from) {
+	if r.IsDir(ctx, from) {
 		var err error
-		entries, err = subFrom.List(ctxFrom, fromPrefix)
+		entries, err = subFrom.List(ctx, fromPrefix)
 		if err != nil {
 			return err
 		}
@@ -124,18 +123,18 @@ func (r *Store) moveFromTo(ctxFrom, ctxTo context.Context, subFrom *leaf.Store, 
 		}
 		debug.Log("Moving %s (%s) => %s (%s) (sid:%t, delete:%t)\n", from, src, to, dst, srcIsDir, delete)
 
-		content, err := r.Get(ctxFrom, src)
+		content, err := r.Get(ctx, src)
 		if err != nil {
 			return fmt.Errorf("source %s does not exist in source store %s: %s", from, subFrom.Alias(), err)
 		}
 
-		if err := r.Set(ctxutil.WithCommitMessage(ctxTo, fmt.Sprintf("Move from %s to %s", src, dst)), dst, content); err != nil {
+		if err := r.Set(ctxutil.WithCommitMessage(ctx, fmt.Sprintf("Move from %s to %s", src, dst)), dst, content); err != nil {
 			return fmt.Errorf("failed to save secret %q: %w", to, err)
 		}
 
 		if delete {
 			debug.Log("Deleting %s from source %s", from, src)
-			if err := r.Delete(ctxFrom, src); err != nil {
+			if err := r.Delete(ctx, src); err != nil {
 				return fmt.Errorf("failed to delete secret %q: %w", src, err)
 			}
 		}
@@ -145,7 +144,7 @@ func (r *Store) moveFromTo(ctxFrom, ctxTo context.Context, subFrom *leaf.Store, 
 
 // Delete will remove an single entry from the store
 func (r *Store) Delete(ctx context.Context, name string) error {
-	ctx, store, sn := r.getStore(ctx, name)
+	store, sn := r.getStore(name)
 	if sn == "" {
 		return fmt.Errorf("can not delete a mount point. Use `gopass mounts remove %s`", store.Alias())
 	}
@@ -160,6 +159,6 @@ func (r *Store) Prune(ctx context.Context, tree string) error {
 		}
 	}
 
-	ctx, store, tree := r.getStore(ctx, tree)
+	store, tree := r.getStore(tree)
 	return store.Prune(ctx, tree)
 }

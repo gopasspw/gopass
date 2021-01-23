@@ -5,26 +5,27 @@ import (
 	"time"
 
 	"github.com/gopasspw/gopass/internal/backend"
+	"github.com/gopasspw/gopass/internal/store"
 )
 
 // Add does nothing
 func (s *Store) Add(ctx context.Context, args ...string) error {
-	return nil
+	return store.ErrGitNotInit
 }
 
 // Commit does nothing
 func (s *Store) Commit(ctx context.Context, msg string) error {
-	return nil
+	return store.ErrGitNotInit
 }
 
 // Push does nothing
 func (s *Store) Push(ctx context.Context, origin, branch string) error {
-	return nil
+	return store.ErrGitNotInit
 }
 
 // Pull does nothing
 func (s *Store) Pull(ctx context.Context, origin, branch string) error {
-	return nil
+	return store.ErrGitNotInit
 }
 
 // Cmd does nothing
@@ -34,7 +35,7 @@ func (s *Store) Cmd(ctx context.Context, name string, args ...string) error {
 
 // Init does nothing
 func (s *Store) Init(context.Context, string, string) error {
-	return nil
+	return backend.ErrNotSupported
 }
 
 // InitConfig does nothing

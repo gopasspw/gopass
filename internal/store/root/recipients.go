@@ -16,24 +16,24 @@ import (
 
 // ListRecipients lists all recipients for the given store
 func (r *Store) ListRecipients(ctx context.Context, store string) []string {
-	ctx, sub, _ := r.getStore(ctx, store)
+	sub, _ := r.getStore(store)
 	return sub.Recipients(ctx)
 }
 
 // AddRecipient adds a single recipient to the given store
 func (r *Store) AddRecipient(ctx context.Context, store, rec string) error {
-	ctx, sub, _ := r.getStore(ctx, store)
+	sub, _ := r.getStore(store)
 	return sub.AddRecipient(ctx, rec)
 }
 
 // RemoveRecipient removes a single recipient from the given store
 func (r *Store) RemoveRecipient(ctx context.Context, store, rec string) error {
-	ctx, sub, _ := r.getStore(ctx, store)
+	sub, _ := r.getStore(store)
 	return sub.RemoveRecipient(ctx, rec)
 }
 
 func (r *Store) addRecipient(ctx context.Context, prefix string, root *tree.Root, recp string, pretty bool) error {
-	ctx, sub, _ := r.getStore(ctx, prefix)
+	sub, _ := r.getStore(prefix)
 	key := fmt.Sprintf("%s (missing public key)", recp)
 	kl, err := sub.Crypto().FindRecipients(ctx, recp)
 	if err == nil {

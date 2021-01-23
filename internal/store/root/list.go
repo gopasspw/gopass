@@ -81,7 +81,7 @@ func (r *Store) Tree(ctx context.Context) (*tree.Root, error) {
 
 // HasSubDirs returns true if the named entity has subdirectories
 func (r *Store) HasSubDirs(ctx context.Context, name string) (bool, error) {
-	ctx, sub, prefix := r.getStore(ctx, name)
+	sub, prefix := r.getStore(name)
 	entries, err := sub.List(ctx, prefix)
 	if err != nil {
 		return false, err

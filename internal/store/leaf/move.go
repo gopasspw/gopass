@@ -87,10 +87,10 @@ func (s *Store) delete(ctx context.Context, name string, recurse bool) error {
 	}
 
 	if err := s.storage.Commit(ctx, fmt.Sprintf("Remove %s from store.", name)); err != nil {
-		switch errors.Unwrap(err) {
-		case store.ErrGitNotInit:
+		switch {
+		case errors.Is(err, store.ErrGitNotInit):
 			debug.Log("skipping git commit - git not initialized")
-		case store.ErrGitNothingToCommit:
+		case errors.Is(err, store.ErrGitNothingToCommit):
 			debug.Log("skipping git commit - nothing to commit")
 		default:
 			return fmt.Errorf("failed to commit changes to git: %w", err)

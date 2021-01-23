@@ -76,7 +76,7 @@ func (s *Action) syncMount(ctx context.Context, mp string) error {
 	}
 	out.Print(ctxno, color.GreenString("[%s] ", name))
 
-	ctx, sub, err := s.Store.GetSubStore(ctx, mp)
+	sub, err := s.Store.GetSubStore(mp)
 	if err != nil {
 		out.Error(ctx, "Failed to get sub store '%s': %s", name, err)
 		return fmt.Errorf("failed to get sub stores (%s)", err)

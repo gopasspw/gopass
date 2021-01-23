@@ -59,7 +59,7 @@ func PwStoreDir(mount string) string {
 		cleanName := strings.Replace(mount, string(filepath.Separator), "-", -1)
 		return fsutil.CleanPath(filepath.Join(appdir.UserData(), "stores", cleanName))
 	}
-	// TODO(2.x): PASSWORD_STORE_DIR support is deprecated
+	// PASSWORD_STORE_DIR support is discouraged
 	if d := os.Getenv("PASSWORD_STORE_DIR"); d != "" {
 		return fsutil.CleanPath(d)
 	}

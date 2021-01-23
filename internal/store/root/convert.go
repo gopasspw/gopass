@@ -10,7 +10,7 @@ import (
 // Convert will try to convert a given mount to a different set of
 // backends.
 func (r *Store) Convert(ctx context.Context, name string, cryptoBe backend.CryptoBackend, storageBe backend.StorageBackend, move bool) error {
-	_, sub, err := r.GetSubStore(ctx, name)
+	sub, err := r.GetSubStore(name)
 	if err != nil {
 		return err
 	}

@@ -15,7 +15,7 @@ import (
 // LookupTemplate will lookup and return a template
 func (r *Store) LookupTemplate(ctx context.Context, name string) (string, []byte, bool) {
 	oName := name
-	_, store, name := r.getStore(ctx, name)
+	store, name := r.getStore(name)
 	tName, content, found := store.LookupTemplate(ctx, name)
 	tName = filepath.Join(r.MountPoint(oName), tName)
 	return tName, content, found
@@ -55,24 +55,24 @@ func (r *Store) TemplateTree(ctx context.Context) (*tree.Root, error) {
 
 // HasTemplate returns true if the template exists
 func (r *Store) HasTemplate(ctx context.Context, name string) bool {
-	_, store, name := r.getStore(ctx, name)
+	store, name := r.getStore(name)
 	return store.HasTemplate(ctx, name)
 }
 
 // GetTemplate will return the content of the named template
 func (r *Store) GetTemplate(ctx context.Context, name string) ([]byte, error) {
-	_, store, name := r.getStore(ctx, name)
+	store, name := r.getStore(name)
 	return store.GetTemplate(ctx, name)
 }
 
 // SetTemplate will (over)write the content to the template file
 func (r *Store) SetTemplate(ctx context.Context, name string, content []byte) error {
-	_, store, name := r.getStore(ctx, name)
+	store, name := r.getStore(name)
 	return store.SetTemplate(ctx, name, content)
 }
 
 // RemoveTemplate will delete the named template if it exists
 func (r *Store) RemoveTemplate(ctx context.Context, name string) error {
-	_, store, name := r.getStore(ctx, name)
+	store, name := r.getStore(name)
 	return store.RemoveTemplate(ctx, name)
 }
