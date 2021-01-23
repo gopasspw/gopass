@@ -7,7 +7,6 @@ import (
 	"errors"
 	"os/exec"
 	"path/filepath"
-	"sort"
 
 	"golang.org/x/sys/windows/registry"
 
@@ -35,8 +34,7 @@ func detectBinary(bin string) (string, error) {
 	if len(bv) < 1 {
 		return "", errors.New("no gpg binary found")
 	}
-	sort.Sort(bv)
-	binary := bv[len(bv)-1].path
+	binary := bv[0].path
 	debug.Log("using '%s'", binary)
 	return binary, nil
 }
