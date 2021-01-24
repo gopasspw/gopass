@@ -29,10 +29,17 @@ func (g *Git) fixConfig(ctx context.Context) error {
 
 	// setup for proper diffs
 	if err := g.ConfigSet(ctx, "diff.gpg.binary", "true"); err != nil {
-		out.Print(ctx, "Error while initializing git: %s", err)
+		out.Error(ctx, "Error while initializing git: %s", err)
 	}
 	if err := g.ConfigSet(ctx, "diff.gpg.textconv", "gpg --no-tty --decrypt"); err != nil {
-		out.Print(ctx, "Error while initializing git: %s", err)
+		out.Error(ctx, "Error while initializing git: %s", err)
+	}
+
+	// setup for persistent SSH connections
+	if sc := gitSSHCommand(); sc != "" {
+		if err := g.ConfigSet(ctx, "core.sshCommand", sc); err != nil {
+			out.Error(ctx, "Error while configuring persistent SSH connections: %s", err)
+		}
 	}
 
 	return nil
