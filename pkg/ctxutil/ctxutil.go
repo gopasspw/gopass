@@ -526,7 +526,7 @@ func IsExportKeys(ctx context.Context) bool {
 }
 
 // PasswordCallback is a password prompt callback
-type PasswordCallback func(string) ([]byte, error)
+type PasswordCallback func(string, bool) ([]byte, error)
 
 // WithPasswordCallback returns a context with the password callback set
 func WithPasswordCallback(ctx context.Context, cb PasswordCallback) context.Context {
@@ -543,7 +543,7 @@ func HasPasswordCallback(ctx context.Context) bool {
 func GetPasswordCallback(ctx context.Context) PasswordCallback {
 	pwcb, ok := ctx.Value(ctxKeyPasswordCallback).(PasswordCallback)
 	if !ok || pwcb == nil {
-		return func(string) ([]byte, error) {
+		return func(string, bool) ([]byte, error) {
 			return nil, fmt.Errorf("no callback")
 		}
 	}

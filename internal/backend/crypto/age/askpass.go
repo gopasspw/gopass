@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/gopasspw/gopass/internal/cache"
+	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/pinentry"
 	"github.com/gopasspw/gopass/pkg/pinentry/cli"
@@ -54,13 +55,15 @@ func (a *askPass) Ping(_ context.Context) error {
 	return nil
 }
 
-func (a *askPass) Passphrase(key string, reason string) (string, error) {
+func (a *askPass) Passphrase(key string, reason string, repeat bool) (string, error) {
 	if value, found := a.cache.Get(key); found || a.testing {
 		debug.Log("Read value for %s from cache", key)
 		return value, nil
 	}
 	debug.Log("Value for %s not found in cache", key)
 
+	// TODO we shouldn't print here like this ...
+	out.Print(context.TODO(), "🔑 Please enter your passphrase to unlock the age keyring")
 	pi, err := a.pinentry()
 	if err != nil {
 		return "", fmt.Errorf("pinentry Error: %s", err)
@@ -71,6 +74,9 @@ func (a *askPass) Passphrase(key string, reason string) (string, error) {
 	_ = pi.Set("desc", "Need your passphrase "+reason)
 	_ = pi.Set("prompt", "Please enter your passphrase:")
 	_ = pi.Set("ok", "OK")
+	if repeat {
+		_ = pi.Set("REPEAT", "Confirm")
+	}
 
 	pw, err := pi.GetPin()
 	if err != nil {
@@ -90,5 +96,5 @@ func (a *askPass) Remove(key string) {
 // Lock flushes the password cache
 func (a *Age) Lock() {
 	a.askPass.cache.Purge()
-	krCache = nil
+	a.krCache = nil
 }
