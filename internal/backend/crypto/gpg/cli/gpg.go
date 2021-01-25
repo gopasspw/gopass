@@ -33,6 +33,7 @@ type GPG struct {
 	pubKeys   gpg.KeyList
 	privKeys  gpg.KeyList
 	listCache *lru.TwoQueueCache
+	throwKids bool
 }
 
 // Config is the gpg wrapper config
@@ -56,8 +57,9 @@ func New(ctx context.Context, cfg Config) (*GPG, error) {
 	}
 
 	g := &GPG{
-		binary: "gpg",
-		args:   append(defaultArgs, cfg.Args...),
+		binary:    "gpg",
+		args:      append(defaultArgs, cfg.Args...),
+		throwKids: fileContains(gpgConfigLoc(), "throw-keyids"),
 	}
 
 	debug.Log("initializing LRU cache")
@@ -111,6 +113,10 @@ func (g *GPG) RecipientIDs(ctx context.Context, buf []byte) ([]string, error) {
 		}
 	}
 
+	if g.throwKids {
+		// TODO shouldn't log here
+		out.Warning(ctx, "gpg option throw-keyids is set. some features might not work.")
+	}
 	return recp, nil
 }
 

@@ -73,7 +73,7 @@ func (a *Age) ReadNamesFromKey(ctx context.Context, buf []byte) ([]string, error
 	return nil, fmt.Errorf("not implemented")
 }
 
-// RecipientIDs is TODO
+// RecipientIDs is not supported by design
 func (a *Age) RecipientIDs(ctx context.Context, buf []byte) ([]string, error) {
-	return nil, fmt.Errorf("not supported by backend")
+	return nil, fmt.Errorf("reading recipient IDs is not supported by the age backend by design")
 }
