@@ -4,11 +4,25 @@ package cli
 
 import (
 	"os/exec"
+
+	"github.com/gopasspw/gopass/pkg/debug"
+	"github.com/gopasspw/gopass/pkg/pinentry/gpgconf"
 )
 
 func detectBinary(name string) (string, error) {
-	if name == "" {
-		name = "gpg"
+	// user supplied binaries take precedence
+	if name != "" {
+		return exec.LookPath(name)
 	}
-	return exec.LookPath(name)
+	// try to get the proper binary from gpgconf(1)
+	p, err := gpgconf.Path("gpg")
+	if err != nil || p == "" {
+		debug.Log("gpgconf failed, falling back to path lookup: %q", err)
+		// otherwise fall back to the default and try
+		// to look up "gpg"
+		return exec.LookPath("gpg")
+	}
+
+	debug.Log("gpgconf returned %q for gpg", p)
+	return p, nil
 }
