@@ -11,8 +11,6 @@ import (
 	"github.com/gopasspw/gopass/internal/backend/crypto/gpg"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/termio"
-
-	"github.com/pkg/errors"
 )
 
 var (
@@ -31,10 +29,10 @@ const (
 // AskForPrivateKey prompts the user to select from a list of private keys
 func AskForPrivateKey(ctx context.Context, crypto backend.Crypto, prompt string) (string, error) {
 	if !ctxutil.IsInteractive(ctx) {
-		return "", errors.New("can not select private key without terminal")
+		return "", fmt.Errorf("can not select private key without terminal")
 	}
 	if crypto == nil {
-		return "", errors.New("can not select private key without valid crypto backend")
+		return "", fmt.Errorf("can not select private key without valid crypto backend")
 	}
 
 	kl, err := crypto.ListIdentities(gpg.WithAlwaysTrust(ctx, false))
@@ -42,7 +40,7 @@ func AskForPrivateKey(ctx context.Context, crypto backend.Crypto, prompt string)
 		return "", err
 	}
 	if len(kl) < 1 {
-		return "", errors.New("no useable private keys found. make sure you have valid private keys with sufficient trust")
+		return "", fmt.Errorf("no useable private keys found. make sure you have valid private keys with sufficient trust")
 	}
 
 	for i := 0; i < maxTries; i++ {
@@ -52,7 +50,7 @@ func AskForPrivateKey(ctx context.Context, crypto backend.Crypto, prompt string)
 		// check for context cancelation
 		select {
 		case <-ctx.Done():
-			return "", errors.New("user aborted")
+			return "", fmt.Errorf("user aborted")
 		default:
 		}
 
@@ -72,7 +70,7 @@ func AskForPrivateKey(ctx context.Context, crypto backend.Crypto, prompt string)
 			return kl[iv], nil
 		}
 	}
-	return "", errors.New("no valid user input")
+	return "", fmt.Errorf("no valid user input")
 }
 
 // AskForGitConfigUser will iterate over GPG private key identities and prompt
@@ -92,14 +90,14 @@ func AskForGitConfigUser(ctx context.Context, crypto backend.Crypto) (string, st
 		return "", "", err
 	}
 	if len(keyList) < 1 {
-		return "", "", errors.New("no usable private keys found")
+		return "", "", fmt.Errorf("no usable private keys found")
 	}
 
 	for _, key := range keyList {
 		// check for context cancelation
 		select {
 		case <-ctx.Done():
-			return "", "", errors.New("user aborted")
+			return "", "", fmt.Errorf("user aborted")
 		default:
 		}
 

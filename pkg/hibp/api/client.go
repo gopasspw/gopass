@@ -11,7 +11,6 @@ import (
 
 	"github.com/cenkalti/backoff"
 	"github.com/gopasspw/gopass/pkg/debug"
-	"github.com/pkg/errors"
 )
 
 // URL is the HIBPv2 API URL
@@ -20,7 +19,7 @@ var URL = "https://api.pwnedpasswords.com"
 // Lookup performs a lookup against the HIBP v2 API
 func Lookup(shaSum string) (uint64, error) {
 	if len(shaSum) != 40 {
-		return 0, errors.Errorf("invalid shasum")
+		return 0, fmt.Errorf("invalid shasum")
 	}
 
 	shaSum = strings.ToUpper(shaSum)

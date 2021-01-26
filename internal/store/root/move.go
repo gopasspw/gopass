@@ -6,11 +6,12 @@ import (
 	"path"
 	"strings"
 
+	"errors"
+
 	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/internal/store/leaf"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
-	"github.com/pkg/errors"
 )
 
 // Copy will copy one entry to another location. Multi-store copies are
@@ -35,61 +36,61 @@ func (r *Store) move(ctx context.Context, from, to string, delete bool) error {
 	srcIsDir := r.IsDir(ctx, from)
 	dstIsDir := r.IsDir(ctx, to)
 	if srcIsDir && r.Exists(ctx, to) && !dstIsDir {
-		return errors.New("destination is a file")
+		return fmt.Errorf("destination is a file")
 	}
 
 	if err := r.moveFromTo(ctxFrom, ctxTo, subFrom, from, to, fromPrefix, srcIsDir, delete); err != nil {
 		return err
 	}
 	if err := subFrom.Storage().Commit(ctxFrom, fmt.Sprintf("Move from %s to %s", from, to)); delete && err != nil {
-		switch errors.Cause(err) {
+		switch errors.Unwrap(err) {
 		case store.ErrGitNotInit:
 			debug.Log("skipping git commit - git not initialized")
 		default:
-			return errors.Wrapf(err, "failed to commit changes to git (from)")
+			return fmt.Errorf("failed to commit changes to git (from): %w", err)
 		}
 	}
 	if !subFrom.Equals(subTo) {
 		if err := subTo.Storage().Commit(ctxTo, fmt.Sprintf("Move from %s to %s", from, to)); err != nil {
-			switch errors.Cause(err) {
+			switch errors.Unwrap(err) {
 			case store.ErrGitNotInit:
 				debug.Log("skipping git commit - git not initialized")
 			default:
-				return errors.Wrapf(err, "failed to commit changes to git (to)")
+				return fmt.Errorf("failed to commit changes to git (to): %w", err)
 			}
 		}
 	}
 
 	if err := subFrom.Storage().Push(ctx, "", ""); err != nil {
-		if errors.Cause(err) == store.ErrGitNotInit {
+		if errors.Is(err, store.ErrGitNotInit) {
 			msg := "Warning: git is not initialized for this.storage. Ignoring auto-push option\n" +
 				"Run: gopass git init"
 			debug.Log(msg)
 			return nil
 		}
-		if errors.Cause(err) == store.ErrGitNoRemote {
+		if errors.Is(err, store.ErrGitNoRemote) {
 			msg := "Warning: git has no remote. Ignoring auto-push option\n" +
 				"Run: gopass git remote add origin ..."
 			debug.Log(msg)
 			return nil
 		}
-		return errors.Wrapf(err, "failed to push change to git remote")
+		return fmt.Errorf("failed to push change to git remote: %w", err)
 	}
 	if !subFrom.Equals(subTo) {
 		if err := subTo.Storage().Push(ctx, "", ""); err != nil {
-			if errors.Cause(err) == store.ErrGitNotInit {
+			if errors.Is(err, store.ErrGitNotInit) {
 				msg := "Warning: git is not initialized for this.storage. Ignoring auto-push option\n" +
 					"Run: gopass git init"
 				debug.Log(msg)
 				return nil
 			}
-			if errors.Cause(err) == store.ErrGitNoRemote {
+			if errors.Is(err, store.ErrGitNoRemote) {
 				msg := "Warning: git has no remote. Ignoring auto-push option\n" +
 					"Run: gopass git remote add origin ..."
 				debug.Log(msg)
 				return nil
 			}
-			return errors.Wrapf(err, "failed to push change to git remote")
+			return fmt.Errorf("failed to push change to git remote: %w", err)
 		}
 	}
 	return nil
@@ -108,7 +109,7 @@ func (r *Store) moveFromTo(ctxFrom, ctxTo context.Context, subFrom *leaf.Store, 
 		}
 	}
 	if len(entries) < 1 {
-		return errors.Errorf("no entries")
+		return fmt.Errorf("no entries")
 	}
 
 	for _, src := range entries {
@@ -125,17 +126,17 @@ func (r *Store) moveFromTo(ctxFrom, ctxTo context.Context, subFrom *leaf.Store, 
 
 		content, err := r.Get(ctxFrom, src)
 		if err != nil {
-			return errors.Errorf("Source %s does not exist in source store %s: %s", from, subFrom.Alias(), err)
+			return fmt.Errorf("source %s does not exist in source store %s: %s", from, subFrom.Alias(), err)
 		}
 
 		if err := r.Set(ctxutil.WithCommitMessage(ctxTo, fmt.Sprintf("Move from %s to %s", src, dst)), dst, content); err != nil {
-			return errors.Wrapf(err, "failed to save secret '%s'", to)
+			return fmt.Errorf("failed to save secret %q: %w", to, err)
 		}
 
 		if delete {
 			debug.Log("Deleting %s from source %s", from, src)
 			if err := r.Delete(ctxFrom, src); err != nil {
-				return errors.Wrapf(err, "failed to delete secret '%s'", src)
+				return fmt.Errorf("failed to delete secret %q: %w", src, err)
 			}
 		}
 	}
@@ -146,7 +147,7 @@ func (r *Store) moveFromTo(ctxFrom, ctxTo context.Context, subFrom *leaf.Store, 
 func (r *Store) Delete(ctx context.Context, name string) error {
 	ctx, store, sn := r.getStore(ctx, name)
 	if sn == "" {
-		return errors.Errorf("can not delete a mount point. Use `gopass mounts remove %s`", store.Alias())
+		return fmt.Errorf("can not delete a mount point. Use `gopass mounts remove %s`", store.Alias())
 	}
 	return store.Delete(ctx, sn)
 }
@@ -155,7 +156,7 @@ func (r *Store) Delete(ctx context.Context, name string) error {
 func (r *Store) Prune(ctx context.Context, tree string) error {
 	for mp := range r.mounts {
 		if strings.HasPrefix(mp, tree) {
-			return errors.Errorf("can not prune subtree with mounts. Unmount first: `gopass mounts remove %s`", mp)
+			return fmt.Errorf("can not prune subtree with mounts. Unmount first: `gopass mounts remove %s`", mp)
 		}
 	}
 

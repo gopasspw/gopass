@@ -10,7 +10,6 @@ import (
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
-	"github.com/pkg/errors"
 )
 
 func (s *Store) initCryptoBackend(ctx context.Context) error {
@@ -37,7 +36,7 @@ func (s *Store) ImportMissingPublicKeys(ctx context.Context) error {
 	}
 	rs, err := s.GetRecipients(ctx, "")
 	if err != nil {
-		return errors.Wrapf(err, "failed to get recipients")
+		return fmt.Errorf("failed to get recipients: %w", err)
 	}
 	for _, r := range rs {
 		debug.Log("Checking recipients %s ...", r)
@@ -90,11 +89,11 @@ func (s *Store) decodePublicKey(ctx context.Context, r string) ([]string, error)
 		}
 		buf, err := s.storage.Get(ctx, filename)
 		if err != nil {
-			return nil, errors.Errorf("Unable to read Public Key %s %s: %s", r, filename, err)
+			return nil, fmt.Errorf("unable to read Public Key %q %q: %w", r, filename, err)
 		}
 		return s.crypto.ReadNamesFromKey(ctx, buf)
 	}
-	return nil, errors.Errorf("Public Key %s not found", r)
+	return nil, fmt.Errorf("public key %q not found", r)
 }
 
 // export an ASCII armored public key
@@ -108,16 +107,16 @@ func (s *Store) exportPublicKey(ctx context.Context, exp keyExporter, r string) 
 
 	pk, err := exp.ExportPublicKey(ctx, r)
 	if err != nil {
-		return "", errors.Wrapf(err, "failed to export public key")
+		return "", fmt.Errorf("failed to export public key: %w", err)
 	}
 
 	// ECC keys are at least 700 byte, RSA should be a lot bigger
 	if len(pk) < 32 {
-		return "", errors.New("exported key too small")
+		return "", fmt.Errorf("exported key too small")
 	}
 
 	if err := s.storage.Set(ctx, filename, pk); err != nil {
-		return "", errors.Wrapf(err, "failed to write exported public key to store")
+		return "", fmt.Errorf("failed to write exported public key to store: %w", err)
 	}
 
 	return filename, nil

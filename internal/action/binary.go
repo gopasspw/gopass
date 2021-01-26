@@ -19,7 +19,6 @@ import (
 	"github.com/gopasspw/gopass/pkg/fsutil"
 	"github.com/gopasspw/gopass/pkg/gopass"
 	"github.com/gopasspw/gopass/pkg/gopass/secrets"
-	"github.com/pkg/errors"
 
 	"github.com/urfave/cli/v2"
 )
@@ -133,22 +132,22 @@ func (s *Action) binaryCopy(ctx context.Context, c *cli.Context, from, to string
 		if deleteSource {
 			op = "move"
 		}
-		return errors.Errorf("Usage: %s fs%s from to", c.App.Name, op)
+		return fmt.Errorf("usage: %s fs%s from to", c.App.Name, op)
 	}
 
 	switch {
 	case fsutil.IsFile(from) && fsutil.IsFile(to):
 		// copying from on file to another file is not supported
-		return errors.New("ambiguity detected. Only from or to can be a file")
+		return fmt.Errorf("ambiguity detected. Only from or to can be a file")
 	case s.Store.Exists(ctx, from) && s.Store.Exists(ctx, to):
 		// copying from one secret to another secret is not supported
-		return errors.New("ambiguity detected. Either from or to must be a file")
+		return fmt.Errorf("ambiguity detected. Either from or to must be a file")
 	case fsutil.IsFile(from) && !fsutil.IsFile(to):
 		return s.binaryCopyFromFileToStore(ctx, from, to, deleteSource)
 	case !fsutil.IsFile(from):
 		return s.binaryCopyFromStoreToFile(ctx, from, to, deleteSource)
 	default:
-		return errors.Errorf("ambiguity detected. Unhandled case. Please report a bug")
+		return fmt.Errorf("ambiguity detected. Unhandled case. Please report a bug")
 	}
 }
 
@@ -160,12 +159,12 @@ func (s *Action) binaryCopyFromFileToStore(ctx context.Context, from, to string,
 	// copy from FS to store
 	buf, err := ioutil.ReadFile(from)
 	if err != nil {
-		return errors.Wrapf(err, "failed to read file from '%s'", from)
+		return fmt.Errorf("failed to read file from %q: %w", from, err)
 	}
 
 	if err := s.Store.Set(
 		ctxutil.WithCommitMessage(ctx, fmt.Sprintf("Copied data from %s to %s", from, to)), to, secFromBytes(to, from, buf)); err != nil {
-		return errors.Wrapf(err, "failed to save buffer to store")
+		return fmt.Errorf("failed to save buffer to store: %w", err)
 	}
 
 	if !deleteSource {
@@ -175,10 +174,10 @@ func (s *Action) binaryCopyFromFileToStore(ctx context.Context, from, to string,
 	// it's important that we return if the validation fails, because
 	// in that case we don't want to shred our (only) copy of this data!
 	if err := s.binaryValidate(ctx, buf, to); err != nil {
-		return errors.Wrapf(err, "failed to validate written data")
+		return fmt.Errorf("failed to validate written data: %w", err)
 	}
 	if err := fsutil.Shred(from, 8); err != nil {
-		return errors.Wrapf(err, "failed to shred data")
+		return fmt.Errorf("failed to shred data: %w", err)
 	}
 	return nil
 }
@@ -190,10 +189,10 @@ func (s *Action) binaryCopyFromStoreToFile(ctx context.Context, from, to string,
 	// copy from store to FS
 	buf, err := s.binaryGet(ctx, from)
 	if err != nil {
-		return errors.Wrapf(err, "failed to read data from '%s'", from)
+		return fmt.Errorf("failed to read data from %q: %w", from, err)
 	}
 	if err := ioutil.WriteFile(to, buf, 0600); err != nil {
-		return errors.Wrapf(err, "failed to write data to '%s'", to)
+		return fmt.Errorf("failed to write data to %q: %w", to, err)
 	}
 
 	if !deleteSource {
@@ -203,10 +202,10 @@ func (s *Action) binaryCopyFromStoreToFile(ctx context.Context, from, to string,
 	// as before: if validation of the written data fails, we MUST NOT
 	// delete the (only) source
 	if err := s.binaryValidate(ctx, buf, from); err != nil {
-		return errors.Wrapf(err, "failed to validate the written data")
+		return fmt.Errorf("failed to validate the written data: %w", err)
 	}
 	if err := s.Store.Delete(ctx, from); err != nil {
-		return errors.Wrapf(err, "failed to delete '%s' from the store", from)
+		return fmt.Errorf("failed to delete %q from the store: %w", from, err)
 	}
 	return nil
 }
@@ -222,7 +221,7 @@ func (s *Action) binaryValidate(ctx context.Context, buf []byte, name string) er
 	var err error
 	buf, err = s.binaryGet(ctx, name)
 	if err != nil {
-		return errors.Wrapf(err, "failed to read '%s' from the store", name)
+		return fmt.Errorf("failed to read %q from the store: %w", name, err)
 	}
 	_, _ = h.Write(buf)
 	storeSum := fmt.Sprintf("%x", h.Sum(nil))
@@ -230,7 +229,7 @@ func (s *Action) binaryValidate(ctx context.Context, buf []byte, name string) er
 	debug.Log("store: %s - '%s'", storeSum, string(buf))
 
 	if fileSum != storeSum {
-		return errors.Errorf("Hashsum mismatch (file: %s, store: %s)", fileSum, storeSum)
+		return fmt.Errorf("hashsum mismatch (file: %s, store: %s)", fileSum, storeSum)
 	}
 	return nil
 }
@@ -238,7 +237,7 @@ func (s *Action) binaryValidate(ctx context.Context, buf []byte, name string) er
 func (s *Action) binaryGet(ctx context.Context, name string) ([]byte, error) {
 	sec, err := s.Store.Get(ctx, name)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to read '%s' from the store", name)
+		return nil, fmt.Errorf("failed to read %q from the store: %w", name, err)
 	}
 
 	if cte, _ := sec.Get("content-transfer-encoding"); cte != "Base64" {
@@ -247,7 +246,7 @@ func (s *Action) binaryGet(ctx context.Context, name string) ([]byte, error) {
 
 	buf, err := base64.StdEncoding.DecodeString(sec.Body())
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to encode to base64")
+		return nil, fmt.Errorf("failed to encode to base64: %w", err)
 	}
 	return buf, nil
 }

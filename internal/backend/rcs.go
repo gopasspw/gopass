@@ -2,10 +2,10 @@ package backend
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/gopasspw/gopass/pkg/debug"
-	"github.com/pkg/errors"
 )
 
 // rcs is a revision control backend
@@ -57,5 +57,5 @@ func Clone(ctx context.Context, id StorageBackend, repo, path string) (Storage, 
 		debug.Log("Cloning with %s", be.String())
 		return be.Clone(ctx, repo, path)
 	}
-	return nil, errors.Wrapf(ErrNotFound, "unknown backend: %d", id)
+	return nil, fmt.Errorf("unknown backend %d: %w", id, ErrNotFound)
 }

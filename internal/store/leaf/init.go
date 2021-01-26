@@ -2,11 +2,10 @@ package leaf
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/gopasspw/gopass/internal/out"
-
-	"github.com/pkg/errors"
 )
 
 // IsInitialized returns true if the store is properly initialized
@@ -20,7 +19,7 @@ func (s *Store) IsInitialized(ctx context.Context) bool {
 // Init tries to initialize a new password store location matching the object
 func (s *Store) Init(ctx context.Context, path string, ids ...string) error {
 	if s.IsInitialized(ctx) {
-		return errors.Errorf(`Found already initialized store at %s.
+		return fmt.Errorf(`found already initialized store at %q.
 You can add secondary stores with gopass init --path <path to secondary store> --store <mount name>`, path)
 	}
 
@@ -44,20 +43,20 @@ You can add secondary stores with gopass init --path <path to secondary store> -
 	}
 
 	if len(recipients) < 1 {
-		return errors.Errorf("failed to initialize store: no valid recipients given in %+v", ids)
+		return fmt.Errorf("failed to initialize store: no valid recipients given in %+v", ids)
 	}
 
 	kl, err := s.crypto.FindIdentities(ctx, recipients...)
 	if err != nil {
-		return errors.Errorf("Failed to get available private keys: %s", err)
+		return fmt.Errorf("failed to get available private keys: %w", err)
 	}
 
 	if len(kl) < 1 {
-		return errors.Errorf("None of the recipients has a secret key. You will not be able to decrypt the secrets you add")
+		return fmt.Errorf("none of the recipients has a secret key. You will not be able to decrypt the secrets you add")
 	}
 
 	if err := s.saveRecipients(ctx, recipients, "Initialized Store for "+strings.Join(recipients, ", ")); err != nil {
-		return errors.Wrapf(err, "failed to initialize store: %s", err)
+		return fmt.Errorf("failed to initialize store: %w", err)
 	}
 
 	return nil

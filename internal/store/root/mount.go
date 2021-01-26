@@ -2,6 +2,7 @@ package root
 
 import (
 	"context"
+	"fmt"
 	"sort"
 	"strings"
 
@@ -12,13 +13,12 @@ import (
 	"github.com/gopasspw/gopass/pkg/fsutil"
 
 	"github.com/fatih/color"
-	"github.com/pkg/errors"
 )
 
 // AddMount adds a new mount
 func (r *Store) AddMount(ctx context.Context, alias, path string, keys ...string) error {
 	if err := r.addMount(ctx, alias, path, keys...); err != nil {
-		return errors.Wrapf(err, "failed to add mount")
+		return fmt.Errorf("failed to add mount: %w", err)
 	}
 
 	// check for duplicate mounts
@@ -27,7 +27,7 @@ func (r *Store) AddMount(ctx context.Context, alias, path string, keys ...string
 
 func (r *Store) addMount(ctx context.Context, alias, path string, keys ...string) error {
 	if alias == "" {
-		return errors.Errorf("alias must not be empty")
+		return fmt.Errorf("alias must not be empty")
 	}
 	if r.mounts == nil {
 		r.mounts = make(map[string]*leaf.Store, 1)
@@ -42,7 +42,7 @@ func (r *Store) addMount(ctx context.Context, alias, path string, keys ...string
 	// initialize sub store
 	s, err := r.initSub(ctx, alias, fullPath, keys)
 	if err != nil {
-		return errors.Wrapf(err, "failed to init sub store '%s' at '%s'", alias, fullPath)
+		return fmt.Errorf("failed to init sub store %q at %q: %w", alias, fullPath, err)
 	}
 
 	r.mounts[alias] = s
@@ -59,7 +59,7 @@ func (r *Store) initSub(ctx context.Context, alias, path string, keys []string) 
 	// init regular sub store
 	s, err := leaf.New(ctx, alias, path)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to initialize store '%s' at '%s': %s", alias, path, err)
+		return nil, fmt.Errorf("failed to initialize store %q at %q: %w", alias, path, err)
 	}
 
 	if s.IsInitialized(ctx) {
@@ -73,7 +73,7 @@ func (r *Store) initSub(ctx context.Context, alias, path string, keys []string) 
 	}
 	debug.Log("[%s] Trying to initialize at %s for %+v", alias, path, keys)
 	if err := s.Init(ctx, path, keys...); err != nil {
-		return s, errors.Wrapf(err, "failed to initialize store '%s' at '%s'", alias, path)
+		return s, fmt.Errorf("failed to initialize store %q at %q: %w", alias, path, err)
 	}
 	out.Print(ctx, "Password store %s initialized for:", path)
 	for _, r := range s.Recipients(ctx) {
@@ -162,7 +162,7 @@ func (r *Store) GetSubStore(ctx context.Context, name string) (context.Context, 
 		return ctx, sub, nil
 	}
 	debug.Log("mounts available: %+v", r.mounts)
-	return nil, nil, errors.Errorf("no such mount point '%s'", name)
+	return nil, nil, fmt.Errorf("no such mount point %q", name)
 }
 
 // checkMounts performs some sanity checks on our mounts. At the moment it
@@ -171,7 +171,7 @@ func (r *Store) checkMounts() error {
 	paths := make(map[string]string, len(r.mounts))
 	for k, v := range r.mounts {
 		if _, found := paths[v.Path()]; found {
-			return errors.Errorf("Doubly mounted path at %s: %s", v.Path(), k)
+			return fmt.Errorf("doubly mounted path at %s: %s", v.Path(), k)
 		}
 		paths[v.Path()] = k
 	}

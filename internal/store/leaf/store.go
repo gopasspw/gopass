@@ -9,8 +9,6 @@ import (
 
 	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/pkg/debug"
-
-	"github.com/pkg/errors"
 )
 
 // Store is password store
@@ -57,13 +55,13 @@ func New(ctx context.Context, alias, path string) (*Store, error) {
 
 	// init storage and rcs backend
 	if err := s.initStorageBackend(ctx); err != nil {
-		return nil, errors.Wrapf(err, "failed to init storage backend: %s", err)
+		return nil, fmt.Errorf("failed to init storage backend: %w", err)
 	}
 	debug.Log("Storage initialized")
 
 	// init crypto backend
 	if err := s.initCryptoBackend(ctx); err != nil {
-		return nil, errors.Wrapf(err, "failed to init crypto backend: %s", err)
+		return nil, fmt.Errorf("failed to init crypto backend: %w", err)
 	}
 	debug.Log("Crypto initialized")
 
@@ -145,7 +143,7 @@ func (s *Store) Exists(ctx context.Context, name string) bool {
 func (s *Store) useableKeys(ctx context.Context, name string) ([]string, error) {
 	rs, err := s.GetRecipients(ctx, name)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get recipients")
+		return nil, fmt.Errorf("failed to get recipients: %w", err)
 	}
 
 	if !IsCheckRecipients(ctx) {

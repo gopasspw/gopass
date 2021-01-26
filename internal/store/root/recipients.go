@@ -12,7 +12,6 @@ import (
 	"github.com/gopasspw/gopass/pkg/debug"
 
 	"github.com/fatih/color"
-	"github.com/pkg/errors"
 )
 
 // ListRecipients lists all recipients for the given store
@@ -100,7 +99,7 @@ func (r *Store) RecipientsTree(ctx context.Context, pretty bool) (*tree.Root, er
 			continue
 		}
 		if err := root.AddMount(alias, substore.Path()); err != nil {
-			return nil, errors.Errorf("failed to add mount: %s", err)
+			return nil, fmt.Errorf("failed to add mount: %w", err)
 		}
 		for name, recps := range substore.RecipientsTree(ctx) {
 			if name != "" {

@@ -2,6 +2,7 @@ package action
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/gopasspw/gopass/internal/tree"
@@ -13,7 +14,6 @@ import (
 	"github.com/gopasspw/gopass/pkg/debug"
 
 	"github.com/fatih/color"
-	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
 )
 
@@ -98,7 +98,7 @@ func (s *Action) syncMount(ctx context.Context, mp string) error {
 	} else {
 		out.Print(ctxno, "\n   "+color.GreenString("git pull and push ... "))
 		if err := sub.Storage().Push(ctx, "", ""); err != nil {
-			if errors.Cause(err) == store.ErrGitNoRemote {
+			if errors.Is(err, store.ErrGitNoRemote) {
 				out.Print(ctx, "Skipped (no remote)")
 				debug.Log("Failed to push '%s' to its remote: %s", name, err)
 				return err

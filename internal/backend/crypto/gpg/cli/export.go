@@ -2,16 +2,16 @@ package cli
 
 import (
 	"context"
+	"fmt"
 	"os/exec"
 
 	"github.com/gopasspw/gopass/pkg/debug"
-	"github.com/pkg/errors"
 )
 
 // ExportPublicKey will export the named public key to the location given
 func (g *GPG) ExportPublicKey(ctx context.Context, id string) ([]byte, error) {
 	if id == "" {
-		return nil, errors.Errorf("id is empty")
+		return nil, fmt.Errorf("id is empty")
 	}
 
 	args := append(g.args, "--armor", "--export", id)
@@ -20,11 +20,11 @@ func (g *GPG) ExportPublicKey(ctx context.Context, id string) ([]byte, error) {
 	debug.Log("%s %+v", cmd.Path, cmd.Args)
 	out, err := cmd.Output()
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to run command '%s %+v'", cmd.Path, cmd.Args)
+		return nil, fmt.Errorf("failed to run command '%s %+v': %w", cmd.Path, cmd.Args, err)
 	}
 
 	if len(out) < 1 {
-		return nil, errors.Errorf("Key not found")
+		return nil, fmt.Errorf("key not found")
 	}
 
 	return out, nil

@@ -2,6 +2,8 @@ package leaf
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -11,8 +13,6 @@ import (
 	"github.com/gopasspw/gopass/internal/tree"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
-
-	"github.com/pkg/errors"
 )
 
 const (
@@ -100,14 +100,14 @@ func (s *Store) SetTemplate(ctx context.Context, name string, content []byte) er
 	p := s.templatefile(name)
 
 	if err := s.storage.Set(ctx, p, content); err != nil {
-		return errors.Wrapf(err, "failed to write template")
+		return fmt.Errorf("failed to write template: %w", err)
 	}
 
 	if err := s.storage.Add(ctx, p); err != nil {
-		if errors.Cause(err) == store.ErrGitNotInit {
+		if errors.Is(err, store.ErrGitNotInit) {
 			return nil
 		}
-		return errors.Wrapf(err, "failed to add '%s' to git", p)
+		return fmt.Errorf("failed to add %q to git: %w", p, err)
 	}
 
 	if !ctxutil.IsGitCommit(ctx) {
@@ -122,14 +122,14 @@ func (s *Store) RemoveTemplate(ctx context.Context, name string) error {
 	p := s.templatefile(name)
 
 	if err := s.storage.Delete(ctx, p); err != nil {
-		return errors.Wrapf(err, "failed to remote template")
+		return fmt.Errorf("failed to remote template: %w", err)
 	}
 
 	if err := s.storage.Add(ctx, p); err != nil {
-		if errors.Cause(err) == store.ErrGitNotInit {
+		if errors.Is(err, store.ErrGitNotInit) {
 			return nil
 		}
-		return errors.Wrapf(err, "failed to add '%s' to git", p)
+		return fmt.Errorf("failed to add %q to git: %w", p, err)
 	}
 
 	if !ctxutil.IsGitCommit(ctx) {

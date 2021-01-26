@@ -2,6 +2,7 @@ package action
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/internal/config"
@@ -12,8 +13,6 @@ import (
 	"github.com/gopasspw/gopass/pkg/fsutil"
 	"github.com/gopasspw/gopass/pkg/termio"
 	"github.com/urfave/cli/v2"
-
-	"github.com/pkg/errors"
 )
 
 const logo = `
@@ -121,20 +120,20 @@ func (s *Action) init(ctx context.Context, alias, path string, keys ...string) e
 	if len(keys) < 1 {
 		nk, err := cui.AskForPrivateKey(ctx, crypto, "🎮 Please select a private key for encrypting secrets:")
 		if err != nil {
-			return errors.Wrapf(err, "failed to read user input")
+			return fmt.Errorf("failed to read user input: %w", err)
 		}
 		keys = []string{nk}
 	}
 
 	debug.Log("Initializing sub store - Alias: %s - Path: %s - Keys: %+v", alias, path, keys)
 	if err := s.Store.Init(ctx, alias, path, keys...); err != nil {
-		return errors.Wrapf(err, "failed to init store '%s' at '%s'", alias, path)
+		return fmt.Errorf("failed to init store %q at %q: %w", alias, path, err)
 	}
 
 	if alias != "" && path != "" {
 		debug.Log("Mounting sub store %s -> %s", alias, path)
 		if err := s.Store.AddMount(ctx, alias, path); err != nil {
-			return errors.Wrapf(err, "failed to add mount '%s'", alias)
+			return fmt.Errorf("failed to add mount %q: %w", alias, err)
 		}
 	}
 

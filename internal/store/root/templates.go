@@ -2,6 +2,7 @@ package root
 
 import (
 	"context"
+	"fmt"
 	"path/filepath"
 	"sort"
 
@@ -9,8 +10,6 @@ import (
 	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/internal/tree"
 	"github.com/gopasspw/gopass/pkg/debug"
-
-	"github.com/pkg/errors"
 )
 
 // LookupTemplate will lookup and return a template
@@ -41,7 +40,7 @@ func (r *Store) TemplateTree(ctx context.Context) (*tree.Root, error) {
 			continue
 		}
 		if err := root.AddMount(alias, substore.Path()); err != nil {
-			return nil, errors.Errorf("failed to add mount: %s", err)
+			return nil, fmt.Errorf("failed to add mount: %w", err)
 		}
 		for _, t := range substore.ListTemplates(ctx, alias) {
 			debug.Log("[%s] Adding template %s", alias, t)

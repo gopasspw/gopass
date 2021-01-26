@@ -1,6 +1,7 @@
 package fsutil
 
 import (
+	"fmt"
 	"io"
 	"math/rand"
 	"os"
@@ -11,7 +12,6 @@ import (
 	"time"
 
 	"github.com/gopasspw/gopass/pkg/debug"
-	"github.com/pkg/errors"
 )
 
 var reCleanFilename = regexp.MustCompile(`[^\w\d@.-]`)
@@ -96,7 +96,7 @@ func Shred(path string, runs int) error {
 	rand.Seed(time.Now().UnixNano())
 	fh, err := os.OpenFile(path, os.O_WRONLY, 0600)
 	if err != nil {
-		return errors.Wrapf(err, "failed to open file '%s'", path)
+		return fmt.Errorf("failed to open file %q: %w", path, err)
 	}
 	buf := make([]byte, 1024)
 	for i := 0; i < runs; i++ {
@@ -108,21 +108,21 @@ func Shred(path string, runs int) error {
 			buf = make([]byte, 1024)
 		}
 		if _, err := fh.Seek(0, 0); err != nil {
-			return errors.Wrapf(err, "failed to seek to 0,0")
+			return fmt.Errorf("failed to seek to 0,0: %w", err)
 		}
 		if _, err := fh.Write(buf); err != nil {
 			if err != io.EOF {
-				return errors.Wrapf(err, "failed to write to file")
+				return fmt.Errorf("failed to write to file: %w", err)
 			}
 		}
 		// if we fail to sync the written blocks to disk it'd be pointless
 		// do any further loops
 		if err := fh.Sync(); err != nil {
-			return errors.Wrapf(err, "failed to sync to disk")
+			return fmt.Errorf("failed to sync to disk: %w", err)
 		}
 	}
 	if err := fh.Close(); err != nil {
-		return errors.Wrapf(err, "failed to close file after writing")
+		return fmt.Errorf("failed to close file after writing: %w", err)
 	}
 
 	return os.Remove(path)

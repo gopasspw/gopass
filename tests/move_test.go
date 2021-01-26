@@ -26,7 +26,7 @@ func TestMove(t *testing.T) {
 
 	out, err = ts.run("move foo bar")
 	assert.Error(t, err)
-	assert.Equal(t, "\nError: Source foo does not exist in source store : Entry is not in the password store\n", out)
+	assert.Equal(t, "\nError: source foo does not exist in source store : entry is not in the password store\n", out)
 
 	ts.initSecrets("")
 
@@ -34,7 +34,7 @@ func TestMove(t *testing.T) {
 	assert.NoError(t, err)
 
 	out, _ = ts.run("move foo/bar foo/baz")
-	assert.Equal(t, "\nError: Source foo/bar does not exist in source store : Entry is not in the password store\n", out)
+	assert.Equal(t, "\nError: source foo/bar does not exist in source store : entry is not in the password store\n", out)
 
 	_, err = ts.run("show -f bar/foo/bar")
 	assert.NoError(t, err)

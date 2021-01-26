@@ -8,12 +8,10 @@ import (
 	"os"
 	"os/signal"
 
-	"golang.org/x/crypto/ssh/terminal"
+	"golang.org/x/term"
 
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-
-	"github.com/pkg/errors"
 )
 
 // promptPass will prompt user's for a password by terminal.
@@ -24,12 +22,12 @@ func promptPass(ctx context.Context, prompt string) (string, error) {
 
 	// Make a copy of STDIN's state to restore afterward
 	fd := int(os.Stdin.Fd())
-	oldState, err := terminal.GetState(fd)
+	oldState, err := term.GetState(fd)
 	if err != nil {
-		return "", errors.Errorf("Could not get state of terminal: %s", err)
+		return "", fmt.Errorf("could not get state of terminal: %w", err)
 	}
 	defer func() {
-		if err := terminal.Restore(fd, oldState); err != nil {
+		if err := term.Restore(fd, oldState); err != nil {
 			out.Error(ctx, "Failed to restore terminal: %s", err)
 		}
 	}()
@@ -39,14 +37,14 @@ func promptPass(ctx context.Context, prompt string) (string, error) {
 	signal.Notify(sigch, os.Interrupt)
 	go func() {
 		<-sigch
-		if err := terminal.Restore(fd, oldState); err != nil {
+		if err := term.Restore(fd, oldState); err != nil {
 			out.Error(ctx, "Failed to restore terminal: %s", err)
 		}
 		os.Exit(1)
 	}()
 
 	fmt.Fprintf(Stdout, "%s: ", prompt)
-	passBytes, err := terminal.ReadPassword(fd)
+	passBytes, err := term.ReadPassword(fd)
 	fmt.Fprintln(Stdout, "")
 	return string(passBytes), err
 }

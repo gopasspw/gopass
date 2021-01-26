@@ -3,10 +3,10 @@ package cli
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"os/exec"
 
 	"github.com/gopasspw/gopass/pkg/debug"
-	"github.com/pkg/errors"
 )
 
 // GenerateIdentity will create a new GPG keypair in batch mode
@@ -34,7 +34,7 @@ Expire-Date: 0
 
 	debug.Log("%s %+v", cmd.Path, cmd.Args)
 	if err := cmd.Run(); err != nil {
-		return errors.Wrapf(err, "failed to run command: '%s %+v': %q", cmd.Path, cmd.Args, out.String())
+		return fmt.Errorf("failed to run command: '%s %+v': %q - %w", cmd.Path, cmd.Args, out.String(), err)
 	}
 	g.privKeys = nil
 	g.pubKeys = nil

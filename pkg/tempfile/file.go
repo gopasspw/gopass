@@ -4,11 +4,10 @@ package tempfile
 
 import (
 	"context"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
-
-	"github.com/pkg/errors"
 )
 
 // globalPrefix is prefixed to all temporary dirs
@@ -40,7 +39,7 @@ func New(ctx context.Context, prefix string) (*File, error) {
 	fn := filepath.Join(tf.dir, "secret")
 	fh, err := os.OpenFile(fn, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0600)
 	if err != nil {
-		return nil, errors.Errorf("Failed to open file %s: %s", fn, err)
+		return nil, fmt.Errorf("failed to open file %s: %w", fn, err)
 	}
 	tf.fh = fh
 
@@ -58,7 +57,7 @@ func (t *File) Name() string {
 // Write implement io.Writer
 func (t *File) Write(p []byte) (int, error) {
 	if t.fh == nil {
-		return 0, errors.Errorf("not initialized")
+		return 0, fmt.Errorf("not initialized")
 	}
 	return t.fh.Write(p)
 }
@@ -75,7 +74,7 @@ func (t *File) Close() error {
 func (t *File) Remove(ctx context.Context) error {
 	_ = t.Close()
 	if err := t.unmount(ctx); err != nil {
-		return errors.Errorf("Failed to unmount %s from %s: %s", t.dev, t.dir, err)
+		return fmt.Errorf("failed to unmount %s from %s: %w", t.dev, t.dir, err)
 	}
 	if t.dir == "" {
 		return nil

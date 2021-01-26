@@ -2,14 +2,13 @@ package root
 
 import (
 	"context"
+	"fmt"
 	"sort"
 	"strings"
 
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/internal/tree"
-
-	"github.com/pkg/errors"
 )
 
 // List will return a flattened list of all tree entries
@@ -67,11 +66,11 @@ func (r *Store) Tree(ctx context.Context) (*tree.Root, error) {
 			continue
 		}
 		if err := root.AddMount(alias, substore.Path()); err != nil {
-			return nil, errors.Errorf("failed to add mount: %s", err)
+			return nil, fmt.Errorf("failed to add mount: %w", err)
 		}
 		sf, err := substore.List(ctx, "")
 		if err != nil {
-			return nil, errors.Errorf("failed to add file: %s", err)
+			return nil, fmt.Errorf("failed to add file: %w", err)
 		}
 		addFileFunc(sf...)
 		addTplFunc(substore.ListTemplates(ctx, alias)...)

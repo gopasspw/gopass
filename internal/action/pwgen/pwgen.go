@@ -8,7 +8,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/pwgen"
 	"github.com/gopasspw/gopass/pkg/pwgen/xkcdgen"
 	"github.com/urfave/cli/v2"
-	"golang.org/x/crypto/ssh/terminal"
+	"golang.org/x/term"
 )
 
 // Pwgen handles the pwgen subcommand
@@ -82,7 +82,7 @@ func pwGen(c *cli.Context, pwLen, pwNum int) error {
 }
 
 func numPerLine(pwLen int) int {
-	cols, _, err := terminal.GetSize(0)
+	cols, _, err := term.GetSize(0)
 	if err != nil {
 		return 1
 	}

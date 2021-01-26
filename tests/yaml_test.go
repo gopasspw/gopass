@@ -21,7 +21,7 @@ func TestYAMLAndSecret(t *testing.T) {
 	t.Run("default action (show) from initialized store", func(t *testing.T) {
 		out, err := ts.run("foo/bar baz")
 		assert.Error(t, err)
-		assert.Contains(t, out, "Error: failed to retrieve secret 'foo/bar': Entry is not in the password store")
+		assert.Contains(t, out, "Error: failed to retrieve secret 'foo/bar': entry is not in the password store")
 	})
 
 	t.Run("insert key", func(t *testing.T) {
@@ -73,7 +73,7 @@ url: http://www.test.com/`
 	t.Run("show non-existing secret", func(t *testing.T) {
 		out, err := ts.run("foo/bar")
 		assert.Error(t, err)
-		assert.Contains(t, out, "Error: failed to retrieve secret 'foo/bar': Entry is not in the password store")
+		assert.Contains(t, out, "Error: failed to retrieve secret 'foo/bar': entry is not in the password store")
 	})
 
 	t.Run("insert new secret", func(t *testing.T) {

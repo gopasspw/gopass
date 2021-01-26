@@ -1,36 +1,36 @@
 package store
 
-import "github.com/pkg/errors"
+import "fmt"
 
 var (
 	// ErrExistsFailed is returend if we can't check for existence
-	ErrExistsFailed = errors.Errorf("Failed to check for existence")
+	ErrExistsFailed = fmt.Errorf("failed to check for existence")
 	// ErrNotFound is returned if an entry was not found
-	ErrNotFound = errors.Errorf("Entry is not in the password store")
+	ErrNotFound = fmt.Errorf("entry is not in the password store")
 	// ErrEncrypt is returned if we failed to encrypt an entry
-	ErrEncrypt = errors.Errorf("Failed to encrypt")
+	ErrEncrypt = fmt.Errorf("failed to encrypt")
 	// ErrDecrypt is returned if we failed to decrypt and entry
-	ErrDecrypt = errors.Errorf("Failed to decrypt")
+	ErrDecrypt = fmt.Errorf("failed to decrypt")
 	// ErrIO is any kind of I/O error
-	ErrIO = errors.Errorf("I/O error")
+	ErrIO = fmt.Errorf("i/o error")
 	// ErrGitInit is returned if git is already initialized
-	ErrGitInit = errors.Errorf("git is already initialized")
+	ErrGitInit = fmt.Errorf("git is already initialized")
 	// ErrGitNotInit is returned if git is not initialized
-	ErrGitNotInit = errors.Errorf("git is not initialized")
+	ErrGitNotInit = fmt.Errorf("git is not initialized")
 	// ErrGitNoRemote is returned if git has no origin remote
-	ErrGitNoRemote = errors.Errorf("git has no remote origin")
+	ErrGitNoRemote = fmt.Errorf("git has no remote origin")
 	// ErrGitNothingToCommit is returned if there are no staged changes
-	ErrGitNothingToCommit = errors.Errorf("git has nothing to commit")
+	ErrGitNothingToCommit = fmt.Errorf("git has nothing to commit")
 	// ErrEmptySecret is returned if a secret exists but has no content
-	ErrEmptySecret = errors.Errorf("empty secret")
+	ErrEmptySecret = fmt.Errorf("empty secret")
 	// ErrNoBody is returned if a secret exists but has no content beyond a password
-	ErrNoBody = errors.Errorf("no safe content to display, you can force display with -f")
+	ErrNoBody = fmt.Errorf("no safe content to display, you can force display with -f")
 	// ErrNoPassword is returned is a secret exists but has no password, only a body
-	ErrNoPassword = errors.Errorf("no password to display")
+	ErrNoPassword = fmt.Errorf("no password to display")
 	// ErrYAMLNoMark is returned if a secret contains no valid YAML document marker
-	ErrYAMLNoMark = errors.Errorf("no YAML document marker found")
+	ErrYAMLNoMark = fmt.Errorf("no YAML document marker found")
 	// ErrNoKey is returned if a KV or YAML entry doesn't contain a key
-	ErrNoKey = errors.Errorf("key not found in entry")
+	ErrNoKey = fmt.Errorf("key not found in entry")
 	// ErrYAMLValueUnsupported is returned is the user tries to unmarshal an nested struct
-	ErrYAMLValueUnsupported = errors.Errorf("can not unmarshal nested YAML value")
+	ErrYAMLValueUnsupported = fmt.Errorf("can not unmarshal nested YAML value")
 )
