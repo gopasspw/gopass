@@ -7,6 +7,7 @@ import (
 	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/internal/cui"
 	"github.com/gopasspw/gopass/internal/out"
+	si "github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/termio"
@@ -136,10 +137,11 @@ func (s *Action) RCSPush(c *cli.Context) error {
 	origin := c.Args().Get(0)
 	branch := c.Args().Get(1)
 
-	if origin == "" || branch == "" {
-		return ExitError(ExitUsage, nil, "Usage: %s git push <ORIGIN> <BRANCH>", s.Name)
-	}
 	if err := s.Store.RCSPush(ctx, store, origin, branch); err != nil {
+		if errors.Is(err, si.ErrGitNoRemote) {
+			out.Notice(ctx, "No Git remote. Not pushing")
+			return nil
+		}
 		return ExitError(ExitGit, err, "Failed to push to remote")
 	}
 	out.OK(ctx, "Pushed to git remote")

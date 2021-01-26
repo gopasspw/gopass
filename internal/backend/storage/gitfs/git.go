@@ -235,7 +235,8 @@ func (g *Git) defaultRemote(ctx context.Context, branch string) string {
 func (g *Git) defaultBranch(ctx context.Context) string {
 	out, _, err := g.captureCmd(ctx, "defaultBranch", "rev-parse", "--abbrev-ref", "HEAD")
 	if err != nil || string(out) == "" {
-		return "master"
+		// see https://github.com/github/renaming
+		return "main"
 	}
 	return strings.TrimSpace(string(out))
 }
