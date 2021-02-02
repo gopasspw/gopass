@@ -12,7 +12,6 @@ import (
 )
 
 // parseLegacyMIME is a fallback parser for the transient MIME format
-// TODO Add tests
 func parseLegacyMIME(buf []byte) (*secrets.KV, error) {
 	var hdr textproto.MIMEHeader
 	body := &bytes.Buffer{}

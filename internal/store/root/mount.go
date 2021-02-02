@@ -138,31 +138,27 @@ func (r *Store) Lock() error {
 }
 
 // getStore returns the Store object at the most-specific mount point for the
-// given key
-// context with sub store options set, sub store reference, truncated path to secret
-// TODO: do not return ctx
-func (r *Store) getStore(ctx context.Context, name string) (context.Context, *leaf.Store, string) {
-	ctx = r.cfg.WithContext(ctx)
+// given key. returns sub store reference, truncated path to secret
+func (r *Store) getStore(name string) (*leaf.Store, string) {
 	name = strings.TrimSuffix(name, "/")
 	mp := r.MountPoint(name)
 	if sub, found := r.mounts[mp]; found {
-		return ctx, sub, strings.TrimPrefix(name, sub.Alias())
+		return sub, strings.TrimPrefix(name, sub.Alias())
 	}
-	return ctx, r.store, name
+	return r.store, name
 }
 
 // GetSubStore returns an exact match for a mount point or an error if this
 // mount point does not exist
-// TODO do not return ctx
-func (r *Store) GetSubStore(ctx context.Context, name string) (context.Context, *leaf.Store, error) {
+func (r *Store) GetSubStore(name string) (*leaf.Store, error) {
 	if name == "" {
-		return ctx, r.store, nil
+		return r.store, nil
 	}
 	if sub, found := r.mounts[name]; found {
-		return ctx, sub, nil
+		return sub, nil
 	}
 	debug.Log("mounts available: %+v", r.mounts)
-	return nil, nil, fmt.Errorf("no such mount point %q", name)
+	return nil, fmt.Errorf("no such mount point %q", name)
 }
 
 // checkMounts performs some sanity checks on our mounts. At the moment it

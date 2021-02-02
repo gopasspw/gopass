@@ -31,8 +31,9 @@ func TestGit(t *testing.T) {
 	assert.NoError(t, s.Storage().InitConfig(ctx, "foo", "bar@baz.com"))
 	assert.Equal(t, semver.Version{Minor: 1}, s.Storage().Version(ctx))
 	assert.NoError(t, s.Storage().AddRemote(ctx, "foo", "bar"))
-	assert.NoError(t, s.Storage().Pull(ctx, "origin", "master"))
-	assert.NoError(t, s.Storage().Push(ctx, "origin", "master"))
+	// RCS ops not supported by the fs backend
+	assert.Error(t, s.Storage().Pull(ctx, "origin", "master"))
+	assert.Error(t, s.Storage().Push(ctx, "origin", "master"))
 
 	assert.NoError(t, s.GitInit(ctx))
 	assert.NoError(t, s.GitInit(backend.WithStorageBackend(ctx, backend.FS)))

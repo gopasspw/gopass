@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"time"
 
 	"filippo.io/age"
 	"filippo.io/age/agessh"
@@ -38,7 +39,7 @@ type Age struct {
 
 // New creates a new Age backend
 func New() (*Age, error) {
-	cDir, err := cache.NewOnDisk("age-github")
+	cDir, err := cache.NewOnDisk("age-github", 6*time.Hour)
 	if err != nil {
 		return nil, err
 	}

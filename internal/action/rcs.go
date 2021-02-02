@@ -38,24 +38,20 @@ func (s *Action) RCSInit(c *cli.Context) error {
 }
 
 func (s *Action) rcsInit(ctx context.Context, store, un, ue string) error {
-	// TODO this is a hack, we just skip rcsInit if the backend is FS, which
-	// doesn't support this. The check should rather ask the backend if it
-	// can be initialized for RCS.
-	if backend.GetStorageBackend(ctx) == backend.FS {
-		return nil
-	}
 	bn := backend.StorageBackendName(backend.GetStorageBackend(ctx))
-	out.Print(ctx, "Initializing git repository (%s) for %s / %s...", bn, un, ue)
-
 	userName, userEmail := s.getUserData(ctx, store, un, ue)
 	if err := s.Store.RCSInit(ctx, store, userName, userEmail); err != nil {
+		if errors.Is(err, backend.ErrNotSupported) {
+			debug.Log("RCSInit not supported for backend %s", bn)
+			return nil
+		}
 		if gtv := os.Getenv("GPG_TTY"); gtv == "" {
 			out.Print(ctx, "Git initialization failed. You may want to try to 'export GPG_TTY=$(tty)' and start over.")
 		}
 		return fmt.Errorf("failed to run git init: %w", err)
 	}
 
-	out.Print(ctx, "Git initialized")
+	out.Print(ctx, "Initialized git repository (%s) for %s / %s...", bn, un, ue)
 	return nil
 }
 

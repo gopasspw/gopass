@@ -67,6 +67,8 @@ var commandsWithError = map[string]struct{}{
 	".fscopy":            {},
 	".fsmove":            {},
 	".generate":          {},
+	".git.push":          {},
+	".git.pull":          {},
 	".git.remote.add":    {},
 	".git.remote.remove": {},
 	".grep":              {},

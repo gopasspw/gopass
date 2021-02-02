@@ -3,12 +3,14 @@ package action
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"os"
 	"runtime"
 	"testing"
 
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/pwgen"
 	"github.com/gopasspw/gopass/tests/gptest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -37,12 +39,13 @@ func TestEnvLeafHappyPath(t *testing.T) {
 
 	// Command-line would be: "gopass env foo env", where "foo" is an existing
 	// secret with value "secret". We expect to see the key/value in the output
-	// of the /usr/bin/env utility in the form "FOO=secret".
-	//
-	// TODO(@dominikschulz): consider populating foo with a long, random password to
-	// absolutely ensure that the correct secret is displayed.
-	assert.NoError(t, act.Env(gptest.CliCtx(ctx, t, "foo", "env")))
-	assert.Contains(t, buf.String(), "FOO=secret\n")
+	// of the /usr/bin/env utility in the form "BAZ=secret".
+	pw := pwgen.GeneratePassword(24, false)
+	assert.NoError(t, act.insertStdin(ctx, "baz", []byte(pw), false))
+	buf.Reset()
+
+	assert.NoError(t, act.Env(gptest.CliCtx(ctx, t, "baz", "env")))
+	assert.Contains(t, buf.String(), fmt.Sprintf("BAZ=%s\n", pw))
 }
 
 func TestEnvSecretNotFound(t *testing.T) {

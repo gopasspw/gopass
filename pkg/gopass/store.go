@@ -42,7 +42,7 @@ type Store interface {
 	Get(ctx context.Context, name, revision string) (Secret, error)
 	// Set (add) a new revision of an secret
 	Set(ctx context.Context, name string, sec Byter) error
-	// Revisions is TODO
+	// Revisions return a list of revisions for a secret
 	Revisions(ctx context.Context, name string) ([]string, error)
 	// Remove a single secret
 	Remove(ctx context.Context, name string) error

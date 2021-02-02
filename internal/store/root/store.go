@@ -37,13 +37,13 @@ func (r *Store) WithContext(ctx context.Context) context.Context {
 
 // Exists checks the existence of a single entry
 func (r *Store) Exists(ctx context.Context, name string) bool {
-	_, store, name := r.getStore(ctx, name)
+	store, name := r.getStore(name)
 	return store.Exists(ctx, name)
 }
 
 // IsDir checks if a given key is actually a folder
 func (r *Store) IsDir(ctx context.Context, name string) bool {
-	_, store, name := r.getStore(ctx, name)
+	store, name := r.getStore(name)
 	return store.IsDir(ctx, name)
 }
 
@@ -74,7 +74,7 @@ func (r *Store) Alias() string {
 
 // Storage returns the storage backend for the given mount point
 func (r *Store) Storage(ctx context.Context, name string) backend.Storage {
-	_, sub, _ := r.getStore(ctx, name)
+	sub, _ := r.getStore(name)
 	if sub == nil || !sub.Valid() {
 		return nil
 	}

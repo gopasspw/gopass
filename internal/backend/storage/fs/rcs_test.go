@@ -15,12 +15,13 @@ func TestRCS(t *testing.T) {
 	defer cleanup()
 
 	g := New(path)
-	assert.NoError(t, g.Add(ctx, "foo", "bar"))
-	assert.NoError(t, g.Commit(ctx, "foobar"))
-	assert.NoError(t, g.Push(ctx, "foo", "bar"))
-	assert.NoError(t, g.Pull(ctx, "foo", "bar"))
+	// the fs backend does not support the RCS operations
+	assert.Error(t, g.Add(ctx, "foo", "bar"))
+	assert.Error(t, g.Commit(ctx, "foobar"))
+	assert.Error(t, g.Push(ctx, "foo", "bar"))
+	assert.Error(t, g.Pull(ctx, "foo", "bar"))
 	assert.NoError(t, g.Cmd(ctx, "foo", "bar"))
-	assert.NoError(t, g.Init(ctx, "foo", "bar"))
+	assert.Error(t, g.Init(ctx, "foo", "bar"))
 	assert.NoError(t, g.InitConfig(ctx, "foo", "bar"))
 	assert.Equal(t, g.Version(ctx), semver.Version{Minor: 1})
 	assert.Equal(t, "fs", g.Name())

@@ -9,7 +9,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/debug"
 )
 
-// FindIdentities it TODO
+// FindIdentities returns all usable identities (SSH and native)
 func (a *Age) FindIdentities(ctx context.Context, keys ...string) ([]string, error) {
 	nk, err := a.getAllIdentities(ctx)
 	if err != nil {
@@ -53,27 +53,27 @@ func (a *Age) FindRecipients(ctx context.Context, keys ...string) ([]string, err
 	return append(ids, remote...), nil
 }
 
-// FormatKey is TODO
+// FormatKey returns the key id
 func (a *Age) FormatKey(ctx context.Context, id, tpl string) string {
 	return id
 }
 
-// Fingerprint return the id
+// Fingerprint returns the id
 func (a *Age) Fingerprint(ctx context.Context, id string) string {
 	return id
 }
 
-// ListRecipients is TODO
+// ListRecipients is not supported for the age backend
 func (a *Age) ListRecipients(context.Context) ([]string, error) {
 	return nil, fmt.Errorf("not implemented")
 }
 
-// ReadNamesFromKey is TODO
+// ReadNamesFromKey is not supported for the age backend
 func (a *Age) ReadNamesFromKey(ctx context.Context, buf []byte) ([]string, error) {
 	return nil, fmt.Errorf("not implemented")
 }
 
-// RecipientIDs is not supported by design
+// RecipientIDs is not supported for the age backend
 func (a *Age) RecipientIDs(ctx context.Context, buf []byte) ([]string, error) {
 	return nil, fmt.Errorf("reading recipient IDs is not supported by the age backend by design")
 }
