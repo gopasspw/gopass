@@ -5,8 +5,11 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
+    open-pull-requests-limit: 5
+
  
   - package-ecosystem: "gomod"
     directory: "/"
     schedule:
       interval: "daily"
+    open-pull-requests-limit: 5
