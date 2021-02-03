@@ -14,6 +14,7 @@ import (
 	"github.com/blang/semver/v4"
 )
 
+var sleep = time.Second
 var verTmpl = `package main
 
 import (
@@ -113,19 +114,19 @@ func main() {
 		panic(err)
 	}
 	fmt.Println("✅ Wrote VERSION")
-	time.Sleep(100 * time.Millisecond)
+	time.Sleep(sleep)
 	// - update version.go
 	if err := writeVersionGo(nextVer); err != nil {
 		panic(err)
 	}
 	fmt.Println("✅ Wrote version.go")
-	time.Sleep(100 * time.Millisecond)
+	time.Sleep(sleep)
 	// - update CHANGELOG.md
 	if err := writeChangelog(gitVer, nextVer); err != nil {
 		panic(err)
 	}
 	fmt.Println("✅ Updated CHANGELOG.md")
-	time.Sleep(100 * time.Millisecond)
+	time.Sleep(sleep)
 
 	// - create PR
 	//   git checkout -b release/vX.Y.Z
@@ -133,52 +134,56 @@ func main() {
 		panic(err)
 	}
 	fmt.Printf("✅ Created branch release/v%s\n", nextVer.String())
-	time.Sleep(100 * time.Millisecond)
+	time.Sleep(sleep)
 
 	// commit changes
 	if err := gitCommit(nextVer); err != nil {
 		panic(err)
 	}
 	fmt.Printf("✅ Committed changes to release/v%s\n", nextVer.String())
-	time.Sleep(100 * time.Millisecond)
+	time.Sleep(sleep)
 
-	fmt.Println("🏁 Done")
-	fmt.Printf("⚠ Prepared release of gopass %s. Now push this branch to your fork and open a pull request against gopasspw/gopass master.\n", nextVer.String())
+	fmt.Println("🏁 Preparation finished")
+	time.Sleep(sleep)
+
+	fmt.Printf("⚠ Prepared release of gopass %s.\n", nextVer.String())
+	time.Sleep(sleep)
+
+	fmt.Printf("⚠ Run 'git push <remote> release/v%s' to push this branch and open a PR against gopasspw/gopass master.\n", nextVer.String())
+	time.Sleep(sleep)
+
+	fmt.Printf("⚠ Get PR merged and run 'git tag v%s'. Then push that tag to kick off the release process.\n", nextVer.String())
+	time.Sleep(sleep)
 	fmt.Println()
-	fmt.Printf("⚠ After that PR has been merged tag it as 'v%s' and push that tag to kick of the release proecess.\n", nextVer.String())
-	fmt.Println()
+
+	fmt.Println("💎🙌 Done 🚀🚀🚀🚀🚀🚀")
 }
 
 func gitCoMaster() error {
 	cmd := exec.Command("git", "checkout", "master")
-	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	return cmd.Run()
 }
 
 func gitPom() error {
 	cmd := exec.Command("git", "pull", "origin", "master")
-	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	return cmd.Run()
 }
 
 func gitCoRel(v semver.Version) error {
 	cmd := exec.Command("git", "checkout", "-b", "release/v"+v.String())
-	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	return cmd.Run()
 }
 
 func gitCommit(v semver.Version) error {
 	cmd := exec.Command("git", "add", "CHANGELOG.md", "VERSION", "version.go")
-	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
 		return err
 	}
-	cmd = exec.Command("git", "commit", "-s", "-m", "Tag v"+v.String())
-	cmd.Stdout = os.Stdout
+	cmd = exec.Command("git", "commit", "-s", "-m", "Tag v"+v.String(), "-m", "RELEASE_NOTES=n/a")
 	cmd.Stderr = os.Stderr
 	return cmd.Run()
 }
@@ -220,7 +225,7 @@ func writeChangelog(prev, next semver.Version) error {
 }
 
 func writeVersion(v semver.Version) error {
-	return ioutil.WriteFile("VERSION", []byte(v.String()), 0644)
+	return ioutil.WriteFile("VERSION", []byte(v.String()+"\n"), 0644)
 }
 
 type tplPayload struct {
