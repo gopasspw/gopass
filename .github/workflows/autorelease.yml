@@ -46,7 +46,8 @@ jobs:
           env
       -
         name: Generate release-notes
-        run: go run helpers/changelog/main.go
+        run: |
+          go run helpers/changelog/main.go >../RELEASE_NOTES
       -
         name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v2
