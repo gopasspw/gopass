@@ -1,3 +1,30 @@
+## 1.12.0-rc1 / 2021-02-03
+
+* [BUGFIX] Add signature verification for updater
+* [BUGFIX] Allow using tilde
+* [BUGFIX] Always allow removing mounts
+* [BUGFIX] Ask passphrase upon key generation
+* [BUGFIX] Do not overwrite age keyring
+* [BUGFIX] Remove empty parents on gopass rm -r
+* [BUGFIX] The empty password must now be confirmed too
+* [BUGFIX] Use the first GPG found in path on Windows
+* [BUGFIX] Warn about --throw-keyids
+* [CLEANUP] Remove migrated binaries
+* [CLEANUP] Remove the ondisk backend
+* [ENHANCEMENT] Add -A and -B to pwgen
+* [ENHANCEMENT] Add Pinentry CLI fallback
+* [ENHANCEMENT] Add REPL cmd lock
+* [ENHANCEMENT] Add optional pinentry unescaping
+* [ENHANCEMENT] Add tpl funcs for Bcrypt and Argon2
+* [ENHANCEMENT] Add windows support to the self updater
+* [ENHANCEMENT] Confirm new age keyring passphrases
+* [ENHANCEMENT] KV secrets are now key-values, supporting multiple same key with different values
+* [ENHANCEMENT] UTF-8 emojis
+* [ENHANCEMENT] Use gpgconf to the the gpg binary
+* [ENHANCEMENT] Use main as the git default branch
+* [ENHANCEMENT] Use persistent SSH connections
+* [TESTING] Adding DI to Github Actions
+
 ## 1.11.0 / 2020-01-12
 
 This is an important bugfix release that should resolve several outstanding
