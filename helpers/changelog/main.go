@@ -14,6 +14,12 @@ func main() {
 	}
 	defer fh.Close()
 
+	fw, err := os.Create("RELEASE_NOTES")
+	if err != nil {
+		panic(err)
+	}
+	defer fw.Close()
+
 	s := bufio.NewScanner(fh)
 	var in bool
 	for s.Scan() {
@@ -24,6 +30,10 @@ func main() {
 			}
 			in = true
 		}
-		fmt.Println(line)
+
+		_, err := fmt.Fprintln(fw, line)
+		if err != nil {
+			panic(err)
+		}
 	}
 }
