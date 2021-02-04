@@ -14,7 +14,7 @@ func main() {
 	}
 	defer fh.Close()
 
-	fw, err := os.Create("RELEASE_NOTES")
+	fw, err := os.Create("../RELEASE_NOTES")
 	if err != nil {
 		panic(err)
 	}
