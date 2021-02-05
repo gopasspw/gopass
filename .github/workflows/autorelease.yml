@@ -25,6 +25,7 @@ jobs:
           go-version: 1.15
       -
         name: Import GPG signing key
+        id: import_gpg
         uses: crazy-max/ghaction-import-gpg@v3
         with:
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
