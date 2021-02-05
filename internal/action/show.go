@@ -204,7 +204,7 @@ func (s *Action) showGetContent(ctx context.Context, sec gopass.Secret) (string,
 	// everything but the first line
 	if ctxutil.IsShowSafeContent(ctx) && !ctxutil.IsForce(ctx) {
 		var sb strings.Builder
-		for _, k := range sec.Keys() {
+		for i, k := range sec.Keys() {
 			sb.WriteString(k)
 			sb.WriteString(": ")
 			// check if this key should be obstructed
@@ -218,7 +218,10 @@ func (s *Action) showGetContent(ctx context.Context, sec gopass.Secret) (string,
 				}
 				sb.WriteString(strings.Join(v, "\n"+k+": "))
 			}
-			sb.WriteString("\n")
+			// we only add a final new line if the body is non-empty
+			if sec.Body() != "" || i < len(sec.Keys())-1 {
+				sb.WriteString("\n")
+			}
 		}
 
 		sb.WriteString(sec.Body())

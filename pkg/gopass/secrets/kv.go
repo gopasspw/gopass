@@ -82,15 +82,22 @@ func (k *KV) Bytes() []byte {
 	buf := &bytes.Buffer{}
 	buf.WriteString(k.password)
 	buf.WriteString("\n")
-	for _, key := range k.Keys() {
+	for ik, key := range k.Keys() {
 		sv, ok := k.data[key]
 		if !ok {
 			continue
 		}
-		for _, v := range sv {
+		for iv, v := range sv {
 			_, _ = buf.WriteString(key)
 			_, _ = buf.WriteString(": ")
 			_, _ = buf.WriteString(v)
+			// the last one shouldn't add a newline, it's handled below
+			if iv < len(sv)-1 {
+				_, _ = buf.WriteString("\n")
+			}
+		}
+		// we must only add a final newline if the body is non-empty
+		if k.body != "" || ik < len(k.Keys())-1 {
 			_, _ = buf.WriteString("\n")
 		}
 	}
@@ -202,6 +209,8 @@ func ParseKV(in []byte) (*KV, error) {
 		for i, part := range parts {
 			parts[i] = strings.TrimSpace(part)
 		}
+		// we only store lower case keys for KV
+		parts[0] = strings.ToLower(parts[0])
 		// preserve key only entries
 		if len(parts) < 2 {
 			k.data[parts[0]] = append(k.data[parts[0]], "")
