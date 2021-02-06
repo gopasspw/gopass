@@ -86,12 +86,8 @@ func TestMultiKeyKVMIME(t *testing.T) {
 foo: baz
 foo: bar
 zab: 123`
-	out := `passw0rd
-foo: baz
-foo: bar
-zab: 123
-`
+
 	sec, err := ParseKV([]byte(in))
 	require.NoError(t, err)
-	assert.Equal(t, out, string(sec.Bytes()))
+	assert.Equal(t, in, string(sec.Bytes()))
 }

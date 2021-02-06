@@ -78,7 +78,11 @@ func TestInsert(t *testing.T) {
 		buf.Reset()
 
 		assert.NoError(t, act.show(ctx, gptest.CliCtx(ctx, t), "baz", false))
-		assert.Equal(t, "foobar\nOther: meh\nUser: name\ninvalid key-value\nbody text", buf.String())
+		assert.Equal(t, "foobar\nother: meh\nuser: name\ninvalid key-value\nbody text", buf.String())
+		buf.Reset()
+
+		assert.NoError(t, act.show(ctxutil.WithShowParsing(ctx, false), gptest.CliCtx(ctx, t), "baz", false))
+		assert.Equal(t, "foobar\ninvalid key-value\nOther: meh\nUser: name\nbody text", buf.String())
 		buf.Reset()
 	})
 
@@ -108,7 +112,7 @@ func TestInsert(t *testing.T) {
 		buf.Reset()
 
 		assert.NoError(t, act.show(ctx, gptest.CliCtx(ctx, t), "baz", false))
-		assert.Equal(t, "other: 83\nuser: name\n", buf.String())
+		assert.Equal(t, "other: 83\nuser: name", buf.String())
 		buf.Reset()
 	})
 

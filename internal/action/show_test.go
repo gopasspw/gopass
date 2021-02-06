@@ -157,7 +157,7 @@ func TestShowMulti(t *testing.T) {
 		c := gptest.CliCtx(ctx, t, "bar/baz", "bar")
 
 		assert.NoError(t, act.Show(c))
-		assert.Equal(t, "bar: zab\n", buf.String())
+		assert.Equal(t, "bar: zab", buf.String())
 		buf.Reset()
 	})
 
@@ -166,6 +166,18 @@ func TestShowMulti(t *testing.T) {
 		c := gptest.CliCtx(ctx, t, "bar/baz", "nonexisting")
 
 		assert.Error(t, act.Show(c))
+		buf.Reset()
+	})
+
+	t.Run("show keys with mixed case", func(t *testing.T) {
+		ctx = ctxutil.WithShowParsing(ctx, true)
+
+		assert.NoError(t, act.insertStdin(ctx, "baz", []byte("foobar\nOther: meh\nuser: name\nbody text"), false))
+		buf.Reset()
+
+		c := gptest.CliCtx(ctx, t, "baz", "Other")
+		assert.NoError(t, act.Show(c))
+		assert.Equal(t, "meh", buf.String())
 		buf.Reset()
 	})
 }

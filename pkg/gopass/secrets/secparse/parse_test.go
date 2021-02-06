@@ -25,9 +25,9 @@ func TestParse(t *testing.T) {
 
 func TestParsedIsSerialized(t *testing.T) {
 	for _, tc := range []string{
-		"foo\n",                   // Plain
-		"foo\nbar\n",              // Plain
-		"foo\nbar: baz\n",         // KV
+		"foo",                     // Plain
+		"foo\nbar",                // Plain
+		"foo\nbar: baz",           // KV
 		"foo\nbar\n---\nzab: 1\n", // YAML
 		// MIME is forcefully converted to KV
 	} {
