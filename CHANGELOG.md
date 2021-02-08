@@ -1,3 +1,7 @@
+## 1.12.0-rc2 / 2021-02-07
+
+* [BUGFIX] fixed mixed case keys for key-value, all keys are lower case now (#1778)
+
 ## 1.12.0-rc1 / 2021-02-03
 
 * [BUGFIX] Add signature verification for updater
