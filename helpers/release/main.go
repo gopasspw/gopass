@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"regexp"
 	"sort"
 	"strings"
 	"text/template"
@@ -15,6 +16,7 @@ import (
 )
 
 var sleep = time.Second
+var issueRE = regexp.MustCompile(`#(\d+)\b`)
 var verTmpl = `package main
 
 import (
@@ -77,31 +79,8 @@ func main() {
 		panic("git is dirty")
 	}
 	fmt.Println("✅ git is still clean")
-	// - calculate next version
-	gitVer, err := gitVersion()
-	if err != nil {
-		panic(err)
-	}
-	vfVer, err := versionFile()
-	if err != nil {
-		panic(err)
-	}
 
-	if gitVer.NE(vfVer) {
-		fmt.Printf("git version: %q != VERSION: %q", gitVer.String(), vfVer.String())
-		panic("version mismatch")
-	}
-	fmt.Printf("✅ previous version is consistent (%s)\n", gitVer.String())
-
-	nextVer := gitVer
-	if len(os.Args) > 1 {
-		nextVer = semver.MustParse(strings.TrimPrefix(os.Args[1], "v"))
-		if nextVer.LTE(gitVer) {
-			panic("next version must be greather than the previous version")
-		}
-	} else {
-		nextVer.IncrementPatch()
-	}
+	prevVer, nextVer := getVersions()
 
 	fmt.Println()
 	fmt.Printf("✅ New version will be: %s\n", nextVer.String())
@@ -122,7 +101,7 @@ func main() {
 	fmt.Println("✅ Wrote version.go")
 	time.Sleep(sleep)
 	// - update CHANGELOG.md
-	if err := writeChangelog(gitVer, nextVer); err != nil {
+	if err := writeChangelog(prevVer, nextVer); err != nil {
 		panic(err)
 	}
 	fmt.Println("✅ Updated CHANGELOG.md")
@@ -143,6 +122,13 @@ func main() {
 	fmt.Printf("✅ Committed changes to release/v%s\n", nextVer.String())
 	time.Sleep(sleep)
 
+	// tag
+	if err := gitTag(nextVer); err != nil {
+		panic(err)
+	}
+	fmt.Printf("✅ Tagged v%s\n", nextVer.String())
+	time.Sleep(sleep)
+
 	fmt.Println("🏁 Preparation finished")
 	time.Sleep(sleep)
 
@@ -152,11 +138,81 @@ func main() {
 	fmt.Printf("⚠ Run 'git push <remote> release/v%s' to push this branch and open a PR against gopasspw/gopass master.\n", nextVer.String())
 	time.Sleep(sleep)
 
-	fmt.Printf("⚠ Get PR merged and run 'git tag v%s'. Then push that tag to kick off the release process.\n", nextVer.String())
+	fmt.Printf("⚠ Get the PR merged and run 'git push origin v%s' to kick off the release process.\n", nextVer.String())
 	time.Sleep(sleep)
 	fmt.Println()
 
 	fmt.Println("💎🙌 Done 🚀🚀🚀🚀🚀🚀")
+}
+
+func getVersions() (semver.Version, semver.Version) {
+	nextVerFlag := ""
+	if len(os.Args) > 1 {
+		nextVerFlag = strings.TrimSpace(strings.TrimPrefix(os.Args[1], "v"))
+	}
+	prevVerFlag := ""
+	if len(os.Args) > 2 {
+		prevVerFlag = strings.TrimSpace(strings.TrimPrefix(os.Args[2], "v"))
+	}
+
+	// obtain the last tagged version from git
+	gitVer, err := gitVersion()
+	if err != nil {
+		panic(err)
+	}
+
+	// read the version file to get the last committed version
+	vfVer, err := versionFile()
+	if err != nil {
+		panic(err)
+	}
+
+	prevVer := gitVer
+	if prevVerFlag != "" {
+		prevVer = semver.MustParse(prevVerFlag)
+	}
+
+	if gitVer.NE(vfVer) {
+		fmt.Printf("git version: %q != VERSION: %q\n", gitVer.String(), vfVer.String())
+		if prevVerFlag == "" && len(vfVer.Pre) < 1 {
+			usage()
+			panic("version mismatch")
+		}
+	}
+
+	nextVer := prevVer
+	if nextVerFlag != "" {
+		nextVer = semver.MustParse(nextVerFlag)
+		if nextVer.LTE(prevVer) {
+			usage()
+			panic("next version must be greather than the previous version")
+		}
+	} else {
+		nextVer.IncrementPatch()
+		if len(vfVer.Pre) > 0 {
+			nextVer = vfVer
+			nextVer.Pre = nil
+		}
+	}
+
+	fmt.Printf(`☝ Version overview
+  Git (latest tag):  %q
+  VERSION:           %q
+  Next version flag: %q
+  Prev version flag: %q
+
+Will use
+  Previous: %q
+  Next:     %q
+`,
+		gitVer,
+		vfVer,
+		prevVerFlag,
+		nextVerFlag,
+		prevVer,
+		nextVer)
+
+	return prevVer, nextVer
 }
 
 func gitCoMaster() error {
@@ -184,6 +240,12 @@ func gitCommit(v semver.Version) error {
 		return err
 	}
 	cmd = exec.Command("git", "commit", "-s", "-m", "Tag v"+v.String(), "-m", "RELEASE_NOTES=n/a")
+	cmd.Stderr = os.Stderr
+	return cmd.Run()
+}
+
+func gitTag(v semver.Version) error {
+	cmd := exec.Command("git", "tag", "v"+v.String())
 	cmd.Stderr = os.Stderr
 	return cmd.Run()
 }
@@ -280,28 +342,68 @@ func gitVersion() (semver.Version, error) {
 }
 
 func changelogEntries(since semver.Version) ([]string, error) {
-	buf, err := exec.Command("git", "log", "v"+since.String()+"..HEAD", "--pretty=full", "--grep=RELEASE_NOTES").CombinedOutput()
-	if err != nil {
-		return nil, err
+	gitSep := "@@@GIT-SEP@@@"
+	gitDelim := "@@@GIT-DELIM@@@"
+	// full hash - subject - body
+	// note: we don't use the hash at the moment
+	prettyFormat := gitSep + "%H" + gitDelim + "%s" + gitDelim + "%b" + gitSep
+	args := []string{
+		"log",
+		"v" + since.String() + "..HEAD",
+		"--pretty=" + prettyFormat,
 	}
+	buf, err := exec.Command("git", args...).CombinedOutput()
+	if err != nil {
+		return nil, fmt.Errorf("failed to run git %+v with error %w: %s", args, err, string(buf))
+	}
+
 	notes := make([]string, 0, 10)
-	lines := strings.Split(string(buf), "\n")
-	for _, line := range lines {
-		line := strings.TrimSpace(line)
-		if !strings.HasPrefix(line, "RELEASE_NOTES=") {
+	commits := strings.Split(string(buf), gitSep)
+	for _, commit := range commits {
+		commit := strings.TrimSpace(commit)
+		if commit == "" {
 			continue
 		}
-		p := strings.Split(line, "=")
-		if len(p) < 2 {
+		p := strings.Split(commit, gitDelim)
+		if len(p) < 3 {
+			// invalid entry, shouldn't happen
 			continue
 		}
-		val := p[1]
-		if strings.ToLower(val) == "n/a" {
-			continue
+
+		issues := []string{}
+		if m := issueRE.FindStringSubmatch(strings.TrimSpace(p[1])); len(m) > 1 {
+			issues = append(issues, m[1])
 		}
-		notes = append(notes, val)
+
+		for _, line := range strings.Split(p[2], "\n") {
+			line := strings.TrimSpace(line)
+
+			if m := issueRE.FindStringSubmatch(line); len(m) > 1 {
+				issues = append(issues, m[1])
+			}
+
+			if !strings.HasPrefix(line, "RELEASE_NOTES=") {
+				continue
+			}
+			p := strings.Split(line, "=")
+			if len(p) < 2 {
+				continue
+			}
+			val := p[1]
+			if strings.ToLower(val) == "n/a" {
+				continue
+			}
+			if len(issues) > 0 {
+				val += " (#" + strings.Join(issues, ", #") + ")"
+			}
+			notes = append(notes, val)
+		}
 	}
 
 	sort.Strings(notes)
 	return notes, nil
+}
+
+func usage() {
+	fmt.Printf("Usage: %s [next version] [prev version]\n", "go run helpers/release/main.go")
 }
