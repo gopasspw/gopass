@@ -3,7 +3,7 @@ module github.com/gopasspw/gopass
 go 1.12
 
 require (
-	filippo.io/age v1.0.0-beta6
+	filippo.io/age v1.0.0-beta7
 	filippo.io/edwards25519 v1.0.0-beta.2 // indirect
 	github.com/atotto/clipboard v0.1.2
 	github.com/blang/semver/v4 v4.0.0
