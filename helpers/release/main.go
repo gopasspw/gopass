@@ -122,13 +122,6 @@ func main() {
 	fmt.Printf("✅ Committed changes to release/v%s\n", nextVer.String())
 	time.Sleep(sleep)
 
-	// tag
-	if err := gitTag(nextVer); err != nil {
-		panic(err)
-	}
-	fmt.Printf("✅ Tagged v%s\n", nextVer.String())
-	time.Sleep(sleep)
-
 	fmt.Println("🏁 Preparation finished")
 	time.Sleep(sleep)
 
@@ -138,7 +131,7 @@ func main() {
 	fmt.Printf("⚠ Run 'git push <remote> release/v%s' to push this branch and open a PR against gopasspw/gopass master.\n", nextVer.String())
 	time.Sleep(sleep)
 
-	fmt.Printf("⚠ Get the PR merged and run 'git push origin v%s' to kick off the release process.\n", nextVer.String())
+	fmt.Printf("⚠ Get the PR merged and run 'git tag v%s && git push origin v%s' to kick off the release process.\n", nextVer.String(), nextVer.String())
 	time.Sleep(sleep)
 	fmt.Println()
 
@@ -240,12 +233,6 @@ func gitCommit(v semver.Version) error {
 		return err
 	}
 	cmd = exec.Command("git", "commit", "-s", "-m", "Tag v"+v.String(), "-m", "RELEASE_NOTES=n/a")
-	cmd.Stderr = os.Stderr
-	return cmd.Run()
-}
-
-func gitTag(v semver.Version) error {
-	cmd := exec.Command("git", "tag", "v"+v.String())
 	cmd.Stderr = os.Stderr
 	return cmd.Run()
 }
