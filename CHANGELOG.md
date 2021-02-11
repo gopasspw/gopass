@@ -1,33 +1,40 @@
-## 1.12.0-rc2 / 2021-02-07
+## 1.12.0 / 2021-02-11
 
+WARNING: The self updater does not support updating from 1.11.0 to 1.12.0. Our
+release infrastructure does not support the key type used in 1.11.0.
+
+NOTE: This release drops the integrations that were moved to their own repos,
+i.e. `git-credential-gopass`, `gopass-hibp`, `gopass-jsonapi` and
+`gopass-summon-provider`.
+
+We have implemented proper release signing and verification for the self
+updater and brought it back.
+
+* [BUGFIX] Add signature verification for updater (#1717, #1676)
+* [BUGFIX] Allow using tilde (#1713, #872)
+* [BUGFIX] Always allow removing mounts (#1748, #1746)
+* [BUGFIX] Ask passphrase upon key generation (#1715, #1698)
+* [BUGFIX] Do not overwrite age keyring (#1734, #1678)
+* [BUGFIX] Remove empty parents on gopass rm -r (#1725, #1723)
+* [BUGFIX] The empty password must now be confirmed too (#1719)
+* [BUGFIX] Use the first GPG found in path on Windows (#1751, #1635)
+* [BUGFIX] Warn about --throw-keyids (#1759, #1756)
 * [BUGFIX] fixed mixed case keys for key-value, all keys are lower case now (#1778)
-
-## 1.12.0-rc1 / 2021-02-03
-
-* [BUGFIX] Add signature verification for updater
-* [BUGFIX] Allow using tilde
-* [BUGFIX] Always allow removing mounts
-* [BUGFIX] Ask passphrase upon key generation
-* [BUGFIX] Do not overwrite age keyring
-* [BUGFIX] Remove empty parents on gopass rm -r
-* [BUGFIX] The empty password must now be confirmed too
-* [BUGFIX] Use the first GPG found in path on Windows
-* [BUGFIX] Warn about --throw-keyids
-* [CLEANUP] Remove migrated binaries
-* [CLEANUP] Remove the ondisk backend
-* [ENHANCEMENT] Add -A and -B to pwgen
-* [ENHANCEMENT] Add Pinentry CLI fallback
-* [ENHANCEMENT] Add REPL cmd lock
-* [ENHANCEMENT] Add optional pinentry unescaping
-* [ENHANCEMENT] Add tpl funcs for Bcrypt and Argon2
-* [ENHANCEMENT] Add windows support to the self updater
-* [ENHANCEMENT] Confirm new age keyring passphrases
-* [ENHANCEMENT] KV secrets are now key-values, supporting multiple same key with different values
-* [ENHANCEMENT] UTF-8 emojis
-* [ENHANCEMENT] Use gpgconf to the the gpg binary
-* [ENHANCEMENT] Use main as the git default branch
-* [ENHANCEMENT] Use persistent SSH connections
-* [TESTING] Adding DI to Github Actions
+* [CLEANUP] Remove migrated binaries (#1712, #1673, #1649, #1652, #1631, #1165, #1711, #1670, #1639)
+* [CLEANUP] Remove the ondisk backend (#1720)
+* [ENHANCEMENT] Add -A and -B to pwgen (#1716)
+* [ENHANCEMENT] Add Pinentry CLI fallback (#1697, #1655)
+* [ENHANCEMENT] Add REPL cmd lock (#1744)
+* [ENHANCEMENT] Add optional pinentry unescaping (#1621)
+* [ENHANCEMENT] Add tpl funcs for Bcrypt and Argon2 (#1706, #1689)
+* [ENHANCEMENT] Add windows support to the self updater (#1724, #1722)
+* [ENHANCEMENT] Confirm new age keyring passphrases (#1747)
+* [ENHANCEMENT] KV secrets are now key-values, supporting multiple same key with different values (#1741)
+* [ENHANCEMENT] UTF-8 emojis (#1715, #1698)
+* [ENHANCEMENT] Use gpgconf to the the gpg binary (#1758, #1757)
+* [ENHANCEMENT] Use main as the git default branch (#1749, #1742)
+* [ENHANCEMENT] Use persistent SSH connections (#1755)
+* [TESTING] Adding DI to Github Actions (#1728)
 
 ## 1.11.0 / 2020-01-12
 
