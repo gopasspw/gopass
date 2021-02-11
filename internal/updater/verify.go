@@ -60,12 +60,29 @@ jxn7SFTOuQxBJAsmB7Q0aGs=
 -----END PGP PUBLIC KEY BLOCK-----
 `)
 
+type krLogger struct {
+	r openpgp.EntityList
+}
+
+func (k *krLogger) Str() string {
+	var out strings.Builder
+	for _, e := range k.r {
+		for k := range e.Identities {
+			out.WriteString(k)
+			out.WriteString(", ")
+		}
+	}
+	return out.String()[:out.Len()-2]
+}
+
 func gpgVerify(data, sig []byte) (bool, error) {
 	keyring, err := openpgp.ReadArmoredKeyRing(bytes.NewReader(pubkey))
 	if err != nil {
 		debug.Log("failed to read public key: %q", err)
 		return false, err
 	}
+
+	debug.Log("Keyring: %q", &krLogger{keyring})
 
 	_, err = openpgp.CheckArmoredDetachedSignature(keyring, bytes.NewReader(data), bytes.NewReader(sig))
 	if err != nil {
