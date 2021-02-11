@@ -19,9 +19,9 @@ var (
 	colMount = color.New(color.FgCyan, color.Bold).SprintfFunc()
 	colDir   = color.New(color.FgBlue, color.Bold).SprintfFunc()
 	colTpl   = color.New(color.FgGreen, color.Bold).SprintfFunc()
-	//colBin   = color.New(color.FgYellow, color.Bold).SprintfFunc()
-	//colYaml  = color.New(color.FgCyan, color.Bold).SprintfFunc()
-	sep = "/" // this should not be platform-agnostic. this is for the CLI interface
+	// sep is intentionally NOT platform-agnostic. This is used for the CLI output
+	// and should always be a regular slash.
+	sep = "/"
 )
 
 // Root is the root of a tree
