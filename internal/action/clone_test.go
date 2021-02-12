@@ -101,7 +101,7 @@ func TestCloneBackendIsStoredForMount(t *testing.T) {
 	cfg := config.Load()
 	cfg.Path = u.StoreDir("")
 
-	act, err := newAction(cfg, semver.Version{})
+	act, err := newAction(cfg, semver.Version{}, false)
 	require.NoError(t, err)
 	require.NotNil(t, act)
 

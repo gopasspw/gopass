@@ -114,6 +114,7 @@ func (s *Action) checkVersion(ctx context.Context, u chan string) {
 		notice += " or via your package manager"
 		u <- color.YellowString(notice)
 	} else {
+		s.rem.Reset("update")
 		debug.Log("gopass is up-to-date (local: %q, GitHub: %q)", s.version, r.Version)
 	}
 	u <- ""

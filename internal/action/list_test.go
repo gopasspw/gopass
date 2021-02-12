@@ -23,6 +23,7 @@ func TestList(t *testing.T) {
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
+	ctx = ctxutil.WithInteractive(ctx, false)
 
 	act, err := newMock(ctx, u)
 	require.NoError(t, err)
@@ -95,6 +96,7 @@ func TestListLimit(t *testing.T) {
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
+	ctx = ctxutil.WithInteractive(ctx, false)
 
 	act, err := newMock(ctx, u)
 	require.NoError(t, err)

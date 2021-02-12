@@ -25,6 +25,8 @@ func TestShowMulti(t *testing.T) {
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithTerminal(ctx, false)
+	ctx = ctxutil.WithInteractive(ctx, false)
+
 	act, err := newMock(ctx, u)
 	require.NoError(t, err)
 	require.NotNil(t, act)
@@ -212,6 +214,8 @@ func TestShowAutoClip(t *testing.T) {
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
+	ctx = ctxutil.WithInteractive(ctx, false)
+
 	act, err := newMock(ctx, u)
 	require.NoError(t, err)
 	require.NotNil(t, act)
@@ -327,6 +331,8 @@ func TestShowHandleRevision(t *testing.T) {
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithTerminal(ctx, false)
+	ctx = ctxutil.WithInteractive(ctx, false)
+
 	act, err := newMock(ctx, u)
 	require.NoError(t, err)
 	require.NotNil(t, act)
@@ -380,6 +386,8 @@ func TestShowPrintQR(t *testing.T) {
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithTerminal(ctx, false)
+	ctx = ctxutil.WithInteractive(ctx, false)
+
 	act, err := newMock(ctx, u)
 	require.NoError(t, err)
 	require.NotNil(t, act)

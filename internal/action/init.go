@@ -34,6 +34,7 @@ func (s *Action) IsInitialized(c *cli.Context) error {
 	}
 	if inited {
 		debug.Log("Store is already initialized")
+		s.printReminder(ctx)
 		return nil
 	}
 

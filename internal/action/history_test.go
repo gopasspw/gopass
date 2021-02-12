@@ -29,12 +29,14 @@ func TestHistory(t *testing.T) {
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
+	ctx = ctxutil.WithInteractive(ctx, false)
+
 	ctx = backend.WithCryptoBackend(ctx, backend.Plain)
 	ctx = backend.WithStorageBackend(ctx, backend.GitFS)
 
 	cfg := config.New()
 	cfg.Path = u.StoreDir("")
-	act, err := newAction(cfg, semver.Version{})
+	act, err := newAction(cfg, semver.Version{}, false)
 	require.NoError(t, err)
 	require.NotNil(t, act)
 

@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/gopasspw/gopass/internal/config"
+	"github.com/gopasspw/gopass/internal/reminder"
 	"github.com/gopasspw/gopass/internal/store/root"
 
 	"github.com/blang/semver/v4"
@@ -22,14 +23,15 @@ type Action struct {
 	Store   *root.Store
 	cfg     *config.Config
 	version semver.Version
+	rem     *reminder.Store
 }
 
 // New returns a new Action wrapper
 func New(cfg *config.Config, sv semver.Version) (*Action, error) {
-	return newAction(cfg, sv)
+	return newAction(cfg, sv, true)
 }
 
-func newAction(cfg *config.Config, sv semver.Version) (*Action, error) {
+func newAction(cfg *config.Config, sv semver.Version, remind bool) (*Action, error) {
 	name := "gopass"
 	if len(os.Args) > 0 {
 		name = filepath.Base(os.Args[0])
@@ -40,6 +42,14 @@ func newAction(cfg *config.Config, sv semver.Version) (*Action, error) {
 		cfg:     cfg,
 		version: sv,
 		Store:   root.New(cfg),
+	}
+
+	if remind {
+		r, err := reminder.New()
+		if err != nil {
+			return nil, err
+		}
+		act.rem = r
 	}
 
 	return act, nil

@@ -21,6 +21,8 @@ func TestRecipients(t *testing.T) {
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
+	ctx = ctxutil.WithInteractive(ctx, false)
+
 	act, err := newMock(ctx, u)
 	require.NoError(t, err)
 	require.NotNil(t, act)

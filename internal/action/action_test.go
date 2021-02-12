@@ -12,6 +12,7 @@ import (
 	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/internal/backend/crypto/plain"
 	"github.com/gopasspw/gopass/internal/config"
+	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/tests/gptest"
 
 	"github.com/blang/semver/v4"
@@ -26,16 +27,18 @@ func newMock(ctx context.Context, u *gptest.Unit) (*Action, error) {
 
 	ctx = backend.WithCryptoBackend(ctx, backend.Plain)
 	ctx = backend.WithStorageBackend(ctx, backend.GitFS)
-	act, err := newAction(cfg, semver.Version{})
+	act, err := newAction(cfg, semver.Version{}, false)
 	if err != nil {
 		return nil, err
 	}
+
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
 	c := cli.NewContext(cli.NewApp(), fs, nil)
 	c.Context = ctx
 	if err := act.IsInitialized(c); err != nil {
 		return nil, err
 	}
+
 	return act, nil
 }
 
@@ -44,6 +47,8 @@ func TestAction(t *testing.T) {
 	defer u.Remove()
 
 	ctx := context.Background()
+	ctx = ctxutil.WithInteractive(ctx, false)
+
 	act, err := newMock(ctx, u)
 	require.NoError(t, err)
 	require.NotNil(t, act)
