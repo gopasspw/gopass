@@ -121,7 +121,7 @@ We welcome any contributions. Please see the [CONTRIBUTING.md](https://github.co
 * [Configuration](https://github.com/gopasspw/gopass/blob/master/docs/config.md)
 * [FAQ](https://github.com/gopasspw/gopass/blob/master/docs/faq.md)
 * [JSON API](https://github.com/gopasspw/gopass/blob/master/docs/jsonapi.md)
-* [Gopass as Summon provider](https://github.com/gopasspw/gopass/blob/master/docs/summon-provider.md)
+* [Gopass as Summon provider](https://github.com/gopasspw/gopass-summon-provider)
 
 ## External Documentation
 * [gopass cheat sheet](https://woile.github.io/gopass-cheat-sheet/) ([source on github](https://github.com/Woile/gopass-cheat-sheet))
