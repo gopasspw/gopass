@@ -1,5 +1,3 @@
-// +build !windows
-
 package updater
 
 import (
@@ -8,8 +6,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-
-	"golang.org/x/sys/unix"
 
 	"github.com/gopasspw/gopass/pkg/debug"
 )
@@ -46,13 +42,24 @@ func IsUpdateable(ctx context.Context) error {
 	if !fi.Mode().IsRegular() {
 		return fmt.Errorf("not a regular file")
 	}
-	if err := unix.Access(fn, unix.W_OK); err != nil {
-		return err
+	if err := canWrite(fn); err != nil {
+		return fmt.Errorf("can not write %q: %w", fn, err)
 	}
 
-	// check dir
-	fdir := filepath.Dir(fn)
-	return unix.Access(fdir, unix.W_OK)
+	// no need to check the directory since we'll be writing to the destination file directly
+	return nil
+}
+
+func canWrite(path string) error {
+	// check if we can write to this file. we open it for writing in
+	// append mode to not truncate it and immediately close the filehandle since
+	// we're only interested in the error.
+	fh, err := os.OpenFile(path, os.O_WRONLY|os.O_APPEND, 0755)
+	if e := fh.Close(); err != nil {
+		return e
+	}
+
+	return err
 }
 
 var executable = func(ctx context.Context) (string, error) {
