@@ -315,40 +315,23 @@ You can then bind these command lines to your preferred shortcuts in your window
 ### Filling in passwords from browser
 
 Gopass allows filling in passwords in browsers leveraging a browser plugin like [gopass bridge](https://github.com/gopasspw/gopassbridge).
-The browser plugin communicates with gopass via JSON messages. To allow the plugin to start gopass, a [native messaging manifest](https://developer.mozilla.org/en-US/Add-ons/WebExtensions/Native_messaging) must be installed for each browser.
-Chrome, Chromium and Firefox are supported, currently. Further a wrapper must be installed to setup gpg-agent and execute `gopass-jsonapi listen`.
+The browser plugin communicates with gopass-jsonapi via JSON messages.
+To allow the plugin to start gopass-jsonapi, a [native messaging manifest](https://developer.mozilla.org/en-US/Add-ons/WebExtensions/Native_messaging) must be installed for each browser.
+Chrome, Chromium and Firefox are supported, currently.
 
-**Upgrade to gopass v1.10**:
-`gopass-jsonapi` is now a separate binary file, which you might need to install separately.
-The new binary can also be downloaded and unpacked from the latest
-[archive files on Github Releases](https://github.com/gopasspw/gopass/releases).
+**Upgrade to gopass v1.10 / v1.11**:
+`gopass-jsonapi` is now its own binary file, which you need to install separately.
+
+The binary for v1.10 and v1.11 can be downloaded and unpacked from
+[archive files on Github Releases](https://github.com/gopasspw/gopass/releases/tag/v1.11.0).
+
 You need to run `gopass-jsonapi configure` after the upgrade to configure your browser for the new command.
 
-```bash
-# Asks all questions concerning browser and setup
-gopass-jsonapi configure
+**Upgrade to gopass v1.12**
+The new binary can be downloaded from the latest
+[Github Release on gopass-jsonapi](https://github.com/gopasspw/gopass-jsonapi/releases).
 
-# Do not copy / install any files, just print their location and content
-gopass-jsonapi configure --print
-
-# Specify browser and wrapper path
-gopass-jsonapi configure --browser chrome --path /home/user/.local/
-```
-
-The user name/login is determined from `login`, `username` and `user` yaml attributes (after the --- separator) like this:
-
-```
-<your password>
----
-username: <your username>
-```
-
-As fallback, the last part of the path is used, e.g. `theuser1` for `Internet/github.com/theuser1` entry.
-
-**Windows**:
-The jsonapi setup copies the current gopass-jsonapi binary as a wrapper executable file (`gopass_native_host.exe` calls the listener directly).
-It is recommended to run `gopass-jsonapi configure` after each **update** to have the latest version setup for your browser.
-The **global** setup requires to run `gopass-jsonapi configure` as Administrator.
+For more detailed instructions, please read: [gopass-jsonapi/README](https://github.com/gopasspw/gopass-jsonapi/blob/main/README.md).
 
 ### Storing and Syncing your Password Store with Google Drive / Dropbox / etc.
 
