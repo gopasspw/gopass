@@ -19,7 +19,7 @@ func TestDelete(t *testing.T) {
 
 	out, err = ts.run("delete foobarbaz")
 	assert.Error(t, err)
-	assert.Equal(t, "\nError: Can not delete 'foobarbaz': entry is not in the password store\n", out)
+	assert.Contains(t, out, "entry is not in the password store", out)
 
 	ts.initSecrets("")
 
@@ -31,6 +31,6 @@ func TestDelete(t *testing.T) {
 
 		out, err = ts.run("delete -f " + secret)
 		assert.Error(t, err)
-		assert.Equal(t, "\nError: Can not delete '"+secret+"': entry is not in the password store\n", out)
+		assert.Contains(t, out, "entry is not in the password store\n", out)
 	}
 }

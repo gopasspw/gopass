@@ -34,7 +34,7 @@ func (s *Store) LookupTemplate(ctx context.Context, name string) (string, []byte
 		tpl := filepath.Join(name, TemplateFile)
 		if s.storage.Exists(ctx, tpl) {
 			if content, err := s.storage.Get(ctx, tpl); err == nil {
-				debug.Log("Found template '%s' for '%s'", tpl, oName)
+				debug.Log("Found template %q for %q", tpl, oName)
 				return tpl, content, true
 			}
 		}
@@ -73,7 +73,7 @@ func (s *Store) TemplateTree(ctx context.Context) *tree.Root {
 	root := tree.New("gopass")
 	for _, t := range s.ListTemplates(ctx, "") {
 		if err := root.AddFile(t, "gopass/template"); err != nil {
-			out.Error(ctx, "Failed to add template: %s", err)
+			out.Errorf(ctx, "Failed to add template: %s", err)
 		}
 	}
 

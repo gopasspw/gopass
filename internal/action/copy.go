@@ -37,7 +37,7 @@ func (s *Action) copy(ctx context.Context, from, to string, force bool) error {
 	}
 
 	if err := s.Store.Copy(ctx, from, to); err != nil {
-		return ExitError(ExitIO, err, "failed to copy from '%s' to '%s'", from, to)
+		return ExitError(ExitIO, err, "failed to copy from %q to %q", from, to)
 	}
 
 	return nil

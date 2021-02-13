@@ -20,13 +20,13 @@ func (s *Store) Fsck(ctx context.Context, path string) error {
 	debug.Log("Checking %s", path)
 
 	// first let the storage backend check itself
-	out.Print(ctx, "Checking storage backend")
+	out.Printf(ctx, "Checking storage backend")
 	if err := s.storage.Fsck(ctx); err != nil {
 		return fmt.Errorf("storage backend found: %w", err)
 	}
 
 	// then try to compact storage / rcs
-	out.Print(ctx, "Compacting storage if possible")
+	out.Printf(ctx, "Compacting storage if possible")
 	if err := s.storage.Compact(ctx); err != nil {
 		return fmt.Errorf("storage backend compaction failed: %w", err)
 	}
@@ -35,7 +35,7 @@ func (s *Store) Fsck(ctx context.Context, path string) error {
 
 	// then we'll make sure all the secrets are readable by us and every
 	// valid recipient
-	out.Print(ctx, "Checking all secrets in store")
+	out.Printf(ctx, "Checking all secrets in store")
 	names, err := s.List(ctx, path)
 	if err != nil {
 		return fmt.Errorf("failed to list entries: %w", err)
@@ -56,7 +56,7 @@ func (s *Store) Fsck(ctx context.Context, path string) error {
 
 	if err := s.storage.Push(ctx, "", ""); err != nil {
 		if errors.Is(err, store.ErrGitNoRemote) {
-			out.Print(ctx, "RCS Push failed: %s", err)
+			out.Printf(ctx, "RCS Push failed: %s", err)
 		}
 	}
 
@@ -79,7 +79,7 @@ func (s *Store) fsckCheckEntry(ctx context.Context, name string) error {
 			return fmt.Errorf("failed to decode secret %s: %w", name, err)
 		}
 		if cs, ok := secret.(convertedSecret); ok && cs.FromMime() {
-			out.Warning(ctx, "leftover Mime secret: %s\nYou should consider editing it to re-encrypt it.", name)
+			out.Warningf(ctx, "leftover Mime secret: %s\nYou should consider editing it to re-encrypt it.", name)
 		}
 	}
 
@@ -103,15 +103,15 @@ func (s *Store) fsckCheckEntry(ctx context.Context, name string) error {
 	// check itemRecps matches storeRecps
 	missing, extra := compareStringSlices(perItemStoreRecps, itemRecps)
 	if len(missing) > 0 {
-		out.Error(ctx, "Missing recipients on %s: %+v\nRun fsck with the --decrypt flag to re-encrypt it automatically, or edit this secret yourself.", name, missing)
+		out.Errorf(ctx, "Missing recipients on %s: %+v\nRun fsck with the --decrypt flag to re-encrypt it automatically, or edit this secret yourself.", name, missing)
 	}
 
 	if len(extra) > 0 {
-		out.Error(ctx, "Extra recipients on %s: %+v\nRun fsck with the --decrypt flag to re-encrypt it automatically, or edit this secret yourself.", name, extra)
+		out.Errorf(ctx, "Extra recipients on %s: %+v\nRun fsck with the --decrypt flag to re-encrypt it automatically, or edit this secret yourself.", name, extra)
 	}
 
 	if IsFsckDecrypt(ctx) && (len(missing) > 0 || len(extra) > 0) {
-		out.Print(ctx, "Re-encrypting automatically %s to fix the recipients.", name)
+		out.Printf(ctx, "Re-encrypting automatically %s to fix the recipients.", name)
 		sec, err := s.Get(ctx, name)
 		if err != nil {
 			return fmt.Errorf("failed to decode secret: %w", err)

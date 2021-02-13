@@ -84,7 +84,7 @@ func (s *Action) Generate(c *cli.Context) error {
 	if edit && termio.AskForConfirmation(ctx, fmt.Sprintf("Do you want to add more data for %s?", name)) {
 		c.Context = ctx
 		if err := s.Edit(c); err != nil {
-			return ExitError(ExitUnknown, err, "failed to edit '%s': %s", name, err)
+			return ExitError(ExitUnknown, err, "failed to edit %q: %s", name, err)
 		}
 	}
 
@@ -115,22 +115,20 @@ func (s *Action) generateCopyOrPrint(ctx context.Context, c *cli.Context, name, 
 		entry += ":" + key
 	}
 
-	out.OK(ctx, "Password for entry %q generated", entry)
+	out.OKf(ctx, "Password for entry %q generated", entry)
 
 	if ctxutil.IsAutoClip(ctx) || IsClip(ctx) {
 		if err := clipboard.CopyTo(ctx, name, []byte(password)); err != nil {
-			fmt.Println("1")
 			return ExitError(ExitIO, err, "failed to copy to clipboard: %s", err)
 		}
 		if ctxutil.IsAutoClip(ctx) && !c.Bool("print") {
-			fmt.Println("2")
 			out.Print(ctx, "Copied to clipboard")
 			return nil
 		}
 	}
 
 	if !c.Bool("print") {
-		out.Print(ctx, "Not printing secrets by default. Use 'gopass show %s' to display the password.", entry)
+		out.Printf(ctx, "Not printing secrets by default. Use 'gopass show %s' to display the password.", entry)
 		return nil
 	}
 	if c.IsSet("print") && !c.Bool("print") && ctxutil.IsShowSafeContent(ctx) {
@@ -138,7 +136,7 @@ func (s *Action) generateCopyOrPrint(ctx context.Context, c *cli.Context, name, 
 		return nil
 	}
 
-	out.Print(
+	out.Printf(
 		ctx,
 		"⚠ The generated password is:\n\n%s\n",
 		password,
@@ -160,7 +158,7 @@ func hasPwRuleForSecret(name string) (string, pwrules.Rule) {
 // generatePassword will run through the password generation steps
 func (s *Action) generatePassword(ctx context.Context, c *cli.Context, length, name string) (string, error) {
 	if domain, rule := hasPwRuleForSecret(name); domain != "" {
-		out.Print(ctx, "Using password rules for %s ...", domain)
+		out.Printf(ctx, "Using password rules for %s ...", domain)
 		wl := 16
 		if iv, err := strconv.Atoi(length); err == nil {
 			if iv < rule.Minlen {
@@ -262,12 +260,12 @@ func (s *Action) generateSetPassword(ctx context.Context, name, key, password st
 	if key != "" {
 		sec, err := s.Store.Get(ctx, name)
 		if err != nil {
-			return ctx, ExitError(ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
+			return ctx, ExitError(ExitEncrypt, err, "failed to set key %q of %q: %s", key, name, err)
 		}
 		setMetadata(sec, kvps)
 		sec.Set(key, password)
 		if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, "Generated password for key"), name, sec); err != nil {
-			return ctx, ExitError(ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
+			return ctx, ExitError(ExitEncrypt, err, "failed to set key %q of %q: %s", key, name, err)
 		}
 		return ctx, nil
 	}
@@ -278,7 +276,7 @@ func (s *Action) generateSetPassword(ctx context.Context, name, key, password st
 		if err == nil {
 			return ctx, nil
 		}
-		out.Error(ctx, "Failed to read existing secret. Creating anew. Error: %s", err.Error())
+		out.Errorf(ctx, "Failed to read existing secret. Creating anew. Error: %s", err.Error())
 	}
 
 	// generate a completely new secret
@@ -299,7 +297,7 @@ func (s *Action) generateSetPassword(ctx context.Context, name, key, password st
 	}
 
 	if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, "Generated Password"), name, sec); err != nil {
-		return ctx, ExitError(ExitEncrypt, err, "failed to create '%s': %s", name, err)
+		return ctx, ExitError(ExitEncrypt, err, "failed to create %q: %s", name, err)
 	}
 	return ctx, nil
 }
@@ -317,12 +315,12 @@ func hasChangeURL(name string) string {
 func (s *Action) generateReplaceExisting(ctx context.Context, name, key, password string, kvps map[string]string) (context.Context, error) {
 	sec, err := s.Store.Get(ctx, name)
 	if err != nil {
-		return ctx, ExitError(ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
+		return ctx, ExitError(ExitEncrypt, err, "failed to set key %q of %q: %s", key, name, err)
 	}
 	setMetadata(sec, kvps)
 	sec.SetPassword(password)
 	if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, "Generated password for YAML key"), name, sec); err != nil {
-		return ctx, ExitError(ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
+		return ctx, ExitError(ExitEncrypt, err, "failed to set key %q of %q: %s", key, name, err)
 	}
 	return ctx, nil
 }
@@ -343,7 +341,7 @@ func (s *Action) CompleteGenerate(c *cli.Context) {
 
 	_, err := s.Store.IsInitialized(ctx) // important to make sure the structs are not nil
 	if err != nil {
-		out.Error(ctx, "Store not initialized: %s", err)
+		out.Errorf(ctx, "Store not initialized: %s", err)
 		return
 	}
 	list, err := s.Store.List(ctx, tree.INF)

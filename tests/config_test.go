@@ -80,8 +80,8 @@ parsing: true
 path: `
 	wanted += ts.storeDir("root") + "\n"
 	wanted += `safecontent: false
-mount 'mnt/m1' => '`
-	wanted += ts.storeDir("m1") + "'\n"
+mount "mnt/m1" => "`
+	wanted += ts.storeDir("m1") + "\"\n"
 
 	out, err := ts.run("config")
 	assert.NoError(t, err)

@@ -63,7 +63,7 @@ func (a *askPass) Passphrase(key string, reason string, repeat bool) (string, er
 	debug.Log("Value for %s not found in cache", key)
 
 	// TODO we shouldn't print here like this ...
-	out.Print(context.TODO(), "🔑 Please enter your passphrase to unlock the age keyring")
+	out.Printf(context.TODO(), "🔑 Please enter your passphrase to unlock the age keyring")
 	pi, err := a.pinentry()
 	if err != nil {
 		return "", fmt.Errorf("pinentry Error: %s", err)

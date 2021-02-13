@@ -69,13 +69,13 @@ func (s *Action) clone(ctx context.Context, repo, mount, path string) error {
 	}
 
 	// clone repo
-	debug.Log("Cloning repo '%s' to '%s'", repo, path)
+	debug.Log("Cloning repo %q to %q", repo, path)
 	if _, err := backend.Clone(ctx, storageBackendOrDefault(ctx), repo, path); err != nil {
-		return ExitError(ExitGit, err, "failed to clone repo '%s' to '%s': %s", repo, path, err)
+		return ExitError(ExitGit, err, "failed to clone repo %q to %q: %s", repo, path, err)
 	}
 
 	// add mount
-	debug.Log("Mounting cloned repo '%s' at '%s'", path, mount)
+	debug.Log("Mounting cloned repo %q at %q", path, mount)
 	if err := s.cloneAddMount(ctx, mount, path); err != nil {
 		return err
 	}
@@ -86,7 +86,7 @@ func (s *Action) clone(ctx context.Context, repo, mount, path string) error {
 	}
 
 	// try to init git config
-	out.Print(ctx, "Configuring git repository ...")
+	out.Printf(ctx, "Configuring git repository ...")
 
 	// ask for git config values
 	username, email, err := s.cloneGetGitConfig(ctx, mount)
@@ -97,13 +97,13 @@ func (s *Action) clone(ctx context.Context, repo, mount, path string) error {
 	// initialize git config
 	if err := s.Store.RCSInitConfig(ctx, mount, username, email); err != nil {
 		debug.Log("Stacktrace: %+v\n", err)
-		out.Error(ctx, "Failed to configure git: %s", err)
+		out.Errorf(ctx, "Failed to configure git: %s", err)
 	}
 
 	if mount != "" {
 		mount = " " + mount
 	}
-	out.Print(ctx, "Your password store is ready to use! Have a look around: `%s list%s`\n", s.Name, mount)
+	out.Printf(ctx, "Your password store is ready to use! Have a look around: `%s list%s`\n", s.Name, mount)
 
 	return nil
 }
@@ -123,7 +123,7 @@ func (s *Action) cloneAddMount(ctx context.Context, mount, path string) error {
 	if err := s.Store.AddMount(ctx, mount, path); err != nil {
 		return ExitError(ExitMount, err, "Failed to add mount: %s", err)
 	}
-	out.Print(ctx, "Mounted password store %s at mount point `%s` ...", path, mount)
+	out.Printf(ctx, "Mounted password store %s at mount point `%s` ...", path, mount)
 	return nil
 }
 

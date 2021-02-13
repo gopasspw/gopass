@@ -30,7 +30,7 @@ func (s *Action) Edit(c *cli.Context) error {
 func (s *Action) edit(ctx context.Context, c *cli.Context, name string) error {
 	ed := editor.Path(c)
 	if err := editor.Check(ctx, ed); err != nil {
-		out.Warning(ctx, "Failed to check editor config: %s", err)
+		out.Warningf(ctx, "Failed to check editor config: %s", err)
 	}
 
 	// get existing content or generate new one from a template
@@ -97,7 +97,7 @@ func (s *Action) editGetContent(ctx context.Context, name string, create bool) (
 	}
 
 	if !create {
-		out.Warning(ctx, "Entry %s not found. Creating new secret ...", name)
+		out.Warningf(ctx, "Entry %s not found. Creating new secret ...", name)
 	}
 
 	// load template if it exists

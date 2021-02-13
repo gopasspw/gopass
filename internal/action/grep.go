@@ -35,7 +35,7 @@ func (s *Action) Grep(c *cli.Context) error {
 	if c.Bool("regexp") {
 		re, err := regexp.Compile(needle)
 		if err != nil {
-			return ExitError(ExitUsage, err, "failed to compile regexp '%s': %s", needle, err)
+			return ExitError(ExitUsage, err, "failed to compile regexp %q: %s", needle, err)
 		}
 		matchFn = re.MatchString
 	}
@@ -45,18 +45,18 @@ func (s *Action) Grep(c *cli.Context) error {
 	for _, v := range haystack {
 		sec, err := s.Store.Get(ctx, v)
 		if err != nil {
-			out.Error(ctx, "failed to decrypt %s: %v", v, err)
+			out.Errorf(ctx, "failed to decrypt %s: %v", v, err)
 			continue
 		}
 
 		if matchFn(string(sec.Bytes())) {
-			out.Print(ctx, "%s matches", color.BlueString(v))
+			out.Printf(ctx, "%s matches", color.BlueString(v))
 		}
 	}
 
 	if errors > 0 {
-		out.Warning(ctx, "%d secrets failed to decrypt", errors)
+		out.Warningf(ctx, "%d secrets failed to decrypt", errors)
 	}
-	out.Print(ctx, "\nScanned %d secrets. %d matches, %d errors", len(haystack), matches, errors)
+	out.Printf(ctx, "\nScanned %d secrets. %d matches, %d errors", len(haystack), matches, errors)
 	return nil
 }

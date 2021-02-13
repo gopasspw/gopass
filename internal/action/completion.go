@@ -32,7 +32,7 @@ func (s *Action) Complete(c *cli.Context) {
 	ctx := ctxutil.WithGlobalFlags(c)
 	_, err := s.Store.IsInitialized(ctx) // important to make sure the structs are not nil
 	if err != nil {
-		out.Error(ctx, "Store not initialized: %s", err)
+		out.Errorf(ctx, "Store not initialized: %s", err)
 		return
 	}
 	list, err := s.Store.List(ctx, tree.INF)

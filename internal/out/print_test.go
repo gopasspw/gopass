@@ -18,15 +18,15 @@ func TestPrint(t *testing.T) {
 		Stdout = os.Stdout
 	}()
 
-	Print(ctx, "%s = %d", "foo", 42)
+	Printf(ctx, "%s = %d", "foo", 42)
 	assert.Equal(t, "foo = 42\n", buf.String())
 	buf.Reset()
 
-	Print(ctxutil.WithHidden(ctx, true), "%s = %d", "foo", 42)
+	Printf(ctxutil.WithHidden(ctx, true), "%s = %d", "foo", 42)
 	assert.Equal(t, "", buf.String())
 	buf.Reset()
 
-	Print(WithNewline(ctx, false), "%s = %d", "foo", 42)
+	Printf(WithNewline(ctx, false), "%s = %d", "foo", 42)
 	assert.Equal(t, "foo = 42", buf.String())
 	buf.Reset()
 }

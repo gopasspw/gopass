@@ -62,10 +62,10 @@ func (s *Action) find(ctx context.Context, c *cli.Context, needle string, cb sho
 	// if we have an exact match print it
 	if len(choices) == 1 {
 		if cb == nil {
-			out.Print(ctx, choices[0])
+			out.Printf(ctx, choices[0])
 			return nil
 		}
-		out.OK(ctx, "Found exact match in '%s'", choices[0])
+		out.OKf(ctx, "Found exact match in %q", choices[0])
 		return cb(ctx, c, choices[0], false)
 	}
 
@@ -85,7 +85,7 @@ func (s *Action) find(ctx context.Context, c *cli.Context, needle string, cb sho
 	// gopass find/search was invoked directly (for scripts)
 	if !ctxutil.IsTerminal(ctx) || (c != nil && c.Command.Name == "find") {
 		for _, value := range choices {
-			out.Print(ctx, value)
+			out.Printf(ctx, value)
 		}
 		return nil
 	}

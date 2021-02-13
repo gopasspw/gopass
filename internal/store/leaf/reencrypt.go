@@ -34,7 +34,7 @@ func (s *Store) reencrypt(ctx context.Context) error {
 		jobs := make(chan string)
 		// We use a logger to write without race condition on stdout
 		logger := log.New(os.Stdout, "", 0)
-		out.Print(ctx, "Starting reencrypt")
+		out.Printf(ctx, "Starting reencrypt")
 		// We spawn as many workers as we have set in the concurrency setting
 		// GetConcurrency will return 1 if the concurrency setting is not set
 		// or if it set to a value below 1.

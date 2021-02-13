@@ -34,13 +34,13 @@ func (s *Action) History(c *cli.Context) error {
 		if showPassword {
 			_, sec, err := s.Store.GetRevision(ctx, name, rev.Hash)
 			if err != nil {
-				debug.Log("Failed to get revision '%s' of '%s': %s", rev.Hash, name, err)
+				debug.Log("Failed to get revision %q of %q: %s", rev.Hash, name, err)
 			}
 			if err == nil {
 				pw = " - " + sec.Password()
 			}
 		}
-		out.Print(ctx, "%s - %s <%s> - %s - %s%s\n", rev.Hash, rev.AuthorName, rev.AuthorEmail, rev.Date.Format(time.RFC3339), rev.Subject, pw)
+		out.Printf(ctx, "%s - %s <%s> - %s - %s%s\n", rev.Hash, rev.AuthorName, rev.AuthorEmail, rev.Date.Format(time.RFC3339), rev.Subject, pw)
 	}
 	return nil
 }

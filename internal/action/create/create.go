@@ -93,7 +93,7 @@ func (s *creator) createWebsite(ctx context.Context, c *cli.Context) error {
 		err      error
 		genPw    bool
 	)
-	out.Print(ctx, "=> Creating Website login")
+	out.Printf(ctx, "=> Creating Website login")
 	urlStr, err = termio.AskForString(ctx, fmtfn(2, "1", "URL"), urlStr)
 	if err != nil {
 		return err
@@ -101,7 +101,7 @@ func (s *creator) createWebsite(ctx context.Context, c *cli.Context) error {
 	// the hostname is used as part of the name
 	hostname := extractHostname(urlStr)
 	if hostname == "" {
-		return action.ExitError(action.ExitUnknown, err, "Can not parse URL '%s'. Please use 'gopass edit' to manually create the secret", urlStr)
+		return action.ExitError(action.ExitUnknown, err, "Can not parse URL %q. Please use 'gopass edit' to manually create the secret", urlStr)
 	}
 
 	username, err = termio.AskForString(ctx, fmtfn(2, "2", "Login"), username)
@@ -154,7 +154,7 @@ func (s *creator) createWebsite(ctx context.Context, c *cli.Context) error {
 		sec.Set("password-change-url", u)
 	}
 	if err := s.store.Set(ctxutil.WithCommitMessage(ctx, "Created new entry"), name, sec); err != nil {
-		return action.ExitError(action.ExitEncrypt, err, "failed to set '%s': %s", name, err)
+		return action.ExitError(action.ExitEncrypt, err, "failed to set %q: %s", name, err)
 	}
 
 	return s.createPrintOrCopy(ctx, c, name, password, genPw)
@@ -192,7 +192,7 @@ func (s *creator) createPIN(ctx context.Context, c *cli.Context) error {
 		err         error
 		genPw       bool
 	)
-	out.Print(ctx, "=> Creating numerical PIN ...")
+	out.Printf(ctx, "=> Creating numerical PIN ...")
 	authority, err = termio.AskForString(ctx, fmtfn(2, "1", "Authority"), authority)
 	if err != nil {
 		return err
@@ -245,7 +245,7 @@ func (s *creator) createPIN(ctx context.Context, c *cli.Context) error {
 	sec.Set("application", application)
 	sec.Set("comment", comment)
 	if err := s.store.Set(ctxutil.WithCommitMessage(ctx, "Created new entry"), name, sec); err != nil {
-		return action.ExitError(action.ExitEncrypt, err, "failed to set '%s': %s", name, err)
+		return action.ExitError(action.ExitEncrypt, err, "failed to set %q: %s", name, err)
 	}
 
 	return s.createPrintOrCopy(ctx, c, name, password, genPw)
@@ -260,7 +260,7 @@ func (s *creator) createGeneric(ctx context.Context, c *cli.Context) error {
 		err       error
 		genPw     bool
 	)
-	out.Print(ctx, "=> Creating generic secret ...")
+	out.Printf(ctx, "=> Creating generic secret ...")
 	shortname, err = termio.AskForString(ctx, fmtfn(2, "1", "Name"), shortname)
 	if err != nil {
 		return err
@@ -302,7 +302,7 @@ func (s *creator) createGeneric(ctx context.Context, c *cli.Context) error {
 	}
 	sec := secrets.New()
 	sec.SetPassword(password)
-	out.Print(ctx, fmtfn(2, "3", "Enter zero or more key value pairs for this secret:"))
+	out.Printf(ctx, fmtfn(2, "3", "Enter zero or more key value pairs for this secret:"))
 	for {
 		key, err := termio.AskForString(ctx, fmtfn(4, "a", "Name (enter to quit)"), "")
 		if err != nil {
@@ -318,7 +318,7 @@ func (s *creator) createGeneric(ctx context.Context, c *cli.Context) error {
 		sec.Set(key, val)
 	}
 	if err := s.store.Set(ctxutil.WithCommitMessage(ctx, "Created new entry"), name, sec); err != nil {
-		return action.ExitError(action.ExitEncrypt, err, "failed to set '%s': %s", name, err)
+		return action.ExitError(action.ExitEncrypt, err, "failed to set %q: %s", name, err)
 	}
 
 	return s.createPrintOrCopy(ctx, c, name, password, genPw)
@@ -327,7 +327,7 @@ func (s *creator) createGeneric(ctx context.Context, c *cli.Context) error {
 // createGeneratePasssword will walk through the password generation steps
 func (s *creator) createGeneratePassword(ctx context.Context, hostname string) (string, error) {
 	if _, found := pwrules.LookupRule(hostname); found {
-		out.Print(ctx, "Using password rules for %s ...", hostname)
+		out.Printf(ctx, "Using password rules for %s ...", hostname)
 		length, err := termio.AskForInt(ctx, fmtfn(4, "b", "How long?"), defaultLength)
 		if err != nil {
 			return "", err

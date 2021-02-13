@@ -12,7 +12,7 @@ import (
 
 // AliasesPrint prints all cofigured aliases
 func (s *Action) AliasesPrint(c *cli.Context) error {
-	out.Print(c.Context, "Configured aliases:")
+	out.Printf(c.Context, "Configured aliases:")
 	aliases := pwrules.AllAliases()
 	keys := make([]string, 0, len(aliases))
 	for k := range aliases {
@@ -20,7 +20,7 @@ func (s *Action) AliasesPrint(c *cli.Context) error {
 	}
 	sort.Strings(keys)
 	for _, k := range keys {
-		out.Print(c.Context, "- %s -> %s", k, strings.Join(aliases[k], ", "))
+		out.Printf(c.Context, "- %s -> %s", k, strings.Join(aliases[k], ", "))
 	}
 	return nil
 }
@@ -39,7 +39,7 @@ func (s *Action) AliasesAdd(c *cli.Context) error {
 		return err
 	}
 
-	out.Print(ctx, "Added alias '%s' to domain '%s'", alias, domain)
+	out.Printf(ctx, "Added alias %q to domain %q", alias, domain)
 	return nil
 }
 
@@ -57,7 +57,7 @@ func (s *Action) AliasesRemove(c *cli.Context) error {
 		return err
 	}
 
-	out.Print(ctx, "Remove alias '%s' from domain '%s'", alias, domain)
+	out.Printf(ctx, "Remove alias %q from domain %q", alias, domain)
 	return nil
 }
 
@@ -74,6 +74,6 @@ func (s *Action) AliasesDelete(c *cli.Context) error {
 		return err
 	}
 
-	out.Print(ctx, "Remove aliases for domain '%s'", domain)
+	out.Printf(ctx, "Remove aliases for domain %q", domain)
 	return nil
 }

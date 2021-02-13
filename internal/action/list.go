@@ -71,7 +71,7 @@ func (s *Action) listFiltered(ctx context.Context, l *tree.Root, limit int, flat
 		// We restrict ourselves to the filter
 		l, err = l.FindFolder(filter)
 		if err != nil {
-			return ExitError(ExitNotFound, nil, "Entry '%s' not found", filter)
+			return ExitError(ExitNotFound, nil, "Entry %q not found", filter)
 		}
 		l.SetName(filter + sep)
 	}

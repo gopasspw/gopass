@@ -37,7 +37,7 @@ credentials.
 // RecipientsPrint prints all recipients per store
 func (s *Action) RecipientsPrint(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
-	out.Print(ctx, "Hint: run 'gopass sync' to import any missing public keys")
+	out.Printf(ctx, "Hint: run 'gopass sync' to import any missing public keys")
 
 	t, err := s.Store.RecipientsTree(ctx, true)
 	if err != nil {
@@ -94,17 +94,17 @@ func (s *Action) RecipientsAdd(c *cli.Context) error {
 	for _, r := range recipients {
 		keys, err := crypto.FindRecipients(ctx, r)
 		if err != nil {
-			out.Print(ctx, "WARNING: Failed to list public key '%s': %s", r, err)
+			out.Printf(ctx, "WARNING: Failed to list public key %q: %s", r, err)
 			if !force {
 				continue
 			}
 			keys = []string{r}
 		}
 		if len(keys) < 1 && !force && crypto.Name() == "gpgcli" {
-			out.Print(ctx, "Warning: No matching valid key found. If the key is in your keyring you may need to validate it.")
-			out.Print(ctx, "If this is your key: gpg --edit-key %s; trust (set to ultimate); quit", r)
-			out.Print(ctx, "If this is not your key: gpg --edit-key %s; lsign; trust; save; quit", r)
-			out.Print(ctx, "You may need to run 'gpg --update-trustdb' afterwards")
+			out.Printf(ctx, "Warning: No matching valid key found. If the key is in your keyring you may need to validate it.")
+			out.Printf(ctx, "If this is your key: gpg --edit-key %s; trust (set to ultimate); quit", r)
+			out.Printf(ctx, "If this is not your key: gpg --edit-key %s; lsign; trust; save; quit", r)
+			out.Printf(ctx, "You may need to run 'gpg --update-trustdb' afterwards")
 			continue
 		}
 
@@ -113,12 +113,12 @@ func (s *Action) RecipientsAdd(c *cli.Context) error {
 			recp = crypto.Fingerprint(ctx, keys[0])
 		}
 
-		if !termio.AskForConfirmation(ctx, fmt.Sprintf("Do you want to add '%s' as a recipient to the store '%s'?", crypto.FormatKey(ctx, recp, ""), store)) {
+		if !termio.AskForConfirmation(ctx, fmt.Sprintf("Do you want to add %q as a recipient to the store %q?", crypto.FormatKey(ctx, recp, ""), store)) {
 			continue
 		}
 
 		if err := s.Store.AddRecipient(ctx, store, recp); err != nil {
-			return ExitError(ExitRecipients, err, "failed to add recipient '%s': %s", r, err)
+			return ExitError(ExitRecipients, err, "failed to add recipient %q: %s", r, err)
 		}
 		added++
 	}
@@ -126,8 +126,8 @@ func (s *Action) RecipientsAdd(c *cli.Context) error {
 		return ExitError(ExitUnknown, nil, "no key added")
 	}
 
-	out.Print(ctx, "\nAdded %d recipients", added)
-	out.Print(ctx, "You need to run 'gopass sync' to push these changes")
+	out.Printf(ctx, "\nAdded %d recipients", added)
+	out.Printf(ctx, "You need to run 'gopass sync' to push these changes")
 	return nil
 }
 
@@ -167,18 +167,18 @@ func (s *Action) RecipientsRemove(c *cli.Context) error {
 
 		keys, err := crypto.FindRecipients(ctx, r)
 		if err != nil {
-			out.Print(ctx, "WARNING: Failed to list public key '%s': %s", r, err)
-			out.Print(ctx, "Hint: You can use `--force` to remove unknown keys.")
+			out.Printf(ctx, "WARNING: Failed to list public key %q: %s", r, err)
+			out.Printf(ctx, "Hint: You can use `--force` to remove unknown keys.")
 			if !force {
 				continue
 			}
 			keys = []string{r}
 		}
 		if len(keys) < 1 && !force {
-			out.Print(ctx, "Warning: No matching valid key found. If the key is in your keyring you may need to validate it.")
-			out.Print(ctx, "If this is your key: gpg --edit-key %s; trust (set to ultimate); quit", r)
-			out.Print(ctx, "If this is not your key: gpg --edit-key %s; lsign; trust; save; quit", r)
-			out.Print(ctx, "You may need to run 'gpg --update-trustdb' afterwards")
+			out.Printf(ctx, "Warning: No matching valid key found. If the key is in your keyring you may need to validate it.")
+			out.Printf(ctx, "If this is your key: gpg --edit-key %s; trust (set to ultimate); quit", r)
+			out.Printf(ctx, "If this is not your key: gpg --edit-key %s; lsign; trust; save; quit", r)
+			out.Printf(ctx, "You may need to run 'gpg --update-trustdb' afterwards")
 			continue
 		}
 
@@ -188,7 +188,7 @@ func (s *Action) RecipientsRemove(c *cli.Context) error {
 		}
 
 		if err := s.Store.RemoveRecipient(ctx, store, recp); err != nil {
-			return ExitError(ExitRecipients, err, "failed to remove recipient '%s': %s", recp, err)
+			return ExitError(ExitRecipients, err, "failed to remove recipient %q: %s", recp, err)
 		}
 		fmt.Fprintf(stdout, removalWarning, r)
 		removed++
@@ -197,8 +197,8 @@ func (s *Action) RecipientsRemove(c *cli.Context) error {
 		return ExitError(ExitUnknown, nil, "no key removed")
 	}
 
-	out.Print(ctx, "\nRemoved %d recipients", removed)
-	out.Print(ctx, "You need to run 'gopass sync' to push these changes")
+	out.Printf(ctx, "\nRemoved %d recipients", removed)
+	out.Printf(ctx, "You need to run 'gopass sync' to push these changes")
 	return nil
 }
 

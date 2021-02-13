@@ -29,7 +29,7 @@ func TestShow(t *testing.T) {
 	t.Run("test show with non-existing secret", func(t *testing.T) {
 		out, err := ts.run("show foo")
 		assert.Error(t, err)
-		assert.Equal(t, "\nError: failed to retrieve secret 'foo': entry is not in the password store\n", out)
+		assert.Contains(t, out, "entry is not in the password store", out)
 	})
 
 	ts.initSecrets("")

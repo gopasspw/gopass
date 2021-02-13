@@ -46,12 +46,12 @@ func (s *Action) rcsInit(ctx context.Context, store, un, ue string) error {
 			return nil
 		}
 		if gtv := os.Getenv("GPG_TTY"); gtv == "" {
-			out.Print(ctx, "Git initialization failed. You may want to try to 'export GPG_TTY=$(tty)' and start over.")
+			out.Printf(ctx, "Git initialization failed. You may want to try to 'export GPG_TTY=$(tty)' and start over.")
 		}
 		return fmt.Errorf("failed to run git init: %w", err)
 	}
 
-	out.Print(ctx, "Initialized git repository (%s) for %s / %s...", bn, un, ue)
+	out.Printf(ctx, "Initialized git repository (%s) for %s / %s...", bn, un, ue)
 	return nil
 }
 
@@ -72,7 +72,7 @@ func (s *Action) getUserData(ctx context.Context, store, name, email string) (st
 		var err error
 		name, err = termio.AskForString(ctx, color.CyanString("Please enter a user name for password store git config"), userName)
 		if err != nil {
-			out.Error(ctx, "Failed to ask for user input: %s", err)
+			out.Errorf(ctx, "Failed to ask for user input: %s", err)
 		}
 	}
 	if email == "" {
@@ -82,7 +82,7 @@ func (s *Action) getUserData(ctx context.Context, store, name, email string) (st
 		var err error
 		email, err = termio.AskForString(ctx, color.CyanString("Please enter an email address for password store git config"), userEmail)
 		if err != nil {
-			out.Error(ctx, "Failed to ask for user input: %s", err)
+			out.Errorf(ctx, "Failed to ask for user input: %s", err)
 		}
 	}
 
@@ -136,12 +136,12 @@ func (s *Action) RCSPush(c *cli.Context) error {
 
 	if err := s.Store.RCSPush(ctx, store, origin, branch); err != nil {
 		if errors.Is(err, si.ErrGitNoRemote) {
-			out.Notice(ctx, "No Git remote. Not pushing")
+			out.Noticef(ctx, "No Git remote. Not pushing")
 			return nil
 		}
 		return ExitError(ExitGit, err, "Failed to push to remote")
 	}
-	out.OK(ctx, "Pushed to git remote")
+	out.OKf(ctx, "Pushed to git remote")
 	return nil
 }
 

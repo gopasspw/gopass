@@ -54,7 +54,7 @@ func TestFind(t *testing.T) {
 	// find fo
 	c = gptest.CliCtxWithFlags(ctx, t, nil, "fo")
 	assert.NoError(t, act.Find(c))
-	assert.Contains(t, strings.TrimSpace(buf.String()), "Found exact match in 'foo'\nsecret")
+	assert.Contains(t, strings.TrimSpace(buf.String()), "Found exact match in \"foo\"\nsecret")
 	buf.Reset()
 
 	// find fo (no fuzzy search)
@@ -73,14 +73,14 @@ func TestFind(t *testing.T) {
 	c = gptest.CliCtxWithFlags(ctx, t, map[string]string{"clip": "true"}, "fo")
 	assert.NoError(t, act.Find(c))
 	out := strings.TrimSpace(buf.String())
-	assert.Contains(t, out, "Found exact match in 'foo'")
+	assert.Contains(t, out, "Found exact match in \"foo\"")
 	buf.Reset()
 
 	// safecontent case with force flag set
 	c = gptest.CliCtxWithFlags(ctx, t, map[string]string{"unsafe": "true"}, "fo")
 	assert.NoError(t, act.Find(c))
 	out = strings.TrimSpace(buf.String())
-	assert.Contains(t, out, "Found exact match in 'foo'\nsecret")
+	assert.Contains(t, out, "Found exact match in \"foo\"\nsecret")
 	buf.Reset()
 
 	// stopping with the safecontent tests

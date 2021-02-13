@@ -21,7 +21,7 @@ func (s *Action) Fsck(c *cli.Context) error {
 	if c.IsSet("decrypt") {
 		ctx = leaf.WithFsckDecrypt(ctx, c.Bool("decrypt"))
 	}
-	out.Print(ctx, "Checking store integrity ...")
+	out.Printf(ctx, "Checking store integrity ...")
 	// make sure config is in the right place
 	// we may have loaded it from one of the fallback locations
 	if err := s.cfg.Save(); err != nil {
@@ -32,7 +32,7 @@ func (s *Action) Fsck(c *cli.Context) error {
 	oldCfg := filepath.Join(config.Homedir(), ".gopass.yml")
 	if fsutil.IsFile(oldCfg) {
 		if err := os.Remove(oldCfg); err != nil {
-			out.Error(ctx, "Failed to remove old gopass config %s: %s", oldCfg, err)
+			out.Errorf(ctx, "Failed to remove old gopass config %s: %s", oldCfg, err)
 		}
 	}
 

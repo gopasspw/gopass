@@ -112,7 +112,7 @@ func (u Unit) InitStore(name string) error {
 		if err := os.MkdirAll(filepath.Dir(fn), 0700); err != nil {
 			return err
 		}
-		if err := ioutil.WriteFile(fn, []byte("secret\nsecond\nhird"), 0600); err != nil {
+		if err := ioutil.WriteFile(fn, []byte("secret\nsecond\nthird"), 0600); err != nil {
 			return err
 		}
 	}

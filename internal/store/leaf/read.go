@@ -25,7 +25,7 @@ func (s *Store) Get(ctx context.Context, name string) (gopass.Secret, error) {
 
 	content, err := s.crypto.Decrypt(ctx, ciphertext)
 	if err != nil {
-		out.Error(ctx, "Decryption failed: %s\n%s", err, string(content))
+		out.Errorf(ctx, "Decryption failed: %s\n%s", err, string(content))
 		return nil, store.ErrDecrypt
 	}
 	var sec gopass.Secret

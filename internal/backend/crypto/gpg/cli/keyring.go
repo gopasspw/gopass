@@ -128,7 +128,7 @@ func (g *GPG) FormatKey(ctx context.Context, id, tpl string) string {
 
 	buf := &bytes.Buffer{}
 	if err := tmpl.Execute(buf, g.findKey(ctx, id).Identity()); err != nil {
-		debug.Log("Failed to render template '%s': %s", tpl, err)
+		debug.Log("Failed to render template %q: %s", tpl, err)
 		return ""
 	}
 
