@@ -1,6 +1,5 @@
 FIRST_GOPATH              := $(firstword $(subst :, ,$(GOPATH)))
 PKGS                      := $(shell go list ./... | grep -v /tests | grep -v /xcpb | grep -v /gpb)
-PKGSWIN                   := $(shell go list ./... | grep -v /tests | grep -v /xcpb | grep -v /gpb | grep -v "jsonapi")
 GOFILES_NOVENDOR          := $(shell find . -name vendor -prune -o -type f -name '*.go' -not -name '*.pb.go' -print)
 GOFILES_BUILD             := $(shell find . -type f -name '*.go' -not -name '*_test.go')
 PROTOFILES                := $(shell find . -name vendor -prune -o -type f -name '*.proto' -print)
@@ -115,7 +114,7 @@ test: $(GOPASS_OUTPUT)
 
 test-win: $(GOPASS_OUTPUT)
 	@echo ">> TEST, \"fast-mode-win\": race detector off"
-	@$(foreach pkg, $(PKGSWIN),\
+	@$(foreach pkg, $(PKGS),\
 		$(GO) test -test.short -run '(Test|Example)' $(pkg) || exit 1;)
 
 test-integration: $(GOPASS_OUTPUT)
