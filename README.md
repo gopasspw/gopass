@@ -120,7 +120,7 @@ We welcome any contributions. Please see the [CONTRIBUTING.md](https://github.co
 * [Security, Known Limitations, and Caveats](https://github.com/gopasspw/gopass/blob/master/docs/security.md)
 * [Configuration](https://github.com/gopasspw/gopass/blob/master/docs/config.md)
 * [FAQ](https://github.com/gopasspw/gopass/blob/master/docs/faq.md)
-* [JSON API](https://github.com/gopasspw/gopass/blob/master/docs/jsonapi.md)
+* [JSON API](https://github.com/gopasspw/gopass-jsonapi)
 * [Gopass as Summon provider](https://github.com/gopasspw/gopass-summon-provider)
 
 ## External Documentation
