@@ -17,6 +17,14 @@ For licensing reasons and security considerations we try to keep the number of
 external dependencies (libraries) well-arranged. Try to avoid adding new
 dependencies unless absolutely necessary.
 
+## Generalized control flow
+
+![](docs/components.png)
+
+This flow chart shows a high level control flow common to most operations.
+It leaves out a lot of details but should give a better understanding how
+information flows within the program and where changes might be necessary.
+
 ## Code Map
 
 This section talks briefly about the various directories and some data
@@ -112,37 +120,116 @@ during lookup.
 
 ### `internal/config`
 
-TODO: backwards compat, loading, overrides, ...
+The `config` package implements support for a simple YAML-based configuration
+format for `gopass`. Most of the code in this package is for backwards
+compatibility. Whenever we introduce or remove a config option we need to
+introduce a new fallback version that is automatically attempted when loading
+a config file. To resolve ambiguities when parsing different config versions
+we use a "catch-all" field to catch any unused keys and check that this is
+empty after parsing - otherwise we need to try a different config version.
+
+NOTE: We did support nested configurations for sub-stores but removed this
+because the maintenance cost did not justify the benefits of this feature.
 
 ### `internal/cui`
 
-TODO: history, issues, outlook
+The name `cui` is an abbreviation for `console-user-interface` and contains
+several helper functions to interact with humans over a text based interface.
 
-### `internal/editor`
+Most of these ask the user to select some item from a selection or provide
+some input.
 
-TODO: security
+NOTE: We used to support rich terminal UIs with arrow navigation and such.
+However all existing libraries that were available without CGO were either
+abandoned or buggy on some platforms and we didn't have any capacity to fix
+them. So we had to remove support for this feature.
 
 ### `internal/queue`
 
-TODO: motivation, usage
+The `queue` package implements a FIFO queue that executes
+in the background. This allows for certain operations, like a git push, to be
+taken out of the critical path wrt. user interactions. The queue will be fully
+processed before the process exits.
 
-### `internal/store`
+### `internal/store/root`
 
-TODO: everything
+The `root store` package implements an internal password store API that (only)
+supports mounting `leaf` stores. It will forward (almost) all operations to
+its `leaf` stores (moves across stores being a notable exception) and do the
+necessary manipulations of the affected path components (e.g. removing/adding
+the mount prefix from the secret name as needed).
+
+This package makes `gopass` multi-store capable.
+
+### `internal/store/leaf`
+
+The `leaf store` package implements a password store that is mostly compatible
+with any other password store implementation (while aiming for interoperability,
+not at 100% feature parity). The low-level operations like filesystem and / or
+version control and crypto operations are passed to the configured `storage`
+or `crypto` backend.
 
 ### `internal/tree`
 
-TODO: why
+The `tree` package implements a simple tree structure that prints an output
+similar to the output of the Unix tool `tree`. It does support different
+`gopass` specific properties (like mounts or templates) not easily implemented
+with other tree packages.
 
 ### `internal/updater`
 
-TODO: security
+The `updater` package implements a secure and anonymous self updater.
 
-### `pkg/...`
+Note: The self updater contacts GitHub. If this is a concern one should use
+other sources, e.g. distro packages.
 
-TODO: everything
+It retrieves the latest stable release from GitHub, fetches its metadata
+and verifies the signature against the built-in release signing keyring.
+
+It tries to avoid conflicting with any `gopass` binary managed by the OS
+and refuse to update these.
+
+### `pkg/`
+
+The package `pkg/` contains our public API surface, i.e. packages we want or
+have to expose externally. Some packages (e.g. `otp`) are only exposed because
+they are being used by some of our integrations. Others (e.g. `pinentry` or
+`pwgen`) are designed for wider use. We are considering to split some of the
+more widely used packages into their own repositories to work better with
+Go module and semantic versioning expectations.
+
+#### `pkg/appdir`
+
+The `appdir` package contains a set of [XDG Base Directory Specification](https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html)
+compatible implementations with some `gopass` specifics. For testing purposes
+we want to honor the setting of `GOPASS_HOMEDIR` before everything else, so our
+implementation has to take this into account before following the XDG spec.
+
+#### `pkg/clipboard`
+
+The `clipboard` package is a wrapper around a clipboard package that adds
+support for clearing the clipboard.
+
+#### `pkg/ctxutil`
+
+The `ctxutil` is the pragmatic (read: non-idiomatic) approach to pass very
+specific configuration options through multiple layers of abstraction. This is
+arguably not the best design, but it works well and avoids bloated interfaces.
+
+#### `pkg/gopass`
+
+This package contains **the** gopass API interface. We provide a concrete
+implementation that should work with any properly initialized gopass setup
+and a mock for tests.
+
+This package is designed as the main entry point for any integration that wants
+to integrate with gopass.
 
 ### `tests`
 
-TODO: integration tests
+`gopass` comes with a comprehensive set of integration tests, i.e. tests that
+are executed by running a newly compiled gopass binary without access to any
+kind of internal state. These tests can't be as exhaustive as the unit tests
+but they exist to ensure basic functionality aren't broken by a change.
+
 
