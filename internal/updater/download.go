@@ -44,32 +44,31 @@ func download(ctx context.Context, url string) ([]byte, error) {
 	// we want binary data, please
 	req.Header.Set("Accept", "application/octet-stream")
 
+	t0 := time.Now()
 	resp, err := ctxhttp.Do(ctx, http.DefaultClient, req)
 	if err != nil {
 		return nil, err
 	}
 
 	var body io.ReadCloser
-	bar := termio.NewProgressBar(resp.ContentLength, ctxutil.IsHidden(ctx))
 	// do not show progress bar for small assets, like SHA256SUMS
-	if resp.ContentLength > 10000 {
-		body = &passThru{
-			ReadCloser: resp.Body,
-			Bar:        bar,
-		}
-
-	} else {
-		body = resp.Body
+	bar := termio.NewProgressBar(resp.ContentLength, ctxutil.IsHidden(ctx) || resp.ContentLength < 10000)
+	body = &passThru{
+		ReadCloser: resp.Body,
+		Bar:        bar,
 	}
 
 	buf := &bytes.Buffer{}
-
 	count, err := io.Copy(buf, body)
 	if err != nil {
 		return nil, err
 	}
+
+	bar.Set(resp.ContentLength)
 	bar.Done()
-	debug.Log("Transferred %d bytes from %s", count, url)
+
+	elapsed := time.Since(t0)
+	debug.Log("Transferred %d bytes from %q in %s", count, url, elapsed)
 	return buf.Bytes(), nil
 }
 
@@ -84,7 +83,7 @@ type passThru struct {
 
 func (pt *passThru) Read(p []byte) (int, error) {
 	n, err := pt.ReadCloser.Read(p)
-	if pt.Bar != nil {
+	if pt.Bar != nil && n > 0 {
 		pt.Bar.Set(int64(n))
 	}
 	return n, err

@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"fmt"
+	"os"
 	"runtime"
 
 	"github.com/gopasspw/gopass/internal/out"
@@ -39,7 +40,9 @@ func Update(ctx context.Context, currentVersion semver.Version) error {
 	// binary is newer or equal to the latest release -> nothing to do
 	if currentVersion.GTE(rel.Version) {
 		out.Print(ctx, "gopass is up to date (%s)", currentVersion.String())
-		return nil
+		if gfu := os.Getenv("GOPASS_FORCE_UPDATE"); gfu == "" {
+			return nil
+		}
 	}
 
 	debug.Log("downloading SHA256SUMS ...")

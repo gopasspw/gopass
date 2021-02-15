@@ -59,6 +59,9 @@ func (p *ProgressBar) Set(v int64) {
 
 // Done finalizes the progress bar
 func (p *ProgressBar) Done() {
+	if p.hidden {
+		return
+	}
 	fmt.Fprintln(Stdout, "")
 }
 
@@ -85,7 +88,7 @@ func (p *ProgressBar) print() {
 
 func (p *ProgressBar) tryPrint() {
 	ts := now()
-	if p.current == 0 || p.current == p.total || ts.Sub(p.lastUpd) > time.Second/fps {
+	if p.current == 0 || p.current >= p.total-1 || ts.Sub(p.lastUpd) > time.Second/fps {
 		p.lastUpd = ts
 		p.doPrint()
 	}
