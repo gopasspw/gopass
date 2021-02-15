@@ -54,5 +54,9 @@ func (g *Git) Path() string {
 
 // Fsck checks the storage integrity
 func (g *Git) Fsck(ctx context.Context) error {
+	// ensure sane git config
+	if err := g.fixConfig(ctx); err != nil {
+		return fmt.Errorf("failed to fix git config: %w", err)
+	}
 	return g.fs.Fsck(ctx)
 }

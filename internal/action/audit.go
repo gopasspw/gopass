@@ -11,16 +11,17 @@ import (
 
 // Audit validates passwords against common flaws
 func (s *Action) Audit(c *cli.Context) error {
-	filter := c.Args().First()
+	s.rem.Reset("audit")
 
+	filter := c.Args().First()
 	ctx := ctxutil.WithGlobalFlags(c)
 
-	out.Printf(ctx, "Auditing passwords for common flaws ...")
-
+	out.Print(ctx, "Auditing passwords for common flaws ...")
 	t, err := s.Store.Tree(ctx)
 	if err != nil {
 		return ExitError(ExitList, err, "failed to get store tree: %s", err)
 	}
+
 	if filter != "" {
 		subtree, err := t.FindFolder(filter)
 		if err != nil {

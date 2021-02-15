@@ -17,6 +17,8 @@ import (
 
 // Fsck checks the store integrity
 func (s *Action) Fsck(c *cli.Context) error {
+	s.rem.Reset("fsck")
+
 	ctx := ctxutil.WithGlobalFlags(c)
 	if c.IsSet("decrypt") {
 		ctx = leaf.WithFsckDecrypt(ctx, c.Bool("decrypt"))

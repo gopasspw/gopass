@@ -32,6 +32,7 @@ func TestGenerate(t *testing.T) {
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithAutoClip(ctx, false)
+	ctx = ctxutil.WithInteractive(ctx, false)
 
 	act, err := newMock(ctx, u)
 	require.NoError(t, err)

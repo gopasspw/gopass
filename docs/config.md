@@ -20,6 +20,7 @@ Some configuration options are only available through setting environment variab
 | `GOPASS_HOMEDIR`        | `string` | Set this to the absolute path of the directory containing the `.config/` tree                                |
 | `GOPASS_FORCE_UPDATE`   | `bool`   | Set to any non-empty value to force an update (if available)                                                 |
 | `GOPASS_NO_NOTIFY`      | `bool`   | Set to any non-empty value to prevent notifications                                                          |
+| `GOPASS_NO_REMINDER`      | `bool`   | Set to any non-empty value to prevent reminders                                                          |
 
 Variables not exclusively used by gopass
 

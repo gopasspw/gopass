@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/tests/gptest"
 
 	"github.com/stretchr/testify/assert"
@@ -34,6 +35,7 @@ func TestComplete(t *testing.T) {
 	}()
 
 	ctx := context.Background()
+	ctx = ctxutil.WithInteractive(ctx, false)
 	act, err := newMock(ctx, u)
 	require.NoError(t, err)
 	require.NotNil(t, act)

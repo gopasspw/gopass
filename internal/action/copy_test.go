@@ -20,6 +20,7 @@ func TestCopy(t *testing.T) {
 	defer u.Remove()
 
 	ctx := context.Background()
+	ctx = ctxutil.WithInteractive(ctx, false)
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithAutoClip(ctx, false)
 
