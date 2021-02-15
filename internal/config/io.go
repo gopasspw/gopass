@@ -13,10 +13,20 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// LoadWithFallbackRelaxed will try to load the config from one of the default
+// locations but also accept a more recent config.
+func LoadWithFallbackRelaxed() *Config {
+	return loadWithFallback(true)
+}
+
 // LoadWithFallback will try to load the config from one of the default locations
 func LoadWithFallback() *Config {
+	return loadWithFallback(false)
+}
+
+func loadWithFallback(relaxed bool) *Config {
 	for _, l := range configLocations() {
-		if cfg := loadConfig(l); cfg != nil {
+		if cfg := loadConfig(l, relaxed); cfg != nil {
 			return cfg
 		}
 	}
@@ -25,15 +35,15 @@ func LoadWithFallback() *Config {
 
 // Load will load the config from the default location or return a default config
 func Load() *Config {
-	if cfg := loadConfig(configLocation()); cfg != nil {
+	if cfg := loadConfig(configLocation(), false); cfg != nil {
 		return cfg
 	}
 	return loadDefault()
 }
 
-func loadConfig(l string) *Config {
+func loadConfig(l string, relaxed bool) *Config {
 	debug.Log("Trying to load config from %s", l)
-	cfg, err := load(l)
+	cfg, err := load(l, relaxed)
 	if err == ErrConfigNotFound {
 		return nil
 	}
@@ -51,7 +61,7 @@ func loadDefault() *Config {
 	return cfg
 }
 
-func load(cf string) (*Config, error) {
+func load(cf string, relaxed bool) (*Config, error) {
 	// deliberately using os.Stat here, a symlinked
 	// config is OK
 	if _, err := os.Stat(cf); err != nil {
@@ -63,7 +73,7 @@ func load(cf string) (*Config, error) {
 		return nil, ErrConfigNotFound
 	}
 
-	cfg, err := decode(buf)
+	cfg, err := decode(buf, relaxed)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error reading config from %s: %s\n", cf, err)
 		return nil, ErrConfigNotParsed
@@ -93,12 +103,14 @@ type configer interface {
 	CheckOverflow() error
 }
 
-func decode(buf []byte) (*Config, error) {
+func decode(buf []byte, relaxed bool) (*Config, error) {
+	mostRecent := &Config{
+		ExportKeys: true,
+		Parsing:    true,
+	}
 	cfgs := []configer{
-		&Config{
-			ExportKeys: true,
-			Parsing:    true,
-		},
+		// most recent config must come first
+		mostRecent,
 		&Pre1102{},
 		&Pre193{
 			Root: &Pre193StoreConfig{},
@@ -108,6 +120,11 @@ func decode(buf []byte) (*Config, error) {
 		},
 		&Pre140{},
 		&Pre130{},
+	}
+	if relaxed {
+		// most recent config must come last as well, will be tried w/o
+		// overflow checks
+		cfgs = append(cfgs, mostRecent)
 	}
 	var warn string
 	for i, cfg := range cfgs {
@@ -121,7 +138,18 @@ func decode(buf []byte) (*Config, error) {
 			if i == 0 {
 				warn = fmt.Sprintf("Failed to load config %T. Do you need to remove deprecated fields? %s\n", cfg, err)
 			}
-			continue
+			// usually we are strict about extra fields, i.e. any field left
+			// unparsed means this config failed and we try the next one.
+			if i < len(cfgs)-1 {
+				continue
+			}
+			// in relaxed mode we append an extra copy of the most recent
+			// config to the end of the slice and might just ignore these
+			// extra fields.
+			if !relaxed {
+				continue
+			}
+			debug.Log("Ignoring extra config fields for fallback config (only)")
 		}
 		debug.Log("Loaded config: %T: %+v", cfg, cfg)
 		conf := cfg.Config()

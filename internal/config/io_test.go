@@ -52,6 +52,37 @@ mounts:
 				},
 			},
 		}, {
+			name: "N+1",
+			cfg: `autoclip: true
+autoimport: false
+cliptimeout: 45
+exportkeys: true
+nopager: false
+foo: bar
+notifications: true
+path: /home/johndoe/.password-store
+safecontent: false
+mounts:
+  foo/sub: /home/johndoe/.password-store-foo-sub
+  work: /home/johndoe/.password-store-work`,
+			want: &Config{
+				AutoClip:      true,
+				AutoImport:    false,
+				ClipTimeout:   45,
+				ExportKeys:    true,
+				NoColor:       false,
+				NoPager:       false,
+				Notifications: true,
+				Parsing:       true,
+				Path:          "/home/johndoe/.password-store",
+				SafeContent:   false,
+				Mounts: map[string]string{
+					"foo/sub": "/home/johndoe/.password-store-foo-sub",
+					"work":    "/home/johndoe/.password-store-work",
+				},
+				XXX: map[string]interface{}{"foo": string("bar")},
+			},
+		}, {
 			name: "1.8.2",
 			cfg: `root:
   autoclip: true
@@ -310,10 +341,10 @@ version: "1.0.0"`,
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			got, err := decode([]byte(tc.cfg))
+			got, err := decode([]byte(tc.cfg), true)
 			require.NoError(t, err)
 			if diff := cmp.Diff(tc.want, got); diff != "" {
-				t.Errorf("decode(%v) mismatch (-want +got):\n%s", tc.cfg, diff)
+				t.Errorf("decode(%s) mismatch for:\n%s\n(-want +got):\n%s", tc.name, tc.cfg, diff)
 			}
 		})
 	}
@@ -369,7 +400,7 @@ func TestLoadError(t *testing.T) {
 	_ = os.Remove(gcfg)
 
 	capture(t, func() error {
-		_, err := load(gcfg)
+		_, err := load(gcfg, false)
 		if err == nil {
 			return fmt.Errorf("should fail")
 		}
@@ -377,7 +408,7 @@ func TestLoadError(t *testing.T) {
 	})
 
 	_ = os.Remove(gcfg)
-	cfg, err := load(gcfg)
+	cfg, err := load(gcfg, false)
 	assert.Error(t, err)
 
 	td, err := ioutil.TempDir("", "gopass-")
@@ -398,7 +429,7 @@ func TestDecodeError(t *testing.T) {
 	require.NoError(t, ioutil.WriteFile(gcfg, []byte(testConfig+"\nfoobar: zab\n"), 0600))
 
 	capture(t, func() error {
-		_, err := load(gcfg)
+		_, err := load(gcfg, false)
 		if err == nil {
 			return fmt.Errorf("should fail")
 		}
