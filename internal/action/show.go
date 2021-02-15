@@ -75,7 +75,7 @@ func (s *Action) show(ctx context.Context, c *cli.Context, name string, recurse 
 		return s.List(c)
 	}
 	if s.Store.IsDir(ctx, name) && ctxutil.IsTerminal(ctx) {
-		out.Warning(ctx, "%s is a secret and a folder. Use 'gopass show %s' to display the secret and 'gopass list %s' to show the content of the folder", name, name, name)
+		out.Warningf(ctx, "%s is a secret and a folder. Use 'gopass show %s' to display the secret and 'gopass list %s' to show the content of the folder", name, name, name)
 	}
 
 	if HasRevision(ctx) {
@@ -96,6 +96,7 @@ func (s *Action) showHandleRevision(ctx context.Context, c *cli.Context, name, r
 	if err != nil {
 		return ExitError(ExitUnknown, err, "Failed to get revisions: %s", err)
 	}
+
 	ctx, sec, err := s.Store.GetRevision(ctx, name, revision)
 	if err != nil {
 		return s.showHandleError(ctx, c, name, false, err)
@@ -109,20 +110,24 @@ func (s *Action) parseRevision(ctx context.Context, name, revision string) (stri
 	if !strings.HasPrefix(revision, "-") {
 		return revision, nil
 	}
+
 	revStr := strings.TrimPrefix(revision, "-")
 	offset, err := strconv.Atoi(revStr)
 	if err != nil {
 		return "", err
 	}
+
 	debug.Log("Offset: %d", offset)
 	revs, err := s.Store.ListRevisions(ctx, name)
 	if err != nil {
 		return "", err
 	}
+
 	if len(revs) < offset {
 		debug.Log("Not enough revisions (%d)", len(revs))
 		return revStr, nil
 	}
+
 	revision = revs[len(revs)-offset].Hash
 	debug.Log("Found %s for offset %d", revision, offset)
 	return revision, nil
@@ -164,7 +169,7 @@ func (s *Action) showHandleOutput(ctx context.Context, name string, sec gopass.S
 		if HasKey(ctx) {
 			header += fmt.Sprintf("Key: %s\n", GetKey(ctx))
 		}
-		out.Print(ctx, "%s", header)
+		out.Print(ctx, header)
 	}
 	// output the actual secret, newlines are handled by ctx and Print
 	out.Print(ctx, body)
@@ -181,8 +186,6 @@ func (s *Action) showGetContent(ctx context.Context, sec gopass.Secret) (string,
 			return "", "", ExitError(ExitNotFound, store.ErrNoKey, store.ErrNoKey.Error())
 		}
 		val := strings.Join(values, "\n")
-		//TODO: consider if we really want to have the value of the keys output in the debug logs
-		debug.Log("got(found: %t) key %s: %v", found, key, values)
 		return val, val, nil
 	} else if HasKey(ctx) {
 		out.Warning(ctx, "Parsing is disabled but a key was provided.")
@@ -281,17 +284,17 @@ func (s *Action) hasAliasDomain(ctx context.Context, name string) string {
 func (s *Action) showHandleError(ctx context.Context, c *cli.Context, name string, recurse bool, err error) error {
 	if err != store.ErrNotFound || !recurse || !ctxutil.IsTerminal(ctx) {
 		if IsClip(ctx) {
-			_ = notify.Notify(ctx, "gopass - error", fmt.Sprintf("failed to retrieve secret '%s': %s", name, err))
+			_ = notify.Notify(ctx, "gopass - error", fmt.Sprintf("failed to retrieve secret %q: %s", name, err))
 		}
-		return ExitError(ExitUnknown, err, "failed to retrieve secret '%s': %s", name, err)
+		return ExitError(ExitUnknown, err, "failed to retrieve secret %q: %s", name, err)
 	}
 	if newName := s.hasAliasDomain(ctx, name); newName != "" {
 		return s.show(ctx, nil, newName, false)
 	}
 	if IsClip(ctx) {
-		_ = notify.Notify(ctx, "gopass - warning", fmt.Sprintf("Entry '%s' not found. Starting search...", name))
+		_ = notify.Notify(ctx, "gopass - warning", fmt.Sprintf("Entry %q not found. Starting search...", name))
 	}
-	out.Warning(ctx, "Entry '%s' not found. Starting search...", name)
+	out.Warningf(ctx, "Entry %q not found. Starting search...", name)
 	c.Context = ctx
 	if err := s.Find(c); err != nil {
 		if IsClip(ctx) {
@@ -305,7 +308,7 @@ func (s *Action) showHandleError(ctx context.Context, c *cli.Context, name strin
 func (s *Action) showPrintQR(name, pw string) error {
 	qr, err := qrcon.QRCode(pw)
 	if err != nil {
-		return ExitError(ExitUnknown, err, "failed to encode '%s' as QR: %s", name, err)
+		return ExitError(ExitUnknown, err, "failed to encode %q as QR: %s", name, err)
 	}
 	fmt.Fprintln(stdout, qr)
 	return nil

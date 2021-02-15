@@ -32,11 +32,11 @@ You can add secondary stores with gopass init --path <path to secondary store> -
 		}
 		kl, err := s.crypto.FindRecipients(ctx, id)
 		if err != nil {
-			out.Error(ctx, "Failed to fetch public key for '%s': %s", id, err)
+			out.Errorf(ctx, "Failed to fetch public key for %q: %s", id, err)
 			continue
 		}
 		if len(kl) < 1 {
-			out.Error(ctx, "No useable keys for '%s'", id)
+			out.Errorf(ctx, "No useable keys for %q", id)
 			continue
 		}
 		recipients = append(recipients, kl[0])

@@ -112,12 +112,12 @@ func (s *Action) REPL(c *cli.Context) error {
 		if err == nil {
 			return
 		}
-		out.Error(c.Context, "%s", err)
+		out.Errorf(c.Context, "%s", err)
 	}
 
-	out.Print(c.Context, logo)
-	out.Print(c.Context, "🌟 Welcome to gopass!")
-	out.Print(c.Context, "⚠ This is the built-in shell. Type 'help' for a list of commands.")
+	out.Printf(c.Context, logo)
+	out.Printf(c.Context, "🌟 Welcome to gopass!")
+	out.Printf(c.Context, "⚠ This is the built-in shell. Type 'help' for a list of commands.")
 
 	rl, err := readline.New("gopass> ")
 	if err != nil {
@@ -141,7 +141,7 @@ READ:
 		}
 		args, err := shellquote.Split(line)
 		if err != nil {
-			out.Print(c.Context, "Error: %s", err)
+			out.Printf(c.Context, "Error: %s", err)
 			continue
 		}
 		if len(args) < 1 {
@@ -172,8 +172,8 @@ READ:
 
 func (s *Action) replLock(ctx context.Context) {
 	if err := s.Store.Lock(); err != nil {
-		out.Error(ctx, "Failed to lock stores: %s", err)
+		out.Errorf(ctx, "Failed to lock stores: %s", err)
 		return
 	}
-	out.OK(ctx, "Locked")
+	out.OKf(ctx, "Locked")
 }

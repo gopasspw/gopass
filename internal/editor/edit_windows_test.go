@@ -26,7 +26,7 @@ func TestEditor(t *testing.T) {
 	out, err := Invoke(ctx, touch, []byte(want))
 	require.NoError(t, err)
 	if string(out) != want {
-		t.Errorf("'%s' != '%s'", string(out), want)
+		t.Errorf("%q != %q", string(out), want)
 	}
 }
 

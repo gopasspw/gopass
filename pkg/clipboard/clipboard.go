@@ -22,7 +22,7 @@ var (
 // clearing of the clipboard
 func CopyTo(ctx context.Context, name string, content []byte) error {
 	if clipboard.Unsupported {
-		out.Print(ctx, "%s", ErrNotSupported)
+		out.Printf(ctx, "%s", ErrNotSupported)
 		_ = notify.Notify(ctx, "gopass - clipboard", fmt.Sprintf("%s", ErrNotSupported))
 		return nil
 	}
@@ -37,7 +37,7 @@ func CopyTo(ctx context.Context, name string, content []byte) error {
 		return fmt.Errorf("failed to clear clipboard: %w", err)
 	}
 
-	out.Print(ctx, "✔ Copied %s to clipboard. Will clear in %d seconds.", color.YellowString(name), ctxutil.GetClipTimeout(ctx))
+	out.Printf(ctx, "✔ Copied %s to clipboard. Will clear in %d seconds.", color.YellowString(name), ctxutil.GetClipTimeout(ctx))
 	_ = notify.Notify(ctx, "gopass - clipboard", fmt.Sprintf("✔ Copied %s to clipboard. Will clear in %d seconds.", name, ctxutil.GetClipTimeout(ctx)))
 	return nil
 }

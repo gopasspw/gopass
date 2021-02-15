@@ -52,7 +52,7 @@ func NewCrypticForDomain(length int, domain string) *Cryptic {
 	}
 	for _, req := range r.Required {
 		chars := charsFromRule(req)
-		debug.Log("Adding validator for %s: Requires '%s' -> '%s'", domain, req, chars)
+		debug.Log("Adding validator for %s: Requires %q -> %q", domain, req, chars)
 		if chars == "" {
 			continue
 		}

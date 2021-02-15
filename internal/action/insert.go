@@ -113,7 +113,7 @@ func (s *Action) insertStdin(ctx context.Context, name string, content []byte, a
 		debug.Log("Created new plain secret with input")
 	}
 	if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, "Read secret from STDIN"), name, sec); err != nil {
-		return ExitError(ExitEncrypt, err, "failed to set '%s': %s", name, err)
+		return ExitError(ExitEncrypt, err, "failed to set %q: %s", name, err)
 	}
 	return nil
 }
@@ -147,7 +147,7 @@ func (s *Action) insertSingle(ctx context.Context, name, pw string, kvps map[str
 	}
 
 	if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, "Inserted user supplied password"), name, sec); err != nil {
-		return ExitError(ExitEncrypt, err, "failed to write secret '%s': %s", name, err)
+		return ExitError(ExitEncrypt, err, "failed to write secret %q: %s", name, err)
 	}
 	return nil
 }
@@ -166,7 +166,7 @@ func (s *Action) insertYAML(ctx context.Context, name, key string, content []byt
 		var err error
 		sec, err = s.Store.Get(ctx, name)
 		if err != nil {
-			return ExitError(ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
+			return ExitError(ExitEncrypt, err, "failed to set key %q of %q: %s", key, name, err)
 		}
 	} else {
 		sec = secrets.New()
@@ -176,7 +176,7 @@ func (s *Action) insertYAML(ctx context.Context, name, key string, content []byt
 		return ExitError(ExitUsage, err, "failed set key %q of %q: %q", key, name, err)
 	}
 	if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, "Inserted YAML value from STDIN"), name, sec); err != nil {
-		return ExitError(ExitEncrypt, err, "failed to set key '%s' of '%s': %s", key, name, err)
+		return ExitError(ExitEncrypt, err, "failed to set key %q of %q: %s", key, name, err)
 	}
 	return nil
 }
@@ -199,10 +199,10 @@ func (s *Action) insertMultiline(ctx context.Context, c *cli.Context, name strin
 	sec := &secrets.Plain{}
 	n, err := sec.Write(content)
 	if err != nil || n < 0 {
-		out.Error(ctx, "WARNING: Invalid secret: %s of len %d", err, n)
+		out.Errorf(ctx, "WARNING: Invalid secret: %s of len %d", err, n)
 	}
 	if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, fmt.Sprintf("Inserted user supplied password with %s", ed)), name, sec); err != nil {
-		return ExitError(ExitEncrypt, err, "failed to store secret '%s': %s", name, err)
+		return ExitError(ExitEncrypt, err, "failed to store secret %q: %s", name, err)
 	}
 	return nil
 }

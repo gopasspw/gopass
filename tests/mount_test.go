@@ -28,7 +28,7 @@ func TestSingleMount(t *testing.T) {
 
 	out, err = ts.run("show mnt/m1/secret")
 	assert.Error(t, err)
-	assert.Equal(t, "\nError: failed to retrieve secret 'mnt/m1/secret': entry is not in the password store\n", out)
+	assert.Contains(t, out, "entry is not in the password store")
 
 	ts.initSecrets("mnt/m1/")
 
@@ -85,7 +85,7 @@ func TestMountShadowing(t *testing.T) {
 	// check that the mount is not containing our shadowed secret
 	out, err = ts.run("show -f mnt/m1/secret")
 	assert.Error(t, err)
-	assert.Equal(t, "\nError: failed to retrieve secret 'mnt/m1/secret': entry is not in the password store\n", out)
+	assert.Contains(t, out, "entry is not in the password store")
 
 	// insert some secret at the place that is shadowed by the mount
 	_, err = ts.runCmd([]string{ts.Binary, "insert", "mnt/m1/secret"}, []byte("food"))

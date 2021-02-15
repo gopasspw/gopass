@@ -58,9 +58,9 @@ func (s *Action) otp(ctx context.Context, name, qrf string, clip, pw, recurse bo
 	}
 
 	if pw {
-		out.Print(ctx, "%s", token)
+		out.Printf(ctx, "%s", token)
 	} else {
-		out.Print(ctx, "%s lasts %ds \t|%s%s|", token, secondsLeft, strings.Repeat("-", otpPeriod-secondsLeft), strings.Repeat("=", secondsLeft))
+		out.Printf(ctx, "%s lasts %ds \t|%s%s|", token, secondsLeft, strings.Repeat("-", otpPeriod-secondsLeft), strings.Repeat("=", secondsLeft))
 	}
 
 	if clip {
@@ -78,9 +78,9 @@ func (s *Action) otp(ctx context.Context, name, qrf string, clip, pw, recurse bo
 
 func (s *Action) otpHandleError(ctx context.Context, name, qrf string, clip, pw, recurse bool, err error) error {
 	if err != store.ErrNotFound || !recurse || !ctxutil.IsTerminal(ctx) {
-		return ExitError(ExitUnknown, err, "failed to retrieve secret '%s': %s", name, err)
+		return ExitError(ExitUnknown, err, "failed to retrieve secret %q: %s", name, err)
 	}
-	out.Print(ctx, "Entry '%s' not found. Starting search...", name)
+	out.Printf(ctx, "Entry %q not found. Starting search...", name)
 	cb := func(ctx context.Context, c *cli.Context, name string, recurse bool) error {
 		return s.otp(ctx, name, qrf, clip, pw, false)
 	}

@@ -28,7 +28,7 @@ func promptPass(ctx context.Context, prompt string) (string, error) {
 	}
 	defer func() {
 		if err := term.Restore(fd, oldState); err != nil {
-			out.Error(ctx, "Failed to restore terminal: %s", err)
+			out.Errorf(ctx, "Failed to restore terminal: %s", err)
 		}
 	}()
 
@@ -38,7 +38,7 @@ func promptPass(ctx context.Context, prompt string) (string, error) {
 	go func() {
 		<-sigch
 		if err := term.Restore(fd, oldState); err != nil {
-			out.Error(ctx, "Failed to restore terminal: %s", err)
+			out.Errorf(ctx, "Failed to restore terminal: %s", err)
 		}
 		os.Exit(1)
 	}()

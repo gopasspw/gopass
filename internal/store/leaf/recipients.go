@@ -26,7 +26,7 @@ const (
 func (s *Store) Recipients(ctx context.Context) []string {
 	rs, err := s.GetRecipients(ctx, "")
 	if err != nil {
-		out.Error(ctx, "failed to read recipient list: %s", err)
+		out.Errorf(ctx, "failed to read recipient list: %s", err)
 	}
 	return rs
 }
@@ -76,7 +76,7 @@ func (s *Store) AddRecipient(ctx context.Context, id string) error {
 		return fmt.Errorf("failed to save recipients: %w", err)
 	}
 
-	out.Print(ctx, "Reencrypting existing secrets. This may take some time ...")
+	out.Printf(ctx, "Reencrypting existing secrets. This may take some time ...")
 	return s.reencrypt(ctxutil.WithCommitMessage(ctx, "Added Recipient "+id))
 }
 
@@ -100,7 +100,7 @@ func (s *Store) SetRecipients(ctx context.Context, rs []string) error {
 func (s *Store) RemoveRecipient(ctx context.Context, id string) error {
 	keys, err := s.crypto.FindRecipients(ctx, id)
 	if err != nil {
-		out.Print(ctx, "Warning: Failed to get GPG Key Info for %s: %s", id, err)
+		out.Printf(ctx, "Warning: Failed to get GPG Key Info for %s: %s", id, err)
 	}
 
 	rs, err := s.GetRecipients(ctx, "")
@@ -208,7 +208,7 @@ func (s *Store) ExportMissingPublicKeys(ctx context.Context, rs []string) (bool,
 		path, err := s.exportPublicKey(ctx, exp, r)
 		if err != nil {
 			failed = true
-			out.Error(ctx, "failed to export public key for '%s': %s", r, err)
+			out.Errorf(ctx, "failed to export public key for %q: %s", r, err)
 			continue
 		}
 		if path == "" {
@@ -221,12 +221,12 @@ func (s *Store) ExportMissingPublicKeys(ctx context.Context, rs []string) (bool,
 				continue
 			}
 			failed = true
-			out.Error(ctx, "failed to add public key for '%s' to git: %s", r, err)
+			out.Errorf(ctx, "failed to add public key for %q to git: %s", r, err)
 			continue
 		}
 		if err := s.storage.Commit(ctx, fmt.Sprintf("Exported Public Keys %s", r)); err != nil && err != store.ErrGitNothingToCommit {
 			failed = true
-			out.Error(ctx, "Failed to git commit: %s", err)
+			out.Errorf(ctx, "Failed to git commit: %s", err)
 			continue
 		}
 	}
@@ -263,7 +263,7 @@ func (s *Store) saveRecipients(ctx context.Context, rs []string, msg string) err
 	// save all recipients public keys to the repo
 	if ctxutil.IsExportKeys(ctx) {
 		if _, err := s.ExportMissingPublicKeys(ctx, rs); err != nil {
-			out.Error(ctx, "Failed to export missing public keys: %s", err)
+			out.Errorf(ctx, "Failed to export missing public keys: %s", err)
 		}
 	}
 

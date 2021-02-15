@@ -75,7 +75,7 @@ func (r *Store) initSub(ctx context.Context, alias, path string, keys []string) 
 	if err := s.Init(ctx, path, keys...); err != nil {
 		return s, fmt.Errorf("failed to initialize store %q at %q: %w", alias, path, err)
 	}
-	out.Print(ctx, "Password store %s initialized for:", path)
+	out.Printf(ctx, "Password store %s initialized for:", path)
 	for _, r := range s.Recipients(ctx) {
 		color.Yellow(r)
 	}
@@ -86,10 +86,10 @@ func (r *Store) initSub(ctx context.Context, alias, path string, keys []string) 
 // RemoveMount removes and existing mount
 func (r *Store) RemoveMount(ctx context.Context, alias string) error {
 	if _, found := r.mounts[alias]; !found {
-		out.Warning(ctx, "%s is not mounted", alias)
+		out.Warningf(ctx, "%s is not mounted", alias)
 	}
 	if _, found := r.mounts[alias]; !found {
-		out.Warning(ctx, "%s is not initialized", alias)
+		out.Warningf(ctx, "%s is not initialized", alias)
 	}
 	delete(r.mounts, alias)
 	delete(r.cfg.Mounts, alias)

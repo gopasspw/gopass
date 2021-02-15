@@ -67,7 +67,7 @@ func TestShowMulti(t *testing.T) {
 	})
 
 	t.Run("show twoliner with safecontent enabled", func(t *testing.T) {
-		ctx = ctxutil.WithShowSafeContent(ctx, true)
+		ctx := ctxutil.WithShowSafeContent(ctx, true)
 		c := gptest.CliCtx(ctx, t, "bar/baz")
 
 		assert.NoError(t, act.Show(c))
@@ -78,6 +78,8 @@ func TestShowMulti(t *testing.T) {
 	})
 
 	t.Run("show foo with safecontent enabled, should error out", func(t *testing.T) {
+		ctx := ctxutil.WithShowSafeContent(ctx, true)
+
 		c := gptest.CliCtx(ctx, t, "foo")
 		assert.NoError(t, act.Show(c))
 		assert.NotContains(t, buf.String(), "secret")
@@ -92,7 +94,7 @@ func TestShowMulti(t *testing.T) {
 	})
 
 	t.Run("show twoliner with safecontent enabled, but with the clip flag, which should copy just the secret", func(t *testing.T) {
-		ctx = ctxutil.WithShowSafeContent(ctx, true)
+		ctx := ctxutil.WithShowSafeContent(ctx, true)
 		c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"clip": "true"}, "bar/baz")
 
 		assert.NoError(t, act.Show(c))
@@ -110,7 +112,7 @@ func TestShowMulti(t *testing.T) {
 		assert.NoError(t, act.Store.Set(ctx, "unsafe/keys", sec))
 		buf.Reset()
 
-		ctx = ctxutil.WithShowSafeContent(ctx, true)
+		ctx := ctxutil.WithShowSafeContent(ctx, true)
 		c := gptest.CliCtx(ctx, t, "unsafe/keys")
 		assert.NoError(t, act.Show(c))
 		assert.Contains(t, buf.String(), "*****")
@@ -120,7 +122,7 @@ func TestShowMulti(t *testing.T) {
 	})
 
 	t.Run("show twoliner with safecontent enabled", func(t *testing.T) {
-		ctx = ctxutil.WithShowSafeContent(ctx, true)
+		ctx := ctxutil.WithShowSafeContent(ctx, true)
 		c := gptest.CliCtx(ctx, t, "bar/baz")
 
 		assert.NoError(t, act.Show(c))
@@ -131,7 +133,7 @@ func TestShowMulti(t *testing.T) {
 	})
 
 	t.Run("show twoliner with parsing disabled and safecontent enabled", func(t *testing.T) {
-		ctx = ctxutil.WithShowSafeContent(ctx, true)
+		ctx := ctxutil.WithShowSafeContent(ctx, true)
 		ctx = ctxutil.WithShowParsing(ctx, false)
 		c := gptest.CliCtx(ctx, t, "bar/baz")
 
@@ -144,7 +146,7 @@ func TestShowMulti(t *testing.T) {
 	})
 
 	t.Run("show key with parsing enabled", func(t *testing.T) {
-		ctx = ctxutil.WithShowParsing(ctx, true)
+		ctx := ctxutil.WithShowParsing(ctx, true)
 		c := gptest.CliCtx(ctx, t, "bar/baz", "bar")
 
 		assert.NoError(t, act.Show(c))
@@ -153,16 +155,16 @@ func TestShowMulti(t *testing.T) {
 	})
 
 	t.Run("show key with parsing disabled", func(t *testing.T) {
-		ctx = ctxutil.WithShowParsing(ctx, false)
+		ctx := ctxutil.WithShowParsing(ctx, false)
 		c := gptest.CliCtx(ctx, t, "bar/baz", "bar")
 
 		assert.NoError(t, act.Show(c))
-		assert.Equal(t, "bar: zab", buf.String())
+		assert.Equal(t, "123\nbar: zab", buf.String())
 		buf.Reset()
 	})
 
 	t.Run("show nonexisting key with parsing enabled", func(t *testing.T) {
-		ctx = ctxutil.WithShowParsing(ctx, true)
+		ctx := ctxutil.WithShowParsing(ctx, true)
 		c := gptest.CliCtx(ctx, t, "bar/baz", "nonexisting")
 
 		assert.Error(t, act.Show(c))
@@ -170,7 +172,7 @@ func TestShowMulti(t *testing.T) {
 	})
 
 	t.Run("show keys with mixed case", func(t *testing.T) {
-		ctx = ctxutil.WithShowParsing(ctx, true)
+		ctx := ctxutil.WithShowParsing(ctx, true)
 
 		assert.NoError(t, act.insertStdin(ctx, "baz", []byte("foobar\nOther: meh\nuser: name\nbody text"), false))
 		buf.Reset()
@@ -178,6 +180,21 @@ func TestShowMulti(t *testing.T) {
 		c := gptest.CliCtx(ctx, t, "baz", "Other")
 		assert.NoError(t, act.Show(c))
 		assert.Equal(t, "meh", buf.String())
+		buf.Reset()
+	})
+
+	t.Run("show value with format strings", func(t *testing.T) {
+		ctx := ctxutil.WithShowParsing(ctx, true)
+
+		pw := "some-chars-are-odd-%s-%p-%q"
+
+		assert.NoError(t, act.insertStdin(ctx, "printf", []byte(pw), false))
+		buf.Reset()
+
+		c := gptest.CliCtx(ctx, t, "printf")
+		assert.NoError(t, act.Show(c))
+		assert.Equal(t, pw, buf.String())
+		assert.NotContains(t, buf.String(), "MISSING")
 		buf.Reset()
 	})
 }

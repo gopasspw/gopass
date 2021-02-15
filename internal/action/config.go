@@ -37,11 +37,11 @@ func (s *Action) Config(c *cli.Context) error {
 func (s *Action) printConfigValues(ctx context.Context, needles ...string) {
 	m := s.cfg.ConfigMap()
 	for _, k := range filterMap(m, needles) {
-		out.Print(ctx, "%s: %s", k, m[k])
+		out.Printf(ctx, "%s: %s", k, m[k])
 	}
 	for alias, path := range s.cfg.Mounts {
 		if len(needles) < 1 {
-			out.Print(ctx, "mount '%s' => '%s'", alias, path)
+			out.Printf(ctx, "mount %q => %q", alias, path)
 		}
 	}
 }

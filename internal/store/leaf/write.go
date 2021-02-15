@@ -84,7 +84,7 @@ func (s *Store) gitCommitAndPush(ctx context.Context, name string) error {
 		if errors.Is(err, store.ErrGitNotInit) {
 			msg := "Warning: git is not initialized for this.storage. Ignoring auto-push option\n" +
 				"Run: gopass git init"
-			out.Error(ctx, msg)
+			out.Errorf(ctx, msg)
 			return nil
 		}
 		if errors.Is(err, store.ErrGitNoRemote) {

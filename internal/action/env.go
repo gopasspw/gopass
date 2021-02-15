@@ -38,7 +38,7 @@ func (s *Action) Env(c *cli.Context) error {
 		}
 		subtree, err := l.FindFolder(name)
 		if err != nil {
-			return ExitError(ExitNotFound, nil, "Entry '%s' not found", name)
+			return ExitError(ExitNotFound, nil, "Entry %q not found", name)
 		}
 		subtree.SetName(name)
 		for _, e := range subtree.List(tree.INF) {

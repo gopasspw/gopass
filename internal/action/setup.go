@@ -26,9 +26,9 @@ func (s *Action) Setup(c *cli.Context) error {
 
 	ctx = initParseContext(ctx, c)
 
-	out.Print(ctx, logo)
-	out.Print(ctx, "🌟 Welcome to gopass!")
-	out.Print(ctx, "🌟 Initializing a new password store ...")
+	out.Printf(ctx, logo)
+	out.Printf(ctx, "🌟 Welcome to gopass!")
+	out.Printf(ctx, "🌟 Initializing a new password store ...")
 
 	if name := termio.DetectName(c.Context, c); name != "" {
 		ctx = ctxutil.WithUsername(ctx, name)
@@ -44,7 +44,7 @@ func (s *Action) Setup(c *cli.Context) error {
 		return ExitError(ExitUnknown, err, "Failed to initialized store: %s", err)
 	}
 	if inited {
-		out.Error(ctx, "⚠ Store is already initialized. Aborting.")
+		out.Errorf(ctx, "⚠ Store is already initialized. Aborting.")
 		return nil
 	}
 
@@ -59,12 +59,12 @@ func (s *Action) Setup(c *cli.Context) error {
 	// check for existing GPG/Age keypairs (private/secret keys). We need at least
 	// one useable key pair. If none exists try to create one
 	if !s.initHasUseablePrivateKeys(ctx, crypto) {
-		out.Print(ctx, "🔐 No useable cryptographic keys. Generating new key pair")
-		out.Print(ctx, "🕰 Key generation may take up to a few minutes")
+		out.Printf(ctx, "🔐 No useable cryptographic keys. Generating new key pair")
+		out.Printf(ctx, "🕰 Key generation may take up to a few minutes")
 		if err := s.initGenerateIdentity(ctx, crypto, ctxutil.GetUsername(ctx), ctxutil.GetEmail(ctx)); err != nil {
 			return fmt.Errorf("failed to create new private key: %w", err)
 		}
-		out.Print(ctx, "🔐 Cryptographic keys generated")
+		out.Printf(ctx, "🔐 Cryptographic keys generated")
 	}
 
 	debug.Log("We have useable private keys")
@@ -82,9 +82,9 @@ func (s *Action) Setup(c *cli.Context) error {
 }
 
 func (s *Action) initGenerateIdentity(ctx context.Context, crypto backend.Crypto, name, email string) error {
-	out.Print(ctx, "🧪 Creating cryptographic key pair (%s) ...", crypto.Name())
+	out.Printf(ctx, "🧪 Creating cryptographic key pair (%s) ...", crypto.Name())
 
-	out.Print(ctx, "🎩 Gathering information for the key pair ...")
+	out.Printf(ctx, "🎩 Gathering information for the key pair ...")
 	name, err := termio.AskForString(ctx, "🚶 What is your name?", name)
 	if err != nil {
 		return err
@@ -112,7 +112,7 @@ func (s *Action) initGenerateIdentity(ctx context.Context, crypto backend.Crypto
 
 	// Note: This issue shouldn't matter much past Linux Kernel 5.6,
 	// eventually we might want to remove this notice.
-	out.Print(ctx, "⏳ This can take a long time. If you get impatient see https://github.com/gopasspw/gopass/blob/master/docs/entropy.md")
+	out.Printf(ctx, "⏳ This can take a long time. If you get impatient see https://github.com/gopasspw/gopass/blob/master/docs/entropy.md")
 	if want, err := termio.AskForBool(ctx, "Continue?", true); err != nil || !want {
 		return fmt.Errorf("user aborted: %w", err)
 	}
@@ -121,11 +121,11 @@ func (s *Action) initGenerateIdentity(ctx context.Context, crypto backend.Crypto
 		return fmt.Errorf("failed to create new private key: %w", err)
 	}
 
-	out.OK(ctx, "Key pair generated")
+	out.OKf(ctx, "Key pair generated")
 
 	if pwGenerated {
-		out.Print(ctx, color.MagentaString("Passphrase: ")+passphrase)
-		out.Notice(ctx, "You need to remember this very well!")
+		out.Printf(ctx, color.MagentaString("Passphrase: ")+passphrase)
+		out.Noticef(ctx, "You need to remember this very well!")
 	}
 
 	// avoid the gpg cache or we won't find the newly created key
@@ -134,7 +134,7 @@ func (s *Action) initGenerateIdentity(ctx context.Context, crypto backend.Crypto
 		return fmt.Errorf("failed to list private keys: %w", err)
 	}
 	if len(kl) > 1 {
-		out.Notice(ctx, "More than one private key detected. Make sure to use the correct one!")
+		out.Noticef(ctx, "More than one private key detected. Make sure to use the correct one!")
 		return nil
 	}
 	if len(kl) < 1 {
@@ -145,7 +145,7 @@ func (s *Action) initGenerateIdentity(ctx context.Context, crypto backend.Crypto
 	if err := s.initExportPublicKey(ctx, crypto, kl[0]); err != nil {
 		return err
 	}
-	out.OK(ctx, "Key pair validated")
+	out.OKf(ctx, "Key pair validated")
 	return nil
 }
 
@@ -173,10 +173,10 @@ func (s *Action) initExportPublicKey(ctx context.Context, crypto backend.Crypto,
 		return fmt.Errorf("failed to export public key: %w", err)
 	}
 	if err := ioutil.WriteFile(fn, pk, 06444); err != nil {
-		out.Error(ctx, "❌ Failed to export public key %q: %q", fn, err)
+		out.Errorf(ctx, "❌ Failed to export public key %q: %q", fn, err)
 		return err
 	}
-	out.Print(ctx, "✴ Public key exported to '%s'", fn)
+	out.Printf(ctx, "✴ Public key exported to %q", fn)
 	return nil
 }
 
@@ -222,13 +222,13 @@ func (s *Action) initLocal(ctx context.Context) error {
 		path = s.Store.Path()
 	}
 
-	out.Print(ctx, "🌟 Configuring your password store ...")
+	out.Printf(ctx, "🌟 Configuring your password store ...")
 	if err := s.init(ctxutil.WithHidden(ctx, true), "", path); err != nil {
 		return fmt.Errorf("failed to init local store: %w", err)
 	}
 
 	if want, err := termio.AskForBool(ctx, "❓ Do you want to add a git remote?", false); err == nil && want {
-		out.Print(ctx, "Configuring the git remote ...")
+		out.Printf(ctx, "Configuring the git remote ...")
 		if err := s.initSetupGitRemote(ctx, "", ""); err != nil {
 			return fmt.Errorf("failed to setup git remote: %w", err)
 		}
@@ -239,7 +239,7 @@ func (s *Action) initLocal(ctx context.Context) error {
 		return fmt.Errorf("failed to save config: %w", err)
 	}
 
-	out.OK(ctx, "Configured")
+	out.OKf(ctx, "Configured")
 	return nil
 }
 
@@ -247,7 +247,7 @@ func (s *Action) initLocal(ctx context.Context) error {
 func (s *Action) initCreateTeam(ctx context.Context, team, remote string) error {
 	var err error
 
-	out.Print(ctx, "Creating a new team ...")
+	out.Printf(ctx, "Creating a new team ...")
 	if err := s.initLocal(ctx); err != nil {
 		return fmt.Errorf("failed to create local store: %w", err)
 	}
@@ -259,17 +259,17 @@ func (s *Action) initCreateTeam(ctx context.Context, team, remote string) error 
 	}
 	ctx = out.AddPrefix(ctx, "["+team+"] ")
 
-	out.Print(ctx, "Initializing your shared store ...")
+	out.Printf(ctx, "Initializing your shared store ...")
 	if err := s.init(ctxutil.WithHidden(ctx, true), team, ""); err != nil {
 		return fmt.Errorf("failed to init shared store: %w", err)
 	}
-	out.OK(ctx, "Done. Initialized the store.")
+	out.OKf(ctx, "Done. Initialized the store.")
 
-	out.Print(ctx, "Configuring the git remote ...")
+	out.Printf(ctx, "Configuring the git remote ...")
 	if err := s.initSetupGitRemote(ctx, team, remote); err != nil {
 		return fmt.Errorf("failed to setup git remote: %w", err)
 	}
-	out.OK(ctx, "Done. Created Team %q", team)
+	out.OKf(ctx, "Done. Created Team %q", team)
 	return nil
 }
 
@@ -278,7 +278,7 @@ func (s *Action) initCreateTeam(ctx context.Context, team, remote string) error 
 func (s *Action) initJoinTeam(ctx context.Context, team, remote string) error {
 	var err error
 
-	out.Print(ctx, "Joining existing team ...")
+	out.Printf(ctx, "Joining existing team ...")
 	if err := s.initLocal(ctx); err != nil {
 		return fmt.Errorf("failed to create local store: %w", err)
 	}
@@ -290,17 +290,17 @@ func (s *Action) initJoinTeam(ctx context.Context, team, remote string) error {
 	}
 	ctx = out.AddPrefix(ctx, "["+team+"]")
 
-	out.Print(ctx, "Configuring git remote ...")
+	out.Printf(ctx, "Configuring git remote ...")
 	remote, err = termio.AskForString(ctx, out.Prefix(ctx)+"Please enter the git remote for your shared store", remote)
 	if err != nil {
 		return err
 	}
 
-	out.Print(ctx, "Cloning from the git remote ...")
+	out.Printf(ctx, "Cloning from the git remote ...")
 	if err := s.clone(ctxutil.WithHidden(ctx, true), remote, team, ""); err != nil {
 		return fmt.Errorf("failed to clone repo: %w", err)
 	}
-	out.OK(ctx, "Done. Joined Team %q", team)
-	out.Notice(ctx, "You still need to request access to decrypt secrets!")
+	out.OKf(ctx, "Done. Joined Team %q", team)
+	out.Noticef(ctx, "You still need to request access to decrypt secrets!")
 	return nil
 }

@@ -103,7 +103,7 @@ func (s *Action) TemplateRemove(c *cli.Context) error {
 	}
 
 	if !s.Store.HasTemplate(ctx, name) {
-		return ExitError(ExitNotFound, nil, "template '%s' not found", name)
+		return ExitError(ExitNotFound, nil, "template %q not found", name)
 	}
 
 	return s.Store.RemoveTemplate(ctx, name)
@@ -137,18 +137,18 @@ func (s *Action) renderTemplate(ctx context.Context, name string, content []byte
 
 	tmplStr := strings.TrimSpace(string(tmpl))
 	if tmplStr == "" {
-		debug.Log("Skipping empty template '%s', for %s", tName, name)
+		debug.Log("Skipping empty template %q, for %s", tName, name)
 		return content, false
 	}
 
 	// load template if it exists
 	nc, err := tpl.Execute(ctx, string(tmpl), name, content, s.Store)
 	if err != nil {
-		fmt.Fprintf(stdout, "failed to execute template '%s': %s\n", tName, err)
+		fmt.Fprintf(stdout, "failed to execute template %q: %s\n", tName, err)
 		return content, false
 	}
 
-	out.Print(ctx, "Note: Using template %s", tName)
+	out.Printf(ctx, "Note: Using template %s", tName)
 
 	return nc, true
 }

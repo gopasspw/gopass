@@ -28,7 +28,7 @@ func (r *Store) TemplateTree(ctx context.Context) (*tree.Root, error) {
 	for _, t := range r.store.ListTemplates(ctx, "") {
 		debug.Log("[<root>] Adding template %s", t)
 		if err := root.AddFile(t, "gopass/template"); err != nil {
-			out.Error(ctx, "Failed to add file to tree: %s", err)
+			out.Errorf(ctx, "Failed to add file to tree: %s", err)
 		}
 	}
 
@@ -45,7 +45,7 @@ func (r *Store) TemplateTree(ctx context.Context) (*tree.Root, error) {
 		for _, t := range substore.ListTemplates(ctx, alias) {
 			debug.Log("[%s] Adding template %s", alias, t)
 			if err := root.AddFile(t, "gopass/template"); err != nil {
-				out.Error(ctx, "Failed to add file to tree: %s", err)
+				out.Errorf(ctx, "Failed to add file to tree: %s", err)
 			}
 		}
 	}

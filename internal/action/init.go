@@ -42,10 +42,10 @@ func (s *Action) IsInitialized(c *cli.Context) error {
 		return ExitError(ExitNotInitialized, nil, "password-store is not initialized. Try '%s init'", s.Name)
 	}
 
-	out.Print(ctx, logo)
-	out.Print(ctx, "🌟 Welcome to gopass!")
-	out.Notice(ctx, "No existing configuration found.")
-	out.Print(ctx, "☝ Please run 'gopass setup'")
+	out.Printf(ctx, logo)
+	out.Printf(ctx, "🌟 Welcome to gopass!")
+	out.Noticef(ctx, "No existing configuration found.")
+	out.Printf(ctx, "☝ Please run 'gopass setup'")
 
 	return ExitError(ExitNotInitialized, err, "not initialized")
 }
@@ -57,7 +57,7 @@ func (s *Action) Init(c *cli.Context) error {
 	alias := c.String("store")
 
 	ctx = initParseContext(ctx, c)
-	out.Print(ctx, "🍭 Initializing a new password store ...")
+	out.Printf(ctx, "🍭 Initializing a new password store ...")
 
 	if name := termio.DetectName(c.Context, c); name != "" {
 		ctx = ctxutil.WithUsername(ctx, name)
@@ -70,7 +70,7 @@ func (s *Action) Init(c *cli.Context) error {
 		return ExitError(ExitUnknown, err, "Failed to initialized store: %s", err)
 	}
 	if inited {
-		out.Error(ctx, "❌ Store is already initialized!")
+		out.Errorf(ctx, "❌ Store is already initialized!")
 	}
 
 	if err := s.init(ctx, alias, path, c.Args().Slice()...); err != nil {
@@ -111,7 +111,7 @@ func (s *Action) init(ctx context.Context, alias, path string, keys ...string) e
 	debug.Log("action.init(%s, %s, %+v)", alias, path, keys)
 
 	debug.Log("Checking private keys ...")
-	out.Print(ctx, "🔑 Searching for usable private Keys ...")
+	out.Printf(ctx, "🔑 Searching for usable private Keys ...")
 	crypto := s.getCryptoFor(ctx, alias)
 	// private key selection doesn't matter for plain. save one question.
 	if crypto.Name() == "plain" {
@@ -142,7 +142,7 @@ func (s *Action) init(ctx context.Context, alias, path string, keys ...string) e
 		debug.Log("Initializing RCS (%s) ...", bn)
 		if err := s.rcsInit(ctx, alias, ctxutil.GetUsername(ctx), ctxutil.GetEmail(ctx)); err != nil {
 			debug.Log("Stacktrace: %+v\n", err)
-			out.Error(ctx, "❌ Failed to init Version Control (%s): %s", bn, err)
+			out.Errorf(ctx, "❌ Failed to init Version Control (%s): %s", bn, err)
 		}
 	} else {
 		debug.Log("not initializing RCS backend ...")
@@ -154,7 +154,7 @@ func (s *Action) init(ctx context.Context, alias, path string, keys ...string) e
 		return ExitError(ExitConfig, err, "failed to write config: %s", err)
 	}
 
-	out.Print(ctx, "🏁 Password store %s initialized for:", path)
+	out.Printf(ctx, "🏁 Password store %s initialized for:", path)
 	s.printRecipients(ctx, alias)
 
 	return nil
@@ -167,7 +167,7 @@ func (s *Action) printRecipients(ctx context.Context, alias string) {
 		if kl, err := crypto.FindRecipients(ctx, recipient); err == nil && len(kl) > 0 {
 			r = crypto.FormatKey(ctx, kl[0], "")
 		}
-		out.Print(ctx, "📩 "+r)
+		out.Printf(ctx, "📩 "+r)
 	}
 }
 

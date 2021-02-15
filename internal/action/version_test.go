@@ -36,7 +36,7 @@ func TestVersion(t *testing.T) {
 	}()
 
 	cli.VersionPrinter = func(*cli.Context) {
-		out.Print(ctx, "gopass version 0.0.0-test")
+		out.Printf(ctx, "gopass version 0.0.0-test")
 	}
 
 	t.Run("print fixed version", func(t *testing.T) {

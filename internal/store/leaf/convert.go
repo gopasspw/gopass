@@ -65,7 +65,7 @@ func (s *Store) Convert(ctx context.Context, cryptoBe backend.CryptoBackend, sto
 		return err
 	}
 
-	out.Print(ctx, "Converting store ...")
+	out.Printf(ctx, "Converting store ...")
 	bar := termio.NewProgressBar(int64(len(entries)), ctxutil.IsHidden(ctx))
 	if !ctxutil.IsTerminal(ctx) || ctxutil.IsHidden(ctx) {
 		bar = nil

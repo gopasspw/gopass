@@ -216,7 +216,7 @@ func (s *Action) binaryValidate(ctx context.Context, buf []byte, name string) er
 	fileSum := fmt.Sprintf("%x", h.Sum(nil))
 	h.Reset()
 
-	debug.Log("in: %s - '%s'", fileSum, string(buf))
+	debug.Log("in: %s - %q", fileSum, string(buf))
 
 	var err error
 	buf, err = s.binaryGet(ctx, name)
@@ -226,7 +226,7 @@ func (s *Action) binaryValidate(ctx context.Context, buf []byte, name string) er
 	_, _ = h.Write(buf)
 	storeSum := fmt.Sprintf("%x", h.Sum(nil))
 
-	debug.Log("store: %s - '%s'", storeSum, string(buf))
+	debug.Log("store: %s - %q", storeSum, string(buf))
 
 	if fileSum != storeSum {
 		return fmt.Errorf("hashsum mismatch (file: %s, store: %s)", fileSum, storeSum)
@@ -266,7 +266,7 @@ func (s *Action) Sum(c *cli.Context) error {
 
 	h := sha256.New()
 	_, _ = h.Write(buf)
-	out.Print(ctx, "%x", h.Sum(nil))
+	out.Printf(ctx, "%x", h.Sum(nil))
 
 	return nil
 }

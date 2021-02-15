@@ -89,7 +89,7 @@ func (a *Age) parseRecipients(ctx context.Context, recipients []string) ([]age.R
 		if strings.HasPrefix(r, "age1") {
 			id, err := age.ParseX25519Recipient(r)
 			if err != nil {
-				debug.Log("Failed to parse recipient '%s' as X25519: %s", r, err)
+				debug.Log("Failed to parse recipient %q as X25519: %s", r, err)
 				continue
 			}
 			out = append(out, id)
@@ -98,7 +98,7 @@ func (a *Age) parseRecipients(ctx context.Context, recipients []string) ([]age.R
 		if strings.HasPrefix(r, "ssh-") {
 			id, err := agessh.ParseRecipient(r)
 			if err != nil {
-				debug.Log("Failed to parse recipient '%s' as SSH: %s", r, err)
+				debug.Log("Failed to parse recipient %q as SSH: %s", r, err)
 				continue
 			}
 			out = append(out, id)
@@ -112,7 +112,7 @@ func (a *Age) parseRecipients(ctx context.Context, recipients []string) ([]age.R
 			for _, pk := range pks {
 				id, err := agessh.ParseRecipient(r)
 				if err != nil {
-					debug.Log("Failed to parse GitHub recipient '%s': '%s': %s", r, pk, err)
+					debug.Log("Failed to parse GitHub recipient %q: %q: %s", r, pk, err)
 					continue
 				}
 				out = append(out, id)
@@ -197,7 +197,7 @@ func (a *Age) getNativeIdentities(ctx context.Context) (map[string]age.Identity,
 	for _, k := range kr {
 		id, err := age.ParseX25519Identity(k.Identity)
 		if err != nil {
-			debug.Log("Failed to parse identity '%s': %s", k, err)
+			debug.Log("Failed to parse identity %q: %s", k, err)
 			continue
 		}
 		ids[id.Recipient().String()] = id

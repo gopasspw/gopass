@@ -15,7 +15,7 @@ func (s *Action) Audit(c *cli.Context) error {
 
 	ctx := ctxutil.WithGlobalFlags(c)
 
-	out.Print(ctx, "Auditing passwords for common flaws ...")
+	out.Printf(ctx, "Auditing passwords for common flaws ...")
 
 	t, err := s.Store.Tree(ctx)
 	if err != nil {
@@ -31,7 +31,7 @@ func (s *Action) Audit(c *cli.Context) error {
 	list := t.List(tree.INF)
 
 	if len(list) < 1 {
-		out.Print(ctx, "No secrets found")
+		out.Printf(ctx, "No secrets found")
 		return nil
 	}
 

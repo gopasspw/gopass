@@ -28,16 +28,16 @@ func (g *Git) fixConfig(ctx context.Context) error {
 
 	// setup for proper diffs
 	if err := g.ConfigSet(ctx, "diff.gpg.binary", "true"); err != nil {
-		out.Error(ctx, "Error while initializing git: %s", err)
+		out.Errorf(ctx, "Error while initializing git: %s", err)
 	}
 	if err := g.ConfigSet(ctx, "diff.gpg.textconv", "gpg --no-tty --decrypt"); err != nil {
-		out.Error(ctx, "Error while initializing git: %s", err)
+		out.Errorf(ctx, "Error while initializing git: %s", err)
 	}
 
 	// setup for persistent SSH connections
 	if sc := gitSSHCommand(); sc != "" {
 		if err := g.ConfigSet(ctx, "core.sshCommand", sc); err != nil {
-			out.Error(ctx, "Error while configuring persistent SSH connections: %s", err)
+			out.Errorf(ctx, "Error while configuring persistent SSH connections: %s", err)
 		}
 	}
 
@@ -52,14 +52,14 @@ func (g *Git) InitConfig(ctx context.Context, userName, userEmail string) error 
 			return fmt.Errorf("failed to set git config user.name: %w", err)
 		}
 	} else {
-		out.Print(ctx, "Git Username not set")
+		out.Printf(ctx, "Git Username not set")
 	}
 	if userEmail != "" && strings.Contains(userEmail, "@") {
 		if err := g.ConfigSet(ctx, "user.email", userEmail); err != nil {
 			return fmt.Errorf("failed to set git config user.email: %w", err)
 		}
 	} else {
-		out.Print(ctx, "Git Email not set")
+		out.Printf(ctx, "Git Email not set")
 	}
 
 	// ensure sane git config
@@ -71,10 +71,10 @@ func (g *Git) InitConfig(ctx context.Context, userName, userEmail string) error 
 		return fmt.Errorf("failed to initialize git: %w", err)
 	}
 	if err := g.Add(ctx, g.fs.Path()+"/.gitattributes"); err != nil {
-		out.Warning(ctx, "Failed to add .gitattributes to git")
+		out.Warningf(ctx, "Failed to add .gitattributes to git")
 	}
 	if err := g.Commit(ctx, "Configure git repository for gpg file diff."); err != nil {
-		out.Warning(ctx, "Failed to commit .gitattributes to git")
+		out.Warningf(ctx, "Failed to commit .gitattributes to git")
 	}
 
 	return nil

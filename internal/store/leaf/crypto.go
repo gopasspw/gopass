@@ -46,7 +46,7 @@ func (s *Store) ImportMissingPublicKeys(ctx context.Context) error {
 		// gpg does on encryption
 		kl, err := s.crypto.FindRecipients(ctx, r)
 		if err != nil {
-			out.Error(ctx, "[%s] Failed to get public key for %s: %s", s.alias, r, err)
+			out.Errorf(ctx, "[%s] Failed to get public key for %s: %s", s.alias, r, err)
 		}
 		if len(kl) > 0 {
 			debug.Log("[%s] Keyring contains %d public keys for %s", s.alias, len(kl), r)
@@ -56,7 +56,7 @@ func (s *Store) ImportMissingPublicKeys(ctx context.Context) error {
 		// get info about this public key
 		names, err := s.decodePublicKey(ctx, r)
 		if err != nil {
-			out.Error(ctx, "[%s] Failed to decode public key %s: %s", s.alias, r, err)
+			out.Errorf(ctx, "[%s] Failed to decode public key %s: %s", s.alias, r, err)
 			continue
 		}
 
@@ -72,10 +72,10 @@ func (s *Store) ImportMissingPublicKeys(ctx context.Context) error {
 
 		// try to load this recipient
 		if err := s.importPublicKey(ctx, r); err != nil {
-			out.Error(ctx, "[%s] Failed to import public key for %s: %s", s.alias, r, err)
+			out.Errorf(ctx, "[%s] Failed to import public key for %s: %s", s.alias, r, err)
 			continue
 		}
-		out.Print(ctx, "[%s] Imported public key for %s into Keyring", s.alias, r)
+		out.Printf(ctx, "[%s] Imported public key for %s into Keyring", s.alias, r)
 	}
 	return nil
 }

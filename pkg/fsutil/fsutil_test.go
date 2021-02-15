@@ -20,7 +20,7 @@ func TestCleanFilename(t *testing.T) {
 		out := CleanFilename(k)
 		t.Logf("%s -> %s / %s", k, v, out)
 		if out != v {
-			t.Errorf("'%s' != '%s'", out, v)
+			t.Errorf("%q != %q", out, v)
 		}
 	}
 }

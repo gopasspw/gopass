@@ -137,7 +137,7 @@ func AskForKeyImport(ctx context.Context, key string, names []string) bool {
 		return false
 	}
 
-	ok, err := AskForBool(ctx, fmt.Sprintf("Do you want to import the public key '%s' (Names: %+v) into your keyring?", key, names), false)
+	ok, err := AskForBool(ctx, fmt.Sprintf("Do you want to import the public key %q (Names: %+v) into your keyring?", key, names), false)
 	if err != nil {
 		return false
 	}
@@ -174,7 +174,7 @@ func AskForPassword(ctx context.Context, name string) (string, error) {
 			return pass, nil
 		}
 
-		out.Error(ctx, "Error: the entered password do not match")
+		out.Errorf(ctx, "Error: the entered password do not match")
 	}
 	return "", fmt.Errorf("no valid user input")
 }

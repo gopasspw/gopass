@@ -55,6 +55,6 @@ func (s *Store) GitStatus(ctx context.Context, _ string) error {
 	if err != nil {
 		return err
 	}
-	out.Print(ctx, string(buf))
+	out.Printf(ctx, string(buf))
 	return nil
 }

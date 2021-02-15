@@ -23,7 +23,7 @@ func (s *Action) Sync(c *cli.Context) error {
 }
 
 func (s *Action) sync(ctx context.Context, store string) error {
-	out.Print(ctx, "🚥 Syncing with all remotes ...")
+	out.Printf(ctx, "🚥 Syncing with all remotes ...")
 
 	numEntries := 0
 	if l, err := s.Store.Tree(ctx); err == nil {
@@ -48,7 +48,7 @@ func (s *Action) sync(ctx context.Context, store string) error {
 		numMPs++
 		_ = s.syncMount(ctx, mp)
 	}
-	out.OK(ctx, "All done")
+	out.OKf(ctx, "All done")
 
 	// Calculate number of changed entries.
 	// This is a rough estimate as additions and deletions
@@ -74,16 +74,16 @@ func (s *Action) syncMount(ctx context.Context, mp string) error {
 	if mp == "" {
 		name = "<root>"
 	}
-	out.Print(ctxno, color.GreenString("[%s] ", name))
+	out.Printf(ctxno, color.GreenString("[%s] ", name))
 
 	sub, err := s.Store.GetSubStore(mp)
 	if err != nil {
-		out.Error(ctx, "Failed to get sub store '%s': %s", name, err)
+		out.Errorf(ctx, "Failed to get sub store %q: %s", name, err)
 		return fmt.Errorf("failed to get sub stores (%s)", err)
 	}
 
 	if sub == nil {
-		out.Error(ctx, "Failed to get sub stores '%s: nil'", name)
+		out.Errorf(ctx, "Failed to get sub stores '%s: nil'", name)
 		return fmt.Errorf("failed to get sub stores (nil)")
 	}
 
@@ -94,29 +94,29 @@ func (s *Action) syncMount(ctx context.Context, mp string) error {
 
 	// TODO: Remove this hard coded check
 	if sub.Storage().Name() == "fs" {
-		out.Print(ctxno, "\n   WARNING: Mount uses Storage backend 'fs'. Not syncing!\n")
+		out.Printf(ctxno, "\n   WARNING: Mount uses Storage backend 'fs'. Not syncing!\n")
 	} else {
-		out.Print(ctxno, "\n   "+color.GreenString("git pull and push ... "))
+		out.Printf(ctxno, "\n   "+color.GreenString("git pull and push ... "))
 		if err := sub.Storage().Push(ctx, "", ""); err != nil {
 			if errors.Is(err, store.ErrGitNoRemote) {
-				out.Print(ctx, "Skipped (no remote)")
-				debug.Log("Failed to push '%s' to its remote: %s", name, err)
+				out.Printf(ctx, "Skipped (no remote)")
+				debug.Log("Failed to push %q to its remote: %s", name, err)
 				return err
 			}
 
-			out.Error(ctx, "Failed to push '%s' to its remote: %s", name, err)
+			out.Errorf(ctx, "Failed to push %q to its remote: %s", name, err)
 			return err
 		}
-		out.Print(ctxno, color.GreenString("OK"))
+		out.Printf(ctxno, color.GreenString("OK"))
 
 		if l, err := sub.List(ctx, ""); err == nil {
 			diff := len(l) - numMP
 			if diff > 0 {
-				out.Print(ctxno, color.GreenString(" (Added %d entries)", diff))
+				out.Printf(ctxno, color.GreenString(" (Added %d entries)", diff))
 			} else if diff < 0 {
-				out.Print(ctxno, color.GreenString(" (Removed %d entries)", -1*diff))
+				out.Printf(ctxno, color.GreenString(" (Removed %d entries)", -1*diff))
 			} else {
-				out.Print(ctxno, color.GreenString(" (no changes)"))
+				out.Printf(ctxno, color.GreenString(" (no changes)"))
 			}
 		}
 	}
@@ -125,23 +125,23 @@ func (s *Action) syncMount(ctx context.Context, mp string) error {
 	var exported bool
 	if ctxutil.IsExportKeys(ctx) {
 		// import keys
-		out.Print(ctxno, "\n   "+color.GreenString("importing missing keys ... "))
+		out.Printf(ctxno, "\n   "+color.GreenString("importing missing keys ... "))
 		if err := sub.ImportMissingPublicKeys(ctx); err != nil {
-			out.Error(ctx, "Failed to import missing public keys for '%s': %s", name, err)
+			out.Errorf(ctx, "Failed to import missing public keys for %q: %s", name, err)
 			return err
 		}
-		out.Print(ctxno, color.GreenString("OK"))
+		out.Printf(ctxno, color.GreenString("OK"))
 
 		// export keys
-		out.Print(ctxno, "\n   "+color.GreenString("exporting missing keys ... "))
+		out.Printf(ctxno, "\n   "+color.GreenString("exporting missing keys ... "))
 		rs, err := sub.GetRecipients(ctx, "")
 		if err != nil {
-			out.Error(ctx, "Failed to load recipients for '%s': %s", name, err)
+			out.Errorf(ctx, "Failed to load recipients for %q: %s", name, err)
 			return err
 		}
 		exported, err = sub.ExportMissingPublicKeys(ctx, rs)
 		if err != nil {
-			out.Error(ctx, "Failed to export missing public keys for '%s': %s", name, err)
+			out.Errorf(ctx, "Failed to export missing public keys for %q: %s", name, err)
 			return err
 		}
 	}
@@ -149,13 +149,13 @@ func (s *Action) syncMount(ctx context.Context, mp string) error {
 	// only run second push if we did export any keys
 	if exported {
 		if err := sub.Storage().Push(ctx, "", ""); err != nil {
-			out.Error(ctx, "Failed to push '%s' to its remote: %s", name, err)
+			out.Errorf(ctx, "Failed to push %q to its remote: %s", name, err)
 			return err
 		}
-		out.Print(ctxno, color.GreenString("OK"))
+		out.Printf(ctxno, color.GreenString("OK"))
 	} else {
-		out.Print(ctxno, color.GreenString("nothing to do"))
+		out.Printf(ctxno, color.GreenString("nothing to do"))
 	}
-	out.Print(ctx, "\n   "+color.GreenString("done"))
+	out.Printf(ctx, "\n   "+color.GreenString("done"))
 	return nil
 }

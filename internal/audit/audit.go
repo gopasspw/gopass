@@ -43,7 +43,7 @@ type validator func(string, gopass.Secret) error
 
 // Batch runs a password strength audit on multiple secrets
 func Batch(ctx context.Context, secrets []string, secStore secretGetter) error {
-	out.Print(ctx, "Checking %d secrets. This may take some time ...\n", len(secrets))
+	out.Printf(ctx, "Checking %d secrets. This may take some time ...\n", len(secrets))
 
 	// Secrets that still need auditing.
 	pending := make(chan string, 100)
@@ -223,7 +223,7 @@ func printAuditResults(m map[string][]string, format string, color func(format s
 func Single(ctx context.Context, password string) {
 	validator := crunchy.NewValidator()
 	if err := validator.Check(password); err != nil {
-		out.Print(ctx, fmt.Sprintf("Warning: %s", err))
+		out.Printf(ctx, fmt.Sprintf("Warning: %s", err))
 	}
 }
 
@@ -233,19 +233,19 @@ func auditPrintResults(ctx context.Context, duplicates, messages, errors map[str
 		if len(secrets) > 1 {
 			foundDuplicates = true
 
-			out.Print(ctx, "Detected a shared secret for:")
+			out.Printf(ctx, "Detected a shared secret for:")
 			for _, secret := range secrets {
-				out.Print(ctx, "\t- %s", secret)
+				out.Printf(ctx, "\t- %s", secret)
 			}
 		}
 	}
 	if !foundDuplicates {
-		out.Print(ctx, "No shared secrets found.")
+		out.Printf(ctx, "No shared secrets found.")
 	}
 
 	foundWeakPasswords := printAuditResults(messages, "%s:\n", color.CyanString)
 	if !foundWeakPasswords {
-		out.Print(ctx, "No weak secrets detected.")
+		out.Printf(ctx, "No weak secrets detected.")
 	}
 	foundErrors := printAuditResults(errors, "%s:\n", color.RedString)
 

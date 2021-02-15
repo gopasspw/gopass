@@ -75,7 +75,7 @@ func (r *Store) initialize(ctx context.Context) error {
 	for alias, path := range r.cfg.Mounts {
 		path := fsutil.CleanPath(path)
 		if err := r.addMount(ctx, alias, path); err != nil {
-			out.Error(ctx, "Failed to initialize mount %s (%s). Ignoring: %s", alias, path, err)
+			out.Errorf(ctx, "Failed to initialize mount %s (%s). Ignoring: %s", alias, path, err)
 			continue
 		}
 		debug.Log("Sub-Store mounted at %s from %s", alias, path)

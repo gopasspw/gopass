@@ -79,7 +79,7 @@ func Init(ctx context.Context, path, userName, userEmail string) (*Git, error) {
 		if err := g.Cmd(ctx, "Init", "init"); err != nil {
 			return nil, fmt.Errorf("failed to initialize git: %s", err)
 		}
-		out.Print(ctx, "git initialized at %s", g.fs.Path())
+		out.Printf(ctx, "git initialized at %s", g.fs.Path())
 	}
 
 	if !ctxutil.IsGitInit(ctx) {
@@ -90,7 +90,7 @@ func Init(ctx context.Context, path, userName, userEmail string) (*Git, error) {
 	if err := g.InitConfig(ctx, userName, userEmail); err != nil {
 		return g, fmt.Errorf("failed to configure git: %s", err)
 	}
-	out.Print(ctx, "git configured at %s", g.fs.Path())
+	out.Printf(ctx, "git configured at %s", g.fs.Path())
 
 	// add current content of the store
 	if err := g.Add(ctx, g.fs.Path()); err != nil {
@@ -133,7 +133,7 @@ func (g *Git) captureCmd(ctx context.Context, name string, args ...string) ([]by
 func (g *Git) Cmd(ctx context.Context, name string, args ...string) error {
 	stdout, stderr, err := g.captureCmd(ctx, name, args...)
 	if err != nil {
-		debug.Log("CMD: %s %+v\nError: %s\nOutput:\n  Stdout: '%s'\n  Stderr: '%s'", name, args, err, string(stdout), string(stderr))
+		debug.Log("CMD: %s %+v\nError: %s\nOutput:\n  Stdout: %q\n  Stderr: %q", name, args, err, string(stdout), string(stderr))
 		return fmt.Errorf("%s: %s", err, strings.TrimSpace(string(stderr)))
 	}
 
@@ -163,7 +163,7 @@ func (g *Git) Version(ctx context.Context) semver.Version {
 
 	sv, err := semver.ParseTolerant(svStr)
 	if err != nil {
-		debug.Log("Failed to parse '%s' as semver: %s", svStr, err)
+		debug.Log("Failed to parse %q as semver: %s", svStr, err)
 		return v
 	}
 	return sv
@@ -266,7 +266,7 @@ func (g *Git) PushPull(ctx context.Context, op, remote, branch string) error {
 		if op == "pull" {
 			return err
 		}
-		out.Warning(ctx, "Failed to pull before git push: %s", err)
+		out.Warningf(ctx, "Failed to pull before git push: %s", err)
 	}
 	if op == "pull" {
 		return nil

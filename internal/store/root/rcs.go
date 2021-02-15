@@ -63,6 +63,6 @@ func (r *Store) GetRevision(ctx context.Context, name, revision string) (context
 // RCSStatus show the git status
 func (r *Store) RCSStatus(ctx context.Context, name string) error {
 	store, name := r.getStore(name)
-	out.Print(ctx, "Store: %s", store.Path())
+	out.Printf(ctx, "Store: %s", store.Path())
 	return store.GitStatus(ctx, name)
 }

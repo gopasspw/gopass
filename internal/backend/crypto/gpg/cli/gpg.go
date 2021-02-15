@@ -114,7 +114,7 @@ func (g *GPG) RecipientIDs(ctx context.Context, buf []byte) ([]string, error) {
 
 	if g.throwKids {
 		// TODO shouldn't log here
-		out.Warning(ctx, "gpg option throw-keyids is set. some features might not work.")
+		out.Warningf(ctx, "gpg option throw-keyids is set. some features might not work.")
 	}
 	return recp, nil
 }
@@ -134,7 +134,7 @@ func (g *GPG) Encrypt(ctx context.Context, plaintext []byte, recipients []string
 		if err != nil {
 			debug.Log("Failed to check key %s. Adding anyway. %s", err)
 		} else if len(kl.UseableKeys(gpg.IsAlwaysTrust(ctx))) < 1 {
-			out.Print(ctx, "Not using expired key %s for encryption", r)
+			out.Printf(ctx, "Not using expired key %s for encryption", r)
 			continue
 		}
 		args = append(args, "--recipient", r)
