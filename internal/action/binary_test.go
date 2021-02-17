@@ -3,7 +3,6 @@ package action
 import (
 	"bytes"
 	"context"
-	"io/ioutil"
 	"math/rand"
 	"os"
 	"path/filepath"
@@ -88,7 +87,7 @@ func TestBinaryCat(t *testing.T) {
 	})
 
 	t.Run("compare output", func(t *testing.T) {
-		buf, err := ioutil.ReadFile(stdinfile)
+		buf, err := os.ReadFile(stdinfile)
 		require.NoError(t, err)
 		sec, err := act.binaryGet(ctx, "baz")
 		require.NoError(t, err)
@@ -118,7 +117,7 @@ func TestBinaryCopy(t *testing.T) {
 		defer buf.Reset()
 
 		infile := filepath.Join(u.Dir, "input.txt")
-		assert.NoError(t, ioutil.WriteFile(infile, []byte("0xDEADBEEF\n"), 0644))
+		assert.NoError(t, os.WriteFile(infile, []byte("0xDEADBEEF\n"), 0644))
 		assert.NoError(t, act.binaryCopy(ctx, gptest.CliCtx(ctx, t), infile, "txt", true))
 	})
 
@@ -198,5 +197,5 @@ func writeBinfile(t *testing.T, fn string) {
 	n, err := rand.Read(buf)
 	assert.NoError(t, err)
 	assert.Equal(t, size, n)
-	assert.NoError(t, ioutil.WriteFile(fn, buf, 0644))
+	assert.NoError(t, os.WriteFile(fn, buf, 0644))
 }

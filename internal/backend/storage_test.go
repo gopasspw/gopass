@@ -2,7 +2,6 @@ package backend
 
 import (
 	"context"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -20,7 +19,7 @@ func TestDetectStorage(t *testing.T) {
 	uv := gptest.UnsetVars("GOPASS_HOMEDIR")
 	defer uv()
 
-	td, err := ioutil.TempDir("", "gopass-")
+	td, err := os.MkdirTemp("", "gopass-")
 	require.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(td)

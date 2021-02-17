@@ -3,7 +3,6 @@ package gitfs
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -67,7 +66,7 @@ func (g *Git) InitConfig(ctx context.Context, userName, userEmail string) error 
 		return fmt.Errorf("failed to fix git config: %w", err)
 	}
 
-	if err := ioutil.WriteFile(filepath.Join(g.fs.Path(), ".gitattributes"), []byte("*.gpg diff=gpg\n"), fileMode); err != nil {
+	if err := os.WriteFile(filepath.Join(g.fs.Path(), ".gitattributes"), []byte("*.gpg diff=gpg\n"), fileMode); err != nil {
 		return fmt.Errorf("failed to initialize git: %w", err)
 	}
 	if err := g.Add(ctx, g.fs.Path()+"/.gitattributes"); err != nil {

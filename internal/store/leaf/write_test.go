@@ -2,7 +2,6 @@ package leaf
 
 import (
 	"context"
-	"io/ioutil"
 	"os"
 	"runtime"
 	"testing"
@@ -15,7 +14,7 @@ import (
 func TestSet(t *testing.T) {
 	ctx := context.Background()
 
-	tempdir, err := ioutil.TempDir("", "gopass-")
+	tempdir, err := os.MkdirTemp("", "gopass-")
 	require.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(tempdir)

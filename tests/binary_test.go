@@ -1,7 +1,6 @@
 package tests
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -29,7 +28,7 @@ func TestBinaryCopy(t *testing.T) {
 
 	fn := filepath.Join(ts.tempDir, "copy")
 	dat := []byte("foobar")
-	require.NoError(t, ioutil.WriteFile(fn, dat, 0644))
+	require.NoError(t, os.WriteFile(fn, dat, 0644))
 
 	t.Run("copy file to store", func(t *testing.T) {
 		_, err := ts.run("fscopy " + fn + " foo/bar")
@@ -41,7 +40,7 @@ func TestBinaryCopy(t *testing.T) {
 		_, err := ts.run("fscopy foo/bar " + fn)
 		assert.NoError(t, err)
 
-		buf, err := ioutil.ReadFile(fn)
+		buf, err := os.ReadFile(fn)
 		require.NoError(t, err)
 
 		assert.Equal(t, buf, dat)
@@ -72,7 +71,7 @@ func TestBinaryMove(t *testing.T) {
 
 	fn := filepath.Join(ts.tempDir, "move")
 	dat := []byte("foobar")
-	require.NoError(t, ioutil.WriteFile(fn, dat, 0644))
+	require.NoError(t, os.WriteFile(fn, dat, 0644))
 
 	t.Run("move fs to store", func(t *testing.T) {
 		_, err := ts.run("fsmove " + fn + " foo/bar")
@@ -84,7 +83,7 @@ func TestBinaryMove(t *testing.T) {
 		_, err := ts.run("fsmove foo/bar " + fn)
 		assert.NoError(t, err)
 
-		buf, err := ioutil.ReadFile(fn)
+		buf, err := os.ReadFile(fn)
 		require.NoError(t, err)
 
 		assert.Equal(t, buf, dat)
@@ -116,7 +115,7 @@ func TestBinaryShasum(t *testing.T) {
 	t.Run("populate store", func(t *testing.T) {
 		fn := filepath.Join(ts.tempDir, "shasum")
 		dat := []byte("foobar")
-		require.NoError(t, ioutil.WriteFile(fn, dat, 0644))
+		require.NoError(t, os.WriteFile(fn, dat, 0644))
 
 		_, err := ts.run("fsmove " + fn + " foo/bar")
 		assert.NoError(t, err)

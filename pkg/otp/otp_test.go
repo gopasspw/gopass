@@ -2,7 +2,6 @@ package otp
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -36,7 +35,7 @@ func TestCalculate(t *testing.T) {
 }
 
 func TestWrite(t *testing.T) {
-	td, err := ioutil.TempDir("", "gopass-")
+	td, err := os.MkdirTemp("", "gopass-")
 	assert.NoError(t, err)
 	defer func() {
 		os.RemoveAll(td)

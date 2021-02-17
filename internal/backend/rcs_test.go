@@ -3,7 +3,6 @@ package backend
 import (
 	"bytes"
 	"context"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -17,7 +16,7 @@ import (
 func TestClone(t *testing.T) {
 	ctx := context.Background()
 
-	td, err := ioutil.TempDir("", "gopass-")
+	td, err := os.MkdirTemp("", "gopass-")
 	require.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(td)
@@ -40,7 +39,7 @@ func TestClone(t *testing.T) {
 func TestInitRCS(t *testing.T) {
 	ctx := context.Background()
 
-	td, err := ioutil.TempDir("", "gopass-")
+	td, err := os.MkdirTemp("", "gopass-")
 	require.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(td)

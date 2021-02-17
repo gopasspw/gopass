@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"regexp"
@@ -274,7 +273,7 @@ func writeChangelog(prev, next semver.Version) error {
 }
 
 func writeVersion(v semver.Version) error {
-	return ioutil.WriteFile("VERSION", []byte(v.String()+"\n"), 0644)
+	return os.WriteFile("VERSION", []byte(v.String()+"\n"), 0644)
 }
 
 type tplPayload struct {
@@ -309,7 +308,7 @@ func isGitClean() bool {
 }
 
 func versionFile() (semver.Version, error) {
-	buf, err := ioutil.ReadFile("VERSION")
+	buf, err := os.ReadFile("VERSION")
 	if err != nil {
 		return semver.Version{}, err
 	}

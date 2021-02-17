@@ -2,7 +2,6 @@ package fs
 
 import (
 	"context"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -208,7 +207,7 @@ func TestDelete(t *testing.T) {
 
 func newTempDir(t *testing.T) (string, func()) {
 	t.Helper()
-	td, err := ioutil.TempDir("", "gopass-")
+	td, err := os.MkdirTemp("", "gopass-")
 	if err != nil {
 		t.Error(err)
 	}

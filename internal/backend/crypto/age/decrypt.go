@@ -5,7 +5,7 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
+	"os"
 
 	"filippo.io/age"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -42,7 +42,7 @@ func (a *Age) decrypt(ciphertext []byte, ids ...age.Identity) ([]byte, error) {
 }
 
 func (a *Age) decryptFile(ctx context.Context, filename string) ([]byte, error) {
-	ciphertext, err := ioutil.ReadFile(filename)
+	ciphertext, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}

@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -49,7 +48,7 @@ func Check(ctx context.Context, editor string) error {
 	if !fsutil.IsFile(vrc) {
 		return nil
 	}
-	buf, err := ioutil.ReadFile(vrc)
+	buf, err := os.ReadFile(vrc)
 	if err != nil {
 		return err
 	}
@@ -108,7 +107,7 @@ func Invoke(ctx context.Context, editor string, content []byte) ([]byte, error) 
 		return []byte{}, fmt.Errorf("failed to run %s with %s file: %w", editor, tmpfile.Name(), err)
 	}
 
-	nContent, err := ioutil.ReadFile(tmpfile.Name())
+	nContent, err := os.ReadFile(tmpfile.Name())
 	if err != nil {
 		return []byte{}, fmt.Errorf("failed to read from tmpfile: %w", err)
 	}

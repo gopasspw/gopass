@@ -1,11 +1,10 @@
-// Package tempfile is a wrapper around ioutil.TempDir, providing an OO pattern
+// Package tempfile is a wrapper around os.MkdirTemp, providing an OO pattern
 // as well as secure placement on a temporary ramdisk.
 package tempfile
 
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 )
@@ -22,7 +21,7 @@ type File struct {
 
 // New returns a new tempfile wrapper
 func New(ctx context.Context, prefix string) (*File, error) {
-	td, err := ioutil.TempDir(tempdirBase(), globalPrefix+prefix)
+	td, err := os.MkdirTemp(tempdirBase(), globalPrefix+prefix)
 	if err != nil {
 		return nil, err
 	}

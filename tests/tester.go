@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -64,7 +63,7 @@ func newTester(t *testing.T) *tester {
 		Binary:    gopassBin,
 	}
 	// create tempDir
-	td, err := ioutil.TempDir("", "gopass-")
+	td, err := os.MkdirTemp("", "gopass-")
 	require.NoError(t, err)
 
 	t.Logf("Tempdir: %s", td)
@@ -82,7 +81,7 @@ func newTester(t *testing.T) *tester {
 	// write config
 	require.NoError(t, os.MkdirAll(filepath.Dir(ts.gopassConfig()), 0700))
 	// we need to set the root path to something else than the root directory otherwise the mounts will show as regular entries
-	if err := ioutil.WriteFile(ts.gopassConfig(), []byte(gopassConfig+"\npath: "+ts.storeDir("root")+"\n"), 0600); err != nil {
+	if err := os.WriteFile(ts.gopassConfig(), []byte(gopassConfig+"\npath: "+ts.storeDir("root")+"\n"), 0600); err != nil {
 		t.Fatalf("Failed to write gopass config to %s: %s", ts.gopassConfig(), err)
 	}
 
@@ -94,13 +93,13 @@ func newTester(t *testing.T) *tester {
 		filepath.Join(ts.sourceDir, "can", "gnupg", "trustdb.gpg"): filepath.Join(ts.gpgDir(), "trustdb.gpg"),
 	}
 	for from, to := range files {
-		buf, err := ioutil.ReadFile(from)
+		buf, err := os.ReadFile(from)
 		require.NoError(t, err, "Failed to read file %s", from)
 
 		err = os.MkdirAll(filepath.Dir(to), 0700)
 		require.NoError(t, err, "Failed to create dir for %s", to)
 
-		err = ioutil.WriteFile(to, buf, 0600)
+		err = os.WriteFile(to, buf, 0600)
 		require.NoError(t, err, "Failed to write file %s", to)
 	}
 

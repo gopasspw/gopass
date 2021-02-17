@@ -3,7 +3,6 @@ package tempfile
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -31,7 +30,7 @@ func Example() {
 	if err := tempfile.Close(); err != nil {
 		panic(err)
 	}
-	out, err := ioutil.ReadFile(tempfile.Name())
+	out, err := os.ReadFile(tempfile.Name())
 	if err != nil {
 		panic(err)
 	}
@@ -40,7 +39,7 @@ func Example() {
 }
 
 func TestTempdirBase(t *testing.T) {
-	tempdir, err := ioutil.TempDir(tempdirBase(), "gopass-")
+	tempdir, err := os.MkdirTemp(tempdirBase(), "gopass-")
 	assert.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(tempdir)

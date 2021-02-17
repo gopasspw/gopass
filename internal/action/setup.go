@@ -3,7 +3,7 @@ package action
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"os"
 
 	"github.com/fatih/color"
 	"github.com/gopasspw/gopass/internal/backend"
@@ -172,7 +172,7 @@ func (s *Action) initExportPublicKey(ctx context.Context, crypto backend.Crypto,
 	if err != nil {
 		return fmt.Errorf("failed to export public key: %w", err)
 	}
-	if err := ioutil.WriteFile(fn, pk, 06444); err != nil {
+	if err := os.WriteFile(fn, pk, 06444); err != nil {
 		out.Errorf(ctx, "❌ Failed to export public key %q: %q", fn, err)
 		return err
 	}
