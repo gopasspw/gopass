@@ -2,7 +2,6 @@ package leaf
 
 import (
 	"context"
-	"io/ioutil"
 	"os"
 	"testing"
 
@@ -17,7 +16,7 @@ import (
 func TestGit(t *testing.T) {
 	ctx := context.Background()
 
-	tempdir, err := ioutil.TempDir("", "gopass-")
+	tempdir, err := os.MkdirTemp("", "gopass-")
 	require.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(tempdir)
@@ -47,7 +46,7 @@ func TestGit(t *testing.T) {
 func TestGitRevisions(t *testing.T) {
 	ctx := context.Background()
 
-	tempdir, err := ioutil.TempDir("", "gopass-")
+	tempdir, err := os.MkdirTemp("", "gopass-")
 	require.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(tempdir)

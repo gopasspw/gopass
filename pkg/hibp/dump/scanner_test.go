@@ -4,7 +4,6 @@ import (
 	"compress/gzip"
 	"context"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -50,7 +49,7 @@ func Example() {
 }
 
 func TestScanner(t *testing.T) {
-	td, err := ioutil.TempDir("", "gopass-")
+	td, err := os.MkdirTemp("", "gopass-")
 	require.NoError(t, err)
 
 	defer func() {
@@ -65,7 +64,7 @@ func TestScanner(t *testing.T) {
 
 	// setup file and env (sorted)
 	fn := filepath.Join(td, "dump.txt")
-	assert.NoError(t, ioutil.WriteFile(fn, []byte(testHibpSampleSorted), 0644))
+	assert.NoError(t, os.WriteFile(fn, []byte(testHibpSampleSorted), 0644))
 
 	scanner, err := New(fn)
 	assert.NoError(t, err)
@@ -73,7 +72,7 @@ func TestScanner(t *testing.T) {
 
 	// setup file and env (unsorted)
 	fn = filepath.Join(td, "dump.txt")
-	assert.NoError(t, ioutil.WriteFile(fn, []byte(testHibpSampleUnsorted), 0644))
+	assert.NoError(t, os.WriteFile(fn, []byte(testHibpSampleUnsorted), 0644))
 
 	scanner, err = New(fn)
 	assert.NoError(t, err)

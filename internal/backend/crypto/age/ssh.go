@@ -2,7 +2,6 @@ package age
 
 import (
 	"context"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -26,7 +25,7 @@ func (a *Age) getSSHIdentities(ctx context.Context) (map[string]age.Identity, er
 		return nil, err
 	}
 	sshDir := filepath.Join(uhd, ".ssh")
-	files, err := ioutil.ReadDir(sshDir)
+	files, err := os.ReadDir(sshDir)
 	if err != nil {
 		return nil, err
 	}
@@ -54,11 +53,11 @@ func (a *Age) parseSSHIdentity(ctx context.Context, pubFn string) (string, age.I
 	if err != nil {
 		return "", nil, err
 	}
-	pubBuf, err := ioutil.ReadFile(pubFn)
+	pubBuf, err := os.ReadFile(pubFn)
 	if err != nil {
 		return "", nil, err
 	}
-	privBuf, err := ioutil.ReadFile(privFn)
+	privBuf, err := os.ReadFile(privFn)
 	if err != nil {
 		return "", nil, err
 	}

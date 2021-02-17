@@ -2,7 +2,6 @@ package plain
 
 import (
 	"context"
-	"io/ioutil"
 	"os"
 	"testing"
 
@@ -14,7 +13,7 @@ import (
 )
 
 func TestPlain(t *testing.T) {
-	td, err := ioutil.TempDir("", "gopass-")
+	td, err := os.MkdirTemp("", "gopass-")
 	require.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(td)

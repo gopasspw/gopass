@@ -3,7 +3,6 @@ package leaf
 import (
 	"bytes"
 	"context"
-	"io/ioutil"
 	"os"
 	"testing"
 
@@ -16,7 +15,7 @@ import (
 func TestGPG(t *testing.T) {
 	ctx := context.Background()
 
-	tempdir, err := ioutil.TempDir("", "gopass-")
+	tempdir, err := os.MkdirTemp("", "gopass-")
 	require.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(tempdir)

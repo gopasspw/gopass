@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"bytes"
 	"context"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"sort"
@@ -24,7 +23,7 @@ import (
 func TestGetRecipientsDefault(t *testing.T) {
 	ctx := context.Background()
 
-	tempdir, err := ioutil.TempDir("", "gopass-")
+	tempdir, err := os.MkdirTemp("", "gopass-")
 	require.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(tempdir)
@@ -55,7 +54,7 @@ func TestGetRecipientsDefault(t *testing.T) {
 func TestGetRecipientsSubID(t *testing.T) {
 	ctx := context.Background()
 
-	tempdir, err := ioutil.TempDir("", "gopass-")
+	tempdir, err := os.MkdirTemp("", "gopass-")
 	require.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(tempdir)
@@ -81,7 +80,7 @@ func TestGetRecipientsSubID(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, genRecs, recs)
 
-	err = ioutil.WriteFile(filepath.Join(tempdir, "foo", "bar", s.crypto.IDFile()), []byte("john.doe\n"), 0600)
+	err = os.WriteFile(filepath.Join(tempdir, "foo", "bar", s.crypto.IDFile()), []byte("john.doe\n"), 0600)
 	require.NoError(t, err)
 
 	recs, err = s.GetRecipients(ctx, "foo/bar/baz")
@@ -93,7 +92,7 @@ func TestSaveRecipients(t *testing.T) {
 	ctx := context.Background()
 	ctx = ctxutil.WithExportKeys(ctx, true)
 
-	tempdir, err := ioutil.TempDir("", "gopass-")
+	tempdir, err := os.MkdirTemp("", "gopass-")
 	require.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(tempdir)
@@ -146,7 +145,7 @@ func TestAddRecipient(t *testing.T) {
 	ctx := context.Background()
 	ctx = ctxutil.WithHidden(ctx, true)
 
-	tempdir, err := ioutil.TempDir("", "gopass-")
+	tempdir, err := os.MkdirTemp("", "gopass-")
 	require.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(tempdir)
@@ -185,7 +184,7 @@ func TestRemoveRecipient(t *testing.T) {
 	ctx := context.Background()
 	ctx = ctxutil.WithHidden(ctx, true)
 
-	tempdir, err := ioutil.TempDir("", "gopass-")
+	tempdir, err := os.MkdirTemp("", "gopass-")
 	require.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(tempdir)
@@ -217,7 +216,7 @@ func TestRemoveRecipient(t *testing.T) {
 func TestListRecipients(t *testing.T) {
 	ctx := context.Background()
 
-	tempdir, err := ioutil.TempDir("", "gopass-")
+	tempdir, err := os.MkdirTemp("", "gopass-")
 	require.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(tempdir)

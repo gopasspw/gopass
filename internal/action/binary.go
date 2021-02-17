@@ -7,7 +7,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -157,7 +156,7 @@ func (s *Action) binaryCopyFromFileToStore(ctx context.Context, from, to string,
 	// and a relative one for the secret
 
 	// copy from FS to store
-	buf, err := ioutil.ReadFile(from)
+	buf, err := os.ReadFile(from)
 	if err != nil {
 		return fmt.Errorf("failed to read file from %q: %w", from, err)
 	}
@@ -191,7 +190,7 @@ func (s *Action) binaryCopyFromStoreToFile(ctx context.Context, from, to string,
 	if err != nil {
 		return fmt.Errorf("failed to read data from %q: %w", from, err)
 	}
-	if err := ioutil.WriteFile(to, buf, 0600); err != nil {
+	if err := os.WriteFile(to, buf, 0600); err != nil {
 		return fmt.Errorf("failed to write data to %q: %w", to, err)
 	}
 

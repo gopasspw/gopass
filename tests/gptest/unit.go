@@ -1,7 +1,6 @@
 package gptest
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -47,7 +46,7 @@ func (u Unit) GPGHome() string {
 // NewUnitTester creates a new unit test helper
 func NewUnitTester(t *testing.T) *Unit {
 	aclip.Unsupported = true
-	td, err := ioutil.TempDir("", "gopass-")
+	td, err := os.MkdirTemp("", "gopass-")
 	assert.NoError(t, err)
 
 	u := &Unit{
@@ -76,7 +75,7 @@ func NewUnitTester(t *testing.T) *Unit {
 }
 
 func (u Unit) initConfig() error {
-	return ioutil.WriteFile(
+	return os.WriteFile(
 		u.GPConfig(),
 		[]byte(gopassConfig+"\npath: "+u.StoreDir("")+"\n"),
 		0600,
@@ -103,7 +102,7 @@ func (u Unit) InitStore(name string) error {
 	}
 	fn := filepath.Join(dir, ".plain-id") // plain.IDFile
 	_ = os.Remove(fn)
-	if err := ioutil.WriteFile(fn, u.recipients(), 0600); err != nil {
+	if err := os.WriteFile(fn, u.recipients(), 0600); err != nil {
 		return err
 	}
 	for _, p := range AllPathsToSlash(u.Entries) {
@@ -112,7 +111,7 @@ func (u Unit) InitStore(name string) error {
 		if err := os.MkdirAll(filepath.Dir(fn), 0700); err != nil {
 			return err
 		}
-		if err := ioutil.WriteFile(fn, []byte("secret\nsecond\nthird"), 0600); err != nil {
+		if err := os.WriteFile(fn, []byte("secret\nsecond\nthird"), 0600); err != nil {
 			return err
 		}
 	}

@@ -2,7 +2,7 @@ package otp
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"strings"
 
 	"github.com/gokyle/twofactor"
@@ -62,7 +62,7 @@ func WriteQRFile(otp twofactor.OTP, label, file string) error {
 		return fmt.Errorf("failed to write qr file: %w", err)
 	}
 
-	if err := ioutil.WriteFile(file, qr, 0600); err != nil {
+	if err := os.WriteFile(file, qr, 0600); err != nil {
 		return fmt.Errorf("failed to write QR code: %w", err)
 	}
 	return nil

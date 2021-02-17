@@ -3,7 +3,6 @@ package gitfs
 import (
 	"bytes"
 	"context"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -16,7 +15,7 @@ import (
 )
 
 func TestGit(t *testing.T) {
-	td, err := ioutil.TempDir("", "gopass-")
+	td, err := os.MkdirTemp("", "gopass-")
 	require.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(td)
@@ -46,7 +45,7 @@ func TestGit(t *testing.T) {
 
 		assert.True(t, git.IsInitialized())
 		tf := filepath.Join(gitdir, "some-file")
-		require.NoError(t, ioutil.WriteFile(tf, []byte("foobar"), 0644))
+		require.NoError(t, os.WriteFile(tf, []byte("foobar"), 0644))
 		assert.NoError(t, git.Add(ctx, "some-file"))
 		assert.True(t, git.HasStagedChanges(ctx))
 		assert.NoError(t, git.Commit(ctx, "added some-file"))
@@ -73,7 +72,7 @@ func TestGit(t *testing.T) {
 		assert.Equal(t, "git", git.Name())
 
 		tf := filepath.Join(gitdir2, "some-other-file")
-		require.NoError(t, ioutil.WriteFile(tf, []byte("foobar"), 0644))
+		require.NoError(t, os.WriteFile(tf, []byte("foobar"), 0644))
 		assert.NoError(t, git.Add(ctx, "some-other-file"))
 		assert.NoError(t, git.Commit(ctx, "added some-other-file"))
 

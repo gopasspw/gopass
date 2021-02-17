@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -387,7 +386,7 @@ func TestLoad(t *testing.T) {
 	assert.NoError(t, os.Setenv("GOPASS_CONFIG", gcfg))
 	assert.NoError(t, os.Setenv("GOPASS_HOMEDIR", td))
 
-	require.NoError(t, ioutil.WriteFile(gcfg, []byte(testConfig), 0600))
+	require.NoError(t, os.WriteFile(gcfg, []byte(testConfig), 0600))
 
 	cfg := Load()
 	assert.True(t, cfg.SafeContent)
@@ -411,7 +410,7 @@ func TestLoadError(t *testing.T) {
 	cfg, err := load(gcfg, false)
 	assert.Error(t, err)
 
-	td, err := ioutil.TempDir("", "gopass-")
+	td, err := os.MkdirTemp("", "gopass-")
 	require.NoError(t, err)
 	defer func() {
 		os.RemoveAll(td)
@@ -426,7 +425,7 @@ func TestDecodeError(t *testing.T) {
 	assert.NoError(t, os.Setenv("GOPASS_CONFIG", gcfg))
 
 	_ = os.Remove(gcfg)
-	require.NoError(t, ioutil.WriteFile(gcfg, []byte(testConfig+"\nfoobar: zab\n"), 0600))
+	require.NoError(t, os.WriteFile(gcfg, []byte(testConfig+"\nfoobar: zab\n"), 0600))
 
 	capture(t, func() error {
 		_, err := load(gcfg, false)

@@ -2,7 +2,6 @@ package fs
 
 import (
 	"context"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"sort"
@@ -139,7 +138,7 @@ func (s *Store) fsckCheckEmptyDirs() error {
 }
 
 func fsckRemoveEmptyDir(fp string) error {
-	ls, err := ioutil.ReadDir(fp)
+	ls, err := os.ReadDir(fp)
 	if err != nil {
 		return err
 	}

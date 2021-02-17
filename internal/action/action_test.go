@@ -3,7 +3,6 @@ package action
 import (
 	"context"
 	"flag"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -66,7 +65,7 @@ func TestAction(t *testing.T) {
 }
 
 func TestNew(t *testing.T) {
-	td, err := ioutil.TempDir("", "gopass-")
+	td, err := os.MkdirTemp("", "gopass-")
 	require.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(td)
@@ -83,7 +82,7 @@ func TestNew(t *testing.T) {
 	t.Run("init an existing plain store", func(t *testing.T) {
 		cfg.Path = filepath.Join(td, "store")
 		assert.NoError(t, os.MkdirAll(cfg.Path, 0700))
-		assert.NoError(t, ioutil.WriteFile(filepath.Join(cfg.Path, plain.IDFile), []byte("foobar"), 0600))
+		assert.NoError(t, os.WriteFile(filepath.Join(cfg.Path, plain.IDFile), []byte("foobar"), 0600))
 		_, err = New(cfg, sv)
 		assert.NoError(t, err)
 	})

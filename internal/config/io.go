@@ -2,7 +2,6 @@ package config
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"sort"
@@ -67,7 +66,7 @@ func load(cf string, relaxed bool) (*Config, error) {
 	if _, err := os.Stat(cf); err != nil {
 		return nil, ErrConfigNotFound
 	}
-	buf, err := ioutil.ReadFile(cf)
+	buf, err := os.ReadFile(cf)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error reading config from %s: %s\n", cf, err)
 		return nil, ErrConfigNotFound
@@ -189,7 +188,7 @@ func (c *Config) Save() error {
 			return fmt.Errorf("failed to create dir %q: %w", cfgDir, err)
 		}
 	}
-	if err := ioutil.WriteFile(cfgLoc, buf, 0600); err != nil {
+	if err := os.WriteFile(cfgLoc, buf, 0600); err != nil {
 		return fmt.Errorf("failed to write config file to %q: %w", cfgLoc, err)
 	}
 	debug.Log("Saved config to %s: %+v\n", cfgLoc, c)

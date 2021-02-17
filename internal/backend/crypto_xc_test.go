@@ -4,7 +4,6 @@ package backend
 
 import (
 	"context"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -16,7 +15,7 @@ import (
 func TestDetectCryptoXC(t *testing.T) {
 	ctx := context.Background()
 
-	td, err := ioutil.TempDir("", "gopass-")
+	td, err := os.MkdirTemp("", "gopass-")
 	require.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(td)
@@ -34,7 +33,7 @@ func TestDetectCryptoXC(t *testing.T) {
 		fsDir := filepath.Join(td, "fs")
 		os.RemoveAll(fsDir)
 		assert.NoError(t, os.MkdirAll(fsDir, 0700))
-		assert.NoError(t, ioutil.WriteFile(filepath.Join(fsDir, tc.file), []byte("foo"), 0600))
+		assert.NoError(t, os.WriteFile(filepath.Join(fsDir, tc.file), []byte("foo"), 0600))
 
 		r, err := DetectStorage(ctx, fsDir)
 		assert.NoError(t, err)

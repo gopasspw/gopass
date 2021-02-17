@@ -3,7 +3,6 @@ package leaf
 import (
 	"bytes"
 	"context"
-	"io/ioutil"
 	"os"
 	"testing"
 
@@ -28,7 +27,7 @@ func TestFsck(t *testing.T) {
 	}()
 
 	// common setup
-	tempdir, err := ioutil.TempDir("", "gopass-")
+	tempdir, err := os.MkdirTemp("", "gopass-")
 	require.NoError(t, err)
 
 	s := &Store{

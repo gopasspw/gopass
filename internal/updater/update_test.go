@@ -5,7 +5,6 @@ package updater
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -21,7 +20,7 @@ func TestIsUpdateable(t *testing.T) {
 		executable = oldExec
 	}()
 
-	td, err := ioutil.TempDir("", "gopass-")
+	td, err := os.MkdirTemp("", "gopass-")
 	require.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(td)
@@ -84,7 +83,7 @@ func TestIsUpdateable(t *testing.T) {
 		{
 			name: "no write access to file",
 			pre: func() error {
-				return ioutil.WriteFile(filepath.Join(td, "gopass"), []byte("foobar"), 0555)
+				return os.WriteFile(filepath.Join(td, "gopass"), []byte("foobar"), 0555)
 			},
 			exec: func(context.Context) (string, error) {
 				return filepath.Join(td, "gopass"), nil

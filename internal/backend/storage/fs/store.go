@@ -5,7 +5,6 @@ package fs
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -40,7 +39,7 @@ func (s *Store) Get(ctx context.Context, name string) ([]byte, error) {
 	}
 	path := filepath.Join(s.path, filepath.Clean(name))
 	debug.Log("Reading %s from %s", name, path)
-	return ioutil.ReadFile(path)
+	return os.ReadFile(path)
 }
 
 // Set writes the given content
@@ -56,7 +55,7 @@ func (s *Store) Set(ctx context.Context, name string, value []byte) error {
 		}
 	}
 	debug.Log("Writing %s to %s", name, filepath.Join(s.path, name))
-	return ioutil.WriteFile(filepath.Join(s.path, name), value, 0644)
+	return os.WriteFile(filepath.Join(s.path, name), value, 0644)
 }
 
 // Delete removes the named entity

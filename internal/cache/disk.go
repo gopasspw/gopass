@@ -2,7 +2,6 @@ package cache
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -45,7 +44,7 @@ func (o *OnDisk) Get(key string) ([]string, error) {
 	if time.Now().After(fi.ModTime().Add(o.ttl)) {
 		return nil, fmt.Errorf("expired")
 	}
-	buf, err := ioutil.ReadFile(fn)
+	buf, err := os.ReadFile(fn)
 	if err != nil {
 		return nil, err
 	}
@@ -55,5 +54,5 @@ func (o *OnDisk) Get(key string) ([]string, error) {
 // Set adds an entry to the cache.
 func (o *OnDisk) Set(key string, value []string) error {
 	key = fsutil.CleanFilename(key)
-	return ioutil.WriteFile(filepath.Join(o.dir, key), []byte(strings.Join(value, "\n")), 0644)
+	return os.WriteFile(filepath.Join(o.dir, key), []byte(strings.Join(value, "\n")), 0644)
 }

@@ -7,7 +7,6 @@ import (
 	"context"
 	"crypto/sha256"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"strconv"
@@ -40,7 +39,7 @@ func clear(ctx context.Context, content []byte, timeout int) error {
 
 func walkFn(pid int, killFn func(int)) {
 	// read the commandline for this process
-	cmdline, err := ioutil.ReadFile(fmt.Sprintf("/proc/%d/cmdline", pid))
+	cmdline, err := os.ReadFile(fmt.Sprintf("/proc/%d/cmdline", pid))
 	if err != nil {
 		return
 	}

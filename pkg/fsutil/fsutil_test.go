@@ -2,7 +2,6 @@ package fsutil
 
 import (
 	"crypto/rand"
-	"io/ioutil"
 	"os"
 	"os/user"
 	"path/filepath"
@@ -26,7 +25,7 @@ func TestCleanFilename(t *testing.T) {
 }
 
 func TestCleanPath(t *testing.T) {
-	tempdir, err := ioutil.TempDir("", "gopass-")
+	tempdir, err := os.MkdirTemp("", "gopass-")
 	require.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(tempdir)
@@ -59,34 +58,34 @@ func TestCleanPath(t *testing.T) {
 }
 
 func TestIsDir(t *testing.T) {
-	tempdir, err := ioutil.TempDir("", "gopass-")
+	tempdir, err := os.MkdirTemp("", "gopass-")
 	require.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(tempdir)
 	}()
 
 	fn := filepath.Join(tempdir, "foo")
-	assert.NoError(t, ioutil.WriteFile(fn, []byte("bar"), 0644))
+	assert.NoError(t, os.WriteFile(fn, []byte("bar"), 0644))
 	assert.Equal(t, true, IsDir(tempdir))
 	assert.Equal(t, false, IsDir(fn))
 	assert.Equal(t, false, IsDir(filepath.Join(tempdir, "non-existing")))
 }
 
 func TestIsFile(t *testing.T) {
-	tempdir, err := ioutil.TempDir("", "gopass-")
+	tempdir, err := os.MkdirTemp("", "gopass-")
 	require.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(tempdir)
 	}()
 
 	fn := filepath.Join(tempdir, "foo")
-	assert.NoError(t, ioutil.WriteFile(fn, []byte("bar"), 0644))
+	assert.NoError(t, os.WriteFile(fn, []byte("bar"), 0644))
 	assert.Equal(t, false, IsFile(tempdir))
 	assert.Equal(t, true, IsFile(fn))
 }
 
 func TestShred(t *testing.T) {
-	tempdir, err := ioutil.TempDir("", "gopass-")
+	tempdir, err := os.MkdirTemp("", "gopass-")
 	require.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(tempdir)
@@ -121,7 +120,7 @@ func TestShred(t *testing.T) {
 }
 
 func TestIsEmptyDir(t *testing.T) {
-	tempdir, err := ioutil.TempDir("", "gopass-")
+	tempdir, err := os.MkdirTemp("", "gopass-")
 	require.NoError(t, err)
 	defer func() {
 		_ = os.RemoveAll(tempdir)
@@ -135,7 +134,7 @@ func TestIsEmptyDir(t *testing.T) {
 	assert.Equal(t, true, isEmpty)
 
 	fn = filepath.Join(fn, ".config.yml")
-	require.NoError(t, ioutil.WriteFile(fn, []byte("foo"), 0644))
+	require.NoError(t, os.WriteFile(fn, []byte("foo"), 0644))
 
 	isEmpty, err = IsEmptyDir(tempdir)
 	require.NoError(t, err)

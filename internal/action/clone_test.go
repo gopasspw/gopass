@@ -3,7 +3,6 @@ package action
 import (
 	"bytes"
 	"context"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -30,7 +29,7 @@ func aGitRepo(ctx context.Context, u *gptest.Unit, t *testing.T, name string) st
 	assert.Error(t, err)
 
 	idf := filepath.Join(gd, ".gpg-id")
-	assert.NoError(t, ioutil.WriteFile(idf, []byte("0xDEADBEEF"), 0600))
+	assert.NoError(t, os.WriteFile(idf, []byte("0xDEADBEEF"), 0600))
 
 	gr, err := git.Init(ctx, gd, "Nobody", "foo.bar@example.org")
 	assert.NoError(t, err)
