@@ -1,3 +1,12 @@
+## 1.12.1 / 2021-02-17
+
+* [BUGFIX] Enable updater on Windows (#1790, #1789)
+* [BUGFIX] Fix progress bar nil pointer access (#1790, #1789)
+* [BUGFIX] Fix % char in passwords being treated as formatting (#1794, #1793, #1801)
+* [ENHANCEMENT] Add ARCHITECTURE.md (#1787)
+* [ENHANCEMENT] Added a env var to disable reminders (#1792)
+* [ENHANCEMENT] Remind to run gopass update/fsck/audit after 90d (#1792)
+
 ## 1.12.0 / 2021-02-11
 
 WARNING: The self updater does not support updating from 1.11.0 to 1.12.0. Our
