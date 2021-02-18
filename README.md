@@ -54,10 +54,10 @@ Please see [docs/features.md](https://github.com/gopasspw/gopass/blob/master/doc
 
 Please see [docs/setup.md](https://github.com/gopasspw/gopass/blob/master/docs/setup.md).
 
-If you have [Go](https://golang.org/) 1.14 (or greater) installed:
+If you have [Go](https://golang.org/) 1.16 (or greater) installed:
 
 ```bash
-GO111MODULE=on go get github.com/gopasspw/gopass
+go get github.com/gopasspw/gopass
 ```
 
 WARNING: Please prefer releases, unless you want to contribute to the
