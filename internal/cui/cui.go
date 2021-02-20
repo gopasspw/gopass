@@ -15,6 +15,7 @@ func GetSelection(ctx context.Context, prompt string, choices []string) (string,
 	if ctxutil.IsAlwaysYes(ctx) || !ctxutil.IsInteractive(ctx) {
 		return "impossible", 0
 	}
+
 	for i, c := range choices {
 		fmt.Printf("[%  d] %s\n", i, c)
 	}
