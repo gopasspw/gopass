@@ -41,20 +41,6 @@ func TestStdin(t *testing.T) {
 	assert.Equal(t, false, IsStdin(WithStdin(ctx, false)))
 }
 
-func TestClipTimeout(t *testing.T) {
-	ctx := context.Background()
-
-	assert.Equal(t, 45, GetClipTimeout(ctx))
-	assert.Equal(t, 30, GetClipTimeout(WithClipTimeout(ctx, 30)))
-}
-
-func TestConcurrency(t *testing.T) {
-	ctx := context.Background()
-
-	assert.Equal(t, 1, GetConcurrency(ctx))
-	assert.Equal(t, 3, GetConcurrency(WithConcurrency(ctx, 3)))
-}
-
 func TestNoPager(t *testing.T) {
 	ctx := context.Background()
 
@@ -95,28 +81,12 @@ func TestNoColor(t *testing.T) {
 	assert.Equal(t, false, IsNoColor(WithNoColor(ctx, false)))
 }
 
-func TestFuzzySearch(t *testing.T) {
-	ctx := context.Background()
-
-	assert.Equal(t, true, IsFuzzySearch(ctx))
-	assert.Equal(t, true, IsFuzzySearch(WithFuzzySearch(ctx, true)))
-	assert.Equal(t, false, IsFuzzySearch(WithFuzzySearch(ctx, false)))
-}
-
 func TestVerbose(t *testing.T) {
 	ctx := context.Background()
 
 	assert.Equal(t, false, IsVerbose(ctx))
 	assert.Equal(t, true, IsVerbose(WithVerbose(ctx, true)))
 	assert.Equal(t, false, IsVerbose(WithVerbose(ctx, false)))
-}
-
-func TestAutoClip(t *testing.T) {
-	ctx := context.Background()
-
-	assert.Equal(t, true, IsAutoClip(ctx))
-	assert.Equal(t, true, IsAutoClip(WithAutoClip(ctx, true)))
-	assert.Equal(t, false, IsAutoClip(WithAutoClip(ctx, false)))
 }
 
 func TestNotifications(t *testing.T) {
@@ -173,17 +143,13 @@ func TestComposite(t *testing.T) {
 	ctx = WithTerminal(ctx, false)
 	ctx = WithInteractive(ctx, false)
 	ctx = WithStdin(ctx, true)
-	ctx = WithClipTimeout(ctx, 10)
-	ctx = WithConcurrency(ctx, 5)
 	ctx = WithNoPager(ctx, true)
 	ctx = WithShowSafeContent(ctx, true)
 	ctx = WithGitCommit(ctx, false)
 	ctx = WithAlwaysYes(ctx, true)
 	ctx = WithNoColor(ctx, true)
-	ctx = WithFuzzySearch(ctx, false)
 	ctx = WithVerbose(ctx, true)
 	ctx = WithNotifications(ctx, true)
-	ctx = WithAutoClip(ctx, true)
 	ctx = WithExportKeys(ctx, false)
 	ctx = WithEmail(ctx, "foo@bar.com")
 	ctx = WithUsername(ctx, "foo")
@@ -204,12 +170,6 @@ func TestComposite(t *testing.T) {
 	assert.Equal(t, true, IsStdin(ctx))
 	assert.Equal(t, true, HasStdin(ctx))
 
-	assert.Equal(t, 10, GetClipTimeout(ctx))
-	assert.Equal(t, true, HasClipTimeout(ctx))
-
-	assert.Equal(t, 5, GetConcurrency(ctx))
-	assert.Equal(t, true, HasConcurrency(ctx))
-
 	assert.Equal(t, true, IsNoPager(ctx))
 	assert.Equal(t, true, HasNoPager(ctx))
 
@@ -225,17 +185,11 @@ func TestComposite(t *testing.T) {
 	assert.Equal(t, true, IsNoColor(ctx))
 	assert.Equal(t, true, HasNoColor(ctx))
 
-	assert.Equal(t, false, IsFuzzySearch(ctx))
-	assert.Equal(t, true, HasFuzzySearch(ctx))
-
 	assert.Equal(t, true, IsVerbose(ctx))
 	assert.Equal(t, true, HasVerbose(ctx))
 
 	assert.Equal(t, true, IsNotifications(ctx))
 	assert.Equal(t, true, HasNotifications(ctx))
-
-	assert.Equal(t, true, IsAutoClip(ctx))
-	assert.Equal(t, true, HasAutoClip(ctx))
 
 	assert.Equal(t, false, IsExportKeys(ctx))
 	assert.Equal(t, true, HasExportKeys(ctx))

@@ -19,16 +19,15 @@ import (
 
 // FindNoFuzzy runs find without fuzzy search
 func (s *Action) FindNoFuzzy(c *cli.Context) error {
-	c.Context = ctxutil.WithFuzzySearch(c.Context, false)
-	return s.findCmd(c, nil)
+	return s.findCmd(c, nil, false)
 }
 
 // Find runs find
 func (s *Action) Find(c *cli.Context) error {
-	return s.findCmd(c, s.show)
+	return s.findCmd(c, s.show, true)
 }
 
-func (s *Action) findCmd(c *cli.Context, cb showFunc) error {
+func (s *Action) findCmd(c *cli.Context, cb showFunc, fuzzy bool) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	if c.IsSet("clip") {
 		ctx = WithOnlyClip(ctx, c.Bool("clip"))
@@ -42,13 +41,13 @@ func (s *Action) findCmd(c *cli.Context, cb showFunc) error {
 		return ExitError(ExitUsage, nil, "Usage: %s find <NEEDLE>", s.Name)
 	}
 
-	return s.find(ctx, c, c.Args().First(), cb)
+	return s.find(ctx, c, c.Args().First(), cb, fuzzy)
 }
 
 // see action.show - context, cli context, name, key, rescurse
 type showFunc func(context.Context, *cli.Context, string, bool) error
 
-func (s *Action) find(ctx context.Context, c *cli.Context, needle string, cb showFunc) error {
+func (s *Action) find(ctx context.Context, c *cli.Context, needle string, cb showFunc, fuzzy bool) error {
 	// get all existing entries
 	haystack, err := s.Store.List(ctx, tree.INF)
 	if err != nil {
@@ -70,7 +69,7 @@ func (s *Action) find(ctx context.Context, c *cli.Context, needle string, cb sho
 	}
 
 	// if we don't have a match yet try a fuzzy search
-	if len(choices) < 1 && ctxutil.IsFuzzySearch(ctx) {
+	if len(choices) < 1 && fuzzy {
 		// try fuzzy match
 		cm := closestmatch.New(haystack, []int{2})
 		choices = cm.ClosestN(needle, 5)

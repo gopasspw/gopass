@@ -181,6 +181,22 @@ func (s *Action) GetCommands() []*cli.Command {
 			},
 		},
 		{
+			Name:    "create",
+			Aliases: []string{"new"},
+			Usage:   "Easy creation of new secrets",
+			Description: "" +
+				"This command starts a wizard to aid in creation of new secrets.",
+			Before: s.IsInitialized,
+			Action: s.Create,
+			Flags: []cli.Flag{
+				&cli.StringFlag{
+					Name:    "store",
+					Aliases: []string{"s"},
+					Usage:   "Which store to use",
+				},
+			},
+		},
+		{
 			Name:  "delete",
 			Usage: "Remove one or many secrets from the store",
 			Description: "" +

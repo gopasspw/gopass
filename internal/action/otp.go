@@ -64,7 +64,7 @@ func (s *Action) otp(ctx context.Context, name, qrf string, clip, pw, recurse bo
 	}
 
 	if clip {
-		if err := clipboard.CopyTo(ctx, fmt.Sprintf("token for %s", name), []byte(token)); err != nil {
+		if err := clipboard.CopyTo(ctx, fmt.Sprintf("token for %s", name), []byte(token), s.cfg.ClipTimeout); err != nil {
 			return ExitError(ExitIO, err, "failed to copy to clipboard: %s", err)
 		}
 		return nil
@@ -84,7 +84,7 @@ func (s *Action) otpHandleError(ctx context.Context, name, qrf string, clip, pw,
 	cb := func(ctx context.Context, c *cli.Context, name string, recurse bool) error {
 		return s.otp(ctx, name, qrf, clip, pw, false)
 	}
-	if err := s.find(ctxutil.WithFuzzySearch(ctx, false), nil, name, cb); err != nil {
+	if err := s.find(ctx, nil, name, cb, false); err != nil {
 		return ExitError(ExitNotFound, err, "%s", err)
 	}
 	return nil

@@ -16,16 +16,12 @@ const (
 	ctxKeyTerminal
 	ctxKeyInteractive
 	ctxKeyStdin
-	ctxKeyClipTimeout
-	ctxKeyConcurrency
 	ctxKeyNoPager
 	ctxKeyShowSafeContent
 	ctxKeyGitCommit
 	ctxKeyAlwaysYes
 	ctxKeyNoColor
-	ctxKeyFuzzySearch
 	ctxKeyVerbose
-	ctxKeyAutoClip
 	ctxKeyNotifications
 	ctxKeyProgressCallback
 	ctxKeyAlias
@@ -130,26 +126,6 @@ func IsStdin(ctx context.Context) bool {
 		return false
 	}
 	return bv
-}
-
-// WithClipTimeout returns a context with the value for clip timeout set
-func WithClipTimeout(ctx context.Context, to int) context.Context {
-	return context.WithValue(ctx, ctxKeyClipTimeout, to)
-}
-
-// HasClipTimeout returns true if a value for ClipTimeout has been set in this context
-func HasClipTimeout(ctx context.Context) bool {
-	_, ok := ctx.Value(ctxKeyClipTimeout).(int)
-	return ok
-}
-
-// GetClipTimeout returns the value of clip timeout or the default (45)
-func GetClipTimeout(ctx context.Context) int {
-	iv, ok := ctx.Value(ctxKeyClipTimeout).(int)
-	if !ok || iv < 1 {
-		return 45
-	}
-	return iv
 }
 
 // WithNoPager returns a context with the value for pager set
@@ -268,26 +244,6 @@ func IsAlwaysYes(ctx context.Context) bool {
 	return bv
 }
 
-// WithFuzzySearch returns a context with the value for fuzzy search set
-func WithFuzzySearch(ctx context.Context, fuzzy bool) context.Context {
-	return context.WithValue(ctx, ctxKeyFuzzySearch, fuzzy)
-}
-
-// HasFuzzySearch returns true if a value for FuzzySearch has been set in this context
-func HasFuzzySearch(ctx context.Context) bool {
-	_, ok := ctx.Value(ctxKeyFuzzySearch).(bool)
-	return ok
-}
-
-// IsFuzzySearch return the value of fuzzy search or the default (true)
-func IsFuzzySearch(ctx context.Context) bool {
-	bv, ok := ctx.Value(ctxKeyFuzzySearch).(bool)
-	if !ok {
-		return true
-	}
-	return bv
-}
-
 // WithVerbose returns a context with the value for verbose set
 func WithVerbose(ctx context.Context, verbose bool) context.Context {
 	return context.WithValue(ctx, ctxKeyVerbose, verbose)
@@ -317,41 +273,6 @@ func HasNotifications(ctx context.Context) bool {
 // IsNotifications returns the value of Notifications or the default (true)
 func IsNotifications(ctx context.Context) bool {
 	return is(ctx, ctxKeyNotifications, true)
-}
-
-// WithAutoClip returns a context with the value for AutoClip set
-func WithAutoClip(ctx context.Context, bv bool) context.Context {
-	return context.WithValue(ctx, ctxKeyAutoClip, bv)
-}
-
-// HasAutoClip returns true if a value for AutoClip has been set in this context
-func HasAutoClip(ctx context.Context) bool {
-	return hasBool(ctx, ctxKeyAutoClip)
-}
-
-// IsAutoClip returns the value of AutoClip or the default (true)
-func IsAutoClip(ctx context.Context) bool {
-	return is(ctx, ctxKeyAutoClip, true)
-}
-
-// WithConcurrency returns a context with the value for clip timeout set
-func WithConcurrency(ctx context.Context, to int) context.Context {
-	return context.WithValue(ctx, ctxKeyConcurrency, to)
-}
-
-// HasConcurrency returns true if a value for Concurrency has been set in this context and is bigger than 1
-// since if it is equal to 1, we are not working concurrently.
-func HasConcurrency(ctx context.Context) bool {
-	return hasInt(ctx, ctxKeyConcurrency)
-}
-
-// GetConcurrency returns the value of concurrent threads or the default (1)
-func GetConcurrency(ctx context.Context) int {
-	iv, ok := ctx.Value(ctxKeyConcurrency).(int)
-	if !ok || iv < 1 {
-		return 1
-	}
-	return iv
 }
 
 // WithProgressCallback returns a context with the value of ProgressCallback set

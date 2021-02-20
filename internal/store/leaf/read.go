@@ -28,14 +28,10 @@ func (s *Store) Get(ctx context.Context, name string) (gopass.Secret, error) {
 		out.Errorf(ctx, "Decryption failed: %s\n%s", err, string(content))
 		return nil, store.ErrDecrypt
 	}
-	var sec gopass.Secret
-	sec = secrets.ParsePlain(content)
-	if ctxutil.IsShowParsing(ctx) {
-		sec, err = secparse.Parse(content)
-		if err != nil {
-			debug.Log("Failed to parse secret: %s", err)
-		}
+
+	if !ctxutil.IsShowParsing(ctx) {
+		return secrets.ParsePlain(content), nil
 	}
 
-	return sec, nil
+	return secparse.Parse(content)
 }

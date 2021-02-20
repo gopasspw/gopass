@@ -22,11 +22,12 @@ func TestCopy(t *testing.T) {
 	ctx := context.Background()
 	ctx = ctxutil.WithInteractive(ctx, false)
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
-	ctx = ctxutil.WithAutoClip(ctx, false)
 
 	act, err := newMock(ctx, u)
 	require.NoError(t, err)
 	require.NotNil(t, act)
+
+	act.cfg.AutoClip = false
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf

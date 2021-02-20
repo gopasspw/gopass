@@ -154,7 +154,7 @@ func (s *Action) showHandleOutput(ctx context.Context, name string, sec gopass.S
 	}
 
 	if IsClip(ctx) && pw != "" {
-		if err := clipboard.CopyTo(ctx, name, []byte(pw)); err != nil {
+		if err := clipboard.CopyTo(ctx, name, []byte(pw), s.cfg.ClipTimeout); err != nil {
 			return err
 		}
 	}
