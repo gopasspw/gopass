@@ -7,10 +7,8 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io"
-	"net/http"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -66,25 +64,16 @@ func (s *Action) Cat(c *cli.Context) error {
 }
 
 func secFromBytes(dst, src string, in []byte) gopass.Secret {
-	ct := http.DetectContentType(in)
-
-	debug.Log("Read %d bytes of %s from %s to %s", len(in), ct, src, dst)
+	debug.Log("Read %d bytes from %s to %s", len(in), src, dst)
 
 	sec := secrets.NewKV()
-	if err := sec.Set("Content-Type", ct); err != nil {
-		debug.Log("Failed to set Content-Type %q: %q", ct, err)
-	}
 	if err := sec.Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", filepath.Base(src))); err != nil {
 		debug.Log("Failed to set Content-Disposition: %q", err)
 	}
 
-	if strings.HasPrefix(ct, "text/") {
-		sec.Write(in)
-	} else {
-		sec.Write([]byte(base64.StdEncoding.EncodeToString(in)))
-		if err := sec.Set("Content-Transfer-Encoding", "Base64"); err != nil {
-			debug.Log("Failed to set Content-Transfer-Encoding: %q", err)
-		}
+	sec.Write([]byte(base64.StdEncoding.EncodeToString(in)))
+	if err := sec.Set("Content-Transfer-Encoding", "Base64"); err != nil {
+		debug.Log("Failed to set Content-Transfer-Encoding: %q", err)
 	}
 
 	return sec
