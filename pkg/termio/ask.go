@@ -40,7 +40,7 @@ func AskForString(ctx context.Context, text, def string) (string, error) {
 	}
 
 	fmt.Fprintf(Stdout, "%s [%s]: ", text, def)
-	input, err := NewReader(Stdin).ReadLine()
+	input, err := NewReader(ctx, Stdin).ReadLine()
 	if err != nil {
 		return "", fmt.Errorf("failed to read user input: %w", err)
 	}
@@ -95,7 +95,7 @@ func AskForInt(ctx context.Context, text string, def int) (int, error) {
 		return def, nil
 	}
 
-	str, err := AskForString(ctx, text, strconv.Itoa(def))
+	str, err := AskForString(ctx, text+" (q to abort)", strconv.Itoa(def))
 	if err != nil {
 		return 0, err
 	}
