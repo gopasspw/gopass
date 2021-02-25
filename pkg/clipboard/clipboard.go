@@ -7,7 +7,6 @@ import (
 
 	"github.com/gopasspw/gopass/internal/notify"
 	"github.com/gopasspw/gopass/internal/out"
-	"github.com/gopasspw/gopass/pkg/ctxutil"
 
 	"github.com/atotto/clipboard"
 	"github.com/fatih/color"
@@ -20,7 +19,7 @@ var (
 
 // CopyTo copies the given data to the clipboard and enqueues automatic
 // clearing of the clipboard
-func CopyTo(ctx context.Context, name string, content []byte) error {
+func CopyTo(ctx context.Context, name string, content []byte, timeout int) error {
 	if clipboard.Unsupported {
 		out.Printf(ctx, "%s", ErrNotSupported)
 		_ = notify.Notify(ctx, "gopass - clipboard", fmt.Sprintf("%s", ErrNotSupported))
@@ -32,13 +31,16 @@ func CopyTo(ctx context.Context, name string, content []byte) error {
 		return fmt.Errorf("failed to write to clipboard: %w", err)
 	}
 
-	if err := clear(ctx, content, ctxutil.GetClipTimeout(ctx)); err != nil {
+	if timeout < 1 {
+		timeout = 45
+	}
+	if err := clear(ctx, content, timeout); err != nil {
 		_ = notify.Notify(ctx, "gopass - clipboard", "failed to clear clipboard")
 		return fmt.Errorf("failed to clear clipboard: %w", err)
 	}
 
-	out.Printf(ctx, "✔ Copied %s to clipboard. Will clear in %d seconds.", color.YellowString(name), ctxutil.GetClipTimeout(ctx))
-	_ = notify.Notify(ctx, "gopass - clipboard", fmt.Sprintf("✔ Copied %s to clipboard. Will clear in %d seconds.", name, ctxutil.GetClipTimeout(ctx)))
+	out.Printf(ctx, "✔ Copied %s to clipboard. Will clear in %d seconds.", color.YellowString(name), timeout)
+	_ = notify.Notify(ctx, "gopass - clipboard", fmt.Sprintf("✔ Copied %s to clipboard. Will clear in %d seconds.", name, timeout))
 	return nil
 }
 

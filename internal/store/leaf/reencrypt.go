@@ -23,6 +23,10 @@ func (s *Store) reencrypt(ctx context.Context) error {
 		return fmt.Errorf("failed to list store: %w", err)
 	}
 
+	// TODO: Most gnupg setups don't work well with concurrency > 1, but
+	// for other backends - e.g. age - this could very well be > 1.
+	conc := 1
+
 	// save original value of auto push
 	{
 		// shadow ctx in this block only
@@ -35,10 +39,7 @@ func (s *Store) reencrypt(ctx context.Context) error {
 		// We use a logger to write without race condition on stdout
 		logger := log.New(os.Stdout, "", 0)
 		out.Printf(ctx, "Starting reencrypt")
-		// We spawn as many workers as we have set in the concurrency setting
-		// GetConcurrency will return 1 if the concurrency setting is not set
-		// or if it set to a value below 1.
-		conc := ctxutil.GetConcurrency(ctx)
+
 		for i := 0; i < conc; i++ {
 			wg.Add(1) // we start a new job
 			go func(workerId int) {
@@ -85,7 +86,7 @@ func (s *Store) reencrypt(ctx context.Context) error {
 
 	// if we were working concurrently, we couldn't git add during the process
 	// to avoid a race condition on git .index.lock file, so we do it now.
-	if ctxutil.HasConcurrency(ctx) {
+	if conc > 1 {
 		for _, name := range entries {
 			p := s.passfile(name)
 			if err := s.storage.Add(ctx, p); err != nil {

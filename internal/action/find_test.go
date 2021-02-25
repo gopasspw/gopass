@@ -26,10 +26,12 @@ func TestFind(t *testing.T) {
 
 	ctx := context.Background()
 	ctx = ctxutil.WithTerminal(ctx, false)
-	ctx = ctxutil.WithAutoClip(ctx, false)
+
 	act, err := newMock(ctx, u)
 	require.NoError(t, err)
 	require.NotNil(t, act)
+
+	act.cfg.AutoClip = false
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
@@ -107,7 +109,7 @@ func TestFind(t *testing.T) {
 
 	// find w/o callback
 	c = gptest.CliCtx(ctx, t)
-	assert.NoError(t, act.find(ctx, c, "foo", nil))
+	assert.NoError(t, act.find(ctx, c, "foo", nil, false))
 	assert.Equal(t, "foo", strings.TrimSpace(buf.String()))
 	buf.Reset()
 

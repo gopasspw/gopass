@@ -75,7 +75,7 @@ func (s *Action) editGetContent(ctx context.Context, name string, create bool) (
 			newName = name
 			return nil
 		}
-		if err := s.find(ctxutil.WithFuzzySearch(ctx, false), nil, name, cb); err == nil {
+		if err := s.find(ctx, nil, name, cb, false); err == nil {
 			cont, err := termio.AskForBool(ctx, fmt.Sprintf("Secret does not exist %q. Found possible match in %q. Edit existing entry?", name, newName), true)
 			if err != nil {
 				return "", nil, false, err

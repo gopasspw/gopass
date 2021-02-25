@@ -25,7 +25,7 @@ func TestCopyToClipboard(t *testing.T) {
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
-	assert.NoError(t, CopyTo(ctx, "foo", []byte("bar")))
+	assert.NoError(t, CopyTo(ctx, "foo", []byte("bar"), 1))
 	assert.Contains(t, buf.String(), "WARNING")
 }
 

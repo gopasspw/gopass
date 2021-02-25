@@ -22,12 +22,13 @@ func TestInsert(t *testing.T) {
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithTerminal(ctx, false)
-	ctx = ctxutil.WithAutoClip(ctx, false)
 	ctx = ctxutil.WithShowParsing(ctx, true)
 
 	act, err := newMock(ctx, u)
 	require.NoError(t, err)
 	require.NotNil(t, act)
+
+	act.cfg.AutoClip = false
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
@@ -137,11 +138,13 @@ func TestInsertStdin(t *testing.T) {
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithTerminal(ctx, false)
-	ctx = ctxutil.WithAutoClip(ctx, false)
 	ctx = ctxutil.WithStdin(ctx, true)
+
 	act, err := newMock(ctx, u)
 	require.NoError(t, err)
 	require.NotNil(t, act)
+
+	act.cfg.AutoClip = false
 
 	buf := &bytes.Buffer{}
 	ibuf := &bytes.Buffer{}

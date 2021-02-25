@@ -1,4 +1,4 @@
-package create
+package action
 
 import (
 	"context"
@@ -8,13 +8,11 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
-	"github.com/gopasspw/gopass/internal/action"
 	"github.com/gopasspw/gopass/internal/cui"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/clipboard"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/fsutil"
-	"github.com/gopasspw/gopass/pkg/gopass"
 	"github.com/gopasspw/gopass/pkg/gopass/secrets"
 	"github.com/gopasspw/gopass/pkg/pwgen"
 	"github.com/gopasspw/gopass/pkg/pwgen/pwrules"
@@ -23,33 +21,20 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-const (
-	defaultLength = 24
-)
-
-type storer interface {
-	Set(context.Context, string, gopass.Byter) error
-	Exists(context.Context, string) bool
-	MountPoints() []string
-}
-
-type creator struct {
-	store storer
-}
-
 func fmtfn(d int, n string, t string) string {
 	strlen := 40 - d
 	return fmt.Sprintf("%"+strconv.Itoa(d)+"s%s %-"+strconv.Itoa(strlen)+"s", "", color.GreenString("["+n+"]"), color.CyanString(t))
 }
 
 // Create displays the password creation wizard
-func Create(c *cli.Context, store storer) error {
+func (s *Action) Create(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
-	s := creator{store: store}
+
 	acts := make(cui.Actions, 0, 5)
 	acts = append(acts, cui.Action{Name: "Website Login", Fn: s.createWebsite})
 	acts = append(acts, cui.Action{Name: "PIN Code (numerical)", Fn: s.createPIN})
 	acts = append(acts, cui.Action{Name: "Generic", Fn: s.createGeneric})
+
 	act, sel := cui.GetSelection(ctx, "Please select the type of secret you would like to create", acts.Selection())
 	switch act {
 	case "default":
@@ -57,7 +42,7 @@ func Create(c *cli.Context, store storer) error {
 	case "show":
 		return acts.Run(ctx, c, sel)
 	default:
-		return action.ExitError(action.ExitAborted, nil, "user aborted")
+		return ExitError(ExitAborted, nil, "user aborted")
 	}
 }
 
@@ -83,7 +68,7 @@ func extractHostname(in string) string {
 }
 
 // createWebsite walks through the website credential creation wizard
-func (s *creator) createWebsite(ctx context.Context, c *cli.Context) error {
+func (s *Action) createWebsite(ctx context.Context, c *cli.Context) error {
 	var (
 		urlStr   = c.Args().Get(0)
 		username = c.Args().Get(1)
@@ -101,7 +86,7 @@ func (s *creator) createWebsite(ctx context.Context, c *cli.Context) error {
 	// the hostname is used as part of the name
 	hostname := extractHostname(urlStr)
 	if hostname == "" {
-		return action.ExitError(action.ExitUnknown, err, "Can not parse URL %q. Please use 'gopass edit' to manually create the secret", urlStr)
+		return ExitError(ExitUnknown, err, "Can not parse URL %q. Please use 'gopass edit' to manually create the secret", urlStr)
 	}
 
 	username, err = termio.AskForString(ctx, fmtfn(2, "2", "Login"), username)
@@ -129,7 +114,7 @@ func (s *creator) createWebsite(ctx context.Context, c *cli.Context) error {
 
 	// select store
 	if store == "" {
-		store = cui.AskForStore(ctx, s.store)
+		store = cui.AskForStore(ctx, s.Store)
 	}
 
 	// generate name, ask for override if already taken
@@ -138,7 +123,7 @@ func (s *creator) createWebsite(ctx context.Context, c *cli.Context) error {
 	}
 
 	name := fmt.Sprintf("%swebsites/%s/%s", store, fsutil.CleanFilename(hostname), fsutil.CleanFilename(username))
-	if s.store.Exists(ctx, name) {
+	if s.Store.Exists(ctx, name) {
 		name, err = termio.AskForString(ctx, fmtfn(2, "5", "Secret already exists, please choose another path"), name)
 		if err != nil {
 			return err
@@ -153,15 +138,15 @@ func (s *creator) createWebsite(ctx context.Context, c *cli.Context) error {
 	if u := pwrules.LookupChangeURL(hostname); u != "" {
 		sec.Set("password-change-url", u)
 	}
-	if err := s.store.Set(ctxutil.WithCommitMessage(ctx, "Created new entry"), name, sec); err != nil {
-		return action.ExitError(action.ExitEncrypt, err, "failed to set %q: %s", name, err)
+	if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, "Created new entry"), name, sec); err != nil {
+		return ExitError(ExitEncrypt, err, "failed to set %q: %s", name, err)
 	}
 
 	return s.createPrintOrCopy(ctx, c, name, password, genPw)
 }
 
 // createPrintOrCopy will display the created password (or copy to clipboard)
-func (s *creator) createPrintOrCopy(ctx context.Context, c *cli.Context, name, password string, genPw bool) error {
+func (s *Action) createPrintOrCopy(ctx context.Context, c *cli.Context, name, password string, genPw bool) error {
 	if !genPw {
 		return nil
 	}
@@ -175,14 +160,14 @@ func (s *creator) createPrintOrCopy(ctx context.Context, c *cli.Context, name, p
 		return nil
 	}
 
-	if err := clipboard.CopyTo(ctx, name, []byte(password)); err != nil {
-		return action.ExitError(action.ExitIO, err, "failed to copy to clipboard: %s", err)
+	if err := clipboard.CopyTo(ctx, name, []byte(password), s.cfg.ClipTimeout); err != nil {
+		return ExitError(ExitIO, err, "failed to copy to clipboard: %s", err)
 	}
 	return nil
 }
 
 // createPIN will walk through the numerical password (PIN) wizard
-func (s *creator) createPIN(ctx context.Context, c *cli.Context) error {
+func (s *Action) createPIN(ctx context.Context, c *cli.Context) error {
 	var (
 		authority   = c.Args().Get(0)
 		application = c.Args().Get(1)
@@ -198,14 +183,14 @@ func (s *creator) createPIN(ctx context.Context, c *cli.Context) error {
 		return err
 	}
 	if authority == "" {
-		return action.ExitError(action.ExitUnknown, nil, "Authority must not be empty")
+		return ExitError(ExitUnknown, nil, "Authority must not be empty")
 	}
 	application, err = termio.AskForString(ctx, fmtfn(2, "2", "Entity"), application)
 	if err != nil {
 		return err
 	}
 	if application == "" {
-		return action.ExitError(action.ExitUnknown, nil, "Application must not be empty")
+		return ExitError(ExitUnknown, nil, "Application must not be empty")
 	}
 	genPw, err = termio.AskForBool(ctx, fmtfn(2, "3", "Generate PIN?"), false)
 	if err != nil {
@@ -226,7 +211,7 @@ func (s *creator) createPIN(ctx context.Context, c *cli.Context) error {
 
 	// select store
 	if store == "" {
-		store = cui.AskForStore(ctx, s.store)
+		store = cui.AskForStore(ctx, s.Store)
 	}
 
 	// generate name, ask for override if already taken
@@ -234,7 +219,7 @@ func (s *creator) createPIN(ctx context.Context, c *cli.Context) error {
 		store += "/"
 	}
 	name := fmt.Sprintf("%spins/%s/%s", store, fsutil.CleanFilename(authority), fsutil.CleanFilename(application))
-	if s.store.Exists(ctx, name) {
+	if s.Store.Exists(ctx, name) {
 		name, err = termio.AskForString(ctx, fmtfn(2, "5", "Secret already exists, please choose another path"), name)
 		if err != nil {
 			return err
@@ -244,15 +229,15 @@ func (s *creator) createPIN(ctx context.Context, c *cli.Context) error {
 	sec.SetPassword(password)
 	sec.Set("application", application)
 	sec.Set("comment", comment)
-	if err := s.store.Set(ctxutil.WithCommitMessage(ctx, "Created new entry"), name, sec); err != nil {
-		return action.ExitError(action.ExitEncrypt, err, "failed to set %q: %s", name, err)
+	if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, "Created new entry"), name, sec); err != nil {
+		return ExitError(ExitEncrypt, err, "failed to set %q: %s", name, err)
 	}
 
 	return s.createPrintOrCopy(ctx, c, name, password, genPw)
 }
 
 // createGeneric will walk through the generic secret wizard
-func (s *creator) createGeneric(ctx context.Context, c *cli.Context) error {
+func (s *Action) createGeneric(ctx context.Context, c *cli.Context) error {
 	var (
 		shortname = c.Args().Get(0)
 		password  string
@@ -266,7 +251,7 @@ func (s *creator) createGeneric(ctx context.Context, c *cli.Context) error {
 		return err
 	}
 	if shortname == "" {
-		return action.ExitError(action.ExitUnknown, nil, "Name must not be empty")
+		return ExitError(ExitUnknown, nil, "Name must not be empty")
 	}
 	genPw, err = termio.AskForBool(ctx, fmtfn(2, "2", "Generate password?"), true)
 	if err != nil {
@@ -286,7 +271,7 @@ func (s *creator) createGeneric(ctx context.Context, c *cli.Context) error {
 
 	// select store
 	if store == "" {
-		store = cui.AskForStore(ctx, s.store)
+		store = cui.AskForStore(ctx, s.Store)
 	}
 
 	// generate name, ask for override if already taken
@@ -294,7 +279,7 @@ func (s *creator) createGeneric(ctx context.Context, c *cli.Context) error {
 		store += "/"
 	}
 	name := fmt.Sprintf("%smisc/%s", store, fsutil.CleanFilename(shortname))
-	if s.store.Exists(ctx, name) {
+	if s.Store.Exists(ctx, name) {
 		name, err = termio.AskForString(ctx, "Secret already exists, please choose another path", name)
 		if err != nil {
 			return err
@@ -317,15 +302,15 @@ func (s *creator) createGeneric(ctx context.Context, c *cli.Context) error {
 		}
 		sec.Set(key, val)
 	}
-	if err := s.store.Set(ctxutil.WithCommitMessage(ctx, "Created new entry"), name, sec); err != nil {
-		return action.ExitError(action.ExitEncrypt, err, "failed to set %q: %s", name, err)
+	if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, "Created new entry"), name, sec); err != nil {
+		return ExitError(ExitEncrypt, err, "failed to set %q: %s", name, err)
 	}
 
 	return s.createPrintOrCopy(ctx, c, name, password, genPw)
 }
 
 // createGeneratePasssword will walk through the password generation steps
-func (s *creator) createGeneratePassword(ctx context.Context, hostname string) (string, error) {
+func (s *Action) createGeneratePassword(ctx context.Context, hostname string) (string, error) {
 	if _, found := pwrules.LookupRule(hostname); found {
 		out.Printf(ctx, "Using password rules for %s ...", hostname)
 		length, err := termio.AskForInt(ctx, fmtfn(4, "b", "How long?"), defaultLength)
@@ -369,7 +354,7 @@ func (s *creator) createGeneratePassword(ctx context.Context, hostname string) (
 }
 
 // createGeneratePIN will walk through the PIN generation steps
-func (s *creator) createGeneratePIN(ctx context.Context) (string, error) {
+func (s *Action) createGeneratePIN(ctx context.Context) (string, error) {
 	length, err := termio.AskForInt(ctx, fmtfn(4, "a", "How long?"), 4)
 	if err != nil {
 		return "", err
