@@ -164,7 +164,7 @@ func (s *Action) showHandleOutput(ctx context.Context, name string, sec gopass.S
 	}
 
 	ctx = out.WithNewline(ctx, ctxutil.IsTerminal(ctx))
-	if ctxutil.IsTerminal(ctx) {
+	if ctxutil.IsTerminal(ctx) && !IsPasswordOnly(ctx) {
 		header := fmt.Sprintf("Secret: %s\n", name)
 		if HasKey(ctx) {
 			header += fmt.Sprintf("Key: %s\n", GetKey(ctx))
