@@ -25,7 +25,7 @@ export GO111MODULE=on
 
 OK := $(shell tput setaf 6; echo ' [OK]'; tput sgr0;)
 
-all: build completion
+all: build completion man
 build: $(GOPASS_OUTPUT)
 completion: $(BASH_COMPLETION_OUTPUT) $(FISH_COMPLETION_OUTPUT) $(ZSH_COMPLETION_OUTPUT)
 travis: sysinfo crosscompile build fulltest codequality completion full
@@ -249,4 +249,7 @@ deps:
 upgrade: gen fmt
 	@go get -u
 
-.PHONY: clean build completion install sysinfo crosscompile test codequality release goreleaser debsign
+man:
+	@go run helpers/man/main.go > gopass.1
+
+.PHONY: clean build completion install sysinfo crosscompile test codequality release goreleaser debsign man
