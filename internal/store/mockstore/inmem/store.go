@@ -202,3 +202,8 @@ func (m *InMem) Status(context.Context) ([]byte, error) {
 func (m *InMem) Compact(context.Context) error {
 	return nil
 }
+
+// Link is not implemented
+func (m *InMem) Link(context.Context, string, string) error {
+	return nil
+}

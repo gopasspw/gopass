@@ -83,10 +83,9 @@ func (s *Action) listFiltered(ctx context.Context, l *tree.Root, limit int, flat
 		}
 		for _, e := range listOver(limit) {
 			if stripPrefix {
-				fmt.Fprintln(stdout, e)
-				continue
+				e = strings.TrimPrefix(e, filter+sep)
 			}
-			fmt.Fprintln(stdout, filter+sep+e)
+			fmt.Fprintln(stdout, e)
 		}
 		return nil
 	}

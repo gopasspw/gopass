@@ -607,6 +607,18 @@ func (s *Action) GetCommands() []*cli.Command {
 			},
 		},
 		{
+			Name:  "link",
+			Usage: "Create a symlink",
+			Description: "" +
+				"This command creates a symlink from one entry in a mounted store to another entry." +
+				"Important: Does not cross mounts!",
+			Aliases:      []string{"ln", "symlink"},
+			Hidden:       true,
+			Before:       s.IsInitialized,
+			Action:       s.Link,
+			BashComplete: s.Complete,
+		},
+		{
 			Name:  "list",
 			Usage: "List existing secrets",
 			Description: "" +

@@ -225,3 +225,8 @@ func (m *MockStore) Valid() bool {
 func (m *MockStore) MountPoints() []string {
 	return nil
 }
+
+// Link does nothing
+func (m *MockStore) Link(context.Context, string, string) error {
+	return nil
+}

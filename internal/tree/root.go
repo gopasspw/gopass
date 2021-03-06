@@ -3,6 +3,7 @@ package tree
 import (
 	"bytes"
 	"fmt"
+	"path/filepath"
 	"strings"
 
 	"github.com/fatih/color"
@@ -28,6 +29,7 @@ var (
 type Root struct {
 	Name    string
 	Subtree *Tree
+	Prefix  string
 }
 
 // New creates a new tree
@@ -105,7 +107,7 @@ func (r *Root) Format(maxDepth int) string {
 func (r *Root) List(maxDepth int) []string {
 	out := make([]string, 0, r.Len())
 	for _, t := range r.Subtree.Nodes {
-		out = append(out, t.list("", maxDepth, 0, true)...)
+		out = append(out, t.list(r.Prefix, maxDepth, 0, true)...)
 	}
 	return out
 }
@@ -114,7 +116,7 @@ func (r *Root) List(maxDepth int) []string {
 func (r *Root) ListFolders(maxDepth int) []string {
 	out := make([]string, 0, r.Len())
 	for _, t := range r.Subtree.Nodes {
-		out = append(out, t.list("", maxDepth, 0, false)...)
+		out = append(out, t.list(r.Prefix, maxDepth, 0, false)...)
 	}
 	return out
 }
@@ -126,16 +128,19 @@ func (r *Root) String() string {
 
 // FindFolder returns the subtree rooted at path
 func (r *Root) FindFolder(path string) (*Root, error) {
+	path = strings.TrimSuffix(path, "/")
 	t := r.Subtree
 	p := strings.Split(path, "/")
+	prefix := ""
 	for _, e := range p {
 		_, node := t.find(e)
 		if node == nil || node.Type == "file" || node.Subtree == nil {
 			return nil, fmt.Errorf("not found")
 		}
 		t = node.Subtree
+		prefix = filepath.Join(prefix, e)
 	}
-	return &Root{Name: r.Name, Subtree: t}, nil
+	return &Root{Name: r.Name, Subtree: t, Prefix: prefix}, nil
 }
 
 // SetName changes the name of this tree
