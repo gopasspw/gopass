@@ -509,7 +509,6 @@ func (s *Action) GetCommands() []*cli.Command {
 				"content.",
 			Before: s.IsInitialized,
 			Action: s.Grep,
-			Hidden: true,
 			Flags: []cli.Flag{
 				&cli.BoolFlag{
 					Name:    "regexp",
