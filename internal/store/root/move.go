@@ -39,7 +39,7 @@ func (r *Store) move(ctx context.Context, from, to string, delete bool) error {
 		return fmt.Errorf("destination is a file")
 	}
 
-	if err := r.moveFromTo(ctx, subFrom, from, to, fromPrefix, srcIsDir, delete); err != nil {
+	if err := r.moveFromTo(ctx, subFrom, from, to, fromPrefix, srcIsDir, dstIsDir, delete); err != nil {
 		return err
 	}
 	if err := subFrom.Storage().Commit(ctx, fmt.Sprintf("Move from %s to %s", from, to)); delete && err != nil {
@@ -63,7 +63,7 @@ func (r *Store) move(ctx context.Context, from, to string, delete bool) error {
 
 	if err := subFrom.Storage().Push(ctx, "", ""); err != nil {
 		if errors.Is(err, store.ErrGitNotInit) {
-			msg := "Warning: git is not initialized for this.storage. Ignoring auto-push option\n" +
+			msg := "Warning: git is not initialized for this storage. Ignoring auto-push option\n" +
 				"Run: gopass git init"
 			debug.Log(msg)
 			return nil
@@ -79,7 +79,7 @@ func (r *Store) move(ctx context.Context, from, to string, delete bool) error {
 	if !subFrom.Equals(subTo) {
 		if err := subTo.Storage().Push(ctx, "", ""); err != nil {
 			if errors.Is(err, store.ErrGitNotInit) {
-				msg := "Warning: git is not initialized for this.storage. Ignoring auto-push option\n" +
+				msg := "Warning: git is not initialized for this storage. Ignoring auto-push option\n" +
 					"Run: gopass git init"
 				debug.Log(msg)
 				return nil
@@ -96,10 +96,12 @@ func (r *Store) move(ctx context.Context, from, to string, delete bool) error {
 	return nil
 }
 
-func (r *Store) moveFromTo(ctx context.Context, subFrom *leaf.Store, from, to, fromPrefix string, srcIsDir, delete bool) error {
+func (r *Store) moveFromTo(ctx context.Context, subFrom *leaf.Store, from, to, fromPrefix string, srcIsDir, dstIsDir, delete bool) error {
 	ctx = ctxutil.WithGitCommit(ctx, false)
 
 	entries := []string{from}
+	// if the source is a directory we enumerate all it's children
+	// and move them one by one.
 	if r.IsDir(ctx, from) {
 		var err error
 		entries, err = subFrom.List(ctx, fromPrefix)
@@ -111,6 +113,8 @@ func (r *Store) moveFromTo(ctx context.Context, subFrom *leaf.Store, from, to, f
 		return fmt.Errorf("no entries")
 	}
 
+	debug.Log("Moving %q to %q (entries: %+v)", from, to, entries)
+
 	for _, src := range entries {
 		dst := to
 		if srcIsDir {
@@ -120,8 +124,12 @@ func (r *Store) moveFromTo(ctx context.Context, subFrom *leaf.Store, from, to, f
 			} else {
 				dst = path.Join(to, path.Base(from), strings.TrimPrefix(src, from))
 			}
+		} else {
+			if dstIsDir || strings.HasSuffix(to, "/") {
+				dst = path.Join(to, path.Base(src))
+			}
 		}
-		debug.Log("Moving %s (%s) => %s (%s) (sid:%t, delete:%t)\n", from, src, to, dst, srcIsDir, delete)
+		debug.Log("Moving %q (%q) => %q (%q) (sid:%t, did:%t, delete:%t)\n", from, src, to, dst, srcIsDir, dstIsDir, delete)
 
 		content, err := r.Get(ctx, src)
 		if err != nil {

@@ -13,6 +13,43 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestMoveShadow(t *testing.T) {
+	u := gptest.NewUnitTester(t)
+	u.Entries = []string{
+		"old/www/foo",
+		"old/www/bar",
+	}
+
+	require.NoError(t, u.InitStore(""))
+	defer u.Remove()
+
+	ctx := context.Background()
+	ctx = ctxutil.WithAlwaysYes(ctx, true)
+	ctx = ctxutil.WithHidden(ctx, true)
+
+	rs, err := createRootStore(ctx, u)
+	require.NoError(t, err)
+	assert.NoError(t, rs.Delete(ctx, "foo"))
+
+	// -> move old/www/foo www/dir/foo => OK
+	assert.NoError(t, rs.Move(ctx, "old/www/foo", "www/dir/foo"))
+	entries, err := rs.List(ctx, tree.INF)
+	require.NoError(t, err)
+	require.Equal(t, []string{
+		"old/www/bar",
+		"www/dir/foo",
+	}, entries)
+
+	// -> move old/www/bar www/ => OK
+	assert.NoError(t, rs.Move(ctx, "old/www/bar", "www/"))
+	entries, err = rs.List(ctx, tree.INF)
+	require.NoError(t, err)
+	require.Equal(t, []string{
+		"www/bar",
+		"www/dir/foo",
+	}, entries)
+}
+
 func TestMove(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 	u.Entries = []string{
@@ -39,8 +76,10 @@ func TestMove(t *testing.T) {
 		"foo/baz",
 		"misc/zab",
 	}, entries)
+
 	// -> move foo/ misc/zab => ERROR: misc/zab is a file
 	assert.Error(t, rs.Move(ctx, "foo/", "misc/zab"))
+
 	// -> move foo misc/zab => ERROR: misc/zab is a file
 	assert.Error(t, rs.Move(ctx, "foo", "misc/zab"))
 
@@ -125,56 +164,65 @@ func TestCopy(t *testing.T) {
 	assert.NoError(t, rs.Delete(ctx, "foo"))
 
 	// Initial state:
-	entries, err := rs.List(ctx, tree.INF)
-	require.NoError(t, err)
-	assert.Equal(t, []string{
-		"foo/bar",
-		"foo/baz",
-		"misc/zab",
-	}, entries)
+	t.Run("initial state", func(t *testing.T) {
+		entries, err := rs.List(ctx, tree.INF)
+		require.NoError(t, err)
+		assert.Equal(t, []string{
+			"foo/bar",
+			"foo/baz",
+			"misc/zab",
+		}, entries)
+	})
+
 	// -> copy foo/ misc/zab => ERROR: misc/zab is a file
 	assert.Error(t, rs.Copy(ctx, "foo/", "misc/zab"))
 	// -> copy foo misc/zab => ERROR: misc/zab is a file
 	assert.Error(t, rs.Copy(ctx, "foo", "misc/zab"))
 
 	// -> copy foo/ misc => OK
-	assert.NoError(t, rs.Copy(ctx, "foo", "misc"))
-	entries, err = rs.List(ctx, tree.INF)
-	require.NoError(t, err)
-	assert.Equal(t, []string{
-		"foo/bar",
-		"foo/baz",
-		"misc/foo/bar",
-		"misc/foo/baz",
-		"misc/zab",
-	}, entries)
+	t.Run("copy foo misc", func(t *testing.T) {
+		assert.NoError(t, rs.Copy(ctx, "foo", "misc"))
+		entries, err := rs.List(ctx, tree.INF)
+		require.NoError(t, err)
+		assert.Equal(t, []string{
+			"foo/bar",
+			"foo/baz",
+			"misc/foo/bar",
+			"misc/foo/baz",
+			"misc/zab",
+		}, entries)
+	})
 
 	// -> copy misc/foo/ bar/ => OK
-	assert.NoError(t, rs.Copy(ctx, "misc/foo/", "bar/"))
-	entries, err = rs.List(ctx, tree.INF)
-	require.NoError(t, err)
-	assert.Equal(t, []string{
-		"bar/bar",
-		"bar/baz",
-		"foo/bar",
-		"foo/baz",
-		"misc/foo/bar",
-		"misc/foo/baz",
-		"misc/zab",
-	}, entries)
+	t.Run("copy misc/foo/ bar/", func(t *testing.T) {
+		assert.NoError(t, rs.Copy(ctx, "misc/foo/", "bar/"))
+		entries, err := rs.List(ctx, tree.INF)
+		require.NoError(t, err)
+		assert.Equal(t, []string{
+			"bar/bar",
+			"bar/baz",
+			"foo/bar",
+			"foo/baz",
+			"misc/foo/bar",
+			"misc/foo/baz",
+			"misc/zab",
+		}, entries)
+	})
 
 	// -> copy misc/zab bar/foo/zab => OK
-	assert.NoError(t, rs.Copy(ctx, "misc/zab", "bar/foo/zab"))
-	entries, err = rs.List(ctx, tree.INF)
-	require.NoError(t, err)
-	assert.Equal(t, []string{
-		"bar/bar",
-		"bar/baz",
-		"bar/foo/zab",
-		"foo/bar",
-		"foo/baz",
-		"misc/foo/bar",
-		"misc/foo/baz",
-		"misc/zab",
-	}, entries)
+	t.Run("copy misc/zab bar/foo/zab", func(t *testing.T) {
+		assert.NoError(t, rs.Copy(ctx, "misc/zab", "bar/foo/zab"))
+		entries, err := rs.List(ctx, tree.INF)
+		require.NoError(t, err)
+		assert.Equal(t, []string{
+			"bar/bar",
+			"bar/baz",
+			"bar/foo/zab",
+			"foo/bar",
+			"foo/baz",
+			"misc/foo/bar",
+			"misc/foo/baz",
+			"misc/zab",
+		}, entries)
+	})
 }
