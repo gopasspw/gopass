@@ -22,10 +22,10 @@ key generation if these are available for your platform.
 #### Ubuntu & Debian
 
 ```bash
-apt-get install gnupg git rng-tools
+apt-get install gnupg2 git rng-tools
 ```
 
-_Note:_ installing in Ubuntu 16.04 will require you to install `gnupg2`.
+_Note:_ installing on Ubuntu prior to 16.04 and similarly old Debian versions might require you to install `gnupg` instead of `gnupg2`.
 
 #### RHEL & CentOS
 
@@ -80,11 +80,6 @@ gpg --list-secret-keys
 If there is no output, then you don't have any keys. To create a new key:
 
 ```bash
-gpg --gen-key
-```
-
-For macOS you have to use the following to get all options
-```bash
 gpg --full-generate-key
 ```
 
@@ -115,8 +110,13 @@ touch foo
 git add foo
 git commit -S -m "test"
 ```
-
+Here the `-S` flag will sign your commit using GPG, allowing you to test your GPG setup with git.
 If the last step fails please investigate this before continuing.
+
+Also if you have both `gnupg` and `gnupg2` installed, make sure to use the latter in git:
+```bash
+git config --global gpg.program gpg2
+```
 
 ## Installation Steps
 
@@ -132,7 +132,7 @@ brew install gopass
 
 Alternatively, you can install gopass from the appropriate Darwin release from the repository [releases page](https://github.com/gopasspw/gopass/releases).
 
-If you're using a password on your gpg key, you also have to install pinentry-mac from brew and configure it in your ~/gpg/gpg-agent.conf
+If you're using a password on your GPG key, you also have to install `pinentry-mac` from brew and configure it in your `~/gpg/gpg-agent.conf`:
 
 ```bash
 brew install pinentry-mac
@@ -335,7 +335,10 @@ For more detailed instructions, please read: [gopass-jsonapi/README](https://git
 
 ### Storing and Syncing your Password Store with Google Drive / Dropbox / etc.
 
-Please be warned that using cloud-based storage may negatively impact to confidentially of your store. However, if you wish to use one of these services, you can do so.
+The recommended way to use Gopass is to sync your store with a git repository, preferably a private one, since the name and path of your secrets might reveal information that you'd prefer to keep private.
+However, shall you prefer to, you might also use the `noop` storage backend that is meant to store data on a cloud provider instead of a git server.
+
+Please be warned that using cloud-based storage may negatively impact the confidentiality of your store. However, if you wish to use one of these services, you can do so.
 
 For example, to use gopass with [Google Drive](https://drive.google.com):
 
