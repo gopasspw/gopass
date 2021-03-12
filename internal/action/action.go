@@ -8,6 +8,7 @@ import (
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/reminder"
 	"github.com/gopasspw/gopass/internal/store/root"
+	"github.com/gopasspw/gopass/pkg/debug"
 
 	"github.com/blang/semver/v4"
 )
@@ -47,9 +48,12 @@ func newAction(cfg *config.Config, sv semver.Version, remind bool) (*Action, err
 	if remind {
 		r, err := reminder.New()
 		if err != nil {
-			return nil, err
+			debug.Log("failed to init reminder: %s", err)
+		} else {
+			// only populate the reminder variable on success, the implementation
+			// can handle being called on a nil pointer
+			act.rem = r
 		}
-		act.rem = r
 	}
 
 	return act, nil

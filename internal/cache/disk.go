@@ -23,9 +23,11 @@ type OnDisk struct {
 func NewOnDisk(name string, ttl time.Duration) (*OnDisk, error) {
 	d := filepath.Join(appdir.UserCache(), "gopass", name)
 	if err := os.MkdirAll(d, 0755); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create ondisk cache dir %s: %w", d, err)
 	}
+
 	debug.Log("New on disk cache %s created at %s", name, d)
+
 	return &OnDisk{
 		ttl:  ttl,
 		name: name,
@@ -39,20 +41,27 @@ func (o *OnDisk) Get(key string) ([]string, error) {
 	fn := filepath.Join(o.dir, key)
 	fi, err := os.Stat(fn)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to stat %s: %w", fn, err)
 	}
+
 	if time.Now().After(fi.ModTime().Add(o.ttl)) {
 		return nil, fmt.Errorf("expired")
 	}
+
 	buf, err := os.ReadFile(fn)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to read file %s: %w", fn, err)
 	}
+
 	return strings.Split(string(buf), "\n"), nil
 }
 
 // Set adds an entry to the cache.
 func (o *OnDisk) Set(key string, value []string) error {
 	key = fsutil.CleanFilename(key)
-	return os.WriteFile(filepath.Join(o.dir, key), []byte(strings.Join(value, "\n")), 0644)
+	fn := filepath.Join(o.dir, key)
+	if err := os.WriteFile(fn, []byte(strings.Join(value, "\n")), 0644); err != nil {
+		return fmt.Errorf("failed to write %s to %s: %w", key, fn, err)
+	}
+	return nil
 }

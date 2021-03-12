@@ -115,8 +115,8 @@ func setupApp(ctx context.Context, sv semver.Version) (context.Context, *cli.App
 	// initialize action handlers
 	action, err := ap.New(cfg, sv)
 	if err != nil {
-		out.Errorf(ctx, "No gpg binary found: %s", err)
-		os.Exit(ap.ExitGPG)
+		out.Errorf(ctx, "failed to initialize gopass: %s", err)
+		os.Exit(ap.ExitUnknown)
 	}
 
 	// set some action callbacks
