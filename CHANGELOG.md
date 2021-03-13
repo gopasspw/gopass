@@ -1,3 +1,13 @@
+## 1.12.2 / 2021-03-13
+
+* [BUGFIX] Do not fail if reminder is unavailable (#1835, #1832)
+* [BUGFIX] Do not shadow directories (#1817, #1813)
+* [BUGFIX] Do not trigger ClamAV FP (#1810, #1807)
+* [BUGFIX] Fix -o (#1822)
+* [BUGFIX] Honor Ctrl+C while waiting for user input (#1805, #1800)
+* [ENHANCEMENT] Add gopass.1 man page (#1827, #1824)
+* [UX] Adding the grep command to --help (#1826, #1825)
+
 ## 1.12.1 / 2021-02-17
 
 * [BUGFIX] Enable updater on Windows (#1790, #1789)
