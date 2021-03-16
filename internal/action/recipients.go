@@ -84,6 +84,7 @@ func (s *Action) RecipientsAdd(c *cli.Context) error {
 	// select recipient
 	recipients := []string(c.Args().Slice())
 	if len(recipients) < 1 {
+		debug.Log("no recipients given, asking for selection")
 		r, err := s.recipientsSelectForAdd(ctx, store)
 		if err != nil {
 			return err
@@ -91,6 +92,7 @@ func (s *Action) RecipientsAdd(c *cli.Context) error {
 		recipients = r
 	}
 
+	debug.Log("adding recipients: %+v", recipients)
 	for _, r := range recipients {
 		keys, err := crypto.FindRecipients(ctx, r)
 		if err != nil {
@@ -109,11 +111,9 @@ func (s *Action) RecipientsAdd(c *cli.Context) error {
 		}
 
 		recp := r
-		if len(keys) > 0 {
-			recp = crypto.Fingerprint(ctx, keys[0])
-		}
+		debug.Log("found recipients for %q: %+v", r, keys)
 
-		if !termio.AskForConfirmation(ctx, fmt.Sprintf("Do you want to add %q as a recipient to the store %q?", crypto.FormatKey(ctx, recp, ""), store)) {
+		if !termio.AskForConfirmation(ctx, fmt.Sprintf("Do you want to add %q (key %q) as a recipient to the store %q?", crypto.FormatKey(ctx, recp, ""), recp, store)) {
 			continue
 		}
 

@@ -64,6 +64,7 @@ func (s *Store) AddRecipient(ctx context.Context, id string) error {
 		return fmt.Errorf("failed to read recipient list: %w", err)
 	}
 
+	debug.Log("new recipient: %q - existing: %+v", id, rs)
 	for _, k := range rs {
 		if k == id {
 			return fmt.Errorf("recipient already in store")
@@ -174,17 +175,9 @@ func (s *Store) getRecipients(ctx context.Context, idf string) ([]string, error)
 		return nil, fmt.Errorf("failed to get recipients from %q: %w", idf, err)
 	}
 
-	rawRecps := recipients.Unmarshal(buf)
-	finalRecps := make([]string, 0, len(rawRecps))
-	for _, r := range rawRecps {
-		fp := s.crypto.Fingerprint(ctx, r)
-		if fp == "" {
-			fp = r
-		}
-		finalRecps = append(finalRecps, fp)
-	}
-	sort.Strings(finalRecps)
-	return finalRecps, nil
+	recps := recipients.Unmarshal(buf)
+	sort.Strings(recps)
+	return recps, nil
 }
 
 type keyExporter interface {

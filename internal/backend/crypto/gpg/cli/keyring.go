@@ -60,10 +60,14 @@ func (g *GPG) FindRecipients(ctx context.Context, search ...string) ([]string, e
 	if err != nil || kl == nil {
 		return nil, err
 	}
+
+	recp := kl.UseableKeys(gpg.IsAlwaysTrust(ctx)).Recipients()
 	if gpg.IsAlwaysTrust(ctx) {
-		return kl.Recipients(), nil
+		recp = kl.Recipients()
 	}
-	return kl.UseableKeys(gpg.IsAlwaysTrust(ctx)).Recipients(), nil
+
+	debug.Log("found useable keys for %+v: %+v (all: %+v)", search, recp, kl.Recipients())
+	return recp, nil
 }
 
 // ListIdentities returns a parsed list of GPG secret keys
