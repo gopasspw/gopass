@@ -75,7 +75,7 @@ $(GOPASS_OUTPUT): $(GOFILES_BUILD)
 	@$(GO) build -o $@ $(BUILDFLAGS)
 	@printf '%s\n' '$(OK)'
 
-install: all install-completion
+install: all install-completion install-man
 	@echo -n ">> INSTALL, version = $(GOPASS_VERSION)"
 	@install -m 0755 -d $(DESTDIR)$(BINDIR)
 	@install -m 0755 $(GOPASS_OUTPUT) $(DESTDIR)$(BINDIR)/gopass
@@ -251,5 +251,8 @@ upgrade: gen fmt
 
 man:
 	@go run helpers/man/main.go > gopass.1
+
+install-man: man
+	@install -D -m 0644 gopass.1 $(DESTDIR)$(PREFIX)/share/man/man1/gopass.1
 
 .PHONY: clean build completion install sysinfo crosscompile test codequality release goreleaser debsign man
