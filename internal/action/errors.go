@@ -54,8 +54,9 @@ const (
 
 // ExitError returns a user friendly CLI error
 func ExitError(exitCode int, err error, format string, args ...interface{}) error {
+	msg := fmt.Sprintf(format, args...)
 	if err != nil {
-		debug.Log("Stacktrace: %+v", err)
+		debug.Log("%s - stacktrace: %+v", err)
 	}
-	return cli.Exit(fmt.Sprintf(format, args...), exitCode)
+	return cli.Exit(msg, exitCode)
 }

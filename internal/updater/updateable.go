@@ -50,18 +50,6 @@ func IsUpdateable(ctx context.Context) error {
 	return nil
 }
 
-func canWrite(path string) error {
-	// check if we can write to this file. we open it for writing in
-	// append mode to not truncate it and immediately close the filehandle since
-	// we're only interested in the error.
-	fh, err := os.OpenFile(path, os.O_WRONLY|os.O_APPEND, 0755)
-	if e := fh.Close(); err != nil {
-		return e
-	}
-
-	return err
-}
-
 var executable = func(ctx context.Context) (string, error) {
 	path, err := os.Executable()
 	if err != nil {
