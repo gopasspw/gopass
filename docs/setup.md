@@ -139,14 +139,15 @@ brew install pinentry-mac
 echo "pinentry-program /usr/local/bin/pinentry-mac" >> ~/.gnupg/gpg-agent.conf
 ```
 
-### Ubuntu & Debian
+### Ubuntu, Debian, Deepin, Devuan, Kali Linux, Pardus, Parrot, Raspbian
 
-**WARNING**: The official Debian repositories contain a package named `gopass` that
-is not related to this project in any way. It's a similar tool with a completely
-independent implementation and feature set. We are aware of this issue but can not
-do anything about it.
+**WARNING**: The official Debian repositories (and derived distributions) contain
+a package named `gopass` that is not related to this project in any way.
+It's a similar tool with a completely independent implementation and feature set.
+We are aware of this issue but can not do anything about it.
 
-When installing on Ubuntu or Debian you can either download the `deb` package and install manually or use our repository.
+When installing on Ubuntu or Debian you can either download the `deb` package
+and [install manually or build from source](#installing-from-source).
 
 #### Manual download
 
