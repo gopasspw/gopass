@@ -117,10 +117,15 @@ func (s *Action) generateCopyOrPrint(ctx context.Context, c *cli.Context, name, 
 
 	out.OKf(ctx, "Password for entry %q generated", entry)
 
-	if !ctxutil.IsTerminal(ctx) && (s.cfg.AutoClip || IsClip(ctx)) {
+	// copy to clipboard if:
+	// - explicitly requested with -c
+	// - autoclip=true, but only if output is not being redirected
+	if IsClip(ctx) || (s.cfg.AutoClip && !ctxutil.IsTerminal(ctx)) {
 		if err := clipboard.CopyTo(ctx, name, []byte(password), s.cfg.ClipTimeout); err != nil {
 			return ExitError(ExitIO, err, "failed to copy to clipboard: %s", err)
 		}
+		// if autoclip is on and we're not printing the password to the terminal
+		// at least leave a notice that we did indeed copy it
 		if s.cfg.AutoClip && !c.Bool("print") {
 			out.Print(ctx, "Copied to clipboard")
 			return nil
