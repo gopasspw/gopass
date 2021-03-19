@@ -8,16 +8,14 @@ require (
 	github.com/blang/semver/v4 v4.0.0
 	github.com/caspr-io/yamlpath v0.0.0-20200722075116-502e8d113a9b
 	github.com/cenkalti/backoff v2.2.1+incompatible
-	github.com/chzyer/logex v1.1.10 // indirect
 	github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e
-	github.com/chzyer/test v0.0.0-20180213035817-a1ea475d72b1 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.0 // indirect
 	github.com/fatih/color v1.10.0
 	github.com/godbus/dbus v0.0.0-20190623212516-8a1682060722
 	github.com/gokyle/twofactor v1.0.1
 	github.com/google/go-cmp v0.5.5
 	github.com/google/go-github v17.0.0+incompatible
-	github.com/google/go-querystring v1.0.0 // indirect
+	github.com/google/go-github/v33 v33.0.0
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/golang-lru v0.5.4
@@ -41,9 +39,9 @@ require (
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
 	golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad
 	golang.org/x/net v0.0.0-20210119194325-5f4716e94777
+	golang.org/x/oauth2 v0.0.0-20210313182246-cd4f82c27b84
 	golang.org/x/sys v0.0.0-20210220050731-9a76102bfb43
 	golang.org/x/term v0.0.0-20201210144234-2321bbc49cbf
-	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 	gotest.tools v2.2.0+incompatible
