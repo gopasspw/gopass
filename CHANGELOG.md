@@ -1,3 +1,11 @@
+## 1.12.3 / 2021-03-20
+
+* [BUGFIX] Fix generate -c (#1846, #1844)
+* [BUGFIX] Fix gopass update (#1838, #1837)
+* [BUGFIX] Fix progress bar on 32 bit archs (#1855, #1854)
+* [CLEANUP] Remove the custom formula in favour of the official one. (#1847)
+* [ENHANCEMENT] Install manpage when using `make install` (#1845)
+
 ## 1.12.2 / 2021-03-13
 
 * [BUGFIX] Do not fail if reminder is unavailable (#1835, #1832)
