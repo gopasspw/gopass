@@ -22,9 +22,12 @@ var (
 
 // ProgressBar is a gopass progress bar
 type ProgressBar struct {
-	hidden  bool
+	// keep both int64 fields at the top to ensure correct
+	// 8-byte alignment on 32 bit systems. See https://golang.org/pkg/sync/atomic/#pkg-note-BUG
+	// and https://github.com/golang/go/issues/36606
 	total   int64
 	current int64
+	hidden  bool
 	mutex   chan struct{}
 	lastUpd time.Time
 }
