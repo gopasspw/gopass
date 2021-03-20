@@ -1,5 +1,4 @@
 gopass
-gopass.1
 gopass-*-amd64
 gopass-full
 dev.sh
@@ -49,8 +48,6 @@ _testmain.go
 releases/
 dist/
 
-*.completion
-gopass_wrapper.sh
 manifest-*.json
 
 # go-fuzz

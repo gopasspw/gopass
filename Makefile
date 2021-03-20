@@ -2,7 +2,6 @@ FIRST_GOPATH              := $(firstword $(subst :, ,$(GOPATH)))
 PKGS                      := $(shell go list ./... | grep -v /tests | grep -v /xcpb | grep -v /gpb)
 GOFILES_NOVENDOR          := $(shell find . -name vendor -prune -o -type f -name '*.go' -not -name '*.pb.go' -print)
 GOFILES_BUILD             := $(shell find . -type f -name '*.go' -not -name '*_test.go')
-PROTOFILES                := $(shell find . -name vendor -prune -o -type f -name '*.proto' -print)
 GOPASS_VERSION            ?= $(shell cat VERSION)
 GOPASS_OUTPUT             ?= gopass
 GOPASS_REVISION           := $(shell cat COMMIT 2>/dev/null || git rev-parse --short=8 HEAD)
@@ -26,30 +25,28 @@ export GO111MODULE=on
 
 OK := $(shell tput setaf 6; echo ' [OK]'; tput sgr0;)
 
-all: sysinfo build completion man
+all: sysinfo build
 build: $(GOPASS_OUTPUT)
 completion: $(BASH_COMPLETION_OUTPUT) $(FISH_COMPLETION_OUTPUT) $(ZSH_COMPLETION_OUTPUT)
-travis: sysinfo crosscompile build fulltest codequality completion full
-travis-osx: sysinfo build test completion full
+travis: sysinfo crosscompile build fulltest codequality completion
+travis-osx: sysinfo build test completion
 travis-windows: sysinfo build test-win completion
 
 sysinfo:
 	@echo ">> SYSTEM INFORMATION"
-	@echo -n "     PLATFORM: $(shell uname -a)"
+	@echo -n "     PLATFORM   : $(shell uname -a)"
 	@printf '%s\n' '$(OK)'
-	@echo -n "     PWD:    : $(shell pwd)"
+	@echo -n "     PWD:       : $(shell pwd)"
 	@printf '%s\n' '$(OK)'
-	@echo -n "     GO      : $(shell go version)"
+	@echo -n "     GO         : $(shell go version)"
 	@printf '%s\n' '$(OK)'
-	@echo -n "     BUILDFLAGS: $(BUILDFLAGS)"
+	@echo -n "     BUILDFLAGS : $(BUILDFLAGS)"
 	@printf '%s\n' '$(OK)'
-	@echo -n "     GIT     : $(shell git version)"
+	@echo -n "     GIT        : $(shell git version)"
 	@printf '%s\n' '$(OK)'
-	@echo -n "     GPG1    : $(shell which gpg) $(shell gpg --version | head -1)"
+	@echo -n "     GPG        : $(shell which gpg) $(shell gpg --version | head -1)"
 	@printf '%s\n' '$(OK)'
-	@echo -n "     GPG2    : $(shell which gpg2) $(shell gpg2 --version | head -1)"
-	@printf '%s\n' '$(OK)'
-	@echo -n "     GPG-Agent    : $(shell which gpg-agent) $(shell gpg-agent --version | head -1)"
+	@echo -n "     GPGAgent   : $(shell which gpg-agent) $(shell gpg-agent --version | head -1)"
 	@printf '%s\n' '$(OK)'
 
 clean:
@@ -82,28 +79,23 @@ install: all install-completion install-man
 	@install -m 0755 $(GOPASS_OUTPUT) $(DESTDIR)$(BINDIR)/gopass
 	@printf '%s\n' '$(OK)'
 
+install-completion:
+	@install -d $(DESTDIR)$(PREFIX)/share/zsh/site-functions $(DESTDIR)$(PREFIX)/share/bash-completion/completions $(DESTDIR)$(PREFIX)/share/fish/vendor_completions.d
+	@install -m 0755 $(ZSH_COMPLETION_OUTPUT) $(DESTDIR)$(PREFIX)/share/zsh/site-functions/_gopass
+	@install -m 0755 $(BASH_COMPLETION_OUTPUT) $(DESTDIR)$(PREFIX)/share/bash-completion/completions/gopass
+	@install -m 0755 $(FISH_COMPLETION_OUTPUT) $(DESTDIR)$(PREFIX)/share/fish/vendor_completions.d/gopass.fish
+	@printf '%s\n' '$(OK)'
+
+install-man: gopass.1
+	@install -d -m 0755 $(DESTDIR)$(PREFIX)/share/man/man1
+	@install -m 0644 gopass.1 $(DESTDIR)$(PREFIX)/share/man/man1/gopass.1
+
 fulltest: $(GOPASS_OUTPUT)
-	@echo ">> TEST, \"full-mode\": race detector off, build tags: xc"
+	@echo ">> TEST, \"full-mode\": race detector off"
 	@echo "mode: atomic" > coverage-all.out
 	@$(foreach pkg, $(PKGS),\
 	    echo -n "     ";\
 		go test -run '(Test|Example)' $(BUILDFLAGS) $(TESTFLAGS) -coverprofile=coverage.out -covermode=atomic $(pkg) || exit 1;\
-		tail -n +2 coverage.out >> coverage-all.out;)
-	@$(GO) tool cover -html=coverage-all.out -o coverage-all.html
-
-fulltest-nocover: $(GOPASS_OUTPUT)
-	@echo ">> TEST, \"full-mode-no-coverage\": race detector off, build tags: xc"
-	@echo "mode: atomic" > coverage-all.out
-	@$(foreach pkg, $(PKGS),\
-	    echo -n "     ";\
-		go test -run '(Test|Example)' $(TESTFLAGS) $(pkg) || exit 1;)
-
-racetest: $(GOPASS_OUTPUT)
-	@echo ">> TEST, \"full-mode\": race detector on"
-	@echo "mode: atomic" > coverage-all.out
-	@$(foreach pkg, $(PKGS),\
-	    echo -n "     ";\
-		go test -run '(Test|Example)' $(BUILDFLAGS) $(TESTFLAGS) -race -coverprofile=coverage.out -covermode=atomic $(pkg) || exit 1;\
 		tail -n +2 coverage.out >> coverage-all.out;)
 	@$(GO) tool cover -html=coverage-all.out -o coverage-all.html
 
@@ -132,21 +124,10 @@ crosscompile:
 	@GOOS=windows GOARCH=amd64 $(GO) build -o $(GOPASS_OUTPUT)-windows-amd64
 	@printf '%s\n' '$(OK)'
 
-full:
-	@echo -n ">> COMPILE linux/amd64 xc"
-	$(GO) build -o $(GOPASS_OUTPUT)-full
-
 %.completion: $(GOPASS_OUTPUT)
 	@printf ">> $* completion, output = $@"
 	@./gopass completion $* > $@
 	@printf "%s\n" "$(OK)"
-
-install-completion: completion
-	@install -d $(DESTDIR)$(PREFIX)/share/zsh/site-functions $(DESTDIR)$(PREFIX)/share/bash-completion/completions $(DESTDIR)$(PREFIX)/share/fish/vendor_completions.d
-	@install -m 0755 $(ZSH_COMPLETION_OUTPUT) $(DESTDIR)$(PREFIX)/share/zsh/site-functions/_gopass
-	@install -m 0755 $(BASH_COMPLETION_OUTPUT) $(DESTDIR)$(PREFIX)/share/bash-completion/completions/gopass
-	@install -m 0755 $(FISH_COMPLETION_OUTPUT) $(DESTDIR)$(PREFIX)/share/fish/vendor_completions.d/gopass.fish
-	@printf '%s\n' '$(OK)'
 
 codequality:
 	@echo ">> CODE QUALITY"
@@ -161,11 +142,6 @@ codequality:
 	@echo -n "     FMT       "
 	@$(foreach gofile, $(GOFILES_NOVENDOR),\
 			out=$$(gofmt -s -l -d -e $(gofile) | tee /dev/stderr); if [ -n "$$out" ]; then exit 1; fi;)
-	@printf '%s\n' '$(OK)'
-
-	@echo -n "     CLANGFMT  "
-	@$(foreach pbfile, $(PROTOFILES),\
-			if [ $$(clang-format -output-replacements-xml $(pbfile) | wc -l) -gt 3  ]; then exit 1; fi;)
 	@printf '%s\n' '$(OK)'
 
 	@echo -n "     VET       "
@@ -223,26 +199,7 @@ gen:
 fmt:
 	@gofmt -s -l -w $(GOFILES_NOVENDOR)
 	@goimports -l -w $(GOFILES_NOVENDOR)
-	@which clang-format > /dev/null; if [ $$? -eq 0 ]; then \
-		clang-format -i $(PROTOFILES); \
-	fi
 	@go mod tidy
-
-fuzz-gpg:
-	mkdir -p workdir/gpg-cli/corpus
-	go-fuzz-build github.com/gopasspw/gopass/backend/gpg/cli
-	go-fuzz -bin=cli-fuzz.zip -workdir=workdir/gpg-cli
-
-check-release-env:
-ifndef GITHUB_TOKEN
-	$(error GITHUB_TOKEN is undefined)
-endif
-
-release: goreleaser
-
-goreleaser: check-release-env travis clean
-	@echo ">> RELEASE, goreleaser"
-	@goreleaser
 
 deps:
 	@go build -v ./...
@@ -252,9 +209,5 @@ upgrade: gen fmt
 
 man:
 	@go run helpers/man/main.go > gopass.1
-
-install-man: man
-	@install -d -m 0755 $(DESTDIR)$(PREFIX)/share/man/man1
-	@install -m 0644 gopass.1 $(DESTDIR)$(PREFIX)/share/man/man1/gopass.1
 
 .PHONY: clean build completion install sysinfo crosscompile test codequality release goreleaser debsign man

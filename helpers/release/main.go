@@ -105,6 +105,18 @@ func main() {
 	}
 	fmt.Println("✅ Updated CHANGELOG.md")
 	time.Sleep(sleep)
+	// - update shell completions
+	if err := updateCompletion(); err != nil {
+		panic(err)
+	}
+	fmt.Println("✅ Updated shell completions")
+	time.Sleep(sleep)
+	// - update man page
+	if err := updateManpage(); err != nil {
+		panic(err)
+	}
+	fmt.Println("✅ Updated man page")
+	time.Sleep(sleep)
 
 	// - create PR
 	//   git checkout -b release/vX.Y.Z
@@ -270,6 +282,18 @@ func writeChangelog(prev, next semver.Version) error {
 
 	// renaming the new file to the old file
 	return os.Rename("CHANGELOG.new", "CHANGELOG.md")
+}
+
+func updateCompletion() error {
+	cmd := exec.Command("make", "completion")
+	cmd.Stderr = os.Stderr
+	return cmd.Run()
+}
+
+func updateManpage() error {
+	cmd := exec.Command("make", "man")
+	cmd.Stderr = os.Stderr
+	return cmd.Run()
 }
 
 func writeVersion(v semver.Version) error {
