@@ -75,7 +75,7 @@ func (s *Action) Init(c *cli.Context) error {
 	}
 
 	if err := s.init(ctx, alias, path, c.Args().Slice()...); err != nil {
-		return ExitError(ExitUnknown, err, "failed to initialize store: %s", err)
+		return ExitError(ExitUnknown, err, "Failed to initialize store: %s", err)
 	}
 	return nil
 }
@@ -111,9 +111,10 @@ func (s *Action) init(ctx context.Context, alias, path string, keys ...string) e
 	path = fsutil.CleanPath(path)
 	debug.Log("action.init(%s, %s, %+v)", alias, path, keys)
 
-	debug.Log("Checking private keys ...")
+	debug.Log("Checking private keys for: %+v", keys)
 	out.Printf(ctx, "🔑 Searching for usable private Keys ...")
 	crypto := s.getCryptoFor(ctx, alias)
+
 	// private key selection doesn't matter for plain. save one question.
 	if crypto.Name() == "plain" {
 		keys, _ = crypto.ListIdentities(ctx)

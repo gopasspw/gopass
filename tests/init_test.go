@@ -13,7 +13,7 @@ func TestInit(t *testing.T) {
 	out, err := ts.run("init")
 	assert.Error(t, err)
 	assert.Contains(t, out, "Initializing a new password store ...")
-	assert.Contains(t, out, "Error: failed to initialize store")
+	assert.Contains(t, out, "Error: Failed to initialize store")
 	assert.Contains(t, out, "failed to read user input: can not select private key without terminal\n")
 
 	ts = newTester(t)
