@@ -142,7 +142,7 @@ func main() {
 	fmt.Printf("⚠ Run 'git push <remote> release/v%s' to push this branch and open a PR against gopasspw/gopass master.\n", nextVer.String())
 	time.Sleep(sleep)
 
-	fmt.Printf("⚠ Get the PR merged and run 'git tag v%s && git push origin v%s' to kick off the release process.\n", nextVer.String(), nextVer.String())
+	fmt.Printf("⚠ Get the PR merged and run 'git tag -s v%s && git push origin v%s' to kick off the release process.\n", nextVer.String(), nextVer.String())
 	time.Sleep(sleep)
 	fmt.Println()
 
@@ -238,7 +238,7 @@ func gitCoRel(v semver.Version) error {
 }
 
 func gitCommit(v semver.Version) error {
-	cmd := exec.Command("git", "add", "CHANGELOG.md", "VERSION", "version.go")
+	cmd := exec.Command("git", "add", "CHANGELOG.md", "VERSION", "version.go", "gopass.1", "*.completion")
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
 		return err
