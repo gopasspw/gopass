@@ -12,6 +12,11 @@ import (
 func ShowFlags() []cli.Flag {
 	return []cli.Flag{
 		&cli.BoolFlag{
+			Name:    "yes",
+			Aliases: []string{"y"},
+			Usage:   "Always answer yes to yes/no questions",
+		},
+		&cli.BoolFlag{
 			Name:    "clip",
 			Aliases: []string{"c"},
 			Usage:   "Copy the password value into the clipboard",
