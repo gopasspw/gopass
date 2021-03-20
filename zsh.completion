@@ -1,0 +1,340 @@
+#compdef gopass
+
+_gopass () {
+    local cmd
+    if (( CURRENT > 2)); then
+	cmd=${words[2]}
+	curcontext="${curcontext%:*:*}:gopass-$cmd"
+	(( CURRENT-- ))
+	shift words
+	case "${cmd}" in
+	  alias)
+	      local -a subcommands
+	      subcommands=(
+	      "add:Add a new alias"
+	      "remove:Remove an alias from a domain"
+	      "delete:Delete an entire domain"
+	      )
+	      
+	      _describe -t commands "gopass alias" subcommands
+	      
+	      
+	      ;;
+	  audit)
+	      
+	      _describe -t commands "gopass audit" subcommands
+	      
+	      
+	      ;;
+	  cat)
+	      
+	      _describe -t commands "gopass cat" subcommands
+	      
+	      
+	      ;;
+	  clone)
+	      _arguments : "--path[Path to clone the repo to]" "--crypto[Select crypto backend [age gpgcli plain]]"
+	      _describe -t commands "gopass clone" subcommands
+	      
+	      
+	      ;;
+	  completion)
+	      local -a subcommands
+	      subcommands=(
+	      "bash:Source for auto completion in bash"
+	      "zsh:Source for auto completion in zsh"
+	      "fish:Source for auto completion in fish"
+	      "openbsdksh:Source for auto completion in OpenBSD's ksh"
+	      )
+	      
+	      _describe -t commands "gopass completion" subcommands
+	      
+	      
+	      ;;
+	  config)
+	      
+	      _describe -t commands "gopass config" subcommands
+	      
+	      
+	      ;;
+	  convert)
+	      _arguments : "--store[Specify which store to convert]" "--move[Replace store?]" "--crypto[Which crypto backend? [age gpgcli plain]]" "--storage[Which storage backend? [fs gitfs]]"
+	      _describe -t commands "gopass convert" subcommands
+	      
+	      
+	      ;;
+	  copy|cp)
+	      _arguments : "--force[Force to copy the secret and overwrite existing one]"
+	      _describe -t commands "gopass copy" subcommands
+	      
+	      _gopass_complete_passwords
+	      ;;
+	  create|new)
+	      _arguments : "--store[Which store to use]"
+	      _describe -t commands "gopass create" subcommands
+	      
+	      
+	      ;;
+	  delete|remove|rm)
+	      _arguments : "--recursive[Recursive delete files and folders]" "--force[Force to delete the secret]"
+	      _describe -t commands "gopass delete" subcommands
+	      
+	      _gopass_complete_passwords
+	      ;;
+	  edit|set)
+	      _arguments : "--editor[Use this editor binary]" "--create[Create a new secret if none found]"
+	      _describe -t commands "gopass edit" subcommands
+	      
+	      _gopass_complete_passwords
+	      ;;
+	  env)
+	      
+	      _describe -t commands "gopass env" subcommands
+	      
+	      
+	      ;;
+	  find|search)
+	      _arguments : "--clip[Copy the password into the clipboard]" "--unsafe[In the case of an exact match, display the password even if safecontent is enabled]"
+	      _describe -t commands "gopass find" subcommands
+	      
+	      
+	      ;;
+	  fsck)
+	      _arguments : "--decrypt[Decrypt and reencryt during fsck.
+WARNING: This will update the secret content to the latest format. This might be incompatible with other implementations. Use with caution!]"
+	      _describe -t commands "gopass fsck" subcommands
+	      
+	      
+	      ;;
+	  fscopy)
+	      
+	      _describe -t commands "gopass fscopy" subcommands
+	      
+	      
+	      ;;
+	  fsmove)
+	      
+	      _describe -t commands "gopass fsmove" subcommands
+	      
+	      
+	      ;;
+	  generate)
+	      _arguments : "--clip[Copy the generated password to the clipboard]" "--print[Print the generated password to the terminal]" "--force[Force to overwrite existing password]" "--edit[Open secret for editing after generating a password]" "--symbols[Use symbols in the password]" "--generator[Choose a password generator, use one of: cryptic, memorable, xkcd or external. Default: cryptic]" "--strict[Require strict character class rules]" "--sep[Word separator for generated passwords. If no separator is specified, the words are combined without spaces/separator and the first character of words is capitalised.]" "--lang[Language to generate password from, currently de (german) and en (english, default) are supported]"
+	      _describe -t commands "gopass generate" subcommands
+	      _gopass_complete_folders
+	      _gopass_complete_passwords
+	      ;;
+	  git)
+	      local -a subcommands
+	      subcommands=(
+	      "init:Init git repo"
+	      "remote:Manage git remotes"
+	      "push:Push to remote"
+	      "pull:Pull from remote"
+	      "status:RCS status"
+	      )
+	      
+	      _describe -t commands "gopass git" subcommands
+	      
+	      
+	      ;;
+	  grep)
+	      _arguments : "--regexp[Interpret pattern as RE2 regular expression]"
+	      _describe -t commands "gopass grep" subcommands
+	      
+	      
+	      ;;
+	  history|hist)
+	      _arguments : "--password[Include passwords in output]"
+	      _describe -t commands "gopass history" subcommands
+	      
+	      
+	      ;;
+	  init)
+	      _arguments : "--path[Set the sub-store path to operate on]" "--store[Set the name of the sub-store]" "--crypto[Select crypto backend [age gpgcli plain]]" "--storage[Select storage backend [fs gitfs]]"
+	      _describe -t commands "gopass init" subcommands
+	      
+	      
+	      ;;
+	  insert)
+	      _arguments : "--echo[Display secret while typing]" "--multiline[Insert using $EDITOR]" "--force[Overwrite any existing secret and do not prompt to confirm recipients]" "--append[Append data read from STDIN to existing data]"
+	      _describe -t commands "gopass insert" subcommands
+	      _gopass_complete_folders
+	      _gopass_complete_passwords
+	      ;;
+	  list|ls)
+	      _arguments : "--limit[Display no more than this many levels of the tree]" "--flat[Print a flat list]" "--folders[Print a flat list of folders]" "--strip-prefix[Strip this prefix from filtered entries]"
+	      _describe -t commands "gopass list" subcommands
+	      _gopass_complete_folders
+	      
+	      ;;
+	  mounts)
+	      local -a subcommands
+	      subcommands=(
+	      "add:Mount a password store"
+	      "remove:Umount an mounted password store"
+	      )
+	      
+	      _describe -t commands "gopass mounts" subcommands
+	      
+	      
+	      ;;
+	  move|mv)
+	      _arguments : "--force[Force to move the secret and overwrite existing one]"
+	      _describe -t commands "gopass move" subcommands
+	      
+	      _gopass_complete_passwords
+	      ;;
+	  otp|totp|hotp)
+	      _arguments : "--clip[Copy the time-based token into the clipboard]" "--qr[Write QR code to FILE]" "--password[Only display the token]"
+	      _describe -t commands "gopass otp" subcommands
+	      
+	      
+	      ;;
+	  pwgen)
+	      _arguments : "--no-numerals[Do not include numerals in the generated passwords.]" "--no-capitalize[Do not include capital letter in the generated passwords.]" "--ambiguous[Do not include characters that could be easily confused with each other, like '1' and 'l' or '0' and 'O']" "--one-per-line[Print one password per line]" "--xkcd[Use multiple random english words combined to a password. By default, space is used as separator and all words are lowercase]" "--sep[Word separator for generated xkcd style password. If no separator is specified, the words are combined without spaces/separator and the first character of words is capitalised. This flag implies -xkcd]" "--lang[Language to generate password from, currently de (german) and en (english, default) are supported]"
+	      _describe -t commands "gopass pwgen" subcommands
+	      
+	      
+	      ;;
+	  recipients)
+	      local -a subcommands
+	      subcommands=(
+	      "add:Add any number of Recipients to any store"
+	      "remove:Remove any number of Recipients from any store"
+	      )
+	      
+	      _describe -t commands "gopass recipients" subcommands
+	      
+	      
+	      ;;
+	  setup)
+	      _arguments : "--remote[URL to a git remote, will attempt to join this team]" "--alias[Local mount point for the given remote]" "--create[Create a new team (default: false, i.e. join an existing team)]" "--name[Firstname and Lastname for unattended GPG key generation]" "--email[EMail for unattended GPG key generation]" "--crypto[Select crypto backend [age gpgcli plain]]" "--storage[Select storage backend [fs gitfs]]"
+	      _describe -t commands "gopass setup" subcommands
+	      
+	      
+	      ;;
+	  show)
+	      _arguments : "--clip[Copy the password value into the clipboard]" "--alsoclip[Copy the password and show everything]" "--qr[Print the password as a QR Code]" "--unsafe[Display unsafe content (e.g. the password) even if safecontent is enabled]" "--password[Display only the password. Takes precedence over all other flags.]" "--revision[Show a past revision. Does NOT support RCS specific shortcuts. Use exact revision or -N to select the Nth oldest revision of this entry.]" "--noparsing[Do not parse the output.]"
+	      _describe -t commands "gopass show" subcommands
+	      
+	      _gopass_complete_passwords
+	      ;;
+	  sum|sha|sha256)
+	      
+	      _describe -t commands "gopass sum" subcommands
+	      
+	      
+	      ;;
+	  sync)
+	      _arguments : "--store[Select the store to sync]"
+	      _describe -t commands "gopass sync" subcommands
+	      
+	      
+	      ;;
+	  templates)
+	      local -a subcommands
+	      subcommands=(
+	      "show:Show a secret template."
+	      "edit:Edit secret templates."
+	      "remove:Remove secret templates."
+	      )
+	      
+	      _describe -t commands "gopass templates" subcommands
+	      
+	      
+	      ;;
+	  unclip)
+	      _arguments : "--timeout[Time to wait]" "--force[Clear clipboard even if checksum mismatches]"
+	      _describe -t commands "gopass unclip" subcommands
+	      
+	      
+	      ;;
+	  update)
+	      
+	      _describe -t commands "gopass update" subcommands
+	      
+	      
+	      ;;
+	  version)
+	      
+	      _describe -t commands "gopass version" subcommands
+	      
+	      
+	      ;;
+	  help|h)
+	      
+	      _describe -t commands "gopass help" subcommands
+	      
+	      
+	      ;;
+	  *)
+	      _gopass_complete_passwords
+	      ;;
+	esac
+    else
+	local -a subcommands
+	subcommands=(
+	  "alias:Manage domain aliases"
+	  "audit:Decrypt all secrets and scan for weak or leaked passwords"
+	  "cat:Print content of a secret to stdout, or insert from stdin"
+	  "clone:Clone a password store from a git repository"
+	  "completion:Bash and ZSH completion"
+	  "config:Display and edit the configuration file"
+	  "convert:Convert a store to different backends"
+	  "copy:Copy secrets from one location to another"
+	  "create:Easy creation of new secrets"
+	  "delete:Remove one or many secrets from the store"
+	  "edit:Edit new or existing secrets"
+	  "env:Run a subprocess with a pre-populated environment"
+	  "find:Search for secrets"
+	  "fsck:Check store integrity"
+	  "fscopy:Copy files from or to the password store"
+	  "fsmove:Move files from or to the password store"
+	  "generate:Generate a new password"
+	  "git:Run a git command inside a password store (init, remote, push, pull)"
+	  "grep:Search for secrets files containing search-string when decrypted."
+	  "history:Show password history"
+	  "init:Initialize new password store."
+	  "insert:Insert a new secret"
+	  "list:List existing secrets"
+	  "mounts:Edit mounted stores"
+	  "move:Move secrets from one location to another"
+	  "otp:Generate time- or hmac-based tokens"
+	  "pwgen:Generate passwords"
+	  "recipients:Edit recipient permissions"
+	  "setup:Initialize a new password store"
+	  "show:Display the content of a secret"
+	  "sum:Compute the SHA256 checksum"
+	  "sync:Sync all local stores with their remotes"
+	  "templates:Edit templates"
+	  "unclip:Internal command to clear clipboard"
+	  "update:Check for updates"
+	  "version:Display version"
+	  "help:Shows a list of commands or help for one command"
+	)
+	_describe -t command 'gopass' subcommands
+	_arguments : "--clip[Copy the password value into the clipboard]" "--alsoclip[Copy the password and show everything]" "--qr[Print the password as a QR Code]" "--unsafe[Display unsafe content (e.g. the password) even if safecontent is enabled]" "--password[Display only the password. Takes precedence over all other flags.]" "--revision[Show a past revision. Does NOT support RCS specific shortcuts. Use exact revision or -N to select the Nth oldest revision of this entry.]" "--noparsing[Do not parse the output.]" "--help[show help]" "--version[print the version]" 
+	_gopass_complete_passwords
+    fi
+}
+
+_gopass_complete_keys () {
+    local IFS=$'\n'
+    _values 'gpg keys' $(gpg2 --list-secret-keys --with-colons 2> /dev/null | cut -d : -f 10 | sort -u | sed '/^$/d')
+}
+
+_gopass_complete_passwords () {
+    local IFS=$'\n'
+    _arguments : \
+	"--clip[Copy the first line of the secret into the clipboard]"
+    _values 'passwords' $(gopass ls --flat)
+}
+
+_gopass_complete_folders () {
+    local -a folders
+    folders=("${(@f)$(gopass ls --folders --flat)}")
+    _describe -t folders "folders" folders -qS /
+}
+
+_gopass
