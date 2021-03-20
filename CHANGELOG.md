@@ -1,3 +1,8 @@
+## 1.12.4 / 2021-03-20
+
+* [BUGFIX] Bring back --yes (#1862, #1858)
+* [BUGFIX] Fix make install on BSD (#1859)
+
 ## 1.12.3 / 2021-03-20
 
 * [BUGFIX] Fix generate -c (#1846, #1844)
