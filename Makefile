@@ -9,9 +9,10 @@ GOPASS_REVISION           := $(shell cat COMMIT 2>/dev/null || git rev-parse --s
 BASH_COMPLETION_OUTPUT    := bash.completion
 FISH_COMPLETION_OUTPUT    := fish.completion
 ZSH_COMPLETION_OUTPUT     := zsh.completion
+CLIPHELPERS               ?= ""
 # Support reproducible builds by embedding date according to SOURCE_DATE_EPOCH if present
 DATE                      := $(shell date -u -d "@$(SOURCE_DATE_EPOCH)" '+%FT%T%z' 2>/dev/null || date -u '+%FT%T%z')
-BUILDFLAGS_NOPIE          := -trimpath -ldflags="-s -w -X main.version=$(GOPASS_VERSION) -X main.commit=$(GOPASS_REVISION) -X main.date=$(DATE)" -gcflags="-trimpath=$(GOPATH)" -asmflags="-trimpath=$(GOPATH)"
+BUILDFLAGS_NOPIE          := -trimpath -ldflags="-s -w -X main.version=$(GOPASS_VERSION) -X main.commit=$(GOPASS_REVISION) -X main.date=$(DATE) $(CLIPHELPERS)" -gcflags="-trimpath=$(GOPATH)" -asmflags="-trimpath=$(GOPATH)"
 BUILDFLAGS                ?= $(BUILDFLAGS_NOPIE) -buildmode=pie
 TESTFLAGS                 ?=
 PWD                       := $(shell pwd)
@@ -25,7 +26,7 @@ export GO111MODULE=on
 
 OK := $(shell tput setaf 6; echo ' [OK]'; tput sgr0;)
 
-all: build completion man
+all: sysinfo build completion man
 build: $(GOPASS_OUTPUT)
 completion: $(BASH_COMPLETION_OUTPUT) $(FISH_COMPLETION_OUTPUT) $(ZSH_COMPLETION_OUTPUT)
 travis: sysinfo crosscompile build fulltest codequality completion full
