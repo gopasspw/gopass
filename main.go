@@ -136,8 +136,6 @@ func setupApp(ctx context.Context, sv semver.Version) (context.Context, *cli.App
 		action.Complete(c)
 	}
 
-	// default action ("show") flags, keep in sync with the show flags in
-	// intneral/action/commands.go
 	app.Flags = ap.ShowFlags()
 	app.Action = func(c *cli.Context) error {
 		if err := action.IsInitialized(c); err != nil {
