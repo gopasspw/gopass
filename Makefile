@@ -254,6 +254,7 @@ man:
 	@go run helpers/man/main.go > gopass.1
 
 install-man: man
-	@install -D -m 0644 gopass.1 $(DESTDIR)$(PREFIX)/share/man/man1/gopass.1
+	@install -d -m 0755 $(DESTDIR)$(PREFIX)/share/man/man1
+	@install -m 0644 gopass.1 $(DESTDIR)$(PREFIX)/share/man/man1/gopass.1
 
 .PHONY: clean build completion install sysinfo crosscompile test codequality release goreleaser debsign man
