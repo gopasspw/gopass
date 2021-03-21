@@ -19,10 +19,17 @@ func TestKeyList(t *testing.T) {
 	assert.Equal(t, []string{
 		"0x62AF4031C82E0019",
 		"0x62AF4031C82E2019",
+		"0xDEADBEEF",
 		"0x62AF4031C82E0039",
 	}, kl.Recipients())
-	assert.Equal(t, []string{"0x62AF4031C82E0019", "0x62AF4031C82E0039"}, kl.UseableKeys(false).Recipients())
-	assert.Equal(t, []string{"0x62AF4031C82E2019"}, kl.UnusableKeys(false).Recipients())
+	assert.Equal(t, []string{
+		"0x62AF4031C82E0019",
+		"0x62AF4031C82E0039",
+	}, kl.UseableKeys(false).Recipients())
+	assert.Equal(t, []string{
+		"0x62AF4031C82E2019",
+		"0xDEADBEEF",
+	}, kl.UnusableKeys(false).Recipients())
 
 	// search by email
 	k, err := kl.FindKey("jim.doe@example.org")

@@ -41,13 +41,13 @@ func TestRecipients(t *testing.T) {
 	t.Run("print recipients tree", func(t *testing.T) {
 		defer buf.Reset()
 		assert.NoError(t, act.RecipientsPrint(gptest.CliCtx(ctx, t)))
-		want := `Hint: run 'gopass sync' to import any missing public keys
-gopass
-└── 0xDEADBEEF
 
-`
+		hint := `Hint: run 'gopass sync' to import any missing public keys`
+		want := `gopass
+└── 0xDEADBEEF`
 
-		assert.Equal(t, want, buf.String())
+		assert.Contains(t, buf.String(), hint)
+		assert.Contains(t, buf.String(), want)
 	})
 
 	t.Run("complete recipients", func(t *testing.T) {

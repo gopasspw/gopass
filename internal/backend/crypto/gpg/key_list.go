@@ -15,6 +15,9 @@ func (kl KeyList) Recipients() []string {
 	sort.Sort(kl)
 	for _, k := range kl {
 		l = append(l, k.ID())
+		for sid := range k.SubKeys {
+			l = append(l, sid)
+		}
 	}
 	return l
 }
