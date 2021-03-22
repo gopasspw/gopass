@@ -129,8 +129,8 @@ func initDebugTags() {
 	opts.files = parseFilter("GOPASS_DEBUG_FILES", padFile)
 }
 
-func getPosition() (fn, dir, file string, line int) {
-	pc, file, line, ok := runtime.Caller(3)
+func getPosition(offset int) (fn, dir, file string, line int) {
+	pc, file, line, ok := runtime.Caller(3 + offset)
 	if !ok {
 		return "", "", "", 0
 	}
@@ -166,13 +166,20 @@ func checkFilter(filter map[string]bool, key string) bool {
 // Log logs a statement to Stderr (unless filtered) and the
 // debug log file (if enabled).
 func Log(f string, args ...interface{}) {
-	logFn(f, args...)
+	logFn(0, f, args...)
 }
 
-func doNotLog(f string, args ...interface{}) {}
+// LogN logs a statement to Stderr (unless filtered) and the
+// debug log file (if enabled). The offset will be applied to
+// the runtime position.
+func LogN(offset int, f string, args ...interface{}) {
+	logFn(offset, f, args...)
+}
 
-func doLog(f string, args ...interface{}) {
-	fn, dir, file, line := getPosition()
+func doNotLog(offset int, f string, args ...interface{}) {}
+
+func doLog(offset int, f string, args ...interface{}) {
+	fn, dir, file, line := getPosition(offset)
 	if len(f) == 0 || f[len(f)-1] != '\n' {
 		f += "\n"
 	}

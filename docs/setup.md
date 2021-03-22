@@ -258,7 +258,7 @@ source <(gopass completion bash)
 source /dev/stdin <<<"$(gopass completion bash)"
 ```
 
-### Enable  Z Shell Auto completion
+### Enable Z Shell Auto completion
 
 If you use zsh, `make install` or `make install-completion` should install the completion in the correct location.
 
@@ -334,7 +334,36 @@ The new binary can be downloaded from the latest
 
 For more detailed instructions, please read: [gopass-jsonapi/README](https://github.com/gopasspw/gopass-jsonapi/blob/main/README.md).
 
-### Storing and Syncing your Password Store with Google Drive / Dropbox / etc.
+### Storing and Syncing your with git
+
+This is the recommended way to use `gopass`.
+
+NOTE: We do recommend to use a private Git repository. A public one will keep
+your credentials secure but it will leak metadata.
+
+To use `gopass` with `git` either create a new git repository or clone an existing
+password store.
+
+#### New password store with git
+
+Create a new repository, either locally or on a server, then specify this
+repository during the `gopass setup`.
+
+```bash
+$ gopass setup --crypto gpg --storage gitfs # used by default
+[...]
+# provide an existing, empty git remote, e.g. git@gitlab.example.org:john/passwords.git
+```
+
+#### Existing password store with git
+
+If you have created a password store with `git`, `gopass` can easily clone it.
+
+```bash
+$ gopass clone git@gitlab.example.org:john/passwords.git
+```
+
+### Storing and Syncing your Password Store with Google Drive / Dropbox / Syncthing / etc.
 
 The recommended way to use Gopass is to sync your store with a git repository, preferably a private one, since the name and path of your secrets might reveal information that you'd prefer to keep private.
 However, shall you prefer to, you might also use the `noop` storage backend that is meant to store data on a cloud provider instead of a git server.
@@ -344,7 +373,7 @@ Please be warned that using cloud-based storage may negatively impact the confid
 For example, to use gopass with [Google Drive](https://drive.google.com):
 
 ```bash
-gopass init --rcs noop
+gopass setup --storage fs
 mv .password-store/ "Google Drive/Password-Store"
 gopass config path "~/Google Drive/Password-Store"
 ```

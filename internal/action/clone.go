@@ -14,7 +14,6 @@ import (
 	"github.com/gopasspw/gopass/pkg/fsutil"
 	"github.com/gopasspw/gopass/pkg/termio"
 
-	"github.com/fatih/color"
 	"github.com/urfave/cli/v2"
 )
 
@@ -36,6 +35,10 @@ func (s *Action) Clone(c *cli.Context) error {
 	if c.Args().Len() > 1 {
 		mount = c.Args().Get(1)
 	}
+
+	out.Printf(ctx, logo)
+	out.Printf(ctx, "🌟 Welcome to gopass!")
+	out.Printf(ctx, "🌟 Cloning an existing password store from %q ...", repo)
 
 	return s.clone(ctx, repo, mount, path)
 }
@@ -69,7 +72,7 @@ func (s *Action) clone(ctx context.Context, repo, mount, path string) error {
 	}
 
 	// clone repo
-	debug.Log("Cloning repo %q to %q", repo, path)
+	out.Noticef(ctx, "Cloning git repository %q to %q ...", repo, path)
 	if _, err := backend.Clone(ctx, storageBackendOrDefault(ctx), repo, path); err != nil {
 		return ExitError(ExitGit, err, "failed to clone repo %q to %q: %s", repo, path, err)
 	}
@@ -86,7 +89,7 @@ func (s *Action) clone(ctx context.Context, repo, mount, path string) error {
 	}
 
 	// try to init git config
-	out.Printf(ctx, "Configuring git repository ...")
+	out.Notice(ctx, "Configuring git repository ...")
 
 	// ask for git config values
 	username, email, err := s.cloneGetGitConfig(ctx, mount)
@@ -128,13 +131,14 @@ func (s *Action) cloneAddMount(ctx context.Context, mount, path string) error {
 }
 
 func (s *Action) cloneGetGitConfig(ctx context.Context, name string) (string, string, error) {
+	out.Printf(ctx, "🎩 Gathering information for the git repository ...")
 	// for convenience, set defaults to user-selected values from available private keys
 	// NB: discarding returned error since this is merely a best-effort look-up for convenience
 	username, email, _ := cui.AskForGitConfigUser(ctx, s.Store.Crypto(ctx, name))
 	if username == "" {
 		username = termio.DetectName(ctx, nil)
 		var err error
-		username, err = termio.AskForString(ctx, color.CyanString("Please enter a user name for password store git config"), username)
+		username, err = termio.AskForString(ctx, "🚶 What is your name?", username)
 		if err != nil {
 			return "", "", ExitError(ExitIO, err, "Failed to read user input: %s", err)
 		}
@@ -142,7 +146,7 @@ func (s *Action) cloneGetGitConfig(ctx context.Context, name string) (string, st
 	if email == "" {
 		email = termio.DetectEmail(ctx, nil)
 		var err error
-		email, err = termio.AskForString(ctx, color.CyanString("Please enter an email address for password store git config"), email)
+		email, err = termio.AskForString(ctx, "📧 What is your email?", email)
 		if err != nil {
 			return "", "", ExitError(ExitIO, err, "Failed to read user input: %s", err)
 		}

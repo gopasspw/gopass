@@ -8,6 +8,7 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/debug"
 )
 
 var (
@@ -34,6 +35,7 @@ func Printf(ctx context.Context, format string, args ...interface{}) {
 	if ctxutil.IsHidden(ctx) {
 		return
 	}
+	debug.LogN(1, format, args...)
 	fmt.Fprintf(Stdout, Prefix(ctx)+format+newline(ctx), args...)
 }
 
@@ -47,6 +49,7 @@ func Noticef(ctx context.Context, format string, args ...interface{}) {
 	if ctxutil.IsHidden(ctx) {
 		return
 	}
+	debug.LogN(1, "NOTICE: "+format, args...)
 	fmt.Fprintf(Stdout, Prefix(ctx)+"⚠ "+format+newline(ctx), args...)
 }
 
@@ -60,6 +63,7 @@ func Errorf(ctx context.Context, format string, args ...interface{}) {
 	if ctxutil.IsHidden(ctx) {
 		return
 	}
+	debug.LogN(1, "ERROR: "+format, args...)
 	fmt.Fprint(Stderr, color.RedString(Prefix(ctx)+"❌ "+format+newline(ctx), args...))
 }
 
@@ -73,6 +77,7 @@ func OKf(ctx context.Context, format string, args ...interface{}) {
 	if ctxutil.IsHidden(ctx) {
 		return
 	}
+	debug.LogN(1, "OK: "+format, args...)
 	fmt.Fprintf(Stdout, Prefix(ctx)+"✅ "+format+newline(ctx), args...)
 }
 
@@ -86,5 +91,6 @@ func Warningf(ctx context.Context, format string, args ...interface{}) {
 	if ctxutil.IsHidden(ctx) {
 		return
 	}
+	debug.LogN(1, "WARNING: "+format, args...)
 	fmt.Fprint(Stderr, color.YellowString(Prefix(ctx)+"⚠ "+format+newline(ctx), args...))
 }
