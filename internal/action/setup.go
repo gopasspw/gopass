@@ -134,7 +134,7 @@ func (s *Action) initGenerateIdentity(ctx context.Context, crypto backend.Crypto
 		return fmt.Errorf("failed to list private keys: %w", err)
 	}
 	if len(kl) > 1 {
-		out.Noticef(ctx, "More than one private key detected. Make sure to use the correct one!")
+		out.Notice(ctx, "More than one private key detected. Make sure to use the correct one!")
 		return nil
 	}
 	if len(kl) < 1 {
@@ -145,7 +145,7 @@ func (s *Action) initGenerateIdentity(ctx context.Context, crypto backend.Crypto
 	if err := s.initExportPublicKey(ctx, crypto, kl[0]); err != nil {
 		return err
 	}
-	out.OKf(ctx, "Key pair validated")
+	out.OK(ctx, "Key pair validated")
 	return nil
 }
 
@@ -239,7 +239,7 @@ func (s *Action) initLocal(ctx context.Context) error {
 		return fmt.Errorf("failed to save config: %w", err)
 	}
 
-	out.OKf(ctx, "Configured")
+	out.OK(ctx, "Configured")
 	return nil
 }
 
