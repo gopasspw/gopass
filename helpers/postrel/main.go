@@ -1,10 +1,15 @@
 package main
 
 import (
+	"bufio"
 	"context"
+	"crypto/sha256"
+	"crypto/sha512"
 	"fmt"
 	"html/template"
+	"io"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -62,6 +67,11 @@ func main() {
 
 	// create a new GitHub milestone
 	if err := createGHMilestone(ghPat, nextVer); err != nil {
+		panic(err)
+	}
+
+	// send PRs to update gopass ports
+	if err := updateRepos(curVer); err != nil {
 		panic(err)
 	}
 
@@ -157,4 +167,350 @@ func versionFile() (semver.Version, error) {
 		return semver.Version{}, err
 	}
 	return semver.Parse(strings.TrimSpace(string(buf)))
+}
+
+func updateRepos(v semver.Version) error {
+	url := fmt.Sprintf("https://github.com/gopasspw/gopass/releases/download/v%s/gopass-%s.tar.gz", v.String(), v.String())
+	// fetch https://github.com/gopasspw/gopass/archive/vVER.tar.gz
+	// compute sha256, sha512
+	sha256s, sha512s, err := checksum(url)
+	if err != nil {
+		return err
+	}
+
+	for _, upd := range []struct {
+		Distro string
+		UpFn   func() error
+	}{
+		{
+			Distro: "AlpineLinux",
+			UpFn: func() error {
+				return updateAlpine(url, v, sha512s)
+			},
+		},
+		{
+			Distro: "Homebrew",
+			UpFn: func() error {
+				return updateHomebrew(url, v, sha512s)
+			},
+		},
+		{
+			Distro: "Termux",
+			UpFn: func() error {
+				return updateTermux(url, v, sha256s)
+			},
+		},
+		{
+			Distro: "VoidLinux",
+			UpFn: func() error {
+				return updateVoid(url, v, sha256s)
+			},
+		},
+	} {
+		fmt.Println("------------------------------")
+		fmt.Printf("Updating: %s ...\n", upd.Distro)
+		if err := upd.UpFn(); err != nil {
+			fmt.Printf("ERROR: %s\n", err)
+			continue
+		}
+		fmt.Println("OK")
+	}
+
+	return nil
+}
+
+func checksum(url string) (string, string, error) {
+	resp, err := http.Get(url)
+	if err != nil {
+		return "", "", err
+	}
+	defer resp.Body.Close()
+
+	s2 := sha256.New()
+	s5 := sha512.New()
+	w := io.MultiWriter(s2, s5)
+
+	_, err = io.Copy(w, resp.Body)
+	if err != nil {
+		return "", "", err
+	}
+
+	return fmt.Sprintf("%x", s2.Sum(nil)), fmt.Sprintf("%x", s5.Sum(nil)), nil
+}
+
+type repo struct {
+	ver semver.Version // gopass version
+	url string         // gopass download url
+	dir string         // repo dir
+}
+
+func (r *repo) updatePrepare() error {
+	// git co master
+	if err := r.gitCoMaster(); err != nil {
+		return err
+	}
+	if !r.isGitClean() {
+		return fmt.Errorf("git is dirty")
+	}
+	// git pull origin master
+	if err := r.gitPom(); err != nil {
+		return err
+	}
+	// git co -b gopass-VER
+	return r.gitBranch()
+}
+
+func (r *repo) updateFinalize(path string) error {
+	// git commit -m 'gopass: update to VER'
+	if err := r.gitCommit(path); err != nil {
+		return err
+	}
+	// git push myfork gopass-VER
+	return r.gitPush("myfork")
+
+}
+
+func updateBuild(path string, m map[string]string) error {
+	fin, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer fin.Close()
+
+	npath := path + ".new"
+	fout, err := os.Create(npath)
+	if err != nil {
+		return err
+	}
+	defer fout.Close()
+
+	s := bufio.NewScanner(fin)
+SCAN:
+	for s.Scan() {
+		line := s.Text()
+		for match, repl := range m {
+			if strings.HasPrefix(line, match) {
+				fmt.Fprintln(fout, repl)
+				continue SCAN
+			}
+		}
+		fmt.Fprintln(fout, line)
+	}
+
+	return os.Rename(npath, path)
+}
+
+func updateAlpine(url string, v semver.Version, sha512 string) error {
+	dir := "../repos/alpine/"
+	if d := os.Getenv("GOPASS_ALPINE_PKG_DIR"); d != "" {
+		dir = d
+	}
+
+	r := &repo{
+		ver: v,
+		url: url,
+		dir: dir,
+	}
+
+	if err := r.updatePrepare(); err != nil {
+		return err
+	}
+
+	// update community/gopass/APKBUILD
+	buildFn := "community/gopass/APKBUILD"
+	buildPath := filepath.Join(dir, buildFn)
+
+	repl := map[string]string{
+		"pkgver=":     "pkgver=" + v.String(),
+		"sha512sums=": "sha512sums=\"" + sha512 + "\"",
+		"source=":     `source="$pkgname-$pkgver.tar.gz::https://github.com/gopasspw/gopass/archive/v$pkgver.tar.gz"`,
+	}
+	if err := updateBuild(buildPath, repl); err != nil {
+		return err
+	}
+
+	if err := r.updateFinalize(buildFn); err != nil {
+		return err
+	}
+
+	// TODO could open an MR: https://docs.gitlab.com/ce/api/merge_requests.html#create-mhttps://docs.gitlab.com/ce/api/merge_requests.html#comments-on-merge-requestsr
+	return nil
+}
+
+func updateHomebrew(url string, v semver.Version, sha256 string) error {
+	dir := "../repos/homebrew/"
+	if d := os.Getenv("GOPASS_HOMEBREW_PKG_DIR"); d != "" {
+		dir = d
+	}
+
+	r := &repo{
+		ver: v,
+		url: url,
+		dir: dir,
+	}
+
+	if err := r.updatePrepare(); err != nil {
+		return err
+	}
+
+	// update Formula/gopass.rb
+	buildFn := "Formula/gopass.rb"
+	buildPath := filepath.Join(dir, buildFn)
+
+	repl := map[string]string{
+		"url \"https://github.com/": "url \"" + url + "\"",
+		"sha256 \"":                 "sha256 \"" + sha256 + "\"",
+	}
+	if err := updateBuild(
+		buildPath,
+		repl,
+	); err != nil {
+		return err
+	}
+	if err := r.updateFinalize(buildFn); err != nil {
+		return err
+	}
+	// TODO could open a PR: https://pkg.go.dev/github.com/google/go-github/v33@v33.0.0/github#PullRequestsService.Create
+	return nil
+}
+
+func updateTermux(url string, v semver.Version, sha256 string) error {
+	dir := "../repos/termux/"
+	if d := os.Getenv("GOPASS_TERMUX_PKG_DIR"); d != "" {
+		dir = d
+	}
+
+	r := &repo{
+		ver: v,
+		url: url,
+		dir: dir,
+	}
+
+	if err := r.updatePrepare(); err != nil {
+		return err
+	}
+
+	// update packages/gopass/build.sh
+	buildFn := "packages/gopass/build.sh"
+	buildPath := filepath.Join(dir, buildFn)
+
+	repl := map[string]string{
+		"TERMUX_PKG_VERSION": "TERMUX_PKG_VERSION=" + v.String(),
+		"TERMUX_PKG_SHA256":  "TERMUX_PKG_SHA256=" + sha256,
+		"TERMUX_PKG_SRCURL":  `TERMUX_PKG_SRCURL=https://github.com/gopasspw/gopass/archive/v$TERMUX_PKG_VERSION.tar.gz`,
+	}
+	if err := updateBuild(
+		buildPath,
+		repl,
+	); err != nil {
+		return err
+	}
+	if err := r.updateFinalize(buildFn); err != nil {
+		return err
+	}
+
+	// TODO could open a PR: https://pkg.go.dev/github.com/google/go-github/v33@v33.0.0/github#PullRequestsService.Create
+	return nil
+}
+
+func updateVoid(url string, v semver.Version, sha256 string) error {
+	dir := "../repos/void/"
+	if d := os.Getenv("GOPASS_VOID_PKG_DIR"); d != "" {
+		dir = d
+	}
+
+	r := &repo{
+		ver: v,
+		url: url,
+		dir: dir,
+	}
+
+	if err := r.updatePrepare(); err != nil {
+		return err
+	}
+
+	// update srcpkgs/gopass/template
+	buildFn := "srcpkgs/gopass/template"
+	buildPath := filepath.Join(dir, buildFn)
+
+	repl := map[string]string{
+		"version=":   "version=" + v.String(),
+		"checksum=":  "checksum=" + sha256,
+		"distfiles=": `distfiles="https://github.com/gopasspw/gopass/archive/v${version}.tar.gz"`,
+	}
+	if err := updateBuild(
+		buildPath,
+		repl,
+	); err != nil {
+		return err
+	}
+
+	if err := r.updateFinalize(buildFn); err != nil {
+		return err
+	}
+
+	// TODO could open a PR: https://pkg.go.dev/github.com/google/go-github/v33@v33.0.0/github#PullRequestsService.Create
+	return nil
+}
+
+func (r *repo) gitCoMaster() error {
+	cmd := exec.Command("git", "checkout", "master")
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Dir = r.dir
+	return cmd.Run()
+}
+
+func (r *repo) gitBranch() error {
+	cmd := exec.Command("git", "checkout", "-b", "gopass-"+r.ver.String())
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Dir = r.dir
+	return cmd.Run()
+}
+
+func (r *repo) gitPom() error {
+	cmd := exec.Command("git", "pull", "origin", "master")
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Dir = r.dir
+	return cmd.Run()
+}
+
+func (r *repo) gitPush(remote string) error {
+	cmd := exec.Command("git", "push", remote, "gopass-"+r.ver.String())
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Dir = r.dir
+	return cmd.Run()
+}
+
+func (r *repo) gitCommit(files ...string) error {
+	args := []string{"add"}
+	args = append(args, files...)
+
+	cmd := exec.Command("git", args...)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Dir = r.dir
+	if err := cmd.Run(); err != nil {
+		return err
+	}
+
+	cmd = exec.Command("git", "commit", "-s", "-m", "gopass: update to "+r.ver.String())
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Dir = r.dir
+	return cmd.Run()
+}
+
+func (r *repo) isGitClean() bool {
+	cmd := exec.Command("git", "diff", "--stat")
+	cmd.Dir = r.dir
+
+	buf, err := cmd.CombinedOutput()
+	if err != nil {
+		panic(err)
+	}
+	return strings.TrimSpace(string(buf)) == ""
 }
