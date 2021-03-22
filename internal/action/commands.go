@@ -199,6 +199,11 @@ func (s *Action) GetCommands() []*cli.Command {
 					Aliases: []string{"s"},
 					Usage:   "Which store to use",
 				},
+				&cli.BoolFlag{
+					Name:    "force",
+					Aliases: []string{"f"},
+					Usage:   "Force path selection",
+				},
 			},
 		},
 		{

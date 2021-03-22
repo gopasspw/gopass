@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/fatih/color"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/termio"
 )
@@ -17,7 +18,8 @@ func GetSelection(ctx context.Context, prompt string, choices []string) (string,
 	}
 
 	for i, c := range choices {
-		fmt.Printf("[%  d] %s\n", i, c)
+		fmt.Print(color.GreenString("[%  d]", i))
+		fmt.Printf(" %s\n", c)
 	}
 	fmt.Println()
 	var i int
