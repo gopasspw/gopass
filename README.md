@@ -5,6 +5,7 @@
 # gopass
 
 [![Build Status](https://travis-ci.org/gopasspw/gopass.svg?branch=master)](https://travis-ci.org/gopasspw/gopass)
+[![Packaging status](https://repology.org/badge/tiny-repos/gopass.svg)](https://repology.org/project/gopass/versions)
 [![Go Report Card](https://goreportcard.com/badge/github.com/gopasspw/gopass)](https://goreportcard.com/report/github.com/gopasspw/gopass)
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/gopasspw/gopass/blob/master/LICENSE)
 [![Github All Releases](https://img.shields.io/github/downloads/gopasspw/gopass/total.svg)](https://github.com/gopasspw/gopass/releases)
@@ -64,10 +65,66 @@ WARNING: Please prefer releases, unless you want to contribute to the
 development of gopass. The master branch might not be very well tested and
 can contain breaking changes without further notice.
 
+## Getting Started
+
+Either initialize a new git repository or clone an existing one.
+
+### New password store
+
+```
+$ gopass setup
+
+   __     _    _ _      _ _   ___   ___
+ /'_ '\ /'_'\ ( '_'\  /'_' )/',__)/',__)
+( (_) |( (_) )| (_) )( (_| |\__, \\__, \
+'\__  |'\___/'| ,__/''\__,_)(____/(____/
+( )_) |       | |
+ \___/'       (_)
+
+🌟 Welcome to gopass!
+🌟 Initializing a new password store ...
+🌟 Configuring your password store ...
+🎮 Please select a private key for encrypting secrets:
+[0] gpg - 0xFEEDBEEF - John Doe <john.doe@example.org>
+Please enter the number of a key (0-12, [q]uit) (q to abort) [0]: 0
+❓ Do you want to add a git remote? [y/N/q]: y
+Configuring the git remote ...
+Please enter the git remote for your shared store []: git@gitlab.example.org:john/passwords.git
+✅ Configured
+```
+
+Hint: `gopass setup` will use `gpg` encryption and `git` storage by default.
+
+### Existing password store
+
+```
+$ gopass clone git@gitlab.example.org:john/passwords.git
+
+   __     _    _ _      _ _   ___   ___
+ /'_ '\ /'_'\ ( '_'\  /'_' )/',__)/',__)
+( (_) |( (_) )| (_) )( (_| |\__, \\__, \
+'\__  |'\___/'| ,__/''\__,_)(____/(____/
+( )_) |       | |
+ \___/'       (_)
+
+🌟 Welcome to gopass!
+🌟 Cloning an existing password store from "git@gitlab.example.org:john/passwords.git" ...
+⚠ Cloning git repository "git@gitlab.example.org:john/passwords.git" to "/home/john/.local/share/gopass/stores/root" ...
+⚠ Configuring git repository ...
+🎩 Gathering information for the git repository ...
+🚶 What is your name? [John Doe]: 
+📧 What is your email? [john.doe@example.org]: 
+Your password store is ready to use! Have a look around: `gopass list`
+```
 
 ## Upgrade
 
-To upgrade with Go installed, run:
+To use the self-updater run:
+```bash
+gopass update
+```
+
+or to upgrade with Go installed, run:
 ```bash
 go get -u github.com/gopasspw/gopass
 ```

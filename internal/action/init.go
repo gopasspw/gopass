@@ -71,7 +71,7 @@ func (s *Action) Init(c *cli.Context) error {
 		return ExitError(ExitUnknown, err, "Failed to initialized store: %s", err)
 	}
 	if inited {
-		out.Errorf(ctx, "❌ Store is already initialized!")
+		out.Errorf(ctx, "Store is already initialized!")
 	}
 
 	if err := s.init(ctx, alias, path, c.Args().Slice()...); err != nil {

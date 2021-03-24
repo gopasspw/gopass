@@ -44,7 +44,7 @@ func (s *Action) Setup(c *cli.Context) error {
 		return ExitError(ExitUnknown, err, "Failed to initialized store: %s", err)
 	}
 	if inited {
-		out.Errorf(ctx, "⚠ Store is already initialized. Aborting.")
+		out.Errorf(ctx, "Store is already initialized. Aborting.")
 		return nil
 	}
 
