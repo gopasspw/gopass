@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"sort"
+	"strconv"
 
 	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/internal/backend/crypto/gpg"
@@ -43,6 +44,7 @@ func AskForPrivateKey(ctx context.Context, crypto backend.Crypto, prompt string)
 		return "", fmt.Errorf("no useable private keys found. make sure you have valid private keys with sufficient trust")
 	}
 
+	fmtStr := "[%" + strconv.Itoa(int(len(kl)/10)+1) + "d] %s - %s\n"
 	for i := 0; i < maxTries; i++ {
 		if !ctxutil.IsTerminal(ctx) {
 			return kl[0], nil
@@ -56,7 +58,7 @@ func AskForPrivateKey(ctx context.Context, crypto backend.Crypto, prompt string)
 
 		fmt.Fprintln(Stdout, prompt)
 		for i, k := range kl {
-			fmt.Fprintf(Stdout, "[%d] %s - %s\n", i, crypto.Name(), crypto.FormatKey(ctx, k, ""))
+			fmt.Fprintf(Stdout, fmtStr, i, crypto.Name(), crypto.FormatKey(ctx, k, ""))
 		}
 		iv, err := termio.AskForInt(ctx, fmt.Sprintf("Please enter the number of a key (0-%d, [q]uit)", len(kl)-1), 0)
 		if err != nil {

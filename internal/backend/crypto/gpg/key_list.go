@@ -11,14 +11,16 @@ type KeyList []Key
 
 // Recipients returns the KeyList formatted as a recipient list
 func (kl KeyList) Recipients() []string {
-	l := make([]string, 0, len(kl))
 	sort.Sort(kl)
+	u := make(map[string]struct{}, len(kl))
 	for _, k := range kl {
-		l = append(l, k.ID())
-		for sid := range k.SubKeys {
-			l = append(l, sid)
-		}
+		u[k.ID()] = struct{}{}
 	}
+	l := make([]string, 0, len(kl))
+	for k := range u {
+		l = append(l, k)
+	}
+	sort.Strings(l)
 	return l
 }
 
