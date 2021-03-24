@@ -65,7 +65,6 @@ clean:
 	@rm -f tests/tests
 	@rm -f *.test
 	@rm -rf dist/*
-	@rm -f *.completion
 	@printf '%s\n' '$(OK)'
 
 $(GOPASS_OUTPUT): $(GOFILES_BUILD)

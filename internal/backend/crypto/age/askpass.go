@@ -8,8 +8,8 @@ import (
 	"github.com/gopasspw/gopass/internal/cache"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/debug"
-	"github.com/gopasspw/gopass/pkg/pinentry"
 	"github.com/gopasspw/gopass/pkg/pinentry/cli"
+	"github.com/gopasspw/pinentry"
 )
 
 type piner interface {
