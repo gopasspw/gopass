@@ -60,3 +60,8 @@ func (g *Git) Fsck(ctx context.Context) error {
 	}
 	return g.fs.Fsck(ctx)
 }
+
+// Link creates a symlink
+func (g *Git) Link(ctx context.Context, from, to string) error {
+	return g.fs.Link(ctx, from, to)
+}

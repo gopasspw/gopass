@@ -5,6 +5,7 @@ import (
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/tree"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/debug"
 
 	"github.com/urfave/cli/v2"
 )
@@ -27,6 +28,7 @@ func (s *Action) Audit(c *cli.Context) error {
 		if err != nil {
 			return ExitError(ExitUnknown, err, "failed to find subtree: %s", err)
 		}
+		debug.Log("subtree for %q: %+v", filter, subtree)
 		t = subtree
 	}
 	list := t.List(tree.INF)
