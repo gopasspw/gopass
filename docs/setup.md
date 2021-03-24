@@ -334,7 +334,7 @@ The new binary can be downloaded from the latest
 
 For more detailed instructions, please read: [gopass-jsonapi/README](https://github.com/gopasspw/gopass-jsonapi/blob/main/README.md).
 
-### Storing and Syncing your with git
+### Storing and Syncing your Password Store with git
 
 This is the recommended way to use `gopass`.
 
