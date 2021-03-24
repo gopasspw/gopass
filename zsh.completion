@@ -70,7 +70,7 @@ _gopass () {
 	      _gopass_complete_passwords
 	      ;;
 	  create|new)
-	      _arguments : "--store[Which store to use]"
+	      _arguments : "--store[Which store to use]" "--force[Force path selection]"
 	      _describe -t commands "gopass create" subcommands
 	      
 	      

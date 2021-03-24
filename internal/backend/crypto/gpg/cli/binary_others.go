@@ -6,7 +6,7 @@ import (
 	"os/exec"
 
 	"github.com/gopasspw/gopass/pkg/debug"
-	"github.com/gopasspw/gopass/pkg/pinentry/gpgconf"
+	"github.com/gopasspw/pinentry/gpgconf"
 )
 
 func detectBinary(name string) (string, error) {
