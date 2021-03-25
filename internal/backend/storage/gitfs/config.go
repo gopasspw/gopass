@@ -25,6 +25,10 @@ func (g *Git) fixConfig(ctx context.Context) error {
 		return fmt.Errorf("failed to set git config for push.default: %w", err)
 	}
 
+	if err := g.ConfigSet(ctx, "pull.rebase", "false"); err != nil {
+		return fmt.Errorf("failed to set git config for pull.rebase: %w", err)
+	}
+
 	// setup for proper diffs
 	if err := g.ConfigSet(ctx, "diff.gpg.binary", "true"); err != nil {
 		out.Errorf(ctx, "Error while initializing git: %s", err)
