@@ -66,7 +66,7 @@ func (a *askPass) Passphrase(key string, reason string, repeat bool) (string, er
 	out.Printf(context.TODO(), "🔑 Please enter your passphrase to unlock the age keyring")
 	pi, err := a.pinentry()
 	if err != nil {
-		return "", fmt.Errorf("pinentry Error: %s", err)
+		return "", fmt.Errorf("pinentry (%s) error: %w", pinentry.GetBinary(), err)
 	}
 	defer pi.Close()
 
@@ -80,7 +80,7 @@ func (a *askPass) Passphrase(key string, reason string, repeat bool) (string, er
 
 	pw, err := pi.GetPin()
 	if err != nil {
-		return "", fmt.Errorf("pinentry Error: %s", err)
+		return "", fmt.Errorf("pinentry (%s) error: %w", pinentry.GetBinary(), err)
 	}
 
 	pass := string(pw)

@@ -56,7 +56,7 @@ const (
 func ExitError(exitCode int, err error, format string, args ...interface{}) error {
 	msg := fmt.Sprintf(format, args...)
 	if err != nil {
-		debug.LogN(1, "%s - stacktrace: %+v", err)
+		debug.LogN(1, "%s - stacktrace: %+v", msg, err)
 	}
 	return cli.Exit(msg, exitCode)
 }
