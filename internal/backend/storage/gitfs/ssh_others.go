@@ -2,6 +2,8 @@
 
 package gitfs
 
+import "os"
+
 // gitSSHCommand returns a SSH command instructing git to use SSH
 // with persistent connections through a custom socket.
 // See https://linux.die.net/man/5/ssh_config and
@@ -10,5 +12,5 @@ package gitfs
 // Note: Setting GIT_SSH_COMMAND, possibly to an empty string, will take
 // precedence over this setting.
 func gitSSHCommand() string {
-	return "ssh -oControlMaster=auto -oControlPersist=600 -oControlPath=/tmp/.gopass-ssh-${USER}-%r@%h:%p"
+	return "ssh -oControlMaster=auto -oControlPersist=600 -oControlPath=" + os.TempDir() + "/.gopass-ssh-${USER}-%r@%h:%p"
 }
