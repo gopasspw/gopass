@@ -7,6 +7,7 @@ import (
 
 	"github.com/gopasspw/gopass/internal/tree"
 
+	"github.com/gopasspw/gopass/internal/diff"
 	"github.com/gopasspw/gopass/internal/notify"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
@@ -87,9 +88,9 @@ func (s *Action) syncMount(ctx context.Context, mp string) error {
 		return fmt.Errorf("failed to get sub stores (nil)")
 	}
 
-	numMP := 0
-	if l, err := sub.List(ctx, ""); err == nil {
-		numMP = len(l)
+	l, err := sub.List(ctx, "")
+	if err != nil {
+		out.Errorf(ctx, "Failed to list store: %s", err)
 	}
 
 	// TODO: Remove this hard coded check
@@ -109,15 +110,21 @@ func (s *Action) syncMount(ctx context.Context, mp string) error {
 		}
 		out.Printf(ctxno, color.GreenString("OK"))
 
-		if l, err := sub.List(ctx, ""); err == nil {
-			diff := len(l) - numMP
-			if diff > 0 {
-				out.Printf(ctxno, color.GreenString(" (Added %d entries)", diff))
-			} else if diff < 0 {
-				out.Printf(ctxno, color.GreenString(" (Removed %d entries)", -1*diff))
-			} else {
-				out.Printf(ctxno, color.GreenString(" (no changes)"))
-			}
+		ln, err := sub.List(ctx, "")
+		if err != nil {
+			out.Errorf(ctx, "Failed to list store: %s", err)
+		}
+
+		added, removed := diff.List(l, ln)
+		debug.Log("diff - added: %d - removed: %d", added, removed)
+		if added > 0 {
+			out.Printf(ctxno, color.GreenString(" (Added %d entries)", added))
+		}
+		if removed > 0 {
+			out.Printf(ctxno, color.GreenString(" (Removed %d entries)", removed))
+		}
+		if added < 1 && removed < 1 {
+			out.Printf(ctxno, color.GreenString(" (no changes)"))
 		}
 	}
 
