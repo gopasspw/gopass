@@ -16,6 +16,7 @@ require (
 	github.com/google/go-cmp v0.5.5
 	github.com/google/go-github v17.0.0+incompatible
 	github.com/google/go-github/v33 v33.0.0
+	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/gopasspw/pinentry v0.0.2
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1
@@ -38,10 +39,10 @@ require (
 	github.com/stretchr/testify v1.7.0
 	github.com/urfave/cli/v2 v2.3.0
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
-	golang.org/x/crypto v0.0.0-20210317152858-513c2a44f670
-	golang.org/x/net v0.0.0-20210316092652-d523dce5a7f4
+	golang.org/x/crypto v0.0.0-20210322153248-0c34fe9e7dc2
+	golang.org/x/net v0.0.0-20210326060303-6b1517762897
 	golang.org/x/oauth2 v0.0.0-20210313182246-cd4f82c27b84
-	golang.org/x/sys v0.0.0-20210320140829-1e4c9ba3b0c4
+	golang.org/x/sys v0.0.0-20210324051608-47abb6519492
 	golang.org/x/term v0.0.0-20210317153231-de623e64d2a6
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
