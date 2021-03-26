@@ -236,3 +236,8 @@ func (k *KV) Write(buf []byte) (int, error) {
 func (k *KV) FromMime() bool {
 	return k.fromMime
 }
+
+// SafeStr always returnes "(elided)"
+func (k *KV) SafeStr() string {
+	return "(elided)"
+}

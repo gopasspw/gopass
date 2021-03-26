@@ -144,7 +144,7 @@ func (s *Action) generateCopyOrPrint(ctx context.Context, c *cli.Context, name, 
 	out.Printf(
 		ctx,
 		"⚠ The generated password is:\n\n%s\n",
-		password,
+		out.Secret(password),
 	)
 	return nil
 }
@@ -174,15 +174,18 @@ func (s *Action) generatePassword(ctx context.Context, c *cli.Context, length, n
 			}
 			wl = iv
 		}
+
 		question := fmt.Sprintf("How long should the password be? (min: %d, max: %d)", rule.Minlen, rule.Maxlen)
 		iv, err := termio.AskForInt(ctx, question, wl)
 		if err != nil {
 			return "", ExitError(ExitUsage, err, "password length must be a number")
 		}
+
 		pw := pwgen.NewCrypticForDomain(iv, domain).Password()
 		if pw == "" {
 			return "", fmt.Errorf("failed to generate password for %s", domain)
 		}
+
 		return pw, nil
 	}
 
@@ -322,11 +325,13 @@ func (s *Action) generateReplaceExisting(ctx context.Context, name, key, passwor
 	if err != nil {
 		return ctx, ExitError(ExitEncrypt, err, "failed to set key %q of %q: %s", key, name, err)
 	}
+
 	setMetadata(sec, kvps)
 	sec.SetPassword(password)
 	if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, "Generated password for YAML key"), name, sec); err != nil {
 		return ctx, ExitError(ExitEncrypt, err, "failed to set key %q of %q: %s", key, name, err)
 	}
+
 	return ctx, nil
 }
 

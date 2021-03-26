@@ -171,8 +171,9 @@ func (s *Action) showHandleOutput(ctx context.Context, name string, sec gopass.S
 		}
 		out.Print(ctx, header)
 	}
+
 	// output the actual secret, newlines are handled by ctx and Print
-	out.Print(ctx, body)
+	out.Print(ctx, out.Secret(body))
 
 	return nil
 }
@@ -242,10 +243,12 @@ func isUnsafeKey(key string, sec gopass.Secret) bool {
 	if strings.ToLower(key) == "password" {
 		return true
 	}
+
 	uks, found := sec.Get("unsafe-keys")
 	if !found || uks == "" {
 		return false
 	}
+
 	for _, uk := range strings.Split(uks, ",") {
 		uk = strings.TrimSpace(uk)
 		if uk == "" {
@@ -255,6 +258,7 @@ func isUnsafeKey(key string, sec gopass.Secret) bool {
 			return true
 		}
 	}
+
 	return false
 }
 
@@ -288,12 +292,15 @@ func (s *Action) showHandleError(ctx context.Context, c *cli.Context, name strin
 		}
 		return ExitError(ExitUnknown, err, "failed to retrieve secret %q: %s", name, err)
 	}
+
 	if newName := s.hasAliasDomain(ctx, name); newName != "" {
 		return s.show(ctx, nil, newName, false)
 	}
+
 	if IsClip(ctx) {
 		_ = notify.Notify(ctx, "gopass - warning", fmt.Sprintf("Entry %q not found. Starting search...", name))
 	}
+
 	out.Warningf(ctx, "Entry %q not found. Starting search...", name)
 	c.Context = ctx
 	if err := s.Find(c); err != nil {

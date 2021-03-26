@@ -36,10 +36,12 @@ func (s *Action) Env(c *cli.Context) error {
 		if err != nil {
 			return ExitError(ExitList, err, "failed to list store: %s", err)
 		}
+
 		subtree, err := l.FindFolder(name)
 		if err != nil {
 			return ExitError(ExitNotFound, nil, "Entry %q not found", name)
 		}
+
 		subtree.SetName(name)
 		for _, e := range subtree.List(tree.INF) {
 			en := path.Join(name, e)

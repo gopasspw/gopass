@@ -15,7 +15,8 @@ var (
 	// Stdout is exported for tests
 	Stdout io.Writer = os.Stdout
 	// Stderr is exported for tests
-	Stderr io.Writer = os.Stderr
+	Stderr     io.Writer = os.Stderr
+	logSecrets bool
 )
 
 var opts struct {
@@ -33,6 +34,10 @@ func initDebug() bool {
 	if os.Getenv("GOPASS_DEBUG") == "" && os.Getenv("GOPASS_DEBUG_LOG") == "" {
 		logFn = doNotLog
 		return false
+	}
+
+	if sv := os.Getenv("GOPASS_DEBUG_LOG_SECRETS"); sv != "" && sv != "false" {
+		logSecrets = true
 	}
 
 	initDebugLogger()
@@ -188,9 +193,19 @@ func doLog(offset int, f string, args ...interface{}) {
 		Str() string
 	}
 
+	type Safer interface {
+		SafeStr() string
+	}
+
+	argsi := make([]interface{}, len(args))
 	for i, item := range args {
+		argsi[i] = item
+		if secreter, ok := item.(Safer); ok && !logSecrets {
+			argsi[i] = secreter.SafeStr()
+			continue
+		}
 		if shortener, ok := item.(Shortener); ok {
-			args[i] = shortener.Str()
+			argsi[i] = shortener.Str()
 		}
 	}
 
@@ -199,11 +214,11 @@ func doLog(offset int, f string, args ...interface{}) {
 	formatString := fmt.Sprintf("%s\t%s\t%s", pos, fn, f)
 
 	dbgprint := func() {
-		fmt.Fprintf(Stderr, formatString, args...)
+		fmt.Fprintf(Stderr, formatString, argsi...)
 	}
 
 	if opts.logger != nil {
-		opts.logger.Printf(formatString, args...)
+		opts.logger.Printf(formatString, argsi...)
 	}
 
 	filename := fmt.Sprintf("%s/%s:%d", dir, file, line)

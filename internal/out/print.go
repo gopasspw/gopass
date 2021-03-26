@@ -18,6 +18,15 @@ var (
 	Stderr io.Writer = os.Stderr
 )
 
+// Secret is a string wrapper for strings containing secrets. These won't be
+// logged as long a GOPASS_DEBUG_LOG_SECRETS is not set
+type Secret string
+
+// SafeStr always return "(elided)"
+func (s Secret) SafeStr() string {
+	return "(elided)"
+}
+
 func newline(ctx context.Context) string {
 	if HasNewline(ctx) {
 		return "\n"
@@ -26,7 +35,7 @@ func newline(ctx context.Context) string {
 }
 
 // Print prints the given string
-func Print(ctx context.Context, arg string) {
+func Print(ctx context.Context, arg interface{}) {
 	Printf(ctx, "%s", arg)
 }
 
@@ -40,7 +49,7 @@ func Printf(ctx context.Context, format string, args ...interface{}) {
 }
 
 // Notice prints the string with an exclamation mark
-func Notice(ctx context.Context, arg string) {
+func Notice(ctx context.Context, arg interface{}) {
 	Noticef(ctx, "%s", arg)
 }
 
@@ -54,7 +63,7 @@ func Noticef(ctx context.Context, format string, args ...interface{}) {
 }
 
 // Error prints the string with a red cross in front
-func Error(ctx context.Context, arg string) {
+func Error(ctx context.Context, arg interface{}) {
 	Errorf(ctx, "%s", arg)
 }
 
@@ -68,7 +77,7 @@ func Errorf(ctx context.Context, format string, args ...interface{}) {
 }
 
 // OK prints the string with a green checkmark in front
-func OK(ctx context.Context, arg string) {
+func OK(ctx context.Context, arg interface{}) {
 	OKf(ctx, "%s", arg)
 }
 
@@ -82,7 +91,7 @@ func OKf(ctx context.Context, format string, args ...interface{}) {
 }
 
 // Warning prints the string with a warning sign in front
-func Warning(ctx context.Context, arg string) {
+func Warning(ctx context.Context, arg interface{}) {
 	Warningf(ctx, "%s", arg)
 }
 

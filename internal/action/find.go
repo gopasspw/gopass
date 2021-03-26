@@ -33,6 +33,7 @@ func (s *Action) findCmd(c *cli.Context, cb showFunc, fuzzy bool) error {
 		ctx = WithOnlyClip(ctx, c.Bool("clip"))
 		ctx = WithClip(ctx, c.Bool("clip"))
 	}
+
 	if c.IsSet("unsafe") {
 		ctx = ctxutil.WithForce(ctx, c.Bool("unsafe"))
 	}

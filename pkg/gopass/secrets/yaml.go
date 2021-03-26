@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/caspr-io/yamlpath"
+	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/gopass"
 	yaml "gopkg.in/yaml.v3"
@@ -91,7 +92,7 @@ func ParseYAML(in []byte) (*YAML, error) {
 	y := &YAML{
 		data: make(map[string]interface{}, 10),
 	}
-	debug.Log("Parsing %s", string(in))
+	debug.Log("Parsing %s", out.Secret(in))
 	r := bufio.NewReader(bytes.NewReader(in))
 	line, err := r.ReadString('\n')
 	if err != nil {
@@ -183,4 +184,9 @@ func (y *YAML) Bytes() []byte {
 func (y *YAML) Write(buf []byte) (int, error) {
 	y.body += string(buf)
 	return len(buf), nil
+}
+
+// SafeStr always returnes "(elided)"
+func (y *YAML) SafeStr() string {
+	return "(elided)"
 }
