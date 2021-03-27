@@ -1,5 +1,5 @@
 
-.TH GOPASS "1" "March 2021" "gopass (github.com/gopasspw/gopass) 1.12.4" "User Commands"
+.TH GOPASS "1" "March 2021" "gopass (github.com/gopasspw/gopass) 1.12.5" "User Commands"
 .SH NAME
 gopass - The standard Unix password manager
 .SH SYNOPSIS
@@ -103,6 +103,10 @@ Easy creation of new secrets
 This command starts a wizard to aid in creation of new secrets.
 
 .B Flags
+.TP
+\fB\-\-force\fR,
+\fB\-\-f\fR,
+Force path selection
 .TP
 \fB\-\-store\fR,
 \fB\-\-s\fR,
@@ -282,6 +286,10 @@ Overwrite any existing secret and do not prompt to confirm recipients
 \fB\-\-multiline\fR,
 \fB\-\-m\fR,
 Insert using $EDITOR
+.SS link
+Create a symlink
+
+This command creates a symlink from one entry in a mounted store to another entry.Important: Does not cross mounts!
 .SS list
 List existing secrets
 

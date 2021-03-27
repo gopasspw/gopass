@@ -1,3 +1,14 @@
+## 1.12.5 / 2021-03-27
+
+* [BUGFIX] Allow subkeys (#1843, #1841, #1842)
+* [BUGFIX] Avoid logging credentials (#1886, #1883)
+* [BUGFIX] Fix SSH Command override on termux (#1881)
+* [CLEANUP] Moving pkg/pinentry to gopasspw/pinentry (#1876)
+* [ENHANCEMENT] Add -f flag to create (#1867, #1811)
+* [ENHANCEMENT] Add gopass ln (#1828)
+* [ENHANCEMENT] Add proper diff numbers on sync (#1882)
+* [ENHANCEMENT] Update password rules (#1861)
+
 ## 1.12.4 / 2021-03-20
 
 * [BUGFIX] Bring back --yes (#1862, #1858)
