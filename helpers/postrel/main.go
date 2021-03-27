@@ -62,17 +62,17 @@ func main() {
 
 	// update gopass.pw
 	if err := updateGopasspw(htmlDir, curVer); err != nil {
-		panic(err)
+		fmt.Printf("Failed to update gopasspw.github.io: %s\n", err)
 	}
 
 	// create a new GitHub milestone
 	if err := createGHMilestone(ghPat, nextVer); err != nil {
-		panic(err)
+		fmt.Printf("Failed to create GitHub milestones: %s\n", err)
 	}
 
 	// send PRs to update gopass ports
 	if err := updateRepos(curVer); err != nil {
-		panic(err)
+		fmt.Printf("Failed to update repos: %s\n", err)
 	}
 
 	// TODO tweet about the new release
@@ -93,17 +93,25 @@ func createGHMilestone(pat string, v semver.Version) error {
 		return err
 	}
 
-	ver := v.String()
+	if err := createSingleGHMilestone(ctx, client, v.String(), 1, ms); err != nil {
+		return err
+	}
+
+	v.IncrementPatch()
+	return createSingleGHMilestone(ctx, client, v.String(), 2, ms)
+}
+
+func createSingleGHMilestone(ctx context.Context, client *github.Client, title string, offset int, ms []*github.Milestone) error {
 	for _, m := range ms {
-		if *m.Title == ver {
-			fmt.Printf("Milestone %s exists\n", ver)
+		if *m.Title == title {
+			fmt.Printf("Milestone %s exists\n", title)
 			return nil
 		}
 	}
 
-	due := time.Now().Add(30 * 24 * time.Hour)
-	_, _, err = client.Issues.CreateMilestone(ctx, "gopasspw", "gopass", &github.Milestone{
-		Title: &ver,
+	due := time.Now().Add(time.Duration(offset) * 30 * 24 * time.Hour)
+	_, _, err := client.Issues.CreateMilestone(ctx, "gopasspw", "gopass", &github.Milestone{
+		Title: &title,
 		DueOn: &due,
 	})
 
@@ -322,7 +330,7 @@ func updateAlpine(url string, v semver.Version, sha512 string) error {
 
 	repl := map[string]string{
 		"pkgver=":     "pkgver=" + v.String(),
-		"sha512sums=": "sha512sums=\"" + sha512 + "\"",
+		"sha512sums=": "sha512sums=\"" + sha512 + "  gopass-" + v.String() + ".tar.gz\"",
 		"source=":     `source="$pkgname-$pkgver.tar.gz::https://github.com/gopasspw/gopass/archive/v$pkgver.tar.gz"`,
 	}
 	if err := updateBuild(buildPath, repl); err != nil {
