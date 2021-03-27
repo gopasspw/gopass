@@ -376,10 +376,12 @@ func (s *Action) createGeneratePassword(ctx context.Context, hostname string) (s
 	if err != nil {
 		return "", err
 	}
+
 	symbols, err := termio.AskForBool(ctx, fmtfn(4, "c", "Include symbols?"), false)
 	if err != nil {
 		return "", err
 	}
+
 	corp, err := termio.AskForBool(ctx, fmtfn(4, "d", "Strict rules?"), false)
 	if err != nil {
 		return "", err
@@ -387,6 +389,7 @@ func (s *Action) createGeneratePassword(ctx context.Context, hostname string) (s
 	if corp {
 		return pwgen.GeneratePasswordWithAllClasses(length)
 	}
+
 	return pwgen.GeneratePassword(length, symbols), nil
 }
 
@@ -396,5 +399,6 @@ func (s *Action) createGeneratePIN(ctx context.Context) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
 	return pwgen.GeneratePasswordCharset(length, "0123456789"), nil
 }

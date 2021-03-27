@@ -126,3 +126,8 @@ func (p *Plain) Write(buf []byte) (int, error) {
 func (p *Plain) WriteString(in string) {
 	p.Write([]byte(in))
 }
+
+// SafeStr always returnes "(elided)"
+func (p *Plain) SafeStr() string {
+	return "(elided)"
+}

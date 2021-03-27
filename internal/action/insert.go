@@ -95,6 +95,7 @@ func (s *Action) insertStdin(ctx context.Context, name string, content []byte, a
 		if err != nil {
 			return ExitError(ExitDecrypt, err, "failed to decrypt existing secret: %s", err)
 		}
+
 		secW, ok := eSec.(io.Writer)
 		if !ok {
 			return fmt.Errorf("%T is not an io.Writer", eSec)
@@ -102,6 +103,7 @@ func (s *Action) insertStdin(ctx context.Context, name string, content []byte, a
 		if _, err := secW.Write(content); err != nil {
 			return ExitError(ExitEncrypt, err, "failed to write %q: %q", content, err)
 		}
+
 		debug.Log("wrote to secretWriter")
 		sec = eSec
 	} else {
@@ -109,9 +111,11 @@ func (s *Action) insertStdin(ctx context.Context, name string, content []byte, a
 		if n, err := plain.Write(content); err != nil || n < 0 {
 			return ExitError(ExitAborted, err, "failed to write secret from stdin: %s", err)
 		}
+
 		sec = plain
 		debug.Log("Created new plain secret with input")
 	}
+
 	if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, "Read secret from STDIN"), name, sec); err != nil {
 		return ExitError(ExitEncrypt, err, "failed to set %q: %s", name, err)
 	}
