@@ -162,6 +162,12 @@ WARNING: This will update the secret content to the latest format. This might be
 	      _gopass_complete_folders
 	      _gopass_complete_passwords
 	      ;;
+	  link|ln|symlink)
+	      
+	      _describe -t commands "gopass link" subcommands
+	      
+	      
+	      ;;
 	  list|ls)
 	      _arguments : "--limit[Display no more than this many levels of the tree]" "--flat[Print a flat list]" "--folders[Print a flat list of folders]" "--strip-prefix[Strip this prefix from filtered entries]"
 	      _describe -t commands "gopass list" subcommands
@@ -297,6 +303,7 @@ WARNING: This will update the secret content to the latest format. This might be
 	  "history:Show password history"
 	  "init:Initialize new password store."
 	  "insert:Insert a new secret"
+	  "link:Create a symlink"
 	  "list:List existing secrets"
 	  "mounts:Edit mounted stores"
 	  "move:Move secrets from one location to another"
