@@ -1,6 +1,7 @@
 package fsutil
 
 import (
+	"bufio"
 	"fmt"
 	"io"
 	"math/rand"
@@ -126,4 +127,23 @@ func Shred(path string, runs int) error {
 	}
 
 	return os.Remove(path)
+}
+
+// FileContains searches the given file for the search string and returns true
+// iff it's an exact (substring) match.
+func FileContains(path, needle string) bool {
+	fh, err := os.Open(path)
+	if err != nil {
+		debug.Log("failed to open %q for reading: %s", path, err)
+		return false
+	}
+	defer fh.Close()
+
+	s := bufio.NewScanner(fh)
+	for s.Scan() {
+		if strings.Contains(s.Text(), needle) {
+			return true
+		}
+	}
+	return false
 }

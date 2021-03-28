@@ -1,4 +1,4 @@
-package cli
+package colons
 
 import (
 	"bufio"
@@ -57,8 +57,8 @@ var (
 // 15 - Hash algo (2 - SHA-1, 8 - SHA-256)
 // 16 - Curve Name
 
-// parseColons parses the `--with-colons` output format of GPG
-func parseColons(reader io.Reader) gpg.KeyList {
+// Parse parses the `--with-colons` output format of GPG
+func Parse(reader io.Reader) gpg.KeyList {
 	kl := make(gpg.KeyList, 0, 100)
 
 	scanner := bufio.NewScanner(reader)

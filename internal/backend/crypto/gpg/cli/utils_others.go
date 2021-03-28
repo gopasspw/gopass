@@ -5,6 +5,7 @@ package cli
 import (
 	"os"
 	"os/exec"
+	"syscall"
 )
 
 func tty() string {
@@ -15,4 +16,8 @@ func tty() string {
 		return ""
 	}
 	return string(out)
+}
+
+func umask(mask int) int {
+	return syscall.Umask(mask)
 }

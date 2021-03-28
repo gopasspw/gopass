@@ -1,4 +1,4 @@
-package cli
+package colons
 
 import (
 	"strings"
