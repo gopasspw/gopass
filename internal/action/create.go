@@ -133,8 +133,11 @@ func (s *Action) createWebsite(ctx context.Context, c *cli.Context) error {
 	// by default create will generate a name for the secret based on the user
 	// input. Only when the force flag is given it will accept a secrets path
 	// as the first argument.
-	if name == "" && !force {
+	if name == "" || !force {
 		name = fmt.Sprintf("%swebsites/%s/%s", store, fsutil.CleanFilename(hostname), fsutil.CleanFilename(username))
+	}
+	if force && !strings.HasPrefix(name, store) {
+		out.Warningf(ctx, "User supplied secret name %q does not match requested mount %q. Ignoring store flag.", name, store)
 	}
 
 	// force will also override the check for existing entries
@@ -239,8 +242,11 @@ func (s *Action) createPIN(ctx context.Context, c *cli.Context) error {
 	// by default create will generate a name for the secret based on the user
 	// input. Only when the force flag is given it will accept a secrets path
 	// as the first argument.
-	if name == "" && !force {
+	if name == "" || !force {
 		name = fmt.Sprintf("%spins/%s/%s", store, fsutil.CleanFilename(authority), fsutil.CleanFilename(application))
+	}
+	if force && !strings.HasPrefix(name, store) {
+		out.Warningf(ctx, "User supplied secret name %q does not match requested mount %q. Ignoring store flag.", name, store)
 	}
 
 	// force will also override the check for existing entries
@@ -309,8 +315,11 @@ func (s *Action) createGeneric(ctx context.Context, c *cli.Context) error {
 	// by default create will generate a name for the secret based on the user
 	// input. Only when the force flag is given it will accept a secrets path
 	// as the first argument.
-	if name == "" && !force {
+	if name == "" || !force {
 		name = fmt.Sprintf("%smisc/%s", store, fsutil.CleanFilename(shortname))
+	}
+	if force && !strings.HasPrefix(name, store) {
+		out.Warningf(ctx, "User supplied secret name %q does not match requested mount %q. Ignoring store flag.", name, store)
 	}
 
 	// force will also override the check for existing entries
