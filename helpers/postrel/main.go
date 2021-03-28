@@ -178,10 +178,17 @@ func versionFile() (semver.Version, error) {
 }
 
 func updateRepos(v semver.Version) error {
-	url := fmt.Sprintf("https://github.com/gopasspw/gopass/releases/download/v%s/gopass-%s.tar.gz", v.String(), v.String())
+	relURL := fmt.Sprintf("https://github.com/gopasspw/gopass/releases/download/v%s/gopass-%s.tar.gz", v.String(), v.String())
 	// fetch https://github.com/gopasspw/gopass/archive/vVER.tar.gz
 	// compute sha256, sha512
-	sha256s, sha512s, err := checksum(url)
+	_, relSHA512s, err := checksum(relURL)
+	if err != nil {
+		return err
+	}
+	arcURL := fmt.Sprintf("https://github.com/gopasspw/gopass/archive/v%s.tar.gz", v.String())
+	// fetch https://github.com/gopasspw/gopass/archive/vVER.tar.gz
+	// compute sha256, sha512
+	arcSHA256s, arcSHA512s, err := checksum(arcURL)
 	if err != nil {
 		return err
 	}
@@ -193,25 +200,25 @@ func updateRepos(v semver.Version) error {
 		{
 			Distro: "AlpineLinux",
 			UpFn: func() error {
-				return updateAlpine(url, v, sha512s)
+				return updateAlpine(arcURL, v, arcSHA512s)
 			},
 		},
 		{
 			Distro: "Homebrew",
 			UpFn: func() error {
-				return updateHomebrew(url, v, sha512s)
+				return updateHomebrew(relURL, v, relSHA512s)
 			},
 		},
 		{
 			Distro: "Termux",
 			UpFn: func() error {
-				return updateTermux(url, v, sha256s)
+				return updateTermux(arcURL, v, arcSHA256s)
 			},
 		},
 		{
 			Distro: "VoidLinux",
 			UpFn: func() error {
-				return updateVoid(url, v, sha256s)
+				return updateVoid(arcURL, v, arcSHA256s)
 			},
 		},
 	} {
@@ -225,87 +232,6 @@ func updateRepos(v semver.Version) error {
 	}
 
 	return nil
-}
-
-func checksum(url string) (string, string, error) {
-	resp, err := http.Get(url)
-	if err != nil {
-		return "", "", err
-	}
-	defer resp.Body.Close()
-
-	s2 := sha256.New()
-	s5 := sha512.New()
-	w := io.MultiWriter(s2, s5)
-
-	_, err = io.Copy(w, resp.Body)
-	if err != nil {
-		return "", "", err
-	}
-
-	return fmt.Sprintf("%x", s2.Sum(nil)), fmt.Sprintf("%x", s5.Sum(nil)), nil
-}
-
-type repo struct {
-	ver semver.Version // gopass version
-	url string         // gopass download url
-	dir string         // repo dir
-}
-
-func (r *repo) updatePrepare() error {
-	// git co master
-	if err := r.gitCoMaster(); err != nil {
-		return err
-	}
-	if !r.isGitClean() {
-		return fmt.Errorf("git is dirty")
-	}
-	// git pull origin master
-	if err := r.gitPom(); err != nil {
-		return err
-	}
-	// git co -b gopass-VER
-	return r.gitBranch()
-}
-
-func (r *repo) updateFinalize(path string) error {
-	// git commit -m 'gopass: update to VER'
-	if err := r.gitCommit(path); err != nil {
-		return err
-	}
-	// git push myfork gopass-VER
-	return r.gitPush("myfork")
-
-}
-
-func updateBuild(path string, m map[string]string) error {
-	fin, err := os.Open(path)
-	if err != nil {
-		return err
-	}
-	defer fin.Close()
-
-	npath := path + ".new"
-	fout, err := os.Create(npath)
-	if err != nil {
-		return err
-	}
-	defer fout.Close()
-
-	s := bufio.NewScanner(fin)
-SCAN:
-	for s.Scan() {
-		line := s.Text()
-		for match, repl := range m {
-			if strings.HasPrefix(line, match) {
-				fmt.Fprintln(fout, repl)
-				continue SCAN
-			}
-		}
-		fmt.Fprintln(fout, line)
-	}
-
-	return os.Rename(npath, path)
 }
 
 func updateAlpine(url string, v semver.Version, sha512 string) error {
@@ -337,7 +263,7 @@ func updateAlpine(url string, v semver.Version, sha512 string) error {
 		return err
 	}
 
-	if err := r.updateFinalize(buildFn); err != nil {
+	if err := r.updateFinalize("community/gopass: upgrade to "+v.String(), buildFn); err != nil {
 		return err
 	}
 
@@ -375,7 +301,7 @@ func updateHomebrew(url string, v semver.Version, sha256 string) error {
 	); err != nil {
 		return err
 	}
-	if err := r.updateFinalize(buildFn); err != nil {
+	if err := r.updateFinalize("", buildFn); err != nil {
 		return err
 	}
 	// TODO could open a PR: https://pkg.go.dev/github.com/google/go-github/v33@v33.0.0/github#PullRequestsService.Create
@@ -405,6 +331,7 @@ func updateTermux(url string, v semver.Version, sha256 string) error {
 	repl := map[string]string{
 		"TERMUX_PKG_VERSION": "TERMUX_PKG_VERSION=" + v.String(),
 		"TERMUX_PKG_SHA256":  "TERMUX_PKG_SHA256=" + sha256,
+		"TERMUX_PKG_REVISON": "TERMUX_PKG_REVISION=1",
 		"TERMUX_PKG_SRCURL":  `TERMUX_PKG_SRCURL=https://github.com/gopasspw/gopass/archive/v$TERMUX_PKG_VERSION.tar.gz`,
 	}
 	if err := updateBuild(
@@ -413,7 +340,7 @@ func updateTermux(url string, v semver.Version, sha256 string) error {
 	); err != nil {
 		return err
 	}
-	if err := r.updateFinalize(buildFn); err != nil {
+	if err := r.updateFinalize("", buildFn); err != nil {
 		return err
 	}
 
@@ -444,6 +371,7 @@ func updateVoid(url string, v semver.Version, sha256 string) error {
 	repl := map[string]string{
 		"version=":   "version=" + v.String(),
 		"checksum=":  "checksum=" + sha256,
+		"revision=":  "revision=1",
 		"distfiles=": `distfiles="https://github.com/gopasspw/gopass/archive/v${version}.tar.gz"`,
 	}
 	if err := updateBuild(
@@ -453,12 +381,93 @@ func updateVoid(url string, v semver.Version, sha256 string) error {
 		return err
 	}
 
-	if err := r.updateFinalize(buildFn); err != nil {
+	if err := r.updateFinalize("", buildFn); err != nil {
 		return err
 	}
 
 	// TODO could open a PR: https://pkg.go.dev/github.com/google/go-github/v33@v33.0.0/github#PullRequestsService.Create
 	return nil
+}
+
+func checksum(url string) (string, string, error) {
+	resp, err := http.Get(url)
+	if err != nil {
+		return "", "", err
+	}
+	defer resp.Body.Close()
+
+	s2 := sha256.New()
+	s5 := sha512.New()
+	w := io.MultiWriter(s2, s5)
+
+	_, err = io.Copy(w, resp.Body)
+	if err != nil {
+		return "", "", err
+	}
+
+	return fmt.Sprintf("%x", s2.Sum(nil)), fmt.Sprintf("%x", s5.Sum(nil)), nil
+}
+
+func updateBuild(path string, m map[string]string) error {
+	fin, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer fin.Close()
+
+	npath := path + ".new"
+	fout, err := os.Create(npath)
+	if err != nil {
+		return err
+	}
+	defer fout.Close()
+
+	s := bufio.NewScanner(fin)
+SCAN:
+	for s.Scan() {
+		line := s.Text()
+		for match, repl := range m {
+			if strings.HasPrefix(line, match) {
+				fmt.Fprintln(fout, repl)
+				continue SCAN
+			}
+		}
+		fmt.Fprintln(fout, line)
+	}
+
+	return os.Rename(npath, path)
+}
+
+type repo struct {
+	ver semver.Version // gopass version
+	url string         // gopass download url
+	dir string         // repo dir
+}
+
+func (r *repo) updatePrepare() error {
+	// git co master
+	if err := r.gitCoMaster(); err != nil {
+		return err
+	}
+	if !r.isGitClean() {
+		return fmt.Errorf("git is dirty")
+	}
+	// git pull origin master
+	if err := r.gitPom(); err != nil {
+		return err
+	}
+	// git co -b gopass-VER
+	return r.gitBranch()
+}
+
+func (r *repo) updateFinalize(msg, path string) error {
+	// git commit -m 'gopass: update to VER'
+	if err := r.gitCommit(msg, path); err != nil {
+		return err
+	}
+	// git push myfork gopass-VER
+	return r.gitPush("myfork")
+
 }
 
 func (r *repo) gitCoMaster() error {
@@ -493,7 +502,7 @@ func (r *repo) gitPush(remote string) error {
 	return cmd.Run()
 }
 
-func (r *repo) gitCommit(files ...string) error {
+func (r *repo) gitCommit(msg string, files ...string) error {
 	args := []string{"add"}
 	args = append(args, files...)
 
@@ -505,7 +514,10 @@ func (r *repo) gitCommit(files ...string) error {
 		return err
 	}
 
-	cmd = exec.Command("git", "commit", "-s", "-m", "gopass: update to "+r.ver.String())
+	if msg == "" {
+		msg = "gopass: update to " + r.ver.String()
+	}
+	cmd = exec.Command("git", "commit", "-s", "-m", msg)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Dir = r.dir
