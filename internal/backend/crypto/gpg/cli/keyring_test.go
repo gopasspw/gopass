@@ -2,6 +2,7 @@ package cli
 
 import (
 	"context"
+	"runtime"
 	"testing"
 
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -76,4 +77,28 @@ func TestReadNamesFromKey(t *testing.T) {
 	names, err := g.ReadNamesFromKey(ctx, []byte(pubkey))
 	assert.NoError(t, err)
 	assert.Equal(t, []string{"Gopass Archive Signing Key <gopass@justwatch.com>"}, names)
+}
+
+func TestExportPublicKey(t *testing.T) {
+	ctx := context.Background()
+	g, err := New(ctx, Config{})
+	require.NoError(t, err)
+
+	_, err = g.ExportPublicKey(ctx, "foobar")
+	assert.Error(t, err)
+}
+
+func TestImport(t *testing.T) {
+	ctx := context.Background()
+
+	g := &GPG{}
+	g.binary = "true"
+	if runtime.GOOS == "windows" {
+		g.binary = "rundll32"
+	}
+
+	assert.NoError(t, g.ImportPublicKey(ctx, []byte("foobar")))
+
+	g.binary = ""
+	assert.Error(t, g.ImportPublicKey(ctx, []byte("foobar")))
 }

@@ -2,7 +2,10 @@
 
 package cli
 
-import "os"
+import (
+	"os"
+	"syscall"
+)
 
 var (
 	fd0 = "/proc/self/fd/0"
@@ -15,4 +18,8 @@ func tty() string {
 		return ""
 	}
 	return dest
+}
+
+func umask(mask int) int {
+	return syscall.Umask(mask)
 }
