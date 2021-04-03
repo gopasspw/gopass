@@ -100,6 +100,15 @@ snapcrafts:
     confinement: devmode
     license: MIT
     base: core20
+    apps:
+      gopass:
+        plugs: ["home", "network", "personal-files", "gpg-keys", "ssh-keys", "x11"]
+    plugs:
+      home:
+      personal-files:
+        write:
+        - $HOME/.config/gopass
+        - $HOME/.local/share/gopass
 
 signs:
   -
