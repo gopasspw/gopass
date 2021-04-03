@@ -90,6 +90,17 @@ milestones:
     fail_on_error: false
     name_template: "{{ .Major }}.{{ .Minor }}.{{ .Patch }}"
 
+snapcrafts:
+  - name: gopass
+    publish: false
+    summary: gopass
+    description: |
+      The team password manager
+    grade: devel
+    confinement: devmode
+    license: MIT
+    base: core20
+
 signs:
   -
     id: gopass
