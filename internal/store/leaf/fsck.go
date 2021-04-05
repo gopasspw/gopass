@@ -101,6 +101,9 @@ func (s *Store) fsckCheckEntry(ctx context.Context, name string) error {
 	}
 
 	// check itemRecps matches storeRecps
+	// TODO we need to noramlize both slices before we can compare them,
+	// otherwise one might contain a short key id or a name while the other has
+	// the full key id
 	missing, extra := compareStringSlices(perItemStoreRecps, itemRecps)
 	if len(missing) > 0 {
 		out.Errorf(ctx, "Missing recipients on %s: %+v\nRun fsck with the --decrypt flag to re-encrypt it automatically, or edit this secret yourself.", name, missing)
