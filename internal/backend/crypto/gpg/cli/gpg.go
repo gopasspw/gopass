@@ -7,7 +7,6 @@ import (
 
 	"github.com/gopasspw/gopass/internal/backend/crypto/gpg"
 	"github.com/gopasspw/gopass/pkg/debug"
-	"github.com/gopasspw/gopass/pkg/fsutil"
 	lru "github.com/hashicorp/golang-lru"
 )
 
@@ -51,10 +50,16 @@ func New(ctx context.Context, cfg Config) (*GPG, error) {
 		}
 	}
 
+	gcfg, err := gpgConfig()
+	if err != nil {
+		debug.Log("failed to read GPG config: %s", err)
+	}
+	_, throwKids := gcfg["throw-keyids"]
+
 	g := &GPG{
 		binary:    "gpg",
 		args:      append(defaultArgs, cfg.Args...),
-		throwKids: fsutil.FileContains(gpgConfigLoc(), "throw-keyids"),
+		throwKids: throwKids,
 	}
 
 	debug.Log("initializing LRU cache")

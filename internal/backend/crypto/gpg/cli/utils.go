@@ -1,6 +1,8 @@
 package cli
 
 import (
+	"bufio"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -27,6 +29,39 @@ func gpgConfigLoc() string {
 
 	uhd, _ := os.UserHomeDir()
 	return filepath.Join(uhd, ".gnupg", "gpg.conf")
+}
+
+func gpgConfig() (map[string]string, error) {
+	fh, err := os.Open(gpgConfigLoc())
+	if err != nil {
+		return nil, err
+	}
+	defer fh.Close()
+
+	return parseGpgConfig(fh)
+}
+
+func parseGpgConfig(fh io.Reader) (map[string]string, error) {
+	val := make(map[string]string, 20)
+	scanner := bufio.NewScanner(fh)
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		// ignore comments
+		if strings.HasPrefix(line, "#") {
+			continue
+		}
+		p := strings.SplitN(line, " ", 2)
+		if len(p) < 1 {
+			continue
+		}
+		val[p[0]] = ""
+		if len(p) < 2 {
+			continue
+		}
+		val[p[0]] = strings.TrimSpace(p[1])
+	}
+
+	return val, nil
 }
 
 // GPGOpts parses extra GPG options from the environment
