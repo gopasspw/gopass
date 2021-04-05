@@ -11,6 +11,7 @@
 * *gopass fails with 'gpg failed to sign the data fatal: failed to write commit object'* - If git is not able to interface with GPG, commits will fail because gopass configures git to sign commits by default. Have a look a [this question](https://stackoverflow.com/questions/39494631/gpg-failed-to-sign-the-data-fatal-failed-to-write-commit-object-git-2-10-0) for more information.
 * *Can gopass be used with Terraform?* - Yes, there is a gopass-based [Terraform provider](https://github.com/camptocamp/terraform-provider-pass) available.
 * *How can I fix ´"gpg: decryption failed: No secret key"` errors?* - Set the ´auto-expand-secmem` option in your gpg-agent.conf, if your version of GnuPG supports it.
+* *I'm getting `Path too long for Unix domain socket` errors, usually on MacOS*. This can be fixed by setting `export TMPDIR=/tmp` (or any other suiteable location with a path shorter than 80 characters).
 
 ## API Stability
 

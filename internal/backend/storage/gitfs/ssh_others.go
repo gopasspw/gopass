@@ -11,6 +11,9 @@ import "os"
 //
 // Note: Setting GIT_SSH_COMMAND, possibly to an empty string, will take
 // precedence over this setting.
+//
+// %C is a hash of %l%h%p%r and should avoid "path too long for unix domain socket"
+// errors. If you still encounter this error set TMPDIR to a short path, e.g. /tmp.
 func gitSSHCommand() string {
-	return "ssh -oControlMaster=auto -oControlPersist=600 -oControlPath=" + os.TempDir() + "/.gopass-ssh-${USER}-%r@%h:%p"
+	return "ssh -oControlMaster=auto -oControlPersist=600 -oControlPath=" + os.TempDir() + "/.ssh-%C"
 }
