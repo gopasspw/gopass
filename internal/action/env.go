@@ -32,6 +32,8 @@ func (s *Action) Env(c *cli.Context) error {
 
 	keys := make([]string, 0, 1)
 	if s.Store.IsDir(ctx, name) {
+		debug.Log("%q is a dir, adding it's entries", name)
+
 		l, err := s.Store.Tree(ctx)
 		if err != nil {
 			return ExitError(ExitList, err, "failed to list store: %s", err)
@@ -42,11 +44,9 @@ func (s *Action) Env(c *cli.Context) error {
 			return ExitError(ExitNotFound, nil, "Entry %q not found", name)
 		}
 
-		subtree.SetName(name)
 		for _, e := range subtree.List(tree.INF) {
-			en := path.Join(name, e)
-			debug.Log("found key: %s", en)
-			keys = append(keys, en)
+			debug.Log("found key: %s", e)
+			keys = append(keys, e)
 		}
 	} else {
 		keys = append(keys, name)
@@ -57,7 +57,7 @@ func (s *Action) Env(c *cli.Context) error {
 		debug.Log("exporting to environment key: %s", key)
 		sec, err := s.Store.Get(ctx, key)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to get entry for env prefix %q: %w", name, err)
 		}
 		env = append(env, fmt.Sprintf("%s=%s", strings.ToUpper(path.Base(key)), sec.Password()))
 	}
