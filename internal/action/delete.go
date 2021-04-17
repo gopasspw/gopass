@@ -29,6 +29,10 @@ func (s *Action) Delete(c *cli.Context) error {
 	// specifying a key is optional
 	key := c.Args().Get(1)
 
+	if recursive && key != "" {
+		return ExitError(ExitUsage, nil, "Can not use -r with a key. Invoke delete either with a key or with -r")
+	}
+
 	if !force { // don't check if it's force anyway
 		recStr := ""
 		if recursive {
@@ -39,7 +43,7 @@ func (s *Action) Delete(c *cli.Context) error {
 		}
 	}
 
-	if recursive {
+	if recursive && key == "" {
 		debug.Log("pruning %q", name)
 		if err := s.Store.Prune(ctx, name); err != nil {
 			return ExitError(ExitUnknown, err, "failed to prune %q: %s", name, err)
