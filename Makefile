@@ -204,7 +204,7 @@ deps:
 	@go build -v ./...
 
 upgrade: gen fmt
-	@go get -u
+	@go get -u ./...
 
 man:
 	@go run helpers/man/main.go > gopass.1

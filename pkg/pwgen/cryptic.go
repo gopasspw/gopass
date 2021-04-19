@@ -28,7 +28,7 @@ func NewCryptic(length int) *Cryptic {
 	return &Cryptic{
 		Chars:    Digits + Upper + Lower,
 		Length:   length,
-		MaxTries: 128,
+		MaxTries: 64,
 	}
 }
 
@@ -52,15 +52,19 @@ func NewCrypticForDomain(length int, domain string) *Cryptic {
 	}
 	for _, req := range r.Required {
 		chars := charsFromRule(req)
-		debug.Log("Adding validator for %s: Requires %q -> %q", domain, req, chars)
-		if chars == "" {
+		if req == "" || strings.TrimSpace(chars) == "" {
 			continue
 		}
+		debug.Log("Adding validator for %s: Requires %q -> %q", domain, req, chars)
 		c.Validators = append(c.Validators, func(pw string) error {
-			if containsAllClasses(pw, charsFromRule(req)) {
+			wantChars := charsFromRule(req)
+			if wantChars == "" {
 				return nil
 			}
-			return fmt.Errorf("password %s does not contains any of %s", pw, chars)
+			if containsAllClasses(pw, wantChars) {
+				return nil
+			}
+			return fmt.Errorf("password %s does not contain any of %s", pw, chars)
 		})
 	}
 	if r.Maxconsec > 0 {
