@@ -60,4 +60,9 @@ func TestDelete(t *testing.T) {
 	c = gptest.CliCtxWithFlags(ctx, t, map[string]string{"recursive": "true"}, "foo")
 	assert.NoError(t, act.Delete(c))
 	buf.Reset()
+
+	// reject recursive flag when a key is given
+	c = gptest.CliCtxWithFlags(ctx, t, map[string]string{"recursive": "true"}, "foo", "bar")
+	assert.Error(t, act.Delete(c))
+	buf.Reset()
 }
