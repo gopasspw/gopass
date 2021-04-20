@@ -17,9 +17,9 @@ func TestParseRule(t *testing.T) {
 				Minlen: 8,
 				Maxlen: 20,
 				Required: []string{
-					"upper",
-					"lower",
 					"digit",
+					"lower",
+					"upper",
 				},
 				Allowed: []string{
 					"[@#*()+={}/?~;,.-_]",
@@ -33,18 +33,21 @@ func TestParseRule(t *testing.T) {
 				Minlen: 7,
 				Maxlen: 16,
 				Required: []string{
+					"[`!@#$%^&*()+~{}'\";:<>?]]",
+					"digit",
 					"lower",
 					"upper",
-					"digit",
-					"[`!@#$%^&*()+~{}'\";:<>?]]",
 				},
+				Allowed: []string{},
 			},
 		},
 		{
 			in: "minlength: 8; maxlength: 16;",
 			out: Rule{
-				Minlen: 8,
-				Maxlen: 16,
+				Minlen:   8,
+				Maxlen:   16,
+				Required: []string{},
+				Allowed:  []string{},
 			},
 		},
 	} {

@@ -2,6 +2,8 @@ package pwrules
 
 import (
 	"math"
+	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -11,7 +13,8 @@ import (
 //go:generate go run gen.go
 
 var (
-	rules = map[string]Rule{}
+	rules   = map[string]Rule{}
+	reChars = regexp.MustCompile(`(allowed|required):\s*\[(.*)\](?:;|,)`)
 )
 
 func init() {
@@ -26,6 +29,7 @@ func init() {
 			r.Maxlen = math.MaxInt32
 		}
 		rules[k] = r
+		debug.Log("added rule for %q from %q: %+v", k, v, r)
 	}
 }
 
@@ -63,14 +67,30 @@ type Rule struct {
 // NOTE: This is not a complete parser.
 func ParseRule(in string) Rule {
 	r := Rule{}
-	for _, part := range strings.Split(strings.TrimSuffix(in, ";"), "; ") {
+	if reChars.MatchString(in) {
+		m := reChars.FindStringSubmatch(in)
+		if len(m) > 2 {
+			re := "[" + m[2] + "]"
+			switch m[1] {
+			case "required":
+				r.Required = append(r.Required, re)
+			case "allowed":
+				r.Allowed = append(r.Allowed, re)
+			}
+		}
+	}
+	for _, part := range strings.Split(strings.TrimSuffix(in, ";"), ";") {
 		p := strings.Split(part, ": ")
 		if len(p) < 2 {
 			continue
 		}
 		var err error
-		key := p[0]
-		strVal := p[1]
+		key := strings.TrimSpace(p[0])
+		strVal := strings.TrimSpace(p[1])
+		max := len(strVal)
+		if i := strings.Index(strVal, "["); i > 0 {
+			max = i
+		}
 		switch key {
 		case "minlength":
 			r.Minlen, err = strconv.Atoi(strVal)
@@ -79,13 +99,28 @@ func ParseRule(in string) Rule {
 		case "max-consecutive":
 			r.Maxconsec, err = strconv.Atoi(strVal)
 		case "required":
-			r.Required = append(r.Required, strings.Split(strVal, ", ")...)
+			r.Required = append(r.Required, strings.Split(strVal[0:max], ",")...)
 		case "allowed":
-			r.Allowed = append(r.Allowed, strings.Split(strVal, ", ")...)
+			r.Allowed = append(r.Allowed, strings.Split(strVal[0:max], ",")...)
 		}
 		if err != nil {
 			debug.Log("failed to parse %s for %s: %s", strVal, key, err)
 		}
 	}
+	r.Required = sanitize(r.Required)
+	r.Allowed = sanitize(r.Allowed)
 	return r
+}
+
+func sanitize(in []string) []string {
+	out := make([]string, 0, len(in))
+	for _, v := range in {
+		v := strings.TrimSpace(v)
+		if strings.HasPrefix(v, "[") && !strings.HasSuffix(v, "]") {
+			continue
+		}
+		out = append(out, v)
+	}
+	sort.Strings(out)
+	return out
 }
