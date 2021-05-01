@@ -66,25 +66,29 @@ func (s *Action) GetCommands() []*cli.Command {
 					Name:        "add",
 					Action:      s.AliasesAdd,
 					Usage:       "Add a new alias",
+					ArgsUsage:   "[alias] [domain]",
 					Description: "Adds a new alias",
 				},
 				{
 					Name:        "remove",
 					Action:      s.AliasesRemove,
 					Usage:       "Remove an alias from a domain",
+					ArgsUsage:   "[alias] [domain]",
 					Description: "Remove an alias from a domain",
 				},
 				{
 					Name:        "delete",
 					Action:      s.AliasesDelete,
 					Usage:       "Delete an entire domain",
+					ArgsUsage:   "[alias]",
 					Description: "Delete an entire domain",
 				},
 			},
 		},
 		{
-			Name:  "audit",
-			Usage: "Decrypt all secrets and scan for weak or leaked passwords",
+			Name:      "audit",
+			Usage:     "Decrypt all secrets and scan for weak or leaked passwords",
+			ArgsUsage: "[filter]",
 			Description: "" +
 				"This command decrypts all secrets and checks for common flaws and (optionally) " +
 				"against a list of previously leaked passwords.",
@@ -92,8 +96,9 @@ func (s *Action) GetCommands() []*cli.Command {
 			Action: s.Audit,
 		},
 		{
-			Name:  "cat",
-			Usage: "Print content of a secret to stdout, or insert from stdin",
+			Name:      "cat",
+			Usage:     "Print content of a secret to stdout, or insert from stdin",
+			ArgsUsage: "[secret]",
 			Description: "" +
 				"This command is similar to the way cat works on the command line. " +
 				"It can either be used to retrieve the decoded content of a secret " +
@@ -104,8 +109,9 @@ func (s *Action) GetCommands() []*cli.Command {
 			BashComplete: s.Complete,
 		},
 		{
-			Name:  "clone",
-			Usage: "Clone a password store from a git repository",
+			Name:      "clone",
+			Usage:     "Clone a password store from a git repository",
+			ArgsUsage: "[git-repo] [mount-point]",
 			Description: "" +
 				"This command clones an existing password store from a git remote to " +
 				"a local password store. Can be either used to initialize a new root store " +
@@ -127,8 +133,9 @@ func (s *Action) GetCommands() []*cli.Command {
 			},
 		},
 		{
-			Name:  "config",
-			Usage: "Display and edit the configuration file",
+			Name:      "config",
+			Usage:     "Display and edit the configuration file",
+			ArgsUsage: "[key [value]]",
 			Description: "" +
 				"This command allows for easy printing and editing of the configuration. " +
 				"Without argument, the entire config is printed. " +
@@ -146,8 +153,9 @@ func (s *Action) GetCommands() []*cli.Command {
 			Hidden:      true,
 			Flags: []cli.Flag{
 				&cli.StringFlag{
-					Name:  "store",
-					Usage: "Specify which store to convert",
+					Name:     "store",
+					Usage:    "Specify which store to convert",
+					Required: true,
 				},
 				&cli.BoolFlag{
 					Name:  "move",
@@ -165,9 +173,10 @@ func (s *Action) GetCommands() []*cli.Command {
 			},
 		},
 		{
-			Name:    "copy",
-			Aliases: []string{"cp"},
-			Usage:   "Copy secrets from one location to another",
+			Name:      "copy",
+			Aliases:   []string{"cp"},
+			Usage:     "Copy secrets from one location to another",
+			ArgsUsage: "[from] [to]",
 			Description: "" +
 				"This command copies an existing secret in the store to another location. " +
 				"This also works across different sub-stores. If the source is a directory it will " +
@@ -186,9 +195,10 @@ func (s *Action) GetCommands() []*cli.Command {
 			},
 		},
 		{
-			Name:    "create",
-			Aliases: []string{"new"},
-			Usage:   "Easy creation of new secrets",
+			Name:      "create",
+			Aliases:   []string{"new"},
+			Usage:     "Easy creation of new secrets",
+			ArgsUsage: "[secret]",
 			Description: "" +
 				"This command starts a wizard to aid in creation of new secrets.",
 			Before: s.IsInitialized,
@@ -207,8 +217,9 @@ func (s *Action) GetCommands() []*cli.Command {
 			},
 		},
 		{
-			Name:  "delete",
-			Usage: "Remove one or many secrets from the store",
+			Name:      "delete",
+			Usage:     "Remove one or many secrets from the store",
+			ArgsUsage: "[secret [key]]",
 			Description: "" +
 				"This command removes secrets. It can work recursively on folders. " +
 				"Recursing across stores is purposefully not supported.",
@@ -230,8 +241,9 @@ func (s *Action) GetCommands() []*cli.Command {
 			},
 		},
 		{
-			Name:  "edit",
-			Usage: "Edit new or existing secrets",
+			Name:      "edit",
+			Usage:     "Edit new or existing secrets",
+			ArgsUsage: "[secret]",
 			Description: "" +
 				"Use this command to insert a new secret or edit an existing one using " +
 				"your $EDITOR. It will attempt to create a secure temporary directory " +
@@ -258,6 +270,7 @@ func (s *Action) GetCommands() []*cli.Command {
 		{
 			Name:         "env",
 			Usage:        "Run a subprocess with a pre-populated environment",
+			ArgsUsage:    "[secret] [command and args...]",
 			Description:  "This command runs a sub process with the environment populated from the keys of a secret.",
 			Before:       s.IsInitialized,
 			Action:       s.Env,
@@ -265,8 +278,9 @@ func (s *Action) GetCommands() []*cli.Command {
 			Hidden:       true,
 		},
 		{
-			Name:  "find",
-			Usage: "Search for secrets",
+			Name:      "find",
+			Usage:     "Search for secrets",
+			ArgsUsage: "[needle]",
 			Description: "" +
 				"This command will first attempt a simple pattern match on the name of the " +
 				"secret.  If there is an exact match it will be shown directly; if there are " +
@@ -289,8 +303,9 @@ func (s *Action) GetCommands() []*cli.Command {
 			},
 		},
 		{
-			Name:  "fsck",
-			Usage: "Check store integrity",
+			Name:      "fsck",
+			Usage:     "Check store integrity",
+			ArgsUsage: "[filter]",
 			Description: "" +
 				"Check the integrity of the given sub-store or all stores if none are specified. " +
 				"Will automatically fix all issues found.",
@@ -305,8 +320,9 @@ func (s *Action) GetCommands() []*cli.Command {
 			},
 		},
 		{
-			Name:  "fscopy",
-			Usage: "Copy files from or to the password store",
+			Name:      "fscopy",
+			Usage:     "Copy files from or to the password store",
+			ArgsUsage: "[from] [to]",
 			Description: "" +
 				"This command either reads a file from the filesystem and writes the " +
 				"encoded and encrypted version in the store or it decrypts and decodes " +
@@ -319,8 +335,9 @@ func (s *Action) GetCommands() []*cli.Command {
 			Hidden:       true,
 		},
 		{
-			Name:  "fsmove",
-			Usage: "Move files from or to the password store",
+			Name:      "fsmove",
+			Usage:     "Move files from or to the password store",
+			ArgsUsage: "[from] [to]",
 			Description: "" +
 				"This command either reads a file from the filesystem and writes the " +
 				"encoded and encrypted version in the store or it decrypts and decodes " +
@@ -335,14 +352,12 @@ func (s *Action) GetCommands() []*cli.Command {
 			Hidden:       true,
 		},
 		{
-			Name:  "generate",
-			Usage: "Generate a new password",
+			Name:      "generate",
+			Usage:     "Generate a new password",
+			ArgsUsage: "[secret [key [length]|length]]",
 			Description: "" +
-				"Generate a new password of the specified length, optionally with no symbols. " +
-				"Alternatively, a xkcd style password can be generated (https://xkcd.com/936/). " +
-				"Optionally put it on the clipboard and clear clipboard after 45 seconds. " +
-				"Prompt before overwriting existing password unless forced. " +
-				"It will replace only the first line of an existing file with a new password.",
+				"Dialog to generate a new password and write it into a new or existing secret. " +
+				"By default, the new password will replace the first line of an existing secret (or create a new one).",
 			Before:       s.IsInitialized,
 			Action:       s.Generate,
 			BashComplete: s.CompleteGenerate,
@@ -396,8 +411,9 @@ func (s *Action) GetCommands() []*cli.Command {
 			},
 		},
 		{
-			Name:  "git",
-			Usage: "Run a git command inside a password store (init, remote, push, pull)",
+			Name:      "git",
+			Usage:     "Run a git command inside a password store (init, remote, push, pull)",
+			ArgsUsage: "[init|remote|push|pull]",
 			Description: "" +
 				"If the password store is a git repository, execute a git command " +
 				"specified by git-command-args." +
@@ -512,8 +528,9 @@ func (s *Action) GetCommands() []*cli.Command {
 			},
 		},
 		{
-			Name:  "grep",
-			Usage: "Search for secrets files containing search-string when decrypted.",
+			Name:      "grep",
+			Usage:     "Search for secrets files containing search-string when decrypted.",
+			ArgsUsage: "[needle]",
 			Description: "" +
 				"This command decrypts all secrets and performs a pattern matching on the " +
 				"content.",
@@ -528,9 +545,10 @@ func (s *Action) GetCommands() []*cli.Command {
 			},
 		},
 		{
-			Name:    "history",
-			Usage:   "Show password history",
-			Aliases: []string{"hist"},
+			Name:      "history",
+			Usage:     "Show password history",
+			ArgsUsage: "[secret]",
+			Aliases:   []string{"hist"},
 			Description: "" +
 				"Display the change history for a secret",
 			Before:       s.IsInitialized,
@@ -545,8 +563,9 @@ func (s *Action) GetCommands() []*cli.Command {
 			},
 		},
 		{
-			Name:  "init",
-			Usage: "Initialize new password store.",
+			Name:      "init",
+			Usage:     "Initialize new password store.",
+			ArgsUsage: "[gpg-id]",
 			Description: "" +
 				"Initialize new password storage and use gpg-id for encryption.",
 			Action: s.Init,
@@ -574,8 +593,9 @@ func (s *Action) GetCommands() []*cli.Command {
 			},
 		},
 		{
-			Name:  "insert",
-			Usage: "Insert a new secret",
+			Name:      "insert",
+			Usage:     "Insert a new secret",
+			ArgsUsage: "[secret]",
 			Description: "" +
 				"Insert a new secret. Optionally, echo the secret back to the console during entry. " +
 				"Or, optionally, the entry may be multiline. " +
@@ -607,8 +627,9 @@ func (s *Action) GetCommands() []*cli.Command {
 			},
 		},
 		{
-			Name:  "link",
-			Usage: "Create a symlink",
+			Name:      "link",
+			Usage:     "Create a symlink",
+			ArgsUsage: "[from] [to]",
 			Description: "" +
 				"This command creates a symlink from one entry in a mounted store to another entry." +
 				"Important: Does not cross mounts!",
@@ -619,8 +640,9 @@ func (s *Action) GetCommands() []*cli.Command {
 			BashComplete: s.Complete,
 		},
 		{
-			Name:  "list",
-			Usage: "List existing secrets",
+			Name:      "list",
+			Usage:     "List existing secrets",
+			ArgsUsage: "[prefix]",
 			Description: "" +
 				"This command will list all existing secrets. Provide a folder prefix to list " +
 				"only certain subfolders of the store.",
@@ -652,9 +674,10 @@ func (s *Action) GetCommands() []*cli.Command {
 			},
 		},
 		{
-			Name:    "move",
-			Aliases: []string{"mv"},
-			Usage:   "Move secrets from one location to another",
+			Name:      "move",
+			Aliases:   []string{"mv"},
+			Usage:     "Move secrets from one location to another",
+			ArgsUsage: "[from] [to]",
 			Description: "" +
 				"This command moves a secret from one path to another. This also works " +
 				"across different sub-stores. If the source is a directory, the source directory " +
@@ -704,9 +727,10 @@ func (s *Action) GetCommands() []*cli.Command {
 			},
 		},
 		{
-			Name:    "otp",
-			Usage:   "Generate time- or hmac-based tokens",
-			Aliases: []string{"totp", "hotp"},
+			Name:      "otp",
+			Usage:     "Generate time- or hmac-based tokens",
+			ArgsUsage: "[secret]",
+			Aliases:   []string{"totp", "hotp"},
 			Description: "" +
 				"Tries to parse an OTP URL (otpauth://). URL can be TOTP or HOTP. " +
 				"The URL can be provided on its own line or on a key value line with a key named 'totp'.",
@@ -832,8 +856,9 @@ func (s *Action) GetCommands() []*cli.Command {
 			},
 		},
 		{
-			Name:  "show",
-			Usage: "Display the content of a secret",
+			Name:      "show",
+			Usage:     "Display the content of a secret",
+			ArgsUsage: "[secret]",
 			Description: "" +
 				"Show an existing secret and optionally put its first line on the clipboard. " +
 				"If put on the clipboard, it will be cleared after 45 seconds.",
@@ -843,8 +868,9 @@ func (s *Action) GetCommands() []*cli.Command {
 			Flags:        ShowFlags(),
 		},
 		{
-			Name:  "sum",
-			Usage: "Compute the SHA256 checksum",
+			Name:      "sum",
+			Usage:     "Compute the SHA256 checksum",
+			ArgsUsage: "[secret]",
 			Description: "" +
 				"This command decodes an Base64 encoded secret and computes the SHA256 checksum " +
 				"over the decoded data. This is useful to verify the integrity of an " +
