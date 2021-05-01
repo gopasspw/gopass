@@ -1,5 +1,5 @@
 
-.TH GOPASS "1" "March 2021" "gopass (github.com/gopasspw/gopass) 1.12.5" "User Commands"
+.TH GOPASS "1" "May 2021" "gopass (github.com/gopasspw/gopass) 1.12.6" "User Commands"
 .SH NAME
 gopass - The standard Unix password manager
 .SH SYNOPSIS
@@ -180,7 +180,7 @@ This command either reads a file from the filesystem and writes the encoded and 
 .SS generate
 Generate a new password
 
-Generate a new password of the specified length, optionally with no symbols. Alternatively, a xkcd style password can be generated (https://xkcd.com/936/). Optionally put it on the clipboard and clear clipboard after 45 seconds. Prompt before overwriting existing password unless forced. It will replace only the first line of an existing file with a new password.
+Dialog to generate a new password and write it into a new or existing secret. By default, the new password will replace the first line of an existing secret (or create a new one).
 
 .B Flags
 .TP
