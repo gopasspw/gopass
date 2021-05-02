@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"context"
 	"crypto/sha256"
 	"crypto/sha512"
@@ -75,10 +76,14 @@ func main() {
 	// send PRs to update gopass ports
 	ghFork := os.Getenv("GITHUB_FORK")
 	if ghFork == "" {
-		panic("Please set GITHUB_FORK")
+		panic("Please set GITHUB_FORK to your local upstream name")
+	}
+	ghUser := os.Getenv("GITHUB_USER")
+	if ghUser == "" {
+		panic("Please set GITHUB_USER to your GitHub user")
 	}
 
-	upd, err := newRepoUpdater(ghCl.client, curVer, ghFork)
+	upd, err := newRepoUpdater(ghCl.client, curVer, ghUser, ghFork)
 	if err != nil {
 		fmt.Printf("Failed to create repo updater: %s\n", err)
 	} else {
@@ -208,6 +213,7 @@ func versionFile() (semver.Version, error) {
 type repoUpdater struct {
 	github    *github.Client
 	ghFork    string
+	ghUser    string
 	v         semver.Version
 	relURL    string
 	arcURL    string
@@ -217,7 +223,7 @@ type repoUpdater struct {
 	arcSHA512 string
 }
 
-func newRepoUpdater(client *github.Client, v semver.Version, fork string) (*repoUpdater, error) {
+func newRepoUpdater(client *github.Client, v semver.Version, user, fork string) (*repoUpdater, error) {
 	relURL := fmt.Sprintf("https://github.com/gopasspw/gopass/releases/download/v%s/gopass-%s.tar.gz", v.String(), v.String())
 	// fetch https://github.com/gopasspw/gopass/archive/vVER.tar.gz
 	// compute sha256, sha512
@@ -236,6 +242,7 @@ func newRepoUpdater(client *github.Client, v semver.Version, fork string) (*repo
 	return &repoUpdater{
 		github:    client,
 		ghFork:    fork,
+		ghUser:    user,
 		v:         v,
 		relURL:    relURL,
 		arcURL:    arcURL,
@@ -289,6 +296,7 @@ func (u *repoUpdater) updateAlpine(ctx context.Context) error {
 		url: u.arcURL,
 		dir: dir,
 		msg: "community/gopass: upgrade to " + u.v.String(),
+		rem: u.ghFork,
 	}
 
 	if err := r.updatePrepare(); err != nil {
@@ -350,7 +358,7 @@ func (u *repoUpdater) updateHomebrew(ctx context.Context) error {
 		return err
 	}
 
-	return u.createPR(ctx, r.commitMsg(), u.ghFork+":"+r.branch(), "Homebrew", "homebrew-core")
+	return u.createPR(ctx, r.commitMsg(), u.ghUser+":"+r.branch(), "Homebrew", "homebrew-core")
 }
 
 func (u *repoUpdater) updateTermux(ctx context.Context) error {
@@ -389,7 +397,7 @@ func (u *repoUpdater) updateTermux(ctx context.Context) error {
 		return err
 	}
 
-	return u.createPR(ctx, r.commitMsg(), u.ghFork+":"+r.branch(), "termux", "termux-packages")
+	return u.createPR(ctx, r.commitMsg(), u.ghUser+":"+r.branch(), "termux", "termux-packages")
 }
 
 func (u *repoUpdater) updateVoid(ctx context.Context) error {
@@ -429,7 +437,7 @@ func (u *repoUpdater) updateVoid(ctx context.Context) error {
 		return err
 	}
 
-	return u.createPR(ctx, r.commitMsg(), u.ghFork+":"+r.branch(), "void-linux", "void-packages")
+	return u.createPR(ctx, r.commitMsg(), u.ghUser+":"+r.branch(), "void-linux", "void-packages")
 }
 
 func (u *repoUpdater) createPR(ctx context.Context, title, from, toOrg, toRepo string) error {
@@ -441,8 +449,14 @@ func (u *repoUpdater) createPR(ctx context.Context, title, from, toOrg, toRepo s
 		MaintainerCanModify: github.Bool(true),
 	}
 
-	pr, _, err := u.github.PullRequests.Create(ctx, toOrg, toRepo, newPR)
-	fmt.Println(pr)
+	pr, resp, err := u.github.PullRequests.Create(ctx, toOrg, toRepo, newPR)
+	if err != nil {
+		fmt.Printf("ERROR: Creating GitHub PR failed: %s", err)
+		fmt.Printf("Request: %+v\n", newPR)
+		fmt.Printf("Response: %+v\n", resp)
+		return err
+	}
+	fmt.Printf("GitHub PR created: %s\n", pr.GetHTMLURL())
 	return err
 }
 
@@ -502,6 +516,7 @@ type repo struct {
 	url string         // gopass download url
 	dir string         // repo dir
 	msg string
+	rem string // remote
 }
 
 func (r *repo) branch() string {
@@ -537,7 +552,7 @@ func (r *repo) updateFinalize(path string) error {
 		return err
 	}
 	// git push myfork gopass-VER
-	return r.gitPush("myfork")
+	return r.gitPush(r.rem)
 
 }
 
@@ -559,10 +574,16 @@ func (r *repo) gitBranch() error {
 
 func (r *repo) gitPom() error {
 	cmd := exec.Command("git", "pull", "origin", "master")
-	cmd.Stdout = os.Stdout
+	// hide long pull output unless an error occurs
+	buf := &bytes.Buffer{}
+	cmd.Stdout = buf
 	cmd.Stderr = os.Stderr
 	cmd.Dir = r.dir
-	return cmd.Run()
+	if err := cmd.Run(); err != nil {
+		fmt.Println(buf.String())
+		return err
+	}
+	return nil
 }
 
 func (r *repo) gitPush(remote string) error {
