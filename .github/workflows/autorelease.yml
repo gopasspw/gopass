@@ -26,7 +26,7 @@ jobs:
       -
         name: Import GPG signing key
         id: import_gpg
-        uses: crazy-max/ghaction-import-gpg@v3
+        uses: crazy-max/ghaction-import-gpg@v3.1.0
         with:
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.PASSPHRASE }}
