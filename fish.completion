@@ -234,6 +234,7 @@ complete -c $PROG -f -n '__fish_gopass_uses_command mounts remove -l version -d 
 complete -c $PROG -f -n '__fish_gopass_needs_command' -a move -d 'Command: Move secrets from one location to another'
 complete -c $PROG -f -n '__fish_gopass_uses_command move' -a "(__fish_gopass_print_entries)"
 complete -c $PROG -f -n '__fish_gopass_needs_command' -a otp -d 'Command: Generate time- or hmac-based tokens'
+complete -c $PROG -f -n '__fish_gopass_uses_command otp' -a "(__fish_gopass_print_entries)"
 complete -c $PROG -f -n '__fish_gopass_needs_command' -a pwgen -d 'Command: Generate passwords'
 complete -c $PROG -f -n '__fish_gopass_needs_command' -a recipients -d 'Command: Edit recipient permissions'
 complete -c $PROG -f -n '__fish_gopass_uses_command recipients' -a add -d 'Subcommand: Add any number of Recipients to any store'
