@@ -31,8 +31,10 @@ cloud.google.com/go/storage v1.6.0/go.mod h1:N7U0C8pVQ/+NIKOBQyamJIeKQKkZ+mxpohl
 cloud.google.com/go/storage v1.8.0/go.mod h1:Wv1Oy7z6Yz3DshWRJFhqM/UCfaWIRTdp0RXyy7KQOVs=
 cloud.google.com/go/storage v1.10.0/go.mod h1:FLPqc6j+Ki4BU591ie1oL6qBQGu2Bl/tZ9ullr3+Kg0=
 dmitri.shuralyov.com/gpu/mtl v0.0.0-20190408044501-666a987793e9/go.mod h1:H6x//7gZCb22OMCxBHrMx7a5I7Hp++hsVxbQ4BYO7hU=
-filippo.io/age v1.0.0-rc.1 h1:jQ+dz16Xxx3W/WY+YS0J96nVAAidLHO3kfQe0eOmKgI=
-filippo.io/age v1.0.0-rc.1/go.mod h1:Vvd9IlwNo4Au31iqNZeZVnYtGcOf/wT4mtvZQ2ODlSk=
+filippo.io/age v1.0.0-rc.2 h1:yNKwNL8SKPXpbtpJOXceWqacl0kvyckCnGgsruAEDQw=
+filippo.io/age v1.0.0-rc.2/go.mod h1:UjINLBMeA60aGZkHCGsmDzKcaXoTTzpvrqQM+Vo3YHU=
+filippo.io/edwards25519 v1.0.0-beta.3 h1:WQxB0FH5NzrhciInJ30bgL3soLng3AbdI651yQuVlCs=
+filippo.io/edwards25519 v1.0.0-beta.3/go.mod h1:X+pm78QAUPtFLi1z9PYIlS/bdDnvbCOGKtZ+ACWEf7o=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym/WlBOVXweHU+Q+/VP0lqqI8lqeDx9IjBqo=
 github.com/atotto/clipboard v0.1.4 h1:EH0zSVneZPSuFR11BlR9YppQTVDbh5+16AmcJi4g1z4=
