@@ -45,7 +45,7 @@ complete -c $PROG -f -s c -l clip -r -a "(__fish_{{ $prog }}_print_entries)"
 {{ range .Commands }}
 complete -c $PROG -f -n '__fish_{{ $prog }}_needs_command' -a {{ .Name }} -d 'Command: {{ .Usage }}'
 {{- $cmd := .Name -}}
-{{- if or (eq $cmd "copy") (eq $cmd "cp") (eq $cmd "move") (eq $cmd "mv") (eq $cmd "delete") (eq $cmd "remove") (eq $cmd "rm") (eq $cmd "show") (eq $cmd "set") (eq $cmd "edit") }}
+{{- if or (eq $cmd "copy") (eq $cmd "cp") (eq $cmd "move") (eq $cmd "mv") (eq $cmd "delete") (eq $cmd "remove") (eq $cmd "rm") (eq $cmd "show") (eq $cmd "set") (eq $cmd "edit") (eq $cmd "otp") }}
 complete -c $PROG -f -n '__fish_{{ $prog }}_uses_command {{ $cmd }}' -a "(__fish_{{ $prog }}_print_entries)"{{ end -}}
 {{- if or (eq $cmd "insert") (eq $cmd "generate") (eq $cmd "list") (eq $cmd "ls") }}
 complete -c $PROG -f -n '__fish_{{ $prog }}_uses_command {{ $cmd }}' -a "(__fish_{{ $prog }}_print_dir)"{{ end -}}
