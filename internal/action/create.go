@@ -396,7 +396,7 @@ func (s *Action) createGeneratePassword(ctx context.Context, hostname string) (s
 		return "", err
 	}
 	if corp {
-		return pwgen.GeneratePasswordWithAllClasses(length)
+		return pwgen.GeneratePasswordWithAllClasses(length, symbols)
 	}
 
 	return pwgen.GeneratePassword(length, symbols), nil

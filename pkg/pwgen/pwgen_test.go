@@ -87,7 +87,7 @@ func TestContainsAllClasses(t *testing.T) {
 }
 
 func TestGeneratePasswordWithAllClasses(t *testing.T) {
-	pw, err := GeneratePasswordWithAllClasses(50)
+	pw, err := GeneratePasswordWithAllClasses(50, true)
 	assert.NoError(t, err)
 	assert.Equal(t, 50, len(pw))
 }
