@@ -224,7 +224,7 @@ func (s *Action) generatePassword(ctx context.Context, c *cli.Context, length, n
 		return pwgen.GenerateExternal(pwlen)
 	default:
 		if c.Bool("strict") {
-			return pwgen.GeneratePasswordWithAllClasses(pwlen)
+			return pwgen.GeneratePasswordWithAllClasses(pwlen, symbols)
 		}
 		return pwgen.GeneratePassword(pwlen, symbols), nil
 	}

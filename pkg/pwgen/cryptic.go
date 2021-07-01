@@ -21,12 +21,16 @@ type Cryptic struct {
 }
 
 // NewCryptic creates a new generator with sane defaults.
-func NewCryptic(length int) *Cryptic {
+func NewCryptic(length int, symbols bool) *Cryptic {
 	if length < 1 {
 		length = 16
 	}
+	chars := Digits + Upper + Lower
+	if symbols {
+		chars += Syms
+	}
 	return &Cryptic{
-		Chars:    Digits + Upper + Lower,
+		Chars:    chars,
 		Length:   length,
 		MaxTries: 64,
 	}
@@ -35,7 +39,7 @@ func NewCryptic(length int) *Cryptic {
 // NewCrypticForDomain tries to look up password rules for the given domain
 // or uses the default generator.
 func NewCrypticForDomain(length int, domain string) *Cryptic {
-	c := NewCryptic(length)
+	c := NewCryptic(length, true)
 	r, found := pwrules.LookupRule(domain)
 	debug.Log("found rules for %s: %t", domain, found)
 	if !found {
@@ -116,8 +120,8 @@ func uniqueChars(in string) string {
 
 // NewCrypticWithAllClasses returns a password generator that generates passwords
 // containing all available character classes
-func NewCrypticWithAllClasses(length int) *Cryptic {
-	c := NewCryptic(length)
+func NewCrypticWithAllClasses(length int, symbols bool) *Cryptic {
+	c := NewCryptic(length, symbols)
 	c.Validators = append(c.Validators, func(pw string) error {
 		if containsAllClasses(pw, c.Chars) {
 			return nil
@@ -129,8 +133,8 @@ func NewCrypticWithAllClasses(length int) *Cryptic {
 
 // NewCrypticWithCrunchy returns a password generators that only returns a
 // password if it's successfully validated with crunchy.
-func NewCrypticWithCrunchy(length int) *Cryptic {
-	c := NewCryptic(length)
+func NewCrypticWithCrunchy(length int, symbols bool) *Cryptic {
+	c := NewCryptic(length, symbols)
 	c.MaxTries = 3
 	validator := crunchy.NewValidator()
 	c.Validators = append(c.Validators, validator.Check)
