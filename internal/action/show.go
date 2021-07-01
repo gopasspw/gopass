@@ -168,6 +168,8 @@ func (s *Action) showHandleOutput(ctx context.Context, name string, sec gopass.S
 		header := fmt.Sprintf("Secret: %s\n", name)
 		if HasKey(ctx) {
 			header += fmt.Sprintf("Key: %s\n", GetKey(ctx))
+		} else if ctxutil.IsShowParsing(ctx) {
+			out.Warning(ctx, "Parsing is enabled. Use -n to disable.")
 		}
 		out.Print(ctx, header)
 	}
