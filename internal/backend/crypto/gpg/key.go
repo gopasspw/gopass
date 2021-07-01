@@ -26,6 +26,7 @@ type Capabilities struct {
 	Sign           bool
 	Certify        bool
 	Authentication bool
+	Deactivated    bool
 }
 
 // IsUseable returns true if GPG would assume this key is useable for encryption
