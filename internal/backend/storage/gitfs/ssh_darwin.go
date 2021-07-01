@@ -1,8 +1,6 @@
-// +build !windows,!darwin
+// +build darwin
 
 package gitfs
-
-import "os"
 
 // gitSSHCommand returns a SSH command instructing git to use SSH
 // with persistent connections through a custom socket.
@@ -13,7 +11,8 @@ import "os"
 // precedence over this setting.
 //
 // %C is a hash of %l%h%p%r and should avoid "path too long for unix domain socket"
-// errors. If you still encounter this error set TMPDIR to a short path, e.g. /tmp.
+// errors. On MacOS this doesn't always seem to work, so we're using a hardcoded
+// /tmp instead.
 func gitSSHCommand() string {
-	return "ssh -oControlMaster=auto -oControlPersist=600 -oControlPath=" + os.TempDir() + "/.ssh-%C"
+	return "ssh -oControlMaster=auto -oControlPersist=600 -oControlPath=/tmp/.ssh-%C"
 }
