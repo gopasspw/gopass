@@ -17,6 +17,15 @@ type Key struct {
 	Fingerprint    string
 	Identities     map[string]Identity
 	SubKeys        map[string]struct{}
+	Caps           Capabilities
+}
+
+// Capabilities of a Key
+type Capabilities struct {
+	Encrypt        bool
+	Sign           bool
+	Certify        bool
+	Authentication bool
 }
 
 // IsUseable returns true if GPG would assume this key is useable for encryption

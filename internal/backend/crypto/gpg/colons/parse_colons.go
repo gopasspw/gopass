@@ -111,6 +111,10 @@ func Parse(reader io.Reader) gpg.KeyList {
 	return kl
 }
 
+func parseKeyCaps(fields []string) gpg.Capabilities {
+
+}
+
 func parseColonIdentity(fields []string) gpg.Identity {
 	for i, f := range fields {
 		fields[i] = strings.Replace(f, "\\x3a", ":", -1)
