@@ -89,6 +89,7 @@ func Parse(reader io.Reader) gpg.KeyList {
 				Ownertrust:     fields[8],
 				Identities:     make(map[string]gpg.Identity, 1),
 				SubKeys:        make(map[string]struct{}, 1),
+				Caps:           parseKeyCaps(fields[11]),
 			}
 		case "sub":
 			fallthrough
@@ -111,8 +112,27 @@ func Parse(reader io.Reader) gpg.KeyList {
 	return kl
 }
 
-func parseKeyCaps(fields []string) gpg.Capabilities {
+func parseKeyCaps(field string) gpg.Capabilities {
+	keycaps := gpg.Capabilities{}
+	caps := strings.ToLower(field)
 
+	if strings.Contains(caps, "S") {
+		keycaps.Sign = true
+	}
+	if strings.Contains(caps, "E") {
+		keycaps.Encrypt = true
+	}
+	if strings.Contains(caps, "C") {
+		keycaps.Certify = true
+	}
+	if strings.Contains(caps, "A") {
+		keycaps.Authentication = true
+	}
+	if strings.Contains(caps, "D") {
+		keycaps.Deactivated = true
+	}
+
+	return keycaps
 }
 
 func parseColonIdentity(fields []string) gpg.Identity {
