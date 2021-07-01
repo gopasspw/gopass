@@ -7,6 +7,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -94,16 +95,15 @@ func (s *Store) fsckCheckEntry(ctx context.Context, name string) error {
 	if err != nil {
 		return fmt.Errorf("failed to read recipient IDs from raw secret: %w", err)
 	}
+	itemRecps = fingerprints(ctx, s.crypto, itemRecps)
 
 	perItemStoreRecps, err := s.GetRecipients(ctx, name)
 	if err != nil {
 		return fmt.Errorf("failed to get recipients from store: %w", err)
 	}
+	perItemStoreRecps = fingerprints(ctx, s.crypto, perItemStoreRecps)
 
 	// check itemRecps matches storeRecps
-	// TODO we need to noramlize both slices before we can compare them,
-	// otherwise one might contain a short key id or a name while the other has
-	// the full key id
 	missing, extra := compareStringSlices(perItemStoreRecps, itemRecps)
 	if len(missing) > 0 {
 		out.Errorf(ctx, "Missing recipients on %s: %+v\nRun fsck with the --decrypt flag to re-encrypt it automatically, or edit this secret yourself.", name, missing)
@@ -125,6 +125,14 @@ func (s *Store) fsckCheckEntry(ctx context.Context, name string) error {
 	}
 
 	return nil
+}
+
+func fingerprints(ctx context.Context, crypto backend.Crypto, in []string) []string {
+	out := make([]string, 0, len(in))
+	for _, r := range in {
+		out = append(out, crypto.Fingerprint(ctx, r))
+	}
+	return out
 }
 
 func compareStringSlices(want, have []string) ([]string, []string) {

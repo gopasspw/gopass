@@ -82,7 +82,7 @@ func IsEmptyDir(path string) (bool, error) {
 		if fi.IsDir() && (fi.Name() == "." || fi.Name() == "..") {
 			return filepath.SkipDir
 		}
-		if fi.Mode().IsRegular() {
+		if !fi.IsDir() {
 			empty = false
 		}
 		return nil
