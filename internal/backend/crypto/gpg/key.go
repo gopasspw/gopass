@@ -31,6 +31,12 @@ type Capabilities struct {
 
 // IsUseable returns true if GPG would assume this key is useable for encryption
 func (k Key) IsUseable(alwaysTrust bool) bool {
+	if k.Caps.Deactivated {
+		return false
+	}
+	if !k.Caps.Encrypt {
+		return false
+	}
 	if !k.ExpirationDate.IsZero() && k.ExpirationDate.Before(time.Now()) {
 		return false
 	}
