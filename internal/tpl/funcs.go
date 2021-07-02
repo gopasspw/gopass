@@ -102,13 +102,13 @@ func ssha512Func() func(...string) (string, error) {
 
 func argon2iFunc() func(...string) (string, error) {
 	return func(s ...string) (string, error) {
-		return argon2i.Generate(s[0], uint8(saltLen(s)))
+		return argon2i.Generate(s[0], uint32(saltLen(s)))
 	}
 }
 
 func argon2idFunc() func(...string) (string, error) {
 	return func(s ...string) (string, error) {
-		return argon2id.Generate(s[0], uint8(saltLen(s)))
+		return argon2id.Generate(s[0], uint32(saltLen(s)))
 	}
 }
 
