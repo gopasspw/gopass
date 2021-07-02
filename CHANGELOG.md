@@ -1,3 +1,11 @@
+## 1.12.7 / 2021-07-02
+
+* DOCUMENTATION Fixed Single Line Formating for Clone Documentation (#1943)
+* [BUGFIX] Allow --strict to be chained with --symbols (#1952, #1941)
+* [BUGFIX] Normalize recipient IDs before comparison (#1953, #1900)
+* [BUGFIX] Use /tmp for GIT_SSH_COMMAND on Mac (#1951, #1896)
+* [ENHANCEMENT] Add warning when parsing content (#1950)
+
 ## 1.12.6 / 2021-05-01
 
 * [BUGFIX] Do not recurse with a key (#1907, #1906)
