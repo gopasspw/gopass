@@ -52,7 +52,9 @@ func download(ctx context.Context, url string) ([]byte, error) {
 
 	var body io.ReadCloser
 	// do not show progress bar for small assets, like SHA256SUMS
-	bar := termio.NewProgressBar(resp.ContentLength, ctxutil.IsHidden(ctx) || resp.ContentLength < 10000)
+	bar := termio.NewProgressBar(resp.ContentLength)
+	bar.Hidden = ctxutil.IsHidden(ctx) || resp.ContentLength < 10000
+
 	body = &passThru{
 		ReadCloser: resp.Body,
 		Bar:        bar,

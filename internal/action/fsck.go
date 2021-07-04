@@ -47,7 +47,8 @@ func (s *Action) Fsck(c *cli.Context) error {
 
 	pwList := t.List(tree.INF)
 
-	bar := termio.NewProgressBar(int64(len(pwList)*2), ctxutil.IsHidden(ctx))
+	bar := termio.NewProgressBar(int64(len(pwList) * 2))
+	bar.Hidden = ctxutil.IsHidden(ctx)
 	ctx = ctxutil.WithProgressCallback(ctx, func() {
 		bar.Inc()
 	})

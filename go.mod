@@ -1,6 +1,6 @@
 module github.com/gopasspw/gopass
 
-go 1.12
+go 1.16
 
 require (
 	filippo.io/age v1.0.0-rc.3
@@ -11,6 +11,7 @@ require (
 	github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e
 	github.com/cpuguy83/go-md2man/v2 v2.0.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/dustin/go-humanize v1.0.0 // indirect
 	github.com/fatih/color v1.12.0
 	github.com/godbus/dbus v0.0.0-20190623212516-8a1682060722
 	github.com/gokyle/twofactor v1.0.1
