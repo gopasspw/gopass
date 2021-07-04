@@ -110,7 +110,8 @@ func Batch(ctx context.Context, secrets []string, secStore secretGetter) error {
 	messages := make(map[string][]string)
 	errors := make(map[string][]string)
 
-	bar := termio.NewProgressBar(int64(len(secrets)), ctxutil.IsHidden(ctx))
+	bar := termio.NewProgressBar(int64(len(secrets)))
+	bar.Hidden = ctxutil.IsHidden(ctx)
 
 	i := 0
 	for secret := range checked {

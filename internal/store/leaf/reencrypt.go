@@ -33,7 +33,9 @@ func (s *Store) reencrypt(ctx context.Context) error {
 		ctx := ctxutil.WithGitCommit(ctx, false)
 
 		// progress bar
-		bar := termio.NewProgressBar(int64(len(entries)), !ctxutil.IsTerminal(ctx) || ctxutil.IsHidden(ctx))
+		bar := termio.NewProgressBar(int64(len(entries)))
+		bar.Hidden = !ctxutil.IsTerminal(ctx) || ctxutil.IsHidden(ctx)
+
 		var wg sync.WaitGroup
 		jobs := make(chan string)
 		// We use a logger to write without race condition on stdout

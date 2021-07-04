@@ -8,6 +8,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/dustin/go-humanize"
 	"github.com/fatih/color"
 	"golang.org/x/term"
 )
@@ -27,19 +28,30 @@ type ProgressBar struct {
 	// and https://github.com/golang/go/issues/36606
 	total   int64
 	current int64
-	hidden  bool
+
 	mutex   chan struct{}
 	lastUpd time.Time
+
+	Hidden bool
+	Bytes  bool
 }
 
 // NewProgressBar creates a new progress bar
-func NewProgressBar(total int64, hidden bool) *ProgressBar {
+func NewProgressBar(total int64) *ProgressBar {
 	return &ProgressBar{
-		hidden:  hidden,
 		total:   total,
 		current: 0,
 		mutex:   make(chan struct{}, 1),
 	}
+}
+
+// Add adds the given amount to the progress
+func (p *ProgressBar) Add(v int64) {
+	cur := atomic.AddInt64(&p.current, v)
+	if max := atomic.LoadInt64(&p.total); cur > max {
+		atomic.StoreInt64(&p.total, cur)
+	}
+	p.print()
 }
 
 // Inc adds one to the progress
@@ -62,7 +74,7 @@ func (p *ProgressBar) Set(v int64) {
 
 // Done finalizes the progress bar
 func (p *ProgressBar) Done() {
-	if p.hidden {
+	if p.Hidden {
 		return
 	}
 	fmt.Fprintln(Stdout, "")
@@ -75,7 +87,7 @@ func (p *ProgressBar) Clear() {
 
 // print will print the progress bar, if necessary
 func (p *ProgressBar) print() {
-	if p.hidden {
+	if p.Hidden {
 		return
 	}
 	// try to lock
@@ -119,6 +131,12 @@ func (p *ProgressBar) doPrint() {
 	barWidth := uint(termWidth)
 	digits := int(math.Log10(float64(max))) + 1
 	text := fmt.Sprintf(fmt.Sprintf(" %%%dd / %%%dd ", digits, digits), cur, max)
+	if p.Bytes {
+		curStr := humanize.Bytes(uint64(cur))
+		maxStr := humanize.Bytes(uint64(max))
+		digits := len(maxStr) + 1
+		text = fmt.Sprintf(fmt.Sprintf(" %%%ds / %%%ds ", digits, digits), curStr, maxStr)
+	}
 	size := int(barWidth) - len(text) - len(pctStr) - 5
 	fill := int(math.Max(2, math.Floor((float64(size)*pct)+.5)))
 
