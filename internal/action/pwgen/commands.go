@@ -29,6 +29,11 @@ func GetCommands() []*cli.Command {
 					Usage:   "Do not include characters that could be easily confused with each other, like '1' and 'l' or '0' and 'O'",
 				},
 				&cli.BoolFlag{
+					Name:    "symbols",
+					Aliases: []string{"y"},
+					Usage:   "Include at least one symbol in the password.",
+				},
+				&cli.BoolFlag{
 					Name:    "one-per-line",
 					Aliases: []string{"1"},
 					Usage:   "Print one password per line",
