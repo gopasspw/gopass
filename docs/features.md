@@ -61,7 +61,7 @@ gopass init
 ```
 
 This will prompt you for which GPG key you want to associate the store with.
-Then it will create a `.password-store` directory in your home directory.
+Then it will create a `.local/share/gopass/stores/root` directory in your home directory.
 
 If you don't want gopass to use this default directory, you can instead initialize a password store with:
 
@@ -85,15 +85,19 @@ If you already have an existing password store that exists in a Git repository, 
 gopass clone git@example.com/pass.git
 ```
 
-This runs `git clone` in the background. If you don't want gopass to use the default directory of "$HOME/.password-store", then you can specify an additional parameter:
+This runs `git clone` in the background. If you don't want gopass to use the default root mount of "$HOME/.local/share/gopass/stores/root", then you can specify an additional mount parameter:
 
 ```bash
-gopass clone git@example.com/pass-work.git work # This will initialize the password store in the "$HOME/.password-store-work" directory
+gopass clone git@example.com/pass-work.git work # This will initialize the password store in the "$HOME/.local/share/gopass/stores/work" directory
 ```
 
 Please note that all cloned repositories must already have been initialized with gopass. (See the previous section for more details.)
 
 Note too that unless you are already a recipient of the cloned repository, you must add the destination's public GPG key as a recipient to the existing store.
+
+Finally notice that if you really want your password-store directory at a specific location, you should `git clone` it manually at that location, and either set Gopass' `PASSWORD_STORE_DIR` env var to that location, or set Gopass' config `path` option to that location. 
+
+An existing `$HOME/.password-store` directory should also be automatically picked-up by Gopass upon first run.
 
 ### Adding Secrets
 

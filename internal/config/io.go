@@ -104,8 +104,12 @@ type configer interface {
 
 func decode(buf []byte, relaxed bool) (*Config, error) {
 	mostRecent := &Config{
-		ExportKeys: true,
-		Parsing:    true,
+		AutoImport:    true,
+		ClipTimeout:   45,
+		ExportKeys:    true,
+		Notifications: true,
+		Parsing:       true,
+		Path:          PwStoreDir(""),
 	}
 	cfgs := []configer{
 		// most recent config must come first
