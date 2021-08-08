@@ -198,6 +198,22 @@ func (g *Git) HasStagedChanges(ctx context.Context) bool {
 	return false
 }
 
+// ListUntrackedFiles lists untracked files
+func (g *Git) ListUntrackedFiles(ctx context.Context) []string {
+	stdout, _, err := g.captureCmd(ctx, "gitLsFiles", "ls-files", ".", "--exclude-standard", "--others")
+	if err != nil {
+		return []string{fmt.Sprintf("ERROR: %s", err)}
+	}
+	uf := []string{}
+	for _, f := range strings.Split(string(stdout), "\n") {
+		if f == "" {
+			continue
+		}
+		uf = append(uf, f)
+	}
+	return uf
+}
+
 // Commit creates a new git commit with the given commit message
 func (g *Git) Commit(ctx context.Context, msg string) error {
 	if !g.IsInitialized() {
@@ -272,6 +288,9 @@ func (g *Git) PushPull(ctx context.Context, op, remote, branch string) error {
 		return nil
 	}
 
+	if uf := g.ListUntrackedFiles(ctx); len(uf) > 0 {
+		out.Warningf(ctx, "Found untracked files: %+v", uf)
+	}
 	return g.Cmd(ctx, "gitPush", "push", remote, branch)
 }
 
