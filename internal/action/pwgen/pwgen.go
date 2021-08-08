@@ -70,6 +70,9 @@ func pwGen(c *cli.Context, pwLen, pwNum int) error {
 	if c.Bool("ambiguous") {
 		charset = pwgen.Prune(charset, pwgen.Ambiq)
 	}
+	if c.Bool("symbols") {
+		charset += pwgen.Syms
+	}
 	for i := 0; i < pwNum; i++ {
 		for j := 0; j < perLine; j++ {
 			fmt.Print(pwgen.GeneratePasswordCharset(pwLen, charset))
