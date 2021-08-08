@@ -18,11 +18,8 @@ import (
 )
 
 const (
-	gopassConfig = `autoclip: false
-autoimport: true
-cliptimeout: 45
+	gopassConfig = `
 exportkeys: false
-parsing: true
 `
 	keyID = "BE73F104"
 )
