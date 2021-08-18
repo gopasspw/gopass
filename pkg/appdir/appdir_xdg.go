@@ -10,7 +10,7 @@ import (
 // UserConfig returns the users config dir
 func UserConfig() string {
 	if hd := os.Getenv("GOPASS_HOMEDIR"); hd != "" {
-		return filepath.Join(hd, ".config", "gopass")
+		return filepath.Join(hd, ".config", Name)
 	}
 
 	base := os.Getenv("XDG_CONFIG_HOME")
@@ -18,13 +18,13 @@ func UserConfig() string {
 		base = filepath.Join(os.Getenv("HOME"), ".config")
 	}
 
-	return filepath.Join(base, "gopass")
+	return filepath.Join(base, Name)
 }
 
 // UserCache returns the users cache dir
 func UserCache() string {
 	if hd := os.Getenv("GOPASS_HOMEDIR"); hd != "" {
-		return filepath.Join(hd, ".cache", "gopass")
+		return filepath.Join(hd, ".cache", Name)
 	}
 
 	base := os.Getenv("XDG_CACHE_HOME")
@@ -32,13 +32,13 @@ func UserCache() string {
 		base = filepath.Join(os.Getenv("HOME"), ".cache")
 	}
 
-	return filepath.Join(base, "gopass")
+	return filepath.Join(base, Name)
 }
 
 // UserData returns the users data dir
 func UserData() string {
 	if hd := os.Getenv("GOPASS_HOMEDIR"); hd != "" {
-		return filepath.Join(hd, ".local", "share", "gopass")
+		return filepath.Join(hd, ".local", "share", Name)
 	}
 
 	base := os.Getenv("XDG_DATA_HOME")
@@ -46,5 +46,5 @@ func UserData() string {
 		base = filepath.Join(os.Getenv("HOME"), ".local", "share")
 	}
 
-	return filepath.Join(base, "gopass")
+	return filepath.Join(base, Name)
 }
