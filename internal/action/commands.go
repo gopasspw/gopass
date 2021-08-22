@@ -674,6 +674,24 @@ func (s *Action) GetCommands() []*cli.Command {
 			},
 		},
 		{
+			Name:      "merge",
+			Usage:     "Merge multiple secrets into one",
+			ArgsUsage: "[to] [from]...",
+			Description: "" +
+				"TODO",
+			Before:       s.IsInitialized,
+			Action:       s.Merge,
+			BashComplete: s.Complete,
+			Flags: []cli.Flag{
+				&cli.BoolFlag{
+					Name:    "delete",
+					Aliases: []string{"d"},
+					Usage:   "Remove merged entries",
+					Value:   true,
+				},
+			},
+		},
+		{
 			Name:      "move",
 			Aliases:   []string{"mv"},
 			Usage:     "Move secrets from one location to another",
