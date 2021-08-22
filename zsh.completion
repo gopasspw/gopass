@@ -174,6 +174,12 @@ WARNING: This will update the secret content to the latest format. This might be
 	      _gopass_complete_folders
 	      
 	      ;;
+	  merge)
+	      _arguments : "--delete[Remove merged entries]" "--force[Skip editor, merge entries unattended]"
+	      _describe -t commands "gopass merge" subcommands
+	      
+	      
+	      ;;
 	  mounts)
 	      local -a subcommands
 	      subcommands=(
@@ -198,7 +204,7 @@ WARNING: This will update the secret content to the latest format. This might be
 	      
 	      ;;
 	  pwgen)
-	      _arguments : "--no-numerals[Do not include numerals in the generated passwords.]" "--no-capitalize[Do not include capital letter in the generated passwords.]" "--ambiguous[Do not include characters that could be easily confused with each other, like '1' and 'l' or '0' and 'O']" "--one-per-line[Print one password per line]" "--xkcd[Use multiple random english words combined to a password. By default, space is used as separator and all words are lowercase]" "--sep[Word separator for generated xkcd style password. If no separator is specified, the words are combined without spaces/separator and the first character of words is capitalised. This flag implies -xkcd]" "--lang[Language to generate password from, currently de (german) and en (english, default) are supported]"
+	      _arguments : "--no-numerals[Do not include numerals in the generated passwords.]" "--no-capitalize[Do not include capital letter in the generated passwords.]" "--ambiguous[Do not include characters that could be easily confused with each other, like '1' and 'l' or '0' and 'O']" "--symbols[Include at least one symbol in the password.]" "--one-per-line[Print one password per line]" "--xkcd[Use multiple random english words combined to a password. By default, space is used as separator and all words are lowercase]" "--sep[Word separator for generated xkcd style password. If no separator is specified, the words are combined without spaces/separator and the first character of words is capitalised. This flag implies -xkcd]" "--lang[Language to generate password from, currently de (german) and en (english, default) are supported]"
 	      _describe -t commands "gopass pwgen" subcommands
 	      
 	      
@@ -305,6 +311,7 @@ WARNING: This will update the secret content to the latest format. This might be
 	  "insert:Insert a new secret"
 	  "link:Create a symlink"
 	  "list:List existing secrets"
+	  "merge:Merge multiple secrets into one"
 	  "mounts:Edit mounted stores"
 	  "move:Move secrets from one location to another"
 	  "otp:Generate time- or hmac-based tokens"

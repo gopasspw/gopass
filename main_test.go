@@ -76,6 +76,7 @@ var commandsWithError = map[string]struct{}{
 	".init":              {},
 	".insert":            {},
 	".link":              {},
+	".merge":             {},
 	".mounts.add":        {},
 	".mounts.remove":     {},
 	".move":              {},

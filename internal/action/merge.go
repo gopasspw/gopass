@@ -3,15 +3,19 @@ package action
 import (
 	"bytes"
 	"fmt"
+	"time"
 
 	"github.com/gopasspw/gopass/internal/audit"
 	"github.com/gopasspw/gopass/internal/editor"
 	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/internal/queue"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/gopass/secrets"
 	"github.com/urfave/cli/v2"
 )
 
+// Merge implements the merge subcommand that allows merging multiple entries.
 func (s *Action) Merge(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	to := c.Args().First()
@@ -36,32 +40,37 @@ func (s *Action) Merge(c *cli.Context) error {
 		}
 		sec, err := s.Store.Get(ctxutil.WithShowParsing(ctx, false), k)
 		if err != nil {
-			return ExitError(ExitDecrypt, err, "failed to decrypt: %s: %w", k, err)
+			return ExitError(ExitDecrypt, err, "failed to decrypt: %s: %s", k, err)
 		}
 		_, err = content.WriteString("\n# Secret: " + k + "\n")
 		if err != nil {
-			return ExitError(ExitUnknown, err, "failed to write: %w", err)
+			return ExitError(ExitUnknown, err, "failed to write: %s", err)
 		}
 		_, err = content.Write(sec.Bytes())
 		if err != nil {
-			return ExitError(ExitUnknown, err, "failed to write: %w", err)
+			return ExitError(ExitUnknown, err, "failed to write: %s", err)
 		}
 	}
 
-	// invoke the editor to let the user edit the content
-	newContent, err := editor.Invoke(ctx, ed, content.Bytes())
-	if err != nil {
-		return ExitError(ExitUnknown, err, "failed to invoke editor: %s", err)
-	}
-	// If content is equal, nothing changed, exiting
-	if bytes.Equal(content.Bytes(), newContent) {
-		return nil
+	newContent := content.Bytes()
+	if !c.Bool("force") {
+		var err error
+		// invoke the editor to let the user edit the content
+		newContent, err = editor.Invoke(ctx, ed, content.Bytes())
+		if err != nil {
+			return ExitError(ExitUnknown, err, "failed to invoke editor: %s", err)
+		}
+
+		// If content is equal, nothing changed, exiting
+		if bytes.Equal(content.Bytes(), newContent) {
+			return nil
+		}
 	}
 
 	nSec := secrets.ParsePlain(newContent)
 
 	// if the secret has a password, we check it's strength
-	if pw := nSec.Password(); pw != "" {
+	if pw := nSec.Password(); pw != "" && !c.Bool("force") {
 		audit.Single(ctx, pw)
 	}
 
@@ -74,9 +83,22 @@ func (s *Action) Merge(c *cli.Context) error {
 		return nil
 	}
 
+	// wait until the previous commit is done
+	// TODO: This wouldn't be necessary if we could handle merging and deleting
+	// in a single commit, but then we'd need to expose additional implementation
+	// details of the underlying VCS. Or create some kind of transaction on top
+	// of the Git wrapper.
+	if err := queue.GetQueue(ctx).Idle(time.Minute); err != nil {
+		return err
+	}
+
 	for _, old := range from {
+		if !s.Store.Exists(ctx, old) {
+			continue
+		}
+		debug.Log("deleting merged entry %s", old)
 		if err := s.Store.Delete(ctx, old); err != nil {
-			return ExitError(ExitUnknown, err, "failed to delete %s: %w", old, err)
+			return ExitError(ExitUnknown, err, "failed to delete %s: %s", old, err)
 		}
 	}
 	return nil

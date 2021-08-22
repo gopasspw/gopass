@@ -693,6 +693,11 @@ func (s *Action) GetCommands() []*cli.Command {
 					Usage:   "Remove merged entries",
 					Value:   true,
 				},
+				&cli.BoolFlag{
+					Name:    "force",
+					Aliases: []string{"f"},
+					Usage:   "Skip editor, merge entries unattended",
+				},
 			},
 		},
 		{
