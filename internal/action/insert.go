@@ -80,7 +80,7 @@ func (s *Action) insert(ctx context.Context, c *cli.Context, name, key string, e
 		})
 	}
 
-	pw, err := termio.AskForPassword(ctx, name)
+	pw, err := termio.AskForPassword(ctx, fmt.Sprintf("password for %s", name), true)
 	if err != nil {
 		return ExitError(ExitIO, err, "failed to ask for password: %s", err)
 	}

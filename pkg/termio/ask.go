@@ -145,8 +145,8 @@ func AskForKeyImport(ctx context.Context, key string, names []string) bool {
 	return ok
 }
 
-// AskForPassword prompts for a password twice until both match
-func AskForPassword(ctx context.Context, name string) (string, error) {
+// AskForPassword prompts for a password, optionally prompting twice until both match
+func AskForPassword(ctx context.Context, name string, repeat bool) (string, error) {
 	if ctxutil.IsAlwaysYes(ctx) {
 		return "", nil
 	}
@@ -160,12 +160,15 @@ func AskForPassword(ctx context.Context, name string) (string, error) {
 		default:
 		}
 
-		pass, err := askFn(ctx, fmt.Sprintf("Enter password for %s", name))
+		pass, err := askFn(ctx, fmt.Sprintf("Enter %s", name))
+		if !repeat {
+			return pass, err
+		}
 		if err != nil {
 			return "", err
 		}
 
-		passAgain, err := askFn(ctx, fmt.Sprintf("Retype password for %s", name))
+		passAgain, err := askFn(ctx, fmt.Sprintf("Retype %s", name))
 		if err != nil {
 			return "", err
 		}
