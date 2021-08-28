@@ -9,6 +9,8 @@ package queue
 
 import (
 	"context"
+	"fmt"
+	"time"
 
 	"github.com/gopasspw/gopass/pkg/debug"
 )
@@ -23,6 +25,7 @@ const (
 type Queuer interface {
 	Add(Task) Task
 	Wait(context.Context) error
+	Idle(time.Duration) error
 }
 
 // WithQueue adds the given queue to the context
@@ -48,6 +51,11 @@ func (n *noop) Add(t Task) Task {
 
 // Wait always returns nil
 func (n *noop) Wait(_ context.Context) error {
+	return nil
+}
+
+// Idle always returns nil
+func (n *noop) Idle(_ time.Duration) error {
 	return nil
 }
 
@@ -88,7 +96,28 @@ func (q *Queue) Add(t Task) Task {
 	return func(_ context.Context) error { return nil }
 }
 
-// Wait waits for all tasks to be processed
+// Idle returns nil the next time the queue is empty
+func (q *Queue) Idle(maxWait time.Duration) error {
+	done := make(chan struct{})
+	go func() {
+		for {
+			if len(q.work) < 1 {
+				done <- struct{}{}
+			}
+			time.Sleep(20 * time.Millisecond)
+		}
+	}()
+	select {
+	case <-done:
+		return nil
+	case <-time.After(maxWait):
+		return fmt.Errorf("timed out waiting for empty queue")
+	}
+}
+
+// Wait waits for all tasks to be processed. Must only be called once on
+// shutdown.
+// TODO: This should be called Close
 func (q *Queue) Wait(ctx context.Context) error {
 	close(q.work)
 	select {

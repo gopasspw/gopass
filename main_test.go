@@ -76,6 +76,7 @@ var commandsWithError = map[string]struct{}{
 	".init":              {},
 	".insert":            {},
 	".link":              {},
+	".merge":             {},
 	".mounts.add":        {},
 	".mounts.remove":     {},
 	".move":              {},
@@ -122,7 +123,7 @@ func TestGetCommands(t *testing.T) {
 	c.Context = ctx
 
 	commands := getCommands(act, app)
-	assert.Equal(t, 37, len(commands))
+	assert.Equal(t, 38, len(commands))
 
 	prefix := ""
 	testCommands(t, c, commands, prefix)

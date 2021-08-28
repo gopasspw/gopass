@@ -674,6 +674,33 @@ func (s *Action) GetCommands() []*cli.Command {
 			},
 		},
 		{
+			Name:      "merge",
+			Usage:     "Merge multiple secrets into one",
+			ArgsUsage: "[to] [from]...",
+			Description: "" +
+				"This command implements a merge workflow to help deduplicate " +
+				"secrets. It requires exactly one destination (may already exist) " +
+				"and at least one source (must exist, can be multiple). gopass will " +
+				"then merge all entries into one, drop into an editor, save the result " +
+				"and remove all merged entries.",
+			Before:       s.IsInitialized,
+			Action:       s.Merge,
+			BashComplete: s.Complete,
+			Flags: []cli.Flag{
+				&cli.BoolFlag{
+					Name:    "delete",
+					Aliases: []string{"d"},
+					Usage:   "Remove merged entries",
+					Value:   true,
+				},
+				&cli.BoolFlag{
+					Name:    "force",
+					Aliases: []string{"f"},
+					Usage:   "Skip editor, merge entries unattended",
+				},
+			},
+		},
+		{
 			Name:      "move",
 			Aliases:   []string{"mv"},
 			Usage:     "Move secrets from one location to another",

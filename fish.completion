@@ -208,6 +208,7 @@ complete -c $PROG -f -n '__fish_gopass_uses_command insert' -a "(__fish_gopass_p
 complete -c $PROG -f -n '__fish_gopass_needs_command' -a link -d 'Command: Create a symlink'
 complete -c $PROG -f -n '__fish_gopass_needs_command' -a list -d 'Command: List existing secrets'
 complete -c $PROG -f -n '__fish_gopass_uses_command list' -a "(__fish_gopass_print_dir)"
+complete -c $PROG -f -n '__fish_gopass_needs_command' -a merge -d 'Command: Merge multiple secrets into one'
 complete -c $PROG -f -n '__fish_gopass_needs_command' -a mounts -d 'Command: Edit mounted stores'
 complete -c $PROG -f -n '__fish_gopass_uses_command mounts' -a add -d 'Subcommand: Mount a password store'
 complete -c $PROG -f -n '__fish_gopass_uses_command mounts add -l yes -d "Always answer yes to yes/no questions"'
