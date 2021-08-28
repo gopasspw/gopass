@@ -1,3 +1,4 @@
+//go:build darwin || (freebsd && amd64) || linux || solaris || windows || (freebsd && arm) || (freebsd && arm64)
 // +build darwin freebsd,amd64 linux solaris windows freebsd,arm freebsd,arm64
 
 package clipboard
