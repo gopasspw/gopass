@@ -1,5 +1,5 @@
 
-.TH GOPASS "1" "July 2021" "gopass (github.com/gopasspw/gopass) 1.12.7" "User Commands"
+.TH GOPASS "1" "August 2021" "gopass (github.com/gopasspw/gopass) 1.12.8" "User Commands"
 .SH NAME
 gopass - The standard Unix password manager
 .SH SYNOPSIS
@@ -312,6 +312,20 @@ Display no more than this many levels of the tree
 \fB\-\-strip-prefix\fR,
 \fB\-\-s\fR,
 Strip this prefix from filtered entries
+.SS merge
+Merge multiple secrets into one
+
+This command implements a merge workflow to help deduplicate secrets. It requires exactly one destination (may already exist) and at least one source (must exist, can be multiple). gopass will then merge all entries into one, drop into an editor, save the result and remove all merged entries.
+
+.B Flags
+.TP
+\fB\-\-delete\fR,
+\fB\-\-d\fR,
+Remove merged entries
+.TP
+\fB\-\-force\fR,
+\fB\-\-f\fR,
+Skip editor, merge entries unattended
 .SS mounts
 Edit mounted stores
 
@@ -376,6 +390,10 @@ Print one password per line
 \fB\-\-xkcdsep\fR,
 \fB\-\-xs\fR,
 Word separator for generated xkcd style password. If no separator is specified, the words are combined without spaces/separator and the first character of words is capitalised. This flag implies -xkcd
+.TP
+\fB\-\-symbols\fR,
+\fB\-\-y\fR,
+Include at least one symbol in the password.
 .TP
 \fB\-\-xkcd\fR,
 \fB\-\-x\fR,
