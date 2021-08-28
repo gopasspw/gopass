@@ -1,3 +1,11 @@
+## 1.12.8 / 2021-08-28
+
+* [BUGFIX] Use same default for partial config files (#1968)
+* [CLEANUP] Remove GOPASS_NOCOLOR in favor of NO_COLOR (#1937, #1936)
+* [ENHACNEMENT] Add gopass merge (#1979, #1948)
+* [ENHANCEMENT] Add --symbols to gopass pwgen (#1966)
+* [ENHANCEMENT] Warn on untracked files (#1972)
+
 ## 1.12.7 / 2021-07-02
 
 * DOCUMENTATION Fixed Single Line Formating for Clone Documentation (#1943)
