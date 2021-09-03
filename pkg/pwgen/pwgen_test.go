@@ -14,7 +14,7 @@ import (
 )
 
 func ExampleGenerateMemorablePassword() {
-	fmt.Println(GenerateMemorablePassword(12, false))
+	fmt.Println(GenerateMemorablePassword(12, false, false))
 }
 
 func TestPwgen(t *testing.T) {
@@ -93,7 +93,12 @@ func TestGeneratePasswordWithAllClasses(t *testing.T) {
 }
 
 func TestGenerateMemorablePassword(t *testing.T) {
-	pw := GenerateMemorablePassword(20, false)
+	pw := GenerateMemorablePassword(20, false, false)
+	assert.GreaterOrEqual(t, len(pw), 20)
+}
+
+func TestGenerateMemorablePasswordCapital(t *testing.T) {
+	pw := GenerateMemorablePassword(20, false, true)
 	assert.GreaterOrEqual(t, len(pw), 20)
 }
 

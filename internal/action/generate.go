@@ -219,7 +219,10 @@ func (s *Action) generatePassword(ctx context.Context, c *cli.Context, length, n
 	case "xkcd":
 		return s.generatePasswordXKCD(ctx, c, length)
 	case "memorable":
-		return pwgen.GenerateMemorablePassword(pwlen, symbols), nil
+		if c.Bool("strict") {
+			return pwgen.GenerateMemorablePassword(pwlen, symbols, true), nil
+		}
+		return pwgen.GenerateMemorablePassword(pwlen, symbols, false), nil
 	case "external":
 		return pwgen.GenerateExternal(pwlen)
 	default:
