@@ -95,11 +95,13 @@ func TestGeneratePasswordWithAllClasses(t *testing.T) {
 func TestGenerateMemorablePassword(t *testing.T) {
 	pw := GenerateMemorablePassword(20, false, false)
 	assert.GreaterOrEqual(t, len(pw), 20)
+	assert.Equal(t, pw, strings.ToLower(pw))
 }
 
 func TestGenerateMemorablePasswordCapital(t *testing.T) {
 	pw := GenerateMemorablePassword(20, false, true)
 	assert.GreaterOrEqual(t, len(pw), 20)
+	assert.NotEqual(t, pw, strings.ToLower(pw))
 }
 
 func TestPrune(t *testing.T) {
