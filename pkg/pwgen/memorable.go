@@ -8,13 +8,10 @@ func GenerateMemorablePassword(minLength int, symbols bool, capitals bool) strin
 	var sb strings.Builder
 	var upper = false
 	for sb.Len() < minLength {
-		if capitals {
-			if randomInteger(2) == 0 {
-				sb.WriteString(strings.Title(randomWord()))
-				upper = true
-			} else {
-				sb.WriteString(randomWord())
-			}
+		// when requesting uppercase, we randomly uppercase words
+		if capitals && randomInteger(2) == 0 {
+			sb.WriteString(strings.Title(randomWord()))
+			upper = true
 		} else {
 			sb.WriteString(randomWord())
 		}
