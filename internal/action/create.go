@@ -108,7 +108,7 @@ func (s *Action) createWebsite(ctx context.Context, c *cli.Context) error {
 			return err
 		}
 	} else {
-		password, err = termio.AskForPassword(ctx, username)
+		password, err = termio.AskForPassword(ctx, fmt.Sprintf("password for %s", username), true)
 		if err != nil {
 			return err
 		}
@@ -217,7 +217,7 @@ func (s *Action) createPIN(ctx context.Context, c *cli.Context) error {
 			return err
 		}
 	} else {
-		password, err = termio.AskForPassword(ctx, "PIN")
+		password, err = termio.AskForPassword(ctx, "PIN", true)
 		if err != nil {
 			return err
 		}
@@ -296,7 +296,7 @@ func (s *Action) createGeneric(ctx context.Context, c *cli.Context) error {
 			return err
 		}
 	} else {
-		password, err = termio.AskForPassword(ctx, shortname)
+		password, err = termio.AskForPassword(ctx, fmt.Sprintf("password for %s", shortname), true)
 		if err != nil {
 			return err
 		}

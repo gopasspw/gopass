@@ -103,7 +103,7 @@ func (s *Action) initGenerateIdentity(ctx context.Context, crypto backend.Crypto
 	}
 	if want {
 		pwGenerated = false
-		sv, err := termio.AskForPassword(ctx, "your new keypair")
+		sv, err := termio.AskForPassword(ctx, "passphrase for your new keypair", true)
 		if err != nil {
 			return fmt.Errorf("failed to read passphrase: %w", err)
 		}

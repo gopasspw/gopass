@@ -214,7 +214,7 @@ func TestAskForPasswordNonInteractive(t *testing.T) {
 	ctx := context.Background()
 	ctx = ctxutil.WithInteractive(ctx, false)
 
-	_, err := AskForPassword(ctx, "test")
+	_, err := AskForPassword(ctx, "test", true)
 	assert.Error(t, err)
 
 	// provide value on redirected stdin
@@ -222,17 +222,22 @@ func TestAskForPasswordNonInteractive(t *testing.T) {
 foo
 foobar
 foobaz
+foobat
 `
 
 	Stdin = strings.NewReader(input)
 	ctx = ctxutil.WithAlwaysYes(ctx, false)
 	ctx = ctxutil.WithInteractive(ctx, true)
 	ctx = ctxutil.WithTerminal(ctx, false)
-	sv, err := AskForPassword(ctx, "test")
+	sv, err := AskForPassword(ctx, "test", true)
 	assert.NoError(t, err)
 	assert.Equal(t, "foo", sv)
 
-	sv, err = AskForPassword(ctx, "test")
+	sv, err = AskForPassword(ctx, "test", false)
+	assert.NoError(t, err)
+	assert.Equal(t, "foobar", sv)
+
+	sv, err = AskForPassword(ctx, "test", true)
 	assert.NoError(t, err)
 	assert.Equal(t, "", sv)
 }
@@ -253,7 +258,7 @@ func TestAskForPasswordInteractive(t *testing.T) {
 	ctx = ctxutil.WithInteractive(ctx, true)
 	ctx = WithPassPromptFunc(ctx, askFn)
 
-	pw, err := AskForPassword(ctx, "test")
+	pw, err := AskForPassword(ctx, "test", true)
 	assert.NoError(t, err)
 	assert.Equal(t, "test", pw)
 }
