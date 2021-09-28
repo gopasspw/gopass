@@ -19,7 +19,7 @@ func TestCrypticForDomain(t *testing.T) {
 	sort.Strings(keys)
 	for _, domain := range keys {
 		t.Run(domain, func(t *testing.T) {
-			for _, length := range []int{1, 4, 8, 200} {
+			for _, length := range []int{1, 4, 8, 100} {
 				tcName := fmt.Sprintf("%s - %d", domain, length)
 				c := NewCrypticForDomain(length, domain)
 				require.NotNil(t, c, tcName)
