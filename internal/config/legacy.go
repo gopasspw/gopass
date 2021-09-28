@@ -34,7 +34,7 @@ func (c *Pre1127) Config() *Config {
 		ExportKeys:    c.ExportKeys,
 		NoPager:       c.NoPager,
 		Notifications: c.Notifications,
-		Parsing:       true,
+		Parsing:       c.Parsing,
 		Path:          c.Path,
 		SafeContent:   c.SafeContent,
 		Mounts:        make(map[string]string, len(c.Mounts)),
