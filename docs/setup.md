@@ -22,6 +22,7 @@ key generation if these are available for your platform.
 #### Ubuntu & Debian
 
 ```bash
+apt-get update
 apt-get install gnupg2 git rng-tools
 ```
 
