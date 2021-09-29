@@ -112,7 +112,20 @@ git add foo
 git commit -S -m "test"
 ```
 Here the `-S` flag will sign your commit using GPG, allowing you to test your GPG setup with git.
-If the last step fails please investigate this before continuing.
+If you get an error like: "gpg failed to sign the data" try to see if creating a clear text signature works:
+
+```bash
+ echo "test" | gpg2 --clearsign
+```
+
+If this fails with an error: "Inappropriate ioctl for device" run the following command:
+
+```bash
+ export GPG_TTY=$(tty)
+```
+Now you should be able to create a clear text signature and the commit should work flawlessly.
+
+If you are presented with a different error please investigate this before continuing.
 
 Also if you have both `gnupg` and `gnupg2` installed, make sure to use the latter in git:
 ```bash
