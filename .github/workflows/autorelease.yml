@@ -23,6 +23,10 @@ jobs:
         uses: actions/setup-go@v2
         with:
           go-version: 1.16
+      # ubuntu is missing wixl https://github.com/actions/virtual-environments/issues/3857
+      -
+        name: "Install GNOME msitools (wixl)"
+        run: sudo apt update -qq && sudo apt install -qq -y wixl
       -
         name: Import GPG signing key
         id: import_gpg
@@ -59,3 +63,14 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
           GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}
           GOPATH: /home/runner/go
+      -
+        name: "Add Windows installer (msi) to release"
+        run: |  # until https://github.com/goreleaser/goreleaser/issues/1295
+          tag="${GITHUB_REF#refs/tags/}"
+          version=${tag#v}
+          MSI_VERSION=${version} make msi
+          msi=dist/gopass-${version}-windows-amd64.msi
+          mv dist/gopass_windows_amd64/gopass.msi ${msi}
+          gh release upload "${tag}" "${msi}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
