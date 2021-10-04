@@ -15,11 +15,11 @@ import (
 
 func TestAskForString(t *testing.T) {
 	buf := &bytes.Buffer{}
-	out.Stdout = buf
-	Stdout = buf
+	out.Stderr = buf
+	Stderr = buf
 	defer func() {
-		out.Stdout = os.Stdout
-		Stdout = os.Stdout
+		out.Stderr = os.Stderr
+		Stderr = os.Stderr
 	}()
 
 	ctx := context.Background()
@@ -29,7 +29,7 @@ func TestAskForString(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "foobar", sv)
 
-	t.Logf("Out: %s", buf.String())
+	t.Logf("Stderr: %s", buf.String())
 	buf.Reset()
 
 	// provide value on redirected stdin
@@ -53,17 +53,17 @@ bar
 	assert.Equal(t, "foobar", sv)
 	Stdin = os.Stdin
 
-	t.Logf("Out: %s", buf.String())
+	t.Logf("Stderr: %s", buf.String())
 	buf.Reset()
 }
 
 func TestAskForBool(t *testing.T) {
 	buf := &bytes.Buffer{}
-	out.Stdout = buf
-	Stdout = buf
+	out.Stderr = buf
+	Stderr = buf
 	defer func() {
-		out.Stdout = os.Stdout
-		Stdout = os.Stdout
+		out.Stderr = os.Stderr
+		Stderr = os.Stderr
 	}()
 
 	ctx := context.Background()
@@ -115,11 +115,11 @@ z
 
 func TestAskForInt(t *testing.T) {
 	buf := &bytes.Buffer{}
-	out.Stdout = buf
-	Stdout = buf
+	out.Stderr = buf
+	Stderr = buf
 	defer func() {
-		out.Stdout = os.Stdout
-		Stdout = os.Stdout
+		out.Stderr = os.Stderr
+		Stderr = os.Stderr
 	}()
 
 	ctx := context.Background()
@@ -147,11 +147,11 @@ func TestAskForInt(t *testing.T) {
 
 func TestAskForConfirmation(t *testing.T) {
 	buf := &bytes.Buffer{}
-	out.Stdout = buf
-	Stdout = buf
+	out.Stderr = buf
+	Stderr = buf
 	defer func() {
-		out.Stdout = os.Stdout
-		Stdout = os.Stdout
+		out.Stderr = os.Stderr
+		Stderr = os.Stderr
 	}()
 
 	ctx := context.Background()
@@ -176,11 +176,11 @@ n
 
 func TestAskForKeyImport(t *testing.T) {
 	buf := &bytes.Buffer{}
-	out.Stdout = buf
-	Stdout = buf
+	out.Stderr = buf
+	Stderr = buf
 	defer func() {
-		out.Stdout = os.Stdout
-		Stdout = os.Stdout
+		out.Stderr = os.Stderr
+		Stderr = os.Stderr
 	}()
 
 	ctx := context.Background()
@@ -204,11 +204,11 @@ z
 
 func TestAskForPasswordNonInteractive(t *testing.T) {
 	buf := &bytes.Buffer{}
-	out.Stdout = buf
-	Stdout = buf
+	out.Stderr = buf
+	Stderr = buf
 	defer func() {
-		out.Stdout = os.Stdout
-		Stdout = os.Stdout
+		out.Stderr = os.Stderr
+		Stderr = os.Stderr
 	}()
 
 	ctx := context.Background()
@@ -244,11 +244,11 @@ foobat
 
 func TestAskForPasswordInteractive(t *testing.T) {
 	buf := &bytes.Buffer{}
-	out.Stdout = buf
-	Stdout = buf
+	out.Stderr = buf
+	Stderr = buf
 	defer func() {
-		out.Stdout = os.Stdout
-		Stdout = os.Stdout
+		out.Stderr = os.Stderr
+		Stderr = os.Stderr
 	}()
 
 	ctx := context.Background()

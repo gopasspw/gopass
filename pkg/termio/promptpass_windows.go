@@ -18,8 +18,8 @@ func promptPass(ctx context.Context, prompt string) (string, error) {
 		return AskForString(ctx, prompt, "")
 	}
 
-	fmt.Fprintf(Stdout, "%s: ", prompt)
+	fmt.Fprintf(Stderr, "%s: ", prompt)
 	passBytes, err := terminal.ReadPassword(int(os.Stdin.Fd()))
-	fmt.Fprintln(Stdout, "")
+	fmt.Fprintln(Stderr, "")
 	return string(passBytes), err
 }

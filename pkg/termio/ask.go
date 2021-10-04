@@ -13,8 +13,8 @@ import (
 )
 
 var (
-	// Stdout is exported for tests
-	Stdout io.Writer = os.Stdout
+	// Stderr is exported for tests
+	Stderr io.Writer = os.Stderr
 	// Stdin is exported for tests
 	Stdin io.Reader = os.Stdin
 	// ErrAborted is returned if the user aborts an action
@@ -39,7 +39,7 @@ func AskForString(ctx context.Context, text, def string) (string, error) {
 	default:
 	}
 
-	fmt.Fprintf(Stdout, "%s [%s]: ", text, def)
+	fmt.Fprintf(Stderr, "%s [%s]: ", text, def)
 	input, err := NewReader(ctx, Stdin).ReadLine()
 	if err != nil {
 		return "", fmt.Errorf("failed to read user input: %w", err)

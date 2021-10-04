@@ -77,7 +77,7 @@ func (p *ProgressBar) Done() {
 	if p.Hidden {
 		return
 	}
-	fmt.Fprintln(Stdout, "")
+	fmt.Fprintln(Stderr, "")
 }
 
 // Clear removes the progress bar
@@ -140,7 +140,7 @@ func (p *ProgressBar) doPrint() {
 	size := int(barWidth) - len(text) - len(pctStr) - 5
 	fill := int(math.Max(2, math.Floor((float64(size)*pct)+.5)))
 
-	fmt.Fprint(Stdout, text)
+	fmt.Fprint(Stderr, text)
 
 	// not enough space
 	if size < 11 {
@@ -155,7 +155,7 @@ func (p *ProgressBar) doPrint() {
 	ta := strings.Repeat(color.MagentaString("a"), boundedMin(1, fill-3))
 	ts := strings.Repeat(color.CyanString("s"), boundedMin(2, fill-1))
 	spc := strings.Repeat(" ", gteZero(size-fill))
-	fmt.Fprintf(Stdout, "[%s%s%s%s%s%s] %s ",
+	fmt.Fprintf(Stderr, "[%s%s%s%s%s%s] %s ",
 		tg,
 		to,
 		tp,
@@ -201,5 +201,5 @@ func (p *ProgressBar) percent() (int64, int64, float64) {
 }
 
 func clearLine() {
-	fmt.Fprintf(Stdout, "\033[2K\r]")
+	fmt.Fprintf(Stderr, "\033[2K\r]")
 }

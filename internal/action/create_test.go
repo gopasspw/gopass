@@ -76,11 +76,11 @@ func TestCreateWebsite(t *testing.T) {
 	act.cfg.ClipTimeout = 1
 
 	buf := &bytes.Buffer{}
-	out.Stdout = buf
-	termio.Stdout = buf
+	out.Stderr = buf
+	termio.Stderr = buf
 	defer func() {
-		out.Stdout = os.Stdout
-		termio.Stdout = os.Stdout
+		out.Stderr = os.Stderr
+		termio.Stderr = os.Stderr
 	}()
 
 	// provide values on redirected stdin
@@ -143,11 +143,11 @@ func TestCreatePIN(t *testing.T) {
 	act.cfg.ClipTimeout = 1
 
 	buf := &bytes.Buffer{}
-	out.Stdout = buf
-	termio.Stdout = buf
+	out.Stderr = buf
+	termio.Stderr = buf
 	defer func() {
-		out.Stdout = os.Stdout
-		termio.Stdout = os.Stdout
+		out.Stderr = os.Stderr
+		termio.Stderr = os.Stderr
 	}()
 
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
@@ -197,11 +197,11 @@ func TestCreateGeneric(t *testing.T) {
 	act.cfg.ClipTimeout = 1
 
 	buf := &bytes.Buffer{}
-	out.Stdout = buf
-	termio.Stdout = buf
+	out.Stderr = buf
+	termio.Stderr = buf
 	defer func() {
-		out.Stdout = os.Stdout
-		termio.Stdout = os.Stdout
+		out.Stderr = os.Stderr
+		termio.Stderr = os.Stderr
 	}()
 
 	// provide values on redirected stdin
