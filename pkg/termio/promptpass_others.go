@@ -44,8 +44,8 @@ func promptPass(ctx context.Context, prompt string) (string, error) {
 		os.Exit(1)
 	}()
 
-	fmt.Fprintf(Stdout, "%s: ", prompt)
+	fmt.Fprintf(Stderr, "%s: ", prompt)
 	passBytes, err := term.ReadPassword(fd)
-	fmt.Fprintln(Stdout, "")
+	fmt.Fprintln(Stderr, "")
 	return string(passBytes), err
 }

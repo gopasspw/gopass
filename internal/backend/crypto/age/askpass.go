@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/gopasspw/gopass/internal/cache"
-	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/pinentry/cli"
 	"github.com/gopasspw/pinentry"
@@ -62,8 +61,6 @@ func (a *askPass) Passphrase(key string, reason string, repeat bool) (string, er
 	}
 	debug.Log("Value for %s not found in cache", key)
 
-	// TODO we shouldn't print here like this ...
-	out.Printf(context.TODO(), "🔑 Please enter your passphrase to unlock the age keyring")
 	pi, err := a.pinentry()
 	if err != nil {
 		return "", fmt.Errorf("pinentry (%s) error: %w", pinentry.GetBinary(), err)
