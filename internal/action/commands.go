@@ -249,7 +249,10 @@ func (s *Action) GetCommands() []*cli.Command {
 				"your $EDITOR. It will attempt to create a secure temporary directory " +
 				"for storing your secret while the editor is accessing it. Please make " +
 				"sure your editor doesn't leak sensitive data to other locations while " +
-				"editing.",
+				"editing.\n" +
+				"Note: If $EDITOR is not set we will try 'editor'. If that's not available " +
+				"either we fall back to 'vi'. Consider using 'update-alternatives --config editor " +
+				"to change the defaults.",
 			Before:       s.IsInitialized,
 			Action:       s.Edit,
 			Aliases:      []string{"set"},
