@@ -4,7 +4,7 @@
 
 # gopass
 
-[![Build Status](https://travis-ci.org/gopasspw/gopass.svg?branch=master)](https://travis-ci.org/gopasspw/gopass)
+[![Build Status](https://img.shields.io/github/workflow/status/gopasspw/gopass/Build%20gopass/master)](https://github.com/gopasspw/gopass/actions/workflows/build.yml?query=branch%3Amaster)
 [![Packaging status](https://repology.org/badge/tiny-repos/gopass.svg)](https://repology.org/project/gopass/versions)
 [![Go Report Card](https://goreportcard.com/badge/github.com/gopasspw/gopass)](https://goreportcard.com/report/github.com/gopasspw/gopass)
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/gopasspw/gopass/blob/master/LICENSE)
