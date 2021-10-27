@@ -3,7 +3,7 @@ package action
 import (
 	"context"
 	"fmt"
-	"strings"
+	"os"
 	"time"
 
 	"github.com/gopasspw/gopass/internal/out"
@@ -11,6 +11,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/clipboard"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/otp"
+	"github.com/gopasspw/gopass/pkg/termio"
 
 	"github.com/urfave/cli/v2"
 )
@@ -48,32 +49,61 @@ func (s *Action) otp(ctx context.Context, name, qrf string, clip, pw, recurse bo
 	token := two.OTP()
 
 	now := time.Now()
-	t := now.Add(otpPeriod * time.Second)
-
-	expiresAt := time.Unix(t.Unix()+otpPeriod-(t.Unix()%otpPeriod), 0)
+	expiresAt := now.Add(otpPeriod * time.Second).Truncate(otpPeriod * time.Second)
 	secondsLeft := int(time.Until(expiresAt).Seconds())
-
-	if secondsLeft >= otpPeriod {
-		secondsLeft -= otpPeriod
-	}
-
-	if pw {
-		out.Printf(ctx, "%s", token)
-	} else {
-		out.Printf(ctx, "%s lasts %ds \t|%s%s|", token, secondsLeft, strings.Repeat("-", otpPeriod-secondsLeft), strings.Repeat("=", secondsLeft))
-	}
 
 	if clip {
 		if err := clipboard.CopyTo(ctx, fmt.Sprintf("token for %s", name), []byte(token), s.cfg.ClipTimeout); err != nil {
 			return ExitError(ExitIO, err, "failed to copy to clipboard: %s", err)
 		}
-		return nil
+	}
+
+	done := make(chan bool)
+	skip := false
+	// let us check we are not in pw or in qr code mode and are not being redirected to a pipe
+	o, _ := os.Stdout.Stat()
+	if pw || qrf != "" || (o.Mode()&os.ModeCharDevice) != os.ModeCharDevice {
+		out.Printf(ctx, "%s", token)
+		skip = true
+	} else { // if not then we want to print a progress bar with the expiry time
+		out.Printf(ctx, "%s", token)
+		out.Warningf(ctx, "This OTP password still lasts for:", nil)
+		bar := termio.NewProgressBar(int64(secondsLeft))
+		bar.Hidden = ctxutil.IsHidden(ctx)
+		if !bar.Hidden {
+			bar.Set(0)
+			go func() {
+				ticker := time.NewTicker(1 * time.Second)
+				defer ticker.Stop()
+				for tt := range ticker.C {
+					if tt.After(expiresAt) {
+						bar.Done()
+						done <- true
+						return
+					}
+					bar.Inc()
+				}
+			}()
+		} else {
+			skip = true
+		}
 	}
 
 	if qrf != "" {
 		return otp.WriteQRFile(two, label, qrf)
 	}
-	return nil
+
+	if skip {
+		return nil
+	}
+
+	// we wait until our ticker is done or we get a cancelation
+	select {
+	case <-done:
+		return nil
+	case <-ctx.Done():
+		return termio.ErrAborted
+	}
 }
 
 func (s *Action) otpHandleError(ctx context.Context, name, qrf string, clip, pw, recurse bool, err error) error {
