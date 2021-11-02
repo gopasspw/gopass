@@ -3,7 +3,6 @@ package action
 import (
 	"context"
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/gopasspw/gopass/internal/out"
@@ -60,9 +59,8 @@ func (s *Action) otp(ctx context.Context, name, qrf string, clip, pw, recurse bo
 
 	done := make(chan bool)
 	skip := false
-	// let us check we are not in pw or in qr code mode and are not being redirected to a pipe
-	o, _ := os.Stdout.Stat()
-	if pw || qrf != "" || (o.Mode()&os.ModeCharDevice) != os.ModeCharDevice {
+	// check if we are in "password only" or in "qr code" mode or being redirected to a pipe
+	if pw || qrf != "" || out.OutputIsRedirected() {
 		out.Printf(ctx, "%s", token)
 		skip = true
 	} else { // if not then we want to print a progress bar with the expiry time
@@ -70,7 +68,9 @@ func (s *Action) otp(ctx context.Context, name, qrf string, clip, pw, recurse bo
 		out.Warningf(ctx, "This OTP password still lasts for:", nil)
 		bar := termio.NewProgressBar(int64(secondsLeft))
 		bar.Hidden = ctxutil.IsHidden(ctx)
-		if !bar.Hidden {
+		if bar.Hidden {
+			skip = true
+		} else {
 			bar.Set(0)
 			go func() {
 				ticker := time.NewTicker(1 * time.Second)
@@ -84,8 +84,6 @@ func (s *Action) otp(ctx context.Context, name, qrf string, clip, pw, recurse bo
 					bar.Inc()
 				}
 			}()
-		} else {
-			skip = true
 		}
 	}
 
@@ -93,6 +91,7 @@ func (s *Action) otp(ctx context.Context, name, qrf string, clip, pw, recurse bo
 		return otp.WriteQRFile(two, label, qrf)
 	}
 
+	// we need to return if we are skipping, to avoid a deadlock in select
 	if skip {
 		return nil
 	}
