@@ -11,7 +11,7 @@ jobs:
   linux:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2.3.5
+    - uses: actions/checkout@v2.4.0
       with:
         fetch-depth: 0
 
@@ -56,7 +56,7 @@ jobs:
           base-devel
           git
 
-    - uses: actions/checkout@v2.3.5
+    - uses: actions/checkout@v2.4.0
       with:
         fetch-depth: 0
 
@@ -74,7 +74,7 @@ jobs:
   macos:
     runs-on: macos-latest
     steps:
-    - uses: actions/checkout@v2.3.5
+    - uses: actions/checkout@v2.4.0
       with:
         fetch-depth: 0
 
