@@ -150,6 +150,38 @@ func TestGenerate(t *testing.T) {
 		assert.NoError(t, act.Generate(gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true", "xkcd": "true", "print": "true", "lang": "en"}, "foobar", "baz")))
 		buf.Reset()
 	})
+
+	// regression test for #2023
+	t.Run("generate --force foobar (in a terminal)", func(t *testing.T) {
+		ctx = ctxutil.WithTerminal(ctx, true)
+
+		origAutoclip := act.cfg.AutoClip
+		act.cfg.AutoClip = true
+
+		assert.NoError(t, act.Generate(gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true"}, "foobar")))
+		if !strings.Contains(buf.String(), "Copied to clipboard") {
+			t.Errorf("password did not copy to clipboard when it should have")
+		}
+
+		act.cfg.AutoClip = origAutoclip
+		buf.Reset()
+	})
+
+	// regression test for #2023
+	t.Run("generate --force foobar (not in a terminal)", func(t *testing.T) {
+		ctx = ctxutil.WithTerminal(ctx, false)
+
+		origAutoclip := act.cfg.AutoClip
+		act.cfg.AutoClip = true
+
+		assert.NoError(t, act.Generate(gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true"}, "foobar")))
+		if strings.Contains(buf.String(), "Copied to clipboard") {
+			t.Errorf("password copied to clipboard when it should not have")
+		}
+
+		act.cfg.AutoClip = origAutoclip
+		buf.Reset()
+	})
 }
 
 func passIsAlphaNum(t *testing.T, buf string, want bool) {

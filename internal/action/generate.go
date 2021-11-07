@@ -120,7 +120,7 @@ func (s *Action) generateCopyOrPrint(ctx context.Context, c *cli.Context, name, 
 	// copy to clipboard if:
 	// - explicitly requested with -c
 	// - autoclip=true, but only if output is not being redirected
-	if IsClip(ctx) || (s.cfg.AutoClip && !ctxutil.IsTerminal(ctx)) {
+	if IsClip(ctx) || (s.cfg.AutoClip && ctxutil.IsTerminal(ctx)) {
 		if err := clipboard.CopyTo(ctx, name, []byte(password), s.cfg.ClipTimeout); err != nil {
 			return ExitError(ExitIO, err, "failed to copy to clipboard: %s", err)
 		}
