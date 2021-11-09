@@ -205,10 +205,10 @@ func (s *Action) initSetupGitRemote(ctx context.Context, team, remote string) er
 		return fmt.Errorf("failed to add git remote: %w", err)
 	}
 	// initial pull, in case the remote is non-empty
-	if err := s.Store.RCSPull(ctx, team, "origin", "master"); err != nil {
+	if err := s.Store.RCSPull(ctx, team, "origin", ""); err != nil {
 		debug.Log("Initial git pull failed: %s", err)
 	}
-	if err := s.Store.RCSPush(ctx, team, "origin", "master"); err != nil {
+	if err := s.Store.RCSPush(ctx, team, "origin", ""); err != nil {
 		return fmt.Errorf("failed to push to git remote: %w", err)
 	}
 	return nil
