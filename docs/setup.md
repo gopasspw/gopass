@@ -125,7 +125,8 @@ If this fails with an error: "Inappropriate ioctl for device" run the following 
 ```
 Now you should be able to create a clear text signature and the commit should work flawlessly.
 
-If you are presented with a different error please investigate this before continuing.
+If you are presented with a different error please investigate this before continuing. If that works
+set it in your `.zprofile`, `.bashrc` or simliar.
 
 Also if you have both `gnupg` and `gnupg2` installed, make sure to use the latter in git:
 ```bash
@@ -150,7 +151,8 @@ If you're using a password on your GPG key, you also have to install `pinentry-m
 
 ```bash
 brew install pinentry-mac
-echo "pinentry-program /usr/local/bin/pinentry-mac" >> ~/.gnupg/gpg-agent.conf
+PINENTRY=$(which pinentry-mac)
+echo "pinentry-program ${PINENTRY}" >>~/.gnupg/gpg-agent.conf
 ```
 
 ### Ubuntu, Debian, Deepin, Devuan, Kali Linux, Pardus, Parrot, Raspbian
