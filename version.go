@@ -9,9 +9,6 @@ import (
 func getVersion() semver.Version {
 	sv, err := semver.Parse(strings.TrimPrefix(version, "v"))
 	if err == nil {
-		if commit != "" {
-			sv.Build = []string{commit}
-		}
 		return sv
 	}
 	return semver.Version{
