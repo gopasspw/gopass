@@ -133,12 +133,11 @@ func (g *Git) ConfigList(ctx context.Context) (map[string]string, error) {
 	lines := strings.Split(buf.String(), "\n")
 	kv := make(map[string]string, len(lines))
 	for _, line := range lines {
-		line = strings.TrimSpace(line)
-		p := strings.SplitN(line, "=", 2)
-		if len(p) < 2 {
+		key, val, found := strings.Cut(strings.TrimSpace(line), "=")
+		if !found {
 			continue
 		}
-		kv[p[0]] = p[1]
+		kv[key] = val
 	}
 	return kv, nil
 }
