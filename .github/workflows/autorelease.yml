@@ -22,7 +22,7 @@ jobs:
         name: Set up Go
         uses: actions/setup-go@v2
         with:
-          go-version: 1.16
+          go-version: 1.17
       # ubuntu is missing wixl https://github.com/actions/virtual-environments/issues/3857
       -
         name: "Install GNOME msitools (wixl)"
@@ -65,12 +65,12 @@ jobs:
           GOPATH: /home/runner/go
       -
         name: "Add Windows installer (msi) to release"
-        run: |  # until https://github.com/goreleaser/goreleaser/issues/1295
+        run: |  # until https://github.com/goreleaser/goreleaser/issues/1295, disabled until #2038 is fixed
           tag="${GITHUB_REF#refs/tags/}"
           version=${tag#v}
-          MSI_VERSION=${version} make msi
-          msi=dist/gopass-${version}-windows-amd64.msi
-          mv dist/gopass_windows_amd64/gopass.msi ${msi}
-          gh release upload "${tag}" "${msi}"
+          echo MSI_VERSION=${version} make msi
+          echo msi=dist/gopass-${version}-windows-amd64.msi
+          echo mv dist/gopass_windows_amd64/gopass.msi ${msi}
+          echo gh release upload "${tag}" "${msi}"
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
