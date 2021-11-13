@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"sort"
 	"strings"
 	"time"
@@ -204,4 +205,9 @@ func (a *Age) getNativeIdentities(ctx context.Context) (map[string]age.Identity,
 	}
 	a.krCache = ids
 	return ids, nil
+}
+
+// Concurrency returns the number of CPUs
+func (a *Age) Concurrency() int {
+	return runtime.NumCPU()
 }

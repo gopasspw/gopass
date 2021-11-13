@@ -4,6 +4,7 @@ package plain
 import (
 	"context"
 	"fmt"
+	"runtime"
 	"strings"
 	"time"
 
@@ -162,4 +163,9 @@ func (m *Mocker) IDFile() string {
 // ReadNamesFromKey does nothing
 func (m *Mocker) ReadNamesFromKey(ctx context.Context, buf []byte) ([]string, error) {
 	return []string{"unsupported"}, nil
+}
+
+// Concurrency returns the number of CPUs
+func (m *Mocker) Concurrency() int {
+	return runtime.NumCPU()
 }

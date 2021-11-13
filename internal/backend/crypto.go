@@ -53,6 +53,7 @@ type Crypto interface {
 	Initialized(ctx context.Context) error
 	Ext() string    // filename extension
 	IDFile() string // recipient IDs
+	Concurrency() int
 }
 
 // RegisterCrypto registers a new crypto backend with the backend registry.
