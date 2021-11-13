@@ -1,3 +1,7 @@
+// Package pwgen implements the subcommands to operate the stand alone password generator.
+// The reason why it's not part of the action package is that we did try to split that
+// but ran into issues and undid most of that work - except this package. If this bothers
+// you feel free to propose a PR to move it back into the action package.
 package pwgen
 
 import (

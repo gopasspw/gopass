@@ -25,7 +25,19 @@ gopass recipients add 0xDEADBEEF
 
 ## Roadmap
 
-This backend is the single most annoying source of maintenance workload in this project. Iff a viable replacement becomes available this backend might
-be dropped entirely. Until then we try to keep it working as good as
-possible.
+This backend is the single most annoying source of maintenance workload in this project.
+We try to keep this backend working as good as possible but there are a lot of reasons
+why we'd prefer eventually move beyond GPG.
 
+### GPG Critism
+
+This section is a growing list of references why GPG is bad and why you should avoid it.
+That might sound like an unusual thing to say for the authors of a tool whose main use case
+relies on GPG but whenever we tried to move beyond GPG we got a lot of backlash. So I guess
+first we need to try to make use understand why you shouldn't hold on to GPG and by then we'll
+try to have a replacement ready for you.
+
+* [What's the matter with PGP](https://blog.cryptographyengineering.com/2014/08/13/whats-matter-with-pgp/)
+* [The PGP Problem](https://latacora.micro.blog/2019/07/16/the-pgp-problem.html)
+* [I'm giving up on PGP](https://blog.filippo.io/giving-up-on-long-term-pgp/)
+* [GPG and Me](https://moxie.org/2015/02/24/gpg-and-me.html)

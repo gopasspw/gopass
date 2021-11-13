@@ -1,4 +1,6 @@
-// Package audit contains the password-strength auditing implementation
+// Package audit contains the password-strength auditing implementation. It reads all decrypted
+// passwords and applies different heuristics and external password strength checks to determine
+// the quality of the password (i.e. the first line of the secret - only!).
 package audit
 
 import (

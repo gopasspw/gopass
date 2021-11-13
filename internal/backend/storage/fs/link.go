@@ -35,7 +35,8 @@ func longestCommonPrefix(l, r string) string {
 	return prefix[:strings.LastIndex(prefix, "/")]
 }
 
-// Link creates a symlink
+// Link creates a symlink, i.e. an alias to reach the same secret
+// through different names.
 func (s *Store) Link(ctx context.Context, from, to string) error {
 	if runtime.GOOS == "windows" {
 		from = filepath.FromSlash(from)

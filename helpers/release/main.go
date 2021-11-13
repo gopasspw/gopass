@@ -1,3 +1,12 @@
+// Copyright 2021 The gopass Authors. All rights reserved.
+// Use of this source code is governed by the MIT license,
+// that can be found in the LICENSE file.
+
+// Release is the first part of the gopass release automation. It's supposed
+// to be run by a member of the gopass team. It will ensure that the repository
+// is in a clean state and make it trivial to trigger a new release.
+// You can run it without any parameters and as long as you pay close attention
+// to the output it will be a breeze.
 package main
 
 import (

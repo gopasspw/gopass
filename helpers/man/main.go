@@ -1,3 +1,9 @@
+// Copyright 2021 The gopass Authors. All rights reserved.
+// Use of this source code is governed by the MIT license,
+// that can be found in the LICENSE file.
+
+// Man implements a man(1) documentation generator that is run as part of the
+// release helper to generate an up to date manpage for Gopass.
 package main
 
 import (
