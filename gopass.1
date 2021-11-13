@@ -1,5 +1,5 @@
 
-.TH GOPASS "1" "August 2021" "gopass (github.com/gopasspw/gopass) 1.12.8" "User Commands"
+.TH GOPASS "1" "November 2021" "gopass (github.com/gopasspw/gopass) 1.13.0" "User Commands"
 .SH NAME
 gopass - The standard Unix password manager
 .SH SYNOPSIS
@@ -129,6 +129,7 @@ Recursive delete files and folders
 Edit new or existing secrets
 
 Use this command to insert a new secret or edit an existing one using your $EDITOR. It will attempt to create a secure temporary directory for storing your secret while the editor is accessing it. Please make sure your editor doesn't leak sensitive data to other locations while editing.
+Note: If $EDITOR is not set we will try 'editor'. If that's not available either we fall back to 'vi'. Consider using 'update-alternatives --config editor to change the defaults.
 
 .B Flags
 .TP

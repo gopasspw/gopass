@@ -1,3 +1,16 @@
+## 1.13.0 / 2021-11-13
+
+* [BUGFIX] Do not print OTP progress bar if not in terminal (#2019)
+* [BUGFIX] Don't prompt to retype password unnecessarily (#1983)
+* [BUGFIX] Fix AutoClip handling on generate (#2024, #2023)
+* [BUGFIX] Replace Build Status badge in README (#2016)
+* [BUGFIX] The field 'parsing' is now honored with legacy config pre v1.12.7 (#1997)
+* [BUGFIX] Use default git branch on setup (#2026, #1945)
+* [ENHANCEMENT] Adding a MSI installer for Windows (#2001)
+* [ENHANCEMENT] Move password prompts to stderr (#2004)
+* [FEATURE] Add capitalized words to memorable passwords (#1985, #1984)
+* [UX] Use new progress bar for OTP expiry time (#2019)
+
 ## 1.12.8 / 2021-08-28
 
 * [BUGFIX] Use same default for partial config files (#1968)
