@@ -17,6 +17,9 @@ const (
 	fileMode = 0600
 )
 
+// fixConfig sets up the git config for the password store in a way to simplifies some of the quirks
+// that git has. We'd prefer if that wasn't necessary but git has way too many modes of operation
+// and we need it to behave a predicatable as possible.
 func (g *Git) fixConfig(ctx context.Context) error {
 	// set push default, to avoid issues with
 	// "fatal: The current branch master has multiple upstream branches, refusing to push"
