@@ -100,3 +100,9 @@ func (g *GPG) Ext() string {
 func (g *GPG) IDFile() string {
 	return IDFile
 }
+
+// Concurrency returns 1 to avoid concurrency issues
+// with many GPG setups.
+func (g *GPG) Concurrency() int {
+	return 1
+}

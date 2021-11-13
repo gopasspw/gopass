@@ -23,9 +23,9 @@ func (s *Store) reencrypt(ctx context.Context) error {
 		return fmt.Errorf("failed to list store: %w", err)
 	}
 
-	// TODO: Most gnupg setups don't work well with concurrency > 1, but
+	// Most gnupg setups don't work well with concurrency > 1, but
 	// for other backends - e.g. age - this could very well be > 1.
-	conc := 1
+	conc := s.crypto.Concurrency()
 
 	// save original value of auto push
 	{
