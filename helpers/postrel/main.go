@@ -72,11 +72,13 @@ func main() {
 	fmt.Scanln()
 
 	// update gopass.pw
+	fmt.Println("☝  Updatgin gopass.pw ...")
 	if err := updateGopasspw(htmlDir, curVer); err != nil {
 		fmt.Printf("Failed to update gopasspw.github.io: %s\n", err)
 	}
 
 	// create a new GitHub milestone
+	fmt.Println("☝  Creatgin new GitHub Milestone(s) ...")
 	if err := ghCl.createMilestones(ctx, nextVer); err != nil {
 		fmt.Printf("Failed to create GitHub milestones: %s\n", err)
 	}
@@ -145,7 +147,7 @@ func (g *ghClient) createMilestones(ctx context.Context, v semver.Version) error
 func (g *ghClient) createMilestone(ctx context.Context, title string, offset int, ms []*github.Milestone) error {
 	for _, m := range ms {
 		if *m.Title == title {
-			fmt.Printf("Milestone %s exists\n", title)
+			fmt.Printf("❌ Milestone %s exists\n", title)
 			return nil
 		}
 	}
@@ -155,6 +157,9 @@ func (g *ghClient) createMilestone(ctx context.Context, title string, offset int
 		Title: &title,
 		DueOn: &due,
 	})
+	if err == nil {
+		fmt.Printf("✅ Milestone %s created\n", title)
+	}
 
 	return err
 }
@@ -192,22 +197,28 @@ func updateGopasspw(dir string, ver semver.Version) error {
 func gitCommitAndPush(dir string, v semver.Version) error {
 	cmd := exec.Command("git", "add", "index.html")
 	cmd.Dir = dir
+	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
-		return err
+		return fmt.Errorf("failed to add index.html: %w", err)
 	}
 
 	cmd = exec.Command("git", "commit", "-s", "-m", "Update to v"+v.String())
 	cmd.Dir = dir
+	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
-		return err
+		return fmt.Errorf("failed to commit changes: %w", err)
 	}
 
 	cmd = exec.Command("git", "push", "origin", "master")
 	cmd.Dir = dir
+	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	return cmd.Run()
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("failed to push changes: %w", err)
+	}
+	return nil
 }
 
 func versionFile() (semver.Version, error) {
@@ -283,13 +294,16 @@ func (u *repoUpdater) update(ctx context.Context) {
 			UpFn:   u.updateVoid,
 		},
 	} {
+		fmt.Println()
 		fmt.Println("------------------------------")
-		fmt.Printf("Updating: %s ...\n", upd.Distro)
+		fmt.Println()
+		fmt.Printf("🌟 Updating: %s ...\n", upd.Distro)
+		fmt.Println()
 		if err := upd.UpFn(ctx); err != nil {
-			fmt.Printf("\tERROR: %s\n", err)
+			fmt.Printf("❌ Updating %s failed: %s\n", upd.Distro, err)
 			continue
 		}
-		fmt.Println("\tOK")
+		fmt.Printf("✅ Distro %s updated\n", upd.Distro)
 	}
 }
 
@@ -310,6 +324,7 @@ func (u *repoUpdater) updateAlpine(ctx context.Context) error {
 	if err := r.updatePrepare(); err != nil {
 		return err
 	}
+	fmt.Println("✅ Prepared")
 
 	// update community/gopass/APKBUILD
 	buildFn := "community/gopass/APKBUILD"
@@ -320,13 +335,16 @@ func (u *repoUpdater) updateAlpine(ctx context.Context) error {
 		"sha512sums=": strp("sha512sums=\"" + u.arcSHA512 + "  gopass-" + u.v.String() + ".tar.gz\""),
 		"source=":     strp(`source="$pkgname-$pkgver.tar.gz::https://github.com/gopasspw/gopass/archive/v$pkgver.tar.gz"`),
 	}
+
 	if err := updateBuild(buildPath, repl); err != nil {
 		return err
 	}
+	fmt.Println("✅ Built")
 
 	if err := r.updateFinalize(buildFn); err != nil {
 		return err
 	}
+	fmt.Println("✅ Finalized")
 
 	// TODO could open an MR: https://docs.gitlab.com/ce/api/merge_requests.html#create-mhttps://docs.gitlab.com/ce/api/merge_requests.html#comments-on-merge-requestsr
 	return nil
@@ -342,11 +360,13 @@ func (u *repoUpdater) updateHomebrew(ctx context.Context) error {
 		ver: u.v,
 		url: u.relURL,
 		dir: dir,
+		rem: u.ghFork,
 	}
 
 	if err := r.updatePrepare(); err != nil {
 		return err
 	}
+	fmt.Println("✅ Prepared")
 
 	// update Formula/gopass.rb
 	buildFn := "Formula/gopass.rb"
@@ -362,9 +382,12 @@ func (u *repoUpdater) updateHomebrew(ctx context.Context) error {
 	); err != nil {
 		return err
 	}
+	fmt.Println("✅ Built")
+
 	if err := r.updateFinalize(buildFn); err != nil {
 		return err
 	}
+	fmt.Println("✅ Finalized")
 
 	return u.createPR(ctx, r.commitMsg(), u.ghUser+":"+r.branch(), "Homebrew", "homebrew-core")
 }
@@ -379,11 +402,13 @@ func (u *repoUpdater) updateTermux(ctx context.Context) error {
 		ver: u.v,
 		url: u.arcURL,
 		dir: dir,
+		rem: u.ghFork,
 	}
 
 	if err := r.updatePrepare(); err != nil {
 		return err
 	}
+	fmt.Println("✅ Prepared")
 
 	// update packages/gopass/build.sh
 	buildFn := "packages/gopass/build.sh"
@@ -401,9 +426,12 @@ func (u *repoUpdater) updateTermux(ctx context.Context) error {
 	); err != nil {
 		return err
 	}
+	fmt.Println("✅ Built")
+
 	if err := r.updateFinalize(buildFn); err != nil {
 		return err
 	}
+	fmt.Println("✅ Finalized")
 
 	return u.createPR(ctx, r.commitMsg(), u.ghUser+":"+r.branch(), "termux", "termux-packages")
 }
@@ -418,11 +446,13 @@ func (u *repoUpdater) updateVoid(ctx context.Context) error {
 		ver: u.v,
 		url: u.arcURL,
 		dir: dir,
+		rem: u.ghFork,
 	}
 
 	if err := r.updatePrepare(); err != nil {
 		return err
 	}
+	fmt.Println("✅ Prepared")
 
 	// update srcpkgs/gopass/template
 	buildFn := "srcpkgs/gopass/template"
@@ -440,10 +470,12 @@ func (u *repoUpdater) updateVoid(ctx context.Context) error {
 	); err != nil {
 		return err
 	}
+	fmt.Println("✅ Built")
 
 	if err := r.updateFinalize(buildFn); err != nil {
 		return err
 	}
+	fmt.Println("✅ Finalized")
 
 	return u.createPR(ctx, r.commitMsg(), u.ghUser+":"+r.branch(), "void-linux", "void-packages")
 }
@@ -459,12 +491,12 @@ func (u *repoUpdater) createPR(ctx context.Context, title, from, toOrg, toRepo s
 
 	pr, resp, err := u.github.PullRequests.Create(ctx, toOrg, toRepo, newPR)
 	if err != nil {
-		fmt.Printf("ERROR: Creating GitHub PR failed: %s", err)
+		fmt.Printf("❌ Creating GitHub PR failed: %s", err)
 		fmt.Printf("Request: %+v\n", newPR)
 		fmt.Printf("Response: %+v\n", resp)
 		return err
 	}
-	fmt.Printf("GitHub PR created: %s\n", pr.GetHTMLURL())
+	fmt.Printf("✅ GitHub PR created: %s\n", pr.GetHTMLURL())
 	return err
 }
 
@@ -539,25 +571,37 @@ func (r *repo) commitMsg() string {
 }
 
 func (r *repo) updatePrepare() error {
+	fmt.Println("🌟 Running prepare ...")
+
 	// git co master
 	if err := r.gitCoMaster(); err != nil {
-		return err
+		return fmt.Errorf("git checkout master failed: %w", err)
 	}
 	if !r.isGitClean() {
 		return fmt.Errorf("git is dirty")
 	}
 	// git pull origin master
 	if err := r.gitPom(); err != nil {
-		return err
+		return fmt.Errorf("git pull origin master failed: %w", err)
 	}
 	// git co -b gopass-VER
+	if err := r.gitBranch(); err == nil {
+		return nil
+	}
+
+	// git branch -d gopass-VER
+	if err := r.gitBranchDel(); err != nil {
+		return fmt.Errorf("git branch -d failed: %w", err)
+	}
 	return r.gitBranch()
 }
 
 func (r *repo) updateFinalize(path string) error {
+	fmt.Println("🌟 Running finalize ...")
+
 	// git commit -m 'gopass: update to VER'
 	if err := r.gitCommit(path); err != nil {
-		return err
+		return fmt.Errorf("git commit %s failed: %w", path, err)
 	}
 	// git push myfork gopass-VER
 	return r.gitPush(r.rem)
@@ -569,6 +613,7 @@ func (r *repo) gitCoMaster() error {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Dir = r.dir
+	fmt.Printf("Running command: %s\n", cmd)
 	return cmd.Run()
 }
 
@@ -577,6 +622,16 @@ func (r *repo) gitBranch() error {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Dir = r.dir
+	fmt.Printf("Running command: %s\n", cmd)
+	return cmd.Run()
+}
+
+func (r *repo) gitBranchDel() error {
+	cmd := exec.Command("git", "branch", "-D", r.branch())
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Dir = r.dir
+	fmt.Printf("Running command: %s\n", cmd)
 	return cmd.Run()
 }
 
@@ -599,6 +654,7 @@ func (r *repo) gitPush(remote string) error {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Dir = r.dir
+	fmt.Printf("Running command: %s\n", cmd)
 	return cmd.Run()
 }
 
@@ -610,6 +666,7 @@ func (r *repo) gitCommit(files ...string) error {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Dir = r.dir
+	fmt.Printf("Running command: %s\n", cmd)
 	if err := cmd.Run(); err != nil {
 		return err
 	}
@@ -618,6 +675,7 @@ func (r *repo) gitCommit(files ...string) error {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Dir = r.dir
+	fmt.Printf("Running command: %s\n", cmd)
 	return cmd.Run()
 }
 
