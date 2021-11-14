@@ -461,7 +461,6 @@ func (u *repoUpdater) updateVoid(ctx context.Context) error {
 	repl := map[string]*string{
 		"version=":   strp("version=" + u.v.String()),
 		"checksum=":  strp("checksum=" + u.arcSHA256),
-		"revision=":  nil,
 		"distfiles=": strp(`distfiles="https://github.com/gopasspw/gopass/archive/v${version}.tar.gz"`),
 	}
 	if err := updateBuild(
@@ -567,7 +566,7 @@ func (r *repo) commitMsg() string {
 	if r.msg != "" {
 		return r.msg
 	}
-	return "gopass: update to " + r.ver.String()
+	return "gopass: update to " + r.ver.String() + "\nNote: This is an auto-generated change as part of the gopass release process.\n"
 }
 
 func (r *repo) updatePrepare() error {
