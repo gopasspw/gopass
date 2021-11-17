@@ -12,6 +12,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/otp"
 	"github.com/gopasspw/gopass/pkg/termio"
 
+	"github.com/mattn/go-tty"
 	"github.com/urfave/cli/v2"
 )
 
@@ -65,23 +66,50 @@ func (s *Action) otp(ctx context.Context, name, qrf string, clip, pw, recurse bo
 		skip = true
 	} else { // if not then we want to print a progress bar with the expiry time
 		out.Printf(ctx, "%s", token)
-		out.Warningf(ctx, "This OTP password still lasts for:", nil)
+		out.Warningf(ctx, "([q] to stop. -o flag to avoid.) This OTP password still lasts for:", nil)
 		bar := termio.NewProgressBar(int64(secondsLeft))
 		bar.Hidden = ctxutil.IsHidden(ctx)
 		if bar.Hidden {
 			skip = true
 		} else {
+			cancel := make(chan bool)
 			bar.Set(0)
 			go func() {
 				ticker := time.NewTicker(1 * time.Second)
 				defer ticker.Stop()
+				cancelled := false
 				for tt := range ticker.C {
-					if tt.After(expiresAt) {
+					select {
+					case <-cancel:
+						cancelled = true
+					default:
+						// we don't want to block if not cancelled
+					}
+					if tt.After(expiresAt) || cancelled {
 						bar.Done()
 						done <- true
 						return
 					}
 					bar.Inc()
+				}
+			}()
+			go func() {
+				tty, err := tty.Open()
+				if err != nil {
+					out.Errorf(ctx, "Unexpected error opening tty: %v", err)
+					cancel <- true
+				}
+				defer tty.Close()
+
+				for {
+					r, err := tty.ReadRune()
+					if err != nil {
+						out.Errorf(ctx, "Unexpected error opening tty: %v", err)
+					}
+					if r == 'q' || r == 'x' || err != nil {
+						cancel <- true
+						return
+					}
 				}
 			}()
 		}
