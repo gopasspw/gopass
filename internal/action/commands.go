@@ -2,6 +2,7 @@ package action
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/urfave/cli/v2"
@@ -128,7 +129,7 @@ func (s *Action) GetCommands() []*cli.Command {
 				},
 				&cli.StringFlag{
 					Name:  "crypto",
-					Usage: fmt.Sprintf("Select crypto backend %v", backend.CryptoBackends()),
+					Usage: fmt.Sprintf("Select crypto backend: %s", strings.Join(backend.CryptoBackends(), ", ")),
 				},
 			},
 		},
@@ -164,11 +165,11 @@ func (s *Action) GetCommands() []*cli.Command {
 				},
 				&cli.StringFlag{
 					Name:  "crypto",
-					Usage: fmt.Sprintf("Which crypto backend? %v", backend.CryptoBackends()),
+					Usage: fmt.Sprintf("Which crypto backend? %s", strings.Join(backend.CryptoBackends(), ", ")),
 				},
 				&cli.StringFlag{
 					Name:  "storage",
-					Usage: fmt.Sprintf("Which storage backend? %v", backend.StorageBackends()),
+					Usage: fmt.Sprintf("Which storage backend? %s", strings.Join(backend.StorageBackends(), ", ")),
 				},
 			},
 		},
@@ -450,7 +451,7 @@ func (s *Action) GetCommands() []*cli.Command {
 						},
 						&cli.StringFlag{
 							Name:  "storage",
-							Usage: fmt.Sprintf("Select storage backend %v", backend.StorageBackends()),
+							Usage: fmt.Sprintf("Select storage backend %s", strings.Join(backend.StorageBackends(), ", ")),
 							Value: "gitfs",
 						},
 					},
@@ -585,12 +586,12 @@ func (s *Action) GetCommands() []*cli.Command {
 				},
 				&cli.StringFlag{
 					Name:  "crypto",
-					Usage: fmt.Sprintf("Select crypto backend %v", backend.CryptoBackends()),
+					Usage: fmt.Sprintf("Select crypto backend %s", strings.Join(backend.CryptoBackends(), ", ")),
 					Value: "gpgcli",
 				},
 				&cli.StringFlag{
 					Name:  "storage",
-					Usage: fmt.Sprintf("Select storage backend %v", backend.StorageBackends()),
+					Usage: fmt.Sprintf("Select storage backend %s", strings.Join(backend.StorageBackends(), ", ")),
 					Value: "gitfs",
 				},
 			},
@@ -877,11 +878,11 @@ func (s *Action) GetCommands() []*cli.Command {
 				},
 				&cli.StringFlag{
 					Name:  "crypto",
-					Usage: fmt.Sprintf("Select crypto backend %v", backend.CryptoBackends()),
+					Usage: fmt.Sprintf("Select crypto backend %s", strings.Join(backend.CryptoBackends(), ", ")),
 				},
 				&cli.StringFlag{
 					Name:  "storage",
-					Usage: fmt.Sprintf("Select storage backend %v", backend.StorageBackends()),
+					Usage: fmt.Sprintf("Select storage backend %s", strings.Join(backend.StorageBackends(), ", ")),
 				},
 			},
 		},
