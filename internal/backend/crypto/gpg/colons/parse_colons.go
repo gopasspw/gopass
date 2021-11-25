@@ -114,21 +114,20 @@ func Parse(reader io.Reader) gpg.KeyList {
 
 func parseKeyCaps(field string) gpg.Capabilities {
 	keycaps := gpg.Capabilities{}
-	caps := strings.ToLower(field)
 
-	if strings.Contains(caps, "S") {
+	if strings.Contains(field, "S") {
 		keycaps.Sign = true
 	}
-	if strings.Contains(caps, "E") {
+	if strings.Contains(field, "E") {
 		keycaps.Encrypt = true
 	}
-	if strings.Contains(caps, "C") {
+	if strings.Contains(field, "C") {
 		keycaps.Certify = true
 	}
-	if strings.Contains(caps, "A") {
+	if strings.Contains(field, "A") {
 		keycaps.Authentication = true
 	}
-	if strings.Contains(caps, "D") {
+	if strings.Contains(field, "D") {
 		keycaps.Deactivated = true
 	}
 
