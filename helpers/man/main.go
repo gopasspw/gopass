@@ -7,8 +7,12 @@
 package main
 
 import (
+	"fmt"
+	"io/fs"
 	"io/ioutil"
 	"os"
+	"os/exec"
+	"path/filepath"
 	"sort"
 	"strings"
 	"text/template"
@@ -22,6 +26,26 @@ import (
 )
 
 func main() {
+	// this is a workaround for the man helper getting accidentially
+	// installed into my $GOBIN dir and me not being able to figure out
+	// why. So instead of being greeted with an ugly panic message
+	// every now and then when I need to open a man page I decided
+	// to rather have a little bit of code to automate this away.
+	if len(os.Args) > 0 && os.Args[0] == "man" {
+		manPath, err := lookPath("man")
+		if err != nil {
+			panic(err)
+		}
+		cmd := exec.Command(manPath, os.Args[1:]...)
+		cmd.Stderr = os.Stderr
+		cmd.Stdin = os.Stdin
+		cmd.Stdout = os.Stdout
+		if err := cmd.Run(); err != nil {
+			os.Exit(cmd.ProcessState.ExitCode())
+		}
+		return
+	}
+
 	vs, err := ioutil.ReadFile("VERSION")
 	if err != nil {
 		panic(err)
@@ -95,6 +119,41 @@ type payload struct {
 	SectionName   string // User Commands
 	Commands      []*cli.Command
 	Flags         []flag
+}
+
+// from https://cs.opensource.google/go/go/+/refs/tags/go1.17.3:src/os/exec/lp_unix.go
+func lookPath(file string) (string, error) {
+	curPath, err := os.Executable()
+	if err != nil {
+		return "", err
+	}
+	path := os.Getenv("PATH")
+	for _, dir := range filepath.SplitList(path) {
+		if dir == "" {
+			// Unix shell semantics: path element "" means "."
+			dir = "."
+		}
+		path := filepath.Join(dir, file)
+		// do not call ourselves
+		if path == curPath {
+			continue
+		}
+		if err := findExecutable(path); err == nil {
+			return path, nil
+		}
+	}
+	return "", fmt.Errorf("%s: executable file not found in $PATH", file)
+}
+
+func findExecutable(file string) error {
+	d, err := os.Stat(file)
+	if err != nil {
+		return err
+	}
+	if m := d.Mode(); !m.IsDir() && m&0111 != 0 {
+		return nil
+	}
+	return fs.ErrPermission
 }
 
 var manTpl = `
