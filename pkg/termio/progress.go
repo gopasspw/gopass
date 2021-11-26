@@ -130,6 +130,10 @@ func (p *ProgressBar) doPrint() {
 
 	barWidth := uint(termWidth)
 	digits := int(math.Log10(float64(max))) + 1
+	// Log10(0) is undefined
+	if max < 1 {
+		digits = 1
+	}
 	text := fmt.Sprintf(fmt.Sprintf(" %%%dd / %%%dd ", digits, digits), cur, max)
 	if p.Bytes {
 		curStr := humanize.Bytes(uint64(cur))
