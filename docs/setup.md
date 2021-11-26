@@ -23,10 +23,8 @@ key generation if these are available for your platform.
 
 ```bash
 apt-get update
-apt-get install gnupg2 git rng-tools
+apt-get install git gnupg rng-tools
 ```
-
-_Note:_ installing on Ubuntu prior to 16.04 and similarly old Debian versions might require you to install `gnupg` instead of `gnupg2`.
 
 #### RHEL & CentOS
 

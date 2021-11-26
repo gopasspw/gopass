@@ -61,19 +61,31 @@ release:
   prerelease: auto
 
 nfpms:
-  - id: gopass
+  - id: gopass_deb
     vendor: Gopass Authors
     homepage: "https://www.gopass.pw"
     maintainer: "Gopass Authors <gopass@gopass.pw>"
     license: MIT
     formats:
       - deb
+    dependencies:
+      - git
+      - gnupg
+    recommends:
+      - rng-tools
+  - id: gopass_rpm
+    vendor: Gopass Authors
+    homepage: "https://www.gopass.pw"
+    maintainer: "Gopass Authors <gopass@gopass.pw>"
+    license: MIT
+    formats:
       - rpm
     dependencies:
       - git
       - gnupg2
     recommends:
       - rng-tools
+
 source:
   enabled: true
   name_template: "{{.ProjectName}}-{{.Version}}"
