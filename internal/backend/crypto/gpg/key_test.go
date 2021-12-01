@@ -57,6 +57,13 @@ func genTestKey(args ...string) Key {
 				ExpirationDate: expiration,
 			},
 		},
+		Caps: Capabilities{
+			Encrypt:        true,
+			Sign:           false,
+			Certify:        false,
+			Authentication: false,
+			Deactivated:    false,
+		},
 	}
 }
 
@@ -94,10 +101,20 @@ func TestUseability(t *testing.T) {
 		{},
 		{
 			ExpirationDate: time.Now().Add(-time.Second),
+			Caps:           Capabilities{Encrypt: true},
 		},
 		{
 			ExpirationDate: time.Now().Add(time.Hour),
+			Caps:           Capabilities{Encrypt: true},
 			Validity:       "z",
+		},
+		{
+			ExpirationDate: time.Now().Add(time.Hour),
+			Caps:           Capabilities{Deactivated: true},
+		},
+		{
+			ExpirationDate: time.Now().Add(time.Hour),
+			Caps:           Capabilities{Encrypt: false},
 		},
 	} {
 		assert.False(t, k.IsUseable(false))
@@ -107,14 +124,17 @@ func TestUseability(t *testing.T) {
 		{
 			ExpirationDate: time.Now().Add(time.Hour),
 			Validity:       "m",
+			Caps:           Capabilities{Encrypt: true},
 		},
 		{
 			ExpirationDate: time.Now().Add(time.Hour),
 			Validity:       "f",
+			Caps:           Capabilities{Encrypt: true},
 		},
 		{
 			ExpirationDate: time.Now().Add(time.Hour),
 			Validity:       "u",
+			Caps:           Capabilities{Encrypt: true},
 		},
 	} {
 		assert.True(t, k.IsUseable(false))

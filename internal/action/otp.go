@@ -37,7 +37,7 @@ func (s *Action) OTP(c *cli.Context) error {
 	return s.otp(ctx, name, qrf, clip, pw, true)
 }
 
-func  tickingBar(ctx context.Context, cancel context.CancelFunc, expiresAt time.Time, bar *termio.ProgressBar) {
+func tickingBar(ctx context.Context, cancel context.CancelFunc, expiresAt time.Time, bar *termio.ProgressBar) {
 	ticker := time.NewTicker(1 * time.Second)
 	defer ticker.Stop()
 	for tt := range ticker.C {
