@@ -125,10 +125,8 @@ func (s *Action) otp(ctx context.Context, name, qrf string, clip, pw, recurse bo
 	}
 
 	// we wait until our ticker is done or we got a cancelation
-	select {
-	case <-ctx.Done():
-		return nil
-	}
+	<-ctx.Done()
+	return nil
 }
 
 func (s *Action) otpHandleError(ctx context.Context, name, qrf string, clip, pw, recurse bool, err error) error {
