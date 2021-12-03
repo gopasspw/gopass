@@ -177,11 +177,11 @@ secret1234
 totp: ABC123
 ```
 
-*Note: any values for `totp:` need to be base32 (32, not 64) encoded. Often sites will display the raw secret alongside the QR*
+*Note: any values for `totp:` need to be base32 (32, not 64 and uppercase letters only) encoded. Often sites will display the raw secret alongside the QR*
 
 Some sites will not directly show you the URL contained in the QR code. If this is the case, you can use something like [zbar](http://zbar.sourceforge.net/) to extract the URL.
 
-Both TOTP and HOTP are supported. However, to generate HOTP tokens, the counter in the stored URL must be manually incremented (e.g. via `gopass edit myhotpsecret`). 
+Both TOTP and HOTP are supported. However, to generate HOTP tokens, the counter in the stored URL must be manually incremented (e.g. via `gopass edit myhotpsecret`).  
 
 ### Listing existing secrets
 
