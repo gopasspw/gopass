@@ -6,9 +6,13 @@
 package main
 
 import (
+	"bufio"
+	"bytes"
 	"encoding/json"
+	"io"
 	"net/http"
 	"os"
+	"strings"
 	"text/template"
 	"time"
 )
@@ -99,10 +103,53 @@ func fetchRules() (map[string]jsonRule, error) {
 		return nil, err
 	}
 	var jr map[string]jsonRule
-	if err := json.NewDecoder(resp.Body).Decode(&jr); err != nil {
+	if err := json.NewDecoder(&cleaningReader{src: resp.Body}).Decode(&jr); err != nil {
 		return nil, err
 	}
 	return jr, nil
+}
+
+// TODO: remove when https://github.com/apple/password-manager-resources/pull/545 is merged
+type cleaningReader struct {
+	src io.Reader
+	rdr io.Reader
+}
+
+func (c *cleaningReader) init() error {
+	if c.rdr != nil {
+		return nil
+	}
+
+	var buf bytes.Buffer
+	scanner := bufio.NewScanner(c.src)
+	for scanner.Scan() {
+		line := scanner.Text()
+		skip := false
+		// skip two broken entries. this is a terrible hack because
+		// the JSON is not valid.
+		for _, needle := range []string{"fidelity.com", "hkexpress.com"} {
+			if strings.Contains(line, "\""+needle+"\"") {
+				skip = true
+			}
+		}
+		// the broken entries are three lines each. the first was already consumed
+		// above, so we need to skip the next two lines to consume all of it.
+		if skip {
+			scanner.Scan()
+			scanner.Scan()
+			continue
+		}
+		buf.WriteString(line)
+	}
+	c.rdr = bytes.NewReader(buf.Bytes())
+	return nil
+}
+
+func (c *cleaningReader) Read(p []byte) (n int, err error) {
+	if err := c.init(); err != nil {
+		return 0, err
+	}
+	return c.rdr.Read(p)
 }
 
 // cf. https://blog.carlmjohnson.net/post/2016-11-27-how-to-use-go-generate/
