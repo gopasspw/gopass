@@ -9,6 +9,7 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -98,25 +99,43 @@ type jsonRule struct {
 }
 
 func fetchRules() (map[string]jsonRule, error) {
-	resp, err := http.Get(rulesURL)
-	if err != nil {
-		return nil, err
+	var src io.Reader
+	if fn := os.Getenv("PWGEN_RULES_FILE"); fn != "" {
+		f, err := os.Open(fn)
+		if err != nil {
+			return nil, err
+		}
+		src = f
+	} else {
+		resp, err := http.Get(rulesURL)
+		if err != nil {
+			return nil, err
+		}
+		defer resp.Body.Close()
+		src = resp.Body
 	}
+
 	var jr map[string]jsonRule
-	if err := json.NewDecoder(&cleaningReader{src: resp.Body}).Decode(&jr); err != nil {
+	if err := json.NewDecoder(&cleaningReader{src: src, ign: map[string]int{"launtel.net.au": 5}}).Decode(&jr); err != nil {
 		return nil, err
 	}
 	return jr, nil
 }
 
-// TODO: remove when https://github.com/apple/password-manager-resources/pull/545 is merged
 type cleaningReader struct {
 	src io.Reader
 	rdr io.Reader
+	ign map[string]int // map of domains to ignore, value is number of lines to skip
 }
 
 func (c *cleaningReader) init() error {
 	if c.rdr != nil {
+		return nil
+	}
+	// no need to do anything if the ignore list is empty
+	if len(c.ign) < 1 {
+		fmt.Println("ignore list is empty")
+		c.rdr = c.src
 		return nil
 	}
 
@@ -124,19 +143,23 @@ func (c *cleaningReader) init() error {
 	scanner := bufio.NewScanner(c.src)
 	for scanner.Scan() {
 		line := scanner.Text()
-		skip := false
+		skip := 0
 		// skip two broken entries. this is a terrible hack because
 		// the JSON is not valid.
-		for _, needle := range []string{"fidelity.com", "hkexpress.com"} {
-			if strings.Contains(line, "\""+needle+"\"") {
-				skip = true
+		for needle, numSkip := range c.ign {
+			want := fmt.Sprintf("\"%s\":", needle)
+			if strings.Contains(line, want) {
+				fmt.Printf("skipping %d lines after %s\n", numSkip, needle)
+				skip = numSkip
 			}
 		}
 		// the broken entries are three lines each. the first was already consumed
 		// above, so we need to skip the next two lines to consume all of it.
-		if skip {
+		for i := 0; i < skip; i++ {
 			scanner.Scan()
-			scanner.Scan()
+			fmt.Printf("Skipped line: %s\n", scanner.Text())
+		}
+		if skip > 0 {
 			continue
 		}
 		buf.WriteString(line)
