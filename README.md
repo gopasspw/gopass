@@ -15,17 +15,11 @@
 
 ## Introduction
 
-gopass is a password manager for the command line written in Go. It supports all major operating systems (Linux, MacOS, BSD) as well as Windows.
+gopass is a password manager for the command line written in Go.
+It works on all major desktop and server operating
+systems (Linux, MacOS, BSD, Windows).
 
 For detailed usage and installation instructions please check out our [documentation](docs/).
-
-## Design Principles
-
-Gopass is a versatile command line based password manager that is being developed with the following principles in mind:
-
-- **Easy**: For technical users (i.e. those who are used to the command line) it should be easy to get started with gopass.
-- **Secure**: Security is hard. We aim to make it as easy as possible while still providing a good level of protection against common adversaries. *Caution*: If your personal threat level is very high, we might not offer a good tool for you.
-- **Extensible**: While Gopass includes a fair amount of useful features, we can't cover every use-case. To support more special use cases we want to provide a clean and simple API to integration gopass into your own binaries.
 
 ## Screenshot
 
@@ -50,6 +44,14 @@ Please see [docs/features.md](https://github.com/gopasspw/gopass/blob/master/doc
 | Desktop Notifications       | *stable*      | Display desktop notifications and completing long running operations |
 | REPL                        | *beta*        | Integrated Read-Eval-Print-Loop shell with autocompletion. |
 | Extensions                  |               | Extend gopass with custom commands using our API                  |
+
+## Design Principles
+
+Gopass is a versatile command line based password manager that is being developed with the following principles in mind:
+
+- **Easy**: For technical users (i.e. those who are used to the command line) it should be easy to get started with gopass.
+- **Secure**: Security is hard. We aim to make it as easy as possible while still providing a good level of protection against common adversaries. *Caution*: If your personal threat level is very high, we might not offer a good tool for you.
+- **Extensible**: While Gopass includes a fair amount of useful features, we can't cover every use-case. To support more special use cases we want to provide a clean and simple API to integration gopass into your own binaries.
 
 ## Installation
 
