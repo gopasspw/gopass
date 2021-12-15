@@ -63,7 +63,7 @@ const logo = `
 `
 
 func main() {
-	fmt.Println(logo)
+	fmt.Print(logo)
 	fmt.Println()
 	fmt.Println("🌟 Preparing a new gopass release.")
 	fmt.Println("☝  Checking pre-conditions ...")
