@@ -37,7 +37,7 @@ func (s *Action) OTP(c *cli.Context) error {
 	return s.otp(ctx, name, qrf, clip, pw, true)
 }
 
-func tickingBar(ctx context.Context, cancel context.CancelFunc, expiresAt time.Time, bar *termio.ProgressBar) {
+func tickingBar(ctx context.Context, expiresAt time.Time, bar *termio.ProgressBar) {
 	ticker := time.NewTicker(1 * time.Second)
 	defer ticker.Stop()
 	for tt := range ticker.C {
@@ -48,7 +48,6 @@ func tickingBar(ctx context.Context, cancel context.CancelFunc, expiresAt time.T
 			// we don't want to block if not cancelled
 		}
 		if tt.After(expiresAt) {
-			cancel()
 			return
 		}
 		bar.Inc()
@@ -84,50 +83,73 @@ func (s *Action) otp(ctx context.Context, name, qrf string, clip, pw, recurse bo
 	if err != nil {
 		return s.otpHandleError(ctx, name, qrf, clip, pw, recurse, err)
 	}
-	two, label, err := otp.Calculate(name, sec)
-	if err != nil {
-		return ExitError(ExitUnknown, err, "No OTP entry found for %s: %s", name, err)
-	}
-	token := two.OTP()
-
-	now := time.Now()
-	expiresAt := now.Add(otpPeriod * time.Second).Truncate(otpPeriod * time.Second)
-	secondsLeft := int(time.Until(expiresAt).Seconds())
-
-	if clip {
-		if err := clipboard.CopyTo(ctx, fmt.Sprintf("token for %s", name), []byte(token), s.cfg.ClipTimeout); err != nil {
-			return ExitError(ExitIO, err, "failed to copy to clipboard: %s", err)
-		}
-	}
 
 	ctx, cancel := context.WithCancel(ctx)
-	// check if we are in "password only" or in "qr code" mode or being redirected to a pipe
-	if pw || qrf != "" || out.OutputIsRedirected() {
-		out.Printf(ctx, "%s", token)
-		cancel()
-	} else { // if not then we want to print a progress bar with the expiry time
-		out.Printf(ctx, "%s", token)
-		out.Warningf(ctx, "([q] to stop. -o flag to avoid.) This OTP password still lasts for:", nil)
-		bar := termio.NewProgressBar(int64(secondsLeft))
-		defer bar.Done()
-		bar.Hidden = ctxutil.IsHidden(ctx)
-		if bar.Hidden {
-			cancel()
-		} else {
-			bar.Set(0)
-			go tickingBar(ctx, cancel, expiresAt, bar)
-			go waitForKeyPress(ctx, cancel)
+	defer cancel()
+	skip := ctxutil.IsHidden(ctx) || pw || qrf != "" || out.OutputIsRedirected()
+	if !skip {
+		// let us monitor key presses for cancellation:
+		go waitForKeyPress(ctx, cancel)
+	}
+
+	for {
+		select {
+		case <-ctx.Done():
+			return nil
+		default:
 		}
-	}
+		two, label, err := otp.Calculate(name, sec)
+		if err != nil {
+			return ExitError(ExitUnknown, err, "No OTP entry found for %s: %s", name, err)
+		}
+		token := two.OTP()
 
-	if qrf != "" {
-		return otp.WriteQRFile(two, label, qrf)
-	}
+		now := time.Now()
+		expiresAt := now.Add(otpPeriod * time.Second).Truncate(otpPeriod * time.Second)
+		secondsLeft := int(time.Until(expiresAt).Seconds())
+		bar := termio.NewProgressBar(int64(secondsLeft))
+		bar.Hidden = skip
 
-	// we wait until our ticker is done or we got a cancelation
-	select {
-	case <-ctx.Done():
-		return nil
+		if clip {
+			if err := clipboard.CopyTo(ctx, fmt.Sprintf("token for %s", name), []byte(token), s.cfg.ClipTimeout); err != nil {
+				return ExitError(ExitIO, err, "failed to copy to clipboard: %s", err)
+			}
+		}
+
+		// check if we are in "password only" or in "qr code" mode or being redirected to a pipe
+		if pw || qrf != "" || out.OutputIsRedirected() {
+			out.Printf(ctx, "%s", token)
+			cancel()
+		} else { // if not then we want to print a progress bar with the expiry time
+			out.Printf(ctx, "%s", token)
+			out.Warningf(ctx, "([q] to stop. -o flag to avoid.) This OTP password still lasts for:", nil)
+
+			if bar.Hidden {
+				cancel()
+			} else {
+				bar.Set(0)
+				go tickingBar(ctx, expiresAt, bar)
+			}
+		}
+
+		if qrf != "" {
+			return otp.WriteQRFile(two, label, qrf)
+		}
+
+		// let us wait until next OTP code:
+		for {
+			select {
+			case <-ctx.Done():
+				bar.Done()
+				return nil
+			default:
+				time.Sleep(time.Millisecond * 500)
+			}
+			if time.Now().After(expiresAt) {
+				bar.Done()
+				break
+			}
+		}
 	}
 }
 
