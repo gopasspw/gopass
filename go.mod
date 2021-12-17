@@ -30,12 +30,13 @@ require (
 	github.com/martinhoefling/goxkcdpwgen v0.0.0-20190331205820-7dc3d102eca3
 	github.com/mattn/go-colorable v0.1.12
 	github.com/mattn/go-isatty v0.0.14
+	github.com/mattn/go-tty v0.0.3
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/go-ps v1.0.0
 	github.com/muesli/crunchy v0.4.0
 	github.com/nbutton23/zxcvbn-go v0.0.0-20210217022336-fa2cb2858354
 	github.com/pkg/errors v0.9.1 // indirect
-	github.com/rogpeppe/go-internal v1.8.0 // indirect
+	github.com/rogpeppe/go-internal v1.8.1-0.20210923151022-86f73c517451 // indirect
 	github.com/schollz/closestmatch v0.0.0-20190308193919-1fbe626be92e
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	github.com/stretchr/testify v1.7.0
