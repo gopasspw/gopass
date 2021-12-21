@@ -13,6 +13,7 @@ import (
 	"os"
 	"os/signal"
 	"runtime"
+	"runtime/debug"
 	"runtime/pprof"
 	"sort"
 	"time"
@@ -45,10 +46,6 @@ const (
 var (
 	// Version is the released version of gopass
 	version string
-	// BuildTime is the time the binary was built
-	date string
-	// Commit is the git hash the binary was built from
-	commit string
 )
 
 func main() {
@@ -195,15 +192,39 @@ func getCommands(action *ap.Action, app *cli.App) []*cli.Command {
 	return cmds
 }
 
+func parseBuildInfo() (string, string, string) {
+	bi, ok := debug.ReadBuildInfo()
+	if !ok {
+		return "HEAD", "", ""
+	}
+	var (
+		commit string
+		date   string
+		dirty  string
+	)
+	for _, v := range bi.Settings {
+		switch v.Key {
+		case "gitrevision":
+			commit = v.Value[len(v.Value)-8:]
+		case "gitcommittime":
+			if bt, err := time.Parse("2006-01-02T15:04:05Z", date); err == nil {
+				date = bt.Format("2006-01-02 15:04:05")
+			}
+		case "gituncommitted":
+			if v.Value == "true" {
+				dirty = " (dirty)"
+			}
+		}
+	}
+	return commit, date, dirty
+}
+
 func makeVersionPrinter(out io.Writer, sv semver.Version) func(c *cli.Context) {
 	return func(c *cli.Context) {
-		buildtime := ""
-		if bt, err := time.Parse("2006-01-02T15:04:05-0700", date); err == nil {
-			buildtime = bt.Format("2006-01-02 15:04:05")
-		}
+		commit, buildtime, dirty := parseBuildInfo()
 		buildInfo := ""
 		if commit != "" {
-			buildInfo = commit
+			buildInfo = commit + dirty
 		}
 		if buildtime != "" {
 			if buildInfo != "" {
