@@ -39,8 +39,14 @@ func (s *Action) Setup(c *cli.Context) error {
 	}
 
 	// age: only native keys
+	// "[ssh] types should only be used for compatibility with existing keys,
+	// and native X25519 keys should be preferred otherwise."
+	// https://pkg.go.dev/filippo.io/age@v1.0.0/agessh#pkg-overview
 	ctx = age.WithOnlyNative(ctx, true)
 	// gpg: only trusted keys
+	// only list "usable" / properly trused and signed GPG keys by requesting
+	// always trust is false. Ignored for other backends. See
+	// https://www.gnupg.org/gph/en/manual/r1554.html
 	ctx = gpg.WithAlwaysTrust(ctx, false)
 
 	// need to re-initialize the root store or it's already initialized
@@ -67,7 +73,7 @@ func (s *Action) Setup(c *cli.Context) error {
 	// one useable key pair. If none exists try to create one
 	if !s.initHasUseablePrivateKeys(ctx, crypto) {
 		out.Printf(ctx, "🔐 No useable cryptographic keys. Generating new key pair")
-		if crypto.Name() == "gpg" {
+		if crypto.Name() == "gpgcli" {
 			out.Printf(ctx, "🕰 Key generation may take up to a few minutes")
 		}
 		if err := s.initGenerateIdentity(ctx, crypto, ctxutil.GetUsername(ctx), ctxutil.GetEmail(ctx)); err != nil {
@@ -93,7 +99,7 @@ func (s *Action) Setup(c *cli.Context) error {
 func (s *Action) initGenerateIdentity(ctx context.Context, crypto backend.Crypto, name, email string) error {
 	out.Printf(ctx, "🧪 Creating cryptographic key pair (%s) ...", crypto.Name())
 
-	if crypto.Name() == "gpg" {
+	if crypto.Name() == "gpgcli" {
 		var err error
 
 		out.Printf(ctx, "🎩 Gathering information for the %s key pair ...", crypto.Name())
@@ -123,7 +129,7 @@ func (s *Action) initGenerateIdentity(ctx context.Context, crypto backend.Crypto
 		passphrase = sv
 	}
 
-	if crypto.Name() == "gpg" {
+	if crypto.Name() == "gpgcli" {
 		// Note: This issue shouldn't matter much past Linux Kernel 5.6,
 		// eventually we might want to remove this notice. Only applies to
 		// GPG.
@@ -198,9 +204,6 @@ func (s *Action) initExportPublicKey(ctx context.Context, crypto backend.Crypto,
 }
 
 func (s *Action) initHasUseablePrivateKeys(ctx context.Context, crypto backend.Crypto) bool {
-	// only list "usable" / properly trused and signed GPG keys by requesting
-	// always trust is false. Ignored for other backends. See
-	// https://www.gnupg.org/gph/en/manual/r1554.html
 	debug.Log("checking for existing, usable identities / private keys for %s", crypto.Name())
 	kl, err := crypto.ListIdentities(ctx)
 	if err != nil {

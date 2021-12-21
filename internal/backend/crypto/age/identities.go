@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strings"
 	"time"
 
 	"filippo.io/age"
@@ -150,14 +151,14 @@ func (a *Age) addIdentity(ctx context.Context) ([]age.Identity, error) {
 	}
 
 	ids = append(ids, id)
-	if err := a.saveIdentities(ctx, ids, true); err != nil {
+	if err := a.saveIdentities(ctx, identitiesToString(ids), true); err != nil {
 		return nil, err
 	}
 
 	return ids, nil
 }
 
-func (a *Age) saveIdentities(ctx context.Context, ids []age.Identity, newFile bool) error {
+func (a *Age) saveIdentities(ctx context.Context, ids []string, newFile bool) error {
 	if !ctxutil.HasPasswordCallback(ctx) {
 		debug.Log("no password callback found, redirecting to askPass")
 		ctx = ctxutil.WithPasswordCallback(ctx, func(prompt string, confirm bool) ([]byte, error) {
@@ -172,14 +173,7 @@ func (a *Age) saveIdentities(ctx context.Context, ids []age.Identity, newFile bo
 		return err
 	}
 
-	buf := &bytes.Buffer{}
-	for _, id := range ids {
-		if _, err := fmt.Fprintf(buf, "%s\n", id); err != nil {
-			return err
-		}
-	}
-
-	if err := a.encryptFile(ctx, a.identity, buf.Bytes(), newFile); err != nil {
+	if err := a.encryptFile(ctx, a.identity, []byte(strings.Join(ids, "\n")), newFile); err != nil {
 		return err
 	}
 
@@ -244,6 +238,14 @@ func recipientsToBech32(recps []age.Recipient) []string {
 	var r []string
 	for _, recp := range recps {
 		r = append(r, fmt.Sprintf("%s", recp))
+	}
+	return r
+}
+
+func identitiesToString(ids []age.Identity) []string {
+	var r []string
+	for _, id := range ids {
+		r = append(r, fmt.Sprintf("%s", id))
 	}
 	return r
 }

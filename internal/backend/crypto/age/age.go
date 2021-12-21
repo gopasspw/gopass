@@ -11,6 +11,7 @@ import (
 	"github.com/gopasspw/gopass/internal/cache"
 	"github.com/gopasspw/gopass/internal/cache/ghssh"
 	"github.com/gopasspw/gopass/pkg/appdir"
+	"github.com/gopasspw/gopass/pkg/debug"
 )
 
 const (
@@ -60,11 +61,9 @@ func (a *Age) Name() string {
 	return "age"
 }
 
-// Version return 1.0.0
+// Version returns the version of the age dependency being used
 func (a *Age) Version(ctx context.Context) semver.Version {
-	return semver.Version{
-		Patch: 1,
-	}
+	return debug.ModuleVersion("filippo.io/age")
 }
 
 // Ext returns the extension
