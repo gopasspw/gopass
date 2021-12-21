@@ -57,7 +57,7 @@ Gopass is a versatile command line based password manager that is being develope
 
 Please see [docs/setup.md](https://github.com/gopasspw/gopass/blob/master/docs/setup.md).
 
-If you have [Go](https://golang.org/) 1.16 (or greater) installed:
+If you have [Go](https://golang.org/) 1.18 (or greater) installed:
 
 ```bash
 go get github.com/gopasspw/gopass

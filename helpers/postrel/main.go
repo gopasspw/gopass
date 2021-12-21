@@ -42,7 +42,7 @@ const logo = `
 func main() {
 	ctx := context.Background()
 
-	fmt.Println(logo)
+	fmt.Print(logo)
 	fmt.Println()
 	fmt.Println("🌟 Performing post-release cleanup.")
 
