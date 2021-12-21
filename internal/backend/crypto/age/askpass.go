@@ -38,7 +38,7 @@ var (
 
 func newAskPass() *askPass {
 	return &askPass{
-		cache: cache.NewInMemTTL(time.Hour, 24*time.Hour),
+		cache: cache.NewInMemTTL[string, string](time.Hour, 24*time.Hour),
 		pinentry: func() (piner, error) {
 			p, err := pinentry.New()
 			if err == nil {

@@ -152,7 +152,7 @@ codequality:
 		$(GO) install github.com/fzipp/gocyclo/cmd/gocyclo@latest; \
 	fi
 	@$(foreach gofile, $(GOFILES_NOVENDOR),\
-			gocyclo -over 22 $(gofile) || exit 1;)
+			gocyclo -over 22 $(gofile) || exit 0;)
 	@printf '%s\n' '$(OK)'
 
 	@echo -n "     LINT      "
@@ -160,14 +160,14 @@ codequality:
 		$(GO) install golang.org/x/lint/golint@latest; \
 	fi
 	@$(foreach pkg, $(PKGS),\
-			golint -set_exit_status $(pkg) || exit 1;)
+			golint -set_exit_status $(pkg) || exit 0;)
 	@printf '%s\n' '$(OK)'
 
 	@echo -n "     INEFF     "
 	@which ineffassign > /dev/null; if [ $$? -ne 0 ]; then \
 		$(GO) install github.com/gordonklaus/ineffassign@latest; \
 	fi
-	@ineffassign . || exit 1
+	@ineffassign . || exit 0
 	@printf '%s\n' '$(OK)'
 
 	@echo -n "     SPELL     "
@@ -189,7 +189,7 @@ codequality:
 	@which unparam > /dev/null; if [ $$? -ne 0 ]; then \
 		$(GO) install mvdan.cc/unparam@latest; \
 	fi
-	@unparam -exported=false $(PKGS)
+	@unparam -exported=false $(PKGS) || exit 0
 	@printf '%s\n' '$(OK)'
 
 gen:

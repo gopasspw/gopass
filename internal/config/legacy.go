@@ -22,7 +22,7 @@ type Pre1127 struct {
 	ConfigPath string `yaml:"-"`
 
 	// Catches all undefined files and must be empty after parsing
-	XXX map[string]interface{} `yaml:",inline"`
+	XXX map[string]any `yaml:",inline"`
 }
 
 // Config converts the Pre1127 config to the current config struct
@@ -65,7 +65,7 @@ type Pre1102 struct {
 	Mounts        map[string]string `yaml:"mounts"`
 
 	// Catches all undefined files and must be empty after parsing
-	XXX map[string]interface{} `yaml:",inline"`
+	XXX map[string]any `yaml:",inline"`
 }
 
 // CheckOverflow implements configer
@@ -100,7 +100,7 @@ type Pre193 struct {
 	Mounts map[string]*Pre193StoreConfig
 
 	// Catches all undefined files and must be empty after parsing
-	XXX map[string]interface{} `yaml:",inline"`
+	XXX map[string]any `yaml:",inline"`
 }
 
 // Pre193StoreConfig is a pre-1.9.3 store config
@@ -162,7 +162,7 @@ type Pre182 struct {
 	Version string                        `yaml:"version"`
 
 	// Catches all undefined files and must be empty after parsing
-	XXX map[string]interface{} `yaml:",inline"`
+	XXX map[string]any `yaml:",inline"`
 }
 
 // Pre182StoreConfig is a per-store (root or mount) config
@@ -229,7 +229,7 @@ type Pre140 struct {
 	Version     string            `yaml:"version"`
 
 	// Catches all undefined files and must be empty after parsing
-	XXX map[string]interface{} `yaml:",inline"`
+	XXX map[string]any `yaml:",inline"`
 }
 
 // CheckOverflow implements configer
@@ -273,7 +273,7 @@ type Pre130 struct {
 	Version     string            `yaml:"version"`
 
 	// Catches all undefined files and must be empty after parsing
-	XXX map[string]interface{} `yaml:",inline"`
+	XXX map[string]any `yaml:",inline"`
 }
 
 // CheckOverflow implements configer

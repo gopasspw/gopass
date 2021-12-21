@@ -5,14 +5,14 @@ import (
 	"time"
 )
 
-type cacheEntry struct {
-	value     string
+type cacheEntry[V any] struct {
+	value     V
 	maxExpire time.Time
 	expire    time.Time
 	created   time.Time
 }
 
-func (ce *cacheEntry) isExpired() bool {
+func (ce *cacheEntry[V]) isExpired() bool {
 	if time.Now().After(ce.maxExpire) {
 		return true
 	}
@@ -23,46 +23,48 @@ func (ce *cacheEntry) isExpired() bool {
 }
 
 // InMemTTL implements a simple TTLed cache in memory. It is concurrency safe.
-type InMemTTL struct {
+type InMemTTL[K comparable, V any] struct {
 	sync.Mutex
 	ttl     time.Duration
 	maxTTL  time.Duration
-	entries map[string]cacheEntry
+	entries map[K]cacheEntry[V]
 }
 
 // NewInMemTTL creates a new TTLed cache.
-func NewInMemTTL(ttl time.Duration, maxTTL time.Duration) *InMemTTL {
-	return &InMemTTL{
+func NewInMemTTL[K comparable, V any](ttl time.Duration, maxTTL time.Duration) *InMemTTL[K, V] {
+	return &InMemTTL[K, V]{
 		ttl:    ttl,
 		maxTTL: maxTTL,
 	}
 }
 
 // Get retrieves a single entry, extending it's TTL.
-func (c *InMemTTL) Get(key string) (string, bool) {
+func (c *InMemTTL[K, V]) Get(key K) (V, bool) {
 	c.Lock()
 	defer c.Unlock()
 
+	var zero V
 	if c.entries == nil {
-		return "", false
+		return zero, false
 	}
 
 	ce, found := c.entries[key]
 	if !found {
 		// not found
-		return "", false
+		return zero, false
 	}
 	if ce.isExpired() {
 		// expired
-		return "", false
+		return zero, false
 	}
+
 	ce.expire = time.Now().Add(c.ttl)
 	c.entries[key] = ce
 	return ce.value, true
 }
 
 // purgeExpire will remove expired entries. It is called by Set.
-func (c *InMemTTL) purgeExpired() {
+func (c *InMemTTL[K, V]) purgeExpired() {
 	for k, ce := range c.entries {
 		if ce.isExpired() {
 			delete(c.entries, k)
@@ -71,16 +73,16 @@ func (c *InMemTTL) purgeExpired() {
 }
 
 // Set creates or overwrites an entry.
-func (c *InMemTTL) Set(key, value string) {
+func (c *InMemTTL[K, V]) Set(key K, value V) {
 	c.Lock()
 	defer c.Unlock()
 
 	if c.entries == nil {
-		c.entries = make(map[string]cacheEntry, 10)
+		c.entries = make(map[K]cacheEntry[V], 10)
 	}
 
 	now := time.Now()
-	c.entries[key] = cacheEntry{
+	c.entries[key] = cacheEntry[V]{
 		value:     value,
 		maxExpire: now.Add(c.maxTTL),
 		expire:    now.Add(c.ttl),
@@ -91,7 +93,7 @@ func (c *InMemTTL) Set(key, value string) {
 }
 
 // Remove removes a single entry from the cache.
-func (c *InMemTTL) Remove(key string) {
+func (c *InMemTTL[K, V]) Remove(key K) {
 	c.Lock()
 	defer c.Unlock()
 
@@ -99,9 +101,9 @@ func (c *InMemTTL) Remove(key string) {
 }
 
 // Purge removes all entries from the cache.
-func (c *InMemTTL) Purge() {
+func (c *InMemTTL[K, V]) Purge() {
 	c.Lock()
 	defer c.Unlock()
 
-	c.entries = make(map[string]cacheEntry, 10)
+	c.entries = make(map[K]cacheEntry[V], 10)
 }

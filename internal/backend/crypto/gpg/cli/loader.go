@@ -15,7 +15,7 @@ const (
 )
 
 func init() {
-	backend.RegisterCrypto(backend.GPGCLI, name, &loader{})
+	backend.CryptoRegistry.Register(backend.GPGCLI, name, &loader{})
 }
 
 type loader struct{}

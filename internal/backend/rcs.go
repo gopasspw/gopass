@@ -53,7 +53,7 @@ func (r Revisions) Swap(i, j int) {
 
 // Clone clones an existing repository from a remote.
 func Clone(ctx context.Context, id StorageBackend, repo, path string) (Storage, error) {
-	if be, found := storageRegistry[id]; found {
+	if be, err := StorageRegistry.Get(id); err == nil {
 		debug.Log("Cloning with %s", be.String())
 		return be.Clone(ctx, repo, path)
 	}

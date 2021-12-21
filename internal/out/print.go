@@ -41,12 +41,12 @@ func newline(ctx context.Context) string {
 }
 
 // Print prints the given string
-func Print(ctx context.Context, arg interface{}) {
+func Print(ctx context.Context, arg any) {
 	Printf(ctx, "%s", arg)
 }
 
 // Printf formats and prints the given string
-func Printf(ctx context.Context, format string, args ...interface{}) {
+func Printf(ctx context.Context, format string, args ...any) {
 	if ctxutil.IsHidden(ctx) {
 		return
 	}
@@ -55,12 +55,12 @@ func Printf(ctx context.Context, format string, args ...interface{}) {
 }
 
 // Notice prints the string with an exclamation mark
-func Notice(ctx context.Context, arg interface{}) {
+func Notice(ctx context.Context, arg any) {
 	Noticef(ctx, "%s", arg)
 }
 
 // Noticef prints the string with an exclamation mark in front
-func Noticef(ctx context.Context, format string, args ...interface{}) {
+func Noticef(ctx context.Context, format string, args ...any) {
 	if ctxutil.IsHidden(ctx) {
 		return
 	}
@@ -69,12 +69,12 @@ func Noticef(ctx context.Context, format string, args ...interface{}) {
 }
 
 // Error prints the string with a red cross in front
-func Error(ctx context.Context, arg interface{}) {
+func Error(ctx context.Context, arg any) {
 	Errorf(ctx, "%s", arg)
 }
 
 // Errorf prints the string in red to stderr
-func Errorf(ctx context.Context, format string, args ...interface{}) {
+func Errorf(ctx context.Context, format string, args ...any) {
 	if ctxutil.IsHidden(ctx) {
 		return
 	}
@@ -83,12 +83,12 @@ func Errorf(ctx context.Context, format string, args ...interface{}) {
 }
 
 // OK prints the string with a green checkmark in front
-func OK(ctx context.Context, arg interface{}) {
+func OK(ctx context.Context, arg any) {
 	OKf(ctx, "%s", arg)
 }
 
 // OKf prints the string in with an OK checkmark in front
-func OKf(ctx context.Context, format string, args ...interface{}) {
+func OKf(ctx context.Context, format string, args ...any) {
 	if ctxutil.IsHidden(ctx) {
 		return
 	}
@@ -97,12 +97,12 @@ func OKf(ctx context.Context, format string, args ...interface{}) {
 }
 
 // Warning prints the string with a warning sign in front
-func Warning(ctx context.Context, arg interface{}) {
+func Warning(ctx context.Context, arg any) {
 	Warningf(ctx, "%s", arg)
 }
 
 // Warningf prints the string in yellow to stderr and prepends a warning sign
-func Warningf(ctx context.Context, format string, args ...interface{}) {
+func Warningf(ctx context.Context, format string, args ...any) {
 	if ctxutil.IsHidden(ctx) {
 		return
 	}

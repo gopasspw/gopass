@@ -32,7 +32,7 @@ var _ gopass.Secret = &YAML{}
 //  n+2 | YAML content
 type YAML struct {
 	password string
-	data     map[string]interface{}
+	data     map[string]any
 	body     string
 }
 
@@ -49,7 +49,7 @@ func (y *YAML) Keys() []string {
 // Get returns the first value of a single key
 func (y *YAML) Get(key string) (string, bool) {
 	if y.data == nil {
-		y.data = make(map[string]interface{})
+		y.data = make(map[string]any)
 	}
 	if v, found := y.data[key]; found {
 		return fmt.Sprintf("%v", v), found
@@ -67,16 +67,16 @@ func (y *YAML) Values(key string) ([]string, bool) {
 }
 
 // Set sets a key to a given value
-func (y *YAML) Set(key string, value interface{}) error {
+func (y *YAML) Set(key string, value any) error {
 	if y.data == nil {
-		y.data = make(map[string]interface{}, 1)
+		y.data = make(map[string]any, 1)
 	}
 	y.data[key] = value
 	return nil
 }
 
 // Add doesn't work since as per YAML specification keys must be unique
-func (y *YAML) Add(key string, value interface{}) error {
+func (y *YAML) Add(key string, value any) error {
 	return fmt.Errorf("not supported for YAML")
 }
 
@@ -90,7 +90,7 @@ func (y *YAML) Del(key string) bool {
 // ParseYAML will try to parse a YAML secret.
 func ParseYAML(in []byte) (*YAML, error) {
 	y := &YAML{
-		data: make(map[string]interface{}, 10),
+		data: make(map[string]any, 10),
 	}
 	debug.Log("Parsing %s", out.Secret(in))
 	r := bufio.NewReader(bytes.NewReader(in))
