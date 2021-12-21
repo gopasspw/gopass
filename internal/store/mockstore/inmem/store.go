@@ -11,6 +11,7 @@ import (
 
 	"github.com/blang/semver/v4"
 	"github.com/gopasspw/gopass/internal/backend"
+	"golang.org/x/exp/maps"
 )
 
 // InMem is a in-memory store
@@ -70,10 +71,7 @@ func (m *InMem) List(ctx context.Context, prefix string) ([]string, error) {
 	m.Lock()
 	defer m.Unlock()
 
-	keys := make([]string, 0, len(m.data))
-	for k := range m.data {
-		keys = append(keys, k)
-	}
+	keys := maps.Keys(m.data)
 	sort.Strings(keys)
 	return keys, nil
 }

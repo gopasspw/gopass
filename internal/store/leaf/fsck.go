@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/gopasspw/gopass/internal/backend"
+	"github.com/gopasspw/gopass/internal/diff"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -104,7 +105,7 @@ func (s *Store) fsckCheckEntry(ctx context.Context, name string) error {
 	perItemStoreRecps = fingerprints(ctx, s.crypto, perItemStoreRecps)
 
 	// check itemRecps matches storeRecps
-	missing, extra := compareStringSlices(perItemStoreRecps, itemRecps)
+	extra, missing := diff.List(perItemStoreRecps, itemRecps)
 	if len(missing) > 0 {
 		out.Errorf(ctx, "Missing recipients on %s: %+v\nRun fsck with the --decrypt flag to re-encrypt it automatically, or edit this secret yourself.", name, missing)
 	}

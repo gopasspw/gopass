@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
-	"sort"
 	"strings"
 
 	"errors"
@@ -51,6 +50,7 @@ func (s *Store) RecipientsTree(ctx context.Context) map[string][]string {
 			continue
 		}
 		dir := filepath.Dir(idf)
+		debug.Log("adding recipients %+v for %s", srs, dir)
 		out[dir] = srs
 	}
 	out[""] = root
@@ -175,9 +175,7 @@ func (s *Store) getRecipients(ctx context.Context, idf string) ([]string, error)
 		return nil, fmt.Errorf("failed to get recipients from %q: %w", idf, err)
 	}
 
-	recps := recipients.Unmarshal(buf)
-	sort.Strings(recps)
-	return recps, nil
+	return recipients.Unmarshal(buf), nil
 }
 
 type keyExporter interface {
