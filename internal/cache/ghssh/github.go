@@ -1,4 +1,4 @@
-package age
+package ghssh
 
 import (
 	"bufio"
@@ -11,10 +11,10 @@ import (
 	"github.com/gopasspw/gopass/pkg/debug"
 )
 
-// getPublicKeysGithub returns the public keys for a github user. It will
+// ListKeys returns the public keys for a github user. It will
 // cache results up the a configurable amount of time (default: 6h).
-func (a *Age) getPublicKeysGithub(ctx context.Context, user string) ([]string, error) {
-	pk, err := a.ghCache.Get(user)
+func (c *Cache) ListKeys(ctx context.Context, user string) ([]string, error) {
+	pk, err := c.disk.Get(user)
 	if err != nil {
 		debug.Log("failed to fetch %s from cache: %s", user, err)
 	}
@@ -22,19 +22,19 @@ func (a *Age) getPublicKeysGithub(ctx context.Context, user string) ([]string, e
 		return pk, nil
 	}
 
-	keys, err := githubListKeys(ctx, user)
+	keys, err := c.fetchKeys(ctx, user)
 	if err != nil {
 		return nil, err
 	}
 	if len(keys) < 1 {
-		return nil, fmt.Errorf("not found")
+		return nil, fmt.Errorf("key not found")
 	}
-	a.ghCache.Set(user, keys)
+	c.disk.Set(user, keys)
 	return keys, nil
 }
 
-// githubListKeys returns the public keys for a github user.
-func githubListKeys(ctx context.Context, user string) ([]string, error) {
+// fetchKeys returns the public keys for a github user.
+func (c *Cache) fetchKeys(ctx context.Context, user string) ([]string, error) {
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 

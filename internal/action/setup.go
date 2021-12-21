@@ -7,6 +7,7 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/gopasspw/gopass/internal/backend"
+	"github.com/gopasspw/gopass/internal/backend/crypto/age"
 	"github.com/gopasspw/gopass/internal/backend/crypto/gpg"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store/root"
@@ -30,21 +31,27 @@ func (s *Action) Setup(c *cli.Context) error {
 	out.Printf(ctx, "🌟 Welcome to gopass!")
 	out.Printf(ctx, "🌟 Initializing a new password store ...")
 
-	if name := termio.DetectName(c.Context, c); name != "" {
+	if name := termio.DetectName(ctx, c); name != "" {
 		ctx = ctxutil.WithUsername(ctx, name)
 	}
-	if email := termio.DetectEmail(c.Context, c); email != "" {
+	if email := termio.DetectEmail(ctx, c); email != "" {
 		ctx = ctxutil.WithEmail(ctx, email)
 	}
+
+	// age: only native keys
+	ctx = age.WithOnlyNative(ctx, true)
+	// gpg: only trusted keys
+	ctx = gpg.WithAlwaysTrust(ctx, false)
+
 	// need to re-initialize the root store or it's already initialized
 	// and won't properly set up crypto according to our context.
 	s.Store = root.New(s.cfg)
 	inited, err := s.Store.IsInitialized(ctx)
 	if err != nil {
-		return ExitError(ExitUnknown, err, "Failed to initialized store: %s", err)
+		return ExitError(ExitUnknown, err, "Failed to check store status: %s", err)
 	}
 	if inited {
-		out.Errorf(ctx, "Store is already initialized. Aborting.")
+		out.Errorf(ctx, "Store is already initialized. Aborting wizard to avoid overwriting existing data.")
 		return nil
 	}
 
@@ -60,7 +67,9 @@ func (s *Action) Setup(c *cli.Context) error {
 	// one useable key pair. If none exists try to create one
 	if !s.initHasUseablePrivateKeys(ctx, crypto) {
 		out.Printf(ctx, "🔐 No useable cryptographic keys. Generating new key pair")
-		out.Printf(ctx, "🕰 Key generation may take up to a few minutes")
+		if crypto.Name() == "gpg" {
+			out.Printf(ctx, "🕰 Key generation may take up to a few minutes")
+		}
 		if err := s.initGenerateIdentity(ctx, crypto, ctxutil.GetUsername(ctx), ctxutil.GetEmail(ctx)); err != nil {
 			return fmt.Errorf("failed to create new private key: %w", err)
 		}
@@ -84,15 +93,19 @@ func (s *Action) Setup(c *cli.Context) error {
 func (s *Action) initGenerateIdentity(ctx context.Context, crypto backend.Crypto, name, email string) error {
 	out.Printf(ctx, "🧪 Creating cryptographic key pair (%s) ...", crypto.Name())
 
-	out.Printf(ctx, "🎩 Gathering information for the key pair ...")
-	name, err := termio.AskForString(ctx, "🚶 What is your name?", name)
-	if err != nil {
-		return err
-	}
+	if crypto.Name() == "gpg" {
+		var err error
 
-	email, err = termio.AskForString(ctx, "📧 What is your email?", email)
-	if err != nil {
-		return err
+		out.Printf(ctx, "🎩 Gathering information for the %s key pair ...", crypto.Name())
+		name, err = termio.AskForString(ctx, "🚶 What is your name?", name)
+		if err != nil {
+			return err
+		}
+
+		email, err = termio.AskForString(ctx, "📧 What is your email?", email)
+		if err != nil {
+			return err
+		}
 	}
 
 	passphrase := xkcdgen.Random()
@@ -110,11 +123,14 @@ func (s *Action) initGenerateIdentity(ctx context.Context, crypto backend.Crypto
 		passphrase = sv
 	}
 
-	// Note: This issue shouldn't matter much past Linux Kernel 5.6,
-	// eventually we might want to remove this notice.
-	out.Printf(ctx, "⏳ This can take a long time. If you get impatient see https://github.com/gopasspw/gopass/blob/master/docs/entropy.md")
-	if want, err := termio.AskForBool(ctx, "Continue?", true); err != nil || !want {
-		return fmt.Errorf("user aborted: %w", err)
+	if crypto.Name() == "gpg" {
+		// Note: This issue shouldn't matter much past Linux Kernel 5.6,
+		// eventually we might want to remove this notice. Only applies to
+		// GPG.
+		out.Printf(ctx, "⏳ This can take a long time. If you get impatient see https://github.com/gopasspw/gopass/blob/master/docs/entropy.md")
+		if want, err := termio.AskForBool(ctx, "Continue?", true); err != nil || !want {
+			return fmt.Errorf("user aborted: %w", err)
+		}
 	}
 
 	if err := crypto.GenerateIdentity(ctx, name, email, passphrase); err != nil {
@@ -128,6 +144,8 @@ func (s *Action) initGenerateIdentity(ctx context.Context, crypto backend.Crypto
 		out.Noticef(ctx, "You need to remember this very well!")
 	}
 
+	out.Notice(ctx, "🔐 We need to unlock your newly created private key now! Please enter the passphrase you just generated.")
+
 	// avoid the gpg cache or we won't find the newly created key
 	kl, err := crypto.ListIdentities(gpg.WithUseCache(ctx, false))
 	if err != nil {
@@ -135,7 +153,6 @@ func (s *Action) initGenerateIdentity(ctx context.Context, crypto backend.Crypto
 	}
 	if len(kl) > 1 {
 		out.Notice(ctx, "More than one private key detected. Make sure to use the correct one!")
-		return nil
 	}
 	if len(kl) < 1 {
 		return fmt.Errorf("failed to create a usable key pair")
@@ -145,7 +162,7 @@ func (s *Action) initGenerateIdentity(ctx context.Context, crypto backend.Crypto
 	if err := s.initExportPublicKey(ctx, crypto, kl[0]); err != nil {
 		return err
 	}
-	out.OK(ctx, "Key pair validated")
+	out.OKf(ctx, "Key pair validated")
 	return nil
 }
 
@@ -184,11 +201,14 @@ func (s *Action) initHasUseablePrivateKeys(ctx context.Context, crypto backend.C
 	// only list "usable" / properly trused and signed GPG keys by requesting
 	// always trust is false. Ignored for other backends. See
 	// https://www.gnupg.org/gph/en/manual/r1554.html
-	kl, err := crypto.ListIdentities(gpg.WithAlwaysTrust(ctx, false))
+	debug.Log("checking for existing, usable identities / private keys for %s", crypto.Name())
+	kl, err := crypto.ListIdentities(ctx)
 	if err != nil {
 		return false
 	}
-	debug.Log("available private keys: %+v", kl)
+
+	debug.Log("available private keys: %q for %s", kl, crypto.Name())
+
 	return len(kl) > 0
 }
 
@@ -227,10 +247,12 @@ func (s *Action) initLocal(ctx context.Context) error {
 		return fmt.Errorf("failed to init local store: %w", err)
 	}
 
-	if want, err := termio.AskForBool(ctx, "❓ Do you want to add a git remote?", false); err == nil && want {
-		out.Printf(ctx, "Configuring the git remote ...")
-		if err := s.initSetupGitRemote(ctx, "", ""); err != nil {
-			return fmt.Errorf("failed to setup git remote: %w", err)
+	if backend.GetStorageBackend(ctx) == backend.GitFS {
+		if want, err := termio.AskForBool(ctx, "❓ Do you want to add a git remote?", false); err == nil && want {
+			out.Printf(ctx, "Configuring the git remote ...")
+			if err := s.initSetupGitRemote(ctx, "", ""); err != nil {
+				return fmt.Errorf("failed to setup git remote: %w", err)
+			}
 		}
 	}
 
@@ -239,7 +261,7 @@ func (s *Action) initLocal(ctx context.Context) error {
 		return fmt.Errorf("failed to save config: %w", err)
 	}
 
-	out.OK(ctx, "Configured")
+	out.OKf(ctx, "Configuration written to %s", s.cfg.Path)
 	return nil
 }
 

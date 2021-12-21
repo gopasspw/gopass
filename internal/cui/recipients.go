@@ -9,8 +9,8 @@ import (
 	"strconv"
 
 	"github.com/gopasspw/gopass/internal/backend"
-	"github.com/gopasspw/gopass/internal/backend/crypto/gpg"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/termio"
 )
 
@@ -36,12 +36,16 @@ func AskForPrivateKey(ctx context.Context, crypto backend.Crypto, prompt string)
 		return "", fmt.Errorf("can not select private key without valid crypto backend")
 	}
 
-	kl, err := crypto.ListIdentities(gpg.WithAlwaysTrust(ctx, false))
+	kl, err := crypto.ListIdentities(ctx)
 	if err != nil {
 		return "", err
 	}
 	if len(kl) < 1 {
 		return "", fmt.Errorf("no useable private keys found. make sure you have valid private keys with sufficient trust")
+	}
+	// shortcut: I there is only one key, use it
+	if len(kl) == 1 {
+		return kl[0], nil
 	}
 
 	fmtStr := "[%" + strconv.Itoa(int(len(kl)/10)+1) + "d] %s - %s\n"
@@ -87,6 +91,11 @@ func AskForGitConfigUser(ctx context.Context, crypto backend.Crypto) (string, st
 	if crypto == nil {
 		return "", "", fmt.Errorf("crypto not available")
 	}
+	if crypto.Name() == "age" {
+		debug.Log("skipping git config user prompt for non-gpg backend %s", crypto.Name())
+		return "", "", nil
+	}
+
 	keyList, err := crypto.ListIdentities(ctx)
 	if err != nil {
 		return "", "", err

@@ -29,7 +29,7 @@ func init() {
 			r.Maxlen = math.MaxInt32
 		}
 		rules[k] = r
-		debug.Log("added rule for %q from %q: %+v", k, v, r)
+		//debug.Log("added rule for %q from %q: %+v", k, v, r)
 	}
 }
 

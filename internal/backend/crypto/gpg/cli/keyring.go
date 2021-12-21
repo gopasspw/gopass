@@ -71,7 +71,7 @@ func (g *GPG) FindRecipients(ctx context.Context, search ...string) ([]string, e
 		recp = kl.Recipients()
 	}
 
-	debug.Log("found useable keys for %+v: %+v (all: %+v)", search, recp, kl.Recipients())
+	debug.Log("found useable keys for %q: %q (all: %q)", search, recp, kl.Recipients())
 	return recp, nil
 }
 

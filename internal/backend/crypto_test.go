@@ -33,7 +33,7 @@ func TestDetectCrypto(t *testing.T) {
 		},
 		{
 			name: "age",
-			file: ".age-ids",
+			file: ".age-recipients",
 		},
 	} {
 		fsDir := filepath.Join(td, "fs")

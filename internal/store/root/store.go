@@ -8,6 +8,7 @@ import (
 	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/store/leaf"
+	"github.com/gopasspw/gopass/pkg/debug"
 )
 
 // Store is the public facing password store
@@ -27,6 +28,7 @@ func New(cfg *config.Config) *Store {
 		mounts: make(map[string]*leaf.Store, len(cfg.Mounts)),
 	}
 
+	debug.Log("created store %s", r)
 	return r
 }
 

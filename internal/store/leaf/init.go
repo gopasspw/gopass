@@ -14,14 +14,16 @@ func (s *Store) IsInitialized(ctx context.Context) bool {
 	if s == nil || s.storage == nil {
 		return false
 	}
-	return s.storage.Exists(ctx, s.idFile(ctx, ""))
+	ok := s.storage.Exists(ctx, s.idFile(ctx, ""))
+	debug.Log("store %q is initialized: %t", s.path, ok)
+	return ok
 }
 
 // Init tries to initialize a new password store location matching the object
 func (s *Store) Init(ctx context.Context, path string, ids ...string) error {
 	if s.IsInitialized(ctx) {
 		return fmt.Errorf(`found already initialized store at %q.
-You can add secondary stores with gopass init --path <path to secondary store> --store <mount name>`, path)
+You can add secondary stores with 'gopass init --path <path to secondary store> --store <mount name>'`, path)
 	}
 
 	// initialize recipient list
@@ -61,6 +63,7 @@ You can add secondary stores with gopass init --path <path to secondary store> -
 	if err := s.saveRecipients(ctx, recipients, "Initialized Store for "+strings.Join(recipients, ", ")); err != nil {
 		return fmt.Errorf("failed to initialize store: %w", err)
 	}
+	out.OKf(ctx, "Wrote recipients to %s", s.idFile(ctx, ""))
 
 	return nil
 }
