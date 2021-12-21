@@ -53,7 +53,7 @@ const (
 )
 
 // ExitError returns a user friendly CLI error
-func ExitError(exitCode int, err error, format string, args ...interface{}) error {
+func ExitError(exitCode int, err error, format string, args ...any) error {
 	msg := fmt.Sprintf(format, args...)
 	if err != nil {
 		debug.LogN(1, "%s - stacktrace: %+v", msg, err)

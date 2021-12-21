@@ -12,8 +12,14 @@ func (s *Action) Convert(c *cli.Context) error {
 
 	store := c.String("store")
 	move := c.Bool("move")
-	storage := backend.StorageBackendFromName(c.String("storage"))
-	crypto := backend.CryptoBackendFromName(c.String("crypto"))
+	storage, err := backend.StorageRegistry.Backend(c.String("storage"))
+	if err != nil {
+		return err
+	}
+	crypto, err := backend.CryptoRegistry.Backend(c.String("crypto"))
+	if err != nil {
+		return err
+	}
 
 	return s.Store.Convert(ctx, store, crypto, storage, move)
 }

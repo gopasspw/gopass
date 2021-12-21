@@ -32,7 +32,7 @@ func (l fakeCryptoLoader) Priority() int {
 
 func TestCryptoLoader(t *testing.T) {
 	ctx := context.Background()
-	backend.RegisterCrypto(backend.Plain, "plain", fakeCryptoLoader{})
+	backend.CryptoRegistry.Register(backend.Plain, "plain", fakeCryptoLoader{})
 	c, err := backend.NewCrypto(ctx, backend.Plain)
 	require.NoError(t, err)
 	assert.Equal(t, c.Name(), "plain")

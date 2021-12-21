@@ -170,20 +170,20 @@ func checkFilter(filter map[string]bool, key string) bool {
 
 // Log logs a statement to Stderr (unless filtered) and the
 // debug log file (if enabled).
-func Log(f string, args ...interface{}) {
+func Log(f string, args ...any) {
 	logFn(0, f, args...)
 }
 
 // LogN logs a statement to Stderr (unless filtered) and the
 // debug log file (if enabled). The offset will be applied to
 // the runtime position.
-func LogN(offset int, f string, args ...interface{}) {
+func LogN(offset int, f string, args ...any) {
 	logFn(offset, f, args...)
 }
 
-func doNotLog(offset int, f string, args ...interface{}) {}
+func doNotLog(offset int, f string, args ...any) {}
 
-func doLog(offset int, f string, args ...interface{}) {
+func doLog(offset int, f string, args ...any) {
 	fn, dir, file, line := getPosition(offset)
 	if len(f) == 0 || f[len(f)-1] != '\n' {
 		f += "\n"
@@ -197,7 +197,7 @@ func doLog(offset int, f string, args ...interface{}) {
 		SafeStr() string
 	}
 
-	argsi := make([]interface{}, len(args))
+	argsi := make([]any, len(args))
 	for i, item := range args {
 		argsi[i] = item
 		if secreter, ok := item.(Safer); ok && !logSecrets {

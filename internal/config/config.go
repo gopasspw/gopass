@@ -31,7 +31,7 @@ type Config struct {
 	ConfigPath string `yaml:"-"`
 
 	// Catches all undefined files and must be empty after parsing
-	XXX map[string]interface{} `yaml:",inline"`
+	XXX map[string]any `yaml:",inline"`
 }
 
 // New creates a new config with sane default values

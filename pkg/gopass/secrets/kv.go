@@ -134,7 +134,7 @@ func (k *KV) Values(key string) ([]string, bool) {
 }
 
 // Set writes a single key
-func (k *KV) Set(key string, value interface{}) error {
+func (k *KV) Set(key string, value any) error {
 	key = strings.ToLower(key)
 	if v, ok := k.data[key]; ok && len(v) > 1 {
 		return fmt.Errorf("cannot set key %s: this entry contains multiple same keys. Please use 'gopass edit' instead", key)
@@ -144,7 +144,7 @@ func (k *KV) Set(key string, value interface{}) error {
 }
 
 // Add appends data to a given key
-func (k *KV) Add(key string, value interface{}) error {
+func (k *KV) Add(key string, value any) error {
 	key = strings.ToLower(key)
 	k.data[key] = append(k.data[key], fmt.Sprintf("%s", value))
 	return nil

@@ -20,9 +20,9 @@ type Secret interface {
 	// Values returns all values for  that key, use Password() to get the password value.
 	Values(key string) ([]string, bool)
 	// Set sets a single header value, use SetPassword() to set the password value.
-	Set(key string, value interface{}) error
+	Set(key string, value any) error
 	// Add appends the value to that key, use SetPassword() to set the password value.
-	Add(key string, value interface{}) error
+	Add(key string, value any) error
 	// Del removes a single header value
 	Del(key string) bool
 

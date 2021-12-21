@@ -13,7 +13,7 @@ const (
 )
 
 func init() {
-	backend.RegisterCrypto(backend.Age, name, &loader{})
+	backend.CryptoRegistry.Register(backend.Age, name, &loader{})
 }
 
 type loader struct{}

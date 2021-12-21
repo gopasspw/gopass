@@ -77,7 +77,7 @@ mounts:
 					"foo/sub": "/home/johndoe/.password-store-foo-sub",
 					"work":    "/home/johndoe/.password-store-work",
 				},
-				XXX: map[string]interface{}{"foo": string("bar")},
+				XXX: map[string]any{"foo": string("bar")},
 			},
 		}, {
 			name: "1.8.2",

@@ -84,7 +84,7 @@ func load(cf string, relaxed bool) (*Config, error) {
 	return cfg, nil
 }
 
-func checkOverflow(m map[string]interface{}) error {
+func checkOverflow(m map[string]any) error {
 	if len(m) < 1 {
 		return nil
 	}

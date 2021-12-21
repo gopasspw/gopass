@@ -208,7 +208,7 @@ func allValid(vs []validator, name string, sec gopass.Secret) []error {
 	return errs
 }
 
-func printAuditResults(m map[string][]string, format string, color func(format string, a ...interface{}) string) bool {
+func printAuditResults(m map[string][]string, format string, color func(format string, a ...any) string) bool {
 	b := false
 
 	for msg, secrets := range m {

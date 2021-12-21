@@ -73,12 +73,12 @@ func (p *Plain) Password() string {
 }
 
 // Set does nothing
-func (p *Plain) Set(_ string, _ interface{}) error {
+func (p *Plain) Set(_ string, _ any) error {
 	return fmt.Errorf("not supported for PLAIN")
 }
 
 // Add does nothing
-func (p *Plain) Add(_ string, _ interface{}) error {
+func (p *Plain) Add(_ string, _ any) error {
 	return fmt.Errorf("not supported for PLAIN")
 }
 

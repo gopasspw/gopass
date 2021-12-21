@@ -52,7 +52,7 @@ type inlineC struct {
 
 func TestYAMLEncodingError(t *testing.T) {
 	s := &YAML{
-		data: map[string]interface{}{
+		data: map[string]any{
 			"foo": &struct {
 				B       int
 				inlineB `yaml:",inline"`
@@ -197,7 +197,7 @@ url: http://www.test.com/`
 }
 func TestYAMLValues(t *testing.T) {
 	s := &YAML{
-		data: map[string]interface{}{
+		data: map[string]any{
 			"string": "string",
 			"int":    int(32),
 			"float":  2.3,

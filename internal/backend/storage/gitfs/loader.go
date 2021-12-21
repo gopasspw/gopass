@@ -15,7 +15,7 @@ const (
 )
 
 func init() {
-	backend.RegisterStorage(backend.GitFS, name, &loader{})
+	backend.StorageRegistry.Register(backend.GitFS, name, &loader{})
 }
 
 type loader struct{}
