@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sort"
+	"golang.org/x/exp/maps"
 )
 
 var (
@@ -71,10 +72,7 @@ func (r *Registry[K, V]) Backends() []string {
 }
 
 func (r *Registry[K, V]) Prioritized() []V {
-	bes := make([]V, 0, len(r.backends))
-	for _, be := range r.backends {
-		bes = append(bes, be)
-	}
+	bes := maps.Values(r.backends)
 	sort.Slice(bes, func(i, j int) bool {
 		return bes[i].Priority() < bes[j].Priority()
 	})

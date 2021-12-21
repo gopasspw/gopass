@@ -86,7 +86,7 @@ func (s *Action) otp(ctx context.Context, name, qrf string, clip, pw, recurse bo
 
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
-	skip := ctxutil.IsHidden(ctx) || pw || qrf != "" || out.OutputIsRedirected()
+	skip := ctxutil.IsHidden(ctx) || pw || qrf != "" || out.OutputIsRedirected() || !ctxutil.IsInteractive(ctx)
 	if !skip {
 		// let us monitor key presses for cancellation:
 		go waitForKeyPress(ctx, cancel)

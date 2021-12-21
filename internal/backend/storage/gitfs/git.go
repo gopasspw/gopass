@@ -65,6 +65,13 @@ func Clone(ctx context.Context, repo, path string) (*Git, error) {
 	if err := g.Cmd(withPathOverride(ctx, filepath.Dir(path)), "Clone", "clone", repo, path); err != nil {
 		return nil, err
 	}
+
+	// initialize the local git config
+	if err := g.InitConfig(ctx, "", ""); err != nil {
+		return g, fmt.Errorf("failed to configure git: %s", err)
+	}
+	out.Printf(ctx, "git configured at %s", g.fs.Path())
+
 	return g, nil
 }
 

@@ -115,7 +115,7 @@ func (s *Action) syncMount(ctx context.Context, mp string) error {
 			out.Errorf(ctx, "Failed to list store: %s", err)
 		}
 
-		added, removed := diff.List(l, ln)
+		added, removed := diff.Stat(l, ln)
 		debug.Log("diff - added: %d - removed: %d", added, removed)
 		if added > 0 {
 			out.Printf(ctxno, color.GreenString(" (Added %d entries)", added))

@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
-	"sort"
 	"strings"
 
 	"github.com/gopasspw/gopass/internal/backend"
+	"github.com/gopasspw/gopass/internal/set"
 	"github.com/gopasspw/gopass/pkg/debug"
 )
 
@@ -100,26 +100,25 @@ func (s *Store) idFiles(ctx context.Context) []string {
 	if s.crypto == nil {
 		return nil
 	}
+
 	files, err := s.Storage().List(ctx, "")
 	if err != nil {
 		return nil
 	}
-	fileSet := make(map[string]struct{}, len(files))
-	for _, file := range files {
-		if strings.HasPrefix(filepath.Base(file), ".") {
+
+	idfs := make([]string, 0, len(files))
+	for _, f := range files {
+		if strings.HasPrefix(filepath.Base(f), ".") {
 			continue
 		}
-		idf := s.idFile(ctx, file)
+		idf := s.idFile(ctx, f)
 		if s.storage.Exists(ctx, idf) {
-			fileSet[idf] = struct{}{}
+			idfs = append(idfs, idf)
 		}
 	}
-	out := make([]string, 0, len(fileSet))
-	for file := range fileSet {
-		out = append(out, file)
-	}
-	sort.Strings(out)
-	return out
+
+	debug.Log("idFiles: %q", idfs)
+	return set.Sorted(idfs)
 }
 
 // Equals returns true if this.storage has the same on-disk path as the other
