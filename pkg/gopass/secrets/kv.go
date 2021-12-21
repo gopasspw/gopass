@@ -201,23 +201,15 @@ func ParseKV(in []byte) (*KV, error) {
 		}
 		line = strings.TrimRight(line, "\n")
 
-		parts := strings.SplitN(line, ":", 2)
-		// should not happen
-		if len(parts) < 1 {
+		key, val, found := strings.Cut(line, ":")
+		if !found {
 			continue
 		}
-		for i, part := range parts {
-			parts[i] = strings.TrimSpace(part)
-		}
+		key = strings.TrimSpace(key)
+		val = strings.TrimSpace(val)
 		// we only store lower case keys for KV
-		parts[0] = strings.ToLower(parts[0])
-		// preserve key only entries
-		if len(parts) < 2 {
-			k.data[parts[0]] = append(k.data[parts[0]], "")
-			continue
-		}
-
-		k.data[parts[0]] = append(k.data[parts[0]], parts[1])
+		key = strings.ToLower(key)
+		k.data[key] = append(k.data[key], val)
 	}
 	if len(k.data) < 1 {
 		debug.Log("no KV entries")

@@ -404,11 +404,10 @@ func changelogEntries(since semver.Version) ([]string, error) {
 			if !strings.HasPrefix(line, "RELEASE_NOTES=") {
 				continue
 			}
-			p := strings.Split(line, "=")
-			if len(p) < 2 {
+			_, val, found := strings.Cut(line, "=")
+			if !found {
 				continue
 			}
-			val := p[1]
 			if strings.ToLower(val) == "n/a" {
 				continue
 			}

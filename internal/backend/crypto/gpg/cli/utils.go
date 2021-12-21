@@ -42,7 +42,7 @@ func gpgConfig() (map[string]string, error) {
 }
 
 func parseGpgConfig(fh io.Reader) (map[string]string, error) {
-	val := make(map[string]string, 20)
+	vals := make(map[string]string, 20)
 	scanner := bufio.NewScanner(fh)
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
@@ -50,18 +50,14 @@ func parseGpgConfig(fh io.Reader) (map[string]string, error) {
 		if strings.HasPrefix(line, "#") {
 			continue
 		}
-		p := strings.SplitN(line, " ", 2)
-		if len(p) < 1 {
+		key, val, found := strings.Cut(line, " ")
+		if !found {
 			continue
 		}
-		val[p[0]] = ""
-		if len(p) < 2 {
-			continue
-		}
-		val[p[0]] = strings.TrimSpace(p[1])
+		vals[key] = strings.TrimSpace(val)
 	}
 
-	return val, nil
+	return vals, nil
 }
 
 // GPGOpts parses extra GPG options from the environment
