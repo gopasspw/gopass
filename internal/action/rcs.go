@@ -38,7 +38,12 @@ func (s *Action) RCSInit(c *cli.Context) error {
 }
 
 func (s *Action) rcsInit(ctx context.Context, store, un, ue string) error {
-	bn := backend.StorageBackendName(backend.GetStorageBackend(ctx))
+	be := backend.GetStorageBackend(ctx)
+	// TODO this should rather ask s.Store if it HasRCSInit or something
+	if be == backend.FS {
+		return nil
+	}
+	bn := backend.StorageBackendName(be)
 	userName, userEmail := s.getUserData(ctx, store, un, ue)
 	if err := s.Store.RCSInit(ctx, store, userName, userEmail); err != nil {
 		if errors.Is(err, backend.ErrNotSupported) {
@@ -69,6 +74,7 @@ func (s *Action) getUserData(ctx context.Context, store, name, email string) (st
 		if userName == "" {
 			userName = termio.DetectName(ctx, nil)
 		}
+
 		var err error
 		name, err = termio.AskForString(ctx, color.CyanString("Please enter a user name for password store git config"), userName)
 		if err != nil {
@@ -79,6 +85,7 @@ func (s *Action) getUserData(ctx context.Context, store, name, email string) (st
 		if userEmail == "" {
 			userEmail = termio.DetectEmail(ctx, nil)
 		}
+
 		var err error
 		email, err = termio.AskForString(ctx, color.CyanString("Please enter an email address for password store git config"), userEmail)
 		if err != nil {

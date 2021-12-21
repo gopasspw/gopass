@@ -3,140 +3,112 @@ package age
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
 
-	"filippo.io/age"
+	"github.com/gopasspw/gopass/internal/backend"
+	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/pkg/appdir"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
-	"github.com/gopasspw/gopass/pkg/termio"
+	"github.com/gopasspw/gopass/pkg/fsutil"
 )
 
+var (
+	// OldIDFile is the old file name for the recipients
+	OldIDFile = ".age-ids"
+	// OldKeyring is the old file name for the keyring
+	OldKeyring = filepath.Join(appdir.UserConfig(), "age-keyring.age")
+)
+
+func migrate(ctx context.Context, s backend.Storage) error {
+	out.Noticef(ctx, "Attempting to migrate age backend. You will need to unlock your identities keyring.")
+
+	oldIDPath := filepath.Join(s.Path(), OldIDFile)
+	newIDPath := filepath.Join(s.Path(), IDFile)
+	if fsutil.IsFile(oldIDPath) && fsutil.IsFile(newIDPath) {
+		out.Warningf(ctx, "Both %s and %s exist. Removing the old one (%s).", oldIDPath, newIDPath, oldIDPath)
+		if err := os.Remove(oldIDPath); err != nil {
+			out.Errorf(ctx, "Failed to remove %s: %s", oldIDPath, err)
+		}
+	}
+	if fsutil.IsFile(oldIDPath) {
+		out.Noticef(ctx, "Found %s. Migrating to %s.", oldIDPath, newIDPath)
+		if err := os.Rename(oldIDPath, newIDPath); err != nil {
+			out.Errorf(ctx, "Failed to rename %s to %s: %s", oldIDPath, newIDPath, err)
+		}
+	}
+
+	// create a new instance so we can use decryptFile
+	a, err := New()
+	if err != nil {
+		return err
+	}
+
+	if !ctxutil.HasPasswordCallback(ctx) {
+		debug.Log("no password callback found, redirecting to askPass")
+		ctx = ctxutil.WithPasswordCallback(ctx, func(prompt string, _ bool) ([]byte, error) {
+			pw, err := a.askPass.Passphrase(prompt, fmt.Sprintf("to load the age keyring at %s", OldKeyring), false)
+			return []byte(pw), err
+		})
+	}
+
+	if fsutil.IsFile(OldKeyring) && fsutil.IsFile(a.identity) {
+		out.Warningf(ctx, "Both %s and %s exist. Keeping both. Recover any identities from %s as needed.", OldKeyring, a.identity, OldKeyring)
+		return nil
+	}
+	if !fsutil.IsFile(OldKeyring) {
+		// nothing to do
+		return nil
+	}
+
+	debug.Log("loading old identities from %s", OldKeyring)
+	ids, err := a.loadIdentitiesFromKeyring(ctx)
+	if err != nil {
+		return err
+	}
+
+	debug.Log("writing new identities to %s", a.identity)
+	if err := a.saveIdentities(ctx, ids, false); err != nil {
+		return err
+	}
+	return os.Remove(OldKeyring)
+}
+
 // Keyring is an age keyring
+// Deprecated: Only used for backwards compatibility. Will be removed soon.
 type Keyring []Keypair
 
 // Keypair is a public / private keypair
+// Deprecated: Only used for backwards compatibility. Will be removed soon.
 type Keypair struct {
 	Name     string `json:"name"`
 	Email    string `json:"email"`
 	Identity string `json:"identity"`
 }
 
-func (a *Age) pkself(ctx context.Context) (age.Recipient, error) {
-	kr, err := a.loadKeyring(ctx)
-
-	var id *age.X25519Identity
-	if err != nil || len(kr) < 1 {
-		id, err = a.genKey(ctx)
-	} else {
-		id, err = age.ParseX25519Identity(kr[len(kr)-1].Identity)
-	}
+func (a *Age) loadIdentitiesFromKeyring(ctx context.Context) ([]string, error) {
+	buf, err := a.decryptFile(ctx, OldKeyring)
 	if err != nil {
+		debug.Log("can't decrypt keyring at %s: %s", OldKeyring, err)
 		return nil, err
-	}
-	return id.Recipient(), nil
-}
-
-func (a *Age) genKey(ctx context.Context) (*age.X25519Identity, error) {
-	debug.Log("No native age key found. Generating ...")
-	id, err := a.generateIdentity(ctx, termio.DetectName(ctx, nil), termio.DetectEmail(ctx, nil))
-	if err != nil {
-		return nil, err
-	}
-	return id, nil
-}
-
-// GenerateIdentity will create a new native private key
-func (a *Age) GenerateIdentity(ctx context.Context, name, email, _ string) error {
-	_, err := a.generateIdentity(ctx, name, email)
-	return err
-}
-
-func (a *Age) generateIdentity(ctx context.Context, name, email string) (*age.X25519Identity, error) {
-	id, err := age.GenerateX25519Identity()
-	if err != nil {
-		return id, err
-	}
-
-	var newKeyring bool
-	kr, err := a.loadKeyring(ctx)
-	if err != nil {
-		debug.Log("failed to load existing keyring from %s: %s", a.keyring, err)
-		if !errors.Is(err, os.ErrNotExist) {
-			return nil, err
-		}
-		debug.Log("no existing keyring, creating new one")
-		newKeyring = true
-	}
-
-	kr = append(kr, Keypair{
-		Name:     name,
-		Email:    email,
-		Identity: id.String(),
-	})
-
-	return id, a.saveKeyring(ctx, kr, newKeyring)
-}
-
-func (a *Age) loadKeyring(ctx context.Context) (Keyring, error) {
-	if !ctxutil.HasPasswordCallback(ctx) {
-		debug.Log("no password callback found, redirecting to askPass")
-		ctx = ctxutil.WithPasswordCallback(ctx, func(prompt string, _ bool) ([]byte, error) {
-			pw, err := a.askPass.Passphrase(prompt, fmt.Sprintf("to load the age keyring at %s", a.keyring), false)
-			return []byte(pw), err
-		})
-	}
-
-	buf, err := a.decryptFile(ctx, a.keyring)
-	if err != nil {
-		debug.Log("can't decrypt keyring at %s: %s", a.keyring, err)
-		return Keyring{}, err
 	}
 
 	var kr Keyring
 	if err := json.Unmarshal(buf, &kr); err != nil {
-		debug.Log("can't parse keyring at %s: %s", a.keyring, err)
-		return Keyring{}, err
+		debug.Log("can't parse keyring at %s: %s", OldKeyring, err)
+		return nil, err
 	}
 
 	// remove invalid IDs
-	valid := make(Keyring, 0, len(kr))
+	valid := make([]string, 0, len(kr))
 	for _, k := range kr {
 		if k.Identity == "" {
 			continue
 		}
-		valid = append(valid, k)
+		valid = append(valid, k.Identity)
 	}
-	debug.Log("loaded keyring with %d valid entries from %s", len(kr), a.keyring)
+	debug.Log("loaded keyring with %d valid entries from %s", len(kr), OldKeyring)
 	return valid, nil
-}
-
-func (a *Age) saveKeyring(ctx context.Context, k Keyring, newKeyring bool) error {
-	if !ctxutil.HasPasswordCallback(ctx) {
-		debug.Log("no password callback found, redirecting to askPass")
-		ctx = ctxutil.WithPasswordCallback(ctx, func(prompt string, confirm bool) ([]byte, error) {
-			pw, err := a.askPass.Passphrase(prompt, fmt.Sprintf("to save the age keyring to %s", a.keyring), confirm)
-			return []byte(pw), err
-		})
-	}
-
-	if err := os.MkdirAll(filepath.Dir(a.keyring), 0700); err != nil {
-		debug.Log("failed to create directory for the keyring at %s", a.keyring)
-		return err
-	}
-
-	// encrypt final keyring
-	buf, err := json.Marshal(k)
-	if err != nil {
-		return err
-	}
-
-	if err := a.encryptFile(ctx, a.keyring, buf, newKeyring); err != nil {
-		return err
-	}
-
-	debug.Log("saved encrypted keyring with %d entries to %s", len(k), a.keyring)
-	return nil
 }

@@ -13,17 +13,19 @@ import (
 
 // Encrypt will encrypt the given payload
 func (a *Age) Encrypt(ctx context.Context, plaintext []byte, recipients []string) ([]byte, error) {
-	// add our own public key
-	pks, err := a.pkself(ctx)
+	// add our own public keys to the recipients to ensure we can decrypt it later
+	idRecps, err := a.IdentityRecipients(ctx)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to fetch identity recipients for encryption: %w", err)
 	}
+	// parse the most specific recipients file and add it to the final
+	// recipients, too
 	recp, err := a.parseRecipients(ctx, recipients)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to parse recipients file for encryption: %w", err)
 	}
-	recp = append(recp, pks)
-	recp = dedupe(recp)
+
+	recp = dedupe(append(recp, idRecps...))
 	return a.encrypt(plaintext, recp...)
 }
 
@@ -33,12 +35,14 @@ func dedupe(recp []age.Recipient) []age.Recipient {
 	set := make(map[string]age.Recipient, len(recp))
 	for _, r := range recp {
 		k, ok := r.(fmt.Stringer)
+		// handle non-native recipients
 		if !ok {
 			out = append(out, r)
 			continue
 		}
 		set[k.String()] = r
 	}
+
 	for _, r := range set {
 		out = append(out, r)
 	}
@@ -59,7 +63,7 @@ func (a *Age) encrypt(plaintext []byte, recp ...age.Recipient) ([]byte, error) {
 	if err := w.Close(); err != nil {
 		return nil, err
 	}
-	debug.Log("Wrote %d bytes of plaintext for %+v", n, recp)
+	debug.Log("Encrypted %d bytes of plaintext to %d bytes of ciphertext for %q", n, out.Len(), recp)
 	return out.Bytes(), nil
 }
 

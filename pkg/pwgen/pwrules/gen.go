@@ -149,7 +149,7 @@ func (c *cleaningReader) init() error {
 		for needle, numSkip := range c.ign {
 			want := fmt.Sprintf("\"%s\":", needle)
 			if strings.Contains(line, want) {
-				fmt.Printf("skipping %d lines after %s\n", numSkip, needle)
+				debug.Log("skipping %d lines after %s\n", numSkip, needle)
 				skip = numSkip
 			}
 		}
@@ -157,7 +157,7 @@ func (c *cleaningReader) init() error {
 		// above, so we need to skip the next two lines to consume all of it.
 		for i := 0; i < skip; i++ {
 			scanner.Scan()
-			fmt.Printf("Skipped line: %s\n", scanner.Text())
+			debug.Log("Skipped line: %s\n", scanner.Text())
 		}
 		if skip > 0 {
 			continue

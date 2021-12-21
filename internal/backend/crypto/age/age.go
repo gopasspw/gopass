@@ -2,54 +2,48 @@ package age
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"os"
 	"path/filepath"
 	"runtime"
-	"sort"
-	"strings"
 	"time"
 
-	"filippo.io/age"
-	"filippo.io/age/agessh"
 	"github.com/blang/semver/v4"
-	"github.com/google/go-github/github"
 	"github.com/gopasspw/gopass/internal/cache"
+	"github.com/gopasspw/gopass/internal/cache/ghssh"
 	"github.com/gopasspw/gopass/pkg/appdir"
 	"github.com/gopasspw/gopass/pkg/debug"
-	"github.com/gopasspw/gopass/pkg/termio"
 )
 
 const (
 	// Ext is the file extension for age encrypted secrets
 	Ext = "age"
 	// IDFile is the name for age recipients
-	IDFile = ".age-ids"
+	IDFile = ".age-recipients"
 )
 
 // Age is an age backend
 type Age struct {
-	binary  string
-	keyring string
-	ghc     *github.Client
-	ghCache *cache.OnDisk
-	askPass *askPass
-	krCache map[string]age.Identity
+	identity  string
+	ghCache   *ghssh.Cache
+	askPass   *askPass
+	recpCache *cache.OnDisk
 }
 
 // New creates a new Age backend
 func New() (*Age, error) {
-	cDir, err := cache.NewOnDisk("age-github", 6*time.Hour)
+	ghc, err := ghssh.New()
+	if err != nil {
+		return nil, err
+	}
+	rc, err := cache.NewOnDisk("age-identity-recipients", 30*time.Hour)
 	if err != nil {
 		return nil, err
 	}
 	return &Age{
-		binary:  "age",
-		ghc:     github.NewClient(nil),
-		ghCache: cDir,
-		keyring: filepath.Join(appdir.UserConfig(), "age-keyring.age"),
-		askPass: DefaultAskPass,
+		ghCache:   ghc,
+		recpCache: rc,
+		identity:  filepath.Join(appdir.UserConfig(), "age", "identities"),
+		askPass:   DefaultAskPass,
 	}, nil
 }
 
@@ -67,11 +61,9 @@ func (a *Age) Name() string {
 	return "age"
 }
 
-// Version return 1.0.0
+// Version returns the version of the age dependency being used
 func (a *Age) Version(ctx context.Context) semver.Version {
-	return semver.Version{
-		Patch: 1,
-	}
+	return debug.ModuleVersion("filippo.io/age")
 }
 
 // Ext returns the extension
@@ -82,129 +74,6 @@ func (a *Age) Ext() string {
 // IDFile return the recipients file
 func (a *Age) IDFile() string {
 	return IDFile
-}
-
-func (a *Age) parseRecipients(ctx context.Context, recipients []string) ([]age.Recipient, error) {
-	out := make([]age.Recipient, 0, len(recipients))
-	for _, r := range recipients {
-		if strings.HasPrefix(r, "age1") {
-			id, err := age.ParseX25519Recipient(r)
-			if err != nil {
-				debug.Log("Failed to parse recipient %q as X25519: %s", r, err)
-				continue
-			}
-			out = append(out, id)
-			continue
-		}
-		if strings.HasPrefix(r, "ssh-") {
-			id, err := agessh.ParseRecipient(r)
-			if err != nil {
-				debug.Log("Failed to parse recipient %q as SSH: %s", r, err)
-				continue
-			}
-			out = append(out, id)
-			continue
-		}
-		if strings.HasPrefix(r, "github:") {
-			pks, err := a.getPublicKeysGithub(ctx, strings.TrimPrefix(r, "github:"))
-			if err != nil {
-				return out, err
-			}
-			for _, pk := range pks {
-				id, err := agessh.ParseRecipient(r)
-				if err != nil {
-					debug.Log("Failed to parse GitHub recipient %q: %q: %s", r, pk, err)
-					continue
-				}
-				out = append(out, id)
-			}
-		}
-	}
-	return out, nil
-}
-
-// ListIdentities lists all identities
-func (a *Age) ListIdentities(ctx context.Context) ([]string, error) {
-	ids, err := a.getAllIdentities(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	idStr := make([]string, 0, len(ids))
-	for k := range ids {
-		idStr = append(idStr, k)
-	}
-	sort.Strings(idStr)
-	return idStr, nil
-}
-
-func (a *Age) getAllIds(ctx context.Context) ([]age.Identity, error) {
-	ids, err := a.getAllIdentities(ctx)
-	if err != nil {
-		return nil, err
-	}
-	idl := make([]age.Identity, 0, len(ids))
-	for _, id := range ids {
-		idl = append(idl, id)
-	}
-	return idl, nil
-}
-
-func (a *Age) getAllIdentities(ctx context.Context) (map[string]age.Identity, error) {
-	native, err := a.getNativeIdentities(ctx)
-	if err != nil {
-		return nil, err
-	}
-	ssh, err := a.getSSHIdentities(ctx)
-	if err != nil {
-		return nil, err
-	}
-	for k, v := range ssh {
-		native[k] = v
-	}
-
-	return native, nil
-}
-
-func (a *Age) getNativeIdentities(ctx context.Context) (map[string]age.Identity, error) {
-	if len(a.krCache) > 0 {
-		return a.krCache, nil
-	}
-	kr, err := a.loadKeyring(ctx)
-	if err != nil && !errors.Is(err, os.ErrNotExist) {
-		debug.Log("failed to load native identities: %+v", err)
-		return nil, err
-	}
-	debug.Log("keyring: %+v", kr)
-	if len(kr) < 1 {
-		// TODO we shouldn't print in here, use a callback
-		ok, err := termio.AskForBool(ctx, "🔑 No existing age identities found. Do you want to generate a new one?", true)
-		if err != nil {
-			return nil, err
-		}
-		if !ok {
-			return nil, fmt.Errorf("user aborted")
-		}
-		debug.Log("generating new age keypair")
-		id, err := a.genKey(ctx)
-		if err != nil {
-			return nil, err
-		}
-		return map[string]age.Identity{
-			id.Recipient().String(): id,
-		}, nil
-	}
-	ids := make(map[string]age.Identity, len(kr))
-	for _, k := range kr {
-		id, err := age.ParseX25519Identity(k.Identity)
-		if err != nil {
-			debug.Log("Failed to parse identity %q: %s", k, err)
-			continue
-		}
-		ids[id.Recipient().String()] = id
-	}
-	a.krCache = ids
-	return ids, nil
 }
 
 // Concurrency returns the number of CPUs

@@ -93,5 +93,4 @@ func (a *askPass) Remove(key string) {
 // Lock flushes the password cache
 func (a *Age) Lock() {
 	a.askPass.cache.Purge()
-	a.krCache = nil
 }

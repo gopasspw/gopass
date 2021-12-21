@@ -19,6 +19,7 @@ func (r *Store) IsInitialized(ctx context.Context) (bool, error) {
 			return false, fmt.Errorf("failed to initialize stores: %w", err)
 		}
 	}
+	debug.Log("root store is initialized")
 	return r.store.IsInitialized(ctx), nil
 }
 
