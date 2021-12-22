@@ -51,6 +51,7 @@ func (t *Tree) Insert(node *Node) (*Node, error) {
 		return t.Nodes[pos], fmt.Errorf("node %q already preset", node.Name)
 	}
 
+	// insert at the right position, see
 	// https://code.google.com/p/go-wiki/wiki/SliceTricks
 	t.Nodes = append(t.Nodes, &Node{})
 	copy(t.Nodes[pos+1:], t.Nodes[pos:])

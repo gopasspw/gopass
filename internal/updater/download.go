@@ -15,9 +15,15 @@ import (
 	"golang.org/x/net/context/ctxhttp"
 )
 
+// DownloadTimeout is the overall timeout for the download, including all retries
+var DownloadTimeout = time.Minute * 5
+
 func tryDownload(ctx context.Context, url string) ([]byte, error) {
+	ctx, cancel := context.WithTimeout(ctx, DownloadTimeout)
+	defer cancel()
+
 	bo := backoff.NewExponentialBackOff()
-	bo.MaxElapsedTime = 5 * time.Minute
+	bo.MaxElapsedTime = DownloadTimeout
 
 	var buf []byte
 

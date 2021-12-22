@@ -67,7 +67,7 @@ func DetectStorage(ctx context.Context, path string) (Storage, error) {
 
 	for _, be := range StorageRegistry.Prioritized() {
 		debug.Log("Trying %s for %s", be, path)
-		if err := be.Handles(path); err != nil {
+		if err := be.Handles(ctx, path); err != nil {
 			debug.Log("failed to use %s for %s: %s", be, path, err)
 			continue
 		}

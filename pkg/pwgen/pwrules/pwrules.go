@@ -1,7 +1,6 @@
 package pwrules
 
 import (
-	"math"
 	"regexp"
 	"sort"
 	"strconv"
@@ -13,40 +12,23 @@ import (
 //go:generate go run gen.go
 
 var (
-	rules   = map[string]Rule{}
 	reChars = regexp.MustCompile(`(allowed|required):\s*\[(.*)\](?:;|,)`)
 )
 
-func init() {
-	for k, v := range genRules {
-		// do not override customizations
-		if _, found := rules[k]; found {
-			continue
-		}
-		r := ParseRule(v)
-		r.Exact = genRulesExact[k]
-		if r.Maxlen < 1 {
-			r.Maxlen = math.MaxInt32
-		}
-		rules[k] = r
-		//debug.Log("added rule for %q from %q: %+v", k, v, r)
-	}
-}
-
 // AllRules returns all rules
 func AllRules() map[string]Rule {
-	return rules
+	return genRules
 }
 
 // LookupRule looks up a rule either directly or through one of it's know
 // aliases.
 func LookupRule(domain string) (Rule, bool) {
-	r, found := rules[domain]
+	r, found := genRules[domain]
 	if found {
 		return r, true
 	}
 	for _, alias := range LookupAliases(domain) {
-		if r, found := rules[alias]; found {
+		if r, found := genRules[alias]; found {
 			return r, true
 		}
 	}

@@ -10,6 +10,7 @@ import (
 
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/gopass"
+	"golang.org/x/exp/maps"
 )
 
 var _ gopass.Secret = &KV{}
@@ -107,10 +108,7 @@ func (k *KV) Bytes() []byte {
 
 // Keys returns all keys
 func (k *KV) Keys() []string {
-	keys := make([]string, 0, len(k.data)+1)
-	for key := range k.data {
-		keys = append(keys, key)
-	}
+	keys := maps.Keys(k.data)
 	sort.Strings(keys)
 	return keys
 }

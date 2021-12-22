@@ -3,9 +3,9 @@
 package qrcon
 
 import (
-	"bytes"
 	"fmt"
 	"image/color"
+	"strings"
 
 	"github.com/skip2/go-qrcode"
 )
@@ -22,23 +22,24 @@ func QRCode(content string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	buf := bytes.Buffer{}
+
+	var sb strings.Builder
 	i := q.Image(0)
 	b := i.Bounds()
 	for x := b.Min.X; x < b.Max.X; x++ {
 		for y := b.Min.Y; y < b.Max.Y; y++ {
 			col := i.At(x, y)
 			if sameColor(col, q.ForegroundColor) {
-				_, _ = buf.WriteString(black)
+				_, _ = sb.WriteString(black)
 			} else if sameColor(col, q.BackgroundColor) {
-				_, _ = buf.WriteString(white)
+				_, _ = sb.WriteString(white)
 			} else {
 				return "", fmt.Errorf("unexpected color at (%d,%d): %+v", x, y, col)
 			}
 		}
-		_, _ = buf.WriteString("\n")
+		_, _ = sb.WriteString("\n")
 	}
-	return buf.String(), nil
+	return sb.String(), nil
 }
 
 func sameColor(a color.Color, b color.Color) bool {

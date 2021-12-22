@@ -27,7 +27,7 @@ type CryptoLoader interface {
 	fmt.Stringer
 	Prioritized
 	New(context.Context) (Crypto, error)
-	Handles(Storage) error
+	Handles(context.Context, Storage) error
 }
 
 // StorageLoader is the interface for creating a new storage backend.
@@ -37,7 +37,7 @@ type StorageLoader interface {
 	New(context.Context, string) (Storage, error)
 	Init(context.Context, string) (Storage, error)
 	Clone(context.Context, string, string) (Storage, error)
-	Handles(string) error
+	Handles(context.Context, string) error
 }
 
 // NewRegistry returns a new registry

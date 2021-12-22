@@ -41,7 +41,7 @@ func (l loader) Clone(ctx context.Context, repo, path string) (backend.Storage, 
 	return l.New(ctx, path)
 }
 
-func (l loader) Handles(path string) error {
+func (l loader) Handles(ctx context.Context, path string) error {
 	if fsutil.IsDir(path) {
 		return nil
 	}

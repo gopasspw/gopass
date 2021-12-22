@@ -12,6 +12,7 @@ import (
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/gopass"
+	"golang.org/x/exp/maps"
 	yaml "gopkg.in/yaml.v3"
 )
 
@@ -38,10 +39,7 @@ type YAML struct {
 
 // Keys returns all keys
 func (y *YAML) Keys() []string {
-	keys := make([]string, 0, len(y.data)+1)
-	for key := range y.data {
-		keys = append(keys, key)
-	}
+	keys := maps.Keys(y.data)
 	sort.Strings(keys)
 	return keys
 }

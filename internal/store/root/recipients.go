@@ -45,6 +45,7 @@ func (r *Store) addRecipient(ctx context.Context, prefix string, root *tree.Root
 			}
 		}
 	}
+
 	// workaround to keep key names from breaking the folder structure.
 	// A proper fix should change tree.AddFile to take a path and file name
 	// (which could then contain slashes).

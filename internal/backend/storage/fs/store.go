@@ -176,12 +176,12 @@ func (s *Store) Name() string {
 
 // Version returns the version of this backend
 func (s *Store) Version(context.Context) semver.Version {
-	return semver.Version{Minor: 1}
+	return debug.ModuleVersion("github.com/gopasspw/gopass/internal/backend/fs")
 }
 
 // String implements fmt.Stringer
 func (s *Store) String() string {
-	return fmt.Sprintf("fs(v0.1.0,path:%s)", s.path)
+	return fmt.Sprintf("fs(%s,path:%s)", s.Version(context.TODO()).String(), s.path)
 }
 
 // Path returns the path to this storage
