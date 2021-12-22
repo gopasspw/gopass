@@ -11,8 +11,6 @@ import (
 	"github.com/gopasspw/gopass/internal/store/leaf"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/fsutil"
-
-	"github.com/fatih/color"
 )
 
 // AddMount adds a new mount
@@ -71,13 +69,15 @@ func (r *Store) initSub(ctx context.Context, alias, path string, keys []string) 
 		debug.Log("[%s] No keys available", alias)
 		return s, NotInitializedError{alias, path}
 	}
+
 	debug.Log("[%s] Trying to initialize at %s for %+v", alias, path, keys)
 	if err := s.Init(ctx, path, keys...); err != nil {
 		return s, fmt.Errorf("failed to initialize store %q at %q: %w", alias, path, err)
 	}
+
 	out.Printf(ctx, "Password store %s initialized for:", path)
 	for _, r := range s.Recipients(ctx) {
-		color.Yellow(r)
+		out.Noticef(ctx, "  %s", r)
 	}
 
 	return s, nil
@@ -127,7 +127,8 @@ func (r *Store) MountPoint(name string) string {
 	return ""
 }
 
-// Lock drops all cached credentials
+// Lock drops all cached credentials, if any. Mostly only useful
+// for the gopass REPL.
 func (r *Store) Lock() error {
 	for _, sub := range r.mounts {
 		if err := sub.Lock(); err != nil {
@@ -157,6 +158,7 @@ func (r *Store) GetSubStore(name string) (*leaf.Store, error) {
 	if sub, found := r.mounts[name]; found {
 		return sub, nil
 	}
+
 	debug.Log("mounts available: %+v", r.mounts)
 	return nil, fmt.Errorf("no such mount point %q", name)
 }

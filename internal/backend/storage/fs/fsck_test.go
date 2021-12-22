@@ -20,7 +20,7 @@ func TestFsck(t *testing.T) {
 	l := &loader{}
 	s, err := l.Init(ctx, path)
 	assert.NoError(t, err)
-	assert.NoError(t, l.Handles(path))
+	assert.NoError(t, l.Handles(ctx, path))
 
 	for _, fn := range []string{
 		filepath.Join(path, ".plain-ids"),

@@ -29,6 +29,7 @@ func extractFile(buf []byte, filename, dest string) error {
 		}
 	}
 
+	// open the destination file for writing
 	dfh, err := os.OpenFile(dest, os.O_WRONLY|os.O_CREATE|os.O_EXCL, mode)
 	if err != nil {
 		return fmt.Errorf("failed to open file %q: %w", dest, err)
@@ -50,7 +51,7 @@ func extractFile(buf []byte, filename, dest string) error {
 	case ".zip":
 		return extractZip(buf, dfh, dest)
 	default:
-		return fmt.Errorf("unsupported")
+		return fmt.Errorf("unsupported file extension: %q", filepath.Ext(filename))
 	}
 }
 

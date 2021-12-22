@@ -55,7 +55,8 @@ func initDebugLogger() {
 
 	f, err := os.OpenFile(debugfile, os.O_WRONLY|os.O_APPEND, 0600)
 	if err == nil {
-		_, err := f.Seek(2, 0)
+		// seek to the end of the file (offset, whence [2 = end])
+		_, err := f.Seek(0, 2)
 		if err != nil {
 			fmt.Fprintf(Stderr, "unable to seek to end of %v: %v\n", debugfile, err)
 			os.Exit(3)

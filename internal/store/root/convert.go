@@ -14,6 +14,7 @@ func (r *Store) Convert(ctx context.Context, name string, cryptoBe backend.Crypt
 	if err != nil {
 		return err
 	}
+
 	debug.Log("converting %s to crypto: %s, rcs: %s, storage: %s", name, cryptoBe, storageBe)
 	if err := sub.Convert(ctx, cryptoBe, storageBe, move); err != nil {
 		return err

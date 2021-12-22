@@ -1,7 +1,6 @@
 package tree
 
 import (
-	"bytes"
 	"fmt"
 	"path/filepath"
 	"strings"
@@ -57,6 +56,9 @@ func (r *Root) AddTemplate(path string) error {
 
 func (r *Root) insert(path string, template bool, mountPath string) error {
 	t := r.Subtree
+
+	// split the path into its components, iterate over them and create
+	// the tree structure. Everything but the last element is a folder.
 	p := strings.Split(path, "/")
 	for i, e := range p {
 		n := &Node{
@@ -64,6 +66,7 @@ func (r *Root) insert(path string, template bool, mountPath string) error {
 			Type:    "dir",
 			Subtree: NewTree(),
 		}
+		// this is the final element (a leaf)
 		if i == len(p)-1 {
 			n.Type = "file"
 			n.Subtree = nil
@@ -79,6 +82,8 @@ func (r *Root) insert(path string, template bool, mountPath string) error {
 			node.Subtree = NewTree()
 			node.Type = "dir"
 		}
+
+		// re-root t to the new subtree
 		t = node.Subtree
 	}
 	return nil
@@ -87,20 +92,20 @@ func (r *Root) insert(path string, template bool, mountPath string) error {
 // Format returns a pretty printed string of all nodes in and below
 // this node, e.g. ├── baz
 func (r *Root) Format(maxDepth int) string {
-	out := &bytes.Buffer{}
+	var sb strings.Builder
 
 	// any mount will be colored and include the on-disk path
-	_, _ = out.WriteString(colDir(r.Name))
+	_, _ = sb.WriteString(colDir(r.Name))
 
 	// finish this folders output
-	_, _ = out.WriteString("\n")
+	_, _ = sb.WriteString("\n")
 
 	// let our children format themselves
 	for i, node := range r.Subtree.Nodes {
 		last := i == len(r.Subtree.Nodes)-1
-		_, _ = out.WriteString(node.format("", last, maxDepth, 1))
+		_, _ = sb.WriteString(node.format("", last, maxDepth, 1))
 	}
-	return out.String()
+	return sb.String()
 }
 
 // List returns a flat list of all files in this tree

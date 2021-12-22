@@ -76,7 +76,7 @@ func DetectCrypto(ctx context.Context, storage Storage) (Crypto, error) {
 
 	for _, be := range CryptoRegistry.Prioritized() {
 		debug.Log("Trying %s for %s", be, storage)
-		if err := be.Handles(storage); err != nil {
+		if err := be.Handles(ctx, storage); err != nil {
 			debug.Log("failed to use crypto %s for %s", be, storage)
 			continue
 		}

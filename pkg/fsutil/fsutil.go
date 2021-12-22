@@ -99,22 +99,47 @@ func Shred(path string, runs int) error {
 	if err != nil {
 		return fmt.Errorf("failed to open file %q: %w", path, err)
 	}
-	buf := make([]byte, 1024)
+	// ignore the error. this is only taking effect if we error out.
+	defer fh.Close()
+
+	fi, err := fh.Stat()
+	if err != nil {
+		return fmt.Errorf("failed to stat file %q: %w", path, err)
+	}
+	flen := fi.Size()
+
+	// overwrite using pseudo-random data n-1 times and
+	// use zeros in the last iteration
+	bufFn := func() []byte {
+		buf := make([]byte, 1024)
+		_, _ = rand.Read(buf)
+		return buf
+	}
 	for i := 0; i < runs; i++ {
-		// overwrite using pseudo-random data n-1 times and
-		// use zeros in the last iteration
-		if i < runs-1 {
-			_, _ = rand.Read(buf)
-		} else {
-			buf = make([]byte, 1024)
+		if i >= runs-1 {
+			bufFn = func() []byte {
+				return make([]byte, 1024)
+			}
 		}
 		if _, err := fh.Seek(0, 0); err != nil {
 			return fmt.Errorf("failed to seek to 0,0: %w", err)
 		}
-		if _, err := fh.Write(buf); err != nil {
-			if err != io.EOF {
-				return fmt.Errorf("failed to write to file: %w", err)
+		var written int64
+		for {
+			// end of file
+			if written >= flen {
+				break
 			}
+			buf := bufFn()
+			n, err := fh.Write(buf[0:min(flen-written, int64(len(buf)))])
+			if err != nil {
+				if err != io.EOF {
+					return fmt.Errorf("failed to write to file: %w", err)
+				}
+				// end of file, should not happen
+				break
+			}
+			written += int64(n)
 		}
 		// if we fail to sync the written blocks to disk it'd be pointless
 		// do any further loops
@@ -146,4 +171,11 @@ func FileContains(path, needle string) bool {
 		}
 	}
 	return false
+}
+
+func min(a, b int64) int64 {
+	if a < b {
+		return a
+	}
+	return b
 }

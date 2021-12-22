@@ -42,6 +42,7 @@ func (r *Store) move(ctx context.Context, from, to string, delete bool) error {
 	if err := r.moveFromTo(ctx, subFrom, from, to, fromPrefix, srcIsDir, dstIsDir, delete); err != nil {
 		return err
 	}
+
 	if err := subFrom.Storage().Commit(ctx, fmt.Sprintf("Move from %s to %s", from, to)); delete && err != nil {
 		switch {
 		case errors.Is(err, store.ErrGitNotInit):
@@ -50,6 +51,7 @@ func (r *Store) move(ctx context.Context, from, to string, delete bool) error {
 			return fmt.Errorf("failed to commit changes to git (from): %w", err)
 		}
 	}
+
 	if !subFrom.Equals(subTo) {
 		if err := subTo.Storage().Commit(ctx, fmt.Sprintf("Move from %s to %s", from, to)); err != nil {
 			switch errors.Unwrap(err) {
@@ -76,6 +78,7 @@ func (r *Store) move(ctx context.Context, from, to string, delete bool) error {
 		}
 		return fmt.Errorf("failed to push change to git remote: %w", err)
 	}
+
 	if !subFrom.Equals(subTo) {
 		if err := subTo.Storage().Push(ctx, "", ""); err != nil {
 			if errors.Is(err, store.ErrGitNotInit) {
@@ -93,6 +96,7 @@ func (r *Store) move(ctx context.Context, from, to string, delete bool) error {
 			return fmt.Errorf("failed to push change to git remote: %w", err)
 		}
 	}
+
 	return nil
 }
 

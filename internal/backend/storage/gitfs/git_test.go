@@ -66,7 +66,7 @@ func TestGit(t *testing.T) {
 	})
 
 	t.Run("clone existing repo", func(t *testing.T) {
-		git, err := Clone(ctx, gitdir, gitdir2)
+		git, err := Clone(ctx, gitdir, gitdir2, "", "")
 		require.NoError(t, err)
 		require.NotNil(t, git)
 		assert.Equal(t, "git", git.Name())

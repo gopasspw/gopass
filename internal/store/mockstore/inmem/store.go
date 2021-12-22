@@ -14,7 +14,7 @@ import (
 	"golang.org/x/exp/maps"
 )
 
-// InMem is a in-memory store
+// InMem is a thread-safe in-memory store
 type InMem struct {
 	sync.Mutex
 	data map[string][]byte
@@ -23,7 +23,7 @@ type InMem struct {
 // New creates a new mock
 func New() *InMem {
 	return &InMem{
-		data: make(map[string][]byte, 10),
+		data: make(map[string][]byte, 128),
 	}
 }
 
@@ -32,10 +32,17 @@ func (m *InMem) Get(ctx context.Context, name string) ([]byte, error) {
 	m.Lock()
 	defer m.Unlock()
 
-	sec, found := m.data[name]
-	if !found {
+	if m.data == nil {
 		return nil, fmt.Errorf("entry not found")
 	}
+
+	sec, found := m.data[name]
+	if !found {
+		// not found
+		return nil, fmt.Errorf("entry not found")
+	}
+
+	// found
 	return sec, nil
 }
 

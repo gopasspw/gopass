@@ -19,6 +19,7 @@ func (r *Store) IsInitialized(ctx context.Context) (bool, error) {
 			return false, fmt.Errorf("failed to initialize stores: %w", err)
 		}
 	}
+
 	debug.Log("root store is initialized")
 	return r.store.IsInitialized(ctx), nil
 }
@@ -32,6 +33,7 @@ func (r *Store) Init(ctx context.Context, alias, path string, ids ...string) err
 	if !backend.HasStorageBackend(ctx) {
 		ctx = backend.WithStorageBackend(ctx, backend.GitFS)
 	}
+
 	sub, err := leaf.New(ctx, alias, path)
 	if err != nil {
 		return fmt.Errorf("failed to instantiate new sub store: %w", err)

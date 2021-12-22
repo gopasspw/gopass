@@ -58,7 +58,7 @@ func New(path string) (*Git, error) {
 
 // Clone clones an existing git repo and returns a new cli based git backend
 // configured for this clone repo
-func Clone(ctx context.Context, repo, path string) (*Git, error) {
+func Clone(ctx context.Context, repo, path, userName, userEmail string) (*Git, error) {
 	g := &Git{
 		fs: fs.New(path),
 	}
@@ -67,7 +67,7 @@ func Clone(ctx context.Context, repo, path string) (*Git, error) {
 	}
 
 	// initialize the local git config
-	if err := g.InitConfig(ctx, "", ""); err != nil {
+	if err := g.InitConfig(ctx, userName, userEmail); err != nil {
 		return g, fmt.Errorf("failed to configure git: %s", err)
 	}
 	out.Printf(ctx, "git configured at %s", g.fs.Path())

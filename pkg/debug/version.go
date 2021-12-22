@@ -26,5 +26,6 @@ func ModuleVersion(m string) semver.Version {
 		}
 		return sv
 	}
+	Log("no module %s found", m)
 	return semver.Version{}
 }

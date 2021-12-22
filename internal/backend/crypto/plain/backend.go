@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/gopasspw/gopass/internal/backend/crypto/gpg"
+	"github.com/gopasspw/gopass/pkg/debug"
 
 	"github.com/blang/semver/v4"
 )
@@ -108,7 +109,7 @@ func (m *Mocker) ImportPublicKey(context.Context, []byte) error {
 
 // Version returns dummy version info
 func (m *Mocker) Version(context.Context) semver.Version {
-	return semver.Version{}
+	return debug.ModuleVersion("github.com/gopasspw/gopass/internal/backend/crypto/plain")
 }
 
 // Binary always returns 'gpg'

@@ -23,7 +23,7 @@ func TestRCS(t *testing.T) {
 	assert.NoError(t, g.Cmd(ctx, "foo", "bar"))
 	assert.Error(t, g.Init(ctx, "foo", "bar"))
 	assert.NoError(t, g.InitConfig(ctx, "foo", "bar"))
-	assert.Equal(t, g.Version(ctx), semver.Version{Minor: 1})
+	assert.Equal(t, true, g.Version(ctx).EQ(semver.Version{}), "Version eq 0.0.0")
 	assert.Equal(t, "fs", g.Name())
 	assert.NoError(t, g.AddRemote(ctx, "foo", "bar"))
 	revs, err := g.Revisions(ctx, "foo")

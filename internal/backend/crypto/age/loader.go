@@ -24,8 +24,7 @@ func (l loader) New(ctx context.Context) (backend.Crypto, error) {
 	return New()
 }
 
-func (l loader) Handles(s backend.Storage) error {
-	ctx := context.TODO()
+func (l loader) Handles(ctx context.Context, s backend.Storage) error {
 	if s.Exists(ctx, OldIDFile) || s.Exists(ctx, OldKeyring) {
 		if err := migrate(ctx, s); err != nil {
 			out.Errorf(ctx, "Failed to migrate age backend: %s", err)
