@@ -38,22 +38,22 @@ parsing: true
 		t.Run("invert "+invert, func(t *testing.T) {
 			out, err = ts.run("config " + invert + " false")
 			assert.NoError(t, err)
-			assert.Equal(t, invert+": false", out)
+			assert.Equal(t, "false", out)
 
 			out, err = ts.run("config " + invert)
 			assert.NoError(t, err)
-			assert.Equal(t, invert+": false", out)
+			assert.Equal(t, "false", out)
 		})
 	}
 
 	t.Run("cliptimeout", func(t *testing.T) {
 		out, err = ts.run("config cliptimeout 120")
 		assert.NoError(t, err)
-		assert.Equal(t, "cliptimeout: 120", out)
+		assert.Equal(t, "120", out)
 
 		out, err = ts.run("config cliptimeout")
 		assert.NoError(t, err)
-		assert.Equal(t, "cliptimeout: 120", out)
+		assert.Equal(t, "120", out)
 	})
 }
 

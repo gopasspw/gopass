@@ -115,13 +115,15 @@ func (s *Store) Exists(ctx context.Context, name string) bool {
 // directory separator are normalized using `/`
 func (s *Store) List(ctx context.Context, prefix string) ([]string, error) {
 	prefix = strings.TrimPrefix(prefix, "/")
-	debug.Log("Listing %s", prefix)
+	debug.Log("Listing %s/%s", s.path, prefix)
 	files := make([]string, 0, 100)
 	if err := filepath.Walk(s.path, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
-		if info.IsDir() && strings.HasPrefix(info.Name(), ".") && path != s.path {
+		relPath := strings.TrimPrefix(path, s.path+string(filepath.Separator)) + string(filepath.Separator)
+		if info.IsDir() && strings.HasPrefix(info.Name(), ".") && path != s.path && !strings.HasPrefix(prefix, relPath) {
+			debug.Log("skipping dot dir (relPath: %s, prefix: %s)", relPath, prefix)
 			return filepath.SkipDir
 		}
 		if info.IsDir() {
