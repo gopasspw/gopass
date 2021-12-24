@@ -29,3 +29,12 @@ func TestDecrypt(t *testing.T) {
 	_, err := g.Decrypt(ctx, []byte("foo"))
 	assert.NoError(t, err)
 }
+
+func TestGenerateIdentity(t *testing.T) {
+	ctx := context.Background()
+
+	g := &GPG{}
+	g.binary = "true"
+
+	assert.NoError(t, g.GenerateIdentity(ctx, "foo", "foo@bar.com", "bar"))
+}

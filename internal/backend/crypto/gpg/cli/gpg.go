@@ -3,9 +3,11 @@ package cli
 
 import (
 	"context"
+	"fmt"
 	"os"
 
 	"github.com/gopasspw/gopass/internal/backend/crypto/gpg"
+	"github.com/gopasspw/gopass/internal/backend/crypto/gpg/gpgconf"
 	"github.com/gopasspw/gopass/pkg/debug"
 	lru "github.com/hashicorp/golang-lru"
 )
@@ -41,42 +43,39 @@ type Config struct {
 func New(ctx context.Context, cfg Config) (*GPG, error) {
 	// ensure created files don't have group or world perms set
 	// this setting should be inherited by sub-processes
-	umask(cfg.Umask)
+	gpgconf.Umask(cfg.Umask)
 
 	// make sure GPG_TTY is set (if possible)
 	if gt := os.Getenv("GPG_TTY"); gt == "" {
-		if t := tty(); t != "" {
+		if t := gpgconf.TTY(); t != "" {
 			_ = os.Setenv("GPG_TTY", t)
 		}
 	}
 
-	gcfg, err := gpgConfig()
+	gcfg, err := gpgconf.Config()
 	if err != nil {
 		debug.Log("failed to read GPG config: %s", err)
 	}
-	_, throwKids := gcfg["throw-keyids"]
+	_, hasThrowKids := gcfg["throw-keyids"]
 
 	g := &GPG{
 		binary:    "gpg",
 		args:      append(defaultArgs, cfg.Args...),
-		throwKids: throwKids,
+		throwKids: hasThrowKids,
 	}
 
-	debug.Log("initializing LRU cache")
 	cache, err := lru.New2Q(1024)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to initialize the LRU cache: %w", err)
 	}
 	g.listCache = cache
-	debug.Log("LRU cache initialized")
 
-	debug.Log("detecting binary")
-	bin, err := Binary(ctx, cfg.Binary)
+	bin, err := gpgconf.Binary(ctx, cfg.Binary)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to detect binary: %w", err)
 	}
 	g.binary = bin
-	debug.Log("binary detected")
+	debug.Log("binary detected as %s", bin)
 
 	return g, nil
 }
@@ -105,4 +104,12 @@ func (g *GPG) IDFile() string {
 // with many GPG setups.
 func (g *GPG) Concurrency() int {
 	return 1
+}
+
+// Binary returns the GPG binary location
+func (g *GPG) Binary() string {
+	if g == nil {
+		return ""
+	}
+	return g.binary
 }

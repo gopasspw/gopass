@@ -1,7 +1,7 @@
 //go:build !linux && !windows
 // +build !linux,!windows
 
-package cli
+package gpgconf
 
 import (
 	"os"
@@ -9,7 +9,7 @@ import (
 	"syscall"
 )
 
-func tty() string {
+func TTY() string {
 	cmd := exec.Command("/usr/bin/tty")
 	cmd.Stdin = os.Stdin
 	out, err := cmd.Output()
@@ -19,6 +19,6 @@ func tty() string {
 	return string(out)
 }
 
-func umask(mask int) int {
+func Umask(mask int) int {
 	return syscall.Umask(mask)
 }

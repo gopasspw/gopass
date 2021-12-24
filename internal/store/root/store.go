@@ -3,6 +3,8 @@ package root
 import (
 	"context"
 	"fmt"
+	"math"
+	"runtime"
 	"strings"
 
 	"github.com/gopasspw/gopass/internal/backend"
@@ -81,4 +83,17 @@ func (r *Store) Storage(ctx context.Context, name string) backend.Storage {
 		return nil
 	}
 	return sub.Storage()
+}
+
+func (r *Store) Concurrency() int {
+	min := math.MaxInt
+	for _, sub := range r.mounts {
+		if sub.Concurrency() < min {
+			min = sub.Concurrency()
+		}
+	}
+	if nc := runtime.NumCPU(); nc < min {
+		min = nc
+	}
+	return min
 }

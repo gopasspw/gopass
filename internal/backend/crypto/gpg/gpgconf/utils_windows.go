@@ -1,12 +1,12 @@
 //go:build windows
 // +build windows
 
-package cli
+package gpgconf
 
-func tty() string {
+func TTY() string {
 	return ""
 }
 
-func umask(mask int) int {
+func Umask(mask int) int {
 	return -1
 }
