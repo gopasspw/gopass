@@ -5,11 +5,12 @@ package clipboard
 
 import (
 	"context"
-	"crypto/sha256"
-	"fmt"
 	"os"
 	"os/exec"
 	"strconv"
+
+	"github.com/gopasspw/gopass/internal/pwschemes/argon2id"
+	"github.com/gopasspw/gopass/pkg/ctxutil"
 )
 
 // clear will spwan a copy of gopass that waits in a detached background
@@ -17,10 +18,16 @@ import (
 // of the clipboard and erase it if it still contains the data gopass copied
 // to it.
 func clear(ctx context.Context, content []byte, timeout int) error {
-	hash := fmt.Sprintf("%x", sha256.Sum256(content))
+	hash, err := argon2id.Generate(string(content), 0)
+	if err != nil {
+		return err
+	}
 
 	cmd := exec.CommandContext(ctx, os.Args[0], "unclip", "--timeout", strconv.Itoa(timeout))
 	cmd.Env = append(os.Environ(), "GOPASS_UNCLIP_CHECKSUM="+hash)
+	if !ctxutil.IsNotifications(ctx) {
+		cmd.Env = append(cmd.Env, "GOPASS_NO_NOTIFY=true")
+	}
 	return cmd.Start()
 }
 

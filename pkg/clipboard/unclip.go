@@ -2,11 +2,13 @@ package clipboard
 
 import (
 	"context"
-	"crypto/sha256"
 	"fmt"
 
-	"github.com/atotto/clipboard"
 	"github.com/gopasspw/gopass/internal/notify"
+	"github.com/gopasspw/gopass/internal/pwschemes/argon2id"
+	"github.com/gopasspw/gopass/pkg/debug"
+
+	"github.com/atotto/clipboard"
 )
 
 // Clear will attempt to erase the clipboard
@@ -20,8 +22,12 @@ func Clear(ctx context.Context, checksum string, force bool) error {
 		return fmt.Errorf("failed to read clipboard: %w", err)
 	}
 
-	hash := fmt.Sprintf("%x", sha256.Sum256([]byte(cur)))
-	if hash != checksum && !force {
+	match, err := argon2id.Validate(cur, checksum)
+	if err != nil {
+		debug.Log("failed to validate checksum %s: %s", checksum, err)
+		return nil
+	}
+	if !match && !force {
 		return nil
 	}
 
@@ -39,5 +45,6 @@ func Clear(ctx context.Context, checksum string, force bool) error {
 		return fmt.Errorf("failed to send unclip notification: %w", err)
 	}
 
+	debug.Log("clipboard cleared (%s)", checksum)
 	return nil
 }

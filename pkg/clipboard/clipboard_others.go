@@ -6,13 +6,13 @@ package clipboard
 import (
 	"bytes"
 	"context"
-	"crypto/sha256"
 	"fmt"
 	"os"
 	"os/exec"
 	"strconv"
 	"syscall"
 
+	"github.com/gopasspw/gopass/internal/pwschemes/argon2id"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 )
 
@@ -21,7 +21,10 @@ import (
 // of the clipboard and erase it if it still contains the data gopass copied
 // to it.
 func clear(ctx context.Context, content []byte, timeout int) error {
-	hash := fmt.Sprintf("%x", sha256.Sum256(content))
+	hash, err := argon2id.Generate(string(content), 0)
+	if err != nil {
+		return err
+	}
 
 	// kill any pending unclip processes
 	_ = killPrecedessors()
