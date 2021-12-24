@@ -37,6 +37,12 @@ func (s *Action) Config(c *cli.Context) error {
 func (s *Action) printConfigValues(ctx context.Context, needles ...string) {
 	m := s.cfg.ConfigMap()
 	for _, k := range filterMap(m, needles) {
+		// if only a single key is requested, print only the value
+		// useful for scriping, e.g. `$ cd $(gopass config path)`
+		if len(needles) == 1 {
+			out.Printf(ctx, "%s", m[k])
+			continue
+		}
 		out.Printf(ctx, "%s: %s", k, m[k])
 	}
 	for alias, path := range s.cfg.Mounts {
