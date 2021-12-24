@@ -42,8 +42,13 @@ type secretGetter interface {
 
 type validator func(string, gopass.Secret) error
 
-// Batch runs a password strength audit on multiple secrets
-func Batch(ctx context.Context, secrets []string, secStore secretGetter) error {
+var (
+	// DefaultExpiration is the default expiration time for secrets.
+	DefaultExpiration = time.Hour * 24 * 365
+)
+
+// Batch runs a password strength audit on multiple secrets. Expiration is in days.
+func Batch(ctx context.Context, secrets []string, secStore secretGetter, expiration int) error {
 	out.Printf(ctx, "Checking %d secrets. This may take some time ...\n", len(secrets))
 
 	// Secrets that still need auditing.
@@ -81,17 +86,24 @@ func Batch(ctx context.Context, secrets []string, secStore secretGetter) error {
 			return nil
 		},
 	}
+	// if expiration is not zero only check for expired secrets
+	if expiration > 0 {
+		validators = nil
+	}
 
 	// It would be nice to parallelize this operation and limit the maxJobs to
 	// runtime.NumCPU(), but sadly this causes various problems with multiple
 	// gnupg jobs running in parallel. See the entire discussion here:
 	//
 	// https://github.com/gopasspw/gopass/pull/245
+	//
+	// We can't even have different backends determine their own value for
+	// maxJobs because we would need to change the interface for that.
 
 	maxJobs := 1 // do not change
 	done := make(chan struct{}, maxJobs)
 	for jobs := 0; jobs < maxJobs; jobs++ {
-		go audit(ctx, secStore, validators, pending, checked, done)
+		go audit(ctx, secStore, validators, time.Duration(expiration)*24*time.Hour, pending, checked, done)
 	}
 
 	go func() {
@@ -137,7 +149,10 @@ func Batch(ctx context.Context, secrets []string, secStore secretGetter) error {
 	return auditPrintResults(ctx, duplicates, messages, errors)
 }
 
-func audit(ctx context.Context, secStore secretGetter, validators []validator, secrets <-chan string, checked chan<- auditedSecret, done chan struct{}) {
+func audit(ctx context.Context, secStore secretGetter, validators []validator, expiry time.Duration, secrets <-chan string, checked chan<- auditedSecret, done chan struct{}) {
+	if expiry < time.Hour {
+		expiry = DefaultExpiration
+	}
 	for secret := range secrets {
 		as := auditedSecret{
 			name: secret,
@@ -152,6 +167,22 @@ func audit(ctx context.Context, secStore secretGetter, validators []validator, s
 		}
 
 		debug.Log("Checking %s", secret)
+
+		// handle old passwords
+		revs, err := secStore.ListRevisions(ctx, secret)
+		if err != nil {
+			as.messages = append(as.messages, err.Error())
+		} else {
+			if len(revs) > 0 && time.Since(revs[0].Date) > expiry {
+				as.messages = append(as.messages, fmt.Sprintf("Password too old (%dd)", int(expiry.Hours()/24)))
+			}
+		}
+
+		if len(validators) < 1 {
+			checked <- as
+			continue
+		}
+
 		sec, err := secStore.Get(ctx, secret)
 		if err != nil {
 			debug.Log("Failed to check %s: %s", secret, err)
@@ -163,7 +194,6 @@ func audit(ctx context.Context, secStore secretGetter, validators []validator, s
 			checked <- as
 			continue
 		}
-
 		as.content = sec.Password()
 
 		// do not check empty secrets
@@ -179,16 +209,6 @@ func audit(ctx context.Context, secStore secretGetter, validators []validator, s
 			}
 			checked <- as
 			continue
-		}
-
-		// handle old passwords
-		revs, err := secStore.ListRevisions(ctx, secret)
-		if err != nil {
-			as.messages = append(as.messages, err.Error())
-		} else {
-			if len(revs) > 0 && time.Since(revs[0].Date) > 90*24*time.Hour {
-				as.messages = append(as.messages, "Password too old (90d)")
-			}
 		}
 
 		// record every password for possible duplicates
