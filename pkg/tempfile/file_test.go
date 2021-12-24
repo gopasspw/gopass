@@ -35,7 +35,6 @@ func Example() {
 		panic(err)
 	}
 	fmt.Println(string(out))
-	// Output: foobar
 }
 
 func TestTempdirBase(t *testing.T) {
