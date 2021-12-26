@@ -42,7 +42,7 @@ func ShowFlags() []cli.Flag {
 		},
 		&cli.StringFlag{
 			Name:  "revision",
-			Usage: "Show a past revision. Does NOT support RCS specific shortcuts. Use exact revision or -N to select the Nth oldest revision of this entry.",
+			Usage: "Show a past revision. Does NOT support RCS specific shortcuts. Use exact revision or -<N> to select the Nth oldest revision of this entry.",
 		},
 		&cli.BoolFlag{
 			Name:    "noparsing",
@@ -97,7 +97,7 @@ func (s *Action) GetCommands() []*cli.Command {
 		},
 		{
 			Name:      "cat",
-			Usage:     "Print content of a secret to stdout, or insert from stdin",
+			Usage:     "Decode and print content of a binary secret to stdout, or encode and insert from stdin",
 			ArgsUsage: "[secret]",
 			Description: "" +
 				"This command is similar to the way cat works on the command line. " +
