@@ -1,5 +1,5 @@
 
-.TH GOPASS "1" "November 2021" "gopass (github.com/gopasspw/gopass) 1.13.0" "User Commands"
+.TH GOPASS "1" "December 2021" "gopass (github.com/gopasspw/gopass) 1.13.0" "User Commands"
 .SH NAME
 gopass - The standard Unix password manager
 .SH SYNOPSIS
@@ -28,7 +28,7 @@ Display only the password. Takes precedence over all other flags.
 Print the password as a QR Code
 .TP
 \fB\-\-revision\fR,
-Show a past revision. Does NOT support RCS specific shortcuts. Use exact revision or -N to select the Nth oldest revision of this entry.
+Show a past revision. Does NOT support RCS specific shortcuts. Use exact revision or -<N> to select the Nth oldest revision of this entry.
 .TP
 \fB\-\-unsafe\fR,
 \fB\-\-u\fR,
@@ -50,7 +50,7 @@ Decrypt all secrets and scan for weak or leaked passwords
 
 This command decrypts all secrets and checks for common flaws and (optionally) against a list of previously leaked passwords.
 .SS cat
-Print content of a secret to stdout, or insert from stdin
+Decode and print content of a binary secret to stdout, or encode and insert from stdin
 
 This command is similar to the way cat works on the command line. It can either be used to retrieve the decoded content of a secret similar to 'cat file' or vice versa to encode the content from STDIN to a secret.
 .SS clone
@@ -457,7 +457,7 @@ Display only the password. Takes precedence over all other flags.
 Print the password as a QR Code
 .TP
 \fB\-\-revision\fR,
-Show a past revision. Does NOT support RCS specific shortcuts. Use exact revision or -N to select the Nth oldest revision of this entry.
+Show a past revision. Does NOT support RCS specific shortcuts. Use exact revision or -<N> to select the Nth oldest revision of this entry.
 .TP
 \fB\-\-unsafe\fR,
 \fB\-\-u\fR,

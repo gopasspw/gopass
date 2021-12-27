@@ -26,7 +26,7 @@ Flag | Aliases | Description
 `--qr` | | Encode the password field as a QR code and print it. Note: When combining with `-c`/`-C` the unencoded password is copied. Not the QR code.
 `--unsafe` | `-u` | Display unsafe content (e.g. the password) even when the `safecontent` option is set. No-op when `safecontent` is `false`.
 `--password` | `-o` | Display only the password. For use in scripts. Takes precedence over other flags.
-`--revision` | `-r` | Display a specific revision of the entry. Use an exact version identifier from `gopass history` or the special `-N` syntax. Does not work with native (e.g. git) refs.
+`--revision` | `-r` | Display a specific revision of the entry. Use an exact version identifier from `gopass history` or the special `-<N>` syntax. Does not work with native (e.g. git) refs.
 `--noparsing` | `-n` | Do not parse the content, disable YAML and Key-Value functions.
 
 ## Details
