@@ -28,7 +28,7 @@ OK := $(shell tput setaf 6; echo ' [OK]'; tput sgr0;)
 all: sysinfo build
 build: $(GOPASS_OUTPUT)
 completion: $(BASH_COMPLETION_OUTPUT) $(FISH_COMPLETION_OUTPUT) $(ZSH_COMPLETION_OUTPUT)
-travis: sysinfo crosscompile build fulltest codequality completion
+travis: sysinfo crosscompile build fulltest completion
 travis-osx: sysinfo build test completion
 travis-windows: sysinfo build test-win completion
 
@@ -147,35 +147,12 @@ codequality:
 	@$(GO) vet ./...
 	@printf '%s\n' '$(OK)'
 
-	@echo -n "     CYCLO     "
-	@which gocyclo > /dev/null; if [ $$? -ne 0 ]; then \
-		$(GO) install github.com/fzipp/gocyclo/cmd/gocyclo@latest; \
-	fi
-	@$(foreach gofile, $(GOFILES_NOVENDOR),\
-			gocyclo -over 22 $(gofile) || exit 0;)
-	@printf '%s\n' '$(OK)'
-
 	@echo -n "     LINT      "
 	@which golint > /dev/null; if [ $$? -ne 0 ]; then \
 		$(GO) install golang.org/x/lint/golint@latest; \
 	fi
 	@$(foreach pkg, $(PKGS),\
 			golint -set_exit_status $(pkg) || exit 0;)
-	@printf '%s\n' '$(OK)'
-
-	@echo -n "     INEFF     "
-	@which ineffassign > /dev/null; if [ $$? -ne 0 ]; then \
-		$(GO) install github.com/gordonklaus/ineffassign@latest; \
-	fi
-	@ineffassign . || exit 0
-	@printf '%s\n' '$(OK)'
-
-	@echo -n "     SPELL     "
-	@which misspell > /dev/null; if [ $$? -ne 0 ]; then \
-		$(GO) install github.com/client9/misspell/cmd/misspell@latest; \
-	fi
-	@$(foreach gofile, $(GOFILES_NOVENDOR),\
-			misspell --error $(gofile) || exit 1;)
 	@printf '%s\n' '$(OK)'
 
 	@echo -n "     STATICCHECK "
@@ -190,6 +167,13 @@ codequality:
 		$(GO) install mvdan.cc/unparam@latest; \
 	fi
 	@unparam -exported=false $(PKGS) || exit 0
+	@printf '%s\n' '$(OK)'
+
+	@echo -n "     GOLANGCI-LINT "
+	@which golangci-lint > /dev/null; if [ $$? -ne 0 ]; then \
+		$(GO) install github.com/golangci/golangci-lint/cmd/golangci-lint@latest; \
+	fi
+	@golangci-lint run || exit 0
 	@printf '%s\n' '$(OK)'
 
 gen:
