@@ -187,3 +187,9 @@ func (s *Store) Storage() backend.Storage {
 func (s *Store) Valid() bool {
 	return s != nil
 }
+
+// Concurrency returns the number of concurrent operations allowed
+// by this stores crypto implementation (e.g. usually 1 for GPG)
+func (s *Store) Concurrency() int {
+	return s.Crypto().Concurrency()
+}

@@ -38,6 +38,7 @@ type auditedSecret struct {
 type secretGetter interface {
 	Get(context.Context, string) (gopass.Secret, error)
 	ListRevisions(context.Context, string) ([]backend.Revision, error)
+	Concurrency() int
 }
 
 type validator func(string, gopass.Secret) error
@@ -88,7 +89,7 @@ func Batch(ctx context.Context, secrets []string, secStore secretGetter) error {
 	//
 	// https://github.com/gopasspw/gopass/pull/245
 
-	maxJobs := 1 // do not change
+	maxJobs := secStore.Concurrency()
 	done := make(chan struct{}, maxJobs)
 	for jobs := 0; jobs < maxJobs; jobs++ {
 		go audit(ctx, secStore, validators, pending, checked, done)

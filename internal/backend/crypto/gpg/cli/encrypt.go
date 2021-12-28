@@ -36,6 +36,7 @@ func (g *GPG) Encrypt(ctx context.Context, plaintext []byte, recipients []string
 
 	cmd := exec.CommandContext(ctx, g.binary, args...)
 	cmd.Stdin = bytes.NewReader(plaintext)
+	// the encrypted blob is written to stdout
 	cmd.Stdout = buf
 	cmd.Stderr = os.Stderr
 

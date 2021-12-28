@@ -1,7 +1,7 @@
 //go:build windows
 // +build windows
 
-package cli
+package gpgconf
 
 import (
 	"context"
@@ -26,7 +26,7 @@ func detectBinary(bin string) (string, error) {
 		if p, err := exec.LookPath(b); err == nil {
 			gb := gpgBin{
 				path: p,
-				ver:  version(context.TODO(), p),
+				ver:  Version(context.TODO(), p),
 			}
 			debug.Log("Found %q at %q (%s)", b, p, gb.ver.String())
 			bv = append(bv, gb)

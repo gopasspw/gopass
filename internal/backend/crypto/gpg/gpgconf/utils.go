@@ -1,4 +1,4 @@
-package cli
+package gpgconf
 
 import (
 	"bufio"
@@ -8,17 +8,14 @@ import (
 	"strings"
 )
 
-func splitPacket(in string) map[string]string {
-	m := make(map[string]string, 3)
-	p := strings.Split(in, ":")
-	if len(p) < 3 {
-		return m
+// GPGOpts parses extra GPG options from the environment
+func GPGOpts() []string {
+	for _, en := range []string{"GOPASS_GPG_OPTS", "PASSWORD_STORE_GPG_OPTS"} {
+		if opts := os.Getenv(en); opts != "" {
+			return strings.Fields(opts)
+		}
 	}
-	p = strings.Split(strings.TrimSpace(p[2]), " ")
-	for i := 0; i+1 < len(p); i += 2 {
-		m[p[i]] = strings.Trim(p[i+1], ",")
-	}
-	return m
+	return nil
 }
 
 // gpgConfigLoc returns the location of the GPG config file
@@ -31,7 +28,7 @@ func gpgConfigLoc() string {
 	return filepath.Join(uhd, ".gnupg", "gpg.conf")
 }
 
-func gpgConfig() (map[string]string, error) {
+func Config() (map[string]string, error) {
 	fh, err := os.Open(gpgConfigLoc())
 	if err != nil {
 		return nil, err
@@ -58,14 +55,4 @@ func parseGpgConfig(fh io.Reader) (map[string]string, error) {
 	}
 
 	return vals, nil
-}
-
-// GPGOpts parses extra GPG options from the environment
-func GPGOpts() []string {
-	for _, en := range []string{"GOPASS_GPG_OPTS", "PASSWORD_STORE_GPG_OPTS"} {
-		if opts := os.Getenv(en); opts != "" {
-			return strings.Fields(opts)
-		}
-	}
-	return nil
 }

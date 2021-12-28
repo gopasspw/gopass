@@ -1,7 +1,7 @@
 //go:build linux
 // +build linux
 
-package cli
+package gpgconf
 
 import (
 	"testing"
@@ -11,5 +11,5 @@ import (
 
 func TestTTY(t *testing.T) {
 	fd0 = "/tmp/foobar"
-	assert.Equal(t, "", tty())
+	assert.Equal(t, "", TTY())
 }

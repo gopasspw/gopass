@@ -1,7 +1,7 @@
 //go:build linux
 // +build linux
 
-package cli
+package gpgconf
 
 import (
 	"os"
@@ -13,7 +13,7 @@ var (
 )
 
 // see https://www.gnupg.org/documentation/manuals/gnupg/Invoking-GPG_002dAGENT.html
-func tty() string {
+func TTY() string {
 	dest, err := os.Readlink(fd0)
 	if err != nil {
 		return ""
@@ -21,6 +21,6 @@ func tty() string {
 	return dest
 }
 
-func umask(mask int) int {
+func Umask(mask int) int {
 	return syscall.Umask(mask)
 }
