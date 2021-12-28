@@ -16,6 +16,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/termio"
 )
 
+// nolint:ifshort
 // reencrypt will re-encrypt all entries for the current recipients
 func (s *Store) reencrypt(ctx context.Context) error {
 	entries, err := s.List(ctx, "")

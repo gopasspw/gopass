@@ -37,7 +37,7 @@ func (s *Action) Generate(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	ctx = WithClip(ctx, c.Bool("clip"))
 	force := c.Bool("force")
-	edit := c.Bool("edit")
+	edit := c.Bool("edit") // nolint:ifshort
 
 	args, kvps := parseArgs(c)
 	name := args.Get(0)
@@ -348,7 +348,7 @@ func (s *Action) CompleteGenerate(c *cli.Context) {
 	if c.Args().Len() < 1 {
 		return
 	}
-	needle := c.Args().Get(0)
+	needle := c.Args().Get(0) // nolint:ifshort
 
 	_, err := s.Store.IsInitialized(ctx) // important to make sure the structs are not nil
 	if err != nil {

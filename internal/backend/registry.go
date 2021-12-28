@@ -10,7 +10,7 @@ import (
 
 var (
 	// CryptoRegistry is the global registry of available crypto backends
-	CryptoRegistry  = NewRegistry[CryptoBackend, CryptoLoader]()
+	CryptoRegistry = NewRegistry[CryptoBackend, CryptoLoader]()
 	// StorageRegistry is the global registry of available storage backends
 	StorageRegistry = NewRegistry[StorageBackend, StorageLoader]()
 
@@ -44,7 +44,7 @@ type StorageLoader interface {
 // NewRegistry returns a new registry
 func NewRegistry[K comparable, V Prioritized]() *Registry[K, V] {
 	return &Registry[K, V]{
-		backends: map[K]V{},
+		backends:      map[K]V{},
 		nameToBackend: map[string]K{},
 		backendToName: map[K]string{},
 	}
@@ -52,7 +52,7 @@ func NewRegistry[K comparable, V Prioritized]() *Registry[K, V] {
 
 // Registry is a registry of backends
 type Registry[K comparable, V Prioritized] struct {
-	backends map[K]V
+	backends      map[K]V
 	nameToBackend map[string]K
 	backendToName map[K]string
 }
@@ -64,10 +64,7 @@ func (r *Registry[K, V]) Register(backend K, name string, loader V) {
 }
 
 func (r *Registry[K, V]) Backends() []string {
-	var names []string
-	for name := range r.nameToBackend {
-		names = append(names, name)
-	}
+	names := maps.Keys(r.nameToBackend)
 	sort.Strings(names)
 	return names
 }

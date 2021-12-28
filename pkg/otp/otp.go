@@ -50,10 +50,16 @@ func WriteQRFile(otp twofactor.OTP, label, file string) error {
 	var err error
 	switch otp.Type() {
 	case twofactor.OATH_HOTP:
-		hotp := otp.(*twofactor.HOTP)
+		hotp, ok := otp.(*twofactor.HOTP)
+		if !ok {
+			return fmt.Errorf("Type assertion failed on twofactor.HOTP")
+		}
 		qr, err = hotp.QR(label)
 	case twofactor.OATH_TOTP:
-		totp := otp.(*twofactor.TOTP)
+		totp, ok := otp.(*twofactor.TOTP)
+		if !ok {
+			return fmt.Errorf("Type assertion failed on twofactor.TOTP")
+		}
 		qr, err = totp.QR(label)
 	default:
 		err = fmt.Errorf("QR codes can only be generated for OATH OTPs")

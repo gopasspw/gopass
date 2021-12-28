@@ -131,7 +131,7 @@ func (a *Age) cachedIDRecpipients() []age.Recipient {
 		debug.Log("failed to get recipients from cache: %s", err)
 		return nil
 	}
-	var rs []age.Recipient
+	rs := make([]age.Recipient, 0, len(recps))
 	for _, recp := range recps {
 		r, err := age.ParseX25519Recipient(recp)
 		if err != nil {
@@ -235,7 +235,7 @@ func idMap(ids []age.Identity) map[string]age.Identity {
 }
 
 func recipientsToBech32(recps []age.Recipient) []string {
-	var r []string
+	r := make([]string, 0, len(recps))
 	for _, recp := range recps {
 		r = append(r, fmt.Sprintf("%s", recp))
 	}
@@ -243,7 +243,7 @@ func recipientsToBech32(recps []age.Recipient) []string {
 }
 
 func identitiesToString(ids []age.Identity) []string {
-	var r []string
+	r := make([]string, 0, len(ids))
 	for _, id := range ids {
 		r = append(r, fmt.Sprintf("%s", id))
 	}
