@@ -25,6 +25,7 @@ linters:
         - nakedret
         - nolintlint
         - prealloc
+        - predeclared
     ## These are working but disabled for now
           ##  - dogsled # two occurences we cannot really correct
           ##  - dupl # some dups in tests
@@ -32,25 +33,12 @@ linters:
           ##  - goconst # annoying?
           ##  - godot # annoying?
           ##  - godox # we have a few todo...
-          ##  - paralleltest # lots of work to pass
           ##  - nestif # some work to refactor
+          ##  - paralleltest # lots of work to pass
           ##  - revive # currently a bit buggy with Go 1.18 but works mostly
-    ## These are untested yet
-      #    - predeclared
-      #    - rowserrcheck
-      #    - staticcheck
-      #    - structcheck
-      #    - stylecheck
-      #    - tagliatelle
-      #    - testpackage
-      #    - thelper
-      #    - tparallel
-      #    - typecheck
-      #    - unconvert
-      #    - varcheck
-      #    - wastedassign
-      #    - wrapcheck
-      #
+          ##  - tagliatelle # requires some refactoring
+          ##  - testpackage # complains for a lot of packages
+
 ## To enable once they work with Go 1.18:
 ###  - deadcode
 ###  - depguard
@@ -67,8 +55,19 @@ linters:
 ###  - importas
 ###  - makezero
 ###  - nilerr
+###  - rowserrcheck
+###  - staticcheck
+###  - structcheck
+###  - stylecheck
+###  - thelper
+###  - tparallel
+###  - typecheck
+###  - unconvert
 ###  - unparam
 ###  - unused
+###  - varcheck
+###  - wastedassign
+###  - wrapcheck
 
 issues:
   exclude-use-default: false # disable filtering of defaults for better zero-issue policy
