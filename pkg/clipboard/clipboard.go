@@ -28,7 +28,7 @@ func CopyTo(ctx context.Context, name string, content []byte, timeout int) error
 		return nil
 	}
 
-	if err := clipboard.WriteAll(string(content)); err != nil {
+	if err := copyToClipboard(ctx, content); err != nil {
 		_ = notify.Notify(ctx, "gopass - clipboard", "failed to write to clipboard")
 		return fmt.Errorf("failed to write to clipboard: %w", err)
 	}
