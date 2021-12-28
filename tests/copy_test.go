@@ -52,9 +52,9 @@ func TestCopy(t *testing.T) {
 		orig, err := ts.run("show -f foo/bar")
 		assert.NoError(t, err)
 
-		copy, err := ts.run("show -f foo/baz")
+		cp, err := ts.run("show -f foo/baz")
 		assert.NoError(t, err)
 
-		assert.Equal(t, orig, copy)
+		assert.Equal(t, orig, cp)
 	})
 }
