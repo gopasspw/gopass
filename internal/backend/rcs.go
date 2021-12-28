@@ -8,7 +8,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/debug"
 )
 
-// rcs is a revision control backend
+// rcs is a revision control backend.
 type rcs interface {
 	Add(ctx context.Context, args ...string) error
 	Commit(ctx context.Context, msg string) error
@@ -26,7 +26,7 @@ type rcs interface {
 	Compact(ctx context.Context) error
 }
 
-// Revision is a SCM revision
+// Revision is a SCM revision.
 type Revision struct {
 	Hash        string
 	AuthorName  string
@@ -36,7 +36,7 @@ type Revision struct {
 	Body        string
 }
 
-// Revisions implements the sort interface
+// Revisions implements the sort interface.
 type Revisions []Revision
 
 func (r Revisions) Len() int {

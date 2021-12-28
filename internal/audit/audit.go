@@ -28,10 +28,10 @@ type auditedSecret struct {
 	// the secret's content as a string. Needed for checking for duplicates.
 	content string
 
-	// message to the user about some flaw in the secret
+	// message to the user about some flaw in the secret.
 	messages []string
 
-	// real error that something in the pipeline went wrong
+	// real error that something in the pipeline went wrong.
 	err error
 }
 
@@ -158,7 +158,7 @@ func audit(ctx context.Context, secStore secretGetter, validators []validator, e
 		as := auditedSecret{
 			name: secret,
 		}
-		// check for context cancelation
+		// check for context cancelation.
 		select {
 		case <-ctx.Done():
 			as.err = errors.New("user aborted")
@@ -191,19 +191,19 @@ func audit(ctx context.Context, secStore secretGetter, validators []validator, e
 			if sec != nil {
 				as.content = sec.Password()
 			}
-			// failed to properly retrieve the secret
+			// failed to properly retrieve the secret.
 			checked <- as
 			continue
 		}
 		as.content = sec.Password()
 
-		// do not check empty secrets
+		// do not check empty secrets.
 		if as.content == "" {
 			checked <- as
 			continue
 		}
 
-		// handle password validation errors
+		// handle password validation errors.
 		if errs := allValid(validators, secret, sec); len(errs) > 0 {
 			for _, e := range errs {
 				as.messages = append(as.messages, e.Error())
@@ -242,7 +242,7 @@ func printAuditResults(m map[string][]string, format string, color func(format s
 	return b
 }
 
-// Single runs a password strength audit on a single password
+// Single runs a password strength audit on a single password.
 func Single(ctx context.Context, password string) {
 	validator := crunchy.NewValidator()
 	if err := validator.Check(password); err != nil {

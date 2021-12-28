@@ -9,7 +9,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/debug"
 )
 
-// GenerateIdentity will create a new GPG keypair in batch mode
+// GenerateIdentity will create a new GPG keypair in batch mode.
 func (g *GPG) GenerateIdentity(ctx context.Context, name, email, passphrase string) error {
 	buf := &bytes.Buffer{}
 	// https://git.gnupg.org/cgi-bin/gitweb.cgi?p=gnupg.git;a=blob;f=doc/DETAILS;h=de0f21ccba60c3037c2a155156202df1cd098507;hb=refs/heads/STABLE-BRANCH-1-4#l716

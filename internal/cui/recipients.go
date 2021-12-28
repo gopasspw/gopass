@@ -15,11 +15,11 @@ import (
 )
 
 var (
-	// Stdin is exported for tests
+	// Stdin is exported for tests.
 	Stdin io.Reader = os.Stdin
-	// Stdout is exported for tests
+	// Stdout is exported for tests.
 	Stdout io.Writer = os.Stdout
-	// Stderr is exported for tests
+	// Stderr is exported for tests.
 	Stderr io.Writer = os.Stderr
 )
 
@@ -27,7 +27,7 @@ const (
 	maxTries = 42
 )
 
-// AskForPrivateKey prompts the user to select from a list of private keys
+// AskForPrivateKey prompts the user to select from a list of private keys.
 func AskForPrivateKey(ctx context.Context, crypto backend.Crypto, prompt string) (string, error) {
 	if !ctxutil.IsInteractive(ctx) {
 		return "", fmt.Errorf("can not select private key without terminal")
@@ -83,6 +83,7 @@ func AskForPrivateKey(ctx context.Context, crypto backend.Crypto, prompt string)
 // the user for selecting one identity whose name and email address will be used as
 // git config user.name and git config user.email, respectively.
 // On error or no selection, name and email will be empty.
+//
 // If s.isTerm is false (i.e., the user cannot be prompted), however,
 // the first identity's name/email pair found is returned.
 func AskForGitConfigUser(ctx context.Context, crypto backend.Crypto) (string, string, error) {
@@ -144,7 +145,7 @@ func sorted(s []string) []string {
 	return s
 }
 
-// AskForStore shows a store / mount point selection
+// AskForStore shows a store / mount point selection.
 func AskForStore(ctx context.Context, s mountPointer) string {
 	if !ctxutil.IsInteractive(ctx) {
 		return ""

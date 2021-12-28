@@ -13,11 +13,11 @@ import (
 )
 
 var (
-	// Stderr is exported for tests
+	// Stderr is exported for tests.
 	Stderr io.Writer = os.Stderr
-	// Stdin is exported for tests
+	// Stdin is exported for tests.
 	Stdin io.Reader = os.Stdin
-	// ErrAborted is returned if the user aborts an action
+	// ErrAborted is returned if the user aborts an action.
 	ErrAborted = fmt.Errorf("user aborted")
 )
 
@@ -26,7 +26,7 @@ const (
 )
 
 // AskForString asks for a string once, using the default if the
-// answer is empty. Errors are only returned on I/O errors
+// answer is empty. Errors are only returned on I/O errors.
 func AskForString(ctx context.Context, text, def string) (string, error) {
 	if ctxutil.IsAlwaysYes(ctx) || !ctxutil.IsInteractive(ctx) {
 		return def, nil
@@ -89,7 +89,7 @@ func AskForBool(ctx context.Context, text string, def bool) (bool, error) {
 }
 
 // AskForInt asks for an valid interger once. If the input
-// can not be converted to an int it returns an error
+// can not be converted to an int it returns an error.
 func AskForInt(ctx context.Context, text string, def int) (int, error) {
 	if ctxutil.IsAlwaysYes(ctx) {
 		return def, nil
@@ -110,7 +110,7 @@ func AskForInt(ctx context.Context, text string, def int) (int, error) {
 }
 
 // AskForConfirmation asks a yes/no question until the user
-// replies yes or no
+// replies yes or no.
 func AskForConfirmation(ctx context.Context, text string) bool {
 	if ctxutil.IsAlwaysYes(ctx) {
 		return true
@@ -128,7 +128,7 @@ func AskForConfirmation(ctx context.Context, text string) bool {
 	return false
 }
 
-// AskForKeyImport asks for permissions to import the named key
+// AskForKeyImport asks for permissions to import the named key.
 func AskForKeyImport(ctx context.Context, key string, names []string) bool {
 	if ctxutil.IsAlwaysYes(ctx) {
 		return true
@@ -145,7 +145,7 @@ func AskForKeyImport(ctx context.Context, key string, names []string) bool {
 	return ok
 }
 
-// AskForPassword prompts for a password, optionally prompting twice until both match
+// AskForPassword prompts for a password, optionally prompting twice until both match.
 func AskForPassword(ctx context.Context, name string, repeat bool) (string, error) {
 	if ctxutil.IsAlwaysYes(ctx) {
 		return "", nil

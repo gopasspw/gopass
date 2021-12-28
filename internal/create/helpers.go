@@ -20,7 +20,7 @@ func fmtfn(d int, n string, t string) string {
 }
 
 // extractHostname tries to extract the hostname from a URL in a filepath-safe
-// way for use in the name of a secret
+// way for use in the name of a secret.
 func extractHostname(in string) string {
 	if in == "" {
 		return ""

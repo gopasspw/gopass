@@ -3,7 +3,7 @@ package pwgen
 import "strings"
 
 // GenerateMemorablePassword will generate a memorable password
-// with a minimum length
+// with a minimum length.
 func GenerateMemorablePassword(minLength int, symbols bool, capitals bool) string {
 	var sb strings.Builder
 	var upper = false

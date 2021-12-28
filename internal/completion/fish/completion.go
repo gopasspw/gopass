@@ -11,7 +11,7 @@ import (
 
 func longName(name string) string {
 	// "If s does not contain sep and sep is not empty, Split returns a slice of length 1 whose only element is s."
-	// from https://golang.org/pkg/strings/#Split
+	// from https://golang.org/pkg/strings/#Split.
 	return strings.TrimSpace(strings.Split(name, ",")[0])
 }
 
@@ -67,7 +67,7 @@ func formatFlagFunc(typ string) func(cli.Flag) (string, error) {
 	}
 }
 
-// GetCompletion returns a fish completion script
+// GetCompletion returns a fish completion script.
 func GetCompletion(a *cli.App) (string, error) {
 	tplFuncs := template.FuncMap{
 		"formatShortFlag": formatFlagFunc("short"),

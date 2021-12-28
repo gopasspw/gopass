@@ -8,7 +8,7 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-// Move the content from one secret to another
+// Move the content from one secret to another.
 func (s *Action) Move(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	force := c.Bool("force")

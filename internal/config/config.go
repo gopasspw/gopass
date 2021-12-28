@@ -9,32 +9,32 @@ import (
 )
 
 var (
-	// ErrConfigNotFound is returned on load if the config was not found
+	// ErrConfigNotFound is returned on load if the config was not found.
 	ErrConfigNotFound = fmt.Errorf("config not found")
-	// ErrConfigNotParsed is returned on load if the config could not be decoded
+	// ErrConfigNotParsed is returned on load if the config could not be decoded.
 	ErrConfigNotParsed = fmt.Errorf("config not parseable")
 )
 
-// Config is the current config struct
+// Config is the current config struct.
 type Config struct {
-	AutoClip      bool              `yaml:"autoclip"`      // decide whether passwords are automatically copied or not
-	AutoImport    bool              `yaml:"autoimport"`    // import missing public keys w/o asking
-	ClipTimeout   int               `yaml:"cliptimeout"`   // clear clipboard after seconds
-	ExportKeys    bool              `yaml:"exportkeys"`    // automatically export public keys of all recipients
-	NoPager       bool              `yaml:"nopager"`       // do not invoke a pager to display long lists
-	Notifications bool              `yaml:"notifications"` // enable desktop notifications
-	Parsing       bool              `yaml:"parsing"`       // allows to switch off all output parsing
+	AutoClip      bool              `yaml:"autoclip"`      // decide whether passwords are automatically copied or not.
+	AutoImport    bool              `yaml:"autoimport"`    // import missing public keys w/o asking.
+	ClipTimeout   int               `yaml:"cliptimeout"`   // clear clipboard after seconds.
+	ExportKeys    bool              `yaml:"exportkeys"`    // automatically export public keys of all recipients.
+	NoPager       bool              `yaml:"nopager"`       // do not invoke a pager to display long lists.
+	Notifications bool              `yaml:"notifications"` // enable desktop notifications.
+	Parsing       bool              `yaml:"parsing"`       // allows to switch off all output parsing.
 	Path          string            `yaml:"path"`
-	SafeContent   bool              `yaml:"safecontent"` // avoid showing passwords in terminal
+	SafeContent   bool              `yaml:"safecontent"` // avoid showing passwords in terminal.
 	Mounts        map[string]string `yaml:"mounts"`
 
 	ConfigPath string `yaml:"-"`
 
-	// Catches all undefined files and must be empty after parsing
+	// Catches all undefined files and must be empty after parsing.
 	XXX map[string]any `yaml:",inline"`
 }
 
-// New creates a new config with sane default values
+// New creates a new config with sane default values.
 func New() *Config {
 	return &Config{
 		AutoImport:    true,
@@ -48,18 +48,18 @@ func New() *Config {
 	}
 }
 
-// CheckOverflow implements configer. It will check for any extra config values not
-// handled by the current struct
+// CheckOverflow implements configer. It will check for any extra config values not.
+// handled by the current struct.
 func (c *Config) CheckOverflow() error {
 	return checkOverflow(c.XXX)
 }
 
-// Config will return a current config
+// Config will return a current config.
 func (c *Config) Config() *Config {
 	return c
 }
 
-// SetConfigValue will try to set the given key to the value in the config struct
+// SetConfigValue will try to set the given key to the value in the config struct.
 func (c *Config) SetConfigValue(key, value string) error {
 	if err := c.setConfigValue(key, value); err != nil {
 		return err
@@ -67,7 +67,7 @@ func (c *Config) SetConfigValue(key, value string) error {
 	return c.Save()
 }
 
-// setConfigValue will try to set the given key to the value in the config struct
+// setConfigValue will try to set the given key to the value in the config struct.
 func (c *Config) setConfigValue(key, value string) error {
 	value = strings.ToLower(value)
 	o := reflect.ValueOf(c).Elem()
@@ -112,12 +112,12 @@ func (c *Config) String() string {
 	return fmt.Sprintf("%#v", c)
 }
 
-// Directory returns the directory this config is using
+// Directory returns the directory this config is using.
 func (c *Config) Directory() string {
 	return filepath.Dir(c.Path)
 }
 
-// ConfigMap returns a map of stringified config values for easy printing
+// ConfigMap returns a map of stringified config values for easy printing.
 func (c *Config) ConfigMap() map[string]string {
 	m := make(map[string]string, 20)
 	o := reflect.ValueOf(c).Elem()

@@ -15,12 +15,12 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-// FindNoFuzzy runs find without fuzzy search
+// FindNoFuzzy runs find without fuzzy search.
 func (s *Action) FindNoFuzzy(c *cli.Context) error {
 	return s.findCmd(c, nil, false)
 }
 
-// Find runs find
+// Find runs find.
 func (s *Action) Find(c *cli.Context) error {
 	return s.findCmd(c, s.show, true)
 }
@@ -43,21 +43,21 @@ func (s *Action) findCmd(c *cli.Context, cb showFunc, fuzzy bool) error {
 	return s.find(ctx, c, c.Args().First(), cb, fuzzy)
 }
 
-// see action.show - context, cli context, name, key, rescurse
+// see action.show - context, cli context, name, key, rescurse.
 type showFunc func(context.Context, *cli.Context, string, bool) error
 
 func (s *Action) find(ctx context.Context, c *cli.Context, needle string, cb showFunc, fuzzy bool) error {
-	// get all existing entries
+	// get all existing entries.
 	haystack, err := s.Store.List(ctx, tree.INF)
 	if err != nil {
 		return ExitError(ExitList, err, "failed to list store: %s", err)
 	}
 
-	// filter our the ones from the haystack matching the needle
+	// filter our the ones from the haystack matching the needle.
 	needle = strings.ToLower(needle)
 	choices := filter(haystack, needle)
 
-	// if we have an exact match print it
+	// if we have an exact match print it.
 	if len(choices) == 1 {
 		if cb == nil {
 			out.Printf(ctx, choices[0])
@@ -67,20 +67,20 @@ func (s *Action) find(ctx context.Context, c *cli.Context, needle string, cb sho
 		return cb(ctx, c, choices[0], false)
 	}
 
-	// if we don't have a match yet try a fuzzy search
+	// if we don't have a match yet try a fuzzy search.
 	if len(choices) < 1 && fuzzy {
-		// try fuzzy match
+		// try fuzzy match.
 		cm := closestmatch.New(haystack, []int{2})
 		choices = cm.ClosestN(needle, 5)
 	}
 
-	// if there are still no results we abort
+	// if there are still no results we abort.
 	if len(choices) < 1 {
 		return ExitError(ExitNotFound, nil, "no results found")
 	}
 
 	// do not invoke wizard if not printing to terminal or if
-	// gopass find/search was invoked directly (for scripts)
+	// gopass find/search was invoked directly (for scripts).
 	if !ctxutil.IsTerminal(ctx) || (c != nil && c.Command.Name == "find") {
 		for _, value := range choices {
 			out.Printf(ctx, value)
@@ -91,7 +91,7 @@ func (s *Action) find(ctx context.Context, c *cli.Context, needle string, cb sho
 	return s.findSelection(ctx, c, choices, needle, cb)
 }
 
-// findSelection runs a wizard that lets the user select an entry
+// findSelection runs a wizard that lets the user select an entry.
 func (s *Action) findSelection(ctx context.Context, c *cli.Context, choices []string, needle string, cb showFunc) error {
 	if cb == nil {
 		return fmt.Errorf("callback is nil")
@@ -105,25 +105,25 @@ func (s *Action) findSelection(ctx context.Context, c *cli.Context, choices []st
 	debug.Log("Action: %s - Selection: %d", act, sel)
 	switch act {
 	case "default":
-		// display or copy selected entry
+		// display or copy selected entry.
 		fmt.Fprintln(stdout, choices[sel])
 		return cb(ctx, c, choices[sel], false)
 	case "copy":
-		// display selected entry
+		// display selected entry.
 		fmt.Fprintln(stdout, choices[sel])
 		return cb(WithClip(ctx, true), c, choices[sel], false)
 	case "show":
-		// display selected entry
+		// display selected entry.
 		fmt.Fprintln(stdout, choices[sel])
 		return cb(WithClip(ctx, false), c, choices[sel], false)
 	case "sync":
-		// run sync and re-run show/find workflow
+		// run sync and re-run show/find workflow.
 		if err := s.Sync(c); err != nil {
 			return err
 		}
 		return cb(ctx, c, needle, true)
 	case "edit":
-		// edit selected entry
+		// edit selected entry.
 		fmt.Fprintln(stdout, choices[sel])
 		return s.edit(ctx, c, choices[sel])
 	default:

@@ -4,7 +4,7 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-// GetCommands returns the pwgen subcommand
+// GetCommands returns the pwgen subcommand.
 func GetCommands() []*cli.Command {
 	return []*cli.Command{
 		{

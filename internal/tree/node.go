@@ -4,7 +4,7 @@ import (
 	"bytes"
 )
 
-// Node is a tree node
+// Node is a tree node.
 type Node struct {
 	Name     string
 	Type     string
@@ -15,11 +15,11 @@ type Node struct {
 }
 
 const (
-	// INF allows to have a full recursion until the leaves of a tree
+	// INF allows to have a full recursion until the leaves of a tree.
 	INF = -1
 )
 
-// Nodes is a slice of nodes which can be sorted
+// Nodes is a slice of nodes which can be sorted.
 type Nodes []*Node
 
 func (n Nodes) Len() int {
@@ -34,7 +34,7 @@ func (n Nodes) Swap(i, j int) {
 	n[i], n[j] = n[j], n[i]
 }
 
-// Equals compares to another node
+// Equals compares to another node.
 func (n Node) Equals(other Node) bool {
 	if n.Name != other.Name {
 		return false
@@ -58,7 +58,7 @@ func (n Node) Equals(other Node) bool {
 }
 
 // format returns a pretty printed string of all nodes in and below
-// this node, e.g. ├── baz
+// this node, e.g. `├── baz`.
 func (n *Node) format(prefix string, last bool, maxDepth, curDepth int) string {
 	if maxDepth > INF && (curDepth > maxDepth+1) {
 		return ""
@@ -108,7 +108,7 @@ func (n *Node) format(prefix string, last bool, maxDepth, curDepth int) string {
 	return out.String()
 }
 
-// Len returns the length of this subtree
+// Len returns the length of this subtree.
 func (n *Node) Len() int {
 	if n.Type == "file" {
 		return 1

@@ -12,7 +12,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/debug"
 )
 
-// Notify displays a desktop notification with dbus
+// Notify displays a desktop notification with dbus.
 func Notify(ctx context.Context, subj, msg string) error {
 	if os.Getenv("GOPASS_NO_NOTIFY") != "" || !ctxutil.IsNotifications(ctx) {
 		debug.Log("Notifications disabled")

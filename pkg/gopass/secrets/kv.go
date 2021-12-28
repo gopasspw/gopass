@@ -15,14 +15,14 @@ import (
 
 var _ gopass.Secret = &KV{}
 
-// NewKV creates a new KV secret
+// NewKV creates a new KV secret.
 func NewKV() *KV {
 	return &KV{
 		data: make(map[string][]string, 10),
 	}
 }
 
-// NewKVWithData returns a new KV secret populated with data
+// NewKVWithData returns a new KV secret populated with data.
 func NewKVWithData(pw string, kvps map[string][]string, body string, converted bool) *KV {
 	kv := &KV{
 		password: pw,
@@ -78,7 +78,7 @@ type KV struct {
 	fromMime bool
 }
 
-// Bytes serializes
+// Bytes serializes.
 func (k *KV) Bytes() []byte {
 	buf := &bytes.Buffer{}
 	buf.WriteString(k.password)
@@ -106,14 +106,14 @@ func (k *KV) Bytes() []byte {
 	return buf.Bytes()
 }
 
-// Keys returns all keys
+// Keys returns all keys.
 func (k *KV) Keys() []string {
 	keys := maps.Keys(k.data)
 	sort.Strings(keys)
 	return keys
 }
 
-// Get returns the first value of that key
+// Get returns the first value of that key.
 func (k *KV) Get(key string) (string, bool) {
 	key = strings.ToLower(key)
 
@@ -124,14 +124,14 @@ func (k *KV) Get(key string) (string, bool) {
 	return "", false
 }
 
-// Values returns all values for that key
+// Values returns all values for that key.
 func (k *KV) Values(key string) ([]string, bool) {
 	key = strings.ToLower(key)
 	v, found := k.data[key]
 	return v, found
 }
 
-// Set writes a single key
+// Set writes a single key.
 func (k *KV) Set(key string, value any) error {
 	key = strings.ToLower(key)
 	if v, ok := k.data[key]; ok && len(v) > 1 {
@@ -141,14 +141,14 @@ func (k *KV) Set(key string, value any) error {
 	return nil
 }
 
-// Add appends data to a given key
+// Add appends data to a given key.
 func (k *KV) Add(key string, value any) error {
 	key = strings.ToLower(key)
 	k.data[key] = append(k.data[key], fmt.Sprintf("%s", value))
 	return nil
 }
 
-// Del removes a given key and all of its values
+// Del removes a given key and all of its values.
 func (k *KV) Del(key string) bool {
 	key = strings.ToLower(key)
 	_, found := k.data[key]
@@ -156,22 +156,22 @@ func (k *KV) Del(key string) bool {
 	return found
 }
 
-// Body returns the body
+// Body returns the body.
 func (k *KV) Body() string {
 	return k.body
 }
 
-// Password returns the password
+// Password returns the password.
 func (k *KV) Password() string {
 	return k.password
 }
 
-// SetPassword updates the password
+// SetPassword updates the password.
 func (k *KV) SetPassword(p string) {
 	k.password = p
 }
 
-// ParseKV tries to parse a KV secret
+// ParseKV tries to parse a KV secret.
 func ParseKV(in []byte) (*KV, error) {
 	k := &KV{
 		data: make(map[string][]string, 10),
@@ -216,18 +216,18 @@ func ParseKV(in []byte) (*KV, error) {
 	return k, nil
 }
 
-// Write appends the buffer to the secret's body
+// Write appends the buffer to the secret's body.
 func (k *KV) Write(buf []byte) (int, error) {
 	k.body += string(buf)
 	return len(buf), nil
 }
 
-// FromMime returns whether this secret was converted from a Mime secret of not
+// FromMime returns whether this secret was converted from a Mime secret of not.
 func (k *KV) FromMime() bool {
 	return k.fromMime
 }
 
-// SafeStr always returnes "(elided)"
+// SafeStr always returnes "(elided)".
 func (k *KV) SafeStr() string {
 	return "(elided)"
 }

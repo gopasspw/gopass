@@ -15,7 +15,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/termio"
 )
 
-// Fsck checks the storage integrity
+// Fsck checks the storage integrity.
 func (s *Store) Fsck(ctx context.Context) error {
 	pcb := ctxutil.GetProgressCallback(ctx)
 

@@ -6,7 +6,7 @@ import (
 )
 
 // parseTS parses the passed string as an Epoch int and returns
-// the time struct or the zero time struct
+// the time struct or the zero time struct.
 func parseTS(str string) time.Time {
 	t := time.Time{}
 
@@ -18,7 +18,7 @@ func parseTS(str string) time.Time {
 }
 
 // parseInt parses the passed string as an int and returns it
-// or 0 on errors
+// or 0 on errors.
 func parseInt(str string) int {
 	i := 0
 

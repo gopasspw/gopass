@@ -19,7 +19,7 @@ import (
 )
 
 // List all secrets as a tree. If the filter argument is non-empty
-// display only those that have this prefix
+// display only those that have this prefix.
 func (s *Action) List(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	filter := c.Args().First()
@@ -27,13 +27,13 @@ func (s *Action) List(c *cli.Context) error {
 	stripPrefix := c.Bool("strip-prefix")
 	folders := c.Bool("folders")
 
-	// print the path if the argument is a direct hit
+	// print the path if the argument is a direct hit.
 	if s.Store.Exists(ctx, filter) && !s.Store.IsDir(ctx, filter) {
 		fmt.Println(filter)
 		return nil
 	}
 
-	// we only support listing folders in flat mode currently
+	// we only support listing folders in flat mode currently.
 	if folders {
 		flat = true
 	}
@@ -57,16 +57,16 @@ func (s *Action) listFiltered(ctx context.Context, l *tree.Root, limit int, flat
 	sep := string(leaf.Sep)
 
 	if filter == "" || filter == sep {
-		// We list all entries then
+		// We list all entries then.
 		stripPrefix = true
 	} else {
-		// If the filter ends with a separator, we still want to find the content of that folder
+		// If the filter ends with a separator, we still want to find the content of that folder.
 		if strings.HasSuffix(filter, sep) {
 			filter = filter[:len(filter)-1]
 		}
-		// To avoid shadowing l since we need it outside of the else scope
+		// To avoid shadowing l since we need it outside of the else scope.
 		var err error
-		// We restrict ourselves to the filter
+		// We restrict ourselves to the filter.
 		l, err = l.FindFolder(filter)
 		if err != nil {
 			return ExitError(ExitNotFound, nil, "Entry %q not found", filter)
@@ -88,7 +88,7 @@ func (s *Action) listFiltered(ctx context.Context, l *tree.Root, limit int, flat
 		return nil
 	}
 
-	// we may need to redirect stdout for the pager support
+	// we may need to redirect stdout for the pager support.
 	so, buf := redirectPager(ctx, l)
 
 	fmt.Fprintln(so, l.Format(limit))
@@ -101,7 +101,7 @@ func (s *Action) listFiltered(ctx context.Context, l *tree.Root, limit int, flat
 }
 
 // redirectPager returns a redirected io.Writer if the output would exceed
-// the terminal size
+// the terminal size.
 func redirectPager(ctx context.Context, subtree *tree.Root) (io.Writer, *bytes.Buffer) {
 	if ctxutil.IsNoPager(ctx) {
 		return stdout, nil
@@ -121,7 +121,7 @@ func redirectPager(ctx context.Context, subtree *tree.Root) (io.Writer, *bytes.B
 	return buf, buf
 }
 
-// pager invokes the default pager with the given content
+// pager invokes the default pager with the given content.
 func (s *Action) pager(ctx context.Context, buf io.Reader) error {
 	pager := os.Getenv("PAGER")
 	if pager == "" {

@@ -16,7 +16,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/gopass"
 )
 
-// Fsck checks all entries matching the given prefix
+// Fsck checks all entries matching the given prefix.
 func (s *Store) Fsck(ctx context.Context, path string) error {
 	ctx = out.AddPrefix(ctx, "["+s.alias+"] ")
 	debug.Log("Checking %s", path)

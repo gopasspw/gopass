@@ -24,7 +24,7 @@ var (
 	defaultRecipients = []string{"0xDEADBEEF"}
 )
 
-// Unit is a gopass unit test helper
+// Unit is a gopass unit test helper.
 type Unit struct {
 	t          *testing.T
 	Entries    []string
@@ -33,17 +33,17 @@ type Unit struct {
 	env        map[string]string
 }
 
-// GPConfig returns the gopass config location
+// GPConfig returns the gopass config location.
 func (u Unit) GPConfig() string {
 	return filepath.Join(u.Dir, "config.yml")
 }
 
-// GPGHome returns the gopass homedir
+// GPGHome returns the gopass homedir.
 func (u Unit) GPGHome() string {
 	return filepath.Join(u.Dir, ".gnupg")
 }
 
-// NewUnitTester creates a new unit test helper
+// NewUnitTester creates a new unit test helper.
 func NewUnitTester(t *testing.T) *Unit {
 	aclip.Unsupported = true
 	td, err := os.MkdirTemp("", "gopass-")
@@ -82,7 +82,7 @@ func (u Unit) initConfig() error {
 	)
 }
 
-// StoreDir returns the password store dir
+// StoreDir returns the password store dir.
 func (u Unit) StoreDir(mount string) string {
 	if mount != "" {
 		mount = "-" + mount
@@ -94,7 +94,7 @@ func (u Unit) recipients() []byte {
 	return []byte(strings.Join(u.Recipients, "\n"))
 }
 
-// InitStore initializes the test store
+// InitStore initializes the test store.
 func (u Unit) InitStore(name string) error {
 	dir := u.StoreDir(name)
 	if err := os.MkdirAll(dir, 0700); err != nil {
@@ -118,7 +118,7 @@ func (u Unit) InitStore(name string) error {
 	return nil
 }
 
-// Remove removes the test store
+// Remove removes the test store.
 func (u *Unit) Remove() {
 	teardownEnv(u.env)
 	if u.Dir == "" {

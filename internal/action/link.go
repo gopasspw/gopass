@@ -5,7 +5,7 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-// Link creates a symlink
+// Link creates a symlink.
 func (s *Action) Link(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 

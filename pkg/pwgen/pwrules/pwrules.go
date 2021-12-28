@@ -15,7 +15,7 @@ var (
 	reChars = regexp.MustCompile(`(allowed|required):\s*\[(.*)\](?:;|,)`)
 )
 
-// AllRules returns all rules
+// AllRules returns all rules.
 func AllRules() map[string]Rule {
 	return genRules
 }

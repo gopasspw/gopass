@@ -11,15 +11,15 @@ import (
 	"github.com/gopasspw/gopass/pkg/debug"
 )
 
-// Encrypt will encrypt the given payload
+// Encrypt will encrypt the given payload.
 func (a *Age) Encrypt(ctx context.Context, plaintext []byte, recipients []string) ([]byte, error) {
-	// add our own public keys to the recipients to ensure we can decrypt it later
+	// add our own public keys to the recipients to ensure we can decrypt it later.
 	idRecps, err := a.IdentityRecipients(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch identity recipients for encryption: %w", err)
 	}
 	// parse the most specific recipients file and add it to the final
-	// recipients, too
+	// recipients, too.
 	recp, err := a.parseRecipients(ctx, recipients)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse recipients file for encryption: %w", err)
@@ -29,13 +29,13 @@ func (a *Age) Encrypt(ctx context.Context, plaintext []byte, recipients []string
 	return a.encrypt(plaintext, recp...)
 }
 
-// dedupe the recipients, only works for native age recipients
+// dedupe the recipients, only works for native age recipients.
 func dedupe(recp []age.Recipient) []age.Recipient {
 	out := make([]age.Recipient, 0, len(recp))
 	set := make(map[string]age.Recipient, len(recp))
 	for _, r := range recp {
 		k, ok := r.(fmt.Stringer)
-		// handle non-native recipients
+		// handle non-native recipients.
 		if !ok {
 			out = append(out, r)
 			continue

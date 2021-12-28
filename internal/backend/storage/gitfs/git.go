@@ -40,12 +40,12 @@ func getPathOverride(ctx context.Context, def string) string {
 	return def
 }
 
-// Git is a cli based git backend
+// Git is a cli based git backend.
 type Git struct {
 	fs *fs.Store
 }
 
-// New creates a new git cli based git backend
+// New creates a new git cli based git backend.
 func New(path string) (*Git, error) {
 	if !fsutil.IsDir(filepath.Join(path, ".git")) {
 		return nil, fmt.Errorf("git repo does not exist")
@@ -56,7 +56,7 @@ func New(path string) (*Git, error) {
 }
 
 // Clone clones an existing git repo and returns a new cli based git backend
-// configured for this clone repo
+// configured for this clone repo.
 func Clone(ctx context.Context, repo, path, userName, userEmail string) (*Git, error) {
 	g := &Git{
 		fs: fs.New(path),
@@ -65,7 +65,7 @@ func Clone(ctx context.Context, repo, path, userName, userEmail string) (*Git, e
 		return nil, err
 	}
 
-	// initialize the local git config
+	// initialize the local git config.
 	if err := g.InitConfig(ctx, userName, userEmail); err != nil {
 		return g, fmt.Errorf("failed to configure git: %s", err)
 	}
@@ -74,13 +74,13 @@ func Clone(ctx context.Context, repo, path, userName, userEmail string) (*Git, e
 	return g, nil
 }
 
-// Init initializes this store's git repo
+// Init initializes this store's git repo.
 func Init(ctx context.Context, path, userName, userEmail string) (*Git, error) {
 	g := &Git{
 		fs: fs.New(path),
 	}
 	// the git repo may be empty (i.e. no branches, cloned from a fresh remote)
-	// or already initialized. Only run git init if the folder is completely empty
+	// or already initialized. Only run git init if the folder is completely empty.
 	if !g.IsInitialized() {
 		if err := g.Cmd(ctx, "Init", "init"); err != nil {
 			return nil, fmt.Errorf("failed to initialize git: %s", err)
@@ -92,18 +92,18 @@ func Init(ctx context.Context, path, userName, userEmail string) (*Git, error) {
 		return g, nil
 	}
 
-	// initialize the local git config
+	// initialize the local git config.
 	if err := g.InitConfig(ctx, userName, userEmail); err != nil {
 		return g, fmt.Errorf("failed to configure git: %s", err)
 	}
 	out.Printf(ctx, "git configured at %s", g.fs.Path())
 
-	// add current content of the store
+	// add current content of the store.
 	if err := g.Add(ctx, g.fs.Path()); err != nil {
 		return g, fmt.Errorf("failed to add %q to git: %w", g.fs.Path(), err)
 	}
 
-	// commit if there is something to commit
+	// commit if there is something to commit.
 	if !g.HasStagedChanges(ctx) {
 		debug.Log("No staged changes")
 		return g, nil
@@ -135,7 +135,7 @@ func (g *Git) captureCmd(ctx context.Context, name string, args ...string) ([]by
 	return bufOut.Bytes(), bufErr.Bytes(), err
 }
 
-// Cmd runs an git command
+// Cmd runs an git command.
 func (g *Git) Cmd(ctx context.Context, name string, args ...string) error {
 	stdout, stderr, err := g.captureCmd(ctx, name, args...)
 	if err != nil {
@@ -146,12 +146,12 @@ func (g *Git) Cmd(ctx context.Context, name string, args ...string) error {
 	return nil
 }
 
-// Name returns git
+// Name returns git.
 func (g *Git) Name() string {
 	return "git"
 }
 
-// Version returns the git version as major, minor and patch level
+// Version returns the git version as major, minor and patch level.
 func (g *Git) Version(ctx context.Context) semver.Version {
 	v := semver.Version{}
 
@@ -175,12 +175,12 @@ func (g *Git) Version(ctx context.Context) semver.Version {
 	return sv
 }
 
-// IsInitialized returns true if this stores has an (probably) initialized .git folder
+// IsInitialized returns true if this stores has an (probably) initialized .git folder.
 func (g *Git) IsInitialized() bool {
 	return fsutil.IsFile(filepath.Join(g.fs.Path(), ".git", "config"))
 }
 
-// Add adds the listed files to the git index
+// Add adds the listed files to the git index.
 func (g *Git) Add(ctx context.Context, files ...string) error {
 	if !g.IsInitialized() {
 		return store.ErrGitNotInit
@@ -196,7 +196,7 @@ func (g *Git) Add(ctx context.Context, files ...string) error {
 	return g.Cmd(ctx, "gitAdd", args...)
 }
 
-// HasStagedChanges returns true if there are any staged changes which can be committed
+// HasStagedChanges returns true if there are any staged changes which can be committed.
 func (g *Git) HasStagedChanges(ctx context.Context) bool {
 	if err := g.Cmd(ctx, "gitDiffIndex", "diff-index", "--quiet", "HEAD"); err != nil {
 		return true
@@ -204,7 +204,7 @@ func (g *Git) HasStagedChanges(ctx context.Context) bool {
 	return false
 }
 
-// ListUntrackedFiles lists untracked files
+// ListUntrackedFiles lists untracked files.
 func (g *Git) ListUntrackedFiles(ctx context.Context) []string {
 	stdout, _, err := g.captureCmd(ctx, "gitLsFiles", "ls-files", ".", "--exclude-standard", "--others")
 	if err != nil {
@@ -220,7 +220,7 @@ func (g *Git) ListUntrackedFiles(ctx context.Context) []string {
 	return uf
 }
 
-// Commit creates a new git commit with the given commit message
+// Commit creates a new git commit with the given commit message.
 func (g *Git) Commit(ctx context.Context, msg string) error {
 	if !g.IsInitialized() {
 		return store.ErrGitNotInit
@@ -256,14 +256,14 @@ func (g *Git) defaultRemote(ctx context.Context, branch string) string {
 func (g *Git) defaultBranch(ctx context.Context) string {
 	out, _, err := g.captureCmd(ctx, "defaultBranch", "rev-parse", "--abbrev-ref", "HEAD")
 	if err != nil || string(out) == "" {
-		// see https://github.com/github/renaming
+		// see https://github.com/github/renaming.
 		return "main"
 	}
 	return strings.TrimSpace(string(out))
 }
 
 // PushPull pushes the repo to it's origin.
-// optional arguments: remote and branch
+// optional arguments: remote and branch.
 func (g *Git) PushPull(ctx context.Context, op, remote, branch string) error {
 	if ctxutil.IsNoNetwork(ctx) {
 		debug.Log("Skipping network ops. NoNetwork=true")
@@ -300,7 +300,7 @@ func (g *Git) PushPull(ctx context.Context, op, remote, branch string) error {
 	return g.Cmd(ctx, "gitPush", "push", remote, branch)
 }
 
-// Push pushes to the git remote
+// Push pushes to the git remote.
 func (g *Git) Push(ctx context.Context, remote, branch string) error {
 	if ctxutil.IsNoNetwork(ctx) {
 		debug.Log("Skipping network ops. NoNetwork=true")
@@ -309,7 +309,7 @@ func (g *Git) Push(ctx context.Context, remote, branch string) error {
 	return g.PushPull(ctx, "push", remote, branch)
 }
 
-// Pull pulls from the git remote
+// Pull pulls from the git remote.
 func (g *Git) Pull(ctx context.Context, remote, branch string) error {
 	if ctxutil.IsNoNetwork(ctx) {
 		debug.Log("Skipping network ops. NoNetwork=true")
@@ -318,19 +318,19 @@ func (g *Git) Pull(ctx context.Context, remote, branch string) error {
 	return g.PushPull(ctx, "pull", remote, branch)
 }
 
-// AddRemote adds a new remote
+// AddRemote adds a new remote.
 func (g *Git) AddRemote(ctx context.Context, remote, url string) error {
 	return g.Cmd(ctx, "gitAddRemote", "remote", "add", remote, url)
 }
 
-// RemoveRemote removes a remote
+// RemoveRemote removes a remote.
 func (g *Git) RemoveRemote(ctx context.Context, remote string) error {
 	return g.Cmd(ctx, "gitRemoveRemote", "remote", "remove", remote)
 }
 
 // Revisions will list all available revisions of the named entity
 // see http://blog.lost-theory.org/post/how-to-parse-git-log-output/
-// and https://git-scm.com/docs/git-log#_pretty_formats
+// and https://git-scm.com/docs/git-log#_pretty_formats.
 func (g *Git) Revisions(ctx context.Context, name string) ([]backend.Revision, error) {
 	args := []string{
 		"log",
@@ -381,7 +381,7 @@ func (g *Git) Revisions(ctx context.Context, name string) ([]backend.Revision, e
 }
 
 // GetRevision will return the content of any revision of the named entity
-// see https://git-scm.com/docs/git-log#_pretty_formats
+// see https://git-scm.com/docs/git-log#_pretty_formats.
 func (g *Git) GetRevision(ctx context.Context, name, revision string) ([]byte, error) {
 	name = strings.TrimSpace(name)
 	revision = strings.TrimSpace(revision)
@@ -397,7 +397,7 @@ func (g *Git) GetRevision(ctx context.Context, name, revision string) ([]byte, e
 	return stdout, nil
 }
 
-// Status return the git status output
+// Status return the git status output.
 func (g *Git) Status(ctx context.Context) ([]byte, error) {
 	stdout, stderr, err := g.captureCmd(ctx, "GitStatus", "status")
 	if err != nil {
@@ -407,7 +407,7 @@ func (g *Git) Status(ctx context.Context) ([]byte, error) {
 	return stdout, nil
 }
 
-// Compact will run git gc
+// Compact will run git gc.
 func (g *Git) Compact(ctx context.Context) error {
 	return g.Cmd(ctx, "gitGC", "gc", "--aggressive")
 }

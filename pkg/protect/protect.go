@@ -3,10 +3,10 @@
 
 package protect
 
-// ProtectEnabled lets us know if we have protection or not
+// ProtectEnabled lets us know if we have protection or not.
 var ProtectEnabled = false
 
-// Pledge on any other system than OpenBSD doesn't do anything
+// Pledge on any other system than OpenBSD doesn't do anything.
 func Pledge(s string) error {
 	return nil
 }

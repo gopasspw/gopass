@@ -8,11 +8,11 @@ import (
 )
 
 var (
-	// Sep is the separator used in lists to separate folders from entries
+	// Sep is the separator used in lists to separate folders from entries.
 	Sep = "/"
 )
 
-// List will list all entries in this store
+// List will list all entries in this store.
 func (s *Store) List(ctx context.Context, prefix string) ([]string, error) {
 	if s.storage == nil || s.crypto == nil {
 		return nil, nil

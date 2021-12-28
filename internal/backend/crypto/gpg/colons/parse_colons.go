@@ -10,10 +10,13 @@ import (
 )
 
 var (
+	// nolint:godot
 	// John Doe (user) <john.doe@example.com>
 	reUIDComment = regexp.MustCompile(`([^(<]+)\s+(\([^)]+\))\s+<([^>]+)>`)
+	// nolint:godot
 	// John Doe <john.doe@example.com>
 	reUID = regexp.MustCompile(`([^(<]+)\s+<([^>]+)>`)
+	// nolint:godot
 	// John Doe (user)
 	reUIDNoEmailComment = regexp.MustCompile(`([^(<]+)\s+(\([^)]+\))`)
 )
@@ -57,7 +60,7 @@ var (
 // 15 - Hash algo (2 - SHA-1, 8 - SHA-256)
 // 16 - Curve Name
 
-// Parse parses the `--with-colons` output format of GPG
+// Parse parses the `--with-colons` output format of GPG.
 func Parse(reader io.Reader) gpg.KeyList {
 	kl := make(gpg.KeyList, 0, 100)
 

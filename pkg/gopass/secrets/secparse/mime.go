@@ -11,7 +11,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/gopass/secrets"
 )
 
-// parseLegacyMIME is a fallback parser for the transient MIME format
+// parseLegacyMIME is a fallback parser for the transient MIME format.
 func parseLegacyMIME(buf []byte) (*secrets.KV, error) {
 	var hdr textproto.MIMEHeader
 	body := &bytes.Buffer{}

@@ -12,13 +12,13 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// LoadWithFallbackRelaxed will try to load the config from one of the default
+// LoadWithFallbackRelaxed will try to load the config from one of the default.
 // locations but also accept a more recent config.
 func LoadWithFallbackRelaxed() *Config {
 	return loadWithFallback(true)
 }
 
-// LoadWithFallback will try to load the config from one of the default locations
+// LoadWithFallback will try to load the config from one of the default locations.
 func LoadWithFallback() *Config {
 	return loadWithFallback(false)
 }
@@ -32,7 +32,7 @@ func loadWithFallback(relaxed bool) *Config {
 	return loadDefault()
 }
 
-// Load will load the config from the default location or return a default config
+// Load will load the config from the default location or return a default config.
 func Load() *Config {
 	if cfg := loadConfig(configLocation(), false); cfg != nil {
 		return cfg
@@ -62,7 +62,7 @@ func loadDefault() *Config {
 
 func load(cf string, relaxed bool) (*Config, error) {
 	// deliberately using os.Stat here, a symlinked
-	// config is OK
+	// config is OK.
 	if _, err := os.Stat(cf); err != nil {
 		return nil, ErrConfigNotFound
 	}
@@ -109,7 +109,7 @@ func decode(buf []byte, relaxed bool) (*Config, error) {
 		Path:          PwStoreDir(""),
 	}
 	cfgs := []configer{
-		// most recent config must come first
+		// most recent config must come first.
 		mostRecent,
 		&Pre1127{},
 		&Pre1102{},
@@ -124,7 +124,7 @@ func decode(buf []byte, relaxed bool) (*Config, error) {
 	}
 	if relaxed {
 		// most recent config must come last as well, will be tried w/o
-		// overflow checks
+		// overflow checks.
 		cfgs = append(cfgs, mostRecent)
 	}
 	var warn string
@@ -176,7 +176,7 @@ func decode(buf []byte, relaxed bool) (*Config, error) {
 	return nil, ErrConfigNotParsed
 }
 
-// Save saves the config
+// Save saves the config.
 func (c *Config) Save() error {
 	buf, err := yaml.Marshal(c)
 	if err != nil {

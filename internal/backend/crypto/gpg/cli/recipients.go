@@ -13,7 +13,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/debug"
 )
 
-// ListRecipients returns a parsed list of GPG public keys
+// ListRecipients returns a parsed list of GPG public keys.
 func (g *GPG) ListRecipients(ctx context.Context) ([]string, error) {
 	if g.pubKeys == nil {
 		kl, err := g.listKeys(ctx, "public")
@@ -28,7 +28,7 @@ func (g *GPG) ListRecipients(ctx context.Context) ([]string, error) {
 	return g.pubKeys.UseableKeys(gpg.IsAlwaysTrust(ctx)).Recipients(), nil
 }
 
-// FindRecipients searches for the given public keys
+// FindRecipients searches for the given public keys.
 func (g *GPG) FindRecipients(ctx context.Context, search ...string) ([]string, error) {
 	kl, err := g.listKeys(ctx, "public", search...)
 	if err != nil || kl == nil {
@@ -44,7 +44,7 @@ func (g *GPG) FindRecipients(ctx context.Context, search ...string) ([]string, e
 	return recp, nil
 }
 
-// RecipientIDs returns a list of recipient IDs for a given encrypted blob
+// RecipientIDs returns a list of recipient IDs for a given encrypted blob.
 func (g *GPG) RecipientIDs(ctx context.Context, buf []byte) ([]string, error) {
 	// switch to LANG C for more predictable output, switch back later
 	oldLang := os.Getenv("LANGUAGE")

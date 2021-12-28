@@ -23,7 +23,7 @@ func CleanFilename(in string) string {
 	return strings.Trim(reCleanFilename.ReplaceAllString(in, "_"), "_ ")
 }
 
-// CleanPath resolves common aliases in a path and cleans it as much as possible
+// CleanPath resolves common aliases in a path and cleans it as much as possible.
 func CleanPath(path string) string {
 	// http://stackoverflow.com/questions/17609732/expand-tilde-to-home-directory
 	// TODO: We should consider if we really want to rewrite ~
@@ -41,7 +41,7 @@ func CleanPath(path string) string {
 	return filepath.Clean(path)
 }
 
-// IsDir checks if a certain path exists and is a directory
+// IsDir checks if a certain path exists and is a directory.
 // https://stackoverflow.com/questions/10510691/how-to-check-whether-a-file-or-directory-denoted-by-a-path-exists-in-golang
 func IsDir(path string) bool {
 	fi, err := os.Stat(path)
@@ -57,7 +57,7 @@ func IsDir(path string) bool {
 	return fi.IsDir()
 }
 
-// IsFile checks if a certain path is actually a file
+// IsFile checks if a certain path is actually a file.
 func IsFile(path string) bool {
 	fi, err := os.Stat(path)
 	if err != nil {
@@ -72,7 +72,7 @@ func IsFile(path string) bool {
 	return fi.Mode().IsRegular()
 }
 
-// IsEmptyDir checks if a certain path is an empty directory
+// IsEmptyDir checks if a certain path is an empty directory.
 func IsEmptyDir(path string) (bool, error) {
 	empty := true
 	if err := filepath.Walk(path, func(fp string, fi os.FileInfo, ferr error) error {
@@ -92,7 +92,7 @@ func IsEmptyDir(path string) (bool, error) {
 	return empty, nil
 }
 
-// Shred overwrite the given file any number of times
+// Shred overwrite the given file any number of times.
 func Shred(path string, runs int) error {
 	rand.Seed(time.Now().UnixNano())
 	fh, err := os.OpenFile(path, os.O_WRONLY, 0600)

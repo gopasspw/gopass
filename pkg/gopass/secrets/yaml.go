@@ -16,7 +16,7 @@ import (
 	yaml "gopkg.in/yaml.v3"
 )
 
-// make sure that YAML implements Secret
+// make sure that YAML implements Secret.
 var _ gopass.Secret = &YAML{}
 
 // YAML is a gopass secret that contains a parsed YAML data structure.
@@ -30,21 +30,21 @@ var _ gopass.Secret = &YAML{}
 //    0 | Password
 //  1-n | Body
 //  n+1 | Separator ("---")
-//  n+2 | YAML content
+//  n+2 | YAML content.
 type YAML struct {
 	password string
 	data     map[string]any
 	body     string
 }
 
-// Keys returns all keys
+// Keys returns all keys.
 func (y *YAML) Keys() []string {
 	keys := maps.Keys(y.data)
 	sort.Strings(keys)
 	return keys
 }
 
-// Get returns the first value of a single key
+// Get returns the first value of a single key.
 func (y *YAML) Get(key string) (string, bool) {
 	if y.data == nil {
 		y.data = make(map[string]any)
@@ -58,13 +58,13 @@ func (y *YAML) Get(key string) (string, bool) {
 	return "", false
 }
 
-// Values returns Get since as per YAML specification keys must be unique
+// Values returns Get since as per YAML specification keys must be unique.
 func (y *YAML) Values(key string) ([]string, bool) {
 	data, found := y.Get(key)
 	return []string{data}, found
 }
 
-// Set sets a key to a given value
+// Set sets a key to a given value.
 func (y *YAML) Set(key string, value any) error {
 	if y.data == nil {
 		y.data = make(map[string]any, 1)
@@ -73,12 +73,12 @@ func (y *YAML) Set(key string, value any) error {
 	return nil
 }
 
-// Add doesn't work since as per YAML specification keys must be unique
+// Add doesn't work since as per YAML specification keys must be unique.
 func (y *YAML) Add(key string, value any) error {
 	return fmt.Errorf("not supported for YAML")
 }
 
-// Del removes a single key
+// Del removes a single key.
 func (y *YAML) Del(key string) bool {
 	_, found := y.data[key]
 	delete(y.data, key)
@@ -112,17 +112,17 @@ func ParseYAML(in []byte) (*YAML, error) {
 	return y, nil
 }
 
-// Body returns the body
+// Body returns the body.
 func (y *YAML) Body() string {
 	return y.body
 }
 
-// Password returns the password
+// Password returns the password.
 func (y *YAML) Password() string {
 	return y.password
 }
 
-// SetPassword updates the password
+// SetPassword updates the password.
 func (y *YAML) SetPassword(v string) {
 	y.password = v
 }
@@ -153,7 +153,7 @@ func parseBody(r *bufio.Reader) (string, error) {
 	return "", fmt.Errorf("no YAML marker")
 }
 
-// Bytes serialized this secret
+// Bytes serialized this secret.
 func (y *YAML) Bytes() []byte {
 	defer func() {
 		if r := recover(); r != nil {
@@ -178,13 +178,13 @@ func (y *YAML) Bytes() []byte {
 	return buf.Bytes()
 }
 
-// Write appends the buffer to the secret's body
+// Write appends the buffer to the secret's body.
 func (y *YAML) Write(buf []byte) (int, error) {
 	y.body += string(buf)
 	return len(buf), nil
 }
 
-// SafeStr always returnes "(elided)"
+// SafeStr always returnes "(elided)".
 func (y *YAML) SafeStr() string {
 	return "(elided)"
 }

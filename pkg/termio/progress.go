@@ -21,7 +21,7 @@ var (
 	now = time.Now
 )
 
-// ProgressBar is a gopass progress bar
+// ProgressBar is a gopass progress bar.
 type ProgressBar struct {
 	// keep both int64 fields at the top to ensure correct
 	// 8-byte alignment on 32 bit systems. See https://golang.org/pkg/sync/atomic/#pkg-note-BUG
@@ -36,7 +36,7 @@ type ProgressBar struct {
 	Bytes  bool
 }
 
-// NewProgressBar creates a new progress bar
+// NewProgressBar creates a new progress bar.
 func NewProgressBar(total int64) *ProgressBar {
 	return &ProgressBar{
 		total:   total,
@@ -45,7 +45,7 @@ func NewProgressBar(total int64) *ProgressBar {
 	}
 }
 
-// Add adds the given amount to the progress
+// Add adds the given amount to the progress.
 func (p *ProgressBar) Add(v int64) {
 	cur := atomic.AddInt64(&p.current, v)
 	if max := atomic.LoadInt64(&p.total); cur > max {
@@ -54,7 +54,7 @@ func (p *ProgressBar) Add(v int64) {
 	p.print()
 }
 
-// Inc adds one to the progress
+// Inc adds one to the progress.
 func (p *ProgressBar) Inc() {
 	cur := atomic.AddInt64(&p.current, 1)
 	if max := atomic.LoadInt64(&p.total); cur > max {
@@ -63,7 +63,7 @@ func (p *ProgressBar) Inc() {
 	p.print()
 }
 
-// Set sets an arbitrary progress
+// Set sets an arbitrary progress.
 func (p *ProgressBar) Set(v int64) {
 	atomic.StoreInt64(&p.current, v)
 	if max := atomic.LoadInt64(&p.total); v > max {
@@ -72,7 +72,7 @@ func (p *ProgressBar) Set(v int64) {
 	p.print()
 }
 
-// Done finalizes the progress bar
+// Done finalizes the progress bar.
 func (p *ProgressBar) Done() {
 	if p.Hidden {
 		return
@@ -80,12 +80,12 @@ func (p *ProgressBar) Done() {
 	fmt.Fprintln(Stderr, "")
 }
 
-// Clear removes the progress bar
+// Clear removes the progress bar.
 func (p *ProgressBar) Clear() {
 	clearLine()
 }
 
-// print will print the progress bar, if necessary
+// print will print the progress bar, if necessary.
 func (p *ProgressBar) print() {
 	if p.Hidden {
 		return

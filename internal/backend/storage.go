@@ -9,17 +9,17 @@ import (
 )
 
 var (
-	// ErrNotSupported is returned by backends for unsupported calls
+	// ErrNotSupported is returned by backends for unsupported calls.
 	ErrNotSupported = fmt.Errorf("not supported")
 )
 
-// StorageBackend is a type of storage backend
+// StorageBackend is a type of storage backend.
 type StorageBackend int
 
 const (
-	// FS is a filesystem-backed storage
+	// FS is a filesystem-backed storage.
 	FS StorageBackend = iota
-	// GitFS is a filesystem-backed storage with Git
+	// GitFS is a filesystem-backed storage with Git.
 	GitFS
 )
 
@@ -30,7 +30,7 @@ func (s StorageBackend) String() string {
 	return ""
 }
 
-// Storage is an storage backend
+// Storage is an storage backend.
 type Storage interface {
 	fmt.Stringer
 	rcs
@@ -49,7 +49,7 @@ type Storage interface {
 	Fsck(context.Context) error
 }
 
-// DetectStorage tries to detect the storage backend being used
+// DetectStorage tries to detect the storage backend being used.
 func DetectStorage(ctx context.Context, path string) (Storage, error) {
 	if HasStorageBackend(ctx) {
 		if be, err := StorageRegistry.Get(GetStorageBackend(ctx)); err == nil {

@@ -14,11 +14,11 @@ import (
 )
 
 var (
-	// UpdateMoveAfterQuit is exported for testing
+	// UpdateMoveAfterQuit is exported for testing.
 	UpdateMoveAfterQuit = true
 )
 
-// Update will start th interactive update assistant
+// Update will start th interactive update assistant.
 func Update(ctx context.Context, currentVersion semver.Version) error {
 	if err := IsUpdateable(ctx); err != nil {
 		out.Errorf(ctx, "Your gopass binary is externally managed. Can not update: %q", err)

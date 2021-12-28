@@ -14,7 +14,7 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-// Fsck checks the store integrity
+// Fsck checks the store integrity.
 func (s *Action) Fsck(c *cli.Context) error {
 	s.rem.Reset("fsck")
 
@@ -24,13 +24,13 @@ func (s *Action) Fsck(c *cli.Context) error {
 	}
 
 	out.Printf(ctx, "Checking store integrity ...")
-	// make sure config is in the right place
-	// we may have loaded it from one of the fallback locations
+	// make sure config is in the right place.
+	// we may have loaded it from one of the fallback locations.
 	if err := s.cfg.Save(); err != nil {
 		return ExitError(ExitConfig, err, "failed to save config: %s", err)
 	}
 
-	// clean up any previous config locations
+	// clean up any previous config locations.
 	oldCfg := filepath.Join(config.Homedir(), ".gopass.yml")
 	if fsutil.IsFile(oldCfg) {
 		if err := os.Remove(oldCfg); err != nil {
@@ -38,7 +38,7 @@ func (s *Action) Fsck(c *cli.Context) error {
 		}
 	}
 
-	// display progress bar
+	// display progress bar.
 	t, err := s.Store.Tree(ctx)
 	if err != nil {
 		return ExitError(ExitUnknown, err, "failed to list stores: %s", err)
@@ -53,7 +53,7 @@ func (s *Action) Fsck(c *cli.Context) error {
 	})
 	ctx = out.AddPrefix(ctx, "\n")
 
-	// the main work in done by the sub stores
+	// the main work in done by the sub stores.
 	if err := s.Store.Fsck(ctx, c.Args().Get(0)); err != nil {
 		return ExitError(ExitFsck, err, "fsck found errors: %s", err)
 	}

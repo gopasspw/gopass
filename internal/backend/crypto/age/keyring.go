@@ -16,9 +16,9 @@ import (
 )
 
 var (
-	// OldIDFile is the old file name for the recipients
+	// OldIDFile is the old file name for the recipients.
 	OldIDFile = ".age-ids"
-	// OldKeyring is the old file name for the keyring
+	// OldKeyring is the old file name for the keyring.
 	OldKeyring = filepath.Join(appdir.UserConfig(), "age-keyring.age")
 )
 
@@ -40,7 +40,7 @@ func migrate(ctx context.Context, s backend.Storage) error {
 		}
 	}
 
-	// create a new instance so we can use decryptFile
+	// create a new instance so we can use decryptFile.
 	a, err := New()
 	if err != nil {
 		return err
@@ -59,7 +59,7 @@ func migrate(ctx context.Context, s backend.Storage) error {
 		return nil
 	}
 	if !fsutil.IsFile(OldKeyring) {
-		// nothing to do
+		// nothing to do.
 		return nil
 	}
 
@@ -76,11 +76,11 @@ func migrate(ctx context.Context, s backend.Storage) error {
 	return os.Remove(OldKeyring)
 }
 
-// Keyring is an age keyring
+// Keyring is an age keyring.
 // Deprecated: Only used for backwards compatibility. Will be removed soon.
 type Keyring []Keypair
 
-// Keypair is a public / private keypair
+// Keypair is a public / private keypair.
 // Deprecated: Only used for backwards compatibility. Will be removed soon.
 type Keypair struct {
 	Name     string `json:"name"`
@@ -101,7 +101,7 @@ func (a *Age) loadIdentitiesFromKeyring(ctx context.Context) ([]string, error) {
 		return nil, err
 	}
 
-	// remove invalid IDs
+	// remove invalid IDs.
 	valid := make([]string, 0, len(kr))
 	for _, k := range kr {
 		if k.Identity == "" {

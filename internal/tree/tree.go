@@ -8,24 +8,24 @@ import (
 	"sort"
 )
 
-// Tree is a tree
+// Tree is a tree.
 type Tree struct {
 	Nodes []*Node
 }
 
-// NewTree creates a new tree
+// NewTree creates a new tree.
 func NewTree() *Tree {
 	return &Tree{
 		Nodes: []*Node{},
 	}
 }
 
-// String returns the name of this tree
+// String returns the name of this tree.
 func (t *Tree) String() string {
 	return fmt.Sprintf("Tree<%d nodes>", len(t.Nodes))
 }
 
-// Equals compares to another tree
+// Equals compares to another tree.
 func (t *Tree) Equals(other *Tree) bool {
 	if len(t.Nodes) != len(other.Nodes) {
 		return false
@@ -40,7 +40,7 @@ func (t *Tree) Equals(other *Tree) bool {
 	return true
 }
 
-// Insert adds a new node at the right position
+// Insert adds a new node at the right position.
 func (t *Tree) Insert(node *Node) (*Node, error) {
 	pos, found := t.find(node.Name)
 	if found != nil {
@@ -72,7 +72,7 @@ func (t *Tree) find(name string) (int, *Node) {
 	return pos, nil
 }
 
-// Sort ensures this tree is sorted
+// Sort ensures this tree is sorted.
 func (t *Tree) Sort() {
 	list := Nodes(t.Nodes)
 	sort.Sort(list)

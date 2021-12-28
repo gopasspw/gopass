@@ -42,7 +42,7 @@ const (
 )
 
 var (
-	// Version is the released version of gopass
+	// Version is the released version of gopass.
 	version string
 )
 

@@ -17,7 +17,7 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-// Insert a string as content to a secret file
+// Insert a string as content to a secret file.
 func (s *Action) Insert(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	echo := c.Bool("echo")

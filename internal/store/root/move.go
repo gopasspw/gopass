@@ -153,7 +153,7 @@ func (r *Store) moveFromTo(ctx context.Context, subFrom *leaf.Store, from, to, f
 	return nil
 }
 
-// Delete will remove an single entry from the store
+// Delete will remove an single entry from the store.
 func (r *Store) Delete(ctx context.Context, name string) error {
 	store, sn := r.getStore(name)
 	if sn == "" {
@@ -162,7 +162,7 @@ func (r *Store) Delete(ctx context.Context, name string) error {
 	return store.Delete(ctx, sn)
 }
 
-// Prune will remove a subtree from the Store
+// Prune will remove a subtree from the Store.
 func (r *Store) Prune(ctx context.Context, tree string) error {
 	for mp := range r.mounts {
 		if strings.HasPrefix(mp, tree) {

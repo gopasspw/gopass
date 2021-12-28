@@ -52,7 +52,7 @@ foo/
 	assert.Equal(t, strings.TrimSpace(list), out)
 }
 
-// regression test for #1628
+// regression test for #1628.
 func TestListRegressions1628(t *testing.T) {
 	ts := newTester(t)
 	defer ts.teardown()

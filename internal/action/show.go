@@ -47,7 +47,7 @@ func showParseArgs(c *cli.Context) context.Context {
 	return ctx
 }
 
-// Show the content of a secret file
+// Show the content of a secret file.
 func (s *Action) Show(c *cli.Context) error {
 	name := c.Args().First()
 
@@ -64,7 +64,7 @@ func (s *Action) Show(c *cli.Context) error {
 	return nil
 }
 
-// show displays the given secret/key
+// show displays the given secret/key.
 func (s *Action) show(ctx context.Context, c *cli.Context, name string, recurse bool) error {
 	if name == "" {
 		return ExitError(ExitUsage, nil, "Usage: %s show [name]", s.Name)
@@ -89,7 +89,7 @@ func (s *Action) show(ctx context.Context, c *cli.Context, name string, recurse 
 	return s.showHandleOutput(ctx, name, sec)
 }
 
-// showHandleRevision displays a single revision
+// showHandleRevision displays a single revision.
 func (s *Action) showHandleRevision(ctx context.Context, c *cli.Context, name, revision string) error {
 	revision, err := s.parseRevision(ctx, name, revision)
 	if err != nil {
@@ -132,7 +132,7 @@ func (s *Action) parseRevision(ctx context.Context, name, revision string) (stri
 	return revision, nil
 }
 
-// showHandleOutput displays a secret
+// showHandleOutput displays a secret.
 func (s *Action) showHandleOutput(ctx context.Context, name string, sec gopass.Secret) error {
 	pw, body, err := s.showGetContent(ctx, sec)
 	if err != nil {
@@ -285,7 +285,7 @@ func (s *Action) hasAliasDomain(ctx context.Context, name string) string {
 	return ""
 }
 
-// showHandleError handles errors retrieving secrets
+// showHandleError handles errors retrieving secrets.
 func (s *Action) showHandleError(ctx context.Context, c *cli.Context, name string, recurse bool, err error) error {
 	if err != store.ErrNotFound || !recurse || !ctxutil.IsTerminal(ctx) {
 		if IsClip(ctx) {

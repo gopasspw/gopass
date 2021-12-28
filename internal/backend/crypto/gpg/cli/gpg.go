@@ -16,13 +16,13 @@ var (
 	// defaultArgs contains the default GPG args for non-interactive use. Note: Do not use '--batch'
 	// as this will disable (necessary) passphrase questions!
 	defaultArgs = []string{"--quiet", "--yes", "--compress-algo=none", "--no-encrypt-to", "--no-auto-check-trustdb"}
-	// Ext is the file extension used by this backend
+	// Ext is the file extension used by this backend.
 	Ext = "gpg"
-	// IDFile is the name of the recipients file used by this backend
+	// IDFile is the name of the recipients file used by this backend.
 	IDFile = ".gpg-id"
 )
 
-// GPG is a gpg wrapper
+// GPG is a gpg wrapper.
 type GPG struct {
 	binary    string
 	args      []string
@@ -32,14 +32,14 @@ type GPG struct {
 	throwKids bool
 }
 
-// Config is the gpg wrapper config
+// Config is the gpg wrapper config.
 type Config struct {
 	Binary string
 	Args   []string
 	Umask  int
 }
 
-// New creates a new GPG wrapper
+// New creates a new GPG wrapper.
 func New(ctx context.Context, cfg Config) (*GPG, error) {
 	// ensure created files don't have group or world perms set
 	// this setting should be inherited by sub-processes
@@ -80,22 +80,22 @@ func New(ctx context.Context, cfg Config) (*GPG, error) {
 	return g, nil
 }
 
-// Initialized always returns nil
+// Initialized always returns nil.
 func (g *GPG) Initialized(ctx context.Context) error {
 	return nil
 }
 
-// Name returns gpg
+// Name returns gpg.
 func (g *GPG) Name() string {
 	return "gpg"
 }
 
-// Ext returns gpg
+// Ext returns gpg.
 func (g *GPG) Ext() string {
 	return Ext
 }
 
-// IDFile returns .gpg-id
+// IDFile returns .gpg-id.
 func (g *GPG) IDFile() string {
 	return IDFile
 }
@@ -106,7 +106,7 @@ func (g *GPG) Concurrency() int {
 	return 1
 }
 
-// Binary returns the GPG binary location
+// Binary returns the GPG binary location.
 func (g *GPG) Binary() string {
 	if g == nil {
 		return ""
