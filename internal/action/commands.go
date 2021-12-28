@@ -94,6 +94,12 @@ func (s *Action) GetCommands() []*cli.Command {
 				"against a list of previously leaked passwords.",
 			Before: s.IsInitialized,
 			Action: s.Audit,
+			Flags: []cli.Flag{
+				&cli.IntFlag{
+					Name:  "expiry",
+					Usage: "Age in days before a password is considered expired. Setting this will only check expiration.",
+				},
+			},
 		},
 		{
 			Name:      "cat",
