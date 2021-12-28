@@ -786,6 +786,15 @@ func (s *Action) GetCommands() []*cli.Command {
 			},
 		},
 		{
+			Name:  "process",
+			Usage: "Process a template file",
+			Description: "" +
+				"This command processes a template file. It will read the template file " +
+				"and replace all variables with their values.",
+			Before: s.IsInitialized,
+			Action: s.Process,
+		},
+		{
 			Name:  "recipients",
 			Usage: "Edit recipient permissions",
 			Description: "" +
