@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/fatih/color"
 	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/internal/notify"
 	"github.com/gopasspw/gopass/internal/out"
@@ -16,10 +17,8 @@ import (
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/gopass"
 	"github.com/gopasspw/gopass/pkg/termio"
-	"github.com/nbutton23/zxcvbn-go"
-
-	"github.com/fatih/color"
 	"github.com/muesli/crunchy"
+	"github.com/nbutton23/zxcvbn-go"
 )
 
 // auditedSecret with its name, content a warning message and a pipeline error.

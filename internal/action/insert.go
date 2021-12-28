@@ -14,7 +14,6 @@ import (
 	"github.com/gopasspw/gopass/pkg/gopass"
 	"github.com/gopasspw/gopass/pkg/gopass/secrets"
 	"github.com/gopasspw/gopass/pkg/termio"
-
 	"github.com/urfave/cli/v2"
 )
 

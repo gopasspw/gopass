@@ -11,7 +11,6 @@ import (
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/otp"
 	"github.com/gopasspw/gopass/pkg/termio"
-
 	"github.com/mattn/go-tty"
 	"github.com/urfave/cli/v2"
 )

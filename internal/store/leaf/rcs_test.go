@@ -5,10 +5,9 @@ import (
 	"os"
 	"testing"
 
+	"github.com/blang/semver/v4"
 	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-
-	"github.com/blang/semver/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

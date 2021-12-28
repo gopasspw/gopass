@@ -8,7 +8,6 @@ import (
 
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/fsutil"
-
 	"gopkg.in/yaml.v3"
 )
 

@@ -17,7 +17,6 @@ import (
 	"github.com/gopasspw/gopass/pkg/gopass/secrets"
 	"github.com/gopasspw/gopass/pkg/pwgen/pwrules"
 	"github.com/gopasspw/gopass/pkg/qrcon"
-
 	"github.com/urfave/cli/v2"
 )
 

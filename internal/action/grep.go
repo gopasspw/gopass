@@ -4,12 +4,10 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/gopasspw/gopass/internal/tree"
-
-	"github.com/gopasspw/gopass/internal/out"
-	"github.com/gopasspw/gopass/pkg/ctxutil"
-
 	"github.com/fatih/color"
+	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/internal/tree"
+	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/urfave/cli/v2"
 )
 

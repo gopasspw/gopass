@@ -18,25 +18,23 @@ import (
 	"sort"
 	"time"
 
+	"github.com/blang/semver/v4"
+	"github.com/fatih/color"
+	ap "github.com/gopasspw/gopass/internal/action"
 	"github.com/gopasspw/gopass/internal/action/pwgen"
 	_ "github.com/gopasspw/gopass/internal/backend/crypto"
 	"github.com/gopasspw/gopass/internal/backend/crypto/gpg"
 	_ "github.com/gopasspw/gopass/internal/backend/storage"
+	"github.com/gopasspw/gopass/internal/config"
+	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/queue"
+	"github.com/gopasspw/gopass/internal/store/leaf"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/protect"
-
-	"github.com/blang/semver/v4"
-	"github.com/fatih/color"
+	"github.com/gopasspw/gopass/pkg/termio"
 	colorable "github.com/mattn/go-colorable"
 	"github.com/mattn/go-isatty"
 	"github.com/urfave/cli/v2"
-
-	ap "github.com/gopasspw/gopass/internal/action"
-	"github.com/gopasspw/gopass/internal/config"
-	"github.com/gopasspw/gopass/internal/out"
-	"github.com/gopasspw/gopass/internal/store/leaf"
-	"github.com/gopasspw/gopass/pkg/termio"
 )
 
 const (

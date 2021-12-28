@@ -8,7 +8,6 @@ import (
 	_ "github.com/gopasspw/gopass/internal/backend/crypto"
 	_ "github.com/gopasspw/gopass/internal/backend/storage"
 	"github.com/gopasspw/gopass/internal/config"
-
 	"github.com/stretchr/testify/assert"
 )
 

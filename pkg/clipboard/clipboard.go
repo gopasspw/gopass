@@ -5,11 +5,10 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/gopasspw/gopass/internal/notify"
-	"github.com/gopasspw/gopass/internal/out"
-
 	"github.com/atotto/clipboard"
 	"github.com/fatih/color"
+	"github.com/gopasspw/gopass/internal/notify"
+	"github.com/gopasspw/gopass/internal/out"
 )
 
 var (

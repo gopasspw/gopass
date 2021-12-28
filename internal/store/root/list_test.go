@@ -4,12 +4,10 @@ import (
 	"context"
 	"testing"
 
-	"github.com/gopasspw/gopass/internal/tree"
-
 	"github.com/fatih/color"
+	"github.com/gopasspw/gopass/internal/tree"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/tests/gptest"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

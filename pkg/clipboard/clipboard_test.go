@@ -10,10 +10,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/atotto/clipboard"
 	"github.com/gopasspw/gopass/internal/out"
 	ps "github.com/mitchellh/go-ps"
-
-	"github.com/atotto/clipboard"
 	"github.com/stretchr/testify/assert"
 )
 

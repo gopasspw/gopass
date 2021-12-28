@@ -2,11 +2,10 @@ package root
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"path"
 	"strings"
-
-	"errors"
 
 	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/internal/store/leaf"
