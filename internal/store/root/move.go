@@ -28,7 +28,7 @@ func (r *Store) Move(ctx context.Context, from, to string) error {
 	return r.move(ctx, from, to, true)
 }
 
-func (r *Store) move(ctx context.Context, from, to string, delete bool) error {
+func (r *Store) move(ctx context.Context, from, to string, del bool) error {
 	subFrom, fromPrefix := r.getStore(from)
 	subTo, _ := r.getStore(to)
 
@@ -38,11 +38,11 @@ func (r *Store) move(ctx context.Context, from, to string, delete bool) error {
 		return fmt.Errorf("destination is a file")
 	}
 
-	if err := r.moveFromTo(ctx, subFrom, from, to, fromPrefix, srcIsDir, dstIsDir, delete); err != nil {
+	if err := r.moveFromTo(ctx, subFrom, from, to, fromPrefix, srcIsDir, dstIsDir, del); err != nil {
 		return err
 	}
 
-	if err := subFrom.Storage().Commit(ctx, fmt.Sprintf("Move from %s to %s", from, to)); delete && err != nil {
+	if err := subFrom.Storage().Commit(ctx, fmt.Sprintf("Move from %s to %s", from, to)); del && err != nil {
 		switch {
 		case errors.Is(err, store.ErrGitNotInit):
 			debug.Log("skipping git commit - git not initialized")
@@ -99,7 +99,7 @@ func (r *Store) move(ctx context.Context, from, to string, delete bool) error {
 	return nil
 }
 
-func (r *Store) moveFromTo(ctx context.Context, subFrom *leaf.Store, from, to, fromPrefix string, srcIsDir, dstIsDir, delete bool) error {
+func (r *Store) moveFromTo(ctx context.Context, subFrom *leaf.Store, from, to, fromPrefix string, srcIsDir, dstIsDir, del bool) error {
 	ctx = ctxutil.WithGitCommit(ctx, false)
 
 	entries := []string{from}
@@ -132,7 +132,7 @@ func (r *Store) moveFromTo(ctx context.Context, subFrom *leaf.Store, from, to, f
 				dst = path.Join(to, path.Base(src))
 			}
 		}
-		debug.Log("Moving %q (%q) => %q (%q) (sid:%t, did:%t, delete:%t)\n", from, src, to, dst, srcIsDir, dstIsDir, delete)
+		debug.Log("Moving %q (%q) => %q (%q) (sid:%t, did:%t, delete:%t)\n", from, src, to, dst, srcIsDir, dstIsDir, del)
 
 		content, err := r.Get(ctx, src)
 		if err != nil {
@@ -143,7 +143,7 @@ func (r *Store) moveFromTo(ctx context.Context, subFrom *leaf.Store, from, to, f
 			return fmt.Errorf("failed to save secret %q: %w", to, err)
 		}
 
-		if delete {
+		if del {
 			debug.Log("Deleting %s from source %s", from, src)
 			if err := r.Delete(ctx, src); err != nil {
 				return fmt.Errorf("failed to delete secret %q: %w", src, err)

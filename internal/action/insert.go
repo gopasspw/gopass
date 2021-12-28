@@ -23,7 +23,7 @@ func (s *Action) Insert(c *cli.Context) error {
 	echo := c.Bool("echo")
 	multiline := c.Bool("multiline")
 	force := c.Bool("force")
-	append := c.Bool("append")
+	appending := c.Bool("append")
 
 	args, kvps := parseArgs(c)
 	name := args.Get(0)
@@ -33,10 +33,10 @@ func (s *Action) Insert(c *cli.Context) error {
 		return ExitError(ExitNoName, nil, "Usage: %s insert name", s.Name)
 	}
 
-	return s.insert(ctx, c, name, key, echo, multiline, force, append, kvps)
+	return s.insert(ctx, c, name, key, echo, multiline, force, appending, kvps)
 }
 
-func (s *Action) insert(ctx context.Context, c *cli.Context, name, key string, echo, multiline, force, append bool, kvps map[string]string) error {
+func (s *Action) insert(ctx context.Context, c *cli.Context, name, key string, echo, multiline, force, appending bool, kvps map[string]string) error {
 	var content []byte
 
 	// if content is piped to stdin, read and save it
@@ -56,10 +56,10 @@ func (s *Action) insert(ctx context.Context, c *cli.Context, name, key string, e
 	}
 
 	if ctxutil.IsStdin(ctx) {
-		if !force && !append && s.Store.Exists(ctx, name) {
+		if !force && !appending && s.Store.Exists(ctx, name) {
 			return ExitError(ExitAborted, nil, "not overwriting your current secret")
 		}
-		return s.insertStdin(ctx, name, content, append)
+		return s.insertStdin(ctx, name, content, appending)
 	}
 
 	// don't check if it's force anyway
