@@ -5,6 +5,7 @@ import (
 	"testing"
 )
 
+// nolint:ifshort
 func TestAlwaysTrust(t *testing.T) {
 	ctx := context.Background()
 

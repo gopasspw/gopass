@@ -55,7 +55,7 @@ set -A complete_gopass -- $PASS_LIST %s
 		return fmt.Errorf("can not parse command options")
 	}
 
-	var opts []string
+	opts := make([]string, 0, len(a.Commands))
 	for _, opt := range a.Commands {
 		opts = append(opts, opt.Name)
 		if len(opt.Aliases) > 0 {

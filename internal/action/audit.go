@@ -13,7 +13,6 @@ import (
 func (s *Action) Audit(c *cli.Context) error {
 	s.rem.Reset("audit")
 
-	filter := c.Args().First()
 	ctx := ctxutil.WithGlobalFlags(c)
 
 	out.Print(ctx, "Auditing passwords for common flaws ...")
@@ -22,7 +21,7 @@ func (s *Action) Audit(c *cli.Context) error {
 		return ExitError(ExitList, err, "failed to get store tree: %s", err)
 	}
 
-	if filter != "" {
+	if filter := c.Args().First(); filter != "" {
 		subtree, err := t.FindFolder(filter)
 		if err != nil {
 			return ExitError(ExitUnknown, err, "failed to find subtree: %s", err)

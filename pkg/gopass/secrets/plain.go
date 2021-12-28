@@ -106,8 +106,7 @@ func (p *Plain) Del(_ string) bool {
 // Getbuf returns everything execpt the first line
 func (p *Plain) Getbuf() string {
 	br := bufio.NewReader(bytes.NewReader(p.buf))
-	_, err := br.ReadString('\n')
-	if err != nil {
+	if _, err := br.ReadString('\n'); err != nil {
 		debug.Log("failed to discard password line: %s", err)
 		return ""
 	}

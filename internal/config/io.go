@@ -8,6 +8,7 @@ import (
 
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/fsutil"
+	"golang.org/x/exp/maps"
 	"gopkg.in/yaml.v3"
 )
 
@@ -88,10 +89,7 @@ func checkOverflow(m map[string]any) error {
 		return nil
 	}
 
-	var keys []string
-	for k := range m {
-		keys = append(keys, k)
-	}
+	keys := maps.Keys(m)
 	sort.Strings(keys)
 	return fmt.Errorf("unknown fields: %+v", keys)
 }

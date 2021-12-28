@@ -64,8 +64,7 @@ func Generate(password string, saltLen uint32) (string, error) {
 	}
 
 	salt := make([]byte, params.SaltLen)
-	_, err := rand.Read(salt)
-	if err != nil {
+	if _, err := rand.Read(salt); err != nil {
 		return "", err
 	}
 
