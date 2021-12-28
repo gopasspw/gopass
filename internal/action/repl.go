@@ -5,10 +5,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/gopasspw/gopass/internal/tree"
-
 	"github.com/chzyer/readline"
 	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/internal/tree"
 	"github.com/gopasspw/gopass/pkg/debug"
 	shellquote "github.com/kballard/go-shellquote"
 	"github.com/urfave/cli/v2"

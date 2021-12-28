@@ -7,10 +7,9 @@ import (
 	"context"
 	"os"
 
+	"github.com/godbus/dbus"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
-
-	"github.com/godbus/dbus"
 )
 
 // Notify displays a desktop notification with dbus

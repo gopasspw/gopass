@@ -13,7 +13,6 @@ import (
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/fsutil"
 	"github.com/gopasspw/gopass/pkg/termio"
-
 	"github.com/urfave/cli/v2"
 )
 

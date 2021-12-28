@@ -12,7 +12,6 @@ import (
 	"github.com/gopasspw/gopass/pkg/gopass/secrets"
 	"github.com/gopasspw/gopass/pkg/pwgen"
 	"github.com/gopasspw/gopass/pkg/termio"
-
 	"github.com/urfave/cli/v2"
 )
 

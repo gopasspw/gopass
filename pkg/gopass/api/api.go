@@ -4,13 +4,15 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/gopasspw/gopass/internal/tree"
+	// load crypto backends
+	_ "github.com/gopasspw/gopass/internal/backend/crypto"
 
-	_ "github.com/gopasspw/gopass/internal/backend/crypto"  // load crypto backends
-	_ "github.com/gopasspw/gopass/internal/backend/storage" // load storage backends
+	// load storage backends
+	_ "github.com/gopasspw/gopass/internal/backend/storage"
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/queue"
 	"github.com/gopasspw/gopass/internal/store/root"
+	"github.com/gopasspw/gopass/internal/tree"
 	"github.com/gopasspw/gopass/pkg/gopass"
 )
 

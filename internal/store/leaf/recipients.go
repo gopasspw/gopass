@@ -2,11 +2,10 @@ package leaf
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"path/filepath"
 	"strings"
-
-	"errors"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/gopasspw/gopass/internal/out"

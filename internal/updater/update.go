@@ -8,10 +8,9 @@ import (
 	"os"
 	"runtime"
 
+	"github.com/blang/semver/v4"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/debug"
-
-	"github.com/blang/semver/v4"
 )
 
 var (

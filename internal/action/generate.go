@@ -9,19 +9,17 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/gopasspw/gopass/internal/tree"
-	"github.com/gopasspw/gopass/pkg/gopass/secrets"
-
 	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/internal/tree"
 	"github.com/gopasspw/gopass/pkg/clipboard"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/gopass"
+	"github.com/gopasspw/gopass/pkg/gopass/secrets"
 	"github.com/gopasspw/gopass/pkg/pwgen"
 	"github.com/gopasspw/gopass/pkg/pwgen/pwrules"
 	"github.com/gopasspw/gopass/pkg/pwgen/xkcdgen"
 	"github.com/gopasspw/gopass/pkg/termio"
-
 	"github.com/urfave/cli/v2"
 )
 

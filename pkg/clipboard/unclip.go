@@ -5,9 +5,8 @@ import (
 	"crypto/sha256"
 	"fmt"
 
-	"github.com/gopasspw/gopass/internal/notify"
-
 	"github.com/atotto/clipboard"
+	"github.com/gopasspw/gopass/internal/notify"
 )
 
 // Clear will attempt to erase the clipboard

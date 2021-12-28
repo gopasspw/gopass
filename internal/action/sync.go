@@ -5,16 +5,14 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/gopasspw/gopass/internal/tree"
-
+	"github.com/fatih/color"
 	"github.com/gopasspw/gopass/internal/diff"
 	"github.com/gopasspw/gopass/internal/notify"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
+	"github.com/gopasspw/gopass/internal/tree"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
-
-	"github.com/fatih/color"
 	"github.com/urfave/cli/v2"
 )
 

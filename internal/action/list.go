@@ -9,15 +9,13 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/gopasspw/gopass/internal/store/leaf"
-
 	"github.com/fatih/color"
+	"github.com/gopasspw/gopass/internal/store/leaf"
 	"github.com/gopasspw/gopass/internal/tree"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"golang.org/x/term"
-
 	shellquote "github.com/kballard/go-shellquote"
 	"github.com/urfave/cli/v2"
+	"golang.org/x/term"
 )
 
 // List all secrets as a tree. If the filter argument is non-empty

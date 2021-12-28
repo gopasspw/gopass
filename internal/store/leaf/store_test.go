@@ -9,12 +9,10 @@ import (
 	"testing"
 
 	"github.com/gopasspw/gopass/internal/backend"
-	"github.com/gopasspw/gopass/pkg/gopass/secrets"
-
 	_ "github.com/gopasspw/gopass/internal/backend/crypto"
 	"github.com/gopasspw/gopass/internal/backend/crypto/plain"
 	_ "github.com/gopasspw/gopass/internal/backend/storage"
-
+	"github.com/gopasspw/gopass/pkg/gopass/secrets"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

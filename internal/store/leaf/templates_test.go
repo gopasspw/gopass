@@ -5,9 +5,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/gopasspw/gopass/internal/backend"
-
 	"github.com/fatih/color"
+	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

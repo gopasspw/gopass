@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/blang/semver/v4"
 	"github.com/gopasspw/gopass/internal/backend"
 	git "github.com/gopasspw/gopass/internal/backend/storage/gitfs"
 	"github.com/gopasspw/gopass/internal/config"
@@ -14,8 +15,6 @@ import (
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/termio"
 	"github.com/gopasspw/gopass/tests/gptest"
-
-	"github.com/blang/semver/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
