@@ -28,6 +28,8 @@ func (r *Store) Move(ctx context.Context, from, to string) error {
 	return r.move(ctx, from, to, true)
 }
 
+// move handles both copy and move operations. Since the only difference is
+// deleting the source entry after the copy, we can reuse the same code.
 func (r *Store) move(ctx context.Context, from, to string, del bool) error {
 	subFrom, fromPrefix := r.getStore(from)
 	subTo, _ := r.getStore(to)
@@ -78,24 +80,25 @@ func (r *Store) move(ctx context.Context, from, to string, del bool) error {
 		return fmt.Errorf("failed to push change to git remote: %w", err)
 	}
 
-	if !subFrom.Equals(subTo) {
-		if err := subTo.Storage().Push(ctx, "", ""); err != nil {
-			if errors.Is(err, store.ErrGitNotInit) {
-				msg := "Warning: git is not initialized for this storage. Ignoring auto-push option\n" +
-					"Run: gopass git init"
-				debug.Log(msg)
-				return nil
-			}
-			if errors.Is(err, store.ErrGitNoRemote) {
-				msg := "Warning: git has no remote. Ignoring auto-push option\n" +
-					"Run: gopass git remote add origin ..."
-				debug.Log(msg)
-				return nil
-			}
-			return fmt.Errorf("failed to push change to git remote: %w", err)
-		}
+	if subFrom.Equals(subTo) {
+		return nil
 	}
 
+	if err := subTo.Storage().Push(ctx, "", ""); err != nil {
+		if errors.Is(err, store.ErrGitNotInit) {
+			msg := "Warning: git is not initialized for this storage. Ignoring auto-push option\n" +
+				"Run: gopass git init"
+			debug.Log(msg)
+			return nil
+		}
+		if errors.Is(err, store.ErrGitNoRemote) {
+			msg := "Warning: git has no remote. Ignoring auto-push option\n" +
+				"Run: gopass git remote add origin ..."
+			debug.Log(msg)
+			return nil
+		}
+		return fmt.Errorf("failed to push change to git remote: %w", err)
+	}
 	return nil
 }
 
@@ -153,7 +156,7 @@ func (r *Store) moveFromTo(ctx context.Context, subFrom *leaf.Store, from, to, f
 	return nil
 }
 
-// Delete will remove an single entry from the store
+// Delete will remove an single entry from the store.
 func (r *Store) Delete(ctx context.Context, name string) error {
 	store, sn := r.getStore(name)
 	if sn == "" {
@@ -162,7 +165,7 @@ func (r *Store) Delete(ctx context.Context, name string) error {
 	return store.Delete(ctx, sn)
 }
 
-// Prune will remove a subtree from the Store
+// Prune will remove a subtree from the Store.
 func (r *Store) Prune(ctx context.Context, tree string) error {
 	for mp := range r.mounts {
 		if strings.HasPrefix(mp, tree) {

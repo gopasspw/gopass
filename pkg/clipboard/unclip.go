@@ -4,11 +4,10 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/atotto/clipboard"
 	"github.com/gopasspw/gopass/internal/notify"
 	"github.com/gopasspw/gopass/internal/pwschemes/argon2id"
 	"github.com/gopasspw/gopass/pkg/debug"
-
-	"github.com/atotto/clipboard"
 )
 
 // Clear will attempt to erase the clipboard

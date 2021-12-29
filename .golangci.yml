@@ -13,7 +13,7 @@ linters:
         - asciicheck
         - forcetypeassert
         - gci
-        - gocyclo
+        # - gocyclo # need to refactor internal/create/wizard
         - gofmt
         - goimports
         - gomoddirectives
@@ -26,18 +26,10 @@ linters:
         - nolintlint
         - prealloc
         - predeclared
-    ## These are working but disabled for now
-          ##  - dogsled # two occurences we cannot really correct
-          ##  - dupl # some dups in tests
-          ##  - gochecknoinits # we use a lot of init
-          ##  - goconst # annoying?
-          ##  - godot # annoying?
-          ##  - godox # we have a few todo...
-          ##  - nestif # some work to refactor
-          ##  - paralleltest # lots of work to pass
-          ##  - revive # currently a bit buggy with Go 1.18 but works mostly
-          ##  - tagliatelle # requires some refactoring
-          ##  - testpackage # complains for a lot of packages
+        - nestif
+        ## These are working but disabled for now
+        # - nestif # some work to refactor
+        # - revive # currently a bit buggy with Go 1.18 but works mostly
 
 ## To enable once they work with Go 1.18:
 ###  - deadcode
