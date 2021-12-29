@@ -173,14 +173,14 @@ func (s *Action) showHandleOutput(ctx context.Context, name string, sec gopass.S
 		out.Print(ctx, header)
 	}
 
-	// output the actual secret, newlines are handled by ctx and Print
+	// output the actual secret, newlines are handled by ctx and Print.
 	out.Print(ctx, out.Secret(body))
 
 	return nil
 }
 
 func (s *Action) showGetContent(ctx context.Context, sec gopass.Secret) (string, string, error) {
-	// YAML key
+	// YAML key.
 	if HasKey(ctx) && ctxutil.IsShowParsing(ctx) {
 		key := GetKey(ctx)
 		values, found := sec.Values(key)
@@ -195,10 +195,10 @@ func (s *Action) showGetContent(ctx context.Context, sec gopass.Secret) (string,
 	}
 
 	pw := sec.Password()
-	// fallback for old MIME secrets
+	// fallback for old MIME secrets.
 	fullBody := strings.TrimPrefix(string(sec.Bytes()), secrets.Ident+"\n")
 
-	// first line of the secret only
+	// first line of the secret only.
 	if IsPrintQR(ctx) || IsOnlyClip(ctx) {
 		return pw, "", nil
 	}
@@ -206,38 +206,43 @@ func (s *Action) showGetContent(ctx context.Context, sec gopass.Secret) (string,
 		return pw, pw, nil
 	}
 
-	// everything but the first line
+	// everything but the first line.
 	if ctxutil.IsShowSafeContent(ctx) && !ctxutil.IsForce(ctx) {
-		var sb strings.Builder
-		for i, k := range sec.Keys() {
-			sb.WriteString(k)
-			sb.WriteString(": ")
-			// check if this key should be obstructed
-			if isUnsafeKey(k, sec) {
-				debug.Log("obstructing unsafe key %s", k)
-				sb.WriteString(randAsterisk())
-			} else {
-				v, found := sec.Values(k)
-				if !found {
-					continue
-				}
-				sb.WriteString(strings.Join(v, "\n"+k+": "))
-			}
-			// we only add a final new line if the body is non-empty
-			if sec.Body() != "" || i < len(sec.Keys())-1 {
-				sb.WriteString("\n")
-			}
-		}
-
-		sb.WriteString(sec.Body())
+		body := showSafeContent(ctx, sec)
 		if IsAlsoClip(ctx) {
-			return pw, sb.String(), nil
+			return pw, body, nil
 		}
-		return "", sb.String(), nil
+		return "", body, nil
 	}
 
-	// everything (default)
+	// everything (default).
 	return sec.Password(), fullBody, nil
+}
+
+func showSafeContent(ctx context.Context, sec gopass.Secret) string {
+	var sb strings.Builder
+	for i, k := range sec.Keys() {
+		sb.WriteString(k)
+		sb.WriteString(": ")
+		// check if this key should be obstructed.
+		if isUnsafeKey(k, sec) {
+			debug.Log("obstructing unsafe key %s", k)
+			sb.WriteString(randAsterisk())
+		} else {
+			v, found := sec.Values(k)
+			if !found {
+				continue
+			}
+			sb.WriteString(strings.Join(v, "\n"+k+": "))
+		}
+		// we only add a final new line if the body is non-empty.
+		if sec.Body() != "" || i < len(sec.Keys())-1 {
+			sb.WriteString("\n")
+		}
+	}
+
+	sb.WriteString(sec.Body())
+	return sb.String()
 }
 
 func isUnsafeKey(key string, sec gopass.Secret) bool {
@@ -264,7 +269,7 @@ func isUnsafeKey(key string, sec gopass.Secret) bool {
 }
 
 func randAsterisk() string {
-	// we could also have a random number of asterisks but testing becomes painful
+	// we could also have a random number of asterisks but testing becomes painful.
 	return strings.Repeat("*", 5)
 }
 

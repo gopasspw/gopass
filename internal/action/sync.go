@@ -6,10 +6,12 @@ import (
 	"fmt"
 
 	"github.com/fatih/color"
+	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/internal/diff"
 	"github.com/gopasspw/gopass/internal/notify"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
+	"github.com/gopasspw/gopass/internal/store/leaf"
 	"github.com/gopasspw/gopass/internal/tree"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
@@ -33,7 +35,7 @@ func (s *Action) sync(ctx context.Context, store string) error {
 	mps := s.Store.MountPoints()
 	mps = append([]string{""}, mps...)
 
-	// sync all stores (root and all mounted sub stores)
+	// sync all stores (root and all mounted sub stores).
 	for _, mp := range mps {
 		if store != "" {
 			if store != "root" && mp != store {
@@ -50,7 +52,7 @@ func (s *Action) sync(ctx context.Context, store string) error {
 	out.OKf(ctx, "All done")
 
 	// Calculate number of changed entries.
-	// This is a rough estimate as additions and deletions
+	// This is a rough estimate as additions and deletions.
 	// might cancel each other out.
 	if l, err := s.Store.Tree(ctx); err == nil {
 		numEntries = len(l.List(tree.INF)) - numEntries
@@ -91,76 +93,86 @@ func (s *Action) syncMount(ctx context.Context, mp string) error {
 		out.Errorf(ctx, "Failed to list store: %s", err)
 	}
 
-	// TODO: Remove this hard coded check
-	if sub.Storage().Name() == "fs" {
-		out.Printf(ctxno, "\n   WARNING: Mount uses Storage backend 'fs'. Not syncing!\n")
-	} else {
-		out.Printf(ctxno, "\n   "+color.GreenString("git pull and push ... "))
-		if err := sub.Storage().Push(ctx, "", ""); err != nil {
-			if errors.Is(err, store.ErrGitNoRemote) {
-				out.Printf(ctx, "Skipped (no remote)")
-				debug.Log("Failed to push %q to its remote: %s", name, err)
-				return err
-			}
-
-			out.Errorf(ctx, "Failed to push %q to its remote: %s", name, err)
-			return err
-		}
+	out.Printf(ctxno, "\n   "+color.GreenString("git pull and push ... "))
+	err = sub.Storage().Push(ctx, "", "")
+	switch {
+	case err == nil:
 		out.Printf(ctxno, color.GreenString("OK"))
-
-		ln, err := sub.List(ctx, "")
-		if err != nil {
-			out.Errorf(ctx, "Failed to list store: %s", err)
-		}
-
-		added, removed := diff.Stat(l, ln)
-		debug.Log("diff - added: %d - removed: %d", added, removed)
-		if added > 0 {
-			out.Printf(ctxno, color.GreenString(" (Added %d entries)", added))
-		}
-		if removed > 0 {
-			out.Printf(ctxno, color.GreenString(" (Removed %d entries)", removed))
-		}
-		if added < 1 && removed < 1 {
-			out.Printf(ctxno, color.GreenString(" (no changes)"))
-		}
+	case errors.Is(err, store.ErrGitNoRemote):
+		out.Printf(ctxno, "Skipped (no remote)")
+		debug.Log("Failed to push %q to its remote: %s", name, err)
+		return err
+	case errors.Is(err, backend.ErrNotSupported):
+		out.Printf(ctxno, "Skipped (not supported)")
+	case errors.Is(err, store.ErrGitNotInit):
+		out.Printf(ctxno, "Skipped (no Git repo)")
+	default: // any other error
+		out.Errorf(ctxno, "Failed to push %q to its remote: %s", name, err)
+		return err
 	}
+
+	ln, err := sub.List(ctx, "")
+	if err != nil {
+		out.Errorf(ctx, "Failed to list store: %s", err)
+	}
+	syncPrintDiff(ctxno, l, ln)
 
 	debug.Log("Syncing Mount %s. Exportkeys: %t", mp, ctxutil.IsExportKeys(ctx))
-	var exported bool
 	if ctxutil.IsExportKeys(ctx) {
-		// import keys
-		out.Printf(ctxno, "\n   "+color.GreenString("importing missing keys ... "))
-		if err := sub.ImportMissingPublicKeys(ctx); err != nil {
-			out.Errorf(ctx, "Failed to import missing public keys for %q: %s", name, err)
+		if err := syncExportKeys(ctxno, sub, name); err != nil {
 			return err
 		}
-		out.Printf(ctxno, color.GreenString("OK"))
-
-		// export keys
-		out.Printf(ctxno, "\n   "+color.GreenString("exporting missing keys ... "))
-		rs, err := sub.GetRecipients(ctx, "")
-		if err != nil {
-			out.Errorf(ctx, "Failed to load recipients for %q: %s", name, err)
-			return err
-		}
-		exported, err = sub.ExportMissingPublicKeys(ctx, rs)
-		if err != nil {
-			out.Errorf(ctx, "Failed to export missing public keys for %q: %s", name, err)
-			return err
-		}
-	}
-
-	// only run second push if we did export any keys
-	if exported {
-		if err := sub.Storage().Push(ctx, "", ""); err != nil {
-			out.Errorf(ctx, "Failed to push %q to its remote: %s", name, err)
-			return err
-		}
-		out.Printf(ctxno, color.GreenString("OK"))
-	} else {
-		out.Printf(ctxno, color.GreenString("nothing to do"))
 	}
 	out.Printf(ctx, "\n   "+color.GreenString("done"))
 	return nil
+}
+
+func syncExportKeys(ctx context.Context, sub *leaf.Store, name string) error {
+	// import keys.
+	out.Printf(ctx, "\n   "+color.GreenString("importing missing keys ... "))
+	if err := sub.ImportMissingPublicKeys(ctx); err != nil {
+		out.Errorf(ctx, "Failed to import missing public keys for %q: %s", name, err)
+		return err
+	}
+	out.Printf(ctx, color.GreenString("OK"))
+
+	// export keys.
+	out.Printf(ctx, "\n   "+color.GreenString("exporting missing keys ... "))
+	rs, err := sub.GetRecipients(ctx, "")
+	if err != nil {
+		out.Errorf(ctx, "Failed to load recipients for %q: %s", name, err)
+		return err
+	}
+	exported, err := sub.ExportMissingPublicKeys(ctx, rs)
+	if err != nil {
+		out.Errorf(ctx, "Failed to export missing public keys for %q: %s", name, err)
+		return err
+	}
+
+	// only run second push if we did export any keys.
+	if !exported {
+		out.Printf(ctx, color.GreenString("nothing to do"))
+		return nil
+	}
+
+	if err := sub.Storage().Push(ctx, "", ""); err != nil {
+		out.Errorf(ctx, "Failed to push %q to its remote: %s", name, err)
+		return err
+	}
+	out.Printf(ctx, color.GreenString("OK"))
+	return nil
+}
+
+func syncPrintDiff(ctxno context.Context, l, r []string) {
+	added, removed := diff.Stat(l, r)
+	debug.Log("diff - added: %d - removed: %d", added, removed)
+	if added > 0 {
+		out.Printf(ctxno, color.GreenString(" (Added %d entries)", added))
+	}
+	if removed > 0 {
+		out.Printf(ctxno, color.GreenString(" (Removed %d entries)", removed))
+	}
+	if added < 1 && removed < 1 {
+		out.Printf(ctxno, color.GreenString(" (no changes)"))
+	}
 }

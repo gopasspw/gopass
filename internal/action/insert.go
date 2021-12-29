@@ -39,7 +39,7 @@ func (s *Action) Insert(c *cli.Context) error {
 func (s *Action) insert(ctx context.Context, c *cli.Context, name, key string, echo, multiline, force, appending bool, kvps map[string]string) error {
 	var content []byte
 
-	// if content is piped to stdin, read and save it
+	// if content is piped to stdin, read and save it.
 	if ctxutil.IsStdin(ctx) {
 		buf := &bytes.Buffer{}
 
@@ -50,7 +50,7 @@ func (s *Action) insert(ctx context.Context, c *cli.Context, name, key string, e
 		content = buf.Bytes()
 	}
 
-	// update to a single YAML entry
+	// update to a single YAML entry.
 	if key != "" {
 		return s.insertYAML(ctx, name, key, content, kvps)
 	}
@@ -62,17 +62,17 @@ func (s *Action) insert(ctx context.Context, c *cli.Context, name, key string, e
 		return s.insertStdin(ctx, name, content, appending)
 	}
 
-	// don't check if it's force anyway
+	// don't check if it's force anyway.
 	if !force && s.Store.Exists(ctx, name) && !termio.AskForConfirmation(ctx, fmt.Sprintf("An entry already exists for %s. Overwrite it?", name)) {
 		return ExitError(ExitAborted, nil, "not overwriting your current secret")
 	}
 
-	// if multi-line input is requested start an editor
+	// if multi-line input is requested start an editor.
 	if multiline && ctxutil.IsInteractive(ctx) {
 		return s.insertMultiline(ctx, c, name)
 	}
 
-	// if echo mode is requested use a simple string input function
+	// if echo mode is requested use a simple string input function.
 	if echo {
 		ctx = termio.WithPassPromptFunc(ctx, func(ctx context.Context, prompt string) (string, error) {
 			return termio.AskForString(ctx, prompt, "")
@@ -90,21 +90,11 @@ func (s *Action) insert(ctx context.Context, c *cli.Context, name, key string, e
 func (s *Action) insertStdin(ctx context.Context, name string, content []byte, appendTo bool) error {
 	var sec gopass.Secret
 	if appendTo && s.Store.Exists(ctx, name) {
-		eSec, err := s.Store.Get(ctx, name)
+		var err error
+		sec, err = s.insertStdinAppend(ctx, name, content)
 		if err != nil {
-			return ExitError(ExitDecrypt, err, "failed to decrypt existing secret: %s", err)
+			return err
 		}
-
-		secW, ok := eSec.(io.Writer)
-		if !ok {
-			return fmt.Errorf("%T is not an io.Writer", eSec)
-		}
-		if _, err := secW.Write(content); err != nil {
-			return ExitError(ExitEncrypt, err, "failed to write %q: %q", content, err)
-		}
-
-		debug.Log("wrote to secretWriter")
-		sec = eSec
 	} else {
 		plain := &secrets.Plain{}
 		if n, err := plain.Write(content); err != nil || n < 0 {
@@ -121,29 +111,33 @@ func (s *Action) insertStdin(ctx context.Context, name string, content []byte, a
 	return nil
 }
 
+func (s *Action) insertStdinAppend(ctx context.Context, name string, content []byte) (gopass.Secret, error) {
+	eSec, err := s.Store.Get(ctx, name)
+	if err != nil {
+		return nil, ExitError(ExitDecrypt, err, "failed to decrypt existing secret: %s", err)
+	}
+
+	secW, ok := eSec.(io.Writer)
+	if !ok {
+		return nil, fmt.Errorf("%T is not an io.Writer", eSec)
+	}
+	if _, err := secW.Write(content); err != nil {
+		return nil, ExitError(ExitEncrypt, err, "failed to write %q: %q", content, err)
+	}
+
+	debug.Log("wrote to secretWriter")
+	return eSec, nil
+}
+
 func (s *Action) insertSingle(ctx context.Context, name, pw string, kvps map[string]string) error {
-	var sec gopass.Secret
-	sec = secrets.New()
-	if s.Store.Exists(ctx, name) {
-		gs, err := s.Store.Get(ctx, name)
-		if err != nil {
-			return ExitError(ExitDecrypt, err, "failed to decrypt existing secret: %s", err)
-		}
-		sec = gs
-	} else {
-		if content, found := s.renderTemplate(ctx, name, []byte(pw)); found {
-			nSec := &secrets.Plain{}
-			if _, err := nSec.Write(content); err == nil {
-				sec = nSec
-			} else {
-				debug.Log("failed to handle template: %s", err)
-			}
-		}
+	sec, err := s.insertGetSecret(ctx, name, pw)
+	if err != nil {
+		return err
 	}
 
 	setMetadata(sec, kvps)
 
-	// we only update the pw if the kvps were not set or if it's non-empty, because otherwise we were updating the kvps
+	// we only update the pw if the kvps were not set or if it's non-empty, because otherwise we were updating the kvps.
 	if pw != "" || len(kvps) == 0 {
 		sec.SetPassword(pw)
 		audit.Single(ctx, pw)
@@ -153,6 +147,31 @@ func (s *Action) insertSingle(ctx context.Context, name, pw string, kvps map[str
 		return ExitError(ExitEncrypt, err, "failed to write secret %q: %s", name, err)
 	}
 	return nil
+}
+
+func (s *Action) insertGetSecret(ctx context.Context, name, pw string) (gopass.Secret, error) {
+	if s.Store.Exists(ctx, name) {
+		sec, err := s.Store.Get(ctx, name)
+		if err != nil {
+			return nil, ExitError(ExitDecrypt, err, "failed to decrypt existing secret: %s", err)
+		}
+		return sec, nil
+	}
+
+	content, found := s.renderTemplate(ctx, name, []byte(pw))
+	// no template found
+	if !found {
+		return secrets.New(), nil
+	}
+
+	// render template into a new secret
+	sec := &secrets.Plain{}
+	if _, err := sec.Write(content); err != nil {
+		debug.Log("failed to handle template: %s", err)
+		return secrets.New(), nil
+	}
+
+	return sec, nil
 }
 
 func (s *Action) insertYAML(ctx context.Context, name, key string, content []byte, kvps map[string]string) error {

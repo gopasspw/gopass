@@ -13,7 +13,7 @@ linters:
         - asciicheck
         - forcetypeassert
         - gci
-        #- gocyclo # need to refactor internal/create/wizard
+        # - gocyclo # need to refactor internal/create/wizard
         - gofmt
         - goimports
         - gomoddirectives

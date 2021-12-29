@@ -51,20 +51,21 @@ type Storage interface {
 
 // DetectStorage tries to detect the storage backend being used.
 func DetectStorage(ctx context.Context, path string) (Storage, error) {
-	if HasStorageBackend(ctx) {
-		if be, err := StorageRegistry.Get(GetStorageBackend(ctx)); err == nil {
-			st, err := be.New(ctx, path)
-			if err == nil {
-				return st, nil
-			}
-			be, err := StorageRegistry.Get(FS)
-			if err != nil {
-				return nil, err
-			}
-			return be.Init(ctx, path)
+	// The call to HasStorageBackend is important since GetStorageBackend will always return FS
+	// if nothing is found in the context.
+	if be, err := StorageRegistry.Get(GetStorageBackend(ctx)); HasStorageBackend(ctx) && err == nil {
+		st, err := be.New(ctx, path)
+		if err == nil {
+			return st, nil
 		}
+		be, err := StorageRegistry.Get(FS)
+		if err != nil {
+			return nil, err
+		}
+		return be.Init(ctx, path)
 	}
 
+	// Nothing requested in the context. Try to detect the backend.
 	for _, be := range StorageRegistry.Prioritized() {
 		debug.Log("Trying %s for %s", be, path)
 		if err := be.Handles(ctx, path); err != nil {
