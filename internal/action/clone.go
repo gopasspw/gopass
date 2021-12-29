@@ -16,7 +16,7 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-// Clone will fetch and mount a new password store from a git repo
+// Clone will fetch and mount a new password store from a git repo.
 func (s *Action) Clone(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	if c.IsSet("crypto") {
@@ -28,7 +28,7 @@ func (s *Action) Clone(c *cli.Context) error {
 		return ExitError(ExitUsage, nil, "Usage: %s clone repo [mount]", s.Name)
 	}
 
-	// gopass clone [--crypto=foo] [--path=/some/store] git://foo/bar team0
+	// gopass clone [--crypto=foo] [--path=/some/store] git://foo/bar team0.
 	repo := c.Args().Get(0)
 	mount := ""
 	if c.Args().Len() > 1 {
@@ -63,40 +63,40 @@ func (s *Action) clone(ctx context.Context, repo, mount, path string) error {
 		return ExitError(ExitAlreadyInitialized, nil, "Can not clone %s to the root store, as this store is already initialized. Please try cloning to a submount: `%s clone %s sub`", repo, s.Name, repo)
 	}
 
-	// make sure the parent directory exists
+	// make sure the parent directory exists.
 	if parentPath := filepath.Dir(path); !fsutil.IsDir(parentPath) {
 		if err := os.MkdirAll(parentPath, 0700); err != nil {
 			return ExitError(ExitUnknown, err, "Failed to create parent directory for clone: %s", err)
 		}
 	}
 
-	// clone repo
+	// clone repo.
 	out.Noticef(ctx, "Cloning git repository %q to %q ...", repo, path)
 	if _, err := backend.Clone(ctx, storageBackendOrDefault(ctx), repo, path); err != nil {
 		return ExitError(ExitGit, err, "failed to clone repo %q to %q: %s", repo, path, err)
 	}
 
-	// add mount
+	// add mount.
 	debug.Log("Mounting cloned repo %q at %q", path, mount)
 	if err := s.cloneAddMount(ctx, mount, path); err != nil {
 		return err
 	}
 
-	// save new mount in config file
+	// save new mount in config file.
 	if err := s.cfg.Save(); err != nil {
 		return ExitError(ExitIO, err, "Failed to update config: %s", err)
 	}
 
-	// try to init git config
+	// try to init git config.
 	out.Notice(ctx, "Configuring git repository ...")
 
-	// ask for git config values
+	// ask for git config values.
 	username, email, err := s.cloneGetGitConfig(ctx, mount)
 	if err != nil {
 		return err
 	}
 
-	// initialize git config
+	// initialize git config.
 	if err := s.Store.RCSInitConfig(ctx, mount, username, email); err != nil {
 		debug.Log("Stacktrace: %+v\n", err)
 		out.Errorf(ctx, "Failed to configure git: %s", err)
@@ -131,8 +131,8 @@ func (s *Action) cloneAddMount(ctx context.Context, mount, path string) error {
 
 func (s *Action) cloneGetGitConfig(ctx context.Context, name string) (string, string, error) {
 	out.Printf(ctx, "🎩 Gathering information for the git repository ...")
-	// for convenience, set defaults to user-selected values from available private keys
-	// NB: discarding returned error since this is merely a best-effort look-up for convenience
+	// for convenience, set defaults to user-selected values from available private keys.
+	// NB: discarding returned error since this is merely a best-effort look-up for convenience.
 	username, email, _ := cui.AskForGitConfigUser(ctx, s.Store.Crypto(ctx, name))
 	if username == "" {
 		username = termio.DetectName(ctx, nil)

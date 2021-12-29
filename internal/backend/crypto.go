@@ -8,15 +8,15 @@ import (
 	"github.com/gopasspw/gopass/pkg/debug"
 )
 
-// CryptoBackend is a cryptographic backend
+// CryptoBackend is a cryptographic backend.
 type CryptoBackend int
 
 const (
-	// Plain is a no-op crypto backend
+	// Plain is a no-op crypto backend.
 	Plain CryptoBackend = iota
-	// GPGCLI is a gpg-cli based crypto backend
+	// GPGCLI is a gpg-cli based crypto backend.
 	GPGCLI
-	// Age - age-encryption.org
+	// Age - age-encryption.org.
 	Age
 )
 
@@ -27,7 +27,7 @@ func (c CryptoBackend) String() string {
 	return ""
 }
 
-// Keyring is a public/private key manager
+// Keyring is a public/private key manager.
 type Keyring interface {
 	ListRecipients(ctx context.Context) ([]string, error)
 	ListIdentities(ctx context.Context) ([]string, error)
@@ -42,7 +42,7 @@ type Keyring interface {
 	GenerateIdentity(ctx context.Context, name, email, passphrase string) error
 }
 
-// Crypto is a crypto backend
+// Crypto is a crypto backend.
 type Crypto interface {
 	Keyring
 
@@ -53,8 +53,8 @@ type Crypto interface {
 	Name() string
 	Version(context.Context) semver.Version
 	Initialized(ctx context.Context) error
-	Ext() string    // filename extension
-	IDFile() string // recipient IDs
+	Ext() string    // filename extension.
+	IDFile() string // recipient IDs.
 	Concurrency() int
 }
 
@@ -66,7 +66,7 @@ func NewCrypto(ctx context.Context, id CryptoBackend) (Crypto, error) {
 	return nil, fmt.Errorf("unknown backend %d: %w", id, ErrNotFound)
 }
 
-// DetectCrypto tries to detect the crypto backend used
+// DetectCrypto tries to detect the crypto backend used.
 func DetectCrypto(ctx context.Context, storage Storage) (Crypto, error) {
 	if HasCryptoBackend(ctx) {
 		if be, err := CryptoRegistry.Get(GetCryptoBackend(ctx)); err == nil {

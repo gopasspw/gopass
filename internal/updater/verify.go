@@ -13,10 +13,14 @@ import (
 	"golang.org/x/crypto/openpgp"
 )
 
+// To generate the private key use:
+// ```
 // gpg --expert --full-generate-key
 // (1) RSA
 // 3072
 // 2y
+// ```
+//.
 var pubkey = []byte(`
 -----BEGIN PGP PUBLIC KEY BLOCK-----
 
@@ -96,7 +100,7 @@ func gpgVerify(data, sig []byte) (bool, error) {
 	return true, nil
 }
 
-// retrieve the hash for the given filename from a checksum file
+// retrieve the hash for the given filename from a checksum file.
 func findHashForFile(buf []byte, filename string) ([]byte, error) {
 	s := bufio.NewScanner(bytes.NewReader(buf))
 	for s.Scan() {

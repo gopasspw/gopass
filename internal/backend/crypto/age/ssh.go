@@ -16,7 +16,7 @@ var (
 	sshCache map[string]age.Identity
 )
 
-// getSSHIdentities returns all SSH identities available for the current user
+// getSSHIdentities returns all SSH identities available for the current user.
 func (a *Age) getSSHIdentities(ctx context.Context) (map[string]age.Identity, error) {
 	if sshCache != nil {
 		return sshCache, nil
@@ -48,7 +48,7 @@ func (a *Age) getSSHIdentities(ctx context.Context) (map[string]age.Identity, er
 	return ids, nil
 }
 
-// parseSSHIdentity parses a SSH public key file and returns the recipient and the identity
+// parseSSHIdentity parses a SSH public key file and returns the recipient and the identity.
 func (a *Age) parseSSHIdentity(ctx context.Context, pubFn string) (string, age.Identity, error) {
 	privFn := strings.TrimSuffix(pubFn, ".pub")
 	_, err := os.Stat(privFn)
@@ -70,7 +70,7 @@ func (a *Age) parseSSHIdentity(ctx context.Context, pubFn string) (string, age.I
 	recp := strings.TrimSuffix(string(ssh.MarshalAuthorizedKey(pubkey)), "\n")
 	id, err := agessh.ParseIdentity(privBuf)
 	if err != nil {
-		// handle encrypted SSH identities here
+		// handle encrypted SSH identities here.
 		if _, ok := err.(*ssh.PassphraseMissingError); ok {
 			id, err := agessh.NewEncryptedSSHIdentity(pubkey, privBuf, func() ([]byte, error) {
 				return ctxutil.GetPasswordCallback(ctx)(pubFn, false)

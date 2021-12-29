@@ -9,7 +9,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/debug"
 )
 
-// Decrypt will try to decrypt the given file
+// Decrypt will try to decrypt the given file.
 func (g *GPG) Decrypt(ctx context.Context, ciphertext []byte) ([]byte, error) {
 	args := append(g.args, "--decrypt")
 	cmd := exec.CommandContext(ctx, g.binary, args...)

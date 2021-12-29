@@ -21,14 +21,14 @@ const (
 	ctxKeyQueue contextKey = iota
 )
 
-// Queuer is a queue interface
+// Queuer is a queue interface.
 type Queuer interface {
 	Add(Task) Task
 	Wait(context.Context) error
 	Idle(time.Duration) error
 }
 
-// WithQueue adds the given queue to the context
+// WithQueue adds the given queue to the context.
 func WithQueue(ctx context.Context, q *Queue) context.Context {
 	return context.WithValue(ctx, ctxKeyQueue, q)
 }
@@ -44,31 +44,31 @@ func GetQueue(ctx context.Context) Queuer {
 
 type noop struct{}
 
-// Add always returns the task
+// Add always returns the task.
 func (n *noop) Add(t Task) Task {
 	return t
 }
 
-// Wait always returns nil
+// Wait always returns nil.
 func (n *noop) Wait(_ context.Context) error {
 	return nil
 }
 
-// Idle always returns nil
+// Idle always returns nil.
 func (n *noop) Idle(_ time.Duration) error {
 	return nil
 }
 
-// Task is a background task
+// Task is a background task.
 type Task func(ctx context.Context) error
 
-// Queue is a serialized background processing unit
+// Queue is a serialized background processing unit.
 type Queue struct {
 	work chan Task
 	done chan struct{}
 }
 
-// New creates a new queue
+// New creates a new queue.
 func New(ctx context.Context) *Queue {
 	q := &Queue{
 		work: make(chan Task, 1024),
@@ -89,14 +89,14 @@ func (q *Queue) run(ctx context.Context) {
 	q.done <- struct{}{}
 }
 
-// Add enqueues a new task
+// Add enqueues a new task.
 func (q *Queue) Add(t Task) Task {
 	q.work <- t
 	debug.Log("enqueued task")
 	return func(_ context.Context) error { return nil }
 }
 
-// Idle returns nil the next time the queue is empty
+// Idle returns nil the next time the queue is empty.
 func (q *Queue) Idle(maxWait time.Duration) error {
 	done := make(chan struct{})
 	go func() {
@@ -117,7 +117,7 @@ func (q *Queue) Idle(maxWait time.Duration) error {
 
 // Wait waits for all tasks to be processed. Must only be called once on
 // shutdown.
-// TODO: This should be called Close
+// TODO: This should be called Close.
 func (q *Queue) Wait(ctx context.Context) error {
 	close(q.work)
 	select {

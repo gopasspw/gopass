@@ -6,7 +6,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// gpg -u 0x2F752B2CA00248FC --armor --output testdata.sig --detach-sign testdata
+// To generate use:
+// `gpg -u 0x2F752B2CA00248FC --armor --output testdata.sig --detach-sign testdata`.
 var testSignature = []byte(`
 -----BEGIN PGP SIGNATURE-----
 

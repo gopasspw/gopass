@@ -19,7 +19,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// aGitRepo creates and initializes a small git repo
+// aGitRepo creates and initializes a small git repo.
 func aGitRepo(ctx context.Context, u *gptest.Unit, t *testing.T, name string) string {
 	gd := filepath.Join(u.Dir, name)
 	assert.NoError(t, os.MkdirAll(gd, 0700))

@@ -6,10 +6,10 @@ import (
 	"strings"
 )
 
-// KeyList is a searchable slice of Keys
+// KeyList is a searchable slice of Keys.
 type KeyList []Key
 
-// Recipients returns the KeyList formatted as a recipient list
+// Recipients returns the KeyList formatted as a recipient list.
 func (kl KeyList) Recipients() []string {
 	sort.Sort(kl)
 	u := make(map[string]struct{}, len(kl))
@@ -24,7 +24,7 @@ func (kl KeyList) Recipients() []string {
 	return l
 }
 
-// UseableKeys returns the list of useable (valid keys)
+// UseableKeys returns the list of useable (valid keys).
 func (kl KeyList) UseableKeys(alwaysTrust bool) KeyList {
 	nkl := make(KeyList, 0, len(kl))
 	sort.Sort(kl)
@@ -37,7 +37,7 @@ func (kl KeyList) UseableKeys(alwaysTrust bool) KeyList {
 	return nkl
 }
 
-// UnusableKeys returns the list of unusable keys (invalid keys)
+// UnusableKeys returns the list of unusable keys (invalid keys).
 func (kl KeyList) UnusableKeys(alwaysTrust bool) KeyList {
 	nkl := make(KeyList, 0, len(kl))
 	for _, k := range kl {
@@ -50,7 +50,7 @@ func (kl KeyList) UnusableKeys(alwaysTrust bool) KeyList {
 	return nkl
 }
 
-// FindKey will try to find the requested key
+// FindKey will try to find the requested key.
 func (kl KeyList) FindKey(id string) (Key, error) {
 	id = strings.TrimPrefix(id, "0x")
 	for _, k := range kl {

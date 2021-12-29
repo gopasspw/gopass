@@ -10,7 +10,7 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-// Path return the name/path of the preferred editor
+// Path return the name/path of the preferred editor.
 func Path(c *cli.Context) string {
 	if c != nil {
 		if ed := c.String("editor"); ed != "" {
@@ -24,6 +24,6 @@ func Path(c *cli.Context) string {
 		return p
 	}
 	// if neither EDITOR is set nor "editor" available we'll just assume that vi
-	// is installed. If this fails the user will have to set $EDITOR
+	// is installed. If this fails the user will have to set `$EDITOR`.
 	return "vi"
 }

@@ -15,13 +15,13 @@ import (
 )
 
 const (
-	// Ext is the file extension for age encrypted secrets
+	// Ext is the file extension for age encrypted secrets.
 	Ext = "age"
-	// IDFile is the name for age recipients
+	// IDFile is the name for age recipients.
 	IDFile = ".age-recipients"
 )
 
-// Age is an age backend
+// Age is an age backend.
 type Age struct {
 	identity  string
 	ghCache   *ghssh.Cache
@@ -29,7 +29,7 @@ type Age struct {
 	recpCache *cache.OnDisk
 }
 
-// New creates a new Age backend
+// New creates a new Age backend.
 func New() (*Age, error) {
 	ghc, err := ghssh.New()
 	if err != nil {
@@ -47,7 +47,7 @@ func New() (*Age, error) {
 	}, nil
 }
 
-// Initialized returns nil
+// Initialized returns nil.
 func (a *Age) Initialized(ctx context.Context) error {
 	if a == nil {
 		return fmt.Errorf("Age not initialized")
@@ -56,27 +56,27 @@ func (a *Age) Initialized(ctx context.Context) error {
 	return nil
 }
 
-// Name returns age
+// Name returns age.
 func (a *Age) Name() string {
 	return "age"
 }
 
-// Version returns the version of the age dependency being used
+// Version returns the version of the age dependency being used.
 func (a *Age) Version(ctx context.Context) semver.Version {
 	return debug.ModuleVersion("filippo.io/age")
 }
 
-// Ext returns the extension
+// Ext returns the extension.
 func (a *Age) Ext() string {
 	return Ext
 }
 
-// IDFile return the recipients file
+// IDFile return the recipients file.
 func (a *Age) IDFile() string {
 	return IDFile
 }
 
-// Concurrency returns the number of CPUs
+// Concurrency returns the number of CPUs.
 func (a *Age) Concurrency() int {
 	return runtime.NumCPU()
 }

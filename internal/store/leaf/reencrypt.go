@@ -17,7 +17,7 @@ import (
 )
 
 // nolint:ifshort
-// reencrypt will re-encrypt all entries for the current recipients
+// reencrypt will re-encrypt all entries for the current recipients.
 func (s *Store) reencrypt(ctx context.Context) error {
 	entries, err := s.List(ctx, "")
 	if err != nil {

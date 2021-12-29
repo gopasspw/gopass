@@ -9,7 +9,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/debug"
 )
 
-// IsInitialized returns true if the store is properly initialized
+// IsInitialized returns true if the store is properly initialized.
 func (s *Store) IsInitialized(ctx context.Context) bool {
 	if s == nil || s.storage == nil {
 		return false
@@ -19,7 +19,7 @@ func (s *Store) IsInitialized(ctx context.Context) bool {
 	return ok
 }
 
-// Init tries to initialize a new password store location matching the object
+// Init tries to initialize a new password store location matching the object.
 func (s *Store) Init(ctx context.Context, path string, ids ...string) error {
 	if s.IsInitialized(ctx) {
 		return fmt.Errorf(`found already initialized store at %q.

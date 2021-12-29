@@ -26,6 +26,7 @@ linters:
         - nolintlint
         - prealloc
         - predeclared
+        - godot
         - nestif
         ## These are working but disabled for now
         # - nestif # some work to refactor

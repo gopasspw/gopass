@@ -246,7 +246,7 @@ func mkActFunc(tpl Template, s *root.Store, cb ActionCallback) func(context.Cont
 			}
 		}
 
-		// select store
+		// select store.
 		if store == "" {
 			store = cui.AskForStore(ctx, s)
 		}
@@ -254,7 +254,7 @@ func mkActFunc(tpl Template, s *root.Store, cb ActionCallback) func(context.Cont
 		// now we can generate a name. If it's already take we can the user for an alternative
 		// name.
 
-		// make sure the store is properly separated from the name
+		// make sure the store is properly separated from the name.
 		if store != "" {
 			store += "/"
 		}
@@ -272,7 +272,7 @@ func mkActFunc(tpl Template, s *root.Store, cb ActionCallback) func(context.Cont
 			out.Warningf(ctx, "User supplied secret name %q does not match requested mount %q. Ignoring store flag.", name, store)
 		}
 
-		// force will also override the check for existing entries
+		// force will also override the check for existing entries.
 		if s.Exists(ctx, name) && !force {
 			step++
 			var err error
@@ -291,7 +291,7 @@ func mkActFunc(tpl Template, s *root.Store, cb ActionCallback) func(context.Cont
 
 }
 
-// generatePasssword will walk through the password generation steps
+// generatePasssword will walk through the password generation steps.
 func generatePassword(ctx context.Context, hostname, charset string) (string, error) {
 	if charset != "" {
 		length, err := termio.AskForInt(ctx, fmtfn(4, "a", "How long?"), 4)

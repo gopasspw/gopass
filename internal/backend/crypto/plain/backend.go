@@ -44,20 +44,20 @@ var staticPrivateKeyList = gpg.KeyList{
 	},
 }
 
-// Mocker is a no-op GPG mock
+// Mocker is a no-op GPG mock.
 type Mocker struct{}
 
-// New creates a new GPG mock
+// New creates a new GPG mock.
 func New() *Mocker {
 	return &Mocker{}
 }
 
-// ListRecipients does nothing
+// ListRecipients does nothing.
 func (m *Mocker) ListRecipients(context.Context) ([]string, error) {
 	return staticPrivateKeyList.Recipients(), nil
 }
 
-// FindRecipients does nothing
+// FindRecipients does nothing.
 func (m *Mocker) FindRecipients(ctx context.Context, keys ...string) ([]string, error) {
 	rs := staticPrivateKeyList.Recipients()
 	res := make([]string, 0, len(rs))
@@ -71,101 +71,101 @@ func (m *Mocker) FindRecipients(ctx context.Context, keys ...string) ([]string, 
 	return res, nil
 }
 
-// ListIdentities does nothing
+// ListIdentities does nothing.
 func (m *Mocker) ListIdentities(context.Context) ([]string, error) {
 	return staticPrivateKeyList.Recipients(), nil
 }
 
-// FindIdentities does nothing
+// FindIdentities does nothing.
 func (m *Mocker) FindIdentities(ctx context.Context, keys ...string) ([]string, error) {
 	return m.FindRecipients(ctx, keys...)
 }
 
-// RecipientIDs does nothing
+// RecipientIDs does nothing.
 func (m *Mocker) RecipientIDs(context.Context, []byte) ([]string, error) {
 	return staticPrivateKeyList.Recipients(), nil
 }
 
-// Encrypt writes the input to disk unaltered
+// Encrypt writes the input to disk unaltered.
 func (m *Mocker) Encrypt(ctx context.Context, content []byte, recipients []string) ([]byte, error) {
 	return content, nil
 }
 
-// Decrypt read the file from disk unaltered
+// Decrypt read the file from disk unaltered.
 func (m *Mocker) Decrypt(ctx context.Context, ciphertext []byte) ([]byte, error) {
 	return ciphertext, nil
 }
 
-// ExportPublicKey does nothing
+// ExportPublicKey does nothing.
 func (m *Mocker) ExportPublicKey(context.Context, string) ([]byte, error) {
 	return nil, nil
 }
 
-// ImportPublicKey does nothing
+// ImportPublicKey does nothing.
 func (m *Mocker) ImportPublicKey(context.Context, []byte) error {
 	return nil
 }
 
-// Version returns dummy version info
+// Version returns dummy version info.
 func (m *Mocker) Version(context.Context) semver.Version {
 	return debug.ModuleVersion("github.com/gopasspw/gopass/internal/backend/crypto/plain")
 }
 
-// Binary always returns 'gpg'
+// Binary always returns 'gpg'.
 func (m *Mocker) Binary() string {
 	return "gpg"
 }
 
-// GenerateIdentity is not implemented
+// GenerateIdentity is not implemented.
 func (m *Mocker) GenerateIdentity(ctx context.Context, name, email, pw string) error {
 	return fmt.Errorf("not yet implemented")
 }
 
-// Fingerprint returns thd id
+// Fingerprint returns thd id.
 func (m *Mocker) Fingerprint(ctx context.Context, id string) string {
 	return id
 }
 
-// FormatKey returns the id
+// FormatKey returns the id.
 func (m *Mocker) FormatKey(ctx context.Context, id, tpl string) string {
 	return id
 }
 
-// Initialized returns nil
+// Initialized returns nil.
 func (m *Mocker) Initialized(context.Context) error {
 	return nil
 }
 
-// Name returns plain
+// Name returns plain, the name of the backend.
 func (m *Mocker) Name() string {
 	return Name
 }
 
-// Ext returns gpg
+// Ext returns gpg.
 func (m *Mocker) Ext() string {
 	return Ext
 }
 
 const (
-	// Name is the name of this backend
+	// Name is the name of this backend.
 	Name = "plain"
-	// Ext is the file extension used by this backend
+	// Ext is the file extension used by this backend.
 	Ext = "txt"
-	// IDFile is the name of the recipients file used by this backend
+	// IDFile is the name of the recipients file used by this backend.
 	IDFile = ".plain-id"
 )
 
-// IDFile returns .gpg-id
+// IDFile returns the name of the recipients file.
 func (m *Mocker) IDFile() string {
 	return IDFile
 }
 
-// ReadNamesFromKey does nothing
+// ReadNamesFromKey does nothing.
 func (m *Mocker) ReadNamesFromKey(ctx context.Context, buf []byte) ([]string, error) {
 	return []string{"unsupported"}, nil
 }
 
-// Concurrency returns the number of CPUs
+// Concurrency returns the number of CPUs.
 func (m *Mocker) Concurrency() int {
 	return runtime.NumCPU()
 }

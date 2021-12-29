@@ -1,7 +1,7 @@
 package diff
 
 // Stat returnes the number of items added to and removed from the first to
-// the second list
+// the second list.
 func Stat[K comparable](l, r []K) (int, int) {
 	added, removed := List(l, r)
 	return len(added), len(removed)

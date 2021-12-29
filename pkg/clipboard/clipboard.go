@@ -13,14 +13,14 @@ import (
 
 var (
 	// Helpers can be overridden at compile time, e.g. go build \
-	// -ldflags=='-X github.com/gopasspw/gopass/pkg/clipboard.Helpers=termux-api'
+	// -ldflags=='-X github.com/gopasspw/gopass/pkg/clipboard.Helpers=termux-api'.
 	Helpers = "xsel or xclip"
-	// ErrNotSupported is returned when the clipboard is not accessible
+	// ErrNotSupported is returned when the clipboard is not accessible.
 	ErrNotSupported = fmt.Errorf("WARNING: No clipboard available. Install " + Helpers + " or use -f to print to console")
 )
 
 // CopyTo copies the given data to the clipboard and enqueues automatic
-// clearing of the clipboard
+// clearing of the clipboard.
 func CopyTo(ctx context.Context, name string, content []byte, timeout int) error {
 	if clipboard.Unsupported {
 		out.Printf(ctx, "%s", ErrNotSupported)

@@ -10,7 +10,7 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-// AliasesPrint prints all cofigured aliases
+// AliasesPrint prints all cofigured aliases.
 func (s *Action) AliasesPrint(c *cli.Context) error {
 	out.Printf(c.Context, "Configured aliases:")
 	aliases := pwrules.AllAliases()
@@ -25,7 +25,7 @@ func (s *Action) AliasesPrint(c *cli.Context) error {
 	return nil
 }
 
-// AliasesAdd adds a single alias to a domain
+// AliasesAdd adds a single alias to a domain.
 func (s *Action) AliasesAdd(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	domain := c.Args().First()
@@ -43,7 +43,7 @@ func (s *Action) AliasesAdd(c *cli.Context) error {
 	return nil
 }
 
-// AliasesRemove removes a single alias from a domain
+// AliasesRemove removes a single alias from a domain.
 func (s *Action) AliasesRemove(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	domain := c.Args().First()
@@ -61,7 +61,7 @@ func (s *Action) AliasesRemove(c *cli.Context) error {
 	return nil
 }
 
-// AliasesDelete remove an alias mapping for a domain
+// AliasesDelete remove an alias mapping for a domain.
 func (s *Action) AliasesDelete(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	domain := c.Args().First()

@@ -9,7 +9,7 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-// Audit validates passwords against common flaws
+// Audit validates passwords against common flaws.
 func (s *Action) Audit(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 

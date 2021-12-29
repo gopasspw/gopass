@@ -13,23 +13,23 @@ import (
 )
 
 var (
-	// APITimeout is how long we wait for the GitHub API
+	// APITimeout is how long we wait for the GitHub API.
 	APITimeout = 30 * time.Second
 
-	// BaseURL is exported for tests
+	// BaseURL is exported for tests.
 	BaseURL    = "https://api.github.com/repos/%s/%s/releases/latest"
 	gitHubOrg  = "gopasspw"
 	gitHubRepo = "gopass"
 )
 
-// Asset is a GitHub release asset
+// Asset is a GitHub release asset.
 type Asset struct {
 	ID   int    `json:"id"`
 	Name string `json:"name"`
 	URL  string `json:"browser_download_url"`
 }
 
-// Release is a GitHub release
+// Release is a GitHub release.
 type Release struct {
 	ID          int            `json:"id"`
 	Name        string         `json:"name"`

@@ -50,7 +50,7 @@ func formatFlagFunc() func(cli.Flag) (string, error) {
 	}
 }
 
-// GetCompletion returns a zsh completion script
+// GetCompletion returns a zsh completion script.
 func GetCompletion(a *cli.App) (string, error) {
 	tplFuncs := template.FuncMap{
 		"formatFlag": formatFlagFunc(),

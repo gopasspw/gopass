@@ -32,7 +32,7 @@ type askPass struct {
 }
 
 var (
-	// DefaultAskPass is the default password cache
+	// DefaultAskPass is the default password cache.
 	DefaultAskPass = newAskPass()
 )
 
@@ -90,7 +90,7 @@ func (a *askPass) Remove(key string) {
 	a.cache.Remove(key)
 }
 
-// Lock flushes the password cache
+// Lock flushes the password cache.
 func (a *Age) Lock() {
 	a.askPass.cache.Purge()
 }

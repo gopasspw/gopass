@@ -18,7 +18,7 @@ import (
 	"github.com/jsimonetti/pwscheme/ssha512"
 )
 
-// These constants defined the template function names used
+// These constants defined the template function names used.
 const (
 	FuncMd5sum      = "md5sum"
 	FuncSha1sum     = "sha1sum"

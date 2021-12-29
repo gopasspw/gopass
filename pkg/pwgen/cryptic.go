@@ -119,7 +119,7 @@ func uniqueChars(in string) string {
 }
 
 // NewCrypticWithAllClasses returns a password generator that generates passwords
-// containing all available character classes
+// containing all available character classes.
 func NewCrypticWithAllClasses(length int, symbols bool) *Cryptic {
 	c := NewCryptic(length, symbols)
 	c.Validators = append(c.Validators, func(pw string) error {
@@ -141,7 +141,7 @@ func NewCrypticWithCrunchy(length int, symbols bool) *Cryptic {
 	return c
 }
 
-// Password returns a single password from the generator
+// Password returns a single password from the generator.
 func (c *Cryptic) Password() string {
 	round := 0
 	maxFn := func() bool {

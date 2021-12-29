@@ -10,7 +10,7 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-// Delete a secret file with its content
+// Delete a secret file with its content.
 func (s *Action) Delete(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	force := c.Bool("force")
@@ -25,14 +25,14 @@ func (s *Action) Delete(c *cli.Context) error {
 		return ExitError(ExitUsage, nil, "Cannot remove %q: Is a directory. Use 'gopass rm -r %s' to delete", name, name)
 	}
 
-	// specifying a key is optional
+	// specifying a key is optional.
 	key := c.Args().Get(1)
 
 	if recursive && key != "" {
 		return ExitError(ExitUsage, nil, "Can not use -r with a key. Invoke delete either with a key or with -r")
 	}
 
-	if !force { // don't check if it's force anyway
+	if !force { // don't check if it's force anyway.
 		recStr := ""
 		if recursive {
 			recStr = "recursively "
@@ -51,7 +51,7 @@ func (s *Action) Delete(c *cli.Context) error {
 		return nil
 	}
 
-	// deletes a single key from a YAML doc
+	// deletes a single key from a YAML doc.
 	if key != "" {
 		debug.Log("removing key %q from %q", key, name)
 		return s.deleteKeyFromYAML(ctx, name, key)
@@ -64,7 +64,7 @@ func (s *Action) Delete(c *cli.Context) error {
 	return nil
 }
 
-// deleteKeyFromYAML deletes a single key from YAML
+// deleteKeyFromYAML deletes a single key from YAML.
 func (s *Action) deleteKeyFromYAML(ctx context.Context, name, key string) error {
 	sec, err := s.Store.Get(ctx, name)
 	if err != nil {

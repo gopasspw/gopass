@@ -10,7 +10,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/debug"
 )
 
-// Clear will attempt to erase the clipboard
+// Clear will attempt to erase the clipboard.
 func Clear(ctx context.Context, checksum string, force bool) error {
 	if clipboard.Unsupported {
 		return ErrNotSupported

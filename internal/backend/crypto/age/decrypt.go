@@ -12,7 +12,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/debug"
 )
 
-// Decrypt will attempt to decrypt the given payload
+// Decrypt will attempt to decrypt the given payload.
 func (a *Age) Decrypt(ctx context.Context, ciphertext []byte) ([]byte, error) {
 	if !ctxutil.HasPasswordCallback(ctx) {
 		debug.Log("no password callback found, redirecting to askPass")

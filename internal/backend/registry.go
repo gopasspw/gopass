@@ -9,16 +9,16 @@ import (
 )
 
 var (
-	// CryptoRegistry is the global registry of available crypto backends
+	// CryptoRegistry is the global registry of available crypto backends.
 	CryptoRegistry = NewRegistry[CryptoBackend, CryptoLoader]()
-	// StorageRegistry is the global registry of available storage backends
+	// StorageRegistry is the global registry of available storage backends.
 	StorageRegistry = NewRegistry[StorageBackend, StorageLoader]()
 
 	// ErrNotFound is returned if the requested backend was not found.
 	ErrNotFound = fmt.Errorf("backend not found")
 )
 
-// Prioritized is the interface for prioritized items
+// Prioritized is the interface for prioritized items.
 type Prioritized interface {
 	Priority() int
 }
@@ -41,7 +41,7 @@ type StorageLoader interface {
 	Handles(context.Context, string) error
 }
 
-// NewRegistry returns a new registry
+// NewRegistry returns a new registry.
 func NewRegistry[K comparable, V Prioritized]() *Registry[K, V] {
 	return &Registry[K, V]{
 		backends:      map[K]V{},
@@ -50,7 +50,7 @@ func NewRegistry[K comparable, V Prioritized]() *Registry[K, V] {
 	}
 }
 
-// Registry is a registry of backends
+// Registry is a registry of backends.
 type Registry[K comparable, V Prioritized] struct {
 	backends      map[K]V
 	nameToBackend map[string]K

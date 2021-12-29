@@ -12,9 +12,9 @@ import (
 )
 
 var (
-	// Stdout is exported for tests
+	// Stdout is exported for tests.
 	Stdout io.Writer = os.Stdout
-	// Stderr is exported for tests
+	// Stderr is exported for tests.
 	Stderr     io.Writer = os.Stderr
 	logSecrets bool
 )
@@ -27,7 +27,7 @@ var opts struct {
 
 var logFn = doNotLog
 
-// make sure all initializations happens before the init func
+// make sure all initializations happens before the init func.
 var enabled = initDebug()
 
 func initDebug() bool {
@@ -233,7 +233,7 @@ func doLog(offset int, f string, args ...any) {
 	}
 }
 
-// IsEnabled returns true if debug logging was enabled
+// IsEnabled returns true if debug logging was enabled.
 func IsEnabled() bool {
 	return enabled
 }

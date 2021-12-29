@@ -9,7 +9,7 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-// Unclip tries to erase the content of the clipboard
+// Unclip tries to erase the content of the clipboard.
 func (s *Action) Unclip(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	force := c.Bool("force")

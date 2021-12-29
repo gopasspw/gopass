@@ -19,7 +19,7 @@ var (
 	idRecpCacheKey = "identity"
 )
 
-// Identities returns all identities, used for decryption
+// Identities returns all identities, used for decryption.
 func (a *Age) Identities(ctx context.Context) ([]age.Identity, error) {
 	if !ctxutil.HasPasswordCallback(ctx) {
 		debug.Log("no password callback found, redirecting to askPass")
@@ -71,7 +71,7 @@ func (a *Age) IdentityRecipients(ctx context.Context) ([]age.Recipient, error) {
 	return r, nil
 }
 
-// GenerateIdentity creates a new identity
+// GenerateIdentity creates a new identity.
 func (a *Age) GenerateIdentity(ctx context.Context, _ string, _ string, pw string) error {
 	if pw != "" {
 		ctx = ctxutil.WithPasswordCallback(ctx, func(prompt string, confirm bool) ([]byte, error) {
@@ -82,7 +82,7 @@ func (a *Age) GenerateIdentity(ctx context.Context, _ string, _ string, pw strin
 	return err
 }
 
-// ListIdentities lists all identities
+// ListIdentities lists all identities.
 func (a *Age) ListIdentities(ctx context.Context) ([]string, error) {
 	debug.Log("checking existing identities")
 	ids, err := a.getAllIdentities(ctx)
@@ -98,7 +98,7 @@ func (a *Age) ListIdentities(ctx context.Context) ([]string, error) {
 	return idStr, nil
 }
 
-// FindIdentities returns all usable identities (native only)
+// FindIdentities returns all usable identities (native only).
 func (a *Age) FindIdentities(ctx context.Context, keys ...string) ([]string, error) {
 	ids, err := a.IdentityRecipients(ctx)
 	if err != nil {
@@ -167,7 +167,7 @@ func (a *Age) saveIdentities(ctx context.Context, ids []string, newFile bool) er
 		})
 	}
 
-	// ensure directory exists
+	// ensure directory exists.
 	if err := os.MkdirAll(filepath.Dir(a.identity), 0700); err != nil {
 		debug.Log("failed to create directory for the keyring at %s: %s", a.identity, err)
 		return err
@@ -201,7 +201,7 @@ func (a *Age) getAllIdentities(ctx context.Context) (map[string]age.Identity, er
 	}
 	debug.Log("got %d ssh identities", len(ssh))
 
-	// merge both
+	// merge both.
 	for k, v := range ssh {
 		native[k] = v
 	}

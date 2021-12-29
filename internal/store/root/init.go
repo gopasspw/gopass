@@ -24,7 +24,7 @@ func (r *Store) IsInitialized(ctx context.Context) (bool, error) {
 	return r.store.IsInitialized(ctx), nil
 }
 
-// Init tries to initialize a new password store location matching the object
+// Init tries to initialize a new password store location matching the object.
 func (r *Store) Init(ctx context.Context, alias, path string, ids ...string) error {
 	debug.Log("Instantiating new sub store %s at %s for %+v", alias, path, ids)
 	if !backend.HasCryptoBackend(ctx) {

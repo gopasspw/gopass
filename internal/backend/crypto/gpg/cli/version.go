@@ -7,7 +7,7 @@ import (
 	"github.com/gopasspw/gopass/internal/backend/crypto/gpg/gpgconf"
 )
 
-// Version will returns GPG version information
+// Version will return GPG version information.
 func (g *GPG) Version(ctx context.Context) semver.Version {
 	return gpgconf.Version(ctx, g.Binary())
 }

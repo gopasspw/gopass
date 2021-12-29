@@ -52,7 +52,7 @@ func ShowFlags() []cli.Flag {
 	}
 }
 
-// GetCommands returns the cli commands exported by this module
+// GetCommands returns the cli commands exported by this module.
 func (s *Action) GetCommands() []*cli.Command {
 	return []*cli.Command{
 		{

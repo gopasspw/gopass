@@ -12,7 +12,7 @@ import (
 )
 
 // addRel adds the required number of relative elements to go from dst back to
-// src
+// src.
 func addRel(src, dst string) string {
 	for i := 0; i < strings.Count(dst, "/"); i++ {
 		src = "../" + src
@@ -20,7 +20,7 @@ func addRel(src, dst string) string {
 	return src
 }
 
-// longestCommonPrefix finds the longest common prefix directory
+// longestCommonPrefix finds the longest common prefix directory.
 func longestCommonPrefix(l, r string) string {
 	var prefix string
 	for i := 0; i < len(l) && i < len(r); i++ {

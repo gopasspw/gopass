@@ -12,7 +12,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/debug"
 )
 
-// LookupTemplate will lookup and return a template
+// LookupTemplate will lookup and return a template.
 func (r *Store) LookupTemplate(ctx context.Context, name string) (string, []byte, bool) {
 	oName := name
 	store, name := r.getStore(name)
@@ -21,7 +21,7 @@ func (r *Store) LookupTemplate(ctx context.Context, name string) (string, []byte
 	return tName, content, found
 }
 
-// TemplateTree returns a tree of all templates
+// TemplateTree returns a tree of all templates.
 func (r *Store) TemplateTree(ctx context.Context) (*tree.Root, error) {
 	root := tree.New("gopass")
 
@@ -53,25 +53,25 @@ func (r *Store) TemplateTree(ctx context.Context) (*tree.Root, error) {
 	return root, nil
 }
 
-// HasTemplate returns true if the template exists
+// HasTemplate returns true if the template exists.
 func (r *Store) HasTemplate(ctx context.Context, name string) bool {
 	store, name := r.getStore(name)
 	return store.HasTemplate(ctx, name)
 }
 
-// GetTemplate will return the content of the named template
+// GetTemplate will return the content of the named template.
 func (r *Store) GetTemplate(ctx context.Context, name string) ([]byte, error) {
 	store, name := r.getStore(name)
 	return store.GetTemplate(ctx, name)
 }
 
-// SetTemplate will (over)write the content to the template file
+// SetTemplate will (over)write the content to the template file.
 func (r *Store) SetTemplate(ctx context.Context, name string, content []byte) error {
 	store, name := r.getStore(name)
 	return store.SetTemplate(ctx, name, content)
 }
 
-// RemoveTemplate will delete the named template if it exists
+// RemoveTemplate will delete the named template if it exists.
 func (r *Store) RemoveTemplate(ctx context.Context, name string) error {
 	store, name := r.getStore(name)
 	return store.RemoveTemplate(ctx, name)
