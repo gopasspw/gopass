@@ -300,22 +300,30 @@ Detected weak secret for 'golang.org/gopher': Password is too short
 
 ### Check Passwords against leaked passwords
 
-gopass can assist you in checking your passwords against those included in recent data breaches.
+[gopass-hibp](https://github.com/gopasspw/gopass-hibp) can assist you in checking your passwords against those included in recent data breaches.
+See its [dedicated repo](https://github.com/gopasspw/gopass-hibp) to install `gopass-hibp`.
+
 You can either check against the HIBPv2 API (recommended) or download the dumps (v1 or v2) and
 perform the check fully offline.
 
 #### Using the API
 
+This will check the SHA1 hashes of all your password against the online HIBP API. Your actual passwords aren't leaked, but weak passwords can be found using a dictionary attack if an adversary obtains its SHA1 hashes. Use this if:
+
+ - you trust HIBP website and API
+ - you trust your network
+ - you don't have small (<14 characters), easy to crack passwords
+
 ```bash
-gopass audit hibp --api
+gopass-hibp api
 ```
 
 #### Using the Dumps
 
-First go to [haveibeenpwned.com/Passwords](https://haveibeenpwned.com/Passwords) and download the dumps. Then unpack the 7-zip archives somewhere. Note that full path to those files and provide it to gopass `--dumps` flag.
+First go to [haveibeenpwned.com/Passwords](https://haveibeenpwned.com/Passwords) and download the dumps. Then unpack the 7-zip archives somewhere. Note that full path to those files and provide it to `gopass-hibp dump --files` flag.
 
 ```bash
-$ gopass audit hibp --dumps /tmp/pwned-passwords-1.0.txt
+$ gopass-hibp dump --files /tmp/pwned-passwords-ordered-2.0.txt
 ```
 
 ### Support for Binary Content
