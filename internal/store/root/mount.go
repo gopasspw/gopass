@@ -13,7 +13,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/fsutil"
 )
 
-// AddMount adds a new mount
+// AddMount adds a new mount.
 func (r *Store) AddMount(ctx context.Context, alias, path string, keys ...string) error {
 	if err := r.addMount(ctx, alias, path, keys...); err != nil {
 		return fmt.Errorf("failed to add mount: %w", err)
@@ -83,7 +83,7 @@ func (r *Store) initSub(ctx context.Context, alias, path string, keys []string) 
 	return s, nil
 }
 
-// RemoveMount removes and existing mount
+// RemoveMount removes and existing mount.
 func (r *Store) RemoveMount(ctx context.Context, alias string) error {
 	if _, found := r.mounts[alias]; !found {
 		out.Warningf(ctx, "%s is not mounted", alias)
@@ -96,7 +96,7 @@ func (r *Store) RemoveMount(ctx context.Context, alias string) error {
 	return nil
 }
 
-// Mounts returns a map of mounts with their paths
+// Mounts returns a map of mounts with their paths.
 func (r *Store) Mounts() map[string]string {
 	m := make(map[string]string, len(r.mounts))
 	for alias, sub := range r.mounts {
@@ -117,7 +117,7 @@ func (r *Store) MountPoints() []string {
 	return mps
 }
 
-// MountPoint returns the most-specific mount point for the given key
+// MountPoint returns the most-specific mount point for the given key.
 func (r *Store) MountPoint(name string) string {
 	for _, mp := range r.MountPoints() {
 		if strings.HasPrefix(name+"/", mp+"/") {
@@ -139,7 +139,7 @@ func (r *Store) Lock() error {
 }
 
 // getStore returns the Store object at the most-specific mount point for the
-// given key. returns sub store reference, truncated path to secret
+// given key. returns sub store reference, truncated path to secret.
 func (r *Store) getStore(name string) (*leaf.Store, string) {
 	name = strings.TrimSuffix(name, "/")
 	mp := r.MountPoint(name)
@@ -150,7 +150,7 @@ func (r *Store) getStore(name string) (*leaf.Store, string) {
 }
 
 // GetSubStore returns an exact match for a mount point or an error if this
-// mount point does not exist
+// mount point does not exist.
 func (r *Store) GetSubStore(name string) (*leaf.Store, error) {
 	if name == "" {
 		return r.store, nil

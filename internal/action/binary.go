@@ -23,7 +23,7 @@ var (
 	binstdin = os.Stdin
 )
 
-// Cat prints to or reads from STDIN/STDOUT
+// Cat prints to or reads from STDIN/STDOUT.
 func (s *Action) Cat(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	name := c.Args().First()
@@ -31,13 +31,13 @@ func (s *Action) Cat(c *cli.Context) error {
 		return ExitError(ExitNoName, nil, "Usage: %s cat <NAME>", c.App.Name)
 	}
 
-	// handle pipe to stdin
+	// handle pipe to stdin.
 	info, err := binstdin.Stat()
 	if err != nil {
 		return ExitError(ExitIO, err, "failed to stat stdin: %s", err)
 	}
 
-	// if content is piped to stdin, read and save it
+	// if content is piped to stdin, read and save it.
 	if info.Mode()&os.ModeCharDevice == 0 {
 		debug.Log("Reading from STDIN ...")
 		content := &bytes.Buffer{}
@@ -78,14 +78,14 @@ func secFromBytes(dst, src string, in []byte) gopass.Secret {
 	return sec
 }
 
-// BinaryCopy copies either from the filesystem to the store or from the store
-// to the filesystem
+// BinaryCopy copies either from the filesystem to the store or from the store.
+// to the filesystem.
 func (s *Action) BinaryCopy(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	from := c.Args().Get(0)
 	to := c.Args().Get(1)
 
-	// argument checking is in s.binaryCopy
+	// argument checking is in s.binaryCopy.
 	if err := s.binaryCopy(ctx, c, from, to, false); err != nil {
 		return ExitError(ExitUnknown, err, "%s", err)
 	}
@@ -94,13 +94,13 @@ func (s *Action) BinaryCopy(c *cli.Context) error {
 
 // BinaryMove works like Copy but will remove (shred/wipe) the source
 // after a successful copy. Mostly useful for securely moving secrets into
-// the store if they are no longer needed / wanted on disk afterwards
+// the store if they are no longer needed / wanted on disk afterwards.
 func (s *Action) BinaryMove(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	from := c.Args().Get(0)
 	to := c.Args().Get(1)
 
-	// argument checking is in s.binaryCopy
+	// argument checking is in s.binaryCopy.
 	if err := s.binaryCopy(ctx, c, from, to, true); err != nil {
 		return ExitError(ExitUnknown, err, "%s", err)
 	}
@@ -108,11 +108,11 @@ func (s *Action) BinaryMove(c *cli.Context) error {
 }
 
 // binaryCopy implements the control flow for copy and move. We support two
-// workflows:
-// 1. From the filesystem to the store
-// 2. From the store to the filesystem
+// workflows:.
+// 1. From the filesystem to the store.
+// 2. From the store to the filesystem.
 //
-// Copying secrets in the store must be done through the regular copy command
+// Copying secrets in the store must be done through the regular copy command.
 func (s *Action) binaryCopy(ctx context.Context, c *cli.Context, from, to string, deleteSource bool) error {
 	if from == "" || to == "" {
 		op := "copy"
@@ -124,10 +124,10 @@ func (s *Action) binaryCopy(ctx context.Context, c *cli.Context, from, to string
 
 	switch {
 	case fsutil.IsFile(from) && fsutil.IsFile(to):
-		// copying from on file to another file is not supported
+		// copying from on file to another file is not supported.
 		return fmt.Errorf("ambiguity detected. Only from or to can be a file")
 	case s.Store.Exists(ctx, from) && s.Store.Exists(ctx, to):
-		// copying from one secret to another secret is not supported
+		// copying from one secret to another secret is not supported.
 		return fmt.Errorf("ambiguity detected. Either from or to must be a file")
 	case fsutil.IsFile(from) && !fsutil.IsFile(to):
 		return s.binaryCopyFromFileToStore(ctx, from, to, deleteSource)
@@ -139,11 +139,11 @@ func (s *Action) binaryCopy(ctx context.Context, c *cli.Context, from, to string
 }
 
 func (s *Action) binaryCopyFromFileToStore(ctx context.Context, from, to string, deleteSource bool) error {
-	// if the source is a file the destination must no to avoid ambiguities
+	// if the source is a file the destination must not to avoid ambiguities.
 	// if necessary this can be resolved by using a absolute path for the file
-	// and a relative one for the secret
+	// and a relative one for the secret.
 
-	// copy from FS to store
+	// copy from FS to store.
 	buf, err := os.ReadFile(from)
 	if err != nil {
 		return fmt.Errorf("failed to read file from %q: %w", from, err)
@@ -159,7 +159,7 @@ func (s *Action) binaryCopyFromFileToStore(ctx context.Context, from, to string,
 	}
 
 	// it's important that we return if the validation fails, because
-	// in that case we don't want to shred our (only) copy of this data!
+	// in that case we don't want to shred our (only) copy of this data!.
 	if err := s.binaryValidate(ctx, buf, to); err != nil {
 		return fmt.Errorf("failed to validate written data: %w", err)
 	}
@@ -171,9 +171,9 @@ func (s *Action) binaryCopyFromFileToStore(ctx context.Context, from, to string,
 
 func (s *Action) binaryCopyFromStoreToFile(ctx context.Context, from, to string, deleteSource bool) error {
 	// if the source is no file we assume it's a secret and to is a filename
-	// (which may already exist or not)
+	// (which may already exist or not).
 
-	// copy from store to FS
+	// copy from store to FS.
 	buf, err := s.binaryGet(ctx, from)
 	if err != nil {
 		return fmt.Errorf("failed to read data from %q: %w", from, err)
@@ -187,7 +187,7 @@ func (s *Action) binaryCopyFromStoreToFile(ctx context.Context, from, to string,
 	}
 
 	// as before: if validation of the written data fails, we MUST NOT
-	// delete the (only) source
+	// delete the (only) source.
 	if err := s.binaryValidate(ctx, buf, from); err != nil {
 		return fmt.Errorf("failed to validate the written data: %w", err)
 	}
@@ -238,7 +238,7 @@ func (s *Action) binaryGet(ctx context.Context, name string) ([]byte, error) {
 	return buf, nil
 }
 
-// Sum decodes binary content and computes the SHA256 checksum
+// Sum decodes binary content and computes the SHA256 checksum.
 func (s *Action) Sum(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	name := c.Args().First()

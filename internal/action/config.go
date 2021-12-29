@@ -10,7 +10,7 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-// Config handles changes to the gopass configuration
+// Config handles changes to the gopass configuration.
 func (s *Action) Config(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	if c.Args().Len() < 1 {
@@ -37,7 +37,7 @@ func (s *Action) printConfigValues(ctx context.Context, needles ...string) {
 	m := s.cfg.ConfigMap()
 	for _, k := range filterMap(m, needles) {
 		// if only a single key is requested, print only the value
-		// useful for scriping, e.g. `$ cd $(gopass config path)`
+		// useful for scriping, e.g. `$ cd $(gopass config path)`.
 		if len(needles) == 1 {
 			out.Printf(ctx, "%s", m[k])
 			continue
@@ -95,7 +95,7 @@ func (s *Action) configKeys() []string {
 	return keys
 }
 
-// ConfigComplete will print the list of valid config keys
+// ConfigComplete will print the list of valid config keys.
 func (s *Action) ConfigComplete(c *cli.Context) {
 	for _, k := range s.configKeys() {
 		fmt.Fprintln(stdout, k)

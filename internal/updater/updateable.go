@@ -10,7 +10,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/debug"
 )
 
-// IsUpdateable returns an error if this binary is not updateable
+// IsUpdateable returns an error if this binary is not updateable.
 func IsUpdateable(ctx context.Context) error {
 	fn, err := executable(ctx)
 	if err != nil {

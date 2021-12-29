@@ -11,7 +11,7 @@ import (
 	homedir "github.com/mitchellh/go-homedir"
 )
 
-// Homedir returns the users home dir or an empty string if the lookup fails
+// Homedir returns the users home dir or an empty string if the lookup fails.
 func Homedir() string {
 	if hd := os.Getenv("GOPASS_HOMEDIR"); hd != "" {
 		return hd
@@ -25,9 +25,9 @@ func Homedir() string {
 }
 
 // configLocation returns the location of the config file
-// (a YAML file that contains values such as the path to the password store)
+// (a YAML file that contains values such as the path to the password store).
 func configLocation() string {
-	// First, check for the "GOPASS_CONFIG" environment variable
+	// First, check for the "GOPASS_CONFIG" environment variable.
 	if cf := os.Getenv("GOPASS_CONFIG"); cf != "" {
 		return cf
 	}
@@ -39,7 +39,7 @@ func configLocation() string {
 }
 
 // configLocations returns the possible locations of gopass config files,
-// in decreasing priority
+// in decreasing priority.
 func configLocations() []string {
 	l := []string{}
 	if cf := os.Getenv("GOPASS_CONFIG"); cf != "" {
@@ -52,13 +52,13 @@ func configLocations() []string {
 }
 
 // PwStoreDir reads the password store dir from the environment
-// or returns the default location if the env is not set
+// or returns the default location if the env is not set.
 func PwStoreDir(mount string) string {
 	if mount != "" {
 		cleanName := strings.Replace(mount, string(filepath.Separator), "-", -1)
 		return fsutil.CleanPath(filepath.Join(appdir.UserData(), "stores", cleanName))
 	}
-	// PASSWORD_STORE_DIR support is discouraged
+	// PASSWORD_STORE_DIR support is discouraged.
 	if d := os.Getenv("PASSWORD_STORE_DIR"); d != "" {
 		return fsutil.CleanPath(d)
 	}
@@ -69,7 +69,7 @@ func PwStoreDir(mount string) string {
 	return fsutil.CleanPath(filepath.Join(appdir.UserData(), "stores", "root"))
 }
 
-// Directory returns the configuration directory for the gopass config file
+// Directory returns the configuration directory for the gopass config file.
 func Directory() string {
 	return filepath.Dir(configLocation())
 }

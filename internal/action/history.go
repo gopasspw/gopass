@@ -9,7 +9,7 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-// History displays the history of a given secret
+// History displays the history of a given secret.
 func (s *Action) History(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	name := c.Args().Get(0)

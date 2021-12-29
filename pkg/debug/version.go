@@ -7,7 +7,7 @@ import (
 	"github.com/blang/semver/v4"
 )
 
-// ModuleVersion the version of the named import
+// ModuleVersion the version of the named import.
 func ModuleVersion(m string) semver.Version {
 	bi, ok := rdebug.ReadBuildInfo()
 	if !ok || bi == nil {

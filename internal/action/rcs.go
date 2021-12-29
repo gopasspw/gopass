@@ -17,7 +17,7 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-// RCSInit initializes a git repo including basic configuration
+// RCSInit initializes a git repo including basic configuration.
 func (s *Action) RCSInit(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	store := c.String("store")
@@ -25,7 +25,7 @@ func (s *Action) RCSInit(c *cli.Context) error {
 	ue := termio.DetectEmail(c.Context, c)
 	ctx = backend.WithStorageBackendString(ctx, c.String("storage"))
 
-	// default to git
+	// default to git.
 	if !backend.HasStorageBackend(ctx) {
 		ctx = backend.WithStorageBackend(ctx, backend.GitFS)
 	}
@@ -38,7 +38,7 @@ func (s *Action) RCSInit(c *cli.Context) error {
 
 func (s *Action) rcsInit(ctx context.Context, store, un, ue string) error {
 	be := backend.GetStorageBackend(ctx)
-	// TODO this should rather ask s.Store if it HasRCSInit or something
+	// TODO this should rather ask s.Store if it HasRCSInit or something.
 	if be == backend.FS {
 		return nil
 	}
@@ -65,8 +65,8 @@ func (s *Action) getUserData(ctx context.Context, store, name, email string) (st
 		return name, email
 	}
 
-	// for convenience, set defaults to user-selected values from available private keys
-	// NB: discarding returned error since this is merely a best-effort look-up for convenience
+	// for convenience, set defaults to user-selected values from available private keys.
+	// NB: discarding returned error since this is merely a best-effort look-up for convenience.
 	userName, userEmail, _ := cui.AskForGitConfigUser(ctx, s.Store.Crypto(ctx, store))
 
 	if name == "" {
@@ -96,7 +96,7 @@ func (s *Action) getUserData(ctx context.Context, store, name, email string) (st
 	return name, email
 }
 
-// RCSAddRemote adds a new git remote
+// RCSAddRemote adds a new git remote.
 func (s *Action) RCSAddRemote(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	store := c.String("store")
@@ -110,7 +110,7 @@ func (s *Action) RCSAddRemote(c *cli.Context) error {
 	return s.Store.RCSAddRemote(ctx, store, remote, url)
 }
 
-// RCSRemoveRemote removes a git remote
+// RCSRemoveRemote removes a git remote.
 func (s *Action) RCSRemoveRemote(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	store := c.String("store")
@@ -123,7 +123,7 @@ func (s *Action) RCSRemoveRemote(c *cli.Context) error {
 	return s.Store.RCSRemoveRemote(ctx, store, remote)
 }
 
-// RCSPull pulls from a git remote
+// RCSPull pulls from a git remote.
 func (s *Action) RCSPull(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	store := c.String("store")
@@ -133,7 +133,7 @@ func (s *Action) RCSPull(c *cli.Context) error {
 	return s.Store.RCSPull(ctx, store, origin, branch)
 }
 
-// RCSPush pushes to a git remote
+// RCSPush pushes to a git remote.
 func (s *Action) RCSPush(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	store := c.String("store")
@@ -151,7 +151,7 @@ func (s *Action) RCSPush(c *cli.Context) error {
 	return nil
 }
 
-// RCSStatus prints the rcs status
+// RCSStatus prints the rcs status.
 func (s *Action) RCSStatus(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	store := c.String("store")

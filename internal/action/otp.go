@@ -17,11 +17,11 @@ import (
 
 const (
 	// we might want to replace this with the currently un-exported step value
-	// from twofactor.FromURL if it gets ever exported
+	// from twofactor.FromURL if it gets ever exported.
 	otpPeriod = 30
 )
 
-// OTP implements OTP token handling for TOTP and HOTP
+// OTP implements OTP token handling for TOTP and HOTP.
 func (s *Action) OTP(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	name := c.Args().First()
@@ -42,9 +42,9 @@ func tickingBar(ctx context.Context, expiresAt time.Time, bar *termio.ProgressBa
 	for tt := range ticker.C {
 		select {
 		case <-ctx.Done():
-			return // returning not to leak the goroutine
+			return // returning not to leak the goroutine.
 		default:
-			// we don't want to block if not cancelled
+			// we don't want to block if not cancelled.
 		}
 		if tt.After(expiresAt) {
 			return
@@ -63,7 +63,7 @@ func waitForKeyPress(ctx context.Context, cancel context.CancelFunc) {
 	for {
 		select {
 		case <-ctx.Done():
-			return // returning not to leak the goroutine
+			return // returning not to leak the goroutine.
 		default:
 		}
 		r, err := tty.ReadRune()
@@ -87,7 +87,7 @@ func (s *Action) otp(ctx context.Context, name, qrf string, clip, pw, recurse bo
 	defer cancel()
 	skip := ctxutil.IsHidden(ctx) || pw || qrf != "" || out.OutputIsRedirected() || !ctxutil.IsInteractive(ctx)
 	if !skip {
-		// let us monitor key presses for cancellation:
+		// let us monitor key presses for cancellation:.
 		go waitForKeyPress(ctx, cancel)
 	}
 
@@ -115,11 +115,11 @@ func (s *Action) otp(ctx context.Context, name, qrf string, clip, pw, recurse bo
 			}
 		}
 
-		// check if we are in "password only" or in "qr code" mode or being redirected to a pipe
+		// check if we are in "password only" or in "qr code" mode or being redirected to a pipe.
 		if pw || qrf != "" || out.OutputIsRedirected() {
 			out.Printf(ctx, "%s", token)
 			cancel()
-		} else { // if not then we want to print a progress bar with the expiry time
+		} else { // if not then we want to print a progress bar with the expiry time.
 			out.Printf(ctx, "%s", token)
 			out.Warningf(ctx, "([q] to stop. -o flag to avoid.) This OTP password still lasts for:", nil)
 
@@ -135,7 +135,7 @@ func (s *Action) otp(ctx context.Context, name, qrf string, clip, pw, recurse bo
 			return otp.WriteQRFile(two, label, qrf)
 		}
 
-		// let us wait until next OTP code:
+		// let us wait until next OTP code:.
 		for {
 			select {
 			case <-ctx.Done():

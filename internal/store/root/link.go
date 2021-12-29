@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-// Link creates a symlink
+// Link creates a symlink.
 func (r *Store) Link(ctx context.Context, from, to string) error {
 	subFrom, fName := r.getStore(from)
 	subTo, tName := r.getStore(to)

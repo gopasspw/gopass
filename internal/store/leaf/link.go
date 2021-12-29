@@ -10,7 +10,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/debug"
 )
 
-// Link creates a symlink
+// Link creates a symlink.
 func (s *Store) Link(ctx context.Context, from, to string) error {
 	if !s.Exists(ctx, from) {
 		return fmt.Errorf("source %q does not exists", from)

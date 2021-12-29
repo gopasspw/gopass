@@ -6,29 +6,29 @@ import (
 	"io"
 )
 
-// LineReader is an unbuffered line reader
+// LineReader is an unbuffered line reader.
 type LineReader struct {
 	r   io.Reader
 	ctx context.Context
 }
 
-// NewReader creates a new line reader
+// NewReader creates a new line reader.
 func NewReader(ctx context.Context, r io.Reader) *LineReader {
 	return &LineReader{r: r, ctx: ctx}
 }
 
-// Read implements io.Reader
+// Read implements io.Reader.
 func (lr LineReader) Read(p []byte) (int, error) {
 	return lr.r.Read(p)
 }
 
-// rr is a composite value to transport the result of Read through a channel
+// rr is a composite value to transport the result of Read through a channel.
 type rr struct {
 	n   int
 	err error
 }
 
-// ReadLine reads one line w/o buffering
+// ReadLine reads one line w/o buffering.
 func (lr LineReader) ReadLine() (string, error) {
 	out := &bytes.Buffer{}
 	buf := make([]byte, 1) // important: we must only read one byte at a time!

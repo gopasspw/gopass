@@ -87,7 +87,7 @@ func TestEnvProgramNotFound(t *testing.T) {
 		wanted)
 }
 
-// Crash regression
+// Crash regression.
 func TestEnvProgramNotSpecified(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 	defer u.Remove()

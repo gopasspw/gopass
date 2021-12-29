@@ -32,7 +32,7 @@ credentials.
 `
 )
 
-// RecipientsPrint prints all recipients per store
+// RecipientsPrint prints all recipients per store.
 func (s *Action) RecipientsPrint(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	out.Printf(ctx, "Hint: run 'gopass sync' to import any missing public keys")
@@ -57,7 +57,7 @@ func (s *Action) recipientsList(ctx context.Context) []string {
 }
 
 // RecipientsComplete will print a list of recipients for bash
-// completion
+// completion.
 func (s *Action) RecipientsComplete(c *cli.Context) {
 	ctx := ctxutil.WithGlobalFlags(c)
 	for _, v := range s.recipientsList(ctx) {
@@ -65,21 +65,21 @@ func (s *Action) RecipientsComplete(c *cli.Context) {
 	}
 }
 
-// RecipientsAdd adds new recipients
+// RecipientsAdd adds new recipients.
 func (s *Action) RecipientsAdd(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	store := c.String("store")
 	force := c.Bool("force")
 	added := 0
 
-	// select store
+	// select store.
 	if store == "" {
 		store = cui.AskForStore(ctx, s.Store)
 	}
 
 	crypto := s.Store.Crypto(ctx, store)
 
-	// select recipient
+	// select recipient.
 	recipients := []string(c.Args().Slice())
 	if len(recipients) < 1 {
 		debug.Log("no recipients given, asking for selection")
@@ -129,21 +129,21 @@ func (s *Action) RecipientsAdd(c *cli.Context) error {
 	return nil
 }
 
-// RecipientsRemove removes recipients
+// RecipientsRemove removes recipients.
 func (s *Action) RecipientsRemove(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	store := c.String("store")
 	force := c.Bool("force")
 	removed := 0
 
-	// select store
+	// select store.
 	if store == "" {
 		store = cui.AskForStore(ctx, s.Store)
 	}
 
 	crypto := s.Store.Crypto(ctx, store)
 
-	// select recipient
+	// select recipient.
 	recipients := []string(c.Args().Slice())
 	if len(recipients) < 1 {
 		rs, err := s.recipientsSelectForRemoval(ctx, store)

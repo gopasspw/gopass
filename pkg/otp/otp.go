@@ -9,7 +9,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/gopass"
 )
 
-// Calculate will compute a OTP code from a given secret
+// Calculate will compute a OTP code from a given secret.
 func Calculate(name string, sec gopass.Secret) (twofactor.OTP, string, error) {
 	otpURL, found := sec.Get("otpauth")
 	if found && strings.HasPrefix(otpURL, "//") {
@@ -44,7 +44,7 @@ func Calculate(name string, sec gopass.Secret) (twofactor.OTP, string, error) {
 	return otp, label, err
 }
 
-// WriteQRFile writes the given OTP code as a QR image to disk
+// WriteQRFile writes the given OTP code as a QR image to disk.
 func WriteQRFile(otp twofactor.OTP, label, file string) error {
 	var qr []byte
 	var err error

@@ -36,7 +36,7 @@ const (
 `
 )
 
-// TemplatesPrint will pretty-print a tree of templates
+// TemplatesPrint will pretty-print a tree of templates.
 func (s *Action) TemplatesPrint(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	t, err := s.Store.TemplateTree(ctx)
@@ -47,7 +47,7 @@ func (s *Action) TemplatesPrint(c *cli.Context) error {
 	return nil
 }
 
-// TemplatePrint will lookup and print a single template
+// TemplatePrint will lookup and print a single template.
 func (s *Action) TemplatePrint(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	name := c.Args().First()
@@ -62,7 +62,7 @@ func (s *Action) TemplatePrint(c *cli.Context) error {
 }
 
 // TemplateEdit will load and existing or new template into an
-// editor
+// editor.
 func (s *Action) TemplateEdit(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	name := c.Args().First()
@@ -84,7 +84,7 @@ func (s *Action) TemplateEdit(c *cli.Context) error {
 		return ExitError(ExitUnknown, err, "failed to invoke editor %s: %s", ed, err)
 	}
 
-	// If content is equal, nothing changed, exiting
+	// If content is equal, nothing changed, exiting.
 	if bytes.Equal(content, nContent) {
 		return nil
 	}
@@ -92,7 +92,7 @@ func (s *Action) TemplateEdit(c *cli.Context) error {
 	return s.Store.SetTemplate(ctx, name, nContent)
 }
 
-// TemplateRemove will remove a single template
+// TemplateRemove will remove a single template.
 func (s *Action) TemplateRemove(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	name := c.Args().First()
@@ -117,7 +117,7 @@ func (s *Action) templatesList(ctx context.Context) []string {
 	return t.List(tree.INF)
 }
 
-// TemplatesComplete prints a list of all templates for bash completion
+// TemplatesComplete prints a list of all templates for bash completion.
 func (s *Action) TemplatesComplete(c *cli.Context) {
 	ctx := ctxutil.WithGlobalFlags(c)
 
@@ -139,7 +139,7 @@ func (s *Action) renderTemplate(ctx context.Context, name string, content []byte
 		return content, false
 	}
 
-	// load template if it exists
+	// load template if it exists.
 	nc, err := tpl.Execute(ctx, string(tmpl), name, content, s.Store)
 	if err != nil {
 		fmt.Fprintf(stdout, "failed to execute template %q: %s\n", tName, err)

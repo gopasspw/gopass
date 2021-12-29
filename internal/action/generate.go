@@ -32,7 +32,7 @@ var (
 	reNumber = regexp.MustCompile(`^\d+$`)
 )
 
-// Generate and save a password
+// Generate and save a password.
 func (s *Action) Generate(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	ctx = WithClip(ctx, c.Bool("clip"))
@@ -106,7 +106,7 @@ func keyAndLength(args argList) (string, string) {
 }
 
 // generateCopyOrPrint will print the password to the screen or copy to the
-// clipboard
+// clipboard.
 func (s *Action) generateCopyOrPrint(ctx context.Context, c *cli.Context, name, key, password string) error {
 	entry := name
 	if key != "" {
@@ -158,7 +158,7 @@ func hasPwRuleForSecret(name string) (string, pwrules.Rule) {
 	return "", pwrules.Rule{}
 }
 
-// generatePassword will run through the password generation steps
+// generatePassword will run through the password generation steps.
 func (s *Action) generatePassword(ctx context.Context, c *cli.Context, length, name string) (string, error) {
 	if domain, rule := hasPwRuleForSecret(name); domain != "" {
 		out.Printf(ctx, "Using password rules for %s ...", domain)
@@ -232,7 +232,7 @@ func (s *Action) generatePassword(ctx context.Context, c *cli.Context, length, n
 }
 
 // generatePasswordXKCD walks through the steps necessary to create an XKCD-style
-// password
+// password.
 func (s *Action) generatePasswordXKCD(ctx context.Context, c *cli.Context, length string) (string, error) {
 	xkcdSeparator := " "
 	if c.IsSet("sep") {
@@ -263,7 +263,7 @@ func (s *Action) generatePasswordXKCD(ctx context.Context, c *cli.Context, lengt
 	return xkcdgen.RandomLengthDelim(pwlen, xkcdSeparator, c.String("lang"))
 }
 
-// generateSetPassword will update or create a secret
+// generateSetPassword will update or create a secret.
 func (s *Action) generateSetPassword(ctx context.Context, name, key, password string, kvps map[string]string) (context.Context, error) {
 	// set a single key in an entry
 	if key != "" {
@@ -342,7 +342,7 @@ func setMetadata(sec gopass.Secret, kvps map[string]string) {
 	}
 }
 
-// CompleteGenerate implements the completion heuristic for the generate command
+// CompleteGenerate implements the completion heuristic for the generate command.
 func (s *Action) CompleteGenerate(c *cli.Context) {
 	ctx := ctxutil.WithGlobalFlags(c)
 	if c.Args().Len() < 1 {

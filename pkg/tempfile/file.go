@@ -9,17 +9,17 @@ import (
 	"path/filepath"
 )
 
-// globalPrefix is prefixed to all temporary dirs
+// globalPrefix is prefixed to all temporary dirs.
 var globalPrefix string
 
-// File is a temporary file
+// File is a temporary file.
 type File struct {
 	dir string
 	dev string
 	fh  *os.File
 }
 
-// New returns a new tempfile wrapper
+// New returns a new tempfile wrapper.
 func New(ctx context.Context, prefix string) (*File, error) {
 	td, err := os.MkdirTemp(tempdirBase(), globalPrefix+prefix)
 	if err != nil {
@@ -45,7 +45,7 @@ func New(ctx context.Context, prefix string) (*File, error) {
 	return tf, nil
 }
 
-// Name returns the name of the tempfile
+// Name returns the name of the tempfile.
 func (t *File) Name() string {
 	if t.fh == nil {
 		return ""
@@ -53,7 +53,7 @@ func (t *File) Name() string {
 	return t.fh.Name()
 }
 
-// Write implement io.Writer
+// Write implements io.Writer.
 func (t *File) Write(p []byte) (int, error) {
 	if t.fh == nil {
 		return 0, fmt.Errorf("not initialized")
@@ -61,7 +61,7 @@ func (t *File) Write(p []byte) (int, error) {
 	return t.fh.Write(p)
 }
 
-// Close implements io.WriteCloser
+// Close implements io.WriteCloser.
 func (t *File) Close() error {
 	if t.fh == nil {
 		return nil
@@ -69,7 +69,7 @@ func (t *File) Close() error {
 	return t.fh.Close()
 }
 
-// Remove attempts to remove the tempfile
+// Remove attempts to remove the tempfile.
 func (t *File) Remove(ctx context.Context) error {
 	_ = t.Close()
 	if err := t.unmount(ctx); err != nil {

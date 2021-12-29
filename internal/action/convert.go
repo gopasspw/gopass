@@ -6,7 +6,7 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-// Convert converts a store to a different set of backends
+// Convert converts a store to a different set of backends.
 func (s *Action) Convert(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 

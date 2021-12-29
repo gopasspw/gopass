@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 )
 
-// UserConfig returns the users config dir
+// UserConfig returns the users config dir.
 func UserConfig() string {
 	if hd := os.Getenv("GOPASS_HOMEDIR"); hd != "" {
 		return filepath.Join(hd, ".config", Name)
@@ -22,7 +22,7 @@ func UserConfig() string {
 	return filepath.Join(base, Name)
 }
 
-// UserCache returns the users cache dir
+// UserCache returns the users cache dir.
 func UserCache() string {
 	if hd := os.Getenv("GOPASS_HOMEDIR"); hd != "" {
 		return filepath.Join(hd, ".cache", Name)
@@ -36,7 +36,7 @@ func UserCache() string {
 	return filepath.Join(base, Name)
 }
 
-// UserData returns the users data dir
+// UserData returns the users data dir.
 func UserData() string {
 	if hd := os.Getenv("GOPASS_HOMEDIR"); hd != "" {
 		return filepath.Join(hd, ".local", "share", Name)

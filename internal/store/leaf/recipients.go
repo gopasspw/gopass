@@ -20,7 +20,7 @@ const (
 	oldKeyDir = ".gpg-keys"
 )
 
-// Recipients returns the list of recipients of this store
+// Recipients returns the list of recipients of this store.
 func (s *Store) Recipients(ctx context.Context) []string {
 	rs, err := s.GetRecipients(ctx, "")
 	if err != nil {
@@ -29,7 +29,7 @@ func (s *Store) Recipients(ctx context.Context) []string {
 	return rs
 }
 
-// RecipientsTree returns a mapping of secrets to recipients
+// RecipientsTree returns a mapping of secrets to recipients.
 func (s *Store) RecipientsTree(ctx context.Context) map[string][]string {
 	idfs := s.idFiles(ctx)
 	out := make(map[string][]string, len(idfs))
@@ -56,7 +56,7 @@ func (s *Store) RecipientsTree(ctx context.Context) map[string][]string {
 	return out
 }
 
-// AddRecipient adds a new recipient to the list
+// AddRecipient adds a new recipient to the list.
 func (s *Store) AddRecipient(ctx context.Context, id string) error {
 	rs, err := s.GetRecipients(ctx, "")
 	if err != nil {
@@ -80,7 +80,7 @@ func (s *Store) AddRecipient(ctx context.Context, id string) error {
 	return s.reencrypt(ctxutil.WithCommitMessage(ctx, "Added Recipient "+id))
 }
 
-// SaveRecipients persists the current recipients on disk
+// SaveRecipients persists the current recipients on disk.
 func (s *Store) SaveRecipients(ctx context.Context) error {
 	rs, err := s.GetRecipients(ctx, "")
 	if err != nil {
@@ -89,14 +89,14 @@ func (s *Store) SaveRecipients(ctx context.Context) error {
 	return s.saveRecipients(ctx, rs, "Save Recipients")
 }
 
-// SetRecipients will update the stored recipients and the associated checksum
+// SetRecipients will update the stored recipients and the associated checksum.
 func (s *Store) SetRecipients(ctx context.Context, rs []string) error {
 	return s.saveRecipients(ctx, rs, "Set Recipients")
 }
 
 // RemoveRecipient will remove the given recipient from the store
 // but if this key is not available on this machine we
-// just try to remove it literally
+// just try to remove it literally.
 func (s *Store) RemoveRecipient(ctx context.Context, id string) error {
 	keys, err := s.crypto.FindRecipients(ctx, id)
 	if err != nil {
@@ -150,7 +150,7 @@ func (s *Store) ensureOurKeyID(ctx context.Context, rs []string) []string {
 }
 
 // OurKeyID returns the key fingprint this user can use to access the store
-// (if any)
+// (if any).
 func (s *Store) OurKeyID(ctx context.Context) string {
 	for _, r := range s.Recipients(ctx) {
 		kl, err := s.crypto.FindIdentities(ctx, r)
@@ -163,7 +163,7 @@ func (s *Store) OurKeyID(ctx context.Context) string {
 }
 
 // GetRecipients will load all Recipients from the .gpg-id file for the given
-// secret path
+// secret path.
 func (s *Store) GetRecipients(ctx context.Context, name string) ([]string, error) {
 	return s.getRecipients(ctx, s.idFile(ctx, name))
 }
@@ -182,7 +182,7 @@ type keyExporter interface {
 }
 
 // ExportMissingPublicKeys will export any possibly missing public keys to the
-// stores .public-keys directory
+// stores .public-keys directory.
 func (s *Store) ExportMissingPublicKeys(ctx context.Context, rs []string) (bool, error) {
 	exp, ok := s.crypto.(keyExporter)
 	if !ok {
@@ -226,7 +226,7 @@ func (s *Store) ExportMissingPublicKeys(ctx context.Context, rs []string) (bool,
 	return exported, nil
 }
 
-// Save all Recipients in memory to the .gpg-id file on disk.
+// Save all Recipients in memory to the recipients file on disk.
 func (s *Store) saveRecipients(ctx context.Context, rs []string, msg string) error {
 	if len(rs) < 1 {
 		return fmt.Errorf("can not remove all recipients")

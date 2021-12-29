@@ -12,7 +12,7 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-// Create displays the password creation wizard
+// Create displays the password creation wizard.
 func (s *Action) Create(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 
@@ -36,7 +36,7 @@ func (s *Action) Create(c *cli.Context) error {
 	}
 }
 
-// createPrintOrCopy will display the created password (or copy to clipboard)
+// createPrintOrCopy will display the created password (or copy to clipboard).
 func (s *Action) createPrintOrCopy(ctx context.Context, c *cli.Context, name, password string, genPw bool) error {
 	if !genPw {
 		return nil

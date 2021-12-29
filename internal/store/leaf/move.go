@@ -54,18 +54,18 @@ func (s *Store) Move(ctx context.Context, from, to string) error {
 	return nil
 }
 
-// Delete will remove an single entry from the store
+// Delete will remove an single entry from the store.
 func (s *Store) Delete(ctx context.Context, name string) error {
 	return s.delete(ctx, name, false)
 }
 
-// Prune will remove a subtree from the Store
+// Prune will remove a subtree from the Store.
 func (s *Store) Prune(ctx context.Context, tree string) error {
 	return s.delete(ctx, tree, true)
 }
 
 // delete will either delete one file or an directory tree depending on the
-// recurse flag
+// recurse flag.
 func (s *Store) delete(ctx context.Context, name string, recurse bool) error {
 	path := s.passfile(name)
 

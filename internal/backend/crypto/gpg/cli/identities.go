@@ -6,7 +6,7 @@ import (
 	"github.com/gopasspw/gopass/internal/backend/crypto/gpg"
 )
 
-// ListIdentities returns a parsed list of GPG secret keys
+// ListIdentities returns a parsed list of GPG secret keys.
 func (g *GPG) ListIdentities(ctx context.Context) ([]string, error) {
 	if g.privKeys == nil {
 		kl, err := g.listKeys(ctx, "secret")
@@ -21,7 +21,7 @@ func (g *GPG) ListIdentities(ctx context.Context) ([]string, error) {
 	return g.privKeys.UseableKeys(gpg.IsAlwaysTrust(ctx)).Recipients(), nil
 }
 
-// FindIdentities searches for the given private keys
+// FindIdentities searches for the given private keys.
 func (g *GPG) FindIdentities(ctx context.Context, search ...string) ([]string, error) {
 	kl, err := g.listKeys(ctx, "secret", search...)
 	if err != nil || kl == nil {

@@ -15,7 +15,7 @@ import (
 	"golang.org/x/term"
 )
 
-// Pwgen handles the pwgen subcommand
+// Pwgen handles the pwgen subcommand.
 func Pwgen(c *cli.Context) error {
 	pwLen := 12
 	if lenStr := c.Args().Get(0); lenStr != "" {

@@ -7,7 +7,7 @@ import (
 )
 
 // WithContext returns a context with all config options set for this store
-// config, iff they have not been already set in the context
+// config, iff they have not been already set in the context.
 func (c *Config) WithContext(ctx context.Context) context.Context {
 	if !c.AutoImport {
 		ctx = ctxutil.WithImportFunc(ctx, nil)

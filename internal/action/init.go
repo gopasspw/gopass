@@ -51,7 +51,7 @@ func (s *Action) IsInitialized(c *cli.Context) error {
 	return ExitError(ExitNotInitialized, err, "not initialized")
 }
 
-// Init a new password store with a first gpg id
+// Init a new password store with a first gpg id.
 func (s *Action) Init(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	path := c.String("path")
@@ -151,7 +151,7 @@ func (s *Action) init(ctx context.Context, alias, path string, keys ...string) e
 		debug.Log("not initializing RCS backend ...")
 	}
 
-	// write config
+	// write config.
 	debug.Log("Writing configuration to %q", s.cfg.ConfigPath)
 	if err := s.cfg.Save(); err != nil {
 		return ExitError(ExitConfig, err, "failed to write config: %s", err)

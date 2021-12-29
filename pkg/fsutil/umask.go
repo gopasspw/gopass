@@ -5,7 +5,7 @@ import (
 	"strconv"
 )
 
-// Umask extracts the umask from env
+// Umask extracts the umask from env.
 func Umask() int {
 	for _, en := range []string{"GOPASS_UMASK", "PASSWORD_STORE_UMASK"} {
 		if um := os.Getenv(en); um != "" {

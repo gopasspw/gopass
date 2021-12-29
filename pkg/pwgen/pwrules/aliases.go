@@ -15,7 +15,7 @@ var (
 	customAliases = map[string][]string{}
 )
 
-// LookupAliases looks up known aliases for the given domain
+// LookupAliases looks up known aliases for the given domain.
 func LookupAliases(domain string) []string {
 	aliases := make([]string, 0, len(genAliases[domain])+len(customAliases[domain]))
 	aliases = append(aliases, genAliases[domain]...)
@@ -24,7 +24,7 @@ func LookupAliases(domain string) []string {
 	return aliases
 }
 
-// AllAliases returns all aliases
+// AllAliases returns all aliases.
 func AllAliases() map[string][]string {
 	all := make(map[string][]string, len(genAliases)+len(customAliases))
 	for k, v := range genAliases {
@@ -73,7 +73,7 @@ func saveCustomAliases() error {
 	return json.NewEncoder(fh).Encode(customAliases)
 }
 
-// AddCustomAlias adds a custom alias
+// AddCustomAlias adds a custom alias.
 func AddCustomAlias(domain, alias string) error {
 	if len(customAliases) < 1 {
 		loadCustomAliases()
@@ -94,7 +94,7 @@ func AddCustomAlias(domain, alias string) error {
 	return saveCustomAliases()
 }
 
-// RemoveCustomAlias removes a custom alias
+// RemoveCustomAlias removes a custom alias.
 func RemoveCustomAlias(domain, alias string) error {
 	if len(customAliases) < 1 {
 		loadCustomAliases()
@@ -115,7 +115,7 @@ func RemoveCustomAlias(domain, alias string) error {
 	return saveCustomAliases()
 }
 
-// DeleteCustomAlias removes a whole domain
+// DeleteCustomAlias removes a whole domain.
 func DeleteCustomAlias(domain string) error {
 	if len(customAliases) < 1 {
 		loadCustomAliases()

@@ -16,7 +16,7 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-// Sync all stores with their remotes
+// Sync all stores with their remotes.
 func (s *Action) Sync(c *cli.Context) error {
 	return s.sync(ctxutil.WithGlobalFlags(c), c.String("store"))
 }
@@ -66,7 +66,7 @@ func (s *Action) sync(ctx context.Context, store string) error {
 	return nil
 }
 
-// syncMount syncs a single mount
+// syncMount syncs a single mount.
 func (s *Action) syncMount(ctx context.Context, mp string) error {
 	ctxno := out.WithNewline(ctx, false)
 	name := mp

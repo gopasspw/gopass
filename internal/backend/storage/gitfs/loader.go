@@ -24,17 +24,17 @@ func (l loader) New(ctx context.Context, path string) (backend.Storage, error) {
 	return New(path)
 }
 
-// Open implements backend.RCSLoader
+// Open implements backend.RCSLoader.
 func (l loader) Open(ctx context.Context, path string) (backend.Storage, error) {
 	return New(path)
 }
 
-// Clone implements backend.RCSLoader
+// Clone implements backend.RCSLoader.
 func (l loader) Clone(ctx context.Context, repo, path string) (backend.Storage, error) {
 	return Clone(ctx, repo, path, termio.DetectName(ctx, nil), termio.DetectEmail(ctx, nil))
 }
 
-// Init implements backend.RCSLoader
+// Init implements backend.RCSLoader.
 func (l loader) Init(ctx context.Context, path string) (backend.Storage, error) {
 	return Init(ctx, path, termio.DetectName(ctx, nil), termio.DetectEmail(ctx, nil))
 }

@@ -13,7 +13,7 @@ import (
 )
 
 // AllPathsToSlash converts a list of paths to their correct
-// platform specific slash representation
+// platform specific slash representation.
 func AllPathsToSlash(paths []string) []string {
 	r := make([]string, len(paths))
 	for i, p := range paths {
@@ -37,12 +37,12 @@ func teardownEnv(em map[string]string) {
 	}
 }
 
-// CliCtx create a new cli context with the given args parsed
+// CliCtx create a new cli context with the given args parsed.
 func CliCtx(ctx context.Context, t *testing.T, args ...string) *cli.Context {
 	return CliCtxWithFlags(ctx, t, nil, args...)
 }
 
-// CliCtxWithFlags creates a new cli context with the given args and flags parsed
+// CliCtxWithFlags creates a new cli context with the given args and flags parsed.
 func CliCtxWithFlags(ctx context.Context, t *testing.T, flags map[string]string, args ...string) *cli.Context {
 	app := cli.NewApp()
 
@@ -86,7 +86,7 @@ func flagset(t *testing.T, flags map[string]string, args []string) *flag.FlagSet
 	return fs
 }
 
-// UnsetVars will unset the specified env vars and return a restore func
+// UnsetVars will unset the specified env vars and return a restore func.
 func UnsetVars(ls ...string) func() {
 	old := make(map[string]string, len(ls))
 	for _, k := range ls {

@@ -9,7 +9,7 @@ import (
 	multierror "github.com/hashicorp/go-multierror"
 )
 
-// Fsck checks all stores/entries matching the given prefix
+// Fsck checks all stores/entries matching the given prefix.
 func (s *Store) Fsck(ctx context.Context, path string) error {
 	var result error
 

@@ -27,7 +27,7 @@ func (v byVersion) Less(i, j int) bool {
 	return v[i].ver.LT(v[j].ver)
 }
 
-// Version return the version of the gpg binary
+// Version return the version of the gpg binary.
 func Version(ctx context.Context, binary string) semver.Version {
 	v := semver.Version{}
 

@@ -20,7 +20,7 @@ type payload struct {
 	Content string
 }
 
-// Execute executes the given template
+// Execute executes the given template.
 func Execute(ctx context.Context, tpl, name string, content []byte, s kvstore) ([]byte, error) {
 	funcs := funcMap(ctx, s)
 	pl := payload{

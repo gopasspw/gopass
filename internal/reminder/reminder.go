@@ -8,12 +8,12 @@ import (
 	"github.com/gopasspw/gopass/pkg/debug"
 )
 
-// Store stores timestamps on disk
+// Store stores timestamps on disk.
 type Store struct {
 	cache *cache.OnDisk
 }
 
-// New creates a new persistent timestamp store
+// New creates a new persistent timestamp store.
 func New() (*Store, error) {
 	od, err := cache.NewOnDisk("reminder", 90*24*time.Hour)
 	if err != nil {
@@ -50,7 +50,7 @@ func (s *Store) lastSeen(key string) time.Time {
 	return ts
 }
 
-// Reset marks a key as just seen
+// Reset marks a key as just see.
 func (s *Store) Reset(key string) error {
 	if s == nil {
 		return nil
@@ -60,7 +60,7 @@ func (s *Store) Reset(key string) error {
 }
 
 // Overdue returns true iff (a) overdue did not return true within 24h AND (b)
-// the key wasn't updated within the last 90 days
+// the key wasn't updated within the last 90 day.
 func (s *Store) Overdue(key string) bool {
 	if s == nil {
 		return false

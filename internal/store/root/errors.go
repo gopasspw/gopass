@@ -3,7 +3,7 @@ package root
 import "fmt"
 
 // AlreadyMountedError is an error that is returned when
-// a store is already mounted on a given mount point
+// a store is already mounted on a given mount point.
 type AlreadyMountedError string
 
 func (a AlreadyMountedError) Error() string {
@@ -12,16 +12,16 @@ func (a AlreadyMountedError) Error() string {
 }
 
 // NotInitializedError is an error that is returned when
-// a not initialized store should be mounted
+// a not initialized store should be mounted.
 type NotInitializedError struct {
 	alias string
 	path  string
 }
 
-// Alias returns the store alias this error was generated for
+// Alias returns the store alias this error was generated for.
 func (n NotInitializedError) Alias() string { return n.alias }
 
-// Path returns the store path this error was generated for
+// Path returns the store path this error was generated for.
 func (n NotInitializedError) Path() string { return n.path }
 
 func (n NotInitializedError) Error() string {

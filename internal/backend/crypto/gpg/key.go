@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-// Key is a GPG key (public or secret)
+// Key is a GPG key (public or secret).
 type Key struct {
 	KeyType        string
 	KeyLength      int
@@ -20,7 +20,7 @@ type Key struct {
 	Caps           Capabilities
 }
 
-// Capabilities of a Key
+// Capabilities of a Key.
 type Capabilities struct {
 	Encrypt        bool
 	Sign           bool
@@ -29,7 +29,7 @@ type Capabilities struct {
 	Deactivated    bool
 }
 
-// IsUseable returns true if GPG would assume this key is useable for encryption
+// IsUseable returns true if GPG would assume this key is useable for encryption.
 func (k Key) IsUseable(alwaysTrust bool) bool {
 	if k.Caps.Deactivated {
 		return false
@@ -55,7 +55,7 @@ func (k Key) IsUseable(alwaysTrust bool) bool {
 }
 
 // String implement fmt.Stringer. This method produces output that is close to, but
-// not exactly the same, as the output form GPG itself
+// not exactly the same, as the output form GPG itself.
 func (k Key) String() string {
 	fp := ""
 	if len(k.Fingerprint) > 24 {
@@ -73,7 +73,7 @@ func (k Key) String() string {
 }
 
 // OneLine prints a terse representation of this key on one line (includes only
-// the first identity!)
+// the first identity!).
 func (k Key) OneLine() string {
 	if len(k.Fingerprint) < 24 {
 		return fmt.Sprintf("(invalid:%s)", k.Fingerprint)
@@ -81,7 +81,7 @@ func (k Key) OneLine() string {
 	return fmt.Sprintf("0x%s - %s", k.Fingerprint[24:], k.Identity().ID())
 }
 
-// Identity returns the first identity
+// Identity returns the first identity.
 func (k Key) Identity() Identity {
 	ids := make([]Identity, 0, len(k.Identities))
 	for _, i := range k.Identities {
@@ -96,7 +96,7 @@ func (k Key) Identity() Identity {
 	return Identity{}
 }
 
-// ID returns the short fingerprint
+// ID returns the short fingerprint.
 func (k Key) ID() string {
 	if len(k.Fingerprint) < 25 {
 		return ""

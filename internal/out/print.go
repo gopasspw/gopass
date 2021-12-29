@@ -12,22 +12,22 @@ import (
 )
 
 var (
-	// Stdout is exported for tests
+	// Stdout is exported for tests.
 	Stdout io.Writer = os.Stdout
-	// Stderr is exported for tests
+	// Stderr is exported for tests.
 	Stderr io.Writer = os.Stderr
 )
 
-// Secret is a string wrapper for strings containing secrets. These won't be
-// logged as long a GOPASS_DEBUG_LOG_SECRETS is not set
+// Secret is a string wrapper for strings containing secrets. These won't b.
+// logged as long a GOPASS_DEBUG_LOG_SECRETS is not set.
 type Secret string
 
-// SafeStr always return "(elided)"
+// SafeStr always return "(elided)".
 func (s Secret) SafeStr() string {
 	return "(elided)"
 }
 
-// OutputIsRedirected returns true if the current os.Stdout is a pipe instead of a terminal
+// OutputIsRedirected returns true if the current os.Stdout is a pipe instead of a terminal.
 func OutputIsRedirected() bool {
 	o, _ := os.Stdout.Stat()
 	return (o.Mode() & os.ModeCharDevice) != os.ModeCharDevice
@@ -40,7 +40,7 @@ func newline(ctx context.Context) string {
 	return ""
 }
 
-// Print prints the given string
+// Print prints the given string.
 func Print(ctx context.Context, arg any) {
 	if ctxutil.IsHidden(ctx) {
 		return
@@ -49,7 +49,7 @@ func Print(ctx context.Context, arg any) {
 	fmt.Fprintf(Stdout, Prefix(ctx)+"%s"+newline(ctx), arg)
 }
 
-// Printf formats and prints the given string
+// Printf formats and prints the given string.
 func Printf(ctx context.Context, format string, args ...any) {
 	if ctxutil.IsHidden(ctx) {
 		return
@@ -58,7 +58,7 @@ func Printf(ctx context.Context, format string, args ...any) {
 	fmt.Fprintf(Stdout, Prefix(ctx)+format+newline(ctx), args...)
 }
 
-// Notice prints the string with an exclamation mark
+// Notice prints the string with an exclamation mark.
 func Notice(ctx context.Context, arg any) {
 	if ctxutil.IsHidden(ctx) {
 		return
@@ -67,7 +67,7 @@ func Notice(ctx context.Context, arg any) {
 	fmt.Fprintf(Stdout, Prefix(ctx)+"⚠ %s"+newline(ctx), arg)
 }
 
-// Noticef prints the string with an exclamation mark in front
+// Noticef prints the string with an exclamation mark in front.
 func Noticef(ctx context.Context, format string, args ...any) {
 	if ctxutil.IsHidden(ctx) {
 		return
@@ -76,7 +76,7 @@ func Noticef(ctx context.Context, format string, args ...any) {
 	fmt.Fprintf(Stdout, Prefix(ctx)+"⚠ "+format+newline(ctx), args...)
 }
 
-// Error prints the string with a red cross in front
+// Error prints the string with a red cross in front.
 func Error(ctx context.Context, arg any) {
 	if ctxutil.IsHidden(ctx) {
 		return
@@ -85,7 +85,7 @@ func Error(ctx context.Context, arg any) {
 	fmt.Fprint(Stderr, color.RedString(Prefix(ctx)+"❌ %s"+newline(ctx), arg))
 }
 
-// Errorf prints the string in red to stderr
+// Errorf prints the string in red to stderr.
 func Errorf(ctx context.Context, format string, args ...any) {
 	if ctxutil.IsHidden(ctx) {
 		return
@@ -94,7 +94,7 @@ func Errorf(ctx context.Context, format string, args ...any) {
 	fmt.Fprint(Stderr, color.RedString(Prefix(ctx)+"❌ "+format+newline(ctx), args...))
 }
 
-// OK prints the string with a green checkmark in front
+// OK prints the string with a green checkmark in front.
 func OK(ctx context.Context, arg any) {
 	if ctxutil.IsHidden(ctx) {
 		return
@@ -103,7 +103,7 @@ func OK(ctx context.Context, arg any) {
 	fmt.Fprintf(Stdout, Prefix(ctx)+"✅ %s"+newline(ctx), arg)
 }
 
-// OKf prints the string in with an OK checkmark in front
+// OKf prints the string in with an OK checkmark in front.
 func OKf(ctx context.Context, format string, args ...any) {
 	if ctxutil.IsHidden(ctx) {
 		return
@@ -112,7 +112,7 @@ func OKf(ctx context.Context, format string, args ...any) {
 	fmt.Fprintf(Stdout, Prefix(ctx)+"✅ "+format+newline(ctx), args...)
 }
 
-// Warning prints the string with a warning sign in front
+// Warning prints the string with a warning sign in front.
 func Warning(ctx context.Context, arg any) {
 	if ctxutil.IsHidden(ctx) {
 		return
@@ -121,7 +121,7 @@ func Warning(ctx context.Context, arg any) {
 	fmt.Fprint(Stderr, color.YellowString(Prefix(ctx)+"⚠ %s"+newline(ctx), arg))
 }
 
-// Warningf prints the string in yellow to stderr and prepends a warning sign
+// Warningf prints the string in yellow to stderr and prepends a warning sign.
 func Warningf(ctx context.Context, format string, args ...any) {
 	if ctxutil.IsHidden(ctx) {
 		return

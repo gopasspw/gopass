@@ -11,7 +11,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/debug"
 )
 
-// Store is password store
+// Store is a password store.
 type Store struct {
 	alias   string
 	path    string
@@ -19,7 +19,7 @@ type Store struct {
 	storage backend.Storage
 }
 
-// Init initializes this sub store
+// Init initializes this sub store.
 func Init(ctx context.Context, alias, path string) (*Store, error) {
 	debug.Log("Initializing %s at %s", alias, path)
 	s := &Store{
@@ -44,7 +44,7 @@ func Init(ctx context.Context, alias, path string) (*Store, error) {
 	return s, nil
 }
 
-// New creates a new store
+// New creates a new store.
 func New(ctx context.Context, alias, path string) (*Store, error) {
 	debug.Log("Instantiating %s at %s", alias, path)
 
@@ -122,7 +122,7 @@ func (s *Store) idFiles(ctx context.Context) []string {
 	return set.Sorted(idfs)
 }
 
-// Equals returns true if this storage has the same on-disk path as the other
+// Equals returns true if this storage has the same on-disk path as the other.
 func (s *Store) Equals(other *Store) bool {
 	if other == nil {
 		return false
@@ -130,12 +130,12 @@ func (s *Store) Equals(other *Store) bool {
 	return s.Path() == other.Path()
 }
 
-// IsDir returns true if the entry is folder inside the store
+// IsDir returns true if the entry is folder inside the store.
 func (s *Store) IsDir(ctx context.Context, name string) bool {
 	return s.storage.IsDir(ctx, name)
 }
 
-// Exists checks the existence of a single entry
+// Exists checks the existence of a single entry.
 func (s *Store) Exists(ctx context.Context, name string) bool {
 	return s.storage.Exists(ctx, s.passfile(name))
 }
@@ -158,38 +158,38 @@ func (s *Store) useableKeys(ctx context.Context, name string) ([]string, error) 
 	return kl, nil
 }
 
-// passfile returns the name of gpg file on disk, for the given key/name
+// passfile returns the name of gpg file on disk, for the given key/name.
 func (s *Store) passfile(name string) string {
 	return strings.TrimPrefix(name+"."+s.crypto.Ext(), "/")
 }
 
-// String implement fmt.Stringer
+// String implement fmt.Stringer.
 func (s *Store) String() string {
 	return fmt.Sprintf("Store(Alias: %s, Path: %s)", s.alias, s.path)
 }
 
-// Path returns the value of path
+// Path returns the value of path.
 func (s *Store) Path() string {
 	return s.path
 }
 
-// Alias returns the value of alias
+// Alias returns the value of alias.
 func (s *Store) Alias() string {
 	return s.alias
 }
 
-// Storage returns the storage backend used by this.storage
+// Storage returns the storage backend used by this store.
 func (s *Store) Storage() backend.Storage {
 	return s.storage
 }
 
-// Valid returns true if this store is not nil
+// Valid returns true if this store is not nil.
 func (s *Store) Valid() bool {
 	return s != nil
 }
 
 // Concurrency returns the number of concurrent operations allowed
-// by this stores crypto implementation (e.g. usually 1 for GPG)
+// by this stores crypto implementation (e.g. usually 1 for GPG).
 func (s *Store) Concurrency() int {
 	return s.Crypto().Concurrency()
 }

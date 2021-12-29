@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-// GPGOpts parses extra GPG options from the environment
+// GPGOpts parses extra GPG options from the environment.
 func GPGOpts() []string {
 	for _, en := range []string{"GOPASS_GPG_OPTS", "PASSWORD_STORE_GPG_OPTS"} {
 		if opts := os.Getenv(en); opts != "" {
@@ -18,7 +18,7 @@ func GPGOpts() []string {
 	return nil
 }
 
-// gpgConfigLoc returns the location of the GPG config file
+// gpgConfigLoc returns the location of the GPG config file.
 func gpgConfigLoc() string {
 	if sv := os.Getenv("GNUPGHOME"); sv != "" {
 		return filepath.Join(sv, "gpg.conf")

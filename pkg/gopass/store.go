@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-// Byter is a minimal secrets write interface
+// Byter is a minimal secrets write interface.
 type Byter interface {
 	Bytes() []byte
 }
@@ -26,7 +26,7 @@ type Secret interface {
 	// Del removes a single header value
 	Del(key string) bool
 
-	// GetBody returns everything except the header. Use Bytes to get everything
+	// GetBody returns everything except the header. Use Bytes to get everything.
 	Body() string
 	Password() string
 	SetPassword(string)
@@ -36,19 +36,19 @@ type Secret interface {
 type Store interface {
 	fmt.Stringer
 
-	// List all secrets
+	// List all secrets.
 	List(context.Context) ([]string, error)
 	// Get an decrypted secret. Revision defaults to "latest".
 	Get(ctx context.Context, name, revision string) (Secret, error)
 	// Set (add) a new revision of an secret
 	Set(ctx context.Context, name string, sec Byter) error
-	// Revisions return a list of revisions for a secret
+	// Revisions return a list of revisions for a secret.
 	Revisions(ctx context.Context, name string) ([]string, error)
-	// Remove a single secret
+	// Remove a single secret.
 	Remove(ctx context.Context, name string) error
-	// RemoveAll secrets with a common prefix
+	// RemoveAll secrets with a common prefix.
 	RemoveAll(ctx context.Context, prefix string) error
-	// Rename a path (secret of prefix) without decrypting
+	// Rename a path (secret of prefix) without decrypting.
 	Rename(ctx context.Context, src, dest string) error
 	// Sync with a remote (if configured)
 	// NOTE: We will always auto-sync when mutating the store. Use this to

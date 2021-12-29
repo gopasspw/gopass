@@ -10,7 +10,7 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-// Update will start the interactive update assistant
+// Update will start the interactive update assistant.
 func (s *Action) Update(c *cli.Context) error {
 	s.rem.Reset("update")
 

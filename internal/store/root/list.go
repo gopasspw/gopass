@@ -11,7 +11,7 @@ import (
 	"github.com/gopasspw/gopass/internal/tree"
 )
 
-// List will return a flattened list of all tree entries
+// List will return a flattened list of all tree entries.
 func (r *Store) List(ctx context.Context, maxDepth int) ([]string, error) {
 	t, err := r.Tree(ctx)
 	if err != nil {
@@ -20,7 +20,7 @@ func (r *Store) List(ctx context.Context, maxDepth int) ([]string, error) {
 	return t.List(maxDepth), nil
 }
 
-// Tree returns the tree representation of the entries
+// Tree returns the tree representation of the entries.
 func (r *Store) Tree(ctx context.Context) (*tree.Root, error) {
 	root := tree.New("gopass")
 	addFileFunc := func(in ...string) {
@@ -79,7 +79,7 @@ func (r *Store) Tree(ctx context.Context) (*tree.Root, error) {
 	return root, nil
 }
 
-// HasSubDirs returns true if the named entity has subdirectories
+// HasSubDirs returns true if the named entity has subdirectories.
 func (r *Store) HasSubDirs(ctx context.Context, name string) (bool, error) {
 	sub, prefix := r.getStore(name)
 	entries, err := sub.List(ctx, prefix)
@@ -94,7 +94,7 @@ func (r *Store) HasSubDirs(ctx context.Context, name string) (bool, error) {
 	return false, nil
 }
 
-// Format will pretty print all entries in this store and all substores
+// Format will pretty print all entries in this store and all substores.
 func (r *Store) Format(ctx context.Context, maxDepth int) (string, error) {
 	t, err := r.Tree(ctx)
 	if err != nil {

@@ -9,13 +9,13 @@ import (
 )
 
 var (
-	// NameVars are the env vars checked for a valid name
+	// NameVars are the env vars checked for a valid name.
 	NameVars = []string{
 		"GIT_AUTHOR_NAME",
 		"DEBFULLNAME",
 		"USER",
 	}
-	// EmailVars are the env vars checked for a valid email
+	// EmailVars are the env vars checked for a valid email.
 	EmailVars = []string{
 		"GIT_AUTHOR_EMAIL",
 		"DEBEMAIL",
@@ -23,7 +23,7 @@ var (
 	}
 )
 
-// DetectName tries to guess the name of the logged in user
+// DetectName tries to guess the name of the logged in user.
 func DetectName(ctx context.Context, c *cli.Context) string {
 	cand := make([]string, 0, 5)
 	cand = append(cand, ctxutil.GetUsername(ctx))
@@ -41,7 +41,7 @@ func DetectName(ctx context.Context, c *cli.Context) string {
 	return ""
 }
 
-// DetectEmail tries to guess the email of the logged in user
+// DetectEmail tries to guess the email of the logged in user.
 func DetectEmail(ctx context.Context, c *cli.Context) string {
 	cand := make([]string, 0, 5)
 	cand = append(cand, ctxutil.GetEmail(ctx))

@@ -16,11 +16,11 @@ import (
 )
 
 const (
-	// TemplateFile is the name of a pass template
+	// TemplateFile is the name of a pass template.
 	TemplateFile = ".pass-template"
 )
 
-// LookupTemplate will lookup and return a template
+// LookupTemplate will lookup and return a template.
 func (s *Store) LookupTemplate(ctx context.Context, name string) (string, []byte, bool) {
 	oName := name
 	// go upwards in the directory tree until we find a template
@@ -42,7 +42,7 @@ func (s *Store) LookupTemplate(ctx context.Context, name string) (string, []byte
 	return "", []byte{}, false
 }
 
-// ListTemplates will list all templates in this store
+// ListTemplates will list all templates in this store.
 func (s *Store) ListTemplates(ctx context.Context, prefix string) []string {
 	lst, err := s.storage.List(ctx, "")
 	if err != nil {
@@ -68,7 +68,7 @@ func (s *Store) ListTemplates(ctx context.Context, prefix string) []string {
 	return out
 }
 
-// TemplateTree returns a tree of all templates
+// TemplateTree returns a tree of all templates.
 func (s *Store) TemplateTree(ctx context.Context) *tree.Root {
 	root := tree.New("gopass")
 	for _, t := range s.ListTemplates(ctx, "") {
@@ -80,22 +80,22 @@ func (s *Store) TemplateTree(ctx context.Context) *tree.Root {
 	return root
 }
 
-// templatefile returns the name of the given template on disk
+// templatefile returns the name of the given template on disk.
 func (s *Store) templatefile(name string) string {
 	return strings.TrimPrefix(filepath.Join(name, TemplateFile), string(filepath.Separator))
 }
 
-// HasTemplate returns true if the template exists
+// HasTemplate returns true if the template exists.
 func (s *Store) HasTemplate(ctx context.Context, name string) bool {
 	return s.storage.Exists(ctx, s.templatefile(name))
 }
 
-// GetTemplate will return the content of the named template
+// GetTemplate will return the content of the named template.
 func (s *Store) GetTemplate(ctx context.Context, name string) ([]byte, error) {
 	return s.storage.Get(ctx, s.templatefile(name))
 }
 
-// SetTemplate will (over)write the content to the template file
+// SetTemplate will (over)write the content to the template file.
 func (s *Store) SetTemplate(ctx context.Context, name string, content []byte) error {
 	p := s.templatefile(name)
 
@@ -117,7 +117,7 @@ func (s *Store) SetTemplate(ctx context.Context, name string, content []byte) er
 	return s.gitCommitAndPush(ctx, name)
 }
 
-// RemoveTemplate will delete the named template if it exists
+// RemoveTemplate will delete the named template if it exists.
 func (s *Store) RemoveTemplate(ctx context.Context, name string) error {
 	p := s.templatefile(name)
 

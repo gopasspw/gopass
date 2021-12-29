@@ -12,7 +12,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/gopass/secrets/secparse"
 )
 
-// Get returns the plaintext of a single key
+// Get returns the plaintext of a single key.
 func (s *Store) Get(ctx context.Context, name string) (gopass.Secret, error) {
 	p := s.passfile(name)
 

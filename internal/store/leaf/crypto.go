@@ -21,13 +21,13 @@ func (s *Store) initCryptoBackend(ctx context.Context) error {
 	return nil
 }
 
-// Crypto returns the crypto backend
+// Crypto returns the crypto backend.
 func (s *Store) Crypto() backend.Crypto {
 	return s.crypto
 }
 
 // ImportMissingPublicKeys will try to import any missing public keys from the
-// .public-keys folder in the password store
+// .public-keys folder in the password store.
 func (s *Store) ImportMissingPublicKeys(ctx context.Context) error {
 	// do not import any keys for age, where public key == key id
 	if _, ok := s.crypto.(*age.Age); ok {
@@ -96,7 +96,7 @@ func (s *Store) decodePublicKey(ctx context.Context, r string) ([]string, error)
 	return nil, fmt.Errorf("public key %q not found", r)
 }
 
-// export an ASCII armored public key
+// export an ASCII armored public key.
 func (s *Store) exportPublicKey(ctx context.Context, exp keyExporter, r string) (string, error) {
 	filename := filepath.Join(keyDir, r)
 
@@ -126,7 +126,7 @@ type keyImporter interface {
 	ImportPublicKey(ctx context.Context, key []byte) error
 }
 
-// import an public key into the default keyring
+// import an public key into the default keyring.
 func (s *Store) importPublicKey(ctx context.Context, r string) error {
 	im, ok := s.crypto.(keyImporter)
 	if !ok {
@@ -153,7 +153,7 @@ type locker interface {
 	Lock()
 }
 
-// Lock clears the credential caches of all supported backends
+// Lock clears the credential caches of all supported backends.
 func (s *Store) Lock() error {
 	f, ok := s.crypto.(locker)
 	if !ok {

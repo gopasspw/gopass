@@ -16,7 +16,7 @@ const (
 )
 
 // QRCode returns a string containing an ANSI encoded
-// QR Code
+// QR Code.
 func QRCode(content string) (string, error) {
 	q, err := qrcode.New(content, qrcode.Medium)
 	if err != nil {
