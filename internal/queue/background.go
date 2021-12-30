@@ -24,7 +24,7 @@ const (
 // Queuer is a queue interface.
 type Queuer interface {
 	Add(Task) Task
-	Wait(context.Context) error
+	Close(context.Context) error
 	Idle(time.Duration) error
 }
 
@@ -49,8 +49,8 @@ func (n *noop) Add(t Task) Task {
 	return t
 }
 
-// Wait always returns nil.
-func (n *noop) Wait(_ context.Context) error {
+// Close always returns nil.
+func (n *noop) Close(_ context.Context) error {
 	return nil
 }
 
@@ -115,10 +115,9 @@ func (q *Queue) Idle(maxWait time.Duration) error {
 	}
 }
 
-// Wait waits for all tasks to be processed. Must only be called once on
+// Close waits for all tasks to be processed. Must only be called once on
 // shutdown.
-// TODO: This should be called Close.
-func (q *Queue) Wait(ctx context.Context) error {
+func (q *Queue) Close(ctx context.Context) error {
 	close(q.work)
 	select {
 	case <-q.done:

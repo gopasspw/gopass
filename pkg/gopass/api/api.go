@@ -87,7 +87,7 @@ func (g *Gopass) String() string {
 
 // Close shuts down all background processes.
 func (g *Gopass) Close(ctx context.Context) error {
-	return queue.GetQueue(ctx).Wait(ctx)
+	return queue.GetQueue(ctx).Close(ctx)
 }
 
 // ConfigDir returns gopass' configuration directory.

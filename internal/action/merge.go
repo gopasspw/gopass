@@ -84,7 +84,7 @@ func (s *Action) Merge(c *cli.Context) error {
 	}
 
 	// wait until the previous commit is done
-	// TODO: This wouldn't be necessary if we could handle merging and deleting
+	// This wouldn't be necessary if we could handle merging and deleting
 	// in a single commit, but then we'd need to expose additional implementation
 	// details of the underlying VCS. Or create some kind of transaction on top
 	// of the Git wrapper.

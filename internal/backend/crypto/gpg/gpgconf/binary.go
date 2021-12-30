@@ -6,5 +6,5 @@ import (
 
 // Binary returns the GPG binary location.
 func Binary(ctx context.Context, bin string) (string, error) {
-	return detectBinary(bin)
+	return detectBinary(ctx, bin)
 }

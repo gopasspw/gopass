@@ -13,7 +13,7 @@ import (
 	"os"
 	"os/signal"
 	"runtime"
-	"runtime/debug"
+	rdebug "runtime/debug"
 	"runtime/pprof"
 	"sort"
 	"time"
@@ -30,6 +30,7 @@ import (
 	"github.com/gopasspw/gopass/internal/queue"
 	"github.com/gopasspw/gopass/internal/store/leaf"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/protect"
 	"github.com/gopasspw/gopass/pkg/termio"
 	colorable "github.com/mattn/go-colorable"
@@ -47,17 +48,10 @@ var (
 )
 
 func main() {
-	if cp := os.Getenv("GOPASS_CPU_PROFILE"); cp != "" {
-		f, err := os.Create(cp)
-		if err != nil {
-			log.Fatalf("could not create CPU profile at %s: %s", cp, err)
-		}
-		defer f.Close()
-		if err := pprof.StartCPUProfile(f); err != nil {
-			log.Fatalf("could not start CPU profile: %s", err)
-		}
-		defer pprof.StopCPUProfile()
-	}
+	// important: execute the func now but the returned func only on defer!
+	// Example: https://go.dev/play/p/8214zCX6hVq.
+	defer writeCPUProfile()()
+
 	if err := protect.Pledge("stdio rpath wpath cpath tty proc exec"); err != nil {
 		panic(err)
 	}
@@ -85,24 +79,17 @@ func main() {
 	sv := getVersion()
 	cli.VersionPrinter = makeVersionPrinter(os.Stdout, sv)
 
+	// run the app
 	q := queue.New(ctx)
 	ctx = queue.WithQueue(ctx, q)
 	ctx, app := setupApp(ctx, sv)
 	if err := app.RunContext(ctx, os.Args); err != nil {
 		log.Fatal(err)
 	}
-	q.Wait(ctx)
-	if mp := os.Getenv("GOPASS_MEM_PROFILE"); mp != "" {
-		f, err := os.Create(mp)
-		if err != nil {
-			log.Fatalf("could not write mem profile to %s: %s", mp, err)
-		}
-		defer f.Close()
-		runtime.GC()
-		if err := pprof.WriteHeapProfile(f); err != nil {
-			log.Fatalf("could not write heap profile: %s", err)
-		}
-	}
+	// process all pending queue items
+	q.Close(ctx)
+	writeMemProfile()
+	// done
 }
 
 func setupApp(ctx context.Context, sv semver.Version) (context.Context, *cli.App) {
@@ -191,7 +178,7 @@ func getCommands(action *ap.Action, app *cli.App) []*cli.Command {
 }
 
 func parseBuildInfo() (string, string, string) {
-	bi, ok := debug.ReadBuildInfo()
+	bi, ok := rdebug.ReadBuildInfo()
 	if !ok {
 		return "HEAD", "", ""
 	}
@@ -288,4 +275,44 @@ func initContext(ctx context.Context, cfg *config.Config) context.Context {
 	}
 
 	return ctx
+}
+
+func writeCPUProfile() func() {
+	cp := os.Getenv("GOPASS_CPU_PROFILE")
+	if cp == "" {
+		return func() {}
+	}
+
+	f, err := os.Create(cp)
+	if err != nil {
+		log.Fatalf("could not create CPU profile at %s: %s", cp, err)
+	}
+
+	if err := pprof.StartCPUProfile(f); err != nil {
+		log.Fatalf("could not start CPU profile: %s", err)
+	}
+
+	return func() {
+		pprof.StopCPUProfile()
+		f.Close()
+		debug.Log("wrote CPU profile to %s", cp)
+	}
+}
+
+func writeMemProfile() {
+	mp := os.Getenv("GOPASS_MEM_PROFILE")
+	if mp == "" {
+		return
+	}
+	f, err := os.Create(mp)
+	if err != nil {
+		log.Fatalf("could not write mem profile to %s: %s", mp, err)
+	}
+	defer f.Close()
+
+	runtime.GC() // get up-to-date statistics
+	if err := pprof.WriteHeapProfile(f); err != nil {
+		log.Fatalf("could not write heap profile: %s", err)
+	}
+	debug.Log("wrote heap profile to %s", mp)
 }

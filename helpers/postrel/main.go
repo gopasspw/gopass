@@ -100,8 +100,6 @@ func main() {
 		upd.update(ctx)
 	}
 
-	// TODO tweet about the new release
-
 	fmt.Println("💎🙌 Done 🚀🚀🚀🚀🚀🚀")
 }
 

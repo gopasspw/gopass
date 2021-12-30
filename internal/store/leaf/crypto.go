@@ -30,6 +30,7 @@ func (s *Store) Crypto() backend.Crypto {
 // .public-keys folder in the password store.
 func (s *Store) ImportMissingPublicKeys(ctx context.Context) error {
 	// do not import any keys for age, where public key == key id
+	// TODO: do not hard code exceptions, ask the backend if it supports it
 	if _, ok := s.crypto.(*age.Age); ok {
 		debug.Log("not importing public keys for age")
 		return nil

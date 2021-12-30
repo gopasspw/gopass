@@ -4,6 +4,7 @@
 package gpgconf
 
 import (
+	"context"
 	"os/exec"
 
 	"github.com/gopasspw/gopass/pkg/debug"
@@ -11,7 +12,7 @@ import (
 	"github.com/gopasspw/pinentry/gpgconf"
 )
 
-func detectBinary(name string) (string, error) {
+func detectBinary(_ context.Context, name string) (string, error) {
 	// user supplied binaries take precedence
 	if name != "" {
 		return exec.LookPath(name)

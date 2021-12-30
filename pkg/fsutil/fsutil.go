@@ -26,7 +26,7 @@ func CleanFilename(in string) string {
 // CleanPath resolves common aliases in a path and cleans it as much as possible.
 func CleanPath(path string) string {
 	// http://stackoverflow.com/questions/17609732/expand-tilde-to-home-directory
-	// TODO: We should consider if we really want to rewrite ~
+	// TODO(GH-2083): We should consider if we really want to rewrite ~
 	if len(path) > 1 && path[:2] == "~/" {
 		usr, _ := user.Current()
 		dir := usr.HomeDir

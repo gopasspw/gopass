@@ -72,6 +72,8 @@ func (s *Store) Convert(ctx context.Context, cryptoBe backend.CryptoBackend, sto
 		bar = nil
 	}
 
+	// Avoid network operations slowing down the bulk conversion.
+	// We will sync with the remote later.
 	ctx = ctxutil.WithNoNetwork(ctx, true)
 	for _, e := range entries {
 		e = strings.TrimPrefix(e, s.alias+Sep)
