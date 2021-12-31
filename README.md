@@ -60,7 +60,7 @@ Please see [docs/setup.md](https://github.com/gopasspw/gopass/blob/master/docs/s
 If you have [Go](https://golang.org/) 1.18 (or greater) installed:
 
 ```bash
-go get github.com/gopasspw/gopass
+go install github.com/gopasspw/gopass
 ```
 
 WARNING: Please prefer releases, unless you want to contribute to the
@@ -128,7 +128,7 @@ gopass update
 
 or to upgrade with Go installed, run:
 ```bash
-go get -u github.com/gopasspw/gopass
+go install github.com/gopasspw/gopass@latest
 ```
 
 Otherwise, use the setup docs mentioned in the installation section to reinstall the latest version.
@@ -156,6 +156,7 @@ gopass is developed in the open. Here are some of the channels we use to communi
 ## Integrations
 
 - [gopassbridge](https://github.com/gopasspw/gopassbridge): Browser plugin for Firefox, Chrome and other Chromium based browsers
+- [gopass-ui](https://github.com/codecentric/gopass-ui): Graphical user interface for gopass
 - [kubectl gopass](https://github.com/gopasspw/kubectl-gopass): Kubernetes / kubectl plugin to support reading and writing secrets directly from/to gopass.
 - [gopass alfred](https://github.com/gopasspw/gopass-alfred): Alfred workflow to use gopass from the Alfred Mac launcher
 - [git-credential-gopass](https://github.com/gopasspw/git-credential-gopass): Integrate gopass as an git-credential helper
@@ -169,6 +170,12 @@ gopass is developed in the open. Here are some of the channels we use to communi
 
 - [Pass - Password Store](https://apps.apple.com/us/app/pass-password-store/id1205820573) - iOS, [source code](https://github.com/mssun/passforios), [supports only 1 repository now](https://github.com/mssun/passforios/issues/88)
 - [Password Store](https://play.google.com/store/apps/details?id=dev.msfjarvis.aps) - Android
+
+## Related Projects
+
+- [pass](https://www.password-store.org) - The inspiration for this project, by Jason A. Donenfeld. `gopass` is a drop-in replacement for `pass` and can be used interchangeably (mostly!).
+- [passage](https://github.com/FiloSottile/passage) - passage is a fork of [password-store](https://www.passwordstore.org) that uses
+[age](https://age-encryption.org) as a backend instead of GnuPG. `gopass` has some amount of support for `passage` but can not be used fully interchangeably as of today. This might change in the future.
 
 ## Contributing
 
