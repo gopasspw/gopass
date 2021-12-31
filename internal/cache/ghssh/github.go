@@ -3,12 +3,24 @@ package ghssh
 import (
 	"bufio"
 	"context"
+	"crypto/tls"
 	"fmt"
 	"net/http"
 	"strings"
 	"time"
 
 	"github.com/gopasspw/gopass/pkg/debug"
+)
+
+var (
+	httpClient = &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				// enforce TLS 1.3
+				MinVersion: tls.VersionTLS13,
+			},
+		},
+	}
 )
 
 // ListKeys returns the public keys for a github user. It will
@@ -44,7 +56,7 @@ func (c *Cache) fetchKeys(ctx context.Context, user string) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}

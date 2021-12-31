@@ -83,7 +83,7 @@ func FetchLatestRelease(ctx context.Context) (Release, error) {
 	// pin to API version 3 to avoid breaking our structs
 	req.Header.Set("Accept", "application/vnd.github.v3+json")
 
-	resp, err := ctxhttp.Do(ctx, http.DefaultClient, req)
+	resp, err := ctxhttp.Do(ctx, httpClient, req)
 	if err != nil {
 		return Release{}, err
 	}
