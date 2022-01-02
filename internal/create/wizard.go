@@ -33,6 +33,7 @@ const (
 // Attribute is a credential attribute that is being asked for
 // when populating a template.
 type Attribute struct {
+	Name    string `yaml:"name"`
 	Type    string `yaml:"type"`
 	Prompt  string `yaml:"prompt"`
 	Charset string `yaml:"charset"`
@@ -42,12 +43,12 @@ type Attribute struct {
 
 // Template is an action template for the create wizard.
 type Template struct {
-	Name       string               `yaml:"name"`
-	Priority   int                  `yaml:"priority"`
-	Prefix     string               `yaml:"prefix"`
-	NameFrom   []string             `yaml:"name_from"`
-	Welcome    string               `yaml:"welcome"`
-	Attributes map[string]Attribute `yaml:"attributes"`
+	Name       string      `yaml:"name"`
+	Priority   int         `yaml:"priority"`
+	Prefix     string      `yaml:"prefix"`
+	NameFrom   []string    `yaml:"name_from"`
+	Welcome    string      `yaml:"welcome"`
+	Attributes []Attribute `yaml:"attributes"`
 }
 
 // Wizard is the templateable credential creation wizard.
@@ -66,19 +67,22 @@ func New(ctx context.Context, s backend.Storage) (*Wizard, error) {
 				Prefix:   "websites",
 				NameFrom: []string{"url", "username"},
 				Welcome:  "🧪 Creating Website login",
-				Attributes: map[string]Attribute{
-					"url": {
+				Attributes: []Attribute{
+					{
+						Name:   "url",
 						Type:   "hostname",
-						Prompt: "Website name",
+						Prompt: "Website URL",
 						Min:    1,
 						Max:    255,
 					},
-					"username": {
+					{
+						Name:   "username",
 						Type:   "string",
 						Prompt: "Login",
 						Min:    1,
 					},
-					"password": {
+					{
+						Name:   "password",
 						Type:   "password",
 						Prompt: "Password for the Website",
 					},
@@ -93,25 +97,29 @@ func New(ctx context.Context, s backend.Storage) (*Wizard, error) {
 					"application",
 				},
 				Welcome: "🔑 Creating PIN Code",
-				Attributes: map[string]Attribute{
-					"authority": {
+				Attributes: []Attribute{
+					{
+						Name:   "authority",
 						Type:   "string",
 						Prompt: "Authority (Issuer)",
 						Min:    1,
 					},
-					"application": {
+					{
+						Name:   "application",
 						Type:   "string",
 						Prompt: "Entity (e.g. debit, credit card, etc.)",
 						Min:    1,
 					},
-					"password": {
+					{
+						Name:    "password",
 						Type:    "password",
 						Prompt:  "PIN Code",
 						Min:     1,
 						Max:     64,
 						Charset: "0123456789",
 					},
-					"comment": {
+					{
+						Name:   "comment",
 						Type:   "string",
 						Prompt: "Comment",
 					},
@@ -189,8 +197,9 @@ func mkActFunc(tpl Template, s *root.Store, cb ActionCallback) func(context.Cont
 		var nameParts []string
 		// step is only used for printing the progress
 		var step int
-		for k, v := range tpl.Attributes {
+		for _, v := range tpl.Attributes {
 			step++
+			k := v.Name
 
 			// if no prompt is set default to the key
 			if v.Prompt == "" {

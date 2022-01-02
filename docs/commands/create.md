@@ -37,18 +37,18 @@ name_from:
   - "user"
 welcome: "🧪 Creating AWS credentials"
 attributes:
-  org:
+  - name: "org"
     type: "string"
     prompt: "Organization"
     min: 1
-  user:
+  - name: "user"
     type: "string"
     prompt: "User"
     min: 1
-  password:
+  - name: "password"
     type: "password"
     prompt: "Password"
-  comment:
+  - name: "comment"
     type: "string"
     prompt: "Comments"
 ```

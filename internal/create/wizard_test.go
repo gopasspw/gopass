@@ -20,21 +20,21 @@ name_from:
   - "application"
 welcome: "🧪 Creating numerical PIN"
 attributes:
-  authority:
+  - name: "authority"
     type: "string"
     prompt: "Authority"
     min: 1
-  application:
+  - name: "application"
     type: "string"
     prompt: "Entity"
     min: 1
-  password:
+  - name: "password"
     type: "password"
     prompt: "Pin"
     charset: "0123456789"
     min: 1
     max: 64
-  comment:
+  - name: "comment"
     type: "string"
 `))
 	w, err := New(ctx, s)
@@ -56,29 +56,29 @@ attributes:
 	if l := len(w.Templates[0].Attributes); l != 3 {
 		t.Fatalf("wrong number of attributes. want(%d), got(%d)", 3, l)
 	}
-	if w.Templates[0].Attributes["url"].Type != "hostname" {
+	if w.Templates[0].Attributes[0].Type != "hostname" {
 		t.Fatal("wrong type")
 	}
-	if w.Templates[0].Attributes["url"].Prompt != "Website name" {
-		t.Fatal("wrong prompt")
+	if w.Templates[0].Attributes[0].Prompt != "Website URL" {
+		t.Fatal("wrong prompt:", w.Templates[0].Attributes[0].Prompt, "want:", "Website URL")
 	}
-	if w.Templates[0].Attributes["url"].Min != 1 {
+	if w.Templates[0].Attributes[0].Min != 1 {
 		t.Fatal("wrong min")
 	}
-	if w.Templates[0].Attributes["url"].Max != 255 {
+	if w.Templates[0].Attributes[0].Max != 255 {
 		t.Fatal("wrong max")
 	}
-	if w.Templates[0].Attributes["username"].Type != "string" {
-		t.Fatal("wrong type")
+	if w.Templates[0].Attributes[1].Type != "string" {
+		t.Fatal("wrong type", w.Templates[0].Attributes[1].Type, "want:", "string")
 	}
-	if w.Templates[0].Attributes["username"].Prompt != "Login" {
+	if w.Templates[0].Attributes[1].Prompt != "Login" {
 		t.Fatal("wrong prompt")
 	}
-	if w.Templates[0].Attributes["username"].Min != 1 {
+	if w.Templates[0].Attributes[1].Min != 1 {
 		t.Fatal("wrong min")
 	}
-	if w.Templates[0].Attributes["password"].Type != "password" {
-		t.Fatal("wrong type")
+	if w.Templates[0].Attributes[2].Type != "password" {
+		t.Fatal("wrong type", w.Templates[0].Attributes[2].Type, "want:", "password")
 	}
 }
 
