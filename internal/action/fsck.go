@@ -23,7 +23,7 @@ func (s *Action) Fsck(c *cli.Context) error {
 		ctx = leaf.WithFsckDecrypt(ctx, c.Bool("decrypt"))
 	}
 
-	out.Printf(ctx, "Checking store integrity ...")
+	out.Printf(ctx, "Checking password store integrity ...")
 	// make sure config is in the right place.
 	// we may have loaded it from one of the fallback locations.
 	if err := s.cfg.Save(); err != nil {

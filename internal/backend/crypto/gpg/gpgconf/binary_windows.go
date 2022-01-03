@@ -15,7 +15,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/fsutil"
 )
 
-func detectBinary(bin string) (string, error) {
+func detectBinary(ctx context.Context, bin string) (string, error) {
 	bins, err := detectBinaryCandidates(bin)
 	if err != nil {
 		return "", err
@@ -26,7 +26,7 @@ func detectBinary(bin string) (string, error) {
 		if p, err := exec.LookPath(b); err == nil {
 			gb := gpgBin{
 				path: p,
-				ver:  Version(context.TODO(), p),
+				ver:  Version(ctx, p),
 			}
 			debug.Log("Found %q at %q (%s)", b, p, gb.ver.String())
 			bv = append(bv, gb)

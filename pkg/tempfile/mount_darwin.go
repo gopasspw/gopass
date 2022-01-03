@@ -66,7 +66,7 @@ func (t *File) mount(ctx context.Context) error {
 		return fmt.Errorf("failed to mount filesystem %s to %s: %w", t.dev, t.dir, err)
 	}
 
-	// TODO: why?
+	// Wait for the mount to settle. This is a hack.
 	time.Sleep(100 * time.Millisecond)
 	return nil
 }

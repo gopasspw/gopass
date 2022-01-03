@@ -208,17 +208,21 @@ func (s *Action) generatePassword(ctx context.Context, c *cli.Context, length, n
 	}
 }
 
+func clamp(min, max, value int) int {
+	if value < min {
+		return min
+	}
+	if value > max {
+		return max
+	}
+	return value
+}
+
 func (s *Action) generatePasswordForRule(ctx context.Context, c *cli.Context, length, name, domain string, rule pwrules.Rule) (string, error) {
 	out.Printf(ctx, "Using password rules for %s ...", domain)
 	wl := 16
 	if iv, err := strconv.Atoi(length); err == nil {
-		if iv < rule.Minlen {
-			iv = rule.Minlen
-		}
-		if iv > rule.Maxlen {
-			iv = rule.Maxlen
-		}
-		wl = iv
+		wl = clamp(rule.Minlen, rule.Maxlen, iv)
 	}
 
 	question := fmt.Sprintf("How long should the password be? (min: %d, max: %d)", rule.Minlen, rule.Maxlen)

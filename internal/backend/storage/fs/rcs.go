@@ -45,12 +45,12 @@ func (s *Store) InitConfig(context.Context, string, string) error {
 
 // AddRemote does nothing.
 func (s *Store) AddRemote(ctx context.Context, remote, url string) error {
-	return nil
+	return backend.ErrNotSupported
 }
 
 // RemoveRemote does nothing.
 func (s *Store) RemoveRemote(ctx context.Context, remote string) error {
-	return nil
+	return backend.ErrNotSupported
 }
 
 // Revisions is not implemented.
@@ -62,14 +62,17 @@ func (s *Store) Revisions(context.Context, string) ([]backend.Revision, error) {
 		}}, nil
 }
 
-// GetRevision is not implemented.
-func (s *Store) GetRevision(context.Context, string, string) ([]byte, error) {
-	return []byte("foo\nbar"), nil
+// GetRevision only supports getting the latest revision.
+func (s *Store) GetRevision(ctx context.Context, name string, revision string) ([]byte, error) {
+	if revision == "HEAD" || revision == "latest" {
+		return s.Get(ctx, name)
+	}
+	return []byte(""), backend.ErrNotSupported
 }
 
 // Status is not implemented.
 func (s *Store) Status(context.Context) ([]byte, error) {
-	return []byte(""), nil
+	return []byte(""), backend.ErrNotSupported
 }
 
 // Compact is not implemented.

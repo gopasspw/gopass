@@ -84,5 +84,6 @@ func DetectCrypto(ctx context.Context, storage Storage) (Crypto, error) {
 		return be.New(ctx)
 	}
 	debug.Log("No valid crypto provider found for %s", storage)
+	// TODO: this should return ErrNotSupported, but need to fix some tests for that
 	return nil, nil
 }

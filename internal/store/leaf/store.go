@@ -57,13 +57,13 @@ func New(ctx context.Context, alias, path string) (*Store, error) {
 	if err := s.initStorageBackend(ctx); err != nil {
 		return nil, fmt.Errorf("failed to init storage backend: %w", err)
 	}
-	debug.Log("Storage for %s => %s initialized as %s", alias, path, s.storage)
+	debug.Log("Storage for %s => %s initialized as %v", alias, path, s.storage)
 
 	// init crypto backend
 	if err := s.initCryptoBackend(ctx); err != nil {
 		return nil, fmt.Errorf("failed to init crypto backend: %w", err)
 	}
-	debug.Log("Crypto for %s => %s initialized as %s", alias, path, s.crypto)
+	debug.Log("Crypto for %s => %s initialized as %v", alias, path, s.crypto)
 
 	return s, nil
 }

@@ -136,64 +136,64 @@ func TestIdFile(t *testing.T) {
 }
 
 func TestNew(t *testing.T) {
-	ctx := context.Background()
-
-	tempdir, err := os.MkdirTemp("", "gopass-")
-	require.NoError(t, err)
-	defer func() {
-		_ = os.RemoveAll(tempdir)
-	}()
-
 	for _, tc := range []struct {
-		dsc string
-		dir string
-		ctx context.Context
-		ok  bool
+		dsc   string
+		noDir bool
+		ctx   context.Context
+		ok    bool
 	}{
 		{
-			dsc: "Invalid Storage",
-			ctx: backend.WithStorageBackend(ctx, -1),
-			// ok:  false, // TODO clarify
-			ok: true,
+			dsc:   "Invalid Storage",
+			ctx:   backend.WithStorageBackend(context.Background(), -1),
+			noDir: true,
+			ok:    true, // will always succeed because it falls back to the default (fs)
 		},
 		{
 			dsc: "GitFS Storage",
-			dir: tempdir,
-			ctx: backend.WithCryptoBackend(backend.WithStorageBackend(ctx, backend.GitFS), backend.Plain),
+			ctx: backend.WithCryptoBackend(backend.WithStorageBackend(context.Background(), backend.GitFS), backend.Plain),
 			ok:  true,
 		},
 		{
 			dsc: "FS Storage",
-			dir: tempdir,
-			ctx: backend.WithCryptoBackend(backend.WithStorageBackend(ctx, backend.FS), backend.Plain),
+			ctx: backend.WithCryptoBackend(backend.WithStorageBackend(context.Background(), backend.FS), backend.Plain),
 			ok:  true,
 		},
 		{
 			dsc: "GPG Crypto",
-			dir: tempdir,
-			ctx: backend.WithCryptoBackend(ctx, backend.GPGCLI),
+			ctx: backend.WithCryptoBackend(context.Background(), backend.GPGCLI),
 			ok:  true,
 		},
 		{
 			dsc: "Plain Crypto",
-			dir: tempdir,
-			ctx: backend.WithCryptoBackend(ctx, backend.Plain),
+			ctx: backend.WithCryptoBackend(context.Background(), backend.Plain),
 			ok:  true,
 		},
 		{
 			dsc: "Invalid Crypto",
-			dir: tempdir,
-			ctx: backend.WithCryptoBackend(ctx, -1),
-			// ok:  false, // TODO clarify
+			ctx: backend.WithCryptoBackend(context.Background(), -1),
+			// ok:  false, // TODO once backend.DetectCrypto returns an error this should be false
 			ok: true,
 		},
 	} {
-		s, err := New(tc.ctx, "", tempdir)
-		if tc.ok {
+		t.Run(tc.dsc, func(t *testing.T) {
+			t.Parallel()
+
+			var tempdir string
+			if !tc.noDir {
+				var err error
+				tempdir, err = os.MkdirTemp("", "gopass-")
+				require.NoError(t, err)
+				defer func() {
+					_ = os.RemoveAll(tempdir)
+				}()
+			}
+			s, err := New(tc.ctx, "", tempdir)
+			if !tc.ok {
+				assert.Error(t, err, tc.dsc)
+				return
+			}
 			assert.NoError(t, err, tc.dsc)
 			assert.NotNil(t, s, tc.dsc)
-		} else {
-			assert.Error(t, err, tc.dsc)
-		}
+		})
 	}
 }
