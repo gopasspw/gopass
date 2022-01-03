@@ -3,6 +3,7 @@ package updater
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
 	"fmt"
 	"io"
 	"net/http"
@@ -15,8 +16,18 @@ import (
 	"golang.org/x/net/context/ctxhttp"
 )
 
-// DownloadTimeout is the overall timeout for the download, including all retries.
-var DownloadTimeout = time.Minute * 5
+var (
+	// DownloadTimeout is the overall timeout for the download, including all retries.
+	DownloadTimeout = time.Minute * 5
+	httpClient      = &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				// enforce TLS 1.3
+				MinVersion: tls.VersionTLS13,
+			},
+		},
+	}
+)
 
 func tryDownload(ctx context.Context, url string) ([]byte, error) {
 	ctx, cancel := context.WithTimeout(ctx, DownloadTimeout)
@@ -51,7 +62,7 @@ func download(ctx context.Context, url string) ([]byte, error) {
 	req.Header.Set("Accept", "application/octet-stream")
 
 	t0 := time.Now()
-	resp, err := ctxhttp.Do(ctx, http.DefaultClient, req)
+	resp, err := ctxhttp.Do(ctx, httpClient, req)
 	if err != nil {
 		return nil, err
 	}
