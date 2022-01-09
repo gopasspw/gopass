@@ -54,10 +54,13 @@ func DetectStorage(ctx context.Context, path string) (Storage, error) {
 	// The call to HasStorageBackend is important since GetStorageBackend will always return FS
 	// if nothing is found in the context.
 	if be, err := StorageRegistry.Get(GetStorageBackend(ctx)); HasStorageBackend(ctx) && err == nil {
+		debug.Log("trying to use storage backend from context: %s", GetStorageBackend(ctx))
 		st, err := be.New(ctx, path)
 		if err == nil {
+			debug.Log("using storage backend from context: %s", GetStorageBackend(ctx))
 			return st, nil
 		}
+		debug.Log("using fallback FS backend: %s", err)
 		be, err := StorageRegistry.Get(FS)
 		if err != nil {
 			return nil, err
@@ -85,6 +88,7 @@ func DetectStorage(ctx context.Context, path string) (Storage, error) {
 // NewStorage initializes an existing storage backend.
 func NewStorage(ctx context.Context, id StorageBackend, path string) (Storage, error) {
 	if be, err := StorageRegistry.Get(id); err == nil {
+		debug.Log("initializing existing storage backend %s at %s", id, path)
 		return be.New(ctx, path)
 	}
 	return nil, fmt.Errorf("unknown backend %q: %w", path, ErrNotFound)
@@ -93,6 +97,7 @@ func NewStorage(ctx context.Context, id StorageBackend, path string) (Storage, e
 // InitStorage initilizes a new storage location.
 func InitStorage(ctx context.Context, id StorageBackend, path string) (Storage, error) {
 	if be, err := StorageRegistry.Get(id); err == nil {
+		debug.Log("initializing new storage backend %s at %s", id, path)
 		return be.Init(ctx, path)
 	}
 	return nil, fmt.Errorf("unknown backend %q: %w", path, ErrNotFound)
