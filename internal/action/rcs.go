@@ -38,8 +38,8 @@ func (s *Action) RCSInit(c *cli.Context) error {
 
 func (s *Action) rcsInit(ctx context.Context, store, un, ue string) error {
 	be := backend.GetStorageBackend(ctx)
-	if err := s.Store.RCSStatus(ctx, store); errors.Is(err, backend.ErrNotSupported) {
-		// no git support, skip
+	// TODO this should rather ask s.Store if it HasRCSInit or something.
+	if be == backend.FS {
 		return nil
 	}
 
