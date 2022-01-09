@@ -3,6 +3,7 @@ package clipboard
 import (
 	"context"
 	"fmt"
+	"os"
 
 	"github.com/atotto/clipboard"
 	"github.com/gopasspw/gopass/internal/notify"
@@ -11,7 +12,17 @@ import (
 )
 
 // Clear will attempt to erase the clipboard.
-func Clear(ctx context.Context, checksum string, force bool) error {
+func Clear(ctx context.Context, name string, checksum string, force bool) error {
+	clipboardClearCMD := os.Getenv("GOPASS_CLIPBOARD_CLEAR_CMD")
+	if clipboardClearCMD != "" {
+		if err := callCommand(ctx, clipboardClearCMD, name, []byte(checksum)); err != nil {
+			_ = notify.Notify(ctx, "gopass - clipboard", "failed to call clipboard clear command")
+			return fmt.Errorf("failed to call clipboard clear command: %w", err)
+		}
+		debug.Log("clipboard cleared (%s)", checksum)
+		return nil
+	}
+
 	if clipboard.Unsupported {
 		return ErrNotSupported
 	}

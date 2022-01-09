@@ -16,11 +16,11 @@ import (
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 )
 
-// clear will spwan a copy of gopass that waits in a detached background
+// clear will spawn a copy of gopass that waits in a detached background
 // process group until the timeout is expired. It will then compare the contents
 // of the clipboard and erase it if it still contains the data gopass copied
 // to it.
-func clear(ctx context.Context, content []byte, timeout int) error {
+func clear(ctx context.Context, name string, content []byte, timeout int) error {
 	hash, err := argon2id.Generate(string(content), 0)
 	if err != nil {
 		return err
@@ -34,7 +34,8 @@ func clear(ctx context.Context, content []byte, timeout int) error {
 	cmd.SysProcAttr = &syscall.SysProcAttr{
 		Setpgid: true,
 	}
-	cmd.Env = append(os.Environ(), "GOPASS_UNCLIP_CHECKSUM="+hash)
+	cmd.Env = append(os.Environ(), "GOPASS_UNCLIP_NAME="+name)
+	cmd.Env = append(cmd.Env, "GOPASS_UNCLIP_CHECKSUM="+hash)
 	if !ctxutil.IsNotifications(ctx) {
 		cmd.Env = append(cmd.Env, "GOPASS_NO_NOTIFY=true")
 	}

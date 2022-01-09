@@ -15,6 +15,7 @@ import (
 var (
 	stdin  io.Reader = os.Stdin
 	stdout io.Writer = os.Stdout
+	stderr io.Writer = os.Stderr
 )
 
 // Action knows everything to run gopass CLI actions.

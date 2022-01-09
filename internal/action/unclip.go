@@ -14,10 +14,11 @@ func (s *Action) Unclip(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	force := c.Bool("force")
 	timeout := c.Int("timeout")
+	name := os.Getenv("GOPASS_UNCLIP_NAME")
 	checksum := os.Getenv("GOPASS_UNCLIP_CHECKSUM")
 
 	time.Sleep(time.Second * time.Duration(timeout))
-	if err := clipboard.Clear(ctx, checksum, force); err != nil {
+	if err := clipboard.Clear(ctx, name, checksum, force); err != nil {
 		return ExitError(ExitIO, err, "Failed to clear clipboard: %s", err)
 	}
 	return nil
