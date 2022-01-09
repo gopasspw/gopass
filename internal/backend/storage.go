@@ -21,6 +21,8 @@ const (
 	FS StorageBackend = iota
 	// GitFS is a filesystem-backed storage with Git.
 	GitFS
+	// FossilFS is a filesystem-backed storage with Fossil.
+	FossilFS
 )
 
 func (s StorageBackend) String() string {
@@ -54,17 +56,20 @@ func DetectStorage(ctx context.Context, path string) (Storage, error) {
 	// The call to HasStorageBackend is important since GetStorageBackend will always return FS
 	// if nothing is found in the context.
 	if be, err := StorageRegistry.Get(GetStorageBackend(ctx)); HasStorageBackend(ctx) && err == nil {
-		debug.Log("trying to use storage backend from context: %s", GetStorageBackend(ctx))
+		debug.Log("Trying requested %s for %s", be, path)
 		st, err := be.New(ctx, path)
 		if err == nil {
-			debug.Log("using storage backend from context: %s", GetStorageBackend(ctx))
+			debug.Log("Using requested %s for %s", be, path)
 			return st, nil
 		}
-		debug.Log("using fallback FS backend: %s", err)
+		debug.Log("Failed to use requested %s for %s: %s", be, path, err)
+
+		// fallback to FS
 		be, err := StorageRegistry.Get(FS)
 		if err != nil {
 			return nil, err
 		}
+		debug.Log("Using fallback %s for %s", be, path)
 		return be.Init(ctx, path)
 	}
 
@@ -75,20 +80,23 @@ func DetectStorage(ctx context.Context, path string) (Storage, error) {
 			debug.Log("failed to use %s for %s: %s", be, path, err)
 			continue
 		}
-		debug.Log("Using %s for %s", be, path)
+		debug.Log("Using detected %s for %s", be, path)
 		return be.New(ctx, path)
 	}
+
+	// fallback to FS
 	be, err := StorageRegistry.Get(FS)
 	if err != nil {
 		return nil, err
 	}
+	debug.Log("Using fallback %s for %s", be, path)
 	return be.Init(ctx, path)
 }
 
 // NewStorage initializes an existing storage backend.
 func NewStorage(ctx context.Context, id StorageBackend, path string) (Storage, error) {
 	if be, err := StorageRegistry.Get(id); err == nil {
-		debug.Log("initializing existing storage backend %s at %s", id, path)
+		debug.Log("Using %s for %s", be, path)
 		return be.New(ctx, path)
 	}
 	return nil, fmt.Errorf("unknown backend %q: %w", path, ErrNotFound)
@@ -97,7 +105,7 @@ func NewStorage(ctx context.Context, id StorageBackend, path string) (Storage, e
 // InitStorage initilizes a new storage location.
 func InitStorage(ctx context.Context, id StorageBackend, path string) (Storage, error) {
 	if be, err := StorageRegistry.Get(id); err == nil {
-		debug.Log("initializing new storage backend %s at %s", id, path)
+		debug.Log("Using %s for %s", be, path)
 		return be.Init(ctx, path)
 	}
 	return nil, fmt.Errorf("unknown backend %q: %w", path, ErrNotFound)

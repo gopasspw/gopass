@@ -251,6 +251,7 @@ func (s *Action) initLocal(ctx context.Context) error {
 	}
 
 	if backend.GetStorageBackend(ctx) == backend.GitFS {
+		debug.Log("configuring git remotes")
 		if want, err := termio.AskForBool(ctx, "❓ Do you want to add a git remote?", false); err == nil && want {
 			out.Printf(ctx, "Configuring the git remote ...")
 			if err := s.initSetupGitRemote(ctx, "", ""); err != nil {
@@ -258,6 +259,7 @@ func (s *Action) initLocal(ctx context.Context) error {
 			}
 		}
 	}
+	// TODO remotes for fossil, etc.
 
 	// save config.
 	if err := s.cfg.Save(); err != nil {
