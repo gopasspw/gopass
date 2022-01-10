@@ -31,7 +31,7 @@ func (s *Action) RCSInit(c *cli.Context) error {
 	}
 
 	if err := s.rcsInit(ctx, store, un, ue); err != nil {
-		return ExitError(ExitGit, err, "failed to initialize git: %s", err)
+		return ExitError(ExitGit, err, "failed to initialize %s: %s", backend.StorageBackendName(backend.GetStorageBackend(ctx)), err)
 	}
 	return nil
 }
@@ -47,16 +47,16 @@ func (s *Action) rcsInit(ctx context.Context, store, un, ue string) error {
 	userName, userEmail := s.getUserData(ctx, store, un, ue)
 	if err := s.Store.RCSInit(ctx, store, userName, userEmail); err != nil {
 		if errors.Is(err, backend.ErrNotSupported) {
-			debug.Log("RCSInit not supported for backend %s", bn)
+			debug.Log("RCSInit not supported for backend %s in %q", bn, store)
 			return nil
 		}
 		if gtv := os.Getenv("GPG_TTY"); gtv == "" {
 			out.Printf(ctx, "Git initialization failed. You may want to try to 'export GPG_TTY=$(tty)' and start over.")
 		}
-		return fmt.Errorf("failed to run git init: %w", err)
+		return fmt.Errorf("failed to run RCS init: %w", err)
 	}
 
-	out.Printf(ctx, "Initialized git repository (%s) for %s / %s...", bn, un, ue)
+	out.Printf(ctx, "Initialized %s repository (%s) for %s / %s...", be, bn, un, ue)
 	return nil
 }
 

@@ -51,9 +51,11 @@ func (s *Store) GetRevision(ctx context.Context, name, revision string) (gopass.
 
 // GitStatus shows the git status output.
 func (s *Store) GitStatus(ctx context.Context, _ string) error {
+	debug.Log("RCS status for %s", s.path)
 	buf, err := s.storage.Status(ctx)
 	if err != nil {
-		return err
+		debug.Log("RCS status failed for %s: %s", s.path, err)
+		return fmt.Errorf("failed to get RCS status for %s: %w", s.path, err)
 	}
 	out.Printf(ctx, string(buf))
 	return nil
