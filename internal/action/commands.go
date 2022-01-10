@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/gopasspw/gopass/internal/backend"
+	"github.com/gopasspw/gopass/internal/set"
 	"github.com/urfave/cli/v2"
 )
 
@@ -136,6 +137,15 @@ func (s *Action) GetCommands() []*cli.Command {
 				&cli.StringFlag{
 					Name:  "crypto",
 					Usage: fmt.Sprintf("Select crypto backend %v", backend.CryptoRegistry.Backends()),
+				},
+				&cli.StringFlag{
+					Name:  "storage",
+					Usage: fmt.Sprintf("Select storage backend %v", set.Filter(backend.StorageRegistry.Backends(), "fs")),
+				},
+				&cli.BoolFlag{
+					Name:  "check-keys",
+					Usage: "Check for valid decryption keys. Generate new keys if none are found.",
+					Value: true,
 				},
 			},
 		},

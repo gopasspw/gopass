@@ -44,7 +44,16 @@ func Clone(ctx context.Context, repo, path string) (*Fossil, error) {
 	f := &Fossil{
 		fs: fs.New(path),
 	}
-	if err := f.Cmd(withPathOverride(ctx, filepath.Dir(path)), "Clone", "clone", repo, path); err != nil {
+	// we use open instead of clone, since that automatically clones, if necessary
+	args := []string{
+		"open", repo,
+		"--workdir", path,
+	}
+	// the --repodir option only makes sense if the REPOSITORY argument is a URI that begins with http:, https:, ssh:, or file:
+	if strings.HasPrefix(repo, "http:") || strings.HasPrefix(repo, "https:") || strings.HasPrefix(repo, "ssh:") || strings.HasPrefix(repo, "file:") {
+		args = append(args, "--repodir", filepath.Dir(path))
+	}
+	if err := f.Cmd(withPathOverride(ctx, filepath.Dir(path)), "Clone", args...); err != nil {
 		return nil, err
 	}
 
@@ -241,7 +250,7 @@ func (f *Fossil) PushPull(ctx context.Context, op, remote, branch string) error 
 	if uf := f.ListUntrackedFiles(ctx); len(uf) > 0 {
 		out.Warningf(ctx, "Found untracked files: %+v", uf)
 	}
-	return f.Cmd(ctx, "fossilPush", "sync")
+	return f.Cmd(ctx, "fossilUpdate", "update")
 }
 
 // Push pushes to the fossil remote.

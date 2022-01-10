@@ -108,7 +108,7 @@ func TestCloneBackendIsStoredForMount(t *testing.T) {
 
 	repo := aGitRepo(ctx, u, t, "my-project")
 
-	c = gptest.CliCtx(ctx, t, repo, "the-project")
+	c = gptest.CliCtxWithFlags(ctx, t, map[string]string{"check-keys": "false"}, repo, "the-project")
 	assert.NoError(t, act.Clone(c))
 
 	require.NotNil(t, act.cfg.Mounts["the-project"])
