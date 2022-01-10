@@ -9,7 +9,6 @@ import (
 
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/fsutil"
-	"github.com/gopasspw/pinentry/gpgconf"
 )
 
 func detectBinary(_ context.Context, name string) (string, error) {
@@ -18,7 +17,7 @@ func detectBinary(_ context.Context, name string) (string, error) {
 		return exec.LookPath(name)
 	}
 	// try to get the proper binary from gpgconf(1)
-	p, err := gpgconf.Path("gpg")
+	p, err := Path("gpg")
 	if err != nil || p == "" || !fsutil.IsFile(p) {
 		debug.Log("gpgconf failed (%q), falling back to path lookup: %q", p, err)
 		// otherwise fall back to the default and try

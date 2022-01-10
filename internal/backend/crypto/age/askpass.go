@@ -4,19 +4,14 @@ import (
 	"context"
 	"fmt"
 	"time"
+	"strings"
 
 	"github.com/gopasspw/gopass/internal/cache"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/pinentry/cli"
-	"github.com/gopasspw/pinentry"
+	"github.com/twpayne/go-pinentry"
+	"github.com/nbutton23/zxcvbn-go"
 )
-
-type piner interface {
-	Close()
-	Confirm() bool
-	Set(string, string) error
-	GetPin() ([]byte, error)
-}
 
 type cacher interface {
 	Get(string) (string, bool)
@@ -28,7 +23,6 @@ type cacher interface {
 type askPass struct {
 	testing  bool
 	cache    cacher
-	pinentry func() (piner, error)
 }
 
 var (
@@ -39,14 +33,6 @@ var (
 func newAskPass() *askPass {
 	return &askPass{
 		cache: cache.NewInMemTTL[string, string](time.Hour, 24*time.Hour),
-		pinentry: func() (piner, error) {
-			p, err := pinentry.New()
-			if err == nil {
-				return p, nil
-			}
-			debug.Log("Pinentry not found: %q", err)
-			return cli.New()
-		},
 	}
 }
 
@@ -61,29 +47,50 @@ func (a *askPass) Passphrase(key string, reason string, repeat bool) (string, er
 	}
 	debug.Log("Value for %s not found in cache", key)
 
-	pi, err := a.pinentry()
+	pw, err := a.getPassphrase(reason, repeat)
 	if err != nil {
-		return "", fmt.Errorf("pinentry (%s) error: %w", pinentry.GetBinary(), err)
-	}
-	defer pi.Close()
+		return "", fmt.Errorf("pinentry error: %w", err)
+	}	
 
-	_ = pi.Set("title", "gopass")
-	_ = pi.Set("desc", "Need your passphrase "+reason)
-	_ = pi.Set("prompt", "Please enter your passphrase:")
-	_ = pi.Set("ok", "OK")
-	if repeat {
-		_ = pi.Set("REPEAT", "Confirm")
-	}
-
-	pw, err := pi.GetPin()
-	if err != nil {
-		return "", fmt.Errorf("pinentry (%s) error: %w", pinentry.GetBinary(), err)
-	}
-
-	pass := string(pw)
 	debug.Log("Updated value for %s in cache", key)
-	a.cache.Set(key, pass)
-	return pass, nil
+	a.cache.Set(key, pw)
+	return pw, nil
+}
+
+func (a *askPass) getPassphrase(reason string, repeat bool) (string, error) {
+	opts := []pinentry.ClientOption{
+		pinentry.WithBinaryNameFromGnuPGAgentConf(),
+		pinentry.WithDesc(strings.TrimSuffix(reason, ":")+"."),
+		pinentry.WithGPGTTY(),
+		pinentry.WithPrompt("Passphrase:"),
+		pinentry.WithTitle("gopass"),
+	}
+	if repeat {
+		opts = append(opts, pinentry.WithOption("REPEAT=Confirm"))
+		opts = append(opts, pinentry.WithQualityBar(func(s string) (int, bool) {
+			match := zxcvbn.PasswordStrength(s, nil)
+			return match.Score, true
+		}))
+	}
+
+	p, err := pinentry.NewClient(opts...)
+	if err != nil {
+		debug.Log("Pinentry not found: %q", err)
+		// use CLI fallback
+		pf := cli.New()
+		if repeat {
+			pf.Set("REPEAT")
+		}
+		return pf.GetPIN()
+	}
+	defer p.Close()
+
+	pw, _, err := p.GetPIN()
+	if err != nil {
+		return "", fmt.Errorf("pinentry error: %w", err)
+	}
+
+	return pw, nil
 }
 
 func (a *askPass) Remove(key string) {
