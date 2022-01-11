@@ -220,12 +220,17 @@ func TestShowAutoClip(t *testing.T) {
 	require.NotNil(t, act)
 
 	color.NoColor = true
-	buf := &bytes.Buffer{}
-	out.Stdout = buf
-	stdout = buf
+	stdoutBuf := &bytes.Buffer{}
+	stderrBuf := &bytes.Buffer{}
+	out.Stdout = stdoutBuf
+	stdout = stdoutBuf
+	out.Stderr = stderrBuf
+	stderr = stderrBuf
 	defer func() {
 		stdout = os.Stdout
 		out.Stdout = os.Stdout
+		stderr = os.Stderr
+		out.Stderr = os.Stderr
 	}()
 
 	// terminal=false
@@ -243,9 +248,10 @@ func TestShowAutoClip(t *testing.T) {
 
 		c := gptest.CliCtx(ctx, t, "foo")
 		assert.NoError(t, act.Show(c))
-		assert.NotContains(t, buf.String(), "WARNING")
-		assert.Contains(t, buf.String(), "secret")
-		buf.Reset()
+		assert.NotContains(t, stderrBuf.String(), "WARNING")
+		assert.Contains(t, stdoutBuf.String(), "secret")
+		stdoutBuf.Reset()
+		stderrBuf.Reset()
 	})
 
 	// gopass show -c foo
@@ -253,9 +259,10 @@ func TestShowAutoClip(t *testing.T) {
 	t.Run("gopass show -c foo", func(t *testing.T) {
 		c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"clip": "true"}, "foo")
 		assert.NoError(t, act.Show(c))
-		assert.Contains(t, buf.String(), "WARNING")
-		assert.NotContains(t, buf.String(), "secret")
-		buf.Reset()
+		assert.Contains(t, stderrBuf.String(), "WARNING")
+		assert.NotContains(t, stdoutBuf.String(), "secret")
+		stdoutBuf.Reset()
+		stderrBuf.Reset()
 	})
 
 	// gopass show -C foo
@@ -263,10 +270,11 @@ func TestShowAutoClip(t *testing.T) {
 	t.Run("gopass show -C foo", func(t *testing.T) {
 		c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"alsoclip": "true"}, "foo")
 		assert.NoError(t, act.Show(c))
-		assert.Contains(t, buf.String(), "WARNING")
-		assert.Contains(t, buf.String(), "secret")
-		assert.Contains(t, buf.String(), "second")
-		buf.Reset()
+		assert.Contains(t, stderrBuf.String(), "WARNING")
+		assert.Contains(t, stdoutBuf.String(), "secret")
+		assert.Contains(t, stdoutBuf.String(), "second")
+		stdoutBuf.Reset()
+		stderrBuf.Reset()
 	})
 
 	// gopass show -f foo
@@ -274,10 +282,11 @@ func TestShowAutoClip(t *testing.T) {
 	t.Run("gopass show -f foo", func(t *testing.T) {
 		c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"unsafe": "true"}, "foo")
 		assert.NoError(t, act.Show(c))
-		assert.NotContains(t, buf.String(), "WARNING")
-		assert.Contains(t, buf.String(), "secret")
-		assert.Contains(t, buf.String(), "second")
-		buf.Reset()
+		assert.NotContains(t, stderrBuf.String(), "WARNING")
+		assert.Contains(t, stdoutBuf.String(), "secret")
+		assert.Contains(t, stdoutBuf.String(), "second")
+		stdoutBuf.Reset()
+		stderrBuf.Reset()
 	})
 
 	// gopass show foo
@@ -285,9 +294,10 @@ func TestShowAutoClip(t *testing.T) {
 	t.Run("gopass show foo", func(t *testing.T) {
 		c := gptest.CliCtx(ctx, t, "foo")
 		assert.NoError(t, act.Show(c))
-		assert.NotContains(t, buf.String(), "WARNING")
-		assert.Contains(t, buf.String(), "secret")
-		buf.Reset()
+		assert.NotContains(t, stderrBuf.String(), "WARNING")
+		assert.Contains(t, stdoutBuf.String(), "secret")
+		stdoutBuf.Reset()
+		stderrBuf.Reset()
 	})
 
 	// gopass show -c foo
@@ -295,9 +305,10 @@ func TestShowAutoClip(t *testing.T) {
 	t.Run("gopass show -c foo", func(t *testing.T) {
 		c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"clip": "true"}, "foo")
 		assert.NoError(t, act.Show(c))
-		assert.Contains(t, buf.String(), "WARNING")
-		assert.NotContains(t, buf.String(), "secret")
-		buf.Reset()
+		assert.Contains(t, stderrBuf.String(), "WARNING")
+		assert.NotContains(t, stdoutBuf.String(), "secret")
+		stdoutBuf.Reset()
+		stderrBuf.Reset()
 	})
 
 	// gopass show -C foo
@@ -305,10 +316,11 @@ func TestShowAutoClip(t *testing.T) {
 	t.Run("gopass show -C foo", func(t *testing.T) {
 		c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"alsoclip": "true"}, "foo")
 		assert.NoError(t, act.Show(c))
-		assert.Contains(t, buf.String(), "WARNING")
-		assert.Contains(t, buf.String(), "secret")
-		assert.Contains(t, buf.String(), "second")
-		buf.Reset()
+		assert.Contains(t, stderrBuf.String(), "WARNING")
+		assert.Contains(t, stdoutBuf.String(), "secret")
+		assert.Contains(t, stdoutBuf.String(), "second")
+		stdoutBuf.Reset()
+		stderrBuf.Reset()
 	})
 
 	// gopass show -f foo
@@ -316,10 +328,11 @@ func TestShowAutoClip(t *testing.T) {
 	t.Run("gopass show -f foo", func(t *testing.T) {
 		c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"unsafe": "true"}, "foo")
 		assert.NoError(t, act.Show(c))
-		assert.NotContains(t, buf.String(), "WARNING")
-		assert.Contains(t, buf.String(), "secret")
-		assert.Contains(t, buf.String(), "second")
-		buf.Reset()
+		assert.NotContains(t, stderrBuf.String(), "WARNING")
+		assert.Contains(t, stdoutBuf.String(), "secret")
+		assert.Contains(t, stdoutBuf.String(), "second")
+		stdoutBuf.Reset()
+		stderrBuf.Reset()
 	})
 }
 

@@ -53,7 +53,7 @@ func TestShow(t *testing.T) {
 
 		out, err = ts.run("show fixed/twoliner")
 		assert.NoError(t, err)
-		assert.Equal(t, "and\nmore stuff", out)
+		assert.Equal(t, "first line\nsecond line", out)
 
 		out, err = ts.run("show --qr fixed/secret")
 		assert.NoError(t, err)
@@ -78,8 +78,8 @@ func TestShow(t *testing.T) {
 		out, err = ts.run("show fixed/twoliner")
 		assert.NoError(t, err)
 		assert.NotContains(t, out, "password: ***")
-		assert.Contains(t, out, "more stuff")
-		assert.NotContains(t, out, "and")
+		assert.Contains(t, out, "second line")
+		assert.NotContains(t, out, "first line")
 	})
 
 	t.Run("force showing full secret", func(t *testing.T) {
@@ -96,23 +96,23 @@ func TestShow(t *testing.T) {
 
 		out, err = ts.run("show -u fixed/twoliner")
 		assert.NoError(t, err)
-		assert.Equal(t, "and\nmore stuff", out)
+		assert.Equal(t, "first line\nsecond line", out)
 
 		out, err = ts.run("show -o fixed/twoliner")
 		assert.NoError(t, err)
-		assert.Equal(t, "and", out)
+		assert.Equal(t, "first line", out)
 
 		out, err = ts.run("show -c fixed/twoliner")
 		assert.NoError(t, err)
 		assert.NotContains(t, out, "***")
 		assert.NotContains(t, out, "safecontent=true")
-		assert.NotContains(t, out, "and")
-		assert.NotContains(t, out, "more stuff")
+		assert.NotContains(t, out, "first line")
+		assert.NotContains(t, out, "second line")
 
 		out, err = ts.run("show -C fixed/twoliner")
 		assert.NoError(t, err)
-		assert.Contains(t, out, "more stuff")
-		assert.NotContains(t, out, "and")
+		assert.Contains(t, out, "second line")
+		assert.NotContains(t, out, "first line")
 	})
 
 	t.Run("Regression test for #1574 and #1575", func(t *testing.T) {

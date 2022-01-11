@@ -12,25 +12,43 @@ import (
 
 	"github.com/atotto/clipboard"
 	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/tests/gptest"
 	ps "github.com/mitchellh/go-ps"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCopyToClipboard(t *testing.T) {
+func TestNotExistingClipboardCopyCommand(t *testing.T) {
+	r1 := gptest.UnsetVars("GOPASS_NO_NOTIFY", "GOPASS_CLIPBOARD_COPY_CMD")
+	defer r1()
+
+	_ = os.Setenv("GOPASS_NO_NOTIFY", "true")
+	_ = os.Setenv("GOPASS_CLIPBOARD_COPY_CMD", "not_existing_command")
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	maybeErr := CopyTo(ctx, "foo", []byte("bar"), 1)
+	assert.Error(t, maybeErr)
+	assert.Contains(t, maybeErr.Error(), "\"not_existing_command\": executable file not found")
+}
+
+func TestUnsupportedCopyToClipboard(t *testing.T) {
+	r1 := gptest.UnsetVars("GOPASS_NO_NOTIFY")
+	defer r1()
+
 	_ = os.Setenv("GOPASS_NO_NOTIFY", "true")
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	clipboard.Unsupported = true
 
 	buf := &bytes.Buffer{}
-	out.Stdout = buf
+	out.Stderr = buf
 	assert.NoError(t, CopyTo(ctx, "foo", []byte("bar"), 1))
 	assert.Contains(t, buf.String(), "WARNING")
 }
 
 func TestClearClipboard(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
-	assert.NoError(t, clear(ctx, []byte("bar"), 0))
+	assert.NoError(t, clear(ctx, "foo", []byte("bar"), 0))
 	cancel()
 	time.Sleep(50 * time.Millisecond)
 }

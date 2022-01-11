@@ -204,6 +204,6 @@ func (ts *tester) initSecrets(prefix string) {
 	out, err = ts.runCmd([]string{ts.Binary, "insert", prefix + "fixed/secret"}, []byte("moar"))
 	require.NoError(ts.t, err, "failed to insert password:\n%s", out)
 
-	out, err = ts.runCmd([]string{ts.Binary, "insert", prefix + "fixed/twoliner"}, []byte("and\nmore stuff"))
+	out, err = ts.runCmd([]string{ts.Binary, "insert", prefix + "fixed/twoliner"}, []byte("first line\nsecond line"))
 	require.NoError(ts.t, err, "failed to insert password:\n%s", out)
 }
