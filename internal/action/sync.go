@@ -93,10 +93,11 @@ func (s *Action) syncMount(ctx context.Context, mp string) error {
 		out.Errorf(ctx, "Failed to list store: %s", err)
 	}
 
-	out.Printf(ctxno, "\n   "+color.GreenString("git pull and push ... "))
+	out.Printf(ctxno, "\n   "+color.GreenString("%s pull and push ... ", sub.Storage().Name()))
 	err = sub.Storage().Push(ctx, "", "")
 	switch {
 	case err == nil:
+		debug.Log("Push succeeded")
 		out.Printf(ctxno, color.GreenString("OK"))
 	case errors.Is(err, store.ErrGitNoRemote):
 		out.Printf(ctxno, "Skipped (no remote)")
