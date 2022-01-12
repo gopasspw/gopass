@@ -159,7 +159,16 @@ func (a *Age) addIdentity(ctx context.Context) ([]age.Identity, error) {
 }
 
 func (a *Age) saveIdentities(ctx context.Context, ids []string, newFile bool) error {
-	if !ctxutil.HasPasswordCallback(ctx) {
+	// only force a password prompt if running interactively
+	// TODO: this doesn't really cut it. the purpose is to avoid a password prompt
+	// from popping up during tests. but no combination of existing flags really
+	// does convey that correctly. I think we need to cleanup and document the
+	// different flags conveyed by ctxutil.
+	//
+	// Note: if running in a test, we don't want to prompt for a password and just fail.
+	// Not perfect but we don't support password-less age, yet.
+	// TODO(#2108): remove this hack
+	if !ctxutil.HasPasswordCallback(ctx) && !ctxutil.IsAlwaysYes(ctx) {
 		debug.Log("no password callback found, redirecting to askPass")
 		ctx = ctxutil.WithPasswordCallback(ctx, func(prompt string, confirm bool) ([]byte, error) {
 			pw, err := a.askPass.Passphrase(prompt, fmt.Sprintf("to save the age keyring to %s", a.identity), confirm)

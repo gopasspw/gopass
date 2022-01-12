@@ -63,10 +63,18 @@ func (r *Registry[K, V]) Register(backend K, name string, loader V) {
 	r.backendToName[backend] = name
 }
 
-func (r *Registry[K, V]) Backends() []string {
+func (r *Registry[K, V]) BackendNames() []string {
 	names := maps.Keys(r.nameToBackend)
 	sort.Strings(names)
 	return names
+}
+
+func (r *Registry[K, V]) Backends() []V {
+	bes := make([]V, 0, len(r.backends))
+	for _, be := range r.backends {
+		bes = append(bes, be)
+	}
+	return bes
 }
 
 func (r *Registry[K, V]) Prioritized() []V {

@@ -5,6 +5,7 @@ import (
 
 	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/internal/set"
+	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/urfave/cli/v2"
 )
 
@@ -56,7 +57,7 @@ func ShowFlags() []cli.Flag {
 
 // GetCommands returns the cli commands exported by this module.
 func (s *Action) GetCommands() []*cli.Command {
-	return []*cli.Command{
+	cmds := []*cli.Command{
 		{
 			Name:        "alias",
 			Usage:       "Manage domain aliases",
@@ -136,11 +137,11 @@ func (s *Action) GetCommands() []*cli.Command {
 				},
 				&cli.StringFlag{
 					Name:  "crypto",
-					Usage: fmt.Sprintf("Select crypto backend %v", backend.CryptoRegistry.Backends()),
+					Usage: fmt.Sprintf("Select crypto backend %v", backend.CryptoRegistry.BackendNames()),
 				},
 				&cli.StringFlag{
 					Name:  "storage",
-					Usage: fmt.Sprintf("Select storage backend %v", set.Filter(backend.StorageRegistry.Backends(), "fs")),
+					Usage: fmt.Sprintf("Select storage backend %v", set.Filter(backend.StorageRegistry.BackendNames(), "fs")),
 				},
 				&cli.BoolFlag{
 					Name:  "check-keys",
@@ -181,11 +182,11 @@ func (s *Action) GetCommands() []*cli.Command {
 				},
 				&cli.StringFlag{
 					Name:  "crypto",
-					Usage: fmt.Sprintf("Which crypto backend? %v", backend.CryptoRegistry.Backends()),
+					Usage: fmt.Sprintf("Which crypto backend? %v", backend.CryptoRegistry.BackendNames()),
 				},
 				&cli.StringFlag{
 					Name:  "storage",
-					Usage: fmt.Sprintf("Which storage backend? %v", backend.StorageRegistry.Backends()),
+					Usage: fmt.Sprintf("Which storage backend? %v", backend.StorageRegistry.BackendNames()),
 				},
 			},
 		},
@@ -431,22 +432,6 @@ func (s *Action) GetCommands() []*cli.Command {
 			},
 		},
 		{
-			Name:  "git",
-			Usage: "Run a git command inside a password store",
-			Description: "" +
-				"If the password store is a git repository, execute a git command " +
-				"specified by git-command-args.",
-			Hidden: true,
-			Before: s.IsInitialized,
-			Action: s.Git,
-			Flags: []cli.Flag{
-				&cli.StringFlag{
-					Name:  "store",
-					Usage: "Store to operate on",
-				},
-			},
-		},
-		{
 			Name:      "grep",
 			Usage:     "Search for secrets files containing search-string when decrypted.",
 			ArgsUsage: "[needle]",
@@ -501,12 +486,12 @@ func (s *Action) GetCommands() []*cli.Command {
 				},
 				&cli.StringFlag{
 					Name:  "crypto",
-					Usage: fmt.Sprintf("Select crypto backend %v", backend.CryptoRegistry.Backends()),
+					Usage: fmt.Sprintf("Select crypto backend %v", backend.CryptoRegistry.BackendNames()),
 					Value: "gpgcli",
 				},
 				&cli.StringFlag{
 					Name:  "storage",
-					Usage: fmt.Sprintf("Select storage backend %v", backend.StorageRegistry.Backends()),
+					Usage: fmt.Sprintf("Select storage backend %v", backend.StorageRegistry.BackendNames()),
 					Value: "gitfs",
 				},
 			},
@@ -746,7 +731,7 @@ func (s *Action) GetCommands() []*cli.Command {
 						},
 						&cli.StringFlag{
 							Name:  "storage",
-							Usage: fmt.Sprintf("Select storage backend %v", set.Filter(backend.StorageRegistry.Backends(), "fs")),
+							Usage: fmt.Sprintf("Select storage backend %v", set.Filter(backend.StorageRegistry.BackendNames(), "fs")),
 							Value: "gitfs",
 						},
 					},
@@ -858,11 +843,11 @@ func (s *Action) GetCommands() []*cli.Command {
 				},
 				&cli.StringFlag{
 					Name:  "crypto",
-					Usage: fmt.Sprintf("Select crypto backend %v", backend.CryptoRegistry.Backends()),
+					Usage: fmt.Sprintf("Select crypto backend %v", backend.CryptoRegistry.BackendNames()),
 				},
 				&cli.StringFlag{
 					Name:  "storage",
-					Usage: fmt.Sprintf("Select storage backend %v", backend.StorageRegistry.Backends()),
+					Usage: fmt.Sprintf("Select storage backend %v", backend.StorageRegistry.BackendNames()),
 				},
 			},
 		},
@@ -980,4 +965,42 @@ func (s *Action) GetCommands() []*cli.Command {
 			Action: s.Version,
 		},
 	}
+
+	// crypto and storage backends can add their own commands if they need to
+	for _, be := range backend.CryptoRegistry.Backends() {
+		bc, ok := be.(commander)
+		if !ok {
+			debug.Log("Backend %s does not implement commander interface\n", be)
+			continue
+		}
+		nc := bc.Commands()
+		debug.Log("Backend %s added %d commands", be, len(nc))
+		cmds = append(cmds, nc...)
+	}
+	for _, be := range backend.StorageRegistry.Backends() {
+		bc, ok := be.(storeCommander)
+		if !ok {
+			debug.Log("Backend %s does not implement commander interface\n", be)
+			continue
+		}
+		nc := bc.Commands(s.IsInitialized, func(alias string) (string, error) {
+			sub, err := s.Store.GetSubStore(alias)
+			if err != nil || sub == nil {
+				return "", fmt.Errorf("failed to get sub store for %s: %w", alias, err)
+			}
+			return sub.Path(), nil
+		})
+		debug.Log("Backend %s added %d commands", be, len(nc))
+		cmds = append(cmds, nc...)
+	}
+
+	return cmds
+}
+
+type commander interface {
+	Commands() []*cli.Command
+}
+
+type storeCommander interface {
+	Commands(func(*cli.Context) error, func(string) (string, error)) []*cli.Command
 }

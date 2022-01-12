@@ -44,8 +44,8 @@ func (s *Action) Version(c *cli.Context) error {
 		}
 	}
 
-	fmt.Fprintf(stdout, "Available Crypto Backends: %s\n", strings.Join(backend.CryptoRegistry.Backends(), ", "))
-	fmt.Fprintf(stdout, "Available Storage Backends: %s\n", strings.Join(backend.StorageRegistry.Backends(), ", "))
+	fmt.Fprintf(stdout, "Available Crypto Backends: %s\n", strings.Join(backend.CryptoRegistry.BackendNames(), ", "))
+	fmt.Fprintf(stdout, "Available Storage Backends: %s\n", strings.Join(backend.StorageRegistry.BackendNames(), ", "))
 
 	select {
 	case vi := <-version:
