@@ -3,6 +3,7 @@ module github.com/gopasspw/gopass
 go 1.18
 
 require (
+	bitbucket.org/creachadair/stringset v0.0.10
 	filippo.io/age v1.0.0
 	github.com/atotto/clipboard v0.1.4
 	github.com/blang/semver/v4 v4.0.0
@@ -31,7 +32,7 @@ require (
 	github.com/schollz/closestmatch v0.0.0-20190308193919-1fbe626be92e
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	github.com/stretchr/testify v1.7.0
-	github.com/twpayne/go-pinentry v0.1.0
+	github.com/twpayne/go-pinentry v0.2.0
 	github.com/urfave/cli/v2 v2.3.0
 	golang.org/x/crypto v0.0.0-20211215165025-cf75a172585e
 	golang.org/x/exp v0.0.0-20211216164055-b2b84827b756
@@ -43,11 +44,9 @@ require (
 )
 
 require (
-	bitbucket.org/creachadair/stringset v0.0.10 // indirect
 	filippo.io/edwards25519 v1.0.0-rc.1 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/golang/mock v1.6.0 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
