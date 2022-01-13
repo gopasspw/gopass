@@ -229,7 +229,8 @@ func (s *Action) binaryGet(ctx context.Context, name string) ([]byte, error) {
 	}
 
 	if cte, _ := sec.Get("content-transfer-encoding"); cte != "Base64" {
-		return []byte(sec.Body()), nil
+		// need to use sec.Bytes() otherwise the first line is missing.
+		return sec.Bytes(), nil
 	}
 
 	buf, err := base64.StdEncoding.DecodeString(sec.Body())
