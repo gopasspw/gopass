@@ -68,6 +68,7 @@ var commandsWithError = set.Map([]string{
 	".fscopy",
 	".fsmove",
 	".generate",
+	".git",
 	".git.push",
 	".git.pull",
 	".git.status",
@@ -84,6 +85,7 @@ var commandsWithError = set.Map([]string{
 	".move",
 	".otp",
 	".process",
+	".rcs.status",
 	".recipients.add",
 	".recipients.remove",
 	".show",
@@ -126,7 +128,7 @@ func TestGetCommands(t *testing.T) {
 	c.Context = ctx
 
 	commands := getCommands(act, app)
-	assert.Equal(t, 39, len(commands))
+	assert.Equal(t, 40, len(commands))
 
 	prefix := ""
 	testCommands(t, c, commands, prefix)

@@ -431,119 +431,18 @@ func (s *Action) GetCommands() []*cli.Command {
 			},
 		},
 		{
-			Name:      "git",
-			Usage:     "Run a git command inside a password store (init, remote, push, pull)",
-			ArgsUsage: "[init|remote|push|pull]",
+			Name:  "git",
+			Usage: "Run a git command inside a password store",
 			Description: "" +
 				"If the password store is a git repository, execute a git command " +
-				"specified by git-command-args." +
-				"WARNING: Deprecated. Please use gopass sync.",
+				"specified by git-command-args.",
 			Hidden: true,
-			Subcommands: []*cli.Command{
-				{
-					Name:        "init",
-					Usage:       "Init git repo",
-					Description: "Create and initialize a new git repo in the store",
-					Before:      s.IsInitialized,
-					Action:      s.RCSInit,
-					Flags: []cli.Flag{
-						&cli.StringFlag{
-							Name:  "store",
-							Usage: "Store to operate on",
-						},
-						&cli.StringFlag{
-							Name:  "sign-key",
-							Usage: "GPG Key to sign commits",
-						},
-						&cli.StringFlag{
-							Name:    "name",
-							Aliases: []string{"username"},
-							Usage:   "Git Author Name",
-						},
-						&cli.StringFlag{
-							Name:    "email",
-							Aliases: []string{"useremail"},
-							Usage:   "Git Author Email",
-						},
-						&cli.StringFlag{
-							Name:  "storage",
-							Usage: fmt.Sprintf("Select storage backend %v", backend.StorageRegistry.Backends()),
-							Value: "gitfs",
-						},
-					},
-				},
-				{
-					Name:        "remote",
-					Usage:       "Manage git remotes",
-					Description: "These subcommands can be used to manage git remotes",
-					Before:      s.IsInitialized,
-					Subcommands: []*cli.Command{
-						{
-							Name:        "add",
-							Usage:       "Add git remote",
-							Description: "Add a new git remote",
-							Before:      s.IsInitialized,
-							Action:      s.RCSAddRemote,
-							Flags: []cli.Flag{
-								&cli.StringFlag{
-									Name:  "store",
-									Usage: "Store to operate on",
-								},
-							},
-						},
-						{
-							Name:        "remove",
-							Usage:       "Remove git remote",
-							Description: "Remove a git remote",
-							Before:      s.IsInitialized,
-							Action:      s.RCSRemoveRemote,
-							Flags: []cli.Flag{
-								&cli.StringFlag{
-									Name:  "store",
-									Usage: "Store to operate on",
-								},
-							},
-						},
-					},
-				},
-				{
-					Name:        "push",
-					Usage:       "Push to remote",
-					Description: "Push to a git remote",
-					Before:      s.IsInitialized,
-					Action:      s.RCSPush,
-					Flags: []cli.Flag{
-						&cli.StringFlag{
-							Name:  "store",
-							Usage: "Store to operate on",
-						},
-					},
-				},
-				{
-					Name:        "pull",
-					Usage:       "Pull from remote",
-					Description: "Pull from a git remote",
-					Before:      s.IsInitialized,
-					Action:      s.RCSPull,
-					Flags: []cli.Flag{
-						&cli.StringFlag{
-							Name:  "store",
-							Usage: "Store to operate on",
-						},
-					},
-				},
-				{
-					Name:        "status",
-					Usage:       "RCS status",
-					Description: "Show the RCS status",
-					Before:      s.IsInitialized,
-					Action:      s.RCSStatus,
-					Flags: []cli.Flag{
-						&cli.StringFlag{
-							Name:  "store",
-							Usage: "Store to operate on",
-						},
-					},
+			Before: s.IsInitialized,
+			Action: s.Git,
+			Flags: []cli.Flag{
+				&cli.StringFlag{
+					Name:  "store",
+					Usage: "Store to operate on",
 				},
 			},
 		},
@@ -810,6 +709,62 @@ func (s *Action) GetCommands() []*cli.Command {
 				"and replace all variables with their values.",
 			Before: s.IsInitialized,
 			Action: s.Process,
+		},
+		{
+			Name:      "rcs",
+			Usage:     "Run a RCS command inside a password store",
+			ArgsUsage: "[init|push|pull]",
+			Description: "" +
+				"If the password store is a git repository, execute a git command " +
+				"specified by git-command-args.",
+			Hidden: true,
+			Subcommands: []*cli.Command{
+				{
+					Name:        "init",
+					Usage:       "Init RCS repo",
+					Description: "Create and initialize a new RCS repo in the store",
+					Before:      s.IsInitialized,
+					Action:      s.RCSInit,
+					Flags: []cli.Flag{
+						&cli.StringFlag{
+							Name:  "store",
+							Usage: "Store to operate on",
+						},
+						&cli.StringFlag{
+							Name:  "sign-key",
+							Usage: "GPG Key to sign commits",
+						},
+						&cli.StringFlag{
+							Name:    "name",
+							Aliases: []string{"username"},
+							Usage:   "Git Author Name",
+						},
+						&cli.StringFlag{
+							Name:    "email",
+							Aliases: []string{"useremail"},
+							Usage:   "Git Author Email",
+						},
+						&cli.StringFlag{
+							Name:  "storage",
+							Usage: fmt.Sprintf("Select storage backend %v", set.Filter(backend.StorageRegistry.Backends(), "fs")),
+							Value: "gitfs",
+						},
+					},
+				},
+				{
+					Name:        "status",
+					Usage:       "RCS status",
+					Description: "Show the RCS status",
+					Before:      s.IsInitialized,
+					Action:      s.RCSStatus,
+					Flags: []cli.Flag{
+						&cli.StringFlag{
+							Name:  "store",
+							Usage: "Store to operate on",
+						},
+					},
+				},
+			},
 		},
 		{
 			Name:  "recipients",
