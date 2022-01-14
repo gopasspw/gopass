@@ -203,6 +203,9 @@ func (s *Action) showGetContent(ctx context.Context, sec gopass.Secret) (string,
 		return pw, "", nil
 	}
 	if IsPasswordOnly(ctx) {
+		if pw == "" && fullBody != "" {
+			return "", "", ExitError(ExitNotFound, store.ErrNoPassword, store.ErrNoPassword.Error())
+		}
 		return pw, pw, nil
 	}
 
