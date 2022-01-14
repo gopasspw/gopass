@@ -55,7 +55,7 @@ jobs:
           go run helpers/changelog/main.go >../RELEASE_NOTES
       -
         name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v2.8.0
+        uses: goreleaser/goreleaser-action@v2.8.1
         with:
           version: latest
           args: release --rm-dist --release-notes=../RELEASE_NOTES
