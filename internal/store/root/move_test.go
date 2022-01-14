@@ -98,8 +98,8 @@ func TestMove(t *testing.T) {
 	entries, err = rs.List(ctx, tree.INF)
 	require.NoError(t, err)
 	assert.Equal(t, []string{
-		"bar/foo/bar",
-		"bar/foo/baz",
+		"bar/bar",
+		"bar/baz",
 		"misc/zab",
 	}, entries)
 
@@ -108,8 +108,8 @@ func TestMove(t *testing.T) {
 	entries, err = rs.List(ctx, tree.INF)
 	require.NoError(t, err)
 	assert.Equal(t, []string{
-		"bar/foo/bar",
-		"bar/foo/baz",
+		"bar/bar",
+		"bar/baz",
 		"bar/foo/zab",
 	}, entries)
 
@@ -118,8 +118,8 @@ func TestMove(t *testing.T) {
 	entries, err = rs.List(ctx, tree.INF)
 	require.NoError(t, err)
 	assert.Equal(t, []string{
-		"baz/bar",
-		"baz/baz",
+		"bar/bar",
+		"bar/baz",
 		"baz/zab",
 	}, entries)
 
@@ -128,20 +128,97 @@ func TestMove(t *testing.T) {
 	entries, err = rs.List(ctx, tree.INF)
 	require.NoError(t, err)
 	assert.Equal(t, []string{
-		"boz/bar",
-		"boz/baz",
+		"bar/bar",
+		"bar/baz",
 		"boz/zab",
 	}, entries)
 
-	// this fails if empty directories are not removed, because 'bar' and 'baz' were directories in the root folder
+	// this fails if empty directories are not removed, because 'bar' and 'baz'
+	// were directories in the root folder.
 	// -> move boz/ / => OK
-	assert.NoError(t, rs.Move(ctx, "boz/", "/"))
+	assert.NoError(t, rs.Move(ctx, "boz/", "."))
 	entries, err = rs.List(ctx, tree.INF)
 	require.NoError(t, err)
 	assert.Equal(t, []string{
-		"bar",
-		"baz",
+		"bar/bar",
+		"bar/baz",
 		"zab",
+	}, entries)
+}
+
+func TestUnixMvSemantics(t *testing.T) {
+	u := gptest.NewUnitTester(t)
+	u.Entries = []string{
+		"a/f1",
+		"a/f2",
+		"b/f3",
+	}
+	require.NoError(t, u.InitStore(""))
+	defer u.Remove()
+
+	ctx := context.Background()
+	ctx = ctxutil.WithAlwaysYes(ctx, true)
+	ctx = ctxutil.WithHidden(ctx, true)
+
+	rs, err := createRootStore(ctx, u)
+	require.NoError(t, err)
+	assert.NoError(t, rs.Delete(ctx, "foo"))
+
+	// Initial state:
+	entries, err := rs.List(ctx, tree.INF)
+	require.NoError(t, err)
+	require.Equal(t, []string{
+		"a/f1",
+		"a/f2",
+		"b/f3",
+	}, entries)
+
+	// -> move a b => Move a below b
+	assert.NoError(t, rs.Move(ctx, "a", "b"))
+	entries, err = rs.List(ctx, tree.INF)
+	require.NoError(t, err)
+	require.Equal(t, []string{
+		"b/a/f1",
+		"b/a/f2",
+		"b/f3",
+	}, entries)
+}
+
+func TestRegression2079(t *testing.T) {
+	u := gptest.NewUnitTester(t)
+	u.Entries = []string{
+		"comm/test",
+		"comm/test2",
+		"communication/t1",
+	}
+	require.NoError(t, u.InitStore(""))
+	defer u.Remove()
+
+	ctx := context.Background()
+	ctx = ctxutil.WithAlwaysYes(ctx, true)
+	ctx = ctxutil.WithHidden(ctx, true)
+
+	rs, err := createRootStore(ctx, u)
+	require.NoError(t, err)
+	assert.NoError(t, rs.Delete(ctx, "foo"))
+
+	// Initial state:
+	entries, err := rs.List(ctx, tree.INF)
+	require.NoError(t, err)
+	require.Equal(t, []string{
+		"comm/test",
+		"comm/test2",
+		"communication/t1",
+	}, entries)
+
+	// -> move comm email => Rename comm to email
+	assert.NoError(t, rs.Move(ctx, "comm", "email"))
+	entries, err = rs.List(ctx, tree.INF)
+	require.NoError(t, err)
+	require.Equal(t, []string{
+		"communication/t1",
+		"email/test",
+		"email/test2",
 	}, entries)
 }
 
@@ -225,4 +302,75 @@ func TestCopy(t *testing.T) {
 			"misc/zab",
 		}, entries)
 	})
+}
+
+func TestComputeMoveDestination(t *testing.T) {
+	for _, tc := range []struct {
+		name     string
+		src      string
+		from     string
+		to       string
+		srcIsDir bool
+		dstIsDir bool
+		dst      string
+	}{
+		{
+			name: "rename file a to file b", // mv a b
+			src:  "a",
+			from: "a",
+			to:   "b",
+			dst:  "b",
+		},
+		{
+			name:     "rename dir a to dir b (#2079)", // mv comm email
+			src:      "comm/test",
+			from:     "comm",
+			to:       "email",
+			dst:      "email/test",
+			srcIsDir: true,
+			dstIsDir: false,
+		},
+		{
+			name:     "rename dir a to dir b (existing dir)", // mv a b
+			src:      "a/f1",
+			from:     "a",
+			to:       "b",
+			dst:      "b/a/f1",
+			srcIsDir: true,
+			dstIsDir: true,
+		},
+		{
+			name:     "move up", // mv a/b/c c
+			src:      "a/b/c/f1",
+			from:     "a/b/c",
+			to:       "c",
+			dst:      "c/f1",
+			srcIsDir: true,
+		},
+		{
+			name:     "move fully up", // mv a/ .
+			src:      "a/f1",
+			from:     "a/",
+			to:       ".",
+			dst:      "f1",
+			srcIsDir: true,
+			dstIsDir: true,
+		},
+		{
+			name:     "old www", // mv old/www/bar www/
+			src:      "old/www/bar",
+			from:     "old/www/bar",
+			to:       "www",
+			dst:      "www/bar",
+			srcIsDir: false,
+			dstIsDir: true,
+		},
+	} {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			dst := computeMoveDestination(tc.src, tc.from, tc.to, tc.srcIsDir, tc.dstIsDir)
+			assert.Equal(t, tc.dst, dst, tc.name)
+		})
+	}
 }
