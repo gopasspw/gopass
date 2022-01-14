@@ -33,12 +33,12 @@ func (s *Action) IsInitialized(c *cli.Context) error {
 		return ExitError(ExitUnknown, err, "Failed to initialize store: %s", err)
 	}
 	if inited {
-		debug.Log("Store is already initialized")
+		debug.Log("Store is fully initialized and ready to go\n\nAll systems go. 🚀\n")
 		s.printReminder(ctx)
 		return nil
 	}
 
-	debug.Log("Store needs to be initialized")
+	debug.Log("Store needs to be initialized.\n\nAbort. Abort. Abort. 🚫\n")
 	if !ctxutil.IsInteractive(ctx) {
 		return ExitError(ExitNotInitialized, nil, "password-store is not initialized. Try '%s init'", s.Name)
 	}
