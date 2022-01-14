@@ -41,6 +41,7 @@ func (l loader) Handles(ctx context.Context, s backend.Storage) error {
 func (l loader) Priority() int {
 	return 10
 }
+
 func (l loader) String() string {
 	return name
 }
