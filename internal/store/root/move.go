@@ -17,6 +17,7 @@ import (
 // supported. Each entry has to be decoded and encoded for the destination
 // to make sure it's encrypted for the right set of recipients.
 func (r *Store) Copy(ctx context.Context, from, to string) error {
+	debug.Log("Copy %s to %s", from, to)
 	return r.move(ctx, from, to, false)
 }
 
@@ -25,6 +26,7 @@ func (r *Store) Copy(ctx context.Context, from, to string) error {
 // for the destination store with the right set of recipients and remove it
 // from the old location afterwards.
 func (r *Store) Move(ctx context.Context, from, to string) error {
+	debug.Log("Move %s to %s", from, to)
 	return r.move(ctx, from, to, true)
 }
 
@@ -110,32 +112,21 @@ func (r *Store) moveFromTo(ctx context.Context, subFrom *leaf.Store, from, to, f
 	// and move them one by one.
 	if r.IsDir(ctx, from) {
 		var err error
-		entries, err = subFrom.List(ctx, fromPrefix)
+		entries, err = subFrom.List(ctx, fromPrefix+"/")
 		if err != nil {
 			return err
 		}
 	}
 	if len(entries) < 1 {
+		debug.Log("Subtree %q has no entries", from)
 		return fmt.Errorf("no entries")
 	}
 
-	debug.Log("Moving %q to %q (entries: %+v)", from, to, entries)
+	debug.Log("Moving (sub) tree %q to %q (entries: %+v)", from, to, entries)
 
 	for _, src := range entries {
-		dst := to
-		if srcIsDir {
-			// Follow the rsync convention to not re-create the source folder at the destination when a "/" is found
-			if strings.HasSuffix(from, "/") {
-				dst = path.Join(to, strings.TrimPrefix(src, from))
-			} else {
-				dst = path.Join(to, path.Base(from), strings.TrimPrefix(src, from))
-			}
-		} else {
-			if dstIsDir || strings.HasSuffix(to, "/") {
-				dst = path.Join(to, path.Base(src))
-			}
-		}
-		debug.Log("Moving %q (%q) => %q (%q) (sid:%t, did:%t, delete:%t)\n", from, src, to, dst, srcIsDir, dstIsDir, del)
+		dst := computeMoveDestination(src, from, to, srcIsDir, dstIsDir)
+		debug.Log("Moving entry %q (%q) => %q (%q) (srcIsDir:%t, dstIsDir:%t, delete:%t)\n", src, from, dst, to, srcIsDir, dstIsDir, del)
 
 		content, err := r.Get(ctx, src)
 		if err != nil {
@@ -147,13 +138,50 @@ func (r *Store) moveFromTo(ctx context.Context, subFrom *leaf.Store, from, to, f
 		}
 
 		if del {
-			debug.Log("Deleting %s from source %s", from, src)
+			debug.Log("Deleting moved entry %q from source %q", from, src)
 			if err := r.Delete(ctx, src); err != nil {
 				return fmt.Errorf("failed to delete secret %q: %w", src, err)
 			}
 		}
 	}
 	return nil
+}
+
+func computeMoveDestination(src, from, to string, srcIsDir, dstIsDir bool) string {
+	// special case: moving up to the root
+	if to == "." || to == "/" {
+		dstIsDir = false
+		to = ""
+	}
+
+	// are we moving into an existing directory? Then we just need to prepend
+	// it's name to the source.
+	// a -> b
+	// - a/f1 -> b/a/f1
+	// a -> b
+	// - a -> b/a
+	if dstIsDir {
+		if !srcIsDir {
+			return path.Join(to, path.Base(src))
+		}
+		return path.Join(to, src)
+	}
+
+	// are we moving a simple file? that's easy
+	if !srcIsDir {
+		// otherwise we just rename a file to another name
+		return to
+	}
+
+	// move a/ b, where a is a directory with a trailing slash and b
+	// does not exist, i.e. move a to b
+	if strings.HasSuffix(from, "/") {
+		return path.Join(to, strings.TrimPrefix(src, from))
+	}
+	// move a b, where a is a directory but not b, i.e. rename a to b.
+	// this is applied to every child of a, so we need to remove the
+	// old prefix (a) and add the new one (b).
+	return path.Join(to, strings.TrimPrefix(src, from))
 }
 
 // Delete will remove an single entry from the store.
