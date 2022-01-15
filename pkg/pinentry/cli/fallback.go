@@ -11,12 +11,12 @@ type Client struct {
 	repeat bool
 }
 
-// New creates a new client
+// New creates a new client.
 func New() *Client {
 	return &Client{repeat: false}
 }
 
-// Set is a no-op unless you're requesting a repeat
+// Set is a no-op unless you're requesting a repeat.
 func (c *Client) Set(key string) error {
 	if key == "REPEAT" {
 		c.repeat = true
@@ -29,7 +29,7 @@ func (c *Client) Option(string) error {
 	return nil
 }
 
-// GetPin prompts for the pin in the termnial and returns the output
+// GetPIN prompts for the pin in the termnial and returns the output.
 func (c *Client) GetPIN() (string, error) {
 	pw, err := termio.AskForPassword(context.TODO(), "your PIN", c.repeat)
 	if err != nil {

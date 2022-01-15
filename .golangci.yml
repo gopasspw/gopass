@@ -28,39 +28,36 @@ linters:
         - predeclared
         - godot
         - nestif
-        ## These are working but disabled for now
-        # - nestif # some work to refactor
-        # - revive # currently a bit buggy with Go 1.18 but works mostly
-
-## To enable once they work with Go 1.18:
-###  - deadcode
-###  - depguard
-###  - durationcheck
-###  - errcheck
-###  - errorlint
-###  - exhaustive
-###  - exportloopref
-###  - gocritic
-###  - goerr113
-###  - gosec
-###  - gosimple
-###  - govet
-###  - importas
-###  - makezero
-###  - nilerr
-###  - rowserrcheck
-###  - staticcheck
-###  - structcheck
-###  - stylecheck
-###  - thelper
-###  - tparallel
-###  - typecheck
-###  - unconvert
-###  - unparam
-###  - unused
-###  - varcheck
-###  - wastedassign
-###  - wrapcheck
+        #- revive # currently a bit buggy with Go 1.18 but works mostly
+        ## To enable once they work with Go 1.18:
+        ### - deadcode
+        ### - depguard
+        ### - durationcheck
+        ### - errcheck
+        ### - errorlint
+        ### - exhaustive
+        ### - exportloopref
+        ### - gocritic
+        ### - goerr113
+        ### - gosec
+        ### - gosimple
+        ### - govet
+        ### - importas
+        ### - makezero
+        ### - nilerr
+        ### - rowserrcheck
+        ### - staticcheck
+        ### - structcheck
+        ### - stylecheck
+        ### - thelper
+        ### - tparallel
+        ### - typecheck
+        ### - unconvert
+        ### - unparam
+        ### - unused
+        ### - varcheck
+        ### - wastedassign
+        ### - wrapcheck
 
 issues:
   exclude-use-default: false # disable filtering of defaults for better zero-issue policy

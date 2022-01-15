@@ -61,7 +61,7 @@ func (r *Store) GetRevision(ctx context.Context, name, revision string) (context
 }
 
 // RCSStatus show the git status.
-// TODO this should likely iterate over all stores
+// TODO this should likely iterate over all stores.
 func (r *Store) RCSStatus(ctx context.Context, name string) error {
 	store, name := r.getStore(name)
 	out.Printf(ctx, "Store: %s", store.Path())
