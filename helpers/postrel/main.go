@@ -37,7 +37,8 @@ const logo = `
 '\__  |'\___/'| ,__/''\__,_)(____/(____/
 ( )_) |       | |
  \___/'       (_)
-`
+
+ `
 
 func main() {
 	ctx := context.Background()
