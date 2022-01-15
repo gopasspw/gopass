@@ -25,35 +25,70 @@ Starting right after the previous release these are roughly:
 
 ### Cutting a release
 
-Once master is in good shape we need to update some metadata, build and push the release.
+This section is a reference for contributors with write access to the gopass
+repository.
 
-* Determine the next release version
-  * Usually we bump the patch component
-  * If we're shipping possibly disruptive changes we bump the minor component
-  * So far we've never bumped the major component
-* Grep all `RELEASE_NOTES` from the commit messages and prepend a new section to the [CHANGELOG](../CHANGELOG.md)
-  * Major changes should be detailed in a few sentences
-* Write the new version to the VERSION file
-* Write the new version to the version.go file
-* Commit these changes to a branch and open a pull request
-* Once the PR has been merged immediately create a new tag `vX.Y.Z` and push it to GitHub
-  * This will kick-off the goreleaser GitHub Action to build and push the release
-  * If GHA is unavailable run `goreleaser release --release-notes <(go run helpers/changelog/main.go)` (with a valid `GITHUB_TOKEN` in your env) locally
-* Check the [release](https://github.com/gopasspw/gopass/releases) on GitHub and verify the release notes
+### Preparation
 
-Some of these steps have been automated so it boils down to:
+gopass release should work with the latest upstream version of goreleaser.
 
-* Determine the next version, a patch increase is assumed. Otherwise provide the new version to the script.
-
+```bash
+go get -u github.com/goreleaser/goreleaser
+cd $GOPATH/src/github.com/goreleaser/goreleaser
+go install
 ```
-$ go run helpers/release/main.go [X.Y.Z]
-$ git push <your-fork> release/vX.Y.Z
-# Open a PR, once it's merged
-$ git co master
-$ git pull origin master
-$ git tag -s vX.Y.Z
-$ git push origin vX.Y.Z
+
+### Releasing a new release
+
+This subsection applies to a new release in direct succession of the previous one, i.e. releasing what's in the master branch. If you need to cherry-pick
+and base a release off of a previous one see the next subsection.
+
+We develop new features and fixes and feature branches which are frequently
+merged into master in our own forks of the repository.
+
+**Important: Do not push feature branches to the main repo.**
+
+We have some helpers and automation in place to help us release new versions.
+A new release can be prepared by anyone (doesn't need to be a maintainer).
+Releasing it involves sending a PR that needs to be reviwed by the maintainers.
+Once approved the PR will be merged and a tag needs to be pushed to trigger
+the release process automation (using GitHub actions).
+
+```bash
+$ go run helpers/release/main.go
+# Follow the instructions to release a new minor version.
+# If you want to skip a patch level or bump the minor version
+# specify a version argument.
+$ go run helpers/release/main.go v1.18.2
+# If that confuses the changelog parser, you can specify a previous version
+# as well.
+$ go run helpers/release/main.go v1.18.2 v1.17.2
 ```
+
+After the helper ran it will show you instructions how to push your release
+branch and create a PR for review. Once it's merged a maintainer only needs
+to tag it and push the tag to trigger the release process automation.
+
+Afterwards a maintainer should run the post-release automation that will
+perform some cleanup, create new GitHub milestones and send out PRs to
+rolling release distributions.
+
+### Releasing a cherry-pick release
+
+This subsection applies to a new release that should be based on a previous
+release that is not a direct ancestor of the master branch, i.e. because
+breaking changes were introduced or other releases have happend in between.
+
+This can still use our release automation but it will require some adjustments:
+
+* Check out the previous release tag (we usually only publish a release branch if we need to): `git checkout v1.12.2`
+* Create a new release preparation branch (the release automation will create the actual release branch later): `git checkout -b prep/v.1.12.3`
+* Cherry-pick the changes from the previous release into the release preparation branch: `git cherry-pick -x HASH1 HASH2 ...`
+  * Resolve any conflicts, make sure all tests pass and `git cherry-pick --continue`
+* Trigger the release preparation, it should pick up any changelog entries from the cherry-picked commit messages: `PATCH_RELEASE=true go run helpers/release/main.go`
+  * `PATCH_RELEASE=true` instructs it to not change the current branch to master
+* Push the release branch printed at the end to the repository (or your fork) and open a PR.
+  * IMPORANT: This PR will not be merged into master! We will just use it to create a tag and trigger the release automation.
 
 ### Reproducible Builds
 
