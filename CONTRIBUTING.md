@@ -21,7 +21,6 @@ Please check the [`help-wanted`](https://github.com/gopasspw/gopass/issues?q=is%
 If you have questions about one of the issues please comment on them and one of the maintainers
 will try to clarify it.
 
-
 ## Pull Request Checklist
 
 * Use that [latest stable Go release](https://golang.org/dl/)
@@ -75,83 +74,57 @@ cd $GOPATH/src/github.com/goreleaser/goreleaser
 go install
 ```
 
-### Releasing a new minor release
+### Releasing a new release
 
-This subsection applies to major or minor releases, i.e. incrementing
-X or Y in X.Y.Z. This is the regular release process.
+This subsection applies to a new release in direct succession of the previous one, i.e. releasing what's in the master branch. If you need to cherry-pick
+and base a release off of a previous one see the next subsection.
 
 We develop new features and fixes and feature branches which are frequently
 merged into master in our own forks of the repository.
 
-**Important: Do not push and feature branches to the main repo.**
+**Important: Do not push feature branches to the main repo.**
+
+We have some helpers and automation in place to help us release new versions.
+A new release can be prepared by anyone (doesn't need to be a maintainer).
+Releasing it involves sending a PR that needs to be reviwed by the maintainers.
+Once approved the PR will be merged and a tag needs to be pushed to trigger
+the release process automation (using GitHub actions).
 
 ```bash
-# Change in to the repository
-cd $GOPATH/src/github.com/gopasspw/gopass
-
-# Update the Changelog
-# TODO: Update CHANGELOG.md
-
-# Update the version
-echo v1.X.Y > VERSION
-git commit -am'Tag v1.X.Y'
-
-# Tag the new version
-git tag -s v1.X.Y
-
-# Generate shell completion files
-make completion
-
-# Do a release dry run to detect possible issues
-goreleaser --skip-publish
-
-# Push the tag to GitHub
-git push origin v1.X.Y
-
-# Build and push the release
-GITHUB_TOKEN=ABC goreleaser
-
-# Update the gopass website
-# TODO: Update gopasspw.github.io
+$ go run helpers/release/main.go
+# Follow the instructions to release a new minor version.
+# If you want to skip a patch level or bump the minor version
+# specify a version argument.
+$ go run helpers/release/main.go v1.18.2
+# If that confuses the changelog parser, you can specify a previous version
+# as well.
+$ go run helpers/release/main.go v1.18.2 v1.17.2
 ```
 
-After these steps are complete please edit the auto-generated GitHub release
-description and make it match the current CHANGELOG entry.
+After the helper ran it will show you instructions how to push your release
+branch and create a PR for review. Once it's merged a maintainer only needs
+to tag it and push the tag to trigger the release process automation.
 
-### Releasing a patch level release
+Afterwards a maintainer should run the post-release automation that will
+perform some cleanup, create new GitHub milestones and send out PRs to
+rolling release distributions.
 
-This subsection applies to patch level releases, i.e. incrementing
-Z in X.Y.Z.
+### Releasing a cherry-pick release
 
-If we need to release a patch release and can not base this upon the master
-branch because there have been changes which should not be included in the patch
-release (e.g. new features) we need to summon a new release branch from a past
-release tag. Then we cherry-pick or port the required fixes to this branch and
-create a release from it.
+This subsection applies to a new release that should be based on a previous
+release that is not a direct ancestor of the master branch, i.e. because
+breaking changes were introduced or other releases have happend in between.
 
-Tips for cherry-picking:
-* Keep the changes small and self contained
-* Squashed commits per feature help (one commit per fix/feature)
-* Keep them in order
+This can still use our release automation but it will require some adjustments:
 
-```bash
-git checkout vX.Y.Z
-git checkout -b release-X.Y
-git cherry-pick ABC
-git cherry-pick DEF
-git cherry-pick FFF
-make travis
-# TODO: Update CHANGELOG.md and VERSION in ONE COMMIT
-git commit -am'Tag X.Y.Z+1'
-git tag -s vX.Y.Z+1
-goreleaser --skip-publish
-git push origin vX.Y.Z+1
-GITHUB_TOKEN=ABC goreleaser
-git push origin release-X.Y
-```
-
-After these steps are complete please edit the auto-generated GitHub release
-description and make it match the current CHANGELOG entry.
+* Check out the previous release tag (we usually only publish a release branch if we need to): `git checkout v1.12.2`
+* Create a new release preparation branch (the release automation will create the actual release branch later): `git checkout -b prep/v.1.12.3`
+* Cherry-pick the changes from the previous release into the release preparation branch: `git cherry-pick -x HASH1 HASH2 ...`
+  * Resolve any conflicts, make sure all tests pass and `git cherry-pick --continue`
+* Trigger the release preparation, it should pick up any changelog entries from the cherry-picked commit messages: `PATCH_RELEASE=true go run helpers/release/main.go`
+  * `PATCH_RELEASE=true` instructs it to not change the current branch to master
+* Push the release branch printed at the end to the repository (or your fork) and open a PR.
+  * IMPORANT: This PR will not be merged into master! We will just use it to create a tag and trigger the release automation.
 
 ## Troubleshooting
 
