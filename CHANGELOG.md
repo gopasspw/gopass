@@ -1,3 +1,8 @@
+## 1.13.1 / 2022-01-15
+
+* [BUGFIX] Handle from prefix correctly on mv (#2110, #2079)
+* [BUGFIX] Handle unencoded secret on cat
+
 ## 1.13.0 / 2021-11-13
 
 * [BUGFIX] Do not print OTP progress bar if not in terminal (#2019)
