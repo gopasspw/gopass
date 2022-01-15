@@ -86,6 +86,8 @@ func (r *Store) Storage(ctx context.Context, name string) backend.Storage {
 	return sub.Storage()
 }
 
+// Concurrency returns the concurrency level supported by this store,
+// which is the minimum of all mount points.
 func (r *Store) Concurrency() int {
 	min := math.MaxInt
 	for _, sub := range r.mounts {

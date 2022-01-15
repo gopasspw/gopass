@@ -3,14 +3,14 @@ package age
 import (
 	"context"
 	"fmt"
-	"time"
 	"strings"
+	"time"
 
 	"github.com/gopasspw/gopass/internal/cache"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/pinentry/cli"
-	"github.com/twpayne/go-pinentry"
 	"github.com/nbutton23/zxcvbn-go"
+	"github.com/twpayne/go-pinentry"
 )
 
 type cacher interface {
@@ -21,8 +21,8 @@ type cacher interface {
 }
 
 type askPass struct {
-	testing  bool
-	cache    cacher
+	testing bool
+	cache   cacher
 }
 
 var (
@@ -50,7 +50,7 @@ func (a *askPass) Passphrase(key string, reason string, repeat bool) (string, er
 	pw, err := a.getPassphrase(reason, repeat)
 	if err != nil {
 		return "", fmt.Errorf("pinentry error: %w", err)
-	}	
+	}
 
 	debug.Log("Updated value for %s in cache", key)
 	a.cache.Set(key, pw)
@@ -60,7 +60,7 @@ func (a *askPass) Passphrase(key string, reason string, repeat bool) (string, er
 func (a *askPass) getPassphrase(reason string, repeat bool) (string, error) {
 	opts := []pinentry.ClientOption{
 		pinentry.WithBinaryNameFromGnuPGAgentConf(),
-		pinentry.WithDesc(strings.TrimSuffix(reason, ":")+"."),
+		pinentry.WithDesc(strings.TrimSuffix(reason, ":") + "."),
 		pinentry.WithGPGTTY(),
 		pinentry.WithPrompt("Passphrase:"),
 		pinentry.WithTitle("gopass"),

@@ -28,6 +28,7 @@ func gpgConfigLoc() string {
 	return filepath.Join(uhd, ".gnupg", "gpg.conf")
 }
 
+// Config returns the GPG config file.
 func Config() (map[string]string, error) {
 	fh, err := os.Open(gpgConfigLoc())
 	if err != nil {

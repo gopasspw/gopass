@@ -131,49 +131,11 @@ crosscompile:
 codequality:
 	@echo ">> CODE QUALITY"
 
-	@echo -n "     REVIVE    "
-	@which revive > /dev/null; if [ $$? -ne 0 ]; then \
-		$(GO) install github.com/mgechev/revive@latest; \
-	fi
-	@revive -formatter friendly -exclude vendor/... ./...
-	@printf '%s\n' '$(OK)'
-
-	@echo -n "     FMT       "
-	@$(foreach gofile, $(GOFILES_NOVENDOR),\
-			out=$$(gofmt -s -l -d -e $(gofile) | tee /dev/stderr); if [ -n "$$out" ]; then exit 1; fi;)
-	@printf '%s\n' '$(OK)'
-
-	@echo -n "     VET       "
-	@$(GO) vet ./...
-	@printf '%s\n' '$(OK)'
-
-	@echo -n "     LINT      "
-	@which golint > /dev/null; if [ $$? -ne 0 ]; then \
-		$(GO) install golang.org/x/lint/golint@latest; \
-	fi
-	@$(foreach pkg, $(PKGS),\
-			golint -set_exit_status $(pkg) || exit 0;)
-	@printf '%s\n' '$(OK)'
-
-	@echo -n "     STATICCHECK "
-	@which staticcheck > /dev/null; if [ $$? -ne 0  ]; then \
-		$(GO) install honnef.co/go/tools/cmd/staticcheck@latest; \
-	fi
-	@staticcheck $(PKGS) || exit 0
-	@printf '%s\n' '$(OK)'
-
-	@echo -n "     UNPARAM "
-	@which unparam > /dev/null; if [ $$? -ne 0 ]; then \
-		$(GO) install mvdan.cc/unparam@latest; \
-	fi
-	@unparam -exported=false $(PKGS) || exit 0
-	@printf '%s\n' '$(OK)'
-
 	@echo -n "     GOLANGCI-LINT "
 	@which golangci-lint > /dev/null; if [ $$? -ne 0 ]; then \
 		$(GO) install github.com/golangci/golangci-lint/cmd/golangci-lint@latest; \
 	fi
-	@golangci-lint run || exit 0
+	@golangci-lint run || exit 1
 	@printf '%s\n' '$(OK)'
 
 gen:

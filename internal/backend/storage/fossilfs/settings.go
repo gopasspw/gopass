@@ -25,6 +25,7 @@ func (f *Fossil) fixConfig(ctx context.Context) error {
 	return nil
 }
 
+// InitConfig initializes the fossil config.
 func (f *Fossil) InitConfig(ctx context.Context, _, _ string) error {
 	// ensure a sane fossil config.
 	if err := f.fixConfig(ctx); err != nil {

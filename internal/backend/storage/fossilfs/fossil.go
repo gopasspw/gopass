@@ -22,6 +22,7 @@ import (
 )
 
 const (
+	// CheckoutMarker is the marker file that indicates a fossil checkout.
 	CheckoutMarker = ".fslckout"
 )
 
@@ -30,6 +31,7 @@ type Fossil struct {
 	fs *fs.Store
 }
 
+// New instantiates a new Fossil store.
 func New(path string) (*Fossil, error) {
 	marker := filepath.Join(path, CheckoutMarker)
 	if !fsutil.IsFile(marker) {
@@ -40,6 +42,7 @@ func New(path string) (*Fossil, error) {
 	}, nil
 }
 
+// Clone opens a new fossil checkout.
 func Clone(ctx context.Context, repo, path string) (*Fossil, error) {
 	f := &Fossil{
 		fs: fs.New(path),
@@ -281,7 +284,7 @@ func (f *Fossil) RemoveRemote(ctx context.Context, remote string) error {
 	return f.Cmd(ctx, "fossilRemoveRemote", "remote", "delete", remote)
 }
 
-// Revisions will list all available revisions of the named entity
+// Revisions will list all available revisions of the named entity.
 func (f *Fossil) Revisions(ctx context.Context, name string) ([]backend.Revision, error) {
 	args := []string{
 		"finfo",
@@ -347,7 +350,7 @@ func (f *Fossil) Revisions(ctx context.Context, name string) ([]backend.Revision
 	return revs, nil
 }
 
-// GetRevision will return the content of any revision of the named entity
+// GetRevision will return the content of any revision of the named entity.
 func (f *Fossil) GetRevision(ctx context.Context, name, revision string) ([]byte, error) {
 	name = strings.TrimSpace(name)
 	revision = strings.TrimSpace(revision)

@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-// Path returns the path to a GPG component
+// Path returns the path to a GPG component.
 func Path(key string) (string, error) {
 	buf := &bytes.Buffer{}
 	cmd := exec.Command("gpgconf")
