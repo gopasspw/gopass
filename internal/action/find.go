@@ -6,6 +6,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/gopasspw/gopass/internal/action/exit"
 	"github.com/gopasspw/gopass/internal/cui"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/tree"
@@ -37,7 +38,7 @@ func (s *Action) findCmd(c *cli.Context, cb showFunc, fuzzy bool) error {
 	}
 
 	if !c.Args().Present() {
-		return ExitError(ExitUsage, nil, "Usage: %s find <NEEDLE>", s.Name)
+		return exit.Error(exit.Usage, nil, "Usage: %s find <NEEDLE>", s.Name)
 	}
 
 	return s.find(ctx, c, c.Args().First(), cb, fuzzy)
@@ -50,7 +51,7 @@ func (s *Action) find(ctx context.Context, c *cli.Context, needle string, cb sho
 	// get all existing entries.
 	haystack, err := s.Store.List(ctx, tree.INF)
 	if err != nil {
-		return ExitError(ExitList, err, "failed to list store: %s", err)
+		return exit.Error(exit.List, err, "failed to list store: %s", err)
 	}
 
 	// filter our the ones from the haystack matching the needle.
@@ -76,7 +77,7 @@ func (s *Action) find(ctx context.Context, c *cli.Context, needle string, cb sho
 
 	// if there are still no results we abort.
 	if len(choices) < 1 {
-		return ExitError(ExitNotFound, nil, "no results found")
+		return exit.Error(exit.NotFound, nil, "no results found")
 	}
 
 	// do not invoke wizard if not printing to terminal or if
@@ -127,7 +128,7 @@ func (s *Action) findSelection(ctx context.Context, c *cli.Context, choices []st
 		fmt.Fprintln(stdout, choices[sel])
 		return s.edit(ctx, c, choices[sel])
 	default:
-		return ExitError(ExitAborted, nil, "user aborted")
+		return exit.Error(exit.Aborted, nil, "user aborted")
 	}
 }
 

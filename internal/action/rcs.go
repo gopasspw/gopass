@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/fatih/color"
+	"github.com/gopasspw/gopass/internal/action/exit"
 	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/internal/cui"
 	"github.com/gopasspw/gopass/internal/out"
@@ -31,7 +32,7 @@ func (s *Action) RCSInit(c *cli.Context) error {
 	}
 
 	if err := s.rcsInit(ctx, store, un, ue); err != nil {
-		return ExitError(ExitGit, err, "failed to initialize %s: %s", backend.StorageBackendName(backend.GetStorageBackend(ctx)), err)
+		return exit.Error(exit.Git, err, "failed to initialize %s: %s", backend.StorageBackendName(backend.GetStorageBackend(ctx)), err)
 	}
 	return nil
 }
@@ -105,7 +106,7 @@ func (s *Action) RCSAddRemote(c *cli.Context) error {
 	url := c.Args().Get(1)
 
 	if remote == "" || url == "" {
-		return ExitError(ExitUsage, nil, "Usage: %s git remote add <REMOTE> <URL>", s.Name)
+		return exit.Error(exit.Usage, nil, "Usage: %s git remote add <REMOTE> <URL>", s.Name)
 	}
 
 	return s.Store.RCSAddRemote(ctx, store, remote, url)
@@ -118,7 +119,7 @@ func (s *Action) RCSRemoveRemote(c *cli.Context) error {
 	remote := c.Args().Get(0)
 
 	if remote == "" {
-		return ExitError(ExitUsage, nil, "Usage: %s git remote rm <REMOTE>", s.Name)
+		return exit.Error(exit.Usage, nil, "Usage: %s git remote rm <REMOTE>", s.Name)
 	}
 
 	return s.Store.RCSRemoveRemote(ctx, store, remote)
@@ -146,7 +147,7 @@ func (s *Action) RCSPush(c *cli.Context) error {
 			out.Noticef(ctx, "No Git remote. Not pushing")
 			return nil
 		}
-		return ExitError(ExitGit, err, "Failed to push to remote")
+		return exit.Error(exit.Git, err, "Failed to push to remote")
 	}
 	out.OKf(ctx, "Pushed to git remote")
 	return nil

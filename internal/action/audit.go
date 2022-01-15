@@ -1,6 +1,7 @@
 package action
 
 import (
+	"github.com/gopasspw/gopass/internal/action/exit"
 	"github.com/gopasspw/gopass/internal/audit"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/tree"
@@ -23,13 +24,13 @@ func (s *Action) Audit(c *cli.Context) error {
 
 	t, err := s.Store.Tree(ctx)
 	if err != nil {
-		return ExitError(ExitList, err, "failed to get store tree: %s", err)
+		return exit.Error(exit.List, err, "failed to get store tree: %s", err)
 	}
 
 	if filter := c.Args().First(); filter != "" {
 		subtree, err := t.FindFolder(filter)
 		if err != nil {
-			return ExitError(ExitUnknown, err, "failed to find subtree: %s", err)
+			return exit.Error(exit.Unknown, err, "failed to find subtree: %s", err)
 		}
 		debug.Log("subtree for %q: %+v", filter, subtree)
 		t = subtree

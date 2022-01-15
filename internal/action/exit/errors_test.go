@@ -1,4 +1,4 @@
-package action
+package exit
 
 import (
 	"bytes"
@@ -10,13 +10,13 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestExitError(t *testing.T) {
+func TestError(t *testing.T) {
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
 	defer func() {
 		out.Stdout = os.Stdout
 	}()
 
-	assert.Error(t, ExitError(ExitUnknown, fmt.Errorf("test"), "test"))
+	assert.Error(t, Error(Unknown, fmt.Errorf("test"), "test"))
 	assert.NotContains(t, buf.String(), "Stacktrace")
 }

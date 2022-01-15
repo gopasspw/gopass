@@ -6,6 +6,7 @@ import (
 	"sort"
 
 	"github.com/fatih/color"
+	"github.com/gopasspw/gopass/internal/action/exit"
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
@@ -20,7 +21,7 @@ import (
 func (s *Action) MountRemove(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	if c.Args().Len() != 1 {
-		return ExitError(ExitUsage, nil, "Usage: %s mount remove [alias]", s.Name)
+		return exit.Error(exit.Usage, nil, "Usage: %s mount remove [alias]", s.Name)
 	}
 
 	if err := s.Store.RemoveMount(ctx, c.Args().Get(0)); err != nil {
@@ -28,7 +29,7 @@ func (s *Action) MountRemove(c *cli.Context) error {
 	}
 
 	if err := s.cfg.Save(); err != nil {
-		return ExitError(ExitConfig, err, "failed to write config: %s", err)
+		return exit.Error(exit.Config, err, "failed to write config: %s", err)
 	}
 
 	out.Printf(ctx, "Password Store %s umounted", c.Args().Get(0))
@@ -73,7 +74,7 @@ func (s *Action) MountAdd(c *cli.Context) error {
 	alias := c.Args().Get(0)
 	localPath := c.Args().Get(1)
 	if alias == "" {
-		return ExitError(ExitUsage, nil, "usage: %s mounts add <alias> [local path]", s.Name)
+		return exit.Error(exit.Usage, nil, "usage: %s mounts add <alias> [local path]", s.Name)
 	}
 
 	if localPath == "" {
@@ -93,12 +94,12 @@ func (s *Action) MountAdd(c *cli.Context) error {
 			out.Printf(ctx, "Mount %s is not yet initialized. Please use 'gopass init --store %s' instead", e.Alias(), e.Alias())
 			return e
 		default:
-			return ExitError(ExitMount, err, "failed to add mount %q to %q: %s", alias, localPath, err)
+			return exit.Error(exit.Mount, err, "failed to add mount %q to %q: %s", alias, localPath, err)
 		}
 	}
 
 	if err := s.cfg.Save(); err != nil {
-		return ExitError(ExitConfig, err, "failed to save config: %s", err)
+		return exit.Error(exit.Config, err, "failed to save config: %s", err)
 	}
 
 	out.Printf(ctx, "Mounted %s as %s", alias, localPath)

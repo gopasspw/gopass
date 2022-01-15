@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"runtime"
 
+	"github.com/gopasspw/gopass/internal/action/exit"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/updater"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -27,7 +28,7 @@ func (s *Action) Update(c *cli.Context) error {
 
 	out.Printf(ctx, "⚒ Checking for available updates ...")
 	if err := updater.Update(ctx, s.version); err != nil {
-		return ExitError(ExitUnknown, err, "Failed to update gopass: %s", err)
+		return exit.Error(exit.Unknown, err, "Failed to update gopass: %s", err)
 	}
 
 	out.OKf(ctx, "gopass is up to date")

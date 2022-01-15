@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/gopasspw/gopass/internal/action/exit"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/tree"
 	"github.com/gopasspw/gopass/pkg/clipboard"
@@ -50,14 +51,14 @@ func (s *Action) Generate(c *cli.Context) error {
 		var err error
 		name, err = termio.AskForString(ctx, "Which name do you want to use?", "")
 		if err != nil || name == "" {
-			return ExitError(ExitNoName, err, "please provide a password name")
+			return exit.Error(exit.NoName, err, "please provide a password name")
 		}
 	}
 
 	// ask for confirmation before overwriting existing entry.
 	if !force { // don't check if it's force anyway.
 		if s.Store.Exists(ctx, name) && key == "" && !termio.AskForConfirmation(ctx, fmt.Sprintf("An entry already exists for %s. Overwrite the current password?", name)) {
-			return ExitError(ExitAborted, nil, "user aborted. not overwriting your current password")
+			return exit.Error(exit.Aborted, nil, "user aborted. not overwriting your current password")
 		}
 	}
 
@@ -82,7 +83,7 @@ func (s *Action) Generate(c *cli.Context) error {
 	if edit && termio.AskForConfirmation(ctx, fmt.Sprintf("Do you want to add more data for %s?", name)) {
 		c.Context = ctx
 		if err := s.Edit(c); err != nil {
-			return ExitError(ExitUnknown, err, "failed to edit %q: %s", name, err)
+			return exit.Error(exit.Unknown, err, "failed to edit %q: %s", name, err)
 		}
 	}
 
@@ -120,7 +121,7 @@ func (s *Action) generateCopyOrPrint(ctx context.Context, c *cli.Context, name, 
 	// - autoclip=true, but only if output is not being redirected.
 	if IsClip(ctx) || (s.cfg.AutoClip && ctxutil.IsTerminal(ctx)) {
 		if err := clipboard.CopyTo(ctx, name, []byte(password), s.cfg.ClipTimeout); err != nil {
-			return ExitError(ExitIO, err, "failed to copy to clipboard: %s", err)
+			return exit.Error(exit.IO, err, "failed to copy to clipboard: %s", err)
 		}
 		// if autoclip is on and we're not printing the password to the terminal
 		// at least leave a notice that we did indeed copy it.
@@ -175,19 +176,19 @@ func (s *Action) generatePassword(ctx context.Context, c *cli.Context, length, n
 		question := "How long should the password be?"
 		iv, err := termio.AskForInt(ctx, question, candidateLength)
 		if err != nil {
-			return "", ExitError(ExitUsage, err, "password length must be a number")
+			return "", exit.Error(exit.Usage, err, "password length must be a number")
 		}
 		pwlen = iv
 	} else {
 		iv, err := strconv.Atoi(length)
 		if err != nil {
-			return "", ExitError(ExitUsage, err, "password length must be a number")
+			return "", exit.Error(exit.Usage, err, "password length must be a number")
 		}
 		pwlen = iv
 	}
 
 	if pwlen < 1 {
-		return "", ExitError(ExitUsage, nil, "password length must not be zero")
+		return "", exit.Error(exit.Usage, nil, "password length must not be zero")
 	}
 
 	switch c.String("generator") {
@@ -228,7 +229,7 @@ func (s *Action) generatePasswordForRule(ctx context.Context, c *cli.Context, le
 	question := fmt.Sprintf("How long should the password be? (min: %d, max: %d)", rule.Minlen, rule.Maxlen)
 	iv, err := termio.AskForInt(ctx, question, wl)
 	if err != nil {
-		return "", ExitError(ExitUsage, err, "password length must be a number")
+		return "", exit.Error(exit.Usage, err, "password length must be a number")
 	}
 
 	pw := pwgen.NewCrypticForDomain(iv, domain).Password()
@@ -253,19 +254,19 @@ func (s *Action) generatePasswordXKCD(ctx context.Context, c *cli.Context, lengt
 		question := "How many words should be combined to a password?"
 		iv, err := termio.AskForInt(ctx, question, candidateLength)
 		if err != nil {
-			return "", ExitError(ExitUsage, err, "password length must be a number")
+			return "", exit.Error(exit.Usage, err, "password length must be a number")
 		}
 		pwlen = iv
 	} else {
 		iv, err := strconv.Atoi(length)
 		if err != nil {
-			return "", ExitError(ExitUsage, err, "password length must be a number: %s", err)
+			return "", exit.Error(exit.Usage, err, "password length must be a number: %s", err)
 		}
 		pwlen = iv
 	}
 
 	if pwlen < 1 {
-		return "", ExitError(ExitUsage, nil, "password length must not be zero")
+		return "", exit.Error(exit.Usage, nil, "password length must not be zero")
 	}
 
 	return xkcdgen.RandomLengthDelim(pwlen, xkcdSeparator, c.String("lang"))
@@ -277,12 +278,12 @@ func (s *Action) generateSetPassword(ctx context.Context, name, key, password st
 	if key != "" {
 		sec, err := s.Store.Get(ctx, name)
 		if err != nil {
-			return ctx, ExitError(ExitEncrypt, err, "failed to set key %q of %q: %s", key, name, err)
+			return ctx, exit.Error(exit.Encrypt, err, "failed to set key %q of %q: %s", key, name, err)
 		}
 		setMetadata(sec, kvps)
 		sec.Set(key, password)
 		if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, "Generated password for key"), name, sec); err != nil {
-			return ctx, ExitError(ExitEncrypt, err, "failed to set key %q of %q: %s", key, name, err)
+			return ctx, exit.Error(exit.Encrypt, err, "failed to set key %q of %q: %s", key, name, err)
 		}
 		return ctx, nil
 	}
@@ -314,7 +315,7 @@ func (s *Action) generateSetPassword(ctx context.Context, name, key, password st
 	}
 
 	if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, "Generated Password"), name, sec); err != nil {
-		return ctx, ExitError(ExitEncrypt, err, "failed to create %q: %s", name, err)
+		return ctx, exit.Error(exit.Encrypt, err, "failed to create %q: %s", name, err)
 	}
 	return ctx, nil
 }
@@ -332,13 +333,13 @@ func hasChangeURL(name string) string {
 func (s *Action) generateReplaceExisting(ctx context.Context, name, key, password string, kvps map[string]string) (context.Context, error) {
 	sec, err := s.Store.Get(ctx, name)
 	if err != nil {
-		return ctx, ExitError(ExitEncrypt, err, "failed to set key %q of %q: %s", key, name, err)
+		return ctx, exit.Error(exit.Encrypt, err, "failed to set key %q of %q: %s", key, name, err)
 	}
 
 	setMetadata(sec, kvps)
 	sec.SetPassword(password)
 	if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, "Generated password for YAML key"), name, sec); err != nil {
-		return ctx, ExitError(ExitEncrypt, err, "failed to set key %q of %q: %s", key, name, err)
+		return ctx, exit.Error(exit.Encrypt, err, "failed to set key %q of %q: %s", key, name, err)
 	}
 
 	return ctx, nil

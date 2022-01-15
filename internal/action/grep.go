@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
+	"github.com/gopasspw/gopass/internal/action/exit"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/tree"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -15,7 +16,7 @@ import (
 func (s *Action) Grep(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	if !c.Args().Present() {
-		return ExitError(ExitUsage, nil, "Usage: %s grep arg", s.Name)
+		return exit.Error(exit.Usage, nil, "Usage: %s grep arg", s.Name)
 	}
 
 	// get the search term.
@@ -23,7 +24,7 @@ func (s *Action) Grep(c *cli.Context) error {
 
 	haystack, err := s.Store.List(ctx, tree.INF)
 	if err != nil {
-		return ExitError(ExitList, err, "failed to list store: %s", err)
+		return exit.Error(exit.List, err, "failed to list store: %s", err)
 	}
 
 	matchFn := func(haystack string) bool {
@@ -33,7 +34,7 @@ func (s *Action) Grep(c *cli.Context) error {
 	if c.Bool("regexp") {
 		re, err := regexp.Compile(needle)
 		if err != nil {
-			return ExitError(ExitUsage, err, "failed to compile regexp %q: %s", needle, err)
+			return exit.Error(exit.Usage, err, "failed to compile regexp %q: %s", needle, err)
 		}
 		matchFn = re.MatchString
 	}

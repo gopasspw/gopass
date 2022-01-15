@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/gopasspw/gopass/internal/action/exit"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/termio"
@@ -18,18 +19,18 @@ func (s *Action) Delete(c *cli.Context) error {
 
 	name := c.Args().First()
 	if name == "" {
-		return ExitError(ExitUsage, nil, "Usage: %s rm name", s.Name)
+		return exit.Error(exit.Usage, nil, "Usage: %s rm name", s.Name)
 	}
 
 	if !recursive && s.Store.IsDir(ctx, name) && !s.Store.Exists(ctx, name) {
-		return ExitError(ExitUsage, nil, "Cannot remove %q: Is a directory. Use 'gopass rm -r %s' to delete", name, name)
+		return exit.Error(exit.Usage, nil, "Cannot remove %q: Is a directory. Use 'gopass rm -r %s' to delete", name, name)
 	}
 
 	// specifying a key is optional.
 	key := c.Args().Get(1)
 
 	if recursive && key != "" {
-		return ExitError(ExitUsage, nil, "Can not use -r with a key. Invoke delete either with a key or with -r")
+		return exit.Error(exit.Usage, nil, "Can not use -r with a key. Invoke delete either with a key or with -r")
 	}
 
 	if !force { // don't check if it's force anyway.
@@ -45,7 +46,7 @@ func (s *Action) Delete(c *cli.Context) error {
 	if recursive && key == "" {
 		debug.Log("pruning %q", name)
 		if err := s.Store.Prune(ctx, name); err != nil {
-			return ExitError(ExitUnknown, err, "failed to prune %q: %s", name, err)
+			return exit.Error(exit.Unknown, err, "failed to prune %q: %s", name, err)
 		}
 		debug.Log("pruned %q", name)
 		return nil
@@ -59,7 +60,7 @@ func (s *Action) Delete(c *cli.Context) error {
 
 	debug.Log("removing entry %q", name)
 	if err := s.Store.Delete(ctx, name); err != nil {
-		return ExitError(ExitIO, err, "Can not delete %q: %s", name, err)
+		return exit.Error(exit.IO, err, "Can not delete %q: %s", name, err)
 	}
 	return nil
 }
@@ -68,11 +69,11 @@ func (s *Action) Delete(c *cli.Context) error {
 func (s *Action) deleteKeyFromYAML(ctx context.Context, name, key string) error {
 	sec, err := s.Store.Get(ctx, name)
 	if err != nil {
-		return ExitError(ExitIO, err, "Can not delete key %q from %q: %s", key, name, err)
+		return exit.Error(exit.IO, err, "Can not delete key %q from %q: %s", key, name, err)
 	}
 	sec.Del(key)
 	if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, "Updated Key"), name, sec); err != nil {
-		return ExitError(ExitIO, err, "Can not delete key %q from %q: %s", key, name, err)
+		return exit.Error(exit.IO, err, "Can not delete key %q from %q: %s", key, name, err)
 	}
 	return nil
 }

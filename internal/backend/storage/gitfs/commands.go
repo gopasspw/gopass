@@ -1,11 +1,11 @@
 package gitfs
 
 import (
-	"fmt"
 	"os"
 	"os/exec"
 	"strings"
 
+	"github.com/gopasspw/gopass/internal/action/exit"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/urfave/cli/v2"
@@ -33,7 +33,7 @@ func (l loader) Commands(i func(*cli.Context) error, s func(string) (string, err
 
 				path, err := s(store)
 				if err != nil {
-					return fmt.Errorf("failed to get sub store %s: %w", store, err)
+					return exit.Error(exit.Unknown, err, "failed to get sub store %s: %s", store, err)
 				}
 
 				args := c.Args().Slice()

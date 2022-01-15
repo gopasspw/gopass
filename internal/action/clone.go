@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"bitbucket.org/creachadair/stringset"
+	"github.com/gopasspw/gopass/internal/action/exit"
 	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/internal/backend/crypto/age"
 	"github.com/gopasspw/gopass/internal/backend/crypto/gpg"
@@ -34,7 +35,7 @@ func (s *Action) Clone(c *cli.Context) error {
 	path := c.String("path")
 
 	if c.Args().Len() < 1 {
-		return ExitError(ExitUsage, nil, "Usage: %s clone repo [mount]", s.Name)
+		return exit.Error(exit.Usage, nil, "Usage: %s clone repo [mount]", s.Name)
 	}
 
 	// gopass clone [--crypto=foo] [--path=/some/store] git://foo/bar team0.
@@ -75,7 +76,7 @@ func (s *Action) Clone(c *cli.Context) error {
 	s.Store = root.New(s.cfg)
 	inited, err := s.Store.IsInitialized(ctx)
 	if err != nil {
-		return ExitError(ExitUnknown, err, "Failed to check store status: %s", err)
+		return exit.Error(exit.Unknown, err, "Failed to check store status: %s", err)
 	}
 	if !inited {
 		out.Errorf(ctx, "Failed to clone")
@@ -111,16 +112,16 @@ func (s *Action) clone(ctx context.Context, repo, mount, path string) error {
 	}
 	inited, err := s.Store.IsInitialized(ctxutil.WithGitInit(ctx, false))
 	if err != nil {
-		return ExitError(ExitUnknown, err, "Failed to initialized stores: %s", err)
+		return exit.Error(exit.Unknown, err, "Failed to initialized stores: %s", err)
 	}
 	if mount == "" && inited {
-		return ExitError(ExitAlreadyInitialized, nil, "Can not clone %s to the root store, as this store is already initialized. Please try cloning to a submount: `%s clone %s sub`", repo, s.Name, repo)
+		return exit.Error(exit.AlreadyInitialized, nil, "Can not clone %s to the root store, as this store is already initialized. Please try cloning to a submount: `%s clone %s sub`", repo, s.Name, repo)
 	}
 
 	// make sure the parent directory exists.
 	if parentPath := filepath.Dir(path); !fsutil.IsDir(parentPath) {
 		if err := os.MkdirAll(parentPath, 0700); err != nil {
-			return ExitError(ExitUnknown, err, "Failed to create parent directory for clone: %s", err)
+			return exit.Error(exit.Unknown, err, "Failed to create parent directory for clone: %s", err)
 		}
 	}
 
@@ -128,7 +129,7 @@ func (s *Action) clone(ctx context.Context, repo, mount, path string) error {
 	sb := storageBackendOrDefault(ctx, repo)
 	out.Noticef(ctx, "Cloning %s repository %q to %q ...", sb, repo, path)
 	if _, err := backend.Clone(ctx, sb, repo, path); err != nil {
-		return ExitError(ExitGit, err, "failed to clone repo %q to %q: %s", repo, path, err)
+		return exit.Error(exit.Git, err, "failed to clone repo %q to %q: %s", repo, path, err)
 	}
 
 	// add mount.
@@ -139,7 +140,7 @@ func (s *Action) clone(ctx context.Context, repo, mount, path string) error {
 
 	// save new mount in config file.
 	if err := s.cfg.Save(); err != nil {
-		return ExitError(ExitIO, err, "Failed to update config: %s", err)
+		return exit.Error(exit.IO, err, "Failed to update config: %s", err)
 	}
 
 	// try to init repo config.
@@ -211,13 +212,13 @@ func (s *Action) cloneAddMount(ctx context.Context, mount, path string) error {
 
 	inited, err := s.Store.IsInitialized(ctx)
 	if err != nil {
-		return ExitError(ExitUnknown, err, "Failed to initialize store: %s", err)
+		return exit.Error(exit.Unknown, err, "Failed to initialize store: %s", err)
 	}
 	if !inited {
-		return ExitError(ExitNotInitialized, nil, "Root-Store is not initialized. Clone or init root store first")
+		return exit.Error(exit.NotInitialized, nil, "Root-Store is not initialized. Clone or init root store first")
 	}
 	if err := s.Store.AddMount(ctx, mount, path); err != nil {
-		return ExitError(ExitMount, err, "Failed to add mount: %s", err)
+		return exit.Error(exit.Mount, err, "Failed to add mount: %s", err)
 	}
 	out.Printf(ctx, "Mounted password store %s at mount point `%s` ...", path, mount)
 	return nil
@@ -233,7 +234,7 @@ func (s *Action) cloneGetGitConfig(ctx context.Context, name string) (string, st
 		var err error
 		username, err = termio.AskForString(ctx, "🚶 What is your name?", username)
 		if err != nil {
-			return "", "", ExitError(ExitIO, err, "Failed to read user input: %s", err)
+			return "", "", exit.Error(exit.IO, err, "Failed to read user input: %s", err)
 		}
 	}
 	if email == "" {
@@ -241,7 +242,7 @@ func (s *Action) cloneGetGitConfig(ctx context.Context, name string) (string, st
 		var err error
 		email, err = termio.AskForString(ctx, "📧 What is your email?", email)
 		if err != nil {
-			return "", "", ExitError(ExitIO, err, "Failed to read user input: %s", err)
+			return "", "", exit.Error(exit.IO, err, "Failed to read user input: %s", err)
 		}
 	}
 	return username, email, nil

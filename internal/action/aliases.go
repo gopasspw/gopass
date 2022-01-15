@@ -4,6 +4,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/gopasspw/gopass/internal/action/exit"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/pwgen/pwrules"
@@ -32,7 +33,7 @@ func (s *Action) AliasesAdd(c *cli.Context) error {
 	alias := c.Args().Get(1)
 
 	if domain == "" || alias == "" {
-		return ExitError(ExitUsage, nil, "Usage: %s alias add <domain> <alias>", s.Name)
+		return exit.Error(exit.Usage, nil, "Usage: %s alias add <domain> <alias>", s.Name)
 	}
 
 	if err := pwrules.AddCustomAlias(domain, alias); err != nil {
@@ -50,7 +51,7 @@ func (s *Action) AliasesRemove(c *cli.Context) error {
 	alias := c.Args().Get(1)
 
 	if domain == "" || alias == "" {
-		return ExitError(ExitUsage, nil, "Usage: %s alias remove <domain> <alias>", s.Name)
+		return exit.Error(exit.Usage, nil, "Usage: %s alias remove <domain> <alias>", s.Name)
 	}
 
 	if err := pwrules.RemoveCustomAlias(domain, alias); err != nil {
@@ -67,7 +68,7 @@ func (s *Action) AliasesDelete(c *cli.Context) error {
 	domain := c.Args().First()
 
 	if domain == "" {
-		return ExitError(ExitUsage, nil, "Usage: %s alias delete <domain>", s.Name)
+		return exit.Error(exit.Usage, nil, "Usage: %s alias delete <domain>", s.Name)
 	}
 
 	if err := pwrules.DeleteCustomAlias(domain); err != nil {
