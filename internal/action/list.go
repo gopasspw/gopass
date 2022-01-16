@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
+	"github.com/gopasspw/gopass/internal/action/exit"
 	"github.com/gopasspw/gopass/internal/store/leaf"
 	"github.com/gopasspw/gopass/internal/tree"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -40,7 +41,7 @@ func (s *Action) List(c *cli.Context) error {
 
 	l, err := s.Store.Tree(ctx)
 	if err != nil {
-		return ExitError(ExitList, err, "failed to list store: %s", err)
+		return exit.Error(exit.List, err, "failed to list store: %s", err)
 	}
 
 	//set limit to infinite by default unless it's set with the flag
@@ -69,7 +70,7 @@ func (s *Action) listFiltered(ctx context.Context, l *tree.Root, limit int, flat
 		// We restrict ourselves to the filter.
 		l, err = l.FindFolder(filter)
 		if err != nil {
-			return ExitError(ExitNotFound, nil, "Entry %q not found", filter)
+			return exit.Error(exit.NotFound, nil, "Entry %q not found", filter)
 		}
 		l.SetName(filter + sep)
 	}
@@ -94,7 +95,7 @@ func (s *Action) listFiltered(ctx context.Context, l *tree.Root, limit int, flat
 	fmt.Fprintln(so, l.Format(limit))
 	if buf != nil {
 		if err := s.pager(ctx, buf); err != nil {
-			return ExitError(ExitUnknown, err, "failed to invoke pager: %s", err)
+			return exit.Error(exit.Unknown, err, "failed to invoke pager: %s", err)
 		}
 	}
 	return nil

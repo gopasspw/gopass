@@ -5,6 +5,7 @@ import (
 	"os/exec"
 	"strings"
 
+	"github.com/gopasspw/gopass/internal/action/exit"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/urfave/cli/v2"
@@ -17,7 +18,7 @@ func (s *Action) Git(c *cli.Context) error {
 
 	sub, err := s.Store.GetSubStore(store)
 	if err != nil || sub == nil {
-		return ExitError(ExitGit, err, "failed to get sub store %s: %s", store, err)
+		return exit.Error(exit.Git, err, "failed to get sub store %s: %s", store, err)
 	}
 
 	args := c.Args().Slice()

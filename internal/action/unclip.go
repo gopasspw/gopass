@@ -4,6 +4,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/gopasspw/gopass/internal/action/exit"
 	"github.com/gopasspw/gopass/pkg/clipboard"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/urfave/cli/v2"
@@ -19,7 +20,7 @@ func (s *Action) Unclip(c *cli.Context) error {
 
 	time.Sleep(time.Second * time.Duration(timeout))
 	if err := clipboard.Clear(ctx, name, checksum, force); err != nil {
-		return ExitError(ExitIO, err, "Failed to clear clipboard: %s", err)
+		return exit.Error(exit.IO, err, "Failed to clear clipboard: %s", err)
 	}
 	return nil
 }

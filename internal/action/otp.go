@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/gopasspw/gopass/internal/action/exit"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/pkg/clipboard"
@@ -26,7 +27,7 @@ func (s *Action) OTP(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	name := c.Args().First()
 	if name == "" {
-		return ExitError(ExitUsage, nil, "Usage: %s otp <NAME>", s.Name)
+		return exit.Error(exit.Usage, nil, "Usage: %s otp <NAME>", s.Name)
 	}
 
 	qrf := c.String("qr")
@@ -99,7 +100,7 @@ func (s *Action) otp(ctx context.Context, name, qrf string, clip, pw, recurse bo
 		}
 		two, label, err := otp.Calculate(name, sec)
 		if err != nil {
-			return ExitError(ExitUnknown, err, "No OTP entry found for %s: %s", name, err)
+			return exit.Error(exit.Unknown, err, "No OTP entry found for %s: %s", name, err)
 		}
 		token := two.OTP()
 
@@ -111,7 +112,7 @@ func (s *Action) otp(ctx context.Context, name, qrf string, clip, pw, recurse bo
 
 		if clip {
 			if err := clipboard.CopyTo(ctx, fmt.Sprintf("token for %s", name), []byte(token), s.cfg.ClipTimeout); err != nil {
-				return ExitError(ExitIO, err, "failed to copy to clipboard: %s", err)
+				return exit.Error(exit.IO, err, "failed to copy to clipboard: %s", err)
 			}
 		}
 
@@ -154,14 +155,14 @@ func (s *Action) otp(ctx context.Context, name, qrf string, clip, pw, recurse bo
 
 func (s *Action) otpHandleError(ctx context.Context, name, qrf string, clip, pw, recurse bool, err error) error {
 	if err != store.ErrNotFound || !recurse || !ctxutil.IsTerminal(ctx) {
-		return ExitError(ExitUnknown, err, "failed to retrieve secret %q: %s", name, err)
+		return exit.Error(exit.Unknown, err, "failed to retrieve secret %q: %s", name, err)
 	}
 	out.Printf(ctx, "Entry %q not found. Starting search...", name)
 	cb := func(ctx context.Context, c *cli.Context, name string, recurse bool) error {
 		return s.otp(ctx, name, qrf, clip, pw, false)
 	}
 	if err := s.find(ctx, nil, name, cb, false); err != nil {
-		return ExitError(ExitNotFound, err, "%s", err)
+		return exit.Error(exit.NotFound, err, "%s", err)
 	}
 	return nil
 }

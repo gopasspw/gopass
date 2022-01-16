@@ -3,6 +3,7 @@ package action
 import (
 	"time"
 
+	"github.com/gopasspw/gopass/internal/action/exit"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
@@ -16,16 +17,16 @@ func (s *Action) History(c *cli.Context) error {
 	showPassword := c.Bool("password")
 
 	if name == "" {
-		return ExitError(ExitUsage, nil, "Usage: %s history <NAME>", s.Name)
+		return exit.Error(exit.Usage, nil, "Usage: %s history <NAME>", s.Name)
 	}
 
 	if !s.Store.Exists(ctx, name) {
-		return ExitError(ExitNotFound, nil, "Secret not found")
+		return exit.Error(exit.NotFound, nil, "Secret not found")
 	}
 
 	revs, err := s.Store.ListRevisions(ctx, name)
 	if err != nil {
-		return ExitError(ExitUnknown, err, "Failed to get revisions: %s", err)
+		return exit.Error(exit.Unknown, err, "Failed to get revisions: %s", err)
 	}
 
 	for _, rev := range revs {

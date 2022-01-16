@@ -3,6 +3,7 @@ package action
 import (
 	"fmt"
 
+	"github.com/gopasspw/gopass/internal/action/exit"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/termio"
 	"github.com/urfave/cli/v2"
@@ -14,7 +15,7 @@ func (s *Action) Move(c *cli.Context) error {
 	force := c.Bool("force")
 
 	if c.Args().Len() != 2 {
-		return ExitError(ExitUsage, nil, "Usage: %s mv old-path new-path", s.Name)
+		return exit.Error(exit.Usage, nil, "Usage: %s mv old-path new-path", s.Name)
 	}
 
 	from := c.Args().Get(0)
@@ -22,12 +23,12 @@ func (s *Action) Move(c *cli.Context) error {
 
 	if !force {
 		if s.Store.Exists(ctx, to) && !termio.AskForConfirmation(ctx, fmt.Sprintf("%s already exists. Overwrite it?", to)) {
-			return ExitError(ExitAborted, nil, "not overwriting your current secret")
+			return exit.Error(exit.Aborted, nil, "not overwriting your current secret")
 		}
 	}
 
 	if err := s.Store.Move(ctx, from, to); err != nil {
-		return ExitError(ExitUnknown, err, "%s", err)
+		return exit.Error(exit.Unknown, err, "%s", err)
 	}
 
 	return nil

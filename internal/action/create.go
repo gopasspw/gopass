@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/gopasspw/gopass/internal/action/exit"
 	"github.com/gopasspw/gopass/internal/create"
 	"github.com/gopasspw/gopass/internal/cui"
 	"github.com/gopasspw/gopass/internal/out"
@@ -32,7 +33,7 @@ func (s *Action) Create(c *cli.Context) error {
 	case "show":
 		return acts.Run(ctx, c, sel)
 	default:
-		return ExitError(ExitAborted, nil, "user aborted")
+		return exit.Error(exit.Aborted, nil, "user aborted")
 	}
 }
 
@@ -48,7 +49,7 @@ func (s *Action) createPrintOrCopy(ctx context.Context, c *cli.Context, name, pa
 	}
 
 	if err := clipboard.CopyTo(ctx, name, []byte(password), s.cfg.ClipTimeout); err != nil {
-		return ExitError(ExitIO, err, "failed to copy to clipboard: %s", err)
+		return exit.Error(exit.IO, err, "failed to copy to clipboard: %s", err)
 	}
 	return nil
 }

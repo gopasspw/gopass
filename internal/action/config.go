@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"sort"
 
+	"github.com/gopasspw/gopass/internal/action/exit"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/urfave/cli/v2"
@@ -24,11 +25,11 @@ func (s *Action) Config(c *cli.Context) error {
 	}
 
 	if c.Args().Len() > 2 {
-		return ExitError(ExitUsage, nil, "Usage: %s config key value", s.Name)
+		return exit.Error(exit.Usage, nil, "Usage: %s config key value", s.Name)
 	}
 
 	if err := s.setConfigValue(ctx, c.Args().Get(0), c.Args().Get(1)); err != nil {
-		return ExitError(ExitUnknown, err, "Error setting config value")
+		return exit.Error(exit.Unknown, err, "Error setting config value")
 	}
 	return nil
 }

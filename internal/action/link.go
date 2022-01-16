@@ -1,6 +1,7 @@
 package action
 
 import (
+	"github.com/gopasspw/gopass/internal/action/exit"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/urfave/cli/v2"
 )
@@ -13,7 +14,7 @@ func (s *Action) Link(c *cli.Context) error {
 	to := c.Args().Get(1)
 
 	if from == "" || to == "" {
-		return ExitError(ExitUsage, nil, "Usage: link <from> <to>")
+		return exit.Error(exit.Usage, nil, "Usage: link <from> <to>")
 	}
 
 	return s.Store.Link(ctx, from, to)

@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/gopasspw/gopass/internal/action/exit"
 	"github.com/gopasspw/gopass/internal/notify"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
@@ -59,7 +60,7 @@ func (s *Action) Show(c *cli.Context) error {
 	}
 
 	if err := s.show(ctx, c, name, true); err != nil {
-		return ExitError(ExitDecrypt, err, "%s", err)
+		return exit.Error(exit.Decrypt, err, "%s", err)
 	}
 	return nil
 }
@@ -67,7 +68,7 @@ func (s *Action) Show(c *cli.Context) error {
 // show displays the given secret/key.
 func (s *Action) show(ctx context.Context, c *cli.Context, name string, recurse bool) error {
 	if name == "" {
-		return ExitError(ExitUsage, nil, "Usage: %s show [name]", s.Name)
+		return exit.Error(exit.Usage, nil, "Usage: %s show [name]", s.Name)
 	}
 
 	if s.Store.IsDir(ctx, name) && !s.Store.Exists(ctx, name) {
@@ -93,7 +94,7 @@ func (s *Action) show(ctx context.Context, c *cli.Context, name string, recurse 
 func (s *Action) showHandleRevision(ctx context.Context, c *cli.Context, name, revision string) error {
 	revision, err := s.parseRevision(ctx, name, revision)
 	if err != nil {
-		return ExitError(ExitUnknown, err, "Failed to get revisions: %s", err)
+		return exit.Error(exit.Unknown, err, "Failed to get revisions: %s", err)
 	}
 
 	ctx, sec, err := s.Store.GetRevision(ctx, name, revision)
@@ -143,7 +144,7 @@ func (s *Action) showHandleOutput(ctx context.Context, name string, sec gopass.S
 		if ctxutil.IsShowSafeContent(ctx) && !ctxutil.IsForce(ctx) {
 			out.Warning(ctx, "safecontent=true. Use -f to display password, if any")
 		}
-		return ExitError(ExitNotFound, store.ErrEmptySecret, store.ErrEmptySecret.Error())
+		return exit.Error(exit.NotFound, store.ErrEmptySecret, store.ErrEmptySecret.Error())
 	}
 
 	if IsPrintQR(ctx) && pw != "" {
@@ -185,7 +186,7 @@ func (s *Action) showGetContent(ctx context.Context, sec gopass.Secret) (string,
 		key := GetKey(ctx)
 		values, found := sec.Values(key)
 		if !found {
-			return "", "", ExitError(ExitNotFound, store.ErrNoKey, store.ErrNoKey.Error())
+			return "", "", exit.Error(exit.NotFound, store.ErrNoKey, store.ErrNoKey.Error())
 		}
 		val := strings.Join(values, "\n")
 		return val, val, nil
@@ -204,7 +205,7 @@ func (s *Action) showGetContent(ctx context.Context, sec gopass.Secret) (string,
 	}
 	if IsPasswordOnly(ctx) {
 		if pw == "" && fullBody != "" {
-			return "", "", ExitError(ExitNotFound, store.ErrNoPassword, store.ErrNoPassword.Error())
+			return "", "", exit.Error(exit.NotFound, store.ErrNoPassword, store.ErrNoPassword.Error())
 		}
 		return pw, pw, nil
 	}
@@ -299,7 +300,7 @@ func (s *Action) showHandleError(ctx context.Context, c *cli.Context, name strin
 		if IsClip(ctx) {
 			_ = notify.Notify(ctx, "gopass - error", fmt.Sprintf("failed to retrieve secret %q: %s", name, err))
 		}
-		return ExitError(ExitUnknown, err, "failed to retrieve secret %q: %s", name, err)
+		return exit.Error(exit.Unknown, err, "failed to retrieve secret %q: %s", name, err)
 	}
 
 	if newName := s.hasAliasDomain(ctx, name); newName != "" {
@@ -316,7 +317,7 @@ func (s *Action) showHandleError(ctx context.Context, c *cli.Context, name strin
 		if IsClip(ctx) {
 			_ = notify.Notify(ctx, "gopass - error", fmt.Sprintf("%s", err))
 		}
-		return ExitError(ExitNotFound, err, "%s", err)
+		return exit.Error(exit.NotFound, err, "%s", err)
 	}
 	return nil
 }
@@ -324,7 +325,7 @@ func (s *Action) showHandleError(ctx context.Context, c *cli.Context, name strin
 func (s *Action) showPrintQR(name, pw string) error {
 	qr, err := qrcon.QRCode(pw)
 	if err != nil {
-		return ExitError(ExitUnknown, err, "failed to encode %q as QR: %s", name, err)
+		return exit.Error(exit.Unknown, err, "failed to encode %q as QR: %s", name, err)
 	}
 	fmt.Fprintln(stdout, qr)
 	return nil

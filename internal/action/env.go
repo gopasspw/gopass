@@ -7,6 +7,7 @@ import (
 	"path"
 	"strings"
 
+	"github.com/gopasspw/gopass/internal/action/exit"
 	"github.com/gopasspw/gopass/internal/tree"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
@@ -22,11 +23,11 @@ func (s *Action) Env(c *cli.Context) error {
 	args := c.Args().Tail()
 
 	if len(args) == 0 {
-		return ExitError(ExitUsage, nil, "Missing subcommand to execute")
+		return exit.Error(exit.Usage, nil, "Missing subcommand to execute")
 	}
 
 	if !s.Store.Exists(ctx, name) && !s.Store.IsDir(ctx, name) {
-		return ExitError(ExitNotFound, nil, "Secret %s not found", name)
+		return exit.Error(exit.NotFound, nil, "Secret %s not found", name)
 	}
 
 	keys := make([]string, 0, 1)
@@ -35,12 +36,12 @@ func (s *Action) Env(c *cli.Context) error {
 
 		l, err := s.Store.Tree(ctx)
 		if err != nil {
-			return ExitError(ExitList, err, "failed to list store: %s", err)
+			return exit.Error(exit.List, err, "failed to list store: %s", err)
 		}
 
 		subtree, err := l.FindFolder(name)
 		if err != nil {
-			return ExitError(ExitNotFound, nil, "Entry %q not found", name)
+			return exit.Error(exit.NotFound, nil, "Entry %q not found", name)
 		}
 
 		for _, e := range subtree.List(tree.INF) {

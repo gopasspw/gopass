@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/fatih/color"
+	"github.com/gopasspw/gopass/internal/action/exit"
 	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/internal/backend/crypto/age"
 	"github.com/gopasspw/gopass/internal/backend/crypto/gpg"
@@ -54,7 +55,7 @@ func (s *Action) Setup(c *cli.Context) error {
 	s.Store = root.New(s.cfg)
 	inited, err := s.Store.IsInitialized(ctx)
 	if err != nil {
-		return ExitError(ExitUnknown, err, "Failed to check store status: %s", err)
+		return exit.Error(exit.Unknown, err, "Failed to check store status: %s", err)
 	}
 	if inited {
 		out.Errorf(ctx, "Store is already initialized. Aborting wizard to avoid overwriting existing data.")

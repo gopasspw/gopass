@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/gopasspw/gopass/internal/action/exit"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
@@ -28,13 +29,13 @@ func (s *Action) Cat(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	name := c.Args().First()
 	if name == "" {
-		return ExitError(ExitNoName, nil, "Usage: %s cat <NAME>", c.App.Name)
+		return exit.Error(exit.NoName, nil, "Usage: %s cat <NAME>", c.App.Name)
 	}
 
 	// handle pipe to stdin.
 	info, err := binstdin.Stat()
 	if err != nil {
-		return ExitError(ExitIO, err, "failed to stat stdin: %s", err)
+		return exit.Error(exit.IO, err, "failed to stat stdin: %s", err)
 	}
 
 	// if content is piped to stdin, read and save it.
@@ -43,7 +44,7 @@ func (s *Action) Cat(c *cli.Context) error {
 		content := &bytes.Buffer{}
 
 		if written, err := io.Copy(content, binstdin); err != nil {
-			return ExitError(ExitIO, err, "Failed to copy after %d bytes: %s", written, err)
+			return exit.Error(exit.IO, err, "Failed to copy after %d bytes: %s", written, err)
 		}
 
 		return s.Store.Set(
@@ -55,7 +56,7 @@ func (s *Action) Cat(c *cli.Context) error {
 
 	buf, err := s.binaryGet(ctx, name)
 	if err != nil {
-		return ExitError(ExitDecrypt, err, "failed to read secret: %s", err)
+		return exit.Error(exit.Decrypt, err, "failed to read secret: %s", err)
 	}
 
 	fmt.Fprint(stdout, string(buf))
@@ -87,7 +88,7 @@ func (s *Action) BinaryCopy(c *cli.Context) error {
 
 	// argument checking is in s.binaryCopy.
 	if err := s.binaryCopy(ctx, c, from, to, false); err != nil {
-		return ExitError(ExitUnknown, err, "%s", err)
+		return exit.Error(exit.Unknown, err, "%s", err)
 	}
 	return nil
 }
@@ -102,7 +103,7 @@ func (s *Action) BinaryMove(c *cli.Context) error {
 
 	// argument checking is in s.binaryCopy.
 	if err := s.binaryCopy(ctx, c, from, to, true); err != nil {
-		return ExitError(ExitUnknown, err, "%s", err)
+		return exit.Error(exit.Unknown, err, "%s", err)
 	}
 	return nil
 }
@@ -244,12 +245,12 @@ func (s *Action) Sum(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	name := c.Args().First()
 	if name == "" {
-		return ExitError(ExitUsage, nil, "Usage: %s sha256 name", c.App.Name)
+		return exit.Error(exit.Usage, nil, "Usage: %s sha256 name", c.App.Name)
 	}
 
 	buf, err := s.binaryGet(ctx, name)
 	if err != nil {
-		return ExitError(ExitDecrypt, err, "failed to read secret: %s", err)
+		return exit.Error(exit.Decrypt, err, "failed to read secret: %s", err)
 	}
 
 	h := sha256.New()

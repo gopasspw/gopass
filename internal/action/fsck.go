@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/gopasspw/gopass/internal/action/exit"
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store/leaf"
@@ -27,7 +28,7 @@ func (s *Action) Fsck(c *cli.Context) error {
 	// make sure config is in the right place.
 	// we may have loaded it from one of the fallback locations.
 	if err := s.cfg.Save(); err != nil {
-		return ExitError(ExitConfig, err, "failed to save config: %s", err)
+		return exit.Error(exit.Config, err, "failed to save config: %s", err)
 	}
 
 	// clean up any previous config locations.
@@ -41,7 +42,7 @@ func (s *Action) Fsck(c *cli.Context) error {
 	// display progress bar.
 	t, err := s.Store.Tree(ctx)
 	if err != nil {
-		return ExitError(ExitUnknown, err, "failed to list stores: %s", err)
+		return exit.Error(exit.Unknown, err, "failed to list stores: %s", err)
 	}
 
 	pwList := t.List(tree.INF)
@@ -55,7 +56,7 @@ func (s *Action) Fsck(c *cli.Context) error {
 
 	// the main work in done by the sub stores.
 	if err := s.Store.Fsck(ctx, c.Args().Get(0)); err != nil {
-		return ExitError(ExitFsck, err, "fsck found errors: %s", err)
+		return exit.Error(exit.Fsck, err, "fsck found errors: %s", err)
 	}
 	bar.Done()
 	return nil

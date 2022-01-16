@@ -9,6 +9,7 @@ import (
 
 	"github.com/blang/semver/v4"
 	"github.com/fatih/color"
+	"github.com/gopasspw/gopass/internal/action/exit"
 	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/updater"
@@ -55,7 +56,7 @@ func (s *Action) Version(c *cli.Context) error {
 	case <-time.After(2 * time.Second):
 		out.Errorf(ctx, "Version check timed out")
 	case <-ctx.Done():
-		return ExitError(ExitAborted, nil, "user aborted")
+		return exit.Error(exit.Aborted, nil, "user aborted")
 	}
 
 	return nil

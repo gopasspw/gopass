@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/gopasspw/gopass/internal/action/exit"
 	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/cui"
@@ -30,7 +31,7 @@ func (s *Action) IsInitialized(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	inited, err := s.Store.IsInitialized(ctx)
 	if err != nil {
-		return ExitError(ExitUnknown, err, "Failed to initialize store: %s", err)
+		return exit.Error(exit.Unknown, err, "Failed to initialize store: %s", err)
 	}
 	if inited {
 		debug.Log("Store is fully initialized and ready to go\n\nAll systems go. 🚀\n")
@@ -40,7 +41,7 @@ func (s *Action) IsInitialized(c *cli.Context) error {
 
 	debug.Log("Store needs to be initialized.\n\nAbort. Abort. Abort. 🚫\n")
 	if !ctxutil.IsInteractive(ctx) {
-		return ExitError(ExitNotInitialized, nil, "password-store is not initialized. Try '%s init'", s.Name)
+		return exit.Error(exit.NotInitialized, nil, "password-store is not initialized. Try '%s init'", s.Name)
 	}
 
 	out.Printf(ctx, logo)
@@ -48,7 +49,7 @@ func (s *Action) IsInitialized(c *cli.Context) error {
 	out.Noticef(ctx, "No existing configuration found.")
 	out.Printf(ctx, "☝ Please run 'gopass setup'")
 
-	return ExitError(ExitNotInitialized, err, "not initialized")
+	return exit.Error(exit.NotInitialized, err, "not initialized")
 }
 
 // Init a new password store with a first gpg id.
@@ -68,14 +69,14 @@ func (s *Action) Init(c *cli.Context) error {
 	}
 	inited, err := s.Store.IsInitialized(ctx)
 	if err != nil {
-		return ExitError(ExitUnknown, err, "Failed to initialized store: %s", err)
+		return exit.Error(exit.Unknown, err, "Failed to initialized store: %s", err)
 	}
 	if inited {
 		out.Errorf(ctx, "Store is already initialized!")
 	}
 
 	if err := s.init(ctx, alias, path, c.Args().Slice()...); err != nil {
-		return ExitError(ExitUnknown, err, "Failed to initialize store: %s", err)
+		return exit.Error(exit.Unknown, err, "Failed to initialize store: %s", err)
 	}
 	return nil
 }
@@ -157,7 +158,7 @@ func (s *Action) init(ctx context.Context, alias, path string, keys ...string) e
 	// write config.
 	debug.Log("Writing configuration to %q", s.cfg.ConfigPath)
 	if err := s.cfg.Save(); err != nil {
-		return ExitError(ExitConfig, err, "failed to write config: %s", err)
+		return exit.Error(exit.Config, err, "failed to write config: %s", err)
 	}
 
 	out.Printf(ctx, "🏁 Password store %s initialized for:", path)

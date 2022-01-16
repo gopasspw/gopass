@@ -21,6 +21,7 @@ import (
 	"github.com/blang/semver/v4"
 	"github.com/fatih/color"
 	ap "github.com/gopasspw/gopass/internal/action"
+	"github.com/gopasspw/gopass/internal/action/exit"
 	"github.com/gopasspw/gopass/internal/action/pwgen"
 	_ "github.com/gopasspw/gopass/internal/backend/crypto"
 	"github.com/gopasspw/gopass/internal/backend/crypto/gpg"
@@ -103,7 +104,7 @@ func setupApp(ctx context.Context, sv semver.Version) (context.Context, *cli.App
 	action, err := ap.New(cfg, sv)
 	if err != nil {
 		out.Errorf(ctx, "failed to initialize gopass: %s", err)
-		os.Exit(ap.ExitUnknown)
+		os.Exit(exit.Unknown)
 	}
 
 	// set some action callbacks
