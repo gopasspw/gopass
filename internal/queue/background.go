@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/debug"
 )
 
@@ -81,7 +82,7 @@ func New(ctx context.Context) *Queue {
 func (q *Queue) run(ctx context.Context) {
 	for t := range q.work {
 		if err := t(ctx); err != nil {
-			debug.Log("Task failed: %s", err)
+			out.Errorf(ctx, "Task failed: %s", err)
 		}
 		debug.Log("Task done")
 	}
@@ -102,7 +103,12 @@ func (q *Queue) Idle(maxWait time.Duration) error {
 	go func() {
 		for {
 			if len(q.work) < 1 {
-				done <- struct{}{}
+				select {
+				case done <- struct{}{}:
+					// sent
+				default:
+					// no-op
+				}
 			}
 			time.Sleep(20 * time.Millisecond)
 		}
