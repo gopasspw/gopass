@@ -2,6 +2,8 @@ package tpl
 
 import (
 	"context"
+	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/gopasspw/gopass/pkg/gopass"
@@ -24,6 +26,7 @@ func TestVars(t *testing.T) {
 		Name       string
 		Content    []byte
 		Output     string
+		OutputFunc func(string) error
 		ShouldFail bool
 	}{
 		{
@@ -87,6 +90,19 @@ func TestVars(t *testing.T) {
 			Output:   "barvalue",
 		},
 		{
+			Template:   `{{getval "testdir" "barkeyINVALID"}}`,
+			Name:       "testdir",
+			Content:    []byte("foobar"),
+			Output:     "",
+			ShouldFail: true,
+		},
+		{
+			Template: `{{getvals "testdir" "barkey"}}`,
+			Name:     "testdir",
+			Content:  []byte("foobar"),
+			Output:   "[barvalue]",
+		},
+		{
 			Template: `md5{{(print .Content .Name) | md5sum}}`,
 			Name:     "testdir",
 			Content:  []byte("foobar"),
@@ -99,6 +115,94 @@ func TestVars(t *testing.T) {
 			Output:     "",
 			ShouldFail: true,
 		},
+		{
+			Template: "{{.Content | ssha \"12\"}}",
+			Name:     "testdir",
+			Content:  []byte("foobar"),
+			OutputFunc: func(s string) error {
+				if !strings.HasPrefix(s, "{SSHA}") {
+					return fmt.Errorf("wrong prefix")
+				}
+				return nil
+			},
+		},
+		{
+			Template: "{{.Content | ssha256 \"12\"}}",
+			Name:     "testdir",
+			Content:  []byte("foobar"),
+			OutputFunc: func(s string) error {
+				if !strings.HasPrefix(s, "{SSHA256}") {
+					return fmt.Errorf("wrong prefix: %s", s)
+				}
+				return nil
+			},
+		},
+		{
+			Template: "{{.Content | ssha512 \"12\"}}",
+			Name:     "testdir",
+			Content:  []byte("foobar"),
+			OutputFunc: func(s string) error {
+				if !strings.HasPrefix(s, "{SSHA512}") {
+					return fmt.Errorf("wrong prefix: %s", s)
+				}
+				return nil
+			},
+		},
+		{
+			Template: "{{.Content | ssha512 \"-12\"}}",
+			Name:     "testdir",
+			Content:  []byte("foobar"),
+			OutputFunc: func(s string) error {
+				if !strings.HasPrefix(s, "{SSHA512}") {
+					return fmt.Errorf("wrong prefix: %s", s)
+				}
+				return nil
+			},
+		},
+		{
+			Template: "{{.Content | md5crypt \"7\"}}",
+			Name:     "testdir",
+			Content:  []byte("foobar"),
+			OutputFunc: func(s string) error {
+				if !strings.HasPrefix(s, "{MD5-CRYPT}") {
+					return fmt.Errorf("wrong prefix: %s", s)
+				}
+				return nil
+			},
+		},
+		{
+			Template: "{{.Content | md5crypt \"0\"}}",
+			Name:     "testdir",
+			Content:  []byte("foobar"),
+			OutputFunc: func(s string) error {
+				if !strings.HasPrefix(s, "{MD5-CRYPT}") {
+					return fmt.Errorf("wrong prefix: %s", s)
+				}
+				return nil
+			},
+		},
+		{
+			Template: "{{.Content | argon2i \"64\"}}",
+			Name:     "testdir",
+			Content:  []byte("foobar"),
+			OutputFunc: func(s string) error {
+				if !strings.HasPrefix(s, "{ARGON2I}") {
+					return fmt.Errorf("wrong prefix: %s", s)
+				}
+				return nil
+			},
+		},
+		{
+			Template: "{{.Content | argon2id \"256\"}}",
+			Name:     "testdir",
+			Content:  []byte("foobar"),
+			OutputFunc: func(s string) error {
+				if !strings.HasPrefix(s, "{ARGON2ID}") {
+					return fmt.Errorf("wrong prefix: %s", s)
+				}
+				return nil
+			},
+		},
 	} {
 		tc := tc
 		t.Run(tc.Template, func(t *testing.T) {
@@ -109,7 +213,11 @@ func TestVars(t *testing.T) {
 			} else {
 				assert.NoError(t, err)
 			}
-			assert.Equal(t, tc.Output, string(buf), tc.Template)
+			if tc.OutputFunc != nil {
+				assert.NoError(t, tc.OutputFunc(string(buf)), tc.Template)
+			} else {
+				assert.Equal(t, tc.Output, string(buf), tc.Template)
+			}
 		})
 	}
 }

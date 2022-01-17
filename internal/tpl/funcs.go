@@ -48,33 +48,30 @@ func sha1sum() func(...string) (string, error) {
 }
 
 // saltLen tries to parse the given string into a numeric salt length.
-// NOTE: This is on of the rare cases where I think named returns
-// are useful.
-func saltLen(s []string) (saltLen int) {
-	defer func() {
-		debug.Log("using saltLen %d", saltLen)
-	}()
-
+func saltLen(s []string) uint8 {
 	// default should be 32bit
-	saltLen = 32
+	sl := uint8(32)
+
+	defer func(sl uint8) {
+		debug.Log("using saltLen %d", sl)
+	}(sl)
 
 	if len(s) < 2 {
-		return
+		return sl
 	}
 
-	i, err := strconv.Atoi(s[0])
-	if err == nil && i > 0 {
-		saltLen = i
-	}
+	i, err := strconv.ParseUint(s[0], 10, 8)
 	if err != nil {
 		debug.Log("failed to parse saltLen %+v: %q", s, err)
+		return sl
 	}
-	return
+	sl = uint8(i)
+	return sl
 }
 
 func md5cryptFunc() func(...string) (string, error) {
 	return func(s ...string) (string, error) {
-		sl := uint8(saltLen(s))
+		sl := saltLen(s)
 		if sl > 8 || sl < 1 {
 			sl = 4
 		}
@@ -84,19 +81,19 @@ func md5cryptFunc() func(...string) (string, error) {
 
 func sshaFunc() func(...string) (string, error) {
 	return func(s ...string) (string, error) {
-		return ssha.Generate(s[0], uint8(saltLen(s)))
+		return ssha.Generate(s[0], saltLen(s))
 	}
 }
 
 func ssha256Func() func(...string) (string, error) {
 	return func(s ...string) (string, error) {
-		return ssha256.Generate(s[0], uint8(saltLen(s)))
+		return ssha256.Generate(s[0], saltLen(s))
 	}
 }
 
 func ssha512Func() func(...string) (string, error) {
 	return func(s ...string) (string, error) {
-		return ssha512.Generate(s[0], uint8(saltLen(s)))
+		return ssha512.Generate(s[0], saltLen(s))
 	}
 }
 
