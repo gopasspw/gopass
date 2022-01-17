@@ -3,6 +3,8 @@ package gitfs
 import (
 	"context"
 	"fmt"
+
+	"github.com/gopasspw/gopass/pkg/debug"
 )
 
 // Get retrieves the named content.
@@ -58,7 +60,25 @@ func (g *Git) Fsck(ctx context.Context) error {
 	if err := g.fixConfig(ctx); err != nil {
 		return fmt.Errorf("failed to fix git config: %w", err)
 	}
+
+	// add any untracked files.
+	if err := g.addUntrackedFiles(ctx); err != nil {
+		return fmt.Errorf("failed to add untracked files: %w", err)
+	}
 	return g.fs.Fsck(ctx)
+}
+
+func (g *Git) addUntrackedFiles(ctx context.Context) error {
+	ut := g.ListUntrackedFiles(ctx)
+	if len(ut) < 1 && !g.HasStagedChanges(ctx) {
+		debug.Log("no untracked or staged files found")
+		return nil
+	}
+	debug.Log("untracked files found: %v", ut)
+	if err := g.Add(ctx, ut...); err != nil {
+		return fmt.Errorf("failed to add untracked files: %w", err)
+	}
+	return g.Commit(ctx, "fsck")
 }
 
 // Link creates a symlink.

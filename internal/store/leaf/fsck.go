@@ -71,20 +71,35 @@ type convertedSecret interface {
 }
 
 func (s *Store) fsckCheckEntry(ctx context.Context, name string) error {
-	// make sure we can actually decode this secret
-	// if this fails there is no way we could fix this
-	if IsFsckDecrypt(ctx) {
-		// we need to make sure Parsing is enabled in order to parse old Mime secrets
-		ctx = ctxutil.WithShowParsing(ctx, true)
-		secret, err := s.Get(ctx, name)
-		if err != nil {
-			return fmt.Errorf("failed to decode secret %s: %w", name, err)
-		}
-		if cs, ok := secret.(convertedSecret); ok && cs.FromMime() {
-			out.Warningf(ctx, "leftover Mime secret: %s\nYou should consider editing it to re-encrypt it.", name)
-		}
+	if err := s.fsckCheckRecipients(ctx, name); err != nil {
+		out.Warningf(ctx, "Checking recipients for %s failed: %s", name, err)
 	}
 
+	// make sure we can actually decode this secret
+	// if this fails there is no way we could fix this
+	if !IsFsckDecrypt(ctx) {
+		return nil
+	}
+
+	// we need to make sure Parsing is enabled in order to parse old Mime secrets
+	ctx = ctxutil.WithShowParsing(ctx, true)
+	sec, err := s.Get(ctx, name)
+	if err != nil {
+		return fmt.Errorf("failed to decode secret %s: %w", name, err)
+	}
+	if cs, ok := sec.(convertedSecret); ok && cs.FromMime() {
+		debug.Log("leftover Mime secret: %s\nYou should consider editing it to re-encrypt it.", name)
+	}
+
+	out.Printf(ctx, "Re-encrypting %s to fix recipients and storage format.", name)
+	if err := s.Set(ctxutil.WithCommitMessage(ctx, "fsck --decrypt to fix recipients and format"), name, sec); err != nil {
+		return fmt.Errorf("failed to write secret: %w", err)
+	}
+
+	return nil
+}
+
+func (s *Store) fsckCheckRecipients(ctx context.Context, name string) error {
 	// now compare the recipients this secret was encoded for and fix it if
 	// if doesn't match
 	ciphertext, err := s.storage.Get(ctx, s.passfile(name))
@@ -113,18 +128,6 @@ func (s *Store) fsckCheckEntry(ctx context.Context, name string) error {
 	if len(extra) > 0 {
 		out.Errorf(ctx, "Extra recipients on %s: %+v\nRun fsck with the --decrypt flag to re-encrypt it automatically, or edit this secret yourself.", name, extra)
 	}
-
-	if IsFsckDecrypt(ctx) && (len(missing) > 0 || len(extra) > 0) {
-		out.Printf(ctx, "Re-encrypting automatically %s to fix the recipients.", name)
-		sec, err := s.Get(ctx, name)
-		if err != nil {
-			return fmt.Errorf("failed to decode secret: %w", err)
-		}
-		if err := s.Set(ctxutil.WithCommitMessage(ctx, "fsck fix recipients"), name, sec); err != nil {
-			return fmt.Errorf("failed to write secret: %w", err)
-		}
-	}
-
 	return nil
 }
 
