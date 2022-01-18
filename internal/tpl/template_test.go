@@ -17,7 +17,30 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// TODO add an example func for the documentation
+func Example() {
+	ctx := context.Background()
+	tpl := `Password-value of existing entry: {{ getpw "foo" }}
+Password-value of the new entry: {{ .Content }}
+Md5sum of the new password: {{ .Content | md5sum }}
+Sha1sum of the new password: {{ .Content | sha1sum }}
+Md5crypt of the new password: {{ .Content | md5crypt }}
+SSHA of the new password: {{ .Content | ssha }}
+SSHA256 of the new password: {{ .Content | ssha256 }}
+SSHA512 of the new password: {{ .Content | ssha512 }}
+Argon2i of the new password: {{ .Content | argon2i }}
+Argon2id of the new password: {{ .Content | argon2id }}
+Bcrypt of the new password: {{ .Content | bcrypt }}
+`
+	kv := kvMock{}
+
+	// Arguments: context, template string, name of the secret, generated password, kv store
+	buf, err := Execute(ctx, tpl, "example", []byte("bar"), kv)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(string(buf))
+}
 
 type kvMock struct{}
 
