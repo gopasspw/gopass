@@ -87,8 +87,15 @@ func (s *Store) fsckCheckEntry(ctx context.Context, name string) error {
 	if err != nil {
 		return fmt.Errorf("failed to decode secret %s: %w", name, err)
 	}
+
+	// check if this is still an old MIME secret.
+	// Note: the secret was already converted when it was parsed during Get.
+	// This is just checking if it was converted from MIME or not.
+	// This branch is pretty much useless right now, but I'd like to add some
+	// reporting on how many secrets were converted from MIME to new format.
+	// TODO: report these stats
 	if cs, ok := sec.(convertedSecret); ok && cs.FromMime() {
-		debug.Log("leftover Mime secret: %s\nYou should consider editing it to re-encrypt it.", name)
+		debug.Log("leftover Mime secret: %s", name)
 	}
 
 	out.Printf(ctx, "Re-encrypting %s to fix recipients and storage format.", name)
