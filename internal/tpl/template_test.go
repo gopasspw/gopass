@@ -6,10 +6,18 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/gopasspw/gopass/internal/pwschemes/argon2i"
+	"github.com/gopasspw/gopass/internal/pwschemes/argon2id"
 	"github.com/gopasspw/gopass/pkg/gopass"
 	"github.com/gopasspw/gopass/pkg/gopass/secrets/secparse"
+	"github.com/jsimonetti/pwscheme/md5crypt"
+	"github.com/jsimonetti/pwscheme/ssha"
+	"github.com/jsimonetti/pwscheme/ssha256"
+	"github.com/jsimonetti/pwscheme/ssha512"
 	"github.com/stretchr/testify/assert"
 )
+
+// TODO add an example func for the documentation
 
 type kvMock struct{}
 
@@ -123,6 +131,13 @@ func TestVars(t *testing.T) {
 				if !strings.HasPrefix(s, "{SSHA}") {
 					return fmt.Errorf("wrong prefix")
 				}
+				ok, err := ssha.Validate("foobar", s)
+				if err != nil {
+					return fmt.Errorf("can't validate: %w", err)
+				}
+				if !ok {
+					return fmt.Errorf("hash mismatch")
+				}
 				return nil
 			},
 		},
@@ -133,6 +148,13 @@ func TestVars(t *testing.T) {
 			OutputFunc: func(s string) error {
 				if !strings.HasPrefix(s, "{SSHA256}") {
 					return fmt.Errorf("wrong prefix: %s", s)
+				}
+				ok, err := ssha256.Validate("foobar", s)
+				if err != nil {
+					return fmt.Errorf("can't validate: %w", err)
+				}
+				if !ok {
+					return fmt.Errorf("hash mismatch")
 				}
 				return nil
 			},
@@ -145,16 +167,30 @@ func TestVars(t *testing.T) {
 				if !strings.HasPrefix(s, "{SSHA512}") {
 					return fmt.Errorf("wrong prefix: %s", s)
 				}
+				ok, err := ssha512.Validate("foobar", s)
+				if err != nil {
+					return fmt.Errorf("can't validate: %w", err)
+				}
+				if !ok {
+					return fmt.Errorf("hash mismatch")
+				}
 				return nil
 			},
 		},
 		{
-			Template: "{{.Content | ssha512 \"-12\"}}",
+			Template: "{{.Content | ssha512 \"-12\" \"invalid\"}}",
 			Name:     "testdir",
 			Content:  []byte("foobar"),
 			OutputFunc: func(s string) error {
 				if !strings.HasPrefix(s, "{SSHA512}") {
 					return fmt.Errorf("wrong prefix: %s", s)
+				}
+				ok, err := ssha512.Validate("foobar", s)
+				if err != nil {
+					return fmt.Errorf("can't validate: %w", err)
+				}
+				if !ok {
+					return fmt.Errorf("hash mismatch")
 				}
 				return nil
 			},
@@ -167,6 +203,13 @@ func TestVars(t *testing.T) {
 				if !strings.HasPrefix(s, "{MD5-CRYPT}") {
 					return fmt.Errorf("wrong prefix: %s", s)
 				}
+				ok, err := md5crypt.Validate("foobar", s)
+				if err != nil {
+					return fmt.Errorf("can't validate: %w", err)
+				}
+				if !ok {
+					return fmt.Errorf("hash mismatch")
+				}
 				return nil
 			},
 		},
@@ -177,6 +220,13 @@ func TestVars(t *testing.T) {
 			OutputFunc: func(s string) error {
 				if !strings.HasPrefix(s, "{MD5-CRYPT}") {
 					return fmt.Errorf("wrong prefix: %s", s)
+				}
+				ok, err := md5crypt.Validate("foobar", s)
+				if err != nil {
+					return fmt.Errorf("can't validate: %w", err)
+				}
+				if !ok {
+					return fmt.Errorf("hash mismatch")
 				}
 				return nil
 			},
@@ -189,6 +239,13 @@ func TestVars(t *testing.T) {
 				if !strings.HasPrefix(s, "{ARGON2I}") {
 					return fmt.Errorf("wrong prefix: %s", s)
 				}
+				ok, err := argon2i.Validate("foobar", s)
+				if err != nil {
+					return fmt.Errorf("can't validate: %w", err)
+				}
+				if !ok {
+					return fmt.Errorf("hash mismatch")
+				}
 				return nil
 			},
 		},
@@ -200,8 +257,21 @@ func TestVars(t *testing.T) {
 				if !strings.HasPrefix(s, "{ARGON2ID}") {
 					return fmt.Errorf("wrong prefix: %s", s)
 				}
+				ok, err := argon2id.Validate("foobar", s)
+				if err != nil {
+					return fmt.Errorf("can't validate: %w", err)
+				}
+				if !ok {
+					return fmt.Errorf("hash mismatch")
+				}
 				return nil
 			},
+		},
+		{
+			Template:   "{{ argon2id }}",
+			Name:       "testdir",
+			Content:    []byte("foobar"),
+			ShouldFail: true,
 		},
 	} {
 		tc := tc
@@ -212,6 +282,9 @@ func TestVars(t *testing.T) {
 				assert.Error(t, err)
 			} else {
 				assert.NoError(t, err)
+			}
+			if tc.OutputFunc != nil && tc.Output != "" {
+				t.Error("must not set output and output func")
 			}
 			if tc.OutputFunc != nil {
 				assert.NoError(t, tc.OutputFunc(string(buf)), tc.Template)
