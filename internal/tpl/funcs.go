@@ -48,75 +48,97 @@ func sha1sum() func(...string) (string, error) {
 }
 
 // saltLen tries to parse the given string into a numeric salt length.
-// NOTE: This is on of the rare cases where I think named returns
-// are useful.
-func saltLen(s []string) (saltLen int) {
-	defer func() {
-		debug.Log("using saltLen %d", saltLen)
-	}()
-
-	// default should be 32bit
-	saltLen = 32
-
+func saltLen(s []string) uint8 {
 	if len(s) < 2 {
-		return
+		debug.Log("no salt length given, using default %d", 32)
+		return 32
 	}
 
-	i, err := strconv.Atoi(s[0])
-	if err == nil && i > 0 {
-		saltLen = i
-	}
+	i, err := strconv.ParseUint(s[0], 10, 8)
 	if err != nil {
-		debug.Log("failed to parse saltLen %+v: %q", s, err)
+		debug.Log("failed to parse saltLen %+v: %q. using default: %d", s, err, 32)
+		return 32
 	}
-	return
+
+	sl := uint8(i)
+	debug.Log("using saltLen %d", sl)
+	return sl
 }
 
 func md5cryptFunc() func(...string) (string, error) {
+	// parameters: s[0] = salt, s[-1] = password
 	return func(s ...string) (string, error) {
-		sl := uint8(saltLen(s))
+		if len(s) < 1 {
+			return "", fmt.Errorf("usage: %s <salt> <password>", FuncMd5Crypt)
+		}
+		sl := saltLen(s)
 		if sl > 8 || sl < 1 {
 			sl = 4
 		}
-		return md5crypt.Generate(s[0], sl)
+		return md5crypt.Generate(s[len(s)-1], sl)
 	}
 }
 
 func sshaFunc() func(...string) (string, error) {
+	// parameters: s[0] = salt, s[-1] = password
 	return func(s ...string) (string, error) {
-		return ssha.Generate(s[0], uint8(saltLen(s)))
+		if len(s) < 1 {
+			return "", fmt.Errorf("usage: %s <salt> <password>", FuncSSHA)
+		}
+		return ssha.Generate(s[len(s)-1], saltLen(s))
 	}
 }
 
 func ssha256Func() func(...string) (string, error) {
+	// parameters: s[0] = salt, s[-1] = password
 	return func(s ...string) (string, error) {
-		return ssha256.Generate(s[0], uint8(saltLen(s)))
+		if len(s) < 1 {
+			return "", fmt.Errorf("usage: %s <salt> <password>", FuncSSHA256)
+		}
+		return ssha256.Generate(s[len(s)-1], saltLen(s))
 	}
 }
 
 func ssha512Func() func(...string) (string, error) {
+	// parameters: s[0] = salt, s[-1] = password
 	return func(s ...string) (string, error) {
-		return ssha512.Generate(s[0], uint8(saltLen(s)))
+		if len(s) < 1 {
+			return "", fmt.Errorf("usage: %s <salt> <password>", FuncSSHA512)
+		}
+		return ssha512.Generate(s[len(s)-1], saltLen(s))
 	}
 }
 
 func argon2iFunc() func(...string) (string, error) {
+	// parameters: s[0] = salt, s[-1] = password
 	return func(s ...string) (string, error) {
-		return argon2i.Generate(s[0], uint32(saltLen(s)))
+		if len(s) < 1 {
+			return "", fmt.Errorf("usage: %s <salt> <password>", FuncArgon2i)
+		}
+		return argon2i.Generate(s[len(s)-1], uint32(saltLen(s)))
 	}
 }
 
 func argon2idFunc() func(...string) (string, error) {
+	// parameters: s[0] = salt, s[-1] = password
 	return func(s ...string) (string, error) {
-		return argon2id.Generate(s[0], uint32(saltLen(s)))
+		if len(s) < 2 {
+			return "", fmt.Errorf("usage: %s <salt> <password> or <password>", FuncArgon2id)
+		}
+		return argon2id.Generate(s[len(s)-1], uint32(saltLen(s)))
 	}
 }
 
 func bcryptFunc() func(...string) (string, error) {
+	// parameters: s[0] = salt, s[-1] = password
 	return func(s ...string) (string, error) {
-		return bcrypt.Generate(s[0])
+		if len(s) < 1 {
+			return "", fmt.Errorf("usage: %s <password>", FuncBcrypt)
+		}
+		return bcrypt.Generate(s[len(s)-1])
 	}
 }
+
 func get(ctx context.Context, kv kvstore) func(...string) (string, error) {
 	return func(s ...string) (string, error) {
 		if len(s) < 1 {
