@@ -56,7 +56,7 @@ This command is similar to the way cat works on the command line. It can either 
 .SS clone
 Clone a password store from a git repository
 
-This command clones an existing password store from a git remote to a local password store. Can be either used to initialize a new root store or to add a new mounted sub-store.Needs at least one argument (git URL) to clone from. Accepts a second argument (mount location) to clone and mount a sub-store, e.g. 'gopass clone git@example.com/store.git foo/bar'
+This command clones an existing password store from a git remote to a local password store. Can be either used to initialize a new root store or to add a new mounted sub-store. Needs at least one argument (git URL) to clone from. Accepts a second argument (mount location) to clone and mount a sub-store, e.g. 'gopass clone git@example.com/store.git foo/bar'
 
 .B Flags
 .TP
@@ -290,7 +290,7 @@ Insert using $EDITOR
 .SS link
 Create a symlink
 
-This command creates a symlink from one entry in a mounted store to another entry.Important: Does not cross mounts!
+This command creates a symlink from one entry in a mounted store to another entry. Important: Does not cross mounts!
 .SS list
 List existing secrets
 
