@@ -124,7 +124,7 @@ func (s *Action) GetCommands() []*cli.Command {
 			Description: "" +
 				"This command clones an existing password store from a git remote to " +
 				"a local password store. Can be either used to initialize a new root store " +
-				"or to add a new mounted sub-store." +
+				"or to add a new mounted sub-store. " +
 				"" +
 				"Needs at least one argument (git URL) to clone from. " +
 				"Accepts a second argument (mount location) to clone and mount a sub-store, e.g. " +
@@ -535,7 +535,7 @@ func (s *Action) GetCommands() []*cli.Command {
 			Usage:     "Create a symlink",
 			ArgsUsage: "[from] [to]",
 			Description: "" +
-				"This command creates a symlink from one entry in a mounted store to another entry." +
+				"This command creates a symlink from one entry in a mounted store to another entry. " +
 				"Important: Does not cross mounts!",
 			Aliases:      []string{"ln", "symlink"},
 			Hidden:       true,
