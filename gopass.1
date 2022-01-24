@@ -1,5 +1,5 @@
 
-.TH GOPASS "1" "December 2021" "gopass (github.com/gopasspw/gopass) 1.13.0" "User Commands"
+.TH GOPASS "1" "January 2022" "gopass (github.com/gopasspw/gopass) 1.13.1" "User Commands"
 .SH NAME
 gopass - The standard Unix password manager
 .SH SYNOPSIS
@@ -28,6 +28,7 @@ Display only the password. Takes precedence over all other flags.
 Print the password as a QR Code
 .TP
 \fB\-\-revision\fR,
+\fB\-\-r\fR,
 Show a past revision. Does NOT support RCS specific shortcuts. Use exact revision or -<N> to select the Nth oldest revision of this entry.
 .TP
 \fB\-\-unsafe\fR,
@@ -41,6 +42,11 @@ Display unsafe content (e.g. the password) even if safecontent is enabled
 Always answer yes to yes/no questions
 .SH COMMANDS
 
+.SS age
+age commands
+
+Built-in commands for the age backend.
+These allow limited interactions with the gopass specific age identities.
 .SS alias
 Manage domain aliases
 
@@ -49,6 +55,11 @@ Manages domain aliases. Note: this command might change or go away.
 Decrypt all secrets and scan for weak or leaked passwords
 
 This command decrypts all secrets and checks for common flaws and (optionally) against a list of previously leaked passwords.
+
+.B Flags
+.TP
+\fB\-\-expiry\fR,
+Age in days before a password is considered expired. Setting this will only check expiration.
 .SS cat
 Decode and print content of a binary secret to stdout, or encode and insert from stdin
 
@@ -60,11 +71,17 @@ This command clones an existing password store from a git remote to a local pass
 
 .B Flags
 .TP
+\fB\-\-check-keys\fR,
+Check for valid decryption keys. Generate new keys if none are found.
+.TP
 \fB\-\-crypto\fR,
 Select crypto backend [age]
 .TP
 \fB\-\-path\fR,
 Path to clone the repo to
+.TP
+\fB\-\-storage\fR,
+Select storage backend []
 .SS config
 Display and edit the configuration file
 
@@ -221,10 +238,6 @@ Require strict character class rules
 \fB\-\-symbols\fR,
 \fB\-\-s\fR,
 Use symbols in the password
-.SS git
-Run a git command inside a password store (init, remote, push, pull)
-
-If the password store is a git repository, execute a git command specified by git-command-args.WARNING: Deprecated. Please use gopass sync.
 .SS grep
 Search for secrets files containing search-string when decrypted.
 
@@ -359,6 +372,10 @@ Only display the token
 \fB\-\-qr\fR,
 \fB\-\-q\fR,
 Write QR code to FILE
+.SS process
+Process a template file
+
+This command processes a template file. It will read the template file and replace all variables with their values.
 .SS pwgen
 Generate passwords
 
@@ -399,6 +416,10 @@ Include at least one symbol in the password.
 \fB\-\-xkcd\fR,
 \fB\-\-x\fR,
 Use multiple random english words combined to a password. By default, space is used as separator and all words are lowercase
+.SS rcs
+Run a RCS command inside a password store
+
+If the password store is a git repository, execute a git command specified by git-command-args.
 .SS recipients
 Edit recipient permissions
 
@@ -457,6 +478,7 @@ Display only the password. Takes precedence over all other flags.
 Print the password as a QR Code
 .TP
 \fB\-\-revision\fR,
+\fB\-\-r\fR,
 Show a past revision. Does NOT support RCS specific shortcuts. Use exact revision or -<N> to select the Nth oldest revision of this entry.
 .TP
 \fB\-\-unsafe\fR,
