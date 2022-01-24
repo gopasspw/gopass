@@ -130,7 +130,7 @@ func argon2iFunc() func(...string) (string, error) {
 func argon2idFunc() func(...string) (string, error) {
 	// parameters: s[0] = salt, s[-1] = password
 	return func(s ...string) (string, error) {
-		if len(s) < 2 {
+		if len(s) < 1 {
 			return "", fmt.Errorf("usage: %s <salt> <password> or <password>", FuncArgon2id)
 		}
 		return argon2id.Generate(s[len(s)-1], uint32(saltLen(s)))
