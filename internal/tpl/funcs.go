@@ -6,6 +6,7 @@ import (
 	"crypto/sha1"
 	"fmt"
 	"strconv"
+	"strings"
 	"text/template"
 
 	"github.com/gopasspw/gopass/internal/pwschemes/argon2i"
@@ -75,7 +76,14 @@ func md5cryptFunc() func(...string) (string, error) {
 		if sl > 8 || sl < 1 {
 			sl = 4
 		}
-		return md5crypt.Generate(s[len(s)-1], sl)
+		var ret string
+		var err error
+		// Perform rejection sampling to avoid invalid salts
+		// TODO: remove this once https://github.com/jsimonetti/pwscheme/issues/1 is fixed
+		for strings.Count(ret, "$") != 3 {
+			ret, err = md5crypt.Generate(s[len(s)-1], sl)
+		}
+		return ret, err
 	}
 }
 
