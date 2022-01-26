@@ -21,6 +21,8 @@ import (
 	"github.com/blang/semver/v4"
 	ap "github.com/gopasspw/gopass/internal/action"
 	"github.com/gopasspw/gopass/internal/action/pwgen"
+	_ "github.com/gopasspw/gopass/internal/backend/crypto"
+	_ "github.com/gopasspw/gopass/internal/backend/storage"
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/urfave/cli/v2"
 )
@@ -166,7 +168,7 @@ gopass - The standard Unix password manager
 .SH GLOBAL OPTIONS
 {{ range $flag := .Flags }}
 .TP{{ range $alias := $flag.Aliases }}
-\fB\-\-{{ $alias }}\fR,{{ end }}
+\fB{{ if (gt (len $alias) 1) }}\-{{ end }}\-{{ $alias }}\fR,{{ end }}
 {{ $flag.Description }}{{ end }}
 .SH COMMANDS
 {{ range $cmd := .Commands }}
@@ -179,7 +181,7 @@ gopass - The standard Unix password manager
 .B Flags
 {{- range $flag := $cmd.Flags | flags }}
 .TP{{ range $alias := $flag.Aliases }}
-\fB\-\-{{ $alias }}\fR,{{ end }}
+\fB{{ if (gt (len $alias) 1) }}\-{{ end }}\-{{ $alias }}\fR,{{ end }}
 {{ $flag.Description }}{{ end }}
 {{- end }}
 {{- end}}
