@@ -9,36 +9,36 @@ gopass - The standard Unix password manager
 
 .TP
 \fB\-\-alsoclip\fR,
-\fB\-\-C\fR,
+\fB\-C\fR,
 Copy the password and show everything
 .TP
 \fB\-\-clip\fR,
-\fB\-\-c\fR,
+\fB\-c\fR,
 Copy the password value into the clipboard
 .TP
 \fB\-\-noparsing\fR,
-\fB\-\-n\fR,
+\fB\-n\fR,
 Do not parse the output.
 .TP
 \fB\-\-password\fR,
-\fB\-\-o\fR,
+\fB\-o\fR,
 Display only the password. Takes precedence over all other flags.
 .TP
 \fB\-\-qr\fR,
 Print the password as a QR Code
 .TP
 \fB\-\-revision\fR,
-\fB\-\-r\fR,
+\fB\-r\fR,
 Show a past revision. Does NOT support RCS specific shortcuts. Use exact revision or -<N> to select the Nth oldest revision of this entry.
 .TP
 \fB\-\-unsafe\fR,
-\fB\-\-u\fR,
+\fB\-u\fR,
 \fB\-\-force\fR,
-\fB\-\-f\fR,
+\fB\-f\fR,
 Display unsafe content (e.g. the password) even if safecontent is enabled
 .TP
 \fB\-\-yes\fR,
-\fB\-\-y\fR,
+\fB\-y\fR,
 Always answer yes to yes/no questions
 .SH COMMANDS
 
@@ -75,13 +75,13 @@ This command clones an existing password store from a git remote to a local pass
 Check for valid decryption keys. Generate new keys if none are found.
 .TP
 \fB\-\-crypto\fR,
-Select crypto backend [age]
+Select crypto backend [age gpgcli plain]
 .TP
 \fB\-\-path\fR,
 Path to clone the repo to
 .TP
 \fB\-\-storage\fR,
-Select storage backend []
+Select storage backend [fossilfs gitfs]
 .SS config
 Display and edit the configuration file
 
@@ -94,13 +94,13 @@ Convert a store to a different set of backends
 .B Flags
 .TP
 \fB\-\-crypto\fR,
-Which crypto backend? [age]
+Which crypto backend? [age gpgcli plain]
 .TP
 \fB\-\-move\fR,
 Replace store?
 .TP
 \fB\-\-storage\fR,
-Which storage backend? []
+Which storage backend? [fossilfs fs gitfs]
 .TP
 \fB\-\-store\fR,
 Specify which store to convert
@@ -112,7 +112,7 @@ This command copies an existing secret in the store to another location. This al
 .B Flags
 .TP
 \fB\-\-force\fR,
-\fB\-\-f\fR,
+\fB\-f\fR,
 Force to copy the secret and overwrite existing one
 .SS create
 Easy creation of new secrets
@@ -122,11 +122,11 @@ This command starts a wizard to aid in creation of new secrets.
 .B Flags
 .TP
 \fB\-\-force\fR,
-\fB\-\-f\fR,
+\fB\-f\fR,
 Force path selection
 .TP
 \fB\-\-store\fR,
-\fB\-\-s\fR,
+\fB\-s\fR,
 Which store to use
 .SS delete
 Remove one or many secrets from the store
@@ -136,11 +136,11 @@ This command removes secrets. It can work recursively on folders. Recursing acro
 .B Flags
 .TP
 \fB\-\-force\fR,
-\fB\-\-f\fR,
+\fB\-f\fR,
 Force to delete the secret
 .TP
 \fB\-\-recursive\fR,
-\fB\-\-r\fR,
+\fB\-r\fR,
 Recursive delete files and folders
 .SS edit
 Edit new or existing secrets
@@ -151,11 +151,11 @@ Note: If $EDITOR is not set we will try 'editor'. If that's not available either
 .B Flags
 .TP
 \fB\-\-create\fR,
-\fB\-\-c\fR,
+\fB\-c\fR,
 Create a new secret if none found
 .TP
 \fB\-\-editor\fR,
-\fB\-\-e\fR,
+\fB\-e\fR,
 Use this editor binary
 .SS env
 Run a subprocess with a pre-populated environment
@@ -169,13 +169,13 @@ This command will first attempt a simple pattern match on the name of the secret
 .B Flags
 .TP
 \fB\-\-clip\fR,
-\fB\-\-c\fR,
+\fB\-c\fR,
 Copy the password into the clipboard
 .TP
 \fB\-\-unsafe\fR,
-\fB\-\-u\fR,
+\fB\-u\fR,
 \fB\-\-force\fR,
-\fB\-\-f\fR,
+\fB\-f\fR,
 In the case of an exact match, display the password even if safecontent is enabled
 .SS fsck
 Check store integrity
@@ -203,19 +203,19 @@ Dialog to generate a new password and write it into a new or existing secret. By
 .B Flags
 .TP
 \fB\-\-clip\fR,
-\fB\-\-c\fR,
+\fB\-c\fR,
 Copy the generated password to the clipboard
 .TP
 \fB\-\-edit\fR,
-\fB\-\-e\fR,
+\fB\-e\fR,
 Open secret for editing after generating a password
 .TP
 \fB\-\-force\fR,
-\fB\-\-f\fR,
+\fB\-f\fR,
 Force to overwrite existing password
 .TP
 \fB\-\-generator\fR,
-\fB\-\-g\fR,
+\fB\-g\fR,
 Choose a password generator, use one of: cryptic, memorable, xkcd or external. Default: cryptic
 .TP
 \fB\-\-lang\fR,
@@ -224,7 +224,7 @@ Choose a password generator, use one of: cryptic, memorable, xkcd or external. D
 Language to generate password from, currently de (german) and en (english, default) are supported
 .TP
 \fB\-\-print\fR,
-\fB\-\-p\fR,
+\fB\-p\fR,
 Print the generated password to the terminal
 .TP
 \fB\-\-sep\fR,
@@ -236,8 +236,17 @@ Word separator for generated passwords. If no separator is specified, the words 
 Require strict character class rules
 .TP
 \fB\-\-symbols\fR,
-\fB\-\-s\fR,
+\fB\-s\fR,
 Use symbols in the password
+.SS git
+Run a git command inside a password store: gopass git [--store=<store>] <git-command>
+
+If the password store is a git repository, execute a git command specified by git-command-args.
+
+.B Flags
+.TP
+\fB\-\-store\fR,
+Store to operate on
 .SS grep
 Search for secrets files containing search-string when decrypted.
 
@@ -246,7 +255,7 @@ This command decrypts all secrets and performs a pattern matching on the content
 .B Flags
 .TP
 \fB\-\-regexp\fR,
-\fB\-\-r\fR,
+\fB\-r\fR,
 Interpret pattern as RE2 regular expression
 .SS history
 Show password history
@@ -256,7 +265,7 @@ Display the change history for a secret
 .B Flags
 .TP
 \fB\-\-password\fR,
-\fB\-\-p\fR,
+\fB\-p\fR,
 Include passwords in output
 .SS init
 Initialize new password store.
@@ -266,17 +275,17 @@ Initialize new password storage and use gpg-id for encryption.
 .B Flags
 .TP
 \fB\-\-crypto\fR,
-Select crypto backend [age]
+Select crypto backend [age gpgcli plain]
 .TP
 \fB\-\-path\fR,
-\fB\-\-p\fR,
+\fB\-p\fR,
 Set the sub-store path to operate on
 .TP
 \fB\-\-storage\fR,
-Select storage backend []
+Select storage backend [fossilfs fs gitfs]
 .TP
 \fB\-\-store\fR,
-\fB\-\-s\fR,
+\fB\-s\fR,
 Set the name of the sub-store
 .SS insert
 Insert a new secret
@@ -286,19 +295,19 @@ Insert a new secret. Optionally, echo the secret back to the console during entr
 .B Flags
 .TP
 \fB\-\-append\fR,
-\fB\-\-a\fR,
+\fB\-a\fR,
 Append data read from STDIN to existing data
 .TP
 \fB\-\-echo\fR,
-\fB\-\-e\fR,
+\fB\-e\fR,
 Display secret while typing
 .TP
 \fB\-\-force\fR,
-\fB\-\-f\fR,
+\fB\-f\fR,
 Overwrite any existing secret and do not prompt to confirm recipients
 .TP
 \fB\-\-multiline\fR,
-\fB\-\-m\fR,
+\fB\-m\fR,
 Insert using $EDITOR
 .SS link
 Create a symlink
@@ -312,19 +321,19 @@ This command will list all existing secrets. Provide a folder prefix to list onl
 .B Flags
 .TP
 \fB\-\-flat\fR,
-\fB\-\-f\fR,
+\fB\-f\fR,
 Print a flat list
 .TP
 \fB\-\-folders\fR,
-\fB\-\-d\fR,
+\fB\-d\fR,
 Print a flat list of folders
 .TP
 \fB\-\-limit\fR,
-\fB\-\-l\fR,
+\fB\-l\fR,
 Display no more than this many levels of the tree
 .TP
 \fB\-\-strip-prefix\fR,
-\fB\-\-s\fR,
+\fB\-s\fR,
 Strip this prefix from filtered entries
 .SS merge
 Merge multiple secrets into one
@@ -334,11 +343,11 @@ This command implements a merge workflow to help deduplicate secrets. It require
 .B Flags
 .TP
 \fB\-\-delete\fR,
-\fB\-\-d\fR,
+\fB\-d\fR,
 Remove merged entries
 .TP
 \fB\-\-force\fR,
-\fB\-\-f\fR,
+\fB\-f\fR,
 Skip editor, merge entries unattended
 .SS mounts
 Edit mounted stores
@@ -352,7 +361,7 @@ This command moves a secret from one path to another. This also works across dif
 .B Flags
 .TP
 \fB\-\-force\fR,
-\fB\-\-f\fR,
+\fB\-f\fR,
 Force to move the secret and overwrite existing one
 .SS otp
 Generate time- or hmac-based tokens
@@ -362,15 +371,15 @@ Tries to parse an OTP URL (otpauth://). URL can be TOTP or HOTP. The URL can be 
 .B Flags
 .TP
 \fB\-\-clip\fR,
-\fB\-\-c\fR,
+\fB\-c\fR,
 Copy the time-based token into the clipboard
 .TP
 \fB\-\-password\fR,
-\fB\-\-o\fR,
+\fB\-o\fR,
 Only display the token
 .TP
 \fB\-\-qr\fR,
-\fB\-\-q\fR,
+\fB\-q\fR,
 Write QR code to FILE
 .SS process
 Process a template file
@@ -384,7 +393,7 @@ Print any number of password to the console.
 .B Flags
 .TP
 \fB\-\-ambiguous\fR,
-\fB\-\-B\fR,
+\fB\-B\fR,
 Do not include characters that could be easily confused with each other, like '1' and 'l' or '0' and 'O'
 .TP
 \fB\-\-lang\fR,
@@ -393,15 +402,15 @@ Do not include characters that could be easily confused with each other, like '1
 Language to generate password from, currently de (german) and en (english, default) are supported
 .TP
 \fB\-\-no-capitalize\fR,
-\fB\-\-A\fR,
+\fB\-A\fR,
 Do not include capital letter in the generated passwords.
 .TP
 \fB\-\-no-numerals\fR,
-\fB\-\-0\fR,
+\fB\-0\fR,
 Do not include numerals in the generated passwords.
 .TP
 \fB\-\-one-per-line\fR,
-\fB\-\-1\fR,
+\fB\-1\fR,
 Print one password per line
 .TP
 \fB\-\-sep\fR,
@@ -410,11 +419,11 @@ Print one password per line
 Word separator for generated xkcd style password. If no separator is specified, the words are combined without spaces/separator and the first character of words is capitalised. This flag implies -xkcd
 .TP
 \fB\-\-symbols\fR,
-\fB\-\-y\fR,
+\fB\-y\fR,
 Include at least one symbol in the password.
 .TP
 \fB\-\-xkcd\fR,
-\fB\-\-x\fR,
+\fB\-x\fR,
 Use multiple random english words combined to a password. By default, space is used as separator and all words are lowercase
 .SS rcs
 Run a RCS command inside a password store
@@ -438,7 +447,7 @@ Local mount point for the given remote
 Create a new team (default: false, i.e. join an existing team)
 .TP
 \fB\-\-crypto\fR,
-Select crypto backend [age]
+Select crypto backend [age gpgcli plain]
 .TP
 \fB\-\-email\fR,
 EMail for unattended GPG key generation
@@ -450,7 +459,7 @@ Firstname and Lastname for unattended GPG key generation
 URL to a git remote, will attempt to join this team
 .TP
 \fB\-\-storage\fR,
-Select storage backend []
+Select storage backend [fossilfs fs gitfs]
 .SS show
 Display the content of a secret
 
@@ -459,36 +468,36 @@ Show an existing secret and optionally put its first line on the clipboard. If p
 .B Flags
 .TP
 \fB\-\-alsoclip\fR,
-\fB\-\-C\fR,
+\fB\-C\fR,
 Copy the password and show everything
 .TP
 \fB\-\-clip\fR,
-\fB\-\-c\fR,
+\fB\-c\fR,
 Copy the password value into the clipboard
 .TP
 \fB\-\-noparsing\fR,
-\fB\-\-n\fR,
+\fB\-n\fR,
 Do not parse the output.
 .TP
 \fB\-\-password\fR,
-\fB\-\-o\fR,
+\fB\-o\fR,
 Display only the password. Takes precedence over all other flags.
 .TP
 \fB\-\-qr\fR,
 Print the password as a QR Code
 .TP
 \fB\-\-revision\fR,
-\fB\-\-r\fR,
+\fB\-r\fR,
 Show a past revision. Does NOT support RCS specific shortcuts. Use exact revision or -<N> to select the Nth oldest revision of this entry.
 .TP
 \fB\-\-unsafe\fR,
-\fB\-\-u\fR,
+\fB\-u\fR,
 \fB\-\-force\fR,
-\fB\-\-f\fR,
+\fB\-f\fR,
 Display unsafe content (e.g. the password) even if safecontent is enabled
 .TP
 \fB\-\-yes\fR,
-\fB\-\-y\fR,
+\fB\-y\fR,
 Always answer yes to yes/no questions
 .SS sum
 Compute the SHA256 checksum
@@ -502,7 +511,7 @@ Sync all local stores with their git remotes, if any, and check any possibly aff
 .B Flags
 .TP
 \fB\-\-store\fR,
-\fB\-\-s\fR,
+\fB\-s\fR,
 Select the store to sync
 .SS templates
 Edit templates
