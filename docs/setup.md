@@ -67,6 +67,14 @@ For OpenBSD 6.2 and earlier, install via `go install`.
 Please note that the OpenBSD builds uses `pledge(2)` to disable some syscalls,
 so some features (e.g. version checks, auto-update) are unavailable.
 
+#### FreeBSD
+
+For FreeBSD 11 and newer:
+
+```
+pkg install gopass
+```
+
 ### Set up a GPG key pair
 
 gopass depends on the `gpg` program for encryption and decryption. You **must** have a
@@ -121,6 +129,12 @@ If this fails with an error: "Inappropriate ioctl for device" run the following 
 ```bash
  export GPG_TTY=$(tty)
 ```
+
+If you are using CSH or TCSH:
+```
+setenv GPG_TTY `tty`
+```
+
 Now you should be able to create a clear text signature and the commit should work flawlessly.
 
 If you are presented with a different error please investigate this before continuing. If that works
