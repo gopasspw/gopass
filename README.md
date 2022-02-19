@@ -114,8 +114,8 @@ $ gopass clone git@gitlab.example.org:john/passwords.git
 ⚠ Cloning git repository "git@gitlab.example.org:john/passwords.git" to "/home/john/.local/share/gopass/stores/root" ...
 ⚠ Configuring git repository ...
 🎩 Gathering information for the git repository ...
-🚶 What is your name? [John Doe]: 
-📧 What is your email? [john.doe@example.org]: 
+🚶 What is your name? [John Doe]:
+📧 What is your email? [john.doe@example.org]:
 Your password store is ready to use! Have a look around: `gopass list`
 ```
 
@@ -165,6 +165,7 @@ gopass is developed in the open. Here are some of the channels we use to communi
 - [gopass-summon-prover](https://github.com/gopasspw/gopass-summon-provider): gopass as a summon provider
 - [`terraform-provider-gopass`](https://github.com/camptocamp/terraform-provider-pass): a Terraform provider to interact with gopass
 - [chezmoi](https://github.com/twpayne/chezmoi): dotfile manager with gopass support
+- [tessen](https://github.com/ayushnix/tessen): autotype and copy gopass data on wayland compositors on Linux
 
 ## Mobile apps
 
