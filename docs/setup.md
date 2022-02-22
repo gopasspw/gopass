@@ -165,7 +165,10 @@ If you're using a password on your GPG key, you also have to install `pinentry-m
 brew install pinentry-mac
 PINENTRY=$(which pinentry-mac)
 echo "pinentry-program ${PINENTRY}" >>~/.gnupg/gpg-agent.conf
+defaults write org.gpgtools.common UseKeychain NO
 ```
+
+The last step is important if you want to stop `pinentry-mac` from caching your passphrase in the MacOS Keychain by default (indefinitely).
 
 ### Ubuntu, Debian, Deepin, Devuan, Kali Linux, Pardus, Parrot, Raspbian
 
