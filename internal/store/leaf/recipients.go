@@ -111,16 +111,37 @@ func (s *Store) RemoveRecipient(ctx context.Context, id string) error {
 	nk := make([]string, 0, len(rs)-1)
 RECIPIENTS:
 	for _, k := range rs {
+
+		// First lets try a simple match of the stored ids
 		if k == id {
+			debug.Log("removing recipient based on id match %s", k)
 			continue RECIPIENTS
 		}
+
+		// If we don't match immediately, we may need to loop through the recipient keys to try and match.
+		// To do this though, we need to ensure that we also do a FindRecipients on the id name from the stored ids.
+		recipient_ids, err := s.crypto.FindRecipients(ctx, k)
+		if err != nil {
+			out.Printf(ctx, "Warning: Failed to get GPG Key Info for %s: %s", k, err)
+		}
+		debug.Log("returned the following ids for recipient %s: %s", k, recipient_ids)
+
 		// if the key is available locally we can also match the id against
-		// the fingerprint
+		// the fingerprint or failing that we can try against the recipient_ids
 		for _, key := range keys {
 			if strings.HasSuffix(key, k) {
+				debug.Log("removing recipient based on id suffix match: %s %s", key, k)
 				continue RECIPIENTS
 			}
+
+			for _, recipient_id := range recipient_ids {
+				if recipient_id == key {
+					debug.Log("removing recipient based on recipient id match %s", recipient_id)
+					continue RECIPIENTS
+				}
+			}
 		}
+
 		nk = append(nk, k)
 	}
 
