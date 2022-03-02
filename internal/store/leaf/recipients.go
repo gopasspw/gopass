@@ -100,7 +100,7 @@ func (s *Store) SetRecipients(ctx context.Context, rs []string) error {
 func (s *Store) RemoveRecipient(ctx context.Context, id string) error {
 	keys, err := s.crypto.FindRecipients(ctx, id)
 	if err != nil {
-		out.Printf(ctx, "Warning: Failed to get GPG Key Info for %s: %s", id, err)
+		out.Warningf(ctx, "Warning: Failed to get GPG Key Info for %s: %s", id, err)
 	}
 
 	rs, err := s.GetRecipients(ctx, "")
@@ -120,23 +120,23 @@ RECIPIENTS:
 
 		// If we don't match immediately, we may need to loop through the recipient keys to try and match.
 		// To do this though, we need to ensure that we also do a FindRecipients on the id name from the stored ids.
-		recipient_ids, err := s.crypto.FindRecipients(ctx, k)
+		recipientIds, err := s.crypto.FindRecipients(ctx, k)
 		if err != nil {
-			out.Printf(ctx, "Warning: Failed to get GPG Key Info for %s: %s", k, err)
+			out.Warningf(ctx, "Warning: Failed to get GPG Key Info for %s: %s", k, err)
 		}
-		debug.Log("returned the following ids for recipient %s: %s", k, recipient_ids)
+		debug.Log("returned the following ids for recipient %s: %s", k, recipientIds)
 
 		// if the key is available locally we can also match the id against
-		// the fingerprint or failing that we can try against the recipient_ids
+		// the fingerprint or failing that we can try against the recipientIds
 		for _, key := range keys {
 			if strings.HasSuffix(key, k) {
 				debug.Log("removing recipient based on id suffix match: %s %s", key, k)
 				continue RECIPIENTS
 			}
 
-			for _, recipient_id := range recipient_ids {
-				if recipient_id == key {
-					debug.Log("removing recipient based on recipient id match %s", recipient_id)
+			for _, recipientID := range recipientIds {
+				if recipientID == key {
+					debug.Log("removing recipient based on recipient id match %s", recipientID)
 					continue RECIPIENTS
 				}
 			}
