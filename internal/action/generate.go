@@ -111,7 +111,7 @@ func keyAndLength(args argList) (string, string) {
 func (s *Action) generateCopyOrPrint(ctx context.Context, c *cli.Context, name, key, password string) error {
 	entry := name
 	if key != "" {
-		entry += ":" + key
+		entry += " " + key
 	}
 
 	out.OKf(ctx, "Password for entry %q generated", entry)
@@ -161,7 +161,7 @@ func hasPwRuleForSecret(name string) (string, pwrules.Rule) {
 
 // generatePassword will run through the password generation steps.
 func (s *Action) generatePassword(ctx context.Context, c *cli.Context, length, name string) (string, error) {
-	if domain, rule := hasPwRuleForSecret(name); domain != "" {
+	if domain, rule := hasPwRuleForSecret(name); domain != "" && !c.Bool("force") {
 		return s.generatePasswordForRule(ctx, c, length, name, domain, rule)
 	}
 
@@ -220,7 +220,7 @@ func clamp(min, max, value int) int {
 }
 
 func (s *Action) generatePasswordForRule(ctx context.Context, c *cli.Context, length, name, domain string, rule pwrules.Rule) (string, error) {
-	out.Printf(ctx, "Using password rules for %s ...", domain)
+	out.Noticef(ctx, "Using password rules for %s ...", domain)
 	wl := 16
 	if iv, err := strconv.Atoi(length); err == nil {
 		wl = clamp(rule.Minlen, rule.Maxlen, iv)
@@ -231,6 +231,7 @@ func (s *Action) generatePasswordForRule(ctx context.Context, c *cli.Context, le
 	if err != nil {
 		return "", exit.Error(exit.Usage, err, "password length must be a number")
 	}
+	iv = clamp(rule.Minlen, rule.Maxlen, iv)
 
 	pw := pwgen.NewCrypticForDomain(iv, domain).Password()
 	if pw == "" {
