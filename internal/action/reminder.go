@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 
+	"github.com/gopasspw/gopass/internal/env"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 )
@@ -17,6 +18,18 @@ func (s *Action) printReminder(ctx context.Context) {
 	}
 	if sv := os.Getenv("GOPASS_NO_REMINDER"); sv != "" {
 		return
+	}
+
+	// this might be printed along other reminders
+	if s.rem.Overdue("env") {
+		msg, err := env.Check(ctx)
+		if err != nil {
+			out.Warningf(ctx, "Failed to check environment: %s", err)
+		}
+		if msg != "" {
+			out.Warningf(ctx, "%s", msg)
+		}
+		s.rem.Reset("env")
 	}
 
 	// Note: We only want to print one reminder per day (at most).
