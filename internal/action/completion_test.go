@@ -15,10 +15,26 @@ import (
 )
 
 func TestBashEscape(t *testing.T) {
-	expected := `a\\<\\>\\|\\\\and\\ sometimes\\?\\*\\(\\)\\&\\;\\#`
-	if escaped := bashEscape(`a<>|\and sometimes?*()&;#`); escaped != expected {
-		t.Errorf("Expected %q, but got %q", expected, escaped)
-	}
+	t.Run("bash escape", func(t *testing.T) {
+		expected := `a\\<\\>\\|\\\\and\\ sometimes\\?\\*\\(\\)\\&\\;\\#`
+		if escaped := bashEscape(`a<>|\and sometimes?*()&;#`); escaped != expected {
+			t.Errorf("Expected %q, but got %q", expected, escaped)
+		}
+	})
+
+	t.Run("bash escape single quote", func(t *testing.T) {
+		expected := `good\\ ol\'\\ days`
+		if escaped := bashEscape(`good ol' days`); escaped != expected {
+			t.Errorf("Expected %q, but got %q", expected, escaped)
+		}
+	})
+
+	t.Run("bash escape double quote", func(t *testing.T) {
+		expected := `my\\ \\\"bad\\\"\\ password`
+		if escaped := bashEscape(`my "bad" password`); escaped != expected {
+			t.Errorf("Expected %q, but got %q", expected, escaped)
+		}
+	})
 }
 
 func TestComplete(t *testing.T) {
