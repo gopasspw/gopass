@@ -134,6 +134,7 @@ func (c *Pre193) Config() *Config {
 		AutoClip:      c.Root.AutoClip,
 		AutoImport:    c.Root.AutoImport,
 		ClipTimeout:   c.Root.ClipTimeout,
+		ExportKeys:    c.Root.ExportKeys,
 		NoPager:       c.Root.NoPager,
 		Notifications: c.Root.Notifications,
 		Parsing:       true,
@@ -196,6 +197,7 @@ func (c *Pre182) Config() *Config {
 		AutoClip:      c.Root.AutoClip,
 		AutoImport:    c.Root.AutoImport,
 		ClipTimeout:   c.Root.ClipTimeout,
+		ExportKeys:    true,
 		NoPager:       c.Root.NoPager,
 		Notifications: c.Root.Notifications,
 		Parsing:       true,
@@ -242,6 +244,7 @@ func (c *Pre140) Config() *Config {
 	cfg := &Config{
 		AutoImport:  c.AutoImport,
 		ClipTimeout: c.ClipTimeout,
+		ExportKeys:  true,
 		Parsing:     true,
 		Path:        c.Path,
 		SafeContent: c.SafeContent,
@@ -286,6 +289,7 @@ func (c *Pre130) Config() *Config {
 	cfg := &Config{
 		AutoImport:  c.AutoImport,
 		ClipTimeout: c.ClipTimeout,
+		ExportKeys:  true,
 		Parsing:     true,
 		Path:        c.Path,
 		SafeContent: c.SafeContent,
