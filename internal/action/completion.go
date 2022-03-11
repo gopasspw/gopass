@@ -14,13 +14,19 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-var escapeRegExp = regexp.MustCompile(`(\s|\(|\)|\<|\>|\&|\;|\#|\\|\||\*|\?)`)
+var escapeRegExp = regexp.MustCompile(`('|"|\s|\(|\)|\<|\>|\&|\;|\#|\\|\||\*|\?)`)
 
 // bashEscape Escape special characters with `\`.
 func bashEscape(s string) string {
 	return escapeRegExp.ReplaceAllStringFunc(s, func(c string) string {
 		if c == `\` {
 			return `\\\\`
+		}
+		if c == `'` {
+			return `\` + c
+		}
+		if c == `"` {
+			return `\\\` + c
 		}
 		return `\\` + c
 	})
