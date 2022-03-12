@@ -68,6 +68,7 @@ func (m *Mocker) FindRecipients(ctx context.Context, keys ...string) ([]string, 
 			}
 		}
 	}
+
 	return res, nil
 }
 

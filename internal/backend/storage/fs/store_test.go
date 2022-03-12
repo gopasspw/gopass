@@ -10,6 +10,8 @@ import (
 )
 
 func TestSetAndGet(t *testing.T) {
+	t.Parallel()
+
 	initialContent := []byte(`initial file content`)
 	otherContent := []byte(`other file content`)
 	ctx := context.Background()
@@ -43,6 +45,8 @@ func TestSetAndGet(t *testing.T) {
 }
 
 func TestRemoveEmptyParentDirectories(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name          string
 		storeRoot     []string
@@ -89,7 +93,11 @@ func TestRemoveEmptyParentDirectories(t *testing.T) {
 	}
 
 	for _, test := range tests {
+		test := test
+
 		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
 			td, cleanup := newTempDir(t)
 			defer cleanup()
 
@@ -127,6 +135,8 @@ func TestRemoveEmptyParentDirectories(t *testing.T) {
 }
 
 func TestDelete(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name      string
 		location  []string
@@ -168,7 +178,10 @@ func TestDelete(t *testing.T) {
 	}
 
 	for _, test := range tests {
+		test := test
 		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
 			path, cleanup := newTempDir(t)
 			defer cleanup()
 
@@ -207,10 +220,12 @@ func TestDelete(t *testing.T) {
 
 func newTempDir(t *testing.T) (string, func()) {
 	t.Helper()
+
 	td, err := os.MkdirTemp("", "gopass-")
 	if err != nil {
 		t.Error(err)
 	}
+
 	return td, func() {
 		_ = os.RemoveAll(td)
 	}

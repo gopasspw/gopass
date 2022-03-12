@@ -33,6 +33,7 @@ func (s *Action) MountRemove(c *cli.Context) error {
 	}
 
 	out.Printf(ctx, "Password Store %s umounted", c.Args().Get(0))
+
 	return nil
 }
 
@@ -41,6 +42,7 @@ func (s *Action) MountsPrint(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	if len(s.Store.Mounts()) < 1 {
 		out.Printf(ctx, "No mounts")
+
 		return nil
 	}
 
@@ -57,6 +59,7 @@ func (s *Action) MountsPrint(c *cli.Context) error {
 	debug.Log("MountsPrint - %+v - %+v", mounts, mps)
 
 	fmt.Fprintln(stdout, root.Format(tree.INF))
+
 	return nil
 }
 
@@ -86,16 +89,20 @@ func (s *Action) MountAdd(c *cli.Context) error {
 	}
 
 	if err := s.Store.AddMount(ctx, alias, localPath); err != nil {
-		switch e := errors.Unwrap(err).(type) {
-		case root.AlreadyMountedError:
+		var aerr *root.AlreadyMountedError
+		if errors.As(err, &aerr) {
 			out.Printf(ctx, "Store is already mounted")
+
 			return nil
-		case root.NotInitializedError:
-			out.Printf(ctx, "Mount %s is not yet initialized. Please use 'gopass init --store %s' instead", e.Alias(), e.Alias())
-			return e
-		default:
-			return exit.Error(exit.Mount, err, "failed to add mount %q to %q: %s", alias, localPath, err)
 		}
+		var nerr *root.NotInitializedError
+		if errors.As(err, &nerr) {
+			out.Printf(ctx, "Mount %s is not yet initialized. Please use 'gopass init --store %s' instead", nerr.Alias(), nerr.Alias())
+
+			return nerr
+		}
+
+		return exit.Error(exit.Mount, err, "failed to add mount %q to %q: %s", alias, localPath, err)
 	}
 
 	if err := s.cfg.Save(); err != nil {
@@ -103,5 +110,6 @@ func (s *Action) MountAdd(c *cli.Context) error {
 	}
 
 	out.Printf(ctx, "Mounted %s as %s", alias, localPath)
+
 	return nil
 }

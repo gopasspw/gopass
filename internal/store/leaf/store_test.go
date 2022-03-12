@@ -19,6 +19,7 @@ import (
 
 func createSubStore(dir string) (*Store, error) {
 	sd := filepath.Join(dir, "sub")
+
 	_, _, err := createStore(sd, nil, nil)
 	if err != nil {
 		return nil, err
@@ -27,18 +28,23 @@ func createSubStore(dir string) (*Store, error) {
 	if err := os.Setenv("GOPASS_CONFIG", filepath.Join(dir, ".gopass.yml")); err != nil {
 		return nil, err
 	}
+
 	if err := os.Setenv("GOPASS_HOMEDIR", dir); err != nil {
 		return nil, err
 	}
+
 	if err := os.Unsetenv("PAGER"); err != nil {
 		return nil, err
 	}
+
 	if err := os.Setenv("CHECKPOINT_DISABLE", "true"); err != nil {
 		return nil, err
 	}
+
 	if err := os.Setenv("GOPASS_NO_NOTIFY", "true"); err != nil {
 		return nil, err
 	}
+
 	if err := os.Setenv("GOPASS_DISABLE_ENCRYPTION", "true"); err != nil {
 		return nil, err
 	}
@@ -51,6 +57,7 @@ func createSubStore(dir string) (*Store, error) {
 	ctx := context.Background()
 	ctx = backend.WithCryptoBackendString(ctx, "plain")
 	ctx = backend.WithStorageBackendString(ctx, "fs")
+
 	return New(
 		ctx,
 		"",
@@ -65,29 +72,38 @@ func createStore(dir string, recipients, entries []string) ([]string, []string, 
 			"0xFEEDBEEF",
 		}
 	}
+
 	if entries == nil {
 		entries = []string{
 			"foo/bar/baz",
 			"baz/ing/a",
 		}
 	}
+
 	sort.Strings(entries)
+
 	for _, file := range entries {
 		filename := filepath.Join(dir, file+"."+plain.Ext)
 		if err := os.MkdirAll(filepath.Dir(filename), 0o700); err != nil {
 			return recipients, entries, err
 		}
+
 		if err := os.WriteFile(filename, []byte{}, 0o644); err != nil {
 			return recipients, entries, err
 		}
 	}
+
 	err := os.WriteFile(filepath.Join(dir, plain.IDFile), []byte(strings.Join(recipients, "\n")), 0o600)
+
 	return recipients, entries, err
 }
 
 func TestStore(t *testing.T) {
+	t.Parallel()
+
 	tempdir, err := os.MkdirTemp("", "gopass-")
 	require.NoError(t, err)
+
 	defer func() {
 		_ = os.RemoveAll(tempdir)
 	}()
@@ -101,10 +117,13 @@ func TestStore(t *testing.T) {
 }
 
 func TestIdFile(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	tempdir, err := os.MkdirTemp("", "gopass-")
 	require.NoError(t, err)
+
 	defer func() {
 		_ = os.RemoveAll(tempdir)
 	}()
@@ -117,8 +136,10 @@ func TestIdFile(t *testing.T) {
 	for i := 0; i < 99; i++ {
 		secName += "/a"
 	}
+
 	sec := &secrets.Plain{}
-	sec.Set("foo", "bar")
+
+	_ = sec.Set("foo", "bar")
 	sec.WriteString("bar")
 	require.NoError(t, s.Set(ctx, secName, sec))
 	require.NoError(t, os.WriteFile(filepath.Join(tempdir, "sub", "a", plain.IDFile), []byte("foobar"), 0o600))
@@ -136,17 +157,19 @@ func TestIdFile(t *testing.T) {
 }
 
 func TestNew(t *testing.T) {
+	t.Parallel()
+
 	for _, tc := range []struct {
 		dsc   string
 		noDir bool
-		ctx   context.Context
+		ctx   context.Context //nolint:containedctx
 		ok    bool
 	}{
 		{
 			dsc:   "Invalid Storage",
 			ctx:   backend.WithStorageBackend(context.Background(), -1),
 			noDir: true,
-			ok:    true, // will always succeed because it falls back to the default (fs)
+			ok:    false,
 		},
 		{
 			dsc: "GitFS Storage",
@@ -175,6 +198,8 @@ func TestNew(t *testing.T) {
 			ok: true,
 		},
 	} {
+		tc := tc
+
 		t.Run(tc.dsc, func(t *testing.T) {
 			t.Parallel()
 
@@ -183,15 +208,19 @@ func TestNew(t *testing.T) {
 				var err error
 				tempdir, err = os.MkdirTemp("", "gopass-")
 				require.NoError(t, err)
+
 				defer func() {
 					_ = os.RemoveAll(tempdir)
 				}()
 			}
+
 			s, err := New(tc.ctx, "", tempdir)
 			if !tc.ok {
 				assert.Error(t, err, tc.dsc)
+
 				return
 			}
+
 			assert.NoError(t, err, tc.dsc)
 			assert.NotNil(t, s, tc.dsc)
 		})

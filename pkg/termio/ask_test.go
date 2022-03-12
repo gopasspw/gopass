@@ -12,10 +12,11 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestAskForString(t *testing.T) {
+func TestAskForString(t *testing.T) { //nolint:paralleltest
 	buf := &bytes.Buffer{}
 	out.Stderr = buf
 	Stderr = buf
+
 	defer func() {
 		out.Stderr = os.Stderr
 		Stderr = os.Stderr
@@ -45,21 +46,24 @@ bar
 	sv, err = AskForString(ctx, "test", "foobar")
 	assert.NoError(t, err)
 	assert.Equal(t, "bar", sv)
+
 	Stdin = os.Stdin
 
 	sv, err = AskForString(ctx, "test", "foobar")
 	assert.NoError(t, err)
 	assert.Equal(t, "foobar", sv)
+
 	Stdin = os.Stdin
 
 	t.Logf("Stderr: %s", buf.String())
 	buf.Reset()
 }
 
-func TestAskForBool(t *testing.T) {
+func TestAskForBool(t *testing.T) { //nolint:paralleltest
 	buf := &bytes.Buffer{}
 	out.Stderr = buf
 	Stderr = buf
+
 	defer func() {
 		out.Stderr = os.Stderr
 		Stderr = os.Stderr
@@ -112,10 +116,11 @@ z
 	assert.False(t, bv)
 }
 
-func TestAskForInt(t *testing.T) {
+func TestAskForInt(t *testing.T) { //nolint:paralleltest
 	buf := &bytes.Buffer{}
 	out.Stderr = buf
 	Stderr = buf
+
 	defer func() {
 		out.Stderr = os.Stderr
 		Stderr = os.Stderr
@@ -144,10 +149,11 @@ func TestAskForInt(t *testing.T) {
 	assert.Equal(t, 23, iv)
 }
 
-func TestAskForConfirmation(t *testing.T) {
+func TestAskForConfirmation(t *testing.T) { //nolint:paralleltest
 	buf := &bytes.Buffer{}
 	out.Stderr = buf
 	Stderr = buf
+
 	defer func() {
 		out.Stderr = os.Stderr
 		Stderr = os.Stderr
@@ -173,10 +179,11 @@ n
 	assert.False(t, AskForConfirmation(ctx, "test"))
 }
 
-func TestAskForKeyImport(t *testing.T) {
+func TestAskForKeyImport(t *testing.T) { //nolint:paralleltest
 	buf := &bytes.Buffer{}
 	out.Stderr = buf
 	Stderr = buf
+
 	defer func() {
 		out.Stderr = os.Stderr
 		Stderr = os.Stderr
@@ -201,10 +208,11 @@ z
 	assert.False(t, AskForKeyImport(ctx, "", nil))
 }
 
-func TestAskForPasswordNonInteractive(t *testing.T) {
+func TestAskForPasswordNonInteractive(t *testing.T) { //nolint:paralleltest
 	buf := &bytes.Buffer{}
 	out.Stderr = buf
 	Stderr = buf
+
 	defer func() {
 		out.Stderr = os.Stderr
 		Stderr = os.Stderr
@@ -241,10 +249,11 @@ foobat
 	assert.Equal(t, "", sv)
 }
 
-func TestAskForPasswordInteractive(t *testing.T) {
+func TestAskForPasswordInteractive(t *testing.T) { //nolint:paralleltest
 	buf := &bytes.Buffer{}
 	out.Stderr = buf
 	Stderr = buf
+
 	defer func() {
 		out.Stderr = os.Stderr
 		Stderr = os.Stderr

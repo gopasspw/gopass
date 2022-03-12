@@ -17,6 +17,8 @@ import (
 )
 
 func TestSimpleList(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	u := gptest.NewUnitTester(t)
@@ -31,6 +33,8 @@ func TestSimpleList(t *testing.T) {
 }
 
 func TestListMulti(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 	ctx = backend.WithCryptoBackend(ctx, backend.Plain)
 
@@ -46,12 +50,14 @@ func TestListMulti(t *testing.T) {
 
 	// sub1 store
 	assert.NoError(t, u.InitStore("sub1"))
+
 	for _, k := range u.Entries {
 		ents = append(ents, path.Join("sub1", k))
 	}
 
 	// sub2 store
 	assert.NoError(t, u.InitStore("sub2"))
+
 	for _, k := range u.Entries {
 		ents = append(ents, path.Join("sub2", k))
 	}
@@ -63,7 +69,9 @@ func TestListMulti(t *testing.T) {
 	require.NoError(t, err)
 
 	sort.Strings(ents)
+
 	lst := st.List(tree.INF)
+
 	sort.Strings(lst)
 	assert.Equal(t, ents, lst)
 
@@ -71,6 +79,8 @@ func TestListMulti(t *testing.T) {
 }
 
 func TestListNested(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 	ctx = backend.WithCryptoBackend(ctx, backend.Plain)
 
@@ -86,18 +96,21 @@ func TestListNested(t *testing.T) {
 
 	// sub1 store
 	assert.NoError(t, u.InitStore("sub1"))
+
 	for _, k := range u.Entries {
 		ents = append(ents, path.Join("sub1", k))
 	}
 
 	// sub2 store
 	assert.NoError(t, u.InitStore("sub2"))
+
 	for _, k := range u.Entries {
 		ents = append(ents, path.Join("sub2", k))
 	}
 
 	// sub3 store
 	assert.NoError(t, u.InitStore("sub3"))
+
 	for _, k := range u.Entries {
 		ents = append(ents, path.Join("sub2", "sub3", k))
 	}
@@ -110,7 +123,9 @@ func TestListNested(t *testing.T) {
 	assert.NoError(t, err)
 
 	sort.Strings(ents)
+
 	lst := st.List(tree.INF)
+
 	sort.Strings(lst)
 	assert.Equal(t, ents, lst)
 
@@ -127,8 +142,10 @@ func createRootStore(ctx context.Context, u *gptest.Unit) (*Store, error) {
 			Path: u.StoreDir(""),
 		},
 	)
+
 	if _, err := s.IsInitialized(ctx); err != nil {
 		return nil, err
 	}
+
 	return s, nil
 }

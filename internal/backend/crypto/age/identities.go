@@ -24,6 +24,7 @@ func (a *Age) Identities(ctx context.Context) ([]age.Identity, error) {
 		debug.Log("no password callback found, redirecting to askPass")
 		ctx = ctxutil.WithPasswordCallback(ctx, func(prompt string, confirm bool) ([]byte, error) {
 			pw, err := a.askPass.Passphrase(prompt, fmt.Sprintf("to read the age keyring from %s", a.identity), confirm)
+
 			return []byte(pw), err
 		})
 	}
@@ -35,6 +36,7 @@ func (a *Age) Identities(ctx context.Context) ([]age.Identity, error) {
 		if !os.IsNotExist(err) {
 			return nil, fmt.Errorf("failed to decrypt %s: %w", a.identity, err)
 		}
+
 		return nil, nil
 	}
 
@@ -42,7 +44,9 @@ func (a *Age) Identities(ctx context.Context) ([]age.Identity, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	debug.Log("read %d native identities from %s", len(ids), a.identity)
+
 	return ids, nil
 }
 
@@ -59,6 +63,7 @@ func (a *Age) IdentityRecipients(ctx context.Context) ([]age.Recipient, error) {
 		if errors.Is(err, os.ErrNotExist) {
 			return nil, nil
 		}
+
 		return nil, err
 	}
 
@@ -68,9 +73,11 @@ func (a *Age) IdentityRecipients(ctx context.Context) ([]age.Recipient, error) {
 			r = append(r, x.Recipient())
 		}
 	}
+
 	if err := a.recpCache.Set(idRecpCacheKey, recipientsToBech32(r)); err != nil {
 		debug.Log("failed to cache identity recipients: %s", err)
 	}
+
 	return r, nil
 }
 
@@ -81,7 +88,9 @@ func (a *Age) GenerateIdentity(ctx context.Context, _ string, _ string, pw strin
 			return []byte(pw), nil
 		})
 	}
+
 	_, err := a.addIdentity(ctx)
+
 	return err
 }
 
@@ -97,7 +106,9 @@ func (a *Age) ListIdentities(ctx context.Context) ([]string, error) {
 	for k := range ids {
 		idStr = append(idStr, k)
 	}
+
 	sort.Strings(idStr)
+
 	return idStr, nil
 }
 
@@ -114,35 +125,44 @@ OUTER:
 			if r == k {
 				matches = append(matches, k)
 				debug.Log("found matching recipient %s", k)
+
 				continue OUTER
 			}
 		}
 		debug.Log("%s not found in %q", k, ids)
 	}
+
 	sort.Strings(matches)
+
 	return matches, nil
 }
 
 func (a *Age) cachedIDRecpipients() []age.Recipient {
 	if a.recpCache.ModTime(idRecpCacheKey).Before(modTime(a.identity)) {
 		debug.Log("identity cache expired")
-		a.recpCache.Remove(idRecpCacheKey)
+		_ = a.recpCache.Remove(idRecpCacheKey)
+
 		return nil
 	}
+
 	recps, err := a.recpCache.Get(idRecpCacheKey)
 	if err != nil {
 		debug.Log("failed to get recipients from cache: %s", err)
+
 		return nil
 	}
+
 	rs := make([]age.Recipient, 0, len(recps))
 	for _, recp := range recps {
 		r, err := age.ParseX25519Recipient(recp)
 		if err != nil {
 			debug.Log("failed to parse recipient %s: %s", recp, err)
+
 			continue
 		}
 		rs = append(rs, r)
 	}
+
 	return rs
 }
 
@@ -175,6 +195,7 @@ func (a *Age) saveIdentities(ctx context.Context, ids []string, newFile bool) er
 		debug.Log("no password callback found, redirecting to askPass")
 		ctx = ctxutil.WithPasswordCallback(ctx, func(prompt string, confirm bool) ([]byte, error) {
 			pw, err := a.askPass.Passphrase(prompt, fmt.Sprintf("to save the age keyring to %s", a.identity), confirm)
+
 			return []byte(pw), err
 		})
 	}
@@ -182,6 +203,7 @@ func (a *Age) saveIdentities(ctx context.Context, ids []string, newFile bool) er
 	// ensure directory exists.
 	if err := os.MkdirAll(filepath.Dir(a.identity), 0o700); err != nil {
 		debug.Log("failed to create directory for the keyring at %s: %s", a.identity, err)
+
 		return err
 	}
 
@@ -190,6 +212,7 @@ func (a *Age) saveIdentities(ctx context.Context, ids []string, newFile bool) er
 	}
 
 	debug.Log("saved %d identities to %s", len(ids), a.identity)
+
 	return nil
 }
 
@@ -203,6 +226,7 @@ func (a *Age) getAllIdentities(ctx context.Context) (map[string]age.Identity, er
 
 	if IsOnlyNative(ctx) {
 		debug.Log("returning only native identities")
+
 		return native, nil
 	}
 
@@ -211,6 +235,7 @@ func (a *Age) getAllIdentities(ctx context.Context) (map[string]age.Identity, er
 	if err != nil {
 		return nil, err
 	}
+
 	debug.Log("got %d ssh identities", len(ssh))
 
 	// merge both.
@@ -239,10 +264,12 @@ func idMap(ids []age.Identity) map[string]age.Identity {
 	for _, id := range ids {
 		if x, ok := id.(*age.X25519Identity); ok {
 			m[x.Recipient().String()] = id
+
 			continue
 		}
 		debug.Log("unknown Identity type: %T", id)
 	}
+
 	return m
 }
 
@@ -251,6 +278,7 @@ func recipientsToBech32(recps []age.Recipient) []string {
 	for _, recp := range recps {
 		r = append(r, fmt.Sprintf("%s", recp))
 	}
+
 	return r
 }
 
@@ -259,6 +287,7 @@ func identitiesToString(ids []age.Identity) []string {
 	for _, id := range ids {
 		r = append(r, fmt.Sprintf("%s", id))
 	}
+
 	return r
 }
 
@@ -266,7 +295,9 @@ func modTime(path string) time.Time {
 	fi, err := os.Stat(path)
 	if err != nil {
 		debug.Log("failed to stat %s: %s", path, err)
+
 		return time.Time{}
 	}
+
 	return fi.ModTime()
 }

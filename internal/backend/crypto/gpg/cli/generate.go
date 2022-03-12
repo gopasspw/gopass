@@ -36,7 +36,9 @@ Expire-Date: 0
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("failed to run command: '%s %+v': %q - %w", cmd.Path, cmd.Args, out.String(), err)
 	}
+
 	g.privKeys = nil
 	g.pubKeys = nil
+
 	return nil
 }

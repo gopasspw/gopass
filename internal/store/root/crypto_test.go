@@ -12,6 +12,8 @@ import (
 )
 
 func TestCrypto(t *testing.T) {
+	t.Parallel()
+
 	u := gptest.NewUnitTester(t)
 	defer u.Remove()
 

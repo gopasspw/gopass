@@ -11,6 +11,7 @@ func getVersion() semver.Version {
 	if err == nil {
 		return sv
 	}
+
 	return semver.Version{
 		Major: 1,
 		Minor: 14,

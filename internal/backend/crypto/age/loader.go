@@ -21,6 +21,7 @@ type loader struct{}
 
 func (l loader) New(ctx context.Context) (backend.Crypto, error) {
 	debug.Log("Using Crypto Backend: %s", name)
+
 	return New()
 }
 
@@ -30,11 +31,13 @@ func (l loader) Handles(ctx context.Context, s backend.Storage) error {
 			out.Errorf(ctx, "Failed to migrate age backend: %s", err)
 		}
 		out.OKf(ctx, "Migrated age backend to new format")
+
 		return nil
 	}
 	if s.Exists(ctx, IDFile) {
 		return nil
 	}
+
 	return fmt.Errorf("not supported")
 }
 

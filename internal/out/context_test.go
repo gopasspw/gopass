@@ -8,6 +8,8 @@ import (
 )
 
 func TestPrefix(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	assert.Equal(t, "", Prefix(ctx))
@@ -23,6 +25,8 @@ func TestPrefix(t *testing.T) {
 }
 
 func TestNewline(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	assert.True(t, HasNewline(ctx))

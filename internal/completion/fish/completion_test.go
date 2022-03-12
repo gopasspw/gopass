@@ -32,6 +32,8 @@ func (u *unknownFlag) Names() []string {
 }
 
 func TestFormatFlag(t *testing.T) {
+	t.Parallel()
+
 	for _, tc := range []struct {
 		Name  string
 		Usage string
@@ -45,11 +47,18 @@ func TestFormatFlag(t *testing.T) {
 		{"", "Print", "long", ""},
 		{"print, p", "Print", "foo", ""},
 	} {
-		assert.Equal(t, tc.Out, formatFlag(tc.Name, tc.Usage, tc.Typ))
+		tc := tc
+
+		t.Run(tc.Name, func(t *testing.T) {
+			assert.Equal(t, tc.Out, formatFlag(tc.Name, tc.Usage, tc.Typ))
+			t.Parallel()
+		})
 	}
 }
 
 func TestGetCompletion(t *testing.T) {
+	t.Parallel()
+
 	app := cli.NewApp()
 	sv, err := GetCompletion(app)
 	require.NoError(t, err)
@@ -67,6 +76,8 @@ func TestGetCompletion(t *testing.T) {
 }
 
 func TestFormatflagFunc(t *testing.T) {
+	t.Parallel()
+
 	for _, flag := range []cli.Flag{
 		&cli.BoolFlag{Name: "foo", Usage: "bar"},
 		&cli.Float64Flag{Name: "foo", Usage: "bar"},

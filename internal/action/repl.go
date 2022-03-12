@@ -22,6 +22,7 @@ func (s *Action) entriesForCompleter(ctx context.Context) ([]readline.PrefixComp
 	for _, v := range list {
 		args = append(args, readline.PcItem(v))
 	}
+
 	return args, nil
 }
 
@@ -37,6 +38,7 @@ func (s *Action) replCompleteRecipients(ctx context.Context, cmd *cli.Command) [
 	for _, alias := range cmd.Aliases {
 		args = append(args, readline.PcItem(alias, subCmds...))
 	}
+
 	return args
 }
 
@@ -50,6 +52,7 @@ func (s *Action) replCompleteTemplates(ctx context.Context, cmd *cli.Command) []
 	for _, alias := range cmd.Aliases {
 		args = append(args, readline.PcItem(alias, subCmds...))
 	}
+
 	return args
 }
 
@@ -101,6 +104,7 @@ func (s *Action) prefixCompleter(c *cli.Context) *readline.PrefixCompleter {
 			cmds = append(cmds, readline.PcItem(alias, subCmds...))
 		}
 	}
+
 	return readline.NewPrefixCompleter(cmds...)
 }
 
@@ -122,7 +126,10 @@ func (s *Action) REPL(c *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	defer rl.Close()
+
+	defer func() {
+		_ = rl.Close()
+	}()
 
 READ:
 	for {
@@ -136,11 +143,13 @@ READ:
 		line, err := rl.Readline()
 		if err != nil {
 			debug.Log("Readline error: %s", err)
+
 			break
 		}
 		args, err := shellquote.Split(line)
 		if err != nil {
 			out.Printf(c.Context, "Error: %s", err)
+
 			continue
 		}
 		if len(args) < 1 {
@@ -151,9 +160,11 @@ READ:
 			break READ
 		case "lock":
 			s.replLock(c.Context)
+
 			continue
 		case "clear":
-			readline.ClearScreen(stdout)
+			readline.ClearScreen(stdout) //nolint:errcheck
+
 			continue
 		default:
 		}
@@ -166,12 +177,14 @@ READ:
 			continue
 		}
 	}
+
 	return nil
 }
 
 func (s *Action) replLock(ctx context.Context) {
 	if err := s.Store.Lock(); err != nil {
 		out.Errorf(ctx, "Failed to lock stores: %s", err)
+
 		return
 	}
 	out.OKf(ctx, "Locked")

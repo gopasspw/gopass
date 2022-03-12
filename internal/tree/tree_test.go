@@ -7,13 +7,18 @@ import (
 )
 
 func TestTree(t *testing.T) {
+	t.Parallel()
+
 	t1 := NewTree()
 	t2 := NewTree()
 
 	assert.True(t, t1.Equals(t2))
 
-	t1.Insert(&Node{Name: "foo"})
+	_, err := t1.Insert(&Node{Name: "foo"})
+	assert.NoError(t, err)
 	assert.False(t, t1.Equals(t2))
-	t2.Insert(&Node{Name: "foo"})
+
+	_, err = t2.Insert(&Node{Name: "foo"})
+	assert.NoError(t, err)
 	assert.True(t, t1.Equals(t2))
 }

@@ -21,12 +21,14 @@ func (g *GPG) Encrypt(ctx context.Context, plaintext []byte, recipients []string
 		// explicitly opt-in to do this
 		args = append(args, "--trust-model=always")
 	}
+
 	for _, r := range recipients {
 		kl, err := g.listKeys(ctx, "public", r)
 		if err != nil {
 			debug.Log("Failed to check key %s. Adding anyway. %s", err)
 		} else if len(kl.UseableKeys(gpg.IsAlwaysTrust(ctx))) < 1 {
 			out.Printf(ctx, "Not using invalid key %s for encryption. (Check its expiration date or its encryption capabilities.)", r)
+
 			continue
 		}
 		args = append(args, "--recipient", r)
@@ -42,5 +44,6 @@ func (g *GPG) Encrypt(ctx context.Context, plaintext []byte, recipients []string
 
 	debug.Log("%s %+v", cmd.Path, cmd.Args)
 	err := cmd.Run()
+
 	return buf.Bytes(), err
 }

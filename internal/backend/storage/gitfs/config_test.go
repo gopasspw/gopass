@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestGitConfig(t *testing.T) {
+func TestGitConfig(t *testing.T) { //nolint:paralleltest
 	td, err := os.MkdirTemp("", "gopass-")
 	require.NoError(t, err)
 	defer func() {

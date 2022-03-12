@@ -79,10 +79,12 @@ func Parse(reader io.Reader) gpg.KeyList {
 			if cur.Fingerprint != "" && cur.KeyLength > 0 {
 				kl = append(kl, cur)
 			}
+
 			validity := fields[1]
 			if validity == "" && fields[0] == "sec" {
 				validity = "u"
 			}
+
 			cur = gpg.Key{
 				KeyType:        fields[0],
 				Validity:       validity,
@@ -121,15 +123,19 @@ func parseKeyCaps(field string) gpg.Capabilities {
 	if strings.Contains(field, "S") {
 		keycaps.Sign = true
 	}
+
 	if strings.Contains(field, "E") {
 		keycaps.Encrypt = true
 	}
+
 	if strings.Contains(field, "C") {
 		keycaps.Certify = true
 	}
+
 	if strings.Contains(field, "A") {
 		keycaps.Authentication = true
 	}
+
 	if strings.Contains(field, "D") {
 		keycaps.Deactivated = true
 	}
@@ -141,31 +147,38 @@ func parseColonIdentity(fields []string) gpg.Identity {
 	for i, f := range fields {
 		fields[i] = strings.ReplaceAll(f, "\\x3a", ":")
 	}
+
 	id := fields[9]
 	ni := gpg.Identity{
 		Name:           id,
 		CreationDate:   parseTS(fields[5]),
 		ExpirationDate: parseTS(fields[6]),
 	}
+
 	if reUIDComment.MatchString(id) {
 		if m := reUIDComment.FindStringSubmatch(id); len(m) > 3 {
 			ni.Name = m[1]
 			ni.Comment = strings.Trim(m[2], "()")
 			ni.Email = m[3]
+
 			return ni
 		}
 	}
+
 	if reUIDNoEmailComment.MatchString(id) {
 		if m := reUIDNoEmailComment.FindStringSubmatch(id); len(m) > 2 {
 			ni.Name = m[1]
 			ni.Comment = strings.Trim(m[2], "()")
 		}
+
 		return ni
 	}
+
 	if reUID.MatchString(id) {
 		if m := reUID.FindStringSubmatch(id); len(m) > 2 {
 			ni.Name = m[1]
 			ni.Email = m[2]
+
 			return ni
 		}
 	}

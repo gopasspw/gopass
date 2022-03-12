@@ -45,6 +45,7 @@ func (s *Action) edit(ctx context.Context, c *cli.Context, name string) error {
 	if err != nil {
 		return exit.Error(exit.Unknown, err, "failed to invoke editor: %s", err)
 	}
+
 	return s.editUpdate(ctx, name, content, newContent, changed, ed)
 }
 
@@ -65,6 +66,7 @@ func (s *Action) editUpdate(ctx context.Context, name string, content, nContent 
 	if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, fmt.Sprintf("Edited with %s", ed)), name, nSec); err != nil {
 		return exit.Error(exit.Encrypt, err, "failed to encrypt secret %s: %s", name, err)
 	}
+
 	return nil
 }
 
@@ -84,6 +86,7 @@ func (s *Action) editGetContent(ctx context.Context, name string, create bool) (
 		if err != nil {
 			return name, nil, false, exit.Error(exit.Decrypt, err, "failed to decrypt %s: %s", name, err)
 		}
+
 		return name, sec.Bytes(), false, nil
 	}
 
@@ -105,10 +108,12 @@ func (s *Action) editFindName(ctx context.Context, name string) (string, error) 
 	// capture only the name of the selected secret.
 	cb := func(ctx context.Context, c *cli.Context, selectedName string, recurse bool) error {
 		newName = selectedName
+
 		return nil
 	}
 	if err := s.find(ctx, nil, name, cb, false); err != nil {
 		debug.Log("failed to find secret %s: %s", name, err)
+
 		return name, nil
 	}
 
@@ -116,8 +121,10 @@ func (s *Action) editFindName(ctx context.Context, name string) (string, error) 
 	if err != nil {
 		return name, err
 	}
+
 	if cont {
 		return newName, nil
 	}
+
 	return name, nil
 }

@@ -3,6 +3,7 @@ package tpl
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"path/filepath"
 	"text/template"
 
@@ -32,12 +33,12 @@ func Execute(ctx context.Context, tpl, name string, content []byte, s kvstore) (
 
 	tmpl, err := template.New(tpl).Funcs(funcs).Parse(tpl)
 	if err != nil {
-		return []byte{}, err
+		return []byte{}, fmt.Errorf("failed to parse template: %w", err)
 	}
 
 	buff := &bytes.Buffer{}
 	if err := tmpl.Execute(buff, pl); err != nil {
-		return []byte{}, err
+		return []byte{}, fmt.Errorf("failed to execute template: %w", err)
 	}
 
 	return buff.Bytes(), nil

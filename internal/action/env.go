@@ -67,5 +67,6 @@ func (s *Action) Env(c *cli.Context) error {
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = stdout
 	cmd.Stderr = os.Stderr
+
 	return cmd.Run()
 }

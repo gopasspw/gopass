@@ -7,6 +7,8 @@ import (
 )
 
 func TestMaxConsec(t *testing.T) {
+	t.Parallel()
+
 	// good
 	for _, tc := range []string{
 		"abcd",
@@ -29,6 +31,8 @@ func TestMaxConsec(t *testing.T) {
 }
 
 func TestContainsOnly(t *testing.T) {
+	t.Parallel()
+
 	// good
 	for _, tc := range []string{
 		"aBcDeF",

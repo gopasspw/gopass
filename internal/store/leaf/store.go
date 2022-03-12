@@ -22,6 +22,7 @@ type Store struct {
 // Init initializes this sub store.
 func Init(ctx context.Context, alias, path string) (*Store, error) {
 	debug.Log("Initializing %s at %s", alias, path)
+
 	s := &Store{
 		alias: alias,
 		path:  path,
@@ -31,6 +32,7 @@ func Init(ctx context.Context, alias, path string) (*Store, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize storage for %s at %s: %w", alias, path, err)
 	}
+
 	s.storage = st
 	debug.Log("Storage for %s => %s initialized as %s", alias, path, st.Name())
 
@@ -38,15 +40,16 @@ func Init(ctx context.Context, alias, path string) (*Store, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize crypto for %s at %s: %w", alias, path, err)
 	}
+
 	s.crypto = crypto
-	debug.Log("Crypto for %s => %s initialized as %s", alias, path, crypto.Name())
+	debug.Log("Crypto for %q => %q initialized as %s", alias, path, crypto.Name())
 
 	return s, nil
 }
 
 // New creates a new store.
 func New(ctx context.Context, alias, path string) (*Store, error) {
-	debug.Log("Instantiating %s at %s", alias, path)
+	debug.Log("Instantiating %q at %q", alias, path)
 
 	s := &Store{
 		alias: alias,
@@ -57,12 +60,14 @@ func New(ctx context.Context, alias, path string) (*Store, error) {
 	if err := s.initStorageBackend(ctx); err != nil {
 		return nil, fmt.Errorf("failed to init storage backend: %w", err)
 	}
+
 	debug.Log("Storage for %s => %s initialized as %v", alias, path, s.storage)
 
 	// init crypto backend
 	if err := s.initCryptoBackend(ctx); err != nil {
 		return nil, fmt.Errorf("failed to init crypto backend: %w", err)
 	}
+
 	debug.Log("Crypto for %s => %s initialized as %v", alias, path, s.crypto)
 
 	return s, nil
@@ -75,22 +80,29 @@ func (s *Store) idFile(ctx context.Context, name string) string {
 	if s.crypto == nil {
 		return ""
 	}
+
 	fn := name
+
 	var cnt uint8
+
 	for {
 		cnt++
 		if cnt > 100 {
 			break
 		}
+
 		if fn == "" || fn == Sep {
 			break
 		}
+
 		gfn := filepath.Join(fn, s.crypto.IDFile())
 		if s.storage.Exists(ctx, gfn) {
 			return gfn
 		}
+
 		fn = filepath.Dir(fn)
 	}
+
 	return s.crypto.IDFile()
 }
 
@@ -108,10 +120,12 @@ func (s *Store) idFiles(ctx context.Context) []string {
 	// we need to transform the list of files into a list of id files so we can't use
 	// set.SortedFiltered as it doesn't support transformations
 	idfs := make([]string, 0, len(files))
+
 	for _, f := range files {
 		if strings.HasPrefix(filepath.Base(f), ".") {
 			continue
 		}
+
 		idf := s.idFile(ctx, f)
 		if s.storage.Exists(ctx, idf) {
 			idfs = append(idfs, idf)
@@ -119,6 +133,7 @@ func (s *Store) idFiles(ctx context.Context) []string {
 	}
 
 	debug.Log("idFiles: %q", idfs)
+
 	return set.Sorted(idfs)
 }
 
@@ -127,6 +142,7 @@ func (s *Store) Equals(other *Store) bool {
 	if other == nil {
 		return false
 	}
+
 	return s.Path() == other.Path()
 }
 

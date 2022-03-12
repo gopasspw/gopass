@@ -27,6 +27,7 @@ func (s StorageBackend) String() string {
 	if be, err := StorageRegistry.BackendName(s); err == nil {
 		return be
 	}
+
 	return ""
 }
 
@@ -58,6 +59,7 @@ func DetectStorage(ctx context.Context, path string) (Storage, error) {
 		st, err := be.New(ctx, path)
 		if err == nil {
 			debug.Log("Using requested %s for %s", be, path)
+
 			return st, nil
 		}
 		debug.Log("Failed to use requested %s for %s: %s", be, path, err)
@@ -67,7 +69,8 @@ func DetectStorage(ctx context.Context, path string) (Storage, error) {
 		if err != nil {
 			return nil, err
 		}
-		debug.Log("Using fallback %s for %s", be, path)
+		debug.Log("Using fallback %q for %q", be, path)
+
 		return be.Init(ctx, path)
 	}
 
@@ -76,9 +79,11 @@ func DetectStorage(ctx context.Context, path string) (Storage, error) {
 		debug.Log("Trying %s for %s", be, path)
 		if err := be.Handles(ctx, path); err != nil {
 			debug.Log("failed to use %s for %s: %s", be, path, err)
+
 			continue
 		}
 		debug.Log("Using detected %s for %s", be, path)
+
 		return be.New(ctx, path)
 	}
 
@@ -87,7 +92,8 @@ func DetectStorage(ctx context.Context, path string) (Storage, error) {
 	if err != nil {
 		return nil, err
 	}
-	debug.Log("Using fallback %s for %s", be, path)
+	debug.Log("Using default fallback %q for %q", be, path)
+
 	return be.Init(ctx, path)
 }
 
@@ -95,8 +101,10 @@ func DetectStorage(ctx context.Context, path string) (Storage, error) {
 func NewStorage(ctx context.Context, id StorageBackend, path string) (Storage, error) {
 	if be, err := StorageRegistry.Get(id); err == nil {
 		debug.Log("Using %s for %s", be, path)
+
 		return be.New(ctx, path)
 	}
+
 	return nil, fmt.Errorf("unknown backend %q: %w", path, ErrNotFound)
 }
 
@@ -104,7 +112,9 @@ func NewStorage(ctx context.Context, id StorageBackend, path string) (Storage, e
 func InitStorage(ctx context.Context, id StorageBackend, path string) (Storage, error) {
 	if be, err := StorageRegistry.Get(id); err == nil {
 		debug.Log("Using %s for %s", be, path)
+
 		return be.Init(ctx, path)
 	}
+
 	return nil, fmt.Errorf("unknown backend %q: %w", path, ErrNotFound)
 }

@@ -15,7 +15,11 @@ import (
 )
 
 func TestBashEscape(t *testing.T) {
+	t.Parallel()
+
 	t.Run("bash escape", func(t *testing.T) {
+		t.Parallel()
+
 		expected := `a\\<\\>\\|\\\\and\\ sometimes\\?\\*\\(\\)\\&\\;\\#`
 		if escaped := bashEscape(`a<>|\and sometimes?*()&;#`); escaped != expected {
 			t.Errorf("Expected %q, but got %q", expected, escaped)
@@ -23,6 +27,8 @@ func TestBashEscape(t *testing.T) {
 	})
 
 	t.Run("bash escape single quote", func(t *testing.T) {
+		t.Parallel()
+
 		expected := `good\\ ol\'\\ days`
 		if escaped := bashEscape(`good ol' days`); escaped != expected {
 			t.Errorf("Expected %q, but got %q", expected, escaped)
@@ -30,6 +36,8 @@ func TestBashEscape(t *testing.T) {
 	})
 
 	t.Run("bash escape double quote", func(t *testing.T) {
+		t.Parallel()
+
 		expected := `my\\ \\\"bad\\\"\\ password`
 		if escaped := bashEscape(`my "bad" password`); escaped != expected {
 			t.Errorf("Expected %q, but got %q", expected, escaped)
@@ -37,7 +45,7 @@ func TestBashEscape(t *testing.T) {
 	})
 }
 
-func TestComplete(t *testing.T) {
+func TestComplete(t *testing.T) { //nolint:paralleltest
 	u := gptest.NewUnitTester(t)
 	defer u.Remove()
 
@@ -63,21 +71,21 @@ func TestComplete(t *testing.T) {
 		},
 	}
 
-	t.Run("complete foo", func(t *testing.T) {
+	t.Run("complete foo", func(t *testing.T) { //nolint:paralleltest
 		defer buf.Reset()
 
 		act.Complete(gptest.CliCtx(ctx, t))
 		assert.Equal(t, "foo\n", buf.String())
 	})
 
-	t.Run("bash completion", func(t *testing.T) {
+	t.Run("bash completion", func(t *testing.T) { //nolint:paralleltest
 		defer buf.Reset()
 
 		assert.NoError(t, act.CompletionBash(nil))
 		assert.Contains(t, buf.String(), "action.test")
 	})
 
-	t.Run("fish completion", func(t *testing.T) {
+	t.Run("fish completion", func(t *testing.T) { //nolint:paralleltest
 		defer buf.Reset()
 
 		assert.NoError(t, act.CompletionFish(app))
@@ -85,7 +93,7 @@ func TestComplete(t *testing.T) {
 		assert.Error(t, act.CompletionFish(nil))
 	})
 
-	t.Run("zsh completion", func(t *testing.T) {
+	t.Run("zsh completion", func(t *testing.T) { //nolint:paralleltest
 		defer buf.Reset()
 
 		assert.NoError(t, act.CompletionZSH(app))
@@ -93,7 +101,7 @@ func TestComplete(t *testing.T) {
 		assert.Error(t, act.CompletionZSH(nil))
 	})
 
-	t.Run("openbsdksh completion", func(t *testing.T) {
+	t.Run("openbsdksh completion", func(t *testing.T) { //nolint:paralleltest
 		defer buf.Reset()
 
 		assert.NoError(t, act.CompletionOpenBSDKsh(app))

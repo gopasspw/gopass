@@ -6,8 +6,8 @@ import (
 )
 
 func BenchmarkLogging(b *testing.B) {
-	os.Setenv("GOPASS_DEBUG", "true")
-	defer func() { os.Unsetenv("GOPASS_DEBUG") }()
+	b.Setenv("GOPASS_DEBUG", "true")
+
 	initDebug()
 
 	for i := 0; i < b.N; i++ {
@@ -16,7 +16,8 @@ func BenchmarkLogging(b *testing.B) {
 }
 
 func BenchmarkNoLogging(b *testing.B) {
-	os.Unsetenv("GOPASS_DEBUG")
+	_ = os.Unsetenv("GOPASS_DEBUG")
+
 	initDebug()
 
 	for i := 0; i < b.N; i++ {

@@ -29,9 +29,11 @@ func (s *Action) Clone(c *cli.Context) error {
 	if c.IsSet("crypto") {
 		ctx = backend.WithCryptoBackendString(ctx, c.String("crypto"))
 	}
+
 	if c.IsSet("storage") {
 		ctx = backend.WithStorageBackendString(ctx, c.String("storage"))
 	}
+
 	path := c.String("path")
 
 	if c.Args().Len() < 1 {
@@ -78,14 +80,17 @@ func (s *Action) Clone(c *cli.Context) error {
 	if err != nil {
 		return exit.Error(exit.Unknown, err, "Failed to check store status: %s", err)
 	}
+
 	if !inited {
 		out.Errorf(ctx, "Failed to clone")
+
 		return nil
 	}
 
 	if !c.Bool("check-keys") {
 		return nil
 	}
+
 	return s.cloneCheckDecryptionKeys(ctx, mount)
 }
 
@@ -96,13 +101,17 @@ func storageBackendOrDefault(ctx context.Context, repo string) backend.StorageBa
 	if be := backend.GetStorageBackend(ctx); be != backend.FS {
 		return be
 	}
+
 	if strings.HasSuffix(repo, ".fossil") {
 		return backend.FossilFS
 	}
+
 	if strings.HasSuffix(repo, ".git") {
 		return backend.GitFS
 	}
+
 	debug.Log("falling back to the default storage backend for clone (GitFS)")
+
 	return backend.GitFS
 }
 
@@ -110,10 +119,12 @@ func (s *Action) clone(ctx context.Context, repo, mount, path string) error {
 	if path == "" {
 		path = config.PwStoreDir(mount)
 	}
+
 	inited, err := s.Store.IsInitialized(ctxutil.WithGitInit(ctx, false))
 	if err != nil {
 		return exit.Error(exit.Unknown, err, "Failed to initialized stores: %s", err)
 	}
+
 	if mount == "" && inited {
 		return exit.Error(exit.AlreadyInitialized, nil, "Can not clone %s to the root store, as this store is already initialized. Please try cloning to a submount: `%s clone %s sub`", repo, s.Name, repo)
 	}
@@ -161,6 +172,7 @@ func (s *Action) clone(ctx context.Context, repo, mount, path string) error {
 	if mount != "" {
 		mount = " " + mount
 	}
+
 	out.Printf(ctx, "Your password store is ready to use! Have a look around: `%s list%s`\n", s.Name, mount)
 
 	return nil
@@ -192,11 +204,14 @@ func (s *Action) cloneCheckDecryptionKeys(ctx context.Context, mount string) err
 	ids, err := crypto.ListIdentities(ctx)
 	if err != nil {
 		out.Warningf(ctx, "Failed to check decryption keys: %s", err)
+
 		return nil
 	}
+
 	idSet := stringset.New(ids...)
 	if idSet.IsSubset(recpSet) {
 		out.Noticef(ctx, "Found valid decryption keys. You can now decrypt your passwords.")
+
 		return nil
 	}
 
@@ -228,13 +243,16 @@ func (s *Action) cloneAddMount(ctx context.Context, mount, path string) error {
 	if err != nil {
 		return exit.Error(exit.Unknown, err, "Failed to initialize store: %s", err)
 	}
+
 	if !inited {
 		return exit.Error(exit.NotInitialized, nil, "Root-Store is not initialized. Clone or init root store first")
 	}
+
 	if err := s.Store.AddMount(ctx, mount, path); err != nil {
 		return exit.Error(exit.Mount, err, "Failed to add mount: %s", err)
 	}
 	out.Printf(ctx, "Mounted password store %s at mount point `%s` ...", path, mount)
+
 	return nil
 }
 
@@ -251,6 +269,7 @@ func (s *Action) cloneGetGitConfig(ctx context.Context, name string) (string, st
 			return "", "", exit.Error(exit.IO, err, "Failed to read user input: %s", err)
 		}
 	}
+
 	if email == "" {
 		email = termio.DetectEmail(ctx, nil)
 		var err error
@@ -259,5 +278,6 @@ func (s *Action) cloneGetGitConfig(ctx context.Context, name string) (string, st
 			return "", "", exit.Error(exit.IO, err, "Failed to read user input: %s", err)
 		}
 	}
+
 	return username, email, nil
 }

@@ -40,6 +40,7 @@ func GetQueue(ctx context.Context) Queuer {
 	if q, ok := ctx.Value(ctxKeyQueue).(*Queue); ok {
 		return q
 	}
+
 	return &noop{}
 }
 
@@ -76,6 +77,7 @@ func New(ctx context.Context) *Queue {
 		done: make(chan struct{}, 1),
 	}
 	go q.run(ctx)
+
 	return q
 }
 
@@ -94,12 +96,14 @@ func (q *Queue) run(ctx context.Context) {
 func (q *Queue) Add(t Task) Task {
 	q.work <- t
 	debug.Log("enqueued task")
+
 	return func(_ context.Context) error { return nil }
 }
 
 // Idle returns nil the next time the queue is empty.
 func (q *Queue) Idle(maxWait time.Duration) error {
 	done := make(chan struct{})
+
 	go func() {
 		for {
 			if len(q.work) < 1 {
@@ -113,6 +117,7 @@ func (q *Queue) Idle(maxWait time.Duration) error {
 			time.Sleep(20 * time.Millisecond)
 		}
 	}()
+
 	select {
 	case <-done:
 		return nil
@@ -130,6 +135,7 @@ func (q *Queue) Close(ctx context.Context) error {
 		return nil
 	case <-ctx.Done():
 		debug.Log("context canceled")
+
 		return ctx.Err()
 	}
 }

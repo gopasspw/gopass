@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestInsert(t *testing.T) {
+func TestInsert(t *testing.T) { //nolint:paralleltest
 	ts := newTester(t)
 	defer ts.teardown()
 
@@ -23,7 +23,7 @@ func TestInsert(t *testing.T) {
 	_, err = ts.runCmd([]string{ts.Binary, "insert", "some/newsecret"}, []byte("and\nmoar"))
 	assert.NoError(t, err)
 
-	t.Run("Regression test for #1573 without actual pipes", func(t *testing.T) {
+	t.Run("Regression test for #1573 without actual pipes", func(t *testing.T) { //nolint:paralleltest
 		out, err = ts.run("show -f some/secret")
 		assert.NoError(t, err)
 		assert.Equal(t, "moar", out)
@@ -41,7 +41,7 @@ func TestInsert(t *testing.T) {
 		assert.Equal(t, "and\nmoar", out)
 	})
 
-	t.Run("Regression test for #1595", func(t *testing.T) {
+	t.Run("Regression test for #1595", func(t *testing.T) { //nolint:paralleltest
 		t.Skip("TODO")
 
 		_, err = ts.runCmd([]string{ts.Binary, "insert", "some/other"}, []byte("nope"))
@@ -100,7 +100,7 @@ func TestInsert(t *testing.T) {
 		assert.Equal(t, "inline2", out)
 	})
 
-	t.Run("Regression test for #1650 with JSON", func(t *testing.T) {
+	t.Run("Regression test for #1650 with JSON", func(t *testing.T) { //nolint:paralleltest
 		json := `Password: SECRET
 --
 glossary": {
@@ -132,7 +132,7 @@ glossary": {
 		assert.Equal(t, json, out)
 	})
 
-	t.Run("Regression test for #1600", func(t *testing.T) {
+	t.Run("Regression test for #1600", func(t *testing.T) { //nolint:paralleltest
 		input := `test1
 test2
 {
@@ -147,7 +147,7 @@ test2
 		assert.Equal(t, input, out)
 	})
 
-	t.Run("Regression test for #1601", func(t *testing.T) {
+	t.Run("Regression test for #1601", func(t *testing.T) { //nolint:paralleltest
 		input := `thepassword
 user: a user
 web: test.com
@@ -162,7 +162,7 @@ user: second user`
 		assert.Equal(t, input, out)
 	})
 
-	t.Run("Regression test full support for #1601", func(t *testing.T) {
+	t.Run("Regression test full support for #1601", func(t *testing.T) { //nolint:paralleltest
 		t.Skip("Skipping until we support actual key-valueS for KV")
 
 		input := `thepassword
@@ -184,7 +184,7 @@ user: second user`
 		assert.Equal(t, output, out)
 	})
 
-	t.Run("Regression test for #1614", func(t *testing.T) {
+	t.Run("Regression test for #1614", func(t *testing.T) { //nolint:paralleltest
 		input := `yamltest
 ---
 user: 0123`
@@ -207,7 +207,7 @@ user: 83`
 		assert.Equal(t, input, out)
 	})
 
-	t.Run("Regression test for #1594", func(t *testing.T) {
+	t.Run("Regression test for #1594", func(t *testing.T) { //nolint:paralleltest
 		input := `somepasswd
 ---
 Test / test.com

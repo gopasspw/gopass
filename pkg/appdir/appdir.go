@@ -21,7 +21,9 @@ func UserHome() string {
 	uhd, err := os.UserHomeDir()
 	if err != nil {
 		debug.Log("failed to detect user home dir: %s", err)
+
 		return ""
 	}
+
 	return uhd
 }

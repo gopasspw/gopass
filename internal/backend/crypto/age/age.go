@@ -39,6 +39,7 @@ func New() (*Age, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return &Age{
 		ghCache:   ghc,
 		recpCache: rc,

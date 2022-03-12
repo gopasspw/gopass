@@ -20,10 +20,12 @@ func AddPrefix(ctx context.Context, prefix string) context.Context {
 	if prefix == "" {
 		return ctx
 	}
+
 	pfx := Prefix(ctx)
 	if pfx == "" {
 		return WithPrefix(ctx, prefix)
 	}
+
 	return WithPrefix(ctx, pfx+prefix)
 }
 
@@ -33,6 +35,7 @@ func Prefix(ctx context.Context) string {
 	if !ok {
 		return ""
 	}
+
 	return sv
 }
 
@@ -47,5 +50,6 @@ func HasNewline(ctx context.Context) bool {
 	if !ok {
 		return true
 	}
+
 	return bv
 }

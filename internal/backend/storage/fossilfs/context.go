@@ -16,5 +16,6 @@ func getPathOverride(ctx context.Context, def string) string {
 	if sv, ok := ctx.Value(ctxKeyPathOverride).(string); ok && sv != "" {
 		return sv
 	}
+
 	return def
 }

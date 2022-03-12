@@ -19,7 +19,7 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-func TestFind(t *testing.T) {
+func TestFind(t *testing.T) { //nolint:paralleltest
 	u := gptest.NewUnitTester(t)
 	defer u.Remove()
 

@@ -64,6 +64,7 @@ func (c *Config) SetConfigValue(key, value string) error {
 	if err := c.setConfigValue(key, value); err != nil {
 		return err
 	}
+
 	return c.Save()
 }
 
@@ -80,17 +81,20 @@ func (c *Config) setConfigValue(key, value string) error {
 			continue
 		}
 		f := o.Field(i)
-		switch f.Kind() {
+		switch f.Kind() { //nolint:exhaustive
 		case reflect.String:
 			f.SetString(value)
+
 			return nil
 		case reflect.Bool:
 			switch {
 			case value == "true" || value == "on":
 				f.SetBool(true)
+
 				return nil
 			case value == "false" || value == "off":
 				f.SetBool(false)
+
 				return nil
 			default:
 				return fmt.Errorf("not a bool: %s", value)
@@ -101,11 +105,13 @@ func (c *Config) setConfigValue(key, value string) error {
 				return fmt.Errorf("failed to convert %q to integer: %w", value, err)
 			}
 			f.SetInt(int64(iv))
+
 			return nil
 		default:
 			continue
 		}
 	}
+
 	return fmt.Errorf("unknown config option %q", key)
 }
 
@@ -129,7 +135,7 @@ func (c *Config) ConfigMap() map[string]string {
 		}
 		f := o.Field(i)
 		var strVal string
-		switch f.Kind() {
+		switch f.Kind() { //nolint:exhaustive
 		case reflect.String:
 			strVal = f.String()
 		case reflect.Bool:
@@ -141,5 +147,6 @@ func (c *Config) ConfigMap() map[string]string {
 		}
 		m[jsonArg] = strVal
 	}
+
 	return m
 }

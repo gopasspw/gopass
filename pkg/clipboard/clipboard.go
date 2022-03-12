@@ -27,53 +27,65 @@ func CopyTo(ctx context.Context, name string, content []byte, timeout int) error
 	if clipboardCopyCMD != "" {
 		if err := callCommand(ctx, clipboardCopyCMD, name, content); err != nil {
 			_ = notify.Notify(ctx, "gopass - clipboard", "failed to call clipboard copy command")
+
 			return fmt.Errorf("failed to call clipboard copy command: %w", err)
 		}
 	} else if clipboard.Unsupported {
 		out.Errorf(ctx, "%s", ErrNotSupported)
 		_ = notify.Notify(ctx, "gopass - clipboard", fmt.Sprintf("%s", ErrNotSupported))
+
 		return nil
 	} else if err := copyToClipboard(ctx, content); err != nil {
 		_ = notify.Notify(ctx, "gopass - clipboard", "failed to write to clipboard")
+
 		return fmt.Errorf("failed to write to clipboard: %w", err)
 	}
 
 	if timeout < 1 {
 		timeout = 45
 	}
+
 	if err := clear(ctx, name, content, timeout); err != nil {
 		_ = notify.Notify(ctx, "gopass - clipboard", "failed to clear clipboard")
+
 		return fmt.Errorf("failed to clear clipboard: %w", err)
 	}
 
 	out.Printf(ctx, "✔ Copied %s to clipboard. Will clear in %d seconds.", color.YellowString(name), timeout)
 	_ = notify.Notify(ctx, "gopass - clipboard", fmt.Sprintf("✔ Copied %s to clipboard. Will clear in %d seconds.", name, timeout))
+
 	return nil
 }
 
 func callCommand(ctx context.Context, cmd string, parameter string, stdinValue []byte) error {
 	clipboardProcess := exec.Command(cmd, parameter)
 	stdin, err := clipboardProcess.StdinPipe()
-	defer stdin.Close()
+
+	defer func() {
+		_ = stdin.Close()
+	}()
 
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to create stdin pipe: %w", err)
 	}
+
 	if err = clipboardProcess.Start(); err != nil {
-		return err
+		return fmt.Errorf("failed to start clipboard process: %w", err)
 	}
+
 	if _, err = stdin.Write(stdinValue); err != nil {
-		return err
+		return fmt.Errorf("failed to write to STDIN: %w", err)
 	}
 
 	// Force STDIN close before we wait for the process to finish, so we avoid deadlocks
 	if err = stdin.Close(); err != nil {
-		return err
+		return fmt.Errorf("failed to close STDIN: %w", err)
 	}
 
 	if err := clipboardProcess.Wait(); err != nil {
-		return err
+		return fmt.Errorf("failed to call clipboard command: %w", err)
 	}
+
 	return nil
 }
 

@@ -1,7 +1,6 @@
 package tests
 
 import (
-	"os"
 	"strings"
 	"testing"
 
@@ -9,7 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestGenerate(t *testing.T) {
+func TestGenerate(t *testing.T) { //nolint:paralleltest
 	ts := newTester(t)
 	defer ts.teardown()
 
@@ -25,15 +24,20 @@ func TestGenerate(t *testing.T) {
 
 	out, err = ts.run("generate -p baz 42")
 	assert.NoError(t, err)
+
 	lines := strings.Split(out, "\n")
+
 	require.Greater(t, len(lines), 2)
 	assert.Contains(t, out, "The generated password is:")
 	assert.Len(t, lines[3], 42)
 
-	_ = os.Setenv("GOPASS_CHARACTER_SET", "a")
+	t.Setenv("GOPASS_CHARACTER_SET", "a")
+
 	out, err = ts.run("generate -p zab 4")
 	assert.NoError(t, err)
+
 	lines = strings.Split(out, "\n")
+
 	require.Greater(t, len(lines), 2)
 	assert.Contains(t, out, "The generated password is:")
 	assert.Equal(t, lines[3], "aaaa")

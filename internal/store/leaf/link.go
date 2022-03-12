@@ -15,6 +15,7 @@ func (s *Store) Link(ctx context.Context, from, to string) error {
 	if !s.Exists(ctx, from) {
 		return fmt.Errorf("source %q does not exists", from)
 	}
+
 	if s.Exists(ctx, to) {
 		return fmt.Errorf("destination %q already exists", to)
 	}
@@ -22,12 +23,14 @@ func (s *Store) Link(ctx context.Context, from, to string) error {
 	if err := s.storage.Link(ctx, s.passfile(from), s.passfile(to)); err != nil {
 		return fmt.Errorf("failed to create symlink from %q to %q: %w", from, to, err)
 	}
+
 	debug.Log("created symlink from %q to %q", from, to)
 
 	if err := s.storage.Add(ctx, s.passfile(to)); err != nil {
 		if errors.Is(err, store.ErrGitNotInit) {
 			return nil
 		}
+
 		return fmt.Errorf("failed to add %q to git: %w", to, err)
 	}
 
@@ -36,5 +39,6 @@ func (s *Store) Link(ctx context.Context, from, to string) error {
 	t := queue.GetQueue(ctx).Add(func(ctx context.Context) error {
 		return s.gitCommitAndPush(ctx, to)
 	})
+
 	return t(ctx)
 }

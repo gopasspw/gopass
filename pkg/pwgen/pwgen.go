@@ -11,6 +11,9 @@ import (
 	"strings"
 )
 
+// ErrMaxTries is returned when the maximum number of tries is reached.
+var ErrMaxTries = fmt.Errorf("maximum tries exceeded")
+
 // Character classes.
 const (
 	Digits = "0123456789"
@@ -32,9 +35,11 @@ func GeneratePassword(length int, symbols bool) string {
 	if symbols {
 		chars += Syms
 	}
+
 	if c := os.Getenv("GOPASS_CHARACTER_SET"); c != "" {
 		chars = c
 	}
+
 	return GeneratePasswordCharset(length, chars)
 }
 
@@ -43,6 +48,7 @@ func GeneratePassword(length int, symbols bool) string {
 func GeneratePasswordCharset(length int, chars string) string {
 	c := NewCryptic(length, false)
 	c.Chars = chars
+
 	return c.Password()
 }
 
@@ -55,7 +61,8 @@ func GeneratePasswordWithAllClasses(length int, symbols bool) (string, error) {
 	if pw := c.Password(); pw != "" {
 		return pw, nil
 	}
-	return "", fmt.Errorf("failed to generate matching password after %d rounds", c.MaxTries)
+
+	return "", fmt.Errorf("failed to generate matching password after %d rounds: %w", c.MaxTries, ErrMaxTries)
 }
 
 // GeneratePasswordCharsetCheck generates a random password from a given
@@ -63,17 +70,21 @@ func GeneratePasswordWithAllClasses(length int, symbols bool) (string, error) {
 func GeneratePasswordCharsetCheck(length int, chars string) string {
 	c := NewCrypticWithCrunchy(length, false)
 	c.Chars = chars
+
 	return c.Password()
 }
 
 // Prune removes all characters in cutset from the input.
 func Prune(in string, cutset string) string {
 	out := make([]rune, 0, len(in))
+
 	for _, r := range in {
 		if strings.Contains(cutset, string(r)) {
 			continue
 		}
+
 		out = append(out, r)
 	}
+
 	return string(out)
 }

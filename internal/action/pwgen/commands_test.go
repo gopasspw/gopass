@@ -9,11 +9,15 @@ import (
 )
 
 func testCommand(t *testing.T, cmd *cli.Command) {
+	t.Helper()
+
 	if len(cmd.Subcommands) < 1 {
 		assert.NotNil(t, cmd.Action, cmd.Name)
 	}
+
 	assert.NotEmpty(t, cmd.Usage)
 	assert.NotEmpty(t, cmd.Description)
+
 	for _, flag := range cmd.Flags {
 		switch v := flag.(type) {
 		case *cli.StringFlag:
@@ -24,12 +28,15 @@ func testCommand(t *testing.T, cmd *cli.Command) {
 			assert.NotEmpty(t, v.Usage)
 		}
 	}
+
 	for _, scmd := range cmd.Subcommands {
 		testCommand(t, scmd)
 	}
 }
 
 func TestCommands(t *testing.T) {
+	t.Parallel()
+
 	u := gptest.NewUnitTester(t)
 	defer u.Remove()
 

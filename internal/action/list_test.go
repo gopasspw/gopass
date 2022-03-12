@@ -16,7 +16,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestList(t *testing.T) {
+func TestList(t *testing.T) { //nolint:paralleltest
 	u := gptest.NewUnitTester(t)
 	defer u.Remove()
 
@@ -48,7 +48,7 @@ func TestList(t *testing.T) {
 	// add foo/bar and list folder foo
 	sec := &secrets.Plain{}
 	sec.SetPassword("123")
-	sec.Set("bar", "zab")
+	assert.Error(t, sec.Set("bar", "zab"))
 	assert.NoError(t, act.Store.Set(ctx, "foo/bar", sec))
 	buf.Reset()
 
@@ -89,7 +89,7 @@ foo2/
 	buf.Reset()
 }
 
-func TestListLimit(t *testing.T) {
+func TestListLimit(t *testing.T) { //nolint:paralleltest
 	u := gptest.NewUnitTester(t)
 	defer u.Remove()
 
@@ -172,7 +172,7 @@ foo2/bar2
 	buf.Reset()
 }
 
-func TestRedirectPager(t *testing.T) {
+func TestRedirectPager(t *testing.T) { //nolint:paralleltest
 	ctx := context.Background()
 
 	var buf *bytes.Buffer

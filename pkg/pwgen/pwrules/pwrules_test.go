@@ -7,6 +7,8 @@ import (
 )
 
 func TestParseRule(t *testing.T) {
+	t.Parallel()
+
 	for _, tc := range []struct {
 		in  string
 		out Rule
@@ -53,6 +55,8 @@ func TestParseRule(t *testing.T) {
 	} {
 		tc := tc
 		t.Run(tc.in, func(t *testing.T) {
+			t.Parallel()
+
 			assert.Equal(t, tc.out, ParseRule(tc.in))
 		})
 	}

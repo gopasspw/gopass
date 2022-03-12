@@ -9,6 +9,8 @@ import (
 )
 
 func TestGetSelection(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 	ctx = ctxutil.WithInteractive(ctx, false)
 

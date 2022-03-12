@@ -6,7 +6,6 @@ import (
 	"crypto/sha1"
 	"fmt"
 	"strconv"
-	"strings"
 	"text/template"
 
 	"github.com/gopasspw/gopass/internal/pwschemes/argon2i"
@@ -52,17 +51,21 @@ func sha1sum() func(...string) (string, error) {
 func saltLen(s []string) uint8 {
 	if len(s) < 2 {
 		debug.Log("no salt length given, using default %d", 32)
+
 		return 32
 	}
 
 	i, err := strconv.ParseUint(s[0], 10, 8)
 	if err != nil {
 		debug.Log("failed to parse saltLen %+v: %q. using default: %d", s, err, 32)
+
 		return 32
 	}
 
 	sl := uint8(i)
+
 	debug.Log("using saltLen %d", sl)
+
 	return sl
 }
 
@@ -72,18 +75,13 @@ func md5cryptFunc() func(...string) (string, error) {
 		if len(s) < 1 {
 			return "", fmt.Errorf("usage: %s <salt> <password>", FuncMd5Crypt)
 		}
+
 		sl := saltLen(s)
 		if sl > 8 || sl < 1 {
 			sl = 4
 		}
-		var ret string
-		var err error
-		// Perform rejection sampling to avoid invalid salts
-		// TODO: remove this once https://github.com/jsimonetti/pwscheme/issues/1 is fixed
-		for strings.Count(ret, "$") != 3 {
-			ret, err = md5crypt.Generate(s[len(s)-1], sl)
-		}
-		return ret, err
+
+		return md5crypt.Generate(s[len(s)-1], sl) //nolint:wrapcheck
 	}
 }
 
@@ -93,7 +91,8 @@ func sshaFunc() func(...string) (string, error) {
 		if len(s) < 1 {
 			return "", fmt.Errorf("usage: %s <salt> <password>", FuncSSHA)
 		}
-		return ssha.Generate(s[len(s)-1], saltLen(s))
+
+		return ssha.Generate(s[len(s)-1], saltLen(s)) //nolint:wrapcheck
 	}
 }
 
@@ -103,7 +102,8 @@ func ssha256Func() func(...string) (string, error) {
 		if len(s) < 1 {
 			return "", fmt.Errorf("usage: %s <salt> <password>", FuncSSHA256)
 		}
-		return ssha256.Generate(s[len(s)-1], saltLen(s))
+
+		return ssha256.Generate(s[len(s)-1], saltLen(s)) //nolint:wrapcheck
 	}
 }
 
@@ -113,7 +113,8 @@ func ssha512Func() func(...string) (string, error) {
 		if len(s) < 1 {
 			return "", fmt.Errorf("usage: %s <salt> <password>", FuncSSHA512)
 		}
-		return ssha512.Generate(s[len(s)-1], saltLen(s))
+
+		return ssha512.Generate(s[len(s)-1], saltLen(s)) //nolint:wrapcheck
 	}
 }
 
@@ -123,7 +124,8 @@ func argon2iFunc() func(...string) (string, error) {
 		if len(s) < 1 {
 			return "", fmt.Errorf("usage: %s <salt> <password>", FuncArgon2i)
 		}
-		return argon2i.Generate(s[len(s)-1], uint32(saltLen(s)))
+
+		return argon2i.Generate(s[len(s)-1], uint32(saltLen(s))) //nolint:wrapcheck
 	}
 }
 
@@ -133,7 +135,8 @@ func argon2idFunc() func(...string) (string, error) {
 		if len(s) < 1 {
 			return "", fmt.Errorf("usage: %s <salt> <password> or <password>", FuncArgon2id)
 		}
-		return argon2id.Generate(s[len(s)-1], uint32(saltLen(s)))
+
+		return argon2id.Generate(s[len(s)-1], uint32(saltLen(s))) //nolint:wrapcheck
 	}
 }
 
@@ -143,7 +146,8 @@ func bcryptFunc() func(...string) (string, error) {
 		if len(s) < 1 {
 			return "", fmt.Errorf("usage: %s <password>", FuncBcrypt)
 		}
-		return bcrypt.Generate(s[len(s)-1])
+
+		return bcrypt.Generate(s[len(s)-1]) //nolint:wrapcheck
 	}
 }
 
@@ -152,13 +156,16 @@ func get(ctx context.Context, kv kvstore) func(...string) (string, error) {
 		if len(s) < 1 {
 			return "", nil
 		}
+
 		if kv == nil {
 			return "", fmt.Errorf("KV is nil")
 		}
+
 		sec, err := kv.Get(ctx, s[0])
 		if err != nil {
 			return err.Error(), nil
 		}
+
 		return string(sec.Bytes()), nil
 	}
 }
@@ -168,13 +175,16 @@ func getPassword(ctx context.Context, kv kvstore) func(...string) (string, error
 		if len(s) < 1 {
 			return "", nil
 		}
+
 		if kv == nil {
 			return "", fmt.Errorf("KV is nil")
 		}
+
 		sec, err := kv.Get(ctx, s[0])
 		if err != nil {
 			return err.Error(), nil
 		}
+
 		return sec.Password(), nil
 	}
 }
@@ -184,17 +194,21 @@ func getValue(ctx context.Context, kv kvstore) func(...string) (string, error) {
 		if len(s) < 2 {
 			return "", nil
 		}
+
 		if kv == nil {
 			return "", fmt.Errorf("KV is nil")
 		}
+
 		sec, err := kv.Get(ctx, s[0])
 		if err != nil {
 			return err.Error(), nil
 		}
+
 		sv, found := sec.Get(s[1])
 		if !found {
 			return "", fmt.Errorf("key %q not found", s[1])
 		}
+
 		return sv, nil
 	}
 }
@@ -204,17 +218,21 @@ func getValues(ctx context.Context, kv kvstore) func(...string) ([]string, error
 		if len(s) < 2 {
 			return nil, nil
 		}
+
 		if kv == nil {
 			return nil, fmt.Errorf("KV is nil")
 		}
+
 		sec, err := kv.Get(ctx, s[0])
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to get %q: %w", s[0], err)
 		}
+
 		values, found := sec.Values(s[1])
 		if !found {
 			return nil, fmt.Errorf("key %q not found", s[1])
 		}
+
 		return values, nil
 	}
 }

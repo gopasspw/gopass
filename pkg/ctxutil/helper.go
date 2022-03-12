@@ -6,6 +6,7 @@ import "context"
 // the provided context.
 func hasString(ctx context.Context, key contextKey) bool {
 	_, ok := ctx.Value(key).(string)
+
 	return ok
 }
 
@@ -13,6 +14,7 @@ func hasString(ctx context.Context, key contextKey) bool {
 // the provided context.
 func hasBool(ctx context.Context, key contextKey) bool {
 	_, ok := ctx.Value(key).(bool)
+
 	return ok
 }
 
@@ -23,5 +25,6 @@ func is(ctx context.Context, key contextKey, def bool) bool {
 	if !ok {
 		return def
 	}
+
 	return bv
 }

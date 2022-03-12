@@ -20,6 +20,7 @@ func (s *Store) List(ctx context.Context, prefix string) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	debug.Log("Listing %s: %+v\n", prefix, lst)
 	out := make([]string, 0, len(lst))
 	cExt := "." + s.crypto.Ext()
@@ -33,5 +34,6 @@ func (s *Store) List(ctx context.Context, prefix string) ([]string, error) {
 		}
 		out = append(out, path)
 	}
+
 	return out, nil
 }

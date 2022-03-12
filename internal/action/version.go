@@ -71,13 +71,19 @@ func versionInfo(ctx context.Context, v versioner) string {
 	if v == nil {
 		return "<none>"
 	}
+
 	return fmt.Sprintf("%s %s", v.Name(), v.Version(ctx))
 }
 
 func (s *Action) checkVersion(ctx context.Context, u chan string) {
+	msg := ""
+	defer func() {
+		u <- msg
+	}()
+
 	if disabled := os.Getenv("CHECKPOINT_DISABLE"); disabled != "" {
-		u <- ""
 		debug.Log("remote version check disabled by CHECKPOINT_DISABLE")
+
 		return
 	}
 
@@ -86,36 +92,38 @@ func (s *Action) checkVersion(ctx context.Context, u chan string) {
 
 	if !force && strings.HasSuffix(s.version.String(), "+HEAD") {
 		// chan not check version against HEAD.
-		u <- ""
 		debug.Log("remote version check disabled for dev version")
+
 		return
 	}
 
 	if !force && protect.ProtectEnabled {
 		// chan not check version
 		// against pledge(2)'d OpenBSD.
-		u <- ""
 		debug.Log("remote version check disabled for pledge(2)'d version")
+
 		return
 	}
 
 	r, err := updater.FetchLatestRelease(ctx)
 	if err != nil {
-		u <- color.RedString("\nError checking latest version: %s", err)
+		msg = color.RedString("\nError checking latest version: %s", err)
+
 		return
 	}
 
-	if s.version.LT(r.Version) {
-		notice := fmt.Sprintf("\nYour version (%s) of gopass is out of date!\nThe latest version is %s.\n", s.version, r.Version.String())
-		notice += "You can update by downloading from https://www.gopass.pw/#install"
-		if err := updater.IsUpdateable(ctx); err == nil {
-			notice += " by running 'gopass update'"
-		}
-		notice += " or via your package manager"
-		u <- color.YellowString(notice)
-	} else {
-		s.rem.Reset("update")
+	if s.version.GTE(r.Version) {
+		_ = s.rem.Reset("update")
 		debug.Log("gopass is up-to-date (local: %q, GitHub: %q)", s.version, r.Version)
+
+		return
 	}
-	u <- ""
+
+	notice := fmt.Sprintf("\nYour version (%s) of gopass is out of date!\nThe latest version is %s.\n", s.version, r.Version.String())
+	notice += "You can update by downloading from https://www.gopass.pw/#install"
+	if err := updater.IsUpdateable(ctx); err == nil {
+		notice += " by running 'gopass update'"
+	}
+	notice += " or via your package manager"
+	msg = color.YellowString(notice)
 }

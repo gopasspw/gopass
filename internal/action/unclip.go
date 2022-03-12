@@ -22,5 +22,6 @@ func (s *Action) Unclip(c *cli.Context) error {
 	if err := clipboard.Clear(ctx, name, checksum, force); err != nil {
 		return exit.Error(exit.IO, err, "Failed to clear clipboard: %s", err)
 	}
+
 	return nil
 }

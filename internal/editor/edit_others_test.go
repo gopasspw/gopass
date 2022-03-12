@@ -18,6 +18,8 @@ import (
 )
 
 func TestEditor(t *testing.T) {
+	t.Parallel()
+
 	u := gptest.NewUnitTester(t)
 	defer u.Remove()
 
@@ -34,6 +36,7 @@ func TestEditor(t *testing.T) {
 }
 
 func TestGetEditor(t *testing.T) {
+	t.Parallel()
 	app := cli.NewApp()
 
 	// --editor=fooed

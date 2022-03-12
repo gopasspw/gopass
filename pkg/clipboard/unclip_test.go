@@ -8,18 +8,14 @@ import (
 
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"github.com/gopasspw/gopass/tests/gptest"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNotExistingClipboardClearCommand(t *testing.T) {
-	r1 := gptest.UnsetVars("GOPASS_CLIPBOARD_CLEAR_CMD")
-	defer r1()
-
+func TestNotExistingClipboardClearCommand(t *testing.T) { //nolint:paralleltest
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 
-	_ = os.Setenv("GOPASS_CLIPBOARD_CLEAR_CMD", "not_existing_command")
+	t.Setenv("GOPASS_CLIPBOARD_CLEAR_CMD", "not_existing_command")
 
 	maybeErr := Clear(ctx, "", "", false)
 	assert.Error(t, maybeErr)
@@ -27,11 +23,14 @@ func TestNotExistingClipboardClearCommand(t *testing.T) {
 }
 
 func TestUnclip(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
+
 	defer func() {
 		out.Stdout = os.Stdout
 	}()

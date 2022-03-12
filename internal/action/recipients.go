@@ -42,6 +42,7 @@ func (s *Action) RecipientsPrint(c *cli.Context) error {
 	}
 
 	fmt.Fprintln(stdout, t.Format(tree.INF))
+
 	return nil
 }
 
@@ -49,6 +50,7 @@ func (s *Action) recipientsList(ctx context.Context) []string {
 	t, err := s.Store.RecipientsTree(ctxutil.WithHidden(ctx, true), false)
 	if err != nil {
 		debug.Log("failed to list recipients: %s", err)
+
 		return nil
 	}
 
@@ -79,7 +81,7 @@ func (s *Action) RecipientsAdd(c *cli.Context) error {
 	crypto := s.Store.Crypto(ctx, store)
 
 	// select recipient.
-	recipients := []string(c.Args().Slice())
+	recipients := c.Args().Slice()
 	if len(recipients) < 1 {
 		debug.Log("no recipients given, asking for selection")
 		r, err := s.recipientsSelectForAdd(ctx, store)
@@ -111,6 +113,7 @@ func (s *Action) RecipientsAdd(c *cli.Context) error {
 			out.Printf(ctx, "If this is your key: gpg --edit-key %s; trust (set to ultimate); quit", r)
 			out.Printf(ctx, "If this is not your key: gpg --edit-key %s; lsign; trust; save; quit", r)
 			out.Printf(ctx, "You may need to run 'gpg --update-trustdb' afterwards")
+
 			continue
 		}
 
@@ -132,6 +135,7 @@ func (s *Action) RecipientsAdd(c *cli.Context) error {
 
 	out.Printf(ctx, "\nAdded %d recipients", added)
 	out.Printf(ctx, "You need to run 'gopass sync' to push these changes")
+
 	return nil
 }
 
@@ -150,7 +154,7 @@ func (s *Action) RecipientsRemove(c *cli.Context) error {
 	crypto := s.Store.Crypto(ctx, store)
 
 	// select recipient.
-	recipients := []string(c.Args().Slice())
+	recipients := c.Args().Slice()
 	if len(recipients) < 1 {
 		rs, err := s.recipientsSelectForRemoval(ctx, store)
 		if err != nil {
@@ -183,6 +187,7 @@ func (s *Action) RecipientsRemove(c *cli.Context) error {
 			out.Printf(ctx, "If this is your key: gpg --edit-key %s; trust (set to ultimate); quit", r)
 			out.Printf(ctx, "If this is not your key: gpg --edit-key %s; lsign; trust; save; quit", r)
 			out.Printf(ctx, "You may need to run 'gpg --update-trustdb' afterwards")
+
 			continue
 		}
 
@@ -203,6 +208,7 @@ func (s *Action) RecipientsRemove(c *cli.Context) error {
 
 	out.Printf(ctx, "\nRemoved %d recipients", removed)
 	out.Printf(ctx, "You need to run 'gopass sync' to push these changes")
+
 	return nil
 }
 
@@ -214,6 +220,7 @@ func (s *Action) recipientsSelectForRemoval(ctx context.Context, store string) (
 	for _, id := range ids {
 		choices = append(choices, crypto.FormatKey(ctx, id, ""))
 	}
+
 	if len(choices) < 1 {
 		return nil, nil
 	}
@@ -237,6 +244,7 @@ func (s *Action) recipientsSelectForAdd(ctx context.Context, store string) ([]st
 	for _, key := range kl {
 		choices = append(choices, crypto.FormatKey(ctx, key, ""))
 	}
+
 	if len(choices) < 1 {
 		return nil, nil
 	}

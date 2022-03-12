@@ -25,9 +25,11 @@ func (s *Store) Copy(ctx context.Context, from, to string) error {
 	if err != nil {
 		return fmt.Errorf("failed to get %q from store: %w", from, err)
 	}
+
 	if err := s.Set(ctxutil.WithCommitMessage(ctx, fmt.Sprintf("Copied from %s to %s", from, to)), to, content); err != nil {
 		return fmt.Errorf("failed to save %q to store: %w", to, err)
 	}
+
 	return nil
 }
 
@@ -45,12 +47,15 @@ func (s *Store) Move(ctx context.Context, from, to string) error {
 	if err != nil {
 		return fmt.Errorf("failed to decrypt %q: %w", from, err)
 	}
+
 	if err := s.Set(ctxutil.WithCommitMessage(ctx, fmt.Sprintf("Move from %s to %s", from, to)), to, content); err != nil {
 		return fmt.Errorf("failed to write %q: %w", to, err)
 	}
+
 	if err := s.Delete(ctx, from); err != nil {
 		return fmt.Errorf("failed to delete %q: %w", from, err)
 	}
+
 	return nil
 }
 
@@ -101,6 +106,7 @@ func (s *Store) delete(ctx context.Context, name string, recurse bool) error {
 		if errors.Is(err, store.ErrGitNotInit) || errors.Is(err, store.ErrGitNoRemote) {
 			return nil
 		}
+
 		return fmt.Errorf("failed to push change to git remote: %w", err)
 	}
 
@@ -117,6 +123,7 @@ func (s *Store) deleteRecurse(ctx context.Context, name, path string) error {
 	debug.Log("Pruning %s", name)
 	if err := s.storage.Prune(ctx, name); err != nil {
 		debug.Log("storage.Prune(%v) failed", name)
+
 		return err
 	}
 
@@ -124,9 +131,11 @@ func (s *Store) deleteRecurse(ctx context.Context, name, path string) error {
 		if errors.Is(err, store.ErrGitNotInit) {
 			return nil
 		}
+
 		return fmt.Errorf("failed to add %q to git: %w", path, err)
 	}
 	debug.Log("pruned")
+
 	return nil
 }
 
@@ -144,7 +153,9 @@ func (s *Store) deleteSingle(ctx context.Context, path string) error {
 		if errors.Is(err, store.ErrGitNotInit) {
 			return nil
 		}
+
 		return fmt.Errorf("failed to add %q to git: %w", path, err)
 	}
+
 	return nil
 }

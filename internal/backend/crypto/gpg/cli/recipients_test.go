@@ -7,6 +7,8 @@ import (
 )
 
 func TestSplitPacket(t *testing.T) {
+	t.Parallel()
+
 	for in, out := range map[string]map[string]string{
 		"": {},
 		":pubkey enc packet: version 3, algo 1, keyid 00F0FF00FFC00F0F": {

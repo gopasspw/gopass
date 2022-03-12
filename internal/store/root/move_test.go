@@ -12,6 +12,8 @@ import (
 )
 
 func TestMoveShadow(t *testing.T) {
+	t.Parallel()
+
 	u := gptest.NewUnitTester(t)
 	u.Entries = []string{
 		"old/www/foo",
@@ -19,6 +21,7 @@ func TestMoveShadow(t *testing.T) {
 	}
 
 	require.NoError(t, u.InitStore(""))
+
 	defer u.Remove()
 
 	ctx := context.Background()
@@ -49,6 +52,8 @@ func TestMoveShadow(t *testing.T) {
 }
 
 func TestMove(t *testing.T) {
+	t.Parallel()
+
 	u := gptest.NewUnitTester(t)
 	u.Entries = []string{
 		"foo/bar",
@@ -56,6 +61,7 @@ func TestMove(t *testing.T) {
 		"misc/zab",
 	}
 	require.NoError(t, u.InitStore(""))
+
 	defer u.Remove()
 
 	ctx := context.Background()
@@ -145,6 +151,8 @@ func TestMove(t *testing.T) {
 }
 
 func TestUnixMvSemantics(t *testing.T) {
+	t.Parallel()
+
 	u := gptest.NewUnitTester(t)
 	u.Entries = []string{
 		"a/f1",
@@ -152,6 +160,7 @@ func TestUnixMvSemantics(t *testing.T) {
 		"b/f3",
 	}
 	require.NoError(t, u.InitStore(""))
+
 	defer u.Remove()
 
 	ctx := context.Background()
@@ -183,6 +192,8 @@ func TestUnixMvSemantics(t *testing.T) {
 }
 
 func TestRegression2079(t *testing.T) {
+	t.Parallel()
+
 	u := gptest.NewUnitTester(t)
 	u.Entries = []string{
 		"comm/test",
@@ -190,6 +201,7 @@ func TestRegression2079(t *testing.T) {
 		"communication/t1",
 	}
 	require.NoError(t, u.InitStore(""))
+
 	defer u.Remove()
 
 	ctx := context.Background()
@@ -221,6 +233,8 @@ func TestRegression2079(t *testing.T) {
 }
 
 func TestCopy(t *testing.T) {
+	t.Parallel()
+
 	u := gptest.NewUnitTester(t)
 	u.Entries = []string{
 		"foo/bar",
@@ -228,6 +242,7 @@ func TestCopy(t *testing.T) {
 		"misc/zab",
 	}
 	require.NoError(t, u.InitStore(""))
+
 	defer u.Remove()
 
 	ctx := context.Background()
@@ -239,7 +254,7 @@ func TestCopy(t *testing.T) {
 	assert.NoError(t, rs.Delete(ctx, "foo"))
 
 	// Initial state:
-	t.Run("initial state", func(t *testing.T) {
+	t.Run("initial state", func(t *testing.T) { //nolint:paralleltest
 		entries, err := rs.List(ctx, tree.INF)
 		require.NoError(t, err)
 		assert.Equal(t, []string{
@@ -255,7 +270,7 @@ func TestCopy(t *testing.T) {
 	assert.Error(t, rs.Copy(ctx, "foo", "misc/zab"))
 
 	// -> copy foo/ misc => OK
-	t.Run("copy foo misc", func(t *testing.T) {
+	t.Run("copy foo misc", func(t *testing.T) { //nolint:paralleltest
 		assert.NoError(t, rs.Copy(ctx, "foo", "misc"))
 		entries, err := rs.List(ctx, tree.INF)
 		require.NoError(t, err)
@@ -269,7 +284,7 @@ func TestCopy(t *testing.T) {
 	})
 
 	// -> copy misc/foo/ bar/ => OK
-	t.Run("copy misc/foo/ bar/", func(t *testing.T) {
+	t.Run("copy misc/foo/ bar/", func(t *testing.T) { //nolint:paralleltest
 		assert.NoError(t, rs.Copy(ctx, "misc/foo/", "bar/"))
 		entries, err := rs.List(ctx, tree.INF)
 		require.NoError(t, err)
@@ -285,7 +300,7 @@ func TestCopy(t *testing.T) {
 	})
 
 	// -> copy misc/zab bar/foo/zab => OK
-	t.Run("copy misc/zab bar/foo/zab", func(t *testing.T) {
+	t.Run("copy misc/zab bar/foo/zab", func(t *testing.T) { //nolint:paralleltest
 		assert.NoError(t, rs.Copy(ctx, "misc/zab", "bar/foo/zab"))
 		entries, err := rs.List(ctx, tree.INF)
 		require.NoError(t, err)
@@ -303,6 +318,8 @@ func TestCopy(t *testing.T) {
 }
 
 func TestComputeMoveDestination(t *testing.T) {
+	t.Parallel()
+
 	for _, tc := range []struct {
 		name     string
 		src      string
@@ -365,8 +382,10 @@ func TestComputeMoveDestination(t *testing.T) {
 		},
 	} {
 		tc := tc
+
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
+
 			dst := computeMoveDestination(tc.src, tc.from, tc.to, tc.srcIsDir, tc.dstIsDir)
 			assert.Equal(t, tc.dst, dst, tc.name)
 		})

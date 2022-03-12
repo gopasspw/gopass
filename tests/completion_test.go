@@ -1,28 +1,28 @@
 package tests
 
 import (
-	"os"
 	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCompletion(t *testing.T) {
+func TestCompletion(t *testing.T) { //nolint:paralleltest
 	if runtime.GOOS == "windows" {
 		t.Skip("skipping test on windows.")
 	}
+
 	ts := newTester(t)
 	defer ts.teardown()
 
-	t.Run("completion help", func(t *testing.T) {
+	t.Run("completion help", func(t *testing.T) { //nolint:paralleltest
 		out, err := ts.run("completion")
 		assert.NoError(t, err)
 		assert.Contains(t, out, "Source for auto completion in bash")
 		assert.Contains(t, out, "Source for auto completion in zsh")
 	})
 
-	t.Run("bash completion", func(t *testing.T) {
+	t.Run("bash completion", func(t *testing.T) { //nolint:paralleltest
 		bash := `_gopass_bash_autocomplete() {
      local cur opts base
      COMPREPLY=()
@@ -40,28 +40,24 @@ complete -F _gopass_bash_autocomplete gopass`
 		assert.Equal(t, bash, out)
 	})
 
-	t.Run("zsh completion", func(t *testing.T) {
+	t.Run("zsh completion", func(t *testing.T) { //nolint:paralleltest
 		out, err := ts.run("completion zsh")
 		assert.NoError(t, err)
 		assert.Contains(t, out, "compdef gopass")
 	})
 
-	t.Run("fish completion", func(t *testing.T) {
+	t.Run("fish completion", func(t *testing.T) { //nolint:paralleltest
 		out, err := ts.run("completion fish")
 		assert.NoError(t, err)
 		assert.Contains(t, out, "complete")
 	})
 }
 
-func TestCompletionNoPath(t *testing.T) {
+func TestCompletionNoPath(t *testing.T) { //nolint:paralleltest
 	ts := newTester(t)
 	defer ts.teardown()
 
-	ov := os.Getenv("PATH")
-	assert.NoError(t, os.Setenv("PATH", "/tmp/foobar"))
-	defer func() {
-		_ = os.Setenv("PATH", ov)
-	}()
+	t.Setenv("PATH", "/tmp/foobar")
 
 	t.Run("generate bash", func(t *testing.T) {
 		_, err := ts.run("--generate-bash-completion")

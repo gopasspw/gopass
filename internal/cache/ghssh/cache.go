@@ -20,6 +20,7 @@ func New() (*Cache, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return &Cache{
 		disk:    cDir,
 		client:  github.NewClient(nil),

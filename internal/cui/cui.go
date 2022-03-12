@@ -37,5 +37,6 @@ func GetSelection(ctx context.Context, prompt string, choices []string) (string,
 		}
 	}
 	fmt.Println(i)
+
 	return "default", i
 }

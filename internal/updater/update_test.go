@@ -14,15 +14,18 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestIsUpdateable(t *testing.T) {
+//nolint:wrapcheck
+func TestIsUpdateable(t *testing.T) { //nolint:paralleltest
 	ctx := context.Background()
 	oldExec := executable
+
 	defer func() {
 		executable = oldExec
 	}()
 
 	td, err := os.MkdirTemp("", "gopass-")
 	require.NoError(t, err)
+
 	defer func() {
 		_ = os.RemoveAll(td)
 	}()
@@ -37,7 +40,7 @@ func TestIsUpdateable(t *testing.T) {
 		{
 			name: "executable error",
 			exec: func(context.Context) (string, error) {
-				return "", fmt.Errorf("failed")
+				return "", fmt.Errorf("failed") //nolint:goerr113
 			},
 		},
 		{
@@ -94,6 +97,7 @@ func TestIsUpdateable(t *testing.T) {
 			name: "no write access to dir",
 			pre: func() error {
 				dir := filepath.Join(td, "bin")
+
 				return os.Mkdir(dir, 0o555)
 			},
 			exec: func(context.Context) (string, error) {
@@ -104,13 +108,16 @@ func TestIsUpdateable(t *testing.T) {
 		if tc.pre != nil {
 			require.NoError(t, tc.pre(), tc.name)
 		}
+
 		executable = tc.exec
+
 		err := IsUpdateable(ctx)
 		if tc.ok {
 			assert.NoError(t, err, tc.name)
 		} else {
 			assert.Error(t, err, tc.name)
 		}
+
 		if tc.post != nil {
 			assert.NoError(t, tc.post(), tc.name)
 		}

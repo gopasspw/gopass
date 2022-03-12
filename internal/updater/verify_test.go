@@ -29,6 +29,8 @@ var testData = []byte(`gopass-sign-test
 `)
 
 func TestGPGVerify(t *testing.T) {
+	t.Parallel()
+
 	ok, err := gpgVerify(testData, testSignature)
 	assert.NoError(t, err)
 	assert.True(t, ok)

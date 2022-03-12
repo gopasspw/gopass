@@ -34,6 +34,7 @@ func (s *Action) RCSInit(c *cli.Context) error {
 	if err := s.rcsInit(ctx, store, un, ue); err != nil {
 		return exit.Error(exit.Git, err, "failed to initialize %s: %s", backend.StorageBackendName(backend.GetStorageBackend(ctx)), err)
 	}
+
 	return nil
 }
 
@@ -49,21 +50,26 @@ func (s *Action) rcsInit(ctx context.Context, store, un, ue string) error {
 	if err := s.Store.RCSInit(ctx, store, userName, userEmail); err != nil {
 		if errors.Is(err, backend.ErrNotSupported) {
 			debug.Log("RCSInit not supported for backend %s in %q", bn, store)
+
 			return nil
 		}
+
 		if gtv := os.Getenv("GPG_TTY"); gtv == "" {
 			out.Printf(ctx, "Git initialization failed. You may want to try to 'export GPG_TTY=$(tty)' and start over.")
 		}
+
 		return fmt.Errorf("failed to run RCS init: %w", err)
 	}
 
 	out.Printf(ctx, "Initialized %s repository (%s) for %s / %s...", be, bn, un, ue)
+
 	return nil
 }
 
 func (s *Action) getUserData(ctx context.Context, store, name, email string) (string, string) {
 	if name != "" && email != "" {
 		debug.Log("Username: %s, Email: %s (provided)", name, email)
+
 		return name, email
 	}
 
@@ -82,6 +88,7 @@ func (s *Action) getUserData(ctx context.Context, store, name, email string) (st
 			out.Errorf(ctx, "Failed to ask for user input: %s", err)
 		}
 	}
+
 	if email == "" {
 		if userEmail == "" {
 			userEmail = termio.DetectEmail(ctx, nil)
@@ -95,6 +102,7 @@ func (s *Action) getUserData(ctx context.Context, store, name, email string) (st
 	}
 
 	debug.Log("Username: %s, Email: %s (detected)", name, email)
+
 	return name, email
 }
 
@@ -145,11 +153,14 @@ func (s *Action) RCSPush(c *cli.Context) error {
 	if err := s.Store.RCSPush(ctx, store, origin, branch); err != nil {
 		if errors.Is(err, si.ErrGitNoRemote) {
 			out.Noticef(ctx, "No Git remote. Not pushing")
+
 			return nil
 		}
+
 		return exit.Error(exit.Git, err, "Failed to push to remote")
 	}
 	out.OKf(ctx, "Pushed to git remote")
+
 	return nil
 }
 

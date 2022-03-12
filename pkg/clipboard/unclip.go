@@ -17,9 +17,12 @@ func Clear(ctx context.Context, name string, checksum string, force bool) error 
 	if clipboardClearCMD != "" {
 		if err := callCommand(ctx, clipboardClearCMD, name, []byte(checksum)); err != nil {
 			_ = notify.Notify(ctx, "gopass - clipboard", "failed to call clipboard clear command")
+
 			return fmt.Errorf("failed to call clipboard clear command: %w", err)
 		}
+
 		debug.Log("clipboard cleared (%s)", checksum)
+
 		return nil
 	}
 
@@ -35,19 +38,23 @@ func Clear(ctx context.Context, name string, checksum string, force bool) error 
 	match, err := argon2id.Validate(cur, checksum)
 	if err != nil {
 		debug.Log("failed to validate checksum %s: %s", checksum, err)
+
 		return nil
 	}
+
 	if !match && !force {
 		return nil
 	}
 
 	if err := clipboard.WriteAll(""); err != nil {
 		_ = notify.Notify(ctx, "gopass - clipboard", "Failed to clear clipboard")
+
 		return fmt.Errorf("failed to write clipboard: %w", err)
 	}
 
 	if err := clearClipboardHistory(ctx); err != nil {
 		_ = notify.Notify(ctx, "gopass - clipboard", "Failed to clear clipboard history")
+
 		return fmt.Errorf("failed to clear clipboard history: %w", err)
 	}
 
@@ -56,5 +63,6 @@ func Clear(ctx context.Context, name string, checksum string, force bool) error 
 	}
 
 	debug.Log("clipboard cleared (%s)", checksum)
+
 	return nil
 }

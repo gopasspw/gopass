@@ -9,6 +9,9 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
+// ErrUnknownType is returned when an unknown type is encountered.
+var ErrUnknownType = fmt.Errorf("unknown type")
+
 func longName(name string) string {
 	// "If s does not contain sep and sep is not empty, Split returns a slice of length 1 whose only element is s."
 	// from https://golang.org/pkg/strings/#Split
@@ -45,7 +48,7 @@ func formatFlagFunc() func(cli.Flag) (string, error) {
 		case *cli.UintFlag:
 			return formatFlag(ft.Name, ft.Usage), nil
 		default:
-			return "", fmt.Errorf("unknown type: '%T'", f)
+			return "", fmt.Errorf("error '%T': %w", f, ErrUnknownType)
 		}
 	}
 }
@@ -55,13 +58,16 @@ func GetCompletion(a *cli.App) (string, error) {
 	tplFuncs := template.FuncMap{
 		"formatFlag": formatFlagFunc(),
 	}
+
 	tpl, err := template.New("zsh").Funcs(tplFuncs).Parse(zshTemplate)
 	if err != nil {
 		return "", err
 	}
+
 	buf := &bytes.Buffer{}
 	if err := tpl.Execute(buf, a); err != nil {
 		return "", err
 	}
+
 	return buf.String(), nil
 }

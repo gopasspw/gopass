@@ -11,6 +11,8 @@ import (
 )
 
 func TestFsck(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 	ctx = ctxutil.WithHidden(ctx, true)
 

@@ -59,6 +59,7 @@ func (f *Fossil) ConfigGet(ctx context.Context, key string) (string, error) {
 	}
 
 	sv := strings.Fields(strings.TrimSpace(buf.String()))
+
 	return sv[len(sv)-1], nil
 }
 
@@ -90,5 +91,6 @@ func (f *Fossil) ConfigList(ctx context.Context) (map[string]string, error) {
 		}
 		kv[p[0]] = p[len(p)-1]
 	}
+
 	return kv, nil
 }

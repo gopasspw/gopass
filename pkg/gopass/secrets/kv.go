@@ -15,6 +15,9 @@ import (
 
 var _ gopass.Secret = &KV{}
 
+// ErrMultiKey is returned when a key is found multiple times.
+var ErrMultiKey = fmt.Errorf("multiple identical keys not supported")
+
 // NewKV creates a new KV secret.
 func NewKV() *KV {
 	return &KV{
@@ -30,9 +33,11 @@ func NewKVWithData(pw string, kvps map[string][]string, body string, converted b
 		body:     body,
 		fromMime: converted,
 	}
+
 	for k, v := range kvps {
 		kv.data[k] = v
 	}
+
 	return kv
 }
 
@@ -83,11 +88,13 @@ func (k *KV) Bytes() []byte {
 	buf := &bytes.Buffer{}
 	buf.WriteString(k.password)
 	buf.WriteString("\n")
+
 	for ik, key := range k.Keys() {
 		sv, ok := k.data[key]
 		if !ok {
 			continue
 		}
+
 		for iv, v := range sv {
 			_, _ = buf.WriteString(key)
 			_, _ = buf.WriteString(": ")
@@ -102,14 +109,18 @@ func (k *KV) Bytes() []byte {
 			_, _ = buf.WriteString("\n")
 		}
 	}
+
 	buf.WriteString(k.body)
+
 	return buf.Bytes()
 }
 
 // Keys returns all keys.
 func (k *KV) Keys() []string {
 	keys := maps.Keys(k.data)
+
 	sort.Strings(keys)
+
 	return keys
 }
 
@@ -127,7 +138,9 @@ func (k *KV) Get(key string) (string, bool) {
 // Values returns all values for that key.
 func (k *KV) Values(key string) ([]string, bool) {
 	key = strings.ToLower(key)
+
 	v, found := k.data[key]
+
 	return v, found
 }
 
@@ -135,9 +148,11 @@ func (k *KV) Values(key string) ([]string, bool) {
 func (k *KV) Set(key string, value any) error {
 	key = strings.ToLower(key)
 	if v, ok := k.data[key]; ok && len(v) > 1 {
-		return fmt.Errorf("cannot set key %s: this entry contains multiple same keys. Please use 'gopass edit' instead", key)
+		return fmt.Errorf("cannot set key %s: this entry contains multiple same keys. Please use 'gopass edit' instead: %w", key, ErrMultiKey)
 	}
+
 	k.data[key] = []string{fmt.Sprintf("%s", value)}
+
 	return nil
 }
 
@@ -145,6 +160,7 @@ func (k *KV) Set(key string, value any) error {
 func (k *KV) Add(key string, value any) error {
 	key = strings.ToLower(key)
 	k.data[key] = append(k.data[key], fmt.Sprintf("%s", value))
+
 	return nil
 }
 
@@ -153,6 +169,7 @@ func (k *KV) Del(key string) bool {
 	key = strings.ToLower(key)
 	_, found := k.data[key]
 	delete(k.data, key)
+
 	return found
 }
 
@@ -177,48 +194,59 @@ func ParseKV(in []byte) (*KV, error) {
 		data: make(map[string][]string, 10),
 	}
 	r := bufio.NewReader(bytes.NewReader(in))
+
 	line, err := r.ReadString('\n')
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to read line: %w", err)
 	}
+
 	k.password = strings.TrimRight(line, "\n")
 
 	var sb strings.Builder
+
 	for {
 		line, err := r.ReadString('\n')
 		if err != nil && line == "" {
 			if err == io.EOF {
 				break
 			}
-			return nil, err
+
+			return nil, fmt.Errorf("failed to read line: %w", err)
 		}
 		// append non KV pairs to the body
 		if !strings.Contains(line, ":") {
 			sb.WriteString(line)
+
 			continue
 		}
+
 		line = strings.TrimRight(line, "\n")
 
 		key, val, found := strings.Cut(line, ":")
 		if !found {
 			continue
 		}
+
 		key = strings.TrimSpace(key)
 		val = strings.TrimSpace(val)
 		// we only store lower case keys for KV
 		key = strings.ToLower(key)
 		k.data[key] = append(k.data[key], val)
 	}
+
 	if len(k.data) < 1 {
 		debug.Log("no KV entries")
 	}
+
 	k.body = sb.String()
+
 	return k, nil
 }
 
 // Write appends the buffer to the secret's body.
 func (k *KV) Write(buf []byte) (int, error) {
 	k.body += string(buf)
+
 	return len(buf), nil
 }
 

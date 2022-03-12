@@ -22,10 +22,12 @@ func promptPass(ctx context.Context, prompt string) (string, error) {
 
 	// Make a copy of STDIN's state to restore afterward
 	fd := int(os.Stdin.Fd())
+
 	oldState, err := term.GetState(fd)
 	if err != nil {
 		return "", fmt.Errorf("could not get state of terminal: %w", err)
 	}
+
 	defer func() {
 		if err := term.Restore(fd, oldState); err != nil {
 			out.Errorf(ctx, "Failed to restore terminal: %s", err)
@@ -35,16 +37,22 @@ func promptPass(ctx context.Context, prompt string) (string, error) {
 	// Restore STDIN in the event of a signal interruption
 	sigch := make(chan os.Signal, 1)
 	signal.Notify(sigch, os.Interrupt)
+
 	go func() {
 		<-sigch
+
 		if err := term.Restore(fd, oldState); err != nil {
 			out.Errorf(ctx, "Failed to restore terminal: %s", err)
 		}
+
 		os.Exit(1)
 	}()
 
 	fmt.Fprintf(Stderr, "%s: ", prompt)
+
 	passBytes, err := term.ReadPassword(fd)
+
 	fmt.Fprintln(Stderr, "")
+
 	return string(passBytes), err
 }

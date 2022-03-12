@@ -20,16 +20,20 @@ import (
 )
 
 func TestGetRecipientsDefault(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	tempdir, err := os.MkdirTemp("", "gopass-")
 	require.NoError(t, err)
+
 	defer func() {
 		_ = os.RemoveAll(tempdir)
 	}()
 
 	obuf := &bytes.Buffer{}
 	out.Stdout = obuf
+
 	defer func() {
 		out.Stdout = os.Stdout
 	}()
@@ -51,16 +55,20 @@ func TestGetRecipientsDefault(t *testing.T) {
 }
 
 func TestGetRecipientsSubID(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	tempdir, err := os.MkdirTemp("", "gopass-")
 	require.NoError(t, err)
+
 	defer func() {
 		_ = os.RemoveAll(tempdir)
 	}()
 
 	obuf := &bytes.Buffer{}
 	out.Stdout = obuf
+
 	defer func() {
 		out.Stdout = os.Stdout
 	}()
@@ -88,19 +96,24 @@ func TestGetRecipientsSubID(t *testing.T) {
 }
 
 func TestSaveRecipients(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 	ctx = ctxutil.WithExportKeys(ctx, true)
 
 	tempdir, err := os.MkdirTemp("", "gopass-")
 	require.NoError(t, err)
+
 	defer func() {
 		_ = os.RemoveAll(tempdir)
 	}()
+
 	_, _, err = createStore(tempdir, nil, nil)
 	assert.NoError(t, err)
 
 	obuf := &bytes.Buffer{}
 	out.Stdout = obuf
+
 	defer func() {
 		out.Stdout = os.Stdout
 	}()
@@ -124,16 +137,20 @@ func TestSaveRecipients(t *testing.T) {
 
 	foundRecs := []string{}
 	scanner := bufio.NewScanner(bytes.NewReader(buf))
+
 	for scanner.Scan() {
 		foundRecs = append(foundRecs, strings.TrimSpace(scanner.Text()))
 	}
+
 	sort.Strings(foundRecs)
 
 	for i := 0; i < len(recp); i++ {
 		if i >= len(foundRecs) {
 			t.Errorf("Read too few recipients")
+
 			break
 		}
+
 		if recp[i] != foundRecs[i] {
 			t.Errorf("Mismatch at %d: %s vs %s", i, recp[i], foundRecs[i])
 		}
@@ -141,11 +158,14 @@ func TestSaveRecipients(t *testing.T) {
 }
 
 func TestAddRecipient(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 	ctx = ctxutil.WithHidden(ctx, true)
 
 	tempdir, err := os.MkdirTemp("", "gopass-")
 	require.NoError(t, err)
+
 	defer func() {
 		_ = os.RemoveAll(tempdir)
 	}()
@@ -155,6 +175,7 @@ func TestAddRecipient(t *testing.T) {
 
 	obuf := &bytes.Buffer{}
 	out.Stdout = obuf
+
 	defer func() {
 		out.Stdout = os.Stdout
 	}()
@@ -180,19 +201,24 @@ func TestAddRecipient(t *testing.T) {
 }
 
 func TestRemoveRecipient(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 	ctx = ctxutil.WithHidden(ctx, true)
 
 	tempdir, err := os.MkdirTemp("", "gopass-")
 	require.NoError(t, err)
+
 	defer func() {
 		_ = os.RemoveAll(tempdir)
 	}()
+
 	_, _, err = createStore(tempdir, nil, nil)
 	assert.NoError(t, err)
 
 	obuf := &bytes.Buffer{}
 	out.Stdout = obuf
+
 	defer func() {
 		out.Stdout = os.Stdout
 	}()
@@ -213,10 +239,13 @@ func TestRemoveRecipient(t *testing.T) {
 }
 
 func TestListRecipients(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	tempdir, err := os.MkdirTemp("", "gopass-")
 	require.NoError(t, err)
+
 	defer func() {
 		_ = os.RemoveAll(tempdir)
 	}()
@@ -226,6 +255,7 @@ func TestListRecipients(t *testing.T) {
 
 	obuf := &bytes.Buffer{}
 	out.Stdout = obuf
+
 	defer func() {
 		out.Stdout = os.Stdout
 	}()

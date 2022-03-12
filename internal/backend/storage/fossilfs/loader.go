@@ -40,6 +40,7 @@ func (l loader) Handles(ctx context.Context, path string) error {
 	if !fsutil.IsFile(marker) {
 		return fmt.Errorf("no fossil checkout marker found at %s", marker)
 	}
+
 	return nil
 }
 

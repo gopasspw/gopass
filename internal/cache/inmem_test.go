@@ -10,6 +10,8 @@ import (
 )
 
 func TestTTL(t *testing.T) {
+	t.Parallel()
+
 	testFactor := time.Duration(1)
 
 	if value, ok := os.LookupEnv("SLOW_TEST_FACTOR"); ok {
@@ -64,4 +66,23 @@ func TestTTL(t *testing.T) {
 	val, found = c.Get("bar")
 	assert.Equal(t, "", val)
 	assert.False(t, found)
+}
+
+func TestPar(t *testing.T) {
+	t.Parallel()
+
+	c := NewInMemTTL[int, int](time.Minute, time.Minute)
+
+	for i := 0; i < 32; i++ {
+		for j := 0; j < 32; j++ {
+			t.Run("set"+strconv.Itoa(i), func(t *testing.T) {
+				t.Parallel()
+				c.Set(i, i)
+				time.Sleep(time.Millisecond)
+				iv, found := c.Get(i)
+				assert.True(t, found)
+				assert.Equal(t, i, iv)
+			})
+		}
+	}
 }

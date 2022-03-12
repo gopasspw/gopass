@@ -14,8 +14,10 @@ CLASSES:
 				continue CLASSES
 			}
 		}
+
 		return false
 	}
+
 	return true
 }
 
@@ -29,12 +31,14 @@ func containsOnlyClasses(pw string, classes ...string) bool {
 			}
 		}
 	}
+
 	return true
 }
 
 func containsMaxConsecutive(pw string, n int) bool {
 	last := ""
 	repCnt := 1
+
 	for _, r := range pw {
 		if last == string(r) {
 			repCnt++
@@ -44,7 +48,9 @@ func containsMaxConsecutive(pw string, n int) bool {
 		} else {
 			repCnt = 1
 		}
+
 		last = string(r)
 	}
+
 	return true
 }

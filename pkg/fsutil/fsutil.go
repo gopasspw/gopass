@@ -2,6 +2,7 @@ package fsutil
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"io"
 	"math/rand"
@@ -30,14 +31,18 @@ func CleanPath(path string) string {
 	if len(path) > 1 && path[:2] == "~/" {
 		usr, _ := user.Current()
 		dir := usr.HomeDir
+
 		if hd := os.Getenv("GOPASS_HOMEDIR"); hd != "" {
 			dir = hd
 		}
+
 		path = strings.Replace(path, "~/", dir+"/", 1)
 	}
+
 	if p, err := filepath.Abs(path); err == nil {
 		return p
 	}
+
 	return filepath.Clean(path)
 }
 
@@ -50,7 +55,9 @@ func IsDir(path string) bool {
 			// not found
 			return false
 		}
+
 		debug.Log("failed to check dir %s: %s\n", path, err)
+
 		return false
 	}
 
@@ -65,7 +72,9 @@ func IsFile(path string) bool {
 			// not found
 			return false
 		}
+
 		debug.Log("failed to check file %s: %s\n", path, err)
+
 		return false
 	}
 
@@ -75,6 +84,7 @@ func IsFile(path string) bool {
 // IsEmptyDir checks if a certain path is an empty directory.
 func IsEmptyDir(path string) (bool, error) {
 	empty := true
+
 	if err := filepath.Walk(path, func(fp string, fi os.FileInfo, ferr error) error {
 		if ferr != nil {
 			return ferr
@@ -85,27 +95,34 @@ func IsEmptyDir(path string) (bool, error) {
 		if !fi.IsDir() {
 			empty = false
 		}
+
 		return nil
 	}); err != nil {
-		return false, err
+		return false, fmt.Errorf("failed to walk %s: %w", path, err)
 	}
+
 	return empty, nil
 }
 
 // Shred overwrite the given file any number of times.
 func Shred(path string, runs int) error {
 	rand.Seed(time.Now().UnixNano())
+
 	fh, err := os.OpenFile(path, os.O_WRONLY, 0o600)
 	if err != nil {
 		return fmt.Errorf("failed to open file %q: %w", path, err)
 	}
+
 	// ignore the error. this is only taking effect if we error out.
-	defer fh.Close()
+	defer func() {
+		_ = fh.Close()
+	}()
 
 	fi, err := fh.Stat()
 	if err != nil {
 		return fmt.Errorf("failed to stat file %q: %w", path, err)
 	}
+
 	flen := fi.Size()
 
 	// overwrite using pseudo-random data n-1 times and
@@ -113,32 +130,40 @@ func Shred(path string, runs int) error {
 	bufFn := func() []byte {
 		buf := make([]byte, 1024)
 		_, _ = rand.Read(buf)
+
 		return buf
 	}
+
 	for i := 0; i < runs; i++ {
 		if i >= runs-1 {
 			bufFn = func() []byte {
 				return make([]byte, 1024)
 			}
 		}
+
 		if _, err := fh.Seek(0, 0); err != nil {
 			return fmt.Errorf("failed to seek to 0,0: %w", err)
 		}
+
 		var written int64
+
 		for {
 			// end of file
 			if written >= flen {
 				break
 			}
+
 			buf := bufFn()
+
 			n, err := fh.Write(buf[0:min(flen-written, int64(len(buf)))])
 			if err != nil {
-				if err != io.EOF {
+				if !errors.Is(err, io.EOF) {
 					return fmt.Errorf("failed to write to file: %w", err)
 				}
 				// end of file, should not happen
 				break
 			}
+
 			written += int64(n)
 		}
 		// if we fail to sync the written blocks to disk it'd be pointless
@@ -147,11 +172,16 @@ func Shred(path string, runs int) error {
 			return fmt.Errorf("failed to sync to disk: %w", err)
 		}
 	}
+
 	if err := fh.Close(); err != nil {
 		return fmt.Errorf("failed to close file after writing: %w", err)
 	}
 
-	return os.Remove(path)
+	if err := os.Remove(path); err != nil {
+		return fmt.Errorf("failed to remove %s: %w", path, err)
+	}
+
+	return nil
 }
 
 // FileContains searches the given file for the search string and returns true
@@ -160,9 +190,13 @@ func FileContains(path, needle string) bool {
 	fh, err := os.Open(path)
 	if err != nil {
 		debug.Log("failed to open %q for reading: %s", path, err)
+
 		return false
 	}
-	defer fh.Close()
+
+	defer func() {
+		_ = fh.Close()
+	}()
 
 	s := bufio.NewScanner(fh)
 	for s.Scan() {
@@ -170,6 +204,7 @@ func FileContains(path, needle string) bool {
 			return true
 		}
 	}
+
 	return false
 }
 
@@ -177,5 +212,6 @@ func min(a, b int64) int64 {
 	if a < b {
 		return a
 	}
+
 	return b
 }

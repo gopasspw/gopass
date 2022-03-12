@@ -37,6 +37,7 @@ func getPathOverride(ctx context.Context, def string) string {
 	if sv, ok := ctx.Value(ctxKeyPathOverride).(string); ok && sv != "" {
 		return sv
 	}
+
 	return def
 }
 
@@ -50,6 +51,7 @@ func New(path string) (*Git, error) {
 	if !fsutil.IsDir(filepath.Join(path, ".git")) {
 		return nil, fmt.Errorf("git repo does not exist")
 	}
+
 	return &Git{
 		fs: fs.New(path),
 	}, nil
@@ -61,13 +63,14 @@ func Clone(ctx context.Context, repo, path, userName, userEmail string) (*Git, e
 	g := &Git{
 		fs: fs.New(path),
 	}
+
 	if err := g.Cmd(withPathOverride(ctx, filepath.Dir(path)), "Clone", "clone", repo, path); err != nil {
 		return nil, err
 	}
 
 	// initialize the local git config.
 	if err := g.InitConfig(ctx, userName, userEmail); err != nil {
-		return g, fmt.Errorf("failed to configure git: %s", err)
+		return g, fmt.Errorf("failed to configure git: %w", err)
 	}
 	out.Printf(ctx, "git configured at %s", g.fs.Path())
 
@@ -83,7 +86,7 @@ func Init(ctx context.Context, path, userName, userEmail string) (*Git, error) {
 	// or already initialized. Only run git init if the folder is completely empty.
 	if !g.IsInitialized() {
 		if err := g.Cmd(ctx, "Init", "init"); err != nil {
-			return nil, fmt.Errorf("failed to initialize git: %s", err)
+			return nil, fmt.Errorf("failed to initialize git: %w", err)
 		}
 		out.Printf(ctx, "git initialized at %s", g.fs.Path())
 	}
@@ -94,7 +97,7 @@ func Init(ctx context.Context, path, userName, userEmail string) (*Git, error) {
 
 	// initialize the local git config.
 	if err := g.InitConfig(ctx, userName, userEmail); err != nil {
-		return g, fmt.Errorf("failed to configure git: %s", err)
+		return g, fmt.Errorf("failed to configure git: %w", err)
 	}
 	out.Printf(ctx, "git configured at %s", g.fs.Path())
 
@@ -106,6 +109,7 @@ func Init(ctx context.Context, path, userName, userEmail string) (*Git, error) {
 	// commit if there is something to commit.
 	if !g.HasStagedChanges(ctx) {
 		debug.Log("No staged changes")
+
 		return g, nil
 	}
 
@@ -132,6 +136,7 @@ func (g *Git) captureCmd(ctx context.Context, name string, args ...string) ([]by
 
 	debug.Log("store.%s: %s %+v (%s)", name, cmd.Path, cmd.Args, g.fs.Path())
 	err := cmd.Run()
+
 	return bufOut.Bytes(), bufErr.Bytes(), err
 }
 
@@ -140,7 +145,8 @@ func (g *Git) Cmd(ctx context.Context, name string, args ...string) error {
 	stdout, stderr, err := g.captureCmd(ctx, name, args...)
 	if err != nil {
 		debug.Log("CMD: %s %+v\nError: %s\nOutput:\n  Stdout: %q\n  Stderr: %q", name, args, err, string(stdout), string(stderr))
-		return fmt.Errorf("%s: %s", err, strings.TrimSpace(string(stderr)))
+
+		return fmt.Errorf("%w: %s", err, strings.TrimSpace(string(stderr)))
 	}
 
 	return nil
@@ -159,6 +165,7 @@ func (g *Git) Version(ctx context.Context) semver.Version {
 	cmdout, err := cmd.Output()
 	if err != nil {
 		debug.Log("Failed to run 'git version': %s", err)
+
 		return v
 	}
 
@@ -170,8 +177,10 @@ func (g *Git) Version(ctx context.Context) semver.Version {
 	sv, err := semver.ParseTolerant(svStr)
 	if err != nil {
 		debug.Log("Failed to parse %q as semver: %s", svStr, err)
+
 		return v
 	}
+
 	return sv
 }
 
@@ -201,6 +210,7 @@ func (g *Git) HasStagedChanges(ctx context.Context) bool {
 	if err := g.Cmd(ctx, "gitDiffIndex", "diff-index", "--quiet", "HEAD"); err != nil {
 		return true
 	}
+
 	return false
 }
 
@@ -217,6 +227,7 @@ func (g *Git) ListUntrackedFiles(ctx context.Context) []string {
 		}
 		uf = append(uf, f)
 	}
+
 	return uf
 }
 
@@ -250,6 +261,7 @@ func (g *Git) defaultRemote(ctx context.Context, branch string) string {
 			return remote
 		}
 	}
+
 	return "origin"
 }
 
@@ -259,6 +271,7 @@ func (g *Git) defaultBranch(ctx context.Context) string {
 		// see https://github.com/github/renaming.
 		return "main"
 	}
+
 	return strings.TrimSpace(string(out))
 }
 
@@ -267,6 +280,7 @@ func (g *Git) defaultBranch(ctx context.Context) string {
 func (g *Git) PushPull(ctx context.Context, op, remote, branch string) error {
 	if ctxutil.IsNoNetwork(ctx) {
 		debug.Log("Skipping network ops. NoNetwork=true")
+
 		return nil
 	}
 	if !g.IsInitialized() {
@@ -276,6 +290,7 @@ func (g *Git) PushPull(ctx context.Context, op, remote, branch string) error {
 	if branch == "" {
 		branch = g.defaultBranch(ctx)
 	}
+
 	if remote == "" {
 		remote = g.defaultRemote(ctx, branch)
 	}
@@ -290,6 +305,7 @@ func (g *Git) PushPull(ctx context.Context, op, remote, branch string) error {
 		}
 		out.Warningf(ctx, "Failed to pull before git push: %s", err)
 	}
+
 	if op == "pull" {
 		return nil
 	}
@@ -297,6 +313,7 @@ func (g *Git) PushPull(ctx context.Context, op, remote, branch string) error {
 	if uf := g.ListUntrackedFiles(ctx); len(uf) > 0 {
 		out.Warningf(ctx, "Found untracked files: %+v", uf)
 	}
+
 	return g.Cmd(ctx, "gitPush", "push", remote, branch)
 }
 
@@ -304,8 +321,10 @@ func (g *Git) PushPull(ctx context.Context, op, remote, branch string) error {
 func (g *Git) Push(ctx context.Context, remote, branch string) error {
 	if ctxutil.IsNoNetwork(ctx) {
 		debug.Log("Skipping network ops. NoNetwork=true")
+
 		return nil
 	}
+
 	return g.PushPull(ctx, "push", remote, branch)
 }
 
@@ -313,8 +332,10 @@ func (g *Git) Push(ctx context.Context, remote, branch string) error {
 func (g *Git) Pull(ctx context.Context, remote, branch string) error {
 	if ctxutil.IsNoNetwork(ctx) {
 		debug.Log("Skipping network ops. NoNetwork=true")
+
 		return nil
 	}
+
 	return g.PushPull(ctx, "pull", remote, branch)
 }
 
@@ -341,8 +362,10 @@ func (g *Git) Revisions(ctx context.Context, name string) ([]backend.Revision, e
 	stdout, stderr, err := g.captureCmd(ctx, "Revisions", args...)
 	if err != nil {
 		debug.Log("Command failed: %s", string(stderr))
+
 		return nil, err
 	}
+
 	so := string(stdout)
 	revs := make([]backend.Revision, 0, strings.Count(so, "\x1e"))
 	for _, rev := range strings.Split(so, "\x1e") {
@@ -361,22 +384,28 @@ func (g *Git) Revisions(ctx context.Context, name string) ([]backend.Revision, e
 		if len(p) > 1 {
 			r.AuthorName = p[1]
 		}
+
 		if len(p) > 2 {
 			r.AuthorEmail = p[2]
 		}
+
 		if len(p) > 3 {
 			if iv, err := strconv.ParseInt(p[3], 10, 64); err == nil {
 				r.Date = time.Unix(iv, 0)
 			}
 		}
+
 		if len(p) > 4 {
 			r.Subject = p[4]
 		}
+
 		if len(p) > 5 {
 			r.Body = p[5]
 		}
+
 		revs = append(revs, r)
 	}
+
 	return revs, nil
 }
 
@@ -392,8 +421,10 @@ func (g *Git) GetRevision(ctx context.Context, name, revision string) ([]byte, e
 	stdout, stderr, err := g.captureCmd(ctx, "GetRevision", args...)
 	if err != nil {
 		debug.Log("Command failed: %s", string(stderr))
+
 		return nil, err
 	}
+
 	return stdout, nil
 }
 
@@ -402,8 +433,10 @@ func (g *Git) Status(ctx context.Context) ([]byte, error) {
 	stdout, stderr, err := g.captureCmd(ctx, "GitStatus", "status")
 	if err != nil {
 		debug.Log("Command failed: %s\n%s", string(stdout), string(stderr))
+
 		return nil, err
 	}
+
 	return stdout, nil
 }
 

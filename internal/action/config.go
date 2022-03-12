@@ -16,11 +16,13 @@ func (s *Action) Config(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	if c.Args().Len() < 1 {
 		s.printConfigValues(ctx)
+
 		return nil
 	}
 
 	if c.Args().Len() == 1 {
 		s.printConfigValues(ctx, c.Args().Get(0))
+
 		return nil
 	}
 
@@ -31,6 +33,7 @@ func (s *Action) Config(c *cli.Context) error {
 	if err := s.setConfigValue(ctx, c.Args().Get(0), c.Args().Get(1)); err != nil {
 		return exit.Error(exit.Unknown, err, "Error setting config value")
 	}
+
 	return nil
 }
 
@@ -41,10 +44,12 @@ func (s *Action) printConfigValues(ctx context.Context, needles ...string) {
 		// useful for scriping, e.g. `$ cd $(gopass config path)`.
 		if len(needles) == 1 {
 			out.Printf(ctx, "%s", m[k])
+
 			continue
 		}
 		out.Printf(ctx, "%s: %s", k, m[k])
 	}
+
 	for alias, path := range s.cfg.Mounts {
 		if len(needles) < 1 {
 			out.Printf(ctx, "mount %q => %q", alias, path)
@@ -60,7 +65,9 @@ func filterMap(haystack map[string]string, needles []string) []string {
 		}
 		out = append(out, k)
 	}
+
 	sort.Strings(out)
+
 	return out
 }
 
@@ -68,11 +75,13 @@ func contains(haystack []string, needle string) bool {
 	if len(haystack) < 1 {
 		return true
 	}
+
 	for _, blade := range haystack {
 		if blade == needle {
 			return true
 		}
 	}
+
 	return false
 }
 
@@ -80,7 +89,9 @@ func (s *Action) setConfigValue(ctx context.Context, key, value string) error {
 	if err := s.cfg.SetConfigValue(key, value); err != nil {
 		return fmt.Errorf("failed to set config value %q: %w", key, err)
 	}
+
 	s.printConfigValues(ctx, key)
+
 	return nil
 }
 
@@ -90,6 +101,7 @@ func (s *Action) configKeys() []string {
 	for k := range cm {
 		keys = append(keys, k)
 	}
+
 	keys = append(keys, "remote")
 	sort.Strings(keys)
 

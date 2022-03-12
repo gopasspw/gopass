@@ -17,7 +17,10 @@ const (
 )
 
 func TestYAMLFromHereDoc(t *testing.T) {
+	t.Parallel()
+
 	t.Logf("Parse K/V w/ HereDoc as YAML, not K/V")
+
 	mlValue := `somepw
 ---
 foo:  |
@@ -34,8 +37,12 @@ key: value
 }
 
 func TestYAMLKeyFromEmptySecret(t *testing.T) {
+	t.Parallel()
+
 	t.Logf("Get Key from empty Secret")
+
 	s := &YAML{}
+
 	v, ok := s.Get(yamlKey)
 	assert.False(t, ok)
 	assert.Equal(t, "", v)
@@ -51,6 +58,8 @@ type inlineC struct {
 }
 
 func TestYAMLEncodingError(t *testing.T) {
+	t.Parallel()
+
 	s := &YAML{
 		data: map[string]any{
 			"foo": &struct {
@@ -63,10 +72,13 @@ func TestYAMLEncodingError(t *testing.T) {
 }
 
 func TestYAMLKeyToEmptySecret(t *testing.T) {
+	t.Parallel()
+
 	t.Logf("Set Key to empty Secret")
+
 	s := &YAML{}
 	// write key
-	s.Set(yamlKey, yamlValue)
+	assert.NoError(t, s.Set(yamlKey, yamlValue))
 
 	// read back key
 	v, ok := s.Get(yamlKey)
@@ -79,26 +91,41 @@ func TestYAMLKeyToEmptySecret(t *testing.T) {
 }
 
 func TestYAMLKeyFromPWOnlySecret(t *testing.T) {
+	t.Parallel()
+
 	t.Logf("Get key from password-only secret")
+
 	_, err := ParseYAML([]byte(yamlPassword))
+
 	require.Error(t, err)
 }
 
 func TestYAMLKeyToPWOnlySecret(t *testing.T) {
+	t.Parallel()
+
 	t.Logf("Set key to password-only secret")
+
 	_, err := ParseYAML([]byte(yamlPassword))
+
 	require.Error(t, err)
 }
 
 func TestBareYAMLReadKey(t *testing.T) {
+	t.Parallel()
+
 	t.Logf("Bare YAML - no document marker - read key")
+
 	in := "\nbar: baz\nzab: 123\n"
+
 	_, err := ParseYAML([]byte(in))
 	require.Error(t, err)
 }
 
 func TestYAMLSetMultipleKeys(t *testing.T) {
+	t.Parallel()
+
 	t.Logf("Set multiple keys to a secret")
+
 	s := &YAML{
 		password: yamlPassword,
 	}
@@ -108,14 +135,18 @@ func TestYAMLSetMultipleKeys(t *testing.T) {
 	_, _ = b.WriteString("\n")
 	numKey := 100
 	keys := make([]string, 0, numKey)
+
 	for i := 0; i < numKey; i++ {
 		// set key
 		key := fmt.Sprintf("%s-%04d", yamlKey, i)
-		s.Set(key, yamlValue)
+		assert.NoError(t, s.Set(key, yamlValue))
 		keys = append(keys, key)
 	}
+
 	_, _ = b.WriteString("---\n")
+
 	sort.Strings(keys)
+
 	for _, key := range keys {
 		_, _ = b.WriteString(key)
 		_, _ = b.WriteString(": ")
@@ -138,7 +169,10 @@ func TestYAMLSetMultipleKeys(t *testing.T) {
 }
 
 func TestYAMLMultilineWithDashes(t *testing.T) {
+	t.Parallel()
+
 	t.Logf("Get Multi-Line Value containing three dashes")
+
 	mlValue := `-----BEGIN PGP PRIVATE KEY BLOCK-----
 aaa
 bbb
@@ -146,7 +180,7 @@ ccc
 -----END PGP PRIVATE KEY BLOCK-----`
 	s := &YAML{}
 	// write key
-	s.Set(yamlKey, mlValue)
+	assert.NoError(t, s.Set(yamlKey, mlValue))
 
 	// read back key
 	v, ok := s.Get(yamlKey)
@@ -155,18 +189,26 @@ ccc
 }
 
 func TestYAMLDocMarkerAsPW(t *testing.T) {
+	t.Parallel()
+
 	t.Logf("Document Marker as Password (#398)")
+
 	mlValue := `---`
+
 	_, err := ParseYAML([]byte(mlValue))
 	require.Error(t, err)
 }
 
 func TestYAMLBodyWithoutPW(t *testing.T) {
+	t.Parallel()
+
 	t.Logf("YAML Body without Password (#398)")
+
 	mlValue := `---
 username: myuser@test.com
 password: somepasswd
 url: http://www.test.com/`
+
 	s, err := ParseYAML([]byte(mlValue))
 	require.NoError(t, err)
 	assert.NotNil(t, s)
@@ -180,12 +222,16 @@ url: http://www.test.com/`
 }
 
 func TestYAMLBodyWithPW(t *testing.T) {
+	t.Parallel()
+
 	t.Logf("YAML Body with Password (#1607)")
+
 	mlValue := `password
 ---
 username: myuser@test.com
 password: somepasswd
 url: http://www.test.com/`
+
 	s, err := ParseYAML([]byte(mlValue))
 	require.NoError(t, err)
 	assert.NotNil(t, s)
@@ -197,6 +243,8 @@ url: http://www.test.com/`
 }
 
 func TestYAMLValues(t *testing.T) {
+	t.Parallel()
+
 	s := &YAML{
 		data: map[string]any{
 			"string": "string",
@@ -209,6 +257,7 @@ func TestYAMLValues(t *testing.T) {
 
 	get := func(k string) string {
 		v, _ := s.Get(k)
+
 		return v
 	}
 
@@ -220,6 +269,8 @@ func TestYAMLValues(t *testing.T) {
 }
 
 func TestYAMLComplex(t *testing.T) {
+	t.Parallel()
+
 	in := `20
 ---
 login: hallo
@@ -233,6 +284,7 @@ sub:
 
 	get := func(k string) string {
 		v, _ := s.Get(k)
+
 		return v
 	}
 
@@ -240,4 +292,16 @@ sub:
 	assert.Equal(t, "42", get("number"))
 	assert.Equal(t, "map[subentry:123]", get("sub"))
 	assert.Equal(t, []string{"login", "number", "sub"}, s.Keys())
+}
+
+func TestYAMLInvalid(t *testing.T) {
+	t.Parallel()
+
+	in := `password
+---
+otpauth://totp/example-otp.com?secret=2m32moqkjmzochgb&issuer=authenticator&digits=6
+`
+	s, err := ParseYAML([]byte(in))
+	require.Error(t, err)
+	assert.Nil(t, s)
 }

@@ -20,6 +20,7 @@ func WithPassPromptFunc(ctx context.Context, ppf PassPromptFunc) context.Context
 // set in this context.
 func HasPassPromptFunc(ctx context.Context) bool {
 	ppf, ok := ctx.Value(ctxKeyPassPromptFunc).(PassPromptFunc)
+
 	return ok && ppf != nil
 }
 
@@ -30,5 +31,6 @@ func GetPassPromptFunc(ctx context.Context) PassPromptFunc {
 	if !ok || ppf == nil {
 		return promptPass
 	}
+
 	return ppf
 }

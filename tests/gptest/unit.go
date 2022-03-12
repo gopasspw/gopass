@@ -1,6 +1,7 @@
 package gptest
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -45,6 +46,8 @@ func (u Unit) GPGHome() string {
 
 // NewUnitTester creates a new unit test helper.
 func NewUnitTester(t *testing.T) *Unit {
+	t.Helper()
+
 	aclip.Unsupported = true
 	td, err := os.MkdirTemp("", "gopass-")
 	assert.NoError(t, err)
@@ -75,11 +78,16 @@ func NewUnitTester(t *testing.T) *Unit {
 }
 
 func (u Unit) initConfig() error {
-	return os.WriteFile(
+	err := os.WriteFile(
 		u.GPConfig(),
 		[]byte(gopassConfig+"\npath: "+u.StoreDir("")+"\n"),
 		0o600,
 	)
+	if err != nil {
+		return fmt.Errorf("failed to write config: %w", err)
+	}
+
+	return nil
 }
 
 // StoreDir returns the password store dir.
@@ -87,6 +95,7 @@ func (u Unit) StoreDir(mount string) string {
 	if mount != "" {
 		mount = "-" + mount
 	}
+
 	return filepath.Join(u.Dir, "password-store"+mount)
 }
 
@@ -98,32 +107,40 @@ func (u Unit) recipients() []byte {
 func (u Unit) InitStore(name string) error {
 	dir := u.StoreDir(name)
 	if err := os.MkdirAll(dir, 0o700); err != nil {
-		return err
+		return fmt.Errorf("failed to create store dir %s: %w", dir, err)
 	}
+
 	fn := filepath.Join(dir, ".plain-id") // plain.IDFile
 	_ = os.Remove(fn)
+
 	if err := os.WriteFile(fn, u.recipients(), 0o600); err != nil {
-		return err
+		return fmt.Errorf("failed to write IDFile %s: %w", fn, err)
 	}
+
 	for _, p := range AllPathsToSlash(u.Entries) {
 		fn := filepath.Join(dir, p+".txt") // plain.Ext
 		_ = os.Remove(fn)
+
 		if err := os.MkdirAll(filepath.Dir(fn), 0o700); err != nil {
-			return err
+			return fmt.Errorf("failed to create dir %s: %w", filepath.Dir(fn), err)
 		}
+
 		if err := os.WriteFile(fn, []byte("secret\nsecond\nthird"), 0o600); err != nil {
-			return err
+			return fmt.Errorf("failed to write file %s: %w", fn, err)
 		}
 	}
+
 	return nil
 }
 
 // Remove removes the test store.
 func (u *Unit) Remove() {
 	teardownEnv(u.env)
+
 	if u.Dir == "" {
 		return
 	}
+
 	assert.NoError(u.t, os.RemoveAll(u.Dir))
 	u.Dir = ""
 }

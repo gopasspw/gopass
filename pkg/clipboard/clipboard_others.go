@@ -23,7 +23,7 @@ import (
 func clear(ctx context.Context, name string, content []byte, timeout int) error {
 	hash, err := argon2id.Generate(string(content), 0)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to generate checksum: %w", err)
 	}
 
 	// kill any pending unclip processes
@@ -34,12 +34,19 @@ func clear(ctx context.Context, name string, content []byte, timeout int) error 
 	cmd.SysProcAttr = &syscall.SysProcAttr{
 		Setpgid: true,
 	}
+
 	cmd.Env = append(os.Environ(), "GOPASS_UNCLIP_NAME="+name)
 	cmd.Env = append(cmd.Env, "GOPASS_UNCLIP_CHECKSUM="+hash)
+
 	if !ctxutil.IsNotifications(ctx) {
 		cmd.Env = append(cmd.Env, "GOPASS_NO_NOTIFY=true")
 	}
-	return cmd.Start()
+
+	if err := cmd.Start(); err != nil {
+		return fmt.Errorf("failed to invoke unclip: %w", err)
+	}
+
+	return nil
 }
 
 func walkFn(pid int, killFn func(int)) {

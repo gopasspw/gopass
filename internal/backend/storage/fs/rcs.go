@@ -68,6 +68,7 @@ func (s *Store) GetRevision(ctx context.Context, name string, revision string) (
 	if revision == "HEAD" || revision == "latest" {
 		return s.Get(ctx, name)
 	}
+
 	return []byte(""), backend.ErrNotSupported
 }
 

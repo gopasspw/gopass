@@ -76,12 +76,14 @@ func Batch(ctx context.Context, secrets []string, secStore secretGetter, expirat
 			if match.Score < 3 {
 				return fmt.Errorf("weak password (%d / 4)", match.Score)
 			}
+
 			return nil
 		},
 		func(name string, sec gopass.Secret) error {
 			if name == sec.Password() {
 				return fmt.Errorf("password equals name")
 			}
+
 			return nil
 		},
 	}
@@ -161,6 +163,7 @@ func audit(ctx context.Context, secStore secretGetter, validators []validator, e
 		case <-ctx.Done():
 			as.err = errors.New("user aborted")
 			checked <- as
+
 			continue
 		default:
 		}
@@ -177,6 +180,7 @@ func audit(ctx context.Context, secStore secretGetter, validators []validator, e
 
 		if len(validators) < 1 {
 			checked <- as
+
 			continue
 		}
 
@@ -189,6 +193,7 @@ func audit(ctx context.Context, secStore secretGetter, validators []validator, e
 			}
 			// failed to properly retrieve the secret.
 			checked <- as
+
 			continue
 		}
 		as.content = sec.Password()
@@ -196,6 +201,7 @@ func audit(ctx context.Context, secStore secretGetter, validators []validator, e
 		// do not check empty secrets.
 		if as.content == "" {
 			checked <- as
+
 			continue
 		}
 
@@ -205,6 +211,7 @@ func audit(ctx context.Context, secStore secretGetter, validators []validator, e
 				as.messages = append(as.messages, e.Error())
 			}
 			checked <- as
+
 			continue
 		}
 
@@ -221,6 +228,7 @@ func allValid(vs []validator, name string, sec gopass.Secret) []error {
 			errs = append(errs, err)
 		}
 	}
+
 	return errs
 }
 
@@ -270,9 +278,11 @@ func auditPrintResults(ctx context.Context, duplicates, messages, errors map[str
 
 	if foundWeakPasswords || foundDuplicates || foundErrors {
 		_ = notify.Notify(ctx, "gopass - audit", "Finished. Found weak passwords and/or duplicates")
+
 		return fmt.Errorf("found weak passwords or duplicates")
 	}
 
 	_ = notify.Notify(ctx, "gopass - audit", "Finished. No weak passwords or duplicates found!")
+
 	return nil
 }

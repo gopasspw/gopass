@@ -27,6 +27,7 @@ func IsClip(ctx context.Context) bool {
 	if !ok {
 		return false
 	}
+
 	return bv
 }
 
@@ -42,6 +43,7 @@ func IsAlsoClip(ctx context.Context) bool {
 	if !ok {
 		return false
 	}
+
 	return bv
 }
 
@@ -57,6 +59,7 @@ func IsOnlyClip(ctx context.Context) bool {
 	if !ok {
 		return false
 	}
+
 	return bv
 }
 
@@ -71,6 +74,7 @@ func IsPasswordOnly(ctx context.Context) bool {
 	if !ok {
 		return false
 	}
+
 	return bv
 }
 
@@ -85,6 +89,7 @@ func IsPrintQR(ctx context.Context) bool {
 	if !ok {
 		return false
 	}
+
 	return bv
 }
 
@@ -96,6 +101,7 @@ func WithRevision(ctx context.Context, rev string) context.Context {
 // HasRevision returns true if a value for revision was set in this context.
 func HasRevision(ctx context.Context) bool {
 	sv, ok := ctx.Value(ctxKeyRevision).(string)
+
 	return ok && sv != ""
 }
 
@@ -105,6 +111,7 @@ func GetRevision(ctx context.Context) string {
 	if !ok {
 		return ""
 	}
+
 	return sv
 }
 
@@ -116,6 +123,7 @@ func WithKey(ctx context.Context, sv string) context.Context {
 // HasKey returns true if the key is set.
 func HasKey(ctx context.Context) bool {
 	_, ok := ctx.Value(ctxKeyKey).(string)
+
 	return ok
 }
 
@@ -125,6 +133,7 @@ func GetKey(ctx context.Context) string {
 	if !ok {
 		return ""
 	}
+
 	return sv
 }
 
@@ -139,5 +148,6 @@ func GetPrintChars(ctx context.Context) []int {
 	if !ok {
 		return nil
 	}
+
 	return mv
 }

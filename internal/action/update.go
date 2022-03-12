@@ -13,12 +13,13 @@ import (
 
 // Update will start the interactive update assistant.
 func (s *Action) Update(c *cli.Context) error {
-	s.rem.Reset("update")
+	_ = s.rem.Reset("update")
 
 	ctx := ctxutil.WithGlobalFlags(c)
 
 	if s.version.String() == "0.0.0+HEAD" {
 		out.Errorf(ctx, "Can not check version against HEAD")
+
 		return nil
 	}
 
@@ -32,5 +33,6 @@ func (s *Action) Update(c *cli.Context) error {
 	}
 
 	out.OKf(ctx, "gopass is up to date")
+
 	return nil
 }
