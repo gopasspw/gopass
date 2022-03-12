@@ -54,7 +54,6 @@ func TestSetupApp(t *testing.T) {
 var commandsWithError = set.Map([]string{
 	".age.identities.add",
 	".age.identities.remove",
-	".age.identities",
 	".alias.add",
 	".alias.remove",
 	".alias.delete",
