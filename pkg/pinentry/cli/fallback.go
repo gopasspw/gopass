@@ -2,6 +2,7 @@ package cli
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/gopasspw/gopass/pkg/termio"
 )
@@ -21,6 +22,7 @@ func (c *Client) Set(key string) error {
 	if key == "REPEAT" {
 		c.repeat = true
 	}
+
 	return nil
 }
 
@@ -33,7 +35,8 @@ func (c *Client) Option(string) error {
 func (c *Client) GetPIN() (string, error) {
 	pw, err := termio.AskForPassword(context.TODO(), "your PIN", c.repeat)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to ask for PIN: %w", err)
 	}
+
 	return pw, nil
 }

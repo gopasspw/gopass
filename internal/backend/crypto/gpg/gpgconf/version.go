@@ -55,5 +55,6 @@ func Version(ctx context.Context, binary string) semver.Version {
 
 		return sv
 	}
+
 	return v
 }

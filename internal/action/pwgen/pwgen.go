@@ -54,6 +54,7 @@ func xkcdGen(c *cli.Context, num int) error {
 		}
 		fmt.Println(s)
 	}
+
 	return nil
 }
 

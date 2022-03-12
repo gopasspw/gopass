@@ -34,16 +34,20 @@ func (s *Store) lastSeen(key string) time.Time {
 	res, err := s.cache.Get(key)
 	if err != nil {
 		debug.Log("failed to read %q from cache: %s", key, err)
+
 		return t
 	}
+
 	if len(res) < 1 {
 		debug.Log("cache result is empty")
+
 		return t
 	}
 
 	ts, err := time.Parse(time.RFC3339, res[0])
 	if err != nil {
 		debug.Log("failed to parse stored time %q: %s", err)
+
 		return t
 	}
 
@@ -69,6 +73,8 @@ func (s *Store) Overdue(key string) bool {
 	if time.Since(s.lastSeen("overdue")) < 24*time.Hour {
 		return false
 	}
-	s.Reset("overdue")
+
+	_ = s.Reset("overdue")
+
 	return time.Since(s.lastSeen(key)) > 90*24*time.Hour
 }

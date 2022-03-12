@@ -55,7 +55,9 @@ func (r Revisions) Swap(i, j int) {
 func Clone(ctx context.Context, id StorageBackend, repo, path string) (Storage, error) {
 	if be, err := StorageRegistry.Get(id); err == nil {
 		debug.Log("Cloning with %s", be.String())
+
 		return be.Clone(ctx, repo, path)
 	}
+
 	return nil, fmt.Errorf("unknown backend %d: %w", id, ErrNotFound)
 }

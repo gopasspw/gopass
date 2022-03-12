@@ -48,12 +48,14 @@ func (s *Action) Delete(c *cli.Context) error {
 			return exit.Error(exit.Unknown, err, "failed to prune %q: %s", name, err)
 		}
 		debug.Log("pruned %q", name)
+
 		return nil
 	}
 
 	// deletes a single key from a YAML doc.
 	if key != "" {
 		debug.Log("removing key %q from %q", key, name)
+
 		return s.deleteKeyFromYAML(ctx, name, key)
 	}
 
@@ -61,6 +63,7 @@ func (s *Action) Delete(c *cli.Context) error {
 	if err := s.Store.Delete(ctx, name); err != nil {
 		return exit.Error(exit.IO, err, "Can not delete %q: %s", name, err)
 	}
+
 	return nil
 }
 
@@ -70,9 +73,12 @@ func (s *Action) deleteKeyFromYAML(ctx context.Context, name, key string) error 
 	if err != nil {
 		return exit.Error(exit.IO, err, "Can not delete key %q from %q: %s", key, name, err)
 	}
+
 	sec.Del(key)
+
 	if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, "Updated Key"), name, sec); err != nil {
 		return exit.Error(exit.IO, err, "Can not delete key %q from %q: %s", key, name, err)
 	}
+
 	return nil
 }

@@ -66,6 +66,8 @@ oLGNPe8bErLNfny6AWU0Enam6a13BxwbBrtr
 `
 
 func TestReadNamesFromKey(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 
@@ -79,6 +81,8 @@ func TestReadNamesFromKey(t *testing.T) {
 }
 
 func TestExportPublicKey(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 	g, err := New(ctx, Config{})
 	require.NoError(t, err)
@@ -88,6 +92,8 @@ func TestExportPublicKey(t *testing.T) {
 }
 
 func TestImport(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	g := &GPG{}

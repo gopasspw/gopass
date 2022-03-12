@@ -15,7 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestBinary(t *testing.T) {
+func TestBinary(t *testing.T) { //nolint:paralleltest
 	u := gptest.NewUnitTester(t)
 	defer u.Remove()
 
@@ -39,7 +39,7 @@ func TestBinary(t *testing.T) {
 	assert.Error(t, act.Sum(gptest.CliCtx(ctx, t)))
 }
 
-func TestBinaryCat(t *testing.T) {
+func TestBinaryCat(t *testing.T) { //nolint:paralleltest
 	u := gptest.NewUnitTester(t)
 	defer u.Remove()
 
@@ -62,16 +62,16 @@ func TestBinaryCat(t *testing.T) {
 	infile := filepath.Join(u.Dir, "input.txt")
 	writeBinfile(t, infile)
 
-	t.Run("populate store", func(t *testing.T) {
+	t.Run("populate store", func(t *testing.T) { //nolint:paralleltest
 		assert.NoError(t, act.binaryCopy(ctx, gptest.CliCtx(ctx, t), infile, "bar", true))
 	})
 
-	t.Run("binary cat bar", func(t *testing.T) {
+	t.Run("binary cat bar", func(t *testing.T) { //nolint:paralleltest
 		assert.NoError(t, act.Cat(gptest.CliCtx(ctx, t, "bar")))
 	})
 
 	stdinfile := filepath.Join(u.Dir, "stdin")
-	t.Run("binary cat baz from stdin", func(t *testing.T) {
+	t.Run("binary cat baz from stdin", func(t *testing.T) { //nolint:paralleltest
 		writeBinfile(t, stdinfile)
 
 		fd, err := os.Open(stdinfile)
@@ -79,13 +79,13 @@ func TestBinaryCat(t *testing.T) {
 		binstdin = fd
 		defer func() {
 			binstdin = os.Stdin
-			fd.Close()
+			_ = fd.Close()
 		}()
 
 		assert.NoError(t, act.Cat(gptest.CliCtx(ctx, t, "baz")))
 	})
 
-	t.Run("compare output", func(t *testing.T) {
+	t.Run("compare output", func(t *testing.T) { //nolint:paralleltest
 		buf, err := os.ReadFile(stdinfile)
 		require.NoError(t, err)
 		sec, err := act.binaryGet(ctx, "baz")
@@ -94,7 +94,7 @@ func TestBinaryCat(t *testing.T) {
 	})
 }
 
-func TestBinaryCopy(t *testing.T) {
+func TestBinaryCopy(t *testing.T) { //nolint:paralleltest
 	u := gptest.NewUnitTester(t)
 	defer u.Remove()
 
@@ -112,7 +112,7 @@ func TestBinaryCopy(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, act)
 
-	t.Run("copy textfile", func(t *testing.T) {
+	t.Run("copy textfile", func(t *testing.T) { //nolint:paralleltest
 		defer buf.Reset()
 
 		infile := filepath.Join(u.Dir, "input.txt")
@@ -122,41 +122,41 @@ func TestBinaryCopy(t *testing.T) {
 
 	infile := filepath.Join(u.Dir, "input.raw")
 	outfile := filepath.Join(u.Dir, "output.raw")
-	t.Run("copy binary file", func(t *testing.T) {
+	t.Run("copy binary file", func(t *testing.T) { //nolint:paralleltest
 		defer buf.Reset()
 
 		writeBinfile(t, infile)
 		assert.NoError(t, act.binaryCopy(ctx, gptest.CliCtx(ctx, t), infile, "bar", true))
 	})
 
-	t.Run("binary copy bar tempdir/bar", func(t *testing.T) {
+	t.Run("binary copy bar tempdir/bar", func(t *testing.T) { //nolint:paralleltest
 		defer buf.Reset()
 		assert.NoError(t, act.BinaryCopy(gptest.CliCtx(ctx, t, "bar", outfile)))
 	})
 
-	t.Run("binary copy tempdir/bar tempdir/bar", func(t *testing.T) {
+	t.Run("binary copy tempdir/bar tempdir/bar", func(t *testing.T) { //nolint:paralleltest
 		defer buf.Reset()
 
 		assert.Error(t, act.BinaryCopy(gptest.CliCtx(ctx, t, outfile, outfile)))
 	})
 
-	t.Run("binary copy bar bar", func(t *testing.T) {
+	t.Run("binary copy bar bar", func(t *testing.T) { //nolint:paralleltest
 		defer buf.Reset()
 		assert.Error(t, act.BinaryCopy(gptest.CliCtx(ctx, t, "bar", "bar")))
 	})
 
-	t.Run("binary move tempdir/bar bar2", func(t *testing.T) {
+	t.Run("binary move tempdir/bar bar2", func(t *testing.T) { //nolint:paralleltest
 		defer buf.Reset()
 		assert.NoError(t, act.BinaryMove(gptest.CliCtx(ctx, t, outfile, "bar2")))
 	})
 
-	t.Run("binary move bar2 tempdir/bar", func(t *testing.T) {
+	t.Run("binary move bar2 tempdir/bar", func(t *testing.T) { //nolint:paralleltest
 		defer buf.Reset()
 		assert.NoError(t, act.BinaryMove(gptest.CliCtx(ctx, t, "bar2", outfile)))
 	})
 }
 
-func TestBinarySum(t *testing.T) {
+func TestBinarySum(t *testing.T) { //nolint:paralleltest
 	u := gptest.NewUnitTester(t)
 	defer u.Remove()
 
@@ -176,18 +176,18 @@ func TestBinarySum(t *testing.T) {
 
 	infile := filepath.Join(u.Dir, "input.raw")
 
-	t.Run("populate store", func(t *testing.T) {
+	t.Run("populate store", func(t *testing.T) { //nolint:paralleltest
 		writeBinfile(t, infile)
 		assert.NoError(t, act.binaryCopy(ctx, gptest.CliCtx(ctx, t), infile, "bar", true))
 	})
 
-	t.Run("binary sum bar", func(t *testing.T) {
+	t.Run("binary sum bar", func(t *testing.T) { //nolint:paralleltest
 		assert.NoError(t, act.Sum(gptest.CliCtx(ctx, t, "bar")))
 		buf.Reset()
 	})
 }
 
-func TestBinaryGet(t *testing.T) {
+func TestBinaryGet(t *testing.T) { //nolint:paralleltest
 	u := gptest.NewUnitTester(t)
 	defer u.Remove()
 
@@ -208,6 +208,8 @@ func TestBinaryGet(t *testing.T) {
 }
 
 func writeBinfile(t *testing.T, fn string) {
+	t.Helper()
+
 	// tests should be predicable
 	rand.Seed(42)
 

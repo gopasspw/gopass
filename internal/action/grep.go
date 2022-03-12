@@ -45,6 +45,7 @@ func (s *Action) Grep(c *cli.Context) error {
 		sec, err := s.Store.Get(ctx, v)
 		if err != nil {
 			out.Errorf(ctx, "failed to decrypt %s: %v", v, err)
+
 			continue
 		}
 
@@ -57,5 +58,6 @@ func (s *Action) Grep(c *cli.Context) error {
 		out.Warningf(ctx, "%d secrets failed to decrypt", errors)
 	}
 	out.Printf(ctx, "\nScanned %d secrets. %d matches, %d errors", len(haystack), matches, errors)
+
 	return nil
 }

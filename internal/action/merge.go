@@ -25,6 +25,7 @@ func (s *Action) Merge(c *cli.Context) error {
 	if to == "" {
 		return exit.Error(exit.Usage, nil, "usage: %s merge <to> <from> [<from>]", s.Name)
 	}
+
 	if len(from) < 1 {
 		return exit.Error(exit.Usage, nil, "usage: %s merge <to> <from> [<from>]", s.Name)
 	}
@@ -43,10 +44,12 @@ func (s *Action) Merge(c *cli.Context) error {
 		if err != nil {
 			return exit.Error(exit.Decrypt, err, "failed to decrypt: %s: %s", k, err)
 		}
+
 		_, err = content.WriteString("\n# Secret: " + k + "\n")
 		if err != nil {
 			return exit.Error(exit.Unknown, err, "failed to write: %s", err)
 		}
+
 		_, err = content.Write(sec.Bytes())
 		if err != nil {
 			return exit.Error(exit.Unknown, err, "failed to write: %s", err)
@@ -102,5 +105,6 @@ func (s *Action) Merge(c *cli.Context) error {
 			return exit.Error(exit.Unknown, err, "failed to delete %s: %s", old, err)
 		}
 	}
+
 	return nil
 }

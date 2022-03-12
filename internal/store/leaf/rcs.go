@@ -19,12 +19,14 @@ func (s *Store) GitInit(ctx context.Context) error {
 		return err
 	}
 	s.storage = storage
+
 	return nil
 }
 
 // ListRevisions will list all revisions for a secret.
 func (s *Store) ListRevisions(ctx context.Context, name string) ([]backend.Revision, error) {
 	p := s.passfile(name)
+
 	return s.storage.Revisions(ctx, p)
 }
 
@@ -39,6 +41,7 @@ func (s *Store) GetRevision(ctx context.Context, name, revision string) (gopass.
 	content, err := s.crypto.Decrypt(ctx, ciphertext)
 	if err != nil {
 		debug.Log("Decryption failed: %s", err)
+
 		return nil, store.ErrDecrypt
 	}
 
@@ -46,6 +49,7 @@ func (s *Store) GetRevision(ctx context.Context, name, revision string) (gopass.
 	if err != nil {
 		debug.Log("Failed to parse YAML: %s", err)
 	}
+
 	return sec, nil
 }
 
@@ -55,8 +59,11 @@ func (s *Store) GitStatus(ctx context.Context, _ string) error {
 	buf, err := s.storage.Status(ctx)
 	if err != nil {
 		debug.Log("RCS status failed for %s: %s", s.path, err)
+
 		return fmt.Errorf("failed to get RCS status for %s: %w", s.path, err)
 	}
+
 	out.Printf(ctx, string(buf))
+
 	return nil
 }

@@ -12,10 +12,13 @@ func ExampleQRCode() {
 	if err != nil {
 		panic(err)
 	}
+
 	fmt.Println(code)
 }
 
 func TestQRCode(t *testing.T) {
+	t.Parallel()
+
 	_, err := QRCode("https://www.gopass.pw/")
 	assert.NoError(t, err)
 }

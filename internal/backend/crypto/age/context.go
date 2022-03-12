@@ -20,5 +20,6 @@ func IsOnlyNative(ctx context.Context) bool {
 	if !ok {
 		return false
 	}
+
 	return bv
 }

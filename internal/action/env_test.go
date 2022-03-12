@@ -16,7 +16,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestEnvLeafHappyPath(t *testing.T) {
+func TestEnvLeafHappyPath(t *testing.T) { //nolint:paralleltest
 	u := gptest.NewUnitTester(t)
 	defer u.Remove()
 
@@ -48,7 +48,7 @@ func TestEnvLeafHappyPath(t *testing.T) {
 	assert.Contains(t, buf.String(), fmt.Sprintf("BAZ=%s\n", pw))
 }
 
-func TestEnvSecretNotFound(t *testing.T) {
+func TestEnvSecretNotFound(t *testing.T) { //nolint:paralleltest
 	u := gptest.NewUnitTester(t)
 	defer u.Remove()
 
@@ -64,7 +64,7 @@ func TestEnvSecretNotFound(t *testing.T) {
 		"Secret non-existing not found")
 }
 
-func TestEnvProgramNotFound(t *testing.T) {
+func TestEnvProgramNotFound(t *testing.T) { //nolint:paralleltest
 	u := gptest.NewUnitTester(t)
 	defer u.Remove()
 
@@ -88,7 +88,7 @@ func TestEnvProgramNotFound(t *testing.T) {
 }
 
 // Crash regression.
-func TestEnvProgramNotSpecified(t *testing.T) {
+func TestEnvProgramNotSpecified(t *testing.T) { //nolint:paralleltest
 	u := gptest.NewUnitTester(t)
 	defer u.Remove()
 

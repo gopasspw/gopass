@@ -32,6 +32,7 @@ func AskForPrivateKey(ctx context.Context, crypto backend.Crypto, prompt string)
 	if !ctxutil.IsInteractive(ctx) {
 		return "", fmt.Errorf("can not select private key without terminal")
 	}
+
 	if crypto == nil {
 		return "", fmt.Errorf("can not select private key without valid crypto backend")
 	}
@@ -40,15 +41,17 @@ func AskForPrivateKey(ctx context.Context, crypto backend.Crypto, prompt string)
 	if err != nil {
 		return "", err
 	}
+
 	if len(kl) < 1 {
 		return "", fmt.Errorf("no useable private keys found. make sure you have valid private keys with sufficient trust")
 	}
-	// shortcut: I there is only one key, use it
+
+	// shortcut: If there is only one key, use it
 	if len(kl) == 1 {
 		return kl[0], nil
 	}
 
-	fmtStr := "[%" + strconv.Itoa(int(len(kl)/10)+1) + "d] %s - %s\n"
+	fmtStr := "[%" + strconv.Itoa((len(kl)/10)+1) + "d] %s - %s\n"
 	for i := 0; i < maxTries; i++ {
 		if !ctxutil.IsTerminal(ctx) {
 			return kl[0], nil
@@ -64,6 +67,7 @@ func AskForPrivateKey(ctx context.Context, crypto backend.Crypto, prompt string)
 		for i, k := range kl {
 			fmt.Fprintf(Stdout, fmtStr, i, crypto.Name(), crypto.FormatKey(ctx, k, ""))
 		}
+
 		iv, err := termio.AskForInt(ctx, fmt.Sprintf("Please enter the number of a key (0-%d, [q]uit)", len(kl)-1), 0)
 		if err != nil {
 			if err.Error() == "user aborted" {
@@ -72,10 +76,12 @@ func AskForPrivateKey(ctx context.Context, crypto backend.Crypto, prompt string)
 
 			continue
 		}
+
 		if iv >= 0 && iv < len(kl) {
 			return kl[iv], nil
 		}
 	}
+
 	return "", fmt.Errorf("no valid user input")
 }
 
@@ -92,8 +98,10 @@ func AskForGitConfigUser(ctx context.Context, crypto backend.Crypto) (string, st
 	if crypto == nil {
 		return "", "", fmt.Errorf("crypto not available")
 	}
+
 	if crypto.Name() == "age" {
 		debug.Log("skipping git config user prompt for non-gpg backend %s", crypto.Name())
+
 		return "", "", nil
 	}
 
@@ -101,6 +109,7 @@ func AskForGitConfigUser(ctx context.Context, crypto backend.Crypto) (string, st
 	if err != nil {
 		return "", "", err
 	}
+
 	if len(keyList) < 1 {
 		return "", "", fmt.Errorf("no usable private keys found")
 	}
@@ -114,7 +123,7 @@ func AskForGitConfigUser(ctx context.Context, crypto backend.Crypto) (string, st
 		}
 
 		name := crypto.FormatKey(ctx, key, "{{ .Identity.Name }}")
-		email := crypto.FormatKey(ctx, key, "{{ .Identity.Email }}")
+		email := crypto.FormatKey(ctx, key, "{{ .Identity.Email }}")
 
 		if name == "" && email == "" {
 			continue
@@ -125,9 +134,11 @@ func AskForGitConfigUser(ctx context.Context, crypto backend.Crypto) (string, st
 			fmt.Sprintf("Use %s (%s) for password store git config?", name, email),
 			true,
 		)
+
 		if err != nil {
 			return "", "", err
 		}
+
 		if useCurrent {
 			return name, email, nil
 		}
@@ -142,6 +153,7 @@ type mountPointer interface {
 
 func sorted(s []string) []string {
 	sort.Strings(s)
+
 	return s
 }
 
@@ -166,6 +178,7 @@ func AskForStore(ctx context.Context, s mountPointer) string {
 		if store == "<root>" {
 			store = ""
 		}
+
 		return store
 	default:
 		return "" // root store

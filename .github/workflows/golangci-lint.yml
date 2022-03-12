@@ -1,13 +1,12 @@
 name: golangci-lint
 on:
-  workflow_dispatch:
-      #  push: # Disabled until Golangci-lint GHA is compiled with Go 1.18
-      #    tags:
-      #      - v*
-      #    branches:
-      #      - master
-      #      - main
-      #  pull_request:
+  push:
+    tags:
+      - v*
+    branches:
+      - master
+      - main
+  pull_request:
 permissions:
   contents: read
   pull-requests: read
@@ -20,6 +19,5 @@ jobs:
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v3
         with:
-          # Optional: version of golangci-lint to use in form of v1.2 or v1.2.3 or `latest` to use the latest version
           version: latest # we have a list of linters in our .golangci.yml config file
           only-new-issues: true

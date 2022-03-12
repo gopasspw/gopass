@@ -5,37 +5,53 @@ import (
 	"testing"
 
 	"github.com/blang/semver/v4"
+	"github.com/stretchr/testify/require"
 )
 
 func TestSort(t *testing.T) {
-	in := []gpgBin{
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name string
+		in   []gpgBin
+		out  []semver.Version
+	}{
 		{
-			path: "/usr/local/bin/gpg",
-			ver: semver.Version{
-				Major: 1,
-				Minor: 9,
-				Patch: 1,
+			name: "simple",
+			in: []gpgBin{
+				{
+					path: "/usr/local/bin/gpg",
+					ver:  semver.MustParse("1.9.1"),
+				},
+				{
+					path: "/usr/bin/gpg",
+					ver:  semver.MustParse("2.4.0"),
+				},
+				{
+					path: "/usr/local/bin/gpg2",
+					ver:  semver.MustParse("2.1.11"),
+				},
+			},
+			out: []semver.Version{
+				semver.MustParse("1.9.1"),
+				semver.MustParse("2.1.11"),
+				semver.MustParse("2.4.0"),
 			},
 		},
-		{
-			path: "/usr/bin/gpg",
-			ver: semver.Version{
-				Major: 2,
-				Minor: 4,
-			},
-		},
-		{
-			path: "/usr/local/bin/gpg2",
-			ver: semver.Version{
-				Major: 2,
-				Minor: 1,
-				Patch: 11,
-			},
-		},
-	}
-	sort.Sort(byVersion(in))
-	t.Logf("Out: %+v", in)
-	if in[len(in)-1].ver.LT(semver.Version{Major: 2, Minor: 4}) {
-		t.Errorf("wrong sort order")
+	} {
+		tc := tc
+
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			sort.Sort(byVersion(tc.in))
+
+			require.Equal(t, len(tc.in), len(tc.out))
+			for i, v := range tc.out {
+				if !tc.in[i].ver.Equals(v) {
+					t.Errorf("wrong sort order at %d: %s != %s", i, tc.in[i].ver, v)
+				}
+			}
+		})
 	}
 }

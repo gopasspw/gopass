@@ -12,6 +12,8 @@ import (
 )
 
 func TestRecipients(t *testing.T) {
+	t.Parallel()
+
 	u := gptest.NewUnitTester(t)
 	defer u.Remove()
 

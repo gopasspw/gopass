@@ -7,6 +7,8 @@ import (
 )
 
 func TestKeyList(t *testing.T) {
+	t.Parallel()
+
 	kl := KeyList{
 		genTestKey("John", "johnny", "Doe", "john.doe@example.org"),
 		genTestKey("Jane", "jane", "Doe", "jane.doe@example.org", "25FF1614B8F87B52FFFF99B962AF4031C82E0019"),

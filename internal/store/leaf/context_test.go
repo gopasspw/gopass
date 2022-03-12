@@ -8,6 +8,8 @@ import (
 )
 
 func TestFsckCheck(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	assert.False(t, IsFsckCheck(ctx))
@@ -17,6 +19,8 @@ func TestFsckCheck(t *testing.T) {
 }
 
 func TestFsckForce(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	assert.False(t, IsFsckForce(ctx))
@@ -26,6 +30,8 @@ func TestFsckForce(t *testing.T) {
 }
 
 func TestFsckFunc(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	ffunc := func(context.Context, string) bool {
@@ -38,6 +44,8 @@ func TestFsckFunc(t *testing.T) {
 }
 
 func TestCheckRecipients(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	assert.False(t, IsCheckRecipients(ctx))

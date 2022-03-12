@@ -43,6 +43,7 @@ func (l loader) Handles(ctx context.Context, path string) error {
 	if !fsutil.IsDir(filepath.Join(path, ".git")) {
 		return fmt.Errorf("no .git")
 	}
+
 	return nil
 }
 

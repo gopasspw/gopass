@@ -16,6 +16,8 @@ import (
 )
 
 func TestConfigs(t *testing.T) {
+	t.Parallel()
+
 	for _, tc := range []struct {
 		name string
 		cfg  string
@@ -331,7 +333,10 @@ version: "1.0.0"`,
 			},
 		},
 	} {
+		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got, err := decode([]byte(tc.cfg), true)
 			require.NoError(t, err)
 			if diff := cmp.Diff(tc.want, got); diff != "" {
@@ -371,7 +376,7 @@ mounts:
     safecontent: false
 version: 1.4.0`
 
-func TestLoad(t *testing.T) {
+func TestLoad(t *testing.T) { //nolint:paralleltest
 	td := os.TempDir()
 	gcfg := filepath.Join(td, ".gopass.yml")
 	_ = os.Remove(gcfg)
@@ -384,7 +389,7 @@ func TestLoad(t *testing.T) {
 	assert.True(t, cfg.SafeContent)
 }
 
-func TestLoadError(t *testing.T) {
+func TestLoadError(t *testing.T) { //nolint:paralleltest
 	gcfg := filepath.Join(os.TempDir(), ".gopass-err.yml")
 	assert.NoError(t, os.Setenv("GOPASS_CONFIG", gcfg))
 
@@ -395,6 +400,7 @@ func TestLoadError(t *testing.T) {
 		if err == nil {
 			return fmt.Errorf("should fail")
 		}
+
 		return nil
 	})
 
@@ -404,15 +410,17 @@ func TestLoadError(t *testing.T) {
 
 	td, err := os.MkdirTemp("", "gopass-")
 	require.NoError(t, err)
+
 	defer func() {
-		os.RemoveAll(td)
+		_ = os.RemoveAll(td)
 	}()
+
 	gcfg = filepath.Join(td, "foo", ".gopass.yml")
 	assert.NoError(t, os.Setenv("GOPASS_CONFIG", gcfg))
 	assert.NoError(t, cfg.Save())
 }
 
-func TestDecodeError(t *testing.T) {
+func TestDecodeError(t *testing.T) { //nolint:paralleltest
 	gcfg := filepath.Join(os.TempDir(), ".gopass-err2.yml")
 	assert.NoError(t, os.Setenv("GOPASS_CONFIG", gcfg))
 
@@ -424,12 +432,14 @@ func TestDecodeError(t *testing.T) {
 		if err == nil {
 			return fmt.Errorf("should fail")
 		}
+
 		return nil
 	})
 }
 
 func capture(t *testing.T, fn func() error) string {
 	t.Helper()
+
 	old := os.Stdout
 
 	oldcol := color.NoColor
@@ -453,5 +463,6 @@ func capture(t *testing.T, fn func() error) string {
 	color.NoColor = oldcol
 	assert.NoError(t, err)
 	out := <-done
+
 	return strings.TrimSpace(out)
 }

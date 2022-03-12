@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestSync(t *testing.T) {
+func TestSync(t *testing.T) { //nolint:paralleltest
 	u := gptest.NewUnitTester(t)
 	defer u.Remove()
 
@@ -31,12 +31,12 @@ func TestSync(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, act)
 
-	t.Run("default", func(t *testing.T) {
+	t.Run("default", func(t *testing.T) { //nolint:paralleltest
 		defer buf.Reset()
 		assert.NoError(t, act.Sync(gptest.CliCtx(ctx, t)))
 	})
 
-	t.Run("sync --store=root", func(t *testing.T) {
+	t.Run("sync --store=root", func(t *testing.T) { //nolint:paralleltest
 		defer buf.Reset()
 		assert.NoError(t, act.Sync(gptest.CliCtxWithFlags(ctx, t, map[string]string{"store": "root"})))
 	})

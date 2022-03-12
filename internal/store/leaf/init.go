@@ -14,8 +14,10 @@ func (s *Store) IsInitialized(ctx context.Context) bool {
 	if s == nil || s.storage == nil {
 		return false
 	}
+
 	ok := s.storage.Exists(ctx, s.idFile(ctx, ""))
 	debug.Log("store %q is initialized: %t", s.path, ok)
+
 	return ok
 }
 
@@ -37,11 +39,13 @@ You can add secondary stores with 'gopass init --path <path to secondary store> 
 		if err != nil {
 			debug.Log("no useable key for %q: %s. Ignoring.", id, err)
 			out.Errorf(ctx, "Failed to fetch public key for %q: %s", id, err)
+
 			continue
 		}
 		if len(kl) < 1 {
 			debug.Log("no useable key for %q. Ignoring.", id)
 			out.Errorf(ctx, "No useable keys for %q", id)
+
 			continue
 		}
 		recipients = append(recipients, kl[0])

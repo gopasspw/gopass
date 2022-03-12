@@ -12,6 +12,7 @@ func ModuleVersion(m string) semver.Version {
 	bi, ok := rdebug.ReadBuildInfo()
 	if !ok || bi == nil {
 		Log("Failed to read build info")
+
 		return semver.Version{}
 	}
 
@@ -19,13 +20,18 @@ func ModuleVersion(m string) semver.Version {
 		if dep.Path != m {
 			continue
 		}
+
 		sv, err := semver.Parse(strings.TrimPrefix(dep.Version, "v"))
 		if err != nil {
 			Log("Failed to parse version %s: %s", dep.Version, err)
+
 			return semver.Version{}
 		}
+
 		return sv
 	}
+
 	Log("no module %s found", m)
+
 	return semver.Version{}
 }

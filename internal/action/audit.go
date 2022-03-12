@@ -18,7 +18,7 @@ func (s *Action) Audit(c *cli.Context) error {
 	if expiry > 0 {
 		out.Print(ctx, "Auditing password expiration ...")
 	} else {
-		s.rem.Reset("audit")
+		_ = s.rem.Reset("audit")
 		out.Print(ctx, "Auditing passwords for common flaws ...")
 	}
 
@@ -39,6 +39,7 @@ func (s *Action) Audit(c *cli.Context) error {
 
 	if len(list) < 1 {
 		out.Printf(ctx, "No secrets found")
+
 		return nil
 	}
 

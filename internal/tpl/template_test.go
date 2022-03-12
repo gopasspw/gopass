@@ -45,13 +45,16 @@ Bcrypt of the new password: {{ .Content | bcrypt }}
 type kvMock struct{}
 
 func (k kvMock) Get(ctx context.Context, key string) (gopass.Secret, error) {
-	return secparse.Parse([]byte("barfoo\n---\nbarkey: barvalue\n"))
+	return secparse.Parse([]byte("barfoo\n---\nbarkey: barvalue\n")) //nolint:wrapcheck
 }
 
+//nolint:gocognit
 func TestVars(t *testing.T) {
-	ctx := context.Background()
+	t.Parallel()
 
+	ctx := context.Background()
 	kv := kvMock{}
+
 	for _, tc := range []struct {
 		Template   string
 		Name       string
@@ -154,13 +157,16 @@ func TestVars(t *testing.T) {
 				if !strings.HasPrefix(s, "{SSHA}") {
 					return fmt.Errorf("wrong prefix")
 				}
+
 				ok, err := ssha.Validate("foobar", s)
 				if err != nil {
 					return fmt.Errorf("can't validate: %w", err)
 				}
+
 				if !ok {
 					return fmt.Errorf("hash mismatch")
 				}
+
 				return nil
 			},
 		},
@@ -172,13 +178,16 @@ func TestVars(t *testing.T) {
 				if !strings.HasPrefix(s, "{SSHA256}") {
 					return fmt.Errorf("wrong prefix: %s", s)
 				}
+
 				ok, err := ssha256.Validate("foobar", s)
 				if err != nil {
 					return fmt.Errorf("can't validate: %w", err)
 				}
+
 				if !ok {
 					return fmt.Errorf("hash mismatch")
 				}
+
 				return nil
 			},
 		},
@@ -190,13 +199,16 @@ func TestVars(t *testing.T) {
 				if !strings.HasPrefix(s, "{SSHA512}") {
 					return fmt.Errorf("wrong prefix: %s", s)
 				}
+
 				ok, err := ssha512.Validate("foobar", s)
 				if err != nil {
 					return fmt.Errorf("can't validate: %w", err)
 				}
+
 				if !ok {
 					return fmt.Errorf("hash mismatch")
 				}
+
 				return nil
 			},
 		},
@@ -208,13 +220,16 @@ func TestVars(t *testing.T) {
 				if !strings.HasPrefix(s, "{SSHA512}") {
 					return fmt.Errorf("wrong prefix: %s", s)
 				}
+
 				ok, err := ssha512.Validate("foobar", s)
 				if err != nil {
 					return fmt.Errorf("can't validate: %w", err)
 				}
+
 				if !ok {
 					return fmt.Errorf("hash mismatch")
 				}
+
 				return nil
 			},
 		},
@@ -226,13 +241,16 @@ func TestVars(t *testing.T) {
 				if !strings.HasPrefix(s, "{MD5-CRYPT}") {
 					return fmt.Errorf("wrong prefix: %s", s)
 				}
+
 				ok, err := md5crypt.Validate("foobar", s)
 				if err != nil {
 					return fmt.Errorf("can't validate: %w", err)
 				}
+
 				if !ok {
 					return fmt.Errorf("hash mismatch")
 				}
+
 				return nil
 			},
 		},
@@ -244,13 +262,16 @@ func TestVars(t *testing.T) {
 				if !strings.HasPrefix(s, "{MD5-CRYPT}") {
 					return fmt.Errorf("wrong prefix: %s", s)
 				}
+
 				ok, err := md5crypt.Validate("foobar", s)
 				if err != nil {
 					return fmt.Errorf("can't validate: %w", err)
 				}
+
 				if !ok {
 					return fmt.Errorf("hash mismatch")
 				}
+
 				return nil
 			},
 		},
@@ -262,13 +283,16 @@ func TestVars(t *testing.T) {
 				if !strings.HasPrefix(s, "{ARGON2I}") {
 					return fmt.Errorf("wrong prefix: %s", s)
 				}
+
 				ok, err := argon2i.Validate("foobar", s)
 				if err != nil {
 					return fmt.Errorf("can't validate: %w", err)
 				}
+
 				if !ok {
 					return fmt.Errorf("hash mismatch")
 				}
+
 				return nil
 			},
 		},
@@ -280,13 +304,16 @@ func TestVars(t *testing.T) {
 				if !strings.HasPrefix(s, "{ARGON2ID}") {
 					return fmt.Errorf("wrong prefix: %s", s)
 				}
+
 				ok, err := argon2id.Validate("foobar", s)
 				if err != nil {
 					return fmt.Errorf("can't validate: %w", err)
 				}
+
 				if !ok {
 					return fmt.Errorf("hash mismatch")
 				}
+
 				return nil
 			},
 		},
@@ -300,6 +327,7 @@ func TestVars(t *testing.T) {
 		tc := tc
 		t.Run(tc.Template, func(t *testing.T) {
 			t.Parallel()
+
 			buf, err := Execute(ctx, tc.Template, tc.Name, tc.Content, kv)
 			if tc.ShouldFail {
 				assert.Error(t, err)

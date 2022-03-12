@@ -27,6 +27,7 @@ func (l loader) New(ctx context.Context, path string) (backend.Storage, error) {
 	}
 	be := New(path)
 	debug.Log("Using Storage Backend: %s", be.String())
+
 	return be, nil
 }
 
@@ -34,6 +35,7 @@ func (l loader) Init(ctx context.Context, path string) (backend.Storage, error) 
 	if err := os.MkdirAll(path, 0o700); err != nil {
 		return nil, err
 	}
+
 	return l.New(ctx, path)
 }
 
@@ -48,6 +50,7 @@ func (l loader) Handles(ctx context.Context, path string) error {
 	if fsutil.IsDir(path) {
 		return nil
 	}
+
 	return fmt.Errorf("dir not found")
 }
 

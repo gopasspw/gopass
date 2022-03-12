@@ -30,6 +30,7 @@ func (s Secret) SafeStr() string {
 // OutputIsRedirected returns true if the current os.Stdout is a pipe instead of a terminal.
 func OutputIsRedirected() bool {
 	o, _ := os.Stdout.Stat()
+
 	return (o.Mode() & os.ModeCharDevice) != os.ModeCharDevice
 }
 
@@ -37,6 +38,7 @@ func newline(ctx context.Context) string {
 	if HasNewline(ctx) {
 		return "\n"
 	}
+
 	return ""
 }
 

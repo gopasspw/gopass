@@ -12,21 +12,23 @@ import (
 )
 
 func TestCleanFilename(t *testing.T) {
+	t.Parallel()
+
 	m := map[string]string{
 		`"§$%&aÜÄ*&b%§"'Ä"c%$"'"`: "a____b______c",
 	}
 	for k, v := range m {
 		out := CleanFilename(k)
 		t.Logf("%s -> %s / %s", k, v, out)
-		if out != v {
-			t.Errorf("%q != %q", out, v)
-		}
+
+		assert.Equal(t, v, out)
 	}
 }
 
-func TestCleanPath(t *testing.T) {
+func TestCleanPath(t *testing.T) { //nolint:paralleltest
 	tempdir, err := os.MkdirTemp("", "gopass-")
 	require.NoError(t, err)
+
 	defer func() {
 		_ = os.RemoveAll(tempdir)
 	}()
@@ -44,6 +46,7 @@ func TestCleanPath(t *testing.T) {
 		if gph := os.Getenv("GOPASS_HOMEDIR"); gph != "" {
 			hd = gph
 		}
+
 		m["~/.password-store"] = hd + "/.password-store"
 	}
 
@@ -58,8 +61,11 @@ func TestCleanPath(t *testing.T) {
 }
 
 func TestIsDir(t *testing.T) {
+	t.Parallel()
+
 	tempdir, err := os.MkdirTemp("", "gopass-")
 	require.NoError(t, err)
+
 	defer func() {
 		_ = os.RemoveAll(tempdir)
 	}()
@@ -72,8 +78,11 @@ func TestIsDir(t *testing.T) {
 }
 
 func TestIsFile(t *testing.T) {
+	t.Parallel()
+
 	tempdir, err := os.MkdirTemp("", "gopass-")
 	require.NoError(t, err)
+
 	defer func() {
 		_ = os.RemoveAll(tempdir)
 	}()
@@ -85,8 +94,11 @@ func TestIsFile(t *testing.T) {
 }
 
 func TestShred(t *testing.T) {
+	t.Parallel()
+
 	tempdir, err := os.MkdirTemp("", "gopass-")
 	require.NoError(t, err)
+
 	defer func() {
 		_ = os.RemoveAll(tempdir)
 	}()
@@ -101,7 +113,8 @@ func TestShred(t *testing.T) {
 		_, _ = rand.Read(buf)
 		_, _ = fh.Write(buf)
 	}
-	_ = fh.Close()
+
+	require.NoError(t, fh.Close())
 	assert.NoError(t, Shred(fn, 8))
 	assert.Equal(t, false, IsFile(fn))
 
@@ -114,14 +127,18 @@ func TestShred(t *testing.T) {
 		_, _ = rand.Read(buf)
 		_, _ = fh.Write(buf)
 	}
-	_ = fh.Close()
+
+	require.NoError(t, fh.Close())
 	assert.Error(t, Shred(fn, 8))
 	assert.Equal(t, true, IsFile(fn))
 }
 
 func TestIsEmptyDir(t *testing.T) {
+	t.Parallel()
+
 	tempdir, err := os.MkdirTemp("", "gopass-")
 	require.NoError(t, err)
+
 	defer func() {
 		_ = os.RemoveAll(tempdir)
 	}()

@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestEdit(t *testing.T) {
+func TestEdit(t *testing.T) { //nolint:paralleltest
 	u := gptest.NewUnitTester(t)
 	defer u.Remove()
 
@@ -43,7 +43,7 @@ func TestEdit(t *testing.T) {
 	buf.Reset()
 }
 
-func TestEditUpdate(t *testing.T) {
+func TestEditUpdate(t *testing.T) { //nolint:paralleltest
 	u := gptest.NewUnitTester(t)
 	defer u.Remove()
 

@@ -16,6 +16,7 @@ func (s *Action) Convert(c *cli.Context) error {
 	if err != nil {
 		return err
 	}
+
 	crypto, err := backend.CryptoRegistry.Backend(c.String("crypto"))
 	if err != nil {
 		return err

@@ -17,7 +17,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestHistory(t *testing.T) {
+func TestHistory(t *testing.T) { //nolint:paralleltest
 	u := gptest.NewUnitTester(t)
 	defer u.Remove()
 
@@ -39,7 +39,7 @@ func TestHistory(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, act)
 
-	t.Run("can initialize", func(t *testing.T) {
+	t.Run("can initialize", func(t *testing.T) { //nolint:paralleltest
 		require.NoError(t, act.IsInitialized(gptest.CliCtx(ctx, t)))
 	})
 
@@ -49,23 +49,23 @@ func TestHistory(t *testing.T) {
 		out.Stdout = os.Stdout
 	}()
 
-	t.Run("init git", func(t *testing.T) {
+	t.Run("init git", func(t *testing.T) { //nolint:paralleltest
 		defer buf.Reset()
 		require.NoError(t, act.rcsInit(ctx, "", "foo bar", "foo.bar@example.org"))
 		t.Logf("init git: %s", buf.String())
 	})
 
-	t.Run("insert bar", func(t *testing.T) {
+	t.Run("insert bar", func(t *testing.T) { //nolint:paralleltest
 		defer buf.Reset()
 		assert.NoError(t, act.Insert(gptest.CliCtx(ctx, t, "bar")))
 	})
 
-	t.Run("history bar", func(t *testing.T) {
+	t.Run("history bar", func(t *testing.T) { //nolint:paralleltest
 		defer buf.Reset()
 		assert.NoError(t, act.History(gptest.CliCtx(ctx, t, "bar")))
 	})
 
-	t.Run("history --password bar", func(t *testing.T) {
+	t.Run("history --password bar", func(t *testing.T) { //nolint:paralleltest
 		defer buf.Reset()
 		assert.NoError(t, act.History(gptest.CliCtxWithFlags(ctx, t, map[string]string{"password": "true"}, "bar")))
 	})

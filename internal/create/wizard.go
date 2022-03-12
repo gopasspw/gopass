@@ -131,27 +131,34 @@ func New(ctx context.Context, s backend.Storage) (*Wizard, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	for _, f := range tpls {
 		if !strings.HasSuffix(f, ".yml") && !strings.HasSuffix(f, ".yaml") {
 			debug.Log("ignoring unknown file extension: %s", f)
+
 			continue
 		}
 		buf, err := s.Get(ctx, f)
 		if err != nil {
 			debug.Log("failed to parse template %s: %s", f, err)
+
 			continue
 		}
 		tpl := Template{}
 		if err := yaml.Unmarshal(buf, &tpl); err != nil {
 			debug.Log("failed to parse template %s: %s", f, err)
 			out.Errorf(ctx, "Bad template %s: %s\n%s", f, err, string(buf))
+
 			continue
 		}
+
 		w.Templates = append(w.Templates, tpl)
 	}
+
 	sort.Slice(w.Templates, func(i, j int) bool {
 		return w.Templates[i].Priority < w.Templates[j].Priority
 	})
+
 	return w, nil
 }
 
@@ -164,6 +171,7 @@ func (w *Wizard) Actions(s *root.Store, cb ActionCallback) cui.Actions {
 	sort.Slice(w.Templates, func(i, j int) bool {
 		return w.Templates[i].Priority < w.Templates[j].Priority
 	})
+
 	acts := make(cui.Actions, 0, len(w.Templates))
 	for _, tpl := range w.Templates {
 		acts = append(acts, cui.Action{
@@ -171,11 +179,13 @@ func (w *Wizard) Actions(s *root.Store, cb ActionCallback) cui.Actions {
 			Fn:   mkActFunc(tpl, s, cb),
 		})
 	}
+
 	return acts
 }
 
-func mkActFunc(tpl Template, s *root.Store, cb ActionCallback) func(context.Context, *cli.Context) error {
+func mkActFunc(tpl Template, s *root.Store, cb ActionCallback) func(context.Context, *cli.Context) error { //nolint:cyclop
 	debug.Log("creating action func for %+v, cb: %p", tpl, cb)
+
 	return func(ctx context.Context, c *cli.Context) error {
 		name := c.Args().First()
 		store := c.String("store")
@@ -215,7 +225,7 @@ func mkActFunc(tpl Template, s *root.Store, cb ActionCallback) func(context.Cont
 				if wantForName[k] {
 					nameParts = append(nameParts, sv)
 				}
-				sec.Set(k, sv)
+				_ = sec.Set(k, sv)
 			case "hostname":
 				sv, err := termio.AskForString(ctx, fmtfn(2, strconv.Itoa(step), v.Prompt), "")
 				if err != nil {
@@ -229,9 +239,9 @@ func mkActFunc(tpl Template, s *root.Store, cb ActionCallback) func(context.Cont
 					nameParts = append(nameParts, hostname)
 				}
 				if u := pwrules.LookupChangeURL(hostname); u != "" {
-					sec.Set("password-change-url", u)
+					_ = sec.Set("password-change-url", u)
 				}
-				sec.Set(k, sv)
+				_ = sec.Set(k, sv)
 			case "password":
 				var err error
 				genPw, err = termio.AskForBool(ctx, fmtfn(2, strconv.Itoa(step), "Generate Password?"), true)
@@ -292,9 +302,10 @@ func mkActFunc(tpl Template, s *root.Store, cb ActionCallback) func(context.Cont
 		}
 
 		if err := s.Set(ctxutil.WithCommitMessage(ctx, "Created new entry"), name, sec); err != nil {
-			return fmt.Errorf("failed to set %q: %s", name, err)
+			return fmt.Errorf("failed to set %q: %w", name, err)
 		}
 		out.OKf(ctx, "Credentials saved to %q", name)
+
 		return cb(ctx, c, name, password, genPw)
 	}
 }
@@ -306,6 +317,7 @@ func generatePassword(ctx context.Context, hostname, charset string) (string, er
 		if err != nil {
 			return "", err
 		}
+
 		return pwgen.GeneratePasswordCharset(length, charset), nil
 	}
 	if _, found := pwrules.LookupRule(hostname); found {
@@ -314,6 +326,7 @@ func generatePassword(ctx context.Context, hostname, charset string) (string, er
 		if err != nil {
 			return "", err
 		}
+
 		return pwgen.NewCrypticForDomain(length, hostname).Password(), nil
 	}
 	xkcd, err := termio.AskForBool(ctx, fmtfn(4, "a", "Human-pronounceable passphrase?"), false)
@@ -329,6 +342,7 @@ func generatePassword(ctx context.Context, hostname, charset string) (string, er
 		g.SetNumWords(length)
 		g.SetDelimiter(" ")
 		g.SetCapitalize(true)
+
 		return string(g.GeneratePassword()), nil
 	}
 

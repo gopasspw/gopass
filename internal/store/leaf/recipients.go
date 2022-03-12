@@ -26,6 +26,7 @@ func (s *Store) Recipients(ctx context.Context) []string {
 	if err != nil {
 		out.Errorf(ctx, "failed to read recipient list: %s", err)
 	}
+
 	return rs
 }
 
@@ -42,17 +43,21 @@ func (s *Store) RecipientsTree(ctx context.Context) map[string][]string {
 		srs, err := s.getRecipients(ctx, idf)
 		if err != nil {
 			debug.Log("failed to list recipients: %s", err)
+
 			continue
 		}
 		if cmp.Equal(out[""], srs) {
 			debug.Log("root recipients equal secret recipients from %s", idf)
+
 			continue
 		}
 		dir := filepath.Dir(idf)
 		debug.Log("adding recipients %+v for %s", srs, dir)
 		out[dir] = srs
 	}
+
 	out[""] = root
+
 	return out
 }
 
@@ -64,6 +69,7 @@ func (s *Store) AddRecipient(ctx context.Context, id string) error {
 	}
 
 	debug.Log("new recipient: %q - existing: %+v", id, rs)
+
 	for _, k := range rs {
 		if k == id {
 			return fmt.Errorf("recipient already in store")
@@ -77,6 +83,7 @@ func (s *Store) AddRecipient(ctx context.Context, id string) error {
 	}
 
 	out.Printf(ctx, "Reencrypting existing secrets. This may take some time ...")
+
 	return s.reencrypt(ctxutil.WithCommitMessage(ctx, "Added Recipient "+id))
 }
 
@@ -86,6 +93,7 @@ func (s *Store) SaveRecipients(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("failed to get recipients: %w", err)
 	}
+
 	return s.saveRecipients(ctx, rs, "Save Recipients")
 }
 
@@ -109,12 +117,14 @@ func (s *Store) RemoveRecipient(ctx context.Context, id string) error {
 	}
 
 	nk := make([]string, 0, len(rs)-1)
+
 RECIPIENTS:
-	for _, k := range rs {
+	for _, k := range rs { //nolint:whitespace
 
 		// First lets try a simple match of the stored ids
 		if k == id {
 			debug.Log("removing recipient based on id match %s", k)
+
 			continue RECIPIENTS
 		}
 
@@ -131,12 +141,14 @@ RECIPIENTS:
 		for _, key := range keys {
 			if strings.HasSuffix(key, k) {
 				debug.Log("removing recipient based on id suffix match: %s %s", key, k)
+
 				continue RECIPIENTS
 			}
 
 			for _, recipientID := range recipientIds {
 				if recipientID == key {
 					debug.Log("removing recipient based on recipient id match %s", recipientID)
+
 					continue RECIPIENTS
 				}
 			}
@@ -161,12 +173,15 @@ func (s *Store) ensureOurKeyID(ctx context.Context, rs []string) []string {
 	if ourID == "" {
 		return rs
 	}
+
 	for _, r := range rs {
 		if r == ourID {
 			return rs
 		}
 	}
+
 	rs = append(rs, ourID)
+
 	return rs
 }
 
@@ -178,8 +193,10 @@ func (s *Store) OurKeyID(ctx context.Context) string {
 		if err != nil || len(kl) < 1 {
 			continue
 		}
+
 		return kl[0]
 	}
+
 	return ""
 }
 
@@ -208,6 +225,7 @@ func (s *Store) ExportMissingPublicKeys(ctx context.Context, rs []string) (bool,
 	exp, ok := s.crypto.(keyExporter)
 	if !ok {
 		debug.Log("not exporting public keys for %T", s.crypto)
+
 		return false, nil
 	}
 
@@ -219,7 +237,9 @@ func (s *Store) ExportMissingPublicKeys(ctx context.Context, rs []string) (bool,
 		path, err := s.exportPublicKey(ctx, exp, r)
 		if err != nil {
 			failed = true
+
 			out.Errorf(ctx, "failed to export public key for %q: %s", r, err)
+
 			continue
 		}
 		if path == "" {
@@ -231,19 +251,27 @@ func (s *Store) ExportMissingPublicKeys(ctx context.Context, rs []string) (bool,
 			if errors.Is(err, store.ErrGitNotInit) {
 				continue
 			}
+
 			failed = true
+
 			out.Errorf(ctx, "failed to add public key for %q to git: %s", r, err)
+
 			continue
 		}
-		if err := s.storage.Commit(ctx, fmt.Sprintf("Exported Public Keys %s", r)); err != nil && err != store.ErrGitNothingToCommit {
+
+		if err := s.storage.Commit(ctx, fmt.Sprintf("Exported Public Keys %s", r)); err != nil && !errors.Is(err, store.ErrGitNothingToCommit) {
 			failed = true
+
 			out.Errorf(ctx, "Failed to git commit: %s", err)
+
 			continue
 		}
 	}
+
 	if failed {
 		return exported, fmt.Errorf("some keys failed")
 	}
+
 	return exported, nil
 }
 
@@ -254,19 +282,20 @@ func (s *Store) saveRecipients(ctx context.Context, rs []string, msg string) err
 	}
 
 	idf := s.idFile(ctx, "")
+
 	buf := recipients.Marshal(rs)
 	if err := s.storage.Set(ctx, idf, buf); err != nil {
 		return fmt.Errorf("failed to write recipients file: %w", err)
 	}
 
 	if err := s.storage.Add(ctx, idf); err != nil {
-		if err != store.ErrGitNotInit {
+		if !errors.Is(err, store.ErrGitNotInit) {
 			return fmt.Errorf("failed to add file %q to git: %w", idf, err)
 		}
 	}
 
 	if err := s.storage.Commit(ctx, msg); err != nil {
-		if err != store.ErrGitNotInit && err != store.ErrGitNothingToCommit {
+		if !errors.Is(err, store.ErrGitNotInit) && !errors.Is(err, store.ErrGitNothingToCommit) {
 			return fmt.Errorf("failed to commit changes to git: %w", err)
 		}
 	}
@@ -283,12 +312,15 @@ func (s *Store) saveRecipients(ctx context.Context, rs []string, msg string) err
 		if errors.Is(err, store.ErrGitNotInit) {
 			return nil
 		}
+
 		if errors.Is(err, store.ErrGitNoRemote) {
 			msg := "Warning: git has no remote. Ignoring auto-push option\n" +
 				"Run: gopass git remote add origin ..."
 			debug.Log(msg)
+
 			return nil
 		}
+
 		return fmt.Errorf("failed to push changes to git: %w", err)
 	}
 

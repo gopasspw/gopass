@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestUninitialized(t *testing.T) {
+func TestUninitialized(t *testing.T) { //nolint:paralleltest
 	ts := newTester(t)
 	defer ts.teardown()
 
@@ -30,7 +30,7 @@ func TestUninitialized(t *testing.T) {
 		"show",
 	}
 
-	for _, command := range commands {
+	for _, command := range commands { //nolint:paralleltest
 		t.Run(command, func(t *testing.T) {
 			out, err := ts.run(command)
 			assert.Error(t, err)

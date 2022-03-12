@@ -58,6 +58,7 @@ func (f *Fossil) Fsck(ctx context.Context) error {
 	if err := f.fixConfig(ctx); err != nil {
 		return fmt.Errorf("failed to fix fossil config: %w", err)
 	}
+
 	return f.fs.Fsck(ctx)
 }
 

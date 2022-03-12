@@ -62,9 +62,11 @@ func (s *Action) find(ctx context.Context, c *cli.Context, needle string, cb sho
 	if len(choices) == 1 {
 		if cb == nil {
 			out.Printf(ctx, choices[0])
+
 			return nil
 		}
 		out.OKf(ctx, "Found exact match in %q", choices[0])
+
 		return cb(ctx, c, choices[0], false)
 	}
 
@@ -86,6 +88,7 @@ func (s *Action) find(ctx context.Context, c *cli.Context, needle string, cb sho
 		for _, value := range choices {
 			out.Printf(ctx, value)
 		}
+
 		return nil
 	}
 
@@ -104,28 +107,34 @@ func (s *Action) findSelection(ctx context.Context, c *cli.Context, choices []st
 	sort.Strings(choices)
 	act, sel := cui.GetSelection(ctx, "Found secrets - Please select an entry", choices)
 	debug.Log("Action: %s - Selection: %d", act, sel)
+
 	switch act {
 	case "default":
 		// display or copy selected entry.
 		fmt.Fprintln(stdout, choices[sel])
+
 		return cb(ctx, c, choices[sel], false)
 	case "copy":
 		// display selected entry.
 		fmt.Fprintln(stdout, choices[sel])
+
 		return cb(WithClip(ctx, true), c, choices[sel], false)
 	case "show":
 		// display selected entry.
 		fmt.Fprintln(stdout, choices[sel])
+
 		return cb(WithClip(ctx, false), c, choices[sel], false)
 	case "sync":
 		// run sync and re-run show/find workflow.
 		if err := s.Sync(c); err != nil {
 			return err
 		}
+
 		return cb(ctx, c, needle, true)
 	case "edit":
 		// edit selected entry.
 		fmt.Fprintln(stdout, choices[sel])
+
 		return s.edit(ctx, c, choices[sel])
 	default:
 		return exit.Error(exit.Aborted, nil, "user aborted")
@@ -139,5 +148,6 @@ func filter(l []string, needle string) []string {
 			choices = append(choices, value)
 		}
 	}
+
 	return choices
 }

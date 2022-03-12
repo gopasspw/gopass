@@ -24,6 +24,7 @@ func (c CryptoBackend) String() string {
 	if be, err := CryptoRegistry.BackendName(c); err == nil {
 		return be
 	}
+
 	return ""
 }
 
@@ -63,6 +64,7 @@ func NewCrypto(ctx context.Context, id CryptoBackend) (Crypto, error) {
 	if be, err := CryptoRegistry.Get(id); err == nil {
 		return be.New(ctx)
 	}
+
 	return nil, fmt.Errorf("unknown backend %d: %w", id, ErrNotFound)
 }
 
@@ -78,12 +80,14 @@ func DetectCrypto(ctx context.Context, storage Storage) (Crypto, error) {
 		debug.Log("Trying %s for %s", be, storage)
 		if err := be.Handles(ctx, storage); err != nil {
 			debug.Log("failed to use crypto %s for %s", be, storage)
+
 			continue
 		}
 		debug.Log("Using %s for %s", be, storage)
+
 		return be.New(ctx)
 	}
 	debug.Log("No valid crypto provider found for %s", storage)
 	// TODO: this should return ErrNotSupported, but need to fix some tests for that
-	return nil, nil
+	return nil, nil //nolint:nilnil
 }

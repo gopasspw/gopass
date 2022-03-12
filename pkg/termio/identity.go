@@ -27,17 +27,21 @@ var (
 func DetectName(ctx context.Context, c *cli.Context) string {
 	cand := make([]string, 0, 5)
 	cand = append(cand, ctxutil.GetUsername(ctx))
+
 	if c != nil {
 		cand = append(cand, c.String("name"))
 	}
+
 	for _, k := range NameVars {
 		cand = append(cand, os.Getenv(k))
 	}
+
 	for _, e := range cand {
 		if e != "" {
 			return e
 		}
 	}
+
 	return ""
 }
 
@@ -45,16 +49,20 @@ func DetectName(ctx context.Context, c *cli.Context) string {
 func DetectEmail(ctx context.Context, c *cli.Context) string {
 	cand := make([]string, 0, 5)
 	cand = append(cand, ctxutil.GetEmail(ctx))
+
 	if c != nil {
 		cand = append(cand, c.String("email"))
 	}
+
 	for _, k := range EmailVars {
 		cand = append(cand, os.Getenv(k))
 	}
+
 	for _, e := range cand {
 		if e != "" {
 			return e
 		}
 	}
+
 	return ""
 }

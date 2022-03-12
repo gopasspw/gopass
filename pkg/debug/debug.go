@@ -33,6 +33,7 @@ var enabled = initDebug()
 func initDebug() bool {
 	if os.Getenv("GOPASS_DEBUG") == "" && os.Getenv("GOPASS_DEBUG_LOG") == "" {
 		logFn = doNotLog
+
 		return false
 	}
 
@@ -42,6 +43,7 @@ func initDebug() bool {
 
 	initDebugLogger()
 	initDebugTags()
+
 	logFn = doLog
 
 	return true
@@ -62,6 +64,7 @@ func initDebugLogger() {
 			os.Exit(3)
 		}
 	}
+
 	if err != nil && os.IsNotExist(err) {
 		f, err = os.OpenFile(debugfile, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o600)
 	}
@@ -85,6 +88,7 @@ func parseFilter(envname string, pad func(string) string) map[string]bool {
 	for _, fn := range strings.Split(env, ",") {
 		t := pad(strings.TrimSpace(fn))
 		val := true
+
 		if t[0] == '-' {
 			val = false
 			t = t[1:]
@@ -145,6 +149,7 @@ func getPosition(offset int) (fn, dir, file string, line int) {
 	filename := filepath.Base(file)
 
 	f := runtime.FuncForPC(pc)
+
 	return path.Base(f.Name()), dirname, filename, line
 }
 
@@ -186,6 +191,7 @@ func doNotLog(offset int, f string, args ...any) {}
 
 func doLog(offset int, f string, args ...any) {
 	fn, dir, file, line := getPosition(offset)
+
 	if len(f) == 0 || f[len(f)-1] != '\n' {
 		f += "\n"
 	}
@@ -203,8 +209,10 @@ func doLog(offset int, f string, args ...any) {
 		argsi[i] = item
 		if secreter, ok := item.(Safer); ok && !logSecrets {
 			argsi[i] = secreter.SafeStr()
+
 			continue
 		}
+
 		if shortener, ok := item.(Shortener); ok {
 			argsi[i] = shortener.Str()
 		}
@@ -225,6 +233,7 @@ func doLog(offset int, f string, args ...any) {
 	filename := fmt.Sprintf("%s/%s:%d", dir, file, line)
 	if checkFilter(opts.files, filename) {
 		dbgprint()
+
 		return
 	}
 

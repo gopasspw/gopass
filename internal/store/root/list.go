@@ -17,6 +17,7 @@ func (r *Store) List(ctx context.Context, maxDepth int) ([]string, error) {
 	if err != nil {
 		return []string{}, err
 	}
+
 	return t.List(maxDepth), nil
 }
 
@@ -26,6 +27,7 @@ func (r *Store) Tree(ctx context.Context) (*tree.Root, error) {
 	addFileFunc := func(in ...string) {
 		for _, f := range in {
 			var ct string
+
 			switch {
 			case strings.HasSuffix(f, ".b64"):
 				ct = "application/octet-stream"
@@ -36,8 +38,10 @@ func (r *Store) Tree(ctx context.Context) (*tree.Root, error) {
 			default:
 				ct = "text/plain"
 			}
+
 			if err := root.AddFile(f, ct); err != nil {
 				out.Errorf(ctx, "Failed to add file %s to tree: %s", f, err)
+
 				continue
 			}
 		}
@@ -46,6 +50,7 @@ func (r *Store) Tree(ctx context.Context) (*tree.Root, error) {
 		for _, f := range in {
 			if err := root.AddTemplate(f); err != nil {
 				out.Errorf(ctx, "Failed to add template %s to tree: %s", f, err)
+
 				continue
 			}
 		}
@@ -55,23 +60,28 @@ func (r *Store) Tree(ctx context.Context) (*tree.Root, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	addFileFunc(sf...)
 	addTplFunc(r.store.ListTemplates(ctx, "")...)
 
 	mps := r.MountPoints()
 	sort.Sort(store.ByPathLen(mps))
+
 	for _, alias := range mps {
 		substore := r.mounts[alias]
 		if substore == nil {
 			continue
 		}
+
 		if err := root.AddMount(alias, substore.Path()); err != nil {
 			return nil, fmt.Errorf("failed to add mount: %w", err)
 		}
+
 		sf, err := substore.List(ctx, "")
 		if err != nil {
 			return nil, fmt.Errorf("failed to add file: %w", err)
 		}
+
 		addFileFunc(sf...)
 		addTplFunc(substore.ListTemplates(ctx, alias)...)
 	}
@@ -82,15 +92,18 @@ func (r *Store) Tree(ctx context.Context) (*tree.Root, error) {
 // HasSubDirs returns true if the named entity has subdirectories.
 func (r *Store) HasSubDirs(ctx context.Context, name string) (bool, error) {
 	sub, prefix := r.getStore(name)
+
 	entries, err := sub.List(ctx, prefix)
 	if err != nil {
 		return false, err
 	}
+
 	for _, e := range entries {
 		if sub.IsDir(ctx, e) {
 			return true, nil
 		}
 	}
+
 	return false, nil
 }
 
@@ -100,5 +113,6 @@ func (r *Store) Format(ctx context.Context, maxDepth int) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
 	return t.Format(maxDepth), nil
 }

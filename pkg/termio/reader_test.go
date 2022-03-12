@@ -11,6 +11,8 @@ import (
 )
 
 func TestReadLines(t *testing.T) {
+	t.Parallel()
+
 	for _, tc := range [][]string{
 		{"foo", "bar"},
 		{"foo", "bar", "", "baz"},
@@ -25,6 +27,8 @@ func TestReadLines(t *testing.T) {
 }
 
 func TestReadLineError(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 	stdin := strings.NewReader("fo")
 	lr := NewReader(ctx, iotest.TimeoutReader(stdin))
@@ -35,6 +39,8 @@ func TestReadLineError(t *testing.T) {
 }
 
 func TestRead(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 	stdin := strings.NewReader(`foobarbazzabzabzab`)
 	lr := NewReader(ctx, stdin)
@@ -48,9 +54,11 @@ func TestRead(t *testing.T) {
 
 func mustReadLine(r io.Reader) string {
 	ctx := context.Background()
+
 	line, err := NewReader(ctx, r).ReadLine()
 	if err != nil {
 		panic(err)
 	}
+
 	return line
 }

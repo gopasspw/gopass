@@ -51,16 +51,19 @@ func (s *Store) reencrypt(ctx context.Context) error {
 					content, err := s.Get(ctx, e)
 					if err != nil {
 						logger.Printf("Worker %d: Failed to get current value for %s: %s\n", workerId, e, err)
+
 						continue
 					}
 					if err := s.Set(WithNoGitOps(ctx, conc > 1), e, content); err != nil {
 						logger.Printf("Worker %d: Failed to write %s: %s\n", workerId, e, err)
+
 						continue
 					}
 				}
 				wg.Done() // report the job as finished
 			}(i)
 		}
+
 		for _, e := range entries {
 			// check for context cancelation
 			select {
@@ -69,6 +72,7 @@ func (s *Store) reencrypt(ctx context.Context) error {
 				close(jobs)
 				// we wait for all workers to have finished
 				wg.Wait()
+
 				return fmt.Errorf("context canceled")
 			default:
 			}
@@ -95,10 +99,13 @@ func (s *Store) reencrypt(ctx context.Context) error {
 			if err := s.storage.Add(ctx, p); err != nil {
 				if errors.Is(err, store.ErrGitNotInit) {
 					debug.Log("skipping git add - git not initialized")
+
 					continue
 				}
+
 				return fmt.Errorf("failed to add %q to git: %w", p, err)
 			}
+
 			debug.Log("added %s to git", p)
 		}
 	}
@@ -123,15 +130,20 @@ func (s *Store) reencryptGitPush(ctx context.Context) error {
 			msg := "Warning: git is not initialized for this.storage. Ignoring auto-push option\n" +
 				"Run: gopass git init"
 			debug.Log(msg)
+
 			return nil
 		}
+
 		if errors.Is(err, store.ErrGitNoRemote) {
 			msg := "Warning: git has no remote. Ignoring auto-push option\n" +
 				"Run: gopass git remote add origin ..."
 			debug.Log(msg)
+
 			return nil
 		}
+
 		return fmt.Errorf("failed to push change to git remote: %w", err)
 	}
+
 	return nil
 }

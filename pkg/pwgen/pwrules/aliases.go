@@ -2,6 +2,7 @@ package pwrules
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"sort"
@@ -19,6 +20,7 @@ func LookupAliases(domain string) []string {
 	aliases = append(aliases, genAliases[domain]...)
 	aliases = append(aliases, customAliases[domain]...)
 	sort.Strings(aliases)
+
 	return aliases
 }
 
@@ -28,9 +30,11 @@ func AllAliases() map[string][]string {
 	for k, v := range genAliases {
 		all[k] = append(all[k], v...)
 	}
+
 	for k, v := range customAliases {
 		all[k] = append(all[k], v...)
 	}
+
 	return all
 }
 
@@ -46,45 +50,71 @@ func filename() string {
 
 func loadCustomAliases() error {
 	fn := filename()
+
 	if !fsutil.IsFile(fn) {
 		debug.Log("no custom aliases found at %s", fn)
+
 		return nil
 	}
+
 	fh, err := os.Open(fn)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to open %s for reading: %w", fn, err)
 	}
-	defer fh.Close()
-	return json.NewDecoder(fh).Decode(&customAliases)
+
+	defer func() {
+		_ = fh.Close()
+	}()
+
+	if err := json.NewDecoder(fh).Decode(&customAliases); err != nil {
+		return fmt.Errorf("failed to decode custom aliases: %w", err)
+	}
+
+	return nil
 }
 
 func saveCustomAliases() error {
 	fn := filename()
-	if err := os.MkdirAll(filepath.Dir(fn), 0o700); err != nil {
-		return err
+
+	dir := filepath.Dir(fn)
+	if err := os.MkdirAll(dir, 0o700); err != nil {
+		return fmt.Errorf("failed to create directory %s: %w", dir, err)
 	}
+
 	fh, err := os.OpenFile(fn, os.O_WRONLY|os.O_CREATE, 0o600)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to open %s for writing: %w", fn, err)
 	}
-	defer fh.Close()
-	return json.NewEncoder(fh).Encode(customAliases)
+
+	defer func() {
+		_ = fh.Close()
+	}()
+
+	if err := json.NewEncoder(fh).Encode(customAliases); err != nil {
+		return fmt.Errorf("failed to encode custom aliases: %w", err)
+	}
+
+	return nil
 }
 
 // AddCustomAlias adds a custom alias.
 func AddCustomAlias(domain, alias string) error {
 	if len(customAliases) < 1 {
-		loadCustomAliases()
+		_ = loadCustomAliases()
 	}
+
 	v := make([]string, 0, 1)
+
 	if ev, found := customAliases[domain]; found {
 		v = ev
 	}
+
 	for _, k := range v {
 		if k == alias {
 			return nil
 		}
 	}
+
 	v = append(v, alias)
 	sort.Strings(v)
 	customAliases[domain] = v
@@ -95,19 +125,24 @@ func AddCustomAlias(domain, alias string) error {
 // RemoveCustomAlias removes a custom alias.
 func RemoveCustomAlias(domain, alias string) error {
 	if len(customAliases) < 1 {
-		loadCustomAliases()
+		_ = loadCustomAliases()
 	}
+
 	ev, found := customAliases[domain]
 	if !found {
 		return nil
 	}
+
 	nv := make([]string, 0, len(ev)-1)
+
 	for _, a := range ev {
 		if alias == a {
 			continue
 		}
+
 		nv = append(nv, a)
 	}
+
 	customAliases[domain] = nv
 
 	return saveCustomAliases()
@@ -116,8 +151,9 @@ func RemoveCustomAlias(domain, alias string) error {
 // DeleteCustomAlias removes a whole domain.
 func DeleteCustomAlias(domain string) error {
 	if len(customAliases) < 1 {
-		loadCustomAliases()
+		_ = loadCustomAliases()
 	}
+
 	delete(customAliases, domain)
 
 	return saveCustomAliases()

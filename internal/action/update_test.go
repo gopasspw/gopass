@@ -49,6 +49,8 @@ const testUpdateJSON = `{
   }`
 
 func TestUpdate(t *testing.T) {
+	t.Parallel()
+
 	updater.UpdateMoveAfterQuit = false
 
 	u := gptest.NewUnitTester(t)
@@ -66,10 +68,12 @@ func TestUpdate(t *testing.T) {
 		defer func() {
 			_ = gzw.Close()
 		}()
+
 		tw := tar.NewWriter(gzw)
 		defer func() {
 			_ = tw.Close()
 		}()
+
 		body := "foobar"
 		hdr := &tar.Header{
 			Typeflag: tar.TypeReg,
@@ -79,10 +83,12 @@ func TestUpdate(t *testing.T) {
 		}
 		if err := tw.WriteHeader(hdr); err != nil {
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+
 			return
 		}
 		if _, err := tw.Write([]byte(body)); err != nil {
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+
 			return
 		}
 	}))

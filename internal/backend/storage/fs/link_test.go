@@ -7,6 +7,8 @@ import (
 )
 
 func TestLongestCommonPrefix(t *testing.T) {
+	t.Parallel()
+
 	for _, tc := range []struct {
 		Src    string
 		Dst    string
@@ -24,6 +26,8 @@ func TestLongestCommonPrefix(t *testing.T) {
 }
 
 func TestAddRel(t *testing.T) {
+	t.Parallel()
+
 	for _, tc := range []struct {
 		Src string
 		Dst string

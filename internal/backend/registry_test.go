@@ -31,6 +31,8 @@ func (l fakeCryptoLoader) Priority() int {
 }
 
 func TestCryptoLoader(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 	backend.CryptoRegistry.Register(backend.Plain, "plain", fakeCryptoLoader{})
 	c, err := backend.NewCrypto(ctx, backend.Plain)

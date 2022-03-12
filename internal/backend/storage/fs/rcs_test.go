@@ -10,6 +10,8 @@ import (
 )
 
 func TestRCS(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 	path, cleanup := newTempDir(t)
 	defer cleanup()

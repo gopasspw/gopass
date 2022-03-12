@@ -33,6 +33,7 @@ func migrate(ctx context.Context, s backend.Storage) error {
 			out.Errorf(ctx, "Failed to remove %s: %s", oldIDPath, err)
 		}
 	}
+
 	if fsutil.IsFile(oldIDPath) {
 		out.Noticef(ctx, "Found %s. Migrating to %s.", oldIDPath, newIDPath)
 		if err := os.Rename(oldIDPath, newIDPath); err != nil {
@@ -50,12 +51,14 @@ func migrate(ctx context.Context, s backend.Storage) error {
 		debug.Log("no password callback found, redirecting to askPass")
 		ctx = ctxutil.WithPasswordCallback(ctx, func(prompt string, _ bool) ([]byte, error) {
 			pw, err := a.askPass.Passphrase(prompt, fmt.Sprintf("to load the age keyring at %s", OldKeyring), false)
+
 			return []byte(pw), err
 		})
 	}
 
 	if fsutil.IsFile(OldKeyring) && fsutil.IsFile(a.identity) {
 		out.Warningf(ctx, "Both %s and %s exist. Keeping both. Recover any identities from %s as needed.", OldKeyring, a.identity, OldKeyring)
+
 		return nil
 	}
 	if !fsutil.IsFile(OldKeyring) {
@@ -73,6 +76,7 @@ func migrate(ctx context.Context, s backend.Storage) error {
 	if err := a.saveIdentities(ctx, ids, false); err != nil {
 		return err
 	}
+
 	return os.Remove(OldKeyring)
 }
 
@@ -92,12 +96,14 @@ func (a *Age) loadIdentitiesFromKeyring(ctx context.Context) ([]string, error) {
 	buf, err := a.decryptFile(ctx, OldKeyring)
 	if err != nil {
 		debug.Log("can't decrypt keyring at %s: %s", OldKeyring, err)
+
 		return nil, err
 	}
 
 	var kr Keyring
 	if err := json.Unmarshal(buf, &kr); err != nil {
 		debug.Log("can't parse keyring at %s: %s", OldKeyring, err)
+
 		return nil, err
 	}
 
@@ -110,5 +116,6 @@ func (a *Age) loadIdentitiesFromKeyring(ctx context.Context) ([]string, error) {
 		valid = append(valid, k.Identity)
 	}
 	debug.Log("loaded keyring with %d valid entries from %s", len(kr), OldKeyring)
+
 	return valid, nil
 }

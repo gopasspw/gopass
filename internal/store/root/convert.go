@@ -16,9 +16,11 @@ func (r *Store) Convert(ctx context.Context, name string, cryptoBe backend.Crypt
 	}
 
 	debug.Log("converting %s to crypto: %s, rcs: %s, storage: %s", name, cryptoBe, storageBe)
+
 	if err := sub.Convert(ctx, cryptoBe, storageBe, move); err != nil {
 		return err
 	}
+
 	if name == "" {
 		debug.Log("success. updating root path to %s", sub.Path())
 		r.cfg.Path = sub.Path()

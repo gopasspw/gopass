@@ -29,7 +29,7 @@ const (
 # Available Template functions:
 # - md5sum: e.g. {{ .Content | md5sum }}
 # - sha1sum: e.g. {{ .Content | sha1sum }}
-# - md5crypt: e.g. {{ .Content | md5crypt }}
+# - md5crypt: e.g. {{ .Content | md5crypt }}
 # - ssha: e.g. {{ .Content | ssha }}
 # - ssha256: e.g. {{ .Content | ssha256 }}
 # - ssha512: e.g. {{ .Content | ssha512 }}
@@ -45,6 +45,7 @@ func (s *Action) TemplatesPrint(c *cli.Context) error {
 		return exit.Error(exit.List, err, "failed to list templates: %s", err)
 	}
 	fmt.Fprintln(stdout, t.Format(tree.INF))
+
 	return nil
 }
 
@@ -59,6 +60,7 @@ func (s *Action) TemplatePrint(c *cli.Context) error {
 	}
 
 	fmt.Fprintln(stdout, string(content))
+
 	return nil
 }
 
@@ -112,6 +114,7 @@ func (s *Action) templatesList(ctx context.Context) []string {
 	t, err := s.Store.TemplateTree(ctx)
 	if err != nil {
 		debug.Log("failed to list templates: %s", err)
+
 		return nil
 	}
 
@@ -131,12 +134,14 @@ func (s *Action) renderTemplate(ctx context.Context, name string, content []byte
 	tName, tmpl, found := s.Store.LookupTemplate(ctx, name)
 	if !found {
 		debug.Log("No template found for %s", name)
+
 		return content, false
 	}
 
 	tmplStr := strings.TrimSpace(string(tmpl))
 	if tmplStr == "" {
 		debug.Log("Skipping empty template %q, for %s", tName, name)
+
 		return content, false
 	}
 
@@ -144,6 +149,7 @@ func (s *Action) renderTemplate(ctx context.Context, name string, content []byte
 	nc, err := tpl.Execute(ctx, string(tmpl), name, content, s.Store)
 	if err != nil {
 		fmt.Fprintf(stdout, "failed to execute template %q: %s\n", tName, err)
+
 		return content, false
 	}
 

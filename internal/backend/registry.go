@@ -66,6 +66,7 @@ func (r *Registry[K, V]) Register(backend K, name string, loader V) {
 func (r *Registry[K, V]) BackendNames() []string {
 	names := maps.Keys(r.nameToBackend)
 	sort.Strings(names)
+
 	return names
 }
 
@@ -74,6 +75,7 @@ func (r *Registry[K, V]) Backends() []V {
 	for _, be := range r.backends {
 		bes = append(bes, be)
 	}
+
 	return bes
 }
 
@@ -82,6 +84,7 @@ func (r *Registry[K, V]) Prioritized() []V {
 	sort.Slice(bes, func(i, j int) bool {
 		return bes[i].Priority() < bes[j].Priority()
 	})
+
 	return bes
 }
 
@@ -90,6 +93,7 @@ func (r *Registry[K, V]) Get(key K) (V, error) {
 		return be, nil
 	}
 	var zero V
+
 	return zero, ErrNotFound
 }
 
@@ -100,8 +104,10 @@ func (r *Registry[K, V]) Backend(name string) (K, error) {
 	backend, ok := r.nameToBackend[name]
 	if !ok {
 		var zero K
+
 		return zero, ErrNotFound
 	}
+
 	return backend, nil
 }
 
@@ -110,5 +116,6 @@ func (r *Registry[K, V]) BackendName(backend K) (string, error) {
 	if !ok {
 		return "", ErrNotFound
 	}
+
 	return name, nil
 }

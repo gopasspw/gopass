@@ -8,6 +8,8 @@ import (
 )
 
 func TestParsePlain(t *testing.T) {
+	t.Parallel()
+
 	for _, tc := range []struct {
 		desc string
 		in   string
@@ -27,8 +29,11 @@ func TestParsePlain(t *testing.T) {
 			body: "",
 		},
 	} {
+		tc := tc
+
 		t.Run(tc.desc, func(t *testing.T) {
 			t.Parallel()
+
 			sec := ParsePlain([]byte(tc.in))
 			t.Logf("Secret: %+v", sec)
 			assert.Equal(t, tc.pw, sec.Password())
@@ -38,16 +43,22 @@ func TestParsePlain(t *testing.T) {
 }
 
 func TestPlainModify(t *testing.T) {
+	t.Parallel()
+
 	in := "foobar\nhello world\nhow are you?"
 	sec := ParsePlain([]byte(in))
+
 	require.NotNil(t, sec)
 	assert.Equal(t, in, string(sec.Bytes()))
 	assert.Equal(t, 0, len(sec.Keys()))
-	sec.Set("foozen", "zab")
+	assert.Error(t, sec.Set("foozen", "zab"))
+
 	v, ok := sec.Get("foozen")
 	assert.False(t, ok)
+
 	assert.Equal(t, "", v)
 	assert.Equal(t, "foobar", sec.Password())
+
 	sec.SetPassword("zab")
 	assert.Equal(t, "zab", sec.Password())
 }

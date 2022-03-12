@@ -20,7 +20,9 @@ import (
 )
 
 // aGitRepo creates and initializes a small git repo.
-func aGitRepo(ctx context.Context, u *gptest.Unit, t *testing.T, name string) string {
+func aGitRepo(ctx context.Context, t *testing.T, u *gptest.Unit, name string) string {
+	t.Helper()
+
 	gd := filepath.Join(u.Dir, name)
 	assert.NoError(t, os.MkdirAll(gd, 0o700))
 
@@ -37,7 +39,7 @@ func aGitRepo(ctx context.Context, u *gptest.Unit, t *testing.T, name string) st
 	return gd
 }
 
-func TestClone(t *testing.T) {
+func TestClone(t *testing.T) { //nolint:paralleltest
 	u := gptest.NewUnitTester(t)
 	defer u.Remove()
 
@@ -60,25 +62,25 @@ func TestClone(t *testing.T) {
 		stdout = os.Stdout
 	}()
 
-	t.Run("no args", func(t *testing.T) {
+	t.Run("no args", func(t *testing.T) { //nolint:paralleltest
 		defer buf.Reset()
 		c := gptest.CliCtx(ctx, t)
 		assert.Error(t, act.Clone(c))
 	})
 
-	t.Run("clone to initialized store", func(t *testing.T) {
+	t.Run("clone to initialized store", func(t *testing.T) { //nolint:paralleltest
 		defer buf.Reset()
 		assert.Error(t, act.clone(ctx, "/tmp/non-existing-repo.git", "", filepath.Join(u.Dir, "store")))
 	})
 
-	t.Run("clone to mount", func(t *testing.T) {
+	t.Run("clone to mount", func(t *testing.T) { //nolint:paralleltest
 		defer buf.Reset()
-		gd := aGitRepo(ctx, u, t, "other-repo")
+		gd := aGitRepo(ctx, t, u, "other-repo")
 		assert.NoError(t, act.clone(ctx, gd, "gd", filepath.Join(u.Dir, "mount")))
 	})
 }
 
-func TestCloneBackendIsStoredForMount(t *testing.T) {
+func TestCloneBackendIsStoredForMount(t *testing.T) { //nolint:paralleltest
 	u := gptest.NewUnitTester(t)
 	defer u.Remove()
 
@@ -106,7 +108,7 @@ func TestCloneBackendIsStoredForMount(t *testing.T) {
 	c := gptest.CliCtx(ctx, t)
 	require.NoError(t, act.IsInitialized(c))
 
-	repo := aGitRepo(ctx, u, t, "my-project")
+	repo := aGitRepo(ctx, t, u, "my-project")
 
 	c = gptest.CliCtxWithFlags(ctx, t, map[string]string{"check-keys": "false"}, repo, "the-project")
 	assert.NoError(t, act.Clone(c))
@@ -114,7 +116,7 @@ func TestCloneBackendIsStoredForMount(t *testing.T) {
 	require.NotNil(t, act.cfg.Mounts["the-project"])
 }
 
-func TestCloneGetGitConfig(t *testing.T) {
+func TestCloneGetGitConfig(t *testing.T) { //nolint:paralleltest
 	u := gptest.NewUnitTester(t)
 	defer u.Remove()
 

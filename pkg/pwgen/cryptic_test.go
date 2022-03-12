@@ -11,19 +11,29 @@ import (
 )
 
 func TestCrypticForDomain(t *testing.T) {
+	t.Parallel()
+
 	rules := pwrules.AllRules()
 	keys := make([]string, 0, len(rules))
+
 	for k := range rules {
 		keys = append(keys, k)
 	}
+
 	sort.Strings(keys)
-	for _, domain := range keys {
+
+	for _, domain := range keys { //nolint:paralleltest
 		t.Run(domain, func(t *testing.T) {
+			t.Parallel()
+
 			for _, length := range []int{1, 4, 8, 100} {
 				tcName := fmt.Sprintf("%s - %d", domain, length)
 				c := NewCrypticForDomain(length, domain)
+
 				require.NotNil(t, c, tcName)
+
 				pw := c.Password()
+
 				assert.NotEqual(t, "", pw, tcName)
 				t.Logf("%s -> %s (%d)", tcName, pw, len(pw))
 			}
@@ -32,6 +42,8 @@ func TestCrypticForDomain(t *testing.T) {
 }
 
 func TestUniqueChars(t *testing.T) {
+	t.Parallel()
+
 	for in, out := range map[string]string{
 		"foobar": "abfor",
 		"abced":  "abcde",

@@ -4,6 +4,7 @@ package diff
 // the second list.
 func Stat[K comparable](l, r []K) (int, int) {
 	added, removed := List(l, r)
+
 	return len(added), len(removed)
 }
 
@@ -14,12 +15,15 @@ func List[K comparable](l, r []K) ([]K, []K) {
 	mr := listToMap(r)
 
 	var added []K
+
 	for k := range mr {
 		if _, found := ml[k]; !found {
 			added = append(added, k)
 		}
 	}
+
 	var removed []K
+
 	for k := range ml {
 		if _, found := mr[k]; !found {
 			removed = append(removed, k)
@@ -34,5 +38,6 @@ func listToMap[K comparable](l []K) map[K]struct{} {
 	for _, e := range l {
 		m[e] = struct{}{}
 	}
+
 	return m
 }

@@ -37,6 +37,7 @@ func New(path string) (*Fossil, error) {
 	if !fsutil.IsFile(marker) {
 		return nil, fmt.Errorf("no fossil checkout marker found at %s", marker)
 	}
+
 	return &Fossil{
 		fs: fs.New(path),
 	}, nil
@@ -56,14 +57,16 @@ func Clone(ctx context.Context, repo, path string) (*Fossil, error) {
 	if strings.HasPrefix(repo, "http:") || strings.HasPrefix(repo, "https:") || strings.HasPrefix(repo, "ssh:") || strings.HasPrefix(repo, "file:") {
 		args = append(args, "--repodir", filepath.Dir(path))
 	}
+
 	if err := f.Cmd(withPathOverride(ctx, filepath.Dir(path)), "Clone", args...); err != nil {
 		return nil, err
 	}
 
 	// initialize the local fossil config.
 	if err := f.InitConfig(ctx, "", ""); err != nil {
-		return f, fmt.Errorf("failed to configure git: %s", err)
+		return f, fmt.Errorf("failed to configure git: %w", err)
 	}
+
 	out.Printf(ctx, "fossil configured at %s", f.fs.Path())
 
 	return f, nil
@@ -79,11 +82,13 @@ func Init(ctx context.Context, path, _, _ string) (*Fossil, error) {
 	if !f.IsInitialized() {
 		repo := filepath.Join(filepath.Dir(path), "."+filepath.Base(path)+".fossil")
 		if err := f.Cmd(ctx, "Init", "init", repo); err != nil {
-			return nil, fmt.Errorf("failed to initialize fossil in %s: %s", repo, err)
+			return nil, fmt.Errorf("failed to initialize fossil in %s: %w", repo, err)
 		}
+
 		if err := f.Cmd(ctx, "Open", "open", repo); err != nil {
-			return nil, fmt.Errorf("failed to open fossil in %s: %s", repo, err)
+			return nil, fmt.Errorf("failed to open fossil in %s: %w", repo, err)
 		}
+
 		out.Printf(ctx, "fossil initialized at %s", f.fs.Path())
 	}
 
@@ -94,8 +99,9 @@ func Init(ctx context.Context, path, _, _ string) (*Fossil, error) {
 
 	// initialize the local fossil config.
 	if err := f.InitConfig(ctx, "", ""); err != nil {
-		return f, fmt.Errorf("failed to configure fossil: %s", err)
+		return f, fmt.Errorf("failed to configure fossil: %w", err)
 	}
+
 	out.Printf(ctx, "fossil configured at %s", f.fs.Path())
 
 	// add current content of the store.
@@ -106,6 +112,7 @@ func Init(ctx context.Context, path, _, _ string) (*Fossil, error) {
 	// commit if there is something to commit.
 	if !f.HasStagedChanges(ctx) {
 		debug.Log("No staged changes")
+
 		return f, nil
 	}
 
@@ -132,6 +139,7 @@ func (f *Fossil) captureCmd(ctx context.Context, name string, args ...string) ([
 
 	debug.Log("fossil.%s: %s %+v (%s)", name, cmd.Path, cmd.Args, f.fs.Path())
 	err := cmd.Run()
+
 	return bufOut.Bytes(), bufErr.Bytes(), err
 }
 
@@ -140,7 +148,8 @@ func (f *Fossil) Cmd(ctx context.Context, name string, args ...string) error {
 	stdout, stderr, err := f.captureCmd(ctx, name, args...)
 	if err != nil {
 		debug.Log("CMD: %s %+v\nError: %s\nOutput:\n  Stdout: %q\n  Stderr: %q", name, args, err, string(stdout), string(stderr))
-		return fmt.Errorf("%s: %s", err, strings.TrimSpace(string(stderr)))
+
+		return fmt.Errorf("%w: %s", err, strings.TrimSpace(string(stderr)))
 	}
 
 	return nil
@@ -159,6 +168,7 @@ func (f *Fossil) Version(ctx context.Context) semver.Version {
 	cmdout, err := cmd.Output()
 	if err != nil {
 		debug.Log("Failed to run 'fossil version': %s", err)
+
 		return v
 	}
 
@@ -170,8 +180,10 @@ func (f *Fossil) Version(ctx context.Context) semver.Version {
 	sv, err := semver.ParseTolerant(svStr)
 	if err != nil {
 		debug.Log("Failed to parse %q as semver: %s", svStr, err)
+
 		return v
 	}
+
 	return sv
 }
 
@@ -204,6 +216,7 @@ func (f *Fossil) HasStagedChanges(ctx context.Context) bool {
 		// TODO should return an error
 		return true
 	}
+
 	return s.Staged().Len() > 0
 }
 
@@ -214,6 +227,7 @@ func (f *Fossil) ListUntrackedFiles(ctx context.Context) []string {
 		// TODO should return an error
 		return []string{fmt.Sprintf("ERROR: %s", err)}
 	}
+
 	return s.Untracked().Elements()
 }
 
@@ -244,6 +258,7 @@ func (f *Fossil) Commit(ctx context.Context, msg string) error {
 func (f *Fossil) PushPull(ctx context.Context, op, remote, branch string) error {
 	if ctxutil.IsNoNetwork(ctx) {
 		debug.Log("Skipping network ops. NoNetwork=true")
+
 		return nil
 	}
 	if !f.IsInitialized() {
@@ -253,6 +268,7 @@ func (f *Fossil) PushPull(ctx context.Context, op, remote, branch string) error 
 	if uf := f.ListUntrackedFiles(ctx); len(uf) > 0 {
 		out.Warningf(ctx, "Found untracked files: %+v", uf)
 	}
+
 	return f.Cmd(ctx, "fossilUpdate", "update")
 }
 
@@ -260,8 +276,10 @@ func (f *Fossil) PushPull(ctx context.Context, op, remote, branch string) error 
 func (f *Fossil) Push(ctx context.Context, remote, branch string) error {
 	if ctxutil.IsNoNetwork(ctx) {
 		debug.Log("Skipping network ops. NoNetwork=true")
+
 		return nil
 	}
+
 	return f.PushPull(ctx, "push", remote, branch)
 }
 
@@ -269,8 +287,10 @@ func (f *Fossil) Push(ctx context.Context, remote, branch string) error {
 func (f *Fossil) Pull(ctx context.Context, remote, branch string) error {
 	if ctxutil.IsNoNetwork(ctx) {
 		debug.Log("Skipping network ops. NoNetwork=true")
+
 		return nil
 	}
+
 	return f.PushPull(ctx, "pull", remote, branch)
 }
 
@@ -295,6 +315,7 @@ func (f *Fossil) Revisions(ctx context.Context, name string) ([]backend.Revision
 	stdout, stderr, err := f.captureCmd(ctx, "Revisions", args...)
 	if err != nil {
 		debug.Log("Command failed: %s", string(stderr))
+
 		return nil, err
 	}
 
@@ -303,6 +324,7 @@ func (f *Fossil) Revisions(ctx context.Context, name string) ([]backend.Revision
 		line = strings.TrimSpace(line)
 		if line == "" {
 			debug.Log("empty line")
+
 			continue
 		}
 
@@ -311,23 +333,27 @@ func (f *Fossil) Revisions(ctx context.Context, name string) ([]backend.Revision
 		date, line, found := strings.Cut(line, " ")
 		if !found {
 			debug.Log("Failed to parse date")
+
 			continue
 		}
 		rev, line, found := strings.Cut(line, " ")
 		if !found {
 			debug.Log("Failed to parse revision")
+
 			continue
 		}
 		rev = strings.Trim(rev, "[]")
 		subject, line, found := strings.Cut(line, "(")
 		if !found {
 			debug.Log("Failed to parse subject")
+
 			continue
 		}
 
 		author, _, found := strings.Cut(line, ",")
 		if !found {
 			debug.Log("Failed to parse author")
+
 			continue
 		}
 		author = strings.TrimPrefix(author, "user: ")
@@ -335,6 +361,7 @@ func (f *Fossil) Revisions(ctx context.Context, name string) ([]backend.Revision
 		ts, err := time.Parse("2006-01-02", date)
 		if err != nil {
 			debug.Log("Failed to parse date %s: %s", date, err)
+
 			continue
 		}
 
@@ -347,6 +374,7 @@ func (f *Fossil) Revisions(ctx context.Context, name string) ([]backend.Revision
 		}
 		revs = append(revs, r)
 	}
+
 	return revs, nil
 }
 
@@ -363,8 +391,10 @@ func (f *Fossil) GetRevision(ctx context.Context, name, revision string) ([]byte
 	stdout, stderr, err := f.captureCmd(ctx, "GetRevision", args...)
 	if err != nil {
 		debug.Log("Command failed: %s", string(stderr))
+
 		return nil, err
 	}
+
 	return stdout, nil
 }
 
@@ -373,8 +403,10 @@ func (f *Fossil) Status(ctx context.Context) ([]byte, error) {
 	stdout, stderr, err := f.captureCmd(ctx, "FossilStatus", "status")
 	if err != nil {
 		debug.Log("Command failed: %s\n%s", string(stdout), string(stderr))
+
 		return nil, err
 	}
+
 	return stdout, nil
 }
 

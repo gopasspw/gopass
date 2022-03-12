@@ -41,6 +41,7 @@ func (a *askPass) Ping(_ context.Context) error {
 func (a *askPass) Passphrase(key string, reason string, repeat bool) (string, error) {
 	if value, found := a.cache.Get(key); found || a.testing {
 		debug.Log("Read value for %s from cache", key)
+
 		return value, nil
 	}
 	debug.Log("Value for %s not found in cache", key)
@@ -52,6 +53,7 @@ func (a *askPass) Passphrase(key string, reason string, repeat bool) (string, er
 
 	debug.Log("Updated value for %s in cache", key)
 	a.cache.Set(key, pw)
+
 	return pw, nil
 }
 
@@ -67,6 +69,7 @@ func (a *askPass) getPassphrase(reason string, repeat bool) (string, error) {
 		opts = append(opts, pinentry.WithOption("REPEAT=Confirm"))
 		opts = append(opts, pinentry.WithQualityBar(func(s string) (int, bool) {
 			match := zxcvbn.PasswordStrength(s, nil)
+
 			return match.Score, true
 		}))
 	}
@@ -77,11 +80,14 @@ func (a *askPass) getPassphrase(reason string, repeat bool) (string, error) {
 		// use CLI fallback
 		pf := cli.New()
 		if repeat {
-			pf.Set("REPEAT")
+			_ = pf.Set("REPEAT")
 		}
+
 		return pf.GetPIN()
 	}
-	defer p.Close()
+	defer func() {
+		_ = p.Close()
+	}()
 
 	pw, _, err := p.GetPIN()
 	if err != nil {

@@ -3,6 +3,7 @@ package gptest
 import (
 	"context"
 	"flag"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -19,15 +20,17 @@ func AllPathsToSlash(paths []string) []string {
 	for i, p := range paths {
 		r[i] = filepath.ToSlash(p)
 	}
+
 	return r
 }
 
 func setupEnv(em map[string]string) error {
 	for k, v := range em {
 		if err := os.Setenv(k, v); err != nil {
-			return err
+			return fmt.Errorf("failed to set env %s to %s: %w", k, v, err)
 		}
 	}
+
 	return nil
 }
 
@@ -39,11 +42,15 @@ func teardownEnv(em map[string]string) {
 
 // CliCtx create a new cli context with the given args parsed.
 func CliCtx(ctx context.Context, t *testing.T, args ...string) *cli.Context {
+	t.Helper()
+
 	return CliCtxWithFlags(ctx, t, nil, args...)
 }
 
 // CliCtxWithFlags creates a new cli context with the given args and flags parsed.
 func CliCtxWithFlags(ctx context.Context, t *testing.T, flags map[string]string, args ...string) *cli.Context {
+	t.Helper()
+
 	app := cli.NewApp()
 
 	fs := flagset(t, flags, args)
@@ -54,7 +61,10 @@ func CliCtxWithFlags(ctx context.Context, t *testing.T, flags map[string]string,
 }
 
 func flagset(t *testing.T, flags map[string]string, args []string) *flag.FlagSet {
+	t.Helper()
+
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
+
 	for k, v := range flags {
 		if v == "true" || v == "false" {
 			f := cli.BoolFlag{
@@ -76,10 +86,12 @@ func flagset(t *testing.T, flags map[string]string, args []string) *flag.FlagSet
 			assert.NoError(t, f.Apply(fs))
 		}
 	}
+
 	argl := []string{}
 	for k, v := range flags {
 		argl = append(argl, "--"+k+"="+v)
 	}
+
 	argl = append(argl, args...)
 	assert.NoError(t, fs.Parse(argl))
 
@@ -91,11 +103,12 @@ func UnsetVars(ls ...string) func() {
 	old := make(map[string]string, len(ls))
 	for _, k := range ls {
 		old[k] = os.Getenv(k)
-		os.Unsetenv(k)
+		_ = os.Unsetenv(k)
 	}
+
 	return func() {
 		for k, v := range old {
-			os.Setenv(k, v)
+			_ = os.Setenv(k, v)
 		}
 	}
 }

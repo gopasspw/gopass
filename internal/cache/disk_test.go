@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestOnDisk(t *testing.T) {
+func TestOnDisk(t *testing.T) { //nolint:paralleltest
 	td, err := os.MkdirTemp("", "gopass-")
 	require.NoError(t, err)
 
@@ -17,11 +17,7 @@ func TestOnDisk(t *testing.T) {
 		_ = os.RemoveAll(td)
 	}()
 
-	ogh := os.Getenv("GOPASS_HOMEDIR")
-	os.Setenv("GOPASS_HOMEDIR", td)
-	defer func() {
-		os.Setenv("GOPASS_HOMEDIR", ogh)
-	}()
+	t.Setenv("GOPASS_HOMEDIR", td)
 
 	odc, err := NewOnDisk("test", time.Hour)
 	assert.NoError(t, err)

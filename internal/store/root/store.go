@@ -26,12 +26,14 @@ func New(cfg *config.Config) *Store {
 	if cfg == nil {
 		cfg = &config.Config{}
 	}
+
 	r := &Store{
 		cfg:    cfg,
 		mounts: make(map[string]*leaf.Store, len(cfg.Mounts)),
 	}
 
 	debug.Log("created store %s", r)
+
 	return r
 }
 
@@ -43,12 +45,14 @@ func (r *Store) WithContext(ctx context.Context) context.Context {
 // Exists checks the existence of a single entry.
 func (r *Store) Exists(ctx context.Context, name string) bool {
 	store, name := r.getStore(name)
+
 	return store.Exists(ctx, name)
 }
 
 // IsDir checks if a given key is actually a folder.
 func (r *Store) IsDir(ctx context.Context, name string) bool {
 	store, name := r.getStore(name)
+
 	return store.IsDir(ctx, name)
 }
 
@@ -57,10 +61,12 @@ func (r *Store) String() string {
 	for alias, sub := range r.mounts {
 		ms = append(ms, alias+"="+sub.String())
 	}
+
 	path := ""
 	if r.store != nil {
 		path = r.store.Path()
 	}
+
 	return fmt.Sprintf("Store(Path: %s, Mounts: %+v)", path, strings.Join(ms, ","))
 }
 
@@ -69,6 +75,7 @@ func (r *Store) Path() string {
 	if r.store == nil {
 		return ""
 	}
+
 	return r.store.Path()
 }
 
@@ -83,6 +90,7 @@ func (r *Store) Storage(ctx context.Context, name string) backend.Storage {
 	if sub == nil || !sub.Valid() {
 		return nil
 	}
+
 	return sub.Storage()
 }
 
@@ -95,8 +103,10 @@ func (r *Store) Concurrency() int {
 			min = sub.Concurrency()
 		}
 	}
+
 	if nc := runtime.NumCPU(); nc < min {
 		min = nc
 	}
+
 	return min
 }

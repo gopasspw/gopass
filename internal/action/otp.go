@@ -2,6 +2,7 @@ package action
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -60,19 +61,26 @@ func waitForKeyPress(ctx context.Context, cancel context.CancelFunc) {
 		out.Errorf(ctx, "Unexpected error opening tty: %v", err)
 		cancel()
 	}
-	defer tty.Close()
+
+	defer func() {
+		_ = tty.Close()
+	}()
+
 	for {
 		select {
 		case <-ctx.Done():
 			return // returning not to leak the goroutine.
 		default:
 		}
+
 		r, err := tty.ReadRune()
 		if err != nil {
 			out.Errorf(ctx, "Unexpected error opening tty: %v", err)
 		}
+
 		if r == 'q' || r == 'x' || err != nil {
 			cancel()
+
 			return
 		}
 	}
@@ -86,6 +94,7 @@ func (s *Action) otp(ctx context.Context, name, qrf string, clip, pw, recurse bo
 
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
+
 	skip := ctxutil.IsHidden(ctx) || pw || qrf != "" || out.OutputIsRedirected() || !ctxutil.IsInteractive(ctx)
 	if !skip {
 		// let us monitor key presses for cancellation:.
@@ -141,12 +150,14 @@ func (s *Action) otp(ctx context.Context, name, qrf string, clip, pw, recurse bo
 			select {
 			case <-ctx.Done():
 				bar.Done()
+
 				return nil
 			default:
 				time.Sleep(time.Millisecond * 500)
 			}
 			if time.Now().After(expiresAt) {
 				bar.Done()
+
 				break
 			}
 		}
@@ -154,9 +165,10 @@ func (s *Action) otp(ctx context.Context, name, qrf string, clip, pw, recurse bo
 }
 
 func (s *Action) otpHandleError(ctx context.Context, name, qrf string, clip, pw, recurse bool, err error) error {
-	if err != store.ErrNotFound || !recurse || !ctxutil.IsTerminal(ctx) {
+	if !errors.Is(err, store.ErrNotFound) || !recurse || !ctxutil.IsTerminal(ctx) {
 		return exit.Error(exit.Unknown, err, "failed to retrieve secret %q: %s", name, err)
 	}
+
 	out.Printf(ctx, "Entry %q not found. Starting search...", name)
 	cb := func(ctx context.Context, c *cli.Context, name string, recurse bool) error {
 		return s.otp(ctx, name, qrf, clip, pw, false)
@@ -164,5 +176,6 @@ func (s *Action) otpHandleError(ctx context.Context, name, qrf string, clip, pw,
 	if err := s.find(ctx, nil, name, cb, false); err != nil {
 		return exit.Error(exit.NotFound, err, "%s", err)
 	}
+
 	return nil
 }

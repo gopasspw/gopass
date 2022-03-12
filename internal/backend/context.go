@@ -6,7 +6,6 @@ type contextKey int
 
 const (
 	ctxKeyCryptoBackend contextKey = iota
-	ctxKeyRCSBackend
 	ctxKeyStorageBackend
 )
 
@@ -15,6 +14,7 @@ func CryptoBackendName(cb CryptoBackend) string {
 	if name, err := CryptoRegistry.BackendName(cb); err == nil {
 		return name
 	}
+
 	return ""
 }
 
@@ -23,6 +23,7 @@ func WithCryptoBackendString(ctx context.Context, be string) context.Context {
 	if cb, err := CryptoRegistry.Backend(be); err == nil {
 		ctx = WithCryptoBackend(ctx, cb)
 	}
+
 	return ctx
 }
 
@@ -34,6 +35,7 @@ func WithCryptoBackend(ctx context.Context, be CryptoBackend) context.Context {
 // HasCryptoBackend returns true if a value for crypto backend has been set in the context.
 func HasCryptoBackend(ctx context.Context) bool {
 	_, ok := ctx.Value(ctxKeyCryptoBackend).(CryptoBackend)
+
 	return ok
 }
 
@@ -43,6 +45,7 @@ func GetCryptoBackend(ctx context.Context) CryptoBackend {
 	if !ok {
 		return GPGCLI
 	}
+
 	return be
 }
 
@@ -51,6 +54,7 @@ func WithStorageBackendString(ctx context.Context, sb string) context.Context {
 	if be, err := StorageRegistry.Backend(sb); err == nil {
 		return WithStorageBackend(ctx, be)
 	}
+
 	return WithStorageBackend(ctx, FS)
 }
 
@@ -65,12 +69,14 @@ func GetStorageBackend(ctx context.Context) StorageBackend {
 	if !ok {
 		return FS
 	}
+
 	return be
 }
 
 // HasStorageBackend returns true if a value for store backend was set.
 func HasStorageBackend(ctx context.Context) bool {
 	_, ok := ctx.Value(ctxKeyStorageBackend).(StorageBackend)
+
 	return ok
 }
 
@@ -79,5 +85,6 @@ func StorageBackendName(sb StorageBackend) string {
 	if name, err := StorageRegistry.BackendName(sb); err == nil {
 		return name
 	}
+
 	return ""
 }

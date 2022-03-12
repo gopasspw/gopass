@@ -10,6 +10,8 @@ import (
 )
 
 func TestTerminal(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	assert.Equal(t, true, IsTerminal(ctx))
@@ -18,6 +20,8 @@ func TestTerminal(t *testing.T) {
 }
 
 func TestInteractive(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	assert.Equal(t, true, IsInteractive(ctx))
@@ -26,6 +30,8 @@ func TestInteractive(t *testing.T) {
 }
 
 func TestStdin(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	assert.Equal(t, false, IsStdin(ctx))
@@ -34,6 +40,8 @@ func TestStdin(t *testing.T) {
 }
 
 func TestNoPager(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	assert.Equal(t, false, IsNoPager(ctx))
@@ -42,6 +50,8 @@ func TestNoPager(t *testing.T) {
 }
 
 func TestShowSafeContent(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	assert.Equal(t, false, IsShowSafeContent(ctx))
@@ -50,6 +60,8 @@ func TestShowSafeContent(t *testing.T) {
 }
 
 func TestGitCommit(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	assert.Equal(t, true, IsGitCommit(ctx))
@@ -58,6 +70,8 @@ func TestGitCommit(t *testing.T) {
 }
 
 func TestAlwaysYes(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	assert.Equal(t, false, IsAlwaysYes(ctx))
@@ -66,6 +80,8 @@ func TestAlwaysYes(t *testing.T) {
 }
 
 func TestVerbose(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	assert.Equal(t, false, IsVerbose(ctx))
@@ -74,6 +90,8 @@ func TestVerbose(t *testing.T) {
 }
 
 func TestNotifications(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	assert.Equal(t, true, IsNotifications(ctx))
@@ -82,15 +100,21 @@ func TestNotifications(t *testing.T) {
 }
 
 func TestProgressCallback(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	var foo bool
+
 	pc := func() { foo = true }
+
 	GetProgressCallback(WithProgressCallback(ctx, pc))()
 	assert.Equal(t, true, foo)
 }
 
 func TestAlias(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	assert.Equal(t, "", GetAlias(ctx))
@@ -98,6 +122,8 @@ func TestAlias(t *testing.T) {
 }
 
 func TestGitInit(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	assert.Equal(t, true, IsGitInit(ctx))
@@ -106,6 +132,8 @@ func TestGitInit(t *testing.T) {
 }
 
 func TestForce(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	assert.Equal(t, false, IsForce(ctx))
@@ -114,6 +142,8 @@ func TestForce(t *testing.T) {
 }
 
 func TestCommitMessage(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	assert.Equal(t, "", GetCommitMessage(ctx))
@@ -122,6 +152,8 @@ func TestCommitMessage(t *testing.T) {
 }
 
 func TestComposite(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 	ctx = WithTerminal(ctx, false)
 	ctx = WithInteractive(ctx, false)
@@ -187,6 +219,8 @@ func TestComposite(t *testing.T) {
 }
 
 func TestGlobalFlags(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 	app := cli.NewApp()
 
@@ -204,11 +238,14 @@ func TestGlobalFlags(t *testing.T) {
 }
 
 func TestImportFunc(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	ifunc := func(context.Context, string, []string) bool {
 		return true
 	}
+
 	assert.NotNil(t, GetImportFunc(ctx))
 	assert.Equal(t, true, GetImportFunc(WithImportFunc(ctx, ifunc))(ctx, "", nil))
 	assert.Equal(t, true, HasImportFunc(WithImportFunc(ctx, ifunc)))
@@ -216,6 +253,8 @@ func TestImportFunc(t *testing.T) {
 }
 
 func TestHidden(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	assert.False(t, IsHidden(ctx))

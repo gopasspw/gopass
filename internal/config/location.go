@@ -19,8 +19,10 @@ func Homedir() string {
 	hd, err := homedir.Dir()
 	if err != nil {
 		debug.Log("Failed to get homedir: %s\n", err)
+
 		return ""
 	}
+
 	return hd
 }
 
@@ -48,6 +50,7 @@ func configLocations() []string {
 	l = append(l, filepath.Join(appdir.UserConfig(), "config.yml"))
 	l = append(l, filepath.Join(Homedir(), ".config", "gopass", "config.yml"))
 	l = append(l, filepath.Join(Homedir(), ".gopass.yml"))
+
 	return l
 }
 
@@ -56,16 +59,22 @@ func configLocations() []string {
 func PwStoreDir(mount string) string {
 	if mount != "" {
 		cleanName := strings.ReplaceAll(mount, string(filepath.Separator), "-")
+
 		return fsutil.CleanPath(filepath.Join(appdir.UserData(), "stores", cleanName))
 	}
 	// PASSWORD_STORE_DIR support is discouraged.
 	if d := os.Getenv("PASSWORD_STORE_DIR"); d != "" {
+		debug.Log("using value of PASSWORD_STORE_DIR: %s", d)
+
 		return fsutil.CleanPath(d)
 	}
+
 	if ld := filepath.Join(appdir.UserHome(), ".password-store"); fsutil.IsDir(ld) {
 		debug.Log("re-using existing legacy dir for root store: %s", ld)
+
 		return ld
 	}
+
 	return fsutil.CleanPath(filepath.Join(appdir.UserData(), "stores", "root"))
 }
 

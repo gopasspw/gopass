@@ -19,12 +19,14 @@ func (s *Store) Get(ctx context.Context, name string) (gopass.Secret, error) {
 	ciphertext, err := s.storage.Get(ctx, p)
 	if err != nil {
 		debug.Log("File %s not found: %s", p, err)
+
 		return nil, store.ErrNotFound
 	}
 
 	content, err := s.crypto.Decrypt(ctx, ciphertext)
 	if err != nil {
 		out.Errorf(ctx, "Decryption failed: %s\n%s", err, string(content))
+
 		return nil, store.ErrDecrypt
 	}
 

@@ -18,6 +18,7 @@ import (
 // to make sure it's encrypted for the right set of recipients.
 func (r *Store) Copy(ctx context.Context, from, to string) error {
 	debug.Log("Copy %s to %s", from, to)
+
 	return r.move(ctx, from, to, false)
 }
 
@@ -27,6 +28,7 @@ func (r *Store) Copy(ctx context.Context, from, to string) error {
 // from the old location afterwards.
 func (r *Store) Move(ctx context.Context, from, to string) error {
 	debug.Log("Move %s to %s", from, to)
+
 	return r.move(ctx, from, to, true)
 }
 
@@ -38,6 +40,7 @@ func (r *Store) move(ctx context.Context, from, to string, del bool) error {
 
 	srcIsDir := r.IsDir(ctx, from)
 	dstIsDir := r.IsDir(ctx, to)
+
 	if srcIsDir && r.Exists(ctx, to) && !dstIsDir {
 		return fmt.Errorf("destination is a file")
 	}
@@ -57,8 +60,8 @@ func (r *Store) move(ctx context.Context, from, to string, del bool) error {
 
 	if !subFrom.Equals(subTo) {
 		if err := subTo.Storage().Commit(ctx, fmt.Sprintf("Move from %s to %s", from, to)); err != nil {
-			switch errors.Unwrap(err) {
-			case store.ErrGitNotInit:
+			switch {
+			case errors.Is(err, store.ErrGitNotInit):
 				debug.Log("skipping git commit - git not initialized")
 			default:
 				return fmt.Errorf("failed to commit changes to git (to): %w", err)
@@ -71,14 +74,18 @@ func (r *Store) move(ctx context.Context, from, to string, del bool) error {
 			msg := "Warning: git is not initialized for this storage. Ignoring auto-push option\n" +
 				"Run: gopass git init"
 			debug.Log(msg)
+
 			return nil
 		}
+
 		if errors.Is(err, store.ErrGitNoRemote) {
 			msg := "Warning: git has no remote. Ignoring auto-push option\n" +
 				"Run: gopass git remote add origin ..."
 			debug.Log(msg)
+
 			return nil
 		}
+
 		return fmt.Errorf("failed to push change to git remote: %w", err)
 	}
 
@@ -91,16 +98,21 @@ func (r *Store) move(ctx context.Context, from, to string, del bool) error {
 			msg := "Warning: git is not initialized for this storage. Ignoring auto-push option\n" +
 				"Run: gopass git init"
 			debug.Log(msg)
+
 			return nil
 		}
+
 		if errors.Is(err, store.ErrGitNoRemote) {
 			msg := "Warning: git has no remote. Ignoring auto-push option\n" +
 				"Run: gopass git remote add origin ..."
 			debug.Log(msg)
+
 			return nil
 		}
+
 		return fmt.Errorf("failed to push change to git remote: %w", err)
 	}
+
 	return nil
 }
 
@@ -112,13 +124,16 @@ func (r *Store) moveFromTo(ctx context.Context, subFrom *leaf.Store, from, to, f
 	// and move them one by one.
 	if r.IsDir(ctx, from) {
 		var err error
+
 		entries, err = subFrom.List(ctx, fromPrefix+"/")
 		if err != nil {
 			return err
 		}
 	}
+
 	if len(entries) < 1 {
 		debug.Log("Subtree %q has no entries", from)
+
 		return fmt.Errorf("no entries")
 	}
 
@@ -126,11 +141,12 @@ func (r *Store) moveFromTo(ctx context.Context, subFrom *leaf.Store, from, to, f
 
 	for _, src := range entries {
 		dst := computeMoveDestination(src, from, to, srcIsDir, dstIsDir)
+
 		debug.Log("Moving entry %q (%q) => %q (%q) (srcIsDir:%t, dstIsDir:%t, delete:%t)\n", src, from, dst, to, srcIsDir, dstIsDir, del)
 
 		content, err := r.Get(ctx, src)
 		if err != nil {
-			return fmt.Errorf("source %s does not exist in source store %s: %s", from, subFrom.Alias(), err)
+			return fmt.Errorf("source %s does not exist in source store %s: %w", from, subFrom.Alias(), err)
 		}
 
 		if err := r.Set(ctxutil.WithCommitMessage(ctx, fmt.Sprintf("Move from %s to %s", src, dst)), dst, content); err != nil {
@@ -139,11 +155,13 @@ func (r *Store) moveFromTo(ctx context.Context, subFrom *leaf.Store, from, to, f
 
 		if del {
 			debug.Log("Deleting moved entry %q from source %q", from, src)
+
 			if err := r.Delete(ctx, src); err != nil {
 				return fmt.Errorf("failed to delete secret %q: %w", src, err)
 			}
 		}
 	}
+
 	return nil
 }
 
@@ -164,6 +182,7 @@ func computeMoveDestination(src, from, to string, srcIsDir, dstIsDir bool) strin
 		if !srcIsDir {
 			return path.Join(to, path.Base(src))
 		}
+
 		return path.Join(to, src)
 	}
 
@@ -190,6 +209,7 @@ func (r *Store) Delete(ctx context.Context, name string) error {
 	if sn == "" {
 		return fmt.Errorf("can not delete a mount point. Use `gopass mounts remove %s`", store.Alias())
 	}
+
 	return store.Delete(ctx, sn)
 }
 
@@ -202,5 +222,6 @@ func (r *Store) Prune(ctx context.Context, tree string) error {
 	}
 
 	store, tree := r.getStore(tree)
+
 	return store.Prune(ctx, tree)
 }

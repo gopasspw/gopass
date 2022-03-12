@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -29,6 +30,7 @@ func loadWithFallback(relaxed bool) *Config {
 			return cfg
 		}
 	}
+
 	return loadDefault()
 }
 
@@ -37,19 +39,24 @@ func Load() *Config {
 	if cfg := loadConfig(configLocation(), false); cfg != nil {
 		return cfg
 	}
+
 	return loadDefault()
 }
 
 func loadConfig(l string, relaxed bool) *Config {
 	debug.Log("Trying to load config from %s", l)
+
 	cfg, err := load(l, relaxed)
-	if err == ErrConfigNotFound {
+	if errors.Is(err, ErrConfigNotFound) {
 		return nil
 	}
+
 	if err != nil {
 		return nil
 	}
+
 	debug.Log("Loaded config from %s: %+v", l, cfg)
+
 	return cfg
 }
 
@@ -57,6 +64,7 @@ func loadDefault() *Config {
 	cfg := New()
 	cfg.Path = PwStoreDir("")
 	debug.Log("Loaded default config: %+v", cfg)
+
 	return cfg
 }
 
@@ -66,21 +74,26 @@ func load(cf string, relaxed bool) (*Config, error) {
 	if _, err := os.Stat(cf); err != nil {
 		return nil, ErrConfigNotFound
 	}
+
 	buf, err := os.ReadFile(cf)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error reading config from %s: %s\n", cf, err)
+
 		return nil, ErrConfigNotFound
 	}
 
 	cfg, err := decode(buf, relaxed)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error reading config from %s: %s\n", cf, err)
+
 		return nil, ErrConfigNotParsed
 	}
+
 	if cfg.Mounts == nil {
 		cfg.Mounts = make(map[string]string)
 	}
 	cfg.ConfigPath = cf
+
 	return cfg, nil
 }
 
@@ -91,6 +104,7 @@ func checkOverflow(m map[string]any) error {
 
 	keys := maps.Keys(m)
 	sort.Strings(keys)
+
 	return fmt.Errorf("unknown fields: %+v", keys)
 }
 
@@ -122,18 +136,22 @@ func decode(buf []byte, relaxed bool) (*Config, error) {
 		&Pre140{},
 		&Pre130{},
 	}
+
 	if relaxed {
 		// most recent config must come last as well, will be tried w/o
 		// overflow checks.
 		cfgs = append(cfgs, mostRecent)
 	}
+
 	var warn string
 	for i, cfg := range cfgs {
 		debug.Log("Trying to unmarshal config into %T", cfg)
 		if err := yaml.Unmarshal(buf, cfg); err != nil {
 			debug.Log("Loading config %T failed: %s", cfg, err)
+
 			continue
 		}
+
 		if err := cfg.CheckOverflow(); err != nil {
 			debug.Log("Extra elements in config: %s", err)
 			if i == 0 {
@@ -152,11 +170,13 @@ func decode(buf []byte, relaxed bool) (*Config, error) {
 			}
 			debug.Log("Ignoring extra config fields for fallback config (only)")
 		}
+
 		debug.Log("Loaded config: %T: %+v", cfg, cfg)
 		conf := cfg.Config()
 		if i > 0 {
 			debug.Log("Loaded legacy config. Should rewrite config.")
 		}
+
 		return conf, nil
 	}
 	// We try to provide a seamless config upgrade path for users of our
@@ -173,6 +193,7 @@ func decode(buf []byte, relaxed bool) (*Config, error) {
 	if warn != "" {
 		fmt.Fprint(os.Stderr, warn)
 	}
+
 	return nil, ErrConfigNotParsed
 }
 
@@ -190,9 +211,11 @@ func (c *Config) Save() error {
 			return fmt.Errorf("failed to create dir %q: %w", cfgDir, err)
 		}
 	}
+
 	if err := os.WriteFile(cfgLoc, buf, 0o600); err != nil {
 		return fmt.Errorf("failed to write config file to %q: %w", cfgLoc, err)
 	}
 	debug.Log("Saved config to %s: %+v\n", cfgLoc, c)
+
 	return nil
 }

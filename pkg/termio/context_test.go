@@ -8,6 +8,8 @@ import (
 )
 
 func TestPassPromptFunc(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	assert.False(t, HasPassPromptFunc(ctx))

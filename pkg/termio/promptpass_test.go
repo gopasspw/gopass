@@ -9,6 +9,8 @@ import (
 )
 
 func TestPromptPass(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 	ctx = ctxutil.WithTerminal(ctx, false)
 	ctx = ctxutil.WithAlwaysYes(ctx, true)

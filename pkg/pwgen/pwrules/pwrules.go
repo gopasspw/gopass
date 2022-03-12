@@ -25,11 +25,13 @@ func LookupRule(domain string) (Rule, bool) {
 	if found {
 		return r, true
 	}
+
 	for _, alias := range LookupAliases(domain) {
 		if r, found := genRules[alias]; found {
 			return r, true
 		}
 	}
+
 	return Rule{}, false
 }
 
@@ -47,10 +49,12 @@ type Rule struct {
 // NOTE: This is not a complete parser.
 func ParseRule(in string) Rule {
 	r := Rule{}
+
 	if reChars.MatchString(in) {
 		m := reChars.FindStringSubmatch(in)
 		if len(m) > 2 {
 			re := "[" + m[2] + "]"
+
 			switch m[1] {
 			case "required":
 				r.Required = append(r.Required, re)
@@ -59,18 +63,23 @@ func ParseRule(in string) Rule {
 			}
 		}
 	}
+
 	for _, part := range strings.Split(strings.TrimSuffix(in, ";"), ";") {
 		p := strings.Split(part, ": ")
 		if len(p) < 2 {
 			continue
 		}
+
 		var err error
+
 		key := strings.TrimSpace(p[0])
 		strVal := strings.TrimSpace(p[1])
 		max := len(strVal)
+
 		if i := strings.Index(strVal, "["); i > 0 {
 			max = i
 		}
+
 		switch key {
 		case "minlength":
 			r.Minlen, err = strconv.Atoi(strVal)
@@ -83,24 +92,31 @@ func ParseRule(in string) Rule {
 		case "allowed":
 			r.Allowed = append(r.Allowed, strings.Split(strVal[0:max], ",")...)
 		}
+
 		if err != nil {
 			debug.Log("failed to parse %s for %s: %s", strVal, key, err)
 		}
 	}
+
 	r.Required = sanitize(r.Required)
 	r.Allowed = sanitize(r.Allowed)
+
 	return r
 }
 
 func sanitize(in []string) []string {
 	out := make([]string, 0, len(in))
+
 	for _, v := range in {
 		v := strings.TrimSpace(v)
 		if strings.HasPrefix(v, "[") && !strings.HasSuffix(v, "]") {
 			continue
 		}
+
 		out = append(out, v)
 	}
+
 	sort.Strings(out)
+
 	return out
 }

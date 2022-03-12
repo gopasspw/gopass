@@ -37,12 +37,16 @@ const (
 	ctxKeyHidden
 )
 
+// ErrNoCallback is returned when no callback is set in the context.
+var ErrNoCallback = fmt.Errorf("no callback")
+
 // WithGlobalFlags parses any global flags from the cli context and returns
 // a regular context.
 func WithGlobalFlags(c *cli.Context) context.Context {
 	if c.Bool("yes") {
 		return WithAlwaysYes(c.Context, true)
 	}
+
 	return c.Context
 }
 
@@ -57,6 +61,7 @@ func WithTerminal(ctx context.Context, isTerm bool) context.Context {
 // HasTerminal returns true if a value for Terminal has been set in this context.
 func HasTerminal(ctx context.Context) bool {
 	_, ok := ctx.Value(ctxKeyTerminal).(bool)
+
 	return ok
 }
 
@@ -66,6 +71,7 @@ func IsTerminal(ctx context.Context) bool {
 	if !ok {
 		return true
 	}
+
 	return bv
 }
 
@@ -77,6 +83,7 @@ func WithInteractive(ctx context.Context, isInteractive bool) context.Context {
 // HasInteractive returns true if a value for Interactive has been set in this context.
 func HasInteractive(ctx context.Context) bool {
 	_, ok := ctx.Value(ctxKeyInteractive).(bool)
+
 	return ok
 }
 
@@ -86,6 +93,7 @@ func IsInteractive(ctx context.Context) bool {
 	if !ok {
 		return true
 	}
+
 	return bv
 }
 
@@ -98,6 +106,7 @@ func WithStdin(ctx context.Context, isStdin bool) context.Context {
 // HasStdin returns true if a value for Stdin has been set in this context.
 func HasStdin(ctx context.Context) bool {
 	_, ok := ctx.Value(ctxKeyStdin).(bool)
+
 	return ok
 }
 
@@ -108,6 +117,7 @@ func IsStdin(ctx context.Context) bool {
 	if !ok {
 		return false
 	}
+
 	return bv
 }
 
@@ -119,6 +129,7 @@ func WithNoPager(ctx context.Context, bv bool) context.Context {
 // HasNoPager returns true if a value for NoPager has been set in this context.
 func HasNoPager(ctx context.Context) bool {
 	_, ok := ctx.Value(ctxKeyNoPager).(bool)
+
 	return ok
 }
 
@@ -128,6 +139,7 @@ func IsNoPager(ctx context.Context) bool {
 	if !ok {
 		return false
 	}
+
 	return bv
 }
 
@@ -139,6 +151,7 @@ func WithShowSafeContent(ctx context.Context, bv bool) context.Context {
 // HasShowSafeContent returns true if a value for ShowSafeContent has been set in this context.
 func HasShowSafeContent(ctx context.Context) bool {
 	_, ok := ctx.Value(ctxKeyShowSafeContent).(bool)
+
 	return ok
 }
 
@@ -148,6 +161,7 @@ func IsShowSafeContent(ctx context.Context) bool {
 	if !ok {
 		return false
 	}
+
 	return bv
 }
 
@@ -159,6 +173,7 @@ func WithShowParsing(ctx context.Context, bv bool) context.Context {
 // HasShowParsing returns true if a value for ShowParsing has been set in this context.
 func HasShowParsing(ctx context.Context) bool {
 	_, ok := ctx.Value(ctxKeyShowParsing).(bool)
+
 	return ok
 }
 
@@ -168,6 +183,7 @@ func IsShowParsing(ctx context.Context) bool {
 	if !ok {
 		return true
 	}
+
 	return bv
 }
 
@@ -179,6 +195,7 @@ func WithGitCommit(ctx context.Context, bv bool) context.Context {
 // HasGitCommit returns true if a value for GitCommit has been set in this context.
 func HasGitCommit(ctx context.Context) bool {
 	_, ok := ctx.Value(ctxKeyGitCommit).(bool)
+
 	return ok
 }
 
@@ -195,6 +212,7 @@ func WithAlwaysYes(ctx context.Context, bv bool) context.Context {
 // HasAlwaysYes returns true if a value for AlwaysYes has been set in this context.
 func HasAlwaysYes(ctx context.Context) bool {
 	_, ok := ctx.Value(ctxKeyAlwaysYes).(bool)
+
 	return ok
 }
 
@@ -204,6 +222,7 @@ func IsAlwaysYes(ctx context.Context) bool {
 	if !ok {
 		return false
 	}
+
 	return bv
 }
 
@@ -215,6 +234,7 @@ func WithVerbose(ctx context.Context, verbose bool) context.Context {
 // HasVerbose returns true if a value for Verbose has been set in this context.
 func HasVerbose(ctx context.Context) bool {
 	_, ok := ctx.Value(ctxKeyVerbose).(bool)
+
 	return ok
 }
 
@@ -246,6 +266,7 @@ func WithProgressCallback(ctx context.Context, cb ProgressCallback) context.Cont
 // HasProgressCallback returns true if a ProgressCallback has been set.
 func HasProgressCallback(ctx context.Context) bool {
 	_, ok := ctx.Value(ctxKeyProgressCallback).(ProgressCallback)
+
 	return ok
 }
 
@@ -256,6 +277,7 @@ func GetProgressCallback(ctx context.Context) ProgressCallback {
 	if !ok || cb == nil {
 		return func() {}
 	}
+
 	return cb
 }
 
@@ -275,6 +297,7 @@ func GetAlias(ctx context.Context) string {
 	if !ok {
 		return ""
 	}
+
 	return a
 }
 
@@ -324,6 +347,7 @@ func GetCommitMessage(ctx context.Context) string {
 	if !ok {
 		return ""
 	}
+
 	return sv
 }
 
@@ -353,6 +377,7 @@ func GetUsername(ctx context.Context) string {
 	if !ok {
 		return ""
 	}
+
 	return sv
 }
 
@@ -367,6 +392,7 @@ func GetEmail(ctx context.Context) string {
 	if !ok {
 		return ""
 	}
+
 	return sv
 }
 
@@ -379,6 +405,7 @@ func WithImportFunc(ctx context.Context, imf store.ImportCallback) context.Conte
 // context.
 func HasImportFunc(ctx context.Context) bool {
 	imf, ok := ctx.Value(ctxKeyImportFunc).(store.ImportCallback)
+
 	return ok && imf != nil
 }
 
@@ -391,6 +418,7 @@ func GetImportFunc(ctx context.Context) store.ImportCallback {
 			return true
 		}
 	}
+
 	return imf
 }
 
@@ -420,6 +448,7 @@ func WithPasswordCallback(ctx context.Context, cb PasswordCallback) context.Cont
 // HasPasswordCallback returns true if a password callback was set in the context.
 func HasPasswordCallback(ctx context.Context) bool {
 	_, ok := ctx.Value(ctxKeyPasswordCallback).(PasswordCallback)
+
 	return ok
 }
 
@@ -428,9 +457,10 @@ func GetPasswordCallback(ctx context.Context) PasswordCallback {
 	pwcb, ok := ctx.Value(ctxKeyPasswordCallback).(PasswordCallback)
 	if !ok || pwcb == nil {
 		return func(string, bool) ([]byte, error) {
-			return nil, fmt.Errorf("no callback")
+			return nil, ErrNoCallback
 		}
 	}
+
 	return pwcb
 }
 
@@ -444,6 +474,7 @@ func WithCommitTimestamp(ctx context.Context, ts time.Time) context.Context {
 // was set in the context.
 func HasCommitTimestamp(ctx context.Context) bool {
 	_, ok := ctx.Value(ctxKeyCommitTimestamp).(time.Time)
+
 	return ok
 }
 
@@ -453,6 +484,7 @@ func GetCommitTimestamp(ctx context.Context) time.Time {
 	if ts, ok := ctx.Value(ctxKeyCommitTimestamp).(time.Time); ok {
 		return ts
 	}
+
 	return time.Now()
 }
 
@@ -467,5 +499,6 @@ func IsHidden(ctx context.Context) bool {
 	if !ok {
 		return false
 	}
+
 	return bv
 }

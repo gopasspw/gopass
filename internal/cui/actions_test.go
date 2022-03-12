@@ -9,6 +9,8 @@ import (
 )
 
 func TestCreateActions(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 	cas := Actions{
 		{

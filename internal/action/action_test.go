@@ -41,6 +41,8 @@ func newMock(ctx context.Context, u *gptest.Unit) (*Action, error) {
 }
 
 func TestAction(t *testing.T) {
+	t.Parallel()
+
 	u := gptest.NewUnitTester(t)
 	defer u.Remove()
 
@@ -64,6 +66,8 @@ func TestAction(t *testing.T) {
 }
 
 func TestNew(t *testing.T) {
+	t.Parallel()
+
 	td, err := os.MkdirTemp("", "gopass-")
 	require.NoError(t, err)
 	defer func() {
@@ -73,12 +77,12 @@ func TestNew(t *testing.T) {
 	cfg := config.New()
 	sv := semver.Version{}
 
-	t.Run("init a new store", func(t *testing.T) {
+	t.Run("init a new store", func(t *testing.T) { //nolint:paralleltest
 		_, err = New(cfg, sv)
 		require.NoError(t, err)
 	})
 
-	t.Run("init an existing plain store", func(t *testing.T) {
+	t.Run("init an existing plain store", func(t *testing.T) { //nolint:paralleltest
 		cfg.Path = filepath.Join(td, "store")
 		assert.NoError(t, os.MkdirAll(cfg.Path, 0o700))
 		assert.NoError(t, os.WriteFile(filepath.Join(cfg.Path, plain.IDFile), []byte("foobar"), 0o600))

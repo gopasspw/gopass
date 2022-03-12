@@ -10,16 +10,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestDetectCrypto(t *testing.T) {
-	ctx := context.Background()
-
-	td, err := os.MkdirTemp("", "gopass-")
-	require.NoError(t, err)
-	defer func() {
-		_ = os.RemoveAll(td)
-	}()
-
-	for _, tc := range []struct {
+func TestDetectCrypto(t *testing.T) { //nolint:paralleltest
+	for _, tc := range []struct { //nolint:paralleltest
 		name string
 		file string
 	}{
@@ -36,19 +28,31 @@ func TestDetectCrypto(t *testing.T) {
 			file: ".age-recipients",
 		},
 	} {
-		fsDir := filepath.Join(td, "fs")
-		os.RemoveAll(fsDir)
-		assert.NoError(t, os.MkdirAll(fsDir, 0o700))
-		assert.NoError(t, os.WriteFile(filepath.Join(fsDir, tc.file), []byte("foo"), 0o600))
+		tc := tc
 
-		r, err := DetectStorage(ctx, fsDir)
-		assert.NoError(t, err)
-		assert.NotNil(t, r)
-		assert.Equal(t, "fs", r.Name())
+		t.Run(tc.name, func(t *testing.T) {
+			ctx := context.Background()
 
-		c, err := DetectCrypto(ctx, r)
-		assert.NoError(t, err, tc.name)
-		require.NotNil(t, c, tc.name)
-		assert.Equal(t, tc.name, c.Name())
+			td, err := os.MkdirTemp("", "gopass-")
+			require.NoError(t, err)
+			defer func() {
+				_ = os.RemoveAll(td)
+			}()
+
+			fsDir := filepath.Join(td, "fs")
+			_ = os.RemoveAll(fsDir)
+			assert.NoError(t, os.MkdirAll(fsDir, 0o700))
+			assert.NoError(t, os.WriteFile(filepath.Join(fsDir, tc.file), []byte("foo"), 0o600))
+
+			r, err := DetectStorage(ctx, fsDir)
+			assert.NoError(t, err)
+			assert.NotNil(t, r)
+			assert.Equal(t, "fs", r.Name())
+
+			c, err := DetectCrypto(ctx, r)
+			assert.NoError(t, err, tc.name)
+			require.NotNil(t, c, tc.name)
+			assert.Equal(t, tc.name, c.Name())
+		})
 	}
 }

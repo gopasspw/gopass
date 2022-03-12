@@ -4,6 +4,8 @@
 package clipboard
 
 import (
+	"fmt"
+
 	ps "github.com/mitchellh/go-ps"
 )
 
@@ -13,10 +15,12 @@ import (
 func killPrecedessors() error {
 	procs, err := ps.Processes()
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to list processes: %w", err)
 	}
+
 	for _, proc := range procs {
 		walkFn(proc.Pid(), killProc)
 	}
+
 	return nil
 }

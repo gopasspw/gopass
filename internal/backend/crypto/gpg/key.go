@@ -34,15 +34,19 @@ func (k Key) IsUseable(alwaysTrust bool) bool {
 	if k.Caps.Deactivated {
 		return false
 	}
+
 	if !k.Caps.Encrypt {
 		return false
 	}
+
 	if !k.ExpirationDate.IsZero() && k.ExpirationDate.Before(time.Now()) {
 		return false
 	}
+
 	if alwaysTrust {
 		return true
 	}
+
 	switch k.Validity {
 	case "m":
 		return true
@@ -51,6 +55,7 @@ func (k Key) IsUseable(alwaysTrust bool) bool {
 	case "u":
 		return true
 	}
+
 	return false
 }
 
@@ -61,14 +66,17 @@ func (k Key) String() string {
 	if len(k.Fingerprint) > 24 {
 		fp = k.Fingerprint[24:]
 	}
+
 	out := fmt.Sprintf("%s   %dD/0x%s %s", k.KeyType, k.KeyLength, fp, k.CreationDate.Format("2006-01-02"))
 	if !k.ExpirationDate.IsZero() {
 		out += fmt.Sprintf(" [expires: %s]", k.ExpirationDate.Format("2006-01-02"))
 	}
+
 	out += "\n      Key fingerprint = " + k.Fingerprint
 	for _, id := range k.Identities {
 		out += fmt.Sprintf("\n" + id.String())
 	}
+
 	return out
 }
 
@@ -78,6 +86,7 @@ func (k Key) OneLine() string {
 	if len(k.Fingerprint) < 24 {
 		return fmt.Sprintf("(invalid:%s)", k.Fingerprint)
 	}
+
 	return fmt.Sprintf("0x%s - %s", k.Fingerprint[24:], k.Identity().ID())
 }
 
@@ -87,12 +96,15 @@ func (k Key) Identity() Identity {
 	for _, i := range k.Identities {
 		ids = append(ids, i)
 	}
+
 	sort.Slice(ids, func(i, j int) bool {
 		return ids[i].CreationDate.After(ids[j].CreationDate)
 	})
+
 	for _, i := range ids {
 		return i
 	}
+
 	return Identity{}
 }
 
@@ -101,5 +113,6 @@ func (k Key) ID() string {
 	if len(k.Fingerprint) < 25 {
 		return ""
 	}
+
 	return fmt.Sprintf("0x%s", k.Fingerprint[24:])
 }

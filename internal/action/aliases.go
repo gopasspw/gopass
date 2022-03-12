@@ -19,10 +19,12 @@ func (s *Action) AliasesPrint(c *cli.Context) error {
 	for k := range aliases {
 		keys = append(keys, k)
 	}
+
 	sort.Strings(keys)
 	for _, k := range keys {
 		out.Printf(c.Context, "- %s -> %s", k, strings.Join(aliases[k], ", "))
 	}
+
 	return nil
 }
 
@@ -41,6 +43,7 @@ func (s *Action) AliasesAdd(c *cli.Context) error {
 	}
 
 	out.Printf(ctx, "Added alias %q to domain %q", alias, domain)
+
 	return nil
 }
 
@@ -59,6 +62,7 @@ func (s *Action) AliasesRemove(c *cli.Context) error {
 	}
 
 	out.Printf(ctx, "Remove alias %q from domain %q", alias, domain)
+
 	return nil
 }
 
@@ -76,5 +80,6 @@ func (s *Action) AliasesDelete(c *cli.Context) error {
 	}
 
 	out.Printf(ctx, "Remove aliases for domain %q", domain)
+
 	return nil
 }

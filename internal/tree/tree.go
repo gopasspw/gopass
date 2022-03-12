@@ -8,6 +8,9 @@ import (
 	"sort"
 )
 
+// ErrNodePresent is returned when a node with the same name is already present.
+var ErrNodePresent = fmt.Errorf("node already present")
+
 // Tree is a tree.
 type Tree struct {
 	Nodes []*Node
@@ -46,9 +49,11 @@ func (t *Tree) Insert(node *Node) (*Node, error) {
 	if found != nil {
 		if node.Mount {
 			t.Nodes[pos] = node
+
 			return node, nil
 		}
-		return t.Nodes[pos], fmt.Errorf("node %q already preset", node.Name)
+
+		return t.Nodes[pos], fmt.Errorf("error at %q: %w", node.Name, ErrNodePresent)
 	}
 
 	// insert at the right position, see

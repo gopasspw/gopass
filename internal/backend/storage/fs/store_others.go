@@ -4,14 +4,16 @@
 package fs
 
 import (
+	"errors"
 	"os"
 	"syscall"
 )
 
 func notEmptyErr(err error) bool {
-	e, ok := err.(*os.PathError)
-	if !ok {
-		return false
+	var perr *os.PathError
+	if errors.As(err, &perr) {
+		return errors.Is(perr.Err, syscall.ENOTEMPTY)
 	}
-	return e.Err == syscall.ENOTEMPTY
+
+	return false
 }

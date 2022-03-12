@@ -10,6 +10,8 @@ import (
 )
 
 func TestInit(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	tempdir, err := os.MkdirTemp("", "gopass-")

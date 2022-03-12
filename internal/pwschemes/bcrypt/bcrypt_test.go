@@ -8,6 +8,8 @@ import (
 )
 
 func TestBcrypt(t *testing.T) {
+	t.Parallel()
+
 	pw := "foobar"
 
 	hash, err := Generate(pw)

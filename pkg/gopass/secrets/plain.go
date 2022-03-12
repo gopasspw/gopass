@@ -31,6 +31,7 @@ func ParsePlain(in []byte) *Plain {
 		buf: make([]byte, len(in)),
 	}
 	copy(p.buf, in)
+
 	return p
 }
 
@@ -43,8 +44,10 @@ func (p *Plain) Bytes() []byte {
 func (p *Plain) Body() string {
 	br := bufio.NewReader(bytes.NewReader(p.buf))
 	_, _ = br.ReadString('\n')
+
 	body := &bytes.Buffer{}
-	io.Copy(body, br)
+	_, _ = io.Copy(body, br)
+
 	return body.String()
 }
 
@@ -56,12 +59,14 @@ func (p *Plain) Keys() []string {
 // Get returns the empty string for Plain secrets.
 func (p *Plain) Get(key string) (string, bool) {
 	debug.Log("Trying to access key %q on a Plain secret", key)
+
 	return "", false
 }
 
 // Values returns the empty string for Plain secrets.
 func (p *Plain) Values(key string) ([]string, bool) {
 	debug.Log("Trying to access key %q on a Plain secret", key)
+
 	return []string{""}, false
 }
 
@@ -69,17 +74,18 @@ func (p *Plain) Values(key string) ([]string, bool) {
 func (p *Plain) Password() string {
 	br := bufio.NewReader(bytes.NewReader(p.buf))
 	pw, _ := br.ReadString('\n')
+
 	return strings.TrimSuffix(pw, "\n")
 }
 
 // Set does nothing.
 func (p *Plain) Set(_ string, _ any) error {
-	return fmt.Errorf("not supported for PLAIN")
+	return fmt.Errorf("Set not supported for PLAIN: %w", ErrNotSupported)
 }
 
 // Add does nothing.
 func (p *Plain) Add(_ string, _ any) error {
-	return fmt.Errorf("not supported for PLAIN")
+	return fmt.Errorf("Add not supported for PLAIN: %w", ErrNotSupported)
 }
 
 // SetPassword updates the first line.
@@ -87,14 +93,17 @@ func (p *Plain) SetPassword(value string) {
 	buf := &bytes.Buffer{}
 	fmt.Fprintln(buf, value)
 	br := bufio.NewReader(bytes.NewReader(p.buf))
+
 	_, err := br.ReadString('\n')
 	if err != nil {
 		debug.Log("failed to discard password line: %s", err)
 	}
+
 	_, err = io.Copy(buf, br)
 	if err != nil {
 		debug.Log("failed to copy buffer: %s", err)
 	}
+
 	p.buf = buf.Bytes()
 }
 
@@ -108,22 +117,26 @@ func (p *Plain) Getbuf() string {
 	br := bufio.NewReader(bytes.NewReader(p.buf))
 	if _, err := br.ReadString('\n'); err != nil {
 		debug.Log("failed to discard password line: %s", err)
+
 		return ""
 	}
+
 	buf := &bytes.Buffer{}
-	io.Copy(buf, br)
+	_, _ = io.Copy(buf, br)
+
 	return buf.String()
 }
 
 // Write appends to the internal buffer.
 func (p *Plain) Write(buf []byte) (int, error) {
 	p.buf = append(p.buf, buf...)
+
 	return len(buf), nil
 }
 
 // WriteString append a string to the internal buffer.
 func (p *Plain) WriteString(in string) {
-	p.Write([]byte(in))
+	_, _ = p.Write([]byte(in))
 }
 
 // SafeStr always returnes "(elided)".
