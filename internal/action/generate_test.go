@@ -20,7 +20,7 @@ import (
 )
 
 func TestRuleLookup(t *testing.T) {
-	domain, _ := hasPwRuleForSecret("foo/amazon.de")
+	domain, _ := hasPwRuleForSecret("foo/gopass.pw")
 	assert.Equal(t, "", domain)
 }
 
