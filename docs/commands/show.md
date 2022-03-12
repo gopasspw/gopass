@@ -28,6 +28,7 @@ Flag | Aliases | Description
 `--password` | `-o` | Display only the password. For use in scripts. Takes precedence over other flags.
 `--revision` | `-r` | Display a specific revision of the entry. Use an exact version identifier from `gopass history` or the special `-<N>` syntax. Does not work with native (e.g. git) refs.
 `--noparsing` | `-n` | Do not parse the content, disable YAML and Key-Value functions.
+`--chars` | | Display selected characters from the password.
 
 ## Details
 
