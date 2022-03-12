@@ -19,7 +19,7 @@ require (
 	github.com/google/go-github/v33 v33.0.0
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/golang-lru v0.5.4
-	github.com/jsimonetti/pwscheme v0.0.0-20160922125227-76804708ecad
+	github.com/jsimonetti/pwscheme v0.0.0-20220125093853-4d9895f5db73
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
 	github.com/martinhoefling/goxkcdpwgen v0.0.0-20190331205820-7dc3d102eca3
 	github.com/mattn/go-colorable v0.1.12
@@ -34,11 +34,11 @@ require (
 	github.com/stretchr/testify v1.7.0
 	github.com/twpayne/go-pinentry v0.2.0
 	github.com/urfave/cli/v2 v2.3.0
-	golang.org/x/crypto v0.0.0-20211215165025-cf75a172585e
-	golang.org/x/exp v0.0.0-20211216164055-b2b84827b756
-	golang.org/x/net v0.0.0-20211216030914-fe4d6282115f
-	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8
-	golang.org/x/sys v0.0.0-20211216021012-1d35b9e2eb4e
+	golang.org/x/crypto v0.0.0-20220312131142-6068a2e6cfdc
+	golang.org/x/exp v0.0.0-20220312040426-20fd27f61765
+	golang.org/x/net v0.0.0-20220225172249-27dd8689420f
+	golang.org/x/oauth2 v0.0.0-20220309155454-6242fa91716a
+	golang.org/x/sys v0.0.0-20220310020820-b874c991c1a5
 	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 )
@@ -53,11 +53,11 @@ require (
 	github.com/kr/pretty v0.3.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rogpeppe/go-internal v1.8.1-0.20210923151022-86f73c517451 // indirect
-	github.com/rs/zerolog v1.26.0 // indirect
+	github.com/rs/zerolog v1.26.1 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
-	go.uber.org/atomic v1.7.0 // indirect
-	go.uber.org/multierr v1.7.0 // indirect
+	go.uber.org/atomic v1.9.0 // indirect
+	go.uber.org/multierr v1.8.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/protobuf v1.27.1 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
