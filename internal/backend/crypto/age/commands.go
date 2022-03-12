@@ -5,6 +5,7 @@ import (
 
 	"filippo.io/age"
 	"github.com/gopasspw/gopass/internal/action/exit"
+	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/urfave/cli/v2"
 )
@@ -36,8 +37,12 @@ func (l loader) Commands() []*cli.Command {
 							return exit.Error(exit.Unknown, err, "failed to get age identities")
 						}
 
+						if len(ids) < 1 {
+							out.Notice(ctx, "No identities found")
+						}
+
 						for _, id := range recipientsToBech32(ids) {
-							fmt.Println(id)
+							out.Printf(ctx, id)
 						}
 
 						return nil

@@ -3,6 +3,7 @@ package age
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -34,8 +35,9 @@ func (a *Age) Identities(ctx context.Context) ([]age.Identity, error) {
 	if err != nil {
 		debug.Log("failed to decrypt existing identities from %s: %s", a.identity, err)
 		if !os.IsNotExist(err) {
-			return nil, fmt.Errorf("failed to decrypt %s: %s", a.identity, err)
+			return nil, fmt.Errorf("failed to decrypt %s: %w", a.identity, err)
 		}
+		return nil, nil
 	}
 
 	ids, err := age.ParseIdentities(bytes.NewReader(buf))
@@ -56,6 +58,9 @@ func (a *Age) IdentityRecipients(ctx context.Context) ([]age.Recipient, error) {
 
 	ids, err := a.Identities(ctx)
 	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return nil, nil
+		}
 		return nil, err
 	}
 
