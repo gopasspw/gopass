@@ -47,7 +47,8 @@ func (s *Store) ImportMissingPublicKeys(ctx context.Context) error {
 		// gpg does on encryption
 		kl, err := s.crypto.FindRecipients(ctx, r)
 		if err != nil {
-			out.Errorf(ctx, "[%s] Failed to get public key for %s: %s", s.alias, r, err)
+			// this is expected if we don't have the key
+			debug.Log("[%s] Failed to get public key for %s: %s", s.alias, r, err)
 		}
 		if len(kl) > 0 {
 			debug.Log("[%s] Keyring contains %d public keys for %s", s.alias, len(kl), r)

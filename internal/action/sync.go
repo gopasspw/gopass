@@ -119,6 +119,9 @@ func (s *Action) syncMount(ctx context.Context, mp string) error {
 	syncPrintDiff(ctxno, l, ln)
 
 	debug.Log("Syncing Mount %s. Exportkeys: %t", mp, ctxutil.IsExportKeys(ctx))
+	if err := syncImportKeys(ctxno, sub, name); err != nil {
+		return err
+	}
 	if ctxutil.IsExportKeys(ctx) {
 		if err := syncExportKeys(ctxno, sub, name); err != nil {
 			return err
@@ -128,7 +131,7 @@ func (s *Action) syncMount(ctx context.Context, mp string) error {
 	return nil
 }
 
-func syncExportKeys(ctx context.Context, sub *leaf.Store, name string) error {
+func syncImportKeys(ctx context.Context, sub *leaf.Store, name string) error {
 	// import keys.
 	out.Printf(ctx, "\n   "+color.GreenString("importing missing keys ... "))
 	if err := sub.ImportMissingPublicKeys(ctx); err != nil {
@@ -136,7 +139,10 @@ func syncExportKeys(ctx context.Context, sub *leaf.Store, name string) error {
 		return err
 	}
 	out.Printf(ctx, color.GreenString("OK"))
+	return nil
+}
 
+func syncExportKeys(ctx context.Context, sub *leaf.Store, name string) error {
 	// export keys.
 	out.Printf(ctx, "\n   "+color.GreenString("exporting missing keys ... "))
 	rs, err := sub.GetRecipients(ctx, "")
