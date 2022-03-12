@@ -12,6 +12,7 @@ const (
 	ctxKeyKey
 	ctxKeyOnlyClip
 	ctxKeyAlsoClip
+	ctxKeyPrintChars
 )
 
 // WithClip returns a context with the value for clip (for copy to clipboard)
@@ -125,4 +126,18 @@ func GetKey(ctx context.Context) string {
 		return ""
 	}
 	return sv
+}
+
+// WithPrintChars returns the context with the print chars set.
+func WithPrintChars(ctx context.Context, c []int) context.Context {
+	return context.WithValue(ctx, ctxKeyPrintChars, c)
+}
+
+// GetPrintChars returns a map of all character positions to print.
+func GetPrintChars(ctx context.Context) []int {
+	mv, ok := ctx.Value(ctxKeyPrintChars).([]int)
+	if !ok {
+		return nil
+	}
+	return mv
 }

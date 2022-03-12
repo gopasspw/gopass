@@ -18,7 +18,7 @@ var (
 	Stderr io.Writer = os.Stderr
 )
 
-// Secret is a string wrapper for strings containing secrets. These won't b.
+// Secret is a string wrapper for strings containing secrets. These won't be
 // logged as long a GOPASS_DEBUG_LOG_SECRETS is not set.
 type Secret string
 

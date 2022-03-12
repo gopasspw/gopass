@@ -44,6 +44,21 @@ func showParseArgs(c *cli.Context) context.Context {
 	if c.IsSet("noparsing") {
 		ctx = ctxutil.WithShowParsing(ctx, !c.Bool("noparsing"))
 	}
+	if c.IsSet("chars") {
+		iv := []int{}
+		for _, v := range strings.Split(c.String("chars"), ",") {
+			v = strings.TrimSpace(v)
+			if v == "" {
+				continue
+			}
+			i, err := strconv.Atoi(v)
+			if err != nil {
+				continue
+			}
+			iv = append(iv, i)
+		}
+		ctx = WithPrintChars(ctx, iv)
+	}
 	ctx = WithClip(ctx, IsOnlyClip(ctx) || IsAlsoClip(ctx))
 	return ctx
 }
@@ -138,6 +153,17 @@ func (s *Action) showHandleOutput(ctx context.Context, name string, sec gopass.S
 	pw, body, err := s.showGetContent(ctx, sec)
 	if err != nil {
 		return err
+	}
+
+	if chars := GetPrintChars(ctx); len(chars) > 0 {
+		for _, c := range chars {
+			if c > len(pw) || c-1 < 0 {
+				debug.Log("Invalid char: %d", c)
+				continue
+			}
+			out.Printf(ctx, "%d: %s", c, out.Secret(pw[c-1]))
+		}
+		return nil
 	}
 
 	if pw == "" && body == "" {
