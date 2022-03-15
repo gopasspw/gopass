@@ -37,7 +37,7 @@ type Config struct {
 // New creates a new config with sane default values.
 func New() *Config {
 	return &Config{
-		AutoImport:    true,
+		AutoImport:    false,
 		ClipTimeout:   45,
 		ExportKeys:    true,
 		Mounts:        make(map[string]string),

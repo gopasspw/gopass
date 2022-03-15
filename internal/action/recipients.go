@@ -14,8 +14,7 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-var (
-	removalWarning = `
+var removalWarning = `
 
 
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -31,7 +30,6 @@ This feature is only meant for revoking access to any added or changed
 credentials.
 
 `
-)
 
 // RecipientsPrint prints all recipients per store.
 func (s *Action) RecipientsPrint(c *cli.Context) error {
@@ -95,8 +93,15 @@ func (s *Action) RecipientsAdd(c *cli.Context) error {
 	for _, r := range recipients {
 		keys, err := crypto.FindRecipients(ctx, r)
 		if err != nil {
-			out.Printf(ctx, "WARNING: Failed to list public key %q: %s", r, err)
-			if !force {
+			out.Warningf(ctx, "Failed to list public key %q: %s", r, err)
+			var imported bool
+			if sub, err := s.Store.GetSubStore(store); err == nil {
+				if err := sub.ImportMissingPublicKeys(ctx, r); err != nil {
+					out.Warningf(ctx, "Failed to import missing public keys: %s", err)
+				}
+				imported = err == nil
+			}
+			if !force && !imported {
 				continue
 			}
 			keys = []string{r}

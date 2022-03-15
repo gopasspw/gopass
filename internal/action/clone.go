@@ -120,7 +120,7 @@ func (s *Action) clone(ctx context.Context, repo, mount, path string) error {
 
 	// make sure the parent directory exists.
 	if parentPath := filepath.Dir(path); !fsutil.IsDir(parentPath) {
-		if err := os.MkdirAll(parentPath, 0700); err != nil {
+		if err := os.MkdirAll(parentPath, 0o700); err != nil {
 			return exit.Error(exit.Unknown, err, "Failed to create parent directory for clone: %s", err)
 		}
 	}
@@ -200,7 +200,21 @@ func (s *Action) cloneCheckDecryptionKeys(ctx context.Context, mount string) err
 		return nil
 	}
 
+	var exported bool
+	if sub, err := s.Store.GetSubStore(mount); err == nil {
+		debug.Log("exporting public keys: %v", idSet.Elements())
+		exported, err = sub.ExportMissingPublicKeys(ctx, idSet.Elements())
+		if err != nil {
+			debug.Log("failed to export missing public keys: %w", err)
+		}
+	} else {
+		debug.Log("failed to get sub store: %s", err)
+	}
+
 	out.Noticef(ctx, "Please ask the owner of the password store to add one of your keys: %s", strings.Join(idSet.Elements(), ", "))
+	if exported {
+		out.Noticef(ctx, "The missing keys were exported to the password store. Run `gopass sync` to push them.")
+	}
 
 	return nil
 }
