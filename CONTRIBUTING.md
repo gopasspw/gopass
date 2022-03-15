@@ -25,9 +25,6 @@ will try to clarify it.
 
 * Use that [latest stable Go release](https://golang.org/dl/)
 
-**Note: This repository is already using features from - as of today unreleased - Go 1.18.
-We expect this to be an exception that will resolve itself once Go 1.18 is released.**
-
 * Branch from master and, if needed, rebase to the current master branch before submitting your pull request.
   If it doesn't merge cleanly with master you will be asked to rebase your changes.
 
