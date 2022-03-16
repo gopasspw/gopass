@@ -23,9 +23,10 @@ import (
 	"github.com/blang/semver/v4"
 )
 
-var sleep = time.Second
-var issueRE = regexp.MustCompile(`#(\d+)\b`)
-var verTmpl = `package main
+var (
+	sleep   = time.Second
+	issueRE = regexp.MustCompile(`#(\d+)\b`)
+	verTmpl = `package main
 
 import (
 	"strings"
@@ -36,9 +37,6 @@ import (
 func getVersion() semver.Version {
 	sv, err := semver.Parse(strings.TrimPrefix(version, "v"))
 	if err == nil {
-		if commit != "" {
-			sv.Build = []string{commit}
-		}
 		return sv
 	}
 	return semver.Version{
@@ -52,6 +50,7 @@ func getVersion() semver.Version {
 	}
 }
 `
+)
 
 const logo = `
    __     _    _ _      _ _   ___   ___
@@ -310,7 +309,7 @@ func updateManpage() error {
 }
 
 func writeVersion(v semver.Version) error {
-	return os.WriteFile("VERSION", []byte(v.String()+"\n"), 0644)
+	return os.WriteFile("VERSION", []byte(v.String()+"\n"), 0o644)
 }
 
 type tplPayload struct {
