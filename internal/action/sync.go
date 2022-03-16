@@ -100,7 +100,7 @@ func (s *Action) syncMount(ctx context.Context, mp string) error {
 		debug.Log("Push succeeded")
 		out.Printf(ctxno, color.GreenString("OK"))
 	case errors.Is(err, store.ErrGitNoRemote):
-		out.Printf(ctxno, "Skipped (no remote)")
+		out.Printf(ctx, "Skipped (no remote)")
 		debug.Log("Failed to push %q to its remote: %s", name, err)
 		return err
 	case errors.Is(err, backend.ErrNotSupported):
@@ -108,7 +108,7 @@ func (s *Action) syncMount(ctx context.Context, mp string) error {
 	case errors.Is(err, store.ErrGitNotInit):
 		out.Printf(ctxno, "Skipped (no Git repo)")
 	default: // any other error
-		out.Errorf(ctxno, "Failed to push %q to its remote: %s", name, err)
+		out.Errorf(ctx, "Failed to push %q to its remote: %s", name, err)
 		return err
 	}
 
