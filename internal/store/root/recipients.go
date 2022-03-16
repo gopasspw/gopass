@@ -34,6 +34,9 @@ func (r *Store) RemoveRecipient(ctx context.Context, store, rec string) error {
 func (r *Store) addRecipient(ctx context.Context, prefix string, root *tree.Root, recp string, pretty bool) error {
 	sub, _ := r.getStore(prefix)
 	key := fmt.Sprintf("%s (missing public key)", recp)
+	if v := sub.Crypto().FormatKey(ctx, recp, ""); v != "" {
+		key = v
+	}
 	kl, err := sub.Crypto().FindRecipients(ctx, recp)
 	if err == nil {
 		if len(kl) > 0 {
