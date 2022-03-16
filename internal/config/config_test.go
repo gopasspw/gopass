@@ -20,7 +20,7 @@ func TestNewConfig(t *testing.T) {
 
 	cfg := config.New()
 	cs := cfg.String()
-	assert.Contains(t, cs, `&config.Config{AutoClip:false, AutoImport:true, ClipTimeout:45, ExportKeys:true, NoPager:false, Notifications:true,`)
+	assert.Contains(t, cs, `&config.Config{AutoClip:false, AutoImport:false, ClipTimeout:45, ExportKeys:true, NoPager:false, Notifications:true,`)
 	assert.Contains(t, cs, `SafeContent:false, Mounts:map[string]string{},`)
 
 	cfg = &config.Config{
