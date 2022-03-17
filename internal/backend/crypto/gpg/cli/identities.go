@@ -33,16 +33,16 @@ func (g *GPG) FindIdentities(ctx context.Context, search ...string) ([]string, e
 	return kl.UseableKeys(gpg.IsAlwaysTrust(ctx)).Recipients(), nil
 }
 
-func (g *GPG) findKey(ctx context.Context, id string) gpg.Key {
+func (g *GPG) findKey(ctx context.Context, id string) (gpg.Key, bool) {
 	kl, _ := g.listKeys(ctx, "secret", id)
 	if len(kl) >= 1 {
-		return kl[0]
+		return kl[0], true
 	}
 	kl, _ = g.listKeys(ctx, "public", id)
 	if len(kl) >= 1 {
-		return kl[0]
+		return kl[0], true
 	}
 	return gpg.Key{
 		Fingerprint: id,
-	}
+	}, false
 }

@@ -27,7 +27,7 @@ func (g *GPG) listKeys(ctx context.Context, typ string, search ...string) (gpg.K
 		}
 	}
 	cmd := exec.CommandContext(ctx, g.binary, args...)
-	var errBuf = bytes.Buffer{}
+	errBuf := bytes.Buffer{}
 	cmd.Stderr = &errBuf
 
 	debug.Log("%s %+v\n", cmd.Path, cmd.Args)
@@ -46,7 +46,11 @@ func (g *GPG) listKeys(ctx context.Context, typ string, search ...string) (gpg.K
 
 // Fingerprint returns the fingerprint.
 func (g *GPG) Fingerprint(ctx context.Context, id string) string {
-	return g.findKey(ctx, id).Fingerprint
+	k, found := g.findKey(ctx, id)
+	if !found {
+		return ""
+	}
+	return k.Fingerprint
 }
 
 // FormatKey formats the details of a key id
@@ -55,7 +59,11 @@ func (g *GPG) Fingerprint(ctx context.Context, id string) string {
 // - EmailFromKey: {{ .Email }}.
 func (g *GPG) FormatKey(ctx context.Context, id, tpl string) string {
 	if tpl == "" {
-		return g.findKey(ctx, id).OneLine()
+		k, found := g.findKey(ctx, id)
+		if !found {
+			return ""
+		}
+		return k.OneLine()
 	}
 
 	tmpl, err := template.New(tpl).Parse(tpl)
@@ -63,8 +71,14 @@ func (g *GPG) FormatKey(ctx context.Context, id, tpl string) string {
 		return ""
 	}
 
+	var gid gpg.Identity
+	k, found := g.findKey(ctx, id)
+	if found {
+		gid = k.Identity()
+	}
+
 	buf := &bytes.Buffer{}
-	if err := tmpl.Execute(buf, g.findKey(ctx, id).Identity()); err != nil {
+	if err := tmpl.Execute(buf, gid); err != nil {
 		debug.Log("Failed to render template %q: %s", tpl, err)
 		return ""
 	}
