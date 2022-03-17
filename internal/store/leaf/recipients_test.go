@@ -79,7 +79,7 @@ func TestGetRecipientsSubID(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, genRecs, recs)
 
-	err = os.WriteFile(filepath.Join(tempdir, "foo", "bar", s.crypto.IDFile()), []byte("john.doe\n"), 0600)
+	err = os.WriteFile(filepath.Join(tempdir, "foo", "bar", s.crypto.IDFile()), []byte("john.doe\n"), 0o600)
 	require.NoError(t, err)
 
 	recs, err = s.GetRecipients(ctx, "foo/bar/baz")

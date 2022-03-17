@@ -18,12 +18,15 @@ func (u *unknownFlag) String() string {
 func (u *unknownFlag) Apply(*flag.FlagSet) error {
 	return nil
 }
+
 func (u *unknownFlag) GetName() string {
 	return ""
 }
+
 func (u *unknownFlag) IsSet() bool {
 	return true
 }
+
 func (u *unknownFlag) Names() []string {
 	return []string{}
 }

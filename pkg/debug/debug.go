@@ -53,7 +53,7 @@ func initDebugLogger() {
 		return
 	}
 
-	f, err := os.OpenFile(debugfile, os.O_WRONLY|os.O_APPEND, 0600)
+	f, err := os.OpenFile(debugfile, os.O_WRONLY|os.O_APPEND, 0o600)
 	if err == nil {
 		// seek to the end of the file (offset, whence [2 = end])
 		_, err := f.Seek(0, 2)
@@ -63,7 +63,7 @@ func initDebugLogger() {
 		}
 	}
 	if err != nil && os.IsNotExist(err) {
-		f, err = os.OpenFile(debugfile, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
+		f, err = os.OpenFile(debugfile, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o600)
 	}
 
 	if err != nil {

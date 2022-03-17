@@ -25,10 +25,8 @@ type askPass struct {
 	cache   cacher
 }
 
-var (
-	// DefaultAskPass is the default password cache.
-	DefaultAskPass = newAskPass()
-)
+// DefaultAskPass is the default password cache.
+var DefaultAskPass = newAskPass()
 
 func newAskPass() *askPass {
 	return &askPass{

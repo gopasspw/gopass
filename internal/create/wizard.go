@@ -297,7 +297,6 @@ func mkActFunc(tpl Template, s *root.Store, cb ActionCallback) func(context.Cont
 		out.OKf(ctx, "Credentials saved to %q", name)
 		return cb(ctx, c, name, password, genPw)
 	}
-
 }
 
 // generatePasssword will walk through the password generation steps.

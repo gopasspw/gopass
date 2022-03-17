@@ -11,9 +11,7 @@ import (
 
 //go:generate go run gen.go
 
-var (
-	reChars = regexp.MustCompile(`(allowed|required):\s*\[(.*)\](?:;|,)`)
-)
+var reChars = regexp.MustCompile(`(allowed|required):\s*\[(.*)\](?:;|,)`)
 
 // AllRules returns all rules.
 func AllRules() map[string]Rule {

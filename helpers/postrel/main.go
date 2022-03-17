@@ -554,7 +554,6 @@ func (r *repo) updateFinalize(path string) error {
 	}
 	// git push myfork gopass-VER
 	return r.gitPush(r.rem)
-
 }
 
 func (r *repo) gitCoMaster() error {

@@ -82,5 +82,5 @@ func (a *Age) encryptFile(ctx context.Context, filename string, plaintext []byte
 		return err
 	}
 
-	return os.WriteFile(filename, buf, 0600)
+	return os.WriteFile(filename, buf, 0o600)
 }

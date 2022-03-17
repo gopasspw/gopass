@@ -170,7 +170,6 @@ foo2/bar2
 
 	assert.Equal(t, want, buf.String())
 	buf.Reset()
-
 }
 
 func TestRedirectPager(t *testing.T) {

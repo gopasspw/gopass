@@ -8,10 +8,8 @@ import (
 	"github.com/gopasspw/gopass/pkg/debug"
 )
 
-var (
-	// ErrNotSupported is returned by backends for unsupported calls.
-	ErrNotSupported = fmt.Errorf("not supported")
-)
+// ErrNotSupported is returned by backends for unsupported calls.
+var ErrNotSupported = fmt.Errorf("not supported")
 
 // StorageBackend is a type of storage backend.
 type StorageBackend int

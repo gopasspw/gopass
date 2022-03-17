@@ -15,7 +15,7 @@ import (
 )
 
 func extractFile(buf []byte, filename, dest string) error {
-	var mode = os.FileMode(0755)
+	mode := os.FileMode(0o755)
 
 	// if overwriting an existing binary retain it's mode flags
 	fi, err := os.Lstat(dest)

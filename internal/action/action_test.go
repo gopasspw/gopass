@@ -80,8 +80,8 @@ func TestNew(t *testing.T) {
 
 	t.Run("init an existing plain store", func(t *testing.T) {
 		cfg.Path = filepath.Join(td, "store")
-		assert.NoError(t, os.MkdirAll(cfg.Path, 0700))
-		assert.NoError(t, os.WriteFile(filepath.Join(cfg.Path, plain.IDFile), []byte("foobar"), 0600))
+		assert.NoError(t, os.MkdirAll(cfg.Path, 0o700))
+		assert.NoError(t, os.WriteFile(filepath.Join(cfg.Path, plain.IDFile), []byte("foobar"), 0o600))
 		_, err = New(cfg, sv)
 		assert.NoError(t, err)
 	})

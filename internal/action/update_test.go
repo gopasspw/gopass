@@ -74,7 +74,7 @@ func TestUpdate(t *testing.T) {
 		hdr := &tar.Header{
 			Typeflag: tar.TypeReg,
 			Name:     "gopass",
-			Mode:     0600,
+			Mode:     0o600,
 			Size:     int64(len(body)),
 		}
 		if err := tw.WriteHeader(hdr); err != nil {

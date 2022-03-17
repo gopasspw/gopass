@@ -12,9 +12,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const pw string = "password"
-const totpSecret string = "GJWTGMTNN5YWW2TNPJXWG2DHMIFA"
-const totpURL string = "otpauth://totp/example-otp.com?secret=2m32moqkjmzochgb&issuer=authenticator&digits=6"
+const (
+	pw         string = "password"
+	totpSecret string = "GJWTGMTNN5YWW2TNPJXWG2DHMIFA"
+	totpURL    string = "otpauth://totp/example-otp.com?secret=2m32moqkjmzochgb&issuer=authenticator&digits=6"
+)
 
 func TestCalculate(t *testing.T) {
 	testCases := [][]byte{

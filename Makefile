@@ -142,8 +142,7 @@ gen:
 	@$(GO) generate ./...
 
 fmt:
-	@gofmt -s -l -w $(GOFILES_NOVENDOR)
-	@goimports -l -w $(GOFILES_NOVENDOR)
+	@gofumpt -l -w $(GOFILES_NOVENDOR)
 	@$(GO) mod tidy
 
 deps:

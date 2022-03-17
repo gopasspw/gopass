@@ -44,7 +44,7 @@ func (s *Action) List(c *cli.Context) error {
 		return exit.Error(exit.List, err, "failed to list store: %s", err)
 	}
 
-	//set limit to infinite by default unless it's set with the flag
+	// set limit to infinite by default unless it's set with the flag
 	limit := tree.INF
 	if c.IsSet("limit") {
 		limit = c.Int("limit")
@@ -54,7 +54,6 @@ func (s *Action) List(c *cli.Context) error {
 }
 
 func (s *Action) listFiltered(ctx context.Context, l *tree.Root, limit int, flat, folders, stripPrefix bool, filter string) error {
-
 	sep := string(leaf.Sep)
 
 	if filter == "" || filter == sep {

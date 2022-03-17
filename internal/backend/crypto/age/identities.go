@@ -16,9 +16,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/debug"
 )
 
-var (
-	idRecpCacheKey = "identity"
-)
+var idRecpCacheKey = "identity"
 
 // Identities returns all identities, used for decryption.
 func (a *Age) Identities(ctx context.Context) ([]age.Identity, error) {
@@ -182,7 +180,7 @@ func (a *Age) saveIdentities(ctx context.Context, ids []string, newFile bool) er
 	}
 
 	// ensure directory exists.
-	if err := os.MkdirAll(filepath.Dir(a.identity), 0700); err != nil {
+	if err := os.MkdirAll(filepath.Dir(a.identity), 0o700); err != nil {
 		debug.Log("failed to create directory for the keyring at %s: %s", a.identity, err)
 		return err
 	}

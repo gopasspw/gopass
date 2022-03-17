@@ -29,9 +29,7 @@ const (
 	defaultXKCDLength = 4
 )
 
-var (
-	reNumber = regexp.MustCompile(`^\d+$`)
-)
+var reNumber = regexp.MustCompile(`^\d+$`)
 
 // Generate and save a password.
 func (s *Action) Generate(c *cli.Context) error {

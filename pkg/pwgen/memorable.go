@@ -6,7 +6,7 @@ import "strings"
 // with a minimum length.
 func GenerateMemorablePassword(minLength int, symbols bool, capitals bool) string {
 	var sb strings.Builder
-	var upper = false
+	upper := false
 	for sb.Len() < minLength {
 		// when requesting uppercase, we randomly uppercase words
 		if capitals && randomInteger(2) == 0 {
@@ -23,7 +23,7 @@ func GenerateMemorablePassword(minLength int, symbols bool, capitals bool) strin
 	}
 	// If there isn't already a capitalized word, capitalize the first letter
 	if capitals && !upper {
-		var str = sb.String()
+		str := sb.String()
 		return strings.Title(string(str[0])) + str[1:]
 	}
 	return sb.String()

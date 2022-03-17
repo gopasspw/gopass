@@ -22,7 +22,7 @@ type loader struct{}
 
 // New implements backend.StorageLoader.
 func (l loader) New(ctx context.Context, path string) (backend.Storage, error) {
-	if err := os.MkdirAll(path, 0700); err != nil {
+	if err := os.MkdirAll(path, 0o700); err != nil {
 		return nil, err
 	}
 	be := New(path)
@@ -31,7 +31,7 @@ func (l loader) New(ctx context.Context, path string) (backend.Storage, error) {
 }
 
 func (l loader) Init(ctx context.Context, path string) (backend.Storage, error) {
-	if err := os.MkdirAll(path, 0700); err != nil {
+	if err := os.MkdirAll(path, 0o700); err != nil {
 		return nil, err
 	}
 	return l.New(ctx, path)

@@ -43,10 +43,8 @@ const (
 	name = "gopass"
 )
 
-var (
-	// Version is the released version of gopass.
-	version string
-)
+// Version is the released version of gopass.
+var version string
 
 func main() {
 	// important: execute the func now but the returned func only on defer!

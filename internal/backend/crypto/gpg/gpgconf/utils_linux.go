@@ -8,9 +8,7 @@ import (
 	"syscall"
 )
 
-var (
-	fd0 = "/proc/self/fd/0"
-)
+var fd0 = "/proc/self/fd/0"
 
 // TTY returns the tty of the current process.
 // see https://www.gnupg.org/documentation/manuals/gnupg/Invoking-GPG_002dAGENT.html

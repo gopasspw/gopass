@@ -20,9 +20,7 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-var (
-	binstdin = os.Stdin
-)
+var binstdin = os.Stdin
 
 // Cat prints to or reads from STDIN/STDOUT.
 func (s *Action) Cat(c *cli.Context) error {
@@ -179,7 +177,7 @@ func (s *Action) binaryCopyFromStoreToFile(ctx context.Context, from, to string,
 	if err != nil {
 		return fmt.Errorf("failed to read data from %q: %w", from, err)
 	}
-	if err := os.WriteFile(to, buf, 0600); err != nil {
+	if err := os.WriteFile(to, buf, 0o600); err != nil {
 		return fmt.Errorf("failed to write data to %q: %w", to, err)
 	}
 

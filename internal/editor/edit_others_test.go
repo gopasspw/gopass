@@ -66,10 +66,8 @@ func TestGetEditor(t *testing.T) {
 	assert.NoError(t, os.Setenv("PATH", "/tmp"))
 	if runtime.GOOS == "windows" {
 		assert.Equal(t, "notepad.exe", Path(c))
-
 	} else {
 		assert.Equal(t, "vi", Path(c))
-
 	}
 	assert.NoError(t, os.Setenv("PATH", op))
 }

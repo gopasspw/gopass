@@ -12,16 +12,14 @@ import (
 	"github.com/gopasspw/gopass/pkg/debug"
 )
 
-var (
-	httpClient = &http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{
-				// enforce TLS 1.3
-				MinVersion: tls.VersionTLS13,
-			},
+var httpClient = &http.Client{
+	Transport: &http.Transport{
+		TLSClientConfig: &tls.Config{
+			// enforce TLS 1.3
+			MinVersion: tls.VersionTLS13,
 		},
-	}
-)
+	},
+}
 
 // ListKeys returns the public keys for a github user. It will
 // cache results up the a configurable amount of time (default: 6h).

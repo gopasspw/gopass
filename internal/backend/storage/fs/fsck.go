@@ -62,13 +62,13 @@ func (s *Store) fsckCheckFile(ctx context.Context, filename string) error {
 		return err
 	}
 
-	if fi.Mode().Perm()&0177 == 0 {
+	if fi.Mode().Perm()&0o177 == 0 {
 		return nil
 	}
 
 	out.Printf(ctx, "Permissions too wide: %s (%s)", filename, fi.Mode().String())
 
-	np := uint32(fi.Mode().Perm() & 0600)
+	np := uint32(fi.Mode().Perm() & 0o600)
 	out.Printf(ctx, "  Fixing permissions from %s to %s", fi.Mode().Perm().String(), os.FileMode(np).Perm().String())
 	if err := syscall.Chmod(filename, np); err != nil {
 		out.Errorf(ctx, "  Failed to set permissions for %s to rw-------: %s", filename, err)
@@ -84,10 +84,10 @@ func (s *Store) fsckCheckDir(ctx context.Context, dirname string) error {
 
 	// check if any group or other perms are set,
 	// i.e. check for perms other than rwx------
-	if fi.Mode().Perm()&077 != 0 {
+	if fi.Mode().Perm()&0o77 != 0 {
 		out.Printf(ctx, "Permissions too wide %s on dir %s", fi.Mode().Perm().String(), dirname)
 
-		np := uint32(fi.Mode().Perm() & 0700)
+		np := uint32(fi.Mode().Perm() & 0o700)
 		out.Printf(ctx, "  Fixing permissions from %s to %s", fi.Mode().Perm().String(), os.FileMode(np).Perm().String())
 		if err := syscall.Chmod(dirname, np); err != nil {
 			out.Errorf(ctx, "  Failed to set permissions for %s to rwx------: %s", dirname, err)

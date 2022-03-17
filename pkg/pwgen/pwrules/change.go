@@ -1,8 +1,6 @@
 package pwrules
 
-var (
-	changeURLs = map[string]string{}
-)
+var changeURLs = map[string]string{}
 
 func init() {
 	for k, v := range genChange {

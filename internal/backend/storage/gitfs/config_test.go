@@ -21,7 +21,7 @@ func TestGitConfig(t *testing.T) {
 	}()
 
 	gitdir := filepath.Join(td, "git")
-	require.NoError(t, os.Mkdir(gitdir, 0755))
+	require.NoError(t, os.Mkdir(gitdir, 0o755))
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)

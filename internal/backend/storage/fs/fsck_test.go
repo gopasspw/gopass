@@ -27,8 +27,8 @@ func TestFsck(t *testing.T) {
 		filepath.Join(path, "foo", "bar"),
 		filepath.Join(path, "foo", "zen"),
 	} {
-		assert.NoError(t, os.MkdirAll(filepath.Dir(fn), 0777))
-		assert.NoError(t, os.WriteFile(fn, []byte(fn), 0663))
+		assert.NoError(t, os.MkdirAll(filepath.Dir(fn), 0o777))
+		assert.NoError(t, os.WriteFile(fn, []byte(fn), 0o663))
 	}
 
 	assert.NoError(t, s.Fsck(ctx))

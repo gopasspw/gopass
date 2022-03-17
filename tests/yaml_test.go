@@ -53,7 +53,7 @@ func TestYAMLAndSecret(t *testing.T) {
 }
 
 func TestInvalidYAML(t *testing.T) {
-	var testBody = `somepasswd
+	testBody := `somepasswd
 ---
 Test / test.com
 username: myuser@test.com

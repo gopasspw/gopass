@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	fileMode = 0600
+	fileMode = 0o600
 )
 
 // fixConfig sets up the git config for the password store in a way to simplifies some of the quirks

@@ -43,7 +43,7 @@ func TestSetAndGet(t *testing.T) {
 }
 
 func TestRemoveEmptyParentDirectories(t *testing.T) {
-	var tests = []struct {
+	tests := []struct {
 		name          string
 		storeRoot     []string
 		subdirs       []string
@@ -96,7 +96,7 @@ func TestRemoveEmptyParentDirectories(t *testing.T) {
 			path := filepath.Join(append([]string{td}, test.storeRoot...)...)
 			subdir := filepath.Join(append([]string{path}, test.subdirs...)...)
 
-			if err := os.MkdirAll(subdir, 0777); err != nil {
+			if err := os.MkdirAll(subdir, 0o777); err != nil {
 				t.Error(err)
 			}
 
@@ -127,7 +127,7 @@ func TestRemoveEmptyParentDirectories(t *testing.T) {
 }
 
 func TestDelete(t *testing.T) {
-	var tests = []struct {
+	tests := []struct {
 		name      string
 		location  []string
 		toDelete  []string
@@ -173,7 +173,7 @@ func TestDelete(t *testing.T) {
 			defer cleanup()
 
 			subdir := filepath.Join(append([]string{path}, test.location...)...)
-			if err := os.MkdirAll(subdir, 0777); err != nil {
+			if err := os.MkdirAll(subdir, 0o777); err != nil {
 				t.Error(err)
 			}
 

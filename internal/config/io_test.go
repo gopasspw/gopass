@@ -378,7 +378,7 @@ func TestLoad(t *testing.T) {
 	assert.NoError(t, os.Setenv("GOPASS_CONFIG", gcfg))
 	assert.NoError(t, os.Setenv("GOPASS_HOMEDIR", td))
 
-	require.NoError(t, os.WriteFile(gcfg, []byte(testConfig), 0600))
+	require.NoError(t, os.WriteFile(gcfg, []byte(testConfig), 0o600))
 
 	cfg := Load()
 	assert.True(t, cfg.SafeContent)
@@ -417,7 +417,7 @@ func TestDecodeError(t *testing.T) {
 	assert.NoError(t, os.Setenv("GOPASS_CONFIG", gcfg))
 
 	_ = os.Remove(gcfg)
-	require.NoError(t, os.WriteFile(gcfg, []byte(testConfig+"\nfoobar: zab\n"), 0600))
+	require.NoError(t, os.WriteFile(gcfg, []byte(testConfig+"\nfoobar: zab\n"), 0o600))
 
 	capture(t, func() error {
 		_, err := load(gcfg, false)

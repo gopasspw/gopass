@@ -36,7 +36,7 @@ func New(ctx context.Context, prefix string) (*File, error) {
 	}
 
 	fn := filepath.Join(tf.dir, "secret")
-	fh, err := os.OpenFile(fn, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0600)
+	fh, err := os.OpenFile(fn, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0o600)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open file %s: %w", fn, err)
 	}
