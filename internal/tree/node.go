@@ -49,10 +49,8 @@ func (n Node) Equals(other Node) bool {
 		if !n.Subtree.Equals(other.Subtree) {
 			return false
 		}
-	} else {
-		if other.Subtree != nil {
-			return false
-		}
+	} else if other.Subtree != nil {
+		return false
 	}
 	return true
 }

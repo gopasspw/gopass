@@ -149,7 +149,7 @@ func (ts tester) runCmd(args []string, in []byte) (string, error) {
 
 func (ts tester) run(arg string) (string, error) {
 	if runtime.GOOS == "windows" {
-		arg = strings.Replace(arg, "\\", "\\\\", -1)
+		arg = strings.ReplaceAll(arg, "\\", "\\\\")
 	}
 	args, err := shellquote.Split(arg)
 	if err != nil {

@@ -171,10 +171,8 @@ func audit(ctx context.Context, secStore secretGetter, validators []validator, e
 		revs, err := secStore.ListRevisions(ctx, secret)
 		if err != nil {
 			as.messages = append(as.messages, err.Error())
-		} else {
-			if len(revs) > 0 && time.Since(revs[0].Date) > expiry {
-				as.messages = append(as.messages, fmt.Sprintf("Password too old (%dd)", int(expiry.Hours()/24)))
-			}
+		} else if len(revs) > 0 && time.Since(revs[0].Date) > expiry {
+			as.messages = append(as.messages, fmt.Sprintf("Password too old (%dd)", int(expiry.Hours()/24)))
 		}
 
 		if len(validators) < 1 {

@@ -7,7 +7,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// nolint:ifshort
 func TestWithClip(t *testing.T) {
 	ctx := context.Background()
 
@@ -20,7 +19,6 @@ func TestWithClip(t *testing.T) {
 	}
 }
 
-// nolint:ifshort
 func TestWithPasswordOnly(t *testing.T) {
 	ctx := context.Background()
 

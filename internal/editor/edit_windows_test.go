@@ -8,10 +8,9 @@ import (
 	"testing"
 
 	"github.com/gopasspw/gopass/tests/gptest"
-	"github.com/urfave/cli/v2"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/urfave/cli/v2"
 )
 
 func TestEditor(t *testing.T) {

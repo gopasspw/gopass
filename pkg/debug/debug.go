@@ -124,7 +124,7 @@ func padFile(s string) string {
 	}
 
 	if !strings.Contains(s, ":") {
-		s = s + ":*"
+		s += ":*"
 	}
 
 	return s

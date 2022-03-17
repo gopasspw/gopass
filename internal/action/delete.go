@@ -14,7 +14,6 @@ import (
 // Delete a secret file with its content.
 func (s *Action) Delete(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
-	force := c.Bool("force")
 	recursive := c.Bool("recursive")
 
 	name := c.Args().First()
@@ -33,7 +32,7 @@ func (s *Action) Delete(c *cli.Context) error {
 		return exit.Error(exit.Usage, nil, "Can not use -r with a key. Invoke delete either with a key or with -r")
 	}
 
-	if !force { // don't check if it's force anyway.
+	if !c.Bool("force") { // don't check if it's force anyway.
 		recStr := ""
 		if recursive {
 			recStr = "recursively "

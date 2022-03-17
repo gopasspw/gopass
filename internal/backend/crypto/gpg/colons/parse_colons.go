@@ -139,7 +139,7 @@ func parseKeyCaps(field string) gpg.Capabilities {
 
 func parseColonIdentity(fields []string) gpg.Identity {
 	for i, f := range fields {
-		fields[i] = strings.Replace(f, "\\x3a", ":", -1)
+		fields[i] = strings.ReplaceAll(f, "\\x3a", ":")
 	}
 	id := fields[9]
 	ni := gpg.Identity{

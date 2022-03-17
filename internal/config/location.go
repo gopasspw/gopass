@@ -55,7 +55,7 @@ func configLocations() []string {
 // or returns the default location if the env is not set.
 func PwStoreDir(mount string) string {
 	if mount != "" {
-		cleanName := strings.Replace(mount, string(filepath.Separator), "-", -1)
+		cleanName := strings.ReplaceAll(mount, string(filepath.Separator), "-")
 		return fsutil.CleanPath(filepath.Join(appdir.UserData(), "stores", cleanName))
 	}
 	// PASSWORD_STORE_DIR support is discouraged.
