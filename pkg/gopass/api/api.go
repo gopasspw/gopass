@@ -6,7 +6,6 @@ import (
 
 	// load crypto backends.
 	_ "github.com/gopasspw/gopass/internal/backend/crypto"
-
 	// load storage backends.
 	_ "github.com/gopasspw/gopass/internal/backend/storage"
 	"github.com/gopasspw/gopass/internal/config"

@@ -131,11 +131,20 @@ crosscompile:
 codequality:
 	@echo ">> CODE QUALITY"
 
+	@echo -n "     GOCRITIC "
+	@which gocritic > /dev/null; if [ $$? -ne 0 ]; then \
+		$(GO) install github.com/go-critic/go-critic/cmd/gocritic@latest; \
+	fi
+	@gocritic check -disable='exitAfterDefer,appendAssign,dupArg' ./... || exit 0
+
+	@printf '%s\n' '$(OK)'
+
 	@echo -n "     GOLANGCI-LINT "
 	@which golangci-lint > /dev/null; if [ $$? -ne 0 ]; then \
 		$(GO) install github.com/golangci/golangci-lint/cmd/golangci-lint@latest; \
 	fi
-	@golangci-lint run || exit 1
+	@golangci-lint run --max-issues-per-linter 0 --max-same-issues 0 --sort-results || exit 1
+
 	@printf '%s\n' '$(OK)'
 
 gen:
@@ -143,6 +152,7 @@ gen:
 
 fmt:
 	@gofumpt -l -w $(GOFILES_NOVENDOR)
+	@gci write $(GOFILES_NOVENDOR)
 	@$(GO) mod tidy
 
 deps:

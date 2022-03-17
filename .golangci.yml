@@ -15,7 +15,6 @@ linters:
         - gci
         # - gocyclo # need to refactor internal/create/wizard
         - gofmt
-        - goimports
         - gomoddirectives
         - gomodguard
         - goprintffuncname

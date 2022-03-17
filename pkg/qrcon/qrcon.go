@@ -29,11 +29,12 @@ func QRCode(content string) (string, error) {
 	for x := b.Min.X; x < b.Max.X; x++ {
 		for y := b.Min.Y; y < b.Max.Y; y++ {
 			col := i.At(x, y)
-			if sameColor(col, q.ForegroundColor) {
+			switch {
+			case sameColor(col, q.ForegroundColor):
 				_, _ = sb.WriteString(black)
-			} else if sameColor(col, q.BackgroundColor) {
+			case sameColor(col, q.BackgroundColor):
 				_, _ = sb.WriteString(white)
-			} else {
+			default:
 				return "", fmt.Errorf("unexpected color at (%d,%d): %+v", x, y, col)
 			}
 		}

@@ -9,5 +9,9 @@ import (
 )
 
 func notEmptyErr(err error) bool {
-	return err.(*os.PathError).Err == syscall.ENOTEMPTY
+	e, ok := err.(*os.PathError)
+	if !ok {
+		return false
+	}
+	return e.Err == syscall.ENOTEMPTY
 }

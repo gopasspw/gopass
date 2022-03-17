@@ -9,10 +9,9 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"golang.org/x/sys/windows/registry"
-
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/fsutil"
+	"golang.org/x/sys/windows/registry"
 )
 
 func detectBinary(ctx context.Context, bin string) (string, error) {

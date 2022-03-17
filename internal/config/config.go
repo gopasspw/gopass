@@ -85,13 +85,14 @@ func (c *Config) setConfigValue(key, value string) error {
 			f.SetString(value)
 			return nil
 		case reflect.Bool:
-			if value == "true" || value == "on" {
+			switch {
+			case value == "true" || value == "on":
 				f.SetBool(true)
 				return nil
-			} else if value == "false" || value == "off" {
+			case value == "false" || value == "off":
 				f.SetBool(false)
 				return nil
-			} else {
+			default:
 				return fmt.Errorf("not a bool: %s", value)
 			}
 		case reflect.Int:

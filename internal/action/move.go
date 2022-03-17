@@ -12,7 +12,6 @@ import (
 // Move the content from one secret to another.
 func (s *Action) Move(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
-	force := c.Bool("force")
 
 	if c.Args().Len() != 2 {
 		return exit.Error(exit.Usage, nil, "Usage: %s mv old-path new-path", s.Name)
@@ -21,7 +20,7 @@ func (s *Action) Move(c *cli.Context) error {
 	from := c.Args().Get(0)
 	to := c.Args().Get(1)
 
-	if !force {
+	if !c.Bool("force") {
 		if s.Store.Exists(ctx, to) && !termio.AskForConfirmation(ctx, fmt.Sprintf("%s already exists. Overwrite it?", to)) {
 			return exit.Error(exit.Aborted, nil, "not overwriting your current secret")
 		}

@@ -112,8 +112,8 @@ func Invoke(ctx context.Context, editor string, content []byte) ([]byte, error) 
 	}
 
 	// enforce unix line endings in the password store.
-	nContent = bytes.Replace(nContent, []byte("\r\n"), []byte("\n"), -1)
-	nContent = bytes.Replace(nContent, []byte("\r"), []byte("\n"), -1)
+	nContent = bytes.ReplaceAll(nContent, []byte("\r\n"), []byte("\n"))
+	nContent = bytes.ReplaceAll(nContent, []byte("\r"), []byte("\n"))
 
 	return nContent, nil
 }

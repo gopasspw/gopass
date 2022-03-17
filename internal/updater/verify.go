@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/gopasspw/gopass/pkg/debug"
-
 	//lint:ignore SA1019 we'll try to migrate away later
 	"golang.org/x/crypto/openpgp"
 )

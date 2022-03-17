@@ -87,10 +87,7 @@ func Validate(password string, hash string) (bool, error) {
 
 	otherKey := argon2.IDKey([]byte(password), salt, params.Iterations, params.Memory, params.Parallelism, params.KeyLen)
 
-	keyLen := int32(len(key))
-	otherKeyLen := int32(len(otherKey))
-
-	if subtle.ConstantTimeEq(keyLen, otherKeyLen) == 0 {
+	if subtle.ConstantTimeEq(int32(len(key)), int32(len(otherKey))) == 0 {
 		return false, nil
 	}
 
