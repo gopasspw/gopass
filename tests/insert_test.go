@@ -226,5 +226,4 @@ Test / test.com`
 		assert.NoError(t, err)
 		assert.Equal(t, output, out)
 	})
-
 }

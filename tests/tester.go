@@ -49,7 +49,7 @@ func newTester(t *testing.T) *tester {
 	if err != nil {
 		t.Skipf("Failed to stat GOPASS_BINARY %s: %s", gopassBin, err)
 	}
-	if !strings.HasSuffix(gopassBin, ".exe") && fi.Mode()&0111 == 0 {
+	if !strings.HasSuffix(gopassBin, ".exe") && fi.Mode()&0o111 == 0 {
 		t.Fatalf("GOPASS_BINARY is not executeable")
 	}
 	t.Logf("Using gopass binary: %s", gopassBin)
@@ -76,9 +76,9 @@ func newTester(t *testing.T) *tester {
 	require.NoError(t, os.Setenv("GOPASS_HOMEDIR", td))
 
 	// write config
-	require.NoError(t, os.MkdirAll(filepath.Dir(ts.gopassConfig()), 0700))
+	require.NoError(t, os.MkdirAll(filepath.Dir(ts.gopassConfig()), 0o700))
 	// we need to set the root path to something else than the root directory otherwise the mounts will show as regular entries
-	if err := os.WriteFile(ts.gopassConfig(), []byte(gopassConfig+"\npath: "+ts.storeDir("root")+"\n"), 0600); err != nil {
+	if err := os.WriteFile(ts.gopassConfig(), []byte(gopassConfig+"\npath: "+ts.storeDir("root")+"\n"), 0o600); err != nil {
 		t.Fatalf("Failed to write gopass config to %s: %s", ts.gopassConfig(), err)
 	}
 
@@ -93,10 +93,10 @@ func newTester(t *testing.T) *tester {
 		buf, err := os.ReadFile(from)
 		require.NoError(t, err, "Failed to read file %s", from)
 
-		err = os.MkdirAll(filepath.Dir(to), 0700)
+		err = os.MkdirAll(filepath.Dir(to), 0o700)
 		require.NoError(t, err, "Failed to create dir for %s", to)
 
-		err = os.WriteFile(to, buf, 0600)
+		err = os.WriteFile(to, buf, 0o600)
 		require.NoError(t, err, "Failed to write file %s", to)
 	}
 

@@ -21,10 +21,9 @@ import (
 // different set of crypto and storage backends. Please note that it
 // will happily convert to the same set of backends if requested.
 func (s *Store) Convert(ctx context.Context, cryptoBe backend.CryptoBackend, storageBe backend.StorageBackend, move bool) error {
-
 	// create temp path
 	tmpPath := s.path + "-autoconvert"
-	if err := os.MkdirAll(tmpPath, 0700); err != nil {
+	if err := os.MkdirAll(tmpPath, 0o700); err != nil {
 		return err
 	}
 	debug.Log("create temporary store path for conversion: %s", tmpPath)

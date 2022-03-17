@@ -33,7 +33,7 @@ func TestDetectStorage(t *testing.T) {
 	})
 
 	fsDir := filepath.Join(td, "fs")
-	assert.NoError(t, os.MkdirAll(fsDir, 0700))
+	assert.NoError(t, os.MkdirAll(fsDir, 0o700))
 
 	t.Run("detect fs", func(t *testing.T) {
 		r, err := DetectStorage(ctx, fsDir)

@@ -186,11 +186,11 @@ func (c *Config) Save() error {
 	cfgLoc := configLocation()
 	cfgDir := filepath.Dir(cfgLoc)
 	if !fsutil.IsDir(cfgDir) {
-		if err := os.MkdirAll(cfgDir, 0700); err != nil {
+		if err := os.MkdirAll(cfgDir, 0o700); err != nil {
 			return fmt.Errorf("failed to create dir %q: %w", cfgDir, err)
 		}
 	}
-	if err := os.WriteFile(cfgLoc, buf, 0600); err != nil {
+	if err := os.WriteFile(cfgLoc, buf, 0o600); err != nil {
 		return fmt.Errorf("failed to write config file to %q: %w", cfgLoc, err)
 	}
 	debug.Log("Saved config to %s: %+v\n", cfgLoc, c)

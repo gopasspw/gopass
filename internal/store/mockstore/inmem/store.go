@@ -190,7 +190,8 @@ func (m *InMem) Revisions(context.Context, string) ([]backend.Revision, error) {
 		{
 			Hash: "latest",
 			Date: time.Now(),
-		}}, nil
+		},
+	}, nil
 }
 
 // GetRevision is not implemented.

@@ -34,11 +34,11 @@ require (
 	github.com/stretchr/testify v1.7.1
 	github.com/twpayne/go-pinentry v0.2.0
 	github.com/urfave/cli/v2 v2.4.0
-	golang.org/x/crypto v0.0.0-20220312131142-6068a2e6cfdc
-	golang.org/x/exp v0.0.0-20220312040426-20fd27f61765
+	golang.org/x/crypto v0.0.0-20220315160706-3147a52a75dd
+	golang.org/x/exp v0.0.0-20220317015231-48e79f11773a
 	golang.org/x/net v0.0.0-20220225172249-27dd8689420f
 	golang.org/x/oauth2 v0.0.0-20220309155454-6242fa91716a
-	golang.org/x/sys v0.0.0-20220310020820-b874c991c1a5
+	golang.org/x/sys v0.0.0-20220317061510-51cd9980dadf
 	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 )

@@ -28,7 +28,7 @@ func TestBinaryCopy(t *testing.T) {
 
 	fn := filepath.Join(ts.tempDir, "copy")
 	dat := []byte("foobar")
-	require.NoError(t, os.WriteFile(fn, dat, 0644))
+	require.NoError(t, os.WriteFile(fn, dat, 0o644))
 
 	t.Run("copy file to store", func(t *testing.T) {
 		_, err := ts.run("fscopy " + fn + " foo/bar")
@@ -71,7 +71,7 @@ func TestBinaryMove(t *testing.T) {
 
 	fn := filepath.Join(ts.tempDir, "move")
 	dat := []byte("foobar")
-	require.NoError(t, os.WriteFile(fn, dat, 0644))
+	require.NoError(t, os.WriteFile(fn, dat, 0o644))
 
 	t.Run("move fs to store", func(t *testing.T) {
 		_, err := ts.run("fsmove " + fn + " foo/bar")
@@ -115,7 +115,7 @@ func TestBinaryShasum(t *testing.T) {
 	t.Run("populate store", func(t *testing.T) {
 		fn := filepath.Join(ts.tempDir, "shasum")
 		dat := []byte("foobar")
-		require.NoError(t, os.WriteFile(fn, dat, 0644))
+		require.NoError(t, os.WriteFile(fn, dat, 0o644))
 
 		_, err := ts.run("fsmove " + fn + " foo/bar")
 		assert.NoError(t, err)

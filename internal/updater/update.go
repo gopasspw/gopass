@@ -13,10 +13,8 @@ import (
 	"github.com/gopasspw/gopass/pkg/debug"
 )
 
-var (
-	// UpdateMoveAfterQuit is exported for testing.
-	UpdateMoveAfterQuit = true
-)
+// UpdateMoveAfterQuit is exported for testing.
+var UpdateMoveAfterQuit = true
 
 // Update will start th interactive update assistant.
 func Update(ctx context.Context, currentVersion semver.Version) error {

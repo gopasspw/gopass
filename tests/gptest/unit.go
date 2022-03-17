@@ -67,7 +67,7 @@ func NewUnitTester(t *testing.T) *Unit {
 		"PAGER":                     "",
 	}
 	assert.NoError(t, setupEnv(u.env))
-	assert.NoError(t, os.Mkdir(u.GPGHome(), 0700))
+	assert.NoError(t, os.Mkdir(u.GPGHome(), 0o700))
 	assert.NoError(t, u.initConfig())
 	assert.NoError(t, u.InitStore(""))
 
@@ -78,7 +78,7 @@ func (u Unit) initConfig() error {
 	return os.WriteFile(
 		u.GPConfig(),
 		[]byte(gopassConfig+"\npath: "+u.StoreDir("")+"\n"),
-		0600,
+		0o600,
 	)
 }
 
@@ -97,21 +97,21 @@ func (u Unit) recipients() []byte {
 // InitStore initializes the test store.
 func (u Unit) InitStore(name string) error {
 	dir := u.StoreDir(name)
-	if err := os.MkdirAll(dir, 0700); err != nil {
+	if err := os.MkdirAll(dir, 0o700); err != nil {
 		return err
 	}
 	fn := filepath.Join(dir, ".plain-id") // plain.IDFile
 	_ = os.Remove(fn)
-	if err := os.WriteFile(fn, u.recipients(), 0600); err != nil {
+	if err := os.WriteFile(fn, u.recipients(), 0o600); err != nil {
 		return err
 	}
 	for _, p := range AllPathsToSlash(u.Entries) {
 		fn := filepath.Join(dir, p+".txt") // plain.Ext
 		_ = os.Remove(fn)
-		if err := os.MkdirAll(filepath.Dir(fn), 0700); err != nil {
+		if err := os.MkdirAll(filepath.Dir(fn), 0o700); err != nil {
 			return err
 		}
-		if err := os.WriteFile(fn, []byte("secret\nsecond\nthird"), 0600); err != nil {
+		if err := os.WriteFile(fn, []byte("secret\nsecond\nthird"), 0o600); err != nil {
 			return err
 		}
 	}

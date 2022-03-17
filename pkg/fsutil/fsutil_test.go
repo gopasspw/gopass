@@ -65,7 +65,7 @@ func TestIsDir(t *testing.T) {
 	}()
 
 	fn := filepath.Join(tempdir, "foo")
-	assert.NoError(t, os.WriteFile(fn, []byte("bar"), 0644))
+	assert.NoError(t, os.WriteFile(fn, []byte("bar"), 0o644))
 	assert.Equal(t, true, IsDir(tempdir))
 	assert.Equal(t, false, IsDir(fn))
 	assert.Equal(t, false, IsDir(filepath.Join(tempdir, "non-existing")))
@@ -79,7 +79,7 @@ func TestIsFile(t *testing.T) {
 	}()
 
 	fn := filepath.Join(tempdir, "foo")
-	assert.NoError(t, os.WriteFile(fn, []byte("bar"), 0644))
+	assert.NoError(t, os.WriteFile(fn, []byte("bar"), 0o644))
 	assert.Equal(t, false, IsFile(tempdir))
 	assert.Equal(t, true, IsFile(fn))
 }
@@ -93,7 +93,7 @@ func TestShred(t *testing.T) {
 
 	fn := filepath.Join(tempdir, "file")
 	// test successful shread
-	fh, err := os.OpenFile(fn, os.O_WRONLY|os.O_CREATE, 0644)
+	fh, err := os.OpenFile(fn, os.O_WRONLY|os.O_CREATE, 0o644)
 	assert.NoError(t, err)
 
 	buf := make([]byte, 1024)
@@ -106,7 +106,7 @@ func TestShred(t *testing.T) {
 	assert.Equal(t, false, IsFile(fn))
 
 	// test failed
-	fh, err = os.OpenFile(fn, os.O_WRONLY|os.O_CREATE, 0400)
+	fh, err = os.OpenFile(fn, os.O_WRONLY|os.O_CREATE, 0o400)
 	assert.NoError(t, err)
 
 	buf = make([]byte, 1024)
@@ -127,14 +127,14 @@ func TestIsEmptyDir(t *testing.T) {
 	}()
 
 	fn := filepath.Join(tempdir, "foo", "bar", "baz", "zab")
-	require.NoError(t, os.MkdirAll(fn, 0755))
+	require.NoError(t, os.MkdirAll(fn, 0o755))
 
 	isEmpty, err := IsEmptyDir(tempdir)
 	assert.NoError(t, err)
 	assert.Equal(t, true, isEmpty)
 
 	fn = filepath.Join(fn, ".config.yml")
-	require.NoError(t, os.WriteFile(fn, []byte("foo"), 0644))
+	require.NoError(t, os.WriteFile(fn, []byte("foo"), 0o644))
 
 	isEmpty, err = IsEmptyDir(tempdir)
 	require.NoError(t, err)

@@ -84,7 +84,7 @@ func TestIsUpdateable(t *testing.T) {
 		{
 			name: "no write access to file",
 			pre: func() error {
-				return os.WriteFile(filepath.Join(td, "gopass"), []byte("foobar"), 0555)
+				return os.WriteFile(filepath.Join(td, "gopass"), []byte("foobar"), 0o555)
 			},
 			exec: func(context.Context) (string, error) {
 				return filepath.Join(td, "gopass"), nil
@@ -94,7 +94,7 @@ func TestIsUpdateable(t *testing.T) {
 			name: "no write access to dir",
 			pre: func() error {
 				dir := filepath.Join(td, "bin")
-				return os.Mkdir(dir, 0555)
+				return os.Mkdir(dir, 0o555)
 			},
 			exec: func(context.Context) (string, error) {
 				return filepath.Join(td, "bin"), nil

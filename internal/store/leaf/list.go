@@ -7,10 +7,8 @@ import (
 	"github.com/gopasspw/gopass/pkg/debug"
 )
 
-var (
-	// Sep is the separator used in lists to separate folders from entries.
-	Sep = "/"
-)
+// Sep is the separator used in lists to separate folders from entries.
+var Sep = "/"
 
 // List will list all entries in this store.
 func (s *Store) List(ctx context.Context, prefix string) ([]string, error) {

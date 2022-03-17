@@ -116,7 +116,7 @@ func TestBinaryCopy(t *testing.T) {
 		defer buf.Reset()
 
 		infile := filepath.Join(u.Dir, "input.txt")
-		assert.NoError(t, os.WriteFile(infile, []byte("0xDEADBEEF\n"), 0644))
+		assert.NoError(t, os.WriteFile(infile, []byte("0xDEADBEEF\n"), 0o644))
 		assert.NoError(t, act.binaryCopy(ctx, gptest.CliCtx(ctx, t), infile, "txt", true))
 	})
 
@@ -216,5 +216,5 @@ func writeBinfile(t *testing.T, fn string) {
 	n, err := rand.Read(buf)
 	assert.NoError(t, err)
 	assert.Equal(t, size, n)
-	assert.NoError(t, os.WriteFile(fn, buf, 0644))
+	assert.NoError(t, os.WriteFile(fn, buf, 0o644))
 }

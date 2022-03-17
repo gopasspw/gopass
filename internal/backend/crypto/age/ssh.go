@@ -12,9 +12,7 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-var (
-	sshCache map[string]age.Identity
-)
+var sshCache map[string]age.Identity
 
 // getSSHIdentities returns all SSH identities available for the current user.
 func (a *Age) getSSHIdentities(ctx context.Context) (map[string]age.Identity, error) {
@@ -38,10 +36,10 @@ func (a *Age) getSSHIdentities(ctx context.Context) (map[string]age.Identity, er
 		}
 		recp, id, err := a.parseSSHIdentity(ctx, fn)
 		if err != nil {
-			//debug.Log("Failed to parse SSH identity %s: %s", fn, err)
+			// debug.Log("Failed to parse SSH identity %s: %s", fn, err)
 			continue
 		}
-		//debug.Log("parsed SSH identity %s from %s", recp, fn)
+		// debug.Log("parsed SSH identity %s from %s", recp, fn)
 		ids[recp] = id
 	}
 	sshCache = ids

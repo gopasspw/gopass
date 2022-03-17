@@ -43,10 +43,8 @@ type secretGetter interface {
 
 type validator func(string, gopass.Secret) error
 
-var (
-	// DefaultExpiration is the default expiration time for secrets.
-	DefaultExpiration = time.Hour * 24 * 365
-)
+// DefaultExpiration is the default expiration time for secrets.
+var DefaultExpiration = time.Hour * 24 * 365
 
 // Batch runs a password strength audit on multiple secrets. Expiration is in days.
 func Batch(ctx context.Context, secrets []string, secStore secretGetter, expiration int) error {

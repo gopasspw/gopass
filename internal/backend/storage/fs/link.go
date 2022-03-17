@@ -58,7 +58,7 @@ func (s *Store) Link(ctx context.Context, from, to string) error {
 	}()
 
 	toDir := filepath.Dir(toPath)
-	if err := os.MkdirAll(toDir, 0700); err != nil {
+	if err := os.MkdirAll(toDir, 0o700); err != nil {
 		return fmt.Errorf("failed to create destination dir %q: %w", toDir, err)
 	}
 

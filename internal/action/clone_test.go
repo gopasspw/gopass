@@ -22,13 +22,13 @@ import (
 // aGitRepo creates and initializes a small git repo.
 func aGitRepo(ctx context.Context, u *gptest.Unit, t *testing.T, name string) string {
 	gd := filepath.Join(u.Dir, name)
-	assert.NoError(t, os.MkdirAll(gd, 0700))
+	assert.NoError(t, os.MkdirAll(gd, 0o700))
 
 	_, err := git.New(gd)
 	assert.Error(t, err)
 
 	idf := filepath.Join(gd, ".gpg-id")
-	assert.NoError(t, os.WriteFile(idf, []byte("0xDEADBEEF"), 0600))
+	assert.NoError(t, os.WriteFile(idf, []byte("0xDEADBEEF"), 0o600))
 
 	gr, err := git.Init(ctx, gd, "Nobody", "foo.bar@example.org")
 	assert.NoError(t, err)

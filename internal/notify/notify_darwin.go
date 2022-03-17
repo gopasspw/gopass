@@ -16,8 +16,10 @@ const (
 	osascript        string = "osascript"
 )
 
-var execCommand = exec.Command
-var execLookPath = exec.LookPath
+var (
+	execCommand  = exec.Command
+	execLookPath = exec.LookPath
+)
 
 // Notify displays a desktop notification using osascript
 func Notify(ctx context.Context, subj, msg string) error {

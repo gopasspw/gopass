@@ -11,9 +11,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/fsutil"
 )
 
-var (
-	customAliases = map[string][]string{}
-)
+var customAliases = map[string][]string{}
 
 // LookupAliases looks up known aliases for the given domain.
 func LookupAliases(domain string) []string {
@@ -62,10 +60,10 @@ func loadCustomAliases() error {
 
 func saveCustomAliases() error {
 	fn := filename()
-	if err := os.MkdirAll(filepath.Dir(fn), 0700); err != nil {
+	if err := os.MkdirAll(filepath.Dir(fn), 0o700); err != nil {
 		return err
 	}
-	fh, err := os.OpenFile(fn, os.O_WRONLY|os.O_CREATE, 0600)
+	fh, err := os.OpenFile(fn, os.O_WRONLY|os.O_CREATE, 0o600)
 	if err != nil {
 		return err
 	}

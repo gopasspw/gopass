@@ -10,10 +10,8 @@ const (
 	cost = 12
 )
 
-var (
-	// Prefix is set to be compatible with Dovecot. Can be set to an empty string.
-	Prefix = "{BLF-CRYPT}"
-)
+// Prefix is set to be compatible with Dovecot. Can be set to an empty string.
+var Prefix = "{BLF-CRYPT}"
 
 // Generate generates a new Bcrypt hash with recommended values for it's
 // cost parameter.

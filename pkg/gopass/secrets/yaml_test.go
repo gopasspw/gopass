@@ -195,6 +195,7 @@ url: http://www.test.com/`
 	// read back key
 	assert.Equal(t, []string{"password", "url", "username"}, s.Keys())
 }
+
 func TestYAMLValues(t *testing.T) {
 	s := &YAML{
 		data: map[string]any{

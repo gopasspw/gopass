@@ -74,14 +74,14 @@ func createStore(dir string, recipients, entries []string) ([]string, []string, 
 	sort.Strings(entries)
 	for _, file := range entries {
 		filename := filepath.Join(dir, file+"."+plain.Ext)
-		if err := os.MkdirAll(filepath.Dir(filename), 0700); err != nil {
+		if err := os.MkdirAll(filepath.Dir(filename), 0o700); err != nil {
 			return recipients, entries, err
 		}
-		if err := os.WriteFile(filename, []byte{}, 0644); err != nil {
+		if err := os.WriteFile(filename, []byte{}, 0o644); err != nil {
 			return recipients, entries, err
 		}
 	}
-	err := os.WriteFile(filepath.Join(dir, plain.IDFile), []byte(strings.Join(recipients, "\n")), 0600)
+	err := os.WriteFile(filepath.Join(dir, plain.IDFile), []byte(strings.Join(recipients, "\n")), 0o600)
 	return recipients, entries, err
 }
 
@@ -121,7 +121,7 @@ func TestIdFile(t *testing.T) {
 	sec.Set("foo", "bar")
 	sec.WriteString("bar")
 	require.NoError(t, s.Set(ctx, secName, sec))
-	require.NoError(t, os.WriteFile(filepath.Join(tempdir, "sub", "a", plain.IDFile), []byte("foobar"), 0600))
+	require.NoError(t, os.WriteFile(filepath.Join(tempdir, "sub", "a", plain.IDFile), []byte("foobar"), 0o600))
 	assert.Equal(t, filepath.Join("a", plain.IDFile), s.idFile(ctx, secName))
 	assert.True(t, s.Exists(ctx, secName))
 
@@ -131,7 +131,7 @@ func TestIdFile(t *testing.T) {
 		secName += "/a"
 	}
 	require.NoError(t, s.Set(ctx, secName, sec))
-	require.NoError(t, os.WriteFile(filepath.Join(tempdir, "sub", "a", ".gpg-id"), []byte("foobar"), 0600))
+	require.NoError(t, os.WriteFile(filepath.Join(tempdir, "sub", "a", ".gpg-id"), []byte("foobar"), 0o600))
 	assert.Equal(t, plain.IDFile, s.idFile(ctx, secName))
 }
 

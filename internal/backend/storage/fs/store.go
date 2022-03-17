@@ -49,12 +49,12 @@ func (s *Store) Set(ctx context.Context, name string, value []byte) error {
 	filename := filepath.Join(s.path, filepath.Clean(name))
 	filedir := filepath.Dir(filename)
 	if !fsutil.IsDir(filedir) {
-		if err := os.MkdirAll(filedir, 0700); err != nil {
+		if err := os.MkdirAll(filedir, 0o700); err != nil {
 			return err
 		}
 	}
 	debug.Log("Writing %s to %s", name, filepath.Join(s.path, name))
-	return os.WriteFile(filepath.Join(s.path, name), value, 0644)
+	return os.WriteFile(filepath.Join(s.path, name), value, 0o644)
 }
 
 // Delete removes the named entity.

@@ -17,9 +17,7 @@ const (
 	fps = 25
 )
 
-var (
-	now = time.Now
-)
+var now = time.Now
 
 // ProgressBar is a gopass progress bar.
 type ProgressBar struct {
