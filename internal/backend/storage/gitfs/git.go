@@ -154,7 +154,7 @@ func (g *Git) Cmd(ctx context.Context, name string, args ...string) error {
 
 // Name returns git.
 func (g *Git) Name() string {
-	return "git"
+	return name
 }
 
 // Version returns the git version as major, minor and patch level.

@@ -2,6 +2,7 @@ package root
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/pkg/debug"
@@ -12,13 +13,13 @@ import (
 func (r *Store) Convert(ctx context.Context, name string, cryptoBe backend.CryptoBackend, storageBe backend.StorageBackend, move bool) error {
 	sub, err := r.GetSubStore(name)
 	if err != nil {
-		return err
+		return fmt.Errorf("mount not found: %w", err)
 	}
 
 	debug.Log("converting %s to crypto: %s, rcs: %s, storage: %s", name, cryptoBe, storageBe)
 
 	if err := sub.Convert(ctx, cryptoBe, storageBe, move); err != nil {
-		return err
+		return fmt.Errorf("failed to convert %q: %w", name, err)
 	}
 
 	if name == "" {

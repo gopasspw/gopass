@@ -178,5 +178,8 @@ func compareStringSlices(want, have []string) ([]string, []string) {
 		}
 	}
 
+	sort.Strings(missing)
+	sort.Strings(extra)
+
 	return missing, extra
 }
