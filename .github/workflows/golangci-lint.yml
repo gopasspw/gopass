@@ -21,3 +21,4 @@ jobs:
         with:
           version: latest # we have a list of linters in our .golangci.yml config file
           only-new-issues: true
+          skip-cache: true
