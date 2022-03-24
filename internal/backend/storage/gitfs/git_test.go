@@ -58,7 +58,7 @@ func TestGit(t *testing.T) { //nolint:paralleltest
 		git, err := New(gitdir)
 		require.NoError(t, err)
 		require.NotNil(t, git)
-		assert.Equal(t, "git", git.Name())
+		assert.Equal(t, "gitfs", git.Name())
 		assert.NoError(t, git.AddRemote(ctx, "foo", "file:///tmp/foo"))
 		assert.NoError(t, git.RemoveRemote(ctx, "foo"))
 		assert.Error(t, git.RemoveRemote(ctx, "foo"))
@@ -68,7 +68,7 @@ func TestGit(t *testing.T) { //nolint:paralleltest
 		git, err := Clone(ctx, gitdir, gitdir2, "", "")
 		require.NoError(t, err)
 		require.NotNil(t, git)
-		assert.Equal(t, "git", git.Name())
+		assert.Equal(t, "gitfs", git.Name())
 
 		tf := filepath.Join(gitdir2, "some-other-file")
 		require.NoError(t, os.WriteFile(tf, []byte("foobar"), 0o644))

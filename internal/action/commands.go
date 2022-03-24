@@ -175,9 +175,8 @@ func (s *Action) GetCommands() []*cli.Command {
 			Hidden:      true,
 			Flags: []cli.Flag{
 				&cli.StringFlag{
-					Name:     "store",
-					Usage:    "Specify which store to convert",
-					Required: true,
+					Name:  "store",
+					Usage: "Specify which store to convert",
 				},
 				&cli.BoolFlag{
 					Name:  "move",

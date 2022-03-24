@@ -73,6 +73,24 @@ func (s *Action) Setup(c *cli.Context) error {
 	}
 	debug.Log("Crypto Backend initialized as: %s", crypto.Name())
 
+	if err := s.initCheckPrivateKeys(ctx, crypto); err != nil {
+		return fmt.Errorf("failed to check private keys: %w", err)
+	}
+
+	// if a git remote and a team name are given attempt unattended team setup.
+	if remote != "" && team != "" {
+		if create {
+			return s.initCreateTeam(ctx, team, remote)
+		}
+
+		return s.initJoinTeam(ctx, team, remote)
+	}
+
+	// assume local setup by default, remotes can be added easily later.
+	return s.initLocal(ctx)
+}
+
+func (s *Action) initCheckPrivateKeys(ctx context.Context, crypto backend.Crypto) error {
 	// check for existing GPG/Age keypairs (private/secret keys). We need at least
 	// one useable key pair. If none exists try to create one.
 	if !s.initHasUseablePrivateKeys(ctx, crypto) {
@@ -88,17 +106,7 @@ func (s *Action) Setup(c *cli.Context) error {
 
 	debug.Log("We have useable private keys")
 
-	// if a git remote and a team name are given attempt unattended team setup.
-	if remote != "" && team != "" {
-		if create {
-			return s.initCreateTeam(ctx, team, remote)
-		}
-
-		return s.initJoinTeam(ctx, team, remote)
-	}
-
-	// assume local setup by default, remotes can be added easily later.
-	return s.initLocal(ctx)
+	return nil
 }
 
 func (s *Action) initGenerateIdentity(ctx context.Context, crypto backend.Crypto, name, email string) error {
