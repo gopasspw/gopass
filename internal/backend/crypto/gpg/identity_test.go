@@ -8,6 +8,8 @@ import (
 )
 
 func TestIdentity(t *testing.T) {
+	t.Parallel()
+
 	id := Identity{
 		Name:           "John Doe",
 		Comment:        "johnny",

@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestPwStoreDir(t *testing.T) {
+func TestPwStoreDir(t *testing.T) { //nolint:paralleltest
 	gph := filepath.Join(os.TempDir(), "home")
 	require.NoError(t, os.Setenv("GOPASS_HOMEDIR", gph))
 
@@ -39,7 +39,7 @@ func TestPwStoreDir(t *testing.T) {
 	assert.NoError(t, os.Unsetenv("XDG_DATA_HOME"))
 }
 
-func TestConfigLocation(t *testing.T) {
+func TestConfigLocation(t *testing.T) { //nolint:paralleltest
 	evs := map[string]struct {
 		ev  string
 		loc string
@@ -60,7 +60,7 @@ func TestConfigLocation(t *testing.T) {
 	}
 }
 
-func TestConfigLocations(t *testing.T) {
+func TestConfigLocations(t *testing.T) { //nolint:paralleltest
 	gpcfg := filepath.Join(os.TempDir(), "config", ".gopass.yml")
 	xdghome := filepath.Join(os.TempDir(), "xdg")
 	gphome := filepath.Join(os.TempDir(), "home")

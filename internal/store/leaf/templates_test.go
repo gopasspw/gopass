@@ -12,10 +12,13 @@ import (
 )
 
 func TestTemplates(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	tempdir, err := os.MkdirTemp("", "gopass-")
 	require.NoError(t, err)
+
 	defer func() {
 		_ = os.RemoveAll(tempdir)
 	}()

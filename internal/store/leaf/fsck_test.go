@@ -16,6 +16,8 @@ import (
 )
 
 func TestFsck(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 	ctx = ctxutil.WithExportKeys(ctx, false)
 
@@ -51,10 +53,37 @@ func TestFsck(t *testing.T) {
 }
 
 func TestCompareStringSlices(t *testing.T) {
-	want := []string{"foo", "bar"}
-	have := []string{"baz", "bar"}
+	t.Parallel()
 
-	missing, extra := compareStringSlices(want, have)
-	assert.Equal(t, []string{"foo"}, missing)
-	assert.Equal(t, []string{"baz"}, extra)
+	for _, tc := range []struct {
+		name    string
+		from    []string
+		to      []string
+		missing []string
+		extra   []string
+	}{
+		{
+			name:    "Add foo, remove baz",
+			from:    []string{"foo", "bar"},
+			to:      []string{"baz", "bar"},
+			missing: []string{"foo"},
+			extra:   []string{"baz"},
+		},
+		{
+			name:    "Add foo, bar, baz, zab",
+			from:    []string{"foo", "bar"},
+			to:      []string{"foo", "bar", "bar", "baz", "zab"},
+			missing: []string{},
+			extra:   []string{"baz", "zab"},
+		},
+	} {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			missing, extra := compareStringSlices(tc.from, tc.to)
+			assert.Equal(t, tc.missing, missing)
+			assert.Equal(t, tc.extra, extra)
+		})
+	}
 }

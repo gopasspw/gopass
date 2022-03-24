@@ -8,6 +8,8 @@ import (
 )
 
 func TestParseColonIdentity(t *testing.T) {
+	t.Parallel()
+
 	for _, tc := range []struct {
 		in      string
 		name    string
@@ -39,9 +41,14 @@ func TestParseColonIdentity(t *testing.T) {
 			email:   "",
 		},
 	} {
-		gi := parseColonIdentity(strings.Split(tc.in, ":"))
-		assert.Equal(t, tc.name, gi.Name)
-		assert.Equal(t, tc.comment, gi.Comment)
-		assert.Equal(t, tc.email, gi.Email)
+		tc := tc
+		t.Run(tc.in, func(t *testing.T) {
+			t.Parallel()
+
+			gi := parseColonIdentity(strings.Split(tc.in, ":"))
+			assert.Equal(t, tc.name, gi.Name)
+			assert.Equal(t, tc.comment, gi.Comment)
+			assert.Equal(t, tc.email, gi.Email)
+		})
 	}
 }

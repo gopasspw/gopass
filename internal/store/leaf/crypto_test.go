@@ -12,6 +12,8 @@ import (
 )
 
 func TestGPG(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	tempdir, err := os.MkdirTemp("", "gopass-")

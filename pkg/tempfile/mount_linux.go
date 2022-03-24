@@ -23,11 +23,11 @@ func tempdirBase() string {
 			}
 		}
 	}
+
 	return ""
 }
 
 func (t *File) mount(context.Context) error {
-	_ = t.dev // to trick megacheck
 	return nil
 }
 

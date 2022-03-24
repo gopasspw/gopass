@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestRecipients(t *testing.T) {
+func TestRecipients(t *testing.T) { //nolint:paralleltest
 	u := gptest.NewUnitTester(t)
 	defer u.Remove()
 
@@ -37,7 +37,7 @@ func TestRecipients(t *testing.T) {
 		stdout = os.Stdout
 	}()
 
-	t.Run("print recipients tree", func(t *testing.T) {
+	t.Run("print recipients tree", func(t *testing.T) { //nolint:paralleltest
 		defer buf.Reset()
 		assert.NoError(t, act.RecipientsPrint(gptest.CliCtx(ctx, t)))
 
@@ -49,34 +49,34 @@ func TestRecipients(t *testing.T) {
 		assert.Contains(t, buf.String(), want)
 	})
 
-	t.Run("complete recipients", func(t *testing.T) {
+	t.Run("complete recipients", func(t *testing.T) { //nolint:paralleltest
 		defer buf.Reset()
 		act.RecipientsComplete(gptest.CliCtx(ctx, t))
 		want := "0xDEADBEEF\n"
 		assert.Equal(t, want, buf.String())
 	})
 
-	t.Run("add recipients w/o args", func(t *testing.T) {
+	t.Run("add recipients w/o args", func(t *testing.T) { //nolint:paralleltest
 		defer buf.Reset()
 		assert.Error(t, act.RecipientsAdd(gptest.CliCtx(ctx, t)))
 	})
 
-	t.Run("remove recipients w/o args", func(t *testing.T) {
+	t.Run("remove recipients w/o args", func(t *testing.T) { //nolint:paralleltest
 		defer buf.Reset()
 		assert.Error(t, act.RecipientsRemove(gptest.CliCtx(ctx, t)))
 	})
 
-	t.Run("add recipient 0xFEEDBEEF", func(t *testing.T) {
+	t.Run("add recipient 0xFEEDBEEF", func(t *testing.T) { //nolint:paralleltest
 		defer buf.Reset()
 		assert.NoError(t, act.RecipientsAdd(gptest.CliCtx(ctx, t, "0xFEEDBEEF")))
 	})
 
-	t.Run("add recipient 0xBEEFFEED", func(t *testing.T) {
+	t.Run("add recipient 0xBEEFFEED", func(t *testing.T) { //nolint:paralleltest
 		defer buf.Reset()
 		assert.NoError(t, act.RecipientsAdd(gptest.CliCtx(ctx, t, "0xBEEFFEED")))
 	})
 
-	t.Run("remove recipient 0xDEADBEEF", func(t *testing.T) {
+	t.Run("remove recipient 0xDEADBEEF", func(t *testing.T) { //nolint:paralleltest
 		defer buf.Reset()
 		assert.NoError(t, act.RecipientsRemove(gptest.CliCtx(ctx, t, "0xDEADBEEF")))
 	})

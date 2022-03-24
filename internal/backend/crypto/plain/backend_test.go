@@ -12,6 +12,8 @@ import (
 )
 
 func TestPlain(t *testing.T) {
+	t.Parallel()
+
 	td, err := os.MkdirTemp("", "gopass-")
 	require.NoError(t, err)
 	defer func() {
@@ -74,6 +76,8 @@ func TestPlain(t *testing.T) {
 }
 
 func TestLoader(t *testing.T) {
+	t.Parallel()
+
 	l := &loader{}
 	b, err := l.New(context.Background())
 	assert.NoError(t, err)

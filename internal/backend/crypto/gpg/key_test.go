@@ -13,26 +13,32 @@ func genTestKey(args ...string) Key {
 	if len(args) > 0 && args[0] != "" {
 		first = args[0]
 	}
+
 	nick := "johnny"
 	if len(args) > 1 && args[1] != "" {
 		nick = args[1]
 	}
+
 	last := "Doe"
 	if len(args) > 2 && args[2] != "" {
 		last = args[2]
 	}
+
 	email := "john.doe@example.org"
 	if len(args) > 3 && args[3] != "" {
 		email = args[3]
 	}
+
 	fp := "25FF1614B8F87B52FFFF99B962AF4031C82E0039"
 	if len(args) > 4 && args[4] != "" {
 		fp = args[4]
 	}
+
 	validity := "u"
 	if len(args) > 5 && args[5] != "" {
 		validity = args[5]
 	}
+
 	trust := "ultimate"
 	if len(args) > 6 && args[6] != "" {
 		trust = args[6]
@@ -40,6 +46,7 @@ func genTestKey(args ...string) Key {
 
 	creation := time.Date(2018, 1, 1, 1, 1, 1, 0, time.UTC)
 	expiration := time.Date(2218, 1, 1, 1, 1, 1, 0, time.UTC)
+
 	return Key{
 		KeyType:        "sec",
 		KeyLength:      2048,
@@ -68,6 +75,8 @@ func genTestKey(args ...string) Key {
 }
 
 func TestKey(t *testing.T) {
+	t.Parallel()
+
 	k := Key{
 		Identities: map[string]Identity{},
 	}
@@ -81,6 +90,8 @@ func TestKey(t *testing.T) {
 }
 
 func TestIdentitySort(t *testing.T) {
+	t.Parallel()
+
 	creation := time.Date(2017, 1, 1, 1, 1, 1, 0, time.UTC)
 	expiration := time.Date(2018, 1, 1, 1, 1, 1, 0, time.UTC)
 
@@ -96,6 +107,8 @@ func TestIdentitySort(t *testing.T) {
 }
 
 func TestUseability(t *testing.T) {
+	t.Parallel()
+
 	// invalid
 	for _, k := range []Key{
 		{},

@@ -2,6 +2,7 @@ package action
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"path"
 	"strconv"
@@ -26,24 +27,31 @@ func showParseArgs(c *cli.Context) context.Context {
 	if c.IsSet("clip") {
 		ctx = WithOnlyClip(ctx, c.Bool("clip"))
 	}
+
 	if c.IsSet("unsafe") {
 		ctx = ctxutil.WithForce(ctx, c.Bool("unsafe"))
 	}
+
 	if c.IsSet("qr") {
 		ctx = WithPrintQR(ctx, c.Bool("qr"))
 	}
+
 	if c.IsSet("password") {
 		ctx = WithPasswordOnly(ctx, c.Bool("password"))
 	}
+
 	if c.IsSet("revision") {
 		ctx = WithRevision(ctx, c.String("revision"))
 	}
+
 	if c.IsSet("alsoclip") {
 		ctx = WithAlsoClip(ctx, c.Bool("alsoclip"))
 	}
+
 	if c.IsSet("noparsing") {
 		ctx = ctxutil.WithShowParsing(ctx, !c.Bool("noparsing"))
 	}
+
 	if c.IsSet("chars") {
 		iv := []int{}
 		for _, v := range strings.Split(c.String("chars"), ",") {
@@ -60,6 +68,7 @@ func showParseArgs(c *cli.Context) context.Context {
 		ctx = WithPrintChars(ctx, iv)
 	}
 	ctx = WithClip(ctx, IsOnlyClip(ctx) || IsAlsoClip(ctx))
+
 	return ctx
 }
 
@@ -77,6 +86,7 @@ func (s *Action) Show(c *cli.Context) error {
 	if err := s.show(ctx, c, name, true); err != nil {
 		return exit.Error(exit.Decrypt, err, "%s", err)
 	}
+
 	return nil
 }
 
@@ -89,6 +99,7 @@ func (s *Action) show(ctx context.Context, c *cli.Context, name string, recurse 
 	if s.Store.IsDir(ctx, name) && !s.Store.Exists(ctx, name) {
 		return s.List(c)
 	}
+
 	if s.Store.IsDir(ctx, name) && ctxutil.IsTerminal(ctx) {
 		out.Warningf(ctx, "%s is a secret and a folder. Use 'gopass show %s' to display the secret and 'gopass list %s' to show the content of the folder", name, name, name)
 	}
@@ -140,11 +151,13 @@ func (s *Action) parseRevision(ctx context.Context, name, revision string) (stri
 
 	if len(revs) < offset {
 		debug.Log("Not enough revisions (%d)", len(revs))
+
 		return revStr, nil
 	}
 
 	revision = revs[len(revs)-offset].Hash
 	debug.Log("Found %s for offset %d", revision, offset)
+
 	return revision, nil
 }
 
@@ -159,10 +172,12 @@ func (s *Action) showHandleOutput(ctx context.Context, name string, sec gopass.S
 		for _, c := range chars {
 			if c > len(pw) || c-1 < 0 {
 				debug.Log("Invalid char: %d", c)
+
 				continue
 			}
 			out.Printf(ctx, "%d: %s", c, out.Secret(pw[c-1]))
 		}
+
 		return nil
 	}
 
@@ -170,6 +185,7 @@ func (s *Action) showHandleOutput(ctx context.Context, name string, sec gopass.S
 		if ctxutil.IsShowSafeContent(ctx) && !ctxutil.IsForce(ctx) {
 			out.Warning(ctx, "safecontent=true. Use -f to display password, if any")
 		}
+
 		return exit.Error(exit.NotFound, store.ErrEmptySecret, store.ErrEmptySecret.Error())
 	}
 
@@ -215,6 +231,7 @@ func (s *Action) showGetContent(ctx context.Context, sec gopass.Secret) (string,
 			return "", "", exit.Error(exit.NotFound, store.ErrNoKey, store.ErrNoKey.Error())
 		}
 		val := strings.Join(values, "\n")
+
 		return val, val, nil
 	} else if HasKey(ctx) {
 		out.Warning(ctx, "Parsing is disabled but a key was provided.")
@@ -233,6 +250,7 @@ func (s *Action) showGetContent(ctx context.Context, sec gopass.Secret) (string,
 		if pw == "" && fullBody != "" {
 			return "", "", exit.Error(exit.NotFound, store.ErrNoPassword, store.ErrNoPassword.Error())
 		}
+
 		return pw, pw, nil
 	}
 
@@ -242,6 +260,7 @@ func (s *Action) showGetContent(ctx context.Context, sec gopass.Secret) (string,
 		if IsAlsoClip(ctx) {
 			return pw, body, nil
 		}
+
 		return "", body, nil
 	}
 
@@ -272,6 +291,7 @@ func showSafeContent(ctx context.Context, sec gopass.Secret) string {
 	}
 
 	sb.WriteString(sec.Body())
+
 	return sb.String()
 }
 
@@ -317,15 +337,17 @@ func (s *Action) hasAliasDomain(ctx context.Context, name string) string {
 		}
 		name = path.Dir(name)
 	}
+
 	return ""
 }
 
 // showHandleError handles errors retrieving secrets.
 func (s *Action) showHandleError(ctx context.Context, c *cli.Context, name string, recurse bool, err error) error {
-	if err != store.ErrNotFound || !recurse || !ctxutil.IsTerminal(ctx) {
+	if !errors.Is(err, store.ErrNotFound) || !recurse || !ctxutil.IsTerminal(ctx) {
 		if IsClip(ctx) {
 			_ = notify.Notify(ctx, "gopass - error", fmt.Sprintf("failed to retrieve secret %q: %s", name, err))
 		}
+
 		return exit.Error(exit.Unknown, err, "failed to retrieve secret %q: %s", name, err)
 	}
 
@@ -343,8 +365,10 @@ func (s *Action) showHandleError(ctx context.Context, c *cli.Context, name strin
 		if IsClip(ctx) {
 			_ = notify.Notify(ctx, "gopass - error", fmt.Sprintf("%s", err))
 		}
+
 		return exit.Error(exit.NotFound, err, "%s", err)
 	}
+
 	return nil
 }
 
@@ -354,5 +378,6 @@ func (s *Action) showPrintQR(name, pw string) error {
 		return exit.Error(exit.Unknown, err, "failed to encode %q as QR: %s", name, err)
 	}
 	fmt.Fprintln(stdout, qr)
+
 	return nil
 }

@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestInsert(t *testing.T) {
+func TestInsert(t *testing.T) { //nolint:paralleltest
 	u := gptest.NewUnitTester(t)
 	defer u.Remove()
 
@@ -36,17 +36,17 @@ func TestInsert(t *testing.T) {
 		out.Stdout = os.Stdout
 	}()
 
-	t.Run("insert bar", func(t *testing.T) {
+	t.Run("insert bar", func(t *testing.T) { //nolint:paralleltest
 		assert.NoError(t, act.Insert(gptest.CliCtx(ctx, t, "bar")))
 		buf.Reset()
 	})
 
-	t.Run("insert bar baz", func(t *testing.T) {
+	t.Run("insert bar baz", func(t *testing.T) { //nolint:paralleltest
 		assert.NoError(t, act.Insert(gptest.CliCtx(ctx, t, "bar", "baz")))
 		buf.Reset()
 	})
 
-	t.Run("insert baz via stdin w/o newline", func(t *testing.T) {
+	t.Run("insert baz via stdin w/o newline", func(t *testing.T) { //nolint:paralleltest
 		assert.NoError(t, act.insertStdin(ctx, "baz", []byte("foobar"), false))
 		buf.Reset()
 
@@ -55,7 +55,7 @@ func TestInsert(t *testing.T) {
 		buf.Reset()
 	})
 
-	t.Run("insert baz via stdin w/ newline", func(t *testing.T) {
+	t.Run("insert baz via stdin w/ newline", func(t *testing.T) { //nolint:paralleltest
 		assert.NoError(t, act.insertStdin(ctx, "baz", []byte("foobar\n"), false))
 		buf.Reset()
 
@@ -64,7 +64,7 @@ func TestInsert(t *testing.T) {
 		buf.Reset()
 	})
 
-	t.Run("insert baz via stdin w/ yaml", func(t *testing.T) {
+	t.Run("insert baz via stdin w/ yaml", func(t *testing.T) { //nolint:paralleltest
 		assert.NoError(t, act.insertStdin(ctx, "baz", []byte("foobar\n---\nuser: name\nother: meh"), false))
 		buf.Reset()
 
@@ -73,7 +73,7 @@ func TestInsert(t *testing.T) {
 		buf.Reset()
 	})
 
-	t.Run("insert baz via stdin w/ k-v", func(t *testing.T) {
+	t.Run("insert baz via stdin w/ k-v", func(t *testing.T) { //nolint:paralleltest
 		assert.NoError(t, act.insertStdin(ctx, "baz", []byte("foobar\ninvalid key-value\nOther: meh\nUser: name\nbody text"), false))
 		buf.Reset()
 
@@ -86,7 +86,7 @@ func TestInsert(t *testing.T) {
 		buf.Reset()
 	})
 
-	t.Run("insert zab#key", func(t *testing.T) {
+	t.Run("insert zab#key", func(t *testing.T) { //nolint:paralleltest
 		ctx = ctxutil.WithInteractive(ctx, false)
 		ctx = ctxutil.WithShowSafeContent(ctx, true)
 		assert.NoError(t, act.insertYAML(ctx, "zab", "key", []byte("foobar"), nil))
@@ -95,19 +95,19 @@ func TestInsert(t *testing.T) {
 		buf.Reset()
 	})
 
-	t.Run("insert --multiline bar baz", func(t *testing.T) {
+	t.Run("insert --multiline bar baz", func(t *testing.T) { //nolint:paralleltest
 		assert.NoError(t, act.Insert(gptest.CliCtxWithFlags(ctx, t, map[string]string{"multiline": "true"}, "bar", "baz")))
 		buf.Reset()
 	})
 
-	t.Run("insert key:value", func(t *testing.T) {
+	t.Run("insert key:value", func(t *testing.T) { //nolint:paralleltest
 		assert.NoError(t, act.Insert(gptest.CliCtxWithFlags(ctx, t, nil, "keyvaltest", "baz:val")))
 		assert.NoError(t, act.show(ctx, gptest.CliCtx(ctx, t), "keyvaltest", false))
 		assert.Contains(t, buf.String(), "baz: val")
 		buf.Reset()
 	})
 
-	t.Run("insert baz via stdin w/ yaml and input parsing and safecontent", func(t *testing.T) {
+	t.Run("insert baz via stdin w/ yaml and input parsing and safecontent", func(t *testing.T) { //nolint:paralleltest
 		assert.NoError(t, act.insertStdin(ctx, "baz", []byte("foobar\n---\nuser: name\nother: 0123"), false))
 		buf.Reset()
 
@@ -116,7 +116,7 @@ func TestInsert(t *testing.T) {
 		buf.Reset()
 	})
 
-	t.Run("insert baz via stdin w/ yaml and no input parsing", func(t *testing.T) {
+	t.Run("insert baz via stdin w/ yaml and no input parsing", func(t *testing.T) { //nolint:paralleltest
 		ctx = ctxutil.WithShowParsing(ctx, false)
 		ctx = ctxutil.WithShowSafeContent(ctx, false)
 		assert.NoError(t, act.insertStdin(ctx, "baz", []byte("foobar\n---\nuser: name\nother: 0123"), false))
@@ -130,7 +130,7 @@ func TestInsert(t *testing.T) {
 	})
 }
 
-func TestInsertStdin(t *testing.T) {
+func TestInsertStdin(t *testing.T) { //nolint:paralleltest
 	u := gptest.NewUnitTester(t)
 	defer u.Remove()
 

@@ -139,5 +139,6 @@ func (g *Git) ConfigList(ctx context.Context) (map[string]string, error) {
 		}
 		kv[key] = val
 	}
+
 	return kv, nil
 }

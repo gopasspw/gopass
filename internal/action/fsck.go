@@ -17,7 +17,7 @@ import (
 
 // Fsck checks the store integrity.
 func (s *Action) Fsck(c *cli.Context) error {
-	s.rem.Reset("fsck")
+	_ = s.rem.Reset("fsck")
 
 	ctx := ctxutil.WithGlobalFlags(c)
 	if c.IsSet("decrypt") {
@@ -59,5 +59,6 @@ func (s *Action) Fsck(c *cli.Context) error {
 		return exit.Error(exit.Fsck, err, "fsck found errors: %s", err)
 	}
 	bar.Done()
+
 	return nil
 }

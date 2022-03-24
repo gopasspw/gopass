@@ -16,7 +16,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestProcess(t *testing.T) {
+func TestProcess(t *testing.T) { //nolint:paralleltest
 	u := gptest.NewUnitTester(t)
 	defer u.Remove()
 
@@ -36,7 +36,7 @@ func TestProcess(t *testing.T) {
 	require.NotNil(t, act)
 
 	sec := secrets.New()
-	sec.Set("username", "admin")
+	assert.NoError(t, sec.Set("username", "admin"))
 	sec.SetPassword("hunter2")
 	require.NoError(t, act.Store.Set(ctx, "server/local/mysql", sec))
 

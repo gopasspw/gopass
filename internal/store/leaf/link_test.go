@@ -11,6 +11,8 @@ import (
 )
 
 func TestLink(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	tempdir, err := os.MkdirTemp("", "gopass-")
@@ -18,6 +20,7 @@ func TestLink(t *testing.T) {
 	defer func() {
 		_ = os.RemoveAll(tempdir)
 	}()
+
 	t.Logf(tempdir)
 
 	s, err := createSubStore(tempdir)

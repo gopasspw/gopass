@@ -9,6 +9,9 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
+// ErrUnknownType is returned when an unknown type is encountered.
+var ErrUnknownType = fmt.Errorf("unknown type")
+
 func longName(name string) string {
 	// "If s does not contain sep and sep is not empty, Split returns a slice of length 1 whose only element is s."
 	// from https://golang.org/pkg/strings/#Split.
@@ -20,6 +23,7 @@ func shortName(name string) string {
 	if len(parts) < 2 {
 		return ""
 	}
+
 	return strings.TrimSpace(parts[1])
 }
 
@@ -62,7 +66,7 @@ func formatFlagFunc(typ string) func(cli.Flag) (string, error) {
 		case *cli.UintFlag:
 			return formatFlag(ft.Name, ft.Usage, typ), nil
 		default:
-			return "", fmt.Errorf("unknown type: '%T'", f)
+			return "", fmt.Errorf("error '%T': %w", f, ErrUnknownType)
 		}
 	}
 }
@@ -74,13 +78,16 @@ func GetCompletion(a *cli.App) (string, error) {
 		"formatLongFlag":  formatFlagFunc("long"),
 		"formatFlagUsage": formatFlagFunc("usage"),
 	}
+
 	tpl, err := template.New("fish").Funcs(tplFuncs).Parse(fishTemplate)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to parse template: %w", err)
 	}
+
 	buf := &bytes.Buffer{}
 	if err := tpl.Execute(buf, a); err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to execute template: %w", err)
 	}
+
 	return buf.String(), nil
 }

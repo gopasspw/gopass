@@ -39,9 +39,11 @@ func (c *Pre1127) Config() *Config {
 		SafeContent:   c.SafeContent,
 		Mounts:        make(map[string]string, len(c.Mounts)),
 	}
+
 	for k, v := range c.Mounts {
 		cfg.Mounts[k] = v
 	}
+
 	return cfg
 }
 
@@ -87,9 +89,11 @@ func (c *Pre1102) Config() *Config {
 		SafeContent:   c.SafeContent,
 		Mounts:        make(map[string]string, len(c.Mounts)),
 	}
+
 	for k, v := range c.Mounts {
 		cfg.Mounts[k] = v
 	}
+
 	return cfg
 }
 
@@ -142,9 +146,11 @@ func (c *Pre193) Config() *Config {
 		SafeContent:   c.Root.SafeContent,
 		Mounts:        make(map[string]string, len(c.Mounts)),
 	}
+
 	if p, err := pathFromURL(c.Root.Path); err == nil {
 		cfg.Path = p
 	}
+
 	for k, v := range c.Mounts {
 		p, err := pathFromURL(v.Path)
 		if err != nil {
@@ -152,6 +158,7 @@ func (c *Pre193) Config() *Config {
 		}
 		cfg.Mounts[k] = p
 	}
+
 	return cfg
 }
 
@@ -205,9 +212,11 @@ func (c *Pre182) Config() *Config {
 		SafeContent:   c.Root.SafeContent,
 		Mounts:        make(map[string]string, len(c.Mounts)),
 	}
+
 	if p, err := pathFromURL(c.Root.Path); err == nil {
 		cfg.Path = p
 	}
+
 	for k, v := range c.Mounts {
 		p, err := pathFromURL(v.Path)
 		if err != nil {
@@ -215,6 +224,7 @@ func (c *Pre182) Config() *Config {
 		}
 		cfg.Mounts[k] = p
 	}
+
 	return cfg
 }
 
@@ -250,9 +260,11 @@ func (c *Pre140) Config() *Config {
 		SafeContent: c.SafeContent,
 		Mounts:      make(map[string]string, len(c.Mounts)),
 	}
+
 	for k, v := range c.Mounts {
 		cfg.Mounts[k] = v
 	}
+
 	return cfg
 }
 
@@ -295,9 +307,11 @@ func (c *Pre130) Config() *Config {
 		SafeContent: c.SafeContent,
 		Mounts:      make(map[string]string, len(c.Mounts)),
 	}
+
 	for k, v := range c.Mounts {
 		cfg.Mounts[k] = v
 	}
+
 	return cfg
 }
 
@@ -310,5 +324,6 @@ func pathFromURL(u string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
 	return up.Path, nil
 }

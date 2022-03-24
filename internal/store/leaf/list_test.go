@@ -16,6 +16,8 @@ import (
 )
 
 func TestList(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 	ctx = ctxutil.WithExportKeys(ctx, false)
 
@@ -25,7 +27,7 @@ func TestList(t *testing.T) {
 		out.Stdout = os.Stdout
 	}()
 
-	for _, tc := range []struct {
+	for _, tc := range []struct { //nolint:paralleltest
 		name string
 		prep func(s *Store) error
 		out  []string
@@ -40,6 +42,7 @@ func TestList(t *testing.T) {
 			prep: func(s *Store) error {
 				sec := secrets.New()
 				sec.SetPassword("bar")
+
 				return s.Set(ctx, "foo", sec)
 			},
 			out: []string{"foo"},
@@ -54,6 +57,7 @@ func TestList(t *testing.T) {
 						return err
 					}
 				}
+
 				return nil
 			},
 			out: []string{"bar", "baz", "foo"},
@@ -68,35 +72,41 @@ func TestList(t *testing.T) {
 						return err
 					}
 				}
+
 				return nil
 			},
 			out: []string{"foo/bar", "foo/baz", "foo/zab"},
 		},
 	} {
-		// common setup
-		tempdir, err := os.MkdirTemp("", "gopass-")
-		require.NoError(t, err)
+		tc := tc
 
-		s := &Store{
-			alias:   "",
-			path:    tempdir,
-			crypto:  plain.New(),
-			storage: fs.New(tempdir),
-		}
+		t.Run(tc.name, func(t *testing.T) {
+			// common setup
+			tempdir, err := os.MkdirTemp("", "gopass-")
+			require.NoError(t, err)
 
-		assert.NoError(t, s.saveRecipients(ctx, []string{"john.doe"}, "test"))
+			defer func() {
+				obuf.Reset()
+				_ = os.RemoveAll(tempdir)
+			}()
 
-		// prepare store
-		assert.NoError(t, tc.prep(s))
-		obuf.Reset()
+			s := &Store{
+				alias:   "",
+				path:    tempdir,
+				crypto:  plain.New(),
+				storage: fs.New(tempdir),
+			}
 
-		// run test case
-		out, err := s.List(ctx, "")
-		require.NoError(t, err)
-		assert.Equal(t, tc.out, out)
-		obuf.Reset()
+			assert.NoError(t, s.saveRecipients(ctx, []string{"john.doe"}, "test"))
 
-		// common tear down
-		_ = os.RemoveAll(tempdir)
+			// prepare store
+			assert.NoError(t, tc.prep(s))
+			obuf.Reset()
+
+			// run test case
+			out, err := s.List(ctx, "")
+			require.NoError(t, err)
+			assert.Equal(t, tc.out, out)
+		})
 	}
 }

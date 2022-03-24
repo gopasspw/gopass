@@ -58,5 +58,6 @@ func Error(exitCode int, err error, format string, args ...any) error {
 	if err != nil {
 		debug.LogN(1, "%s - stacktrace: %+v", msg, err)
 	}
+
 	return cli.Exit(msg, exitCode)
 }

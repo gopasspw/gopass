@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestGrep(t *testing.T) {
+func TestGrep(t *testing.T) { //nolint:paralleltest
 	u := gptest.NewUnitTester(t)
 	defer u.Remove()
 
@@ -32,12 +32,12 @@ func TestGrep(t *testing.T) {
 	}()
 
 	c := gptest.CliCtx(ctx, t, "foo")
-	t.Run("empty store", func(t *testing.T) {
+	t.Run("empty store", func(t *testing.T) { //nolint:paralleltest
 		defer buf.Reset()
 		assert.NoError(t, act.Grep(c))
 	})
 
-	t.Run("add some secret", func(t *testing.T) {
+	t.Run("add some secret", func(t *testing.T) { //nolint:paralleltest
 		defer buf.Reset()
 		sec := &secrets.Plain{}
 		sec.SetPassword("foobar")
@@ -45,12 +45,12 @@ func TestGrep(t *testing.T) {
 		assert.NoError(t, act.Store.Set(ctx, "foo", sec))
 	})
 
-	t.Run("should find existing", func(t *testing.T) {
+	t.Run("should find existing", func(t *testing.T) { //nolint:paralleltest
 		defer buf.Reset()
 		assert.NoError(t, act.Grep(c))
 	})
 
-	t.Run("RE2", func(t *testing.T) {
+	t.Run("RE2", func(t *testing.T) { //nolint:paralleltest
 		defer buf.Reset()
 		c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"regexp": "true"}, "f..bar")
 		assert.NoError(t, act.Grep(c))

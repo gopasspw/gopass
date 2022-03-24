@@ -28,7 +28,7 @@ OK := $(shell tput setaf 6; echo ' [OK]'; tput sgr0;)
 all: sysinfo build
 build: $(GOPASS_OUTPUT)
 completion: $(BASH_COMPLETION_OUTPUT) $(FISH_COMPLETION_OUTPUT) $(ZSH_COMPLETION_OUTPUT)
-travis: sysinfo crosscompile build fulltest completion
+travis: sysinfo crosscompile build fulltest completion codequality
 travis-osx: sysinfo build test completion
 travis-windows: sysinfo build test-win completion
 
@@ -131,14 +131,6 @@ crosscompile:
 codequality:
 	@echo ">> CODE QUALITY"
 
-	@echo -n "     GOCRITIC "
-	@which gocritic > /dev/null; if [ $$? -ne 0 ]; then \
-		$(GO) install github.com/go-critic/go-critic/cmd/gocritic@latest; \
-	fi
-	@gocritic check -disable='exitAfterDefer,appendAssign,dupArg' ./... || exit 0
-
-	@printf '%s\n' '$(OK)'
-
 	@echo -n "     GOLANGCI-LINT "
 	@which golangci-lint > /dev/null; if [ $$? -ne 0 ]; then \
 		$(GO) install github.com/golangci/golangci-lint/cmd/golangci-lint@latest; \
@@ -151,7 +143,7 @@ gen:
 	@$(GO) generate ./...
 
 fmt:
-	@gofumpt -l -w $(GOFILES_NOVENDOR)
+	@gofumpt -s -l -w $(GOFILES_NOVENDOR)
 	@gci write $(GOFILES_NOVENDOR)
 	@$(GO) mod tidy
 

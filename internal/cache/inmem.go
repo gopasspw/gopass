@@ -16,9 +16,11 @@ func (ce *cacheEntry[V]) isExpired() bool {
 	if time.Now().After(ce.maxExpire) {
 		return true
 	}
+
 	if time.Now().After(ce.expire) {
 		return true
 	}
+
 	return false
 }
 
@@ -60,6 +62,7 @@ func (c *InMemTTL[K, V]) Get(key K) (V, bool) {
 
 	ce.expire = time.Now().Add(c.ttl)
 	c.entries[key] = ce
+
 	return ce.value, true
 }
 

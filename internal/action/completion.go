@@ -22,12 +22,15 @@ func bashEscape(s string) string {
 		if c == `\` {
 			return `\\\\`
 		}
+
 		if c == `'` {
 			return `\` + c
 		}
+
 		if c == `"` {
 			return `\\\` + c
 		}
+
 		return `\\` + c
 	})
 }
@@ -38,6 +41,7 @@ func (s *Action) Complete(c *cli.Context) {
 	_, err := s.Store.IsInitialized(ctx) // important to make sure the structs are not nil.
 	if err != nil {
 		out.Errorf(ctx, "Store not initialized: %s", err)
+
 		return
 	}
 	list, err := s.Store.List(ctx, tree.INF)
@@ -70,6 +74,7 @@ set -A complete_gopass -- $PASS_LIST %s
 	}
 
 	fmt.Fprintf(stdout, out, strings.Join(opts, " "))
+
 	return nil
 }
 
@@ -106,6 +111,7 @@ func (s *Action) CompletionFish(a *cli.App) error {
 	}
 
 	fmt.Fprintln(stdout, comp)
+
 	return nil
 }
 
@@ -117,5 +123,6 @@ func (s *Action) CompletionZSH(a *cli.App) error {
 	}
 
 	fmt.Fprintln(stdout, comp)
+
 	return nil
 }

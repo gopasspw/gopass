@@ -31,6 +31,7 @@ func (s *Action) List(c *cli.Context) error {
 	// print the path if the argument is a direct hit.
 	if s.Store.Exists(ctx, filter) && !s.Store.IsDir(ctx, filter) {
 		fmt.Println(filter)
+
 		return nil
 	}
 
@@ -54,7 +55,7 @@ func (s *Action) List(c *cli.Context) error {
 }
 
 func (s *Action) listFiltered(ctx context.Context, l *tree.Root, limit int, flat, folders, stripPrefix bool, filter string) error {
-	sep := string(leaf.Sep)
+	sep := leaf.Sep
 
 	if filter == "" || filter == sep {
 		// We list all entries then.
@@ -85,6 +86,7 @@ func (s *Action) listFiltered(ctx context.Context, l *tree.Root, limit int, flat
 			}
 			fmt.Fprintln(stdout, e)
 		}
+
 		return nil
 	}
 
@@ -97,6 +99,7 @@ func (s *Action) listFiltered(ctx context.Context, l *tree.Root, limit int, flat
 			return exit.Error(exit.Unknown, err, "failed to invoke pager: %s", err)
 		}
 	}
+
 	return nil
 }
 
@@ -118,6 +121,7 @@ func redirectPager(ctx context.Context, subtree *tree.Root) (io.Writer, *bytes.B
 	}
 	color.NoColor = true
 	buf := &bytes.Buffer{}
+
 	return buf, buf
 }
 
@@ -126,6 +130,7 @@ func (s *Action) pager(ctx context.Context, buf io.Reader) error {
 	pager := os.Getenv("PAGER")
 	if pager == "" {
 		fmt.Fprintln(stdout, buf)
+
 		return nil
 	}
 

@@ -45,11 +45,13 @@ func (s *Action) createPrintOrCopy(ctx context.Context, c *cli.Context, name, pa
 
 	if c.Bool("print") {
 		fmt.Fprintf(out.Stdout, "The generated password for %s is:\n%s\n", name, password)
+
 		return nil
 	}
 
 	if err := clipboard.CopyTo(ctx, name, []byte(password), s.cfg.ClipTimeout); err != nil {
 		return exit.Error(exit.IO, err, "failed to copy to clipboard: %s", err)
 	}
+
 	return nil
 }

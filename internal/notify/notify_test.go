@@ -11,21 +11,26 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestNotify(t *testing.T) {
+func TestNotify(t *testing.T) { //nolint:paralleltest
 	ctx := context.Background()
-	_ = os.Setenv("GOPASS_NO_NOTIFY", "true")
+
+	t.Setenv("GOPASS_NO_NOTIFY", "true")
 	assert.NoError(t, Notify(ctx, "foo", "bar"))
 }
 
 func TestIcon(t *testing.T) {
+	t.Parallel()
+
 	fn := strings.TrimPrefix(iconURI(), "file://")
-	_ = os.Remove(fn)
+	require.NoError(t, os.Remove(fn))
 	_ = iconURI()
 	fh, err := os.Open(fn)
 	require.NoError(t, err)
+
 	defer func() {
 		assert.NoError(t, fh.Close())
 	}()
+
 	require.NotNil(t, fh)
 	_, err = png.Decode(fh)
 	assert.NoError(t, err)

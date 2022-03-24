@@ -22,6 +22,7 @@ func (ca Actions) Selection() []string {
 	for _, a := range ca {
 		keys = append(keys, a.Name)
 	}
+
 	return keys
 }
 
@@ -33,5 +34,6 @@ func (ca Actions) Run(ctx context.Context, c *cli.Context, i int) error {
 	if ca[i].Fn == nil {
 		return errors.New("action invalid")
 	}
+
 	return ca[i].Fn(ctx, c)
 }

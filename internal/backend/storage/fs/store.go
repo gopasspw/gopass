@@ -26,6 +26,7 @@ func New(dir string) *Store {
 	if d, err := filepath.EvalSymlinks(dir); err == nil {
 		dir = d
 	}
+
 	return &Store{
 		path: dir,
 	}
@@ -36,8 +37,10 @@ func (s *Store) Get(ctx context.Context, name string) ([]byte, error) {
 	if runtime.GOOS == "windows" {
 		name = filepath.FromSlash(name)
 	}
+
 	path := filepath.Join(s.path, filepath.Clean(name))
 	debug.Log("Reading %s from %s", name, path)
+
 	return os.ReadFile(path)
 }
 
@@ -46,14 +49,17 @@ func (s *Store) Set(ctx context.Context, name string, value []byte) error {
 	if runtime.GOOS == "windows" {
 		name = filepath.FromSlash(name)
 	}
+
 	filename := filepath.Join(s.path, filepath.Clean(name))
 	filedir := filepath.Dir(filename)
+
 	if !fsutil.IsDir(filedir) {
 		if err := os.MkdirAll(filedir, 0o700); err != nil {
 			return err
 		}
 	}
 	debug.Log("Writing %s to %s", name, filepath.Join(s.path, name))
+
 	return os.WriteFile(filepath.Join(s.path, name), value, 0o644)
 }
 
@@ -106,6 +112,7 @@ func (s *Store) Exists(ctx context.Context, name string) bool {
 	path := filepath.Join(s.path, filepath.Clean(name))
 	found := fsutil.IsFile(path)
 	debug.Log("Checking if %s exists at %s: %t", name, path, found)
+
 	return found
 }
 
@@ -123,6 +130,7 @@ func (s *Store) List(ctx context.Context, prefix string) ([]string, error) {
 		relPath := strings.TrimPrefix(path, s.path+string(filepath.Separator)) + string(filepath.Separator)
 		if info.IsDir() && strings.HasPrefix(info.Name(), ".") && path != s.path && !strings.HasPrefix(prefix, relPath) {
 			debug.Log("skipping dot dir (relPath: %s, prefix: %s)", relPath, prefix)
+
 			return filepath.SkipDir
 		}
 		if info.IsDir() {
@@ -139,11 +147,13 @@ func (s *Store) List(ctx context.Context, prefix string) ([]string, error) {
 			return nil
 		}
 		files = append(files, name)
+
 		return nil
 	}); err != nil {
 		return nil, err
 	}
 	sort.Strings(files)
+
 	return files, nil
 }
 
@@ -155,6 +165,7 @@ func (s *Store) IsDir(ctx context.Context, name string) bool {
 	path := filepath.Join(s.path, filepath.Clean(name))
 	isDir := fsutil.IsDir(path)
 	debug.Log("%s at %s is a directory? %t", name, path, isDir)
+
 	return isDir
 }
 

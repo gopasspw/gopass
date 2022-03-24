@@ -16,6 +16,7 @@ func fmtfn(d int, n string, t string) string {
 	// indent - [N] - text (trailing spaces)
 	fmtStr := "%" + strconv.Itoa(d) + "s%s %-" + strconv.Itoa(strlen) + "s"
 	debug.Log("d: %d, n: %q, t: %q, strlen: %d, fmtStr: %q", d, n, t, strlen, fmtStr)
+
 	return fmt.Sprintf(fmtStr, "", color.GreenString("["+n+"]"), t)
 }
 
@@ -31,11 +32,13 @@ func extractHostname(in string) string {
 	if !strings.Contains(urlStr, "://") {
 		urlStr = "http://" + urlStr
 	}
+
 	u, err := url.Parse(urlStr)
 	if err == nil {
 		if ch := fsutil.CleanFilename(u.Hostname()); ch != "" {
 			return ch
 		}
 	}
+
 	return fsutil.CleanFilename(in)
 }

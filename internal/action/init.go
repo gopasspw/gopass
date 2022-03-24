@@ -33,9 +33,11 @@ func (s *Action) IsInitialized(c *cli.Context) error {
 	if err != nil {
 		return exit.Error(exit.Unknown, err, "Failed to initialize store: %s", err)
 	}
+
 	if inited {
 		debug.Log("Store is fully initialized and ready to go\n\nAll systems go. 🚀\n")
 		s.printReminder(ctx)
+
 		return nil
 	}
 
@@ -64,13 +66,16 @@ func (s *Action) Init(c *cli.Context) error {
 	if name := termio.DetectName(c.Context, c); name != "" {
 		ctx = ctxutil.WithUsername(ctx, name)
 	}
+
 	if email := termio.DetectEmail(c.Context, c); email != "" {
 		ctx = ctxutil.WithEmail(ctx, email)
 	}
+
 	inited, err := s.Store.IsInitialized(ctx)
 	if err != nil {
 		return exit.Error(exit.Unknown, err, "Failed to initialized store: %s", err)
 	}
+
 	if inited {
 		out.Errorf(ctx, "Store is already initialized!")
 	}
@@ -78,6 +83,7 @@ func (s *Action) Init(c *cli.Context) error {
 	if err := s.init(ctx, alias, path, c.Args().Slice()...); err != nil {
 		return exit.Error(exit.Unknown, err, "Failed to initialize store: %s", err)
 	}
+
 	return nil
 }
 
@@ -85,6 +91,7 @@ func initParseContext(ctx context.Context, c *cli.Context) context.Context {
 	if c.IsSet("crypto") {
 		ctx = backend.WithCryptoBackendString(ctx, c.String("crypto"))
 	}
+
 	if c.IsSet("storage") {
 		ctx = backend.WithStorageBackendString(ctx, c.String("storage"))
 	}
@@ -93,6 +100,7 @@ func initParseContext(ctx context.Context, c *cli.Context) context.Context {
 		debug.Log("Using default Crypto Backend (GPGCLI)")
 		ctx = backend.WithCryptoBackend(ctx, backend.GPGCLI)
 	}
+
 	if !backend.HasStorageBackend(ctx) {
 		debug.Log("Using default storage backend (GitFS)")
 		ctx = backend.WithStorageBackend(ctx, backend.GitFS)
@@ -122,6 +130,7 @@ func (s *Action) init(ctx context.Context, alias, path string, keys ...string) e
 	if crypto.Name() == "plain" {
 		keys, _ = crypto.ListIdentities(ctx)
 	}
+
 	if len(keys) < 1 {
 		out.Notice(ctx, "Hint: Use 'gopass init <subkey> to use subkeys!'")
 		nk, err := cui.AskForPrivateKey(ctx, crypto, "🎮 Please select a private key for encrypting secrets:")

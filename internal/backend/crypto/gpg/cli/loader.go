@@ -24,6 +24,7 @@ type loader struct{}
 // New implements backend.CryptoLoader.
 func (l loader) New(ctx context.Context) (backend.Crypto, error) {
 	debug.Log("Using Crypto Backend: %s", name)
+
 	return New(ctx, Config{
 		Umask:  fsutil.Umask(),
 		Args:   gpgconf.GPGOpts(),
@@ -35,6 +36,7 @@ func (l loader) Handles(ctx context.Context, s backend.Storage) error {
 	if s.Exists(ctx, IDFile) {
 		return nil
 	}
+
 	return fmt.Errorf("not supported")
 }
 

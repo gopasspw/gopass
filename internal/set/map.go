@@ -7,5 +7,6 @@ func Map[K comparable](in []K) map[K]bool {
 	for _, i := range in {
 		m[i] = true
 	}
+
 	return m
 }

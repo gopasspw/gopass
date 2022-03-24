@@ -16,9 +16,11 @@ const (
 )
 
 var (
-	colMount = color.New(color.FgCyan, color.Bold).SprintfFunc()
-	colDir   = color.New(color.FgBlue, color.Bold).SprintfFunc()
-	colTpl   = color.New(color.FgGreen, color.Bold).SprintfFunc()
+	// ErrNotFound is returned when a node is not found.
+	ErrNotFound = fmt.Errorf("not found")
+	colMount    = color.New(color.FgCyan, color.Bold).SprintfFunc()
+	colDir      = color.New(color.FgBlue, color.Bold).SprintfFunc()
+	colTpl      = color.New(color.FgGreen, color.Bold).SprintfFunc()
 	// sep is intentionally NOT platform-agnostic. This is used for the CLI output
 	// and should always be a regular slash.
 	sep = "/"
@@ -71,11 +73,13 @@ func (r *Root) insert(path string, template bool, mountPath string) error {
 			n.Type = "file"
 			n.Subtree = nil
 			n.Template = template
+
 			if mountPath != "" {
 				n.Mount = true
 				n.Path = mountPath
 			}
 		}
+
 		node, _ := t.Insert(n)
 		// do we need to extend an existing subtree?
 		if i < len(p)-1 && node.Subtree == nil {
@@ -86,6 +90,7 @@ func (r *Root) insert(path string, template bool, mountPath string) error {
 		// re-root t to the new subtree
 		t = node.Subtree
 	}
+
 	return nil
 }
 
@@ -105,6 +110,7 @@ func (r *Root) Format(maxDepth int) string {
 		last := i == len(r.Subtree.Nodes)-1
 		_, _ = sb.WriteString(node.format("", last, maxDepth, 1))
 	}
+
 	return sb.String()
 }
 
@@ -114,6 +120,7 @@ func (r *Root) List(maxDepth int) []string {
 	for _, t := range r.Subtree.Nodes {
 		out = append(out, t.list(r.Prefix, maxDepth, 0, true)...)
 	}
+
 	return out
 }
 
@@ -123,6 +130,7 @@ func (r *Root) ListFolders(maxDepth int) []string {
 	for _, t := range r.Subtree.Nodes {
 		out = append(out, t.list(r.Prefix, maxDepth, 0, false)...)
 	}
+
 	return out
 }
 
@@ -137,14 +145,17 @@ func (r *Root) FindFolder(path string) (*Root, error) {
 	t := r.Subtree
 	p := strings.Split(path, "/")
 	prefix := ""
+
 	for _, e := range p {
 		_, node := t.find(e)
 		if node == nil || node.Type == "file" || node.Subtree == nil {
-			return nil, fmt.Errorf("not found")
+			return nil, ErrNotFound
 		}
+
 		t = node.Subtree
 		prefix = filepath.Join(prefix, e)
 	}
+
 	return &Root{Name: r.Name, Subtree: t, Prefix: prefix}, nil
 }
 
@@ -160,5 +171,6 @@ func (r *Root) Len() int {
 	for _, t := range r.Subtree.Nodes {
 		l += t.Len()
 	}
+
 	return l
 }

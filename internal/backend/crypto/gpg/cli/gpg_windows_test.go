@@ -8,6 +8,8 @@ import (
 )
 
 func TestEncrypt(t *testing.T) {
+	t.Parallel()
+
 	ctx, cancel := context.WithCancel(context.Background())
 
 	g := &GPG{}
@@ -19,6 +21,8 @@ func TestEncrypt(t *testing.T) {
 }
 
 func TestDecrypt(t *testing.T) {
+	t.Parallel()
+
 	ctx, cancel := context.WithCancel(context.Background())
 
 	g := &GPG{}
@@ -30,6 +34,8 @@ func TestDecrypt(t *testing.T) {
 }
 
 func TestGenerateIdentity(t *testing.T) {
+	t.Parallel()
+
 	ctx, cancel := context.WithCancel(context.Background())
 
 	g := &GPG{}

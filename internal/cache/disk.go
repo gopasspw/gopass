@@ -29,6 +29,7 @@ func NewOnDisk(name string, ttl time.Duration) (*OnDisk, error) {
 		name: name,
 		dir:  d,
 	}
+
 	return o, o.ensureDir()
 }
 
@@ -36,6 +37,7 @@ func (o *OnDisk) ensureDir() error {
 	if err := os.MkdirAll(o.dir, 0o700); err != nil {
 		return fmt.Errorf("failed to create ondisk cache dir %s: %w", o.dir, err)
 	}
+
 	return nil
 }
 
@@ -70,6 +72,7 @@ func (o *OnDisk) Set(key string, value []string) error {
 	if err := os.WriteFile(fn, []byte(strings.Join(value, "\n")), 0o644); err != nil {
 		return fmt.Errorf("failed to write %s to %s: %w", key, fn, err)
 	}
+
 	return nil
 }
 
@@ -81,6 +84,7 @@ func (o *OnDisk) ModTime(key string) time.Time {
 	if err != nil {
 		return time.Time{}
 	}
+
 	return fi.ModTime()
 }
 
@@ -91,6 +95,7 @@ func (o *OnDisk) Remove(key string) error {
 	}
 	key = fsutil.CleanFilename(key)
 	fn := filepath.Join(o.dir, key)
+
 	return os.Remove(fn)
 }
 

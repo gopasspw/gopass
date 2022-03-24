@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestFind(t *testing.T) {
+func TestFind(t *testing.T) { //nolint:paralleltest
 	ts := newTester(t)
 	defer ts.teardown()
 

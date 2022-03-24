@@ -14,6 +14,8 @@ import (
 )
 
 func TestClone(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	td, err := os.MkdirTemp("", "gopass-")
@@ -37,6 +39,8 @@ func TestClone(t *testing.T) {
 }
 
 func TestInitRCS(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	td, err := os.MkdirTemp("", "gopass-")

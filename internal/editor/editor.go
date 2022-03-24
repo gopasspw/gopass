@@ -36,27 +36,35 @@ func Check(ctx context.Context, editor string) error {
 	if !strings.Contains(editor, "vi") {
 		return nil
 	}
+
 	uhd, err := os.UserHomeDir()
 	if err != nil {
 		return err
 	}
+
 	vrc := filepath.Join(uhd, ".vimrc")
 	if runtime.GOOS == "windows" {
 		vrc = filepath.Join(uhd, "_vimrc")
 	}
+
 	if !fsutil.IsFile(vrc) {
 		return nil
 	}
+
 	buf, err := os.ReadFile(vrc)
 	if err != nil {
 		return err
 	}
+
 	if vimOptsRe.Match(buf) {
 		debug.Log("Recommended settings found in %s", vrc)
+
 		return nil
 	}
+
 	debug.Log("%s did not match %s", string(buf), vimOptsRe)
 	out.Warningf(ctx, "Vim might leak credentials. Check your setup.\nhttps://github.com/gopasspw/gopass/blob/master/docs/setup.md#securing-your-editor")
+
 	return nil
 }
 
@@ -70,6 +78,7 @@ func Invoke(ctx context.Context, editor string, content []byte) ([]byte, error) 
 	if err != nil {
 		return []byte{}, fmt.Errorf("failed to create tmpfile %s: %w", editor, err)
 	}
+
 	defer func() {
 		if err := tmpfile.Remove(ctx); err != nil {
 			color.Red("Failed to remove tempfile at %s: %s", tmpfile.Name(), err)
@@ -79,6 +88,7 @@ func Invoke(ctx context.Context, editor string, content []byte) ([]byte, error) 
 	if _, err := tmpfile.Write(content); err != nil {
 		return []byte{}, fmt.Errorf("failed to write tmpfile to start with %s %v: %w", editor, tmpfile.Name(), err)
 	}
+
 	if err := tmpfile.Close(); err != nil {
 		return []byte{}, fmt.Errorf("failed to close tmpfile to start with %s %v: %w", editor, tmpfile.Name(), err)
 	}
@@ -103,6 +113,7 @@ func Invoke(ctx context.Context, editor string, content []byte) ([]byte, error) 
 
 	if err := cmd.Run(); err != nil {
 		debug.Log("cmd: %s %+v - error: %+v", cmd.Path, cmd.Args, err)
+
 		return []byte{}, fmt.Errorf("failed to run %s with %s file: %w", editor, tmpfile.Name(), err)
 	}
 

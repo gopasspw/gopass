@@ -8,12 +8,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestBaseConfig(t *testing.T) {
+func TestBaseConfig(t *testing.T) { //nolint:paralleltest
 	ts := newTester(t)
 	defer ts.teardown()
 
 	out, err := ts.run("config")
 	assert.NoError(t, err)
+
 	wanted := `autoclip: false
 autoimport: true
 cliptimeout: 45
@@ -33,7 +34,7 @@ parsing: true
 		"parsing",
 	}
 
-	for _, invert := range invertables {
+	for _, invert := range invertables { //nolint:paralleltest
 		t.Run("invert "+invert, func(t *testing.T) {
 			out, err = ts.run("config " + invert + " false")
 			assert.NoError(t, err)
@@ -56,7 +57,7 @@ parsing: true
 	})
 }
 
-func TestMountConfig(t *testing.T) {
+func TestMountConfig(t *testing.T) { //nolint:paralleltest
 	ts := newTester(t)
 	defer ts.teardown()
 

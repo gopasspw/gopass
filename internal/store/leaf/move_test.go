@@ -16,6 +16,8 @@ import (
 )
 
 func TestCopy(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 	ctx = ctxutil.WithExportKeys(ctx, false)
 
@@ -25,7 +27,7 @@ func TestCopy(t *testing.T) {
 		out.Stdout = os.Stdout
 	}()
 
-	for _, tc := range []struct {
+	for _, tc := range []struct { //nolint:paralleltest
 		name string
 		tf   func(s *Store) func(t *testing.T)
 	}{
@@ -33,6 +35,7 @@ func TestCopy(t *testing.T) {
 			name: "Empty store",
 			tf: func(s *Store) func(t *testing.T) {
 				return func(t *testing.T) {
+					t.Helper()
 					assert.Error(t, s.Copy(ctx, "foo", "bar"))
 				}
 			},
@@ -41,6 +44,7 @@ func TestCopy(t *testing.T) {
 			name: "Single entry",
 			tf: func(s *Store) func(t *testing.T) {
 				return func(t *testing.T) {
+					t.Helper()
 					nsec := &secrets.Plain{}
 					nsec.SetPassword("bar")
 					assert.NoError(t, s.Set(ctx, "foo", nsec))
@@ -58,6 +62,7 @@ func TestCopy(t *testing.T) {
 			name: "Recursive",
 			tf: func(s *Store) func(t *testing.T) {
 				return func(t *testing.T) {
+					t.Helper()
 					sec := &secrets.Plain{}
 					sec.SetPassword("baz")
 					assert.NoError(t, s.Set(ctx, "foo/bar/baz", sec))
@@ -68,29 +73,37 @@ func TestCopy(t *testing.T) {
 			},
 		},
 	} {
-		// common setup
-		tempdir, err := os.MkdirTemp("", "gopass-")
-		require.NoError(t, err)
+		tc := tc
 
-		s := &Store{
-			alias:   "",
-			path:    tempdir,
-			crypto:  plain.New(),
-			storage: fs.New(tempdir),
-		}
+		t.Run(tc.name, func(t *testing.T) {
+			// common setup
+			tempdir, err := os.MkdirTemp("", "gopass-")
+			require.NoError(t, err)
 
-		assert.NoError(t, s.saveRecipients(ctx, []string{"john.doe"}, "test"))
+			defer func() {
+				obuf.Reset()
+				// common tear down
+				_ = os.RemoveAll(tempdir)
+			}()
 
-		// run test case
-		t.Run(tc.name, tc.tf(s))
+			s := &Store{
+				alias:   "",
+				path:    tempdir,
+				crypto:  plain.New(),
+				storage: fs.New(tempdir),
+			}
 
-		obuf.Reset()
-		// common tear down
-		_ = os.RemoveAll(tempdir)
+			assert.NoError(t, s.saveRecipients(ctx, []string{"john.doe"}, "test"))
+
+			// run test case
+			t.Run(tc.name, tc.tf(s))
+		})
 	}
 }
 
 func TestMove(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 	ctx = ctxutil.WithExportKeys(ctx, false)
 
@@ -100,7 +113,7 @@ func TestMove(t *testing.T) {
 		out.Stdout = os.Stdout
 	}()
 
-	for _, tc := range []struct {
+	for _, tc := range []struct { //nolint:paralleltest
 		name string
 		tf   func(s *Store) func(t *testing.T)
 	}{
@@ -108,6 +121,7 @@ func TestMove(t *testing.T) {
 			name: "Empty store",
 			tf: func(s *Store) func(t *testing.T) {
 				return func(t *testing.T) {
+					t.Helper()
 					assert.Error(t, s.Move(ctx, "foo", "bar"))
 				}
 			},
@@ -116,6 +130,7 @@ func TestMove(t *testing.T) {
 			name: "Single entry",
 			tf: func(s *Store) func(t *testing.T) {
 				return func(t *testing.T) {
+					t.Helper()
 					nsec := &secrets.Plain{}
 					nsec.SetPassword("bar")
 					assert.NoError(t, s.Set(ctx, "foo", nsec))
@@ -133,6 +148,7 @@ func TestMove(t *testing.T) {
 			name: "Recursive",
 			tf: func(s *Store) func(t *testing.T) {
 				return func(t *testing.T) {
+					t.Helper()
 					sec := &secrets.Plain{}
 					sec.SetPassword("baz")
 					assert.NoError(t, s.Set(ctx, "foo/bar/baz", sec))
@@ -143,30 +159,38 @@ func TestMove(t *testing.T) {
 			},
 		},
 	} {
-		// common setup
-		tempdir, err := os.MkdirTemp("", "gopass-")
-		require.NoError(t, err)
+		tc := tc
 
-		s := &Store{
-			alias:   "",
-			path:    tempdir,
-			crypto:  plain.New(),
-			storage: fs.New(tempdir),
-		}
+		t.Run(tc.name, func(t *testing.T) {
+			// common setup
+			tempdir, err := os.MkdirTemp("", "gopass-")
+			require.NoError(t, err)
 
-		err = s.saveRecipients(ctx, []string{"john.doe"}, "test")
-		require.NoError(t, err)
+			defer func() {
+				obuf.Reset()
+				// common tear down
+				_ = os.RemoveAll(tempdir)
+			}()
 
-		// run test case
-		t.Run(tc.name, tc.tf(s))
+			s := &Store{
+				alias:   "",
+				path:    tempdir,
+				crypto:  plain.New(),
+				storage: fs.New(tempdir),
+			}
 
-		obuf.Reset()
-		// common tear down
-		_ = os.RemoveAll(tempdir)
+			err = s.saveRecipients(ctx, []string{"john.doe"}, "test")
+			require.NoError(t, err)
+
+			// run test case
+			t.Run(tc.name, tc.tf(s))
+		})
 	}
 }
 
 func TestDelete(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 	ctx = ctxutil.WithExportKeys(ctx, false)
 
@@ -176,7 +200,7 @@ func TestDelete(t *testing.T) {
 		out.Stdout = os.Stdout
 	}()
 
-	for _, tc := range []struct {
+	for _, tc := range []struct { //nolint:paralleltest
 		name string
 		tf   func(s *Store) func(t *testing.T)
 	}{
@@ -184,6 +208,7 @@ func TestDelete(t *testing.T) {
 			name: "Empty store",
 			tf: func(s *Store) func(t *testing.T) {
 				return func(t *testing.T) {
+					t.Helper()
 					assert.Error(t, s.Delete(ctx, "foo"))
 				}
 			},
@@ -192,6 +217,7 @@ func TestDelete(t *testing.T) {
 			name: "Single entry",
 			tf: func(s *Store) func(t *testing.T) {
 				return func(t *testing.T) {
+					t.Helper()
 					sec := &secrets.Plain{}
 					sec.SetPassword("bar")
 					assert.NoError(t, s.Set(ctx, "foo", sec))
@@ -202,30 +228,38 @@ func TestDelete(t *testing.T) {
 			},
 		},
 	} {
-		// common setup
-		tempdir, err := os.MkdirTemp("", "gopass-")
-		require.NoError(t, err)
+		tc := tc
 
-		s := &Store{
-			alias:   "",
-			path:    tempdir,
-			crypto:  plain.New(),
-			storage: fs.New(tempdir),
-		}
+		t.Run(tc.name, func(t *testing.T) {
+			// common setup
+			tempdir, err := os.MkdirTemp("", "gopass-")
+			require.NoError(t, err)
 
-		err = s.saveRecipients(ctx, []string{"john.doe"}, "test")
-		require.NoError(t, err)
+			defer func() {
+				obuf.Reset()
+				// common tear down
+				_ = os.RemoveAll(tempdir)
+			}()
 
-		// run test case
-		t.Run(tc.name, tc.tf(s))
+			s := &Store{
+				alias:   "",
+				path:    tempdir,
+				crypto:  plain.New(),
+				storage: fs.New(tempdir),
+			}
 
-		obuf.Reset()
-		// common tear down
-		_ = os.RemoveAll(tempdir)
+			err = s.saveRecipients(ctx, []string{"john.doe"}, "test")
+			require.NoError(t, err)
+
+			// run test case
+			t.Run(tc.name, tc.tf(s))
+		})
 	}
 }
 
 func TestPrune(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 	ctx = ctxutil.WithExportKeys(ctx, false)
 
@@ -235,7 +269,7 @@ func TestPrune(t *testing.T) {
 		out.Stdout = os.Stdout
 	}()
 
-	for _, tc := range []struct {
+	for _, tc := range []struct { //nolint:paralleltest
 		name string
 		tf   func(s *Store) func(t *testing.T)
 	}{
@@ -243,6 +277,7 @@ func TestPrune(t *testing.T) {
 			name: "Empty store",
 			tf: func(s *Store) func(t *testing.T) {
 				return func(t *testing.T) {
+					t.Helper()
 					assert.Error(t, s.Prune(ctx, "foo"))
 				}
 			},
@@ -251,6 +286,7 @@ func TestPrune(t *testing.T) {
 			name: "Single entry",
 			tf: func(s *Store) func(t *testing.T) {
 				return func(t *testing.T) {
+					t.Helper()
 					sec := &secrets.Plain{}
 					sec.SetPassword("bar")
 					assert.NoError(t, s.Set(ctx, "foo", sec))
@@ -265,6 +301,7 @@ func TestPrune(t *testing.T) {
 			name: "Multi entry nested",
 			tf: func(s *Store) func(t *testing.T) {
 				return func(t *testing.T) {
+					t.Helper()
 					sec := &secrets.Plain{}
 					sec.SetPassword("bar")
 					assert.NoError(t, s.Set(ctx, "foo/bar/baz", sec))
@@ -283,25 +320,31 @@ func TestPrune(t *testing.T) {
 			},
 		},
 	} {
-		// common setup
-		tempdir, err := os.MkdirTemp("", "gopass-")
-		require.NoError(t, err)
+		tc := tc
 
-		s := &Store{
-			alias:   "",
-			path:    tempdir,
-			crypto:  plain.New(),
-			storage: fs.New(tempdir),
-		}
+		t.Run(tc.name, func(t *testing.T) {
+			// common setup
+			tempdir, err := os.MkdirTemp("", "gopass-")
+			require.NoError(t, err)
 
-		err = s.saveRecipients(ctx, []string{"john.doe"}, "test")
-		assert.NoError(t, err)
+			defer func() {
+				obuf.Reset()
+				// common tear down
+				_ = os.RemoveAll(tempdir)
+			}()
 
-		// run test case
-		t.Run(tc.name, tc.tf(s))
+			s := &Store{
+				alias:   "",
+				path:    tempdir,
+				crypto:  plain.New(),
+				storage: fs.New(tempdir),
+			}
 
-		obuf.Reset()
-		// common tear down
-		_ = os.RemoveAll(tempdir)
+			err = s.saveRecipients(ctx, []string{"john.doe"}, "test")
+			assert.NoError(t, err)
+
+			// run test case
+			t.Run(tc.name, tc.tf(s))
+		})
 	}
 }

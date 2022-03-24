@@ -16,6 +16,7 @@ func detectBinary(_ context.Context, name string) (string, error) {
 	if name != "" {
 		return exec.LookPath(name)
 	}
+
 	// try to get the proper binary from gpgconf(1)
 	p, err := Path("gpg")
 	if err != nil || p == "" || !fsutil.IsFile(p) {
@@ -26,5 +27,6 @@ func detectBinary(_ context.Context, name string) (string, error) {
 	}
 
 	debug.Log("gpgconf returned %q for gpg", p)
+
 	return p, nil
 }

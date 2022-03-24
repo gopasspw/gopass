@@ -11,6 +11,7 @@ import (
 )
 
 // IsUpdateable returns an error if this binary is not updateable.
+//nolint:goerr113
 func IsUpdateable(ctx context.Context) error {
 	fn, err := executable(ctx)
 	if err != nil {
@@ -26,6 +27,7 @@ func IsUpdateable(ctx context.Context) error {
 	// check if we want to force updateability
 	if uf := os.Getenv("GOPASS_FORCE_UPDATE"); uf != "" {
 		debug.Log("updateable due to force flag")
+
 		return nil
 	}
 
@@ -37,11 +39,13 @@ func IsUpdateable(ctx context.Context) error {
 	// check file
 	fi, err := os.Stat(fn)
 	if err != nil {
-		return err
+		return err //nolint:wrapcheck
 	}
+
 	if !fi.Mode().IsRegular() {
 		return fmt.Errorf("not a regular file")
 	}
+
 	if err := canWrite(fn); err != nil {
 		return fmt.Errorf("can not write %q: %w", fn, err)
 	}
@@ -50,11 +54,13 @@ func IsUpdateable(ctx context.Context) error {
 	return nil
 }
 
+//nolint:wrapcheck
 var executable = func(ctx context.Context) (string, error) {
 	path, err := os.Executable()
 	if err != nil {
 		return path, err
 	}
 	path, err = filepath.EvalSymlinks(path)
+
 	return path, err
 }

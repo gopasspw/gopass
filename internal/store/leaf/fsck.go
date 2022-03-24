@@ -51,6 +51,7 @@ func (s *Store) Fsck(ctx context.Context, path string) error {
 		}
 		ctx := ctxutil.WithNoNetwork(ctx, true)
 		debug.Log("[%s] Checking %s", path, name)
+
 		if err := s.fsckCheckEntry(ctx, name); err != nil {
 			return fmt.Errorf("failed to check %q: %w", name, err)
 		}
@@ -118,12 +119,14 @@ func (s *Store) fsckCheckRecipients(ctx context.Context, name string) error {
 	if err != nil {
 		return fmt.Errorf("failed to read recipient IDs from raw secret: %w", err)
 	}
+
 	itemRecps = fingerprints(ctx, s.crypto, itemRecps)
 
 	perItemStoreRecps, err := s.GetRecipients(ctx, name)
 	if err != nil {
 		return fmt.Errorf("failed to get recipients from store: %w", err)
 	}
+
 	perItemStoreRecps = fingerprints(ctx, s.crypto, perItemStoreRecps)
 
 	// check itemRecps matches storeRecps
@@ -135,6 +138,7 @@ func (s *Store) fsckCheckRecipients(ctx context.Context, name string) error {
 	if len(extra) > 0 {
 		out.Errorf(ctx, "Extra recipients on %s: %+v\nRun fsck with the --decrypt flag to re-encrypt it automatically, or edit this secret yourself.", name, extra)
 	}
+
 	return nil
 }
 
@@ -143,6 +147,7 @@ func fingerprints(ctx context.Context, crypto backend.Crypto, in []string) []str
 	for _, r := range in {
 		out = append(out, crypto.Fingerprint(ctx, r))
 	}
+
 	return out
 }
 
@@ -156,6 +161,7 @@ func compareStringSlices(want, have []string) ([]string, []string) {
 	for _, w := range want {
 		wantMap[w] = struct{}{}
 	}
+
 	for _, h := range have {
 		haveMap[h] = struct{}{}
 	}
@@ -165,6 +171,7 @@ func compareStringSlices(want, have []string) ([]string, []string) {
 			missing = append(missing, k)
 		}
 	}
+
 	for k := range haveMap {
 		if _, found := wantMap[k]; !found {
 			extra = append(extra, k)

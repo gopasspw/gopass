@@ -20,6 +20,7 @@ func Example() {
 	if err != nil {
 		panic(err)
 	}
+
 	defer func() {
 		if err := tempfile.Remove(ctx); err != nil {
 			panic(err)
@@ -27,39 +28,50 @@ func Example() {
 	}()
 
 	fmt.Fprintln(tempfile, "foobar")
+
 	if err := tempfile.Close(); err != nil {
 		panic(err)
 	}
+
 	out, err := os.ReadFile(tempfile.Name())
 	if err != nil {
 		panic(err)
 	}
+
 	fmt.Println(string(out))
 }
 
 func TestTempdirBase(t *testing.T) {
+	t.Parallel()
+
 	tempdir, err := os.MkdirTemp(tempdirBase(), "gopass-")
 	assert.NoError(t, err)
+
 	defer func() {
 		_ = os.RemoveAll(tempdir)
 	}()
 }
 
-func TestTempdirBaseEmpty(t *testing.T) {
+func TestTempdirBaseEmpty(t *testing.T) { //nolint:paralleltest
 	oldShm := shmDir
 	defer func() {
 		shmDir = oldShm
 	}()
+
 	shmDir = "/this/should/not/exist"
+
 	assert.Equal(t, "", tempdirBase())
 }
 
 func TestTempFiler(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	// regular tempfile
 	tf, err := New(ctx, "gp-test-")
 	require.NoError(t, err)
+
 	defer func() {
 		assert.NoError(t, tf.Close())
 	}()
@@ -77,34 +89,42 @@ func TestTempFiler(t *testing.T) {
 	assert.NoError(t, utf.Close())
 }
 
-func TestGlobalPrefix(t *testing.T) {
+func TestGlobalPrefix(t *testing.T) { //nolint:paralleltest
 	assertPrefix := func(file *File, prefix string) {
 		requirePrefix := filepath.Join(tempdirBase(), prefix)
 		fileOrDirName := file.Name()
+
 		if runtime.GOOS != "linux" {
 			dir := filepath.Dir(fileOrDirName)
 			fileOrDirName = filepath.Base(dir)
 		}
+
 		assert.True(t, strings.HasPrefix(fileOrDirName, requirePrefix))
 	}
 	ctx := context.Background()
+
 	assert.Equal(t, "", globalPrefix)
 
 	// without global prefix
 	withoutGlobalPrefix, err := New(ctx, "some-prefix")
 	assert.NoError(t, err)
+
 	defer func() {
 		assert.NoError(t, withoutGlobalPrefix.Close())
 	}()
+
 	assertPrefix(withoutGlobalPrefix, "some-prefix")
 
 	// with global prefix
 	globalPrefix = "global-prefix."
 	withGlobalPrefix, err := New(ctx, "some-prefix")
 	assert.NoError(t, err)
+
 	defer func() {
 		globalPrefix = ""
+
 		assert.NoError(t, withGlobalPrefix.Close())
 	}()
+
 	assertPrefix(withGlobalPrefix, "global-prefix.some-prefix")
 }

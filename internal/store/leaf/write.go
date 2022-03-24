@@ -33,6 +33,7 @@ func (s *Store) Set(ctx context.Context, name string, sec gopass.Byter) error {
 	ciphertext, err := s.crypto.Encrypt(ctx, sec.Bytes(), recipients)
 	if err != nil {
 		debug.Log("Failed encrypt secret: %s", err)
+
 		return store.ErrEncrypt
 	}
 
@@ -45,6 +46,7 @@ func (s *Store) Set(ctx context.Context, name string, sec gopass.Byter) error {
 	// at the end of the batch processing.
 	if IsNoGitOps(ctx) {
 		debug.Log("sub.Set(%s) - skipping git ops (disabled)")
+
 		return nil
 	}
 
@@ -52,6 +54,7 @@ func (s *Store) Set(ctx context.Context, name string, sec gopass.Byter) error {
 		if errors.Is(err, store.ErrGitNotInit) {
 			return nil
 		}
+
 		return fmt.Errorf("failed to add %q to git: %w", p, err)
 	}
 
@@ -64,6 +67,7 @@ func (s *Store) Set(ctx context.Context, name string, sec gopass.Byter) error {
 	t := queue.GetQueue(ctx).Add(func(ctx context.Context) error {
 		return s.gitCommitAndPush(ctx, name)
 	})
+
 	return t(ctx)
 }
 
@@ -80,21 +84,28 @@ func (s *Store) gitCommitAndPush(ctx context.Context, name string) error {
 	}
 
 	debug.Log("syncing with remote ...")
+
 	if err := s.storage.Push(ctx, "", ""); err != nil {
 		if errors.Is(err, store.ErrGitNotInit) {
 			msg := "Warning: git is not initialized for this.storage. Ignoring auto-push option\n" +
 				"Run: gopass git init"
 			out.Errorf(ctx, msg)
+
 			return nil
 		}
+
 		if errors.Is(err, store.ErrGitNoRemote) {
 			msg := "Warning: git has no remote. Ignoring auto-push option\n" +
 				"Run: gopass git remote add origin ..."
 			debug.Log(msg)
+
 			return nil
 		}
+
 		return fmt.Errorf("failed to push to git remote: %w", err)
 	}
+
 	debug.Log("synced with remote")
+
 	return nil
 }

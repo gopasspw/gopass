@@ -16,27 +16,32 @@ import (
 // ListRecipients lists all recipients for the given store.
 func (r *Store) ListRecipients(ctx context.Context, store string) []string {
 	sub, _ := r.getStore(store)
+
 	return sub.Recipients(ctx)
 }
 
 // AddRecipient adds a single recipient to the given store.
 func (r *Store) AddRecipient(ctx context.Context, store, rec string) error {
 	sub, _ := r.getStore(store)
+
 	return sub.AddRecipient(ctx, rec)
 }
 
 // RemoveRecipient removes a single recipient from the given store.
 func (r *Store) RemoveRecipient(ctx context.Context, store, rec string) error {
 	sub, _ := r.getStore(store)
+
 	return sub.RemoveRecipient(ctx, rec)
 }
 
 func (r *Store) addRecipient(ctx context.Context, prefix string, root *tree.Root, recp string, pretty bool) error {
 	sub, _ := r.getStore(prefix)
 	key := fmt.Sprintf("%s (missing public key)", recp)
+
 	if v := sub.Crypto().FormatKey(ctx, recp, ""); v != "" {
 		key = v
 	}
+
 	kl, err := sub.Crypto().FindRecipients(ctx, recp)
 	if err == nil {
 		if len(kl) > 0 {
@@ -87,6 +92,7 @@ func (r *Store) RecipientsTree(ctx context.Context, pretty bool) (*tree.Root, er
 		if name != "" {
 			name += "/"
 		}
+
 		for _, recp := range recps {
 			if err := r.addRecipient(ctx, name, root, recp, pretty); err != nil {
 				color.Yellow("Failed to add recipient to tree %s: %s", recp, err)
@@ -96,6 +102,7 @@ func (r *Store) RecipientsTree(ctx context.Context, pretty bool) (*tree.Root, er
 
 	mps := r.MountPoints()
 	sort.Sort(store.ByPathLen(mps))
+
 	for _, alias := range mps {
 		substore := r.mounts[alias]
 
@@ -103,13 +110,16 @@ func (r *Store) RecipientsTree(ctx context.Context, pretty bool) (*tree.Root, er
 		if substore == nil {
 			continue
 		}
+
 		if err := root.AddMount(alias, substore.Path()); err != nil {
 			return nil, fmt.Errorf("failed to add mount: %w", err)
 		}
+
 		for name, recps := range substore.RecipientsTree(ctx) {
 			if name != "" {
 				name += "/"
 			}
+
 			for _, recp := range recps {
 				if err := r.addRecipient(ctx, alias+"/"+name, root, recp, pretty); err != nil {
 					debug.Log("Failed to add recipient to tree %s: %s", recp, err)

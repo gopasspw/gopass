@@ -8,6 +8,8 @@ import (
 )
 
 func TestArgon2ID(t *testing.T) {
+	t.Parallel()
+
 	pw := "foobar"
 	hash, err := Generate(pw, 0)
 	require.NoError(t, err)

@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestList(t *testing.T) {
+func TestList(t *testing.T) { //nolint:paralleltest
 	ts := newTester(t)
 	defer ts.teardown()
 
@@ -54,6 +54,8 @@ foo/
 
 // regression test for #1628.
 func TestListRegressions1628(t *testing.T) {
+	t.Parallel()
+
 	ts := newTester(t)
 	defer ts.teardown()
 
@@ -70,6 +72,7 @@ func TestListRegressions1628(t *testing.T) {
 
 	out, err = ts.run("list")
 	assert.NoError(t, err)
+
 	exp := `gopass
 └── misc/
     ├── file1

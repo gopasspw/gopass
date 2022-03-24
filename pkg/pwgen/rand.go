@@ -19,6 +19,8 @@ func randomInteger(max int) int {
 	if err == nil {
 		return int(i.Int64())
 	}
+
 	fmt.Fprintln(os.Stderr, "WARNING: No crypto/rand available. Falling back to PRNG")
+
 	return rand.Intn(max)
 }

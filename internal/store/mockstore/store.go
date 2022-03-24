@@ -63,7 +63,7 @@ func (m *MockStore) SetTemplate(context.Context, string, []byte) error {
 
 // TemplateTree does nothing.
 func (m *MockStore) TemplateTree(context.Context) (*tree.Root, error) {
-	return nil, nil
+	return nil, fmt.Errorf("not supported")
 }
 
 // AddRecipient does nothing.
@@ -73,7 +73,7 @@ func (m *MockStore) AddRecipient(context.Context, string) error {
 
 // GetRecipients does nothing.
 func (m *MockStore) GetRecipients(context.Context, string) ([]string, error) {
-	return nil, nil
+	return nil, fmt.Errorf("not supported")
 }
 
 // RemoveRecipient does nothing.
@@ -142,6 +142,7 @@ func (m *MockStore) Copy(ctx context.Context, from string, to string) error {
 	if err != nil {
 		return err
 	}
+
 	return m.storage.Set(ctx, to, content)
 }
 
@@ -166,6 +167,7 @@ func (m *MockStore) Get(ctx context.Context, name string) (gopass.Secret, error)
 	if err != nil {
 		return nil, err
 	}
+
 	return secparse.Parse(content)
 }
 
@@ -202,7 +204,8 @@ func (m *MockStore) ListRevisions(context.Context, string) ([]backend.Revision, 
 // Move does nothing.
 func (m *MockStore) Move(ctx context.Context, from string, to string) error {
 	content, _ := m.storage.Get(ctx, from)
-	m.storage.Set(ctx, to, content)
+	_ = m.storage.Set(ctx, to, content)
+
 	return m.storage.Delete(ctx, from)
 }
 

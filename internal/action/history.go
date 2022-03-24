@@ -42,5 +42,6 @@ func (s *Action) History(c *cli.Context) error {
 		}
 		out.Printf(ctx, "%s - %s <%s> - %s - %s%s\n", rev.Hash, rev.AuthorName, rev.AuthorEmail, rev.Date.Format(time.RFC3339), rev.Subject, pw)
 	}
+
 	return nil
 }

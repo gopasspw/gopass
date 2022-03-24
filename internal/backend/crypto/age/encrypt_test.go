@@ -14,6 +14,8 @@ import (
 )
 
 func TestDedupe(t *testing.T) {
+	t.Parallel()
+
 	i1, err := age.GenerateX25519Identity()
 	require.NoError(t, err)
 

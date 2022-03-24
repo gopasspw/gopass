@@ -27,9 +27,11 @@ func (r *Store) addMount(ctx context.Context, alias, path string, keys ...string
 	if alias == "" {
 		return fmt.Errorf("alias must not be empty")
 	}
+
 	if r.mounts == nil {
 		r.mounts = make(map[string]*leaf.Store, 1)
 	}
+
 	if _, found := r.mounts[alias]; found {
 		return AlreadyMountedError(alias)
 	}
@@ -47,9 +49,11 @@ func (r *Store) addMount(ctx context.Context, alias, path string, keys ...string
 	if r.cfg.Mounts == nil {
 		r.cfg.Mounts = make(map[string]string, 1)
 	}
+
 	r.cfg.Mounts[alias] = path
 
 	debug.Log("Added mount %s -> %s (%s)", alias, path, fullPath)
+
 	return nil
 }
 
@@ -65,17 +69,21 @@ func (r *Store) initSub(ctx context.Context, alias, path string, keys []string) 
 	}
 
 	debug.Log("[%s] Mount %s is not initialized", alias, path)
+
 	if len(keys) < 1 {
 		debug.Log("[%s] No keys available", alias)
+
 		return s, NotInitializedError{alias, path}
 	}
 
 	debug.Log("[%s] Trying to initialize at %s for %+v", alias, path, keys)
+
 	if err := s.Init(ctx, path, keys...); err != nil {
 		return s, fmt.Errorf("failed to initialize store %q at %q: %w", alias, path, err)
 	}
 
 	out.Printf(ctx, "Password store %s initialized for:", path)
+
 	for _, r := range s.Recipients(ctx) {
 		out.Noticef(ctx, "  %s", r)
 	}
@@ -88,11 +96,14 @@ func (r *Store) RemoveMount(ctx context.Context, alias string) error {
 	if _, found := r.mounts[alias]; !found {
 		out.Warningf(ctx, "%s is not mounted", alias)
 	}
+
 	if _, found := r.mounts[alias]; !found {
 		out.Warningf(ctx, "%s is not initialized", alias)
 	}
+
 	delete(r.mounts, alias)
 	delete(r.cfg.Mounts, alias)
+
 	return nil
 }
 
@@ -102,6 +113,7 @@ func (r *Store) Mounts() map[string]string {
 	for alias, sub := range r.mounts {
 		m[alias] = sub.Path()
 	}
+
 	return m
 }
 
@@ -113,7 +125,9 @@ func (r *Store) MountPoints() []string {
 	for k := range r.mounts {
 		mps = append(mps, k)
 	}
+
 	sort.Sort(sort.Reverse(store.ByPathLen(mps)))
+
 	return mps
 }
 
@@ -124,6 +138,7 @@ func (r *Store) MountPoint(name string) string {
 			return mp
 		}
 	}
+
 	return ""
 }
 
@@ -135,6 +150,7 @@ func (r *Store) Lock() error {
 			return err
 		}
 	}
+
 	return r.store.Lock()
 }
 
@@ -143,9 +159,11 @@ func (r *Store) Lock() error {
 func (r *Store) getStore(name string) (*leaf.Store, string) {
 	name = strings.TrimSuffix(name, "/")
 	mp := r.MountPoint(name)
+
 	if sub, found := r.mounts[mp]; found {
 		return sub, strings.TrimPrefix(name, sub.Alias())
 	}
+
 	return r.store, name
 }
 
@@ -155,11 +173,13 @@ func (r *Store) GetSubStore(name string) (*leaf.Store, error) {
 	if name == "" {
 		return r.store, nil
 	}
+
 	if sub, found := r.mounts[name]; found {
 		return sub, nil
 	}
 
 	debug.Log("mounts available: %+v", r.mounts)
+
 	return nil, fmt.Errorf("no such mount point %q", name)
 }
 
@@ -171,7 +191,9 @@ func (r *Store) checkMounts() error {
 		if _, found := paths[v.Path()]; found {
 			return fmt.Errorf("doubly mounted path at %s: %s", v.Path(), k)
 		}
+
 		paths[v.Path()] = k
 	}
+
 	return nil
 }

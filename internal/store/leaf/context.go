@@ -34,6 +34,7 @@ func IsFsckCheck(ctx context.Context) bool {
 	if !ok {
 		return false
 	}
+
 	return bv
 }
 
@@ -54,6 +55,7 @@ func IsFsckForce(ctx context.Context) bool {
 	if !ok {
 		return false
 	}
+
 	return bv
 }
 
@@ -65,6 +67,7 @@ func WithFsckFunc(ctx context.Context, imf store.FsckCallback) context.Context {
 // HasFsckFunc returns true if a fsck func has been set in this context.
 func HasFsckFunc(ctx context.Context) bool {
 	imf, ok := ctx.Value(ctxKeyFsckFunc).(store.FsckCallback)
+
 	return ok && imf != nil
 }
 
@@ -78,6 +81,7 @@ func GetFsckFunc(ctx context.Context) store.FsckCallback {
 			return true
 		}
 	}
+
 	return imf
 }
 
@@ -100,6 +104,7 @@ func IsCheckRecipients(ctx context.Context) bool {
 	if !ok {
 		return false
 	}
+
 	return bv
 }
 
@@ -131,6 +136,7 @@ func IsNoGitOps(ctx context.Context) bool {
 // the provided context.
 func hasBool(ctx context.Context, key contextKey) bool {
 	_, ok := ctx.Value(key).(bool)
+
 	return ok
 }
 
@@ -141,5 +147,6 @@ func is(ctx context.Context, key contextKey, def bool) bool {
 	if !ok {
 		return def
 	}
+
 	return bv
 }

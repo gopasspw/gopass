@@ -12,10 +12,13 @@ import (
 )
 
 func TestSet(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	tempdir, err := os.MkdirTemp("", "gopass-")
 	require.NoError(t, err)
+
 	defer func() {
 		_ = os.RemoveAll(tempdir)
 	}()
@@ -27,10 +30,12 @@ func TestSet(t *testing.T) {
 	sec.SetPassword("foo")
 	sec.WriteString("bar")
 	require.NoError(t, s.Set(ctx, "zab/zab", sec))
+
 	if runtime.GOOS != "windows" {
 		assert.Error(t, s.Set(ctx, "../../../../../etc/passwd", sec))
 	} else {
 		assert.NoError(t, s.Set(ctx, "../../../../../etc/passwd", sec))
 	}
+
 	assert.NoError(t, s.Set(ctx, "zab", sec))
 }

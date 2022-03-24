@@ -23,6 +23,7 @@ func (s *Store) Fsck(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+
 	dirs := make(map[string]struct{}, len(entries))
 	for _, entry := range entries {
 		pcb()
@@ -53,6 +54,7 @@ func (s *Store) Fsck(ctx context.Context) error {
 	}
 
 	debug.Log("checking git config")
+
 	return s.InitConfig(ctx, termio.DetectName(ctx, nil), termio.DetectEmail(ctx, nil))
 }
 
@@ -73,6 +75,7 @@ func (s *Store) fsckCheckFile(ctx context.Context, filename string) error {
 	if err := syscall.Chmod(filename, np); err != nil {
 		out.Errorf(ctx, "  Failed to set permissions for %s to rw-------: %s", filename, err)
 	}
+
 	return nil
 }
 
@@ -101,8 +104,10 @@ func (s *Store) fsckCheckDir(ctx context.Context, dirname string) error {
 	}
 	if isEmpty {
 		out.Errorf(ctx, "Folder %s is empty. Removing", dirname)
+
 		return os.Remove(dirname)
 	}
+
 	return nil
 }
 
@@ -125,6 +130,7 @@ func (s *Store) fsckCheckEmptyDirs() error {
 		// add candidate
 		debug.Log("adding candidate %q", fp)
 		v = append(v, fp)
+
 		return nil
 	}); err != nil {
 		return err
@@ -140,6 +146,7 @@ func (s *Store) fsckCheckEmptyDirs() error {
 			return err
 		}
 	}
+
 	return nil
 }
 
@@ -150,9 +157,11 @@ func fsckRemoveEmptyDir(fp string) error {
 	}
 	if len(ls) > 0 {
 		debug.Log("dir %q is not empty (%d)", fp, len(ls))
+
 		return nil
 	}
 
 	debug.Log("removing %q ...", fp)
+
 	return os.Remove(fp)
 }

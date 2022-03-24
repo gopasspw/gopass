@@ -1,62 +1,68 @@
+run:
+  skip-dirs:
+    - helpers/
+  go: 1.18
+
 linters-settings:
   gocyclo:
     min-complexity: 22
+  cyclop:
+    max-complexity: 22
+    skip-tests: true
   staticcheck:
     go: "1.18"
     # https://staticcheck.io/docs/options#checks
     checks: ["all","-SA1019"]
+  funlen:
+    lines: -1
+    statements: 100
 
 linters:
-  disable-all: true
-
-  enable:
-        - asciicheck
-        - forcetypeassert
-        - gci
-        # - gocyclo # need to refactor internal/create/wizard
-        - gofmt
-        - gomoddirectives
-        - gomodguard
-        - goprintffuncname
-        - ifshort
-        - ineffassign
-        - misspell
-        - nakedret
-        - nolintlint
-        - prealloc
-        - predeclared
-        - godot
-        - nestif
-        #- revive # currently a bit buggy with Go 1.18 but works mostly
-        ## To enable once they work with Go 1.18:
-        ### - deadcode
-        ### - depguard
-        ### - durationcheck
-        ### - errcheck
-        ### - errorlint
-        ### - exhaustive
-        ### - exportloopref
-        ### - gocritic
-        ### - goerr113
-        ### - gosec
-        ### - gosimple
-        ### - govet
-        ### - importas
-        ### - makezero
-        ### - nilerr
-        ### - rowserrcheck
-        ### - staticcheck
-        ### - structcheck
-        ### - stylecheck
-        ### - thelper
-        ### - tparallel
-        ### - typecheck
-        ### - unconvert
-        ### - unparam
-        ### - unused
-        ### - varcheck
-        ### - wastedassign
-        ### - wrapcheck
+  enable-all: true
+  disable:
+  - bodyclose
+  - contextcheck
+  - durationcheck
+  - dupl
+  - exhaustivestruct
+  - forbidigo
+  - gochecknoglobals
+  - gochecknoinits
+  - gocognit
+  - goconst
+  - gocritic
+  - gocyclo
+  - godox
+  - goerr113
+  - golint
+  - gomnd
+  - gosec
+  - gosimple
+  - govet
+  - interfacer
+  - ireturn
+  - lll
+  - maintidx
+  - maligned
+  - nilerr
+  - noctx
+  - revive
+  - rowserrcheck
+  - scopelint
+  - sqlclosecheck
+  - staticcheck
+  - structcheck
+  - stylecheck
+  - tagliatelle
+  - testpackage
+  - tparallel
+  - typecheck
+  - unparam
+  - unused
+  - varnamelen
+  - wastedassign
+  - wrapcheck
+  - wsl
 
 issues:
   exclude-use-default: false # disable filtering of defaults for better zero-issue policy

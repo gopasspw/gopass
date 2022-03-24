@@ -54,16 +54,19 @@ func main() {
 	if err := protect.Pledge("stdio rpath wpath cpath tty proc exec"); err != nil {
 		panic(err)
 	}
+
 	ctx := context.Background()
 
 	// trap Ctrl+C and call cancel on the context
 	ctx, cancel := context.WithCancel(ctx)
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, os.Interrupt)
+
 	defer func() {
 		signal.Stop(sigChan)
 		cancel()
 	}()
+
 	go func() {
 		select {
 		case <-sigChan:
@@ -82,15 +85,18 @@ func main() {
 	q := queue.New(ctx)
 	ctx = queue.WithQueue(ctx, q)
 	ctx, app := setupApp(ctx, sv)
+
 	if err := app.RunContext(ctx, os.Args); err != nil {
 		log.Fatal(err)
 	}
+
 	// process all pending queue items
-	q.Close(ctx)
+	_ = q.Close(ctx)
+
 	writeMemProfile()
-	// done
 }
 
+//nolint:wrapcheck
 func setupApp(ctx context.Context, sv semver.Version) (context.Context, *cli.App) {
 	// try to read config (if it exists)
 	cfg := config.LoadWithFallback()
@@ -109,6 +115,7 @@ func setupApp(ctx context.Context, sv semver.Version) (context.Context, *cli.App
 	if !cfg.AutoImport {
 		ctx = ctxutil.WithImportFunc(ctx, termio.AskForKeyImport)
 	}
+
 	ctx = leaf.WithFsckFunc(ctx, termio.AskForConfirmation)
 
 	app := cli.NewApp()
@@ -131,10 +138,12 @@ func setupApp(ctx context.Context, sv semver.Version) (context.Context, *cli.App
 		if c.Args().Present() {
 			return action.Show(c)
 		}
+
 		return action.REPL(c)
 	}
 
 	app.Commands = getCommands(action, app)
+
 	return ctx, app
 }
 
@@ -153,26 +162,28 @@ func getCommands(action *ap.Action, app *cli.App) []*cli.Command {
 				Name:  "zsh",
 				Usage: "Source for auto completion in zsh",
 				Action: func(c *cli.Context) error {
-					return action.CompletionZSH(app)
+					return action.CompletionZSH(app) //nolint:wrapcheck
 				},
 			}, {
 				Name:  "fish",
 				Usage: "Source for auto completion in fish",
 				Action: func(c *cli.Context) error {
-					return action.CompletionFish(app)
+					return action.CompletionFish(app) //nolint:wrapcheck
 				},
 			}, {
 				Name:  "openbsdksh",
 				Usage: "Source for auto completion in OpenBSD's ksh",
 				Action: func(c *cli.Context) error {
-					return action.CompletionOpenBSDKsh(app)
+					return action.CompletionOpenBSDKsh(app) //nolint:wrapcheck
 				},
 			}},
 		},
 	}
+
 	cmds = append(cmds, action.GetCommands()...)
 	cmds = append(cmds, pwgen.GetCommands()...)
 	sort.Slice(cmds, func(i, j int) bool { return cmds[i].Name < cmds[j].Name })
+
 	return cmds
 }
 
@@ -181,11 +192,13 @@ func parseBuildInfo() (string, string, string) {
 	if !ok {
 		return "HEAD", "", ""
 	}
+
 	var (
 		commit string
 		date   string
 		dirty  string
 	)
+
 	for _, v := range bi.Settings {
 		switch v.Key {
 		case "gitrevision":
@@ -200,6 +213,7 @@ func parseBuildInfo() (string, string, string) {
 			}
 		}
 	}
+
 	return commit, date, dirty
 }
 
@@ -207,18 +221,23 @@ func makeVersionPrinter(out io.Writer, sv semver.Version) func(c *cli.Context) {
 	return func(c *cli.Context) {
 		commit, buildtime, dirty := parseBuildInfo()
 		buildInfo := ""
+
 		if commit != "" {
 			buildInfo = commit + dirty
 		}
+
 		if buildtime != "" {
 			if buildInfo != "" {
 				buildInfo += " "
 			}
+
 			buildInfo += buildtime
 		}
+
 		if buildInfo != "" {
 			buildInfo = "(" + buildInfo + ") "
 		}
+
 		fmt.Fprintf(
 			out,
 			"%s %s %s%s %s %s\n",
@@ -237,7 +256,7 @@ type errorWriter struct {
 }
 
 func (e errorWriter) Write(p []byte) (int, error) {
-	return e.out.Write([]byte("\n" + color.RedString("Error: %s", p)))
+	return e.out.Write([]byte("\n" + color.RedString("Error: %s", p))) //nolint:wrapcheck
 }
 
 func initContext(ctx context.Context, cfg *config.Config) context.Context {
@@ -293,7 +312,9 @@ func writeCPUProfile() func() {
 
 	return func() {
 		pprof.StopCPUProfile()
-		f.Close()
+
+		_ = f.Close()
+
 		debug.Log("wrote CPU profile to %s", cp)
 	}
 }
@@ -303,15 +324,21 @@ func writeMemProfile() {
 	if mp == "" {
 		return
 	}
+
 	f, err := os.Create(mp)
 	if err != nil {
 		log.Fatalf("could not write mem profile to %s: %s", mp, err)
 	}
-	defer f.Close()
+
+	defer func() {
+		_ = f.Close()
+	}()
 
 	runtime.GC() // get up-to-date statistics
+
 	if err := pprof.WriteHeapProfile(f); err != nil {
 		log.Fatalf("could not write heap profile: %s", err)
 	}
+
 	debug.Log("wrote heap profile to %s", mp)
 }

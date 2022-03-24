@@ -11,11 +11,11 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestHomedir(t *testing.T) {
+func TestHomedir(t *testing.T) { //nolint:paralleltest
 	assert.NotEqual(t, config.Homedir(), "")
 }
 
-func TestNewConfig(t *testing.T) {
+func TestNewConfig(t *testing.T) { //nolint:paralleltest
 	assert.NoError(t, os.Setenv("GOPASS_CONFIG", filepath.Join(os.TempDir(), ".gopass.yml")))
 
 	cfg := config.New()
@@ -34,7 +34,7 @@ func TestNewConfig(t *testing.T) {
 	assert.Contains(t, cs, `SafeContent:false, Mounts:map[string]string{"bar":"", "foo":""},`)
 }
 
-func TestSetConfigValue(t *testing.T) {
+func TestSetConfigValue(t *testing.T) { //nolint:paralleltest
 	assert.NoError(t, os.Setenv("GOPASS_CONFIG", filepath.Join(os.TempDir(), ".gopass.yml")))
 
 	cfg := config.New()

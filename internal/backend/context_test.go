@@ -8,6 +8,8 @@ import (
 )
 
 func TestCryptoBackend(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	assert.Equal(t, GPGCLI, GetCryptoBackend(ctx))
@@ -17,6 +19,8 @@ func TestCryptoBackend(t *testing.T) {
 }
 
 func TestStorageBackend(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	assert.Equal(t, "fs", StorageBackendName(FS))
@@ -27,6 +31,8 @@ func TestStorageBackend(t *testing.T) {
 }
 
 func TestComposite(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 	ctx = WithCryptoBackend(ctx, Age)
 	ctx = WithStorageBackend(ctx, FS)

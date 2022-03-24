@@ -74,6 +74,7 @@ func New(ctx context.Context, cfg Config) (*GPG, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to detect binary: %w", err)
 	}
+
 	g.binary = bin
 	debug.Log("binary detected as %s", bin)
 
@@ -111,5 +112,6 @@ func (g *GPG) Binary() string {
 	if g == nil {
 		return ""
 	}
+
 	return g.binary
 }

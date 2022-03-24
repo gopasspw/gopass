@@ -18,11 +18,13 @@ func (a *Age) FindRecipients(ctx context.Context, search ...string) ([]string, e
 	for _, key := range search {
 		if !strings.HasPrefix(key, "github:") {
 			local = append(local, key)
+
 			continue
 		}
 		pks, err := a.ghCache.ListKeys(ctx, strings.TrimPrefix(key, "github:"))
 		if err != nil {
 			debug.Log("Failed to get key %s from github: %s", key, err)
+
 			continue
 		}
 		remote = append(remote, pks...)
@@ -41,6 +43,7 @@ func (a *Age) FindRecipients(ctx context.Context, search ...string) ([]string, e
 	}
 	recp := append(ids, remote...)
 	debug.Log("found usable keys for %q: %q (all: %q)", search, recp, append(ids, remote...))
+
 	return recp, nil
 }
 
@@ -51,18 +54,22 @@ func (a *Age) parseRecipients(ctx context.Context, recipients []string) ([]age.R
 			id, err := age.ParseX25519Recipient(r)
 			if err != nil {
 				debug.Log("Failed to parse recipient %q as X25519: %s", r, err)
+
 				continue
 			}
 			out = append(out, id)
+
 			continue
 		}
 		if strings.HasPrefix(r, "ssh-") {
 			id, err := agessh.ParseRecipient(r)
 			if err != nil {
 				debug.Log("Failed to parse recipient %q as SSH: %s", r, err)
+
 				continue
 			}
 			out = append(out, id)
+
 			continue
 		}
 		if strings.HasPrefix(r, "github:") {
@@ -74,11 +81,13 @@ func (a *Age) parseRecipients(ctx context.Context, recipients []string) ([]age.R
 				id, err := agessh.ParseRecipient(r)
 				if err != nil {
 					debug.Log("Failed to parse GitHub recipient %q: %q: %s", r, pk, err)
+
 					continue
 				}
 				out = append(out, id)
 			}
 		}
 	}
+
 	return out, nil
 }

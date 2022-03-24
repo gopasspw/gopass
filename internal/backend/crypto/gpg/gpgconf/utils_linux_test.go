@@ -10,6 +10,8 @@ import (
 )
 
 func TestTTY(t *testing.T) {
+	t.Parallel()
+
 	fd0 = "/tmp/foobar"
 	assert.Equal(t, "", TTY())
 }

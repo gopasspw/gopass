@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestSingleMount(t *testing.T) {
+func TestSingleMount(t *testing.T) { //nolint:paralleltest
 	ts := newTester(t)
 	defer ts.teardown()
 
@@ -22,6 +22,7 @@ func TestSingleMount(t *testing.T) {
 
 	out, err = ts.run("mounts")
 	assert.NoError(t, err)
+
 	want := "gopass (" + ts.storeDir("root") + ")\n"
 	want += "└── mnt/\n    └── m1 (" + ts.storeDir("m1") + ")"
 	assert.Equal(t, strings.TrimSpace(want), out)
@@ -56,7 +57,7 @@ gopass
 	assert.Equal(t, strings.TrimSpace(list), out)
 }
 
-func TestMountShadowing(t *testing.T) {
+func TestMountShadowing(t *testing.T) { //nolint:paralleltest
 	ts := newTester(t)
 	defer ts.teardown()
 
@@ -78,6 +79,7 @@ func TestMountShadowing(t *testing.T) {
 	// check the mount is there
 	out, err = ts.run("mounts")
 	assert.NoError(t, err)
+
 	want := "gopass (" + ts.storeDir("root") + ")\n"
 	want += "└── mnt/\n    └── m1 (" + ts.storeDir("m1") + ")"
 	assert.Equal(t, strings.TrimSpace(want), out)
@@ -150,7 +152,7 @@ gopass
 	assert.Equal(t, "moar", out)
 }
 
-func TestMultiMount(t *testing.T) {
+func TestMultiMount(t *testing.T) { //nolint:paralleltest
 	ts := newTester(t)
 	defer ts.teardown()
 

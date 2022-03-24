@@ -32,6 +32,7 @@ func iconURI() string {
 		if err = bindataWrite(assetLogoSmallPng(), fh); err != nil {
 			return ""
 		}
+
 		if err = fh.Close(); err != nil {
 			return ""
 		}
@@ -40,6 +41,7 @@ func iconURI() string {
 	if fsutil.IsFile(iconFN) {
 		return "file://" + iconFN
 	}
+
 	return ""
 }
 
@@ -53,6 +55,7 @@ func bindataWrite(in []byte, out io.Writer) error {
 	}()
 
 	_, err = io.Copy(out, gz)
+
 	return err
 }
 

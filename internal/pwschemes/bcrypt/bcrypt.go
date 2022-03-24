@@ -1,6 +1,7 @@
 package bcrypt
 
 import (
+	"fmt"
 	"strings"
 
 	"golang.org/x/crypto/bcrypt"
@@ -18,7 +19,7 @@ var Prefix = "{BLF-CRYPT}"
 func Generate(password string) (string, error) {
 	h, err := bcrypt.GenerateFromPassword([]byte(password), cost)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to generate password hash: %w", err)
 	}
 
 	return Prefix + string(h), nil
@@ -27,5 +28,10 @@ func Generate(password string) (string, error) {
 // Validate validates the password against the given hash.
 func Validate(password, hash string) error {
 	hash = strings.TrimPrefix(hash, Prefix)
-	return bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+
+	if err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password)); err != nil {
+		return fmt.Errorf("failed to validate password hash %s: %w", hash, err)
+	}
+
+	return nil
 }

@@ -15,6 +15,7 @@ func GPGOpts() []string {
 			return strings.Fields(opts)
 		}
 	}
+
 	return nil
 }
 
@@ -25,6 +26,7 @@ func gpgConfigLoc() string {
 	}
 
 	uhd, _ := os.UserHomeDir()
+
 	return filepath.Join(uhd, ".gnupg", "gpg.conf")
 }
 
@@ -34,7 +36,9 @@ func Config() (map[string]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer fh.Close()
+	defer func() {
+		_ = fh.Close()
+	}()
 
 	return parseGpgConfig(fh)
 }
@@ -48,6 +52,7 @@ func parseGpgConfig(fh io.Reader) (map[string]string, error) {
 		if strings.HasPrefix(line, "#") {
 			continue
 		}
+
 		key, val, found := strings.Cut(line, " ")
 		if !found {
 			continue

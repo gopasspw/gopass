@@ -21,6 +21,7 @@ func IsAlwaysTrust(ctx context.Context) bool {
 	if !ok {
 		return false
 	}
+
 	return bv
 }
 
@@ -35,5 +36,6 @@ func UseCache(ctx context.Context) bool {
 	if !ok {
 		return false
 	}
+
 	return nc
 }

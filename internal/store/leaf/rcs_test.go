@@ -13,10 +13,13 @@ import (
 )
 
 func TestGit(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	tempdir, err := os.MkdirTemp("", "gopass-")
 	require.NoError(t, err)
+
 	defer func() {
 		_ = os.RemoveAll(tempdir)
 	}()
@@ -43,6 +46,8 @@ func TestGit(t *testing.T) {
 }
 
 func TestGitRevisions(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	tempdir, err := os.MkdirTemp("", "gopass-")

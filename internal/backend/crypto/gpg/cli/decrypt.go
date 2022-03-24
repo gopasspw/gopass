@@ -17,5 +17,6 @@ func (g *GPG) Decrypt(ctx context.Context, ciphertext []byte) ([]byte, error) {
 	cmd.Stderr = os.Stderr
 
 	debug.Log("%s %+v", cmd.Path, cmd.Args)
+
 	return cmd.Output()
 }

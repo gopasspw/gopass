@@ -38,6 +38,7 @@ func tryDownload(ctx context.Context, url string) ([]byte, error) {
 
 	var buf []byte
 
+	//nolint:wrapcheck
 	return buf, backoff.Retry(func() error {
 		select {
 		case <-ctx.Done():
@@ -48,6 +49,7 @@ func tryDownload(ctx context.Context, url string) ([]byte, error) {
 		if err == nil {
 			buf = d
 		}
+
 		return err
 	}, bo)
 }
@@ -55,16 +57,17 @@ func tryDownload(ctx context.Context, url string) ([]byte, error) {
 func download(ctx context.Context, url string) ([]byte, error) {
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
 
 	// we want binary data, please
 	req.Header.Set("Accept", "application/octet-stream")
 
 	t0 := time.Now()
+
 	resp, err := ctxhttp.Do(ctx, httpClient, req)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to download %s: %w", url, err)
 	}
 
 	var body io.ReadCloser
@@ -78,9 +81,10 @@ func download(ctx context.Context, url string) ([]byte, error) {
 	}
 
 	buf := &bytes.Buffer{}
+
 	count, err := io.Copy(buf, body)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to read response body: %w", err)
 	}
 
 	bar.Set(resp.ContentLength)
@@ -88,6 +92,7 @@ func download(ctx context.Context, url string) ([]byte, error) {
 
 	elapsed := time.Since(t0)
 	debug.Log("Transferred %d bytes from %q in %s", count, url, elapsed)
+
 	return buf.Bytes(), nil
 }
 
@@ -105,5 +110,6 @@ func (pt *passThru) Read(p []byte) (int, error) {
 	if pt.Bar != nil && n > 0 {
 		pt.Bar.Set(int64(n))
 	}
-	return n, err
+
+	return n, err //nolint:wrapcheck
 }

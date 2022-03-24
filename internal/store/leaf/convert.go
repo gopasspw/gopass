@@ -26,6 +26,7 @@ func (s *Store) Convert(ctx context.Context, cryptoBe backend.CryptoBackend, sto
 	if err := os.MkdirAll(tmpPath, 0o700); err != nil {
 		return err
 	}
+
 	debug.Log("create temporary store path for conversion: %s", tmpPath)
 
 	// init new store at temp path
@@ -33,14 +34,17 @@ func (s *Store) Convert(ctx context.Context, cryptoBe backend.CryptoBackend, sto
 	if err != nil {
 		return err
 	}
+
 	debug.Log("initialized storage %s at %s", st, tmpPath)
 
 	crypto, err := backend.NewCrypto(ctx, cryptoBe)
 	if err != nil {
 		return err
 	}
+
 	debug.Log("initialized Crypto %s", crypto)
-	// TODO need to initialize recipients
+
+	// TODO(gh-2170) need to initialize recipients
 
 	tmpStore := &Store{
 		alias:   s.alias,
@@ -54,6 +58,7 @@ func (s *Store) Convert(ctx context.Context, cryptoBe backend.CryptoBackend, sto
 	if err != nil {
 		return err
 	}
+
 	if err := tmpStore.Init(ctx, tmpPath, key); err != nil {
 		return err
 	}
@@ -87,18 +92,23 @@ func (s *Store) Convert(ctx context.Context, cryptoBe backend.CryptoBackend, sto
 			if err != nil {
 				return err
 			}
+
 			if err := tmpStore.Set(ctx, e, sec); err != nil {
 				return err
 			}
+
 			continue
 		}
+
 		sort.Sort(sort.Reverse(backend.Revisions(revs)))
+
 		for _, r := range revs {
 			debug.Log("converting %s@%s", e, r.Hash)
 			sec, err := s.GetRevision(ctx, e, r.Hash)
 			if err != nil {
 				return err
 			}
+
 			msg := fmt.Sprintf("%s\n%s\nCommitted as: %s\nDate: %s\nAuthor: %s <%s>",
 				r.Subject,
 				r.Body,

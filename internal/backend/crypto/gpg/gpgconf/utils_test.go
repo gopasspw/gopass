@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestGpgOpts(t *testing.T) {
+func TestGpgOpts(t *testing.T) { //nolint:paralleltest
 	for _, vn := range []string{"GOPASS_GPG_OPTS", "PASSWORD_STORE_GPG_OPTS"} {
 		for in, out := range map[string][]string{
 			"": nil,
@@ -23,6 +23,8 @@ func TestGpgOpts(t *testing.T) {
 }
 
 func TestGPGConfig(t *testing.T) {
+	t.Parallel()
+
 	in := `
 #-----------------------------
 # default key

@@ -49,6 +49,7 @@ func (p *ProgressBar) Add(v int64) {
 	if max := atomic.LoadInt64(&p.total); cur > max {
 		atomic.StoreInt64(&p.total, cur)
 	}
+
 	p.print()
 }
 
@@ -58,15 +59,18 @@ func (p *ProgressBar) Inc() {
 	if max := atomic.LoadInt64(&p.total); cur > max {
 		atomic.StoreInt64(&p.total, cur)
 	}
+
 	p.print()
 }
 
 // Set sets an arbitrary progress.
 func (p *ProgressBar) Set(v int64) {
 	atomic.StoreInt64(&p.current, v)
+
 	if max := atomic.LoadInt64(&p.total); v > max {
 		atomic.StoreInt64(&p.total, v)
 	}
+
 	p.print()
 }
 
@@ -75,6 +79,7 @@ func (p *ProgressBar) Done() {
 	if p.Hidden {
 		return
 	}
+
 	fmt.Fprintln(Stderr, "")
 }
 
@@ -88,6 +93,7 @@ func (p *ProgressBar) print() {
 	if p.Hidden {
 		return
 	}
+
 	// try to lock
 	select {
 	case p.mutex <- struct{}{}:
@@ -96,6 +102,7 @@ func (p *ProgressBar) print() {
 		<-p.mutex
 	default:
 		// lock not acquired
+		return
 	}
 }
 
@@ -119,7 +126,7 @@ func (p *ProgressBar) doPrint() {
 		pctStr = " " + pctStr
 	}
 
-	termWidth, _, _ := term.GetSize(int(syscall.Stdin))
+	termWidth, _, _ := term.GetSize(int(syscall.Stdin)) //nolint:unconvert
 	if termWidth < 0 {
 		// if we can determine the size (e.g. windows, fake term, mock)
 		// assume a sane default of 80
@@ -132,13 +139,16 @@ func (p *ProgressBar) doPrint() {
 	if max < 1 {
 		digits = 1
 	}
+
 	text := fmt.Sprintf(fmt.Sprintf(" %%%dd / %%%dd ", digits, digits), cur, max)
+
 	if p.Bytes {
 		curStr := humanize.Bytes(uint64(cur))
 		maxStr := humanize.Bytes(uint64(max))
 		digits := len(maxStr) + 1
 		text = fmt.Sprintf(fmt.Sprintf(" %%%ds / %%%ds ", digits, digits), curStr, maxStr)
 	}
+
 	size := int(barWidth) - len(text) - len(pctStr) - 5
 	fill := int(math.Max(2, math.Floor((float64(size)*pct)+.5)))
 
@@ -172,6 +182,7 @@ func gteZero(a int) int {
 	if a >= 0 {
 		return a
 	}
+
 	return 0
 }
 
@@ -179,6 +190,7 @@ func min(a, b int) int {
 	if a < b {
 		return a
 	}
+
 	return b
 }
 
@@ -190,6 +202,7 @@ func (p *ProgressBar) percent() (int64, int64, float64) {
 	cur := atomic.LoadInt64(&p.current)
 	max := atomic.LoadInt64(&p.total)
 	pct := float64(cur) / float64(max)
+
 	if p.total < 1 {
 		if p.current < 1 {
 			pct = 1

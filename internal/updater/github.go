@@ -43,13 +43,17 @@ type Release struct {
 
 func downloadAsset(ctx context.Context, assets []Asset, suffix string) (string, []byte, error) {
 	var url string
+
 	var filename string
+
 	for _, a := range assets {
 		if !strings.HasSuffix(a.Name, suffix) {
 			continue
 		}
+
 		url = a.URL
 		filename = a.Name
+
 		break
 	}
 
@@ -75,6 +79,7 @@ func FetchLatestRelease(ctx context.Context) (Release, error) {
 	defer cancel()
 
 	url := fmt.Sprintf(BaseURL, owner, repo)
+
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return Release{}, nil
@@ -85,9 +90,12 @@ func FetchLatestRelease(ctx context.Context) (Release, error) {
 
 	resp, err := ctxhttp.Do(ctx, httpClient, req)
 	if err != nil {
-		return Release{}, err
+		return Release{}, fmt.Errorf("HTTP request failed: %w", err)
 	}
-	defer resp.Body.Close()
+
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
 	if resp.StatusCode != http.StatusOK {
 		return Release{}, fmt.Errorf("request faild with %v (%v)", resp.StatusCode, resp.Status)
@@ -95,7 +103,7 @@ func FetchLatestRelease(ctx context.Context) (Release, error) {
 
 	var rs Release
 	if err := json.NewDecoder(resp.Body).Decode(&rs); err != nil {
-		return rs, err
+		return rs, fmt.Errorf("failed to decode response: %w", err)
 	}
 
 	if !strings.HasPrefix(rs.TagName, "v") {
@@ -104,8 +112,9 @@ func FetchLatestRelease(ctx context.Context) (Release, error) {
 
 	v, err := semver.Parse(rs.TagName[1:])
 	if err != nil {
-		return rs, fmt.Errorf("failed to parse version %q: %q", rs.TagName[1:], err)
+		return rs, fmt.Errorf("failed to parse version %q: %w", rs.TagName[1:], err)
 	}
+
 	rs.Version = v
 
 	return rs, nil

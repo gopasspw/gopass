@@ -22,9 +22,11 @@ func (g *GPG) ListRecipients(ctx context.Context) ([]string, error) {
 		}
 		g.pubKeys = kl
 	}
+
 	if gpg.IsAlwaysTrust(ctx) {
 		return g.pubKeys.Recipients(), nil
 	}
+
 	return g.pubKeys.UseableKeys(gpg.IsAlwaysTrust(ctx)).Recipients(), nil
 }
 
@@ -41,23 +43,28 @@ func (g *GPG) FindRecipients(ctx context.Context, search ...string) ([]string, e
 	}
 
 	debug.Log("found useable keys for %q: %q (all: %q)", search, recp, kl.Recipients())
+
 	return recp, nil
 }
 
 // RecipientIDs returns a list of recipient IDs for a given encrypted blob.
 func (g *GPG) RecipientIDs(ctx context.Context, buf []byte) ([]string, error) {
-	// switch to LANG C for more predictable output, switch back later
-	oldLang := os.Getenv("LANGUAGE")
-	if err := os.Setenv("LANGUAGE", "C"); err == nil {
-		defer os.Setenv("LANGUAGE", oldLang)
-	}
-
 	recp := make([]string, 0, 5)
 
 	// extract recipients from gpg output
 	args := []string{"--batch", "--list-only", "--list-packets", "--no-default-keyring", "--secret-keyring", "/dev/null"}
 	cmd := exec.CommandContext(ctx, g.binary, args...)
 	cmd.Stdin = bytes.NewReader(buf)
+
+	// switch to LANG C for more predictable output, switch back later
+	for _, env := range os.Environ() {
+		if strings.HasPrefix(env, "LANGUAGE=") {
+			continue
+		}
+		cmd.Env = append(cmd.Env, env)
+	}
+	cmd.Env = append(cmd.Env, "LANGUAGE=C")
+
 	debug.Log("%s %+v", cmd.Path, cmd.Args)
 
 	cmdout, err := cmd.CombinedOutput()
@@ -91,6 +98,7 @@ func (g *GPG) RecipientIDs(ctx context.Context, buf []byte) ([]string, error) {
 	if g.throwKids {
 		out.Warningf(ctx, "gpg option throw-keyids is set. some features might not work.")
 	}
+
 	return recp, nil
 }
 
@@ -100,9 +108,11 @@ func splitPacket(in string) map[string]string {
 	if len(p) < 3 {
 		return m
 	}
+
 	p = strings.Split(strings.TrimSpace(p[2]), " ")
 	for i := 0; i+1 < len(p); i += 2 {
 		m[p[i]] = strings.Trim(p[i+1], ",")
 	}
+
 	return m
 }

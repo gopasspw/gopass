@@ -8,7 +8,10 @@ import (
 )
 
 func TestKV(t *testing.T) {
+	t.Parallel()
+
 	t.Logf("Retrieve content from invalid YAML (#375)")
+
 	mlValue := `somepasswd
 Test / test.com
 username: myuser@test.com
@@ -31,15 +34,22 @@ url: http://www.test.com/
 username: myuser@test.com
 Test / test.com
 `
+
 	t.Run("read back the secret", func(t *testing.T) {
+		t.Parallel()
+
 		assert.Equal(t, mlOut, string(s.Bytes()))
 	})
 
 	t.Run("no_duplicate_keys", func(t *testing.T) {
+		t.Parallel()
+
 		assert.Equal(t, []string{"password", "url", "username"}, s.Keys())
 	})
 
 	t.Run("read some keys", func(t *testing.T) {
+		t.Parallel()
+
 		for k, v := range map[string]string{
 			"password": "bar",
 			"url":      "http://www.test.com/",
@@ -53,10 +63,13 @@ Test / test.com
 	})
 
 	t.Run("remove a key", func(t *testing.T) {
-		s.Set("foobar", "baz")
+		t.Parallel()
+
+		assert.NoError(t, s.Set("foobar", "baz"))
 		v, ok := s.Get("foobar")
 		assert.True(t, ok)
 		assert.Equal(t, "baz", v)
+
 		s.Del("foobar")
 		v, ok = s.Get("foobar")
 		assert.False(t, ok)
@@ -64,6 +77,8 @@ Test / test.com
 	})
 
 	t.Run("read the body", func(t *testing.T) {
+		t.Parallel()
+
 		body := "Test / test.com\n"
 		assert.Equal(t, body, s.Body())
 		assert.Equal(t, body, s.Body())
@@ -72,6 +87,8 @@ Test / test.com
 }
 
 func TestKVNoNewLine(t *testing.T) {
+	t.Parallel()
+
 	mlValue := `foobar
 ab: cd`
 	s, err := ParseKV([]byte(mlValue))
@@ -82,6 +99,8 @@ ab: cd`
 }
 
 func TestMultiKeyKVMIME(t *testing.T) {
+	t.Parallel()
+
 	in := `passw0rd
 foo: baz
 foo: bar
