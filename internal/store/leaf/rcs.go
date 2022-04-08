@@ -25,14 +25,14 @@ func (s *Store) GitInit(ctx context.Context) error {
 
 // ListRevisions will list all revisions for a secret.
 func (s *Store) ListRevisions(ctx context.Context, name string) ([]backend.Revision, error) {
-	p := s.passfile(name)
+	p := s.Passfile(name)
 
 	return s.storage.Revisions(ctx, p)
 }
 
 // GetRevision will retrieve a single revision from the backend.
 func (s *Store) GetRevision(ctx context.Context, name, revision string) (gopass.Secret, error) {
-	p := s.passfile(name)
+	p := s.Passfile(name)
 	ciphertext, err := s.storage.GetRevision(ctx, p, revision)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get ciphertext of %q@%q: %w", name, revision, err)

@@ -4,13 +4,16 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"path"
+	"path/filepath"
 	"strings"
 
 	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/internal/store/leaf"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
+	"github.com/gopasspw/gopass/pkg/fsutil"
 )
 
 // Copy will copy one entry to another location. Multi-store copies are
@@ -52,9 +55,11 @@ func (r *Store) move(ctx context.Context, from, to string, del bool) error {
 	if err := subFrom.Storage().Commit(ctx, fmt.Sprintf("Move from %s to %s", from, to)); del && err != nil {
 		switch {
 		case errors.Is(err, store.ErrGitNotInit):
-			debug.Log("skipping git commit - git not initialized")
+			debug.Log("skipping git commit - git not initialized in %s", subFrom.Alias())
+		case errors.Is(err, store.ErrGitNothingToCommit):
+			debug.Log("skipping git commit - nothing to commit in %s", subFrom.Alias())
 		default:
-			return fmt.Errorf("failed to commit changes to git (from): %w", err)
+			return fmt.Errorf("failed to commit changes to git (%s): %w", subFrom.Alias(), err)
 		}
 	}
 
@@ -62,9 +67,11 @@ func (r *Store) move(ctx context.Context, from, to string, del bool) error {
 		if err := subTo.Storage().Commit(ctx, fmt.Sprintf("Move from %s to %s", from, to)); err != nil {
 			switch {
 			case errors.Is(err, store.ErrGitNotInit):
-				debug.Log("skipping git commit - git not initialized")
+				debug.Log("skipping git commit - git not initialized in %s", subTo.Alias())
+			case errors.Is(err, store.ErrGitNothingToCommit):
+				debug.Log("skipping git commit - nothing to commit in %s", subTo.Alias())
 			default:
-				return fmt.Errorf("failed to commit changes to git (to): %w", err)
+				return fmt.Errorf("failed to commit changes to git (%s): %w", subTo.Alias(), err)
 			}
 		}
 	}
@@ -144,6 +151,15 @@ func (r *Store) moveFromTo(ctx context.Context, subFrom *leaf.Store, from, to, f
 
 		debug.Log("Moving entry %q (%q) => %q (%q) (srcIsDir:%t, dstIsDir:%t, delete:%t)\n", src, from, dst, to, srcIsDir, dstIsDir, del)
 
+		err := r.directMove(ctx, src, dst, del)
+		if err == nil {
+			debug.Log("directly moved from %q to %q", src, dst)
+
+			continue
+		}
+
+		debug.Log("direct move failed to move entry %q to %q: %s. Falling back to get and set", src, dst, err)
+
 		content, err := r.Get(ctx, src)
 		if err != nil {
 			return fmt.Errorf("source %s does not exist in source store %s: %w", from, subFrom.Alias(), err)
@@ -160,6 +176,53 @@ func (r *Store) moveFromTo(ctx context.Context, subFrom *leaf.Store, from, to, f
 				return fmt.Errorf("failed to delete secret %q: %w", src, err)
 			}
 		}
+	}
+
+	debug.Log("Moved (sub) tree %q to %q", from, to)
+
+	return nil
+}
+
+func (r *Store) directMove(ctx context.Context, from, to string, del bool) error {
+	debug.Log("directMove from %q to %q", from, to)
+
+	// will also remove the store prefix, if applicable
+	subFrom, from := r.getStore(from)
+	subTo, to := r.getStore(to)
+
+	if subFrom.Equals(subTo) {
+		debug.Log("directMove from %q to %q: same store", from, to)
+
+		if del {
+			return subFrom.Move(ctx, from, to)
+		}
+
+		return subFrom.Copy(ctx, from, to)
+	}
+
+	debug.Log("cross mount direct move from %s%s to %s%s", subFrom.Alias(), from, subTo.Alias(), to)
+
+	// assemble source and destination paths, call fsutil.CopyFile(from, to), remove source
+	// if del is true and then git add and commit both stores.
+	sfn := filepath.Join(subFrom.Path(), subFrom.Passfile(from))
+	dfn := filepath.Join(subTo.Path(), subTo.Passfile(to))
+
+	if err := fsutil.CopyFile(sfn, dfn); err != nil {
+		return fmt.Errorf("failed to copy %q to %q: %w", from, to, err)
+	}
+
+	if del {
+		if err := os.Remove(sfn); err != nil {
+			return fmt.Errorf("failed to delete %q from %s: %w", sfn, subFrom.Alias(), err)
+		}
+	}
+
+	if err := subFrom.Storage().Add(ctx, sfn); err != nil {
+		debug.Log("failed to add %q to %s: %w", sfn, subFrom.Alias(), err)
+	}
+
+	if err := subTo.Storage().Add(ctx, dfn); err != nil {
+		debug.Log("failed to add %q to %s: %w", dfn, subTo.Alias(), err)
 	}
 
 	return nil

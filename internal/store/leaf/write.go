@@ -20,7 +20,7 @@ func (s *Store) Set(ctx context.Context, name string, sec gopass.Byter) error {
 		return fmt.Errorf("invalid secret name: %s", name)
 	}
 
-	p := s.passfile(name)
+	p := s.Passfile(name)
 
 	recipients, err := s.useableKeys(ctx, name)
 	if err != nil {

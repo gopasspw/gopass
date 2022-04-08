@@ -2,6 +2,7 @@ package fsutil
 
 import (
 	"crypto/rand"
+	"io/ioutil"
 	"os"
 	"os/user"
 	"path/filepath"
@@ -156,4 +157,29 @@ func TestIsEmptyDir(t *testing.T) {
 	isEmpty, err = IsEmptyDir(tempdir)
 	require.NoError(t, err)
 	assert.Equal(t, false, isEmpty)
+}
+
+func TestCopyFile(t *testing.T) {
+	t.Parallel()
+
+	tempdir, err := os.MkdirTemp("", "gopass-")
+	require.NoError(t, err)
+
+	defer func() {
+		_ = os.RemoveAll(tempdir)
+	}()
+
+	sfn := filepath.Join(tempdir, "foo")
+	require.NoError(t, os.MkdirAll(filepath.Dir(sfn), 0o755))
+	require.NoError(t, os.WriteFile(sfn, []byte("foo"), 0o644))
+
+	dfn := filepath.Join(tempdir, "bar")
+
+	assert.NoError(t, CopyFile(sfn, dfn))
+
+	// try to overwrite existing file w/o write bit
+	dfn = filepath.Join(tempdir, "bar2")
+	require.NoError(t, ioutil.WriteFile(dfn, []byte("foo"), 0o400))
+	assert.Error(t, CopyFile(sfn, dfn))
+	assert.NoError(t, CopyFileForce(sfn, dfn))
 }
