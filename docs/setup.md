@@ -311,6 +311,9 @@ a completion file that is supposed to be handled by zsh and to be installed in t
 completions directory, as defined by either the standard `/usr/share/zsh/site-functions/` path,
 or by a user-specified `fpath` folder. It is not meant to used with `source`.
 
+If you get an "operation not permitted" error on the newer Mac OSes (El Capitan+) while
+moving the `_gopass` file, use `/usr/local/share/zsh/site-functions/` instead.
+
 If zsh completion is still not working, you might want to add the following to your `.zshrc` file:
 ```bash
 autoload -U compinit && compinit
