@@ -223,7 +223,9 @@ func CopyFile(from, to string) error {
 	if err != nil {
 		return fmt.Errorf("failed to open file %q for reading: %w", from, err)
 	}
-	defer rdr.Close()
+	defer func() {
+		_ = rdr.Close()
+	}()
 
 	rdrStat, err := rdr.Stat()
 	if err != nil {
@@ -234,7 +236,9 @@ func CopyFile(from, to string) error {
 	if err != nil {
 		return fmt.Errorf("failed to open file %q for writing: %w", to, err)
 	}
-	defer wrt.Close()
+	defer func() {
+		_ = wrt.Close()
+	}()
 
 	n, err := io.Copy(wrt, rdr)
 	if err != nil {
@@ -244,7 +248,11 @@ func CopyFile(from, to string) error {
 	debug.Log("copied %d bytes from %q to %q", n, from, to)
 
 	// sync permission, applies in case the destination did exist but had different perms
-	return os.Chmod(to, rdrStat.Mode())
+	if err := os.Chmod(to, rdrStat.Mode()); err != nil {
+		return fmt.Errorf("failed to sync permissions to %q: %w", to, err)
+	}
+
+	return nil
 }
 
 // CopyFileForce copies a file from src to dst. Permissions will be preserved. The destination
