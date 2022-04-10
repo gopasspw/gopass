@@ -23,9 +23,14 @@ func (s *Store) Copy(ctx context.Context, from, to string) error {
 	}
 
 	// try direct copy first
-	if err := s.directMove(ctx, from, to, false); err == nil {
+	err := s.directMove(ctx, from, to, false)
+	if err == nil {
+		debug.Log("direct copy %s -> %s successful", from, to)
+
 		return nil
 	}
+
+	debug.Log("direct copy failed: %v", err)
 
 	content, err := s.Get(ctx, from)
 	if err != nil {
@@ -52,6 +57,8 @@ func (s *Store) Move(ctx context.Context, from, to string) error {
 	// try direct move first
 	err := s.directMove(ctx, from, to, true)
 	if err == nil {
+		debug.Log("direct move %s -> %s successful", from, to)
+
 		return nil
 	}
 
