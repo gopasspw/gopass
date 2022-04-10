@@ -21,7 +21,7 @@ require (
 	github.com/hashicorp/golang-lru v0.5.4
 	github.com/jsimonetti/pwscheme v0.0.0-20220125093853-4d9895f5db73
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
-	github.com/martinhoefling/goxkcdpwgen v0.0.0-20190331205820-7dc3d102eca3
+	github.com/martinhoefling/goxkcdpwgen v0.0.0-20220409162756-d48fd514a5d7
 	github.com/mattn/go-colorable v0.1.12
 	github.com/mattn/go-isatty v0.0.14
 	github.com/mattn/go-tty v0.0.4
