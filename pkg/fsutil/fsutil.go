@@ -215,3 +215,54 @@ func min(a, b int64) int64 {
 
 	return b
 }
+
+// CopyFile copies a file from src to dst. Permissions will be preserved. It is expected to
+// fail if the destination does exist but is not writeable.
+func CopyFile(from, to string) error {
+	rdr, err := os.Open(from)
+	if err != nil {
+		return fmt.Errorf("failed to open file %q for reading: %w", from, err)
+	}
+	defer func() {
+		_ = rdr.Close()
+	}()
+
+	rdrStat, err := rdr.Stat()
+	if err != nil {
+		return fmt.Errorf("failed to stat open file %q: %w", from, err)
+	}
+
+	wrt, err := os.OpenFile(to, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, rdrStat.Mode())
+	if err != nil {
+		return fmt.Errorf("failed to open file %q for writing: %w", to, err)
+	}
+	defer func() {
+		_ = wrt.Close()
+	}()
+
+	n, err := io.Copy(wrt, rdr)
+	if err != nil {
+		return fmt.Errorf("failed to copy content of %q to %q: %w", from, to, err)
+	}
+
+	debug.Log("copied %d bytes from %q to %q", n, from, to)
+
+	// sync permission, applies in case the destination did exist but had different perms
+	if err := os.Chmod(to, rdrStat.Mode()); err != nil {
+		return fmt.Errorf("failed to sync permissions to %q: %w", to, err)
+	}
+
+	return nil
+}
+
+// CopyFileForce copies a file from src to dst. Permissions will be preserved. The destination
+// if removed before copying to avoid permission issues.
+func CopyFileForce(from, to string) error {
+	if IsFile(to) {
+		if err := os.Remove(to); err != nil {
+			return fmt.Errorf("failed to remove %q: %w", to, err)
+		}
+	}
+
+	return CopyFile(from, to)
+}

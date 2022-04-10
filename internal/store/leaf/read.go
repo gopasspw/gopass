@@ -14,7 +14,7 @@ import (
 
 // Get returns the plaintext of a single key.
 func (s *Store) Get(ctx context.Context, name string) (gopass.Secret, error) {
-	p := s.passfile(name)
+	p := s.Passfile(name)
 
 	ciphertext, err := s.storage.Get(ctx, p)
 	if err != nil {

@@ -89,3 +89,8 @@ func (g *Git) addUntrackedFiles(ctx context.Context) error {
 func (g *Git) Link(ctx context.Context, from, to string) error {
 	return g.fs.Link(ctx, from, to)
 }
+
+// Move moves from src to dst.
+func (g *Git) Move(ctx context.Context, src, dst string, del bool) error {
+	return g.fs.Move(ctx, src, dst, del)
+}

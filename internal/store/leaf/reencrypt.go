@@ -95,7 +95,7 @@ func (s *Store) reencrypt(ctx context.Context) error {
 	// to avoid a race condition on git .index.lock file, so we do it now.
 	if conc > 1 {
 		for _, name := range entries {
-			p := s.passfile(name)
+			p := s.Passfile(name)
 			if err := s.storage.Add(ctx, p); err != nil {
 				if errors.Is(err, store.ErrGitNotInit) {
 					debug.Log("skipping git add - git not initialized")

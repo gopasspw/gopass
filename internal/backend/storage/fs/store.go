@@ -63,6 +63,35 @@ func (s *Store) Set(ctx context.Context, name string, value []byte) error {
 	return os.WriteFile(filepath.Join(s.path, name), value, 0o644)
 }
 
+// Move moves the named entity to the new location.
+func (s *Store) Move(ctx context.Context, from, to string, del bool) error {
+	if runtime.GOOS == "windows" {
+		from = filepath.FromSlash(from)
+		to = filepath.FromSlash(to)
+	}
+
+	fromFn := filepath.Join(s.path, filepath.Clean(from))
+	toFn := filepath.Join(s.path, filepath.Clean(to))
+	toDir := filepath.Dir(toFn)
+
+	if !fsutil.IsDir(toDir) {
+		if err := os.MkdirAll(toDir, 0o700); err != nil {
+			return fmt.Errorf("failed to create directory %q: %w", toDir, err)
+		}
+	}
+	debug.Log("Copying %q (%q) to %q (%q)", from, fromFn, to, toFn)
+
+	if del {
+		if err := os.Rename(fromFn, toFn); err != nil {
+			return fmt.Errorf("failed to copy %q to %q: %w", from, to, err)
+		}
+
+		return s.removeEmptyParentDirectories(fromFn)
+	}
+
+	return fsutil.CopyFile(fromFn, toFn)
+}
+
 // Delete removes the named entity.
 func (s *Store) Delete(ctx context.Context, name string) error {
 	if runtime.GOOS == "windows" {

@@ -221,3 +221,8 @@ func (m *InMem) Compact(context.Context) error {
 func (m *InMem) Link(context.Context, string, string) error {
 	return nil
 }
+
+// Move is not implemented.
+func (m *InMem) Move(context.Context, string, string, bool) error {
+	return nil
+}

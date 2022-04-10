@@ -110,7 +110,7 @@ func (s *Store) fsckCheckEntry(ctx context.Context, name string) error {
 func (s *Store) fsckCheckRecipients(ctx context.Context, name string) error {
 	// now compare the recipients this secret was encoded for and fix it if
 	// if doesn't match
-	ciphertext, err := s.storage.Get(ctx, s.passfile(name))
+	ciphertext, err := s.storage.Get(ctx, s.Passfile(name))
 	if err != nil {
 		return fmt.Errorf("failed to get raw secret: %w", err)
 	}

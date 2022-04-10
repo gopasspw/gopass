@@ -39,6 +39,7 @@ type Storage interface {
 	Set(ctx context.Context, name string, value []byte) error
 	Delete(ctx context.Context, name string) error
 	Exists(ctx context.Context, name string) bool
+	Move(ctx context.Context, from, to string, del bool) error
 	List(ctx context.Context, prefix string) ([]string, error)
 	IsDir(ctx context.Context, name string) bool
 	Prune(ctx context.Context, prefix string) error

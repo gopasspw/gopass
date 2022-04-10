@@ -44,6 +44,51 @@ func TestSetAndGet(t *testing.T) {
 	fileHasContent(filepath.Join("a", "other"), initialContent)
 }
 
+func TestMove(t *testing.T) {
+	t.Parallel()
+
+	initialContent := []byte(`initial file content`)
+	otherContent := []byte(`other file content`)
+	ctx := context.Background()
+
+	path, cleanup := newTempDir(t)
+	defer cleanup()
+
+	s := &Store{path}
+
+	fileHasContent := func(filename string, content []byte) {
+		written, _ := s.Get(ctx, filename)
+		assert.Equalf(t, content, written, "content of file")
+	}
+
+	filename := "src"
+
+	// when file does not exist
+	fileHasContent(filename, nil)
+
+	// when the folder does not exist
+	_ = s.Set(ctx, filename, initialContent)
+	fileHasContent(filename, initialContent)
+
+	// move file
+	assert.NoError(t, s.Move(ctx, filename, "dst1", true))
+	fileHasContent("dst1", initialContent)
+
+	// overwrite file
+	_ = s.Set(ctx, "dst2", otherContent)
+	fileHasContent("dst2", otherContent)
+
+	// move file
+	assert.NoError(t, s.Move(ctx, "dst1", "dst2", true))
+	fileHasContent("dst1", nil)
+	fileHasContent("dst2", initialContent)
+
+	// copy file
+	assert.NoError(t, s.Move(ctx, "dst2", "dst3", false))
+	fileHasContent("dst2", initialContent)
+	fileHasContent("dst3", initialContent)
+}
+
 func TestRemoveEmptyParentDirectories(t *testing.T) {
 	t.Parallel()
 

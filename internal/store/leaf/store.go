@@ -153,7 +153,7 @@ func (s *Store) IsDir(ctx context.Context, name string) bool {
 
 // Exists checks the existence of a single entry.
 func (s *Store) Exists(ctx context.Context, name string) bool {
-	return s.storage.Exists(ctx, s.passfile(name))
+	return s.storage.Exists(ctx, s.Passfile(name))
 }
 
 func (s *Store) useableKeys(ctx context.Context, name string) ([]string, error) {
@@ -174,8 +174,8 @@ func (s *Store) useableKeys(ctx context.Context, name string) ([]string, error) 
 	return kl, nil
 }
 
-// passfile returns the name of gpg file on disk, for the given key/name.
-func (s *Store) passfile(name string) string {
+// Passfile returns the name of gpg file on disk, for the given key/name.
+func (s *Store) Passfile(name string) string {
 	return strings.TrimPrefix(name+"."+s.crypto.Ext(), "/")
 }
 

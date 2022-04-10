@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/gopasspw/gopass/internal/queue"
 	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
@@ -20,6 +21,16 @@ func (s *Store) Copy(ctx context.Context, from, to string) error {
 	if s.IsDir(ctx, from) {
 		return fmt.Errorf("recursive operations are not supported")
 	}
+
+	// try direct copy first
+	err := s.directMove(ctx, from, to, false)
+	if err == nil {
+		debug.Log("direct copy %s -> %s successful", from, to)
+
+		return nil
+	}
+
+	debug.Log("direct copy failed: %v", err)
 
 	content, err := s.Get(ctx, from)
 	if err != nil {
@@ -43,6 +54,17 @@ func (s *Store) Move(ctx context.Context, from, to string) error {
 		return fmt.Errorf("recursive operations are not supported")
 	}
 
+	// try direct move first
+	err := s.directMove(ctx, from, to, true)
+	if err == nil {
+		debug.Log("direct move %s -> %s successful", from, to)
+
+		return nil
+	}
+
+	debug.Log("direct move failed: %v", err)
+
+	// fall back to copy and delete
 	content, err := s.Get(ctx, from)
 	if err != nil {
 		return fmt.Errorf("failed to decrypt %q: %w", from, err)
@@ -59,6 +81,47 @@ func (s *Store) Move(ctx context.Context, from, to string) error {
 	return nil
 }
 
+func (s *Store) directMove(ctx context.Context, from, to string, del bool) error {
+	ctx = ctxutil.WithCommitMessage(ctx, fmt.Sprintf("Move from %s to %s", from, to))
+	pFrom := s.Passfile(from)
+	pTo := s.Passfile(to)
+
+	debug.Log("directMove %s (%q) -> %s (%q)", from, to, pFrom, pTo)
+
+	if err := s.storage.Move(ctx, pFrom, pTo, del); err != nil {
+		return fmt.Errorf("failed to move %q to %q: %w", from, to, err)
+	}
+
+	// It is not possible to perform concurrent git add and git commit commands
+	// so we need to skip this step when using concurrency and perform them
+	// at the end of the batch processing.
+	if IsNoGitOps(ctx) {
+		debug.Log("sub.directMove(%q -> %q) - skipping git ops (disabled)", from, to)
+
+		return nil
+	}
+
+	if err := s.storage.Add(ctx, pFrom, pTo); err != nil {
+		if errors.Is(err, store.ErrGitNotInit) {
+			return nil
+		}
+
+		return fmt.Errorf("failed to add %q and %q to git: %w", pFrom, pTo, err)
+	}
+
+	if !ctxutil.IsGitCommit(ctx) {
+		return nil
+	}
+
+	// try to enqueue this task, if the queue is not available
+	// it will return the task and we will execute it inline
+	t := queue.GetQueue(ctx).Add(func(ctx context.Context) error {
+		return s.gitCommitAndPush(ctx, to)
+	})
+
+	return t(ctx)
+}
+
 // Delete will remove an single entry from the store.
 func (s *Store) Delete(ctx context.Context, name string) error {
 	return s.delete(ctx, name, false)
@@ -72,7 +135,7 @@ func (s *Store) Prune(ctx context.Context, tree string) error {
 // delete will either delete one file or an directory tree depending on the
 // recurse flag.
 func (s *Store) delete(ctx context.Context, name string, recurse bool) error {
-	path := s.passfile(name)
+	path := s.Passfile(name)
 
 	if recurse {
 		if err := s.deleteRecurse(ctx, name, path); err != nil {
