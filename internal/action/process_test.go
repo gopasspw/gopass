@@ -22,6 +22,7 @@ func TestProcess(t *testing.T) { //nolint:paralleltest
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
+	ctx = ctxutil.WithInteractive(ctx, false)
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf

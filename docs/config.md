@@ -25,6 +25,8 @@ Some configuration options are only available through setting environment variab
 | `GOPASS_CLIPBOARD_CLEAR_CMD` | `string` | Use an external command to remove a password from the clipboard. See [GPaste](usecases/gpaste.md) for an example |
 | `GOPASS_GPG_BINARY` | `string` | Set this to the absolute path to the GPG binary if you need to override the value returned by `gpgconf`, e.g. [QubesOS](https://www.qubes-os.org/doc/split-gpg/). |
 | `GOPASS_PW_DEFAULT_LENGTH`   | `int`    | Set to any integer value larger than zero to define a different default length in the `generate` command. By default the length is 24 characters. |
+| `GOPASS_AUTOSYNC_INTERVAL` | `int` | Set this to the number of days between autosync runs. |
+| `GOPASS_NO_AUTOSYNC` | `bool` | Set this to `true` to disable autosync. |
 
 Variables not exclusively used by gopass
 
