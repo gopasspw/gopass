@@ -7,9 +7,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/ProtonMail/go-crypto/openpgp"
 	"github.com/gopasspw/gopass/pkg/debug"
-	//lint:ignore SA1019 we'll try to migrate away later
-	"golang.org/x/crypto/openpgp"
 )
 
 // To generate the private key use:
@@ -92,7 +91,7 @@ func gpgVerify(data, sig []byte) (bool, error) {
 
 	debug.Log("Keyring: %q", &krLogger{keyring})
 
-	_, err = openpgp.CheckArmoredDetachedSignature(keyring, bytes.NewReader(data), bytes.NewReader(sig))
+	_, err = openpgp.CheckArmoredDetachedSignature(keyring, bytes.NewReader(data), bytes.NewReader(sig), nil)
 	if err != nil {
 		debug.Log("failed to validate detached GPG signature: %q", err)
 		debug.Log("data: %q", string(data))
