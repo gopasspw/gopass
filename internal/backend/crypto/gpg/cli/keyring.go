@@ -9,10 +9,10 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/ProtonMail/go-crypto/openpgp"
 	"github.com/gopasspw/gopass/internal/backend/crypto/gpg"
 	"github.com/gopasspw/gopass/internal/backend/crypto/gpg/colons"
 	"github.com/gopasspw/gopass/pkg/debug"
-	"golang.org/x/crypto/openpgp"
 )
 
 // listKey lists all keys of the given type and matching the search strings.
