@@ -6,8 +6,11 @@ on:
   pull_request:
     branches: [ master ]
 
-jobs:
+concurrency:
+  group: ci-${{ github.ref }}-build
+  cancel-in-progress: true
 
+jobs:
   linux:
     runs-on: ubuntu-latest
     steps:
