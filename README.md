@@ -11,7 +11,7 @@
 [![Github All Releases](https://img.shields.io/github/downloads/gopasspw/gopass/total.svg)](https://github.com/gopasspw/gopass/releases)
 [![codecov](https://codecov.io/gh/gopasspw/gopass/branch/master/graph/badge.svg)](https://codecov.io/gh/gopasspw/gopass)
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/1899/badge)](https://bestpractices.coreinfrastructure.org/projects/1899)
-[![Gopass Slack](https://img.shields.io/badge/%23gopass-Slack-brightgreen)](https://docs.google.com/forms/d/e/1FAIpQLScxOPX_OLDaG5ak2E1kNdcFw9fJvPCr8xUaPGLyW8cyNUEnJw/viewform?usp=sf_link)
+[![Gopass Slack](https://img.shields.io/badge/%23gopass-Slack-brightgreen)](https://join.slack.com/t/gopassworkspace/shared_invite/zt-17jl74b5x-U1OUW4ts4AQ7eAf2V4QaaQ)
 
 ## Introduction
 
