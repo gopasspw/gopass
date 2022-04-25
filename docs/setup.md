@@ -198,7 +198,13 @@ layman -a go-overlay
 emerge -av gopass
 ```
 
-### Fedora / Red Hat / CentOS
+### Fedora
+
+```bash
+dnf install gopass
+```
+
+### Red Hat / CentOS
 
 There is an unofficial RPM build maintained by a contributor.
 
