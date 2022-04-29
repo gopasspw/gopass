@@ -19,6 +19,10 @@ func longName(name string) string {
 }
 
 func formatFlag(name, usage string) string {
+	// Suare brackets must be escaped in zsh completions
+	usage = strings.ReplaceAll(usage, "[", "\\[")
+	usage = strings.ReplaceAll(usage, "]", "\\]")
+
 	return fmt.Sprintf("--%s[%s]", longName(name), usage)
 }
 
