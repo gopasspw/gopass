@@ -74,3 +74,12 @@ jobs:
           echo gh release upload "${tag}" "${msi}"
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+      -
+        name: "Upload deb files to apt hosting"
+        run: |
+          for D in dist/*.deb; do
+            curl -H"X-Filename: ${D}" -H'X-Apikey: ${APIKEY}' -XPOST --data-binary @$D http://packages.gauner.org/repos/gopass/upload
+          done
+        env:
+          APIKEY: ${{ secrets.APT_APIKEY }}
+
