@@ -18,9 +18,9 @@ _{{ $prog }} () {
 	      subcommands=({{ range .Subcommands }}
 	      "{{ .Name }}:{{ .Usage }}"{{ end }}
 	      )
+	      _describe -t commands "{{ $prog }} {{ .Name }}" subcommands
 	      {{- end }}
 	      {{ if .Flags }}_arguments :{{ range .Flags }} "{{ . | formatFlag }}"{{ end }}{{ end }}
-	      _describe -t commands "{{ $prog }} {{ .Name }}" subcommands
 	      {{ if or (eq .Name "insert") (eq .Name "generate")  (eq .Name "list") }}_{{ $prog }}_complete_folders{{ end }}
 	      {{ if or (eq .Name "copy") (eq .Name "move") (eq .Name "delete") (eq .Name "show") (eq .Name "edit") (eq .Name "insert") (eq .Name "generate") }}_{{ $prog }}_complete_passwords{{ end }}
 	      ;;
