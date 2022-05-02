@@ -84,9 +84,6 @@ jobs:
       with:
         go-version: 1.18
 
-    - name: MacOS Dependencies
-      run: brew install git gnupg
-
     - run: git config --global user.name nobody
     - run: git config --global user.email foo.bar@example.org
       
