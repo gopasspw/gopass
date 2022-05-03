@@ -1,3 +1,12 @@
+## 1.14.1 / 2022-05-02
+
+* [BUGFIX] Do not print missing public key for age. (#2166)
+* [BUGFIX] Improve convert output (#2171)
+* [BUGFIX] fix errors in zsh completions (#2005)
+* [CLEANUP] Migrating to a maintained version of openpgp (#2193)
+* [ENHANCEMENT] Avoid decryption on move or copy (#2183, #2181)
+* [UX] Upgrade xkcdpwgen to a new version that removes German (#2187)
+
 ## 1.14.0 / 2022-03-16
 
 * Add --chars option to print subset of secrets (#2155, #2068)
