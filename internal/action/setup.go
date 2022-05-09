@@ -10,6 +10,7 @@ import (
 	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/internal/backend/crypto/age"
 	"github.com/gopasspw/gopass/internal/backend/crypto/gpg"
+	gpgcli "github.com/gopasspw/gopass/internal/backend/crypto/gpg/cli"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store/root"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -112,7 +113,7 @@ func (s *Action) initCheckPrivateKeys(ctx context.Context, crypto backend.Crypto
 func (s *Action) initGenerateIdentity(ctx context.Context, crypto backend.Crypto, name, email string) error {
 	out.Printf(ctx, "🧪 Creating cryptographic key pair (%s) ...", crypto.Name())
 
-	if crypto.Name() == "gpgcli" {
+	if crypto.Name() == gpgcli.Name {
 		var err error
 
 		out.Printf(ctx, "🎩 Gathering information for the %s key pair ...", crypto.Name())
