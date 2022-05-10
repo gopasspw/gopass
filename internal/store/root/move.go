@@ -146,13 +146,19 @@ func (r *Store) moveFromTo(ctx context.Context, subFrom *leaf.Store, from, to, f
 
 	debug.Log("Moving (sub) tree %q to %q (entries: %+v)", from, to, entries)
 
+	var moved uint
 	for _, src := range entries {
 		dst := computeMoveDestination(src, from, to, srcIsDir, dstIsDir)
+		if src == dst {
+			debug.Log("skipping %q. src eq dst", src)
 
+			continue
+		}
 		debug.Log("Moving entry %q (%q) => %q (%q) (srcIsDir:%t, dstIsDir:%t, delete:%t)\n", src, from, dst, to, srcIsDir, dstIsDir, del)
 
 		err := r.directMove(ctx, src, dst, del)
 		if err == nil {
+			moved++
 			debug.Log("directly moved from %q to %q", src, dst)
 
 			continue
@@ -176,6 +182,12 @@ func (r *Store) moveFromTo(ctx context.Context, subFrom *leaf.Store, from, to, f
 				return fmt.Errorf("failed to delete secret %q: %w", src, err)
 			}
 		}
+
+		moved++
+	}
+
+	if moved < 1 {
+		return fmt.Errorf("no entries moved")
 	}
 
 	debug.Log("Moved (sub) tree %q to %q", from, to)
@@ -260,6 +272,7 @@ func computeMoveDestination(src, from, to string, srcIsDir, dstIsDir bool) strin
 	if strings.HasSuffix(from, "/") {
 		return path.Join(to, strings.TrimPrefix(src, from))
 	}
+
 	// move a b, where a is a directory but not b, i.e. rename a to b.
 	// this is applied to every child of a, so we need to remove the
 	// old prefix (a) and add the new one (b).
