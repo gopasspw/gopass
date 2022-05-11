@@ -183,10 +183,6 @@ func TestGenerate(t *testing.T) { //nolint:paralleltest
 	t.Run("generate --force foobar", func(t *testing.T) { //nolint:paralleltest
 		t.Setenv("GOPASS_PW_DEFAULT_LENGTH", "42")
 
-		if testing.Short() {
-			t.Skip("skipping test in short mode.")
-		}
-
 		assert.NoError(t, act.Generate(gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true", "print": "true", "symbols": "false"}, "foobar")))
 		lines := strings.Split(strings.TrimSpace(buf.String()), "\n")
 		assert.Len(t, lines[3], 42)
