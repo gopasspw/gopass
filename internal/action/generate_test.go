@@ -368,18 +368,20 @@ func TestFilterPrefix(t *testing.T) {
 	}
 }
 
-func TestDefaultLengthFromEnv(t *testing.T) {
+// NOTE: Do not use t.Parallel because environment variables are being used
+// which can leak into other tests that run in parallel.
+func TestDefaultLengthFromEnv(t *testing.T) { //nolint:paralleltest
 	const pwLengthEnvName = "GOPASS_PW_DEFAULT_LENGTH"
 
-	t.Run("use default value if no environment variable is set", func(t *testing.T) {
+	t.Run("use default value if no environment variable is set", func(t *testing.T) { //nolint:paralleltest
 		actual, isCustom := defaultLengthFromEnv()
 		expected := defaultLength
 		assert.Equal(t, actual, expected)
 		assert.False(t, isCustom)
 	})
 
-	t.Run("interpretetion of various inputs for environment variable", func(t *testing.T) {
-		for _, tc := range []struct { //nolint:paralleltest
+	t.Run("interpretetion of various inputs for environment variable", func(t *testing.T) { //nolint:paralleltest
+		for _, tc := range []struct {
 			in       string
 			expected int
 			custom   bool

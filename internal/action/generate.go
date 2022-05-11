@@ -30,7 +30,7 @@ const (
 	defaultXKCDLength = 4
 )
 
-// defaultLengthFromEnv will determine the password length from the env varibale
+// defaultLengthFromEnv will determine the password length from the env variable
 // GOPASS_PW_DEFAULT_LENGTH or fallback to the hard-coded default length.
 // If the env variable is set by the user and is valid, the boolean return value
 // will be true, otherwise it will be false.
@@ -46,6 +46,7 @@ func defaultLengthFromEnv() (int, bool) {
 	if length < 1 {
 		return defaultLength, false
 	}
+
 	return length, true
 }
 
