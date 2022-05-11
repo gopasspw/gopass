@@ -3,6 +3,7 @@ package action
 import (
 	"context"
 	"fmt"
+	"os"
 	"path"
 	"regexp"
 	"sort"
@@ -28,6 +29,23 @@ const (
 	defaultLength     = 24
 	defaultXKCDLength = 4
 )
+
+// defaultLengthFromEnv will determine the password length from the env varibale
+// GOPASS_PW_DEFAULT_LENGTH or fallback to the hardcoded default length
+func defaultLengthFromEnv() int {
+	lengthStr, isSet := os.LookupEnv("GOPASS_PW_DEFAULT_LENGTH")
+	if !isSet {
+		return defaultLength
+	}
+	length, err := strconv.Atoi(lengthStr)
+	if err != nil {
+		return defaultLength
+	}
+	if length < 1 {
+		return defaultLength
+	}
+	return length
+}
 
 var reNumber = regexp.MustCompile(`^\d+$`)
 
@@ -176,7 +194,7 @@ func (s *Action) generatePassword(ctx context.Context, c *cli.Context, length, n
 
 	var pwlen int
 	if length == "" {
-		candidateLength := defaultLength
+		candidateLength := defaultLengthFromEnv()
 		question := "How long should the password be?"
 		iv, err := termio.AskForInt(ctx, question, candidateLength)
 		if err != nil {
