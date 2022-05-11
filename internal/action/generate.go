@@ -31,20 +31,22 @@ const (
 )
 
 // defaultLengthFromEnv will determine the password length from the env varibale
-// GOPASS_PW_DEFAULT_LENGTH or fallback to the hardcoded default length
-func defaultLengthFromEnv() int {
+// GOPASS_PW_DEFAULT_LENGTH or fallback to the hard-coded default length.
+// If the env variable is set by the user and is valid, the boolean return value
+// will be true, otherwise it will be false.
+func defaultLengthFromEnv() (int, bool) {
 	lengthStr, isSet := os.LookupEnv("GOPASS_PW_DEFAULT_LENGTH")
 	if !isSet {
-		return defaultLength
+		return defaultLength, false
 	}
 	length, err := strconv.Atoi(lengthStr)
 	if err != nil {
-		return defaultLength
+		return defaultLength, false
 	}
 	if length < 1 {
-		return defaultLength
+		return defaultLength, false
 	}
-	return length
+	return length, true
 }
 
 var reNumber = regexp.MustCompile(`^\d+$`)
@@ -194,13 +196,17 @@ func (s *Action) generatePassword(ctx context.Context, c *cli.Context, length, n
 
 	var pwlen int
 	if length == "" {
-		candidateLength := defaultLengthFromEnv()
-		question := "How long should the password be?"
-		iv, err := termio.AskForInt(ctx, question, candidateLength)
-		if err != nil {
-			return "", exit.Error(exit.Usage, err, "password length must be a number")
+		candidateLength, isCustom := defaultLengthFromEnv()
+		if !isCustom {
+			question := "How long should the password be?"
+			iv, err := termio.AskForInt(ctx, question, candidateLength)
+			if err != nil {
+				return "", exit.Error(exit.Usage, err, "password length must be a number")
+			}
+			pwlen = iv
+		} else {
+			pwlen = candidateLength
 		}
-		pwlen = iv
 	} else {
 		iv, err := strconv.Atoi(length)
 		if err != nil {

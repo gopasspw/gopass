@@ -371,3 +371,34 @@ func TestFilterPrefix(t *testing.T) {
 		})
 	}
 }
+
+func TestDefaultLengthFromEnv(t *testing.T) {
+	const pwLengthEnvName = "GOPASS_PW_DEFAULT_LENGTH"
+
+	t.Run("use default value if no environment variable is set", func(t *testing.T) {
+		actual, isCustom := defaultLengthFromEnv()
+		expected := defaultLength
+		assert.Equal(t, actual, expected)
+		assert.False(t, isCustom)
+	})
+
+	t.Run("interpretetion of various inputs for environment variable", func(t *testing.T) {
+		for _, tc := range []struct { //nolint:paralleltest
+			in       string
+			expected int
+			custom   bool
+		}{
+			{in: "42", expected: 42, custom: true},
+			{in: "1", expected: 1, custom: true},
+			{in: "0", expected: defaultLength, custom: false},
+			{in: "abc", expected: defaultLength, custom: false},
+			{in: "-1", expected: defaultLength, custom: false},
+		} {
+			tc := tc
+			t.Setenv(pwLengthEnvName, tc.in)
+			actual, isCustom := defaultLengthFromEnv()
+			assert.Equal(t, actual, tc.expected)
+			assert.Equal(t, isCustom, tc.custom)
+		}
+	})
+}
