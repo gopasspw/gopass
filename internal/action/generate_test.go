@@ -202,7 +202,6 @@ func TestGenerate(t *testing.T) { //nolint:paralleltest
 		assert.Len(t, lines[3], 24) // 24 = default value used as fallback
 		buf.Reset()
 	})
-
 }
 
 func passIsAlphaNum(t *testing.T, buf string, want bool) {

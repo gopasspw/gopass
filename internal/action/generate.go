@@ -197,17 +197,11 @@ func (s *Action) generatePassword(ctx context.Context, c *cli.Context, length, n
 
 	var pwlen int
 	if length == "" {
-		candidateLength, isCustom := defaultLengthFromEnv()
-		if !isCustom {
-			question := "How long should the password be?"
-			iv, err := termio.AskForInt(ctx, question, candidateLength)
-			if err != nil {
-				return "", exit.Error(exit.Usage, err, "password length must be a number")
-			}
-			pwlen = iv
-		} else {
-			pwlen = candidateLength
+		pwlength, err := getPwLengthFromEnvOrAskUser(ctx)
+		if err != nil {
+			return "", err
 		}
+		pwlen = pwlength
 	} else {
 		iv, err := strconv.Atoi(length)
 		if err != nil {
@@ -238,6 +232,28 @@ func (s *Action) generatePassword(ctx context.Context, c *cli.Context, length, n
 
 		return pwgen.GeneratePassword(pwlen, symbols), nil
 	}
+}
+
+// getPwLengthFromEnvOrAskUser either determines the password length through an
+// environment variable or asks the user to set one.
+// This function assumes that if the length is set via the environment variable,
+// the user has already made a conscious decision and does not need to be asked
+// again.
+func getPwLengthFromEnvOrAskUser(ctx context.Context) (int, error) {
+	var pwlen int
+	candidateLength, isCustom := defaultLengthFromEnv()
+	if !isCustom {
+		question := "How long should the password be?"
+		iv, err := termio.AskForInt(ctx, question, candidateLength)
+		if err != nil {
+			return 0, exit.Error(exit.Usage, err, "password length must be a number")
+		}
+		pwlen = iv
+	} else {
+		pwlen = candidateLength
+	}
+
+	return pwlen, nil
 }
 
 func clamp(min, max, value int) int {
