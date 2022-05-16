@@ -22,9 +22,13 @@ func Marshal(r []string) []byte {
 	return out.Bytes()
 }
 
-// Unmarshal Recipients line by line from a io.Reader.
+// Unmarshal Recipients line by line from a io.Reader. Handles Unix, Windows and Mac line endings.
 func Unmarshal(buf []byte) []string {
-	return set.SortedFiltered(strings.Split(string(buf), "\n"), func(k string) bool {
+	in := strings.ReplaceAll(string(buf), "\r", "\n")
+
+	return set.Apply(set.SortedFiltered(strings.Split(in, "\n"), func(k string) bool {
 		return k != ""
+	}), func(k string) string {
+		return strings.TrimSpace(k)
 	})
 }
