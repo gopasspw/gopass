@@ -178,6 +178,30 @@ func TestGenerate(t *testing.T) { //nolint:paralleltest
 		assert.Contains(t, buf.String(), "Copied to clipboard")
 		buf.Reset()
 	})
+
+	// generate --force foobar w/ pw length set via env variable (42 chars)
+	t.Run("generate --force foobar", func(t *testing.T) { //nolint:paralleltest
+		t.Setenv("GOPASS_PW_DEFAULT_LENGTH", "42")
+
+		assert.NoError(t, act.Generate(gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true", "print": "true", "symbols": "false"}, "foobar")))
+		lines := strings.Split(strings.TrimSpace(buf.String()), "\n")
+		assert.Len(t, lines[3], 42)
+		buf.Reset()
+	})
+
+	// generate --force foobar w/ pw length set via env variable to invalid value, fallback mechanism
+	t.Run("generate --force foobar", func(t *testing.T) { //nolint:paralleltest
+		t.Setenv("GOPASS_PW_DEFAULT_LENGTH", "0")
+
+		if testing.Short() {
+			t.Skip("skipping test in short mode.")
+		}
+
+		assert.NoError(t, act.Generate(gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true", "print": "true", "symbols": "false"}, "foobar")))
+		lines := strings.Split(strings.TrimSpace(buf.String()), "\n")
+		assert.Len(t, lines[3], 24) // 24 = default value used as fallback
+		buf.Reset()
+	})
 }
 
 func passIsAlphaNum(t *testing.T, buf string, want bool) {
@@ -341,4 +365,37 @@ func TestFilterPrefix(t *testing.T) {
 			assert.Equal(t, tc.out, filterPrefix(tc.in, tc.prefix))
 		})
 	}
+}
+
+// NOTE: Do not use t.Parallel because environment variables are being used
+// which can leak into other tests that run in parallel.
+func TestDefaultLengthFromEnv(t *testing.T) { //nolint:paralleltest
+	const pwLengthEnvName = "GOPASS_PW_DEFAULT_LENGTH"
+
+	t.Run("use default value if no environment variable is set", func(t *testing.T) { //nolint:paralleltest
+		actual, isCustom := defaultLengthFromEnv()
+		expected := defaultLength
+		assert.Equal(t, actual, expected)
+		assert.False(t, isCustom)
+	})
+
+	t.Run("interpretetion of various inputs for environment variable", func(t *testing.T) { //nolint:paralleltest
+		for _, tc := range []struct {
+			in       string
+			expected int
+			custom   bool
+		}{
+			{in: "42", expected: 42, custom: true},
+			{in: "1", expected: 1, custom: true},
+			{in: "0", expected: defaultLength, custom: false},
+			{in: "abc", expected: defaultLength, custom: false},
+			{in: "-1", expected: defaultLength, custom: false},
+		} {
+			tc := tc
+			t.Setenv(pwLengthEnvName, tc.in)
+			actual, isCustom := defaultLengthFromEnv()
+			assert.Equal(t, actual, tc.expected)
+			assert.Equal(t, isCustom, tc.custom)
+		}
+	})
 }

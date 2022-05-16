@@ -3,6 +3,7 @@ package action
 import (
 	"context"
 	"fmt"
+	"os"
 	"path"
 	"regexp"
 	"sort"
@@ -28,6 +29,26 @@ const (
 	defaultLength     = 24
 	defaultXKCDLength = 4
 )
+
+// defaultLengthFromEnv will determine the password length from the env variable
+// GOPASS_PW_DEFAULT_LENGTH or fallback to the hard-coded default length.
+// If the env variable is set by the user and is valid, the boolean return value
+// will be true, otherwise it will be false.
+func defaultLengthFromEnv() (int, bool) {
+	lengthStr, isSet := os.LookupEnv("GOPASS_PW_DEFAULT_LENGTH")
+	if !isSet {
+		return defaultLength, false
+	}
+	length, err := strconv.Atoi(lengthStr)
+	if err != nil {
+		return defaultLength, false
+	}
+	if length < 1 {
+		return defaultLength, false
+	}
+
+	return length, true
+}
 
 var reNumber = regexp.MustCompile(`^\d+$`)
 
@@ -176,13 +197,11 @@ func (s *Action) generatePassword(ctx context.Context, c *cli.Context, length, n
 
 	var pwlen int
 	if length == "" {
-		candidateLength := defaultLength
-		question := "How long should the password be?"
-		iv, err := termio.AskForInt(ctx, question, candidateLength)
+		pwlength, err := getPwLengthFromEnvOrAskUser(ctx)
 		if err != nil {
-			return "", exit.Error(exit.Usage, err, "password length must be a number")
+			return "", err
 		}
-		pwlen = iv
+		pwlen = pwlength
 	} else {
 		iv, err := strconv.Atoi(length)
 		if err != nil {
@@ -213,6 +232,28 @@ func (s *Action) generatePassword(ctx context.Context, c *cli.Context, length, n
 
 		return pwgen.GeneratePassword(pwlen, symbols), nil
 	}
+}
+
+// getPwLengthFromEnvOrAskUser either determines the password length through an
+// environment variable or asks the user to set one.
+// This function assumes that if the length is set via the environment variable,
+// the user has already made a conscious decision and does not need to be asked
+// again.
+func getPwLengthFromEnvOrAskUser(ctx context.Context) (int, error) {
+	var pwlen int
+	candidateLength, isCustom := defaultLengthFromEnv()
+	if !isCustom {
+		question := "How long should the password be?"
+		iv, err := termio.AskForInt(ctx, question, candidateLength)
+		if err != nil {
+			return 0, exit.Error(exit.Usage, err, "password length must be a number")
+		}
+		pwlen = iv
+	} else {
+		pwlen = candidateLength
+	}
+
+	return pwlen, nil
 }
 
 func clamp(min, max, value int) int {
