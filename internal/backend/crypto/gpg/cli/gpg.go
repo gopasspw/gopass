@@ -20,6 +20,8 @@ var (
 	Ext = "gpg"
 	// IDFile is the name of the recipients file used by this backend.
 	IDFile = ".gpg-id"
+	// Name is the name of this backend.
+	Name = "gpg"
 )
 
 // GPG is a gpg wrapper.
@@ -88,7 +90,7 @@ func (g *GPG) Initialized(ctx context.Context) error {
 
 // Name returns gpg.
 func (g *GPG) Name() string {
-	return "gpg"
+	return Name
 }
 
 // Ext returns gpg.
