@@ -17,4 +17,4 @@ Flag | Aliases | Description
 `--one-per-line` | `-1` | Print one password per line.
 `--xkcd` | `-x` | Use multiple random english words combined to a password.
 `--sep` | `--xs` | Word separator for multi-word passwords.
-`--lang` | `--xl` | Language to generate password from. Currently only supports english (en, default) and german (de).
+`--lang` | `--xl` | Language to generate password from. Currently only supports english (en, default).
