@@ -21,7 +21,7 @@ func (s *Action) Env(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	name := c.Args().First()
 	args := c.Args().Tail()
-	keepCapitalization := c.Bool("keep-capitalization")
+	keepCase := c.Bool("keep-case")
 
 	if len(args) == 0 {
 		return exit.Error(exit.Usage, nil, "Missing subcommand to execute")
@@ -61,7 +61,7 @@ func (s *Action) Env(c *cli.Context) error {
 			return fmt.Errorf("failed to get entry for env prefix %q: %w", name, err)
 		}
 		envKey := path.Base(key)
-		if !keepCapitalization {
+		if !keepCase {
 			envKey = strings.ToUpper(envKey)
 		}
 		env = append(env, fmt.Sprintf("%s=%s", envKey, sec.Password()))

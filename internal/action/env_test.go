@@ -48,7 +48,7 @@ func TestEnvLeafHappyPath(t *testing.T) { //nolint:paralleltest
 	assert.Contains(t, buf.String(), fmt.Sprintf("BAZ=%s\n", pw))
 }
 
-func TestEnvLeafHappyPathKeepCapitalization(t *testing.T) { //nolint:paralleltest
+func TestEnvLeafHappyPathKeepCase(t *testing.T) { //nolint:paralleltest
 	u := gptest.NewUnitTester(t)
 	defer u.Remove()
 
@@ -69,7 +69,7 @@ func TestEnvLeafHappyPathKeepCapitalization(t *testing.T) { //nolint:paralleltes
 		stdout = os.Stdout
 	}()
 
-	// Command-line would be: "gopass env --keep-capitalization BaZ env", where
+	// Command-line would be: "gopass env --keep-case BaZ env", where
 	// "foo" is an existing secret with value "secret". We expect to see the
 	// key/value in the output of the /usr/bin/env utility in the form
 	// "BaZ=secret".
@@ -78,7 +78,7 @@ func TestEnvLeafHappyPathKeepCapitalization(t *testing.T) { //nolint:paralleltes
 	buf.Reset()
 
 	flags := make(map[string]string, 1)
-	flags["keep-capitalization"] = "true"
+	flags["keep-case"] = "true"
 	assert.NoError(t, act.Env(gptest.CliCtxWithFlags(ctx, t, flags, "BaZ", "env")))
 	assert.Contains(t, buf.String(), fmt.Sprintf("BaZ=%s\n", pw))
 }
