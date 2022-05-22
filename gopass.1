@@ -1,5 +1,5 @@
 
-.TH GOPASS "1" "May 2022" "gopass (github.com/gopasspw/gopass) 1.14.1" "User Commands"
+.TH GOPASS "1" "May 2022" "gopass (github.com/gopasspw/gopass) 1.14.2" "User Commands"
 .SH NAME
 gopass - The standard Unix password manager
 .SH SYNOPSIS
@@ -164,6 +164,12 @@ Use this editor binary
 Run a subprocess with a pre-populated environment
 
 This command runs a sub process with the environment populated from the keys of a secret.
+
+.B Flags
+.TP
+\fB\-\-keep-case\fR,
+\fB\-\-kc\fR,
+Do not capitalize the environment variable and instead retain the original capitalization
 .SS find
 Search for secrets
 

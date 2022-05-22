@@ -89,7 +89,7 @@ _gopass () {
 	      _gopass_complete_passwords
 	      ;;
 	  env)
-	      
+	      _arguments : "--keep-case[Do not capitalize the environment variable and instead retain the original capitalization]"
 	      
 	      
 	      ;;
