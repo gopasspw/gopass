@@ -52,7 +52,7 @@ func FuzzParse(f *testing.F) {
 		f.Add(tc)
 	}
 
-	f.Fuzz(func(t *testing.T, in string) { //nolint:thelper
+	f.Fuzz(func(t *testing.T, in string) {
 		sec, err := Parse([]byte(in))
 		if err != nil {
 			t.Fatalf("Parse failed to decode a valid secret %q: %v", in, err)
