@@ -139,6 +139,7 @@ func (g *ghClient) createMilestones(ctx context.Context, v semver.Version) error
 	}
 
 	v.IncrementPatch()
+
 	return g.createMilestone(ctx, v.String(), 2, ms)
 }
 
@@ -216,6 +217,7 @@ func gitCommitAndPush(dir string, v semver.Version) error {
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("failed to push changes: %w", err)
 	}
+
 	return nil
 }
 
@@ -224,6 +226,7 @@ func versionFile() (semver.Version, error) {
 	if err != nil {
 		return semver.Version{}, err
 	}
+
 	return semver.Parse(strings.TrimSpace(string(buf)))
 }
 
@@ -283,10 +286,10 @@ func (u *repoUpdater) update(ctx context.Context) {
 			Distro: "Homebrew",
 			UpFn:   u.updateHomebrew,
 		},
-		{
-			Distro: "VoidLinux",
-			UpFn:   u.updateVoid,
-		},
+		// {
+		// 	Distro: "VoidLinux",
+		// 	UpFn:   u.updateVoid,
+		// },
 	} {
 		fmt.Println()
 		fmt.Println("------------------------------")
@@ -295,6 +298,7 @@ func (u *repoUpdater) update(ctx context.Context) {
 		fmt.Println()
 		if err := upd.UpFn(ctx); err != nil {
 			fmt.Printf("❌ Updating %s failed: %s\n", upd.Distro, err)
+
 			continue
 		}
 		fmt.Printf("✅ Distro %s updated\n", upd.Distro)
