@@ -300,6 +300,14 @@ func (s *Action) GetCommands() []*cli.Command {
 			Action:       s.Env,
 			BashComplete: s.Complete,
 			Hidden:       true,
+			Flags: []cli.Flag{
+				&cli.BoolFlag{
+					Name:    "keep-case",
+					Aliases: []string{"kc"},
+					Value:   false,
+					Usage:   "Do not capitalize the environment variable and instead retain the original capitalization",
+				},
+			},
 		},
 		{
 			Name:      "find",
