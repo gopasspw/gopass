@@ -1,3 +1,11 @@
+## 1.14.2 / 2022-05-22
+
+* [BUGFIX] Fix gpg identity detection (#2218, #2179)
+* [BUGFIX] Handle different line breaks in recipient (#2221, #2220)
+* [BUGFIX] Stop eating secrets on move (#2211, #2210)
+* [ENHANCEMENT] Add flag to keep env variable capitalization (#2226, #2225)
+* [ENHANCEMENT] Environment variable GOPASS_PW_DEFAULT_LENGTH can be used to overwrite default password length of 24 characters. (#2219)
+
 ## 1.14.1 / 2022-05-02
 
 * [BUGFIX] Do not print missing public key for age. (#2166)
