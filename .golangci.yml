@@ -24,6 +24,7 @@ linters:
   - contextcheck
   - durationcheck
   - dupl
+  - exhaustruct
   - exhaustivestruct
   - forbidigo
   - gochecknoglobals
