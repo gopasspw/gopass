@@ -54,4 +54,5 @@ manifest-*.json
 *-fuzz.zip
 workdir/
 
+.vscode/
 NOTICE.new
