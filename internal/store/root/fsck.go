@@ -31,6 +31,8 @@ func (s *Store) Fsck(ctx context.Context, path string) error {
 			out.Errorf(ctx, "fsck failed on sub store %s: %s", alias, err)
 			result = multierror.Append(result, err)
 		}
+
+		debug.Log("Checked %s", alias)
 	}
 
 	// check root store
@@ -38,6 +40,8 @@ func (s *Store) Fsck(ctx context.Context, path string) error {
 		out.Errorf(ctx, "fsck failed on root store: %s", err)
 		result = multierror.Append(result, err)
 	}
+
+	debug.Log("Checked root store")
 
 	return result
 }

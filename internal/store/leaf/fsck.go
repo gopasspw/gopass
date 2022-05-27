@@ -37,10 +37,15 @@ func (s *Store) Fsck(ctx context.Context, path string) error {
 
 	// then we'll make sure all the secrets are readable by us and every
 	// valid recipient
-	out.Printf(ctx, "Checking all secrets in store")
+	if path == "" {
+		out.Printf(ctx, "Checking all secrets in store")
+	} else {
+		out.Printf(ctx, "Checking all secrets matching %s", path)
+	}
+
 	names, err := s.List(ctx, path)
 	if err != nil {
-		return fmt.Errorf("failed to list entries: %w", err)
+		return fmt.Errorf("failed to list entries for %s: %w", path, err)
 	}
 
 	sort.Strings(names)
