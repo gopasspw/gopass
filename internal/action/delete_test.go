@@ -64,4 +64,19 @@ func TestDelete(t *testing.T) { //nolint:paralleltest
 	c = gptest.CliCtxWithFlags(ctx, t, map[string]string{"recursive": "true"}, "foo", "bar")
 	assert.Error(t, act.Delete(c))
 	buf.Reset()
+
+	assert.NoError(t, act.Store.Set(ctx, "sec/1", sec))
+	assert.NoError(t, act.Store.Set(ctx, "sec/2", sec))
+	assert.NoError(t, act.Store.Set(ctx, "sec/3", sec))
+	assert.NoError(t, act.Store.Set(ctx, "sec/4", sec))
+
+	// warn if key matching a secret is given
+	c = gptest.CliCtx(ctx, t, "sec/1", "sec/2")
+	assert.Error(t, act.Delete(c))
+	buf.Reset()
+
+	// remove multiple secrets
+	c = gptest.CliCtx(ctx, t, "sec/1", "sec/2", "sec/3", "sec/4")
+	assert.NoError(t, act.Delete(c))
+	buf.Reset()
 }

@@ -19,7 +19,7 @@ func TestDelete(t *testing.T) { //nolint:paralleltest
 
 	out, err = ts.run("delete foobarbaz")
 	assert.Error(t, err)
-	assert.Contains(t, out, "entry is not in the password store", out)
+	assert.Contains(t, out, "does not exist", out)
 
 	ts.initSecrets("")
 
@@ -31,6 +31,6 @@ func TestDelete(t *testing.T) { //nolint:paralleltest
 
 		out, err = ts.run("delete -f " + secret)
 		assert.Error(t, err)
-		assert.Contains(t, out, "entry is not in the password store\n", out)
+		assert.Contains(t, out, "does not exist\n", out)
 	}
 }
