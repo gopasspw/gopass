@@ -1,0 +1,68 @@
+name: msi-test
+on: workflow_dispatch
+          
+jobs:
+  goreleaser:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      -
+        name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.18
+      # ubuntu is missing wixl https://github.com/actions/virtual-environments/issues/3857
+      -
+        name: "Install GNOME msitools (wixl)"
+        run: sudo apt update -qq && sudo apt install -qq -y wixl
+      -
+        name: Import GPG signing key
+        id: import_gpg
+        uses: crazy-max/ghaction-import-gpg@v5
+        with:
+          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.PASSPHRASE }}
+      -
+        name: Debug
+        run:  |
+          echo "GPG ---------------------"
+          echo "fingerprint: ${{ steps.import_gpg.outputs.fingerprint }}"
+          echo "keyid:       ${{ steps.import_gpg.outputs.keyid }}"
+          echo "name:        ${{ steps.import_gpg.outputs.name }}"
+          echo "email:       ${{ steps.import_gpg.outputs.email }}"
+          echo "Go env ------------------"
+          pwd
+          echo ${HOME}
+          echo ${GITHUB_WORKSPACE}
+          echo ${GOPATH}
+          echo ${GOROOT}
+          env
+      -
+        name: Generate release-notes
+        run: |
+          go run helpers/changelog/main.go >../RELEASE_NOTES
+      -
+        name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v3.0.0
+        with:
+          version: latest
+          args: release --snapshot --rm-dist --release-notes=../RELEASE_NOTES
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+          GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}
+          GOPATH: /home/runner/go
+      -
+        name: "Add Windows installer (msi) to release"
+        run: |  # until https://github.com/goreleaser/goreleaser/issues/1295, disabled until #2038 is fixed
+          tag="${GITHUB_REF#refs/tags/}"
+          version=${tag#v}
+          make msi
+          msi=dist/gopass-${version}-windows-x64.msi
+          gh release upload "${tag}" "${msi}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+
