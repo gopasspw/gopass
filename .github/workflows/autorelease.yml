@@ -72,7 +72,7 @@ jobs:
           msi=dist/gopass-${version}-windows-x64.msi
           gh release upload "${tag}" "${msi}"
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+          GH_TOKEN: ${{ secrets.GH_PAT }}
       -
         name: "Upload deb files to apt hosting"
         run: |
