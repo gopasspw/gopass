@@ -157,4 +157,7 @@ upgrade: gen fmt
 man:
 	@$(GO) run helpers/man/main.go > gopass.1
 
-.PHONY: clean build completion install sysinfo crosscompile test codequality release goreleaser debsign man
+msi:
+	@$(GO) run helpers/msipkg/main.go
+
+.PHONY: clean build completion install sysinfo crosscompile test codequality release goreleaser debsign man msi

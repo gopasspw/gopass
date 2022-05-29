@@ -68,10 +68,9 @@ jobs:
         run: |  # until https://github.com/goreleaser/goreleaser/issues/1295, disabled until #2038 is fixed
           tag="${GITHUB_REF#refs/tags/}"
           version=${tag#v}
-          echo MSI_VERSION=${version} make msi
-          echo msi=dist/gopass-${version}-windows-amd64.msi
-          echo mv dist/gopass_windows_amd64/gopass.msi ${msi}
-          echo gh release upload "${tag}" "${msi}"
+          make msi
+          msi=dist/gopass-${version}-windows-x64.msi
+          gh release upload "${tag}" "${msi}"
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
       -
