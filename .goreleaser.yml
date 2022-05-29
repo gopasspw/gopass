@@ -101,9 +101,3 @@ milestones:
     close: true
     fail_on_error: false
     name_template: "{{ .Major }}.{{ .Minor }}.{{ .Patch }}"
-
-signs:
-  -
-    id: gopass
-    artifacts: checksum
-    args: ["--batch", "-u", "{{ .Env.GPG_FINGERPRINT }}", "--armor", "--output", "${signature}", "--detach-sign", "${artifact}"]
