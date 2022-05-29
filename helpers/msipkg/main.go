@@ -46,7 +46,7 @@ var (
 `
 	upgradeCode = "6c1bd458-7d1b-4311-848d-d0fe1a65af66"
 	icon        = "docs/logo.ico"
-	source      = "dist/gopass_windows_amd64/gopass.exe"
+	source      = "dist/gopass_windows_amd64_v1/gopass.exe"
 )
 
 const logo = `
