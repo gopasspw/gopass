@@ -168,7 +168,7 @@ secret1234
 otpauth://totp/golang.org:gopher?secret=ABC123
 ```
 
-Alternatively, you can use YAML (currently totp only):
+Alternatively, you can use YAML (notice the usage of the YAML separator to indicate it is a YAML secret):
 
 ```
 gopass show golang.org/gopher
@@ -375,9 +375,7 @@ Commands that support the `--store` flag:
 
 ### Directly edit structured secrets aka. YAML support
 
-Warning: YAML support is deprecated.
-
-gopass supports directly editing structured secrets (simple key-value maps or YAML).
+gopass supports directly editing structured secrets (simple key-value maps):
 
 ```bash
 $ gopass generate -n foo/bar 12
@@ -393,10 +391,29 @@ $ gopass foo/bar
 baz: zab
 ```
 
+Or even YAML:
+```bash
+secret1234
+---
+multi: |
+    text
+    more text
+octal: 0123
+date   : 2001-01-23
+bill-to: &id001
+    given  : Bob
+    family : Doe
+ship-to: *id001
+```
+
+Note that YAML entries currently support only one YAML block and **must start with the separator** `---` after the password and body text, if any. We do not support comments directly after the separator.
+
 Please note that gopass will try to leave your secret as is whenever possible,
 but as soon as you mutate the YAML content through gopass, i.e. `gopass insert secret key`,
-it will employ an YAML marshaler that may alter the order and escaping of your
+it will employ a YAML marshaler that may alter the order and escaping of your
 entries.
+
+See also [gopass show doc entry](/docs/commands/show.md#parsing-and-secrets) for more information about parsing and how to disable it.
 
 ### Edit the Config
 
