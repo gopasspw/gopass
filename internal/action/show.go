@@ -100,7 +100,7 @@ func (s *Action) show(ctx context.Context, c *cli.Context, name string, recurse 
 		return s.List(c)
 	}
 
-	if s.Store.IsDir(ctx, name) && ctxutil.IsTerminal(ctx) {
+	if s.Store.IsDir(ctx, name) && ctxutil.IsTerminal(ctx) && !IsPasswordOnly(ctx) {
 		out.Warningf(ctx, "%s is a secret and a folder. Use 'gopass show %s' to display the secret and 'gopass list %s' to show the content of the folder", name, name, name)
 	}
 
