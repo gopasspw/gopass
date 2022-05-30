@@ -21,35 +21,44 @@ func (s *Action) Delete(c *cli.Context) error {
 		return exit.Error(exit.Usage, nil, "Usage: %s rm name", s.Name)
 	}
 
-	if !recursive && s.Store.IsDir(ctx, name) && !s.Store.Exists(ctx, name) {
+	if recursive {
+		if len(c.Args().Tail()) > 1 {
+			return exit.Error(exit.Usage, nil, "Deleting multiple keys is not supported in recursive mode")
+		}
+
+		return s.deleteRecursive(ctx, name, c.Bool("force"))
+	}
+
+	if s.Store.IsDir(ctx, name) && !s.Store.Exists(ctx, name) {
 		return exit.Error(exit.Usage, nil, "Cannot remove %q: Is a directory. Use 'gopass rm -r %s' to delete", name, name)
 	}
 
 	// specifying a key is optional.
 	key := c.Args().Get(1)
 
-	if recursive && key != "" {
-		return exit.Error(exit.Usage, nil, "Can not use -r with a key. Invoke delete either with a key or with -r")
+	// multiple secrets, so not a key
+	if len(c.Args().Tail()) > 1 {
+		key = ""
+	}
+
+	names := append([]string{name}, c.Args().Tail()...)
+
+	if key != "" && s.Store.Exists(ctx, key) {
+		return exit.Error(exit.Unsupported, nil, "Key %q clashes with a secret of this name, use 'gopass edit %s' to delete", key, name)
+	}
+
+	if !s.Store.Exists(ctx, name) {
+		return exit.Error(exit.NotFound, nil, "Secret %q does not exist", name)
 	}
 
 	if !c.Bool("force") { // don't check if it's force anyway.
-		recStr := ""
-		if recursive {
-			recStr = "recursively "
+		qStr := fmt.Sprintf("☠ Are you sure you would like to delete %q?", names)
+		if key != "" {
+			qStr = fmt.Sprintf("☠ Are you sure you would like to delete %q from %q?", key, name)
 		}
-		if (s.Store.Exists(ctx, name) || s.Store.IsDir(ctx, name)) && key == "" && !termio.AskForConfirmation(ctx, fmt.Sprintf("☠ Are you sure you would like to %sdelete %s?", recStr, name)) {
+		if (s.Store.Exists(ctx, name) || s.Store.IsDir(ctx, name)) && key == "" && !termio.AskForConfirmation(ctx, qStr) {
 			return nil
 		}
-	}
-
-	if recursive && key == "" {
-		debug.Log("pruning %q", name)
-		if err := s.Store.Prune(ctx, name); err != nil {
-			return exit.Error(exit.Unknown, err, "failed to prune %q: %s", name, err)
-		}
-		debug.Log("pruned %q", name)
-
-		return nil
 	}
 
 	// deletes a single key from a YAML doc.
@@ -59,10 +68,28 @@ func (s *Action) Delete(c *cli.Context) error {
 		return s.deleteKeyFromYAML(ctx, name, key)
 	}
 
-	debug.Log("removing entry %q", name)
-	if err := s.Store.Delete(ctx, name); err != nil {
-		return exit.Error(exit.IO, err, "Can not delete %q: %s", name, err)
+	for _, name := range names {
+		debug.Log("removing entry %q", name)
+		if err := s.Store.Delete(ctx, name); err != nil {
+			return exit.Error(exit.IO, err, "Can not delete %q: %s", name, err)
+		}
 	}
+
+	return nil
+}
+
+func (s *Action) deleteRecursive(ctx context.Context, name string, force bool) error {
+	if !force { // don't check if it's force anyway.
+		if (s.Store.Exists(ctx, name) || s.Store.IsDir(ctx, name)) && !termio.AskForConfirmation(ctx, fmt.Sprintf("☠ Are you sure you would like to recursively delete %q?", name)) {
+			return nil
+		}
+	}
+
+	debug.Log("pruning %q", name)
+	if err := s.Store.Prune(ctx, name); err != nil {
+		return exit.Error(exit.Unknown, err, "failed to prune %q: %s", name, err)
+	}
+	debug.Log("pruned %q", name)
 
 	return nil
 }
