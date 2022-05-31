@@ -69,7 +69,7 @@ jobs:
           tag="${GITHUB_REF#refs/tags/}"
           version=${tag#v}
           make msi
-          msi=dist/gopass-${version}-windows-x64.msi
+          msi=dist/gopass-x64-windows-${version}.msi
           gh release upload "${tag}" "${msi}"
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
