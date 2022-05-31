@@ -1,3 +1,11 @@
+## 1.14.3 / 2022-05-31
+
+* [BUGFIX] Do not print progress bar on otp --clip (#2243)
+* [BUGFIX] Removing shadowing warning when using -o/--password (#2245)
+* [CLEANUP] Deprecate OutputIsRedirected in favour of IsTerminal (#2248)
+* [DOCUMENTATION] Adding doc about YAML entries and unsafe-keys (#2244)
+* [ENHANCEMENT] Allow deleting multiple secrets (#2239)
+
 ## 1.14.2 / 2022-05-22
 
 * [BUGFIX] Fix gpg identity detection (#2218, #2179)
