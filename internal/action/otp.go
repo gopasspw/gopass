@@ -86,6 +86,7 @@ func waitForKeyPress(ctx context.Context, cancel context.CancelFunc) {
 	}
 }
 
+//nolint: cyclop
 func (s *Action) otp(ctx context.Context, name, qrf string, clip, pw, recurse bool) error {
 	sec, err := s.Store.Get(ctx, name)
 	if err != nil {
