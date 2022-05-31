@@ -95,7 +95,7 @@ func (s *Action) otp(ctx context.Context, name, qrf string, clip, pw, recurse bo
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	skip := ctxutil.IsHidden(ctx) || pw || qrf != "" || !ctxutil.IsTerminal() || !ctxutil.IsInteractive(ctx) || clip
+	skip := ctxutil.IsHidden(ctx) || pw || qrf != "" || !ctxutil.IsTerminal(ctx) || !ctxutil.IsInteractive(ctx) || clip
 	if !skip {
 		// let us monitor key presses for cancellation:.
 		go waitForKeyPress(ctx, cancel)
@@ -128,7 +128,7 @@ func (s *Action) otp(ctx context.Context, name, qrf string, clip, pw, recurse bo
 		}
 
 		// check if we are in "password only" or in "qr code" mode or being redirected to a pipe.
-		if pw || qrf != "" || !ctxutil.IsTerminal() {
+		if pw || qrf != "" || !ctxutil.IsTerminal(ctx) {
 			out.Printf(ctx, "%s", token)
 			cancel()
 		} else { // if not then we want to print a progress bar with the expiry time.
