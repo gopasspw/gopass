@@ -193,7 +193,9 @@ func (s *Action) RecipientsRemove(c *cli.Context) error {
 
 		recp := r
 		if len(keys) > 0 {
-			recp = crypto.Fingerprint(ctx, keys[0])
+			if nr := crypto.Fingerprint(ctx, keys[0]); nr != "" {
+				recp = nr
+			}
 		}
 
 		if err := s.Store.RemoveRecipient(ctx, store, recp); err != nil {
