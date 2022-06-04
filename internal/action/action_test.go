@@ -19,11 +19,13 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-func newMock(ctx context.Context, u *gptest.Unit) (*Action, error) {
+func newMock(ctx context.Context, path string) (*Action, error) {
 	cfg := config.Load()
-	cfg.Path = u.StoreDir("")
+	cfg.Path = path
 
-	ctx = backend.WithCryptoBackend(ctx, backend.Plain)
+	if !backend.HasCryptoBackend(ctx) {
+		ctx = backend.WithCryptoBackend(ctx, backend.Plain)
+	}
 	ctx = backend.WithStorageBackend(ctx, backend.GitFS)
 	act, err := newAction(cfg, semver.Version{}, false)
 	if err != nil {
@@ -49,7 +51,7 @@ func TestAction(t *testing.T) {
 	ctx := context.Background()
 	ctx = ctxutil.WithInteractive(ctx, false)
 
-	act, err := newMock(ctx, u)
+	act, err := newMock(ctx, u.StoreDir(""))
 	require.NoError(t, err)
 	require.NotNil(t, act)
 

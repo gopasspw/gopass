@@ -27,7 +27,7 @@ func TestUnclip(t *testing.T) { //nolint:paralleltest
 	}()
 
 	ctx := context.Background()
-	act, err := newMock(ctx, u)
+	act, err := newMock(ctx, u.StoreDir(""))
 	require.NoError(t, err)
 	require.NotNil(t, act)
 

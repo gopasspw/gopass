@@ -23,7 +23,7 @@ func TestInsert(t *testing.T) { //nolint:paralleltest
 	ctx = ctxutil.WithTerminal(ctx, false)
 	ctx = ctxutil.WithShowParsing(ctx, true)
 
-	act, err := newMock(ctx, u)
+	act, err := newMock(ctx, u.StoreDir(""))
 	require.NoError(t, err)
 	require.NotNil(t, act)
 
@@ -139,7 +139,7 @@ func TestInsertStdin(t *testing.T) { //nolint:paralleltest
 	ctx = ctxutil.WithTerminal(ctx, false)
 	ctx = ctxutil.WithStdin(ctx, true)
 
-	act, err := newMock(ctx, u)
+	act, err := newMock(ctx, u.StoreDir(""))
 	require.NoError(t, err)
 	require.NotNil(t, act)
 

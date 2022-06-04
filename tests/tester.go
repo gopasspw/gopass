@@ -12,6 +12,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/gopasspw/gopass/tests/can"
 	"github.com/gopasspw/gopass/tests/gptest"
 	shellquote "github.com/kballard/go-shellquote"
 	"github.com/stretchr/testify/require"
@@ -90,22 +91,7 @@ func newTester(t *testing.T) *tester {
 	}
 
 	// copy gpg test files
-	files := map[string]string{
-		filepath.Join(ts.sourceDir, "can", "gnupg", "pubring.gpg"): filepath.Join(ts.gpgDir(), "pubring.gpg"),
-		filepath.Join(ts.sourceDir, "can", "gnupg", "random_seed"): filepath.Join(ts.gpgDir(), "random_seed"),
-		filepath.Join(ts.sourceDir, "can", "gnupg", "secring.gpg"): filepath.Join(ts.gpgDir(), "secring.gpg"),
-		filepath.Join(ts.sourceDir, "can", "gnupg", "trustdb.gpg"): filepath.Join(ts.gpgDir(), "trustdb.gpg"),
-	}
-	for from, to := range files {
-		buf, err := os.ReadFile(from)
-		require.NoError(t, err, "Failed to read file %s", from)
-
-		err = os.MkdirAll(filepath.Dir(to), 0o700)
-		require.NoError(t, err, "Failed to create dir for %s", to)
-
-		err = os.WriteFile(to, buf, 0o600)
-		require.NoError(t, err, "Failed to write file %s", to)
-	}
+	require.NoError(t, can.WriteTo(ts.gpgDir()))
 
 	return ts
 }

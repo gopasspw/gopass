@@ -31,7 +31,7 @@ func TestProcess(t *testing.T) { //nolint:paralleltest
 		stdout = os.Stdout
 	}()
 
-	act, err := newMock(ctx, u)
+	act, err := newMock(ctx, u.StoreDir(""))
 	require.NoError(t, err)
 	require.NotNil(t, act)
 
