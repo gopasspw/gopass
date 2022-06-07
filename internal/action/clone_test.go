@@ -48,7 +48,7 @@ func TestClone(t *testing.T) { //nolint:paralleltest
 	ctx = ctxutil.WithInteractive(ctx, false)
 	ctx = backend.WithStorageBackend(ctx, backend.GitFS)
 
-	act, err := newMock(ctx, u)
+	act, err := newMock(ctx, u.StoreDir(""))
 	require.NoError(t, err)
 	require.NotNil(t, act)
 
@@ -129,7 +129,7 @@ func TestCloneGetGitConfig(t *testing.T) { //nolint:paralleltest
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithInteractive(ctx, false)
 
-	act, err := newMock(ctx, u)
+	act, err := newMock(ctx, u.StoreDir(""))
 	require.NoError(t, err)
 	require.NotNil(t, act)
 

@@ -15,7 +15,6 @@ const (
 	gopassConfig = `autoclip: true
 autoimport: true
 cliptimeout: 45
-exportkeys: true
 notifications: true
 parsing: true`
 )
@@ -39,7 +38,7 @@ func (u Unit) GPConfig() string {
 	return filepath.Join(u.Dir, "config.yml")
 }
 
-// GPGHome returns the gopass homedir.
+// GPGHome returns the GnuPG homedir.
 func (u Unit) GPGHome() string {
 	return filepath.Join(u.Dir, ".gnupg")
 }
@@ -63,7 +62,6 @@ func NewUnitTester(t *testing.T) *Unit {
 		"GNUPGHOME":                 u.GPGHome(),
 		"GOPASS_CONFIG":             u.GPConfig(),
 		"GOPASS_DISABLE_ENCRYPTION": "true",
-		"GOPASS_EXPERIMENTAL_GOGIT": "",
 		"GOPASS_HOMEDIR":            u.Dir,
 		"NO_COLOR":                  "true",
 		"GOPASS_NO_NOTIFY":          "true",
@@ -80,7 +78,7 @@ func NewUnitTester(t *testing.T) *Unit {
 func (u Unit) initConfig() error {
 	err := os.WriteFile(
 		u.GPConfig(),
-		[]byte(gopassConfig+"\npath: "+u.StoreDir("")+"\n"),
+		[]byte(gopassConfig+"\npath: "+u.StoreDir("")+"\nexportkeys: true\n"),
 		0o600,
 	)
 	if err != nil {

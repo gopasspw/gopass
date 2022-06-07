@@ -20,7 +20,7 @@ func TestConfig(t *testing.T) { //nolint:paralleltest
 
 	ctx := context.Background()
 	ctx = ctxutil.WithInteractive(ctx, false)
-	act, err := newMock(ctx, u)
+	act, err := newMock(ctx, u.StoreDir(""))
 	require.NoError(t, err)
 	require.NotNil(t, act)
 

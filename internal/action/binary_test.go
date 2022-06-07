@@ -29,7 +29,7 @@ func TestBinary(t *testing.T) { //nolint:paralleltest
 		out.Stdout = os.Stdout
 	}()
 
-	act, err := newMock(ctx, u)
+	act, err := newMock(ctx, u.StoreDir(""))
 	require.NoError(t, err)
 	require.NotNil(t, act)
 
@@ -55,7 +55,7 @@ func TestBinaryCat(t *testing.T) { //nolint:paralleltest
 		stdout = os.Stdout
 	}()
 
-	act, err := newMock(ctx, u)
+	act, err := newMock(ctx, u.StoreDir(""))
 	require.NoError(t, err)
 	require.NotNil(t, act)
 
@@ -108,7 +108,7 @@ func TestBinaryCopy(t *testing.T) { //nolint:paralleltest
 		out.Stdout = os.Stdout
 	}()
 
-	act, err := newMock(ctx, u)
+	act, err := newMock(ctx, u.StoreDir(""))
 	require.NoError(t, err)
 	require.NotNil(t, act)
 
@@ -170,7 +170,7 @@ func TestBinarySum(t *testing.T) { //nolint:paralleltest
 		out.Stdout = os.Stdout
 	}()
 
-	act, err := newMock(ctx, u)
+	act, err := newMock(ctx, u.StoreDir(""))
 	require.NoError(t, err)
 	require.NotNil(t, act)
 
@@ -195,7 +195,7 @@ func TestBinaryGet(t *testing.T) { //nolint:paralleltest
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithHidden(ctx, true)
 
-	act, err := newMock(ctx, u)
+	act, err := newMock(ctx, u.StoreDir(""))
 	require.NoError(t, err)
 	require.NotNil(t, act)
 
