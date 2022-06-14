@@ -177,8 +177,22 @@ a package named `gopass` that is not related to this project in any way.
 It's a similar tool with a completely independent implementation and feature set.
 We are aware of this issue but can not do anything about it.
 
-When installing on Ubuntu or Debian you can either download the `deb` package
-and [install manually or build from source](#installing-from-source).
+When installing on Ubuntu or Debian you can either download the `deb` package,
+[install manually or build from source](#installing-from-source) or use our APT repository.
+
+```bash
+$ curl http://packages.gopass.pw/repos/gopass/gopass-archive-keyring.gpg | sudo tee /usr/share/keyrings/gopass-archive-keyring.gpg
+$ cat << EOF | sudo tee /etc/apt/sources.list.d/gopass.sources
+Types: deb
+URIs: https://packages.gopass.pw/repos/gopass
+Suites: stable
+Architectures: all amd64 arm64 armhf
+Components: main
+Signed-By: /usr/share/keyrings/gopass-archive-keyring.gpg
+EOF
+$ sudo apt update
+$ sudo apt install gopass gopass-archive-keyring
+```
 
 #### Manual download
 
@@ -218,10 +232,10 @@ yum install gopass
 ```
 
 ### Arch Linux
+
 ```bash
 pacman -S gopass
 ```
-
 
 ### Windows
 

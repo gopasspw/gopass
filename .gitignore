@@ -5,6 +5,7 @@ dev.sh
 !pkg/gopass/
 coverage.out
 coverage-all.*
+.vscode/
 
 # Profiling
 *.out
