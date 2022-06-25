@@ -58,6 +58,21 @@ func main() {
 		htmlDir = h
 	}
 
+	// update gopass.pw
+	fmt.Println("☝  Updating gopass.pw ...")
+	if err := updateGopasspw(htmlDir, curVer); err != nil {
+		fmt.Printf("Failed to update gopasspw.github.io: %s\n", err)
+	}
+
+	// only update gopasspw
+	if len(os.Args) > 1 && os.Args[1] == "render" {
+		fmt.Println("💎🙌 Done (render gopasspw only) 🚀🚀🚀🚀🚀🚀")
+
+		return
+	}
+
+	mustCheckEnv()
+
 	ghCl, err := newGHClient(ctx)
 	if err != nil {
 		panic(err)
@@ -71,29 +86,14 @@ func main() {
 	fmt.Println("❓ Do you want to continue? (press any key to continue or Ctrl+C to abort)")
 	fmt.Scanln()
 
-	// update gopass.pw
-	fmt.Println("☝  Updatgin gopass.pw ...")
-	if err := updateGopasspw(htmlDir, curVer); err != nil {
-		fmt.Printf("Failed to update gopasspw.github.io: %s\n", err)
-	}
-
 	// create a new GitHub milestone
-	fmt.Println("☝  Creatgin new GitHub Milestone(s) ...")
+	fmt.Println("☝  Creating new GitHub Milestone(s) ...")
 	if err := ghCl.createMilestones(ctx, nextVer); err != nil {
 		fmt.Printf("Failed to create GitHub milestones: %s\n", err)
 	}
 
 	// send PRs to update gopass ports
-	ghFork := os.Getenv("GITHUB_FORK")
-	if ghFork == "" {
-		panic("Please set GITHUB_FORK to your local upstream name")
-	}
-	ghUser := os.Getenv("GITHUB_USER")
-	if ghUser == "" {
-		panic("Please set GITHUB_USER to your GitHub user")
-	}
-
-	upd, err := newRepoUpdater(ghCl.client, curVer, ghUser, ghFork)
+	upd, err := newRepoUpdater(ghCl.client, curVer, os.Getenv("GITHUB_USER"), os.Getenv("GITHUB_FORK"))
 	if err != nil {
 		fmt.Printf("Failed to create repo updater: %s\n", err)
 	} else {
@@ -101,6 +101,15 @@ func main() {
 	}
 
 	fmt.Println("💎🙌 Done 🚀🚀🚀🚀🚀🚀")
+}
+
+func mustCheckEnv() {
+	want := []string{"GITHUB_TOKEN", "GITHUB_USER", "GITHUB_FORK"}
+	for _, e := range want {
+		if sv := os.Getenv(e); sv == "" {
+			panic("Please set: " + fmt.Sprintf("%v", want))
+		}
+	}
 }
 
 type ghClient struct {
