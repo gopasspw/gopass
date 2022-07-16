@@ -166,6 +166,7 @@ gopass is developed in the open. Here are some of the channels we use to communi
 - [`terraform-provider-gopass`](https://github.com/camptocamp/terraform-provider-pass): a Terraform provider to interact with gopass
 - [chezmoi](https://github.com/twpayne/chezmoi): dotfile manager with gopass support
 - [tessen](https://github.com/ayushnix/tessen): autotype and copy gopass data on wayland compositors on Linux
+- [raycast-gopass](https://github.com/raycast/extensions/tree/main/extensions/gopass): a gopass extension for Raycast Mac launcher
 
 ## Mobile apps
 
