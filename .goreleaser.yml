@@ -107,3 +107,10 @@ signs:
     id: gopass
     artifacts: checksum
     args: ["--batch", "-u", "{{ .Env.GPG_FINGERPRINT }}", "--armor", "--output", "${signature}", "--detach-sign", "${artifact}"]
+
+# creates SBOMs of all archives and the source tarball using syft
+# https://goreleaser.com/customization/sbom
+sboms:
+  - artifacts: archive
+  - id: source # Two different sbom configurations need two different IDs
+    artifacts: source
