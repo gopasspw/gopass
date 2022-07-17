@@ -3,6 +3,7 @@ package root
 import (
 	"context"
 	"fmt"
+	"os"
 
 	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/internal/out"
@@ -72,6 +73,9 @@ func (r *Store) initialize(ctx context.Context) error {
 
 	// create the base store
 	path := fsutil.CleanPath(r.cfg.Path)
+	if sv := os.Getenv("PASSWORD_STORE_DIR"); sv != "" {
+		path = fsutil.CleanPath(sv)
+	}
 	debug.Log("initialize - %s", path)
 
 	s, err := leaf.New(ctx, "", path)
