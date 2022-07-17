@@ -16,6 +16,7 @@ func TTY() string {
 	if err != nil {
 		return ""
 	}
+
 	return string(out)
 }
 
