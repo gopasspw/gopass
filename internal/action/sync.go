@@ -4,6 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
+	"strconv"
+	"time"
 
 	"github.com/fatih/color"
 	"github.com/gopasspw/gopass/internal/backend"
@@ -18,9 +21,49 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
+var autosyncIntervalDays = 3
+
+func init() {
+	sv := os.Getenv("GOPASS_AUTOSYNC_INTERVAL")
+	if sv == "" {
+		return
+	}
+
+	iv, err := strconv.Atoi(sv)
+	if err != nil {
+		return
+	}
+
+	autosyncIntervalDays = iv
+}
+
 // Sync all stores with their remotes.
 func (s *Action) Sync(c *cli.Context) error {
 	return s.sync(ctxutil.WithGlobalFlags(c), c.String("store"))
+}
+
+func (s *Action) autoSync(ctx context.Context) error {
+	if !ctxutil.IsInteractive(ctx) {
+		return nil
+	}
+
+	if !ctxutil.IsTerminal(ctx) {
+		return nil
+	}
+
+	if sv := os.Getenv("GOPASS_NO_AUTOSYNC"); sv != "" {
+		return nil
+	}
+
+	ls := s.rem.LastSeen("autosync")
+	debug.Log("autosync - last seen: %s", ls)
+	if time.Since(ls) > time.Duration(autosyncIntervalDays)*24*time.Hour {
+		_ = s.rem.Reset("autosync")
+
+		return s.sync(ctx, "")
+	}
+
+	return nil
 }
 
 func (s *Action) sync(ctx context.Context, store string) error {
