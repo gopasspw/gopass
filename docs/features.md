@@ -156,9 +156,7 @@ The `edit` command uses the `$EDITOR` environment variable to start your preferr
 
 ### Adding OTP Secrets
 
-Warning: OTP support is deprecated.
-
-*Note: Depending on your security needs, it may not behoove you to store your OTP secrets alongside your passwords! Look into [Multiple Stores](https://github.com/gopasspw/gopass/blob/master/docs/features.md#multiple-stores) if you need things to be separate!*
+*Note: Depending on your security needs, it may not behoove you to store your OTP secrets alongside your passwords! Look into [Multiple Stores](https://github.com/gopasspw/gopass/blob/master/docs/features.md#multiple-stores) if you need things to be separate! Ideally using a hardware token requiring user interaction to store the key that is able to decrypt your OTP codes.*
 
 Typically sites will display a QR code containing a URL that starts with `oauth://`. This string contains information about generating your OTPs and can be directly added to your password file. For example:
 
@@ -168,7 +166,7 @@ secret1234
 otpauth://totp/golang.org:gopher?secret=ABC123
 ```
 
-Alternatively, you can use YAML (notice the usage of the YAML separator to indicate it is a YAML secret):
+Alternatively, you can use YAML (notice the usage of the YAML separator `---` to indicate it is a YAML secret):
 
 ```
 gopass show golang.org/gopher
