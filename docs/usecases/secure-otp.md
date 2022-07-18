@@ -64,6 +64,19 @@ gopass otp local-passwordstore/website/yourOtp
 897402 lasts 17s 	|-------------=================|
 ```
 
+## Rely on a hardware token
+
+Notice that ideally, the secret key that's able to decrypt your OTP secrets should be stored on a hardware token that is requiring some kind of user interaction to decrypt them.
+
+This is done with Gopass by setting up a second store and not using the same public keys as for your main password store.
+Refer to [our mount doc for setting one up](docs/commands/mount.md).
+
+The public keys used for your OTP store should ideally be stored only on hardware tokens, or maybe generated on an airgaped machined and then backuped offline, before being transferred on a hardware token.
+(There are [multiple](https://research.kudelskisecurity.com/2017/04/28/configuring-yubikey-for-gpg-and-u2f/) [guides](https://support.yubico.com/hc/en-us/articles/360013790259-Using-Your-YubiKey-with-OpenPGP) online about how to do this.)
+
+It is highly recommended to set your ["touch policy" to `always`](https://docs.yubico.com/yesdk/users-manual/application-piv/pin-touch-policies.html#touch-policies) when using a hardware token for OTP.
+
+This avoids storing 2FA codes in the same place as your passwords, which would kind of nullify the security advantage of relying on a 2FA code in the first place.
 
 ## Threat analysis
 

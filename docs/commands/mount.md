@@ -23,3 +23,13 @@ $ gopass mounts remove mount/point
 * Add a new mount
 * List existing mounts
 * Remove an existing mount
+
+## Creating new mounts
+
+You can also create new mounts using `init` even if your store is already initialized:
+
+```
+gopass init --store mynewsubstore pgpkeyidentitfier
+```
+
+(You can also specify a specific local path using `--path`, just make sure to keep your PGP key identifier, e.g. its email or fingerprint, as the last argument.)
