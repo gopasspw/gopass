@@ -1,19 +1,21 @@
 package otp
 
 import (
+	"bytes"
 	"fmt"
+	"image/png"
 	"os"
 	"strings"
 
-	"github.com/gokyle/twofactor"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/gopass"
+	"github.com/pquerna/otp"
 )
 
 // Calculate will compute a OTP code from a given secret.
 //nolint:ireturn
-func Calculate(name string, sec gopass.Secret) (twofactor.OTP, string, error) {
+func Calculate(name string, sec gopass.Secret) (*otp.Key, error) {
 	otpURL, found := sec.Get("otpauth")
 	if found && strings.HasPrefix(otpURL, "//") {
 		otpURL = "otpauth:" + otpURL
@@ -31,12 +33,10 @@ func Calculate(name string, sec gopass.Secret) (twofactor.OTP, string, error) {
 	if otpURL != "" {
 		debug.Log("found otpauth url: %s", out.Secret(otpURL))
 
-		return twofactor.FromURL(otpURL) //nolint:wrapcheck
+		return otp.NewKeyFromURL(otpURL) //nolint:wrapcheck
 	}
 
 	// check yaml entry and fall back to password if we don't have one
-	label := name
-
 	secKey, found := sec.Get("totp")
 	if !found {
 		debug.Log("no totp secret found, falling back to password")
@@ -45,47 +45,43 @@ func Calculate(name string, sec gopass.Secret) (twofactor.OTP, string, error) {
 	}
 
 	if strings.HasPrefix(secKey, "otpauth://") {
-		return twofactor.FromURL(secKey) //nolint:wrapcheck
+		debug.Log("parsing otpauth:// URL %q", out.Secret(secKey))
+
+		k, err := otp.NewKeyFromURL(secKey)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse otpauth URL: %w", err)
+		}
+
+		return k, nil
 	}
 
-	otp, err := twofactor.NewGoogleTOTP(twofactor.Pad(secKey))
+	debug.Log("assembling otpauth URL from secret only (%q), using defaults", out.Secret(secKey))
+
+	// otpauth://totp/Example:alice@google.com?secret=JBSWY3DPEHPK3PXP&issuer=Example
+	key, err := otp.NewKeyFromURL(fmt.Sprintf("otpauth://totp/new?secret=%s&issuer=gopass", secKey))
 	if err != nil {
-		return otp, label, fmt.Errorf("invalid OTP secret %q: %w", secKey, err)
+		debug.Log("failed to parse OTP: %s", out.Secret(secKey))
+
+		return nil, fmt.Errorf("invalid OTP secret: %w", err)
 	}
 
-	return otp, label, nil
+	return key, nil
 }
 
 // WriteQRFile writes the given OTP code as a QR image to disk.
-func WriteQRFile(otp twofactor.OTP, label, file string) error {
-	var qr []byte
-
-	var err error
-
-	switch otp.Type() {
-	case twofactor.OATH_HOTP:
-		hotp, ok := otp.(*twofactor.HOTP)
-		if !ok {
-			return fmt.Errorf("Type assertion failed on twofactor.HOTP: %w", ErrType)
-		}
-
-		qr, err = hotp.QR(label)
-	case twofactor.OATH_TOTP:
-		totp, ok := otp.(*twofactor.TOTP)
-		if !ok {
-			return fmt.Errorf("Type assertion failed on twofactor.TOTP: %w", ErrType)
-		}
-
-		qr, err = totp.QR(label)
-	default:
-		err = ErrOathOTP
-	}
-
+func WriteQRFile(key *otp.Key, file string) error {
+	// Convert TOTP key into a QR code encoded as a PNG image.
+	var buf bytes.Buffer
+	img, err := key.Image(200, 200)
 	if err != nil {
-		return fmt.Errorf("failed to write qr file: %w", err)
+		return fmt.Errorf("failed to encode qr code: %w", err)
 	}
 
-	if err := os.WriteFile(file, qr, 0o600); err != nil {
+	if err := png.Encode(&buf, img); err != nil {
+		return fmt.Errorf("failed to encode as png: %w", err)
+	}
+
+	if err := os.WriteFile(file, buf.Bytes(), 0o600); err != nil {
 		return fmt.Errorf("failed to write QR code: %w", err)
 	}
 

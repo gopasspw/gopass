@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/gokyle/twofactor"
 	"github.com/gopasspw/gopass/pkg/gopass/secrets/secparse"
+	"github.com/pquerna/otp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -37,7 +37,7 @@ func TestCalculate(t *testing.T) {
 
 			s, err := secparse.Parse(tc)
 			require.NoError(t, err)
-			otp, _, err := Calculate("test", s)
+			otp, err := Calculate("test", s)
 			assert.NoError(t, err, string(tc))
 			assert.NotNil(t, otp, string(tc))
 		})
@@ -56,7 +56,7 @@ func TestWrite(t *testing.T) {
 
 	tf := filepath.Join(td, "qr.png")
 
-	otp, label, err := twofactor.FromURL(totpURL)
+	key, err := otp.NewKeyFromURL(totpURL)
 	assert.NoError(t, err)
-	assert.NoError(t, WriteQRFile(otp, label, tf))
+	assert.NoError(t, WriteQRFile(key, tf))
 }

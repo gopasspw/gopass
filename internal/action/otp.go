@@ -11,16 +11,13 @@ import (
 	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/pkg/clipboard"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/otp"
 	"github.com/gopasspw/gopass/pkg/termio"
 	"github.com/mattn/go-tty"
+	potp "github.com/pquerna/otp"
+	"github.com/pquerna/otp/totp"
 	"github.com/urfave/cli/v2"
-)
-
-const (
-	// we might want to replace this with the currently un-exported step value
-	// from twofactor.FromURL if it gets ever exported.
-	otpPeriod = 30
 )
 
 // OTP implements OTP token handling for TOTP and HOTP.
@@ -108,17 +105,29 @@ func (s *Action) otp(ctx context.Context, name, qrf string, clip, pw, recurse bo
 			return nil
 		default:
 		}
-		two, label, err := otp.Calculate(name, sec)
+
+		two, err := otp.Calculate(name, sec)
 		if err != nil {
 			return exit.Error(exit.Unknown, err, "No OTP entry found for %s: %s", name, err)
 		}
-		token := two.OTP()
+
+		token, err := totp.GenerateCodeCustom(two.Secret(), time.Now(), totp.ValidateOpts{
+			Period:    uint(two.Period()),
+			Skew:      1,
+			Digits:    potp.DigitsSix,
+			Algorithm: potp.AlgorithmSHA1,
+		})
+		if err != nil {
+			return exit.Error(exit.Unknown, err, "Failed to compute OTP token for %s: %s", name, err)
+		}
 
 		now := time.Now()
-		expiresAt := now.Add(otpPeriod * time.Second).Truncate(otpPeriod * time.Second)
+		expiresAt := now.Add(time.Duration(two.Period()) * time.Second).Truncate(time.Duration(two.Period()) * time.Second)
 		secondsLeft := int(time.Until(expiresAt).Seconds())
 		bar := termio.NewProgressBar(int64(secondsLeft))
 		bar.Hidden = skip
+
+		debug.Log("OTP period: %ds", two.Period())
 
 		if clip {
 			if err := clipboard.CopyTo(ctx, fmt.Sprintf("token for %s", name), []byte(token), s.cfg.ClipTimeout); err != nil {
@@ -145,7 +154,7 @@ func (s *Action) otp(ctx context.Context, name, qrf string, clip, pw, recurse bo
 		}
 
 		if qrf != "" {
-			return otp.WriteQRFile(two, label, qrf)
+			return otp.WriteQRFile(two, qrf)
 		}
 
 		// let us wait until next OTP code:.
