@@ -36,6 +36,9 @@ Set the `auto-expand-secmem` option in your gpg-agent.conf, if your version of G
 ## I'm getting `Path too long for Unix domain socket` errors, usually on MacOS.
 This can be fixed by setting `export TMPDIR=/tmp` (or any other suiteable location with a path shorter than 80 characters).
 
+## Empty secret?
+Old version of `gpg` may fail to decode message encrypted with newer version without any message. The encrypted secret in such case is just empty and gopass will warn you about this. One case of such behaviour we have seen so far is when the encryption key generated with `gpg` version 2.3.x encrypt a password that is then decrypted on `gpg` version 2.2.x (default on Ubuntu 18.04). In this particular case old `gpg` does not understand `AEAD` encryption extension, and it fails without any error.  If it is your case then follw the instructions in listed in #2283.
+
 # API Stability
 
 gopass is provided as an CLI program, not as a library. While we try to make the packages usable as libraries we make no guarantees whatsoever with respect to the API stability. The gopass version only reflects changes in the CLI commands.
