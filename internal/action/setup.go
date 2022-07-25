@@ -147,7 +147,7 @@ func (s *Action) initGenerateIdentity(ctx context.Context, crypto backend.Crypto
 		// Note: This issue shouldn't matter much past Linux Kernel 5.6,
 		// eventually we might want to remove this notice. Only applies to
 		// GPG.
-		out.Printf(ctx, "⏳ This can take a long time. If you get impatient see https://github.com/gopasspw/gopass/blob/master/docs/entropy.md")
+		out.Printf(ctx, "⏳ This can take a long time. If you get impatient see https://go.gopass.pw/entropy")
 		if want, err := termio.AskForBool(ctx, "Continue?", true); err != nil || !want {
 			return fmt.Errorf("user aborted: %w", err)
 		}
