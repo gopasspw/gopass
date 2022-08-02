@@ -143,10 +143,11 @@ func (s *Action) otp(ctx context.Context, name, qrf string, clip, pw, recurse bo
 				return exit.Error(exit.Unknown, err, "Failed to compute OTP token for %s: %s", name, err)
 			}
 			counter++
-			sec.Set("counter", counter)
+			sec.Set("counter", strconv.Itoa(int(counter)))
 			if err := s.Store.Set(ctx, name, sec); err != nil {
 				out.Errorf(ctx, "Failed to persist counter value: %s", err)
 			}
+			debug.Log("Saved counter as %d", counter)
 		}
 
 		now := time.Now()
