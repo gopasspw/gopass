@@ -222,6 +222,12 @@ func mkActFunc(tpl Template, s *root.Store, cb ActionCallback) func(context.Cont
 				if err != nil {
 					return err
 				}
+				if v.Min > 0 && len(sv) < v.Min {
+					return fmt.Errorf("%s is too short (needs %d)", v.Name, v.Min)
+				}
+				if v.Max > 0 && len(sv) > v.Min {
+					return fmt.Errorf("%s is too long (at most %d)", v.Name, v.Max)
+				}
 				if wantForName[k] {
 					nameParts = append(nameParts, sv)
 				}
@@ -258,6 +264,12 @@ func mkActFunc(tpl Template, s *root.Store, cb ActionCallback) func(context.Cont
 					password, err = termio.AskForPassword(ctx, v.Prompt, true)
 					if err != nil {
 						return err
+					}
+					if v.Min > 0 && len(password) < v.Min {
+						return fmt.Errorf("%s is too short (needs %d)", v.Name, v.Min)
+					}
+					if v.Max > 0 && len(password) > v.Min {
+						return fmt.Errorf("%s is too long (at most %d)", v.Name, v.Max)
 					}
 				}
 
