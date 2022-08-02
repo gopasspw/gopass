@@ -1,6 +1,6 @@
 ## 1.14.4 / 2022-08-02
 
-* [BREAKING] gopass otp will automatically update the counter key in HTOP secrets!
+* [BREAKING] gopass otp will automatically update the counter key in HTOP secrets! (#2278)
 * [BUGFIX] Allow removing unknown recipients with --force (#2253)
 * [BUGFIX] Honor PASSWORD_STORE_DIR (#2272)
 * [BUGFIX] Use OTP key period (#2278)
