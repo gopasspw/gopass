@@ -55,8 +55,7 @@ type Params struct {
 //
 // It looks like this
 //
-// 		{ARGON2I}$argon2i$v=19$m=262144,t=4,p=4$KUsgM194XAqV2bsQt+OtThf/wFHwltwHJLEnNWFjW6c$Zpwq7e1tzcIlQBTbXQgnUfiryWo91IvWZbmEQc31y/s
-//
+//	{ARGON2I}$argon2i$v=19$m=262144,t=4,p=4$KUsgM194XAqV2bsQt+OtThf/wFHwltwHJLEnNWFjW6c$Zpwq7e1tzcIlQBTbXQgnUfiryWo91IvWZbmEQc31y/s
 func Generate(password string, saltLen uint32) (string, error) {
 	params := DefaultParams
 	if saltLen > 0 {

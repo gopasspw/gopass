@@ -14,6 +14,7 @@ import (
 )
 
 // Calculate will compute a OTP code from a given secret.
+//
 //nolint:ireturn
 func Calculate(name string, sec gopass.Secret) (*otp.Key, error) {
 	otpURL, found := sec.Get("otpauth")

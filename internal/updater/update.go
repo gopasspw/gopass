@@ -17,6 +17,7 @@ import (
 var UpdateMoveAfterQuit = true
 
 // Update will start th interactive update assistant.
+//
 //nolint:goerr113
 func Update(ctx context.Context, currentVersion semver.Version) error {
 	if err := IsUpdateable(ctx); err != nil {

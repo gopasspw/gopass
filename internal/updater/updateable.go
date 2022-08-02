@@ -11,6 +11,7 @@ import (
 )
 
 // IsUpdateable returns an error if this binary is not updateable.
+//
 //nolint:goerr113
 func IsUpdateable(ctx context.Context) error {
 	fn, err := executable(ctx)

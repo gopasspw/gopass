@@ -11,6 +11,7 @@ import (
 
 // Parse tries to parse a secret. It will start with the most specific
 // secrets type.
+//
 //nolint:ireturn
 func Parse(in []byte) (gopass.Secret, error) {
 	var s gopass.Secret

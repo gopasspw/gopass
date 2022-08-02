@@ -1,7 +1,7 @@
 run:
   skip-dirs:
     - helpers/
-  go: 1.18
+  go: 1.19
 
 linters-settings:
   gocyclo:
@@ -47,6 +47,7 @@ linters:
   - maligned
   - nilerr
   - noctx
+  - nolintlint
   - nosnakecase
   - revive
   - rowserrcheck
