@@ -49,6 +49,7 @@ func Calculate(name string, sec gopass.Secret) (*otp.Key, error) {
 	}
 
 	debug.Log("no totp secret found, falling back to password")
+
 	return parseOTP("totp", sec.Password())
 }
 
