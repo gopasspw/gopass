@@ -3,7 +3,7 @@
 * [BREAKING] gopass otp will automatically update the counter key in HTOP secrets! (#2278)
 * [BUGFIX] Allow removing unknown recipients with --force (#2253)
 * [BUGFIX] Honor PASSWORD_STORE_DIR (#2272)
-* [BUGFIX] Use OTP key period (#2278)
+* [BUGFIX] Honor OTP key period from URL (#2278)
 * [BUGFIX] Wizard: Enforce min and max length. (#2293)
 * [CLEANUP] Use Go 1.19 (#2296)
 * [ENHANCEMENT] Automatically sync once a week (#2191)
