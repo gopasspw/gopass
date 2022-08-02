@@ -181,7 +181,7 @@ When installing on Ubuntu or Debian you can either download the `deb` package,
 [install manually or build from source](#installing-from-source) or use our APT repository.
 
 ```bash
-$ curl http://packages.gopass.pw/repos/gopass/gopass-archive-keyring.gpg | sudo tee /usr/share/keyrings/gopass-archive-keyring.gpg
+$ wget -O- http://packages.gopass.pw/repos/gopass/gopass-archive-keyring.gpg | sudo tee /usr/share/keyrings/gopass-archive-keyring.gpg
 $ cat << EOF | sudo tee /etc/apt/sources.list.d/gopass.sources
 Types: deb
 URIs: https://packages.gopass.pw/repos/gopass
