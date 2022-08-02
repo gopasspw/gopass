@@ -18,7 +18,7 @@ import (
 // 3072
 // 2y
 // ```
-//.
+// .
 var pubkey = []byte(`
 -----BEGIN PGP PUBLIC KEY BLOCK-----
 
@@ -104,6 +104,7 @@ func gpgVerify(data, sig []byte) (bool, error) {
 }
 
 // retrieve the hash for the given filename from a checksum file.
+//
 //nolint:goerr113
 func findHashForFile(buf []byte, filename string) ([]byte, error) {
 	s := bufio.NewScanner(bytes.NewReader(buf))
