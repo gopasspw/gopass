@@ -16,6 +16,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/termio"
 	"github.com/mattn/go-tty"
 	potp "github.com/pquerna/otp"
+	"github.com/pquerna/otp/hotp"
 	"github.com/pquerna/otp/totp"
 	"github.com/urfave/cli/v2"
 )
@@ -111,14 +112,27 @@ func (s *Action) otp(ctx context.Context, name, qrf string, clip, pw, recurse bo
 			return exit.Error(exit.Unknown, err, "No OTP entry found for %s: %s", name, err)
 		}
 
-		token, err := totp.GenerateCodeCustom(two.Secret(), time.Now(), totp.ValidateOpts{
-			Period:    uint(two.Period()),
-			Skew:      1,
-			Digits:    potp.DigitsSix,
-			Algorithm: potp.AlgorithmSHA1,
-		})
-		if err != nil {
-			return exit.Error(exit.Unknown, err, "Failed to compute OTP token for %s: %s", name, err)
+		var token string
+		switch two.Type() {
+		case "totp":
+			token, err = totp.GenerateCodeCustom(two.Secret(), time.Now(), totp.ValidateOpts{
+				Period:    uint(two.Period()),
+				Skew:      1,
+				Digits:    potp.DigitsSix,
+				Algorithm: potp.AlgorithmSHA1,
+			})
+			if err != nil {
+				return exit.Error(exit.Unknown, err, "Failed to compute OTP token for %s: %s", name, err)
+			}
+		case "hotp":
+			// TODO: Counter shouldn't be fixed.
+			token, err = hotp.GenerateCodeCustom(two.Secret(), 1, hotp.ValidateOpts{
+				Digits:    potp.DigitsSix,
+				Algorithm: potp.AlgorithmSHA1,
+			})
+			if err != nil {
+				return exit.Error(exit.Unknown, err, "Failed to compute OTP token for %s: %s", name, err)
+			}
 		}
 
 		now := time.Now()
