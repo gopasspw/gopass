@@ -30,6 +30,7 @@ require (
 	github.com/mitchellh/go-ps v1.0.0
 	github.com/muesli/crunchy v0.4.0
 	github.com/nbutton23/zxcvbn-go v0.0.0-20210217022336-fa2cb2858354
+	github.com/pquerna/otp v1.3.0
 	github.com/schollz/closestmatch v0.0.0-20190308193919-1fbe626be92e
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	github.com/stretchr/testify v1.8.0
@@ -46,6 +47,7 @@ require (
 
 require (
 	filippo.io/edwards25519 v1.0.0 // indirect
+	github.com/boombuler/barcode v1.0.1-0.20190219062509-6c824513bacc // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
