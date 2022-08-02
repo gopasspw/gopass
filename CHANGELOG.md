@@ -1,3 +1,15 @@
+## 1.14.4 / 2022-08-02
+
+* [BREAKING] gopass otp will automatically update the counter key in HTOP secrets! (#2278)
+* [BUGFIX] Allow removing unknown recipients with --force (#2253)
+* [BUGFIX] Honor PASSWORD_STORE_DIR (#2272)
+* [BUGFIX] Honor OTP key period from URL (#2278)
+* [BUGFIX] Wizard: Enforce min and max length. (#2293)
+* [CLEANUP] Use Go 1.19 (#2296)
+* [ENHANCEMENT] Automatically sync once a week (#2191)
+* [ENHANCEMENT] Scan for vulnerabilities and add SBOM on (#2268)
+* [ENHANCEMENT] Use packages.gopass.pw for APT packages (#2261)
+
 ## 1.14.3 / 2022-05-31
 
 * [BUGFIX] Do not print progress bar on otp --clip (#2243)
