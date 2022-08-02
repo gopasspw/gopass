@@ -37,13 +37,22 @@ func Calculate(name string, sec gopass.Secret) (*otp.Key, error) {
 	}
 
 	// check yaml entry and fall back to password if we don't have one
-	secKey, found := sec.Get("totp")
-	if !found {
-		debug.Log("no totp secret found, falling back to password")
 
-		secKey = sec.Password()
+	// TOTP
+	if secKey, found := sec.Get("totp"); found {
+		return parseOTP("totp", secKey)
 	}
 
+	// HOTP
+	if secKey, found := sec.Get("hotp"); found {
+		return parseOTP("hotp", secKey)
+	}
+
+	debug.Log("no totp secret found, falling back to password")
+	return parseOTP("totp", sec.Password())
+}
+
+func parseOTP(typ string, secKey string) (*otp.Key, error) {
 	if strings.HasPrefix(secKey, "otpauth://") {
 		debug.Log("parsing otpauth:// URL %q", out.Secret(secKey))
 
@@ -58,7 +67,7 @@ func Calculate(name string, sec gopass.Secret) (*otp.Key, error) {
 	debug.Log("assembling otpauth URL from secret only (%q), using defaults", out.Secret(secKey))
 
 	// otpauth://totp/Example:alice@google.com?secret=JBSWY3DPEHPK3PXP&issuer=Example
-	key, err := otp.NewKeyFromURL(fmt.Sprintf("otpauth://totp/new?secret=%s&issuer=gopass", secKey))
+	key, err := otp.NewKeyFromURL(fmt.Sprintf("otpauth://%s/new?secret=%s&issuer=gopass", typ, secKey))
 	if err != nil {
 		debug.Log("failed to parse OTP: %s", out.Secret(secKey))
 

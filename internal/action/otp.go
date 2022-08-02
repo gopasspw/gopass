@@ -4,6 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/url"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gopasspw/gopass/internal/action/exit"
@@ -100,6 +103,13 @@ func (s *Action) otp(ctx context.Context, name, qrf string, clip, pw, recurse bo
 		go waitForKeyPress(ctx, cancel)
 	}
 
+	// only used for the HOTP case as a fallback
+	var counter uint64 = 1
+	if sv, found := sec.Get("counter"); found && sv != "" {
+		if iv, err := strconv.ParseUint(sv, 10, 64); iv != 0 && err == nil {
+			counter = iv
+		}
+	}
 	for {
 		select {
 		case <-ctx.Done():
@@ -118,20 +128,24 @@ func (s *Action) otp(ctx context.Context, name, qrf string, clip, pw, recurse bo
 			token, err = totp.GenerateCodeCustom(two.Secret(), time.Now(), totp.ValidateOpts{
 				Period:    uint(two.Period()),
 				Skew:      1,
-				Digits:    potp.DigitsSix,
-				Algorithm: potp.AlgorithmSHA1,
+				Digits:    parseDigits(two.URL()),
+				Algorithm: parseAlgorithm(two.URL()),
 			})
 			if err != nil {
 				return exit.Error(exit.Unknown, err, "Failed to compute OTP token for %s: %s", name, err)
 			}
 		case "hotp":
-			// TODO: Counter shouldn't be fixed.
-			token, err = hotp.GenerateCodeCustom(two.Secret(), 1, hotp.ValidateOpts{
-				Digits:    potp.DigitsSix,
-				Algorithm: potp.AlgorithmSHA1,
+			token, err = hotp.GenerateCodeCustom(two.Secret(), counter, hotp.ValidateOpts{
+				Digits:    parseDigits(two.URL()),
+				Algorithm: parseAlgorithm(two.URL()),
 			})
 			if err != nil {
 				return exit.Error(exit.Unknown, err, "Failed to compute OTP token for %s: %s", name, err)
+			}
+			counter++
+			sec.Set("counter", counter)
+			if err := s.Store.Set(ctx, name, sec); err != nil {
+				out.Errorf(ctx, "Failed to persist counter value: %s", err)
 			}
 		}
 
@@ -204,4 +218,59 @@ func (s *Action) otpHandleError(ctx context.Context, name, qrf string, clip, pw,
 	}
 
 	return nil
+}
+
+// parseDigits and parseAlgorithm can be replaced if https://github.com/pquerna/otp/pull/74 is merged.
+func parseDigits(ku string) potp.Digits {
+	u, err := url.Parse(ku)
+	if err != nil {
+		debug.Log("Failed to parse key URL: %s", err)
+
+		// return the most common value
+		return potp.DigitsSix
+	}
+
+	q := u.Query()
+	iv, err := strconv.ParseUint(q.Get("digits"), 10, 64)
+	if err != nil {
+		debug.Log("Failed to parse digits param: %s", err)
+
+		// return the most common value
+		return potp.DigitsSix
+	}
+
+	switch iv {
+	case 6:
+		return potp.DigitsSix
+	case 8:
+		return potp.DigitsEight
+	default:
+		debug.Log("Unsupported digits value: %d", iv)
+
+		// return the most common value
+		return potp.DigitsSix
+	}
+}
+
+func parseAlgorithm(ku string) potp.Algorithm {
+	u, err := url.Parse(ku)
+	if err != nil {
+		debug.Log("Failed to parse key URL: %s", err)
+
+		// return the most common value
+		return potp.AlgorithmSHA1
+	}
+
+	q := u.Query()
+	a := strings.ToLower(q.Get("algorithm"))
+	switch a {
+	case "md5":
+		return potp.AlgorithmMD5
+	case "sha256":
+		return potp.AlgorithmSHA256
+	case "sha512":
+		return potp.AlgorithmSHA512
+	default:
+		return potp.AlgorithmSHA1
+	}
 }
