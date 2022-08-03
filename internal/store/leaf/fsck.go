@@ -22,13 +22,13 @@ func (s *Store) Fsck(ctx context.Context, path string) error {
 	debug.Log("Checking %s", path)
 
 	// first let the storage backend check itself
-	out.Printf(ctx, "Checking storage backend")
+	debug.Log("Checking storage backend")
 	if err := s.storage.Fsck(ctx); err != nil {
-		return fmt.Errorf("storage backend found: %w", err)
+		return fmt.Errorf("storage backend error: %w", err)
 	}
 
 	// then try to compact storage / rcs
-	out.Printf(ctx, "Compacting storage if possible")
+	debug.Log("Compacting storage")
 	if err := s.storage.Compact(ctx); err != nil {
 		return fmt.Errorf("storage backend compaction failed: %w", err)
 	}
@@ -37,9 +37,7 @@ func (s *Store) Fsck(ctx context.Context, path string) error {
 
 	// then we'll make sure all the secrets are readable by us and every
 	// valid recipient
-	if path == "" {
-		out.Printf(ctx, "Checking all secrets in store")
-	} else {
+	if path != "" {
 		out.Printf(ctx, "Checking all secrets matching %s", path)
 	}
 
@@ -47,7 +45,7 @@ func (s *Store) Fsck(ctx context.Context, path string) error {
 	if err != nil {
 		return fmt.Errorf("failed to list entries for %s: %w", path, err)
 	}
-
+	debug.Log("names (%d): %q", len(names), names)
 	sort.Strings(names)
 	for _, name := range names {
 		pcb()
@@ -63,7 +61,7 @@ func (s *Store) Fsck(ctx context.Context, path string) error {
 	}
 
 	if err := s.storage.Push(ctx, "", ""); err != nil {
-		if errors.Is(err, store.ErrGitNoRemote) {
+		if !errors.Is(err, store.ErrGitNoRemote) {
 			out.Printf(ctx, "RCS Push failed: %s", err)
 		}
 	}
