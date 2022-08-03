@@ -121,7 +121,7 @@ func fetchRules() (map[string]jsonRule, error) {
 	}
 
 	var jr map[string]jsonRule
-	if err := json.NewDecoder(&cleaningReader{src: src, ign: map[string]int{"launtel.net.au": 5}}).Decode(&jr); err != nil {
+	if err := json.NewDecoder(&cleaningReader{src: src, ign: map[string]int{}}).Decode(&jr); err != nil {
 		return nil, err
 	}
 	return jr, nil
