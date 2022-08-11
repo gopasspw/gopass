@@ -79,7 +79,6 @@ func New(ctx context.Context, s backend.Storage) (*Wizard, error) {
 						Name:   "username",
 						Type:   "string",
 						Prompt: "Login",
-						Min:    1,
 					},
 					{
 						Name:   "password",
