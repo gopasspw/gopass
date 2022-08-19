@@ -27,6 +27,7 @@ func (a *Age) Identities(ctx context.Context) ([]age.Identity, error) {
 
 			return []byte(pw), err
 		})
+		ctx = ctxutil.WithPasswordPurgeCallback(ctx, a.askPass.Remove)
 	}
 
 	debug.Log("reading native identities from %s", a.identity)
@@ -198,6 +199,7 @@ func (a *Age) saveIdentities(ctx context.Context, ids []string, newFile bool) er
 
 			return []byte(pw), err
 		})
+		ctx = ctxutil.WithPasswordPurgeCallback(ctx, a.askPass.Remove)
 	}
 
 	// ensure directory exists.

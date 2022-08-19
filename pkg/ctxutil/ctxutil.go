@@ -32,6 +32,7 @@ const (
 	ctxKeyImportFunc
 	ctxKeyExportKeys
 	ctxKeyPasswordCallback
+	ctxKeyPasswordPurgeCallback
 	ctxKeyCommitTimestamp
 	ctxKeyShowParsing
 	ctxKeyHidden
@@ -462,6 +463,31 @@ func GetPasswordCallback(ctx context.Context) PasswordCallback {
 	}
 
 	return pwcb
+}
+
+// PasswordPurgeCallback is a callback to purge a password cached by PasswordCallback.
+type PasswordPurgeCallback func(string)
+
+// WithPasswordPurgeCallback returns a context with the password purge callback set.
+func WithPasswordPurgeCallback(ctx context.Context, cb PasswordPurgeCallback) context.Context {
+	return context.WithValue(ctx, ctxKeyPasswordPurgeCallback, cb)
+}
+
+// HasPasswordPurgeCallback returns true if a password purge callback was set in the context.
+func HasPasswordPurgeCallback(ctx context.Context) bool {
+	_, ok := ctx.Value(ctxKeyPasswordPurgeCallback).(PasswordPurgeCallback)
+
+	return ok
+}
+
+// GetPasswordPurgeCallback returns the password purge callback or a default (which is a no-op).
+func GetPasswordPurgeCallback(ctx context.Context) PasswordPurgeCallback {
+	ppcb, ok := ctx.Value(ctxKeyPasswordPurgeCallback).(PasswordPurgeCallback)
+	if !ok || ppcb == nil {
+		return func(string) {}
+	}
+
+	return ppcb
 }
 
 // WithCommitTimestamp returns a context with the value for the commit
