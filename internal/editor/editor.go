@@ -28,7 +28,7 @@ var (
 	Stdout io.Writer = os.Stdout
 	// Stderr is exported for tests.
 	Stderr    io.Writer = os.Stderr
-	vimOptsRe           = regexp.MustCompile(`au\s+BufNewFile,BufRead\s+.*gopass.*setlocal\s+noswapfile\s+nobackup\s+noundofile`)
+	vimOptsRe           = regexp.MustCompile(`au(tocmd)?\s+BufNewFile,BufRead\s+.*gopass.*setlocal\s+noswapfile\s+nobackup\s+noundofile\s+viminfo=`)
 )
 
 // Check will validate the editor config.
