@@ -271,18 +271,20 @@ If `$GOPATH/bin` is in your `$PATH`, you can now run `gopass` from anywhere on y
 
 ### Securing Your Editor
 
-Various editors may store temporary files outside of the secure working directory when editing secrets. We advise you to check and disable this behavior for your editor of choice.
+Various editors may store temporary files outside of the secure working directory when editing secrets.
+We advise you to check and disable this behavior for your editor of choice.
 
-For `vim` on Linux, the following setting may be helpful:
+Here are a few useuful example settings:
 
-```
-au BufNewFile,BufRead /dev/shm/gopass.* setlocal noswapfile nobackup noundofile
-```
-
-For MacOS consider this setting:
-
-```
-au BufNewFile,BufRead /private/**/gopass** setlocal noswapfile nobackup noundofile
+```vim
+" neovim on Linux
+autocmd BufNewFile,BufRead /dev/shm/gopass* setlocal noswapfile nobackup noundofile shada=""
+" neovim on MacOS
+autocmd BufNewFile,BufRead /private/**/gopass** setlocal noswapfile nobackup noundofile shada=""
+" vim on Linux
+autocmd BufNewFile,BufRead /dev/shm/gopass* setlocal noswapfile nobackup noundofile viminfo=""
+" vim on MacOS
+autocmd BufNewFile,BufRead /private/**/gopass** setlocal noswapfile nobackup noundofile viminfo=""
 ```
 
 ### Migrating from pass to gopass
