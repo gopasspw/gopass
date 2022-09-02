@@ -23,7 +23,7 @@ import (
 
 var (
 	autosyncIntervalDays = 3
-	autosyncRan          bool
+	autosyncLastRun      time.Time
 )
 
 func init() {
@@ -65,7 +65,7 @@ func (s *Action) autoSync(ctx context.Context) error {
 
 		err := s.sync(ctx, "")
 		if err != nil {
-			autosyncRan = true
+			autosyncLastRun = time.Now()
 		}
 
 		return err
@@ -76,7 +76,9 @@ func (s *Action) autoSync(ctx context.Context) error {
 
 func (s *Action) sync(ctx context.Context, store string) error {
 	// we just did a full sync, no need to run it again
-	if autosyncRan {
+	if time.Since(autosyncLastRun) < 10*time.Second {
+		debug.Log("skipping sync. last sync %ds ago", time.Since(autosyncLastRun))
+
 		return nil
 	}
 
