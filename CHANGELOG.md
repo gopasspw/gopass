@@ -1,3 +1,8 @@
+## 1.14.5 / 2022-09-03
+
+* [BUGFIX] Fix fsck progress bar. Mostly. (#2303)
+* [DOCUMENTATION] fix in recommended vim setting (#2318)
+
 ## 1.14.4 / 2022-08-02
 
 * [BREAKING] gopass otp will automatically update the counter key in HTOP secrets! (#2278)
