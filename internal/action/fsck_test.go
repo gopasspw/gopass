@@ -38,6 +38,11 @@ func TestFsck(t *testing.T) { //nolint:paralleltest
 	}()
 	color.NoColor = true
 
+	// generate foo/bar
+	c := gptest.CliCtx(ctx, t, "foo/bar", "24")
+	assert.NoError(t, act.Generate(c), "gopass generate foo/bar 24")
+	buf.Reset()
+
 	// fsck
 	assert.NoError(t, act.Fsck(gptest.CliCtx(ctx, t)))
 	output := strings.TrimSpace(buf.String())
@@ -59,8 +64,8 @@ func TestFsck(t *testing.T) { //nolint:paralleltest
 	assert.Contains(t, output, "Extra recipients on foo: [0xFEEDBEEF]")
 	buf.Reset()
 
-	// fsck fo
-	assert.NoError(t, act.Fsck(gptest.CliCtx(ctx, t, "fo")))
+	// fsck foo
+	assert.NoError(t, act.Fsck(gptest.CliCtx(ctx, t, "foo")))
 	output = strings.TrimSpace(buf.String())
 	assert.Contains(t, output, "Checking password store integrity ...")
 	assert.Contains(t, output, "Extra recipients on foo: [0xFEEDBEEF]")
@@ -98,9 +103,9 @@ func TestFsckGpg(t *testing.T) { //nolint:paralleltest
 	require.NoError(t, err)
 	require.NoError(t, sub.ImportMissingPublicKeys(ctx, can.KeyID()))
 
-	// generate foo
-	c := gptest.CliCtx(ctx, t, "foo", "24")
-	assert.NoError(t, act.Generate(c))
+	// generate foo/bar
+	c := gptest.CliCtx(ctx, t, "foo/bar", "24")
+	assert.NoError(t, act.Generate(c), "gopass generate foo/bar 24")
 	buf.Reset()
 
 	// fsck
@@ -122,8 +127,8 @@ func TestFsckGpg(t *testing.T) { //nolint:paralleltest
 	assert.Contains(t, output, "Checking password store integrity ...")
 	buf.Reset()
 
-	// fsck fo
-	assert.NoError(t, act.Fsck(gptest.CliCtx(ctx, t, "fo")))
+	// fsck foo
+	assert.NoError(t, act.Fsck(gptest.CliCtx(ctx, t, "foo")))
 	output = strings.TrimSpace(buf.String())
 	assert.Contains(t, output, "Checking password store integrity ...")
 	buf.Reset()
