@@ -22,6 +22,7 @@ linters:
   disable:
   - bodyclose
   - contextcheck
+  - deadcode
   - durationcheck
   - dupl
   - exhaustruct
@@ -41,6 +42,8 @@ linters:
   - gosimple
   - govet
   - interfacer
+  - ifshort
+  - interfacebloat
   - ireturn
   - lll
   - maintidx
@@ -62,6 +65,7 @@ linters:
   - typecheck
   - unparam
   - unused
+  - varcheck
   - varnamelen
   - wastedassign
   - wrapcheck
