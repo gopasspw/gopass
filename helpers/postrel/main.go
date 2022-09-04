@@ -92,6 +92,14 @@ func main() {
 		fmt.Printf("Failed to create GitHub milestones: %s\n", err)
 	}
 
+	// update gopass integrations
+	ui, err := newIntegrationsUpdater(ghCl.client, curVer)
+	if err != nil {
+		fmt.Printf("Failed to create integrations updater: %s\n", err)
+	} else {
+		ui.update(ctx)
+	}
+
 	// send PRs to update gopass ports
 	upd, err := newRepoUpdater(ghCl.client, curVer, os.Getenv("GITHUB_USER"), os.Getenv("GITHUB_FORK"))
 	if err != nil {
@@ -202,6 +210,32 @@ func updateGopasspw(dir string, ver semver.Version) error {
 	return gitCommitAndPush(dir, ver)
 }
 
+func isGitClean(dir string) bool {
+	cmd := exec.Command("git", "diff", "--stat")
+	buf, err := cmd.CombinedOutput()
+	if err != nil {
+		panic(err)
+	}
+
+	return strings.TrimSpace(string(buf)) == ""
+}
+
+func gitCoMaster(dir string) error {
+	cmd := exec.Command("git", "checkout", "master")
+	cmd.Dir = dir
+	cmd.Stderr = os.Stderr
+
+	return cmd.Run()
+}
+
+func gitPom(dir string) error {
+	cmd := exec.Command("git", "pull", "origin", "master")
+	cmd.Dir = dir
+	cmd.Stderr = os.Stderr
+
+	return cmd.Run()
+}
+
 func gitCommitAndPush(dir string, v semver.Version) error {
 	cmd := exec.Command("git", "add", "index.html")
 	cmd.Dir = dir
@@ -230,6 +264,35 @@ func gitCommitAndPush(dir string, v semver.Version) error {
 	return nil
 }
 
+func gitTagAndPush(dir string, tag string) error {
+	cmd := exec.Command("git", "tag", "-s", "-m", "Tag "+tag)
+	cmd.Dir = dir
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("failed to commit changes: %w", err)
+	}
+
+	cmd = exec.Command("git", "push", "origin", tag)
+	cmd.Dir = dir
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("failed to push changes: %w", err)
+	}
+
+	return nil
+}
+
+func runCmd(dir string, args ...string) error {
+	cmd := exec.Command(args[0], args[1:]...)
+	cmd.Dir = dir
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	return cmd.Run()
+}
+
 func versionFile() (semver.Version, error) {
 	buf, err := os.ReadFile("VERSION")
 	if err != nil {
@@ -237,6 +300,69 @@ func versionFile() (semver.Version, error) {
 	}
 
 	return semver.Parse(strings.TrimSpace(string(buf)))
+}
+
+type inUpdater struct {
+	github *github.Client
+	v      semver.Version
+}
+
+func newIntegrationsUpdater(client *github.Client, v semver.Version) (*inUpdater, error) {
+	return &inUpdater{
+		github: client,
+		v:      v,
+	}, nil
+}
+
+func (u *inUpdater) update(ctx context.Context) {
+	for _, upd := range []string{
+		"git-credential-gopass",
+		"gopass-hibp",
+		"gopass-jsonapi",
+		"gopass-summon-provider",
+	} {
+		fmt.Println()
+		fmt.Println("------------------------------")
+		fmt.Println()
+		fmt.Printf("🌟 Updating: %s ...\n", upd)
+		fmt.Println()
+		if err := u.doUpdate(ctx, upd); err != nil {
+			fmt.Printf("❌ Updating %s failed: %s\n", upd, err)
+
+			continue
+		}
+		fmt.Printf("✅ Integration %s updated. Triggered release.\n", upd)
+	}
+}
+
+func (u *inUpdater) doUpdate(ctx context.Context, dir string) error {
+	cwd, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+	path := filepath.Join(filepath.Dir(cwd), dir)
+	// make sure we're at head
+	if !isGitClean(path) {
+		return fmt.Errorf("git not clean at %s", path)
+	}
+	// make upgrade
+	if err := runCmd(path, "make", "upgrade"); err != nil {
+		return err
+	}
+	// go get github.com/gopasspw/gopass@u.v
+	if err := runCmd(path, "go", "get", "github.com/gopasspw/gopass@"+u.v.String()); err != nil {
+		return err
+	}
+	// git commit
+	if err := gitCommitAndPush(path, u.v); err != nil {
+		return err
+	}
+	// git tag v
+	if err := gitTagAndPush(path, "v"+u.v.String()); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 type repoUpdater struct {
@@ -291,14 +417,6 @@ func (u *repoUpdater) update(ctx context.Context) {
 			Distro: "AlpineLinux",
 			UpFn:   u.updateAlpine,
 		},
-		{
-			Distro: "Homebrew",
-			UpFn:   u.updateHomebrew,
-		},
-		// {
-		// 	Distro: "VoidLinux",
-		// 	UpFn:   u.updateVoid,
-		// },
 	} {
 		fmt.Println()
 		fmt.Println("------------------------------")
