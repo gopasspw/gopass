@@ -27,6 +27,7 @@ import (
 
 	"github.com/blang/semver/v4"
 	"github.com/google/go-github/v33/github"
+	"github.com/gopasspw/gopass/pkg/fsutil"
 	"golang.org/x/oauth2"
 )
 
@@ -164,6 +165,7 @@ func (g *ghClient) createMilestone(ctx context.Context, title string, offset int
 	for _, m := range ms {
 		if *m.Title == title {
 			fmt.Printf("❌ Milestone %s exists\n", title)
+
 			return nil
 		}
 	}
@@ -207,11 +209,12 @@ func updateGopasspw(dir string, ver semver.Version) error {
 		return err
 	}
 
-	return gitCommitAndPush(dir, ver)
+	return gitCommitAndPush(dir, fmt.Sprintf("v%s", ver))
 }
 
 func isGitClean(dir string) bool {
 	cmd := exec.Command("git", "diff", "--stat")
+	cmd.Dir = dir
 	buf, err := cmd.CombinedOutput()
 	if err != nil {
 		panic(err)
@@ -236,16 +239,8 @@ func gitPom(dir string) error {
 	return cmd.Run()
 }
 
-func gitCommitAndPush(dir string, v semver.Version) error {
-	cmd := exec.Command("git", "add", "index.html")
-	cmd.Dir = dir
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("failed to add index.html: %w", err)
-	}
-
-	cmd = exec.Command("git", "commit", "-s", "-m", "Update to v"+v.String())
+func gitCommitAndPush(dir, tag string) error {
+	cmd := exec.Command("git", "commit", "-a", "-s", "-m", "Update to "+tag)
 	cmd.Dir = dir
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -282,6 +277,15 @@ func gitTagAndPush(dir string, tag string) error {
 	}
 
 	return nil
+}
+
+func gitHasTag(dir string, tag string) bool {
+	cmd := exec.Command("git", "rev-parse", tag)
+	cmd.Dir = dir
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	return cmd.Run() == nil
 }
 
 func runCmd(dir string, args ...string) error {
@@ -331,7 +335,7 @@ func (u *inUpdater) update(ctx context.Context) {
 
 			continue
 		}
-		fmt.Printf("✅ Integration %s updated. Triggered release.\n", upd)
+		fmt.Printf("✅ Integration %s is up to date.\n", upd)
 	}
 }
 
@@ -341,6 +345,14 @@ func (u *inUpdater) doUpdate(ctx context.Context, dir string) error {
 		return err
 	}
 	path := filepath.Join(filepath.Dir(cwd), dir)
+
+	tag := fmt.Sprintf("v%s", u.v.String())
+	// check if the release is already tagged
+	if gitHasTag(path, tag) {
+		fmt.Printf("✅ Integration %s has tag %s already.\n", dir, tag)
+
+		return nil
+	}
 	// make sure we're at head
 	if !isGitClean(path) {
 		return fmt.Errorf("git not clean at %s", path)
@@ -349,18 +361,31 @@ func (u *inUpdater) doUpdate(ctx context.Context, dir string) error {
 	if err := runCmd(path, "make", "upgrade"); err != nil {
 		return err
 	}
-	// go get github.com/gopasspw/gopass@u.v
-	if err := runCmd(path, "go", "get", "github.com/gopasspw/gopass@"+u.v.String()); err != nil {
+	fmt.Printf("✅ [%s] make upgrade.\n", dir)
+
+	// go get github.com/gopasspw/gopass@tag
+	if err := runCmd(path, "go", "get", "github.com/gopasspw/gopass@"+tag); err != nil {
 		return err
 	}
+	fmt.Printf("✅ [%s] updated gopass dependency.\n", dir)
+
+	// sync .golangci.yml ?
+	if err := fsutil.CopyFile(filepath.Join(cwd, ".golangci.yml"), filepath.Join(path, ".golangci.yml")); err != nil {
+		return err
+	}
+	fmt.Printf("✅ [%s] synced .golangci.yml.\n", dir)
+
 	// git commit
-	if err := gitCommitAndPush(path, u.v); err != nil {
+	if err := gitCommitAndPush(path, tag); err != nil {
 		return err
 	}
+	fmt.Printf("✅ [%s] committed.\n", dir)
+
 	// git tag v
-	if err := gitTagAndPush(path, "v"+u.v.String()); err != nil {
+	if err := gitTagAndPush(path, tag); err != nil {
 		return err
 	}
+	fmt.Printf("✅ [%s] tagged.\n", dir)
 
 	return nil
 }
@@ -413,10 +438,10 @@ func (u *repoUpdater) update(ctx context.Context) {
 		Distro string
 		UpFn   func(context.Context) error
 	}{
-		{
-			Distro: "AlpineLinux",
-			UpFn:   u.updateAlpine,
-		},
+		// {
+		// 	Distro: "AlpineLinux",
+		// 	UpFn:   u.updateAlpine,
+		// },
 	} {
 		fmt.Println()
 		fmt.Println("------------------------------")
