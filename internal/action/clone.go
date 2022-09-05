@@ -218,7 +218,7 @@ func (s *Action) cloneCheckDecryptionKeys(ctx context.Context, mount string) err
 	var exported bool
 	if sub, err := s.Store.GetSubStore(mount); err == nil {
 		debug.Log("exporting public keys: %v", idSet.Elements())
-		exported, err = sub.ExportMissingPublicKeys(ctx, idSet.Elements())
+		exported, err = sub.UpdateExportedPublicKeys(ctx, idSet.Elements())
 		if err != nil {
 			debug.Log("failed to export missing public keys: %w", err)
 		}
