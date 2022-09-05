@@ -44,7 +44,7 @@ Please see [docs/features.md](https://github.com/gopasspw/gopass/blob/master/doc
 | Desktop Notifications       | *stable*      | Display desktop notifications and completing long running operations |
 | REPL                        | *beta*        | Integrated Read-Eval-Print-Loop shell with autocompletion by running `gopass`. |
 | OTP support                 | *stable*      | Generate TOTP/(HOTP) tokens based on the stored secret            |
-| Extensions                  |               | Extend gopass with custom commands using our API                  |
+| Extensions                  |               | [Extend](docs/hacking.md#extending-gopass) gopass with custom commands using our [API](https://pkg.go.dev/github.com/gopasspw/gopass/pkg/gopass/api)                  |
 | Fully open source!          |               | No need to trust it, check our code and/or improve it!            |
 
 ## Design Principles
@@ -64,6 +64,7 @@ If you have [Go](https://golang.org/) 1.18 (or greater) installed:
 ```bash
 go install github.com/gopasspw/gopass@latest
 ```
+
 (and make sure your `$GOBIN` is in your `$PATH`.)
 
 WARNING: Please prefer releases, unless you want to contribute to the
@@ -124,11 +125,13 @@ Your password store is ready to use! Have a look around: `gopass list`
 ## Upgrade
 
 To use the self-updater run:
+
 ```bash
 gopass update
 ```
 
 or to upgrade with Go installed, run:
+
 ```bash
 go install github.com/gopasspw/gopass@latest
 ```
@@ -153,7 +156,7 @@ Please refer to the Git commit log for a complete list of contributors.
 
 gopass is developed in the open. Here are some of the channels we use to communicate and contribute:
 
-* Issue tracker: Use the [GitHub issue tracker](https://github.com/gopasspw/gopass/issues) to file bugs and feature requests.
+- Issue tracker: Use the [GitHub issue tracker](https://github.com/gopasspw/gopass/issues) to file bugs and feature requests.
 
 ## Integrations
 
@@ -187,12 +190,14 @@ We welcome any contributions. Please see the [CONTRIBUTING.md](https://github.co
 
 ## Further Documentation
 
-* [Security, Known Limitations, and Caveats](https://github.com/gopasspw/gopass/blob/master/docs/security.md)
-* [Configuration](https://github.com/gopasspw/gopass/blob/master/docs/config.md)
-* [FAQ](https://github.com/gopasspw/gopass/blob/master/docs/faq.md)
-* [JSON API](https://github.com/gopasspw/gopass-jsonapi)
-* [Gopass as Summon provider](https://github.com/gopasspw/gopass-summon-provider)
+- [Security, Known Limitations, and Caveats](https://github.com/gopasspw/gopass/blob/master/docs/security.md)
+- [Configuration](https://github.com/gopasspw/gopass/blob/master/docs/config.md)
+- [FAQ](https://github.com/gopasspw/gopass/blob/master/docs/faq.md)
+- [JSON API](https://github.com/gopasspw/gopass-jsonapi)
+- [Gopass as Summon provider](https://github.com/gopasspw/gopass-summon-provider)
 
 ## External Documentation
+
 * [gopass cheat sheet](https://woile.github.io/gopass-cheat-sheet/) ([source on github](https://github.com/Woile/gopass-cheat-sheet))
-* [gopass presentation](https://woile.github.io/gopass-presentation/) ([source on github](https://github.com/Woile/gopass-presentation))
+
+- [gopass presentation](https://woile.github.io/gopass-presentation/) ([source on github](https://github.com/Woile/gopass-presentation))
