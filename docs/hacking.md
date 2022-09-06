@@ -42,13 +42,25 @@ $ go build && ./gopass setup --crypto age --storage gitfs
 
 The main extension model are small binaries that use the [gopass API](https://pkg.go.dev/github.com/gopasspw/gopass/pkg/gopass/api) package. This package provides a small and easy to use API that should work with any up to date gopass setup.
 
-We don't have extensive documentation for this, yet. But the [gopass-hibp](https://github.com/gopasspw/gopass-hibp/blob/master/main.go) binary should provide an easy example that can be used as a blueprint.
+This API encapsulates the exact same implementation that the CLI uses in a more nicely packaged format that's easier to use.
+
+Note: The API is operating directly on the password store. It does not involve network operations or connecting to a gopass instance.
 
 The API does not support setting up a new password store (yet). Users will need have an existing password store
 or use `gopass setup` to create a new one. The API will attempt to load an existing configuration or use it's built-in
 defaults. Then it initializes an existing password store and provides a simple set of CRUD operations.
 
+Our API has some [examples](../pkg/gopass/api/api_test.go) on how to use the API. The [gopass-hibp](https://github.com/gopasspw/gopass-hibp/blob/master/main.go) binary should provide a more complete example that can be used as a blueprint.
+
 ```go
+import (
+ "context"
+ "fmt"
+
+ "github.com/gopasspw/gopass/pkg/gopass/api"
+ "github.com/gopasspw/gopass/pkg/gopass/secrets"
+)
+
  ctx := context.Background()
 
  gp, err := api.New(ctx)
@@ -90,5 +102,3 @@ defaults. Then it initializes an existing password store and provides a simple s
   panic(err)
  }
 ```
-
-See the [API Examples](../pkg/gopass/api/api_test.go).
