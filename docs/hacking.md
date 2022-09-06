@@ -68,7 +68,7 @@ import (
   panic(err)
  }
 
- // Listing secrets
+ // Listing secrets by their names (path within the store).
  ls, err := gp.List(ctx)
  if err != nil {
   panic(err)
@@ -78,26 +78,26 @@ import (
   fmt.Printf("Secret: %s", s)
  }
 
- // Writing secrets
+ // Writing secrets to a specific location (path) in the store.
  sec := secrets.New()
  sec.SetPassword("foobar")
  if err := gp.Set(ctx, "my/new/secret", sec); err != nil {
   panic(err)
  }
 
- // Reading secrets
+ // Reading secrets by their name and revision from within the store.
  sec, err = gp.Get(ctx, "my/new/secret", "latest")
  if err != nil {
   panic(err)
  }
  fmt.Printf("content of %s: %s\n", "my/new/secret", string(sec.Bytes()))
 
- // Removing a secret
+ // Removing a secret by their name.
  if err := gp.Remove(ctx, "my/new/secret"); err != nil {
   panic(err)
  }
 
- // Cleaning up
+ // Cleaning up (waiting for background processing to complete).
  if err := gp.Close(ctx); err != nil {
   panic(err)
  }
