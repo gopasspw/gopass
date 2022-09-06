@@ -29,7 +29,10 @@ var ErrNotImplemented = fmt.Errorf("not yet implemented")
 // ErrNotInitialized is returned when the store is not initialized.
 var ErrNotInitialized = fmt.Errorf("password store not initialized. run 'gopass setup' first")
 
-// New creates a new secret store.
+// New initializes an existing password store. It will attempt to load an existing
+// configuration or use the built-in defaults. If no password store is found and
+// the user will need to initialize it with the gopass CLI (`gopass setup`) first.
+//
 // WARNING: This will need to change to accommodate for runtime configuration.
 func New(ctx context.Context) (*Gopass, error) {
 	cfg := config.LoadWithFallbackRelaxed()
@@ -55,11 +58,13 @@ func (g *Gopass) List(ctx context.Context) ([]string, error) {
 }
 
 // Get returns a single, encrypted secret. It must be unwrapped before use.
+// Use "latest" to get the latest revision.
 func (g *Gopass) Get(ctx context.Context, name, revision string) (gopass.Secret, error) {
 	return g.rs.Get(ctx, name) //nolint:wrapcheck
 }
 
 // Set adds a new revision to an existing secret or creates a new one.
+// Create new secrets with secrets.New().
 func (g *Gopass) Set(ctx context.Context, name string, sec gopass.Byter) error {
 	return g.rs.Set(ctx, name, sec) //nolint:wrapcheck
 }
@@ -94,6 +99,10 @@ func (g *Gopass) String() string {
 }
 
 // Close shuts down all background processes.
+//
+// MUST be called before existing to make sure any background processing
+// (e.g. pending commits or pushes) are complete. Failing to do so might
+// result in an invalid password store state.
 func (g *Gopass) Close(ctx context.Context) error {
 	if err := queue.GetQueue(ctx).Close(ctx); err != nil {
 		return fmt.Errorf("failed to close queue: %w", err)
