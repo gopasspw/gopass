@@ -219,9 +219,9 @@ type keyExporter interface {
 	ExportPublicKey(ctx context.Context, id string) ([]byte, error)
 }
 
-// ExportMissingPublicKeys will export any possibly missing public keys to the
+// UpdateExportedPublicKeys will export any possibly missing public keys to the
 // stores .public-keys directory.
-func (s *Store) ExportMissingPublicKeys(ctx context.Context, rs []string) (bool, error) {
+func (s *Store) UpdateExportedPublicKeys(ctx context.Context, rs []string) (bool, error) {
 	exp, ok := s.crypto.(keyExporter)
 	if !ok {
 		debug.Log("not exporting public keys for %T", s.crypto)
@@ -229,8 +229,14 @@ func (s *Store) ExportMissingPublicKeys(ctx context.Context, rs []string) (bool,
 		return false, nil
 	}
 
-	var failed, exported bool
+	recipients := make(map[string]bool, len(rs))
 	for _, r := range rs {
+		recipients[r] = true
+	}
+
+	// add any missing keys
+	var failed, exported bool
+	for r := range recipients {
 		if r == "" {
 			continue
 		}
@@ -258,13 +264,43 @@ func (s *Store) ExportMissingPublicKeys(ctx context.Context, rs []string) (bool,
 
 			continue
 		}
+	}
 
-		if err := s.storage.Commit(ctx, fmt.Sprintf("Exported Public Keys %s", r)); err != nil && !errors.Is(err, store.ErrGitNothingToCommit) {
+	// remove any extra key files
+	keys, err := s.storage.List(ctx, keyDir)
+	if err != nil {
+		failed = true
+
+		out.Errorf(ctx, "Failed to list keys: %s", err)
+	}
+
+	debug.Log("Checking %q for extra keys that need to be removed", keys)
+	for _, key := range keys {
+		key := strings.TrimPrefix(key, keyDir+string(filepath.Separator))
+		if !recipients[key] {
+			if err := s.storage.Delete(ctx, filepath.Join(keyDir, key)); err != nil {
+				out.Errorf(ctx, "Failed to remove extra key %q: %s", key, err)
+
+				continue
+			}
+
+			if err := s.storage.Add(ctx, filepath.Join(keyDir, key)); err != nil {
+				out.Errorf(ctx, "Failed to mark extra key for removal %q: %s", key, err)
+
+				continue
+			}
+
+			// to ensure the commit
+			exported = true
+			debug.Log("Removed extra key %s", key)
+		}
+	}
+
+	if exported {
+		if err := s.storage.Commit(ctx, fmt.Sprintf("Updated exported Public Keys")); err != nil && !errors.Is(err, store.ErrGitNothingToCommit) {
 			failed = true
 
 			out.Errorf(ctx, "Failed to git commit: %s", err)
-
-			continue
 		}
 	}
 
@@ -302,9 +338,12 @@ func (s *Store) saveRecipients(ctx context.Context, rs []string, msg string) err
 
 	// save all recipients public keys to the repo
 	if ctxutil.IsExportKeys(ctx) {
-		if _, err := s.ExportMissingPublicKeys(ctx, rs); err != nil {
+		debug.Log("updating exported keys")
+		if _, err := s.UpdateExportedPublicKeys(ctx, rs); err != nil {
 			out.Errorf(ctx, "Failed to export missing public keys: %s", err)
 		}
+	} else {
+		debug.Log("updating exported keys not requested")
 	}
 
 	// push to remote repo

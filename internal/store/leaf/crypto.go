@@ -133,6 +133,8 @@ func (s *Store) exportPublicKey(ctx context.Context, exp keyExporter, r string) 
 		return "", fmt.Errorf("failed to write exported public key to store: %w", err)
 	}
 
+	debug.Log("exported public keys for %s to %s", r, filename)
+
 	return filename, nil
 }
 

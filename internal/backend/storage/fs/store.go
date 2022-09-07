@@ -157,7 +157,7 @@ func (s *Store) List(ctx context.Context, prefix string) ([]string, error) {
 			return err
 		}
 		relPath := strings.TrimPrefix(path, s.path+string(filepath.Separator)) + string(filepath.Separator)
-		if info.IsDir() && strings.HasPrefix(info.Name(), ".") && path != s.path && !strings.HasPrefix(prefix, relPath) {
+		if info.IsDir() && strings.HasPrefix(info.Name(), ".") && path != s.path && !strings.HasPrefix(prefix, relPath) && filepath.Base(path) != filepath.Base(prefix) {
 			debug.Log("skipping dot dir (relPath: %s, prefix: %s)", relPath, prefix)
 
 			return filepath.SkipDir
