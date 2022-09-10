@@ -269,11 +269,23 @@ func gitCoRel(v semver.Version) error {
 }
 
 func gitCommit(v semver.Version) error {
-	cmd := exec.Command("git", "add", "CHANGELOG.md", "VERSION", "version.go", "gopass.1", "*.completion")
+	args := []string{
+		"add",
+		"CHANGELOG.md",
+		"VERSION",
+		"version.go",
+		"gopass.1",
+		"*.completion",
+		"go.mod",
+		"go.sum",
+		"pkg/pwgen/pwrules/pwrules_gen.go",
+	}
+	cmd := exec.Command("git", args...)
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
 		return err
 	}
+
 	cmd = exec.Command("git", "commit", "-s", "-m", "Tag v"+v.String(), "-m", "RELEASE_NOTES=n/a")
 	cmd.Stderr = os.Stderr
 	return cmd.Run()
