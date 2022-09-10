@@ -1,3 +1,9 @@
+## 1.14.6 / 2022-09-10
+
+* [BUGFIX] Do not show setup message on version (#2327)
+* [BUGFIX] Remove exported public keys of removed (#2328, #2315)
+* [ENHANCEMENT] Document extension model. (#2329, #2290)
+
 ## 1.14.5 / 2022-09-03
 
 * [BUGFIX] Fix fsck progress bar. Mostly. (#2303)
