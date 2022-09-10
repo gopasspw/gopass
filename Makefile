@@ -139,6 +139,14 @@ codequality:
 
 	@printf '%s\n' '$(OK)'
 
+	@echo -n "     LICENSE-LINT "
+	@which license-lint > /dev/null; if [ $$? -ne 0 ]; then \
+		$(GO) install istio.io/tools/cmd/license-lint@latest; \
+	fi
+	@license-lint --config .license-lint.yml >/dev/null || exit 1
+
+	@printf '%s\n' '$(OK)'
+
 gen:
 	@$(GO) generate ./...
 
