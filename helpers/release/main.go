@@ -100,6 +100,11 @@ func main() {
 	fmt.Println("❓ Do you want to continue? (press any key to continue or Ctrl+C to abort)")
 	fmt.Scanln()
 
+	// - update deps and run tests
+	if err := updateDeps(); err != nil {
+		panic(err)
+	}
+
 	// - update VERSION
 	if err := writeVersion(nextVer); err != nil {
 		panic(err)
@@ -230,6 +235,19 @@ Will use
 		nextVer)
 
 	return prevVer, nextVer
+}
+
+func updateDeps() error {
+	cmd := exec.Command("make", "upgrade")
+	cmd.Stderr = os.Stderr
+
+	if err := cmd.Run(); err != nil {
+		return err
+	}
+
+	cmd = exec.Command("make", "travis")
+	cmd.Stderr = os.Stderr
+	return cmd.Run()
 }
 
 func gitCoMaster() error {
