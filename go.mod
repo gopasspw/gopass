@@ -15,7 +15,7 @@ require (
 	github.com/fatih/color v1.13.0
 	github.com/godbus/dbus v0.0.0-20190623212516-8a1682060722
 	github.com/gokyle/twofactor v1.0.1
-	github.com/google/go-cmp v0.5.8
+	github.com/google/go-cmp v0.5.9
 	github.com/google/go-github v17.0.0+incompatible
 	github.com/google/go-github/v33 v33.0.0
 	github.com/hashicorp/go-multierror v1.1.1
@@ -35,12 +35,12 @@ require (
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	github.com/stretchr/testify v1.8.0
 	github.com/twpayne/go-pinentry v0.2.0
-	github.com/urfave/cli/v2 v2.14.1
+	github.com/urfave/cli/v2 v2.15.0
 	golang.org/x/crypto v0.0.0-20220829220503-c86fa9a7ed90
-	golang.org/x/exp v0.0.0-20220827204233-334a2380cb91
-	golang.org/x/net v0.0.0-20220826154423-83b083e8dc8b
-	golang.org/x/oauth2 v0.0.0-20220822191816-0ebed06d0094
-	golang.org/x/sys v0.0.0-20220829200755-d48e67d00261
+	golang.org/x/exp v0.0.0-20220909182711-5c715a9e8561
+	golang.org/x/net v0.0.0-20220909164309-bea034e7d591
+	golang.org/x/oauth2 v0.0.0-20220909003341-f21342109be1
+	golang.org/x/sys v0.0.0-20220909162455-aba9fc2a8ff2
 	golang.org/x/term v0.0.0-20220722155259-a9ba230a4035
 	gopkg.in/yaml.v3 v3.0.1
 )
