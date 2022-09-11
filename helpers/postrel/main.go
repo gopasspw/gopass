@@ -220,7 +220,13 @@ func isGitClean(dir string) bool {
 		panic(err)
 	}
 
-	return strings.TrimSpace(string(buf)) == ""
+	if strings.TrimSpace(string(buf)) != "" {
+		fmt.Printf("❌ Git in %s is not clean: %q\n", dir, string(buf))
+
+		return false
+	}
+
+	return true
 }
 
 func gitCoMaster(dir string) error {
@@ -260,7 +266,7 @@ func gitCommitAndPush(dir, tag string) error {
 }
 
 func gitTagAndPush(dir string, tag string) error {
-	cmd := exec.Command("git", "tag", "-s", "-m", "Tag "+tag)
+	cmd := exec.Command("git", "tag", "-m", "'Tag "+tag+"'", tag)
 	cmd.Dir = dir
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -282,8 +288,6 @@ func gitTagAndPush(dir string, tag string) error {
 func gitHasTag(dir string, tag string) bool {
 	cmd := exec.Command("git", "rev-parse", tag)
 	cmd.Dir = dir
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
 
 	return cmd.Run() == nil
 }
@@ -353,10 +357,14 @@ func (u *inUpdater) doUpdate(ctx context.Context, dir string) error {
 
 		return nil
 	}
+	fmt.Printf("✅ [%s] %s is not tagged, yet.\n", dir, tag)
+
 	// make sure we're at head
 	if !isGitClean(path) {
 		return fmt.Errorf("git not clean at %s", path)
 	}
+	fmt.Printf("✅ [%s] Git is clean.", dir)
+
 	// make upgrade
 	if err := runCmd(path, "make", "upgrade"); err != nil {
 		return err
