@@ -2,12 +2,14 @@ package tree
 
 import (
 	"bytes"
+
+	"github.com/gopasspw/gopass/pkg/debug"
 )
 
 // Node is a tree node.
 type Node struct {
 	Name     string
-	Type     string
+	Leaf     bool
 	Template bool
 	Mount    bool
 	Path     string
@@ -40,7 +42,7 @@ func (n Node) Equals(other Node) bool {
 		return false
 	}
 
-	if n.Type != other.Type {
+	if n.Leaf != other.Leaf {
 		return false
 	}
 
@@ -57,6 +59,35 @@ func (n Node) Equals(other Node) bool {
 	}
 
 	return true
+}
+
+func (n Node) Merge(other Node) *Node {
+	r := Node{
+		Name:     n.Name,
+		Leaf:     n.Leaf,
+		Template: n.Template,
+		Mount:    n.Mount,
+		Path:     n.Path,
+		Subtree:  n.Subtree,
+	}
+
+	// can't change name
+	if other.Leaf {
+		r.Leaf = true
+	}
+	if other.Template {
+		r.Template = true
+	}
+	if other.Mount {
+		r.Mount = true
+	}
+	// can't change path
+	if r.Subtree == nil && other.Subtree != nil {
+		r.Subtree = other.Subtree
+	}
+	debug.Log("merged %+v and %+v into %+v", n, other, r)
+
+	return &r
 }
 
 // format returns a pretty printed string of all nodes in and below
@@ -86,7 +117,7 @@ func (n *Node) format(prefix string, last bool, maxDepth, curDepth int) string {
 	switch {
 	case n.Mount:
 		_, _ = out.WriteString(colMount(n.Name + " (" + n.Path + ")"))
-	case n.Type == "dir":
+	case n.Subtree != nil:
 		_, _ = out.WriteString(colDir(n.Name + sep))
 	default:
 		_, _ = out.WriteString(n.Name)
@@ -113,7 +144,7 @@ func (n *Node) format(prefix string, last bool, maxDepth, curDepth int) string {
 
 // Len returns the length of this subtree.
 func (n *Node) Len() int {
-	if n.Type == "file" {
+	if n.Subtree == nil {
 		return 1
 	}
 
@@ -137,17 +168,17 @@ func (n *Node) list(prefix string, maxDepth, curDepth int, files bool) []string 
 
 	prefix += n.Name
 
+	out := make([]string, 0, n.Len())
 	// if it's a file and we are looking for files
-	if n.Type == "file" && files {
+	if n.Leaf && files {
 		// we return the file
-		return []string{prefix}
-	} else if curDepth == maxDepth && n.Type != "file" {
+		out = append(out, prefix)
+	} else if curDepth == maxDepth && n.Subtree != nil {
 		// otherwise if we are "at the bottom" and it's not a file
 		// we return the directory name with a separator at the end
 		return []string{prefix + sep}
 	}
 
-	out := make([]string, 0, n.Len())
 	// if we don't have subitems, then it's a leaf and we return
 	// (notice that this is what ends the recursion when maxDepth is set to -1)
 	if n.Subtree == nil {
