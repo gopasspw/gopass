@@ -126,6 +126,10 @@ func (n *Node) format(prefix string, last bool, maxDepth, curDepth int) string {
 	if n.Template {
 		_, _ = out.WriteString(" " + colTpl("(template)"))
 	}
+	// mark shadowed entries
+	if n.Leaf && n.Subtree != nil {
+		_, _ = out.WriteString(" " + colShadow("(shadowed)"))
+	}
 	// finish this output
 	_, _ = out.WriteString("\n")
 

@@ -22,6 +22,7 @@ var (
 	colMount    = color.New(color.FgCyan, color.Bold).SprintfFunc()
 	colDir      = color.New(color.FgBlue, color.Bold).SprintfFunc()
 	colTpl      = color.New(color.FgGreen, color.Bold).SprintfFunc()
+	colShadow   = color.New(color.FgRed, color.Bold).SprintfFunc()
 	// sep is intentionally NOT platform-agnostic. This is used for the CLI output
 	// and should always be a regular slash.
 	sep = "/"
