@@ -80,6 +80,11 @@ func (n Node) Merge(other Node) *Node {
 	}
 	if other.Mount {
 		r.Mount = true
+		r.Leaf = false
+		r.Path = other.Path
+		r.Template = false
+		// the subtree from the mount overlays (shadows) the original tree
+		r.Subtree = other.Subtree
 	}
 	// can't change path
 	if r.Subtree == nil && other.Subtree != nil {
@@ -174,7 +179,7 @@ func (n *Node) list(prefix string, maxDepth, curDepth int, files bool) []string 
 
 	out := make([]string, 0, n.Len())
 	// if it's a file and we are looking for files
-	if n.Leaf && files {
+	if n.Subtree == nil && files {
 		// we return the file
 		out = append(out, prefix)
 	} else if curDepth == maxDepth && n.Subtree != nil {

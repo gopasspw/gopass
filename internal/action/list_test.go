@@ -123,53 +123,65 @@ func TestListLimit(t *testing.T) { //nolint:paralleltest
 	assert.Equal(t, want, buf.String())
 	buf.Reset()
 
-	assert.NoError(t, act.List(gptest.CliCtxWithFlags(ctx, t, map[string]string{"folders": "true", "limit": "0"})))
-	want = `foo/
+	t.Run("folders-limit-0", func(t *testing.T) { //nolint:paralleltest
+		assert.NoError(t, act.List(gptest.CliCtxWithFlags(ctx, t, map[string]string{"folders": "true", "limit": "0"})))
+		want = `foo/
 foo2/
 `
-	assert.Equal(t, want, buf.String())
-	buf.Reset()
+		assert.Equal(t, want, buf.String())
+		buf.Reset()
+	})
 
-	assert.NoError(t, act.List(gptest.CliCtxWithFlags(ctx, t, map[string]string{"folders": "true", "limit": "1"})))
-	want = `foo/
+	t.Run("folders-limit-1", func(t *testing.T) { //nolint:paralleltest
+		assert.NoError(t, act.List(gptest.CliCtxWithFlags(ctx, t, map[string]string{"folders": "true", "limit": "1"})))
+		want = `foo/
 foo/zen/
 foo2/
 `
-	assert.Equal(t, want, buf.String())
-	buf.Reset()
+		assert.Equal(t, want, buf.String())
+		buf.Reset()
+	})
 
-	assert.NoError(t, act.List(gptest.CliCtxWithFlags(ctx, t, map[string]string{"folders": "true", "limit": "-1"})))
-	want = `foo/
+	t.Run("folders-limit--1", func(t *testing.T) { //nolint:paralleltest
+		assert.NoError(t, act.List(gptest.CliCtxWithFlags(ctx, t, map[string]string{"folders": "true", "limit": "-1"})))
+		want = `foo/
 foo/zen/
 foo/zen/baz/
 foo2/
 `
-	assert.Equal(t, want, buf.String())
-	buf.Reset()
+		assert.Equal(t, want, buf.String())
+		buf.Reset()
+	})
 
-	assert.NoError(t, act.List(gptest.CliCtxWithFlags(ctx, t, map[string]string{"flat": "true", "limit": "-1"})))
-	want = `foo/bar
+	t.Run("flat-limit--1", func(t *testing.T) { //nolint:paralleltest
+		assert.NoError(t, act.List(gptest.CliCtxWithFlags(ctx, t, map[string]string{"flat": "true", "limit": "-1"})))
+		want = `foo/bar
 foo/zen/baz/bar
 foo2/bar2
 `
-	assert.Equal(t, want, buf.String())
-	buf.Reset()
+		assert.Equal(t, want, buf.String())
+		buf.Reset()
+	})
 
-	assert.NoError(t, act.List(gptest.CliCtxWithFlags(ctx, t, map[string]string{"flat": "true", "limit": "0"})))
-	want = `foo/
+	t.Run("folders-limit-0", func(t *testing.T) { //nolint:paralleltest
+		assert.NoError(t, act.List(gptest.CliCtxWithFlags(ctx, t, map[string]string{"flat": "true", "limit": "0"})))
+		want = `foo/
 foo2/
 `
-	assert.Equal(t, want, buf.String())
-	buf.Reset()
+		assert.Equal(t, want, buf.String())
+		buf.Reset()
+	})
 
-	assert.NoError(t, act.List(gptest.CliCtxWithFlags(ctx, t, map[string]string{"flat": "true", "limit": "2"})))
-	want = `foo/bar
+	t.Run("folders-limit-2", func(t *testing.T) { //nolint:paralleltest
+		assert.NoError(t, act.List(gptest.CliCtxWithFlags(ctx, t, map[string]string{"flat": "true", "limit": "2"})))
+		want = `foo/bar
 foo/zen/baz/
 foo2/bar2
 `
 
-	assert.Equal(t, want, buf.String())
-	buf.Reset()
+		assert.Equal(t, want, buf.String())
+		buf.Reset()
+	})
 }
 
 func TestRedirectPager(t *testing.T) { //nolint:paralleltest
