@@ -26,7 +26,7 @@ func TestRoot(t *testing.T) {
 │       ├── baz
 │       └── zab
 └── mnt/
-    └── m1 (/tmp/m1) (shadowed)
+    └── m1 (/tmp/m1)
         └── foo/ (shadowed)
             └── bar
 `, r.Format(INF))
