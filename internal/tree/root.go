@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
+	"github.com/gopasspw/gopass/pkg/debug"
 )
 
 const (
@@ -21,6 +22,7 @@ var (
 	colMount    = color.New(color.FgCyan, color.Bold).SprintfFunc()
 	colDir      = color.New(color.FgBlue, color.Bold).SprintfFunc()
 	colTpl      = color.New(color.FgGreen, color.Bold).SprintfFunc()
+	colShadow   = color.New(color.FgRed, color.Bold).SprintfFunc()
 	// sep is intentionally NOT platform-agnostic. This is used for the CLI output
 	// and should always be a regular slash.
 	sep = "/"
@@ -59,18 +61,18 @@ func (r *Root) AddTemplate(path string) error {
 func (r *Root) insert(path string, template bool, mountPath string) error {
 	t := r.Subtree
 
+	debug.Log("adding: %s [tpl: %t, mp: %q]", path, template, mountPath)
 	// split the path into its components, iterate over them and create
 	// the tree structure. Everything but the last element is a folder.
 	p := strings.Split(path, "/")
 	for i, e := range p {
 		n := &Node{
 			Name:    e,
-			Type:    "dir",
 			Subtree: NewTree(),
 		}
 		// this is the final element (a leaf)
 		if i == len(p)-1 {
-			n.Type = "file"
+			n.Leaf = true
 			n.Subtree = nil
 			n.Template = template
 
@@ -80,11 +82,14 @@ func (r *Root) insert(path string, template bool, mountPath string) error {
 			}
 		}
 
-		node, _ := t.Insert(n)
+		debug.Log("[%d] %s -> Node: %+v", i, e, n)
+
+		node := t.Insert(n)
+		debug.Log("node after insert: %+v", node)
+
 		// do we need to extend an existing subtree?
 		if i < len(p)-1 && node.Subtree == nil {
 			node.Subtree = NewTree()
-			node.Type = "dir"
 		}
 
 		// re-root t to the new subtree
@@ -147,8 +152,8 @@ func (r *Root) FindFolder(path string) (*Root, error) {
 	prefix := ""
 
 	for _, e := range p {
-		_, node := t.find(e)
-		if node == nil || node.Type == "file" || node.Subtree == nil {
+		_, node := t.findPositionFor(e)
+		if node == nil || node.Subtree == nil {
 			return nil, ErrNotFound
 		}
 

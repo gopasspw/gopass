@@ -9,6 +9,7 @@ import (
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/internal/tree"
+	"github.com/gopasspw/gopass/pkg/debug"
 )
 
 // List will return a flattened list of all tree entries.
@@ -61,7 +62,9 @@ func (r *Store) Tree(ctx context.Context) (*tree.Root, error) {
 		return nil, err
 	}
 
+	debug.Log("[root] adding files: %q", sf)
 	addFileFunc(sf...)
+	debug.Log("[root] Tree: %s", root.Format(-1))
 	addTplFunc(r.store.ListTemplates(ctx, "")...)
 
 	mps := r.MountPoints()
@@ -82,6 +85,7 @@ func (r *Store) Tree(ctx context.Context) (*tree.Root, error) {
 			return nil, fmt.Errorf("failed to add file: %w", err)
 		}
 
+		debug.Log("[%s] adding files: %q", alias, sf)
 		addFileFunc(sf...)
 		addTplFunc(substore.ListTemplates(ctx, alias)...)
 	}
