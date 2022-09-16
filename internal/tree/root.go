@@ -90,7 +90,6 @@ func (r *Root) insert(path string, template bool, mountPath string) error {
 		// do we need to extend an existing subtree?
 		if i < len(p)-1 && node.Subtree == nil {
 			node.Subtree = NewTree()
-			// node.Type = "dir"
 		}
 
 		// re-root t to the new subtree

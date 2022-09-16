@@ -61,6 +61,11 @@ func (n Node) Equals(other Node) bool {
 	return true
 }
 
+// Merge will merge two nodes into a new node. Does not change either of the two
+// input nodes. The merged node will be in the returned node. Implements semantics
+// specific to gopass' tree model, i.e. mounts shadow (erase) everything below
+// a mount point, nodes within a tree can be leafs (i.e. contain a secret as well
+// as subdirectories) and any node can also contain a template.
 func (n Node) Merge(other Node) *Node {
 	r := Node{
 		Name:     n.Name,
@@ -71,25 +76,41 @@ func (n Node) Merge(other Node) *Node {
 		Subtree:  n.Subtree,
 	}
 
-	// can't change name
+	// During a merge we can't change the name.
+
+	// If either of the nodes is a leaf (i.e. contains a secret) the
+	// merged node will be a leaf.
 	if other.Leaf {
 		r.Leaf = true
 	}
+
+	// If either node has a template the merged has a template, too.
 	if other.Template {
 		r.Template = true
 	}
+
+	// Handling of mounts is a bit more tricky. See the comment above.
+	// If we're adding a mount to the tree this shadows (erases) everything
+	// that was on this branch before a replaces it with the mount.
+	// Think of Unix mount semantics here.
 	if other.Mount {
 		r.Mount = true
+		// anything at the mount point, including a secret at the root
+		// of the mount point will become inaccessible.
 		r.Leaf = false
 		r.Path = other.Path
+		// existing templates will become invisible
 		r.Template = false
 		// the subtree from the mount overlays (shadows) the original tree
 		r.Subtree = other.Subtree
 	}
-	// can't change path
+	// Merging can't change the path (except a mount, see above)
+	// If the other node has a subtree we use that, otherwise
+	// this method shouldn't have been called in the first place.
 	if r.Subtree == nil && other.Subtree != nil {
 		r.Subtree = other.Subtree
 	}
+
 	debug.Log("merged %+v and %+v into %+v", n, other, r)
 
 	return &r
@@ -159,6 +180,12 @@ func (n *Node) Len() int {
 
 	var l int
 
+	// this node might point to a secret itself so we must account for that
+	if n.Leaf {
+		l++
+	}
+
+	// and for any secret it's subtree might contain
 	for _, t := range n.Subtree.Nodes {
 		l += t.Len()
 	}
