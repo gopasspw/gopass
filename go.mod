@@ -35,13 +35,13 @@ require (
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	github.com/stretchr/testify v1.8.0
 	github.com/twpayne/go-pinentry v0.2.0
-	github.com/urfave/cli/v2 v2.15.0
-	golang.org/x/crypto v0.0.0-20220829220503-c86fa9a7ed90
-	golang.org/x/exp v0.0.0-20220909182711-5c715a9e8561
-	golang.org/x/net v0.0.0-20220909164309-bea034e7d591
+	github.com/urfave/cli/v2 v2.16.3
+	golang.org/x/crypto v0.0.0-20220919173607-35f4265a4bc0
+	golang.org/x/exp v0.0.0-20220916125017-b168a2c6b86b
+	golang.org/x/net v0.0.0-20220920191752-2e0b12c274b7
 	golang.org/x/oauth2 v0.0.0-20220909003341-f21342109be1
-	golang.org/x/sys v0.0.0-20220909162455-aba9fc2a8ff2
-	golang.org/x/term v0.0.0-20220722155259-a9ba230a4035
+	golang.org/x/sys v0.0.0-20220919091848-fb04ddd9f9c8
+	golang.org/x/term v0.0.0-20220919170432-7a66f970e087
 	gopkg.in/yaml.v3 v3.0.1
 )
 
