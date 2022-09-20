@@ -1,9 +1,6 @@
 package action
 
 import (
-	"fmt"
-	"runtime"
-
 	"github.com/gopasspw/gopass/internal/action/exit"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/updater"
@@ -21,10 +18,6 @@ func (s *Action) Update(c *cli.Context) error {
 		out.Errorf(ctx, "Can not check version against HEAD")
 
 		return nil
-	}
-
-	if runtime.GOOS == "windows" {
-		return fmt.Errorf("gopass update is not supported on windows (#1722)")
 	}
 
 	out.Printf(ctx, "⚒ Checking for available updates ...")
