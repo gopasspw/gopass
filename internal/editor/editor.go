@@ -7,16 +7,11 @@ import (
 	"io"
 	"os"
 	"os/exec"
-	"path/filepath"
-	"regexp"
 	"runtime"
-	"strings"
 
 	"github.com/fatih/color"
-	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
-	"github.com/gopasspw/gopass/pkg/fsutil"
 	"github.com/gopasspw/gopass/pkg/tempfile"
 	shellquote "github.com/kballard/go-shellquote"
 )
@@ -27,46 +22,8 @@ var (
 	// Stdout is exported for tests.
 	Stdout io.Writer = os.Stdout
 	// Stderr is exported for tests.
-	Stderr    io.Writer = os.Stderr
-	vimOptsRe           = regexp.MustCompile(`au(tocmd)?\s+BufNewFile,BufRead\s+.*gopass.*setlocal\s+noswapfile\s+nobackup\s+noundofile\s+viminfo=`)
+	Stderr io.Writer = os.Stderr
 )
-
-// Check will validate the editor config.
-func Check(ctx context.Context, editor string) error {
-	if !strings.Contains(editor, "vi") {
-		return nil
-	}
-
-	uhd, err := os.UserHomeDir()
-	if err != nil {
-		return err
-	}
-
-	vrc := filepath.Join(uhd, ".vimrc")
-	if runtime.GOOS == "windows" {
-		vrc = filepath.Join(uhd, "_vimrc")
-	}
-
-	if !fsutil.IsFile(vrc) {
-		return nil
-	}
-
-	buf, err := os.ReadFile(vrc)
-	if err != nil {
-		return err
-	}
-
-	if vimOptsRe.Match(buf) {
-		debug.Log("Recommended settings found in %s", vrc)
-
-		return nil
-	}
-
-	debug.Log("%s did not match %s", string(buf), vimOptsRe)
-	out.Warningf(ctx, "Vim might leak credentials. Check your setup.\nhttps://go.gopass.pw/setup#securing-your-editor")
-
-	return nil
-}
 
 // Invoke will start the given editor and return the content.
 func Invoke(ctx context.Context, editor string, content []byte) ([]byte, error) {
@@ -93,7 +50,7 @@ func Invoke(ctx context.Context, editor string, content []byte) ([]byte, error) 
 		return []byte{}, fmt.Errorf("failed to close tmpfile to start with %s %v: %w", editor, tmpfile.Name(), err)
 	}
 
-	var args []string
+	args := make([]string, 0, 4)
 	if runtime.GOOS != "windows" {
 		cmdArgs, err := shellquote.Split(editor)
 		if err != nil {
@@ -101,10 +58,11 @@ func Invoke(ctx context.Context, editor string, content []byte) ([]byte, error) 
 		}
 
 		editor = cmdArgs[0]
-		args = append(cmdArgs[1:], tmpfile.Name())
-	} else {
-		args = []string{tmpfile.Name()}
+		args = append(args, cmdArgs[1:]...)
+		args = append(args, vimOptions(editor)...)
 	}
+
+	args = append(args, tmpfile.Name())
 
 	cmd := exec.Command(editor, args...)
 	cmd.Stdin = Stdin
@@ -127,4 +85,26 @@ func Invoke(ctx context.Context, editor string, content []byte) ([]byte, error) 
 	nContent = bytes.ReplaceAll(nContent, []byte("\r"), []byte("\n"))
 
 	return nContent, nil
+}
+
+func vimOptions(editor string) []string {
+	if editor != "vi" && editor != "vim" && editor != "neovim" {
+		return []string{}
+	}
+
+	path := "/dev/shm/gopass*"
+	if runtime.GOOS == "darwin" {
+		path = "/private/**/gopass**"
+	}
+	viminfo := `viminfo=""`
+	if editor == "neovim" {
+		viminfo = `shada=""`
+	}
+
+	return []string{
+		"-i", "NONE", // disable viminfo
+		"-n", // disable swap
+		"-c",
+		fmt.Sprintf("autocmd BufNewFile,BufRead %s setlocal noswapfile nobackup noundofile %s", path, viminfo),
+	}
 }
