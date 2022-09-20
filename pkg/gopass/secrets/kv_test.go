@@ -35,21 +35,15 @@ username: myuser@test.com
 Test / test.com
 `
 
-	t.Run("read back the secret", func(t *testing.T) {
-		t.Parallel()
-
+	t.Run("read back the secret", func(t *testing.T) { //nolint:paralleltest
 		assert.Equal(t, mlOut, string(s.Bytes()))
 	})
 
-	t.Run("no_duplicate_keys", func(t *testing.T) {
-		t.Parallel()
-
+	t.Run("no_duplicate_keys", func(t *testing.T) { //nolint:paralleltest
 		assert.Equal(t, []string{"password", "url", "username"}, s.Keys())
 	})
 
-	t.Run("read some keys", func(t *testing.T) {
-		t.Parallel()
-
+	t.Run("read some keys", func(t *testing.T) { //nolint:paralleltest
 		for k, v := range map[string]string{
 			"password": "bar",
 			"url":      "http://www.test.com/",
@@ -62,9 +56,7 @@ Test / test.com
 		assert.Equal(t, "somepasswd", s.Password())
 	})
 
-	t.Run("remove a key", func(t *testing.T) {
-		t.Parallel()
-
+	t.Run("remove a key", func(t *testing.T) { //nolint:paralleltest
 		assert.NoError(t, s.Set("foobar", "baz"))
 		v, ok := s.Get("foobar")
 		assert.True(t, ok)
@@ -76,9 +68,7 @@ Test / test.com
 		assert.Equal(t, "", v)
 	})
 
-	t.Run("read the body", func(t *testing.T) {
-		t.Parallel()
-
+	t.Run("read the body", func(t *testing.T) { //nolint:paralleltest
 		body := "Test / test.com\n"
 		assert.Equal(t, body, s.Body())
 		assert.Equal(t, body, s.Body())

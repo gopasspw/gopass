@@ -53,35 +53,35 @@ func tickingBar(ctx context.Context, expiresAt time.Time, bar *termio.ProgressBa
 	}
 }
 
-func waitForKeyPress(ctx context.Context, cancel context.CancelFunc) {
-	tty, err := tty.Open()
+func waitForKeyPress(ctx context.Context, cancel context.CancelFunc) (func(), func()) {
+	tty1, err := tty.Open()
 	if err != nil {
 		out.Errorf(ctx, "Unexpected error opening tty: %v", err)
 		cancel()
 	}
 
-	defer func() {
-		_ = tty.Close()
-	}()
+	return func() {
+			for {
+				select {
+				case <-ctx.Done():
+					return // returning not to leak the goroutine.
+				default:
+				}
 
-	for {
-		select {
-		case <-ctx.Done():
-			return // returning not to leak the goroutine.
-		default:
+				r, err := tty1.ReadRune()
+				if err != nil {
+					out.Errorf(ctx, "Unexpected error opening tty: %v", err)
+				}
+
+				if r == 'q' || r == 'x' || err != nil {
+					cancel()
+
+					return
+				}
+			}
+		}, func() {
+			_ = tty1.Close()
 		}
-
-		r, err := tty.ReadRune()
-		if err != nil {
-			out.Errorf(ctx, "Unexpected error opening tty: %v", err)
-		}
-
-		if r == 'q' || r == 'x' || err != nil {
-			cancel()
-
-			return
-		}
-	}
 }
 
 // nolint: cyclop
@@ -97,7 +97,9 @@ func (s *Action) otp(ctx context.Context, name, qrf string, clip, pw, recurse bo
 	skip := ctxutil.IsHidden(ctx) || pw || qrf != "" || !ctxutil.IsTerminal(ctx) || !ctxutil.IsInteractive(ctx) || clip
 	if !skip {
 		// let us monitor key presses for cancellation:.
-		go waitForKeyPress(ctx, cancel)
+		runFn, cleanupFn := waitForKeyPress(ctx, cancel)
+		go runFn()
+		defer cleanupFn()
 	}
 
 	// only used for the HOTP case as a fallback
@@ -188,6 +190,7 @@ func (s *Action) otp(ctx context.Context, name, qrf string, clip, pw, recurse bo
 			select {
 			case <-ctx.Done():
 				bar.Done()
+				cancel()
 
 				return nil
 			default:
