@@ -10,7 +10,7 @@ import (
 
 func walkSymlinks(path string, walkFn filepath.WalkFunc) error {
 	w := &walker{
-		seen: make(map[string]bool, 100),
+		seen: map[string]bool{},
 	}
 
 	return w.walk(path, path, walkFn)
