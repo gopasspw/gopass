@@ -1,3 +1,11 @@
+## 1.14.7 / 2022-09-20
+
+* [BUGFIX] Do not ignore symlinks when listing (#2344, #2173)
+* [BUGFIX] Do not shadow entries behind folders. (#2341, #2338)
+* [BUGFIX] Fix updater on Windows. (#2345, #2011)
+* [BUGFIX] Handle Ctrl+C in TOTP (#2342, #2320)
+* [ENHANCEMENT] Set vim options instead of sniffing (#2343, #2317)
+
 ## 1.14.6 / 2022-09-10
 
 * [BUGFIX] Do not show setup message on version (#2327)
