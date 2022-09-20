@@ -70,7 +70,6 @@ func main() {
 	go func() {
 		select {
 		case <-sigChan:
-			fmt.Println("SIGCHAN")
 			cancel()
 		case <-ctx.Done():
 		}
