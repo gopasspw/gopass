@@ -5,6 +5,8 @@ import (
 	"time"
 )
 
+var now = time.Now
+
 type cacheEntry[V any] struct {
 	value     V
 	maxExpire time.Time
@@ -13,11 +15,11 @@ type cacheEntry[V any] struct {
 }
 
 func (ce *cacheEntry[V]) isExpired() bool {
-	if time.Now().After(ce.maxExpire) {
+	if now().After(ce.maxExpire) {
 		return true
 	}
 
-	if time.Now().After(ce.expire) {
+	if now().After(ce.expire) {
 		return true
 	}
 
@@ -60,7 +62,7 @@ func (c *InMemTTL[K, V]) Get(key K) (V, bool) {
 		return zero, false
 	}
 
-	ce.expire = time.Now().Add(c.ttl)
+	ce.expire = now().Add(c.ttl)
 	c.entries[key] = ce
 
 	return ce.value, true
@@ -84,7 +86,7 @@ func (c *InMemTTL[K, V]) Set(key K, value V) {
 		c.entries = make(map[K]cacheEntry[V], 10)
 	}
 
-	now := time.Now()
+	now := now()
 	c.entries[key] = cacheEntry[V]{
 		value:     value,
 		maxExpire: now.Add(c.maxTTL),
