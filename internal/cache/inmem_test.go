@@ -22,7 +22,7 @@ func TestTTL(t *testing.T) {
 		maxTTL: 5,
 	}
 
-	now = nowFunc(0)
+	c.now = nowFunc(0)
 
 	val, found := c.Get("foo")
 	assert.Equal(t, "", val)
@@ -33,13 +33,13 @@ func TestTTL(t *testing.T) {
 	assert.Equal(t, "bar", val)
 	assert.True(t, found)
 
-	now = nowFunc(4)
+	c.now = nowFunc(4)
 
 	val, found = c.Get("foo")
 	assert.Equal(t, "bar", val)
 	assert.True(t, found)
 
-	now = nowFunc(6)
+	c.now = nowFunc(6)
 
 	val, found = c.Get("foo")
 	assert.Equal(t, "", val)
@@ -71,8 +71,7 @@ func TestPar(t *testing.T) {
 	t.Parallel()
 
 	c := NewInMemTTL[int, int](time.Minute, time.Minute)
-
-	now = nowFunc(0)
+	c.now = nowFunc(0)
 
 	for i := 0; i < 32; i++ {
 		for j := 0; j < 32; j++ {
