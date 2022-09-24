@@ -9,6 +9,21 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+type fakeSetter struct{}
+
+func (f *fakeSetter) Set(ctx context.Context, name string, content []byte) error {
+	return nil
+}
+
+func TestWrite(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	w := &Wizard{}
+
+	assert.NoError(t, w.writeTemplates(ctx, &fakeSetter{}))
+}
+
 func TestNew(t *testing.T) {
 	t.Parallel()
 
