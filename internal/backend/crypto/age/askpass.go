@@ -11,6 +11,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/pinentry/cli"
 	"github.com/nbutton23/zxcvbn-go"
 	"github.com/twpayne/go-pinentry"
+	"github.com/zalando/go-keyring"
 )
 
 type cacher interface {
@@ -18,6 +19,33 @@ type cacher interface {
 	Set(string, string)
 	Remove(string)
 	Purge()
+}
+
+type osKeyring struct{}
+
+func (o *osKeyring) Get(key string) (string, bool) {
+	sec, err := keyring.Get("gopass", key)
+	if err != nil {
+		debug.Log("failed to get %s from OS keyring: %w", key, err)
+
+		return "", false
+	}
+
+	return sec, true
+}
+
+func (o *osKeyring) Set(name, value string) {
+	if err := keyring.Set("gopass", name, value); err != nil {
+		debug.Log("failed to set %s: %w", name, err)
+	}
+}
+
+func (o *osKeyring) Remove(name string) {
+	keyring.Delete("gopass", name)
+}
+
+func (o *osKeyring) Purge() {
+	debug.Log("not implemented")
 }
 
 type askPass struct {
@@ -29,9 +57,15 @@ type askPass struct {
 var DefaultAskPass = newAskPass()
 
 func newAskPass() *askPass {
-	return &askPass{
+	a := &askPass{
 		cache: cache.NewInMemTTL[string, string](time.Hour, 24*time.Hour),
 	}
+
+	if err := keyring.Set("gopass", "sentinel", "empty"); err == nil {
+		a.cache = &osKeyring{}
+	}
+
+	return a
 }
 
 func (a *askPass) Ping(_ context.Context) error {
