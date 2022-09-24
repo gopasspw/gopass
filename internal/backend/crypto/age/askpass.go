@@ -21,7 +21,9 @@ type cacher interface {
 	Purge()
 }
 
-type osKeyring struct{}
+type osKeyring struct {
+	knownKeys map[string]bool
+}
 
 func (o *osKeyring) Get(key string) (string, bool) {
 	sec, err := keyring.Get("gopass", key)
@@ -30,6 +32,7 @@ func (o *osKeyring) Get(key string) (string, bool) {
 
 		return "", false
 	}
+	o.knownKeys[name] = true
 
 	return sec, true
 }
@@ -38,14 +41,29 @@ func (o *osKeyring) Set(name, value string) {
 	if err := keyring.Set("gopass", name, value); err != nil {
 		debug.Log("failed to set %s: %w", name, err)
 	}
+	o.knownKeys[name] = true
 }
 
 func (o *osKeyring) Remove(name string) {
-	keyring.Delete("gopass", name)
+	if err := keyring.Delete("gopass", name); err != nil {
+		debug.Log("failed to remove %s from keyring: %s", name, err)
+
+		return
+	}
+	o.knownKeys[name] = false
 }
 
 func (o *osKeyring) Purge() {
-	debug.Log("not implemented")
+	// purge all known keys. only useful for the REPL case.
+	// Does not persist across restarts.
+	for k, v := range o.knownKeys {
+		if !v {
+			continue
+		}
+		if err := keyring.Delete("gopass", k); err != nil {
+			debug.Log("failed to remove %s from keyring: %s", k, err)
+		}
+	}
 }
 
 type askPass struct {
@@ -53,15 +71,12 @@ type askPass struct {
 	cache   cacher
 }
 
-// DefaultAskPass is the default password cache.
-var DefaultAskPass = newAskPass()
-
-func newAskPass() *askPass {
+func newAskPass(ctx context.Context) *askPass {
 	a := &askPass{
 		cache: cache.NewInMemTTL[string, string](time.Hour, 24*time.Hour),
 	}
 
-	if err := keyring.Set("gopass", "sentinel", "empty"); err == nil {
+	if err := keyring.Set("gopass", "sentinel", "empty"); err == nil && IsUseKeychain(ctx) {
 		a.cache = &osKeyring{}
 	}
 

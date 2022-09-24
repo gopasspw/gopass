@@ -30,7 +30,7 @@ type Age struct {
 }
 
 // New creates a new Age backend.
-func New() (*Age, error) {
+func New(ctx context.Context) (*Age, error) {
 	ghc, err := ghssh.New()
 	if err != nil {
 		return nil, err
@@ -44,7 +44,7 @@ func New() (*Age, error) {
 		ghCache:   ghc,
 		recpCache: rc,
 		identity:  filepath.Join(appdir.UserConfig(), "age", "identities"),
-		askPass:   DefaultAskPass,
+		askPass:   newAskPass(ctx),
 	}, nil
 }
 

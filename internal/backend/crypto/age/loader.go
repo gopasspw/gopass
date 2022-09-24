@@ -22,7 +22,7 @@ type loader struct{}
 func (l loader) New(ctx context.Context) (backend.Crypto, error) {
 	debug.Log("Using Crypto Backend: %s", name)
 
-	return New()
+	return New(ctx)
 }
 
 func (l loader) Handles(ctx context.Context, s backend.Storage) error {

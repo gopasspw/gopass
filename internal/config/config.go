@@ -27,6 +27,7 @@ type Config struct {
 	Path          string            `yaml:"path"`
 	SafeContent   bool              `yaml:"safecontent"` // avoid showing passwords in terminal.
 	Mounts        map[string]string `yaml:"mounts"`
+	UseKeychain   bool              `yaml:"keychain"` // use OS keychain for age
 
 	ConfigPath string `yaml:"-"`
 
