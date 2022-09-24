@@ -235,6 +235,10 @@ func (a *Age) getAllIdentities(ctx context.Context) (map[string]age.Identity, er
 	debug.Log("checking ssh identities")
 	ssh, err := a.getSSHIdentities(ctx)
 	if err != nil {
+		if errors.Is(err, ErrNoSSHDir) {
+			return native, nil
+		}
+
 		return nil, err
 	}
 
@@ -246,7 +250,7 @@ func (a *Age) getAllIdentities(ctx context.Context) (map[string]age.Identity, er
 	}
 	debug.Log("got %d merged identities", len(native))
 
-	// TODO add passage identities, too
+	// TODO(gh/2059) add passage identities from
 	// $HOME/.passage/identities
 
 	return native, nil

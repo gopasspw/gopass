@@ -3,17 +3,26 @@ package age
 import (
 	"context"
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"filippo.io/age"
 	"filippo.io/age/agessh"
+	"github.com/gopasspw/gopass/pkg/appdir"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/debug"
+	"github.com/gopasspw/gopass/pkg/fsutil"
 	"golang.org/x/crypto/ssh"
 )
 
-var sshCache map[string]age.Identity
+var (
+	sshCache map[string]age.Identity
+	// ErrNoSSHDir signals that no SSH dir was found. Callers
+	// are usually expected to ignore this.
+	ErrNoSSHDir = errors.New("no ssh directory")
+)
 
 // getSSHIdentities returns all SSH identities available for the current user.
 func (a *Age) getSSHIdentities(ctx context.Context) (map[string]age.Identity, error) {
@@ -21,15 +30,19 @@ func (a *Age) getSSHIdentities(ctx context.Context) (map[string]age.Identity, er
 		return sshCache, nil
 	}
 
-	uhd, err := os.UserHomeDir()
-	if err != nil {
-		return nil, err
+	uhd := appdir.UserHome()
+	sshDir := filepath.Join(uhd, ".ssh")
+	if !fsutil.IsDir(sshDir) {
+		debug.Log("no .ssh directory found at %s. Ignoring SSH identities")
+
+		return nil, fmt.Errorf("no identities found: %w", ErrNoSSHDir)
 	}
 
-	sshDir := filepath.Join(uhd, ".ssh")
 	files, err := os.ReadDir(sshDir)
 	if err != nil {
-		return nil, err
+		debug.Log("unable to read .ssh dir %s: %s", sshDir, err)
+
+		return nil, fmt.Errorf("no identities found: %w", ErrNoSSHDir)
 	}
 
 	ids := make(map[string]age.Identity, len(files))
