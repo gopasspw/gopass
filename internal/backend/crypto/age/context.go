@@ -25,10 +25,13 @@ func IsOnlyNative(ctx context.Context) bool {
 	return bv
 }
 
+// WithUseKeychain returns a context with the value of use keychain
+// set.
 func WithUseKeychain(ctx context.Context, bv bool) context.Context {
 	return context.WithValue(ctx, ctxKeyUseKeychain, bv)
 }
 
+// IsUseKeychain returns the value of use keychain.
 func IsUseKeychain(ctx context.Context) bool {
 	bv, ok := ctx.Value(ctxKeyUseKeychain).(bool)
 	if !ok {
@@ -36,4 +39,12 @@ func IsUseKeychain(ctx context.Context) bool {
 	}
 
 	return bv
+}
+
+// HasUseKeychain returns true if a value for use keychain
+// was set in the context.
+func HasUseKeychain(ctx context.Context) bool {
+	_, ok := ctx.Value(ctxKeyUseKeychain).(bool)
+
+	return ok
 }

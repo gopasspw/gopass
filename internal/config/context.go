@@ -3,6 +3,7 @@ package config
 import (
 	"context"
 
+	"github.com/gopasspw/gopass/internal/backend/crypto/age"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 )
 
@@ -31,6 +32,10 @@ func (c *Config) WithContext(ctx context.Context) context.Context {
 
 	if !ctxutil.HasShowParsing(ctx) {
 		ctx = ctxutil.WithShowParsing(ctx, c.Parsing)
+	}
+
+	if !age.HasUseKeychain(ctx) {
+		ctx = age.WithUseKeychain(ctx, c.UseKeychain)
 	}
 
 	return ctx
