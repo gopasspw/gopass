@@ -2,8 +2,10 @@ package create
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
+	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"gopkg.in/yaml.v3"
 )
@@ -25,7 +27,7 @@ attributes:
     max: 255
   - name: "username"
     type: "string"
-	prompt: "Username"
+    prompt: "Username"
     min: 1
   - name: "password"
     type: "password"
@@ -61,6 +63,8 @@ attributes:
 
 type storageSetter interface {
 	Set(context.Context, string, []byte) error
+	Add(context.Context, ...string) error
+	Commit(context.Context, string) error
 }
 
 func (w *Wizard) writeTemplates(ctx context.Context, s storageSetter) error {
@@ -76,7 +80,15 @@ func (w *Wizard) writeTemplates(ctx context.Context, s storageSetter) error {
 			return fmt.Errorf("failed to write default template %s: %w", path, err)
 		}
 
+		if err := s.Add(ctx, path); err != nil && !errors.Is(err, store.ErrGitNotInit) {
+			return fmt.Errorf("failed to stage changes %s: %w", path, err)
+		}
+
 		debug.Log("wrote default template to %s", path)
+	}
+
+	if err := s.Commit(ctx, "Added default wizard templates"); err != nil && !errors.Is(err, store.ErrGitNotInit) {
+		return fmt.Errorf("failed to commit changes: %w", err)
 	}
 
 	return nil
