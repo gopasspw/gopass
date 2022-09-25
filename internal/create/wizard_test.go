@@ -15,6 +15,14 @@ func (f *fakeSetter) Set(ctx context.Context, name string, content []byte) error
 	return nil
 }
 
+func (f *fakeSetter) Add(ctx context.Context, args ...string) error {
+	return nil
+}
+
+func (f *fakeSetter) Commit(ctx context.Context, msg string) error {
+	return nil
+}
+
 func TestWrite(t *testing.T) {
 	t.Parallel()
 
@@ -58,17 +66,17 @@ attributes:
 	w, err := New(ctx, s)
 	require.NoError(t, err)
 	require.NotNil(t, w.Templates, "no templates")
-	require.Len(t, w.Templates, 3, "wrong number of templates")
+	require.Len(t, w.Templates, 1, "wrong number of templates")
 
-	assert.Equal(t, "websites", w.Templates[0].Prefix, "wrong prefix")
-	assert.Equal(t, "🧪 Creating Website login", w.Templates[0].Welcome, "wrong welcome")
-	assert.Equal(t, 3, len(w.Templates[0].Attributes), "wrong number of attributes")
-	assert.Equal(t, "hostname", w.Templates[0].Attributes[0].Type, "wrong type")
-	assert.Equal(t, "Website URL", w.Templates[0].Attributes[0].Prompt, "wrong prompt")
+	assert.Equal(t, "pin", w.Templates[0].Prefix, "wrong prefix")
+	assert.Equal(t, "🧪 Creating numerical PIN", w.Templates[0].Welcome, "wrong welcome")
+	assert.Equal(t, 4, len(w.Templates[0].Attributes), "wrong number of attributes")
+	assert.Equal(t, "string", w.Templates[0].Attributes[0].Type, "wrong type")
+	assert.Equal(t, "Authority", w.Templates[0].Attributes[0].Prompt, "wrong prompt")
 	assert.Equal(t, 1, w.Templates[0].Attributes[0].Min, "wrong min")
-	assert.Equal(t, 255, w.Templates[0].Attributes[0].Max, "wrong max")
+	assert.Equal(t, 0, w.Templates[0].Attributes[0].Max, "wrong max")
 	assert.Equal(t, "string", w.Templates[0].Attributes[1].Type, "wrong type")
-	assert.Equal(t, "Login", w.Templates[0].Attributes[1].Prompt, "wrong prompt")
+	assert.Equal(t, "Entity", w.Templates[0].Attributes[1].Prompt, "wrong prompt")
 	assert.Equal(t, 1, w.Templates[0].Attributes[1].Min, "wrong min")
 	assert.Equal(t, "password", w.Templates[0].Attributes[2].Type, "wrong type")
 }
