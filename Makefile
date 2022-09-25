@@ -168,4 +168,7 @@ man:
 msi:
 	@$(GO) run helpers/msipkg/main.go
 
-.PHONY: clean build completion install sysinfo crosscompile test codequality release goreleaser debsign man msi
+docker:
+	docker build -t gopass:latest .
+
+.PHONY: clean build completion install sysinfo crosscompile test codequality release goreleaser debsign man msi docker
