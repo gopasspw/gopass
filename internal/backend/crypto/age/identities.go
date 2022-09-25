@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"filippo.io/age"
+	"github.com/gopasspw/gopass/pkg/appdir"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
 )
@@ -250,10 +251,40 @@ func (a *Age) getAllIdentities(ctx context.Context) (map[string]age.Identity, er
 	}
 	debug.Log("got %d merged identities", len(native))
 
-	// TODO(gh/2059) add passage identities from
-	// $HOME/.passage/identities
+	ps, err := a.getPassageIdentities(ctx)
+	if err != nil {
+		debug.Log("unable to load passage identities: %s", err)
+	}
+
+	// merge
+	for k, v := range ps {
+		native[k] = v
+	}
 
 	return native, nil
+}
+
+func (a *Age) getPassageIdentities(ctx context.Context) (map[string]age.Identity, error) {
+	fn := PassageIdFile()
+	fh, err := os.Open(fn)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open %s: %w", fn, err)
+	}
+	defer fh.Close()
+
+	ids, err := age.ParseIdentities(fh)
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO(gh/2059) support encrypted passage identities
+
+	return idMap(ids), nil
+}
+
+// PassageIdFile returns the location of the passage identities file
+func PassageIdFile() string {
+	return filepath.Join(appdir.UserHome(), ".passage", "identities")
 }
 
 func (a *Age) getNativeIdentities(ctx context.Context) (map[string]age.Identity, error) {

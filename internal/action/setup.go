@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/fatih/color"
 	"github.com/gopasspw/gopass/internal/action/exit"
@@ -15,6 +16,7 @@ import (
 	"github.com/gopasspw/gopass/internal/store/root"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
+	"github.com/gopasspw/gopass/pkg/fsutil"
 	"github.com/gopasspw/gopass/pkg/pwgen/xkcdgen"
 	"github.com/gopasspw/gopass/pkg/termio"
 	"github.com/urfave/cli/v2"
@@ -285,12 +287,36 @@ func (s *Action) initLocal(ctx context.Context) error {
 	}
 	// TODO remotes for fossil, etc.
 
+	// detect and add mount a for passage
+	if err := s.initDetectPassage(ctx); err != nil {
+		out.Warningf(ctx, "Failed to add passage mount: %s", err)
+	}
+
 	// save config.
 	if err := s.cfg.Save(); err != nil {
 		return fmt.Errorf("failed to save config: %w", err)
 	}
 
 	out.OKf(ctx, "Configuration written to %s", s.cfg.Path)
+
+	return nil
+}
+
+func (s *Action) initDetectPassage(ctx context.Context) error {
+	pIds := age.PassageIdFile()
+	if !fsutil.IsFile(pIds) {
+		debug.Log("no passage identities found at %s", pIds)
+
+		return nil
+	}
+
+	pDir := filepath.Dir(pIds)
+
+	if err := s.Store.AddMount(ctx, "passage", pDir); err != nil {
+		return fmt.Errorf("failed to mount passage dir: %w", err)
+	}
+
+	out.OKf(ctx, "Detected passage store at %s. Mounted below passage/.", pDir)
 
 	return nil
 }
