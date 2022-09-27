@@ -28,6 +28,7 @@ import (
 const (
 	defaultLength     = 24
 	defaultXKCDLength = 4
+	tplPath           = ".gopass/create/"
 )
 
 // Attribute is a credential attribute that is being asked for
@@ -59,79 +60,38 @@ type Wizard struct {
 // New creates a new instance of the wizard. It will parse the user
 // supplied templates and add the default templates.
 func New(ctx context.Context, s backend.Storage) (*Wizard, error) {
-	w := &Wizard{
-		Templates: []Template{
-			{
-				Name:     "Website login",
-				Priority: 0,
-				Prefix:   "websites",
-				NameFrom: []string{"url", "username"},
-				Welcome:  "🧪 Creating Website login",
-				Attributes: []Attribute{
-					{
-						Name:   "url",
-						Type:   "hostname",
-						Prompt: "Website URL",
-						Min:    1,
-						Max:    255,
-					},
-					{
-						Name:   "username",
-						Type:   "string",
-						Prompt: "Login",
-						Min:    1,
-					},
-					{
-						Name:   "password",
-						Type:   "password",
-						Prompt: "Password for the Website",
-					},
-				},
-			},
-			{
-				Name:     "PIN Code (numerical)",
-				Priority: 1,
-				Prefix:   "pins",
-				NameFrom: []string{
-					"authority",
-					"application",
-				},
-				Welcome: "🔑 Creating PIN Code",
-				Attributes: []Attribute{
-					{
-						Name:   "authority",
-						Type:   "string",
-						Prompt: "Authority (Issuer)",
-						Min:    1,
-					},
-					{
-						Name:   "application",
-						Type:   "string",
-						Prompt: "Entity (e.g. debit, credit card, etc.)",
-						Min:    1,
-					},
-					{
-						Name:    "password",
-						Type:    "password",
-						Prompt:  "PIN Code",
-						Min:     1,
-						Max:     64,
-						Charset: "0123456789",
-					},
-					{
-						Name:   "comment",
-						Type:   "string",
-						Prompt: "Comment",
-					},
-				},
-			},
-		},
+	w := &Wizard{}
+
+	tpls, err := w.parseTemplates(ctx, s)
+	if err != nil {
+		return w, fmt.Errorf("could not parse templates: %w", err)
 	}
-	tpls, err := s.List(ctx, ".gopass/create/")
+
+	if len(tpls) < 1 {
+		// no templates found, write default templates
+		if err := w.writeTemplates(ctx, s); err != nil {
+			return w, fmt.Errorf("could not write default templates: %w", err)
+		}
+
+		// then re-parse them
+		tpls, err = w.parseTemplates(ctx, s)
+		if err != nil {
+			return w, fmt.Errorf("could not parse templates: %w", err)
+		}
+	}
+
+	w.Templates = tpls
+
+	return w, nil
+}
+
+func (w *Wizard) parseTemplates(ctx context.Context, s backend.Storage) ([]Template, error) {
+	tpls, err := s.List(ctx, tplPath)
 	if err != nil {
 		return nil, err
 	}
 
+	parsedTpls := []Template{}
 	for _, f := range tpls {
 		if !strings.HasSuffix(f, ".yml") && !strings.HasSuffix(f, ".yaml") {
 			debug.Log("ignoring unknown file extension: %s", f)
@@ -152,14 +112,14 @@ func New(ctx context.Context, s backend.Storage) (*Wizard, error) {
 			continue
 		}
 
-		w.Templates = append(w.Templates, tpl)
+		parsedTpls = append(parsedTpls, tpl)
 	}
 
-	sort.Slice(w.Templates, func(i, j int) bool {
-		return w.Templates[i].Priority < w.Templates[j].Priority
+	sort.Slice(parsedTpls, func(i, j int) bool {
+		return parsedTpls[i].Priority < parsedTpls[j].Priority
 	})
 
-	return w, nil
+	return parsedTpls, nil
 }
 
 // ActionCallback is the callback for the creation calls to print and copy the credentials.
