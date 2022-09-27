@@ -19,6 +19,7 @@ func TestBaseConfig(t *testing.T) { //nolint:paralleltest
 autoimport: true
 cliptimeout: 45
 exportkeys: false
+keychain: false
 nopager: false
 notifications: true
 parsing: true
@@ -72,6 +73,7 @@ func TestMountConfig(t *testing.T) { //nolint:paralleltest
 autoimport: true
 cliptimeout: 45
 exportkeys: false
+keychain: false
 nopager: false
 notifications: true
 parsing: true
