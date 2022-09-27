@@ -27,7 +27,7 @@ func (l loader) Commands() []*cli.Command {
 						"List identities",
 					Action: func(c *cli.Context) error {
 						ctx := ctxutil.WithGlobalFlags(c)
-						a, err := New()
+						a, err := New(ctx)
 						if err != nil {
 							return exit.Error(exit.Unknown, err, "failed to create age backend")
 						}
@@ -55,7 +55,7 @@ func (l loader) Commands() []*cli.Command {
 								"Add an identity",
 							Action: func(c *cli.Context) error {
 								ctx := ctxutil.WithGlobalFlags(c)
-								a, err := New()
+								a, err := New(ctx)
 								if err != nil {
 									return exit.Error(exit.Unknown, err, "failed to create age backend")
 								}
@@ -74,7 +74,7 @@ func (l loader) Commands() []*cli.Command {
 								"Remove an identity",
 							Action: func(c *cli.Context) error {
 								ctx := ctxutil.WithGlobalFlags(c)
-								a, err := New()
+								a, err := New(ctx)
 								if err != nil {
 									return exit.Error(exit.Unknown, err, "failed to create age backend")
 								}

@@ -42,7 +42,7 @@ func migrate(ctx context.Context, s backend.Storage) error {
 	}
 
 	// create a new instance so we can use decryptFile.
-	a, err := New()
+	a, err := New(ctx)
 	if err != nil {
 		return err
 	}
