@@ -32,6 +32,9 @@ func (o *osKeyring) Get(key string) (string, bool) {
 
 		return "", false
 	}
+	if o.knownKeys == nil {
+		o.knownKeys = make(map[string]bool, 1)
+	}
 	o.knownKeys[name] = true
 
 	return sec, true
@@ -41,6 +44,9 @@ func (o *osKeyring) Set(name, value string) {
 	if err := keyring.Set("gopass", name, value); err != nil {
 		debug.Log("failed to set %s: %w", name, err)
 	}
+	if o.knownKeys == nil {
+		o.knownKeys = make(map[string]bool, 1)
+	}
 	o.knownKeys[name] = true
 }
 
@@ -49,6 +55,9 @@ func (o *osKeyring) Remove(name string) {
 		debug.Log("failed to remove %s from keyring: %s", name, err)
 
 		return
+	}
+	if o.knownKeys == nil {
+		o.knownKeys = make(map[string]bool, 1)
 	}
 	o.knownKeys[name] = false
 }
