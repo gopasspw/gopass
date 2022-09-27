@@ -1,3 +1,11 @@
+## 1.14.8 / 2022-09-27
+
+* [BUGFIX] Ignore not-existing .ssh dir (#2347, #2333)
+* [BUGFIX] Use Wait() to avoid Zombies (#2354, #1666)
+* [ENHANCEMENT] Allow modifying default create templates (#2349, #2291)
+* [ENHANCEMENT] Improve passage support (#2352, #2059)
+* [ENHANCEMENT] Use OS keychain for age passphrase caching (new config option, off by default). (#2351, #2350)
+
 ## 1.14.7 / 2022-09-20
 
 * [BUGFIX] Do not ignore symlinks when listing (#2344, #2173)
