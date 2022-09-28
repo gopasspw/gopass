@@ -27,7 +27,7 @@ func Notify(ctx context.Context, subj, msg string) error {
 	}
 
 	obj := conn.Object("org.freedesktop.Notifications", "/org/freedesktop/Notifications")
-	call := obj.Call("org.freedesktop.Notifications.Notify", 0, "gopass", uint32(0), iconURI(), subj, msg, []string{}, map[string]dbus.Variant{}, int32(5000))
+	call := obj.Call("org.freedesktop.Notifications.Notify", 0, "gopass", uint32(0), iconURI(), subj, msg, []string{}, map[string]dbus.Variant{"transient": dbus.MakeVariant(true)}, int32(3000))
 	if call.Err != nil {
 		debug.Log("DBus notification failure: %s", call.Err)
 
