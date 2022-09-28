@@ -172,6 +172,7 @@ gopass is developed in the open. Here are some of the channels we use to communi
 - [chezmoi](https://github.com/twpayne/chezmoi): dotfile manager with gopass support
 - [tessen](https://github.com/ayushnix/tessen): autotype and copy gopass data on wayland compositors on Linux
 - [raycast-gopass](https://github.com/raycast/extensions/tree/main/extensions/gopass): a gopass extension for Raycast Mac launcher
+- [gnome-pass-search-provider](https://github.com/jle64/gnome-pass-search-provider): pass search provider for GNOME Shell, which also supports gopass
 
 ## Mobile apps
 
