@@ -83,6 +83,7 @@ func newAskPass(ctx context.Context) *askPass {
 	}
 
 	if err := keyring.Set("gopass", "sentinel", "empty"); err == nil && IsUseKeychain(ctx) {
+		debug.Log("using OS keychain to cache age credentials")
 		a.cache = newOsKeyring()
 	}
 
