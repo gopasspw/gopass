@@ -25,15 +25,18 @@ type osKeyring struct {
 	knownKeys map[string]bool
 }
 
+func newOsKeyring() *osKeyring {
+	return &osKeyring{
+		knownKeys: make(map[string]bool),
+	}
+}
+
 func (o *osKeyring) Get(key string) (string, bool) {
 	sec, err := keyring.Get("gopass", key)
 	if err != nil {
 		debug.Log("failed to get %s from OS keyring: %w", key, err)
 
 		return "", false
-	}
-	if o.knownKeys == nil {
-		o.knownKeys = make(map[string]bool, 1)
 	}
 	o.knownKeys[name] = true
 
@@ -44,9 +47,6 @@ func (o *osKeyring) Set(name, value string) {
 	if err := keyring.Set("gopass", name, value); err != nil {
 		debug.Log("failed to set %s: %w", name, err)
 	}
-	if o.knownKeys == nil {
-		o.knownKeys = make(map[string]bool, 1)
-	}
 	o.knownKeys[name] = true
 }
 
@@ -55,9 +55,6 @@ func (o *osKeyring) Remove(name string) {
 		debug.Log("failed to remove %s from keyring: %s", name, err)
 
 		return
-	}
-	if o.knownKeys == nil {
-		o.knownKeys = make(map[string]bool, 1)
 	}
 	o.knownKeys[name] = false
 }
@@ -86,7 +83,7 @@ func newAskPass(ctx context.Context) *askPass {
 	}
 
 	if err := keyring.Set("gopass", "sentinel", "empty"); err == nil && IsUseKeychain(ctx) {
-		a.cache = &osKeyring{}
+		a.cache = newOsKeyring()
 	}
 
 	return a
