@@ -25,6 +25,12 @@ type osKeyring struct {
 	knownKeys map[string]bool
 }
 
+func newOsKeyring() *osKeyring {
+	return &osKeyring{
+		knownKeys: make(map[string]bool),
+	}
+}
+
 func (o *osKeyring) Get(key string) (string, bool) {
 	sec, err := keyring.Get("gopass", key)
 	if err != nil {
@@ -77,7 +83,8 @@ func newAskPass(ctx context.Context) *askPass {
 	}
 
 	if err := keyring.Set("gopass", "sentinel", "empty"); err == nil && IsUseKeychain(ctx) {
-		a.cache = &osKeyring{}
+		debug.Log("using OS keychain to cache age credentials")
+		a.cache = newOsKeyring()
 	}
 
 	return a
