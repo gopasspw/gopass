@@ -1,3 +1,7 @@
+## 1.14.9 / 2022-09-28
+
+* [ENHANCEMENT] Make DBus notifications transient (#2364, #2358)
+
 ## 1.14.8 / 2022-09-27
 
 * [BUGFIX] Ignore not-existing .ssh dir (#2347, #2333)
