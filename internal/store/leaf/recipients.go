@@ -13,6 +13,8 @@ import (
 	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
+
+	"github.com/gopasspw/gopass/pkg/termio"
 )
 
 const (
@@ -70,21 +72,36 @@ func (s *Store) AddRecipient(ctx context.Context, id string) error {
 
 	debug.Log("new recipient: %q - existing: %+v", id, rs)
 
+	idAlreadyInStore := false
+
 	for _, k := range rs {
 		if k == id {
-			return fmt.Errorf("recipient already in store")
+			idAlreadyInStore = true
 		}
 	}
 
-	rs = append(rs, id)
+	if idAlreadyInStore {
+		if !termio.AskForConfirmation(ctx, fmt.Sprintf("key %q already in store. Do you want to re-encrypt with public key? This is useful if you changed your public key (e.g. added subkeys).", id)) {
+			return nil
+		}
+	} else {
+		rs = append(rs, id)
 
-	if err := s.saveRecipients(ctx, rs, "Added Recipient "+id); err != nil {
-		return fmt.Errorf("failed to save recipients: %w", err)
+		if err := s.saveRecipients(ctx, rs, "Added Recipient "+id); err != nil {
+			return fmt.Errorf("failed to save recipients: %w", err)
+		}
 	}
 
 	out.Printf(ctx, "Reencrypting existing secrets. This may take some time ...")
 
-	return s.reencrypt(ctxutil.WithCommitMessage(ctx, "Added Recipient "+id))
+	commitMsg := "Recipient " + id
+	if idAlreadyInStore {
+		commitMsg = "Re-encrypted Store for " + commitMsg
+	} else {
+		commitMsg = "Added " + commitMsg
+	}
+
+	return s.reencrypt(ctxutil.WithCommitMessage(ctx, commitMsg))
 }
 
 // SaveRecipients persists the current recipients on disk.
