@@ -82,9 +82,11 @@ func newAskPass(ctx context.Context) *askPass {
 		cache: cache.NewInMemTTL[string, string](time.Hour, 24*time.Hour),
 	}
 
-	if err := keyring.Set("gopass", "sentinel", "empty"); err == nil && IsUseKeychain(ctx) {
-		debug.Log("using OS keychain to cache age credentials")
-		a.cache = newOsKeyring()
+	if IsUseKeychain(ctx) {
+		if err := keyring.Set("gopass", "sentinel", "empty"); err == nil {
+			debug.Log("using OS keychain to cache age credentials")
+			a.cache = newOsKeyring()
+		}
 	}
 
 	return a
