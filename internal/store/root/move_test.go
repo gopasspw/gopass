@@ -339,6 +339,7 @@ func TestMoveSelf(t *testing.T) {
 		entries, err := rs.List(ctx, tree.INF)
 		require.NoError(t, err)
 		assert.Equal(t, []string{
+			"foo",
 			"foo/bar/example",
 		}, entries)
 	})
@@ -349,6 +350,7 @@ func TestMoveSelf(t *testing.T) {
 		entries, err := rs.List(ctx, tree.INF)
 		require.NoError(t, err)
 		assert.Equal(t, []string{
+			"foo",
 			"foo/bar/example",
 		}, entries)
 	})

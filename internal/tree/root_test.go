@@ -32,8 +32,10 @@ func TestRoot(t *testing.T) {
 `, r.Format(INF))
 
 	assert.Equal(t, []string{
+		"foo",
 		"foo/bar/baz",
 		"foo/bar/zab",
+		"mnt/m1/foo",
 		"mnt/m1/foo/bar",
 	}, r.List(INF))
 	assert.Equal(t, []string{

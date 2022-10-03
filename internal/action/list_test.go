@@ -84,6 +84,32 @@ foo2/
 	assert.Equal(t, want, buf.String())
 	buf.Reset()
 
+	// add shadowed entry
+	sec = &secrets.Plain{}
+	sec.SetPassword("123")
+	assert.NoError(t, act.Store.Set(ctx, "foo/zen", sec))
+	buf.Reset()
+
+	assert.NoError(t, act.List(gptest.CliCtxWithFlags(ctx, t, map[string]string{"flat": "true"})))
+	want = `foo
+foo/bar
+foo/zen
+foo/zen/bar
+foo2/bar2
+`
+	assert.Equal(t, want, buf.String())
+	buf.Reset()
+
+	assert.NoError(t, act.List(gptest.CliCtx(ctx, t, "foo")))
+	want = `foo/
+├── bar
+└── zen/ (shadowed)
+    └── bar
+
+`
+	assert.Equal(t, want, buf.String())
+	buf.Reset()
+
 	// list not-present
 	assert.Error(t, act.List(gptest.CliCtx(ctx, t, "not-present")))
 	buf.Reset()
@@ -155,7 +181,8 @@ foo2/
 
 	t.Run("flat-limit--1", func(t *testing.T) { //nolint:paralleltest
 		assert.NoError(t, act.List(gptest.CliCtxWithFlags(ctx, t, map[string]string{"flat": "true", "limit": "-1"})))
-		want = `foo/bar
+		want = `foo
+foo/bar
 foo/zen/baz/bar
 foo2/bar2
 `
@@ -165,7 +192,7 @@ foo2/bar2
 
 	t.Run("folders-limit-0", func(t *testing.T) { //nolint:paralleltest
 		assert.NoError(t, act.List(gptest.CliCtxWithFlags(ctx, t, map[string]string{"flat": "true", "limit": "0"})))
-		want = `foo/
+		want = `foo
 foo2/
 `
 		assert.Equal(t, want, buf.String())
@@ -174,7 +201,8 @@ foo2/
 
 	t.Run("folders-limit-2", func(t *testing.T) { //nolint:paralleltest
 		assert.NoError(t, act.List(gptest.CliCtxWithFlags(ctx, t, map[string]string{"flat": "true", "limit": "2"})))
-		want = `foo/bar
+		want = `foo
+foo/bar
 foo/zen/baz/
 foo2/bar2
 `
