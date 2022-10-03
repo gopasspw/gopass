@@ -206,7 +206,7 @@ func (n *Node) list(prefix string, maxDepth, curDepth int, files bool) []string 
 
 	out := make([]string, 0, n.Len())
 	// if it's a file and we are looking for files
-	if n.Leaf && files {
+	if n.Leaf && !n.Mount && files {
 		// we return the file
 		out = append(out, prefix)
 	} else if curDepth == maxDepth && n.Subtree != nil {
