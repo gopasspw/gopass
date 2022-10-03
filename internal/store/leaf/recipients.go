@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"path"
 	"path/filepath"
 	"strings"
 
@@ -276,24 +277,33 @@ func (s *Store) UpdateExportedPublicKeys(ctx context.Context, rs []string) (bool
 
 	debug.Log("Checking %q for extra keys that need to be removed", keys)
 	for _, key := range keys {
-		key := strings.TrimPrefix(key, keyDir+string(filepath.Separator))
-		if !recipients[key] {
-			if err := s.storage.Delete(ctx, filepath.Join(keyDir, key)); err != nil {
-				out.Errorf(ctx, "Failed to remove extra key %q: %s", key, err)
+		// do not use filepath, that would break on Windows. storage.List normalizes all paths
+		// returned to normal (forward) slashes. Even on Windows.
+		key := path.Base(key)
 
-				continue
-			}
+		if recipients[key] {
+			debug.Log("Key %s found. Not removing", key)
 
-			if err := s.storage.Add(ctx, filepath.Join(keyDir, key)); err != nil {
-				out.Errorf(ctx, "Failed to mark extra key for removal %q: %s", key, err)
-
-				continue
-			}
-
-			// to ensure the commit
-			exported = true
-			debug.Log("Removed extra key %s", key)
+			continue
 		}
+
+		debug.Log("Remvoing extra key %s", key)
+
+		if err := s.storage.Delete(ctx, filepath.Join(keyDir, key)); err != nil {
+			out.Errorf(ctx, "Failed to remove extra key %q: %s", key, err)
+
+			continue
+		}
+
+		if err := s.storage.Add(ctx, filepath.Join(keyDir, key)); err != nil {
+			out.Errorf(ctx, "Failed to mark extra key for removal %q: %s", key, err)
+
+			continue
+		}
+
+		// to ensure the commit
+		exported = true
+		debug.Log("Removed extra key %s", key)
 	}
 
 	if exported {
