@@ -17,7 +17,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Example() {
+func Example() { //nolint:testableexamples
 	ctx := context.Background()
 	tpl := `Password-value of existing entry: {{ getpw "foo" }}
 Password-value of the new entry: {{ .Content }}

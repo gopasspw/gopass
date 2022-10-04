@@ -75,7 +75,7 @@ func main() {
 		}
 	}()
 
-	cli.ErrWriter = errorWriter{
+	cli.ErrWriter = errorWriter{ //nolint:reassign
 		out: colorable.NewColorableStderr(),
 	}
 	sv := getVersion()

@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func ExampleProgressBar() {
+func ExampleProgressBar() { //nolint:testableexamples
 	max := 100
 	pb := NewProgressBar(int64(max))
 
