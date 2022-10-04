@@ -8,7 +8,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/gopass/secrets"
 )
 
-func Example() {
+func Example() { //nolint:testableexamples
 	ctx := context.Background()
 
 	gp, err := api.New(ctx)

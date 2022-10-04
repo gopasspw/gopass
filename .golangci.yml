@@ -25,6 +25,7 @@ linters:
   - deadcode
   - durationcheck
   - dupl
+  - dupword
   - exhaustruct
   - exhaustivestruct
   - forbidigo

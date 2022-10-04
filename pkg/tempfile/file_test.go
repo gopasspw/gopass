@@ -39,6 +39,8 @@ func Example() {
 	}
 
 	fmt.Println(string(out))
+
+	// Output: foobar
 }
 
 func TestTempdirBase(t *testing.T) {
