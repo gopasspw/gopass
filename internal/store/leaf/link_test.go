@@ -2,7 +2,6 @@ package leaf
 
 import (
 	"context"
-	"os"
 	"testing"
 
 	"github.com/gopasspw/gopass/pkg/gopass/secrets"
@@ -15,12 +14,7 @@ func TestLink(t *testing.T) {
 
 	ctx := context.Background()
 
-	tempdir, err := os.MkdirTemp("", "gopass-")
-	require.NoError(t, err)
-	defer func() {
-		_ = os.RemoveAll(tempdir)
-	}()
-
+	tempdir := t.TempDir()
 	t.Logf(tempdir)
 
 	s, err := createSubStore(tempdir)

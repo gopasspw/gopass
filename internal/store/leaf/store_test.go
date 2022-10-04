@@ -101,12 +101,7 @@ func createStore(dir string, recipients, entries []string) ([]string, []string, 
 func TestStore(t *testing.T) {
 	t.Parallel()
 
-	tempdir, err := os.MkdirTemp("", "gopass-")
-	require.NoError(t, err)
-
-	defer func() {
-		_ = os.RemoveAll(tempdir)
-	}()
+	tempdir := t.TempDir()
 
 	s, err := createSubStore(tempdir)
 	require.NoError(t, err)
@@ -121,12 +116,7 @@ func TestIdFile(t *testing.T) {
 
 	ctx := context.Background()
 
-	tempdir, err := os.MkdirTemp("", "gopass-")
-	require.NoError(t, err)
-
-	defer func() {
-		_ = os.RemoveAll(tempdir)
-	}()
+	tempdir := t.TempDir()
 
 	s, err := createSubStore(tempdir)
 	require.NoError(t, err)
@@ -205,13 +195,7 @@ func TestNew(t *testing.T) {
 
 			var tempdir string
 			if !tc.noDir {
-				var err error
-				tempdir, err = os.MkdirTemp("", "gopass-")
-				require.NoError(t, err)
-
-				defer func() {
-					_ = os.RemoveAll(tempdir)
-				}()
+				tempdir = t.TempDir()
 			}
 
 			s, err := New(tc.ctx, "", tempdir)

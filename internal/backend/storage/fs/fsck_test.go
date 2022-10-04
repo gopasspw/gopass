@@ -16,8 +16,7 @@ func TestFsck(t *testing.T) {
 	ctx := context.Background()
 	ctx = ctxutil.WithHidden(ctx, true)
 
-	path, cleanup := newTempDir(t)
-	defer cleanup()
+	path := t.TempDir()
 
 	l := &loader{}
 	s, err := l.Init(ctx, path)

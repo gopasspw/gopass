@@ -82,12 +82,10 @@ func TestList(t *testing.T) {
 
 		t.Run(tc.name, func(t *testing.T) {
 			// common setup
-			tempdir, err := os.MkdirTemp("", "gopass-")
-			require.NoError(t, err)
+			tempdir := t.TempDir()
 
 			defer func() {
 				obuf.Reset()
-				_ = os.RemoveAll(tempdir)
 			}()
 
 			s := &Store{

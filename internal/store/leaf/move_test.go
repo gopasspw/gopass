@@ -77,13 +77,10 @@ func TestCopy(t *testing.T) {
 
 		t.Run(tc.name, func(t *testing.T) {
 			// common setup
-			tempdir, err := os.MkdirTemp("", "gopass-")
-			require.NoError(t, err)
+			tempdir := t.TempDir()
 
 			defer func() {
 				obuf.Reset()
-				// common tear down
-				_ = os.RemoveAll(tempdir)
 			}()
 
 			s := &Store{
@@ -163,13 +160,10 @@ func TestMove(t *testing.T) {
 
 		t.Run(tc.name, func(t *testing.T) {
 			// common setup
-			tempdir, err := os.MkdirTemp("", "gopass-")
-			require.NoError(t, err)
+			tempdir := t.TempDir()
 
 			defer func() {
 				obuf.Reset()
-				// common tear down
-				_ = os.RemoveAll(tempdir)
 			}()
 
 			s := &Store{
@@ -179,7 +173,7 @@ func TestMove(t *testing.T) {
 				storage: fs.New(tempdir),
 			}
 
-			err = s.saveRecipients(ctx, []string{"john.doe"}, "test")
+			err := s.saveRecipients(ctx, []string{"john.doe"}, "test")
 			require.NoError(t, err)
 
 			// run test case
@@ -232,13 +226,10 @@ func TestDelete(t *testing.T) {
 
 		t.Run(tc.name, func(t *testing.T) {
 			// common setup
-			tempdir, err := os.MkdirTemp("", "gopass-")
-			require.NoError(t, err)
+			tempdir := t.TempDir()
 
 			defer func() {
 				obuf.Reset()
-				// common tear down
-				_ = os.RemoveAll(tempdir)
 			}()
 
 			s := &Store{
@@ -248,7 +239,7 @@ func TestDelete(t *testing.T) {
 				storage: fs.New(tempdir),
 			}
 
-			err = s.saveRecipients(ctx, []string{"john.doe"}, "test")
+			err := s.saveRecipients(ctx, []string{"john.doe"}, "test")
 			require.NoError(t, err)
 
 			// run test case
@@ -324,13 +315,10 @@ func TestPrune(t *testing.T) {
 
 		t.Run(tc.name, func(t *testing.T) {
 			// common setup
-			tempdir, err := os.MkdirTemp("", "gopass-")
-			require.NoError(t, err)
+			tempdir := t.TempDir()
 
 			defer func() {
 				obuf.Reset()
-				// common tear down
-				_ = os.RemoveAll(tempdir)
 			}()
 
 			s := &Store{
@@ -340,7 +328,7 @@ func TestPrune(t *testing.T) {
 				storage: fs.New(tempdir),
 			}
 
-			err = s.saveRecipients(ctx, []string{"john.doe"}, "test")
+			err := s.saveRecipients(ctx, []string{"john.doe"}, "test")
 			assert.NoError(t, err)
 
 			// run test case

@@ -408,14 +408,7 @@ func TestLoadError(t *testing.T) { //nolint:paralleltest
 	cfg, err := load(gcfg, false)
 	assert.Error(t, err)
 
-	td, err := os.MkdirTemp("", "gopass-")
-	require.NoError(t, err)
-
-	defer func() {
-		_ = os.RemoveAll(td)
-	}()
-
-	gcfg = filepath.Join(td, "foo", ".gopass.yml")
+	gcfg = filepath.Join(t.TempDir(), "foo", ".gopass.yml")
 	assert.NoError(t, os.Setenv("GOPASS_CONFIG", gcfg))
 	assert.NoError(t, cfg.Save())
 }

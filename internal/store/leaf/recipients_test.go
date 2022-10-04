@@ -24,12 +24,7 @@ func TestGetRecipientsDefault(t *testing.T) {
 
 	ctx := context.Background()
 
-	tempdir, err := os.MkdirTemp("", "gopass-")
-	require.NoError(t, err)
-
-	defer func() {
-		_ = os.RemoveAll(tempdir)
-	}()
+	tempdir := t.TempDir()
 
 	obuf := &bytes.Buffer{}
 	out.Stdout = obuf
@@ -59,12 +54,7 @@ func TestGetRecipientsSubID(t *testing.T) {
 
 	ctx := context.Background()
 
-	tempdir, err := os.MkdirTemp("", "gopass-")
-	require.NoError(t, err)
-
-	defer func() {
-		_ = os.RemoveAll(tempdir)
-	}()
+	tempdir := t.TempDir()
 
 	obuf := &bytes.Buffer{}
 	out.Stdout = obuf
@@ -101,14 +91,9 @@ func TestSaveRecipients(t *testing.T) {
 	ctx := context.Background()
 	ctx = ctxutil.WithExportKeys(ctx, true)
 
-	tempdir, err := os.MkdirTemp("", "gopass-")
-	require.NoError(t, err)
+	tempdir := t.TempDir()
 
-	defer func() {
-		_ = os.RemoveAll(tempdir)
-	}()
-
-	_, _, err = createStore(tempdir, nil, nil)
+	_, _, err := createStore(tempdir, nil, nil)
 	assert.NoError(t, err)
 
 	obuf := &bytes.Buffer{}
@@ -163,12 +148,7 @@ func TestAddRecipient(t *testing.T) {
 	ctx := context.Background()
 	ctx = ctxutil.WithHidden(ctx, true)
 
-	tempdir, err := os.MkdirTemp("", "gopass-")
-	require.NoError(t, err)
-
-	defer func() {
-		_ = os.RemoveAll(tempdir)
-	}()
+	tempdir := t.TempDir()
 
 	genRecs, _, err := createStore(tempdir, nil, nil)
 	assert.NoError(t, err)
@@ -206,14 +186,9 @@ func TestRemoveRecipient(t *testing.T) {
 	ctx := context.Background()
 	ctx = ctxutil.WithHidden(ctx, true)
 
-	tempdir, err := os.MkdirTemp("", "gopass-")
-	require.NoError(t, err)
+	tempdir := t.TempDir()
 
-	defer func() {
-		_ = os.RemoveAll(tempdir)
-	}()
-
-	_, _, err = createStore(tempdir, nil, nil)
+	_, _, err := createStore(tempdir, nil, nil)
 	assert.NoError(t, err)
 
 	obuf := &bytes.Buffer{}
@@ -243,12 +218,7 @@ func TestListRecipients(t *testing.T) {
 
 	ctx := context.Background()
 
-	tempdir, err := os.MkdirTemp("", "gopass-")
-	require.NoError(t, err)
-
-	defer func() {
-		_ = os.RemoveAll(tempdir)
-	}()
+	tempdir := t.TempDir()
 
 	genRecs, _, err := createStore(tempdir, nil, nil)
 	require.NoError(t, err)

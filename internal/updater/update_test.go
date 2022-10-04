@@ -23,12 +23,7 @@ func TestIsUpdateable(t *testing.T) { //nolint:paralleltest
 		executable = oldExec
 	}()
 
-	td, err := os.MkdirTemp("", "gopass-")
-	require.NoError(t, err)
-
-	defer func() {
-		_ = os.RemoveAll(td)
-	}()
+	td := t.TempDir()
 
 	for _, tc := range []struct {
 		name string

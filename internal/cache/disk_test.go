@@ -1,22 +1,14 @@
 package cache
 
 import (
-	"os"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestOnDisk(t *testing.T) { //nolint:paralleltest
-	td, err := os.MkdirTemp("", "gopass-")
-	require.NoError(t, err)
-
-	defer func() {
-		_ = os.RemoveAll(td)
-	}()
-
+	td := t.TempDir()
 	t.Setenv("GOPASS_HOMEDIR", td)
 
 	odc, err := NewOnDisk("test", time.Hour)
