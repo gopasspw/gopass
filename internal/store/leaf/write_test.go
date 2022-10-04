@@ -2,7 +2,6 @@ package leaf
 
 import (
 	"context"
-	"os"
 	"runtime"
 	"testing"
 
@@ -16,12 +15,7 @@ func TestSet(t *testing.T) {
 
 	ctx := context.Background()
 
-	tempdir, err := os.MkdirTemp("", "gopass-")
-	require.NoError(t, err)
-
-	defer func() {
-		_ = os.RemoveAll(tempdir)
-	}()
+	tempdir := t.TempDir()
 
 	s, err := createSubStore(tempdir)
 	require.NoError(t, err)

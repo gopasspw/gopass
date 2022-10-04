@@ -13,8 +13,7 @@ func TestRCS(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	path, cleanup := newTempDir(t)
-	defer cleanup()
+	path := t.TempDir()
 
 	g := New(path)
 	// the fs backend does not support the RCS operations

@@ -70,17 +70,12 @@ func TestAction(t *testing.T) {
 func TestNew(t *testing.T) {
 	t.Parallel()
 
-	td, err := os.MkdirTemp("", "gopass-")
-	require.NoError(t, err)
-	defer func() {
-		_ = os.RemoveAll(td)
-	}()
-
+	td := t.TempDir()
 	cfg := config.New()
 	sv := semver.Version{}
 
 	t.Run("init a new store", func(t *testing.T) { //nolint:paralleltest
-		_, err = New(cfg, sv)
+		_, err := New(cfg, sv)
 		require.NoError(t, err)
 	})
 
@@ -88,7 +83,7 @@ func TestNew(t *testing.T) {
 		cfg.Path = filepath.Join(td, "store")
 		assert.NoError(t, os.MkdirAll(cfg.Path, 0o700))
 		assert.NoError(t, os.WriteFile(filepath.Join(cfg.Path, plain.IDFile), []byte("foobar"), 0o600))
-		_, err = New(cfg, sv)
+		_, err := New(cfg, sv)
 		assert.NoError(t, err)
 	})
 }

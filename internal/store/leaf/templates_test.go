@@ -2,7 +2,6 @@ package leaf
 
 import (
 	"context"
-	"os"
 	"testing"
 
 	"github.com/fatih/color"
@@ -16,16 +15,11 @@ func TestTemplates(t *testing.T) {
 
 	ctx := context.Background()
 
-	tempdir, err := os.MkdirTemp("", "gopass-")
-	require.NoError(t, err)
-
-	defer func() {
-		_ = os.RemoveAll(tempdir)
-	}()
+	tempdir := t.TempDir()
 
 	color.NoColor = true
 
-	_, _, err = createStore(tempdir, nil, nil)
+	_, _, err := createStore(tempdir, nil, nil)
 	require.NoError(t, err)
 
 	ctx = backend.WithCryptoBackendString(ctx, "plain")

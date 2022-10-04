@@ -9,17 +9,12 @@ import (
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestDetectStorage(t *testing.T) { //nolint:paralleltest
 	ctx := context.Background()
 
-	td, err := os.MkdirTemp("", "gopass-")
-	require.NoError(t, err)
-	defer func() {
-		_ = os.RemoveAll(td)
-	}()
+	td := t.TempDir()
 
 	// all tests involving age should set GOPASS_HOMEDIR
 	t.Setenv("GOPASS_HOMEDIR", td)

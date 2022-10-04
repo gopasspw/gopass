@@ -2,7 +2,6 @@ package otp
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 	"testing"
 
@@ -47,12 +46,7 @@ func TestCalculate(t *testing.T) {
 func TestWrite(t *testing.T) {
 	t.Parallel()
 
-	td, err := os.MkdirTemp("", "gopass-")
-	assert.NoError(t, err)
-
-	defer func() {
-		_ = os.RemoveAll(td)
-	}()
+	td := t.TempDir()
 
 	tf := filepath.Join(td, "qr.png")
 

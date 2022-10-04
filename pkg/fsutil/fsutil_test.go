@@ -27,12 +27,7 @@ func TestCleanFilename(t *testing.T) {
 }
 
 func TestCleanPath(t *testing.T) { //nolint:paralleltest
-	tempdir, err := os.MkdirTemp("", "gopass-")
-	require.NoError(t, err)
-
-	defer func() {
-		_ = os.RemoveAll(tempdir)
-	}()
+	tempdir := t.TempDir()
 
 	m := map[string]string{
 		".":                                 "",
@@ -64,12 +59,7 @@ func TestCleanPath(t *testing.T) { //nolint:paralleltest
 func TestIsDir(t *testing.T) {
 	t.Parallel()
 
-	tempdir, err := os.MkdirTemp("", "gopass-")
-	require.NoError(t, err)
-
-	defer func() {
-		_ = os.RemoveAll(tempdir)
-	}()
+	tempdir := t.TempDir()
 
 	fn := filepath.Join(tempdir, "foo")
 	assert.NoError(t, os.WriteFile(fn, []byte("bar"), 0o644))
@@ -81,12 +71,7 @@ func TestIsDir(t *testing.T) {
 func TestIsFile(t *testing.T) {
 	t.Parallel()
 
-	tempdir, err := os.MkdirTemp("", "gopass-")
-	require.NoError(t, err)
-
-	defer func() {
-		_ = os.RemoveAll(tempdir)
-	}()
+	tempdir := t.TempDir()
 
 	fn := filepath.Join(tempdir, "foo")
 	assert.NoError(t, os.WriteFile(fn, []byte("bar"), 0o644))
@@ -97,12 +82,7 @@ func TestIsFile(t *testing.T) {
 func TestShred(t *testing.T) {
 	t.Parallel()
 
-	tempdir, err := os.MkdirTemp("", "gopass-")
-	require.NoError(t, err)
-
-	defer func() {
-		_ = os.RemoveAll(tempdir)
-	}()
+	tempdir := t.TempDir()
 
 	fn := filepath.Join(tempdir, "file")
 	// test successful shread
@@ -137,12 +117,7 @@ func TestShred(t *testing.T) {
 func TestIsEmptyDir(t *testing.T) {
 	t.Parallel()
 
-	tempdir, err := os.MkdirTemp("", "gopass-")
-	require.NoError(t, err)
-
-	defer func() {
-		_ = os.RemoveAll(tempdir)
-	}()
+	tempdir := t.TempDir()
 
 	fn := filepath.Join(tempdir, "foo", "bar", "baz", "zab")
 	require.NoError(t, os.MkdirAll(fn, 0o755))
@@ -162,12 +137,7 @@ func TestIsEmptyDir(t *testing.T) {
 func TestCopyFile(t *testing.T) {
 	t.Parallel()
 
-	tempdir, err := os.MkdirTemp("", "gopass-")
-	require.NoError(t, err)
-
-	defer func() {
-		_ = os.RemoveAll(tempdir)
-	}()
+	tempdir := t.TempDir()
 
 	sfn := filepath.Join(tempdir, "foo")
 	require.NoError(t, os.MkdirAll(filepath.Dir(sfn), 0o755))
