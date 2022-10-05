@@ -16,6 +16,7 @@ import (
 	rdebug "runtime/debug"
 	"runtime/pprof"
 	"sort"
+	"syscall"
 	"time"
 
 	"github.com/blang/semver/v4"
@@ -47,6 +48,11 @@ const (
 var version string
 
 func main() {
+	// workaround for https://github.com/golang/go/issues/37942
+	// SIGURG = syscall.Signal(0x17) from:
+	// https://pkg.go.dev/golang.org/x/sys@v0.0.0-20221006211917-84dc82d7e875/unix
+	signal.Ignore(syscall.Signal(0x17))
+
 	// important: execute the func now but the returned func only on defer!
 	// Example: https://go.dev/play/p/8214zCX6hVq.
 	defer writeCPUProfile()()
