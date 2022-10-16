@@ -51,7 +51,7 @@ func TestOTP(t *testing.T) { //nolint:paralleltest
 
 	t.Run("copy to clipboard", func(t *testing.T) { //nolint:paralleltest
 		defer buf.Reset()
-		assert.NoError(t, act.otp(ctx, "bar", "", true, false, false))
+		assert.NoError(t, act.otp(ctx, "bar", "", true, false, false, false))
 	})
 
 	t.Run("write QR file", func(t *testing.T) { //nolint:paralleltest

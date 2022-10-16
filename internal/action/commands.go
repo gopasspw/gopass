@@ -685,6 +685,11 @@ func (s *Action) GetCommands() []*cli.Command {
 					Aliases: []string{"c"},
 					Usage:   "Copy the time-based token into the clipboard",
 				},
+				&cli.BoolFlag{
+					Name:    "combined",
+					Aliases: []string{"p"},
+					Usage:   "Output the password concatenated with the token",
+				},
 				&cli.StringFlag{
 					Name:    "qr",
 					Aliases: []string{"q"},
