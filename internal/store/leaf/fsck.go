@@ -60,11 +60,36 @@ func (s *Store) Fsck(ctx context.Context, path string) error {
 		}
 	}
 
+	if err := s.fsckUpdatePublicKeys(ctx); err != nil {
+		out.Errorf(ctx, "Failed to update public keys: %s", err)
+	}
+
 	if err := s.storage.Push(ctx, "", ""); err != nil {
 		if !errors.Is(err, store.ErrGitNoRemote) {
 			out.Printf(ctx, "RCS Push failed: %s", err)
 		}
 	}
+
+	return nil
+}
+
+func (s *Store) fsckUpdatePublicKeys(ctx context.Context) error {
+	ctx = WithPubkeyUpdate(ctx, true)
+	rs := s.Recipients(ctx)
+
+	// first import possibly new/updated keys to merge any changes
+	// that might come from others.
+	if err := s.ImportMissingPublicKeys(ctx, rs...); err != nil {
+		return fmt.Errorf("failed to import new or updated pubkeys: %w", err)
+	}
+
+	// then export our (possibly updated) keys for consumption
+	// by others.
+	exported, err := s.UpdateExportedPublicKeys(ctx, rs)
+	if err != nil {
+		return fmt.Errorf("failed to update exported pubkeys: %w", err)
+	}
+	debug.Log("Updated exported public keys: %t", exported)
 
 	return nil
 }
@@ -112,7 +137,7 @@ func (s *Store) fsckCheckEntry(ctx context.Context, name string) error {
 
 func (s *Store) fsckCheckRecipients(ctx context.Context, name string) error {
 	// now compare the recipients this secret was encoded for and fix it if
-	// if doesn't match
+	// it doesn't match.
 	ciphertext, err := s.storage.Get(ctx, s.Passfile(name))
 	if err != nil {
 		return fmt.Errorf("failed to get raw secret: %w", err)
