@@ -26,7 +26,7 @@ Some configuration options are only available through setting environment variab
 | `GOPASS_GPG_BINARY` | `string` | Set this to the absolute path to the GPG binary if you need to override the value returned by `gpgconf`, e.g. [QubesOS](https://www.qubes-os.org/doc/split-gpg/). |
 | `GOPASS_PW_DEFAULT_LENGTH`   | `int`    | Set to any integer value larger than zero to define a different default length in the `generate` command. By default the length is 24 characters. |
 | `GOPASS_AUTOSYNC_INTERVAL` | `int` | Set this to the number of days between autosync runs. |
-| `GOPASS_NO_AUTOSYNC` | `bool` | Set this to `true` to disable autosync. |
+| `GOPASS_NO_AUTOSYNC` | `bool` | Set this to `true` to disable autosync. Deprecated. Please use `core.autosync` |
 
 Variables not exclusively used by gopass
 
@@ -42,31 +42,44 @@ Variables not exclusively used by gopass
 
 ## Configuration Options
 
-During start up, gopass will look for a configuration file at `$HOME/.config/gopass/config.yml`. If one is not present, it will create one. If the config file already exists, it will attempt to parse it and load the settings. If this fails, the program will abort. Thus, if gopass is giving you trouble with a broken or incompatible configuration file, simply rename it or delete it.
+During start up, gopass will look for a configuration file at `$HOME/.config/gopass/config`. If one is not present, it will create one. If the config file already exists, it will attempt to parse it and load the settings. If this fails, the program will abort. Thus, if gopass is giving you trouble with a broken or incompatible configuration file, simply rename it or delete it.
 
 All configuration options are also available for reading and writing through the sub-command `gopass config`.
 
 * To display all values: `gopass config`
 * To display a single value: `gopass config autoclip`
 * To update a single value: `gopass config autoclip false`
-* As many other sub-commands this command accepts a `--store` flag to operate on a given sub-store, provided the sub-store is a remote one. Support for different local configurations per mount was dropped in v1.9.3.
+* As many other sub-commands this command accepts a `--store` flag to operate on a given sub-store, provided the sub-store is a remote one.
+
+### Configuration format
+
+`gopass` uses a configuration format inspired by and mostly compatible with the configuration format used by git. We support
+a different configuration sources that take precedence over each other, just like [git](https://mirrors.edge.kernel.org/pub/software/scm/git/docs/git-config.html).
+
+#### Configuration precendence
+
+* Hard-coded presets apply if nothing else if set
+* System-wide configuration file allows operators or package maintainers to supply system-wide defaults in /etc/gopass/config
+* User-wide (aka. global) configuration allows to set per-user settings. This is the closest equivalent to the old gopass configs. Located in `$HOME/.config/gopass/config`
+* Per-store (aka. local) configuration allow to set per-store settings, e.g. read-only. Located in `<STORE_DIR>/config`.
+* Per-store unversioned (aka `config.worktree`) configuration allows to override versioned per-store settings, e.g. disabling read-only. Located in `<STORE_DIR>/config.worktree`
+* Environment variables (or command line flags) override all other values. Read from `GOPASS_CONFIG_KEY_n` and `GOPASS_CONFIG_VALUE_n` up to `GOPASS_CONFIG_COUNT`.
+
+### Configuration options
 
 This is a list of available options:
 
 | **Option**       | **Type** | Description                                                                                                                                                                                    |
 | ---------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `askformore`     | `bool`   | If enabled - it will ask to add more data after use of `generate` command.  DEPRECATED in v1.10.0                                                                                              |
-| `autoclip`       | `bool`   | Always copy the password created by `gopass generate`. Only applies to generate.                                                                                                               |
-| `autoimport`     | `bool`   | Import missing keys stored in the pass repository without asking.                                                                                                                              |
-| `autosync`       | `bool`   | Always do a `git push` after a commit to the store. Makes sure your local changes are always available on your git remote. DEPRECATED in v1.10.0                                               |
-| `concurrency`    | `int`    | Number of threads to use for batch operations (such as reencrypting).  DEPRECATED in v1.9.3                                                                                                    |
-| `cliptimeout`    | `int`    | How many seconds the secret is stored when using `-c`.                                                                                                                                         |
-| `exportkeys`     | `bool`   | Export public keys of all recipients to the store.                                                                                                                                             |
-| `recipient_hash` | `map`    | Map of recipient ids to their hashes.  DEPRECATED in v1.10.0                                                                                                                                   |
-| `usesymbols`     | `bool`   | If enabled - it will use symbols when generating passwords.  DEPRECATED in v1.9.3                                                                                                              |
-| `nocolor`        | `bool`   | Do not use color.                                                                                                                                                                              |
-| `nopager`        | `bool`   | Do not invoke a pager to display long lists.                                                                                                                                                   |
-| `notifications`  | `bool`   | Enable desktop notifications.                                                                                                                                                                  |
-| `parsing`        | `bool`   | Enable parsing of output to have key-value and yaml secrets.                                                                                                                                   |
-| `path`           | `string` | Path to the root store.                                                                                                                                                                        |
-| `safecontent`    | `bool`   | Only output _safe content_ (i.e. everything but the first line of a secret) to the terminal. Use _copy_ (`-c`) to retrieve the password in the clipboard, or _force_ (`-f`) to still print it. |
+| `core.autoclip`       | `bool`   | Always copy the password created by `gopass generate`. Only applies to generate.                                                                                                               |
+| `core.autoimport`     | `bool`   | Import missing keys stored in the pass repository without asking.                                                                                                                              |
+| `core.autosync`       | `bool`   | Always do a `git push` after a commit to the store. Makes sure your local changes are always available on your git remote.                                               |
+| `core.cliptimeout`    | `int`    | How many seconds the secret is stored when using `-c`.                                                                                                                                         |
+| `core.exportkeys`     | `bool`   | Export public keys of all recipients to the store.                                                                                                                                             |
+| `core.nocolor`        | `bool`   | Do not use color.                                                                                                                                                                              |
+| `core.pager`        | `bool`   | Do not invoke a pager to display long lists.                                                                                                                                                   |
+| `core.notifications`  | `bool`   | Enable desktop notifications.                                                                                                                                                                  |
+| `core.parsing`        | `bool`   | Enable parsing of output to have key-value and yaml secrets.                                                                                                                                   |
+| `core.readonly`       | `bool`   | Disable writing to a store. Note: This is just a convenience option to prevent accidential writes. Enforcement can only happen on a central server (if repos are set up around a central one). |
+| `mounts.path`           | `string` | Path to the root store.                                                                                                                                                                        |
+| `core.showsafecontent`    | `bool`   | Only output _safe content_ (i.e. everything but the first line of a secret) to the terminal. Use _copy_ (`-c`) to retrieve the password in the clipboard, or _force_ (`-f`) to still print it. |

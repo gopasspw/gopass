@@ -3,40 +3,28 @@ package config
 import (
 	"context"
 
-	"github.com/gopasspw/gopass/internal/backend/crypto/age"
-	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/gitconfig"
 )
 
-// WithContext returns a context with all config options set for this store
-// config, iff they have not been already set in the context.
-func (c *Config) WithContext(ctx context.Context) context.Context {
-	if !c.AutoImport {
-		ctx = ctxutil.WithImportFunc(ctx, nil)
+type contextKey int
+
+const (
+	ctxKeyConfig contextKey = iota
+)
+
+func (c *Config) WithConfig(ctx context.Context) context.Context {
+	return context.WithValue(ctx, ctxKeyConfig, c)
+}
+
+func FromContext(ctx context.Context) *Config {
+	if c, found := ctx.Value(ctxKeyConfig).(*Config); found && c != nil {
+		return c
 	}
 
-	if !ctxutil.HasExportKeys(ctx) {
-		ctx = ctxutil.WithExportKeys(ctx, c.ExportKeys)
+	c := &Config{
+		root: newGitconfig().LoadAll(""),
 	}
+	c.root.Preset = gitconfig.NewFromMap(defaults)
 
-	if !ctxutil.HasNoPager(ctx) {
-		ctx = ctxutil.WithNoPager(ctx, c.NoPager)
-	}
-
-	if !ctxutil.HasNotifications(ctx) {
-		ctx = ctxutil.WithNotifications(ctx, c.Notifications)
-	}
-
-	if !ctxutil.HasShowSafeContent(ctx) {
-		ctx = ctxutil.WithShowSafeContent(ctx, c.SafeContent)
-	}
-
-	if !ctxutil.HasShowParsing(ctx) {
-		ctx = ctxutil.WithShowParsing(ctx, c.Parsing)
-	}
-
-	if !age.HasUseKeychain(ctx) {
-		ctx = age.WithUseKeychain(ctx, c.UseKeychain)
-	}
-
-	return ctx
+	return c
 }

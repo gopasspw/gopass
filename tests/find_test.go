@@ -18,7 +18,7 @@ func TestFind(t *testing.T) { //nolint:paralleltest
 	assert.Error(t, err)
 	assert.Equal(t, "\nError: Usage: "+filepath.Base(ts.Binary)+" find <NEEDLE>\n", out)
 
-	_, err = ts.run("config safecontent false")
+	_, err = ts.run("config core.showsafecontent false")
 	require.NoError(t, err)
 
 	out, err = ts.run("find bar")
@@ -40,7 +40,7 @@ func TestFind(t *testing.T) { //nolint:paralleltest
 	assert.NoError(t, err)
 	assert.Contains(t, "Found exact match in 'foo/bar'\nbaz", out)
 
-	_, err = ts.run("config safecontent true")
+	_, err = ts.run("config core.showsafecontent true")
 	require.NoError(t, err)
 
 	out, err = ts.run("find bar")

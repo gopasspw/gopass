@@ -1,6 +1,7 @@
 package pwgen
 
 import (
+	"context"
 	"fmt"
 	"sort"
 	"testing"
@@ -28,7 +29,7 @@ func TestCrypticForDomain(t *testing.T) {
 
 			for _, length := range []int{1, 4, 8, 100} {
 				tcName := fmt.Sprintf("%s - %d", domain, length)
-				c := NewCrypticForDomain(length, domain)
+				c := NewCrypticForDomain(context.Background(), length, domain)
 
 				require.NotNil(t, c, tcName)
 

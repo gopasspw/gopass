@@ -3,6 +3,7 @@ package leaf
 import (
 	"context"
 
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -30,7 +31,7 @@ func (s *Store) Get(ctx context.Context, name string) (gopass.Secret, error) {
 		return nil, store.ErrDecrypt
 	}
 
-	if !ctxutil.IsShowParsing(ctx) {
+	if !ctxutil.IsShowParsing(ctx) || !config.Bool(ctx, "core.parsing") {
 		return secrets.ParsePlain(content), nil
 	}
 

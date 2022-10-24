@@ -23,7 +23,7 @@ import (
 func TestRuleLookup(t *testing.T) {
 	t.Parallel()
 
-	domain, _ := hasPwRuleForSecret("foo/gopass.pw")
+	domain, _ := hasPwRuleForSecret(context.Background(), "foo/gopass.pw")
 	assert.Equal(t, "", domain)
 }
 
@@ -38,8 +38,9 @@ func TestGenerate(t *testing.T) { //nolint:paralleltest
 	act, err := newMock(ctx, u.StoreDir(""))
 	require.NoError(t, err)
 	require.NotNil(t, act)
+	ctx = act.cfg.WithConfig(ctx)
 
-	act.cfg.AutoClip = false
+	require.NoError(t, act.cfg.Set("", "core.autoclip", "false"))
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
@@ -155,11 +156,11 @@ func TestGenerate(t *testing.T) { //nolint:paralleltest
 
 	// generate --force foobar 24 w/ autoclip and output redirection
 	t.Run("generate --force foobar 24", func(t *testing.T) { //nolint:paralleltest
-		ov := act.cfg.AutoClip
+		ov := act.cfg.Get("core.autoclip")
 		defer func() {
-			act.cfg.AutoClip = ov
+			require.NoError(t, act.cfg.Set("", "core.autoclip", ov))
 		}()
-		act.cfg.AutoClip = true
+		require.NoError(t, act.cfg.Set("", "core.autoclip", "true"))
 		ctx := ctxutil.WithTerminal(ctx, false)
 		assert.NoError(t, act.Generate(gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true"}, "foobar", "24")))
 		assert.Contains(t, buf.String(), "Not printing secrets by default")
@@ -168,11 +169,11 @@ func TestGenerate(t *testing.T) { //nolint:paralleltest
 
 	// generate --force foobar 24 w/ autoclip and no output redirection
 	t.Run("generate --force foobar 24", func(t *testing.T) { //nolint:paralleltest
-		ov := act.cfg.AutoClip
+		ov := act.cfg.Get("core.autoclip")
 		defer func() {
-			act.cfg.AutoClip = ov
+			require.NoError(t, act.cfg.Set("", "core.autoclip", ov))
 		}()
-		act.cfg.AutoClip = true
+		require.NoError(t, act.cfg.Set("", "core.autoclip", "true"))
 		ctx := ctxutil.WithTerminal(ctx, true)
 		assert.NoError(t, act.Generate(gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true"}, "foobar", "24")))
 		assert.Contains(t, buf.String(), "Copied to clipboard")

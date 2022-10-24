@@ -21,6 +21,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/tests/gptest"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/urfave/cli/v2"
 )
 
@@ -111,8 +112,8 @@ func TestGetCommands(t *testing.T) { //nolint:paralleltest
 		out.Stdout = os.Stdout
 	}()
 
-	cfg := config.New()
-	cfg.Path = u.StoreDir("")
+	cfg := config.NewNoWrites()
+	require.NoError(t, cfg.SetPath(u.StoreDir("")))
 
 	clipboard.Unsupported = true
 

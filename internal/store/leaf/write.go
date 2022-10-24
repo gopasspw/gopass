@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/queue"
 	"github.com/gopasspw/gopass/internal/store"
@@ -18,6 +19,10 @@ import (
 func (s *Store) Set(ctx context.Context, name string, sec gopass.Byter) error {
 	if strings.Contains(name, "//") {
 		return fmt.Errorf("invalid secret name: %s", name)
+	}
+
+	if config.FromContext(ctx).GetM(s.alias, "core.readonly") == "true" {
+		return fmt.Errorf("writing to %s is disabled by `core.readonly`.", s.alias)
 	}
 
 	p := s.Passfile(name)

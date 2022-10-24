@@ -99,7 +99,7 @@ func main() {
 //nolint:wrapcheck
 func setupApp(ctx context.Context, sv semver.Version) (context.Context, *cli.App) {
 	// try to read config (if it exists)
-	cfg := config.LoadWithFallback()
+	cfg := config.New()
 
 	// set config values
 	ctx = initContext(ctx, cfg)
@@ -112,7 +112,7 @@ func setupApp(ctx context.Context, sv semver.Version) (context.Context, *cli.App
 	}
 
 	// set some action callbacks
-	if !cfg.AutoImport {
+	if !cfg.GetBool("core.autoimport") {
 		ctx = ctxutil.WithImportFunc(ctx, termio.AskForKeyImport)
 	}
 
@@ -261,7 +261,7 @@ func (e errorWriter) Write(p []byte) (int, error) {
 
 func initContext(ctx context.Context, cfg *config.Config) context.Context {
 	// initialize from config, may be overridden by env vars
-	ctx = cfg.WithContext(ctx)
+	ctx = cfg.WithConfig(ctx)
 
 	// always trust
 	ctx = gpg.WithAlwaysTrust(ctx, true)

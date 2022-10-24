@@ -110,7 +110,7 @@ test-win: $(GOPASS_OUTPUT)
 		$(GO) test -test.short -run '(Test|Example)' $(pkg) || exit 1;)
 
 test-integration: $(GOPASS_OUTPUT)
-	cd tests && GOPASS_BINARY=$(PWD)/$(GOPASS_OUTPUT) GOPASS_TEST_DIR=$(PWD)/tests $(GO) test -v
+	cd tests && GOPASS_BINARY=$(PWD)/$(GOPASS_OUTPUT) GOPASS_TEST_DIR=$(PWD)/tests $(GO) test -v $(TESTFLAGS)
 
 crosscompile:
 	@echo -n ">> CROSSCOMPILE linux/amd64"

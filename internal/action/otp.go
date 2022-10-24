@@ -158,7 +158,7 @@ func (s *Action) otp(ctx context.Context, name, qrf string, clip, pw, recurse bo
 		debug.Log("OTP period: %ds", two.Period())
 
 		if clip {
-			if err := clipboard.CopyTo(ctx, fmt.Sprintf("token for %s", name), []byte(token), s.cfg.ClipTimeout); err != nil {
+			if err := clipboard.CopyTo(ctx, fmt.Sprintf("token for %s", name), []byte(token), s.cfg.GetInt("core.cliptimeout")); err != nil {
 				return exit.Error(exit.IO, err, "failed to copy to clipboard: %s", err)
 			}
 
