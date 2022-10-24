@@ -33,7 +33,7 @@ require (
 	github.com/pquerna/otp v1.3.1-0.20220803165443-c62dc589378a
 	github.com/schollz/closestmatch v0.0.0-20190308193919-1fbe626be92e
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
-	github.com/stretchr/testify v1.8.0
+	github.com/stretchr/testify v1.8.1
 	github.com/twpayne/go-pinentry v0.2.0
 	github.com/urfave/cli/v2 v2.16.3
 	github.com/zalando/go-keyring v0.2.1
