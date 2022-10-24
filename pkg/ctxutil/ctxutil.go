@@ -15,12 +15,9 @@ const (
 	ctxKeyTerminal contextKey = iota
 	ctxKeyInteractive
 	ctxKeyStdin
-	ctxKeyNoPager
-	ctxKeyShowSafeContent
 	ctxKeyGitCommit
 	ctxKeyAlwaysYes
 	ctxKeyVerbose
-	ctxKeyNotifications
 	ctxKeyProgressCallback
 	ctxKeyAlias
 	ctxKeyGitInit
@@ -30,7 +27,6 @@ const (
 	ctxKeyUsername
 	ctxKeyEmail
 	ctxKeyImportFunc
-	ctxKeyExportKeys
 	ctxKeyPasswordCallback
 	ctxKeyPasswordPurgeCallback
 	ctxKeyCommitTimestamp
@@ -122,50 +118,6 @@ func IsStdin(ctx context.Context) bool {
 	return bv
 }
 
-// WithNoPager returns a context with the value for pager set.
-func WithNoPager(ctx context.Context, bv bool) context.Context {
-	return context.WithValue(ctx, ctxKeyNoPager, bv)
-}
-
-// HasNoPager returns true if a value for NoPager has been set in this context.
-func HasNoPager(ctx context.Context) bool {
-	_, ok := ctx.Value(ctxKeyNoPager).(bool)
-
-	return ok
-}
-
-// IsNoPager returns the value of pager or the default (false).
-func IsNoPager(ctx context.Context) bool {
-	bv, ok := ctx.Value(ctxKeyNoPager).(bool)
-	if !ok {
-		return false
-	}
-
-	return bv
-}
-
-// WithShowSafeContent returns a context with the value for ShowSafeContent set.
-func WithShowSafeContent(ctx context.Context, bv bool) context.Context {
-	return context.WithValue(ctx, ctxKeyShowSafeContent, bv)
-}
-
-// HasShowSafeContent returns true if a value for ShowSafeContent has been set in this context.
-func HasShowSafeContent(ctx context.Context) bool {
-	_, ok := ctx.Value(ctxKeyShowSafeContent).(bool)
-
-	return ok
-}
-
-// IsShowSafeContent returns the value of ShowSafeContent or the default (false).
-func IsShowSafeContent(ctx context.Context) bool {
-	bv, ok := ctx.Value(ctxKeyShowSafeContent).(bool)
-	if !ok {
-		return false
-	}
-
-	return bv
-}
-
 // WithShowParsing returns a context with the value for ShowParsing set.
 func WithShowParsing(ctx context.Context, bv bool) context.Context {
 	return context.WithValue(ctx, ctxKeyShowParsing, bv)
@@ -242,21 +194,6 @@ func HasVerbose(ctx context.Context) bool {
 // IsVerbose returns the value of verbose or the default (false).
 func IsVerbose(ctx context.Context) bool {
 	return is(ctx, ctxKeyVerbose, false)
-}
-
-// WithNotifications returns a context with the value for Notifications set.
-func WithNotifications(ctx context.Context, verbose bool) context.Context {
-	return context.WithValue(ctx, ctxKeyNotifications, verbose)
-}
-
-// HasNotifications returns true if a value for Notifications has been set in this context.
-func HasNotifications(ctx context.Context) bool {
-	return hasBool(ctx, ctxKeyNotifications)
-}
-
-// IsNotifications returns the value of Notifications or the default (true).
-func IsNotifications(ctx context.Context) bool {
-	return is(ctx, ctxKeyNotifications, true)
 }
 
 // WithProgressCallback returns a context with the value of ProgressCallback set.
@@ -421,21 +358,6 @@ func GetImportFunc(ctx context.Context) store.ImportCallback {
 	}
 
 	return imf
-}
-
-// WithExportKeys returns a context with the value for export keys set.
-func WithExportKeys(ctx context.Context, d bool) context.Context {
-	return context.WithValue(ctx, ctxKeyExportKeys, d)
-}
-
-// HasExportKeys returns true if Export Keys was set in the context.
-func HasExportKeys(ctx context.Context) bool {
-	return hasBool(ctx, ctxKeyExportKeys)
-}
-
-// IsExportKeys returns the value of export keys or the default (true).
-func IsExportKeys(ctx context.Context) bool {
-	return is(ctx, ctxKeyExportKeys, true)
 }
 
 // PasswordCallback is a password prompt callback.

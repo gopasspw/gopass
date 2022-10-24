@@ -51,8 +51,6 @@ func TestPlain(t *testing.T) {
 	_, err = m.FindIdentities(ctx)
 	assert.NoError(t, err)
 
-	buf, err = m.ExportPublicKey(ctx, "")
-	assert.NoError(t, err)
 	assert.NoError(t, m.ImportPublicKey(ctx, buf))
 	assert.Equal(t, semver.Version{}, m.Version(ctx))
 

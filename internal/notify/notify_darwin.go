@@ -8,7 +8,7 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/internal/config"
 )
 
 const (
@@ -23,7 +23,7 @@ var (
 
 // Notify displays a desktop notification using osascript.
 func Notify(ctx context.Context, subj, msg string) error {
-	if os.Getenv("GOPASS_NO_NOTIFY") != "" || !ctxutil.IsNotifications(ctx) {
+	if os.Getenv("GOPASS_NO_NOTIFY") != "" || !config.Bool(ctx, "core.notifications") {
 		return nil
 	}
 

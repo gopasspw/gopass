@@ -86,6 +86,7 @@ jobs:
         run: |
           for D in dist/*.deb; do
             curl -H"X-Filename: ${D}" -H"X-Apikey: ${APIKEY}" -XPOST --data-binary @$D https://packages.gopass.pw/repos/gopass/upload
+            curl -H"X-Filename: ${D}" -H"X-Apikey: ${APIKEY}" -XPOST --data-binary @$D https://packages.gopass.pw/repos/gopass-unstable/upload
           done
         env:
           APIKEY: ${{ secrets.APT_APIKEY }}

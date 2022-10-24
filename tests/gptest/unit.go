@@ -9,14 +9,18 @@ import (
 
 	aclip "github.com/atotto/clipboard"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 const (
-	gopassConfig = `autoclip: true
-autoimport: true
-cliptimeout: 45
-notifications: true
-parsing: true`
+	gopassConfig = `[core]
+	autoclip = true
+	autoimport = true
+	cliptimeout = 45
+	notifications = true
+	nopager = true
+	parsing = true
+`
 )
 
 var (
@@ -35,7 +39,7 @@ type Unit struct {
 
 // GPConfig returns the gopass config location.
 func (u Unit) GPConfig() string {
-	return filepath.Join(u.Dir, "config.yml")
+	return filepath.Join(u.Dir, ".config", "gopass", "config")
 }
 
 // GPGHome returns the GnuPG homedir.
@@ -60,25 +64,30 @@ func NewUnitTester(t *testing.T) *Unit {
 	u.env = map[string]string{
 		"CHECKPOINT_DISABLE":        "true",
 		"GNUPGHOME":                 u.GPGHome(),
-		"GOPASS_CONFIG":             u.GPConfig(),
+		"GOPASS_CONFIG_NOSYSTEM":    "true",
+		"GOPASS_CONFIG_NO_MIGRATE":  "true",
 		"GOPASS_DISABLE_ENCRYPTION": "true",
 		"GOPASS_HOMEDIR":            u.Dir,
 		"NO_COLOR":                  "true",
 		"GOPASS_NO_NOTIFY":          "true",
 		"PAGER":                     "",
 	}
-	assert.NoError(t, setupEnv(u.env))
-	assert.NoError(t, os.Mkdir(u.GPGHome(), 0o700))
-	assert.NoError(t, u.initConfig())
-	assert.NoError(t, u.InitStore(""))
+	assert.NoError(t, setupEnv(u.env), "setup env")
+	require.NoError(t, os.Mkdir(u.GPGHome(), 0o700))
+	assert.NoError(t, u.initConfig(), "pre-populate config")
+	assert.NoError(t, u.InitStore(""), "init store")
 
 	return u
 }
 
 func (u Unit) initConfig() error {
+	if err := os.MkdirAll(filepath.Dir(u.GPConfig()), 0o755); err != nil {
+		return err
+	}
+
 	err := os.WriteFile(
 		u.GPConfig(),
-		[]byte(gopassConfig+"\npath: "+u.StoreDir("")+"\nexportkeys: true\n"),
+		[]byte(gopassConfig+"\texportkeys = true\n[mounts]\n\tpath: "+u.StoreDir("")+"\n"),
 		0o600,
 	)
 	if err != nil {

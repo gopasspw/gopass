@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sort"
+	"sync"
 
 	"golang.org/x/exp/maps"
 )
@@ -52,18 +53,26 @@ func NewRegistry[K comparable, V Prioritized]() *Registry[K, V] {
 
 // Registry is a registry of backends.
 type Registry[K comparable, V Prioritized] struct {
+	sync.RWMutex
+
 	backends      map[K]V
 	nameToBackend map[string]K
 	backendToName map[K]string
 }
 
 func (r *Registry[K, V]) Register(backend K, name string, loader V) {
+	r.Lock()
+	defer r.Unlock()
+
 	r.backends[backend] = loader
 	r.nameToBackend[name] = backend
 	r.backendToName[backend] = name
 }
 
 func (r *Registry[K, V]) BackendNames() []string {
+	r.RLock()
+	defer r.RUnlock()
+
 	names := maps.Keys(r.nameToBackend)
 	sort.Strings(names)
 
@@ -71,6 +80,9 @@ func (r *Registry[K, V]) BackendNames() []string {
 }
 
 func (r *Registry[K, V]) Backends() []V {
+	r.RLock()
+	defer r.RUnlock()
+
 	bes := make([]V, 0, len(r.backends))
 	for _, be := range r.backends {
 		bes = append(bes, be)
@@ -80,6 +92,9 @@ func (r *Registry[K, V]) Backends() []V {
 }
 
 func (r *Registry[K, V]) Prioritized() []V {
+	r.RLock()
+	defer r.RUnlock()
+
 	bes := maps.Values(r.backends)
 	sort.Slice(bes, func(i, j int) bool {
 		return bes[i].Priority() < bes[j].Priority()
@@ -89,6 +104,9 @@ func (r *Registry[K, V]) Prioritized() []V {
 }
 
 func (r *Registry[K, V]) Get(key K) (V, error) {
+	r.RLock()
+	defer r.RUnlock()
+
 	if be, found := r.backends[key]; found {
 		return be, nil
 	}
@@ -98,6 +116,9 @@ func (r *Registry[K, V]) Get(key K) (V, error) {
 }
 
 func (r *Registry[K, V]) Backend(name string) (K, error) {
+	r.RLock()
+	defer r.RUnlock()
+
 	if name == "gpg" {
 		name = "gpgcli"
 	}
@@ -112,6 +133,9 @@ func (r *Registry[K, V]) Backend(name string) (K, error) {
 }
 
 func (r *Registry[K, V]) BackendName(backend K) (string, error) {
+	r.RLock()
+	defer r.RUnlock()
+
 	name, ok := r.backendToName[backend]
 	if !ok {
 		return "", ErrNotFound

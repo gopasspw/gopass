@@ -1,6 +1,7 @@
 package pwrules
 
 import (
+	"context"
 	"regexp"
 	"sort"
 	"strconv"
@@ -20,13 +21,13 @@ func AllRules() map[string]Rule {
 
 // LookupRule looks up a rule either directly or through one of it's know
 // aliases.
-func LookupRule(domain string) (Rule, bool) {
+func LookupRule(ctx context.Context, domain string) (Rule, bool) {
 	r, found := genRules[domain]
 	if found {
 		return r, true
 	}
 
-	for _, alias := range LookupAliases(domain) {
+	for _, alias := range LookupAliases(ctx, domain) {
 		if r, found := genRules[alias]; found {
 			return r, true
 		}

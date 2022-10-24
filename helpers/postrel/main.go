@@ -152,13 +152,22 @@ func (g *ghClient) createMilestones(ctx context.Context, v semver.Version) error
 		return err
 	}
 
+	// create a milestone for the next patch version
 	if err := g.createMilestone(ctx, v.String(), 1, ms); err != nil {
 		return err
 	}
 
+	// create a milestone for the next+1 patch version
 	v.IncrementPatch()
+	if err := g.createMilestone(ctx, v.String(), 2, ms); err != nil {
+		return err
+	}
 
-	return g.createMilestone(ctx, v.String(), 2, ms)
+	// create a milestone for the next minor version
+	v.IncrementMinor()
+	v.Patch = 0
+
+	return g.createMilestone(ctx, v.String(), 90, ms)
 }
 
 func (g *ghClient) createMilestone(ctx context.Context, title string, offset int, ms []*github.Milestone) error {
@@ -607,9 +616,11 @@ func (u *repoUpdater) createPR(ctx context.Context, title, from, toOrg, toRepo s
 		fmt.Printf("❌ Creating GitHub PR failed: %s", err)
 		fmt.Printf("Request: %+v\n", newPR)
 		fmt.Printf("Response: %+v\n", resp)
+
 		return err
 	}
 	fmt.Printf("✅ GitHub PR created: %s\n", pr.GetHTMLURL())
+
 	return err
 }
 
@@ -655,6 +666,7 @@ SCAN:
 				if repl != nil {
 					fmt.Fprintln(fout, *repl)
 				}
+
 				continue SCAN
 			}
 		}
@@ -680,6 +692,7 @@ func (r *repo) commitMsg() string {
 	if r.msg != "" {
 		return r.msg
 	}
+
 	return "gopass: update to " + r.ver.String() + "\nNote: This is an auto-generated change as part of the gopass release process.\n"
 }
 
@@ -706,6 +719,7 @@ func (r *repo) updatePrepare() error {
 	if err := r.gitBranchDel(); err != nil {
 		return fmt.Errorf("git branch -d failed: %w", err)
 	}
+
 	return r.gitBranch()
 }
 
@@ -726,6 +740,7 @@ func (r *repo) gitCoMaster() error {
 	cmd.Stderr = os.Stderr
 	cmd.Dir = r.dir
 	fmt.Printf("Running command: %s\n", cmd)
+
 	return cmd.Run()
 }
 
@@ -735,6 +750,7 @@ func (r *repo) gitBranch() error {
 	cmd.Stderr = os.Stderr
 	cmd.Dir = r.dir
 	fmt.Printf("Running command: %s\n", cmd)
+
 	return cmd.Run()
 }
 
@@ -744,6 +760,7 @@ func (r *repo) gitBranchDel() error {
 	cmd.Stderr = os.Stderr
 	cmd.Dir = r.dir
 	fmt.Printf("Running command: %s\n", cmd)
+
 	return cmd.Run()
 }
 
@@ -756,8 +773,10 @@ func (r *repo) gitPom() error {
 	cmd.Dir = r.dir
 	if err := cmd.Run(); err != nil {
 		fmt.Println(buf.String())
+
 		return err
 	}
+
 	return nil
 }
 
@@ -767,6 +786,7 @@ func (r *repo) gitPush(remote string) error {
 	cmd.Stderr = os.Stderr
 	cmd.Dir = r.dir
 	fmt.Printf("Running command: %s\n", cmd)
+
 	return cmd.Run()
 }
 
@@ -788,6 +808,7 @@ func (r *repo) gitCommit(files ...string) error {
 	cmd.Stderr = os.Stderr
 	cmd.Dir = r.dir
 	fmt.Printf("Running command: %s\n", cmd)
+
 	return cmd.Run()
 }
 
@@ -799,6 +820,7 @@ func (r *repo) isGitClean() bool {
 	if err != nil {
 		panic(err)
 	}
+
 	return strings.TrimSpace(string(buf)) == ""
 }
 

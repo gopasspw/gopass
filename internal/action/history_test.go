@@ -33,11 +33,13 @@ func TestHistory(t *testing.T) { //nolint:paralleltest
 	ctx = backend.WithCryptoBackend(ctx, backend.Plain)
 	ctx = backend.WithStorageBackend(ctx, backend.GitFS)
 
-	cfg := config.New()
-	cfg.Path = u.StoreDir("")
+	cfg := config.NewNoWrites()
+	require.NoError(t, cfg.SetPath(u.StoreDir("")))
+
 	act, err := newAction(cfg, semver.Version{}, false)
 	require.NoError(t, err)
 	require.NotNil(t, act)
+	ctx = act.cfg.WithConfig(ctx)
 
 	t.Run("can initialize", func(t *testing.T) { //nolint:paralleltest
 		require.NoError(t, act.IsInitialized(gptest.CliCtx(ctx, t)))

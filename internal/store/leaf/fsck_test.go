@@ -9,7 +9,6 @@ import (
 	"github.com/gopasspw/gopass/internal/backend/crypto/plain"
 	"github.com/gopasspw/gopass/internal/backend/storage/fs"
 	"github.com/gopasspw/gopass/internal/out"
-	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/gopass/secrets"
 	"github.com/stretchr/testify/assert"
 )
@@ -18,7 +17,6 @@ func TestFsck(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	ctx = ctxutil.WithExportKeys(ctx, false)
 
 	obuf := &bytes.Buffer{}
 	out.Stdout = obuf

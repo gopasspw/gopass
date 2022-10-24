@@ -1,4 +1,4 @@
-package config_test
+package legacy_test
 
 import (
 	"os"
@@ -7,37 +7,33 @@ import (
 
 	_ "github.com/gopasspw/gopass/internal/backend/crypto"
 	_ "github.com/gopasspw/gopass/internal/backend/storage"
-	"github.com/gopasspw/gopass/internal/config"
+	"github.com/gopasspw/gopass/internal/config/legacy"
 	"github.com/stretchr/testify/assert"
 )
-
-func TestHomedir(t *testing.T) { //nolint:paralleltest
-	assert.NotEqual(t, config.Homedir(), "")
-}
 
 func TestNewConfig(t *testing.T) { //nolint:paralleltest
 	assert.NoError(t, os.Setenv("GOPASS_CONFIG", filepath.Join(os.TempDir(), ".gopass.yml")))
 
-	cfg := config.New()
+	cfg := legacy.New()
 	cs := cfg.String()
-	assert.Contains(t, cs, `&config.Config{AutoClip:false, AutoImport:false, ClipTimeout:45, ExportKeys:true, NoPager:false, Notifications:true,`)
+	assert.Contains(t, cs, `&legacy.Config{AutoClip:false, AutoImport:false, ClipTimeout:45, ExportKeys:true, NoPager:false, Notifications:true,`)
 	assert.Contains(t, cs, `SafeContent:false, Mounts:map[string]string{},`)
 
-	cfg = &config.Config{
+	cfg = &legacy.Config{
 		Mounts: map[string]string{
 			"foo": "",
 			"bar": "",
 		},
 	}
 	cs = cfg.String()
-	assert.Contains(t, cs, `&config.Config{AutoClip:false, AutoImport:false, ClipTimeout:0, ExportKeys:false, NoPager:false, Notifications:false,`)
+	assert.Contains(t, cs, `&legacy.Config{AutoClip:false, AutoImport:false, ClipTimeout:0, ExportKeys:false, NoPager:false, Notifications:false,`)
 	assert.Contains(t, cs, `SafeContent:false, Mounts:map[string]string{"bar":"", "foo":""},`)
 }
 
 func TestSetConfigValue(t *testing.T) { //nolint:paralleltest
 	assert.NoError(t, os.Setenv("GOPASS_CONFIG", filepath.Join(os.TempDir(), ".gopass.yml")))
 
-	cfg := config.New()
+	cfg := legacy.New()
 	assert.NoError(t, cfg.SetConfigValue("autoclip", "true"))
 	assert.NoError(t, cfg.SetConfigValue("cliptimeout", "900"))
 	assert.NoError(t, cfg.SetConfigValue("path", "/tmp"))

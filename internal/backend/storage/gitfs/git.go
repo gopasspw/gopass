@@ -21,6 +21,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/fsutil"
+	"github.com/gopasspw/gopass/pkg/gitconfig"
 )
 
 type contextKey int
@@ -43,17 +44,20 @@ func getPathOverride(ctx context.Context, def string) string {
 
 // Git is a cli based git backend.
 type Git struct {
-	fs *fs.Store
+	fs  *fs.Store
+	cfg *gitconfig.Configs
 }
 
 // New creates a new git cli based git backend.
 func New(path string) (*Git, error) {
-	if !fsutil.IsDir(filepath.Join(path, ".git")) {
+	gitDir := filepath.Join(path, ".git")
+	if !fsutil.IsDir(gitDir) {
 		return nil, fmt.Errorf("git repo does not exist")
 	}
 
 	return &Git{
-		fs: fs.New(path),
+		fs:  fs.New(path),
+		cfg: gitconfig.New().LoadAll(gitDir),
 	}, nil
 }
 
@@ -61,12 +65,15 @@ func New(path string) (*Git, error) {
 // configured for this clone repo.
 func Clone(ctx context.Context, repo, path, userName, userEmail string) (*Git, error) {
 	g := &Git{
-		fs: fs.New(path),
+		fs:  fs.New(path),
+		cfg: gitconfig.New(),
 	}
 
 	if err := g.Cmd(withPathOverride(ctx, filepath.Dir(path)), "Clone", "clone", repo, path); err != nil {
 		return nil, err
 	}
+
+	g.cfg.LoadAll(filepath.Join(path, ".git"))
 
 	// initialize the local git config.
 	if err := g.InitConfig(ctx, userName, userEmail); err != nil {
@@ -80,8 +87,10 @@ func Clone(ctx context.Context, repo, path, userName, userEmail string) (*Git, e
 // Init initializes this store's git repo.
 func Init(ctx context.Context, path, userName, userEmail string) (*Git, error) {
 	g := &Git{
-		fs: fs.New(path),
+		fs:  fs.New(path),
+		cfg: gitconfig.New(),
 	}
+
 	// the git repo may be empty (i.e. no branches, cloned from a fresh remote)
 	// or already initialized. Only run git init if the folder is completely empty.
 	if !g.IsInitialized() {
@@ -90,6 +99,8 @@ func Init(ctx context.Context, path, userName, userEmail string) (*Git, error) {
 		}
 		out.Printf(ctx, "git initialized at %s", g.fs.Path())
 	}
+
+	g.cfg.LoadAll(filepath.Join(path, ".git"))
 
 	if !ctxutil.IsGitInit(ctx) {
 		return g, nil
@@ -284,6 +295,8 @@ func (g *Git) PushPull(ctx context.Context, op, remote, branch string) error {
 		return nil
 	}
 	if !g.IsInitialized() {
+		debug.Log("Git in %s is not initialized. Can not push/pull", g.Path())
+
 		return store.ErrGitNotInit
 	}
 
@@ -295,7 +308,10 @@ func (g *Git) PushPull(ctx context.Context, op, remote, branch string) error {
 		remote = g.defaultRemote(ctx, branch)
 	}
 
-	if v, err := g.ConfigGet(ctx, "remote."+remote+".url"); err != nil || v == "" {
+	urlKey := "remote." + remote + ".url"
+	if v, err := g.ConfigGet(ctx, urlKey); err != nil || v == "" {
+		debug.Log("No value for %q found in config. Keys: %+v", urlKey, g.cfg.Keys())
+
 		return store.ErrGitNoRemote
 	}
 

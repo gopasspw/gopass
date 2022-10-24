@@ -134,7 +134,7 @@ If this fails with an error: "Inappropriate ioctl for device" run the following 
 
 If you are using CSH or TCSH:
 
-```
+```bash
 setenv GPG_TTY `tty`
 ```
 
@@ -197,6 +197,8 @@ EOF
 $ sudo apt update
 $ sudo apt install gopass gopass-archive-keyring
 ```
+
+Note: We also have an unstable track that sometimes contains pre-release versions. Use `https://packages.gopass.pw/repos/gopass-unstable` if you want to help with early testing.
 
 #### Manual download
 
@@ -442,7 +444,7 @@ For example, to use gopass with [Google Drive](https://drive.google.com):
 ```bash
 gopass setup --storage fs
 mv .password-store/ "Google Drive/Password-Store"
-gopass config path "~/Google Drive/Password-Store"
+gopass config mounts.path "~/Google Drive/Password-Store"
 ```
 
 ### Download a GUI

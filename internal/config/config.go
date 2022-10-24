@@ -2,152 +2,228 @@ package config
 
 import (
 	"fmt"
-	"path/filepath"
-	"reflect"
+	"os"
 	"strconv"
 	"strings"
+
+	"github.com/gopasspw/gopass/pkg/debug"
+	"github.com/gopasspw/gopass/pkg/gitconfig"
 )
 
 var (
-	// ErrConfigNotFound is returned on load if the config was not found.
-	ErrConfigNotFound = fmt.Errorf("config not found")
-	// ErrConfigNotParsed is returned on load if the config could not be decoded.
-	ErrConfigNotParsed = fmt.Errorf("config not parseable")
+	envPrefix    = "GOPASS_CONFIG_"
+	systemConfig = "/etc/gopass/config"
 )
 
-// Config is the current config struct.
-type Config struct {
-	AutoClip      bool              `yaml:"autoclip"`      // decide whether passwords are automatically copied or not.
-	AutoImport    bool              `yaml:"autoimport"`    // import missing public keys w/o asking.
-	ClipTimeout   int               `yaml:"cliptimeout"`   // clear clipboard after seconds.
-	ExportKeys    bool              `yaml:"exportkeys"`    // automatically export public keys of all recipients.
-	NoPager       bool              `yaml:"nopager"`       // do not invoke a pager to display long lists.
-	Notifications bool              `yaml:"notifications"` // enable desktop notifications.
-	Parsing       bool              `yaml:"parsing"`       // allows to switch off all output parsing.
-	Path          string            `yaml:"path"`
-	SafeContent   bool              `yaml:"safecontent"` // avoid showing passwords in terminal.
-	Mounts        map[string]string `yaml:"mounts"`
-	UseKeychain   bool              `yaml:"keychain"` // use OS keychain for age
+func newGitconfig() *gitconfig.Configs {
+	c := gitconfig.New()
+	c.EnvPrefix = envPrefix
+	c.GlobalConfig = os.Getenv("GOPASS_CONFIG")
+	c.SystemConfig = systemConfig
 
-	ConfigPath string `yaml:"-"`
-
-	// Catches all undefined files and must be empty after parsing.
-	XXX map[string]any `yaml:",inline"`
-}
-
-// New creates a new config with sane default values.
-func New() *Config {
-	return &Config{
-		AutoImport:    false,
-		ClipTimeout:   45,
-		ExportKeys:    true,
-		Mounts:        make(map[string]string),
-		Notifications: true,
-		Parsing:       true,
-		Path:          PwStoreDir(""),
-		ConfigPath:    configLocation(),
-	}
-}
-
-// CheckOverflow implements configer. It will check for any extra config values not.
-// handled by the current struct.
-func (c *Config) CheckOverflow() error {
-	return checkOverflow(c.XXX)
-}
-
-// Config will return a current config.
-func (c *Config) Config() *Config {
 	return c
 }
 
-// SetConfigValue will try to set the given key to the value in the config struct.
-func (c *Config) SetConfigValue(key, value string) error {
-	if err := c.setConfigValue(key, value); err != nil {
-		return err
-	}
-
-	return c.Save()
+var defaults = map[string]string{
+	"core.autosync":      "true",
+	"core.cliptimeout":   "45",
+	"core.exportkeys":    "true",
+	"core.notifications": "true",
+	"core.parsing":       "true",
 }
 
-// setConfigValue will try to set the given key to the value in the config struct.
-func (c *Config) setConfigValue(key, value string) error {
-	value = strings.ToLower(value)
-	o := reflect.ValueOf(c).Elem()
-	for i := 0; i < o.NumField(); i++ {
-		jsonArg := o.Type().Field(i).Tag.Get("yaml")
-		if jsonArg == "" || jsonArg == "-" {
-			continue
-		}
-		if jsonArg != key {
-			continue
-		}
-		f := o.Field(i)
-		switch f.Kind() { //nolint:exhaustive
-		case reflect.String:
-			f.SetString(value)
+// Config is a gopass config handler.
+type Config struct {
+	root *gitconfig.Configs
+	cfgs map[string]*gitconfig.Configs
+}
 
-			return nil
-		case reflect.Bool:
-			switch {
-			case value == "true" || value == "on":
-				f.SetBool(true)
+// New initializes a new gopass config. It will handle legacy configs as well.
+func New() *Config {
+	return newWithOptions(false)
+}
 
-				return nil
-			case value == "false" || value == "off":
-				f.SetBool(false)
+// NewNoWrites initializes a new config that does not allow writes. For use in tests.
+func NewNoWrites() *Config {
+	return newWithOptions(true)
+}
 
-				return nil
-			default:
-				return fmt.Errorf("not a bool: %s", value)
-			}
-		case reflect.Int:
-			iv, err := strconv.Atoi(value)
-			if err != nil {
-				return fmt.Errorf("failed to convert %q to integer: %w", value, err)
-			}
-			f.SetInt(int64(iv))
+func newWithOptions(noWrites bool) *Config {
+	c := &Config{
+		cfgs: make(map[string]*gitconfig.Configs, 42),
+	}
 
-			return nil
-		default:
-			continue
+	// if there is no per-user gitconfig we try to migrate
+	// an existing config. But we will leave it around for
+	// gopass fsck to (optionaly) clean it up.
+	if nm := os.Getenv("GOPASS_CONFIG_NO_MIGRATE"); !gitconfig.HasGlobalConfig() && nm == "" {
+		if err := migrateConfigs(); err != nil {
+			debug.Log("failed to migrate: %s", err)
 		}
 	}
 
-	return fmt.Errorf("unknown config option %q", key)
-}
+	// load the global config to get the root path
+	c.root = newGitconfig().LoadAll("")
+	c.root.NoWrites = noWrites
 
-func (c *Config) String() string {
-	return fmt.Sprintf("%#v", c)
-}
-
-// Directory returns the directory this config is using.
-func (c *Config) Directory() string {
-	return filepath.Dir(c.Path)
-}
-
-// ConfigMap returns a map of stringified config values for easy printing.
-func (c *Config) ConfigMap() map[string]string {
-	m := make(map[string]string, 20)
-	o := reflect.ValueOf(c).Elem()
-	for i := 0; i < o.NumField(); i++ {
-		jsonArg := o.Type().Field(i).Tag.Get("yaml")
-		if jsonArg == "" || jsonArg == "-" {
-			continue
+	rootPath := c.root.Get("mounts.path")
+	if rootPath == "" {
+		if err := c.SetPath(PwStoreDir("")); err != nil {
+			debug.Log("failed to set path: %s", err)
 		}
-		f := o.Field(i)
-		var strVal string
-		switch f.Kind() { //nolint:exhaustive
-		case reflect.String:
-			strVal = f.String()
-		case reflect.Bool:
-			strVal = fmt.Sprintf("%t", f.Bool())
-		case reflect.Int:
-			strVal = fmt.Sprintf("%d", f.Int())
-		default:
-			continue
+	}
+	// load again, this might add a per-store config from the root store
+	c.root.LoadAll(rootPath)
+	c.root.NoWrites = noWrites
+
+	if rootPath := c.root.Get("mounts.path"); rootPath == "" {
+		if err := c.SetPath(PwStoreDir("")); err != nil {
+			debug.Log("failed to set path: %s", err)
 		}
-		m[jsonArg] = strVal
 	}
 
-	return m
+	// set global defaults
+	c.root.Preset = gitconfig.NewFromMap(defaults)
+
+	for _, m := range c.Mounts() {
+		c.cfgs[m] = newGitconfig().LoadAll(c.MountPath(m))
+		c.cfgs[m].NoWrites = noWrites
+	}
+
+	return c
+}
+
+// IsSet returns true if the key is set in the root config.
+func (c *Config) IsSet(key string) bool {
+	return c.root.IsSet(key)
+}
+
+// Get returns the given key from the root config.
+func (c *Config) Get(key string) string {
+	return c.root.Get(key)
+}
+
+// GetM returns the given key from the mount or the root config if mount is empty.
+func (c *Config) GetM(mount, key string) string {
+	if mount == "" {
+		return c.root.Get(key)
+	}
+
+	if cfg := c.cfgs[mount]; cfg != nil {
+		return cfg.Get(key)
+	}
+
+	return ""
+}
+
+// GetBool returns true if the value of the key evaluates to "true".
+// Otherwise it returns false.
+func (c *Config) GetBool(key string) bool {
+	if strings.ToLower(strings.TrimSpace(c.Get(key))) == "true" {
+		return true
+	}
+
+	return false
+}
+
+// GetInt returns the integer value of the key if it can be parsed.
+// Otherwise it returns 0.
+func (c *Config) GetInt(key string) int {
+	iv, err := strconv.Atoi(c.Get(key))
+	if err != nil {
+		return 0
+	}
+
+	return iv
+}
+
+// Set tries to set the key to the given value.
+// The mount option is necessary to discern between
+// the per-user (global) and possible per-directory (local)
+// config files.
+//
+//   - If mount is empty the setting will be written to the per-user config (global)
+//   - If mount has the special value "<root>" the setting will be written to the per-directory config of the root store (local)
+//   - If mount has any other value we will attempt to write the setting to the per-directory config of this mount.
+//   - If the mount point does not exist we will return nil.
+func (c *Config) Set(mount, key, value string) error {
+	if mount == "" {
+		return c.root.SetGlobal(key, value)
+	}
+
+	if mount == "<root>" {
+		return c.root.SetLocal(key, value)
+	}
+
+	if cfg := c.cfgs[mount]; cfg != nil {
+		return cfg.SetLocal(key, value)
+	}
+
+	return nil
+}
+
+// SetEnv overrides a key in the non-persistent layer.
+func (c *Config) SetEnv(key, value string) error {
+	return c.root.SetEnv(key, value)
+}
+
+// Path returns the root store path.
+func (c *Config) Path() string {
+	return c.Get("mounts.path")
+}
+
+// MountPath returns the mount store path.
+func (c *Config) MountPath(mountPoint string) string {
+	return c.Get(mpk(mountPoint))
+}
+
+// SetPath is a short cut to set the root store path.
+func (c *Config) SetPath(path string) error {
+	return c.Set("", "mounts.path", path)
+}
+
+// SetMountPath is a short cut to set a mount to a path.
+func (c *Config) SetMountPath(mount, path string) error {
+	return c.Set("", mpk(mount), path)
+}
+
+// mpk for mountPathKey.
+func mpk(mount string) string {
+	return fmt.Sprintf("mounts.%s.path", mount)
+}
+
+// Mounts returns all mount points from the root config.
+// Note: Any mounts in local configs are ignored.
+func (c *Config) Mounts() []string {
+	return c.root.ListSubsections("mounts")
+}
+
+// Unset deletes the key from the given config.
+func (c *Config) Unset(mount, key string) error {
+	if mount == "" {
+		return c.root.UnsetGlobal(key)
+	}
+
+	if mount == "<root>" {
+		return c.root.UnsetLocal(key)
+	}
+
+	if cfg := c.cfgs[mount]; cfg != nil {
+		return cfg.UnsetLocal(key)
+	}
+
+	return nil
+}
+
+// Keys returns all keys in the given config.
+func (c *Config) Keys(mount string) []string {
+	if mount == "" {
+		return c.root.Keys()
+	}
+
+	if cfg := c.cfgs[mount]; cfg != nil {
+		return cfg.Keys()
+	}
+
+	return nil
 }

@@ -90,7 +90,15 @@ func (s *Action) Setup(c *cli.Context) error {
 	}
 
 	// assume local setup by default, remotes can be added easily later.
-	return s.initLocal(ctx)
+	if err := s.initLocal(ctx); err != nil {
+		debug.Log("Setup failed. initLocal error: %s", err)
+
+		return err
+	}
+
+	debug.Log("Setup finished. All systems go. 🚀")
+
+	return nil
 }
 
 func (s *Action) initCheckPrivateKeys(ctx context.Context, crypto backend.Crypto) error {
@@ -292,12 +300,7 @@ func (s *Action) initLocal(ctx context.Context) error {
 		out.Warningf(ctx, "Failed to add passage mount: %s", err)
 	}
 
-	// save config.
-	if err := s.cfg.Save(); err != nil {
-		return fmt.Errorf("failed to save config: %w", err)
-	}
-
-	out.OKf(ctx, "Configuration written to %s", s.cfg.Path)
+	out.OKf(ctx, "Configuration written")
 
 	return nil
 }

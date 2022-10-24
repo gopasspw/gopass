@@ -8,9 +8,9 @@ and asking for the necessary information to create a reasonable secret location.
 
 ## Synopsis
 
-```
-$ gopass create
-$ gopass create --store=foo
+```bash
+gopass create
+gopass create --store=foo
 ```
 
 ## Modes of operation
@@ -26,8 +26,8 @@ To add new templates to the wizard add templates to this folder.
 
 Example:
 
-```
-$ cat $(gopass config path)/.gopass/create/aws.yml
+```bash
+$ cat $(gopass config mounts.path)/.gopass/create/aws.yml
 ---
 priority: 5
 name: "AWS"
