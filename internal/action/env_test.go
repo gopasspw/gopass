@@ -26,6 +26,7 @@ func TestEnvLeafHappyPath(t *testing.T) { //nolint:paralleltest
 	act, err := newMock(ctx, u.StoreDir(""))
 	require.NoError(t, err)
 	require.NotNil(t, act)
+	ctx = act.cfg.WithConfig(ctx)
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
@@ -58,6 +59,7 @@ func TestEnvLeafHappyPathKeepCase(t *testing.T) { //nolint:paralleltest
 	act, err := newMock(ctx, u.StoreDir(""))
 	require.NoError(t, err)
 	require.NotNil(t, act)
+	ctx = act.cfg.WithConfig(ctx)
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
@@ -93,6 +95,7 @@ func TestEnvSecretNotFound(t *testing.T) { //nolint:paralleltest
 	act, err := newMock(ctx, u.StoreDir(""))
 	require.NoError(t, err)
 	require.NotNil(t, act)
+	ctx = act.cfg.WithConfig(ctx)
 
 	// Command-line would be: "gopass env non-existing true".
 	assert.EqualError(t, act.Env(gptest.CliCtx(ctx, t, "non-existing", "true")),
@@ -109,6 +112,7 @@ func TestEnvProgramNotFound(t *testing.T) { //nolint:paralleltest
 	act, err := newMock(ctx, u.StoreDir(""))
 	require.NoError(t, err)
 	require.NotNil(t, act)
+	ctx = act.cfg.WithConfig(ctx)
 
 	wanted := "exec: \"non-existing\": executable file not found in "
 	if runtime.GOOS == "windows" {
@@ -133,6 +137,7 @@ func TestEnvProgramNotSpecified(t *testing.T) { //nolint:paralleltest
 	act, err := newMock(ctx, u.StoreDir(""))
 	require.NoError(t, err)
 	require.NotNil(t, act)
+	ctx = act.cfg.WithConfig(ctx)
 
 	// Command-line would be: "gopass env foo".
 	assert.EqualError(t, act.Env(gptest.CliCtx(ctx, t, "foo")),

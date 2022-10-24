@@ -11,6 +11,7 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/gopasspw/gopass/internal/action/exit"
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/store/leaf"
 	"github.com/gopasspw/gopass/internal/tree"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -106,7 +107,7 @@ func (s *Action) listFiltered(ctx context.Context, l *tree.Root, limit int, flat
 // redirectPager returns a redirected io.Writer if the output would exceed
 // the terminal size.
 func redirectPager(ctx context.Context, subtree *tree.Root) (io.Writer, *bytes.Buffer) {
-	if ctxutil.IsNoPager(ctx) {
+	if config.Bool(ctx, "core.nopager") {
 		return stdout, nil
 	}
 	_, rows, err := term.GetSize(0)

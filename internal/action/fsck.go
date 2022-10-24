@@ -5,10 +5,11 @@ import (
 	"path/filepath"
 
 	"github.com/gopasspw/gopass/internal/action/exit"
-	"github.com/gopasspw/gopass/internal/config"
+	"github.com/gopasspw/gopass/internal/config/legacy"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store/leaf"
 	"github.com/gopasspw/gopass/internal/tree"
+	"github.com/gopasspw/gopass/pkg/appdir"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/fsutil"
 	"github.com/gopasspw/gopass/pkg/termio"
@@ -27,17 +28,13 @@ func (s *Action) Fsck(c *cli.Context) error {
 	}
 
 	out.Printf(ctx, "Checking password store integrity ...")
-	// make sure config is in the right place.
-	// we may have loaded it from one of the fallback locations.
-	if err := s.cfg.Save(); err != nil {
-		return exit.Error(exit.Config, err, "failed to save config: %s", err)
-	}
 
 	// clean up any previous config locations.
-	oldCfg := filepath.Join(config.Homedir(), ".gopass.yml")
-	if fsutil.IsFile(oldCfg) {
-		if err := os.Remove(oldCfg); err != nil {
-			out.Errorf(ctx, "Failed to remove old gopass config %s: %s", oldCfg, err)
+	for _, oldCfg := range append(legacy.ConfigLocations(), filepath.Join(appdir.UserHome(), ".gopass.yml")) {
+		if fsutil.IsFile(oldCfg) {
+			if err := os.Remove(oldCfg); err != nil {
+				out.Errorf(ctx, "Failed to remove old gopass config %s: %s", oldCfg, err)
+			}
 		}
 	}
 

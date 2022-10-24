@@ -10,6 +10,7 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/gopasspw/gopass/internal/backend"
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/diff"
 	"github.com/gopasspw/gopass/internal/notify"
 	"github.com/gopasspw/gopass/internal/out"
@@ -27,6 +28,7 @@ var (
 )
 
 func init() {
+	// TODO(gitconfig) use proper config setting
 	sv := os.Getenv("GOPASS_AUTOSYNC_INTERVAL")
 	if sv == "" {
 		return
@@ -55,6 +57,12 @@ func (s *Action) autoSync(ctx context.Context) error {
 	}
 
 	if sv := os.Getenv("GOPASS_NO_AUTOSYNC"); sv != "" {
+		out.Warning(ctx, "GOPASS_NO_AUTOSYNC is deprecated. Please set core.autosync = false.")
+
+		return nil
+	}
+
+	if !config.Bool(ctx, "core.autosync") {
 		return nil
 	}
 
@@ -128,6 +136,12 @@ func (s *Action) sync(ctx context.Context, store string) error {
 
 // syncMount syncs a single mount.
 func (s *Action) syncMount(ctx context.Context, mp string) error {
+	if as := config.FromContext(ctx).GetM(mp, "core.autosync"); as == "false" {
+		debug.Log("not syncing %s, autosync is disabled for this mount", mp)
+
+		return nil
+	}
+
 	ctxno := out.WithNewline(ctx, false)
 	name := mp
 	if mp == "" {
@@ -181,11 +195,12 @@ func (s *Action) syncMount(ctx context.Context, mp string) error {
 	}
 	syncPrintDiff(ctxno, l, ln)
 
-	debug.Log("Syncing Mount %s. Exportkeys: %t", mp, ctxutil.IsExportKeys(ctx))
+	exportKeys := s.cfg.GetBool("core.exportkeys")
+	debug.Log("Syncing Mount %s. Exportkeys: %t", mp, exportKeys)
 	if err := syncImportKeys(ctxno, sub, name); err != nil {
 		return err
 	}
-	if ctxutil.IsExportKeys(ctx) {
+	if exportKeys {
 		if err := syncExportKeys(ctxno, sub, name); err != nil {
 			return err
 		}

@@ -8,12 +8,12 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/internal/config"
 )
 
 // Notify displays a desktop notification through msg
 func Notify(ctx context.Context, subj, msg string) error {
-	if os.Getenv("GOPASS_NO_NOTIFY") != "" || !ctxutil.IsNotifications(ctx) {
+	if os.Getenv("GOPASS_NO_NOTIFY") != "" || !config.Bool(ctx, "core.notifications") {
 		return nil
 	}
 	winmsg, err := exec.LookPath("msg")

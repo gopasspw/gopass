@@ -89,7 +89,6 @@ func TestSaveRecipients(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	ctx = ctxutil.WithExportKeys(ctx, true)
 
 	tempdir := t.TempDir()
 

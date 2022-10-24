@@ -165,12 +165,6 @@ func (s *Action) init(ctx context.Context, alias, path string, keys ...string) e
 		debug.Log("not initializing RCS backend ...")
 	}
 
-	// write config.
-	debug.Log("Writing configuration to %q", s.cfg.ConfigPath)
-	if err := s.cfg.Save(); err != nil {
-		return exit.Error(exit.Config, err, "failed to write config: %s", err)
-	}
-
 	out.Printf(ctx, "🏁 Password store %s initialized for:", path)
 	s.printRecipients(ctx, alias)
 

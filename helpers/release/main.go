@@ -68,13 +68,16 @@ func main() {
 	fmt.Println()
 	fmt.Println("🌟 Preparing a new gopass release.")
 	fmt.Println("☝  Checking pre-conditions ...")
+
+	prevVer, nextVer := getVersions()
+
 	// - check that workdir is clean
 	if !isGitClean() {
 		panic("❌ git is dirty")
 	}
 	fmt.Println("✅ git is clean")
 
-	if sv := os.Getenv("PATCH_RELEASE"); sv == "" {
+	if len(nextVer.Pre) < 1 {
 		// - check out master
 		if err := gitCoMaster(); err != nil {
 			panic(err)
@@ -91,8 +94,6 @@ func main() {
 		panic("git is dirty")
 	}
 	fmt.Println("✅ git is still clean")
-
-	prevVer, nextVer := getVersions()
 
 	fmt.Println()
 	fmt.Printf("✅ New version will be: %s\n", nextVer.String())

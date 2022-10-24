@@ -292,12 +292,7 @@ func (s *Action) initLocal(ctx context.Context) error {
 		out.Warningf(ctx, "Failed to add passage mount: %s", err)
 	}
 
-	// save config.
-	if err := s.cfg.Save(); err != nil {
-		return fmt.Errorf("failed to save config: %w", err)
-	}
-
-	out.OKf(ctx, "Configuration written to %s", s.cfg.Path)
+	out.OKf(ctx, "Configuration written")
 
 	return nil
 }

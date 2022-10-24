@@ -46,11 +46,9 @@ func (r *Store) addMount(ctx context.Context, alias, path string, keys ...string
 	}
 
 	r.mounts[alias] = s
-	if r.cfg.Mounts == nil {
-		r.cfg.Mounts = make(map[string]string, 1)
+	if err := r.cfg.SetMountPath(alias, path); err != nil {
+		return fmt.Errorf("failed to set mount path: %w", err)
 	}
-
-	r.cfg.Mounts[alias] = path
 
 	debug.Log("Added mount %s -> %s (%s)", alias, path, fullPath)
 
@@ -102,7 +100,9 @@ func (r *Store) RemoveMount(ctx context.Context, alias string) error {
 	}
 
 	delete(r.mounts, alias)
-	delete(r.cfg.Mounts, alias)
+	if err := r.cfg.Unset("", "mounts."+alias+".path"); err != nil {
+		return err
+	}
 
 	return nil
 }

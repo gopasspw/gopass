@@ -1,4 +1,4 @@
-package config
+package legacy
 
 import (
 	"errors"
@@ -16,19 +16,24 @@ import (
 // LoadWithFallbackRelaxed will try to load the config from one of the default.
 // locations but also accept a more recent config.
 func LoadWithFallbackRelaxed() *Config {
-	return loadWithFallback(true)
+	return LoadWithOptions(true, true)
 }
 
 // LoadWithFallback will try to load the config from one of the default locations.
 func LoadWithFallback() *Config {
-	return loadWithFallback(false)
+	return LoadWithOptions(false, true)
 }
 
-func loadWithFallback(relaxed bool) *Config {
-	for _, l := range configLocations() {
+// LoadWithOptions gives more flexibility about how to load the config.
+func LoadWithOptions(relaxed, useDefault bool) *Config {
+	for _, l := range ConfigLocations() {
 		if cfg := loadConfig(l, relaxed); cfg != nil {
 			return cfg
 		}
+	}
+
+	if !useDefault {
+		return nil
 	}
 
 	return loadDefault()
@@ -63,7 +68,7 @@ func loadConfig(l string, relaxed bool) *Config {
 func loadDefault() *Config {
 	cfg := New()
 	cfg.Path = PwStoreDir("")
-	debug.Log("Loaded default config: %+v", cfg)
+	debug.Log("Created new default config: %+v", cfg)
 
 	return cfg
 }

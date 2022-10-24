@@ -28,10 +28,6 @@ func (s *Action) MountRemove(c *cli.Context) error {
 		out.Errorf(ctx, "Failed to remove mount: %s", err)
 	}
 
-	if err := s.cfg.Save(); err != nil {
-		return exit.Error(exit.Config, err, "failed to write config: %s", err)
-	}
-
 	out.Printf(ctx, "Password Store %s umounted", c.Args().Get(0))
 
 	return nil
@@ -103,10 +99,6 @@ func (s *Action) MountAdd(c *cli.Context) error {
 		}
 
 		return exit.Error(exit.Mount, err, "failed to add mount %q to %q: %s", alias, localPath, err)
-	}
-
-	if err := s.cfg.Save(); err != nil {
-		return exit.Error(exit.Config, err, "failed to save config: %s", err)
 	}
 
 	out.Printf(ctx, "Mounted %s as %s", alias, localPath)
