@@ -15,7 +15,7 @@ func Marshal(r []string) []byte {
 
 	out := bytes.Buffer{}
 	for _, k := range set.Sorted(r) {
-		_, _ = out.WriteString(k)
+		_, _ = out.WriteString(strings.TrimSpace(k))
 		_, _ = out.WriteString("\n")
 	}
 
@@ -23,12 +23,18 @@ func Marshal(r []string) []byte {
 }
 
 // Unmarshal Recipients line by line from a io.Reader. Handles Unix, Windows and Mac line endings.
+// Note: Does not preserve comments!
 func Unmarshal(buf []byte) []string {
 	in := strings.ReplaceAll(string(buf), "\r", "\n")
 
 	return set.Apply(set.SortedFiltered(strings.Split(in, "\n"), func(k string) bool {
-		return k != ""
+		return k != "" && !strings.HasPrefix(k, "#")
 	}), func(k string) string {
-		return strings.TrimSpace(k)
+		out := strings.TrimSpace(k)
+		if strings.Contains(out, " #") {
+			out = out[:strings.Index(k, " #")]
+		}
+
+		return out
 	})
 }
