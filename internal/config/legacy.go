@@ -20,8 +20,8 @@ func migrateConfigs() error {
 	for k, v := range cfg.ConfigMap() {
 		var fk string
 		switch k {
-		case "usekeychain":
-			fk = "age." + k
+		case "keychain":
+			fk = "age.usekeychain"
 		case "path":
 			fk = "mounts.path"
 		default:
