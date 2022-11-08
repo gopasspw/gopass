@@ -260,7 +260,6 @@ func parseConfig(in io.Reader, key, value string, cb parseFunc) []string {
 			oValue = strings.TrimSpace(oValue)
 		}
 
-		// debug.Log("got: %q - want: %q\n", key, fKey)
 		if key != "" && (key != fKey) {
 			continue
 		}
@@ -319,7 +318,6 @@ func ParseConfig(r io.Reader) *Config {
 	}
 
 	lines := parseConfig(r, "", "", func(fk, k, v, comment string) (string, bool) {
-		// debug.Log("setting %q to %q (%s)", fk, v, comment)
 		c.vars[fk] = v
 
 		return fmt.Sprintf("    %s = %s%s", k, v, comment), false

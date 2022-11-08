@@ -63,23 +63,25 @@ different configuration sources that take precedence over each other, just like 
 * User-wide (aka. global) configuration allows to set per-user settings. This is the closest equivalent to the old gopass configs. Located in `$HOME/.config/gopass/config`
 * Per-store (aka. local) configuration allow to set per-store settings, e.g. read-only. Located in `<STORE_DIR>/config`.
 * Per-store unversioned (aka `config.worktree`) configuration allows to override versioned per-store settings, e.g. disabling read-only. Located in `<STORE_DIR>/config.worktree`
-* Environment variables (or command line flags) override all other values. Read from `GOPASS_CONFIG_KEY_n` and `GOPASS_CONFIG_VALUE_n` up to `GOPASS_CONFIG_COUNT`.
+* Environment variables (or command line flags) override all other values. Read from `GOPASS_CONFIG_KEY_n` and `GOPASS_CONFIG_VALUE_n` up to `GOPASS_CONFIG_COUNT`. Command line flags take precedence over environment variables.
 
 ### Configuration options
 
 This is a list of available options:
 
-| **Option**       | **Type** | Description                                                                                                                                                                                    |
-| ---------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `core.autoclip`       | `bool`   | Always copy the password created by `gopass generate`. Only applies to generate.                                                                                                               |
-| `core.autoimport`     | `bool`   | Import missing keys stored in the pass repository without asking.                                                                                                                              |
-| `core.autosync`       | `bool`   | Always do a `git push` after a commit to the store. Makes sure your local changes are always available on your git remote.                                               |
-| `core.cliptimeout`    | `int`    | How many seconds the secret is stored when using `-c`.                                                                                                                                         |
-| `core.exportkeys`     | `bool`   | Export public keys of all recipients to the store.                                                                                                                                             |
-| `core.nocolor`        | `bool`   | Do not use color.                                                                                                                                                                              |
-| `core.pager`        | `bool`   | Do not invoke a pager to display long lists.                                                                                                                                                   |
-| `core.notifications`  | `bool`   | Enable desktop notifications.                                                                                                                                                                  |
-| `core.parsing`        | `bool`   | Enable parsing of output to have key-value and yaml secrets.                                                                                                                                   |
-| `core.readonly`       | `bool`   | Disable writing to a store. Note: This is just a convenience option to prevent accidential writes. Enforcement can only happen on a central server (if repos are set up around a central one). |
-| `mounts.path`           | `string` | Path to the root store.                                                                                                                                                                        |
-| `core.showsafecontent`    | `bool`   | Only output _safe content_ (i.e. everything but the first line of a secret) to the terminal. Use _copy_ (`-c`) to retrieve the password in the clipboard, or _force_ (`-f`) to still print it. |
+| **Option**       | **Type** | Description | *Default* |
+| ---------------- | -------- | ----------- | --------- |
+| `core.autoclip`        | `bool`   | Always copy the password created by `gopass generate`. Only applies to generate. | `false`
+| `core.autoimport`      | `bool`   | Import missing keys stored in the pass repository without asking. | `false` |
+| `core.autosync`        | `bool`   | Always do a `git push` after a commit to the store. Makes sure your local changes are always available on your git remote. | `true` |
+| `core.cliptimeout`     | `int`    | How many seconds the secret is stored when using `-c`. | `45` |
+| `core.exportkeys`      | `bool`   | Export public keys of all recipients to the store. | `true` |
+| `core.nocolor`         | `bool`   | Do not use color. | `false`
+| `core.nopager`         | `bool`   | Do not invoke a pager to display long lists. | `false`
+| `core.notifications`   | `bool`   | Enable desktop notifications. | `true` |
+| `core.parsing`         | `bool`   | Enable parsing of output to have key-value and yaml secrets. | `true` |
+| `core.readonly`        | `bool`   | Disable writing to a store. Note: This is just a convenience option to prevent accidential writes. Enforcement can only happen on a central server (if repos are set up around a central one). | `false` |
+| `mounts.path`          | `string` | Path to the root store. | `$XDG_DATA_HOME/gopass/stores/root` |
+| `core.showsafecontent` | `bool`   | Only output *safe content* (i.e. everything but the first line of a secret) to the terminal. Use *copy* (`-c`) to retrieve the password in the clipboard, or *force* (`-f`) to still print it. | | `false` |
+| `age.usekeychain`      | `bool`   | Use the OS keychain to cache age passphrases. | `false` |
+| `domain-alias.<from>   | `string` | Alias from domain to the string value of this entry. | `` |

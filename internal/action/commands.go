@@ -958,7 +958,7 @@ func (s *Action) GetCommands() []*cli.Command {
 	for _, be := range backend.CryptoRegistry.Backends() {
 		bc, ok := be.(commander)
 		if !ok {
-			// debug.Log("Backend %s does not implement commander interface\n", be)
+			// Backend does not implement commander interface
 
 			continue
 		}
@@ -970,7 +970,7 @@ func (s *Action) GetCommands() []*cli.Command {
 	for _, be := range backend.StorageRegistry.Backends() {
 		bc, ok := be.(storeCommander)
 		if !ok {
-			// debug.Log("Backend %s does not implement commander interface\n", be)
+			// Backend does not implement commander interface
 
 			continue
 		}

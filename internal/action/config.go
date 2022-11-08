@@ -40,11 +40,7 @@ func (s *Action) Config(c *cli.Context) error {
 }
 
 func (s *Action) printConfigValues(ctx context.Context, store string, needles ...string) {
-	// debug.Log("printing value of %v", needles)
-
 	for _, k := range set.SortedFiltered(s.cfg.Keys(store), func(e string) bool {
-		// debug.Log("does %+v contain %q?", needles, e)
-
 		return contains(needles, e)
 	}) {
 		v := s.cfg.GetM(store, k)
