@@ -54,7 +54,7 @@ All configuration options are also available for reading and writing through the
 ### Configuration format
 
 `gopass` uses a configuration format inspired by and mostly compatible with the configuration format used by git. We support
-a different configuration sources that take precedence over each other, just like [git](https://mirrors.edge.kernel.org/pub/software/scm/git/docs/git-config.html).
+different configuration sources that take precedence over each other, just like [git](https://mirrors.edge.kernel.org/pub/software/scm/git/docs/git-config.html).
 
 #### Configuration precendence
 
