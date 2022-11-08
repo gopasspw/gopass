@@ -65,6 +65,10 @@ func TestUnmarshal(t *testing.T) {
 			in:   "# foo@bar.com\nbaz@bar.com\nzab@zab.com # comment",
 			want: []string{"baz@bar.com", "zab@zab.com"},
 		},
+		{
+			in:   "# foo@bar.com\nbaz@bar.com\n# comment\nzab@zab.com\n",
+			want: []string{"baz@bar.com", "zab@zab.com"},
+		},
 	} {
 		tc := tc
 		t.Run(tc.in, func(t *testing.T) {
