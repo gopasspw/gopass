@@ -45,6 +45,7 @@ func main() {
 		if err := cmd.Run(); err != nil {
 			os.Exit(cmd.ProcessState.ExitCode())
 		}
+
 		return
 	}
 
@@ -54,7 +55,7 @@ func main() {
 	}
 	version := semver.MustParse(strings.TrimSpace(string(vs)))
 
-	action, err := ap.New(&config.Config{}, version)
+	action, err := ap.New(config.New(), version)
 	if err != nil {
 		panic(err)
 	}
