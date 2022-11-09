@@ -1,3 +1,7 @@
+## 1.15.0-rc1 / 2022-11-09
+
+* [BREAKING] New config format based on git config. (#1567, #1764, #1819, #1878, #2387)
+
 ## 1.14.10 / 2022-11-09
 
 * [BUGFIX] Correctly handle key removal on Windows (#2372, #2371)
