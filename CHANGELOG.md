@@ -1,3 +1,11 @@
+## 1.14.10 / 2022-11-09
+
+* [BUGFIX] Correctly handle key removal on Windows (#2372, #2371)
+* [DOCUMENTATION] (#1878)
+* [ENHANCEMENT] Ignore comments in recipient files. (#2394, #2393)
+* [ENHANCEMENT] Improve key expiration handling (#2383, #2369)
+* [ENHANCEMENT] allow re-encrypting entire directory when (#2373)
+
 ## 1.14.9 / 2022-09-28
 
 * [ENHANCEMENT] Make DBus notifications transient (#2364, #2358)

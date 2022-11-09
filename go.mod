@@ -5,7 +5,7 @@ go 1.18
 require (
 	bitbucket.org/creachadair/stringset v0.0.10
 	filippo.io/age v1.0.0
-	github.com/ProtonMail/go-crypto v0.0.0-20220824120805-4b6e5c587895
+	github.com/ProtonMail/go-crypto v0.0.0-20221026131551-cf6655e29de4
 	github.com/atotto/clipboard v0.1.4
 	github.com/blang/semver/v4 v4.0.0
 	github.com/caspr-io/yamlpath v0.0.0-20200722075116-502e8d113a9b
@@ -33,16 +33,16 @@ require (
 	github.com/pquerna/otp v1.3.1-0.20220803165443-c62dc589378a
 	github.com/schollz/closestmatch v0.0.0-20190308193919-1fbe626be92e
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
-	github.com/stretchr/testify v1.8.0
+	github.com/stretchr/testify v1.8.1
 	github.com/twpayne/go-pinentry v0.2.0
-	github.com/urfave/cli/v2 v2.16.3
+	github.com/urfave/cli/v2 v2.23.5
 	github.com/zalando/go-keyring v0.2.1
-	golang.org/x/crypto v0.0.0-20220926161630-eccd6366d1be
-	golang.org/x/exp v0.0.0-20220927162542-c76eaa363f9d
-	golang.org/x/net v0.0.0-20220927171203-f486391704dc
-	golang.org/x/oauth2 v0.0.0-20220909003341-f21342109be1
-	golang.org/x/sys v0.0.0-20220928140112-f11e5e49a4ec
-	golang.org/x/term v0.0.0-20220919170432-7a66f970e087
+	golang.org/x/crypto v0.1.0
+	golang.org/x/exp v0.0.0-20221108223516-5d533826c662
+	golang.org/x/net v0.2.0
+	golang.org/x/oauth2 v0.1.0
+	golang.org/x/sys v0.2.0
+	golang.org/x/term v0.2.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
