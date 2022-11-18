@@ -5,8 +5,10 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"runtime"
 
 	"github.com/fatih/color"
@@ -59,7 +61,7 @@ func Invoke(ctx context.Context, editor string, content []byte) ([]byte, error) 
 
 		editor = cmdArgs[0]
 		args = append(args, cmdArgs[1:]...)
-		args = append(args, vimOptions(editor)...)
+		args = append(args, vimOptions(resolveEditor(editor))...)
 	}
 
 	args = append(args, tmpfile.Name())
@@ -88,7 +90,7 @@ func Invoke(ctx context.Context, editor string, content []byte) ([]byte, error) 
 }
 
 func vimOptions(editor string) []string {
-	if editor != "vi" && editor != "vim" && editor != "neovim" {
+	if editor != "vi" && editor != "vim" && editor != "neovim" && editor != "nvi" {
 		return []string{}
 	}
 
@@ -101,10 +103,52 @@ func vimOptions(editor string) []string {
 		viminfo = `shada=""`
 	}
 
-	return []string{
-		"-i", "NONE", // disable viminfo
-		"-n", // disable swap
+	args := []string{
 		"-c",
 		fmt.Sprintf("autocmd BufNewFile,BufRead %s setlocal noswapfile nobackup noundofile %s", path, viminfo),
 	}
+
+	if editor == "nvi" {
+		return args
+	}
+
+	args = append(args, "-i", "NONE") // disable viminfo
+	args = append(args, "-n")         // disable swap
+
+	return args
+}
+
+// resolveEditor tries to resolve the final link destination of the editor name given
+// and then extract the binary file name from the path. In practice the actual editor
+// is often hidden behing several layers of indirection and we want to get an idea
+// which options might work.
+func resolveEditor(editor string) string {
+	path, err := exec.LookPath(editor)
+	if err != nil {
+		debug.Log("failed to look up editor binary: %s", err)
+
+		return editor
+	}
+
+	for {
+		fi, err := os.Stat(path)
+		if err != nil {
+			debug.Log("failed to resolve %s: %s", path, err)
+
+			return editor
+		}
+
+		if fi.Mode()&fs.ModeSymlink != fs.ModeSymlink {
+			// not a symlink
+			break
+		}
+
+		path, err = os.Readlink(path)
+		if err != nil {
+			debug.Log("failed to read link %s: %s", path, err)
+		}
+	}
+
+	// return the binary name only
+	return filepath.Base(path)
 }
