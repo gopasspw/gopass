@@ -123,6 +123,7 @@ func setupApp(ctx context.Context, sv semver.Version) (context.Context, *cli.App
 	app.Name = name
 	app.Version = sv.String()
 	app.Usage = "The standard unix password manager - rewritten in Go"
+	app.UseShortOptionHandling = true
 	app.EnableBashCompletion = true
 	app.BashComplete = func(c *cli.Context) {
 		cli.DefaultAppComplete(c)
