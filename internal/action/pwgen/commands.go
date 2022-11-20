@@ -10,7 +10,8 @@ func GetCommands() []*cli.Command {
 		{
 			Name:        "pwgen",
 			Usage:       "Generate passwords",
-			Description: "Print any number of password to the console.",
+			Description: "Print any number of password to the console. The optional length parameter specifies the length of each password.",
+			ArgsUsage:   "[length]",
 			Action:      Pwgen,
 			Flags: []cli.Flag{
 				&cli.BoolFlag{

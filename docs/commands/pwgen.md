@@ -7,7 +7,20 @@ Windows users.
 
 ## Modes of operation
 
-* Generate a few dozen random passwords
+* Generate a few dozen random passwords with the chosen length
+
+## Usage
+
+```bash
+gopass pwgen [optional length]
+```
+
+## Synopsis
+
+```bash
+gopass pwgen
+gopass pwgen 24
+```
 
 ## Flags
 
