@@ -9,6 +9,7 @@ import (
 
 	"github.com/gopasspw/gopass/internal/queue"
 	"github.com/gopasspw/gopass/internal/store"
+	"github.com/gopasspw/gopass/internal/out"	
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
 )
@@ -38,7 +39,11 @@ func (s *Store) Copy(ctx context.Context, from, to string) error {
 	}
 
 	if err := s.Set(ctxutil.WithCommitMessage(ctx, fmt.Sprintf("Copied from %s to %s", from, to)), to, content); err != nil {
-		return fmt.Errorf("failed to save %q to store: %w", to, err)
+		if errors.Is(err, store.ErrMeaninglessWrite) {
+			out.Warningf(ctx, "No need to write: the secret is already there and with the right value")
+		} else {
+			return fmt.Errorf("failed to save secret %q to store: %w", to, err)
+		}
 	}
 
 	return nil
@@ -71,7 +76,11 @@ func (s *Store) Move(ctx context.Context, from, to string) error {
 	}
 
 	if err := s.Set(ctxutil.WithCommitMessage(ctx, fmt.Sprintf("Move from %s to %s", from, to)), to, content); err != nil {
-		return fmt.Errorf("failed to write %q: %w", to, err)
+		if errors.Is(err, store.ErrMeaninglessWrite) {
+			out.Warningf(ctx, "No need to write: the secret is already there and with the right value")
+		} else {
+			return fmt.Errorf("failed to save secret %q to store: %w", to, err)
+		}	
 	}
 
 	if err := s.Delete(ctx, from); err != nil {

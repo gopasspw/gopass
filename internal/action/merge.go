@@ -4,10 +4,12 @@ import (
 	"bytes"
 	"fmt"
 	"time"
+	"errors"
 
 	"github.com/gopasspw/gopass/internal/action/exit"
 	"github.com/gopasspw/gopass/internal/audit"
 	"github.com/gopasspw/gopass/internal/editor"
+	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/queue"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -80,7 +82,11 @@ func (s *Action) Merge(c *cli.Context) error {
 
 	// write result (back) to store
 	if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, fmt.Sprintf("Merged %+v", c.Args().Slice())), to, nSec); err != nil {
-		return exit.Error(exit.Encrypt, err, "failed to encrypt secret %s: %s", to, err)
+		if errors.Is(err, store.ErrMeaninglessWrite) {
+			out.Warningf(ctx, "No need to write: the secret is already there and with the right value")
+		} else {
+			return exit.Error(exit.Encrypt, err, "failed to encrypt secret %s: %s", to, err)
+		}		
 	}
 
 	if !c.Bool("delete") {

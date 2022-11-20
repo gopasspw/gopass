@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/internal/store/leaf"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -172,7 +173,11 @@ func (r *Store) moveFromTo(ctx context.Context, subFrom *leaf.Store, from, to, f
 		}
 
 		if err := r.Set(ctxutil.WithCommitMessage(ctx, fmt.Sprintf("Move from %s to %s", src, dst)), dst, content); err != nil {
-			return fmt.Errorf("failed to save secret %q: %w", to, err)
+			if errors.Is(err, store.ErrMeaninglessWrite) {
+				out.Warningf(ctx, "No need to write: the secret is already there and with the right value")
+			} else {
+				return fmt.Errorf("failed to save secret %q to store: %w", to, err)
+			}
 		}
 
 		if del {

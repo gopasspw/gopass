@@ -55,9 +55,12 @@ func (s *Store) reencrypt(ctx context.Context) error {
 						continue
 					}
 					if err := s.Set(WithNoGitOps(ctx, conc > 1), e, content); err != nil {
-						logger.Printf("Worker %d: Failed to write %s: %s\n", workerId, e, err)
-
-						continue
+						if errors.Is(err, store.ErrMeaninglessWrite) {
+							logger.Printf("Worker %d: Writing secret %s is not needed\n")
+						} else {
+							logger.Printf("Worker %d: Failed to write %s: %s\n", workerId, e, err)
+							continue
+						}
 					}
 				}
 				wg.Done() // report the job as finished

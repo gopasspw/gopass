@@ -23,6 +23,8 @@ var (
 	ErrGitNothingToCommit = fmt.Errorf("git has nothing to commit")
 	// ErrEmptySecret is returned if a secret exists but has no content.
 	ErrEmptySecret = fmt.Errorf("empty secret")
+	// ErrMeaninglessWrite is returned if a secret is overwritten with its current (cyphertext) content
+	ErrMeaninglessWrite = fmt.Errorf("meaningless write")
 	// ErrNoBody is returned if a secret exists but has no content beyond a password.
 	ErrNoBody = fmt.Errorf("no safe content to display, you can force display with -f")
 	// ErrNoPassword is returned is a secret exists but has no password, only a body.

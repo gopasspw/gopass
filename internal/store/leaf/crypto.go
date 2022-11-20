@@ -4,10 +4,12 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
+	"errors"
 
 	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/internal/backend/crypto/age"
 	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
 )
@@ -130,7 +132,12 @@ func (s *Store) exportPublicKey(ctx context.Context, exp keyExporter, r string) 
 	}
 
 	if err := s.storage.Set(ctx, filename, pk); err != nil {
-		return "", fmt.Errorf("failed to write exported public key to store: %w", err)
+		if errors.Is(err, store.ErrMeaninglessWrite) {
+			out.Warningf(ctx, "No need to write exported public key: already stored")
+		} else {
+			return "", fmt.Errorf("failed to write exported public key to store: %w", err)
+		}
+		
 	}
 
 	return filename, nil

@@ -35,6 +35,8 @@ func (s *Store) Set(ctx context.Context, name string, sec gopass.Byter) error {
 		debug.Log("Failed encrypt secret: %s", err)
 
 		return store.ErrEncrypt
+	} else {
+	        //out.Warning(ctx, "no crypto backend error seen")
 	}
 
 	if err := s.storage.Set(ctx, p, ciphertext); err != nil {
@@ -64,7 +66,7 @@ func (s *Store) Set(ctx context.Context, name string, sec gopass.Byter) error {
 
 	// try to enqueue this task, if the queue is not available
 	// it will return the task and we will execute it inline
-	t := queue.GetQueue(ctx).Add(func(ctx context.Context) error {
+	t := queue.GetQueue(ctx).Add(func(_ context.Context) error {
 		return s.gitCommitAndPush(ctx, name)
 	})
 

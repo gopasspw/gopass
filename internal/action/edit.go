@@ -4,10 +4,12 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"errors"
 
 	"github.com/gopasspw/gopass/internal/action/exit"
 	"github.com/gopasspw/gopass/internal/audit"
 	"github.com/gopasspw/gopass/internal/editor"
+	"github.com/gopasspw/gopass/internal/store"	
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
@@ -64,7 +66,11 @@ func (s *Action) editUpdate(ctx context.Context, name string, content, nContent 
 
 	// write result (back) to store.
 	if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, fmt.Sprintf("Edited with %s", ed)), name, nSec); err != nil {
-		return exit.Error(exit.Encrypt, err, "failed to encrypt secret %s: %s", name, err)
+		if errors.Is(err, store.ErrMeaninglessWrite) {
+		        out.Warningf(ctx, "The new value of the password is equal to its current value. Are you sure you want this?")
+		} else {
+		        return exit.Error(exit.Encrypt, err, "failed to encrypt secret %s: %s", name, err)
+	        }
 	}
 
 	return nil

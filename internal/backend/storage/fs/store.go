@@ -5,6 +5,7 @@ package fs
 import (
 	"context"
 	"fmt"
+	"bytes"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -14,6 +15,8 @@ import (
 	"github.com/blang/semver/v4"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/fsutil"
+	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/internal/store"
 )
 
 // Store is a fs based store.
@@ -59,6 +62,12 @@ func (s *Store) Set(ctx context.Context, name string, value []byte) error {
 		}
 	}
 	debug.Log("Writing %s to %s", name, filepath.Join(s.path, name))
+
+	oldvalue, err := os.ReadFile(filepath.Join(s.path, name))
+	//out.Warningf(ctx, "%h\n%h\n%w", oldvalue, value, err)
+	if err == nil && bytes.Compare(oldvalue,value)==0 {
+		return store.ErrMeaninglessWrite
+	}
 
 	return os.WriteFile(filepath.Join(s.path, name), value, 0o644)
 }

@@ -26,6 +26,8 @@ const (
 	ctxKeyGitInit
 	ctxKeyForce
 	ctxKeyCommitMessage
+	ctxKeyCommitMessageBody
+	ctxKeyIsMultiSecretOperation
 	ctxKeyNoNetwork
 	ctxKeyUsername
 	ctxKeyEmail
@@ -331,17 +333,61 @@ func IsForce(ctx context.Context) bool {
 	return is(ctx, ctxKeyForce, false)
 }
 
-// WithCommitMessage returns a context with a commit message set.
+// WithMultiSecretOperation returns a context with a flag set
+func WithMultiSecretOperation (ctx context.Context, bv bool) context.Context {
+	return context.WithValue(ctx, ctxKeyIsMultiSecretOperation, bv)
+}
+
+// IsMultiSecretOperation returns true if the flag is set to true
+func IsMultiSecretOperation (ctx context.Context) bool {
+	if hasBool(ctx,ctxKeyIsMultiSecretOperation) {
+		return is(ctx, ctxKeyForce, true)
+	} else {
+		return false
+	}
+}
+
+
+// AddToCommitMessageBody returns a context with something added to the commit's body
+func AddToCommitMessageBody(ctx context.Context, sv string) context.Context {
+	if hasString(ctx, ctxKeyCommitMessageBody) {
+		current_body, ok := ctx.Value(ctxKeyCommitMessageBody).(string)
+		if ok {
+			current_body += "\n"
+			current_body += sv
+			sv = current_body
+		}
+	}
+	return context.WithValue(ctx, ctxKeyCommitMessageBody, sv)
+}
+
+// HasCommitMessageBody returns true if the commit message body is nonempty.
+func HasCommitMessageBody(ctx context.Context) bool {
+	return hasString(ctx, ctxKeyCommitMessageBody)
+}
+
+// GetCommitMessageBody returns the set commit message body or an empty string.
+func GetCommitMessageBody(ctx context.Context) string {
+	sv, ok := ctx.Value(ctxKeyCommitMessageBody).(string)
+	if !ok {
+		return ""
+	}
+
+	return sv
+}
+
+// WithCommitMessage returns a context with a commit message (head) set.
+// (full commit message is the commit message's body is not defined, commit messahe head otherwise)
 func WithCommitMessage(ctx context.Context, sv string) context.Context {
 	return context.WithValue(ctx, ctxKeyCommitMessage, sv)
 }
 
-// HasCommitMessage returns true if the commit message was set.
+// HasCommitMessage returns true if the commit message (head) was set.
 func HasCommitMessage(ctx context.Context) bool {
 	return hasString(ctx, ctxKeyCommitMessage)
 }
 
-// GetCommitMessage returns the set commit message or an empty string.
+// GetCommitMessage returns the set commit message (head) or an empty string.
 func GetCommitMessage(ctx context.Context) string {
 	sv, ok := ctx.Value(ctxKeyCommitMessage).(string)
 	if !ok {
@@ -349,6 +395,21 @@ func GetCommitMessage(ctx context.Context) string {
 	}
 
 	return sv
+}
+
+// GetCommitMessageFull returns the set commit message (head+body, of either are defined) or an empty string.
+func GetCommitMessageFull(ctx context.Context) string {
+	sv_head, ok_head := ctx.Value(ctxKeyCommitMessage).(string)
+	sv_body, ok_body := ctx.Value(ctxKeyCommitMessageBody).(string)
+	if !(ok_body||ok_head) {
+		return ""
+	} else if !ok_body {
+		return sv_head
+	} else if !ok_head {
+		return sv_body
+	} else {
+		return sv_head + "\n\n" + sv_body
+	}
 }
 
 // WithNoNetwork returns a context with the value of no network set.
