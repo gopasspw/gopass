@@ -97,6 +97,32 @@ func (t *File) tryUnmount(ctx context.Context) error {
 		return fmt.Errorf("failed to run command '%+v': %w", cmd.Args, err)
 	}
 
+	// if device is still mounted, unmount it
+	cmd = exec.CommandContext(ctx, "mount")
+	cmd.Stderr = os.Stderr
+
+	debug.Log("CMD: %s %+v", cmd.Path, cmd.Args)
+	cmdout, err := cmd.Output()
+	if err != nil {
+		return fmt.Errorf("failed to get mount information: %w", err)
+	}
+
+	debug.Log("Output: %s\n", cmdout)
+	for _, line := range strings.Split(string(cmdout), "\n") {
+		if strings.Split(line, " ")[0] == t.dev {
+			cmd = exec.CommandContext(ctx, "umount", "-v", t.dev)
+			cmd.Stderr = os.Stderr
+			if debug.IsEnabled() {
+				cmd.Stdout = os.Stdout
+			}
+
+			debug.Log("CMD: %s %+v", cmd.Path, cmd.Args)
+			if err := cmd.Run(); err != nil {
+				return fmt.Errorf("failed to run command '%+v': %w", cmd.Args, err)
+			}
+		}
+	}
+
 	// eject disk
 	cmd = exec.CommandContext(ctx, "diskutil", "quiet", "eject", t.dev)
 	cmd.Stderr = os.Stderr
