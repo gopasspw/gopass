@@ -10,6 +10,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strings"
 
 	"github.com/fatih/color"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -108,7 +109,9 @@ func vimOptions(editor string) []string {
 		fmt.Sprintf("autocmd BufNewFile,BufRead %s setlocal noswapfile nobackup noundofile %s", path, viminfo),
 	}
 
-	if editor == "nvi" {
+	if !isVim(editor) {
+		debug.Log("Editor %s is not known to be vim compatible", editor)
+
 		return args
 	}
 
@@ -116,6 +119,21 @@ func vimOptions(editor string) []string {
 	args = append(args, "-n")         // disable swap
 
 	return args
+}
+
+// isVim tries to identify the vi variant as vim compatible or not.
+func isVim(editor string) bool {
+	if editor == "neovim" {
+		return true
+	}
+
+	cmd := exec.Command(editor, "--version")
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return false
+	}
+
+	return strings.Contains(string(out), "VIM - Vi IMproved")
 }
 
 // resolveEditor tries to resolve the final link destination of the editor name given
