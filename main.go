@@ -67,13 +67,13 @@ func main() {
 		cancel()
 	}()
 
-	go func() {
+	go func(ctx context.Context) {
 		select {
 		case <-sigChan:
 			cancel()
 		case <-ctx.Done():
 		}
-	}()
+	}(ctx)
 
 	cli.ErrWriter = errorWriter{ //nolint:reassign
 		out: colorable.NewColorableStderr(),
