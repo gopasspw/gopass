@@ -37,8 +37,8 @@ require (
 	github.com/twpayne/go-pinentry v0.2.0
 	github.com/urfave/cli/v2 v2.23.5
 	github.com/zalando/go-keyring v0.2.1
-	golang.org/x/crypto v0.2.0
-	golang.org/x/exp v0.0.0-20221111204811-129d8d6c17ab
+	golang.org/x/crypto v0.3.0
+	golang.org/x/exp v0.0.0-20221114191408-850992195362
 	golang.org/x/net v0.2.0
 	golang.org/x/oauth2 v0.2.0
 	golang.org/x/sys v0.2.0

@@ -1,3 +1,11 @@
+## 1.14.11 / 2022-11-25
+
+* [BUGFIX] Fix edit on MacOS Ventura (#2426, #2400)
+* [BUGFIX] Handle nvi (#2414)
+* [BUGFIX] Improve support for non-vim editors (#2427, #2424)
+* [BUGFIX] Only pass vim options to vim (#2421, #2412)
+* [ENHANCEMENT] Support combined short flags (#2420, #2419)
+
 ## 1.14.10 / 2022-11-09
 
 * [BUGFIX] Correctly handle key removal on Windows (#2372, #2371)
