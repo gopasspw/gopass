@@ -53,7 +53,7 @@ _gopass () {
 	      
 	      ;;
 	  config)
-	      
+	      _arguments : "--store[Set options to a specific store]"
 	      
 	      
 	      ;;
