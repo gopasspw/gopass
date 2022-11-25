@@ -91,7 +91,9 @@ func Invoke(ctx context.Context, editor string, content []byte) ([]byte, error) 
 }
 
 func vimOptions(editor string) []string {
-	if editor != "vi" && editor != "vim" && editor != "neovim" && editor != "nvi" {
+	if editor != "vi" && editor != "vim" && editor != "neovim" && !isVim(editor) {
+		debug.Log("Editor %s is not known to be vim compatible", editor)
+
 		return []string{}
 	}
 
@@ -108,13 +110,6 @@ func vimOptions(editor string) []string {
 		"-c",
 		fmt.Sprintf("autocmd BufNewFile,BufRead %s setlocal noswapfile nobackup noundofile %s", path, viminfo),
 	}
-
-	if !isVim(editor) {
-		debug.Log("Editor %s is not known to be vim compatible", editor)
-
-		return args
-	}
-
 	args = append(args, "-i", "NONE") // disable viminfo
 	args = append(args, "-n")         // disable swap
 
