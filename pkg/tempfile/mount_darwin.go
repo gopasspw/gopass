@@ -54,7 +54,7 @@ func (t *File) mount(ctx context.Context) error {
 	}
 
 	// mount ramdisk
-	cmd = exec.CommandContext(ctx, "mount", "-t", "hfs", "-o", "noatime", "-o", "nobrowse", t.dev, t.dir)
+	cmd = exec.CommandContext(ctx, "diskutil", "mount", "nobrowse", "-mountOptions", "noatime", "-mountpoint", t.dir, t.dev)
 	cmd.Stderr = os.Stderr
 	if debug.IsEnabled() {
 		cmd.Stdout = os.Stdout
