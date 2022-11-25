@@ -5,6 +5,7 @@
 * [BUGFIX] Improve support for non-vim editors (#2427, #2424)
 * [BUGFIX] Only pass vim options to vim (#2421, #2412)
 * [ENHANCEMENT] Support combined short flags (#2420, #2419)
+# Changelog
 
 ## 1.14.10 / 2022-11-09
 

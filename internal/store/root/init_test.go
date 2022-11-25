@@ -23,8 +23,8 @@ func TestInit(t *testing.T) {
 	ctx = ctxutil.WithHidden(ctx, true)
 	ctx = backend.WithCryptoBackend(ctx, backend.Plain)
 
-	cfg := config.New()
-	cfg.Path = u.StoreDir("rs")
+	cfg := config.NewNoWrites()
+	require.NoError(t, cfg.SetPath(u.StoreDir("rs")))
 	rs := New(cfg)
 
 	inited, err := rs.IsInitialized(ctx)

@@ -24,11 +24,11 @@ func (r *Store) Convert(ctx context.Context, name string, cryptoBe backend.Crypt
 
 	if name == "" {
 		debug.Log("success. updating root path to %s", sub.Path())
-		r.cfg.Path = sub.Path()
-	} else {
-		debug.Log("success. updating path for %s to %s", name, sub.Path())
-		r.cfg.Mounts[name] = sub.Path()
+
+		return r.cfg.Set("", "mounts.path", sub.Path())
 	}
 
-	return r.cfg.Save()
+	debug.Log("success. updating path for %s to %s", name, sub.Path())
+
+	return r.cfg.Set("", "mounts."+name+".path", sub.Path())
 }

@@ -149,11 +149,6 @@ func (s *Action) clone(ctx context.Context, repo, mount, path string) error {
 		return err
 	}
 
-	// save new mount in config file.
-	if err := s.cfg.Save(); err != nil {
-		return exit.Error(exit.IO, err, "Failed to update config: %s", err)
-	}
-
 	// try to init repo config.
 	out.Noticef(ctx, "Configuring %s repository ...", sb)
 

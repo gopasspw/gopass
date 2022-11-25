@@ -12,6 +12,7 @@ import (
 	aclip "github.com/atotto/clipboard"
 	"github.com/gopasspw/gopass/tests/can"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 var gpgDefaultRecipients = []string{"BE73F104"}
@@ -27,7 +28,7 @@ type GUnit struct {
 
 // GPConfig returns the gopass config location.
 func (u GUnit) GPConfig() string {
-	return filepath.Join(u.Dir, "config.yml")
+	return filepath.Join(u.Dir, ".config", "gopass", "config")
 }
 
 // GPGHome returns the GnuPG homedir.
@@ -50,16 +51,17 @@ func NewGUnitTester(t *testing.T) *GUnit {
 		Dir:        td,
 	}
 	u.env = map[string]string{
-		"CHECKPOINT_DISABLE": "true",
-		"GNUPGHOME":          u.GPGHome(),
-		"GOPASS_CONFIG":      u.GPConfig(),
-		"GOPASS_HOMEDIR":     u.Dir,
-		"NO_COLOR":           "true",
-		"GOPASS_NO_NOTIFY":   "true",
-		"PAGER":              "",
+		"CHECKPOINT_DISABLE":       "true",
+		"GNUPGHOME":                u.GPGHome(),
+		"GOPASS_CONFIG_NOSYSTEM":   "true",
+		"GOPASS_CONFIG_NO_MIGRATE": "true",
+		"GOPASS_HOMEDIR":           u.Dir,
+		"NO_COLOR":                 "true",
+		"GOPASS_NO_NOTIFY":         "true",
+		"PAGER":                    "",
 	}
 	assert.NoError(t, setupEnv(u.env))
-	assert.NoError(t, os.Mkdir(u.GPGHome(), 0o700))
+	require.NoError(t, os.Mkdir(u.GPGHome(), 0o700))
 	assert.NoError(t, u.initConfig())
 	assert.NoError(t, u.InitStore(""))
 
@@ -67,9 +69,12 @@ func NewGUnitTester(t *testing.T) *GUnit {
 }
 
 func (u GUnit) initConfig() error {
+	if err := os.MkdirAll(filepath.Dir(u.GPConfig()), 0o755); err != nil {
+		return err
+	}
 	err := os.WriteFile(
 		u.GPConfig(),
-		[]byte(gopassConfig+"\npath: "+u.StoreDir("")+"\nexportkeys: false\n"),
+		[]byte(gopassConfig+"\texportkeys = false\n[mounts]\npath = "+u.StoreDir("")+"\n"),
 		0o600,
 	)
 	if err != nil {

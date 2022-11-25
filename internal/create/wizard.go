@@ -204,7 +204,7 @@ func mkActFunc(tpl Template, s *root.Store, cb ActionCallback) func(context.Cont
 				if wantForName[k] {
 					nameParts = append(nameParts, hostname)
 				}
-				if u := pwrules.LookupChangeURL(hostname); u != "" {
+				if u := pwrules.LookupChangeURL(ctx, hostname); u != "" {
 					_ = sec.Set("password-change-url", u)
 				}
 				_ = sec.Set(k, sv)
@@ -292,14 +292,14 @@ func generatePassword(ctx context.Context, hostname, charset string) (string, er
 
 		return pwgen.GeneratePasswordCharset(length, charset), nil
 	}
-	if _, found := pwrules.LookupRule(hostname); found {
+	if _, found := pwrules.LookupRule(ctx, hostname); found {
 		out.Noticef(ctx, "Using password rules for %s ...", hostname)
 		length, err := termio.AskForInt(ctx, fmtfn(4, "b", "How long?"), defaultLength)
 		if err != nil {
 			return "", err
 		}
 
-		return pwgen.NewCrypticForDomain(length, hostname).Password(), nil
+		return pwgen.NewCrypticForDomain(ctx, length, hostname).Password(), nil
 	}
 	xkcd, err := termio.AskForBool(ctx, fmtfn(4, "a", "Human-pronounceable passphrase?"), false)
 	if err != nil {

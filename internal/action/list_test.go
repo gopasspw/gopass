@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/fatih/color"
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/tree"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -27,6 +28,7 @@ func TestList(t *testing.T) { //nolint:paralleltest
 	act, err := newMock(ctx, u.StoreDir(""))
 	require.NoError(t, err)
 	require.NotNil(t, act)
+	ctx = act.cfg.WithConfig(ctx)
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
@@ -126,6 +128,7 @@ func TestListLimit(t *testing.T) { //nolint:paralleltest
 	act, err := newMock(ctx, u.StoreDir(""))
 	require.NoError(t, err)
 	require.NotNil(t, act)
+	ctx = act.cfg.WithConfig(ctx)
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
@@ -218,14 +221,17 @@ func TestRedirectPager(t *testing.T) { //nolint:paralleltest
 	var buf *bytes.Buffer
 	var subtree *tree.Root
 
+	cfg := config.NewNoWrites()
+	ctx = cfg.WithConfig(ctx)
+
 	// no pager
-	ctx = ctxutil.WithNoPager(ctx, true)
+	require.NoError(t, cfg.Set("", "core.nopager", "true"))
 	so, buf := redirectPager(ctx, subtree)
 	assert.Nil(t, buf)
 	assert.NotNil(t, so)
 
 	// no term
-	ctx = ctxutil.WithNoPager(ctx, false)
+	require.NoError(t, cfg.Set("", "core.nopager", "false"))
 	so, buf = redirectPager(ctx, subtree)
 	assert.Nil(t, buf)
 	assert.NotNil(t, so)

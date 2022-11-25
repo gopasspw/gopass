@@ -39,26 +39,6 @@ func TestStdin(t *testing.T) {
 	assert.Equal(t, false, IsStdin(WithStdin(ctx, false)))
 }
 
-func TestNoPager(t *testing.T) {
-	t.Parallel()
-
-	ctx := context.Background()
-
-	assert.Equal(t, false, IsNoPager(ctx))
-	assert.Equal(t, true, IsNoPager(WithNoPager(ctx, true)))
-	assert.Equal(t, false, IsNoPager(WithNoPager(ctx, false)))
-}
-
-func TestShowSafeContent(t *testing.T) {
-	t.Parallel()
-
-	ctx := context.Background()
-
-	assert.Equal(t, false, IsShowSafeContent(ctx))
-	assert.Equal(t, true, IsShowSafeContent(WithShowSafeContent(ctx, true)))
-	assert.Equal(t, false, IsShowSafeContent(WithShowSafeContent(ctx, false)))
-}
-
 func TestGitCommit(t *testing.T) {
 	t.Parallel()
 
@@ -87,16 +67,6 @@ func TestVerbose(t *testing.T) {
 	assert.Equal(t, false, IsVerbose(ctx))
 	assert.Equal(t, true, IsVerbose(WithVerbose(ctx, true)))
 	assert.Equal(t, false, IsVerbose(WithVerbose(ctx, false)))
-}
-
-func TestNotifications(t *testing.T) {
-	t.Parallel()
-
-	ctx := context.Background()
-
-	assert.Equal(t, true, IsNotifications(ctx))
-	assert.Equal(t, true, IsNotifications(WithNotifications(ctx, true)))
-	assert.Equal(t, false, IsNotifications(WithNotifications(ctx, false)))
 }
 
 func TestProgressCallback(t *testing.T) {
@@ -158,13 +128,9 @@ func TestComposite(t *testing.T) {
 	ctx = WithTerminal(ctx, false)
 	ctx = WithInteractive(ctx, false)
 	ctx = WithStdin(ctx, true)
-	ctx = WithNoPager(ctx, true)
-	ctx = WithShowSafeContent(ctx, true)
 	ctx = WithGitCommit(ctx, false)
 	ctx = WithAlwaysYes(ctx, true)
 	ctx = WithVerbose(ctx, true)
-	ctx = WithNotifications(ctx, true)
-	ctx = WithExportKeys(ctx, false)
 	ctx = WithEmail(ctx, "foo@bar.com")
 	ctx = WithUsername(ctx, "foo")
 	ctx = WithNoNetwork(ctx, true)
@@ -181,12 +147,6 @@ func TestComposite(t *testing.T) {
 	assert.Equal(t, true, IsStdin(ctx))
 	assert.Equal(t, true, HasStdin(ctx))
 
-	assert.Equal(t, true, IsNoPager(ctx))
-	assert.Equal(t, true, HasNoPager(ctx))
-
-	assert.Equal(t, true, IsShowSafeContent(ctx))
-	assert.Equal(t, true, HasShowSafeContent(ctx))
-
 	assert.Equal(t, false, IsGitCommit(ctx))
 	assert.Equal(t, true, HasGitCommit(ctx))
 
@@ -195,12 +155,6 @@ func TestComposite(t *testing.T) {
 
 	assert.Equal(t, true, IsVerbose(ctx))
 	assert.Equal(t, true, HasVerbose(ctx))
-
-	assert.Equal(t, true, IsNotifications(ctx))
-	assert.Equal(t, true, HasNotifications(ctx))
-
-	assert.Equal(t, false, IsExportKeys(ctx))
-	assert.Equal(t, true, HasExportKeys(ctx))
 
 	assert.Equal(t, "foo@bar.com", GetEmail(ctx))
 	assert.Equal(t, "foo", GetUsername(ctx))

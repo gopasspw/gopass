@@ -2,6 +2,7 @@ package pwgen
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"sort"
 	"strings"
@@ -44,9 +45,9 @@ func NewCryptic(length int, symbols bool) *Cryptic {
 
 // NewCrypticForDomain tries to look up password rules for the given domain
 // or uses the default generator.
-func NewCrypticForDomain(length int, domain string) *Cryptic {
+func NewCrypticForDomain(ctx context.Context, length int, domain string) *Cryptic {
 	c := NewCryptic(length, true)
-	r, found := pwrules.LookupRule(domain)
+	r, found := pwrules.LookupRule(ctx, domain)
 
 	debug.Log("found rules for %s: %t", domain, found)
 

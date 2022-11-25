@@ -168,11 +168,7 @@ READ:
 			continue
 		default:
 		}
-		// need to reinitialize the config to pick up any changes from the
-		// previous iteration
-		// TODO: this means the context will grow with every loop. Eventually
-		// this might lead to memory issues so we should see if we can optimize it.
-		c.Context = s.cfg.WithContext(c.Context)
+
 		if err := c.App.RunContext(c.Context, append([]string{"gopass"}, args...)); err != nil {
 			continue
 		}

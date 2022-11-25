@@ -17,16 +17,16 @@ To workaround this, we can configure "Collaborators & teams" on GitHub side to g
 Ultimately it turns out that this scenario requires a feature such as a store in readonly mode, where people can configure their local store or a set of sub-stores in readonly mode, to disable the writes and the autosync-on-writes to the store, but they can still pull to sync the latest changes from the remote store. This is not a one-stop solution for the RBAC model of the team sharing store, because we still need GitHub to setup the store access at server-side, but it will provide better usage experience from gopass client side.
 
 Configuration examples:
-```console
+
+```bash
 # To print the config
-$ gopass config readonly
-readonly: false
+$ gopass config core.readonly
 # To setup the config
-$ gopass config readonly true
-readonly: true
+$ gopass config core.readonly true
+core.readonly: true
 # To apply the config to a sub-store
-$ gopass config readly true --store team-sharable
-readonly: true
+$ gopass config --store team-sharable core.readonly true
+core.readonly: true
 ```
 
 ## References

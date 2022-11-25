@@ -32,6 +32,7 @@ func TestBinary(t *testing.T) { //nolint:paralleltest
 	act, err := newMock(ctx, u.StoreDir(""))
 	require.NoError(t, err)
 	require.NotNil(t, act)
+	ctx = act.cfg.WithConfig(ctx)
 
 	assert.Error(t, act.Cat(gptest.CliCtx(ctx, t)))
 	assert.Error(t, act.BinaryCopy(gptest.CliCtx(ctx, t)))
@@ -58,6 +59,7 @@ func TestBinaryCat(t *testing.T) { //nolint:paralleltest
 	act, err := newMock(ctx, u.StoreDir(""))
 	require.NoError(t, err)
 	require.NotNil(t, act)
+	ctx = act.cfg.WithConfig(ctx)
 
 	infile := filepath.Join(u.Dir, "input.txt")
 	writeBinfile(t, infile)
@@ -111,6 +113,7 @@ func TestBinaryCopy(t *testing.T) { //nolint:paralleltest
 	act, err := newMock(ctx, u.StoreDir(""))
 	require.NoError(t, err)
 	require.NotNil(t, act)
+	ctx = act.cfg.WithConfig(ctx)
 
 	t.Run("copy textfile", func(t *testing.T) { //nolint:paralleltest
 		defer buf.Reset()
@@ -173,6 +176,7 @@ func TestBinarySum(t *testing.T) { //nolint:paralleltest
 	act, err := newMock(ctx, u.StoreDir(""))
 	require.NoError(t, err)
 	require.NotNil(t, act)
+	ctx = act.cfg.WithConfig(ctx)
 
 	infile := filepath.Join(u.Dir, "input.raw")
 
@@ -198,6 +202,7 @@ func TestBinaryGet(t *testing.T) { //nolint:paralleltest
 	act, err := newMock(ctx, u.StoreDir(""))
 	require.NoError(t, err)
 	require.NotNil(t, act)
+	ctx = act.cfg.WithConfig(ctx)
 
 	data := []byte("1\n2\n3\n")
 	assert.NoError(t, act.insertStdin(ctx, "x", data, false))

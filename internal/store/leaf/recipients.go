@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/recipients"
 	"github.com/gopasspw/gopass/internal/store"
@@ -363,7 +364,7 @@ func (s *Store) saveRecipients(ctx context.Context, rs []string, msg string) err
 	}
 
 	// save all recipients public keys to the repo
-	if ctxutil.IsExportKeys(ctx) {
+	if config.Bool(ctx, "core.exportkeys") {
 		debug.Log("updating exported keys")
 		if _, err := s.UpdateExportedPublicKeys(ctx, rs); err != nil {
 			out.Errorf(ctx, "Failed to export missing public keys: %s", err)

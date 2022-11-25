@@ -35,7 +35,7 @@ var ErrNotInitialized = fmt.Errorf("password store not initialized. run 'gopass 
 //
 // WARNING: This will need to change to accommodate for runtime configuration.
 func New(ctx context.Context) (*Gopass, error) {
-	cfg := config.LoadWithFallbackRelaxed()
+	cfg := config.New()
 	store := root.New(cfg)
 
 	initialized, err := store.IsInitialized(ctx)

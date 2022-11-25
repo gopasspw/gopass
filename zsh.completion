@@ -19,13 +19,6 @@ _gopass () {
 	      
 	      ;;
 	  alias)
-	      local -a subcommands
-	      subcommands=(
-	      "add:Add a new alias"
-	      "remove:Remove an alias from a domain"
-	      "delete:Delete an entire domain"
-	      )
-	      _describe -t commands "gopass alias" subcommands
 	      
 	      
 	      

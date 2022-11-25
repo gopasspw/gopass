@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/gopasspw/gopass/internal/cache"
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/pinentry/cli"
 	"github.com/nbutton23/zxcvbn-go"
@@ -82,7 +83,7 @@ func newAskPass(ctx context.Context) *askPass {
 		cache: cache.NewInMemTTL[string, string](time.Hour, 24*time.Hour),
 	}
 
-	if IsUseKeychain(ctx) {
+	if config.Bool(ctx, "age.usekeychain") {
 		if err := keyring.Set("gopass", "sentinel", "empty"); err == nil {
 			debug.Log("using OS keychain to cache age credentials")
 			a.cache = newOsKeyring()

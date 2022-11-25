@@ -54,15 +54,15 @@ func (r *Store) Init(ctx context.Context, alias, path string, ids ...string) err
 		return fmt.Errorf("failed to initialize new sub store: %w", err)
 	}
 
-	if alias == "" {
-		debug.Log("initialized root at %s", path)
-		r.cfg.Path = path
-	} else {
+	if alias != "" {
 		debug.Log("mounted %s at %s", alias, path)
-		r.cfg.Mounts[alias] = path
+
+		return r.cfg.SetMountPath(alias, path)
 	}
 
-	return nil
+	debug.Log("initialized root at %s", path)
+
+	return r.cfg.SetPath(path)
 }
 
 func (r *Store) initialize(ctx context.Context) error {
@@ -72,7 +72,7 @@ func (r *Store) initialize(ctx context.Context) error {
 	}
 
 	// create the base store
-	path := fsutil.CleanPath(r.cfg.Path)
+	path := fsutil.CleanPath(r.cfg.Get("mounts.path"))
 	if sv := os.Getenv("PASSWORD_STORE_DIR"); sv != "" {
 		path = fsutil.CleanPath(sv)
 	}
@@ -80,7 +80,7 @@ func (r *Store) initialize(ctx context.Context) error {
 
 	s, err := leaf.New(ctx, "", path)
 	if err != nil {
-		return fmt.Errorf("failed to initialize the root store at %q: %w", r.cfg.Path, err)
+		return fmt.Errorf("failed to initialize the root store at %q: %w", r.cfg.Path(), err)
 	}
 
 	debug.Log("Root Store initialized at %s", path)
@@ -88,8 +88,8 @@ func (r *Store) initialize(ctx context.Context) error {
 	r.store = s
 
 	// initialize all mounts
-	for alias, path := range r.cfg.Mounts {
-		path := fsutil.CleanPath(path)
+	for _, alias := range r.cfg.Mounts() {
+		path := fsutil.CleanPath(r.cfg.MountPath(alias))
 		if err := r.addMount(ctx, alias, path); err != nil {
 			out.Errorf(ctx, "Failed to initialize mount %s (%s). Ignoring: %s", alias, path, err)
 
