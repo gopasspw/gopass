@@ -10,8 +10,8 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
-	"io"
 	"os"
 	"os/exec"
 	"regexp"
@@ -68,13 +68,16 @@ func main() {
 	fmt.Println()
 	fmt.Println("🌟 Preparing a new gopass release.")
 	fmt.Println("☝  Checking pre-conditions ...")
+
+	prevVer, nextVer := getVersions()
+
 	// - check that workdir is clean
 	if !isGitClean() {
 		panic("❌ git is dirty")
 	}
 	fmt.Println("✅ git is clean")
 
-	if sv := os.Getenv("PATCH_RELEASE"); sv == "" {
+	if len(nextVer.Pre) < 1 {
 		// - check out master
 		if err := gitCoMaster(); err != nil {
 			panic(err)
@@ -92,13 +95,16 @@ func main() {
 	}
 	fmt.Println("✅ git is still clean")
 
-	prevVer, nextVer := getVersions()
-
 	fmt.Println()
 	fmt.Printf("✅ New version will be: %s\n", nextVer.String())
 	fmt.Println()
 	fmt.Println("❓ Do you want to continue? (press any key to continue or Ctrl+C to abort)")
 	fmt.Scanln()
+
+	// - update deps and run tests
+	if err := updateDeps(); err != nil {
+		panic(err)
+	}
 
 	// - update VERSION
 	if err := writeVersion(nextVer); err != nil {
@@ -232,6 +238,19 @@ Will use
 	return prevVer, nextVer
 }
 
+func updateDeps() error {
+	cmd := exec.Command("make", "upgrade")
+	cmd.Stderr = os.Stderr
+
+	if err := cmd.Run(); err != nil {
+		return err
+	}
+
+	cmd = exec.Command("make", "travis")
+	cmd.Stderr = os.Stderr
+	return cmd.Run()
+}
+
 func gitCoMaster() error {
 	cmd := exec.Command("git", "checkout", "master")
 	cmd.Stderr = os.Stderr
@@ -251,13 +270,26 @@ func gitCoRel(v semver.Version) error {
 }
 
 func gitCommit(v semver.Version) error {
-	cmd := exec.Command("git", "add", "CHANGELOG.md", "VERSION", "version.go", "gopass.1", "*.completion")
+	args := []string{
+		"add",
+		"CHANGELOG.md",
+		"VERSION",
+		"version.go",
+		"gopass.1",
+		"*.completion",
+		"go.mod",
+		"go.sum",
+		"pkg/pwgen/pwrules/pwrules_gen.go",
+	}
+	cmd := exec.Command("git", args...)
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
 		return err
 	}
+
 	cmd = exec.Command("git", "commit", "-s", "-m", "Tag v"+v.String(), "-m", "RELEASE_NOTES=n/a")
 	cmd.Stderr = os.Stderr
+
 	return cmd.Run()
 }
 
@@ -275,22 +307,30 @@ func writeChangelog(prev, next semver.Version) error {
 	}
 	defer fh.Close()
 
-	fmt.Fprintf(fh, "## %s / %s\n\n", next.String(), time.Now().UTC().Format("2006-01-02"))
-	for _, e := range cl {
-		fmt.Fprint(fh, "* ")
-		fmt.Fprintln(fh, e)
-	}
-	fmt.Fprintln(fh)
-
 	ofh, err := os.Open("CHANGELOG.md")
 	if err != nil {
 		return err
 	}
 	defer ofh.Close()
 
-	// then appending any existing content from the old file and ...
-	if _, err := io.Copy(fh, ofh); err != nil {
-		return err
+	scanner := bufio.NewScanner(ofh)
+
+	var written bool
+	for scanner.Scan() {
+		line := scanner.Text()
+
+		// insert the new section before the last entry
+		if strings.HasPrefix(line, "## ") && !written {
+			fmt.Fprintf(fh, "## %s / %s\n\n", next.String(), time.Now().UTC().Format("2006-01-02"))
+			for _, e := range cl {
+				fmt.Fprint(fh, "* ")
+				fmt.Fprintln(fh, e)
+			}
+			fmt.Fprintln(fh)
+		}
+
+		// all existing lines are just copied over
+		fmt.Fprintln(fh, line)
 	}
 
 	// renaming the new file to the old file
@@ -300,12 +340,14 @@ func writeChangelog(prev, next semver.Version) error {
 func updateCompletion() error {
 	cmd := exec.Command("make", "completion")
 	cmd.Stderr = os.Stderr
+
 	return cmd.Run()
 }
 
 func updateManpage() error {
 	cmd := exec.Command("make", "man")
 	cmd.Stderr = os.Stderr
+
 	return cmd.Run()
 }
 
@@ -329,6 +371,7 @@ func writeVersionGo(v semver.Version) error {
 		return err
 	}
 	defer fh.Close()
+
 	return tmpl.Execute(fh, tplPayload{
 		Major: v.Major,
 		Minor: v.Minor,
@@ -341,6 +384,7 @@ func isGitClean() bool {
 	if err != nil {
 		panic(err)
 	}
+
 	return strings.TrimSpace(string(buf)) == ""
 }
 
@@ -349,6 +393,7 @@ func versionFile() (semver.Version, error) {
 	if err != nil {
 		return semver.Version{}, err
 	}
+
 	return semver.Parse(strings.TrimSpace(string(buf)))
 }
 
@@ -357,10 +402,12 @@ func gitVersion() (semver.Version, error) {
 	if err != nil {
 		return semver.Version{}, err
 	}
+
 	lines := strings.Split(strings.TrimSpace(string(buf)), "\n")
 	if len(lines) < 1 {
 		return semver.Version{}, fmt.Errorf("no output")
 	}
+
 	return semver.Parse(strings.TrimPrefix(lines[len(lines)-1], "v"))
 }
 
@@ -424,6 +471,7 @@ func changelogEntries(since semver.Version) ([]string, error) {
 	}
 
 	sort.Strings(notes)
+
 	return notes, nil
 }
 

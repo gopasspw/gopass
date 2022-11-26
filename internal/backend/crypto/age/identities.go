@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"filippo.io/age"
+	"github.com/gopasspw/gopass/pkg/appdir"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
 )
@@ -27,6 +28,7 @@ func (a *Age) Identities(ctx context.Context) ([]age.Identity, error) {
 
 			return []byte(pw), err
 		})
+		ctx = ctxutil.WithPasswordPurgeCallback(ctx, a.askPass.Remove)
 	}
 
 	debug.Log("reading native identities from %s", a.identity)
@@ -198,6 +200,7 @@ func (a *Age) saveIdentities(ctx context.Context, ids []string, newFile bool) er
 
 			return []byte(pw), err
 		})
+		ctx = ctxutil.WithPasswordPurgeCallback(ctx, a.askPass.Remove)
 	}
 
 	// ensure directory exists.
@@ -233,6 +236,10 @@ func (a *Age) getAllIdentities(ctx context.Context) (map[string]age.Identity, er
 	debug.Log("checking ssh identities")
 	ssh, err := a.getSSHIdentities(ctx)
 	if err != nil {
+		if errors.Is(err, ErrNoSSHDir) {
+			return native, nil
+		}
+
 		return nil, err
 	}
 
@@ -244,10 +251,40 @@ func (a *Age) getAllIdentities(ctx context.Context) (map[string]age.Identity, er
 	}
 	debug.Log("got %d merged identities", len(native))
 
-	// TODO add passage identities, too
-	// $HOME/.passage/identities
+	ps, err := a.getPassageIdentities(ctx)
+	if err != nil {
+		debug.Log("unable to load passage identities: %s", err)
+	}
+
+	// merge
+	for k, v := range ps {
+		native[k] = v
+	}
 
 	return native, nil
+}
+
+func (a *Age) getPassageIdentities(ctx context.Context) (map[string]age.Identity, error) {
+	fn := PassageIdFile()
+	fh, err := os.Open(fn)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open %s: %w", fn, err)
+	}
+	defer func() { _ = fh.Close() }()
+
+	ids, err := age.ParseIdentities(fh)
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO(gh/2059) support encrypted passage identities
+
+	return idMap(ids), nil
+}
+
+// PassageIdFile returns the location of the passage identities file.
+func PassageIdFile() string {
+	return filepath.Join(appdir.UserHome(), ".passage", "identities")
 }
 
 func (a *Age) getNativeIdentities(ctx context.Context) (map[string]age.Identity, error) {

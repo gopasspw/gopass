@@ -3,25 +3,27 @@ package action
 import (
 	"context"
 	"fmt"
-	"sort"
 
 	"github.com/gopasspw/gopass/internal/action/exit"
 	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/internal/set"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/urfave/cli/v2"
 )
 
 // Config handles changes to the gopass configuration.
 func (s *Action) Config(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
+	store := c.String("store")
 	if c.Args().Len() < 1 {
-		s.printConfigValues(ctx)
+		s.printConfigValues(ctx, store)
 
 		return nil
 	}
 
 	if c.Args().Len() == 1 {
-		s.printConfigValues(ctx, c.Args().Get(0))
+		s.printConfigValues(ctx, store, c.Args().Get(0))
 
 		return nil
 	}
@@ -30,45 +32,27 @@ func (s *Action) Config(c *cli.Context) error {
 		return exit.Error(exit.Usage, nil, "Usage: %s config key value", s.Name)
 	}
 
-	if err := s.setConfigValue(ctx, c.Args().Get(0), c.Args().Get(1)); err != nil {
+	if err := s.setConfigValue(ctx, store, c.Args().Get(0), c.Args().Get(1)); err != nil {
 		return exit.Error(exit.Unknown, err, "Error setting config value")
 	}
 
 	return nil
 }
 
-func (s *Action) printConfigValues(ctx context.Context, needles ...string) {
-	m := s.cfg.ConfigMap()
-	for _, k := range filterMap(m, needles) {
+func (s *Action) printConfigValues(ctx context.Context, store string, needles ...string) {
+	for _, k := range set.SortedFiltered(s.cfg.Keys(store), func(e string) bool {
+		return contains(needles, e)
+	}) {
+		v := s.cfg.GetM(store, k)
 		// if only a single key is requested, print only the value
 		// useful for scriping, e.g. `$ cd $(gopass config path)`.
 		if len(needles) == 1 {
-			out.Printf(ctx, "%s", m[k])
+			out.Printf(ctx, "%s", v)
 
 			continue
 		}
-		out.Printf(ctx, "%s: %s", k, m[k])
+		out.Printf(ctx, "%s = %s", k, v)
 	}
-
-	for alias, path := range s.cfg.Mounts {
-		if len(needles) < 1 {
-			out.Printf(ctx, "mount %q => %q", alias, path)
-		}
-	}
-}
-
-func filterMap(haystack map[string]string, needles []string) []string {
-	out := make([]string, 0, len(haystack))
-	for k := range haystack {
-		if !contains(needles, k) {
-			continue
-		}
-		out = append(out, k)
-	}
-
-	sort.Strings(out)
-
-	return out
 }
 
 func contains(haystack []string, needle string) bool {
@@ -85,27 +69,20 @@ func contains(haystack []string, needle string) bool {
 	return false
 }
 
-func (s *Action) setConfigValue(ctx context.Context, key, value string) error {
-	if err := s.cfg.SetConfigValue(key, value); err != nil {
+func (s *Action) setConfigValue(ctx context.Context, store, key, value string) error {
+	debug.Log("setting %s to %s for %q", key, value, store)
+
+	if err := s.cfg.Set(store, key, value); err != nil {
 		return fmt.Errorf("failed to set config value %q: %w", key, err)
 	}
 
-	s.printConfigValues(ctx, key)
+	s.printConfigValues(ctx, store, key)
 
 	return nil
 }
 
 func (s *Action) configKeys() []string {
-	cm := s.cfg.ConfigMap()
-	keys := make([]string, 0, len(cm)+1)
-	for k := range cm {
-		keys = append(keys, k)
-	}
-
-	keys = append(keys, "remote")
-	sort.Strings(keys)
-
-	return keys
+	return s.cfg.Keys("")
 }
 
 // ConfigComplete will print the list of valid config keys.

@@ -23,6 +23,7 @@ func TestConfig(t *testing.T) { //nolint:paralleltest
 	act, err := newMock(ctx, u.StoreDir(""))
 	require.NoError(t, err)
 	require.NotNil(t, act)
+	ctx = act.cfg.WithConfig(ctx)
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
@@ -37,37 +38,38 @@ func TestConfig(t *testing.T) { //nolint:paralleltest
 
 		c := gptest.CliCtx(ctx, t)
 		assert.NoError(t, act.Config(c))
-		want := `autoclip: true
-autoimport: true
-cliptimeout: 45
-exportkeys: true
-nopager: false
-notifications: true
-parsing: true
+		want := `core.autoclip = true
+core.autoimport = true
+core.autosync = true
+core.cliptimeout = 45
+core.exportkeys = true
+core.nopager = true
+core.notifications = true
+core.parsing = true
 `
-		want += "path: " + u.StoreDir("") + "\n"
-		want += `safecontent: false
-`
+		want += "mounts.path = " + u.StoreDir("") + "\n"
 		assert.Equal(t, want, buf.String())
 	})
 
 	t.Run("set valid config value", func(t *testing.T) { //nolint:paralleltest
 		defer buf.Reset()
 
-		assert.NoError(t, act.setConfigValue(ctx, "nopager", "true"))
+		assert.NoError(t, act.setConfigValue(ctx, "", "core.nopager", "true"))
+
+		// should print accepted config value
 		assert.Equal(t, "true", strings.TrimSpace(buf.String()), "action.setConfigValue")
 	})
 
 	t.Run("set invalid config value", func(t *testing.T) { //nolint:paralleltest
 		defer buf.Reset()
 
-		assert.Error(t, act.setConfigValue(ctx, "foobar", "true"))
+		assert.Error(t, act.setConfigValue(ctx, "", "foobar", "true"))
 	})
 
 	t.Run("print single config value", func(t *testing.T) { //nolint:paralleltest
 		defer buf.Reset()
 
-		act.printConfigValues(ctx, "nopager")
+		act.printConfigValues(ctx, "", "core.nopager")
 
 		want := "true"
 		assert.Equal(t, want, strings.TrimSpace(buf.String()), "action.printConfigValues")
@@ -76,26 +78,24 @@ parsing: true
 	t.Run("print all config values", func(t *testing.T) { //nolint:paralleltest
 		defer buf.Reset()
 
-		act.printConfigValues(ctx)
-		want := `autoclip: true
-autoimport: true
-cliptimeout: 45
-exportkeys: true
-nopager: true
-notifications: true
-parsing: true
+		act.printConfigValues(ctx, "")
+		want := `core.autoclip = true
+core.autoimport = true
+core.autosync = true
+core.cliptimeout = 45
+core.exportkeys = true
+core.nopager = true
+core.notifications = true
+core.parsing = true
 `
-		want += "path: " + u.StoreDir("") + "\n"
-		want += `safecontent: false`
+		want += "mounts.path = " + u.StoreDir("")
 		assert.Equal(t, want, strings.TrimSpace(buf.String()), "action.printConfigValues")
-
-		delete(act.cfg.Mounts, "foo")
 	})
 
 	t.Run("show autoimport value", func(t *testing.T) { //nolint:paralleltest
 		defer buf.Reset()
 
-		c := gptest.CliCtx(ctx, t, "autoimport")
+		c := gptest.CliCtx(ctx, t, "core.autoimport")
 		assert.NoError(t, act.Config(c))
 		assert.Equal(t, "true", strings.TrimSpace(buf.String()))
 	})
@@ -103,7 +103,7 @@ parsing: true
 	t.Run("disable autoimport", func(t *testing.T) { //nolint:paralleltest
 		defer buf.Reset()
 
-		c := gptest.CliCtx(ctx, t, "autoimport", "false")
+		c := gptest.CliCtx(ctx, t, "core.autoimport", "false")
 		assert.NoError(t, act.Config(c))
 		assert.Equal(t, "false", strings.TrimSpace(buf.String()))
 	})
@@ -112,16 +112,15 @@ parsing: true
 		defer buf.Reset()
 
 		act.ConfigComplete(gptest.CliCtx(ctx, t))
-		want := `autoclip
-autoimport
-cliptimeout
-exportkeys
-nopager
-notifications
-parsing
-path
-remote
-safecontent
+		want := `core.autoclip
+core.autoimport
+core.autosync
+core.cliptimeout
+core.exportkeys
+core.nopager
+core.notifications
+core.parsing
+mounts.path
 `
 		assert.Equal(t, want, buf.String())
 	})

@@ -17,15 +17,13 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-func TestEditor(t *testing.T) {
-	t.Parallel()
-
+func TestEditor(t *testing.T) { //nolint:paralleltest
 	u := gptest.NewUnitTester(t)
 	defer u.Remove()
 
 	ctx := context.Background()
 	touch, err := exec.LookPath("touch")
-	require.NoError(t, err)
+	require.NoError(t, err, os.Getenv("PATH"))
 
 	want := "foobar"
 	out, err := Invoke(ctx, touch, []byte(want))
@@ -35,8 +33,7 @@ func TestEditor(t *testing.T) {
 	}
 }
 
-func TestGetEditor(t *testing.T) {
-	t.Parallel()
+func TestGetEditor(t *testing.T) { //nolint:paralleltest
 	app := cli.NewApp()
 
 	// --editor=fooed

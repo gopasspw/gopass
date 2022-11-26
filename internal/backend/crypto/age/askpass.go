@@ -7,10 +7,12 @@ import (
 	"time"
 
 	"github.com/gopasspw/gopass/internal/cache"
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/pinentry/cli"
 	"github.com/nbutton23/zxcvbn-go"
 	"github.com/twpayne/go-pinentry"
+	"github.com/zalando/go-keyring"
 )
 
 type cacher interface {
@@ -20,18 +22,75 @@ type cacher interface {
 	Purge()
 }
 
+type osKeyring struct {
+	knownKeys map[string]bool
+}
+
+func newOsKeyring() *osKeyring {
+	return &osKeyring{
+		knownKeys: make(map[string]bool),
+	}
+}
+
+func (o *osKeyring) Get(key string) (string, bool) {
+	sec, err := keyring.Get("gopass", key)
+	if err != nil {
+		debug.Log("failed to get %s from OS keyring: %w", key, err)
+
+		return "", false
+	}
+	o.knownKeys[name] = true
+
+	return sec, true
+}
+
+func (o *osKeyring) Set(name, value string) {
+	if err := keyring.Set("gopass", name, value); err != nil {
+		debug.Log("failed to set %s: %w", name, err)
+	}
+	o.knownKeys[name] = true
+}
+
+func (o *osKeyring) Remove(name string) {
+	if err := keyring.Delete("gopass", name); err != nil {
+		debug.Log("failed to remove %s from keyring: %s", name, err)
+
+		return
+	}
+	o.knownKeys[name] = false
+}
+
+func (o *osKeyring) Purge() {
+	// purge all known keys. only useful for the REPL case.
+	// Does not persist across restarts.
+	for k, v := range o.knownKeys {
+		if !v {
+			continue
+		}
+		if err := keyring.Delete("gopass", k); err != nil {
+			debug.Log("failed to remove %s from keyring: %s", k, err)
+		}
+	}
+}
+
 type askPass struct {
 	testing bool
 	cache   cacher
 }
 
-// DefaultAskPass is the default password cache.
-var DefaultAskPass = newAskPass()
-
-func newAskPass() *askPass {
-	return &askPass{
+func newAskPass(ctx context.Context) *askPass {
+	a := &askPass{
 		cache: cache.NewInMemTTL[string, string](time.Hour, 24*time.Hour),
 	}
+
+	if config.Bool(ctx, "age.usekeychain") {
+		if err := keyring.Set("gopass", "sentinel", "empty"); err == nil {
+			debug.Log("using OS keychain to cache age credentials")
+			a.cache = newOsKeyring()
+		}
+	}
+
+	return a
 }
 
 func (a *askPass) Ping(_ context.Context) error {

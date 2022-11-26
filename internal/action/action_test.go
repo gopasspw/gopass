@@ -20,8 +20,11 @@ import (
 )
 
 func newMock(ctx context.Context, path string) (*Action, error) {
-	cfg := config.Load()
-	cfg.Path = path
+	cfg := config.NewNoWrites()
+	if err := cfg.SetPath(path); err != nil {
+		return nil, err
+	}
+	ctx = cfg.WithConfig(ctx)
 
 	if !backend.HasCryptoBackend(ctx) {
 		ctx = backend.WithCryptoBackend(ctx, backend.Plain)
@@ -54,6 +57,7 @@ func TestAction(t *testing.T) {
 	act, err := newMock(ctx, u.StoreDir(""))
 	require.NoError(t, err)
 	require.NotNil(t, act)
+	ctx = act.cfg.WithConfig(ctx) //nolint:ineffassign
 
 	actName := "action.test"
 
@@ -70,25 +74,20 @@ func TestAction(t *testing.T) {
 func TestNew(t *testing.T) {
 	t.Parallel()
 
-	td, err := os.MkdirTemp("", "gopass-")
-	require.NoError(t, err)
-	defer func() {
-		_ = os.RemoveAll(td)
-	}()
-
-	cfg := config.New()
+	td := t.TempDir()
+	cfg := config.NewNoWrites()
 	sv := semver.Version{}
 
 	t.Run("init a new store", func(t *testing.T) { //nolint:paralleltest
-		_, err = New(cfg, sv)
+		_, err := New(cfg, sv)
 		require.NoError(t, err)
 	})
 
 	t.Run("init an existing plain store", func(t *testing.T) { //nolint:paralleltest
-		cfg.Path = filepath.Join(td, "store")
-		assert.NoError(t, os.MkdirAll(cfg.Path, 0o700))
-		assert.NoError(t, os.WriteFile(filepath.Join(cfg.Path, plain.IDFile), []byte("foobar"), 0o600))
-		_, err = New(cfg, sv)
+		require.NoError(t, cfg.SetPath(filepath.Join(td, "store")))
+		assert.NoError(t, os.MkdirAll(cfg.Path(), 0o700))
+		assert.NoError(t, os.WriteFile(filepath.Join(cfg.Path(), plain.IDFile), []byte("foobar"), 0o600))
+		_, err := New(cfg, sv)
 		assert.NoError(t, err)
 	})
 }

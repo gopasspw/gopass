@@ -2,7 +2,6 @@ package leaf
 
 import (
 	"context"
-	"os"
 	"testing"
 
 	"github.com/blang/semver/v4"
@@ -17,12 +16,7 @@ func TestGit(t *testing.T) {
 
 	ctx := context.Background()
 
-	tempdir, err := os.MkdirTemp("", "gopass-")
-	require.NoError(t, err)
-
-	defer func() {
-		_ = os.RemoveAll(tempdir)
-	}()
+	tempdir := t.TempDir()
 
 	s, err := createSubStore(tempdir)
 	require.NoError(t, err)
@@ -50,11 +44,7 @@ func TestGitRevisions(t *testing.T) {
 
 	ctx := context.Background()
 
-	tempdir, err := os.MkdirTemp("", "gopass-")
-	require.NoError(t, err)
-	defer func() {
-		_ = os.RemoveAll(tempdir)
-	}()
+	tempdir := t.TempDir()
 
 	s, err := createSubStore(tempdir)
 	require.NoError(t, err)

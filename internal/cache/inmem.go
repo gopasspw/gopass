@@ -10,14 +10,15 @@ type cacheEntry[V any] struct {
 	maxExpire time.Time
 	expire    time.Time
 	created   time.Time
+	now       func() time.Time
 }
 
 func (ce *cacheEntry[V]) isExpired() bool {
-	if time.Now().After(ce.maxExpire) {
+	if ce.now().After(ce.maxExpire) {
 		return true
 	}
 
-	if time.Now().After(ce.expire) {
+	if ce.now().After(ce.expire) {
 		return true
 	}
 
@@ -27,6 +28,7 @@ func (ce *cacheEntry[V]) isExpired() bool {
 // InMemTTL implements a simple TTLed cache in memory. It is concurrency safe.
 type InMemTTL[K comparable, V any] struct {
 	sync.Mutex
+	now     func() time.Time
 	ttl     time.Duration
 	maxTTL  time.Duration
 	entries map[K]cacheEntry[V]
@@ -35,6 +37,7 @@ type InMemTTL[K comparable, V any] struct {
 // NewInMemTTL creates a new TTLed cache.
 func NewInMemTTL[K comparable, V any](ttl time.Duration, maxTTL time.Duration) *InMemTTL[K, V] {
 	return &InMemTTL[K, V]{
+		now:    time.Now,
 		ttl:    ttl,
 		maxTTL: maxTTL,
 	}
@@ -60,7 +63,7 @@ func (c *InMemTTL[K, V]) Get(key K) (V, bool) {
 		return zero, false
 	}
 
-	ce.expire = time.Now().Add(c.ttl)
+	ce.expire = c.now().Add(c.ttl)
 	c.entries[key] = ce
 
 	return ce.value, true
@@ -84,12 +87,15 @@ func (c *InMemTTL[K, V]) Set(key K, value V) {
 		c.entries = make(map[K]cacheEntry[V], 10)
 	}
 
-	now := time.Now()
+	now := c.now()
 	c.entries[key] = cacheEntry[V]{
 		value:     value,
 		maxExpire: now.Add(c.maxTTL),
 		expire:    now.Add(c.ttl),
 		created:   now,
+		now: func() time.Time {
+			return c.now()
+		},
 	}
 
 	c.purgeExpired()

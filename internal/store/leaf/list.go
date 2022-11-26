@@ -21,7 +21,7 @@ func (s *Store) List(ctx context.Context, prefix string) ([]string, error) {
 		return nil, err
 	}
 
-	debug.Log("Listing %s: %+v\n", prefix, lst)
+	debug.Log("Listing storage content of %s: %+v", prefix, lst)
 	out := make([]string, 0, len(lst))
 	cExt := "." + s.crypto.Ext()
 	for _, path := range lst {
@@ -34,6 +34,7 @@ func (s *Store) List(ctx context.Context, prefix string) ([]string, error) {
 		}
 		out = append(out, path)
 	}
+	debug.Log("Leaf store entries: %+v", out)
 
 	return out, nil
 }

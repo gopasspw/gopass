@@ -21,6 +21,7 @@ func (a *Age) Decrypt(ctx context.Context, ciphertext []byte) ([]byte, error) {
 
 			return []byte(pw), err
 		})
+		ctx = ctxutil.WithPasswordPurgeCallback(ctx, a.askPass.Remove)
 	}
 
 	ids, err := a.getAllIds(ctx)
@@ -64,7 +65,12 @@ func (a *Age) decryptFile(ctx context.Context, filename string) ([]byte, error) 
 		return nil, err
 	}
 
-	return a.decrypt(ciphertext, id)
+	plaintext, err := a.decrypt(ciphertext, id)
+	if err != nil {
+		ctxutil.GetPasswordPurgeCallback(ctx)(filename)
+	}
+
+	return plaintext, err
 }
 
 func (a *Age) getAllIds(ctx context.Context) ([]age.Identity, error) {

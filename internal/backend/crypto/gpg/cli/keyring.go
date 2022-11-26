@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"os"
 	"os/exec"
 	"strings"
 	"text/template"
@@ -12,6 +11,7 @@ import (
 	"github.com/ProtonMail/go-crypto/openpgp"
 	"github.com/gopasspw/gopass/internal/backend/crypto/gpg"
 	"github.com/gopasspw/gopass/internal/backend/crypto/gpg/colons"
+	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/debug"
 )
 
@@ -115,15 +115,19 @@ func (g *GPG) ImportPublicKey(ctx context.Context, buf []byte) error {
 		return fmt.Errorf("empty input")
 	}
 
+	outBuf := &bytes.Buffer{}
+
 	args := append(g.args, "--import")
 	cmd := exec.CommandContext(ctx, g.binary, args...)
 	cmd.Stdin = bytes.NewReader(buf)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+	cmd.Stdout = outBuf
+	cmd.Stderr = outBuf
 
 	debug.Log("gpg.ImportPublicKey: %s %+v", cmd.Path, cmd.Args)
 	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("failed to run command: '%s %+v': %w", cmd.Path, cmd.Args, err)
+		out.Printf(ctx, "GPG import failed: %s", outBuf.String())
+
+		return fmt.Errorf("failed to run command: '%s %+v': %w - %q", cmd.Path, cmd.Args, err, outBuf.String())
 	}
 
 	// clear key cache

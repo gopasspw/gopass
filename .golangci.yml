@@ -1,7 +1,7 @@
 run:
   skip-dirs:
     - helpers/
-  go: 1.18
+  go: 1.19
 
 linters-settings:
   gocyclo:
@@ -10,7 +10,7 @@ linters-settings:
     max-complexity: 22
     skip-tests: true
   staticcheck:
-    go: "1.18"
+    go: "1.19"
     # https://staticcheck.io/docs/options#checks
     checks: ["all","-SA1019"]
   funlen:
@@ -22,8 +22,10 @@ linters:
   disable:
   - bodyclose
   - contextcheck
+  - deadcode
   - durationcheck
   - dupl
+  - dupword
   - exhaustruct
   - exhaustivestruct
   - forbidigo
@@ -41,12 +43,16 @@ linters:
   - gosimple
   - govet
   - interfacer
+  - ifshort
+  - interfacebloat
   - ireturn
   - lll
   - maintidx
   - maligned
   - nilerr
   - noctx
+  - nolintlint
+  - nosnakecase
   - revive
   - rowserrcheck
   - scopelint
@@ -60,6 +66,7 @@ linters:
   - typecheck
   - unparam
   - unused
+  - varcheck
   - varnamelen
   - wastedassign
   - wrapcheck

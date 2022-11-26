@@ -2,23 +2,15 @@ package plain
 
 import (
 	"context"
-	"os"
 	"testing"
 
 	"github.com/blang/semver/v4"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestPlain(t *testing.T) {
 	t.Parallel()
-
-	td, err := os.MkdirTemp("", "gopass-")
-	require.NoError(t, err)
-	defer func() {
-		_ = os.RemoveAll(td)
-	}()
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
@@ -59,8 +51,6 @@ func TestPlain(t *testing.T) {
 	_, err = m.FindIdentities(ctx)
 	assert.NoError(t, err)
 
-	buf, err = m.ExportPublicKey(ctx, "")
-	assert.NoError(t, err)
 	assert.NoError(t, m.ImportPublicKey(ctx, buf))
 	assert.Equal(t, semver.Version{}, m.Version(ctx))
 

@@ -32,9 +32,6 @@ func (s *Action) Edit(c *cli.Context) error {
 
 func (s *Action) edit(ctx context.Context, c *cli.Context, name string) error {
 	ed := editor.Path(c)
-	if err := editor.Check(ctx, ed); err != nil {
-		out.Warningf(ctx, "Failed to check editor config: %s", err)
-	}
 
 	// get existing content or generate new one from a template.
 	name, content, changed, err := s.editGetContent(ctx, name, c.Bool("create"))

@@ -5,6 +5,7 @@ import (
 	"runtime"
 	"testing"
 
+	"github.com/gopasspw/gopass/pkg/appdir"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -13,12 +14,17 @@ func TestPwStoreDirNoEnv(t *testing.T) { //nolint:paralleltest
 		t.Setenv("GOPASS_HOMEDIR", "/tmp")
 	}
 
+	baseDir := filepath.Join(appdir.UserHome(), ".local", "share", "gopass", "stores")
+	if runtime.GOOS == "windows" {
+		baseDir = filepath.Join(appdir.UserHome(), "AppData", "Local", "gopass", "stores")
+	}
+
 	for in, out := range map[string]string{
-		"":                          filepath.Join(Homedir(), ".local", "share", "gopass", "stores", "root"),
-		"work":                      filepath.Join(Homedir(), ".local", "share", "gopass", "stores", "work"),
-		filepath.Join("foo", "bar"): filepath.Join(Homedir(), ".local", "share", "gopass", "stores", "foo-bar"),
+		"":                          filepath.Join(baseDir, "root"),
+		"work":                      filepath.Join(baseDir, "work"),
+		filepath.Join("foo", "bar"): filepath.Join(baseDir, "foo-bar"),
 	} {
-		assert.Equal(t, out, PwStoreDir(in), in)
+		assert.Equal(t, out, PwStoreDir(in), in, "mount "+in)
 	}
 }
 

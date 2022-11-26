@@ -20,8 +20,10 @@ func copyToClipboard(ctx context.Context, content []byte) error {
 	// first try to copy via osascript, if that fails fallback to pbcopy
 	if err := copyViaOsascript(ctx, password); err != nil {
 		debug.Log("failed to copy via osascript: %s", err)
+
 		return clipboard.WriteAll(password)
 	}
+
 	return nil
 }
 
@@ -58,8 +60,8 @@ func copyViaOsascript(ctx context.Context, password string) error {
 	// TODO: We might be able to use `cmd.Stdin = strings.NewReader(password)` instead
 	cmd.ExtraFiles = []*os.File{r} // Receiving end of pipes is connected to fd#3
 	go func() {
-		defer w.Close()
-		io.WriteString(w, password) // Write the password to fd#3
+		defer w.Close()                    //nolint:errcheck
+		_, _ = io.WriteString(w, password) // Write the password to fd#3
 	}()
 
 	out, err := cmd.Output()
@@ -73,5 +75,6 @@ func copyViaOsascript(ctx context.Context, password string) error {
 		return fmt.Errorf("osascript failed to set password: %s", string(out))
 	}
 	debug.Log("copied via osascript")
+
 	return nil
 }

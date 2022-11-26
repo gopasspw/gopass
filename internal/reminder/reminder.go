@@ -25,7 +25,8 @@ func New() (*Store, error) {
 	}, nil
 }
 
-func (s *Store) lastSeen(key string) time.Time {
+// LastSeen returns the time when the key was last reset.
+func (s *Store) LastSeen(key string) time.Time {
 	t := time.Time{}
 	if s == nil {
 		return t
@@ -70,11 +71,11 @@ func (s *Store) Overdue(key string) bool {
 		return false
 	}
 
-	if time.Since(s.lastSeen("overdue")) < 24*time.Hour {
+	if time.Since(s.LastSeen("overdue")) < 24*time.Hour {
 		return false
 	}
 
 	_ = s.Reset("overdue")
 
-	return time.Since(s.lastSeen(key)) > 90*24*time.Hour
+	return time.Since(s.LastSeen(key)) > 90*24*time.Hour
 }

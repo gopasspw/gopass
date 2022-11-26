@@ -37,6 +37,7 @@ func (s *Action) IsInitialized(c *cli.Context) error {
 	if inited {
 		debug.Log("Store is fully initialized and ready to go\n\nAll systems go. 🚀\n")
 		s.printReminder(ctx)
+		_ = s.autoSync(ctx)
 
 		return nil
 	}
@@ -162,12 +163,6 @@ func (s *Action) init(ctx context.Context, alias, path string, keys ...string) e
 		debug.Log("RCS initialized as %s", s.Store.Storage(ctx, alias).Name())
 	} else {
 		debug.Log("not initializing RCS backend ...")
-	}
-
-	// write config.
-	debug.Log("Writing configuration to %q", s.cfg.ConfigPath)
-	if err := s.cfg.Save(); err != nil {
-		return exit.Error(exit.Config, err, "failed to write config: %s", err)
 	}
 
 	out.Printf(ctx, "🏁 Password store %s initialized for:", path)

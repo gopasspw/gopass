@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/gopasspw/gopass/internal/action/exit"
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/notify"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
@@ -49,7 +50,7 @@ func showParseArgs(c *cli.Context) context.Context {
 	}
 
 	if c.IsSet("noparsing") {
-		ctx = ctxutil.WithShowParsing(ctx, !c.Bool("noparsing"))
+		_ = config.FromContext(ctx).SetEnv("core.parsing", fmt.Sprintf("%t", !c.Bool("noparsing")))
 	}
 
 	if c.IsSet("chars") {
@@ -182,8 +183,8 @@ func (s *Action) showHandleOutput(ctx context.Context, name string, sec gopass.S
 	}
 
 	if pw == "" && body == "" {
-		if ctxutil.IsShowSafeContent(ctx) && !ctxutil.IsForce(ctx) {
-			out.Warning(ctx, "safecontent=true. Use -f to display password, if any")
+		if config.Bool(ctx, "core.showsafecontent") && !ctxutil.IsForce(ctx) {
+			out.Warning(ctx, "core.showsafecontent=true. Use -f to display password, if any")
 		}
 
 		return exit.Error(exit.NotFound, store.ErrEmptySecret, store.ErrEmptySecret.Error())
@@ -195,8 +196,8 @@ func (s *Action) showHandleOutput(ctx context.Context, name string, sec gopass.S
 		}
 	}
 
-	if IsClip(ctx) && pw != "" {
-		if err := clipboard.CopyTo(ctx, name, []byte(pw), s.cfg.ClipTimeout); err != nil {
+	if (IsClip(ctx) || config.Bool(ctx, "core.showautoclip")) && pw != "" {
+		if err := clipboard.CopyTo(ctx, name, []byte(pw), s.cfg.GetInt("core.cliptimeout")); err != nil {
 			return err
 		}
 	}
@@ -210,7 +211,7 @@ func (s *Action) showHandleOutput(ctx context.Context, name string, sec gopass.S
 		header := fmt.Sprintf("Secret: %s\n", name)
 		if HasKey(ctx) {
 			header += fmt.Sprintf("Key: %s\n", GetKey(ctx))
-		} else if ctxutil.IsShowParsing(ctx) {
+		} else if config.Bool(ctx, "core.parsing") {
 			out.Warning(ctx, "Parsing is enabled. Use -n to disable.")
 		}
 		out.Print(ctx, header)
@@ -224,7 +225,7 @@ func (s *Action) showHandleOutput(ctx context.Context, name string, sec gopass.S
 
 func (s *Action) showGetContent(ctx context.Context, sec gopass.Secret) (string, string, error) {
 	// YAML key.
-	if HasKey(ctx) && ctxutil.IsShowParsing(ctx) {
+	if HasKey(ctx) && config.Bool(ctx, "core.parsing") {
 		key := GetKey(ctx)
 		values, found := sec.Values(key)
 		if !found {
@@ -255,8 +256,8 @@ func (s *Action) showGetContent(ctx context.Context, sec gopass.Secret) (string,
 	}
 
 	// everything but the first line.
-	if ctxutil.IsShowSafeContent(ctx) && !ctxutil.IsForce(ctx) {
-		body := showSafeContent(ctx, sec)
+	if config.Bool(ctx, "core.showsafecontent") && !ctxutil.IsForce(ctx) {
+		body := showSafeContent(sec)
 		if IsAlsoClip(ctx) {
 			return pw, body, nil
 		}
@@ -268,7 +269,7 @@ func (s *Action) showGetContent(ctx context.Context, sec gopass.Secret) (string,
 	return sec.Password(), fullBody, nil
 }
 
-func showSafeContent(ctx context.Context, sec gopass.Secret) string {
+func showSafeContent(sec gopass.Secret) string {
 	var sb strings.Builder
 	for i, k := range sec.Keys() {
 		sb.WriteString(k)
@@ -327,7 +328,7 @@ func (s *Action) hasAliasDomain(ctx context.Context, name string) string {
 	p := strings.Split(name, "/")
 	for i := len(p) - 1; i > 0; i-- {
 		d := p[i]
-		for _, alias := range pwrules.LookupAliases(d) {
+		for _, alias := range pwrules.LookupAliases(ctx, d) {
 			sn := append(p[0:i], alias)
 			sn = append(sn, p[i+1:]...)
 			aliasName := strings.Join(sn, "/")

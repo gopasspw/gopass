@@ -5,18 +5,16 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"regexp"
 	"runtime"
 	"strings"
 
 	"github.com/fatih/color"
-	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
-	"github.com/gopasspw/gopass/pkg/fsutil"
 	"github.com/gopasspw/gopass/pkg/tempfile"
 	shellquote "github.com/kballard/go-shellquote"
 )
@@ -27,46 +25,8 @@ var (
 	// Stdout is exported for tests.
 	Stdout io.Writer = os.Stdout
 	// Stderr is exported for tests.
-	Stderr    io.Writer = os.Stderr
-	vimOptsRe           = regexp.MustCompile(`au\s+BufNewFile,BufRead\s+.*gopass.*setlocal\s+noswapfile\s+nobackup\s+noundofile`)
+	Stderr io.Writer = os.Stderr
 )
-
-// Check will validate the editor config.
-func Check(ctx context.Context, editor string) error {
-	if !strings.Contains(editor, "vi") {
-		return nil
-	}
-
-	uhd, err := os.UserHomeDir()
-	if err != nil {
-		return err
-	}
-
-	vrc := filepath.Join(uhd, ".vimrc")
-	if runtime.GOOS == "windows" {
-		vrc = filepath.Join(uhd, "_vimrc")
-	}
-
-	if !fsutil.IsFile(vrc) {
-		return nil
-	}
-
-	buf, err := os.ReadFile(vrc)
-	if err != nil {
-		return err
-	}
-
-	if vimOptsRe.Match(buf) {
-		debug.Log("Recommended settings found in %s", vrc)
-
-		return nil
-	}
-
-	debug.Log("%s did not match %s", string(buf), vimOptsRe)
-	out.Warningf(ctx, "Vim might leak credentials. Check your setup.\nhttps://github.com/gopasspw/gopass/blob/master/docs/setup.md#securing-your-editor")
-
-	return nil
-}
 
 // Invoke will start the given editor and return the content.
 func Invoke(ctx context.Context, editor string, content []byte) ([]byte, error) {
@@ -93,7 +53,7 @@ func Invoke(ctx context.Context, editor string, content []byte) ([]byte, error) 
 		return []byte{}, fmt.Errorf("failed to close tmpfile to start with %s %v: %w", editor, tmpfile.Name(), err)
 	}
 
-	var args []string
+	args := make([]string, 0, 4)
 	if runtime.GOOS != "windows" {
 		cmdArgs, err := shellquote.Split(editor)
 		if err != nil {
@@ -101,10 +61,11 @@ func Invoke(ctx context.Context, editor string, content []byte) ([]byte, error) 
 		}
 
 		editor = cmdArgs[0]
-		args = append(cmdArgs[1:], tmpfile.Name())
-	} else {
-		args = []string{tmpfile.Name()}
+		args = append(args, cmdArgs[1:]...)
+		args = append(args, vimOptions(resolveEditor(editor))...)
 	}
+
+	args = append(args, tmpfile.Name())
 
 	cmd := exec.Command(editor, args...)
 	cmd.Stdin = Stdin
@@ -127,4 +88,80 @@ func Invoke(ctx context.Context, editor string, content []byte) ([]byte, error) 
 	nContent = bytes.ReplaceAll(nContent, []byte("\r"), []byte("\n"))
 
 	return nContent, nil
+}
+
+func vimOptions(editor string) []string {
+	if editor != "vi" && editor != "vim" && editor != "neovim" && !isVim(editor) {
+		debug.Log("Editor %s is not known to be vim compatible", editor)
+
+		return []string{}
+	}
+
+	path := "/dev/shm/gopass*"
+	if runtime.GOOS == "darwin" {
+		path = "/private/**/gopass**"
+	}
+	viminfo := `viminfo=""`
+	if editor == "neovim" {
+		viminfo = `shada=""`
+	}
+
+	args := []string{
+		"-c",
+		fmt.Sprintf("autocmd BufNewFile,BufRead %s setlocal noswapfile nobackup noundofile %s", path, viminfo),
+	}
+	args = append(args, "-i", "NONE") // disable viminfo
+	args = append(args, "-n")         // disable swap
+
+	return args
+}
+
+// isVim tries to identify the vi variant as vim compatible or not.
+func isVim(editor string) bool {
+	if editor == "neovim" {
+		return true
+	}
+
+	cmd := exec.Command(editor, "--version")
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return false
+	}
+
+	return strings.Contains(string(out), "VIM - Vi IMproved")
+}
+
+// resolveEditor tries to resolve the final link destination of the editor name given
+// and then extract the binary file name from the path. In practice the actual editor
+// is often hidden behing several layers of indirection and we want to get an idea
+// which options might work.
+func resolveEditor(editor string) string {
+	path, err := exec.LookPath(editor)
+	if err != nil {
+		debug.Log("failed to look up editor binary: %s", err)
+
+		return editor
+	}
+
+	for {
+		fi, err := os.Stat(path)
+		if err != nil {
+			debug.Log("failed to resolve %s: %s", path, err)
+
+			return editor
+		}
+
+		if fi.Mode()&fs.ModeSymlink != fs.ModeSymlink {
+			// not a symlink
+			break
+		}
+
+		path, err = os.Readlink(path)
+		if err != nil {
+			debug.Log("failed to read link %s: %s", path, err)
+		}
+	}
+
+	// return the binary name only
+	return filepath.Base(path)
 }

@@ -26,8 +26,9 @@ func TestCopy(t *testing.T) { //nolint:paralleltest
 	act, err := newMock(ctx, u.StoreDir(""))
 	require.NoError(t, err)
 	require.NotNil(t, act)
+	ctx = act.cfg.WithConfig(ctx)
 
-	act.cfg.AutoClip = false
+	require.NoError(t, act.cfg.Set("", "core.autoclip", "false"))
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
@@ -109,8 +110,9 @@ func TestCopyGpg(t *testing.T) { //nolint:paralleltest
 	act, err := newMock(ctx, u.StoreDir(""))
 	require.NoError(t, err)
 	require.NotNil(t, act)
+	ctx = act.cfg.WithConfig(ctx)
 
-	act.cfg.AutoClip = false
+	require.NoError(t, act.cfg.Set("", "core.autoclip", "false"))
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf

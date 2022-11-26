@@ -15,6 +15,7 @@ const (
 	ctxKeyCheckRecipients
 	ctxKeyFsckDecrypt
 	ctxKeyNoGitOps
+	ctxKeyPubkeyUpdate
 )
 
 // WithFsckCheck returns a context with the flag for fscks check set.
@@ -130,6 +131,18 @@ func WithNoGitOps(ctx context.Context, d bool) context.Context {
 // or the default (false).
 func IsNoGitOps(ctx context.Context) bool {
 	return is(ctx, ctxKeyNoGitOps, false)
+}
+
+// IsPubkeyUpdate returns true if we should update all exported
+// recipients pub keys.
+func IsPubkeyUpdate(ctx context.Context) bool {
+	return is(ctx, ctxKeyPubkeyUpdate, false)
+}
+
+// WithPubkeyUpdate returns a context with the selection to update
+// all exported recipients pub keys set.
+func WithPubkeyUpdate(ctx context.Context, d bool) context.Context {
+	return context.WithValue(ctx, ctxKeyPubkeyUpdate, d)
 }
 
 // hasBool is a helper function for checking if a bool has been set in

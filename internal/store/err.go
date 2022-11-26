@@ -22,7 +22,7 @@ var (
 	// ErrGitNothingToCommit is returned if there are no staged changes.
 	ErrGitNothingToCommit = fmt.Errorf("git has nothing to commit")
 	// ErrEmptySecret is returned if a secret exists but has no content.
-	ErrEmptySecret = fmt.Errorf("empty secret")
+	ErrEmptySecret = fmt.Errorf("empty secret. see https://go.gopass.pw/faq#empty-secret")
 	// ErrMeaninglessWrite is returned if a secret is overwritten with its current (cyphertext) content
 	ErrMeaninglessWrite = fmt.Errorf("meaningless write")
 	// ErrNoBody is returned if a secret exists but has no content beyond a password.

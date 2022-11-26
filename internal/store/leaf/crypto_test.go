@@ -16,11 +16,7 @@ func TestGPG(t *testing.T) {
 
 	ctx := context.Background()
 
-	tempdir, err := os.MkdirTemp("", "gopass-")
-	require.NoError(t, err)
-	defer func() {
-		_ = os.RemoveAll(tempdir)
-	}()
+	tempdir := t.TempDir()
 
 	obuf := &bytes.Buffer{}
 	out.Stdout = obuf

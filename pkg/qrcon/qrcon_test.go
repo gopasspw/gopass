@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func ExampleQRCode() {
+func ExampleQRCode() { //nolint:testableexamples
 	code, err := QRCode("foo")
 	if err != nil {
 		panic(err)

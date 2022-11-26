@@ -14,13 +14,7 @@ import (
 )
 
 func TestGitConfig(t *testing.T) { //nolint:paralleltest
-	td, err := os.MkdirTemp("", "gopass-")
-	require.NoError(t, err)
-	defer func() {
-		_ = os.RemoveAll(td)
-	}()
-
-	gitdir := filepath.Join(td, "git")
+	gitdir := filepath.Join(t.TempDir(), "git")
 	require.NoError(t, os.Mkdir(gitdir, 0o755))
 
 	ctx := context.Background()

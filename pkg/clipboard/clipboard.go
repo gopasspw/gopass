@@ -98,6 +98,20 @@ func killProc(pid int) {
 	if err != nil {
 		return
 	}
-	// we ignore this error as we're going to return nil anyway
-	_ = proc.Kill()
+
+	if err := proc.Kill(); err != nil {
+		debug.Log("failed to kill %d: %s", pid, err)
+
+		return
+	}
+
+	// wait for the process to actually exit to avoid zombie processes
+	ps, err := proc.Wait()
+	if err != nil {
+		debug.Log("failed to wait for %d: %s", pid, err)
+
+		return
+	}
+
+	debug.Log("killed process exited with %d", ps.ExitCode())
 }

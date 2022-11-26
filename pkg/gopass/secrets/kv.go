@@ -51,30 +51,32 @@ func NewKVWithData(pw string, kvps map[string][]string, body string, converted b
 // ------
 // Line | Description
 // ---- | -----------
-//    0 | Password. Must contain the "password" or be empty. Can not be omitted.
-//  1-n | Key-Value pairs, e.g. "key: value". Can be omitted but the secret
-//      | might get parsed as a "Plain" secret if zero key-value pairs are found.
-//  n+1 | Body. Can contain any number of characters that will be parsed as
-//      | UTF-8 and appended to an internal string. Note: Technically this can
-//      | be any kind of binary data but we neither support nor test this with
-//      | non-text data. Also we do not intent do support any kind of streaming
-//      | access, i.e. this is not intended for huge files.
+//
+//	  0 | Password. Must contain the "password" or be empty. Can not be omitted.
+//	1-n | Key-Value pairs, e.g. "key: value". Can be omitted but the secret
+//	    | might get parsed as a "Plain" secret if zero key-value pairs are found.
+//	n+1 | Body. Can contain any number of characters that will be parsed as
+//	    | UTF-8 and appended to an internal string. Note: Technically this can
+//	    | be any kind of binary data but we neither support nor test this with
+//	    | non-text data. Also we do not intent do support any kind of streaming
+//	    | access, i.e. this is not intended for huge files.
 //
 // Example
 // -------
 // Line | Content
 // ---- | -------
-//    0 | foobar
-//    1 | hello: world
-//    2 | gopass: secret
-//    3 | Yo
-//    4 | Hi
+//
+//	0 | foobar
+//	1 | hello: world
+//	2 | gopass: secret
+//	3 | Yo
+//	4 | Hi
 //
 // This would be parsed as a KV secret that contains:
 //   - password: "foobar"
 //   - key-value pairs:
-//     - "hello": "world"
-//     - "gopass": "secret"
+//   - "hello": "world"
+//   - "gopass": "secret"
 //   - body: "Yo\nHi"
 type KV struct {
 	password string

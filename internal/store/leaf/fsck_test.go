@@ -9,17 +9,14 @@ import (
 	"github.com/gopasspw/gopass/internal/backend/crypto/plain"
 	"github.com/gopasspw/gopass/internal/backend/storage/fs"
 	"github.com/gopasspw/gopass/internal/out"
-	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/gopass/secrets"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestFsck(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	ctx = ctxutil.WithExportKeys(ctx, false)
 
 	obuf := &bytes.Buffer{}
 	out.Stdout = obuf
@@ -28,8 +25,7 @@ func TestFsck(t *testing.T) {
 	}()
 
 	// common setup
-	tempdir, err := os.MkdirTemp("", "gopass-")
-	require.NoError(t, err)
+	tempdir := t.TempDir()
 
 	s := &Store{
 		alias:   "",
@@ -47,9 +43,6 @@ func TestFsck(t *testing.T) {
 
 	assert.NoError(t, s.Fsck(ctx, ""))
 	obuf.Reset()
-
-	// common tear down
-	_ = os.RemoveAll(tempdir)
 }
 
 func TestCompareStringSlices(t *testing.T) {

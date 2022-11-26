@@ -14,11 +14,9 @@ func TestTree(t *testing.T) {
 
 	assert.True(t, t1.Equals(t2))
 
-	_, err := t1.Insert(&Node{Name: "foo"})
-	assert.NoError(t, err)
+	_ = t1.Insert(&Node{Name: "foo"})
 	assert.False(t, t1.Equals(t2))
 
-	_, err = t2.Insert(&Node{Name: "foo"})
-	assert.NoError(t, err)
+	_ = t2.Insert(&Node{Name: "foo"})
 	assert.True(t, t1.Equals(t2))
 }

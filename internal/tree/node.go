@@ -2,12 +2,14 @@ package tree
 
 import (
 	"bytes"
+
+	"github.com/gopasspw/gopass/pkg/debug"
 )
 
 // Node is a tree node.
 type Node struct {
 	Name     string
-	Type     string
+	Leaf     bool
 	Template bool
 	Mount    bool
 	Path     string
@@ -40,7 +42,7 @@ func (n Node) Equals(other Node) bool {
 		return false
 	}
 
-	if n.Type != other.Type {
+	if n.Leaf != other.Leaf {
 		return false
 	}
 
@@ -57,6 +59,61 @@ func (n Node) Equals(other Node) bool {
 	}
 
 	return true
+}
+
+// Merge will merge two nodes into a new node. Does not change either of the two
+// input nodes. The merged node will be in the returned node. Implements semantics
+// specific to gopass' tree model, i.e. mounts shadow (erase) everything below
+// a mount point, nodes within a tree can be leafs (i.e. contain a secret as well
+// as subdirectories) and any node can also contain a template.
+func (n Node) Merge(other Node) *Node {
+	r := Node{
+		Name:     n.Name,
+		Leaf:     n.Leaf,
+		Template: n.Template,
+		Mount:    n.Mount,
+		Path:     n.Path,
+		Subtree:  n.Subtree,
+	}
+
+	// During a merge we can't change the name.
+
+	// If either of the nodes is a leaf (i.e. contains a secret) the
+	// merged node will be a leaf.
+	if other.Leaf {
+		r.Leaf = true
+	}
+
+	// If either node has a template the merged has a template, too.
+	if other.Template {
+		r.Template = true
+	}
+
+	// Handling of mounts is a bit more tricky. See the comment above.
+	// If we're adding a mount to the tree this shadows (erases) everything
+	// that was on this branch before a replaces it with the mount.
+	// Think of Unix mount semantics here.
+	if other.Mount {
+		r.Mount = true
+		// anything at the mount point, including a secret at the root
+		// of the mount point will become inaccessible.
+		r.Leaf = false
+		r.Path = other.Path
+		// existing templates will become invisible
+		r.Template = false
+		// the subtree from the mount overlays (shadows) the original tree
+		r.Subtree = other.Subtree
+	}
+	// Merging can't change the path (except a mount, see above)
+	// If the other node has a subtree we use that, otherwise
+	// this method shouldn't have been called in the first place.
+	if r.Subtree == nil && other.Subtree != nil {
+		r.Subtree = other.Subtree
+	}
+
+	debug.Log("merged %+v and %+v into %+v", n, other, r)
+
+	return &r
 }
 
 // format returns a pretty printed string of all nodes in and below
@@ -86,7 +143,7 @@ func (n *Node) format(prefix string, last bool, maxDepth, curDepth int) string {
 	switch {
 	case n.Mount:
 		_, _ = out.WriteString(colMount(n.Name + " (" + n.Path + ")"))
-	case n.Type == "dir":
+	case n.Subtree != nil:
 		_, _ = out.WriteString(colDir(n.Name + sep))
 	default:
 		_, _ = out.WriteString(n.Name)
@@ -94,6 +151,10 @@ func (n *Node) format(prefix string, last bool, maxDepth, curDepth int) string {
 	// mark templates
 	if n.Template {
 		_, _ = out.WriteString(" " + colTpl("(template)"))
+	}
+	// mark shadowed entries
+	if n.Leaf && n.Subtree != nil && !n.Mount {
+		_, _ = out.WriteString(" " + colShadow("(shadowed)"))
 	}
 	// finish this output
 	_, _ = out.WriteString("\n")
@@ -113,12 +174,18 @@ func (n *Node) format(prefix string, last bool, maxDepth, curDepth int) string {
 
 // Len returns the length of this subtree.
 func (n *Node) Len() int {
-	if n.Type == "file" {
+	if n.Subtree == nil {
 		return 1
 	}
 
 	var l int
 
+	// this node might point to a secret itself so we must account for that
+	if n.Leaf {
+		l++
+	}
+
+	// and for any secret it's subtree might contain
 	for _, t := range n.Subtree.Nodes {
 		l += t.Len()
 	}
@@ -137,17 +204,17 @@ func (n *Node) list(prefix string, maxDepth, curDepth int, files bool) []string 
 
 	prefix += n.Name
 
+	out := make([]string, 0, n.Len())
 	// if it's a file and we are looking for files
-	if n.Type == "file" && files {
+	if n.Leaf && !n.Mount && files {
 		// we return the file
-		return []string{prefix}
-	} else if curDepth == maxDepth && n.Type != "file" {
+		out = append(out, prefix)
+	} else if curDepth == maxDepth && n.Subtree != nil {
 		// otherwise if we are "at the bottom" and it's not a file
 		// we return the directory name with a separator at the end
 		return []string{prefix + sep}
 	}
 
-	out := make([]string, 0, n.Len())
 	// if we don't have subitems, then it's a leaf and we return
 	// (notice that this is what ends the recursion when maxDepth is set to -1)
 	if n.Subtree == nil {

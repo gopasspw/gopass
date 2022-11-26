@@ -11,5 +11,4 @@
 // * https://github.com/gopasspw/gopass-jsonapi
 // * https://github.com/gopasspw/git-credential-gopass
 // * https://github.com/gopasspw/gopass-summon-provider
-//
 package gopass

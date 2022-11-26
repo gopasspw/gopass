@@ -80,9 +80,9 @@ install: all install-completion install-man
 
 install-completion:
 	@install -d $(DESTDIR)$(PREFIX)/share/zsh/site-functions $(DESTDIR)$(PREFIX)/share/bash-completion/completions $(DESTDIR)$(PREFIX)/share/fish/vendor_completions.d
-	@install -m 0755 $(ZSH_COMPLETION_OUTPUT) $(DESTDIR)$(PREFIX)/share/zsh/site-functions/_gopass
-	@install -m 0755 $(BASH_COMPLETION_OUTPUT) $(DESTDIR)$(PREFIX)/share/bash-completion/completions/gopass
-	@install -m 0755 $(FISH_COMPLETION_OUTPUT) $(DESTDIR)$(PREFIX)/share/fish/vendor_completions.d/gopass.fish
+	@install -m 0644 $(ZSH_COMPLETION_OUTPUT) $(DESTDIR)$(PREFIX)/share/zsh/site-functions/_gopass
+	@install -m 0644 $(BASH_COMPLETION_OUTPUT) $(DESTDIR)$(PREFIX)/share/bash-completion/completions/gopass
+	@install -m 0644 $(FISH_COMPLETION_OUTPUT) $(DESTDIR)$(PREFIX)/share/fish/vendor_completions.d/gopass.fish
 	@printf '%s\n' '$(OK)'
 
 install-man: gopass.1
@@ -110,7 +110,7 @@ test-win: $(GOPASS_OUTPUT)
 		$(GO) test -test.short -run '(Test|Example)' $(pkg) || exit 1;)
 
 test-integration: $(GOPASS_OUTPUT)
-	cd tests && GOPASS_BINARY=$(PWD)/$(GOPASS_OUTPUT) GOPASS_TEST_DIR=$(PWD)/tests $(GO) test -v
+	cd tests && GOPASS_BINARY=$(PWD)/$(GOPASS_OUTPUT) GOPASS_TEST_DIR=$(PWD)/tests $(GO) test -v $(TESTFLAGS)
 
 crosscompile:
 	@echo -n ">> CROSSCOMPILE linux/amd64"
@@ -139,6 +139,14 @@ codequality:
 
 	@printf '%s\n' '$(OK)'
 
+	@echo -n "     LICENSE-LINT "
+	@which license-lint > /dev/null; if [ $$? -ne 0 ]; then \
+		$(GO) install istio.io/tools/cmd/license-lint@latest; \
+	fi
+	@license-lint --config .license-lint.yml >/dev/null || exit 1
+
+	@printf '%s\n' '$(OK)'
+
 gen:
 	@$(GO) generate ./...
 
@@ -160,4 +168,7 @@ man:
 msi:
 	@$(GO) run helpers/msipkg/main.go
 
-.PHONY: clean build completion install sysinfo crosscompile test codequality release goreleaser debsign man msi
+docker:
+	docker build -t gopass:latest .
+
+.PHONY: clean build completion install sysinfo crosscompile test codequality release goreleaser debsign man msi docker

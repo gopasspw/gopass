@@ -19,13 +19,6 @@ _gopass () {
 	      
 	      ;;
 	  alias)
-	      local -a subcommands
-	      subcommands=(
-	      "add:Add a new alias"
-	      "remove:Remove an alias from a domain"
-	      "delete:Delete an entire domain"
-	      )
-	      _describe -t commands "gopass alias" subcommands
 	      
 	      
 	      
@@ -52,9 +45,10 @@ _gopass () {
 	      "zsh:Source for auto completion in zsh"
 	      "fish:Source for auto completion in fish"
 	      "openbsdksh:Source for auto completion in OpenBSD's ksh"
+	      "help:Shows a list of commands or help for one command"
 	      )
 	      _describe -t commands "gopass completion" subcommands
-	      
+	      _arguments : "--help[show help]"
 	      
 	      
 	      ;;

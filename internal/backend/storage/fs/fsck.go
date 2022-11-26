@@ -9,7 +9,6 @@ import (
 	"syscall"
 
 	"github.com/gopasspw/gopass/internal/out"
-	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/fsutil"
 	"github.com/gopasspw/gopass/pkg/termio"
@@ -17,8 +16,6 @@ import (
 
 // Fsck checks the storage integrity.
 func (s *Store) Fsck(ctx context.Context) error {
-	pcb := ctxutil.GetProgressCallback(ctx)
-
 	entries, err := s.List(ctx, "")
 	if err != nil {
 		return err
@@ -26,7 +23,6 @@ func (s *Store) Fsck(ctx context.Context) error {
 
 	dirs := make(map[string]struct{}, len(entries))
 	for _, entry := range entries {
-		pcb()
 		debug.Log("checking entry %q", entry)
 
 		filename := filepath.Join(s.path, entry)

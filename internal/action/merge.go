@@ -10,7 +10,6 @@ import (
 	"github.com/gopasspw/gopass/internal/audit"
 	"github.com/gopasspw/gopass/internal/editor"
 	"github.com/gopasspw/gopass/internal/store"
-	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/queue"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
@@ -33,9 +32,6 @@ func (s *Action) Merge(c *cli.Context) error {
 	}
 
 	ed := editor.Path(c)
-	if err := editor.Check(ctx, ed); err != nil {
-		out.Warningf(ctx, "Failed to check editor config: %s", err)
-	}
 
 	content := &bytes.Buffer{}
 	for _, k := range c.Args().Slice() {

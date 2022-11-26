@@ -18,11 +18,7 @@ func TestClone(t *testing.T) {
 
 	ctx := context.Background()
 
-	td, err := os.MkdirTemp("", "gopass-")
-	require.NoError(t, err)
-	defer func() {
-		_ = os.RemoveAll(td)
-	}()
+	td := t.TempDir()
 
 	repo := filepath.Join(td, "repo")
 	require.NoError(t, os.MkdirAll(repo, 0o700))
@@ -43,11 +39,7 @@ func TestInitRCS(t *testing.T) {
 
 	ctx := context.Background()
 
-	td, err := os.MkdirTemp("", "gopass-")
-	require.NoError(t, err)
-	defer func() {
-		_ = os.RemoveAll(td)
-	}()
+	td := t.TempDir()
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
