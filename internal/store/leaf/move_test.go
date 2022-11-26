@@ -9,6 +9,7 @@ import (
 	plain "github.com/gopasspw/gopass/internal/backend/crypto/plain"
 	"github.com/gopasspw/gopass/internal/backend/storage/fs"
 	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/internal/recipients"
 	"github.com/gopasspw/gopass/pkg/gopass/secrets"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -88,7 +89,9 @@ func TestCopy(t *testing.T) {
 				storage: fs.New(tempdir),
 			}
 
-			assert.NoError(t, s.saveRecipients(ctx, []string{"john.doe"}, "test"))
+			rs := recipients.New()
+			rs.Add("john.doe")
+			assert.NoError(t, s.saveRecipients(ctx, rs, "test"))
 
 			// run test case
 			t.Run(tc.name, tc.tf(s))
@@ -170,8 +173,10 @@ func TestMove(t *testing.T) {
 				storage: fs.New(tempdir),
 			}
 
-			err := s.saveRecipients(ctx, []string{"john.doe"}, "test")
-			require.NoError(t, err)
+			rs := recipients.New()
+			rs.Add("john.doe")
+
+			require.NoError(t, s.saveRecipients(ctx, rs, "test"))
 
 			// run test case
 			t.Run(tc.name, tc.tf(s))
@@ -235,8 +240,10 @@ func TestDelete(t *testing.T) {
 				storage: fs.New(tempdir),
 			}
 
-			err := s.saveRecipients(ctx, []string{"john.doe"}, "test")
-			require.NoError(t, err)
+			rs := recipients.New()
+			rs.Add("john.doe")
+
+			require.NoError(t, s.saveRecipients(ctx, rs, "test"))
 
 			// run test case
 			t.Run(tc.name, tc.tf(s))
@@ -323,8 +330,10 @@ func TestPrune(t *testing.T) {
 				storage: fs.New(tempdir),
 			}
 
-			err := s.saveRecipients(ctx, []string{"john.doe"}, "test")
-			assert.NoError(t, err)
+			rs := recipients.New()
+			rs.Add("john.doe")
+
+			require.NoError(t, s.saveRecipients(ctx, rs, "test"))
 
 			// run test case
 			t.Run(tc.name, tc.tf(s))

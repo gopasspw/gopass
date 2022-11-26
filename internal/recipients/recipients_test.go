@@ -31,8 +31,12 @@ func TestMarshal(t *testing.T) {
 		t.Run(tc.want, func(t *testing.T) {
 			t.Parallel()
 
+			r := New()
 			sort.Strings(tc.in)
-			got := string(Marshal(tc.in))
+			for _, k := range tc.in {
+				r.Add(k)
+			}
+			got := string(r.Marshal())
 			assert.Equal(t, tc.want, got, tc.want)
 		})
 	}
@@ -74,9 +78,66 @@ func TestUnmarshal(t *testing.T) {
 		t.Run(tc.in, func(t *testing.T) {
 			t.Parallel()
 
-			got := Unmarshal([]byte(tc.in))
+			r := Unmarshal([]byte(tc.in))
+			sort.Strings(tc.want)
+
+			got := r.IDs()
 			sort.Strings(got)
+
 			assert.Equal(t, tc.want, got, tc.in)
+		})
+	}
+}
+
+func TestEndToEnd(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name string
+		in   string
+		op   func(r *Recipients) error
+		out  string
+	}{
+		{
+			name: "simple",
+			in:   "0xDEADBEEF",
+			op: func(r *Recipients) error {
+				r.Add("0xFEEDBEEF")
+
+				return nil
+			},
+			out: "0xDEADBEEF\n0xFEEDBEEF\n",
+		},
+		{
+			name: "comments",
+			in: `0xDEADBEEF # john doe
+
+# some disabled ones
+# 0xFOOBAR
+
+0xFEEDBEEF
+`,
+			op: func(r *Recipients) error {
+				r.Remove("0xFEEDBEEF")
+
+				return nil
+			},
+			out: `0xDEADBEEF # john doe
+
+# some disabled ones
+# 0xFOOBAR
+
+`,
+		},
+	} {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			r := Unmarshal([]byte(tc.in))
+			assert.NoError(t, tc.op(r))
+			buf := r.Marshal()
+			assert.Equal(t, tc.out, string(buf))
 		})
 	}
 }
