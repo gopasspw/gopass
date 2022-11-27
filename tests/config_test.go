@@ -19,7 +19,6 @@ func TestBaseConfig(t *testing.T) { //nolint:paralleltest
 core.cliptimeout = 45
 core.exportkeys = false
 core.notifications = true
-core.parsing = true
 `
 	wanted += "mounts.path = " + ts.storeDir("root")
 
@@ -28,7 +27,6 @@ core.parsing = true
 	invertables := []string{
 		"core.autoimport",
 		"core.showsafecontent",
-		"core.parsing",
 	}
 
 	for _, invert := range invertables { //nolint:paralleltest
@@ -69,7 +67,6 @@ func TestMountConfig(t *testing.T) { //nolint:paralleltest
 core.cliptimeout = 45
 core.exportkeys = false
 core.notifications = true
-core.parsing = true
 `
 	wanted += "mounts.mnt/m1.path = " + ts.storeDir("m1") + "\n"
 	wanted += "mounts.path = " + ts.storeDir("root") + "\n"

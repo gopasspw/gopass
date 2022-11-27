@@ -52,7 +52,7 @@ func (s *Action) editUpdate(ctx context.Context, name string, content, nContent 
 		return nil
 	}
 
-	nSec := secrets.ParsePlain(nContent)
+	nSec := secrets.ParseAKV(nContent)
 
 	// if the secret has a password, we check it's strength.
 	if pw := nSec.Password(); pw != "" {
@@ -78,8 +78,7 @@ func (s *Action) editGetContent(ctx context.Context, name string, create bool) (
 
 	// edit existing entry.
 	if s.Store.Exists(ctx, name) {
-		// we make sure we are not parsing the content of the file when editing.
-		sec, err := s.Store.Get(ctxutil.WithShowParsing(ctx, false), name)
+		sec, err := s.Store.Get(ctx, name)
 		if err != nil {
 			return name, nil, false, exit.Error(exit.Decrypt, err, "failed to decrypt %s: %s", name, err)
 		}

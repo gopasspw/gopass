@@ -29,7 +29,7 @@ func Parse(in []byte) (gopass.Secret, error) {
 
 	var permError *secrets.PermanentError
 	if errors.As(err, &permError) {
-		return secrets.ParsePlain(in), err
+		return secrets.ParseAKV(in), err
 	}
 
 	s, err = secrets.ParseYAML(in)
@@ -41,17 +41,8 @@ func Parse(in []byte) (gopass.Secret, error) {
 
 	debug.Log("failed to parse as YAML: %s\n%s", err, out.Secret(string(in)))
 
-	s, err = secrets.ParseKV(in)
-	if err == nil {
-		debug.Log("parsed as KV: %+v", s)
-
-		return s, nil
-	}
-
-	debug.Log("failed to parse as KV: %s", err)
-
-	s = secrets.ParsePlain(in)
-	debug.Log("parsed as plain: %s", out.Secret(s.Bytes()))
+	s = secrets.ParseAKV(in)
+	debug.Log("parsed as AVK: %+v", s)
 
 	return s, nil
 }

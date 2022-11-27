@@ -24,9 +24,10 @@ func TestSet(t *testing.T) {
 	rs, err := createRootStore(ctx, u)
 	require.NoError(t, err)
 
-	sec := &secrets.Plain{}
+	sec := secrets.NewAKV()
 	sec.SetPassword("foo")
-	sec.WriteString("bar")
+	_, err = sec.Write([]byte("bar"))
+	require.NoError(t, err)
 	assert.NoError(t, rs.Set(ctx, "zab", sec))
 
 	err = rs.Set(ctx, "zab2", sec)

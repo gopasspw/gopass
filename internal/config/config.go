@@ -29,7 +29,6 @@ var defaults = map[string]string{
 	"core.cliptimeout":   "45",
 	"core.exportkeys":    "true",
 	"core.notifications": "true",
-	"core.parsing":       "true",
 }
 
 // Config is a gopass config handler.

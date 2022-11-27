@@ -48,7 +48,7 @@ func TestYAMLAndSecret(t *testing.T) { //nolint:paralleltest
 	t.Run("show the whole secret", func(t *testing.T) { //nolint:paralleltest
 		out, err := ts.run("show foo/bar")
 		assert.NoError(t, err)
-		assert.Equal(t, "baz: moar\npassword: moar\nbody", out)
+		assert.Equal(t, "password: moar\nbaz: moar\nbody", out)
 	})
 }
 

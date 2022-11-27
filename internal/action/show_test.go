@@ -41,7 +41,7 @@ func TestShowMulti(t *testing.T) { //nolint:paralleltest
 	}()
 
 	// first add another entry in a subdir
-	sec := secrets.NewKV()
+	sec := secrets.NewAKV()
 	sec.SetPassword("123")
 	assert.NoError(t, sec.Set("bar", "zab"))
 	assert.NoError(t, act.Store.Set(ctx, "bar/baz", sec))
@@ -103,7 +103,7 @@ func TestShowMulti(t *testing.T) { //nolint:paralleltest
 	})
 
 	t.Run("show entry with unsafe keys", func(t *testing.T) { //nolint:paralleltest
-		sec := secrets.NewKV()
+		sec := secrets.NewAKV()
 		sec.SetPassword("123")
 		assert.NoError(t, sec.Set("bar", "zab"))
 		assert.NoError(t, sec.Set("foo", "baz"))
@@ -130,8 +130,7 @@ func TestShowMulti(t *testing.T) { //nolint:paralleltest
 		buf.Reset()
 	})
 
-	t.Run("show twoliner with parsing disabled and safecontent enabled", func(t *testing.T) { //nolint:paralleltest
-		require.NoError(t, act.cfg.SetEnv("core.parsing", "false"))
+	t.Run("show twoliner with safecontent enabled", func(t *testing.T) { //nolint:paralleltest
 		c := gptest.CliCtx(ctx, t, "bar/baz")
 
 		assert.NoError(t, act.Show(c))
@@ -144,8 +143,7 @@ func TestShowMulti(t *testing.T) { //nolint:paralleltest
 
 	require.NoError(t, act.cfg.Set("", "core.showsafecontent", "false"))
 
-	t.Run("show key with parsing enabled", func(t *testing.T) { //nolint:paralleltest
-		require.NoError(t, act.cfg.SetEnv("core.parsing", "true"))
+	t.Run("show key ", func(t *testing.T) { //nolint:paralleltest
 		c := gptest.CliCtx(ctx, t, "bar/baz", "bar")
 
 		assert.NoError(t, act.Show(c))
@@ -153,17 +151,7 @@ func TestShowMulti(t *testing.T) { //nolint:paralleltest
 		buf.Reset()
 	})
 
-	t.Run("show key with parsing disabled", func(t *testing.T) { //nolint:paralleltest
-		require.NoError(t, act.cfg.SetEnv("core.parsing", "false"))
-		c := gptest.CliCtx(ctx, t, "bar/baz", "bar")
-
-		assert.NoError(t, act.Show(c))
-		assert.Equal(t, "123\nbar: zab", buf.String())
-		buf.Reset()
-	})
-
-	t.Run("show nonexisting key with parsing enabled", func(t *testing.T) { //nolint:paralleltest
-		require.NoError(t, act.cfg.SetEnv("core.parsing", "true"))
+	t.Run("show nonexisting key", func(t *testing.T) { //nolint:paralleltest
 		c := gptest.CliCtx(ctx, t, "bar/baz", "nonexisting")
 
 		assert.Error(t, act.Show(c))
@@ -171,8 +159,6 @@ func TestShowMulti(t *testing.T) { //nolint:paralleltest
 	})
 
 	t.Run("show keys with mixed case", func(t *testing.T) { //nolint:paralleltest
-		require.NoError(t, act.cfg.SetEnv("core.parsing", "true"))
-
 		assert.NoError(t, act.insertStdin(ctx, "baz2", []byte("foobar\nOther: meh\nuser: name\nbody text"), false))
 		buf.Reset()
 
@@ -183,8 +169,6 @@ func TestShowMulti(t *testing.T) { //nolint:paralleltest
 	})
 
 	t.Run("show value with format strings", func(t *testing.T) { //nolint:paralleltest
-		require.NoError(t, act.cfg.SetEnv("core.parsing", "true"))
-
 		pw := "some-chars-are-odd-%s-%p-%q"
 
 		assert.NoError(t, act.insertStdin(ctx, "printf", []byte(pw), false))
@@ -192,7 +176,7 @@ func TestShowMulti(t *testing.T) { //nolint:paralleltest
 
 		c := gptest.CliCtx(ctx, t, "printf")
 		assert.NoError(t, act.Show(c))
-		assert.Equal(t, pw, buf.String())
+		assert.Equal(t, pw+"\n", buf.String())
 		assert.NotContains(t, buf.String(), "MISSING")
 		buf.Reset()
 	})

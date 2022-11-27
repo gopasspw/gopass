@@ -40,9 +40,10 @@ func TestGrep(t *testing.T) { //nolint:paralleltest
 
 	t.Run("add some secret", func(t *testing.T) { //nolint:paralleltest
 		defer buf.Reset()
-		sec := &secrets.Plain{}
+		sec := secrets.NewAKV()
 		sec.SetPassword("foobar")
-		sec.WriteString("foobar")
+		_, err := sec.Write([]byte("foobar"))
+		require.NoError(t, err)
 		assert.NoError(t, act.Store.Set(ctx, "foo", sec))
 	})
 

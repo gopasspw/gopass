@@ -28,15 +28,15 @@ func TestParsedIsSerialized(t *testing.T) {
 	t.Parallel()
 
 	for _, tc := range []string{
-		"foo",                     // Plain
-		"foo\nbar",                // Plain
-		"foo\nbar: baz",           // KV
+		"foo\n",                   // Plain
+		"foo\nbar\n",              // Plain
+		"foo\nbar: baz\n",         // KV
 		"foo\nbar\n---\nzab: 1\n", // YAML
 		// MIME is forcefully converted to KV
 	} {
 		sec, err := Parse([]byte(tc))
 		require.NoError(t, err)
-		assert.Equal(t, tc, string(sec.Bytes()))
+		assert.Equal(t, tc, string(sec.Bytes()), tc)
 	}
 }
 

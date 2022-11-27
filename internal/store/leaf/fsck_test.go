@@ -42,7 +42,7 @@ func TestFsck(t *testing.T) {
 	require.NoError(t, s.saveRecipients(ctx, rs, "test"))
 
 	for _, e := range []string{"foo/bar", "foo/baz", "foo/zab"} {
-		sec := &secrets.Plain{}
+		sec := secrets.NewAKV()
 		sec.SetPassword("bar")
 		assert.NoError(t, s.Set(ctx, e, sec))
 	}

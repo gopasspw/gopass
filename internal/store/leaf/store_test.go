@@ -127,10 +127,11 @@ func TestIdFile(t *testing.T) {
 		secName += "/a"
 	}
 
-	sec := &secrets.Plain{}
+	sec := secrets.NewAKV()
 
 	_ = sec.Set("foo", "bar")
-	sec.WriteString("bar")
+	_, err = sec.Write([]byte("bar"))
+	require.NoError(t, err)
 	require.NoError(t, s.Set(ctx, secName, sec))
 	require.NoError(t, os.WriteFile(filepath.Join(tempdir, "sub", "a", plain.IDFile), []byte("foobar"), 0o600))
 	assert.Equal(t, filepath.Join("a", plain.IDFile), s.idFile(ctx, secName))

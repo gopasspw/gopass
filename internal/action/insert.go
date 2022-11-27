@@ -90,21 +90,14 @@ func (s *Action) insert(ctx context.Context, c *cli.Context, name, key string, e
 }
 
 func (s *Action) insertStdin(ctx context.Context, name string, content []byte, appendTo bool) error {
-	var sec gopass.Secret
+	var sec gopass.Secret = secrets.ParseAKV(content)
+
 	if appendTo && s.Store.Exists(ctx, name) {
 		var err error
 		sec, err = s.insertStdinAppend(ctx, name, content)
 		if err != nil {
 			return err
 		}
-	} else {
-		plain := &secrets.Plain{}
-		if n, err := plain.Write(content); err != nil || n < 0 {
-			return exit.Error(exit.Aborted, err, "failed to write secret from stdin: %s", err)
-		}
-
-		sec = plain
-		debug.Log("Created new plain secret with input")
 	}
 
 	if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, "Read secret from STDIN"), name, sec); err != nil {
@@ -172,7 +165,7 @@ func (s *Action) insertGetSecret(ctx context.Context, name, pw string) (gopass.S
 	}
 
 	// render template into a new secret
-	sec := &secrets.Plain{}
+	sec := secrets.NewAKV()
 	if _, err := sec.Write(content); err != nil {
 		debug.Log("failed to handle template: %s", err)
 
@@ -231,7 +224,7 @@ func (s *Action) insertMultiline(ctx context.Context, c *cli.Context, name strin
 		return exit.Error(exit.Unknown, err, "failed to start editor: %s", err)
 	}
 
-	sec := &secrets.Plain{}
+	sec := secrets.NewAKV()
 	n, err := sec.Write(content)
 	if err != nil || n < 0 {
 		out.Errorf(ctx, "WARNING: Invalid secret: %s of len %d", err, n)

@@ -36,7 +36,7 @@ func (s *Action) Merge(c *cli.Context) error {
 		if !s.Store.Exists(ctx, k) {
 			continue
 		}
-		sec, err := s.Store.Get(ctxutil.WithShowParsing(ctx, false), k)
+		sec, err := s.Store.Get(ctx, k)
 		if err != nil {
 			return exit.Error(exit.Decrypt, err, "failed to decrypt: %s: %s", k, err)
 		}
@@ -67,7 +67,7 @@ func (s *Action) Merge(c *cli.Context) error {
 		}
 	}
 
-	nSec := secrets.ParsePlain(newContent)
+	nSec := secrets.ParseAKV(newContent)
 
 	// if the secret has a password, we check it's strength
 	if pw := nSec.Password(); pw != "" && !c.Bool("force") {

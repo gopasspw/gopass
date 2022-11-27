@@ -126,8 +126,7 @@ glossary": {
 		_, err = ts.runCmd([]string{ts.Binary, "insert", "some/json"}, []byte(json))
 		assert.NoError(t, err)
 
-		// using show -n to disable parsing
-		out, err = ts.run("show -f -n some/json")
+		out, err = ts.run("show -f some/json")
 		assert.NoError(t, err)
 		assert.Equal(t, json, out)
 	})
@@ -141,8 +140,7 @@ test2
 		_, err = ts.runCmd([]string{ts.Binary, "insert", "some/multilinewithbraces"}, []byte(input))
 		assert.NoError(t, err)
 
-		// using show -n to disable parsing
-		out, err = ts.run("show -f -n some/multilinewithbraces")
+		out, err = ts.run("show -f some/multilinewithbraces")
 		assert.NoError(t, err)
 		assert.Equal(t, input, out)
 	})
@@ -156,8 +154,7 @@ user: second user`
 		_, err = ts.runCmd([]string{ts.Binary, "insert", "some/multikey"}, []byte(input))
 		assert.NoError(t, err)
 
-		// using show -n to disable parsing
-		out, err = ts.run("show -f -n some/multikey")
+		out, err = ts.run("show -f some/multikey")
 		assert.NoError(t, err)
 		assert.Equal(t, input, out)
 	})
@@ -178,7 +175,6 @@ user: second user`
 		_, err = ts.runCmd([]string{ts.Binary, "insert", "some/multikeyvalues"}, []byte(input))
 		assert.NoError(t, err)
 
-		// using show -n to disable parsing
 		out, err = ts.run("show -f some/multikeyvalues")
 		assert.NoError(t, err)
 		assert.Equal(t, output, out)
@@ -200,11 +196,6 @@ user: 83`
 		out, err = ts.run("show -f some/yamloctal")
 		assert.NoError(t, err)
 		assert.Equal(t, output, out)
-
-		// using show -n to disable parsing
-		out, err = ts.run("show -f -n some/yamloctal")
-		assert.NoError(t, err)
-		assert.Equal(t, input, out)
 	})
 
 	t.Run("Regression test for #1594", func(t *testing.T) { //nolint:paralleltest
@@ -213,17 +204,12 @@ user: 83`
 Test / test.com
 user:myuser
 url: test.com/`
-		output := `somepasswd
-url: test.com/
-user: myuser
----
-Test / test.com`
 
 		_, err = ts.runCmd([]string{ts.Binary, "insert", "some/kvwithspace"}, []byte(input))
 		assert.NoError(t, err)
 
 		out, err = ts.run("show -f some/kvwithspace")
 		assert.NoError(t, err)
-		assert.Equal(t, output, out)
+		assert.Equal(t, input, out)
 	})
 }

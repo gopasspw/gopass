@@ -110,8 +110,6 @@ func (s *Store) fsckCheckEntry(ctx context.Context, name string) error {
 		return nil
 	}
 
-	// we need to make sure Parsing is enabled in order to parse old Mime secrets
-	ctx = ctxutil.WithShowParsing(ctx, true)
 	sec, err := s.Get(ctx, name)
 	if err != nil {
 		return fmt.Errorf("failed to decode secret %s: %w", name, err)

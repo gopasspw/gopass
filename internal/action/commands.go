@@ -47,11 +47,6 @@ func ShowFlags() []cli.Flag {
 			Aliases: []string{"r"},
 			Usage:   "Show a past revision. Does NOT support RCS specific shortcuts. Use exact revision or -<N> to select the Nth oldest revision of this entry.",
 		},
-		&cli.BoolFlag{
-			Name:    "noparsing",
-			Aliases: []string{"n"},
-			Usage:   "Do not parse the output.",
-		},
 		&cli.StringFlag{
 			Name:  "chars",
 			Usage: "Print specific characters from the secret",

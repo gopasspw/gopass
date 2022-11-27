@@ -48,9 +48,9 @@ func TestList(t *testing.T) { //nolint:paralleltest
 	buf.Reset()
 
 	// add foo/bar and list folder foo
-	sec := &secrets.Plain{}
+	sec := secrets.NewAKV()
 	sec.SetPassword("123")
-	assert.Error(t, sec.Set("bar", "zab"))
+	assert.NoError(t, sec.Set("bar", "zab"))
 	assert.NoError(t, act.Store.Set(ctx, "foo/bar", sec))
 	buf.Reset()
 
@@ -72,7 +72,7 @@ func TestList(t *testing.T) { //nolint:paralleltest
 	// list --folders
 
 	// add more folders and subfolders
-	sec = &secrets.Plain{}
+	sec = secrets.NewAKV()
 	sec.SetPassword("123")
 	assert.NoError(t, act.Store.Set(ctx, "foo/zen/bar", sec))
 	assert.NoError(t, act.Store.Set(ctx, "foo2/bar2", sec))
@@ -87,7 +87,7 @@ foo2/
 	buf.Reset()
 
 	// add shadowed entry
-	sec = &secrets.Plain{}
+	sec = secrets.NewAKV()
 	sec.SetPassword("123")
 	assert.NoError(t, act.Store.Set(ctx, "foo/zen", sec))
 	buf.Reset()
@@ -144,7 +144,7 @@ func TestListLimit(t *testing.T) { //nolint:paralleltest
 └── foo
 
 `
-	sec := &secrets.Plain{}
+	sec := secrets.NewAKV()
 	sec.SetPassword("123")
 	assert.NoError(t, act.Store.Set(ctx, "foo/bar", sec))
 	assert.NoError(t, act.Store.Set(ctx, "foo/zen/baz/bar", sec))
