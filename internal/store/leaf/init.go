@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/internal/recipients"
 	"github.com/gopasspw/gopass/pkg/debug"
 )
 
@@ -29,7 +30,7 @@ You can add secondary stores with 'gopass init --path <path to secondary store> 
 	}
 
 	// initialize recipient list
-	recipients := make([]string, 0, len(ids))
+	rs := recipients.New()
 
 	for _, id := range ids {
 		if id == "" {
@@ -48,14 +49,15 @@ You can add secondary stores with 'gopass init --path <path to secondary store> 
 
 			continue
 		}
-		recipients = append(recipients, kl[0])
+
+		rs.Add(kl[0])
 	}
 
-	if len(recipients) < 1 {
+	if len(rs.IDs()) < 1 {
 		return fmt.Errorf("failed to initialize store: no valid recipients given in %+v", ids)
 	}
 
-	kl, err := s.crypto.FindIdentities(ctx, recipients...)
+	kl, err := s.crypto.FindIdentities(ctx, rs.IDs()...)
 	if err != nil {
 		return fmt.Errorf("failed to get available private keys: %w", err)
 	}
@@ -64,7 +66,7 @@ You can add secondary stores with 'gopass init --path <path to secondary store> 
 		return fmt.Errorf("none of the recipients has a secret key. You will not be able to decrypt the secrets you add")
 	}
 
-	if err := s.saveRecipients(ctx, recipients, "Initialized Store for "+strings.Join(recipients, ", ")); err != nil {
+	if err := s.saveRecipients(ctx, rs, "Initialized Store for "+strings.Join(rs.IDs(), ", ")); err != nil {
 		return fmt.Errorf("failed to initialize store: %w", err)
 	}
 	out.OKf(ctx, "Wrote recipients to %s", s.idFile(ctx, ""))

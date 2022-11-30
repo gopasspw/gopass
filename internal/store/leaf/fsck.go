@@ -150,12 +150,12 @@ func (s *Store) fsckCheckRecipients(ctx context.Context, name string) error {
 
 	itemRecps = fingerprints(ctx, s.crypto, itemRecps)
 
-	perItemStoreRecps, err := s.GetRecipients(ctx, name)
+	rs, err := s.GetRecipients(ctx, name)
 	if err != nil {
 		return fmt.Errorf("failed to get recipients from store: %w", err)
 	}
 
-	perItemStoreRecps = fingerprints(ctx, s.crypto, perItemStoreRecps)
+	perItemStoreRecps := fingerprints(ctx, s.crypto, rs.IDs())
 
 	// check itemRecps matches storeRecps
 	extra, missing := diff.List(perItemStoreRecps, itemRecps)

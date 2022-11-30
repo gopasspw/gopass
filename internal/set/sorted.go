@@ -6,6 +6,15 @@ import (
 	"golang.org/x/exp/slices"
 )
 
+// SortedKeys returns the sorted keys of the map.
+func SortedKeys[K constraints.Ordered, V any](m map[K]V) []K {
+	// sort
+	keys := maps.Keys(m)
+	slices.Sort(keys)
+
+	return keys
+}
+
 // Sorted returns a sorted set of the input.
 func Sorted[K constraints.Ordered](l []K) []K {
 	return SortedFiltered(l, func(k K) bool {

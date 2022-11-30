@@ -163,12 +163,12 @@ func (s *Store) useableKeys(ctx context.Context, name string) ([]string, error) 
 	}
 
 	if !IsCheckRecipients(ctx) {
-		return rs, nil
+		return rs.IDs(), nil
 	}
 
-	kl, err := s.crypto.FindRecipients(ctx, rs...)
+	kl, err := s.crypto.FindRecipients(ctx, rs.IDs()...)
 	if err != nil {
-		return rs, err
+		return rs.IDs(), err
 	}
 
 	return kl, nil

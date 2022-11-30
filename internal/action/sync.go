@@ -241,7 +241,7 @@ func syncExportKeys(ctx context.Context, sub *leaf.Store, name string) error {
 
 		return err
 	}
-	exported, err := sub.UpdateExportedPublicKeys(ctx, rs)
+	exported, err := sub.UpdateExportedPublicKeys(ctx, rs.IDs())
 	if err != nil {
 		out.Errorf(ctx, "Failed to export missing public keys for %q: %s", name, err)
 

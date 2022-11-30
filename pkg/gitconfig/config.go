@@ -231,6 +231,7 @@ func parseConfig(in io.Reader, key, value string, cb parseFunc) []string {
 
 		lines = append(lines, line)
 
+		line = strings.TrimSpace(line)
 		if strings.HasPrefix(line, "#") {
 			continue
 		}
