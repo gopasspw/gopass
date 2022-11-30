@@ -94,3 +94,4 @@ This is a list of available options:
 | `domain-alias.<from>`   | `string` | Alias from domain to the string value of this entry. | `` |
 | `core.showautoclip`      | `bool`   | Use autoclip for gopass show by default. | `false` |
 | `autosync.interval`      | `int`   | AutoSync interval in days. | `3` |
+| `updater.check`        | `bool`   | Check for updates when running `gopass version` | `true` |

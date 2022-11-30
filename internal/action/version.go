@@ -11,6 +11,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/gopasspw/gopass/internal/action/exit"
 	"github.com/gopasspw/gopass/internal/backend"
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/updater"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -88,6 +89,12 @@ func (s *Action) checkVersion(ctx context.Context, u chan string) {
 
 	if disabled := os.Getenv("CHECKPOINT_DISABLE"); disabled != "" {
 		debug.Log("remote version check disabled by CHECKPOINT_DISABLE")
+
+		return
+	}
+
+	if cfg := config.FromContext(ctx); cfg.IsSet("updater.check") && !cfg.GetBool("updater.check") {
+		debug.Log("remote version check disabled by updater.check = false")
 
 		return
 	}
