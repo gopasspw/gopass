@@ -273,6 +273,20 @@ WARNING: `latest` is not a stable release. It is recommended to use a specific v
 
 If `$GOPATH/bin` is in your `$PATH`, you can now run `gopass` from anywhere on your system.
 
+### Upgrade
+
+To use the self-updater run:
+
+```bash
+gopass update
+```
+
+or to upgrade with Go installed, run:
+
+```bash
+go install github.com/gopasspw/gopass@latest
+```
+
 ## Optional Post-Installation Steps
 
 ### Securing Your Editor

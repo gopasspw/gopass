@@ -3,6 +3,46 @@
 This document provides a broad overview over the features and use-cases
 gopass supports.
 
+Some examples are available in our [example password store](https://github.com/gopasspw/password-store-example).
+
+| **Feature**                 | **State**     | **Description**                                                   |
+| --------------------------- | ------------- | ----------------------------------------------------------------- |
+| Secure secret storage       | *stable*      | Securely storing encrypted secrets                                |
+| Multiple stores             | *stable*      | Mount multiple stores in your root store, like file systems       |
+| Recipient management        | *stable*      | Easily manage multiple users of each store                        |
+| password quality assistance | *beta*        | Checks existing or new passwords for common flaws **offline**     |
+| password leak checker       | *integration* | Perform **offline** checks against known leaked passwords using [gopass-hibp](https://github.com/gopasspw/gopass-hibp)  |
+| PAGER support               | *stable*      | Automatically invoke a pager on long output                       |
+| JSON API                    | *integration* | Allow gopass to be used as a native extension for browser plugins |
+| Automatic fuzzy search      | *stable*      | Automatically search for matching store entries if a literal entry was not found |
+| gopass sync                 | *stable*      | Easy to use syncing of remote repos and GPG keys                  |
+| Desktop Notifications       | *stable*      | Display desktop notifications and completing long running operations |
+| REPL                        | *beta*        | Integrated Read-Eval-Print-Loop shell with autocompletion by running `gopass`. |
+| OTP support                 | *stable*      | Generate TOTP/(HOTP) tokens based on the stored secret            |
+| Extensions                  |               | [Extend](docs/hacking.md#extending-gopass) gopass with custom commands using our [API](https://pkg.go.dev/github.com/gopasspw/gopass/pkg/gopass/api)                  |
+| Fully open source!          |               | No need to trust it, check our code and/or improve it!            |
+
+## Integrations
+
+- [gopassbridge](https://github.com/gopasspw/gopassbridge): Browser plugin for Firefox, Chrome and other Chromium based browsers
+- [gopass-ui](https://github.com/codecentric/gopass-ui): Graphical user interface for gopass
+- [kubectl gopass](https://github.com/gopasspw/kubectl-gopass): Kubernetes / kubectl plugin to support reading and writing secrets directly from/to gopass.
+- [gopass alfred](https://github.com/gopasspw/gopass-alfred): Alfred workflow to use gopass from the Alfred Mac launcher
+- [git-credential-gopass](https://github.com/gopasspw/git-credential-gopass): Integrate gopass as an git-credential helper
+- [gopass-hibp](https://github.com/gopasspw/gopass-hibp): haveibeenpwned.com leak checker
+- [gopass-jsonapi](https://github.com/gopasspw/gopass-jsonapi): native messaging for browser plugins, e.g. gopassbridge
+- [gopass-summon-prover](https://github.com/gopasspw/gopass-summon-provider): gopass as a summon provider
+- [`terraform-provider-gopass`](https://github.com/camptocamp/terraform-provider-pass): a Terraform provider to interact with gopass
+- [chezmoi](https://github.com/twpayne/chezmoi): dotfile manager with gopass support
+- [tessen](https://github.com/ayushnix/tessen): autotype and copy gopass data on wayland compositors on Linux
+- [raycast-gopass](https://github.com/raycast/extensions/tree/main/extensions/gopass): a gopass extension for Raycast Mac launcher
+- [gnome-pass-search-provider](https://github.com/jle64/gnome-pass-search-provider): pass search provider for GNOME Shell, which also supports gopass
+
+## Mobile apps
+
+- [Pass - Password Store](https://apps.apple.com/us/app/pass-password-store/id1205820573) - iOS, [source code](https://github.com/mssun/passforios), [supports only 1 repository now](https://github.com/mssun/passforios/issues/88)
+- [Password Store](https://play.google.com/store/apps/details?id=dev.msfjarvis.aps) - Android, [source code](https://github.com/android-password-store/android-password-store)
+
 ## Standard Features
 
 Note: Running `gopass` without any arguments opens up an interactive mode where
@@ -496,3 +536,13 @@ Also the special `unsafe-keys` key is evaluated. It expectes
 a comma separated list of keys that will be obstructed when
 printing the secret.
 
+## Related Projects
+
+- [pass](https://www.passwordstore.org) - The inspiration for this project, by Jason A. Donenfeld. `gopass` is a drop-in replacement for `pass` and can be used interchangeably (mostly!).
+- [passage](https://github.com/FiloSottile/passage) - passage is a fork of [password-store](https://www.passwordstore.org) that uses
+[age](https://age-encryption.org) as a backend instead of GnuPG. `gopass` has some amount of support for `passage` but can not be used fully interchangeably as of today. This might change in the future.
+
+## External Documentation
+
+* [gopass cheat sheet](https://woile.github.io/gopass-cheat-sheet/) ([source on github](https://github.com/Woile/gopass-cheat-sheet))
+* [gopass presentation](https://woile.github.io/gopass-presentation/) ([source on github](https://github.com/Woile/gopass-presentation))
