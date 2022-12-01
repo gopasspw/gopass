@@ -49,6 +49,10 @@ func showParseArgs(c *cli.Context) context.Context {
 		ctx = WithAlsoClip(ctx, c.Bool("alsoclip"))
 	}
 
+	if c.IsSet("noparsing") {
+		ctx = ctxutil.WithShowParsing(ctx, !c.Bool("noparsing"))
+	}
+
 	if c.IsSet("chars") {
 		iv := []int{}
 		for _, v := range strings.Split(c.String("chars"), ",") {

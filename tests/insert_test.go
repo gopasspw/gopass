@@ -126,7 +126,8 @@ glossary": {
 		_, err = ts.runCmd([]string{ts.Binary, "insert", "some/json"}, []byte(json))
 		assert.NoError(t, err)
 
-		out, err = ts.run("show -f some/json")
+		// using show -n to disable parsing
+		out, err = ts.run("show -f -n some/json")
 		assert.NoError(t, err)
 		assert.Equal(t, json, out)
 	})
@@ -140,7 +141,8 @@ test2
 		_, err = ts.runCmd([]string{ts.Binary, "insert", "some/multilinewithbraces"}, []byte(input))
 		assert.NoError(t, err)
 
-		out, err = ts.run("show -f some/multilinewithbraces")
+		// using show -n to disable parsing
+		out, err = ts.run("show -f -n some/multilinewithbraces")
 		assert.NoError(t, err)
 		assert.Equal(t, input, out)
 	})
@@ -154,7 +156,8 @@ user: second user`
 		_, err = ts.runCmd([]string{ts.Binary, "insert", "some/multikey"}, []byte(input))
 		assert.NoError(t, err)
 
-		out, err = ts.run("show -f some/multikey")
+		// using show -n to disable parsing
+		out, err = ts.run("show -f -n some/multikey")
 		assert.NoError(t, err)
 		assert.Equal(t, input, out)
 	})
@@ -196,6 +199,11 @@ user: 83`
 		out, err = ts.run("show -f some/yamloctal")
 		assert.NoError(t, err)
 		assert.Equal(t, output, out)
+
+		// using show -n to disable parsing
+		out, err = ts.run("show -f -n some/yamloctal")
+		assert.NoError(t, err)
+		assert.Equal(t, input, out)
 	})
 
 	t.Run("Regression test for #1594", func(t *testing.T) { //nolint:paralleltest
@@ -211,5 +219,12 @@ url: test.com/`
 		out, err = ts.run("show -f some/kvwithspace")
 		assert.NoError(t, err)
 		assert.Equal(t, input, out)
+
+		out, err = ts.run("show -f some/kvwithspace url")
+		assert.NoError(t, err)
+		assert.Equal(t, "test.com/", out)
+
+		out, err = ts.run("show -f some/kvwithspace user")
+		assert.Error(t, err)
 	})
 }

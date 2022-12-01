@@ -30,6 +30,7 @@ const (
 	ctxKeyPasswordCallback
 	ctxKeyPasswordPurgeCallback
 	ctxKeyCommitTimestamp
+	ctxKeyShowParsing
 	ctxKeyHidden
 )
 
@@ -112,6 +113,28 @@ func IsStdin(ctx context.Context) bool {
 	bv, ok := ctx.Value(ctxKeyStdin).(bool)
 	if !ok {
 		return false
+	}
+
+	return bv
+}
+
+// WithShowParsing returns a context with the value for ShowParsing set.
+func WithShowParsing(ctx context.Context, bv bool) context.Context {
+	return context.WithValue(ctx, ctxKeyShowParsing, bv)
+}
+
+// HasShowParsing returns true if a value for ShowParsing has been set in this context.
+func HasShowParsing(ctx context.Context) bool {
+	_, ok := ctx.Value(ctxKeyShowParsing).(bool)
+
+	return ok
+}
+
+// IsShowParsing returns the value of ShowParsing or the default (true).
+func IsShowParsing(ctx context.Context) bool {
+	bv, ok := ctx.Value(ctxKeyShowParsing).(bool)
+	if !ok {
+		return true
 	}
 
 	return bv

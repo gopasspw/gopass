@@ -85,12 +85,17 @@ func (a *AKV) Values(key string) ([]string, bool) {
 
 // Set writes a single key.
 func (a *AKV) Set(key string, value any) error {
+	key = strings.ToLower(key)
+
 	// if it's new key we can just append it at the end
 	if _, found := a.kvp[key]; !found {
 		return a.Add(key, value)
 	}
 
-	a.kvp[key] = append(a.kvp[key], fmt.Sprintf("%s", value))
+	if len(a.kvp[key]) < 1 {
+		a.kvp[key] = make([]string, 1)
+	}
+	a.kvp[key][0] = fmt.Sprintf("%s", value)
 
 	// if the key does exist we must make sure to update only
 	// the first instance and leave all others intact.
@@ -107,7 +112,7 @@ func (a *AKV) Set(key string, value any) error {
 		// always leave the password in place, even if it
 		// might look like a kv pair. Also stop looking
 		// for kv pairs after we updated the first instance.
-		if !strings.Contains(line, kvSep) || firstLine || written {
+		if written || firstLine || !strings.Contains(line, kvSep) {
 			a.raw.WriteString(line)
 			a.raw.WriteString("\n")
 			firstLine = false
@@ -173,7 +178,7 @@ func (a *AKV) Del(key string) bool {
 		// pass through any non-key value pair and
 		// always leave the password in place, even if it
 		// might look like a kv pair.
-		if !strings.Contains(line, kvSep) || first {
+		if first || !strings.Contains(line, kvSep) {
 			a.raw.WriteString(line)
 			a.raw.WriteString("\n")
 			first = false

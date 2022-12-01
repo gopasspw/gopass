@@ -48,8 +48,6 @@ func TestOTP(t *testing.T) { //nolint:paralleltest
 		require.NoError(t, err)
 		assert.NoError(t, act.Store.Set(ctx, "bar", sec))
 
-		t.Logf("Secret: %q\n", string(sec.Bytes()))
-
 		assert.NoError(t, act.OTP(gptest.CliCtx(ctx, t, "bar")))
 	})
 

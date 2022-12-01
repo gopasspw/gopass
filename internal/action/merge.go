@@ -36,7 +36,7 @@ func (s *Action) Merge(c *cli.Context) error {
 		if !s.Store.Exists(ctx, k) {
 			continue
 		}
-		sec, err := s.Store.Get(ctx, k)
+		sec, err := s.Store.Get(ctxutil.WithShowParsing(ctx, false), k)
 		if err != nil {
 			return exit.Error(exit.Decrypt, err, "failed to decrypt: %s: %s", k, err)
 		}
