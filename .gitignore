@@ -5,6 +5,7 @@ dev.sh
 !pkg/gopass/
 coverage.out
 coverage-all.*
+.vscode/
 
 # Profiling
 *.out
@@ -54,4 +55,5 @@ manifest-*.json
 *-fuzz.zip
 workdir/
 
+.vscode/
 NOTICE.new

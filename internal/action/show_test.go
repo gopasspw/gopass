@@ -26,9 +26,10 @@ func TestShowMulti(t *testing.T) { //nolint:paralleltest
 	ctx = ctxutil.WithTerminal(ctx, false)
 	ctx = ctxutil.WithInteractive(ctx, false)
 
-	act, err := newMock(ctx, u)
+	act, err := newMock(ctx, u.StoreDir(""))
 	require.NoError(t, err)
 	require.NotNil(t, act)
+	ctx = act.cfg.WithConfig(ctx)
 
 	color.NoColor = true
 	buf := &bytes.Buffer{}
@@ -38,6 +39,13 @@ func TestShowMulti(t *testing.T) { //nolint:paralleltest
 		stdout = os.Stdout
 		out.Stdout = os.Stdout
 	}()
+
+	// first add another entry in a subdir
+	sec := secrets.NewKV()
+	sec.SetPassword("123")
+	assert.NoError(t, sec.Set("bar", "zab"))
+	assert.NoError(t, act.Store.Set(ctx, "bar/baz", sec))
+	buf.Reset()
 
 	t.Run("show foo", func(t *testing.T) { //nolint:paralleltest
 		defer buf.Reset()
@@ -54,21 +62,15 @@ func TestShowMulti(t *testing.T) { //nolint:paralleltest
 	})
 
 	t.Run("show dir", func(t *testing.T) { //nolint:paralleltest
-		// first add another entry in a subdir
-		sec := secrets.NewKV()
-		sec.SetPassword("123")
-		assert.NoError(t, sec.Set("bar", "zab"))
-		assert.NoError(t, act.Store.Set(ctx, "bar/baz", sec))
-		buf.Reset()
-
 		c := gptest.CliCtx(ctx, t, "bar")
 		assert.NoError(t, act.Show(c))
 		assert.Equal(t, "bar/\n└── baz\n\n", buf.String())
 		buf.Reset()
 	})
 
+	require.NoError(t, act.cfg.Set("", "core.showsafecontent", "true"))
+
 	t.Run("show twoliner with safecontent enabled", func(t *testing.T) { //nolint:paralleltest
-		ctx := ctxutil.WithShowSafeContent(ctx, true)
 		c := gptest.CliCtx(ctx, t, "bar/baz")
 
 		assert.NoError(t, act.Show(c))
@@ -79,8 +81,6 @@ func TestShowMulti(t *testing.T) { //nolint:paralleltest
 	})
 
 	t.Run("show foo with safecontent enabled, should error out", func(t *testing.T) { //nolint:paralleltest
-		ctx := ctxutil.WithShowSafeContent(ctx, true)
-
 		c := gptest.CliCtx(ctx, t, "foo")
 		assert.NoError(t, act.Show(c))
 		assert.NotContains(t, buf.String(), "secret")
@@ -95,7 +95,6 @@ func TestShowMulti(t *testing.T) { //nolint:paralleltest
 	})
 
 	t.Run("show twoliner with safecontent enabled, but with the clip flag, which should copy just the secret", func(t *testing.T) { //nolint:paralleltest
-		ctx := ctxutil.WithShowSafeContent(ctx, true)
 		c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"clip": "true"}, "bar/baz")
 
 		assert.NoError(t, act.Show(c))
@@ -113,7 +112,6 @@ func TestShowMulti(t *testing.T) { //nolint:paralleltest
 		assert.NoError(t, act.Store.Set(ctx, "unsafe/keys", sec))
 		buf.Reset()
 
-		ctx := ctxutil.WithShowSafeContent(ctx, true)
 		c := gptest.CliCtx(ctx, t, "unsafe/keys")
 		assert.NoError(t, act.Show(c))
 		assert.Contains(t, buf.String(), "*****")
@@ -123,7 +121,6 @@ func TestShowMulti(t *testing.T) { //nolint:paralleltest
 	})
 
 	t.Run("show twoliner with safecontent enabled", func(t *testing.T) { //nolint:paralleltest
-		ctx := ctxutil.WithShowSafeContent(ctx, true)
 		c := gptest.CliCtx(ctx, t, "bar/baz")
 
 		assert.NoError(t, act.Show(c))
@@ -134,8 +131,7 @@ func TestShowMulti(t *testing.T) { //nolint:paralleltest
 	})
 
 	t.Run("show twoliner with parsing disabled and safecontent enabled", func(t *testing.T) { //nolint:paralleltest
-		ctx := ctxutil.WithShowSafeContent(ctx, true)
-		ctx = ctxutil.WithShowParsing(ctx, false)
+		require.NoError(t, act.cfg.SetEnv("core.parsing", "false"))
 		c := gptest.CliCtx(ctx, t, "bar/baz")
 
 		assert.NoError(t, act.Show(c))
@@ -146,8 +142,10 @@ func TestShowMulti(t *testing.T) { //nolint:paralleltest
 		buf.Reset()
 	})
 
+	require.NoError(t, act.cfg.Set("", "core.showsafecontent", "false"))
+
 	t.Run("show key with parsing enabled", func(t *testing.T) { //nolint:paralleltest
-		ctx := ctxutil.WithShowParsing(ctx, true)
+		require.NoError(t, act.cfg.SetEnv("core.parsing", "true"))
 		c := gptest.CliCtx(ctx, t, "bar/baz", "bar")
 
 		assert.NoError(t, act.Show(c))
@@ -156,7 +154,7 @@ func TestShowMulti(t *testing.T) { //nolint:paralleltest
 	})
 
 	t.Run("show key with parsing disabled", func(t *testing.T) { //nolint:paralleltest
-		ctx := ctxutil.WithShowParsing(ctx, false)
+		require.NoError(t, act.cfg.SetEnv("core.parsing", "false"))
 		c := gptest.CliCtx(ctx, t, "bar/baz", "bar")
 
 		assert.NoError(t, act.Show(c))
@@ -165,7 +163,7 @@ func TestShowMulti(t *testing.T) { //nolint:paralleltest
 	})
 
 	t.Run("show nonexisting key with parsing enabled", func(t *testing.T) { //nolint:paralleltest
-		ctx := ctxutil.WithShowParsing(ctx, true)
+		require.NoError(t, act.cfg.SetEnv("core.parsing", "true"))
 		c := gptest.CliCtx(ctx, t, "bar/baz", "nonexisting")
 
 		assert.Error(t, act.Show(c))
@@ -173,19 +171,19 @@ func TestShowMulti(t *testing.T) { //nolint:paralleltest
 	})
 
 	t.Run("show keys with mixed case", func(t *testing.T) { //nolint:paralleltest
-		ctx := ctxutil.WithShowParsing(ctx, true)
+		require.NoError(t, act.cfg.SetEnv("core.parsing", "true"))
 
-		assert.NoError(t, act.insertStdin(ctx, "baz", []byte("foobar\nOther: meh\nuser: name\nbody text"), false))
+		assert.NoError(t, act.insertStdin(ctx, "baz2", []byte("foobar\nOther: meh\nuser: name\nbody text"), false))
 		buf.Reset()
 
-		c := gptest.CliCtx(ctx, t, "baz", "Other")
+		c := gptest.CliCtx(ctx, t, "baz2", "Other")
 		assert.NoError(t, act.Show(c))
 		assert.Equal(t, "meh", buf.String())
 		buf.Reset()
 	})
 
 	t.Run("show value with format strings", func(t *testing.T) { //nolint:paralleltest
-		ctx := ctxutil.WithShowParsing(ctx, true)
+		require.NoError(t, act.cfg.SetEnv("core.parsing", "true"))
 
 		pw := "some-chars-are-odd-%s-%p-%q"
 
@@ -215,9 +213,10 @@ func TestShowAutoClip(t *testing.T) { //nolint:paralleltest
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithInteractive(ctx, false)
 
-	act, err := newMock(ctx, u)
+	act, err := newMock(ctx, u.StoreDir(""))
 	require.NoError(t, err)
 	require.NotNil(t, act)
+	ctx = act.cfg.WithConfig(ctx)
 
 	color.NoColor = true
 	stdoutBuf := &bytes.Buffer{}
@@ -244,7 +243,7 @@ func TestShowAutoClip(t *testing.T) { //nolint:paralleltest
 		// terminal=false
 		ctx = ctxutil.WithTerminal(ctx, false)
 		// initialize context with config values, also detects if we're running in a terminal
-		ctx = act.Store.WithContext(ctx)
+		ctx = act.Store.WithStoreConfig(ctx)
 
 		c := gptest.CliCtx(ctx, t, "foo")
 		assert.NoError(t, act.Show(c))
@@ -345,9 +344,10 @@ func TestShowHandleRevision(t *testing.T) { //nolint:paralleltest
 	ctx = ctxutil.WithTerminal(ctx, false)
 	ctx = ctxutil.WithInteractive(ctx, false)
 
-	act, err := newMock(ctx, u)
+	act, err := newMock(ctx, u.StoreDir(""))
 	require.NoError(t, err)
 	require.NotNil(t, act)
+	ctx = act.cfg.WithConfig(ctx)
 
 	color.NoColor = true
 	buf := &bytes.Buffer{}
@@ -372,9 +372,10 @@ func TestShowHandleError(t *testing.T) { //nolint:paralleltest
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithTerminal(ctx, false)
-	act, err := newMock(ctx, u)
+	act, err := newMock(ctx, u.StoreDir(""))
 	require.NoError(t, err)
 	require.NotNil(t, act)
+	ctx = act.cfg.WithConfig(ctx)
 
 	color.NoColor = true
 	buf := &bytes.Buffer{}
@@ -400,9 +401,10 @@ func TestShowPrintQR(t *testing.T) { //nolint:paralleltest
 	ctx = ctxutil.WithTerminal(ctx, false)
 	ctx = ctxutil.WithInteractive(ctx, false)
 
-	act, err := newMock(ctx, u)
+	act, err := newMock(ctx, u.StoreDir(""))
 	require.NoError(t, err)
 	require.NotNil(t, act)
+	ctx = act.cfg.WithConfig(ctx) //nolint:ineffassign
 
 	color.NoColor = true
 	buf := &bytes.Buffer{}

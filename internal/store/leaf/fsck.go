@@ -22,13 +22,13 @@ func (s *Store) Fsck(ctx context.Context, path string) error {
 	debug.Log("Checking %s", path)
 
 	// first let the storage backend check itself
-	out.Printf(ctx, "Checking storage backend")
+	debug.Log("Checking storage backend")
 	if err := s.storage.Fsck(ctx); err != nil {
-		return fmt.Errorf("storage backend found: %w", err)
+		return fmt.Errorf("storage backend error: %w", err)
 	}
 
 	// then try to compact storage / rcs
-	out.Printf(ctx, "Compacting storage if possible")
+	debug.Log("Compacting storage")
 	if err := s.storage.Compact(ctx); err != nil {
 		return fmt.Errorf("storage backend compaction failed: %w", err)
 	}
@@ -37,12 +37,15 @@ func (s *Store) Fsck(ctx context.Context, path string) error {
 
 	// then we'll make sure all the secrets are readable by us and every
 	// valid recipient
-	out.Printf(ctx, "Checking all secrets in store")
-	names, err := s.List(ctx, path)
-	if err != nil {
-		return fmt.Errorf("failed to list entries: %w", err)
+	if path != "" {
+		out.Printf(ctx, "Checking all secrets matching %s", path)
 	}
 
+	names, err := s.List(ctx, path)
+	if err != nil {
+		return fmt.Errorf("failed to list entries for %s: %w", path, err)
+	}
+	debug.Log("names (%d): %q", len(names), names)
 	sort.Strings(names)
 	for _, name := range names {
 		pcb()
@@ -57,11 +60,36 @@ func (s *Store) Fsck(ctx context.Context, path string) error {
 		}
 	}
 
+	if err := s.fsckUpdatePublicKeys(ctx); err != nil {
+		out.Errorf(ctx, "Failed to update public keys: %s", err)
+	}
+
 	if err := s.storage.Push(ctx, "", ""); err != nil {
-		if errors.Is(err, store.ErrGitNoRemote) {
+		if !errors.Is(err, store.ErrGitNoRemote) {
 			out.Printf(ctx, "RCS Push failed: %s", err)
 		}
 	}
+
+	return nil
+}
+
+func (s *Store) fsckUpdatePublicKeys(ctx context.Context) error {
+	ctx = WithPubkeyUpdate(ctx, true)
+	rs := s.Recipients(ctx)
+
+	// first import possibly new/updated keys to merge any changes
+	// that might come from others.
+	if err := s.ImportMissingPublicKeys(ctx, rs...); err != nil {
+		return fmt.Errorf("failed to import new or updated pubkeys: %w", err)
+	}
+
+	// then export our (possibly updated) keys for consumption
+	// by others.
+	exported, err := s.UpdateExportedPublicKeys(ctx, rs)
+	if err != nil {
+		return fmt.Errorf("failed to update exported pubkeys: %w", err)
+	}
+	debug.Log("Updated exported public keys: %t", exported)
 
 	return nil
 }
@@ -109,7 +137,7 @@ func (s *Store) fsckCheckEntry(ctx context.Context, name string) error {
 
 func (s *Store) fsckCheckRecipients(ctx context.Context, name string) error {
 	// now compare the recipients this secret was encoded for and fix it if
-	// if doesn't match
+	// it doesn't match.
 	ciphertext, err := s.storage.Get(ctx, s.Passfile(name))
 	if err != nil {
 		return fmt.Errorf("failed to get raw secret: %w", err)
@@ -122,12 +150,12 @@ func (s *Store) fsckCheckRecipients(ctx context.Context, name string) error {
 
 	itemRecps = fingerprints(ctx, s.crypto, itemRecps)
 
-	perItemStoreRecps, err := s.GetRecipients(ctx, name)
+	rs, err := s.GetRecipients(ctx, name)
 	if err != nil {
 		return fmt.Errorf("failed to get recipients from store: %w", err)
 	}
 
-	perItemStoreRecps = fingerprints(ctx, s.crypto, perItemStoreRecps)
+	perItemStoreRecps := fingerprints(ctx, s.crypto, rs.IDs())
 
 	// check itemRecps matches storeRecps
 	extra, missing := diff.List(perItemStoreRecps, itemRecps)

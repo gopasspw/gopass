@@ -26,11 +26,12 @@ func TestFind(t *testing.T) { //nolint:paralleltest
 	ctx := context.Background()
 	ctx = ctxutil.WithTerminal(ctx, false)
 
-	act, err := newMock(ctx, u)
+	act, err := newMock(ctx, u.StoreDir(""))
 	require.NoError(t, err)
 	require.NotNil(t, act)
+	ctx = act.cfg.WithConfig(ctx)
 
-	act.cfg.AutoClip = false
+	require.NoError(t, act.cfg.Set("", "core.autoclip", "false"))
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
@@ -65,7 +66,7 @@ func TestFind(t *testing.T) { //nolint:paralleltest
 	buf.Reset()
 
 	// testing the safecontent case
-	ctx = ctxutil.WithShowSafeContent(ctx, true)
+	require.NoError(t, act.cfg.Set("", "core.showsafecontent", "true"))
 	c.Context = ctx
 	assert.NoError(t, act.Find(c))
 	buf.Reset()
@@ -85,7 +86,7 @@ func TestFind(t *testing.T) { //nolint:paralleltest
 	buf.Reset()
 
 	// stopping with the safecontent tests
-	ctx = ctxutil.WithShowSafeContent(ctx, false)
+	require.NoError(t, act.cfg.Set("", "core.showsafecontent", "false"))
 
 	// find yo
 	c = gptest.CliCtx(ctx, t, "yo")

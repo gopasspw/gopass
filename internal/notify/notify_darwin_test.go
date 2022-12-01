@@ -10,14 +10,14 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// to test cmd.exec correctly we use the same functionality as go itself see exec_test.go
-func TestDarwinNotify(t *testing.T) {
+// to test cmd.exec correctly we use the same functionality as go itself see exec_test.go.
+func TestDarwinNotify(t *testing.T) { //nolint:paralleltest
 	ctx := context.Background()
-	_ = os.Setenv("GOPASS_NO_NOTIFY", "true")
+	t.Setenv("GOPASS_NO_NOTIFY", "true")
 	assert.NoError(t, Notify(ctx, "foo", "bar"))
 }
 
-func TestLegacyNotification(t *testing.T) {
+func TestLegacyNotification(t *testing.T) { //nolint:paralleltest
 	ctx := context.Background()
 	// override execCommand with mock
 	execCommand = mockExecCommand
@@ -29,7 +29,7 @@ func TestLegacyNotification(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestLegacyTerminalNotifierNotification(t *testing.T) {
+func TestLegacyTerminalNotifierNotification(t *testing.T) { //nolint:paralleltest
 	ctx := context.Background()
 	// override execCommand with mock
 	execCommand = mockExecCommand
@@ -42,7 +42,7 @@ func TestLegacyTerminalNotifierNotification(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestNoExecutableFound(t *testing.T) {
+func TestNoExecutableFound(t *testing.T) { //nolint:paralleltest
 	ctx := context.Background()
 	// override execCommand with mock
 	execCommand = mockExecCommand
@@ -52,7 +52,7 @@ func TestNoExecutableFound(t *testing.T) {
 	}()
 
 	err := Notify(ctx, "foo", "bar")
-	assert.NoError(t, err)
+	assert.Error(t, err)
 }
 
 func mockExecLookPath(_ string) (string, error) {
@@ -63,6 +63,7 @@ func mockExecLookPathTerminalNotifier(command string) (string, error) {
 	if command == terminalNotifier {
 		return "", fmt.Errorf("no binary found")
 	}
+
 	return "", nil
 }
 
@@ -71,5 +72,6 @@ func mockExecCommand(command string, args ...string) *exec.Cmd {
 	cs = append(cs, args...)
 	cmd := exec.Command(os.Args[0], cs...)
 	cmd.Env = []string{"GO_WANT_HELPER_PROCESS=1"}
+
 	return cmd
 }

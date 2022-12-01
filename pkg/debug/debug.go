@@ -139,7 +139,7 @@ func initDebugTags() {
 	opts.files = parseFilter("GOPASS_DEBUG_FILES", padFile)
 }
 
-func getPosition(offset int) (fn, dir, file string, line int) {
+func getPosition(offset int) (fn, dir, file string, line int) { //nolint:nonamedreturns
 	pc, file, line, ok := runtime.Caller(3 + offset)
 	if !ok {
 		return "", "", "", 0

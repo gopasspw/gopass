@@ -25,7 +25,12 @@ func (s *Action) Version(c *cli.Context) error {
 	version := make(chan string, 1)
 	go s.checkVersion(ctx, version)
 
-	_ = s.IsInitialized(c)
+	// suppress setup output in version
+	{
+		c2 := c
+		c2.Context = ctxutil.WithHidden(c.Context, true)
+		_ = s.IsInitialized(c2)
+	}
 
 	cli.VersionPrinter(c)
 

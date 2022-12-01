@@ -10,7 +10,8 @@ func GetCommands() []*cli.Command {
 		{
 			Name:        "pwgen",
 			Usage:       "Generate passwords",
-			Description: "Print any number of password to the console.",
+			Description: "Print any number of password to the console. The optional length parameter specifies the length of each password.",
+			ArgsUsage:   "[length]",
 			Action:      Pwgen,
 			Flags: []cli.Flag{
 				&cli.BoolFlag{
@@ -52,7 +53,7 @@ func GetCommands() []*cli.Command {
 				&cli.StringFlag{
 					Name:    "lang",
 					Aliases: []string{"xkcdlang", "xl"},
-					Usage:   "Language to generate password from, currently de (german) and en (english, default) are supported",
+					Usage:   "Language to generate password from, currently only en (english, default) is supported",
 					Value:   "en",
 				},
 			},

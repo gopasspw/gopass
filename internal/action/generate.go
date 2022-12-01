@@ -3,6 +3,7 @@ package action
 import (
 	"context"
 	"fmt"
+	"os"
 	"path"
 	"regexp"
 	"sort"
@@ -10,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/gopasspw/gopass/internal/action/exit"
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/tree"
 	"github.com/gopasspw/gopass/pkg/clipboard"
@@ -28,6 +30,26 @@ const (
 	defaultLength     = 24
 	defaultXKCDLength = 4
 )
+
+// defaultLengthFromEnv will determine the password length from the env variable
+// GOPASS_PW_DEFAULT_LENGTH or fallback to the hard-coded default length.
+// If the env variable is set by the user and is valid, the boolean return value
+// will be true, otherwise it will be false.
+func defaultLengthFromEnv() (int, bool) {
+	lengthStr, isSet := os.LookupEnv("GOPASS_PW_DEFAULT_LENGTH")
+	if !isSet {
+		return defaultLength, false
+	}
+	length, err := strconv.Atoi(lengthStr)
+	if err != nil {
+		return defaultLength, false
+	}
+	if length < 1 {
+		return defaultLength, false
+	}
+
+	return length, true
+}
 
 var reNumber = regexp.MustCompile(`^\d+$`)
 
@@ -117,13 +139,13 @@ func (s *Action) generateCopyOrPrint(ctx context.Context, c *cli.Context, name, 
 	// copy to clipboard if:
 	// - explicitly requested with -c
 	// - autoclip=true, but only if output is not being redirected.
-	if IsClip(ctx) || (s.cfg.AutoClip && ctxutil.IsTerminal(ctx)) {
-		if err := clipboard.CopyTo(ctx, name, []byte(password), s.cfg.ClipTimeout); err != nil {
+	if IsClip(ctx) || (s.cfg.GetBool("core.autoclip") && ctxutil.IsTerminal(ctx)) {
+		if err := clipboard.CopyTo(ctx, name, []byte(password), s.cfg.GetInt("core.cliptimeout")); err != nil {
 			return exit.Error(exit.IO, err, "failed to copy to clipboard: %s", err)
 		}
 		// if autoclip is on and we're not printing the password to the terminal
 		// at least leave a notice that we did indeed copy it.
-		if s.cfg.AutoClip && !c.Bool("print") {
+		if s.cfg.GetBool("core.autoclip") && !c.Bool("print") {
 			out.Print(ctx, "Copied to clipboard")
 
 			return nil
@@ -136,8 +158,8 @@ func (s *Action) generateCopyOrPrint(ctx context.Context, c *cli.Context, name, 
 		return nil
 	}
 
-	if c.IsSet("print") && !c.Bool("print") && ctxutil.IsShowSafeContent(ctx) {
-		debug.Log("safecontent suppresing printing")
+	if c.IsSet("print") && !c.Bool("print") && config.Bool(ctx, "core.showsafecontent") {
+		debug.Log("safecontent suppressing printing")
 
 		return nil
 	}
@@ -151,10 +173,10 @@ func (s *Action) generateCopyOrPrint(ctx context.Context, c *cli.Context, name, 
 	return nil
 }
 
-func hasPwRuleForSecret(name string) (string, pwrules.Rule) {
+func hasPwRuleForSecret(ctx context.Context, name string) (string, pwrules.Rule) {
 	for name != "" && name != "." {
 		d := path.Base(name)
-		if r, found := pwrules.LookupRule(d); found {
+		if r, found := pwrules.LookupRule(ctx, d); found {
 			return d, r
 		}
 		name = path.Dir(name)
@@ -165,7 +187,7 @@ func hasPwRuleForSecret(name string) (string, pwrules.Rule) {
 
 // generatePassword will run through the password generation steps.
 func (s *Action) generatePassword(ctx context.Context, c *cli.Context, length, name string) (string, error) {
-	if domain, rule := hasPwRuleForSecret(name); domain != "" && !c.Bool("force") {
+	if domain, rule := hasPwRuleForSecret(ctx, name); domain != "" && !c.Bool("force") {
 		return s.generatePasswordForRule(ctx, c, length, name, domain, rule)
 	}
 
@@ -176,13 +198,11 @@ func (s *Action) generatePassword(ctx context.Context, c *cli.Context, length, n
 
 	var pwlen int
 	if length == "" {
-		candidateLength := defaultLength
-		question := "How long should the password be?"
-		iv, err := termio.AskForInt(ctx, question, candidateLength)
+		pwlength, err := getPwLengthFromEnvOrAskUser(ctx)
 		if err != nil {
-			return "", exit.Error(exit.Usage, err, "password length must be a number")
+			return "", err
 		}
-		pwlen = iv
+		pwlen = pwlength
 	} else {
 		iv, err := strconv.Atoi(length)
 		if err != nil {
@@ -215,6 +235,28 @@ func (s *Action) generatePassword(ctx context.Context, c *cli.Context, length, n
 	}
 }
 
+// getPwLengthFromEnvOrAskUser either determines the password length through an
+// environment variable or asks the user to set one.
+// This function assumes that if the length is set via the environment variable,
+// the user has already made a conscious decision and does not need to be asked
+// again.
+func getPwLengthFromEnvOrAskUser(ctx context.Context) (int, error) {
+	var pwlen int
+	candidateLength, isCustom := defaultLengthFromEnv()
+	if !isCustom {
+		question := "How long should the password be?"
+		iv, err := termio.AskForInt(ctx, question, candidateLength)
+		if err != nil {
+			return 0, exit.Error(exit.Usage, err, "password length must be a number")
+		}
+		pwlen = iv
+	} else {
+		pwlen = candidateLength
+	}
+
+	return pwlen, nil
+}
+
 func clamp(min, max, value int) int {
 	if value < min {
 		return min
@@ -242,7 +284,7 @@ func (s *Action) generatePasswordForRule(ctx context.Context, c *cli.Context, le
 
 	iv = clamp(rule.Minlen, rule.Maxlen, iv)
 
-	pw := pwgen.NewCrypticForDomain(iv, domain).Password()
+	pw := pwgen.NewCrypticForDomain(ctx, iv, domain).Password()
 	if pw == "" {
 		return "", fmt.Errorf("failed to generate password for %s", domain)
 	}
@@ -314,7 +356,7 @@ func (s *Action) generateSetPassword(ctx context.Context, name, key, password st
 	var sec gopass.Secret
 	sec = secrets.New()
 	sec.SetPassword(password)
-	if u := hasChangeURL(name); u != "" {
+	if u := hasChangeURL(ctx, name); u != "" {
 		_ = sec.Set("password-change-url", u)
 	}
 
@@ -334,10 +376,10 @@ func (s *Action) generateSetPassword(ctx context.Context, name, key, password st
 	return ctx, nil
 }
 
-func hasChangeURL(name string) string {
+func hasChangeURL(ctx context.Context, name string) string {
 	p := strings.Split(name, "/")
 	for i := len(p) - 1; i > 0; i-- {
-		if u := pwrules.LookupChangeURL(p[i]); u != "" {
+		if u := pwrules.LookupChangeURL(ctx, p[i]); u != "" {
 			return u
 		}
 	}

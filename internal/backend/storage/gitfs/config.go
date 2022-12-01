@@ -4,13 +4,11 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
-	"github.com/gopasspw/gopass/pkg/debug"
 )
 
 const (
@@ -88,7 +86,8 @@ func (g *Git) InitConfig(ctx context.Context, userName, userEmail string) error 
 
 // ConfigSet sets a local config value.
 func (g *Git) ConfigSet(ctx context.Context, key, value string) error {
-	return g.Cmd(ctx, "gitConfigSet", "config", "--local", key, value)
+	// return g.Cmd(ctx, "gitConfigSet", "config", "--local", key, value)
+	return g.cfg.SetLocal(key, value)
 }
 
 // ConfigGet returns a given config value.
@@ -97,19 +96,14 @@ func (g *Git) ConfigGet(ctx context.Context, key string) (string, error) {
 		return "", store.ErrGitNotInit
 	}
 
-	buf := &strings.Builder{}
+	value := g.cfg.Get(key)
+	if value == "" {
+		g.cfg.Reload()
 
-	cmd := exec.CommandContext(ctx, "git", "config", "--get", key)
-	cmd.Dir = g.fs.Path()
-	cmd.Stdout = buf
-	cmd.Stderr = os.Stderr
-
-	debug.Log("%s %+v", cmd.Path, cmd.Args)
-	if err := cmd.Run(); err != nil {
-		return "", err
+		value = g.cfg.Get(key)
 	}
 
-	return strings.TrimSpace(buf.String()), nil
+	return value, nil
 }
 
 // ConfigList returns all git config settings.
@@ -118,26 +112,9 @@ func (g *Git) ConfigList(ctx context.Context) (map[string]string, error) {
 		return nil, store.ErrGitNotInit
 	}
 
-	buf := &strings.Builder{}
-
-	cmd := exec.CommandContext(ctx, "git", "config", "--list")
-	cmd.Dir = g.fs.Path()
-	cmd.Stdout = buf
-	cmd.Stderr = os.Stderr
-
-	debug.Log("%s %+v", cmd.Path, cmd.Args)
-	if err := cmd.Run(); err != nil {
-		return nil, err
-	}
-
-	lines := strings.Split(buf.String(), "\n")
-	kv := make(map[string]string, len(lines))
-	for _, line := range lines {
-		key, val, found := strings.Cut(strings.TrimSpace(line), "=")
-		if !found {
-			continue
-		}
-		kv[key] = val
+	kv := make(map[string]string, 23)
+	for _, k := range g.cfg.List("") {
+		kv[k] = g.cfg.Get(k)
 	}
 
 	return kv, nil

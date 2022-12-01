@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/fatih/color"
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/tree"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -24,9 +25,10 @@ func TestList(t *testing.T) { //nolint:paralleltest
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithInteractive(ctx, false)
 
-	act, err := newMock(ctx, u)
+	act, err := newMock(ctx, u.StoreDir(""))
 	require.NoError(t, err)
 	require.NotNil(t, act)
+	ctx = act.cfg.WithConfig(ctx)
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
@@ -84,6 +86,32 @@ foo2/
 	assert.Equal(t, want, buf.String())
 	buf.Reset()
 
+	// add shadowed entry
+	sec = &secrets.Plain{}
+	sec.SetPassword("123")
+	assert.NoError(t, act.Store.Set(ctx, "foo/zen", sec))
+	buf.Reset()
+
+	assert.NoError(t, act.List(gptest.CliCtxWithFlags(ctx, t, map[string]string{"flat": "true"})))
+	want = `foo
+foo/bar
+foo/zen
+foo/zen/bar
+foo2/bar2
+`
+	assert.Equal(t, want, buf.String())
+	buf.Reset()
+
+	assert.NoError(t, act.List(gptest.CliCtx(ctx, t, "foo")))
+	want = `foo/
+├── bar
+└── zen/ (shadowed)
+    └── bar
+
+`
+	assert.Equal(t, want, buf.String())
+	buf.Reset()
+
 	// list not-present
 	assert.Error(t, act.List(gptest.CliCtx(ctx, t, "not-present")))
 	buf.Reset()
@@ -97,9 +125,10 @@ func TestListLimit(t *testing.T) { //nolint:paralleltest
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithInteractive(ctx, false)
 
-	act, err := newMock(ctx, u)
+	act, err := newMock(ctx, u.StoreDir(""))
 	require.NoError(t, err)
 	require.NotNil(t, act)
+	ctx = act.cfg.WithConfig(ctx)
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
@@ -123,53 +152,67 @@ func TestListLimit(t *testing.T) { //nolint:paralleltest
 	assert.Equal(t, want, buf.String())
 	buf.Reset()
 
-	assert.NoError(t, act.List(gptest.CliCtxWithFlags(ctx, t, map[string]string{"folders": "true", "limit": "0"})))
-	want = `foo/
+	t.Run("folders-limit-0", func(t *testing.T) { //nolint:paralleltest
+		assert.NoError(t, act.List(gptest.CliCtxWithFlags(ctx, t, map[string]string{"folders": "true", "limit": "0"})))
+		want = `foo/
 foo2/
 `
-	assert.Equal(t, want, buf.String())
-	buf.Reset()
+		assert.Equal(t, want, buf.String())
+		buf.Reset()
+	})
 
-	assert.NoError(t, act.List(gptest.CliCtxWithFlags(ctx, t, map[string]string{"folders": "true", "limit": "1"})))
-	want = `foo/
+	t.Run("folders-limit-1", func(t *testing.T) { //nolint:paralleltest
+		assert.NoError(t, act.List(gptest.CliCtxWithFlags(ctx, t, map[string]string{"folders": "true", "limit": "1"})))
+		want = `foo/
 foo/zen/
 foo2/
 `
-	assert.Equal(t, want, buf.String())
-	buf.Reset()
+		assert.Equal(t, want, buf.String())
+		buf.Reset()
+	})
 
-	assert.NoError(t, act.List(gptest.CliCtxWithFlags(ctx, t, map[string]string{"folders": "true", "limit": "-1"})))
-	want = `foo/
+	t.Run("folders-limit--1", func(t *testing.T) { //nolint:paralleltest
+		assert.NoError(t, act.List(gptest.CliCtxWithFlags(ctx, t, map[string]string{"folders": "true", "limit": "-1"})))
+		want = `foo/
 foo/zen/
 foo/zen/baz/
 foo2/
 `
-	assert.Equal(t, want, buf.String())
-	buf.Reset()
+		assert.Equal(t, want, buf.String())
+		buf.Reset()
+	})
 
-	assert.NoError(t, act.List(gptest.CliCtxWithFlags(ctx, t, map[string]string{"flat": "true", "limit": "-1"})))
-	want = `foo/bar
+	t.Run("flat-limit--1", func(t *testing.T) { //nolint:paralleltest
+		assert.NoError(t, act.List(gptest.CliCtxWithFlags(ctx, t, map[string]string{"flat": "true", "limit": "-1"})))
+		want = `foo
+foo/bar
 foo/zen/baz/bar
 foo2/bar2
 `
-	assert.Equal(t, want, buf.String())
-	buf.Reset()
+		assert.Equal(t, want, buf.String())
+		buf.Reset()
+	})
 
-	assert.NoError(t, act.List(gptest.CliCtxWithFlags(ctx, t, map[string]string{"flat": "true", "limit": "0"})))
-	want = `foo/
+	t.Run("folders-limit-0", func(t *testing.T) { //nolint:paralleltest
+		assert.NoError(t, act.List(gptest.CliCtxWithFlags(ctx, t, map[string]string{"flat": "true", "limit": "0"})))
+		want = `foo
 foo2/
 `
-	assert.Equal(t, want, buf.String())
-	buf.Reset()
+		assert.Equal(t, want, buf.String())
+		buf.Reset()
+	})
 
-	assert.NoError(t, act.List(gptest.CliCtxWithFlags(ctx, t, map[string]string{"flat": "true", "limit": "2"})))
-	want = `foo/bar
+	t.Run("folders-limit-2", func(t *testing.T) { //nolint:paralleltest
+		assert.NoError(t, act.List(gptest.CliCtxWithFlags(ctx, t, map[string]string{"flat": "true", "limit": "2"})))
+		want = `foo
+foo/bar
 foo/zen/baz/
 foo2/bar2
 `
 
-	assert.Equal(t, want, buf.String())
-	buf.Reset()
+		assert.Equal(t, want, buf.String())
+		buf.Reset()
+	})
 }
 
 func TestRedirectPager(t *testing.T) { //nolint:paralleltest
@@ -178,14 +221,17 @@ func TestRedirectPager(t *testing.T) { //nolint:paralleltest
 	var buf *bytes.Buffer
 	var subtree *tree.Root
 
+	cfg := config.NewNoWrites()
+	ctx = cfg.WithConfig(ctx)
+
 	// no pager
-	ctx = ctxutil.WithNoPager(ctx, true)
+	require.NoError(t, cfg.Set("", "core.nopager", "true"))
 	so, buf := redirectPager(ctx, subtree)
 	assert.Nil(t, buf)
 	assert.NotNil(t, so)
 
 	// no term
-	ctx = ctxutil.WithNoPager(ctx, false)
+	require.NoError(t, cfg.Set("", "core.nopager", "false"))
 	so, buf = redirectPager(ctx, subtree)
 	assert.Nil(t, buf)
 	assert.NotNil(t, so)

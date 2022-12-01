@@ -22,6 +22,7 @@ func TestProcess(t *testing.T) { //nolint:paralleltest
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
+	ctx = ctxutil.WithInteractive(ctx, false)
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
@@ -31,9 +32,10 @@ func TestProcess(t *testing.T) { //nolint:paralleltest
 		stdout = os.Stdout
 	}()
 
-	act, err := newMock(ctx, u)
+	act, err := newMock(ctx, u.StoreDir(""))
 	require.NoError(t, err)
 	require.NotNil(t, act)
+	ctx = act.cfg.WithConfig(ctx)
 
 	sec := secrets.New()
 	assert.NoError(t, sec.Set("username", "admin"))

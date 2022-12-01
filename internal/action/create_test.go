@@ -22,13 +22,14 @@ func TestCreate(t *testing.T) { //nolint:paralleltest
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
-	ctx = ctxutil.WithNotifications(ctx, false)
 
-	act, err := newMock(ctx, u)
+	act, err := newMock(ctx, u.StoreDir(""))
 	require.NoError(t, err)
 	require.NotNil(t, act)
+	ctx = act.cfg.WithConfig(ctx)
 
-	act.cfg.ClipTimeout = 1
+	require.NoError(t, act.cfg.Set("", "core.notifications", "false"))
+	require.NoError(t, act.cfg.Set("", "core.cliptimeout", "1"))
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf

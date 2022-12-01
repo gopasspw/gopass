@@ -10,3 +10,13 @@ func Map[K comparable](in []K) map[K]bool {
 
 	return m
 }
+
+// Apply applies the given function to every element of the slice.
+func Apply[K comparable](in []K, f func(K) K) []K {
+	out := make([]K, len(in))
+	for i, v := range in {
+		out[i] = f(v)
+	}
+
+	return out
+}

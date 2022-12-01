@@ -2,15 +2,23 @@ name: Build gopass
 
 on:
   push:
-    branches: [ master ]
+    branches:
+      - master
   pull_request:
-    branches: [ master ]
+    branches:
+      - master
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
 
 permissions:
   contents: read
 
 jobs:
-
   linux:
     runs-on: ubuntu-latest
     steps:
@@ -21,7 +29,13 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v3
       with:
-        go-version: 1.18
+        go-version: 1.19
+    - uses: actions/cache@v3
+      with:
+        path: ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
     - name: Ubuntu Dependencies
       run: sudo apt-get install --yes git gnupg
     - run: git config --global user.name nobody
@@ -64,7 +78,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v3
       with:
-        go-version: 1.18
+        go-version: 1.19
 
     - run: git config --global user.name nobody
     - run: git config --global user.email foo.bar@example.org
@@ -82,10 +96,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v3
       with:
-        go-version: 1.18
-
-    - name: MacOS Dependencies
-      run: brew install git gnupg
+        go-version: 1.19
 
     - run: git config --global user.name nobody
     - run: git config --global user.email foo.bar@example.org

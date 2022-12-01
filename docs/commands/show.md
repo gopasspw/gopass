@@ -78,7 +78,6 @@ The secrets are split into 3 categories:
     will be parsed into (with `safecontent` enabled):
    ```
     and: the keys are separated from their value by :
-    password: ******
     where: the first line is the password
     
     
@@ -103,11 +102,30 @@ The secrets are split into 3 categories:
     bill-to: map[family:Doe given:Bob]
     date: 2001-01-23 00:00:00 +0000 UTC
     invoice: 83
-    password: *****
     ship-to: map[family:Doe given:Bob]
     ```
    Note how the `0123` is interpreted as octal for 83. If you want to store a string made of digits such as a numerical
    username, it should be enclosed in string delimiters: `username: "0123"` will always be parsed as the string `0123`
    and not as octal.
+
+Both the key-value and the YAML format support so-called "unsafe-keys", which is a key-value that allows you to specify keys that should be hidden when using `gopass show` with `gopass config safecontent` set to true.
+E.g:
+```
+supersecret
+---
+age: 27
+secret: The rabbit outran the tortoise
+name: John Smith
+unsafe-keys: age,secret
+```
+will display (with safecontent enabled):
+``` 
+age: *****
+name: John Smith
+secret: *****
+unsafe-keys: age,secret
+
+```
+unless it is called with `gopass show -n` that would disable parsing of the body, but still hide the password, or `gopass show -f` that would show everything that was hidden, including the password.
 
 Notice that if the option `parsing` is disabled in the config, then all secrets are handled as plain secrets.

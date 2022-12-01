@@ -58,6 +58,7 @@ Alternatively, it can be installed via [chocolatey](https://chocolatey.org/packa
 #### OpenBSD
 
 For OpenBSD -current:
+
 ```
 pkg_add gopass
 ```
@@ -117,6 +118,7 @@ touch foo
 git add foo
 git commit -S -m "test"
 ```
+
 Here the `-S` flag will sign your commit using GPG, allowing you to test your GPG setup with git.
 If you get an error like: "gpg failed to sign the data" try to see if creating a clear text signature works:
 
@@ -131,7 +133,8 @@ If this fails with an error: "Inappropriate ioctl for device" run the following 
 ```
 
 If you are using CSH or TCSH:
-```
+
+```bash
 setenv GPG_TTY `tty`
 ```
 
@@ -141,6 +144,7 @@ If you are presented with a different error please investigate this before conti
 set it in your `.zprofile`, `.bashrc` or simliar.
 
 Also if you have both `gnupg` and `gnupg2` installed, make sure to use the latter in git:
+
 ```bash
 git config --global gpg.program gpg2
 ```
@@ -177,8 +181,24 @@ a package named `gopass` that is not related to this project in any way.
 It's a similar tool with a completely independent implementation and feature set.
 We are aware of this issue but can not do anything about it.
 
-When installing on Ubuntu or Debian you can either download the `deb` package
-and [install manually or build from source](#installing-from-source).
+When installing on Ubuntu or Debian you can either download the `deb` package,
+[install manually or build from source](#installing-from-source) or use our APT repository.
+
+```bash
+$ curl https://packages.gopass.pw/repos/gopass/gopass-archive-keyring.gpg | sudo tee /usr/share/keyrings/gopass-archive-keyring.gpg >/dev/null
+$ cat << EOF | sudo tee /etc/apt/sources.list.d/gopass.sources
+Types: deb
+URIs: https://packages.gopass.pw/repos/gopass
+Suites: stable
+Architectures: all amd64 arm64 armhf
+Components: main
+Signed-By: /usr/share/keyrings/gopass-archive-keyring.gpg
+EOF
+$ sudo apt update
+$ sudo apt install gopass gopass-archive-keyring
+```
+
+Note: We also have an unstable track that sometimes contains pre-release versions. Use `https://packages.gopass.pw/repos/gopass-unstable` if you want to help with early testing.
 
 #### Manual download
 
@@ -198,7 +218,13 @@ layman -a go-overlay
 emerge -av gopass
 ```
 
-### Fedora / Red Hat / CentOS
+### Fedora
+
+```bash
+dnf install gopass
+```
+
+### Red Hat / CentOS
 
 There is an unofficial RPM build maintained by a contributor.
 
@@ -212,10 +238,10 @@ yum install gopass
 ```
 
 ### Arch Linux
+
 ```bash
 pacman -S gopass
 ```
-
 
 ### Windows
 
@@ -251,19 +277,24 @@ If `$GOPATH/bin` is in your `$PATH`, you can now run `gopass` from anywhere on y
 
 ### Securing Your Editor
 
-Various editors may store temporary files outside of the secure working directory when editing secrets. We advise you to check and disable this behavior for your editor of choice.
+Various editors may store temporary files outside of the secure working directory when editing secrets.
+We advise you to check and disable this behavior for your editor of choice.
 
-For `vim` on Linux, the following setting may be helpful:
+Here are a few useuful example settings:
 
-```
-au BufNewFile,BufRead /dev/shm/gopass.* setlocal noswapfile nobackup noundofile
+```vim
+" neovim on Linux
+autocmd BufNewFile,BufRead /dev/shm/gopass* setlocal noswapfile nobackup noundofile shada=""
+" neovim on MacOS
+autocmd BufNewFile,BufRead /private/**/gopass** setlocal noswapfile nobackup noundofile shada=""
+" vim on Linux
+autocmd BufNewFile,BufRead /dev/shm/gopass* setlocal noswapfile nobackup noundofile viminfo=""
+" vim on MacOS
+autocmd BufNewFile,BufRead /private/**/gopass** setlocal noswapfile nobackup noundofile viminfo=""
 ```
 
-For MacOS consider this setting:
-
-```
-au BufNewFile,BufRead /private/**/gopass** setlocal noswapfile nobackup noundofile
-```
+Note: gopass will attempt to detect the correct hardning flags to be used for the editor. It will pass them on
+invocation.
 
 ### Migrating from pass to gopass
 
@@ -298,11 +329,12 @@ If you use zsh, `make install` or `make install-completion` should install the c
 If zsh autocompletion is still not functional, or if you want to install it manually, you can run the following commands:
 
 ```bash
-$ gopass completion zsh > ~/_gopass 
-$ sudo mv ~/_gopass /usr/share/zsh/site-functions/_gopass
-$ rm -i ${ZDOTDIR:-${HOME:?No ZDOTDIR or HOME}}/.zcompdump && compinit
+gopass completion zsh > ~/_gopass 
+sudo mv ~/_gopass /usr/share/zsh/site-functions/_gopass
+rm -i ${ZDOTDIR:-${HOME:?No ZDOTDIR or HOME}}/.zcompdump && compinit
 
 ```
+
 Then exit and re-run zsh if the last command failed.
 
 Notice that it is important to directly redirect Gopass' output to a file,
@@ -312,17 +344,21 @@ completions directory, as defined by either the standard `/usr/share/zsh/site-fu
 or by a user-specified `fpath` folder. It is not meant to used with `source`.
 
 If zsh completion is still not working, you might want to add the following to your `.zshrc` file:
+
 ```bash
 autoload -U compinit && compinit
 ```
+
 if you don't have it already.
 
 ### Enable fish completion
 
 If you use the [fish](https://fishshell.com/) shell, you can enable experimental shell completion by the following command:
+
 ```fish
-$ mkdir -p ~/.config/fish/completions and; gopass completion fish > ~/.config/fish/completions/gopass.fish
+mkdir -p ~/.config/fish/completions and; gopass completion fish > ~/.config/fish/completions/gopass.fish
 ```
+
 and start a new shell afterwards.
 
 Since writing fish completion scripts is not yet supported by the CLI library we use, this completion script is missing a few features. Feel free to contribute if you want to improve it.
@@ -393,10 +429,10 @@ $ gopass setup --crypto gpg --storage gitfs # used by default
 If you have created a password store with `git`, `gopass` can easily clone it.
 
 ```bash
-$ gopass clone git@gitlab.example.org:john/passwords.git
+gopass clone git@gitlab.example.org:john/passwords.git
 ```
 
-### Storing and Syncing your Password Store with Google Drive / Dropbox / Syncthing / etc.
+### Storing and Syncing your Password Store with Google Drive / Dropbox / Syncthing / etc
 
 The recommended way to use Gopass is to sync your store with a git repository, preferably a private one, since the name and path of your secrets might reveal information that you'd prefer to keep private.
 However, shall you prefer to, you might also use the `noop` storage backend that is meant to store data on a cloud provider instead of a git server.
@@ -408,7 +444,7 @@ For example, to use gopass with [Google Drive](https://drive.google.com):
 ```bash
 gopass setup --storage fs
 mv .password-store/ "Google Drive/Password-Store"
-gopass config path "~/Google Drive/Password-Store"
+gopass config mounts.path "~/Google Drive/Password-Store"
 ```
 
 ### Download a GUI
@@ -449,4 +485,3 @@ It will fail if the remote at `github.com/example/pass.git` is not empty.
 
 The second command will clone the existing (no `--create` flag) remote `github.com/example/pass.git`
 and mount it as the mount point `example`.
-

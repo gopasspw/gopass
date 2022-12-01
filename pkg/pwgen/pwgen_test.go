@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func ExampleGenerateMemorablePassword() {
+func ExampleGenerateMemorablePassword() { //nolint:testableexamples
 	fmt.Println(GenerateMemorablePassword(12, false, false))
 }
 

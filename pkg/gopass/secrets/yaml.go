@@ -34,10 +34,11 @@ var ErrNotSupported = fmt.Errorf("not supported")
 // Format
 // ------
 // Line | Description
-//    0 | Password
-//  1-n | Body
-//  n+1 | Separator ("---")
-//  n+2 | YAML content.
+//
+//	  0 | Password
+//	1-n | Body
+//	n+1 | Separator ("---")
+//	n+2 | YAML content.
 type YAML struct {
 	password string
 	data     map[string]any

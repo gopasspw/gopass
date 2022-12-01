@@ -1,3 +1,88 @@
+## 1.14.11 / 2022-11-25
+
+* [BUGFIX] Fix edit on MacOS Ventura (#2426, #2400)
+* [BUGFIX] Handle nvi (#2414)
+* [BUGFIX] Improve support for non-vim editors (#2427, #2424)
+* [BUGFIX] Only pass vim options to vim (#2421, #2412)
+* [ENHANCEMENT] Support combined short flags (#2420, #2419)
+# Changelog
+
+## 1.14.10 / 2022-11-09
+
+* [BUGFIX] Correctly handle key removal on Windows (#2372, #2371)
+* [DOCUMENTATION] (#1878)
+* [ENHANCEMENT] Ignore comments in recipient files. (#2394, #2393)
+* [ENHANCEMENT] Improve key expiration handling (#2383, #2369)
+* [ENHANCEMENT] allow re-encrypting entire directory when (#2373)
+
+## 1.14.9 / 2022-09-28
+
+* [ENHANCEMENT] Make DBus notifications transient (#2364, #2358)
+
+## 1.14.8 / 2022-09-27
+
+* [BUGFIX] Ignore not-existing .ssh dir (#2347, #2333)
+* [BUGFIX] Use Wait() to avoid Zombies (#2354, #1666)
+* [ENHANCEMENT] Allow modifying default create templates (#2349, #2291)
+* [ENHANCEMENT] Improve passage support (#2352, #2059)
+* [ENHANCEMENT] Use OS keychain for age passphrase caching (new config option, off by default). (#2351, #2350)
+
+## 1.14.7 / 2022-09-20
+
+* [BUGFIX] Do not ignore symlinks when listing (#2344, #2173)
+* [BUGFIX] Do not shadow entries behind folders. (#2341, #2338)
+* [BUGFIX] Fix updater on Windows. (#2345, #2011)
+* [BUGFIX] Handle Ctrl+C in TOTP (#2342, #2320)
+* [ENHANCEMENT] Set vim options instead of sniffing (#2343, #2317)
+
+## 1.14.6 / 2022-09-10
+
+* [BUGFIX] Do not show setup message on version (#2327)
+* [BUGFIX] Remove exported public keys of removed (#2328, #2315)
+* [ENHANCEMENT] Document extension model. (#2329, #2290)
+
+## 1.14.5 / 2022-09-03
+
+* [BUGFIX] Fix fsck progress bar. Mostly. (#2303)
+* [DOCUMENTATION] fix in recommended vim setting (#2318)
+
+## 1.14.4 / 2022-08-02
+
+* [BREAKING] gopass otp will automatically update the counter key in HTOP secrets! (#2278)
+* [BUGFIX] Allow removing unknown recipients with --force (#2253)
+* [BUGFIX] Honor PASSWORD_STORE_DIR (#2272)
+* [BUGFIX] Honor OTP key period from URL (#2278)
+* [BUGFIX] Wizard: Enforce min and max length. (#2293)
+* [CLEANUP] Use Go 1.19 (#2296)
+* [ENHANCEMENT] Automatically sync once a week (#2191)
+* [ENHANCEMENT] Scan for vulnerabilities and add SBOM on (#2268)
+* [ENHANCEMENT] Use packages.gopass.pw for APT packages (#2261)
+
+## 1.14.3 / 2022-05-31
+
+* [BUGFIX] Do not print progress bar on otp --clip (#2243)
+* [BUGFIX] Removing shadowing warning when using -o/--password (#2245)
+* [CLEANUP] Deprecate OutputIsRedirected in favour of IsTerminal (#2248)
+* [DOCUMENTATION] Adding doc about YAML entries and unsafe-keys (#2244)
+* [ENHANCEMENT] Allow deleting multiple secrets (#2239)
+
+## 1.14.2 / 2022-05-22
+
+* [BUGFIX] Fix gpg identity detection (#2218, #2179)
+* [BUGFIX] Handle different line breaks in recipient (#2221, #2220)
+* [BUGFIX] Stop eating secrets on move (#2211, #2210)
+* [ENHANCEMENT] Add flag to keep env variable capitalization (#2226, #2225)
+* [ENHANCEMENT] Environment variable GOPASS_PW_DEFAULT_LENGTH can be used to overwrite default password length of 24 characters. (#2219)
+
+## 1.14.1 / 2022-05-02
+
+* [BUGFIX] Do not print missing public key for age. (#2166)
+* [BUGFIX] Improve convert output (#2171)
+* [BUGFIX] fix errors in zsh completions (#2005)
+* [CLEANUP] Migrating to a maintained version of openpgp (#2193)
+* [ENHANCEMENT] Avoid decryption on move or copy (#2183, #2181)
+* [UX] Upgrade xkcdpwgen to a new version that removes German (#2187)
+
 ## 1.14.0 / 2022-03-16
 
 * Add --chars option to print subset of secrets (#2155, #2068)

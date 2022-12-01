@@ -29,7 +29,7 @@ func (t *File) mount(ctx context.Context) error {
 	debug.Log("CMD: %s %+v", cmd.Path, cmd.Args)
 	cmdout, err := cmd.Output()
 	if err != nil {
-		return fmt.Errorf("failed to create disk with hdid: %s", err)
+		return fmt.Errorf("failed to create disk with hdid: %w", err)
 	}
 
 	debug.Log("Output: %s\n", cmdout)
@@ -54,7 +54,7 @@ func (t *File) mount(ctx context.Context) error {
 	}
 
 	// mount ramdisk
-	cmd = exec.CommandContext(ctx, "mount", "-t", "hfs", "-o", "noatime", "-o", "nobrowse", t.dev, t.dir)
+	cmd = exec.CommandContext(ctx, "diskutil", "mount", "nobrowse", "-mountOptions", "noatime", "-mountpoint", t.dir, t.dev)
 	cmd.Stderr = os.Stderr
 	if debug.IsEnabled() {
 		cmd.Stdout = os.Stdout
@@ -67,12 +67,14 @@ func (t *File) mount(ctx context.Context) error {
 
 	// Wait for the mount to settle. This is a hack.
 	time.Sleep(100 * time.Millisecond)
+
 	return nil
 }
 
 func (t *File) unmount(ctx context.Context) error {
 	bo := backoff.NewExponentialBackOff()
 	bo.MaxElapsedTime = 10 * time.Second
+
 	return backoff.Retry(func() error {
 		return t.tryUnmount(ctx)
 	}, bo)
@@ -103,5 +105,6 @@ func (t *File) tryUnmount(ctx context.Context) error {
 	}
 
 	debug.Log("CMD: %s %+v", cmd.Path, cmd.Args)
+
 	return cmd.Run()
 }

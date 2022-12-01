@@ -97,11 +97,6 @@ func (m *Mocker) Decrypt(ctx context.Context, ciphertext []byte) ([]byte, error)
 	return ciphertext, nil
 }
 
-// ExportPublicKey does nothing.
-func (m *Mocker) ExportPublicKey(context.Context, string) ([]byte, error) {
-	return nil, nil
-}
-
 // ImportPublicKey does nothing.
 func (m *Mocker) ImportPublicKey(context.Context, []byte) error {
 	return nil

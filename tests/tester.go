@@ -12,14 +12,15 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/gopasspw/gopass/tests/can"
 	"github.com/gopasspw/gopass/tests/gptest"
 	shellquote "github.com/kballard/go-shellquote"
 	"github.com/stretchr/testify/require"
 )
 
 const (
-	gopassConfig = `
-exportkeys: false
+	gopassConfig = `[core]
+exportkeys = false
 `
 	keyID = "BE73F104"
 )
@@ -66,6 +67,7 @@ func newTester(t *testing.T) *tester {
 		sourceDir: sourceDir,
 		Binary:    gopassBin,
 	}
+
 	// create tempDir
 	td, err := os.MkdirTemp("", "gopass-")
 	require.NoError(t, err)
@@ -78,34 +80,20 @@ func newTester(t *testing.T) *tester {
 	require.NoError(t, os.Setenv("GNUPGHOME", ts.gpgDir()))
 	require.NoError(t, os.Setenv("GOPASS_DEBUG", ""))
 	require.NoError(t, os.Setenv("NO_COLOR", "true"))
-	require.NoError(t, os.Setenv("GOPASS_CONFIG", ts.gopassConfig()))
+	require.NoError(t, os.Setenv("GOPASS_CONFIG_NOSYSTEM", "true"))
+	require.NoError(t, os.Setenv("GOPASS_CONFIG_NO_MIGRATE", "true"))
 	require.NoError(t, os.Setenv("GOPASS_NO_NOTIFY", "true"))
 	require.NoError(t, os.Setenv("GOPASS_HOMEDIR", td))
 
 	// write config
 	require.NoError(t, os.MkdirAll(filepath.Dir(ts.gopassConfig()), 0o700))
 	// we need to set the root path to something else than the root directory otherwise the mounts will show as regular entries
-	if err := os.WriteFile(ts.gopassConfig(), []byte(gopassConfig+"\npath: "+ts.storeDir("root")+"\n"), 0o600); err != nil {
+	if err := os.WriteFile(ts.gopassConfig(), []byte(gopassConfig+"\n[mounts]\npath = "+ts.storeDir("root")+"\n"), 0o600); err != nil {
 		t.Fatalf("Failed to write gopass config to %s: %s", ts.gopassConfig(), err)
 	}
 
 	// copy gpg test files
-	files := map[string]string{
-		filepath.Join(ts.sourceDir, "can", "gnupg", "pubring.gpg"): filepath.Join(ts.gpgDir(), "pubring.gpg"),
-		filepath.Join(ts.sourceDir, "can", "gnupg", "random_seed"): filepath.Join(ts.gpgDir(), "random_seed"),
-		filepath.Join(ts.sourceDir, "can", "gnupg", "secring.gpg"): filepath.Join(ts.gpgDir(), "secring.gpg"),
-		filepath.Join(ts.sourceDir, "can", "gnupg", "trustdb.gpg"): filepath.Join(ts.gpgDir(), "trustdb.gpg"),
-	}
-	for from, to := range files {
-		buf, err := os.ReadFile(from)
-		require.NoError(t, err, "Failed to read file %s", from)
-
-		err = os.MkdirAll(filepath.Dir(to), 0o700)
-		require.NoError(t, err, "Failed to create dir for %s", to)
-
-		err = os.WriteFile(to, buf, 0o600)
-		require.NoError(t, err, "Failed to write file %s", to)
-	}
+	require.NoError(t, can.WriteTo(ts.gpgDir()))
 
 	return ts
 }
@@ -115,7 +103,7 @@ func (ts tester) gpgDir() string {
 }
 
 func (ts tester) gopassConfig() string {
-	return filepath.Join(ts.tempDir, ".config", "gopass", "config.yml")
+	return filepath.Join(ts.tempDir, ".config", "gopass", "config")
 }
 
 func (ts tester) storeDir(mount string) string {
@@ -138,6 +126,8 @@ func (ts tester) teardown() {
 }
 
 func (ts tester) runCmd(args []string, in []byte) (string, error) {
+	ts.t.Helper()
+
 	if len(args) < 1 {
 		return "", fmt.Errorf("invalid args %v: %w", args, ErrNoCommand)
 	}
@@ -157,6 +147,8 @@ func (ts tester) runCmd(args []string, in []byte) (string, error) {
 }
 
 func (ts tester) run(arg string) (string, error) {
+	ts.t.Helper()
+
 	if runtime.GOOS == "windows" {
 		arg = strings.ReplaceAll(arg, "\\", "\\\\")
 	}
@@ -180,12 +172,16 @@ func (ts tester) run(arg string) (string, error) {
 }
 
 func (ts tester) runWithInput(arg, input string) ([]byte, error) {
+	ts.t.Helper()
+
 	reader := strings.NewReader(input)
 
 	return ts.runWithInputReader(arg, reader)
 }
 
 func (ts tester) runWithInputReader(arg string, input io.Reader) ([]byte, error) {
+	ts.t.Helper()
+
 	args, err := shellquote.Split(arg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to split args %v: %w", arg, err)

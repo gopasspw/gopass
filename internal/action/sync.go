@@ -4,9 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
+	"strconv"
+	"time"
 
 	"github.com/fatih/color"
 	"github.com/gopasspw/gopass/internal/backend"
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/diff"
 	"github.com/gopasspw/gopass/internal/notify"
 	"github.com/gopasspw/gopass/internal/out"
@@ -18,12 +22,81 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
+var (
+	autosyncIntervalDays = 3
+	autosyncLastRun      time.Time
+)
+
+func init() {
+	sv := os.Getenv("GOPASS_AUTOSYNC_INTERVAL")
+	if sv == "" {
+		return
+	}
+
+	debug.Log("GOPASS_AUTOSYNC_INTERVAL is deprecated. Please use autosync.interval")
+
+	iv, err := strconv.Atoi(sv)
+	if err != nil {
+		return
+	}
+
+	autosyncIntervalDays = iv
+}
+
 // Sync all stores with their remotes.
 func (s *Action) Sync(c *cli.Context) error {
 	return s.sync(ctxutil.WithGlobalFlags(c), c.String("store"))
 }
 
+func (s *Action) autoSync(ctx context.Context) error {
+	if !ctxutil.IsInteractive(ctx) {
+		return nil
+	}
+
+	if !ctxutil.IsTerminal(ctx) {
+		return nil
+	}
+
+	if sv := os.Getenv("GOPASS_NO_AUTOSYNC"); sv != "" {
+		out.Warning(ctx, "GOPASS_NO_AUTOSYNC is deprecated. Please set core.autosync = false.")
+
+		return nil
+	}
+
+	if !config.Bool(ctx, "core.autosync") {
+		return nil
+	}
+
+	ls := s.rem.LastSeen("autosync")
+	debug.Log("autosync - last seen: %s", ls)
+	syncInterval := autosyncIntervalDays
+
+	if s.cfg.IsSet("autosync.interval") {
+		syncInterval = s.cfg.GetInt("autosync.interval")
+	}
+
+	if time.Since(ls) > time.Duration(syncInterval)*24*time.Hour {
+		_ = s.rem.Reset("autosync")
+
+		err := s.sync(ctx, "")
+		if err != nil {
+			autosyncLastRun = time.Now()
+		}
+
+		return err
+	}
+
+	return nil
+}
+
 func (s *Action) sync(ctx context.Context, store string) error {
+	// we just did a full sync, no need to run it again
+	if time.Since(autosyncLastRun) < 10*time.Second {
+		debug.Log("skipping sync. last sync %ds ago", time.Since(autosyncLastRun))
+
+		return nil
+	}
+
 	out.Printf(ctx, "🚥 Syncing with all remotes ...")
 
 	numEntries := 0
@@ -70,6 +143,14 @@ func (s *Action) sync(ctx context.Context, store string) error {
 
 // syncMount syncs a single mount.
 func (s *Action) syncMount(ctx context.Context, mp string) error {
+	// using GetM here to get the value for this mount, it might be different
+	// than the global value
+	if as := s.cfg.GetM(mp, "core.autosync"); as == "false" {
+		debug.Log("not syncing %s, autosync is disabled for this mount", mp)
+
+		return nil
+	}
+
 	ctxno := out.WithNewline(ctx, false)
 	name := mp
 	if mp == "" {
@@ -123,11 +204,12 @@ func (s *Action) syncMount(ctx context.Context, mp string) error {
 	}
 	syncPrintDiff(ctxno, l, ln)
 
-	debug.Log("Syncing Mount %s. Exportkeys: %t", mp, ctxutil.IsExportKeys(ctx))
+	exportKeys := s.cfg.GetBool("core.exportkeys")
+	debug.Log("Syncing Mount %s. Exportkeys: %t", mp, exportKeys)
 	if err := syncImportKeys(ctxno, sub, name); err != nil {
 		return err
 	}
-	if ctxutil.IsExportKeys(ctx) {
+	if exportKeys {
 		if err := syncExportKeys(ctxno, sub, name); err != nil {
 			return err
 		}
@@ -159,7 +241,7 @@ func syncExportKeys(ctx context.Context, sub *leaf.Store, name string) error {
 
 		return err
 	}
-	exported, err := sub.ExportMissingPublicKeys(ctx, rs)
+	exported, err := sub.UpdateExportedPublicKeys(ctx, rs.IDs())
 	if err != nil {
 		out.Errorf(ctx, "Failed to export missing public keys for %q: %s", name, err)
 

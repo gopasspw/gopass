@@ -21,19 +21,21 @@ func TestRoot(t *testing.T) {
 	assert.NoError(t, r.AddFile("mnt/m1/foo/bar", ""))
 	t.Logf("%+#v", r)
 	assert.Equal(t, `gopass
-├── foo/ (template)
+├── foo/ (template) (shadowed)
 │   └── bar/
 │       ├── baz
 │       └── zab
 └── mnt/
     └── m1 (/tmp/m1)
-        └── foo/
+        └── foo/ (shadowed)
             └── bar
 `, r.Format(INF))
 
 	assert.Equal(t, []string{
+		"foo",
 		"foo/bar/baz",
 		"foo/bar/zab",
+		"mnt/m1/foo",
 		"mnt/m1/foo/bar",
 	}, r.List(INF))
 	assert.Equal(t, []string{
@@ -47,7 +49,7 @@ func TestRoot(t *testing.T) {
 	f, err := r.FindFolder("mnt/m1")
 	assert.NoError(t, err)
 	assert.Equal(t, `gopass
-└── foo/
+└── foo/ (shadowed)
     └── bar
 `, f.Format(INF))
 }

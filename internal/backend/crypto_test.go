@@ -33,13 +33,7 @@ func TestDetectCrypto(t *testing.T) { //nolint:paralleltest
 		t.Run(tc.name, func(t *testing.T) {
 			ctx := context.Background()
 
-			td, err := os.MkdirTemp("", "gopass-")
-			require.NoError(t, err)
-			defer func() {
-				_ = os.RemoveAll(td)
-			}()
-
-			fsDir := filepath.Join(td, "fs")
+			fsDir := filepath.Join(t.TempDir(), "fs")
 			_ = os.RemoveAll(fsDir)
 			assert.NoError(t, os.MkdirAll(fsDir, 0o700))
 			assert.NoError(t, os.WriteFile(filepath.Join(fsDir, tc.file), []byte("foo"), 0o600))

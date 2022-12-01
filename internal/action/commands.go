@@ -68,29 +68,6 @@ func (s *Action) GetCommands() []*cli.Command {
 			Description: "Manages domain aliases. Note: this command might change or go away.",
 			Action:      s.AliasesPrint,
 			Hidden:      true,
-			Subcommands: []*cli.Command{
-				{
-					Name:        "add",
-					Action:      s.AliasesAdd,
-					Usage:       "Add a new alias",
-					ArgsUsage:   "[alias] [domain]",
-					Description: "Adds a new alias",
-				},
-				{
-					Name:        "remove",
-					Action:      s.AliasesRemove,
-					Usage:       "Remove an alias from a domain",
-					ArgsUsage:   "[alias] [domain]",
-					Description: "Remove an alias from a domain",
-				},
-				{
-					Name:        "delete",
-					Action:      s.AliasesDelete,
-					Usage:       "Delete an entire domain",
-					ArgsUsage:   "[alias]",
-					Description: "Delete an entire domain",
-				},
-			},
 		},
 		{
 			Name:      "audit",
@@ -163,7 +140,13 @@ func (s *Action) GetCommands() []*cli.Command {
 				"Without argument, the entire config is printed. " +
 				"With a single argument, a single key can be printed. " +
 				"With two arguments a setting specified by key can be set to value.",
-			Action:       s.Config,
+			Action: s.Config,
+			Flags: []cli.Flag{
+				&cli.StringFlag{
+					Name:  "store",
+					Usage: "Set options to a specific store",
+				},
+			},
 			BashComplete: s.ConfigComplete,
 		},
 		{
@@ -300,6 +283,14 @@ func (s *Action) GetCommands() []*cli.Command {
 			Action:       s.Env,
 			BashComplete: s.Complete,
 			Hidden:       true,
+			Flags: []cli.Flag{
+				&cli.BoolFlag{
+					Name:    "keep-case",
+					Aliases: []string{"kc"},
+					Value:   false,
+					Usage:   "Do not capitalize the environment variable and instead retain the original capitalization",
+				},
+			},
 		},
 		{
 			Name:      "find",
@@ -429,7 +420,7 @@ func (s *Action) GetCommands() []*cli.Command {
 				&cli.StringFlag{
 					Name:    "lang",
 					Aliases: []string{"xkcdlang", "xl"},
-					Usage:   "Language to generate password from, currently de (german) and en (english, default) are supported",
+					Usage:   "Language to generate password from, currently only en (english, default) is supported",
 					Value:   "en",
 				},
 			},
@@ -973,7 +964,7 @@ func (s *Action) GetCommands() []*cli.Command {
 	for _, be := range backend.CryptoRegistry.Backends() {
 		bc, ok := be.(commander)
 		if !ok {
-			debug.Log("Backend %s does not implement commander interface\n", be)
+			// Backend does not implement commander interface
 
 			continue
 		}
@@ -985,7 +976,7 @@ func (s *Action) GetCommands() []*cli.Command {
 	for _, be := range backend.StorageRegistry.Backends() {
 		bc, ok := be.(storeCommander)
 		if !ok {
-			debug.Log("Backend %s does not implement commander interface\n", be)
+			// Backend does not implement commander interface
 
 			continue
 		}

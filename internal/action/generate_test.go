@@ -23,7 +23,7 @@ import (
 func TestRuleLookup(t *testing.T) {
 	t.Parallel()
 
-	domain, _ := hasPwRuleForSecret("foo/gopass.pw")
+	domain, _ := hasPwRuleForSecret(context.Background(), "foo/gopass.pw")
 	assert.Equal(t, "", domain)
 }
 
@@ -35,11 +35,12 @@ func TestGenerate(t *testing.T) { //nolint:paralleltest
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithInteractive(ctx, false)
 
-	act, err := newMock(ctx, u)
+	act, err := newMock(ctx, u.StoreDir(""))
 	require.NoError(t, err)
 	require.NotNil(t, act)
+	ctx = act.cfg.WithConfig(ctx)
 
-	act.cfg.AutoClip = false
+	require.NoError(t, act.cfg.Set("", "core.autoclip", "false"))
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
@@ -155,11 +156,11 @@ func TestGenerate(t *testing.T) { //nolint:paralleltest
 
 	// generate --force foobar 24 w/ autoclip and output redirection
 	t.Run("generate --force foobar 24", func(t *testing.T) { //nolint:paralleltest
-		ov := act.cfg.AutoClip
+		ov := act.cfg.Get("core.autoclip")
 		defer func() {
-			act.cfg.AutoClip = ov
+			require.NoError(t, act.cfg.Set("", "core.autoclip", ov))
 		}()
-		act.cfg.AutoClip = true
+		require.NoError(t, act.cfg.Set("", "core.autoclip", "true"))
 		ctx := ctxutil.WithTerminal(ctx, false)
 		assert.NoError(t, act.Generate(gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true"}, "foobar", "24")))
 		assert.Contains(t, buf.String(), "Not printing secrets by default")
@@ -168,14 +169,38 @@ func TestGenerate(t *testing.T) { //nolint:paralleltest
 
 	// generate --force foobar 24 w/ autoclip and no output redirection
 	t.Run("generate --force foobar 24", func(t *testing.T) { //nolint:paralleltest
-		ov := act.cfg.AutoClip
+		ov := act.cfg.Get("core.autoclip")
 		defer func() {
-			act.cfg.AutoClip = ov
+			require.NoError(t, act.cfg.Set("", "core.autoclip", ov))
 		}()
-		act.cfg.AutoClip = true
+		require.NoError(t, act.cfg.Set("", "core.autoclip", "true"))
 		ctx := ctxutil.WithTerminal(ctx, true)
 		assert.NoError(t, act.Generate(gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true"}, "foobar", "24")))
 		assert.Contains(t, buf.String(), "Copied to clipboard")
+		buf.Reset()
+	})
+
+	// generate --force foobar w/ pw length set via env variable (42 chars)
+	t.Run("generate --force foobar", func(t *testing.T) { //nolint:paralleltest
+		t.Setenv("GOPASS_PW_DEFAULT_LENGTH", "42")
+
+		assert.NoError(t, act.Generate(gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true", "print": "true", "symbols": "false"}, "foobar")))
+		lines := strings.Split(strings.TrimSpace(buf.String()), "\n")
+		assert.Len(t, lines[3], 42)
+		buf.Reset()
+	})
+
+	// generate --force foobar w/ pw length set via env variable to invalid value, fallback mechanism
+	t.Run("generate --force foobar", func(t *testing.T) { //nolint:paralleltest
+		t.Setenv("GOPASS_PW_DEFAULT_LENGTH", "0")
+
+		if testing.Short() {
+			t.Skip("skipping test in short mode.")
+		}
+
+		assert.NoError(t, act.Generate(gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true", "print": "true", "symbols": "false"}, "foobar")))
+		lines := strings.Split(strings.TrimSpace(buf.String()), "\n")
+		assert.Len(t, lines[3], 24) // 24 = default value used as fallback
 		buf.Reset()
 	})
 }
@@ -341,4 +366,37 @@ func TestFilterPrefix(t *testing.T) {
 			assert.Equal(t, tc.out, filterPrefix(tc.in, tc.prefix))
 		})
 	}
+}
+
+// NOTE: Do not use t.Parallel because environment variables are being used
+// which can leak into other tests that run in parallel.
+func TestDefaultLengthFromEnv(t *testing.T) { //nolint:paralleltest
+	const pwLengthEnvName = "GOPASS_PW_DEFAULT_LENGTH"
+
+	t.Run("use default value if no environment variable is set", func(t *testing.T) { //nolint:paralleltest
+		actual, isCustom := defaultLengthFromEnv()
+		expected := defaultLength
+		assert.Equal(t, actual, expected)
+		assert.False(t, isCustom)
+	})
+
+	t.Run("interpretetion of various inputs for environment variable", func(t *testing.T) { //nolint:paralleltest
+		for _, tc := range []struct {
+			in       string
+			expected int
+			custom   bool
+		}{
+			{in: "42", expected: 42, custom: true},
+			{in: "1", expected: 1, custom: true},
+			{in: "0", expected: defaultLength, custom: false},
+			{in: "abc", expected: defaultLength, custom: false},
+			{in: "-1", expected: defaultLength, custom: false},
+		} {
+			tc := tc
+			t.Setenv(pwLengthEnvName, tc.in)
+			actual, isCustom := defaultLengthFromEnv()
+			assert.Equal(t, actual, tc.expected)
+			assert.Equal(t, isCustom, tc.custom)
+		}
+	})
 }

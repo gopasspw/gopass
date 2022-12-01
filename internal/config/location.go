@@ -8,23 +8,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/appdir"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/fsutil"
-	homedir "github.com/mitchellh/go-homedir"
 )
-
-// Homedir returns the users home dir or an empty string if the lookup fails.
-func Homedir() string {
-	if hd := os.Getenv("GOPASS_HOMEDIR"); hd != "" {
-		return hd
-	}
-	hd, err := homedir.Dir()
-	if err != nil {
-		debug.Log("Failed to get homedir: %s\n", err)
-
-		return ""
-	}
-
-	return hd
-}
 
 // configLocation returns the location of the config file
 // (a YAML file that contains values such as the path to the password store).
@@ -48,8 +32,8 @@ func configLocations() []string {
 		l = append(l, cf)
 	}
 	l = append(l, filepath.Join(appdir.UserConfig(), "config.yml"))
-	l = append(l, filepath.Join(Homedir(), ".config", "gopass", "config.yml"))
-	l = append(l, filepath.Join(Homedir(), ".gopass.yml"))
+	l = append(l, filepath.Join(appdir.UserHome(), ".config", "gopass", "config.yml"))
+	l = append(l, filepath.Join(appdir.UserHome(), ".gopass.yml"))
 
 	return l
 }

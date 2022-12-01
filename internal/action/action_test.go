@@ -19,11 +19,16 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-func newMock(ctx context.Context, u *gptest.Unit) (*Action, error) {
-	cfg := config.Load()
-	cfg.Path = u.StoreDir("")
+func newMock(ctx context.Context, path string) (*Action, error) {
+	cfg := config.NewNoWrites()
+	if err := cfg.SetPath(path); err != nil {
+		return nil, err
+	}
+	ctx = cfg.WithConfig(ctx)
 
-	ctx = backend.WithCryptoBackend(ctx, backend.Plain)
+	if !backend.HasCryptoBackend(ctx) {
+		ctx = backend.WithCryptoBackend(ctx, backend.Plain)
+	}
 	ctx = backend.WithStorageBackend(ctx, backend.GitFS)
 	act, err := newAction(cfg, semver.Version{}, false)
 	if err != nil {
@@ -49,9 +54,10 @@ func TestAction(t *testing.T) {
 	ctx := context.Background()
 	ctx = ctxutil.WithInteractive(ctx, false)
 
-	act, err := newMock(ctx, u)
+	act, err := newMock(ctx, u.StoreDir(""))
 	require.NoError(t, err)
 	require.NotNil(t, act)
+	ctx = act.cfg.WithConfig(ctx) //nolint:ineffassign
 
 	actName := "action.test"
 
@@ -68,25 +74,20 @@ func TestAction(t *testing.T) {
 func TestNew(t *testing.T) {
 	t.Parallel()
 
-	td, err := os.MkdirTemp("", "gopass-")
-	require.NoError(t, err)
-	defer func() {
-		_ = os.RemoveAll(td)
-	}()
-
-	cfg := config.New()
+	td := t.TempDir()
+	cfg := config.NewNoWrites()
 	sv := semver.Version{}
 
 	t.Run("init a new store", func(t *testing.T) { //nolint:paralleltest
-		_, err = New(cfg, sv)
+		_, err := New(cfg, sv)
 		require.NoError(t, err)
 	})
 
 	t.Run("init an existing plain store", func(t *testing.T) { //nolint:paralleltest
-		cfg.Path = filepath.Join(td, "store")
-		assert.NoError(t, os.MkdirAll(cfg.Path, 0o700))
-		assert.NoError(t, os.WriteFile(filepath.Join(cfg.Path, plain.IDFile), []byte("foobar"), 0o600))
-		_, err = New(cfg, sv)
+		require.NoError(t, cfg.SetPath(filepath.Join(td, "store")))
+		assert.NoError(t, os.MkdirAll(cfg.Path(), 0o700))
+		assert.NoError(t, os.WriteFile(filepath.Join(cfg.Path(), plain.IDFile), []byte("foobar"), 0o600))
+		_, err := New(cfg, sv)
 		assert.NoError(t, err)
 	})
 }

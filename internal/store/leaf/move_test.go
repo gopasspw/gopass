@@ -9,7 +9,7 @@ import (
 	plain "github.com/gopasspw/gopass/internal/backend/crypto/plain"
 	"github.com/gopasspw/gopass/internal/backend/storage/fs"
 	"github.com/gopasspw/gopass/internal/out"
-	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/internal/recipients"
 	"github.com/gopasspw/gopass/pkg/gopass/secrets"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -19,7 +19,6 @@ func TestCopy(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	ctx = ctxutil.WithExportKeys(ctx, false)
 
 	obuf := &bytes.Buffer{}
 	out.Stdout = obuf
@@ -77,13 +76,10 @@ func TestCopy(t *testing.T) {
 
 		t.Run(tc.name, func(t *testing.T) {
 			// common setup
-			tempdir, err := os.MkdirTemp("", "gopass-")
-			require.NoError(t, err)
+			tempdir := t.TempDir()
 
 			defer func() {
 				obuf.Reset()
-				// common tear down
-				_ = os.RemoveAll(tempdir)
 			}()
 
 			s := &Store{
@@ -93,7 +89,9 @@ func TestCopy(t *testing.T) {
 				storage: fs.New(tempdir),
 			}
 
-			assert.NoError(t, s.saveRecipients(ctx, []string{"john.doe"}, "test"))
+			rs := recipients.New()
+			rs.Add("john.doe")
+			assert.NoError(t, s.saveRecipients(ctx, rs, "test"))
 
 			// run test case
 			t.Run(tc.name, tc.tf(s))
@@ -105,7 +103,6 @@ func TestMove(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	ctx = ctxutil.WithExportKeys(ctx, false)
 
 	obuf := &bytes.Buffer{}
 	out.Stdout = obuf
@@ -163,13 +160,10 @@ func TestMove(t *testing.T) {
 
 		t.Run(tc.name, func(t *testing.T) {
 			// common setup
-			tempdir, err := os.MkdirTemp("", "gopass-")
-			require.NoError(t, err)
+			tempdir := t.TempDir()
 
 			defer func() {
 				obuf.Reset()
-				// common tear down
-				_ = os.RemoveAll(tempdir)
 			}()
 
 			s := &Store{
@@ -179,8 +173,10 @@ func TestMove(t *testing.T) {
 				storage: fs.New(tempdir),
 			}
 
-			err = s.saveRecipients(ctx, []string{"john.doe"}, "test")
-			require.NoError(t, err)
+			rs := recipients.New()
+			rs.Add("john.doe")
+
+			require.NoError(t, s.saveRecipients(ctx, rs, "test"))
 
 			// run test case
 			t.Run(tc.name, tc.tf(s))
@@ -192,7 +188,6 @@ func TestDelete(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	ctx = ctxutil.WithExportKeys(ctx, false)
 
 	obuf := &bytes.Buffer{}
 	out.Stdout = obuf
@@ -232,13 +227,10 @@ func TestDelete(t *testing.T) {
 
 		t.Run(tc.name, func(t *testing.T) {
 			// common setup
-			tempdir, err := os.MkdirTemp("", "gopass-")
-			require.NoError(t, err)
+			tempdir := t.TempDir()
 
 			defer func() {
 				obuf.Reset()
-				// common tear down
-				_ = os.RemoveAll(tempdir)
 			}()
 
 			s := &Store{
@@ -248,8 +240,10 @@ func TestDelete(t *testing.T) {
 				storage: fs.New(tempdir),
 			}
 
-			err = s.saveRecipients(ctx, []string{"john.doe"}, "test")
-			require.NoError(t, err)
+			rs := recipients.New()
+			rs.Add("john.doe")
+
+			require.NoError(t, s.saveRecipients(ctx, rs, "test"))
 
 			// run test case
 			t.Run(tc.name, tc.tf(s))
@@ -261,7 +255,6 @@ func TestPrune(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	ctx = ctxutil.WithExportKeys(ctx, false)
 
 	obuf := &bytes.Buffer{}
 	out.Stdout = obuf
@@ -324,13 +317,10 @@ func TestPrune(t *testing.T) {
 
 		t.Run(tc.name, func(t *testing.T) {
 			// common setup
-			tempdir, err := os.MkdirTemp("", "gopass-")
-			require.NoError(t, err)
+			tempdir := t.TempDir()
 
 			defer func() {
 				obuf.Reset()
-				// common tear down
-				_ = os.RemoveAll(tempdir)
 			}()
 
 			s := &Store{
@@ -340,8 +330,10 @@ func TestPrune(t *testing.T) {
 				storage: fs.New(tempdir),
 			}
 
-			err = s.saveRecipients(ctx, []string{"john.doe"}, "test")
-			assert.NoError(t, err)
+			rs := recipients.New()
+			rs.Add("john.doe")
+
+			require.NoError(t, s.saveRecipients(ctx, rs, "test"))
 
 			// run test case
 			t.Run(tc.name, tc.tf(s))

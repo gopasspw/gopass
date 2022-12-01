@@ -23,11 +23,12 @@ func TestInsert(t *testing.T) { //nolint:paralleltest
 	ctx = ctxutil.WithTerminal(ctx, false)
 	ctx = ctxutil.WithShowParsing(ctx, true)
 
-	act, err := newMock(ctx, u)
+	act, err := newMock(ctx, u.StoreDir(""))
 	require.NoError(t, err)
 	require.NotNil(t, act)
+	ctx = act.cfg.WithConfig(ctx)
 
-	act.cfg.AutoClip = false
+	require.NoError(t, act.cfg.Set("", "core.autoclip", "true"))
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
@@ -88,7 +89,7 @@ func TestInsert(t *testing.T) { //nolint:paralleltest
 
 	t.Run("insert zab#key", func(t *testing.T) { //nolint:paralleltest
 		ctx = ctxutil.WithInteractive(ctx, false)
-		ctx = ctxutil.WithShowSafeContent(ctx, true)
+		require.NoError(t, act.cfg.Set("", "core.showsafecontent", "true"))
 		assert.NoError(t, act.insertYAML(ctx, "zab", "key", []byte("foobar"), nil))
 		assert.NoError(t, act.show(ctx, gptest.CliCtx(ctx, t), "zab", false))
 		assert.Contains(t, buf.String(), "key: foobar")
@@ -118,7 +119,7 @@ func TestInsert(t *testing.T) { //nolint:paralleltest
 
 	t.Run("insert baz via stdin w/ yaml and no input parsing", func(t *testing.T) { //nolint:paralleltest
 		ctx = ctxutil.WithShowParsing(ctx, false)
-		ctx = ctxutil.WithShowSafeContent(ctx, false)
+		require.NoError(t, act.cfg.Set("", "core.showsafecontent", "false"))
 		assert.NoError(t, act.insertStdin(ctx, "baz", []byte("foobar\n---\nuser: name\nother: 0123"), false))
 		buf.Reset()
 
@@ -139,11 +140,12 @@ func TestInsertStdin(t *testing.T) { //nolint:paralleltest
 	ctx = ctxutil.WithTerminal(ctx, false)
 	ctx = ctxutil.WithStdin(ctx, true)
 
-	act, err := newMock(ctx, u)
+	act, err := newMock(ctx, u.StoreDir(""))
 	require.NoError(t, err)
 	require.NotNil(t, act)
+	ctx = act.cfg.WithConfig(ctx)
 
-	act.cfg.AutoClip = false
+	require.NoError(t, act.cfg.Set("", "core.autoclip", "false"))
 
 	buf := &bytes.Buffer{}
 	ibuf := &bytes.Buffer{}

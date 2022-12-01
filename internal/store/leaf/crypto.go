@@ -37,13 +37,14 @@ func (s *Store) ImportMissingPublicKeys(ctx context.Context, newrs ...string) er
 
 		return nil
 	}
+
 	rs, err := s.GetRecipients(ctx, "")
 	if err != nil {
 		return fmt.Errorf("failed to get recipients: %w", err)
 	}
 
-	rs = append(rs, newrs...)
-	for _, r := range rs {
+	ids := append(rs.IDs(), newrs...)
+	for _, r := range ids {
 		debug.Log("Checking recipients %s ...", r)
 		// check if this recipient is missing
 		// we could list all keys outside the loop and just do the lookup here
@@ -52,11 +53,11 @@ func (s *Store) ImportMissingPublicKeys(ctx context.Context, newrs ...string) er
 		kl, err := s.crypto.FindRecipients(ctx, r)
 		if err != nil {
 			// this is expected if we don't have the key
-			debug.Log("[%s] Failed to get public key for %s: %s", s.alias, r, err)
+			debug.Log("Failed to get public key for %s: %s", r, err)
 		}
 
-		if len(kl) > 0 {
-			debug.Log("[%s] Keyring contains %d public keys for %s", s.alias, len(kl), r)
+		if !IsPubkeyUpdate(ctx) && len(kl) > 0 {
+			debug.Log("Keyring contains %d public keys for %s", len(kl), r)
 
 			continue
 		}
@@ -64,7 +65,7 @@ func (s *Store) ImportMissingPublicKeys(ctx context.Context, newrs ...string) er
 		// get info about this public key
 		names, err := s.decodePublicKey(ctx, r)
 		if err != nil {
-			out.Errorf(ctx, "[%s] Failed to decode public key %s: %s", s.alias, r, err)
+			out.Errorf(ctx, "Failed to decode public key %s: %s", r, err)
 
 			continue
 		}
@@ -77,15 +78,15 @@ func (s *Store) ImportMissingPublicKeys(ctx context.Context, newrs ...string) er
 			}
 		}
 
-		debug.Log("[%s] Public Key %s not found in keyring, importing", s.alias, r)
+		debug.Log("Public Key %s not found in keyring, importing", r)
 
 		// try to load this recipient
 		if err := s.importPublicKey(ctx, r); err != nil {
-			out.Errorf(ctx, "[%s] Failed to import public key for %s: %s", s.alias, r, err)
+			out.Errorf(ctx, "Failed to import public key for %s: %s", r, err)
 
 			continue
 		}
-		out.Printf(ctx, "[%s] Imported public key for %s into Keyring", s.alias, r)
+		out.Printf(ctx, "Imported public key for %s into Keyring", r)
 	}
 
 	return nil
@@ -114,8 +115,10 @@ func (s *Store) decodePublicKey(ctx context.Context, r string) ([]string, error)
 func (s *Store) exportPublicKey(ctx context.Context, exp keyExporter, r string) (string, error) {
 	filename := filepath.Join(keyDir, r)
 
-	// do not overwrite existing keys
-	if s.storage.Exists(ctx, filename) {
+	// do not overwrite existing keys, unless forced
+	if !IsPubkeyUpdate(ctx) && s.storage.Exists(ctx, filename) {
+		debug.Log("leaving existing key for %s at %s alone", filename)
+
 		return "", nil
 	}
 
@@ -132,6 +135,8 @@ func (s *Store) exportPublicKey(ctx context.Context, exp keyExporter, r string) 
 	if err := s.storage.Set(ctx, filename, pk); err != nil {
 		return "", fmt.Errorf("failed to write exported public key to store: %w", err)
 	}
+
+	debug.Log("exported public keys for %s to %s", r, filename)
 
 	return filename, nil
 }

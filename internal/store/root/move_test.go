@@ -317,6 +317,45 @@ func TestCopy(t *testing.T) {
 	})
 }
 
+func TestMoveSelf(t *testing.T) {
+	t.Parallel()
+
+	u := gptest.NewUnitTester(t)
+	u.Entries = []string{
+		"foo/bar/example",
+	}
+	require.NoError(t, u.InitStore(""))
+	defer u.Remove()
+
+	ctx := context.Background()
+	ctx = ctxutil.WithAlwaysYes(ctx, true)
+	ctx = ctxutil.WithHidden(ctx, true)
+
+	rs, err := createRootStore(ctx, u)
+	require.NoError(t, err)
+
+	// Initial state:
+	t.Run("initial state", func(t *testing.T) { //nolint:paralleltest
+		entries, err := rs.List(ctx, tree.INF)
+		require.NoError(t, err)
+		assert.Equal(t, []string{
+			"foo",
+			"foo/bar/example",
+		}, entries)
+	})
+
+	// -> move foo/bar/example foo/bar -> no op
+	t.Run("move self", func(t *testing.T) { //nolint:paralleltest
+		assert.Error(t, rs.Move(ctx, "foo/bar/example", "foo/bar"))
+		entries, err := rs.List(ctx, tree.INF)
+		require.NoError(t, err)
+		assert.Equal(t, []string{
+			"foo",
+			"foo/bar/example",
+		}, entries)
+	})
+}
+
 func TestComputeMoveDestination(t *testing.T) {
 	t.Parallel()
 
@@ -377,6 +416,15 @@ func TestComputeMoveDestination(t *testing.T) {
 			from:     "old/www/bar",
 			to:       "www",
 			dst:      "www/bar",
+			srcIsDir: false,
+			dstIsDir: true,
+		},
+		{
+			name:     "one level up", // mv foo/bar/example foo/bar
+			src:      "foo/bar/example",
+			from:     "foo/bar",
+			to:       "foo/bar",
+			dst:      "foo/bar/example",
 			srcIsDir: false,
 			dstIsDir: true,
 		},

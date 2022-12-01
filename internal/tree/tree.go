@@ -44,28 +44,25 @@ func (t *Tree) Equals(other *Tree) bool {
 }
 
 // Insert adds a new node at the right position.
-func (t *Tree) Insert(node *Node) (*Node, error) {
-	pos, found := t.find(node.Name)
-	if found != nil {
-		if node.Mount {
-			t.Nodes[pos] = node
+func (t *Tree) Insert(other *Node) *Node {
+	pos, node := t.findPositionFor(other.Name)
+	if node != nil {
+		m := node.Merge(*other)
+		t.Nodes[pos] = m
 
-			return node, nil
-		}
-
-		return t.Nodes[pos], fmt.Errorf("error at %q: %w", node.Name, ErrNodePresent)
+		return m
 	}
 
 	// insert at the right position, see
 	// https://code.google.com/p/go-wiki/wiki/SliceTricks
 	t.Nodes = append(t.Nodes, &Node{})
 	copy(t.Nodes[pos+1:], t.Nodes[pos:])
-	t.Nodes[pos] = node
+	t.Nodes[pos] = other
 
-	return node, nil
+	return other
 }
 
-func (t *Tree) find(name string) (int, *Node) {
+func (t *Tree) findPositionFor(name string) (int, *Node) {
 	pos := sort.Search(len(t.Nodes), func(i int) bool {
 		return t.Nodes[i].Name >= name
 	})

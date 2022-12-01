@@ -4,16 +4,19 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/fatih/color"
 	"github.com/gopasspw/gopass/internal/action/exit"
 	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/internal/backend/crypto/age"
 	"github.com/gopasspw/gopass/internal/backend/crypto/gpg"
+	gpgcli "github.com/gopasspw/gopass/internal/backend/crypto/gpg/cli"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store/root"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
+	"github.com/gopasspw/gopass/pkg/fsutil"
 	"github.com/gopasspw/gopass/pkg/pwgen/xkcdgen"
 	"github.com/gopasspw/gopass/pkg/termio"
 	"github.com/urfave/cli/v2"
@@ -87,7 +90,15 @@ func (s *Action) Setup(c *cli.Context) error {
 	}
 
 	// assume local setup by default, remotes can be added easily later.
-	return s.initLocal(ctx)
+	if err := s.initLocal(ctx); err != nil {
+		debug.Log("Setup failed. initLocal error: %s", err)
+
+		return err
+	}
+
+	debug.Log("Setup finished. All systems go. 🚀")
+
+	return nil
 }
 
 func (s *Action) initCheckPrivateKeys(ctx context.Context, crypto backend.Crypto) error {
@@ -112,7 +123,7 @@ func (s *Action) initCheckPrivateKeys(ctx context.Context, crypto backend.Crypto
 func (s *Action) initGenerateIdentity(ctx context.Context, crypto backend.Crypto, name, email string) error {
 	out.Printf(ctx, "🧪 Creating cryptographic key pair (%s) ...", crypto.Name())
 
-	if crypto.Name() == "gpgcli" {
+	if crypto.Name() == gpgcli.Name {
 		var err error
 
 		out.Printf(ctx, "🎩 Gathering information for the %s key pair ...", crypto.Name())
@@ -146,7 +157,7 @@ func (s *Action) initGenerateIdentity(ctx context.Context, crypto backend.Crypto
 		// Note: This issue shouldn't matter much past Linux Kernel 5.6,
 		// eventually we might want to remove this notice. Only applies to
 		// GPG.
-		out.Printf(ctx, "⏳ This can take a long time. If you get impatient see https://github.com/gopasspw/gopass/blob/master/docs/entropy.md")
+		out.Printf(ctx, "⏳ This can take a long time. If you get impatient see https://go.gopass.pw/entropy")
 		if want, err := termio.AskForBool(ctx, "Continue?", true); err != nil || !want {
 			return fmt.Errorf("user aborted: %w", err)
 		}
@@ -284,12 +295,31 @@ func (s *Action) initLocal(ctx context.Context) error {
 	}
 	// TODO remotes for fossil, etc.
 
-	// save config.
-	if err := s.cfg.Save(); err != nil {
-		return fmt.Errorf("failed to save config: %w", err)
+	// detect and add mount a for passage
+	if err := s.initDetectPassage(ctx); err != nil {
+		out.Warningf(ctx, "Failed to add passage mount: %s", err)
 	}
 
-	out.OKf(ctx, "Configuration written to %s", s.cfg.Path)
+	out.OKf(ctx, "Configuration written")
+
+	return nil
+}
+
+func (s *Action) initDetectPassage(ctx context.Context) error {
+	pIds := age.PassageIdFile()
+	if !fsutil.IsFile(pIds) {
+		debug.Log("no passage identities found at %s", pIds)
+
+		return nil
+	}
+
+	pDir := filepath.Dir(pIds)
+
+	if err := s.Store.AddMount(ctx, "passage", pDir); err != nil {
+		return fmt.Errorf("failed to mount passage dir: %w", err)
+	}
+
+	out.OKf(ctx, "Detected passage store at %s. Mounted below passage/.", pDir)
 
 	return nil
 }

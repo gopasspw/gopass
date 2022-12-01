@@ -30,9 +30,6 @@ func (s *Action) Edit(c *cli.Context) error {
 
 func (s *Action) edit(ctx context.Context, c *cli.Context, name string) error {
 	ed := editor.Path(c)
-	if err := editor.Check(ctx, ed); err != nil {
-		out.Warningf(ctx, "Failed to check editor config: %s", err)
-	}
 
 	// get existing content or generate new one from a template.
 	name, content, changed, err := s.editGetContent(ctx, name, c.Bool("create"))
@@ -95,7 +92,8 @@ func (s *Action) editGetContent(ctx context.Context, name string, create bool) (
 	}
 
 	// load template if it exists.
-	if content, found := s.renderTemplate(ctx, name, []byte(pwgen.GeneratePassword(defaultLength, false))); found {
+	pwLength, _ := defaultLengthFromEnv()
+	if content, found := s.renderTemplate(ctx, name, []byte(pwgen.GeneratePassword(pwLength, false))); found {
 		return name, content, true, nil
 	}
 

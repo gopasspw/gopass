@@ -29,7 +29,7 @@ func New(cfg *config.Config) *Store {
 
 	r := &Store{
 		cfg:    cfg,
-		mounts: make(map[string]*leaf.Store, len(cfg.Mounts)),
+		mounts: make(map[string]*leaf.Store, len(cfg.Mounts())),
 	}
 
 	debug.Log("created store %s", r)
@@ -37,9 +37,9 @@ func New(cfg *config.Config) *Store {
 	return r
 }
 
-// WithContext populates the context with the store config.
-func (r *Store) WithContext(ctx context.Context) context.Context {
-	return r.cfg.WithContext(ctx)
+// WithStoreConfig populates the context with the store config.
+func (r *Store) WithStoreConfig(ctx context.Context) context.Context {
+	return r.cfg.WithConfig(ctx)
 }
 
 // Exists checks the existence of a single entry.

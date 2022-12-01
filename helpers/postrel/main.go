@@ -27,6 +27,7 @@ import (
 
 	"github.com/blang/semver/v4"
 	"github.com/google/go-github/v33/github"
+	"github.com/gopasspw/gopass/pkg/fsutil"
 	"golang.org/x/oauth2"
 )
 
@@ -58,6 +59,21 @@ func main() {
 		htmlDir = h
 	}
 
+	// update gopass.pw
+	fmt.Println("☝  Updating gopass.pw ...")
+	if err := updateGopasspw(htmlDir, curVer); err != nil {
+		fmt.Printf("Failed to update gopasspw.github.io: %s\n", err)
+	}
+
+	// only update gopasspw
+	if len(os.Args) > 1 && os.Args[1] == "render" {
+		fmt.Println("💎🙌 Done (render gopasspw only) 🚀🚀🚀🚀🚀🚀")
+
+		return
+	}
+
+	mustCheckEnv()
+
 	ghCl, err := newGHClient(ctx)
 	if err != nil {
 		panic(err)
@@ -71,29 +87,22 @@ func main() {
 	fmt.Println("❓ Do you want to continue? (press any key to continue or Ctrl+C to abort)")
 	fmt.Scanln()
 
-	// update gopass.pw
-	fmt.Println("☝  Updatgin gopass.pw ...")
-	if err := updateGopasspw(htmlDir, curVer); err != nil {
-		fmt.Printf("Failed to update gopasspw.github.io: %s\n", err)
-	}
-
 	// create a new GitHub milestone
-	fmt.Println("☝  Creatgin new GitHub Milestone(s) ...")
+	fmt.Println("☝  Creating new GitHub Milestone(s) ...")
 	if err := ghCl.createMilestones(ctx, nextVer); err != nil {
 		fmt.Printf("Failed to create GitHub milestones: %s\n", err)
 	}
 
-	// send PRs to update gopass ports
-	ghFork := os.Getenv("GITHUB_FORK")
-	if ghFork == "" {
-		panic("Please set GITHUB_FORK to your local upstream name")
-	}
-	ghUser := os.Getenv("GITHUB_USER")
-	if ghUser == "" {
-		panic("Please set GITHUB_USER to your GitHub user")
+	// update gopass integrations
+	ui, err := newIntegrationsUpdater(ghCl.client, curVer)
+	if err != nil {
+		fmt.Printf("Failed to create integrations updater: %s\n", err)
+	} else {
+		ui.update(ctx)
 	}
 
-	upd, err := newRepoUpdater(ghCl.client, curVer, ghUser, ghFork)
+	// send PRs to update gopass ports
+	upd, err := newRepoUpdater(ghCl.client, curVer, os.Getenv("GITHUB_USER"), os.Getenv("GITHUB_FORK"))
 	if err != nil {
 		fmt.Printf("Failed to create repo updater: %s\n", err)
 	} else {
@@ -101,6 +110,15 @@ func main() {
 	}
 
 	fmt.Println("💎🙌 Done 🚀🚀🚀🚀🚀🚀")
+}
+
+func mustCheckEnv() {
+	want := []string{"GITHUB_TOKEN", "GITHUB_USER", "GITHUB_FORK"}
+	for _, e := range want {
+		if sv := os.Getenv(e); sv == "" {
+			panic("Please set: " + fmt.Sprintf("%v", want))
+		}
+	}
 }
 
 type ghClient struct {
@@ -134,18 +152,29 @@ func (g *ghClient) createMilestones(ctx context.Context, v semver.Version) error
 		return err
 	}
 
+	// create a milestone for the next patch version
 	if err := g.createMilestone(ctx, v.String(), 1, ms); err != nil {
 		return err
 	}
 
+	// create a milestone for the next+1 patch version
 	v.IncrementPatch()
-	return g.createMilestone(ctx, v.String(), 2, ms)
+	if err := g.createMilestone(ctx, v.String(), 2, ms); err != nil {
+		return err
+	}
+
+	// create a milestone for the next minor version
+	v.IncrementMinor()
+	v.Patch = 0
+
+	return g.createMilestone(ctx, v.String(), 90, ms)
 }
 
 func (g *ghClient) createMilestone(ctx context.Context, title string, offset int, ms []*github.Milestone) error {
 	for _, m := range ms {
 		if *m.Title == title {
 			fmt.Printf("❌ Milestone %s exists\n", title)
+
 			return nil
 		}
 	}
@@ -189,19 +218,44 @@ func updateGopasspw(dir string, ver semver.Version) error {
 		return err
 	}
 
-	return gitCommitAndPush(dir, ver)
+	return gitCommitAndPush(dir, fmt.Sprintf("v%s", ver))
 }
 
-func gitCommitAndPush(dir string, v semver.Version) error {
-	cmd := exec.Command("git", "add", "index.html")
+func isGitClean(dir string) bool {
+	cmd := exec.Command("git", "diff", "--stat")
 	cmd.Dir = dir
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("failed to add index.html: %w", err)
+	buf, err := cmd.CombinedOutput()
+	if err != nil {
+		panic(err)
 	}
 
-	cmd = exec.Command("git", "commit", "-s", "-m", "Update to v"+v.String())
+	if strings.TrimSpace(string(buf)) != "" {
+		fmt.Printf("❌ Git in %s is not clean: %q\n", dir, string(buf))
+
+		return false
+	}
+
+	return true
+}
+
+func gitCoMaster(dir string) error {
+	cmd := exec.Command("git", "checkout", "master")
+	cmd.Dir = dir
+	cmd.Stderr = os.Stderr
+
+	return cmd.Run()
+}
+
+func gitPom(dir string) error {
+	cmd := exec.Command("git", "pull", "origin", "master")
+	cmd.Dir = dir
+	cmd.Stderr = os.Stderr
+
+	return cmd.Run()
+}
+
+func gitCommitAndPush(dir, tag string) error {
+	cmd := exec.Command("git", "commit", "-a", "-s", "-m", "Update to "+tag)
 	cmd.Dir = dir
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -216,7 +270,44 @@ func gitCommitAndPush(dir string, v semver.Version) error {
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("failed to push changes: %w", err)
 	}
+
 	return nil
+}
+
+func gitTagAndPush(dir string, tag string) error {
+	cmd := exec.Command("git", "tag", "-m", "'Tag "+tag+"'", tag)
+	cmd.Dir = dir
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("failed to commit changes: %w", err)
+	}
+
+	cmd = exec.Command("git", "push", "origin", tag)
+	cmd.Dir = dir
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("failed to push changes: %w", err)
+	}
+
+	return nil
+}
+
+func gitHasTag(dir string, tag string) bool {
+	cmd := exec.Command("git", "rev-parse", tag)
+	cmd.Dir = dir
+
+	return cmd.Run() == nil
+}
+
+func runCmd(dir string, args ...string) error {
+	cmd := exec.Command(args[0], args[1:]...)
+	cmd.Dir = dir
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	return cmd.Run()
 }
 
 func versionFile() (semver.Version, error) {
@@ -224,7 +315,96 @@ func versionFile() (semver.Version, error) {
 	if err != nil {
 		return semver.Version{}, err
 	}
+
 	return semver.Parse(strings.TrimSpace(string(buf)))
+}
+
+type inUpdater struct {
+	github *github.Client
+	v      semver.Version
+}
+
+func newIntegrationsUpdater(client *github.Client, v semver.Version) (*inUpdater, error) {
+	return &inUpdater{
+		github: client,
+		v:      v,
+	}, nil
+}
+
+func (u *inUpdater) update(ctx context.Context) {
+	for _, upd := range []string{
+		"git-credential-gopass",
+		"gopass-hibp",
+		"gopass-jsonapi",
+		"gopass-summon-provider",
+	} {
+		fmt.Println()
+		fmt.Println("------------------------------")
+		fmt.Println()
+		fmt.Printf("🌟 Updating: %s ...\n", upd)
+		fmt.Println()
+		if err := u.doUpdate(ctx, upd); err != nil {
+			fmt.Printf("❌ Updating %s failed: %s\n", upd, err)
+
+			continue
+		}
+		fmt.Printf("✅ Integration %s is up to date.\n", upd)
+	}
+}
+
+func (u *inUpdater) doUpdate(ctx context.Context, dir string) error {
+	cwd, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+	path := filepath.Join(filepath.Dir(cwd), dir)
+
+	tag := fmt.Sprintf("v%s", u.v.String())
+	// check if the release is already tagged
+	if gitHasTag(path, tag) {
+		fmt.Printf("✅ Integration %s has tag %s already.\n", dir, tag)
+
+		return nil
+	}
+	fmt.Printf("✅ [%s] %s is not tagged, yet.\n", dir, tag)
+
+	// make sure we're at head
+	if !isGitClean(path) {
+		return fmt.Errorf("git not clean at %s", path)
+	}
+	fmt.Printf("✅ [%s] Git is clean.", dir)
+
+	// make upgrade
+	if err := runCmd(path, "make", "upgrade"); err != nil {
+		return err
+	}
+	fmt.Printf("✅ [%s] make upgrade.\n", dir)
+
+	// go get github.com/gopasspw/gopass@tag
+	if err := runCmd(path, "go", "get", "github.com/gopasspw/gopass@"+tag); err != nil {
+		return err
+	}
+	fmt.Printf("✅ [%s] updated gopass dependency.\n", dir)
+
+	// sync .golangci.yml ?
+	if err := fsutil.CopyFile(filepath.Join(cwd, ".golangci.yml"), filepath.Join(path, ".golangci.yml")); err != nil {
+		return err
+	}
+	fmt.Printf("✅ [%s] synced .golangci.yml.\n", dir)
+
+	// git commit
+	if err := gitCommitAndPush(path, tag); err != nil {
+		return err
+	}
+	fmt.Printf("✅ [%s] committed.\n", dir)
+
+	// git tag v
+	if err := gitTagAndPush(path, tag); err != nil {
+		return err
+	}
+	fmt.Printf("✅ [%s] tagged.\n", dir)
+
+	return nil
 }
 
 type repoUpdater struct {
@@ -275,18 +455,10 @@ func (u *repoUpdater) update(ctx context.Context) {
 		Distro string
 		UpFn   func(context.Context) error
 	}{
-		{
-			Distro: "AlpineLinux",
-			UpFn:   u.updateAlpine,
-		},
-		{
-			Distro: "Homebrew",
-			UpFn:   u.updateHomebrew,
-		},
-		{
-			Distro: "VoidLinux",
-			UpFn:   u.updateVoid,
-		},
+		// {
+		// 	Distro: "AlpineLinux",
+		// 	UpFn:   u.updateAlpine,
+		// },
 	} {
 		fmt.Println()
 		fmt.Println("------------------------------")
@@ -295,6 +467,7 @@ func (u *repoUpdater) update(ctx context.Context) {
 		fmt.Println()
 		if err := upd.UpFn(ctx); err != nil {
 			fmt.Printf("❌ Updating %s failed: %s\n", upd.Distro, err)
+
 			continue
 		}
 		fmt.Printf("✅ Distro %s updated\n", upd.Distro)
@@ -443,9 +616,11 @@ func (u *repoUpdater) createPR(ctx context.Context, title, from, toOrg, toRepo s
 		fmt.Printf("❌ Creating GitHub PR failed: %s", err)
 		fmt.Printf("Request: %+v\n", newPR)
 		fmt.Printf("Response: %+v\n", resp)
+
 		return err
 	}
 	fmt.Printf("✅ GitHub PR created: %s\n", pr.GetHTMLURL())
+
 	return err
 }
 
@@ -491,6 +666,7 @@ SCAN:
 				if repl != nil {
 					fmt.Fprintln(fout, *repl)
 				}
+
 				continue SCAN
 			}
 		}
@@ -516,6 +692,7 @@ func (r *repo) commitMsg() string {
 	if r.msg != "" {
 		return r.msg
 	}
+
 	return "gopass: update to " + r.ver.String() + "\nNote: This is an auto-generated change as part of the gopass release process.\n"
 }
 
@@ -542,6 +719,7 @@ func (r *repo) updatePrepare() error {
 	if err := r.gitBranchDel(); err != nil {
 		return fmt.Errorf("git branch -d failed: %w", err)
 	}
+
 	return r.gitBranch()
 }
 
@@ -562,6 +740,7 @@ func (r *repo) gitCoMaster() error {
 	cmd.Stderr = os.Stderr
 	cmd.Dir = r.dir
 	fmt.Printf("Running command: %s\n", cmd)
+
 	return cmd.Run()
 }
 
@@ -571,6 +750,7 @@ func (r *repo) gitBranch() error {
 	cmd.Stderr = os.Stderr
 	cmd.Dir = r.dir
 	fmt.Printf("Running command: %s\n", cmd)
+
 	return cmd.Run()
 }
 
@@ -580,6 +760,7 @@ func (r *repo) gitBranchDel() error {
 	cmd.Stderr = os.Stderr
 	cmd.Dir = r.dir
 	fmt.Printf("Running command: %s\n", cmd)
+
 	return cmd.Run()
 }
 
@@ -592,8 +773,10 @@ func (r *repo) gitPom() error {
 	cmd.Dir = r.dir
 	if err := cmd.Run(); err != nil {
 		fmt.Println(buf.String())
+
 		return err
 	}
+
 	return nil
 }
 
@@ -603,6 +786,7 @@ func (r *repo) gitPush(remote string) error {
 	cmd.Stderr = os.Stderr
 	cmd.Dir = r.dir
 	fmt.Printf("Running command: %s\n", cmd)
+
 	return cmd.Run()
 }
 
@@ -624,6 +808,7 @@ func (r *repo) gitCommit(files ...string) error {
 	cmd.Stderr = os.Stderr
 	cmd.Dir = r.dir
 	fmt.Printf("Running command: %s\n", cmd)
+
 	return cmd.Run()
 }
 
@@ -635,6 +820,7 @@ func (r *repo) isGitClean() bool {
 	if err != nil {
 		panic(err)
 	}
+
 	return strings.TrimSpace(string(buf)) == ""
 }
 

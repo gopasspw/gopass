@@ -48,9 +48,10 @@ func TestClone(t *testing.T) { //nolint:paralleltest
 	ctx = ctxutil.WithInteractive(ctx, false)
 	ctx = backend.WithStorageBackend(ctx, backend.GitFS)
 
-	act, err := newMock(ctx, u)
+	act, err := newMock(ctx, u.StoreDir(""))
 	require.NoError(t, err)
 	require.NotNil(t, act)
+	ctx = act.cfg.WithConfig(ctx)
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
@@ -98,12 +99,13 @@ func TestCloneBackendIsStoredForMount(t *testing.T) { //nolint:paralleltest
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithInteractive(ctx, false)
 
-	cfg := config.Load()
-	cfg.Path = u.StoreDir("")
+	cfg := config.NewNoWrites()
+	require.NoError(t, cfg.SetPath(u.StoreDir("")))
 
 	act, err := newAction(cfg, semver.Version{}, false)
 	require.NoError(t, err)
 	require.NotNil(t, act)
+	ctx = act.cfg.WithConfig(ctx)
 
 	c := gptest.CliCtx(ctx, t)
 	require.NoError(t, act.IsInitialized(c))
@@ -113,7 +115,7 @@ func TestCloneBackendIsStoredForMount(t *testing.T) { //nolint:paralleltest
 	c = gptest.CliCtxWithFlags(ctx, t, map[string]string{"check-keys": "false"}, repo, "the-project")
 	assert.NoError(t, act.Clone(c))
 
-	require.NotNil(t, act.cfg.Mounts["the-project"])
+	require.Contains(t, act.cfg.Mounts(), "the-project")
 }
 
 func TestCloneGetGitConfig(t *testing.T) { //nolint:paralleltest
@@ -129,9 +131,10 @@ func TestCloneGetGitConfig(t *testing.T) { //nolint:paralleltest
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithInteractive(ctx, false)
 
-	act, err := newMock(ctx, u)
+	act, err := newMock(ctx, u.StoreDir(""))
 	require.NoError(t, err)
 	require.NotNil(t, act)
+	ctx = act.cfg.WithConfig(ctx)
 
 	name, email, err := act.cloneGetGitConfig(ctx, "foobar")
 	assert.NoError(t, err)

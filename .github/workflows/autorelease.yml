@@ -25,7 +25,15 @@ jobs:
         name: Set up Go
         uses: actions/setup-go@v3
         with:
-          go-version: 1.18
+          go-version: 1.19
+      - uses: actions/cache@v3
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+      - uses: sigstore/cosign-installer@v2.8.1          # installs cosign
+      - uses: anchore/sbom-action/download-syft@v0.13.1 # installs syft
       # ubuntu is missing wixl https://github.com/actions/virtual-environments/issues/3857
       -
         name: "Install GNOME msitools (wixl)"
@@ -33,7 +41,7 @@ jobs:
       -
         name: Import GPG signing key
         id: import_gpg
-        uses: crazy-max/ghaction-import-gpg@v4
+        uses: crazy-max/ghaction-import-gpg@v5
         with:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.PASSPHRASE }}
@@ -58,7 +66,7 @@ jobs:
           go run helpers/changelog/main.go >../RELEASE_NOTES
       -
         name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v2.9.1
+        uses: goreleaser/goreleaser-action@v3.2.0
         with:
           version: latest
           args: release --rm-dist --release-notes=../RELEASE_NOTES
@@ -71,9 +79,18 @@ jobs:
         run: |  # until https://github.com/goreleaser/goreleaser/issues/1295, disabled until #2038 is fixed
           tag="${GITHUB_REF#refs/tags/}"
           version=${tag#v}
-          echo MSI_VERSION=${version} make msi
-          echo msi=dist/gopass-${version}-windows-amd64.msi
-          echo mv dist/gopass_windows_amd64/gopass.msi ${msi}
-          echo gh release upload "${tag}" "${msi}"
+          make msi
+          msi=dist/gopass-x64-windows-${version}.msi
+          gh release upload "${tag}" "${msi}"
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+      -
+        name: "Upload deb files to apt hosting"
+        run: |
+          for D in dist/*.deb; do
+            curl -H"X-Filename: ${D}" -H"X-Apikey: ${APIKEY}" -XPOST --data-binary @$D https://packages.gopass.pw/repos/gopass/upload
+            curl -H"X-Filename: ${D}" -H"X-Apikey: ${APIKEY}" -XPOST --data-binary @$D https://packages.gopass.pw/repos/gopass-unstable/upload
+          done
+        env:
+          APIKEY: ${{ secrets.APT_APIKEY }}
+

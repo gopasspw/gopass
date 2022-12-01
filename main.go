@@ -67,15 +67,15 @@ func main() {
 		cancel()
 	}()
 
-	go func() {
+	go func(ctx context.Context) {
 		select {
 		case <-sigChan:
 			cancel()
 		case <-ctx.Done():
 		}
-	}()
+	}(ctx)
 
-	cli.ErrWriter = errorWriter{
+	cli.ErrWriter = errorWriter{ //nolint:reassign
 		out: colorable.NewColorableStderr(),
 	}
 	sv := getVersion()
@@ -99,7 +99,7 @@ func main() {
 //nolint:wrapcheck
 func setupApp(ctx context.Context, sv semver.Version) (context.Context, *cli.App) {
 	// try to read config (if it exists)
-	cfg := config.LoadWithFallback()
+	cfg := config.New()
 
 	// set config values
 	ctx = initContext(ctx, cfg)
@@ -112,7 +112,7 @@ func setupApp(ctx context.Context, sv semver.Version) (context.Context, *cli.App
 	}
 
 	// set some action callbacks
-	if !cfg.AutoImport {
+	if !cfg.GetBool("core.autoimport") {
 		ctx = ctxutil.WithImportFunc(ctx, termio.AskForKeyImport)
 	}
 
@@ -123,6 +123,7 @@ func setupApp(ctx context.Context, sv semver.Version) (context.Context, *cli.App
 	app.Name = name
 	app.Version = sv.String()
 	app.Usage = "The standard unix password manager - rewritten in Go"
+	app.UseShortOptionHandling = true
 	app.EnableBashCompletion = true
 	app.BashComplete = func(c *cli.Context) {
 		cli.DefaultAppComplete(c)
@@ -261,7 +262,7 @@ func (e errorWriter) Write(p []byte) (int, error) {
 
 func initContext(ctx context.Context, cfg *config.Config) context.Context {
 	// initialize from config, may be overridden by env vars
-	ctx = cfg.WithContext(ctx)
+	ctx = cfg.WithConfig(ctx)
 
 	// always trust
 	ctx = gpg.WithAlwaysTrust(ctx, true)
@@ -288,8 +289,14 @@ func initContext(ctx context.Context, cfg *config.Config) context.Context {
 	// disable colored output on windows since cmd.exe doesn't support ANSI color
 	// codes. Other terminal may do, but until we can figure that out better
 	// disable this for all terms on this platform
-	if runtime.GOOS == "windows" {
+	if sv := os.Getenv("NO_COLOR"); runtime.GOOS == "windows" || sv == "true" {
 		color.NoColor = true
+	} else {
+		// on all other platforms we should be able to use color. Only set
+		// this if it's in the config.
+		if cfg.IsSet("core.nocolor") {
+			color.NoColor = cfg.GetBool("core.nocolor")
+		}
 	}
 
 	return ctx

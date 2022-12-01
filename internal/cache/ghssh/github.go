@@ -55,7 +55,7 @@ func (c *Cache) fetchKeys(ctx context.Context, user string) ([]string, error) {
 	url := fmt.Sprintf("https://github.com/%s.keys", user)
 	debug.Log("fetching public keys for %s from github: %s", user, url)
 
-	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err
 	}

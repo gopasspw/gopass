@@ -21,9 +21,10 @@ func TestDelete(t *testing.T) { //nolint:paralleltest
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithInteractive(ctx, false)
-	act, err := newMock(ctx, u)
+	act, err := newMock(ctx, u.StoreDir(""))
 	require.NoError(t, err)
 	require.NotNil(t, act)
+	ctx = act.cfg.WithConfig(ctx)
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
@@ -63,5 +64,20 @@ func TestDelete(t *testing.T) { //nolint:paralleltest
 	// reject recursive flag when a key is given
 	c = gptest.CliCtxWithFlags(ctx, t, map[string]string{"recursive": "true"}, "foo", "bar")
 	assert.Error(t, act.Delete(c))
+	buf.Reset()
+
+	assert.NoError(t, act.Store.Set(ctx, "sec/1", sec))
+	assert.NoError(t, act.Store.Set(ctx, "sec/2", sec))
+	assert.NoError(t, act.Store.Set(ctx, "sec/3", sec))
+	assert.NoError(t, act.Store.Set(ctx, "sec/4", sec))
+
+	// warn if key matching a secret is given
+	c = gptest.CliCtx(ctx, t, "sec/1", "sec/2")
+	assert.Error(t, act.Delete(c))
+	buf.Reset()
+
+	// remove multiple secrets
+	c = gptest.CliCtx(ctx, t, "sec/1", "sec/2", "sec/3", "sec/4")
+	assert.NoError(t, act.Delete(c))
 	buf.Reset()
 }

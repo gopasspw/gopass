@@ -1,5 +1,5 @@
 
-.TH GOPASS "1" "March 2022" "gopass (github.com/gopasspw/gopass) 1.14.0" "User Commands"
+.TH GOPASS "1" "November 2022" "gopass (github.com/gopasspw/gopass) 1.14.11" "User Commands"
 .SH NAME
 gopass - The standard Unix password manager
 .SH SYNOPSIS
@@ -164,6 +164,12 @@ Use this editor binary
 Run a subprocess with a pre-populated environment
 
 This command runs a sub process with the environment populated from the keys of a secret.
+
+.B Flags
+.TP
+\fB\-\-keep-case\fR,
+\fB\-\-kc\fR,
+Do not capitalize the environment variable and instead retain the original capitalization
 .SS find
 Search for secrets
 
@@ -224,7 +230,7 @@ Choose a password generator, use one of: cryptic, memorable, xkcd or external. D
 \fB\-\-lang\fR,
 \fB\-\-xkcdlang\fR,
 \fB\-\-xl\fR,
-Language to generate password from, currently de (german) and en (english, default) are supported
+Language to generate password from, currently only en (english, default) is supported
 .TP
 \fB\-\-print\fR,
 \fB\-p\fR,
@@ -391,7 +397,7 @@ This command processes a template file. It will read the template file and repla
 .SS pwgen
 Generate passwords
 
-Print any number of password to the console.
+Print any number of password to the console. The optional length parameter specifies the length of each password.
 
 .B Flags
 .TP
@@ -402,7 +408,7 @@ Do not include characters that could be easily confused with each other, like '1
 \fB\-\-lang\fR,
 \fB\-\-xkcdlang\fR,
 \fB\-\-xl\fR,
-Language to generate password from, currently de (german) and en (english, default) are supported
+Language to generate password from, currently only en (english, default) is supported
 .TP
 \fB\-\-no-capitalize\fR,
 \fB\-A\fR,
