@@ -45,7 +45,6 @@ core.cliptimeout = 45
 core.exportkeys = true
 core.nopager = true
 core.notifications = true
-core.parsing = true
 `
 		want += "mounts.path = " + u.StoreDir("") + "\n"
 		assert.Equal(t, want, buf.String())
@@ -86,7 +85,6 @@ core.cliptimeout = 45
 core.exportkeys = true
 core.nopager = true
 core.notifications = true
-core.parsing = true
 `
 		want += "mounts.path = " + u.StoreDir("")
 		assert.Equal(t, want, strings.TrimSpace(buf.String()), "action.printConfigValues")
@@ -119,7 +117,6 @@ core.cliptimeout
 core.exportkeys
 core.nopager
 core.notifications
-core.parsing
 mounts.path
 `
 		assert.Equal(t, want, buf.String())

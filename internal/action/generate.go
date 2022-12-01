@@ -361,7 +361,7 @@ func (s *Action) generateSetPassword(ctx context.Context, name, key, password st
 	}
 
 	if content, found := s.renderTemplate(ctx, name, []byte(password)); found {
-		nSec := &secrets.Plain{}
+		nSec := secrets.NewAKV()
 		if _, err := nSec.Write(content); err == nil {
 			sec = nSec
 		} else {

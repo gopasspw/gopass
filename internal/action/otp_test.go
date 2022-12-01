@@ -42,9 +42,10 @@ func TestOTP(t *testing.T) { //nolint:paralleltest
 
 	t.Run("create and display valid OTP", func(t *testing.T) { //nolint:paralleltest
 		defer buf.Reset()
-		sec := &secrets.Plain{}
+		sec := secrets.NewAKV()
 		sec.SetPassword("foo")
-		sec.WriteString(twofactor.GenerateGoogleTOTP().URL("foo"))
+		_, err := sec.Write([]byte(twofactor.GenerateGoogleTOTP().URL("foo")))
+		require.NoError(t, err)
 		assert.NoError(t, act.Store.Set(ctx, "bar", sec))
 
 		assert.NoError(t, act.OTP(gptest.CliCtx(ctx, t, "bar")))

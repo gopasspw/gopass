@@ -19,7 +19,6 @@ const (
 	cliptimeout = 45
 	notifications = true
 	nopager = true
-	parsing = true
 `
 )
 

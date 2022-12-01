@@ -27,7 +27,6 @@ func TestSubsection(t *testing.T) {
 
 	in := `[core]
 	showsafecontent = true
-	parsing = false
 	readonly = true
 [aliases "subsection with spaces"]
 	foo = bar
@@ -100,7 +99,6 @@ func TestRewriteRaw(t *testing.T) {
 
 	in := `[core]
 	showsafecontent = true
-	parsing = false
 	readonly = true
 [mounts]
 	path = /tmp/foo
@@ -112,7 +110,6 @@ func TestRewriteRaw(t *testing.T) {
 		"foo.bar":              "baz",
 		"mounts.readonly":      "true",
 		"core.showsafecontent": "false",
-		"core.parsing":         "true",
 	}
 	for _, k := range set.Sorted(maps.Keys(updates)) {
 		v := updates[k]
@@ -121,7 +118,6 @@ func TestRewriteRaw(t *testing.T) {
 
 	assert.Equal(t, `[core]
 	showsafecontent = false
-	parsing = true
 	readonly = true
 [mounts]
 	readonly = true

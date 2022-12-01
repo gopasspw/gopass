@@ -178,7 +178,6 @@ user: second user`
 		_, err = ts.runCmd([]string{ts.Binary, "insert", "some/multikeyvalues"}, []byte(input))
 		assert.NoError(t, err)
 
-		// using show -n to disable parsing
 		out, err = ts.run("show -f some/multikeyvalues")
 		assert.NoError(t, err)
 		assert.Equal(t, output, out)
@@ -213,17 +212,19 @@ user: 83`
 Test / test.com
 user:myuser
 url: test.com/`
-		output := `somepasswd
-url: test.com/
-user: myuser
----
-Test / test.com`
 
 		_, err = ts.runCmd([]string{ts.Binary, "insert", "some/kvwithspace"}, []byte(input))
 		assert.NoError(t, err)
 
 		out, err = ts.run("show -f some/kvwithspace")
 		assert.NoError(t, err)
-		assert.Equal(t, output, out)
+		assert.Equal(t, input, out)
+
+		out, err = ts.run("show -f some/kvwithspace url")
+		assert.NoError(t, err)
+		assert.Equal(t, "test.com/", out)
+
+		out, err = ts.run("show -f some/kvwithspace user")
+		assert.Error(t, err)
 	})
 }

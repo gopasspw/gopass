@@ -90,7 +90,7 @@ func TestCopy(t *testing.T) { //nolint:paralleltest
 
 	ctx = ctxutil.WithTerminal(ctx, false)
 	assert.NoError(t, act.show(ctx, c, "zab/zab", false))
-	assert.Equal(t, "barfoo", buf.String())
+	assert.Equal(t, "barfoo\n", buf.String())
 	buf.Reset()
 }
 
@@ -178,7 +178,7 @@ func TestCopyGpg(t *testing.T) { //nolint:paralleltest
 	buf.Reset()
 
 	ctx = ctxutil.WithTerminal(ctx, false)
-	assert.NoError(t, act.show(ctx, c, "zab/zab", false))
+	assert.NoError(t, act.show(WithPasswordOnly(ctx, true), c, "zab/zab", false))
 	assert.Equal(t, "barfoo", buf.String())
 	buf.Reset()
 }

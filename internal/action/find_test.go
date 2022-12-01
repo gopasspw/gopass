@@ -94,9 +94,10 @@ func TestFind(t *testing.T) { //nolint:paralleltest
 	buf.Reset()
 
 	// add some secrets
-	sec := &secrets.Plain{}
+	sec := secrets.NewAKV()
 	sec.SetPassword("foo")
-	sec.WriteString("bar")
+	_, err = sec.Write([]byte("bar"))
+	require.NoError(t, err)
 	assert.NoError(t, act.Store.Set(ctx, "bar/baz", sec))
 	assert.NoError(t, act.Store.Set(ctx, "bar/zab", sec))
 	buf.Reset()

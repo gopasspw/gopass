@@ -44,7 +44,7 @@ func TestCopy(t *testing.T) {
 			tf: func(s *Store) func(t *testing.T) {
 				return func(t *testing.T) {
 					t.Helper()
-					nsec := &secrets.Plain{}
+					nsec := secrets.NewAKV()
 					nsec.SetPassword("bar")
 					assert.NoError(t, s.Set(ctx, "foo", nsec))
 					assert.NoError(t, s.Copy(ctx, "foo", "bar"))
@@ -62,7 +62,7 @@ func TestCopy(t *testing.T) {
 			tf: func(s *Store) func(t *testing.T) {
 				return func(t *testing.T) {
 					t.Helper()
-					sec := &secrets.Plain{}
+					sec := secrets.NewAKV()
 					sec.SetPassword("baz")
 					assert.NoError(t, s.Set(ctx, "foo/bar/baz", sec))
 					sec.SetPassword("zab")
@@ -128,7 +128,7 @@ func TestMove(t *testing.T) {
 			tf: func(s *Store) func(t *testing.T) {
 				return func(t *testing.T) {
 					t.Helper()
-					nsec := &secrets.Plain{}
+					nsec := secrets.NewAKV()
 					nsec.SetPassword("bar")
 					assert.NoError(t, s.Set(ctx, "foo", nsec))
 					assert.NoError(t, s.Move(ctx, "foo", "bar"))
@@ -146,7 +146,7 @@ func TestMove(t *testing.T) {
 			tf: func(s *Store) func(t *testing.T) {
 				return func(t *testing.T) {
 					t.Helper()
-					sec := &secrets.Plain{}
+					sec := secrets.NewAKV()
 					sec.SetPassword("baz")
 					assert.NoError(t, s.Set(ctx, "foo/bar/baz", sec))
 					sec.SetPassword("zab")
@@ -213,7 +213,7 @@ func TestDelete(t *testing.T) {
 			tf: func(s *Store) func(t *testing.T) {
 				return func(t *testing.T) {
 					t.Helper()
-					sec := &secrets.Plain{}
+					sec := secrets.NewAKV()
 					sec.SetPassword("bar")
 					assert.NoError(t, s.Set(ctx, "foo", sec))
 					assert.NoError(t, s.Delete(ctx, "foo"))
@@ -280,7 +280,7 @@ func TestPrune(t *testing.T) {
 			tf: func(s *Store) func(t *testing.T) {
 				return func(t *testing.T) {
 					t.Helper()
-					sec := &secrets.Plain{}
+					sec := secrets.NewAKV()
 					sec.SetPassword("bar")
 					assert.NoError(t, s.Set(ctx, "foo", sec))
 					assert.NoError(t, s.Prune(ctx, "foo"))
@@ -295,7 +295,7 @@ func TestPrune(t *testing.T) {
 			tf: func(s *Store) func(t *testing.T) {
 				return func(t *testing.T) {
 					t.Helper()
-					sec := &secrets.Plain{}
+					sec := secrets.NewAKV()
 					sec.SetPassword("bar")
 					assert.NoError(t, s.Set(ctx, "foo/bar/baz", sec))
 					assert.NoError(t, s.Set(ctx, "foo/bar/zab", sec))

@@ -50,7 +50,7 @@ func showParseArgs(c *cli.Context) context.Context {
 	}
 
 	if c.IsSet("noparsing") {
-		_ = config.FromContext(ctx).SetEnv("core.parsing", fmt.Sprintf("%t", !c.Bool("noparsing")))
+		ctx = ctxutil.WithShowParsing(ctx, !c.Bool("noparsing"))
 	}
 
 	if c.IsSet("chars") {
@@ -211,8 +211,6 @@ func (s *Action) showHandleOutput(ctx context.Context, name string, sec gopass.S
 		header := fmt.Sprintf("Secret: %s\n", name)
 		if HasKey(ctx) {
 			header += fmt.Sprintf("Key: %s\n", GetKey(ctx))
-		} else if config.Bool(ctx, "core.parsing") {
-			out.Warning(ctx, "Parsing is enabled. Use -n to disable.")
 		}
 		out.Print(ctx, header)
 	}
@@ -225,7 +223,7 @@ func (s *Action) showHandleOutput(ctx context.Context, name string, sec gopass.S
 
 func (s *Action) showGetContent(ctx context.Context, sec gopass.Secret) (string, string, error) {
 	// YAML key.
-	if HasKey(ctx) && config.Bool(ctx, "core.parsing") {
+	if HasKey(ctx) {
 		key := GetKey(ctx)
 		values, found := sec.Values(key)
 		if !found {
@@ -266,7 +264,7 @@ func (s *Action) showGetContent(ctx context.Context, sec gopass.Secret) (string,
 	}
 
 	// everything (default).
-	return sec.Password(), fullBody, nil
+	return pw, fullBody, nil
 }
 
 func showSafeContent(sec gopass.Secret) string {

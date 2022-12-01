@@ -45,9 +45,10 @@ func TestDelete(t *testing.T) { //nolint:paralleltest
 	buf.Reset()
 
 	// delete foo bar
-	sec := &secrets.Plain{}
+	sec := secrets.NewAKV()
 	sec.SetPassword("123")
-	sec.WriteString("---\nbar: zab")
+	_, err = sec.Write([]byte("---\nbar: zab"))
+	require.NoError(t, err)
 	assert.NoError(t, act.Store.Set(ctx, "foo", sec))
 
 	c = gptest.CliCtx(ctx, t, "foo", "bar")

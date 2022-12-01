@@ -35,7 +35,7 @@ func TestAudit(t *testing.T) { //nolint:paralleltest
 	}()
 
 	t.Run("expect audit complaints on very weak passwords", func(t *testing.T) { //nolint:paralleltest
-		sec := &secrets.Plain{}
+		sec := secrets.NewAKV()
 		sec.SetPassword("123")
 		assert.NoError(t, act.Store.Set(ctx, "bar", sec))
 		assert.NoError(t, act.Store.Set(ctx, "baz", sec))
