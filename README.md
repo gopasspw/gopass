@@ -56,6 +56,8 @@ $ sudo apt install gopass gopass-archive-keyring
 
 ### Fedora / RedHat / CentOS
 
+[![Fedora version](https://img.shields.io/fedora/v/gopass)](https://packages.fedoraproject.org/pkgs/gopass/gopass/)
+
 ```shell
 dnf install gopass
 ```
@@ -65,18 +67,19 @@ Note: You might need to run `dnf copr enable daftaupe/gopass` first.
 ### Arch Linux
 
 ```shell
-pacmsn -S gopass
+pacman -S gopass
 ```
 
 ### Windows
 
+[![Scoop version](https://img.shields.io/scoop/v/gopass)](https://github.com/ScoopInstaller/Main/blob/master/bucket/gopass.json)
 
 ```shell
 # Chocolatey
 choco install gpg4win
 choco install gopass
 # Alternatively
-scopp install gopass
+scoop install gopass
 ```
 
 ### FreeBSD / OpenBSD
