@@ -16,7 +16,7 @@ import (
 // UpdateMoveAfterQuit is exported for testing.
 var UpdateMoveAfterQuit = true
 
-// Update will start th interactive update assistant.
+// Update will start the interactive update assistant.
 //
 //nolint:goerr113
 func Update(ctx context.Context, currentVersion semver.Version) error {
