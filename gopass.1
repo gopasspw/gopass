@@ -1,5 +1,5 @@
 
-.TH GOPASS "1" "November 2022" "gopass (github.com/gopasspw/gopass) 1.14.11" "User Commands"
+.TH GOPASS "1" "December 2022" "gopass (github.com/gopasspw/gopass) 1.15.0" "User Commands"
 .SH NAME
 gopass - The standard Unix password manager
 .SH SYNOPSIS
@@ -89,6 +89,11 @@ Select storage backend [fossilfs gitfs]
 Display and edit the configuration file
 
 This command allows for easy printing and editing of the configuration. Without argument, the entire config is printed. With a single argument, a single key can be printed. With two arguments a setting specified by key can be set to value.
+
+.B Flags
+.TP
+\fB\-\-store\fR,
+Set options to a specific store
 .SS convert
 Convert a store to different backends
 

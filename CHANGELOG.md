@@ -1,6 +1,11 @@
 # Changelog
 
-## Next
+## 1.15.0 / 2022-12-03
+
+* [BREAKING] New config format based on git config. (#2395, #1567, #1764, #1819, #1878, #2387, #2418)
+* [BUGFIX] Fix symlink deduplication. (#2437, #2402)
+* [ENHANCEMENT] Maintain secret structure when parsing (#2433, #2431)
+* [ENHANCEMENT] Retain recipients file format (#2432, #2430)
 
 ### New config format: gitconfg
 
