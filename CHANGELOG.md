@@ -1,3 +1,31 @@
+# Changelog
+
+## Next
+
+### New config format: gitconfg
+
+Gopass is getting a new config format based on the one use by git itself.
+The new implementation is much more flexible and extensible and will allow us
+to more easily support new config options going forward. It does also support
+a hierachy of configs. That means we can now support system wide defaults
+as well as per mount config options.
+
+The system wide configuration gives package maintainers and admins of multi
+user deployments the option to pre-set certain options to their liking.
+
+### New default secret format
+
+The default secret format has been rewritten to replace two of the existing
+ones (KV and Plain). The new format puts a strong emphasis on retaining the
+input as close as possible. And small change that might be visible in some
+corner cases is that every secret now contains a terminating new line.
+
+### Recipient files can now contain comments
+
+The parsing of the recipients files (`.gpg-id`) has become more flexible and
+can now contain comments. These will be retained when updating these files
+through gopass as well.
+
 ## 1.14.11 / 2022-11-25
 
 * [BUGFIX] Fix edit on MacOS Ventura (#2426, #2400)
@@ -5,7 +33,6 @@
 * [BUGFIX] Improve support for non-vim editors (#2427, #2424)
 * [BUGFIX] Only pass vim options to vim (#2421, #2412)
 * [ENHANCEMENT] Support combined short flags (#2420, #2419)
-# Changelog
 
 ## 1.14.10 / 2022-11-09
 

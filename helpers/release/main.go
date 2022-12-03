@@ -327,6 +327,8 @@ func writeChangelog(prev, next semver.Version) error {
 				fmt.Fprintln(fh, e)
 			}
 			fmt.Fprintln(fh)
+
+			written = true
 		}
 
 		// all existing lines are just copied over
