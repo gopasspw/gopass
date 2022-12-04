@@ -347,7 +347,6 @@ func (s *Action) GetCommands() []*cli.Command {
 			Before:       s.IsInitialized,
 			Action:       s.BinaryCopy,
 			BashComplete: s.Complete,
-			Hidden:       true,
 		},
 		{
 			Name:      "fsmove",
@@ -364,7 +363,6 @@ func (s *Action) GetCommands() []*cli.Command {
 			Before:       s.IsInitialized,
 			Action:       s.BinaryMove,
 			BashComplete: s.Complete,
-			Hidden:       true,
 		},
 		{
 			Name:      "generate",
