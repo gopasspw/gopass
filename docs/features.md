@@ -96,7 +96,7 @@ This is entirely different from any OS-level credential store, your GPG key ring
 
 To initialize a password store, just do:
 
-```bash
+```shell
 gopass init
 ```
 
@@ -105,13 +105,13 @@ Then it will create a `.local/share/gopass/stores/root` directory in your home d
 
 If you don't want gopass to use this default directory, you can instead initialize a password store with:
 
-```bash
+```shell
 gopass init --path /custom/path/to/password/store
 ```
 
 If you don't want gopass to prompt you for the GPG key to use, you can specify it inline. For example, this might be useful if you have a huge number of GPG keys on the system or if you are initializing a password store from a script. You can do this in three different ways:
 
-```bash
+```shell
 gopass init gopher@golang.org # By specifying the email address associated with the GPG key
 gopass init A3683834 # By specifying the 8 character ID found by typing "gpg --list-keys" and looking at the "pub" line
 gopass init 1E52C1335AC1F4F4FE02F62AB5B44266A3683834 # By specifying the GPG key fingerprint found by typing "gpg --fingerprint" and removing all of the spaces
@@ -121,13 +121,13 @@ gopass init 1E52C1335AC1F4F4FE02F62AB5B44266A3683834 # By specifying the GPG key
 
 If you already have an existing password store that exists in a Git repository, then use `gopass` to clone it:
 
-```bash
+```shell
 gopass clone git@example.com/pass.git
 ```
 
 This runs `git clone` in the background. If you don't want gopass to use the default root mount of "$HOME/.local/share/gopass/stores/root", then you can specify an additional mount parameter:
 
-```bash
+```shell
 gopass clone git@example.com/pass-work.git work # This will initialize the password store in the "$HOME/.local/share/gopass/stores/work" directory
 ```
 
@@ -149,7 +149,7 @@ Let's say you want to create an account.
 
 #### Type in a new secret
 
-```bash
+```shell
 $ gopass insert golang.org/gopher
 Enter secret for golang.org/gopher:       # hidden on Linux / MacOS
 Retype secret for golang.org/gopher:      # hidden on Linux / MacOS
@@ -161,7 +161,7 @@ Do you want to continue? [yn]: y
 
 #### Generate a new secret
 
-```bash
+```shell
 $ gopass generate golang.org/gopher
 How long should the secret be? [20]:
 gopass: Encrypting golang.org/gopher for these recipients:
@@ -172,7 +172,7 @@ The generated secret for golang.org/gopher is:
 Eech4ahRoy2oowi0ohl
 ```
 
-```bash
+```shell
 $ gopass generate golang.org/gopher 16    # length as parameter
 gopass: Encrypting golang.org/gopher for these recipients:
  - 0xB5B44266A3683834 - Gopher <gopher@golang.org>
@@ -188,8 +188,8 @@ By default the password is copied to clipboard, but you can disable this using t
 
 ### Edit a secret
 
-```bash
-$ gopass edit golang.org/gopher
+```shell
+gopass edit golang.org/gopher
 ```
 
 The `edit` command uses the `$EDITOR` environment variable to start your preferred editor where you can easily edit multi-line content. `vim` will be the default if `$EDITOR` is not set.
@@ -200,16 +200,16 @@ The `edit` command uses the `$EDITOR` environment variable to start your preferr
 
 Typically sites will display a QR code containing a URL that starts with `oauth://`. This string contains information about generating your OTPs and can be directly added to your password file. For example:
 
-```
-gopass show golang.org/gopher
+```shell
+$ gopass show golang.org/gopher
 secret1234
 otpauth://totp/golang.org:gopher?secret=ABC123
 ```
 
 Alternatively, you can use YAML (notice the usage of the YAML separator `---` to indicate it is a YAML secret):
 
-```
-gopass show golang.org/gopher
+```shell
+$ gopass show golang.org/gopher
 secret1234
 ---
 totp: ABC123
@@ -225,7 +225,7 @@ Both TOTP and HOTP are supported. However, to generate HOTP tokens, the counter 
 
 You can list all entries of the store:
 
-```bash
+```shell
 $ gopass ls
 gopass
 ├── golang.org
@@ -239,7 +239,7 @@ If your terminal supports colors the output will use ANSI color codes to highlig
 
 ### Show a secret
 
-```bash
+```shell
 $ gopass show golang.org/gopher
 
 Eech4ahRoy2oowi0ohl
@@ -258,7 +258,7 @@ WARNING: The `safecontent` setting is not perfect and *might* be removed in the 
 
 #### Copy a secret to the clipboard
 
-```bash
+```shell
 $ gopass show -c golang.org/gopher
 
 Copied golang.org/gopher to clipboard. Will clear in 45 seconds.
@@ -266,7 +266,7 @@ Copied golang.org/gopher to clipboard. Will clear in 45 seconds.
 
 ### Removing a secret
 
-```bash
+```shell
 $ gopass rm golang.org/gopher
 ```
 
@@ -274,7 +274,7 @@ $ gopass rm golang.org/gopher
 
 ### Moving a secret
 
-```bash
+```shell
 $ gopass mv emails/example.com emails/user@example.com
 ```
 
@@ -282,7 +282,7 @@ $ gopass mv emails/example.com emails/user@example.com
 
 ### Copying a secret
 
-```bash
+```shell
 $ gopass cp emails/example.com emails/user@example.com
 ```
 
@@ -300,7 +300,7 @@ Gopass offers as simple and intuitive way to sync one or many stores with their
 remotes. This will perform and git pull, push and import or export any missing
 GPG keys.
 
-```bash
+```shell
 $ gopass sync
 ```
 
@@ -315,13 +315,13 @@ gopass always pushes changes to your default git remote server (origin).
 
 If you want to pull changes from git, you need to run the sync command:
 
-```bash
+```shell
 $ gopass sync 
 ```
 
 You can selectively pull changes into named stores:
 
-```bash
+```shell
 $ gopass sync --store foo 
 ```
 
@@ -331,7 +331,7 @@ For details see: [`sync` command](commands/sync.md)
 
 gopass can check your passwords for common flaws, like being too short or coming from a dictionary.
 
-```bash
+```shell
 $ gopass audit
 Detected weak secret for 'golang.org/gopher': Password is too short
 ```
@@ -352,7 +352,7 @@ This will check the SHA1 hashes of all your password against the online HIBP API
  - you trust your network
  - you don't have small (<14 characters), easy to crack passwords
 
-```bash
+```shell
 gopass-hibp api
 ```
 
@@ -360,17 +360,15 @@ gopass-hibp api
 
 First go to [haveibeenpwned.com/Passwords](https://haveibeenpwned.com/Passwords) and download the dumps. Then unpack the 7-zip archives somewhere. Note that full path to those files and provide it to `gopass-hibp dump --files` flag.
 
-```bash
+```shell
 $ gopass-hibp dump --files /tmp/pwned-passwords-ordered-2.0.txt
 ```
 
 ### Support for Binary Content
 
-WARNING: Binary support is undergoing changes. Expect changes to these commands.
-
 gopass provides secure and easy support for working with binary files through the `cat`, `fscopy`, `fsmove` and `sum` family of sub-commands. One can copy or move secret from or to the store. gopass will attempt to securely overwrite and remove any secret moved to the store.
 
-```bash
+```shell
 # copy file "/some/file.jpg" to "some/secret" in the store
 $ gopass fscopy /some/file.jpg some/secret
 # move file "/home/user/private.key" to "my/private.key", removing the file on disk
@@ -384,7 +382,7 @@ $ gopass sha256 my/private.key
 
 gopass supports multi-stores that can be mounted over each other like file systems on Linux/UNIX systems. Mounting new stores can be done through gopass:
 
-```bash
+```shell
 # Mount a new store
 $ gopass mounts add test /tmp/password-store-test
 # Show mounted stores
@@ -415,7 +413,7 @@ Commands that support the `--store` flag:
 
 gopass supports directly editing structured secrets (simple key-value maps):
 
-```bash
+```shell
 $ gopass generate -n foo/bar 12
 The generated password for foo/bar is:
 7fXGKeaZgzty
@@ -430,7 +428,7 @@ baz: zab
 ```
 
 Or even YAML:
-```bash
+```shell
 secret1234
 ---
 multi: |
@@ -457,7 +455,7 @@ See also [gopass show doc entry](/docs/commands/show.md#parsing-and-secrets) for
 
 gopass allows editing the config from the command-line. This is similar to how git handles config changes through the command-line. Any change will be written to the configured gopass config file.
 
-```bash
+```shell
 $ gopass config
 askformore: false
 autoclip: true
@@ -474,7 +472,7 @@ $ gopass config cliptimeout
 
 You can list, add and remove recipients from the command-line.
 
-```bash
+```shell
 $ gopass recipients
 gopass
 └── 0xB5B44266A3683834 - Gopher <gopher@golang.org>
