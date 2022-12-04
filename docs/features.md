@@ -521,9 +521,46 @@ Disabling colors is as simple as setting `NO_COLOR` to `true`. See [no-color.org
 
 ### Password Templates
 
-With gopass you can create templates which are searched when executing `gopass edit` on a new secret. If the folder, or any parent folder, contains a file called `.pass-template` it's parsed as a Go template, executed with the name of the new secret and an auto-generated password and loaded into your `$EDITOR`.
+With gopass you can create templates which are searched when executing `gopass edit` on a new secret. If the folder, or any parent folder, contains a file called `.pass-template` it's parsed as a [Go template](https://pkg.go.dev/text/template), executed with the name of the new secret and an auto-generated password and loaded into your `$EDITOR`.
 
 This makes it easy to use templates for certain kind of secrets such as database passwords.
+
+#### Examples
+
+```text
+# Insert the password of an arbitrary secret
+Password-value of existing entry: {{ getpw "foo" }}
+
+# Insert the full body of another secret
+Content of the new entry: {{ .Content }}
+
+# MD5 hash (hex)
+Md5sum of the new password: {{ .Content | md5sum }}
+
+# SHA1 hash (hex)
+Sha1sum of the new password: {{ .Content | sha1sum }}
+
+# MD5Crypt (hex)
+Md5crypt of the new password: {{ .Content | md5crypt }}
+
+# Salted-SHA1
+SSHA of the new password: {{ .Content | ssha }}
+
+# Salted-SHA256
+SSHA256 of the new password: {{ .Content | ssha256 }}
+
+# Salted-SHA512
+SSHA512 of the new password: {{ .Content | ssha512 }}
+
+# Argon2i
+Argon2i of the new password: {{ .Content | argon2i }}
+
+# Argon2id
+Argon2id of the new password: {{ .Content | argon2id }}
+
+# Bcrypt
+Bcrypt of the new password: {{ .Content | bcrypt }}
+```
 
 ### Safecontent
 
