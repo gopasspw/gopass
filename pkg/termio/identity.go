@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/gitconfig"
 	"github.com/urfave/cli/v2"
 )
 
@@ -25,7 +26,7 @@ var (
 
 // DetectName tries to guess the name of the logged in user.
 func DetectName(ctx context.Context, c *cli.Context) string {
-	cand := make([]string, 0, 5)
+	cand := make([]string, 0, 10)
 	cand = append(cand, ctxutil.GetUsername(ctx))
 
 	if c != nil {
@@ -35,6 +36,9 @@ func DetectName(ctx context.Context, c *cli.Context) string {
 	for _, k := range NameVars {
 		cand = append(cand, os.Getenv(k))
 	}
+
+	cfg := gitconfig.New().LoadAll(GetWorkdir(ctx))
+	cand = append(cand, cfg.Get("user.name"))
 
 	for _, e := range cand {
 		if e != "" {
@@ -47,7 +51,7 @@ func DetectName(ctx context.Context, c *cli.Context) string {
 
 // DetectEmail tries to guess the email of the logged in user.
 func DetectEmail(ctx context.Context, c *cli.Context) string {
-	cand := make([]string, 0, 5)
+	cand := make([]string, 0, 10)
 	cand = append(cand, ctxutil.GetEmail(ctx))
 
 	if c != nil {
@@ -57,6 +61,9 @@ func DetectEmail(ctx context.Context, c *cli.Context) string {
 	for _, k := range EmailVars {
 		cand = append(cand, os.Getenv(k))
 	}
+
+	cfg := gitconfig.New().LoadAll(GetWorkdir(ctx))
+	cand = append(cand, cfg.Get("user.email"))
 
 	for _, e := range cand {
 		if e != "" {
