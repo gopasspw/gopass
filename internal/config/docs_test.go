@@ -68,7 +68,7 @@ func TestConfigOptsInDocs(t *testing.T) {
 func usedOpts(t *testing.T) map[string]bool {
 	t.Helper()
 
-	optRE := regexp.MustCompile(`(?:\.Get(?:|Int|Bool)\(\"([a-z]+\.[a-z]+)\"\)|\.GetM\([^,]+, \"([a-z]+\.[a-z]+)\"\)|config\.Bool\(ctx, \"([a-z]+\.[a-z]+)\"\))`)
+	optRE := regexp.MustCompile(`(?:\.Get(?:|Int|Bool)\(\"([a-z]+\.[a-z]+)\"\)|\.GetM\([^,]+, \"([a-z]+\.[a-z]+)\"\)|config\.(?:Bool|Int|String)\(ctx, \"([a-z]+\.[a-z]+)\"\))`)
 	opts := make(map[string]bool, 42)
 
 	dir := filepath.Join("..", "..")

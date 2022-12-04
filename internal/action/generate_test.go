@@ -373,8 +373,10 @@ func TestFilterPrefix(t *testing.T) {
 func TestDefaultLengthFromEnv(t *testing.T) { //nolint:paralleltest
 	const pwLengthEnvName = "GOPASS_PW_DEFAULT_LENGTH"
 
+	ctx := context.Background()
+
 	t.Run("use default value if no environment variable is set", func(t *testing.T) { //nolint:paralleltest
-		actual, isCustom := defaultLengthFromEnv()
+		actual, isCustom := defaultLengthFromEnv(ctx)
 		expected := defaultLength
 		assert.Equal(t, actual, expected)
 		assert.False(t, isCustom)
@@ -394,7 +396,7 @@ func TestDefaultLengthFromEnv(t *testing.T) { //nolint:paralleltest
 		} {
 			tc := tc
 			t.Setenv(pwLengthEnvName, tc.in)
-			actual, isCustom := defaultLengthFromEnv()
+			actual, isCustom := defaultLengthFromEnv(ctx)
 			assert.Equal(t, actual, tc.expected)
 			assert.Equal(t, isCustom, tc.custom)
 		}
