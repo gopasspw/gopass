@@ -95,3 +95,5 @@ This is a list of available options:
 | `core.showautoclip`      | `bool`   | Use autoclip for gopass show by default. | `false` |
 | `autosync.interval`      | `int`   | AutoSync interval in days. | `3` |
 | `updater.check`        | `bool`   | Check for updates when running `gopass version` | `true` |
+| `generate.symbols`     | `bool`   | Include symbols in generated password. | `false` |
+| `generate.length`      | `int`    | Default lenght for generated password. | `24` |
