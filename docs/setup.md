@@ -320,7 +320,7 @@ ln -s $GOPATH/bin/gopass $HOME/bin/pass
 
 ### Migrating to gopass from Other Password Stores
 
-Before migrating to gopass, you may have been using other password managers (such as [KeePass](https://keepass.info/), for example). If you were, you might want to import all of your existing passwords over. Because gopass is fully backwards compatible with pass, you can use any of the existing migration tools found under the "Migrating to pass" section of the [official pass website](https://www.passwordstore.org/).
+Before migrating to gopass, you may have been using other password managers (such as [KeePass](https://keepass.info/), for example). If you were, you might want to import all of your existing passwords over. Because gopass is fully backwards compatible with pass, you can use any of the existing migration tools found under the "Migrating to pass" section of the [official pass website](https://www.passwordstore.org/), for example [pass-import](https://github.com/roddhjav/pass-import).
 
 ### Enable Bash Auto completion
 
