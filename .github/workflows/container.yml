@@ -10,11 +10,10 @@
 name: Create and publish a Docker image
 
 # Controls when the action will run. 
-# on:
-#  push:
-#    tags:
-#      - 'v*'
-on: workflow_dispatch
+on:
+ push:
+   tags:
+     - 'v*'
 
 env:
   REGISTRY: ghcr.io
