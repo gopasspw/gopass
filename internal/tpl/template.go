@@ -16,6 +16,7 @@ type kvstore interface {
 
 type payload struct {
 	Dir     string
+	DirName string
 	Path    string
 	Name    string
 	Content string
@@ -24,8 +25,12 @@ type payload struct {
 // Execute executes the given template.
 func Execute(ctx context.Context, tpl, name string, content []byte, s kvstore) ([]byte, error) {
 	funcs := funcMap(ctx, s)
+
+	dir := filepath.Dir(name)
+
 	pl := payload{
-		Dir:     filepath.Dir(name),
+		Dir:     dir,
+		DirName: filepath.Base(dir),
 		Path:    name,
 		Name:    filepath.Base(name),
 		Content: string(content),

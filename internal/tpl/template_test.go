@@ -76,6 +76,12 @@ func TestVars(t *testing.T) {
 			Output:   "testdir",
 		},
 		{
+			Template: "{{.DirName}}",
+			Name:     "foo/bar/baz",
+			Content:  []byte("foobar"),
+			Output:   "bar",
+		},
+		{
 			Template: "{{.Name}}",
 			Name:     "testdir",
 			Content:  []byte("foobar"),
