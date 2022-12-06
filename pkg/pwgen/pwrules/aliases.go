@@ -7,15 +7,12 @@ import (
 
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/set"
+	"github.com/gopasspw/gopass/pkg/debug"
 )
-
-var customAliases map[string][]string
 
 // LookupAliases looks up known aliases for the given domain.
 func LookupAliases(ctx context.Context, domain string) []string {
-	if customAliases == nil {
-		_ = loadCustomAliases(ctx)
-	}
+	customAliases := loadCustomAliases(ctx)
 	aliases := make([]string, 0, len(genAliases[domain])+len(customAliases[domain]))
 	aliases = append(aliases, genAliases[domain]...)
 	aliases = append(aliases, customAliases[domain]...)
@@ -26,9 +23,7 @@ func LookupAliases(ctx context.Context, domain string) []string {
 
 // AllAliases returns all aliases.
 func AllAliases(ctx context.Context) map[string][]string {
-	if customAliases == nil {
-		_ = loadCustomAliases(ctx)
-	}
+	customAliases := loadCustomAliases(ctx)
 	all := make(map[string][]string, len(genAliases)+len(customAliases))
 	for k, v := range genAliases {
 		all[k] = append(all[k], v...)
@@ -41,13 +36,14 @@ func AllAliases(ctx context.Context) map[string][]string {
 	return all
 }
 
-func loadCustomAliases(ctx context.Context) error {
-	customAliases = make(map[string][]string, 128)
+func loadCustomAliases(ctx context.Context) map[string][]string {
+	customAliases := make(map[string][]string, 128)
 	for _, k := range set.SortedFiltered(config.FromContext(ctx).Keys(""), func(k string) bool {
-		return strings.HasPrefix(k, "domain-alias.")
+		return strings.HasPrefix(k, "domain-alias.") && strings.HasSuffix(k, ".insteadOf")
 	}) {
 		from := config.String(ctx, k)
-		to := strings.TrimPrefix(k, "domain-alias.")
+		to := strings.TrimSuffix(strings.TrimPrefix(k, "domain-alias."), ".insteadOf")
+		debug.Log("Loading alias: %q -> %q", from, to)
 		if e, found := customAliases[from]; found {
 			e = append(e, to)
 			sort.Strings(e)
@@ -59,5 +55,5 @@ func loadCustomAliases(ctx context.Context) error {
 		customAliases[from] = []string{to}
 	}
 
-	return nil
+	return customAliases
 }
