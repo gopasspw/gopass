@@ -68,6 +68,7 @@ the generated password `VerySecure`.
 Name | Example | Description
 ---- | ------- | -----------
 `Dir` | `foo/bar` | The directory containing the secret.
+`DirName` | `bar` | The directory name containing the secret.
 `Path` | `foo/bar/baz` | The path or full name of the secret.
 `Name` | `baz` | The last element of the path or short name of the secret.
 `Content` | `VerySecure` | The generated password.
