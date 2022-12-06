@@ -97,3 +97,4 @@ This is a list of available options:
 | `updater.check`        | `bool`   | Check for updates when running `gopass version` | `true` |
 | `generate.symbols`     | `bool`   | Include symbols in generated password. | `false` |
 | `generate.length`      | `int`    | Default lenght for generated password. | `24` |
+| `generate.generator`   | `string` | Default password generator. `xkcd`, `memorable`, `external` or `` | `` |

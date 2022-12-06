@@ -418,7 +418,7 @@ func (s *Action) GetCommands() []*cli.Command {
 				&cli.StringFlag{
 					Name:    "lang",
 					Aliases: []string{"xkcdlang", "xl"},
-					Usage:   "Language to generate password from, currently only en (english, default) is supported",
+					Usage:   "Language to generate password from, currently only en (english, default) or de are supported",
 					Value:   "en",
 				},
 			},
