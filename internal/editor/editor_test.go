@@ -20,6 +20,9 @@ func TestVimArgs(t *testing.T) {
 		"neovim": {"-c", "autocmd BufNewFile,BufRead /dev/shm/gopass* setlocal noswapfile nobackup noundofile shada=\"\"", "-i", "NONE", "-n"},
 		"vim":    {"-c", "autocmd BufNewFile,BufRead /dev/shm/gopass* setlocal noswapfile nobackup noundofile viminfo=\"\"", "-i", "NONE", "-n"},
 	} {
+		if ed == "vi" && !isVim(ed) {
+			args = []string{}
+		}
 		assert.Equal(t, args, vimOptions(ed), ed)
 	}
 }

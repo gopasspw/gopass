@@ -91,7 +91,13 @@ func Invoke(ctx context.Context, editor string, content []byte) ([]byte, error) 
 }
 
 func vimOptions(editor string) []string {
-	if editor != "vi" && editor != "vim" && editor != "neovim" && !isVim(editor) {
+	if editor != "vi" && editor != "vim" && editor != "neovim" {
+		debug.Log("Editor %s is not known to be vim compatible", editor)
+
+		return []string{}
+	}
+
+	if !isVim(editor) {
 		debug.Log("Editor %s is not known to be vim compatible", editor)
 
 		return []string{}
