@@ -91,7 +91,7 @@ This is a list of available options:
 | `mounts.path`          | `string` | Path to the root store. | `$XDG_DATA_HOME/gopass/stores/root` |
 | `core.showsafecontent` | `bool`   | Only output *safe content* (i.e. everything but the first line of a secret) to the terminal. Use *copy* (`-c`) to retrieve the password in the clipboard, or *force* (`-f`) to still print it. | `false` |
 | `age.usekeychain`      | `bool`   | Use the OS keychain to cache age passphrases. | `false` |
-| `domain-alias.<from>`   | `string` | Alias from domain to the string value of this entry. | `` |
+| `domain-alias.<from>.insteadOf`   | `string` | Alias from domain to the string value of this entry. | `` |
 | `core.showautoclip`      | `bool`   | Use autoclip for gopass show by default. | `false` |
 | `autosync.interval`      | `int`   | AutoSync interval in days. | `3` |
 | `updater.check`        | `bool`   | Check for updates when running `gopass version` | `true` |

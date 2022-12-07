@@ -402,3 +402,27 @@ func TestShowPrintQR(t *testing.T) { //nolint:paralleltest
 	assert.NoError(t, act.showPrintQR("foo", "bar"))
 	buf.Reset()
 }
+
+func TestShowHasAliasDomain(t *testing.T) { //nolint:paralleltest
+	u := gptest.NewUnitTester(t)
+	defer u.Remove()
+
+	ctx := context.Background()
+	ctx = ctxutil.WithAlwaysYes(ctx, true)
+	ctx = ctxutil.WithTerminal(ctx, false)
+	ctx = ctxutil.WithInteractive(ctx, false)
+
+	act, err := newMock(ctx, u.StoreDir(""))
+	require.NoError(t, err)
+	require.NotNil(t, act)
+	ctx = act.cfg.WithConfig(ctx)
+
+	sec := secrets.NewAKV()
+	sec.SetPassword("foo")
+	require.NoError(t, act.Store.Set(ctx, "websites/foo.de/user", sec))
+
+	require.NoError(t, act.cfg.Set("", "domain-alias.foo.de.insteadOf", "foo.com"))
+
+	alias := act.hasAliasDomain(ctx, "websites/foo.com/user")
+	assert.Equal(t, "websites/foo.de/user", alias)
+}

@@ -64,10 +64,9 @@ func (s *Action) GetCommands() []*cli.Command {
 	cmds := []*cli.Command{
 		{
 			Name:        "alias",
-			Usage:       "Manage domain aliases",
-			Description: "Manages domain aliases. Note: this command might change or go away.",
+			Usage:       "Print domain aliases",
+			Description: "Print defined domain aliases.",
 			Action:      s.AliasesPrint,
-			Hidden:      true,
 		},
 		{
 			Name:      "audit",

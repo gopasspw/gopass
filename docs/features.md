@@ -57,7 +57,7 @@ It's actually really simple! Each password (or secret) will live in its own file
 And you can stick related passwords (or secrets) together in a directory.
 So, for example, if you had 3 laptops and wanted to store the root passwords for all 3, then your file system might look something like the following:
 
-```
+```text
 .password-store
 └── laptops
     ├── dell.gpg
@@ -67,7 +67,7 @@ So, for example, if you had 3 laptops and wanted to store the root passwords for
 
 With this file system, if you typed the `gopass ls` command, it would report the following:
 
-```
+```text
 gopass
 └── laptops
     ├── dell
@@ -81,7 +81,7 @@ gopass does not impose any specific layout for your data. Any key can contain an
 
 If you plan to use the password store for website credentials or plan to use [browserpass](https://github.com/dannyvankooten/browserpass), you should follow the following pattern for storing passwords:
 
-```
+```text
 example1.com/username
 example2.com/john@doe.com
 ```
@@ -267,7 +267,7 @@ Copied golang.org/gopher to clipboard. Will clear in 45 seconds.
 ### Removing a secret
 
 ```shell
-$ gopass rm golang.org/gopher
+gopass rm golang.org/gopher
 ```
 
 `rm` will remove a secret from the store. Use `-r` to delete a whole folder. Please note that you **can not** remove a folder containing a mounted sub store. You have to unmount any mounted sub stores first.
@@ -275,7 +275,7 @@ $ gopass rm golang.org/gopher
 ### Moving a secret
 
 ```shell
-$ gopass mv emails/example.com emails/user@example.com
+gopass mv emails/example.com emails/user@example.com
 ```
 
 *Moving also works across different sub-stores.*
@@ -283,7 +283,7 @@ $ gopass mv emails/example.com emails/user@example.com
 ### Copying a secret
 
 ```shell
-$ gopass cp emails/example.com emails/user@example.com
+gopass cp emails/example.com emails/user@example.com
 ```
 
 *Copying also works across different sub-stores.*
@@ -301,7 +301,7 @@ remotes. This will perform and git pull, push and import or export any missing
 GPG keys.
 
 ```shell
-$ gopass sync
+gopass sync
 ```
 
 ### Desktop Notifications
@@ -316,13 +316,13 @@ gopass always pushes changes to your default git remote server (origin).
 If you want to pull changes from git, you need to run the sync command:
 
 ```shell
-$ gopass sync 
+gopass sync 
 ```
 
 You can selectively pull changes into named stores:
 
 ```shell
-$ gopass sync --store foo 
+gopass sync --store foo 
 ```
 
 For details see: [`sync` command](commands/sync.md)
@@ -348,9 +348,9 @@ perform the check fully offline.
 
 This will check the SHA1 hashes of all your password against the online HIBP API. Your actual passwords aren't leaked, but weak passwords can be found using a dictionary attack if an adversary obtains its SHA1 hashes. Use this if:
 
- - you trust HIBP website and API
- - you trust your network
- - you don't have small (<14 characters), easy to crack passwords
+- you trust HIBP website and API
+- you trust your network
+- you don't have small (<14 characters), easy to crack passwords
 
 ```shell
 gopass-hibp api
@@ -361,7 +361,7 @@ gopass-hibp api
 First go to [haveibeenpwned.com/Passwords](https://haveibeenpwned.com/Passwords) and download the dumps. Then unpack the 7-zip archives somewhere. Note that full path to those files and provide it to `gopass-hibp dump --files` flag.
 
 ```shell
-$ gopass-hibp dump --files /tmp/pwned-passwords-ordered-2.0.txt
+gopass-hibp dump --files /tmp/pwned-passwords-ordered-2.0.txt
 ```
 
 ### Support for Binary Content
@@ -428,7 +428,8 @@ baz: zab
 ```
 
 Or even YAML:
-```shell
+
+```yaml
 secret1234
 ---
 multi: |
@@ -561,6 +562,34 @@ Argon2id of the new password: {{ .Content | argon2id }}
 # Bcrypt
 Bcrypt of the new password: {{ .Content | bcrypt }}
 ```
+
+### Domain Aliases
+
+`gopass` supports domain aliases. Given a secret structure like the following example and
+a vendor that operates the same authentication backend behind several different domains
+this will allow looking up an existing secret using either of the aliases.
+
+```shell
+$ gopass ls
+gopass
+└── websites/
+    ├── rainforest.com/
+    │   └── jim
+    └── woodlands.com/
+        └── jimbo
+$ cat .config/gopass/config
+...
+[domain-alias "rainforest.com"]
+	insteadOf = rainforest.de
+[domain-alias "woodlands.com"]
+	insteadOf = woodlands.de
+$ gopass show websites/rainforest.de/jim
+<password>
+$ gopass show websites/woodlands.de/jimbo
+<password>
+```
+
+Note: Until the gitconfig package support multi-values only one alias per domain is possible.
 
 ### Safecontent
 
