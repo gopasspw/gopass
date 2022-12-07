@@ -197,14 +197,23 @@ func (s *Action) generatePassword(ctx context.Context, c *cli.Context, length, n
 		return s.generatePasswordForRule(ctx, c, length, name, domain, rule)
 	}
 
+	cfg := config.FromContext(ctx)
 	symbols := false
 	if c.IsSet("symbols") {
 		symbols = c.Bool("symbols")
 	} else {
-		cfg := config.FromContext(ctx)
 		if cfg.IsSet("generate.symbols") {
 			symbols = cfg.GetBool("generate.symbols")
 		}
+	}
+
+	generator := cfg.Get("generate.generator")
+	if c.IsSet("generator") {
+		generator = c.String("generator")
+	}
+
+	if generator == "xkcd" {
+		return s.generatePasswordXKCD(ctx, c, length)
 	}
 
 	var pwlen int
@@ -226,9 +235,7 @@ func (s *Action) generatePassword(ctx context.Context, c *cli.Context, length, n
 		return "", exit.Error(exit.Usage, nil, "password length must not be zero")
 	}
 
-	switch c.String("generator") {
-	case "xkcd":
-		return s.generatePasswordXKCD(ctx, c, length)
+	switch generator {
 	case "memorable":
 		if c.Bool("strict") {
 			return pwgen.GenerateMemorablePassword(pwlen, symbols, true), nil
