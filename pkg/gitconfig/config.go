@@ -21,7 +21,8 @@ type Config struct {
 	readonly bool // do not allow modifying values (even in memory)
 	noWrites bool // do not persist changes to disk (e.g. for tests)
 	raw      strings.Builder
-	vars     map[string]string
+	// TODO(#2457): support multi-vars
+	vars map[string]string
 }
 
 // Unset deletes a key.

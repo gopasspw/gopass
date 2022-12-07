@@ -50,7 +50,7 @@ complete -c $PROG -f -n '__fish_gopass_uses_command age identities -l noparsing 
 complete -c $PROG -f -n '__fish_gopass_uses_command age identities -l chars -d "Print specific characters from the secret"'
 complete -c $PROG -f -n '__fish_gopass_uses_command age identities -l help -d "show help"'
 complete -c $PROG -f -n '__fish_gopass_uses_command age identities -l version -d "print the version"'
-complete -c $PROG -f -n '__fish_gopass_needs_command' -a alias -d 'Command: Manage domain aliases'
+complete -c $PROG -f -n '__fish_gopass_needs_command' -a alias -d 'Command: Print domain aliases'
 complete -c $PROG -f -n '__fish_gopass_needs_command' -a audit -d 'Command: Decrypt all secrets and scan for weak or leaked passwords'
 complete -c $PROG -f -n '__fish_gopass_needs_command' -a cat -d 'Command: Decode and print content of a binary secret to stdout, or encode and insert from stdin'
 complete -c $PROG -f -n '__fish_gopass_needs_command' -a clone -d 'Command: Clone a password store from a git repository'
