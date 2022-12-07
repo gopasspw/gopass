@@ -3,7 +3,6 @@ module github.com/gopasspw/gopass
 go 1.18
 
 require (
-	bitbucket.org/creachadair/stringset v0.0.10
 	filippo.io/age v1.0.0
 	github.com/ProtonMail/go-crypto v0.0.0-20221026131551-cf6655e29de4
 	github.com/atotto/clipboard v0.1.4
