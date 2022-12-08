@@ -207,7 +207,11 @@ func (c *Config) flushRaw() error {
 
 	debug.Log("writing config to %s: -----------\n%s\n--------------", c.path, c.raw.String())
 
-	return os.WriteFile(c.path, []byte(c.raw.String()), 0o600)
+	if err := os.WriteFile(c.path, []byte(c.raw.String()), 0o600); err != nil {
+		return fmt.Errorf("failed to write config to %s: %w", c.path, err)
+	}
+
+	return nil
 }
 
 type parseFunc func(fqkn, skn, value, comment string) (newLine string, skipLine bool)
@@ -359,6 +363,8 @@ func LoadConfigFromEnv(envPrefix string) *Config {
 			noWrites: true,
 		}
 	}
+
+	c.vars = make(map[string]string, count)
 
 	for i := 0; i < count; i++ {
 		keyVar := fmt.Sprintf("%s%d", envPrefix+"_CONFIG_KEY_", i)

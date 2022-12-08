@@ -131,11 +131,16 @@ func globalConfigFile() string {
 // Since we might need to try different locations but only want to use the first one
 // it's easier to handle this in it's own method.
 func (c *Configs) loadGlobalConfigs() string {
-	for _, p := range []string{
+	locs := []string{
 		globalConfigFile(),
+	}
+
+	if c.GlobalConfig != "" {
 		// ~/.gitconfig
-		c.GlobalConfig,
-	} {
+		locs = append(locs, filepath.Join(appdir.UserHome(), c.GlobalConfig))
+	}
+
+	for _, p := range locs {
 		// GlobalConfig might be set to an empty string to disable it
 		// and instead of the XDG_CONFIG_HOME path only.
 		if p == "" {
