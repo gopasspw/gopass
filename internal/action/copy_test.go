@@ -15,9 +15,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestCopy(t *testing.T) { //nolint:paralleltest
+func TestCopy(t *testing.T) {
 	u := gptest.NewUnitTester(t)
-	defer u.Remove()
 
 	ctx := context.Background()
 	ctx = ctxutil.WithInteractive(ctx, false)
@@ -94,13 +93,12 @@ func TestCopy(t *testing.T) { //nolint:paralleltest
 	buf.Reset()
 }
 
-func TestCopyGpg(t *testing.T) { //nolint:paralleltest
+func TestCopyGpg(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping test in short mode.")
 	}
 
 	u := gptest.NewGUnitTester(t)
-	defer u.Remove()
 
 	ctx := context.Background()
 	ctx = ctxutil.WithInteractive(ctx, false)

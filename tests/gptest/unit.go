@@ -51,15 +51,15 @@ func NewUnitTester(t *testing.T) *Unit {
 	t.Helper()
 
 	aclip.Unsupported = true
-	td, err := os.MkdirTemp("", "gopass-")
-	assert.NoError(t, err)
 
+	td := t.TempDir()
 	u := &Unit{
 		t:          t,
 		Entries:    defaultEntries,
 		Recipients: defaultRecipients,
 		Dir:        td,
 	}
+
 	u.env = map[string]string{
 		"CHECKPOINT_DISABLE":        "true",
 		"GNUPGHOME":                 u.GPGHome(),
@@ -70,8 +70,11 @@ func NewUnitTester(t *testing.T) *Unit {
 		"NO_COLOR":                  "true",
 		"GOPASS_NO_NOTIFY":          "true",
 		"PAGER":                     "",
+		"GIT_AUTHOR_NAME":           "gopass-tests",
+		"GIT_AUTHOR_EMAIL":          "tests@gopass.pw",
 	}
-	assert.NoError(t, setupEnv(u.env), "setup env")
+	setupEnv(t, u.env)
+
 	require.NoError(t, os.Mkdir(u.GPGHome(), 0o700))
 	assert.NoError(t, u.initConfig(), "pre-populate config")
 	assert.NoError(t, u.InitStore(""), "init store")
@@ -137,16 +140,4 @@ func (u Unit) InitStore(name string) error {
 	}
 
 	return nil
-}
-
-// Remove removes the test store.
-func (u *Unit) Remove() {
-	teardownEnv(u.env)
-
-	if u.Dir == "" {
-		return
-	}
-
-	assert.NoError(u.t, os.RemoveAll(u.Dir))
-	u.Dir = ""
 }

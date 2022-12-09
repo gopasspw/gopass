@@ -13,9 +13,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestEdit(t *testing.T) { //nolint:paralleltest
+func TestEdit(t *testing.T) {
 	u := gptest.NewUnitTester(t)
-	defer u.Remove()
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
@@ -44,9 +43,8 @@ func TestEdit(t *testing.T) { //nolint:paralleltest
 	buf.Reset()
 }
 
-func TestEditUpdate(t *testing.T) { //nolint:paralleltest
+func TestEditUpdate(t *testing.T) {
 	u := gptest.NewUnitTester(t)
-	defer u.Remove()
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)

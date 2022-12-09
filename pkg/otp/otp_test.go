@@ -28,7 +28,7 @@ func TestCalculate(t *testing.T) {
 		[]byte(fmt.Sprintf("%s\n---\n%s", pw, totpURL)),
 	}
 
-	for _, tc := range testCases { //nolint:paralleltest
+	for _, tc := range testCases {
 		tc := tc
 
 		t.Run(fmt.Sprintf("%s", tc), func(t *testing.T) {

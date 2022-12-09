@@ -12,8 +12,6 @@ import (
 )
 
 func TestMoveShadow(t *testing.T) {
-	t.Parallel()
-
 	u := gptest.NewUnitTester(t)
 	u.Entries = []string{
 		"old/www/foo",
@@ -21,8 +19,6 @@ func TestMoveShadow(t *testing.T) {
 	}
 
 	require.NoError(t, u.InitStore(""))
-
-	defer u.Remove()
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
@@ -52,8 +48,6 @@ func TestMoveShadow(t *testing.T) {
 }
 
 func TestMove(t *testing.T) {
-	t.Parallel()
-
 	u := gptest.NewUnitTester(t)
 	u.Entries = []string{
 		"foo/bar",
@@ -61,8 +55,6 @@ func TestMove(t *testing.T) {
 		"misc/zab",
 	}
 	require.NoError(t, u.InitStore(""))
-
-	defer u.Remove()
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
@@ -151,8 +143,6 @@ func TestMove(t *testing.T) {
 }
 
 func TestUnixMvSemantics(t *testing.T) {
-	t.Parallel()
-
 	u := gptest.NewUnitTester(t)
 	u.Entries = []string{
 		"a/f1",
@@ -160,8 +150,6 @@ func TestUnixMvSemantics(t *testing.T) {
 		"b/f3",
 	}
 	require.NoError(t, u.InitStore(""))
-
-	defer u.Remove()
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
@@ -192,8 +180,6 @@ func TestUnixMvSemantics(t *testing.T) {
 }
 
 func TestRegression2079(t *testing.T) {
-	t.Parallel()
-
 	u := gptest.NewUnitTester(t)
 	u.Entries = []string{
 		"comm/test",
@@ -201,8 +187,6 @@ func TestRegression2079(t *testing.T) {
 		"communication/t1",
 	}
 	require.NoError(t, u.InitStore(""))
-
-	defer u.Remove()
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
@@ -233,8 +217,6 @@ func TestRegression2079(t *testing.T) {
 }
 
 func TestCopy(t *testing.T) {
-	t.Parallel()
-
 	u := gptest.NewUnitTester(t)
 	u.Entries = []string{
 		"foo/bar",
@@ -242,8 +224,6 @@ func TestCopy(t *testing.T) {
 		"misc/zab",
 	}
 	require.NoError(t, u.InitStore(""))
-
-	defer u.Remove()
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
@@ -254,7 +234,7 @@ func TestCopy(t *testing.T) {
 	assert.NoError(t, rs.Delete(ctx, "foo"))
 
 	// Initial state:
-	t.Run("initial state", func(t *testing.T) { //nolint:paralleltest
+	t.Run("initial state", func(t *testing.T) {
 		entries, err := rs.List(ctx, tree.INF)
 		require.NoError(t, err)
 		assert.Equal(t, []string{
@@ -270,7 +250,7 @@ func TestCopy(t *testing.T) {
 	assert.Error(t, rs.Copy(ctx, "foo", "misc/zab"))
 
 	// -> copy foo/ misc => OK
-	t.Run("copy foo misc", func(t *testing.T) { //nolint:paralleltest
+	t.Run("copy foo misc", func(t *testing.T) {
 		assert.NoError(t, rs.Copy(ctx, "foo", "misc"))
 		entries, err := rs.List(ctx, tree.INF)
 		require.NoError(t, err)
@@ -284,7 +264,7 @@ func TestCopy(t *testing.T) {
 	})
 
 	// -> copy misc/foo/ bar/ => OK
-	t.Run("copy misc/foo/ bar/", func(t *testing.T) { //nolint:paralleltest
+	t.Run("copy misc/foo/ bar/", func(t *testing.T) {
 		assert.NoError(t, rs.Copy(ctx, "misc/foo/", "bar/"))
 		entries, err := rs.List(ctx, tree.INF)
 		require.NoError(t, err)
@@ -300,7 +280,7 @@ func TestCopy(t *testing.T) {
 	})
 
 	// -> copy misc/zab bar/foo/zab => OK
-	t.Run("copy misc/zab bar/foo/zab", func(t *testing.T) { //nolint:paralleltest
+	t.Run("copy misc/zab bar/foo/zab", func(t *testing.T) {
 		assert.NoError(t, rs.Copy(ctx, "misc/zab", "bar/foo/zab"))
 		entries, err := rs.List(ctx, tree.INF)
 		require.NoError(t, err)
@@ -318,14 +298,11 @@ func TestCopy(t *testing.T) {
 }
 
 func TestMoveSelf(t *testing.T) {
-	t.Parallel()
-
 	u := gptest.NewUnitTester(t)
 	u.Entries = []string{
 		"foo/bar/example",
 	}
 	require.NoError(t, u.InitStore(""))
-	defer u.Remove()
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
@@ -335,7 +312,7 @@ func TestMoveSelf(t *testing.T) {
 	require.NoError(t, err)
 
 	// Initial state:
-	t.Run("initial state", func(t *testing.T) { //nolint:paralleltest
+	t.Run("initial state", func(t *testing.T) {
 		entries, err := rs.List(ctx, tree.INF)
 		require.NoError(t, err)
 		assert.Equal(t, []string{
@@ -345,7 +322,7 @@ func TestMoveSelf(t *testing.T) {
 	})
 
 	// -> move foo/bar/example foo/bar -> no op
-	t.Run("move self", func(t *testing.T) { //nolint:paralleltest
+	t.Run("move self", func(t *testing.T) {
 		assert.Error(t, rs.Move(ctx, "foo/bar/example", "foo/bar"))
 		entries, err := rs.List(ctx, tree.INF)
 		require.NoError(t, err)

@@ -45,6 +45,10 @@ func NewProgressBar(total int64) *ProgressBar {
 
 // Add adds the given amount to the progress.
 func (p *ProgressBar) Add(v int64) {
+	if p == nil {
+		return
+	}
+
 	cur := atomic.AddInt64(&p.current, v)
 	if max := atomic.LoadInt64(&p.total); cur > max {
 		atomic.StoreInt64(&p.total, cur)
@@ -55,6 +59,10 @@ func (p *ProgressBar) Add(v int64) {
 
 // Inc adds one to the progress.
 func (p *ProgressBar) Inc() {
+	if p == nil {
+		return
+	}
+
 	cur := atomic.AddInt64(&p.current, 1)
 	if max := atomic.LoadInt64(&p.total); cur > max {
 		atomic.StoreInt64(&p.total, cur)
@@ -65,6 +73,10 @@ func (p *ProgressBar) Inc() {
 
 // Set sets an arbitrary progress.
 func (p *ProgressBar) Set(v int64) {
+	if p == nil {
+		return
+	}
+
 	atomic.StoreInt64(&p.current, v)
 
 	if max := atomic.LoadInt64(&p.total); v > max {
@@ -76,6 +88,10 @@ func (p *ProgressBar) Set(v int64) {
 
 // Done finalizes the progress bar.
 func (p *ProgressBar) Done() {
+	if p == nil {
+		return
+	}
+
 	if p.Hidden {
 		return
 	}
@@ -85,11 +101,19 @@ func (p *ProgressBar) Done() {
 
 // Clear removes the progress bar.
 func (p *ProgressBar) Clear() {
+	if p == nil {
+		return
+	}
+
 	clearLine()
 }
 
 // print will print the progress bar, if necessary.
 func (p *ProgressBar) print() {
+	if p == nil {
+		return
+	}
+
 	if p.Hidden {
 		return
 	}

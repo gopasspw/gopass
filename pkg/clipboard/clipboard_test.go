@@ -16,7 +16,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNotExistingClipboardCopyCommand(t *testing.T) { //nolint:paralleltest
+func TestNotExistingClipboardCopyCommand(t *testing.T) {
 	t.Setenv("GOPASS_NO_NOTIFY", "true")
 	t.Setenv("GOPASS_CLIPBOARD_COPY_CMD", "not_existing_command")
 
@@ -28,7 +28,7 @@ func TestNotExistingClipboardCopyCommand(t *testing.T) { //nolint:paralleltest
 	assert.Contains(t, maybeErr.Error(), "\"not_existing_command\": executable file not found")
 }
 
-func TestUnsupportedCopyToClipboard(t *testing.T) { //nolint:paralleltest
+func TestUnsupportedCopyToClipboard(t *testing.T) {
 	t.Setenv("GOPASS_NO_NOTIFY", "true")
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -43,7 +43,7 @@ func TestUnsupportedCopyToClipboard(t *testing.T) { //nolint:paralleltest
 	assert.Contains(t, buf.String(), "WARNING")
 }
 
-func TestClearClipboard(t *testing.T) { //nolint:paralleltest
+func TestClearClipboard(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	assert.NoError(t, clear(ctx, "foo", []byte("bar"), 0))
 	cancel()

@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestPrint(t *testing.T) { //nolint:paralleltest
+func TestPrint(t *testing.T) {
 	ctx := context.Background()
 	buf := &bytes.Buffer{}
 	Stdout = buf

@@ -272,6 +272,12 @@ var configSampleGopass = `
 
 [mounts "work"]
   path = /home/johndoe/.password-store-work
+
+[domain-alias "foo.com"]
+  insteadOf = foo.de
+
+[domain-alias "foo.com"]
+  insteadOf = foo.it
 `
 
 func TestGopass(t *testing.T) {
@@ -290,6 +296,9 @@ func TestGopass(t *testing.T) {
 	assert.Equal(t, "false", c.Get("core.pager"))
 	assert.Equal(t, "true", c.Get("core.notifications"))
 	assert.Equal(t, "false", c.Get("core.showsafecontent"))
+	assert.Equal(t, "foo.it", c.Get("domain-alias.foo.com.insteadOf"))
+	// TODO: support multivars
+	// foo.de should be part of a multi-var get
 
 	assert.Equal(t, "/home/johndoe/.password-store", c.Get("mounts.path"))
 	assert.Equal(t, "/home/johndoe/.password-store-foo-sub", c.Get("mounts.foo/sub.path"))
@@ -309,7 +318,7 @@ func TestParse(t *testing.T) {
 	}
 }
 
-func TestGitBinary(t *testing.T) { //nolint:paralleltest
+func TestGitBinary(t *testing.T) {
 	t.Skip("not ready, yet") // TODO(gitconfig) make tests pass
 
 	cfgs := New()
@@ -412,7 +421,7 @@ func TestListSections(t *testing.T) {
 
 	c := &Configs{global: ParseConfig(strings.NewReader(configSampleGopass))}
 	c.global.noWrites = true
-	assert.Equal(t, []string{"core", "mounts"}, c.ListSections())
+	assert.Equal(t, []string{"core", "domain-alias", "mounts"}, c.ListSections())
 }
 
 func TestListSubsections(t *testing.T) {

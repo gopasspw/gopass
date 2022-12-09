@@ -97,6 +97,10 @@ fulltest: $(GOPASS_OUTPUT)
 		$(GO) test -run '(Test|Example)' $(BUILDFLAGS) $(TESTFLAGS) -coverprofile=coverage.out -covermode=atomic $(pkg) || exit 1;\
 		tail -n +2 coverage.out >> coverage-all.out;)
 	@$(GO) tool cover -html=coverage-all.out -o coverage-all.html
+	@which go-cover-treemap > /dev/null; if [ $$? -ne 0 ]; then \
+		$(GO) install github.com/nikolaydubina/go-cover-treemap@latest; \
+	fi
+	@go-cover-treemap -coverprofile coverage-all.out > coverage-all.svg
 
 test: $(GOPASS_OUTPUT)
 	@echo ">> TEST, \"fast-mode\": race detector off"

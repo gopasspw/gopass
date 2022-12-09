@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestConfigs(t *testing.T) { //nolint:paralleltest
+func TestConfigs(t *testing.T) {
 	td := t.TempDir()
 
 	t.Setenv("GOPASS_HOMEDIR", td)
@@ -41,6 +41,8 @@ func TestConfigs(t *testing.T) { //nolint:paralleltest
 
 	// Load the configs
 	c.LoadAll(td)
+
+	assert.True(t, c.HasGlobalConfig())
 
 	// Read the expected keys
 	assert.Equal(t, "system", c.Get("system.key"))

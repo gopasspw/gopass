@@ -153,6 +153,15 @@ func (s *Action) initGenerateIdentity(ctx context.Context, crypto backend.Crypto
 		passphrase = sv
 	}
 
+	// support fully automated setup (e.g. for tests)
+	if !ctxutil.IsInteractive(ctx) && ctxutil.HasPasswordCallback(ctx) {
+		pw, err := ctxutil.GetPasswordCallback(ctx)("", true)
+		if err == nil {
+			passphrase = string(pw)
+		}
+		pwGenerated = false
+	}
+
 	if crypto.Name() == "gpgcli" {
 		// Note: This issue shouldn't matter much past Linux Kernel 5.6,
 		// eventually we might want to remove this notice. Only applies to
@@ -167,7 +176,7 @@ func (s *Action) initGenerateIdentity(ctx context.Context, crypto backend.Crypto
 		return fmt.Errorf("failed to create new private key: %w", err)
 	}
 
-	out.OKf(ctx, "Key pair generated")
+	out.OKf(ctx, "Key pair for %s generated", crypto.Name())
 
 	if pwGenerated {
 		out.Printf(ctx, color.MagentaString("Passphrase: ")+passphrase)
@@ -194,7 +203,7 @@ func (s *Action) initGenerateIdentity(ctx context.Context, crypto backend.Crypto
 	if err := s.initExportPublicKey(ctx, crypto, kl[0]); err != nil {
 		return err
 	}
-	out.OKf(ctx, "Key pair validated")
+	out.OKf(ctx, "Key pair %s validated", kl[0])
 
 	return nil
 }

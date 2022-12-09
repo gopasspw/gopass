@@ -15,13 +15,14 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestEncryptDecrypt(t *testing.T) { //nolint:paralleltest
+func TestEncryptDecrypt(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping test in short mode.")
 	}
 
+	// necessary for setting up the env
 	u := gptest.NewGUnitTester(t)
-	defer u.Remove()
+	assert.NotNil(t, u)
 
 	ctx := context.Background()
 	ctx = ctxutil.WithTerminal(ctx, false)

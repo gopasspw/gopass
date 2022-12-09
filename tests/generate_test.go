@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestGenerate(t *testing.T) { //nolint:paralleltest
+func TestGenerate(t *testing.T) {
 	ts := newTester(t)
 	defer ts.teardown()
 

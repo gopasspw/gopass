@@ -52,6 +52,8 @@ func initDebug() bool {
 func initDebugLogger() {
 	debugfile := os.Getenv("GOPASS_DEBUG_LOG")
 	if debugfile == "" {
+		opts.logger = log.New(os.Stderr, "", log.Ldate|log.Lmicroseconds)
+
 		return
 	}
 

@@ -16,9 +16,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestOTP(t *testing.T) { //nolint:paralleltest
+func TestOTP(t *testing.T) {
 	u := gptest.NewUnitTester(t)
-	defer u.Remove()
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
@@ -35,12 +34,12 @@ func TestOTP(t *testing.T) { //nolint:paralleltest
 		out.Stdout = os.Stdout
 	}()
 
-	t.Run("display non-otp secret", func(t *testing.T) { //nolint:paralleltest
+	t.Run("display non-otp secret", func(t *testing.T) {
 		defer buf.Reset()
 		assert.Error(t, act.OTP(gptest.CliCtx(ctx, t, "foo")))
 	})
 
-	t.Run("create and display valid OTP", func(t *testing.T) { //nolint:paralleltest
+	t.Run("create and display valid OTP", func(t *testing.T) {
 		defer buf.Reset()
 		sec := secrets.NewAKV()
 		sec.SetPassword("foo")
@@ -51,12 +50,12 @@ func TestOTP(t *testing.T) { //nolint:paralleltest
 		assert.NoError(t, act.OTP(gptest.CliCtx(ctx, t, "bar")))
 	})
 
-	t.Run("copy to clipboard", func(t *testing.T) { //nolint:paralleltest
+	t.Run("copy to clipboard", func(t *testing.T) {
 		defer buf.Reset()
 		assert.NoError(t, act.otp(ctx, "bar", "", true, false, false))
 	})
 
-	t.Run("write QR file", func(t *testing.T) { //nolint:paralleltest
+	t.Run("write QR file", func(t *testing.T) {
 		defer buf.Reset()
 		fn := filepath.Join(u.Dir, "qr.png")
 		assert.NoError(t, act.OTP(gptest.CliCtxWithFlags(ctx, t, map[string]string{"qr": fn}, "bar")))

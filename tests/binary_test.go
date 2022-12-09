@@ -9,18 +9,18 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestBinaryCopy(t *testing.T) { //nolint:paralleltest
+func TestBinaryCopy(t *testing.T) {
 	ts := newTester(t)
 	defer ts.teardown()
 
-	t.Run("empty store", func(t *testing.T) { //nolint:paralleltest
+	t.Run("empty store", func(t *testing.T) {
 		_, err := ts.run("fscopy")
 		assert.Error(t, err)
 	})
 
 	ts.initStore()
 
-	t.Run("no args", func(t *testing.T) { //nolint:paralleltest
+	t.Run("no args", func(t *testing.T) {
 		out, err := ts.run("fscopy")
 		assert.Error(t, err)
 		assert.Equal(t, "\nError: usage: gopass fscopy from to\n", out)
@@ -30,13 +30,13 @@ func TestBinaryCopy(t *testing.T) { //nolint:paralleltest
 	dat := []byte("foobar")
 	require.NoError(t, os.WriteFile(fn, dat, 0o644))
 
-	t.Run("copy file to store", func(t *testing.T) { //nolint:paralleltest
+	t.Run("copy file to store", func(t *testing.T) {
 		_, err := ts.run("fscopy " + fn + " foo/bar")
 		require.NoError(t, err)
 		assert.NoError(t, os.Remove(fn))
 	})
 
-	t.Run("copy store to file", func(t *testing.T) { //nolint:paralleltest
+	t.Run("copy store to file", func(t *testing.T) {
 		_, err := ts.run("fscopy foo/bar " + fn)
 		assert.NoError(t, err)
 
@@ -46,24 +46,24 @@ func TestBinaryCopy(t *testing.T) { //nolint:paralleltest
 		assert.Equal(t, buf, dat)
 	})
 
-	t.Run("cat from store", func(t *testing.T) { //nolint:paralleltest
+	t.Run("cat from store", func(t *testing.T) {
 		_, err := ts.run("cat foo/bar")
 		assert.NoError(t, err)
 	})
 }
 
-func TestBinaryMove(t *testing.T) { //nolint:paralleltest
+func TestBinaryMove(t *testing.T) {
 	ts := newTester(t)
 	defer ts.teardown()
 
-	t.Run("empty store", func(t *testing.T) { //nolint:paralleltest
+	t.Run("empty store", func(t *testing.T) {
 		_, err := ts.run("fsmove")
 		assert.Error(t, err)
 	})
 
 	ts.initStore()
 
-	t.Run("no args", func(t *testing.T) { //nolint:paralleltest
+	t.Run("no args", func(t *testing.T) {
 		out, err := ts.run("fsmove")
 		assert.Error(t, err)
 		assert.Equal(t, "\nError: usage: gopass fsmove from to\n", out)
@@ -73,13 +73,13 @@ func TestBinaryMove(t *testing.T) { //nolint:paralleltest
 	dat := []byte("foobar")
 	require.NoError(t, os.WriteFile(fn, dat, 0o644))
 
-	t.Run("move fs to store", func(t *testing.T) { //nolint:paralleltest
+	t.Run("move fs to store", func(t *testing.T) {
 		_, err := ts.run("fsmove " + fn + " foo/bar")
 		assert.NoError(t, err)
 		assert.Error(t, os.Remove(fn))
 	})
 
-	t.Run("move store to fs", func(t *testing.T) { //nolint:paralleltest
+	t.Run("move store to fs", func(t *testing.T) {
 		_, err := ts.run("fsmove foo/bar " + fn)
 		assert.NoError(t, err)
 
@@ -89,30 +89,30 @@ func TestBinaryMove(t *testing.T) { //nolint:paralleltest
 		assert.Equal(t, buf, dat)
 	})
 
-	t.Run("cat secret", func(t *testing.T) { //nolint:paralleltest
+	t.Run("cat secret", func(t *testing.T) {
 		_, err := ts.run("cat foo/bar")
 		assert.Error(t, err)
 	})
 }
 
-func TestBinaryShasum(t *testing.T) { //nolint:paralleltest
+func TestBinaryShasum(t *testing.T) {
 	ts := newTester(t)
 	defer ts.teardown()
 
-	t.Run("shasum on empty store", func(t *testing.T) { //nolint:paralleltest
+	t.Run("shasum on empty store", func(t *testing.T) {
 		_, err := ts.run("sha256")
 		assert.Error(t, err)
 	})
 
 	ts.initStore()
 
-	t.Run("shasum w/o args", func(t *testing.T) { //nolint:paralleltest
+	t.Run("shasum w/o args", func(t *testing.T) {
 		out, err := ts.run("sha256")
 		assert.Error(t, err)
 		assert.Equal(t, "\nError: Usage: gopass sha256 name\n", out)
 	})
 
-	t.Run("populate store", func(t *testing.T) { //nolint:paralleltest
+	t.Run("populate store", func(t *testing.T) {
 		fn := filepath.Join(ts.tempDir, "shasum")
 		dat := []byte("foobar")
 		require.NoError(t, os.WriteFile(fn, dat, 0o644))
@@ -121,7 +121,7 @@ func TestBinaryShasum(t *testing.T) { //nolint:paralleltest
 		assert.NoError(t, err)
 	})
 
-	t.Run("shasum on binary secret", func(t *testing.T) { //nolint:paralleltest
+	t.Run("shasum on binary secret", func(t *testing.T) {
 		out, err := ts.run("sha256 foo/bar")
 		assert.NoError(t, err)
 		assert.Equal(t, "c3ab8ff13720e8ad9047dd39466b3c8974e592c2fa383d4a3960714caef0c4f2", out)

@@ -16,9 +16,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestProcess(t *testing.T) { //nolint:paralleltest
+func TestProcess(t *testing.T) {
 	u := gptest.NewUnitTester(t)
-	defer u.Remove()
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)

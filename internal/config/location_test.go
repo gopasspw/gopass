@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestPwStoreDirNoEnv(t *testing.T) { //nolint:paralleltest
+func TestPwStoreDirNoEnv(t *testing.T) {
 	if runtime.GOOS != "windows" {
 		t.Setenv("GOPASS_HOMEDIR", "/tmp")
 	}

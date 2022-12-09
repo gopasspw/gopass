@@ -32,14 +32,14 @@ func TestPwgen(t *testing.T) {
 	}
 }
 
-func TestPwgenCharset(t *testing.T) { //nolint:paralleltest
+func TestPwgenCharset(t *testing.T) {
 	t.Setenv("GOPASS_CHARACTER_SET", "a")
 
 	assert.Equal(t, "aaaa", GeneratePassword(4, true))
 	assert.Equal(t, "", GeneratePasswordCharsetCheck(4, "a"))
 }
 
-func TestPwgenNoCrand(t *testing.T) { //nolint:paralleltest
+func TestPwgenNoCrand(t *testing.T) {
 	old := rand.Reader
 	rand.Reader = strings.NewReader("")
 

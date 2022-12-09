@@ -3,7 +3,6 @@ package gptest
 import (
 	"context"
 	"flag"
-	"fmt"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -24,19 +23,11 @@ func AllPathsToSlash(paths []string) []string {
 	return r
 }
 
-func setupEnv(em map[string]string) error {
+func setupEnv(t *testing.T, em map[string]string) {
+	t.Helper()
+
 	for k, v := range em {
-		if err := os.Setenv(k, v); err != nil {
-			return fmt.Errorf("failed to set env %s to %s: %w", k, v, err)
-		}
-	}
-
-	return nil
-}
-
-func teardownEnv(em map[string]string) {
-	for k := range em {
-		_ = os.Unsetenv(k)
+		t.Setenv(k, v)
 	}
 }
 

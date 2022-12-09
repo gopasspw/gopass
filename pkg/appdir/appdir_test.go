@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestUserHome(t *testing.T) { //nolint:paralleltest
+func TestUserHome(t *testing.T) {
 	td := t.TempDir()
 	t.Setenv("GOPASS_HOMEDIR", td)
 

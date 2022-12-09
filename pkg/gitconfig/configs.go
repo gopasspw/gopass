@@ -170,9 +170,7 @@ func (c *Configs) loadGlobalConfigs() string {
 }
 
 // HasGlobalConfig indicates if a per-user config can be found.
-func HasGlobalConfig() bool {
-	c := &Configs{}
-
+func (c *Configs) HasGlobalConfig() bool {
 	return c.loadGlobalConfigs() != ""
 }
 

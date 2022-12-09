@@ -21,15 +21,12 @@ import (
 )
 
 func TestRuleLookup(t *testing.T) {
-	t.Parallel()
-
 	domain, _ := hasPwRuleForSecret(context.Background(), "foo/gopass.pw")
 	assert.Equal(t, "", domain)
 }
 
-func TestGenerate(t *testing.T) { //nolint:paralleltest
+func TestGenerate(t *testing.T) {
 	u := gptest.NewUnitTester(t)
-	defer u.Remove()
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
@@ -52,13 +49,13 @@ func TestGenerate(t *testing.T) { //nolint:paralleltest
 	color.NoColor = true
 
 	// generate
-	t.Run("generate", func(t *testing.T) { //nolint:paralleltest
+	t.Run("generate", func(t *testing.T) {
 		assert.Error(t, act.Generate(gptest.CliCtx(ctx, t)))
 		buf.Reset()
 	})
 
 	// generate foobar
-	t.Run("generate foobar", func(t *testing.T) { //nolint:paralleltest
+	t.Run("generate foobar", func(t *testing.T) {
 		if testing.Short() {
 			t.Skip("skipping test in short mode.")
 		}
@@ -69,7 +66,7 @@ func TestGenerate(t *testing.T) { //nolint:paralleltest
 
 	// generate foobar
 	// should succeed because of always yes
-	t.Run("generate foobar again", func(t *testing.T) { //nolint:paralleltest
+	t.Run("generate foobar again", func(t *testing.T) {
 		if testing.Short() {
 			t.Skip("skipping test in short mode.")
 		}
@@ -79,7 +76,7 @@ func TestGenerate(t *testing.T) { //nolint:paralleltest
 	})
 
 	// generate --edit foobar
-	t.Run("generate --edit foobar", func(t *testing.T) { //nolint:paralleltest
+	t.Run("generate --edit foobar", func(t *testing.T) {
 		if testing.Short() || runtime.GOOS == "windows" {
 			t.Skip("skipping test in short mode.")
 		}
@@ -89,7 +86,7 @@ func TestGenerate(t *testing.T) { //nolint:paralleltest
 	})
 
 	// generate --force foobar
-	t.Run("generate --force foobar", func(t *testing.T) { //nolint:paralleltest
+	t.Run("generate --force foobar", func(t *testing.T) {
 		if testing.Short() {
 			t.Skip("skipping test in short mode.")
 		}
@@ -99,7 +96,7 @@ func TestGenerate(t *testing.T) { //nolint:paralleltest
 	})
 
 	// generate --force foobar 32
-	t.Run("generate --force foobar 32", func(t *testing.T) { //nolint:paralleltest
+	t.Run("generate --force foobar 32", func(t *testing.T) {
 		if testing.Short() {
 			t.Skip("skipping test in short mode.")
 		}
@@ -109,7 +106,7 @@ func TestGenerate(t *testing.T) { //nolint:paralleltest
 	})
 
 	// generate --force --symbols foobar 32
-	t.Run("generate --force --symbols foobar 32", func(t *testing.T) { //nolint:paralleltest
+	t.Run("generate --force --symbols foobar 32", func(t *testing.T) {
 		if testing.Short() {
 			t.Skip("skipping test in short mode.")
 		}
@@ -120,7 +117,7 @@ func TestGenerate(t *testing.T) { //nolint:paralleltest
 	})
 
 	// generate --force --symbols=false foobar 32
-	t.Run("generate --force --symbols=False foobar 32", func(t *testing.T) { //nolint:paralleltest
+	t.Run("generate --force --symbols=False foobar 32", func(t *testing.T) {
 		if testing.Short() {
 			t.Skip("skipping test in short mode.")
 		}
@@ -131,31 +128,31 @@ func TestGenerate(t *testing.T) { //nolint:paralleltest
 	})
 
 	// generate --force --xkcd foobar 32
-	t.Run("generate --force --xkcd foobar 32", func(t *testing.T) { //nolint:paralleltest
+	t.Run("generate --force --xkcd foobar 32", func(t *testing.T) {
 		assert.NoError(t, act.Generate(gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true", "xkcd": "true", "lang": "en"}, "foobar", "32")))
 		buf.Reset()
 	})
 
 	// generate --force --xkcd foobar baz 32
-	t.Run("generate --force --xkcd foobar baz 32", func(t *testing.T) { //nolint:paralleltest
+	t.Run("generate --force --xkcd foobar baz 32", func(t *testing.T) {
 		assert.NoError(t, act.Generate(gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true", "xkcd": "true", "lang": "en"}, "foobar", "baz", "32")))
 		buf.Reset()
 	})
 
 	// generate --force --xkcd foobar baz
-	t.Run("generate --force --xkcd foobar baz", func(t *testing.T) { //nolint:paralleltest
+	t.Run("generate --force --xkcd foobar baz", func(t *testing.T) {
 		assert.NoError(t, act.Generate(gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true", "xkcd": "true", "lang": "en"}, "foobar", "baz")))
 		buf.Reset()
 	})
 
 	// generate --force --xkcd --print foobar baz
-	t.Run("generate --force --xkcd --print foobar baz", func(t *testing.T) { //nolint:paralleltest
+	t.Run("generate --force --xkcd --print foobar baz", func(t *testing.T) {
 		assert.NoError(t, act.Generate(gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true", "xkcd": "true", "print": "true", "lang": "en"}, "foobar", "baz")))
 		buf.Reset()
 	})
 
 	// generate --force foobar 24 w/ autoclip and output redirection
-	t.Run("generate --force foobar 24", func(t *testing.T) { //nolint:paralleltest
+	t.Run("generate --force foobar 24", func(t *testing.T) {
 		ov := act.cfg.Get("core.autoclip")
 		defer func() {
 			require.NoError(t, act.cfg.Set("", "core.autoclip", ov))
@@ -168,7 +165,7 @@ func TestGenerate(t *testing.T) { //nolint:paralleltest
 	})
 
 	// generate --force foobar 24 w/ autoclip and no output redirection
-	t.Run("generate --force foobar 24", func(t *testing.T) { //nolint:paralleltest
+	t.Run("generate --force foobar 24", func(t *testing.T) {
 		ov := act.cfg.Get("core.autoclip")
 		defer func() {
 			require.NoError(t, act.cfg.Set("", "core.autoclip", ov))
@@ -181,7 +178,7 @@ func TestGenerate(t *testing.T) { //nolint:paralleltest
 	})
 
 	// generate --force foobar w/ pw length set via env variable (42 chars)
-	t.Run("generate --force foobar", func(t *testing.T) { //nolint:paralleltest
+	t.Run("generate --force foobar", func(t *testing.T) {
 		t.Setenv("GOPASS_PW_DEFAULT_LENGTH", "42")
 
 		assert.NoError(t, act.Generate(gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true", "print": "true", "symbols": "false"}, "foobar")))
@@ -191,7 +188,7 @@ func TestGenerate(t *testing.T) { //nolint:paralleltest
 	})
 
 	// generate --force foobar w/ pw length set via env variable to invalid value, fallback mechanism
-	t.Run("generate --force foobar", func(t *testing.T) { //nolint:paralleltest
+	t.Run("generate --force foobar", func(t *testing.T) {
 		t.Setenv("GOPASS_PW_DEFAULT_LENGTH", "0")
 
 		if testing.Short() {
@@ -220,9 +217,7 @@ func passIsAlphaNum(t *testing.T, buf string, want bool) {
 }
 
 func TestKeyAndLength(t *testing.T) {
-	t.Parallel()
-
-	for _, tc := range []struct { //nolint:paralleltest
+	for _, tc := range []struct {
 		in     []string
 		key    string
 		length string
@@ -251,8 +246,6 @@ func TestKeyAndLength(t *testing.T) {
 		tc := tc
 
 		t.Run(fmt.Sprintf("%v", tc.in), func(t *testing.T) {
-			t.Parallel()
-
 			app := cli.NewApp()
 			fs := flag.NewFlagSet("default", flag.ContinueOnError)
 			assert.NoError(t, fs.Parse(append([]string{"foobar"}, tc.in...)))
@@ -266,9 +259,7 @@ func TestKeyAndLength(t *testing.T) {
 }
 
 func TestExtractEmails(t *testing.T) {
-	t.Parallel()
-
-	for _, tc := range []struct { //nolint:paralleltest
+	for _, tc := range []struct {
 		in  []string
 		out []string
 	}{
@@ -282,17 +273,13 @@ func TestExtractEmails(t *testing.T) {
 	} {
 		tc := tc
 		t.Run(fmt.Sprintf("%v", tc.in), func(t *testing.T) {
-			t.Parallel()
-
 			assert.Equal(t, tc.out, extractEmails(tc.in))
 		})
 	}
 }
 
 func TestExtractDomains(t *testing.T) {
-	t.Parallel()
-
-	for _, tc := range []struct { //nolint:paralleltest
+	for _, tc := range []struct {
 		in  []string
 		out []string
 	}{
@@ -306,17 +293,13 @@ func TestExtractDomains(t *testing.T) {
 	} {
 		tc := tc
 		t.Run(fmt.Sprintf("%v", tc.in), func(t *testing.T) {
-			t.Parallel()
-
 			assert.Equal(t, tc.out, extractDomains(tc.in))
 		})
 	}
 }
 
 func TestUniq(t *testing.T) {
-	t.Parallel()
-
-	for _, tc := range []struct { //nolint:paralleltest
+	for _, tc := range []struct {
 		in  []string
 		out []string
 	}{
@@ -330,17 +313,13 @@ func TestUniq(t *testing.T) {
 	} {
 		tc := tc
 		t.Run(fmt.Sprintf("%v", tc.in), func(t *testing.T) {
-			t.Parallel()
-
 			assert.Equal(t, tc.out, uniq(tc.in))
 		})
 	}
 }
 
 func TestFilterPrefix(t *testing.T) {
-	t.Parallel()
-
-	for _, tc := range []struct { //nolint:paralleltest
+	for _, tc := range []struct {
 		in     []string
 		prefix string
 		out    []string
@@ -361,8 +340,6 @@ func TestFilterPrefix(t *testing.T) {
 	} {
 		tc := tc
 		t.Run(fmt.Sprintf("%v", tc.in), func(t *testing.T) {
-			t.Parallel()
-
 			assert.Equal(t, tc.out, filterPrefix(tc.in, tc.prefix))
 		})
 	}
@@ -370,19 +347,19 @@ func TestFilterPrefix(t *testing.T) {
 
 // NOTE: Do not use t.Parallel because environment variables are being used
 // which can leak into other tests that run in parallel.
-func TestDefaultLengthFromEnv(t *testing.T) { //nolint:paralleltest
+func TestDefaultLengthFromEnv(t *testing.T) {
 	const pwLengthEnvName = "GOPASS_PW_DEFAULT_LENGTH"
 
 	ctx := context.Background()
 
-	t.Run("use default value if no environment variable is set", func(t *testing.T) { //nolint:paralleltest
+	t.Run("use default value if no environment variable is set", func(t *testing.T) {
 		actual, isCustom := defaultLengthFromEnv(ctx)
 		expected := defaultLength
 		assert.Equal(t, actual, expected)
 		assert.False(t, isCustom)
 	})
 
-	t.Run("interpretetion of various inputs for environment variable", func(t *testing.T) { //nolint:paralleltest
+	t.Run("interpretetion of various inputs for environment variable", func(t *testing.T) {
 		for _, tc := range []struct {
 			in       string
 			expected int

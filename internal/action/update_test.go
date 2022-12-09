@@ -49,12 +49,9 @@ const testUpdateJSON = `{
   }`
 
 func TestUpdate(t *testing.T) {
-	t.Parallel()
-
 	updater.UpdateMoveAfterQuit = false
 
 	u := gptest.NewUnitTester(t)
-	defer u.Remove()
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)

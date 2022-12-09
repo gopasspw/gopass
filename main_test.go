@@ -100,9 +100,8 @@ var commandsWithError = set.Map([]string{
 	".unclip",
 })
 
-func TestGetCommands(t *testing.T) { //nolint:paralleltest
+func TestGetCommands(t *testing.T) {
 	u := gptest.NewUnitTester(t)
-	defer u.Remove()
 
 	buf := &bytes.Buffer{}
 	color.NoColor = true

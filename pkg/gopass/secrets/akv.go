@@ -36,13 +36,11 @@ func NewAKV() *AKV {
 // NewKVWithData returns a new KV secret populated with data.
 func NewAKVWithData(pw string, kvps map[string][]string, body string, converted bool) *AKV {
 	kv := NewAKV()
-	kv.password = pw
+	kv.SetPassword(pw)
 	kv.fromMime = converted
 
-	kv.raw.WriteString(pw)
-	kv.raw.WriteString("\n")
-
-	for k, vs := range kvps {
+	for _, k := range set.Sorted(maps.Keys(kvps)) {
+		vs := kvps[k]
 		for _, v := range vs {
 			_ = kv.Add(k, v)
 		}
@@ -303,6 +301,7 @@ func (a *AKV) Body() string {
 			continue
 		}
 		out.WriteString(line)
+		out.WriteString("\n")
 	}
 
 	return out.String()

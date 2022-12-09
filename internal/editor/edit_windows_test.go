@@ -15,7 +15,7 @@ import (
 
 func TestEditor(t *testing.T) {
 	u := gptest.NewUnitTester(t)
-	defer u.Remove()
+	assert.NotNil(t, u)
 
 	ctx := context.Background()
 	touch, err := exec.LookPath("rundll32")

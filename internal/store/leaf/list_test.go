@@ -26,7 +26,7 @@ func TestList(t *testing.T) {
 		out.Stdout = os.Stdout
 	}()
 
-	for _, tc := range []struct { //nolint:paralleltest
+	for _, tc := range []struct {
 		name string
 		prep func(s *Store) error
 		out  []string

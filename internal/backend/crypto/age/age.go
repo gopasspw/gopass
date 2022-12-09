@@ -35,17 +35,22 @@ func New(ctx context.Context) (*Age, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	rc, err := cache.NewOnDisk("age-identity-recipients", 30*time.Hour)
 	if err != nil {
 		return nil, err
 	}
 
-	return &Age{
+	a := &Age{
 		ghCache:   ghc,
 		recpCache: rc,
 		identity:  filepath.Join(appdir.UserConfig(), "age", "identities"),
 		askPass:   newAskPass(ctx),
-	}, nil
+	}
+
+	debug.Log("age initialized (ghc: %s, recipients: %s, identity: %s)", a.ghCache.String(), a.recpCache.String(), a.identity)
+
+	return a, nil
 }
 
 // Initialized returns nil.

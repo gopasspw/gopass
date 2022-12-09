@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestSingleMount(t *testing.T) { //nolint:paralleltest
+func TestSingleMount(t *testing.T) {
 	ts := newTester(t)
 	defer ts.teardown()
 
@@ -57,7 +57,7 @@ gopass
 	assert.Equal(t, strings.TrimSpace(list), out)
 }
 
-func TestMountShadowing(t *testing.T) { //nolint:paralleltest
+func TestMountShadowing(t *testing.T) {
 	ts := newTester(t)
 	defer ts.teardown()
 
@@ -152,7 +152,7 @@ gopass
 	assert.Equal(t, "moar", out)
 }
 
-func TestMultiMount(t *testing.T) { //nolint:paralleltest
+func TestMultiMount(t *testing.T) {
 	ts := newTester(t)
 	defer ts.teardown()
 
