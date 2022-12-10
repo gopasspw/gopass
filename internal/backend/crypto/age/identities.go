@@ -207,11 +207,11 @@ func (a *Age) saveIdentities(ctx context.Context, ids []string, newFile bool) er
 	if err := os.MkdirAll(filepath.Dir(a.identity), 0o700); err != nil {
 		debug.Log("failed to create directory for the keyring at %s: %s", a.identity, err)
 
-		return err
+		return fmt.Errorf("failed to create directory for %s: %w", a.identity, err)
 	}
 
 	if err := a.encryptFile(ctx, a.identity, []byte(strings.Join(ids, "\n")), newFile); err != nil {
-		return err
+		return fmt.Errorf("failed to write encrypted identity to %s: %w", a.identity, err)
 	}
 
 	debug.Log("saved %d identities to %s", len(ids), a.identity)

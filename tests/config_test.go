@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestBaseConfig(t *testing.T) { //nolint:paralleltest
+func TestBaseConfig(t *testing.T) {
 	ts := newTester(t)
 	defer ts.teardown()
 
@@ -29,7 +29,7 @@ core.notifications = true
 		"core.showsafecontent",
 	}
 
-	for _, invert := range invertables { //nolint:paralleltest
+	for _, invert := range invertables {
 		t.Run("invert "+invert, func(t *testing.T) {
 			out, err = ts.run("config " + invert + " false")
 			assert.NoError(t, err)
@@ -52,7 +52,7 @@ core.notifications = true
 	})
 }
 
-func TestMountConfig(t *testing.T) { //nolint:paralleltest
+func TestMountConfig(t *testing.T) {
 	ts := newTester(t)
 	defer ts.teardown()
 

@@ -47,6 +47,11 @@ func (o *OnDisk) ensureDir() error {
 	return nil
 }
 
+// String return the identity of this cache instance.
+func (o *OnDisk) String() string {
+	return fmt.Sprintf("OnDiskCache(name: %s, ttl: %d, dir: %s)", o.name, o.ttl, o.dir)
+}
+
 // Get fetches an entry from the cache.
 func (o *OnDisk) Get(key string) ([]string, error) {
 	key = fsutil.CleanFilename(key)

@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestUmask(t *testing.T) { //nolint:paralleltest
+func TestUmask(t *testing.T) {
 	for _, vn := range []string{"GOPASS_UMASK", "PASSWORD_STORE_UMASK"} {
 		for in, out := range map[string]int{
 			"002":      0o2,

@@ -17,9 +17,10 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-func TestEditor(t *testing.T) { //nolint:paralleltest
-	u := gptest.NewUnitTester(t)
-	defer u.Remove()
+func TestEditor(t *testing.T) {
+	// necessary for setting up the env
+	u := gptest.NewGUnitTester(t)
+	assert.NotNil(t, u)
 
 	ctx := context.Background()
 	touch, err := exec.LookPath("touch")
@@ -33,7 +34,7 @@ func TestEditor(t *testing.T) { //nolint:paralleltest
 	}
 }
 
-func TestGetEditor(t *testing.T) { //nolint:paralleltest
+func TestGetEditor(t *testing.T) {
 	app := cli.NewApp()
 
 	// --editor=fooed

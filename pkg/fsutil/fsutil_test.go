@@ -26,7 +26,7 @@ func TestCleanFilename(t *testing.T) {
 	}
 }
 
-func TestCleanPath(t *testing.T) { //nolint:paralleltest
+func TestCleanPath(t *testing.T) {
 	tempdir := t.TempDir()
 
 	m := map[string]string{

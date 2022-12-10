@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNotExistingClipboardClearCommand(t *testing.T) { //nolint:paralleltest
+func TestNotExistingClipboardClearCommand(t *testing.T) {
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 

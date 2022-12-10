@@ -53,6 +53,7 @@ linters:
   - noctx
   - nolintlint
   - nosnakecase
+  - paralleltest
   - revive
   - rowserrcheck
   - scopelint

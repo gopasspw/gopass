@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestGit(t *testing.T) { //nolint:paralleltest
+func TestGit(t *testing.T) {
 	td := t.TempDir()
 
 	gitdir := filepath.Join(td, "git")
@@ -30,7 +30,7 @@ func TestGit(t *testing.T) { //nolint:paralleltest
 		out.Stdout = os.Stdout
 	}()
 
-	t.Run("init new repo", func(t *testing.T) { //nolint:paralleltest
+	t.Run("init new repo", func(t *testing.T) {
 		git, err := Init(ctx, gitdir, "Dead Beef", "dead.beef@example.org")
 		require.NoError(t, err)
 		require.NotNil(t, git)
@@ -50,7 +50,7 @@ func TestGit(t *testing.T) { //nolint:paralleltest
 		assert.Error(t, git.Pull(ctx, "origin", "master"))
 	})
 
-	t.Run("open existing repo", func(t *testing.T) { //nolint:paralleltest
+	t.Run("open existing repo", func(t *testing.T) {
 		git, err := New(gitdir)
 		require.NoError(t, err)
 		require.NotNil(t, git)
@@ -60,7 +60,7 @@ func TestGit(t *testing.T) { //nolint:paralleltest
 		assert.Error(t, git.RemoveRemote(ctx, "foo"))
 	})
 
-	t.Run("clone existing repo", func(t *testing.T) { //nolint:paralleltest
+	t.Run("clone existing repo", func(t *testing.T) {
 		git, err := Clone(ctx, gitdir, gitdir2, "", "")
 		require.NoError(t, err)
 		require.NotNil(t, git)

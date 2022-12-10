@@ -157,6 +157,10 @@ func TestUnsetSection(t *testing.T) {
 	bar = baz
 `, c.raw.String())
 
+	// should not exist
+	assert.NoError(t, c.Unset("foo.bla"))
+
+	// TODO: support remvoing sections
 	t.Skip("removing sections is not supported, yet")
 
 	assert.NoError(t, c.Unset("foo.bar"))
@@ -185,6 +189,8 @@ func TestNewFromMap(t *testing.T) {
 
 	assert.True(t, cfg.IsSet("core.foo"))
 	assert.False(t, cfg.IsSet("core.bar"))
+	assert.NoError(t, cfg.Unset("core.foo"))
+	assert.True(t, cfg.IsSet("core.foo"))
 }
 
 func TestLoadConfig(t *testing.T) {
@@ -205,7 +211,7 @@ func TestLoadConfig(t *testing.T) {
 	assert.Equal(t, "false", cfg.vars["core.bar"])
 }
 
-func TestLoadFromEnv(t *testing.T) { //nolint:paralleltest
+func TestLoadFromEnv(t *testing.T) {
 	tc := map[string]string{
 		"core.foo":     "bar",
 		"core.pager":   "false",

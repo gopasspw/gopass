@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestAskForString(t *testing.T) { //nolint:paralleltest
+func TestAskForString(t *testing.T) {
 	buf := &bytes.Buffer{}
 	out.Stderr = buf
 	Stderr = buf
@@ -59,7 +59,7 @@ bar
 	buf.Reset()
 }
 
-func TestAskForBool(t *testing.T) { //nolint:paralleltest
+func TestAskForBool(t *testing.T) {
 	buf := &bytes.Buffer{}
 	out.Stderr = buf
 	Stderr = buf
@@ -116,7 +116,7 @@ z
 	assert.False(t, bv)
 }
 
-func TestAskForInt(t *testing.T) { //nolint:paralleltest
+func TestAskForInt(t *testing.T) {
 	buf := &bytes.Buffer{}
 	out.Stderr = buf
 	Stderr = buf
@@ -149,7 +149,7 @@ func TestAskForInt(t *testing.T) { //nolint:paralleltest
 	assert.Equal(t, 23, iv)
 }
 
-func TestAskForConfirmation(t *testing.T) { //nolint:paralleltest
+func TestAskForConfirmation(t *testing.T) {
 	buf := &bytes.Buffer{}
 	out.Stderr = buf
 	Stderr = buf
@@ -179,7 +179,7 @@ n
 	assert.False(t, AskForConfirmation(ctx, "test"))
 }
 
-func TestAskForKeyImport(t *testing.T) { //nolint:paralleltest
+func TestAskForKeyImport(t *testing.T) {
 	buf := &bytes.Buffer{}
 	out.Stderr = buf
 	Stderr = buf
@@ -208,7 +208,7 @@ z
 	assert.False(t, AskForKeyImport(ctx, "", nil))
 }
 
-func TestAskForPasswordNonInteractive(t *testing.T) { //nolint:paralleltest
+func TestAskForPasswordNonInteractive(t *testing.T) {
 	buf := &bytes.Buffer{}
 	out.Stderr = buf
 	Stderr = buf
@@ -249,7 +249,7 @@ foobat
 	assert.Equal(t, "", sv)
 }
 
-func TestAskForPasswordInteractive(t *testing.T) { //nolint:paralleltest
+func TestAskForPasswordInteractive(t *testing.T) {
 	buf := &bytes.Buffer{}
 	out.Stderr = buf
 	Stderr = buf

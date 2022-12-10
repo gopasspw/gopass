@@ -71,7 +71,7 @@ func (c *Config) Set(key, value string) error {
 
 	// already present at the same value, no need to rewrite the config
 	if v, found := c.vars[key]; found && v == value {
-		debug.Log("key %q with value %q already present. No re-writing.", key, value)
+		debug.Log("key %q with value %q already present. Not re-writing.", key, value)
 
 		return nil
 	}

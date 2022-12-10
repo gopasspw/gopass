@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestAskForPrivateKey(t *testing.T) { //nolint:paralleltest
+func TestAskForPrivateKey(t *testing.T) {
 	buf := &bytes.Buffer{}
 	Stdout = buf
 	defer func() {
@@ -29,9 +29,10 @@ func TestAskForPrivateKey(t *testing.T) { //nolint:paralleltest
 	buf.Reset()
 }
 
-func TestAskForGitConfigUser(t *testing.T) { //nolint:paralleltest
-	u := gptest.NewUnitTester(t)
-	defer u.Remove()
+func TestAskForGitConfigUser(t *testing.T) {
+	// necessary for setting up the env
+	u := gptest.NewGUnitTester(t)
+	assert.NotNil(t, u)
 
 	ctx := context.Background()
 	ctx = ctxutil.WithTerminal(ctx, true)
@@ -47,7 +48,7 @@ func (f fakeMountPointer) MountPoints() []string {
 	return f
 }
 
-func TestAskForStore(t *testing.T) { //nolint:paralleltest
+func TestAskForStore(t *testing.T) {
 	ctx := context.Background()
 
 	// test non-interactive

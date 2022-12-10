@@ -15,7 +15,7 @@ import (
 )
 
 //nolint:wrapcheck
-func TestIsUpdateable(t *testing.T) { //nolint:paralleltest
+func TestIsUpdateable(t *testing.T) {
 	ctx := context.Background()
 	oldExec := executable
 

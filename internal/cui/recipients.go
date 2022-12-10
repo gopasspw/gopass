@@ -29,10 +29,6 @@ const (
 
 // AskForPrivateKey prompts the user to select from a list of private keys.
 func AskForPrivateKey(ctx context.Context, crypto backend.Crypto, prompt string) (string, error) {
-	if !ctxutil.IsInteractive(ctx) {
-		return "", fmt.Errorf("can not select private key without terminal")
-	}
-
 	if crypto == nil {
 		return "", fmt.Errorf("can not select private key without valid crypto backend")
 	}
@@ -43,7 +39,7 @@ func AskForPrivateKey(ctx context.Context, crypto backend.Crypto, prompt string)
 	}
 
 	if len(kl) < 1 {
-		return "", fmt.Errorf("no useable private keys found. make sure you have valid private keys with sufficient trust")
+		return "", fmt.Errorf("no useable private keys found for %s. make sure you have valid private keys with sufficient trust", crypto.Name())
 	}
 
 	// shortcut: If there is only one key, use it
@@ -53,7 +49,7 @@ func AskForPrivateKey(ctx context.Context, crypto backend.Crypto, prompt string)
 
 	fmtStr := "[%" + strconv.Itoa((len(kl)/10)+1) + "d] %s - %s\n"
 	for i := 0; i < maxTries; i++ {
-		if !ctxutil.IsTerminal(ctx) {
+		if !ctxutil.IsTerminal(ctx) || !ctxutil.IsInteractive(ctx) {
 			return kl[0], nil
 		}
 		// check for context cancelation

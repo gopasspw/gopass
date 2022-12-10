@@ -13,13 +13,12 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestMove(t *testing.T) {
+func TestAliases(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
-	ctx = ctxutil.WithInteractive(ctx, false)
-
+	ctx = ctxutil.WithHidden(ctx, true)
 	act, err := newMock(ctx, u.StoreDir(""))
 	require.NoError(t, err)
 	require.NotNil(t, act)
@@ -27,14 +26,11 @@ func TestMove(t *testing.T) {
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
-	out.Stderr = buf
+	stdout = buf
 	defer func() {
 		out.Stdout = os.Stdout
-		out.Stderr = os.Stderr
+		stdout = os.Stdout
 	}()
 
-	t.Run("move foo to bar", func(t *testing.T) {
-		defer buf.Reset()
-		assert.NoError(t, act.Move(gptest.CliCtx(ctx, t, "foo", "bar")))
-	})
+	assert.NoError(t, act.AliasesPrint(gptest.CliCtx(ctx, t)))
 }

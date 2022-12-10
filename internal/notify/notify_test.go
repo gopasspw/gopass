@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestNotify(t *testing.T) { //nolint:paralleltest
+func TestNotify(t *testing.T) {
 	ctx := context.Background()
 
 	t.Setenv("GOPASS_NO_NOTIFY", "true")

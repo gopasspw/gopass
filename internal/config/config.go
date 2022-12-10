@@ -55,7 +55,7 @@ func newWithOptions(noWrites bool) *Config {
 	// if there is no per-user gitconfig we try to migrate
 	// an existing config. But we will leave it around for
 	// gopass fsck to (optionaly) clean it up.
-	if nm := os.Getenv("GOPASS_CONFIG_NO_MIGRATE"); !gitconfig.HasGlobalConfig() && nm == "" {
+	if nm := os.Getenv("GOPASS_CONFIG_NO_MIGRATE"); !HasGlobalConfig() && nm == "" {
 		if err := migrateConfigs(); err != nil {
 			debug.Log("failed to migrate: %s", err)
 		}
@@ -90,6 +90,11 @@ func newWithOptions(noWrites bool) *Config {
 	}
 
 	return c
+}
+
+// HasGlobalConfig returns true if there is an existing global config.
+func HasGlobalConfig() bool {
+	return newGitconfig().HasGlobalConfig()
 }
 
 // IsSet returns true if the key is set in the root config.

@@ -29,4 +29,6 @@ func TestLoadCustomRules(t *testing.T) {
 
 	a = LookupAliases(ctx, "copy.de")
 	assert.Equal(t, []string{"real.de"}, a)
+
+	assert.Greater(t, len(AllAliases(ctx)), 256)
 }

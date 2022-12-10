@@ -22,7 +22,7 @@ func ExampleProgressBar() { //nolint:testableexamples
 	pb.Done()
 }
 
-func TestProgress(t *testing.T) { //nolint:paralleltest
+func TestProgress(t *testing.T) {
 	max := 2
 	pb := NewProgressBar(int64(max))
 	pb.Hidden = true
@@ -30,7 +30,16 @@ func TestProgress(t *testing.T) { //nolint:paralleltest
 	assert.Equal(t, int64(1), pb.current)
 }
 
-func TestProgressBytes(t *testing.T) { //nolint:paralleltest
+func TestProgressNil(t *testing.T) {
+	t.Parallel()
+
+	var pb *ProgressBar
+	pb.Inc()
+	pb.Add(4)
+	pb.Done()
+}
+
+func TestProgressBytes(t *testing.T) {
 	max := 2 << 24
 	pb := NewProgressBar(int64(max))
 	pb.Hidden = true

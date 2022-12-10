@@ -10,8 +10,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestDetectCrypto(t *testing.T) { //nolint:paralleltest
-	for _, tc := range []struct { //nolint:paralleltest
+func TestDetectCrypto(t *testing.T) {
+	for _, tc := range []struct {
 		name string
 		file string
 	}{

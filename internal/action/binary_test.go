@@ -15,9 +15,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestBinary(t *testing.T) { //nolint:paralleltest
+func TestBinary(t *testing.T) {
 	u := gptest.NewUnitTester(t)
-	defer u.Remove()
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
@@ -40,9 +39,8 @@ func TestBinary(t *testing.T) { //nolint:paralleltest
 	assert.Error(t, act.Sum(gptest.CliCtx(ctx, t)))
 }
 
-func TestBinaryCat(t *testing.T) { //nolint:paralleltest
+func TestBinaryCat(t *testing.T) {
 	u := gptest.NewUnitTester(t)
-	defer u.Remove()
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
@@ -64,16 +62,16 @@ func TestBinaryCat(t *testing.T) { //nolint:paralleltest
 	infile := filepath.Join(u.Dir, "input.txt")
 	writeBinfile(t, infile)
 
-	t.Run("populate store", func(t *testing.T) { //nolint:paralleltest
+	t.Run("populate store", func(t *testing.T) {
 		assert.NoError(t, act.binaryCopy(ctx, gptest.CliCtx(ctx, t), infile, "bar", true))
 	})
 
-	t.Run("binary cat bar", func(t *testing.T) { //nolint:paralleltest
+	t.Run("binary cat bar", func(t *testing.T) {
 		assert.NoError(t, act.Cat(gptest.CliCtx(ctx, t, "bar")))
 	})
 
 	stdinfile := filepath.Join(u.Dir, "stdin")
-	t.Run("binary cat baz from stdin", func(t *testing.T) { //nolint:paralleltest
+	t.Run("binary cat baz from stdin", func(t *testing.T) {
 		writeBinfile(t, stdinfile)
 
 		fd, err := os.Open(stdinfile)
@@ -87,7 +85,7 @@ func TestBinaryCat(t *testing.T) { //nolint:paralleltest
 		assert.NoError(t, act.Cat(gptest.CliCtx(ctx, t, "baz")))
 	})
 
-	t.Run("compare output", func(t *testing.T) { //nolint:paralleltest
+	t.Run("compare output", func(t *testing.T) {
 		buf, err := os.ReadFile(stdinfile)
 		require.NoError(t, err)
 		sec, err := act.binaryGet(ctx, "baz")
@@ -96,9 +94,8 @@ func TestBinaryCat(t *testing.T) { //nolint:paralleltest
 	})
 }
 
-func TestBinaryCopy(t *testing.T) { //nolint:paralleltest
+func TestBinaryCopy(t *testing.T) {
 	u := gptest.NewUnitTester(t)
-	defer u.Remove()
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
@@ -115,7 +112,7 @@ func TestBinaryCopy(t *testing.T) { //nolint:paralleltest
 	require.NotNil(t, act)
 	ctx = act.cfg.WithConfig(ctx)
 
-	t.Run("copy textfile", func(t *testing.T) { //nolint:paralleltest
+	t.Run("copy textfile", func(t *testing.T) {
 		defer buf.Reset()
 
 		infile := filepath.Join(u.Dir, "input.txt")
@@ -125,43 +122,42 @@ func TestBinaryCopy(t *testing.T) { //nolint:paralleltest
 
 	infile := filepath.Join(u.Dir, "input.raw")
 	outfile := filepath.Join(u.Dir, "output.raw")
-	t.Run("copy binary file", func(t *testing.T) { //nolint:paralleltest
+	t.Run("copy binary file", func(t *testing.T) {
 		defer buf.Reset()
 
 		writeBinfile(t, infile)
 		assert.NoError(t, act.binaryCopy(ctx, gptest.CliCtx(ctx, t), infile, "bar", true))
 	})
 
-	t.Run("binary copy bar tempdir/bar", func(t *testing.T) { //nolint:paralleltest
+	t.Run("binary copy bar tempdir/bar", func(t *testing.T) {
 		defer buf.Reset()
 		assert.NoError(t, act.BinaryCopy(gptest.CliCtx(ctx, t, "bar", outfile)))
 	})
 
-	t.Run("binary copy tempdir/bar tempdir/bar", func(t *testing.T) { //nolint:paralleltest
+	t.Run("binary copy tempdir/bar tempdir/bar", func(t *testing.T) {
 		defer buf.Reset()
 
 		assert.Error(t, act.BinaryCopy(gptest.CliCtx(ctx, t, outfile, outfile)))
 	})
 
-	t.Run("binary copy bar bar", func(t *testing.T) { //nolint:paralleltest
+	t.Run("binary copy bar bar", func(t *testing.T) {
 		defer buf.Reset()
 		assert.Error(t, act.BinaryCopy(gptest.CliCtx(ctx, t, "bar", "bar")))
 	})
 
-	t.Run("binary move tempdir/bar bar2", func(t *testing.T) { //nolint:paralleltest
+	t.Run("binary move tempdir/bar bar2", func(t *testing.T) {
 		defer buf.Reset()
 		assert.NoError(t, act.BinaryMove(gptest.CliCtx(ctx, t, outfile, "bar2")))
 	})
 
-	t.Run("binary move bar2 tempdir/bar", func(t *testing.T) { //nolint:paralleltest
+	t.Run("binary move bar2 tempdir/bar", func(t *testing.T) {
 		defer buf.Reset()
 		assert.NoError(t, act.BinaryMove(gptest.CliCtx(ctx, t, "bar2", outfile)))
 	})
 }
 
-func TestBinarySum(t *testing.T) { //nolint:paralleltest
+func TestBinarySum(t *testing.T) {
 	u := gptest.NewUnitTester(t)
-	defer u.Remove()
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
@@ -180,20 +176,19 @@ func TestBinarySum(t *testing.T) { //nolint:paralleltest
 
 	infile := filepath.Join(u.Dir, "input.raw")
 
-	t.Run("populate store", func(t *testing.T) { //nolint:paralleltest
+	t.Run("populate store", func(t *testing.T) {
 		writeBinfile(t, infile)
 		assert.NoError(t, act.binaryCopy(ctx, gptest.CliCtx(ctx, t), infile, "bar", true))
 	})
 
-	t.Run("binary sum bar", func(t *testing.T) { //nolint:paralleltest
+	t.Run("binary sum bar", func(t *testing.T) {
 		assert.NoError(t, act.Sum(gptest.CliCtx(ctx, t, "bar")))
 		buf.Reset()
 	})
 }
 
-func TestBinaryGet(t *testing.T) { //nolint:paralleltest
+func TestBinaryGet(t *testing.T) {
 	u := gptest.NewUnitTester(t)
-	defer u.Remove()
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)

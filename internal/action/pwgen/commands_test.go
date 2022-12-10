@@ -35,10 +35,9 @@ func testCommand(t *testing.T, cmd *cli.Command) {
 }
 
 func TestCommands(t *testing.T) {
-	t.Parallel()
-
-	u := gptest.NewUnitTester(t)
-	defer u.Remove()
+	// necessary for setting up the env
+	u := gptest.NewGUnitTester(t)
+	assert.NotNil(t, u)
 
 	for _, cmd := range GetCommands() {
 		testCommand(t, cmd)

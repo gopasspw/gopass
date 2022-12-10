@@ -376,7 +376,7 @@ mounts:
     safecontent: false
 version: 1.4.0`
 
-func TestLoad(t *testing.T) { //nolint:paralleltest
+func TestLoad(t *testing.T) {
 	td := os.TempDir()
 	gcfg := filepath.Join(td, ".gopass.yml")
 	_ = os.Remove(gcfg)
@@ -389,7 +389,7 @@ func TestLoad(t *testing.T) { //nolint:paralleltest
 	assert.True(t, cfg.SafeContent)
 }
 
-func TestLoadError(t *testing.T) { //nolint:paralleltest
+func TestLoadError(t *testing.T) {
 	gcfg := filepath.Join(os.TempDir(), ".gopass-err.yml")
 	assert.NoError(t, os.Setenv("GOPASS_CONFIG", gcfg))
 
@@ -413,7 +413,7 @@ func TestLoadError(t *testing.T) { //nolint:paralleltest
 	assert.NoError(t, cfg.Save())
 }
 
-func TestDecodeError(t *testing.T) { //nolint:paralleltest
+func TestDecodeError(t *testing.T) {
 	gcfg := filepath.Join(os.TempDir(), ".gopass-err2.yml")
 	assert.NoError(t, os.Setenv("GOPASS_CONFIG", gcfg))
 

@@ -26,7 +26,7 @@ func TestCopy(t *testing.T) {
 		out.Stdout = os.Stdout
 	}()
 
-	for _, tc := range []struct { //nolint:paralleltest
+	for _, tc := range []struct {
 		name string
 		tf   func(s *Store) func(t *testing.T)
 	}{
@@ -110,7 +110,7 @@ func TestMove(t *testing.T) {
 		out.Stdout = os.Stdout
 	}()
 
-	for _, tc := range []struct { //nolint:paralleltest
+	for _, tc := range []struct {
 		name string
 		tf   func(s *Store) func(t *testing.T)
 	}{
@@ -195,7 +195,7 @@ func TestDelete(t *testing.T) {
 		out.Stdout = os.Stdout
 	}()
 
-	for _, tc := range []struct { //nolint:paralleltest
+	for _, tc := range []struct {
 		name string
 		tf   func(s *Store) func(t *testing.T)
 	}{
@@ -262,7 +262,7 @@ func TestPrune(t *testing.T) {
 		out.Stdout = os.Stdout
 	}()
 
-	for _, tc := range []struct { //nolint:paralleltest
+	for _, tc := range []struct {
 		name string
 		tf   func(s *Store) func(t *testing.T)
 	}{

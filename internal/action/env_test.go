@@ -16,9 +16,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestEnvLeafHappyPath(t *testing.T) { //nolint:paralleltest
+func TestEnvLeafHappyPath(t *testing.T) {
 	u := gptest.NewUnitTester(t)
-	defer u.Remove()
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
@@ -49,9 +48,8 @@ func TestEnvLeafHappyPath(t *testing.T) { //nolint:paralleltest
 	assert.Contains(t, buf.String(), fmt.Sprintf("BAZ=%s\n", pw))
 }
 
-func TestEnvLeafHappyPathKeepCase(t *testing.T) { //nolint:paralleltest
+func TestEnvLeafHappyPathKeepCase(t *testing.T) {
 	u := gptest.NewUnitTester(t)
-	defer u.Remove()
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
@@ -85,9 +83,8 @@ func TestEnvLeafHappyPathKeepCase(t *testing.T) { //nolint:paralleltest
 	assert.Contains(t, buf.String(), fmt.Sprintf("BaZ=%s\n", pw))
 }
 
-func TestEnvSecretNotFound(t *testing.T) { //nolint:paralleltest
+func TestEnvSecretNotFound(t *testing.T) {
 	u := gptest.NewUnitTester(t)
-	defer u.Remove()
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
@@ -102,9 +99,8 @@ func TestEnvSecretNotFound(t *testing.T) { //nolint:paralleltest
 		"Secret non-existing not found")
 }
 
-func TestEnvProgramNotFound(t *testing.T) { //nolint:paralleltest
+func TestEnvProgramNotFound(t *testing.T) {
 	u := gptest.NewUnitTester(t)
-	defer u.Remove()
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
@@ -127,9 +123,8 @@ func TestEnvProgramNotFound(t *testing.T) { //nolint:paralleltest
 }
 
 // Crash regression.
-func TestEnvProgramNotSpecified(t *testing.T) { //nolint:paralleltest
+func TestEnvProgramNotSpecified(t *testing.T) {
 	u := gptest.NewUnitTester(t)
-	defer u.Remove()
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)

@@ -27,15 +27,15 @@ password: bar
 
 	t.Logf("Secret:\n%+v\n%s\n", s, string(s.Bytes()))
 
-	t.Run("read back the secret", func(t *testing.T) { //nolint:paralleltest
+	t.Run("read back the secret", func(t *testing.T) {
 		assert.Equal(t, mlValue, string(s.Bytes()))
 	})
 
-	t.Run("no_duplicate_keys", func(t *testing.T) { //nolint:paralleltest
+	t.Run("no_duplicate_keys", func(t *testing.T) {
 		assert.Equal(t, []string{"password", "url", "username"}, s.Keys())
 	})
 
-	t.Run("read some keys", func(t *testing.T) { //nolint:paralleltest
+	t.Run("read some keys", func(t *testing.T) {
 		for k, v := range map[string]string{
 			"password": "bar",
 			"url":      "http://www.test.com/",
@@ -48,7 +48,7 @@ password: bar
 		assert.Equal(t, "somepasswd", s.Password())
 	})
 
-	t.Run("remove a key", func(t *testing.T) { //nolint:paralleltest
+	t.Run("remove a key", func(t *testing.T) {
 		s.Del("username")
 		v, ok := s.Get("username")
 		assert.False(t, ok)
@@ -280,4 +280,27 @@ foo: bar
 			assert.Equal(t, want, string(a.Bytes()), tc.name)
 		})
 	}
+}
+
+func TestNewAKV(t *testing.T) {
+	a := NewAKVWithData("foobar", map[string][]string{
+		"foo":   {"bar"},
+		"hello": {"world", "everyone"},
+	}, "this is the body\nmore text\n", false)
+
+	assert.Equal(t, "foobar\nfoo: bar\nhello: world\nhello: everyone\nthis is the body\nmore text\n", a.raw.String())
+
+	vs, ok := a.Values("foo")
+	assert.True(t, ok)
+	assert.Equal(t, []string{"bar"}, vs)
+
+	assert.NoError(t, a.Set("foo", "baz"))
+	assert.NoError(t, a.Set("hello", "mars"))
+
+	assert.Equal(t, "this is the body\nmore text\n", a.Body())
+
+	_, err := a.Write([]byte("even more text\n"))
+	assert.NoError(t, err)
+
+	assert.Equal(t, "this is the body\nmore text\neven more text\n", a.Body())
 }

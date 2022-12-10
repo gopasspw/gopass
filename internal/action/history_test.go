@@ -17,9 +17,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestHistory(t *testing.T) { //nolint:paralleltest
+func TestHistory(t *testing.T) {
 	u := gptest.NewUnitTester(t)
-	defer u.Remove()
 
 	r1 := gptest.UnsetVars(termio.NameVars...)
 	r2 := gptest.UnsetVars(termio.EmailVars...)
@@ -41,7 +40,7 @@ func TestHistory(t *testing.T) { //nolint:paralleltest
 	require.NotNil(t, act)
 	ctx = act.cfg.WithConfig(ctx)
 
-	t.Run("can initialize", func(t *testing.T) { //nolint:paralleltest
+	t.Run("can initialize", func(t *testing.T) {
 		require.NoError(t, act.IsInitialized(gptest.CliCtx(ctx, t)))
 	})
 
@@ -51,23 +50,23 @@ func TestHistory(t *testing.T) { //nolint:paralleltest
 		out.Stdout = os.Stdout
 	}()
 
-	t.Run("init git", func(t *testing.T) { //nolint:paralleltest
+	t.Run("init git", func(t *testing.T) {
 		defer buf.Reset()
 		require.NoError(t, act.rcsInit(ctx, "", "foo bar", "foo.bar@example.org"))
 		t.Logf("init git: %s", buf.String())
 	})
 
-	t.Run("insert bar", func(t *testing.T) { //nolint:paralleltest
+	t.Run("insert bar", func(t *testing.T) {
 		defer buf.Reset()
 		assert.NoError(t, act.Insert(gptest.CliCtx(ctx, t, "bar")))
 	})
 
-	t.Run("history bar", func(t *testing.T) { //nolint:paralleltest
+	t.Run("history bar", func(t *testing.T) {
 		defer buf.Reset()
 		assert.NoError(t, act.History(gptest.CliCtx(ctx, t, "bar")))
 	})
 
-	t.Run("history --password bar", func(t *testing.T) { //nolint:paralleltest
+	t.Run("history --password bar", func(t *testing.T) {
 		defer buf.Reset()
 		assert.NoError(t, act.History(gptest.CliCtxWithFlags(ctx, t, map[string]string{"password": "true"}, "bar")))
 	})

@@ -41,15 +41,15 @@ func NewGUnitTester(t *testing.T) *GUnit {
 	t.Helper()
 
 	aclip.Unsupported = true
-	td, err := os.MkdirTemp("", "gopass-")
-	assert.NoError(t, err)
 
+	td := t.TempDir()
 	u := &GUnit{
 		t:          t,
 		Entries:    defaultEntries,
 		Recipients: gpgDefaultRecipients,
 		Dir:        td,
 	}
+
 	u.env = map[string]string{
 		"CHECKPOINT_DISABLE":       "true",
 		"GNUPGHOME":                u.GPGHome(),
@@ -59,8 +59,11 @@ func NewGUnitTester(t *testing.T) *GUnit {
 		"NO_COLOR":                 "true",
 		"GOPASS_NO_NOTIFY":         "true",
 		"PAGER":                    "",
+		"GIT_AUTHOR_NAME":          "gopass-tests",
+		"GIT_AUTHOR_EMAIL":         "tests@gopass.pw",
 	}
-	assert.NoError(t, setupEnv(u.env))
+	setupEnv(t, u.env)
+
 	require.NoError(t, os.Mkdir(u.GPGHome(), 0o700))
 	assert.NoError(t, u.initConfig())
 	assert.NoError(t, u.InitStore(""))
@@ -141,16 +144,4 @@ func (u GUnit) InitStore(name string) error {
 	}
 
 	return nil
-}
-
-// Remove removes the test store.
-func (u *GUnit) Remove() {
-	teardownEnv(u.env)
-
-	if u.Dir == "" {
-		return
-	}
-
-	assert.NoError(u.t, os.RemoveAll(u.Dir))
-	u.Dir = ""
 }

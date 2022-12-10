@@ -19,9 +19,8 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-func TestFind(t *testing.T) { //nolint:paralleltest
+func TestFind(t *testing.T) {
 	u := gptest.NewUnitTester(t)
-	defer u.Remove()
 
 	ctx := context.Background()
 	ctx = ctxutil.WithTerminal(ctx, false)

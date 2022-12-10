@@ -38,10 +38,7 @@ func testCommand(t *testing.T, cmd *cli.Command) {
 }
 
 func TestCommands(t *testing.T) {
-	t.Parallel()
-
 	u := gptest.NewUnitTester(t)
-	defer u.Remove()
 
 	ctx := context.Background()
 	ctx = ctxutil.WithInteractive(ctx, false)
@@ -53,8 +50,6 @@ func TestCommands(t *testing.T) {
 	for _, cmd := range act.GetCommands() {
 		cmd := cmd
 		t.Run(cmd.Name, func(t *testing.T) {
-			t.Parallel()
-
 			testCommand(t, cmd)
 		})
 	}
