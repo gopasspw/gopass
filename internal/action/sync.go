@@ -76,8 +76,6 @@ func (s *Action) autoSync(ctx context.Context) error {
 	}
 
 	if time.Since(ls) > time.Duration(syncInterval)*24*time.Hour {
-		_ = s.rem.Reset("autosync")
-
 		err := s.sync(ctx, "")
 		if err != nil {
 			autosyncLastRun = time.Now()
@@ -123,6 +121,11 @@ func (s *Action) sync(ctx context.Context, store string) error {
 		_ = s.syncMount(ctx, mp)
 	}
 	out.OKf(ctx, "All done")
+
+	// If we just sync'ed all stores we can reset the auto-sync interval
+	if store == "" {
+		_ = s.rem.Reset("autosync")
+	}
 
 	// Calculate number of changed entries.
 	// This is a rough estimate as additions and deletions.
