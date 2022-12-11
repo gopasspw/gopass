@@ -131,8 +131,12 @@ func isVim(editor string) bool {
 	cmd := exec.Command(editor, "--version")
 	out, err := cmd.CombinedOutput()
 	if err != nil {
+		debug.Log("failed to check %s --version: %s", cmd.Path, err)
+
 		return false
 	}
+
+	debug.Log("%s --version: %s", cmd.Path, string(out))
 
 	return strings.Contains(string(out), "VIM - Vi IMproved")
 }

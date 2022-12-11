@@ -46,3 +46,13 @@ func Parse(in []byte) (gopass.Secret, error) {
 
 	return s, nil
 }
+
+// MustParse parses a secret or panics. Should only be used for tests.
+func MustParse(in string) gopass.Secret {
+	sec, err := Parse([]byte(in))
+	if err != nil {
+		panic(err)
+	}
+
+	return sec
+}

@@ -43,7 +43,14 @@ func TestOTP(t *testing.T) {
 		defer buf.Reset()
 		sec := secrets.NewAKV()
 		sec.SetPassword("foo")
-		_, err := sec.Write([]byte(twofactor.GenerateGoogleTOTP().URL("foo")))
+		_, err := sec.Write([]byte(twofactor.GenerateGoogleTOTP().URL("foo") + "\n"))
+		require.NoError(t, err)
+		assert.NoError(t, act.Store.Set(ctx, "bar", sec))
+
+		assert.NoError(t, act.OTP(gptest.CliCtx(ctx, t, "bar")))
+
+		// add some unrelated body material, it should still work
+		_, err = sec.Write([]byte("more body content, unrelated to otp"))
 		require.NoError(t, err)
 		assert.NoError(t, act.Store.Set(ctx, "bar", sec))
 
