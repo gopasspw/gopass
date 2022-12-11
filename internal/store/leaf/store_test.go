@@ -28,7 +28,6 @@ func createSubStore(t *testing.T) (*Store, error) {
 		return nil, err
 	}
 
-	t.Setenv("GOPASS_CONFIG", filepath.Join(dir, ".gopass.yml"))
 	t.Setenv("GOPASS_HOMEDIR", dir)
 	t.Setenv("CHECKPOINT_DISABLE", "true")
 	t.Setenv("GOPASS_NO_NOTIFY", "true")
