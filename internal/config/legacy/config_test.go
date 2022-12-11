@@ -12,7 +12,7 @@ import (
 )
 
 func TestNewConfig(t *testing.T) {
-	assert.NoError(t, os.Setenv("GOPASS_CONFIG", filepath.Join(os.TempDir(), ".gopass.yml")))
+	t.Setenv("GOPASS_CONFIG", filepath.Join(os.TempDir(), ".gopass.yml"))
 
 	cfg := legacy.New()
 	cs := cfg.String()
@@ -31,7 +31,7 @@ func TestNewConfig(t *testing.T) {
 }
 
 func TestSetConfigValue(t *testing.T) {
-	assert.NoError(t, os.Setenv("GOPASS_CONFIG", filepath.Join(os.TempDir(), ".gopass.yml")))
+	t.Setenv("GOPASS_CONFIG", filepath.Join(os.TempDir(), ".gopass.yml"))
 
 	cfg := legacy.New()
 	assert.NoError(t, cfg.SetConfigValue("autoclip", "true"))

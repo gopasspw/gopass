@@ -2,7 +2,6 @@ package gpgconf
 
 import (
 	"bytes"
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -15,9 +14,10 @@ func TestGpgOpts(t *testing.T) {
 			"": nil,
 			"--decrypt --armor --recipient 0xDEADBEEF": {"--decrypt", "--armor", "--recipient", "0xDEADBEEF"},
 		} {
-			assert.NoError(t, os.Setenv(vn, in))
-			assert.Equal(t, out, GPGOpts())
-			assert.NoError(t, os.Unsetenv(vn))
+			t.Run(vn, func(t *testing.T) {
+				t.Setenv(vn, in)
+				assert.Equal(t, out, GPGOpts())
+			})
 		}
 	}
 }
