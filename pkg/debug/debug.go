@@ -20,9 +20,10 @@ var (
 )
 
 var opts struct {
-	logger *log.Logger
-	funcs  map[string]bool
-	files  map[string]bool
+	logger  *log.Logger
+	funcs   map[string]bool
+	files   map[string]bool
+	logFile *os.File
 }
 
 var logFn = doNotLog
@@ -62,6 +63,7 @@ func initDebugLogger() {
 		// seek to the end of the file (offset, whence [2 = end])
 		_, err := f.Seek(0, 2)
 		if err != nil {
+			_ = f.Close()
 			fmt.Fprintf(Stderr, "unable to seek to end of %v: %v\n", debugfile, err)
 			os.Exit(3)
 		}
@@ -76,6 +78,7 @@ func initDebugLogger() {
 		os.Exit(2)
 	}
 
+	opts.logFile = f
 	opts.logger = log.New(f, "", log.Ldate|log.Lmicroseconds)
 }
 
@@ -247,4 +250,13 @@ func doLog(offset int, f string, args ...any) {
 // IsEnabled returns true if debug logging was enabled.
 func IsEnabled() bool {
 	return enabled
+}
+
+// CloseLogfile closes the GOPASS_DEBUG_LOG file.
+func CloseLogfile() error {
+	if opts.logFile == nil {
+		return nil
+	}
+
+	return opts.logFile.Close()
 }
