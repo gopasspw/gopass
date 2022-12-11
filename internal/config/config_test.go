@@ -4,10 +4,14 @@ import (
 	"context"
 	"testing"
 
+	"github.com/gopasspw/gopass/tests/gptest"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestConfig(t *testing.T) {
+	u := gptest.NewUnitTester(t)
+	assert.NotNil(t, u)
+
 	td := t.TempDir()
 	t.Setenv("GOPASS_HOMEDIR", td)
 
