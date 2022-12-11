@@ -4,8 +4,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"io"
-	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
@@ -131,11 +129,6 @@ func (f *Fossil) captureCmd(ctx context.Context, name string, args ...string) ([
 	cmd.Dir = getPathOverride(ctx, f.fs.Path())
 	cmd.Stdout = bufOut
 	cmd.Stderr = bufErr
-
-	if debug.IsEnabled() && ctxutil.IsVerbose(ctx) {
-		cmd.Stdout = io.MultiWriter(bufOut, os.Stdout)
-		cmd.Stderr = io.MultiWriter(bufErr, os.Stderr)
-	}
 
 	debug.Log("fossil.%s: %s %+v (%s)", name, cmd.Path, cmd.Args, f.fs.Path())
 	err := cmd.Run()

@@ -16,13 +16,13 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-// FindNoFuzzy runs find without fuzzy search.
-func (s *Action) FindNoFuzzy(c *cli.Context) error {
+// Find runs find without fuzzy search.
+func (s *Action) Find(c *cli.Context) error {
 	return s.findCmd(c, nil, false)
 }
 
-// Find runs find.
-func (s *Action) Find(c *cli.Context) error {
+// FindFuzzy runs find with fuzzy search.
+func (s *Action) FindFuzzy(c *cli.Context) error {
 	return s.findCmd(c, s.show, true)
 }
 
@@ -38,7 +38,7 @@ func (s *Action) findCmd(c *cli.Context, cb showFunc, fuzzy bool) error {
 	}
 
 	if !c.Args().Present() {
-		return exit.Error(exit.Usage, nil, "Usage: %s find <NEEDLE>", s.Name)
+		return exit.Error(exit.Usage, nil, "Usage: %s find <pattern>", s.Name)
 	}
 
 	return s.find(ctx, c, c.Args().First(), cb, fuzzy)

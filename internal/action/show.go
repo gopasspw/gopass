@@ -364,7 +364,7 @@ func (s *Action) showHandleError(ctx context.Context, c *cli.Context, name strin
 
 	out.Warningf(ctx, "Entry %q not found. Starting search...", name)
 	c.Context = ctx
-	if err := s.Find(c); err != nil {
+	if err := s.FindFuzzy(c); err != nil {
 		if IsClip(ctx) {
 			_ = notify.Notify(ctx, "gopass - error", fmt.Sprintf("%s", err))
 		}

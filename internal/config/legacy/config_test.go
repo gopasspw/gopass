@@ -8,10 +8,14 @@ import (
 	_ "github.com/gopasspw/gopass/internal/backend/crypto"
 	_ "github.com/gopasspw/gopass/internal/backend/storage"
 	"github.com/gopasspw/gopass/internal/config/legacy"
+	"github.com/gopasspw/gopass/tests/gptest"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestNewConfig(t *testing.T) {
+	u := gptest.NewUnitTester(t)
+	assert.NotNil(t, u)
+
 	t.Setenv("GOPASS_CONFIG", filepath.Join(os.TempDir(), ".gopass.yml"))
 
 	cfg := legacy.New()
@@ -31,6 +35,9 @@ func TestNewConfig(t *testing.T) {
 }
 
 func TestSetConfigValue(t *testing.T) {
+	u := gptest.NewUnitTester(t)
+	assert.NotNil(t, u)
+
 	t.Setenv("GOPASS_CONFIG", filepath.Join(os.TempDir(), ".gopass.yml"))
 
 	cfg := legacy.New()

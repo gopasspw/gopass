@@ -59,7 +59,7 @@ Alternatively, it can be installed via [chocolatey](https://chocolatey.org/packa
 
 For OpenBSD -current:
 
-```
+```shell
 pkg_add gopass
 ```
 
@@ -72,7 +72,7 @@ so some features (e.g. version checks, auto-update) are unavailable.
 
 For FreeBSD 11 and newer:
 
-```
+```shell
 pkg install gopass
 ```
 
@@ -104,50 +104,6 @@ Now, you have created a public and private key pair. If you don't know what that
 
 * ["git + gpg, know thy commits" at coderwall](https://coderwall.com/p/d3uo3w/git-gpg-know-thy-commits)
 * ["Generating a new GPG key" by GitHub](https://help.github.com/articles/generating-a-new-gpg-key/)
-
-### Git and GPG
-
-gopass will configure git to sign commits by default, so you should make sure that git can
-interface with GPG.
-
-```bash
-mkdir some-dir
-cd some-dir
-git init
-touch foo
-git add foo
-git commit -S -m "test"
-```
-
-Here the `-S` flag will sign your commit using GPG, allowing you to test your GPG setup with git.
-If you get an error like: "gpg failed to sign the data" try to see if creating a clear text signature works:
-
-```bash
- echo "test" | gpg2 --clearsign
-```
-
-If this fails with an error: "Inappropriate ioctl for device" run the following command:
-
-```bash
- export GPG_TTY=$(tty)
-```
-
-If you are using CSH or TCSH:
-
-```bash
-setenv GPG_TTY `tty`
-```
-
-Now you should be able to create a clear text signature and the commit should work flawlessly.
-
-If you are presented with a different error please investigate this before continuing. If that works
-set it in your `.zprofile`, `.bashrc` or simliar.
-
-Also if you have both `gnupg` and `gnupg2` installed, make sure to use the latter in git:
-
-```bash
-git config --global gpg.program gpg2
-```
 
 ## Installation Steps
 

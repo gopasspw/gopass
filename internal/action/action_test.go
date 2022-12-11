@@ -69,6 +69,9 @@ func TestAction(t *testing.T) {
 }
 
 func TestNew(t *testing.T) {
+	u := gptest.NewUnitTester(t)
+	assert.NotNil(t, u)
+
 	td := t.TempDir()
 	cfg := config.NewNoWrites()
 	sv := semver.Version{}

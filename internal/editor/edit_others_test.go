@@ -36,6 +36,8 @@ func TestEditor(t *testing.T) {
 func TestGetEditor(t *testing.T) {
 	app := cli.NewApp()
 
+	t.Setenv("EDITOR", "")
+
 	t.Run("--editor=fooed", func(t *testing.T) {
 		fs := flag.NewFlagSet("default", flag.ContinueOnError)
 		sf := cli.StringFlag{

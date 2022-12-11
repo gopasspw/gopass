@@ -294,21 +294,16 @@ func (s *Action) GetCommands() []*cli.Command {
 		{
 			Name:      "find",
 			Usage:     "Search for secrets",
-			ArgsUsage: "[needle]",
+			ArgsUsage: "<pattern>",
 			Description: "" +
 				"This command will first attempt a simple pattern match on the name of the " +
 				"secret.  If there is an exact match it will be shown directly; if there are " +
 				"multiple matches, a selection will be shown.",
 			Before:       s.IsInitialized,
-			Action:       s.FindNoFuzzy,
+			Action:       s.Find,
 			Aliases:      []string{"search"},
 			BashComplete: s.Complete,
 			Flags: []cli.Flag{
-				&cli.BoolFlag{
-					Name:    "clip",
-					Aliases: []string{"c"},
-					Usage:   "Copy the password into the clipboard",
-				},
 				&cli.BoolFlag{
 					Name:    "unsafe",
 					Aliases: []string{"u", "force", "f"},
@@ -329,7 +324,7 @@ func (s *Action) GetCommands() []*cli.Command {
 			Flags: []cli.Flag{
 				&cli.BoolFlag{
 					Name:  "decrypt",
-					Usage: "Decrypt and reencryt during fsck.\nWARNING: This will update the secret content to the latest format. This might be incompatible with other implementations. Use with caution!",
+					Usage: "Decrypt and reencryt during fsck.",
 				},
 			},
 		},
@@ -646,6 +641,16 @@ func (s *Action) GetCommands() []*cli.Command {
 					Action:       s.MountRemove,
 					BashComplete: s.MountsComplete,
 				},
+				{
+					Name:    "versions",
+					Aliases: []string{"version"},
+					Usage:   "Display mount provider versions",
+					Description: "" +
+						"This command displays version information of important external " +
+						"commands used by the configured password store mounts.",
+					Before: s.IsInitialized,
+					Action: s.MountsVersions,
+				},
 			},
 		},
 		{
@@ -705,10 +710,6 @@ func (s *Action) GetCommands() []*cli.Command {
 						&cli.StringFlag{
 							Name:  "store",
 							Usage: "Store to operate on",
-						},
-						&cli.StringFlag{
-							Name:  "sign-key",
-							Usage: "GPG Key to sign commits",
 						},
 						&cli.StringFlag{
 							Name:    "name",
@@ -950,9 +951,7 @@ func (s *Action) GetCommands() []*cli.Command {
 			Name:  "version",
 			Usage: "Display version",
 			Description: "" +
-				"This command displays version and build time information " +
-				"along with version information of important external commands. " +
-				"Please provide the output when reporting issues.",
+				"This command displays version and build time information.",
 			Action: s.Version,
 		},
 	}

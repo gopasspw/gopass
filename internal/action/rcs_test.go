@@ -34,7 +34,7 @@ func TestGit(t *testing.T) {
 	}()
 
 	// git init
-	c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"username": "foobar", "useremail": "foo.bar@example.org"})
+	c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"name": "foobar", "email": "foo.bar@example.org"})
 	assert.NoError(t, act.RCSInit(c))
 	buf.Reset()
 
