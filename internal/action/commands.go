@@ -641,6 +641,16 @@ func (s *Action) GetCommands() []*cli.Command {
 					Action:       s.MountRemove,
 					BashComplete: s.MountsComplete,
 				},
+				{
+					Name:    "versions",
+					Aliases: []string{"version"},
+					Usage:   "Display mount provider versions",
+					Description: "" +
+						"This command displays version information of important external " +
+						"commands used by the configured password store mounts.",
+					Before: s.IsInitialized,
+					Action: s.MountsVersions,
+				},
 			},
 		},
 		{
@@ -945,9 +955,7 @@ func (s *Action) GetCommands() []*cli.Command {
 			Name:  "version",
 			Usage: "Display version",
 			Description: "" +
-				"This command displays version and build time information " +
-				"along with version information of important external commands. " +
-				"Please provide the output when reporting issues.",
+				"This command displays version and build time information.",
 			Action: s.Version,
 		},
 	}
