@@ -17,7 +17,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func createSubStore(dir string) (*Store, error) {
+func createSubStore(t *testing.T) (*Store, error) {
+	t.Helper()
+
+	dir := t.TempDir()
 	sd := filepath.Join(dir, "sub")
 
 	_, _, err := createStore(sd, nil, nil)
@@ -25,32 +28,14 @@ func createSubStore(dir string) (*Store, error) {
 		return nil, err
 	}
 
-	if err := os.Setenv("GOPASS_CONFIG", filepath.Join(dir, ".gopass.yml")); err != nil {
-		return nil, err
-	}
-
-	if err := os.Setenv("GOPASS_HOMEDIR", dir); err != nil {
-		return nil, err
-	}
+	t.Setenv("GOPASS_CONFIG", filepath.Join(dir, ".gopass.yml"))
+	t.Setenv("GOPASS_HOMEDIR", dir)
+	t.Setenv("CHECKPOINT_DISABLE", "true")
+	t.Setenv("GOPASS_NO_NOTIFY", "true")
+	t.Setenv("GOPASS_DISABLE_ENCRYPTION", "true")
+	t.Setenv("GNUPGHOME", filepath.Join(dir, ".gnupg"))
 
 	if err := os.Unsetenv("PAGER"); err != nil {
-		return nil, err
-	}
-
-	if err := os.Setenv("CHECKPOINT_DISABLE", "true"); err != nil {
-		return nil, err
-	}
-
-	if err := os.Setenv("GOPASS_NO_NOTIFY", "true"); err != nil {
-		return nil, err
-	}
-
-	if err := os.Setenv("GOPASS_DISABLE_ENCRYPTION", "true"); err != nil {
-		return nil, err
-	}
-
-	gpgDir := filepath.Join(dir, ".gnupg")
-	if err := os.Setenv("GNUPGHOME", gpgDir); err != nil {
 		return nil, err
 	}
 
@@ -99,11 +84,7 @@ func createStore(dir string, recipients, entries []string) ([]string, []string, 
 }
 
 func TestStore(t *testing.T) {
-	t.Parallel()
-
-	tempdir := t.TempDir()
-
-	s, err := createSubStore(tempdir)
+	s, err := createSubStore(t)
 	require.NoError(t, err)
 
 	if !s.Equals(s) {
@@ -112,13 +93,9 @@ func TestStore(t *testing.T) {
 }
 
 func TestIdFile(t *testing.T) {
-	t.Parallel()
-
 	ctx := context.Background()
 
-	tempdir := t.TempDir()
-
-	s, err := createSubStore(tempdir)
+	s, err := createSubStore(t)
 	require.NoError(t, err)
 
 	// test sub-id
@@ -133,7 +110,7 @@ func TestIdFile(t *testing.T) {
 	_, err = sec.Write([]byte("bar"))
 	require.NoError(t, err)
 	require.NoError(t, s.Set(ctx, secName, sec))
-	require.NoError(t, os.WriteFile(filepath.Join(tempdir, "sub", "a", plain.IDFile), []byte("foobar"), 0o600))
+	require.NoError(t, os.WriteFile(filepath.Join(s.path, "a", plain.IDFile), []byte("foobar"), 0o600))
 	assert.Equal(t, filepath.Join("a", plain.IDFile), s.idFile(ctx, secName))
 	assert.True(t, s.Exists(ctx, secName))
 
@@ -143,7 +120,7 @@ func TestIdFile(t *testing.T) {
 		secName += "/a"
 	}
 	require.NoError(t, s.Set(ctx, secName, sec))
-	require.NoError(t, os.WriteFile(filepath.Join(tempdir, "sub", "a", ".gpg-id"), []byte("foobar"), 0o600))
+	require.NoError(t, os.WriteFile(filepath.Join(s.path, "a", ".gpg-id"), []byte("foobar"), 0o600))
 	assert.Equal(t, plain.IDFile, s.idFile(ctx, secName))
 }
 

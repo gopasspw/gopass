@@ -11,13 +11,9 @@ import (
 )
 
 func TestSet(t *testing.T) {
-	t.Parallel()
-
 	ctx := context.Background()
 
-	tempdir := t.TempDir()
-
-	s, err := createSubStore(tempdir)
+	s, err := createSubStore(t)
 	require.NoError(t, err)
 
 	sec := secrets.NewAKV()

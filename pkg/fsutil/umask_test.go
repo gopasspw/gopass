@@ -1,7 +1,6 @@
 package fsutil
 
 import (
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -15,9 +14,10 @@ func TestUmask(t *testing.T) {
 			"000":      0,
 			"07557575": 0o77,
 		} {
-			assert.NoError(t, os.Setenv(vn, in))
-			assert.Equal(t, out, Umask())
-			assert.NoError(t, os.Unsetenv(vn))
+			t.Run(vn, func(t *testing.T) {
+				t.Setenv(vn, in)
+				assert.Equal(t, out, Umask())
+			})
 		}
 	}
 }

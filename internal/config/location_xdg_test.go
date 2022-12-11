@@ -14,29 +14,29 @@ import (
 
 func TestPwStoreDir(t *testing.T) {
 	gph := filepath.Join(os.TempDir(), "home")
-	require.NoError(t, os.Setenv("GOPASS_HOMEDIR", gph))
+	t.Setenv("GOPASS_HOMEDIR", gph)
 
 	assert.Equal(t, filepath.Join(gph, ".local", "share", "gopass", "stores", "root"), PwStoreDir(""))
 	assert.Equal(t, filepath.Join(gph, ".local", "share", "gopass", "stores", "foo"), PwStoreDir("foo"))
 
 	psd := filepath.Join(gph, ".password-store-test")
-	require.NoError(t, os.Setenv("PASSWORD_STORE_DIR", psd))
+	t.Setenv("PASSWORD_STORE_DIR", psd)
 
 	assert.Equal(t, psd, PwStoreDir(""))
 	assert.Equal(t, filepath.Join(gph, ".local", "share", "gopass", "stores", "foo"), PwStoreDir("foo"))
 
-	// GOPASS_HOMEDIR takes precedence
-	require.NoError(t, os.Setenv("XDG_DATA_HOME", filepath.Join(os.TempDir(), ".local", "foo")))
-	assert.Equal(t, psd, PwStoreDir(""))
-	assert.Equal(t, filepath.Join(gph, ".local", "share", "gopass", "stores", "foo"), PwStoreDir("foo"))
-	assert.NoError(t, os.Unsetenv("XDG_DATA_HOME"))
+	t.Run("GOPASS_HOMEDIR takes precedence", func(t *testing.T) {
+		t.Setenv("XDG_DATA_HOME", filepath.Join(os.TempDir(), ".local", "foo"))
+		assert.Equal(t, psd, PwStoreDir(""))
+		assert.Equal(t, filepath.Join(gph, ".local", "share", "gopass", "stores", "foo"), PwStoreDir("foo"))
+	})
 
-	// GOPASS_HOMEDIR unset, XDG_DATA_HOME takes precedence
-	require.NoError(t, os.Unsetenv("GOPASS_HOMEDIR"))
-	require.NoError(t, os.Setenv("XDG_DATA_HOME", filepath.Join(os.TempDir(), ".local", "foo")))
-	assert.Equal(t, psd, PwStoreDir(""))
-	assert.Equal(t, filepath.Join(os.TempDir(), ".local", "foo", "gopass", "stores", "foo"), PwStoreDir("foo"))
-	assert.NoError(t, os.Unsetenv("XDG_DATA_HOME"))
+	t.Run("GOPASS_HOMEDIR unset, XDG_DATA_HOME takes precedence", func(t *testing.T) {
+		t.Setenv("XDG_DATA_HOME", filepath.Join(os.TempDir(), ".local", "foo"))
+		require.NoError(t, os.Unsetenv("GOPASS_HOMEDIR"))
+		assert.Equal(t, psd, PwStoreDir(""))
+		assert.Equal(t, filepath.Join(os.TempDir(), ".local", "foo", "gopass", "stores", "foo"), PwStoreDir("foo"))
+	})
 }
 
 func TestConfigLocation(t *testing.T) {
@@ -54,9 +54,10 @@ func TestConfigLocation(t *testing.T) {
 	}
 
 	for k, v := range evs {
-		assert.NoError(t, os.Setenv(k, v.ev))
-		assert.Equal(t, v.loc, configLocation())
-		assert.NoError(t, os.Unsetenv(k))
+		t.Run(k, func(t *testing.T) {
+			t.Setenv(k, v.ev)
+			assert.Equal(t, v.loc, configLocation())
+		})
 	}
 }
 
@@ -69,16 +70,23 @@ func TestConfigLocations(t *testing.T) {
 	curcfg := filepath.Join(gphome, ".config", "gopass", "config.yml")
 	oldcfg := filepath.Join(gphome, ".gopass.yml")
 
-	assert.NoError(t, os.Setenv("GOPASS_CONFIG", gpcfg))
-	assert.NoError(t, os.Setenv("GOPASS_HOMEDIR", gphome))
+	t.Run("GOPASS_CONFIG, GOPASS_HOMEDIR set", func(t *testing.T) {
+		t.Setenv("GOPASS_CONFIG", gpcfg)
+		t.Setenv("GOPASS_HOMEDIR", gphome)
 
-	assert.Equal(t, []string{gpcfg, curcfg, curcfg, oldcfg}, configLocations())
+		assert.Equal(t, []string{gpcfg, curcfg, curcfg, oldcfg}, configLocations())
+	})
 
-	assert.NoError(t, os.Setenv("XDG_CONFIG_HOME", xdghome))
-	assert.Equal(t, []string{gpcfg, curcfg, curcfg, oldcfg}, configLocations())
+	t.Run("GOPASS_CONFIG, GOPASS_HOMEDIR, XDG_CONFIG_HOME set", func(t *testing.T) {
+		t.Setenv("GOPASS_CONFIG", gpcfg)
+		t.Setenv("GOPASS_HOMEDIR", gphome)
+		t.Setenv("XDG_CONFIG_HOME", xdghome)
 
-	require.NoError(t, os.Setenv("XDG_CONFIG_HOME", xdghome))
-	require.NoError(t, os.Unsetenv("GOPASS_HOMEDIR"))
-	require.NoError(t, os.Unsetenv("GOPASS_CONFIG"))
-	assert.Equal(t, xdgcfg, configLocations()[0])
+		assert.Equal(t, []string{gpcfg, curcfg, curcfg, oldcfg}, configLocations())
+	})
+
+	t.Run("XDG_CONFIG_HOME set only", func(t *testing.T) {
+		t.Setenv("XDG_CONFIG_HOME", xdghome)
+		assert.Equal(t, xdgcfg, configLocations()[0])
+	})
 }

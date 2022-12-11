@@ -12,13 +12,9 @@ import (
 )
 
 func TestGit(t *testing.T) {
-	t.Parallel()
-
 	ctx := context.Background()
 
-	tempdir := t.TempDir()
-
-	s, err := createSubStore(tempdir)
+	s, err := createSubStore(t)
 	require.NoError(t, err)
 
 	require.NotNil(t, s.Storage())
@@ -40,13 +36,9 @@ func TestGit(t *testing.T) {
 }
 
 func TestGitRevisions(t *testing.T) {
-	t.Parallel()
-
 	ctx := context.Background()
 
-	tempdir := t.TempDir()
-
-	s, err := createSubStore(tempdir)
+	s, err := createSubStore(t)
 	require.NoError(t, err)
 
 	require.NotNil(t, s.Storage())

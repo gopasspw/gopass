@@ -380,8 +380,8 @@ func TestLoad(t *testing.T) {
 	td := os.TempDir()
 	gcfg := filepath.Join(td, ".gopass.yml")
 	_ = os.Remove(gcfg)
-	assert.NoError(t, os.Setenv("GOPASS_CONFIG", gcfg))
-	assert.NoError(t, os.Setenv("GOPASS_HOMEDIR", td))
+	t.Setenv("GOPASS_CONFIG", gcfg)
+	t.Setenv("GOPASS_HOMEDIR", td)
 
 	require.NoError(t, os.WriteFile(gcfg, []byte(testConfig), 0o600))
 
@@ -391,7 +391,7 @@ func TestLoad(t *testing.T) {
 
 func TestLoadError(t *testing.T) {
 	gcfg := filepath.Join(os.TempDir(), ".gopass-err.yml")
-	assert.NoError(t, os.Setenv("GOPASS_CONFIG", gcfg))
+	t.Setenv("GOPASS_CONFIG", gcfg)
 
 	_ = os.Remove(gcfg)
 
@@ -409,13 +409,13 @@ func TestLoadError(t *testing.T) {
 	assert.Error(t, err)
 
 	gcfg = filepath.Join(t.TempDir(), "foo", ".gopass.yml")
-	assert.NoError(t, os.Setenv("GOPASS_CONFIG", gcfg))
+	t.Setenv("GOPASS_CONFIG", gcfg)
 	assert.NoError(t, cfg.Save())
 }
 
 func TestDecodeError(t *testing.T) {
 	gcfg := filepath.Join(os.TempDir(), ".gopass-err2.yml")
-	assert.NoError(t, os.Setenv("GOPASS_CONFIG", gcfg))
+	t.Setenv("GOPASS_CONFIG", gcfg)
 
 	_ = os.Remove(gcfg)
 	require.NoError(t, os.WriteFile(gcfg, []byte(testConfig+"\nfoobar: zab\n"), 0o600))
