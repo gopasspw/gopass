@@ -172,7 +172,7 @@ WARNING: This will update the secret content to the latest format. This might be
 	  otp|totp|hotp)
 	      _arguments : "--clip[Copy the time-based token into the clipboard]" "--qr[Write QR code to FILE]" "--password[Only display the token]"
 	      
-	      
+	      _gopass_complete_passwords
 	      ;;
 	  process)
 	      
