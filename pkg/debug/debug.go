@@ -32,6 +32,10 @@ var logFn = doNotLog
 var enabled = initDebug()
 
 func initDebug() bool {
+	if opts.logFile != nil {
+		_ = opts.logFile.Close()
+	}
+
 	if os.Getenv("GOPASS_DEBUG") == "" && os.Getenv("GOPASS_DEBUG_LOG") == "" {
 		logFn = doNotLog
 
@@ -250,13 +254,4 @@ func doLog(offset int, f string, args ...any) {
 // IsEnabled returns true if debug logging was enabled.
 func IsEnabled() bool {
 	return enabled
-}
-
-// CloseLogfile closes the GOPASS_DEBUG_LOG file.
-func CloseLogfile() error {
-	if opts.logFile == nil {
-		return nil
-	}
-
-	return opts.logFile.Close()
 }

@@ -48,7 +48,6 @@ func TestDebug(t *testing.T) {
 	td := t.TempDir()
 	t.Cleanup(func() {
 		initDebug()
-		require.NoError(t, CloseLogfile())
 	})
 
 	fn := filepath.Join(td, "gopass.log")
@@ -75,7 +74,6 @@ func TestDebugSecret(t *testing.T) {
 	td := t.TempDir()
 	t.Cleanup(func() {
 		initDebug()
-		require.NoError(t, CloseLogfile())
 	})
 
 	fn := filepath.Join(td, "gopass.log")
@@ -102,7 +100,6 @@ func TestDebugFilter(t *testing.T) {
 	td := t.TempDir()
 	t.Cleanup(func() {
 		initDebug()
-		require.NoError(t, CloseLogfile())
 	})
 
 	fn := filepath.Join(td, "gopass.log")
