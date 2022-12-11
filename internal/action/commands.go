@@ -712,10 +712,6 @@ func (s *Action) GetCommands() []*cli.Command {
 							Usage: "Store to operate on",
 						},
 						&cli.StringFlag{
-							Name:  "sign-key",
-							Usage: "GPG Key to sign commits",
-						},
-						&cli.StringFlag{
 							Name:    "name",
 							Aliases: []string{"username"},
 							Usage:   "Git Author Name",
