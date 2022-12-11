@@ -224,20 +224,17 @@ func (s *Action) syncMount(ctx context.Context, mp string) error {
 
 func syncImportKeys(ctx context.Context, sub *leaf.Store, name string) error {
 	// import keys.
-	out.Printf(ctx, "\n   "+color.GreenString("importing missing keys ... "))
 	if err := sub.ImportMissingPublicKeys(ctx); err != nil {
 		out.Errorf(ctx, "Failed to import missing public keys for %q: %s", name, err)
 
 		return err
 	}
-	out.Printf(ctx, color.GreenString("OK"))
 
 	return nil
 }
 
 func syncExportKeys(ctx context.Context, sub *leaf.Store, name string) error {
 	// export keys.
-	out.Printf(ctx, "\n   "+color.GreenString("exporting missing keys ... "))
 	rs, err := sub.GetRecipients(ctx, "")
 	if err != nil {
 		out.Errorf(ctx, "Failed to load recipients for %q: %s", name, err)
@@ -253,8 +250,6 @@ func syncExportKeys(ctx context.Context, sub *leaf.Store, name string) error {
 
 	// only run second push if we did export any keys.
 	if !exported {
-		out.Printf(ctx, color.GreenString("nothing to do"))
-
 		return nil
 	}
 
@@ -263,7 +258,6 @@ func syncExportKeys(ctx context.Context, sub *leaf.Store, name string) error {
 
 		return err
 	}
-	out.Printf(ctx, color.GreenString("OK"))
 
 	return nil
 }
