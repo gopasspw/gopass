@@ -5,8 +5,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"io"
-	"os"
 	"os/exec"
 	"path/filepath"
 	"strconv"
@@ -139,11 +137,6 @@ func (g *Git) captureCmd(ctx context.Context, name string, args ...string) ([]by
 	cmd.Dir = getPathOverride(ctx, g.fs.Path())
 	cmd.Stdout = bufOut
 	cmd.Stderr = bufErr
-
-	if debug.IsEnabled() && ctxutil.IsVerbose(ctx) {
-		cmd.Stdout = io.MultiWriter(bufOut, os.Stdout)
-		cmd.Stderr = io.MultiWriter(bufErr, os.Stderr)
-	}
 
 	debug.Log("store.%s: %s %+v (%s)", name, cmd.Path, cmd.Args, g.fs.Path())
 	err := cmd.Run()
