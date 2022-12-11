@@ -1,5 +1,5 @@
 
-.TH GOPASS "1" "December 2022" "gopass (github.com/gopasspw/gopass) 1.15.0" "User Commands"
+.TH GOPASS "1" "December 2022" "gopass (github.com/gopasspw/gopass) 1.15.1" "User Commands"
 .SH NAME
 gopass - The standard Unix password manager
 .SH SYNOPSIS
@@ -51,9 +51,9 @@ age commands
 Built-in commands for the age backend.
 These allow limited interactions with the gopass specific age identities.
 .SS alias
-Manage domain aliases
+Print domain aliases
 
-Manages domain aliases. Note: this command might change or go away.
+Print defined domain aliases.
 .SS audit
 Decrypt all secrets and scan for weak or leaked passwords
 
@@ -235,7 +235,7 @@ Choose a password generator, use one of: cryptic, memorable, xkcd or external. D
 \fB\-\-lang\fR,
 \fB\-\-xkcdlang\fR,
 \fB\-\-xl\fR,
-Language to generate password from, currently only en (english, default) is supported
+Language to generate password from, currently only en (english, default) or de are supported
 .TP
 \fB\-\-print\fR,
 \fB\-p\fR,
@@ -413,7 +413,7 @@ Do not include characters that could be easily confused with each other, like '1
 \fB\-\-lang\fR,
 \fB\-\-xkcdlang\fR,
 \fB\-\-xl\fR,
-Language to generate password from, currently only en (english, default) is supported
+Language to generate password from, currently only en (english, default) or de are supported
 .TP
 \fB\-\-no-capitalize\fR,
 \fB\-A\fR,
