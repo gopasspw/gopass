@@ -382,6 +382,10 @@ func writeVersionGo(v semver.Version) error {
 }
 
 func isGitClean() bool {
+	if sv := os.Getenv("GOPASS_FORCE_CLEAN"); sv != "" {
+		return true
+	}
+
 	buf, err := exec.Command("git", "diff", "--stat").CombinedOutput()
 	if err != nil {
 		panic(err)
@@ -410,7 +414,20 @@ func gitVersion() (semver.Version, error) {
 		return semver.Version{}, fmt.Errorf("no output")
 	}
 
-	return semver.Parse(strings.TrimPrefix(lines[len(lines)-1], "v"))
+	for i := len(lines); i > 0; i-- {
+		sv := strings.TrimPrefix(lines[i-1], "v")
+		v, err := semver.Parse(sv)
+		if err != nil {
+			continue
+		}
+		if len(v.Pre) > 0 {
+			continue
+		}
+
+		return v, nil
+	}
+
+	return semver.Version{}, fmt.Errorf("no valid version found")
 }
 
 func changelogEntries(since semver.Version) ([]string, error) {
