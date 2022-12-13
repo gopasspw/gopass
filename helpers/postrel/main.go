@@ -26,7 +26,8 @@ import (
 	"time"
 
 	"github.com/blang/semver/v4"
-	"github.com/google/go-github/v33/github"
+	"github.com/google/go-github/v48/github"
+	"github.com/gopasspw/gopass/internal/set"
 	"github.com/gopasspw/gopass/pkg/fsutil"
 	"golang.org/x/oauth2"
 )
@@ -54,6 +55,18 @@ func main() {
 	nextVer := curVer
 	nextVer.IncrementPatch()
 
+	mustCheckEnv()
+
+	ghCl, err := newGHClient(ctx)
+	if err != nil {
+		panic(err)
+	}
+
+	ghCl.fetchDownloadStats(ctx)
+
+	fmt.Println("done")
+	os.Exit(1)
+
 	htmlDir := "../gopasspw.github.io"
 	if h := os.Getenv("GOPASS_HTMLDIR"); h != "" {
 		htmlDir = h
@@ -70,13 +83,6 @@ func main() {
 		fmt.Println("💎🙌 Done (render gopasspw only) 🚀🚀🚀🚀🚀🚀")
 
 		return
-	}
-
-	mustCheckEnv()
-
-	ghCl, err := newGHClient(ctx)
-	if err != nil {
-		panic(err)
 	}
 
 	fmt.Println()
@@ -121,6 +127,24 @@ func mustCheckEnv() {
 	}
 }
 
+type homebrewAnalytics struct {
+	Install struct {
+		Month   map[string]int `json:"30d"`
+		Quarter map[string]int `json:"90d"`
+		Year    map[string]int `json:"365d"`
+	} `json:"install"`
+}
+
+type homebrewFormulaStats struct {
+	Name      string            `json:"name"`
+	Analytics homebrewAnalytics `json:"analytics"`
+}
+
+// TODO fetch homebrew stats from https://formulae.brew.sh/api/formula/gopass.json
+
+// TODO fetch archlinux status from https://pkgstats.archlinux.de/api/packages/gopass
+// TODO fetch Void PopCorn stats
+
 type ghClient struct {
 	client *github.Client
 	org    string
@@ -144,6 +168,75 @@ func newGHClient(ctx context.Context) (*ghClient, error) {
 		org:    "gopasspw",
 		repo:   "gopass",
 	}, nil
+}
+
+func (g *ghClient) fetchDownloadStats(ctx context.Context) error {
+	rs, _, err := g.client.Repositories.ListReleases(ctx, "gopasspw", "gopass", nil)
+	if err != nil {
+		return err
+	}
+
+	var sum uint64
+	// sumByOS := map[string]uint64{}
+	// sumByArch := map[string]uint64{}
+	sumByVersion := map[string]uint64{}
+	sumByDistro := map[string]uint64{}
+	for _, r := range rs {
+		fmt.Printf("Release: %s\n", *r.Name)
+		for _, a := range r.Assets {
+			cnt := uint64(*a.DownloadCount)
+			name := *a.Name
+			if cnt < 1 {
+				continue
+			}
+			if strings.Contains(name, "SHA256SUMS") || strings.Contains("sbom") {
+				continue
+			}
+			fmt.Printf("Assets: %s - Downloads: %d\n", name, cnt)
+
+			sum += cnt
+			name = strings.ReplaceAll(name, "_", "-")
+			name = strings.TrimPrefix(name, "gopass-")
+
+			fmt.Printf("%s\n", name)
+			p := strings.Split(name, "-")
+			if len(p) < 1 {
+				continue
+			}
+			distro := ""
+			if strings.HasSuffix(p[len(p)-1], ".tar.gz") {
+				distro = "tar.gz"
+				p[len(p)-1] = strings.TrimSuffix(p[len(p)-1], ".tar.gz")
+			} else {
+				if i := strings.LastIndex(p[len(p)-1], "."); i > 0 {
+					distro = p[len(p)-1][i+1:]
+					p[len(p)-1] = p[len(p)-1][:i]
+				}
+			}
+			if len(p) > 1 && strings.HasPrefix(p[1], "rc") {
+				p = append(p[:1], p[2:]...)
+			}
+
+			sumByVersion[p[0]] += cnt
+			sumByDistro[distro] += cnt
+
+			fmt.Printf("p: %+v\n", p)
+		}
+	}
+
+	fmt.Printf("Overall count: %d\n", sum)
+	fmt.Println("By Version:")
+	for _, v := range set.SortedKeys(sumByVersion) {
+		c := sumByVersion[v]
+		fmt.Printf("%s - %d\n", v, c)
+	}
+	fmt.Println("By Distro:")
+	for _, d := range set.SortedKeys(sumByDistro) {
+		c := sumByDistro[d]
+		fmt.Printf("%s - %d\n", d, c)
+	}
+
+	return nil
 }
 
 func (g *ghClient) createMilestones(ctx context.Context, v semver.Version) error {
