@@ -100,7 +100,7 @@ func (s *Action) Generate(c *cli.Context) error {
 	}
 
 	// write generated password to store.
-	ctx, err = s.generateSetPassword(ctx, name, key, password, kvps)
+	ctx, err = s.generateSetPassword(ctx, name, key, password, kvps, c.Bool("force-regen"))
 	if err != nil {
 		return err
 	}
@@ -343,7 +343,7 @@ func (s *Action) generatePasswordXKCD(ctx context.Context, c *cli.Context, lengt
 }
 
 // generateSetPassword will update or create a secret.
-func (s *Action) generateSetPassword(ctx context.Context, name, key, password string, kvps map[string]string) (context.Context, error) {
+func (s *Action) generateSetPassword(ctx context.Context, name, key, password string, kvps map[string]string, regen bool) (context.Context, error) {
 	// set a single key in an entry.
 	if key != "" {
 		sec, err := s.Store.Get(ctx, name)
@@ -360,8 +360,9 @@ func (s *Action) generateSetPassword(ctx context.Context, name, key, password st
 		return ctx, nil
 	}
 
-	// replace password in existing secret.
-	if s.Store.Exists(ctx, name) {
+	// replace password in existing secret. we might be asked to skip the
+	// check to enforce possibly re-evaluating templates.
+	if !regen && s.Store.Exists(ctx, name) {
 		ctx, err := s.generateReplaceExisting(ctx, name, key, password, kvps)
 		if err == nil {
 			return ctx, nil
