@@ -21,8 +21,7 @@ type Config struct {
 	readonly bool // do not allow modifying values (even in memory)
 	noWrites bool // do not persist changes to disk (e.g. for tests)
 	raw      strings.Builder
-	// TODO(#2457): support multi-vars
-	vars map[string]string
+	vars     map[string][]string
 }
 
 // Unset deletes a key.
@@ -66,18 +65,26 @@ func (c *Config) Set(key, value string) error {
 	}
 
 	if c.vars == nil {
-		c.vars = make(map[string]string, 16)
+		c.vars = make(map[string][]string, 16)
 	}
 
 	// already present at the same value, no need to rewrite the config
-	if v, found := c.vars[key]; found && v == value {
-		debug.Log("key %q with value %q already present. Not re-writing.", key, value)
+	if vs, found := c.vars[key]; found {
+		for _, v := range vs {
+			if v == value {
+				debug.Log("key %q with value %q already present. Not re-writing.", key, value)
 
-		return nil
+				return nil
+			}
+		}
 	}
 
-	_, present := c.vars[key]
-	c.vars[key] = value
+	vs, present := c.vars[key]
+	if vs == nil {
+		vs = make([]string, 1)
+	}
+	vs[0] = value
+	c.vars[key] = vs
 
 	debug.Log("set %q to %q", key, value)
 
@@ -309,11 +316,11 @@ func parseConfig(in io.Reader, key, value string, cb parseFunc) []string {
 func NewFromMap(data map[string]string) *Config {
 	c := &Config{
 		readonly: true,
-		vars:     make(map[string]string, len(data)),
+		vars:     make(map[string][]string, len(data)),
 	}
 
 	for k, v := range data {
-		c.vars[k] = v
+		c.vars[k] = []string{v}
 	}
 
 	return c
@@ -337,11 +344,11 @@ func LoadConfig(fn string) (*Config, error) {
 // Invalid configs will be silently rejceted.
 func ParseConfig(r io.Reader) *Config {
 	c := &Config{
-		vars: make(map[string]string, 42),
+		vars: make(map[string][]string, 42),
 	}
 
 	lines := parseConfig(r, "", "", func(fk, k, v, comment string) (string, bool) {
-		c.vars[fk] = v
+		c.vars[fk] = append(c.vars[fk], v)
 
 		return fmt.Sprintf(keyValueTpl, k, v, comment), false
 	})
@@ -369,7 +376,7 @@ func LoadConfigFromEnv(envPrefix string) *Config {
 		}
 	}
 
-	c.vars = make(map[string]string, count)
+	c.vars = make(map[string][]string, count)
 
 	for i := 0; i < count; i++ {
 		keyVar := fmt.Sprintf("%s%d", envPrefix+"_CONFIG_KEY_", i)
@@ -384,7 +391,7 @@ func LoadConfigFromEnv(envPrefix string) *Config {
 			}
 		}
 
-		c.vars[key] = value
+		c.vars[key] = append(c.vars[key], value)
 		debug.Log("added %s from env", key)
 	}
 

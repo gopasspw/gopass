@@ -41,7 +41,7 @@ func TestSubsection(t *testing.T) {
 	c := ParseConfig(strings.NewReader(in))
 	c.noWrites = true
 
-	assert.Equal(t, c.vars["aliases.subsection with spaces.foo"], "bar")
+	assert.Equal(t, []string{"bar"}, c.vars["aliases.subsection with spaces.foo"])
 }
 
 func TestParseSection(t *testing.T) {
@@ -184,7 +184,7 @@ func TestNewFromMap(t *testing.T) {
 
 	cfg := NewFromMap(tc)
 	for k, v := range tc {
-		assert.Equal(t, v, cfg.vars[k])
+		assert.Equal(t, []string{v}, cfg.vars[k])
 	}
 
 	assert.True(t, cfg.IsSet("core.foo"))
@@ -206,9 +206,9 @@ func TestLoadConfig(t *testing.T) {
 	cfg, err := LoadConfig(fn)
 	require.NoError(t, err)
 
-	assert.Equal(t, "7", cfg.vars["core.int"])
-	assert.Equal(t, "foo", cfg.vars["core.string"])
-	assert.Equal(t, "false", cfg.vars["core.bar"])
+	assert.Equal(t, []string{"7"}, cfg.vars["core.int"])
+	assert.Equal(t, []string{"foo"}, cfg.vars["core.string"])
+	assert.Equal(t, []string{"false"}, cfg.vars["core.bar"])
 }
 
 func TestLoadFromEnv(t *testing.T) {
@@ -231,6 +231,6 @@ func TestLoadFromEnv(t *testing.T) {
 
 	cfg := LoadConfigFromEnv(prefix)
 	for k, v := range tc {
-		assert.Equal(t, v, cfg.vars[k])
+		assert.Equal(t, []string{v}, cfg.vars[k])
 	}
 }

@@ -298,9 +298,9 @@ func TestGopass(t *testing.T) {
 	assert.Equal(t, "false", c.Get("core.pager"))
 	assert.Equal(t, "true", c.Get("core.notifications"))
 	assert.Equal(t, "false", c.Get("core.showsafecontent"))
-	assert.Equal(t, "foo.it", c.Get("domain-alias.foo.com.insteadOf"))
+	assert.Equal(t, "foo.de", c.Get("domain-alias.foo.com.insteadOf"))
 	// TODO: support multivars
-	// foo.de should be part of a multi-var get
+	// foo.de and foo.it should be part of a multi-var get
 
 	assert.Equal(t, "/home/johndoe/.password-store", c.Get("mounts.path"))
 	assert.Equal(t, "/home/johndoe/.password-store-foo-sub", c.Get("mounts.foo/sub.path"))
@@ -430,7 +430,7 @@ func TestSetEmptyConfig(t *testing.T) {
 	}
 	assert.Error(t, c.Set("foobar", "baz"))
 	assert.NoError(t, c.Set("foo.bar", "baz"))
-	assert.Equal(t, "baz", c.vars["foo.bar"])
+	assert.Equal(t, []string{"baz"}, c.vars["foo.bar"])
 	buf, err := os.ReadFile(c.path)
 	require.NoError(t, err)
 	assert.Equal(t, "[foo]\n\tbar = baz\n", string(buf))
