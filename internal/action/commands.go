@@ -403,6 +403,11 @@ func (s *Action) GetCommands() []*cli.Command {
 					Name:  "strict",
 					Usage: "Require strict character class rules",
 				},
+				&cli.BoolFlag{
+					Name:    "force-regen",
+					Aliases: []string{"t"},
+					Usage:   "Force full re-generation, incl. evaluation of templates. Will overwrite the entire secret!",
+				},
 				&cli.StringFlag{
 					Name:    "sep",
 					Aliases: []string{"xkcdsep", "xs"},
