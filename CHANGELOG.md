@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.15.2 / 2022-12-18
+
+* [BUGFIX] [gitconfig] Properly parse Key-Value pairs with (#2482, #2479)
+* [ENHANCEMENT] Add --force-regen flag to generate (#2475, #2474)
+* [ENHANCEMENT] Add recipients hash checking. (#2481, #2478)
+
 ## 1.15.1 / 2022-12-11
 
 * [BUGFIX] Fix domain alias lookup (#2455, #2453)

@@ -1,5 +1,5 @@
 
-.TH GOPASS "1" "December 2022" "gopass (github.com/gopasspw/gopass) 1.15.1" "User Commands"
+.TH GOPASS "1" "December 2022" "gopass (github.com/gopasspw/gopass) 1.15.2" "User Commands"
 .SH NAME
 gopass - The standard Unix password manager
 .SH SYNOPSIS
@@ -182,10 +182,6 @@ This command will first attempt a simple pattern match on the name of the secret
 
 .B Flags
 .TP
-\fB\-\-clip\fR,
-\fB\-c\fR,
-Copy the password into the clipboard
-.TP
 \fB\-\-unsafe\fR,
 \fB\-u\fR,
 \fB\-\-force\fR,
@@ -200,7 +196,6 @@ Check the integrity of the given sub-store or all stores if none are specified. 
 .TP
 \fB\-\-decrypt\fR,
 Decrypt and reencryt during fsck.
-WARNING: This will update the secret content to the latest format. This might be incompatible with other implementations. Use with caution!
 .SS fscopy
 Copy files from or to the password store
 
@@ -227,6 +222,10 @@ Open secret for editing after generating a password
 \fB\-\-force\fR,
 \fB\-f\fR,
 Force to overwrite existing password
+.TP
+\fB\-\-force-regen\fR,
+\fB\-t\fR,
+Force full re-generation, incl. evaluation of templates. Will overwrite the entire secret!
 .TP
 \fB\-\-generator\fR,
 \fB\-g\fR,
@@ -447,6 +446,11 @@ If the password store is a git repository, execute a git command specified by gi
 Edit recipient permissions
 
 This command displays all existing recipients for all mounted stores. The subcommands allow adding or removing recipients.
+
+.B Flags
+.TP
+\fB\-\-pretty\fR,
+Pretty print recipients
 .SS setup
 Initialize a new password store
 
@@ -553,7 +557,7 @@ This command checks for gopass updates at GitHub and automatically downloads and
 .SS version
 Display version
 
-This command displays version and build time information along with version information of important external commands. Please provide the output when reporting issues.
+This command displays version and build time information.
 
 .SH "REPORTING BUGS"
 Report bugs to <https://github.com/gopasspw/gopass/issues/new>
