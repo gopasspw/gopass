@@ -13,3 +13,12 @@ func Filter[K comparable](in []K, r ...K) []K {
 
 	return out
 }
+
+// Contains returns true if e is contained in the input list.
+func Contains[K comparable](in []K, e K) bool {
+	rs := Map(in)
+
+	_, found := rs[e]
+
+	return found
+}

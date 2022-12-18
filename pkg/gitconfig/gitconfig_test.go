@@ -341,6 +341,17 @@ func TestParseComplex(t *testing.T) {
 	assert.Equal(t, "ssh -oControlMaster=auto -oControlPersist=600 -oControlPath=/tmp/.ssh-%C", c.vars["core.sshCommand"])
 }
 
+func TestParseDocs(t *testing.T) {
+	t.Parallel()
+
+	c := ParseConfig(strings.NewReader(configSampleComplex))
+
+	// TODO(#2479) - fix parsing
+	t.Skip("TODO - broken")
+
+	assert.Equal(t, "ssh -oControlMaster=auto -oControlPersist=600 -oControlPath=/tmp/.ssh-%C", c.vars["core.sshCommand"])
+}
+
 func TestGitBinary(t *testing.T) {
 	t.Skip("not ready, yet") // TODO(gitconfig) make tests pass
 

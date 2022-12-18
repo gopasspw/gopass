@@ -203,7 +203,7 @@ _gopass () {
 	      "remove:Remove any number of Recipients from any store"
 	      )
 	      _describe -t commands "gopass recipients" subcommands
-	      
+	      _arguments : "--pretty[Pretty print recipients]"
 	      
 	      
 	      ;;
