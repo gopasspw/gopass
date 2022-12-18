@@ -33,7 +33,7 @@ An external editor is required to use `gopass edit`.
 [![homebrew version](https://img.shields.io/homebrew/v/gopass)](https://github.com/Homebrew/homebrew-core/blob/master/Formula/gopass.rb)
 
 ```shell
-brew install act
+brew install gopass
 ```
 
 ### Debian (Ubuntu, Debian, Raspbian, ...)
