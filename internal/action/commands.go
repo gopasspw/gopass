@@ -756,6 +756,13 @@ func (s *Action) GetCommands() []*cli.Command {
 				"The subcommands allow adding or removing recipients.",
 			Before: s.IsInitialized,
 			Action: s.RecipientsPrint,
+			Flags: []cli.Flag{
+				&cli.BoolFlag{
+					Name:  "pretty",
+					Usage: "Pretty print recipients",
+					Value: true,
+				},
+			},
 			Subcommands: []*cli.Command{
 				{
 					Name:    "ack",

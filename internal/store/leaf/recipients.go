@@ -38,6 +38,9 @@ func (s *Store) Recipients(ctx context.Context) []string {
 }
 
 // RecipientsTree returns a mapping of secrets to recipients.
+// Note: Usually that is one set of recipients per store, but we
+// offer limited support of different recipients per sub-directory
+// so this is why we are here.
 func (s *Store) RecipientsTree(ctx context.Context) map[string][]string {
 	idfs := s.idFiles(ctx)
 	out := make(map[string][]string, len(idfs))
@@ -115,7 +118,7 @@ func (s *Store) SaveRecipients(ctx context.Context, ack bool) error {
 	return s.saveRecipients(ctx, rs, "Save Recipients")
 }
 
-// SetRecipients will update the stored recipients and the associated checksum.
+// SetRecipients will update the stored recipients.
 func (s *Store) SetRecipients(ctx context.Context, rs *recipients.Recipients) error {
 	return s.saveRecipients(ctx, rs, "Set Recipients")
 }
@@ -123,12 +126,7 @@ func (s *Store) SetRecipients(ctx context.Context, rs *recipients.Recipients) er
 // RemoveRecipient will remove the given recipient from the store
 // but if this key is not available on this machine we
 // just try to remove it literally.
-func (s *Store) RemoveRecipient(ctx context.Context, id string) error {
-	keys, err := s.crypto.FindRecipients(ctx, id)
-	if err != nil {
-		out.Warningf(ctx, "Warning: Failed to get GPG Key Info for %s: %s", id, err)
-	}
-
+func (s *Store) RemoveRecipient(ctx context.Context, key string) error {
 	rs, err := s.GetRecipients(ctx, "")
 	if err != nil {
 		return fmt.Errorf("failed to read recipient list: %w", err)
@@ -139,7 +137,7 @@ RECIPIENTS:
 	for _, k := range rs.IDs() { //nolint:whitespace
 
 		// First lets try a simple match of the stored ids
-		if k == id {
+		if k == key {
 			debug.Log("removing recipient based on id match %s", k)
 			if rs.Remove(k) {
 				removed++
@@ -158,25 +156,23 @@ RECIPIENTS:
 
 		// if the key is available locally we can also match the id against
 		// the fingerprint or failing that we can try against the recipientIds
-		for _, key := range keys {
-			if strings.HasSuffix(key, k) {
-				debug.Log("removing recipient based on id suffix match: %s %s", key, k)
+		if strings.HasSuffix(key, k) {
+			debug.Log("removing recipient based on id suffix match: %s %s", key, k)
+			if rs.Remove(k) {
+				removed++
+			}
+
+			continue RECIPIENTS
+		}
+
+		for _, recipientID := range recipientIds {
+			if recipientID == key {
+				debug.Log("removing recipient based on recipient id match %s", recipientID)
 				if rs.Remove(k) {
 					removed++
 				}
 
 				continue RECIPIENTS
-			}
-
-			for _, recipientID := range recipientIds {
-				if recipientID == key {
-					debug.Log("removing recipient based on recipient id match %s", recipientID)
-					if rs.Remove(k) {
-						removed++
-					}
-
-					continue RECIPIENTS
-				}
 			}
 		}
 	}
@@ -185,11 +181,11 @@ RECIPIENTS:
 		return fmt.Errorf("recipient not in store")
 	}
 
-	if err := s.saveRecipients(ctx, rs, "Removed Recipient "+id); err != nil {
+	if err := s.saveRecipients(ctx, rs, "Removed Recipient "+key); err != nil {
 		return fmt.Errorf("failed to save recipients: %w", err)
 	}
 
-	return s.reencrypt(ctxutil.WithCommitMessage(ctx, "Removed Recipient "+id))
+	return s.reencrypt(ctxutil.WithCommitMessage(ctx, "Removed Recipient "+key))
 }
 
 func (s *Store) ensureOurKeyID(ctx context.Context, rs []string) []string {

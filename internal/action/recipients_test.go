@@ -117,7 +117,7 @@ func TestRecipientsGpg(t *testing.T) {
 
 		hint := `Hint: run 'gopass sync' to import any missing public keys`
 		want := `gopass
-└── 0x82EBD945BE73F104`
+└── BE73F104`
 
 		assert.Contains(t, buf.String(), hint)
 		assert.Contains(t, buf.String(), want)
@@ -126,7 +126,7 @@ func TestRecipientsGpg(t *testing.T) {
 	t.Run("complete recipients", func(t *testing.T) {
 		defer buf.Reset()
 		act.RecipientsComplete(gptest.CliCtx(ctx, t))
-		want := "0x82EBD945BE73F104\n"
+		want := "BE73F104\n"
 		assert.Equal(t, want, buf.String())
 	})
 
@@ -162,7 +162,16 @@ func TestRecipientsGpg(t *testing.T) {
 
 	t.Run("remove recipient 0xFEEDFEED", func(t *testing.T) {
 		defer buf.Reset()
-		assert.Error(t, act.RecipientsRemove(gptest.CliCtx(ctx, t, "0xFEEDFEED")))
+		assert.NoError(t, act.RecipientsRemove(gptest.CliCtx(ctx, t, "0xFEEDFEED")))
+	})
+
+	t.Run("add recipient 0xFEEDFEED", func(t *testing.T) {
+		defer buf.Reset()
+		assert.NoError(t, act.RecipientsAdd(gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true"}, "0xFEEDFEED")))
+	})
+
+	t.Run("remove recipient 0xFEEDFEED (force)", func(t *testing.T) {
+		defer buf.Reset()
 		assert.NoError(t, act.RecipientsRemove(gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true"}, "0xFEEDFEED")))
 	})
 }

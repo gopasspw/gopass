@@ -36,20 +36,17 @@ func (r *Store) RemoveRecipient(ctx context.Context, store, rec string) error {
 
 func (r *Store) addRecipient(ctx context.Context, prefix string, root *tree.Root, recp string, pretty bool) error {
 	sub, _ := r.getStore(prefix)
-	key := fmt.Sprintf("%s (missing public key)", recp)
+	key := recp
 
-	if v := sub.Crypto().FormatKey(ctx, recp, ""); v != "" {
-		key = v
-	}
+	if pretty {
+		key = fmt.Sprintf("%s (missing public key)", recp)
 
-	kl, err := sub.Crypto().FindRecipients(ctx, recp)
-	if err == nil {
-		if len(kl) > 0 {
-			if pretty {
-				key = sub.Crypto().FormatKey(ctx, kl[0], "")
-			} else {
-				key = kl[0]
+		if v := sub.Crypto().FormatKey(ctx, recp, ""); v != "" {
+			key = v
+			if !strings.HasPrefix(v, recp) {
+				key = recp + " => " + v
 			}
+			debug.Log("formated (FormatKey) %s as %s", recp, key)
 		}
 	}
 
@@ -57,6 +54,8 @@ func (r *Store) addRecipient(ctx context.Context, prefix string, root *tree.Root
 	// A proper fix should change tree.AddFile to take a path and file name
 	// (which could then contain slashes).
 	key = strings.ReplaceAll(key, "/", "")
+
+	debug.Log("adding %q to the tree", key)
 
 	return root.AddFile(prefix+key, "gopass/recipient")
 }
@@ -92,6 +91,8 @@ func (r *Store) RecipientsTree(ctx context.Context, pretty bool) (*tree.Root, er
 		if name != "" {
 			name += "/"
 		}
+
+		debug.Log("Store/Secret: %q -> Recipients: %v", name, recps)
 
 		for _, recp := range recps {
 			if err := r.addRecipient(ctx, name, root, recp, pretty); err != nil {
