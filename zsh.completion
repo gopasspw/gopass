@@ -88,13 +88,12 @@ _gopass () {
 	      
 	      ;;
 	  find|search)
-	      _arguments : "--clip[Copy the password into the clipboard]" "--unsafe[In the case of an exact match, display the password even if safecontent is enabled]"
+	      _arguments : "--unsafe[In the case of an exact match, display the password even if safecontent is enabled]"
 	      
 	      
 	      ;;
 	  fsck)
-	      _arguments : "--decrypt[Decrypt and reencryt during fsck.
-WARNING: This will update the secret content to the latest format. This might be incompatible with other implementations. Use with caution!]"
+	      _arguments : "--decrypt[Decrypt and reencryt during fsck.]"
 	      
 	      
 	      ;;
@@ -109,7 +108,7 @@ WARNING: This will update the secret content to the latest format. This might be
 	      
 	      ;;
 	  generate)
-	      _arguments : "--clip[Copy the generated password to the clipboard]" "--print[Print the generated password to the terminal]" "--force[Force to overwrite existing password]" "--edit[Open secret for editing after generating a password]" "--symbols[Use symbols in the password]" "--generator[Choose a password generator, use one of: cryptic, memorable, xkcd or external. Default: cryptic]" "--strict[Require strict character class rules]" "--sep[Word separator for generated passwords. If no separator is specified, the words are combined without spaces/separator and the first character of words is capitalised.]" "--lang[Language to generate password from, currently only en (english, default) or de are supported]"
+	      _arguments : "--clip[Copy the generated password to the clipboard]" "--print[Print the generated password to the terminal]" "--force[Force to overwrite existing password]" "--edit[Open secret for editing after generating a password]" "--symbols[Use symbols in the password]" "--generator[Choose a password generator, use one of: cryptic, memorable, xkcd or external. Default: cryptic]" "--strict[Require strict character class rules]" "--force-regen[Force full re-generation, incl. evaluation of templates. Will overwrite the entire secret!]" "--sep[Word separator for generated passwords. If no separator is specified, the words are combined without spaces/separator and the first character of words is capitalised.]" "--lang[Language to generate password from, currently only en (english, default) or de are supported]"
 	      _gopass_complete_folders
 	      _gopass_complete_passwords
 	      ;;
@@ -158,6 +157,7 @@ WARNING: This will update the secret content to the latest format. This might be
 	      subcommands=(
 	      "add:Mount a password store"
 	      "remove:Umount an mounted password store"
+	      "versions:Display mount provider versions"
 	      )
 	      _describe -t commands "gopass mounts" subcommands
 	      
@@ -198,6 +198,7 @@ WARNING: This will update the secret content to the latest format. This might be
 	  recipients)
 	      local -a subcommands
 	      subcommands=(
+	      "ack:Update recipients.hash"
 	      "add:Add any number of Recipients to any store"
 	      "remove:Remove any number of Recipients from any store"
 	      )

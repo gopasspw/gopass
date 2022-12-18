@@ -23,11 +23,15 @@ const (
 	oldKeyDir = ".gpg-keys"
 )
 
+// ErrInvalidHash indicates an outdated value of `recipients.hash`.
+var ErrInvalidHash = fmt.Errorf("recipients.hash invalid")
+
 // Recipients returns the list of recipients of this store.
 func (s *Store) Recipients(ctx context.Context) []string {
 	rs, err := s.GetRecipients(ctx, "")
 	if err != nil {
 		out.Errorf(ctx, "failed to read recipient list: %s", err)
+		out.Notice(ctx, "Please review the recipients list and confirm any changes with 'gopass recipients ack'")
 	}
 
 	return rs.IDs()
@@ -98,11 +102,14 @@ func (s *Store) AddRecipient(ctx context.Context, id string) error {
 	return s.reencrypt(ctxutil.WithCommitMessage(ctx, commitMsg))
 }
 
-// SaveRecipients persists the current recipients on disk.
-func (s *Store) SaveRecipients(ctx context.Context) error {
+// SaveRecipients persists the current recipients on disk. Setting ack to true
+// will acknowledge an invalid hash and allow updating it.
+func (s *Store) SaveRecipients(ctx context.Context, ack bool) error {
 	rs, err := s.GetRecipients(ctx, "")
 	if err != nil {
-		return fmt.Errorf("failed to get recipients: %w", err)
+		if !errors.Is(err, ErrInvalidHash) || (errors.Is(err, ErrInvalidHash) && !ack) {
+			return fmt.Errorf("failed to get recipients: %w", err)
+		}
 	}
 
 	return s.saveRecipients(ctx, rs, "Save Recipients")
@@ -229,7 +236,21 @@ func (s *Store) getRecipients(ctx context.Context, idf string) (*recipients.Reci
 		return recipients.New(), fmt.Errorf("failed to get recipients from %q: %w", idf, err)
 	}
 
-	return recipients.Unmarshal(buf), nil
+	rs := recipients.Unmarshal(buf)
+
+	// check recipients hash
+	if !config.Bool(ctx, "recipients.check") {
+		return rs, nil
+	}
+
+	cfg := config.FromContext(ctx)
+	cfgHash := cfg.GetM(s.alias, "recipients.hash")
+	rsHash := rs.Hash()
+	if rsHash != cfgHash {
+		return rs, fmt.Errorf("Config: %s - Recipients file: %s: %w", cfgHash, rsHash, ErrInvalidHash)
+	}
+
+	return rs, nil
 }
 
 type keyExporter interface {
@@ -340,6 +361,7 @@ func (s *Store) UpdateExportedPublicKeys(ctx context.Context, rs []string) (bool
 type recipientMarshaler interface {
 	IDs() []string
 	Marshal() []byte
+	Hash() string
 }
 
 // Save all Recipients in memory to the recipients file on disk.
@@ -368,6 +390,11 @@ func (s *Store) saveRecipients(ctx context.Context, rs recipientMarshaler, msg s
 		if !errors.Is(err, store.ErrGitNotInit) && !errors.Is(err, store.ErrGitNothingToCommit) {
 			return fmt.Errorf("failed to commit changes to git: %w", err)
 		}
+	}
+
+	// save recipients hash
+	if err := config.FromContext(ctx).Set(s.alias, "recipients.hash", rs.Hash()); err != nil {
+		out.Errorf(ctx, "Failed to update recipients.hash: %s", err)
 	}
 
 	// save all recipients public keys to the repo

@@ -66,6 +66,13 @@ func (s *Action) RecipientsComplete(c *cli.Context) {
 	}
 }
 
+// RecipientsAck updates `recipients.hash`.
+func (s *Action) RecipientsAck(c *cli.Context) error {
+	ctx := ctxutil.WithGlobalFlags(c)
+
+	return s.Store.SaveRecipients(ctxutil.WithHidden(ctx, true), true)
+}
+
 // RecipientsAdd adds new recipients.
 func (s *Action) RecipientsAdd(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)

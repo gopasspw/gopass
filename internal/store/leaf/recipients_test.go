@@ -182,7 +182,7 @@ func TestAddRecipient(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, append(genRecs, newRecp), rs.IDs())
 
-	err = s.SaveRecipients(ctx)
+	err = s.SaveRecipients(ctx, false)
 	assert.NoError(t, err)
 }
 

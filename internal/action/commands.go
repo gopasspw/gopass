@@ -758,6 +758,23 @@ func (s *Action) GetCommands() []*cli.Command {
 			Action: s.RecipientsPrint,
 			Subcommands: []*cli.Command{
 				{
+					Name:    "ack",
+					Aliases: []string{"acknowledge"},
+					Usage:   "Update recipients.hash",
+					Description: "" +
+						"This command updates the value of recipients.hash. " +
+						"This should only be run after manually validating any " +
+						"changes to the recipients list. ",
+					Before: s.IsInitialized,
+					Action: s.RecipientsAck,
+					Flags: []cli.Flag{
+						&cli.StringFlag{
+							Name:  "store",
+							Usage: "Store to operate on",
+						},
+					},
+				},
+				{
 					Name:    "add",
 					Aliases: []string{"authorize"},
 					Usage:   "Add any number of Recipients to any store",
