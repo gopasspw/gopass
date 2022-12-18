@@ -9,6 +9,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/exp/maps"
 )
 
 // https://mirrors.edge.kernel.org/pub/software/scm/git/docs/git-config.html#EXAMPLES
@@ -168,6 +169,7 @@ var configSampleComplex = `
   autocrlf = input
   protectHFS = true
   protectNTFS = true
+  sshCommand = ssh -oControlMaster=auto -oControlPersist=600 -oControlPath=/tmp/.ssh-%C
 
 [receive]
   fsckObjects = true
@@ -308,7 +310,7 @@ func TestGopass(t *testing.T) {
 	t.Logf("Vars:\n%+v\n", c.global.vars)
 }
 
-func TestParse(t *testing.T) {
+func TestParseSimple(t *testing.T) {
 	t.Parallel()
 
 	c := ParseConfig(strings.NewReader(configSampleDocs))
@@ -316,6 +318,27 @@ func TestParse(t *testing.T) {
 	for k, v := range c.vars {
 		t.Logf("%s => %s\n", k, v)
 	}
+
+	want := map[string]string{
+		"core.filemode": "false",
+		"diff.external": "/usr/local/bin/diff-wrapper",
+		"diff.renames":  "true",
+		"core.gitproxy": "default-proxy",
+		// TODO(gitconfig): "http.sslVerify": "", // not supported, yet
+		"http.https://weak.example.com.sslVerify":  "false",
+		"http.https://weak.example.com.cookieFile": "/tmp/cookie.txt",
+	}
+
+	assert.Equal(t, want, c.vars)
+}
+
+func TestParseComplex(t *testing.T) {
+	t.Parallel()
+
+	c := ParseConfig(strings.NewReader(configSampleComplex))
+
+	assert.Contains(t, maps.Keys(c.vars), "core.sshCommand")
+	assert.Equal(t, "ssh -oControlMaster=auto -oControlPersist=600 -oControlPath=/tmp/.ssh-%C", c.vars["core.sshCommand"])
 }
 
 func TestGitBinary(t *testing.T) {
