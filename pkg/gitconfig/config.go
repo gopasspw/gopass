@@ -256,9 +256,14 @@ func parseConfig(in io.Reader, key, value string, cb parseFunc) []string {
 			continue
 		}
 
-		kvp := strings.Split(line, "=")
-		trim(kvp)
-		if len(kvp) < 2 {
+		// TODO(gitconfig) This will skip over valid entries like this one:
+		// [core]
+		//  sslVerify
+		// These are odd but we should still support them.
+		k, v, found := strings.Cut(line, " = ")
+		if !found {
+			debug.Log("no valid KV-pair on line: %q", line)
+
 			continue
 		}
 
@@ -266,12 +271,12 @@ func parseConfig(in io.Reader, key, value string, cb parseFunc) []string {
 		if subsection != "" {
 			fKey += subsection + "."
 		}
-		fKey += kvp[0]
+		fKey += k
 		if key == "" {
-			wKey = kvp[0]
+			wKey = k
 		}
 
-		oValue := kvp[1]
+		oValue := v
 		comment := ""
 
 		if strings.ContainsAny(oValue, "#;") {
