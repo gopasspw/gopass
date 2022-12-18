@@ -98,3 +98,5 @@ This is a list of available options:
 | `generate.symbols`     | `bool`   | Include symbols in generated password. | `false` |
 | `generate.length`      | `int`    | Default lenght for generated password. | `24` |
 | `generate.generator`   | `string` | Default password generator. `xkcd`, `memorable`, `external` or `` | `` |
+| `recipients.check`     | `bool`   | Check recipients hash. | `false` |
+| `recipients.hash`      | `string` | SHA256 hash of the recipients file. | `` |

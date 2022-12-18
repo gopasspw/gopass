@@ -74,14 +74,14 @@ func (r *Store) ImportMissingPublicKeys(ctx context.Context) error {
 
 // SaveRecipients persists the recipients to disk. Only useful if persist keys is
 // enabled.
-func (r *Store) SaveRecipients(ctx context.Context) error {
+func (r *Store) SaveRecipients(ctx context.Context, ack bool) error {
 	for alias, sub := range r.mounts {
-		if err := sub.SaveRecipients(ctx); err != nil {
+		if err := sub.SaveRecipients(ctx, ack); err != nil {
 			out.Errorf(ctx, "[%s] Failed to save recipients: %s", alias, err)
 		}
 	}
 
-	return r.store.SaveRecipients(ctx)
+	return r.store.SaveRecipients(ctx, ack)
 }
 
 // RecipientsTree returns a tree view of all stores' recipients.
