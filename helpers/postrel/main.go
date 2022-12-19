@@ -392,6 +392,12 @@ func (u *inUpdater) doUpdate(ctx context.Context, dir string) error {
 	}
 	fmt.Printf("✅ [%s] synced .golangci.yml.\n", dir)
 
+	// update VERSION
+	if err := ioutil.WriteFile(filepath.Join(path, "VERSION"), []byte(u.v.String()), 0o644); err != nil {
+		return err
+	}
+	fmt.Printf("✅ [%s] wrote VERSION.\n", dir)
+
 	// git commit
 	if err := gitCommitAndPush(path, tag); err != nil {
 		return err
