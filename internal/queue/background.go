@@ -29,7 +29,8 @@ type Queuer interface {
 	Idle(time.Duration) error
 }
 
-// WithQueue adds the given queue to the context.
+// WithQueue adds the given queue to the context. Add a nil
+// queue to disable queuing in this context.
 func WithQueue(ctx context.Context, q *Queue) context.Context {
 	return context.WithValue(ctx, ctxKeyQueue, q)
 }
@@ -37,7 +38,7 @@ func WithQueue(ctx context.Context, q *Queue) context.Context {
 // GetQueue returns an existing queue from the context or
 // returns a noop one.
 func GetQueue(ctx context.Context) Queuer {
-	if q, ok := ctx.Value(ctxKeyQueue).(*Queue); ok {
+	if q, ok := ctx.Value(ctxKeyQueue).(*Queue); ok && q != nil {
 		return q
 	}
 
