@@ -71,6 +71,27 @@ func (s *Store) RecipientsTree(ctx context.Context) map[string][]string {
 	return out
 }
 
+// CheckRecipients makes sure all existing recipients are valid.
+func (s *Store) CheckRecipients(ctx context.Context) error {
+	rs, err := s.GetRecipients(ctx, "")
+	if err != nil {
+		return fmt.Errorf("failed to read recipient list: %w", err)
+	}
+
+	for _, k := range rs.IDs() {
+		validKeys, err := s.crypto.FindRecipients(ctx, k)
+		if err != nil {
+			return fmt.Errorf("Warning: Failed to get GPG Key Info for %s: %w", k, err)
+		}
+
+		if len(validKeys) < 1 {
+			return fmt.Errorf("found no valid keys for %s", k)
+		}
+	}
+
+	return nil
+}
+
 // AddRecipient adds a new recipient to the list.
 func (s *Store) AddRecipient(ctx context.Context, id string) error {
 	rs, err := s.GetRecipients(ctx, "")

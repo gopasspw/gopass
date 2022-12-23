@@ -86,6 +86,10 @@ func (s *Action) RecipientsAdd(c *cli.Context) error {
 		store = cui.AskForStore(ctx, s.Store)
 	}
 
+	if err := s.Store.CheckRecipients(ctx, store); err != nil {
+		return exit.Error(exit.Recipients, err, "recipients invalid: %q", err)
+	}
+
 	crypto := s.Store.Crypto(ctx, store)
 
 	// select recipient.
