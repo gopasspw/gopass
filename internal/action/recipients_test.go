@@ -147,7 +147,7 @@ func TestRecipientsGpg(t *testing.T) {
 
 	t.Run("add recipient 0xBEEFFEED", func(t *testing.T) {
 		defer buf.Reset()
-		assert.NoError(t, act.RecipientsAdd(gptest.CliCtx(ctx, t, "0xBEEFFEED")))
+		assert.NoError(t, act.RecipientsAdd(gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true"}, "0xBEEFFEED")))
 	})
 
 	t.Run("remove recipient 0x82EBD945BE73F104", func(t *testing.T) {

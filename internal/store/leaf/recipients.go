@@ -104,7 +104,9 @@ func (s *Store) CheckRecipients(ctx context.Context) error {
 		return fmt.Errorf("failed to read recipient list: %w", err)
 	}
 
-	er := InvalidRecipientsError{}
+	er := InvalidRecipientsError{
+		Invalid: make(map[string]error, len(rs.IDs())),
+	}
 	for _, k := range rs.IDs() {
 		validKeys, err := s.crypto.FindRecipients(ctx, k)
 		if err != nil {
