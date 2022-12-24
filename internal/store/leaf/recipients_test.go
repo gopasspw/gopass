@@ -6,6 +6,7 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"runtime"
 	"sort"
 	"strings"
 	"testing"
@@ -253,6 +254,10 @@ func TestListRecipients(t *testing.T) {
 }
 
 func TestCheckRecipients(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("test setup not supported on Windows")
+	}
+
 	u := gptest.NewGUnitTester(t)
 
 	ctx := context.Background()
