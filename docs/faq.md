@@ -48,6 +48,13 @@ This can be fixed by setting `export TMPDIR=/tmp` (or any other suiteable locati
 
 Old version of `gpg` may fail to decode message encrypted with newer version without any message. The encrypted secret in such case is just empty and gopass will warn you about this. One case of such behaviour we have seen so far is when the encryption key generated with `gpg` version 2.3.x encrypt a password that is then decrypted on `gpg` version 2.2.x (default on Ubuntu 18.04). In this particular case old `gpg` does not understand `AEAD` encryption extension, and it fails without any error.  If it is your case then follw the instructions in listed in #2283.
 
+## Expired recipients
+
+`gopass` will refuse to add new recipients when any invalid (e.g. expired) recipients are present in a password store.
+In such cases manual intervention is required. Expired keys can either be removed or extended. Unknown keys that
+can not be automatically imported need to be obtained and manually imported first. These are restrictions from the underlying
+crypto implementation (GPG) and we can not easily work around these.
+
 ## API Stability
 
 gopass is provided as an CLI program, not as a library. While we try to make the packages usable as libraries we make no guarantees whatsoever with respect to the API stability. The gopass version only reflects changes in the CLI commands.

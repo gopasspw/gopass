@@ -6,6 +6,7 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"runtime"
 	"sort"
 	"strings"
 	"testing"
@@ -16,6 +17,7 @@ import (
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/recipients"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/tests/gptest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -249,4 +251,31 @@ func TestListRecipients(t *testing.T) {
 	assert.Equal(t, genRecs, rs.IDs())
 
 	assert.Equal(t, "0xDEADBEEF", s.OurKeyID(ctx))
+}
+
+func TestCheckRecipients(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("test setup not supported on Windows")
+	}
+
+	u := gptest.NewGUnitTester(t)
+
+	ctx := context.Background()
+	ctx = ctxutil.WithTerminal(ctx, false)
+	ctx = backend.WithCryptoBackend(ctx, backend.GPGCLI)
+
+	obuf := &bytes.Buffer{}
+	out.Stdout = obuf
+
+	defer func() {
+		out.Stdout = os.Stdout
+	}()
+
+	s, err := New(ctx, "", u.StoreDir(""))
+	require.NoError(t, err)
+
+	assert.NoError(t, s.CheckRecipients(ctx))
+
+	u.AddExpiredRecipient()
+	assert.Error(t, s.CheckRecipients(ctx))
 }

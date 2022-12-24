@@ -43,7 +43,7 @@ func TestFsckFunc(t *testing.T) {
 	assert.True(t, HasFsckFunc(WithFsckFunc(ctx, ffunc)))
 }
 
-func TestCheckRecipients(t *testing.T) {
+func TestCheckRecipientsCtx(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()

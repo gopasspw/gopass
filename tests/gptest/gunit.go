@@ -6,9 +6,11 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/ProtonMail/go-crypto/openpgp"
 	"github.com/ProtonMail/go-crypto/openpgp/armor"
+	"github.com/ProtonMail/go-crypto/openpgp/packet"
 	aclip "github.com/atotto/clipboard"
 	"github.com/gopasspw/gopass/tests/can"
 	"github.com/stretchr/testify/assert"
@@ -100,8 +102,7 @@ func (u GUnit) recipients() []byte {
 	return []byte(strings.Join(u.Recipients, "\n"))
 }
 
-// InitStore initializes the test store.
-func (u GUnit) InitStore(name string) error {
+func (u GUnit) writeRecipients(name string) error {
 	dir := u.StoreDir(name)
 	if err := os.MkdirAll(dir, 0o700); err != nil {
 		return fmt.Errorf("failed to create store dir %s: %w", dir, err)
@@ -114,9 +115,20 @@ func (u GUnit) InitStore(name string) error {
 		return fmt.Errorf("failed to write IDFile %s: %w", fn, err)
 	}
 
+	return nil
+}
+
+// InitStore initializes the test store.
+func (u GUnit) InitStore(name string) error {
+	if err := u.writeRecipients(name); err != nil {
+		return fmt.Errorf("failed to write recipients: %w", err)
+	}
+
 	if err := can.WriteTo(u.GPGHome()); err != nil {
 		return err
 	}
+
+	dir := u.StoreDir(name)
 
 	// write embedded public keys to the store so we can import them
 	el := can.EmbeddedKeyRing()
@@ -144,4 +156,43 @@ func (u GUnit) InitStore(name string) error {
 	}
 
 	return nil
+}
+
+func (u *GUnit) AddExpiredRecipient() string {
+	u.t.Helper()
+
+	e, err := openpgp.NewEntity("Expired", "", "expired@example.com", &packet.Config{
+		RSABits: 4096,
+	})
+	require.NoError(u.t, err)
+
+	for _, id := range e.Identities {
+		err := id.SelfSignature.SignUserId(id.UserId.Id, e.PrimaryKey, e.PrivateKey, &packet.Config{
+			SigLifetimeSecs: 1, // we can not use negative or zero here
+		})
+		require.NoError(u.t, err)
+	}
+
+	el := can.EmbeddedKeyRing()
+	el = append(el, e)
+
+	fn := filepath.Join(u.GPGHome(), "pubring.gpg")
+	fh, err := os.Create(fn)
+	require.NoError(u.t, err)
+
+	for _, e := range el {
+		require.NoError(u.t, e.Serialize(fh))
+		// u.t.Logf("wrote %X to %s", e.PrimaryKey.Fingerprint, fn)
+	}
+	require.NoError(u.t, fh.Close())
+
+	// wait for the key to expire
+	time.Sleep(time.Second)
+
+	id := fmt.Sprintf("%X", e.PrimaryKey.Fingerprint)
+	u.Recipients = append(u.Recipients, id)
+
+	require.NoError(u.t, u.writeRecipients(""))
+
+	return id
 }

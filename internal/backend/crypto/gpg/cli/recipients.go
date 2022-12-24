@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"fmt"
 	"os"
 	"os/exec"
 	"strings"
@@ -33,8 +34,11 @@ func (g *GPG) ListRecipients(ctx context.Context) ([]string, error) {
 // FindRecipients searches for the given public keys.
 func (g *GPG) FindRecipients(ctx context.Context, search ...string) ([]string, error) {
 	kl, err := g.listKeys(ctx, "public", search...)
-	if err != nil || kl == nil {
+	if err != nil {
 		return nil, err
+	}
+	if kl == nil {
+		return nil, fmt.Errorf("no keys found for %v", search)
 	}
 
 	recp := kl.UseableKeys(gpg.IsAlwaysTrust(ctx)).Recipients()

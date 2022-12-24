@@ -20,6 +20,14 @@ func (r *Store) ListRecipients(ctx context.Context, store string) []string {
 	return sub.Recipients(ctx)
 }
 
+// CheckRecipients checks all current recipients to make sure that they are
+// valid, e.g. not expired.
+func (r *Store) CheckRecipients(ctx context.Context, store string) error {
+	sub, _ := r.getStore(store)
+
+	return sub.CheckRecipients(ctx)
+}
+
 // AddRecipient adds a single recipient to the given store.
 func (r *Store) AddRecipient(ctx context.Context, store, rec string) error {
 	sub, _ := r.getStore(store)

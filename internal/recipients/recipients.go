@@ -26,6 +26,15 @@ func New() *Recipients {
 	}
 }
 
+// Len returns the number of recipients.
+func (r *Recipients) Len() int {
+	if r == nil {
+		return 0
+	}
+
+	return len(r.r)
+}
+
 // IDs returns the key IDs.
 func (r *Recipients) IDs() []string {
 	res := maps.Keys(r.r)
