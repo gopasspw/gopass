@@ -12,6 +12,7 @@ import (
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/recipients"
+	"github.com/gopasspw/gopass/internal/set"
 	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
@@ -25,6 +26,31 @@ const (
 
 // ErrInvalidHash indicates an outdated value of `recipients.hash`.
 var ErrInvalidHash = fmt.Errorf("recipients.hash invalid")
+
+// InvalidRecipientsError is a custom error type that contains a
+// list of invalid recipients with their check failures.
+type InvalidRecipientsError struct {
+	Invalid map[string]error
+}
+
+func (e InvalidRecipientsError) Error() string {
+	var sb strings.Builder
+
+	sb.WriteString("Invalid Recipients: ")
+	for _, k := range set.SortedKeys(e.Invalid) {
+		sb.WriteString(k)
+		sb.WriteString(": ")
+		sb.WriteString(e.Invalid[k].Error())
+		sb.WriteString(", ")
+	}
+
+	return sb.String()
+}
+
+// IsError returns true if this multi error contains any underlying errors.
+func (e InvalidRecipientsError) IsError() bool {
+	return len(e.Invalid) > 0
+}
 
 // Recipients returns the list of recipients of this store.
 func (s *Store) Recipients(ctx context.Context) []string {
@@ -78,21 +104,28 @@ func (s *Store) CheckRecipients(ctx context.Context) error {
 		return fmt.Errorf("failed to read recipient list: %w", err)
 	}
 
+	er := InvalidRecipientsError{}
 	for _, k := range rs.IDs() {
 		validKeys, err := s.crypto.FindRecipients(ctx, k)
 		if err != nil {
 			debug.Log("no GPG key info (unexpected) for %s: %s", k, err)
+			er.Invalid[k] = err
 
-			return fmt.Errorf("Warning: Failed to get GPG Key Info for %s: %w", k, err)
+			continue
 		}
 
 		if len(validKeys) < 1 {
 			debug.Log("no valid keys (expired?) for %s", k)
+			er.Invalid[k] = fmt.Errorf("no valid keys (expired?)")
 
-			return fmt.Errorf("found no valid keys for %s", k)
+			continue
 		}
 
 		debug.Log("valid keys found for %s", k)
+	}
+
+	if er.IsError() {
+		return er
 	}
 
 	return nil

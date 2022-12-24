@@ -87,6 +87,8 @@ func (s *Action) RecipientsAdd(c *cli.Context) error {
 	}
 
 	if err := s.Store.CheckRecipients(ctx, store); err != nil {
+		out.Errorf(ctx, "%s. Please remove expired keys or extend their validity. See https://go.gopass.pw/faq#expired-recipients", err.Error())
+
 		return exit.Error(exit.Recipients, err, "recipients invalid: %q", err)
 	}
 
