@@ -81,12 +81,18 @@ func (s *Store) CheckRecipients(ctx context.Context) error {
 	for _, k := range rs.IDs() {
 		validKeys, err := s.crypto.FindRecipients(ctx, k)
 		if err != nil {
+			debug.Log("no GPG key info (unexpected) for %s: %s", k, err)
+
 			return fmt.Errorf("Warning: Failed to get GPG Key Info for %s: %w", k, err)
 		}
 
 		if len(validKeys) < 1 {
+			debug.Log("no valid keys (expired?) for %s", k)
+
 			return fmt.Errorf("found no valid keys for %s", k)
 		}
+
+		debug.Log("valid keys found for %s", k)
 	}
 
 	return nil
