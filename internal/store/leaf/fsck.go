@@ -17,6 +17,14 @@ import (
 	"github.com/gopasspw/gopass/pkg/gopass"
 )
 
+// a way for a function to specify how severe of an error it experienced
+type ErrorSeverity int
+const (
+	errsNil ErrorSeverity = iota  // error that forced the function to terminate early
+	errsFatal
+	errsNonFatal
+)
+
 // Fsck checks all entries matching the given prefix.
 func (s *Store) Fsck(ctx context.Context, path string) error {
 	ctx = out.AddPrefix(ctx, "["+s.alias+"] ")
@@ -71,8 +79,8 @@ func (s *Store) fsckLoop(ctx context.Context, path string) error {
 
 	ctx = ctxutil.WithCommitMessage(ctx, "fsck --decrypt to fix recipients and format")
 
-	err_collector := ""
-	err_isfatal := false
+	errcoll := ""
+	errIsFatal := false
 
 	if err := s.fsckUpdatePublicKeys(ctx); err != nil {
 		out.Errorf(ctx, "Failed to update public keys: %s", err)
@@ -89,21 +97,22 @@ func (s *Store) fsckLoop(ctx context.Context, path string) error {
 
 		debug.Log("[%s] Checking %s", path, name)
 
-		msg,err := s.fsckCheckEntry(ctx, name)
+		msg,errs,err := s.fsckCheckEntry(ctx, name)
 		if err != nil {
-			err_collector += fmt.Errorf("failed to check %q:\n    %w\n", name, err).Error()
-			if msg == "F" {
-				err_isfatal = true
+			errcoll += fmt.Errorf("failed to check %q:\n    %w\n", name, err).Error()
+			if errs == errsFatal {
+				errIsFatal = true
 			}
 		} else {
 			ctx = ctxutil.AddToCommitMessageBody(ctx, msg)
 		}
 	}
 
-	if err_collector != "" && err_isfatal {
-		return fmt.Errorf(err_collector)
-	} else if err_collector != "" {
-		out.Errorf(ctx, err_collector)
+	if errcoll != "" && errIsFatal {
+		return fmt.Errorf(errcoll)
+	}
+	if errcoll != "" {
+		out.Errorf(ctx, errcoll)
 	}
 	if ctxutil.GetCommitMessageBody(ctx) == "" {
 		out.Errorf(ctx, "Nothing to commit: all secrets seemed to have failed")
@@ -154,31 +163,29 @@ type convertedSecret interface {
 	FromMime() bool
 }
 
-// the first returned element is either something to add to the commit message,
-// or (if there is an error) the consequence of the error: "F"atal, "NF" nonfatal.
-func (s *Store) fsckCheckEntry(ctx context.Context, name string) (string,error) {
-	err_collector := ""
-	recipients_need_fix := false
+func (s *Store) fsckCheckEntry(ctx context.Context, name string) (string,ErrorSeverity,error) {
+	errcoll := ""
+	recpNeedFix := false
 
 	errc,err := s.fsckCheckRecipients(ctx, name)
 	if err != nil {
-		if errc == "F" {
-			return "NF",fmt.Errorf("Checking recipients for %s failed:\n    %s", name, err)
+		if errc == errsFatal {
+			return "",errsNonFatal,fmt.Errorf("Checking recipients for %s failed:\n    %s", name, err)
 		} else {
 			// the only NF errorf from that function are missing/extra recipients,
 			// which isn't much of an error since we have yet to correct that.
-			//err_collector += err.Error()
-			recipients_need_fix = true
+			//errcoll += err.Error()
+			recpNeedFix = true
 		}
 	}
 
 	// make sure we are actually allowed to decode this secret
 	// if this fails there is no way we could fix anything
 	if !IsFsckDecrypt(ctx) {
-		if err_collector == "" {
-			return "NF", nil
+		if errcoll == "" {
+			return "", errsNonFatal, nil  // TODO what does this mean, Niac?
 		} else {
-			return "NF", fmt.Errorf(err_collector)
+			return "", errsNonFatal, fmt.Errorf(errcoll)
 		}
 	}
 
@@ -186,7 +193,7 @@ func (s *Store) fsckCheckEntry(ctx context.Context, name string) (string,error) 
 	ctx = ctxutil.WithShowParsing(ctx, true)
 	sec, err := s.Get(ctx, name)
 	if err != nil {
-		return "NF",fmt.Errorf("failed to decode secret %s: %s", name, err.Error())
+		return "", errsNonFatal, fmt.Errorf("failed to decode secret %s: %s", name, err.Error())
 	}
 
 	// check if this is still an old MIME secret.
@@ -199,50 +206,50 @@ func (s *Store) fsckCheckEntry(ctx context.Context, name string) (string,error) 
 		debug.Log("leftover Mime secret: %s", name)
 	}
 
-	if recipients_need_fix {
+	if recpNeedFix {
 		out.Printf(ctx, "Re-encrypting %s to fix recipients and storage format. [leaf store]", name)
 	} else {
 		out.Printf(ctx, "Re-encrypting %s to fix storage format. [leaf store]", name)
 	}
 	if err := s.Set(ctxutil.WithGitCommit(ctx,false), name, sec); err != nil {
-		return "NF",fmt.Errorf("failed to write secret %s: %s", name, err.Error())
+		return "", errsNonFatal,fmt.Errorf("failed to write secret %s: %s", name, err.Error())
 	}
 
 
         errc,err = s.fsckCheckRecipients(ctx, name)
 	if err != nil {
-		if errc == "F" {
-			err_collector += fmt.Errorf("Checking recipients for %s failed:\n    %s", name, err).Error()
+		if errc == errsFatal {
+			errcoll += fmt.Errorf("Checking recipients for %s failed:\n    %s", name, err).Error()
 		} else {
-			err_collector += err.Error()
+			errcoll += err.Error()
 		}
 	}
 
-	if err_collector == "" {
-		return fmt.Sprintf("- re-encrypt secret %s", name),nil
+	if errcoll == "" {
+		return fmt.Sprintf("- re-encrypt secret %s", name), errsNil, nil
 	} else {
-		return "NF", fmt.Errorf(err_collector)
+		return "", errsNonFatal, fmt.Errorf(errcoll)
 	}
 }
 
-func (s *Store) fsckCheckRecipients(ctx context.Context, name string) (string,error) {
+func (s *Store) fsckCheckRecipients(ctx context.Context, name string) (ErrorSeverity,error) {
 	// now compare the recipients this secret was encoded for and fix it if
 	// it doesn't match.
 	ciphertext, err := s.storage.Get(ctx, s.Passfile(name))
 	if err != nil {
-		return "F",fmt.Errorf("failed to get raw secret: %w", err)
+		return errsFatal, fmt.Errorf("failed to get raw secret: %w", err)
 	}
 
 	itemRecps, err := s.crypto.RecipientIDs(ctx, ciphertext)
 	if err != nil {
-		return "F",fmt.Errorf("failed to read recipient IDs from raw secret: %w", err)
+		return errsFatal, fmt.Errorf("failed to read recipient IDs from raw secret: %w", err)
 	}
 
 	itemRecps = fingerprints(ctx, s.crypto, itemRecps)
 
 	rs, err := s.GetRecipients(ctx, name)
 	if err != nil {
-		return "F",fmt.Errorf("failed to get recipients from store: %w", err)
+		return errsFatal,fmt.Errorf("failed to get recipients from store: %w", err)
 	}
 
 	perItemStoreRecps := fingerprints(ctx, s.crypto, rs.IDs())
@@ -250,14 +257,15 @@ func (s *Store) fsckCheckRecipients(ctx context.Context, name string) (string,er
 	// check itemRecps matches storeRecps
 	extra, missing := diff.List(perItemStoreRecps, itemRecps)
 	if len(missing) > 0 && len(extra)>0 {
-		return "NF",fmt.Errorf("Missing/extra recipients on %s: %+v/%+v\nRun fsck with the --decrypt flag to re-encrypt it automatically, or edit this secret yourself.", name, missing, extra)
-	} else if len(missing) > 0 {
-		return "NF",fmt.Errorf("Missing recipients on %s: %+v\nRun fsck with the --decrypt flag to re-encrypt it automatically, or edit this secret yourself.", name, missing)
-	} else if len(extra) > 0 {
-		return "NF",fmt.Errorf("Extra recipients on %s: %+v\nRun fsck with the --decrypt flag to re-encrypt it automatically, or edit this secret yourself.", name, extra)
-	} else {
-		return "",nil
+		return errsNonFatal, fmt.Errorf("Missing/extra recipients on %s: %+v/%+v\nRun fsck with the --decrypt flag to re-encrypt it automatically, or edit this secret yourself.", name, missing, extra)
 	}
+	if len(missing) > 0 {
+		return errsNonFatal, fmt.Errorf("Missing recipients on %s: %+v\nRun fsck with the --decrypt flag to re-encrypt it automatically, or edit this secret yourself.", name, missing)
+	}
+	if len(extra) > 0 {
+		return errsNonFatal, fmt.Errorf("Extra recipients on %s: %+v\nRun fsck with the --decrypt flag to re-encrypt it automatically, or edit this secret yourself.", name, extra)
+	}
+	return errsNil, nil
 }
 
 func fingerprints(ctx context.Context, crypto backend.Crypto, in []string) []string {
