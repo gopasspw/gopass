@@ -37,7 +37,11 @@ func (s *Store) Fsck(ctx context.Context, path string) error {
 	// make sure all recipients are valid
 	debug.Log("Checking recipients")
 	if err := s.CheckRecipients(ctx); err != nil {
-		return fmt.Errorf("invalid recipients found: %w", err)
+		if IsCheckRecipients(ctx) {
+			return fmt.Errorf("invalid recipients found: %w", err)
+		}
+
+		out.Errorf(ctx, "Invalid recipients found: %s", err)
 	}
 
 	// then we'll make sure all the secrets are readable by us and every
