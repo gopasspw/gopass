@@ -24,6 +24,7 @@ const (
 	ctxKeyForce
 	ctxKeyCommitMessage
 	ctxKeyCommitMessageBody
+	ctxKeyErrorCollector
 	ctxKeyIsMultiSecretOperation
 	ctxKeyNoNetwork
 	ctxKeyUsername
@@ -348,6 +349,35 @@ func GetCommitMessageFull(ctx context.Context) string {
 	} else {
 		return sv_head + "\n\n" + sv_body
 	}
+}
+
+// ClearErrorCollector returns a context with where the error collector is emptied.
+func ClearErrorCollector(ctx context.Context) context.Context {
+	return context.WithValue(ctx, ctxKeyErrorCollector, nil)
+}
+// AddToErrorCollector returns a context with a new error logged as a new line into the error collector
+func AddToErrorCollector(ctx context.Context, sv string) context.Context {
+	if hasString(ctx, ctxKeyErrorCollector) {
+		current_body, ok := ctx.Value(ctxKeyErrorCollector).(string)
+		if ok {
+			current_body += "\n"
+			current_body += sv
+			sv = current_body
+		}
+	}
+	return context.WithValue(ctx, ctxKeyErrorCollector, sv)
+}
+// HasErrorCollector returns true if at least one error was added to the collector.
+func HasErrorCollector(ctx context.Context) bool {
+	return hasString(ctx, ctxKeyErrorCollector)
+}
+// GetErrorCollector returns the content, if any, of the error collector.
+func GetErrorCollector(ctx context.Context) string {
+	sv, ok := ctx.Value(ctxKeyErrorCollector).(string)
+	if !ok {
+		return ""
+	}
+	return sv
 }
 
 // WithNoNetwork returns a context with the value of no network set.

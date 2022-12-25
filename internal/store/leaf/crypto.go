@@ -135,7 +135,7 @@ func (s *Store) exportPublicKey(ctx context.Context, exp keyExporter, r string) 
 
 	if err := s.storage.Set(ctx, filename, pk); err != nil {
 		if errors.Is(err, store.ErrMeaninglessWrite) {
-			out.Warningf(ctx, "No need to write exported public key: already stored")
+			debug.Log("No need to write exported public key %s: already stored", r)
 		} else {
 			return "", fmt.Errorf("failed to write exported public key to store: %w", err)
 		}

@@ -124,11 +124,12 @@ func (s *Store) directMove(ctx context.Context, from, to string, del bool) error
 
 	// try to enqueue this task, if the queue is not available
 	// it will return the task and we will execute it inline
-	t := queue.GetQueue(ctx).Add(func(ctx context.Context) error {
-		return s.gitCommitAndPush(ctx, to)
+	t := queue.GetQueue(ctx).Add(func(_ context.Context) (context.Context,error) {
+		return nil,s.gitCommitAndPush(ctx, to)
 	})
 
-	return t(ctx)
+	ctx,err := t(ctx)
+	return err
 }
 
 // Delete will remove an single entry from the store.

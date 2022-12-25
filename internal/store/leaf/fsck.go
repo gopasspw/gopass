@@ -52,6 +52,20 @@ func (s *Store) Fsck(ctx context.Context, path string) error {
 	err_collector := ""
 	err_isfatal := false
 
+	t := queue.GetQueue(ctx).Add(func(ctx2 context.Context) (context.Context,error) {
+		if ctx==nil || ctx2==nil {
+			panic("hahe")
+		}
+		if err := s.fsckUpdatePublicKeys(ctx); err != nil {
+			out.Errorf(ctx, "Failed to update public keys: %s", err)
+		}
+		if ctx==nil || ctx2==nil {
+			panic("haha")
+		}
+		return ctx2, nil
+	})
+	t(ctx)
+
 	debug.Log("names (%d): %q", len(names), names)
 	sort.Strings(names)
 	for _, name := range names {
@@ -78,19 +92,15 @@ func (s *Store) Fsck(ctx context.Context, path string) error {
 		return fmt.Errorf(err_collector)
 	} else if err_collector != "" {
 		out.Errorf(ctx, err_collector)
-	} else {
-		out.Warningf(ctx, "No visible error")
-	}
-	if err := s.fsckUpdatePublicKeys(ctx); err != nil {
-		out.Errorf(ctx, "Failed to update public keys: %s", err)
-	}
-
+	} //else {
+		//out.Warningf(ctx, "No visible error")
+	//}
 	if ctxutil.GetCommitMessageBody(ctx) == "" {
 		out.Errorf(ctx, "Nothing to commit: all secrets seemed to have failed")
 		return nil
 	}
 
-	t := queue.GetQueue(ctx).Add(func(_ context.Context) error {
+	t = queue.GetQueue(ctx).Add(func(ctx2 context.Context) (context.Context, error) {
 		if err := s.storage.Commit(ctx, ctxutil.GetCommitMessageFull(ctx)); err != nil {
 			switch {
 			case errors.Is(err, store.ErrGitNotInit):
@@ -98,18 +108,26 @@ func (s *Store) Fsck(ctx context.Context, path string) error {
 			case errors.Is(err, store.ErrGitNothingToCommit):
 				debug.Log("commitAndPush - skipping git commit - nothing to commit")
 			default:
-				return fmt.Errorf("failed to commit changes to git: %w", err)
+				err := fmt.Errorf("failed to commit changes to git: %w", err)
+				ctx2 = ctxutil.AddToErrorCollector(ctx2, err.Error())
+				return ctx2, err
 			}
+		}
+
+		if ctxutil.HasErrorCollector(ctx2) {
+			out.Errorf(ctx2, ctxutil.GetErrorCollector(ctx2))
 		}
 
 		if err := s.storage.Push(ctx, "", ""); err != nil {
 			if !errors.Is(err, store.ErrGitNoRemote) {
-				out.Printf(ctx, "RCS Push failed: %s", err)
+				ctx2 = ctxutil.AddToErrorCollector(ctx2, "RCS Push failed: "+ err.Error())
+				out.Printf(ctx, "RCS Push failed: %s", err.Error())
 			}
 		}
-		return nil
+		return ctx2, nil
 	})
-	return t(ctx)
+	ctx,err = t(ctx)
+	return err
 }
 
 func (s *Store) fsckUpdatePublicKeys(ctx context.Context) error {
@@ -142,12 +160,17 @@ type convertedSecret interface {
 // or (if there is an error) the consequence of the error: "F"atal, "NF" nonfatal.
 func (s *Store) fsckCheckEntry(ctx context.Context, name string) (string,error) {
 	err_collector := ""
+	recipients_need_fix := false
+
 	errc,err := s.fsckCheckRecipients(ctx, name)
 	if err != nil {
 		if errc == "F" {
 			return "NF",fmt.Errorf("Checking recipients for %s failed:\n    %s", name, err)
 		} else {
-			err_collector += err.Error()
+			// the only NF errorf from that function are missing/extra recipients,
+			// which isn't much of an error since we have yet to correct that.
+			//err_collector += err.Error()
+			recipients_need_fix = true
 		}
 	}
 
@@ -178,9 +201,30 @@ func (s *Store) fsckCheckEntry(ctx context.Context, name string) (string,error) 
 		debug.Log("leftover Mime secret: %s", name)
 	}
 
-	out.Printf(ctx, "Re-encrypting %s to fix recipients and storage format. [leaf store]", name)
+	if recipients_need_fix {
+		out.Printf(ctx, "Re-encrypting %s to fix recipients and storage format. [leaf store]", name)
+	} else {
+		out.Printf(ctx, "Re-encrypting %s to fix storage format. [leaf store]", name)
+	}
 	if err := s.Set(ctxutil.WithGitCommit(ctx,false), name, sec); err != nil {
-		return "NF",fmt.Errorf("failed to write secret: %s", err.Error())
+		return "NF",fmt.Errorf("failed to write secret %s: %s", name, err.Error())
+	}
+
+
+	t := queue.GetQueue(ctx).Add(func(ctx2 context.Context) (context.Context, error) {
+		errc,err := s.fsckCheckRecipients(ctx, name)
+		if err != nil {
+			if errc == "F" {
+				return ctx2,fmt.Errorf("Checking recipients for %s failed:\n    %s", name, err)
+			} else {
+				ctxutil.AddToErrorCollector(ctx2, err.Error())
+			}
+		}
+		return ctx2,nil
+	})
+        ctx,err = t(ctx)
+	if err != nil {
+		err_collector += err.Error() + "\n"
 	}
 
 	if err_collector == "" {
