@@ -233,9 +233,6 @@ func (s *Store) getRecipients(ctx context.Context, idf string) ([]string, error)
 	return recipients.Unmarshal(buf), nil
 }
 
-type keyExporter interface {
-	ExportPublicKey(ctx context.Context, id string) ([]byte, error)
-}
 
 // UpdateExportedPublicKeys will export any possibly missing public keys to the
 // stores .public-keys directory.

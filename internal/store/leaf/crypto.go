@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"path/filepath"
 	"errors"
+	"bytes"
 
 	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/internal/backend/crypto/age"
@@ -57,10 +58,19 @@ func (s *Store) ImportMissingPublicKeys(ctx context.Context, newrs ...string) er
 			debug.Log("Failed to get public key for %s: %s", r, err)
 		}
 
-		if !IsPubkeyUpdate(ctx) && len(kl) > 0 {
+		if len(kl) > 0 {
 			debug.Log("Keyring contains %d public keys for %s", len(kl), r)
-
-			continue
+			if !IsPubkeyUpdate(ctx) {
+				continue
+			}
+			ex, ok := s.crypto.(keyExporter)
+			if ok {
+				pk, err := ex.ExportPublicKey(ctx, r)
+				pk2, err2 := s.getPublicKey(ctx, r)
+				if err == nil && err2 == nil && bytes.Equal(pk, pk2){
+					continue
+				}
+			}
 		}
 
 		// get info about this public key
@@ -150,7 +160,25 @@ func (s *Store) exportPublicKey(ctx context.Context, exp keyExporter, r string) 
 type keyImporter interface {
 	ImportPublicKey(ctx context.Context, key []byte) error
 }
+type keyExporter interface {
+	ExportPublicKey(ctx context.Context, id string) ([]byte, error)
+}
 
+
+func (s *Store) getPublicKey(ctx context.Context, r string) ([]byte, error) {
+	for _, kd := range []string{keyDir, oldKeyDir} {
+		filename := filepath.Join(kd, r)
+		if !s.storage.Exists(ctx, filename) {
+			debug.Log("Public Key %s not found at %s", r, filename)
+
+			continue
+		}
+		pk, err := s.storage.Get(ctx, filename)
+		return pk, err
+	}
+	return nil, fmt.Errorf("public key not found in store")
+}
+	
 // import an public key into the default keyring.
 func (s *Store) importPublicKey(ctx context.Context, r string) error {
 	im, ok := s.crypto.(keyImporter)
@@ -160,22 +188,12 @@ func (s *Store) importPublicKey(ctx context.Context, r string) error {
 		return nil
 	}
 
-	for _, kd := range []string{keyDir, oldKeyDir} {
-		filename := filepath.Join(kd, r)
-		if !s.storage.Exists(ctx, filename) {
-			debug.Log("Public Key %s not found at %s", r, filename)
-
-			continue
-		}
-		pk, err := s.storage.Get(ctx, filename)
-		if err != nil {
-			return err
-		}
-
+	pk, err := s.getPublicKey(ctx, r)
+	if err != nil {
+		return err
+	} else {
 		return im.ImportPublicKey(ctx, pk)
 	}
-
-	return fmt.Errorf("public key not found in store")
 }
 
 type locker interface {
