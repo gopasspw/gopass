@@ -188,8 +188,8 @@ func (c *Configs) Get(key string) string {
 		if cfg == nil || cfg.vars == nil {
 			continue
 		}
-		if vs, found := cfg.vars[key]; found && len(vs) > 0 {
-			return vs[0]
+		if v, found := cfg.Get(key); found {
+			return v
 		}
 	}
 
@@ -204,8 +204,8 @@ func (c *Configs) GetGlobal(key string) string {
 		return ""
 	}
 
-	if vs, found := c.global.vars[key]; found && len(vs) > 0 {
-		return vs[0]
+	if v, found := c.global.Get(key); found {
+		return v
 	}
 
 	debug.Log("no value for %s found", key)
@@ -219,8 +219,8 @@ func (c *Configs) GetLocal(key string) string {
 		return ""
 	}
 
-	if vs, found := c.local.vars[key]; found && len(vs) > 0 {
-		return vs[0]
+	if v, found := c.local.Get(key); found {
+		return v
 	}
 
 	debug.Log("no value for %s found", key)

@@ -42,6 +42,26 @@ func (c *Config) Unset(key string) error {
 	})
 }
 
+// Get returns the first value of the key.
+func (c *Config) Get(key string) (string, bool) {
+	vs, found := c.vars[key]
+	if !found || len(vs) < 1 {
+		return "", false
+	}
+
+	return vs[0], true
+}
+
+// GetAll returns all values of the key.
+func (c *Config) GetAll(key string) ([]string, bool) {
+	vs, found := c.vars[key]
+	if !found {
+		return nil, false
+	}
+
+	return vs, true
+}
+
 // IsSet returns true if the key was set in this config.
 func (c *Config) IsSet(key string) bool {
 	_, present := c.vars[key]

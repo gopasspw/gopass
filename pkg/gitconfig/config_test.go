@@ -206,9 +206,17 @@ func TestLoadConfig(t *testing.T) {
 	cfg, err := LoadConfig(fn)
 	require.NoError(t, err)
 
-	assert.Equal(t, []string{"7"}, cfg.vars["core.int"])
-	assert.Equal(t, []string{"foo"}, cfg.vars["core.string"])
-	assert.Equal(t, []string{"false"}, cfg.vars["core.bar"])
+	v, ok := cfg.Get("core.int")
+	assert.True(t, ok)
+	assert.Equal(t, "7", v)
+
+	v, ok = cfg.Get("core.string")
+	assert.True(t, ok)
+	assert.Equal(t, "foo", v)
+
+	v, ok = cfg.Get("core.bar")
+	assert.True(t, ok)
+	assert.Equal(t, "false", v)
 }
 
 func TestLoadFromEnv(t *testing.T) {
@@ -231,6 +239,8 @@ func TestLoadFromEnv(t *testing.T) {
 
 	cfg := LoadConfigFromEnv(prefix)
 	for k, v := range tc {
-		assert.Equal(t, []string{v}, cfg.vars[k])
+		got, ok := cfg.Get(k)
+		assert.True(t, ok)
+		assert.Equal(t, v, got)
 	}
 }
