@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestDelete(t *testing.T) { //nolint:paralleltest
+func TestDelete(t *testing.T) {
 	ts := newTester(t)
 	defer ts.teardown()
 

@@ -9,6 +9,7 @@ import (
 	plain "github.com/gopasspw/gopass/internal/backend/crypto/plain"
 	"github.com/gopasspw/gopass/internal/backend/storage/fs"
 	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/internal/recipients"
 	"github.com/gopasspw/gopass/pkg/gopass/secrets"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -25,7 +26,7 @@ func TestCopy(t *testing.T) {
 		out.Stdout = os.Stdout
 	}()
 
-	for _, tc := range []struct { //nolint:paralleltest
+	for _, tc := range []struct {
 		name string
 		tf   func(s *Store) func(t *testing.T)
 	}{
@@ -43,7 +44,7 @@ func TestCopy(t *testing.T) {
 			tf: func(s *Store) func(t *testing.T) {
 				return func(t *testing.T) {
 					t.Helper()
-					nsec := &secrets.Plain{}
+					nsec := secrets.NewAKV()
 					nsec.SetPassword("bar")
 					assert.NoError(t, s.Set(ctx, "foo", nsec))
 					assert.NoError(t, s.Copy(ctx, "foo", "bar"))
@@ -61,7 +62,7 @@ func TestCopy(t *testing.T) {
 			tf: func(s *Store) func(t *testing.T) {
 				return func(t *testing.T) {
 					t.Helper()
-					sec := &secrets.Plain{}
+					sec := secrets.NewAKV()
 					sec.SetPassword("baz")
 					assert.NoError(t, s.Set(ctx, "foo/bar/baz", sec))
 					sec.SetPassword("zab")
@@ -88,7 +89,9 @@ func TestCopy(t *testing.T) {
 				storage: fs.New(tempdir),
 			}
 
-			assert.NoError(t, s.saveRecipients(ctx, []string{"john.doe"}, "test"))
+			rs := recipients.New()
+			rs.Add("john.doe")
+			assert.NoError(t, s.saveRecipients(ctx, rs, "test"))
 
 			// run test case
 			t.Run(tc.name, tc.tf(s))
@@ -107,7 +110,7 @@ func TestMove(t *testing.T) {
 		out.Stdout = os.Stdout
 	}()
 
-	for _, tc := range []struct { //nolint:paralleltest
+	for _, tc := range []struct {
 		name string
 		tf   func(s *Store) func(t *testing.T)
 	}{
@@ -125,7 +128,7 @@ func TestMove(t *testing.T) {
 			tf: func(s *Store) func(t *testing.T) {
 				return func(t *testing.T) {
 					t.Helper()
-					nsec := &secrets.Plain{}
+					nsec := secrets.NewAKV()
 					nsec.SetPassword("bar")
 					assert.NoError(t, s.Set(ctx, "foo", nsec))
 					assert.NoError(t, s.Move(ctx, "foo", "bar"))
@@ -143,7 +146,7 @@ func TestMove(t *testing.T) {
 			tf: func(s *Store) func(t *testing.T) {
 				return func(t *testing.T) {
 					t.Helper()
-					sec := &secrets.Plain{}
+					sec := secrets.NewAKV()
 					sec.SetPassword("baz")
 					assert.NoError(t, s.Set(ctx, "foo/bar/baz", sec))
 					sec.SetPassword("zab")
@@ -170,8 +173,10 @@ func TestMove(t *testing.T) {
 				storage: fs.New(tempdir),
 			}
 
-			err := s.saveRecipients(ctx, []string{"john.doe"}, "test")
-			require.NoError(t, err)
+			rs := recipients.New()
+			rs.Add("john.doe")
+
+			require.NoError(t, s.saveRecipients(ctx, rs, "test"))
 
 			// run test case
 			t.Run(tc.name, tc.tf(s))
@@ -190,7 +195,7 @@ func TestDelete(t *testing.T) {
 		out.Stdout = os.Stdout
 	}()
 
-	for _, tc := range []struct { //nolint:paralleltest
+	for _, tc := range []struct {
 		name string
 		tf   func(s *Store) func(t *testing.T)
 	}{
@@ -208,7 +213,7 @@ func TestDelete(t *testing.T) {
 			tf: func(s *Store) func(t *testing.T) {
 				return func(t *testing.T) {
 					t.Helper()
-					sec := &secrets.Plain{}
+					sec := secrets.NewAKV()
 					sec.SetPassword("bar")
 					assert.NoError(t, s.Set(ctx, "foo", sec))
 					assert.NoError(t, s.Delete(ctx, "foo"))
@@ -235,8 +240,10 @@ func TestDelete(t *testing.T) {
 				storage: fs.New(tempdir),
 			}
 
-			err := s.saveRecipients(ctx, []string{"john.doe"}, "test")
-			require.NoError(t, err)
+			rs := recipients.New()
+			rs.Add("john.doe")
+
+			require.NoError(t, s.saveRecipients(ctx, rs, "test"))
 
 			// run test case
 			t.Run(tc.name, tc.tf(s))
@@ -255,7 +262,7 @@ func TestPrune(t *testing.T) {
 		out.Stdout = os.Stdout
 	}()
 
-	for _, tc := range []struct { //nolint:paralleltest
+	for _, tc := range []struct {
 		name string
 		tf   func(s *Store) func(t *testing.T)
 	}{
@@ -273,7 +280,7 @@ func TestPrune(t *testing.T) {
 			tf: func(s *Store) func(t *testing.T) {
 				return func(t *testing.T) {
 					t.Helper()
-					sec := &secrets.Plain{}
+					sec := secrets.NewAKV()
 					sec.SetPassword("bar")
 					assert.NoError(t, s.Set(ctx, "foo", sec))
 					assert.NoError(t, s.Prune(ctx, "foo"))
@@ -288,7 +295,7 @@ func TestPrune(t *testing.T) {
 			tf: func(s *Store) func(t *testing.T) {
 				return func(t *testing.T) {
 					t.Helper()
-					sec := &secrets.Plain{}
+					sec := secrets.NewAKV()
 					sec.SetPassword("bar")
 					assert.NoError(t, s.Set(ctx, "foo/bar/baz", sec))
 					assert.NoError(t, s.Set(ctx, "foo/bar/zab", sec))
@@ -323,8 +330,10 @@ func TestPrune(t *testing.T) {
 				storage: fs.New(tempdir),
 			}
 
-			err := s.saveRecipients(ctx, []string{"john.doe"}, "test")
-			assert.NoError(t, err)
+			rs := recipients.New()
+			rs.Add("john.doe")
+
+			require.NoError(t, s.saveRecipients(ctx, rs, "test"))
 
 			// run test case
 			t.Run(tc.name, tc.tf(s))

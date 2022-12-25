@@ -7,6 +7,7 @@ import (
 	"github.com/gopasspw/gopass/internal/action/exit"
 	"github.com/gopasspw/gopass/internal/cui"
 	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/internal/set"
 	"github.com/gopasspw/gopass/internal/tree"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
@@ -36,7 +37,7 @@ func (s *Action) RecipientsPrint(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	out.Printf(ctx, "Hint: run 'gopass sync' to import any missing public keys")
 
-	t, err := s.Store.RecipientsTree(ctx, true)
+	t, err := s.Store.RecipientsTree(ctx, c.Bool("pretty"))
 	if err != nil {
 		return exit.Error(exit.List, err, "failed to list recipients: %s", err)
 	}
@@ -66,6 +67,13 @@ func (s *Action) RecipientsComplete(c *cli.Context) {
 	}
 }
 
+// RecipientsAck updates `recipients.hash`.
+func (s *Action) RecipientsAck(c *cli.Context) error {
+	ctx := ctxutil.WithGlobalFlags(c)
+
+	return s.Store.SaveRecipients(ctxutil.WithHidden(ctx, true), true)
+}
+
 // RecipientsAdd adds new recipients.
 func (s *Action) RecipientsAdd(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
@@ -76,6 +84,12 @@ func (s *Action) RecipientsAdd(c *cli.Context) error {
 	// select store.
 	if store == "" {
 		store = cui.AskForStore(ctx, s.Store)
+	}
+
+	if err := s.Store.CheckRecipients(ctx, store); err != nil && !force {
+		out.Errorf(ctx, "%s. Please remove expired keys or extend their validity. See https://go.gopass.pw/faq#expired-recipients", err.Error())
+
+		return exit.Error(exit.Recipients, err, "recipients invalid: %q", err)
 	}
 
 	crypto := s.Store.Crypto(ctx, store)
@@ -146,14 +160,16 @@ func (s *Action) RecipientsRemove(c *cli.Context) error {
 	force := c.Bool("force")
 	removed := 0
 
-	// select store.
-	if store == "" {
+	// select store if none is given.
+	if !c.IsSet("store") {
 		store = cui.AskForStore(ctx, s.Store)
 	}
 
+	// get the crypto backend from the store so we can perform the correct
+	// recipient checks.
 	crypto := s.Store.Crypto(ctx, store)
 
-	// select recipient.
+	// ask to select a recipient if none are given.
 	recipients := c.Args().Slice()
 	if len(recipients) < 1 {
 		rs, err := s.recipientsSelectForRemoval(ctx, store)
@@ -163,16 +179,31 @@ func (s *Action) RecipientsRemove(c *cli.Context) error {
 		recipients = rs
 	}
 
+	knownRecipients := s.Store.ListRecipients(ctx, store)
+
+	// try to remove all given recipients.
 	for _, r := range recipients {
+		// check and warn if the user is trying to remove themselves
 		kl, err := crypto.FindIdentities(ctx, r)
-		if err == nil {
-			if len(kl) > 0 {
-				if !termio.AskForConfirmation(ctx, fmt.Sprintf("Do you want to remove yourself (%s) from the recipients?", r)) {
-					continue
-				}
+		if err == nil && len(kl) > 0 {
+			if !termio.AskForConfirmation(ctx, fmt.Sprintf("Do you want to remove yourself (%s) from the recipients?", r)) {
+				continue
 			}
 		}
 
+		// if we a literal recipient (e.g. ID) is given just remove that w/o any kind of lookups.
+		if set.Contains(knownRecipients, r) {
+			debug.Log("Removing %q from %q (direct)", r, store)
+			if err := s.Store.RemoveRecipient(ctx, store, r); err != nil {
+				return exit.Error(exit.Recipients, err, "failed to remove recipient %q: %s", r, err)
+			}
+
+			removed++
+
+			continue
+		}
+
+		// look up the full key ID of the given recipient (could be email or any kinf of short ID)
 		keys, err := crypto.FindRecipients(ctx, r)
 		if err != nil {
 			out.Printf(ctx, "WARNING: Failed to list public key %q: %s", r, err)
@@ -180,8 +211,11 @@ func (s *Action) RecipientsRemove(c *cli.Context) error {
 			if !force {
 				continue
 			}
+
 			keys = []string{r}
 		}
+		debug.Log("FindRecipients translated %q into %v", r, keys)
+
 		if len(keys) < 1 && !force {
 			out.Printf(ctx, "Warning: No matching valid key found. If the key is in your keyring you may need to validate it.")
 			out.Printf(ctx, "If this is your key: gpg --edit-key %s; trust (set to ultimate); quit", r)
@@ -194,16 +228,20 @@ func (s *Action) RecipientsRemove(c *cli.Context) error {
 		recp := r
 		if len(keys) > 0 {
 			if nr := crypto.Fingerprint(ctx, keys[0]); nr != "" {
+				debug.Log("Fingerprint translated %q into %q", keys[0], nr)
 				recp = nr
 			}
 		}
 
+		debug.Log("Removing %q from %q (indirect)", recp, store)
 		if err := s.Store.RemoveRecipient(ctx, store, recp); err != nil {
 			return exit.Error(exit.Recipients, err, "failed to remove recipient %q: %s", recp, err)
 		}
+
 		fmt.Fprintf(stdout, removalWarning, r)
 		removed++
 	}
+
 	if removed < 1 {
 		return exit.Error(exit.Unknown, nil, "no key removed")
 	}

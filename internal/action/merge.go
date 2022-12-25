@@ -70,7 +70,7 @@ func (s *Action) Merge(c *cli.Context) error {
 		}
 	}
 
-	nSec := secrets.ParsePlain(newContent)
+	nSec := secrets.ParseAKV(newContent)
 
 	// if the secret has a password, we check it's strength
 	if pw := nSec.Password(); pw != "" && !c.Bool("force") {

@@ -3,7 +3,6 @@ module github.com/gopasspw/gopass
 go 1.18
 
 require (
-	bitbucket.org/creachadair/stringset v0.0.10
 	filippo.io/age v1.0.0
 	github.com/ProtonMail/go-crypto v0.0.0-20221026131551-cf6655e29de4
 	github.com/atotto/clipboard v0.1.4
@@ -22,27 +21,26 @@ require (
 	github.com/hashicorp/golang-lru v0.5.4
 	github.com/jsimonetti/pwscheme v0.0.0-20220922140336-67a4d090f150
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
-	github.com/martinhoefling/goxkcdpwgen v0.1.1
+	github.com/martinhoefling/goxkcdpwgen v0.1.2-0.20221205222637-737661b92a0e
 	github.com/mattn/go-colorable v0.1.13
 	github.com/mattn/go-isatty v0.0.16
 	github.com/mattn/go-tty v0.0.4
-	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/go-ps v1.0.0
 	github.com/muesli/crunchy v0.4.0
 	github.com/nbutton23/zxcvbn-go v0.0.0-20210217022336-fa2cb2858354
-	github.com/pquerna/otp v1.3.1-0.20220803165443-c62dc589378a
+	github.com/pquerna/otp v1.4.0
 	github.com/schollz/closestmatch v0.0.0-20190308193919-1fbe626be92e
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	github.com/stretchr/testify v1.8.1
 	github.com/twpayne/go-pinentry v0.2.0
-	github.com/urfave/cli/v2 v2.23.5
+	github.com/urfave/cli/v2 v2.23.7
 	github.com/zalando/go-keyring v0.2.1
-	golang.org/x/crypto v0.3.0
-	golang.org/x/exp v0.0.0-20221114191408-850992195362
-	golang.org/x/net v0.2.0
-	golang.org/x/oauth2 v0.2.0
-	golang.org/x/sys v0.2.0
-	golang.org/x/term v0.2.0
+	golang.org/x/crypto v0.4.0
+	golang.org/x/exp v0.0.0-20221217163422-3c43f8badb15
+	golang.org/x/net v0.4.0
+	golang.org/x/oauth2 v0.3.0
+	golang.org/x/sys v0.3.0
+	golang.org/x/term v0.3.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
@@ -65,7 +63,7 @@ require (
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
 	go.uber.org/atomic v1.10.0 // indirect
-	go.uber.org/multierr v1.8.0 // indirect
+	go.uber.org/multierr v1.9.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect

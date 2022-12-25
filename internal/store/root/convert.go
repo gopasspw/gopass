@@ -16,7 +16,7 @@ func (r *Store) Convert(ctx context.Context, name string, cryptoBe backend.Crypt
 		return fmt.Errorf("mount not found: %w", err)
 	}
 
-	debug.Log("converting %s to crypto: %s, rcs: %s, storage: %s", name, cryptoBe, storageBe)
+	debug.Log("converting %s to crypto: %s, storage: %s", name, cryptoBe, storageBe)
 
 	if err := sub.Convert(ctx, cryptoBe, storageBe, move); err != nil {
 		return fmt.Errorf("failed to convert %q: %w", name, err)

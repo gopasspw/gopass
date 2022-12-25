@@ -17,7 +17,6 @@ const (
 	ctxKeyStdin
 	ctxKeyGitCommit
 	ctxKeyAlwaysYes
-	ctxKeyVerbose
 	ctxKeyProgressCallback
 	ctxKeyAlias
 	ctxKeyGitInit
@@ -180,23 +179,6 @@ func IsAlwaysYes(ctx context.Context) bool {
 	}
 
 	return bv
-}
-
-// WithVerbose returns a context with the value for verbose set.
-func WithVerbose(ctx context.Context, verbose bool) context.Context {
-	return context.WithValue(ctx, ctxKeyVerbose, verbose)
-}
-
-// HasVerbose returns true if a value for Verbose has been set in this context.
-func HasVerbose(ctx context.Context) bool {
-	_, ok := ctx.Value(ctxKeyVerbose).(bool)
-
-	return ok
-}
-
-// IsVerbose returns the value of verbose or the default (false).
-func IsVerbose(ctx context.Context) bool {
-	return is(ctx, ctxKeyVerbose, false)
 }
 
 // WithProgressCallback returns a context with the value of ProgressCallback set.

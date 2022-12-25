@@ -3,6 +3,46 @@
 This document provides a broad overview over the features and use-cases
 gopass supports.
 
+Some examples are available in our [example password store](https://github.com/gopasspw/password-store-example).
+
+| **Feature**                 | **State**     | **Description**                                                   |
+| --------------------------- | ------------- | ----------------------------------------------------------------- |
+| Secure secret storage       | *stable*      | Securely storing encrypted secrets                                |
+| Multiple stores             | *stable*      | Mount multiple stores in your root store, like file systems       |
+| Recipient management        | *stable*      | Easily manage multiple users of each store                        |
+| password quality assistance | *beta*        | Checks existing or new passwords for common flaws **offline**     |
+| password leak checker       | *integration* | Perform **offline** checks against known leaked passwords using [gopass-hibp](https://github.com/gopasspw/gopass-hibp)  |
+| PAGER support               | *stable*      | Automatically invoke a pager on long output                       |
+| JSON API                    | *integration* | Allow gopass to be used as a native extension for browser plugins |
+| Automatic fuzzy search      | *stable*      | Automatically search for matching store entries if a literal entry was not found |
+| gopass sync                 | *stable*      | Easy to use syncing of remote repos and GPG keys                  |
+| Desktop Notifications       | *stable*      | Display desktop notifications and completing long running operations |
+| REPL                        | *beta*        | Integrated Read-Eval-Print-Loop shell with autocompletion by running `gopass`. |
+| OTP support                 | *stable*      | Generate TOTP/(HOTP) tokens based on the stored secret            |
+| Extensions                  |               | [Extend](docs/hacking.md#extending-gopass) gopass with custom commands using our [API](https://pkg.go.dev/github.com/gopasspw/gopass/pkg/gopass/api)                  |
+| Fully open source!          |               | No need to trust it, check our code and/or improve it!            |
+
+## Integrations
+
+- [gopassbridge](https://github.com/gopasspw/gopassbridge): Browser plugin for Firefox, Chrome and other Chromium based browsers
+- [gopass-ui](https://github.com/codecentric/gopass-ui): Graphical user interface for gopass
+- [kubectl gopass](https://github.com/gopasspw/kubectl-gopass): Kubernetes / kubectl plugin to support reading and writing secrets directly from/to gopass.
+- [gopass alfred](https://github.com/gopasspw/gopass-alfred): Alfred workflow to use gopass from the Alfred Mac launcher
+- [git-credential-gopass](https://github.com/gopasspw/git-credential-gopass): Integrate gopass as an git-credential helper
+- [gopass-hibp](https://github.com/gopasspw/gopass-hibp): haveibeenpwned.com leak checker
+- [gopass-jsonapi](https://github.com/gopasspw/gopass-jsonapi): native messaging for browser plugins, e.g. gopassbridge
+- [gopass-summon-prover](https://github.com/gopasspw/gopass-summon-provider): gopass as a summon provider
+- [`terraform-provider-gopass`](https://github.com/camptocamp/terraform-provider-pass): a Terraform provider to interact with gopass
+- [chezmoi](https://github.com/twpayne/chezmoi): dotfile manager with gopass support
+- [tessen](https://github.com/ayushnix/tessen): autotype and copy gopass data on wayland compositors on Linux
+- [raycast-gopass](https://github.com/raycast/extensions/tree/main/extensions/gopass): a gopass extension for Raycast Mac launcher
+- [gnome-pass-search-provider](https://github.com/jle64/gnome-pass-search-provider): pass search provider for GNOME Shell, which also supports gopass
+
+## Mobile apps
+
+- [Pass - Password Store](https://apps.apple.com/us/app/pass-password-store/id1205820573) - iOS, [source code](https://github.com/mssun/passforios), [supports only 1 repository now](https://github.com/mssun/passforios/issues/88)
+- [Password Store](https://play.google.com/store/apps/details?id=dev.msfjarvis.aps) - Android, [source code](https://github.com/android-password-store/android-password-store)
+
 ## Standard Features
 
 Note: Running `gopass` without any arguments opens up an interactive mode where
@@ -17,7 +57,7 @@ It's actually really simple! Each password (or secret) will live in its own file
 And you can stick related passwords (or secrets) together in a directory.
 So, for example, if you had 3 laptops and wanted to store the root passwords for all 3, then your file system might look something like the following:
 
-```
+```text
 .password-store
 └── laptops
     ├── dell.gpg
@@ -27,7 +67,7 @@ So, for example, if you had 3 laptops and wanted to store the root passwords for
 
 With this file system, if you typed the `gopass ls` command, it would report the following:
 
-```
+```text
 gopass
 └── laptops
     ├── dell
@@ -41,7 +81,7 @@ gopass does not impose any specific layout for your data. Any key can contain an
 
 If you plan to use the password store for website credentials or plan to use [browserpass](https://github.com/dannyvankooten/browserpass), you should follow the following pattern for storing passwords:
 
-```
+```text
 example1.com/username
 example2.com/john@doe.com
 ```
@@ -56,7 +96,7 @@ This is entirely different from any OS-level credential store, your GPG key ring
 
 To initialize a password store, just do:
 
-```bash
+```shell
 gopass init
 ```
 
@@ -65,13 +105,13 @@ Then it will create a `.local/share/gopass/stores/root` directory in your home d
 
 If you don't want gopass to use this default directory, you can instead initialize a password store with:
 
-```bash
+```shell
 gopass init --path /custom/path/to/password/store
 ```
 
 If you don't want gopass to prompt you for the GPG key to use, you can specify it inline. For example, this might be useful if you have a huge number of GPG keys on the system or if you are initializing a password store from a script. You can do this in three different ways:
 
-```bash
+```shell
 gopass init gopher@golang.org # By specifying the email address associated with the GPG key
 gopass init A3683834 # By specifying the 8 character ID found by typing "gpg --list-keys" and looking at the "pub" line
 gopass init 1E52C1335AC1F4F4FE02F62AB5B44266A3683834 # By specifying the GPG key fingerprint found by typing "gpg --fingerprint" and removing all of the spaces
@@ -81,13 +121,13 @@ gopass init 1E52C1335AC1F4F4FE02F62AB5B44266A3683834 # By specifying the GPG key
 
 If you already have an existing password store that exists in a Git repository, then use `gopass` to clone it:
 
-```bash
+```shell
 gopass clone git@example.com/pass.git
 ```
 
 This runs `git clone` in the background. If you don't want gopass to use the default root mount of "$HOME/.local/share/gopass/stores/root", then you can specify an additional mount parameter:
 
-```bash
+```shell
 gopass clone git@example.com/pass-work.git work # This will initialize the password store in the "$HOME/.local/share/gopass/stores/work" directory
 ```
 
@@ -109,7 +149,7 @@ Let's say you want to create an account.
 
 #### Type in a new secret
 
-```bash
+```shell
 $ gopass insert golang.org/gopher
 Enter secret for golang.org/gopher:       # hidden on Linux / MacOS
 Retype secret for golang.org/gopher:      # hidden on Linux / MacOS
@@ -121,7 +161,7 @@ Do you want to continue? [yn]: y
 
 #### Generate a new secret
 
-```bash
+```shell
 $ gopass generate golang.org/gopher
 How long should the secret be? [20]:
 gopass: Encrypting golang.org/gopher for these recipients:
@@ -132,7 +172,7 @@ The generated secret for golang.org/gopher is:
 Eech4ahRoy2oowi0ohl
 ```
 
-```bash
+```shell
 $ gopass generate golang.org/gopher 16    # length as parameter
 gopass: Encrypting golang.org/gopher for these recipients:
  - 0xB5B44266A3683834 - Gopher <gopher@golang.org>
@@ -148,8 +188,8 @@ By default the password is copied to clipboard, but you can disable this using t
 
 ### Edit a secret
 
-```bash
-$ gopass edit golang.org/gopher
+```shell
+gopass edit golang.org/gopher
 ```
 
 The `edit` command uses the `$EDITOR` environment variable to start your preferred editor where you can easily edit multi-line content. `vim` will be the default if `$EDITOR` is not set.
@@ -160,16 +200,16 @@ The `edit` command uses the `$EDITOR` environment variable to start your preferr
 
 Typically sites will display a QR code containing a URL that starts with `oauth://`. This string contains information about generating your OTPs and can be directly added to your password file. For example:
 
-```
-gopass show golang.org/gopher
+```shell
+$ gopass show golang.org/gopher
 secret1234
 otpauth://totp/golang.org:gopher?secret=ABC123
 ```
 
 Alternatively, you can use YAML (notice the usage of the YAML separator `---` to indicate it is a YAML secret):
 
-```
-gopass show golang.org/gopher
+```shell
+$ gopass show golang.org/gopher
 secret1234
 ---
 totp: ABC123
@@ -185,7 +225,7 @@ Both TOTP and HOTP are supported. However, to generate HOTP tokens, the counter 
 
 You can list all entries of the store:
 
-```bash
+```shell
 $ gopass ls
 gopass
 ├── golang.org
@@ -199,7 +239,7 @@ If your terminal supports colors the output will use ANSI color codes to highlig
 
 ### Show a secret
 
-```bash
+```shell
 $ gopass show golang.org/gopher
 
 Eech4ahRoy2oowi0ohl
@@ -218,7 +258,7 @@ WARNING: The `safecontent` setting is not perfect and *might* be removed in the 
 
 #### Copy a secret to the clipboard
 
-```bash
+```shell
 $ gopass show -c golang.org/gopher
 
 Copied golang.org/gopher to clipboard. Will clear in 45 seconds.
@@ -226,24 +266,24 @@ Copied golang.org/gopher to clipboard. Will clear in 45 seconds.
 
 ### Removing a secret
 
-```bash
-$ gopass rm golang.org/gopher
+```shell
+gopass rm golang.org/gopher
 ```
 
 `rm` will remove a secret from the store. Use `-r` to delete a whole folder. Please note that you **can not** remove a folder containing a mounted sub store. You have to unmount any mounted sub stores first.
 
 ### Moving a secret
 
-```bash
-$ gopass mv emails/example.com emails/user@example.com
+```shell
+gopass mv emails/example.com emails/user@example.com
 ```
 
 *Moving also works across different sub-stores.*
 
 ### Copying a secret
 
-```bash
-$ gopass cp emails/example.com emails/user@example.com
+```shell
+gopass cp emails/example.com emails/user@example.com
 ```
 
 *Copying also works across different sub-stores.*
@@ -260,8 +300,8 @@ Gopass offers as simple and intuitive way to sync one or many stores with their
 remotes. This will perform and git pull, push and import or export any missing
 GPG keys.
 
-```bash
-$ gopass sync
+```shell
+gopass sync
 ```
 
 ### Desktop Notifications
@@ -275,14 +315,14 @@ gopass always pushes changes to your default git remote server (origin).
 
 If you want to pull changes from git, you need to run the sync command:
 
-```bash
-$ gopass sync 
+```shell
+gopass sync 
 ```
 
 You can selectively pull changes into named stores:
 
-```bash
-$ gopass sync --store foo 
+```shell
+gopass sync --store foo 
 ```
 
 For details see: [`sync` command](commands/sync.md)
@@ -291,7 +331,7 @@ For details see: [`sync` command](commands/sync.md)
 
 gopass can check your passwords for common flaws, like being too short or coming from a dictionary.
 
-```bash
+```shell
 $ gopass audit
 Detected weak secret for 'golang.org/gopher': Password is too short
 ```
@@ -308,11 +348,11 @@ perform the check fully offline.
 
 This will check the SHA1 hashes of all your password against the online HIBP API. Your actual passwords aren't leaked, but weak passwords can be found using a dictionary attack if an adversary obtains its SHA1 hashes. Use this if:
 
- - you trust HIBP website and API
- - you trust your network
- - you don't have small (<14 characters), easy to crack passwords
+- you trust HIBP website and API
+- you trust your network
+- you don't have small (<14 characters), easy to crack passwords
 
-```bash
+```shell
 gopass-hibp api
 ```
 
@@ -320,17 +360,15 @@ gopass-hibp api
 
 First go to [haveibeenpwned.com/Passwords](https://haveibeenpwned.com/Passwords) and download the dumps. Then unpack the 7-zip archives somewhere. Note that full path to those files and provide it to `gopass-hibp dump --files` flag.
 
-```bash
-$ gopass-hibp dump --files /tmp/pwned-passwords-ordered-2.0.txt
+```shell
+gopass-hibp dump --files /tmp/pwned-passwords-ordered-2.0.txt
 ```
 
 ### Support for Binary Content
 
-WARNING: Binary support is undergoing changes. Expect changes to these commands.
-
 gopass provides secure and easy support for working with binary files through the `cat`, `fscopy`, `fsmove` and `sum` family of sub-commands. One can copy or move secret from or to the store. gopass will attempt to securely overwrite and remove any secret moved to the store.
 
-```bash
+```shell
 # copy file "/some/file.jpg" to "some/secret" in the store
 $ gopass fscopy /some/file.jpg some/secret
 # move file "/home/user/private.key" to "my/private.key", removing the file on disk
@@ -344,7 +382,7 @@ $ gopass sha256 my/private.key
 
 gopass supports multi-stores that can be mounted over each other like file systems on Linux/UNIX systems. Mounting new stores can be done through gopass:
 
-```bash
+```shell
 # Mount a new store
 $ gopass mounts add test /tmp/password-store-test
 # Show mounted stores
@@ -375,7 +413,7 @@ Commands that support the `--store` flag:
 
 gopass supports directly editing structured secrets (simple key-value maps):
 
-```bash
+```shell
 $ gopass generate -n foo/bar 12
 The generated password for foo/bar is:
 7fXGKeaZgzty
@@ -390,7 +428,8 @@ baz: zab
 ```
 
 Or even YAML:
-```bash
+
+```yaml
 secret1234
 ---
 multi: |
@@ -417,7 +456,7 @@ See also [gopass show doc entry](/docs/commands/show.md#parsing-and-secrets) for
 
 gopass allows editing the config from the command-line. This is similar to how git handles config changes through the command-line. Any change will be written to the configured gopass config file.
 
-```bash
+```shell
 $ gopass config
 askformore: false
 autoclip: true
@@ -434,7 +473,7 @@ $ gopass config cliptimeout
 
 You can list, add and remove recipients from the command-line.
 
-```bash
+```shell
 $ gopass recipients
 gopass
 └── 0xB5B44266A3683834 - Gopher <gopher@golang.org>
@@ -483,9 +522,74 @@ Disabling colors is as simple as setting `NO_COLOR` to `true`. See [no-color.org
 
 ### Password Templates
 
-With gopass you can create templates which are searched when executing `gopass edit` on a new secret. If the folder, or any parent folder, contains a file called `.pass-template` it's parsed as a Go template, executed with the name of the new secret and an auto-generated password and loaded into your `$EDITOR`.
+With gopass you can create templates which are searched when executing `gopass edit` on a new secret. If the folder, or any parent folder, contains a file called `.pass-template` it's parsed as a [Go template](https://pkg.go.dev/text/template), executed with the name of the new secret and an auto-generated password and loaded into your `$EDITOR`.
 
 This makes it easy to use templates for certain kind of secrets such as database passwords.
+
+#### Examples
+
+```text
+# Insert the password of an arbitrary secret
+Password-value of existing entry: {{ getpw "foo" }}
+
+# Insert the full body of another secret
+Content of the new entry: {{ .Content }}
+
+# MD5 hash (hex)
+Md5sum of the new password: {{ .Content | md5sum }}
+
+# SHA1 hash (hex)
+Sha1sum of the new password: {{ .Content | sha1sum }}
+
+# MD5Crypt (hex)
+Md5crypt of the new password: {{ .Content | md5crypt }}
+
+# Salted-SHA1
+SSHA of the new password: {{ .Content | ssha }}
+
+# Salted-SHA256
+SSHA256 of the new password: {{ .Content | ssha256 }}
+
+# Salted-SHA512
+SSHA512 of the new password: {{ .Content | ssha512 }}
+
+# Argon2i
+Argon2i of the new password: {{ .Content | argon2i }}
+
+# Argon2id
+Argon2id of the new password: {{ .Content | argon2id }}
+
+# Bcrypt
+Bcrypt of the new password: {{ .Content | bcrypt }}
+```
+
+### Domain Aliases
+
+`gopass` supports domain aliases. Given a secret structure like the following example and
+a vendor that operates the same authentication backend behind several different domains
+this will allow looking up an existing secret using either of the aliases.
+
+```shell
+$ gopass ls
+gopass
+└── websites/
+    ├── rainforest.com/
+    │   └── jim
+    └── woodlands.com/
+        └── jimbo
+$ cat .config/gopass/config
+...
+[domain-alias "rainforest.com"]
+	insteadOf = rainforest.de
+[domain-alias "woodlands.com"]
+	insteadOf = woodlands.de
+$ gopass show websites/rainforest.de/jim
+<password>
+$ gopass show websites/woodlands.de/jimbo
+<password>
+```
+
+Note: Until the gitconfig package support multi-values only one alias per domain is possible.
 
 ### Safecontent
 
@@ -496,3 +600,13 @@ Also the special `unsafe-keys` key is evaluated. It expectes
 a comma separated list of keys that will be obstructed when
 printing the secret.
 
+## Related Projects
+
+- [pass](https://www.passwordstore.org) - The inspiration for this project, by Jason A. Donenfeld. `gopass` is a drop-in replacement for `pass` and can be used interchangeably (mostly!).
+- [passage](https://github.com/FiloSottile/passage) - passage is a fork of [password-store](https://www.passwordstore.org) that uses
+[age](https://age-encryption.org) as a backend instead of GnuPG. `gopass` has some amount of support for `passage` but can not be used fully interchangeably as of today. This might change in the future.
+
+## External Documentation
+
+* [gopass cheat sheet](https://woile.github.io/gopass-cheat-sheet/) ([source on github](https://github.com/Woile/gopass-cheat-sheet))
+* [gopass presentation](https://woile.github.io/gopass-presentation/) ([source on github](https://github.com/Woile/gopass-presentation))

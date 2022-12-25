@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"bitbucket.org/creachadair/stringset"
 	"github.com/gopasspw/gopass/internal/action/exit"
 	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/internal/backend/crypto/age"
@@ -15,6 +14,7 @@ import (
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/cui"
 	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/internal/set"
 	"github.com/gopasspw/gopass/internal/store/root"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
@@ -195,7 +195,7 @@ func (s *Action) cloneCheckDecryptionKeys(ctx context.Context, mount string) err
 
 	debug.Log("We have useable private keys")
 
-	recpSet := stringset.New(s.Store.ListRecipients(ctx, mount)...)
+	recpSet := set.New(s.Store.ListRecipients(ctx, mount)...)
 	ids, err := crypto.ListIdentities(ctx)
 	if err != nil {
 		out.Warningf(ctx, "Failed to check decryption keys: %s", err)
@@ -203,7 +203,7 @@ func (s *Action) cloneCheckDecryptionKeys(ctx context.Context, mount string) err
 		return nil
 	}
 
-	idSet := stringset.New(ids...)
+	idSet := set.New(ids...)
 	if idSet.IsSubset(recpSet) {
 		out.Noticef(ctx, "Found valid decryption keys. You can now decrypt your passwords.")
 

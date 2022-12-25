@@ -7,10 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/blang/semver/v4"
 	"github.com/fatih/color"
 	"github.com/gopasspw/gopass/internal/action/exit"
-	"github.com/gopasspw/gopass/internal/backend"
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/updater"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -25,33 +24,7 @@ func (s *Action) Version(c *cli.Context) error {
 	version := make(chan string, 1)
 	go s.checkVersion(ctx, version)
 
-	// suppress setup output in version
-	{
-		c2 := c
-		c2.Context = ctxutil.WithHidden(c.Context, true)
-		_ = s.IsInitialized(c2)
-	}
-
 	cli.VersionPrinter(c)
-
-	cryptoVer := versionInfo(ctx, s.Store.Crypto(ctx, ""))
-	storageVer := versionInfo(ctx, s.Store.Storage(ctx, ""))
-
-	tpl := "%-10s - %10s - %10s\n"
-	fmt.Fprintf(stdout, tpl, "<root>", cryptoVer, storageVer)
-
-	// report all used crypto, sync and fs backends.
-	for _, mp := range s.Store.MountPoints() {
-		cv := versionInfo(ctx, s.Store.Crypto(ctx, mp))
-		sv := versionInfo(ctx, s.Store.Storage(ctx, mp))
-
-		if cv != cryptoVer || sv != storageVer {
-			fmt.Fprintf(stdout, tpl, mp, cv, sv)
-		}
-	}
-
-	fmt.Fprintf(stdout, "Available Crypto Backends: %s\n", strings.Join(backend.CryptoRegistry.BackendNames(), ", "))
-	fmt.Fprintf(stdout, "Available Storage Backends: %s\n", strings.Join(backend.StorageRegistry.BackendNames(), ", "))
 
 	select {
 	case vi := <-version:
@@ -67,19 +40,6 @@ func (s *Action) Version(c *cli.Context) error {
 	return nil
 }
 
-type versioner interface {
-	Name() string
-	Version(context.Context) semver.Version
-}
-
-func versionInfo(ctx context.Context, v versioner) string {
-	if v == nil {
-		return "<none>"
-	}
-
-	return fmt.Sprintf("%s %s", v.Name(), v.Version(ctx))
-}
-
 func (s *Action) checkVersion(ctx context.Context, u chan string) {
 	msg := ""
 	defer func() {
@@ -88,6 +48,12 @@ func (s *Action) checkVersion(ctx context.Context, u chan string) {
 
 	if disabled := os.Getenv("CHECKPOINT_DISABLE"); disabled != "" {
 		debug.Log("remote version check disabled by CHECKPOINT_DISABLE")
+
+		return
+	}
+
+	if cfg := config.FromContext(ctx); cfg.IsSet("updater.check") && !cfg.GetBool("updater.check") {
+		debug.Log("remote version check disabled by updater.check = false")
 
 		return
 	}

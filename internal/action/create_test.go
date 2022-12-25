@@ -14,9 +14,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestCreate(t *testing.T) { //nolint:paralleltest
+func TestCreate(t *testing.T) {
 	u := gptest.NewUnitTester(t)
-	defer u.Remove()
 
 	aclip.Unsupported = true
 

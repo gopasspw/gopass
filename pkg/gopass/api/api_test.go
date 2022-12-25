@@ -3,9 +3,12 @@ package api_test
 import (
 	"context"
 	"fmt"
+	"testing"
 
+	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/gopass/api"
 	"github.com/gopasspw/gopass/pkg/gopass/secrets"
+	"github.com/stretchr/testify/assert"
 )
 
 func Example() { //nolint:testableexamples
@@ -49,4 +52,19 @@ func Example() { //nolint:testableexamples
 	if err := gp.Close(ctx); err != nil {
 		panic(err)
 	}
+}
+
+func TestApi(t *testing.T) {
+	td := t.TempDir()
+	t.Setenv("GOPASS_HOMEDIR", td)
+
+	ctx := context.Background()
+	ctx = ctxutil.WithAlwaysYes(ctx, true)
+	ctx = ctxutil.WithInteractive(ctx, false)
+
+	gp, err := api.New(ctx)
+	assert.ErrorIs(t, err, api.ErrNotInitialized)
+	assert.Nil(t, gp)
+
+	// TODO: initialize store
 }

@@ -21,7 +21,8 @@ type Config struct {
 	readonly bool // do not allow modifying values (even in memory)
 	noWrites bool // do not persist changes to disk (e.g. for tests)
 	raw      strings.Builder
-	vars     map[string]string
+	// TODO(#2457): support multi-vars
+	vars map[string]string
 }
 
 // Unset deletes a key.
@@ -70,7 +71,7 @@ func (c *Config) Set(key, value string) error {
 
 	// already present at the same value, no need to rewrite the config
 	if v, found := c.vars[key]; found && v == value {
-		debug.Log("key %q with value %q already present. No re-writing.", key, value)
+		debug.Log("key %q with value %q already present. Not re-writing.", key, value)
 
 		return nil
 	}
@@ -206,7 +207,11 @@ func (c *Config) flushRaw() error {
 
 	debug.Log("writing config to %s: -----------\n%s\n--------------", c.path, c.raw.String())
 
-	return os.WriteFile(c.path, []byte(c.raw.String()), 0o600)
+	if err := os.WriteFile(c.path, []byte(c.raw.String()), 0o600); err != nil {
+		return fmt.Errorf("failed to write config to %s: %w", c.path, err)
+	}
+
+	return nil
 }
 
 type parseFunc func(fqkn, skn, value, comment string) (newLine string, skipLine bool)
@@ -231,6 +236,7 @@ func parseConfig(in io.Reader, key, value string, cb parseFunc) []string {
 
 		lines = append(lines, line)
 
+		line = strings.TrimSpace(line)
 		if strings.HasPrefix(line, "#") {
 			continue
 		}
@@ -250,9 +256,14 @@ func parseConfig(in io.Reader, key, value string, cb parseFunc) []string {
 			continue
 		}
 
-		kvp := strings.Split(line, "=")
-		trim(kvp)
-		if len(kvp) < 2 {
+		// TODO(gitconfig) This will skip over valid entries like this one:
+		// [core]
+		//  sslVerify
+		// These are odd but we should still support them.
+		k, v, found := strings.Cut(line, " = ")
+		if !found {
+			debug.Log("no valid KV-pair on line: %q", line)
+
 			continue
 		}
 
@@ -260,12 +271,12 @@ func parseConfig(in io.Reader, key, value string, cb parseFunc) []string {
 		if subsection != "" {
 			fKey += subsection + "."
 		}
-		fKey += kvp[0]
+		fKey += k
 		if key == "" {
-			wKey = kvp[0]
+			wKey = k
 		}
 
-		oValue := kvp[1]
+		oValue := v
 		comment := ""
 
 		if strings.ContainsAny(oValue, "#;") {
@@ -357,6 +368,8 @@ func LoadConfigFromEnv(envPrefix string) *Config {
 			noWrites: true,
 		}
 	}
+
+	c.vars = make(map[string]string, count)
 
 	for i := 0; i < count; i++ {
 		keyVar := fmt.Sprintf("%s%d", envPrefix+"_CONFIG_KEY_", i)

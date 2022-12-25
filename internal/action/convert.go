@@ -75,7 +75,7 @@ func (s *Action) Convert(c *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	if !ok {
+	if ctxutil.IsInteractive(ctx) && !ok {
 		out.Notice(ctx, "Aborted")
 
 		return nil

@@ -17,9 +17,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestInit(t *testing.T) { //nolint:paralleltest
+func TestInit(t *testing.T) {
 	u := gptest.NewUnitTester(t)
-	defer u.Remove()
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
@@ -62,7 +61,7 @@ func TestInit(t *testing.T) { //nolint:paralleltest
 	buf.Reset()
 }
 
-func TestInitParseContext(t *testing.T) { //nolint:paralleltest
+func TestInitParseContext(t *testing.T) {
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
 	out.Stderr = buf
@@ -101,8 +100,6 @@ func TestInitParseContext(t *testing.T) { //nolint:paralleltest
 		tc := tc
 
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
 			c := gptest.CliCtxWithFlags(context.Background(), t, tc.flags)
 			assert.NoError(t, tc.check(initParseContext(c.Context, c)), tc.name)
 			buf.Reset()

@@ -1,11 +1,18 @@
 package gitconfig
 
 import (
+	"fmt"
+	"io/ioutil"
+	"math/rand"
+	"path/filepath"
+	"strconv"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/gopasspw/gopass/internal/set"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"golang.org/x/exp/maps"
 )
 
@@ -27,7 +34,6 @@ func TestSubsection(t *testing.T) {
 
 	in := `[core]
 	showsafecontent = true
-	parsing = false
 	readonly = true
 [aliases "subsection with spaces"]
 	foo = bar
@@ -100,7 +106,6 @@ func TestRewriteRaw(t *testing.T) {
 
 	in := `[core]
 	showsafecontent = true
-	parsing = false
 	readonly = true
 [mounts]
 	path = /tmp/foo
@@ -112,7 +117,6 @@ func TestRewriteRaw(t *testing.T) {
 		"foo.bar":              "baz",
 		"mounts.readonly":      "true",
 		"core.showsafecontent": "false",
-		"core.parsing":         "true",
 	}
 	for _, k := range set.Sorted(maps.Keys(updates)) {
 		v := updates[k]
@@ -121,7 +125,6 @@ func TestRewriteRaw(t *testing.T) {
 
 	assert.Equal(t, `[core]
 	showsafecontent = false
-	parsing = true
 	readonly = true
 [mounts]
 	readonly = true
@@ -129,4 +132,105 @@ func TestRewriteRaw(t *testing.T) {
 [foo]
 	bar = baz
 `, c.raw.String())
+}
+
+func TestUnsetSection(t *testing.T) {
+	t.Parallel()
+
+	in := `[core]
+	showsafecontent = true
+	readonly = true
+[mounts]
+	path = /tmp/foo
+[foo]
+	bar = baz
+`
+	c := ParseConfig(strings.NewReader(in))
+	c.noWrites = true
+
+	assert.NoError(t, c.Unset("core.readonly"))
+	assert.Equal(t, `[core]
+	showsafecontent = true
+[mounts]
+	path = /tmp/foo
+[foo]
+	bar = baz
+`, c.raw.String())
+
+	// should not exist
+	assert.NoError(t, c.Unset("foo.bla"))
+
+	// TODO: support remvoing sections
+	t.Skip("removing sections is not supported, yet")
+
+	assert.NoError(t, c.Unset("foo.bar"))
+	assert.Equal(t, `[core]
+	showsafecontent = false
+	readonly = true
+[mounts]
+	readonly = true
+	path = /tmp/foo
+`, c.raw.String())
+}
+
+func TestNewFromMap(t *testing.T) {
+	t.Parallel()
+
+	tc := map[string]string{
+		"core.foo":     "bar",
+		"core.pager":   "false",
+		"core.timeout": "10",
+	}
+
+	cfg := NewFromMap(tc)
+	for k, v := range tc {
+		assert.Equal(t, v, cfg.vars[k])
+	}
+
+	assert.True(t, cfg.IsSet("core.foo"))
+	assert.False(t, cfg.IsSet("core.bar"))
+	assert.NoError(t, cfg.Unset("core.foo"))
+	assert.True(t, cfg.IsSet("core.foo"))
+}
+
+func TestLoadConfig(t *testing.T) {
+	t.Parallel()
+
+	td := t.TempDir()
+	fn := filepath.Join(td, "config")
+	assert.NoError(t, ioutil.WriteFile(fn, []byte(`[core]
+	int = 7
+	string = foo
+	bar = false`), 0o600))
+
+	cfg, err := LoadConfig(fn)
+	require.NoError(t, err)
+
+	assert.Equal(t, "7", cfg.vars["core.int"])
+	assert.Equal(t, "foo", cfg.vars["core.string"])
+	assert.Equal(t, "false", cfg.vars["core.bar"])
+}
+
+func TestLoadFromEnv(t *testing.T) {
+	tc := map[string]string{
+		"core.foo":     "bar",
+		"core.pager":   "false",
+		"core.timeout": "10",
+	}
+
+	rand.Seed(time.Now().Unix())
+	prefix := fmt.Sprintf("GPTEST%d", rand.Int31n(8192))
+
+	i := 0
+	for k, v := range tc {
+		t.Setenv(fmt.Sprintf("%s_CONFIG_KEY_%d", prefix, i), k)
+		t.Setenv(fmt.Sprintf("%s_CONFIG_VALUE_%d", prefix, i), v)
+		i++
+	}
+	t.Setenv(fmt.Sprintf("%s_CONFIG_COUNT", prefix), strconv.Itoa(i))
+
+	cfg := LoadConfigFromEnv(prefix)
+	for k, v := range tc {
+		assert.Equal(t, v, cfg.vars[k])
+	}
 }

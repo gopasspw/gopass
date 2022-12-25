@@ -46,10 +46,7 @@ func newMock(ctx context.Context, path string) (*Action, error) {
 }
 
 func TestAction(t *testing.T) {
-	t.Parallel()
-
 	u := gptest.NewUnitTester(t)
-	defer u.Remove()
 
 	ctx := context.Background()
 	ctx = ctxutil.WithInteractive(ctx, false)
@@ -72,18 +69,19 @@ func TestAction(t *testing.T) {
 }
 
 func TestNew(t *testing.T) {
-	t.Parallel()
+	u := gptest.NewUnitTester(t)
+	assert.NotNil(t, u)
 
 	td := t.TempDir()
 	cfg := config.NewNoWrites()
 	sv := semver.Version{}
 
-	t.Run("init a new store", func(t *testing.T) { //nolint:paralleltest
+	t.Run("init a new store", func(t *testing.T) {
 		_, err := New(cfg, sv)
 		require.NoError(t, err)
 	})
 
-	t.Run("init an existing plain store", func(t *testing.T) { //nolint:paralleltest
+	t.Run("init an existing plain store", func(t *testing.T) {
 		require.NoError(t, cfg.SetPath(filepath.Join(td, "store")))
 		assert.NoError(t, os.MkdirAll(cfg.Path(), 0o700))
 		assert.NoError(t, os.WriteFile(filepath.Join(cfg.Path(), plain.IDFile), []byte("foobar"), 0o600))

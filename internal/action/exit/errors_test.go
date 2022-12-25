@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestError(t *testing.T) { //nolint:paralleltest
+func TestError(t *testing.T) {
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
 	defer func() {

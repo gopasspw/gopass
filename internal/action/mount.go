@@ -1,12 +1,16 @@
 package action
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"sort"
+	"strings"
 
+	"github.com/blang/semver/v4"
 	"github.com/fatih/color"
 	"github.com/gopasspw/gopass/internal/action/exit"
+	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
@@ -104,4 +108,44 @@ func (s *Action) MountAdd(c *cli.Context) error {
 	out.Printf(ctx, "Mounted %s as %s", alias, localPath)
 
 	return nil
+}
+
+// MountsVersion prints the backend versions for each mount.
+func (s *Action) MountsVersions(c *cli.Context) error {
+	ctx := ctxutil.WithGlobalFlags(c)
+
+	cryptoVer := versionInfo(ctx, s.Store.Crypto(ctx, ""))
+	storageVer := versionInfo(ctx, s.Store.Storage(ctx, ""))
+
+	tpl := "%-10s - %10s - %10s\n"
+	fmt.Fprintf(stdout, tpl, "<root>", cryptoVer, storageVer)
+
+	// report all used crypto, sync and fs backends.
+	for _, mp := range s.Store.MountPoints() {
+		cv := versionInfo(ctx, s.Store.Crypto(ctx, mp))
+		sv := versionInfo(ctx, s.Store.Storage(ctx, mp))
+
+		if cv != cryptoVer || sv != storageVer {
+			fmt.Fprintf(stdout, tpl, mp, cv, sv)
+		}
+	}
+
+	fmt.Fprintln(stdout)
+	fmt.Fprintf(stdout, "Available Crypto Backends: %s\n", strings.Join(backend.CryptoRegistry.BackendNames(), ", "))
+	fmt.Fprintf(stdout, "Available Storage Backends: %s\n", strings.Join(backend.StorageRegistry.BackendNames(), ", "))
+
+	return nil
+}
+
+type versioner interface {
+	Name() string
+	Version(context.Context) semver.Version
+}
+
+func versionInfo(ctx context.Context, v versioner) string {
+	if v == nil {
+		return "<none>"
+	}
+
+	return fmt.Sprintf("%s %s", v.Name(), v.Version(ctx))
 }

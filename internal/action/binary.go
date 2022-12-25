@@ -65,15 +65,15 @@ func (s *Action) Cat(c *cli.Context) error {
 func secFromBytes(dst, src string, in []byte) gopass.Secret {
 	debug.Log("Read %d bytes from %s to %s", len(in), src, dst)
 
-	sec := secrets.NewKV()
+	sec := secrets.NewAKV()
 	if err := sec.Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", filepath.Base(src))); err != nil {
 		debug.Log("Failed to set Content-Disposition: %q", err)
 	}
-
-	_, _ = sec.Write([]byte(base64.StdEncoding.EncodeToString(in)))
 	if err := sec.Set("Content-Transfer-Encoding", "Base64"); err != nil {
 		debug.Log("Failed to set Content-Transfer-Encoding: %q", err)
 	}
+
+	_, _ = sec.Write([]byte(base64.StdEncoding.EncodeToString(in)))
 
 	return sec
 }

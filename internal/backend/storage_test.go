@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestDetectStorage(t *testing.T) { //nolint:paralleltest
+func TestDetectStorage(t *testing.T) {
 	ctx := context.Background()
 
 	td := t.TempDir()

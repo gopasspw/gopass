@@ -13,9 +13,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestGit(t *testing.T) { //nolint:paralleltest
+func TestGit(t *testing.T) {
 	u := gptest.NewUnitTester(t)
-	defer u.Remove()
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
@@ -35,7 +34,7 @@ func TestGit(t *testing.T) { //nolint:paralleltest
 	}()
 
 	// git init
-	c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"username": "foobar", "useremail": "foo.bar@example.org"})
+	c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"name": "foobar", "email": "foo.bar@example.org"})
 	assert.NoError(t, act.RCSInit(c))
 	buf.Reset()
 

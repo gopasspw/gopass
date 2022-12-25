@@ -37,7 +37,7 @@ func (s *Store) Convert(ctx context.Context, cryptoBe backend.CryptoBackend, sto
 	// create temp path
 	tmpPath := s.path + "-autoconvert"
 	if err := os.MkdirAll(tmpPath, 0o700); err != nil {
-		return err
+		return fmt.Errorf("failed to create temporary conversion directory %s: %w", tmpPath, err)
 	}
 
 	debug.Log("create temporary store path for conversion: %s", tmpPath)
@@ -45,14 +45,14 @@ func (s *Store) Convert(ctx context.Context, cryptoBe backend.CryptoBackend, sto
 	// init new store at temp path
 	st, err := backend.InitStorage(ctx, storageBe, tmpPath)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to initialize new stroage backend %s: %w", storageBe.String(), err)
 	}
 
 	debug.Log("initialized storage %s at %s", st, tmpPath)
 
 	crypto, err := backend.NewCrypto(ctx, cryptoBe)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to initialize new crypto backend %s: %w", cryptoBe.String(), err)
 	}
 
 	debug.Log("initialized Crypto %s", crypto)
@@ -67,17 +67,17 @@ func (s *Store) Convert(ctx context.Context, cryptoBe backend.CryptoBackend, sto
 	// init new store
 	key, err := cui.AskForPrivateKey(ctx, crypto, "Please select a private key")
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to ask for the private key for %v: %w", crypto, err)
 	}
 
 	if err := tmpStore.Init(ctx, tmpPath, key); err != nil {
-		return err
+		return fmt.Errorf("failed to init new store at %s: %w", tmpPath, err)
 	}
 
 	// copy everything from old to temp, including all revisions
 	entries, err := s.List(ctx, "")
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to list entries of the old store: %w", err)
 	}
 
 	out.Printf(ctx, "Converting store ...")
@@ -95,7 +95,7 @@ func (s *Store) Convert(ctx context.Context, cryptoBe backend.CryptoBackend, sto
 		debug.Log("converting %s", e)
 		revs, err := s.ListRevisions(ctx, e)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to list revision of %s: %w", e, err)
 		}
 		sort.Sort(sort.Reverse(backend.Revisions(revs)))
 
@@ -103,7 +103,7 @@ func (s *Store) Convert(ctx context.Context, cryptoBe backend.CryptoBackend, sto
 			debug.Log("converting %s@%s", e, r.Hash)
 			sec, err := s.GetRevision(ctx, e, r.Hash)
 			if err != nil {
-				return err
+				return fmt.Errorf("failed to convert revision %s of %s: %w", r.Hash, e, err)
 			}
 
 			msg := fmt.Sprintf("%s\n%s\nCommitted as: %s\nDate: %s\nAuthor: %s <%s>",
@@ -117,7 +117,7 @@ func (s *Store) Convert(ctx context.Context, cryptoBe backend.CryptoBackend, sto
 			ctx := ctxutil.WithCommitMessage(ctx, msg)
 			ctx = ctxutil.WithCommitTimestamp(ctx, r.Date)
 			if err := tmpStore.Set(ctx, e, sec); err != nil {
-				return err
+				return fmt.Errorf("failed to write converted revision %s of %s to the new store: %w", r.Hash, e, err)
 			}
 		}
 		bar.Inc()
@@ -128,6 +128,8 @@ func (s *Store) Convert(ctx context.Context, cryptoBe backend.CryptoBackend, sto
 	_ = q.Close(ctx)
 
 	if !move {
+		debug.Log("conversion done. no move requested. keeping both.")
+
 		return nil
 	}
 
@@ -141,9 +143,13 @@ func (s *Store) Convert(ctx context.Context, cryptoBe backend.CryptoBackend, sto
 
 	// rename old to backup
 	if err := os.Rename(s.path, bDir); err != nil {
-		return err
+		return fmt.Errorf("failed to rename old store from %s to backup at %s: %w", s.path, bDir, err)
 	}
 
 	// rename temp to old
-	return os.Rename(tmpPath, s.path)
+	if err := os.Rename(tmpPath, s.path); err != nil {
+		return fmt.Errorf("failed to rename temp store %s to old %s: %w", tmpPath, s.path, err)
+	}
+
+	return nil
 }

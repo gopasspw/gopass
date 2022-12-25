@@ -53,7 +53,7 @@ _gopass () {
 	      
 	      ;;
 	  config)
-	      
+	      _arguments : "--store[Set options to a specific store]"
 	      
 	      
 	      ;;
@@ -88,13 +88,12 @@ _gopass () {
 	      
 	      ;;
 	  find|search)
-	      _arguments : "--clip[Copy the password into the clipboard]" "--unsafe[In the case of an exact match, display the password even if safecontent is enabled]"
+	      _arguments : "--unsafe[In the case of an exact match, display the password even if safecontent is enabled]"
 	      
 	      
 	      ;;
 	  fsck)
-	      _arguments : "--decrypt[Decrypt and reencryt during fsck.
-WARNING: This will update the secret content to the latest format. This might be incompatible with other implementations. Use with caution!]"
+	      _arguments : "--decrypt[Decrypt and reencryt during fsck.]"
 	      
 	      
 	      ;;
@@ -109,7 +108,7 @@ WARNING: This will update the secret content to the latest format. This might be
 	      
 	      ;;
 	  generate)
-	      _arguments : "--clip[Copy the generated password to the clipboard]" "--print[Print the generated password to the terminal]" "--force[Force to overwrite existing password]" "--edit[Open secret for editing after generating a password]" "--symbols[Use symbols in the password]" "--generator[Choose a password generator, use one of: cryptic, memorable, xkcd or external. Default: cryptic]" "--strict[Require strict character class rules]" "--sep[Word separator for generated passwords. If no separator is specified, the words are combined without spaces/separator and the first character of words is capitalised.]" "--lang[Language to generate password from, currently only en (english, default) is supported]"
+	      _arguments : "--clip[Copy the generated password to the clipboard]" "--print[Print the generated password to the terminal]" "--force[Force to overwrite existing password]" "--edit[Open secret for editing after generating a password]" "--symbols[Use symbols in the password]" "--generator[Choose a password generator, use one of: cryptic, memorable, xkcd or external. Default: cryptic]" "--strict[Require strict character class rules]" "--force-regen[Force full re-generation, incl. evaluation of templates. Will overwrite the entire secret!]" "--sep[Word separator for generated passwords. If no separator is specified, the words are combined without spaces/separator and the first character of words is capitalised.]" "--lang[Language to generate password from, currently only en (english, default) or de are supported]"
 	      _gopass_complete_folders
 	      _gopass_complete_passwords
 	      ;;
@@ -158,6 +157,7 @@ WARNING: This will update the secret content to the latest format. This might be
 	      subcommands=(
 	      "add:Mount a password store"
 	      "remove:Umount an mounted password store"
+	      "versions:Display mount provider versions"
 	      )
 	      _describe -t commands "gopass mounts" subcommands
 	      
@@ -172,7 +172,7 @@ WARNING: This will update the secret content to the latest format. This might be
 	  otp|totp|hotp)
 	      _arguments : "--clip[Copy the time-based token into the clipboard]" "--qr[Write QR code to FILE]" "--password[Only display the token]"
 	      
-	      
+	      _gopass_complete_passwords
 	      ;;
 	  process)
 	      
@@ -180,7 +180,7 @@ WARNING: This will update the secret content to the latest format. This might be
 	      
 	      ;;
 	  pwgen)
-	      _arguments : "--no-numerals[Do not include numerals in the generated passwords.]" "--no-capitalize[Do not include capital letter in the generated passwords.]" "--ambiguous[Do not include characters that could be easily confused with each other, like '1' and 'l' or '0' and 'O']" "--symbols[Include at least one symbol in the password.]" "--one-per-line[Print one password per line]" "--xkcd[Use multiple random english words combined to a password. By default, space is used as separator and all words are lowercase]" "--sep[Word separator for generated xkcd style password. If no separator is specified, the words are combined without spaces/separator and the first character of words is capitalised. This flag implies -xkcd]" "--lang[Language to generate password from, currently only en (english, default) is supported]"
+	      _arguments : "--no-numerals[Do not include numerals in the generated passwords.]" "--no-capitalize[Do not include capital letter in the generated passwords.]" "--ambiguous[Do not include characters that could be easily confused with each other, like '1' and 'l' or '0' and 'O']" "--symbols[Include at least one symbol in the password.]" "--one-per-line[Print one password per line]" "--xkcd[Use multiple random english words combined to a password. By default, space is used as separator and all words are lowercase]" "--sep[Word separator for generated xkcd style password. If no separator is specified, the words are combined without spaces/separator and the first character of words is capitalised. This flag implies -xkcd]" "--lang[Language to generate password from, currently only en (english, default) or de are supported]"
 	      
 	      
 	      ;;
@@ -198,11 +198,12 @@ WARNING: This will update the secret content to the latest format. This might be
 	  recipients)
 	      local -a subcommands
 	      subcommands=(
+	      "ack:Update recipients.hash"
 	      "add:Add any number of Recipients to any store"
 	      "remove:Remove any number of Recipients from any store"
 	      )
 	      _describe -t commands "gopass recipients" subcommands
-	      
+	      _arguments : "--pretty[Pretty print recipients]"
 	      
 	      
 	      ;;
@@ -266,7 +267,7 @@ WARNING: This will update the secret content to the latest format. This might be
 	local -a subcommands
 	subcommands=(
 	  "age:age commands"
-	  "alias:Manage domain aliases"
+	  "alias:Print domain aliases"
 	  "audit:Decrypt all secrets and scan for weak or leaked passwords"
 	  "cat:Decode and print content of a binary secret to stdout, or encode and insert from stdin"
 	  "clone:Clone a password store from a git repository"

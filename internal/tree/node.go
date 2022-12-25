@@ -2,8 +2,6 @@ package tree
 
 import (
 	"bytes"
-
-	"github.com/gopasspw/gopass/pkg/debug"
 )
 
 // Node is a tree node.
@@ -111,7 +109,7 @@ func (n Node) Merge(other Node) *Node {
 		r.Subtree = other.Subtree
 	}
 
-	debug.Log("merged %+v and %+v into %+v", n, other, r)
+	// debug.Log("merged %+v and %+v into %+v", n, other, r)
 
 	return &r
 }

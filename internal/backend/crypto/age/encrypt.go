@@ -81,6 +81,7 @@ func (a *Age) encryptFile(ctx context.Context, filename string, plaintext []byte
 	if err != nil {
 		return err
 	}
+
 	buf, err := a.encrypt(plaintext, id)
 	if err != nil {
 		return err

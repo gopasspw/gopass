@@ -11,13 +11,13 @@ import (
 )
 
 // to test cmd.exec correctly we use the same functionality as go itself see exec_test.go.
-func TestDarwinNotify(t *testing.T) { //nolint:paralleltest
+func TestDarwinNotify(t *testing.T) {
 	ctx := context.Background()
 	t.Setenv("GOPASS_NO_NOTIFY", "true")
 	assert.NoError(t, Notify(ctx, "foo", "bar"))
 }
 
-func TestLegacyNotification(t *testing.T) { //nolint:paralleltest
+func TestLegacyNotification(t *testing.T) {
 	ctx := context.Background()
 	// override execCommand with mock
 	execCommand = mockExecCommand
@@ -29,7 +29,7 @@ func TestLegacyNotification(t *testing.T) { //nolint:paralleltest
 	assert.NoError(t, err)
 }
 
-func TestLegacyTerminalNotifierNotification(t *testing.T) { //nolint:paralleltest
+func TestLegacyTerminalNotifierNotification(t *testing.T) {
 	ctx := context.Background()
 	// override execCommand with mock
 	execCommand = mockExecCommand
@@ -42,7 +42,7 @@ func TestLegacyTerminalNotifierNotification(t *testing.T) { //nolint:paralleltes
 	assert.NoError(t, err)
 }
 
-func TestNoExecutableFound(t *testing.T) { //nolint:paralleltest
+func TestNoExecutableFound(t *testing.T) {
 	ctx := context.Background()
 	// override execCommand with mock
 	execCommand = mockExecCommand

@@ -54,9 +54,9 @@ func (s *Action) editUpdate(ctx context.Context, name string, content, nContent 
 		return nil
 	}
 
-	nSec := secrets.ParsePlain(nContent)
+	nSec := secrets.ParseAKV(nContent)
 
-	// if the secret has a password, we check it's strength.
+	// if the secret has a password, we check its strength.
 	if pw := nSec.Password(); pw != "" {
 		audit.Single(ctx, pw)
 	}
@@ -98,7 +98,7 @@ func (s *Action) editGetContent(ctx context.Context, name string, create bool) (
 	}
 
 	// load template if it exists.
-	pwLength, _ := defaultLengthFromEnv()
+	pwLength, _ := defaultLengthFromEnv(ctx)
 	if content, found := s.renderTemplate(ctx, name, []byte(pwgen.GeneratePassword(pwLength, false))); found {
 		return name, content, true, nil
 	}

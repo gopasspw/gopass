@@ -12,11 +12,7 @@ import (
 )
 
 func TestGPG(t *testing.T) {
-	t.Parallel()
-
 	ctx := context.Background()
-
-	tempdir := t.TempDir()
 
 	obuf := &bytes.Buffer{}
 	out.Stdout = obuf
@@ -24,7 +20,7 @@ func TestGPG(t *testing.T) {
 		out.Stdout = os.Stdout
 	}()
 
-	s, err := createSubStore(tempdir)
+	s, err := createSubStore(t)
 	require.NoError(t, err)
 
 	assert.NoError(t, s.ImportMissingPublicKeys(ctx))

@@ -17,9 +17,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestShowMulti(t *testing.T) { //nolint:paralleltest
+func TestShowMulti(t *testing.T) {
 	u := gptest.NewUnitTester(t)
-	defer u.Remove()
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
@@ -41,27 +40,27 @@ func TestShowMulti(t *testing.T) { //nolint:paralleltest
 	}()
 
 	// first add another entry in a subdir
-	sec := secrets.NewKV()
+	sec := secrets.NewAKV()
 	sec.SetPassword("123")
 	assert.NoError(t, sec.Set("bar", "zab"))
 	assert.NoError(t, act.Store.Set(ctx, "bar/baz", sec))
 	buf.Reset()
 
-	t.Run("show foo", func(t *testing.T) { //nolint:paralleltest
+	t.Run("show foo", func(t *testing.T) {
 		defer buf.Reset()
 		c := gptest.CliCtx(ctx, t, "foo")
 		assert.NoError(t, act.Show(c))
 		assert.Contains(t, buf.String(), "secret")
 	})
 
-	t.Run("show --sync foo", func(t *testing.T) { //nolint:paralleltest
+	t.Run("show --sync foo", func(t *testing.T) {
 		defer buf.Reset()
 		c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"sync": "true"}, "foo")
 		assert.NoError(t, act.Show(c))
 		assert.Contains(t, buf.String(), "secret")
 	})
 
-	t.Run("show dir", func(t *testing.T) { //nolint:paralleltest
+	t.Run("show dir", func(t *testing.T) {
 		c := gptest.CliCtx(ctx, t, "bar")
 		assert.NoError(t, act.Show(c))
 		assert.Equal(t, "bar/\n└── baz\n\n", buf.String())
@@ -70,7 +69,7 @@ func TestShowMulti(t *testing.T) { //nolint:paralleltest
 
 	require.NoError(t, act.cfg.Set("", "core.showsafecontent", "true"))
 
-	t.Run("show twoliner with safecontent enabled", func(t *testing.T) { //nolint:paralleltest
+	t.Run("show twoliner with safecontent enabled", func(t *testing.T) {
 		c := gptest.CliCtx(ctx, t, "bar/baz")
 
 		assert.NoError(t, act.Show(c))
@@ -80,21 +79,21 @@ func TestShowMulti(t *testing.T) { //nolint:paralleltest
 		buf.Reset()
 	})
 
-	t.Run("show foo with safecontent enabled, should error out", func(t *testing.T) { //nolint:paralleltest
+	t.Run("show foo with safecontent enabled, should error out", func(t *testing.T) {
 		c := gptest.CliCtx(ctx, t, "foo")
 		assert.NoError(t, act.Show(c))
 		assert.NotContains(t, buf.String(), "secret")
 		buf.Reset()
 	})
 
-	t.Run("show foo with safecontent enabled, with the force flag", func(t *testing.T) { //nolint:paralleltest
+	t.Run("show foo with safecontent enabled, with the force flag", func(t *testing.T) {
 		c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"unsafe": "true"}, "foo")
 		assert.NoError(t, act.Show(c))
 		assert.Contains(t, buf.String(), "secret")
 		buf.Reset()
 	})
 
-	t.Run("show twoliner with safecontent enabled, but with the clip flag, which should copy just the secret", func(t *testing.T) { //nolint:paralleltest
+	t.Run("show twoliner with safecontent enabled, but with the clip flag, which should copy just the secret", func(t *testing.T) {
 		c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"clip": "true"}, "bar/baz")
 
 		assert.NoError(t, act.Show(c))
@@ -102,8 +101,8 @@ func TestShowMulti(t *testing.T) { //nolint:paralleltest
 		buf.Reset()
 	})
 
-	t.Run("show entry with unsafe keys", func(t *testing.T) { //nolint:paralleltest
-		sec := secrets.NewKV()
+	t.Run("show entry with unsafe keys", func(t *testing.T) {
+		sec := secrets.NewAKV()
 		sec.SetPassword("123")
 		assert.NoError(t, sec.Set("bar", "zab"))
 		assert.NoError(t, sec.Set("foo", "baz"))
@@ -120,7 +119,7 @@ func TestShowMulti(t *testing.T) { //nolint:paralleltest
 		buf.Reset()
 	})
 
-	t.Run("show twoliner with safecontent enabled", func(t *testing.T) { //nolint:paralleltest
+	t.Run("show twoliner with safecontent enabled", func(t *testing.T) {
 		c := gptest.CliCtx(ctx, t, "bar/baz")
 
 		assert.NoError(t, act.Show(c))
@@ -130,8 +129,7 @@ func TestShowMulti(t *testing.T) { //nolint:paralleltest
 		buf.Reset()
 	})
 
-	t.Run("show twoliner with parsing disabled and safecontent enabled", func(t *testing.T) { //nolint:paralleltest
-		require.NoError(t, act.cfg.SetEnv("core.parsing", "false"))
+	t.Run("show twoliner with safecontent enabled", func(t *testing.T) {
 		c := gptest.CliCtx(ctx, t, "bar/baz")
 
 		assert.NoError(t, act.Show(c))
@@ -144,8 +142,7 @@ func TestShowMulti(t *testing.T) { //nolint:paralleltest
 
 	require.NoError(t, act.cfg.Set("", "core.showsafecontent", "false"))
 
-	t.Run("show key with parsing enabled", func(t *testing.T) { //nolint:paralleltest
-		require.NoError(t, act.cfg.SetEnv("core.parsing", "true"))
+	t.Run("show key ", func(t *testing.T) {
 		c := gptest.CliCtx(ctx, t, "bar/baz", "bar")
 
 		assert.NoError(t, act.Show(c))
@@ -153,26 +150,14 @@ func TestShowMulti(t *testing.T) { //nolint:paralleltest
 		buf.Reset()
 	})
 
-	t.Run("show key with parsing disabled", func(t *testing.T) { //nolint:paralleltest
-		require.NoError(t, act.cfg.SetEnv("core.parsing", "false"))
-		c := gptest.CliCtx(ctx, t, "bar/baz", "bar")
-
-		assert.NoError(t, act.Show(c))
-		assert.Equal(t, "123\nbar: zab", buf.String())
-		buf.Reset()
-	})
-
-	t.Run("show nonexisting key with parsing enabled", func(t *testing.T) { //nolint:paralleltest
-		require.NoError(t, act.cfg.SetEnv("core.parsing", "true"))
+	t.Run("show nonexisting key", func(t *testing.T) {
 		c := gptest.CliCtx(ctx, t, "bar/baz", "nonexisting")
 
 		assert.Error(t, act.Show(c))
 		buf.Reset()
 	})
 
-	t.Run("show keys with mixed case", func(t *testing.T) { //nolint:paralleltest
-		require.NoError(t, act.cfg.SetEnv("core.parsing", "true"))
-
+	t.Run("show keys with mixed case", func(t *testing.T) {
 		assert.NoError(t, act.insertStdin(ctx, "baz2", []byte("foobar\nOther: meh\nuser: name\nbody text"), false))
 		buf.Reset()
 
@@ -182,9 +167,7 @@ func TestShowMulti(t *testing.T) { //nolint:paralleltest
 		buf.Reset()
 	})
 
-	t.Run("show value with format strings", func(t *testing.T) { //nolint:paralleltest
-		require.NoError(t, act.cfg.SetEnv("core.parsing", "true"))
-
+	t.Run("show value with format strings", func(t *testing.T) {
 		pw := "some-chars-are-odd-%s-%p-%q"
 
 		assert.NoError(t, act.insertStdin(ctx, "printf", []byte(pw), false))
@@ -192,13 +175,13 @@ func TestShowMulti(t *testing.T) { //nolint:paralleltest
 
 		c := gptest.CliCtx(ctx, t, "printf")
 		assert.NoError(t, act.Show(c))
-		assert.Equal(t, pw, buf.String())
+		assert.Equal(t, pw+"\n", buf.String())
 		assert.NotContains(t, buf.String(), "MISSING")
 		buf.Reset()
 	})
 }
 
-func TestShowAutoClip(t *testing.T) { //nolint:paralleltest
+func TestShowAutoClip(t *testing.T) {
 	// make sure we consistently get the unsupported error message
 	ov := clipboard.Unsupported
 	defer func() {
@@ -207,7 +190,6 @@ func TestShowAutoClip(t *testing.T) { //nolint:paralleltest
 	clipboard.Unsupported = true
 
 	u := gptest.NewUnitTester(t)
-	defer u.Remove()
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
@@ -239,7 +221,7 @@ func TestShowAutoClip(t *testing.T) { //nolint:paralleltest
 	// -> w/o terminal
 	// -> Print password
 	// for use in scripts
-	t.Run("gopass show foo", func(t *testing.T) { //nolint:paralleltest
+	t.Run("gopass show foo", func(t *testing.T) {
 		// terminal=false
 		ctx = ctxutil.WithTerminal(ctx, false)
 		// initialize context with config values, also detects if we're running in a terminal
@@ -255,7 +237,7 @@ func TestShowAutoClip(t *testing.T) { //nolint:paralleltest
 
 	// gopass show -c foo
 	// -> Copy to clipboard
-	t.Run("gopass show -c foo", func(t *testing.T) { //nolint:paralleltest
+	t.Run("gopass show -c foo", func(t *testing.T) {
 		c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"clip": "true"}, "foo")
 		assert.NoError(t, act.Show(c))
 		assert.Contains(t, stderrBuf.String(), "WARNING")
@@ -266,7 +248,7 @@ func TestShowAutoClip(t *testing.T) { //nolint:paralleltest
 
 	// gopass show -C foo
 	// -> Copy to clipboard AND print
-	t.Run("gopass show -C foo", func(t *testing.T) { //nolint:paralleltest
+	t.Run("gopass show -C foo", func(t *testing.T) {
 		c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"alsoclip": "true"}, "foo")
 		assert.NoError(t, act.Show(c))
 		assert.Contains(t, stderrBuf.String(), "WARNING")
@@ -278,7 +260,7 @@ func TestShowAutoClip(t *testing.T) { //nolint:paralleltest
 
 	// gopass show -f foo
 	// -> ONLY print
-	t.Run("gopass show -f foo", func(t *testing.T) { //nolint:paralleltest
+	t.Run("gopass show -f foo", func(t *testing.T) {
 		c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"unsafe": "true"}, "foo")
 		assert.NoError(t, act.Show(c))
 		assert.NotContains(t, stderrBuf.String(), "WARNING")
@@ -290,7 +272,7 @@ func TestShowAutoClip(t *testing.T) { //nolint:paralleltest
 
 	// gopass show foo
 	// -> Copy to clipboard
-	t.Run("gopass show foo", func(t *testing.T) { //nolint:paralleltest
+	t.Run("gopass show foo", func(t *testing.T) {
 		c := gptest.CliCtx(ctx, t, "foo")
 		assert.NoError(t, act.Show(c))
 		assert.NotContains(t, stderrBuf.String(), "WARNING")
@@ -301,7 +283,7 @@ func TestShowAutoClip(t *testing.T) { //nolint:paralleltest
 
 	// gopass show -c foo
 	// -> Copy to clipboard
-	t.Run("gopass show -c foo", func(t *testing.T) { //nolint:paralleltest
+	t.Run("gopass show -c foo", func(t *testing.T) {
 		c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"clip": "true"}, "foo")
 		assert.NoError(t, act.Show(c))
 		assert.Contains(t, stderrBuf.String(), "WARNING")
@@ -312,7 +294,7 @@ func TestShowAutoClip(t *testing.T) { //nolint:paralleltest
 
 	// gopass show -C foo
 	// -> Copy to clipboard AND print
-	t.Run("gopass show -C foo", func(t *testing.T) { //nolint:paralleltest
+	t.Run("gopass show -C foo", func(t *testing.T) {
 		c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"alsoclip": "true"}, "foo")
 		assert.NoError(t, act.Show(c))
 		assert.Contains(t, stderrBuf.String(), "WARNING")
@@ -324,7 +306,7 @@ func TestShowAutoClip(t *testing.T) { //nolint:paralleltest
 
 	// gopass show -f foo
 	// -> ONLY Print
-	t.Run("gopass show -f foo", func(t *testing.T) { //nolint:paralleltest
+	t.Run("gopass show -f foo", func(t *testing.T) {
 		c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"unsafe": "true"}, "foo")
 		assert.NoError(t, act.Show(c))
 		assert.NotContains(t, stderrBuf.String(), "WARNING")
@@ -335,9 +317,8 @@ func TestShowAutoClip(t *testing.T) { //nolint:paralleltest
 	})
 }
 
-func TestShowHandleRevision(t *testing.T) { //nolint:paralleltest
+func TestShowHandleRevision(t *testing.T) {
 	u := gptest.NewUnitTester(t)
-	defer u.Remove()
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
@@ -365,9 +346,8 @@ func TestShowHandleRevision(t *testing.T) { //nolint:paralleltest
 	})
 }
 
-func TestShowHandleError(t *testing.T) { //nolint:paralleltest
+func TestShowHandleError(t *testing.T) {
 	u := gptest.NewUnitTester(t)
-	defer u.Remove()
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
@@ -392,9 +372,8 @@ func TestShowHandleError(t *testing.T) { //nolint:paralleltest
 	buf.Reset()
 }
 
-func TestShowPrintQR(t *testing.T) { //nolint:paralleltest
+func TestShowPrintQR(t *testing.T) {
 	u := gptest.NewUnitTester(t)
-	defer u.Remove()
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
@@ -417,4 +396,27 @@ func TestShowPrintQR(t *testing.T) { //nolint:paralleltest
 
 	assert.NoError(t, act.showPrintQR("foo", "bar"))
 	buf.Reset()
+}
+
+func TestShowHasAliasDomain(t *testing.T) {
+	u := gptest.NewUnitTester(t)
+
+	ctx := context.Background()
+	ctx = ctxutil.WithAlwaysYes(ctx, true)
+	ctx = ctxutil.WithTerminal(ctx, false)
+	ctx = ctxutil.WithInteractive(ctx, false)
+
+	act, err := newMock(ctx, u.StoreDir(""))
+	require.NoError(t, err)
+	require.NotNil(t, act)
+	ctx = act.cfg.WithConfig(ctx)
+
+	sec := secrets.NewAKV()
+	sec.SetPassword("foo")
+	require.NoError(t, act.Store.Set(ctx, "websites/foo.de/user", sec))
+
+	require.NoError(t, act.cfg.Set("", "domain-alias.foo.de.insteadOf", "foo.com"))
+
+	alias := act.hasAliasDomain(ctx, "websites/foo.com/user")
+	assert.Equal(t, "websites/foo.de/user", alias)
 }

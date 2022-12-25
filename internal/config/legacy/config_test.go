@@ -8,11 +8,15 @@ import (
 	_ "github.com/gopasspw/gopass/internal/backend/crypto"
 	_ "github.com/gopasspw/gopass/internal/backend/storage"
 	"github.com/gopasspw/gopass/internal/config/legacy"
+	"github.com/gopasspw/gopass/tests/gptest"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNewConfig(t *testing.T) { //nolint:paralleltest
-	assert.NoError(t, os.Setenv("GOPASS_CONFIG", filepath.Join(os.TempDir(), ".gopass.yml")))
+func TestNewConfig(t *testing.T) {
+	u := gptest.NewUnitTester(t)
+	assert.NotNil(t, u)
+
+	t.Setenv("GOPASS_CONFIG", filepath.Join(os.TempDir(), ".gopass.yml"))
 
 	cfg := legacy.New()
 	cs := cfg.String()
@@ -30,8 +34,11 @@ func TestNewConfig(t *testing.T) { //nolint:paralleltest
 	assert.Contains(t, cs, `SafeContent:false, Mounts:map[string]string{"bar":"", "foo":""},`)
 }
 
-func TestSetConfigValue(t *testing.T) { //nolint:paralleltest
-	assert.NoError(t, os.Setenv("GOPASS_CONFIG", filepath.Join(os.TempDir(), ".gopass.yml")))
+func TestSetConfigValue(t *testing.T) {
+	u := gptest.NewUnitTester(t)
+	assert.NotNil(t, u)
+
+	t.Setenv("GOPASS_CONFIG", filepath.Join(os.TempDir(), ".gopass.yml"))
 
 	cfg := legacy.New()
 	assert.NoError(t, cfg.SetConfigValue("autoclip", "true"))

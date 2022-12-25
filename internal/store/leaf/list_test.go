@@ -9,6 +9,7 @@ import (
 	plain "github.com/gopasspw/gopass/internal/backend/crypto/plain"
 	"github.com/gopasspw/gopass/internal/backend/storage/fs"
 	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/internal/recipients"
 	"github.com/gopasspw/gopass/pkg/gopass/secrets"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -25,7 +26,7 @@ func TestList(t *testing.T) {
 		out.Stdout = os.Stdout
 	}()
 
-	for _, tc := range []struct { //nolint:paralleltest
+	for _, tc := range []struct {
 		name string
 		prep func(s *Store) error
 		out  []string
@@ -93,7 +94,10 @@ func TestList(t *testing.T) {
 				storage: fs.New(tempdir),
 			}
 
-			assert.NoError(t, s.saveRecipients(ctx, []string{"john.doe"}, "test"))
+			rs := recipients.New()
+			rs.Add("john.doe")
+
+			assert.NoError(t, s.saveRecipients(ctx, rs, "test"))
 
 			// prepare store
 			assert.NoError(t, tc.prep(s))

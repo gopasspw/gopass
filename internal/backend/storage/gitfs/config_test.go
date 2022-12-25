@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestGitConfig(t *testing.T) { //nolint:paralleltest
+func TestGitConfig(t *testing.T) {
 	gitdir := filepath.Join(t.TempDir(), "git")
 	require.NoError(t, os.Mkdir(gitdir, 0o755))
 

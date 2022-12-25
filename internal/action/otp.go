@@ -165,24 +165,27 @@ func (s *Action) otp(ctx context.Context, name, qrf string, clip, pw, recurse bo
 			return nil
 		}
 
-		// check if we are in "password only" or in "qr code" mode or being redirected to a pipe.
-		if pw || qrf != "" || !ctxutil.IsTerminal(ctx) {
-			out.Printf(ctx, "%s", token)
-			cancel()
-		} else { // if not then we want to print a progress bar with the expiry time.
-			out.Printf(ctx, "%s", token)
-			out.Warningf(ctx, "([q] to stop. -o flag to avoid.) This OTP password still lasts for:", nil)
+		out.Printf(ctx, "%s", token)
 
-			if bar.Hidden {
-				cancel()
-			} else {
-				bar.Set(0)
-				go tickingBar(ctx, expiresAt, bar)
-			}
-		}
-
+		// In "QR-Code" mode just create the image file and then exit.
 		if qrf != "" {
 			return otp.WriteQRFile(two, qrf)
+		}
+
+		// If we are in "password mode", not interacting with a terminal or Stdout is attached to a pipe,
+		// we are done.
+		if skip {
+			return nil
+		}
+
+		// if not then we want to print a progress bar with the expiry time.
+		out.Warningf(ctx, "([q] to stop. -o flag to avoid.) This OTP password still lasts for:", nil)
+
+		if bar.Hidden {
+			cancel()
+		} else {
+			bar.Set(0)
+			go tickingBar(ctx, expiresAt, bar)
 		}
 
 		// let us wait until next OTP code:.

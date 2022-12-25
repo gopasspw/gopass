@@ -2,22 +2,22 @@ package gpgconf
 
 import (
 	"bytes"
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func TestGpgOpts(t *testing.T) { //nolint:paralleltest
+func TestGpgOpts(t *testing.T) {
 	for _, vn := range []string{"GOPASS_GPG_OPTS", "PASSWORD_STORE_GPG_OPTS"} {
 		for in, out := range map[string][]string{
 			"": nil,
 			"--decrypt --armor --recipient 0xDEADBEEF": {"--decrypt", "--armor", "--recipient", "0xDEADBEEF"},
 		} {
-			assert.NoError(t, os.Setenv(vn, in))
-			assert.Equal(t, out, GPGOpts())
-			assert.NoError(t, os.Unsetenv(vn))
+			t.Run(vn, func(t *testing.T) {
+				t.Setenv(vn, in)
+				assert.Equal(t, out, GPGOpts())
+			})
 		}
 	}
 }

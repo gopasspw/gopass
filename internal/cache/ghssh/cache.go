@@ -1,6 +1,7 @@
 package ghssh
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/google/go-github/github"
@@ -26,4 +27,8 @@ func New() (*Cache, error) {
 		client:  github.NewClient(nil),
 		Timeout: 30 * time.Second,
 	}, nil
+}
+
+func (c *Cache) String() string {
+	return fmt.Sprintf("Github SSH key cache (OnDisk: %s)", c.disk.String())
 }

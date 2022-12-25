@@ -23,7 +23,7 @@ func TestCrypticForDomain(t *testing.T) {
 
 	sort.Strings(keys)
 
-	for _, domain := range keys { //nolint:paralleltest
+	for _, domain := range keys {
 		t.Run(domain, func(t *testing.T) {
 			t.Parallel()
 

@@ -36,6 +36,14 @@ var ignoredEnvs = set.Map([]string{
 	"XDG_DATA_HOME",
 })
 
+// ignoredOptions is a list of config options that are used by gopass
+// but originate elsewhere (e.g. git). They should not be documented
+// here as well.
+var ignoredOptions = set.Map([]string{
+	"user.email",
+	"user.name",
+})
+
 func TestConfigOptsInDocs(t *testing.T) {
 	t.Parallel()
 
@@ -60,7 +68,7 @@ func TestConfigOptsInDocs(t *testing.T) {
 func usedOpts(t *testing.T) map[string]bool {
 	t.Helper()
 
-	optRE := regexp.MustCompile(`(?:\.Get(?:|Int|Bool)\(\"([a-z]+\.[a-z]+)\"\)|\.GetM\([^,]+, \"([a-z]+\.[a-z]+)\"\)|config\.Bool\(ctx, \"([a-z]+\.[a-z]+)\"\))`)
+	optRE := regexp.MustCompile(`(?:\.Get(?:|Int|Bool)\(\"([a-z]+\.[a-z]+)\"\)|\.GetM\([^,]+, \"([a-z]+\.[a-z]+)\"\)|config\.(?:Bool|Int|String)\(ctx, \"([a-z]+\.[a-z]+)\"\))`)
 	opts := make(map[string]bool, 42)
 
 	dir := filepath.Join("..", "..")
@@ -113,16 +121,25 @@ func usedOptsInFile(t *testing.T, fn string, opts map[string]bool, re *regexp.Re
 		}
 
 		if found[1] != "" {
+			if ignoredOptions[found[1]] {
+				continue
+			}
 			opts[found[1]] = true
 
 			continue
 		}
 
 		if found[2] != "" {
+			if ignoredOptions[found[2]] {
+				continue
+			}
 			opts[found[2]] = true
 		}
 
 		if found[3] != "" {
+			if ignoredOptions[found[3]] {
+				continue
+			}
 			opts[found[3]] = true
 
 			continue

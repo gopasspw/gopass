@@ -87,11 +87,16 @@ This is a list of available options:
 | `core.nocolor`         | `bool`   | Do not use color. | `false` |
 | `core.nopager`         | `bool`   | Do not invoke a pager to display long lists. | `false` |
 | `core.notifications`   | `bool`   | Enable desktop notifications. | `true` |
-| `core.parsing`         | `bool`   | Enable parsing of output to have key-value and yaml secrets. | `true` |
 | `core.readonly`        | `bool`   | Disable writing to a store. Note: This is just a convenience option to prevent accidential writes. Enforcement can only happen on a central server (if repos are set up around a central one). | `false` |
 | `mounts.path`          | `string` | Path to the root store. | `$XDG_DATA_HOME/gopass/stores/root` |
 | `core.showsafecontent` | `bool`   | Only output *safe content* (i.e. everything but the first line of a secret) to the terminal. Use *copy* (`-c`) to retrieve the password in the clipboard, or *force* (`-f`) to still print it. | `false` |
 | `age.usekeychain`      | `bool`   | Use the OS keychain to cache age passphrases. | `false` |
-| `domain-alias.<from>`   | `string` | Alias from domain to the string value of this entry. | `` |
+| `domain-alias.<from>.insteadOf`   | `string` | Alias from domain to the string value of this entry. | `` |
 | `core.showautoclip`      | `bool`   | Use autoclip for gopass show by default. | `false` |
 | `autosync.interval`      | `int`   | AutoSync interval in days. | `3` |
+| `updater.check`        | `bool`   | Check for updates when running `gopass version` | `true` |
+| `generate.symbols`     | `bool`   | Include symbols in generated password. | `false` |
+| `generate.length`      | `int`    | Default lenght for generated password. | `24` |
+| `generate.generator`   | `string` | Default password generator. `xkcd`, `memorable`, `external` or `` | `` |
+| `recipients.check`     | `bool`   | Check recipients hash. | `false` |
+| `recipients.hash`      | `string` | SHA256 hash of the recipients file. | `` |

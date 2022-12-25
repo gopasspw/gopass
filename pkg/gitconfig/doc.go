@@ -43,7 +43,7 @@
 //		cfg.GlobalConfig = ""
 //		cfg.EnvPrefix = "GOPASS_CONFIG"
 //		cfg.LoadAll(".")
-//		_ = cfg.Get("core.parsing")
+//		_ = cfg.Get("core.notifications")
 //	}
 //
 // # Versioning and Compatibility

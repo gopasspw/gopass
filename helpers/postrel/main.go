@@ -31,6 +31,32 @@ import (
 	"golang.org/x/oauth2"
 )
 
+var verTmpl = `package main
+
+import (
+	"strings"
+
+	"github.com/blang/semver/v4"
+)
+
+func getVersion() semver.Version {
+	sv, err := semver.Parse(strings.TrimPrefix(version, "v"))
+	if err == nil {
+		return sv
+	}
+
+	return semver.Version{
+		Major: {{ .Major }},
+		Minor: {{ .Minor }},
+		Patch: {{ .Patch }},
+		Pre: []semver.PRVersion{
+			{VersionStr: "git"},
+		},
+		Build: []string{"HEAD"},
+	}
+}
+`
+
 const logo = `
    __     _    _ _      _ _   ___   ___
  /'_ '\ /'_'\ ( '_'\  /'_' )/',__)/',__)
@@ -392,6 +418,24 @@ func (u *inUpdater) doUpdate(ctx context.Context, dir string) error {
 	}
 	fmt.Printf("✅ [%s] synced .golangci.yml.\n", dir)
 
+	// update VERSION
+	if err := ioutil.WriteFile(filepath.Join(path, "VERSION"), []byte(u.v.String()+"\n"), 0o644); err != nil {
+		return err
+	}
+	fmt.Printf("✅ [%s] wrote VERSION.\n", dir)
+
+	// update version.go
+	if err := u.writeVersionGo(path); err != nil {
+		return err
+	}
+	fmt.Printf("✅ [%s] wrote version.go.\n", dir)
+
+	// update CHANGELOG.md
+	if err := u.updateChangelog(ctx, path); err != nil {
+		return err
+	}
+	fmt.Printf("✅ [%s] wrote CHANGELOG.md.\n", dir)
+
 	// git commit
 	if err := gitCommitAndPush(path, tag); err != nil {
 		return err
@@ -403,6 +447,58 @@ func (u *inUpdater) doUpdate(ctx context.Context, dir string) error {
 		return err
 	}
 	fmt.Printf("✅ [%s] tagged.\n", dir)
+
+	return nil
+}
+
+type tplPayload struct {
+	Major uint64
+	Minor uint64
+	Patch uint64
+}
+
+func (u *inUpdater) writeVersionGo(path string) error {
+	tmpl, err := template.New("version").Parse(verTmpl)
+	if err != nil {
+		return err
+	}
+
+	fn := filepath.Join(path, "version.go")
+	fh, err := os.Create(fn)
+	if err != nil {
+		return err
+	}
+	defer fh.Close()
+
+	return tmpl.Execute(fh, tplPayload{
+		Major: u.v.Major,
+		Minor: u.v.Minor,
+		Patch: u.v.Patch,
+	})
+}
+
+func (u *inUpdater) updateChangelog(ctx context.Context, dir string) error {
+	fn := filepath.Join(dir, "CHANGELOG.md")
+
+	buf, err := ioutil.ReadFile(fn)
+	if err != nil {
+		return err
+	}
+
+	var sb strings.Builder
+	fmt.Fprintf(&sb, "## %s\n", u.v.String())
+	fmt.Fprintln(&sb)
+	fmt.Fprintf(&sb, "- Bump dependencies to gopass release v%s\n", u.v.String())
+	fmt.Fprintln(&sb)
+
+	_, err = sb.Write(buf)
+	if err != nil {
+		return err
+	}
+
+	if err := ioutil.WriteFile(fn, []byte(sb.String()), 0o644); err != nil {
+		return err
+	}
 
 	return nil
 }

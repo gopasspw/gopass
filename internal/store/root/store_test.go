@@ -17,12 +17,9 @@ import (
 )
 
 func TestSimpleList(t *testing.T) {
-	t.Parallel()
-
 	ctx := context.Background()
 
 	u := gptest.NewUnitTester(t)
-	defer u.Remove()
 
 	rs, err := createRootStore(ctx, u)
 	require.NoError(t, err)
@@ -33,13 +30,10 @@ func TestSimpleList(t *testing.T) {
 }
 
 func TestListMulti(t *testing.T) {
-	t.Parallel()
-
 	ctx := context.Background()
 	ctx = backend.WithCryptoBackend(ctx, backend.Plain)
 
 	u := gptest.NewUnitTester(t)
-	defer u.Remove()
 
 	// root store
 	rs, err := createRootStore(ctx, u)
@@ -79,13 +73,10 @@ func TestListMulti(t *testing.T) {
 }
 
 func TestListNested(t *testing.T) {
-	t.Parallel()
-
 	ctx := context.Background()
 	ctx = backend.WithCryptoBackend(ctx, backend.Plain)
 
 	u := gptest.NewUnitTester(t)
-	defer u.Remove()
 
 	// root store
 	rs, err := createRootStore(ctx, u)

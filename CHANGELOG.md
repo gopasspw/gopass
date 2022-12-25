@@ -1,3 +1,54 @@
+# Changelog
+
+## 1.15.2 / 2022-12-18
+
+* [BUGFIX] [gitconfig] Properly parse Key-Value pairs with (#2482, #2479)
+* [ENHANCEMENT] Add --force-regen flag to generate (#2475, #2474)
+* [ENHANCEMENT] Add recipients hash checking. (#2481, #2478)
+
+## 1.15.1 / 2022-12-11
+
+* [BUGFIX] Fix domain alias lookup (#2455, #2453)
+* [BUGFIX] Fix vim invocation. (#2456, #2424)
+* [CLEANUP] Unhide fscopy and fsmove (#2444, #1831)
+* [ENHANCEMENT] Add DirName template (#2452)
+* [ENHANCEMENT] Add generate.symbols and generate.length (#2443, #2151)
+* [ENHANCEMENT] Add template docs (#2445, #1562)
+* [ENHANCEMENT] Document supported secret formats. (#2439, #1585)
+* [ENHANCEMENT] Pre-populate ID with git values (#2442, #968)
+* [ENHANCEMENT] Support german language in the password (#2454, #2451)
+
+## 1.15.0 / 2022-12-03
+
+* [BREAKING] New config format based on git config. (#2395, #1567, #1764, #1819, #1878, #2387, #2418)
+* [BUGFIX] Fix symlink deduplication. (#2437, #2402)
+* [ENHANCEMENT] Maintain secret structure when parsing (#2433, #2431)
+* [ENHANCEMENT] Retain recipients file format (#2432, #2430)
+
+### New config format: gitconfg
+
+Gopass is getting a new config format based on the one use by git itself.
+The new implementation is much more flexible and extensible and will allow us
+to more easily support new config options going forward. It does also support
+a hierachy of configs. That means we can now support system wide defaults
+as well as per mount config options.
+
+The system wide configuration gives package maintainers and admins of multi
+user deployments the option to pre-set certain options to their liking.
+
+### New default secret format
+
+The default secret format has been rewritten to replace two of the existing
+ones (KV and Plain). The new format puts a strong emphasis on retaining the
+input as close as possible. And small change that might be visible in some
+corner cases is that every secret now contains a terminating new line.
+
+### Recipient files can now contain comments
+
+The parsing of the recipients files (`.gpg-id`) has become more flexible and
+can now contain comments. These will be retained when updating these files
+through gopass as well.
+
 ## 1.14.11 / 2022-11-25
 
 * [BUGFIX] Fix edit on MacOS Ventura (#2426, #2400)
@@ -5,7 +56,6 @@
 * [BUGFIX] Improve support for non-vim editors (#2427, #2424)
 * [BUGFIX] Only pass vim options to vim (#2421, #2412)
 * [ENHANCEMENT] Support combined short flags (#2420, #2419)
-# Changelog
 
 ## 1.14.10 / 2022-11-09
 

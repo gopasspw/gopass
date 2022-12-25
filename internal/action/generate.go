@@ -37,17 +37,23 @@ const (
 // GOPASS_PW_DEFAULT_LENGTH or fallback to the hard-coded default length.
 // If the env variable is set by the user and is valid, the boolean return value
 // will be true, otherwise it will be false.
-func defaultLengthFromEnv() (int, bool) {
+func defaultLengthFromEnv(ctx context.Context) (int, bool) {
+	def := defaultLength
+
+	if l := config.Int(ctx, "generate.length"); l > 0 {
+		def = l
+	}
+
 	lengthStr, isSet := os.LookupEnv("GOPASS_PW_DEFAULT_LENGTH")
 	if !isSet {
-		return defaultLength, false
+		return def, false
 	}
 	length, err := strconv.Atoi(lengthStr)
 	if err != nil {
-		return defaultLength, false
+		return def, false
 	}
 	if length < 1 {
-		return defaultLength, false
+		return def, false
 	}
 
 	return length, true
@@ -96,7 +102,7 @@ func (s *Action) Generate(c *cli.Context) error {
 	}
 
 	// write generated password to store.
-	ctx, err = s.generateSetPassword(ctx, name, key, password, kvps)
+	ctx, err = s.generateSetPassword(ctx, name, key, password, kvps, c.Bool("force-regen"))
 	if err != nil {
 		return err
 	}
@@ -193,9 +199,23 @@ func (s *Action) generatePassword(ctx context.Context, c *cli.Context, length, n
 		return s.generatePasswordForRule(ctx, c, length, name, domain, rule)
 	}
 
+	cfg := config.FromContext(ctx)
 	symbols := false
 	if c.IsSet("symbols") {
 		symbols = c.Bool("symbols")
+	} else {
+		if cfg.IsSet("generate.symbols") {
+			symbols = cfg.GetBool("generate.symbols")
+		}
+	}
+
+	generator := cfg.Get("generate.generator")
+	if c.IsSet("generator") {
+		generator = c.String("generator")
+	}
+
+	if generator == "xkcd" {
+		return s.generatePasswordXKCD(ctx, c, length)
 	}
 
 	var pwlen int
@@ -217,9 +237,7 @@ func (s *Action) generatePassword(ctx context.Context, c *cli.Context, length, n
 		return "", exit.Error(exit.Usage, nil, "password length must not be zero")
 	}
 
-	switch c.String("generator") {
-	case "xkcd":
-		return s.generatePasswordXKCD(ctx, c, length)
+	switch generator {
 	case "memorable":
 		if c.Bool("strict") {
 			return pwgen.GenerateMemorablePassword(pwlen, symbols, true), nil
@@ -244,7 +262,7 @@ func (s *Action) generatePassword(ctx context.Context, c *cli.Context, length, n
 // again.
 func getPwLengthFromEnvOrAskUser(ctx context.Context) (int, error) {
 	var pwlen int
-	candidateLength, isCustom := defaultLengthFromEnv()
+	candidateLength, isCustom := defaultLengthFromEnv(ctx)
 	if !isCustom {
 		question := "How long should the password be?"
 		iv, err := termio.AskForInt(ctx, question, candidateLength)
@@ -327,7 +345,7 @@ func (s *Action) generatePasswordXKCD(ctx context.Context, c *cli.Context, lengt
 }
 
 // generateSetPassword will update or create a secret.
-func (s *Action) generateSetPassword(ctx context.Context, name, key, password string, kvps map[string]string) (context.Context, error) {
+func (s *Action) generateSetPassword(ctx context.Context, name, key, password string, kvps map[string]string, regen bool) (context.Context, error) {
 	// set a single key in an entry.
 	if key != "" {
 		sec, err := s.Store.Get(ctx, name)
@@ -347,8 +365,9 @@ func (s *Action) generateSetPassword(ctx context.Context, name, key, password st
 		return ctx, nil
 	}
 
-	// replace password in existing secret.
-	if s.Store.Exists(ctx, name) {
+	// replace password in existing secret. we might be asked to skip the
+	// check to enforce possibly re-evaluating templates.
+	if !regen && s.Store.Exists(ctx, name) {
 		ctx, err := s.generateReplaceExisting(ctx, name, key, password, kvps)
 		if err == nil {
 			return ctx, nil
@@ -366,7 +385,7 @@ func (s *Action) generateSetPassword(ctx context.Context, name, key, password st
 	}
 
 	if content, found := s.renderTemplate(ctx, name, []byte(password)); found {
-		nSec := &secrets.Plain{}
+		nSec := secrets.NewAKV()
 		if _, err := nSec.Write(content); err == nil {
 			sec = nSec
 		} else {

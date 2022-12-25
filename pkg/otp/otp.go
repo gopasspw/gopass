@@ -17,19 +17,7 @@ import (
 //
 //nolint:ireturn
 func Calculate(name string, sec gopass.Secret) (*otp.Key, error) {
-	otpURL, found := sec.Get("otpauth")
-	if found && strings.HasPrefix(otpURL, "//") {
-		otpURL = "otpauth:" + otpURL
-	} else {
-		// check body
-		for _, line := range strings.Split(sec.Body(), "\n") {
-			if strings.HasPrefix(line, "otpauth://") {
-				otpURL = line
-
-				break
-			}
-		}
-	}
+	otpURL := getOTPURL(sec)
 
 	if otpURL != "" {
 		debug.Log("found otpauth url: %s", out.Secret(otpURL))
@@ -37,7 +25,7 @@ func Calculate(name string, sec gopass.Secret) (*otp.Key, error) {
 		return otp.NewKeyFromURL(otpURL) //nolint:wrapcheck
 	}
 
-	// check yaml entry and fall back to password if we don't have one
+	// check KV entry and fall back to password if we don't have one
 
 	// TOTP
 	if secKey, found := sec.Get("totp"); found {
@@ -52,6 +40,26 @@ func Calculate(name string, sec gopass.Secret) (*otp.Key, error) {
 	debug.Log("no totp secret found, falling back to password")
 
 	return parseOTP("totp", sec.Password())
+}
+
+func getOTPURL(sec gopass.Secret) string {
+	// check if we have a key-value entry
+	if url, found := sec.Get("otpauth"); found {
+		if strings.HasPrefix(url, "//") {
+			url = "otpauth:" + url
+		}
+
+		return url
+	}
+
+	// if there is no KV entry check the body
+	for _, line := range strings.Split(sec.Body(), "\n") {
+		if strings.HasPrefix(line, "otpauth://") {
+			return line
+		}
+	}
+
+	return ""
 }
 
 func parseOTP(typ string, secKey string) (*otp.Key, error) {

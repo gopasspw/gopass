@@ -19,9 +19,8 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-func TestFind(t *testing.T) { //nolint:paralleltest
+func TestFind(t *testing.T) {
 	u := gptest.NewUnitTester(t)
-	defer u.Remove()
 
 	ctx := context.Background()
 	ctx = ctxutil.WithTerminal(ctx, false)
@@ -49,38 +48,38 @@ func TestFind(t *testing.T) { //nolint:paralleltest
 
 	// find
 	c := gptest.CliCtx(ctx, t)
-	if err := act.Find(c); err == nil || err.Error() != fmt.Sprintf("Usage: %s find <NEEDLE>", actName) {
+	if err := act.FindFuzzy(c); err == nil || err.Error() != fmt.Sprintf("Usage: %s find <pattern>", actName) {
 		t.Errorf("Should fail: %s", err)
 	}
 
-	// find fo
+	// find fo (with fuzzy search)
 	c = gptest.CliCtxWithFlags(ctx, t, nil, "fo")
-	assert.NoError(t, act.Find(c))
+	assert.NoError(t, act.FindFuzzy(c))
 	assert.Contains(t, strings.TrimSpace(buf.String()), "Found exact match in \"foo\"\nsecret")
 	buf.Reset()
 
 	// find fo (no fuzzy search)
 	c = gptest.CliCtxWithFlags(ctx, t, nil, "fo")
-	assert.NoError(t, act.FindNoFuzzy(c))
+	assert.NoError(t, act.Find(c))
 	assert.Equal(t, strings.TrimSpace(buf.String()), "foo")
 	buf.Reset()
 
 	// testing the safecontent case
 	require.NoError(t, act.cfg.Set("", "core.showsafecontent", "true"))
 	c.Context = ctx
-	assert.NoError(t, act.Find(c))
+	assert.NoError(t, act.FindFuzzy(c))
 	buf.Reset()
 
 	// testing with the clip flag set
 	c = gptest.CliCtxWithFlags(ctx, t, map[string]string{"clip": "true"}, "fo")
-	assert.NoError(t, act.Find(c))
+	assert.NoError(t, act.FindFuzzy(c))
 	out := strings.TrimSpace(buf.String())
 	assert.Contains(t, out, "Found exact match in \"foo\"")
 	buf.Reset()
 
 	// safecontent case with force flag set
 	c = gptest.CliCtxWithFlags(ctx, t, map[string]string{"unsafe": "true"}, "fo")
-	assert.NoError(t, act.Find(c))
+	assert.NoError(t, act.FindFuzzy(c))
 	out = strings.TrimSpace(buf.String())
 	assert.Contains(t, out, "Found exact match in \"foo\"\nsecret")
 	buf.Reset()
@@ -90,20 +89,21 @@ func TestFind(t *testing.T) { //nolint:paralleltest
 
 	// find yo
 	c = gptest.CliCtx(ctx, t, "yo")
-	assert.Error(t, act.Find(c))
+	assert.Error(t, act.FindFuzzy(c))
 	buf.Reset()
 
 	// add some secrets
-	sec := &secrets.Plain{}
+	sec := secrets.NewAKV()
 	sec.SetPassword("foo")
-	sec.WriteString("bar")
+	_, err = sec.Write([]byte("bar"))
+	require.NoError(t, err)
 	assert.NoError(t, act.Store.Set(ctx, "bar/baz", sec))
 	assert.NoError(t, act.Store.Set(ctx, "bar/zab", sec))
 	buf.Reset()
 
 	// find bar
 	c = gptest.CliCtx(ctx, t, "bar")
-	assert.NoError(t, act.Find(c))
+	assert.NoError(t, act.FindFuzzy(c))
 	assert.Equal(t, "bar/baz\nbar/zab", strings.TrimSpace(buf.String()))
 	buf.Reset()
 

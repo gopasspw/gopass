@@ -8,13 +8,15 @@ PostgreSQL password with the custom salted hash. This is certainly a feature
 that's not used very often, but if used correctly it can greatly reduce the
 toil of some common operations.
 
+This uses Go's [text/template](https://pkg.go.dev/text/template) package.
+
 ## Synopsis
 
-```
-$ gopass templates
-$ gopass templates show template
-$ gopass templates edit template
-$ gopass templates remove template
+```shell
+gopass templates
+gopass templates show template
+gopass templates edit template
+gopass templates remove template
 ```
 
 ## Flags
@@ -25,14 +27,14 @@ None.
 
 ### Compute the salted hash for the password
 
-```
+```text
 Password: {{ .Content }}
 SSHA256: {{ .Content | ssha256 }}
 ```
 
 ### Compute the SQL statements to create a new PostgreSQL user
 
-```
+```text
 {{ .Content }}
 ---
 sql:  |
@@ -66,6 +68,7 @@ the generated password `VerySecure`.
 Name | Example | Description
 ---- | ------- | -----------
 `Dir` | `foo/bar` | The directory containing the secret.
+`DirName` | `bar` | The directory name containing the secret.
 `Path` | `foo/bar/baz` | The path or full name of the secret.
 `Name` | `baz` | The last element of the path or short name of the secret.
 `Content` | `VerySecure` | The generated password.

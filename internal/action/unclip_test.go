@@ -14,9 +14,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestUnclip(t *testing.T) { //nolint:paralleltest
+func TestUnclip(t *testing.T) {
 	u := gptest.NewUnitTester(t)
-	defer u.Remove()
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf

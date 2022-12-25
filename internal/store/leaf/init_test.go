@@ -8,13 +8,9 @@ import (
 )
 
 func TestInit(t *testing.T) {
-	t.Parallel()
-
 	ctx := context.Background()
 
-	tempdir := t.TempDir()
-
-	s, err := createSubStore(tempdir)
+	s, err := createSubStore(t)
 	assert.NoError(t, err)
 
 	assert.Error(t, s.Init(ctx, "", "0xDEADBEEF"))

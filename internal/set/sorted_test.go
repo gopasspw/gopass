@@ -31,4 +31,6 @@ func TestSortedFiltered(t *testing.T) {
 	assert.Equal(t, want, SortedFiltered(in, func(i int) bool {
 		return i%2 == 0
 	}))
+
+	assert.Equal(t, []int{}, SortedFiltered([]int{}, func(i int) bool { return true }))
 }

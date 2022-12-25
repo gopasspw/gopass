@@ -5,10 +5,10 @@
 package pwgen
 
 import (
-	"fmt"
 	"strconv"
 
 	"github.com/gopasspw/gopass/internal/action/exit"
+	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/pwgen"
 	"github.com/gopasspw/gopass/pkg/pwgen/xkcdgen"
 	"github.com/urfave/cli/v2"
@@ -52,18 +52,22 @@ func xkcdGen(c *cli.Context, num int) error {
 		if err != nil {
 			return err
 		}
-		fmt.Println(s)
+		out.Print(c.Context, s)
 	}
 
 	return nil
 }
 
 func pwGen(c *cli.Context, pwLen, pwNum int) error {
+	ctx := c.Context
+
 	perLine := numPerLine(pwLen)
 	if c.Bool("one-per-line") {
 		perLine = 1
 	}
+
 	charset := pwgen.CharAlphaNum
+
 	switch {
 	case c.Bool("no-numerals") && c.Bool("no-capitalize"):
 		charset = pwgen.Lower
@@ -72,18 +76,22 @@ func pwGen(c *cli.Context, pwLen, pwNum int) error {
 	case c.Bool("no-capitalize"):
 		charset = pwgen.Digits + pwgen.Lower
 	}
+
 	if c.Bool("ambiguous") {
 		charset = pwgen.Prune(charset, pwgen.Ambiq)
 	}
+
 	if c.Bool("symbols") {
 		charset += pwgen.Syms
 	}
+
 	for i := 0; i < pwNum; i++ {
 		for j := 0; j < perLine; j++ {
-			fmt.Print(pwgen.GeneratePasswordCharset(pwLen, charset))
-			fmt.Print(" ")
+			ctx := out.WithNewline(ctx, false)
+			out.Print(ctx, pwgen.GeneratePasswordCharset(pwLen, charset))
+			out.Print(ctx, " ")
 		}
-		fmt.Println()
+		out.Print(ctx, "")
 	}
 
 	return nil

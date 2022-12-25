@@ -23,7 +23,7 @@ func (s *Store) Fsck(ctx context.Context, path string) error {
 	debug.Log("Checking %s", path)
 
 	// first let the storage backend check itself
-	debug.Log("Checking storage backend [leaf store fsck]")
+	debug.Log("Checking storage backend")
 	if err := s.storage.Fsck(ctx); err != nil {
 		return fmt.Errorf("storage backend error: %w", err)
 	}
@@ -34,13 +34,35 @@ func (s *Store) Fsck(ctx context.Context, path string) error {
 		return fmt.Errorf("storage backend compaction failed: %w", err)
 	}
 
-	pcb := ctxutil.GetProgressCallback(ctx)
-
 	// then we'll make sure all the secrets are readable by us and every
 	// valid recipient
 	if path != "" {
 		out.Printf(ctx, "Checking all secrets matching %s", path)
 	}
+
+	if err := s.fsckLoop(ctx, path); err != nil {
+		return err
+	}
+
+	if err := s.storage.Push(ctx, "", ""); err != nil {
+		if !errors.Is(err, store.ErrGitNoRemote) {
+			out.Printf(ctx, "RCS Push failed: %s", err)
+		}
+	}
+
+	return nil
+}
+
+func (s *Store) fsckLoop(ctx context.Context, path string) error {
+	pcb := ctxutil.GetProgressCallback(ctx)
+
+	// disable network ops, we will push at the end. pushing on possibly
+	// every single secret could be terribly slow.
+	ctx = ctxutil.WithNoNetwork(ctx, true)
+
+	// disable the queue, for batch operations this is not necessary / wanted
+	// since different git processes might step onto each others toes.
+	ctx = queue.WithQueue(ctx, nil)
 
 	names, err := s.List(ctx, path)
 	if err != nil {
@@ -52,31 +74,22 @@ func (s *Store) Fsck(ctx context.Context, path string) error {
 	err_collector := ""
 	err_isfatal := false
 
-	t := queue.GetQueue(ctx).Add(func(ctx2 context.Context) (context.Context,error) {
-		if ctx==nil || ctx2==nil {
-			panic("hahe")
-		}
-		if err := s.fsckUpdatePublicKeys(ctx); err != nil {
-			out.Errorf(ctx, "Failed to update public keys: %s", err)
-		}
-		if ctx==nil || ctx2==nil {
-			panic("haha")
-		}
-		return ctx2, nil
-	})
-	t(ctx)
+	if err := s.fsckUpdatePublicKeys(ctx); err != nil {
+		out.Errorf(ctx, "Failed to update public keys: %s", err)
+	}
 
 	debug.Log("names (%d): %q", len(names), names)
 	sort.Strings(names)
+
 	for _, name := range names {
 		pcb()
 		if strings.HasPrefix(name, s.alias+"/") {
 			name = strings.TrimPrefix(name, s.alias+"/")
 		}
-		ctx2 := ctxutil.WithNoNetwork(ctx, true)
+
 		debug.Log("[%s] Checking %s", path, name)
 
-		msg,err := s.fsckCheckEntry(ctx2, name)
+		msg,err := s.fsckCheckEntry(ctx, name)
 		if err != nil {
 			err_collector += fmt.Errorf("failed to check %q:\n    %w\n", name, err).Error()
 			if msg == "F" {
@@ -87,47 +100,32 @@ func (s *Store) Fsck(ctx context.Context, path string) error {
 		}
 	}
 
-
 	if err_collector != "" && err_isfatal {
 		return fmt.Errorf(err_collector)
 	} else if err_collector != "" {
 		out.Errorf(ctx, err_collector)
-	} //else {
-		//out.Warningf(ctx, "No visible error")
-	//}
+	}
 	if ctxutil.GetCommitMessageBody(ctx) == "" {
 		out.Errorf(ctx, "Nothing to commit: all secrets seemed to have failed")
 		return nil
 	}
 
-	t = queue.GetQueue(ctx).Add(func(ctx2 context.Context) (context.Context, error) {
-		if err := s.storage.Commit(ctx, ctxutil.GetCommitMessageFull(ctx)); err != nil {
-			switch {
-			case errors.Is(err, store.ErrGitNotInit):
-				out.Warning(ctx, "Cannot commit: git not initialized\nplease run `gopass git init` (and note that manual intervention might be needed)")
-			case errors.Is(err, store.ErrGitNothingToCommit):
-				debug.Log("commitAndPush - skipping git commit - nothing to commit")
-			default:
-				err := fmt.Errorf("failed to commit changes to git: %w", err)
-				ctx2 = ctxutil.AddToErrorCollector(ctx2, err.Error())
-				return ctx2, err
-			}
-		}
+	if err := s.fsckUpdatePublicKeys(ctx); err != nil {
+		out.Errorf(ctx, "Failed to update public keys: %s", err)
+	}
 
-		if ctxutil.HasErrorCollector(ctx2) {
-			out.Errorf(ctx2, ctxutil.GetErrorCollector(ctx2))
+	if err := s.storage.Commit(ctx, ctxutil.GetCommitMessageFull(ctx)); err != nil {
+		switch {
+		case errors.Is(err, store.ErrGitNotInit):
+			out.Warning(ctx, "Cannot commit: git not initialized\nplease run `gopass git init` (and note that manual intervention might be needed)")
+		case errors.Is(err, store.ErrGitNothingToCommit):
+			debug.Log("commitAndPush - skipping git commit - nothing to commit")
+		default:
+			return fmt.Errorf("failed to commit changes to git: %w", err)
 		}
+	}
 
-		if err := s.storage.Push(ctx, "", ""); err != nil {
-			if !errors.Is(err, store.ErrGitNoRemote) {
-				ctx2 = ctxutil.AddToErrorCollector(ctx2, "RCS Push failed: "+ err.Error())
-				out.Printf(ctx, "RCS Push failed: %s", err.Error())
-			}
-		}
-		return ctx2, nil
-	})
-	ctx,err = t(ctx)
-	return err
+	return nil
 }
 
 func (s *Store) fsckUpdatePublicKeys(ctx context.Context) error {
@@ -211,20 +209,13 @@ func (s *Store) fsckCheckEntry(ctx context.Context, name string) (string,error) 
 	}
 
 
-	t := queue.GetQueue(ctx).Add(func(ctx2 context.Context) (context.Context, error) {
-		errc,err := s.fsckCheckRecipients(ctx, name)
-		if err != nil {
-			if errc == "F" {
-				return ctx2,fmt.Errorf("Checking recipients for %s failed:\n    %s", name, err)
-			} else {
-				ctxutil.AddToErrorCollector(ctx2, err.Error())
-			}
-		}
-		return ctx2,nil
-	})
-        ctx,err = t(ctx)
+        errc,err = s.fsckCheckRecipients(ctx, name)
 	if err != nil {
-		err_collector += err.Error() + "\n"
+		if errc == "F" {
+			err_collector += fmt.Errorf("Checking recipients for %s failed:\n    %s", name, err).Error()
+		} else {
+			err_collector += err.Error()
+		}
 	}
 
 	if err_collector == "" {
@@ -249,12 +240,12 @@ func (s *Store) fsckCheckRecipients(ctx context.Context, name string) (string,er
 
 	itemRecps = fingerprints(ctx, s.crypto, itemRecps)
 
-	perItemStoreRecps, err := s.GetRecipients(ctx, name)
+	rs, err := s.GetRecipients(ctx, name)
 	if err != nil {
 		return "F",fmt.Errorf("failed to get recipients from store: %w", err)
 	}
 
-	perItemStoreRecps = fingerprints(ctx, s.crypto, perItemStoreRecps)
+	perItemStoreRecps := fingerprints(ctx, s.crypto, rs.IDs())
 
 	// check itemRecps matches storeRecps
 	extra, missing := diff.List(perItemStoreRecps, itemRecps)

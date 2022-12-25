@@ -16,7 +16,7 @@ import (
 var ErrUnknown = fmt.Errorf("unknown secrets type")
 
 // parseLegacyMIME is a fallback parser for the transient MIME format.
-func parseLegacyMIME(buf []byte) (*secrets.KV, error) {
+func parseLegacyMIME(buf []byte) (*secrets.AKV, error) {
 	var hdr textproto.MIMEHeader
 
 	body := &bytes.Buffer{}
@@ -56,5 +56,5 @@ func parseLegacyMIME(buf []byte) (*secrets.KV, error) {
 		data[strings.ToLower(k)] = hdr.Values(k)
 	}
 
-	return secrets.NewKVWithData(pw, data, body.String(), true), nil
+	return secrets.NewAKVWithData(pw, data, body.String(), true), nil
 }

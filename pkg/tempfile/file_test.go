@@ -54,7 +54,7 @@ func TestTempdirBase(t *testing.T) {
 	}()
 }
 
-func TestTempdirBaseEmpty(t *testing.T) { //nolint:paralleltest
+func TestTempdirBaseEmpty(t *testing.T) {
 	oldShm := shmDir
 	defer func() {
 		shmDir = oldShm
@@ -91,7 +91,7 @@ func TestTempFiler(t *testing.T) {
 	assert.NoError(t, utf.Close())
 }
 
-func TestGlobalPrefix(t *testing.T) { //nolint:paralleltest
+func TestGlobalPrefix(t *testing.T) {
 	assertPrefix := func(file *File, prefix string) {
 		requirePrefix := filepath.Join(tempdirBase(), prefix)
 		fileOrDirName := file.Name()

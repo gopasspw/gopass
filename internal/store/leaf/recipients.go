@@ -12,6 +12,7 @@ import (
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/recipients"
+	"github.com/gopasspw/gopass/internal/set"
 	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
@@ -23,17 +24,49 @@ const (
 	oldKeyDir = ".gpg-keys"
 )
 
+// ErrInvalidHash indicates an outdated value of `recipients.hash`.
+var ErrInvalidHash = fmt.Errorf("recipients.hash invalid")
+
+// InvalidRecipientsError is a custom error type that contains a
+// list of invalid recipients with their check failures.
+type InvalidRecipientsError struct {
+	Invalid map[string]error
+}
+
+func (e InvalidRecipientsError) Error() string {
+	var sb strings.Builder
+
+	sb.WriteString("Invalid Recipients: ")
+	for _, k := range set.SortedKeys(e.Invalid) {
+		sb.WriteString(k)
+		sb.WriteString(": ")
+		sb.WriteString(e.Invalid[k].Error())
+		sb.WriteString(", ")
+	}
+
+	return sb.String()
+}
+
+// IsError returns true if this multi error contains any underlying errors.
+func (e InvalidRecipientsError) IsError() bool {
+	return len(e.Invalid) > 0
+}
+
 // Recipients returns the list of recipients of this store.
 func (s *Store) Recipients(ctx context.Context) []string {
 	rs, err := s.GetRecipients(ctx, "")
 	if err != nil {
 		out.Errorf(ctx, "failed to read recipient list: %s", err)
+		out.Notice(ctx, "Please review the recipients list and confirm any changes with 'gopass recipients ack'")
 	}
 
-	return rs
+	return rs.IDs()
 }
 
 // RecipientsTree returns a mapping of secrets to recipients.
+// Note: Usually that is one set of recipients per store, but we
+// offer limited support of different recipients per sub-directory
+// so this is why we are here.
 func (s *Store) RecipientsTree(ctx context.Context) map[string][]string {
 	idfs := s.idFiles(ctx)
 	out := make(map[string][]string, len(idfs))
@@ -56,12 +89,48 @@ func (s *Store) RecipientsTree(ctx context.Context) map[string][]string {
 		}
 		dir := filepath.Dir(idf)
 		debug.Log("adding recipients %+v for %s", srs, dir)
-		out[dir] = srs
+		out[dir] = srs.IDs()
 	}
 
 	out[""] = root
 
 	return out
+}
+
+// CheckRecipients makes sure all existing recipients are valid.
+func (s *Store) CheckRecipients(ctx context.Context) error {
+	rs, err := s.GetRecipients(ctx, "")
+	if err != nil {
+		return fmt.Errorf("failed to read recipient list: %w", err)
+	}
+
+	er := InvalidRecipientsError{
+		Invalid: make(map[string]error, len(rs.IDs())),
+	}
+	for _, k := range rs.IDs() {
+		validKeys, err := s.crypto.FindRecipients(ctx, k)
+		if err != nil {
+			debug.Log("no GPG key info (unexpected) for %s: %s", k, err)
+			er.Invalid[k] = err
+
+			continue
+		}
+
+		if len(validKeys) < 1 {
+			debug.Log("no valid keys (expired?) for %s", k)
+			er.Invalid[k] = fmt.Errorf("no valid keys (expired?)")
+
+			continue
+		}
+
+		debug.Log("valid keys found for %s", k)
+	}
+
+	if er.IsError() {
+		return er
+	}
+
+	return nil
 }
 
 // AddRecipient adds a new recipient to the list.
@@ -73,20 +142,13 @@ func (s *Store) AddRecipient(ctx context.Context, id string) error {
 
 	debug.Log("new recipient: %q - existing: %+v", id, rs)
 
-	idAlreadyInStore := false
-
-	for _, k := range rs {
-		if k == id {
-			idAlreadyInStore = true
-		}
-	}
-
+	idAlreadyInStore := rs.Has(id)
 	if idAlreadyInStore {
 		if !termio.AskForConfirmation(ctx, fmt.Sprintf("key %q already in store. Do you want to re-encrypt with public key? This is useful if you changed your public key (e.g. added subkeys).", id)) {
 			return nil
 		}
 	} else {
-		rs = append(rs, id)
+		rs.Add(id)
 
 		if err := s.saveRecipients(ctx, rs, "Added Recipient "+id); err != nil {
 			return fmt.Errorf("failed to save recipients: %w", err)
@@ -105,43 +167,43 @@ func (s *Store) AddRecipient(ctx context.Context, id string) error {
 	return s.reencrypt(ctxutil.WithCommitMessage(ctx, commitMsg))
 }
 
-// SaveRecipients persists the current recipients on disk.
-func (s *Store) SaveRecipients(ctx context.Context) error {
+// SaveRecipients persists the current recipients on disk. Setting ack to true
+// will acknowledge an invalid hash and allow updating it.
+func (s *Store) SaveRecipients(ctx context.Context, ack bool) error {
 	rs, err := s.GetRecipients(ctx, "")
 	if err != nil {
-		return fmt.Errorf("failed to get recipients: %w", err)
+		if !errors.Is(err, ErrInvalidHash) || (errors.Is(err, ErrInvalidHash) && !ack) {
+			return fmt.Errorf("failed to get recipients: %w", err)
+		}
 	}
 
 	return s.saveRecipients(ctx, rs, "Save Recipients")
 }
 
-// SetRecipients will update the stored recipients and the associated checksum.
-func (s *Store) SetRecipients(ctx context.Context, rs []string) error {
+// SetRecipients will update the stored recipients.
+func (s *Store) SetRecipients(ctx context.Context, rs *recipients.Recipients) error {
 	return s.saveRecipients(ctx, rs, "Set Recipients")
 }
 
 // RemoveRecipient will remove the given recipient from the store
 // but if this key is not available on this machine we
 // just try to remove it literally.
-func (s *Store) RemoveRecipient(ctx context.Context, id string) error {
-	keys, err := s.crypto.FindRecipients(ctx, id)
-	if err != nil {
-		out.Warningf(ctx, "Warning: Failed to get GPG Key Info for %s: %s", id, err)
-	}
-
+func (s *Store) RemoveRecipient(ctx context.Context, key string) error {
 	rs, err := s.GetRecipients(ctx, "")
 	if err != nil {
 		return fmt.Errorf("failed to read recipient list: %w", err)
 	}
 
-	nk := make([]string, 0, len(rs)-1)
-
+	var removed int
 RECIPIENTS:
-	for _, k := range rs { //nolint:whitespace
+	for _, k := range rs.IDs() { //nolint:whitespace
 
 		// First lets try a simple match of the stored ids
-		if k == id {
+		if k == key {
 			debug.Log("removing recipient based on id match %s", k)
+			if rs.Remove(k) {
+				removed++
+			}
 
 			continue RECIPIENTS
 		}
@@ -156,34 +218,36 @@ RECIPIENTS:
 
 		// if the key is available locally we can also match the id against
 		// the fingerprint or failing that we can try against the recipientIds
-		for _, key := range keys {
-			if strings.HasSuffix(key, k) {
-				debug.Log("removing recipient based on id suffix match: %s %s", key, k)
+		if strings.HasSuffix(key, k) {
+			debug.Log("removing recipient based on id suffix match: %s %s", key, k)
+			if rs.Remove(k) {
+				removed++
+			}
+
+			continue RECIPIENTS
+		}
+
+		for _, recipientID := range recipientIds {
+			if recipientID == key {
+				debug.Log("removing recipient based on recipient id match %s", recipientID)
+				if rs.Remove(k) {
+					removed++
+				}
 
 				continue RECIPIENTS
 			}
-
-			for _, recipientID := range recipientIds {
-				if recipientID == key {
-					debug.Log("removing recipient based on recipient id match %s", recipientID)
-
-					continue RECIPIENTS
-				}
-			}
 		}
-
-		nk = append(nk, k)
 	}
 
-	if len(rs) == len(nk) {
+	if removed < 1 {
 		return fmt.Errorf("recipient not in store")
 	}
 
-	if err := s.saveRecipients(ctx, nk, "Removed Recipient "+id); err != nil {
+	if err := s.saveRecipients(ctx, rs, "Removed Recipient "+key); err != nil {
 		return fmt.Errorf("failed to save recipients: %w", err)
 	}
 
-	return s.reencrypt(ctxutil.WithCommitMessage(ctx, "Removed Recipient "+id))
+	return s.reencrypt(ctxutil.WithCommitMessage(ctx, "Removed Recipient "+key))
 }
 
 func (s *Store) ensureOurKeyID(ctx context.Context, rs []string) []string {
@@ -220,17 +284,31 @@ func (s *Store) OurKeyID(ctx context.Context) string {
 
 // GetRecipients will load all Recipients from the .gpg-id file for the given
 // secret path.
-func (s *Store) GetRecipients(ctx context.Context, name string) ([]string, error) {
+func (s *Store) GetRecipients(ctx context.Context, name string) (*recipients.Recipients, error) {
 	return s.getRecipients(ctx, s.idFile(ctx, name))
 }
 
-func (s *Store) getRecipients(ctx context.Context, idf string) ([]string, error) {
+func (s *Store) getRecipients(ctx context.Context, idf string) (*recipients.Recipients, error) {
 	buf, err := s.storage.Get(ctx, idf)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get recipients from %q: %w", idf, err)
+		return recipients.New(), fmt.Errorf("failed to get recipients from %q: %w", idf, err)
 	}
 
-	return recipients.Unmarshal(buf), nil
+	rs := recipients.Unmarshal(buf)
+
+	// check recipients hash
+	if !config.Bool(ctx, "recipients.check") {
+		return rs, nil
+	}
+
+	cfg := config.FromContext(ctx)
+	cfgHash := cfg.GetM(s.alias, "recipients.hash")
+	rsHash := rs.Hash()
+	if rsHash != cfgHash {
+		return rs, fmt.Errorf("Config: %s - Recipients file: %s: %w", cfgHash, rsHash, ErrInvalidHash)
+	}
+
+	return rs, nil
 }
 
 
@@ -335,15 +413,24 @@ func (s *Store) UpdateExportedPublicKeys(ctx context.Context, rs []string) (bool
 	return exported, nil
 }
 
+type recipientMarshaler interface {
+	IDs() []string
+	Marshal() []byte
+	Hash() string
+}
+
 // Save all Recipients in memory to the recipients file on disk.
-func (s *Store) saveRecipients(ctx context.Context, rs []string, msg string) error {
-	if len(rs) < 1 {
+func (s *Store) saveRecipients(ctx context.Context, rs recipientMarshaler, msg string) error {
+	if rs == nil {
+		return fmt.Errorf("need valid recipients")
+	}
+	if len(rs.IDs()) < 1 {
 		return fmt.Errorf("can not remove all recipients")
 	}
 
 	idf := s.idFile(ctx, "")
 
-	buf := recipients.Marshal(rs)
+	buf := rs.Marshal()
 	if err := s.storage.Set(ctx, idf, buf); err != nil {
 		if errors.Is(err, store.ErrMeaninglessWrite) {
 			return fmt.Errorf("No need to overwrite recipients file")
@@ -364,10 +451,15 @@ func (s *Store) saveRecipients(ctx context.Context, rs []string, msg string) err
 		}
 	}
 
+	// save recipients hash
+	if err := config.FromContext(ctx).Set(s.alias, "recipients.hash", rs.Hash()); err != nil {
+		out.Errorf(ctx, "Failed to update recipients.hash: %s", err)
+	}
+
 	// save all recipients public keys to the repo
 	if config.Bool(ctx, "core.exportkeys") {
 		debug.Log("updating exported keys")
-		if _, err := s.UpdateExportedPublicKeys(ctx, rs); err != nil {
+		if _, err := s.UpdateExportedPublicKeys(ctx, rs.IDs()); err != nil {
 			out.Errorf(ctx, "Failed to export missing public keys: %s", err)
 		}
 	} else {

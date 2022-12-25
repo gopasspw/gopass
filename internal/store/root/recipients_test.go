@@ -12,10 +12,7 @@ import (
 )
 
 func TestRecipients(t *testing.T) {
-	t.Parallel()
-
 	u := gptest.NewUnitTester(t)
-	defer u.Remove()
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)

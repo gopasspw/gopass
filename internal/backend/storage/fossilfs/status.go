@@ -4,14 +4,14 @@ import (
 	"context"
 	"strings"
 
-	"bitbucket.org/creachadair/stringset"
+	"github.com/gopasspw/gopass/internal/set"
 )
 
 type fossilStatus struct {
-	Extra     stringset.Set
-	Added     stringset.Set
-	Edited    stringset.Set
-	Unchanged stringset.Set
+	Extra     set.Set[string]
+	Added     set.Set[string]
+	Edited    set.Set[string]
+	Unchanged set.Set[string]
 }
 
 func (f *Fossil) getStatus(ctx context.Context) (fossilStatus, error) {
@@ -21,10 +21,10 @@ func (f *Fossil) getStatus(ctx context.Context) (fossilStatus, error) {
 	}
 
 	s := fossilStatus{
-		Extra:     stringset.New(),
-		Added:     stringset.New(),
-		Edited:    stringset.New(),
-		Unchanged: stringset.New(),
+		Extra:     set.New[string](),
+		Added:     set.New[string](),
+		Edited:    set.New[string](),
+		Unchanged: set.New[string](),
 	}
 	for _, line := range strings.Split(string(stdout), "\n") {
 		op, file, found := strings.Cut(line, " ")
@@ -46,10 +46,10 @@ func (f *Fossil) getStatus(ctx context.Context) (fossilStatus, error) {
 	return s, nil
 }
 
-func (fs *fossilStatus) Untracked() stringset.Set {
+func (fs *fossilStatus) Untracked() set.Set[string] {
 	return fs.Extra.Union(fs.Added).Union(fs.Edited)
 }
 
-func (fs *fossilStatus) Staged() stringset.Set {
+func (fs *fossilStatus) Staged() set.Set[string] {
 	return fs.Edited.Union(fs.Added)
 }

@@ -9,8 +9,10 @@ import (
 	"github.com/gopasspw/gopass/internal/backend/crypto/plain"
 	"github.com/gopasspw/gopass/internal/backend/storage/fs"
 	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/internal/recipients"
 	"github.com/gopasspw/gopass/pkg/gopass/secrets"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestFsck(t *testing.T) {
@@ -33,10 +35,14 @@ func TestFsck(t *testing.T) {
 		crypto:  plain.New(),
 		storage: fs.New(tempdir),
 	}
-	assert.NoError(t, s.saveRecipients(ctx, []string{"john.doe"}, "test"))
+
+	rs := recipients.New()
+	rs.Add("john.doe")
+
+	require.NoError(t, s.saveRecipients(ctx, rs, "test"))
 
 	for _, e := range []string{"foo/bar", "foo/baz", "foo/zab"} {
-		sec := &secrets.Plain{}
+		sec := secrets.NewAKV()
 		sec.SetPassword("bar")
 		assert.NoError(t, s.Set(ctx, e, sec))
 	}

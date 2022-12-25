@@ -1,5 +1,5 @@
 
-.TH GOPASS "1" "November 2022" "gopass (github.com/gopasspw/gopass) 1.14.11" "User Commands"
+.TH GOPASS "1" "December 2022" "gopass (github.com/gopasspw/gopass) 1.15.2" "User Commands"
 .SH NAME
 gopass - The standard Unix password manager
 .SH SYNOPSIS
@@ -51,9 +51,9 @@ age commands
 Built-in commands for the age backend.
 These allow limited interactions with the gopass specific age identities.
 .SS alias
-Manage domain aliases
+Print domain aliases
 
-Manages domain aliases. Note: this command might change or go away.
+Print defined domain aliases.
 .SS audit
 Decrypt all secrets and scan for weak or leaked passwords
 
@@ -89,6 +89,11 @@ Select storage backend [fossilfs gitfs]
 Display and edit the configuration file
 
 This command allows for easy printing and editing of the configuration. Without argument, the entire config is printed. With a single argument, a single key can be printed. With two arguments a setting specified by key can be set to value.
+
+.B Flags
+.TP
+\fB\-\-store\fR,
+Set options to a specific store
 .SS convert
 Convert a store to different backends
 
@@ -177,10 +182,6 @@ This command will first attempt a simple pattern match on the name of the secret
 
 .B Flags
 .TP
-\fB\-\-clip\fR,
-\fB\-c\fR,
-Copy the password into the clipboard
-.TP
 \fB\-\-unsafe\fR,
 \fB\-u\fR,
 \fB\-\-force\fR,
@@ -195,7 +196,6 @@ Check the integrity of the given sub-store or all stores if none are specified. 
 .TP
 \fB\-\-decrypt\fR,
 Decrypt and reencryt during fsck.
-WARNING: This will update the secret content to the latest format. This might be incompatible with other implementations. Use with caution!
 .SS fscopy
 Copy files from or to the password store
 
@@ -223,6 +223,10 @@ Open secret for editing after generating a password
 \fB\-f\fR,
 Force to overwrite existing password
 .TP
+\fB\-\-force-regen\fR,
+\fB\-t\fR,
+Force full re-generation, incl. evaluation of templates. Will overwrite the entire secret!
+.TP
 \fB\-\-generator\fR,
 \fB\-g\fR,
 Choose a password generator, use one of: cryptic, memorable, xkcd or external. Default: cryptic
@@ -230,7 +234,7 @@ Choose a password generator, use one of: cryptic, memorable, xkcd or external. D
 \fB\-\-lang\fR,
 \fB\-\-xkcdlang\fR,
 \fB\-\-xl\fR,
-Language to generate password from, currently only en (english, default) is supported
+Language to generate password from, currently only en (english, default) or de are supported
 .TP
 \fB\-\-print\fR,
 \fB\-p\fR,
@@ -408,7 +412,7 @@ Do not include characters that could be easily confused with each other, like '1
 \fB\-\-lang\fR,
 \fB\-\-xkcdlang\fR,
 \fB\-\-xl\fR,
-Language to generate password from, currently only en (english, default) is supported
+Language to generate password from, currently only en (english, default) or de are supported
 .TP
 \fB\-\-no-capitalize\fR,
 \fB\-A\fR,
@@ -442,6 +446,11 @@ If the password store is a git repository, execute a git command specified by gi
 Edit recipient permissions
 
 This command displays all existing recipients for all mounted stores. The subcommands allow adding or removing recipients.
+
+.B Flags
+.TP
+\fB\-\-pretty\fR,
+Pretty print recipients
 .SS setup
 Initialize a new password store
 
@@ -548,7 +557,7 @@ This command checks for gopass updates at GitHub and automatically downloads and
 .SS version
 Display version
 
-This command displays version and build time information along with version information of important external commands. Please provide the output when reporting issues.
+This command displays version and build time information.
 
 .SH "REPORTING BUGS"
 Report bugs to <https://github.com/gopasspw/gopass/issues/new>

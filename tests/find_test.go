@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestFind(t *testing.T) { //nolint:paralleltest
+func TestFind(t *testing.T) {
 	ts := newTester(t)
 	defer ts.teardown()
 
@@ -16,7 +16,7 @@ func TestFind(t *testing.T) { //nolint:paralleltest
 
 	out, err := ts.run("find")
 	assert.Error(t, err)
-	assert.Equal(t, "\nError: Usage: "+filepath.Base(ts.Binary)+" find <NEEDLE>\n", out)
+	assert.Equal(t, "\nError: Usage: "+filepath.Base(ts.Binary)+" find <pattern>\n", out)
 
 	_, err = ts.run("config core.showsafecontent false")
 	require.NoError(t, err)

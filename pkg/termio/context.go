@@ -6,6 +6,7 @@ type contextKey int
 
 const (
 	ctxKeyPassPromptFunc contextKey = iota
+	ctxKeyWorkdir
 )
 
 // PassPromptFunc is a password prompt function.
@@ -33,4 +34,20 @@ func GetPassPromptFunc(ctx context.Context) PassPromptFunc {
 	}
 
 	return ppf
+}
+
+// WithWorkdir returns a context with the working directory option set.
+func WithWorkdir(ctx context.Context, dir string) context.Context {
+	return context.WithValue(ctx, ctxKeyWorkdir, dir)
+}
+
+// GetWorkdir returns the working directory from the context or an empty
+// string if it is not set.
+func GetWorkdir(ctx context.Context) string {
+	sv, ok := ctx.Value(ctxKeyWorkdir).(string)
+	if !ok {
+		return ""
+	}
+
+	return sv
 }

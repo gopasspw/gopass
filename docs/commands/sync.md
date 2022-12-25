@@ -3,9 +3,9 @@
 The `sync` command is the preferred way to manually synchronize changes between
 your local stores and any configured remotes.
 
-You can always `cd` into a git-based store and manually perform git operations,
-but executing these through `gopass git` is deprecated and might be removed
-at soe point.
+You can also `cd` into a git-based store and manually perform git operations,
+or use the `gopass git` command to automatically run a command in the correct
+directory.
 
 Note: `gopass sync` only supports one remote per store.
 
@@ -14,5 +14,3 @@ Note: `gopass sync` only supports one remote per store.
 Flag | Description
 ---- | -----------
 `--store` | Only sync a specific sub store
-
-

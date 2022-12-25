@@ -64,10 +64,9 @@ func (s *Action) GetCommands() []*cli.Command {
 	cmds := []*cli.Command{
 		{
 			Name:        "alias",
-			Usage:       "Manage domain aliases",
-			Description: "Manages domain aliases. Note: this command might change or go away.",
+			Usage:       "Print domain aliases",
+			Description: "Print defined domain aliases.",
 			Action:      s.AliasesPrint,
-			Hidden:      true,
 		},
 		{
 			Name:      "audit",
@@ -295,21 +294,16 @@ func (s *Action) GetCommands() []*cli.Command {
 		{
 			Name:      "find",
 			Usage:     "Search for secrets",
-			ArgsUsage: "[needle]",
+			ArgsUsage: "<pattern>",
 			Description: "" +
 				"This command will first attempt a simple pattern match on the name of the " +
 				"secret.  If there is an exact match it will be shown directly; if there are " +
 				"multiple matches, a selection will be shown.",
 			Before:       s.IsInitialized,
-			Action:       s.FindNoFuzzy,
+			Action:       s.Find,
 			Aliases:      []string{"search"},
 			BashComplete: s.Complete,
 			Flags: []cli.Flag{
-				&cli.BoolFlag{
-					Name:    "clip",
-					Aliases: []string{"c"},
-					Usage:   "Copy the password into the clipboard",
-				},
 				&cli.BoolFlag{
 					Name:    "unsafe",
 					Aliases: []string{"u", "force", "f"},
@@ -330,7 +324,7 @@ func (s *Action) GetCommands() []*cli.Command {
 			Flags: []cli.Flag{
 				&cli.BoolFlag{
 					Name:  "decrypt",
-					Usage: "Decrypt and reencryt during fsck.\nWARNING: This will update the secret content to the latest format. This might be incompatible with other implementations. Use with caution!",
+					Usage: "Decrypt and reencryt during fsck.",
 				},
 			},
 		},
@@ -347,7 +341,6 @@ func (s *Action) GetCommands() []*cli.Command {
 			Before:       s.IsInitialized,
 			Action:       s.BinaryCopy,
 			BashComplete: s.Complete,
-			Hidden:       true,
 		},
 		{
 			Name:      "fsmove",
@@ -364,7 +357,6 @@ func (s *Action) GetCommands() []*cli.Command {
 			Before:       s.IsInitialized,
 			Action:       s.BinaryMove,
 			BashComplete: s.Complete,
-			Hidden:       true,
 		},
 		{
 			Name:      "generate",
@@ -411,6 +403,11 @@ func (s *Action) GetCommands() []*cli.Command {
 					Name:  "strict",
 					Usage: "Require strict character class rules",
 				},
+				&cli.BoolFlag{
+					Name:    "force-regen",
+					Aliases: []string{"t"},
+					Usage:   "Force full re-generation, incl. evaluation of templates. Will overwrite the entire secret!",
+				},
 				&cli.StringFlag{
 					Name:    "sep",
 					Aliases: []string{"xkcdsep", "xs"},
@@ -420,7 +417,7 @@ func (s *Action) GetCommands() []*cli.Command {
 				&cli.StringFlag{
 					Name:    "lang",
 					Aliases: []string{"xkcdlang", "xl"},
-					Usage:   "Language to generate password from, currently only en (english, default) is supported",
+					Usage:   "Language to generate password from, currently only en (english, default) or de are supported",
 					Value:   "en",
 				},
 			},
@@ -649,6 +646,16 @@ func (s *Action) GetCommands() []*cli.Command {
 					Action:       s.MountRemove,
 					BashComplete: s.MountsComplete,
 				},
+				{
+					Name:    "versions",
+					Aliases: []string{"version"},
+					Usage:   "Display mount provider versions",
+					Description: "" +
+						"This command displays version information of important external " +
+						"commands used by the configured password store mounts.",
+					Before: s.IsInitialized,
+					Action: s.MountsVersions,
+				},
 			},
 		},
 		{
@@ -710,10 +717,6 @@ func (s *Action) GetCommands() []*cli.Command {
 							Usage: "Store to operate on",
 						},
 						&cli.StringFlag{
-							Name:  "sign-key",
-							Usage: "GPG Key to sign commits",
-						},
-						&cli.StringFlag{
 							Name:    "name",
 							Aliases: []string{"username"},
 							Usage:   "Git Author Name",
@@ -753,7 +756,31 @@ func (s *Action) GetCommands() []*cli.Command {
 				"The subcommands allow adding or removing recipients.",
 			Before: s.IsInitialized,
 			Action: s.RecipientsPrint,
+			Flags: []cli.Flag{
+				&cli.BoolFlag{
+					Name:  "pretty",
+					Usage: "Pretty print recipients",
+					Value: true,
+				},
+			},
 			Subcommands: []*cli.Command{
+				{
+					Name:    "ack",
+					Aliases: []string{"acknowledge"},
+					Usage:   "Update recipients.hash",
+					Description: "" +
+						"This command updates the value of recipients.hash. " +
+						"This should only be run after manually validating any " +
+						"changes to the recipients list. ",
+					Before: s.IsInitialized,
+					Action: s.RecipientsAck,
+					Flags: []cli.Flag{
+						&cli.StringFlag{
+							Name:  "store",
+							Usage: "Store to operate on",
+						},
+					},
+				},
 				{
 					Name:    "add",
 					Aliases: []string{"authorize"},
@@ -953,9 +980,7 @@ func (s *Action) GetCommands() []*cli.Command {
 			Name:  "version",
 			Usage: "Display version",
 			Description: "" +
-				"This command displays version and build time information " +
-				"along with version information of important external commands. " +
-				"Please provide the output when reporting issues.",
+				"This command displays version and build time information.",
 			Action: s.Version,
 		},
 	}

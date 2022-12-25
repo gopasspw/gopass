@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/gopasspw/gopass/pkg/gopass"
 	"github.com/gopasspw/gopass/pkg/gopass/secrets/secparse"
 	"github.com/pquerna/otp"
 	"github.com/stretchr/testify/assert"
@@ -28,7 +29,7 @@ func TestCalculate(t *testing.T) {
 		[]byte(fmt.Sprintf("%s\n---\n%s", pw, totpURL)),
 	}
 
-	for _, tc := range testCases { //nolint:paralleltest
+	for _, tc := range testCases {
 		tc := tc
 
 		t.Run(fmt.Sprintf("%s", tc), func(t *testing.T) {
@@ -53,4 +54,36 @@ func TestWrite(t *testing.T) {
 	key, err := otp.NewKeyFromURL(totpURL)
 	assert.NoError(t, err)
 	assert.NoError(t, WriteQRFile(key, tf))
+}
+
+func TestGetOTPURL(t *testing.T) {
+	for _, tc := range []struct {
+		name string
+		sec  gopass.Secret
+		url  string
+	}{
+		{
+			name: "url-only-in-body",
+			sec:  secparse.MustParse(fmt.Sprintf("%s\n%s", pw, totpURL)),
+			url:  totpURL,
+		},
+		{
+			name: "url-and-other-text-in-body",
+			sec:  secparse.MustParse(fmt.Sprintf("%s\n%s\nfoo bar\nbaz\n", pw, totpURL)),
+			url:  totpURL,
+		},
+		{
+			name: "url-in-kvp",
+			sec:  secparse.MustParse(fmt.Sprintf("%s\notpauth: %s\nfoo bar\nbaz\n", pw, totpURL)),
+			url:  totpURL,
+		},
+	} {
+		tc := tc
+
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			assert.Equal(t, tc.url, getOTPURL(tc.sec))
+		})
+	}
 }

@@ -9,6 +9,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/exp/maps"
 )
 
 // https://mirrors.edge.kernel.org/pub/software/scm/git/docs/git-config.html#EXAMPLES
@@ -168,6 +169,7 @@ var configSampleComplex = `
   autocrlf = input
   protectHFS = true
   protectNTFS = true
+  sshCommand = ssh -oControlMaster=auto -oControlPersist=600 -oControlPath=/tmp/.ssh-%C
 
 [receive]
   fsckObjects = true
@@ -272,6 +274,12 @@ var configSampleGopass = `
 
 [mounts "work"]
   path = /home/johndoe/.password-store-work
+
+[domain-alias "foo.com"]
+  insteadOf = foo.de
+
+[domain-alias "foo.com"]
+  insteadOf = foo.it
 `
 
 func TestGopass(t *testing.T) {
@@ -290,6 +298,9 @@ func TestGopass(t *testing.T) {
 	assert.Equal(t, "false", c.Get("core.pager"))
 	assert.Equal(t, "true", c.Get("core.notifications"))
 	assert.Equal(t, "false", c.Get("core.showsafecontent"))
+	assert.Equal(t, "foo.it", c.Get("domain-alias.foo.com.insteadOf"))
+	// TODO: support multivars
+	// foo.de should be part of a multi-var get
 
 	assert.Equal(t, "/home/johndoe/.password-store", c.Get("mounts.path"))
 	assert.Equal(t, "/home/johndoe/.password-store-foo-sub", c.Get("mounts.foo/sub.path"))
@@ -299,7 +310,7 @@ func TestGopass(t *testing.T) {
 	t.Logf("Vars:\n%+v\n", c.global.vars)
 }
 
-func TestParse(t *testing.T) {
+func TestParseSimple(t *testing.T) {
 	t.Parallel()
 
 	c := ParseConfig(strings.NewReader(configSampleDocs))
@@ -307,9 +318,41 @@ func TestParse(t *testing.T) {
 	for k, v := range c.vars {
 		t.Logf("%s => %s\n", k, v)
 	}
+
+	want := map[string]string{
+		"core.filemode": "false",
+		"diff.external": "/usr/local/bin/diff-wrapper",
+		"diff.renames":  "true",
+		"core.gitproxy": "default-proxy",
+		// TODO(gitconfig): "http.sslVerify": "", // not supported, yet
+		"http.https://weak.example.com.sslVerify":  "false",
+		"http.https://weak.example.com.cookieFile": "/tmp/cookie.txt",
+	}
+
+	assert.Equal(t, want, c.vars)
 }
 
-func TestGitBinary(t *testing.T) { //nolint:paralleltest
+func TestParseComplex(t *testing.T) {
+	t.Parallel()
+
+	c := ParseConfig(strings.NewReader(configSampleComplex))
+
+	assert.Contains(t, maps.Keys(c.vars), "core.sshCommand")
+	assert.Equal(t, "ssh -oControlMaster=auto -oControlPersist=600 -oControlPath=/tmp/.ssh-%C", c.vars["core.sshCommand"])
+}
+
+func TestParseDocs(t *testing.T) {
+	t.Parallel()
+
+	c := ParseConfig(strings.NewReader(configSampleComplex))
+
+	// TODO(#2479) - fix parsing
+	t.Skip("TODO - broken")
+
+	assert.Equal(t, "ssh -oControlMaster=auto -oControlPersist=600 -oControlPath=/tmp/.ssh-%C", c.vars["core.sshCommand"])
+}
+
+func TestGitBinary(t *testing.T) {
 	t.Skip("not ready, yet") // TODO(gitconfig) make tests pass
 
 	cfgs := New()
@@ -412,7 +455,7 @@ func TestListSections(t *testing.T) {
 
 	c := &Configs{global: ParseConfig(strings.NewReader(configSampleGopass))}
 	c.global.noWrites = true
-	assert.Equal(t, []string{"core", "mounts"}, c.ListSections())
+	assert.Equal(t, []string{"core", "domain-alias", "mounts"}, c.ListSections())
 }
 
 func TestListSubsections(t *testing.T) {

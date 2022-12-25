@@ -17,9 +17,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestFsck(t *testing.T) { //nolint:paralleltest
+func TestFsck(t *testing.T) {
 	u := gptest.NewUnitTester(t)
-	defer u.Remove()
 
 	ctx := context.Background()
 	ctx = ctxutil.WithTerminal(ctx, false)
@@ -73,13 +72,12 @@ func TestFsck(t *testing.T) { //nolint:paralleltest
 	buf.Reset()
 }
 
-func TestFsckGpg(t *testing.T) { //nolint:paralleltest
+func TestFsckGpg(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping test in short mode.")
 	}
 
 	u := gptest.NewGUnitTester(t)
-	defer u.Remove()
 
 	ctx := context.Background()
 	ctx = ctxutil.WithTerminal(ctx, false)

@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestBaseConfig(t *testing.T) { //nolint:paralleltest
+func TestBaseConfig(t *testing.T) {
 	ts := newTester(t)
 	defer ts.teardown()
 
@@ -19,7 +19,6 @@ func TestBaseConfig(t *testing.T) { //nolint:paralleltest
 core.cliptimeout = 45
 core.exportkeys = false
 core.notifications = true
-core.parsing = true
 `
 	wanted += "mounts.path = " + ts.storeDir("root")
 
@@ -28,10 +27,9 @@ core.parsing = true
 	invertables := []string{
 		"core.autoimport",
 		"core.showsafecontent",
-		"core.parsing",
 	}
 
-	for _, invert := range invertables { //nolint:paralleltest
+	for _, invert := range invertables {
 		t.Run("invert "+invert, func(t *testing.T) {
 			out, err = ts.run("config " + invert + " false")
 			assert.NoError(t, err)
@@ -54,7 +52,7 @@ core.parsing = true
 	})
 }
 
-func TestMountConfig(t *testing.T) { //nolint:paralleltest
+func TestMountConfig(t *testing.T) {
 	ts := newTester(t)
 	defer ts.teardown()
 
@@ -69,7 +67,6 @@ func TestMountConfig(t *testing.T) { //nolint:paralleltest
 core.cliptimeout = 45
 core.exportkeys = false
 core.notifications = true
-core.parsing = true
 `
 	wanted += "mounts.mnt/m1.path = " + ts.storeDir("m1") + "\n"
 	wanted += "mounts.path = " + ts.storeDir("root") + "\n"

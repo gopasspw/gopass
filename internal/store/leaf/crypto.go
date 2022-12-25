@@ -40,13 +40,14 @@ func (s *Store) ImportMissingPublicKeys(ctx context.Context, newrs ...string) er
 
 		return nil
 	}
+
 	rs, err := s.GetRecipients(ctx, "")
 	if err != nil {
 		return fmt.Errorf("failed to get recipients: %w", err)
 	}
 
-	rs = append(rs, newrs...)
-	for _, r := range rs {
+	ids := append(rs.IDs(), newrs...)
+	for _, r := range ids {
 		debug.Log("Checking recipients %s ...", r)
 		// check if this recipient is missing
 		// we could list all keys outside the loop and just do the lookup here

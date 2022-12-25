@@ -22,12 +22,18 @@ type OnDisk struct {
 // NewOnDisk creates a new on disk cache.
 func NewOnDisk(name string, ttl time.Duration) (*OnDisk, error) {
 	d := filepath.Join(appdir.UserCache(), "gopass", name)
-	debug.Log("New on disk cache %s created at %s", name, d)
+
+	return NewOnDiskWithDir(name, d, ttl)
+}
+
+// NewOnDiskWithDir creates a new on disk cache.
+func NewOnDiskWithDir(name, dir string, ttl time.Duration) (*OnDisk, error) {
+	debug.Log("New on disk cache %s created at %s", name, dir)
 
 	o := &OnDisk{
 		ttl:  ttl,
 		name: name,
-		dir:  d,
+		dir:  dir,
 	}
 
 	return o, o.ensureDir()
@@ -39,6 +45,11 @@ func (o *OnDisk) ensureDir() error {
 	}
 
 	return nil
+}
+
+// String return the identity of this cache instance.
+func (o *OnDisk) String() string {
+	return fmt.Sprintf("OnDiskCache(name: %s, ttl: %d, dir: %s)", o.name, o.ttl, o.dir)
 }
 
 // Get fetches an entry from the cache.

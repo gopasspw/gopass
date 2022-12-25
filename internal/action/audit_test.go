@@ -14,9 +14,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestAudit(t *testing.T) { //nolint:paralleltest
+func TestAudit(t *testing.T) {
 	u := gptest.NewUnitTester(t)
-	defer u.Remove()
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
@@ -34,8 +33,8 @@ func TestAudit(t *testing.T) { //nolint:paralleltest
 		stdout = os.Stdout
 	}()
 
-	t.Run("expect audit complaints on very weak passwords", func(t *testing.T) { //nolint:paralleltest
-		sec := &secrets.Plain{}
+	t.Run("expect audit complaints on very weak passwords", func(t *testing.T) {
+		sec := secrets.NewAKV()
 		sec.SetPassword("123")
 		assert.NoError(t, act.Store.Set(ctx, "bar", sec))
 		assert.NoError(t, act.Store.Set(ctx, "baz", sec))
@@ -44,13 +43,13 @@ func TestAudit(t *testing.T) { //nolint:paralleltest
 		buf.Reset()
 	})
 
-	t.Run("test with filter and very passwords", func(t *testing.T) { //nolint:paralleltest
+	t.Run("test with filter and very passwords", func(t *testing.T) {
 		c := gptest.CliCtx(ctx, t, "foo")
 		assert.Error(t, act.Audit(c))
 		buf.Reset()
 	})
 
-	t.Run("test empty store", func(t *testing.T) { //nolint:paralleltest
+	t.Run("test empty store", func(t *testing.T) {
 		for _, v := range []string{"foo", "bar", "baz"} {
 			assert.NoError(t, act.Store.Delete(ctx, v))
 		}

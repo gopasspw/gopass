@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestDetectName(t *testing.T) { //nolint:paralleltest
+func TestDetectName(t *testing.T) {
 	ctx := context.Background()
 
 	oga := os.Getenv("GIT_AUTHOR_NAME")
@@ -32,7 +32,7 @@ func TestDetectName(t *testing.T) { //nolint:paralleltest
 	assert.Equal(t, "foo", DetectName(ctx, nil))
 }
 
-func TestDetectEmail(t *testing.T) { //nolint:paralleltest
+func TestDetectEmail(t *testing.T) {
 	ctx := context.Background()
 
 	oga := os.Getenv("GIT_AUTHOR_EMAIL")

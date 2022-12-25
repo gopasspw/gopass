@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestAudit(t *testing.T) { //nolint:paralleltest
+func TestAudit(t *testing.T) {
 	ts := newTester(t)
 	defer ts.teardown()
 

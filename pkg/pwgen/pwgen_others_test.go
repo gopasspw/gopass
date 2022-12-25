@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestPwgenExternal(t *testing.T) { //nolint:paralleltest
+func TestPwgenExternal(t *testing.T) {
 	t.Setenv("GOPASS_EXTERNAL_PWGEN", "echo foobar")
 
 	pw, err := GenerateExternal(4)

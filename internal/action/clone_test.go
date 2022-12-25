@@ -5,6 +5,7 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/blang/semver/v4"
@@ -39,9 +40,8 @@ func aGitRepo(ctx context.Context, t *testing.T, u *gptest.Unit, name string) st
 	return gd
 }
 
-func TestClone(t *testing.T) { //nolint:paralleltest
+func TestClone(t *testing.T) {
 	u := gptest.NewUnitTester(t)
-	defer u.Remove()
 
 	ctx := context.Background()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
@@ -63,27 +63,26 @@ func TestClone(t *testing.T) { //nolint:paralleltest
 		stdout = os.Stdout
 	}()
 
-	t.Run("no args", func(t *testing.T) { //nolint:paralleltest
+	t.Run("no args", func(t *testing.T) {
 		defer buf.Reset()
 		c := gptest.CliCtx(ctx, t)
 		assert.Error(t, act.Clone(c))
 	})
 
-	t.Run("clone to initialized store", func(t *testing.T) { //nolint:paralleltest
+	t.Run("clone to initialized store", func(t *testing.T) {
 		defer buf.Reset()
 		assert.Error(t, act.clone(ctx, "/tmp/non-existing-repo.git", "", filepath.Join(u.Dir, "store")))
 	})
 
-	t.Run("clone to mount", func(t *testing.T) { //nolint:paralleltest
+	t.Run("clone to mount", func(t *testing.T) {
 		defer buf.Reset()
 		gd := aGitRepo(ctx, t, u, "other-repo")
 		assert.NoError(t, act.clone(ctx, gd, "gd", filepath.Join(u.Dir, "mount")))
 	})
 }
 
-func TestCloneBackendIsStoredForMount(t *testing.T) { //nolint:paralleltest
+func TestCloneBackendIsStoredForMount(t *testing.T) {
 	u := gptest.NewUnitTester(t)
-	defer u.Remove()
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
@@ -118,9 +117,8 @@ func TestCloneBackendIsStoredForMount(t *testing.T) { //nolint:paralleltest
 	require.Contains(t, act.cfg.Mounts(), "the-project")
 }
 
-func TestCloneGetGitConfig(t *testing.T) { //nolint:paralleltest
+func TestCloneGetGitConfig(t *testing.T) {
 	u := gptest.NewUnitTester(t)
-	defer u.Remove()
 
 	r1 := gptest.UnsetVars(termio.NameVars...)
 	defer r1()
@@ -140,4 +138,44 @@ func TestCloneGetGitConfig(t *testing.T) { //nolint:paralleltest
 	assert.NoError(t, err)
 	assert.Equal(t, "0xDEADBEEF", name)
 	assert.Equal(t, "0xDEADBEEF", email)
+}
+
+func TestCloneCheckDecryptionKeys(t *testing.T) {
+	u := gptest.NewUnitTester(t)
+
+	buf := &bytes.Buffer{}
+	out.Stdout = buf
+	out.Stderr = buf
+	stdout = buf
+	defer func() {
+		out.Stdout = os.Stdout
+		out.Stderr = os.Stderr
+		stdout = os.Stdout
+	}()
+
+	ctx := context.Background()
+	ctx = ctxutil.WithAlwaysYes(ctx, true)
+	ctx = ctxutil.WithInteractive(ctx, false)
+
+	cfg := config.NewNoWrites()
+	require.NoError(t, cfg.SetPath(u.StoreDir("")))
+
+	act, err := newAction(cfg, semver.Version{}, false)
+	require.NoError(t, err)
+	require.NotNil(t, act)
+	ctx = act.cfg.WithConfig(ctx)
+
+	c := gptest.CliCtx(ctx, t)
+	require.NoError(t, act.IsInitialized(c))
+
+	repo := aGitRepo(ctx, t, u, "my-project")
+
+	if runtime.GOOS != "linux" {
+		t.Skip("TODO: not working on non-linux builders, yet")
+	}
+
+	c = gptest.CliCtxWithFlags(ctx, t, map[string]string{"check-keys": "true"}, repo, "the-project")
+	assert.NoError(t, act.Clone(c))
+
+	require.Contains(t, act.cfg.Mounts(), "the-project")
 }

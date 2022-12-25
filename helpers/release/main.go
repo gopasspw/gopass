@@ -14,6 +14,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"regexp"
 	"sort"
 	"strings"
@@ -246,26 +247,62 @@ func updateDeps() error {
 		return err
 	}
 
+	td := os.TempDir()
+	fn := filepath.Join(td, "gopass-release.log")
+	fh, err := os.OpenFile(fn, os.O_CREATE|os.O_WRONLY, 0o600)
+	if err != nil {
+		return err
+	}
+
 	cmd = exec.Command("make", "travis")
 	cmd.Stderr = os.Stderr
-	return cmd.Run()
+	cmd.Stdout = fh
+	cmd.Env = []string{
+		"LANG=en_US.UTF-8",
+		"PATH=/usr/local/bin:/usr/local/sbin:/usr/sbin:/usr/bin:/bin:" + os.Getenv("GOBIN"),
+	}
+
+	for _, v := range os.Environ() {
+		if strings.HasPrefix(v, "GO") {
+			cmd.Env = append(cmd.Env, v)
+		}
+		if strings.HasPrefix(v, "HOME=") {
+			cmd.Env = append(cmd.Env, v)
+		}
+	}
+
+	if err := cmd.Run(); err != nil {
+		_ = fh.Close()
+		fmt.Printf("⚠ 'make travis' failed. Please see the log at %s!", fn)
+
+		return err
+	}
+
+	// remove the log, we don't need it anymore
+	_ = fh.Close()
+	_ = os.RemoveAll(td)
+
+	return nil
 }
 
 func gitCoMaster() error {
 	cmd := exec.Command("git", "checkout", "master")
 	cmd.Stderr = os.Stderr
+
 	return cmd.Run()
 }
 
 func gitPom() error {
 	cmd := exec.Command("git", "pull", "origin", "master")
 	cmd.Stderr = os.Stderr
+
 	return cmd.Run()
 }
 
 func gitCoRel(v semver.Version) error {
 	cmd := exec.Command("git", "checkout", "-b", "release/v"+v.String())
 	cmd.Stderr = os.Stderr
+
 	return cmd.Run()
 }
 
@@ -327,6 +364,8 @@ func writeChangelog(prev, next semver.Version) error {
 				fmt.Fprintln(fh, e)
 			}
 			fmt.Fprintln(fh)
+
+			written = true
 		}
 
 		// all existing lines are just copied over
@@ -380,6 +419,10 @@ func writeVersionGo(v semver.Version) error {
 }
 
 func isGitClean() bool {
+	if sv := os.Getenv("GOPASS_FORCE_CLEAN"); sv != "" {
+		return true
+	}
+
 	buf, err := exec.Command("git", "diff", "--stat").CombinedOutput()
 	if err != nil {
 		panic(err)
@@ -408,7 +451,20 @@ func gitVersion() (semver.Version, error) {
 		return semver.Version{}, fmt.Errorf("no output")
 	}
 
-	return semver.Parse(strings.TrimPrefix(lines[len(lines)-1], "v"))
+	for i := len(lines); i > 0; i-- {
+		sv := strings.TrimPrefix(lines[i-1], "v")
+		v, err := semver.Parse(sv)
+		if err != nil {
+			continue
+		}
+		if len(v.Pre) > 0 {
+			continue
+		}
+
+		return v, nil
+	}
+
+	return semver.Version{}, fmt.Errorf("no valid version found")
 }
 
 func changelogEntries(since semver.Version) ([]string, error) {
