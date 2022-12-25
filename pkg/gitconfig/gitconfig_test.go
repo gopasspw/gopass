@@ -298,9 +298,7 @@ func TestGopass(t *testing.T) {
 	assert.Equal(t, "false", c.Get("core.pager"))
 	assert.Equal(t, "true", c.Get("core.notifications"))
 	assert.Equal(t, "false", c.Get("core.showsafecontent"))
-	assert.Equal(t, "foo.de", c.Get("domain-alias.foo.com.insteadOf"))
-	// TODO: support multivars
-	// foo.de and foo.it should be part of a multi-var get
+	assert.Equal(t, []string{"foo.de", "foo.it"}, c.GetAll("domain-alias.foo.com.insteadOf"))
 
 	assert.Equal(t, "/home/johndoe/.password-store", c.Get("mounts.path"))
 	assert.Equal(t, "/home/johndoe/.password-store-foo-sub", c.Get("mounts.foo/sub.path"))

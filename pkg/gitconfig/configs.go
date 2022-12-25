@@ -198,6 +198,30 @@ func (c *Configs) Get(key string) string {
 	return ""
 }
 
+// GetAll returns all values for the given key from the first location that is found.
+// See the description of Get for more details.
+func (c *Configs) GetAll(key string) []string {
+	for _, cfg := range []*Config{
+		c.env,
+		c.worktree,
+		c.local,
+		c.global,
+		c.system,
+		c.Preset,
+	} {
+		if cfg == nil || cfg.vars == nil {
+			continue
+		}
+		if vs, found := cfg.GetAll(key); found {
+			return vs
+		}
+	}
+
+	debug.Log("no value for %s found", key)
+
+	return nil
+}
+
 // GetGlobal specifically ask the per-user (global) config for a key.
 func (c *Configs) GetGlobal(key string) string {
 	if c.global == nil {
