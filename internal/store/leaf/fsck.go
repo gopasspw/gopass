@@ -85,10 +85,12 @@ func (s *Store) fsckLoop(ctx context.Context, path string) error {
 
 	errcoll := ""
 
-	if err := s.fsckUpdatePublicKeys(ctx); err != nil {
+	if err := s.fsckUpdatePublicKeys(ctxutil.WithGitCommit(ctx,false)); err != nil {
 		out.Errorf(ctx, "Failed to update public keys: %s", err)
+	} else {
+		ctx = ctxutil.AddToCommitMessageBody(ctx, "- updated public keys")
 	}
-
+	
 	debug.Log("names (%d): %q", len(names), names)
 	sort.Strings(names)
 
@@ -114,10 +116,6 @@ func (s *Store) fsckLoop(ctx context.Context, path string) error {
 	if ctxutil.GetCommitMessageBody(ctx) == "" {
 		out.Errorf(ctx, "Nothing to commit: all secrets seemed to have failed")
 		return nil
-	}
-
-	if err := s.fsckUpdatePublicKeys(ctx); err != nil {
-		out.Errorf(ctx, "Failed to update public keys: %s", err)
 	}
 
 	if err := s.storage.Commit(ctx, ctxutil.GetCommitMessageFull(ctx)); err != nil {
@@ -210,9 +208,9 @@ func (s *Store) fsckCheckEntry(ctx context.Context, name string) (string,ErrorSe
 	}
 
 
-	errc,err = s.fsckCheckRecipients(ctx, name)
+	errs,err = s.fsckCheckRecipients(ctx, name)
 	if err != nil {
-		if errc == errsFatal {
+		if errs == errsFatal {
 			errcoll += fmt.Errorf("Checking recipients for %s failed:\n    %s", name, err).Error()
 		} else {
 			errcoll += err.Error()

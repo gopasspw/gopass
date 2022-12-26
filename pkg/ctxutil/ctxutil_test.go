@@ -111,6 +111,22 @@ func TestCommitMessage(t *testing.T) {
 	assert.Equal(t, "", GetCommitMessage(WithCommitMessage(ctx, "")))
 }
 
+func TestCommitMessageBody(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	ctx2 = AddToCommitMessageBody(AddToCommitMessageBody(WithCommitMessage(ctx, "foo"),"bar"),"baz")
+	assert.Equal(t, "foo\nbar\nbaz", GetCommitMessage(ctx2))
+	assert.Equal(t, "bar\nbaz", GetCommitMessageBody(ctx2))
+	ctx2 = AddToCommitMessageBody(AddToCommitMessageBody("bar"),"baz")
+	assert.Equal(t, "\nbar\nbaz", GetCommitMessage(ctx2))
+	assert.Equal(t, "bar\nbaz", GetCommitMessageBody(ctx2))
+	ctx2 = WithCommitMessage(ctx, "foo")
+	assert.Equal(t, "foo", GetCommitMessage(ctx2))
+	assert.Equal(t, "", GetCommitMessageBody(ctx2))
+}
+
 func TestComposite(t *testing.T) {
 	t.Parallel()
 

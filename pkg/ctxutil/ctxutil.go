@@ -156,7 +156,11 @@ func HasGitCommit(ctx context.Context) bool {
 
 // IsGitCommit returns the value of git commit or the default (true).
 func IsGitCommit(ctx context.Context) bool {
-	return is(ctx, ctxKeyGitCommit, true)
+	bv, ok := ctx.Value(ctxKeyGitCommit).(bool)
+	if !ok{
+		return true
+	}
+	return bv
 }
 
 // WithAlwaysYes returns a context with the value of always yes set.

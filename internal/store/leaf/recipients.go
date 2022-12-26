@@ -398,7 +398,7 @@ func (s *Store) UpdateExportedPublicKeys(ctx context.Context, rs []string) (bool
 		debug.Log("Removed extra key %s", key)
 	}
 
-	if exported {
+	if exported && ctxutil.IsGitCommit(ctx){
 		if err := s.storage.Commit(ctx, fmt.Sprintf("Updated exported Public Keys")); err != nil && !errors.Is(err, store.ErrGitNothingToCommit) {
 			failed = true
 
