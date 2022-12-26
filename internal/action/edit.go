@@ -116,7 +116,7 @@ func (s *Action) editFindName(ctx context.Context, name string) (string, error) 
 	if err := s.find(ctx, nil, name, cb, false); err != nil {
 		debug.Log("failed to find secret %s: %s", name, err)
 
-		return name, nil
+		return name, err
 	}
 
 	cont, err := termio.AskForBool(ctx, fmt.Sprintf("Secret does not exist %q. Found possible match in %q. Edit existing entry?", name, newName), true)
