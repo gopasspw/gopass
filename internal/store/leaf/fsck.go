@@ -34,6 +34,16 @@ func (s *Store) Fsck(ctx context.Context, path string) error {
 		return fmt.Errorf("storage backend compaction failed: %w", err)
 	}
 
+	// make sure all recipients are valid
+	debug.Log("Checking recipients")
+	if err := s.CheckRecipients(ctx); err != nil {
+		if IsCheckRecipients(ctx) {
+			return fmt.Errorf("invalid recipients found: %w", err)
+		}
+
+		out.Errorf(ctx, "Invalid recipients found: %s", err)
+	}
+
 	// then we'll make sure all the secrets are readable by us and every
 	// valid recipient
 	if path != "" {

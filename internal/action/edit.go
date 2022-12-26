@@ -25,6 +25,10 @@ func (s *Action) Edit(c *cli.Context) error {
 		return exit.Error(exit.Usage, nil, "Usage: %s edit secret", s.Name)
 	}
 
+	if err := s.Store.CheckRecipients(ctx, name); err != nil {
+		return exit.Error(exit.Recipients, err, "Invalid recipients detected: %s", err)
+	}
+
 	return s.edit(ctx, c, name)
 }
 
