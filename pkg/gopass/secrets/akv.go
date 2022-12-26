@@ -63,8 +63,6 @@ func (a *AKV) Keys() []string {
 
 // Get returns the value of the requested key, if found.
 func (a *AKV) Get(key string) (string, bool) {
-	key = strings.ToLower(key)
-
 	if v, found := a.kvp[key]; found {
 		return v[0], true
 	}
@@ -74,8 +72,6 @@ func (a *AKV) Get(key string) (string, bool) {
 
 // Values returns all values for that key.
 func (a *AKV) Values(key string) ([]string, bool) {
-	key = strings.ToLower(key)
-
 	v, found := a.kvp[key]
 
 	return v, found
@@ -83,8 +79,6 @@ func (a *AKV) Values(key string) ([]string, bool) {
 
 // Set writes a single key.
 func (a *AKV) Set(key string, value any) error {
-	key = strings.ToLower(key)
-
 	// if it's new key we can just append it at the end
 	if _, found := a.kvp[key]; !found {
 		return a.Add(key, value)
@@ -146,8 +140,6 @@ func (a *AKV) Set(key string, value any) error {
 
 // Add appends data to a given key.
 func (a *AKV) Add(key string, value any) error {
-	key = strings.ToLower(key)
-
 	sv := fmt.Sprintf("%s", value)
 	a.kvp[key] = append(a.kvp[key], sv)
 
@@ -158,8 +150,6 @@ func (a *AKV) Add(key string, value any) error {
 
 // Del removes a given key and all of its values.
 func (a *AKV) Del(key string) bool {
-	key = strings.ToLower(key)
-
 	_, found := a.kvp[key]
 	if !found {
 		return false
@@ -270,7 +260,6 @@ func ParseAKV(in []byte) *AKV {
 		key = strings.TrimSpace(key)
 		val = strings.TrimSpace(val)
 		// we only store lower case keys for KV
-		key = strings.ToLower(key)
 		a.kvp[key] = append(a.kvp[key], val)
 	}
 

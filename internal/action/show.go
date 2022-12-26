@@ -161,6 +161,19 @@ func (s *Action) parseRevision(ctx context.Context, name, revision string) (stri
 	return revision, nil
 }
 
+func (s *Action) showHandleOutputChars(ctx context.Context, pw string, chars []int) error {
+	for _, c := range chars {
+		if c > len(pw) || c-1 < 0 {
+			debug.Log("Invalid char: %d", c)
+
+			continue
+		}
+		out.Printf(ctx, "%d: %s", c, out.Secret(pw[c-1]))
+	}
+
+	return nil
+}
+
 // showHandleOutput displays a secret.
 func (s *Action) showHandleOutput(ctx context.Context, name string, sec gopass.Secret) error {
 	pw, body, err := s.showGetContent(ctx, sec)
@@ -169,16 +182,7 @@ func (s *Action) showHandleOutput(ctx context.Context, name string, sec gopass.S
 	}
 
 	if chars := GetPrintChars(ctx); len(chars) > 0 {
-		for _, c := range chars {
-			if c > len(pw) || c-1 < 0 {
-				debug.Log("Invalid char: %d", c)
-
-				continue
-			}
-			out.Printf(ctx, "%d: %s", c, out.Secret(pw[c-1]))
-		}
-
-		return nil
+		return s.showHandleOutputChars(ctx, pw, chars)
 	}
 
 	if pw == "" && body == "" {
@@ -231,9 +235,6 @@ func (s *Action) showGetContent(ctx context.Context, sec gopass.Secret) (string,
 		val := strings.Join(values, "\n")
 
 		return val, val, nil
-	} else if HasKey(ctx) {
-		out.Warning(ctx, "Parsing is disabled but a key was provided.")
-		debug.Log("attempting to parse key %s with parsing disabled", GetKey(ctx))
 	}
 
 	pw := sec.Password()
