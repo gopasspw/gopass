@@ -53,6 +53,9 @@ func (g *GPG) FindRecipients(ctx context.Context, search ...string) ([]string, e
 
 // RecipientIDs returns a list of recipient IDs for a given encrypted blob.
 func (g *GPG) RecipientIDs(ctx context.Context, buf []byte) ([]string, error) {
+	ctx, cancel := context.WithTimeout(ctx, Timeout)
+	defer cancel()
+
 	recp := make([]string, 0, 5)
 
 	// extract recipients from gpg output

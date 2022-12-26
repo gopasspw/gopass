@@ -15,6 +15,9 @@ import (
 // the trust-model will be set to always as to avoid (annoying) "unusable public key"
 // errors when encrypting.
 func (g *GPG) Encrypt(ctx context.Context, plaintext []byte, recipients []string) ([]byte, error) {
+	ctx, cancel := context.WithTimeout(ctx, Timeout)
+	defer cancel()
+
 	args := append(g.args, "--encrypt")
 	if gpg.IsAlwaysTrust(ctx) {
 		// changing the trustmodel is possibly dangerous. A user should always
