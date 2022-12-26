@@ -107,11 +107,10 @@ func (s *Action) deleteKeyFromYAML(ctx context.Context, name, key string) error 
 	sec.Del(key)
 
 	if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, "Updated Key"), name, sec); err != nil {
-		if errors.Is(err, store.ErrMeaninglessWrite) {
-		        out.Warningf(ctx, "No need to write: the YAML file does't seem to have the key to be deleted")
-		} else {
-		        return exit.Error(exit.IO, err, "Can not delete key %q from %q: %s", key, name, err)
-	        }
+		if !errors.Is(err, store.ErrMeaninglessWrite) {
+			return exit.Error(exit.IO, err, "Can not delete key %q from %q: %s", key, name, err)
+		}
+		out.Warningf(ctx, "No need to write: the YAML file does't seem to have the key to be deleted")
 	}
 
 	return nil

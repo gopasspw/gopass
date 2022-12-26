@@ -432,11 +432,10 @@ func (s *Store) saveRecipients(ctx context.Context, rs recipientMarshaler, msg s
 
 	buf := rs.Marshal()
 	if err := s.storage.Set(ctx, idf, buf); err != nil {
-		if errors.Is(err, store.ErrMeaninglessWrite) {
-			return fmt.Errorf("No need to overwrite recipients file")
-		} else {
+		if !errors.Is(err, store.ErrMeaninglessWrite) {
 			return fmt.Errorf("failed to write recipients file: %w", err)
 		}
+		return nil // No need to overwrite recipients file
 	}
 
 	if err := s.storage.Add(ctx, idf); err != nil {

@@ -79,11 +79,10 @@ func (s *Action) Merge(c *cli.Context) error {
 
 	// write result (back) to store
 	if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, fmt.Sprintf("Merged %+v", c.Args().Slice())), to, nSec); err != nil {
-		if errors.Is(err, store.ErrMeaninglessWrite) {
-			out.Warningf(ctx, "No need to write: the secret is already there and with the right value")
-		} else {
+		if !errors.Is(err, store.ErrMeaninglessWrite) {
 			return exit.Error(exit.Encrypt, err, "failed to encrypt secret %s: %s", to, err)
-		}		
+		}
+		out.Warningf(ctx, "No need to write: the secret is already there and with the right value")
 	}
 
 	if !c.Bool("delete") {

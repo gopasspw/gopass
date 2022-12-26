@@ -62,8 +62,11 @@ func (s *Store) Set(ctx context.Context, name string, value []byte) error {
 	}
 	debug.Log("Writing %s to %s", name, filepath.Join(s.path, name))
 
+	// if we ever try to write a secret that is identical (in ciphertext) to the secret in store,
+	// we might want to act differently
+	// (for instance, by not adding/committing/pushing the secret in git,
+	//  or by panicking in the case of password generation)
 	oldvalue, err := os.ReadFile(filepath.Join(s.path, name))
-	//out.Warningf(ctx, "%h\n%h\n%w", oldvalue, value, err)
 	if err == nil && bytes.Compare(oldvalue,value)==0 {
 		return store.ErrMeaninglessWrite
 	}

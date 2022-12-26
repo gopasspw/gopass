@@ -39,11 +39,10 @@ func (s *Store) Copy(ctx context.Context, from, to string) error {
 	}
 
 	if err := s.Set(ctxutil.WithCommitMessage(ctx, fmt.Sprintf("Copied from %s to %s", from, to)), to, content); err != nil {
-		if errors.Is(err, store.ErrMeaninglessWrite) {
-			out.Warningf(ctx, "No need to write: the secret is already there and with the right value")
-		} else {
+		if !errors.Is(err, store.ErrMeaninglessWrite) {
 			return fmt.Errorf("failed to save secret %q to store: %w", to, err)
 		}
+		out.Warningf(ctx, "No need to write: the secret is already there and with the right value")
 	}
 
 	return nil
@@ -76,11 +75,10 @@ func (s *Store) Move(ctx context.Context, from, to string) error {
 	}
 
 	if err := s.Set(ctxutil.WithCommitMessage(ctx, fmt.Sprintf("Move from %s to %s", from, to)), to, content); err != nil {
-		if errors.Is(err, store.ErrMeaninglessWrite) {
-			out.Warningf(ctx, "No need to write: the secret is already there and with the right value")
-		} else {
+		if !errors.Is(err, store.ErrMeaninglessWrite) {
 			return fmt.Errorf("failed to save secret %q to store: %w", to, err)
-		}	
+		}
+		out.Warningf(ctx, "No need to write: the secret is already there and with the right value")
 	}
 
 	if err := s.Delete(ctx, from); err != nil {

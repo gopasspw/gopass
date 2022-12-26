@@ -118,9 +118,8 @@ func (s *Store) SetTemplate(ctx context.Context, name string, content []byte) er
 	if err := s.storage.Set(ctx, p, content); err != nil {
 		if errors.Is(err, store.ErrMeaninglessWrite) {
 			return fmt.Errorf("no need to overwrite template")
-		} else {
-			return fmt.Errorf("failed to write template: %w", err)
 		}
+		return fmt.Errorf("failed to write template: %w", err)
 	}
 
 	if err := s.storage.Add(ctx, p); err != nil {

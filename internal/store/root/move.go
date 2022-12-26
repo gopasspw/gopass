@@ -173,11 +173,10 @@ func (r *Store) moveFromTo(ctx context.Context, subFrom *leaf.Store, from, to, f
 		}
 
 		if err := r.Set(ctxutil.WithCommitMessage(ctx, fmt.Sprintf("Move from %s to %s", src, dst)), dst, content); err != nil {
-			if errors.Is(err, store.ErrMeaninglessWrite) {
-				out.Warningf(ctx, "No need to write: the secret is already there and with the right value")
-			} else {
+			if !errors.Is(err, store.ErrMeaninglessWrite) {
 				return fmt.Errorf("failed to save secret %q to store: %w", to, err)
 			}
+			out.Warningf(ctx, "No need to write: the secret is already there and with the right value")
 		}
 
 		if del {

@@ -89,6 +89,9 @@ func (q *Queue) run(ctx context.Context) {
 			out.Errorf(ctx, "Task failed: %s", err)
 		}
 		if ctx2 != nil {
+			// if a task returns a context, it is to transmit information to the next tasks in line
+			// so replace the in-queue context with the new one
+			// (each task has access to two contexts: one from the queue, and one from the function creating the task)
 			ctx = ctx2
 		}
 		debug.Log("Task done")

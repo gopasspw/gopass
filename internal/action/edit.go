@@ -63,11 +63,10 @@ func (s *Action) editUpdate(ctx context.Context, name string, content, nContent 
 
 	// write result (back) to store.
 	if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, fmt.Sprintf("Edited with %s", ed)), name, nSec); err != nil {
-		if errors.Is(err, store.ErrMeaninglessWrite) {
-		        out.Warningf(ctx, "The new value of the password is equal to its current value. Are you sure you want this?")
-		} else {
-		        return exit.Error(exit.Encrypt, err, "failed to encrypt secret %s: %s", name, err)
-	        }
+		if !errors.Is(err, store.ErrMeaninglessWrite) {
+			return exit.Error(exit.Encrypt, err, "failed to encrypt secret %s: %s", name, err)
+		}
+		out.Warningf(ctx, "The new value of the password is equal to its current value. Are you sure you want this?")
 	}
 
 	return nil

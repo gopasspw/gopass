@@ -145,12 +145,10 @@ func (s *Store) exportPublicKey(ctx context.Context, exp keyExporter, r string) 
 	}
 
 	if err := s.storage.Set(ctx, filename, pk); err != nil {
-		if errors.Is(err, store.ErrMeaninglessWrite) {
-			debug.Log("No need to write exported public key %s: already stored", r)
-		} else {
+		if !errors.Is(err, store.ErrMeaninglessWrite) {
 			return "", fmt.Errorf("failed to write exported public key to store: %w", err)
 		}
-		
+		debug.Log("No need to write exported public key %s: already stored", r)		
 	}
 
 	debug.Log("exported public keys for %s to %s", r, filename)
@@ -192,9 +190,8 @@ func (s *Store) importPublicKey(ctx context.Context, r string) error {
 	pk, err := s.getPublicKey(ctx, r)
 	if err != nil {
 		return err
-	} else {
-		return im.ImportPublicKey(ctx, pk)
 	}
+	return im.ImportPublicKey(ctx, pk)
 }
 
 type locker interface {

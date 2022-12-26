@@ -216,7 +216,7 @@ func (s *Store) fsckCheckEntry(ctx context.Context, name string) (string,ErrorSe
 	}
 
 
-        errc,err = s.fsckCheckRecipients(ctx, name)
+	errc,err = s.fsckCheckRecipients(ctx, name)
 	if err != nil {
 		if errc == errsFatal {
 			errcoll += fmt.Errorf("Checking recipients for %s failed:\n    %s", name, err).Error()

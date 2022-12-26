@@ -356,10 +356,10 @@ func (s *Action) generateSetPassword(ctx context.Context, name, key, password st
 		setMetadata(sec, kvps)
 		_ = sec.Set(key, password)
 		if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, "Generated password for key"), name, sec); err != nil {
-			if errors.Is(err, store.ErrMeaninglessWrite) {
-		        	out.Errorf(ctx, "Password generation somehow obtained the same password as before: you might want to check your system's entropy pool")
-	        	}
-			return ctx, exit.Error(exit.Encrypt, err, "failed to set key %q of %q: %s", key, name, err)
+			if !errors.Is(err, store.ErrMeaninglessWrite) {
+				return ctx, exit.Error(exit.Encrypt, err, "failed to set key %q of %q: %s", key, name, err)
+			}
+			out.Errorf(ctx, "Password generation somehow obtained the same password as before: you might want to check your system's entropy pool")	
 		}
 
 		return ctx, nil
@@ -394,10 +394,10 @@ func (s *Action) generateSetPassword(ctx context.Context, name, key, password st
 	}
 
 	if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, "Generated Password"), name, sec); err != nil {
-		if errors.Is(err, store.ErrMeaninglessWrite) {
-		       	out.Errorf(ctx, "Password generation somehow obtained the same password as before: you might want to check your system's entropy pool")
-	        }
-		return ctx, exit.Error(exit.Encrypt, err, "failed to create %q: %s", name, err)
+		if !errors.Is(err, store.ErrMeaninglessWrite) {
+		       	return ctx, exit.Error(exit.Encrypt, err, "failed to create %q: %s", name, err)
+		}
+		out.Errorf(ctx, "Password generation somehow obtained the same password as before: you might want to check your system's entropy pool")
 	}
 
 	return ctx, nil
@@ -423,10 +423,10 @@ func (s *Action) generateReplaceExisting(ctx context.Context, name, key, passwor
 	setMetadata(sec, kvps)
 	sec.SetPassword(password)
 	if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, "Generated password for YAML key"), name, sec); err != nil {
-		if errors.Is(err, store.ErrMeaninglessWrite) {
-	        	out.Errorf(ctx, "Password generation somehow obtained the same password as before: you might want to check your system's entropy pool")
-	       	}
-		return ctx, exit.Error(exit.Encrypt, err, "failed to set key %q of %q: %s", key, name, err)
+		if !errors.Is(err, store.ErrMeaninglessWrite) {
+			return ctx, exit.Error(exit.Encrypt, err, "failed to set key %q of %q: %s", key, name, err)
+		}
+		out.Errorf(ctx, "Password generation somehow obtained the same password as before: you might want to check your system's entropy pool")
 	}
 
 	return ctx, nil
