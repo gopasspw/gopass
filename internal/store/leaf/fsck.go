@@ -20,9 +20,9 @@ import (
 // a way for a function to specify how severe of an error it experienced
 type ErrorSeverity int
 const (
-	errsNil ErrorSeverity = iota  // error that forced the function to terminate early
-	errsFatal
-	errsNonFatal
+	errsNil ErrorSeverity = 0
+	errsNonFatal = 1  // an error that was recovered from, but still should be acknowledged
+	errsFatal = 2  // an error that terminated the function early
 )
 
 // Fsck checks all entries matching the given prefix.
@@ -77,10 +77,13 @@ func (s *Store) fsckLoop(ctx context.Context, path string) error {
 		return fmt.Errorf("failed to list entries for %s: %w", path, err)
 	}
 
-	ctx = ctxutil.WithCommitMessage(ctx, "fsck --decrypt to fix recipients and format")
+	if IsFsckDecrypt(ctx) {
+		ctx = ctxutil.WithCommitMessage(ctx, "fsck --decrypt to fix recipients and format")
+	} else {
+		ctx = ctxutil.WithCommitMessage(ctx, "fsck to fix (a limited part of) recipients and format")
+	}
 
 	errcoll := ""
-	errIsFatal := false
 
 	if err := s.fsckUpdatePublicKeys(ctx); err != nil {
 		out.Errorf(ctx, "Failed to update public keys: %s", err)
@@ -98,19 +101,13 @@ func (s *Store) fsckLoop(ctx context.Context, path string) error {
 		debug.Log("[%s] Checking %s", path, name)
 
 		msg,errs,err := s.fsckCheckEntry(ctx, name)
-		if err != nil {
-			errcoll += fmt.Errorf("failed to check %q:\n    %w\n", name, err).Error()
-			if errs == errsFatal {
-				errIsFatal = true
-			}
-		} else {
+		if errs == errsNil {
 			ctx = ctxutil.AddToCommitMessageBody(ctx, msg)
+		} else {
+			errcoll += fmt.Errorf("failed to check %q:\n    %w\n", name, err).Error()
 		}
 	}
 
-	if errcoll != "" && errIsFatal {
-		return fmt.Errorf(errcoll)
-	}
 	if errcoll != "" {
 		out.Errorf(ctx, errcoll)
 	}
@@ -167,33 +164,30 @@ func (s *Store) fsckCheckEntry(ctx context.Context, name string) (string,ErrorSe
 	errcoll := ""
 	recpNeedFix := false
 
-	errc,err := s.fsckCheckRecipients(ctx, name)
+	errs,err := s.fsckCheckRecipients(ctx, name)
 	if err != nil {
-		if errc == errsFatal {
-			return "",errsNonFatal,fmt.Errorf("Checking recipients for %s failed:\n    %s", name, err)
-		} else {
-			// the only NF errorf from that function are missing/extra recipients,
-			// which isn't much of an error since we have yet to correct that.
-			//errcoll += err.Error()
-			recpNeedFix = true
+		if errs >= errsFatal {
+			return "",errsFatal,fmt.Errorf("Checking recipients for %s failed:\n    %s", name, err)
 		}
+		// the only errsNonFatal error from that function are missing/extra recipients,
+		// which isn't much of an error since we have yet to correct that.
+		recpNeedFix = true
 	}
 
 	// make sure we are actually allowed to decode this secret
 	// if this fails there is no way we could fix anything
 	if !IsFsckDecrypt(ctx) {
-		if errcoll == "" {
-			return "", errsNonFatal, nil  // TODO what does this mean, Niac?
-		} else {
-			return "", errsNonFatal, fmt.Errorf(errcoll)
+		if !recpNeedFix {
+			return "", errsNil, nil
 		}
+		return "", errsFatal, fmt.Errorf(errcoll + "\nRun fsck with the --decrypt flag to re-encrypt it automatically, or edit this secret yourself.")
 	}
 
 	// we need to make sure Parsing is enabled in order to parse old Mime secrets
 	ctx = ctxutil.WithShowParsing(ctx, true)
 	sec, err := s.Get(ctx, name)
 	if err != nil {
-		return "", errsNonFatal, fmt.Errorf("failed to decode secret %s: %s", name, err.Error())
+		return "", errsFatal, fmt.Errorf("failed to decode secret %s: %s", name, err.Error())
 	}
 
 	// check if this is still an old MIME secret.
@@ -212,7 +206,7 @@ func (s *Store) fsckCheckEntry(ctx context.Context, name string) (string,ErrorSe
 		out.Printf(ctx, "Re-encrypting %s to fix storage format. [leaf store]", name)
 	}
 	if err := s.Set(ctxutil.WithGitCommit(ctx,false), name, sec); err != nil {
-		return "", errsNonFatal,fmt.Errorf("failed to write secret %s: %s", name, err.Error())
+		return "", errsFatal,fmt.Errorf("failed to write secret %s: %s", name, err.Error())
 	}
 
 
