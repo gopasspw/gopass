@@ -88,6 +88,12 @@ func (s *Store) gitCommitAndPush(ctx context.Context, name string) error {
 		}
 	}
 
+	if !config.Bool(ctx, "core.autosync") {
+		debug.Log("not pushing to git remote, core.autosync is false")
+
+		return nil
+	}
+
 	debug.Log("syncing with remote ...")
 
 	if err := s.storage.Push(ctx, "", ""); err != nil {
