@@ -7,7 +7,6 @@ import (
 	"io"
 	"math/rand"
 	"os"
-	"os/user"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -26,23 +25,10 @@ func CleanFilename(in string) string {
 
 // CleanPath resolves common aliases in a path and cleans it as much as possible.
 func CleanPath(path string) string {
-	// http://stackoverflow.com/questions/17609732/expand-tilde-to-home-directory
-	// TODO(GH-2083): We should consider if we really want to rewrite ~
-	if len(path) > 1 && path[:2] == "~/" {
-		usr, _ := user.Current()
-		dir := usr.HomeDir
-
-		if hd := os.Getenv("GOPASS_HOMEDIR"); hd != "" {
-			dir = hd
-		}
-
-		path = strings.Replace(path, "~/", dir+"/", 1)
-	}
-
-	if p, err := filepath.Abs(path); err == nil {
+	if p, err := filepath.Abs(path); err == nil && !strings.HasPrefix(path, "~") {
 		return p
 	}
-
+	// TODO rewrite GOPASS_HOMEDIR
 	return filepath.Clean(path)
 }
 
