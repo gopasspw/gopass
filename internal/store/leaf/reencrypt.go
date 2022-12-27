@@ -41,7 +41,7 @@ func (s *Store) reencrypt(ctx context.Context) error {
 		jobs := make(chan string)
 		// We use a logger to write without race condition on stdout
 		logger := log.New(os.Stdout, "", 0)
-		out.Printf(ctx, "Starting reencrypt")
+		out.Println(ctx, "Starting reencrypt")
 
 		for i := 0; i < conc; i++ {
 			wg.Add(1) // we start a new job
@@ -59,7 +59,7 @@ func (s *Store) reencrypt(ctx context.Context) error {
 							logger.Printf("Worker %d: Failed to write %s: %s\n", workerId, e, err)
 							continue
 						}
-						logger.Printf("Worker %d: Writing secret %s is not needed\n")
+						logger.Printf("Worker %d: Writing secret %s is not needed\n", workerId, e)
 					}
 				}
 				wg.Done() // report the job as finished

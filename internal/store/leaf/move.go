@@ -126,7 +126,7 @@ func (s *Store) directMove(ctx context.Context, from, to string, del bool) error
 		return nil,s.gitCommitAndPush(ctx, to)
 	})
 
-	ctx,err := t(ctx)
+	_,err := t(ctx)
 	return err
 }
 

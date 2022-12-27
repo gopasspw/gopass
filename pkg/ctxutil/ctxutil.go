@@ -23,8 +23,6 @@ const (
 	ctxKeyForce
 	ctxKeyCommitMessage
 	ctxKeyCommitMessageBody
-	ctxKeyErrorCollector
-	ctxKeyIsMultiSecretOperation
 	ctxKeyNoNetwork
 	ctxKeyUsername
 	ctxKeyEmail
@@ -156,11 +154,7 @@ func HasGitCommit(ctx context.Context) bool {
 
 // IsGitCommit returns the value of git commit or the default (true).
 func IsGitCommit(ctx context.Context) bool {
-	bv, ok := ctx.Value(ctxKeyGitCommit).(bool)
-	if !ok{
-		return true
-	}
-	return bv
+	return is(ctx, ctxKeyGitCommit, true)
 }
 
 // WithAlwaysYes returns a context with the value of always yes set.
@@ -258,112 +252,71 @@ func IsForce(ctx context.Context) bool {
 	return is(ctx, ctxKeyForce, false)
 }
 
-// WithMultiSecretOperation returns a context with a flag set
-func WithMultiSecretOperation (ctx context.Context, bv bool) context.Context {
-	return context.WithValue(ctx, ctxKeyIsMultiSecretOperation, bv)
-}
-
-// IsMultiSecretOperation returns true if the flag is set to true
-func IsMultiSecretOperation (ctx context.Context) bool {
-	if hasBool(ctx,ctxKeyIsMultiSecretOperation) {
-		return is(ctx, ctxKeyForce, true)
-	} else {
-		return false
-	}
-}
-
-
 // AddToCommitMessageBody returns a context with something added to the commit's body
 func AddToCommitMessageBody(ctx context.Context, sv string) context.Context {
-	if hasString(ctx, ctxKeyCommitMessageBody) {
-		current_body, ok := ctx.Value(ctxKeyCommitMessageBody).(string)
-		if ok {
-			current_body += "\n"
-			current_body += sv
-			sv = current_body
-		}
+	ht, ok := ctx.Value(ctxKeyCommitMessageBody).(*HeadedText)
+	if !ok {
+		var headedText HeadedText
+		ht = &headedText
+		ctx = context.WithValue(ctx, ctxKeyCommitMessage, ht)
 	}
-	return context.WithValue(ctx, ctxKeyCommitMessageBody, sv)
+	ht.AddToBody(sv)
+	return ctx
 }
 
 // HasCommitMessageBody returns true if the commit message body is nonempty.
 func HasCommitMessageBody(ctx context.Context) bool {
-	return hasString(ctx, ctxKeyCommitMessageBody)
+	ht, ok := ctx.Value(ctxKeyCommitMessageBody).(*HeadedText)
+	if !ok {
+		return false
+	}
+	return ht.HasBody()
 }
 
 // GetCommitMessageBody returns the set commit message body or an empty string.
 func GetCommitMessageBody(ctx context.Context) string {
-	sv, ok := ctx.Value(ctxKeyCommitMessageBody).(string)
+	ht, ok := ctx.Value(ctxKeyCommitMessageBody).(*HeadedText)
 	if !ok {
 		return ""
 	}
-
-	return sv
+	return ht.GetBody()
 }
 
 // WithCommitMessage returns a context with a commit message (head) set.
 // (full commit message is the commit message's body is not defined, commit messahe head otherwise)
 func WithCommitMessage(ctx context.Context, sv string) context.Context {
-	return context.WithValue(ctx, ctxKeyCommitMessage, sv)
+	ht, ok := ctx.Value(ctxKeyCommitMessage).(*HeadedText)
+	if !ok {
+		var headedText HeadedText
+		ht = &headedText
+		ctx = context.WithValue(ctx, ctxKeyCommitMessage, ht)
+	}
+	ht.SetHead(sv)
+	return ctx
 }
 
 // HasCommitMessage returns true if the commit message (head) was set.
 func HasCommitMessage(ctx context.Context) bool {
-	return hasString(ctx, ctxKeyCommitMessage)
+	ht, ok := ctx.Value(ctxKeyCommitMessage).(*HeadedText) 
+	return ok && ht.head != ""  // not the most intuitive answer, but a backwards-compatible one. for now.
 }
 
 // GetCommitMessage returns the set commit message (head) or an empty string.
 func GetCommitMessage(ctx context.Context) string {
-	sv, ok := ctx.Value(ctxKeyCommitMessage).(string)
+	ht, ok := ctx.Value(ctxKeyCommitMessage).(*HeadedText)
 	if !ok {
 		return ""
 	}
-
-	return sv
+	return ht.head
 }
 
 // GetCommitMessageFull returns the set commit message (head+body, of either are defined) or an empty string.
 func GetCommitMessageFull(ctx context.Context) string {
-	sv_head, ok_head := ctx.Value(ctxKeyCommitMessage).(string)
-	sv_body, ok_body := ctx.Value(ctxKeyCommitMessageBody).(string)
-	if !(ok_body||ok_head) {
-		return ""
-	} else if !ok_body {
-		return sv_head
-	} else if !ok_head {
-		return sv_body
-	} else {
-		return sv_head + "\n\n" + sv_body
-	}
-}
-
-// ClearErrorCollector returns a context with where the error collector is emptied.
-func ClearErrorCollector(ctx context.Context) context.Context {
-	return context.WithValue(ctx, ctxKeyErrorCollector, nil)
-}
-// AddToErrorCollector returns a context with a new error logged as a new line into the error collector
-func AddToErrorCollector(ctx context.Context, sv string) context.Context {
-	if hasString(ctx, ctxKeyErrorCollector) {
-		current_body, ok := ctx.Value(ctxKeyErrorCollector).(string)
-		if ok {
-			current_body += "\n"
-			current_body += sv
-			sv = current_body
-		}
-	}
-	return context.WithValue(ctx, ctxKeyErrorCollector, sv)
-}
-// HasErrorCollector returns true if at least one error was added to the collector.
-func HasErrorCollector(ctx context.Context) bool {
-	return hasString(ctx, ctxKeyErrorCollector)
-}
-// GetErrorCollector returns the content, if any, of the error collector.
-func GetErrorCollector(ctx context.Context) string {
-	sv, ok := ctx.Value(ctxKeyErrorCollector).(string)
+	ht, ok := ctx.Value(ctxKeyCommitMessage).(*HeadedText)
 	if !ok {
 		return ""
 	}
-	return sv
+	return ht.GetText()
 }
 
 // WithNoNetwork returns a context with the value of no network set.

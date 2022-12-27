@@ -40,6 +40,6 @@ func (s *Store) Link(ctx context.Context, from, to string) error {
 		return nil,s.gitCommitAndPush(ctx, to)
 	})
 
-	ctx,err := t(ctx)
+	_,err := t(ctx)
 	return err
 }

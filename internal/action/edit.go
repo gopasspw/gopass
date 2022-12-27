@@ -66,7 +66,7 @@ func (s *Action) editUpdate(ctx context.Context, name string, content, nContent 
 		if !errors.Is(err, store.ErrMeaninglessWrite) {
 			return exit.Error(exit.Encrypt, err, "failed to encrypt secret %s: %s", name, err)
 		}
-		out.Warningf(ctx, "The new value of the password is equal to its current value. Are you sure you want this?")
+		out.Warningf(ctx, "The new value of the password is equal to its current value. Not writing it again.")
 	}
 
 	return nil
