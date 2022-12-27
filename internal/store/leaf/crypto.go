@@ -1,11 +1,11 @@
 package leaf
 
 import (
+	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"path/filepath"
-	"errors"
-	"bytes"
 
 	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/internal/backend/crypto/age"
@@ -68,7 +68,7 @@ func (s *Store) ImportMissingPublicKeys(ctx context.Context, newrs ...string) er
 			if ok {
 				pk, err := ex.ExportPublicKey(ctx, r)
 				pk2, err2 := s.getPublicKey(ctx, r)
-				if err == nil && err2 == nil && bytes.Equal(pk, pk2){
+				if err == nil && err2 == nil && bytes.Equal(pk, pk2) {
 					continue
 				}
 			}
@@ -148,7 +148,7 @@ func (s *Store) exportPublicKey(ctx context.Context, exp keyExporter, r string) 
 		if !errors.Is(err, store.ErrMeaninglessWrite) {
 			return "", fmt.Errorf("failed to write exported public key to store: %w", err)
 		}
-		debug.Log("No need to write exported public key %s: already stored", r)		
+		debug.Log("No need to write exported public key %s: already stored", r)
 	}
 
 	debug.Log("exported public keys for %s to %s", r, filename)
@@ -163,7 +163,6 @@ type keyExporter interface {
 	ExportPublicKey(ctx context.Context, id string) ([]byte, error)
 }
 
-
 func (s *Store) getPublicKey(ctx context.Context, r string) ([]byte, error) {
 	for _, kd := range []string{keyDir, oldKeyDir} {
 		filename := filepath.Join(kd, r)
@@ -177,7 +176,7 @@ func (s *Store) getPublicKey(ctx context.Context, r string) ([]byte, error) {
 	}
 	return nil, fmt.Errorf("public key not found in store")
 }
-	
+
 // import an public key into the default keyring.
 func (s *Store) importPublicKey(ctx context.Context, r string) error {
 	im, ok := s.crypto.(keyImporter)

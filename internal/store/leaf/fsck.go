@@ -19,10 +19,11 @@ import (
 
 // a way for a function to specify how severe of an error it experienced
 type ErrorSeverity int
+
 const (
-	errsNil ErrorSeverity = 0
-	errsNonFatal = 1  // an error that was recovered from, but still should be acknowledged
-	errsFatal = 2  // an error that terminated the function early
+	errsNil      ErrorSeverity = 0
+	errsNonFatal               = 1 // an error that was recovered from, but still should be acknowledged
+	errsFatal                  = 2 // an error that terminated the function early
 )
 
 // Fsck checks all entries matching the given prefix.
@@ -85,12 +86,12 @@ func (s *Store) fsckLoop(ctx context.Context, path string) error {
 
 	errcoll := ""
 
-	if err := s.fsckUpdatePublicKeys(ctxutil.WithGitCommit(ctx,false)); err != nil {
+	if err := s.fsckUpdatePublicKeys(ctxutil.WithGitCommit(ctx, false)); err != nil {
 		out.Errorf(ctx, "Failed to update public keys: %s", err)
 	} else {
 		ctx = ctxutil.AddToCommitMessageBody(ctx, "- updated public keys")
 	}
-	
+
 	debug.Log("names (%d): %q", len(names), names)
 	sort.Strings(names)
 
@@ -102,7 +103,7 @@ func (s *Store) fsckLoop(ctx context.Context, path string) error {
 
 		debug.Log("[%s] Checking %s", path, name)
 
-		msg,errs,err := s.fsckCheckEntry(ctx, name)
+		msg, errs, err := s.fsckCheckEntry(ctx, name)
 		if errs == errsNil {
 			ctx = ctxutil.AddToCommitMessageBody(ctx, msg)
 		} else {
@@ -158,14 +159,14 @@ type convertedSecret interface {
 	FromMime() bool
 }
 
-func (s *Store) fsckCheckEntry(ctx context.Context, name string) (string,ErrorSeverity,error) {
+func (s *Store) fsckCheckEntry(ctx context.Context, name string) (string, ErrorSeverity, error) {
 	errcoll := ""
 	recpNeedFix := false
 
-	errs,err := s.fsckCheckRecipients(ctx, name)
+	errs, err := s.fsckCheckRecipients(ctx, name)
 	if err != nil {
 		if errs >= errsFatal {
-			return "",errsFatal,fmt.Errorf("Checking recipients for %s failed:\n    %s", name, err)
+			return "", errsFatal, fmt.Errorf("Checking recipients for %s failed:\n    %s", name, err)
 		}
 		// the only errsNonFatal error from that function are missing/extra recipients,
 		// which isn't much of an error since we have yet to correct that.
@@ -203,12 +204,11 @@ func (s *Store) fsckCheckEntry(ctx context.Context, name string) (string,ErrorSe
 	} else {
 		out.Printf(ctx, "Re-encrypting %s to fix storage format. [leaf store]", name)
 	}
-	if err := s.Set(ctxutil.WithGitCommit(ctx,false), name, sec); err != nil {
-		return "", errsFatal,fmt.Errorf("failed to write secret %s: %s", name, err.Error())
+	if err := s.Set(ctxutil.WithGitCommit(ctx, false), name, sec); err != nil {
+		return "", errsFatal, fmt.Errorf("failed to write secret %s: %s", name, err.Error())
 	}
 
-
-	errs,err = s.fsckCheckRecipients(ctx, name)
+	errs, err = s.fsckCheckRecipients(ctx, name)
 	if err != nil {
 		if errs == errsFatal {
 			errcoll += fmt.Errorf("Checking recipients for %s failed:\n    %s", name, err).Error()
@@ -224,7 +224,7 @@ func (s *Store) fsckCheckEntry(ctx context.Context, name string) (string,ErrorSe
 	}
 }
 
-func (s *Store) fsckCheckRecipients(ctx context.Context, name string) (ErrorSeverity,error) {
+func (s *Store) fsckCheckRecipients(ctx context.Context, name string) (ErrorSeverity, error) {
 	// now compare the recipients this secret was encoded for and fix it if
 	// it doesn't match.
 	ciphertext, err := s.storage.Get(ctx, s.Passfile(name))
@@ -241,14 +241,14 @@ func (s *Store) fsckCheckRecipients(ctx context.Context, name string) (ErrorSeve
 
 	rs, err := s.GetRecipients(ctx, name)
 	if err != nil {
-		return errsFatal,fmt.Errorf("failed to get recipients from store: %w", err)
+		return errsFatal, fmt.Errorf("failed to get recipients from store: %w", err)
 	}
 
 	perItemStoreRecps := fingerprints(ctx, s.crypto, rs.IDs())
 
 	// check itemRecps matches storeRecps
 	extra, missing := diff.List(perItemStoreRecps, itemRecps)
-	if len(missing) > 0 && len(extra)>0 {
+	if len(missing) > 0 && len(extra) > 0 {
 		return errsNonFatal, fmt.Errorf("Missing/extra recipients on %s: %+v/%+v\nRun fsck with the --decrypt flag to re-encrypt it automatically, or edit this secret yourself.", name, missing, extra)
 	}
 	if len(missing) > 0 {

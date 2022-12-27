@@ -69,8 +69,8 @@ func (s *Store) Set(ctx context.Context, name string, sec gopass.Byter) error {
 
 	// try to enqueue this task, if the queue is not available
 	// it will return the task and we will execute it inline
-	t := queue.GetQueue(ctx).Add(func(_ context.Context) (context.Context,error) {
-		return nil,s.gitCommitAndPush(ctx, name)
+	t := queue.GetQueue(ctx).Add(func(_ context.Context) (context.Context, error) {
+		return nil, s.gitCommitAndPush(ctx, name)
 	})
 
 	ctx, err = t(ctx)

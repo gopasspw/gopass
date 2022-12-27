@@ -311,7 +311,6 @@ func (s *Store) getRecipients(ctx context.Context, idf string) (*recipients.Reci
 	return rs, nil
 }
 
-
 // UpdateExportedPublicKeys will export any possibly missing public keys to the
 // stores .public-keys directory.
 func (s *Store) UpdateExportedPublicKeys(ctx context.Context, rs []string) (bool, error) {
@@ -398,7 +397,7 @@ func (s *Store) UpdateExportedPublicKeys(ctx context.Context, rs []string) (bool
 		debug.Log("Removed extra key %s", key)
 	}
 
-	if exported && ctxutil.IsGitCommit(ctx){
+	if exported && ctxutil.IsGitCommit(ctx) {
 		if err := s.storage.Commit(ctx, fmt.Sprintf("Updated exported Public Keys")); err != nil && !errors.Is(err, store.ErrGitNothingToCommit) {
 			failed = true
 

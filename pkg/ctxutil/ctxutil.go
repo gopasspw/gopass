@@ -297,8 +297,8 @@ func WithCommitMessage(ctx context.Context, sv string) context.Context {
 
 // HasCommitMessage returns true if the commit message (head) was set.
 func HasCommitMessage(ctx context.Context) bool {
-	ht, ok := ctx.Value(ctxKeyCommitMessage).(*HeadedText) 
-	return ok && ht.head != ""  // not the most intuitive answer, but a backwards-compatible one. for now.
+	ht, ok := ctx.Value(ctxKeyCommitMessage).(*HeadedText)
+	return ok && ht.head != "" // not the most intuitive answer, but a backwards-compatible one. for now.
 }
 
 // GetCommitMessage returns the set commit message (head) or an empty string.

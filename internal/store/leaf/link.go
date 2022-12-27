@@ -36,10 +36,10 @@ func (s *Store) Link(ctx context.Context, from, to string) error {
 
 	// try to enqueue this task, if the queue is not available
 	// it will return the task and we will execute it inline
-	t := queue.GetQueue(ctx).Add(func(ctx context.Context) (context.Context,error) {
-		return nil,s.gitCommitAndPush(ctx, to)
+	t := queue.GetQueue(ctx).Add(func(ctx context.Context) (context.Context, error) {
+		return nil, s.gitCommitAndPush(ctx, to)
 	})
 
-	_,err := t(ctx)
+	_, err := t(ctx)
 	return err
 }

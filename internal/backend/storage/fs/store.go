@@ -3,9 +3,9 @@
 package fs
 
 import (
+	"bytes"
 	"context"
 	"fmt"
-	"bytes"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -13,9 +13,9 @@ import (
 	"strings"
 
 	"github.com/blang/semver/v4"
+	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/fsutil"
-	"github.com/gopasspw/gopass/internal/store"
 )
 
 // Store is a fs based store.
@@ -67,7 +67,7 @@ func (s *Store) Set(ctx context.Context, name string, value []byte) error {
 	// (for instance, by not adding/committing/pushing the secret in git,
 	//  or by panicking in the case of password generation)
 	oldvalue, err := os.ReadFile(filepath.Join(s.path, name))
-	if err == nil && bytes.Compare(oldvalue,value)==0 {
+	if err == nil && bytes.Compare(oldvalue, value) == 0 {
 		return store.ErrMeaninglessWrite
 	}
 

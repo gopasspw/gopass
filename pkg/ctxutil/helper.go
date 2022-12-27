@@ -29,13 +29,9 @@ func is(ctx context.Context, key contextKey, def bool) bool {
 	return bv
 }
 
-
-
-
-
 type HeadedText struct {
-	head   string
-	body  *strings.Builder
+	head string
+	body *strings.Builder
 }
 
 func (h *HeadedText) SetHead(s string) {
@@ -83,5 +79,5 @@ func (h *HeadedText) GetText() string {
 		return h.head
 	}
 	return h.head + "\n\n" + body
-	
+
 }
