@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/gopasspw/gopass/internal/backend"
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/diff"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/queue"
@@ -52,6 +53,12 @@ func (s *Store) Fsck(ctx context.Context, path string) error {
 
 	if err := s.fsckLoop(ctx, path); err != nil {
 		return err
+	}
+
+	if !config.Bool(ctx, "core.autosync") {
+		debug.Log("not pushing to git remote, core.autosync is false")
+
+		return nil
 	}
 
 	if err := s.storage.Push(ctx, "", ""); err != nil {
