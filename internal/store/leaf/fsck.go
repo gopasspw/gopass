@@ -84,7 +84,7 @@ func (s *Store) fsckLoop(ctx context.Context, path string) error {
 		ctx = ctxutil.WithCommitMessage(ctx, "fsck to fix (a limited part of) recipients and format")
 	}
 
-	errcoll := ""
+	var errcoll strings.Builder
 
 	if err := s.fsckUpdatePublicKeys(ctxutil.WithGitCommit(ctx, false)); err != nil {
 		out.Errorf(ctx, "Failed to update public keys: %s", err)
@@ -107,16 +107,19 @@ func (s *Store) fsckLoop(ctx context.Context, path string) error {
 		if errs == errsNil {
 			ctx = ctxutil.AddToCommitMessageBody(ctx, msg)
 		} else {
-			errcoll += fmt.Errorf("failed to check %q:\n    %w\n", name, err).Error()
+			errcoll.WriteString(fmt.Errorf("failed to check %q:\n    %w\n", name, err).Error())
 		}
 	}
 
-	if errcoll != "" {
-		out.Errorf(ctx, errcoll)
+	if errcoll.Len() > 0 {
+		out.Errorf(ctx, errcoll.String())
 	}
 	if ctxutil.GetCommitMessageBody(ctx) == "" {
-		out.Errorf(ctx, "Nothing to commit: all secrets seemed to have failed")
-		return nil
+		if errcoll.Len() > 0 {
+			out.Errorf(ctx, "Nothing to commit: all secrets that were not up to date failed to be updated")
+			return nil
+		}
+		out.Warningf(ctx, "Nothing to commit: all secrets up to date")
 	}
 
 	if err := s.storage.Commit(ctx, ctxutil.GetCommitMessageFull(ctx)); err != nil {
