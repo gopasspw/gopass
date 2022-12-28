@@ -1,6 +1,7 @@
 package gitconfig
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"math/rand"
@@ -26,6 +27,50 @@ func TestInsertOnce(t *testing.T) {
 	assert.NoError(t, c.insertValue("foo.bar", "baz"))
 	assert.Equal(t, `[foo]
 	bar = baz
+`, c.raw.String())
+}
+
+func TestInsertMultipleSameKey(t *testing.T) {
+	t.Parallel()
+
+	c := &Config{
+		noWrites: true,
+	}
+
+	assert.NoError(t, c.Set("foo.bar", "baz"))
+	assert.Equal(t, `[foo]
+	bar = baz
+`, c.raw.String())
+	assert.NoError(t, c.Set("foo.bar", "zab"))
+	assert.Equal(t, `[foo]
+	bar = zab
+`, c.raw.String())
+}
+
+func TestGetAll(t *testing.T) {
+	t.Parallel()
+
+	r := bytes.NewReader([]byte(`[core]
+	foo = bar
+	foo = zab
+	foo = 123
+`))
+
+	c := ParseConfig(r)
+	require.NotNil(t, c)
+	vs, found := c.GetAll("core.foo")
+	assert.True(t, found)
+	assert.Equal(t, []string{"bar", "zab", "123"}, vs)
+
+	assert.NoError(t, c.Set("core.foo", "456"))
+	vs, found = c.GetAll("core.foo")
+	assert.True(t, found)
+	assert.Equal(t, []string{"456", "zab", "123"}, vs)
+
+	assert.Equal(t, `[core]
+	foo = 456
+	foo = zab
+	foo = 123
 `, c.raw.String())
 }
 
