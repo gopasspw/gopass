@@ -11,6 +11,7 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/gopasspw/gopass/internal/backend"
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/notify"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -98,10 +99,15 @@ func Batch(ctx context.Context, secrets []string, secStore secretGetter, expirat
 	//
 	// https://github.com/gopasspw/gopass/pull/245
 	//
-	// We can't even have different backends determine their own value for
-	// maxJobs because we would need to change the interface for that.
 
 	maxJobs := secStore.Concurrency()
+	if max := config.Int(ctx, "audit.concurrency"); max > 0 {
+		if maxJobs > max {
+			maxJobs = max
+		}
+	}
+	debug.Log("launching %d audit workers", maxJobs)
+
 	done := make(chan struct{}, maxJobs)
 	for jobs := 0; jobs < maxJobs; jobs++ {
 		go audit(ctx, secStore, validators, time.Duration(expiration)*24*time.Hour, pending, checked, done)
@@ -154,6 +160,7 @@ func audit(ctx context.Context, secStore secretGetter, validators []validator, e
 	if expiry < time.Hour {
 		expiry = DefaultExpiration
 	}
+
 	for secret := range secrets {
 		as := auditedSecret{
 			name: secret,
@@ -168,7 +175,7 @@ func audit(ctx context.Context, secStore secretGetter, validators []validator, e
 		default:
 		}
 
-		debug.Log("Checking %s", secret)
+		debug.Log("Checking %q", secret)
 
 		// handle old passwords
 		revs, err := secStore.ListRevisions(ctx, secret)

@@ -100,3 +100,4 @@ This is a list of available options:
 | `generate.generator`   | `string` | Default password generator. `xkcd`, `memorable`, `external` or `` | `` |
 | `recipients.check`     | `bool`   | Check recipients hash. | `false` |
 | `recipients.hash`      | `string` | SHA256 hash of the recipients file. | `` |
+| `audit.concurrency`    | `int`    | Number of concurrent audit workers. | `` |
