@@ -113,7 +113,61 @@ Note: `latest` is not a stable release. We recommend to only use released versio
 
 Download the [latest release](https://github.com/gopasspw/gopass/releases/latest) and add the binary to your PATH.
 
-# Example usage
+# Quick start guide
+
+Initialize a new `gopass` configuration:
+
+```shell
+$ gopass setup
+
+   __     _    _ _      _ _   ___   ___
+ /'_ '\ /'_'\ ( '_'\  /'_' )/',__)/',__)
+( (_) |( (_) )| (_) )( (_| |\__, \\__, \
+'\__  |'\___/'| ,__/''\__,_)(____/(____/
+( )_) |       | |
+ \___/'       (_)
+
+🌟 Welcome to gopass!
+🌟 Initializing a new password store ...
+🌟 Configuring your password store ...
+🎮 Please select a private key for encrypting secrets:
+[0] gpg - 0xFEEDBEEF - John Doe <john.doe@example.org>
+Please enter the number of a key (0-12, [q]uit) (q to abort) [0]: 0
+❓ Do you want to add a git remote? [y/N/q]: y
+Configuring the git remote ...
+Please enter the git remote for your shared store []: git@gitlab.example.org:john/passwords.git
+✅ Configured
+```
+
+By default `gopass setup` will use `gpg` encryption and `git` storage. This will create a new password store in `$HOME/.local/share/gopass/stores/root` and a configuration in `$HOME/.config/gopass/config` using `gpg` encryption and `git` for versioned storage. Users can override these with e.g. `--crypto=age` to use `age` encryption instead or opt out of using a versioned store with `--storage=fs`.
+
+An existing store can be cloned with e.g. `gopass clone git@gitlab.example.org:john/passwords.git`.
+
+Create a new secret:
+
+```shell
+$ gopass create
+```
+
+List all existing secrets:
+
+```shell
+$ gopass ls
+```
+
+Copy an existing password to the clipboard:
+
+```shell
+$ gopass show -c foo
+```
+
+Remove an existing secret:
+
+```shell
+$ gopass rm foo
+```
+
+Other examples:
 
 ```shell
 # Command structure
@@ -142,35 +196,6 @@ gopass sync
 # Setup a new store
 gopass setup
 ```
-
-## First `gopass` run
-
-```shell
-$ gopass setup
-
-   __     _    _ _      _ _   ___   ___
- /'_ '\ /'_'\ ( '_'\  /'_' )/',__)/',__)
-( (_) |( (_) )| (_) )( (_| |\__, \\__, \
-'\__  |'\___/'| ,__/''\__,_)(____/(____/
-( )_) |       | |
- \___/'       (_)
-
-🌟 Welcome to gopass!
-🌟 Initializing a new password store ...
-🌟 Configuring your password store ...
-🎮 Please select a private key for encrypting secrets:
-[0] gpg - 0xFEEDBEEF - John Doe <john.doe@example.org>
-Please enter the number of a key (0-12, [q]uit) (q to abort) [0]: 0
-❓ Do you want to add a git remote? [y/N/q]: y
-Configuring the git remote ...
-Please enter the git remote for your shared store []: git@gitlab.example.org:john/passwords.git
-✅ Configured
-```
-
-Hint: `gopass setup` will use `gpg` encryption and `git` storage by default. Use `--crypto=age` to
-use `age` encryption instead. Or you can opt out of using a versioned store with `--storage=fs`.
-
-An existing store can be cloned with e.g. `gopass clone git@gitlab.example.org:john/passwords.git`.
 
 ## Screenshot
 

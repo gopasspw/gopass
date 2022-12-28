@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/gopasspw/gopass/internal/action/exit"
+	"github.com/gopasspw/gopass/internal/hook"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/termio"
@@ -75,7 +76,7 @@ func (s *Action) Delete(c *cli.Context) error {
 		}
 	}
 
-	return nil
+	return hook.Invoke(ctx, "delete.post-rm", names...)
 }
 
 func (s *Action) deleteRecursive(ctx context.Context, name string, force bool) error {
@@ -107,5 +108,5 @@ func (s *Action) deleteKeyFromYAML(ctx context.Context, name, key string) error 
 		return exit.Error(exit.IO, err, "Can not delete key %q from %q: %s", key, name, err)
 	}
 
-	return nil
+	return hook.Invoke(ctx, "delete.post-rm", key+"@"+name)
 }

@@ -83,6 +83,7 @@ This is a list of available options:
 | `core.autoimport`      | `bool`   | Import missing keys stored in the pass repository without asking. | `false` |
 | `core.autosync`        | `bool`   | Always do a `git push` after a commit to the store. Makes sure your local changes are always available on your git remote. | `true` |
 | `core.cliptimeout`     | `int`    | How many seconds the secret is stored when using `-c`. | `45` |
+|  `core.clear-after` | `bool` | This setting determines wheter or not the clipboard is cleared after `gopass -c`. Setting this to `false` takes precedence over the value of `core.cliptimeout` | `true` |
 | `core.exportkeys`      | `bool`   | Export public keys of all recipients to the store. | `true` |
 | `core.nocolor`         | `bool`   | Do not use color. | `false` |
 | `core.nopager`         | `bool`   | Do not invoke a pager to display long lists. | `false` |
@@ -101,3 +102,9 @@ This is a list of available options:
 | `recipients.check`     | `bool`   | Check recipients hash. | `false` |
 | `recipients.hash`      | `string` | SHA256 hash of the recipients file. | `` |
 | `audit.concurrency`    | `int`    | Number of concurrent audit workers. | `` |
+| `create.default-username` | `string` | The settings allows users to specify the default username for logins created with `gopass create`. | `None` |
+| `create.pre-hook` | `string` | This hook is executed right before the secret creation during `gopass create`. | `None` |
+| `create.post-hook` | `string` | This hook is executed right after the secret creation. If the hook exits with a non-zero exit value the generated secret is discarded. | `None` |
+| `edit.editor` | `string` | This setting controls which editor is used when opening a file with `gopass edit`. It takes precedence over the `$EDITOR` environment variable. This setting can contain flags. | `None` |
+| `edit.post-hook` | `string` | This hook is run right after editing a record with `gopass edit` |
+| `delete.post-hook` | `string` | This hook is run right after removing a record with `gopass rm` | `None` |
