@@ -37,7 +37,7 @@ func (c *Config) Unset(key string) error {
 
 	delete(c.vars, key)
 
-	return c.rewriteRaw(key, "", func(fKey, key, value, comment string) (string, bool) {
+	return c.rewriteRaw(key, "", func(fKey, key, value, comment, _ string) (string, bool) {
 		return "", true
 	})
 }
@@ -117,7 +117,14 @@ func (c *Config) Set(key, value string) error {
 
 	debug.Log("updating value")
 
-	return c.rewriteRaw(key, value, func(fKey, sKey, value, comment string) (string, bool) {
+	var updated bool
+
+	return c.rewriteRaw(key, value, func(fKey, sKey, value, comment, line string) (string, bool) {
+		if updated {
+			return line, false
+		}
+		updated = true
+
 		return fmt.Sprintf(keyValueTpl, sKey, value, comment), false
 	})
 }
@@ -241,7 +248,7 @@ func (c *Config) flushRaw() error {
 	return nil
 }
 
-type parseFunc func(fqkn, skn, value, comment string) (newLine string, skipLine bool)
+type parseFunc func(fqkn, skn, value, comment, fullLine string) (newLine string, skipLine bool)
 
 // parseConfig implements a simple parser for the gitconfig subset we support.
 // The idea is to save all lines unaltered so we can reproduce the config
@@ -259,11 +266,11 @@ func parseConfig(in io.Reader, key, value string, cb parseFunc) []string {
 	var section string
 	var subsection string
 	for s.Scan() {
-		line := s.Text()
+		fullLine := s.Text()
 
-		lines = append(lines, line)
+		lines = append(lines, fullLine)
 
-		line = strings.TrimSpace(line)
+		line := strings.TrimSpace(fullLine)
 		if strings.HasPrefix(line, "#") {
 			continue
 		}
@@ -319,7 +326,7 @@ func parseConfig(in io.Reader, key, value string, cb parseFunc) []string {
 			oValue = value
 		}
 
-		newLine, skip := cb(fKey, wKey, oValue, comment)
+		newLine, skip := cb(fKey, wKey, oValue, comment, fullLine)
 		if skip {
 			// remove the last line
 			lines = lines[:len(lines)-1]
@@ -367,7 +374,7 @@ func ParseConfig(r io.Reader) *Config {
 		vars: make(map[string][]string, 42),
 	}
 
-	lines := parseConfig(r, "", "", func(fk, k, v, comment string) (string, bool) {
+	lines := parseConfig(r, "", "", func(fk, k, v, comment, _ string) (string, bool) {
 		c.vars[fk] = append(c.vars[fk], v)
 
 		return fmt.Sprintf(keyValueTpl, k, v, comment), false
