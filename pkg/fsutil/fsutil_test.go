@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -41,6 +42,10 @@ func TestCleanPath(t *testing.T) {
 		got := CleanPath(in)
 
 		if strings.HasPrefix(out, "~") {
+			// skip these tests on windows
+			if runtime.GOOS == "windows" {
+				continue
+			}
 			assert.Equal(t, out, got)
 
 			continue

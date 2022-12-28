@@ -25,10 +25,19 @@ func CleanFilename(in string) string {
 
 // CleanPath resolves common aliases in a path and cleans it as much as possible.
 func CleanPath(path string) string {
+	// Only replace ~ if GOPASS_HOMEDIR is set. In that case we do expect any reference
+	// to the users homedir to be replaced by the value of GOPASS_HOMEDIR. This is mainly
+	// for testing and experiments. In all other cases we do want to leave ~ as-is.
+	if len(path) > 1 && path[:2] == "~/" {
+		if hd := os.Getenv("GOPASS_HOMEDIR"); hd != "" {
+			return filepath.Clean(hd + path[2:])
+		}
+	}
+
 	if p, err := filepath.Abs(path); err == nil && !strings.HasPrefix(path, "~") {
 		return p
 	}
-	// TODO rewrite GOPASS_HOMEDIR
+
 	return filepath.Clean(path)
 }
 
