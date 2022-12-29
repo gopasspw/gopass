@@ -14,7 +14,6 @@ import (
 
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/pwschemes/argon2id"
-	"github.com/gopasspw/gopass/pkg/debug"
 )
 
 // clear will spawn a copy of gopass that waits in a detached background
@@ -22,12 +21,6 @@ import (
 // of the clipboard and erase it if it still contains the data gopass copied
 // to it.
 func clear(ctx context.Context, name string, content []byte, timeout int) error {
-	if !config.Bool(ctx, "core.clear-after") {
-		debug.Log("not clearing clipboard, core.clear-after is false")
-
-		return nil
-	}
-
 	hash, err := argon2id.Generate(string(content), 0)
 	if err != nil {
 		return fmt.Errorf("failed to generate checksum: %w", err)

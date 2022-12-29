@@ -9,6 +9,7 @@ import (
 
 	"github.com/gopasspw/gopass/internal/action/exit"
 	"github.com/gopasspw/gopass/internal/config"
+	"github.com/gopasspw/gopass/internal/hook"
 	"github.com/gopasspw/gopass/internal/notify"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
@@ -87,7 +88,7 @@ func (s *Action) Show(c *cli.Context) error {
 		return exit.Error(exit.Decrypt, err, "%s", err)
 	}
 
-	return nil
+	return hook.InvokeRoot(ctx, "show.post-hook", name, s.Store, GetKey(ctx))
 }
 
 // show displays the given secret/key.

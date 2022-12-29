@@ -40,6 +40,8 @@ var ignoredEnvs = set.Map([]string{
 // but originate elsewhere (e.g. git). They should not be documented
 // here as well.
 var ignoredOptions = set.Map([]string{
+	"core.pre-hook",
+	"core.post-hook",
 	"user.email",
 	"user.name",
 })
@@ -53,12 +55,12 @@ func TestConfigOptsInDocs(t *testing.T) {
 	t.Logf("Config options documented in doc: %+v", documented)
 	t.Logf("Config options used in the code: %+v", used)
 
-	for k := range documented {
+	for _, k := range set.SortedKeys(documented) {
 		if !used[k] {
 			t.Errorf("Documented but not used: %s", k)
 		}
 	}
-	for k := range used {
+	for _, k := range set.SortedKeys(used) {
 		if !documented[k] {
 			t.Errorf("Used but not documented: %s", k)
 		}
@@ -68,7 +70,7 @@ func TestConfigOptsInDocs(t *testing.T) {
 func usedOpts(t *testing.T) map[string]bool {
 	t.Helper()
 
-	optRE := regexp.MustCompile(`(?:\.Get(?:|Int|Bool)\(\"([a-z]+\.[a-z]+)\"\)|\.GetM\([^,]+, \"([a-z]+\.[a-z]+)\"\)|config\.(?:Bool|Int|String)\(ctx, \"([a-z]+\.[a-z]+)\"\))`)
+	optRE := regexp.MustCompile(`(?:\.Get(?:|Int|Bool)\(\"([a-z]+\.[a-z-]+)\"\)|\.GetM\([^,]+, \"([a-z]+\.[a-z-]+)\"\)|config\.(?:Bool|Int|String)\((?:ctx|c\.Context), \"([a-z]+\.[a-z-]+)\"\)|hook\.Invoke(?:Root)?\(ctx, \"([a-z]+\.[a-z-]+)\")`)
 	opts := make(map[string]bool, 42)
 
 	dir := filepath.Join("..", "..")
@@ -120,29 +122,16 @@ func usedOptsInFile(t *testing.T, fn string, opts map[string]bool, re *regexp.Re
 			continue
 		}
 
-		if found[1] != "" {
-			if ignoredOptions[found[1]] {
+		for i := 1; i < 10; i++ {
+			if found[i] == "" {
 				continue
 			}
-			opts[found[1]] = true
-
-			continue
-		}
-
-		if found[2] != "" {
-			if ignoredOptions[found[2]] {
-				continue
+			if ignoredOptions[found[i]] {
+				break
 			}
-			opts[found[2]] = true
-		}
+			opts[found[i]] = true
 
-		if found[3] != "" {
-			if ignoredOptions[found[3]] {
-				continue
-			}
-			opts[found[3]] = true
-
-			continue
+			break
 		}
 	}
 
@@ -159,7 +148,7 @@ func documentedOpts(t *testing.T) map[string]bool {
 	}
 	defer fh.Close() //nolint:errcheck
 
-	optRE := regexp.MustCompile(`^\| .([a-z]+\.[a-z]+).`)
+	optRE := regexp.MustCompile(`^\| .([a-z]+\.[a-z-]+).`)
 
 	opts := make(map[string]bool, 42)
 	scanner := bufio.NewScanner(fh)
@@ -171,6 +160,9 @@ func documentedOpts(t *testing.T) map[string]bool {
 		}
 		found := optRE.FindStringSubmatch(line)
 		if len(found) < 2 {
+			continue
+		}
+		if _, found := ignoredOptions[found[1]]; found {
 			continue
 		}
 		opts[found[1]] = true

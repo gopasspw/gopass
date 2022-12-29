@@ -40,7 +40,6 @@ func TestConfig(t *testing.T) {
 		want := `core.autoclip = true
 core.autoimport = true
 core.autosync = true
-core.clear-after = true
 core.cliptimeout = 45
 core.exportkeys = true
 core.nopager = true
@@ -113,7 +112,6 @@ core.notifications = true
 		want := `core.autoclip
 core.autoimport
 core.autosync
-core.clear-after
 core.cliptimeout
 core.exportkeys
 core.nopager

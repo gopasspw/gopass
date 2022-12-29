@@ -75,7 +75,7 @@ func (s *Action) Delete(c *cli.Context) error {
 			return exit.Error(exit.IO, err, "Can not delete %q: %s", name, err)
 		}
 
-		if err := hook.InvokeRoot(ctx, "delete.post-rm", name, s.Store); err != nil {
+		if err := hook.InvokeRoot(ctx, "delete.post-hook", name, s.Store); err != nil {
 			return exit.Error(exit.Hook, err, "Hook failed for %s: %s", name, err)
 		}
 	}
@@ -112,5 +112,5 @@ func (s *Action) deleteKeyFromYAML(ctx context.Context, name, key string) error 
 		return exit.Error(exit.IO, err, "Can not delete key %q from %q: %s", key, name, err)
 	}
 
-	return hook.Invoke(ctx, "delete.post-rm", name, key)
+	return hook.Invoke(ctx, "delete.post-hook", name, key)
 }

@@ -7,31 +7,32 @@ Some configuration options are only available through setting environment variab
 | **Option**                   | **Type** | **Description**                                                                                                  |
 | ---------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------- |
 | `CHECKPOINT_DISABLE`         | `bool`   | Set to any non-empty value to disable calling the GitHub API when running `gopass version`.                      |
-| `GOPASS_DEBUG`               | `bool`   | Set to any non-empty value to enable verbose debug output                                                        |
-| `GOPASS_DEBUG_LOG`           | `string` | Set to a filename to enable debug logging                                                                        |
-| `GOPASS_DEBUG_LOG_SECRETS`   | `bool`   | Set to any non-empty value to enable logging of credentials                                                      |
-| `GOPASS_DEBUG_FUNCS`         | `string` | Comma separated filter for console debug output (functions)                                                      |
-| `GOPASS_DEBUG_FILES`         | `string` | Comma separated filter for console debug output (files)                                                          |
-| `GOPASS_UMASK`               | `octal`  | Set to any valid umask to mask bits of files created by gopass                                                   |
-| `GOPASS_GPG_OPTS`            | `string` | Add any extra arguments, e.g. `--armor` you want to pass to GPG on every invocation                              |
-| `GOPASS_EXTERNAL_PWGEN`      | `string` | Use an external password generator. See [Features](features.md#using-custom-password-generators) for details     |
+| `GOPASS_AUTOSYNC_INTERVAL` | `int` | Set this to the number of days between autosync runs. |
 | `GOPASS_CHARACTER_SET`       | `bool`   | Set to any non-empty value to restrict the characters used in generated passwords                                |
+| `GOPASS_CLIPBOARD_CLEAR_CMD` | `string` | Use an external command to remove a password from the clipboard. See [GPaste](usecases/gpaste.md) for an example |
+| `GOPASS_CLIPBOARD_COPY_CMD`  | `string` | Use an external command to copy a password to the clipboard. See [GPaste](usecases/gpaste.md) for an example     |
+| `GOPASS_CONFIG_NO_MIGRATE` | `bool` | Do not attempt to migrate old gopass configs |
+| `GOPASS_CONFIG_NOSYSTEM` | `bool` | Do not read `/etc/gopass/config` (if it exists) |
 | `GOPASS_CONFIG`              | `string` | Set this to the absolute path to the configuration file                                                          |
-| `GOPASS_HOMEDIR`             | `string` | Set this to the absolute path of the directory containing the `.config/` tree                                    |
+| `GOPASS_CPU_PROFILE` | `string` | Path to write a CPU Profile to. Use `go tool pprof` to visualize. |
+| `GOPASS_DEBUG_FILES`         | `string` | Comma separated filter for console debug output (files)                                                          |
+| `GOPASS_DEBUG_FUNCS`         | `string` | Comma separated filter for console debug output (functions)                                                      |
+| `GOPASS_DEBUG_LOG_SECRETS`   | `bool`   | Set to any non-empty value to enable logging of credentials                                                      |
+| `GOPASS_DEBUG_LOG`           | `string` | Set to a filename to enable debug logging                                                                        |
+| `GOPASS_DEBUG`               | `bool`   | Set to any non-empty value to enable verbose debug output                                                        |
+| `GOPASS_EXTERNAL_PWGEN`      | `string` | Use an external password generator. See [Features](features.md#using-custom-password-generators) for details     |
+| `GOPASS_FORCE_CHECK` | `string` | (internal) Force the updater to check for updates. Used for testing. |
 | `GOPASS_FORCE_UPDATE`        | `bool`   | Set to any non-empty value to force an update (if available)                                                     |
+| `GOPASS_GPG_BINARY` | `string` | Set this to the absolute path to the GPG binary if you need to override the value returned by `gpgconf`, e.g. [QubesOS](https://www.qubes-os.org/doc/split-gpg/). |
+| `GOPASS_GPG_OPTS`            | `string` | Add any extra arguments, e.g. `--armor` you want to pass to GPG on every invocation                              |
+| `GOPASS_HOMEDIR`             | `string` | Set this to the absolute path of the directory containing the `.config/` tree                                    |
+| `GOPASS_HOOK` | `int` | (internal) Set when invoking hook scripts. |
+| `GOPASS_MEM_PROFILE` | `string` | Path to write a Memory Profile to. Use `go tool pprof` to visualize.|
+| `GOPASS_NO_AUTOSYNC` | `bool` | Set this to `true` to disable autosync. Deprecated. Please use `core.autosync` |
 | `GOPASS_NO_NOTIFY`           | `bool`   | Set to any non-empty value to prevent notifications                                                              |
 | `GOPASS_NO_REMINDER`         | `bool`   | Set to any non-empty value to prevent reminders                                                                  |
-| `GOPASS_CLIPBOARD_COPY_CMD`  | `string` | Use an external command to copy a password to the clipboard. See [GPaste](usecases/gpaste.md) for an example     |
-| `GOPASS_CLIPBOARD_CLEAR_CMD` | `string` | Use an external command to remove a password from the clipboard. See [GPaste](usecases/gpaste.md) for an example |
-| `GOPASS_GPG_BINARY` | `string` | Set this to the absolute path to the GPG binary if you need to override the value returned by `gpgconf`, e.g. [QubesOS](https://www.qubes-os.org/doc/split-gpg/). |
 | `GOPASS_PW_DEFAULT_LENGTH`   | `int`    | Set to any integer value larger than zero to define a different default length in the `generate` command. By default the length is 24 characters. |
-| `GOPASS_AUTOSYNC_INTERVAL` | `int` | Set this to the number of days between autosync runs. |
-| `GOPASS_NO_AUTOSYNC` | `bool` | Set this to `true` to disable autosync. Deprecated. Please use `core.autosync` |
-| `GOPASS_CONFIG_NOSYSTEM` | `bool` | Do not read `/etc/gopass/config` (if it exists) |
-| `GOPASS_CONFIG_NO_MIGRATE` | `bool` | Do not attempt to migrate old gopass configs |
-| `GOPASS_CPU_PROFILE` | `string` | Path to write a CPU Profile to. Use `go tool pprof` to visualize. |
-| `GOPASS_FORCE_CHECK` | `string` | (internal) Force the updater to check for updates. Used for testing. |
-| `GOPASS_MEM_PROFILE` | `string` | Path to write a Memory Profile to. Use `go tool pprof` to visualize.|
+| `GOPASS_UMASK`               | `octal`  | Set to any valid umask to mask bits of files created by gopass                                                   |
 | `GOPASS_UNCLIP_CHECKSUM` | `string` | (internal) Used between gopass and it's unclip helper. |
 | `GOPASS_UNCLIP_NAME` | `string` | (internal) Used between gopass and it's unclip helper. |
 | `PWGEN_RULES_FILE` | `string` | (internal) Used for testing the pwgen rules generator. |
@@ -85,8 +86,7 @@ This is a list of available options:
 | `core.autoclip`        | `bool`   | Always copy the password created by `gopass generate`. Only applies to generate. | `false` |
 | `core.autoimport`      | `bool`   | Import missing keys stored in the pass repository without asking. | `false` |
 | `core.autosync`        | `bool`   | Always do a `git push` after a commit to the store. Makes sure your local changes are always available on your git remote. | `true` |
-| `core.clear-after` | `bool` | This setting determines wheter or not the clipboard is cleared after `gopass -c`. Setting this to `false` takes precedence over the value of `core.cliptimeout` | `true` |
-| `core.cliptimeout`     | `int`    | How many seconds the secret is stored when using `-c`. | `45` |
+| `core.cliptimeout`     | `int`    | How many seconds the secret is stored when using `-c`. Setting this to `0` disables auto-clear. | `45` |
 | `core.exportkeys`      | `bool`   | Export public keys of all recipients to the store. | `true` |
 | `core.nocolor`         | `bool`   | Do not use color. | `false` |
 | `core.nopager`         | `bool`   | Do not invoke a pager to display long lists. | `false` |
@@ -102,6 +102,7 @@ This is a list of available options:
 | `delete.post-hook` | `string` | This hook is run right after removing a record with `gopass rm` | `None` |
 | `domain-alias.<from>.insteadOf`   | `string` | Alias from domain to the string value of this entry. | `` |
 | `edit.editor` | `string` | This setting controls which editor is used when opening a file with `gopass edit`. It takes precedence over the `$EDITOR` environment variable. This setting can contain flags. | `None` |
+| `edit.pre-hook` | `string` | This hook is run right before editing a record with `gopass edit` |
 | `edit.post-hook` | `string` | This hook is run right after editing a record with `gopass edit` |
 | `generate.generator`   | `string` | Default password generator. `xkcd`, `memorable`, `external` or `` | `` |
 | `generate.length`      | `int`    | Default lenght for generated password. | `24` |
