@@ -22,10 +22,11 @@ var Stderr io.Writer = os.Stderr
 
 type subStoreGetter interface {
 	GetSubStore(string) (*leaf.Store, error)
+	MountPoint(string) string
 }
 
 func InvokeRoot(ctx context.Context, hookName, secName string, s subStoreGetter, hookArgs ...string) error {
-	sub, err := s.GetSubStore(secName)
+	sub, err := s.GetSubStore(s.MountPoint(secName))
 	if err != nil {
 		return err
 	}

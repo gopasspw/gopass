@@ -9,7 +9,7 @@ All hooks are subject to the follwing constraints:
 * Hooks do not inherit `STDIN` or `STDOUT` from the parent process.
 * Hooks do inherit `STDERR` from the parent process and may use it to print anything they want.
 * Hooks always run from the `password-store` directory.
-* Hooks are run with the `GOPASS_HOOK=1` in their environment and with `GOPASS_CONFIG_DIR` set to the configuration directory the original `gopass` command was started.
+* Hooks are run with the `GOPASS_HOOK=1` in their environment and with `GOPASS_CONFIG_DIR` set to the configuration directory with which the original `gopass` command was started.
 * An exit from a hook (or execution failure) cases the entire `gopass` command to fail.
 * Hooks have at most one minute to complete.
 

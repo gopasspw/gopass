@@ -112,5 +112,5 @@ func (s *Action) deleteKeyFromYAML(ctx context.Context, name, key string) error 
 		return exit.Error(exit.IO, err, "Can not delete key %q from %q: %s", key, name, err)
 	}
 
-	return hook.Invoke(ctx, "delete.post-rm", key+"@"+name)
+	return hook.Invoke(ctx, "delete.post-rm", name, key)
 }

@@ -205,15 +205,12 @@ func mkHookFn(hookName, cmdName string, s pathGetter, fn func(c *cli.Context) er
 	if fn == nil {
 		return func(c *cli.Context) error {
 			dir := config.String(c.Context, "mounts.path")
-			fmt.Printf("invoking hook %s for %s in %s (fn nil)\n", hookName, cmdName, dir)
 
 			return hook.Invoke(c.Context, hookName, dir, cmdName)
 		}
 	}
 
 	return func(c *cli.Context) error {
-		fmt.Printf("invoking hook %s for %s in %s (fn non-nil)\n", hookName, cmdName, s.Path())
-
 		if err := fn(c); err != nil {
 			return err
 		}
