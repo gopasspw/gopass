@@ -78,7 +78,7 @@ func Invoke(ctx context.Context, hook, dir string, hookArgs ...string) error {
 	if err := cmd.Run(); err != nil {
 		debug.Log("cmd: %s %+v - error: %+v", cmd.Path, cmd.Args, err)
 
-		return fmt.Errorf("failed to run %s with %s %v", hook, args, err)
+		return fmt.Errorf("failed to run %s %v: %w", hook, args, err)
 	}
 
 	return nil
