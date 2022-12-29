@@ -10,6 +10,7 @@ import (
 
 	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/internal/cui"
+	"github.com/gopasspw/gopass/internal/hook"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/set"
 	"github.com/gopasspw/gopass/internal/store/root"
@@ -150,6 +151,10 @@ func mkActFunc(tpl Template, s *root.Store, cb ActionCallback) func(context.Cont
 		name := c.Args().First()
 		store := c.String("store")
 		force := c.Bool("force")
+
+		if err := hook.Invoke(ctx, "create.pre-hook", name); err != nil {
+			return err
+		}
 
 		sec := secrets.New()
 

@@ -79,32 +79,35 @@ This is a list of available options:
 
 | **Option**       | **Type** | Description | *Default* |
 | ---------------- | -------- | ----------- | --------- |
+| `age.usekeychain`      | `bool`   | Use the OS keychain to cache age passphrases. | `false` |
+| `audit.concurrency`    | `int`    | Number of concurrent audit workers. | `` |
+| `autosync.interval`      | `int`   | AutoSync interval in days. | `3` |
 | `core.autoclip`        | `bool`   | Always copy the password created by `gopass generate`. Only applies to generate. | `false` |
 | `core.autoimport`      | `bool`   | Import missing keys stored in the pass repository without asking. | `false` |
 | `core.autosync`        | `bool`   | Always do a `git push` after a commit to the store. Makes sure your local changes are always available on your git remote. | `true` |
+| `core.clear-after` | `bool` | This setting determines wheter or not the clipboard is cleared after `gopass -c`. Setting this to `false` takes precedence over the value of `core.cliptimeout` | `true` |
 | `core.cliptimeout`     | `int`    | How many seconds the secret is stored when using `-c`. | `45` |
-|  `core.clear-after` | `bool` | This setting determines wheter or not the clipboard is cleared after `gopass -c`. Setting this to `false` takes precedence over the value of `core.cliptimeout` | `true` |
 | `core.exportkeys`      | `bool`   | Export public keys of all recipients to the store. | `true` |
 | `core.nocolor`         | `bool`   | Do not use color. | `false` |
 | `core.nopager`         | `bool`   | Do not invoke a pager to display long lists. | `false` |
 | `core.notifications`   | `bool`   | Enable desktop notifications. | `true` |
+| `core.pre-hook` | `string` | This hook is executed before any command invocation. | `None` |
+| `core.post-hook` | `string` | This hook is executed after any command invocation. | `None` |
 | `core.readonly`        | `bool`   | Disable writing to a store. Note: This is just a convenience option to prevent accidential writes. Enforcement can only happen on a central server (if repos are set up around a central one). | `false` |
-| `mounts.path`          | `string` | Path to the root store. | `$XDG_DATA_HOME/gopass/stores/root` |
-| `core.showsafecontent` | `bool`   | Only output *safe content* (i.e. everything but the first line of a secret) to the terminal. Use *copy* (`-c`) to retrieve the password in the clipboard, or *force* (`-f`) to still print it. | `false` |
-| `age.usekeychain`      | `bool`   | Use the OS keychain to cache age passphrases. | `false` |
-| `domain-alias.<from>.insteadOf`   | `string` | Alias from domain to the string value of this entry. | `` |
 | `core.showautoclip`      | `bool`   | Use autoclip for gopass show by default. | `false` |
-| `autosync.interval`      | `int`   | AutoSync interval in days. | `3` |
-| `updater.check`        | `bool`   | Check for updates when running `gopass version` | `true` |
-| `generate.symbols`     | `bool`   | Include symbols in generated password. | `false` |
-| `generate.length`      | `int`    | Default lenght for generated password. | `24` |
-| `generate.generator`   | `string` | Default password generator. `xkcd`, `memorable`, `external` or `` | `` |
-| `recipients.check`     | `bool`   | Check recipients hash. | `false` |
-| `recipients.hash`      | `string` | SHA256 hash of the recipients file. | `` |
-| `audit.concurrency`    | `int`    | Number of concurrent audit workers. | `` |
+| `core.showsafecontent` | `bool`   | Only output *safe content* (i.e. everything but the first line of a secret) to the terminal. Use *copy* (`-c`) to retrieve the password in the clipboard, or *force* (`-f`) to still print it. | `false` |
 | `create.default-username` | `string` | The settings allows users to specify the default username for logins created with `gopass create`. | `None` |
-| `create.pre-hook` | `string` | This hook is executed right before the secret creation during `gopass create`. | `None` |
 | `create.post-hook` | `string` | This hook is executed right after the secret creation. If the hook exits with a non-zero exit value the generated secret is discarded. | `None` |
+| `create.pre-hook` | `string` | This hook is executed right before the secret creation during `gopass create`. | `None` |
+| `delete.post-hook` | `string` | This hook is run right after removing a record with `gopass rm` | `None` |
+| `domain-alias.<from>.insteadOf`   | `string` | Alias from domain to the string value of this entry. | `` |
 | `edit.editor` | `string` | This setting controls which editor is used when opening a file with `gopass edit`. It takes precedence over the `$EDITOR` environment variable. This setting can contain flags. | `None` |
 | `edit.post-hook` | `string` | This hook is run right after editing a record with `gopass edit` |
-| `delete.post-hook` | `string` | This hook is run right after removing a record with `gopass rm` | `None` |
+| `generate.generator`   | `string` | Default password generator. `xkcd`, `memorable`, `external` or `` | `` |
+| `generate.length`      | `int`    | Default lenght for generated password. | `24` |
+| `generate.symbols`     | `bool`   | Include symbols in generated password. | `false` |
+| `mounts.path`          | `string` | Path to the root store. | `$XDG_DATA_HOME/gopass/stores/root` |
+| `recipients.check`     | `bool`   | Check recipients hash. | `false` |
+| `recipients.hash`      | `string` | SHA256 hash of the recipients file. | `` |
+| `show.post-hook` | `string` | This hook is run right after displaying a secret with `gopass show` | `None` |
+| `updater.check`        | `bool`   | Check for updates when running `gopass version` | `true` |

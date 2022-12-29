@@ -74,9 +74,13 @@ func (s *Action) Delete(c *cli.Context) error {
 		if err := s.Store.Delete(ctx, name); err != nil {
 			return exit.Error(exit.IO, err, "Can not delete %q: %s", name, err)
 		}
+
+		if err := hook.InvokeRoot(ctx, "delete.post-rm", name, s.Store); err != nil {
+			return exit.Error(exit.Hook, err, "Hook failed for %s: %s", name, err)
+		}
 	}
 
-	return hook.Invoke(ctx, "delete.post-rm", names...)
+	return nil
 }
 
 func (s *Action) deleteRecursive(ctx context.Context, name string, force bool) error {

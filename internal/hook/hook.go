@@ -11,6 +11,8 @@ import (
 	"time"
 
 	"github.com/gopasspw/gopass/internal/config"
+	"github.com/gopasspw/gopass/internal/store/leaf"
+	"github.com/gopasspw/gopass/pkg/appdir"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/kballard/go-shellquote"
 )
@@ -18,7 +20,20 @@ import (
 // Stderr is exported for tests.
 var Stderr io.Writer = os.Stderr
 
-func Invoke(ctx context.Context, hook string, hookArgs ...string) error {
+type subStoreGetter interface {
+	GetSubStore(string) (*leaf.Store, error)
+}
+
+func InvokeRoot(ctx context.Context, hookName, secName string, s subStoreGetter, hookArgs ...string) error {
+	sub, err := s.GetSubStore(secName)
+	if err != nil {
+		return err
+	}
+
+	return Invoke(ctx, hookName, sub.Storage().Path(), hookArgs...)
+}
+
+func Invoke(ctx context.Context, hook, dir string, hookArgs ...string) error {
 	hCmd := strings.TrimSpace(config.String(ctx, hook))
 	if hCmd == "" {
 		return nil
@@ -43,6 +58,10 @@ func Invoke(ctx context.Context, hook string, hookArgs ...string) error {
 		args = append(args, cmdArgs[1:]...)
 	}
 
+	if len(hook) > 2 && hook[:2] == "~/" {
+		hook = appdir.UserHome() + hook[1:]
+	}
+
 	args = append(args, hookArgs...)
 
 	cmd := exec.CommandContext(ctx, hook, args...)
@@ -51,6 +70,9 @@ func Invoke(ctx context.Context, hook string, hookArgs ...string) error {
 	cmd.Stderr = Stderr
 	cmd.Env = os.Environ()
 	cmd.Env = append(cmd.Env, "GOPASS_HOOK=1")
+	cmd.Dir = dir
+
+	debug.Log("running hook %s with: %s %+v", hook, cmd.Path, cmd.Args)
 
 	if err := cmd.Run(); err != nil {
 		debug.Log("cmd: %s %+v - error: %+v", cmd.Path, cmd.Args, err)
