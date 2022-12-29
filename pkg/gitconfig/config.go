@@ -21,8 +21,7 @@ type Config struct {
 	readonly bool // do not allow modifying values (even in memory)
 	noWrites bool // do not persist changes to disk (e.g. for tests)
 	raw      strings.Builder
-	// TODO(#2457): support multi-vars
-	vars map[string]string
+	vars     map[string][]string
 }
 
 // Unset deletes a key.
@@ -38,9 +37,29 @@ func (c *Config) Unset(key string) error {
 
 	delete(c.vars, key)
 
-	return c.rewriteRaw(key, "", func(fKey, key, value, comment string) (string, bool) {
+	return c.rewriteRaw(key, "", func(fKey, key, value, comment, _ string) (string, bool) {
 		return "", true
 	})
+}
+
+// Get returns the first value of the key.
+func (c *Config) Get(key string) (string, bool) {
+	vs, found := c.vars[key]
+	if !found || len(vs) < 1 {
+		return "", false
+	}
+
+	return vs[0], true
+}
+
+// GetAll returns all values of the key.
+func (c *Config) GetAll(key string) ([]string, bool) {
+	vs, found := c.vars[key]
+	if !found {
+		return nil, false
+	}
+
+	return vs, true
 }
 
 // IsSet returns true if the key was set in this config.
@@ -66,18 +85,26 @@ func (c *Config) Set(key, value string) error {
 	}
 
 	if c.vars == nil {
-		c.vars = make(map[string]string, 16)
+		c.vars = make(map[string][]string, 16)
 	}
 
 	// already present at the same value, no need to rewrite the config
-	if v, found := c.vars[key]; found && v == value {
-		debug.Log("key %q with value %q already present. Not re-writing.", key, value)
+	if vs, found := c.vars[key]; found {
+		for _, v := range vs {
+			if v == value {
+				debug.Log("key %q with value %q already present. Not re-writing.", key, value)
 
-		return nil
+				return nil
+			}
+		}
 	}
 
-	_, present := c.vars[key]
-	c.vars[key] = value
+	vs, present := c.vars[key]
+	if vs == nil {
+		vs = make([]string, 1)
+	}
+	vs[0] = value
+	c.vars[key] = vs
 
 	debug.Log("set %q to %q", key, value)
 
@@ -90,7 +117,14 @@ func (c *Config) Set(key, value string) error {
 
 	debug.Log("updating value")
 
-	return c.rewriteRaw(key, value, func(fKey, sKey, value, comment string) (string, bool) {
+	var updated bool
+
+	return c.rewriteRaw(key, value, func(fKey, sKey, value, comment, line string) (string, bool) {
+		if updated {
+			return line, false
+		}
+		updated = true
+
 		return fmt.Sprintf(keyValueTpl, sKey, value, comment), false
 	})
 }
@@ -214,7 +248,7 @@ func (c *Config) flushRaw() error {
 	return nil
 }
 
-type parseFunc func(fqkn, skn, value, comment string) (newLine string, skipLine bool)
+type parseFunc func(fqkn, skn, value, comment, fullLine string) (newLine string, skipLine bool)
 
 // parseConfig implements a simple parser for the gitconfig subset we support.
 // The idea is to save all lines unaltered so we can reproduce the config
@@ -232,11 +266,11 @@ func parseConfig(in io.Reader, key, value string, cb parseFunc) []string {
 	var section string
 	var subsection string
 	for s.Scan() {
-		line := s.Text()
+		fullLine := s.Text()
 
-		lines = append(lines, line)
+		lines = append(lines, fullLine)
 
-		line = strings.TrimSpace(line)
+		line := strings.TrimSpace(fullLine)
 		if strings.HasPrefix(line, "#") {
 			continue
 		}
@@ -292,7 +326,7 @@ func parseConfig(in io.Reader, key, value string, cb parseFunc) []string {
 			oValue = value
 		}
 
-		newLine, skip := cb(fKey, wKey, oValue, comment)
+		newLine, skip := cb(fKey, wKey, oValue, comment, fullLine)
 		if skip {
 			// remove the last line
 			lines = lines[:len(lines)-1]
@@ -309,11 +343,11 @@ func parseConfig(in io.Reader, key, value string, cb parseFunc) []string {
 func NewFromMap(data map[string]string) *Config {
 	c := &Config{
 		readonly: true,
-		vars:     make(map[string]string, len(data)),
+		vars:     make(map[string][]string, len(data)),
 	}
 
 	for k, v := range data {
-		c.vars[k] = v
+		c.vars[k] = []string{v}
 	}
 
 	return c
@@ -337,11 +371,11 @@ func LoadConfig(fn string) (*Config, error) {
 // Invalid configs will be silently rejceted.
 func ParseConfig(r io.Reader) *Config {
 	c := &Config{
-		vars: make(map[string]string, 42),
+		vars: make(map[string][]string, 42),
 	}
 
-	lines := parseConfig(r, "", "", func(fk, k, v, comment string) (string, bool) {
-		c.vars[fk] = v
+	lines := parseConfig(r, "", "", func(fk, k, v, comment, _ string) (string, bool) {
+		c.vars[fk] = append(c.vars[fk], v)
 
 		return fmt.Sprintf(keyValueTpl, k, v, comment), false
 	})
@@ -369,7 +403,7 @@ func LoadConfigFromEnv(envPrefix string) *Config {
 		}
 	}
 
-	c.vars = make(map[string]string, count)
+	c.vars = make(map[string][]string, count)
 
 	for i := 0; i < count; i++ {
 		keyVar := fmt.Sprintf("%s%d", envPrefix+"_CONFIG_KEY_", i)
@@ -384,7 +418,7 @@ func LoadConfigFromEnv(envPrefix string) *Config {
 			}
 		}
 
-		c.vars[key] = value
+		c.vars[key] = append(c.vars[key], value)
 		debug.Log("added %s from env", key)
 	}
 

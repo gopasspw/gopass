@@ -233,7 +233,7 @@ func (s *Action) binaryGet(ctx context.Context, name string) ([]byte, error) {
 		return nil, fmt.Errorf("failed to read %q from the store: %w", name, err)
 	}
 
-	if cte, _ := sec.Get("content-transfer-encoding"); cte != "Base64" {
+	if cte, _ := sec.Get("Content-Transfer-Encoding"); cte != "Base64" {
 		// need to use sec.Bytes() otherwise the first line is missing.
 		return sec.Bytes(), nil
 	}

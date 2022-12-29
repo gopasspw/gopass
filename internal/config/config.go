@@ -107,6 +107,11 @@ func (c *Config) Get(key string) string {
 	return c.root.Get(key)
 }
 
+// GetAll returns all values for the given key.
+func (c *Config) GetAll(key string) []string {
+	return c.root.GetAll(key)
+}
+
 // GetM returns the given key from the mount or the root config if mount is empty.
 func (c *Config) GetM(mount, key string) string {
 	if mount == "" {

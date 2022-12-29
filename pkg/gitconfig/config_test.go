@@ -1,6 +1,7 @@
 package gitconfig
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"math/rand"
@@ -29,6 +30,50 @@ func TestInsertOnce(t *testing.T) {
 `, c.raw.String())
 }
 
+func TestInsertMultipleSameKey(t *testing.T) {
+	t.Parallel()
+
+	c := &Config{
+		noWrites: true,
+	}
+
+	assert.NoError(t, c.Set("foo.bar", "baz"))
+	assert.Equal(t, `[foo]
+	bar = baz
+`, c.raw.String())
+	assert.NoError(t, c.Set("foo.bar", "zab"))
+	assert.Equal(t, `[foo]
+	bar = zab
+`, c.raw.String())
+}
+
+func TestGetAll(t *testing.T) {
+	t.Parallel()
+
+	r := bytes.NewReader([]byte(`[core]
+	foo = bar
+	foo = zab
+	foo = 123
+`))
+
+	c := ParseConfig(r)
+	require.NotNil(t, c)
+	vs, found := c.GetAll("core.foo")
+	assert.True(t, found)
+	assert.Equal(t, []string{"bar", "zab", "123"}, vs)
+
+	assert.NoError(t, c.Set("core.foo", "456"))
+	vs, found = c.GetAll("core.foo")
+	assert.True(t, found)
+	assert.Equal(t, []string{"456", "zab", "123"}, vs)
+
+	assert.Equal(t, `[core]
+	foo = 456
+	foo = zab
+	foo = 123
+`, c.raw.String())
+}
+
 func TestSubsection(t *testing.T) {
 	t.Parallel()
 
@@ -41,7 +86,7 @@ func TestSubsection(t *testing.T) {
 	c := ParseConfig(strings.NewReader(in))
 	c.noWrites = true
 
-	assert.Equal(t, c.vars["aliases.subsection with spaces.foo"], "bar")
+	assert.Equal(t, []string{"bar"}, c.vars["aliases.subsection with spaces.foo"])
 }
 
 func TestParseSection(t *testing.T) {
@@ -184,7 +229,7 @@ func TestNewFromMap(t *testing.T) {
 
 	cfg := NewFromMap(tc)
 	for k, v := range tc {
-		assert.Equal(t, v, cfg.vars[k])
+		assert.Equal(t, []string{v}, cfg.vars[k])
 	}
 
 	assert.True(t, cfg.IsSet("core.foo"))
@@ -206,9 +251,17 @@ func TestLoadConfig(t *testing.T) {
 	cfg, err := LoadConfig(fn)
 	require.NoError(t, err)
 
-	assert.Equal(t, "7", cfg.vars["core.int"])
-	assert.Equal(t, "foo", cfg.vars["core.string"])
-	assert.Equal(t, "false", cfg.vars["core.bar"])
+	v, ok := cfg.Get("core.int")
+	assert.True(t, ok)
+	assert.Equal(t, "7", v)
+
+	v, ok = cfg.Get("core.string")
+	assert.True(t, ok)
+	assert.Equal(t, "foo", v)
+
+	v, ok = cfg.Get("core.bar")
+	assert.True(t, ok)
+	assert.Equal(t, "false", v)
 }
 
 func TestLoadFromEnv(t *testing.T) {
@@ -231,6 +284,8 @@ func TestLoadFromEnv(t *testing.T) {
 
 	cfg := LoadConfigFromEnv(prefix)
 	for k, v := range tc {
-		assert.Equal(t, v, cfg.vars[k])
+		got, ok := cfg.Get(k)
+		assert.True(t, ok)
+		assert.Equal(t, v, got)
 	}
 }

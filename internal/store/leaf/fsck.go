@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/gopasspw/gopass/internal/backend"
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/diff"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/queue"
@@ -43,6 +44,16 @@ func (s *Store) Fsck(ctx context.Context, path string) error {
 		return fmt.Errorf("storage backend compaction failed: %w", err)
 	}
 
+	// make sure all recipients are valid
+	debug.Log("Checking recipients")
+	if err := s.CheckRecipients(ctx); err != nil {
+		if IsCheckRecipients(ctx) {
+			return fmt.Errorf("invalid recipients found: %w", err)
+		}
+
+		out.Errorf(ctx, "Invalid recipients found: %s", err)
+	}
+
 	// then we'll make sure all the secrets are readable by us and every
 	// valid recipient
 	if path != "" {
@@ -51,6 +62,12 @@ func (s *Store) Fsck(ctx context.Context, path string) error {
 
 	if err := s.fsckLoop(ctx, path); err != nil {
 		return err
+	}
+
+	if !config.Bool(ctx, "core.autosync") {
+		debug.Log("not pushing to git remote, core.autosync is false")
+
+		return nil
 	}
 
 	if err := s.storage.Push(ctx, "", ""); err != nil {
