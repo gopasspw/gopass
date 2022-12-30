@@ -22,7 +22,6 @@ const (
 	ctxKeyGitInit
 	ctxKeyForce
 	ctxKeyCommitMessage
-	ctxKeyCommitMessageBody
 	ctxKeyNoNetwork
 	ctxKeyUsername
 	ctxKeyEmail
@@ -254,7 +253,7 @@ func IsForce(ctx context.Context) bool {
 
 // AddToCommitMessageBody returns a context with something added to the commit's body
 func AddToCommitMessageBody(ctx context.Context, sv string) context.Context {
-	ht, ok := ctx.Value(ctxKeyCommitMessageBody).(*HeadedText)
+	ht, ok := ctx.Value(ctxKeyCommitMessage).(*HeadedText)
 	if !ok {
 		var headedText HeadedText
 		ht = &headedText
@@ -266,7 +265,7 @@ func AddToCommitMessageBody(ctx context.Context, sv string) context.Context {
 
 // HasCommitMessageBody returns true if the commit message body is nonempty.
 func HasCommitMessageBody(ctx context.Context) bool {
-	ht, ok := ctx.Value(ctxKeyCommitMessageBody).(*HeadedText)
+	ht, ok := ctx.Value(ctxKeyCommitMessage).(*HeadedText)
 	if !ok {
 		return false
 	}
@@ -275,7 +274,7 @@ func HasCommitMessageBody(ctx context.Context) bool {
 
 // GetCommitMessageBody returns the set commit message body or an empty string.
 func GetCommitMessageBody(ctx context.Context) string {
-	ht, ok := ctx.Value(ctxKeyCommitMessageBody).(*HeadedText)
+	ht, ok := ctx.Value(ctxKeyCommitMessage).(*HeadedText)
 	if !ok {
 		return ""
 	}

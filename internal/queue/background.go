@@ -63,7 +63,7 @@ func (n *noop) Idle(_ time.Duration) error {
 }
 
 // Task is a background task.
-type Task func(ctx context.Context) (context.Context,error)
+type Task func(ctx context.Context) (context.Context, error)
 
 // Queue is a serialized background processing unit.
 type Queue struct {
@@ -84,7 +84,7 @@ func New(ctx context.Context) *Queue {
 
 func (q *Queue) run(ctx context.Context) {
 	for t := range q.work {
-		ctx2,err := t(ctx)
+		ctx2, err := t(ctx)
 		if err != nil {
 			out.Errorf(ctx, "Task failed: %s", err)
 		}
@@ -105,8 +105,8 @@ func (q *Queue) Add(t Task) Task {
 	q.work <- t
 	debug.Log("enqueued task")
 
-	return func(ctx2 context.Context) (context.Context,error) {
-		return ctx2,nil
+	return func(ctx2 context.Context) (context.Context, error) {
+		return ctx2, nil
 	}
 }
 

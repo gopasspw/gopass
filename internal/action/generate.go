@@ -2,6 +2,7 @@ package action
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"path"
@@ -9,12 +10,11 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-	"errors"
 
 	"github.com/gopasspw/gopass/internal/action/exit"
-	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/internal/tree"
 	"github.com/gopasspw/gopass/pkg/clipboard"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -359,7 +359,7 @@ func (s *Action) generateSetPassword(ctx context.Context, name, key, password st
 			if !errors.Is(err, store.ErrMeaninglessWrite) {
 				return ctx, exit.Error(exit.Encrypt, err, "failed to set key %q of %q: %s", key, name, err)
 			}
-			out.Errorf(ctx, "Password generation somehow obtained the same password as before: you might want to check your system's entropy pool")	
+			out.Errorf(ctx, "Password generation somehow obtained the same password as before: you might want to check your system's entropy pool")
 		}
 
 		return ctx, nil
@@ -395,7 +395,7 @@ func (s *Action) generateSetPassword(ctx context.Context, name, key, password st
 
 	if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, "Generated Password"), name, sec); err != nil {
 		if !errors.Is(err, store.ErrMeaninglessWrite) {
-		       	return ctx, exit.Error(exit.Encrypt, err, "failed to create %q: %s", name, err)
+			return ctx, exit.Error(exit.Encrypt, err, "failed to create %q: %s", name, err)
 		}
 		out.Errorf(ctx, "Password generation somehow obtained the same password as before: you might want to check your system's entropy pool")
 	}

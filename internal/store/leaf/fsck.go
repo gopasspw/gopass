@@ -168,12 +168,13 @@ func (s *Store) fsckCheckEntry(ctx context.Context, name string) (string, ErrorS
 
 	errs, err := s.fsckCheckRecipients(ctx, name)
 	if err != nil {
-		if errs >= errsFatal {
+		if errs == errsFatal {
 			return "", errsFatal, fmt.Errorf("Checking recipients for %s failed:\n    %s", name, err)
 		}
 		// the only errsNonFatal error from that function are missing/extra recipients,
 		// which isn't much of an error since we have yet to correct that.
 		recpNeedFix = true
+		errcoll += err.Error()
 	}
 
 	// make sure we are actually allowed to decode this secret
