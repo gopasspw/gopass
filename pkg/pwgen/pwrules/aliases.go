@@ -37,22 +37,24 @@ func AllAliases(ctx context.Context) map[string][]string {
 }
 
 func loadCustomAliases(ctx context.Context) map[string][]string {
+	cfg := config.FromContext(ctx)
 	customAliases := make(map[string][]string, 128)
 	for _, k := range set.SortedFiltered(config.FromContext(ctx).Keys(""), func(k string) bool {
 		return strings.HasPrefix(k, "domain-alias.") && strings.HasSuffix(k, ".insteadOf")
 	}) {
-		from := config.String(ctx, k)
-		to := strings.TrimSuffix(strings.TrimPrefix(k, "domain-alias."), ".insteadOf")
-		debug.Log("Loading alias: %q -> %q", from, to)
-		if e, found := customAliases[from]; found {
-			e = append(e, to)
-			sort.Strings(e)
-			customAliases[from] = e
+		for _, from := range cfg.GetAll(k) {
+			to := strings.TrimSuffix(strings.TrimPrefix(k, "domain-alias."), ".insteadOf")
+			debug.Log("Loading alias: %q -> %q", from, to)
+			if e, found := customAliases[from]; found {
+				e = append(e, to)
+				sort.Strings(e)
+				customAliases[from] = e
 
-			continue
+				continue
+			}
+
+			customAliases[from] = []string{to}
 		}
-
-		customAliases[from] = []string{to}
 	}
 
 	return customAliases

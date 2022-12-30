@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/queue"
 	"github.com/gopasspw/gopass/internal/store"
@@ -171,6 +172,12 @@ func (s *Store) delete(ctx context.Context, name string, recurse bool) error {
 		default:
 			return fmt.Errorf("failed to commit changes to git: %w", err)
 		}
+	}
+
+	if !config.Bool(ctx, "core.autosync") {
+		debug.Log("not pushing to git remote, core.autosync is false")
+
+		return nil
 	}
 
 	if err := s.storage.Push(ctx, "", ""); err != nil {

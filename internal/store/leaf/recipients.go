@@ -464,6 +464,12 @@ func (s *Store) saveRecipients(ctx context.Context, rs recipientMarshaler, msg s
 		debug.Log("updating exported keys not requested")
 	}
 
+	if !config.Bool(ctx, "core.autosync") {
+		debug.Log("not pushing to git remote, core.autosync is false")
+
+		return nil
+	}
+
 	// push to remote repo
 	if err := s.storage.Push(ctx, "", ""); err != nil {
 		if errors.Is(err, store.ErrGitNotInit) {

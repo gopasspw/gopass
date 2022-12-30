@@ -4,8 +4,9 @@ import (
 	"crypto/rand"
 	"io/ioutil"
 	"os"
-	"os/user"
 	"path/filepath"
+	"runtime"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -34,21 +35,21 @@ func TestCleanPath(t *testing.T) {
 		"/home/user/../bob/.password-store": "/home/bob/.password-store",
 		"/home/user//.password-store":       "/home/user/.password-store",
 		tempdir + "/foo.gpg":                tempdir + "/foo.gpg",
-	}
-
-	usr, err := user.Current()
-	if err == nil {
-		hd := usr.HomeDir
-		if gph := os.Getenv("GOPASS_HOMEDIR"); gph != "" {
-			hd = gph
-		}
-
-		m["~/.password-store"] = hd + "/.password-store"
+		"~/.password-store":                 "~/.password-store",
 	}
 
 	for in, out := range m {
 		got := CleanPath(in)
 
+		if strings.HasPrefix(out, "~") {
+			// skip these tests on windows
+			if runtime.GOOS == "windows" {
+				continue
+			}
+			assert.Equal(t, out, got)
+
+			continue
+		}
 		// filepath.Abs turns /home/bob into C:\home\bob on Windows
 		absOut, err := filepath.Abs(out)
 		assert.NoError(t, err)

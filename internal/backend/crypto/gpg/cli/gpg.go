@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/gopasspw/gopass/internal/backend/crypto/gpg"
 	"github.com/gopasspw/gopass/internal/backend/crypto/gpg/gpgconf"
@@ -22,6 +23,8 @@ var (
 	IDFile = ".gpg-id"
 	// Name is the name of this backend.
 	Name = "gpg"
+	// Timeout is the time allow for gpg invocations to complete.
+	Timeout = time.Minute
 )
 
 // GPG is a gpg wrapper.

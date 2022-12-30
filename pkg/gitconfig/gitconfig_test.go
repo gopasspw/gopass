@@ -298,9 +298,7 @@ func TestGopass(t *testing.T) {
 	assert.Equal(t, "false", c.Get("core.pager"))
 	assert.Equal(t, "true", c.Get("core.notifications"))
 	assert.Equal(t, "false", c.Get("core.showsafecontent"))
-	assert.Equal(t, "foo.it", c.Get("domain-alias.foo.com.insteadOf"))
-	// TODO: support multivars
-	// foo.de should be part of a multi-var get
+	assert.Equal(t, []string{"foo.de", "foo.it"}, c.GetAll("domain-alias.foo.com.insteadOf"))
 
 	assert.Equal(t, "/home/johndoe/.password-store", c.Get("mounts.path"))
 	assert.Equal(t, "/home/johndoe/.password-store-foo-sub", c.Get("mounts.foo/sub.path"))
@@ -329,7 +327,11 @@ func TestParseSimple(t *testing.T) {
 		"http.https://weak.example.com.cookieFile": "/tmp/cookie.txt",
 	}
 
-	assert.Equal(t, want, c.vars)
+	for k, w := range want {
+		v, ok := c.Get(k)
+		assert.True(t, ok)
+		assert.Equal(t, w, v)
+	}
 }
 
 func TestParseComplex(t *testing.T) {
@@ -338,7 +340,10 @@ func TestParseComplex(t *testing.T) {
 	c := ParseConfig(strings.NewReader(configSampleComplex))
 
 	assert.Contains(t, maps.Keys(c.vars), "core.sshCommand")
-	assert.Equal(t, "ssh -oControlMaster=auto -oControlPersist=600 -oControlPath=/tmp/.ssh-%C", c.vars["core.sshCommand"])
+
+	v, ok := c.Get("core.sshCommand")
+	assert.True(t, ok)
+	assert.Equal(t, "ssh -oControlMaster=auto -oControlPersist=600 -oControlPath=/tmp/.ssh-%C", v)
 }
 
 func TestParseDocs(t *testing.T) {
@@ -349,7 +354,9 @@ func TestParseDocs(t *testing.T) {
 	// TODO(#2479) - fix parsing
 	t.Skip("TODO - broken")
 
-	assert.Equal(t, "ssh -oControlMaster=auto -oControlPersist=600 -oControlPath=/tmp/.ssh-%C", c.vars["core.sshCommand"])
+	v, ok := c.Get("core.sshCommand")
+	assert.True(t, ok)
+	assert.Equal(t, "ssh -oControlMaster=auto -oControlPersist=600 -oControlPath=/tmp/.ssh-%C", v)
 }
 
 func TestGitBinary(t *testing.T) {
@@ -430,7 +437,11 @@ func TestSetEmptyConfig(t *testing.T) {
 	}
 	assert.Error(t, c.Set("foobar", "baz"))
 	assert.NoError(t, c.Set("foo.bar", "baz"))
-	assert.Equal(t, "baz", c.vars["foo.bar"])
+
+	v, ok := c.Get("foo.bar")
+	assert.True(t, ok)
+	assert.Equal(t, "baz", v)
+
 	buf, err := os.ReadFile(c.path)
 	require.NoError(t, err)
 	assert.Equal(t, "[foo]\n\tbar = baz\n", string(buf))
