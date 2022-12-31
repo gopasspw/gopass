@@ -27,6 +27,7 @@ import (
 	"github.com/gopasspw/gopass/internal/backend/crypto/gpg"
 	_ "github.com/gopasspw/gopass/internal/backend/storage"
 	"github.com/gopasspw/gopass/internal/config"
+	"github.com/gopasspw/gopass/internal/hook"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/queue"
 	"github.com/gopasspw/gopass/internal/store/leaf"
@@ -185,7 +186,37 @@ func getCommands(action *ap.Action, app *cli.App) []*cli.Command {
 	cmds = append(cmds, pwgen.GetCommands()...)
 	sort.Slice(cmds, func(i, j int) bool { return cmds[i].Name < cmds[j].Name })
 
+	for i, cmd := range cmds {
+		// fmt.Printf("[%6d - %10s] Before: %p - After %p\n", i, cmds[i].Name, cmds[i].Before, cmds[i].After)
+		cmds[i].Before = mkHookFn("core.pre-hook", cmd.Name, action.Store, cmd.Before)
+		cmds[i].After = mkHookFn("core.post-hook", cmd.Name, action.Store, cmd.After)
+		// fmt.Printf("[%6d - %10s] Before: %p - After %p\n", i, cmds[i].Name, cmds[i].Before, cmds[i].After)
+		// fmt.Println()
+	}
+
 	return cmds
+}
+
+type pathGetter interface {
+	Path() string
+}
+
+func mkHookFn(hookName, cmdName string, s pathGetter, fn func(c *cli.Context) error) func(c *cli.Context) error {
+	if fn == nil {
+		return func(c *cli.Context) error {
+			dir := config.String(c.Context, "mounts.path")
+
+			return hook.Invoke(c.Context, hookName, dir, cmdName)
+		}
+	}
+
+	return func(c *cli.Context) error {
+		if err := fn(c); err != nil {
+			return err
+		}
+
+		return hook.Invoke(c.Context, hookName, s.Path(), cmdName, c.Args().First())
+	}
 }
 
 func parseBuildInfo() (string, string, string) {

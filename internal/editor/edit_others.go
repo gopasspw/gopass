@@ -6,6 +6,7 @@ package editor
 import (
 	"os"
 
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/urfave/cli/v2"
 )
 
@@ -15,6 +16,10 @@ func Path(c *cli.Context) string {
 		if ed := c.String("editor"); ed != "" {
 			return ed
 		}
+	}
+
+	if ed := config.String(c.Context, "edit.editor"); ed != "" {
+		return ed
 	}
 
 	if ed := os.Getenv("EDITOR"); ed != "" {

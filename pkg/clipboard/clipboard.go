@@ -45,7 +45,12 @@ func CopyTo(ctx context.Context, name string, content []byte, timeout int) error
 	}
 
 	if timeout < 1 {
-		timeout = 45
+		debug.Log("Auto-clear of clipboard disabled.")
+
+		out.Printf(ctx, "✔ Copied %s to clipboard.", color.YellowString(name))
+		_ = notify.Notify(ctx, "gopass - clipboard", fmt.Sprintf("✔ Copied %s to clipboard.", name))
+
+		return nil
 	}
 
 	if err := clear(ctx, name, content, timeout); err != nil {

@@ -9,6 +9,7 @@ import (
 	"github.com/gopasspw/gopass/internal/action/exit"
 	"github.com/gopasspw/gopass/internal/audit"
 	"github.com/gopasspw/gopass/internal/editor"
+	"github.com/gopasspw/gopass/internal/hook"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -27,11 +28,19 @@ func (s *Action) Edit(c *cli.Context) error {
 		return exit.Error(exit.Usage, nil, "Usage: %s edit secret", s.Name)
 	}
 
+	if err := hook.Invoke(ctx, "edit.pre-hook", name); err != nil {
+		return exit.Error(exit.Hook, err, "edit.pre-hook failed: %s", err)
+	}
+
 	if err := s.Store.CheckRecipients(ctx, name); err != nil {
 		return exit.Error(exit.Recipients, err, "Invalid recipients detected: %s", err)
 	}
 
-	return s.edit(ctx, c, name)
+	if err := s.edit(ctx, c, name); err != nil {
+		return err
+	}
+
+	return hook.InvokeRoot(ctx, "edit.post-hook", name, s.Store)
 }
 
 func (s *Action) edit(ctx context.Context, c *cli.Context, name string) error {
