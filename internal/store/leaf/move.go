@@ -128,6 +128,7 @@ func (s *Store) directMove(ctx context.Context, from, to string, del bool) error
 	})
 
 	_, err := t(ctx)
+
 	return err
 }
 

@@ -41,5 +41,6 @@ func (s *Store) Link(ctx context.Context, from, to string) error {
 	})
 
 	_, err := t(ctx)
+
 	return err
 }

@@ -18,7 +18,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/gopass"
 )
 
-// a way for a function to specify how severe of an error it experienced
+// a way for a function to specify how severe of an error it experienced.
 type ErrorSeverity int
 
 const (
@@ -134,6 +134,7 @@ func (s *Store) fsckLoop(ctx context.Context, path string) error {
 	if ctxutil.GetCommitMessageBody(ctx) == "" {
 		if errcoll.Len() > 0 {
 			out.Errorf(ctx, "Nothing to commit: all secrets that were not up to date failed to be updated")
+
 			return nil
 		}
 		out.Warningf(ctx, "Nothing to commit: all secrets up to date")
@@ -186,7 +187,7 @@ func (s *Store) fsckCheckEntry(ctx context.Context, name string) (string, ErrorS
 	errs, err := s.fsckCheckRecipients(ctx, name)
 	if err != nil {
 		if errs == errsFatal {
-			return "", errsFatal, fmt.Errorf("Checking recipients for %s failed:\n    %s", name, err)
+			return "", errsFatal, fmt.Errorf("Checking recipients for %s failed:\n    %w", name, err)
 		}
 		// the only errsNonFatal error from that function are missing/extra recipients,
 		// which isn't much of an error since we have yet to correct that.
@@ -200,6 +201,7 @@ func (s *Store) fsckCheckEntry(ctx context.Context, name string) (string, ErrorS
 		if !recpNeedFix {
 			return "", errsNil, nil
 		}
+
 		return "", errsFatal, fmt.Errorf(errcoll + "\nRun fsck with the --decrypt flag to re-encrypt it automatically, or edit this secret yourself.")
 	}
 
@@ -207,7 +209,7 @@ func (s *Store) fsckCheckEntry(ctx context.Context, name string) (string, ErrorS
 	ctx = ctxutil.WithShowParsing(ctx, true)
 	sec, err := s.Get(ctx, name)
 	if err != nil {
-		return "", errsFatal, fmt.Errorf("failed to decode secret %s: %s", name, err.Error())
+		return "", errsFatal, fmt.Errorf("failed to decode secret %s: %w", name, err)
 	}
 
 	// check if this is still an old MIME secret.
@@ -226,13 +228,13 @@ func (s *Store) fsckCheckEntry(ctx context.Context, name string) (string, ErrorS
 		out.Printf(ctx, "Re-encrypting %s to fix storage format. [leaf store]", name)
 	}
 	if err := s.Set(ctxutil.WithGitCommit(ctx, false), name, sec); err != nil {
-		return "", errsFatal, fmt.Errorf("failed to write secret %s: %s", name, err.Error())
+		return "", errsFatal, fmt.Errorf("failed to write secret %s: %w", name, err)
 	}
 
 	errs, err = s.fsckCheckRecipients(ctx, name)
 	if err != nil {
 		if errs == errsFatal {
-			errcoll += fmt.Errorf("Checking recipients for %s failed:\n    %s", name, err).Error()
+			errcoll += fmt.Errorf("Checking recipients for %s failed:\n    %w", name, err).Error()
 		} else {
 			errcoll += err.Error()
 		}
@@ -278,6 +280,7 @@ func (s *Store) fsckCheckRecipients(ctx context.Context, name string) (ErrorSeve
 	if len(extra) > 0 {
 		return errsNonFatal, fmt.Errorf("Extra recipients on %s: %+v\nRun fsck with the --decrypt flag to re-encrypt it automatically, or edit this secret yourself.", name, extra)
 	}
+
 	return errsNil, nil
 }
 

@@ -251,7 +251,7 @@ func IsForce(ctx context.Context) bool {
 	return is(ctx, ctxKeyForce, false)
 }
 
-// AddToCommitMessageBody returns a context with something added to the commit's body
+// AddToCommitMessageBody returns a context with something added to the commit's body.
 func AddToCommitMessageBody(ctx context.Context, sv string) context.Context {
 	ht, ok := ctx.Value(ctxKeyCommitMessage).(*HeadedText)
 	if !ok {
@@ -260,6 +260,7 @@ func AddToCommitMessageBody(ctx context.Context, sv string) context.Context {
 		ctx = context.WithValue(ctx, ctxKeyCommitMessage, ht)
 	}
 	ht.AddToBody(sv)
+
 	return ctx
 }
 
@@ -269,6 +270,7 @@ func HasCommitMessageBody(ctx context.Context) bool {
 	if !ok {
 		return false
 	}
+
 	return ht.HasBody()
 }
 
@@ -278,11 +280,12 @@ func GetCommitMessageBody(ctx context.Context) string {
 	if !ok {
 		return ""
 	}
+
 	return ht.GetBody()
 }
 
 // WithCommitMessage returns a context with a commit message (head) set.
-// (full commit message is the commit message's body is not defined, commit messahe head otherwise)
+// (full commit message is the commit message's body is not defined, commit messahe head otherwise).
 func WithCommitMessage(ctx context.Context, sv string) context.Context {
 	ht, ok := ctx.Value(ctxKeyCommitMessage).(*HeadedText)
 	if !ok {
@@ -291,12 +294,14 @@ func WithCommitMessage(ctx context.Context, sv string) context.Context {
 		ctx = context.WithValue(ctx, ctxKeyCommitMessage, ht)
 	}
 	ht.SetHead(sv)
+
 	return ctx
 }
 
 // HasCommitMessage returns true if the commit message (head) was set.
 func HasCommitMessage(ctx context.Context) bool {
 	ht, ok := ctx.Value(ctxKeyCommitMessage).(*HeadedText)
+
 	return ok && ht.head != "" // not the most intuitive answer, but a backwards-compatible one. for now.
 }
 
@@ -306,6 +311,7 @@ func GetCommitMessage(ctx context.Context) string {
 	if !ok {
 		return ""
 	}
+
 	return ht.head
 }
 
@@ -315,6 +321,7 @@ func GetCommitMessageFull(ctx context.Context) string {
 	if !ok {
 		return ""
 	}
+
 	return ht.GetText()
 }
 

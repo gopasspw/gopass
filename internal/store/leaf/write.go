@@ -74,6 +74,7 @@ func (s *Store) Set(ctx context.Context, name string, sec gopass.Byter) error {
 	})
 
 	ctx, err = t(ctx)
+
 	return err
 }
 

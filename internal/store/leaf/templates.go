@@ -119,6 +119,7 @@ func (s *Store) SetTemplate(ctx context.Context, name string, content []byte) er
 		if errors.Is(err, store.ErrMeaninglessWrite) {
 			return nil
 		}
+
 		return fmt.Errorf("failed to write template: %w", err)
 	}
 

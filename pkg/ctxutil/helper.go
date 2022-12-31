@@ -1,7 +1,9 @@
 package ctxutil
 
-import "strings"
-import "context"
+import (
+	"context"
+	"strings"
+)
 
 // hasString is a helper function for checking if a string has been set in
 // the provided context.
@@ -26,6 +28,7 @@ func is(ctx context.Context, key contextKey, def bool) bool {
 	if !ok {
 		return def
 	}
+
 	return bv
 }
 
@@ -47,10 +50,12 @@ func (h *HeadedText) AddToBody(s string) {
 		var realBody strings.Builder
 		h.body = &realBody
 		realBody.WriteString(s)
+
 		return
 	}
 	(*h.body).WriteString("\n" + s)
 }
+
 func (h *HeadedText) ClearBody() {
 	h.body = nil
 }
@@ -59,11 +64,13 @@ func (h *HeadedText) GetBody() string {
 	if h.body == nil {
 		return ""
 	}
+
 	return (*h.body).String()
 }
 
 func (h *HeadedText) HasBody() bool {
 	ok := h.body != nil
+
 	return ok && (*h.body).Len() > 0
 }
 
@@ -78,6 +85,6 @@ func (h *HeadedText) GetText() string {
 	if body == "" {
 		return h.head
 	}
-	return h.head + "\n\n" + body
 
+	return h.head + "\n\n" + body
 }

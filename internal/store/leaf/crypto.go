@@ -172,8 +172,10 @@ func (s *Store) getPublicKey(ctx context.Context, r string) ([]byte, error) {
 			continue
 		}
 		pk, err := s.storage.Get(ctx, filename)
+
 		return pk, err
 	}
+
 	return nil, fmt.Errorf("public key not found in store")
 }
 
@@ -190,6 +192,7 @@ func (s *Store) importPublicKey(ctx context.Context, r string) error {
 	if err != nil {
 		return err
 	}
+
 	return im.ImportPublicKey(ctx, pk)
 }
 

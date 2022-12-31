@@ -23,7 +23,7 @@ var (
 	ErrGitNothingToCommit = fmt.Errorf("git has nothing to commit")
 	// ErrEmptySecret is returned if a secret exists but has no content.
 	ErrEmptySecret = fmt.Errorf("empty secret. see https://go.gopass.pw/faq#empty-secret")
-	// ErrMeaninglessWrite is returned if a secret is overwritten with its current (ciphertext) content
+	// ErrMeaninglessWrite is returned if a secret is overwritten with its current (ciphertext) content.
 	ErrMeaninglessWrite = fmt.Errorf("meaningless write")
 	// ErrNoBody is returned if a secret exists but has no content beyond a password.
 	ErrNoBody = fmt.Errorf("no safe content to display, you can force display with -f")
