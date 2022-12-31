@@ -9,7 +9,9 @@ import (
 	"strings"
 
 	"github.com/gopasspw/gopass/internal/backend"
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/cui"
+	"github.com/gopasspw/gopass/internal/hook"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/set"
 	"github.com/gopasspw/gopass/internal/store/root"
@@ -151,6 +153,10 @@ func mkActFunc(tpl Template, s *root.Store, cb ActionCallback) func(context.Cont
 		store := c.String("store")
 		force := c.Bool("force")
 
+		if err := hook.Invoke(ctx, "create.pre-hook", name); err != nil {
+			return err
+		}
+
 		sec := secrets.New()
 
 		out.Print(ctx, tpl.Welcome)
@@ -193,7 +199,11 @@ func mkActFunc(tpl Template, s *root.Store, cb ActionCallback) func(context.Cont
 				}
 				_ = sec.Set(k, sv)
 			case "hostname":
-				sv, err := termio.AskForString(ctx, fmtfn(2, strconv.Itoa(step), v.Prompt), "")
+				var def string
+				if k == "username" {
+					def = config.String(ctx, "create.default-username")
+				}
+				sv, err := termio.AskForString(ctx, fmtfn(2, strconv.Itoa(step), v.Prompt), def)
 				if err != nil {
 					return err
 				}

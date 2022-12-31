@@ -50,6 +50,8 @@ const (
 	IO
 	// GPG is used for misc. gpg errors.
 	GPG
+	// Hook is used for Hook failures.
+	Hook
 )
 
 // Error returns a user friendly CLI error.

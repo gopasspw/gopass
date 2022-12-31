@@ -7,6 +7,7 @@ import (
 	"github.com/gopasspw/gopass/internal/action/exit"
 	"github.com/gopasspw/gopass/internal/create"
 	"github.com/gopasspw/gopass/internal/cui"
+	"github.com/gopasspw/gopass/internal/hook"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/clipboard"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -53,5 +54,5 @@ func (s *Action) createPrintOrCopy(ctx context.Context, c *cli.Context, name, pa
 		return exit.Error(exit.IO, err, "failed to copy to clipboard: %s", err)
 	}
 
-	return nil
+	return hook.InvokeRoot(ctx, "create.post-hook", name, s.Store)
 }

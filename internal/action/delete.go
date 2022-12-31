@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/gopasspw/gopass/internal/action/exit"
+	"github.com/gopasspw/gopass/internal/hook"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/termio"
@@ -73,6 +74,10 @@ func (s *Action) Delete(c *cli.Context) error {
 		if err := s.Store.Delete(ctx, name); err != nil {
 			return exit.Error(exit.IO, err, "Can not delete %q: %s", name, err)
 		}
+
+		if err := hook.InvokeRoot(ctx, "delete.post-hook", name, s.Store); err != nil {
+			return exit.Error(exit.Hook, err, "Hook failed for %s: %s", name, err)
+		}
 	}
 
 	return nil
@@ -107,5 +112,5 @@ func (s *Action) deleteKeyFromYAML(ctx context.Context, name, key string) error 
 		return exit.Error(exit.IO, err, "Can not delete key %q from %q: %s", key, name, err)
 	}
 
-	return nil
+	return hook.Invoke(ctx, "delete.post-hook", name, key)
 }
