@@ -3,7 +3,7 @@ module github.com/gopasspw/gopass
 go 1.18
 
 require (
-	filippo.io/age v1.0.0
+	filippo.io/age v1.1.1
 	github.com/ProtonMail/go-crypto v0.0.0-20221026131551-cf6655e29de4
 	github.com/atotto/clipboard v0.1.4
 	github.com/blang/semver/v4 v4.0.0
@@ -23,7 +23,7 @@ require (
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
 	github.com/martinhoefling/goxkcdpwgen v0.1.2-0.20221205222637-737661b92a0e
 	github.com/mattn/go-colorable v0.1.13
-	github.com/mattn/go-isatty v0.0.16
+	github.com/mattn/go-isatty v0.0.17
 	github.com/mattn/go-tty v0.0.4
 	github.com/mitchellh/go-ps v1.0.0
 	github.com/muesli/crunchy v0.4.0
@@ -36,7 +36,7 @@ require (
 	github.com/urfave/cli/v2 v2.23.7
 	github.com/zalando/go-keyring v0.2.1
 	golang.org/x/crypto v0.4.0
-	golang.org/x/exp v0.0.0-20221217163422-3c43f8badb15
+	golang.org/x/exp v0.0.0-20221230185412-738e83a70c30
 	golang.org/x/net v0.4.0
 	golang.org/x/oauth2 v0.3.0
 	golang.org/x/sys v0.3.0
@@ -48,7 +48,7 @@ require (
 	filippo.io/edwards25519 v1.0.0 // indirect
 	github.com/alessio/shellescape v1.4.1 // indirect
 	github.com/boombuler/barcode v1.0.1 // indirect
-	github.com/cloudflare/circl v1.3.0 // indirect
+	github.com/cloudflare/circl v1.3.1 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
 	github.com/danieljoos/wincred v1.1.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect

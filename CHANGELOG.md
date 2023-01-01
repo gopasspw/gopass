@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.15.3-rc1 / 2023-01-01
+
+* [BUGFIX] Check recipients before launching editor. (#2488, #1565)
+* [BUGFIX] Fix possible concurrency issues in fsck. (#2486, #2459)
+* [BUGFIX] Honor core.autosync (#2497, #2495)
+* [BUGFIX] Honor fuzzy search abort (#2491, #2490)
+* [ENHANCEMENT] Check recipients before adding a new one. (#2487, #1918)
+* [ENHANCEMENT] Do not enforce lower case keys (#2489, #1777)
+* [ENHANCEMENT] Do not rewrite ~. (#2496, #2083)
+* [ENHANCEMENT] gitconfig: Support MultiVars (#2476, #2457)
+
 ## 1.15.2 / 2022-12-18
 
 * [BUGFIX] [gitconfig] Properly parse Key-Value pairs with (#2482, #2479)

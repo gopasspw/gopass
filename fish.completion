@@ -144,6 +144,7 @@ complete -c $PROG -f -n '__fish_gopass_uses_command list' -a "(__fish_gopass_pri
 complete -c $PROG -f -n '__fish_gopass_needs_command' -a merge -d 'Command: Merge multiple secrets into one'
 complete -c $PROG -f -n '__fish_gopass_needs_command' -a mounts -d 'Command: Edit mounted stores'
 complete -c $PROG -f -n '__fish_gopass_uses_command mounts' -a add -d 'Subcommand: Mount a password store'
+complete -c $PROG -f -n '__fish_gopass_uses_command mounts add -l create -d "Create a new store at this location"'
 complete -c $PROG -f -n '__fish_gopass_uses_command mounts add -l yes -d "Always answer yes to yes/no questions"'
 complete -c $PROG -f -n '__fish_gopass_uses_command mounts add -l clip -d "Copy the password value into the clipboard"'
 complete -c $PROG -f -n '__fish_gopass_uses_command mounts add -l alsoclip -d "Copy the password and show everything"'
