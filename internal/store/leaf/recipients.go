@@ -311,10 +311,6 @@ func (s *Store) getRecipients(ctx context.Context, idf string) (*recipients.Reci
 	return rs, nil
 }
 
-type keyExporter interface {
-	ExportPublicKey(ctx context.Context, id string) ([]byte, error)
-}
-
 // UpdateExportedPublicKeys will export any possibly missing public keys to the
 // stores .public-keys directory.
 func (s *Store) UpdateExportedPublicKeys(ctx context.Context, rs []string) (bool, error) {
@@ -401,7 +397,7 @@ func (s *Store) UpdateExportedPublicKeys(ctx context.Context, rs []string) (bool
 		debug.Log("Removed extra key %s", key)
 	}
 
-	if exported {
+	if exported && ctxutil.IsGitCommit(ctx) {
 		if err := s.storage.Commit(ctx, fmt.Sprintf("Updated exported Public Keys")); err != nil && !errors.Is(err, store.ErrGitNothingToCommit) {
 			failed = true
 
@@ -435,7 +431,11 @@ func (s *Store) saveRecipients(ctx context.Context, rs recipientMarshaler, msg s
 
 	buf := rs.Marshal()
 	if err := s.storage.Set(ctx, idf, buf); err != nil {
-		return fmt.Errorf("failed to write recipients file: %w", err)
+		if !errors.Is(err, store.ErrMeaninglessWrite) {
+			return fmt.Errorf("failed to write recipients file: %w", err)
+		}
+
+		return nil // No need to overwrite recipients file
 	}
 
 	if err := s.storage.Add(ctx, idf); err != nil {

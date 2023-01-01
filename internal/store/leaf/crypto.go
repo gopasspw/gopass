@@ -1,13 +1,16 @@
 package leaf
 
 import (
+	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"path/filepath"
 
 	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/internal/backend/crypto/age"
 	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
 )
@@ -56,10 +59,19 @@ func (s *Store) ImportMissingPublicKeys(ctx context.Context, newrs ...string) er
 			debug.Log("Failed to get public key for %s: %s", r, err)
 		}
 
-		if !IsPubkeyUpdate(ctx) && len(kl) > 0 {
+		if len(kl) > 0 {
 			debug.Log("Keyring contains %d public keys for %s", len(kl), r)
-
-			continue
+			if !IsPubkeyUpdate(ctx) {
+				continue
+			}
+			ex, ok := s.crypto.(keyExporter)
+			if ok {
+				pk, err := ex.ExportPublicKey(ctx, r)
+				pk2, err2 := s.getPublicKey(ctx, r)
+				if err == nil && err2 == nil && bytes.Equal(pk, pk2) {
+					continue
+				}
+			}
 		}
 
 		// get info about this public key
@@ -133,7 +145,10 @@ func (s *Store) exportPublicKey(ctx context.Context, exp keyExporter, r string) 
 	}
 
 	if err := s.storage.Set(ctx, filename, pk); err != nil {
-		return "", fmt.Errorf("failed to write exported public key to store: %w", err)
+		if !errors.Is(err, store.ErrMeaninglessWrite) {
+			return "", fmt.Errorf("failed to write exported public key to store: %w", err)
+		}
+		debug.Log("No need to write exported public key %s: already stored", r)
 	}
 
 	debug.Log("exported public keys for %s to %s", r, filename)
@@ -143,6 +158,25 @@ func (s *Store) exportPublicKey(ctx context.Context, exp keyExporter, r string) 
 
 type keyImporter interface {
 	ImportPublicKey(ctx context.Context, key []byte) error
+}
+type keyExporter interface {
+	ExportPublicKey(ctx context.Context, id string) ([]byte, error)
+}
+
+func (s *Store) getPublicKey(ctx context.Context, r string) ([]byte, error) {
+	for _, kd := range []string{keyDir, oldKeyDir} {
+		filename := filepath.Join(kd, r)
+		if !s.storage.Exists(ctx, filename) {
+			debug.Log("Public Key %s not found at %s", r, filename)
+
+			continue
+		}
+		pk, err := s.storage.Get(ctx, filename)
+
+		return pk, err
+	}
+
+	return nil, fmt.Errorf("public key not found in store")
 }
 
 // import an public key into the default keyring.
@@ -154,22 +188,12 @@ func (s *Store) importPublicKey(ctx context.Context, r string) error {
 		return nil
 	}
 
-	for _, kd := range []string{keyDir, oldKeyDir} {
-		filename := filepath.Join(kd, r)
-		if !s.storage.Exists(ctx, filename) {
-			debug.Log("Public Key %s not found at %s", r, filename)
-
-			continue
-		}
-		pk, err := s.storage.Get(ctx, filename)
-		if err != nil {
-			return err
-		}
-
-		return im.ImportPublicKey(ctx, pk)
+	pk, err := s.getPublicKey(ctx, r)
+	if err != nil {
+		return err
 	}
 
-	return fmt.Errorf("public key not found in store")
+	return im.ImportPublicKey(ctx, pk)
 }
 
 type locker interface {

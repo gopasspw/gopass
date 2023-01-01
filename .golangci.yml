@@ -29,6 +29,7 @@ linters:
   - exhaustruct
   - exhaustivestruct
   - forbidigo
+  - gci
   - gochecknoglobals
   - gochecknoinits
   - gocognit

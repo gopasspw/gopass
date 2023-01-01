@@ -3,6 +3,7 @@ package action
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 
@@ -10,6 +11,7 @@ import (
 	"github.com/gopasspw/gopass/internal/audit"
 	"github.com/gopasspw/gopass/internal/editor"
 	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/gopass"
@@ -101,7 +103,10 @@ func (s *Action) insertStdin(ctx context.Context, name string, content []byte, a
 	}
 
 	if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, "Read secret from STDIN"), name, sec); err != nil {
-		return exit.Error(exit.Encrypt, err, "failed to set %q: %s", name, err)
+		if !errors.Is(err, store.ErrMeaninglessWrite) {
+			return exit.Error(exit.Encrypt, err, "failed to set %q: %s", name, err)
+		}
+		out.Warningf(ctx, "No need to write: the secret is already there and with the right value")
 	}
 
 	return nil
@@ -142,7 +147,10 @@ func (s *Action) insertSingle(ctx context.Context, name, pw string, kvps map[str
 	}
 
 	if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, "Inserted user supplied password"), name, sec); err != nil {
-		return exit.Error(exit.Encrypt, err, "failed to write secret %q: %s", name, err)
+		if !errors.Is(err, store.ErrMeaninglessWrite) {
+			return exit.Error(exit.Encrypt, err, "failed to write secret %q: %s", name, err)
+		}
+		out.Warningf(ctx, "No need to write: the secret is already there and with the right value")
 	}
 
 	return nil
@@ -202,7 +210,10 @@ func (s *Action) insertYAML(ctx context.Context, name, key string, content []byt
 	}
 
 	if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, "Inserted YAML value from STDIN"), name, sec); err != nil {
-		return exit.Error(exit.Encrypt, err, "failed to set key %q of %q: %s", key, name, err)
+		if !errors.Is(err, store.ErrMeaninglessWrite) {
+			return exit.Error(exit.Encrypt, err, "failed to set key %q of %q: %s", key, name, err)
+		}
+		out.Warningf(ctx, "No need to write: the secret is already there and with the right value")
 	}
 
 	return nil
@@ -231,7 +242,10 @@ func (s *Action) insertMultiline(ctx context.Context, c *cli.Context, name strin
 	}
 
 	if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, fmt.Sprintf("Inserted user supplied password with %s", ed)), name, sec); err != nil {
-		return exit.Error(exit.Encrypt, err, "failed to store secret %q: %s", name, err)
+		if !errors.Is(err, store.ErrMeaninglessWrite) {
+			return exit.Error(exit.Encrypt, err, "failed to store secret %q: %s", name, err)
+		}
+		out.Warningf(ctx, "No need to write: the secret is already there and with the right value")
 	}
 
 	return nil

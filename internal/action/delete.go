@@ -2,10 +2,13 @@ package action
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/gopasspw/gopass/internal/action/exit"
 	"github.com/gopasspw/gopass/internal/hook"
+	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/termio"
@@ -109,7 +112,10 @@ func (s *Action) deleteKeyFromYAML(ctx context.Context, name, key string) error 
 	sec.Del(key)
 
 	if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, "Updated Key"), name, sec); err != nil {
-		return exit.Error(exit.IO, err, "Can not delete key %q from %q: %s", key, name, err)
+		if !errors.Is(err, store.ErrMeaninglessWrite) {
+			return exit.Error(exit.IO, err, "Can not delete key %q from %q: %s", key, name, err)
+		}
+		out.Warningf(ctx, "No need to write: the YAML file does't seem to have the key to be deleted")
 	}
 
 	return hook.Invoke(ctx, "delete.post-hook", name, key)

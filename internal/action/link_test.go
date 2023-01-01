@@ -57,7 +57,7 @@ func TestLink(t *testing.T) {
 
 	// update the original, linkdest should still be the same
 	oSec.SetPassword("456")
-	assert.NoError(t, act.Store.Set(ctx, "bar/baz", sec))
+	assert.NoError(t, act.Store.Set(ctx, "bar/baz", oSec))
 	buf.Reset()
 
 	oSec, err = act.Store.Get(ctx, "bar/baz")

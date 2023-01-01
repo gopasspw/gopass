@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/gopasspw/gopass/internal/config"
+	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/queue"
 	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -39,7 +40,10 @@ func (s *Store) Copy(ctx context.Context, from, to string) error {
 	}
 
 	if err := s.Set(ctxutil.WithCommitMessage(ctx, fmt.Sprintf("Copied from %s to %s", from, to)), to, content); err != nil {
-		return fmt.Errorf("failed to save %q to store: %w", to, err)
+		if !errors.Is(err, store.ErrMeaninglessWrite) {
+			return fmt.Errorf("failed to save secret %q to store: %w", to, err)
+		}
+		out.Warningf(ctx, "No need to write: the secret is already there and with the right value")
 	}
 
 	return nil
@@ -72,7 +76,10 @@ func (s *Store) Move(ctx context.Context, from, to string) error {
 	}
 
 	if err := s.Set(ctxutil.WithCommitMessage(ctx, fmt.Sprintf("Move from %s to %s", from, to)), to, content); err != nil {
-		return fmt.Errorf("failed to write %q: %w", to, err)
+		if !errors.Is(err, store.ErrMeaninglessWrite) {
+			return fmt.Errorf("failed to save secret %q to store: %w", to, err)
+		}
+		out.Warningf(ctx, "No need to write: the secret is already there and with the right value")
 	}
 
 	if err := s.Delete(ctx, from); err != nil {
@@ -116,11 +123,13 @@ func (s *Store) directMove(ctx context.Context, from, to string, del bool) error
 
 	// try to enqueue this task, if the queue is not available
 	// it will return the task and we will execute it inline
-	t := queue.GetQueue(ctx).Add(func(ctx context.Context) error {
-		return s.gitCommitAndPush(ctx, to)
+	t := queue.GetQueue(ctx).Add(func(_ context.Context) (context.Context, error) {
+		return nil, s.gitCommitAndPush(ctx, to)
 	})
 
-	return t(ctx)
+	_, err := t(ctx)
+
+	return err
 }
 
 // Delete will remove an single entry from the store.

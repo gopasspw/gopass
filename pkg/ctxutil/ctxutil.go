@@ -251,24 +251,78 @@ func IsForce(ctx context.Context) bool {
 	return is(ctx, ctxKeyForce, false)
 }
 
-// WithCommitMessage returns a context with a commit message set.
-func WithCommitMessage(ctx context.Context, sv string) context.Context {
-	return context.WithValue(ctx, ctxKeyCommitMessage, sv)
+// AddToCommitMessageBody returns a context with something added to the commit's body.
+func AddToCommitMessageBody(ctx context.Context, sv string) context.Context {
+	ht, ok := ctx.Value(ctxKeyCommitMessage).(*HeadedText)
+	if !ok {
+		var headedText HeadedText
+		ht = &headedText
+		ctx = context.WithValue(ctx, ctxKeyCommitMessage, ht)
+	}
+	ht.AddToBody(sv)
+
+	return ctx
 }
 
-// HasCommitMessage returns true if the commit message was set.
-func HasCommitMessage(ctx context.Context) bool {
-	return hasString(ctx, ctxKeyCommitMessage)
+// HasCommitMessageBody returns true if the commit message body is nonempty.
+func HasCommitMessageBody(ctx context.Context) bool {
+	ht, ok := ctx.Value(ctxKeyCommitMessage).(*HeadedText)
+	if !ok {
+		return false
+	}
+
+	return ht.HasBody()
 }
 
-// GetCommitMessage returns the set commit message or an empty string.
-func GetCommitMessage(ctx context.Context) string {
-	sv, ok := ctx.Value(ctxKeyCommitMessage).(string)
+// GetCommitMessageBody returns the set commit message body or an empty string.
+func GetCommitMessageBody(ctx context.Context) string {
+	ht, ok := ctx.Value(ctxKeyCommitMessage).(*HeadedText)
 	if !ok {
 		return ""
 	}
 
-	return sv
+	return ht.GetBody()
+}
+
+// WithCommitMessage returns a context with a commit message (head) set.
+// (full commit message is the commit message's body is not defined, commit messahe head otherwise).
+func WithCommitMessage(ctx context.Context, sv string) context.Context {
+	ht, ok := ctx.Value(ctxKeyCommitMessage).(*HeadedText)
+	if !ok {
+		var headedText HeadedText
+		ht = &headedText
+		ctx = context.WithValue(ctx, ctxKeyCommitMessage, ht)
+	}
+	ht.SetHead(sv)
+
+	return ctx
+}
+
+// HasCommitMessage returns true if the commit message (head) was set.
+func HasCommitMessage(ctx context.Context) bool {
+	ht, ok := ctx.Value(ctxKeyCommitMessage).(*HeadedText)
+
+	return ok && ht.head != "" // not the most intuitive answer, but a backwards-compatible one. for now.
+}
+
+// GetCommitMessage returns the set commit message (head) or an empty string.
+func GetCommitMessage(ctx context.Context) string {
+	ht, ok := ctx.Value(ctxKeyCommitMessage).(*HeadedText)
+	if !ok {
+		return ""
+	}
+
+	return ht.head
+}
+
+// GetCommitMessageFull returns the set commit message (head+body, of either are defined) or an empty string.
+func GetCommitMessageFull(ctx context.Context) string {
+	ht, ok := ctx.Value(ctxKeyCommitMessage).(*HeadedText)
+	if !ok {
+		return ""
+	}
+
+	return ht.GetText()
 }
 
 // WithNoNetwork returns a context with the value of no network set.
