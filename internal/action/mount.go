@@ -13,6 +13,7 @@ import (
 	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/internal/set"
 	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/internal/store/root"
 	"github.com/gopasspw/gopass/internal/tree"
@@ -86,6 +87,12 @@ func (s *Action) MountAdd(c *cli.Context) error {
 
 	if s.Store.Exists(ctx, alias) {
 		out.Warningf(ctx, "shadowing %s entry", alias)
+	}
+
+	if c.Bool("create") && !set.New(alias).IsSubset(set.New(s.Store.MountPoints()...)) {
+		debug.Log("creating new mount %s at %s", alias, localPath)
+
+		return s.init(ctx, alias, localPath)
 	}
 
 	if err := s.Store.AddMount(ctx, alias, localPath); err != nil {

@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gopasspw/gopass/pkg/appdir"
 	"github.com/gopasspw/gopass/pkg/debug"
 )
 
@@ -21,6 +22,20 @@ var reCleanFilename = regexp.MustCompile(`[^\w\d@.-]`)
 // WARNING: NOT suiteable for pathnames as slashes will be stripped as well!
 func CleanFilename(in string) string {
 	return strings.Trim(reCleanFilename.ReplaceAllString(in, "_"), "_ ")
+}
+
+// ExpandHomedir expands the tilde to the users home dir (if present).
+func ExpandHomedir(path string) string {
+	if len(path) > 1 && path[:2] == "~/" {
+		dir := filepath.Clean(appdir.UserHome() + path[1:])
+		debug.Log("Expanding %s to %s", path, dir)
+
+		return dir
+	}
+
+	debug.Log("No tilde found in %s", path)
+
+	return path
 }
 
 // CleanPath resolves common aliases in a path and cleans it as much as possible.

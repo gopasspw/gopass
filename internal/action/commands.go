@@ -634,6 +634,13 @@ func (s *Action) GetCommands() []*cli.Command {
 						"at any path in an existing root store.",
 					Before: s.IsInitialized,
 					Action: s.MountAdd,
+					Flags: []cli.Flag{
+						&cli.BoolFlag{
+							Name:    "create",
+							Aliases: []string{"c"},
+							Usage:   "Create a new store at this location",
+						},
+					},
 				},
 				{
 					Name:    "remove",
