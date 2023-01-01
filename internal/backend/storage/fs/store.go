@@ -30,7 +30,7 @@ func New(dir string) *Store {
 	}
 
 	return &Store{
-		path: dir,
+		path: fsutil.ExpandHomedir(dir),
 	}
 }
 
