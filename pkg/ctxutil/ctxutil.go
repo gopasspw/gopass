@@ -285,7 +285,7 @@ func GetCommitMessageBody(ctx context.Context) string {
 }
 
 // WithCommitMessage returns a context with a commit message (head) set.
-// (full commit message is the commit message's body is not defined, commit messahe head otherwise).
+// (full commit message is the commit message's body is not defined, commit message head otherwise).
 func WithCommitMessage(ctx context.Context, sv string) context.Context {
 	ht, ok := ctx.Value(ctxKeyCommitMessage).(*HeadedText)
 	if !ok {
