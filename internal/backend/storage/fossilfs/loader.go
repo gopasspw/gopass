@@ -36,6 +36,8 @@ func (l loader) Init(ctx context.Context, path string) (backend.Storage, error) 
 }
 
 func (l loader) Handles(ctx context.Context, path string) error {
+	path = fsutil.ExpandHomedir(path)
+
 	marker := filepath.Join(path, CheckoutMarker)
 	if !fsutil.IsFile(marker) {
 		return fmt.Errorf("no fossil checkout marker found at %s", marker)

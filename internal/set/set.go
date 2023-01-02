@@ -109,7 +109,7 @@ func (s Set[K]) IsSubset(s2 Set[K]) bool {
 }
 
 // Union returns a new set containing all elements from
-// s and s2. A ∪ B
+// s and s2. A ∪ B.
 func (s Set[K]) Union(s2 Set[K]) Set[K] {
 	if s.Empty() {
 		return s2
@@ -129,8 +129,55 @@ func (s Set[K]) Union(s2 Set[K]) Set[K] {
 	return set
 }
 
+// Difference returns the set difference. That is all the things that are in s
+// but not in s2. A \ B.
 func (s Set[K]) Difference(s2 Set[K]) Set[K] {
-	return nil
+	if s2.Empty() {
+		return s
+	}
+	if s.Empty() {
+		return New[K]()
+	}
+
+	set := make(Set[K])
+	for k := range s {
+		if s2[k] {
+			continue
+		}
+
+		set[k] = true
+	}
+
+	return set
+}
+
+// SymmetricDifference returns the symmetric difference. That is all the things that are
+// in s or s2 but not in both. A Δ B.
+func (s Set[K]) SymmetricDifference(s2 Set[K]) Set[K] {
+	if s2.Empty() {
+		return s
+	}
+	if s.Empty() {
+		return s2
+	}
+
+	set := make(Set[K])
+	for k := range s {
+		if s2[k] {
+			continue
+		}
+
+		set[k] = true
+	}
+	for k := range s2 {
+		if s[k] {
+			continue
+		}
+
+		set[k] = true
+	}
+
+	return set
 }
 
 // Add adds the given elements to the set.

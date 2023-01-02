@@ -9,15 +9,20 @@ import (
 	"sync"
 	"time"
 
+	"github.com/gopasspw/gopass-hibp/pkg/hibp/api"
+	"github.com/gopasspw/gopass-hibp/pkg/hibp/dump"
 	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/internal/config"
+	"github.com/gopasspw/gopass/internal/hashsum"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
+	"github.com/gopasspw/gopass/pkg/fsutil"
 	"github.com/gopasspw/gopass/pkg/gopass"
 	"github.com/gopasspw/gopass/pkg/termio"
 	"github.com/muesli/crunchy"
 	"github.com/nbutton23/zxcvbn-go"
+	"golang.org/x/exp/maps"
 )
 
 type secretGetter interface {
@@ -33,13 +38,13 @@ var DefaultExpiration = time.Hour * 24 * 365
 
 type Auditor struct {
 	s      secretGetter
-	r      *Report
+	r      *ReportBuilder
 	expiry time.Duration
 	pcb    func()
 	v      []validator
 }
 
-func New(s secretGetter) *Auditor {
+func New(ctx context.Context, s secretGetter) *Auditor {
 	a := &Auditor{
 		s:   s,
 		r:   newReport(),
@@ -75,16 +80,35 @@ func New(s secretGetter) *Auditor {
 
 			return nil
 		},
-		// TODO add HIBP validator
+	}
+
+	if config.Bool(ctx, "audit.hibp-use-api") {
+		a.v = append(a.v, func(_ string, sec gopass.Secret) error {
+			if sec.Password() == "" {
+				return nil
+			}
+
+			numFound, err := api.Lookup(hashsum.SHA1Hex(sec.Password()))
+			if err != nil {
+				return fmt.Errorf("can't check HIBPv2 API: %w", err)
+			}
+
+			if numFound > 0 {
+				return fmt.Errorf("password contained in at least %d public data breaches (HIBP API)", numFound)
+			}
+
+			return nil
+		})
 	}
 
 	return a
 }
 
 // Batch runs a password strength audit on multiple secrets. Expiration is in days.
-func (a *Auditor) Batch(ctx context.Context, secrets []string) error {
+func (a *Auditor) Batch(ctx context.Context, secrets []string) (*Report, error) {
 	out.Printf(ctx, "Checking %d secrets. This may take some time ...\n", len(secrets))
 
+	a.r = newReport()
 	pending := make(chan string, 1024)
 
 	// It would be nice to parallelize this operation and limit the maxJobs to
@@ -126,7 +150,11 @@ func (a *Auditor) Batch(ctx context.Context, secrets []string) error {
 	}
 	bar.Done()
 
-	return nil
+	if err := a.checkHIBP(ctx); err != nil {
+		return nil, err
+	}
+
+	return a.r.Finalize(), nil
 }
 
 func (a *Auditor) audit(ctx context.Context, secrets <-chan string, done chan struct{}) {
@@ -178,6 +206,8 @@ func (a *Auditor) auditSecret(ctx context.Context, secret string) {
 	// pass the secret to all validators.
 	var wg sync.WaitGroup
 	for _, v := range a.v {
+		v := v
+
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
@@ -188,4 +218,44 @@ func (a *Auditor) auditSecret(ctx context.Context, secret string) {
 		}()
 	}
 	wg.Wait()
+}
+
+func (a *Auditor) checkHIBP(ctx context.Context) error {
+	if config.Bool(ctx, "audit.hibp-use-api") {
+		// no need to check the dumps if we already checked the API
+		return nil
+	}
+
+	// if the user has set up the path to an HIBP dump we can continue.
+	fn := config.String(ctx, "audit.hibp-dump-file")
+	if fn == "" || !fsutil.IsFile(fn) {
+		debug.Log("audit.hibp-dump-file not pointing to a valid dump file")
+
+		return nil
+	}
+
+	// if creating the scanner fails the dump file is most likely invalid.
+	scanner, err := dump.New(fn)
+	if err != nil {
+		return err
+	}
+
+	// look up all known sha1sums. The LookupBatch method will sort the
+	// input so we don't need to.
+	matches := scanner.LookupBatch(ctx, maps.Keys(a.r.sha1sums))
+	for _, m := range matches {
+		// map any match back to the secret(s).
+		secs, found := a.r.sha1sums[m]
+		if !found {
+			// should not happen
+			continue
+		}
+
+		// add a breach warning to each of these secrets.
+		for _, sec := range secs.Elements() {
+			a.r.AddWarning(sec, "Found in at least one public data breach (HIBP Dump)")
+		}
+	}
+
+	return nil
 }

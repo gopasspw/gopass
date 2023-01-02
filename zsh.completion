@@ -24,7 +24,7 @@ _gopass () {
 	      
 	      ;;
 	  audit)
-	      _arguments : "--expiry[Age in days before a password is considered expired. Setting this will only check expiration.]"
+	      _arguments : "--expiry[Age in days before a password is considered expired. Setting this will only check expiration.]" "--format[Output format. text, csv or html. Default: text]" "--output-file[Output filename. Used for csv and html]"
 	      
 	      
 	      ;;

@@ -1,13 +1,12 @@
 package audit
 
 import (
-	"context"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/gopasspw/gopass/internal/hashsum"
-	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/set"
 )
 
@@ -18,15 +17,41 @@ type SecretReport struct {
 	Age      time.Duration
 }
 
+func (s SecretReport) Record() []string {
+	return []string{
+		s.Name,
+		s.Age.String(),
+		strings.Join(errors(s.Errors), ";"),
+		strings.Join(s.Warnings, ";"),
+	}
+}
+
+func errors(e []error) []string {
+	s := make([]string, 0, len(e))
+	for _, es := range e {
+		s = append(s, es.Error())
+	}
+
+	return s
+}
+
 type Report struct {
+	Secrets map[string]SecretReport
+}
+
+type ReportBuilder struct {
 	sync.Mutex
 
 	secrets map[string]SecretReport
-	// SHA512(password) -> secret name
-	duplicates map[string]*set.Set[string]
+	// SHA512(password) -> secret names
+	duplicates map[string]set.Set[string]
+
+	// HIBP
+	// SHA1(password) -> secret names
+	sha1sums map[string]set.Set[string]
 }
 
-func (r *Report) AddPassword(name, pw string) {
+func (r *ReportBuilder) AddPassword(name, pw string) {
 	if name == "" || pw == "" {
 		return
 	}
@@ -34,10 +59,18 @@ func (r *Report) AddPassword(name, pw string) {
 	r.Lock()
 	defer r.Unlock()
 
-	r.duplicates[hashsum.SHA256Hex(pw)].Add(name)
+	s256 := hashsum.SHA256Hex(pw)
+	d := r.duplicates[s256]
+	d.Add(name)
+	r.duplicates[s256] = d
+
+	s1 := hashsum.SHA1Hex(pw)
+	s := r.sha1sums[s1]
+	s.Add(name)
+	r.sha1sums[s1] = s
 }
 
-func (r *Report) AddError(name string, e error) {
+func (r *ReportBuilder) AddError(name string, e error) {
 	if name == "" || e == nil {
 		return
 	}
@@ -46,11 +79,12 @@ func (r *Report) AddError(name string, e error) {
 	defer r.Unlock()
 
 	s := r.secrets[name]
+	s.Name = name
 	s.Errors = append(s.Errors, e)
 	r.secrets[name] = s
 }
 
-func (r *Report) SetAge(name string, age time.Duration) {
+func (r *ReportBuilder) SetAge(name string, age time.Duration) {
 	if name == "" {
 		return
 	}
@@ -59,11 +93,12 @@ func (r *Report) SetAge(name string, age time.Duration) {
 	defer r.Unlock()
 
 	s := r.secrets[name]
+	s.Name = name
 	s.Age = age
 	r.secrets[name] = s
 }
 
-func (r *Report) AddWarning(name, msg string) {
+func (r *ReportBuilder) AddWarning(name, msg string) {
 	if name == "" || msg == "" {
 		return
 	}
@@ -72,6 +107,7 @@ func (r *Report) AddWarning(name, msg string) {
 	defer r.Unlock()
 
 	s := r.secrets[name]
+	s.Name = name
 	if s.Warnings == nil {
 		s.Warnings = make([]string, 0, 1)
 	}
@@ -79,74 +115,31 @@ func (r *Report) AddWarning(name, msg string) {
 	r.secrets[name] = s
 }
 
-func newReport() *Report {
-	return &Report{
+func newReport() *ReportBuilder {
+	return &ReportBuilder{
 		secrets:    make(map[string]SecretReport, 512),
-		duplicates: make(map[string]*set.Set[string], 512),
+		duplicates: make(map[string]set.Set[string], 512),
+		sha1sums:   make(map[string]set.Set[string], 512),
 	}
 }
 
-func (r *Report) finalize() {
+// Finalize computes the duplicates.
+func (r *ReportBuilder) Finalize() *Report {
 	for k, s := range r.secrets {
 		for _, secs := range r.duplicates {
 			if secs.Contains(k) {
-				// TODO: secs.Difference() - s.Warnings = append(s.Warnings, fmt.Sprintf("Duplicates detected. Shared with: %+v", secs.))
-				_ = s
+				s.Warnings = append(s.Warnings, fmt.Sprintf("Duplicates detected. Shared with: %+v", secs.Difference(set.New(k))))
 			}
 		}
 	}
-}
 
-func (r *Report) PrintResults(ctx context.Context) error {
-	if r == nil {
-		out.Warning(ctx, "Empty report")
-
-		return nil
+	ret := &Report{
+		Secrets: make(map[string]SecretReport, len(r.secrets)),
 	}
 
-	foundDuplicates := false
-	for _, secrets := range r.duplicates {
-		if secrets.Len() > 1 {
-			foundDuplicates = true
-
-			out.Printf(ctx, "Detected a shared secret for:")
-			for _, secret := range secrets.Elements() {
-				out.Printf(ctx, "\t- %s", secret)
-			}
-		}
-	}
-	if !foundDuplicates {
-		out.Printf(ctx, "No shared secrets found.")
+	for k := range r.secrets {
+		ret.Secrets[k] = r.secrets[k]
 	}
 
-	// TODO
-	// foundWeakPasswords := printAuditResults(r.Warnings, "%s:\n", color.CyanString)
-	// if !foundWeakPasswords {
-	// 	out.Printf(ctx, "No weak secrets detected.")
-	// }
-	// foundErrors := printAuditResults(errors, "%s:\n", color.RedString)
-
-	// if foundWeakPasswords || foundDuplicates || foundErrors {
-	// 	_ = notify.Notify(ctx, "gopass - audit", "Finished. Found weak passwords and/or duplicates")
-
-	// 	return fmt.Errorf("found weak passwords or duplicates")
-	// }
-
-	// _ = notify.Notify(ctx, "gopass - audit", "Finished. No weak passwords or duplicates found!")
-
-	return nil
-}
-
-func printAuditResults(m map[string][]string, format string, color func(format string, a ...any) string) bool {
-	b := false
-
-	for msg, secrets := range m {
-		b = true
-		fmt.Fprint(out.Stdout, color(format, msg))
-		for _, secret := range secrets {
-			fmt.Fprint(out.Stdout, color("\t- %s\n", secret))
-		}
-	}
-
-	return b
+	return ret
 }

@@ -48,9 +48,11 @@ type Git struct {
 
 // New creates a new git cli based git backend.
 func New(path string) (*Git, error) {
+	path = fsutil.ExpandHomedir(path)
+
 	gitDir := filepath.Join(path, ".git")
 	if !fsutil.IsDir(gitDir) {
-		return nil, fmt.Errorf("git repo does not exist")
+		return nil, fmt.Errorf("git repo does not exist at %s", gitDir)
 	}
 
 	return &Git{
@@ -414,6 +416,8 @@ func (g *Git) Revisions(ctx context.Context, name string) ([]backend.Revision, e
 
 		revs = append(revs, r)
 	}
+
+	debug.Log("Revisions for %s: %+v", name, revs)
 
 	return revs, nil
 }
