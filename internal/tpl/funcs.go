@@ -2,12 +2,11 @@ package tpl
 
 import (
 	"context"
-	"crypto/md5"
-	"crypto/sha1"
 	"fmt"
 	"strconv"
 	"text/template"
 
+	"github.com/gopasspw/gopass/internal/hashsum"
 	"github.com/gopasspw/gopass/internal/pwschemes/argon2i"
 	"github.com/gopasspw/gopass/internal/pwschemes/argon2id"
 	"github.com/gopasspw/gopass/internal/pwschemes/bcrypt"
@@ -22,6 +21,8 @@ import (
 const (
 	FuncMd5sum      = "md5sum"
 	FuncSha1sum     = "sha1sum"
+	FuncSha256sum   = "sha256sum"
+	FuncSha512sum   = "sha512sum"
 	FuncMd5Crypt    = "md5crypt"
 	FuncSSHA        = "ssha"
 	FuncSSHA256     = "ssha256"
@@ -37,13 +38,25 @@ const (
 
 func md5sum() func(...string) (string, error) {
 	return func(s ...string) (string, error) {
-		return fmt.Sprintf("%x", md5.Sum([]byte(s[0]))), nil
+		return hashsum.MD5Hex(s[0]), nil
 	}
 }
 
 func sha1sum() func(...string) (string, error) {
 	return func(s ...string) (string, error) {
-		return fmt.Sprintf("%x", sha1.Sum([]byte(s[0]))), nil
+		return hashsum.SHA1Hex(s[0]), nil
+	}
+}
+
+func sha256sum() func(...string) (string, error) {
+	return func(s ...string) (string, error) {
+		return hashsum.SHA256Hex(s[0]), nil
+	}
+}
+
+func sha512sum() func(...string) (string, error) {
+	return func(s ...string) (string, error) {
+		return hashsum.SHA512Hex(s[0]), nil
 	}
 }
 
@@ -245,6 +258,8 @@ func funcMap(ctx context.Context, kv kvstore) template.FuncMap {
 		FuncGetValues:   getValues(ctx, kv),
 		FuncMd5sum:      md5sum(),
 		FuncSha1sum:     sha1sum(),
+		FuncSha256sum:   sha256sum(),
+		FuncSha512sum:   sha512sum(),
 		FuncMd5Crypt:    md5cryptFunc(),
 		FuncSSHA:        sshaFunc(),
 		FuncSSHA256:     ssha256Func(),

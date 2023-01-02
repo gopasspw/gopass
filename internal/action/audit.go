@@ -43,5 +43,11 @@ func (s *Action) Audit(c *cli.Context) error {
 		return nil
 	}
 
-	return audit.Batch(ctx, list, s.Store, expiry)
+	a := audit.New(s.Store)
+	if err := a.Batch(ctx, list); err != nil {
+		return exit.Error(exit.Unknown, err, "failed to audit password store: %s", err)
+	}
+
+	// TODO print report
+	return nil
 }

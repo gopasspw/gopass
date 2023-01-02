@@ -77,6 +77,18 @@ func (s Set[K]) Equals(s2 Set[K]) bool {
 	return len(s) == len(s2) && s.IsSubset(s2)
 }
 
+// Contains returs true if the set contains the presented
+// element.
+func (s Set[K]) Contains(e K) bool {
+	for k := range s {
+		if k == e {
+			return true
+		}
+	}
+
+	return false
+}
+
 // IsSubset returns true if all elements of s
 // are contained in s2.
 func (s Set[K]) IsSubset(s2 Set[K]) bool {
@@ -97,7 +109,7 @@ func (s Set[K]) IsSubset(s2 Set[K]) bool {
 }
 
 // Union returns a new set containing all elements from
-// s and s2.
+// s and s2. A ∪ B
 func (s Set[K]) Union(s2 Set[K]) Set[K] {
 	if s.Empty() {
 		return s2
@@ -115,6 +127,10 @@ func (s Set[K]) Union(s2 Set[K]) Set[K] {
 	}
 
 	return set
+}
+
+func (s Set[K]) Difference(s2 Set[K]) Set[K] {
+	return nil
 }
 
 // Add adds the given elements to the set.
