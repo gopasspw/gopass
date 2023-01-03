@@ -193,7 +193,7 @@ func (s *Store) fsckLoop(ctx context.Context, path string) error {
 
 	// print out any deferred warnings (if any)
 	if warnings.Len() > 0 {
-		out.Errorf(ctx, warnings.String())
+		out.Warning(ctx, warnings.String())
 	}
 
 	if ctxutil.GetCommitMessageBody(ctx) == "" {
@@ -300,7 +300,7 @@ func (s *Store) fsckCheckEntry(ctx context.Context, name string) (string, error)
 	merr = s.fsckCheckRecipients(ctx, name)
 	if merr.ErrorOrNil() != nil {
 		if merr.Severity == errsFatal {
-			_ = errs.Append(merr.Severity, fmt.Errorf("Checking recipients for %s failed:\n    %w", name, err))
+			_ = errs.Append(merr.Severity, fmt.Errorf("Checking recipients for %s failed:\n    %w", name, merr))
 		} else {
 			_ = errs.Append(merr.Severity, merr)
 		}
