@@ -257,7 +257,7 @@ func (s *Store) fsckCheckEntry(ctx context.Context, name string) (string, error)
 		// the only errsNonFatal error from that function are missing/extra recipients,
 		// which isn't much of an error since we have yet to correct that.
 		recpNeedFix = true
-		errs.Append(merr.Severity, merr)
+		_ = errs.Append(merr.Severity, merr)
 	}
 
 	// make sure we are actually allowed to decode this secret
@@ -300,9 +300,9 @@ func (s *Store) fsckCheckEntry(ctx context.Context, name string) (string, error)
 	merr = s.fsckCheckRecipients(ctx, name)
 	if merr.ErrorOrNil() != nil {
 		if merr.Severity == errsFatal {
-			errs.Append(merr.Severity, fmt.Errorf("Checking recipients for %s failed:\n    %w", name, err))
+			_ = errs.Append(merr.Severity, fmt.Errorf("Checking recipients for %s failed:\n    %w", name, err))
 		} else {
-			errs.Append(merr.Severity, merr)
+			_ = errs.Append(merr.Severity, merr)
 		}
 	}
 
@@ -340,10 +340,10 @@ func (s *Store) fsckCheckRecipients(ctx context.Context, name string) *fsckMulti
 	// check itemRecps matches storeRecps
 	extra, missing := diff.List(perItemStoreRecps, itemRecps)
 	if len(missing) > 0 {
-		e.Append(errsNonFatal, fmt.Errorf("Missing recipients on %s: %+v\nRun fsck with the --decrypt flag to re-encrypt it automatically, or edit this secret yourself.", name, missing))
+		_ = e.Append(errsNonFatal, fmt.Errorf("Missing recipients on %s: %+v\nRun fsck with the --decrypt flag to re-encrypt it automatically, or edit this secret yourself.", name, missing))
 	}
 	if len(extra) > 0 {
-		e.Append(errsNonFatal, fmt.Errorf("Extra recipients on %s: %+v\nRun fsck with the --decrypt flag to re-encrypt it automatically, or edit this secret yourself.", name, extra))
+		_ = e.Append(errsNonFatal, fmt.Errorf("Extra recipients on %s: %+v\nRun fsck with the --decrypt flag to re-encrypt it automatically, or edit this secret yourself.", name, extra))
 	}
 
 	return e
