@@ -92,6 +92,10 @@ func (s *Action) GetCommands() []*cli.Command {
 					Aliases: []string{"o"},
 					Usage:   "Output filename. Used for csv and html",
 				},
+				&cli.StringFlag{
+					Name:  "template",
+					Usage: "HTML template. If not set use the built-in default.",
+				},
 			},
 		},
 		{
