@@ -36,7 +36,8 @@ func errors(e []error) []string {
 }
 
 type Report struct {
-	Secrets map[string]SecretReport
+	Secrets  map[string]SecretReport
+	Template string
 }
 
 type ReportBuilder struct {

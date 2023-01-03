@@ -12,6 +12,7 @@ import (
 	"github.com/gopasspw/gopass/internal/tree"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
+	"github.com/gopasspw/gopass/pkg/fsutil"
 	"github.com/urfave/cli/v2"
 )
 
@@ -53,6 +54,10 @@ func (s *Action) Audit(c *cli.Context) error {
 	r, err := a.Batch(ctx, list)
 	if err != nil {
 		return exit.Error(exit.Unknown, err, "failed to audit password store: %s", err)
+	}
+
+	if p := c.String("template"); p != "" && fsutil.IsFile(p) {
+		r.Template = p
 	}
 
 	switch c.String("format") {

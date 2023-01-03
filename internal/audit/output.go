@@ -5,11 +5,13 @@ import (
 	"encoding/csv"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"text/template"
 
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/set"
 	"github.com/gopasspw/gopass/internal/tpl"
+	"github.com/gopasspw/gopass/pkg/debug"
 )
 
 func (r *Report) PrintResults(ctx context.Context) error {
@@ -60,7 +62,17 @@ func (r *Report) RenderCSV(w io.Writer) error {
 }
 
 func (r *Report) RenderHTML(w io.Writer) error {
-	tmpl, err := template.New("report").Funcs(tpl.PublicFuncMap()).Parse(htmlTpl)
+	tplStr := htmlTpl
+
+	if r.Template != "" {
+		if buf, err := ioutil.ReadFile(r.Template); err == nil {
+			tplStr = string(buf)
+		} else {
+			debug.Log("failed to load custom template from %s: %s", r.Template, err)
+		}
+	}
+
+	tmpl, err := template.New("report").Funcs(tpl.PublicFuncMap()).Parse(tplStr)
 	if err != nil {
 		return fmt.Errorf("failed to parse template: %w", err)
 	}

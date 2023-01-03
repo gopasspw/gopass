@@ -39,7 +39,7 @@ func TestAudit(t *testing.T) {
 		assert.NoError(t, act.Store.Set(ctx, "bar", sec))
 		assert.NoError(t, act.Store.Set(ctx, "baz", sec))
 
-		assert.NoError(t, act.Audit(gptest.CliCtx(ctx, t)))
+		assert.Error(t, act.Audit(gptest.CliCtx(ctx, t)))
 		buf.Reset()
 	})
 
