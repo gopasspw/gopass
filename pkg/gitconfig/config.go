@@ -296,7 +296,7 @@ func parseConfig(in io.Reader, key, value string, cb parseFunc) []string {
 		// These are odd but we should still support them.
 		k, v, found := strings.Cut(line, " = ")
 		if !found {
-			debug.Log("no valid KV-pair on line: %q", line)
+			// debug.Log("no valid KV-pair on line: %q", line)
 
 			continue
 		}
@@ -383,7 +383,7 @@ func ParseConfig(r io.Reader) *Config {
 	c.raw.WriteString(strings.Join(lines, "\n"))
 	c.raw.WriteString("\n")
 
-	debug.Log("processed config: %s\nvars: %+v", c.raw.String(), c.vars)
+	// debug.Log("processed config: %s\nvars: %+v", c.raw.String(), c.vars)
 
 	return c
 }

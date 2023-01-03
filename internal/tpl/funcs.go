@@ -2,12 +2,14 @@ package tpl
 
 import (
 	"context"
-	"crypto/md5"
-	"crypto/sha1"
 	"fmt"
+	"reflect"
 	"strconv"
+	"strings"
 	"text/template"
+	"time"
 
+	"github.com/gopasspw/gopass/internal/hashsum"
 	"github.com/gopasspw/gopass/internal/pwschemes/argon2i"
 	"github.com/gopasspw/gopass/internal/pwschemes/argon2id"
 	"github.com/gopasspw/gopass/internal/pwschemes/bcrypt"
@@ -20,30 +22,46 @@ import (
 
 // These constants defined the template function names used.
 const (
-	FuncMd5sum      = "md5sum"
-	FuncSha1sum     = "sha1sum"
-	FuncMd5Crypt    = "md5crypt"
-	FuncSSHA        = "ssha"
-	FuncSSHA256     = "ssha256"
-	FuncSSHA512     = "ssha512"
-	FuncGet         = "get"
-	FuncGetPassword = "getpw"
-	FuncGetValue    = "getval"
-	FuncGetValues   = "getvals"
-	FuncArgon2i     = "argon2i"
-	FuncArgon2id    = "argon2id"
-	FuncBcrypt      = "bcrypt"
+	FuncMd5sum        = "md5sum"
+	FuncSha1sum       = "sha1sum"
+	FuncSha256sum     = "sha256sum"
+	FuncSha512sum     = "sha512sum"
+	FuncMd5Crypt      = "md5crypt"
+	FuncSSHA          = "ssha"
+	FuncSSHA256       = "ssha256"
+	FuncSSHA512       = "ssha512"
+	FuncGet           = "get"
+	FuncGetPassword   = "getpw"
+	FuncGetValue      = "getval"
+	FuncGetValues     = "getvals"
+	FuncArgon2i       = "argon2i"
+	FuncArgon2id      = "argon2id"
+	FuncBcrypt        = "bcrypt"
+	FuncJoin          = "join"
+	FuncRoundDuration = "roundDuration"
 )
 
 func md5sum() func(...string) (string, error) {
 	return func(s ...string) (string, error) {
-		return fmt.Sprintf("%x", md5.Sum([]byte(s[0]))), nil
+		return hashsum.MD5Hex(s[0]), nil
 	}
 }
 
 func sha1sum() func(...string) (string, error) {
 	return func(s ...string) (string, error) {
-		return fmt.Sprintf("%x", sha1.Sum([]byte(s[0]))), nil
+		return hashsum.SHA1Hex(s[0]), nil
+	}
+}
+
+func sha256sum() func(...string) (string, error) {
+	return func(s ...string) (string, error) {
+		return hashsum.SHA256Hex(s[0]), nil
+	}
+}
+
+func sha512sum() func(...string) (string, error) {
+	return func(s ...string) (string, error) {
+		return hashsum.SHA512Hex(s[0]), nil
 	}
 }
 
@@ -237,20 +255,142 @@ func getValues(ctx context.Context, kv kvstore) func(...string) ([]string, error
 	}
 }
 
+func roundDuration(duration any) string {
+	var d time.Duration
+	switch duration := duration.(type) {
+	case string:
+		d, _ = time.ParseDuration(duration)
+	case int64:
+		d = time.Duration(duration)
+	case time.Time:
+		d = time.Since(duration)
+	case time.Duration:
+		d = duration
+	default:
+		d = 0
+	}
+
+	u := uint64(d)
+	year := uint64(time.Hour) * 24 * 365
+	month := uint64(time.Hour) * 24 * 30
+	day := uint64(time.Hour) * 24
+	hour := uint64(time.Hour)
+	minute := uint64(time.Minute)
+	second := uint64(time.Second)
+
+	switch {
+	case u > year:
+		return strconv.FormatUint(u/year, 10) + "y"
+	case u > month:
+		return strconv.FormatUint(u/month, 10) + "mo"
+	case u > day:
+		return strconv.FormatUint(u/day, 10) + "d"
+	case u > hour:
+		return strconv.FormatUint(u/hour, 10) + "h"
+	case u > minute:
+		return strconv.FormatUint(u/minute, 10) + "m"
+	case u > second:
+		return strconv.FormatUint(u/second, 10) + "s"
+	default:
+		return "0s"
+	}
+}
+
+func join(sep string, v any) string {
+	return strings.Join(stringslice(v), sep)
+}
+
+func stringslice(v any) []string {
+	switch v := v.(type) {
+	case []string:
+		return v
+	case []interface{}:
+		res := make([]string, 0, len(v))
+		for _, s := range v {
+			if s == nil {
+				continue
+			}
+			res = append(res, strval(s))
+		}
+
+		return res
+	default:
+		val := reflect.ValueOf(v)
+		switch val.Kind() { //nolint:exhaustive
+		case reflect.Array, reflect.Slice:
+			l := val.Len()
+			res := make([]string, 0, l)
+			for i := 0; i < l; i++ {
+				value := val.Index(i).Interface()
+				if value == nil {
+					continue
+				}
+				res = append(res, strval(value))
+			}
+
+			return res
+		default:
+			if v == nil {
+				return []string{}
+			}
+
+			return []string{strval(v)}
+		}
+	}
+}
+
+func strval(v any) string {
+	switch v := v.(type) {
+	case string:
+		return v
+	case []byte:
+		return string(v)
+	case error:
+		return v.Error()
+	case fmt.Stringer:
+		return v.String()
+	default:
+		return fmt.Sprintf("%v", v)
+	}
+}
+
 func funcMap(ctx context.Context, kv kvstore) template.FuncMap {
 	return template.FuncMap{
-		FuncGet:         get(ctx, kv),
-		FuncGetPassword: getPassword(ctx, kv),
-		FuncGetValue:    getValue(ctx, kv),
-		FuncGetValues:   getValues(ctx, kv),
-		FuncMd5sum:      md5sum(),
-		FuncSha1sum:     sha1sum(),
-		FuncMd5Crypt:    md5cryptFunc(),
-		FuncSSHA:        sshaFunc(),
-		FuncSSHA256:     ssha256Func(),
-		FuncSSHA512:     ssha512Func(),
-		FuncArgon2i:     argon2iFunc(),
-		FuncArgon2id:    argon2idFunc(),
-		FuncBcrypt:      bcryptFunc(),
+		FuncGet:           get(ctx, kv),
+		FuncGetPassword:   getPassword(ctx, kv),
+		FuncGetValue:      getValue(ctx, kv),
+		FuncGetValues:     getValues(ctx, kv),
+		FuncMd5sum:        md5sum(),
+		FuncSha1sum:       sha1sum(),
+		FuncSha256sum:     sha256sum(),
+		FuncSha512sum:     sha512sum(),
+		FuncMd5Crypt:      md5cryptFunc(),
+		FuncSSHA:          sshaFunc(),
+		FuncSSHA256:       ssha256Func(),
+		FuncSSHA512:       ssha512Func(),
+		FuncArgon2i:       argon2iFunc(),
+		FuncArgon2id:      argon2idFunc(),
+		FuncBcrypt:        bcryptFunc(),
+		FuncJoin:          join,
+		FuncRoundDuration: roundDuration,
+	}
+}
+
+// PublicFuncMap returns a template.FuncMap with useful template functions.
+func PublicFuncMap() template.FuncMap {
+	return template.FuncMap{
+		FuncMd5sum:        md5sum(),
+		FuncSha1sum:       sha1sum(),
+		FuncSha256sum:     sha256sum(),
+		FuncSha512sum:     sha512sum(),
+		FuncMd5Crypt:      md5cryptFunc(),
+		FuncSSHA:          sshaFunc(),
+		FuncSSHA256:       ssha256Func(),
+		FuncSSHA512:       ssha512Func(),
+		FuncArgon2i:       argon2iFunc(),
+		FuncArgon2id:      argon2idFunc(),
+		FuncBcrypt:        bcryptFunc(),
+		FuncJoin:          join,
+		FuncRoundDuration: roundDuration,
 	}
 }

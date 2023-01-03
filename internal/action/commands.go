@@ -82,6 +82,20 @@ func (s *Action) GetCommands() []*cli.Command {
 					Name:  "expiry",
 					Usage: "Age in days before a password is considered expired. Setting this will only check expiration.",
 				},
+				&cli.StringFlag{
+					Name:  "format",
+					Usage: "Output format. text, csv or html. Default: text",
+					Value: "text",
+				},
+				&cli.StringFlag{
+					Name:    "output-file",
+					Aliases: []string{"o"},
+					Usage:   "Output filename. Used for csv and html",
+				},
+				&cli.StringFlag{
+					Name:  "template",
+					Usage: "HTML template. If not set use the built-in default.",
+				},
 			},
 		},
 		{

@@ -132,9 +132,7 @@ func (s *Action) MountsVersions(c *cli.Context) error {
 		cv := versionInfo(ctx, s.Store.Crypto(ctx, mp))
 		sv := versionInfo(ctx, s.Store.Storage(ctx, mp))
 
-		if cv != cryptoVer || sv != storageVer {
-			fmt.Fprintf(stdout, tpl, mp, cv, sv)
-		}
+		fmt.Fprintf(stdout, tpl, mp, cv, sv)
 	}
 
 	fmt.Fprintln(stdout)

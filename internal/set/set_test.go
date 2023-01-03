@@ -96,6 +96,28 @@ func TestUnion(t *testing.T) {
 	assert.Equal(t, s3, s3.Union(s4))
 }
 
+func TestDifference(t *testing.T) {
+	t.Parallel()
+
+	s1 := New("a", "b", "c", "d")
+	s2 := New("c", "d")
+
+	ds := s1.Difference(s2)
+
+	assert.Equal(t, New("a", "b"), ds)
+}
+
+func TestSymmetricDifference(t *testing.T) {
+	t.Parallel()
+
+	s1 := New("a", "b", "c", "d")
+	s2 := New("c", "d", "e")
+
+	ds := s1.SymmetricDifference(s2)
+
+	assert.Equal(t, New("a", "b", "e"), ds)
+}
+
 func TestAdd(t *testing.T) {
 	t.Parallel()
 

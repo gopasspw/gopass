@@ -82,6 +82,8 @@ This is a list of available options:
 | ---------------- | -------- | ----------- | --------- |
 | `age.usekeychain`      | `bool`   | Use the OS keychain to cache age passphrases. | `false` |
 | `audit.concurrency`    | `int`    | Number of concurrent audit workers. | `` |
+| `audit.hibp-dump-file` | `string` | Specify to a HIBPv2 Dump file (sorted) if you want `audit` to check password hashes against this file. | `None` |
+| `audit.hibp-use-api`   | `bool`   | Set to true if you want `gopass audit` to check your secrets against the public HIBPv2 API. Use with caution. This will leak a few bit of entropy. | `false` |
 | `autosync.interval`      | `int`   | AutoSync interval in days. | `3` |
 | `core.autoclip`        | `bool`   | Always copy the password created by `gopass generate`. Only applies to generate. | `false` |
 | `core.autoimport`      | `bool`   | Import missing keys stored in the pass repository without asking. | `false` |
@@ -91,8 +93,8 @@ This is a list of available options:
 | `core.nocolor`         | `bool`   | Do not use color. | `false` |
 | `core.nopager`         | `bool`   | Do not invoke a pager to display long lists. | `false` |
 | `core.notifications`   | `bool`   | Enable desktop notifications. | `true` |
-| `core.pre-hook` | `string` | This hook is executed before any command invocation. | `None` |
 | `core.post-hook` | `string` | This hook is executed after any command invocation. | `None` |
+| `core.pre-hook` | `string` | This hook is executed before any command invocation. | `None` |
 | `core.readonly`        | `bool`   | Disable writing to a store. Note: This is just a convenience option to prevent accidential writes. Enforcement can only happen on a central server (if repos are set up around a central one). | `false` |
 | `core.showautoclip`      | `bool`   | Use autoclip for gopass show by default. | `false` |
 | `core.showsafecontent` | `bool`   | Only output *safe content* (i.e. everything but the first line of a secret) to the terminal. Use *copy* (`-c`) to retrieve the password in the clipboard, or *force* (`-f`) to still print it. | `false` |
@@ -102,8 +104,8 @@ This is a list of available options:
 | `delete.post-hook` | `string` | This hook is run right after removing a record with `gopass rm` | `None` |
 | `domain-alias.<from>.insteadOf`   | `string` | Alias from domain to the string value of this entry. | `` |
 | `edit.editor` | `string` | This setting controls which editor is used when opening a file with `gopass edit`. It takes precedence over the `$EDITOR` environment variable. This setting can contain flags. | `None` |
-| `edit.pre-hook` | `string` | This hook is run right before editing a record with `gopass edit` |
 | `edit.post-hook` | `string` | This hook is run right after editing a record with `gopass edit` |
+| `edit.pre-hook` | `string` | This hook is run right before editing a record with `gopass edit` |
 | `generate.generator`   | `string` | Default password generator. `xkcd`, `memorable`, `external` or `` | `` |
 | `generate.length`      | `int`    | Default lenght for generated password. | `24` |
 | `generate.symbols`     | `bool`   | Include symbols in generated password. | `false` |

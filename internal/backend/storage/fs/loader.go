@@ -47,6 +47,8 @@ func (l loader) Clone(ctx context.Context, repo, path string) (backend.Storage, 
 // Handles returns true if the given path is supported by this backend. Will always return
 // true if the directory exists.
 func (l loader) Handles(ctx context.Context, path string) error {
+	path = fsutil.ExpandHomedir(path)
+
 	if fsutil.IsDir(path) {
 		return nil
 	}
