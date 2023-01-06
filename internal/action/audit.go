@@ -20,13 +20,8 @@ import (
 func (s *Action) Audit(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 
-	expiry := c.Int("expiry")
-	if expiry > 0 {
-		out.Print(ctx, "Auditing password expiration ...")
-	} else {
-		_ = s.rem.Reset("audit")
-		out.Print(ctx, "Auditing passwords for common flaws ...")
-	}
+	_ = s.rem.Reset("audit")
+	out.Print(ctx, "Auditing passwords for common flaws ...")
 
 	t, err := s.Store.Tree(ctx)
 	if err != nil {
@@ -116,5 +111,5 @@ func openReport(path string) (*os.File, error) {
 		return os.CreateTemp("", "gopass-report")
 	}
 
-	return os.OpenFile(path, os.O_WRONLY|os.O_CREATE, 0o600)
+	return os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o600)
 }

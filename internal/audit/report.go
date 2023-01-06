@@ -2,7 +2,6 @@ package audit
 
 import (
 	"fmt"
-	"strings"
 	"sync"
 	"time"
 
@@ -10,20 +9,15 @@ import (
 	"github.com/gopasspw/gopass/internal/set"
 )
 
-type SecretReport struct {
-	Name     string
-	Errors   []error
-	Warnings []string
-	Age      time.Duration
+type Finding struct {
+	Severity string
+	Message  string
 }
 
-func (s SecretReport) Record() []string {
-	return []string{
-		s.Name,
-		s.Age.String(),
-		strings.Join(errors(s.Errors), ";"),
-		strings.Join(s.Warnings, ";"),
-	}
+type SecretReport struct {
+	Name     string
+	Findings map[string]Finding
+	Age      time.Duration
 }
 
 func errors(e []error) []string {
@@ -38,6 +32,7 @@ func errors(e []error) []string {
 type Report struct {
 	Secrets  map[string]SecretReport
 	Template string
+	Duration time.Duration
 }
 
 type ReportBuilder struct {
@@ -50,6 +45,8 @@ type ReportBuilder struct {
 	// HIBP
 	// SHA1(password) -> secret names
 	sha1sums map[string]set.Set[string]
+
+	t0 time.Time
 }
 
 func (r *ReportBuilder) AddPassword(name, pw string) {
@@ -71,18 +68,24 @@ func (r *ReportBuilder) AddPassword(name, pw string) {
 	r.sha1sums[s1] = s
 }
 
-func (r *ReportBuilder) AddError(name string, e error) {
-	if name == "" || e == nil {
+func (r *ReportBuilder) AddFinding(secret, finding, message, severity string) {
+	if secret == "" || finding == "" || message == "" || severity == "" {
 		return
 	}
 
 	r.Lock()
 	defer r.Unlock()
 
-	s := r.secrets[name]
-	s.Name = name
-	s.Errors = append(s.Errors, e)
-	r.secrets[name] = s
+	s := r.secrets[secret]
+	s.Name = secret
+	if s.Findings == nil {
+		s.Findings = make(map[string]Finding, 4)
+	}
+	f := s.Findings[finding]
+	f.Message = message
+	f.Severity = severity
+	s.Findings[finding] = f
+	r.secrets[secret] = s
 }
 
 func (r *ReportBuilder) SetAge(name string, age time.Duration) {
@@ -99,28 +102,12 @@ func (r *ReportBuilder) SetAge(name string, age time.Duration) {
 	r.secrets[name] = s
 }
 
-func (r *ReportBuilder) AddWarning(name, msg string) {
-	if name == "" || msg == "" {
-		return
-	}
-
-	r.Lock()
-	defer r.Unlock()
-
-	s := r.secrets[name]
-	s.Name = name
-	if s.Warnings == nil {
-		s.Warnings = make([]string, 0, 1)
-	}
-	s.Warnings = append(s.Warnings, msg)
-	r.secrets[name] = s
-}
-
 func newReport() *ReportBuilder {
 	return &ReportBuilder{
 		secrets:    make(map[string]SecretReport, 512),
 		duplicates: make(map[string]set.Set[string], 512),
 		sha1sums:   make(map[string]set.Set[string], 512),
+		t0:         time.Now().UTC(),
 	}
 }
 
@@ -128,14 +115,26 @@ func newReport() *ReportBuilder {
 func (r *ReportBuilder) Finalize() *Report {
 	for k, s := range r.secrets {
 		for _, secs := range r.duplicates {
-			if secs.Contains(k) {
-				s.Warnings = append(s.Warnings, fmt.Sprintf("Duplicates detected. Shared with: %+v", secs.Difference(set.New(k))))
+			if secs.Len() < 2 {
+				continue
+			}
+			if !secs.Contains(k) {
+				continue
+			}
+			if s.Findings == nil {
+				s.Findings = make(map[string]Finding, 1)
+			}
+			s.Findings["duplicates"] = Finding{
+				Severity: "warning",
+				Message:  fmt.Sprintf("Duplicates detected. Shared with: %+v", secs.Difference(set.New(k))),
 			}
 		}
+		r.secrets[k] = s
 	}
 
 	ret := &Report{
-		Secrets: make(map[string]SecretReport, len(r.secrets)),
+		Secrets:  make(map[string]SecretReport, len(r.secrets)),
+		Duration: time.Since(r.t0),
 	}
 
 	for k := range r.secrets {

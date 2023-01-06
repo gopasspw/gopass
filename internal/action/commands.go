@@ -78,10 +78,6 @@ func (s *Action) GetCommands() []*cli.Command {
 			Before: s.IsInitialized,
 			Action: s.Audit,
 			Flags: []cli.Flag{
-				&cli.IntFlag{
-					Name:  "expiry",
-					Usage: "Age in days before a password is considered expired. Setting this will only check expiration.",
-				},
 				&cli.StringFlag{
 					Name:  "format",
 					Usage: "Output format. text, csv or html. Default: text",
@@ -95,6 +91,10 @@ func (s *Action) GetCommands() []*cli.Command {
 				&cli.StringFlag{
 					Name:  "template",
 					Usage: "HTML template. If not set use the built-in default.",
+				},
+				&cli.BoolFlag{
+					Name:  "failed",
+					Usage: "Report only entries that failed validation. Default: false (reports all)",
 				},
 			},
 		},
