@@ -3,7 +3,7 @@ module github.com/gopasspw/gopass
 go 1.18
 
 require (
-	filippo.io/age v1.0.0
+	filippo.io/age v1.1.1
 	github.com/ProtonMail/go-crypto v0.0.0-20221026131551-cf6655e29de4
 	github.com/atotto/clipboard v0.1.4
 	github.com/blang/semver/v4 v4.0.0
@@ -24,7 +24,7 @@ require (
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
 	github.com/martinhoefling/goxkcdpwgen v0.1.2-0.20221205222637-737661b92a0e
 	github.com/mattn/go-colorable v0.1.13
-	github.com/mattn/go-isatty v0.0.16
+	github.com/mattn/go-isatty v0.0.17
 	github.com/mattn/go-tty v0.0.4
 	github.com/mitchellh/go-ps v1.0.0
 	github.com/muesli/crunchy v0.4.0
@@ -35,13 +35,13 @@ require (
 	github.com/stretchr/testify v1.8.1
 	github.com/twpayne/go-pinentry v0.2.0
 	github.com/urfave/cli/v2 v2.23.7
-	github.com/zalando/go-keyring v0.2.1
-	golang.org/x/crypto v0.4.0
-	golang.org/x/exp v0.0.0-20221217163422-3c43f8badb15
-	golang.org/x/net v0.4.0
-	golang.org/x/oauth2 v0.3.0
-	golang.org/x/sys v0.3.0
-	golang.org/x/term v0.3.0
+	github.com/zalando/go-keyring v0.2.2
+	golang.org/x/crypto v0.5.0
+	golang.org/x/exp v0.0.0-20230105202349-8879d0199aa3
+	golang.org/x/net v0.5.0
+	golang.org/x/oauth2 v0.4.0
+	golang.org/x/sys v0.4.0
+	golang.org/x/term v0.4.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
