@@ -162,19 +162,19 @@ var htmlTpl = `<!DOCTYPE html>
   <title>gopass audit report generated on {{ .Today | date }}</title>
   <style>
 #findings {
-	font-family: Arial, Helvetica, sans-serif;
-	border-collapse: collapse;
-	width: 100%;
+  font-family: Arial, Helvetica, sans-serif;
+  border-collapse: collapse;
+  width: 100%;
 }
 #findings td, #findings th {
-	border: 1px solid #ddd;
-	padding: 8px;
+  border: 1px solid #ddd;
+  padding: 8px;
 }
 #findings tr:nth-child(even){
-	background-color: #f3f3f3;
+  background-color: #f3f3f3;
 }
 #findings tr:hover {
-	background-color: #ddd;
+  background-color: #ddd;
 }
 #findings th {
   padding-top: 12px;
@@ -201,9 +201,9 @@ Audited {{ .Num }} secrets in {{ .Duration | roundDuration }} on {{ .Today | dat
   <tr>
     <td>{{ .Name }}</td>
 {{- range .Findings }}
-	<td class="{{ .Severity }}">
-		<div title="{{ .Message }}">{{ .Message | truncate 120 }}</div>
-	</td>
+    <td class="{{ .Severity }}">
+        <div title="{{ .Message }}">{{ .Message | truncate 120 }}</div>
+    </td>
 {{- end }}
   </tr>
 {{- end }}

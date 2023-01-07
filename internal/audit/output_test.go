@@ -26,20 +26,53 @@ func TestHTML(t *testing.T) {
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>gopass audit report</title>
+  <title>gopass audit report generated on 2023-01-07</title>
+  <style>
+#findings {
+  font-family: Arial, Helvetica, sans-serif;
+  border-collapse: collapse;
+  width: 100%;
+}
+#findings td, #findings th {
+  border: 1px solid #ddd;
+  padding: 8px;
+}
+#findings tr:nth-child(even){
+  background-color: #f3f3f3;
+}
+#findings tr:hover {
+  background-color: #ddd;
+}
+#findings th {
+  padding-top: 12px;
+  padding-bottom: 12px;
+  text-align: left;
+  background-color: #03995D;
+  color: white;
+}
+  </style>
 </head>
 <body>
-<table>
+
+Audited 1 secrets in 0s on 2023-01-07.<br />
+
+<table id="findings">
   <thead>
   <th>Secret</th>
-  <th>Age</th>
-  <th>Findings</th>
+
+<th>duplicate</th>
+
+<th>hibp-api</th>
+
   </thead>
   <tr>
     <td>foo</td>
-	<td>60m</td>
-	<td>duplicate: found duplicates (warning)</td>
-	<td>hibp-api: found match on HIBP (warning)</td>
+    <td class="warning">
+        <div title="found duplicates">found duplicates</div>
+    </td>
+    <td class="warning">
+        <div title="found match on HIBP">found match on HIBP</div>
+    </td>
   </tr>
 </table>
 </body>
