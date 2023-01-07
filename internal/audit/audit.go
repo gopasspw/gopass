@@ -6,6 +6,7 @@ package audit
 import (
 	"context"
 	"fmt"
+	"path"
 	"sync"
 	"time"
 
@@ -31,7 +32,11 @@ type secretGetter interface {
 	Concurrency() int
 }
 
-type validator func(string, gopass.Secret) error
+type validator struct {
+	Name        string
+	Description string
+	Validate    func(string, gopass.Secret) error
+}
 
 // DefaultExpiration is the default expiration time for secrets.
 var DefaultExpiration = time.Hour * 24 * 365
@@ -53,51 +58,67 @@ func New(ctx context.Context, s secretGetter) *Auditor {
 
 	cv := crunchy.NewValidator()
 	a.v = []validator{
-		func(_ string, sec gopass.Secret) error {
-			return cv.Check(sec.Password())
+		{
+			Name:        "crunchy",
+			Description: "github.com/muesli/crunchy",
+			Validate: func(_ string, sec gopass.Secret) error {
+				return cv.Check(sec.Password())
+			},
 		},
-		func(name string, sec gopass.Secret) error {
-			ui := make([]string, 0, len(sec.Keys())+1)
-			for _, k := range sec.Keys() {
-				pw, found := sec.Get(k)
-				if !found {
-					continue
+		{
+			Name:        "zxcvbn",
+			Description: "github.com/nbutton23/zxcvbn-go",
+			Validate: func(name string, sec gopass.Secret) error {
+				ui := make([]string, 0, len(sec.Keys())+1)
+				for _, k := range sec.Keys() {
+					pw, found := sec.Get(k)
+					if !found {
+						continue
+					}
+					ui = append(ui, pw)
 				}
-				ui = append(ui, pw)
-			}
-			ui = append(ui, name)
-			match := zxcvbn.PasswordStrength(sec.Password(), ui)
-			if match.Score < 3 {
-				return fmt.Errorf("weak password (%d / 4)", match.Score)
-			}
+				ui = append(ui, name)
+				match := zxcvbn.PasswordStrength(sec.Password(), ui)
+				if match.Score < 3 {
+					return fmt.Errorf("weak password (%d / 4)", match.Score)
+				}
 
-			return nil
+				return nil
+			},
 		},
-		func(name string, sec gopass.Secret) error {
-			if name == sec.Password() {
-				return fmt.Errorf("password equals name")
-			}
+		{
+			Name:        "equals-name",
+			Description: "Checks for passwords the match the secret name",
+			Validate: func(name string, sec gopass.Secret) error {
+				if name == sec.Password() || path.Base(name) == sec.Password() {
+					return fmt.Errorf("password equals name")
+				}
 
-			return nil
+				return nil
+			},
 		},
 	}
 
 	if config.Bool(ctx, "audit.hibp-use-api") {
-		a.v = append(a.v, func(_ string, sec gopass.Secret) error {
-			if sec.Password() == "" {
+		a.v = append(a.v, validator{
+			Name:        "hibp",
+			Description: "Checks passwords against the HIBPv2 API. See https://haveibeenpwned.com/",
+			Validate: func(_ string, sec gopass.Secret) error {
+				if sec.Password() == "" {
+					return nil
+				}
+
+				numFound, err := api.Lookup(hashsum.SHA1Hex(sec.Password()))
+				if err != nil {
+					return fmt.Errorf("can't check HIBPv2 API: %w", err)
+				}
+
+				if numFound > 0 {
+					return fmt.Errorf("password contained in at least %d public data breaches (HIBP API)", numFound)
+				}
+
 				return nil
-			}
-
-			numFound, err := api.Lookup(hashsum.SHA1Hex(sec.Password()))
-			if err != nil {
-				return fmt.Errorf("can't check HIBPv2 API: %w", err)
-			}
-
-			if numFound > 0 {
-				return fmt.Errorf("password contained in at least %d public data breaches (HIBP API)", numFound)
-			}
-
-			return nil
+			},
 		})
 	}
 
@@ -167,6 +188,7 @@ func (a *Auditor) audit(ctx context.Context, secrets <-chan string, done chan st
 		}
 
 		a.auditSecret(ctx, secret)
+		a.pcb()
 	}
 	done <- struct{}{}
 }
@@ -177,7 +199,7 @@ func (a *Auditor) auditSecret(ctx context.Context, secret string) {
 	// handle old passwords
 	revs, err := a.s.ListRevisions(ctx, secret)
 	if err != nil {
-		a.r.AddError(secret, err)
+		a.r.AddFinding(secret, "error-revisions", err.Error(), "error")
 	}
 	if len(revs) > 0 {
 		a.r.SetAge(secret, time.Since(revs[0].Date))
@@ -187,7 +209,7 @@ func (a *Auditor) auditSecret(ctx context.Context, secret string) {
 	if err != nil {
 		debug.Log("Failed to check %s: %s", secret, err)
 
-		a.r.AddError(secret, err)
+		a.r.AddFinding(secret, "error-read", err.Error(), "error")
 		if sec != nil {
 			a.r.AddPassword(secret, sec.Password())
 		}
@@ -212,9 +234,13 @@ func (a *Auditor) auditSecret(ctx context.Context, secret string) {
 		go func() {
 			defer wg.Done()
 
-			if err := v(secret, sec); err != nil {
-				a.r.AddWarning(secret, err.Error())
+			if err := v.Validate(secret, sec); err != nil {
+				a.r.AddFinding(secret, v.Name, err.Error(), "warning")
+
+				return
 			}
+
+			a.r.AddFinding(secret, v.Name, "ok", "none")
 		}()
 	}
 	wg.Wait()
@@ -240,6 +266,8 @@ func (a *Auditor) checkHIBP(ctx context.Context) error {
 		return err
 	}
 
+	out.Notice(ctx, "Starting HIBP check (slow) ...")
+
 	// look up all known sha1sums. The LookupBatch method will sort the
 	// input so we don't need to.
 	matches := scanner.LookupBatch(ctx, maps.Keys(a.r.sha1sums))
@@ -253,7 +281,17 @@ func (a *Auditor) checkHIBP(ctx context.Context) error {
 
 		// add a breach warning to each of these secrets.
 		for _, sec := range secs.Elements() {
-			a.r.AddWarning(sec, "Found in at least one public data breach (HIBP Dump)")
+			a.r.AddFinding(sec, "hibp", "Found in at least one public data breach (HIBP Dump)", "warning")
+		}
+	}
+
+	for name, sr := range a.r.secrets {
+		if _, found := sr.Findings["hibp"]; !found {
+			sr.Findings["hibp"] = Finding{
+				Severity: "none",
+				Message:  "ok",
+			}
+			a.r.secrets[name] = sr
 		}
 	}
 

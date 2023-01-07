@@ -39,6 +39,8 @@ const (
 	FuncBcrypt        = "bcrypt"
 	FuncJoin          = "join"
 	FuncRoundDuration = "roundDuration"
+	FuncDate          = "date"
+	FuncTruncate      = "truncate"
 )
 
 func md5sum() func(...string) (string, error) {
@@ -296,6 +298,19 @@ func roundDuration(duration any) string {
 	}
 }
 
+func date(ts time.Time) string {
+	return ts.Format("2006-01-02")
+}
+
+func truncate(length int, v any) string {
+	sv := strval(v)
+	if len(sv) < length-3 {
+		return sv
+	}
+
+	return sv[:length-3] + "..."
+}
+
 func join(sep string, v any) string {
 	return strings.Join(stringslice(v), sep)
 }
@@ -373,6 +388,8 @@ func funcMap(ctx context.Context, kv kvstore) template.FuncMap {
 		FuncBcrypt:        bcryptFunc(),
 		FuncJoin:          join,
 		FuncRoundDuration: roundDuration,
+		FuncDate:          date,
+		FuncTruncate:      truncate,
 	}
 }
 
@@ -392,5 +409,7 @@ func PublicFuncMap() template.FuncMap {
 		FuncBcrypt:        bcryptFunc(),
 		FuncJoin:          join,
 		FuncRoundDuration: roundDuration,
+		FuncDate:          date,
+		FuncTruncate:      truncate,
 	}
 }
