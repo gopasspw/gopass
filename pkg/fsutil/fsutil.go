@@ -91,6 +91,28 @@ func IsFile(path string) bool {
 	return fi.Mode().IsRegular()
 }
 
+// IsNonEmptyFile checks if a certain path is a regular file and
+// non-zero in size.
+func IsNonEmptyFile(path string) bool {
+	fi, err := os.Stat(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			// not found
+			return false
+		}
+
+		debug.Log("failed to check file %s: %s\n", path, err)
+
+		return false
+	}
+
+	if !fi.Mode().IsRegular() {
+		return false
+	}
+
+	return fi.Size() > 0
+}
+
 // IsEmptyDir checks if a certain path is an empty directory.
 func IsEmptyDir(path string) (bool, error) {
 	empty := true
