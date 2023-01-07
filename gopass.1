@@ -1,5 +1,5 @@
 
-.TH GOPASS "1" "December 2022" "gopass (github.com/gopasspw/gopass) 1.15.2" "User Commands"
+.TH GOPASS "1" "January 2023" "gopass (github.com/gopasspw/gopass) 1.15.3" "User Commands"
 .SH NAME
 gopass - The standard Unix password manager
 .SH SYNOPSIS
@@ -61,8 +61,18 @@ This command decrypts all secrets and checks for common flaws and (optionally) a
 
 .B Flags
 .TP
-\fB\-\-expiry\fR,
-Age in days before a password is considered expired. Setting this will only check expiration.
+\fB\-\-failed\fR,
+Report only entries that failed validation. Default: false (reports all)
+.TP
+\fB\-\-format\fR,
+Output format. text, csv or html. Default: text
+.TP
+\fB\-\-output-file\fR,
+\fB\-o\fR,
+Output filename. Used for csv and html
+.TP
+\fB\-\-template\fR,
+HTML template. If not set use the built-in default.
 .SS cat
 Decode and print content of a binary secret to stdout, or encode and insert from stdin
 
