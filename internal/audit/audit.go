@@ -286,6 +286,9 @@ func (a *Auditor) checkHIBP(ctx context.Context) error {
 	}
 
 	for name, sr := range a.r.secrets {
+		if sr.Findings == nil {
+			sr.Findings = make(map[string]Finding, 1)
+		}
 		if _, found := sr.Findings["hibp"]; !found {
 			sr.Findings["hibp"] = Finding{
 				Severity: "none",
