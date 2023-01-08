@@ -16,6 +16,7 @@ import (
 	"github.com/gopasspw/gopass/internal/tree"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	shellquote "github.com/kballard/go-shellquote"
+	"github.com/noborus/ov/oviewer"
 	"github.com/urfave/cli/v2"
 	"golang.org/x/term"
 )
@@ -128,6 +129,15 @@ func redirectPager(ctx context.Context, subtree *tree.Root) (io.Writer, *bytes.B
 
 // pager invokes the default pager with the given content.
 func (s *Action) pager(ctx context.Context, buf io.Reader) error {
+	if config.Bool(ctx, "output.internal-pager") {
+		ov, err := oviewer.NewRoot(buf)
+		if err != nil {
+			return err
+		}
+
+		return ov.Run()
+	}
+
 	pager := os.Getenv("PAGER")
 	if pager == "" {
 		fmt.Fprintln(stdout, buf)
