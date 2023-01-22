@@ -30,6 +30,7 @@ type secretGetter interface {
 	Get(context.Context, string) (gopass.Secret, error)
 	ListRevisions(context.Context, string) ([]backend.Revision, error)
 	Concurrency() int
+	IsSymlink(string) bool
 }
 
 type validator struct {
@@ -223,7 +224,9 @@ func (a *Auditor) auditSecret(ctx context.Context, secret string) {
 	}
 
 	// add the password for the duplicate check
-	a.r.AddPassword(secret, sec.Password())
+	if !a.s.IsSymlink(secret) {
+		a.r.AddPassword(secret, sec.Password())
+	}
 
 	// pass the secret to all validators.
 	var wg sync.WaitGroup

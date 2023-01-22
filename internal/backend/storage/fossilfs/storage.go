@@ -67,6 +67,11 @@ func (f *Fossil) Link(ctx context.Context, from, to string) error {
 	return f.fs.Link(ctx, from, to)
 }
 
+// IsSymlink returns true if the file is symlink.
+func (f *Fossil) IsSymlink(ctx context.Context, fn string) bool {
+	return f.fs.IsSymlink(ctx, fn)
+}
+
 // Move moves from src to dst.
 func (f *Fossil) Move(ctx context.Context, src, dst string, del bool) error {
 	return f.fs.Move(ctx, src, dst, del)

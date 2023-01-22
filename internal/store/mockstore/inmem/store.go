@@ -222,6 +222,11 @@ func (m *InMem) Link(context.Context, string, string) error {
 	return nil
 }
 
+// IsSymlink always returns false.
+func (m *InMem) IsSymlink(context.Context, string) bool {
+	return false
+}
+
 // Move is not implemented.
 func (m *InMem) Move(context.Context, string, string, bool) error {
 	return nil

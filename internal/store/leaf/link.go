@@ -44,3 +44,13 @@ func (s *Store) Link(ctx context.Context, from, to string) error {
 
 	return err
 }
+
+// IsSymlink returns true if the secret is a symlink to another secret.
+func (s *Store) IsSymlink(ctx context.Context, name string) bool {
+	// can't be a link if one of the files does not exist
+	if !s.Exists(ctx, name) {
+		return false
+	}
+
+	return s.storage.IsSymlink(ctx, s.Passfile(name))
+}

@@ -90,6 +90,11 @@ func (g *Git) Link(ctx context.Context, from, to string) error {
 	return g.fs.Link(ctx, from, to)
 }
 
+// IsSymlink returns true if the file is symlink.
+func (g *Git) IsSymlink(ctx context.Context, fn string) bool {
+	return g.fs.IsSymlink(ctx, fn)
+}
+
 // Move moves from src to dst.
 func (g *Git) Move(ctx context.Context, src, dst string, del bool) error {
 	return g.fs.Move(ctx, src, dst, del)

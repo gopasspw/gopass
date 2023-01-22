@@ -44,6 +44,7 @@ type Storage interface {
 	IsDir(ctx context.Context, name string) bool
 	Prune(ctx context.Context, prefix string) error
 	Link(ctx context.Context, from, to string) error
+	IsSymlink(ctx context.Context, fn string) bool
 
 	Name() string
 	Path() string

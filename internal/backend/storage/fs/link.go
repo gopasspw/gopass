@@ -78,3 +78,20 @@ func (s *Store) Link(ctx context.Context, from, to string) error {
 
 	return os.Symlink(linkDst, filepath.Base(toRel))
 }
+
+// IsSymlink returns true if the file is a symlink.
+func (s *Store) IsSymlink(ctx context.Context, fn string) bool {
+	if runtime.GOOS == "windows" {
+		fn = filepath.FromSlash(fn)
+	}
+	path := filepath.Join(s.path, fn)
+
+	fi, err := os.Stat(path)
+	if err != nil {
+		debug.Log("Failed to stat %s: %s", path, err)
+
+		return false
+	}
+
+	return fi.Mode()&os.ModeSymlink == os.ModeSymlink
+}
