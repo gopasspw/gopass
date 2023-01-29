@@ -2,6 +2,7 @@ package audit
 
 import (
 	"bytes"
+	"fmt"
 	"testing"
 	"time"
 
@@ -20,18 +21,19 @@ func TestHTML(t *testing.T) {
 	sr := r.Finalize()
 	out := &bytes.Buffer{}
 	require.NoError(t, sr.RenderHTML(out))
-	assert.Equal(t, `<!DOCTYPE html>
+	today := time.Now().Format("2006-01-02")
+	assert.Equal(t, fmt.Sprintf(`<!DOCTYPE html>
 <html lang="en">
   <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>gopass audit report generated on 2023-01-07</title>
+  <title>gopass audit report generated on %s</title>
   <style>
 #findings {
   font-family: Arial, Helvetica, sans-serif;
   border-collapse: collapse;
-  width: 100%;
+  width: 100%%;
 }
 #findings td, #findings th {
   border: 1px solid #ddd;
@@ -54,7 +56,7 @@ func TestHTML(t *testing.T) {
 </head>
 <body>
 
-Audited 1 secrets in 0s on 2023-01-07.<br />
+Audited 1 secrets in 0s on %s.<br />
 
 <table id="findings">
   <thead>
@@ -77,5 +79,5 @@ Audited 1 secrets in 0s on 2023-01-07.<br />
 </table>
 </body>
 </html>
-`, out.String())
+`, today, today), out.String())
 }

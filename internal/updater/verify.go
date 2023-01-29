@@ -19,8 +19,8 @@ import (
 // 2y
 // ```
 // .
-var pubkey = []byte(`
------BEGIN PGP PUBLIC KEY BLOCK-----
+var pubkeys = [][]byte{
+	[]byte(`-----BEGIN PGP PUBLIC KEY BLOCK-----
 
 mQGNBGAH4iEBDAC6ZXN/hzyrB8GA8KdQEasGOrri86GDsyyyRPHP1/3Q1ZXfoNot
 qO05usZdJCpysZqBAs3sDGmjaK2jJx86LJ1KihnCs53BMdt0RXhXQdlF4hDOXu2B
@@ -62,7 +62,51 @@ bqvV9ClCnEq4hx7+cDY9Ff3hDM38h2fIPHc+96Md2mFHx7Y2v3rCLxnG17GMVAXm
 jxn7SFTOuQxBJAsmB7Q0aGs=
 =HkIB
 -----END PGP PUBLIC KEY BLOCK-----
-`)
+`),
+	[]byte(`-----BEGIN PGP PUBLIC KEY BLOCK-----
+
+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
+4e8VuujUJ7JmdEbfFhsx7sk=
+=XyXN
+-----END PGP PUBLIC KEY BLOCK-----
+`),
+}
 
 type krLogger struct {
 	r openpgp.EntityList
@@ -82,16 +126,20 @@ func (k *krLogger) Str() string {
 }
 
 func gpgVerify(data, sig []byte) (bool, error) {
-	keyring, err := openpgp.ReadArmoredKeyRing(bytes.NewReader(pubkey))
-	if err != nil {
-		debug.Log("failed to read public key: %q", err)
+	var keyring openpgp.EntityList
+	for _, pubkey := range pubkeys {
+		k, err := openpgp.ReadArmoredKeyRing(bytes.NewReader(pubkey))
+		if err != nil {
+			debug.Log("failed to read public key: %q", err)
 
-		return false, fmt.Errorf("failed to read public key: %w", err)
+			return false, fmt.Errorf("failed to read public key: %w", err)
+		}
+		keyring = append(keyring, k...)
 	}
 
 	debug.Log("Keyring: %q", &krLogger{keyring})
 
-	_, err = openpgp.CheckArmoredDetachedSignature(keyring, bytes.NewReader(data), bytes.NewReader(sig), nil)
+	_, err := openpgp.CheckArmoredDetachedSignature(keyring, bytes.NewReader(data), bytes.NewReader(sig), nil)
 	if err != nil {
 		debug.Log("failed to validate detached GPG signature: %q", err)
 		debug.Log("data: %q", string(data))
