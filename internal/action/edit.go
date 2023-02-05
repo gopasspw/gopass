@@ -8,6 +8,7 @@ import (
 
 	"github.com/gopasspw/gopass/internal/action/exit"
 	"github.com/gopasspw/gopass/internal/audit"
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/editor"
 	"github.com/gopasspw/gopass/internal/hook"
 	"github.com/gopasspw/gopass/internal/out"
@@ -86,7 +87,7 @@ func (s *Action) editUpdate(ctx context.Context, name string, content, nContent 
 }
 
 func (s *Action) editGetContent(ctx context.Context, name string, create bool) (string, []byte, bool, error) {
-	if !s.Store.Exists(ctx, name) && !create {
+	if !s.Store.Exists(ctx, name) && !create && !config.Bool(ctx, "edit.auto-create") {
 		var err error
 		name, err = s.editFindName(ctx, name)
 		if err != nil {
