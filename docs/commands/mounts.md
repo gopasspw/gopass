@@ -1,6 +1,6 @@
-# `mount` commands
+# `mounts` commands
 
-The `mount` commands allow managing mounted substores. This is one of the
+The `mounts` commands allow managing mounted substores. This is one of the
 distinctive core features of `gopass` and we aim making working with substores
 as seamless as possible.
 
