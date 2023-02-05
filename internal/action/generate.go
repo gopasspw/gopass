@@ -282,7 +282,7 @@ func clamp(min, max, value int) int {
 		return min
 	}
 
-	if value > max {
+	if value > max && max > 0 {
 		return max
 	}
 
@@ -291,9 +291,11 @@ func clamp(min, max, value int) int {
 
 func (s *Action) generatePasswordForRule(ctx context.Context, c *cli.Context, length, name, domain string, rule pwrules.Rule) (string, error) {
 	out.Noticef(ctx, "Using password rules for %s ...", domain)
+
 	wl := 16
 	if iv, err := strconv.Atoi(length); err == nil {
 		wl = clamp(rule.Minlen, rule.Maxlen, iv)
+		debug.Log("restricting requested password length (%s) to %d because of the rule {%d,%d}", length, wl, rule.Minlen, rule.Maxlen)
 	}
 
 	question := fmt.Sprintf("How long should the password be? (min: %d, max: %d)", rule.Minlen, rule.Maxlen)
