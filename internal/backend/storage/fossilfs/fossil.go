@@ -180,9 +180,14 @@ func (f *Fossil) Version(ctx context.Context) semver.Version {
 	return sv
 }
 
-// IsInitialized returns true if this stores has an (probably) initialized Fossil chkecout.
+// IsInitialized returns true if this stores has an (probably) initialized Fossil checkout.
 func (f *Fossil) IsInitialized() bool {
-	return fsutil.IsFile(filepath.Join(f.fs.Path(), CheckoutMarker))
+	fn := filepath.Join(f.fs.Path(), CheckoutMarker)
+	isFile := fsutil.IsFile(fn)
+
+	debug.Log("checking for Fossil Checkout marker at %s: %t", fn, isFile)
+
+	return isFile
 }
 
 // Add adds the listed files to the fossil index.
@@ -262,7 +267,13 @@ func (f *Fossil) PushPull(ctx context.Context, op, remote, branch string) error 
 		out.Warningf(ctx, "Found untracked files: %+v", uf)
 	}
 
-	return f.Cmd(ctx, "fossilUpdate", "update")
+	// https://www.fossil-scm.org/home/help?cmd=sync
+	switch op {
+	case "pull":
+		return f.Cmd(ctx, "fossilPull", op)
+	default:
+		return f.Cmd(ctx, "fossilSync", "sync")
+	}
 }
 
 // Push pushes to the fossil remote.
