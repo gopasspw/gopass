@@ -9,6 +9,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/gopasspw/gopass/internal/action/exit"
 	"github.com/gopasspw/gopass/internal/out"
@@ -227,13 +228,27 @@ func (s *Action) binaryValidate(ctx context.Context, buf []byte, name string) er
 	return nil
 }
 
+func isBase64Encoded(sec gopass.Secret) bool {
+	for _, k := range []string{
+		"Content-Transfer-Encoding",
+		"content-transfer-encoding",
+	} {
+		cte, _ := sec.Get(k)
+		if strings.ToLower(cte) == "base64" {
+			return true
+		}
+	}
+
+	return false
+}
+
 func (s *Action) binaryGet(ctx context.Context, name string) ([]byte, error) {
 	sec, err := s.Store.Get(ctx, name)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read %q from the store: %w", name, err)
 	}
 
-	if cte, _ := sec.Get("Content-Transfer-Encoding"); cte != "Base64" {
+	if !isBase64Encoded(sec) {
 		// need to use sec.Bytes() otherwise the first line is missing.
 		return sec.Bytes(), nil
 	}
