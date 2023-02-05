@@ -103,6 +103,7 @@ This is a list of available options:
 | `create.pre-hook` | `string` | This hook is executed right before the secret creation during `gopass create`. | `None` |
 | `delete.post-hook` | `string` | This hook is run right after removing a record with `gopass rm` | `None` |
 | `domain-alias.<from>.insteadOf`   | `string` | Alias from domain to the string value of this entry. | `` |
+| `edit.auto-create` | `bool` | Automatically create new secrets when editing. | `false` |
 | `edit.editor` | `string` | This setting controls which editor is used when opening a file with `gopass edit`. It takes precedence over the `$EDITOR` environment variable. This setting can contain flags. | `None` |
 | `edit.post-hook` | `string` | This hook is run right after editing a record with `gopass edit` |
 | `edit.pre-hook` | `string` | This hook is run right before editing a record with `gopass edit` |
