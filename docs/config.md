@@ -111,6 +111,6 @@ This is a list of available options:
 | `generate.symbols`     | `bool`   | Include symbols in generated password. | `false` |
 | `mounts.path`          | `string` | Path to the root store. | `$XDG_DATA_HOME/gopass/stores/root` |
 | `recipients.check`     | `bool`   | Check recipients hash. | `false` |
-| `recipients.hash`      | `string` | SHA256 hash of the recipients file. | `` |
+| `recipients.hash`      | `string` | SHA256 hash of the recipients file. Used to notify the user when the recipients files change. | `` |
 | `show.post-hook` | `string` | This hook is run right after displaying a secret with `gopass show` | `None` |
 | `updater.check`        | `bool`   | Check for updates when running `gopass version` | `true` |

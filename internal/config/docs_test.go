@@ -37,11 +37,11 @@ var ignoredEnvs = set.Map([]string{
 })
 
 // ignoredOptions is a list of config options that are used by gopass
-// but originate elsewhere (e.g. git). They should not be documented
-// here as well.
+// but may not be covered easily by a regexp.
 var ignoredOptions = set.Map([]string{
 	"core.pre-hook",
 	"core.post-hook",
+	"recipients.hash",
 	"user.email",
 	"user.name",
 })
