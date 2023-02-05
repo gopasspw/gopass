@@ -267,11 +267,13 @@ func (f *Fossil) PushPull(ctx context.Context, op, remote, branch string) error 
 		out.Warningf(ctx, "Found untracked files: %+v", uf)
 	}
 
-	if op == "pull" {
-		return f.Cmd(ctx, "fossilUpdate", "update")
+	// https://www.fossil-scm.org/home/help?cmd=sync
+	switch op {
+	case "pull":
+		return f.Cmd(ctx, "fossilPull", op)
+	default:
+		return f.Cmd(ctx, "fossilSync", "sync")
 	}
-
-	return f.Cmd(ctx, "fossilUpdate", "sync")
 }
 
 // Push pushes to the fossil remote.
