@@ -302,7 +302,7 @@ func (s *Store) getRecipients(ctx context.Context, idf string) (*recipients.Reci
 	}
 
 	cfg := config.FromContext(ctx)
-	cfgHash := cfg.GetM(s.alias, "recipients.hash")
+	cfgHash := cfg.Get(s.rhKey())
 	rsHash := rs.Hash()
 	if rsHash != cfgHash {
 		return rs, fmt.Errorf("Config: %s - Recipients file: %s: %w", cfgHash, rsHash, ErrInvalidHash)
@@ -451,8 +451,8 @@ func (s *Store) saveRecipients(ctx context.Context, rs recipientMarshaler, msg s
 	}
 
 	// save recipients hash
-	if err := config.FromContext(ctx).Set(s.alias, "recipients.hash", rs.Hash()); err != nil {
-		out.Errorf(ctx, "Failed to update recipients.hash: %s", err)
+	if err := config.FromContext(ctx).Set("", s.rhKey(), rs.Hash()); err != nil {
+		out.Errorf(ctx, "Failed to update %s: %s", s.rhKey(), err)
 	}
 
 	// save all recipients public keys to the repo
@@ -489,4 +489,12 @@ func (s *Store) saveRecipients(ctx context.Context, rs recipientMarshaler, msg s
 	}
 
 	return nil
+}
+
+func (s *Store) rhKey() string {
+	if s.alias == "" {
+		return "recipients.hash"
+	}
+
+	return fmt.Sprintf("recipients.%s.hash", s.alias)
 }
