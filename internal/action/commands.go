@@ -327,11 +327,11 @@ func (s *Action) GetCommands() []*cli.Command {
 		},
 		{
 			Name:      "fsck",
-			Usage:     "Check store integrity",
+			Usage:     "Check store integrity, clean up artifacts and possibly re-write secrets",
 			ArgsUsage: "[filter]",
 			Description: "" +
 				"Check the integrity of the given sub-store or all stores if none are specified. " +
-				"Will automatically fix all issues found.",
+				"Will automatically fix all issues found, i.e. it will change permissions, re-write secrets and remove outdated configs.",
 			Before:       s.IsInitialized,
 			Action:       s.Fsck,
 			BashComplete: s.MountsComplete,
