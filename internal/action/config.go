@@ -2,11 +2,13 @@ package action
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/gopasspw/gopass/internal/action/exit"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/set"
+	istore "github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/urfave/cli/v2"
@@ -86,10 +88,10 @@ func (s *Action) setConfigValue(ctx context.Context, store, key, value string) e
 		return fmt.Errorf("storage not available")
 	}
 
-	if err := st.Add(ctx, "config"); err != nil {
+	if err := st.Add(ctx, "config"); err != nil && !errors.Is(err, istore.ErrGitNotInit) {
 		return fmt.Errorf("failed to stage config file: %w", err)
 	}
-	if err := st.Commit(ctx, "Update config"); err != nil {
+	if err := st.Commit(ctx, "Update config"); err != nil && !errors.Is(err, istore.ErrGitNotInit) {
 		return fmt.Errorf("failed to commit config: %w", err)
 	}
 
