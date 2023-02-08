@@ -88,6 +88,8 @@ func (r *Store) Alias() string {
 func (r *Store) Storage(ctx context.Context, name string) backend.Storage {
 	sub, _ := r.getStore(name)
 	if sub == nil || !sub.Valid() {
+		debug.Log("failed to get mount point for %q", name)
+
 		return nil
 	}
 

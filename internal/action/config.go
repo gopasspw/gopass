@@ -2,11 +2,13 @@ package action
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/gopasspw/gopass/internal/action/exit"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/set"
+	istore "github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/urfave/cli/v2"
@@ -32,8 +34,13 @@ func (s *Action) Config(c *cli.Context) error {
 		return exit.Error(exit.Usage, nil, "Usage: %s config key value", s.Name)
 	}
 
+	// need to initialize sub-stores so we can update their configs
+	if err := s.IsInitialized(c); err != nil {
+		return err
+	}
+
 	if err := s.setConfigValue(ctx, store, c.Args().Get(0), c.Args().Get(1)); err != nil {
-		return exit.Error(exit.Unknown, err, "Error setting config value")
+		return exit.Error(exit.Unknown, err, "Error setting config value: %s", err)
 	}
 
 	return nil
@@ -74,6 +81,18 @@ func (s *Action) setConfigValue(ctx context.Context, store, key, value string) e
 
 	if err := s.cfg.Set(store, key, value); err != nil {
 		return fmt.Errorf("failed to set config value %q: %w", key, err)
+	}
+
+	st := s.Store.Storage(ctx, store)
+	if st == nil {
+		return fmt.Errorf("storage not available")
+	}
+
+	if err := st.Add(ctx, "config"); err != nil && !errors.Is(err, istore.ErrGitNotInit) {
+		return fmt.Errorf("failed to stage config file: %w", err)
+	}
+	if err := st.Commit(ctx, "Update config"); err != nil && !errors.Is(err, istore.ErrGitNotInit) {
+		return fmt.Errorf("failed to commit config: %w", err)
 	}
 
 	s.printConfigValues(ctx, store, key)
