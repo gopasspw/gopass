@@ -34,8 +34,9 @@ func (s *Action) Config(c *cli.Context) error {
 		return exit.Error(exit.Usage, nil, "Usage: %s config key value", s.Name)
 	}
 
-	// need to initialize sub-stores so we can update their configs
-	if err := s.IsInitialized(c); err != nil {
+	// need to initialize sub-stores so we can update their configs.
+	// special case: we can always update the root config.
+	if err := s.IsInitialized(c); err != nil && store != "" {
 		return err
 	}
 

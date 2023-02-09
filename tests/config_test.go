@@ -31,13 +31,15 @@ core.notifications = true
 
 	for _, invert := range invertables {
 		t.Run("invert "+invert, func(t *testing.T) {
-			out, err = ts.run("config " + invert + " false")
-			assert.NoError(t, err)
-			assert.Equal(t, "false", out)
+			arg := "config " + invert + " false"
+			out, err = ts.run(arg)
+			assert.NoError(t, err, "Running gopass "+arg)
+			assert.Equal(t, "false", out, "Output of gopass "+arg)
 
-			out, err = ts.run("config " + invert)
-			assert.NoError(t, err)
-			assert.Equal(t, "false", out)
+			arg = "config " + invert
+			out, err = ts.run(arg)
+			assert.NoError(t, err, "Running gopass "+arg)
+			assert.Equal(t, "false", out, "Output of gopass "+arg)
 		})
 	}
 
@@ -70,6 +72,7 @@ core.notifications = true
 `
 	wanted += "mounts.mnt/m1.path = " + ts.storeDir("m1") + "\n"
 	wanted += "mounts.path = " + ts.storeDir("root") + "\n"
+	wanted += "recipients.mnt/m1.hash = 9a4c4b1e0eb9ade2e692ff948f43d9668145eca3df88ffff67e0e21426252907\n"
 
 	out, err := ts.run("config")
 	assert.NoError(t, err)
