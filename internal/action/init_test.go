@@ -61,6 +61,16 @@ func TestInit(t *testing.T) {
 	buf.Reset()
 }
 
+func TestInitContext(t *testing.T) {
+	ctx := context.Background()
+
+	ctx = backend.WithCryptoBackend(ctx, backend.GPGCLI)
+	ctx = backend.WithCryptoBackend(ctx, backend.Age)
+	ctx = backend.WithCryptoBackend(ctx, backend.GPGCLI)
+
+	assert.Equal(t, backend.GetCryptoBackend(ctx), backend.GPGCLI)
+}
+
 func TestInitParseContext(t *testing.T) {
 	buf := &bytes.Buffer{}
 	out.Stdout = buf

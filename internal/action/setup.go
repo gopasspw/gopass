@@ -29,7 +29,7 @@ func (s *Action) Setup(c *cli.Context) error {
 	team := c.String("alias")
 	create := c.Bool("create")
 
-	ctx = initParseContext(ctx, c)
+	ctx = s.initParseContext(ctx, c)
 
 	out.Printf(ctx, logo)
 	out.Printf(ctx, "🌟 Welcome to gopass!")
@@ -47,6 +47,7 @@ func (s *Action) Setup(c *cli.Context) error {
 	// "[ssh] types should only be used for compatibility with existing keys,
 	// and native X25519 keys should be preferred otherwise."
 	// https://pkg.go.dev/filippo.io/age@v1.0.0/agessh#pkg-overview.
+
 	ctx = age.WithOnlyNative(ctx, true)
 	// gpg: only trusted keys
 	// only list "usable" / properly trused and signed GPG keys by requesting

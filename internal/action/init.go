@@ -63,7 +63,16 @@ func (s *Action) Init(c *cli.Context) error {
 	path := c.String("path")
 	alias := c.String("store")
 
-	ctx = initParseContext(ctx, c)
+	inited, err := s.Store.IsInitialized(ctx)
+	if err != nil {
+		return exit.Error(exit.Unknown, err, "Failed to initialized store: %s", err)
+	}
+
+	if inited && alias == "" {
+		out.Errorf(ctx, "Store is already initialized!")
+	}
+
+	ctx = s.initParseContext(ctx, c)
 	out.Printf(ctx, "🍭 Initializing a new password store ...")
 
 	if name := termio.DetectName(c.Context, c); name != "" {
@@ -74,15 +83,6 @@ func (s *Action) Init(c *cli.Context) error {
 		ctx = ctxutil.WithEmail(ctx, email)
 	}
 
-	inited, err := s.Store.IsInitialized(ctx)
-	if err != nil {
-		return exit.Error(exit.Unknown, err, "Failed to initialized store: %s", err)
-	}
-
-	if inited {
-		out.Errorf(ctx, "Store is already initialized!")
-	}
-
 	if err := s.init(ctx, alias, path, c.Args().Slice()...); err != nil {
 		return exit.Error(exit.Unknown, err, "Failed to initialize store: %s", err)
 	}
@@ -90,7 +90,18 @@ func (s *Action) Init(c *cli.Context) error {
 	return nil
 }
 
-func initParseContext(ctx context.Context, c *cli.Context) context.Context {
+func (s *Action) initParseContext(ctx context.Context, c *cli.Context) context.Context {
+	// set defaults from the root store. need to initialize the store to get these infos.
+	if c := s.Store.Crypto(ctx, ""); c != nil {
+		debug.Log("adding root store crypto backend: %q", c.Name())
+		ctx = backend.WithCryptoBackendString(ctx, c.Name())
+	}
+	if sb := s.Store.Storage(ctx, ""); sb != nil {
+		debug.Log("adding root store storage backend: %q", sb.Name())
+		ctx = backend.WithStorageBackendString(ctx, sb.Name())
+	}
+
+	// add flags
 	if c.IsSet("crypto") {
 		ctx = backend.WithCryptoBackendString(ctx, c.String("crypto"))
 	}
@@ -99,6 +110,8 @@ func initParseContext(ctx context.Context, c *cli.Context) context.Context {
 		ctx = backend.WithStorageBackendString(ctx, c.String("storage"))
 	}
 
+	// if still not set add some defaults. We must not do this earlier or we trip
+	// the detection logic.
 	if !backend.HasCryptoBackend(ctx) {
 		debug.Log("Using default Crypto Backend (GPGCLI)")
 		ctx = backend.WithCryptoBackend(ctx, backend.GPGCLI)
@@ -135,7 +148,7 @@ func (s *Action) init(ctx context.Context, alias, path string, keys ...string) e
 	}
 
 	if len(keys) < 1 {
-		out.Notice(ctx, "Hint: Use 'gopass init <subkey> to use subkeys!'")
+		out.Notice(ctx, "Hint: Use 'gopass init <subkey>' to use subkeys!")
 		nk, err := cui.AskForPrivateKey(ctx, crypto, "🎮 Please select a private key for encrypting secrets:")
 		if err != nil {
 			return fmt.Errorf("failed to read user input: %w", err)
