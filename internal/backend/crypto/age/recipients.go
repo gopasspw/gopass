@@ -6,6 +6,7 @@ import (
 
 	"filippo.io/age"
 	"filippo.io/age/agessh"
+	"github.com/gopasspw/gopass/internal/set"
 	"github.com/gopasspw/gopass/pkg/debug"
 )
 
@@ -13,38 +14,34 @@ import (
 // For native age keys this is a no-op since they are self-contained (i.e. the ID is the full key already).
 // But for SSH keys, especially GitHub indirections, an extra step is necessary.
 func (a *Age) FindRecipients(ctx context.Context, search ...string) ([]string, error) {
-	remote := make([]string, 0, len(search))
-	local := make([]string, 0, len(search))
+	rs := set.New[string]()
+
 	for _, key := range search {
-		if !strings.HasPrefix(key, "github:") {
-			local = append(local, key)
+		switch {
+		case strings.HasPrefix(key, "github:"):
+			// look up any "github:<username>" style public SSH keys
+			pks, err := a.ghCache.ListKeys(ctx, strings.TrimPrefix(key, "github:"))
+			if err != nil {
+				debug.Log("Failed to get key %s from github: %s", key, err)
 
-			continue
-		}
-		pks, err := a.ghCache.ListKeys(ctx, strings.TrimPrefix(key, "github:"))
-		if err != nil {
-			debug.Log("Failed to get key %s from github: %s", key, err)
-
-			continue
-		}
-		remote = append(remote, pks...)
-	}
-	recps, err := a.IdentityRecipients(ctx)
-	if err != nil {
-		return nil, err
-	}
-	ids := make([]string, 0, len(remote)+len(local)+len(recps))
-	for _, r := range recipientsToBech32(recps) {
-		for _, l := range local {
-			if r == l {
-				ids = append(ids, r)
+				continue
 			}
+
+			rs.Add(pks...)
+		case strings.HasPrefix(key, "ssh-"):
+			// add ssh public keys as-is
+			rs.Add(key)
+		case strings.HasPrefix(key, "age1"):
+			// add any regular age public keys as-is
+			rs.Add(key)
+		default:
+			debug.Log("ignoring unknown key: %s", key)
 		}
 	}
-	recp := append(ids, remote...)
-	debug.Log("found usable keys for %q: %q (all: %q)", search, recp, append(ids, remote...))
 
-	return recp, nil
+	debug.Log("found usable keys for %q: %q ", search, rs)
+
+	return rs.Elements(), nil
 }
 
 func (a *Age) parseRecipients(ctx context.Context, recipients []string) ([]age.Recipient, error) {
