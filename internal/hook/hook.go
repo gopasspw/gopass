@@ -35,6 +35,12 @@ func InvokeRoot(ctx context.Context, hookName, secName string, s subStoreGetter,
 }
 
 func Invoke(ctx context.Context, hook, dir string, hookArgs ...string) error {
+	if true {
+		// TODO(GH-2546) disabled until further discussion, cf. https://www.cvedetails.com/cve/CVE-2023-24055/
+
+		return nil
+	}
+
 	hCmd := strings.TrimSpace(config.String(ctx, hook))
 	if hCmd == "" {
 		return nil

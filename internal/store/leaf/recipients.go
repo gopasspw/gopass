@@ -398,10 +398,17 @@ func (s *Store) UpdateExportedPublicKeys(ctx context.Context, rs []string) (bool
 	}
 
 	if exported && ctxutil.IsGitCommit(ctx) {
-		if err := s.storage.Commit(ctx, fmt.Sprintf("Updated exported Public Keys")); err != nil && !errors.Is(err, store.ErrGitNothingToCommit) {
-			failed = true
+		if err := s.storage.Commit(ctx, fmt.Sprintf("Updated exported Public Keys")); err != nil {
+			switch {
+			case errors.Is(err, store.ErrGitNothingToCommit):
+				debug.Log("nothing to commit: %s", err)
+			case errors.Is(err, store.ErrGitNotInit):
+				debug.Log("git not initialized: %s", err)
+			default:
+				failed = true
 
-			out.Errorf(ctx, "Failed to git commit: %s", err)
+				out.Errorf(ctx, "Failed to git commit: %s", err)
+			}
 		}
 	}
 
