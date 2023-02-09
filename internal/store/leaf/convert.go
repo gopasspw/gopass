@@ -99,11 +99,16 @@ func (s *Store) Convert(ctx context.Context, cryptoBe backend.CryptoBackend, sto
 		}
 		sort.Sort(sort.Reverse(backend.Revisions(revs)))
 
+		// fail if the first revision fails, but if others fail only warn
+		first := true
 		for _, r := range revs {
 			debug.Log("converting %s@%s", e, r.Hash)
 			sec, err := s.GetRevision(ctx, e, r.Hash)
 			if err != nil {
-				return fmt.Errorf("failed to convert revision %s of %s: %w", r.Hash, e, err)
+				if first {
+					return fmt.Errorf("failed to convert revision %s of %s: %w", r.Hash, e, err)
+				}
+				debug.Log("failed to convert revision %s of %s: %w", r.Hash, e, err)
 			}
 
 			msg := fmt.Sprintf("%s\n%s\nCommitted as: %s\nDate: %s\nAuthor: %s <%s>",
@@ -117,8 +122,13 @@ func (s *Store) Convert(ctx context.Context, cryptoBe backend.CryptoBackend, sto
 			ctx := ctxutil.WithCommitMessage(ctx, msg)
 			ctx = ctxutil.WithCommitTimestamp(ctx, r.Date)
 			if err := tmpStore.Set(ctx, e, sec); err != nil {
-				return fmt.Errorf("failed to write converted revision %s of %s to the new store: %w", r.Hash, e, err)
+				if first {
+					return fmt.Errorf("failed to write converted revision %s of %s to the new store: %w", r.Hash, e, err)
+				}
+				debug.Log("failed to write converted revision %s of %s to the new store: %w", r.Hash, e, err)
 			}
+
+			first = false
 		}
 		bar.Inc()
 	}

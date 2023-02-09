@@ -1,12 +1,12 @@
 package action
 
 import (
-	"fmt"
-
+	"github.com/gopasspw/gopass/internal/action/exit"
 	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/internal/backend/crypto/age"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/termio"
 	"github.com/urfave/cli/v2"
 )
@@ -21,20 +21,21 @@ func (s *Action) Convert(c *cli.Context) error {
 
 	sub, err := s.Store.GetSubStore(store)
 	if err != nil {
-		return fmt.Errorf("mount %q not found: %w", store, err)
+		return exit.Error(exit.NotFound, err, "mount %q not found: %s", store, err)
 	}
 
 	oldStorage := sub.Storage().Name()
 
 	storage, err := backend.StorageRegistry.Backend(oldStorage)
 	if err != nil {
-		return fmt.Errorf("unknown storage backend %q: %w", oldStorage, err)
+		return exit.Error(exit.Unknown, err, "unknown source storage backend %q: %s", oldStorage, err)
 	}
+
 	if sv := c.String("storage"); sv != "" {
 		var err error
 		storage, err = backend.StorageRegistry.Backend(sv)
 		if err != nil {
-			return fmt.Errorf("unknown storage backend %q: %w", sv, err)
+			return exit.Error(exit.Usage, err, "unknown destination storage backend %q: %s", storage, err)
 		}
 	}
 
@@ -42,23 +43,26 @@ func (s *Action) Convert(c *cli.Context) error {
 
 	crypto, err := backend.CryptoRegistry.Backend(oldCrypto)
 	if err != nil {
-		return fmt.Errorf("unknown crypto backend %q: %w", oldCrypto, err)
+		return exit.Error(exit.Unknown, err, "unknown source crypto backend %q: %s", oldCrypto, err)
 	}
+
 	if sv := c.String("crypto"); sv != "" {
 		var err error
 		crypto, err = backend.CryptoRegistry.Backend(sv)
 		if err != nil {
-			return fmt.Errorf("unknown crypto backend %q: %w", sv, err)
+			return exit.Error(exit.Usage, err, "unknown destination crypto backend %q: %s", sv, err)
 		}
 	}
 
 	if oldCrypto == crypto.String() && oldStorage == storage.String() {
-		out.Notice(ctx, "No conversion needed")
+		out.Notice(ctx, "No conversion needed. Source and destination match.")
 
 		return nil
 	}
 
 	if oldCrypto != crypto.String() {
+		debug.Log("attempting to convert crypto from %q to %q", oldCrypto, crypto.String())
+
 		cbe, err := backend.NewCrypto(ctx, crypto)
 		if err != nil {
 			return err
@@ -82,7 +86,7 @@ func (s *Action) Convert(c *cli.Context) error {
 	}
 
 	if err := s.Store.Convert(ctx, store, crypto, storage, move); err != nil {
-		return fmt.Errorf("failed to convert %q: %w", store, err)
+		return exit.Error(exit.Unknown, err, "failed to convert store %q: %s", store, err)
 	}
 
 	out.OKf(ctx, "Successfully converted %q", store)

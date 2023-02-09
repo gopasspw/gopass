@@ -13,13 +13,13 @@ import (
 func (r *Store) Convert(ctx context.Context, name string, cryptoBe backend.CryptoBackend, storageBe backend.StorageBackend, move bool) error {
 	sub, err := r.GetSubStore(name)
 	if err != nil {
-		return fmt.Errorf("mount not found: %w", err)
+		return fmt.Errorf("mount %q not found: %w", name, err)
 	}
 
 	debug.Log("converting %s to crypto: %s, storage: %s", name, cryptoBe, storageBe)
 
 	if err := sub.Convert(ctx, cryptoBe, storageBe, move); err != nil {
-		return fmt.Errorf("failed to convert %q: %w", name, err)
+		return fmt.Errorf("conversion failed: %w", err)
 	}
 
 	if name == "" {
