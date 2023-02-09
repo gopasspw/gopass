@@ -72,6 +72,17 @@ func TestInitContext(t *testing.T) {
 }
 
 func TestInitParseContext(t *testing.T) {
+	u := gptest.NewUnitTester(t)
+
+	ctx := context.Background()
+	ctx = ctxutil.WithAlwaysYes(ctx, true)
+	ctx = ctxutil.WithInteractive(ctx, false)
+
+	act, err := newMock(ctx, u.Dir)
+	require.Error(t, err)
+	require.NotNil(t, act)
+	ctx = act.cfg.WithConfig(ctx)
+
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
 	out.Stderr = buf
@@ -90,7 +101,7 @@ func TestInitParseContext(t *testing.T) {
 			flags: map[string]string{"crypto": "age"},
 			check: func(ctx context.Context) error {
 				if be := backend.GetCryptoBackend(ctx); be != backend.Age {
-					return fmt.Errorf("wrong backend: %d", be)
+					return fmt.Errorf("wrong crypto backend: %d", be)
 				}
 
 				return nil
@@ -99,8 +110,8 @@ func TestInitParseContext(t *testing.T) {
 		{
 			name: "default",
 			check: func(ctx context.Context) error {
-				if backend.GetStorageBackend(ctx) != backend.GitFS {
-					return fmt.Errorf("wrong backend")
+				if be := backend.GetStorageBackend(ctx); be != backend.GitFS {
+					return fmt.Errorf("wrong storage backend: %d", be)
 				}
 
 				return nil
@@ -110,8 +121,8 @@ func TestInitParseContext(t *testing.T) {
 		tc := tc
 
 		t.Run(tc.name, func(t *testing.T) {
-			c := gptest.CliCtxWithFlags(context.Background(), t, tc.flags)
-			assert.NoError(t, tc.check(initParseContext(c.Context, c)), tc.name)
+			c := gptest.CliCtxWithFlags(ctx, t, tc.flags)
+			assert.NoError(t, tc.check(act.initParseContext(c.Context, c)), tc.name)
 			buf.Reset()
 		})
 	}
