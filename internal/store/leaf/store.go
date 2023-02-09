@@ -127,6 +127,7 @@ func (s *Store) idFiles(ctx context.Context) []string {
 		}
 
 		idf := s.idFile(ctx, f)
+		debug.Log("checking for if %q has an idf: %q", f, idf)
 		if s.storage.Exists(ctx, idf) {
 			idfs = append(idfs, idf)
 		}
