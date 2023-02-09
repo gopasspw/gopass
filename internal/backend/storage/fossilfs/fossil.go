@@ -270,10 +270,16 @@ func (f *Fossil) PushPull(ctx context.Context, op, remote, branch string) error 
 	// https://www.fossil-scm.org/home/help?cmd=sync
 	switch op {
 	case "pull":
-		return f.Cmd(ctx, "fossilPull", op)
+		if err := f.Cmd(ctx, "fossilPull", op); err != nil {
+			return err
+		}
 	default:
-		return f.Cmd(ctx, "fossilSync", "sync")
+		if err := f.Cmd(ctx, "fossilSync", "sync"); err != nil {
+			return err
+		}
 	}
+
+	return f.Cmd(ctx, "fossilUpdate", "update")
 }
 
 // Push pushes to the fossil remote.
