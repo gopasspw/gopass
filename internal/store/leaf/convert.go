@@ -22,7 +22,7 @@ import (
 // Convert will convert an existing store to a new store with possibly
 // different set of crypto and storage backends. Please note that it
 // will happily convert to the same set of backends if requested.
-func (s *Store) Convert(ctx context.Context, cryptoBe backend.CryptoBackend, storageBe backend.StorageBackend, move bool) error {
+func (s *Store) Convert(ctx context.Context, cryptoBe backend.CryptoBackend, storageBe backend.StorageBackend, move bool) error { //nolint:cyclop
 	// use a temp queue so we can flush it before removing the old store
 	q := queue.New(ctx)
 	ctx = queue.WithQueue(ctx, q)
