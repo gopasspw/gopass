@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.15.4 / 2023-02-12
+
+* [BUGFIX] Also accept lower case CTE headers. (#2539, #2518)
+* [BUGFIX] Commit changes to mount config changes. (#2542, #2530)
+* [BUGFIX] Do not restrict pwlen when maxlen is zero. (#2537, #2536)
+* [BUGFIX] Fix fossilfs sync (#2549, #2516)
+* [BUGFIX] Fix recipients check for age. (#2545, #2544)
+* [BUGFIX] Hide harmless git error messages. (#2547, #2543)
+* [BUGFIX] Improve error handling for gopass convert (#2548, #2520)
+* [ENHANCEMENT] Add edit.auto-create (#2538)
+
 ## 1.15.3 / 2023-01-07
 
 * [BUGFIX] Check recipients before launching editor. (#2488, #1565)

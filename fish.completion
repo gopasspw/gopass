@@ -127,7 +127,7 @@ complete -c $PROG -f -n '__fish_gopass_needs_command' -a edit -d 'Command: Edit 
 complete -c $PROG -f -n '__fish_gopass_uses_command edit' -a "(__fish_gopass_print_entries)"
 complete -c $PROG -f -n '__fish_gopass_needs_command' -a env -d 'Command: Run a subprocess with a pre-populated environment'
 complete -c $PROG -f -n '__fish_gopass_needs_command' -a find -d 'Command: Search for secrets'
-complete -c $PROG -f -n '__fish_gopass_needs_command' -a fsck -d 'Command: Check store integrity'
+complete -c $PROG -f -n '__fish_gopass_needs_command' -a fsck -d 'Command: Check store integrity, clean up artifacts and possibly re-write secrets'
 complete -c $PROG -f -n '__fish_gopass_needs_command' -a fscopy -d 'Command: Copy files from or to the password store'
 complete -c $PROG -f -n '__fish_gopass_needs_command' -a fsmove -d 'Command: Move files from or to the password store'
 complete -c $PROG -f -n '__fish_gopass_needs_command' -a generate -d 'Command: Generate a new password'
