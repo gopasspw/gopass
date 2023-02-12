@@ -400,6 +400,11 @@ func (u *inUpdater) doUpdate(ctx context.Context, dir string) error {
 	}
 	fmt.Printf("✅ [%s] Git is clean.", dir)
 
+	// git pull origin master
+	if err := gitPom(path); err != nil {
+		return fmt.Errorf("failed to fetch changes at %s: %s", path, err)
+	}
+
 	// make upgrade
 	if err := runCmd(path, "make", "upgrade"); err != nil {
 		return err
