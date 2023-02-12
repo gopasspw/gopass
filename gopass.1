@@ -1,5 +1,5 @@
 
-.TH GOPASS "1" "January 2023" "gopass (github.com/gopasspw/gopass) 1.15.3" "User Commands"
+.TH GOPASS "1" "February 2023" "gopass (github.com/gopasspw/gopass) 1.15.4" "User Commands"
 .SH NAME
 gopass - The standard Unix password manager
 .SH SYNOPSIS
@@ -198,9 +198,9 @@ This command will first attempt a simple pattern match on the name of the secret
 \fB\-f\fR,
 In the case of an exact match, display the password even if safecontent is enabled
 .SS fsck
-Check store integrity
+Check store integrity, clean up artifacts and possibly re-write secrets
 
-Check the integrity of the given sub-store or all stores if none are specified. Will automatically fix all issues found.
+Check the integrity of the given sub-store or all stores if none are specified. Will automatically fix all issues found, i.e. it will change permissions, re-write secrets and remove outdated configs.
 
 .B Flags
 .TP

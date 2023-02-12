@@ -280,7 +280,7 @@ _gopass () {
 	  "edit:Edit new or existing secrets"
 	  "env:Run a subprocess with a pre-populated environment"
 	  "find:Search for secrets"
-	  "fsck:Check store integrity"
+	  "fsck:Check store integrity, clean up artifacts and possibly re-write secrets"
 	  "fscopy:Copy files from or to the password store"
 	  "fsmove:Move files from or to the password store"
 	  "generate:Generate a new password"
