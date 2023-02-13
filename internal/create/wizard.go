@@ -102,7 +102,7 @@ func (w *Wizard) parseTemplates(ctx context.Context, s backend.Storage) ([]Templ
 		}
 		buf, err := s.Get(ctx, f)
 		if err != nil {
-			debug.Log("failed to parse template %s: %s", f, err)
+			debug.Log("failed to read template %s: %s", f, err)
 
 			continue
 		}
