@@ -160,8 +160,11 @@ func (s *Store) Exists(ctx context.Context, name string) bool {
 // e.g. foo, far/bar baz/.bang
 // directory separator are normalized using `/`.
 func (s *Store) List(ctx context.Context, prefix string) ([]string, error) {
-	prefix = strings.TrimPrefix(prefix, "/")
-	debug.Log("Listing %s/%s", s.path, prefix)
+	if runtime.GOOS == "windows" {
+		prefix = filepath.FromSlash(prefix)
+	}
+	prefix = strings.TrimPrefix(prefix, string(filepath.Separator))
+	debug.Log("Listing %s%s%s", s.path, string(filepath.Separator), prefix)
 
 	files := make([]string, 0, 100)
 	if err := walkSymlinks(s.path, func(path string, info os.FileInfo, err error) error {
@@ -182,9 +185,7 @@ func (s *Store) List(ctx context.Context, prefix string) ([]string, error) {
 			return nil
 		}
 		name := strings.TrimPrefix(path, s.path+string(filepath.Separator))
-		if runtime.GOOS == "windows" {
-			name = filepath.ToSlash(name)
-		}
+
 		if !strings.HasPrefix(name, prefix) {
 			return nil
 		}

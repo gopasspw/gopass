@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
+	"runtime"
 	"sort"
 	"strconv"
 	"strings"
@@ -88,7 +89,12 @@ func New(ctx context.Context, s backend.Storage) (*Wizard, error) {
 }
 
 func (w *Wizard) parseTemplates(ctx context.Context, s backend.Storage) ([]Template, error) {
-	tpls, err := s.List(ctx, tplPath)
+	var tplPath_int string
+	if runtime.GOOS == "windows" {
+		tplPath_int = filepath.FromSlash(tplPath)
+	}
+
+	tpls, err := s.List(ctx, tplPath_int)
 	if err != nil {
 		return nil, err
 	}
