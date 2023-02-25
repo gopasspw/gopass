@@ -338,7 +338,7 @@ func (s *Action) GetCommands() []*cli.Command {
 			Flags: []cli.Flag{
 				&cli.BoolFlag{
 					Name:  "decrypt",
-					Usage: "Decrypt and reencryt during fsck.",
+					Usage: "Decrypt and reencrypt during fsck.",
 				},
 			},
 		},
