@@ -77,6 +77,12 @@ func (w *Wizard) writeTemplates(ctx context.Context, s storageSetter) error {
 
 		path := fmt.Sprintf("%s%d-%s.yml", tplPath, tpl.Priority, tpl.Prefix)
 		if err := s.Set(ctx, path, by); err != nil {
+			if errors.Is(err, store.ErrMeaninglessWrite) {
+				debug.Log("got unexpected error for %s (ignoring): %s", path, err)
+
+				continue
+			}
+
 			return fmt.Errorf("failed to write default template %s: %w", path, err)
 		}
 
