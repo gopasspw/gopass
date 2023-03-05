@@ -38,7 +38,7 @@ require (
 	github.com/zalando/go-keyring v0.2.2
 	golang.org/x/crypto v0.6.0
 	golang.org/x/exp v0.0.0-20230212135524-a684f29349b6
-	golang.org/x/net v0.6.0
+	golang.org/x/net v0.7.0
 	golang.org/x/oauth2 v0.5.0
 	golang.org/x/sys v0.5.0
 	golang.org/x/term v0.5.0
