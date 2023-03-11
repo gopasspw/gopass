@@ -41,8 +41,8 @@ brew install gopass
 **Warning**: Do not install the `gopass` package for the official repositories. That is a completely different project that has no relation to us.
 
 ```shell
-$ curl https://packages.gopass.pw/repos/gopass/gopass-archive-keyring.gpg | sudo tee /usr/share/keyrings/gopass-archive-keyring.gpg >/dev/null
-$ cat << EOF | sudo tee /etc/apt/sources.list.d/gopass.sources
+curl https://packages.gopass.pw/repos/gopass/gopass-archive-keyring.gpg | sudo tee /usr/share/keyrings/gopass-archive-keyring.gpg >/dev/null
+cat << EOF | sudo tee /etc/apt/sources.list.d/gopass.sources
 Types: deb
 URIs: https://packages.gopass.pw/repos/gopass
 Suites: stable
@@ -50,8 +50,8 @@ Architectures: all amd64 arm64 armhf
 Components: main
 Signed-By: /usr/share/keyrings/gopass-archive-keyring.gpg
 EOF
-$ sudo apt update
-$ sudo apt install gopass gopass-archive-keyring
+sudo apt update
+sudo apt install gopass gopass-archive-keyring
 ```
 
 ### Fedora / RedHat / CentOS
@@ -118,7 +118,7 @@ Download the [latest release](https://github.com/gopasspw/gopass/releases/latest
 Initialize a new `gopass` configuration:
 
 ```shell
-$ gopass setup
+gopass setup
 
    __     _    _ _      _ _   ___   ___
  /'_ '\ /'_'\ ( '_'\  /'_' )/',__)/',__)
@@ -146,25 +146,25 @@ An existing store can be cloned with e.g. `gopass clone git@gitlab.example.org:j
 Create a new secret:
 
 ```shell
-$ gopass create
+gopass create
 ```
 
 List all existing secrets:
 
 ```shell
-$ gopass ls
+gopass ls
 ```
 
 Copy an existing password to the clipboard:
 
 ```shell
-$ gopass show -c foo
+gopass show -c foo
 ```
 
 Remove an existing secret:
 
 ```shell
-$ gopass rm foo
+gopass rm foo
 ```
 
 Other examples:
