@@ -90,13 +90,13 @@ func (s *Store) gitCommitAndPush(ctx context.Context, name string) error {
 		}
 	}
 
-	if !config.Bool(ctx, "core.autosync") {
-		debug.Log("not pushing to git remote, core.autosync is false")
+	if !config.Bool(ctx, "core.autopush") {
+		debug.Log("not pushing to git remote, core.autopush is false")
 
 		return nil
 	}
 
-	debug.Log("syncing with remote ...")
+	debug.Log("pushing to remote ...")
 
 	if err := s.storage.Push(ctx, "", ""); err != nil {
 		if errors.Is(err, store.ErrGitNotInit) {
@@ -118,7 +118,7 @@ func (s *Store) gitCommitAndPush(ctx context.Context, name string) error {
 		return fmt.Errorf("failed to push to git remote: %w", err)
 	}
 
-	debug.Log("synced with remote")
+	debug.Log("pushed to remote")
 
 	return nil
 }

@@ -39,6 +39,7 @@ func TestConfig(t *testing.T) {
 		assert.NoError(t, act.Config(c))
 		want := `core.autoclip = true
 core.autoimport = true
+core.autopush = true
 core.autosync = true
 core.cliptimeout = 45
 core.exportkeys = true
@@ -79,6 +80,7 @@ core.notifications = true
 		act.printConfigValues(ctx, "")
 		want := `core.autoclip = true
 core.autoimport = true
+core.autopush = true
 core.autosync = true
 core.cliptimeout = 45
 core.exportkeys = true
@@ -111,6 +113,7 @@ core.notifications = true
 		act.ConfigComplete(gptest.CliCtx(ctx, t))
 		want := `core.autoclip
 core.autoimport
+core.autopush
 core.autosync
 core.cliptimeout
 core.exportkeys

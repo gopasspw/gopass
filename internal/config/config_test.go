@@ -30,7 +30,7 @@ func TestConfig(t *testing.T) {
 	assert.NoError(t, cfg.SetEnv("env.string", "foo"))
 	assert.Equal(t, "foo", cfg.Get("env.string"))
 
-	assert.Equal(t, []string{"core.autosync", "core.bool", "core.cliptimeout", "core.exportkeys", "core.int", "core.notifications", "core.string", "env.string", "mounts.path"}, cfg.Keys(""))
+	assert.Equal(t, []string{"core.autopush", "core.autosync", "core.bool", "core.cliptimeout", "core.exportkeys", "core.int", "core.notifications", "core.string", "env.string", "mounts.path"}, cfg.Keys(""))
 
 	ctx := cfg.WithConfig(context.Background())
 	assert.Equal(t, true, Bool(ctx, "core.bool"))

@@ -125,8 +125,8 @@ func (s *Store) Fsck(ctx context.Context, path string) error {
 		return err
 	}
 
-	if !config.Bool(ctx, "core.autosync") {
-		debug.Log("not pushing to git remote, core.autosync is false")
+	if !config.Bool(ctx, "core.autopush") {
+		debug.Log("not pushing to git remote, core.autopush is false")
 
 		return nil
 	}

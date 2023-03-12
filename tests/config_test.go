@@ -15,7 +15,8 @@ func TestBaseConfig(t *testing.T) {
 	out, err := ts.run("config")
 	assert.NoError(t, err)
 
-	wanted := `core.autosync = true
+	wanted := `core.autopush = true
+core.autosync = true
 core.cliptimeout = 45
 core.exportkeys = false
 core.notifications = true
@@ -65,7 +66,8 @@ func TestMountConfig(t *testing.T) {
 	_, err = ts.run("config")
 	assert.NoError(t, err)
 
-	wanted := `core.autosync = true
+	wanted := `core.autopush = true
+core.autosync = true
 core.cliptimeout = 45
 core.exportkeys = false
 core.notifications = true
