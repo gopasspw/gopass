@@ -420,7 +420,6 @@ func LoadConfig(fn string) (*Config, error) {
 		if err != nil {
 			return nil, err
 		}
-
 		c = mergeConfigs(c, nc)
 		loadedConfigs[head] = struct{}{}
 
@@ -442,7 +441,6 @@ func loadConfig(fn string) (*Config, error) {
 
 	c := ParseConfig(fh)
 	c.path = fn
-
 	return c, nil
 }
 

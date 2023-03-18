@@ -296,7 +296,7 @@ func TestLoadConfigWithInclude(t *testing.T) {
   [include]
     path = config
     path = %s`, fnBar)), 0o600))
-	assert.NoError(t, os.WriteFile(fnBar, []byte(`[core]
+	require.NoError(t, os.WriteFile(fnBar, []byte(`[core]
 	int = 9`), 0o600))
 
 	cfg, err := LoadConfig(fn)
