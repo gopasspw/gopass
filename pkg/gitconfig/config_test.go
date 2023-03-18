@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"math/rand"
+	"os"
+	"path"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -264,6 +266,52 @@ func TestLoadConfig(t *testing.T) {
 	assert.Equal(t, "false", v)
 }
 
+func TestLoadConfigWithInclude(t *testing.T) {
+	t.Parallel()
+
+	td := t.TempDir()
+	fn := filepath.Join(td, "config")
+
+	tdBar := t.TempDir()
+	fnBar := path.Join(tdBar, "bar.config")
+
+	assert.NoError(t, ioutil.WriteFile(fn, []byte(`[core]
+	int = 7
+	string = foo
+	bar = false
+  [include]
+    path = foo.config
+    path = foo.config`), 0o600))
+	fnFoo := filepath.Join(td, "foo.config")
+
+	assert.NoError(t, ioutil.WriteFile(fnFoo, []byte(fmt.Sprintf(`[core]
+	int = 8
+  [include]
+    path = config
+    path = %s`, fnBar)), 0o600))
+	assert.NoError(t, ioutil.WriteFile(fnBar, []byte(`[core]
+	int = 9`), 0o600))
+
+	cfg, err := LoadConfig(fn)
+	require.NoError(t, err)
+
+	v, ok := cfg.Get("core.int")
+	assert.True(t, ok)
+	assert.Equal(t, "7", v)
+
+	vs, ok := cfg.GetAll("core.int")
+	assert.True(t, ok)
+	assert.Equal(t, []string{"7", "8", "9"}, vs)
+
+	v, ok = cfg.Get("core.string")
+	assert.True(t, ok)
+	assert.Equal(t, "foo", v)
+
+	v, ok = cfg.Get("core.bar")
+	assert.True(t, ok)
+	assert.Equal(t, "false", v)
+}
+
 func TestLoadFromEnv(t *testing.T) {
 	tc := map[string]string{
 		"core.foo":     "bar",
@@ -288,4 +336,38 @@ func TestLoadFromEnv(t *testing.T) {
 		assert.True(t, ok)
 		assert.Equal(t, v, got)
 	}
+}
+
+func TestGetPathsForNestedConfig(t *testing.T) {
+	t.Parallel()
+
+	os.Setenv("HOME", "/home/user")
+	tc := map[string][3]string{
+		"relative": {"/home/user/config", "foo.config", "/home/user/foo.config"},
+		"~":        {"/home/user/config", "~/foo.config", "/home/user/foo.config"},
+		"absolute": {"/home/user/config", "/home/user/foo.config", "/home/user/foo.config"},
+	}
+
+	for _, v := range tc {
+		got := getPathsForNestedConfig([]string{v[1]}, v[0])
+		assert.Equal(t, []string{v[2]}, got)
+	}
+}
+
+func TestMergeConfigs(t *testing.T) {
+	t.Parallel()
+	baseConfig := Config{path: "/home/user/config", noWrites: true, readonly: true, raw: strings.Builder{}, vars: map[string][]string{"core.bar": {"1"}}}
+	baseConfig.raw.WriteString("base")
+	extensionConfig := Config{path: "/home/user/config.foo", noWrites: false, readonly: false, raw: strings.Builder{}, vars: map[string][]string{"core.bar": {"2"}}}
+	extensionConfig.raw.WriteString("foo")
+
+	mergedConfig := mergeConfigs(&baseConfig, &extensionConfig)
+	assert.False(t, &baseConfig == mergedConfig)
+	assert.False(t, &baseConfig.raw == &mergedConfig.raw)
+	assert.False(t, &extensionConfig == mergedConfig)
+	assert.False(t, &extensionConfig.raw == &mergedConfig.raw)
+	assert.Equal(t, mergedConfig.noWrites, baseConfig.noWrites)
+	assert.Equal(t, mergedConfig.readonly, baseConfig.readonly)
+	assert.Equal(t, mergedConfig.path, baseConfig.path)
+	assert.Equal(t, mergedConfig.vars, map[string][]string{"core.bar": {"1", "2"}})
 }

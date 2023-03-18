@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -355,6 +356,84 @@ func NewFromMap(data map[string]string) *Config {
 
 // LoadConfig tries to load a gitconfig from the given path.
 func LoadConfig(fn string) (*Config, error) {
+	c, err := loadConfig(fn)
+	if err != nil {
+		return nil, err
+	}
+	c.path = fn
+
+	loadedConfigs := map[string]struct{}{}
+	loadedConfigs[fn] = struct{}{}
+	configsToLoad := []string{}
+	includePaths, includeExists := c.GetAll("include.path")
+	if includeExists {
+		configsToLoad = append(configsToLoad, getPathsForNestedConfig(includePaths, c.path)...)
+	}
+	for len(configsToLoad) > 0 {
+		head := configsToLoad[0]
+		configsToLoad = configsToLoad[1:]
+		_, ignore := loadedConfigs[head]
+		if ignore {
+			continue
+		}
+
+		nc, err := loadConfig(head)
+		if err != nil {
+			return nil, err
+		}
+		c = mergeConfigs(c, nc)
+		loadedConfigs[head] = struct{}{}
+
+		includePaths, includeExists := nc.GetAll("include.path")
+		if includeExists {
+			configsToLoad = append(configsToLoad, getPathsForNestedConfig(includePaths, nc.path)...)
+		}
+	}
+
+	return c, nil
+}
+
+// mergeConfigs merge two configs, using first config as a base config extending it with vars, raw fields from the latter
+func mergeConfigs(base *Config, extention *Config) *Config {
+	newConfig := Config{path: base.path, readonly: base.readonly, noWrites: base.noWrites, raw: strings.Builder{}, vars: map[string][]string{}}
+	newConfig.raw.WriteString(base.raw.String())
+	newConfig.raw.WriteString(extention.raw.String())
+
+	for k, v := range base.vars {
+		newConfig.vars[k] = v
+	}
+	for k, v := range extention.vars {
+		_, existing := newConfig.vars[k]
+		if !existing {
+			newConfig.vars[k] = []string{}
+		}
+		newConfig.vars[k] = append(newConfig.vars[k], v...)
+	}
+	return &newConfig
+}
+
+// getPathsForNestedConfig tries to convert paths of nested configs ('/absolute', '~/from/home', 'relative/to/base') to absolute paths
+func getPathsForNestedConfig(nestedConfigs []string, baseConfig string) []string {
+	absolutePaths := []string{}
+	for _, nc := range nestedConfigs {
+		if path.IsAbs(nc) {
+			absolutePaths = append(absolutePaths, nc)
+			continue
+		}
+		if strings.HasPrefix(nc, "~/") {
+			home, exists := os.LookupEnv("HOME")
+			if !exists {
+				continue
+			}
+			absolutePaths = append(absolutePaths, path.Join(home, strings.Replace(nc, "~/", "", 1)))
+			continue
+		}
+		absolutePaths = append(absolutePaths, path.Clean(path.Join(path.Dir(baseConfig), nc)))
+	}
+	return absolutePaths
+}
+
+func loadConfig(fn string) (*Config, error) {
 	fh, err := os.Open(fn)
 	if err != nil {
 		return nil, err
@@ -363,7 +442,6 @@ func LoadConfig(fn string) (*Config, error) {
 
 	c := ParseConfig(fh)
 	c.path = fn
-
 	return c, nil
 }
 
@@ -383,7 +461,7 @@ func ParseConfig(r io.Reader) *Config {
 	c.raw.WriteString(strings.Join(lines, "\n"))
 	c.raw.WriteString("\n")
 
-	// debug.Log("processed config: %s\nvars: %+v", c.raw.String(), c.vars)
+	debug.Log("processed config: %s\nvars: %+v", c.raw.String(), c.vars)
 
 	return c
 }
