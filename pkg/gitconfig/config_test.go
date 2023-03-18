@@ -3,7 +3,6 @@ package gitconfig
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
 	"math/rand"
 	"os"
 	"path"
@@ -276,7 +275,7 @@ func TestLoadConfigWithInclude(t *testing.T) {
 	tdBar := t.TempDir()
 	fnBar := path.Join(tdBar, "bar.config")
 
-	assert.NoError(t, ioutil.WriteFile(fn, []byte(`[core]
+	assert.NoError(t, os.WriteFile(fn, []byte(`[core]
 	int = 7
 	string = foo
 	bar = false
@@ -285,12 +284,12 @@ func TestLoadConfigWithInclude(t *testing.T) {
     path = foo.config`), 0o600))
 	fnFoo := filepath.Join(td, "foo.config")
 
-	assert.NoError(t, ioutil.WriteFile(fnFoo, []byte(fmt.Sprintf(`[core]
+	assert.NoError(t, os.WriteFile(fnFoo, []byte(fmt.Sprintf(`[core]
 	int = 8
   [include]
     path = config
     path = %s`, fnBar)), 0o600))
-	assert.NoError(t, ioutil.WriteFile(fnBar, []byte(`[core]
+	assert.NoError(t, os.WriteFile(fnBar, []byte(`[core]
 	int = 9`), 0o600))
 
 	cfg, err := LoadConfig(fn)
@@ -341,7 +340,7 @@ func TestLoadFromEnv(t *testing.T) {
 func TestGetPathsForNestedConfig(t *testing.T) {
 	t.Parallel()
 
-	os.Setenv("HOME", "/home/user")
+	t.Setenv("HOME", "/home/user")
 	tc := map[string][3]string{
 		"relative": {"/home/user/config", "foo.config", "/home/user/foo.config"},
 		"~":        {"/home/user/config", "~/foo.config", "/home/user/foo.config"},
