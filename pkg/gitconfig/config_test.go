@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"math/rand"
-	"os"
 	"path"
 	"path/filepath"
 	"strconv"
@@ -341,7 +340,7 @@ func TestLoadFromEnv(t *testing.T) {
 func TestGetPathsForNestedConfig(t *testing.T) {
 	t.Parallel()
 
-	os.Setenv("HOME", "/home/user")
+	t.Setenv("HOME", "/home/user")
 	tc := map[string][3]string{
 		"relative": {"/home/user/config", "foo.config", "/home/user/foo.config"},
 		"~":        {"/home/user/config", "~/foo.config", "/home/user/foo.config"},

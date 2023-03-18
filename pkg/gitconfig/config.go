@@ -461,7 +461,7 @@ func ParseConfig(r io.Reader) *Config {
 	c.raw.WriteString(strings.Join(lines, "\n"))
 	c.raw.WriteString("\n")
 
-	debug.Log("processed config: %s\nvars: %+v", c.raw.String(), c.vars)
+	// debug.Log("processed config: %s\nvars: %+v", c.raw.String(), c.vars)
 
 	return c
 }
