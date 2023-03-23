@@ -3,6 +3,7 @@ package cli
 import (
 	"bytes"
 	"context"
+	"io"
 	"os"
 	"os/exec"
 
@@ -41,9 +42,9 @@ func (g *GPG) Encrypt(ctx context.Context, plaintext []byte, recipients []string
 
 	cmd := exec.CommandContext(ctx, g.binary, args...)
 	cmd.Stdin = bytes.NewReader(plaintext)
-	// the encrypted blob is written to stdout
-	cmd.Stdout = buf
-	cmd.Stderr = os.Stderr
+	// the encrypted blob and errors are printed to the log file, and to stdout
+	cmd.Stdout = io.MultiWriter(buf, debug.LogWriter)
+	cmd.Stderr = io.MultiWriter(os.Stderr, debug.LogWriter)
 
 	debug.Log("%s %+v", cmd.Path, cmd.Args)
 	err := cmd.Run()
