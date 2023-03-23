@@ -3,6 +3,8 @@ package cli
 import (
 	"bytes"
 	"context"
+	"errors"
+	"fmt"
 	"io"
 	"os"
 	"os/exec"
@@ -26,19 +28,29 @@ func (g *GPG) Encrypt(ctx context.Context, plaintext []byte, recipients []string
 		args = append(args, "--trust-model=always")
 	}
 
+	buf := &bytes.Buffer{}
+	if len(recipients) == 0 {
+		return buf.Bytes(), errors.New("recipients list is empty!")
+	}
+	var badRecipients []string
 	for _, r := range recipients {
 		kl, err := g.listKeys(ctx, "public", r)
 		if err != nil {
 			debug.Log("Failed to check key %s. Adding anyway. %s", err)
 		} else if len(kl.UseableKeys(gpg.IsAlwaysTrust(ctx))) < 1 {
-			out.Printf(ctx, "Not using invalid key %s for encryption. (Check its expiration date or its encryption capabilities.)", r)
+			badRecipients = append(badRecipients, r)
+			errmsg := fmt.Sprintf("Not using invalid key %q for encryption. Check its expiration date, its encryption capabilities and trust.", r)
+			debug.Log(errmsg)
+			out.Printf(ctx, errmsg)
 
 			continue
 		}
+		debug.Log("adding recipient %s", r)
 		args = append(args, "--recipient", r)
 	}
-
-	buf := &bytes.Buffer{}
+	if len(badRecipients) == len(recipients) {
+		return buf.Bytes(), errors.New("no valid and trusted recipients were found!")
+	}
 
 	cmd := exec.CommandContext(ctx, g.binary, args...)
 	cmd.Stdin = bytes.NewReader(plaintext)
