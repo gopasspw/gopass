@@ -248,6 +248,12 @@ func updateDeps() error {
 		return err
 	}
 
+	if sv := os.Getenv("GOPASS_NOTEST"); sv != "" {
+		fmt.Printf("⚠ GOPASS_NOTEST=%v, skipping 'make travis'", sv)
+
+		return nil
+	}
+
 	td := os.TempDir()
 	fn := filepath.Join(td, "gopass-release.log")
 	fh, err := os.OpenFile(fn, os.O_CREATE|os.O_WRONLY, 0o600)
