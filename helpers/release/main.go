@@ -25,9 +25,10 @@ import (
 )
 
 var (
-	sleep   = time.Second
-	issueRE = regexp.MustCompile(`#(\d+)\b`)
-	verTmpl = `package main
+	sleep     = time.Second
+	issueRE   = regexp.MustCompile(`#(\d+)\b`)
+	subjectRE = regexp.MustCompile(`^(\[\w+\]\s+.*)$`)
+	verTmpl   = `package main
 
 import (
 	"strings"
@@ -324,7 +325,7 @@ func gitCommit(v semver.Version) error {
 		return err
 	}
 
-	cmd = exec.Command("git", "commit", "-s", "-m", "Tag v"+v.String(), "-m", "RELEASE_NOTES=n/a")
+	cmd = exec.Command("git", "commit", "-s", "-m", "Tag v"+v.String())
 	cmd.Stderr = os.Stderr
 
 	return cmd.Run()
@@ -468,6 +469,7 @@ func gitVersion() (semver.Version, error) {
 }
 
 func changelogEntries(since semver.Version) ([]string, error) {
+	// set up a custom output format for the git log command to make it easier to parse here.
 	gitSep := "@@@GIT-SEP@@@"
 	gitDelim := "@@@GIT-DELIM@@@"
 	// full hash - subject - body
@@ -483,6 +485,7 @@ func changelogEntries(since semver.Version) ([]string, error) {
 		return nil, fmt.Errorf("failed to run git %+v with error %w: %s", args, err, string(buf))
 	}
 
+	// gitSep separates each commit from the next
 	notes := make([]string, 0, 10)
 	commits := strings.Split(string(buf), gitSep)
 	for _, commit := range commits {
@@ -490,17 +493,33 @@ func changelogEntries(since semver.Version) ([]string, error) {
 		if commit == "" {
 			continue
 		}
+
+		// inside each commit gitDelim seaparates each field from each other
+		// p[0] - full hash
+		// p[1] - subject
+		// p[2] - body (might be empty)
 		p := strings.Split(commit, gitDelim)
 		if len(p) < 3 {
 			// invalid entry, shouldn't happen
 			continue
 		}
 
+		subject := strings.TrimSpace(p[1])
+
+		// extract github issue numbers from the subject
 		issues := []string{}
-		if m := issueRE.FindStringSubmatch(strings.TrimSpace(p[1])); len(m) > 1 {
+		if m := issueRE.FindStringSubmatch(strings.TrimSpace(subject)); len(m) > 1 {
 			issues = append(issues, m[1])
 		}
 
+		// try to extract the release note from the subject
+		if m := subjectRE.FindStringSubmatch(subject); len(m) > 1 {
+			notes = append(notes, m[1])
+
+			continue
+		}
+
+		// if no suitable subject was parsed, try to parse the body as well
 		for _, line := range strings.Split(p[2], "\n") {
 			line := strings.TrimSpace(line)
 
