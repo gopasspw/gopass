@@ -32,7 +32,7 @@ jobs:
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-
-      - uses: sigstore/cosign-installer@v3.0.1          # installs cosign
+      - uses: sigstore/cosign-installer@v3.0.2          # installs cosign
       - uses: anchore/sbom-action/download-syft@v0.14.1 # installs syft
       # ubuntu is missing wixl https://github.com/actions/virtual-environments/issues/3857
       -
