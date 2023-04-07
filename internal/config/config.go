@@ -25,6 +25,7 @@ func newGitconfig() *gitconfig.Configs {
 }
 
 var defaults = map[string]string{
+	"core.autopush":      "true",
 	"core.autosync":      "true",
 	"core.cliptimeout":   "45",
 	"core.exportkeys":    "true",

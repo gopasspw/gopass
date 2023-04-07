@@ -175,8 +175,8 @@ func (s *Store) delete(ctx context.Context, name string, recurse bool) error {
 		}
 	}
 
-	if !config.Bool(ctx, "core.autosync") {
-		debug.Log("not pushing to git remote, core.autosync is false")
+	if !config.Bool(ctx, "core.autopush") {
+		debug.Log("not pushing to git remote, core.autopush is false")
 
 		return nil
 	}
