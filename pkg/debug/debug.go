@@ -15,7 +15,9 @@ var (
 	// Stdout is exported for tests.
 	Stdout io.Writer = os.Stdout
 	// Stderr is exported for tests.
-	Stderr     io.Writer = os.Stderr
+	Stderr io.Writer = os.Stderr
+	// LogWriter is exposed for consuming extra command output, if needed.
+	LogWriter  io.Writer = io.Discard
 	logSecrets bool
 )
 
@@ -58,6 +60,7 @@ func initDebugLogger() {
 	debugfile := os.Getenv("GOPASS_DEBUG_LOG")
 	if debugfile == "" {
 		opts.logger = log.New(os.Stderr, "", log.Ldate|log.Lmicroseconds)
+		LogWriter = os.Stderr
 
 		return
 	}
@@ -84,6 +87,7 @@ func initDebugLogger() {
 
 	opts.logFile = f
 	opts.logger = log.New(f, "", log.Ldate|log.Lmicroseconds)
+	LogWriter = f
 }
 
 func parseFilter(envname string, pad func(string) string) map[string]bool {
