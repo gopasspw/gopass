@@ -32,20 +32,17 @@ will try to clarify it.
 
 * Add tests relevant to the fixed bug or new feature.
 
-* Commit messages must contain both a [Developer Certificate of Origin](https://developercertificate.org/) / `Signed-off-by` line and a `RELEASE_NOTES=` entry, for example:
+* Commit messages must contain [Developer Certificate of Origin](https://developercertificate.org/) / `Signed-off-by` line, for example:
 
       One line description of commit
 
       More detailed description of commit, if needed.
 
-      RELEASE_NOTES=[TAG] Description for release notes.
-
       Signed-off-by: Your Name <your@email.com>
 
+* The first line of the commit message, the subject line, should be prefix with a tag indicating the type of the change. These tags will be extracted and used to populate the changelog.
   Valid `[TAG]`s are `[BREAKING]`, `[BUGFIX]`, `[CLEANUP]`, `[DEPRECATION]`,
   `[DOCUMENTATION]`, `[ENHANCEMENT]`, `[FEATURE]`, `[TESTING]`, and `[UX]`.
-  Trivial changes should have no tag and the description `n/a`, i.e.
-  `RELEASE_NOTES=n/a`.
 
 ## Building & Testing
 
