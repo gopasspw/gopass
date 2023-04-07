@@ -26,7 +26,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v4
       with:
-        go-version: 1.20
+        go-version: '1.20'
     - uses: actions/cache@v3
       with:
         path: ~/go/pkg/mod
@@ -75,7 +75,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v4
       with:
-        go-version: 1.20
+        go-version: '1.20'
 
     - run: git config --global user.name nobody
     - run: git config --global user.email foo.bar@example.org
@@ -93,7 +93,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v4
       with:
-        go-version: 1.20
+        go-version: '1.20'
 
     - run: git config --global user.name nobody
     - run: git config --global user.email foo.bar@example.org
