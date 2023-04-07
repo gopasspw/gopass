@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.15.5 / 2023-04-07
+
+* Use Go1.20 (#2567)
+* [ENHANCEMENT] Add internal pager (ov). (#2510)
+* [cleanup] Stop requiring RELEASE_NOTES (#2580)
+* [postrel] Pull before updating integrations
+
 ## 1.15.4 / 2023-02-12
 
 * [BUGFIX] Also accept lower case CTE headers. (#2539, #2518)

@@ -93,7 +93,7 @@ _gopass () {
 	      
 	      ;;
 	  fsck)
-	      _arguments : "--decrypt[Decrypt and reencryt during fsck.]"
+	      _arguments : "--decrypt[Decrypt and reencrypt during fsck.]"
 	      
 	      
 	      ;;
