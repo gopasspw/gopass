@@ -2,16 +2,16 @@ package root
 
 import (
 	"context"
+	"errors"
 	"strings"
 
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/debug"
-	multierror "github.com/hashicorp/go-multierror"
 )
 
 // Fsck checks all stores/entries matching the given prefix.
 func (s *Store) Fsck(ctx context.Context, path string) error {
-	var result error
+	var result []error
 
 	for alias, sub := range s.mounts {
 		if sub == nil {
@@ -29,7 +29,7 @@ func (s *Store) Fsck(ctx context.Context, path string) error {
 
 		if err := sub.Fsck(ctx, path); err != nil {
 			out.Errorf(ctx, "fsck failed on sub store %s: %s", alias, err)
-			result = multierror.Append(result, err)
+			result = append(result, err)
 		}
 
 		debug.Log("Checked %s", alias)
@@ -38,10 +38,10 @@ func (s *Store) Fsck(ctx context.Context, path string) error {
 	// check root store
 	if err := s.store.Fsck(ctx, path); err != nil {
 		out.Errorf(ctx, "fsck failed on root store: %s", err)
-		result = multierror.Append(result, err)
+		result = append(result, err)
 	}
 
 	debug.Log("Checked root store")
 
-	return result
+	return errors.Join(result...)
 }
