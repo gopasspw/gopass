@@ -77,6 +77,8 @@ pacman -S gopass
 [![Scoop version](https://img.shields.io/scoop/v/gopass)](https://github.com/ScoopInstaller/Main/blob/master/bucket/gopass.json)
 
 ```shell
+# WinGet
+winget install gopass.gopass
 # Chocolatey
 choco install gpg4win
 choco install gopass
