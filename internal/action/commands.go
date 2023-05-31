@@ -706,6 +706,11 @@ func (s *Action) GetCommands() []*cli.Command {
 					Aliases: []string{"o"},
 					Usage:   "Only display the token",
 				},
+				&cli.BoolFlag{
+					Name:    "snip",
+					Aliases: []string{"s"},
+					Usage:   "Scan screen content to insert a OTP QR code into provided entry",
+				},
 			},
 		},
 		{

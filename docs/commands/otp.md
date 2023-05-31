@@ -8,11 +8,13 @@ Note: HTOP is currently not supported.
 ## Modes of operation
 
 * Generate the current TOTP token from a valid OTP URL
+* Snip the screen to add a TOTP QR code as an OTP field to an entry.
 
 ## Flags
 
-Flag | Aliases | Description
----- | ------- | -----------
-`--clip` | `-c` | Copy the time-based token into the clipboard.
-`--qr` | `-q` | Write QR code to file.
-`--password` | `-o` | Only display the token. For use in scripts.
+| Flag         | Aliases | Description                                                              |
+|--------------|---------|--------------------------------------------------------------------------|
+| `--clip`     | `-c`    | Copy the time-based token into the clipboard.                            |
+| `--qr`       | `-q`    | Write QR code to file.                                                   |
+| `--password` | `-o`    | Only display the token. For use in scripts.                              |
+| `--snip`     | `-s`    | Try and find a QR code in the screen content to add as OTP to the entry. |

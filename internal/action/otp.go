@@ -32,6 +32,25 @@ func (s *Action) OTP(c *cli.Context) error {
 	qrf := c.String("qr")
 	clip := c.Bool("clip")
 	pw := c.Bool("password")
+	snip := c.Bool("snip")
+
+	if snip {
+		qr, err := otp.ParseScreen(ctx)
+		if err != nil || len(qr) == 0 {
+			return err
+		}
+
+		choice, err := termio.AskForBool(ctx, "(Over)writing otpauth URL in key 'otpauth'?", true)
+		if err != nil || !choice {
+			return err
+		}
+		err = s.insertYAML(ctxutil.WithInteractive(ctx, false), name, "otpauth", []byte(qr), nil)
+		if err != nil {
+			return err
+		}
+
+		out.Print(ctx, "Value written, carrying on to display OTP value from it.")
+	}
 
 	return s.otp(ctx, name, qrf, clip, pw, true)
 }

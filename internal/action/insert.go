@@ -183,6 +183,7 @@ func (s *Action) insertGetSecret(ctx context.Context, name, pw string) (gopass.S
 	return sec, nil
 }
 
+// insertYAML will overwrite existing keys.
 func (s *Action) insertYAML(ctx context.Context, name, key string, content []byte, kvps map[string]string) error {
 	if ctxutil.IsInteractive(ctx) {
 		pw, err := termio.AskForString(ctx, name+":"+key, "")
