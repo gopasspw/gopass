@@ -304,3 +304,9 @@ func TestNewAKV(t *testing.T) {
 
 	assert.Equal(t, "this is the body\nmore text\neven more text\n", a.Body())
 }
+
+func FuzzParseAKV(f *testing.F) {
+	f.Fuzz(func(t *testing.T, in []byte) {
+		ParseAKV(in)
+	})
+}
