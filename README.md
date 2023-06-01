@@ -66,7 +66,7 @@ Note: You might need to run `dnf copr enable daftaupe/gopass` first.
 
 ### Arch Linux
 
-[![Arch version](https://img.shields.io/archlinux/v/community/x86_64/gopass)](https://archlinux.org/packages/community/x86_64/gopass/)
+[![Arch version](https://img.shields.io/archlinux/v/extra/x86_64/gopass)](https://archlinux.org/packages/extra/x86_64/gopass/)
 
 ```shell
 pacman -S gopass
