@@ -23,6 +23,7 @@ linters:
   - bodyclose
   - contextcheck
   - deadcode
+  - depguard
   - durationcheck
   - dupl
   - dupword
