@@ -4,6 +4,7 @@ unrestricted_licenses:
   - BSD-3-Clause
   - BSD-2-Clause
   - 0BSD
+  - WTFPL
 reciprocal_licenses:
   - MPL-2.0
   - MPL-2.0-no-copyleft-exception
@@ -13,3 +14,5 @@ allowlisted_modules:
 - github.com/russross/blackfriday/v2
 # Apache license
 - github.com/dgraph-io/ristretto
+# Modified BSD-2-Clause with extra no-Google clause: https://github.com/jezek/xgb/blob/master/LICENSE
+- github.com/jezek/xgb
