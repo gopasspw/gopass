@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"strconv"
@@ -40,6 +41,31 @@ func getPathOverride(ctx context.Context, def string) string {
 	return def
 }
 
+func gitDir(path string) (string, error) {
+	path = fsutil.ExpandHomedir(path)
+	gitPath := filepath.Join(path, ".git")
+	gitDir := ""
+
+	if fsutil.IsFile(gitPath) {
+		buffer, err := os.ReadFile(gitPath)
+		if err == nil {
+			gitSubmoduleDir := strings.Replace(string(buffer), "gitdir: ", "", 1)
+			gitSubmoduleDir = filepath.Join(path, strings.TrimSuffix(gitSubmoduleDir, "\n"))
+			if fsutil.IsDir(gitSubmoduleDir) {
+				gitDir = gitSubmoduleDir
+			}
+		}
+	} else if fsutil.IsDir(gitPath) {
+		gitDir = gitPath
+	}
+
+	if gitDir == "" {
+		return "", fmt.Errorf("git repo does not exist at %s", gitPath)
+	}
+
+	return gitDir, nil
+}
+
 // Git is a cli based git backend.
 type Git struct {
 	fs  *fs.Store
@@ -50,9 +76,9 @@ type Git struct {
 func New(path string) (*Git, error) {
 	path = fsutil.ExpandHomedir(path)
 
-	gitDir := filepath.Join(path, ".git")
-	if !fsutil.IsDir(gitDir) {
-		return nil, fmt.Errorf("git repo does not exist at %s", gitDir)
+	gitDir, err := gitDir(path)
+	if err != nil {
+		return nil, err
 	}
 
 	return &Git{
@@ -73,7 +99,12 @@ func Clone(ctx context.Context, repo, path, userName, userEmail string) (*Git, e
 		return nil, err
 	}
 
-	g.cfg.LoadAll(filepath.Join(path, ".git"))
+	gitDir, err := gitDir(path)
+	if err != nil {
+		return nil, err
+	}
+
+	g.cfg.LoadAll(gitDir)
 
 	// initialize the local git config.
 	if err := g.InitConfig(ctx, userName, userEmail); err != nil {
@@ -100,7 +131,12 @@ func Init(ctx context.Context, path, userName, userEmail string) (*Git, error) {
 		out.Printf(ctx, "git initialized at %s", g.fs.Path())
 	}
 
-	g.cfg.LoadAll(filepath.Join(path, ".git"))
+	gitDir, err := gitDir(path)
+	if err != nil {
+		return nil, err
+	}
+
+	g.cfg.LoadAll(gitDir)
 
 	if !ctxutil.IsGitInit(ctx) {
 		return g, nil
@@ -192,7 +228,12 @@ func (g *Git) Version(ctx context.Context) semver.Version {
 
 // IsInitialized returns true if this stores has an (probably) initialized .git folder.
 func (g *Git) IsInitialized() bool {
-	return fsutil.IsFile(filepath.Join(g.fs.Path(), ".git", "config"))
+	gitDir, err := gitDir(g.fs.Path())
+	if err != nil {
+		return false
+	}
+
+	return fsutil.IsFile(filepath.Join(gitDir, "config"))
 }
 
 // Add adds the listed files to the git index.
