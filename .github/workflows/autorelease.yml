@@ -33,7 +33,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-go-
       - uses: sigstore/cosign-installer@v3.0.5          # installs cosign
-      - uses: anchore/sbom-action/download-syft@v0.14.2 # installs syft
+      - uses: anchore/sbom-action/download-syft@v0.14.3 # installs syft
       # ubuntu is missing wixl https://github.com/actions/virtual-environments/issues/3857
       -
         name: "Install GNOME msitools (wixl)"
