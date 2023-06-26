@@ -3,7 +3,7 @@ package gitconfig
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"math/rand"
 	"path/filepath"
 	"strconv"
@@ -243,7 +243,7 @@ func TestLoadConfig(t *testing.T) {
 
 	td := t.TempDir()
 	fn := filepath.Join(td, "config")
-	assert.NoError(t, ioutil.WriteFile(fn, []byte(`[core]
+	assert.NoError(t, os.WriteFile(fn, []byte(`[core]
 	int = 7
 	string = foo
 	bar = false`), 0o600))

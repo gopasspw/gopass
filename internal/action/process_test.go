@@ -3,7 +3,6 @@ package action
 import (
 	"bytes"
 	"context"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -42,7 +41,7 @@ func TestProcess(t *testing.T) {
 	require.NoError(t, act.Store.Set(ctx, "server/local/mysql", sec))
 
 	infile := filepath.Join(u.Dir, "my.cnf.tpl")
-	err = ioutil.WriteFile(infile, []byte(`[client]
+	err = os.WriteFile(infile, []byte(`[client]
 host=127.0.0.1
 port=3306
 user={{ getval "server/local/mysql" "username" }}

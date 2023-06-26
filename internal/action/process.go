@@ -1,7 +1,7 @@
 package action
 
 import (
-	"io/ioutil"
+	"os"
 
 	"github.com/gopasspw/gopass/internal/action/exit"
 	"github.com/gopasspw/gopass/internal/out"
@@ -18,7 +18,7 @@ func (s *Action) Process(c *cli.Context) error {
 		return exit.Error(exit.Usage, nil, "Usage: %s process <FILE>", s.Name)
 	}
 
-	buf, err := ioutil.ReadFile(file)
+	buf, err := os.ReadFile(file)
 	if err != nil {
 		return exit.Error(exit.IO, err, "Failed to read file: %s", file)
 	}
