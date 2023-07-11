@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	envPrefix    = "GOPASS_CONFIG_"
+	envPrefix    = "GOPASS_CONFIG"
 	systemConfig = "/etc/gopass/config"
 )
 
