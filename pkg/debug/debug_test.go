@@ -2,7 +2,6 @@ package debug
 
 import (
 	"bytes"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -60,7 +59,7 @@ func TestDebug(t *testing.T) {
 	Log("%s", testSecret("secret"))
 	Log("%s", testShort("toolong"))
 
-	buf, err := ioutil.ReadFile(fn)
+	buf, err := os.ReadFile(fn)
 	require.NoError(t, err)
 
 	logStr := string(buf)
@@ -88,7 +87,7 @@ func TestDebugSecret(t *testing.T) {
 	Log("foo")
 	Log("%s", testSecret("secret"))
 
-	buf, err := ioutil.ReadFile(fn)
+	buf, err := os.ReadFile(fn)
 	require.NoError(t, err)
 
 	logStr := string(buf)
@@ -119,7 +118,7 @@ func TestDebugFilter(t *testing.T) {
 	Log("foo")
 	Log("%s", testSecret("secret"))
 
-	fbuf, err := ioutil.ReadFile(fn)
+	fbuf, err := os.ReadFile(fn)
 	require.NoError(t, err)
 
 	logStr := string(fbuf)

@@ -17,7 +17,6 @@ import (
 	"fmt"
 	"html/template"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"os/exec"
@@ -218,7 +217,7 @@ func (g *ghClient) createMilestone(ctx context.Context, title string, offset int
 }
 
 func updateGopasspw(dir string, ver semver.Version) error {
-	buf, err := ioutil.ReadFile(filepath.Join(dir, "index.tpl"))
+	buf, err := os.ReadFile(filepath.Join(dir, "index.tpl"))
 	if err != nil {
 		return err
 	}
@@ -424,7 +423,7 @@ func (u *inUpdater) doUpdate(ctx context.Context, dir string) error {
 	fmt.Printf("✅ [%s] synced .golangci.yml.\n", dir)
 
 	// update VERSION
-	if err := ioutil.WriteFile(filepath.Join(path, "VERSION"), []byte(u.v.String()+"\n"), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(path, "VERSION"), []byte(u.v.String()+"\n"), 0o644); err != nil {
 		return err
 	}
 	fmt.Printf("✅ [%s] wrote VERSION.\n", dir)
@@ -485,7 +484,7 @@ func (u *inUpdater) writeVersionGo(path string) error {
 func (u *inUpdater) updateChangelog(ctx context.Context, dir string) error {
 	fn := filepath.Join(dir, "CHANGELOG.md")
 
-	buf, err := ioutil.ReadFile(fn)
+	buf, err := os.ReadFile(fn)
 	if err != nil {
 		return err
 	}
@@ -501,7 +500,7 @@ func (u *inUpdater) updateChangelog(ctx context.Context, dir string) error {
 		return err
 	}
 
-	if err := ioutil.WriteFile(fn, []byte(sb.String()), 0o644); err != nil {
+	if err := os.WriteFile(fn, []byte(sb.String()), 0o644); err != nil {
 		return err
 	}
 

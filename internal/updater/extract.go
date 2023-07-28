@@ -9,7 +9,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -45,7 +44,7 @@ func extractFile(buf []byte, filename, dest string) error {
 func extractToTempFile(buf []byte, filename, dest string) (string, error) {
 	// open a temp file for writing
 	dir := filepath.Dir(dest)
-	dfh, err := ioutil.TempFile(dir, "gopass")
+	dfh, err := os.CreateTemp(dir, "gopass")
 	if err != nil {
 		return "", fmt.Errorf("failed to create temp file in %s: %w", dir, err)
 	}
