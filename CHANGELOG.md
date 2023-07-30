@@ -3,13 +3,15 @@
 ## 1.15.6 / 2023-07-30
 
 * [DOCUMENTATION] fix Arch Linux package url (#2598)
+* [BUGFIX] Only show desktop notifications if there are changes (#2627)
+* [ENHANCEMENT] Add a global nosync flag (#2626)
+* [BUGFIX] Correctly handle multiline secrets (#2625)
+* [ENHANCEMENT] Add screen parsing for OTP QR codes (#2597)
 
 ## 1.15.5 / 2023-04-07
 
-* Use Go1.20 (#2567)
+* [CLEANUP] Use Go1.20 (#2567)
 * [ENHANCEMENT] Add internal pager (ov). (#2510)
-* [cleanup] Stop requiring RELEASE_NOTES (#2580)
-* [postrel] Pull before updating integrations
 
 ## 1.15.4 / 2023-02-12
 
