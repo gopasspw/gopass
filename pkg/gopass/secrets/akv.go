@@ -333,7 +333,7 @@ func (a *AKV) SafeStr() string {
 
 // pwWriter is a io.Writer that will extract the first line of the input stream and
 // then write it to the password field of the provided AKV. The first line can stretch
-// multiple chunks but once the first line hass been completed any writes to this
+// multiple chunks but once the first line has been completed any writes to this
 // writer will be silently discarded.
 type pwWriter struct {
 	a       *AKV
