@@ -1,4 +1,5 @@
-//go:build cgo || !darwin
+//go:build linux
+// +build linux
 
 package otp
 
