@@ -8,7 +8,6 @@
 // https://raw.githubusercontent.com/apple/password-manager-resources/main/quirks/change-password-URLs.json
 //
 // https://raw.githubusercontent.com/apple/password-manager-resources/main/quirks/password-rules.json
-//
 package pwrules
 
 var genAliases = map[string][]string{
