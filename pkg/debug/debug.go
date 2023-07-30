@@ -44,6 +44,10 @@ func initDebug() bool {
 		return false
 	}
 
+	// we need to explicitly set logSecrets to false in case tests run under an environment
+	// where GOPASS_DEBUG_LOG_SECRETS is true. Otherwise setting it to false in the test
+	// context won't have any effect.
+	logSecrets = false
 	if sv := os.Getenv("GOPASS_DEBUG_LOG_SECRETS"); sv != "" && sv != "false" {
 		logSecrets = true
 	}

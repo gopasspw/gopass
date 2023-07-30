@@ -436,6 +436,7 @@ func (s *Action) generateReplaceExisting(ctx context.Context, name, key, passwor
 
 func setMetadata(sec gopass.Secret, kvps map[string]string) {
 	for k, v := range kvps {
+		debug.Log("setting %s to %s", k, v)
 		_ = sec.Set(k, v)
 	}
 }
