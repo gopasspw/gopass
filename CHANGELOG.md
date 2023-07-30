@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.15.6 / 2023-07-30
+
+* [DOCUMENTATION] fix Arch Linux package url (#2598)
+
 ## 1.15.5 / 2023-04-07
 
 * Use Go1.20 (#2567)
