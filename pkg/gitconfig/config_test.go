@@ -3,8 +3,8 @@ package gitconfig
 import (
 	"bytes"
 	"fmt"
-	"os"
 	"math/rand"
+	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
