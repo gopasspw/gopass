@@ -52,6 +52,10 @@ func ShowFlags() []cli.Flag {
 			Aliases: []string{"n"},
 			Usage:   "Do not parse the output.",
 		},
+		&cli.BoolFlag{
+			Name:  "nosync",
+			Usage: "Disable auto-sync",
+		},
 		&cli.StringFlag{
 			Name:  "chars",
 			Usage: "Print specific characters from the secret",

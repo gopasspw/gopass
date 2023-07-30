@@ -37,7 +37,7 @@ func (s *Action) IsInitialized(c *cli.Context) error {
 	if inited {
 		debug.Log("Store is fully initialized and ready to go\n\nAll systems go. 🚀\n")
 		s.printReminder(ctx)
-		if c.Command.Name != "sync" {
+		if c.Command.Name != "sync" && !c.Bool("nosync") {
 			_ = s.autoSync(ctx)
 		}
 
