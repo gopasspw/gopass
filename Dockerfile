@@ -1,4 +1,4 @@
-FROM golang:1.19-alpine AS build-env
+FROM golang:1.20-alpine AS build-env
 
 ENV CGO_ENABLED 0
 
@@ -59,7 +59,7 @@ RUN go mod download
 RUN make clean
 RUN make git-credential-gopass
 
-FROM alpine:3.16
+FROM alpine:3.18
 RUN apk add --no-cache ca-certificates git gnupg
 COPY --from=build-env /home/runner/work/gopass/gopass/gopass /usr/local/bin/
 COPY --from=build-env /home/runner/work/gopass/gopass-jsonapi/gopass-jsonapi /usr/local/bin/
