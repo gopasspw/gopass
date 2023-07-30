@@ -51,6 +51,7 @@ func TestDebug(t *testing.T) {
 
 	fn := filepath.Join(td, "gopass.log")
 	t.Setenv("GOPASS_DEBUG_LOG", fn)
+	t.Setenv("GOPASS_DEBUG_LOG_SECRETS", "false")
 
 	// it's been already initialized, need to re-init
 	assert.True(t, initDebug())
@@ -64,6 +65,7 @@ func TestDebug(t *testing.T) {
 
 	logStr := string(buf)
 	assert.Contains(t, logStr, "foo")
+	assert.NotEqual(t, "true", os.Getenv("GOPASS_DEBUG_LOG_SECRETS"))
 	assert.NotContains(t, logStr, "secret")
 	assert.NotContains(t, logStr, "toolong")
 	assert.Contains(t, logStr, "shorter")

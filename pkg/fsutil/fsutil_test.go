@@ -28,6 +28,7 @@ func TestCleanFilename(t *testing.T) {
 
 func TestCleanPath(t *testing.T) {
 	tempdir := t.TempDir()
+	t.Setenv("GOPASS_HOMEDIR", "")
 
 	m := map[string]string{
 		".":                                 "",

@@ -84,6 +84,37 @@ zab: 123
 
 	sec := ParseAKV([]byte(in))
 	assert.Equal(t, in, string(sec.Bytes()))
+	assert.Equal(t, "passw0rd", sec.Password())
+}
+
+func TestMultilineInsertAKV(t *testing.T) {
+	t.Parallel()
+
+	in := `passw0rd
+foo: baz
+foo: bar
+zab: 123
+`
+
+	sec := NewAKV()
+	_, err := sec.Write([]byte(in))
+	assert.NoError(t, err)
+	assert.Equal(t, in, string(sec.Bytes()))
+	assert.Equal(t, "passw0rd", sec.Password())
+
+	_, err = sec.Write([]byte("more text"))
+	assert.NoError(t, err)
+	assert.Equal(t, "passw0rd", sec.Password())
+}
+
+func TestSetKeyValuePairToEmptyAKV(t *testing.T) {
+	t.Parallel()
+
+	sec := NewAKV()
+	assert.NoError(t, sec.Set("foo", "bar"))
+	v, found := sec.Get("foo")
+	assert.True(t, found)
+	assert.Equal(t, "bar", v)
 }
 
 func TestParseAKV(t *testing.T) {
@@ -309,4 +340,35 @@ func FuzzParseAKV(f *testing.F) {
 	f.Fuzz(func(t *testing.T, in []byte) {
 		ParseAKV(in)
 	})
+}
+
+func TestPwWriter(t *testing.T) {
+	a := NewAKV()
+	p := pwWriter{w: &a.raw, cb: func(pw string) { a.password = pw }}
+
+	// multi-chunk passwords are supported
+	_, err := p.Write([]byte("foo"))
+	assert.NoError(t, err)
+
+	_, err = p.Write([]byte("bar\n"))
+	assert.NoError(t, err)
+
+	// but anything after the first line is discarded
+	_, err = p.Write([]byte("baz\n"))
+	assert.NoError(t, err)
+
+	assert.Equal(t, "foobar", a.Password())
+	assert.Equal(t, "baz\n", a.Body())
+}
+
+func TestInvalidPwWriter(t *testing.T) {
+	defer func() {
+		r := recover()
+		assert.NotNil(t, r)
+	}()
+	p := pwWriter{}
+
+	// will panic because the writer is nil
+	_, err := p.Write([]byte("foo"))
+	assert.Error(t, err)
 }
