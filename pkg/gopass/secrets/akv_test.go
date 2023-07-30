@@ -344,7 +344,7 @@ func FuzzParseAKV(f *testing.F) {
 
 func TestPwWriter(t *testing.T) {
 	a := NewAKV()
-	p := pwWriter{a: a}
+	p := pwWriter{w: &a.raw, cb: func(pw string) { a.password = pw }}
 
 	// multi-chunk passwords are supported
 	_, err := p.Write([]byte("foo"))
@@ -358,4 +358,17 @@ func TestPwWriter(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.Equal(t, "foobar", a.Password())
+	assert.Equal(t, "baz\n", a.Body())
+}
+
+func TestInvalidPwWriter(t *testing.T) {
+	defer func() {
+		r := recover()
+		assert.NotNil(t, r)
+	}()
+	p := pwWriter{}
+
+	// will panic because the writer is nil
+	_, err := p.Write([]byte("foo"))
+	assert.Error(t, err)
 }

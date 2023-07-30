@@ -308,14 +308,15 @@ func (a *AKV) Write(buf []byte) (int, error) {
 	var w io.Writer
 	w = &a.raw
 
-	// If the body is empty before writing we must threat the first line
+	// If the body is empty before writing we must treat the first line
 	// of the newly written content as the password or multi-line insert
-	// and similar operations will fail. For regular command line usage
-	// this is actually a non-issue since the gopass process will exit
-	// after writing and when reading the secret it will be (correctly)
-	// parsed. But for tests, library and maybe REPL usage this is an issue.
+	// and similar operations (like insert from stdin) might fail.
+	// For regular command line usage this is actually a non-issue since
+	// the gopass process will exit after writing and when reading the secret
+	// it will be (correctly) parsed. But for tests, library and maybe REPL
+	// usage this is an issue.
 	if a.raw.Len() == 0 {
-		w = io.MultiWriter(&a.raw, &pwWriter{a: a})
+		w = &pwWriter{w: &a.raw, cb: func(pw string) { a.password = pw }}
 	}
 
 	return w.Write(buf)
@@ -332,30 +333,31 @@ func (a *AKV) SafeStr() string {
 }
 
 // pwWriter is a io.Writer that will extract the first line of the input stream and
-// then write it to the password field of the provided AKV. The first line can stretch
+// then write it to the password field of the provided callback. The first line can stretch
 // multiple chunks but once the first line has been completed any writes to this
 // writer will be silently discarded.
 type pwWriter struct {
-	a       *AKV
-	buf     strings.Builder
-	written bool
+	w   io.Writer
+	cb  func(string)
+	buf strings.Builder
 }
 
 func (p *pwWriter) Write(buf []byte) (int, error) {
-	n := len(buf)
-	if p.written || p.a == nil {
-		return n, nil
+	n, err := p.w.Write(buf)
+	if p.cb == nil {
+		return n, err
 	}
 
 	i := bytes.Index(buf, []byte("\n"))
 	if i > 0 {
 		p.buf.Write(buf[0:i])
-		p.a.password = p.buf.String()
-		p.written = true
 
-		return n, nil
+		p.cb(p.buf.String())
+		p.cb = nil
+
+		return n, err
 	}
 	p.buf.Write(buf)
 
-	return n, nil
+	return n, err
 }
