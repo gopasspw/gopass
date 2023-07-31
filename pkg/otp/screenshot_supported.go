@@ -1,5 +1,5 @@
-//go:build linux || windows || darwin || freebsd || netbsd
-// +build linux windows darwin freebsd netbsd
+//go:build linux || windows || darwin || freebsd || netbsd || openbsd
+// +build linux windows darwin freebsd netbsd openbsd
 
 package otp
 
