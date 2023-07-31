@@ -1,5 +1,5 @@
-//go:build !linux
-// +build !linux
+//go:build !(linux || windows || darwin || freebsd || netbsd)
+// +build !linux,!windows,!darwin,!freebsd,!netbsd
 
 package otp
 
@@ -11,5 +11,5 @@ import (
 // ParseScreen will attempt to parse all available screen and will look for otpauth QR codes. It returns the first one
 // it has found.
 func ParseScreen(ctx context.Context) (string, error) {
-	return "", fmt.Errorf("Not supported on OSX without compiling with CGO")
+	return "", fmt.Errorf("Not supported on your platform")
 }

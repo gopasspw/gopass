@@ -4,6 +4,7 @@ go 1.20
 
 require (
 	filippo.io/age v1.1.1
+	github.com/AnomalRoil/screenshot v0.0.2
 	github.com/ProtonMail/go-crypto v0.0.0-20230717121422-5aa5874ade95
 	github.com/atotto/clipboard v0.1.4
 	github.com/blang/semver/v4 v4.0.0
@@ -21,7 +22,6 @@ require (
 	github.com/hashicorp/golang-lru v0.5.4
 	github.com/jsimonetti/pwscheme v0.0.0-20220922140336-67a4d090f150
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
-	github.com/kbinani/screenshot v0.0.0-20210720154843-7d3a670d8329
 	github.com/makiuchi-d/gozxing v0.1.1
 	github.com/martinhoefling/goxkcdpwgen v0.1.2-0.20221205222637-737661b92a0e
 	github.com/mattn/go-colorable v0.1.13
