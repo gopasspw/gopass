@@ -126,6 +126,12 @@ crosscompile:
 	@echo -n ">> CROSSCOMPILE windows/amd64"
 	@GOOS=windows GOARCH=amd64 $(GO) build -o $(GOPASS_OUTPUT)-windows-amd64
 	@printf '%s\n' '$(OK)'
+	@echo -n ">> CROSSCOMPILE freebsd/amd64"
+	@GOOS=freebsd GOARCH=amd64 $(GO) build -o $(GOPASS_OUTPUT)-freebsd-amd64
+	@printf '%s\n' '$(OK)'
+	@echo -n ">> CROSSCOMPILE openbsd/amd64"
+	@GOOS=openbsd GOARCH=amd64 $(GO) build -o $(GOPASS_OUTPUT)-openbsd-amd64
+	@printf '%s\n' '$(OK)'
 
 %.completion: $(GOPASS_OUTPUT)
 	@printf ">> $* completion, output = $@"
