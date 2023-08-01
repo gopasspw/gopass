@@ -1,5 +1,5 @@
-//go:build linux
-// +build linux
+//go:build linux || windows || darwin || freebsd || netbsd || openbsd
+// +build linux windows darwin freebsd netbsd openbsd
 
 package otp
 
@@ -7,8 +7,8 @@ import (
 	"context"
 	"strings"
 
+	"github.com/AnomalRoil/screenshot"
 	"github.com/gopasspw/gopass/internal/out"
-	"github.com/kbinani/screenshot"
 	"github.com/makiuchi-d/gozxing"
 	"github.com/makiuchi-d/gozxing/qrcode"
 )
