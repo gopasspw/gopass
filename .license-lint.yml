@@ -16,3 +16,5 @@ allowlisted_modules:
 - github.com/dgraph-io/ristretto
 # Modified BSD-2-Clause with extra no-Google clause: https://github.com/jezek/xgb/blob/master/LICENSE
 - github.com/jezek/xgb
+# MIT
+- github.com/jwalton/go-supportscolor
