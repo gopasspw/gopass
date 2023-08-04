@@ -117,21 +117,11 @@ test-integration: $(GOPASS_OUTPUT)
 	cd tests && GOPASS_BINARY=$(PWD)/$(GOPASS_OUTPUT) GOPASS_TEST_DIR=$(PWD)/tests $(GO) test -v $(TESTFLAGS)
 
 crosscompile:
-	@echo -n ">> CROSSCOMPILE linux/amd64"
-	@GOOS=linux GOARCH=amd64 $(GO) build -o $(GOPASS_OUTPUT)-linux-amd64
-	@printf '%s\n' '$(OK)'
-	@echo -n ">> CROSSCOMPILE darwin/amd64"
-	@GOOS=darwin GOARCH=amd64 $(GO) build -o $(GOPASS_OUTPUT)-darwin-amd64
-	@printf '%s\n' '$(OK)'
-	@echo -n ">> CROSSCOMPILE windows/amd64"
-	@GOOS=windows GOARCH=amd64 $(GO) build -o $(GOPASS_OUTPUT)-windows-amd64
-	@printf '%s\n' '$(OK)'
-	@echo -n ">> CROSSCOMPILE freebsd/amd64"
-	@GOOS=freebsd GOARCH=amd64 $(GO) build -o $(GOPASS_OUTPUT)-freebsd-amd64
-	@printf '%s\n' '$(OK)'
-	@echo -n ">> CROSSCOMPILE openbsd/amd64"
-	@GOOS=openbsd GOARCH=amd64 $(GO) build -o $(GOPASS_OUTPUT)-openbsd-amd64
-	@printf '%s\n' '$(OK)'
+	@echo ">> CROSSCOMPILE"
+	@which goreleaser > /dev/null; if [ $$? -ne 0 ]; then \
+		$(GO) install github.com/goreleaser/goreleaser@latest; \
+	fi
+	@goreleaser build --snapshot
 
 %.completion: $(GOPASS_OUTPUT)
 	@printf ">> $* completion, output = $@"
