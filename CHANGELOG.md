@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.15.7 / 2023-08-04
+
+* [BUGFIX] Fix build issues on various non-Linux platforms (#2630, #2633)
+
 ## 1.15.6 / 2023-07-30
 
 * [DOCUMENTATION] fix Arch Linux package url (#2598)
