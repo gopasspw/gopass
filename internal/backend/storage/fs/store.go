@@ -67,7 +67,7 @@ func (s *Store) Set(ctx context.Context, name string, value []byte) error {
 	// (for instance, by not adding/committing/pushing the secret in git,
 	//  or by panicking in the case of password generation)
 	oldvalue, err := os.ReadFile(filepath.Join(s.path, name))
-	if err == nil && bytes.Compare(oldvalue, value) == 0 {
+	if err == nil && bytes.Equal(oldvalue, value) {
 		return store.ErrMeaninglessWrite
 	}
 
