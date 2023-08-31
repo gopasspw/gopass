@@ -1,4 +1,5 @@
-//go:build linux || windows || darwin || freebsd || netbsd || openbsd
+//go:build (arm || arm64 || amd64 || 386) && (linux || windows || darwin || freebsd || netbsd || openbsd)
+// +build arm arm64 amd64 386
 // +build linux windows darwin freebsd netbsd openbsd
 
 package otp
@@ -7,8 +8,8 @@ import (
 	"context"
 	"strings"
 
-	"github.com/AnomalRoil/screenshot"
 	"github.com/gopasspw/gopass/internal/out"
+	"github.com/kbinani/screenshot"
 	"github.com/makiuchi-d/gozxing"
 	"github.com/makiuchi-d/gozxing/qrcode"
 )
