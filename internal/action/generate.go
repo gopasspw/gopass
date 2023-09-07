@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
 	"path"
 	"regexp"
 	"sort"
@@ -27,37 +26,6 @@ import (
 	"github.com/gopasspw/gopass/pkg/termio"
 	"github.com/urfave/cli/v2"
 )
-
-const (
-	defaultLength     = 24
-	defaultXKCDLength = 4
-)
-
-// defaultLengthFromEnv will determine the password length from the env variable
-// GOPASS_PW_DEFAULT_LENGTH or fallback to the hard-coded default length.
-// If the env variable is set by the user and is valid, the boolean return value
-// will be true, otherwise it will be false.
-func defaultLengthFromEnv(ctx context.Context) (int, bool) {
-	def := defaultLength
-
-	if l := config.Int(ctx, "generate.length"); l > 0 {
-		def = l
-	}
-
-	lengthStr, isSet := os.LookupEnv("GOPASS_PW_DEFAULT_LENGTH")
-	if !isSet {
-		return def, false
-	}
-	length, err := strconv.Atoi(lengthStr)
-	if err != nil {
-		return def, false
-	}
-	if length < 1 {
-		return def, false
-	}
-
-	return length, true
-}
 
 var reNumber = regexp.MustCompile(`^\d+$`)
 
@@ -262,7 +230,7 @@ func (s *Action) generatePassword(ctx context.Context, c *cli.Context, length, n
 // again.
 func getPwLengthFromEnvOrAskUser(ctx context.Context) (int, error) {
 	var pwlen int
-	candidateLength, isCustom := defaultLengthFromEnv(ctx)
+	candidateLength, isCustom := config.DefaultLengthFromEnv(ctx)
 	if !isCustom {
 		question := "How long should the password be?"
 		iv, err := termio.AskForInt(ctx, question, candidateLength)
@@ -324,7 +292,7 @@ func (s *Action) generatePasswordXKCD(ctx context.Context, c *cli.Context, lengt
 
 	var pwlen int
 	if length == "" {
-		candidateLength := defaultXKCDLength
+		candidateLength := config.DefaultXKCDLength
 		question := "How many words should be combined to a password?"
 		iv, err := termio.AskForInt(ctx, question, candidateLength)
 		if err != nil {

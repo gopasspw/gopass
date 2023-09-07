@@ -28,9 +28,7 @@ import (
 )
 
 const (
-	defaultLength     = 24
-	defaultXKCDLength = 4
-	tplPath           = ".gopass/create/"
+	tplPath = ".gopass/create/"
 )
 
 // Attribute is a credential attribute that is being asked for
@@ -294,6 +292,8 @@ func mkActFunc(tpl Template, s *root.Store, cb ActionCallback) func(context.Cont
 
 // generatePasssword will walk through the password generation steps.
 func generatePassword(ctx context.Context, hostname, charset string) (string, error) {
+	defaultLength, _ := config.DefaultLengthFromEnv(ctx)
+
 	if charset != "" {
 		length, err := termio.AskForInt(ctx, fmtfn(4, "a", "How long?"), 4)
 		if err != nil {
@@ -316,7 +316,7 @@ func generatePassword(ctx context.Context, hostname, charset string) (string, er
 		return "", err
 	}
 	if xkcd {
-		length, err := termio.AskForInt(ctx, fmtfn(4, "b", "How many words?"), defaultXKCDLength)
+		length, err := termio.AskForInt(ctx, fmtfn(4, "b", "How many words?"), config.DefaultXKCDLength)
 		if err != nil {
 			return "", err
 		}
