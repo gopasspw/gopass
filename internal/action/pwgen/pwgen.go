@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"github.com/gopasspw/gopass/internal/action/exit"
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/pwgen"
 	"github.com/gopasspw/gopass/pkg/pwgen/xkcdgen"
@@ -47,8 +48,20 @@ func Pwgen(c *cli.Context) error {
 }
 
 func xkcdGen(c *cli.Context, num int) error {
+	sep := config.String(c.Context, "pwgen.xkcd.sep")
+	if c.IsSet("sep") {
+		sep = c.String("sep")
+	}
+	lang := config.String(c.Context, "pwgen.xkcd.lang")
+	if c.IsSet("lang") {
+		lang = c.String("lang")
+	}
+	length := config.Int(c.Context, "pwgen.xkcd.len")
+	if length < 1 {
+		length = 4
+	}
 	for i := 0; i < num; i++ {
-		s, err := xkcdgen.RandomLengthDelim(4, c.String("sep"), c.String("lang"))
+		s, err := xkcdgen.RandomLengthDelim(length, sep, lang)
 		if err != nil {
 			return err
 		}
