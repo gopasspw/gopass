@@ -220,8 +220,6 @@ pacman -S gopass
 
 ### Windows
 
-**WARNING**: Windows is not yet officially supported. We try to support it in the future. These are steps are only meant to help you setup gopass on Windows so you can provide us with feedback about the current state of our Windows support.
-
 You can install `gopass` with [Chocolatey](https://chocolatey.org/packages/gopass),
 
 ```ps1
