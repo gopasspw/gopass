@@ -62,7 +62,7 @@ choco install gpg4win
 
 ```ps1
 scoop install git
-# add Extras bucket
+# add Extras bucket, if you haven't already
 # scoop bucket add extras
 scoop install gpg4win
 ```
