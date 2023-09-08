@@ -41,13 +41,13 @@ func Pwgen(c *cli.Context) error {
 	}
 
 	if c.Bool("xkcd") {
-		return xkcdGen(c, pwNum)
+		return xkcdGen(c, pwLen, pwNum)
 	}
 
 	return pwGen(c, pwLen, pwNum)
 }
 
-func xkcdGen(c *cli.Context, num int) error {
+func xkcdGen(c *cli.Context, length, num int) error {
 	sep := config.String(c.Context, "pwgen.xkcd.sep")
 	if c.IsSet("sep") {
 		sep = c.String("sep")
@@ -56,9 +56,11 @@ func xkcdGen(c *cli.Context, num int) error {
 	if c.IsSet("lang") {
 		lang = c.String("lang")
 	}
-	length := config.Int(c.Context, "pwgen.xkcd.len")
 	if length < 1 {
-		length = 4
+		length = config.Int(c.Context, "pwgen.xkcd.len")
+		if length < 1 {
+			length = 4
+		}
 	}
 	for i := 0; i < num; i++ {
 		s, err := xkcdgen.RandomLengthDelim(length, sep, lang)
