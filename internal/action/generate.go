@@ -239,7 +239,7 @@ func (s *Action) generatePassword(ctx context.Context, c *cli.Context, length, n
 
 	switch generator {
 	case "memorable":
-		if c.Bool("strict") {
+		if isStrict(ctx, c) {
 			return pwgen.GenerateMemorablePassword(pwlen, symbols, true), nil
 		}
 
@@ -247,7 +247,7 @@ func (s *Action) generatePassword(ctx context.Context, c *cli.Context, length, n
 	case "external":
 		return pwgen.GenerateExternal(pwlen)
 	default:
-		if c.Bool("strict") {
+		if isStrict(ctx, c) {
 			return pwgen.GeneratePasswordWithAllClasses(pwlen, symbols)
 		}
 
@@ -523,4 +523,18 @@ func filterPrefix(in []string, prefix string) []string {
 	}
 
 	return out
+}
+
+func isStrict(ctx context.Context, c *cli.Context) bool {
+	cfg := config.FromContext(ctx)
+
+	if c.Bool("strict") {
+		return true
+	}
+
+	if cfg.IsSet("generate.strict") {
+		return cfg.GetBool("generate.strict")
+	}
+
+	return false
 }
