@@ -46,24 +46,33 @@ func (s *Action) Cat(c *cli.Context) error {
 			return exit.Error(exit.IO, err, "Failed to copy after %d bytes: %s", written, err)
 		}
 
-		return s.Store.Set(
+		sec, err := secFromBytes(name, "STDIN", content.Bytes())
+		if err != nil {
+			return exit.Error(exit.IO, err, "Failed to parse secret from STDIN: %v", err)
+		}
+		if err = s.Store.Set(
 			ctxutil.WithCommitMessage(ctx, "Read secret from STDIN"),
 			name,
-			secFromBytes(name, "STDIN", content.Bytes()),
-		)
+			sec,
+		); err != nil {
+			return exit.Error(exit.Unknown, err, "Failed to write secret from STDIN: %v", err)
+		}
+
+		return nil
 	}
 
 	buf, err := s.binaryGet(ctx, name)
 	if err != nil {
 		return exit.Error(exit.Decrypt, err, "failed to read secret: %s", err)
 	}
+	debug.Log("read %d decoded bytes from secret %s", len(buf), name)
 
 	fmt.Fprint(stdout, string(buf))
 
 	return nil
 }
 
-func secFromBytes(dst, src string, in []byte) gopass.Secret {
+func secFromBytes(dst, src string, in []byte) (gopass.Secret, error) {
 	debug.Log("Read %d bytes from %s to %s", len(in), src, dst)
 
 	sec := secrets.NewAKV()
@@ -74,9 +83,32 @@ func secFromBytes(dst, src string, in []byte) gopass.Secret {
 		debug.Log("Failed to set Content-Transfer-Encoding: %q", err)
 	}
 
-	_, _ = sec.Write([]byte(base64.StdEncoding.EncodeToString(in)))
+	var written int
+	encoder := base64.NewEncoder(base64.StdEncoding, sec)
+	n, err := encoder.Write(in)
+	if err != nil {
+		debug.Log("Failed to write to base64 encoder: %v", err)
 
-	return sec
+		return sec, err
+	}
+	written += n
+
+	if err := encoder.Close(); err != nil {
+		debug.Log("Failed to finalize base64 payload: %v", err)
+
+		return sec, err
+	}
+	n, err = sec.Write([]byte("\n"))
+	if err != nil {
+		debug.Log("Failed to write to secret: %v", err)
+
+		return sec, err
+	}
+	written += n
+
+	debug.Log("Wrote %d bytes of Base64 encoded bytes to secret", written)
+
+	return sec, nil
 }
 
 // BinaryCopy copies either from the filesystem to the store or from the store.
@@ -153,8 +185,12 @@ func (s *Action) binaryCopyFromFileToStore(ctx context.Context, from, to string,
 		return fmt.Errorf("failed to read file from %q: %w", from, err)
 	}
 
+	sec, err := secFromBytes(to, from, buf)
+	if err != nil {
+		return fmt.Errorf("failed to parse secret from input: %w", err)
+	}
 	if err := s.Store.Set(
-		ctxutil.WithCommitMessage(ctx, fmt.Sprintf("Copied data from %s to %s", from, to)), to, secFromBytes(to, from, buf)); err != nil {
+		ctxutil.WithCommitMessage(ctx, fmt.Sprintf("Copied data from %s to %s", from, to)), to, sec); err != nil {
 		return fmt.Errorf("failed to save buffer to store: %w", err)
 	}
 
@@ -249,13 +285,22 @@ func (s *Action) binaryGet(ctx context.Context, name string) ([]byte, error) {
 	}
 
 	if !isBase64Encoded(sec) {
+		debug.Log("handling non-base64 secret")
+
 		// need to use sec.Bytes() otherwise the first line is missing.
 		return sec.Bytes(), nil
 	}
 
-	buf, err := base64.StdEncoding.DecodeString(sec.Body())
+	debug.Log("decoding Base64 encoded secret")
+	body := sec.Body()
+	buf, err := base64.StdEncoding.DecodeString(body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to encode to base64: %w", err)
+	}
+
+	debug.Log("decoded %d Base64 chars into %d bytes", len(body), len(buf))
+	if len(buf) < 1 {
+		debug.Log("body:\n%v", body)
 	}
 
 	return buf, nil

@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/gopasspw/gopass/internal/set"
+	"github.com/gopasspw/gopass/pkg/debug"
 	"golang.org/x/exp/maps"
 )
 
@@ -164,7 +165,7 @@ func (a *AKV) Del(key string) bool {
 
 	delete(a.kvp, key)
 
-	s := bufio.NewScanner(strings.NewReader(a.raw.String()))
+	s := newScanner(strings.NewReader(a.raw.String()), a.raw.Len())
 	a.raw = strings.Builder{}
 	first := true
 	for s.Scan() {
@@ -211,7 +212,7 @@ func (a *AKV) Password() string {
 
 // SetPassword updates the password.
 func (a *AKV) SetPassword(p string) {
-	s := bufio.NewScanner(strings.NewReader(a.raw.String()))
+	s := newScanner(strings.NewReader(a.raw.String()), a.raw.Len())
 	a.raw = strings.Builder{}
 
 	// write the new password
@@ -237,7 +238,9 @@ func (a *AKV) SetPassword(p string) {
 func ParseAKV(in []byte) *AKV {
 	a := NewAKV()
 	a.raw = strings.Builder{}
-	s := bufio.NewScanner(bytes.NewReader(in))
+	s := newScanner(bytes.NewReader(in), len(in))
+
+	debug.Log("Parsing %d bytes of input", len(in))
 
 	first := true
 	for s.Scan() {
@@ -281,7 +284,15 @@ func ParseAKV(in []byte) *AKV {
 func (a *AKV) Body() string {
 	out := strings.Builder{}
 
-	s := bufio.NewScanner(strings.NewReader(a.raw.String()))
+	// make sure we always have a terminating newline so the scanner below
+	// can always find a full line.
+	if !strings.HasSuffix(a.raw.String(), "\n") {
+		a.raw.WriteString("\n")
+	}
+
+	debug.Log("Building body from %d chars", a.raw.Len())
+	s := newScanner(strings.NewReader(a.raw.String()), a.raw.Len())
+
 	first := true
 	for s.Scan() {
 		// skip over the password
@@ -294,13 +305,34 @@ func (a *AKV) Body() string {
 		line := s.Text()
 		// ignore KV pairs
 		if strings.Contains(line, kvSep) {
+			debug.Log("ignoring line: %q", line)
+
 			continue
 		}
+		debug.Log("adding line of %d chars", len(line))
 		out.WriteString(line)
 		out.WriteString("\n")
 	}
 
+	debug.Log("built %d chars body", out.Len())
+
 	return out.String()
+}
+
+// newScanner creates a new line scanner and sets it up to properly handle larger secrets.
+// bufio.Scanner uses bufio.MaxScanTokenSize by default. That is only 64k, too little
+// for larger binary secrets. We double the allocation size to account for Base64 encoding
+// overhead.
+func newScanner(in io.Reader, inSize int) *bufio.Scanner {
+	bufSize := inSize * 2
+
+	s := bufio.NewScanner(in)
+	scanBuf := make([]byte, bufSize)
+	s.Buffer(scanBuf, bufSize)
+
+	debug.Log("Using buffer of len %d and max %d", len(scanBuf), bufSize)
+
+	return s
 }
 
 // Write appends the buffer to the secret's body.
