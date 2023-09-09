@@ -114,6 +114,7 @@ This is a list of available options:
 | `mounts.path`          | `string` | Path to the root store. | `$XDG_DATA_HOME/gopass/stores/root` |
 | `recipients.check`     | `bool`   | Check recipients hash. | `false` |
 | `recipients.hash`      | `string` | SHA256 hash of the recipients file. Used to notify the user when the recipients files change. | `` |
+| `recipients.remove-extra-keys` | `bool` | Remove extra recipients during key import. | `false` |
 | `show.post-hook` | `string` | This hook is run right after displaying a secret with `gopass show` | `None` |
 | `updater.check`        | `bool`   | Check for updates when running `gopass version` | `true` |
 | `output.internal-pager` | `bool` | Use the internal pager `ov` |  `false` |
