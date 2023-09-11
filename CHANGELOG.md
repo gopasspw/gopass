@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.15.8 / 2023-09-11
+
+* [BUGFIX] Use goreleaser build for crosscompile (#2635)
+* [bugfix] Allow fsck to check a single secret (#2659)
+* [bugfix] Do not remove unused keys on import by default (#2657)
+* [bugfix] Fix parsing of large secrets (#2654)
+* [chore] Update dependencies (#2660)
+* [docs] add/update choco, scoop, winget instructions (#2647)
+* [feat] Add --store option to gopass fsck (#2658)
+* [feat] Add XCKD pwgen config options (#2651)
+
 ## 1.15.7 / 2023-08-04
 
 * [BUGFIX] Fix build issues on various non-Linux platforms (#2630, #2633)
