@@ -93,7 +93,7 @@ _gopass () {
 	      
 	      ;;
 	  fsck)
-	      _arguments : "--decrypt[Decrypt and reencrypt during fsck.]"
+	      _arguments : "--decrypt[Decrypt and reencrypt during fsck.]" "--store[Limit fsck to this mount point]"
 	      
 	      
 	      ;;
