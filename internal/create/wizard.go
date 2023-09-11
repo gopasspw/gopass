@@ -292,7 +292,7 @@ func mkActFunc(tpl Template, s *root.Store, cb ActionCallback) func(context.Cont
 
 // generatePasssword will walk through the password generation steps.
 func generatePassword(ctx context.Context, hostname, charset string) (string, error) {
-	defaultLength, _ := config.DefaultLengthFromEnv(ctx)
+	defaultLength, _ := config.DefaultPasswordLengthFromEnv(ctx)
 
 	if charset != "" {
 		length, err := termio.AskForInt(ctx, fmtfn(4, "a", "How long?"), 4)

@@ -111,7 +111,7 @@ func (s *Action) editGetContent(ctx context.Context, name string, create bool) (
 	}
 
 	// load template if it exists.
-	pwLength, _ := config.DefaultLengthFromEnv(ctx)
+	pwLength, _ := config.DefaultPasswordLengthFromEnv(ctx)
 	if content, found := s.renderTemplate(ctx, name, []byte(pwgen.GeneratePassword(pwLength, false))); found {
 		return name, content, true, nil
 	}

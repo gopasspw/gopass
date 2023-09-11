@@ -38,7 +38,7 @@ func TestConfig(t *testing.T) {
 	assert.Equal(t, 42, Int(ctx, "core.int"))
 
 	assert.NoError(t, cfg.SetEnv("generate.length", "16"))
-	actual_length, _ := DefaultLengthFromEnv(ctx)
+	actual_length, _ := DefaultPasswordLengthFromEnv(ctx)
 	assert.Equal(t, 16, actual_length)
 }
 

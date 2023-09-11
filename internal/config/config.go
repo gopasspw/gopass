@@ -12,8 +12,8 @@ import (
 )
 
 const (
-	DefaultLength     = 24
-	DefaultXKCDLength = 4
+	DefaultPasswordLength = 24
+	DefaultXKCDLength     = 4
 )
 
 var (
@@ -244,12 +244,12 @@ func (c *Config) Keys(mount string) []string {
 	return nil
 }
 
-// DefaultLengthFromEnv will determine the password length from the env variable
+// DefaultPasswordLengthFromEnv will determine the password length from the env variable
 // GOPASS_PW_DEFAULT_LENGTH or fallback to the hard-coded default length.
 // If the env variable is set by the user and is valid, the boolean return value
 // will be true, otherwise it will be false.
-func DefaultLengthFromEnv(ctx context.Context) (int, bool) {
-	def := DefaultLength
+func DefaultPasswordLengthFromEnv(ctx context.Context) (int, bool) {
+	def := DefaultPasswordLength
 	cfg := FromContext(ctx)
 
 	if l := cfg.GetInt("generate.length"); l > 0 {

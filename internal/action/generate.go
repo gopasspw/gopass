@@ -230,7 +230,7 @@ func (s *Action) generatePassword(ctx context.Context, c *cli.Context, length, n
 // again.
 func getPwLengthFromEnvOrAskUser(ctx context.Context) (int, error) {
 	var pwlen int
-	candidateLength, isCustom := config.DefaultLengthFromEnv(ctx)
+	candidateLength, isCustom := config.DefaultPasswordLengthFromEnv(ctx)
 	if !isCustom {
 		question := "How long should the password be?"
 		iv, err := termio.AskForInt(ctx, question, candidateLength)
