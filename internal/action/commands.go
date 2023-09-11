@@ -344,6 +344,10 @@ func (s *Action) GetCommands() []*cli.Command {
 					Name:  "decrypt",
 					Usage: "Decrypt and reencrypt during fsck.",
 				},
+				&cli.StringFlag{
+					Name:  "store",
+					Usage: "Limit fsck to this mount point",
+				},
 			},
 		},
 		{

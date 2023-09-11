@@ -21,5 +21,5 @@ func TestFsck(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, rs)
 
-	assert.NoError(t, rs.Fsck(ctx, ""))
+	assert.NoError(t, rs.Fsck(ctx, "", ""))
 }
