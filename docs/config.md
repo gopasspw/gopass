@@ -109,7 +109,7 @@ This is a list of available options:
 | `edit.post-hook` | `string` | This hook is run right after editing a record with `gopass edit` |
 | `edit.pre-hook` | `string` | This hook is run right before editing a record with `gopass edit` |
 | `generate.generator`   | `string` | Default password generator. `xkcd`, `memorable`, `external` or `` | `` |
-| `generate.length`      | `int`    | Default lenght for generated password. | `24` |
+| `generate.length`      | `int`    | Default length for generated password. | `24` |
 | `generate.strict`      | `bool`   | Use strict mode for generated password. | `false` |
 | `generate.symbols`     | `bool`   | Include symbols in generated password. | `false` |
 | `mounts.path`          | `string` | Path to the root store. | `$XDG_DATA_HOME/gopass/stores/root` |

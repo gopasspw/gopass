@@ -12,6 +12,7 @@ import (
 	"testing"
 
 	"github.com/fatih/color"
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/tests/gptest"
@@ -353,8 +354,8 @@ func TestDefaultLengthFromEnv(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("use default value if no environment variable is set", func(t *testing.T) {
-		actual, isCustom := defaultLengthFromEnv(ctx)
-		expected := defaultLength
+		actual, isCustom := config.DefaultPasswordLengthFromEnv(ctx)
+		expected := config.DefaultPasswordLength
 		assert.Equal(t, actual, expected)
 		assert.False(t, isCustom)
 	})
@@ -367,13 +368,13 @@ func TestDefaultLengthFromEnv(t *testing.T) {
 		}{
 			{in: "42", expected: 42, custom: true},
 			{in: "1", expected: 1, custom: true},
-			{in: "0", expected: defaultLength, custom: false},
-			{in: "abc", expected: defaultLength, custom: false},
-			{in: "-1", expected: defaultLength, custom: false},
+			{in: "0", expected: config.DefaultPasswordLength, custom: false},
+			{in: "abc", expected: config.DefaultPasswordLength, custom: false},
+			{in: "-1", expected: config.DefaultPasswordLength, custom: false},
 		} {
 			tc := tc
 			t.Setenv(pwLengthEnvName, tc.in)
-			actual, isCustom := defaultLengthFromEnv(ctx)
+			actual, isCustom := config.DefaultPasswordLengthFromEnv(ctx)
 			assert.Equal(t, actual, tc.expected)
 			assert.Equal(t, isCustom, tc.custom)
 		}
