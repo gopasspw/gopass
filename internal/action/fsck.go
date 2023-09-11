@@ -62,7 +62,7 @@ func (s *Action) Fsck(c *cli.Context) error {
 	ctx = out.AddPrefix(ctx, "\n")
 
 	// the main work in done by the sub stores.
-	if err := s.Store.Fsck(ctx, filter); err != nil {
+	if err := s.Store.Fsck(ctx, c.String("store"), filter); err != nil {
 		return exit.Error(exit.Fsck, err, "fsck found errors: %s", err)
 	}
 	bar.Done()

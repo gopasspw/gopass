@@ -10,11 +10,15 @@ import (
 )
 
 // Fsck checks all stores/entries matching the given prefix.
-func (s *Store) Fsck(ctx context.Context, path string) error {
+func (s *Store) Fsck(ctx context.Context, store, path string) error {
 	var result []error
 
 	for alias, sub := range s.mounts {
 		if sub == nil {
+			continue
+		}
+
+		if store != "" && alias != store {
 			continue
 		}
 
