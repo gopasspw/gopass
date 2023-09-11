@@ -51,9 +51,28 @@ brew install gnupg2 git
 * Download and install [GPG4Win](https://www.gpg4win.org/).
 * Download and install [the Windows git installer](https://git-scm.com/download/win).
 
-Alternatively, it can be installed via [chocolatey](https://chocolatey.org/packages/gopass)
+Alternatively, these can be installed via [chocolatey](https://chocolatey.org), 
 
-* `choco install gopass` (requires admin privileges)
+```ps1
+choco install git
+choco install gpg4win
+```
+
+[Scoop](https://scoop.sh), 
+
+```ps1
+scoop install git
+# add Extras bucket, if you haven't already
+# scoop bucket add extras
+scoop install gpg4win
+```
+
+or [winget](https://aka.ms/winget-docs).
+
+```ps1
+winget install Git.Git
+winget install GnuPG.Gpg4win
+```
 
 #### OpenBSD
 
@@ -201,18 +220,22 @@ pacman -S gopass
 
 ### Windows
 
-**WARNING**: Windows is not yet officially supported. We try to support it in the future. These are steps are only meant to help you setup gopass on Windows so you can provide us with feedback about the current state of our Windows support.
+You can install `gopass` with [Chocolatey](https://chocolatey.org/packages/gopass),
 
-You can install `gopass` by [Chocolatey](https://chocolatey.org/):
-
-```bash
+```ps1
 choco install gopass
 ```
 
-Or by [Scoop](https://scoop.sh/):
+[Scoop](https://scoop.sh/#/apps?q=gopass),
 
-```bash
+```ps1
 scoop install gopass
+```
+
+or winget.
+
+```ps1
+winget install gopass.gopass
 ```
 
 Alternatively, download and install a suitable Windows build from the repository [releases page](https://github.com/gopasspw/gopass/releases).

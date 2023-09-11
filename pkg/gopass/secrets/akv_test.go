@@ -1,10 +1,14 @@
 package secrets
 
 import (
+	"bufio"
+	"crypto/rand"
+	"encoding/base64"
 	"sort"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestAKV(t *testing.T) {
@@ -334,6 +338,49 @@ func TestNewAKV(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.Equal(t, "this is the body\nmore text\neven more text\n", a.Body())
+}
+
+func TestLargeBase64AKV(t *testing.T) {
+	testSize := 100 * bufio.MaxScanTokenSize
+	buf := make([]byte, testSize)
+	n, err := rand.Read(buf)
+	require.NoError(t, err)
+	assert.Equal(t, testSize, n)
+
+	sec := NewAKV()
+	assert.NoError(t, sec.Set("Content-Disposition", "attachment; filename=foo.bar"))
+	assert.NoError(t, sec.Set("Content-Transfer-Encoding", "Base64"))
+
+	b64in := base64.StdEncoding.EncodeToString(buf) + "\n"
+	n, err = sec.Write([]byte(b64in))
+	require.NoError(t, err)
+	assert.Equal(t, len(b64in), n)
+
+	b64out := sec.Body()
+	assert.Equal(t, b64in, b64out)
+}
+
+func TestLargeBinaryAKV(t *testing.T) {
+	t.Skip("TODO: AKV does not support transparent handling of non-text content, yet.")
+
+	testSize := 2
+	buf := make([]byte, testSize)
+	n, err := rand.Read(buf)
+	require.NoError(t, err)
+	assert.Equal(t, testSize, n)
+
+	sec := NewAKV()
+	// This hack is required to make sure that the binary content does not end up
+	// in the password field.
+	_, err = sec.Write([]byte("\n"))
+	assert.NoError(t, err)
+
+	n, err = sec.Write(buf)
+	require.NoError(t, err)
+	assert.Equal(t, len(buf), n)
+
+	out := sec.Body()
+	assert.Equal(t, string(buf), out)
 }
 
 func FuzzParseAKV(f *testing.F) {

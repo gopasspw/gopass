@@ -207,7 +207,7 @@ func (s *Action) generatePassword(ctx context.Context, c *cli.Context, length, n
 
 	switch generator {
 	case "memorable":
-		if c.Bool("strict") {
+		if isStrict(ctx, c) {
 			return pwgen.GenerateMemorablePassword(pwlen, symbols, true), nil
 		}
 
@@ -215,7 +215,7 @@ func (s *Action) generatePassword(ctx context.Context, c *cli.Context, length, n
 	case "external":
 		return pwgen.GenerateExternal(pwlen)
 	default:
-		if c.Bool("strict") {
+		if isStrict(ctx, c) {
 			return pwgen.GeneratePasswordWithAllClasses(pwlen, symbols)
 		}
 
@@ -285,33 +285,41 @@ func (s *Action) generatePasswordForRule(ctx context.Context, c *cli.Context, le
 // generatePasswordXKCD walks through the steps necessary to create an XKCD-style
 // password.
 func (s *Action) generatePasswordXKCD(ctx context.Context, c *cli.Context, length string) (string, error) {
-	xkcdSeparator := " "
+	sep := config.String(c.Context, "pwgen.xkcd.sep")
 	if c.IsSet("sep") {
-		xkcdSeparator = c.String("sep")
+		sep = c.String("sep")
+	}
+	lang := config.String(c.Context, "pwgen.xkcd.lang")
+	if c.IsSet("lang") {
+		lang = c.String("lang")
 	}
 
-	var pwlen int
-	if length == "" {
-		candidateLength := config.DefaultXKCDLength
-		question := "How many words should be combined to a password?"
-		iv, err := termio.AskForInt(ctx, question, candidateLength)
-		if err != nil {
-			return "", exit.Error(exit.Usage, err, "password length must be a number")
-		}
-		pwlen = iv
-	} else {
+	pwlen := config.Int(c.Context, "pwgen.xkcd.len")
+	switch {
+	case length != "":
+		// using the command line supplied value
 		iv, err := strconv.Atoi(length)
 		if err != nil {
 			return "", exit.Error(exit.Usage, err, "password length must be a number: %s", err)
 		}
 		pwlen = iv
+	case pwlen < 1:
+		// no config value, nothing on the command line: ask the user
+		question := "How many words should be combined to a password?"
+		iv, err := termio.AskForInt(ctx, question, config.DefaultXKCDLength)
+		if err != nil {
+			return "", exit.Error(exit.Usage, err, "password length must be a number")
+		}
+		pwlen = iv
+	default:
+		// no-op, using the config value
 	}
 
 	if pwlen < 1 {
 		return "", exit.Error(exit.Usage, nil, "password length must not be zero")
 	}
 
-	return xkcdgen.RandomLengthDelim(pwlen, xkcdSeparator, c.String("lang"))
+	return xkcdgen.RandomLengthDelim(pwlen, sep, lang)
 }
 
 // generateSetPassword will update or create a secret.
@@ -491,4 +499,18 @@ func filterPrefix(in []string, prefix string) []string {
 	}
 
 	return out
+}
+
+func isStrict(ctx context.Context, c *cli.Context) bool {
+	cfg := config.FromContext(ctx)
+
+	if c.Bool("strict") {
+		return true
+	}
+
+	if cfg.IsSet("generate.strict") {
+		return cfg.GetBool("generate.strict")
+	}
+
+	return false
 }

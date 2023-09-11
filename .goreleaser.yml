@@ -19,9 +19,9 @@ builds:
     env:
       - CGO_ENABLED=0
     asmflags:
-      - all=-trimpath={{.Env.GOPATH}}
+      - all=-trimpath={{.Env.HOME}}
     gcflags:
-      - all=-trimpath={{.Env.GOPATH}}
+      - all=-trimpath={{.Env.HOME}}
     ldflags: |
       -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.CommitDate}} -extldflags '-static'
     goos:
