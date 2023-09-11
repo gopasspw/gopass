@@ -52,6 +52,10 @@ func ShowFlags() []cli.Flag {
 			Aliases: []string{"n"},
 			Usage:   "Do not parse the output.",
 		},
+		&cli.BoolFlag{
+			Name:  "nosync",
+			Usage: "Disable auto-sync",
+		},
 		&cli.StringFlag{
 			Name:  "chars",
 			Usage: "Print specific characters from the secret",
@@ -339,6 +343,10 @@ func (s *Action) GetCommands() []*cli.Command {
 				&cli.BoolFlag{
 					Name:  "decrypt",
 					Usage: "Decrypt and reencrypt during fsck.",
+				},
+				&cli.StringFlag{
+					Name:  "store",
+					Usage: "Limit fsck to this mount point",
 				},
 			},
 		},

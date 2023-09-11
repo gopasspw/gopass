@@ -1,6 +1,7 @@
 package action
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 
@@ -39,19 +40,9 @@ func (s *Action) Fsck(c *cli.Context) error {
 	}
 
 	// display progress bar.
-	t, err := s.Store.Tree(ctx)
+	pwList, err := s.fsckEntries(ctx, filter)
 	if err != nil {
-		return exit.Error(exit.Unknown, err, "failed to list stores: %s", err)
-	}
-
-	pwList := t.List(tree.INF)
-	if filter != "" {
-		// We restrict ourselves to the filter.
-		t, err := t.FindFolder(filter)
-		if err != nil {
-			return exit.Error(exit.NotFound, nil, "Entry %q not found", filter)
-		}
-		pwList = t.List(tree.INF)
+		return err
 	}
 
 	bar := termio.NewProgressBar(int64(len(pwList)) + 1)
@@ -62,10 +53,33 @@ func (s *Action) Fsck(c *cli.Context) error {
 	ctx = out.AddPrefix(ctx, "\n")
 
 	// the main work in done by the sub stores.
-	if err := s.Store.Fsck(ctx, filter); err != nil {
+	if err := s.Store.Fsck(ctx, c.String("store"), filter); err != nil {
 		return exit.Error(exit.Fsck, err, "fsck found errors: %s", err)
 	}
 	bar.Done()
 
 	return nil
+}
+
+func (s *Action) fsckEntries(ctx context.Context, filter string) ([]string, error) {
+	t, err := s.Store.Tree(ctx)
+	if err != nil {
+		return nil, exit.Error(exit.Unknown, err, "failed to list stores: %s", err)
+	}
+
+	if filter == "" {
+		return t.List(tree.INF), nil
+	}
+
+	if s.Store.Exists(ctx, filter) {
+		return []string{filter}, nil
+	}
+
+	// We restrict ourselves to the filter.
+	t, err = t.FindFolder(filter)
+	if err != nil {
+		return nil, exit.Error(exit.NotFound, nil, "Entry %q not found", filter)
+	}
+
+	return t.List(tree.INF), nil
 }

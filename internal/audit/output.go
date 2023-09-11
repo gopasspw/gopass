@@ -5,7 +5,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"io"
-	"io/ioutil"
+	"os"
 	"sort"
 	"text/template"
 	"time"
@@ -84,7 +84,7 @@ func (r *Report) RenderHTML(w io.Writer) error {
 	tplStr := htmlTpl
 
 	if r.Template != "" {
-		if buf, err := ioutil.ReadFile(r.Template); err == nil {
+		if buf, err := os.ReadFile(r.Template); err == nil {
 			tplStr = string(buf)
 		} else {
 			debug.Log("failed to load custom template from %s: %s", r.Template, err)

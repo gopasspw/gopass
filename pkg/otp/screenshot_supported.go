@@ -1,4 +1,6 @@
-//go:build cgo || !darwin
+//go:build (arm || arm64 || amd64 || 386) && (linux || windows || darwin || freebsd || netbsd || openbsd)
+// +build arm arm64 amd64 386
+// +build linux windows darwin freebsd netbsd openbsd
 
 package otp
 

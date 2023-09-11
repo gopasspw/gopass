@@ -1,6 +1,7 @@
 package action
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"math/rand"
@@ -40,6 +41,8 @@ func TestBinary(t *testing.T) {
 }
 
 func TestBinaryCat(t *testing.T) {
+	tSize := 1024
+
 	u := gptest.NewUnitTester(t)
 
 	ctx := context.Background()
@@ -60,7 +63,7 @@ func TestBinaryCat(t *testing.T) {
 	ctx = act.cfg.WithConfig(ctx)
 
 	infile := filepath.Join(u.Dir, "input.txt")
-	writeBinfile(t, infile)
+	writeBinfile(t, infile, tSize)
 
 	t.Run("populate store", func(t *testing.T) {
 		assert.NoError(t, act.binaryCopy(ctx, gptest.CliCtx(ctx, t), infile, "bar", true))
@@ -72,7 +75,7 @@ func TestBinaryCat(t *testing.T) {
 
 	stdinfile := filepath.Join(u.Dir, "stdin")
 	t.Run("binary cat baz from stdin", func(t *testing.T) {
-		writeBinfile(t, stdinfile)
+		writeBinfile(t, stdinfile, tSize)
 
 		fd, err := os.Open(stdinfile)
 		assert.NoError(t, err)
@@ -92,6 +95,60 @@ func TestBinaryCat(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, string(buf), string(sec))
 	})
+}
+
+func TestBinaryCatSizes(t *testing.T) {
+	u := gptest.NewUnitTester(t)
+
+	ctx := context.Background()
+	ctx = ctxutil.WithAlwaysYes(ctx, true)
+	ctx = ctxutil.WithHidden(ctx, true)
+
+	buf := &bytes.Buffer{}
+	out.Stdout = buf
+	stdout = buf
+	defer func() {
+		out.Stdout = os.Stdout
+		stdout = os.Stdout
+	}()
+
+	act, err := newMock(ctx, u.StoreDir(""))
+	require.NoError(t, err)
+	require.NotNil(t, act)
+	ctx = act.cfg.WithConfig(ctx)
+
+	for tSize := 1024; tSize < bufio.MaxScanTokenSize*2; tSize += 1024 {
+		// cat stdinfile | gopass cat baz
+		stdinfile := filepath.Join(u.Dir, "stdin")
+		writeBinfile(t, stdinfile, tSize)
+
+		fd, err := os.Open(stdinfile)
+		assert.NoError(t, err)
+
+		catFn := func() {
+			binstdin = fd
+			defer func() {
+				binstdin = os.Stdin
+				_ = fd.Close()
+			}()
+
+			assert.NoError(t, act.Cat(gptest.CliCtx(ctx, t, "baz")))
+		}
+		catFn()
+
+		// gopass cat baz and compare output with input, they should match
+		buf, err := os.ReadFile(stdinfile)
+		require.NoError(t, err)
+		sec, err := act.binaryGet(ctx, "baz")
+		require.NoError(t, err)
+
+		if string(buf) != string(sec) {
+			t.Fatalf("Input and output mismatch at tSize %d", tSize)
+
+			break
+		}
+		t.Logf("Input and Output match at tSize %d", tSize)
+	}
 }
 
 func TestBinaryCopy(t *testing.T) {
@@ -125,7 +182,7 @@ func TestBinaryCopy(t *testing.T) {
 	t.Run("copy binary file", func(t *testing.T) {
 		defer buf.Reset()
 
-		writeBinfile(t, infile)
+		writeBinfile(t, infile, 1024)
 		assert.NoError(t, act.binaryCopy(ctx, gptest.CliCtx(ctx, t), infile, "bar", true))
 	})
 
@@ -177,7 +234,7 @@ func TestBinarySum(t *testing.T) {
 	infile := filepath.Join(u.Dir, "input.raw")
 
 	t.Run("populate store", func(t *testing.T) {
-		writeBinfile(t, infile)
+		writeBinfile(t, infile, 1024)
 		assert.NoError(t, act.binaryCopy(ctx, gptest.CliCtx(ctx, t), infile, "bar", true))
 	})
 
@@ -207,15 +264,14 @@ func TestBinaryGet(t *testing.T) {
 	assert.Equal(t, data, out)
 }
 
-func writeBinfile(t *testing.T, fn string) {
+func writeBinfile(t *testing.T, fn string, size int) {
 	t.Helper()
 
 	// tests should be predicable
-	rand.Seed(42)
+	lr := rand.New(rand.NewSource(42))
 
-	size := 1024
 	buf := make([]byte, size)
-	n, err := rand.Read(buf)
+	n, err := lr.Read(buf)
 	assert.NoError(t, err)
 	assert.Equal(t, size, n)
 	assert.NoError(t, os.WriteFile(fn, buf, 0o644))

@@ -2,7 +2,6 @@ package debug
 
 import (
 	"bytes"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -52,6 +51,7 @@ func TestDebug(t *testing.T) {
 
 	fn := filepath.Join(td, "gopass.log")
 	t.Setenv("GOPASS_DEBUG_LOG", fn)
+	t.Setenv("GOPASS_DEBUG_LOG_SECRETS", "false")
 
 	// it's been already initialized, need to re-init
 	assert.True(t, initDebug())
@@ -60,11 +60,12 @@ func TestDebug(t *testing.T) {
 	Log("%s", testSecret("secret"))
 	Log("%s", testShort("toolong"))
 
-	buf, err := ioutil.ReadFile(fn)
+	buf, err := os.ReadFile(fn)
 	require.NoError(t, err)
 
 	logStr := string(buf)
 	assert.Contains(t, logStr, "foo")
+	assert.NotEqual(t, "true", os.Getenv("GOPASS_DEBUG_LOG_SECRETS"))
 	assert.NotContains(t, logStr, "secret")
 	assert.NotContains(t, logStr, "toolong")
 	assert.Contains(t, logStr, "shorter")
@@ -88,7 +89,7 @@ func TestDebugSecret(t *testing.T) {
 	Log("foo")
 	Log("%s", testSecret("secret"))
 
-	buf, err := ioutil.ReadFile(fn)
+	buf, err := os.ReadFile(fn)
 	require.NoError(t, err)
 
 	logStr := string(buf)
@@ -119,7 +120,7 @@ func TestDebugFilter(t *testing.T) {
 	Log("foo")
 	Log("%s", testSecret("secret"))
 
-	fbuf, err := ioutil.ReadFile(fn)
+	fbuf, err := os.ReadFile(fn)
 	require.NoError(t, err)
 
 	logStr := string(fbuf)

@@ -1,5 +1,5 @@
 
-.TH GOPASS "1" "April 2023" "gopass (github.com/gopasspw/gopass) 1.15.5" "User Commands"
+.TH GOPASS "1" "August 2023" "gopass (github.com/gopasspw/gopass) 1.15.7" "User Commands"
 .SH NAME
 gopass - The standard Unix password manager
 .SH SYNOPSIS
@@ -22,6 +22,9 @@ Copy the password value into the clipboard
 \fB\-\-noparsing\fR,
 \fB\-n\fR,
 Do not parse the output.
+.TP
+\fB\-\-nosync\fR,
+Disable auto-sync
 .TP
 \fB\-\-password\fR,
 \fB\-o\fR,
@@ -404,6 +407,10 @@ Only display the token
 \fB\-\-qr\fR,
 \fB\-q\fR,
 Write QR code to FILE
+.TP
+\fB\-\-snip\fR,
+\fB\-s\fR,
+Scan screen content to insert a OTP QR code into provided entry
 .SS process
 Process a template file
 
@@ -509,6 +516,9 @@ Copy the password value into the clipboard
 \fB\-\-noparsing\fR,
 \fB\-n\fR,
 Do not parse the output.
+.TP
+\fB\-\-nosync\fR,
+Disable auto-sync
 .TP
 \fB\-\-password\fR,
 \fB\-o\fR,

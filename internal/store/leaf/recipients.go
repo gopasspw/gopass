@@ -327,7 +327,42 @@ func (s *Store) UpdateExportedPublicKeys(ctx context.Context, rs []string) (bool
 	}
 
 	// add any missing keys
+	failed, exported := s.addMissingKeys(ctx, exp, recipients)
+
+	// remove any extra key files
+	// TODO(GH-2620): Temporarily disabled by default until we fix the
+	// key cleanup.
+	if config.Bool(ctx, "recipients.remove-extra-keys") {
+		f, e := s.removeExtraKeys(ctx, recipients)
+		failed = failed || f
+		exported = exported || e
+	}
+
+	if exported && ctxutil.IsGitCommit(ctx) {
+		if err := s.storage.Commit(ctx, "Updated exported Public Keys"); err != nil {
+			switch {
+			case errors.Is(err, store.ErrGitNothingToCommit):
+				debug.Log("nothing to commit: %s", err)
+			case errors.Is(err, store.ErrGitNotInit):
+				debug.Log("git not initialized: %s", err)
+			default:
+				failed = true
+
+				out.Errorf(ctx, "Failed to git commit: %s", err)
+			}
+		}
+	}
+
+	if failed {
+		return exported, fmt.Errorf("some keys failed")
+	}
+
+	return exported, nil
+}
+
+func (s *Store) addMissingKeys(ctx context.Context, exp keyExporter, recipients map[string]bool) (bool, bool) {
 	var failed, exported bool
+
 	for r := range recipients {
 		if r == "" {
 			continue
@@ -358,7 +393,12 @@ func (s *Store) UpdateExportedPublicKeys(ctx context.Context, rs []string) (bool
 		}
 	}
 
-	// remove any extra key files
+	return failed, exported
+}
+
+func (s *Store) removeExtraKeys(ctx context.Context, recipients map[string]bool) (bool, bool) {
+	var failed, exported bool
+
 	keys, err := s.storage.List(ctx, keyDir)
 	if err != nil {
 		failed = true
@@ -397,26 +437,7 @@ func (s *Store) UpdateExportedPublicKeys(ctx context.Context, rs []string) (bool
 		debug.Log("Removed extra key %s", key)
 	}
 
-	if exported && ctxutil.IsGitCommit(ctx) {
-		if err := s.storage.Commit(ctx, fmt.Sprintf("Updated exported Public Keys")); err != nil {
-			switch {
-			case errors.Is(err, store.ErrGitNothingToCommit):
-				debug.Log("nothing to commit: %s", err)
-			case errors.Is(err, store.ErrGitNotInit):
-				debug.Log("git not initialized: %s", err)
-			default:
-				failed = true
-
-				out.Errorf(ctx, "Failed to git commit: %s", err)
-			}
-		}
-	}
-
-	if failed {
-		return exported, fmt.Errorf("some keys failed")
-	}
-
-	return exported, nil
+	return failed, exported
 }
 
 type recipientMarshaler interface {

@@ -2,7 +2,6 @@ package fs
 
 import (
 	"io/fs"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -19,7 +18,7 @@ func TestWalkTooLong(t *testing.T) {
 	storeDir := filepath.Join(td, "store")
 	fn := filepath.Join(storeDir, "real", "file.txt")
 	assert.NoError(t, os.MkdirAll(filepath.Dir(fn), 0o700))
-	assert.NoError(t, ioutil.WriteFile(fn, []byte("foobar"), 0o600))
+	assert.NoError(t, os.WriteFile(fn, []byte("foobar"), 0o600))
 
 	ptr := filepath.Join(storeDir, "path", "via", "link")
 
@@ -55,7 +54,7 @@ func TestWalkSameFile(t *testing.T) {
 	storeDir := filepath.Join(td, "store")
 	fn := filepath.Join(storeDir, "real", "file.txt")
 	assert.NoError(t, os.MkdirAll(filepath.Dir(fn), 0o700))
-	assert.NoError(t, ioutil.WriteFile(fn, []byte("foobar"), 0o600))
+	assert.NoError(t, os.WriteFile(fn, []byte("foobar"), 0o600))
 
 	ptr1 := filepath.Join(storeDir, "path", "via", "one", "link")
 	ptr2 := filepath.Join(storeDir, "another", "path", "to", "this", "file")

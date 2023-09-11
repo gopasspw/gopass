@@ -4,9 +4,11 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
+	"io"
 	"strings"
 
 	"github.com/gopasspw/gopass/internal/set"
+	"github.com/gopasspw/gopass/pkg/debug"
 	"golang.org/x/exp/maps"
 )
 
@@ -28,7 +30,6 @@ func NewAKV() *AKV {
 		kvp: make(map[string][]string),
 		raw: strings.Builder{},
 	}
-	a.raw.WriteString("\n")
 
 	return a
 }
@@ -92,6 +93,9 @@ func (a *AKV) Set(key string, value any) error {
 	// if the key does exist we must make sure to update only
 	// the first instance and leave all others intact.
 
+	if a.raw.Len() == 0 {
+		a.raw.WriteString("\n")
+	}
 	s := bufio.NewScanner(strings.NewReader(a.raw.String()))
 	a.raw = strings.Builder{}
 
@@ -143,6 +147,10 @@ func (a *AKV) Add(key string, value any) error {
 	sv := fmt.Sprintf("%s", value)
 	a.kvp[key] = append(a.kvp[key], sv)
 
+	// we must not accidentially write the KVP into the password field
+	if a.raw.Len() == 0 {
+		a.raw.WriteString("\n")
+	}
 	a.raw.WriteString(fmt.Sprintf("%s: %s\n", key, sv))
 
 	return nil
@@ -157,7 +165,7 @@ func (a *AKV) Del(key string) bool {
 
 	delete(a.kvp, key)
 
-	s := bufio.NewScanner(strings.NewReader(a.raw.String()))
+	s := newScanner(strings.NewReader(a.raw.String()), a.raw.Len())
 	a.raw = strings.Builder{}
 	first := true
 	for s.Scan() {
@@ -204,7 +212,7 @@ func (a *AKV) Password() string {
 
 // SetPassword updates the password.
 func (a *AKV) SetPassword(p string) {
-	s := bufio.NewScanner(strings.NewReader(a.raw.String()))
+	s := newScanner(strings.NewReader(a.raw.String()), a.raw.Len())
 	a.raw = strings.Builder{}
 
 	// write the new password
@@ -230,7 +238,9 @@ func (a *AKV) SetPassword(p string) {
 func ParseAKV(in []byte) *AKV {
 	a := NewAKV()
 	a.raw = strings.Builder{}
-	s := bufio.NewScanner(bytes.NewReader(in))
+	s := newScanner(bytes.NewReader(in), len(in))
+
+	debug.Log("Parsing %d bytes of input", len(in))
 
 	first := true
 	for s.Scan() {
@@ -274,7 +284,15 @@ func ParseAKV(in []byte) *AKV {
 func (a *AKV) Body() string {
 	out := strings.Builder{}
 
-	s := bufio.NewScanner(strings.NewReader(a.raw.String()))
+	// make sure we always have a terminating newline so the scanner below
+	// can always find a full line.
+	if !strings.HasSuffix(a.raw.String(), "\n") {
+		a.raw.WriteString("\n")
+	}
+
+	debug.Log("Building body from %d chars", a.raw.Len())
+	s := newScanner(strings.NewReader(a.raw.String()), a.raw.Len())
+
 	first := true
 	for s.Scan() {
 		// skip over the password
@@ -287,18 +305,53 @@ func (a *AKV) Body() string {
 		line := s.Text()
 		// ignore KV pairs
 		if strings.Contains(line, kvSep) {
+			debug.Log("ignoring line: %q", line)
+
 			continue
 		}
+		debug.Log("adding line of %d chars", len(line))
 		out.WriteString(line)
 		out.WriteString("\n")
 	}
 
+	debug.Log("built %d chars body", out.Len())
+
 	return out.String()
+}
+
+// newScanner creates a new line scanner and sets it up to properly handle larger secrets.
+// bufio.Scanner uses bufio.MaxScanTokenSize by default. That is only 64k, too little
+// for larger binary secrets. We double the allocation size to account for Base64 encoding
+// overhead.
+func newScanner(in io.Reader, inSize int) *bufio.Scanner {
+	bufSize := inSize * 2
+
+	s := bufio.NewScanner(in)
+	scanBuf := make([]byte, bufSize)
+	s.Buffer(scanBuf, bufSize)
+
+	debug.Log("Using buffer of len %d and max %d", len(scanBuf), bufSize)
+
+	return s
 }
 
 // Write appends the buffer to the secret's body.
 func (a *AKV) Write(buf []byte) (int, error) {
-	return a.raw.Write(buf)
+	var w io.Writer
+	w = &a.raw
+
+	// If the body is empty before writing we must treat the first line
+	// of the newly written content as the password or multi-line insert
+	// and similar operations (like insert from stdin) might fail.
+	// For regular command line usage this is actually a non-issue since
+	// the gopass process will exit after writing and when reading the secret
+	// it will be (correctly) parsed. But for tests, library and maybe REPL
+	// usage this is an issue.
+	if a.raw.Len() == 0 {
+		w = &pwWriter{w: &a.raw, cb: func(pw string) { a.password = pw }}
+	}
+
+	return w.Write(buf)
 }
 
 // FromMime returns whether this secret was converted from a Mime secret of not.
@@ -309,4 +362,34 @@ func (a *AKV) FromMime() bool {
 // SafeStr always returnes "(elided)".
 func (a *AKV) SafeStr() string {
 	return "(elided)"
+}
+
+// pwWriter is a io.Writer that will extract the first line of the input stream and
+// then write it to the password field of the provided callback. The first line can stretch
+// multiple chunks but once the first line has been completed any writes to this
+// writer will be silently discarded.
+type pwWriter struct {
+	w   io.Writer
+	cb  func(string)
+	buf strings.Builder
+}
+
+func (p *pwWriter) Write(buf []byte) (int, error) {
+	n, err := p.w.Write(buf)
+	if p.cb == nil {
+		return n, err
+	}
+
+	i := bytes.Index(buf, []byte("\n"))
+	if i > 0 {
+		p.buf.Write(buf[0:i])
+
+		p.cb(p.buf.String())
+		p.cb = nil
+
+		return n, err
+	}
+	p.buf.Write(buf)
+
+	return n, err
 }

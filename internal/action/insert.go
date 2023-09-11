@@ -185,6 +185,7 @@ func (s *Action) insertGetSecret(ctx context.Context, name, pw string) (gopass.S
 
 // insertYAML will overwrite existing keys.
 func (s *Action) insertYAML(ctx context.Context, name, key string, content []byte, kvps map[string]string) error {
+	debug.Log("insertYAML: %s - %s -> %s", name, key, content)
 	if ctxutil.IsInteractive(ctx) {
 		pw, err := termio.AskForString(ctx, name+":"+key, "")
 		if err != nil {
@@ -200,12 +201,15 @@ func (s *Action) insertYAML(ctx context.Context, name, key string, content []byt
 		if err != nil {
 			return exit.Error(exit.Encrypt, err, "failed to set key %q of %q: %s", key, name, err)
 		}
+		debug.Log("using existing secret %s", name)
 	} else {
 		sec = secrets.New()
+		debug.Log("creating new secret %s", name)
 	}
 
 	setMetadata(sec, kvps)
 
+	debug.Log("setting %s to %s", key, string(content))
 	if err := sec.Set(key, string(content)); err != nil {
 		return exit.Error(exit.Usage, err, "failed set key %q of %q: %q", key, name, err)
 	}

@@ -1,7 +1,7 @@
 package gitconfig
 
 import (
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -21,18 +21,18 @@ func TestConfigs(t *testing.T) {
 	c.WorktreeConfig = "worktree"
 	c.EnvPrefix = "GPTEST"
 
-	require.NoError(t, ioutil.WriteFile(c.SystemConfig, []byte(`[system]
+	require.NoError(t, os.WriteFile(c.SystemConfig, []byte(`[system]
 	key = system
 `), 0o600))
-	require.NoError(t, ioutil.WriteFile(filepath.Join(td, c.GlobalConfig), []byte(`[global]
+	require.NoError(t, os.WriteFile(filepath.Join(td, c.GlobalConfig), []byte(`[global]
 	key = global
 [alias "foo"]
 	key = bar
 `), 0o600))
-	require.NoError(t, ioutil.WriteFile(filepath.Join(td, c.LocalConfig), []byte(`[local]
+	require.NoError(t, os.WriteFile(filepath.Join(td, c.LocalConfig), []byte(`[local]
 	key = local
 `), 0o600))
-	require.NoError(t, ioutil.WriteFile(filepath.Join(td, c.WorktreeConfig), []byte(`[worktree]
+	require.NoError(t, os.WriteFile(filepath.Join(td, c.WorktreeConfig), []byte(`[worktree]
 	key = worktree
 `), 0o600))
 	t.Setenv("GPTEST_CONFIG_COUNT", "1")

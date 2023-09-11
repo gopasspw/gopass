@@ -33,7 +33,7 @@ func (a *Age) getSSHIdentities(ctx context.Context) (map[string]age.Identity, er
 	uhd := appdir.UserHome()
 	sshDir := filepath.Join(uhd, ".ssh")
 	if !fsutil.IsDir(sshDir) {
-		debug.Log("no .ssh directory found at %s. Ignoring SSH identities")
+		debug.Log("no .ssh directory found at %s. Ignoring SSH identities", sshDir)
 
 		return nil, fmt.Errorf("no identities found: %w", ErrNoSSHDir)
 	}

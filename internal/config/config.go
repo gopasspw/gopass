@@ -1,6 +1,7 @@
 package config
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"strconv"
@@ -10,8 +11,13 @@ import (
 	"github.com/gopasspw/gopass/pkg/gitconfig"
 )
 
+const (
+	DefaultPasswordLength = 24
+	DefaultXKCDLength     = 4
+)
+
 var (
-	envPrefix    = "GOPASS_CONFIG_"
+	envPrefix    = "GOPASS_CONFIG"
 	systemConfig = "/etc/gopass/config"
 )
 
@@ -236,4 +242,28 @@ func (c *Config) Keys(mount string) []string {
 	}
 
 	return nil
+}
+
+// DefaultPasswordLengthFromEnv will determine the password length from the env variable
+// GOPASS_PW_DEFAULT_LENGTH or fallback to the hard-coded default length.
+// If the env variable is set by the user and is valid, the boolean return value
+// will be true, otherwise it will be false.
+func DefaultPasswordLengthFromEnv(ctx context.Context) (int, bool) {
+	def := DefaultPasswordLength
+	cfg := FromContext(ctx)
+
+	if l := cfg.GetInt("generate.length"); l > 0 {
+		def = l
+	}
+
+	lengthStr, isSet := os.LookupEnv("GOPASS_PW_DEFAULT_LENGTH")
+	if !isSet {
+		return def, false
+	}
+	length, err := strconv.Atoi(lengthStr)
+	if err != nil || length < 1 {
+		return def, false
+	}
+
+	return length, true
 }

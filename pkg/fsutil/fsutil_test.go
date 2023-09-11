@@ -2,7 +2,6 @@ package fsutil
 
 import (
 	"crypto/rand"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -29,6 +28,7 @@ func TestCleanFilename(t *testing.T) {
 
 func TestCleanPath(t *testing.T) {
 	tempdir := t.TempDir()
+	t.Setenv("GOPASS_HOMEDIR", "")
 
 	m := map[string]string{
 		".":                                 "",
@@ -150,7 +150,7 @@ func TestCopyFile(t *testing.T) {
 
 	// try to overwrite existing file w/o write bit
 	dfn = filepath.Join(tempdir, "bar2")
-	require.NoError(t, ioutil.WriteFile(dfn, []byte("foo"), 0o400))
+	require.NoError(t, os.WriteFile(dfn, []byte("foo"), 0o400))
 	assert.Error(t, CopyFile(sfn, dfn))
 	assert.NoError(t, CopyFileForce(sfn, dfn))
 }

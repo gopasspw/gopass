@@ -78,6 +78,8 @@ pacman -S gopass
 
 ```shell
 # WinGet
+winget install Git.Git
+winget install GnuPG.Gpg4win
 winget install gopass.gopass
 # Chocolatey
 choco install gpg4win

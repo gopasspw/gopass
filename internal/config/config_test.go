@@ -36,4 +36,52 @@ func TestConfig(t *testing.T) {
 	assert.Equal(t, true, Bool(ctx, "core.bool"))
 	assert.Equal(t, "foo", String(ctx, "core.string"))
 	assert.Equal(t, 42, Int(ctx, "core.int"))
+
+	assert.NoError(t, cfg.SetEnv("generate.length", "16"))
+	actual_length, _ := DefaultPasswordLengthFromEnv(ctx)
+	assert.Equal(t, 16, actual_length)
+}
+
+func TestEnvConfig(t *testing.T) {
+	envs := map[string]string{
+		"GOPASS_CONFIG_CONFIG_COUNT":   "1",
+		"GOPASS_CONFIG_CONFIG_KEY_0":   "core.autosync",
+		"GOPASS_CONFIG_CONFIG_VALUE_0": "false",
+	}
+	for k, v := range envs {
+		t.Setenv(k, v)
+	}
+
+	u := gptest.NewUnitTester(t)
+	assert.NotNil(t, u)
+
+	td := t.TempDir()
+	t.Setenv("GOPASS_HOMEDIR", td)
+
+	// this will write to the tempdir
+	cfg := New()
+
+	assert.Equal(t, "false", cfg.Get("core.autosync"))
+}
+
+func TestInvalidEnvConfig(t *testing.T) {
+	envs := map[string]string{
+		"GOPASS_CONFIG__CONFIG_COUNT":   "1",
+		"GOPASS_CONFIG__CONFIG_KEY_0":   "core.autosync",
+		"GOPASS_CONFIG__CONFIG_VALUE_0": "false",
+	}
+	for k, v := range envs {
+		t.Setenv(k, v)
+	}
+
+	u := gptest.NewUnitTester(t)
+	assert.NotNil(t, u)
+
+	td := t.TempDir()
+	t.Setenv("GOPASS_HOMEDIR", td)
+
+	// this will write to the tempdir
+	cfg := New()
+
+	assert.Equal(t, "true", cfg.Get("core.autosync"))
 }

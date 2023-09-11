@@ -9,7 +9,6 @@ package main
 import (
 	"fmt"
 	"io/fs"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -49,7 +48,7 @@ func main() {
 		return
 	}
 
-	vs, err := ioutil.ReadFile("VERSION")
+	vs, err := os.ReadFile("VERSION")
 	if err != nil {
 		panic(err)
 	}
