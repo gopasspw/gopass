@@ -14,29 +14,29 @@ _gopass () {
 	      "identities:List identities"
 	      )
 	      _describe -t commands "gopass age" subcommands
-	      
-	      
-	      
+
+
+
 	      ;;
 	  alias)
-	      
-	      
-	      
+
+
+
 	      ;;
 	  audit)
 	      _arguments : "--format[Output format. text, csv or html. Default: text]" "--output-file[Output filename. Used for csv and html]" "--template[HTML template. If not set use the built-in default.]" "--failed[Report only entries that failed validation. Default: false (reports all)]"
-	      
-	      
+
+
 	      ;;
 	  cat)
-	      
-	      
-	      
+
+
+
 	      ;;
 	  clone)
 	      _arguments : "--path[Path to clone the repo to]" "--crypto[Select crypto backend \[age gpgcli plain\]]" "--storage[Select storage backend \[fossilfs gitfs\]]" "--check-keys[Check for valid decryption keys. Generate new keys if none are found.]"
-	      
-	      
+
+
 	      ;;
 	  completion)
 	      local -a subcommands
@@ -49,63 +49,63 @@ _gopass () {
 	      )
 	      _describe -t commands "gopass completion" subcommands
 	      _arguments : "--help[show help]"
-	      
-	      
+
+
 	      ;;
 	  config)
 	      _arguments : "--store[Set options to a specific store]"
-	      
-	      
+
+
 	      ;;
 	  convert)
 	      _arguments : "--store[Specify which store to convert]" "--move[Replace store?]" "--crypto[Which crypto backend? \[age gpgcli plain\]]" "--storage[Which storage backend? \[fossilfs fs gitfs\]]"
-	      
-	      
+
+
 	      ;;
 	  copy|cp)
 	      _arguments : "--force[Force to copy the secret and overwrite existing one]"
-	      
+
 	      _gopass_complete_passwords
 	      ;;
 	  create|new)
 	      _arguments : "--store[Which store to use]" "--force[Force path selection]"
-	      
-	      
+
+
 	      ;;
 	  delete|remove|rm)
 	      _arguments : "--recursive[Recursive delete files and folders]" "--force[Force to delete the secret]"
-	      
+
 	      _gopass_complete_passwords
 	      ;;
 	  edit|set)
 	      _arguments : "--editor[Use this editor binary]" "--create[Create a new secret if none found]"
-	      
+
 	      _gopass_complete_passwords
 	      ;;
 	  env)
 	      _arguments : "--keep-case[Do not capitalize the environment variable and instead retain the original capitalization]"
-	      
-	      
+
+
 	      ;;
 	  find|search)
 	      _arguments : "--unsafe[In the case of an exact match, display the password even if safecontent is enabled]"
-	      
-	      
+
+
 	      ;;
 	  fsck)
 	      _arguments : "--decrypt[Decrypt and reencrypt during fsck.]" "--store[Limit fsck to this mount point]"
-	      
-	      
+
+
 	      ;;
 	  fscopy)
-	      
-	      
-	      
+
+
+
 	      ;;
 	  fsmove)
-	      
-	      
-	      
+
+
+
 	      ;;
 	  generate)
 	      _arguments : "--clip[Copy the generated password to the clipboard]" "--print[Print the generated password to the terminal]" "--force[Force to overwrite existing password]" "--edit[Open secret for editing after generating a password]" "--symbols[Use symbols in the password]" "--generator[Choose a password generator, use one of: cryptic, memorable, xkcd or external. Default: cryptic]" "--strict[Require strict character class rules]" "--force-regen[Force full re-generation, incl. evaluation of templates. Will overwrite the entire secret!]" "--sep[Word separator for generated passwords. If no separator is specified, the words are combined without spaces/separator and the first character of words is capitalised.]" "--lang[Language to generate password from, currently only en (english, default) or de are supported]"
@@ -114,23 +114,23 @@ _gopass () {
 	      ;;
 	  git)
 	      _arguments : "--store[Store to operate on]"
-	      
-	      
+
+
 	      ;;
 	  grep)
 	      _arguments : "--regexp[Interpret pattern as RE2 regular expression]"
-	      
-	      
+
+
 	      ;;
 	  history|hist)
 	      _arguments : "--password[Include passwords in output]"
-	      
-	      
+
+
 	      ;;
 	  init)
 	      _arguments : "--path[Set the sub-store path to operate on]" "--store[Set the name of the sub-store]" "--crypto[Select crypto backend \[age gpgcli plain\]]" "--storage[Select storage backend \[fossilfs fs gitfs\]]"
-	      
-	      
+
+
 	      ;;
 	  insert)
 	      _arguments : "--echo[Display secret while typing]" "--multiline[Insert using $EDITOR]" "--force[Overwrite any existing secret and do not prompt to confirm recipients]" "--append[Append data read from STDIN to existing data]"
@@ -138,19 +138,19 @@ _gopass () {
 	      _gopass_complete_passwords
 	      ;;
 	  link|ln|symlink)
-	      
-	      
-	      
+
+
+
 	      ;;
 	  list|ls)
 	      _arguments : "--limit[Display no more than this many levels of the tree]" "--flat[Print a flat list]" "--folders[Print a flat list of folders]" "--strip-prefix[Strip this prefix from filtered entries]"
 	      _gopass_complete_folders
-	      
+
 	      ;;
 	  merge)
 	      _arguments : "--delete[Remove merged entries]" "--force[Skip editor, merge entries unattended]"
-	      
-	      
+
+
 	      ;;
 	  mounts)
 	      local -a subcommands
@@ -160,29 +160,29 @@ _gopass () {
 	      "versions:Display mount provider versions"
 	      )
 	      _describe -t commands "gopass mounts" subcommands
-	      
-	      
-	      
+
+
+
 	      ;;
 	  move|mv)
 	      _arguments : "--force[Force to move the secret and overwrite existing one]"
-	      
+
 	      _gopass_complete_passwords
 	      ;;
 	  otp|totp|hotp)
 	      _arguments : "--clip[Copy the time-based token into the clipboard]" "--qr[Write QR code to FILE]" "--password[Only display the token]" "--snip[Scan screen content to insert a OTP QR code into provided entry]"
-	      
+
 	      _gopass_complete_passwords
 	      ;;
 	  process)
-	      
-	      
-	      
+
+
+
 	      ;;
 	  pwgen)
 	      _arguments : "--no-numerals[Do not include numerals in the generated passwords.]" "--no-capitalize[Do not include capital letter in the generated passwords.]" "--ambiguous[Do not include characters that could be easily confused with each other, like '1' and 'l' or '0' and 'O']" "--symbols[Include at least one symbol in the password.]" "--one-per-line[Print one password per line]" "--xkcd[Use multiple random english words combined to a password. By default, space is used as separator and all words are lowercase]" "--sep[Word separator for generated xkcd style password. If no separator is specified, the words are combined without spaces/separator and the first character of words is capitalised. This flag implies -xkcd]" "--lang[Language to generate password from, currently only en (english, default) or de are supported]"
-	      
-	      
+
+
 	      ;;
 	  rcs)
 	      local -a subcommands
@@ -191,9 +191,9 @@ _gopass () {
 	      "status:RCS status"
 	      )
 	      _describe -t commands "gopass rcs" subcommands
-	      
-	      
-	      
+
+
+
 	      ;;
 	  recipients)
 	      local -a subcommands
@@ -204,28 +204,28 @@ _gopass () {
 	      )
 	      _describe -t commands "gopass recipients" subcommands
 	      _arguments : "--pretty[Pretty print recipients]"
-	      
-	      
+
+
 	      ;;
 	  setup)
 	      _arguments : "--remote[URL to a git remote, will attempt to join this team]" "--alias[Local mount point for the given remote]" "--create[Create a new team (default: false, i.e. join an existing team)]" "--name[Firstname and Lastname for unattended GPG key generation]" "--email[EMail for unattended GPG key generation]" "--crypto[Select crypto backend \[age gpgcli plain\]]" "--storage[Select storage backend \[fossilfs fs gitfs\]]"
-	      
-	      
+
+
 	      ;;
 	  show)
 	      _arguments : "--yes[Always answer yes to yes/no questions]" "--clip[Copy the password value into the clipboard]" "--alsoclip[Copy the password and show everything]" "--qr[Print the password as a QR Code]" "--unsafe[Display unsafe content (e.g. the password) even if safecontent is enabled]" "--password[Display only the password. Takes precedence over all other flags.]" "--revision[Show a past revision. Does NOT support RCS specific shortcuts. Use exact revision or -<N> to select the Nth oldest revision of this entry.]" "--noparsing[Do not parse the output.]" "--nosync[Disable auto-sync]" "--chars[Print specific characters from the secret]"
-	      
+
 	      _gopass_complete_passwords
 	      ;;
 	  sum|sha|sha256)
-	      
-	      
-	      
+
+
+
 	      ;;
 	  sync)
 	      _arguments : "--store[Select the store to sync]"
-	      
-	      
+
+
 	      ;;
 	  templates)
 	      local -a subcommands
@@ -235,29 +235,29 @@ _gopass () {
 	      "remove:Remove secret templates."
 	      )
 	      _describe -t commands "gopass templates" subcommands
-	      
-	      
-	      
+
+
+
 	      ;;
 	  unclip)
 	      _arguments : "--timeout[Time to wait]" "--force[Clear clipboard even if checksum mismatches]"
-	      
-	      
+
+
 	      ;;
 	  update)
-	      
-	      
-	      
+
+
+
 	      ;;
 	  version)
-	      
-	      
-	      
+
+
+
 	      ;;
 	  help|h)
-	      
-	      
-	      
+
+
+
 	      ;;
 	  *)
 	      _gopass_complete_passwords
