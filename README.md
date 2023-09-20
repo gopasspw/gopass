@@ -36,6 +36,14 @@ An external editor is required to use `gopass edit`.
 brew install gopass
 ```
 
+### [MacPorts](https://www.macports.org) (macOS)
+
+[![macports version](https://repology.org/badge/version-for-repo/macports/gopass-gopasspw.svg)](https://ports.macports.org/port/gopass/)
+
+```shell
+sudo port install gopass
+```
+
 ### Debian (Ubuntu, Debian, Raspbian, ...)
 
 **Warning**: Do not install the `gopass` package for the official repositories. That is a completely different project that has no relation to us.
