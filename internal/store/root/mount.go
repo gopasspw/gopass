@@ -3,6 +3,7 @@ package root
 import (
 	"context"
 	"fmt"
+	"path/filepath"
 	"sort"
 	"strings"
 
@@ -26,6 +27,14 @@ func (r *Store) AddMount(ctx context.Context, alias, path string, keys ...string
 func (r *Store) addMount(ctx context.Context, alias, path string, keys ...string) error {
 	if alias == "" {
 		return fmt.Errorf("alias must not be empty")
+	}
+	// disallow filepath separators in alias and always disallow regular slashes
+	// even on Windows, since these are used internally to separate folders.
+	if strings.HasSuffix(alias, "/") {
+		return fmt.Errorf("alias must not end with '/'")
+	}
+	if strings.HasSuffix(alias, string(filepath.Separator)) {
+		return fmt.Errorf("alias must not end with '%s'", string(filepath.Separator))
 	}
 
 	if r.mounts == nil {
