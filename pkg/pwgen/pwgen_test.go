@@ -2,10 +2,10 @@ package pwgen
 
 import (
 	"bytes"
-	"crypto/rand"
+	crand "crypto/rand"
 	"fmt"
 	"io"
-	mrand "math/rand"
+	"math/rand"
 	"os"
 	"strings"
 	"testing"
@@ -40,11 +40,14 @@ func TestPwgenCharset(t *testing.T) {
 }
 
 func TestPwgenNoCrand(t *testing.T) {
-	old := rand.Reader
-	rand.Reader = strings.NewReader("")
-
+	old := crand.Reader
+	crand.Reader = strings.NewReader("")
+	oldrand := gr
+	// if we seed math/rand with 1789, the first "random number" will be 42
+	gr = rand.New(rand.NewSource(1789))
 	defer func() {
-		rand.Reader = old
+		crand.Reader = old
+		gr = oldrand
 	}()
 
 	oldOut := os.Stdout
@@ -58,9 +61,6 @@ func TestPwgenNoCrand(t *testing.T) {
 		_, _ = io.Copy(buf, r)
 		done <- buf.String()
 	}()
-
-	// if we seed math/rand with 1789, the first "random number" will be 42
-	mrand.Seed(1789)
 
 	n := randomInteger(1024)
 

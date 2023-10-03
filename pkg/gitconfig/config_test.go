@@ -2,14 +2,14 @@ package gitconfig
 
 import (
 	"bytes"
+	"crypto/rand"
 	"fmt"
-	"math/rand"
+	"math/big"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/gopasspw/gopass/internal/set"
 	"github.com/stretchr/testify/assert"
@@ -271,8 +271,8 @@ func TestLoadFromEnv(t *testing.T) {
 		"core.timeout": "10",
 	}
 
-	rand.Seed(time.Now().Unix())
-	prefix := fmt.Sprintf("GPTEST%d", rand.Int31n(8192))
+	n, _ := rand.Int(rand.Reader, big.NewInt(8192))
+	prefix := fmt.Sprintf("GPTEST%d", n)
 
 	i := 0
 	for k, v := range tc {

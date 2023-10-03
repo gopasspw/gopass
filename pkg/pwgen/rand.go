@@ -9,9 +9,10 @@ import (
 	"time"
 )
 
+var gr *rand.Rand
+
 func init() {
-	// seed math/rand in case we have to fall back to using it
-	rand.Seed(time.Now().Unix() + int64(os.Getpid()+os.Getppid()))
+	gr = rand.New(rand.NewSource(time.Now().Unix() + int64(os.Getpid()+os.Getppid())))
 }
 
 func randomInteger(max int) int {
@@ -19,8 +20,7 @@ func randomInteger(max int) int {
 	if err == nil {
 		return int(i.Int64())
 	}
-
 	fmt.Fprintln(os.Stderr, "WARNING: No crypto/rand available. Falling back to PRNG")
 
-	return rand.Intn(max)
+	return gr.Intn(max)
 }
