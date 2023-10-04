@@ -137,7 +137,6 @@ func IsEmptyDir(path string) (bool, error) {
 
 // Shred overwrite the given file any number of times.
 func Shred(path string, runs int) error {
-
 	fh, err := os.OpenFile(path, os.O_WRONLY, 0o600)
 	if err != nil {
 		return fmt.Errorf("failed to open file %q: %w", path, err)
@@ -159,7 +158,7 @@ func Shred(path string, runs int) error {
 	// use zeros in the last iteration
 	bufFn := func() []byte {
 		buf := make([]byte, 1024)
-		rand.Read(buf)
+		_, _ = rand.Read(buf)
 
 		return buf
 	}
