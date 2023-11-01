@@ -150,7 +150,7 @@ func TestRewriteRaw(t *testing.T) {
 	t.Parallel()
 
 	in := `[core]
-	showsafecontent = true
+	autoimport = true
 	readonly = true
 [mounts]
 	path = /tmp/foo
@@ -159,9 +159,10 @@ func TestRewriteRaw(t *testing.T) {
 	c.noWrites = true
 
 	updates := map[string]string{
-		"foo.bar":              "baz",
-		"mounts.readonly":      "true",
-		"core.showsafecontent": "false",
+		"foo.bar":          "baz",
+		"mounts.readonly":  "true",
+		"show.safecontent": "false",
+		"core.autoimport":  "false",
 	}
 	for _, k := range set.Sorted(maps.Keys(updates)) {
 		v := updates[k]
@@ -169,13 +170,15 @@ func TestRewriteRaw(t *testing.T) {
 	}
 
 	assert.Equal(t, `[core]
-	showsafecontent = false
+	autoimport = false
 	readonly = true
 [mounts]
 	readonly = true
 	path = /tmp/foo
 [foo]
 	bar = baz
+[show]
+	safecontent = false
 `, c.raw.String())
 }
 

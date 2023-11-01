@@ -27,7 +27,7 @@ core.notifications = true
 
 	invertables := []string{
 		"core.autoimport",
-		"core.showsafecontent",
+		"show.safecontent",
 	}
 
 	for _, invert := range invertables {

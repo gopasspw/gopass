@@ -84,7 +84,7 @@ func TestInsert(t *testing.T) {
 
 	t.Run("insert zab#key", func(t *testing.T) {
 		ctx = ctxutil.WithInteractive(ctx, false)
-		require.NoError(t, act.cfg.Set("", "core.showsafecontent", "true"))
+		require.NoError(t, act.cfg.Set("", "show.safecontent", "true"))
 		assert.NoError(t, act.insertYAML(ctx, "zabkey", "key", []byte("foobar"), nil))
 		assert.NoError(t, act.show(ctx, gptest.CliCtx(ctx, t), "zabkey", false))
 		assert.Contains(t, buf.String(), "key: foobar")
@@ -113,7 +113,7 @@ func TestInsert(t *testing.T) {
 	})
 
 	t.Run("insert baz via stdin w/ yaml", func(t *testing.T) {
-		require.NoError(t, act.cfg.Set("", "core.showsafecontent", "false"))
+		require.NoError(t, act.cfg.Set("", "show.safecontent", "false"))
 		assert.NoError(t, act.insertStdin(ctx, "baz", []byte("foobar\n---\nuser: name\nother: 0123"), false))
 		buf.Reset()
 

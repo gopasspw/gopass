@@ -134,7 +134,7 @@ func (s *Action) generateCopyOrPrint(ctx context.Context, c *cli.Context, name, 
 		return nil
 	}
 
-	if c.IsSet("print") && !c.Bool("print") && config.Bool(ctx, "core.showsafecontent") {
+	if c.IsSet("print") && !c.Bool("print") && config.Bool(ctx, "show.safecontent") {
 		debug.Log("safecontent suppressing printing")
 
 		return nil

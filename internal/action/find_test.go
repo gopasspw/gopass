@@ -65,7 +65,7 @@ func TestFind(t *testing.T) {
 	buf.Reset()
 
 	// testing the safecontent case
-	require.NoError(t, act.cfg.Set("", "core.showsafecontent", "true"))
+	require.NoError(t, act.cfg.Set("", "show.safecontent", "true"))
 	c.Context = ctx
 	assert.NoError(t, act.FindFuzzy(c))
 	buf.Reset()
@@ -85,7 +85,7 @@ func TestFind(t *testing.T) {
 	buf.Reset()
 
 	// stopping with the safecontent tests
-	require.NoError(t, act.cfg.Set("", "core.showsafecontent", "false"))
+	require.NoError(t, act.cfg.Set("", "show.safecontent", "false"))
 
 	// find yo
 	c = gptest.CliCtx(ctx, t, "yo")

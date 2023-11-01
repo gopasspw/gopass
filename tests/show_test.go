@@ -43,7 +43,7 @@ func TestShow(t *testing.T) {
 	})
 
 	t.Run("show w/o safecontent", func(t *testing.T) {
-		_, err = ts.run("config core.showsafecontent false")
+		_, err = ts.run("config show.safecontent false")
 		assert.NoError(t, err)
 
 		out, err := ts.run("show fixed/secret")
@@ -67,12 +67,12 @@ func TestShow(t *testing.T) {
 	})
 
 	t.Run("show with safecontent", func(t *testing.T) {
-		_, err = ts.run("config core.showsafecontent true")
-		require.NoError(t, err, "set core.showsafecontent = true")
+		_, err = ts.run("config show.safecontent true")
+		require.NoError(t, err, "set show.safecontent = true")
 
-		out, err := ts.run("config core.showsafecontent")
+		out, err := ts.run("config show.safecontent")
 		require.NoError(t, err)
-		assert.Contains(t, out, "true", "verify core.showsafecontent = true")
+		assert.Contains(t, out, "true", "verify show.safecontent = true")
 
 		out, err = ts.run("show fixed/secret")
 		assert.Error(t, err)
@@ -86,7 +86,7 @@ func TestShow(t *testing.T) {
 	})
 
 	t.Run("force showing full secret", func(t *testing.T) {
-		_, err = ts.run("config core.showsafecontent true")
+		_, err = ts.run("config show.safecontent true")
 		assert.NoError(t, err)
 
 		out, err := ts.run("show -u fixed/secret")
@@ -121,7 +121,7 @@ func TestShow(t *testing.T) {
 	t.Run("Regression test for #1574 and #1575", func(t *testing.T) {
 		t.Setenv("GOPASS_CHARACTER_SET", "a")
 
-		_, err = ts.run("config core.showsafecontent true")
+		_, err = ts.run("config show.safecontent true")
 		assert.NoError(t, err)
 
 		_, err := ts.run("generate fo2 5")

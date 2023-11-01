@@ -255,7 +255,7 @@ func (s *Action) showGetContent(ctx context.Context, sec gopass.Secret) (string,
 	}
 
 	// everything but the first line.
-	if config.Bool(ctx, "core.showsafecontent") && !ctxutil.IsForce(ctx) {
+	if config.Bool(ctx, "show.safecontent") && !ctxutil.IsForce(ctx) {
 		body := showSafeContent(sec)
 		if IsAlsoClip(ctx) {
 			return pw, body, nil

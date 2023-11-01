@@ -119,3 +119,12 @@ This is a list of available options:
 | `show.safecontent`              | `bool`   | Only output *safe content* (i.e. everything but the first line of a secret) to the terminal. Use *copy* (`-c`) to retrieve the password in the clipboard, or *force* (`-f`) to still print it. | `false`                             |
 | `updater.check`                 | `bool`   | Check for updates when running `gopass version`.                                                                                                                                               | `true`                              |
 | `output.internal-pager`         | `bool`   | Use the internal pager `ov`.                                                                                                                                                                   | `false`                             |
+
+Furthermore, the following table list the legacy options (starting with v1.15.9) and their new names, their migration should be automatic
+unless you've set them at the system level or using Env variables, in which case you'll need to migrate them manually:
+
+| **Legacy option name** | **New option name** | **Version of migration** |
+|------------------------|---------------------|--------------------------|
+| `core.showsafecontent` | `show.safecontent`  | v1.15.9                  |
+| `core.autoclip`        | `generate.autoclip` | v1.15.9                  |
+| `core.showautoclip`    | `show.autoclip`     | v1.15.9                  |

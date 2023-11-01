@@ -67,7 +67,7 @@ func TestShowMulti(t *testing.T) {
 		buf.Reset()
 	})
 
-	require.NoError(t, act.cfg.Set("", "core.showsafecontent", "true"))
+	require.NoError(t, act.cfg.Set("", "show.safecontent", "true"))
 
 	t.Run("show twoliner with safecontent enabled", func(t *testing.T) {
 		c := gptest.CliCtx(ctx, t, "bar/baz")
@@ -140,7 +140,7 @@ func TestShowMulti(t *testing.T) {
 		buf.Reset()
 	})
 
-	require.NoError(t, act.cfg.Set("", "core.showsafecontent", "false"))
+	require.NoError(t, act.cfg.Set("", "show.safecontent", "false"))
 
 	t.Run("show key ", func(t *testing.T) {
 		c := gptest.CliCtx(ctx, t, "bar/baz", "bar")

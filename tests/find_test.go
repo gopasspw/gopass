@@ -18,7 +18,7 @@ func TestFind(t *testing.T) {
 	assert.Error(t, err)
 	assert.Equal(t, "\nError: Usage: "+filepath.Base(ts.Binary)+" find <pattern>\n", out)
 
-	_, err = ts.run("config core.showsafecontent false")
+	_, err = ts.run("config show.safecontent false")
 	require.NoError(t, err)
 
 	out, err = ts.run("find bar")
@@ -40,7 +40,7 @@ func TestFind(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Contains(t, "Found exact match in 'foo/bar'\nbaz", out)
 
-	_, err = ts.run("config core.showsafecontent true")
+	_, err = ts.run("config show.safecontent true")
 	require.NoError(t, err)
 
 	out, err = ts.run("find bar")
