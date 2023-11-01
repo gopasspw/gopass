@@ -37,14 +37,14 @@ func TestConfig(t *testing.T) {
 
 		c := gptest.CliCtx(ctx, t)
 		assert.NoError(t, act.Config(c))
-		want := `core.autoclip = true
-core.autoimport = true
+		want := `core.autoimport = true
 core.autopush = true
 core.autosync = true
 core.cliptimeout = 45
 core.exportkeys = true
 core.nopager = true
 core.notifications = true
+generate.autoclip = true
 `
 		want += "mounts.path = " + u.StoreDir("") + "\n"
 		assert.Equal(t, want, buf.String())
@@ -78,14 +78,14 @@ core.notifications = true
 		defer buf.Reset()
 
 		act.printConfigValues(ctx, "")
-		want := `core.autoclip = true
-core.autoimport = true
+		want := `core.autoimport = true
 core.autopush = true
 core.autosync = true
 core.cliptimeout = 45
 core.exportkeys = true
 core.nopager = true
 core.notifications = true
+generate.autoclip = true
 `
 		want += "mounts.path = " + u.StoreDir("")
 		assert.Equal(t, want, strings.TrimSpace(buf.String()), "action.printConfigValues")
@@ -111,14 +111,14 @@ core.notifications = true
 		defer buf.Reset()
 
 		act.ConfigComplete(gptest.CliCtx(ctx, t))
-		want := `core.autoclip
-core.autoimport
+		want := `core.autoimport
 core.autopush
 core.autosync
 core.cliptimeout
 core.exportkeys
 core.nopager
 core.notifications
+generate.autoclip
 mounts.path
 `
 		assert.Equal(t, want, buf.String())

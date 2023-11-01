@@ -2,6 +2,7 @@ package config
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"strconv"
@@ -44,12 +45,30 @@ type Config struct {
 	cfgs map[string]*gitconfig.Configs
 }
 
-// New initializes a new gopass config. It will handle legacy configs as well.
+// migrationOpts is a list of config options that were used by gopass
+// and need to be migrated to a new name, it maps old name -> new name
+// the keys are used in our documentation test to spot legacy options
+// that are still used in our codebase.
+var migrationOpts = map[string]string{
+	// migration done in v1.15.9
+	"core.showsafecontent": "show.safecontent",
+	"core.autoclip":        "generate.autoclip",
+	"core.showautoclip":    "show.autoclip",
+}
+
+// New initializes a new gopass config. It will handle legacy configs as well and legacy option names, migrating
+// them to their new location and names on a best effort basis. Any system level config or env variables options are
+// not migrated.
 func New() *Config {
-	return newWithOptions(false)
+	c := newWithOptions(false)
+	// we only migrate options when we are allowed to write them
+	c.migrateOptions(migrationOpts)
+
+	return c
 }
 
 // NewNoWrites initializes a new config that does not allow writes. For use in tests.
+// This does not migrate legacy option names to their correct config section.
 func NewNoWrites() *Config {
 	return newWithOptions(true)
 }
@@ -61,10 +80,10 @@ func newWithOptions(noWrites bool) *Config {
 
 	// if there is no per-user gitconfig we try to migrate
 	// an existing config. But we will leave it around for
-	// gopass fsck to (optionaly) clean it up.
+	// gopass fsck to (optionally) clean it up.
 	if nm := os.Getenv("GOPASS_CONFIG_NO_MIGRATE"); !HasGlobalConfig() && nm == "" {
 		if err := migrateConfigs(); err != nil {
-			debug.Log("failed to migrate: %s", err)
+			debug.Log("failed to migrate from old config: %s", err)
 		}
 	}
 
@@ -193,7 +212,7 @@ func (c *Config) MountPath(mountPoint string) string {
 	return c.Get(mpk(mountPoint))
 }
 
-// SetPath is a short cut to set the root store path.
+// SetPath is a shortcut to set the root store path.
 func (c *Config) SetPath(path string) error {
 	return c.Set("", "mounts.path", path)
 }
@@ -242,6 +261,48 @@ func (c *Config) Keys(mount string) []string {
 	}
 
 	return nil
+}
+
+// migrateOptions is a best effort migration tool for when we introduce new options. It does not necessarily
+// handle worktree and env level options very well.
+func (c *Config) migrateOptions(migrations map[string]string) {
+	if nm := os.Getenv("GOPASS_CONFIG_NO_MIGRATE"); nm != "" {
+		return
+	}
+	var errs []error
+	debug.Log("migrateOptions running")
+	for oldK, newK := range migrations {
+		found := false
+		if val := c.root.GetGlobal(oldK); val != "" {
+			debug.Log("migrating option in root global store: %s -> %s ", oldK, newK)
+			errs = append(errs, c.root.SetGlobal(newK, val))
+			errs = append(errs, c.root.UnsetGlobal(oldK))
+			found = true
+		}
+		if val := c.root.GetLocal(oldK); val != "" {
+			debug.Log("migrating option in <root> local store: %s -> %s ", oldK, newK)
+			errs = append(errs, c.root.SetLocal(newK, val))
+			errs = append(errs, c.root.UnsetLocal(oldK))
+			found = true
+		}
+		for _, m := range c.Mounts() {
+			if cfg := c.cfgs[m]; cfg != nil {
+				if val := cfg.GetLocal(oldK); val != "" {
+					debug.Log("migrating option in local store %s: %s -> %s ", m, oldK, newK)
+					errs = append(errs, cfg.SetLocal(newK, val))
+					errs = append(errs, cfg.UnsetLocal(oldK))
+					found = true
+				}
+				if val := cfg.Get(oldK); !found && val != "" {
+					debug.Log("Found old option %s = %s in config, probably at the worktree or env level, "+
+						"or maybe at the system level cannot migrate it.", oldK, val)
+				}
+			}
+		}
+	}
+	if err := errors.Join(errors.Join(errs...)); err != nil {
+		debug.Log("Errors encountered while migrating old options: {%v}", err)
+	}
 }
 
 // DefaultPasswordLengthFromEnv will determine the password length from the env variable

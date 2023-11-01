@@ -290,7 +290,7 @@ func TestGopass(t *testing.T) {
 	}
 	c.global.noWrites = true
 
-	assert.Equal(t, "true", c.Get("core.autoclip"))
+	assert.Equal(t, "true", c.Get("generate.autoclip"))
 	assert.Equal(t, "true", c.Get("core.autoimport"))
 	assert.Equal(t, "45", c.Get("core.cliptimeout"))
 	assert.Equal(t, "vim", c.Get("core.editor"))

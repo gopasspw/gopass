@@ -27,7 +27,7 @@ func TestCopy(t *testing.T) {
 	require.NotNil(t, act)
 	ctx = act.cfg.WithConfig(ctx)
 
-	require.NoError(t, act.cfg.Set("", "core.autoclip", "false"))
+	require.NoError(t, act.cfg.Set("", "generate.autoclip", "false"))
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
@@ -110,7 +110,7 @@ func TestCopyGpg(t *testing.T) {
 	require.NotNil(t, act)
 	ctx = act.cfg.WithConfig(ctx)
 
-	require.NoError(t, act.cfg.Set("", "core.autoclip", "false"))
+	require.NoError(t, act.cfg.Set("", "generate.autoclip", "false"))
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf

@@ -60,7 +60,7 @@ func TestShow(t *testing.T) {
 	})
 
 	t.Run("show w/o autoclip", func(t *testing.T) {
-		_, err = ts.run("config core.autoclip false")
+		_, err = ts.run("config generate.autoclip false")
 		assert.NoError(t, err)
 		_, err = ts.run("show fixed/secret")
 		assert.NoError(t, err)

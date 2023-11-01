@@ -115,13 +115,13 @@ func (s *Action) generateCopyOrPrint(ctx context.Context, c *cli.Context, name, 
 	// copy to clipboard if:
 	// - explicitly requested with -c
 	// - autoclip=true, but only if output is not being redirected.
-	if IsClip(ctx) || (s.cfg.GetBool("core.autoclip") && ctxutil.IsTerminal(ctx)) {
+	if IsClip(ctx) || (s.cfg.GetBool("generate.autoclip") && ctxutil.IsTerminal(ctx)) {
 		if err := clipboard.CopyTo(ctx, name, []byte(password), s.cfg.GetInt("core.cliptimeout")); err != nil {
 			return exit.Error(exit.IO, err, "failed to copy to clipboard: %s", err)
 		}
 		// if autoclip is on and we're not printing the password to the terminal
 		// at least leave a notice that we did indeed copy it.
-		if s.cfg.GetBool("core.autoclip") && !c.Bool("print") {
+		if s.cfg.GetBool("generate.autoclip") && !c.Bool("print") {
 			out.Print(ctx, "Copied to clipboard")
 
 			return nil

@@ -38,7 +38,7 @@ func TestGenerate(t *testing.T) {
 	require.NotNil(t, act)
 	ctx = act.cfg.WithConfig(ctx)
 
-	require.NoError(t, act.cfg.Set("", "core.autoclip", "false"))
+	require.NoError(t, act.cfg.Set("", "generate.autoclip", "false"))
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
@@ -154,11 +154,11 @@ func TestGenerate(t *testing.T) {
 
 	// generate --force foobar 24 w/ autoclip and output redirection
 	t.Run("generate --force foobar 24", func(t *testing.T) {
-		ov := act.cfg.Get("core.autoclip")
+		ov := act.cfg.Get("generate.autoclip")
 		defer func() {
-			require.NoError(t, act.cfg.Set("", "core.autoclip", ov))
+			require.NoError(t, act.cfg.Set("", "generate.autoclip", ov))
 		}()
-		require.NoError(t, act.cfg.Set("", "core.autoclip", "true"))
+		require.NoError(t, act.cfg.Set("", "generate.autoclip", "true"))
 		ctx := ctxutil.WithTerminal(ctx, false)
 		assert.NoError(t, act.Generate(gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true"}, "foobar", "24")))
 		assert.Contains(t, buf.String(), "Not printing secrets by default")
@@ -167,11 +167,11 @@ func TestGenerate(t *testing.T) {
 
 	// generate --force foobar 24 w/ autoclip and no output redirection
 	t.Run("generate --force foobar 24", func(t *testing.T) {
-		ov := act.cfg.Get("core.autoclip")
+		ov := act.cfg.Get("generate.autoclip")
 		defer func() {
-			require.NoError(t, act.cfg.Set("", "core.autoclip", ov))
+			require.NoError(t, act.cfg.Set("", "generate.autoclip", ov))
 		}()
-		require.NoError(t, act.cfg.Set("", "core.autoclip", "true"))
+		require.NoError(t, act.cfg.Set("", "generate.autoclip", "true"))
 		ctx := ctxutil.WithTerminal(ctx, true)
 		assert.NoError(t, act.Generate(gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true"}, "foobar", "24")))
 		assert.Contains(t, buf.String(), "Copied to clipboard")

@@ -25,7 +25,11 @@ func migrateConfigs() error {
 		case "path":
 			fk = "mounts.path"
 		case "safecontent":
-			fk = "core.showsafecontent"
+			fk = "show.safecontent"
+		case "autoclip":
+			fk = "generate.autoclip"
+		case "showautoclip":
+			fk = "show.autoclip"
 		default:
 			fk = "core." + k
 		}

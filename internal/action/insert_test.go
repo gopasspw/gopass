@@ -26,7 +26,7 @@ func TestInsert(t *testing.T) {
 	require.NotNil(t, act)
 	ctx = act.cfg.WithConfig(ctx)
 
-	require.NoError(t, act.cfg.Set("", "core.autoclip", "true"))
+	require.NoError(t, act.cfg.Set("", "generate.autoclip", "true"))
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
@@ -136,7 +136,7 @@ func TestInsertStdin(t *testing.T) {
 	require.NotNil(t, act)
 	ctx = act.cfg.WithConfig(ctx)
 
-	require.NoError(t, act.cfg.Set("", "core.autoclip", "false"))
+	require.NoError(t, act.cfg.Set("", "generate.autoclip", "false"))
 
 	buf := &bytes.Buffer{}
 	ibuf := &bytes.Buffer{}
