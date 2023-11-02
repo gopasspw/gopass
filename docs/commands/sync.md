@@ -11,6 +11,6 @@ Note: `gopass sync` only supports one remote per store.
 
 ## Flags
 
-Flag | Description
----- | -----------
-`--store` | Only sync a specific sub store
+| Flag      | Description                    |
+|-----------|--------------------------------|
+| `--store` | Only sync a specific sub store |

@@ -16,11 +16,11 @@ $ gopass init --crypto [age|gpg] --storage=[fs|gitfs]
 
 ## Flags
 
-Flag | Aliases | Description
----- | ------- | -----------
-`--path` | `-p` | Initialize the (sub) store in this location.
-`--store` | `-s` | Mount the newly initialized sub-store at this mount point
-`--crypto` | | Select the crypto backend. Choose one of: `gpgcli`, `age`, `xc` (deprecated)  or `plain`. Default: `gpgcli`
-`--storage` | | Select the storage and RCS backend. Choose one of: `gitfs`, `fs`. Default: `gitfs`
+| Flag        | Aliases | Description                                                                                                 |
+|-------------|---------|-------------------------------------------------------------------------------------------------------------|
+| `--path`    | `-p`    | Initialize the (sub) store in this location.                                                                |
+| `--store`   | `-s`    | Mount the newly initialized sub-store at this mount point                                                   |
+| `--crypto`  |         | Select the crypto backend. Choose one of: `gpgcli`, `age`, `xc` (deprecated)  or `plain`. Default: `gpgcli` |
+| `--storage` |         | Select the storage and RCS backend. Choose one of: `gitfs`, `fs`. Default: `gitfs`                          |
 
 See [backends.md](../backends.md) for more information on the available backends.

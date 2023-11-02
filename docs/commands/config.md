@@ -14,6 +14,6 @@ gopass config generate.autoclip false
 
 ## Flags
 
-Flag | Description
----- | -----------
-`--store` | Only sync a specific sub store
+| Flag      | Description                    |
+|-----------|--------------------------------|
+| `--store` | Only sync a specific sub store |

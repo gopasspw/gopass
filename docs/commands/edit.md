@@ -25,7 +25,7 @@ $ EDITOR=/bin/nano gopass edit entry
 
 ## Flags
 
-Flag | Aliases | Description
----- | ------- | -----------
-`--editor` | `-e` | Specify the path to an editor. Must accept the filename as it's first argument.
-`--create` | `-c` | Create a new secret. You can create a new secret with `edit` with or without `-c`, but `-c` will skip searching for existing matches.
+| Flag       | Aliases | Description                                                                                                                           |
+|------------|---------|---------------------------------------------------------------------------------------------------------------------------------------|
+| `--editor` | `-e`    | Specify the path to an editor. Must accept the filename as it's first argument.                                                       |
+| `--create` | `-c`    | Create a new secret. You can create a new secret with `edit` with or without `-c`, but `-c` will skip searching for existing matches. |
