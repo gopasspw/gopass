@@ -1,7 +1,8 @@
 run:
   skip-dirs:
     - helpers/
-  go: 1.20
+  go: 1.21
+  deadline: 5m
 
 linters-settings:
   gocyclo:
