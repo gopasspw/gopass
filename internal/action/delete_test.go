@@ -10,7 +10,6 @@ import (
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/gopass/secrets"
 	"github.com/gopasspw/gopass/tests/gptest"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -35,12 +34,12 @@ func TestDelete(t *testing.T) {
 
 	// delete
 	c := gptest.CliCtx(ctx, t)
-	assert.Error(t, act.Delete(c))
+	require.Error(t, act.Delete(c))
 	buf.Reset()
 
 	// delete foo
 	c = gptest.CliCtx(ctx, t, "foo")
-	assert.NoError(t, act.Delete(c))
+	require.NoError(t, act.Delete(c))
 	buf.Reset()
 
 	// delete foo bar
@@ -48,36 +47,36 @@ func TestDelete(t *testing.T) {
 	sec.SetPassword("123")
 	_, err = sec.Write([]byte("---\nbar: zab"))
 	require.NoError(t, err)
-	assert.NoError(t, act.Store.Set(ctx, "foo", sec))
+	require.NoError(t, act.Store.Set(ctx, "foo", sec))
 
 	c = gptest.CliCtx(ctx, t, "foo", "bar")
-	assert.NoError(t, act.Delete(c))
+	require.NoError(t, act.Delete(c))
 	buf.Reset()
 
 	// delete -r foo
-	assert.NoError(t, act.Store.Set(ctx, "foo", sec))
+	require.NoError(t, act.Store.Set(ctx, "foo", sec))
 
 	c = gptest.CliCtxWithFlags(ctx, t, map[string]string{"recursive": "true"}, "foo")
-	assert.NoError(t, act.Delete(c))
+	require.NoError(t, act.Delete(c))
 	buf.Reset()
 
 	// reject recursive flag when a key is given
 	c = gptest.CliCtxWithFlags(ctx, t, map[string]string{"recursive": "true"}, "foo", "bar")
-	assert.Error(t, act.Delete(c))
+	require.Error(t, act.Delete(c))
 	buf.Reset()
 
-	assert.NoError(t, act.Store.Set(ctx, "sec/1", sec))
-	assert.NoError(t, act.Store.Set(ctx, "sec/2", sec))
-	assert.NoError(t, act.Store.Set(ctx, "sec/3", sec))
-	assert.NoError(t, act.Store.Set(ctx, "sec/4", sec))
+	require.NoError(t, act.Store.Set(ctx, "sec/1", sec))
+	require.NoError(t, act.Store.Set(ctx, "sec/2", sec))
+	require.NoError(t, act.Store.Set(ctx, "sec/3", sec))
+	require.NoError(t, act.Store.Set(ctx, "sec/4", sec))
 
 	// warn if key matching a secret is given
 	c = gptest.CliCtx(ctx, t, "sec/1", "sec/2")
-	assert.Error(t, act.Delete(c))
+	require.Error(t, act.Delete(c))
 	buf.Reset()
 
 	// remove multiple secrets
 	c = gptest.CliCtx(ctx, t, "sec/1", "sec/2", "sec/3", "sec/4")
-	assert.NoError(t, act.Delete(c))
+	require.NoError(t, act.Delete(c))
 	buf.Reset()
 }

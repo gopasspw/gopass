@@ -47,7 +47,7 @@ func TestTempdirBase(t *testing.T) {
 	t.Parallel()
 
 	tempdir, err := os.MkdirTemp(tempdirBase(), "gopass-")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	defer func() {
 		_ = os.RemoveAll(tempdir)
@@ -75,20 +75,20 @@ func TestTempFiler(t *testing.T) {
 	require.NoError(t, err)
 
 	defer func() {
-		assert.NoError(t, tf.Close())
+		require.NoError(t, tf.Close())
 	}()
 
 	t.Logf("Name: %s", tf.Name())
 	_, err = fmt.Fprintf(tf, "foobar")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
-	// unintialized tempfile
+	// uninitialized tempfile
 	utf := File{}
-	assert.Equal(t, utf.Name(), "")
+	assert.Equal(t, "", utf.Name())
 	_, err = utf.Write([]byte("foo"))
-	assert.Error(t, err)
-	assert.NoError(t, utf.Remove(ctx))
-	assert.NoError(t, utf.Close())
+	require.Error(t, err)
+	require.NoError(t, utf.Remove(ctx))
+	require.NoError(t, utf.Close())
 }
 
 func TestGlobalPrefix(t *testing.T) {
@@ -109,10 +109,10 @@ func TestGlobalPrefix(t *testing.T) {
 
 	// without global prefix
 	withoutGlobalPrefix, err := New(ctx, "some-prefix")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	defer func() {
-		assert.NoError(t, withoutGlobalPrefix.Close())
+		require.NoError(t, withoutGlobalPrefix.Close())
 	}()
 
 	assertPrefix(withoutGlobalPrefix, "some-prefix")
@@ -120,12 +120,12 @@ func TestGlobalPrefix(t *testing.T) {
 	// with global prefix
 	globalPrefix = "global-prefix."
 	withGlobalPrefix, err := New(ctx, "some-prefix")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	defer func() {
 		globalPrefix = ""
 
-		assert.NoError(t, withGlobalPrefix.Close())
+		require.NoError(t, withGlobalPrefix.Close())
 	}()
 
 	assertPrefix(withGlobalPrefix, "global-prefix.some-prefix")

@@ -29,7 +29,7 @@ func TestWrite(t *testing.T) {
 	ctx := context.Background()
 	w := &Wizard{}
 
-	assert.NoError(t, w.writeTemplates(ctx, &fakeSetter{}))
+	require.NoError(t, w.writeTemplates(ctx, &fakeSetter{}))
 }
 
 func TestNew(t *testing.T) {
@@ -70,7 +70,7 @@ attributes:
 
 	assert.Equal(t, "pin", w.Templates[0].Prefix, "wrong prefix")
 	assert.Equal(t, "🧪 Creating numerical PIN", w.Templates[0].Welcome, "wrong welcome")
-	assert.Equal(t, 4, len(w.Templates[0].Attributes), "wrong number of attributes")
+	assert.Len(t, w.Templates[0].Attributes, 4, "wrong number of attributes")
 	assert.Equal(t, "string", w.Templates[0].Attributes[0].Type, "wrong type")
 	assert.Equal(t, "Authority", w.Templates[0].Attributes[0].Prompt, "wrong prompt")
 	assert.Equal(t, 1, w.Templates[0].Attributes[0].Min, "wrong min")

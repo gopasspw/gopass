@@ -27,15 +27,15 @@ func TestGPG(t *testing.T) {
 	assert.NotEqual(t, "", g.Binary())
 
 	_, err = g.ListRecipients(ctx)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	_, err = g.ListIdentities(ctx)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	_, err = g.RecipientIDs(ctx, []byte{})
-	assert.Error(t, err)
+	require.Error(t, err)
 
-	assert.NoError(t, g.Initialized(ctx))
+	require.NoError(t, g.Initialized(ctx))
 	assert.Equal(t, "gpg", g.Name())
 	assert.Equal(t, "gpg", g.Ext())
 	assert.Equal(t, ".gpg-id", g.IDFile())

@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestWalkTooLong(t *testing.T) {
@@ -17,17 +18,17 @@ func TestWalkTooLong(t *testing.T) {
 	td := t.TempDir()
 	storeDir := filepath.Join(td, "store")
 	fn := filepath.Join(storeDir, "real", "file.txt")
-	assert.NoError(t, os.MkdirAll(filepath.Dir(fn), 0o700))
-	assert.NoError(t, os.WriteFile(fn, []byte("foobar"), 0o600))
+	require.NoError(t, os.MkdirAll(filepath.Dir(fn), 0o700))
+	require.NoError(t, os.WriteFile(fn, []byte("foobar"), 0o600))
 
 	ptr := filepath.Join(storeDir, "path", "via", "link")
 
-	assert.NoError(t, os.MkdirAll(filepath.Dir(ptr), 0o700))
+	require.NoError(t, os.MkdirAll(filepath.Dir(ptr), 0o700))
 
-	assert.NoError(t, os.Symlink(filepath.Join(storeDir, "path"), filepath.Join(storeDir, "path", "via", "loop")))
+	require.NoError(t, os.Symlink(filepath.Join(storeDir, "path"), filepath.Join(storeDir, "path", "via", "loop")))
 
 	// test the walkFunc
-	assert.Error(t, walkSymlinks(storeDir, func(path string, info fs.FileInfo, err error) error {
+	require.Error(t, walkSymlinks(storeDir, func(path string, info fs.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -53,17 +54,17 @@ func TestWalkSameFile(t *testing.T) {
 	td := t.TempDir()
 	storeDir := filepath.Join(td, "store")
 	fn := filepath.Join(storeDir, "real", "file.txt")
-	assert.NoError(t, os.MkdirAll(filepath.Dir(fn), 0o700))
-	assert.NoError(t, os.WriteFile(fn, []byte("foobar"), 0o600))
+	require.NoError(t, os.MkdirAll(filepath.Dir(fn), 0o700))
+	require.NoError(t, os.WriteFile(fn, []byte("foobar"), 0o600))
 
 	ptr1 := filepath.Join(storeDir, "path", "via", "one", "link")
 	ptr2 := filepath.Join(storeDir, "another", "path", "to", "this", "file")
 
-	assert.NoError(t, os.MkdirAll(filepath.Dir(ptr1), 0o700))
-	assert.NoError(t, os.MkdirAll(filepath.Dir(ptr2), 0o700))
+	require.NoError(t, os.MkdirAll(filepath.Dir(ptr1), 0o700))
+	require.NoError(t, os.MkdirAll(filepath.Dir(ptr2), 0o700))
 
-	assert.NoError(t, os.Symlink(fn, ptr1))
-	assert.NoError(t, os.Symlink(fn, ptr2))
+	require.NoError(t, os.Symlink(fn, ptr1))
+	require.NoError(t, os.Symlink(fn, ptr2))
 
 	// test the walkFunc
 	seen := map[string]bool{}
@@ -73,7 +74,7 @@ func TestWalkSameFile(t *testing.T) {
 		"real/file.txt":             true,
 	}
 
-	assert.NoError(t, walkSymlinks(storeDir, func(path string, info fs.FileInfo, err error) error {
+	require.NoError(t, walkSymlinks(storeDir, func(path string, info fs.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}

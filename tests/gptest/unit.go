@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	aclip "github.com/atotto/clipboard"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -78,8 +77,8 @@ func NewUnitTester(t *testing.T) *Unit {
 
 	require.NoError(t, os.Mkdir(u.GPGHome(), 0o700))
 	// we need to init store before init config, so that the right folders exist
-	assert.NoError(t, u.InitStore(""), "init store")
-	assert.NoError(t, u.initConfig(), "pre-populate config")
+	require.NoError(t, u.InitStore(""), "init store")
+	require.NoError(t, u.initConfig(), "pre-populate config")
 
 	return u
 }

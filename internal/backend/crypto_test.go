@@ -35,16 +35,16 @@ func TestDetectCrypto(t *testing.T) {
 
 			fsDir := filepath.Join(t.TempDir(), "fs")
 			_ = os.RemoveAll(fsDir)
-			assert.NoError(t, os.MkdirAll(fsDir, 0o700))
-			assert.NoError(t, os.WriteFile(filepath.Join(fsDir, tc.file), []byte("foo"), 0o600))
+			require.NoError(t, os.MkdirAll(fsDir, 0o700))
+			require.NoError(t, os.WriteFile(filepath.Join(fsDir, tc.file), []byte("foo"), 0o600))
 
 			r, err := DetectStorage(ctx, fsDir)
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			assert.NotNil(t, r)
 			assert.Equal(t, "fs", r.Name())
 
 			c, err := DetectCrypto(ctx, r)
-			assert.NoError(t, err, tc.name)
+			require.NoError(t, err, tc.name)
 			require.NotNil(t, c, tc.name)
 			assert.Equal(t, tc.name, c.Name())
 		})

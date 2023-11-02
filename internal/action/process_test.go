@@ -36,7 +36,7 @@ func TestProcess(t *testing.T) {
 	ctx = act.cfg.WithConfig(ctx)
 
 	sec := secrets.New()
-	assert.NoError(t, sec.Set("username", "admin"))
+	require.NoError(t, sec.Set("username", "admin"))
 	sec.SetPassword("hunter2")
 	require.NoError(t, act.Store.Set(ctx, "server/local/mysql", sec))
 

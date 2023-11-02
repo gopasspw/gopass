@@ -15,6 +15,7 @@ import (
 	"github.com/jsimonetti/pwscheme/ssha256"
 	"github.com/jsimonetti/pwscheme/ssha512"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func Example() { //nolint:testableexamples
@@ -336,15 +337,15 @@ func TestVars(t *testing.T) {
 
 			buf, err := Execute(ctx, tc.Template, tc.Name, tc.Content, kv)
 			if tc.ShouldFail {
-				assert.Error(t, err)
+				require.Error(t, err)
 			} else {
-				assert.NoError(t, err)
+				require.NoError(t, err)
 			}
 			if tc.OutputFunc != nil && tc.Output != "" {
 				t.Error("must not set output and output func")
 			}
 			if tc.OutputFunc != nil {
-				assert.NoError(t, tc.OutputFunc(string(buf)), tc.Template)
+				require.NoError(t, tc.OutputFunc(string(buf)), tc.Template)
 			} else {
 				assert.Equal(t, tc.Output, string(buf), tc.Template)
 			}

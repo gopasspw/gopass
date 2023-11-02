@@ -11,7 +11,6 @@ import (
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/gopass/secrets"
 	"github.com/gopasspw/gopass/tests/gptest"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -44,11 +43,11 @@ func TestConvert(t *testing.T) {
 	// first add another entry in a subdir
 	sec := secrets.NewAKV()
 	sec.SetPassword("123")
-	assert.NoError(t, sec.Set("bar", "zab"))
-	assert.NoError(t, act.Store.Set(ctx, "bar/baz", sec))
+	require.NoError(t, sec.Set("bar", "zab"))
+	require.NoError(t, act.Store.Set(ctx, "bar/baz", sec))
 	buf.Reset()
 
-	assert.NoError(t, act.Convert(gptest.CliCtxWithFlags(ctx, t, map[string]string{
+	require.NoError(t, act.Convert(gptest.CliCtxWithFlags(ctx, t, map[string]string{
 		"move":    "true",
 		"storage": "fs",
 		"crypto":  "age",

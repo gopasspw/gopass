@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestGrep(t *testing.T) {
@@ -14,16 +15,16 @@ func TestGrep(t *testing.T) {
 	ts.initStore()
 
 	out, err := ts.run("grep")
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.Equal(t, "\nError: Usage: "+filepath.Base(ts.Binary)+" grep arg\n", out)
 
 	out, err = ts.run("grep BOOM")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Contains(t, out, "Scanned 0 secrets. 0 matches, 0 errors")
 
 	ts.initSecrets("")
 
 	out, err = ts.run("grep moar")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Contains(t, out, "fixed/secret matches")
 }

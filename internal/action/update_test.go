@@ -18,7 +18,6 @@ import (
 	"github.com/gopasspw/gopass/internal/updater"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/tests/gptest"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -109,6 +108,6 @@ func TestUpdate(t *testing.T) {
 	}()
 
 	// This should not fail, but then we need to provide valid signatures
-	assert.Error(t, act.Update(gptest.CliCtx(ctx, t)))
+	require.Error(t, act.Update(gptest.CliCtx(ctx, t)))
 	buf.Reset()
 }

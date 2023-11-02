@@ -41,10 +41,10 @@ func TestEnvLeafHappyPath(t *testing.T) {
 	// secret with value "secret". We expect to see the key/value in the output
 	// of the /usr/bin/env utility in the form "BAZ=secret".
 	pw := pwgen.GeneratePassword(24, false)
-	assert.NoError(t, act.insertStdin(ctx, "baz", []byte(pw), false))
+	require.NoError(t, act.insertStdin(ctx, "baz", []byte(pw), false))
 	buf.Reset()
 
-	assert.NoError(t, act.Env(gptest.CliCtx(ctx, t, "baz", "env")))
+	require.NoError(t, act.Env(gptest.CliCtx(ctx, t, "baz", "env")))
 	assert.Contains(t, buf.String(), fmt.Sprintf("BAZ=%s\n", pw))
 }
 
@@ -74,12 +74,12 @@ func TestEnvLeafHappyPathKeepCase(t *testing.T) {
 	// key/value in the output of the /usr/bin/env utility in the form
 	// "BaZ=secret".
 	pw := pwgen.GeneratePassword(24, false)
-	assert.NoError(t, act.insertStdin(ctx, "BaZ", []byte(pw), false))
+	require.NoError(t, act.insertStdin(ctx, "BaZ", []byte(pw), false))
 	buf.Reset()
 
 	flags := make(map[string]string, 1)
 	flags["keep-case"] = "true"
-	assert.NoError(t, act.Env(gptest.CliCtxWithFlags(ctx, t, flags, "BaZ", "env")))
+	require.NoError(t, act.Env(gptest.CliCtxWithFlags(ctx, t, flags, "BaZ", "env")))
 	assert.Contains(t, buf.String(), fmt.Sprintf("BaZ=%s\n", pw))
 }
 
@@ -95,7 +95,7 @@ func TestEnvSecretNotFound(t *testing.T) {
 	ctx = act.cfg.WithConfig(ctx)
 
 	// Command-line would be: "gopass env non-existing true".
-	assert.EqualError(t, act.Env(gptest.CliCtx(ctx, t, "non-existing", "true")),
+	require.EqualError(t, act.Env(gptest.CliCtx(ctx, t, "non-existing", "true")),
 		"Secret non-existing not found")
 }
 
@@ -118,7 +118,7 @@ func TestEnvProgramNotFound(t *testing.T) {
 	}
 
 	// Command-line would be: "gopass env foo non-existing".
-	assert.EqualError(t, act.Env(gptest.CliCtx(ctx, t, "foo", "non-existing")),
+	require.EqualError(t, act.Env(gptest.CliCtx(ctx, t, "foo", "non-existing")),
 		wanted)
 }
 
@@ -135,6 +135,6 @@ func TestEnvProgramNotSpecified(t *testing.T) {
 	ctx = act.cfg.WithConfig(ctx)
 
 	// Command-line would be: "gopass env foo".
-	assert.EqualError(t, act.Env(gptest.CliCtx(ctx, t, "foo")),
+	require.EqualError(t, act.Env(gptest.CliCtx(ctx, t, "foo")),
 		"Missing subcommand to execute")
 }

@@ -40,15 +40,15 @@ func TestInit(t *testing.T) {
 	}()
 
 	c := gptest.CliCtx(ctx, t, "foo.bar@example.org")
-	assert.NoError(t, act.IsInitialized(c))
-	assert.Error(t, act.Init(c))
-	assert.NoError(t, act.Setup(c))
+	require.NoError(t, act.IsInitialized(c))
+	require.Error(t, act.Init(c))
+	require.NoError(t, act.Setup(c))
 
 	crypto := act.Store.Crypto(ctx, "")
 	require.NotNil(t, crypto)
 	assert.Equal(t, "plain", crypto.Name())
 	assert.True(t, act.initHasUseablePrivateKeys(ctx, crypto))
-	assert.Error(t, act.initGenerateIdentity(ctx, crypto, "foo bar", "foo.bar@example.org"))
+	require.Error(t, act.initGenerateIdentity(ctx, crypto, "foo bar", "foo.bar@example.org"))
 	buf.Reset()
 
 	act.printRecipients(ctx, "")
@@ -56,8 +56,8 @@ func TestInit(t *testing.T) {
 	buf.Reset()
 
 	// un-initialize the store
-	assert.NoError(t, os.Remove(filepath.Join(u.StoreDir(""), plain.IDFile)))
-	assert.Error(t, act.IsInitialized(c))
+	require.NoError(t, os.Remove(filepath.Join(u.StoreDir(""), plain.IDFile)))
+	require.Error(t, act.IsInitialized(c))
 	buf.Reset()
 }
 
@@ -101,7 +101,7 @@ func TestInitParseContext(t *testing.T) {
 
 		t.Run(tc.name, func(t *testing.T) {
 			c := gptest.CliCtxWithFlags(context.Background(), t, tc.flags)
-			assert.NoError(t, tc.check(initParseContext(c.Context, c)), tc.name)
+			require.NoError(t, tc.check(initParseContext(c.Context, c)), tc.name)
 			buf.Reset()
 		})
 	}

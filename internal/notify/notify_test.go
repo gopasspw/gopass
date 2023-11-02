@@ -7,7 +7,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -15,7 +14,7 @@ func TestNotify(t *testing.T) {
 	ctx := context.Background()
 
 	t.Setenv("GOPASS_NO_NOTIFY", "true")
-	assert.NoError(t, Notify(ctx, "foo", "bar"))
+	require.NoError(t, Notify(ctx, "foo", "bar"))
 }
 
 func TestIcon(t *testing.T) {
@@ -28,10 +27,10 @@ func TestIcon(t *testing.T) {
 	require.NoError(t, err)
 
 	defer func() {
-		assert.NoError(t, fh.Close())
+		require.NoError(t, fh.Close())
 	}()
 
 	require.NotNil(t, fh)
 	_, err = png.Decode(fh)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 }

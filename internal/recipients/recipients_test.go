@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestMarshal(t *testing.T) {
@@ -135,7 +136,7 @@ func TestEndToEnd(t *testing.T) {
 			t.Parallel()
 
 			r := Unmarshal([]byte(tc.in))
-			assert.NoError(t, tc.op(r))
+			require.NoError(t, tc.op(r))
 			buf := r.Marshal()
 			assert.Equal(t, tc.out, string(buf))
 		})

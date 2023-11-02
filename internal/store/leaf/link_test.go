@@ -21,7 +21,7 @@ func TestLink(t *testing.T) {
 	require.NoError(t, err)
 	require.NoError(t, s.Set(ctx, "zab/zab", sec))
 
-	assert.NoError(t, s.Link(ctx, "zab/zab", "foo/123"))
+	require.NoError(t, s.Link(ctx, "zab/zab", "foo/123"))
 
 	p, err := s.Get(ctx, "foo/123")
 	require.NoError(t, err)

@@ -35,7 +35,7 @@ func TestCopy(t *testing.T) {
 			tf: func(s *Store) func(t *testing.T) {
 				return func(t *testing.T) {
 					t.Helper()
-					assert.Error(t, s.Copy(ctx, "foo", "bar"))
+					require.Error(t, s.Copy(ctx, "foo", "bar"))
 				}
 			},
 		},
@@ -46,8 +46,8 @@ func TestCopy(t *testing.T) {
 					t.Helper()
 					nsec := secrets.NewAKV()
 					nsec.SetPassword("bar")
-					assert.NoError(t, s.Set(ctx, "foo", nsec))
-					assert.NoError(t, s.Copy(ctx, "foo", "bar"))
+					require.NoError(t, s.Set(ctx, "foo", nsec))
+					require.NoError(t, s.Copy(ctx, "foo", "bar"))
 					sec, err := s.Get(ctx, "foo")
 					require.NoError(t, err)
 					assert.Equal(t, "bar", sec.Password())
@@ -64,10 +64,10 @@ func TestCopy(t *testing.T) {
 					t.Helper()
 					sec := secrets.NewAKV()
 					sec.SetPassword("baz")
-					assert.NoError(t, s.Set(ctx, "foo/bar/baz", sec))
+					require.NoError(t, s.Set(ctx, "foo/bar/baz", sec))
 					sec.SetPassword("zab")
-					assert.NoError(t, s.Set(ctx, "foo/bar/zab", sec))
-					assert.Error(t, s.Copy(ctx, "foo", "bar"))
+					require.NoError(t, s.Set(ctx, "foo/bar/zab", sec))
+					require.Error(t, s.Copy(ctx, "foo", "bar"))
 				}
 			},
 		},
@@ -91,7 +91,7 @@ func TestCopy(t *testing.T) {
 
 			rs := recipients.New()
 			rs.Add("john.doe")
-			assert.NoError(t, s.saveRecipients(ctx, rs, "test"))
+			require.NoError(t, s.saveRecipients(ctx, rs, "test"))
 
 			// run test case
 			t.Run(tc.name, tc.tf(s))
@@ -119,7 +119,7 @@ func TestMove(t *testing.T) {
 			tf: func(s *Store) func(t *testing.T) {
 				return func(t *testing.T) {
 					t.Helper()
-					assert.Error(t, s.Move(ctx, "foo", "bar"))
+					require.Error(t, s.Move(ctx, "foo", "bar"))
 				}
 			},
 		},
@@ -130,10 +130,10 @@ func TestMove(t *testing.T) {
 					t.Helper()
 					nsec := secrets.NewAKV()
 					nsec.SetPassword("bar")
-					assert.NoError(t, s.Set(ctx, "foo", nsec))
-					assert.NoError(t, s.Move(ctx, "foo", "bar"))
+					require.NoError(t, s.Set(ctx, "foo", nsec))
+					require.NoError(t, s.Move(ctx, "foo", "bar"))
 					_, err := s.Get(ctx, "foo")
-					assert.Error(t, err)
+					require.Error(t, err)
 
 					sec, err := s.Get(ctx, "bar")
 					require.NoError(t, err)
@@ -148,10 +148,10 @@ func TestMove(t *testing.T) {
 					t.Helper()
 					sec := secrets.NewAKV()
 					sec.SetPassword("baz")
-					assert.NoError(t, s.Set(ctx, "foo/bar/baz", sec))
+					require.NoError(t, s.Set(ctx, "foo/bar/baz", sec))
 					sec.SetPassword("zab")
-					assert.NoError(t, s.Set(ctx, "foo/bar/zab", sec))
-					assert.Error(t, s.Move(ctx, "foo", "bar"))
+					require.NoError(t, s.Set(ctx, "foo/bar/zab", sec))
+					require.Error(t, s.Move(ctx, "foo", "bar"))
 				}
 			},
 		},
@@ -204,7 +204,7 @@ func TestDelete(t *testing.T) {
 			tf: func(s *Store) func(t *testing.T) {
 				return func(t *testing.T) {
 					t.Helper()
-					assert.Error(t, s.Delete(ctx, "foo"))
+					require.Error(t, s.Delete(ctx, "foo"))
 				}
 			},
 		},
@@ -215,10 +215,10 @@ func TestDelete(t *testing.T) {
 					t.Helper()
 					sec := secrets.NewAKV()
 					sec.SetPassword("bar")
-					assert.NoError(t, s.Set(ctx, "foo", sec))
-					assert.NoError(t, s.Delete(ctx, "foo"))
+					require.NoError(t, s.Set(ctx, "foo", sec))
+					require.NoError(t, s.Delete(ctx, "foo"))
 					_, err := s.Get(ctx, "foo")
-					assert.Error(t, err)
+					require.Error(t, err)
 				}
 			},
 		},
@@ -271,7 +271,7 @@ func TestPrune(t *testing.T) {
 			tf: func(s *Store) func(t *testing.T) {
 				return func(t *testing.T) {
 					t.Helper()
-					assert.Error(t, s.Prune(ctx, "foo"))
+					require.Error(t, s.Prune(ctx, "foo"))
 				}
 			},
 		},
@@ -282,11 +282,11 @@ func TestPrune(t *testing.T) {
 					t.Helper()
 					sec := secrets.NewAKV()
 					sec.SetPassword("bar")
-					assert.NoError(t, s.Set(ctx, "foo", sec))
-					assert.NoError(t, s.Prune(ctx, "foo"))
+					require.NoError(t, s.Set(ctx, "foo", sec))
+					require.NoError(t, s.Prune(ctx, "foo"))
 
 					_, err := s.Get(ctx, "foo")
-					assert.Error(t, err)
+					require.Error(t, err)
 				}
 			},
 		},
@@ -297,18 +297,18 @@ func TestPrune(t *testing.T) {
 					t.Helper()
 					sec := secrets.NewAKV()
 					sec.SetPassword("bar")
-					assert.NoError(t, s.Set(ctx, "foo/bar/baz", sec))
-					assert.NoError(t, s.Set(ctx, "foo/bar/zab", sec))
-					assert.NoError(t, s.Prune(ctx, "foo/bar"))
+					require.NoError(t, s.Set(ctx, "foo/bar/baz", sec))
+					require.NoError(t, s.Set(ctx, "foo/bar/zab", sec))
+					require.NoError(t, s.Prune(ctx, "foo/bar"))
 
 					_, err := s.Get(ctx, "foo/bar/baz")
-					assert.Error(t, err)
+					require.Error(t, err)
 
 					_, err = s.Get(ctx, "foo/bar/zab")
-					assert.Error(t, err)
+					require.Error(t, err)
 
 					// delete empty folder
-					assert.Error(t, s.Prune(ctx, "foo/"), "delete non-existing entry")
+					require.Error(t, s.Prune(ctx, "foo/"), "delete non-existing entry")
 				}
 			},
 		},

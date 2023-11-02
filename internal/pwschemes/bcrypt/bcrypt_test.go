@@ -3,7 +3,6 @@ package bcrypt
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -17,5 +16,5 @@ func TestBcrypt(t *testing.T) {
 
 	t.Logf("PW: %s - Hash: %s", pw, hash)
 
-	assert.NoError(t, Validate(pw, hash))
+	require.NoError(t, Validate(pw, hash))
 }

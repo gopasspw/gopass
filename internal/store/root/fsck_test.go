@@ -6,7 +6,6 @@ import (
 
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/tests/gptest"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -21,5 +20,5 @@ func TestFsck(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, rs)
 
-	assert.NoError(t, rs.Fsck(ctx, "", ""))
+	require.NoError(t, rs.Fsck(ctx, "", ""))
 }

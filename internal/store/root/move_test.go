@@ -26,10 +26,10 @@ func TestMoveShadow(t *testing.T) {
 
 	rs, err := createRootStore(ctx, u)
 	require.NoError(t, err)
-	assert.NoError(t, rs.Delete(ctx, "foo"))
+	require.NoError(t, rs.Delete(ctx, "foo"))
 
 	// -> move old/www/foo www/dir/foo => OK
-	assert.NoError(t, rs.Move(ctx, "old/www/foo", "www/dir/foo"))
+	require.NoError(t, rs.Move(ctx, "old/www/foo", "www/dir/foo"))
 	entries, err := rs.List(ctx, tree.INF)
 	require.NoError(t, err)
 	require.Equal(t, []string{
@@ -38,7 +38,7 @@ func TestMoveShadow(t *testing.T) {
 	}, entries)
 
 	// -> move old/www/bar www/ => OK
-	assert.NoError(t, rs.Move(ctx, "old/www/bar", "www/"))
+	require.NoError(t, rs.Move(ctx, "old/www/bar", "www/"))
 	entries, err = rs.List(ctx, tree.INF)
 	require.NoError(t, err)
 	require.Equal(t, []string{
@@ -62,7 +62,7 @@ func TestMove(t *testing.T) {
 
 	rs, err := createRootStore(ctx, u)
 	require.NoError(t, err)
-	assert.NoError(t, rs.Delete(ctx, "foo"))
+	require.NoError(t, rs.Delete(ctx, "foo"))
 
 	// Initial state:
 	entries, err := rs.List(ctx, tree.INF)
@@ -74,13 +74,13 @@ func TestMove(t *testing.T) {
 	}, entries)
 
 	// -> move foo/ misc/zab => ERROR: misc/zab is a file
-	assert.Error(t, rs.Move(ctx, "foo/", "misc/zab"))
+	require.Error(t, rs.Move(ctx, "foo/", "misc/zab"))
 
 	// -> move foo misc/zab => ERROR: misc/zab is a file
-	assert.Error(t, rs.Move(ctx, "foo", "misc/zab"))
+	require.Error(t, rs.Move(ctx, "foo", "misc/zab"))
 
 	// -> move foo misc => OK
-	assert.NoError(t, rs.Move(ctx, "foo", "misc"))
+	require.NoError(t, rs.Move(ctx, "foo", "misc"))
 	entries, err = rs.List(ctx, tree.INF)
 	require.NoError(t, err)
 	require.Equal(t, []string{
@@ -90,7 +90,7 @@ func TestMove(t *testing.T) {
 	}, entries)
 
 	// -> move misc/foo bar/ => OK
-	assert.NoError(t, rs.Move(ctx, "misc/foo", "bar/"))
+	require.NoError(t, rs.Move(ctx, "misc/foo", "bar/"))
 	entries, err = rs.List(ctx, tree.INF)
 	require.NoError(t, err)
 	assert.Equal(t, []string{
@@ -100,7 +100,7 @@ func TestMove(t *testing.T) {
 	}, entries)
 
 	// -> move misc/zab bar/foo/zab => OK
-	assert.NoError(t, rs.Move(ctx, "misc/zab", "bar/foo/zab"))
+	require.NoError(t, rs.Move(ctx, "misc/zab", "bar/foo/zab"))
 	entries, err = rs.List(ctx, tree.INF)
 	require.NoError(t, err)
 	assert.Equal(t, []string{
@@ -110,7 +110,7 @@ func TestMove(t *testing.T) {
 	}, entries)
 
 	// -> move bar/foo/ baz => OK
-	assert.NoError(t, rs.Move(ctx, "bar/foo/", "baz"))
+	require.NoError(t, rs.Move(ctx, "bar/foo/", "baz"))
 	entries, err = rs.List(ctx, tree.INF)
 	require.NoError(t, err)
 	assert.Equal(t, []string{
@@ -120,7 +120,7 @@ func TestMove(t *testing.T) {
 	}, entries)
 
 	// -> move baz/ boz/ => OK
-	assert.NoError(t, rs.Move(ctx, "baz/", "boz/"))
+	require.NoError(t, rs.Move(ctx, "baz/", "boz/"))
 	entries, err = rs.List(ctx, tree.INF)
 	require.NoError(t, err)
 	assert.Equal(t, []string{
@@ -132,7 +132,7 @@ func TestMove(t *testing.T) {
 	// this fails if empty directories are not removed, because 'bar' and 'baz'
 	// were directories in the root folder.
 	// -> move boz/ / => OK
-	assert.NoError(t, rs.Move(ctx, "boz/", "."))
+	require.NoError(t, rs.Move(ctx, "boz/", "."))
 	entries, err = rs.List(ctx, tree.INF)
 	require.NoError(t, err)
 	assert.Equal(t, []string{
@@ -157,7 +157,7 @@ func TestUnixMvSemantics(t *testing.T) {
 
 	rs, err := createRootStore(ctx, u)
 	require.NoError(t, err)
-	assert.NoError(t, rs.Delete(ctx, "foo"))
+	require.NoError(t, rs.Delete(ctx, "foo"))
 
 	// Initial state:
 	entries, err := rs.List(ctx, tree.INF)
@@ -169,7 +169,7 @@ func TestUnixMvSemantics(t *testing.T) {
 	}, entries)
 
 	// -> move a b => Move a below b
-	assert.NoError(t, rs.Move(ctx, "a", "b"))
+	require.NoError(t, rs.Move(ctx, "a", "b"))
 	entries, err = rs.List(ctx, tree.INF)
 	require.NoError(t, err)
 	require.Equal(t, []string{
@@ -194,7 +194,7 @@ func TestRegression2079(t *testing.T) {
 
 	rs, err := createRootStore(ctx, u)
 	require.NoError(t, err)
-	assert.NoError(t, rs.Delete(ctx, "foo"))
+	require.NoError(t, rs.Delete(ctx, "foo"))
 
 	// Initial state:
 	entries, err := rs.List(ctx, tree.INF)
@@ -206,7 +206,7 @@ func TestRegression2079(t *testing.T) {
 	}, entries)
 
 	// -> move comm email => Rename comm to email
-	assert.NoError(t, rs.Move(ctx, "comm", "email"))
+	require.NoError(t, rs.Move(ctx, "comm", "email"))
 	entries, err = rs.List(ctx, tree.INF)
 	require.NoError(t, err)
 	require.Equal(t, []string{
@@ -231,7 +231,7 @@ func TestCopy(t *testing.T) {
 
 	rs, err := createRootStore(ctx, u)
 	require.NoError(t, err)
-	assert.NoError(t, rs.Delete(ctx, "foo"))
+	require.NoError(t, rs.Delete(ctx, "foo"))
 
 	// Initial state:
 	t.Run("initial state", func(t *testing.T) {
@@ -245,13 +245,13 @@ func TestCopy(t *testing.T) {
 	})
 
 	// -> copy foo/ misc/zab => ERROR: misc/zab is a file
-	assert.Error(t, rs.Copy(ctx, "foo/", "misc/zab"))
+	require.Error(t, rs.Copy(ctx, "foo/", "misc/zab"))
 	// -> copy foo misc/zab => ERROR: misc/zab is a file
-	assert.Error(t, rs.Copy(ctx, "foo", "misc/zab"))
+	require.Error(t, rs.Copy(ctx, "foo", "misc/zab"))
 
 	// -> copy foo/ misc => OK
 	t.Run("copy foo misc", func(t *testing.T) {
-		assert.NoError(t, rs.Copy(ctx, "foo", "misc"))
+		require.NoError(t, rs.Copy(ctx, "foo", "misc"))
 		entries, err := rs.List(ctx, tree.INF)
 		require.NoError(t, err)
 		assert.Equal(t, []string{
@@ -265,7 +265,7 @@ func TestCopy(t *testing.T) {
 
 	// -> copy misc/foo/ bar/ => OK
 	t.Run("copy misc/foo/ bar/", func(t *testing.T) {
-		assert.NoError(t, rs.Copy(ctx, "misc/foo/", "bar/"))
+		require.NoError(t, rs.Copy(ctx, "misc/foo/", "bar/"))
 		entries, err := rs.List(ctx, tree.INF)
 		require.NoError(t, err)
 		assert.Equal(t, []string{
@@ -281,7 +281,7 @@ func TestCopy(t *testing.T) {
 
 	// -> copy misc/zab bar/foo/zab => OK
 	t.Run("copy misc/zab bar/foo/zab", func(t *testing.T) {
-		assert.NoError(t, rs.Copy(ctx, "misc/zab", "bar/foo/zab"))
+		require.NoError(t, rs.Copy(ctx, "misc/zab", "bar/foo/zab"))
 		entries, err := rs.List(ctx, tree.INF)
 		require.NoError(t, err)
 		assert.Equal(t, []string{
@@ -323,7 +323,7 @@ func TestMoveSelf(t *testing.T) {
 
 	// -> move foo/bar/example foo/bar -> no op
 	t.Run("move self", func(t *testing.T) {
-		assert.Error(t, rs.Move(ctx, "foo/bar/example", "foo/bar"))
+		require.Error(t, rs.Move(ctx, "foo/bar/example", "foo/bar"))
 		entries, err := rs.List(ctx, tree.INF)
 		require.NoError(t, err)
 		assert.Equal(t, []string{

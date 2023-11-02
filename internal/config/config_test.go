@@ -6,6 +6,7 @@ import (
 
 	"github.com/gopasspw/gopass/tests/gptest"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestConfig(t *testing.T) {
@@ -19,25 +20,25 @@ func TestConfig(t *testing.T) {
 	cfg := New()
 
 	assert.False(t, cfg.IsSet("core.string"))
-	assert.NoError(t, cfg.Set("", "core.string", "foo"))
-	assert.NoError(t, cfg.Set("", "core.bool", "true"))
-	assert.NoError(t, cfg.Set("", "core.int", "42"))
+	require.NoError(t, cfg.Set("", "core.string", "foo"))
+	require.NoError(t, cfg.Set("", "core.bool", "true"))
+	require.NoError(t, cfg.Set("", "core.int", "42"))
 
 	assert.Equal(t, "foo", cfg.Get("core.string"))
-	assert.Equal(t, true, cfg.GetBool("core.bool"))
+	assert.True(t, cfg.GetBool("core.bool"))
 	assert.Equal(t, 42, cfg.GetInt("core.int"))
 
-	assert.NoError(t, cfg.SetEnv("env.string", "foo"))
+	require.NoError(t, cfg.SetEnv("env.string", "foo"))
 	assert.Equal(t, "foo", cfg.Get("env.string"))
 
 	assert.Equal(t, []string{"core.autopush", "core.autosync", "core.bool", "core.cliptimeout", "core.exportkeys", "core.int", "core.notifications", "core.string", "env.string", "mounts.path"}, cfg.Keys(""))
 
 	ctx := cfg.WithConfig(context.Background())
-	assert.Equal(t, true, Bool(ctx, "core.bool"))
+	assert.True(t, Bool(ctx, "core.bool"))
 	assert.Equal(t, "foo", String(ctx, "core.string"))
 	assert.Equal(t, 42, Int(ctx, "core.int"))
 
-	assert.NoError(t, cfg.SetEnv("generate.length", "16"))
+	require.NoError(t, cfg.SetEnv("generate.length", "16"))
 	actual_length, _ := DefaultPasswordLengthFromEnv(ctx)
 	assert.Equal(t, 16, actual_length)
 }
@@ -107,7 +108,7 @@ func TestOptsMigration(t *testing.T) {
 		assert.False(t, cfg.IsSet("core.safecontent"))
 		assert.False(t, cfg.IsSet("show.safecontent"))
 		// this will write to the tempdir
-		assert.NoError(t, cfg.Set("", "core.showsafecontent", "true"))
+		require.NoError(t, cfg.Set("", "core.showsafecontent", "true"))
 		assert.True(t, cfg.IsSet("core.showsafecontent"))
 		assert.Equal(t, "true", cfg.root.GetGlobal("core.showsafecontent"))
 		assert.Equal(t, "", cfg.root.GetLocal("core.showsafecontent"))
@@ -160,7 +161,7 @@ func TestOptsMigration(t *testing.T) {
 
 		cfg := New()
 		// this will write to the local config because of the <root> arg
-		assert.NoError(t, cfg.Set("<root>", "core.showsafecontent", "true"))
+		require.NoError(t, cfg.Set("<root>", "core.showsafecontent", "true"))
 		assert.Equal(t, "true", cfg.root.GetLocal("core.showsafecontent"))
 		assert.Equal(t, "", cfg.root.GetGlobal("core.showsafecontent"))
 		assert.False(t, cfg.IsSet("show.safecontent"))
@@ -196,16 +197,16 @@ func TestOptsMigration(t *testing.T) {
 		u := gptest.NewUnitTester(t)
 		assert.NotNil(t, u)
 		// we create a submount store
-		assert.NoError(t, u.InitStore("submount"))
+		require.NoError(t, u.InitStore("submount"))
 
 		cfg := New()
 		// we add it as a mount path to our global config
-		assert.NoError(t, cfg.SetMountPath("submount", u.StoreDir("submount")))
+		require.NoError(t, cfg.SetMountPath("submount", u.StoreDir("submount")))
 		// we reload the config so the submount config is created and loaded
 		cfg = New()
 
 		// this will write to the local mount config
-		assert.NoError(t, cfg.Set("submount", "core.showsafecontent", "true"))
+		require.NoError(t, cfg.Set("submount", "core.showsafecontent", "true"))
 		assert.Equal(t, "true", cfg.GetM("submount", "core.showsafecontent"))
 		assert.Equal(t, "", cfg.Get("core.showsafecontent"))
 		assert.Equal(t, "", cfg.GetM("submount", "show.safecontent"))

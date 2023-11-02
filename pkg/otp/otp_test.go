@@ -38,7 +38,7 @@ func TestCalculate(t *testing.T) {
 			s, err := secparse.Parse(tc)
 			require.NoError(t, err)
 			otp, err := Calculate("test", s)
-			assert.NoError(t, err, string(tc))
+			require.NoError(t, err, string(tc))
 			assert.NotNil(t, otp, string(tc))
 		})
 	}
@@ -52,8 +52,8 @@ func TestWrite(t *testing.T) {
 	tf := filepath.Join(td, "qr.png")
 
 	key, err := otp.NewKeyFromURL(totpURL)
-	assert.NoError(t, err)
-	assert.NoError(t, WriteQRFile(key, tf))
+	require.NoError(t, err)
+	require.NoError(t, WriteQRFile(key, tf))
 }
 
 func TestGetOTPURL(t *testing.T) {

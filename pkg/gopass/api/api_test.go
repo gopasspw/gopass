@@ -9,6 +9,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/gopass/api"
 	"github.com/gopasspw/gopass/pkg/gopass/secrets"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func Example() { //nolint:testableexamples
@@ -63,7 +64,7 @@ func TestApi(t *testing.T) {
 	ctx = ctxutil.WithInteractive(ctx, false)
 
 	gp, err := api.New(ctx)
-	assert.ErrorIs(t, err, api.ErrNotInitialized)
+	require.ErrorIs(t, err, api.ErrNotInitialized)
 	assert.Nil(t, gp)
 
 	// TODO: initialize store

@@ -24,7 +24,7 @@ func TestInsertOnce(t *testing.T) {
 		noWrites: true,
 	}
 
-	assert.NoError(t, c.insertValue("foo.bar", "baz"))
+	require.NoError(t, c.insertValue("foo.bar", "baz"))
 	assert.Equal(t, `[foo]
 	bar = baz
 `, c.raw.String())
@@ -37,11 +37,11 @@ func TestInsertMultipleSameKey(t *testing.T) {
 		noWrites: true,
 	}
 
-	assert.NoError(t, c.Set("foo.bar", "baz"))
+	require.NoError(t, c.Set("foo.bar", "baz"))
 	assert.Equal(t, `[foo]
 	bar = baz
 `, c.raw.String())
-	assert.NoError(t, c.Set("foo.bar", "zab"))
+	require.NoError(t, c.Set("foo.bar", "zab"))
 	assert.Equal(t, `[foo]
 	bar = zab
 `, c.raw.String())
@@ -62,7 +62,7 @@ func TestGetAll(t *testing.T) {
 	assert.True(t, found)
 	assert.Equal(t, []string{"bar", "zab", "123"}, vs)
 
-	assert.NoError(t, c.Set("core.foo", "456"))
+	require.NoError(t, c.Set("core.foo", "456"))
 	vs, found = c.GetAll("core.foo")
 	assert.True(t, found)
 	assert.Equal(t, []string{"456", "zab", "123"}, vs)
@@ -135,7 +135,7 @@ func TestInsertMultiple(t *testing.T) {
 
 	for _, k := range set.Sorted(maps.Keys(updates)) {
 		v := updates[k]
-		assert.NoError(t, c.insertValue(k, v))
+		require.NoError(t, c.insertValue(k, v))
 	}
 
 	assert.Equal(t, `[core]
@@ -166,7 +166,7 @@ func TestRewriteRaw(t *testing.T) {
 	}
 	for _, k := range set.Sorted(maps.Keys(updates)) {
 		v := updates[k]
-		assert.NoError(t, c.Set(k, v))
+		require.NoError(t, c.Set(k, v))
 	}
 
 	assert.Equal(t, `[core]
@@ -196,7 +196,7 @@ func TestUnsetSection(t *testing.T) {
 	c := ParseConfig(strings.NewReader(in))
 	c.noWrites = true
 
-	assert.NoError(t, c.Unset("core.readonly"))
+	require.NoError(t, c.Unset("core.readonly"))
 	assert.Equal(t, `[core]
 	showsafecontent = true
 [mounts]
@@ -206,12 +206,12 @@ func TestUnsetSection(t *testing.T) {
 `, c.raw.String())
 
 	// should not exist
-	assert.NoError(t, c.Unset("foo.bla"))
+	require.NoError(t, c.Unset("foo.bla"))
 
 	// TODO: support remvoing sections
 	t.Skip("removing sections is not supported, yet")
 
-	assert.NoError(t, c.Unset("foo.bar"))
+	require.NoError(t, c.Unset("foo.bar"))
 	assert.Equal(t, `[core]
 	showsafecontent = false
 	readonly = true
@@ -237,7 +237,7 @@ func TestNewFromMap(t *testing.T) {
 
 	assert.True(t, cfg.IsSet("core.foo"))
 	assert.False(t, cfg.IsSet("core.bar"))
-	assert.NoError(t, cfg.Unset("core.foo"))
+	require.NoError(t, cfg.Unset("core.foo"))
 	assert.True(t, cfg.IsSet("core.foo"))
 }
 
@@ -246,7 +246,7 @@ func TestLoadConfig(t *testing.T) {
 
 	td := t.TempDir()
 	fn := filepath.Join(td, "config")
-	assert.NoError(t, os.WriteFile(fn, []byte(`[core]
+	require.NoError(t, os.WriteFile(fn, []byte(`[core]
 	int = 7
 	string = foo
 	bar = false`), 0o600))

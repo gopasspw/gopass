@@ -46,6 +46,7 @@ linters:
   - govet
   - interfacer
   - ifshort
+  - inamedparam
   - interfacebloat
   - ireturn
   - lll

@@ -10,6 +10,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/tests/gptest"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestPwgen(t *testing.T) {
@@ -25,6 +26,6 @@ func TestPwgen(t *testing.T) {
 		out.Stdout = os.Stdout
 	}()
 
-	assert.NoError(t, Pwgen(gptest.CliCtxWithFlags(ctx, t, map[string]string{"one-per-line": "true"}, "24", "1")))
-	assert.True(t, len(buf.Bytes()) >= 24, string(buf.Bytes()))
+	require.NoError(t, Pwgen(gptest.CliCtxWithFlags(ctx, t, map[string]string{"one-per-line": "true"}, "24", "1")))
+	assert.GreaterOrEqual(t, len(buf.Bytes()), 24, string(buf.Bytes()))
 }

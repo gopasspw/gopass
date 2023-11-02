@@ -43,21 +43,21 @@ func TestListMulti(t *testing.T) {
 	ents = append(ents, u.Entries...)
 
 	// sub1 store
-	assert.NoError(t, u.InitStore("sub1"))
+	require.NoError(t, u.InitStore("sub1"))
 
 	for _, k := range u.Entries {
 		ents = append(ents, path.Join("sub1", k))
 	}
 
 	// sub2 store
-	assert.NoError(t, u.InitStore("sub2"))
+	require.NoError(t, u.InitStore("sub2"))
 
 	for _, k := range u.Entries {
 		ents = append(ents, path.Join("sub2", k))
 	}
 
-	assert.NoError(t, rs.AddMount(ctx, "sub1", u.StoreDir("sub1")))
-	assert.NoError(t, rs.AddMount(ctx, "sub2", u.StoreDir("sub2")))
+	require.NoError(t, rs.AddMount(ctx, "sub1", u.StoreDir("sub1")))
+	require.NoError(t, rs.AddMount(ctx, "sub2", u.StoreDir("sub2")))
 
 	st, err := rs.Tree(ctx)
 	require.NoError(t, err)
@@ -80,38 +80,38 @@ func TestListNested(t *testing.T) {
 
 	// root store
 	rs, err := createRootStore(ctx, u)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	ents := make([]string, 0, 3*len(u.Entries))
 	ents = append(ents, u.Entries...)
 
 	// sub1 store
-	assert.NoError(t, u.InitStore("sub1"))
+	require.NoError(t, u.InitStore("sub1"))
 
 	for _, k := range u.Entries {
 		ents = append(ents, path.Join("sub1", k))
 	}
 
 	// sub2 store
-	assert.NoError(t, u.InitStore("sub2"))
+	require.NoError(t, u.InitStore("sub2"))
 
 	for _, k := range u.Entries {
 		ents = append(ents, path.Join("sub2", k))
 	}
 
 	// sub3 store
-	assert.NoError(t, u.InitStore("sub3"))
+	require.NoError(t, u.InitStore("sub3"))
 
 	for _, k := range u.Entries {
 		ents = append(ents, path.Join("sub2", "sub3", k))
 	}
 
-	assert.NoError(t, rs.AddMount(ctx, "sub1", u.StoreDir("sub1")))
-	assert.NoError(t, rs.AddMount(ctx, "sub2", u.StoreDir("sub2")))
-	assert.NoError(t, rs.AddMount(ctx, "sub2/sub3", u.StoreDir("sub3")))
+	require.NoError(t, rs.AddMount(ctx, "sub1", u.StoreDir("sub1")))
+	require.NoError(t, rs.AddMount(ctx, "sub2", u.StoreDir("sub2")))
+	require.NoError(t, rs.AddMount(ctx, "sub2/sub3", u.StoreDir("sub3")))
 
 	st, err := rs.Tree(ctx)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	sort.Strings(ents)
 

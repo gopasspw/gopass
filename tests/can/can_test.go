@@ -18,6 +18,6 @@ func TestPubring(t *testing.T) {
 	el, err := openpgp.ReadKeyRing(fh)
 	require.NoError(t, err)
 
-	require.Equal(t, 1, len(el))
+	require.Len(t, el, 1)
 	assert.Equal(t, "BE73F104", el[0].PrimaryKey.KeyIdShortString())
 }

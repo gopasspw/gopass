@@ -9,7 +9,6 @@ import (
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/tests/gptest"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -31,15 +30,15 @@ func TestEdit(t *testing.T) {
 	}()
 
 	// edit
-	assert.Error(t, act.Edit(gptest.CliCtx(ctx, t)))
+	require.Error(t, act.Edit(gptest.CliCtx(ctx, t)))
 	buf.Reset()
 
 	// edit foo (existing)
-	assert.Error(t, act.Edit(gptest.CliCtx(ctx, t, "foo")))
+	require.Error(t, act.Edit(gptest.CliCtx(ctx, t, "foo")))
 	buf.Reset()
 
 	// edit bar (new)
-	assert.Error(t, act.Edit(gptest.CliCtx(ctx, t, "foo")))
+	require.Error(t, act.Edit(gptest.CliCtx(ctx, t, "foo")))
 	buf.Reset()
 }
 
@@ -62,11 +61,11 @@ func TestEditUpdate(t *testing.T) {
 
 	content := []byte("foobar")
 	// no changes
-	assert.NoError(t, act.editUpdate(ctx, "foo", content, content, false, "test"))
+	require.NoError(t, act.editUpdate(ctx, "foo", content, content, false, "test"))
 	buf.Reset()
 
 	// changes
 	nContent := []byte("barfoo")
-	assert.NoError(t, act.editUpdate(ctx, "foo", content, nContent, false, "test"))
+	require.NoError(t, act.editUpdate(ctx, "foo", content, nContent, false, "test"))
 	buf.Reset()
 }

@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/gopasspw/gopass/internal/out"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -23,11 +22,11 @@ func TestGPG(t *testing.T) {
 	s, err := createSubStore(t)
 	require.NoError(t, err)
 
-	assert.NoError(t, s.ImportMissingPublicKeys(ctx))
+	require.NoError(t, s.ImportMissingPublicKeys(ctx))
 
 	newRecp := "A3683834"
 	err = s.AddRecipient(ctx, newRecp)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
-	assert.NoError(t, s.ImportMissingPublicKeys(ctx))
+	require.NoError(t, s.ImportMissingPublicKeys(ctx))
 }

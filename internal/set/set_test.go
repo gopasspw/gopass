@@ -216,7 +216,7 @@ func TestChoose(t *testing.T) {
 
 	s2 := New(1)
 	v, ok = s2.Choose(nil)
-	assert.Equal(t, v, 1)
+	assert.Equal(t, 1, v)
 	assert.True(t, ok)
 }
 

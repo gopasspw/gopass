@@ -177,12 +177,12 @@ func TestNew(t *testing.T) {
 
 			s, err := New(tc.ctx, "", tempdir)
 			if !tc.ok {
-				assert.Error(t, err, tc.dsc)
+				require.Error(t, err, tc.dsc)
 
 				return
 			}
 
-			assert.NoError(t, err, tc.dsc)
+			require.NoError(t, err, tc.dsc)
 			assert.NotNil(t, s, tc.dsc)
 		})
 	}

@@ -17,7 +17,7 @@ func TestMaxConsec(t *testing.T) {
 		"AaAa",
 		"aaabbbaaa",
 	} {
-		assert.Equal(t, true, containsMaxConsecutive(tc, 4))
+		assert.True(t, containsMaxConsecutive(tc, 4))
 	}
 	// bad
 	for _, tc := range []string{
@@ -26,7 +26,7 @@ func TestMaxConsec(t *testing.T) {
 		"fooobar",
 		"AaaaA",
 	} {
-		assert.Equal(t, false, containsMaxConsecutive(tc, 3))
+		assert.False(t, containsMaxConsecutive(tc, 3))
 	}
 }
 

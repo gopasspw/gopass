@@ -66,12 +66,12 @@ func TestGetCompletion(t *testing.T) {
 
 	fishTemplate = "{{.unexported}}"
 	sv, err = GetCompletion(app)
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.Contains(t, sv, "")
 
 	fishTemplate = "{{}}"
 	sv, err = GetCompletion(app)
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.Contains(t, sv, "")
 }
 
@@ -105,14 +105,14 @@ func TestFormatflagFunc(t *testing.T) {
 	}
 
 	sv, err := formatFlagFunc("short")(&unknownFlag{})
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.Equal(t, "", sv)
 
 	sv, err = formatFlagFunc("long")(&unknownFlag{})
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.Equal(t, "", sv)
 
 	sv, err = formatFlagFunc("usage")(&unknownFlag{})
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.Equal(t, "", sv)
 }

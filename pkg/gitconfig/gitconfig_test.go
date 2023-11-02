@@ -439,8 +439,8 @@ func TestSetEmptyConfig(t *testing.T) {
 		path:     filepath.Join(td, "config"),
 		noWrites: false,
 	}
-	assert.Error(t, c.Set("foobar", "baz"))
-	assert.NoError(t, c.Set("foo.bar", "baz"))
+	require.Error(t, c.Set("foobar", "baz"))
+	require.NoError(t, c.Set("foo.bar", "baz"))
 
 	v, ok := c.Get("foo.bar")
 	assert.True(t, ok)

@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestUninitialized(t *testing.T) {
@@ -33,7 +34,7 @@ func TestUninitialized(t *testing.T) {
 	for _, command := range commands {
 		t.Run(command, func(t *testing.T) {
 			out, err := ts.run(command)
-			assert.Error(t, err)
+			require.Error(t, err)
 			assert.Contains(t, out, "password-store is not initialized. Try ")
 		})
 	}

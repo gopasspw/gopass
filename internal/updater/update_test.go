@@ -10,7 +10,6 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -108,13 +107,13 @@ func TestIsUpdateable(t *testing.T) {
 
 		err := IsUpdateable(ctx)
 		if tc.ok {
-			assert.NoError(t, err, tc.name)
+			require.NoError(t, err, tc.name)
 		} else {
-			assert.Error(t, err, tc.name)
+			require.Error(t, err, tc.name)
 		}
 
 		if tc.post != nil {
-			assert.NoError(t, tc.post(), tc.name)
+			require.NoError(t, tc.post(), tc.name)
 		}
 	}
 }

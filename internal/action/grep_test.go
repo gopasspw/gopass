@@ -10,7 +10,6 @@ import (
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/gopass/secrets"
 	"github.com/gopasspw/gopass/tests/gptest"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -34,7 +33,7 @@ func TestGrep(t *testing.T) {
 	c := gptest.CliCtx(ctx, t, "foo")
 	t.Run("empty store", func(t *testing.T) {
 		defer buf.Reset()
-		assert.NoError(t, act.Grep(c))
+		require.NoError(t, act.Grep(c))
 	})
 
 	t.Run("add some secret", func(t *testing.T) {
@@ -43,17 +42,17 @@ func TestGrep(t *testing.T) {
 		sec.SetPassword("foobar")
 		_, err := sec.Write([]byte("foobar"))
 		require.NoError(t, err)
-		assert.NoError(t, act.Store.Set(ctx, "foo", sec))
+		require.NoError(t, act.Store.Set(ctx, "foo", sec))
 	})
 
 	t.Run("should find existing", func(t *testing.T) {
 		defer buf.Reset()
-		assert.NoError(t, act.Grep(c))
+		require.NoError(t, act.Grep(c))
 	})
 
 	t.Run("RE2", func(t *testing.T) {
 		defer buf.Reset()
 		c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"regexp": "true"}, "f..bar")
-		assert.NoError(t, act.Grep(c))
+		require.NoError(t, act.Grep(c))
 	})
 }

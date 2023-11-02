@@ -65,7 +65,7 @@ func TestAction(t *testing.T) {
 	assert.Equal(t, actName, act.Name)
 
 	assert.Contains(t, act.String(), u.StoreDir(""))
-	assert.Equal(t, 0, len(act.Store.Mounts()))
+	assert.Empty(t, act.Store.Mounts())
 }
 
 func TestNew(t *testing.T) {
@@ -83,9 +83,9 @@ func TestNew(t *testing.T) {
 
 	t.Run("init an existing plain store", func(t *testing.T) {
 		require.NoError(t, cfg.SetPath(filepath.Join(td, "store")))
-		assert.NoError(t, os.MkdirAll(cfg.Path(), 0o700))
-		assert.NoError(t, os.WriteFile(filepath.Join(cfg.Path(), plain.IDFile), []byte("foobar"), 0o600))
+		require.NoError(t, os.MkdirAll(cfg.Path(), 0o700))
+		require.NoError(t, os.WriteFile(filepath.Join(cfg.Path(), plain.IDFile), []byte("foobar"), 0o600))
 		_, err := New(cfg, sv)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 }

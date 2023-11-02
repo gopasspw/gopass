@@ -10,6 +10,7 @@ import (
 	"github.com/gopasspw/gopass/internal/config/legacy"
 	"github.com/gopasspw/gopass/tests/gptest"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestNewConfig(t *testing.T) {
@@ -41,8 +42,8 @@ func TestSetConfigValue(t *testing.T) {
 	t.Setenv("GOPASS_CONFIG", filepath.Join(os.TempDir(), ".gopass.yml"))
 
 	cfg := legacy.New()
-	assert.NoError(t, cfg.SetConfigValue("autoclip", "true"))
-	assert.NoError(t, cfg.SetConfigValue("cliptimeout", "900"))
-	assert.NoError(t, cfg.SetConfigValue("path", "/tmp"))
-	assert.Error(t, cfg.SetConfigValue("autoclip", "yo"))
+	require.NoError(t, cfg.SetConfigValue("autoclip", "true"))
+	require.NoError(t, cfg.SetConfigValue("cliptimeout", "900"))
+	require.NoError(t, cfg.SetConfigValue("path", "/tmp"))
+	require.Error(t, cfg.SetConfigValue("autoclip", "yo"))
 }

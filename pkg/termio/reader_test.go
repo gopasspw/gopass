@@ -8,6 +8,7 @@ import (
 	"testing/iotest"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestReadLines(t *testing.T) {
@@ -34,7 +35,7 @@ func TestReadLineError(t *testing.T) {
 	lr := NewReader(ctx, iotest.TimeoutReader(stdin))
 
 	line, err := lr.ReadLine()
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.Equal(t, "f", line)
 }
 
@@ -47,7 +48,7 @@ func TestRead(t *testing.T) {
 
 	b := make([]byte, 10)
 	n, err := lr.Read(b)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, 10, n)
 	assert.Equal(t, "foobarbazz", string(b))
 }

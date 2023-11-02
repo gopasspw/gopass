@@ -5,6 +5,7 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestRoot(t *testing.T) {
@@ -13,12 +14,12 @@ func TestRoot(t *testing.T) {
 	color.NoColor = true
 
 	r := New("gopass")
-	assert.NoError(t, r.AddTemplate("foo"))
-	assert.NoError(t, r.AddFile("foo/bar/baz", ""))
-	assert.NoError(t, r.AddFile("foo/bar/zab", ""))
-	assert.NoError(t, r.AddMount("mnt/m1", "/tmp/m1"))
-	assert.NoError(t, r.AddFile("mnt/m1/foo", ""))
-	assert.NoError(t, r.AddFile("mnt/m1/foo/bar", ""))
+	require.NoError(t, r.AddTemplate("foo"))
+	require.NoError(t, r.AddFile("foo/bar/baz", ""))
+	require.NoError(t, r.AddFile("foo/bar/zab", ""))
+	require.NoError(t, r.AddMount("mnt/m1", "/tmp/m1"))
+	require.NoError(t, r.AddFile("mnt/m1/foo", ""))
+	require.NoError(t, r.AddFile("mnt/m1/foo/bar", ""))
 	t.Logf("%+#v", r)
 	assert.Equal(t, `gopass
 ├── foo/ (template) (shadowed)
@@ -47,7 +48,7 @@ func TestRoot(t *testing.T) {
 	}, r.ListFolders(INF))
 
 	f, err := r.FindFolder("mnt/m1")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, `gopass
 └── foo/ (shadowed)
     └── bar
@@ -60,12 +61,12 @@ func TestMountShadow(t *testing.T) {
 	color.NoColor = true
 
 	r := New("gopass")
-	assert.NoError(t, r.AddTemplate("foo"))
-	assert.NoError(t, r.AddFile("foo/bar/baz", ""))
-	assert.NoError(t, r.AddFile("foo/bar/zab", ""))
-	assert.NoError(t, r.AddMount("foo", "/tmp/m1"))
-	assert.NoError(t, r.AddFile("foo/zab", ""))
-	assert.NoError(t, r.AddFile("foo/baz", ""))
+	require.NoError(t, r.AddTemplate("foo"))
+	require.NoError(t, r.AddFile("foo/bar/baz", ""))
+	require.NoError(t, r.AddFile("foo/bar/zab", ""))
+	require.NoError(t, r.AddMount("foo", "/tmp/m1"))
+	require.NoError(t, r.AddFile("foo/zab", ""))
+	require.NoError(t, r.AddFile("foo/baz", ""))
 	t.Logf("%+#v", r)
 	assert.Equal(t, `gopass
 └── foo (/tmp/m1)
@@ -82,5 +83,5 @@ func TestMountShadow(t *testing.T) {
 	}, r.ListFolders(INF))
 
 	_, err := r.FindFolder("mnt/m1")
-	assert.Error(t, err)
+	require.Error(t, err)
 }

@@ -18,6 +18,6 @@ func TestIdentity(t *testing.T) {
 		ExpirationDate: time.Now().Add(time.Hour),
 	}
 
-	assert.Equal(t, id.ID(), "John Doe (johnny) <john.doe@example.org>")
-	assert.Equal(t, id.String(), "uid                            "+id.ID())
+	assert.Equal(t, "John Doe (johnny) <john.doe@example.org>", id.ID())
+	assert.Equal(t, "uid                            "+id.ID(), id.String())
 }

@@ -368,7 +368,7 @@ func (s *Action) showHandleError(ctx context.Context, c *cli.Context, name strin
 	c.Context = ctx
 	if err := s.FindFuzzy(c); err != nil {
 		if IsClip(ctx) {
-			_ = notify.Notify(ctx, "gopass - error", fmt.Sprintf("%s", err))
+			_ = notify.Notify(ctx, "gopass - error", err.Error())
 		}
 
 		return exit.Error(exit.NotFound, err, "%s", err)

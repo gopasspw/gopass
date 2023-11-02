@@ -29,16 +29,16 @@ func TestGitConfig(t *testing.T) {
 	git, err := Init(ctx, gitdir, "Dead Beef", "dead.beef@example.org")
 	require.NoError(t, err)
 	un, err := git.ConfigGet(ctx, "user.name")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "Dead Beef", un)
 
-	assert.NoError(t, git.InitConfig(ctx, "Foo Bar", "foo.bar@example.org"))
+	require.NoError(t, git.InitConfig(ctx, "Foo Bar", "foo.bar@example.org"))
 	un, err = git.ConfigGet(ctx, "user.name")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "Foo Bar", un)
 
-	assert.NoError(t, git.ConfigSet(ctx, "user.name", "foo"))
+	require.NoError(t, git.ConfigSet(ctx, "user.name", "foo"))
 	un, err = git.ConfigGet(ctx, "user.name")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "foo", un)
 }

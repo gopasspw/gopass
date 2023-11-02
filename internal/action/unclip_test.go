@@ -10,7 +10,6 @@ import (
 	_ "github.com/gopasspw/gopass/internal/backend/storage"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/tests/gptest"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -32,6 +31,6 @@ func TestUnclip(t *testing.T) {
 	ctx = act.cfg.WithConfig(ctx)
 
 	t.Run("unlcip should fail", func(t *testing.T) {
-		assert.Error(t, act.Unclip(gptest.CliCtxWithFlags(ctx, t, map[string]string{"timeout": "0"})))
+		require.Error(t, act.Unclip(gptest.CliCtxWithFlags(ctx, t, map[string]string{"timeout": "0"})))
 	})
 }

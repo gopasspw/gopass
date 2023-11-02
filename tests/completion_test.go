@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestCompletion(t *testing.T) {
@@ -17,7 +18,7 @@ func TestCompletion(t *testing.T) {
 
 	t.Run("completion help", func(t *testing.T) {
 		out, err := ts.run("completion")
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Contains(t, out, "Source for auto completion in bash")
 		assert.Contains(t, out, "Source for auto completion in zsh")
 	})
@@ -36,19 +37,19 @@ func TestCompletion(t *testing.T) {
 complete -F _gopass_bash_autocomplete gopass`
 
 		out, err := ts.run("completion bash")
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, bash, out)
 	})
 
 	t.Run("zsh completion", func(t *testing.T) {
 		out, err := ts.run("completion zsh")
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Contains(t, out, "compdef gopass")
 	})
 
 	t.Run("fish completion", func(t *testing.T) {
 		out, err := ts.run("completion fish")
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Contains(t, out, "complete")
 	})
 }
@@ -61,6 +62,6 @@ func TestCompletionNoPath(t *testing.T) {
 
 	t.Run("generate bash", func(t *testing.T) {
 		_, err := ts.run("--generate-bash-completion")
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 }

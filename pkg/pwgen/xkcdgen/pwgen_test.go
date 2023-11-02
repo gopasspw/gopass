@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestRandom(t *testing.T) {
@@ -24,5 +24,5 @@ func TestRandomLengthDelim(t *testing.T) {
 	t.Parallel()
 
 	_, err := RandomLengthDelim(10, " ", "cn_ZH")
-	assert.Error(t, err)
+	require.Error(t, err)
 }

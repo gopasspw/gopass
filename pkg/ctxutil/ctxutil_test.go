@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/urfave/cli/v2"
 )
 
@@ -14,9 +15,9 @@ func TestTerminal(t *testing.T) {
 
 	ctx := context.Background()
 
-	assert.Equal(t, true, IsTerminal(ctx))
-	assert.Equal(t, true, IsTerminal(WithTerminal(ctx, true)))
-	assert.Equal(t, false, IsTerminal(WithTerminal(ctx, false)))
+	assert.True(t, IsTerminal(ctx))
+	assert.True(t, IsTerminal(WithTerminal(ctx, true)))
+	assert.False(t, IsTerminal(WithTerminal(ctx, false)))
 }
 
 func TestInteractive(t *testing.T) {
@@ -24,9 +25,9 @@ func TestInteractive(t *testing.T) {
 
 	ctx := context.Background()
 
-	assert.Equal(t, true, IsInteractive(ctx))
-	assert.Equal(t, true, IsInteractive(WithInteractive(ctx, true)))
-	assert.Equal(t, false, IsInteractive(WithInteractive(ctx, false)))
+	assert.True(t, IsInteractive(ctx))
+	assert.True(t, IsInteractive(WithInteractive(ctx, true)))
+	assert.False(t, IsInteractive(WithInteractive(ctx, false)))
 }
 
 func TestStdin(t *testing.T) {
@@ -34,9 +35,9 @@ func TestStdin(t *testing.T) {
 
 	ctx := context.Background()
 
-	assert.Equal(t, false, IsStdin(ctx))
-	assert.Equal(t, true, IsStdin(WithStdin(ctx, true)))
-	assert.Equal(t, false, IsStdin(WithStdin(ctx, false)))
+	assert.False(t, IsStdin(ctx))
+	assert.True(t, IsStdin(WithStdin(ctx, true)))
+	assert.False(t, IsStdin(WithStdin(ctx, false)))
 }
 
 func TestGitCommit(t *testing.T) {
@@ -44,9 +45,9 @@ func TestGitCommit(t *testing.T) {
 
 	ctx := context.Background()
 
-	assert.Equal(t, true, IsGitCommit(ctx))
-	assert.Equal(t, true, IsGitCommit(WithGitCommit(ctx, true)))
-	assert.Equal(t, false, IsGitCommit(WithGitCommit(ctx, false)))
+	assert.True(t, IsGitCommit(ctx))
+	assert.True(t, IsGitCommit(WithGitCommit(ctx, true)))
+	assert.False(t, IsGitCommit(WithGitCommit(ctx, false)))
 }
 
 func TestAlwaysYes(t *testing.T) {
@@ -54,9 +55,9 @@ func TestAlwaysYes(t *testing.T) {
 
 	ctx := context.Background()
 
-	assert.Equal(t, false, IsAlwaysYes(ctx))
-	assert.Equal(t, true, IsAlwaysYes(WithAlwaysYes(ctx, true)))
-	assert.Equal(t, false, IsAlwaysYes(WithAlwaysYes(ctx, false)))
+	assert.False(t, IsAlwaysYes(ctx))
+	assert.True(t, IsAlwaysYes(WithAlwaysYes(ctx, true)))
+	assert.False(t, IsAlwaysYes(WithAlwaysYes(ctx, false)))
 }
 
 func TestProgressCallback(t *testing.T) {
@@ -69,7 +70,7 @@ func TestProgressCallback(t *testing.T) {
 	pc := func() { foo = true }
 
 	GetProgressCallback(WithProgressCallback(ctx, pc))()
-	assert.Equal(t, true, foo)
+	assert.True(t, foo)
 }
 
 func TestAlias(t *testing.T) {
@@ -86,9 +87,9 @@ func TestGitInit(t *testing.T) {
 
 	ctx := context.Background()
 
-	assert.Equal(t, true, IsGitInit(ctx))
-	assert.Equal(t, true, IsGitInit(WithGitInit(ctx, true)))
-	assert.Equal(t, false, IsGitInit(WithGitInit(ctx, false)))
+	assert.True(t, IsGitInit(ctx))
+	assert.True(t, IsGitInit(WithGitInit(ctx, true)))
+	assert.False(t, IsGitInit(WithGitInit(ctx, false)))
 }
 
 func TestForce(t *testing.T) {
@@ -96,9 +97,9 @@ func TestForce(t *testing.T) {
 
 	ctx := context.Background()
 
-	assert.Equal(t, false, IsForce(ctx))
-	assert.Equal(t, true, IsForce(WithForce(ctx, true)))
-	assert.Equal(t, false, IsForce(WithForce(ctx, false)))
+	assert.False(t, IsForce(ctx))
+	assert.True(t, IsForce(WithForce(ctx, true)))
+	assert.False(t, IsForce(WithForce(ctx, false)))
 }
 
 func TestCommitMessage(t *testing.T) {
@@ -146,35 +147,35 @@ func TestComposite(t *testing.T) {
 	ctx = WithForce(ctx, true)
 	ctx = WithGitInit(ctx, false)
 
-	assert.Equal(t, false, IsTerminal(ctx))
-	assert.Equal(t, true, HasTerminal(ctx))
+	assert.False(t, IsTerminal(ctx))
+	assert.True(t, HasTerminal(ctx))
 
-	assert.Equal(t, false, IsInteractive(ctx))
-	assert.Equal(t, true, HasInteractive(ctx))
+	assert.False(t, IsInteractive(ctx))
+	assert.True(t, HasInteractive(ctx))
 
-	assert.Equal(t, true, IsStdin(ctx))
-	assert.Equal(t, true, HasStdin(ctx))
+	assert.True(t, IsStdin(ctx))
+	assert.True(t, HasStdin(ctx))
 
-	assert.Equal(t, false, IsGitCommit(ctx))
-	assert.Equal(t, true, HasGitCommit(ctx))
+	assert.False(t, IsGitCommit(ctx))
+	assert.True(t, HasGitCommit(ctx))
 
-	assert.Equal(t, true, IsAlwaysYes(ctx))
-	assert.Equal(t, true, HasAlwaysYes(ctx))
+	assert.True(t, IsAlwaysYes(ctx))
+	assert.True(t, HasAlwaysYes(ctx))
 
 	assert.Equal(t, "foo@bar.com", GetEmail(ctx))
 	assert.Equal(t, "foo", GetUsername(ctx))
 
-	assert.Equal(t, true, IsNoNetwork(ctx))
-	assert.Equal(t, true, HasNoNetwork(ctx))
+	assert.True(t, IsNoNetwork(ctx))
+	assert.True(t, HasNoNetwork(ctx))
 
 	assert.Equal(t, "foobar", GetCommitMessage(ctx))
-	assert.Equal(t, true, HasCommitMessage(ctx))
+	assert.True(t, HasCommitMessage(ctx))
 
-	assert.Equal(t, true, IsForce(ctx))
-	assert.Equal(t, true, HasForce(ctx))
+	assert.True(t, IsForce(ctx))
+	assert.True(t, HasForce(ctx))
 
-	assert.Equal(t, false, IsGitInit(ctx))
-	assert.Equal(t, true, HasGitInit(ctx))
+	assert.False(t, IsGitInit(ctx))
+	assert.True(t, HasGitInit(ctx))
 }
 
 func TestGlobalFlags(t *testing.T) {
@@ -188,12 +189,12 @@ func TestGlobalFlags(t *testing.T) {
 		Name:  "yes",
 		Usage: "yes",
 	}
-	assert.NoError(t, sf.Apply(fs))
-	assert.NoError(t, fs.Parse([]string{"--yes"}))
+	require.NoError(t, sf.Apply(fs))
+	require.NoError(t, fs.Parse([]string{"--yes"}))
 	c := cli.NewContext(app, fs, nil)
 	c.Context = ctx
 
-	assert.Equal(t, true, IsAlwaysYes(WithGlobalFlags(c)))
+	assert.True(t, IsAlwaysYes(WithGlobalFlags(c)))
 }
 
 func TestImportFunc(t *testing.T) {
@@ -206,9 +207,9 @@ func TestImportFunc(t *testing.T) {
 	}
 
 	assert.NotNil(t, GetImportFunc(ctx))
-	assert.Equal(t, true, GetImportFunc(WithImportFunc(ctx, ifunc))(ctx, "", nil))
-	assert.Equal(t, true, HasImportFunc(WithImportFunc(ctx, ifunc)))
-	assert.Equal(t, true, GetImportFunc(WithImportFunc(ctx, nil))(ctx, "", nil))
+	assert.True(t, GetImportFunc(WithImportFunc(ctx, ifunc))(ctx, "", nil))
+	assert.True(t, HasImportFunc(WithImportFunc(ctx, ifunc)))
+	assert.True(t, GetImportFunc(WithImportFunc(ctx, nil))(ctx, "", nil))
 }
 
 func TestHidden(t *testing.T) {

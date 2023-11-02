@@ -13,7 +13,7 @@ func TestBaseConfig(t *testing.T) {
 	defer ts.teardown()
 
 	out, err := ts.run("config")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	wanted := `core.autopush = true
 core.autosync = true
@@ -34,23 +34,23 @@ core.notifications = true
 		t.Run("invert "+invert, func(t *testing.T) {
 			arg := "config " + invert + " false"
 			out, err = ts.run(arg)
-			assert.NoError(t, err, "Running gopass "+arg)
+			require.NoError(t, err, "Running gopass "+arg)
 			assert.Equal(t, "false", out, "Output of gopass "+arg)
 
 			arg = "config " + invert
 			out, err = ts.run(arg)
-			assert.NoError(t, err, "Running gopass "+arg)
+			require.NoError(t, err, "Running gopass "+arg)
 			assert.Equal(t, "false", out, "Output of gopass "+arg)
 		})
 	}
 
 	t.Run("cliptimeout", func(t *testing.T) {
 		out, err = ts.run("config core.cliptimeout 120")
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, "120", out)
 
 		out, err = ts.run("config core.cliptimeout")
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, "120", out)
 	})
 }
@@ -64,7 +64,7 @@ func TestMountConfig(t *testing.T) {
 	require.NoError(t, err)
 
 	_, err = ts.run("config")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	wanted := `core.autopush = true
 core.autosync = true
@@ -77,6 +77,6 @@ core.notifications = true
 	wanted += "recipients.mnt/m1.hash = 9a4c4b1e0eb9ade2e692ff948f43d9668145eca3df88ffff67e0e21426252907\n"
 
 	out, err := ts.run("config")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, strings.TrimSpace(wanted), out)
 }

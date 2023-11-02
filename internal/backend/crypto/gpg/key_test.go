@@ -83,7 +83,7 @@ func TestKey(t *testing.T) {
 	assert.Equal(t, "(invalid:)", k.OneLine())
 	assert.Equal(t, "", k.Identity().Name)
 	k = genTestKey()
-	assert.Equal(t, k.IsUseable(false), true)
+	assert.True(t, k.IsUseable(false))
 	assert.Equal(t, "sec   2048D/0x62AF4031C82E0039 2018-01-01 [expires: 2218-01-01]\n      Key fingerprint = 25FF1614B8F87B52FFFF99B962AF4031C82E0039\nuid                            John Doe (johnny) <john.doe@example.org>", k.String())
 	assert.Equal(t, "0x62AF4031C82E0039 - John Doe (johnny) <john.doe@example.org>", k.OneLine())
 	assert.Equal(t, "0x62AF4031C82E0039", k.ID())

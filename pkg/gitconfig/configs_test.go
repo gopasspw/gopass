@@ -62,21 +62,21 @@ func TestConfigs(t *testing.T) {
 	}
 
 	// SetLocal
-	assert.NoError(t, c.SetLocal("global.fakekey", "local"))
+	require.NoError(t, c.SetLocal("global.fakekey", "local"))
 	assert.Equal(t, "local", c.GetLocal("global.fakekey"))
 	assert.Equal(t, "", c.GetGlobal("global.fakekey"))
-	assert.NoError(t, c.UnsetLocal("global.fakekey"))
+	require.NoError(t, c.UnsetLocal("global.fakekey"))
 	assert.Equal(t, "", c.Get("global.fakekey"))
 
 	// SetGlobal
-	assert.NoError(t, c.SetGlobal("local.fakekey", "global"))
+	require.NoError(t, c.SetGlobal("local.fakekey", "global"))
 	assert.Equal(t, "", c.GetLocal("local.fakekey"))
 	assert.Equal(t, "global", c.GetGlobal("local.fakekey"))
-	assert.NoError(t, c.UnsetGlobal("local.fakekey"))
+	require.NoError(t, c.UnsetGlobal("local.fakekey"))
 	assert.Equal(t, "", c.Get("local.fakekey"))
 
 	// SetEnv
-	assert.NoError(t, c.SetEnv("worktree.fakekey", "env"))
+	require.NoError(t, c.SetEnv("worktree.fakekey", "env"))
 	assert.Equal(t, "", c.GetLocal("worktree.fakekey"))
 	assert.Equal(t, "", c.GetGlobal("worktree.fakekey"))
 	assert.Equal(t, "env", c.Get("worktree.fakekey"))
@@ -93,7 +93,7 @@ func TestConfigs(t *testing.T) {
 	c.global = nil
 	c.env = nil
 
-	assert.Error(t, c.SetLocal("core.foo", "bar"))
-	assert.NoError(t, c.SetGlobal("core.global", "foo"))
-	assert.NoError(t, c.SetEnv("env.var", "var"))
+	require.Error(t, c.SetLocal("core.foo", "bar"))
+	require.NoError(t, c.SetGlobal("core.global", "foo"))
+	require.NoError(t, c.SetEnv("env.var", "var"))
 }

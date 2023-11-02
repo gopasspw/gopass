@@ -19,20 +19,20 @@ func TestGit(t *testing.T) {
 
 	require.NotNil(t, s.Storage())
 	require.Equal(t, "fs", s.Storage().Name())
-	assert.NoError(t, s.Storage().InitConfig(ctx, "foo", "bar@baz.com"))
+	require.NoError(t, s.Storage().InitConfig(ctx, "foo", "bar@baz.com"))
 	assert.Equal(t, semver.Version{}, s.Storage().Version(ctx))
 	// RCS ops not supported by the fs backend
-	assert.Error(t, s.Storage().AddRemote(ctx, "foo", "bar"))
-	assert.Error(t, s.Storage().Pull(ctx, "origin", "master"))
-	assert.Error(t, s.Storage().Push(ctx, "origin", "master"))
+	require.Error(t, s.Storage().AddRemote(ctx, "foo", "bar"))
+	require.Error(t, s.Storage().Pull(ctx, "origin", "master"))
+	require.Error(t, s.Storage().Push(ctx, "origin", "master"))
 
-	assert.NoError(t, s.GitInit(ctx))
-	assert.NoError(t, s.GitInit(backend.WithStorageBackend(ctx, backend.FS)))
-	assert.Error(t, s.GitInit(backend.WithStorageBackend(ctx, -1)))
+	require.NoError(t, s.GitInit(ctx))
+	require.NoError(t, s.GitInit(backend.WithStorageBackend(ctx, backend.FS)))
+	require.Error(t, s.GitInit(backend.WithStorageBackend(ctx, -1)))
 
 	ctx = ctxutil.WithUsername(ctx, "foo")
 	ctx = ctxutil.WithEmail(ctx, "foo@baz.com")
-	assert.NoError(t, s.GitInit(backend.WithStorageBackend(ctx, backend.GitFS)))
+	require.NoError(t, s.GitInit(backend.WithStorageBackend(ctx, backend.GitFS)))
 }
 
 func TestGitRevisions(t *testing.T) {
@@ -43,13 +43,13 @@ func TestGitRevisions(t *testing.T) {
 
 	require.NotNil(t, s.Storage())
 	require.Equal(t, "fs", s.Storage().Name())
-	assert.NoError(t, s.Storage().InitConfig(ctx, "foo", "bar@baz.com"))
+	require.NoError(t, s.Storage().InitConfig(ctx, "foo", "bar@baz.com"))
 
 	revs, err := s.ListRevisions(ctx, "foo")
-	assert.NoError(t, err)
-	assert.Equal(t, 1, len(revs))
+	require.NoError(t, err)
+	assert.Len(t, revs, 1)
 
 	sec, err := s.GetRevision(ctx, "foo", "latest")
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.Nil(t, sec)
 }

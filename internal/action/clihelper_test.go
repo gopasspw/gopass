@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/urfave/cli/v2"
 )
 
@@ -77,7 +78,7 @@ func TestParseArgs(t *testing.T) {
 
 			app := cli.NewApp()
 			fs := flag.NewFlagSet("default", flag.ContinueOnError)
-			assert.NoError(t, fs.Parse(tc.argIn), tc.name)
+			require.NoError(t, fs.Parse(tc.argIn), tc.name)
 			args, kvps := parseArgs(cli.NewContext(app, fs, nil))
 			assert.Equal(t, tc.argOut, args, tc.name)
 			assert.Equal(t, tc.kvOut, kvps, tc.name)

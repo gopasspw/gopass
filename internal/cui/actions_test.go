@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/urfave/cli/v2"
 )
 
@@ -24,8 +25,8 @@ func TestCreateActions(t *testing.T) {
 		},
 	}
 	assert.Equal(t, []string{"foo", "bar"}, cas.Selection())
-	assert.Error(t, cas.Run(ctx, nil, 0))
-	assert.NoError(t, cas.Run(ctx, nil, 1))
-	assert.Error(t, cas.Run(ctx, nil, 2))
-	assert.Error(t, cas.Run(ctx, nil, 66))
+	require.Error(t, cas.Run(ctx, nil, 0))
+	require.NoError(t, cas.Run(ctx, nil, 1))
+	require.Error(t, cas.Run(ctx, nil, 2))
+	require.Error(t, cas.Run(ctx, nil, 66))
 }

@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/urfave/cli/v2"
 )
 
@@ -62,19 +62,19 @@ func flagset(t *testing.T, flags map[string]string, args []string) *flag.FlagSet
 				Name:  k,
 				Usage: k,
 			}
-			assert.NoError(t, f.Apply(fs))
+			require.NoError(t, f.Apply(fs))
 		} else if _, err := strconv.Atoi(v); err == nil {
 			f := cli.IntFlag{
 				Name:  k,
 				Usage: k,
 			}
-			assert.NoError(t, f.Apply(fs))
+			require.NoError(t, f.Apply(fs))
 		} else {
 			f := cli.StringFlag{
 				Name:  k,
 				Usage: k,
 			}
-			assert.NoError(t, f.Apply(fs))
+			require.NoError(t, f.Apply(fs))
 		}
 	}
 
@@ -84,7 +84,7 @@ func flagset(t *testing.T, flags map[string]string, args []string) *flag.FlagSet
 	}
 
 	argl = append(argl, args...)
-	assert.NoError(t, fs.Parse(argl))
+	require.NoError(t, fs.Parse(argl))
 
 	return fs
 }

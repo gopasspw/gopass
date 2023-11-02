@@ -11,7 +11,6 @@ import (
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/tests/gptest"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/urfave/cli/v2"
 )
@@ -39,6 +38,6 @@ func TestVersion(t *testing.T) {
 	}
 
 	t.Run("print fixed version", func(t *testing.T) {
-		assert.NoError(t, act.Version(gptest.CliCtx(ctx, t)))
+		require.NoError(t, act.Version(gptest.CliCtx(ctx, t)))
 	})
 }

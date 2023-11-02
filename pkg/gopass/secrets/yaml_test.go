@@ -78,7 +78,7 @@ func TestYAMLKeyToEmptySecret(t *testing.T) {
 
 	s := &YAML{}
 	// write key
-	assert.NoError(t, s.Set(yamlKey, yamlValue))
+	require.NoError(t, s.Set(yamlKey, yamlValue))
 
 	// read back key
 	v, ok := s.Get(yamlKey)
@@ -139,7 +139,7 @@ func TestYAMLSetMultipleKeys(t *testing.T) {
 	for i := 0; i < numKey; i++ {
 		// set key
 		key := fmt.Sprintf("%s-%04d", yamlKey, i)
-		assert.NoError(t, s.Set(key, yamlValue))
+		require.NoError(t, s.Set(key, yamlValue))
 		keys = append(keys, key)
 	}
 
@@ -180,7 +180,7 @@ ccc
 -----END PGP PRIVATE KEY BLOCK-----`
 	s := &YAML{}
 	// write key
-	assert.NoError(t, s.Set(yamlKey, mlValue))
+	require.NoError(t, s.Set(yamlKey, mlValue))
 
 	// read back key
 	v, ok := s.Get(yamlKey)

@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestList(t *testing.T) {
@@ -14,11 +15,11 @@ func TestList(t *testing.T) {
 	ts.initStore()
 
 	out, err := ts.run("list")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "gopass", out)
 
 	out, err = ts.run("ls")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "gopass", out)
 
 	ts.initSecrets("")
@@ -33,7 +34,7 @@ gopass
     └── bar
 `
 	out, err = ts.run("list")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, strings.TrimSpace(list), out)
 
 	list = `
@@ -41,14 +42,14 @@ foo/
 └── bar
 `
 	out, err = ts.run("list foo")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, strings.TrimSpace(list), out)
 
 	list = `fixed/
 foo/
 `
 	out, err = ts.run("list --folders")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, strings.TrimSpace(list), out)
 }
 
@@ -62,16 +63,16 @@ func TestListRegressions1628(t *testing.T) {
 	ts.initStore()
 
 	out, err := ts.run("list")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "gopass", out)
 
 	_, err = ts.run("insert misc/file1")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	_, err = ts.run("insert misc/folder1/folder2/folder3/file2")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	out, err = ts.run("list")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	exp := `gopass
 └── misc/

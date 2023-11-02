@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestPwgenExternal(t *testing.T) {
@@ -14,6 +15,6 @@ func TestPwgenExternal(t *testing.T) {
 
 	pw, err := GenerateExternal(4)
 
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "foobar 4", pw)
 }

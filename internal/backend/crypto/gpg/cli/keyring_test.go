@@ -76,7 +76,7 @@ func TestReadNamesFromKey(t *testing.T) {
 	assert.NotEqual(t, "", g.Binary())
 
 	names, err := g.ReadNamesFromKey(ctx, []byte(pubkey))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, []string{"Gopass Archive Signing Key <gopass@justwatch.com>"}, names)
 }
 
@@ -88,7 +88,7 @@ func TestExportPublicKey(t *testing.T) {
 	require.NoError(t, err)
 
 	_, err = g.ExportPublicKey(ctx, "foobar")
-	assert.Error(t, err)
+	require.Error(t, err)
 }
 
 func TestImport(t *testing.T) {
@@ -102,8 +102,8 @@ func TestImport(t *testing.T) {
 		g.binary = "rundll32"
 	}
 
-	assert.NoError(t, g.ImportPublicKey(ctx, []byte("foobar")))
+	require.NoError(t, g.ImportPublicKey(ctx, []byte("foobar")))
 
 	g.binary = ""
-	assert.Error(t, g.ImportPublicKey(ctx, []byte("foobar")))
+	require.Error(t, g.ImportPublicKey(ctx, []byte("foobar")))
 }

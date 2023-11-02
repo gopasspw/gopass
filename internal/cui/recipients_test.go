@@ -39,7 +39,7 @@ func TestAskForGitConfigUser(t *testing.T) {
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 
 	_, _, err := AskForGitConfigUser(ctx, plain.New())
-	assert.NoError(t, err)
+	require.NoError(t, err)
 }
 
 type fakeMountPointer []string

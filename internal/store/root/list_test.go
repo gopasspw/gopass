@@ -28,11 +28,11 @@ func TestList(t *testing.T) {
 	assert.Equal(t, []string{"foo"}, es)
 
 	sd, err := rs.HasSubDirs(ctx, "foo")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.False(t, sd)
 
 	str, err := rs.Format(ctx, -1)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, `gopass
 └── foo
 `, str)

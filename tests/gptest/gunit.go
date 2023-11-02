@@ -13,7 +13,6 @@ import (
 	"github.com/ProtonMail/go-crypto/openpgp/packet"
 	aclip "github.com/atotto/clipboard"
 	"github.com/gopasspw/gopass/tests/can"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -67,8 +66,8 @@ func NewGUnitTester(t *testing.T) *GUnit {
 	setupEnv(t, u.env)
 
 	require.NoError(t, os.Mkdir(u.GPGHome(), 0o700))
-	assert.NoError(t, u.initConfig())
-	assert.NoError(t, u.InitStore(""))
+	require.NoError(t, u.initConfig())
+	require.NoError(t, u.InitStore(""))
 
 	return u
 }
