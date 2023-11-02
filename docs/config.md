@@ -68,11 +68,11 @@ different configuration sources that take precedence over each other, just like 
 #### Configuration precendence
 
 * Hard-coded presets apply if nothing else if set
-* System-wide configuration file allows operators or package maintainers to supply system-wide defaults in /etc/gopass/config
+* System-wide configuration file allows operators or package maintainers to supply system-wide defaults in `/etc/gopass/config`.
 * User-wide (aka. global) configuration allows to set per-user settings. This is the closest equivalent to the old gopass configs. Located in `$HOME/.config/gopass/config`
 * Per-store (aka. local) configuration allow to set per-store settings, e.g. read-only. Located in `<STORE_DIR>/config`.
 * Per-store unversioned (aka `config.worktree`) configuration allows to override versioned per-store settings, e.g. disabling read-only. Located in `<STORE_DIR>/config.worktree`
-* Environment variables (or command line flags) override all other values. Read from `GOPASS_CONFIG_KEY_n` and `GOPASS_CONFIG_VALUE_n` up to `GOPASS_CONFIG_COUNT`. Command line flags take precedence over environment variables.
+* Environment variables (or command line flags) override all other values. Read from `GOPASS_CONFIG_CONFIG_KEY_n` and `GOPASS_CONFIG_CONFIG_VALUE_n` up to `GOPASS_CONFIG_CONFIG_COUNT`. Command line flags take precedence over environment variables.
 
 ### Configuration options
 
@@ -95,7 +95,7 @@ This is a list of available options:
 | `core.notifications`            | `bool`   | Enable desktop notifications.                                                                                                                                                                  | `true`                              |
 | `core.post-hook`                | `string` | This hook is executed after any command invocation.                                                                                                                                            | `None`                              |
 | `core.pre-hook`                 | `string` | This hook is executed before any command invocation.                                                                                                                                           | `None`                              |
-| `core.readonly`                 | `bool`   | Disable writing to a store. Note: This is just a convenience option to prevent accidential writes. Enforcement can only happen on a central server (if repos are set up around a central one). | `false`                             |
+| `core.readonly`                 | `bool`   | Disable writing to a store. Note: This is just a convenience option to prevent accidental writes. Enforcement can only happen on a central server (if repos are set up around a central one).  | `false`                             |
 | `create.default-username`       | `string` | The settings allows users to specify the default username for logins created with `gopass create`.                                                                                             | `None`                              |
 | `create.post-hook`              | `string` | This hook is executed right after the secret creation. If the hook exits with a non-zero exit value the generated secret is discarded.                                                         | `None`                              |
 | `create.pre-hook`               | `string` | This hook is executed right before the secret creation during `gopass create`.                                                                                                                 | `None`                              |
