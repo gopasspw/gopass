@@ -72,7 +72,7 @@ different configuration sources that take precedence over each other, just like 
 * User-wide (aka. global) configuration allows to set per-user settings. This is the closest equivalent to the old gopass configs. Located in `$HOME/.config/gopass/config`
 * Per-store (aka. local) configuration allow to set per-store settings, e.g. read-only. Located in `<STORE_DIR>/config`.
 * Per-store unversioned (aka `config.worktree`) configuration allows to override versioned per-store settings, e.g. disabling read-only. Located in `<STORE_DIR>/config.worktree`
-* Environment variables (or command line flags) override all other values. Read from `GOPASS_CONFIG_CONFIG_KEY_n` and `GOPASS_CONFIG_CONFIG_VALUE_n` up to `GOPASS_CONFIG_CONFIG_COUNT`. Command line flags take precedence over environment variables.
+* Environment variables (or command line flags) override all other values. Read from `GOPASS_CONFIG_KEY_n` and `GOPASS_CONFIG_VALUE_n` up to `GOPASS_CONFIG_COUNT`. Command line flags take precedence over environment variables.
 
 ### Configuration options
 

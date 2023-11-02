@@ -19,7 +19,7 @@ func TestConfigs(t *testing.T) {
 	c.GlobalConfig = "global"
 	c.LocalConfig = "local"
 	c.WorktreeConfig = "worktree"
-	c.EnvPrefix = "GPTEST"
+	c.EnvPrefix = "GPTEST_CONFIG"
 
 	require.NoError(t, os.WriteFile(c.SystemConfig, []byte(`[system]
 	key = system

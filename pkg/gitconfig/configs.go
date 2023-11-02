@@ -262,7 +262,7 @@ func (c *Configs) IsSet(key string) bool {
 		c.system,
 		c.Preset,
 	} {
-		if cfg.IsSet(key) {
+		if cfg != nil && cfg.IsSet(key) {
 			return true
 		}
 	}

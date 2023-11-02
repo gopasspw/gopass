@@ -44,11 +44,11 @@ func TestConfig(t *testing.T) {
 
 func TestEnvConfig(t *testing.T) {
 	envs := map[string]string{
-		"GOPASS_CONFIG_CONFIG_COUNT":   "2",
-		"GOPASS_CONFIG_CONFIG_KEY_0":   "core.autosync",
-		"GOPASS_CONFIG_CONFIG_VALUE_0": "false",
-		"GOPASS_CONFIG_CONFIG_KEY_1":   "show.safecontent",
-		"GOPASS_CONFIG_CONFIG_VALUE_1": "true",
+		"GOPASS_CONFIG_COUNT":   "2",
+		"GOPASS_CONFIG_KEY_0":   "core.autosync",
+		"GOPASS_CONFIG_VALUE_0": "false",
+		"GOPASS_CONFIG_KEY_1":   "show.safecontent",
+		"GOPASS_CONFIG_VALUE_1": "true",
 	}
 	for k, v := range envs {
 		t.Setenv(k, v)
@@ -73,6 +73,10 @@ func TestInvalidEnvConfig(t *testing.T) {
 		"GOPASS_CONFIG__CONFIG_COUNT":   "1",
 		"GOPASS_CONFIG__CONFIG_KEY_0":   "core.autosync",
 		"GOPASS_CONFIG__CONFIG_VALUE_0": "false",
+		// old format
+		"GOPASS_CONFIG_CONFIG_COUNT":   "1",
+		"GOPASS_CONFIG_CONFIG_KEY_0":   "core.autosync",
+		"GOPASS_CONFIG_CONFIG_VALUE_0": "false",
 	}
 	for k, v := range envs {
 		t.Setenv(k, v)
@@ -171,10 +175,10 @@ func TestOptsMigration(t *testing.T) {
 
 	t.Run("env variable are not migrated", func(t *testing.T) {
 		envs := map[string]string{
-			"GOPASS_CONFIG_CONFIG_COUNT":   "1",
-			"GOPASS_CONFIG_CONFIG_KEY_0":   "core.showsafecontent",
-			"GOPASS_CONFIG_CONFIG_VALUE_0": "true",
-			"GOPASS_CONFIG_NO_MIGRATE":     "",
+			"GOPASS_CONFIG_COUNT":      "1",
+			"GOPASS_CONFIG_KEY_0":      "core.showsafecontent",
+			"GOPASS_CONFIG_VALUE_0":    "true",
+			"GOPASS_CONFIG_NO_MIGRATE": "",
 		}
 		for k, v := range envs {
 			t.Setenv(k, v)

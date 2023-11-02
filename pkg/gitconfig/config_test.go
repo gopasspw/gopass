@@ -279,11 +279,11 @@ func TestLoadFromEnv(t *testing.T) {
 
 	i := 0
 	for k, v := range tc {
-		t.Setenv(fmt.Sprintf("%s_CONFIG_KEY_%d", prefix, i), k)
-		t.Setenv(fmt.Sprintf("%s_CONFIG_VALUE_%d", prefix, i), v)
+		t.Setenv(fmt.Sprintf("%s_KEY_%d", prefix, i), k)
+		t.Setenv(fmt.Sprintf("%s_VALUE_%d", prefix, i), v)
 		i++
 	}
-	t.Setenv(fmt.Sprintf("%s_CONFIG_COUNT", prefix), strconv.Itoa(i))
+	t.Setenv(fmt.Sprintf("%s_COUNT", prefix), strconv.Itoa(i))
 
 	cfg := LoadConfigFromEnv(prefix)
 	for k, v := range tc {
