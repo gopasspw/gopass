@@ -3,9 +3,10 @@ package action
 import (
 	"context"
 	"fmt"
+	"io"
 	"strings"
 
-	"github.com/chzyer/readline"
+	"github.com/ergochat/readline"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/tree"
 	"github.com/gopasspw/gopass/pkg/debug"
@@ -139,7 +140,18 @@ READ:
 			return fmt.Errorf("user aborted")
 		default:
 		}
-		rl.Config.AutoComplete = s.prefixCompleter(c)
+
+		// we need to update the completer on every loop since
+		// the list of secrets may have changed, e.g. due to
+		// the user adding a new secret.
+		cfg := rl.GetConfig()
+		cfg.AutoComplete = s.prefixCompleter(c)
+		if err := rl.SetConfig(cfg); err != nil {
+			debug.Log("Failed to set readline config: %s", err)
+
+			break
+		}
+
 		line, err := rl.Readline()
 		if err != nil {
 			debug.Log("Readline error: %s", err)
@@ -163,7 +175,9 @@ READ:
 
 			continue
 		case "clear":
-			readline.ClearScreen(stdout) //nolint:errcheck
+			clearScreen(stdout) //nolint:errcheck
+			rl.Clean()
+			rl.Refresh()
 
 			continue
 		default:
@@ -184,4 +198,10 @@ func (s *Action) replLock(ctx context.Context) {
 		return
 	}
 	out.OKf(ctx, "Locked")
+}
+
+func clearScreen(w io.Writer) error {
+	_, err := w.Write([]byte("\033[H"))
+
+	return err
 }

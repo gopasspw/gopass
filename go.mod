@@ -9,8 +9,8 @@ require (
 	github.com/blang/semver/v4 v4.0.0
 	github.com/caspr-io/yamlpath v0.0.0-20200722075116-502e8d113a9b
 	github.com/cenkalti/backoff v2.2.1+incompatible
-	github.com/chzyer/readline v1.5.1
 	github.com/dustin/go-humanize v1.0.1
+	github.com/ergochat/readline v0.0.5
 	github.com/fatih/color v1.15.0
 	github.com/godbus/dbus v0.0.0-20190623212516-8a1682060722
 	github.com/gokyle/twofactor v1.0.1
