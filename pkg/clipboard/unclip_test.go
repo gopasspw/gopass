@@ -9,6 +9,7 @@ import (
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestNotExistingClipboardClearCommand(t *testing.T) {
@@ -18,7 +19,7 @@ func TestNotExistingClipboardClearCommand(t *testing.T) {
 	t.Setenv("GOPASS_CLIPBOARD_CLEAR_CMD", "not_existing_command")
 
 	maybeErr := Clear(ctx, "", "", false)
-	assert.Error(t, maybeErr)
+	require.Error(t, maybeErr)
 	assert.Contains(t, maybeErr.Error(), "\"not_existing_command\": executable file not found in")
 }
 
@@ -35,5 +36,5 @@ func TestUnclip(t *testing.T) {
 		out.Stdout = os.Stdout
 	}()
 
-	assert.EqualError(t, Clear(ctx, "", "", false), ErrNotSupported.Error())
+	require.EqualError(t, Clear(ctx, "", "", false), ErrNotSupported.Error())
 }

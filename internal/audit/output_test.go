@@ -21,7 +21,7 @@ func TestHTML(t *testing.T) {
 	sr := r.Finalize()
 	out := &bytes.Buffer{}
 	require.NoError(t, sr.RenderHTML(out))
-	today := time.Now().Format("2006-01-02")
+	today := time.Now().UTC().Format("2006-01-02")
 	assert.Equal(t, fmt.Sprintf(`<!DOCTYPE html>
 <html lang="en">
   <head>

@@ -25,16 +25,16 @@ func aGitRepo(ctx context.Context, t *testing.T, u *gptest.Unit, name string) st
 	t.Helper()
 
 	gd := filepath.Join(u.Dir, name)
-	assert.NoError(t, os.MkdirAll(gd, 0o700))
+	require.NoError(t, os.MkdirAll(gd, 0o700))
 
 	_, err := git.New(gd)
-	assert.Error(t, err)
+	require.Error(t, err)
 
 	idf := filepath.Join(gd, ".gpg-id")
-	assert.NoError(t, os.WriteFile(idf, []byte("0xDEADBEEF"), 0o600))
+	require.NoError(t, os.WriteFile(idf, []byte("0xDEADBEEF"), 0o600))
 
 	gr, err := git.Init(ctx, gd, "Nobody", "foo.bar@example.org")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NotNil(t, gr)
 
 	return gd
@@ -66,18 +66,18 @@ func TestClone(t *testing.T) {
 	t.Run("no args", func(t *testing.T) {
 		defer buf.Reset()
 		c := gptest.CliCtx(ctx, t)
-		assert.Error(t, act.Clone(c))
+		require.Error(t, act.Clone(c))
 	})
 
 	t.Run("clone to initialized store", func(t *testing.T) {
 		defer buf.Reset()
-		assert.Error(t, act.clone(ctx, "/tmp/non-existing-repo.git", "", filepath.Join(u.Dir, "store")))
+		require.Error(t, act.clone(ctx, "/tmp/non-existing-repo.git", "", filepath.Join(u.Dir, "store")))
 	})
 
 	t.Run("clone to mount", func(t *testing.T) {
 		defer buf.Reset()
 		gd := aGitRepo(ctx, t, u, "other-repo")
-		assert.NoError(t, act.clone(ctx, gd, "gd", filepath.Join(u.Dir, "mount")))
+		require.NoError(t, act.clone(ctx, gd, "gd", filepath.Join(u.Dir, "mount")))
 	})
 }
 
@@ -112,7 +112,7 @@ func TestCloneBackendIsStoredForMount(t *testing.T) {
 	repo := aGitRepo(ctx, t, u, "my-project")
 
 	c = gptest.CliCtxWithFlags(ctx, t, map[string]string{"check-keys": "false"}, repo, "the-project")
-	assert.NoError(t, act.Clone(c))
+	require.NoError(t, act.Clone(c))
 
 	require.Contains(t, act.cfg.Mounts(), "the-project")
 }
@@ -135,7 +135,7 @@ func TestCloneGetGitConfig(t *testing.T) {
 	ctx = act.cfg.WithConfig(ctx)
 
 	name, email, err := act.cloneGetGitConfig(ctx, "foobar")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "0xDEADBEEF", name)
 	assert.Equal(t, "0xDEADBEEF", email)
 }
@@ -175,7 +175,7 @@ func TestCloneCheckDecryptionKeys(t *testing.T) {
 	}
 
 	c = gptest.CliCtxWithFlags(ctx, t, map[string]string{"check-keys": "true"}, repo, "the-project")
-	assert.NoError(t, act.Clone(c))
+	require.NoError(t, act.Clone(c))
 
 	require.Contains(t, act.cfg.Mounts(), "the-project")
 }

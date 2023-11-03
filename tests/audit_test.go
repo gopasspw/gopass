@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestAudit(t *testing.T) {
@@ -15,7 +16,7 @@ func TestAudit(t *testing.T) {
 
 	t.Run("audit the test store", func(t *testing.T) {
 		out, err := ts.run("audit")
-		assert.Error(t, err)
+		require.Error(t, err)
 		assert.Contains(t, out, "Password is too short")
 		assert.Contains(t, out, "weak password")
 	})

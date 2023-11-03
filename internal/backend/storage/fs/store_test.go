@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestSetAndGet(t *testing.T) {
@@ -69,7 +70,7 @@ func TestMove(t *testing.T) {
 	fileHasContent(filename, initialContent)
 
 	// move file
-	assert.NoError(t, s.Move(ctx, filename, "dst1", true))
+	require.NoError(t, s.Move(ctx, filename, "dst1", true))
 	fileHasContent("dst1", initialContent)
 
 	// overwrite file
@@ -77,12 +78,12 @@ func TestMove(t *testing.T) {
 	fileHasContent("dst2", otherContent)
 
 	// move file
-	assert.NoError(t, s.Move(ctx, "dst1", "dst2", true))
+	require.NoError(t, s.Move(ctx, "dst1", "dst2", true))
 	fileHasContent("dst1", nil)
 	fileHasContent("dst2", initialContent)
 
 	// copy file
-	assert.NoError(t, s.Move(ctx, "dst2", "dst3", false))
+	require.NoError(t, s.Move(ctx, "dst2", "dst3", false))
 	fileHasContent("dst2", initialContent)
 	fileHasContent("dst3", initialContent)
 }

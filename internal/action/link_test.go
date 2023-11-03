@@ -40,11 +40,11 @@ func TestLink(t *testing.T) {
 	// first add another entry in a subdir
 	sec := secrets.NewAKV()
 	sec.SetPassword("123")
-	assert.NoError(t, sec.Set("bar", "zab"))
-	assert.NoError(t, act.Store.Set(ctx, "bar/baz", sec))
+	require.NoError(t, sec.Set("bar", "zab"))
+	require.NoError(t, act.Store.Set(ctx, "bar/baz", sec))
 	buf.Reset()
 
-	assert.NoError(t, act.Link(gptest.CliCtx(ctx, t, "bar/baz", "other/linkdest")))
+	require.NoError(t, act.Link(gptest.CliCtx(ctx, t, "bar/baz", "other/linkdest")))
 
 	// original secret should be equal to the linkdest
 	oSec, err := act.Store.Get(ctx, "bar/baz")
@@ -57,7 +57,7 @@ func TestLink(t *testing.T) {
 
 	// update the original, linkdest should still be the same
 	oSec.SetPassword("456")
-	assert.NoError(t, act.Store.Set(ctx, "bar/baz", oSec))
+	require.NoError(t, act.Store.Set(ctx, "bar/baz", oSec))
 	buf.Reset()
 
 	oSec, err = act.Store.Get(ctx, "bar/baz")

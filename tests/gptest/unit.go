@@ -8,18 +8,18 @@ import (
 	"testing"
 
 	aclip "github.com/atotto/clipboard"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 const (
-	gopassConfig = `[core]
+	gopassConfig = `[generate]
 	autoclip = true
+[core]
 	autoimport = true
 	cliptimeout = 45
 	notifications = true
 	nopager = true
-`
+` // it's important the [core] subsection is the last one here
 )
 
 var (
@@ -76,8 +76,9 @@ func NewUnitTester(t *testing.T) *Unit {
 	setupEnv(t, u.env)
 
 	require.NoError(t, os.Mkdir(u.GPGHome(), 0o700))
-	assert.NoError(t, u.initConfig(), "pre-populate config")
-	assert.NoError(t, u.InitStore(""), "init store")
+	// we need to init store before init config, so that the right folders exist
+	require.NoError(t, u.InitStore(""), "init store")
+	require.NoError(t, u.initConfig(), "pre-populate config")
 
 	return u
 }
@@ -89,7 +90,7 @@ func (u Unit) initConfig() error {
 
 	err := os.WriteFile(
 		u.GPConfig(),
-		[]byte(gopassConfig+"\texportkeys = true\n[mounts]\n\tpath: "+u.StoreDir("")+"\n"),
+		[]byte(gopassConfig+"\texportkeys = true\n[mounts]\n\tpath = "+u.StoreDir("")+"\n"),
 		0o600,
 	)
 	if err != nil {

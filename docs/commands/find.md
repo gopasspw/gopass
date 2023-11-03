@@ -16,8 +16,8 @@ $ gopass find -c entry
 
 ## Flags
 
-Flag | Aliases | Description
----- | ------- | -----------
-`--clip` | `-c` | Copy the password into the clipboard.
-`--unsafe` | `-u` | Display any unsafe content, even if `safecontent` is enabled.
+| Flag       | Aliases | Description                                                   |
+|------------|---------|---------------------------------------------------------------|
+| `--clip`   | `-c`    | Copy the password into the clipboard.                         |
+| `--unsafe` | `-u`    | Display any unsafe content, even if `safecontent` is enabled. |
 

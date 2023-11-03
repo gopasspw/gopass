@@ -7,7 +7,6 @@ import (
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/gopass/secrets"
 	"github.com/gopasspw/gopass/tests/gptest"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -25,8 +24,8 @@ func TestSet(t *testing.T) {
 	sec.SetPassword("foo")
 	_, err = sec.Write([]byte("bar"))
 	require.NoError(t, err)
-	assert.NoError(t, rs.Set(ctx, "zab", sec))
+	require.NoError(t, rs.Set(ctx, "zab", sec))
 
 	err = rs.Set(ctx, "zab2", sec)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 }

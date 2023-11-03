@@ -368,7 +368,7 @@ func LoadConfig(fn string) (*Config, error) {
 }
 
 // ParseConfig will try to parse a gitconfig from the given io.Reader. It never fails.
-// Invalid configs will be silently rejceted.
+// Invalid configs will be silently rejected.
 func ParseConfig(r io.Reader) *Config {
 	c := &Config{
 		vars: make(map[string][]string, 42),
@@ -396,7 +396,7 @@ func LoadConfigFromEnv(envPrefix string) *Config {
 		noWrites: true,
 	}
 
-	count, err := strconv.Atoi(os.Getenv(envPrefix + "_CONFIG_COUNT"))
+	count, err := strconv.Atoi(os.Getenv(envPrefix + "_COUNT"))
 	if err != nil || count < 1 {
 		return &Config{
 			noWrites: true,
@@ -406,10 +406,10 @@ func LoadConfigFromEnv(envPrefix string) *Config {
 	c.vars = make(map[string][]string, count)
 
 	for i := 0; i < count; i++ {
-		keyVar := fmt.Sprintf("%s%d", envPrefix+"_CONFIG_KEY_", i)
+		keyVar := fmt.Sprintf("%s%d", envPrefix+"_KEY_", i)
 		key := os.Getenv(keyVar)
 
-		valVar := fmt.Sprintf("%s%d", envPrefix+"_CONFIG_VALUE_", i)
+		valVar := fmt.Sprintf("%s%d", envPrefix+"_VALUE_", i)
 		value, found := os.LookupEnv(valVar)
 
 		if key == "" || !found {

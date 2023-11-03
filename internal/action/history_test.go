@@ -13,7 +13,6 @@ import (
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/termio"
 	"github.com/gopasspw/gopass/tests/gptest"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -58,16 +57,16 @@ func TestHistory(t *testing.T) {
 
 	t.Run("insert bar", func(t *testing.T) {
 		defer buf.Reset()
-		assert.NoError(t, act.Insert(gptest.CliCtx(ctx, t, "bar")))
+		require.NoError(t, act.Insert(gptest.CliCtx(ctx, t, "bar")))
 	})
 
 	t.Run("history bar", func(t *testing.T) {
 		defer buf.Reset()
-		assert.NoError(t, act.History(gptest.CliCtx(ctx, t, "bar")))
+		require.NoError(t, act.History(gptest.CliCtx(ctx, t, "bar")))
 	})
 
 	t.Run("history --password bar", func(t *testing.T) {
 		defer buf.Reset()
-		assert.NoError(t, act.History(gptest.CliCtxWithFlags(ctx, t, map[string]string{"password": "true"}, "bar")))
+		require.NoError(t, act.History(gptest.CliCtxWithFlags(ctx, t, map[string]string{"password": "true"}, "bar")))
 	})
 }

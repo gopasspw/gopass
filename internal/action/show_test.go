@@ -42,37 +42,37 @@ func TestShowMulti(t *testing.T) {
 	// first add another entry in a subdir
 	sec := secrets.NewAKV()
 	sec.SetPassword("123")
-	assert.NoError(t, sec.Set("bar", "zab"))
-	assert.NoError(t, act.Store.Set(ctx, "bar/baz", sec))
+	require.NoError(t, sec.Set("bar", "zab"))
+	require.NoError(t, act.Store.Set(ctx, "bar/baz", sec))
 	buf.Reset()
 
 	t.Run("show foo", func(t *testing.T) {
 		defer buf.Reset()
 		c := gptest.CliCtx(ctx, t, "foo")
-		assert.NoError(t, act.Show(c))
+		require.NoError(t, act.Show(c))
 		assert.Contains(t, buf.String(), "secret")
 	})
 
 	t.Run("show --sync foo", func(t *testing.T) {
 		defer buf.Reset()
 		c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"sync": "true"}, "foo")
-		assert.NoError(t, act.Show(c))
+		require.NoError(t, act.Show(c))
 		assert.Contains(t, buf.String(), "secret")
 	})
 
 	t.Run("show dir", func(t *testing.T) {
 		c := gptest.CliCtx(ctx, t, "bar")
-		assert.NoError(t, act.Show(c))
+		require.NoError(t, act.Show(c))
 		assert.Equal(t, "bar/\n└── baz\n\n", buf.String())
 		buf.Reset()
 	})
 
-	require.NoError(t, act.cfg.Set("", "core.showsafecontent", "true"))
+	require.NoError(t, act.cfg.Set("", "show.safecontent", "true"))
 
 	t.Run("show twoliner with safecontent enabled", func(t *testing.T) {
 		c := gptest.CliCtx(ctx, t, "bar/baz")
 
-		assert.NoError(t, act.Show(c))
+		require.NoError(t, act.Show(c))
 		assert.Contains(t, buf.String(), "bar: zab")
 		assert.NotContains(t, buf.String(), "password: ***")
 		assert.NotContains(t, buf.String(), "123")
@@ -81,14 +81,14 @@ func TestShowMulti(t *testing.T) {
 
 	t.Run("show foo with safecontent enabled, should error out", func(t *testing.T) {
 		c := gptest.CliCtx(ctx, t, "foo")
-		assert.NoError(t, act.Show(c))
+		require.NoError(t, act.Show(c))
 		assert.NotContains(t, buf.String(), "secret")
 		buf.Reset()
 	})
 
 	t.Run("show foo with safecontent enabled, with the force flag", func(t *testing.T) {
 		c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"unsafe": "true"}, "foo")
-		assert.NoError(t, act.Show(c))
+		require.NoError(t, act.Show(c))
 		assert.Contains(t, buf.String(), "secret")
 		buf.Reset()
 	})
@@ -96,7 +96,7 @@ func TestShowMulti(t *testing.T) {
 	t.Run("show twoliner with safecontent enabled, but with the clip flag, which should copy just the secret", func(t *testing.T) {
 		c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"clip": "true"}, "bar/baz")
 
-		assert.NoError(t, act.Show(c))
+		require.NoError(t, act.Show(c))
 		assert.NotContains(t, buf.String(), "123")
 		buf.Reset()
 	})
@@ -104,15 +104,15 @@ func TestShowMulti(t *testing.T) {
 	t.Run("show entry with unsafe keys", func(t *testing.T) {
 		sec := secrets.NewAKV()
 		sec.SetPassword("123")
-		assert.NoError(t, sec.Set("bar", "zab"))
-		assert.NoError(t, sec.Set("foo", "baz"))
-		assert.NoError(t, sec.Set("hello", "world"))
-		assert.NoError(t, sec.Set("unsafe-keys", "foo, bar"))
-		assert.NoError(t, act.Store.Set(ctx, "unsafe/keys", sec))
+		require.NoError(t, sec.Set("bar", "zab"))
+		require.NoError(t, sec.Set("foo", "baz"))
+		require.NoError(t, sec.Set("hello", "world"))
+		require.NoError(t, sec.Set("unsafe-keys", "foo, bar"))
+		require.NoError(t, act.Store.Set(ctx, "unsafe/keys", sec))
 		buf.Reset()
 
 		c := gptest.CliCtx(ctx, t, "unsafe/keys")
-		assert.NoError(t, act.Show(c))
+		require.NoError(t, act.Show(c))
 		assert.Contains(t, buf.String(), "*****")
 		assert.NotContains(t, buf.String(), "zab")
 		assert.NotContains(t, buf.String(), "baz")
@@ -122,7 +122,7 @@ func TestShowMulti(t *testing.T) {
 	t.Run("show twoliner with safecontent enabled", func(t *testing.T) {
 		c := gptest.CliCtx(ctx, t, "bar/baz")
 
-		assert.NoError(t, act.Show(c))
+		require.NoError(t, act.Show(c))
 		assert.Contains(t, buf.String(), "bar: zab")
 		assert.NotContains(t, buf.String(), "password: ***")
 		assert.NotContains(t, buf.String(), "123")
@@ -132,7 +132,7 @@ func TestShowMulti(t *testing.T) {
 	t.Run("show twoliner with safecontent enabled", func(t *testing.T) {
 		c := gptest.CliCtx(ctx, t, "bar/baz")
 
-		assert.NoError(t, act.Show(c))
+		require.NoError(t, act.Show(c))
 		assert.Contains(t, buf.String(), "bar: zab")
 		// password should not show up neither be obstructed
 		assert.NotContains(t, buf.String(), "123")
@@ -140,12 +140,12 @@ func TestShowMulti(t *testing.T) {
 		buf.Reset()
 	})
 
-	require.NoError(t, act.cfg.Set("", "core.showsafecontent", "false"))
+	require.NoError(t, act.cfg.Set("", "show.safecontent", "false"))
 
 	t.Run("show key ", func(t *testing.T) {
 		c := gptest.CliCtx(ctx, t, "bar/baz", "bar")
 
-		assert.NoError(t, act.Show(c))
+		require.NoError(t, act.Show(c))
 		assert.Equal(t, "zab", buf.String())
 		buf.Reset()
 	})
@@ -153,16 +153,16 @@ func TestShowMulti(t *testing.T) {
 	t.Run("show nonexisting key", func(t *testing.T) {
 		c := gptest.CliCtx(ctx, t, "bar/baz", "nonexisting")
 
-		assert.Error(t, act.Show(c))
+		require.Error(t, act.Show(c))
 		buf.Reset()
 	})
 
 	t.Run("show keys with mixed case", func(t *testing.T) {
-		assert.NoError(t, act.insertStdin(ctx, "baz2", []byte("foobar\nOther: meh\nuser: name\nbody text"), false))
+		require.NoError(t, act.insertStdin(ctx, "baz2", []byte("foobar\nOther: meh\nuser: name\nbody text"), false))
 		buf.Reset()
 
 		c := gptest.CliCtx(ctx, t, "baz2", "Other")
-		assert.NoError(t, act.Show(c))
+		require.NoError(t, act.Show(c))
 		assert.Equal(t, "meh", buf.String())
 		buf.Reset()
 	})
@@ -170,11 +170,11 @@ func TestShowMulti(t *testing.T) {
 	t.Run("show value with format strings", func(t *testing.T) {
 		pw := "some-chars-are-odd-%s-%p-%q"
 
-		assert.NoError(t, act.insertStdin(ctx, "printf", []byte(pw), false))
+		require.NoError(t, act.insertStdin(ctx, "printf", []byte(pw), false))
 		buf.Reset()
 
 		c := gptest.CliCtx(ctx, t, "printf")
-		assert.NoError(t, act.Show(c))
+		require.NoError(t, act.Show(c))
 		assert.Equal(t, pw+"\n", buf.String())
 		assert.NotContains(t, buf.String(), "MISSING")
 		buf.Reset()
@@ -228,7 +228,7 @@ func TestShowAutoClip(t *testing.T) {
 		ctx = act.Store.WithStoreConfig(ctx)
 
 		c := gptest.CliCtx(ctx, t, "foo")
-		assert.NoError(t, act.Show(c))
+		require.NoError(t, act.Show(c))
 		assert.NotContains(t, stderrBuf.String(), "WARNING")
 		assert.Contains(t, stdoutBuf.String(), "secret")
 		stdoutBuf.Reset()
@@ -239,7 +239,7 @@ func TestShowAutoClip(t *testing.T) {
 	// -> Copy to clipboard
 	t.Run("gopass show -c foo", func(t *testing.T) {
 		c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"clip": "true"}, "foo")
-		assert.NoError(t, act.Show(c))
+		require.NoError(t, act.Show(c))
 		assert.Contains(t, stderrBuf.String(), "WARNING")
 		assert.NotContains(t, stdoutBuf.String(), "secret")
 		stdoutBuf.Reset()
@@ -250,7 +250,7 @@ func TestShowAutoClip(t *testing.T) {
 	// -> Copy to clipboard AND print
 	t.Run("gopass show -C foo", func(t *testing.T) {
 		c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"alsoclip": "true"}, "foo")
-		assert.NoError(t, act.Show(c))
+		require.NoError(t, act.Show(c))
 		assert.Contains(t, stderrBuf.String(), "WARNING")
 		assert.Contains(t, stdoutBuf.String(), "secret")
 		assert.Contains(t, stdoutBuf.String(), "second")
@@ -262,7 +262,7 @@ func TestShowAutoClip(t *testing.T) {
 	// -> ONLY print
 	t.Run("gopass show -f foo", func(t *testing.T) {
 		c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"unsafe": "true"}, "foo")
-		assert.NoError(t, act.Show(c))
+		require.NoError(t, act.Show(c))
 		assert.NotContains(t, stderrBuf.String(), "WARNING")
 		assert.Contains(t, stdoutBuf.String(), "secret")
 		assert.Contains(t, stdoutBuf.String(), "second")
@@ -274,7 +274,7 @@ func TestShowAutoClip(t *testing.T) {
 	// -> Copy to clipboard
 	t.Run("gopass show foo", func(t *testing.T) {
 		c := gptest.CliCtx(ctx, t, "foo")
-		assert.NoError(t, act.Show(c))
+		require.NoError(t, act.Show(c))
 		assert.NotContains(t, stderrBuf.String(), "WARNING")
 		assert.Contains(t, stdoutBuf.String(), "secret")
 		stdoutBuf.Reset()
@@ -285,7 +285,7 @@ func TestShowAutoClip(t *testing.T) {
 	// -> Copy to clipboard
 	t.Run("gopass show -c foo", func(t *testing.T) {
 		c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"clip": "true"}, "foo")
-		assert.NoError(t, act.Show(c))
+		require.NoError(t, act.Show(c))
 		assert.Contains(t, stderrBuf.String(), "WARNING")
 		assert.NotContains(t, stdoutBuf.String(), "secret")
 		stdoutBuf.Reset()
@@ -296,7 +296,7 @@ func TestShowAutoClip(t *testing.T) {
 	// -> Copy to clipboard AND print
 	t.Run("gopass show -C foo", func(t *testing.T) {
 		c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"alsoclip": "true"}, "foo")
-		assert.NoError(t, act.Show(c))
+		require.NoError(t, act.Show(c))
 		assert.Contains(t, stderrBuf.String(), "WARNING")
 		assert.Contains(t, stdoutBuf.String(), "secret")
 		assert.Contains(t, stdoutBuf.String(), "second")
@@ -308,7 +308,7 @@ func TestShowAutoClip(t *testing.T) {
 	// -> ONLY Print
 	t.Run("gopass show -f foo", func(t *testing.T) {
 		c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"unsafe": "true"}, "foo")
-		assert.NoError(t, act.Show(c))
+		require.NoError(t, act.Show(c))
 		assert.NotContains(t, stderrBuf.String(), "WARNING")
 		assert.Contains(t, stdoutBuf.String(), "secret")
 		assert.Contains(t, stdoutBuf.String(), "second")
@@ -342,7 +342,7 @@ func TestShowHandleRevision(t *testing.T) {
 	t.Run("show foo", func(t *testing.T) {
 		defer buf.Reset()
 		c := gptest.CliCtx(ctx, t)
-		assert.NoError(t, act.showHandleRevision(ctx, c, "foo", "HEAD"))
+		require.NoError(t, act.showHandleRevision(ctx, c, "foo", "HEAD"))
 	})
 }
 
@@ -368,7 +368,7 @@ func TestShowHandleError(t *testing.T) {
 
 	// show foo
 	c := gptest.CliCtx(ctx, t)
-	assert.Error(t, act.showHandleError(ctx, c, "foo", false, fmt.Errorf("test")))
+	require.Error(t, act.showHandleError(ctx, c, "foo", false, fmt.Errorf("test")))
 	buf.Reset()
 }
 
@@ -394,7 +394,7 @@ func TestShowPrintQR(t *testing.T) {
 		out.Stdout = os.Stdout
 	}()
 
-	assert.NoError(t, act.showPrintQR("foo", "bar"))
+	require.NoError(t, act.showPrintQR("foo", "bar"))
 	buf.Reset()
 }
 

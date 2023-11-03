@@ -187,8 +187,8 @@ func (s *Action) showHandleOutput(ctx context.Context, name string, sec gopass.S
 	}
 
 	if pw == "" && body == "" {
-		if config.Bool(ctx, "core.showsafecontent") && !ctxutil.IsForce(ctx) {
-			out.Warning(ctx, "core.showsafecontent=true. Use -f to display password, if any")
+		if config.Bool(ctx, "show.safecontent") && !ctxutil.IsForce(ctx) {
+			out.Warning(ctx, "show.safecontent=true. Use -f to display password, if any")
 		}
 
 		return exit.Error(exit.NotFound, store.ErrEmptySecret, store.ErrEmptySecret.Error())
@@ -200,7 +200,7 @@ func (s *Action) showHandleOutput(ctx context.Context, name string, sec gopass.S
 		}
 	}
 
-	if (IsClip(ctx) || config.Bool(ctx, "core.showautoclip")) && pw != "" {
+	if (IsClip(ctx) || config.Bool(ctx, "show.autoclip")) && pw != "" {
 		if err := clipboard.CopyTo(ctx, name, []byte(pw), s.cfg.GetInt("core.cliptimeout")); err != nil {
 			return err
 		}
@@ -255,7 +255,7 @@ func (s *Action) showGetContent(ctx context.Context, sec gopass.Secret) (string,
 	}
 
 	// everything but the first line.
-	if config.Bool(ctx, "core.showsafecontent") && !ctxutil.IsForce(ctx) {
+	if config.Bool(ctx, "show.safecontent") && !ctxutil.IsForce(ctx) {
 		body := showSafeContent(sec)
 		if IsAlsoClip(ctx) {
 			return pw, body, nil
@@ -368,7 +368,7 @@ func (s *Action) showHandleError(ctx context.Context, c *cli.Context, name strin
 	c.Context = ctx
 	if err := s.FindFuzzy(c); err != nil {
 		if IsClip(ctx) {
-			_ = notify.Notify(ctx, "gopass - error", fmt.Sprintf("%s", err))
+			_ = notify.Notify(ctx, "gopass - error", err.Error())
 		}
 
 		return exit.Error(exit.NotFound, err, "%s", err)

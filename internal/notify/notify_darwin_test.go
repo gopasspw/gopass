@@ -7,14 +7,14 @@ import (
 	"os/exec"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // to test cmd.exec correctly we use the same functionality as go itself see exec_test.go.
 func TestDarwinNotify(t *testing.T) {
 	ctx := context.Background()
 	t.Setenv("GOPASS_NO_NOTIFY", "true")
-	assert.NoError(t, Notify(ctx, "foo", "bar"))
+	require.NoError(t, Notify(ctx, "foo", "bar"))
 }
 
 func TestLegacyNotification(t *testing.T) {
@@ -26,7 +26,7 @@ func TestLegacyNotification(t *testing.T) {
 	}()
 
 	err := Notify(ctx, "foo", "bar")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 }
 
 func TestLegacyTerminalNotifierNotification(t *testing.T) {
@@ -39,7 +39,7 @@ func TestLegacyTerminalNotifierNotification(t *testing.T) {
 	}()
 
 	err := Notify(ctx, "foo", "bar")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 }
 
 func TestNoExecutableFound(t *testing.T) {
@@ -52,7 +52,7 @@ func TestNoExecutableFound(t *testing.T) {
 	}()
 
 	err := Notify(ctx, "foo", "bar")
-	assert.Error(t, err)
+	require.Error(t, err)
 }
 
 func mockExecLookPath(_ string) (string, error) {

@@ -28,9 +28,9 @@ $ gopass move entry entry
 
 ## Flags
 
-Flag | Aliases | Description
----- | ------- | -----------
-`--force` | `-f` | Overwrite existing destination without asking.
+| Flag      | Aliases | Description                                    |
+|-----------|---------|------------------------------------------------|
+| `--force` | `-f`    | Overwrite existing destination without asking. |
 
 ## Details
 

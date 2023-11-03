@@ -38,7 +38,7 @@ func TestList(t *testing.T) {
 	}()
 	color.NoColor = true
 
-	assert.NoError(t, act.List(gptest.CliCtx(ctx, t)))
+	require.NoError(t, act.List(gptest.CliCtx(ctx, t)))
 	want := `gopass
 └── foo
 
@@ -49,11 +49,11 @@ func TestList(t *testing.T) {
 	// add foo/bar and list folder foo
 	sec := secrets.NewAKV()
 	sec.SetPassword("123")
-	assert.NoError(t, sec.Set("bar", "zab"))
-	assert.NoError(t, act.Store.Set(ctx, "foo/bar", sec))
+	require.NoError(t, sec.Set("bar", "zab"))
+	require.NoError(t, act.Store.Set(ctx, "foo/bar", sec))
 	buf.Reset()
 
-	assert.NoError(t, act.List(gptest.CliCtx(ctx, t, "foo")))
+	require.NoError(t, act.List(gptest.CliCtx(ctx, t, "foo")))
 	want = `foo/
 └── bar
 
@@ -62,7 +62,7 @@ func TestList(t *testing.T) {
 	buf.Reset()
 
 	// list --flat foo
-	assert.NoError(t, act.List(gptest.CliCtxWithFlags(ctx, t, map[string]string{"flat": "true"}, "foo")))
+	require.NoError(t, act.List(gptest.CliCtxWithFlags(ctx, t, map[string]string{"flat": "true"}, "foo")))
 	want = `foo/bar
 `
 	assert.Equal(t, want, buf.String())
@@ -73,11 +73,11 @@ func TestList(t *testing.T) {
 	// add more folders and subfolders
 	sec = secrets.NewAKV()
 	sec.SetPassword("123")
-	assert.NoError(t, act.Store.Set(ctx, "foo/zen/bar", sec))
-	assert.NoError(t, act.Store.Set(ctx, "foo2/bar2", sec))
+	require.NoError(t, act.Store.Set(ctx, "foo/zen/bar", sec))
+	require.NoError(t, act.Store.Set(ctx, "foo2/bar2", sec))
 	buf.Reset()
 
-	assert.NoError(t, act.List(gptest.CliCtxWithFlags(ctx, t, map[string]string{"folders": "true"})))
+	require.NoError(t, act.List(gptest.CliCtxWithFlags(ctx, t, map[string]string{"folders": "true"})))
 	want = `foo/
 foo/zen/
 foo2/
@@ -88,10 +88,10 @@ foo2/
 	// add shadowed entry
 	sec = secrets.NewAKV()
 	sec.SetPassword("123")
-	assert.NoError(t, act.Store.Set(ctx, "foo/zen", sec))
+	require.NoError(t, act.Store.Set(ctx, "foo/zen", sec))
 	buf.Reset()
 
-	assert.NoError(t, act.List(gptest.CliCtxWithFlags(ctx, t, map[string]string{"flat": "true"})))
+	require.NoError(t, act.List(gptest.CliCtxWithFlags(ctx, t, map[string]string{"flat": "true"})))
 	want = `foo
 foo/bar
 foo/zen
@@ -101,7 +101,7 @@ foo2/bar2
 	assert.Equal(t, want, buf.String())
 	buf.Reset()
 
-	assert.NoError(t, act.List(gptest.CliCtx(ctx, t, "foo")))
+	require.NoError(t, act.List(gptest.CliCtx(ctx, t, "foo")))
 	want = `foo/
 ├── bar
 └── zen/ (shadowed)
@@ -112,7 +112,7 @@ foo2/bar2
 	buf.Reset()
 
 	// list not-present
-	assert.Error(t, act.List(gptest.CliCtx(ctx, t, "not-present")))
+	require.Error(t, act.List(gptest.CliCtx(ctx, t, "not-present")))
 	buf.Reset()
 }
 
@@ -137,21 +137,21 @@ func TestListLimit(t *testing.T) {
 	}()
 	color.NoColor = true
 
-	assert.NoError(t, act.List(gptest.CliCtx(ctx, t)))
+	require.NoError(t, act.List(gptest.CliCtx(ctx, t)))
 	want := `gopass
 └── foo
 
 `
 	sec := secrets.NewAKV()
 	sec.SetPassword("123")
-	assert.NoError(t, act.Store.Set(ctx, "foo/bar", sec))
-	assert.NoError(t, act.Store.Set(ctx, "foo/zen/baz/bar", sec))
-	assert.NoError(t, act.Store.Set(ctx, "foo2/bar2", sec))
+	require.NoError(t, act.Store.Set(ctx, "foo/bar", sec))
+	require.NoError(t, act.Store.Set(ctx, "foo/zen/baz/bar", sec))
+	require.NoError(t, act.Store.Set(ctx, "foo2/bar2", sec))
 	assert.Equal(t, want, buf.String())
 	buf.Reset()
 
 	t.Run("folders-limit-0", func(t *testing.T) {
-		assert.NoError(t, act.List(gptest.CliCtxWithFlags(ctx, t, map[string]string{"folders": "true", "limit": "0"})))
+		require.NoError(t, act.List(gptest.CliCtxWithFlags(ctx, t, map[string]string{"folders": "true", "limit": "0"})))
 		want = `foo/
 foo2/
 `
@@ -160,7 +160,7 @@ foo2/
 	})
 
 	t.Run("folders-limit-1", func(t *testing.T) {
-		assert.NoError(t, act.List(gptest.CliCtxWithFlags(ctx, t, map[string]string{"folders": "true", "limit": "1"})))
+		require.NoError(t, act.List(gptest.CliCtxWithFlags(ctx, t, map[string]string{"folders": "true", "limit": "1"})))
 		want = `foo/
 foo/zen/
 foo2/
@@ -170,7 +170,7 @@ foo2/
 	})
 
 	t.Run("folders-limit--1", func(t *testing.T) {
-		assert.NoError(t, act.List(gptest.CliCtxWithFlags(ctx, t, map[string]string{"folders": "true", "limit": "-1"})))
+		require.NoError(t, act.List(gptest.CliCtxWithFlags(ctx, t, map[string]string{"folders": "true", "limit": "-1"})))
 		want = `foo/
 foo/zen/
 foo/zen/baz/
@@ -181,7 +181,7 @@ foo2/
 	})
 
 	t.Run("flat-limit--1", func(t *testing.T) {
-		assert.NoError(t, act.List(gptest.CliCtxWithFlags(ctx, t, map[string]string{"flat": "true", "limit": "-1"})))
+		require.NoError(t, act.List(gptest.CliCtxWithFlags(ctx, t, map[string]string{"flat": "true", "limit": "-1"})))
 		want = `foo
 foo/bar
 foo/zen/baz/bar
@@ -192,7 +192,7 @@ foo2/bar2
 	})
 
 	t.Run("folders-limit-0", func(t *testing.T) {
-		assert.NoError(t, act.List(gptest.CliCtxWithFlags(ctx, t, map[string]string{"flat": "true", "limit": "0"})))
+		require.NoError(t, act.List(gptest.CliCtxWithFlags(ctx, t, map[string]string{"flat": "true", "limit": "0"})))
 		want = `foo
 foo2/
 `
@@ -201,7 +201,7 @@ foo2/
 	})
 
 	t.Run("folders-limit-2", func(t *testing.T) {
-		assert.NoError(t, act.List(gptest.CliCtxWithFlags(ctx, t, map[string]string{"flat": "true", "limit": "2"})))
+		require.NoError(t, act.List(gptest.CliCtxWithFlags(ctx, t, map[string]string{"flat": "true", "limit": "2"})))
 		want = `foo
 foo/bar
 foo/zen/baz/

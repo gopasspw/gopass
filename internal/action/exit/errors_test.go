@@ -8,6 +8,7 @@ import (
 
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestError(t *testing.T) {
@@ -17,6 +18,6 @@ func TestError(t *testing.T) {
 		out.Stdout = os.Stdout
 	}()
 
-	assert.Error(t, Error(Unknown, fmt.Errorf("test"), "test"))
+	require.Error(t, Error(Unknown, fmt.Errorf("test"), "test"))
 	assert.NotContains(t, buf.String(), "Stacktrace")
 }

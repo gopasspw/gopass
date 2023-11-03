@@ -9,7 +9,6 @@ import (
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/tests/gptest"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -32,5 +31,5 @@ func TestAliases(t *testing.T) {
 		stdout = os.Stdout
 	}()
 
-	assert.NoError(t, act.AliasesPrint(gptest.CliCtx(ctx, t)))
+	require.NoError(t, act.AliasesPrint(gptest.CliCtx(ctx, t)))
 }

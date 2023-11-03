@@ -39,14 +39,14 @@ func TestTemplates(t *testing.T) {
 
 	t.Run("display empty template tree", func(t *testing.T) {
 		defer buf.Reset()
-		assert.NoError(t, act.TemplatesPrint(gptest.CliCtx(ctx, t, "foo")))
+		require.NoError(t, act.TemplatesPrint(gptest.CliCtx(ctx, t, "foo")))
 		assert.Equal(t, "gopass\n\n", buf.String())
 	})
 
 	t.Run("add template", func(t *testing.T) {
 		defer buf.Reset()
-		assert.NoError(t, act.Store.SetTemplate(ctx, "foo", []byte("foobar")))
-		assert.NoError(t, act.TemplatesPrint(gptest.CliCtx(ctx, t, "foo")))
+		require.NoError(t, act.Store.SetTemplate(ctx, "foo", []byte("foobar")))
+		require.NoError(t, act.TemplatesPrint(gptest.CliCtx(ctx, t, "foo")))
 		want := `gopass
 └── foo
 
@@ -62,17 +62,17 @@ func TestTemplates(t *testing.T) {
 
 	t.Run("print template", func(t *testing.T) {
 		defer buf.Reset()
-		assert.NoError(t, act.TemplatePrint(gptest.CliCtx(ctx, t, "foo")))
+		require.NoError(t, act.TemplatePrint(gptest.CliCtx(ctx, t, "foo")))
 		assert.Equal(t, "foobar\n", buf.String())
 	})
 
 	t.Run("edit template", func(t *testing.T) {
 		defer buf.Reset()
-		assert.Error(t, act.TemplateEdit(gptest.CliCtx(ctx, t, "foo")))
+		require.Error(t, act.TemplateEdit(gptest.CliCtx(ctx, t, "foo")))
 	})
 
 	t.Run("remove template", func(t *testing.T) {
 		defer buf.Reset()
-		assert.NoError(t, act.TemplateRemove(gptest.CliCtx(ctx, t, "foo")))
+		require.NoError(t, act.TemplateRemove(gptest.CliCtx(ctx, t, "foo")))
 	})
 }

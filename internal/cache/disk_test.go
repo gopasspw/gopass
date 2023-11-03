@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestOnDisk(t *testing.T) {
@@ -13,16 +14,16 @@ func TestOnDisk(t *testing.T) {
 	td := t.TempDir()
 
 	odc, err := NewOnDiskWithDir("test", td, time.Hour)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
-	assert.NoError(t, odc.Set("foo", []string{"bar"}))
+	require.NoError(t, odc.Set("foo", []string{"bar"}))
 	res, err := odc.Get("foo")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, []string{"bar"}, res)
 
-	assert.Error(t, odc.Remove("bar"))
-	assert.NoError(t, odc.Remove("foo"))
-	assert.NoError(t, odc.Purge())
+	require.Error(t, odc.Remove("bar"))
+	require.NoError(t, odc.Remove("foo"))
+	require.NoError(t, odc.Purge())
 }
 
 func TestOnDiskExpiry(t *testing.T) {
@@ -31,14 +32,14 @@ func TestOnDiskExpiry(t *testing.T) {
 	td := t.TempDir()
 
 	odc, err := NewOnDiskWithDir("test", td, time.Second)
-	assert.NoError(t, err)
-	assert.NoError(t, odc.Set("foo", []string{"bar"}))
+	require.NoError(t, err)
+	require.NoError(t, odc.Set("foo", []string{"bar"}))
 	res, err := odc.Get("foo")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, []string{"bar"}, res)
 
 	time.Sleep(time.Second + 100*time.Millisecond)
 	res, err = odc.Get("foo")
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.NotEqual(t, []string{"bar"}, res)
 }

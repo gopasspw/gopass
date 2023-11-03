@@ -16,12 +16,12 @@ Note: `list` will not change anything, nor encrypt or decrypt anything.
 
 ## Flags
 
-Flag | Aliases | Description
----- | ------- | -----------
-`--limit value` | `-l value`| Max tree depth (default: -1)
-`--flat`      |`-f`      | Print a flat list of secrets (default: false)
-`--folders`    | `-d`    |  Print a flat list of folders (default: false)
-`--strip-prefix` | `-s`    |  Strip prefix from filtered entries (default: false)
+| Flag             | Aliases    | Description                                         |
+|------------------|------------|-----------------------------------------------------|
+| `--limit value`  | `-l value` | Max tree depth (default: -1)                        |
+| `--flat`         | `-f`       | Print a flat list of secrets (default: false)       |
+| `--folders`      | `-d`       | Print a flat list of folders (default: false)       |
+| `--strip-prefix` | `-s`       | Strip prefix from filtered entries (default: false) |
 
 The `--flat` and `--folders` flags provide a plaintext list of the entries located at
 the given prefix (default prefix being the root `/`). They are notably used to produce the

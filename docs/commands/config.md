@@ -8,12 +8,12 @@ Note: To manage mounts use `gopass mounts`.
 
 ```bash
 gopass config
-gopass config core.autoclip
-gopass config core.autoclip false
+gopass config generate.autoclip
+gopass config generate.autoclip false
 ```
 
 ## Flags
 
-Flag | Description
----- | -----------
-`--store` | Only sync a specific sub store
+| Flag      | Description                    |
+|-----------|--------------------------------|
+| `--store` | Only sync a specific sub store |

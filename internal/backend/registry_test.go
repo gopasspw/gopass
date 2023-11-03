@@ -37,5 +37,5 @@ func TestCryptoLoader(t *testing.T) {
 	backend.CryptoRegistry.Register(backend.Plain, "plain", fakeCryptoLoader{})
 	c, err := backend.NewCrypto(ctx, backend.Plain)
 	require.NoError(t, err)
-	assert.Equal(t, c.Name(), "plain")
+	assert.Equal(t, "plain", c.Name())
 }

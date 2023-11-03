@@ -9,6 +9,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestDetectStorage(t *testing.T) {
@@ -25,11 +26,11 @@ func TestDetectStorage(t *testing.T) {
 	})
 
 	fsDir := filepath.Join(td, "fs")
-	assert.NoError(t, os.MkdirAll(fsDir, 0o700))
+	require.NoError(t, os.MkdirAll(fsDir, 0o700))
 
 	t.Run("detect fs", func(t *testing.T) {
 		r, err := DetectStorage(ctx, fsDir)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.NotNil(t, r)
 		assert.Equal(t, "fs", r.Name())
 	})

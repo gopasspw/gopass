@@ -73,31 +73,31 @@ func TestComplete(t *testing.T) {
 	t.Run("bash completion", func(t *testing.T) {
 		defer buf.Reset()
 
-		assert.NoError(t, act.CompletionBash(nil))
+		require.NoError(t, act.CompletionBash(nil))
 		assert.Contains(t, buf.String(), "action.test")
 	})
 
 	t.Run("fish completion", func(t *testing.T) {
 		defer buf.Reset()
 
-		assert.NoError(t, act.CompletionFish(app))
+		require.NoError(t, act.CompletionFish(app))
 		assert.Contains(t, buf.String(), "action.test")
-		assert.Error(t, act.CompletionFish(nil))
+		require.Error(t, act.CompletionFish(nil))
 	})
 
 	t.Run("zsh completion", func(t *testing.T) {
 		defer buf.Reset()
 
-		assert.NoError(t, act.CompletionZSH(app))
+		require.NoError(t, act.CompletionZSH(app))
 		assert.Contains(t, buf.String(), "action.test")
-		assert.Error(t, act.CompletionZSH(nil))
+		require.Error(t, act.CompletionZSH(nil))
 	})
 
 	t.Run("openbsdksh completion", func(t *testing.T) {
 		defer buf.Reset()
 
-		assert.NoError(t, act.CompletionOpenBSDKsh(app))
+		require.NoError(t, act.CompletionOpenBSDKsh(app))
 		assert.Contains(t, buf.String(), "complete_gopass")
-		assert.Error(t, act.CompletionOpenBSDKsh(nil))
+		require.Error(t, act.CompletionOpenBSDKsh(nil))
 	})
 }

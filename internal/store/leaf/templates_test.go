@@ -31,9 +31,9 @@ func TestTemplates(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	assert.Equal(t, 0, len(s.ListTemplates(ctx, "")))
-	assert.NoError(t, s.SetTemplate(ctx, "foo", []byte("foobar")))
-	assert.Equal(t, 1, len(s.ListTemplates(ctx, "")))
+	assert.Empty(t, s.ListTemplates(ctx, ""))
+	require.NoError(t, s.SetTemplate(ctx, "foo", []byte("foobar")))
+	assert.Len(t, s.ListTemplates(ctx, ""), 1)
 
 	tt := s.TemplateTree(ctx)
 	assert.Equal(t, "gopass\n└── foo\n", tt.Format(0))
@@ -41,15 +41,15 @@ func TestTemplates(t *testing.T) {
 	assert.True(t, s.HasTemplate(ctx, "foo"))
 
 	b, err := s.GetTemplate(ctx, "foo")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "foobar", string(b))
 
 	_, b, found := s.LookupTemplate(ctx, "foo/bar")
 	assert.True(t, found)
 	assert.Equal(t, "foobar", string(b))
 
-	assert.NoError(t, s.RemoveTemplate(ctx, "foo"))
-	assert.Equal(t, 0, len(s.ListTemplates(ctx, "")))
+	require.NoError(t, s.RemoveTemplate(ctx, "foo"))
+	assert.Empty(t, s.ListTemplates(ctx, ""))
 
-	assert.Error(t, s.RemoveTemplate(ctx, "foo"))
+	require.Error(t, s.RemoveTemplate(ctx, "foo"))
 }

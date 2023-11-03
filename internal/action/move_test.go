@@ -9,7 +9,6 @@ import (
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/tests/gptest"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -35,6 +34,6 @@ func TestMove(t *testing.T) {
 
 	t.Run("move foo to bar", func(t *testing.T) {
 		defer buf.Reset()
-		assert.NoError(t, act.Move(gptest.CliCtx(ctx, t, "foo", "bar")))
+		require.NoError(t, act.Move(gptest.CliCtx(ctx, t, "foo", "bar")))
 	})
 }

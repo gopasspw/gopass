@@ -45,10 +45,10 @@ func TestFsck(t *testing.T) {
 	for _, e := range []string{"foo/bar", "foo/baz", "foo/zab"} {
 		sec := secrets.NewAKV()
 		sec.SetPassword("bar")
-		assert.NoError(t, s.Set(ctx, e, sec))
+		require.NoError(t, s.Set(ctx, e, sec))
 	}
 
-	assert.NoError(t, s.Fsck(ctx, ""))
+	require.NoError(t, s.Fsck(ctx, ""))
 	obuf.Reset()
 }
 

@@ -35,7 +35,7 @@ func TestGit(t *testing.T) {
 
 	// git init
 	c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"name": "foobar", "email": "foo.bar@example.org"})
-	assert.NoError(t, act.RCSInit(c))
+	require.NoError(t, act.RCSInit(c))
 	buf.Reset()
 
 	// getUserData
@@ -44,18 +44,18 @@ func TestGit(t *testing.T) {
 	assert.Equal(t, "0xDEADBEEF", email)
 
 	// GitAddRemote
-	assert.Error(t, act.RCSAddRemote(c))
+	require.Error(t, act.RCSAddRemote(c))
 	buf.Reset()
 
 	// GitRemoveRemote
-	assert.Error(t, act.RCSRemoveRemote(c))
+	require.Error(t, act.RCSRemoveRemote(c))
 	buf.Reset()
 
 	// GitPull
-	assert.Error(t, act.RCSPull(c))
+	require.Error(t, act.RCSPull(c))
 	buf.Reset()
 
 	// GitPush
-	assert.Error(t, act.RCSPush(c))
+	require.Error(t, act.RCSPush(c))
 	buf.Reset()
 }

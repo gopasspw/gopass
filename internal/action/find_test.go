@@ -30,7 +30,7 @@ func TestFind(t *testing.T) {
 	require.NotNil(t, act)
 	ctx = act.cfg.WithConfig(ctx)
 
-	require.NoError(t, act.cfg.Set("", "core.autoclip", "false"))
+	require.NoError(t, act.cfg.Set("", "generate.autoclip", "false"))
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
@@ -54,42 +54,42 @@ func TestFind(t *testing.T) {
 
 	// find fo (with fuzzy search)
 	c = gptest.CliCtxWithFlags(ctx, t, nil, "fo")
-	assert.NoError(t, act.FindFuzzy(c))
+	require.NoError(t, act.FindFuzzy(c))
 	assert.Contains(t, strings.TrimSpace(buf.String()), "Found exact match in \"foo\"\nsecret")
 	buf.Reset()
 
 	// find fo (no fuzzy search)
 	c = gptest.CliCtxWithFlags(ctx, t, nil, "fo")
-	assert.NoError(t, act.Find(c))
-	assert.Equal(t, strings.TrimSpace(buf.String()), "foo")
+	require.NoError(t, act.Find(c))
+	assert.Equal(t, "foo", strings.TrimSpace(buf.String()))
 	buf.Reset()
 
 	// testing the safecontent case
-	require.NoError(t, act.cfg.Set("", "core.showsafecontent", "true"))
+	require.NoError(t, act.cfg.Set("", "show.safecontent", "true"))
 	c.Context = ctx
-	assert.NoError(t, act.FindFuzzy(c))
+	require.NoError(t, act.FindFuzzy(c))
 	buf.Reset()
 
 	// testing with the clip flag set
 	c = gptest.CliCtxWithFlags(ctx, t, map[string]string{"clip": "true"}, "fo")
-	assert.NoError(t, act.FindFuzzy(c))
+	require.NoError(t, act.FindFuzzy(c))
 	out := strings.TrimSpace(buf.String())
 	assert.Contains(t, out, "Found exact match in \"foo\"")
 	buf.Reset()
 
 	// safecontent case with force flag set
 	c = gptest.CliCtxWithFlags(ctx, t, map[string]string{"unsafe": "true"}, "fo")
-	assert.NoError(t, act.FindFuzzy(c))
+	require.NoError(t, act.FindFuzzy(c))
 	out = strings.TrimSpace(buf.String())
 	assert.Contains(t, out, "Found exact match in \"foo\"\nsecret")
 	buf.Reset()
 
 	// stopping with the safecontent tests
-	require.NoError(t, act.cfg.Set("", "core.showsafecontent", "false"))
+	require.NoError(t, act.cfg.Set("", "show.safecontent", "false"))
 
 	// find yo
 	c = gptest.CliCtx(ctx, t, "yo")
-	assert.Error(t, act.FindFuzzy(c))
+	require.Error(t, act.FindFuzzy(c))
 	buf.Reset()
 
 	// add some secrets
@@ -97,27 +97,27 @@ func TestFind(t *testing.T) {
 	sec.SetPassword("foo")
 	_, err = sec.Write([]byte("bar"))
 	require.NoError(t, err)
-	assert.NoError(t, act.Store.Set(ctx, "bar/baz", sec))
-	assert.NoError(t, act.Store.Set(ctx, "bar/zab", sec))
+	require.NoError(t, act.Store.Set(ctx, "bar/baz", sec))
+	require.NoError(t, act.Store.Set(ctx, "bar/zab", sec))
 	buf.Reset()
 
 	// find bar
 	c = gptest.CliCtx(ctx, t, "bar")
-	assert.NoError(t, act.FindFuzzy(c))
+	require.NoError(t, act.FindFuzzy(c))
 	assert.Equal(t, "bar/baz\nbar/zab", strings.TrimSpace(buf.String()))
 	buf.Reset()
 
 	// find w/o callback
 	c = gptest.CliCtx(ctx, t)
-	assert.NoError(t, act.find(ctx, c, "foo", nil, false))
+	require.NoError(t, act.find(ctx, c, "foo", nil, false))
 	assert.Equal(t, "foo", strings.TrimSpace(buf.String()))
 	buf.Reset()
 
 	// findSelection w/o callback
 	c = gptest.CliCtx(ctx, t)
-	assert.Error(t, act.findSelection(ctx, c, []string{"foo", "bar"}, "fo", nil))
+	require.Error(t, act.findSelection(ctx, c, []string{"foo", "bar"}, "fo", nil))
 
 	// findSelection w/o options
 	c = gptest.CliCtx(ctx, t)
-	assert.Error(t, act.findSelection(ctx, c, nil, "fo", func(_ context.Context, _ *cli.Context, _ string, _ bool) error { return nil }))
+	require.Error(t, act.findSelection(ctx, c, nil, "fo", func(_ context.Context, _ *cli.Context, _ string, _ bool) error { return nil }))
 }

@@ -27,10 +27,10 @@ func TestClone(t *testing.T) {
 	require.NoError(t, os.MkdirAll(store, 0o700))
 
 	cmd := exec.Command("git", "init", repo)
-	assert.NoError(t, cmd.Run())
+	require.NoError(t, cmd.Run())
 
 	r, err := Clone(ctx, GitFS, repo, store)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NotNil(t, r)
 }
 
@@ -50,9 +50,9 @@ func TestInitRCS(t *testing.T) {
 	}()
 
 	gitDir := filepath.Join(td, "git")
-	assert.NoError(t, os.MkdirAll(filepath.Join(gitDir, ".git"), 0o700))
+	require.NoError(t, os.MkdirAll(filepath.Join(gitDir, ".git"), 0o700))
 
 	r, err := InitStorage(ctx, GitFS, gitDir)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NotNil(t, r)
 }

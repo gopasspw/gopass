@@ -6,6 +6,7 @@ import (
 
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestLoadCustomRules(t *testing.T) {
@@ -18,7 +19,7 @@ func TestLoadCustomRules(t *testing.T) {
 	}
 
 	for k, v := range aliases {
-		assert.NoError(t, cfg.Set("", "domain-alias."+k+".insteadOf", v))
+		require.NoError(t, cfg.Set("", "domain-alias."+k+".insteadOf", v))
 	}
 
 	ctx := context.Background()

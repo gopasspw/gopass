@@ -97,10 +97,10 @@ func TestList(t *testing.T) {
 			rs := recipients.New()
 			rs.Add("john.doe")
 
-			assert.NoError(t, s.saveRecipients(ctx, rs, "test"))
+			require.NoError(t, s.saveRecipients(ctx, rs, "test"))
 
 			// prepare store
-			assert.NoError(t, tc.prep(s))
+			require.NoError(t, tc.prep(s))
 			obuf.Reset()
 
 			// run test case

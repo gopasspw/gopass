@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func ExampleGenerateMemorablePassword() { //nolint:testableexamples
@@ -27,7 +28,7 @@ func TestPwgen(t *testing.T) {
 				Syms = CharAll
 			}
 
-			assert.Equal(t, i, len(GeneratePasswordCharset(i, Syms)))
+			assert.Len(t, GeneratePasswordCharset(i, Syms), i)
 		}
 	}
 }
@@ -64,7 +65,7 @@ func TestPwgenNoCrand(t *testing.T) {
 
 	n := randomInteger(1024)
 
-	assert.NoError(t, w.Close())
+	require.NoError(t, w.Close())
 
 	os.Stdout = oldOut
 
@@ -109,8 +110,8 @@ func TestGeneratePasswordWithAllClasses(t *testing.T) {
 	t.Parallel()
 
 	pw, err := GeneratePasswordWithAllClasses(50, true)
-	assert.NoError(t, err)
-	assert.Equal(t, 50, len(pw))
+	require.NoError(t, err)
+	assert.Len(t, pw, 50)
 }
 
 func TestGenerateMemorablePassword(t *testing.T) {

@@ -140,9 +140,9 @@ func (c *Config) ConfigMap() map[string]string {
 		case reflect.String:
 			strVal = f.String()
 		case reflect.Bool:
-			strVal = fmt.Sprintf("%t", f.Bool())
+			strVal = strconv.FormatBool(f.Bool())
 		case reflect.Int:
-			strVal = fmt.Sprintf("%d", f.Int())
+			strVal = strconv.FormatInt(f.Int(), 10)
 		default:
 			continue
 		}

@@ -5,11 +5,12 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestDetectBinaryCandidates(t *testing.T) {
 	bins, err := detectBinaryCandidates("foobar")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	// the install locations differ depending on :
 	// - chocolatey install path prefix
 	// - 64bit/32bit windows

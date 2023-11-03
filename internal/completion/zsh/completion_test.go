@@ -59,12 +59,12 @@ func TestGetCompletion(t *testing.T) {
 
 	zshTemplate = "{{.unexported}}"
 	sv, err = GetCompletion(app)
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.Contains(t, sv, "")
 
 	zshTemplate = "{{}}"
 	sv, err = GetCompletion(app)
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.Contains(t, sv, "")
 }
 
@@ -91,6 +91,6 @@ func TestFormatflagFunc(t *testing.T) {
 	}
 
 	sv, err := ff(&unknownFlag{})
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.Equal(t, "", sv)
 }

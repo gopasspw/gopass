@@ -25,12 +25,12 @@ func TestInit(t *testing.T) {
 	rs := New(cfg)
 
 	inited, err := rs.IsInitialized(ctx)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.False(t, inited)
-	assert.NoError(t, rs.Init(ctx, "", u.StoreDir("rs"), "0xDEADBEEF"))
+	require.NoError(t, rs.Init(ctx, "", u.StoreDir("rs"), "0xDEADBEEF"))
 
 	inited, err = rs.IsInitialized(ctx)
 	require.NoError(t, err)
 	assert.True(t, inited)
-	assert.NoError(t, rs.Init(ctx, "rs2", u.StoreDir("rs2"), "0xDEADBEEF"))
+	require.NoError(t, rs.Init(ctx, "rs2", u.StoreDir("rs2"), "0xDEADBEEF"))
 }

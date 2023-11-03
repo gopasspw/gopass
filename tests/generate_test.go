@@ -15,15 +15,15 @@ func TestGenerate(t *testing.T) {
 	ts.initStore()
 
 	out, err := ts.run("generate")
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.Equal(t, "\nError: please provide a password name\n", out)
 
 	out, err = ts.run("generate foo 0")
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.Equal(t, "\nError: password length must not be zero\n", out)
 
 	out, err = ts.run("generate -p baz 42")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	lines := strings.Split(out, "\n")
 
@@ -34,11 +34,11 @@ func TestGenerate(t *testing.T) {
 	t.Setenv("GOPASS_CHARACTER_SET", "a")
 
 	out, err = ts.run("generate -p zab 4")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	lines = strings.Split(out, "\n")
 
 	require.Greater(t, len(lines), 2)
 	assert.Contains(t, out, "The generated password is:")
-	assert.Equal(t, lines[3], "aaaa")
+	assert.Equal(t, "aaaa", lines[3])
 }

@@ -56,11 +56,17 @@ func TestConfigOptsInDocs(t *testing.T) {
 	t.Logf("Config options used in the code: %+v", used)
 
 	for _, k := range set.SortedKeys(documented) {
+		if _, got := migrationOpts[k]; got {
+			continue
+		}
 		if !used[k] {
 			t.Errorf("Documented but not used: %s", k)
 		}
 	}
 	for _, k := range set.SortedKeys(used) {
+		if _, got := migrationOpts[k]; got {
+			t.Errorf("Legacy option still used: %s", k)
+		}
 		if !documented[k] {
 			t.Errorf("Used but not documented: %s", k)
 		}
@@ -162,7 +168,7 @@ func documentedOpts(t *testing.T) map[string]bool {
 		if len(found) < 2 {
 			continue
 		}
-		if _, found := ignoredOptions[found[1]]; found {
+		if _, got := ignoredOptions[found[1]]; got {
 			continue
 		}
 		opts[found[1]] = true

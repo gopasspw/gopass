@@ -124,7 +124,7 @@ func TestGetCommands(t *testing.T) {
 	ctx = backend.WithCryptoBackendString(ctx, "plain")
 
 	act, err := action.New(cfg, semver.Version{})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	app := cli.NewApp()
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
@@ -132,7 +132,7 @@ func TestGetCommands(t *testing.T) {
 	c.Context = ctx
 
 	commands := getCommands(act, app)
-	assert.Equal(t, 41, len(commands))
+	assert.Len(t, commands, 41)
 
 	prefix := ""
 	testCommands(t, c, commands, prefix)
@@ -163,12 +163,12 @@ func testCommands(t *testing.T, c *cli.Context, commands []*cli.Command, prefix 
 		if cmd.Action != nil {
 			fullName := prefix + "." + cmd.Name
 			if _, found := commandsWithError[fullName]; found {
-				assert.Error(t, cmd.Action(c), fullName)
+				require.Error(t, cmd.Action(c), fullName)
 
 				continue
 			}
 
-			assert.NoError(t, cmd.Action(c), fullName)
+			require.NoError(t, cmd.Action(c), fullName)
 		}
 	}
 }
@@ -180,5 +180,5 @@ func TestInitContext(t *testing.T) {
 	cfg := config.NewNoWrites()
 
 	ctx = initContext(ctx, cfg)
-	assert.Equal(t, true, gpg.IsAlwaysTrust(ctx))
+	assert.True(t, gpg.IsAlwaysTrust(ctx))
 }

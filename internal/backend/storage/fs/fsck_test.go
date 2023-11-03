@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestFsck(t *testing.T) {
@@ -20,17 +20,17 @@ func TestFsck(t *testing.T) {
 
 	l := &loader{}
 	s, err := l.Init(ctx, path)
-	assert.NoError(t, err)
-	assert.NoError(t, l.Handles(ctx, path))
+	require.NoError(t, err)
+	require.NoError(t, l.Handles(ctx, path))
 
 	for _, fn := range []string{
 		filepath.Join(path, ".plain-ids"),
 		filepath.Join(path, "foo", "bar"),
 		filepath.Join(path, "foo", "zen"),
 	} {
-		assert.NoError(t, os.MkdirAll(filepath.Dir(fn), 0o777))
-		assert.NoError(t, os.WriteFile(fn, []byte(fn), 0o663))
+		require.NoError(t, os.MkdirAll(filepath.Dir(fn), 0o777))
+		require.NoError(t, os.WriteFile(fn, []byte(fn), 0o663))
 	}
 
-	assert.NoError(t, s.Fsck(ctx))
+	require.NoError(t, s.Fsck(ctx))
 }

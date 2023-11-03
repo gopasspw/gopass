@@ -42,17 +42,17 @@ func TestMerge(t *testing.T) {
 	var sec gopass.Secret
 	sec = secrets.NewAKV()
 	sec.SetPassword("123")
-	assert.NoError(t, sec.Set("bar", "zab"))
-	assert.NoError(t, act.Store.Set(ctx, "bar/baz", sec))
+	require.NoError(t, sec.Set("bar", "zab"))
+	require.NoError(t, act.Store.Set(ctx, "bar/baz", sec))
 	buf.Reset()
 
 	sec = secrets.NewAKV()
 	sec.SetPassword("456")
-	assert.NoError(t, sec.Set("bar", "baz"))
-	assert.NoError(t, act.Store.Set(ctx, "bar/zab", sec))
+	require.NoError(t, sec.Set("bar", "baz"))
+	require.NoError(t, act.Store.Set(ctx, "bar/zab", sec))
 	buf.Reset()
 
-	assert.NoError(t, act.Merge(gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true"}, "bar/baz", "bar/zab")))
+	require.NoError(t, act.Merge(gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true"}, "bar/baz", "bar/zab")))
 
 	sec, err = act.Store.Get(ctx, "bar/baz")
 	require.NoError(t, err)

@@ -14,6 +14,7 @@ import (
 	"github.com/gopasspw/gopass/internal/out"
 	ps "github.com/mitchellh/go-ps"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestNotExistingClipboardCopyCommand(t *testing.T) {
@@ -24,7 +25,7 @@ func TestNotExistingClipboardCopyCommand(t *testing.T) {
 	defer cancel()
 
 	maybeErr := CopyTo(ctx, "foo", []byte("bar"), 1)
-	assert.Error(t, maybeErr)
+	require.Error(t, maybeErr)
 	assert.Contains(t, maybeErr.Error(), "\"not_existing_command\": executable file not found")
 }
 
@@ -39,13 +40,13 @@ func TestUnsupportedCopyToClipboard(t *testing.T) {
 	buf := &bytes.Buffer{}
 	out.Stderr = buf
 
-	assert.NoError(t, CopyTo(ctx, "foo", []byte("bar"), 1))
+	require.NoError(t, CopyTo(ctx, "foo", []byte("bar"), 1))
 	assert.Contains(t, buf.String(), "WARNING")
 }
 
 func TestClearClipboard(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
-	assert.NoError(t, clear(ctx, "foo", []byte("bar"), 0))
+	require.NoError(t, clear(ctx, "foo", []byte("bar"), 0))
 	cancel()
 	time.Sleep(50 * time.Millisecond)
 }

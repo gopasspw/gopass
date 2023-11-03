@@ -21,10 +21,10 @@ $ gopass delete entry key
 
 ## Flags
 
-Flag | Aliases | Description
----- | ------- | -----------
-`--recursive` | `-r` | Recursively delete files and folders.
-`--force` | `-f` | Do not ask for confirmation.
+| Flag          | Aliases | Description                           |
+|---------------|---------|---------------------------------------|
+| `--recursive` | `-r`    | Recursively delete files and folders. |
+| `--force`     | `-f`    | Do not ask for confirmation.          |
 
 ## Details
 

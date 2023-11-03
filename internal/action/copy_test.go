@@ -27,7 +27,7 @@ func TestCopy(t *testing.T) {
 	require.NotNil(t, act)
 	ctx = act.cfg.WithConfig(ctx)
 
-	require.NoError(t, act.cfg.Set("", "core.autoclip", "false"))
+	require.NoError(t, act.cfg.Set("", "generate.autoclip", "false"))
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
@@ -41,7 +41,7 @@ func TestCopy(t *testing.T) {
 
 	// copy foo bar
 	c := gptest.CliCtx(ctx, t, "foo", "bar")
-	assert.NoError(t, act.Copy(c))
+	require.NoError(t, act.Copy(c))
 	buf.Reset()
 
 	// copy foo bar (again, should fail)
@@ -49,30 +49,30 @@ func TestCopy(t *testing.T) {
 		ctx := ctxutil.WithAlwaysYes(ctx, false)
 		ctx = ctxutil.WithInteractive(ctx, false)
 		c.Context = ctx
-		assert.Error(t, act.Copy(c))
+		require.Error(t, act.Copy(c))
 		buf.Reset()
 	}
 
 	// copy not-found still-not-there
 	c = gptest.CliCtx(ctx, t, "not-found", "still-not-there")
-	assert.Error(t, act.Copy(c))
+	require.Error(t, act.Copy(c))
 	buf.Reset()
 
 	// copy
 	c = gptest.CliCtx(ctx, t)
-	assert.Error(t, act.Copy(c))
+	require.Error(t, act.Copy(c))
 	buf.Reset()
 
 	// insert bam/baz
-	assert.NoError(t, act.insertStdin(ctx, "bam/baz", []byte("foobar"), false))
-	assert.NoError(t, act.insertStdin(ctx, "bam/zab", []byte("barfoo"), false))
+	require.NoError(t, act.insertStdin(ctx, "bam/baz", []byte("foobar"), false))
+	require.NoError(t, act.insertStdin(ctx, "bam/zab", []byte("barfoo"), false))
 
 	// recursive copy: bam/ -> zab
 	c = gptest.CliCtx(ctx, t, "bam", "zab")
-	assert.NoError(t, act.Copy(c))
+	require.NoError(t, act.Copy(c))
 	buf.Reset()
 
-	assert.NoError(t, act.List(gptest.CliCtx(ctx, t)))
+	require.NoError(t, act.List(gptest.CliCtx(ctx, t)))
 	want := `gopass
 ├── bam/
 │   ├── baz
@@ -88,7 +88,7 @@ func TestCopy(t *testing.T) {
 	buf.Reset()
 
 	ctx = ctxutil.WithTerminal(ctx, false)
-	assert.NoError(t, act.show(ctx, c, "zab/zab", false))
+	require.NoError(t, act.show(ctx, c, "zab/zab", false))
 	assert.Equal(t, "barfoo\n", buf.String())
 	buf.Reset()
 }
@@ -110,7 +110,7 @@ func TestCopyGpg(t *testing.T) {
 	require.NotNil(t, act)
 	ctx = act.cfg.WithConfig(ctx)
 
-	require.NoError(t, act.cfg.Set("", "core.autoclip", "false"))
+	require.NoError(t, act.cfg.Set("", "generate.autoclip", "false"))
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
@@ -124,12 +124,12 @@ func TestCopyGpg(t *testing.T) {
 
 	// generate foo
 	c := gptest.CliCtx(ctx, t, "foo")
-	assert.NoError(t, act.Generate(c))
+	require.NoError(t, act.Generate(c))
 	buf.Reset()
 
 	// copy foo bar
 	c = gptest.CliCtx(ctx, t, "foo", "bar")
-	assert.NoError(t, act.Copy(c))
+	require.NoError(t, act.Copy(c))
 	buf.Reset()
 
 	// copy foo bar (again, should fail)
@@ -137,30 +137,30 @@ func TestCopyGpg(t *testing.T) {
 		ctx := ctxutil.WithAlwaysYes(ctx, false)
 		ctx = ctxutil.WithInteractive(ctx, false)
 		c.Context = ctx
-		assert.Error(t, act.Copy(c))
+		require.Error(t, act.Copy(c))
 		buf.Reset()
 	}
 
 	// copy not-found still-not-there
 	c = gptest.CliCtx(ctx, t, "not-found", "still-not-there")
-	assert.Error(t, act.Copy(c))
+	require.Error(t, act.Copy(c))
 	buf.Reset()
 
 	// copy
 	c = gptest.CliCtx(ctx, t)
-	assert.Error(t, act.Copy(c))
+	require.Error(t, act.Copy(c))
 	buf.Reset()
 
 	// insert bam/baz
-	assert.NoError(t, act.insertStdin(ctx, "bam/baz", []byte("foobar"), false))
-	assert.NoError(t, act.insertStdin(ctx, "bam/zab", []byte("barfoo"), false))
+	require.NoError(t, act.insertStdin(ctx, "bam/baz", []byte("foobar"), false))
+	require.NoError(t, act.insertStdin(ctx, "bam/zab", []byte("barfoo"), false))
 
 	// recursive copy: bam/ -> zab
 	c = gptest.CliCtx(ctx, t, "bam", "zab")
-	assert.NoError(t, act.Copy(c))
+	require.NoError(t, act.Copy(c))
 	buf.Reset()
 
-	assert.NoError(t, act.List(gptest.CliCtx(ctx, t)))
+	require.NoError(t, act.List(gptest.CliCtx(ctx, t)))
 	want := `gopass
 ├── bam/
 │   ├── baz
@@ -176,7 +176,7 @@ func TestCopyGpg(t *testing.T) {
 	buf.Reset()
 
 	ctx = ctxutil.WithTerminal(ctx, false)
-	assert.NoError(t, act.show(WithPasswordOnly(ctx, true), c, "zab/zab", false))
+	require.NoError(t, act.show(WithPasswordOnly(ctx, true), c, "zab/zab", false))
 	assert.Equal(t, "barfoo", buf.String())
 	buf.Reset()
 }

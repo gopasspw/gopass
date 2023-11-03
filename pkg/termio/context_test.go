@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestPassPromptFunc(t *testing.T) {
@@ -21,6 +22,6 @@ func TestPassPromptFunc(t *testing.T) {
 	assert.True(t, HasPassPromptFunc(ctx))
 	assert.NotNil(t, GetPassPromptFunc(ctx))
 	sv, err := GetPassPromptFunc(ctx)(ctx, "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "test", sv)
 }

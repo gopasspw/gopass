@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestPromptPass(t *testing.T) {
@@ -16,5 +16,5 @@ func TestPromptPass(t *testing.T) {
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 
 	_, err := promptPass(ctx, "foo")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 }

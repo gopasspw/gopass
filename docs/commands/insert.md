@@ -22,9 +22,9 @@ Note: `insert` will not change anything but the `Password` field (using the `ins
 
 ## Flags
 
-Flag | Aliases | Description
----- | ------- | -----------
-`--echo` | `-e` | Display the secret while typing (default: `false`)
-`--multiline` | `-m` | Insert using `$EDITOR` (default: `false`). This identical to running `gopass edit entry`. All other flags are ignored.
-`--force` | `-f` | Overwrite any existing value and do not prompt. (default: `false`)
-`--append` | `-a` | Append to any existing data. Only applies if reading from STDIN. (default: `false`)
+| Flag          | Aliases | Description                                                                                                            |
+|---------------|---------|------------------------------------------------------------------------------------------------------------------------|
+| `--echo`      | `-e`    | Display the secret while typing (default: `false`)                                                                     |
+| `--multiline` | `-m`    | Insert using `$EDITOR` (default: `false`). This identical to running `gopass edit entry`. All other flags are ignored. |
+| `--force`     | `-f`    | Overwrite any existing value and do not prompt. (default: `false`)                                                     |
+| `--append`    | `-a`    | Append to any existing data. Only applies if reading from STDIN. (default: `false`)                                    |

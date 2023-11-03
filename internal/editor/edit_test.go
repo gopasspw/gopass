@@ -8,7 +8,7 @@ import (
 
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestEdit(t *testing.T) {
@@ -23,6 +23,6 @@ func TestEdit(t *testing.T) {
 	}()
 
 	_, err := Invoke(ctx, "true", []byte{})
-	assert.Error(t, err)
+	require.Error(t, err)
 	buf.Reset()
 }

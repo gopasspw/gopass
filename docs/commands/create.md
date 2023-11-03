@@ -55,8 +55,8 @@ attributes:
 
 ## Flags
 
-Flag | Aliases | Description
----- | ------- | -----------
-`--store` | `-s` | Select the store to use. Will be used to look up user templates.
-`--force` | `-f` | For overwriting existing entries.
-`--print` | `-p` | Print the password to STDOUT.
+| Flag      | Aliases | Description                                                      |
+|-----------|---------|------------------------------------------------------------------|
+| `--store` | `-s`    | Select the store to use. Will be used to look up user templates. |
+| `--force` | `-f`    | For overwriting existing entries.                                |
+| `--print` | `-p`    | Print the password to STDOUT.                                    |

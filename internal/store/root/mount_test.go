@@ -29,11 +29,11 @@ func TestMount(t *testing.T) {
 	require.NotNil(t, sub)
 
 	sub, err = rs.GetSubStore("foo")
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.Nil(t, sub)
 
 	// removing mounts should never fail
-	assert.NoError(t, rs.RemoveMount(ctx, "foo"))
+	require.NoError(t, rs.RemoveMount(ctx, "foo"))
 }
 
 func TestMountPoint(t *testing.T) {
@@ -46,10 +46,10 @@ func TestMountPoint(t *testing.T) {
 	rs, err := createRootStore(ctx, u)
 	require.NoError(t, err)
 
-	assert.NoError(t, u.InitStore("sub1"))
-	assert.NoError(t, u.InitStore("sub2"))
-	assert.NoError(t, rs.AddMount(ctx, "sub1", u.StoreDir("sub1")))
-	assert.NoError(t, rs.AddMount(ctx, "sub2", u.StoreDir("sub2")))
+	require.NoError(t, u.InitStore("sub1"))
+	require.NoError(t, u.InitStore("sub2"))
+	require.NoError(t, rs.AddMount(ctx, "sub1", u.StoreDir("sub1")))
+	require.NoError(t, rs.AddMount(ctx, "sub2", u.StoreDir("sub2")))
 
 	assert.Equal(t, "sub1", rs.MountPoint("sub1"))
 }
@@ -64,12 +64,12 @@ func TestMountPointIllegal(t *testing.T) {
 	rs, err := createRootStore(ctx, u)
 	require.NoError(t, err)
 
-	assert.NoError(t, u.InitStore("sub1"))
-	assert.NoError(t, u.InitStore("sub2"))
-	assert.NoError(t, rs.AddMount(ctx, "sub1/foo", u.StoreDir("sub1")))
+	require.NoError(t, u.InitStore("sub1"))
+	require.NoError(t, u.InitStore("sub2"))
+	require.NoError(t, rs.AddMount(ctx, "sub1/foo", u.StoreDir("sub1")))
 	if runtime.GOOS == "windows" {
-		assert.NoError(t, rs.AddMount(ctx, "sub2\\foo", u.StoreDir("sub2")))
-		assert.Error(t, rs.AddMount(ctx, "sub2\\", u.StoreDir("sub2")))
+		require.NoError(t, rs.AddMount(ctx, "sub2\\foo", u.StoreDir("sub2")))
+		require.Error(t, rs.AddMount(ctx, "sub2\\", u.StoreDir("sub2")))
 	}
-	assert.Error(t, rs.AddMount(ctx, "sub2/", u.StoreDir("sub2")))
+	require.Error(t, rs.AddMount(ctx, "sub2/", u.StoreDir("sub2")))
 }

@@ -35,7 +35,7 @@ func CopyTo(ctx context.Context, name string, content []byte, timeout int) error
 		}
 	} else if clipboard.Unsupported {
 		out.Errorf(ctx, "%s", ErrNotSupported)
-		_ = notify.Notify(ctx, "gopass - clipboard", fmt.Sprintf("%s", ErrNotSupported))
+		_ = notify.Notify(ctx, "gopass - clipboard", ErrNotSupported.Error())
 
 		return nil
 	} else if err := copyToClipboard(ctx, content); err != nil {

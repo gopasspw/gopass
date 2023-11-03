@@ -218,7 +218,7 @@ through gopass as well.
 * [ENHANCEMENT] Hide password on MacOS clipboards (#2065)
 * [ENHANCEMENT] Passage compat improvements (#2060, #2060)
 * [ENHANCEMENT] gopass git invokes git directly (#2102)
-* [ENHANCEMENT] Template support for the create wizard (#2064)
+* [ENHANCEMENT] Template support for the create wizard (#2064)
 * [ENHANCENMENT] Check for MacOS Keychain storing the GPG (#2144)
 * [EXPERIMENTAL] Support the Fossil SCM (#2092, #2022)
 * [FEATURE] Add env variables for custom clipboard commands. (#2091, #2042)
@@ -574,13 +574,13 @@ be included in any binary re-distribution of gopass.
 
 ## 1.8.4 / 2018-12-26
 
-* [ENHANCEMENT] Evaluate templates when inserting single secrets [#1023]
-* [ENHANCEMENT] Add fuzzy search dialog for gopass otp [#1021]
+* [ENHANCEMENT] Evaluate templates when inserting single secrets [#1023]
+* [ENHANCEMENT] Add fuzzy search dialog for gopass otp [#1021]
 * [ENHANCEMENT] Add edit option to search dialog [#1019]
 * [ENHANCEMENT] Introduce build tags for experimental features [#1000]
 * [BUGFIX] Fix recursive delete [#1024]
 * [BUGFIX] Abort tests on critical failures [#997]
-* [BUGFIX] Zsh autocompletion [#996]
+* [BUGFIX] Zsh autocompletion [#996]
 
 ## 1.8.3 / 2018-11-19
 

@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"crypto/sha256"
-	"fmt"
+	"encoding/hex"
 	"sort"
 	"strings"
 
@@ -135,7 +135,7 @@ func (r *Recipients) Hash() string {
 	h := sha256.New()
 	_, _ = h.Write(r.Marshal())
 
-	return fmt.Sprintf("%x", h.Sum(nil))
+	return hex.EncodeToString(h.Sum(nil))
 }
 
 // Unmarshal Recipients line by line from a io.Reader. Handles Unix, Windows and Mac line endings.

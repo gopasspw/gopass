@@ -406,11 +406,11 @@ func TestLoadError(t *testing.T) {
 
 	_ = os.Remove(gcfg)
 	cfg, err := load(gcfg, false)
-	assert.Error(t, err)
+	require.Error(t, err)
 
 	gcfg = filepath.Join(t.TempDir(), "foo", ".gopass.yml")
 	t.Setenv("GOPASS_CONFIG", gcfg)
-	assert.NoError(t, cfg.Save())
+	require.NoError(t, cfg.Save())
 }
 
 func TestDecodeError(t *testing.T) {
@@ -454,7 +454,7 @@ func capture(t *testing.T, fn func() error) string {
 	_ = w.Close()
 	os.Stdout = old
 	color.NoColor = oldcol
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	out := <-done
 
 	return strings.TrimSpace(out)

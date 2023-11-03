@@ -28,10 +28,10 @@ func TestTemplate(t *testing.T) {
 
 	assert.False(t, rs.HasTemplate(ctx, "foo"))
 	_, err = rs.GetTemplate(ctx, "foo")
-	assert.Error(t, err)
-	assert.Error(t, rs.RemoveTemplate(ctx, "foo"))
+	require.Error(t, err)
+	require.Error(t, rs.RemoveTemplate(ctx, "foo"))
 
-	assert.NoError(t, rs.SetTemplate(ctx, "foo", []byte("foobar")))
+	require.NoError(t, rs.SetTemplate(ctx, "foo", []byte("foobar")))
 	assert.True(t, rs.HasTemplate(ctx, "foo"))
 
 	b, err := rs.GetTemplate(ctx, "foo")
@@ -41,5 +41,5 @@ func TestTemplate(t *testing.T) {
 	_, b, found := rs.LookupTemplate(ctx, "foo/bar")
 	assert.True(t, found)
 	assert.Equal(t, "foobar", string(b))
-	assert.NoError(t, rs.RemoveTemplate(ctx, "foo"))
+	require.NoError(t, rs.RemoveTemplate(ctx, "foo"))
 }

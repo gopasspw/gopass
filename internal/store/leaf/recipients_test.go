@@ -99,7 +99,7 @@ func TestSaveRecipients(t *testing.T) {
 	tempdir := t.TempDir()
 
 	_, _, err := createStore(tempdir, nil, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	obuf := &bytes.Buffer{}
 	out.Stdout = obuf
@@ -122,7 +122,7 @@ func TestSaveRecipients(t *testing.T) {
 	rs.Add("john.doe")
 
 	require.NoError(t, s.saveRecipients(ctx, rs, "test-save-recipients"))
-	assert.Error(t, s.saveRecipients(ctx, nil, "test-save-recipients"))
+	require.Error(t, s.saveRecipients(ctx, nil, "test-save-recipients"))
 
 	buf, err := s.storage.Get(ctx, s.idFile(ctx, ""))
 	require.NoError(t, err)
@@ -159,7 +159,7 @@ func TestAddRecipient(t *testing.T) {
 	tempdir := t.TempDir()
 
 	genRecs, _, err := createStore(tempdir, nil, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	obuf := &bytes.Buffer{}
 	out.Stdout = obuf
@@ -178,14 +178,14 @@ func TestAddRecipient(t *testing.T) {
 	newRecp := "A3683834"
 
 	err = s.AddRecipient(ctx, newRecp)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	rs, err := s.GetRecipients(ctx, "")
 	require.NoError(t, err)
 	assert.Equal(t, append(genRecs, newRecp), rs.IDs())
 
 	err = s.SaveRecipients(ctx, false)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 }
 
 func TestRemoveRecipient(t *testing.T) {
@@ -197,7 +197,7 @@ func TestRemoveRecipient(t *testing.T) {
 	tempdir := t.TempDir()
 
 	_, _, err := createStore(tempdir, nil, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	obuf := &bytes.Buffer{}
 	out.Stdout = obuf
@@ -214,7 +214,7 @@ func TestRemoveRecipient(t *testing.T) {
 	}
 
 	err = s.RemoveRecipient(ctx, "0xDEADBEEF")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	rs, err := s.GetRecipients(ctx, "")
 	require.NoError(t, err)
@@ -274,8 +274,8 @@ func TestCheckRecipients(t *testing.T) {
 	s, err := New(ctx, "", u.StoreDir(""))
 	require.NoError(t, err)
 
-	assert.NoError(t, s.CheckRecipients(ctx))
+	require.NoError(t, s.CheckRecipients(ctx))
 
 	u.AddExpiredRecipient()
-	assert.Error(t, s.CheckRecipients(ctx))
+	require.Error(t, s.CheckRecipients(ctx))
 }

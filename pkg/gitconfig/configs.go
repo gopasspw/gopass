@@ -129,7 +129,7 @@ func globalConfigFile() string {
 
 // loadGlobalConfigs will try to load the per-user (Git calls them "global") configs.
 // Since we might need to try different locations but only want to use the first one
-// it's easier to handle this in it's own method.
+// it's easier to handle this in its own method.
 func (c *Configs) loadGlobalConfigs() string {
 	locs := []string{
 		globalConfigFile(),
@@ -262,7 +262,7 @@ func (c *Configs) IsSet(key string) bool {
 		c.system,
 		c.Preset,
 	} {
-		if cfg.IsSet(key) {
+		if cfg != nil && cfg.IsSet(key) {
 			return true
 		}
 	}
@@ -316,7 +316,7 @@ func (c *Configs) UnsetLocal(key string) error {
 	return c.local.Unset(key)
 }
 
-// UnsetGlobal delets a key from the global config.
+// UnsetGlobal deletes a key from the global config.
 func (c *Configs) UnsetGlobal(key string) error {
 	if c.global == nil {
 		return nil
@@ -326,7 +326,7 @@ func (c *Configs) UnsetGlobal(key string) error {
 }
 
 // Keys returns a list of all keys from all available scopes. Every key has section and possibly
-// a subsection. They are seprated by dots. The subsection itself may contain dots. The final
+// a subsection. They are separated by dots. The subsection itself may contain dots. The final
 // key name and the section MUST NOT contain dots.
 //
 // Examples

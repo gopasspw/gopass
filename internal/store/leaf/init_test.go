@@ -4,14 +4,13 @@ import (
 	"context"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestInit(t *testing.T) {
 	ctx := context.Background()
 
 	s, err := createSubStore(t)
-	assert.NoError(t, err)
-
-	assert.Error(t, s.Init(ctx, "", "0xDEADBEEF"))
+	require.NoError(t, err)
+	require.Error(t, s.Init(ctx, "", "0xDEADBEEF"))
 }

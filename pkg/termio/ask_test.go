@@ -10,6 +10,7 @@ import (
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestAskForString(t *testing.T) {
@@ -26,7 +27,7 @@ func TestAskForString(t *testing.T) {
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 
 	sv, err := AskForString(ctx, "test", "foobar")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "foobar", sv)
 
 	t.Logf("Stderr: %s", buf.String())
@@ -40,17 +41,17 @@ bar
 	Stdin = strings.NewReader(input)
 	ctx = ctxutil.WithAlwaysYes(ctx, false)
 	sv, err = AskForString(ctx, "test", "foobar")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "foobaz", sv)
 
 	sv, err = AskForString(ctx, "test", "foobar")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "bar", sv)
 
 	Stdin = os.Stdin
 
 	sv, err = AskForString(ctx, "test", "foobar")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "foobar", sv)
 
 	Stdin = os.Stdin
@@ -73,7 +74,7 @@ func TestAskForBool(t *testing.T) {
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 
 	bv, err := AskForBool(ctx, "test", false)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.False(t, bv)
 
 	// provide value on redirected stdin
@@ -88,31 +89,31 @@ z
 	Stdin = strings.NewReader(input)
 	ctx = ctxutil.WithAlwaysYes(ctx, false)
 	bv, err = AskForBool(ctx, "test", true)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.False(t, bv)
 
 	bv, err = AskForBool(ctx, "test", false)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.True(t, bv)
 
 	bv, err = AskForBool(ctx, "test", true)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.False(t, bv)
 
 	bv, err = AskForBool(ctx, "test", false)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.True(t, bv)
 
 	bv, err = AskForBool(ctx, "test", true)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.True(t, bv)
 
 	bv, err = AskForBool(ctx, "test", false)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.False(t, bv)
 
 	bv, err = AskForBool(ctx, "test", false)
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.False(t, bv)
 }
 
@@ -130,7 +131,7 @@ func TestAskForInt(t *testing.T) {
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 
 	got, err := AskForInt(ctx, "test", 42)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, 42, got)
 
 	// provide value on redirected stdin
@@ -145,7 +146,7 @@ func TestAskForInt(t *testing.T) {
 	ctx = ctxutil.WithAlwaysYes(ctx, false)
 
 	iv, err := AskForInt(ctx, "test", 42)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, 23, iv)
 }
 
@@ -222,7 +223,7 @@ func TestAskForPasswordNonInteractive(t *testing.T) {
 	ctx = ctxutil.WithInteractive(ctx, false)
 
 	_, err := AskForPassword(ctx, "test", true)
-	assert.Error(t, err)
+	require.Error(t, err)
 
 	// provide value on redirected stdin
 	input := `foo
@@ -237,15 +238,15 @@ foobat
 	ctx = ctxutil.WithInteractive(ctx, true)
 	ctx = ctxutil.WithTerminal(ctx, false)
 	sv, err := AskForPassword(ctx, "test", true)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "foo", sv)
 
 	sv, err = AskForPassword(ctx, "test", false)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "foobar", sv)
 
 	sv, err = AskForPassword(ctx, "test", true)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "", sv)
 }
 
@@ -267,6 +268,6 @@ func TestAskForPasswordInteractive(t *testing.T) {
 	ctx = WithPassPromptFunc(ctx, askFn)
 
 	pw, err := AskForPassword(ctx, "test", true)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "test", pw)
 }

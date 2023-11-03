@@ -36,15 +36,15 @@ func TestConfig(t *testing.T) {
 		defer buf.Reset()
 
 		c := gptest.CliCtx(ctx, t)
-		assert.NoError(t, act.Config(c))
-		want := `core.autoclip = true
-core.autoimport = true
+		require.NoError(t, act.Config(c))
+		want := `core.autoimport = true
 core.autopush = true
 core.autosync = true
 core.cliptimeout = 45
 core.exportkeys = true
 core.nopager = true
 core.notifications = true
+generate.autoclip = true
 `
 		want += "mounts.path = " + u.StoreDir("") + "\n"
 		assert.Equal(t, want, buf.String())
@@ -53,7 +53,7 @@ core.notifications = true
 	t.Run("set valid config value", func(t *testing.T) {
 		defer buf.Reset()
 
-		assert.NoError(t, act.setConfigValue(ctx, "", "core.nopager", "true"))
+		require.NoError(t, act.setConfigValue(ctx, "", "core.nopager", "true"))
 
 		// should print accepted config value
 		assert.Equal(t, "true", strings.TrimSpace(buf.String()), "action.setConfigValue")
@@ -62,7 +62,7 @@ core.notifications = true
 	t.Run("set invalid config value", func(t *testing.T) {
 		defer buf.Reset()
 
-		assert.Error(t, act.setConfigValue(ctx, "", "foobar", "true"))
+		require.Error(t, act.setConfigValue(ctx, "", "foobar", "true"))
 	})
 
 	t.Run("print single config value", func(t *testing.T) {
@@ -78,14 +78,14 @@ core.notifications = true
 		defer buf.Reset()
 
 		act.printConfigValues(ctx, "")
-		want := `core.autoclip = true
-core.autoimport = true
+		want := `core.autoimport = true
 core.autopush = true
 core.autosync = true
 core.cliptimeout = 45
 core.exportkeys = true
 core.nopager = true
 core.notifications = true
+generate.autoclip = true
 `
 		want += "mounts.path = " + u.StoreDir("")
 		assert.Equal(t, want, strings.TrimSpace(buf.String()), "action.printConfigValues")
@@ -95,7 +95,7 @@ core.notifications = true
 		defer buf.Reset()
 
 		c := gptest.CliCtx(ctx, t, "core.autoimport")
-		assert.NoError(t, act.Config(c))
+		require.NoError(t, act.Config(c))
 		assert.Equal(t, "true", strings.TrimSpace(buf.String()))
 	})
 
@@ -103,7 +103,7 @@ core.notifications = true
 		defer buf.Reset()
 
 		c := gptest.CliCtx(ctx, t, "core.autoimport", "false")
-		assert.NoError(t, act.Config(c))
+		require.NoError(t, act.Config(c))
 		assert.Equal(t, "false", strings.TrimSpace(buf.String()))
 	})
 
@@ -111,14 +111,14 @@ core.notifications = true
 		defer buf.Reset()
 
 		act.ConfigComplete(gptest.CliCtx(ctx, t))
-		want := `core.autoclip
-core.autoimport
+		want := `core.autoimport
 core.autopush
 core.autosync
 core.cliptimeout
 core.exportkeys
 core.nopager
 core.notifications
+generate.autoclip
 mounts.path
 `
 		assert.Equal(t, want, buf.String())
@@ -128,6 +128,6 @@ mounts.path
 		defer buf.Reset()
 
 		c := gptest.CliCtx(ctx, t, "autoimport", "false", "42")
-		assert.Error(t, act.Config(c))
+		require.Error(t, act.Config(c))
 	})
 }

@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestEncrypt(t *testing.T) {
@@ -16,7 +16,7 @@ func TestEncrypt(t *testing.T) {
 	g.binary = "rundll32"
 
 	_, err := g.Encrypt(ctx, []byte("foo"), nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	cancel()
 }
 
@@ -29,7 +29,7 @@ func TestDecrypt(t *testing.T) {
 	g.binary = "rundll32"
 
 	_, err := g.Decrypt(ctx, []byte("foo"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	cancel()
 }
 
@@ -41,6 +41,6 @@ func TestGenerateIdentity(t *testing.T) {
 	g := &GPG{}
 	g.binary = "rundll32"
 
-	assert.NoError(t, g.GenerateIdentity(ctx, "foo", "foo@bar.com", "bar"))
+	require.NoError(t, g.GenerateIdentity(ctx, "foo", "foo@bar.com", "bar"))
 	cancel()
 }

@@ -257,14 +257,18 @@ var configSampleGopass = `
 # This is a gopass config file
 
 [core]
-  autoclip = true
   autoimport = true
   cliptimeout = 45
   editor = vim
   exportkeys = true
   pager = false
   notifications = true
-  showsafecontent = false
+
+[generate]
+  autoclip = true
+
+[show]
+  safecontent = false
 
 [mounts]
   path = /home/johndoe/.password-store
@@ -290,14 +294,14 @@ func TestGopass(t *testing.T) {
 	}
 	c.global.noWrites = true
 
-	assert.Equal(t, "true", c.Get("core.autoclip"))
+	assert.Equal(t, "true", c.Get("generate.autoclip"))
 	assert.Equal(t, "true", c.Get("core.autoimport"))
 	assert.Equal(t, "45", c.Get("core.cliptimeout"))
 	assert.Equal(t, "vim", c.Get("core.editor"))
 	assert.Equal(t, "true", c.Get("core.exportkeys"))
 	assert.Equal(t, "false", c.Get("core.pager"))
 	assert.Equal(t, "true", c.Get("core.notifications"))
-	assert.Equal(t, "false", c.Get("core.showsafecontent"))
+	assert.Equal(t, "false", c.Get("show.safecontent"))
 	assert.Equal(t, []string{"foo.de", "foo.it"}, c.GetAll("domain-alias.foo.com.insteadOf"))
 
 	assert.Equal(t, "/home/johndoe/.password-store", c.Get("mounts.path"))
@@ -435,8 +439,8 @@ func TestSetEmptyConfig(t *testing.T) {
 		path:     filepath.Join(td, "config"),
 		noWrites: false,
 	}
-	assert.Error(t, c.Set("foobar", "baz"))
-	assert.NoError(t, c.Set("foo.bar", "baz"))
+	require.Error(t, c.Set("foobar", "baz"))
+	require.NoError(t, c.Set("foo.bar", "baz"))
 
 	v, ok := c.Get("foo.bar")
 	assert.True(t, ok)
@@ -466,7 +470,7 @@ func TestListSections(t *testing.T) {
 
 	c := &Configs{global: ParseConfig(strings.NewReader(configSampleGopass))}
 	c.global.noWrites = true
-	assert.Equal(t, []string{"core", "domain-alias", "mounts"}, c.ListSections())
+	assert.Equal(t, []string{"core", "domain-alias", "generate", "mounts", "show"}, c.ListSections())
 }
 
 func TestListSubsections(t *testing.T) {

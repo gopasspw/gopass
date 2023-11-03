@@ -50,7 +50,7 @@ func TestConfigLocation(t *testing.T) {
 	}
 
 	for k := range evs {
-		assert.NoError(t, os.Unsetenv(k))
+		require.NoError(t, os.Unsetenv(k))
 	}
 
 	for k, v := range evs {

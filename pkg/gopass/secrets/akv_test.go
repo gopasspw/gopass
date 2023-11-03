@@ -102,12 +102,12 @@ zab: 123
 
 	sec := NewAKV()
 	_, err := sec.Write([]byte(in))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, in, string(sec.Bytes()))
 	assert.Equal(t, "passw0rd", sec.Password())
 
 	_, err = sec.Write([]byte("more text"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "passw0rd", sec.Password())
 }
 
@@ -115,7 +115,7 @@ func TestSetKeyValuePairToEmptyAKV(t *testing.T) {
 	t.Parallel()
 
 	sec := NewAKV()
-	assert.NoError(t, sec.Set("foo", "bar"))
+	require.NoError(t, sec.Set("foo", "bar"))
 	v, found := sec.Get("foo")
 	assert.True(t, found)
 	assert.Equal(t, "bar", v)
@@ -209,8 +209,8 @@ bla
 				t.Helper()
 
 				a.SetPassword("barfoo")
-				assert.NoError(t, a.Add("hello", "berlin"))
-				assert.Equal(t, true, a.Del("foo"))
+				require.NoError(t, a.Add("hello", "berlin"))
+				assert.True(t, a.Del("foo"))
 
 				assert.Equal(t, "barfoo", a.Password())
 			},
@@ -241,8 +241,8 @@ bla
 				t.Helper()
 
 				a.SetPassword("barfoo")
-				assert.NoError(t, a.Add("hello", "berlin"))
-				assert.NoError(t, a.Set("bar", "foo"))
+				require.NoError(t, a.Add("hello", "berlin"))
+				require.NoError(t, a.Set("bar", "foo"))
 			},
 			out: `barfoo
 hello: world
@@ -282,7 +282,7 @@ bla
 			op: func(t *testing.T, a *AKV) {
 				t.Helper()
 
-				assert.NoError(t, a.Set("foo", "bar"))
+				require.NoError(t, a.Set("foo", "bar"))
 			},
 			out: `
 foo: bar
@@ -329,13 +329,13 @@ func TestNewAKV(t *testing.T) {
 	assert.True(t, ok)
 	assert.Equal(t, []string{"bar"}, vs)
 
-	assert.NoError(t, a.Set("foo", "baz"))
-	assert.NoError(t, a.Set("hello", "mars"))
+	require.NoError(t, a.Set("foo", "baz"))
+	require.NoError(t, a.Set("hello", "mars"))
 
 	assert.Equal(t, "this is the body\nmore text\n", a.Body())
 
 	_, err := a.Write([]byte("even more text\n"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	assert.Equal(t, "this is the body\nmore text\neven more text\n", a.Body())
 }
@@ -348,13 +348,13 @@ func TestLargeBase64AKV(t *testing.T) {
 	assert.Equal(t, testSize, n)
 
 	sec := NewAKV()
-	assert.NoError(t, sec.Set("Content-Disposition", "attachment; filename=foo.bar"))
-	assert.NoError(t, sec.Set("Content-Transfer-Encoding", "Base64"))
+	require.NoError(t, sec.Set("Content-Disposition", "attachment; filename=foo.bar"))
+	require.NoError(t, sec.Set("Content-Transfer-Encoding", "Base64"))
 
 	b64in := base64.StdEncoding.EncodeToString(buf) + "\n"
 	n, err = sec.Write([]byte(b64in))
 	require.NoError(t, err)
-	assert.Equal(t, len(b64in), n)
+	assert.Len(t, b64in, n)
 
 	b64out := sec.Body()
 	assert.Equal(t, b64in, b64out)
@@ -373,11 +373,11 @@ func TestLargeBinaryAKV(t *testing.T) {
 	// This hack is required to make sure that the binary content does not end up
 	// in the password field.
 	_, err = sec.Write([]byte("\n"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	n, err = sec.Write(buf)
 	require.NoError(t, err)
-	assert.Equal(t, len(buf), n)
+	assert.Len(t, buf, n)
 
 	out := sec.Body()
 	assert.Equal(t, string(buf), out)
@@ -395,14 +395,14 @@ func TestPwWriter(t *testing.T) {
 
 	// multi-chunk passwords are supported
 	_, err := p.Write([]byte("foo"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	_, err = p.Write([]byte("bar\n"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// but anything after the first line is discarded
 	_, err = p.Write([]byte("baz\n"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	assert.Equal(t, "foobar", a.Password())
 	assert.Equal(t, "baz\n", a.Body())
@@ -417,5 +417,5 @@ func TestInvalidPwWriter(t *testing.T) {
 
 	// will panic because the writer is nil
 	_, err := p.Write([]byte("foo"))
-	assert.Error(t, err)
+	require.Error(t, err)
 }

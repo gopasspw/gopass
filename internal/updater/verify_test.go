@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // To generate use:
@@ -33,6 +34,6 @@ func TestGPGVerify(t *testing.T) {
 	t.Parallel()
 
 	ok, err := gpgVerify(testData, testSignature)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.True(t, ok)
 }

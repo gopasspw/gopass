@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/base64"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"os"
@@ -242,7 +243,7 @@ func (s *Action) binaryCopyFromStoreToFile(ctx context.Context, from, to string,
 func (s *Action) binaryValidate(ctx context.Context, buf []byte, name string) error {
 	h := sha256.New()
 	_, _ = h.Write(buf)
-	fileSum := fmt.Sprintf("%x", h.Sum(nil))
+	fileSum := hex.EncodeToString(h.Sum(nil))
 	h.Reset()
 
 	debug.Log("in: %s - %q", fileSum, string(buf))
@@ -253,7 +254,7 @@ func (s *Action) binaryValidate(ctx context.Context, buf []byte, name string) er
 		return fmt.Errorf("failed to read %q from the store: %w", name, err)
 	}
 	_, _ = h.Write(buf)
-	storeSum := fmt.Sprintf("%x", h.Sum(nil))
+	storeSum := hex.EncodeToString(h.Sum(nil))
 
 	debug.Log("store: %s - %q", storeSum, string(buf))
 
