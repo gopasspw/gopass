@@ -300,7 +300,7 @@ func (c *Config) migrateOptions(migrations map[string]string) {
 			}
 		}
 	}
-	if err := errors.Join(errors.Join(errs...)); err != nil {
+	if err := errors.Join(errs...); err != nil {
 		debug.Log("Errors encountered while migrating old options: {%v}", err)
 	}
 }

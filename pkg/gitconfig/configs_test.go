@@ -96,4 +96,5 @@ func TestConfigs(t *testing.T) {
 	require.Error(t, c.SetLocal("core.foo", "bar"))
 	require.NoError(t, c.SetGlobal("core.global", "foo"))
 	require.NoError(t, c.SetEnv("env.var", "var"))
+	require.False(t, c.IsSet("env.nonexistent"))
 }
