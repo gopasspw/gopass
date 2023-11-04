@@ -1,6 +1,4 @@
-//go:build (arm || arm64 || amd64 || 386) && (linux || windows || darwin || freebsd || netbsd || openbsd)
-// +build arm arm64 amd64 386
-// +build linux windows darwin freebsd netbsd openbsd
+//go:build (arm || arm64 || amd64 || 386) && (linux || windows || (cgo && darwin) || freebsd || netbsd)
 
 package otp
 
@@ -17,7 +15,6 @@ import (
 // ParseScreen will attempt to parse all available screen and will look for otpauth QR codes. It returns the first one
 // it has found.
 func ParseScreen(ctx context.Context) (string, error) {
-	var qr string
 	for i := 0; i < screenshot.NumActiveDisplays(); i++ {
 		out.Noticef(ctx, "Scanning screen n°%d", i)
 
@@ -40,14 +37,15 @@ func ParseScreen(ctx context.Context) (string, error) {
 		}
 
 		out.Noticef(ctx, "Found a qrcode, checking.")
-		if strings.HasPrefix(result.GetText(), "otpauth://") {
-			qr = result.GetText()
-			out.OKf(ctx, "Found an otpauth:// QR code on screen n°%d (%v)", i, img.Bounds())
+		if qr := result.GetText(); strings.HasPrefix(qr, "otpauth://") {
+			out.OKf(ctx, "Found an otpauth:// QR code on screen n°%d (%v) for %s", i, img.Bounds(),
+				// otpauth:// is 10 char, we display label information, but not the parameters containing the secret
+				qr[10:10+strings.Index(qr[10:], "?")])
 
-			break
+			return qr, nil
 		}
 		out.Warningf(ctx, "Not an otpauth:// QR code, please make sure to only have your OTP qrcode displayed.")
 	}
 
-	return qr, nil
+	return "", nil
 }
