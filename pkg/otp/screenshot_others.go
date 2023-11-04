@@ -1,5 +1,4 @@
-//go:build !(arm || arm64 || amd64 || 386) || !(linux || windows || freebsd || netbsd) || (darwin && !cgo)
-// +build !arm,!arm64,!amd64,!386 !linux,!windows,!freebsd,!netbsd darwin,!cgo
+//go:build !((arm || arm64 || amd64 || 386) && (linux || windows || (cgo && darwin) || freebsd || netbsd))
 
 package otp
 

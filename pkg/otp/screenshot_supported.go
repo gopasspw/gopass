@@ -1,6 +1,4 @@
 //go:build (arm || arm64 || amd64 || 386) && (linux || windows || (cgo && darwin) || freebsd || netbsd)
-// +build arm arm64 amd64 386
-// +build linux windows cgo,darwin freebsd netbsd
 
 package otp
 
@@ -45,7 +43,6 @@ func ParseScreen(ctx context.Context) (string, error) {
 				qr[10:10+strings.Index(qr[10:], "?")])
 
 			return qr, nil
-
 		}
 		out.Warningf(ctx, "Not an otpauth:// QR code, please make sure to only have your OTP qrcode displayed.")
 	}
