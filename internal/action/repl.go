@@ -3,7 +3,6 @@ package action
 import (
 	"context"
 	"fmt"
-	"io"
 	"strings"
 
 	"github.com/ergochat/readline"
@@ -175,7 +174,7 @@ READ:
 
 			continue
 		case "clear":
-			clearScreen(stdout) //nolint:errcheck
+			_ = clearScreen(stdout, rl)
 			rl.Clean()
 			rl.Refresh()
 
@@ -200,8 +199,7 @@ func (s *Action) replLock(ctx context.Context) {
 	out.OKf(ctx, "Locked")
 }
 
-func clearScreen(w io.Writer) error {
-	_, err := w.Write([]byte("\033[H"))
-
-	return err
+type cleaner interface {
+	Clean()
+	Refresh()
 }
