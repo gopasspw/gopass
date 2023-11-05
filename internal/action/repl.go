@@ -174,9 +174,7 @@ READ:
 
 			continue
 		case "clear":
-			_ = clearScreen(stdout, rl)
-			rl.Clean()
-			rl.Refresh()
+			rl.ClearScreen()
 
 			continue
 		default:
@@ -197,9 +195,4 @@ func (s *Action) replLock(ctx context.Context) {
 		return
 	}
 	out.OKf(ctx, "Locked")
-}
-
-type cleaner interface {
-	Clean()
-	Refresh()
 }
