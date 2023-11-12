@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/blang/semver/v4"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/stretchr/testify/assert"
@@ -79,4 +80,44 @@ func TestGit(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, "foobar", string(content))
 	})
+}
+
+func TestParseVersion(t *testing.T) {
+	for _, tc := range []struct {
+		name    string
+		in      string
+		sv      semver.Version
+		wantErr bool
+	}{
+		{
+			name:    "empty",
+			in:      "",
+			wantErr: true,
+		},
+		{
+			name:    "invalid",
+			in:      "foo",
+			wantErr: true,
+		},
+		{
+			name: "valid",
+			in:   "2.30.0",
+			sv:   semver.MustParse("2.30.0"),
+		},
+		{
+			name: "invalid-recovered", // GH-2686
+			in:   "2.42.0.windows.2",
+			sv:   semver.MustParse("2.42.0"),
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			sv, err := parseVersion(tc.in)
+			assert.Equal(t, tc.sv, sv)
+			if tc.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
 }
