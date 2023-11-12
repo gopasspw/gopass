@@ -52,7 +52,7 @@ func main() {
 	// Example: https://go.dev/play/p/8214zCX6hVq.
 	defer writeCPUProfile()()
 
-	if err := protect.Pledge("stdio rpath wpath cpath tty proc exec"); err != nil {
+	if err := protect.Pledge("stdio rpath wpath cpath tty proc exec fattr"); err != nil {
 		panic(err)
 	}
 
