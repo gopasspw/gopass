@@ -58,7 +58,7 @@ func (cs *Configs) Reload() {
 	cs.LoadAll(cs.workdir)
 }
 
-// String implements fmt.Stringer
+// String implements fmt.Stringer.
 func (cs *Configs) String() string {
 	return fmt.Sprintf("GitConfigs{Env: %s - System: %s - Global: %s - Local: %s - Worktree: %s}", cs.EnvPrefix, cs.SystemConfig, cs.GlobalConfig, cs.LocalConfig, cs.WorktreeConfig)
 }

@@ -114,9 +114,9 @@ func TestParseVersion(t *testing.T) {
 			sv, err := parseVersion(tc.in)
 			assert.Equal(t, tc.sv, sv)
 			if tc.wantErr {
-				assert.Error(t, err)
+				require.Error(t, err)
 			} else {
-				assert.NoError(t, err)
+				require.NoError(t, err)
 			}
 		})
 	}
