@@ -26,6 +26,7 @@ const (
 	FuncSha1sum       = "sha1sum"
 	FuncSha256sum     = "sha256sum"
 	FuncSha512sum     = "sha512sum"
+	FuncBlake3        = "blake3"
 	FuncMd5Crypt      = "md5crypt"
 	FuncSSHA          = "ssha"
 	FuncSSHA256       = "ssha256"
@@ -64,6 +65,12 @@ func sha256sum() func(...string) (string, error) {
 func sha512sum() func(...string) (string, error) {
 	return func(s ...string) (string, error) {
 		return hashsum.SHA512Hex(s[0]), nil
+	}
+}
+
+func blake3sum() func(...string) (string, error) {
+	return func(s ...string) (string, error) {
+		return hashsum.Blake3Hex(s[0]), nil
 	}
 }
 
@@ -379,6 +386,7 @@ func funcMap(ctx context.Context, kv kvstore) template.FuncMap {
 		FuncSha1sum:       sha1sum(),
 		FuncSha256sum:     sha256sum(),
 		FuncSha512sum:     sha512sum(),
+		FuncBlake3:        blake3sum(),
 		FuncMd5Crypt:      md5cryptFunc(),
 		FuncSSHA:          sshaFunc(),
 		FuncSSHA256:       ssha256Func(),
@@ -400,6 +408,7 @@ func PublicFuncMap() template.FuncMap {
 		FuncSha1sum:       sha1sum(),
 		FuncSha256sum:     sha256sum(),
 		FuncSha512sum:     sha512sum(),
+		FuncBlake3:        blake3sum(),
 		FuncMd5Crypt:      md5cryptFunc(),
 		FuncSSHA:          sshaFunc(),
 		FuncSSHA256:       ssha256Func(),
