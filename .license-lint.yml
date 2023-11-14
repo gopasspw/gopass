@@ -5,6 +5,7 @@ unrestricted_licenses:
   - BSD-2-Clause
   - 0BSD
   - WTFPL
+  - CC0-1.0
 reciprocal_licenses:
   - MPL-2.0
   - MPL-2.0-no-copyleft-exception
