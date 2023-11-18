@@ -4,20 +4,20 @@ go 1.21
 
 require (
 	filippo.io/age v1.1.1
-	github.com/ProtonMail/go-crypto v0.0.0-20230828082145-3c4c8a2d2371
+	github.com/ProtonMail/go-crypto v0.0.0-20230923063757-afb1ddc0824c
 	github.com/atotto/clipboard v0.1.4
 	github.com/blang/semver/v4 v4.0.0
 	github.com/caspr-io/yamlpath v0.0.0-20200722075116-502e8d113a9b
 	github.com/cenkalti/backoff v2.2.1+incompatible
 	github.com/dustin/go-humanize v1.0.1
 	github.com/ergochat/readline v0.0.6
-	github.com/fatih/color v1.15.0
+	github.com/fatih/color v1.16.0
 	github.com/godbus/dbus v0.0.0-20190623212516-8a1682060722
 	github.com/gokyle/twofactor v1.0.1
-	github.com/google/go-cmp v0.5.9
+	github.com/google/go-cmp v0.6.0
 	github.com/google/go-github v17.0.0+incompatible
 	github.com/google/go-github/v33 v33.0.0
-	github.com/gopasspw/gopass-hibp v1.15.7
+	github.com/gopasspw/gopass-hibp v1.15.8
 	github.com/hashicorp/golang-lru v1.0.2
 	github.com/jsimonetti/pwscheme v0.0.0-20220922140336-67a4d090f150
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
@@ -25,12 +25,12 @@ require (
 	github.com/makiuchi-d/gozxing v0.1.1
 	github.com/martinhoefling/goxkcdpwgen v0.1.2-0.20221205222637-737661b92a0e
 	github.com/mattn/go-colorable v0.1.13
-	github.com/mattn/go-isatty v0.0.19
+	github.com/mattn/go-isatty v0.0.20
 	github.com/mattn/go-tty v0.0.5
 	github.com/mitchellh/go-ps v1.0.0
 	github.com/muesli/crunchy v0.4.0
 	github.com/nbutton23/zxcvbn-go v0.0.0-20210217022336-fa2cb2858354
-	github.com/noborus/ov v0.31.0
+	github.com/noborus/ov v0.32.1
 	github.com/pquerna/otp v1.4.0
 	github.com/schollz/closestmatch v0.0.0-20190308193919-1fbe626be92e
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
@@ -38,12 +38,13 @@ require (
 	github.com/twpayne/go-pinentry v0.3.0
 	github.com/urfave/cli/v2 v2.25.7
 	github.com/zalando/go-keyring v0.2.3
-	golang.org/x/crypto v0.13.0
-	golang.org/x/exp v0.0.0-20230905200255-921286631fa9
-	golang.org/x/net v0.15.0
-	golang.org/x/oauth2 v0.12.0
-	golang.org/x/sys v0.12.0
-	golang.org/x/term v0.12.0
+	github.com/zeebo/blake3 v0.2.3
+	golang.org/x/crypto v0.15.0
+	golang.org/x/exp v0.0.0-20231110203233-9a3e6036ecaa
+	golang.org/x/net v0.18.0
+	golang.org/x/oauth2 v0.14.0
+	golang.org/x/sys v0.14.0
+	golang.org/x/term v0.14.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
@@ -53,25 +54,25 @@ require (
 	github.com/alessio/shellescape v1.4.2 // indirect
 	github.com/boombuler/barcode v1.0.1 // indirect
 	github.com/cenkalti/backoff/v4 v4.2.1 // indirect
-	github.com/cloudflare/circl v1.3.3 // indirect
-	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
+	github.com/cloudflare/circl v1.3.6 // indirect
+	github.com/cpuguy83/go-md2man/v2 v2.0.3 // indirect
 	github.com/danieljoos/wincred v1.2.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/frankban/quicktest v1.14.4 // indirect
-	github.com/fsnotify/fsnotify v1.6.0 // indirect
+	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/gdamore/encoding v1.0.0 // indirect
 	github.com/gdamore/tcell/v2 v2.6.0 // indirect
-	github.com/gen2brain/shm v0.0.0-20230802011745-f2460f5984f7 // indirect
+	github.com/gen2brain/shm v0.1.0 // indirect
 	github.com/godbus/dbus/v5 v5.1.0 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
-	github.com/hashicorp/golang-lru/v2 v2.0.6 // indirect
+	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
 	github.com/jezek/xgb v1.1.0 // indirect
 	github.com/jwalton/gchalk v1.3.0 // indirect
 	github.com/jwalton/go-supportscolor v1.2.0 // indirect
 	github.com/kjk/lzmadec v0.0.0-20210713164611-19ac3ee91a71 // indirect
-	github.com/klauspost/compress v1.16.7 // indirect
-	github.com/klauspost/cpuid/v2 v2.0.12 // indirect
+	github.com/klauspost/compress v1.17.3 // indirect
+	github.com/klauspost/cpuid/v2 v2.2.6 // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
 	github.com/lxn/win v0.0.0-20210218163916-a377121e959e // indirect
 	github.com/mattn/go-runewidth v0.0.15 // indirect
@@ -79,14 +80,13 @@ require (
 	github.com/pierrec/lz4 v2.6.1+incompatible // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rivo/uniseg v0.4.4 // indirect
-	github.com/rs/zerolog v1.30.0 // indirect
+	github.com/rs/zerolog v1.31.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/ulikunitz/xz v0.5.11 // indirect
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
-	github.com/zeebo/blake3 v0.2.3 // indirect
-	golang.org/x/sync v0.3.0 // indirect
-	golang.org/x/text v0.13.0 // indirect
-	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
+	golang.org/x/sync v0.5.0 // indirect
+	golang.org/x/text v0.14.0 // indirect
+	golang.org/x/xerrors v0.0.0-20231012003039-104605ab7028 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect

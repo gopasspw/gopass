@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.15.9 / 2023-11-18
+
+* [BUGFIX] Disabling the OTP snip screenshot feature on OpenBSD (#2685)
+* [CLEANUP] Migration of options to more appropriate sections (#2681)
+* [bugfix] Improve git version parsing (#2690)
+* [bugfix] Remove leading and trailing slashes from mounts (#2698)
+* [enhancement] Add blake3 to the template functions (#2693)
+* [enhancement] Add input validation to block illegal mount points (#2672)
+
 ## 1.15.8 / 2023-09-11
 
 * [BUGFIX] Use goreleaser build for crosscompile (#2635)
