@@ -303,11 +303,17 @@ Before migrating to gopass, you may have been using other password managers (suc
 
 ### Enable Bash Auto completion
 
-If you use Bash, you can run one of the following commands to enable auto completion for sub-commands like `gopass show`, `gopass ls` and others.
+If you use Bash, you can use the following command to enable auto completion for all users for sub-commands like `gopass show`, `gopass ls` and others.
 
 ```bash
-source <(gopass completion bash)
+gopass completion bash | sudo tee $(pkg-config --variable=completionsdir bash-completion)
 ```
+
+To enable bash completions for the current user only:
+```bash
+grep -q "source <(gopass completion bash)" ~/.bashrc || echo "source <(gopass completion bash)" >> ~/.bashrc
+```
+
 
 **MacOS**: The version of bash shipped with MacOS may [require a workaround](https://stackoverflow.com/questions/32596123/why-source-command-doesnt-work-with-process-substitution-in-bash-3-2) to enable auto completion. If the instructions above do not work try the following one:
 
