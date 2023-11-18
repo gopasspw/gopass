@@ -25,6 +25,7 @@ func (r *Store) AddMount(ctx context.Context, alias, path string, keys ...string
 }
 
 func (r *Store) addMount(ctx context.Context, alias, path string, keys ...string) error {
+	alias = CleanMountAlias(alias)
 	if alias == "" {
 		return fmt.Errorf("alias must not be empty")
 	}
@@ -65,6 +66,7 @@ func (r *Store) addMount(ctx context.Context, alias, path string, keys ...string
 }
 
 func (r *Store) initSub(ctx context.Context, alias, path string, keys []string) (*leaf.Store, error) {
+	alias = CleanMountAlias(alias)
 	// init regular sub store
 	s, err := leaf.New(ctx, alias, path)
 	if err != nil {
@@ -205,4 +207,24 @@ func (r *Store) checkMounts() error {
 	}
 
 	return nil
+}
+
+// CleanMountAlias removes all leading and trailing slashes from a mount alias.
+// Note: Slashes inside the alias are valid and will be kept.
+func CleanMountAlias(alias string) string {
+	for {
+		if !strings.HasPrefix(alias, "/") && !strings.HasPrefix(alias, "\\") {
+			break
+		}
+		alias = strings.TrimPrefix(strings.TrimSuffix(alias, "/"), "/")
+		alias = strings.TrimPrefix(strings.TrimSuffix(alias, "\\"), "\\")
+	}
+	for {
+		if !strings.HasSuffix(alias, "/") && !strings.HasSuffix(alias, "\\") {
+			break
+		}
+		alias = strings.TrimSuffix(strings.TrimPrefix(alias, "/"), "/")
+		alias = strings.TrimSuffix(strings.TrimPrefix(alias, "\\"), "\\")
+	}
+	return alias
 }

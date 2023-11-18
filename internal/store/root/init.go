@@ -29,6 +29,7 @@ func (r *Store) IsInitialized(ctx context.Context) (bool, error) {
 
 // Init tries to initialize a new password store location matching the object.
 func (r *Store) Init(ctx context.Context, alias, path string, ids ...string) error {
+	alias = CleanMountAlias(alias)
 	debug.Log("Instantiating new sub store %s at %s for %+v", alias, path, ids)
 
 	if !backend.HasCryptoBackend(ctx) {
