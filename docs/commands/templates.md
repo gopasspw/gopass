@@ -59,6 +59,7 @@ Function | Example | Description
 `argon2i` | `{{ .Content \| argon2i }}` | Calculate the Argon2i hash of the input.
 `argon2id` | `{{ .Content \| argon2id }}` | Calculate the Argon2id hash of the input.
 `bcrypt` | `{{ .Content \| bcrypt }}` | Calculate the Bcrypt hash of the input.
+`blake3` | `{{ .Content \| blake3 }}` | Calculate the BLAKE-3 hash of the input.
 
 ## Template variables
 
