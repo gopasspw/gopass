@@ -462,8 +462,6 @@ func (u *inUpdater) doUpdate(ctx context.Context, dir string) error {
 	}
 	fmt.Printf("✅ [%s] wrote CHANGELOG.md.\n", dir)
 
-	return fmt.Errorf("ABORTING for tests")
-
 	// git commit
 	if err := gitCommitAndPush(path, tag); err != nil {
 		return err
