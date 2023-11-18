@@ -169,6 +169,21 @@ func TestCleanMountAlias(t *testing.T) {
 			in:   "foo/bar/\\///\\////",
 			want: "foo/bar",
 		},
+		{
+			name: "simple",
+			in:   "/foo/bar",
+			want: "foo/bar",
+		},
+		{
+			name: "simple",
+			in:   "//foo/bar",
+			want: "foo/bar",
+		},
+		{
+			name: "simple",
+			in:   "////foo/bar",
+			want: "foo/bar",
+		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			assert.Equal(t, tc.want, CleanMountAlias(tc.in))

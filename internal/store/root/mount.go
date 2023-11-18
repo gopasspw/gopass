@@ -226,5 +226,6 @@ func CleanMountAlias(alias string) string {
 		alias = strings.TrimSuffix(strings.TrimPrefix(alias, "/"), "/")
 		alias = strings.TrimSuffix(strings.TrimPrefix(alias, "\\"), "\\")
 	}
+
 	return alias
 }
