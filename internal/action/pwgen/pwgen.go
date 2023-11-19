@@ -40,7 +40,7 @@ func Pwgen(c *cli.Context) error {
 		}
 	}
 
-	if c.Bool("xkcd") {
+	if c.Bool("xkcd") || c.Bool("xkcdcapitalize") || c.Bool("xkcdnumbers") {
 		return xkcdGen(c, pwLen, pwNum)
 	}
 
