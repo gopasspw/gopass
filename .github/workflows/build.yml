@@ -19,15 +19,20 @@ jobs:
   linux:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - name: Harden Runner
+      uses: step-security/harden-runner@eb238b55efaa70779f274895e782ed17c84f2895 # v2.6.1
+      with:
+        egress-policy: audit
+
+    - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       with:
         fetch-depth: 0
 
     - name: Set up Go
-      uses: actions/setup-go@v4
+      uses: actions/setup-go@93397bea11091df50f3d7e59dc26a7711a8bcfbe # v4.1.0
       with:
         go-version: '1.21'
-    - uses: actions/cache@v3
+    - uses: actions/cache@704facf57e6136b1bc63b828d79edcd491f0ee84 # v3.3.2
       with:
         path: ~/go/pkg/mod
         key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
@@ -60,7 +65,12 @@ jobs:
       run:
           shell: msys2 {0}
     steps:
-    - uses: msys2/setup-msys2@v2
+    - name: Harden Runner
+      uses: step-security/harden-runner@eb238b55efaa70779f274895e782ed17c84f2895 # v2.6.1
+      with:
+        egress-policy: audit
+
+    - uses: msys2/setup-msys2@76b1bed68bac51ebe46cb431077217d4b98e2b7b # v2.21.0
       with:
         release: false
         path-type: inherit
@@ -68,12 +78,12 @@ jobs:
           base-devel
           git
 
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       with:
         fetch-depth: 0
 
     - name: Set up Go
-      uses: actions/setup-go@v4
+      uses: actions/setup-go@93397bea11091df50f3d7e59dc26a7711a8bcfbe # v4.1.0
       with:
         go-version: '1.21'
 
@@ -86,12 +96,17 @@ jobs:
   macos:
     runs-on: macos-latest
     steps:
-    - uses: actions/checkout@v4
+    - name: Harden Runner
+      uses: step-security/harden-runner@eb238b55efaa70779f274895e782ed17c84f2895 # v2.6.1
+      with:
+        egress-policy: audit
+
+    - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       with:
         fetch-depth: 0
 
     - name: Set up Go
-      uses: actions/setup-go@v4
+      uses: actions/setup-go@93397bea11091df50f3d7e59dc26a7711a8bcfbe # v4.1.0
       with:
         go-version: '1.21'
 
