@@ -58,3 +58,4 @@ Function | Example | Description
 `argon2i` | `{{ getpw "foo/bar" \| argon2i }}` | Calculate the Argon2i hash of the input.
 `argon2id` | `{{ getpw "foo/bar" \| argon2id }}` | Calculate the Argon2id hash of the input.
 `bcrypt` | `{{ getpw "foo/bar" \| bcrypt }}` | Calculate the Bcrypt hash of the input.
+`blake3` | `{{ getpw "foo/bar" \| blake3 }}` | Calculate the BLAKE-3 hash of the input.
