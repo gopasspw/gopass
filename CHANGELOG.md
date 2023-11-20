@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.15.10 / 2023-11-20
+
+* [chore] Add OSSF scorecard link and improve security posture (#2704)
+* [chore] Update grype workflow and pin Docker base images (#2706)
+* [cleanup] Add package description (#2702)
+* [feature] Add new pwgen options to capitalize and include numbers in (#2703)
+
 ## 1.15.9 / 2023-11-18
 
 * [BUGFIX] Disabling the OTP snip screenshot feature on OpenBSD (#2685)

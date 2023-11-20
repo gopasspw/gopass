@@ -1,5 +1,5 @@
 
-.TH GOPASS "1" "November 2023" "gopass (github.com/gopasspw/gopass) 1.15.9" "User Commands"
+.TH GOPASS "1" "November 2023" "gopass (github.com/gopasspw/gopass) 1.15.10" "User Commands"
 .SH NAME
 gopass - The standard Unix password manager
 .SH SYNOPSIS
@@ -458,6 +458,14 @@ Include at least one symbol in the password.
 \fB\-\-xkcd\fR,
 \fB\-x\fR,
 Use multiple random english words combined to a password. By default, space is used as separator and all words are lowercase
+.TP
+\fB\-\-xkcdcapitalize\fR,
+\fB\-\-xc\fR,
+Capitalize first letter of each word in generated xkcd style password. This flag implies -xkcd
+.TP
+\fB\-\-xkcdnumbers\fR,
+\fB\-\-xn\fR,
+Add a random number to the end of the generated xkcd style password. This flag implies -xkcd
 .SS rcs
 Run a RCS command inside a password store
 

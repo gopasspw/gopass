@@ -17,7 +17,7 @@ require (
 	github.com/google/go-cmp v0.6.0
 	github.com/google/go-github v17.0.0+incompatible
 	github.com/google/go-github/v33 v33.0.0
-	github.com/gopasspw/gopass-hibp v1.15.8
+	github.com/gopasspw/gopass-hibp v1.15.9
 	github.com/hashicorp/golang-lru v1.0.2
 	github.com/jsimonetti/pwscheme v0.0.0-20220922140336-67a4d090f150
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
