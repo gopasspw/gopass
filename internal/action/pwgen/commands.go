@@ -56,6 +56,16 @@ func GetCommands() []*cli.Command {
 					Usage:   "Language to generate password from, currently only en (english, default) or de are supported",
 					Value:   "en",
 				},
+				&cli.BoolFlag{
+					Name:    "xkcdcapitalize",
+					Aliases: []string{"xc"},
+					Usage:   "Capitalize first letter of each word in generated xkcd style password. This flag implies -xkcd",
+				},
+				&cli.BoolFlag{
+					Name:    "xkcdnumbers",
+					Aliases: []string{"xn"},
+					Usage:   "Add a random number to the end of the generated xkcd style password. This flag implies -xkcd",
+				},
 			},
 		},
 	}

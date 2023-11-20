@@ -86,6 +86,7 @@ nfpms:
       - gnupg
     recommends:
       - rng-tools
+      - bash-completion
   - id: gopass_rpm
     vendor: Gopass Authors
     homepage: "https://www.gopass.pw"
@@ -107,6 +108,7 @@ nfpms:
       - gnupg2
     recommends:
       - rng-tools
+      - bash-completion
 
 source:
   enabled: true

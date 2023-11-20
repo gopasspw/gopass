@@ -40,7 +40,7 @@ func Pwgen(c *cli.Context) error {
 		}
 	}
 
-	if c.Bool("xkcd") {
+	if c.Bool("xkcd") || c.Bool("xkcdcapitalize") || c.Bool("xkcdnumbers") {
 		return xkcdGen(c, pwLen, pwNum)
 	}
 
@@ -48,22 +48,31 @@ func Pwgen(c *cli.Context) error {
 }
 
 func xkcdGen(c *cli.Context, length, num int) error {
-	sep := config.String(c.Context, "pwgen.xkcd.sep")
+	sep := config.String(c.Context, "pwgen.xkcd-sep")
 	if c.IsSet("sep") {
 		sep = c.String("sep")
 	}
-	lang := config.String(c.Context, "pwgen.xkcd.lang")
+	lang := config.String(c.Context, "pwgen.xkcd-lang")
 	if c.IsSet("lang") {
 		lang = c.String("lang")
 	}
 	if length < 1 {
-		length = config.Int(c.Context, "pwgen.xkcd.len")
+		length = config.Int(c.Context, "pwgen.xkcd-len")
 		if length < 1 {
 			length = 4
 		}
 	}
+	capitalize := config.Bool(c.Context, "pwgen.xkcd-capitalize")
+	if c.IsSet("xkcdcapitalize") {
+		capitalize = c.Bool("xkcdcapitalize")
+	}
+	numbers := config.Bool(c.Context, "pwgen.xkcd-numbers")
+	if c.IsSet("xkcdnumbers") {
+		numbers = c.Bool("xkcdnumbers")
+	}
+
 	for i := 0; i < num; i++ {
-		s, err := xkcdgen.RandomLengthDelim(length, sep, lang)
+		s, err := xkcdgen.RandomLengthDelim(length, sep, lang, capitalize, numbers)
 		if err != nil {
 			return err
 		}

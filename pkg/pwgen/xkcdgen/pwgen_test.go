@@ -23,6 +23,6 @@ func TestRandom(t *testing.T) {
 func TestRandomLengthDelim(t *testing.T) {
 	t.Parallel()
 
-	_, err := RandomLengthDelim(10, " ", "cn_ZH")
+	_, err := RandomLengthDelim(10, " ", "cn_ZH", false, false)
 	require.Error(t, err)
 }
