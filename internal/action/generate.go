@@ -285,16 +285,24 @@ func (s *Action) generatePasswordForRule(ctx context.Context, c *cli.Context, le
 // generatePasswordXKCD walks through the steps necessary to create an XKCD-style
 // password.
 func (s *Action) generatePasswordXKCD(ctx context.Context, c *cli.Context, length string) (string, error) {
-	sep := config.String(c.Context, "pwgen.xkcd.sep")
+	sep := config.String(c.Context, "pwgen.xkcd-sep")
 	if c.IsSet("sep") {
 		sep = c.String("sep")
 	}
-	lang := config.String(c.Context, "pwgen.xkcd.lang")
+	lang := config.String(c.Context, "pwgen.xkcd-lang")
 	if c.IsSet("lang") {
 		lang = c.String("lang")
 	}
+	capitalize := config.Bool(c.Context, "pwgen.xkcd-capitalize")
+	if c.IsSet("xkcdcapitalize") {
+		capitalize = c.Bool("xkcdcapitalize")
+	}
+	num := config.Bool(c.Context, "pwgen.xkcd-numbers")
+	if c.IsSet("xkcdnumbers") {
+		num = c.Bool("xkcdnumbers")
+	}
 
-	pwlen := config.Int(c.Context, "pwgen.xkcd.len")
+	pwlen := config.Int(c.Context, "pwgen.xkcd-len")
 	switch {
 	case length != "":
 		// using the command line supplied value
@@ -319,7 +327,7 @@ func (s *Action) generatePasswordXKCD(ctx context.Context, c *cli.Context, lengt
 		return "", exit.Error(exit.Usage, nil, "password length must not be zero")
 	}
 
-	return xkcdgen.RandomLengthDelim(pwlen, sep, lang)
+	return xkcdgen.RandomLengthDelim(pwlen, sep, lang, capitalize, num)
 }
 
 // generateSetPassword will update or create a secret.

@@ -16,7 +16,7 @@ func Random() string {
 // RandomLength returns a random passphrase combined from the desired number.
 // of words. Words are drawn from lang.
 func RandomLength(length int, lang string) (string, error) {
-	return RandomLengthDelim(length, " ", lang, false)
+	return RandomLengthDelim(length, " ", lang, false, false)
 }
 
 // RandomLengthDelim returns a random passphrase combined from the desired number

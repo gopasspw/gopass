@@ -92,3 +92,5 @@ require (
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	rsc.io/qr v0.2.0 // indirect
 )
+
+replace github.com/martinhoefling/goxkcdpwgen v0.1.2-0.20221205222637-737661b92a0e => github.com/dominikschulz/goxkcdpwgen v0.1.2-num
