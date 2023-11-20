@@ -41,6 +41,7 @@ linters:
   - godox
   - goerr113
   - golint
+  - gomoddirectives
   - gomnd
   - gosec
   - gosimple
