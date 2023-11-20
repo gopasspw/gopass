@@ -306,7 +306,7 @@ Before migrating to gopass, you may have been using other password managers (suc
 If you use Bash, you can use the following command to enable auto completion for all users for sub-commands like `gopass show`, `gopass ls` and others.
 
 ```bash
-gopass completion bash | sudo tee $(pkg-config --variable=completionsdir bash-completion)
+gopass completion bash | sudo tee $(pkg-config --variable=completionsdir bash-completion)/gopass
 ```
 
 To enable bash completions for the current user only:
