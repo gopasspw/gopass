@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -188,6 +189,27 @@ func (g *Git) Version(ctx context.Context) semver.Version {
 	}
 
 	return sv
+}
+
+var reLeadingNumber = regexp.MustCompile(`^\s*(\d+)\D*`)
+
+func parseVersion(sv string) (semver.Version, error) {
+	if sv, err := semver.ParseTolerant(sv); err == nil {
+		return sv, nil
+	}
+
+	parts := strings.SplitN(sv, ".", 3)
+	if len(parts) == 3 {
+		// try to extract the number-only prefix from the patch level
+		// e.g. "windwows.2" from "2.42.0.windows.2"
+		matches := reLeadingNumber.FindStringSubmatch(parts[2])
+		if len(matches) > 0 {
+			parts[2] = matches[1]
+			sv = strings.Join(parts, ".")
+		}
+	}
+
+	return semver.ParseTolerant(sv)
 }
 
 // IsInitialized returns true if this stores has an (probably) initialized .git folder.

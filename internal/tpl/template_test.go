@@ -24,6 +24,7 @@ func Example() { //nolint:testableexamples
 Password-value of the new entry: {{ .Content }}
 Md5sum of the new password: {{ .Content | md5sum }}
 Sha1sum of the new password: {{ .Content | sha1sum }}
+Blake3 of the new password: {{ .Content | blake3 }}
 Md5crypt of the new password: {{ .Content | md5crypt }}
 SSHA of the new password: {{ .Content | ssha }}
 SSHA256 of the new password: {{ .Content | ssha256 }}

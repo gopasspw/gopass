@@ -6,6 +6,8 @@ import (
 	"crypto/sha256"
 	"crypto/sha512"
 	"fmt"
+
+	"github.com/zeebo/blake3"
 )
 
 func MD5Hex(in string) string {
@@ -22,4 +24,8 @@ func SHA256Hex(in string) string {
 
 func SHA512Hex(in string) string {
 	return fmt.Sprintf("%x", sha512.Sum512([]byte(in)))
+}
+
+func Blake3Hex(in string) string {
+	return fmt.Sprintf("%x", blake3.Sum256([]byte(in)))
 }

@@ -29,6 +29,7 @@ const (
 # Available Template functions:
 # - md5sum: e.g. {{ .Content | md5sum }}
 # - sha1sum: e.g. {{ .Content | sha1sum }}
+# - blake3 e.g. {{ .Content | blake3 }}
 # - md5crypt: e.g. {{ .Content | md5crypt }}
 # - ssha: e.g. {{ .Content | ssha }}
 # - ssha256: e.g. {{ .Content | ssha256 }}

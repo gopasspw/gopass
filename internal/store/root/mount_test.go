@@ -73,3 +73,120 @@ func TestMountPointIllegal(t *testing.T) {
 	}
 	require.Error(t, rs.AddMount(ctx, "sub2/", u.StoreDir("sub2")))
 }
+
+func TestCleanMountAlias(t *testing.T) {
+	for _, tc := range []struct {
+		name     string
+		in, want string
+	}{
+		{
+			name: "simple",
+			in:   "foo",
+			want: "foo",
+		},
+		{
+			name: "simple",
+			in:   "foo/bar",
+			want: "foo/bar",
+		},
+		{
+			name: "simple",
+			in:   "foo/bar/",
+			want: "foo/bar",
+		},
+		{
+			name: "simple",
+			in:   "foo/bar//",
+			want: "foo/bar",
+		},
+		{
+			name: "simple",
+			in:   "foo/bar////",
+			want: "foo/bar",
+		},
+		{
+			name: "simple",
+			in:   "foo/bar/////",
+			want: "foo/bar",
+		},
+		{
+			name: "simple",
+			in:   "foo/bar//////",
+			want: "foo/bar",
+		},
+		{
+			name: "simple",
+			in:   "foo/bar///////",
+			want: "foo/bar",
+		},
+		{
+			name: "simple",
+			in:   "foo/bar////////",
+			want: "foo/bar",
+		},
+		{
+			name: "simple",
+			in:   "foo/bar/////////",
+			want: "foo/bar",
+		},
+		{
+			name: "simple",
+			in:   "foo/bar//////////",
+			want: "foo/bar",
+		},
+		{
+			name: "simple",
+			in:   "foo/bar///////////",
+			want: "foo/bar",
+		},
+		{
+			name: "simple",
+			in:   "foo/bar////////////",
+			want: "foo/bar",
+		},
+		{
+			name: "simple",
+			in:   "foo/bar/////////////",
+			want: "foo/bar",
+		},
+		{
+			name: "simple",
+			in:   "foo/bar//////////////",
+			want: "foo/bar",
+		},
+		{
+			name: "simple",
+			in:   "foo/bar///////////////",
+			want: "foo/bar",
+		},
+		{
+			name: "simple",
+			in:   "foo/bar////////////////",
+			want: "foo/bar",
+		},
+		{
+			name: "mixed",
+			in:   "foo/bar/\\///\\////",
+			want: "foo/bar",
+		},
+		{
+			name: "simple",
+			in:   "/foo/bar",
+			want: "foo/bar",
+		},
+		{
+			name: "simple",
+			in:   "//foo/bar",
+			want: "foo/bar",
+		},
+		{
+			name: "simple",
+			in:   "////foo/bar",
+			want: "foo/bar",
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.want, CleanMountAlias(tc.in))
+		})
+	}
+}

@@ -21,6 +21,8 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
+	"runtime"
 	"strings"
 	"time"
 
@@ -344,15 +346,23 @@ func versionFile() (semver.Version, error) {
 	return semver.Parse(strings.TrimSpace(string(buf)))
 }
 
+func goVersion() string {
+	sv := semver.MustParse(strings.TrimPrefix(runtime.Version(), "go"))
+
+	return fmt.Sprintf("%d.%d", sv.Major, sv.Minor)
+}
+
 type inUpdater struct {
 	github *github.Client
 	v      semver.Version
+	goVer  string // go version as major.minor (for use in go.mod and GH workflows)
 }
 
 func newIntegrationsUpdater(client *github.Client, v semver.Version) (*inUpdater, error) {
 	return &inUpdater{
 		github: client,
 		v:      v,
+		goVer:  goVersion(),
 	}, nil
 }
 
@@ -389,7 +399,7 @@ func (u *inUpdater) doUpdate(ctx context.Context, dir string) error {
 	if gitHasTag(path, tag) {
 		fmt.Printf("✅ Integration %s has tag %s already.\n", dir, tag)
 
-		return nil
+		// TODO return nil
 	}
 	fmt.Printf("✅ [%s] %s is not tagged, yet.\n", dir, tag)
 
@@ -422,6 +432,18 @@ func (u *inUpdater) doUpdate(ctx context.Context, dir string) error {
 	}
 	fmt.Printf("✅ [%s] synced .golangci.yml.\n", dir)
 
+	// update go.mod
+	if err := runCmd(path, "go", "mod", "edit", "-go="+u.goVer); err != nil {
+		return err
+	}
+	fmt.Printf("✅ [%s] updated Go version in go.mod to %s.\n", dir, u.goVer)
+
+	// update workflows
+	if err := u.updateWorkflows(ctx, path); err != nil {
+		return err
+	}
+	fmt.Printf("✅ [%s] updated workflows.\n", dir)
+
 	// update VERSION
 	if err := os.WriteFile(filepath.Join(path, "VERSION"), []byte(u.v.String()+"\n"), 0o644); err != nil {
 		return err
@@ -453,6 +475,50 @@ func (u *inUpdater) doUpdate(ctx context.Context, dir string) error {
 	fmt.Printf("✅ [%s] tagged.\n", dir)
 
 	return nil
+}
+
+func (u *inUpdater) updateWorkflows(ctx context.Context, dir string) error {
+	filepath.Walk(filepath.Join(dir, ".github", "workflows"), func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			fmt.Printf("Failed to walk %s: %s\n", path, err)
+
+			return nil
+		}
+		if info.IsDir() {
+			// fmt.Printf("Skipping dir %s\n", path)
+
+			return nil
+		}
+		if !strings.HasSuffix(path, ".yml") {
+			// fmt.Printf("Skipping file %s\n", path)
+
+			return nil
+		}
+
+		return u.updateWorkflow(ctx, path)
+	})
+
+	return nil
+}
+
+var goVersionRE = regexp.MustCompile(`go-version:\s+\d+\.\d+`)
+
+func (u *inUpdater) updateWorkflow(ctx context.Context, path string) error {
+	buf, err := os.ReadFile(path)
+	if err != nil {
+		return err
+	}
+	str := goVersionRE.ReplaceAllString(string(buf), "go-version: "+u.goVer)
+	// no change, no write
+	if str == string(buf) {
+		// fmt.Printf("No changes in %s\n", path)
+
+		return nil
+	}
+
+	fmt.Printf("Wrote %s\n", path)
+
+	return os.WriteFile(path, []byte(str), 0o644)
 }
 
 type tplPayload struct {
