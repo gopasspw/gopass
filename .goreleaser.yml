@@ -66,6 +66,8 @@ nfpms:
     homepage: "https://www.gopass.pw"
     maintainer: "Gopass Authors <gopass@gopass.pw>"
     description: |-
+      gopass password manager - full featured CLI replacement for pass, designed for teams.
+
       gopass is a simple but powerful password manager for your terminal. It is a
       Pass implementation in Go that can be used as a drop in replacement.
 
@@ -89,6 +91,8 @@ nfpms:
     homepage: "https://www.gopass.pw"
     maintainer: "Gopass Authors <gopass@gopass.pw>"
     description: |-
+      gopass password manager - full featured CLI replacement for pass, designed for teams.
+
       gopass is a simple but powerful password manager for your terminal. It is a
       Pass implementation in Go that can be used as a drop in replacement.
 
