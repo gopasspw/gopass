@@ -59,6 +59,8 @@ jobs:
           objects.githubusercontent.com:443
           proxy.golang.org:443
           raw.githubusercontent.com:443
+          storage.googleapis.com:443
+          sum.golang.org:443
 
     - name: Checkout repository
       uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
