@@ -190,7 +190,9 @@ func (c *Config) Set(mount, key, value string) error {
 		return c.root.SetLocal(key, value)
 	}
 
-	if cfg := c.cfgs[mount]; cfg != nil {
+	if cfg, ok := c.cfgs[mount]; !ok {
+		return fmt.Errorf("substore '%s' is not initialized or doesn't exist", mount)
+	} else if cfg != nil {
 		return cfg.SetLocal(key, value)
 	}
 

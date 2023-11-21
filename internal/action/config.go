@@ -34,10 +34,10 @@ func (s *Action) Config(c *cli.Context) error {
 		return exit.Error(exit.Usage, nil, "Usage: %s config key value", s.Name)
 	}
 
-	// need to initialize sub-stores so we can update their configs.
-	// special case: we can always update the root config.
-	if err := s.IsInitialized(c); err != nil && store != "" {
-		return err
+	// sub-stores need to have been initialized so we can update their local configs.
+	// special case: we can always update the global config. NB: IsInitialized initializes the store if nil.
+	if inited, err := s.Store.IsInitialized(ctx); err != nil || store != "" && !inited {
+		return exit.Error(exit.Unknown, err, "Store %s seems uninitialized or cannot be initialized", store)
 	}
 
 	if err := s.setConfigValue(ctx, store, c.Args().Get(0), c.Args().Get(1)); err != nil {
