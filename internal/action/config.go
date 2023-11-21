@@ -89,10 +89,29 @@ func (s *Action) setConfigValue(ctx context.Context, store, key, value string) e
 		return fmt.Errorf("storage not available")
 	}
 
-	if err := st.Add(ctx, "config"); err != nil && !errors.Is(err, istore.ErrGitNotInit) {
+	// in case of a local config change we want to track changes
+	if !st.Exists(ctx, "config") {
+		debug.Log("no local config file in store '%s', skipping commit phase", store)
+		s.printConfigValues(ctx, store, key)
+
+		return nil
+	}
+
+	switch err := st.Add(ctx, "config"); {
+	case err == nil:
+		debug.Log("Added local config for commit")
+	case errors.Is(err, istore.ErrGitNotInit):
+		debug.Log("Skipping staging of local config: %v", err)
+	default:
 		return fmt.Errorf("failed to stage config file: %w", err)
 	}
-	if err := st.Commit(ctx, "Update config"); err != nil && !errors.Is(err, istore.ErrGitNotInit) {
+
+	switch err := st.Commit(ctx, "Update config"); {
+	case err == nil:
+		debug.Log("Committed local config")
+	case errors.Is(err, istore.ErrGitNotInit), errors.Is(err, istore.ErrGitNothingToCommit):
+		debug.Log("Skipping staging of local config: %v", err)
+	default:
 		return fmt.Errorf("failed to commit config: %w", err)
 	}
 
