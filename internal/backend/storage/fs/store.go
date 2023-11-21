@@ -151,7 +151,7 @@ func (s *Store) Exists(ctx context.Context, name string) bool {
 	}
 	path := filepath.Join(s.path, filepath.Clean(name))
 	found := fsutil.IsFile(path)
-	debug.Log("Checking if %s exists at %s: %t", name, path, found)
+	debug.Log("Checking if '%s' exists at %s: %t", name, path, found)
 
 	return found
 }

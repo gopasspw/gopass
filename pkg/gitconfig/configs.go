@@ -60,7 +60,7 @@ func (cs *Configs) Reload() {
 
 // String implements fmt.Stringer.
 func (cs *Configs) String() string {
-	return fmt.Sprintf("GitConfigs{Env: %s - System: %s - Global: %s - Local: %s - Worktree: %s}", cs.EnvPrefix, cs.SystemConfig, cs.GlobalConfig, cs.LocalConfig, cs.WorktreeConfig)
+	return fmt.Sprintf("GitConfigs{Workdir: %s - Env: %s - System: %s - Global: %s - Local: %s - Worktree: %s}", cs.workdir, cs.EnvPrefix, cs.SystemConfig, cs.GlobalConfig, cs.LocalConfig, cs.WorktreeConfig)
 }
 
 // LoadAll tries to load all known config files. Missing or invalid files are
@@ -69,7 +69,7 @@ func (cs *Configs) String() string {
 func (cs *Configs) LoadAll(workdir string) *Configs {
 	cs.workdir = workdir
 
-	debug.Log("Loading gitconfigs for %s ...", cs)
+	debug.Log("Loading gitconfigs for %s", cs)
 
 	// load the system config, if any
 	if os.Getenv(cs.EnvPrefix+"_NOSYSTEM") == "" {
@@ -145,6 +145,24 @@ func (cs *Configs) loadGlobalConfigs() string {
 		locs = append(locs, filepath.Join(appdir.UserHome(), cs.GlobalConfig))
 	}
 
+	// if we already have a global config we can just reload it instead of trying all locations
+	// but since gitconfig.New() already sets the global path to the globalConfigFile() one, we need to check
+	// its raw length to be sure it wasn't just the default empty config struct and was previously loaded
+	if cs.global != nil && cs.global.raw.Len() > 0 {
+		if p := cs.global.path; p != "" {
+			debug.Log("[%s] reloading existing global config from %s", cs.EnvPrefix, p)
+			cfg, err := LoadConfig(p)
+			if err != nil {
+				debug.Log("[%s] failed to reload global config from %s", cs.EnvPrefix, p)
+			} else {
+				cs.global = cfg
+
+				return p
+			}
+		}
+	}
+
+	debug.Log("[%s] trying to find global configs in %v", cs.EnvPrefix, locs)
 	for _, p := range locs {
 		// GlobalConfig might be set to an empty string to disable it
 		// and instead of the XDG_CONFIG_HOME path only.
@@ -166,7 +184,7 @@ func (cs *Configs) loadGlobalConfigs() string {
 
 	debug.Log("[%s] no global config found", cs.EnvPrefix)
 
-	// set the path in case we want to write to it (create it) later
+	// set the path to the default one in case we want to write to it (create it) later
 	cs.global = &Config{
 		path: globalConfigFile(),
 	}

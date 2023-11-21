@@ -18,8 +18,8 @@ Some configuration options are only available through setting environment variab
 | `GOPASS_DEBUG_FILES`         | `string` | Comma separated filter for console debug output (files)                                                                                                           |
 | `GOPASS_DEBUG_FUNCS`         | `string` | Comma separated filter for console debug output (functions)                                                                                                       |
 | `GOPASS_DEBUG_LOG_SECRETS`   | `bool`   | Set to any non-empty value to enable logging of credentials                                                                                                       |
-| `GOPASS_DEBUG_LOG`           | `string` | Set to a filename to enable debug logging                                                                                                                         |
-| `GOPASS_DEBUG`               | `bool`   | Set to any non-empty value to enable verbose debug output                                                                                                         |
+| `GOPASS_DEBUG_LOG`           | `string` | Set to a filename to enable debug logging (only set GOPASS_DEBUG to log to stderr)                                                                                |
+| `GOPASS_DEBUG`               | `bool`   | Set to any non-empty value to enable verbose debug output, by default on stderr, unless GOPASS_DEBUG_LOG is set                                                   |
 | `GOPASS_EXTERNAL_PWGEN`      | `string` | Use an external password generator. See [Features](features.md#using-custom-password-generators) for details                                                      |
 | `GOPASS_FORCE_CHECK`         | `string` | (internal) Force the updater to check for updates. Used for testing.                                                                                              |
 | `GOPASS_FORCE_UPDATE`        | `bool`   | Set to any non-empty value to force an update (if available)                                                                                                      |
