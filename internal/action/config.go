@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/gopasspw/gopass/internal/action/exit"
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/set"
 	istore "github.com/gopasspw/gopass/internal/store"
@@ -80,8 +81,17 @@ func contains(haystack []string, needle string) bool {
 func (s *Action) setConfigValue(ctx context.Context, store, key, value string) error {
 	debug.Log("setting %s to %s for %q", key, value, store)
 
-	if err := s.cfg.Set(store, key, value); err != nil {
+	level, err := s.cfg.SetWithLevel(store, key, value)
+	if err != nil {
 		return fmt.Errorf("failed to set config value %q: %w", key, err)
+	}
+
+	// in case of a non-local config change we don't need to track changes in the store
+	if level != config.Local {
+		debug.Log("did not set local config (was config level %d) in store '%s', skipping commit phase", level, store)
+		s.printConfigValues(ctx, store, key)
+
+		return nil
 	}
 
 	st := s.Store.Storage(ctx, store)
@@ -89,21 +99,15 @@ func (s *Action) setConfigValue(ctx context.Context, store, key, value string) e
 		return fmt.Errorf("storage not available")
 	}
 
-	// in case of a local config change we want to track changes
-	if !st.Exists(ctx, "config") {
-		debug.Log("no local config file in store '%s', skipping commit phase", store)
-		s.printConfigValues(ctx, store, key)
-
-		return nil
-	}
-
+	// notice that we rely on the cfg.Set above having created the local config file here. If it doesn't exist,
+	// st.Add will fail and return an error.
 	switch err := st.Add(ctx, "config"); {
 	case err == nil:
 		debug.Log("Added local config for commit")
 	case errors.Is(err, istore.ErrGitNotInit):
 		debug.Log("Skipping staging of local config: %v", err)
 	default:
-		return fmt.Errorf("failed to stage config file: %w", err)
+		return fmt.Errorf("failed to stage local config file: %w", err)
 	}
 
 	switch err := st.Commit(ctx, "Update config"); {
@@ -112,7 +116,7 @@ func (s *Action) setConfigValue(ctx context.Context, store, key, value string) e
 	case errors.Is(err, istore.ErrGitNotInit), errors.Is(err, istore.ErrGitNothingToCommit):
 		debug.Log("Skipping staging of local config: %v", err)
 	default:
-		return fmt.Errorf("failed to commit config: %w", err)
+		return fmt.Errorf("failed to commit local config: %w", err)
 	}
 
 	s.printConfigValues(ctx, store, key)

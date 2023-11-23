@@ -115,7 +115,7 @@ func (cs *Configs) LoadAll(workdir string) *Configs {
 			// set the path just in case we want to modify / write to it later
 			cs.worktree.path = worktreeConfigPath
 		} else {
-			debug.Log("[%s] loaded local config from %s", cs.EnvPrefix, worktreeConfigPath)
+			debug.Log("[%s] loaded worktree config from %s", cs.EnvPrefix, worktreeConfigPath)
 			cs.worktree = c
 		}
 	}
@@ -146,9 +146,7 @@ func (cs *Configs) loadGlobalConfigs() string {
 	}
 
 	// if we already have a global config we can just reload it instead of trying all locations
-	// but since gitconfig.New() already sets the global path to the globalConfigFile() one, we need to check
-	// its raw length to be sure it wasn't just the default empty config struct and was previously loaded
-	if cs.global != nil && cs.global.raw.Len() > 0 {
+	if !cs.global.IsEmpty() {
 		if p := cs.global.path; p != "" {
 			debug.Log("[%s] reloading existing global config from %s", cs.EnvPrefix, p)
 			cfg, err := LoadConfig(p)

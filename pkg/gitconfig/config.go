@@ -24,6 +24,22 @@ type Config struct {
 	vars     map[string][]string
 }
 
+// IsEmpty returns true if the config is empty (typically a newly initialized config, but still unused).
+// Since gitconfig.New() already sets the global path to the globalConfigFile() one, we cannot rely on
+// the path being set to checki this. We need to check the  raw length to be sure it wasn't just
+// the default empty config struct.
+func (c *Config) IsEmpty() bool {
+	if c == nil || c.vars == nil {
+		return true
+	}
+
+	if c.raw.Len() > 0 {
+		return false
+	}
+
+	return true
+}
+
 // Unset deletes a key.
 func (c *Config) Unset(key string) error {
 	if c.readonly {
