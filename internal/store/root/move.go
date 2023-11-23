@@ -42,14 +42,7 @@ func (r *Store) move(ctx context.Context, from, to string, del bool) error {
 	subFrom, fromPrefix := r.getStore(from)
 	subTo, _ := r.getStore(to)
 
-	srcIsDir := r.IsDir(ctx, from)
-	dstIsDir := r.IsDir(ctx, to)
-
-	if srcIsDir && r.Exists(ctx, to) && !dstIsDir {
-		return fmt.Errorf("destination is a file")
-	}
-
-	if err := r.moveFromTo(ctx, subFrom, from, to, fromPrefix, srcIsDir, dstIsDir, del); err != nil {
+	if err := r.moveFromTo(ctx, subFrom, from, to, fromPrefix, del); err != nil {
 		return err
 	}
 
@@ -124,13 +117,21 @@ func (r *Store) move(ctx context.Context, from, to string, del bool) error {
 	return nil
 }
 
-func (r *Store) moveFromTo(ctx context.Context, subFrom *leaf.Store, from, to, fromPrefix string, srcIsDir, dstIsDir, del bool) error {
+func (r *Store) moveFromTo(ctx context.Context, subFrom *leaf.Store, from, to, fromPrefix string, del bool) error {
 	ctx = ctxutil.WithGitCommit(ctx, false)
+
+	// source is a directory and not a "shadowed" leaf
+	srcIsDir := r.IsDir(ctx, from) && !r.Exists(ctx, from)
+	dstIsDir := r.IsDir(ctx, to)
+
+	if srcIsDir && r.Exists(ctx, to) && !dstIsDir {
+		return fmt.Errorf("destination is a file")
+	}
 
 	entries := []string{from}
 	// if the source is a directory we enumerate all it's children
 	// and move them one by one.
-	if r.IsDir(ctx, from) {
+	if srcIsDir {
 		var err error
 
 		entries, err = subFrom.List(ctx, fromPrefix+"/")
