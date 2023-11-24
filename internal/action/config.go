@@ -87,8 +87,8 @@ func (s *Action) setConfigValue(ctx context.Context, store, key, value string) e
 	}
 
 	// in case of a non-local config change we don't need to track changes in the store
-	if level != config.Local {
-		debug.Log("did not set local config (was config level %d) in store '%s', skipping commit phase", level, store)
+	if level != config.Local && level != config.Worktree {
+		debug.Log("did not set local config (was config level %d) in store %q, skipping commit phase", level, store)
 		s.printConfigValues(ctx, store, key)
 
 		return nil
@@ -99,22 +99,30 @@ func (s *Action) setConfigValue(ctx context.Context, store, key, value string) e
 		return fmt.Errorf("storage not available")
 	}
 
-	// notice that we rely on the cfg.Set above having created the local config file here. If it doesn't exist,
-	// st.Add will fail and return an error.
-	switch err := st.Add(ctx, "config"); {
+	configFile := "config"
+	if level == config.Worktree {
+		configFile = "config.worktree"
+	}
+
+	// notice that the cfg.Set above should have created the local config file.
+	if !st.Exists(ctx, configFile) {
+		return fmt.Errorf("local config file %s didn't exist in store, this is unexpected", configFile)
+	}
+
+	switch err := st.Add(ctx, configFile); {
 	case err == nil:
 		debug.Log("Added local config for commit")
 	case errors.Is(err, istore.ErrGitNotInit):
-		debug.Log("Skipping staging of local config: %v", err)
+		debug.Log("Skipping staging of local config %q: %v", configFile, err)
 	default:
-		return fmt.Errorf("failed to stage local config file: %w", err)
+		return fmt.Errorf("failed to Add local config %q: %w", configFile, err)
 	}
 
 	switch err := st.Commit(ctx, "Update config"); {
 	case err == nil:
 		debug.Log("Committed local config")
 	case errors.Is(err, istore.ErrGitNotInit), errors.Is(err, istore.ErrGitNothingToCommit):
-		debug.Log("Skipping staging of local config: %v", err)
+		debug.Log("Skipping Commit of local config: %v", err)
 	default:
 		return fmt.Errorf("failed to commit local config: %w", err)
 	}

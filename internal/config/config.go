@@ -211,7 +211,7 @@ func (c *Config) SetWithLevel(mount, key, value string) (Level, error) {
 	}
 
 	if cfg, ok := c.cfgs[mount]; !ok {
-		return None, fmt.Errorf("substore '%s' is not initialized or doesn't exist", mount)
+		return None, fmt.Errorf("substore %q is not initialized or doesn't exist", mount)
 	} else if cfg != nil {
 		return Local, cfg.SetLocal(key, value)
 	}
