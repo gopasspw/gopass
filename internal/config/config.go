@@ -22,6 +22,18 @@ var (
 	systemConfig = "/etc/gopass/config"
 )
 
+type Level int
+
+const (
+	None Level = iota
+	Env
+	Worktree
+	Local
+	Global
+	System
+	Preset
+)
+
 func newGitconfig() *gitconfig.Configs {
 	c := gitconfig.New()
 	c.EnvPrefix = envPrefix
@@ -182,19 +194,29 @@ func (c *Config) GetInt(key string) int {
 //   - If mount has any other value we will attempt to write the setting to the per-directory config of this mount.
 //   - If the mount point does not exist we will return nil.
 func (c *Config) Set(mount, key, value string) error {
+	_, err := c.SetWithLevel(mount, key, value)
+
+	return err
+}
+
+// SetWithLevel is the same as Set, but it also returns the level at which the config was set.
+// It currently only supports global and local configs.
+func (c *Config) SetWithLevel(mount, key, value string) (Level, error) {
 	if mount == "" {
-		return c.root.SetGlobal(key, value)
+		return Global, c.root.SetGlobal(key, value)
 	}
 
 	if mount == "<root>" {
-		return c.root.SetLocal(key, value)
+		return Local, c.root.SetLocal(key, value)
 	}
 
-	if cfg := c.cfgs[mount]; cfg != nil {
-		return cfg.SetLocal(key, value)
+	if cfg, ok := c.cfgs[mount]; !ok {
+		return None, fmt.Errorf("substore %q is not initialized or doesn't exist", mount)
+	} else if cfg != nil {
+		return Local, cfg.SetLocal(key, value)
 	}
 
-	return nil
+	return None, nil
 }
 
 // SetEnv overrides a key in the non-persistent layer.
@@ -217,7 +239,7 @@ func (c *Config) SetPath(path string) error {
 	return c.Set("", "mounts.path", path)
 }
 
-// SetMountPath is a short cut to set a mount to a path.
+// SetMountPath is a shortcut to set a mount to a path.
 func (c *Config) SetMountPath(mount, path string) error {
 	return c.Set("", mpk(mount), path)
 }
