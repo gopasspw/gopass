@@ -63,8 +63,8 @@ attributes:
 
 type storageSetter interface {
 	Set(context.Context, string, []byte) error
-	Add(context.Context, ...string) error
-	Commit(context.Context, string) error
+	TryAdd(context.Context, ...string) error
+	TryCommit(context.Context, string) error
 }
 
 func (w *Wizard) writeTemplates(ctx context.Context, s storageSetter) error {
@@ -86,14 +86,14 @@ func (w *Wizard) writeTemplates(ctx context.Context, s storageSetter) error {
 			return fmt.Errorf("failed to write default template %s: %w", path, err)
 		}
 
-		if err := s.Add(ctx, path); err != nil && !errors.Is(err, store.ErrGitNotInit) {
+		if err := s.TryAdd(ctx, path); err != nil {
 			return fmt.Errorf("failed to stage changes %s: %w", path, err)
 		}
 
 		debug.Log("wrote default template to %s", path)
 	}
 
-	if err := s.Commit(ctx, "Added default wizard templates"); err != nil && !errors.Is(err, store.ErrGitNotInit) {
+	if err := s.TryCommit(ctx, "Added default wizard templates"); err != nil {
 		return fmt.Errorf("failed to commit changes: %w", err)
 	}
 

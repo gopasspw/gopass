@@ -19,7 +19,15 @@ func (f *fakeSetter) Add(ctx context.Context, args ...string) error {
 	return nil
 }
 
+func (f *fakeSetter) TryAdd(ctx context.Context, args ...string) error {
+	return nil
+}
+
 func (f *fakeSetter) Commit(ctx context.Context, msg string) error {
+	return nil
+}
+
+func (f *fakeSetter) TryCommit(ctx context.Context, msg string) error {
 	return nil
 }
 

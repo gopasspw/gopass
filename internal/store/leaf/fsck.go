@@ -205,15 +205,8 @@ func (s *Store) fsckLoop(ctx context.Context, path string) error {
 		out.Warningf(ctx, "Nothing to commit: all secrets up to date")
 	}
 
-	if err := s.storage.Commit(ctx, ctxutil.GetCommitMessageFull(ctx)); err != nil {
-		switch {
-		case errors.Is(err, store.ErrGitNotInit):
-			out.Warning(ctx, "Cannot commit: git not initialized\nplease run `gopass git init` (and note that manual intervention might be needed)")
-		case errors.Is(err, store.ErrGitNothingToCommit):
-			debug.Log("commitAndPush - skipping git commit - nothing to commit")
-		default:
-			return fmt.Errorf("failed to commit changes to git: %w", err)
-		}
+	if err := s.storage.TryCommit(ctx, ctxutil.GetCommitMessageFull(ctx)); err != nil {
+		return fmt.Errorf("failed to commit changes to git: %w", err)
 	}
 
 	return nil

@@ -109,11 +109,7 @@ func (s *Store) directMove(ctx context.Context, from, to string, del bool) error
 		return nil
 	}
 
-	if err := s.storage.Add(ctx, pFrom, pTo); err != nil {
-		if errors.Is(err, store.ErrGitNotInit) {
-			return nil
-		}
-
+	if err := s.storage.TryAdd(ctx, pFrom, pTo); err != nil {
 		return fmt.Errorf("failed to add %q and %q to git: %w", pFrom, pTo, err)
 	}
 
@@ -164,15 +160,8 @@ func (s *Store) delete(ctx context.Context, name string, recurse bool) error {
 		return nil
 	}
 
-	if err := s.storage.Commit(ctx, fmt.Sprintf("Remove %s from store.", name)); err != nil {
-		switch {
-		case errors.Is(err, store.ErrGitNotInit):
-			debug.Log("skipping git commit - git not initialized")
-		case errors.Is(err, store.ErrGitNothingToCommit):
-			debug.Log("skipping git commit - nothing to commit")
-		default:
-			return fmt.Errorf("failed to commit changes to git: %w", err)
-		}
+	if err := s.storage.TryCommit(ctx, fmt.Sprintf("Remove %s from store.", name)); err != nil {
+		return fmt.Errorf("failed to commit changes to git: %w", err)
 	}
 
 	if !config.Bool(ctx, "core.autopush") {
@@ -181,11 +170,7 @@ func (s *Store) delete(ctx context.Context, name string, recurse bool) error {
 		return nil
 	}
 
-	if err := s.storage.Push(ctx, "", ""); err != nil {
-		if errors.Is(err, store.ErrGitNotInit) || errors.Is(err, store.ErrGitNoRemote) {
-			return nil
-		}
-
+	if err := s.storage.TryPush(ctx, "", ""); err != nil {
 		return fmt.Errorf("failed to push change to git remote: %w", err)
 	}
 
@@ -206,11 +191,7 @@ func (s *Store) deleteRecurse(ctx context.Context, name, path string) error {
 		return err
 	}
 
-	if err := s.storage.Add(ctx, name); err != nil {
-		if errors.Is(err, store.ErrGitNotInit) {
-			return nil
-		}
-
+	if err := s.storage.TryAdd(ctx, name); err != nil {
 		return fmt.Errorf("failed to add %q to git: %w", path, err)
 	}
 	debug.Log("pruned")
@@ -228,11 +209,7 @@ func (s *Store) deleteSingle(ctx context.Context, path string) error {
 		return err
 	}
 
-	if err := s.storage.Add(ctx, path); err != nil {
-		if errors.Is(err, store.ErrGitNotInit) {
-			return nil
-		}
-
+	if err := s.storage.TryAdd(ctx, path); err != nil {
 		return fmt.Errorf("failed to add %q to git: %w", path, err)
 	}
 

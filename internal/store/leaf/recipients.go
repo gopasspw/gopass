@@ -339,17 +339,10 @@ func (s *Store) UpdateExportedPublicKeys(ctx context.Context, rs []string) (bool
 	}
 
 	if exported && ctxutil.IsGitCommit(ctx) {
-		if err := s.storage.Commit(ctx, "Updated exported Public Keys"); err != nil {
-			switch {
-			case errors.Is(err, store.ErrGitNothingToCommit):
-				debug.Log("nothing to commit: %s", err)
-			case errors.Is(err, store.ErrGitNotInit):
-				debug.Log("git not initialized: %s", err)
-			default:
-				failed = true
+		if err := s.storage.TryCommit(ctx, "Updated exported Public Keys"); err != nil {
+			failed = true
 
-				out.Errorf(ctx, "Failed to git commit: %s", err)
-			}
+			out.Errorf(ctx, "Failed to git commit: %s", err)
 		}
 	}
 
@@ -380,11 +373,7 @@ func (s *Store) addMissingKeys(ctx context.Context, exp keyExporter, recipients 
 		}
 		// at least one key has been exported
 		exported = true
-		if err := s.storage.Add(ctx, path); err != nil {
-			if errors.Is(err, store.ErrGitNotInit) {
-				continue
-			}
-
+		if err := s.storage.TryAdd(ctx, path); err != nil {
 			failed = true
 
 			out.Errorf(ctx, "failed to add public key for %q to git: %s", r, err)
@@ -466,16 +455,12 @@ func (s *Store) saveRecipients(ctx context.Context, rs recipientMarshaler, msg s
 		return nil // No need to overwrite recipients file
 	}
 
-	if err := s.storage.Add(ctx, idf); err != nil {
-		if !errors.Is(err, store.ErrGitNotInit) {
-			return fmt.Errorf("failed to add file %q to git: %w", idf, err)
-		}
+	if err := s.storage.TryAdd(ctx, idf); err != nil {
+		return fmt.Errorf("failed to add file %q to git: %w", idf, err)
 	}
 
-	if err := s.storage.Commit(ctx, msg); err != nil {
-		if !errors.Is(err, store.ErrGitNotInit) && !errors.Is(err, store.ErrGitNothingToCommit) {
-			return fmt.Errorf("failed to commit changes to git: %w", err)
-		}
+	if err := s.storage.TryCommit(ctx, msg); err != nil {
+		return fmt.Errorf("failed to commit changes to git: %w", err)
 	}
 
 	// save recipients hash

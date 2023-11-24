@@ -123,11 +123,7 @@ func (s *Store) SetTemplate(ctx context.Context, name string, content []byte) er
 		return fmt.Errorf("failed to write template: %w", err)
 	}
 
-	if err := s.storage.Add(ctx, p); err != nil {
-		if errors.Is(err, store.ErrGitNotInit) {
-			return nil
-		}
-
+	if err := s.storage.TryAdd(ctx, p); err != nil {
 		return fmt.Errorf("failed to add %q to git: %w", p, err)
 	}
 
