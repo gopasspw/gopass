@@ -128,6 +128,8 @@ github.com/makiuchi-d/gozxing v0.1.1 h1:xxqijhoedi+/lZlhINteGbywIrewVdVv2wl9r5O9
 github.com/makiuchi-d/gozxing v0.1.1/go.mod h1:eRIHbOjX7QWxLIDJoQuMLhuXg9LAuw6znsUtRkNw9DU=
 github.com/martinhoefling/goxkcdpwgen v0.1.2-0.20221205222637-737661b92a0e h1:Msp8Yrv7Z/QVD+GAdkHTtStGqtAGBxoJ9a/+j2D2AFc=
 github.com/martinhoefling/goxkcdpwgen v0.1.2-0.20221205222637-737661b92a0e/go.mod h1:6TCkeMIDjs8RBu1OPOIVtxmmI3Nfcz6EyCGh+12gL6U=
+github.com/martinhoefling/goxkcdpwgen v0.1.2-0.20231122080842-e51aa57005ca h1:jV6vw7U2RoS1sI7f6f12/wsCwMjADZ/xUxi/lhUqjV8=
+github.com/martinhoefling/goxkcdpwgen v0.1.2-0.20231122080842-e51aa57005ca/go.mod h1:IKRlPM0t4ZmK9YZ33QZ2hB1DcSY8WnQedKRDyYeNRp4=
 github.com/mattn/go-colorable v0.1.4/go.mod h1:U0ppj6V5qS13XJ6of8GYAs25YV2eR4EVcfRqFIhoBtE=
 github.com/mattn/go-colorable v0.1.13 h1:fFA4WZxdEF4tXPZVKMLwD8oUnCTTo08duU7wxecdEvA=
 github.com/mattn/go-colorable v0.1.13/go.mod h1:7S9/ev0klgBDR4GtXTXX8a3vIGJpMovkB8vQcUbaXHg=
