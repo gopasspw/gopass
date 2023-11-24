@@ -37,7 +37,7 @@ func (s *Action) Config(c *cli.Context) error {
 
 	// sub-stores need to have been initialized so we can update their local configs.
 	// special case: we can always update the global config. NB: IsInitialized initializes the store if nil.
-	if inited, err := s.Store.IsInitialized(ctx); err != nil || store != "" && !inited {
+	if inited, err := s.Store.IsInitialized(ctx); err != nil || (store != "" && !inited) {
 		return exit.Error(exit.Unknown, err, "Store %s seems uninitialized or cannot be initialized", store)
 	}
 
