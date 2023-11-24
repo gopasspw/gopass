@@ -23,7 +23,7 @@ require (
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
 	github.com/kbinani/screenshot v0.0.0-20230812210009-b87d31814237
 	github.com/makiuchi-d/gozxing v0.1.1
-	github.com/martinhoefling/goxkcdpwgen v0.1.2-0.20221205222637-737661b92a0e
+	github.com/martinhoefling/goxkcdpwgen v0.1.2-0.20231122080842-e51aa57005ca
 	github.com/mattn/go-colorable v0.1.13
 	github.com/mattn/go-isatty v0.0.20
 	github.com/mattn/go-tty v0.0.5
@@ -92,5 +92,3 @@ require (
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	rsc.io/qr v0.2.0 // indirect
 )
-
-replace github.com/martinhoefling/goxkcdpwgen v0.1.2-0.20221205222637-737661b92a0e => github.com/dominikschulz/goxkcdpwgen v0.1.2-num
