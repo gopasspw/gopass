@@ -4,6 +4,7 @@ import (
 	"github.com/gopasspw/gopass/internal/action/exit"
 	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/internal/backend/crypto/age"
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
@@ -23,6 +24,9 @@ func (s *Action) Convert(c *cli.Context) error {
 	if err != nil {
 		return exit.Error(exit.NotFound, err, "mount %q not found: %s", store, err)
 	}
+
+	// we know it's a valid mount at this point
+	ctx = config.WithMount(ctx, store)
 
 	oldStorage := sub.Storage().Name()
 

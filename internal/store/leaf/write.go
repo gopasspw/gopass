@@ -90,6 +90,7 @@ func (s *Store) gitCommitAndPush(ctx context.Context, name string) error {
 		}
 	}
 
+	ctx = config.WithMount(ctx, s.alias)
 	if !config.Bool(ctx, "core.autopush") {
 		debug.Log("not pushing to git remote, core.autopush is false")
 

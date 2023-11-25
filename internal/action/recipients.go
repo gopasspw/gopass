@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/gopasspw/gopass/internal/action/exit"
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/cui"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/set"
@@ -112,6 +113,7 @@ func (s *Action) RecipientsAdd(c *cli.Context) error {
 			out.Warningf(ctx, "Failed to list public key %q: %s", r, err)
 			var imported bool
 			if sub, err := s.Store.GetSubStore(store); err == nil {
+				ctx = config.WithMount(ctx, store)
 				if err := sub.ImportMissingPublicKeys(ctx, r); err != nil {
 					out.Warningf(ctx, "Failed to import missing public keys: %s", err)
 				}

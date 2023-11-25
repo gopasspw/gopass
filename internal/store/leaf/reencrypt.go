@@ -69,7 +69,7 @@ func (s *Store) reencrypt(ctx context.Context) error {
 		}
 
 		for _, e := range entries {
-			// check for context cancelation
+			// check for context cancellation
 			select {
 			case <-ctx.Done():
 				// We close the channel, so the worker will terminate
@@ -95,7 +95,7 @@ func (s *Store) reencrypt(ctx context.Context) error {
 		bar.Done()
 	}
 
-	// if we were working concurrently, we couldn't git add during the process
+	// if we are working concurrently, we cannot git add during the process
 	// to avoid a race condition on git .index.lock file, so we do it now.
 	if conc > 1 {
 		for _, name := range entries {
@@ -129,6 +129,7 @@ func (s *Store) reencrypt(ctx context.Context) error {
 }
 
 func (s *Store) reencryptGitPush(ctx context.Context) error {
+	ctx = config.WithMount(ctx, s.alias)
 	if !config.Bool(ctx, "core.autopush") {
 		debug.Log("not pushing to git remote, core.autopush is false")
 

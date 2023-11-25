@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/env"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -18,7 +19,7 @@ func (s *Action) printReminder(ctx context.Context) {
 		return
 	}
 
-	if sv := os.Getenv("GOPASS_NO_REMINDER"); sv != "" {
+	if sv := os.Getenv("GOPASS_NO_REMINDER"); sv != "" || config.Bool(ctx, "core.noreminder") {
 		return
 	}
 

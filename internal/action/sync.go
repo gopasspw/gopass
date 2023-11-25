@@ -211,7 +211,7 @@ func (s *Action) syncMount(ctx context.Context, mp string) error {
 	}
 	syncPrintDiff(ctxno, l, ln)
 
-	exportKeys := s.cfg.GetBool("core.exportkeys")
+	exportKeys := s.cfg.GetBoolM(mp, "core.exportkeys")
 	debug.Log("Syncing Mount %s. Exportkeys: %t", mp, exportKeys)
 	if err := syncImportKeys(ctxno, sub, name); err != nil {
 		return err

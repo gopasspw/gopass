@@ -40,7 +40,7 @@ Some configuration options are only available through setting environment variab
 Variables not exclusively used by gopass:
 
 | **Option**             | **Type** | **Description**                                                                                        |
-| ---------------------- | -------- | ------------------------------------------------------------------------------------------------------ |
+|------------------------|----------|--------------------------------------------------------------------------------------------------------|
 | `PASSWORD_STORE_DIR`   | `string` | absolute path containing the password store (a directory). Only supported during initialization!       |
 | `PASSWORD_STORE_UMASK` | `string` | Set to any valid umask to mask bits of files created by gopass (GOPASS_UMASK has precedence over this) |
 | `EDITOR`               | `string` | command name to execute for editing password entries                                                   |
@@ -65,9 +65,9 @@ All configuration options are also available for reading and writing through the
 `gopass` uses a configuration format inspired by and mostly compatible with the configuration format used by git. We support
 different configuration sources that take precedence over each other, just like [git](https://mirrors.edge.kernel.org/pub/software/scm/git/docs/git-config.html).
 
-#### Configuration precendence
+#### Configuration precedence
 
-* Hard-coded presets apply if nothing else if set
+* Hard-coded presets apply if nothing else is set
 * System-wide configuration file allows operators or package maintainers to supply system-wide defaults in `/etc/gopass/config`.
 * User-wide (aka. global) configuration allows to set per-user settings. This is the closest equivalent to the old gopass configs. Located in `$HOME/.config/gopass/config`
 * Per-store (aka. local) configuration allow to set per-store settings, e.g. read-only. Located in `<STORE_DIR>/config`.
@@ -92,6 +92,7 @@ This is a list of available options:
 | `core.exportkeys`               | `bool`   | Export public keys of all recipients to the store.                                                                                                                                                                                 | `true`                              |
 | `core.nocolor`                  | `bool`   | Do not use color.                                                                                                                                                                                                                  | `false`                             |
 | `core.nopager`                  | `bool`   | Do not invoke a pager to display long lists.                                                                                                                                                                                       | `false`                             |
+| `core.noreminder`               | `bool`   | Set to true to disable periodic update reminder. Equivalent to setting `GOPASS_NO_REMINDER`.                                                                                                                                       | `false`                             |
 | `core.notifications`            | `bool`   | Enable desktop notifications.                                                                                                                                                                                                      | `true`                              |
 | `core.post-hook`                | `string` | This hook is executed after any command invocation.                                                                                                                                                                                | `None`                              |
 | `core.pre-hook`                 | `string` | This hook is executed before any command invocation.                                                                                                                                                                               | `None`                              |
