@@ -133,7 +133,7 @@ func (s *Action) REPL(c *cli.Context) error {
 
 READ:
 	for {
-		// check for context cancelation
+		// check for context cancellation
 		select {
 		case <-c.Context.Done():
 			return fmt.Errorf("user aborted")

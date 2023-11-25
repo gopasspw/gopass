@@ -172,7 +172,7 @@ func (s *Store) AddRecipient(ctx context.Context, id string) error {
 func (s *Store) SaveRecipients(ctx context.Context, ack bool) error {
 	rs, err := s.GetRecipients(ctx, "")
 	if err != nil {
-		if !errors.Is(err, ErrInvalidHash) || (errors.Is(err, ErrInvalidHash) && !ack) {
+		if !errors.Is(err, ErrInvalidHash) || !ack {
 			return fmt.Errorf("failed to get recipients: %w", err)
 		}
 	}
@@ -296,16 +296,17 @@ func (s *Store) getRecipients(ctx context.Context, idf string) (*recipients.Reci
 
 	rs := recipients.Unmarshal(buf)
 
-	// check recipients hash
-	if !config.Bool(ctx, "recipients.check") {
+	cfg, _ := config.FromContext(ctx)
+	// check recipients hash, global config takes precedence here for security reasons
+	if cfg.GetGlobal("recipients.check") != "true" && !cfg.GetBoolM(s.alias, "recipients.check") {
 		return rs, nil
 	}
 
-	cfg := config.FromContext(ctx)
-	cfgHash := cfg.Get(s.rhKey())
+	// we do NOT support local recipients.hash keys since they could be remotely changed
+	cfgHash := cfg.GetGlobal(s.rhKey())
 	rsHash := rs.Hash()
 	if rsHash != cfgHash {
-		return rs, fmt.Errorf("Config: %s - Recipients file: %s: %w", cfgHash, rsHash, ErrInvalidHash)
+		return rs, fmt.Errorf("config hash %q= %q - Recipients file %q = %q: %w", s.rhKey(), cfgHash, idf, rsHash, ErrInvalidHash)
 	}
 
 	return rs, nil
@@ -329,10 +330,10 @@ func (s *Store) UpdateExportedPublicKeys(ctx context.Context, rs []string) (bool
 	// add any missing keys
 	failed, exported := s.addMissingKeys(ctx, exp, recipients)
 
-	// remove any extra key files
+	// remove any extra key files, we do not support this at the local config level
 	// TODO(GH-2620): Temporarily disabled by default until we fix the
 	// key cleanup.
-	if config.Bool(ctx, "recipients.remove-extra-keys") {
+	if cfg, _ := config.FromContext(ctx); cfg.GetGlobal("recipients.remove-extra-keys") == "true" {
 		f, e := s.removeExtraKeys(ctx, recipients)
 		failed = failed || f
 		exported = exported || e
@@ -458,12 +459,31 @@ func (s *Store) saveRecipients(ctx context.Context, rs recipientMarshaler, msg s
 	idf := s.idFile(ctx, "")
 
 	buf := rs.Marshal()
-	if err := s.storage.Set(ctx, idf, buf); err != nil {
-		if !errors.Is(err, store.ErrMeaninglessWrite) {
-			return fmt.Errorf("failed to write recipients file: %w", err)
-		}
+	errSet := s.storage.Set(ctx, idf, buf)
+	if errSet != nil && !errors.Is(errSet, store.ErrMeaninglessWrite) {
+		return fmt.Errorf("failed to write recipients file: %w", errSet)
+	}
 
-		return nil // No need to overwrite recipients file
+	// always save recipients hash to global config
+	cfg, _ := config.FromContext(ctx)
+	if err := cfg.Set("", s.rhKey(), rs.Hash()); err != nil {
+		out.Errorf(ctx, "Failed to update %s: %s", s.rhKey(), err)
+	}
+
+	// save all recipients public keys to the repo if wanted
+	if cfg.GetBoolM(s.alias, "core.exportkeys") {
+		debug.Log("updating exported keys")
+		if _, err := s.UpdateExportedPublicKeys(ctx, rs.IDs()); err != nil {
+			out.Errorf(ctx, "Failed to export missing public keys: %s", err)
+		}
+	} else {
+		debug.Log("updating exported keys not requested")
+	}
+
+	if errors.Is(errSet, store.ErrMeaninglessWrite) {
+		debug.Log("no need to overwrite recipient file: ErrMeaninglessWrite")
+
+		return nil
 	}
 
 	if err := s.storage.Add(ctx, idf); err != nil {
@@ -478,22 +498,7 @@ func (s *Store) saveRecipients(ctx context.Context, rs recipientMarshaler, msg s
 		}
 	}
 
-	// save recipients hash
-	if err := config.FromContext(ctx).Set("", s.rhKey(), rs.Hash()); err != nil {
-		out.Errorf(ctx, "Failed to update %s: %s", s.rhKey(), err)
-	}
-
-	// save all recipients public keys to the repo
-	if config.Bool(ctx, "core.exportkeys") {
-		debug.Log("updating exported keys")
-		if _, err := s.UpdateExportedPublicKeys(ctx, rs.IDs()); err != nil {
-			out.Errorf(ctx, "Failed to export missing public keys: %s", err)
-		}
-	} else {
-		debug.Log("updating exported keys not requested")
-	}
-
-	if !config.Bool(ctx, "core.autopush") {
+	if !cfg.GetBoolM(s.alias, "core.autopush") {
 		debug.Log("not pushing to git remote, core.autopush is false")
 
 		return nil

@@ -18,7 +18,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/gopass"
 )
 
-// a way for a function to specify how severe of an error it experienced.
+// ErrorSeverity provides a way for a function to specify how severe of an error it experienced.
 type ErrorSeverity int
 
 const (
@@ -91,6 +91,7 @@ func (f *fsckMultiError) ErrorOrNil() error {
 // Fsck checks all entries matching the given prefix.
 func (s *Store) Fsck(ctx context.Context, path string) error {
 	ctx = out.AddPrefix(ctx, "["+s.alias+"] ")
+	ctx = config.WithMount(ctx, s.alias)
 	debug.Log("Checking %s", path)
 
 	// first let the storage backend check itself
@@ -148,7 +149,7 @@ func (s *Store) fsckLoop(ctx context.Context, path string) error {
 	ctx = ctxutil.WithNoNetwork(ctx, true)
 
 	// disable the queue, for batch operations this is not necessary / wanted
-	// since different git processes might step onto each others toes.
+	// since different git processes might step onto each other toes.
 	ctx = queue.WithQueue(ctx, nil)
 
 	names, err := s.List(ctx, path)

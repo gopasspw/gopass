@@ -37,11 +37,12 @@ func AllAliases(ctx context.Context) map[string][]string {
 }
 
 func loadCustomAliases(ctx context.Context) map[string][]string {
-	cfg := config.FromContext(ctx)
+	cfg, _ := config.FromContext(ctx)
 	customAliases := make(map[string][]string, 128)
-	for _, k := range set.SortedFiltered(config.FromContext(ctx).Keys(""), func(k string) bool {
+	for _, k := range set.SortedFiltered(cfg.Keys(""), func(k string) bool {
 		return strings.HasPrefix(k, "domain-alias.") && strings.HasSuffix(k, ".insteadOf")
 	}) {
+		// NB: we currently only support system, env, global or local <root> store level aliases
 		for _, from := range cfg.GetAll(k) {
 			to := strings.TrimSuffix(strings.TrimPrefix(k, "domain-alias."), ".insteadOf")
 			debug.Log("Loading alias: %q -> %q", from, to)

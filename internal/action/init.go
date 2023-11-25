@@ -36,6 +36,9 @@ func (s *Action) IsInitialized(c *cli.Context) error {
 
 	if inited {
 		debug.Log("Store is fully initialized and ready to go\n\nAll systems go. 🚀\n")
+		name := c.Args().First()
+		// setting the mount point here is not enough when we're using the REPL mode
+		ctx = config.WithMount(ctx, s.Store.MountPoint(name))
 		s.printReminder(ctx)
 		if c.Command.Name != "sync" && !c.Bool("nosync") {
 			_ = s.autoSync(ctx)

@@ -52,7 +52,8 @@ func (s *Action) checkVersion(ctx context.Context, u chan string) {
 		return
 	}
 
-	if cfg := config.FromContext(ctx); cfg.IsSet("updater.check") && !cfg.GetBool("updater.check") {
+	// NB: "updater.check" isn't supported as a local config option, hence no mount point here
+	if cfg, _ := config.FromContext(ctx); cfg.IsSet("updater.check") && !cfg.GetBool("updater.check") {
 		debug.Log("remote version check disabled by updater.check = false")
 
 		return

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/gopasspw/gopass/internal/action/exit"
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/pkg/clipboard"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/urfave/cli/v2"
@@ -19,6 +20,10 @@ func (s *Action) Unclip(c *cli.Context) error {
 	checksum := os.Getenv("GOPASS_UNCLIP_CHECKSUM")
 
 	time.Sleep(time.Second * time.Duration(timeout))
+
+	mp := s.Store.MountPoint(name)
+	ctx = config.WithMount(ctx, mp)
+
 	if err := clipboard.Clear(ctx, name, checksum, force); err != nil {
 		return exit.Error(exit.IO, err, "Failed to clear clipboard: %s", err)
 	}

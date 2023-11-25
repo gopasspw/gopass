@@ -27,7 +27,7 @@ import (
 )
 
 func main() {
-	// this is a workaround for the man helper getting accidentially
+	// this is a workaround for the man helper getting accidentally
 	// installed into my $GOBIN dir and me not being able to figure out
 	// why. So instead of being greeted with an ugly panic message
 	// every now and then when I need to open a man page I decided

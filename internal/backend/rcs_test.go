@@ -14,8 +14,6 @@ import (
 )
 
 func TestClone(t *testing.T) {
-	t.Parallel()
-
 	ctx := context.Background()
 
 	td := t.TempDir()
@@ -35,8 +33,6 @@ func TestClone(t *testing.T) {
 }
 
 func TestInitRCS(t *testing.T) {
-	t.Parallel()
-
 	ctx := context.Background()
 
 	td := t.TempDir()

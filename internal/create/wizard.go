@@ -149,6 +149,13 @@ func mkActFunc(tpl Template, s *root.Store, cb ActionCallback) func(context.Cont
 	return func(ctx context.Context, c *cli.Context) error {
 		name := c.Args().First()
 		store := c.String("store")
+
+		// select store.
+		if store == "" {
+			store = cui.AskForStore(ctx, s)
+		}
+		ctx = config.WithMount(ctx, store)
+
 		force := c.Bool("force")
 
 		if err := hook.Invoke(ctx, "create.pre-hook", name); err != nil {
@@ -243,11 +250,6 @@ func mkActFunc(tpl Template, s *root.Store, cb ActionCallback) func(context.Cont
 
 				sec.SetPassword(password)
 			}
-		}
-
-		// select store.
-		if store == "" {
-			store = cui.AskForStore(ctx, s)
 		}
 
 		// now we can generate a name. If it's already take we can the user for an alternative

@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/gopasspw/gopass/internal/action/exit"
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/create"
 	"github.com/gopasspw/gopass/internal/cui"
 	"github.com/gopasspw/gopass/internal/hook"
@@ -50,7 +51,7 @@ func (s *Action) createPrintOrCopy(ctx context.Context, c *cli.Context, name, pa
 		return nil
 	}
 
-	if err := clipboard.CopyTo(ctx, name, []byte(password), s.cfg.GetInt("core.cliptimeout")); err != nil {
+	if err := clipboard.CopyTo(ctx, name, []byte(password), config.Int(ctx, "core.cliptimeout")); err != nil {
 		return exit.Error(exit.IO, err, "failed to copy to clipboard: %s", err)
 	}
 
