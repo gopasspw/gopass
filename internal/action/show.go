@@ -105,6 +105,9 @@ func (s *Action) show(ctx context.Context, c *cli.Context, name string, recurse 
 		out.Warningf(ctx, "%s is a secret and a folder. Use 'gopass show %s' to display the secret and 'gopass list %s' to show the content of the folder", name, name, name)
 	}
 
+	mp := s.Store.MountPoint(name)
+	ctx = config.WithMount(ctx, mp)
+
 	if HasRevision(ctx) {
 		return s.showHandleRevision(ctx, c, name, GetRevision(ctx))
 	}

@@ -15,13 +15,13 @@ import (
 	"github.com/gopasspw/gopass/pkg/gopass"
 )
 
-// Set encodes and writes the cipertext of one entry to disk.
+// Set encodes and writes the ciphertext of one entry to disk.
 func (s *Store) Set(ctx context.Context, name string, sec gopass.Byter) error {
 	if strings.Contains(name, "//") {
 		return fmt.Errorf("invalid secret name: %s", name)
 	}
 
-	if config.FromContext(ctx).GetM(s.alias, "core.readonly") == "true" {
+	if cfg, _ := config.FromContext(ctx); cfg.GetM(s.alias, "core.readonly") == "true" {
 		return fmt.Errorf("writing to %s is disabled by `core.readonly`.", s.alias)
 	}
 

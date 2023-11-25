@@ -150,9 +150,15 @@ func (c *Config) GetAll(key string) []string {
 	return c.root.GetAll(key)
 }
 
+// GetGlobal returns the given key from the root global config.
+// This is typically used to prevent a local config override of sensitive config items, e.g. used for integrity checks.
+func (c *Config) GetGlobal(key string) string {
+	return c.root.GetGlobal(key)
+}
+
 // GetM returns the given key from the mount or the root config if mount is empty.
 func (c *Config) GetM(mount, key string) string {
-	if mount == "" {
+	if mount == "" || mount == "<root>" {
 		return c.root.Get(key)
 	}
 
@@ -164,9 +170,16 @@ func (c *Config) GetM(mount, key string) string {
 }
 
 // GetBool returns true if the value of the key evaluates to "true".
-// Otherwise it returns false.
+// Otherwise, it returns false.
 func (c *Config) GetBool(key string) bool {
-	if strings.ToLower(strings.TrimSpace(c.Get(key))) == "true" {
+	return c.GetBoolM("", key)
+}
+
+// GetBoolM returns true if the value of the key evaluates to "true" for the provided mount,
+// or the root config if mount is empty.
+// Otherwise, it returns false.
+func (c *Config) GetBoolM(mount, key string) bool {
+	if strings.ToLower(strings.TrimSpace(c.GetM(mount, key))) == "true" {
 		return true
 	}
 
@@ -174,9 +187,16 @@ func (c *Config) GetBool(key string) bool {
 }
 
 // GetInt returns the integer value of the key if it can be parsed.
-// Otherwise it returns 0.
+// Otherwise, it returns 0.
 func (c *Config) GetInt(key string) int {
-	iv, err := strconv.Atoi(c.Get(key))
+	return c.GetIntM("", key)
+}
+
+// GetIntM returns the integer value of the key if it can be parsed for the provided mount,
+// or the root config if mount is empty
+// Otherwise, it returns 0.
+func (c *Config) GetIntM(mount, key string) int {
+	iv, err := strconv.Atoi(c.GetM(mount, key))
 	if err != nil {
 		return 0
 	}
@@ -274,7 +294,7 @@ func (c *Config) Unset(mount, key string) error {
 
 // Keys returns all keys in the given config.
 func (c *Config) Keys(mount string) []string {
-	if mount == "" {
+	if mount == "" || mount == "<root>" {
 		return c.root.Keys()
 	}
 
@@ -333,9 +353,9 @@ func (c *Config) migrateOptions(migrations map[string]string) {
 // will be true, otherwise it will be false.
 func DefaultPasswordLengthFromEnv(ctx context.Context) (int, bool) {
 	def := DefaultPasswordLength
-	cfg := FromContext(ctx)
+	cfg, mp := FromContext(ctx)
 
-	if l := cfg.GetInt("generate.length"); l > 0 {
+	if l := cfg.GetIntM(mp, "generate.length"); l > 0 {
 		def = l
 	}
 

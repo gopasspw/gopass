@@ -10,7 +10,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/termio"
 )
 
-// GetSelection show a navigateable multiple-choice list to the user
+// GetSelection show a navigable multiple-choice list to the user
 // and returns the selected entry along with the action.
 func GetSelection(ctx context.Context, prompt string, choices []string) (string, int) {
 	if ctxutil.IsAlwaysYes(ctx) || !ctxutil.IsInteractive(ctx) {

@@ -109,10 +109,10 @@ func (s *Action) sync(ctx context.Context, store string) error {
 	// sync all stores (root and all mounted sub stores).
 	for _, mp := range mps {
 		if store != "" {
-			if store != "root" && mp != store {
+			if store != "<root>" && mp != store {
 				continue
 			}
-			if store == "root" && mp != "" {
+			if store == "<root>" && mp != "" {
 				continue
 			}
 		}
@@ -141,6 +141,7 @@ func (s *Action) sync(ctx context.Context, store string) error {
 	}
 
 	if numEntries != 0 {
+		ctx = config.WithMount(ctx, store)
 		_ = notify.Notify(ctx, "gopass - sync", fmt.Sprintf("Finished. Synced %d remotes.%s", numMPs, diff))
 	}
 

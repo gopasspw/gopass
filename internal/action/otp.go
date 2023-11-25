@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/gopasspw/gopass/internal/action/exit"
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/pkg/clipboard"
@@ -110,6 +111,7 @@ func (s *Action) otp(ctx context.Context, name, qrf string, clip, pw, recurse bo
 		return s.otpHandleError(ctx, name, qrf, clip, pw, recurse, err)
 	}
 
+	ctx = config.WithMount(ctx, s.Store.MountPoint(name))
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 

@@ -58,6 +58,9 @@ func (s *Action) Generate(c *cli.Context) error {
 		}
 	}
 
+	mp := s.Store.MountPoint(name)
+	ctx = config.WithMount(ctx, mp)
+
 	// generate password.
 	password, err := s.generatePassword(ctx, c, length, name)
 	if err != nil {
@@ -167,17 +170,18 @@ func (s *Action) generatePassword(ctx context.Context, c *cli.Context, length, n
 		return s.generatePasswordForRule(ctx, c, length, name, domain, rule)
 	}
 
-	cfg := config.FromContext(ctx)
+	cfg, mp := config.FromContext(ctx)
+
 	symbols := false
 	if c.IsSet("symbols") {
 		symbols = c.Bool("symbols")
 	} else {
-		if cfg.IsSet("generate.symbols") {
-			symbols = cfg.GetBool("generate.symbols")
+		if cfg.GetM(mp, "generate.symbols") != "" {
+			symbols = cfg.GetBoolM(mp, "generate.symbols")
 		}
 	}
 
-	generator := cfg.Get("generate.generator")
+	generator := cfg.GetM(mp, "generate.generator")
 	if c.IsSet("generator") {
 		generator = c.String("generator")
 	}
@@ -510,15 +514,12 @@ func filterPrefix(in []string, prefix string) []string {
 }
 
 func isStrict(ctx context.Context, c *cli.Context) bool {
-	cfg := config.FromContext(ctx)
+	cfg, mp := config.FromContext(ctx)
 
 	if c.Bool("strict") {
 		return true
 	}
 
-	if cfg.IsSet("generate.strict") {
-		return cfg.GetBool("generate.strict")
-	}
-
-	return false
+	// if the config option is not set, GetBoolM will return false by default
+	return cfg.GetBoolM(mp, "generate.strict")
 }
