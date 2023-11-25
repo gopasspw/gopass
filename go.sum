@@ -38,8 +38,6 @@ github.com/danieljoos/wincred v1.2.0/go.mod h1:FzQLLMKBFdvu+osBrnFODiv32YGwCfx0S
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
-github.com/dominikschulz/goxkcdpwgen v0.1.2-num h1:uEhXPi3Ckm1el5HARUBFH5WR8rK2hUI+x21IyINwIms=
-github.com/dominikschulz/goxkcdpwgen v0.1.2-num/go.mod h1:6TCkeMIDjs8RBu1OPOIVtxmmI3Nfcz6EyCGh+12gL6U=
 github.com/dustin/go-humanize v1.0.1 h1:GzkhY7T5VNhEkwH0PVJgjz+fX1rhBrR7pRT3mDkpeCY=
 github.com/dustin/go-humanize v1.0.1/go.mod h1:Mu1zIs6XwVuF/gI1OepvI0qD18qycQx+mFykh5fBlto=
 github.com/ergochat/readline v0.0.6 h1:tzs8UNseob/yqphZt0GTgC07JUnQNJSFhLWAnwvd2sg=
@@ -84,8 +82,8 @@ github.com/google/go-github/v33 v33.0.0/go.mod h1:GMdDnVZY/2TsWgp/lkYnpSAh6TrzhA
 github.com/google/go-querystring v1.0.0/go.mod h1:odCYkC5MyYFN7vkCjXpyrEuKhc/BUO6wN/zVPAxq5ck=
 github.com/google/go-querystring v1.1.0 h1:AnCroh3fv4ZBgVIf1Iwtovgjaw/GiKJo8M8yD/fhyJ8=
 github.com/google/go-querystring v1.1.0/go.mod h1:Kcdr2DB4koayq7X8pmAG4sNG59So17icRSOU623lUBU=
-github.com/gopasspw/gopass-hibp v1.15.8 h1:awcJF1LZC8ejs0ujFIn4uWrSio1ou2L+Xw/Pu/zfCUQ=
-github.com/gopasspw/gopass-hibp v1.15.8/go.mod h1:yrTzyJWS6+MafPS1mosFLmjHzuB+rXwAaIZXyaN1vQ0=
+github.com/gopasspw/gopass-hibp v1.15.9 h1:syU+5P35j9uI7rLBZP0rRGS69l5nzighbKRdNi2HQH8=
+github.com/gopasspw/gopass-hibp v1.15.9/go.mod h1:pxgvhja9Pzx5Yelpp8/mxbjt8n9UjTpPkbHko/pViIg=
 github.com/hashicorp/golang-lru v1.0.2 h1:dV3g9Z/unq5DpblPpw+Oqcv4dU/1omnb4Ok8iPY6p1c=
 github.com/hashicorp/golang-lru v1.0.2/go.mod h1:iADmTwqILo4mZ8BN3D2Q6+9jd8WM5uGBxy+E8yxSoD4=
 github.com/hashicorp/golang-lru/v2 v2.0.7 h1:a+bsQ5rvGLjzHuww6tVxozPZFVghXaHOwFs4luLUK2k=
@@ -126,8 +124,6 @@ github.com/lxn/win v0.0.0-20210218163916-a377121e959e h1:H+t6A/QJMbhCSEH5rAuRxh+
 github.com/lxn/win v0.0.0-20210218163916-a377121e959e/go.mod h1:KxxjdtRkfNoYDCUP5ryK7XJJNTnpC8atvtmTheChOtk=
 github.com/makiuchi-d/gozxing v0.1.1 h1:xxqijhoedi+/lZlhINteGbywIrewVdVv2wl9r5O9S1I=
 github.com/makiuchi-d/gozxing v0.1.1/go.mod h1:eRIHbOjX7QWxLIDJoQuMLhuXg9LAuw6znsUtRkNw9DU=
-github.com/martinhoefling/goxkcdpwgen v0.1.2-0.20221205222637-737661b92a0e h1:Msp8Yrv7Z/QVD+GAdkHTtStGqtAGBxoJ9a/+j2D2AFc=
-github.com/martinhoefling/goxkcdpwgen v0.1.2-0.20221205222637-737661b92a0e/go.mod h1:6TCkeMIDjs8RBu1OPOIVtxmmI3Nfcz6EyCGh+12gL6U=
 github.com/martinhoefling/goxkcdpwgen v0.1.2-0.20231122080842-e51aa57005ca h1:jV6vw7U2RoS1sI7f6f12/wsCwMjADZ/xUxi/lhUqjV8=
 github.com/martinhoefling/goxkcdpwgen v0.1.2-0.20231122080842-e51aa57005ca/go.mod h1:IKRlPM0t4ZmK9YZ33QZ2hB1DcSY8WnQedKRDyYeNRp4=
 github.com/mattn/go-colorable v0.1.4/go.mod h1:U0ppj6V5qS13XJ6of8GYAs25YV2eR4EVcfRqFIhoBtE=
