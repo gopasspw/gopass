@@ -3,6 +3,7 @@ package fossilfs
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"os/exec"
 	"path/filepath"
@@ -213,7 +214,7 @@ func (f *Fossil) TryAdd(ctx context.Context, files ...string) error {
 	if err == nil {
 		return nil
 	}
-	if err == store.ErrGitNotInit {
+	if errors.Is(err, store.ErrGitNotInit) {
 		debug.Log("Fossil not initialized. Ignoring.")
 
 		return nil
@@ -272,13 +273,13 @@ func (f *Fossil) TryCommit(ctx context.Context, msg string) error {
 	if err == nil {
 		return nil
 	}
-	if err == store.ErrGitNothingToCommit {
+	if errors.Is(err, store.ErrGitNothingToCommit) {
 		debug.Log("Nothing to commit. Ignoring.")
 
 		return nil
 	}
-	if err == store.ErrGitNotInit {
-		debug.Log("Git not initialized. Ignoring.")
+	if errors.Is(err, store.ErrGitNotInit) {
+		debug.Log("Fossil not initialized. Ignoring.")
 
 		return nil
 	}
@@ -335,13 +336,13 @@ func (f *Fossil) TryPush(ctx context.Context, remote, branch string) error {
 		return nil
 	}
 
-	switch err {
-	case store.ErrGitNotInit:
-		debug.Log("Git not initialized. Ignoring.")
+	switch {
+	case errors.Is(err, store.ErrGitNotInit):
+		debug.Log("Fossil not initialized. Ignoring.")
 
 		return nil
-	case store.ErrGitNoRemote:
-		debug.Log("Git has no remote. Ignoring.")
+	case errors.Is(err, store.ErrGitNoRemote):
+		debug.Log("Fossil has no remote. Ignoring.")
 
 		return nil
 	default:

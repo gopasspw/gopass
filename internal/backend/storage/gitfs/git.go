@@ -4,6 +4,7 @@ package gitfs
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"os/exec"
 	"path/filepath"
@@ -239,7 +240,7 @@ func (g *Git) TryAdd(ctx context.Context, files ...string) error {
 	if err == nil {
 		return nil
 	}
-	if err == store.ErrGitNotInit {
+	if errors.Is(err, store.ErrGitNotInit) {
 		debug.Log("Git not initialized. Ignoring.")
 
 		return nil
@@ -293,12 +294,12 @@ func (g *Git) TryCommit(ctx context.Context, msg string) error {
 	if err == nil {
 		return nil
 	}
-	if err == store.ErrGitNothingToCommit {
+	if errors.Is(err, store.ErrGitNothingToCommit) {
 		debug.Log("Nothing to commit. Ignoring.")
 
 		return nil
 	}
-	if err == store.ErrGitNotInit {
+	if errors.Is(err, store.ErrGitNotInit) {
 		debug.Log("Git not initialized. Ignoring.")
 
 		return nil
@@ -392,12 +393,12 @@ func (g *Git) TryPush(ctx context.Context, remote, branch string) error {
 		return nil
 	}
 
-	switch err {
-	case store.ErrGitNotInit:
+	switch {
+	case errors.Is(err, store.ErrGitNotInit):
 		debug.Log("Git not initialized. Ignoring.")
 
 		return nil
-	case store.ErrGitNoRemote:
+	case errors.Is(err, store.ErrGitNoRemote):
 		debug.Log("Git has no remote. Ignoring.")
 
 		return nil
