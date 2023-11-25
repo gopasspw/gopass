@@ -152,13 +152,28 @@ func (m *InMem) Add(ctx context.Context, args ...string) error {
 	return nil
 }
 
+// TryAdd does nothing.
+func (m *InMem) TryAdd(ctx context.Context, args ...string) error {
+	return nil
+}
+
 // Commit does nothing.
 func (m *InMem) Commit(ctx context.Context, msg string) error {
 	return nil
 }
 
+// TryCommit does nothing.
+func (m *InMem) TryCommit(ctx context.Context, msg string) error {
+	return nil
+}
+
 // Push does nothing.
 func (m *InMem) Push(ctx context.Context, origin, branch string) error {
+	return nil
+}
+
+// TryPush does nothing.
+func (m *InMem) TryPush(ctx context.Context, origin, branch string) error {
 	return nil
 }
 

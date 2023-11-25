@@ -3,6 +3,7 @@ package fossilfs
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"os/exec"
 	"path/filepath"
@@ -207,6 +208,21 @@ func (f *Fossil) Add(ctx context.Context, files ...string) error {
 	return f.Cmd(ctx, "fossilAdd", args...)
 }
 
+// TryAdd adds the listed files to the fossil index.
+func (f *Fossil) TryAdd(ctx context.Context, files ...string) error {
+	err := f.Add(ctx, files...)
+	if err == nil {
+		return nil
+	}
+	if errors.Is(err, store.ErrGitNotInit) {
+		debug.Log("Fossil not initialized. Ignoring.")
+
+		return nil
+	}
+
+	return err
+}
+
 // HasStagedChanges returns true if there are any staged changes which can be committed.
 func (f *Fossil) HasStagedChanges(ctx context.Context) bool {
 	s, err := f.getStatus(ctx)
@@ -251,6 +267,26 @@ func (f *Fossil) Commit(ctx context.Context, msg string) error {
 	)
 }
 
+// TryCommit calls commit and returns nil if there was nothing to commit or if the Fossil repo was not initialized.
+func (f *Fossil) TryCommit(ctx context.Context, msg string) error {
+	err := f.Commit(ctx, msg)
+	if err == nil {
+		return nil
+	}
+	if errors.Is(err, store.ErrGitNothingToCommit) {
+		debug.Log("Nothing to commit. Ignoring.")
+
+		return nil
+	}
+	if errors.Is(err, store.ErrGitNotInit) {
+		debug.Log("Fossil not initialized. Ignoring.")
+
+		return nil
+	}
+
+	return err
+}
+
 // PushPull pushes the repo to it's origin.
 // optional arguments: remote and branch.
 func (f *Fossil) PushPull(ctx context.Context, op, remote, branch string) error {
@@ -291,6 +327,27 @@ func (f *Fossil) Push(ctx context.Context, remote, branch string) error {
 	}
 
 	return f.PushPull(ctx, "push", remote, branch)
+}
+
+// TryPush calls Push and returns nil if the Fossil repo was not initialized.
+func (f *Fossil) TryPush(ctx context.Context, remote, branch string) error {
+	err := f.Push(ctx, remote, branch)
+	if err == nil {
+		return nil
+	}
+
+	switch {
+	case errors.Is(err, store.ErrGitNotInit):
+		debug.Log("Fossil not initialized. Ignoring.")
+
+		return nil
+	case errors.Is(err, store.ErrGitNoRemote):
+		debug.Log("Fossil has no remote. Ignoring.")
+
+		return nil
+	default:
+		return err
+	}
 }
 
 // Pull pulls from the fossil remote.

@@ -184,9 +184,8 @@ func (s *Action) syncMount(ctx context.Context, mp string) error {
 	}
 
 	out.Printf(ctxno, "\n   "+color.GreenString("%s pull and push ... ", sub.Storage().Name()))
-	err = sub.Storage().Push(ctx, "", "")
 
-	switch {
+	switch err := sub.Storage().Push(ctx, "", ""); {
 	case err == nil:
 		debug.Log("Push succeeded")
 		out.Printf(ctxno, color.GreenString("OK"))

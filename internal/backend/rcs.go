@@ -15,6 +15,10 @@ type rcs interface {
 	Push(ctx context.Context, remote, location string) error
 	Pull(ctx context.Context, remote, location string) error
 
+	TryAdd(ctx context.Context, args ...string) error
+	TryCommit(ctx context.Context, msg string) error
+	TryPush(ctx context.Context, remote, location string) error
+
 	InitConfig(ctx context.Context, name, email string) error
 	AddRemote(ctx context.Context, remote, location string) error
 	RemoveRemote(ctx context.Context, remote string) error

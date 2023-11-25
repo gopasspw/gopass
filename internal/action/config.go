@@ -2,14 +2,12 @@ package action
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/gopasspw/gopass/internal/action/exit"
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/set"
-	istore "github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/urfave/cli/v2"
@@ -109,23 +107,15 @@ func (s *Action) setConfigValue(ctx context.Context, store, key, value string) e
 		return fmt.Errorf("local config file %s didn't exist in store, this is unexpected", configFile)
 	}
 
-	switch err := st.Add(ctx, configFile); {
-	case err == nil:
-		debug.Log("Added local config for commit")
-	case errors.Is(err, istore.ErrGitNotInit):
-		debug.Log("Skipping staging of local config %q: %v", configFile, err)
-	default:
+	if err := st.TryAdd(ctx, configFile); err != nil {
 		return fmt.Errorf("failed to Add local config %q: %w", configFile, err)
 	}
+	debug.Log("Added local config for commit")
 
-	switch err := st.Commit(ctx, "Update config"); {
-	case err == nil:
-		debug.Log("Committed local config")
-	case errors.Is(err, istore.ErrGitNotInit), errors.Is(err, istore.ErrGitNothingToCommit):
-		debug.Log("Skipping Commit of local config: %v", err)
-	default:
+	if err := st.TryCommit(ctx, "Update config"); err != nil {
 		return fmt.Errorf("failed to commit local config: %w", err)
 	}
+	debug.Log("Committed local config")
 
 	s.printConfigValues(ctx, store, key)
 

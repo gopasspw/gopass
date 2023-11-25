@@ -13,14 +13,29 @@ func (s *Store) Add(ctx context.Context, args ...string) error {
 	return store.ErrGitNotInit
 }
 
+// TryAdd does nothing.
+func (s *Store) TryAdd(ctx context.Context, args ...string) error {
+	return nil
+}
+
 // Commit does nothing.
 func (s *Store) Commit(ctx context.Context, msg string) error {
 	return store.ErrGitNotInit
 }
 
+// TryCommit does nothing.
+func (s *Store) TryCommit(ctx context.Context, msg string) error {
+	return nil
+}
+
 // Push does nothing.
 func (s *Store) Push(ctx context.Context, origin, branch string) error {
 	return store.ErrGitNotInit
+}
+
+// TryPush does nothing.
+func (s *Store) TryPush(ctx context.Context, origin, branch string) error {
+	return nil
 }
 
 // Pull does nothing.

@@ -46,47 +46,17 @@ func (r *Store) move(ctx context.Context, from, to string, del bool) error {
 		return err
 	}
 
-	if err := subFrom.Storage().Commit(ctx, fmt.Sprintf("Move from %s to %s", from, to)); del && err != nil {
-		switch {
-		case errors.Is(err, store.ErrGitNotInit):
-			debug.Log("skipping git commit - git not initialized in %s", subFrom.Alias())
-		case errors.Is(err, store.ErrGitNothingToCommit):
-			debug.Log("skipping git commit - nothing to commit in %s", subFrom.Alias())
-		default:
-			return fmt.Errorf("failed to commit changes to git (%s): %w", subFrom.Alias(), err)
-		}
+	if err := subFrom.Storage().TryCommit(ctx, fmt.Sprintf("Move from %s to %s", from, to)); del && err != nil {
+		return fmt.Errorf("failed to commit changes to git (%s): %w", subFrom.Alias(), err)
 	}
 
 	if !subFrom.Equals(subTo) {
-		if err := subTo.Storage().Commit(ctx, fmt.Sprintf("Move from %s to %s", from, to)); err != nil {
-			switch {
-			case errors.Is(err, store.ErrGitNotInit):
-				debug.Log("skipping git commit - git not initialized in %s", subTo.Alias())
-			case errors.Is(err, store.ErrGitNothingToCommit):
-				debug.Log("skipping git commit - nothing to commit in %s", subTo.Alias())
-			default:
-				return fmt.Errorf("failed to commit changes to git (%s): %w", subTo.Alias(), err)
-			}
+		if err := subTo.Storage().TryCommit(ctx, fmt.Sprintf("Move from %s to %s", from, to)); err != nil {
+			return fmt.Errorf("failed to commit changes to git (%s): %w", subTo.Alias(), err)
 		}
 	}
 
-	if err := subFrom.Storage().Push(ctx, "", ""); err != nil {
-		if errors.Is(err, store.ErrGitNotInit) {
-			msg := "Warning: git is not initialized for this storage. Ignoring auto-push option\n" +
-				"Run: gopass git init"
-			debug.Log(msg)
-
-			return nil
-		}
-
-		if errors.Is(err, store.ErrGitNoRemote) {
-			msg := "Warning: git has no remote. Ignoring auto-push option\n" +
-				"Run: gopass git remote add origin ..."
-			debug.Log(msg)
-
-			return nil
-		}
-
+	if err := subFrom.Storage().TryPush(ctx, "", ""); err != nil {
 		return fmt.Errorf("failed to push change to git remote: %w", err)
 	}
 
@@ -94,23 +64,7 @@ func (r *Store) move(ctx context.Context, from, to string, del bool) error {
 		return nil
 	}
 
-	if err := subTo.Storage().Push(ctx, "", ""); err != nil {
-		if errors.Is(err, store.ErrGitNotInit) {
-			msg := "Warning: git is not initialized for this storage. Ignoring auto-push option\n" +
-				"Run: gopass git init"
-			debug.Log(msg)
-
-			return nil
-		}
-
-		if errors.Is(err, store.ErrGitNoRemote) {
-			msg := "Warning: git has no remote. Ignoring auto-push option\n" +
-				"Run: gopass git remote add origin ..."
-			debug.Log(msg)
-
-			return nil
-		}
-
+	if err := subTo.Storage().TryPush(ctx, "", ""); err != nil {
 		return fmt.Errorf("failed to push change to git remote: %w", err)
 	}
 

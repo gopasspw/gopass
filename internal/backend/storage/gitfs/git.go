@@ -4,6 +4,7 @@ package gitfs
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"os/exec"
 	"path/filepath"
@@ -233,6 +234,21 @@ func (g *Git) Add(ctx context.Context, files ...string) error {
 	return g.Cmd(ctx, "gitAdd", args...)
 }
 
+// TryAdd calls Add and returns nil if the git repo was not initialized.
+func (g *Git) TryAdd(ctx context.Context, files ...string) error {
+	err := g.Add(ctx, files...)
+	if err == nil {
+		return nil
+	}
+	if errors.Is(err, store.ErrGitNotInit) {
+		debug.Log("Git not initialized. Ignoring.")
+
+		return nil
+	}
+
+	return err
+}
+
 // HasStagedChanges returns true if there are any staged changes which can be committed.
 func (g *Git) HasStagedChanges(ctx context.Context) bool {
 	if err := g.Cmd(ctx, "gitDiffIndex", "diff-index", "--quiet", "HEAD"); err != nil {
@@ -270,6 +286,26 @@ func (g *Git) Commit(ctx context.Context, msg string) error {
 	}
 
 	return g.Cmd(ctx, "gitCommit", "commit", fmt.Sprintf("--date=%d +00:00", ctxutil.GetCommitTimestamp(ctx).UTC().Unix()), "-m", msg)
+}
+
+// TryCommit calls commit and returns nil if there was nothing to commit or if the git repo was not initialized.
+func (g *Git) TryCommit(ctx context.Context, msg string) error {
+	err := g.Commit(ctx, msg)
+	if err == nil {
+		return nil
+	}
+	if errors.Is(err, store.ErrGitNothingToCommit) {
+		debug.Log("Nothing to commit. Ignoring.")
+
+		return nil
+	}
+	if errors.Is(err, store.ErrGitNotInit) {
+		debug.Log("Git not initialized. Ignoring.")
+
+		return nil
+	}
+
+	return err
 }
 
 func (g *Git) defaultRemote(ctx context.Context, branch string) string {
@@ -348,6 +384,27 @@ func (g *Git) PushPull(ctx context.Context, op, remote, branch string) error {
 	}
 
 	return g.Cmd(ctx, "gitPush", "push", remote, branch)
+}
+
+// TryPush calls Push and returns nil if the git repo was not initialized.
+func (g *Git) TryPush(ctx context.Context, remote, branch string) error {
+	err := g.Push(ctx, remote, branch)
+	if err == nil {
+		return nil
+	}
+
+	switch {
+	case errors.Is(err, store.ErrGitNotInit):
+		debug.Log("Git not initialized. Ignoring.")
+
+		return nil
+	case errors.Is(err, store.ErrGitNoRemote):
+		debug.Log("Git has no remote. Ignoring.")
+
+		return nil
+	default:
+		return err
+	}
 }
 
 // Push pushes to the git remote.
