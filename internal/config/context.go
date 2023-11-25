@@ -11,7 +11,7 @@ type contextKey int
 
 const (
 	ctxKeyConfig contextKey = iota
-	ctxMountPoint
+	ctxKeyMountPoint
 )
 
 func (c *Config) WithConfig(ctx context.Context) context.Context {
@@ -19,13 +19,13 @@ func (c *Config) WithConfig(ctx context.Context) context.Context {
 }
 
 func WithMount(ctx context.Context, mp string) context.Context {
-	return context.WithValue(ctx, ctxMountPoint, mp)
+	return context.WithValue(ctx, ctxKeyMountPoint, mp)
 }
 
 // FromContext returns a config from a context, as well as the current mount point (store name) if found.
 func FromContext(ctx context.Context) (*Config, string) {
 	mount := ""
-	if m, found := ctx.Value(ctxMountPoint).(string); found && m != "" {
+	if m, found := ctx.Value(ctxKeyMountPoint).(string); found && m != "" {
 		mount = m
 	}
 
