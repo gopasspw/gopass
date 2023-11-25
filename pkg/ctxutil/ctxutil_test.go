@@ -5,6 +5,7 @@ import (
 	"flag"
 	"testing"
 
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/urfave/cli/v2"
@@ -13,7 +14,7 @@ import (
 func TestTerminal(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx := config.NewNoWrites().WithConfig(context.Background())
 
 	assert.True(t, IsTerminal(ctx))
 	assert.True(t, IsTerminal(WithTerminal(ctx, true)))
@@ -23,7 +24,7 @@ func TestTerminal(t *testing.T) {
 func TestInteractive(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx := config.NewNoWrites().WithConfig(context.Background())
 
 	assert.True(t, IsInteractive(ctx))
 	assert.True(t, IsInteractive(WithInteractive(ctx, true)))
@@ -33,7 +34,7 @@ func TestInteractive(t *testing.T) {
 func TestStdin(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx := config.NewNoWrites().WithConfig(context.Background())
 
 	assert.False(t, IsStdin(ctx))
 	assert.True(t, IsStdin(WithStdin(ctx, true)))
@@ -43,7 +44,7 @@ func TestStdin(t *testing.T) {
 func TestGitCommit(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx := config.NewNoWrites().WithConfig(context.Background())
 
 	assert.True(t, IsGitCommit(ctx))
 	assert.True(t, IsGitCommit(WithGitCommit(ctx, true)))
@@ -53,7 +54,7 @@ func TestGitCommit(t *testing.T) {
 func TestAlwaysYes(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx := config.NewNoWrites().WithConfig(context.Background())
 
 	assert.False(t, IsAlwaysYes(ctx))
 	assert.True(t, IsAlwaysYes(WithAlwaysYes(ctx, true)))
@@ -63,7 +64,7 @@ func TestAlwaysYes(t *testing.T) {
 func TestProgressCallback(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx := config.NewNoWrites().WithConfig(context.Background())
 
 	var foo bool
 
@@ -76,7 +77,7 @@ func TestProgressCallback(t *testing.T) {
 func TestAlias(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx := config.NewNoWrites().WithConfig(context.Background())
 
 	assert.Equal(t, "", GetAlias(ctx))
 	assert.Equal(t, "", GetAlias(WithAlias(ctx, "")))
@@ -85,7 +86,7 @@ func TestAlias(t *testing.T) {
 func TestGitInit(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx := config.NewNoWrites().WithConfig(context.Background())
 
 	assert.True(t, IsGitInit(ctx))
 	assert.True(t, IsGitInit(WithGitInit(ctx, true)))
@@ -95,7 +96,7 @@ func TestGitInit(t *testing.T) {
 func TestForce(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx := config.NewNoWrites().WithConfig(context.Background())
 
 	assert.False(t, IsForce(ctx))
 	assert.True(t, IsForce(WithForce(ctx, true)))
@@ -105,7 +106,7 @@ func TestForce(t *testing.T) {
 func TestCommitMessage(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx := config.NewNoWrites().WithConfig(context.Background())
 
 	assert.Equal(t, "", GetCommitMessage(ctx))
 	assert.Equal(t, "foo", GetCommitMessage(WithCommitMessage(ctx, "foo")))
@@ -115,7 +116,7 @@ func TestCommitMessage(t *testing.T) {
 func TestCommitMessageBody(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx := config.NewNoWrites().WithConfig(context.Background())
 
 	ctx2 := AddToCommitMessageBody(AddToCommitMessageBody(WithCommitMessage(ctx, "foo"), "bar"), "baz")
 	assert.Equal(t, "foo\n\nbar\nbaz", GetCommitMessageFull(ctx2))
@@ -134,7 +135,7 @@ func TestCommitMessageBody(t *testing.T) {
 func TestComposite(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx := config.NewNoWrites().WithConfig(context.Background())
 	ctx = WithTerminal(ctx, false)
 	ctx = WithInteractive(ctx, false)
 	ctx = WithStdin(ctx, true)
@@ -181,7 +182,7 @@ func TestComposite(t *testing.T) {
 func TestGlobalFlags(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx := config.NewNoWrites().WithConfig(context.Background())
 	app := cli.NewApp()
 
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
@@ -200,7 +201,7 @@ func TestGlobalFlags(t *testing.T) {
 func TestImportFunc(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx := config.NewNoWrites().WithConfig(context.Background())
 
 	ifunc := func(context.Context, string, []string) bool {
 		return true
@@ -215,7 +216,7 @@ func TestImportFunc(t *testing.T) {
 func TestHidden(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx := config.NewNoWrites().WithConfig(context.Background())
 
 	assert.False(t, IsHidden(ctx))
 	assert.True(t, IsHidden(WithHidden(ctx, true)))

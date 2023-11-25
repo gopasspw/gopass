@@ -8,6 +8,7 @@ import (
 
 	plain "github.com/gopasspw/gopass/internal/backend/crypto/plain"
 	"github.com/gopasspw/gopass/internal/backend/storage/fs"
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/recipients"
 	"github.com/gopasspw/gopass/pkg/gopass/secrets"
@@ -18,7 +19,7 @@ import (
 func TestList(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx := config.NewNoWrites().WithConfig(context.Background())
 
 	obuf := &bytes.Buffer{}
 	out.Stdout = obuf

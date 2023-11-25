@@ -43,7 +43,7 @@ func aGitRepo(ctx context.Context, t *testing.T, u *gptest.Unit, name string) st
 func TestClone(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 
-	ctx := context.Background()
+	ctx := config.NewNoWrites().WithConfig(context.Background())
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithInteractive(ctx, false)
 	ctx = backend.WithStorageBackend(ctx, backend.GitFS)
@@ -94,7 +94,7 @@ func TestCloneBackendIsStoredForMount(t *testing.T) {
 		stdout = os.Stdout
 	}()
 
-	ctx := context.Background()
+	ctx := config.NewNoWrites().WithConfig(context.Background())
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithInteractive(ctx, false)
 
@@ -125,7 +125,7 @@ func TestCloneGetGitConfig(t *testing.T) {
 	r2 := gptest.UnsetVars(termio.EmailVars...)
 	defer r2()
 
-	ctx := context.Background()
+	ctx := config.NewNoWrites().WithConfig(context.Background())
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithInteractive(ctx, false)
 
@@ -153,7 +153,7 @@ func TestCloneCheckDecryptionKeys(t *testing.T) {
 		stdout = os.Stdout
 	}()
 
-	ctx := context.Background()
+	ctx := config.NewNoWrites().WithConfig(context.Background())
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithInteractive(ctx, false)
 

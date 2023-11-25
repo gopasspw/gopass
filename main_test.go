@@ -47,7 +47,7 @@ func TestGetVersion(t *testing.T) {
 func TestSetupApp(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx := config.NewNoWrites().WithConfig(context.Background())
 	_, app := setupApp(ctx, semver.Version{})
 	assert.NotNil(t, app)
 }
@@ -116,7 +116,7 @@ func TestGetCommands(t *testing.T) {
 
 	clipboard.Unsupported = true
 
-	ctx := context.Background()
+	ctx := config.NewNoWrites().WithConfig(context.Background())
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithInteractive(ctx, false)
 	ctx = ctxutil.WithTerminal(ctx, false)
@@ -176,7 +176,7 @@ func testCommands(t *testing.T, c *cli.Context, commands []*cli.Command, prefix 
 func TestInitContext(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx := config.NewNoWrites().WithConfig(context.Background())
 	cfg := config.NewNoWrites()
 
 	ctx = initContext(ctx, cfg)

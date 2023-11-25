@@ -6,13 +6,14 @@ import (
 
 	"github.com/blang/semver/v4"
 	"github.com/gopasspw/gopass/internal/backend"
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestGit(t *testing.T) {
-	ctx := context.Background()
+	ctx := config.NewNoWrites().WithConfig(context.Background())
 
 	s, err := createSubStore(t)
 	require.NoError(t, err)
@@ -36,7 +37,7 @@ func TestGit(t *testing.T) {
 }
 
 func TestGitRevisions(t *testing.T) {
-	ctx := context.Background()
+	ctx := config.NewNoWrites().WithConfig(context.Background())
 
 	s, err := createSubStore(t)
 	require.NoError(t, err)

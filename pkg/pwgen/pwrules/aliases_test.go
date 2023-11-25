@@ -22,7 +22,7 @@ func TestLoadCustomRules(t *testing.T) {
 		require.NoError(t, cfg.Set("", "domain-alias."+k+".insteadOf", v))
 	}
 
-	ctx := context.Background()
+	ctx := config.NewNoWrites().WithConfig(context.Background())
 	ctx = cfg.WithConfig(ctx)
 
 	a := LookupAliases(ctx, "alias.com")

@@ -10,7 +10,7 @@ import (
 func TestEncrypt(t *testing.T) {
 	t.Parallel()
 
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(ctx := config.NewNoWrites().WithConfig(context.Background()))
 
 	g := &GPG{}
 	g.binary = "rundll32"
@@ -23,7 +23,7 @@ func TestEncrypt(t *testing.T) {
 func TestDecrypt(t *testing.T) {
 	t.Parallel()
 
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(ctx := config.NewNoWrites().WithConfig(context.Background()))
 
 	g := &GPG{}
 	g.binary = "rundll32"
@@ -36,7 +36,7 @@ func TestDecrypt(t *testing.T) {
 func TestGenerateIdentity(t *testing.T) {
 	t.Parallel()
 
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(ctx := config.NewNoWrites().WithConfig(context.Background()))
 
 	g := &GPG{}
 	g.binary = "rundll32"

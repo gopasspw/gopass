@@ -6,6 +6,7 @@ import (
 	"sort"
 	"testing"
 
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/pkg/pwgen/pwrules"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -29,7 +30,7 @@ func TestCrypticForDomain(t *testing.T) {
 
 			for _, length := range []int{1, 4, 8, 100} {
 				tcName := fmt.Sprintf("%s - %d", domain, length)
-				c := NewCrypticForDomain(context.Background(), length, domain)
+				c := NewCrypticForDomain(config.NewNoWrites().WithConfig(context.Background()), length, domain)
 
 				require.NotNil(t, c, tcName)
 

@@ -8,6 +8,7 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/gopasspw/gopass/internal/backend"
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/tests/gptest"
@@ -18,7 +19,7 @@ import (
 func TestCopy(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 
-	ctx := context.Background()
+	ctx := config.NewNoWrites().WithConfig(context.Background())
 	ctx = ctxutil.WithInteractive(ctx, false)
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 
@@ -100,7 +101,7 @@ func TestCopyGpg(t *testing.T) {
 
 	u := gptest.NewGUnitTester(t)
 
-	ctx := context.Background()
+	ctx := config.NewNoWrites().WithConfig(context.Background())
 	ctx = ctxutil.WithInteractive(ctx, false)
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = backend.WithCryptoBackend(ctx, backend.GPGCLI)

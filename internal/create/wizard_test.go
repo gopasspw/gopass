@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/store/mockstore/inmem"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -34,7 +35,7 @@ func (f *fakeSetter) TryCommit(ctx context.Context, msg string) error {
 func TestWrite(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx := config.NewNoWrites().WithConfig(context.Background())
 	w := &Wizard{}
 
 	require.NoError(t, w.writeTemplates(ctx, &fakeSetter{}))
@@ -43,7 +44,7 @@ func TestWrite(t *testing.T) {
 func TestNew(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx := config.NewNoWrites().WithConfig(context.Background())
 	s := inmem.New()
 	_ = s.Set(ctx, ".create/pin.yml", []byte(`---
 priority: 1

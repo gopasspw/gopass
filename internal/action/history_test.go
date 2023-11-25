@@ -24,7 +24,7 @@ func TestHistory(t *testing.T) {
 	defer r1()
 	defer r2()
 
-	ctx := context.Background()
+	ctx := config.NewNoWrites().WithConfig(context.Background())
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithInteractive(ctx, false)
 

@@ -20,7 +20,7 @@ import (
 func TestList(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 
-	ctx := context.Background()
+	ctx := config.NewNoWrites().WithConfig(context.Background())
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithInteractive(ctx, false)
 
@@ -119,7 +119,7 @@ foo2/bar2
 func TestListLimit(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 
-	ctx := context.Background()
+	ctx := config.NewNoWrites().WithConfig(context.Background())
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithInteractive(ctx, false)
 
@@ -214,7 +214,7 @@ foo2/bar2
 }
 
 func TestRedirectPager(t *testing.T) {
-	ctx := context.Background()
+	ctx := config.NewNoWrites().WithConfig(context.Background())
 
 	var buf *bytes.Buffer
 	var subtree *tree.Root

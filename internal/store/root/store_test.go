@@ -17,7 +17,7 @@ import (
 )
 
 func TestSimpleList(t *testing.T) {
-	ctx := context.Background()
+	ctx := config.NewNoWrites().WithConfig(context.Background())
 
 	u := gptest.NewUnitTester(t)
 
@@ -30,7 +30,7 @@ func TestSimpleList(t *testing.T) {
 }
 
 func TestListMulti(t *testing.T) {
-	ctx := context.Background()
+	ctx := config.NewNoWrites().WithConfig(context.Background())
 	ctx = backend.WithCryptoBackend(ctx, backend.Plain)
 
 	u := gptest.NewUnitTester(t)
@@ -73,7 +73,7 @@ func TestListMulti(t *testing.T) {
 }
 
 func TestListNested(t *testing.T) {
-	ctx := context.Background()
+	ctx := config.NewNoWrites().WithConfig(context.Background())
 	ctx = backend.WithCryptoBackend(ctx, backend.Plain)
 
 	u := gptest.NewUnitTester(t)

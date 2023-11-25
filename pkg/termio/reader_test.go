@@ -7,6 +7,7 @@ import (
 	"testing"
 	"testing/iotest"
 
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -30,7 +31,7 @@ func TestReadLines(t *testing.T) {
 func TestReadLineError(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx := config.NewNoWrites().WithConfig(context.Background())
 	stdin := strings.NewReader("fo")
 	lr := NewReader(ctx, iotest.TimeoutReader(stdin))
 
@@ -42,7 +43,7 @@ func TestReadLineError(t *testing.T) {
 func TestRead(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx := config.NewNoWrites().WithConfig(context.Background())
 	stdin := strings.NewReader(`foobarbazzabzabzab`)
 	lr := NewReader(ctx, stdin)
 
@@ -54,7 +55,7 @@ func TestRead(t *testing.T) {
 }
 
 func mustReadLine(r io.Reader) string {
-	ctx := context.Background()
+	ctx := config.NewNoWrites().WithConfig(context.Background())
 
 	line, err := NewReader(ctx, r).ReadLine()
 	if err != nil {

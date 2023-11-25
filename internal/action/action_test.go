@@ -48,7 +48,7 @@ func newMock(ctx context.Context, path string) (*Action, error) {
 func TestAction(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 
-	ctx := context.Background()
+	ctx := config.NewNoWrites().WithConfig(context.Background())
 	ctx = ctxutil.WithInteractive(ctx, false)
 
 	act, err := newMock(ctx, u.StoreDir(""))

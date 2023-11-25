@@ -5,12 +5,13 @@ import (
 	"runtime"
 	"testing"
 
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/pkg/gopass/secrets"
 	"github.com/stretchr/testify/require"
 )
 
 func TestSet(t *testing.T) {
-	ctx := context.Background()
+	ctx := config.NewNoWrites().WithConfig(context.Background())
 
 	s, err := createSubStore(t)
 	require.NoError(t, err)

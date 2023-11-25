@@ -5,11 +5,12 @@ import (
 	"os"
 	"testing"
 
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestDetectName(t *testing.T) {
-	ctx := context.Background()
+	ctx := config.NewNoWrites().WithConfig(context.Background())
 
 	oga := os.Getenv("GIT_AUTHOR_NAME")
 	odf := os.Getenv("DEBFULLNAME")
@@ -33,7 +34,7 @@ func TestDetectName(t *testing.T) {
 }
 
 func TestDetectEmail(t *testing.T) {
-	ctx := context.Background()
+	ctx := config.NewNoWrites().WithConfig(context.Background())
 
 	oga := os.Getenv("GIT_AUTHOR_EMAIL")
 	odf := os.Getenv("DEBEMAIL")

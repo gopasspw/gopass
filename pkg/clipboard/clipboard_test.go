@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/atotto/clipboard"
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	ps "github.com/mitchellh/go-ps"
 	"github.com/stretchr/testify/assert"
@@ -21,7 +22,7 @@ func TestNotExistingClipboardCopyCommand(t *testing.T) {
 	t.Setenv("GOPASS_NO_NOTIFY", "true")
 	t.Setenv("GOPASS_CLIPBOARD_COPY_CMD", "not_existing_command")
 
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(config.NewNoWrites().WithConfig(context.Background()))
 	defer cancel()
 
 	maybeErr := CopyTo(ctx, "foo", []byte("bar"), 1)
@@ -32,7 +33,7 @@ func TestNotExistingClipboardCopyCommand(t *testing.T) {
 func TestUnsupportedCopyToClipboard(t *testing.T) {
 	t.Setenv("GOPASS_NO_NOTIFY", "true")
 
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(config.NewNoWrites().WithConfig(context.Background()))
 	defer cancel()
 
 	clipboard.Unsupported = true
@@ -45,7 +46,7 @@ func TestUnsupportedCopyToClipboard(t *testing.T) {
 }
 
 func TestClearClipboard(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(config.NewNoWrites().WithConfig(context.Background()))
 	require.NoError(t, clear(ctx, "foo", []byte("bar"), 0))
 	cancel()
 	time.Sleep(50 * time.Millisecond)

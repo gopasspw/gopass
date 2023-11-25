@@ -12,6 +12,7 @@ import (
 	_ "github.com/gopasspw/gopass/internal/backend/crypto"
 	"github.com/gopasspw/gopass/internal/backend/crypto/plain"
 	_ "github.com/gopasspw/gopass/internal/backend/storage"
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/pkg/gopass/secrets"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -38,7 +39,7 @@ func createSubStore(t *testing.T) (*Store, error) {
 		return nil, err
 	}
 
-	ctx := context.Background()
+	ctx := config.NewNoWrites().WithConfig(context.Background())
 	ctx = backend.WithCryptoBackendString(ctx, "plain")
 	ctx = backend.WithStorageBackendString(ctx, "fs")
 
@@ -92,7 +93,7 @@ func TestStore(t *testing.T) {
 }
 
 func TestIdFile(t *testing.T) {
-	ctx := context.Background()
+	ctx := config.NewNoWrites().WithConfig(context.Background())
 
 	s, err := createSubStore(t)
 	require.NoError(t, err)
@@ -134,33 +135,33 @@ func TestNew(t *testing.T) {
 	}{
 		{
 			dsc:   "Invalid Storage",
-			ctx:   backend.WithStorageBackend(context.Background(), -1),
+			ctx:   backend.WithStorageBackend(config.NewNoWrites().WithConfig(context.Background()), -1),
 			noDir: true,
 			ok:    false,
 		},
 		{
 			dsc: "GitFS Storage",
-			ctx: backend.WithCryptoBackend(backend.WithStorageBackend(context.Background(), backend.GitFS), backend.Plain),
+			ctx: backend.WithCryptoBackend(backend.WithStorageBackend(config.NewNoWrites().WithConfig(context.Background()), backend.GitFS), backend.Plain),
 			ok:  true,
 		},
 		{
 			dsc: "FS Storage",
-			ctx: backend.WithCryptoBackend(backend.WithStorageBackend(context.Background(), backend.FS), backend.Plain),
+			ctx: backend.WithCryptoBackend(backend.WithStorageBackend(config.NewNoWrites().WithConfig(context.Background()), backend.FS), backend.Plain),
 			ok:  true,
 		},
 		{
 			dsc: "GPG Crypto",
-			ctx: backend.WithCryptoBackend(context.Background(), backend.GPGCLI),
+			ctx: backend.WithCryptoBackend(config.NewNoWrites().WithConfig(context.Background()), backend.GPGCLI),
 			ok:  true,
 		},
 		{
 			dsc: "Plain Crypto",
-			ctx: backend.WithCryptoBackend(context.Background(), backend.Plain),
+			ctx: backend.WithCryptoBackend(config.NewNoWrites().WithConfig(context.Background()), backend.Plain),
 			ok:  true,
 		},
 		{
 			dsc: "Invalid Crypto",
-			ctx: backend.WithCryptoBackend(context.Background(), -1),
+			ctx: backend.WithCryptoBackend(config.NewNoWrites().WithConfig(context.Background()), -1),
 			// ok:  false, // TODO once backend.DetectCrypto returns an error this should be false
 			ok: true,
 		},

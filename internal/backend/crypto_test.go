@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -31,7 +32,7 @@ func TestDetectCrypto(t *testing.T) {
 		tc := tc
 
 		t.Run(tc.name, func(t *testing.T) {
-			ctx := context.Background()
+			ctx := config.NewNoWrites().WithConfig(context.Background())
 
 			fsDir := filepath.Join(t.TempDir(), "fs")
 			_ = os.RemoveAll(fsDir)

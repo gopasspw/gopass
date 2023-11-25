@@ -10,6 +10,7 @@ import (
 
 	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/internal/backend/crypto/plain"
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/tests/gptest"
@@ -20,7 +21,7 @@ import (
 func TestInit(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 
-	ctx := context.Background()
+	ctx := config.NewNoWrites().WithConfig(context.Background())
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithInteractive(ctx, false)
 	ctx = backend.WithCryptoBackend(ctx, backend.Plain)
@@ -100,7 +101,7 @@ func TestInitParseContext(t *testing.T) {
 		tc := tc
 
 		t.Run(tc.name, func(t *testing.T) {
-			c := gptest.CliCtxWithFlags(context.Background(), t, tc.flags)
+			c := gptest.CliCtxWithFlags(config.NewNoWrites().WithConfig(context.Background()), t, tc.flags)
 			require.NoError(t, tc.check(initParseContext(c.Context, c)), tc.name)
 			buf.Reset()
 		})

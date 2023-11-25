@@ -8,6 +8,7 @@ import (
 	_ "github.com/gopasspw/gopass/internal/backend/crypto"
 	"github.com/gopasspw/gopass/internal/backend/crypto/plain"
 	_ "github.com/gopasspw/gopass/internal/backend/storage"
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -33,7 +34,7 @@ func (l fakeCryptoLoader) Priority() int {
 func TestCryptoLoader(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx := config.NewNoWrites().WithConfig(context.Background())
 	backend.CryptoRegistry.Register(backend.Plain, "plain", fakeCryptoLoader{})
 	c, err := backend.NewCrypto(ctx, backend.Plain)
 	require.NoError(t, err)

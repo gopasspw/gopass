@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -15,7 +16,7 @@ func TestSetAndGet(t *testing.T) {
 
 	initialContent := []byte(`initial file content`)
 	otherContent := []byte(`other file content`)
-	ctx := context.Background()
+	ctx := config.NewNoWrites().WithConfig(context.Background())
 
 	path := t.TempDir()
 
@@ -49,7 +50,7 @@ func TestMove(t *testing.T) {
 
 	initialContent := []byte(`initial file content`)
 	otherContent := []byte(`other file content`)
-	ctx := context.Background()
+	ctx := config.NewNoWrites().WithConfig(context.Background())
 
 	path := t.TempDir()
 
@@ -242,7 +243,7 @@ func TestDelete(t *testing.T) {
 			store := &Store{
 				path,
 			}
-			err := store.Delete(context.Background(), filepath.Join(test.toDelete...))
+			err := store.Delete(config.NewNoWrites().WithConfig(context.Background()), filepath.Join(test.toDelete...))
 
 			if test.shouldErr {
 				if err == nil {

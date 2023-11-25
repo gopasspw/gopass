@@ -9,12 +9,13 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func Example() {
-	ctx := context.Background()
+	ctx := config.NewNoWrites().WithConfig(context.Background())
 
 	tempfile, err := New(ctx, "gopass-secure-")
 	if err != nil {
@@ -68,7 +69,7 @@ func TestTempdirBaseEmpty(t *testing.T) {
 func TestTempFiler(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx := config.NewNoWrites().WithConfig(context.Background())
 
 	// regular tempfile
 	tf, err := New(ctx, "gp-test-")
@@ -103,7 +104,7 @@ func TestGlobalPrefix(t *testing.T) {
 
 		assert.True(t, strings.HasPrefix(fileOrDirName, requirePrefix))
 	}
-	ctx := context.Background()
+	ctx := config.NewNoWrites().WithConfig(context.Background())
 
 	assert.Equal(t, "", globalPrefix)
 
