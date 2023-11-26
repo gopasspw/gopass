@@ -1,7 +1,6 @@
 package action
 
 import (
-	"context"
 	"testing"
 
 	"github.com/gopasspw/gopass/internal/config"
@@ -9,7 +8,7 @@ import (
 )
 
 func TestWithClip(t *testing.T) {
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 
 	if IsClip(ctx) {
 		t.Errorf("Should be false")
@@ -21,7 +20,7 @@ func TestWithClip(t *testing.T) {
 }
 
 func TestWithPasswordOnly(t *testing.T) {
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 
 	if IsPasswordOnly(ctx) {
 		t.Errorf("Should be false")
@@ -33,14 +32,14 @@ func TestWithPasswordOnly(t *testing.T) {
 }
 
 func TestWithPrintQR(t *testing.T) {
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 
 	assert.False(t, IsPrintQR(ctx))
 	assert.True(t, IsPrintQR(WithPrintQR(ctx, true)))
 }
 
 func TestWithRevision(t *testing.T) {
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 
 	assert.Equal(t, "", GetRevision(ctx))
 	assert.Equal(t, "foo", GetRevision(WithRevision(ctx, "foo")))
@@ -49,21 +48,21 @@ func TestWithRevision(t *testing.T) {
 }
 
 func TestWithKey(t *testing.T) {
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 
 	assert.Equal(t, "", GetKey(ctx))
 	assert.Equal(t, "foo", GetKey(WithKey(ctx, "foo")))
 }
 
 func TestWithOnlyClip(t *testing.T) {
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 
 	assert.False(t, IsOnlyClip(ctx))
 	assert.True(t, IsOnlyClip(WithOnlyClip(ctx, true)))
 }
 
 func TestWithAlsoClip(t *testing.T) {
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 
 	assert.False(t, IsAlsoClip(ctx))
 	assert.True(t, IsAlsoClip(WithAlsoClip(ctx, true)))

@@ -20,7 +20,7 @@ import (
 )
 
 func Example() { //nolint:testableexamples
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 	tpl := `Password-value of existing entry: {{ getpw "foo" }}
 Password-value of the new entry: {{ .Content }}
 Md5sum of the new password: {{ .Content | md5sum }}
@@ -55,7 +55,7 @@ func (k kvMock) Get(ctx context.Context, key string) (gopass.Secret, error) {
 func TestVars(t *testing.T) {
 	t.Parallel()
 
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 	kv := kvMock{}
 
 	for _, tc := range []struct {

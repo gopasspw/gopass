@@ -2,7 +2,6 @@ package action
 
 import (
 	"bytes"
-	"context"
 	"os"
 	"strings"
 	"testing"
@@ -18,7 +17,7 @@ import (
 func TestConfig(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 	ctx = ctxutil.WithInteractive(ctx, false)
 	act, err := newMock(ctx, u.StoreDir(""))
 	require.NoError(t, err)

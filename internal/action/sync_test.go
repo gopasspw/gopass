@@ -2,7 +2,6 @@ package action
 
 import (
 	"bytes"
-	"context"
 	"os"
 	"testing"
 
@@ -24,7 +23,7 @@ func TestSync(t *testing.T) {
 		out.Stderr = os.Stderr
 	}()
 
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	act, err := newMock(ctx, u.StoreDir(""))
 	require.NoError(t, err)

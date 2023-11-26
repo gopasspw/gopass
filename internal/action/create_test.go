@@ -2,7 +2,6 @@ package action
 
 import (
 	"bytes"
-	"context"
 	"os"
 	"testing"
 
@@ -19,7 +18,7 @@ func TestCreate(t *testing.T) {
 
 	aclip.Unsupported = true
 
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 
 	act, err := newMock(ctx, u.StoreDir(""))

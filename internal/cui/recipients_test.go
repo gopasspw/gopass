@@ -2,7 +2,6 @@ package cui
 
 import (
 	"bytes"
-	"context"
 	"os"
 	"testing"
 
@@ -21,7 +20,7 @@ func TestAskForPrivateKey(t *testing.T) {
 		Stdout = os.Stdout
 	}()
 
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	key, err := AskForPrivateKey(ctx, plain.New(), "test")
@@ -35,7 +34,7 @@ func TestAskForGitConfigUser(t *testing.T) {
 	u := gptest.NewGUnitTester(t)
 	assert.NotNil(t, u)
 
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 	ctx = ctxutil.WithTerminal(ctx, true)
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 
@@ -50,7 +49,7 @@ func (f fakeMountPointer) MountPoints() []string {
 }
 
 func TestAskForStore(t *testing.T) {
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 
 	// test non-interactive
 	ctx = ctxutil.WithInteractive(ctx, false)

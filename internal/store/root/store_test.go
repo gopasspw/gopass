@@ -17,7 +17,7 @@ import (
 )
 
 func TestSimpleList(t *testing.T) {
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 
 	u := gptest.NewUnitTester(t)
 
@@ -30,7 +30,7 @@ func TestSimpleList(t *testing.T) {
 }
 
 func TestListMulti(t *testing.T) {
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 	ctx = backend.WithCryptoBackend(ctx, backend.Plain)
 
 	u := gptest.NewUnitTester(t)
@@ -73,7 +73,7 @@ func TestListMulti(t *testing.T) {
 }
 
 func TestListNested(t *testing.T) {
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 	ctx = backend.WithCryptoBackend(ctx, backend.Plain)
 
 	u := gptest.NewUnitTester(t)
@@ -128,7 +128,7 @@ func TestListNested(t *testing.T) {
 
 func createRootStore(ctx context.Context, u *gptest.Unit) (*Store, error) {
 	ctx = backend.WithCryptoBackendString(ctx, "plain")
-	cfg := config.NewNoWrites()
+	cfg := config.NewReadOnly()
 	if err := cfg.SetPath(u.StoreDir("")); err != nil {
 		return nil, err
 	}

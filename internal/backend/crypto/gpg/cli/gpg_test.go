@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"context"
 	"testing"
 
 	"github.com/gopasspw/gopass/internal/config"
@@ -16,7 +15,7 @@ func TestGPG(t *testing.T) {
 		t.Skip("skipping test in short mode.")
 	}
 
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 
 	var err error
 	var g *GPG

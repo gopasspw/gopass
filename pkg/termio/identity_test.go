@@ -1,7 +1,6 @@
 package termio
 
 import (
-	"context"
 	"os"
 	"testing"
 
@@ -10,7 +9,7 @@ import (
 )
 
 func TestDetectName(t *testing.T) {
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 
 	oga := os.Getenv("GIT_AUTHOR_NAME")
 	odf := os.Getenv("DEBFULLNAME")
@@ -34,7 +33,7 @@ func TestDetectName(t *testing.T) {
 }
 
 func TestDetectEmail(t *testing.T) {
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 
 	oga := os.Getenv("GIT_AUTHOR_EMAIL")
 	odf := os.Getenv("DEBEMAIL")

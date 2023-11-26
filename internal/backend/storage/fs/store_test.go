@@ -1,7 +1,6 @@
 package fs
 
 import (
-	"context"
 	"os"
 	"path/filepath"
 	"testing"
@@ -16,7 +15,7 @@ func TestSetAndGet(t *testing.T) {
 
 	initialContent := []byte(`initial file content`)
 	otherContent := []byte(`other file content`)
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 
 	path := t.TempDir()
 
@@ -50,7 +49,7 @@ func TestMove(t *testing.T) {
 
 	initialContent := []byte(`initial file content`)
 	otherContent := []byte(`other file content`)
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 
 	path := t.TempDir()
 
@@ -243,7 +242,7 @@ func TestDelete(t *testing.T) {
 			store := &Store{
 				path,
 			}
-			err := store.Delete(config.NewNoWrites().WithConfig(context.Background()), filepath.Join(test.toDelete...))
+			err := store.Delete(config.NewContextReadOnly(), filepath.Join(test.toDelete...))
 
 			if test.shouldErr {
 				if err == nil {

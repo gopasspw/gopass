@@ -1,7 +1,6 @@
 package termio
 
 import (
-	"context"
 	"io"
 	"strings"
 	"testing"
@@ -31,7 +30,7 @@ func TestReadLines(t *testing.T) {
 func TestReadLineError(t *testing.T) {
 	t.Parallel()
 
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 	stdin := strings.NewReader("fo")
 	lr := NewReader(ctx, iotest.TimeoutReader(stdin))
 
@@ -43,7 +42,7 @@ func TestReadLineError(t *testing.T) {
 func TestRead(t *testing.T) {
 	t.Parallel()
 
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 	stdin := strings.NewReader(`foobarbazzabzabzab`)
 	lr := NewReader(ctx, stdin)
 
@@ -55,7 +54,7 @@ func TestRead(t *testing.T) {
 }
 
 func mustReadLine(r io.Reader) string {
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 
 	line, err := NewReader(ctx, r).ReadLine()
 	if err != nil {

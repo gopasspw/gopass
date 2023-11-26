@@ -39,7 +39,7 @@ func createSubStore(t *testing.T) (*Store, error) {
 		return nil, err
 	}
 
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 	ctx = backend.WithCryptoBackendString(ctx, "plain")
 	ctx = backend.WithStorageBackendString(ctx, "fs")
 
@@ -93,7 +93,7 @@ func TestStore(t *testing.T) {
 }
 
 func TestIdFile(t *testing.T) {
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 
 	s, err := createSubStore(t)
 	require.NoError(t, err)
@@ -135,33 +135,33 @@ func TestNew(t *testing.T) {
 	}{
 		{
 			dsc:   "Invalid Storage",
-			ctx:   backend.WithStorageBackend(config.NewNoWrites().WithConfig(context.Background()), -1),
+			ctx:   backend.WithStorageBackend(config.NewContextReadOnly(), -1),
 			noDir: true,
 			ok:    false,
 		},
 		{
 			dsc: "GitFS Storage",
-			ctx: backend.WithCryptoBackend(backend.WithStorageBackend(config.NewNoWrites().WithConfig(context.Background()), backend.GitFS), backend.Plain),
+			ctx: backend.WithCryptoBackend(backend.WithStorageBackend(config.NewContextReadOnly(), backend.GitFS), backend.Plain),
 			ok:  true,
 		},
 		{
 			dsc: "FS Storage",
-			ctx: backend.WithCryptoBackend(backend.WithStorageBackend(config.NewNoWrites().WithConfig(context.Background()), backend.FS), backend.Plain),
+			ctx: backend.WithCryptoBackend(backend.WithStorageBackend(config.NewContextReadOnly(), backend.FS), backend.Plain),
 			ok:  true,
 		},
 		{
 			dsc: "GPG Crypto",
-			ctx: backend.WithCryptoBackend(config.NewNoWrites().WithConfig(context.Background()), backend.GPGCLI),
+			ctx: backend.WithCryptoBackend(config.NewContextReadOnly(), backend.GPGCLI),
 			ok:  true,
 		},
 		{
 			dsc: "Plain Crypto",
-			ctx: backend.WithCryptoBackend(config.NewNoWrites().WithConfig(context.Background()), backend.Plain),
+			ctx: backend.WithCryptoBackend(config.NewContextReadOnly(), backend.Plain),
 			ok:  true,
 		},
 		{
 			dsc: "Invalid Crypto",
-			ctx: backend.WithCryptoBackend(config.NewNoWrites().WithConfig(context.Background()), -1),
+			ctx: backend.WithCryptoBackend(config.NewContextReadOnly(), -1),
 			// ok:  false, // TODO once backend.DetectCrypto returns an error this should be false
 			ok: true,
 		},

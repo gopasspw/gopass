@@ -1,7 +1,6 @@
 package leaf
 
 import (
-	"context"
 	"testing"
 
 	"github.com/gopasspw/gopass/internal/config"
@@ -9,7 +8,7 @@ import (
 )
 
 func TestInit(t *testing.T) {
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 
 	s, err := createSubStore(t)
 	require.NoError(t, err)

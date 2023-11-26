@@ -2,7 +2,6 @@ package gitfs
 
 import (
 	"bytes"
-	"context"
 	"os"
 	"path/filepath"
 	"testing"
@@ -23,7 +22,7 @@ func TestGit(t *testing.T) {
 	gitdir2 := filepath.Join(td, "git2")
 	require.NoError(t, os.Mkdir(gitdir2, 0o755))
 
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 
 	buf := &bytes.Buffer{}

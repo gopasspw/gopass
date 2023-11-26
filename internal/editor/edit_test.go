@@ -2,7 +2,6 @@ package editor
 
 import (
 	"bytes"
-	"context"
 	"os"
 	"testing"
 
@@ -13,7 +12,7 @@ import (
 )
 
 func TestEdit(t *testing.T) {
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithTerminal(ctx, false)
 

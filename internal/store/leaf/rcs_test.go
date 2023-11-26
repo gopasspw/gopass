@@ -1,7 +1,6 @@
 package leaf
 
 import (
-	"context"
 	"testing"
 
 	"github.com/blang/semver/v4"
@@ -13,7 +12,7 @@ import (
 )
 
 func TestGit(t *testing.T) {
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 
 	s, err := createSubStore(t)
 	require.NoError(t, err)
@@ -37,7 +36,7 @@ func TestGit(t *testing.T) {
 }
 
 func TestGitRevisions(t *testing.T) {
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 
 	s, err := createSubStore(t)
 	require.NoError(t, err)

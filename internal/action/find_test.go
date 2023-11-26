@@ -23,7 +23,7 @@ import (
 func TestFind(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 	ctx = ctxutil.WithTerminal(ctx, false)
 
 	act, err := newMock(ctx, u.StoreDir(""))

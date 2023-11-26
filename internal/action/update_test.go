@@ -4,7 +4,6 @@ import (
 	"archive/tar"
 	"bytes"
 	"compress/gzip"
-	"context"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -53,7 +52,7 @@ func TestUpdate(t *testing.T) {
 
 	u := gptest.NewUnitTester(t)
 
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithHidden(ctx, true)
 	act, err := newMock(ctx, u.StoreDir(""))

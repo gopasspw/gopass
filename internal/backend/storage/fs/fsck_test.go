@@ -1,7 +1,6 @@
 package fs
 
 import (
-	"context"
 	"os"
 	"path/filepath"
 	"testing"
@@ -14,7 +13,7 @@ import (
 func TestFsck(t *testing.T) {
 	t.Parallel()
 
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 	ctx = ctxutil.WithHidden(ctx, true)
 
 	path := t.TempDir()

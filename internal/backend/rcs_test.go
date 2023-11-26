@@ -2,7 +2,6 @@ package backend
 
 import (
 	"bytes"
-	"context"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -15,7 +14,7 @@ import (
 )
 
 func TestClone(t *testing.T) {
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 
 	td := t.TempDir()
 
@@ -34,7 +33,7 @@ func TestClone(t *testing.T) {
 }
 
 func TestInitRCS(t *testing.T) {
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 
 	td := t.TempDir()
 

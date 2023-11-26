@@ -2,7 +2,6 @@ package out
 
 import (
 	"bytes"
-	"context"
 	"os"
 	"testing"
 
@@ -12,7 +11,7 @@ import (
 )
 
 func TestPrint(t *testing.T) {
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 	buf := &bytes.Buffer{}
 	Stdout = buf
 	defer func() {

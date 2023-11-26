@@ -1,7 +1,6 @@
 package plain
 
 import (
-	"context"
 	"testing"
 
 	"github.com/blang/semver/v4"
@@ -14,7 +13,7 @@ import (
 func TestPlain(t *testing.T) {
 	t.Parallel()
 
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 
 	m := New()
@@ -71,7 +70,7 @@ func TestLoader(t *testing.T) {
 	t.Parallel()
 
 	l := &loader{}
-	b, err := l.New(config.NewNoWrites().WithConfig(context.Background()))
+	b, err := l.New(config.NewContextReadOnly())
 	require.NoError(t, err)
 	assert.Equal(t, name, l.String())
 	assert.Equal(t, "plain", b.Name())

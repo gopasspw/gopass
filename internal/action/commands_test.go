@@ -1,7 +1,6 @@
 package action
 
 import (
-	"context"
 	"testing"
 
 	"github.com/gopasspw/gopass/internal/config"
@@ -41,7 +40,7 @@ func testCommand(t *testing.T, cmd *cli.Command) {
 func TestCommands(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 	ctx = ctxutil.WithInteractive(ctx, false)
 	act, err := newMock(ctx, u.StoreDir(""))
 	require.NoError(t, err)

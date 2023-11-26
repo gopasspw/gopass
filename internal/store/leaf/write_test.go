@@ -1,7 +1,6 @@
 package leaf
 
 import (
-	"context"
 	"runtime"
 	"testing"
 
@@ -11,7 +10,7 @@ import (
 )
 
 func TestSet(t *testing.T) {
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 
 	s, err := createSubStore(t)
 	require.NoError(t, err)

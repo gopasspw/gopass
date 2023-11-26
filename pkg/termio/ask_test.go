@@ -24,7 +24,7 @@ func TestAskForString(t *testing.T) {
 		Stderr = os.Stderr
 	}()
 
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 
 	sv, err := AskForString(ctx, "test", "foobar")
@@ -71,7 +71,7 @@ func TestAskForBool(t *testing.T) {
 		Stderr = os.Stderr
 	}()
 
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 
 	bv, err := AskForBool(ctx, "test", false)
@@ -128,7 +128,7 @@ func TestAskForInt(t *testing.T) {
 		Stderr = os.Stderr
 	}()
 
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 
 	got, err := AskForInt(ctx, "test", 42)
@@ -161,7 +161,7 @@ func TestAskForConfirmation(t *testing.T) {
 		Stderr = os.Stderr
 	}()
 
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	assert.True(t, AskForConfirmation(ctx, "test"))
 
@@ -191,7 +191,7 @@ func TestAskForKeyImport(t *testing.T) {
 		Stderr = os.Stderr
 	}()
 
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 
 	assert.True(t, AskForKeyImport(ctx, "test", []string{}))
@@ -220,7 +220,7 @@ func TestAskForPasswordNonInteractive(t *testing.T) {
 		Stderr = os.Stderr
 	}()
 
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 	ctx = ctxutil.WithInteractive(ctx, false)
 
 	_, err := AskForPassword(ctx, "test", true)
@@ -261,7 +261,7 @@ func TestAskForPasswordInteractive(t *testing.T) {
 		Stderr = os.Stderr
 	}()
 
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 	askFn := func(ctx context.Context, prompt string) (string, error) {
 		return "test", nil
 	}

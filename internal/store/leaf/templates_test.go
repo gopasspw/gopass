@@ -1,7 +1,6 @@
 package leaf
 
 import (
-	"context"
 	"testing"
 
 	"github.com/fatih/color"
@@ -14,7 +13,7 @@ import (
 func TestTemplates(t *testing.T) {
 	t.Parallel()
 
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 
 	tempdir := t.TempDir()
 

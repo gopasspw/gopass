@@ -4,7 +4,6 @@
 package editor
 
 import (
-	"context"
 	"flag"
 	"os"
 	"os/exec"
@@ -22,7 +21,7 @@ func TestEditor(t *testing.T) {
 	u := gptest.NewGUnitTester(t)
 	assert.NotNil(t, u)
 
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 	touch, err := exec.LookPath("touch")
 	require.NoError(t, err, os.Getenv("PATH"))
 

@@ -2,7 +2,6 @@ package clipboard
 
 import (
 	"bytes"
-	"context"
 	"os"
 	"testing"
 
@@ -14,7 +13,7 @@ import (
 )
 
 func TestNotExistingClipboardClearCommand(t *testing.T) {
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 
 	t.Setenv("GOPASS_CLIPBOARD_CLEAR_CMD", "not_existing_command")
@@ -27,7 +26,7 @@ func TestNotExistingClipboardClearCommand(t *testing.T) {
 func TestUnclip(t *testing.T) {
 	t.Parallel()
 
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 
 	buf := &bytes.Buffer{}

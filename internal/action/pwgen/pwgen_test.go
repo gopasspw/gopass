@@ -2,7 +2,6 @@ package pwgen
 
 import (
 	"bytes"
-	"context"
 	"os"
 	"testing"
 
@@ -18,7 +17,7 @@ func TestPwgen(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 	assert.NotNil(t, u)
 
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 
 	buf := &bytes.Buffer{}

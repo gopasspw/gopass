@@ -1,7 +1,6 @@
 package backend
 
 import (
-	"context"
 	"os"
 	"path/filepath"
 	"testing"
@@ -14,7 +13,7 @@ import (
 )
 
 func TestDetectStorage(t *testing.T) {
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 
 	td := t.TempDir()
 

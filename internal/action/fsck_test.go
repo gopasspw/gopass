@@ -2,7 +2,6 @@ package action
 
 import (
 	"bytes"
-	"context"
 	"os"
 	"strings"
 	"testing"
@@ -21,7 +20,7 @@ import (
 func TestFsck(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 	ctx = ctxutil.WithTerminal(ctx, false)
 	act, err := newMock(ctx, u.StoreDir(""))
 	require.NoError(t, err)
@@ -80,7 +79,7 @@ func TestFsckGpg(t *testing.T) {
 
 	u := gptest.NewGUnitTester(t)
 
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 	ctx = ctxutil.WithTerminal(ctx, false)
 	ctx = backend.WithCryptoBackend(ctx, backend.GPGCLI)
 

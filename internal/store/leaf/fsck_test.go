@@ -2,7 +2,6 @@ package leaf
 
 import (
 	"bytes"
-	"context"
 	"os"
 	"testing"
 
@@ -19,7 +18,7 @@ import (
 func TestFsck(t *testing.T) {
 	t.Parallel()
 
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 	ctx = WithCheckRecipients(ctx, false)
 
 	obuf := &bytes.Buffer{}

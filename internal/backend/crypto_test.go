@@ -1,7 +1,6 @@
 package backend
 
 import (
-	"context"
 	"os"
 	"path/filepath"
 	"testing"
@@ -32,7 +31,7 @@ func TestDetectCrypto(t *testing.T) {
 		tc := tc
 
 		t.Run(tc.name, func(t *testing.T) {
-			ctx := config.NewNoWrites().WithConfig(context.Background())
+			ctx := config.NewContextReadOnly()
 
 			fsDir := filepath.Join(t.TempDir(), "fs")
 			_ = os.RemoveAll(fsDir)

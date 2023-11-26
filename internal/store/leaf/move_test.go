@@ -2,7 +2,6 @@ package leaf
 
 import (
 	"bytes"
-	"context"
 	"os"
 	"testing"
 
@@ -19,7 +18,7 @@ import (
 func TestCopy(t *testing.T) {
 	t.Parallel()
 
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 
 	obuf := &bytes.Buffer{}
 	out.Stdout = obuf
@@ -103,7 +102,7 @@ func TestCopy(t *testing.T) {
 func TestMove(t *testing.T) {
 	t.Parallel()
 
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 
 	obuf := &bytes.Buffer{}
 	out.Stdout = obuf
@@ -188,7 +187,7 @@ func TestMove(t *testing.T) {
 func TestDelete(t *testing.T) {
 	t.Parallel()
 
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 
 	obuf := &bytes.Buffer{}
 	out.Stdout = obuf
@@ -255,8 +254,8 @@ func TestDelete(t *testing.T) {
 func TestPrune(t *testing.T) {
 	t.Parallel()
 
-	ctx := config.NewNoWrites().WithConfig(context.Background())
-	ctx = config.NewNoWrites().WithConfig(ctx)
+	ctx := config.NewContextReadOnly()
+	ctx = config.NewReadOnly().WithConfig(ctx)
 
 	obuf := &bytes.Buffer{}
 	out.Stdout = obuf

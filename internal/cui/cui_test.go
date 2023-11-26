@@ -1,7 +1,6 @@
 package cui
 
 import (
-	"context"
 	"testing"
 
 	"github.com/gopasspw/gopass/internal/config"
@@ -12,7 +11,7 @@ import (
 func TestGetSelection(t *testing.T) {
 	t.Parallel()
 
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 	ctx = ctxutil.WithInteractive(ctx, false)
 
 	act, sel := GetSelection(ctx, "foo", []string{"foo", "bar"})

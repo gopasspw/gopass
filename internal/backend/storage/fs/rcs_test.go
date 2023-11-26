@@ -1,7 +1,6 @@
 package fs
 
 import (
-	"context"
 	"testing"
 
 	"github.com/blang/semver/v4"
@@ -13,7 +12,7 @@ import (
 func TestRCS(t *testing.T) {
 	t.Parallel()
 
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 	path := t.TempDir()
 
 	g := New(path)

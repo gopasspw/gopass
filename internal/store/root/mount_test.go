@@ -1,7 +1,6 @@
 package root
 
 import (
-	"context"
 	"runtime"
 	"testing"
 
@@ -15,7 +14,7 @@ import (
 func TestMount(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithHidden(ctx, true)
 
@@ -40,7 +39,7 @@ func TestMount(t *testing.T) {
 func TestMountPoint(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithHidden(ctx, true)
 
@@ -58,7 +57,7 @@ func TestMountPoint(t *testing.T) {
 func TestMountPointIllegal(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithHidden(ctx, true)
 

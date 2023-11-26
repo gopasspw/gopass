@@ -2,7 +2,6 @@ package action
 
 import (
 	"bytes"
-	"context"
 	"fmt"
 	"os"
 	"runtime"
@@ -20,7 +19,7 @@ import (
 func TestEnvLeafHappyPath(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithTerminal(ctx, false)
 	act, err := newMock(ctx, u.StoreDir(""))
@@ -52,7 +51,7 @@ func TestEnvLeafHappyPath(t *testing.T) {
 func TestEnvLeafHappyPathKeepCase(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithTerminal(ctx, false)
 	act, err := newMock(ctx, u.StoreDir(""))
@@ -87,7 +86,7 @@ func TestEnvLeafHappyPathKeepCase(t *testing.T) {
 func TestEnvSecretNotFound(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithTerminal(ctx, false)
 	act, err := newMock(ctx, u.StoreDir(""))
@@ -103,7 +102,7 @@ func TestEnvSecretNotFound(t *testing.T) {
 func TestEnvProgramNotFound(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithTerminal(ctx, false)
 	act, err := newMock(ctx, u.StoreDir(""))
@@ -127,7 +126,7 @@ func TestEnvProgramNotFound(t *testing.T) {
 func TestEnvProgramNotSpecified(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithTerminal(ctx, false)
 	act, err := newMock(ctx, u.StoreDir(""))

@@ -1,7 +1,6 @@
 package api_test
 
 import (
-	"context"
 	"fmt"
 	"testing"
 
@@ -14,7 +13,7 @@ import (
 )
 
 func Example() { //nolint:testableexamples
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 
 	gp, err := api.New(ctx)
 	if err != nil {
@@ -60,7 +59,7 @@ func TestApi(t *testing.T) {
 	td := t.TempDir()
 	t.Setenv("GOPASS_HOMEDIR", td)
 
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithInteractive(ctx, false)
 

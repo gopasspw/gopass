@@ -1,7 +1,6 @@
 package notify
 
 import (
-	"context"
 	"image/png"
 	"os"
 	"strings"
@@ -12,7 +11,7 @@ import (
 )
 
 func TestNotify(t *testing.T) {
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 
 	t.Setenv("GOPASS_NO_NOTIFY", "true")
 	require.NoError(t, Notify(ctx, "foo", "bar"))

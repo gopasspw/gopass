@@ -22,7 +22,7 @@ import (
 )
 
 func TestRuleLookup(t *testing.T) {
-	domain, _ := hasPwRuleForSecret(config.NewNoWrites().WithConfig(context.Background()), "foo/gopass.pw")
+	domain, _ := hasPwRuleForSecret(config.NewContextReadOnly(), "foo/gopass.pw")
 	assert.Equal(t, "", domain)
 }
 
@@ -351,7 +351,7 @@ func TestFilterPrefix(t *testing.T) {
 func TestDefaultLengthFromEnv(t *testing.T) {
 	const pwLengthEnvName = "GOPASS_PW_DEFAULT_LENGTH"
 
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 
 	t.Run("use default value if no environment variable is set", func(t *testing.T) {
 		actual, isCustom := config.DefaultPasswordLengthFromEnv(ctx)

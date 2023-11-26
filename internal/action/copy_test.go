@@ -2,7 +2,6 @@ package action
 
 import (
 	"bytes"
-	"context"
 	"os"
 	"testing"
 
@@ -19,7 +18,7 @@ import (
 func TestCopy(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 	ctx = ctxutil.WithInteractive(ctx, false)
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 
@@ -101,7 +100,7 @@ func TestCopyGpg(t *testing.T) {
 
 	u := gptest.NewGUnitTester(t)
 
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 	ctx = ctxutil.WithInteractive(ctx, false)
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = backend.WithCryptoBackend(ctx, backend.GPGCLI)

@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"context"
 	"runtime"
 	"testing"
 
@@ -69,7 +68,7 @@ oLGNPe8bErLNfny6AWU0Enam6a13BxwbBrtr
 func TestReadNamesFromKey(t *testing.T) {
 	t.Parallel()
 
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 
 	g, err := New(ctx, Config{})
@@ -84,7 +83,7 @@ func TestReadNamesFromKey(t *testing.T) {
 func TestExportPublicKey(t *testing.T) {
 	t.Parallel()
 
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 	g, err := New(ctx, Config{})
 	require.NoError(t, err)
 
@@ -95,7 +94,7 @@ func TestExportPublicKey(t *testing.T) {
 func TestImport(t *testing.T) {
 	t.Parallel()
 
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 
 	g := &GPG{}
 	g.binary = "true"

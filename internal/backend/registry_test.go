@@ -34,7 +34,7 @@ func (l fakeCryptoLoader) Priority() int {
 func TestCryptoLoader(t *testing.T) {
 	t.Parallel()
 
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 	backend.CryptoRegistry.Register(backend.Plain, "plain", fakeCryptoLoader{})
 	c, err := backend.NewCrypto(ctx, backend.Plain)
 	require.NoError(t, err)

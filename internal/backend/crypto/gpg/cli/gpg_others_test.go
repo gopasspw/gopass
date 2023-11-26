@@ -4,7 +4,6 @@
 package cli
 
 import (
-	"context"
 	"testing"
 
 	"github.com/gopasspw/gopass/internal/config"
@@ -14,7 +13,7 @@ import (
 func TestEncrypt(t *testing.T) {
 	t.Parallel()
 
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 
 	g := &GPG{}
 	g.binary = "true"
@@ -26,7 +25,7 @@ func TestEncrypt(t *testing.T) {
 func TestDecrypt(t *testing.T) {
 	t.Parallel()
 
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 
 	g := &GPG{}
 	g.binary = "true"
@@ -38,7 +37,7 @@ func TestDecrypt(t *testing.T) {
 func TestGenerateIdentity(t *testing.T) {
 	t.Parallel()
 
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 
 	g := &GPG{}
 	g.binary = "true"

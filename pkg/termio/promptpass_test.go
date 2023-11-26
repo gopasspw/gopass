@@ -1,7 +1,6 @@
 package termio
 
 import (
-	"context"
 	"testing"
 
 	"github.com/gopasspw/gopass/internal/config"
@@ -12,7 +11,7 @@ import (
 func TestPromptPass(t *testing.T) {
 	t.Parallel()
 
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 	ctx = ctxutil.WithTerminal(ctx, false)
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 

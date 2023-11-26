@@ -1,7 +1,6 @@
 package pwgen
 
 import (
-	"context"
 	"fmt"
 	"sort"
 	"testing"
@@ -25,12 +24,13 @@ func TestCrypticForDomain(t *testing.T) {
 	sort.Strings(keys)
 
 	for _, domain := range keys {
+		domain := domain
 		t.Run(domain, func(t *testing.T) {
 			t.Parallel()
 
 			for _, length := range []int{1, 4, 8, 100} {
 				tcName := fmt.Sprintf("%s - %d", domain, length)
-				c := NewCrypticForDomain(config.NewNoWrites().WithConfig(context.Background()), length, domain)
+				c := NewCrypticForDomain(config.NewContextReadOnly(), length, domain)
 
 				require.NotNil(t, c, tcName)
 

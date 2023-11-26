@@ -1,7 +1,6 @@
 package backend
 
 import (
-	"context"
 	"testing"
 
 	"github.com/gopasspw/gopass/internal/config"
@@ -11,7 +10,7 @@ import (
 func TestCryptoBackend(t *testing.T) {
 	t.Parallel()
 
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 
 	assert.Equal(t, GPGCLI, GetCryptoBackend(ctx))
 	assert.Equal(t, GPGCLI, GetCryptoBackend(WithCryptoBackendString(ctx, "gpgcli")))
@@ -22,7 +21,7 @@ func TestCryptoBackend(t *testing.T) {
 func TestStorageBackend(t *testing.T) {
 	t.Parallel()
 
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 
 	assert.Equal(t, "fs", StorageBackendName(FS))
 	assert.Equal(t, FS, GetStorageBackend(ctx))
@@ -34,7 +33,7 @@ func TestStorageBackend(t *testing.T) {
 func TestComposite(t *testing.T) {
 	t.Parallel()
 
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 	ctx = WithCryptoBackend(ctx, Age)
 	ctx = WithStorageBackend(ctx, FS)
 

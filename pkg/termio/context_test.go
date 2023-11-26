@@ -12,7 +12,7 @@ import (
 func TestPassPromptFunc(t *testing.T) {
 	t.Parallel()
 
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 
 	assert.False(t, HasPassPromptFunc(ctx))
 	assert.NotNil(t, GetPassPromptFunc(ctx))

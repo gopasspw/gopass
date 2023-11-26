@@ -2,7 +2,6 @@ package leaf
 
 import (
 	"bytes"
-	"context"
 	"os"
 	"testing"
 
@@ -12,7 +11,7 @@ import (
 )
 
 func TestGPG(t *testing.T) {
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 
 	obuf := &bytes.Buffer{}
 	out.Stdout = obuf

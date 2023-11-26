@@ -1,7 +1,6 @@
 package out
 
 import (
-	"context"
 	"testing"
 
 	"github.com/gopasspw/gopass/internal/config"
@@ -11,7 +10,7 @@ import (
 func TestPrefix(t *testing.T) {
 	t.Parallel()
 
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 
 	assert.Equal(t, "", Prefix(ctx))
 
@@ -28,7 +27,7 @@ func TestPrefix(t *testing.T) {
 func TestNewline(t *testing.T) {
 	t.Parallel()
 
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 
 	assert.True(t, HasNewline(ctx))
 	assert.False(t, HasNewline(WithNewline(ctx, false)))

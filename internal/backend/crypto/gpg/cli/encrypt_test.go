@@ -2,7 +2,6 @@ package cli
 
 import (
 	"bytes"
-	"context"
 	"testing"
 
 	"github.com/gopasspw/gopass/internal/backend"
@@ -25,7 +24,7 @@ func TestEncryptDecrypt(t *testing.T) {
 	u := gptest.NewGUnitTester(t)
 	assert.NotNil(t, u)
 
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextReadOnly()
 	ctx = ctxutil.WithTerminal(ctx, false)
 	ctx = backend.WithCryptoBackend(ctx, backend.GPGCLI)
 
