@@ -67,17 +67,17 @@ nfpms:
     maintainer: "Gopass Authors <gopass@gopass.pw>"
     description: |-
       gopass password manager - full featured CLI replacement for pass, designed for teams.
-
-      gopass is a simple but powerful password manager for your terminal. It is a
-      Pass implementation in Go that can be used as a drop in replacement.
-
-      Every secret lives inside of a gpg (or: age) encrypted textfile. These secrets
-      can be organized into meaninful hierachies and are by default versioned using
-      git.
-
-      This package contains the main gopass binary from gopass.pw. In Debian and
-      Ubuntu there is an unfortunate name clash with another gopass package. That is
-      completely different and not related to this package.
+      # TODO: Disabled until goreleaser is fixed, see goreleaser/nfpm#742
+      # gopass is a simple but powerful password manager for your terminal. It is a
+      # Pass implementation in Go that can be used as a drop in replacement.
+      #
+      # Every secret lives inside of a gpg (or: age) encrypted textfile. These secrets
+      # can be organized into meaninful hierachies and are by default versioned using
+      # git.
+      #
+      # This package contains the main gopass binary from gopass.pw. In Debian and
+      # Ubuntu there is an unfortunate name clash with another gopass package. That is
+      # completely different and not related to this package.
     license: MIT
     formats:
       - deb
