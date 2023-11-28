@@ -37,6 +37,7 @@ require (
 	github.com/stretchr/testify v1.8.4
 	github.com/twpayne/go-pinentry v0.3.0
 	github.com/urfave/cli/v2 v2.25.7
+	github.com/xhit/go-str2duration v1.2.0
 	github.com/zalando/go-keyring v0.2.3
 	github.com/zeebo/blake3 v0.2.3
 	golang.org/x/crypto v0.15.0
