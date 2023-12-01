@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.15.11 / 2023-12-01
+
+* [bugfix] Disable multi-line description for deb packages (#2729)
+* [bugfix] Fix writes to global config from tests (#2727)
+* [bugfix] Workaround for goreleaser/nfpm#742 (#2732)
+* [feature] Allow setting autosync.interval in different time units (#2731)
+
 ## 1.15.10 / 2023-11-25
 
 * [BUGFIX] Allow to move shadowed entries into their own folder (#2718)
