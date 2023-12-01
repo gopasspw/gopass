@@ -2,10 +2,10 @@ package clipboard
 
 import (
 	"bytes"
-	"context"
 	"os"
 	"testing"
 
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/stretchr/testify/assert"
@@ -13,7 +13,7 @@ import (
 )
 
 func TestNotExistingClipboardClearCommand(t *testing.T) {
-	ctx := context.Background()
+	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 
 	t.Setenv("GOPASS_CLIPBOARD_CLEAR_CMD", "not_existing_command")
@@ -26,7 +26,7 @@ func TestNotExistingClipboardClearCommand(t *testing.T) {
 func TestUnclip(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 
 	buf := &bytes.Buffer{}

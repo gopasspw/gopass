@@ -2,13 +2,13 @@ package action
 
 import (
 	"bytes"
-	"context"
 	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/internal/backend/crypto/plain"
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/tests/gptest"
@@ -19,7 +19,7 @@ import (
 func TestSetupAgeGitFS(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 
-	ctx := context.Background()
+	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithInteractive(ctx, false)
 	ctx = backend.WithCryptoBackend(ctx, backend.Age)
@@ -67,7 +67,7 @@ func TestSetupAgeGitFS(t *testing.T) {
 func TestSetupPlainFS(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 
-	ctx := context.Background()
+	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithInteractive(ctx, false)
 	ctx = backend.WithCryptoBackend(ctx, backend.Plain)

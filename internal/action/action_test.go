@@ -20,7 +20,7 @@ import (
 )
 
 func newMock(ctx context.Context, path string) (*Action, error) {
-	cfg := config.NewNoWrites()
+	cfg := config.NewInMemory()
 	if err := cfg.SetPath(path); err != nil {
 		return nil, err
 	}
@@ -48,7 +48,7 @@ func newMock(ctx context.Context, path string) (*Action, error) {
 func TestAction(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 
-	ctx := context.Background()
+	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithInteractive(ctx, false)
 
 	act, err := newMock(ctx, u.StoreDir(""))
@@ -73,7 +73,7 @@ func TestNew(t *testing.T) {
 	assert.NotNil(t, u)
 
 	td := t.TempDir()
-	cfg := config.NewNoWrites()
+	cfg := config.NewInMemory()
 	sv := semver.Version{}
 
 	t.Run("init a new store", func(t *testing.T) {

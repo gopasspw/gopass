@@ -2,11 +2,11 @@ package action
 
 import (
 	"bytes"
-	"context"
 	"os"
 	"testing"
 
 	aclip "github.com/atotto/clipboard"
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/tests/gptest"
@@ -18,7 +18,7 @@ func TestCreate(t *testing.T) {
 
 	aclip.Unsupported = true
 
-	ctx := context.Background()
+	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 
 	act, err := newMock(ctx, u.StoreDir(""))

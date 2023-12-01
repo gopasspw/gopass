@@ -1,15 +1,15 @@
 package termio
 
 import (
-	"context"
 	"os"
 	"testing"
 
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestDetectName(t *testing.T) {
-	ctx := context.Background()
+	ctx := config.NewContextInMemory()
 
 	oga := os.Getenv("GIT_AUTHOR_NAME")
 	odf := os.Getenv("DEBFULLNAME")
@@ -33,7 +33,7 @@ func TestDetectName(t *testing.T) {
 }
 
 func TestDetectEmail(t *testing.T) {
-	ctx := context.Background()
+	ctx := config.NewContextInMemory()
 
 	oga := os.Getenv("GIT_AUTHOR_EMAIL")
 	odf := os.Getenv("DEBEMAIL")

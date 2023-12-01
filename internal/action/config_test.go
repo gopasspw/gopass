@@ -2,11 +2,11 @@ package action
 
 import (
 	"bytes"
-	"context"
 	"os"
 	"strings"
 	"testing"
 
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/tests/gptest"
@@ -17,7 +17,7 @@ import (
 func TestConfig(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 
-	ctx := context.Background()
+	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithInteractive(ctx, false)
 	act, err := newMock(ctx, u.StoreDir(""))
 	require.NoError(t, err)

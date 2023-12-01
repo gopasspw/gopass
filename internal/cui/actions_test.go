@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/urfave/cli/v2"
@@ -12,7 +13,7 @@ import (
 func TestCreateActions(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx := config.NewContextInMemory()
 	cas := Actions{
 		{
 			Name: "foo",

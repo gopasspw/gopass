@@ -1,11 +1,11 @@
 package fs
 
 import (
-	"context"
 	"os"
 	"path/filepath"
 	"testing"
 
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/stretchr/testify/require"
 )
@@ -13,7 +13,7 @@ import (
 func TestFsck(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithHidden(ctx, true)
 
 	path := t.TempDir()

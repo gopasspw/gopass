@@ -2,10 +2,10 @@ package action
 
 import (
 	"bytes"
-	"context"
 	"os"
 	"testing"
 
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/tests/gptest"
@@ -23,7 +23,7 @@ func TestSync(t *testing.T) {
 		out.Stderr = os.Stderr
 	}()
 
-	ctx := context.Background()
+	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	act, err := newMock(ctx, u.StoreDir(""))
 	require.NoError(t, err)

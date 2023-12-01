@@ -2,10 +2,10 @@ package pwgen
 
 import (
 	"bytes"
-	"context"
 	"os"
 	"testing"
 
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/tests/gptest"
@@ -17,7 +17,7 @@ func TestPwgen(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 	assert.NotNil(t, u)
 
-	ctx := context.Background()
+	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 
 	buf := &bytes.Buffer{}

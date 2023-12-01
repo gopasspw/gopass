@@ -2,12 +2,12 @@ package action
 
 import (
 	"bytes"
-	"context"
 	"os"
 	"testing"
 
 	_ "github.com/gopasspw/gopass/internal/backend/crypto"
 	_ "github.com/gopasspw/gopass/internal/backend/storage"
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/tests/gptest"
 	"github.com/stretchr/testify/require"
@@ -24,7 +24,7 @@ func TestUnclip(t *testing.T) {
 		stdout = os.Stdout
 	}()
 
-	ctx := context.Background()
+	ctx := config.NewContextInMemory()
 	act, err := newMock(ctx, u.StoreDir(""))
 	require.NoError(t, err)
 	require.NotNil(t, act)

@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -11,7 +12,7 @@ import (
 func TestPassPromptFunc(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx := config.NewContextInMemory()
 
 	assert.False(t, HasPassPromptFunc(ctx))
 	assert.NotNil(t, GetPassPromptFunc(ctx))

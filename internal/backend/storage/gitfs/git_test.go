@@ -2,12 +2,12 @@ package gitfs
 
 import (
 	"bytes"
-	"context"
 	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/blang/semver/v4"
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/stretchr/testify/assert"
@@ -22,7 +22,7 @@ func TestGit(t *testing.T) {
 	gitdir2 := filepath.Join(td, "git2")
 	require.NoError(t, os.Mkdir(gitdir2, 0o755))
 
-	ctx := context.Background()
+	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 
 	buf := &bytes.Buffer{}

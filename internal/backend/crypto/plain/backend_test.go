@@ -1,10 +1,10 @@
 package plain
 
 import (
-	"context"
 	"testing"
 
 	"github.com/blang/semver/v4"
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -13,7 +13,7 @@ import (
 func TestPlain(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 
 	m := New()
@@ -70,7 +70,7 @@ func TestLoader(t *testing.T) {
 	t.Parallel()
 
 	l := &loader{}
-	b, err := l.New(context.Background())
+	b, err := l.New(config.NewContextInMemory())
 	require.NoError(t, err)
 	assert.Equal(t, name, l.String())
 	assert.Equal(t, "plain", b.Name())

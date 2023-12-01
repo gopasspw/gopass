@@ -1,9 +1,9 @@
 package termio
 
 import (
-	"context"
 	"testing"
 
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/stretchr/testify/require"
 )
@@ -11,7 +11,7 @@ import (
 func TestPromptPass(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithTerminal(ctx, false)
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 

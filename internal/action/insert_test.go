@@ -2,11 +2,11 @@ package action
 
 import (
 	"bytes"
-	"context"
 	"os"
 	"testing"
 
 	"github.com/fatih/color"
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/tests/gptest"
@@ -17,7 +17,7 @@ import (
 func TestInsert(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 
-	ctx := context.Background()
+	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithTerminal(ctx, false)
 
@@ -126,7 +126,7 @@ func TestInsert(t *testing.T) {
 func TestInsertStdin(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 
-	ctx := context.Background()
+	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithTerminal(ctx, false)
 	ctx = ctxutil.WithStdin(ctx, true)

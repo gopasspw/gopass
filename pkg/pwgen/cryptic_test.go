@@ -1,11 +1,11 @@
 package pwgen
 
 import (
-	"context"
 	"fmt"
 	"sort"
 	"testing"
 
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/pkg/pwgen/pwrules"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -24,12 +24,13 @@ func TestCrypticForDomain(t *testing.T) {
 	sort.Strings(keys)
 
 	for _, domain := range keys {
+		domain := domain
 		t.Run(domain, func(t *testing.T) {
 			t.Parallel()
 
 			for _, length := range []int{1, 4, 8, 100} {
 				tcName := fmt.Sprintf("%s - %d", domain, length)
-				c := NewCrypticForDomain(context.Background(), length, domain)
+				c := NewCrypticForDomain(config.NewContextInMemory(), length, domain)
 
 				require.NotNil(t, c, tcName)
 

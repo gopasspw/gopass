@@ -1,17 +1,17 @@
 package notify
 
 import (
-	"context"
 	"image/png"
 	"os"
 	"strings"
 	"testing"
 
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/stretchr/testify/require"
 )
 
 func TestNotify(t *testing.T) {
-	ctx := context.Background()
+	ctx := config.NewContextInMemory()
 
 	t.Setenv("GOPASS_NO_NOTIFY", "true")
 	require.NoError(t, Notify(ctx, "foo", "bar"))

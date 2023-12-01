@@ -2,19 +2,19 @@ package backend
 
 import (
 	"bytes"
-	"context"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"testing"
 
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestClone(t *testing.T) {
-	ctx := context.Background()
+	ctx := config.NewContextInMemory()
 
 	td := t.TempDir()
 
@@ -33,7 +33,7 @@ func TestClone(t *testing.T) {
 }
 
 func TestInitRCS(t *testing.T) {
-	ctx := context.Background()
+	ctx := config.NewContextInMemory()
 
 	td := t.TempDir()
 

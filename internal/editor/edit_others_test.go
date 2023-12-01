@@ -4,12 +4,12 @@
 package editor
 
 import (
-	"context"
 	"flag"
 	"os"
 	"os/exec"
 	"testing"
 
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/tests/gptest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -21,7 +21,7 @@ func TestEditor(t *testing.T) {
 	u := gptest.NewGUnitTester(t)
 	assert.NotNil(t, u)
 
-	ctx := context.Background()
+	ctx := config.NewContextInMemory()
 	touch, err := exec.LookPath("touch")
 	require.NoError(t, err, os.Getenv("PATH"))
 

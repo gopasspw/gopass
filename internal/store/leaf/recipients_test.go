@@ -3,7 +3,6 @@ package leaf
 import (
 	"bufio"
 	"bytes"
-	"context"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -14,6 +13,7 @@ import (
 	"github.com/gopasspw/gopass/internal/backend"
 	plain "github.com/gopasspw/gopass/internal/backend/crypto/plain"
 	"github.com/gopasspw/gopass/internal/backend/storage/fs"
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/recipients"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -25,7 +25,7 @@ import (
 func TestGetRecipientsDefault(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx := config.NewContextInMemory()
 
 	tempdir := t.TempDir()
 
@@ -58,7 +58,7 @@ func TestGetRecipientsDefault(t *testing.T) {
 func TestGetRecipientsSubID(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx := config.NewContextInMemory()
 
 	tempdir := t.TempDir()
 
@@ -94,7 +94,7 @@ func TestGetRecipientsSubID(t *testing.T) {
 func TestSaveRecipients(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx := config.NewContextInMemory()
 
 	tempdir := t.TempDir()
 
@@ -153,8 +153,9 @@ func TestSaveRecipients(t *testing.T) {
 func TestAddRecipient(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithHidden(ctx, true)
+	ctx = config.NewInMemory().WithConfig(ctx)
 
 	tempdir := t.TempDir()
 
@@ -191,8 +192,9 @@ func TestAddRecipient(t *testing.T) {
 func TestRemoveRecipient(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithHidden(ctx, true)
+	ctx = config.NewInMemory().WithConfig(ctx)
 
 	tempdir := t.TempDir()
 
@@ -224,7 +226,7 @@ func TestRemoveRecipient(t *testing.T) {
 func TestListRecipients(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx := config.NewContextInMemory()
 
 	tempdir := t.TempDir()
 
@@ -260,7 +262,7 @@ func TestCheckRecipients(t *testing.T) {
 
 	u := gptest.NewGUnitTester(t)
 
-	ctx := context.Background()
+	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithTerminal(ctx, false)
 	ctx = backend.WithCryptoBackend(ctx, backend.GPGCLI)
 

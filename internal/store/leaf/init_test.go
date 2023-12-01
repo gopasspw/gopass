@@ -1,14 +1,14 @@
 package leaf
 
 import (
-	"context"
 	"testing"
 
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/stretchr/testify/require"
 )
 
 func TestInit(t *testing.T) {
-	ctx := context.Background()
+	ctx := config.NewContextInMemory()
 
 	s, err := createSubStore(t)
 	require.NoError(t, err)

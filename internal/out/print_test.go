@@ -2,16 +2,16 @@ package out
 
 import (
 	"bytes"
-	"context"
 	"os"
 	"testing"
 
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestPrint(t *testing.T) {
-	ctx := context.Background()
+	ctx := config.NewContextInMemory()
 	buf := &bytes.Buffer{}
 	Stdout = buf
 	defer func() {

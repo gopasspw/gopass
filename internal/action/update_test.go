@@ -4,7 +4,6 @@ import (
 	"archive/tar"
 	"bytes"
 	"compress/gzip"
-	"context"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -14,6 +13,7 @@ import (
 
 	_ "github.com/gopasspw/gopass/internal/backend/crypto"
 	_ "github.com/gopasspw/gopass/internal/backend/storage"
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/updater"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -52,7 +52,7 @@ func TestUpdate(t *testing.T) {
 
 	u := gptest.NewUnitTester(t)
 
-	ctx := context.Background()
+	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithHidden(ctx, true)
 	act, err := newMock(ctx, u.StoreDir(""))

@@ -1,9 +1,9 @@
 package cui
 
 import (
-	"context"
 	"testing"
 
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/stretchr/testify/assert"
 )
@@ -11,7 +11,7 @@ import (
 func TestGetSelection(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithInteractive(ctx, false)
 
 	act, sel := GetSelection(ctx, "foo", []string{"foo", "bar"})

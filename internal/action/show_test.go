@@ -2,13 +2,13 @@ package action
 
 import (
 	"bytes"
-	"context"
 	"fmt"
 	"os"
 	"testing"
 
 	"github.com/atotto/clipboard"
 	"github.com/fatih/color"
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/gopass/secrets"
@@ -20,7 +20,7 @@ import (
 func TestShowMulti(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 
-	ctx := context.Background()
+	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithTerminal(ctx, false)
 	ctx = ctxutil.WithInteractive(ctx, false)
@@ -191,7 +191,7 @@ func TestShowAutoClip(t *testing.T) {
 
 	u := gptest.NewUnitTester(t)
 
-	ctx := context.Background()
+	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithInteractive(ctx, false)
 
@@ -320,7 +320,7 @@ func TestShowAutoClip(t *testing.T) {
 func TestShowHandleRevision(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 
-	ctx := context.Background()
+	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithTerminal(ctx, false)
 	ctx = ctxutil.WithInteractive(ctx, false)
@@ -349,7 +349,7 @@ func TestShowHandleRevision(t *testing.T) {
 func TestShowHandleError(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 
-	ctx := context.Background()
+	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithTerminal(ctx, false)
 	act, err := newMock(ctx, u.StoreDir(""))
@@ -375,7 +375,7 @@ func TestShowHandleError(t *testing.T) {
 func TestShowPrintQR(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 
-	ctx := context.Background()
+	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithTerminal(ctx, false)
 	ctx = ctxutil.WithInteractive(ctx, false)
@@ -401,7 +401,7 @@ func TestShowPrintQR(t *testing.T) {
 func TestShowHasAliasDomain(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 
-	ctx := context.Background()
+	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithTerminal(ctx, false)
 	ctx = ctxutil.WithInteractive(ctx, false)

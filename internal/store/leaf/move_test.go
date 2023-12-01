@@ -2,12 +2,12 @@ package leaf
 
 import (
 	"bytes"
-	"context"
 	"os"
 	"testing"
 
 	plain "github.com/gopasspw/gopass/internal/backend/crypto/plain"
 	"github.com/gopasspw/gopass/internal/backend/storage/fs"
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/recipients"
 	"github.com/gopasspw/gopass/pkg/gopass/secrets"
@@ -18,7 +18,7 @@ import (
 func TestCopy(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx := config.NewContextInMemory()
 
 	obuf := &bytes.Buffer{}
 	out.Stdout = obuf
@@ -102,7 +102,7 @@ func TestCopy(t *testing.T) {
 func TestMove(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx := config.NewContextInMemory()
 
 	obuf := &bytes.Buffer{}
 	out.Stdout = obuf
@@ -187,7 +187,7 @@ func TestMove(t *testing.T) {
 func TestDelete(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx := config.NewContextInMemory()
 
 	obuf := &bytes.Buffer{}
 	out.Stdout = obuf
@@ -254,7 +254,8 @@ func TestDelete(t *testing.T) {
 func TestPrune(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx := config.NewContextInMemory()
+	ctx = config.NewInMemory().WithConfig(ctx)
 
 	obuf := &bytes.Buffer{}
 	out.Stdout = obuf

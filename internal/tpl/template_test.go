@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/pwschemes/argon2i"
 	"github.com/gopasspw/gopass/internal/pwschemes/argon2id"
 	"github.com/gopasspw/gopass/pkg/gopass"
@@ -19,7 +20,7 @@ import (
 )
 
 func Example() { //nolint:testableexamples
-	ctx := context.Background()
+	ctx := config.NewContextInMemory()
 	tpl := `Password-value of existing entry: {{ getpw "foo" }}
 Password-value of the new entry: {{ .Content }}
 Md5sum of the new password: {{ .Content | md5sum }}
@@ -54,7 +55,7 @@ func (k kvMock) Get(ctx context.Context, key string) (gopass.Secret, error) {
 func TestVars(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx := config.NewContextInMemory()
 	kv := kvMock{}
 
 	for _, tc := range []struct {

@@ -1,10 +1,10 @@
 package fs
 
 import (
-	"context"
 	"testing"
 
 	"github.com/blang/semver/v4"
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -12,7 +12,7 @@ import (
 func TestRCS(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx := config.NewContextInMemory()
 	path := t.TempDir()
 
 	g := New(path)

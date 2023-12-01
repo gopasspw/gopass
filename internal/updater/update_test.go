@@ -10,12 +10,13 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/stretchr/testify/require"
 )
 
 //nolint:wrapcheck
 func TestIsUpdateable(t *testing.T) {
-	ctx := context.Background()
+	ctx := config.NewContextInMemory()
 	oldExec := executable
 
 	defer func() {

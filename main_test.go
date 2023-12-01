@@ -47,7 +47,7 @@ func TestGetVersion(t *testing.T) {
 func TestSetupApp(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx := config.NewContextInMemory()
 	_, app := setupApp(ctx, semver.Version{})
 	assert.NotNil(t, app)
 }
@@ -111,12 +111,12 @@ func TestGetCommands(t *testing.T) {
 		out.Stdout = os.Stdout
 	}()
 
-	cfg := config.NewNoWrites()
+	cfg := config.NewInMemory()
 	require.NoError(t, cfg.SetPath(u.StoreDir("")))
 
 	clipboard.Unsupported = true
 
-	ctx := context.Background()
+	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithInteractive(ctx, false)
 	ctx = ctxutil.WithTerminal(ctx, false)
@@ -177,7 +177,7 @@ func TestInitContext(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	cfg := config.NewNoWrites()
+	cfg := config.NewInMemory()
 
 	ctx = initContext(ctx, cfg)
 	assert.True(t, gpg.IsAlwaysTrust(ctx))

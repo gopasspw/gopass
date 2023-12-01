@@ -1,11 +1,11 @@
 package backend
 
 import (
-	"context"
 	"os"
 	"path/filepath"
 	"testing"
 
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/stretchr/testify/assert"
@@ -13,7 +13,7 @@ import (
 )
 
 func TestDetectStorage(t *testing.T) {
-	ctx := context.Background()
+	ctx := config.NewContextInMemory()
 
 	td := t.TempDir()
 

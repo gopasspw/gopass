@@ -1,7 +1,6 @@
 package root
 
 import (
-	"context"
 	"testing"
 
 	"github.com/gopasspw/gopass/internal/backend"
@@ -15,12 +14,12 @@ import (
 func TestInit(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 
-	ctx := context.Background()
+	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithHidden(ctx, true)
 	ctx = backend.WithCryptoBackend(ctx, backend.Plain)
 
-	cfg := config.NewNoWrites()
+	cfg := config.NewInMemory()
 	require.NoError(t, cfg.SetPath(u.StoreDir("rs")))
 	rs := New(cfg)
 

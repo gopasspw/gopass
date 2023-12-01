@@ -2,16 +2,16 @@ package leaf
 
 import (
 	"bytes"
-	"context"
 	"os"
 	"testing"
 
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/stretchr/testify/require"
 )
 
 func TestGPG(t *testing.T) {
-	ctx := context.Background()
+	ctx := config.NewContextInMemory()
 
 	obuf := &bytes.Buffer{}
 	out.Stdout = obuf

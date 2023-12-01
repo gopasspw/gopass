@@ -2,12 +2,12 @@ package action
 
 import (
 	"bytes"
-	"context"
 	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/gokyle/twofactor"
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/gopass/secrets"
@@ -19,7 +19,7 @@ import (
 func TestOTP(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 
-	ctx := context.Background()
+	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithInteractive(ctx, false)
 

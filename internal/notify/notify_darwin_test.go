@@ -1,24 +1,24 @@
 package notify
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"os/exec"
 	"testing"
 
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/stretchr/testify/require"
 )
 
 // to test cmd.exec correctly we use the same functionality as go itself see exec_test.go.
 func TestDarwinNotify(t *testing.T) {
-	ctx := context.Background()
+	ctx := config.NewContextInMemory()
 	t.Setenv("GOPASS_NO_NOTIFY", "true")
 	require.NoError(t, Notify(ctx, "foo", "bar"))
 }
 
 func TestLegacyNotification(t *testing.T) {
-	ctx := context.Background()
+	ctx := config.NewContextInMemory()
 	// override execCommand with mock
 	execCommand = mockExecCommand
 	defer func() {
@@ -30,7 +30,7 @@ func TestLegacyNotification(t *testing.T) {
 }
 
 func TestLegacyTerminalNotifierNotification(t *testing.T) {
-	ctx := context.Background()
+	ctx := config.NewContextInMemory()
 	// override execCommand with mock
 	execCommand = mockExecCommand
 	execLookPath = mockExecLookPathTerminalNotifier
@@ -43,7 +43,7 @@ func TestLegacyTerminalNotifierNotification(t *testing.T) {
 }
 
 func TestNoExecutableFound(t *testing.T) {
-	ctx := context.Background()
+	ctx := config.NewContextInMemory()
 	// override execCommand with mock
 	execCommand = mockExecCommand
 	execLookPath = mockExecLookPath

@@ -1,10 +1,10 @@
 package api_test
 
 import (
-	"context"
 	"fmt"
 	"testing"
 
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/gopass/api"
 	"github.com/gopasspw/gopass/pkg/gopass/secrets"
@@ -13,7 +13,7 @@ import (
 )
 
 func Example() { //nolint:testableexamples
-	ctx := context.Background()
+	ctx := config.NewContextInMemory()
 
 	gp, err := api.New(ctx)
 	if err != nil {
@@ -59,7 +59,7 @@ func TestApi(t *testing.T) {
 	td := t.TempDir()
 	t.Setenv("GOPASS_HOMEDIR", td)
 
-	ctx := context.Background()
+	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithInteractive(ctx, false)
 

@@ -12,7 +12,7 @@ import (
 func TestLoadCustomRules(t *testing.T) {
 	t.Parallel()
 
-	cfg := config.NewNoWrites()
+	cfg := config.NewInMemory()
 	aliases := map[string]string{
 		"real.com": "alias.com",
 		"real.de":  "copy.de",

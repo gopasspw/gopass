@@ -4,16 +4,16 @@
 package cli
 
 import (
-	"context"
 	"testing"
 
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/stretchr/testify/require"
 )
 
 func TestEncrypt(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx := config.NewContextInMemory()
 
 	g := &GPG{}
 	g.binary = "true"
@@ -25,7 +25,7 @@ func TestEncrypt(t *testing.T) {
 func TestDecrypt(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx := config.NewContextInMemory()
 
 	g := &GPG{}
 	g.binary = "true"
@@ -37,7 +37,7 @@ func TestDecrypt(t *testing.T) {
 func TestGenerateIdentity(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx := config.NewContextInMemory()
 
 	g := &GPG{}
 	g.binary = "true"

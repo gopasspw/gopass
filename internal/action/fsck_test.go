@@ -2,13 +2,13 @@ package action
 
 import (
 	"bytes"
-	"context"
 	"os"
 	"strings"
 	"testing"
 
 	"github.com/fatih/color"
 	"github.com/gopasspw/gopass/internal/backend"
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/tests/can"
@@ -20,7 +20,7 @@ import (
 func TestFsck(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 
-	ctx := context.Background()
+	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithTerminal(ctx, false)
 	act, err := newMock(ctx, u.StoreDir(""))
 	require.NoError(t, err)
@@ -79,7 +79,7 @@ func TestFsckGpg(t *testing.T) {
 
 	u := gptest.NewGUnitTester(t)
 
-	ctx := context.Background()
+	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithTerminal(ctx, false)
 	ctx = backend.WithCryptoBackend(ctx, backend.GPGCLI)
 
