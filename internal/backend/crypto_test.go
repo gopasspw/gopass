@@ -31,7 +31,7 @@ func TestDetectCrypto(t *testing.T) {
 		tc := tc
 
 		t.Run(tc.name, func(t *testing.T) {
-			ctx := config.NewContextReadOnly()
+			ctx := config.NewContextInMemory()
 
 			fsDir := filepath.Join(t.TempDir(), "fs")
 			_ = os.RemoveAll(fsDir)

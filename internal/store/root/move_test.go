@@ -20,7 +20,7 @@ func TestMoveShadow(t *testing.T) {
 
 	require.NoError(t, u.InitStore(""))
 
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithHidden(ctx, true)
 
@@ -56,7 +56,7 @@ func TestMove(t *testing.T) {
 	}
 	require.NoError(t, u.InitStore(""))
 
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithHidden(ctx, true)
 
@@ -151,7 +151,7 @@ func TestUnixMvSemantics(t *testing.T) {
 	}
 	require.NoError(t, u.InitStore(""))
 
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithHidden(ctx, true)
 
@@ -188,7 +188,7 @@ func TestRegression2079(t *testing.T) {
 	}
 	require.NoError(t, u.InitStore(""))
 
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithHidden(ctx, true)
 
@@ -225,7 +225,7 @@ func TestCopy(t *testing.T) {
 	}
 	require.NoError(t, u.InitStore(""))
 
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithHidden(ctx, true)
 
@@ -304,7 +304,7 @@ func TestMoveSelf(t *testing.T) {
 	}
 	require.NoError(t, u.InitStore(""))
 
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithHidden(ctx, true)
 
@@ -426,7 +426,7 @@ func TestRegression892(t *testing.T) {
 	}
 	require.NoError(t, u.InitStore(""))
 
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithHidden(ctx, true)
 

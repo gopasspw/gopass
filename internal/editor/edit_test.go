@@ -12,7 +12,7 @@ import (
 )
 
 func TestEdit(t *testing.T) {
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithTerminal(ctx, false)
 

@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"flag"
 	"fmt"
 	"os"
@@ -46,7 +47,7 @@ func TestGetVersion(t *testing.T) {
 func TestSetupApp(t *testing.T) {
 	t.Parallel()
 
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 	_, app := setupApp(ctx, semver.Version{})
 	assert.NotNil(t, app)
 }
@@ -110,12 +111,12 @@ func TestGetCommands(t *testing.T) {
 		out.Stdout = os.Stdout
 	}()
 
-	cfg := config.NewReadOnly()
+	cfg := config.NewInMemory()
 	require.NoError(t, cfg.SetPath(u.StoreDir("")))
 
 	clipboard.Unsupported = true
 
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithInteractive(ctx, false)
 	ctx = ctxutil.WithTerminal(ctx, false)
@@ -175,8 +176,8 @@ func testCommands(t *testing.T, c *cli.Context, commands []*cli.Command, prefix 
 func TestInitContext(t *testing.T) {
 	t.Parallel()
 
-	ctx := config.NewContextReadOnly()
-	cfg := config.NewReadOnly()
+	ctx := context.Background()
+	cfg := config.NewInMemory()
 
 	ctx = initContext(ctx, cfg)
 	assert.True(t, gpg.IsAlwaysTrust(ctx))

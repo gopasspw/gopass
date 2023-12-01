@@ -14,7 +14,7 @@ import (
 )
 
 func TestClone(t *testing.T) {
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 
 	td := t.TempDir()
 
@@ -33,7 +33,7 @@ func TestClone(t *testing.T) {
 }
 
 func TestInitRCS(t *testing.T) {
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 
 	td := t.TempDir()
 

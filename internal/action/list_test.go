@@ -19,7 +19,7 @@ import (
 func TestList(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithInteractive(ctx, false)
 
@@ -118,7 +118,7 @@ foo2/bar2
 func TestListLimit(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithInteractive(ctx, false)
 
@@ -213,12 +213,12 @@ foo2/bar2
 }
 
 func TestRedirectPager(t *testing.T) {
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 
 	var buf *bytes.Buffer
 	var subtree *tree.Root
 
-	cfg := config.NewReadOnly()
+	cfg := config.NewInMemory()
 	ctx = cfg.WithConfig(ctx)
 
 	// no pager

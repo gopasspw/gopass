@@ -48,7 +48,7 @@ func TestComplete(t *testing.T) {
 		stdout = os.Stdout
 	}()
 
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithInteractive(ctx, false)
 	act, err := newMock(ctx, u.StoreDir(""))
 	require.NoError(t, err)

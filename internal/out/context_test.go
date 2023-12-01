@@ -10,7 +10,7 @@ import (
 func TestPrefix(t *testing.T) {
 	t.Parallel()
 
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 
 	assert.Equal(t, "", Prefix(ctx))
 
@@ -27,7 +27,7 @@ func TestPrefix(t *testing.T) {
 func TestNewline(t *testing.T) {
 	t.Parallel()
 
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 
 	assert.True(t, HasNewline(ctx))
 	assert.False(t, HasNewline(WithNewline(ctx, false)))

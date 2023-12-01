@@ -11,7 +11,7 @@ import (
 )
 
 func TestNotify(t *testing.T) {
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 
 	t.Setenv("GOPASS_NO_NOTIFY", "true")
 	require.NoError(t, Notify(ctx, "foo", "bar"))

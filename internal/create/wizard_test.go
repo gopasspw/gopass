@@ -35,7 +35,7 @@ func (f *fakeSetter) TryCommit(ctx context.Context, msg string) error {
 func TestWrite(t *testing.T) {
 	t.Parallel()
 
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 	w := &Wizard{}
 
 	require.NoError(t, w.writeTemplates(ctx, &fakeSetter{}))
@@ -44,7 +44,7 @@ func TestWrite(t *testing.T) {
 func TestNew(t *testing.T) {
 	t.Parallel()
 
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 	s := inmem.New()
 	_ = s.Set(ctx, ".create/pin.yml", []byte(`---
 priority: 1

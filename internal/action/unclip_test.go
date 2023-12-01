@@ -24,7 +24,7 @@ func TestUnclip(t *testing.T) {
 		stdout = os.Stdout
 	}()
 
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 	act, err := newMock(ctx, u.StoreDir(""))
 	require.NoError(t, err)
 	require.NotNil(t, act)

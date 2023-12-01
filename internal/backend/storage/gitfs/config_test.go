@@ -17,7 +17,7 @@ func TestGitConfig(t *testing.T) {
 	gitdir := filepath.Join(t.TempDir(), "git")
 	require.NoError(t, os.Mkdir(gitdir, 0o755))
 
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 
 	buf := &bytes.Buffer{}

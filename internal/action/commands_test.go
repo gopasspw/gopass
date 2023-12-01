@@ -40,7 +40,7 @@ func testCommand(t *testing.T, cmd *cli.Command) {
 func TestCommands(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithInteractive(ctx, false)
 	act, err := newMock(ctx, u.StoreDir(""))
 	require.NoError(t, err)

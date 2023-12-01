@@ -13,7 +13,7 @@ import (
 )
 
 func TestDetectStorage(t *testing.T) {
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 
 	td := t.TempDir()
 

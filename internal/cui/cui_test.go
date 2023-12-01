@@ -11,7 +11,7 @@ import (
 func TestGetSelection(t *testing.T) {
 	t.Parallel()
 
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithInteractive(ctx, false)
 
 	act, sel := GetSelection(ctx, "foo", []string{"foo", "bar"})

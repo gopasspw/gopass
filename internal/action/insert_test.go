@@ -17,7 +17,7 @@ import (
 func TestInsert(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithTerminal(ctx, false)
 
@@ -126,7 +126,7 @@ func TestInsert(t *testing.T) {
 func TestInsertStdin(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithTerminal(ctx, false)
 	ctx = ctxutil.WithStdin(ctx, true)

@@ -14,7 +14,7 @@ import (
 )
 
 func Example() {
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 
 	tempfile, err := New(ctx, "gopass-secure-")
 	if err != nil {
@@ -68,7 +68,7 @@ func TestTempdirBaseEmpty(t *testing.T) {
 func TestTempFiler(t *testing.T) {
 	t.Parallel()
 
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 
 	// regular tempfile
 	tf, err := New(ctx, "gp-test-")
@@ -103,7 +103,7 @@ func TestGlobalPrefix(t *testing.T) {
 
 		assert.True(t, strings.HasPrefix(fileOrDirName, requirePrefix))
 	}
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 
 	assert.Equal(t, "", globalPrefix)
 

@@ -22,7 +22,7 @@ func TestGit(t *testing.T) {
 	gitdir2 := filepath.Join(td, "git2")
 	require.NoError(t, os.Mkdir(gitdir2, 0o755))
 
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 
 	buf := &bytes.Buffer{}

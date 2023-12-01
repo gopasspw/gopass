@@ -23,7 +23,7 @@ func TestSync(t *testing.T) {
 		out.Stderr = os.Stderr
 	}()
 
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	act, err := newMock(ctx, u.StoreDir(""))
 	require.NoError(t, err)

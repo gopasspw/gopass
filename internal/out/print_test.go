@@ -11,7 +11,7 @@ import (
 )
 
 func TestPrint(t *testing.T) {
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 	buf := &bytes.Buffer{}
 	Stdout = buf
 	defer func() {

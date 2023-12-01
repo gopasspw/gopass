@@ -15,7 +15,7 @@ import (
 func TestEdit(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithTerminal(ctx, false)
 	act, err := newMock(ctx, u.StoreDir(""))
@@ -45,7 +45,7 @@ func TestEdit(t *testing.T) {
 func TestEditUpdate(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithTerminal(ctx, false)
 	act, err := newMock(ctx, u.StoreDir(""))

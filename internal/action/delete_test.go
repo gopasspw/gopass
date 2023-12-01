@@ -16,7 +16,7 @@ import (
 func TestDelete(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithInteractive(ctx, false)
 	act, err := newMock(ctx, u.StoreDir(""))

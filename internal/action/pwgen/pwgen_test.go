@@ -17,7 +17,7 @@ func TestPwgen(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 	assert.NotNil(t, u)
 
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 
 	buf := &bytes.Buffer{}

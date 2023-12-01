@@ -24,7 +24,7 @@ func TestEncryptDecrypt(t *testing.T) {
 	u := gptest.NewGUnitTester(t)
 	assert.NotNil(t, u)
 
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithTerminal(ctx, false)
 	ctx = backend.WithCryptoBackend(ctx, backend.GPGCLI)
 

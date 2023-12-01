@@ -18,7 +18,7 @@ func TestCreate(t *testing.T) {
 
 	aclip.Unsupported = true
 
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 
 	act, err := newMock(ctx, u.StoreDir(""))

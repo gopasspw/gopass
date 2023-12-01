@@ -23,14 +23,14 @@ func TestHistory(t *testing.T) {
 	defer r1()
 	defer r2()
 
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithInteractive(ctx, false)
 
 	ctx = backend.WithCryptoBackend(ctx, backend.Plain)
 	ctx = backend.WithStorageBackend(ctx, backend.GitFS)
 
-	cfg := config.NewReadOnly()
+	cfg := config.NewInMemory()
 	require.NoError(t, cfg.SetPath(u.StoreDir("")))
 
 	act, err := newAction(cfg, semver.Version{}, false)

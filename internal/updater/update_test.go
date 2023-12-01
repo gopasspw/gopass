@@ -16,7 +16,7 @@ import (
 
 //nolint:wrapcheck
 func TestIsUpdateable(t *testing.T) {
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 	oldExec := executable
 
 	defer func() {

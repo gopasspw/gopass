@@ -79,15 +79,15 @@ func New() *Config {
 	return c
 }
 
-// NewReadOnly initializes a new config that does not allow writes. For use in tests.
+// NewInMemory initializes a new config that does not allow writes. For use in tests.
 // This does not migrate legacy option names to their correct config section.
-func NewReadOnly() *Config {
+func NewInMemory() *Config {
 	return newWithOptions(true)
 }
 
 // NewContextReadOnly returns a context with a read-only config.
-func NewContextReadOnly() context.Context {
-	return NewReadOnly().WithConfig(context.Background())
+func NewContextInMemory() context.Context {
+	return NewInMemory().WithConfig(context.Background())
 }
 
 func newWithOptions(noWrites bool) *Config {

@@ -68,7 +68,7 @@ oLGNPe8bErLNfny6AWU0Enam6a13BxwbBrtr
 func TestReadNamesFromKey(t *testing.T) {
 	t.Parallel()
 
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 
 	g, err := New(ctx, Config{})
@@ -83,7 +83,7 @@ func TestReadNamesFromKey(t *testing.T) {
 func TestExportPublicKey(t *testing.T) {
 	t.Parallel()
 
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 	g, err := New(ctx, Config{})
 	require.NoError(t, err)
 
@@ -94,7 +94,7 @@ func TestExportPublicKey(t *testing.T) {
 func TestImport(t *testing.T) {
 	t.Parallel()
 
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 
 	g := &GPG{}
 	g.binary = "true"

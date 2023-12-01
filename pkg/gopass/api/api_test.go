@@ -13,7 +13,7 @@ import (
 )
 
 func Example() { //nolint:testableexamples
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 
 	gp, err := api.New(ctx)
 	if err != nil {
@@ -59,7 +59,7 @@ func TestApi(t *testing.T) {
 	td := t.TempDir()
 	t.Setenv("GOPASS_HOMEDIR", td)
 
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithInteractive(ctx, false)
 

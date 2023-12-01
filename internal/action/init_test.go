@@ -21,7 +21,7 @@ import (
 func TestInit(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithInteractive(ctx, false)
 	ctx = backend.WithCryptoBackend(ctx, backend.Plain)
@@ -101,7 +101,7 @@ func TestInitParseContext(t *testing.T) {
 		tc := tc
 
 		t.Run(tc.name, func(t *testing.T) {
-			c := gptest.CliCtxWithFlags(config.NewContextReadOnly(), t, tc.flags)
+			c := gptest.CliCtxWithFlags(config.NewContextInMemory(), t, tc.flags)
 			require.NoError(t, tc.check(initParseContext(c.Context, c)), tc.name)
 			buf.Reset()
 		})

@@ -18,7 +18,7 @@ import (
 func TestList(t *testing.T) {
 	t.Parallel()
 
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 
 	obuf := &bytes.Buffer{}
 	out.Stdout = obuf

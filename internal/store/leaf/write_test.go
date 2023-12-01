@@ -10,7 +10,7 @@ import (
 )
 
 func TestSet(t *testing.T) {
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 
 	s, err := createSubStore(t)
 	require.NoError(t, err)

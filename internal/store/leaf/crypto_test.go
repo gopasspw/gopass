@@ -11,7 +11,7 @@ import (
 )
 
 func TestGPG(t *testing.T) {
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 
 	obuf := &bytes.Buffer{}
 	out.Stdout = obuf

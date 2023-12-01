@@ -15,7 +15,7 @@ func TestGPG(t *testing.T) {
 		t.Skip("skipping test in short mode.")
 	}
 
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 
 	var err error
 	var g *GPG

@@ -13,7 +13,7 @@ import (
 func TestCreateActions(t *testing.T) {
 	t.Parallel()
 
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 	cas := Actions{
 		{
 			Name: "foo",

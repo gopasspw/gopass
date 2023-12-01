@@ -12,7 +12,7 @@ import (
 func TestRCS(t *testing.T) {
 	t.Parallel()
 
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 	path := t.TempDir()
 
 	g := New(path)

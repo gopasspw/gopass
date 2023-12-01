@@ -14,12 +14,12 @@ import (
 func TestInit(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithHidden(ctx, true)
 	ctx = backend.WithCryptoBackend(ctx, backend.Plain)
 
-	cfg := config.NewReadOnly()
+	cfg := config.NewInMemory()
 	require.NoError(t, cfg.SetPath(u.StoreDir("rs")))
 	rs := New(cfg)
 

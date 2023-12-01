@@ -9,7 +9,7 @@ import (
 )
 
 func TestDetectName(t *testing.T) {
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 
 	oga := os.Getenv("GIT_AUTHOR_NAME")
 	odf := os.Getenv("DEBFULLNAME")
@@ -33,7 +33,7 @@ func TestDetectName(t *testing.T) {
 }
 
 func TestDetectEmail(t *testing.T) {
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 
 	oga := os.Getenv("GIT_AUTHOR_EMAIL")
 	odf := os.Getenv("DEBEMAIL")

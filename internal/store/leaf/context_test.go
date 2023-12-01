@@ -11,7 +11,7 @@ import (
 func TestFsckCheck(t *testing.T) {
 	t.Parallel()
 
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 
 	assert.False(t, IsFsckCheck(ctx))
 	assert.True(t, IsFsckCheck(WithFsckCheck(ctx, true)))
@@ -22,7 +22,7 @@ func TestFsckCheck(t *testing.T) {
 func TestFsckForce(t *testing.T) {
 	t.Parallel()
 
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 
 	assert.False(t, IsFsckForce(ctx))
 	assert.True(t, IsFsckForce(WithFsckForce(ctx, true)))
@@ -33,7 +33,7 @@ func TestFsckForce(t *testing.T) {
 func TestFsckFunc(t *testing.T) {
 	t.Parallel()
 
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 
 	ffunc := func(context.Context, string) bool {
 		return true
@@ -47,7 +47,7 @@ func TestFsckFunc(t *testing.T) {
 func TestCheckRecipientsCtx(t *testing.T) {
 	t.Parallel()
 
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 
 	assert.False(t, IsCheckRecipients(ctx))
 	assert.True(t, IsCheckRecipients(WithCheckRecipients(ctx, true)))

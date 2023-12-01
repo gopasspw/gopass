@@ -18,7 +18,7 @@ import (
 func TestCopy(t *testing.T) {
 	t.Parallel()
 
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 
 	obuf := &bytes.Buffer{}
 	out.Stdout = obuf
@@ -102,7 +102,7 @@ func TestCopy(t *testing.T) {
 func TestMove(t *testing.T) {
 	t.Parallel()
 
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 
 	obuf := &bytes.Buffer{}
 	out.Stdout = obuf
@@ -187,7 +187,7 @@ func TestMove(t *testing.T) {
 func TestDelete(t *testing.T) {
 	t.Parallel()
 
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 
 	obuf := &bytes.Buffer{}
 	out.Stdout = obuf
@@ -254,8 +254,8 @@ func TestDelete(t *testing.T) {
 func TestPrune(t *testing.T) {
 	t.Parallel()
 
-	ctx := config.NewContextReadOnly()
-	ctx = config.NewReadOnly().WithConfig(ctx)
+	ctx := config.NewContextInMemory()
+	ctx = config.NewInMemory().WithConfig(ctx)
 
 	obuf := &bytes.Buffer{}
 	out.Stdout = obuf

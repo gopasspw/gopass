@@ -1,7 +1,6 @@
 package editor
 
 import (
-	"context"
 	"flag"
 	"os/exec"
 	"testing"
@@ -17,7 +16,7 @@ func TestEditor(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 	assert.NotNil(t, u)
 
-	ctx := config.NewNoWrites().WithConfig(context.Background())
+	ctx := config.NewContextInMemory()
 	touch, err := exec.LookPath("rundll32")
 	require.NoError(t, err)
 

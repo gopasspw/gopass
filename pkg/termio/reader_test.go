@@ -30,7 +30,7 @@ func TestReadLines(t *testing.T) {
 func TestReadLineError(t *testing.T) {
 	t.Parallel()
 
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 	stdin := strings.NewReader("fo")
 	lr := NewReader(ctx, iotest.TimeoutReader(stdin))
 
@@ -42,7 +42,7 @@ func TestReadLineError(t *testing.T) {
 func TestRead(t *testing.T) {
 	t.Parallel()
 
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 	stdin := strings.NewReader(`foobarbazzabzabzab`)
 	lr := NewReader(ctx, stdin)
 
@@ -54,7 +54,7 @@ func TestRead(t *testing.T) {
 }
 
 func mustReadLine(r io.Reader) string {
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 
 	line, err := NewReader(ctx, r).ReadLine()
 	if err != nil {

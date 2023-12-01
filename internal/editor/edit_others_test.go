@@ -21,7 +21,7 @@ func TestEditor(t *testing.T) {
 	u := gptest.NewGUnitTester(t)
 	assert.NotNil(t, u)
 
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 	touch, err := exec.LookPath("touch")
 	require.NoError(t, err, os.Getenv("PATH"))
 

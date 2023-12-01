@@ -13,7 +13,7 @@ import (
 func TestTemplates(t *testing.T) {
 	t.Parallel()
 
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 
 	tempdir := t.TempDir()
 

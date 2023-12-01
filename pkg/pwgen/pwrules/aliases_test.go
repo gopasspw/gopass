@@ -1,6 +1,7 @@
 package pwrules
 
 import (
+	"context"
 	"testing"
 
 	"github.com/gopasspw/gopass/internal/config"
@@ -11,7 +12,7 @@ import (
 func TestLoadCustomRules(t *testing.T) {
 	t.Parallel()
 
-	cfg := config.NewReadOnly()
+	cfg := config.NewInMemory()
 	aliases := map[string]string{
 		"real.com": "alias.com",
 		"real.de":  "copy.de",
@@ -21,7 +22,7 @@ func TestLoadCustomRules(t *testing.T) {
 		require.NoError(t, cfg.Set("", "domain-alias."+k+".insteadOf", v))
 	}
 
-	ctx := config.NewContextReadOnly()
+	ctx := context.Background()
 	ctx = cfg.WithConfig(ctx)
 
 	a := LookupAliases(ctx, "alias.com")

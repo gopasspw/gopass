@@ -18,7 +18,7 @@ import (
 func TestRecipients(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithInteractive(ctx, false)
 
@@ -90,7 +90,7 @@ func TestRecipientsGpg(t *testing.T) {
 
 	u := gptest.NewGUnitTester(t)
 
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithInteractive(ctx, false)
 	ctx = backend.WithCryptoBackend(ctx, backend.GPGCLI)

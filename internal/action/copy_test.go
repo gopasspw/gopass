@@ -18,7 +18,7 @@ import (
 func TestCopy(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithInteractive(ctx, false)
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 
@@ -100,7 +100,7 @@ func TestCopyGpg(t *testing.T) {
 
 	u := gptest.NewGUnitTester(t)
 
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithInteractive(ctx, false)
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = backend.WithCryptoBackend(ctx, backend.GPGCLI)

@@ -13,7 +13,7 @@ import (
 func TestFsck(t *testing.T) {
 	t.Parallel()
 
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithHidden(ctx, true)
 
 	path := t.TempDir()

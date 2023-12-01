@@ -25,7 +25,7 @@ import (
 func TestGetRecipientsDefault(t *testing.T) {
 	t.Parallel()
 
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 
 	tempdir := t.TempDir()
 
@@ -58,7 +58,7 @@ func TestGetRecipientsDefault(t *testing.T) {
 func TestGetRecipientsSubID(t *testing.T) {
 	t.Parallel()
 
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 
 	tempdir := t.TempDir()
 
@@ -94,7 +94,7 @@ func TestGetRecipientsSubID(t *testing.T) {
 func TestSaveRecipients(t *testing.T) {
 	t.Parallel()
 
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 
 	tempdir := t.TempDir()
 
@@ -153,9 +153,9 @@ func TestSaveRecipients(t *testing.T) {
 func TestAddRecipient(t *testing.T) {
 	t.Parallel()
 
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithHidden(ctx, true)
-	ctx = config.NewReadOnly().WithConfig(ctx)
+	ctx = config.NewInMemory().WithConfig(ctx)
 
 	tempdir := t.TempDir()
 
@@ -192,9 +192,9 @@ func TestAddRecipient(t *testing.T) {
 func TestRemoveRecipient(t *testing.T) {
 	t.Parallel()
 
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithHidden(ctx, true)
-	ctx = config.NewReadOnly().WithConfig(ctx)
+	ctx = config.NewInMemory().WithConfig(ctx)
 
 	tempdir := t.TempDir()
 
@@ -226,7 +226,7 @@ func TestRemoveRecipient(t *testing.T) {
 func TestListRecipients(t *testing.T) {
 	t.Parallel()
 
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 
 	tempdir := t.TempDir()
 
@@ -262,7 +262,7 @@ func TestCheckRecipients(t *testing.T) {
 
 	u := gptest.NewGUnitTester(t)
 
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithTerminal(ctx, false)
 	ctx = backend.WithCryptoBackend(ctx, backend.GPGCLI)
 

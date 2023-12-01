@@ -13,7 +13,7 @@ import (
 func TestPlain(t *testing.T) {
 	t.Parallel()
 
-	ctx := config.NewContextReadOnly()
+	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 
 	m := New()
@@ -70,7 +70,7 @@ func TestLoader(t *testing.T) {
 	t.Parallel()
 
 	l := &loader{}
-	b, err := l.New(config.NewContextReadOnly())
+	b, err := l.New(config.NewContextInMemory())
 	require.NoError(t, err)
 	assert.Equal(t, name, l.String())
 	assert.Equal(t, "plain", b.Name())
