@@ -281,6 +281,7 @@ func (s *Store) OurKeyID(ctx context.Context) string {
 	}
 
 	debug.Log("WARNING: no owner key found in %v", recp)
+	out.Warning(ctx, "No owner key found. Make sure your key is trusted by GPG")
 
 	return ""
 }
