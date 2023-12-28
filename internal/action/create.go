@@ -24,9 +24,19 @@ func (s *Action) Create(c *cli.Context) error {
 
 	wiz, err := create.New(ctx, s.Store.Storage(ctx, c.String("store")))
 	if err != nil {
-		return err
+		return exit.Error(exit.Unknown, err, "Failed to initialize wizard")
 	}
+
 	acts := wiz.Actions(s.Store, s.createPrintOrCopy)
+	// this should usually not happen because we initialize the templates if none
+	// exist.
+	if len(acts) < 1 {
+		return exit.Error(exit.Unknown, nil, "no wizard actions available")
+	}
+	// no need to ask if there is only one action available.
+	if len(acts) == 1 {
+		return acts.Run(ctx, c, 0)
+	}
 
 	act, sel := cui.GetSelection(ctx, "Please select the type of secret you would like to create", acts.Selection())
 	switch act {
