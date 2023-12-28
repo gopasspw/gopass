@@ -270,7 +270,8 @@ func (s *Store) ensureOurKeyID(ctx context.Context, rs []string) []string {
 // OurKeyID returns the key fingprint this user can use to access the store
 // (if any).
 func (s *Store) OurKeyID(ctx context.Context) string {
-	for _, r := range s.Recipients(ctx) {
+	recp := s.Recipients(ctx)
+	for _, r := range recp {
 		kl, err := s.crypto.FindIdentities(ctx, r)
 		if err != nil || len(kl) < 1 {
 			continue
@@ -278,6 +279,9 @@ func (s *Store) OurKeyID(ctx context.Context) string {
 
 		return kl[0]
 	}
+
+	debug.Log("WARNING: no owner key found in %v", recp)
+	out.Warning(ctx, "No owner key found. Make sure your key is fully trusted.")
 
 	return ""
 }
