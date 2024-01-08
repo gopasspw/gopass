@@ -40,7 +40,7 @@ require (
 	github.com/xhit/go-str2duration v1.2.0
 	github.com/zalando/go-keyring v0.2.3
 	github.com/zeebo/blake3 v0.2.3
-	golang.org/x/crypto v0.16.0
+	golang.org/x/crypto v0.17.0
 	golang.org/x/exp v0.0.0-20231127185646-65229373498e
 	golang.org/x/net v0.19.0
 	golang.org/x/oauth2 v0.15.0
@@ -55,7 +55,7 @@ require (
 	github.com/alessio/shellescape v1.4.2 // indirect
 	github.com/boombuler/barcode v1.0.1 // indirect
 	github.com/cenkalti/backoff/v4 v4.2.1 // indirect
-	github.com/cloudflare/circl v1.3.6 // indirect
+	github.com/cloudflare/circl v1.3.7 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.3 // indirect
 	github.com/danieljoos/wincred v1.2.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
