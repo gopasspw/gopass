@@ -77,7 +77,7 @@ jobs:
       with:
         egress-policy: audit
 
-    - uses: msys2/setup-msys2@76b1bed68bac51ebe46cb431077217d4b98e2b7b # v2.21.0
+    - uses: msys2/setup-msys2@b2186a9c6fc760d732f4c7fc5bc5128642a1d65c # v2.21.1
       with:
         release: false
         path-type: inherit
