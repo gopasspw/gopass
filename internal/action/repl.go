@@ -13,8 +13,8 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-func (s *Action) entriesForCompleter(ctx context.Context) ([]readline.PrefixCompleterInterface, error) {
-	args := []readline.PrefixCompleterInterface{}
+func (s *Action) entriesForCompleter(ctx context.Context) ([]*readline.PrefixCompleter, error) {
+	args := []*readline.PrefixCompleter{}
 	list, err := s.Store.List(ctx, tree.INF)
 	if err != nil {
 		return args, err
@@ -26,14 +26,14 @@ func (s *Action) entriesForCompleter(ctx context.Context) ([]readline.PrefixComp
 	return args, nil
 }
 
-func (s *Action) replCompleteRecipients(ctx context.Context, cmd *cli.Command) []readline.PrefixCompleterInterface {
-	subCmds := []readline.PrefixCompleterInterface{}
+func (s *Action) replCompleteRecipients(ctx context.Context, cmd *cli.Command) []*readline.PrefixCompleter {
+	subCmds := []*readline.PrefixCompleter{}
 	if cmd.Name == "remove" {
 		for _, r := range s.recipientsList(ctx) {
 			subCmds = append(subCmds, readline.PcItem(r))
 		}
 	}
-	args := []readline.PrefixCompleterInterface{}
+	args := []*readline.PrefixCompleter{}
 	args = append(args, readline.PcItem(cmd.Name, subCmds...))
 	for _, alias := range cmd.Aliases {
 		args = append(args, readline.PcItem(alias, subCmds...))
@@ -42,12 +42,12 @@ func (s *Action) replCompleteRecipients(ctx context.Context, cmd *cli.Command) [
 	return args
 }
 
-func (s *Action) replCompleteTemplates(ctx context.Context, cmd *cli.Command) []readline.PrefixCompleterInterface {
-	subCmds := []readline.PrefixCompleterInterface{}
+func (s *Action) replCompleteTemplates(ctx context.Context, cmd *cli.Command) []*readline.PrefixCompleter {
+	subCmds := []*readline.PrefixCompleter{}
 	for _, r := range s.templatesList(ctx) {
 		subCmds = append(subCmds, readline.PcItem(r))
 	}
-	args := []readline.PrefixCompleterInterface{}
+	args := []*readline.PrefixCompleter{}
 	args = append(args, readline.PcItem(cmd.Name, subCmds...))
 	for _, alias := range cmd.Aliases {
 		args = append(args, readline.PcItem(alias, subCmds...))
@@ -61,12 +61,12 @@ func (s *Action) prefixCompleter(c *cli.Context) *readline.PrefixCompleter {
 	if err != nil {
 		debug.Log("failed to list secrets: %s", err)
 	}
-	cmds := []readline.PrefixCompleterInterface{}
+	cmds := []*readline.PrefixCompleter{}
 	for _, cmd := range c.App.Commands {
 		if cmd.Hidden {
 			continue
 		}
-		subCmds := []readline.PrefixCompleterInterface{}
+		subCmds := []*readline.PrefixCompleter{}
 		switch cmd.Name {
 		case "config":
 			for _, k := range s.configKeys() {
