@@ -38,7 +38,7 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-go-
     - name: Scan current project
-      uses: anchore/scan-action@1d59d90b47fc11ff8f97822da6c25eec888f81cf # v3.5.0
+      uses: anchore/scan-action@0550541809b9c6abbf7cbc43d12400db47056507 # v3.6.0
       with:
         path: "."
         fail-build: true
