@@ -1,10 +1,10 @@
 # Gopass Hooks
 
-`gopass` exposes some hook-able events during it's invocation lifecycle. This allows uses to inject additional functionality of perform addition logging.
+`gopass` exposes some hook-able events during it's invocation lifecycle. This allows users to inject additional functionality or perform addition logging.
 
 ## Hook API
 
-All hooks are subject to the follwing constraints:
+All hooks are subject to the following constraints:
 
 * Hooks do not inherit `STDIN` or `STDOUT` from the parent process.
 * Hooks do inherit `STDERR` from the parent process and may use it to print anything they want.
@@ -39,6 +39,6 @@ In this scenario users should expect `post-rm.sh` to be executed exactly once on
 
 But in fact it would be run twice: Once on `gopass rm foo` and once on `gopass rm some-other-entry`, i.e. hooks would reenter themselves when they try to use `gopass` internally.
 
-Since most users would find this confusing `gopass` do not do this by default. However if you really need to allow reentrant hooks you currently have one workaround:
+Since most users would find this confusing, `gopass` does not do this by default. However, if you really need to allow reentrant hooks you currently have one workaround:
 
 * You can `unset` the `GOPASS_HOOK` environment variable in your hook before running `gopass` internally.
