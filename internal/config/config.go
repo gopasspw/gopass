@@ -49,6 +49,7 @@ var defaults = map[string]string{
 	"core.cliptimeout":   "45",
 	"core.exportkeys":    "true",
 	"core.notifications": "true",
+	"pwgen.xkcd-lang":    "en",
 }
 
 // Config is a gopass config handler.

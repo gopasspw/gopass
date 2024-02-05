@@ -46,7 +46,8 @@ core.nopager = true
 core.notifications = true
 generate.autoclip = true
 `
-		want += "mounts.path = " + u.StoreDir("") + "\n"
+		want += "mounts.path = " + u.StoreDir("") + "\n" +
+			"pwgen.xkcd-lang = en\n"
 		assert.Equal(t, want, buf.String())
 	})
 
@@ -87,8 +88,10 @@ core.nopager = true
 core.notifications = true
 generate.autoclip = true
 `
-		want += "mounts.path = " + u.StoreDir("")
-		assert.Equal(t, want, strings.TrimSpace(buf.String()), "action.printConfigValues")
+		want += "mounts.path = " + u.StoreDir("") + "\n" +
+			"pwgen.xkcd-lang = en\n"
+
+		assert.Equal(t, want, buf.String(), "action.printConfigValues")
 	})
 
 	t.Run("show autoimport value", func(t *testing.T) {
@@ -120,6 +123,7 @@ core.nopager
 core.notifications
 generate.autoclip
 mounts.path
+pwgen.xkcd-lang
 `
 		assert.Equal(t, want, buf.String())
 	})
