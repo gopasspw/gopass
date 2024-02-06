@@ -17,7 +17,7 @@ gopass init --crypto age
 gopass recipients add github:user
 ```
 
-This will automatically create a new age keypair and initilize the new store.
+This will automatically create a new age keypair and initialize the new store.
 
 Existing stores can be migrated using `gopass convert --crypto age`.
 
