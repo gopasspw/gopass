@@ -41,7 +41,7 @@ jobs:
           go-version: '1.21'
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@3a919529898de77ec3da873e3063ca4b10e7f5cc # v3.7.0
+        uses: golangci/golangci-lint-action@3cfe3a4abbb849e10058ce4af15d205b6da42804 # v3.7.1
         with:
           version: latest # we have a list of linters in our .golangci.yml config file
           only-new-issues: true
