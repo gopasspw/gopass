@@ -21,7 +21,8 @@ core.cliptimeout = 45
 core.exportkeys = false
 core.notifications = true
 `
-	wanted += "mounts.path = " + ts.storeDir("root")
+	wanted += "mounts.path = " + ts.storeDir("root") + "\n" +
+		"pwgen.xkcd-lang = en"
 
 	assert.Equal(t, wanted, out)
 
@@ -74,6 +75,7 @@ core.notifications = true
 `
 	wanted += "mounts.mnt/m1.path = " + ts.storeDir("m1") + "\n"
 	wanted += "mounts.path = " + ts.storeDir("root") + "\n"
+	wanted += "pwgen.xkcd-lang = en\n"
 	wanted += "recipients.mnt/m1.hash = 9a4c4b1e0eb9ade2e692ff948f43d9668145eca3df88ffff67e0e21426252907\n"
 
 	out, err := ts.run("config")

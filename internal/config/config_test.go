@@ -31,7 +31,13 @@ func TestConfig(t *testing.T) {
 	require.NoError(t, cfg.SetEnv("env.string", "foo"))
 	assert.Equal(t, "foo", cfg.Get("env.string"))
 
-	assert.Equal(t, []string{"core.autopush", "core.autosync", "core.bool", "core.cliptimeout", "core.exportkeys", "core.int", "core.notifications", "core.string", "env.string", "mounts.path"}, cfg.Keys(""))
+	// test default values
+	assert.Equal(t, []string{"core.autopush", "core.autosync", "core.bool", "core.cliptimeout", "core.exportkeys", "core.int", "core.notifications", "core.string", "env.string", "mounts.path", "pwgen.xkcd-lang"}, cfg.Keys(""))
+	for key, expected := range defaults {
+		assert.Equal(t, expected, cfg.Get(key))
+	}
+	require.NoError(t, cfg.Set("", "pwgen.xkcd-lang", "de"))
+	assert.Equal(t, "de", cfg.Get("pwgen.xkcd-lang"))
 
 	ctx := cfg.WithConfig(context.Background())
 	assert.True(t, Bool(ctx, "core.bool"))
@@ -39,8 +45,8 @@ func TestConfig(t *testing.T) {
 	assert.Equal(t, 42, Int(ctx, "core.int"))
 
 	require.NoError(t, cfg.SetEnv("generate.length", "16"))
-	actual_length, _ := DefaultPasswordLengthFromEnv(ctx)
-	assert.Equal(t, 16, actual_length)
+	actualLength, _ := DefaultPasswordLengthFromEnv(ctx)
+	assert.Equal(t, 16, actualLength)
 }
 
 func TestEnvConfig(t *testing.T) {
