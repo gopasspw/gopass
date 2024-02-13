@@ -11,7 +11,7 @@ linters-settings:
     max-complexity: 22
     skip-tests: true
   staticcheck:
-    go: "1.19"
+    go: "1.21"
     # https://staticcheck.io/docs/options#checks
     checks: ["all","-SA1019"]
   funlen:
@@ -59,6 +59,7 @@ linters:
   - nolintlint
   - nosnakecase
   - paralleltest
+  - perfsprint
   - revive
   - rowserrcheck
   - scopelint
