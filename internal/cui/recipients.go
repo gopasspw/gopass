@@ -130,7 +130,6 @@ func AskForGitConfigUser(ctx context.Context, crypto backend.Crypto) (string, st
 			fmt.Sprintf("Use %s (%s) for password store git config?", name, email),
 			true,
 		)
-
 		if err != nil {
 			return "", "", err
 		}
