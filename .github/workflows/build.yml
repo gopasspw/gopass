@@ -38,7 +38,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
       with:
-        go-version: '1.21'
+        go-version: '1.22'
     - uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
       with:
         path: ~/go/pkg/mod
@@ -92,7 +92,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
       with:
-        go-version: '1.21'
+        go-version: '1.22'
 
     - run: git config --global user.name nobody
     - run: git config --global user.email foo.bar@example.org
@@ -115,7 +115,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
       with:
-        go-version: '1.21'
+        go-version: '1.22'
 
     - run: git config --global user.name nobody
     - run: git config --global user.email foo.bar@example.org

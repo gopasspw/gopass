@@ -59,7 +59,7 @@ func NewCrypticForDomain(ctx context.Context, length int, domain string) *Crypti
 		c.Length = r.Maxlen
 	}
 
-	if c.Length < r.Minlen {
+	if r.Minlen > 0 && c.Length < r.Minlen {
 		c.Length = r.Minlen
 	}
 
@@ -86,6 +86,10 @@ func NewCrypticForDomain(ctx context.Context, length int, domain string) *Crypti
 
 			return fmt.Errorf("password %s does not contain any of %s: %w", pw, chars, ErrCrypticInvalid)
 		})
+	}
+	// if we have a required rule, we need to make sure the password is at least that long.
+	if c.Length < len(r.Required) {
+		c.Length = len(r.Required) + 1
 	}
 
 	if r.Maxconsec > 0 {
@@ -197,9 +201,11 @@ func (c *Cryptic) Password() string {
 			return ""
 		}
 
-		if pw := c.randomString(); c.isValid(pw) {
+		pw := c.randomString()
+		if c.isValid(pw) {
 			return pw
 		}
+		debug.Log("generated invalid password %q, trying again (%d/%d)", pw, round, c.MaxTries)
 	}
 }
 

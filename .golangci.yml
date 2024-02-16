@@ -1,7 +1,7 @@
 run:
   skip-dirs:
     - helpers/
-  go: 1.21
+  go: 1.22
   deadline: 5m
 
 linters-settings:
