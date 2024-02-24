@@ -26,11 +26,10 @@ func TestCrypticForDomain(t *testing.T) {
 	for _, domain := range keys {
 		domain := domain
 		t.Run(domain, func(t *testing.T) {
-			t.Parallel()
-
 			for _, length := range []int{1, 4, 8, 100} {
-				tcName := fmt.Sprintf("%s - %d", domain, length)
+				tcName := fmt.Sprintf("%s: generated password with %d chars", domain, length)
 				c := NewCrypticForDomain(config.NewContextInMemory(), length, domain)
+				c.MaxTries = 1024
 
 				require.NotNil(t, c, tcName)
 
