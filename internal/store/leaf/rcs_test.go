@@ -46,8 +46,8 @@ func TestGitRevisions(t *testing.T) {
 	require.NoError(t, s.Storage().InitConfig(ctx, "foo", "bar@baz.com"))
 
 	revs, err := s.ListRevisions(ctx, "foo")
-	require.NoError(t, err)
-	assert.Len(t, revs, 1)
+	require.Error(t, err)  // not supported by the fs backend
+	assert.Len(t, revs, 1) // but it will still give a fake "latest" rev
 
 	sec, err := s.GetRevision(ctx, "foo", "latest")
 	require.Error(t, err)

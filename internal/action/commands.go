@@ -97,8 +97,13 @@ func (s *Action) GetCommands() []*cli.Command {
 					Usage: "HTML template. If not set use the built-in default.",
 				},
 				&cli.BoolFlag{
-					Name:  "failed",
-					Usage: "Report only entries that failed validation. Default: false (reports all)",
+					Name:  "full",
+					Usage: "Print full details of all findings. Default: false",
+				},
+				&cli.BoolFlag{
+					Name:  "summary",
+					Usage: "Print a summary of the audit results. Default: true (print summary)",
+					Value: true,
 				},
 			},
 		},

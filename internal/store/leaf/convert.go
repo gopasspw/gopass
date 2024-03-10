@@ -2,6 +2,7 @@ package leaf
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -95,7 +96,10 @@ func (s *Store) Convert(ctx context.Context, cryptoBe backend.CryptoBackend, sto
 		debug.Log("converting %s", e)
 		revs, err := s.ListRevisions(ctx, e)
 		if err != nil {
-			return fmt.Errorf("failed to list revision of %s: %w", e, err)
+			// the fs backend does not support revisions. but we can still convert the "latest" (only) revision.
+			if !errors.Is(err, backend.ErrNotSupported) || len(revs) < 1 {
+				return fmt.Errorf("failed to list revision of %s: %w", e, err)
+			}
 		}
 		sort.Sort(sort.Reverse(backend.Revisions(revs)))
 

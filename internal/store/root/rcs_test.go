@@ -25,6 +25,6 @@ func TestRCS(t *testing.T) {
 	require.Error(t, rs.RCSStatus(ctx, ""))
 
 	revs, err := rs.ListRevisions(ctx, "foo")
-	require.NoError(t, err)
+	require.Error(t, err)
 	assert.Len(t, revs, 1)
 }

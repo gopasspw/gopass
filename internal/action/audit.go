@@ -61,9 +61,18 @@ func (s *Action) Audit(c *cli.Context) error {
 	case "csv":
 		return saveReport(ctx, r.RenderCSV, c.String("output-file"), "csv")
 	default:
-		if err := r.PrintResults(ctx); err != nil {
-			return err
+		var err error
+		if c.Bool("full") {
+			err = r.PrintResults(ctx)
 		}
+		if c.Bool("summary") {
+			err = r.PrintSummary(ctx)
+		}
+		if !c.Bool("full") && !c.Bool("summary") {
+			out.Warning(ctx, "No output format specified. Use `--full` or `--summary` to specify.")
+		}
+
+		return err
 	}
 
 	return nil

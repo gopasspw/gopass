@@ -28,7 +28,7 @@ func TestRCS(t *testing.T) {
 	assert.Equal(t, "fs", g.Name())
 	require.Error(t, g.AddRemote(ctx, "foo", "bar"))
 	revs, err := g.Revisions(ctx, "foo")
-	require.NoError(t, err)
+	require.Error(t, err)
 	assert.Len(t, revs, 1)
 	body, err := g.GetRevision(ctx, "foo", "latest")
 	require.Error(t, err)
