@@ -108,7 +108,7 @@ func (s *Store) idFile(ctx context.Context, name string) string {
 
 // idFiles returns the path to all id files in this store.
 func (s *Store) idFiles(ctx context.Context) []string {
-	if s.crypto == nil {
+	if s == nil || s.crypto == nil {
 		return nil
 	}
 
