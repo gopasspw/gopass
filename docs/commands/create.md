@@ -46,8 +46,10 @@ attributes:
     prompt: "User"
     min: 1
   - name: "password"
-    type: "password"
+    type: "password" # hide input
     prompt: "Password"
+    always_prompt: true # do not offer password generation, always ask
+    charset: abcdefghijklmnop # generate password with this charset
   - name: "comment"
     type: "string"
     prompt: "Comments"
