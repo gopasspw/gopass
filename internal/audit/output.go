@@ -24,6 +24,8 @@ func (r *Report) PrintResults(ctx context.Context) error {
 		return nil
 	}
 
+	debug.Log("Printing results for %d secrets", len(r.Secrets))
+
 	var failed bool
 	for _, name := range set.SortedKeys(r.Secrets) {
 		s := r.Secrets[name]
@@ -66,6 +68,8 @@ func (r *Report) PrintSummary(ctx context.Context) error {
 
 		return nil
 	}
+
+	debug.Log("Printing summary for %d findings", len(r.Findings))
 
 	for _, name := range set.SortedKeys(r.Findings) {
 		f := r.Findings[name]

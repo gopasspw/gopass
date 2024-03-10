@@ -60,7 +60,6 @@ var commandsWithError = set.Map([]string{
 	".alias.add",
 	".alias.remove",
 	".alias.delete",
-	".audit",
 	".cat",
 	".clone",
 	".copy",

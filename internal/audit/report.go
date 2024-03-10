@@ -7,6 +7,7 @@ import (
 
 	"github.com/gopasspw/gopass/internal/hashsum"
 	"github.com/gopasspw/gopass/internal/set"
+	"github.com/gopasspw/gopass/pkg/debug"
 )
 
 type Finding struct {
@@ -190,6 +191,8 @@ func (r *ReportBuilder) Finalize() *Report {
 	for k := range r.findings {
 		ret.Findings[k] = r.findings[k]
 	}
+
+	debug.Log("Finalized report: %d secrets, %d findings", len(ret.Secrets), len(ret.Findings))
 
 	return ret
 }

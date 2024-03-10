@@ -33,17 +33,17 @@ func TestAudit(t *testing.T) {
 		stdout = os.Stdout
 	}()
 
-	t.Run("expect audit complaints on very weak passwords", func(t *testing.T) {
+	t.Run("expect audit to complains on very weak passwords", func(t *testing.T) {
 		sec := secrets.NewAKV()
 		sec.SetPassword("123")
 		require.NoError(t, act.Store.Set(ctx, "bar", sec))
 		require.NoError(t, act.Store.Set(ctx, "baz", sec))
 
-		require.Error(t, act.Audit(gptest.CliCtx(ctx, t)))
+		require.Error(t, act.Audit(gptest.CliCtxWithFlags(ctx, t, map[string]string{"full": "true"})), buf.String())
 		buf.Reset()
 	})
 
-	t.Run("test with filter and very passwords", func(t *testing.T) {
+	t.Run("test with filter", func(t *testing.T) {
 		c := gptest.CliCtx(ctx, t, "foo")
 		require.Error(t, act.Audit(c))
 		buf.Reset()

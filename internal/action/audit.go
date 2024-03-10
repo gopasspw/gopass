@@ -63,10 +63,17 @@ func (s *Action) Audit(c *cli.Context) error {
 	default:
 		var err error
 		if c.Bool("full") {
+			debug.Log("Printing full report")
 			err = r.PrintResults(ctx)
 		}
 		if c.Bool("summary") {
-			err = r.PrintSummary(ctx)
+			debug.Log("Printing summary")
+
+			nerr := r.PrintSummary(ctx)
+			// do not overwrite err if it is already set
+			if err == nil {
+				err = nerr
+			}
 		}
 		if !c.Bool("full") && !c.Bool("summary") {
 			out.Warning(ctx, "No output format specified. Use `--full` or `--summary` to specify.")
@@ -74,8 +81,6 @@ func (s *Action) Audit(c *cli.Context) error {
 
 		return err
 	}
-
-	return nil
 }
 
 func saveReport(ctx context.Context, f func(io.Writer) error, path, suffix string) error {
