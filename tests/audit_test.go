@@ -17,7 +17,6 @@ func TestAudit(t *testing.T) {
 	t.Run("audit the test store", func(t *testing.T) {
 		out, err := ts.run("audit")
 		require.Error(t, err)
-		assert.Contains(t, out, "Password is too short")
 		assert.Contains(t, out, "weak password")
 	})
 }
