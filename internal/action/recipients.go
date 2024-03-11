@@ -63,6 +63,12 @@ func (s *Action) recipientsList(ctx context.Context) []string {
 // completion.
 func (s *Action) RecipientsComplete(c *cli.Context) {
 	ctx := ctxutil.WithGlobalFlags(c)
+	if err := s.IsInitialized(c); err != nil {
+		debug.Log("IsInitialized returned error: %s", err)
+
+		return
+	}
+
 	for _, v := range s.recipientsList(ctx) {
 		fmt.Fprintln(stdout, v)
 	}
