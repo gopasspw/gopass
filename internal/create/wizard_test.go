@@ -69,6 +69,7 @@ attributes:
     charset: "0123456789"
     min: 1
     max: 64
+    always_prompt: true
   - name: "comment"
     type: "string"
 `))
@@ -88,6 +89,7 @@ attributes:
 	assert.Equal(t, "Entity", w.Templates[0].Attributes[1].Prompt, "wrong prompt")
 	assert.Equal(t, 1, w.Templates[0].Attributes[1].Min, "wrong min")
 	assert.Equal(t, "password", w.Templates[0].Attributes[2].Type, "wrong type")
+	assert.True(t, w.Templates[0].Attributes[2].AlwaysPrompt, "wrong always_prompt")
 }
 
 func TestExtractHostname(t *testing.T) {

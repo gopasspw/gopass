@@ -34,12 +34,13 @@ const (
 // Attribute is a credential attribute that is being asked for
 // when populating a template.
 type Attribute struct {
-	Name    string `yaml:"name"`
-	Type    string `yaml:"type"`
-	Prompt  string `yaml:"prompt"`
-	Charset string `yaml:"charset"`
-	Min     int    `yaml:"min"`
-	Max     int    `yaml:"max"`
+	Name         string `yaml:"name"`
+	Type         string `yaml:"type"`
+	Prompt       string `yaml:"prompt"`
+	Charset      string `yaml:"charset"`
+	Min          int    `yaml:"min"`
+	Max          int    `yaml:"max"`
+	AlwaysPrompt bool   `yaml:"always_prompt"` // always prompt for the crendentials
 }
 
 // Template is an action template for the create wizard.
@@ -225,9 +226,11 @@ func mkActFunc(tpl Template, s *root.Store, cb ActionCallback) func(context.Cont
 				_ = sec.Set(k, sv)
 			case "password":
 				var err error
-				genPw, err = termio.AskForBool(ctx, fmtfn(2, strconv.Itoa(step), "Generate Password?"), true)
-				if err != nil {
-					return err
+				if !v.AlwaysPrompt {
+					genPw, err = termio.AskForBool(ctx, fmtfn(2, strconv.Itoa(step), "Generate Password?"), true)
+					if err != nil {
+						return err
+					}
 				}
 
 				if genPw { //nolint:nestif

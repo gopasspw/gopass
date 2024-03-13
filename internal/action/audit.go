@@ -45,8 +45,18 @@ func (s *Action) Audit(c *cli.Context) error {
 		return nil
 	}
 
+	var excludes string
+	st := s.Store.Storage(ctx, c.Args().First())
+	if buf, err := st.Get(ctx, ".gopass-audit-ignore"); err == nil && buf != nil {
+		excludes = string(buf)
+	}
+	nList := audit.FilterExcludes(excludes, list)
+	if len(nList) < len(list) {
+		out.Warningf(ctx, "Excluding %d secrets based on .gopass-audit-ignore", len(list)-len(nList))
+	}
+
 	a := audit.New(c.Context, s.Store)
-	r, err := a.Batch(ctx, list)
+	r, err := a.Batch(ctx, nList)
 	if err != nil {
 		return exit.Error(exit.Unknown, err, "failed to audit password store: %s", err)
 	}
