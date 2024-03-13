@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"sort"
+	"strings"
 	"text/template"
 	"time"
 
@@ -23,20 +24,66 @@ func (r *Report) PrintResults(ctx context.Context) error {
 		return nil
 	}
 
+	debug.Log("Printing results for %d secrets", len(r.Secrets))
+
 	var failed bool
 	for _, name := range set.SortedKeys(r.Secrets) {
 		s := r.Secrets[name]
-		out.Printf(ctx, "%s (age: %s)", name, s.Age.String())
+		var sb strings.Builder
+		sb.WriteString(fmt.Sprintf("%s (age: %s) ", name, s.HumanizeAge()))
+		if !s.HasFindings() {
+			sb.WriteString("OK")
+			out.OK(ctx, sb.String())
+
+			continue
+		}
+		sb.WriteString("Potentially weak. ")
 		for k, v := range s.Findings {
 			if v.Severity == "error" || v.Severity == "warning" {
 				failed = true
 			}
 
-			out.Errorf(ctx, "[%s] %s: %s", v.Severity, k, v.Message)
+			switch v.Severity {
+			case "error":
+				fallthrough
+			case "warning":
+				sb.WriteString(fmt.Sprintf("%s: %s. ", k, v.Message))
+			default:
+				continue
+			}
 		}
+		out.Warning(ctx, sb.String())
 	}
 
 	if failed {
+		return fmt.Errorf("weak password or duplicates detected")
+	}
+
+	return nil
+}
+
+func (r *Report) PrintSummary(ctx context.Context) error {
+	if r == nil {
+		out.Warning(ctx, "Empty report")
+
+		return nil
+	}
+
+	debug.Log("Printing summary for %d findings", len(r.Findings))
+
+	for _, name := range set.SortedKeys(r.Findings) {
+		f := r.Findings[name]
+		if f.Len() < 1 {
+			continue
+		}
+		// TODO add details about the analyzer, not just the name
+		out.Printf(ctx, "Analyzer %s found issues: ", name)
+		for _, v := range set.Sorted(f.Elements()) {
+			out.Printf(ctx, "- %s", v)
+		}
+	}
+
+	if len(r.Findings) > 0 {
 		return fmt.Errorf("weak password or duplicates detected")
 	}
 

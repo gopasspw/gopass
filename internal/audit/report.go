@@ -7,6 +7,7 @@ import (
 
 	"github.com/gopasspw/gopass/internal/hashsum"
 	"github.com/gopasspw/gopass/internal/set"
+	"github.com/gopasspw/gopass/pkg/debug"
 )
 
 type Finding struct {
@@ -15,9 +16,37 @@ type Finding struct {
 }
 
 type SecretReport struct {
-	Name     string
+	Name string
+	// analyzer -> finding details
 	Findings map[string]Finding
 	Age      time.Duration
+}
+
+func (s *SecretReport) HasFindings() bool {
+	for _, f := range s.Findings {
+		if f.Severity != "none" {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (s *SecretReport) HumanizeAge() string {
+	if s.Age < 24*time.Hour {
+		return fmt.Sprintf("%d hours", int(s.Age.Hours()))
+	}
+	days := int(s.Age.Hours() / 24)
+	if days < 30 {
+		return fmt.Sprintf("%d days", days)
+	}
+	months := days / 30
+	if months < 12 {
+		return fmt.Sprintf("%d months", months)
+	}
+	years := months / 12
+
+	return fmt.Sprintf("%d years", years)
 }
 
 func errors(e []error) []string {
@@ -30,15 +59,25 @@ func errors(e []error) []string {
 }
 
 type Report struct {
-	Secrets  map[string]SecretReport
+	// secret name -> report
+	Secrets map[string]SecretReport
+
+	// finding -> secrets
+	Findings map[string]set.Set[string]
+
 	Template string
 	Duration time.Duration
 }
 
 type ReportBuilder struct {
+	// protects all below
 	sync.Mutex
 
+	// secret name -> report
 	secrets map[string]SecretReport
+	// finding -> secrets
+	findings map[string]set.Set[string]
+
 	// SHA512(password) -> secret names
 	duplicates map[string]set.Set[string]
 
@@ -76,6 +115,7 @@ func (r *ReportBuilder) AddFinding(secret, finding, message, severity string) {
 	r.Lock()
 	defer r.Unlock()
 
+	// record individual findings
 	s := r.secrets[secret]
 	s.Name = secret
 	if s.Findings == nil {
@@ -86,6 +126,11 @@ func (r *ReportBuilder) AddFinding(secret, finding, message, severity string) {
 	f.Severity = severity
 	s.Findings[finding] = f
 	r.secrets[secret] = s
+
+	// record secrets per finding, for the summary
+	ss := r.findings[finding]
+	ss.Add(secret)
+	r.findings[finding] = ss
 }
 
 func (r *ReportBuilder) SetAge(name string, age time.Duration) {
@@ -105,6 +150,7 @@ func (r *ReportBuilder) SetAge(name string, age time.Duration) {
 func newReport() *ReportBuilder {
 	return &ReportBuilder{
 		secrets:    make(map[string]SecretReport, 512),
+		findings:   make(map[string]set.Set[string], 512),
 		duplicates: make(map[string]set.Set[string], 512),
 		sha1sums:   make(map[string]set.Set[string], 512),
 		t0:         time.Now().UTC(),
@@ -134,12 +180,19 @@ func (r *ReportBuilder) Finalize() *Report {
 
 	ret := &Report{
 		Secrets:  make(map[string]SecretReport, len(r.secrets)),
+		Findings: make(map[string]set.Set[string], len(r.findings)),
 		Duration: time.Since(r.t0),
 	}
 
 	for k := range r.secrets {
 		ret.Secrets[k] = r.secrets[k]
 	}
+
+	for k := range r.findings {
+		ret.Findings[k] = r.findings[k]
+	}
+
+	debug.Log("Finalized report: %d secrets, %d findings", len(ret.Secrets), len(ret.Findings))
 
 	return ret
 }

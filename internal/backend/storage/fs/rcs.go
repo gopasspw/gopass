@@ -75,7 +75,7 @@ func (s *Store) Revisions(context.Context, string) ([]backend.Revision, error) {
 			Hash: "latest",
 			Date: time.Now(),
 		},
-	}, nil
+	}, backend.ErrNotSupported
 }
 
 // GetRevision only supports getting the latest revision.
