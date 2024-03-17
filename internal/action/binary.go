@@ -143,6 +143,39 @@ func (s *Action) BinaryMove(c *cli.Context) error {
 	return nil
 }
 
+// isFilePath returns true if the given string is likely a file path.
+func isFilePath(s string) bool {
+	// this heuristic tries to detect filepaths that are not valid secret names.
+	// this should trigger in case a file and secret names are mixed up.
+	if strings.HasPrefix(s, "/") || strings.HasPrefix(s, "./") || strings.HasPrefix(s, "../") {
+		return true
+	}
+
+	return fsutil.IsFile(s)
+}
+
+// isInStore returns true if the given file is in the store or a mounted substore.
+func (s *Action) isInStore(fn string) bool {
+	fp, err := filepath.Abs(fn)
+	if err != nil {
+		return false
+	}
+	if strings.HasPrefix(fp, s.Store.Path()) {
+		return true
+	}
+	for _, mp := range s.Store.Mounts() {
+		mp, err := filepath.Abs(mp)
+		if err != nil {
+			continue
+		}
+		if strings.HasPrefix(fp, mp) {
+			return true
+		}
+	}
+
+	return false
+}
+
 // binaryCopy implements the control flow for copy and move. We support two
 // workflows:.
 // 1. From the filesystem to the store.
@@ -160,15 +193,29 @@ func (s *Action) binaryCopy(ctx context.Context, c *cli.Context, from, to string
 	}
 
 	switch {
-	case fsutil.IsFile(from) && fsutil.IsFile(to):
+	case isFilePath(from) && isFilePath(to):
 		// copying from on file to another file is not supported.
-		return fmt.Errorf("ambiguity detected. Only from or to can be a file")
+		return fmt.Errorf("ambiguity detected. Only from or to can be a file. Use cp to copy between files.")
 	case s.Store.Exists(ctx, from) && s.Store.Exists(ctx, to):
 		// copying from one secret to another secret is not supported.
-		return fmt.Errorf("ambiguity detected. Either from or to must be a file")
-	case fsutil.IsFile(from) && !fsutil.IsFile(to):
+		return fmt.Errorf("ambiguity detected. Either from or to must be a file. Use gopass cp to copy between secrets.")
+	case isFilePath(from) && !isFilePath(to):
+		if s.isInStore(from) {
+			out.Warningf(ctx, "Ambiguity detected. Source %q is in the store. Use --force if intended", from)
+			if !c.Bool("force") {
+				return fmt.Errorf("ambiguity detected. Source is in the store.")
+			}
+		}
+
 		return s.binaryCopyFromFileToStore(ctx, from, to, deleteSource)
-	case !fsutil.IsFile(from):
+	case !isFilePath(from):
+		if s.isInStore(to) {
+			out.Warningf(ctx, "Ambiguity detected. Destination %q is in the store. Use --force if intended", to)
+			if !c.Bool("force") {
+				return fmt.Errorf("ambiguity detected. Destination is in the store.")
+			}
+		}
+
 		return s.binaryCopyFromStoreToFile(ctx, from, to, deleteSource)
 	default:
 		return fmt.Errorf("ambiguity detected. Unhandled case. Please report a bug")
