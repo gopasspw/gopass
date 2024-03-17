@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.15.12 / 2024-03-17
+
+* [BUGFIX] Use 'en' as default language for the xkcd generator (#2793)
+* [DOCUMENTATION] Fix typo: initilize -> initialize (#2796)
+* [bugfix] Bring back audit summary (#2820)
+* [bugfix] Do not abort saving if the OTP counter is aborted (#2775)
+* [bugfix] Fix NPE when using recipients completion (#2823)
+* [bugfix] Warn if trying to use fscopy inside the store (#2832)
+* [chore] Upgrade to Go 1.22 (#2805)
+* [cleanup] Add better logging in case no owner key is found (#2748)
+* [feat] Add .gopass-audit-ignore support to ignore secrets from audits (#2822)
+* [feat] Allow supression of password generation in create templates (#2821)
+* [ux] Add hint that computing recipients takes some time (#2833)
+* [ux] Do not show create type chooser if only one exists (#2752)
+
 ## 1.15.11 / 2023-12-01
 
 * [bugfix] Disable multi-line description for deb packages (#2729)
