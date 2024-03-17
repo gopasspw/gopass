@@ -1,5 +1,5 @@
 
-.TH GOPASS "1" "December 2023" "gopass (github.com/gopasspw/gopass) 1.15.11" "User Commands"
+.TH GOPASS "1" "March 2024" "gopass (github.com/gopasspw/gopass) 1.15.12" "User Commands"
 .SH NAME
 gopass - The standard Unix password manager
 .SH SYNOPSIS
@@ -64,15 +64,18 @@ This command decrypts all secrets and checks for common flaws and (optionally) a
 
 .B Flags
 .TP
-\fB\-\-failed\fR,
-Report only entries that failed validation. Default: false (reports all)
-.TP
 \fB\-\-format\fR,
 Output format. text, csv or html. Default: text
+.TP
+\fB\-\-full\fR,
+Print full details of all findings. Default: false
 .TP
 \fB\-\-output-file\fR,
 \fB\-o\fR,
 Output filename. Used for csv and html
+.TP
+\fB\-\-summary\fR,
+Print a summary of the audit results. Default: true (print summary)
 .TP
 \fB\-\-template\fR,
 HTML template. If not set use the built-in default.
