@@ -104,6 +104,8 @@ func (s *Action) RecipientsAdd(c *cli.Context) error {
 	// select recipient.
 	recipients := c.Args().Slice()
 	if len(recipients) < 1 {
+		out.Notice(ctx, "Fetching available recipients. Please wait...")
+
 		debug.Log("no recipients given, asking for selection")
 		r, err := s.recipientsSelectForAdd(ctx, store)
 		if err != nil {
