@@ -438,6 +438,12 @@ func (u *inUpdater) doUpdate(ctx context.Context, dir string) error {
 	}
 	fmt.Printf("✅ [%s] updated Go version in go.mod to %s.\n", dir, u.goVer)
 
+	// go mod tidy
+	if err := runCmd(path, "go", "mod", "tidy"); err != nil {
+		return err
+	}
+	fmt.Printf("✅ [%s] go mod tidy.\n", dir)
+
 	// update workflows
 	if err := u.updateWorkflows(ctx, path); err != nil {
 		return err
