@@ -14,7 +14,7 @@ import (
 // addRel adds the required number of relative elements to go from dst back to
 // src.
 func addRel(src, dst string) string {
-	for i := 0; i < strings.Count(dst, "/"); i++ {
+	for range strings.Count(dst, "/") {
 		src = "../" + src
 	}
 

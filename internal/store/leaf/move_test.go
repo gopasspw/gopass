@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	plain "github.com/gopasspw/gopass/internal/backend/crypto/plain"
+	"github.com/gopasspw/gopass/internal/backend/crypto/plain"
 	"github.com/gopasspw/gopass/internal/backend/storage/fs"
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
@@ -72,8 +72,6 @@ func TestCopy(t *testing.T) {
 			},
 		},
 	} {
-		tc := tc
-
 		t.Run(tc.name, func(t *testing.T) {
 			// common setup
 			tempdir := t.TempDir()
@@ -156,8 +154,6 @@ func TestMove(t *testing.T) {
 			},
 		},
 	} {
-		tc := tc
-
 		t.Run(tc.name, func(t *testing.T) {
 			// common setup
 			tempdir := t.TempDir()
@@ -223,8 +219,6 @@ func TestDelete(t *testing.T) {
 			},
 		},
 	} {
-		tc := tc
-
 		t.Run(tc.name, func(t *testing.T) {
 			// common setup
 			tempdir := t.TempDir()
@@ -314,8 +308,6 @@ func TestPrune(t *testing.T) {
 			},
 		},
 	} {
-		tc := tc
-
 		t.Run(tc.name, func(t *testing.T) {
 			// common setup
 			tempdir := t.TempDir()

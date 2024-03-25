@@ -36,8 +36,6 @@ func TestStat(t *testing.T) {
 			removed: 1,
 		},
 	} {
-		tc := tc
-
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 

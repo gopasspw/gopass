@@ -48,7 +48,6 @@ func TestCommands(t *testing.T) {
 	ctx = act.cfg.WithConfig(ctx) //nolint:ineffassign
 
 	for _, cmd := range act.GetCommands() {
-		cmd := cmd
 		t.Run(cmd.Name, func(t *testing.T) {
 			testCommand(t, cmd)
 		})

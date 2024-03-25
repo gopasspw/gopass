@@ -136,7 +136,7 @@ func TestYAMLSetMultipleKeys(t *testing.T) {
 	numKey := 100
 	keys := make([]string, 0, numKey)
 
-	for i := 0; i < numKey; i++ {
+	for i := range numKey {
 		// set key
 		key := fmt.Sprintf("%s-%04d", yamlKey, i)
 		require.NoError(t, s.Set(key, yamlValue))

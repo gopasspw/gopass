@@ -65,8 +65,6 @@ func TestParseArgs(t *testing.T) {
 			kvOut:  map[string]string{"baz": "bam"},
 		},
 	} {
-		tc := tc
-
 		t.Run(tc.name, func(t *testing.T) {
 			if tc.argOut == nil {
 				tc.argOut = argList{}

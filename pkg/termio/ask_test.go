@@ -169,7 +169,7 @@ func TestAskForConfirmation(t *testing.T) {
 	input := `y
 n
 `
-	for i := 0; i < maxTries+1; i++ {
+	for range maxTries + 1 {
 		input += "z\n"
 	}
 

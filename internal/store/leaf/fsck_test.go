@@ -77,7 +77,6 @@ func TestCompareStringSlices(t *testing.T) {
 			extra:   []string{"baz", "zab"},
 		},
 	} {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 

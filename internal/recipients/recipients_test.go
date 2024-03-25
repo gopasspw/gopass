@@ -28,7 +28,6 @@ func TestMarshal(t *testing.T) {
 			in:   []string{"baz@bar.com", "zab@zab.com"},
 		},
 	} {
-		tc := tc
 		t.Run(tc.want, func(t *testing.T) {
 			t.Parallel()
 
@@ -75,7 +74,6 @@ func TestUnmarshal(t *testing.T) {
 			want: []string{"baz@bar.com", "zab@zab.com"},
 		},
 	} {
-		tc := tc
 		t.Run(tc.in, func(t *testing.T) {
 			t.Parallel()
 
@@ -131,7 +129,6 @@ func TestEndToEnd(t *testing.T) {
 `,
 		},
 	} {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 

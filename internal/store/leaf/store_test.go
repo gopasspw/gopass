@@ -100,7 +100,7 @@ func TestIdFile(t *testing.T) {
 
 	// test sub-id
 	secName := "a"
-	for i := 0; i < 99; i++ {
+	for range 99 {
 		secName += "/a"
 	}
 
@@ -116,7 +116,7 @@ func TestIdFile(t *testing.T) {
 
 	// test abort condition
 	secName = "a"
-	for i := 0; i < 100; i++ {
+	for range 100 {
 		secName += "/a"
 	}
 	require.NoError(t, s.Set(ctx, secName, sec))
@@ -166,8 +166,6 @@ func TestNew(t *testing.T) {
 			ok: true,
 		},
 	} {
-		tc := tc
-
 		t.Run(tc.dsc, func(t *testing.T) {
 			t.Parallel()
 

@@ -79,7 +79,7 @@ func extractZip(buf []byte, dfh io.WriteCloser, dest string) (string, error) {
 		return "", fmt.Errorf("failed to open zip file: %w", err)
 	}
 
-	for i := 0; i < len(zrd.File); i++ {
+	for i := range len(zrd.File) {
 		if zrd.File[i].Name != "gopass.exe" {
 			continue
 		}

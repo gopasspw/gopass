@@ -48,7 +48,7 @@ func AskForPrivateKey(ctx context.Context, crypto backend.Crypto, prompt string)
 	}
 
 	fmtStr := "[%" + strconv.Itoa((len(kl)/10)+1) + "d] %s - %s\n"
-	for i := 0; i < maxTries; i++ {
+	for range maxTries {
 		if !ctxutil.IsTerminal(ctx) || !ctxutil.IsInteractive(ctx) {
 			return kl[0], nil
 		}

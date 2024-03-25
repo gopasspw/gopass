@@ -41,7 +41,6 @@ func TestParseColonIdentity(t *testing.T) {
 			email:   "",
 		},
 	} {
-		tc := tc
 		t.Run(tc.in, func(t *testing.T) {
 			t.Parallel()
 

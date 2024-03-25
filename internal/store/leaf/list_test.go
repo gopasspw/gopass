@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	plain "github.com/gopasspw/gopass/internal/backend/crypto/plain"
+	"github.com/gopasspw/gopass/internal/backend/crypto/plain"
 	"github.com/gopasspw/gopass/internal/backend/storage/fs"
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
@@ -77,8 +77,6 @@ func TestList(t *testing.T) {
 			out: []string{"foo/bar", "foo/baz", "foo/zab"},
 		},
 	} {
-		tc := tc
-
 		t.Run(tc.name, func(t *testing.T) {
 			// common setup
 			tempdir := t.TempDir()

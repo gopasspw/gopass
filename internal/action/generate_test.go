@@ -244,8 +244,6 @@ func TestKeyAndLength(t *testing.T) {
 			length: "",
 		},
 	} {
-		tc := tc
-
 		t.Run(fmt.Sprintf("%v", tc.in), func(t *testing.T) {
 			app := cli.NewApp()
 			fs := flag.NewFlagSet("default", flag.ContinueOnError)
@@ -272,7 +270,6 @@ func TestExtractEmails(t *testing.T) {
 			out: []string{"john.doe@example.org", "user@example.org"},
 		},
 	} {
-		tc := tc
 		t.Run(fmt.Sprintf("%v", tc.in), func(t *testing.T) {
 			assert.Equal(t, tc.out, extractEmails(tc.in))
 		})
@@ -292,7 +289,6 @@ func TestExtractDomains(t *testing.T) {
 			out: []string{"gmail.com", "live.com", "web.de"},
 		},
 	} {
-		tc := tc
 		t.Run(fmt.Sprintf("%v", tc.in), func(t *testing.T) {
 			assert.Equal(t, tc.out, extractDomains(tc.in))
 		})
@@ -312,7 +308,6 @@ func TestUniq(t *testing.T) {
 			out: []string{"bar", "foo"},
 		},
 	} {
-		tc := tc
 		t.Run(fmt.Sprintf("%v", tc.in), func(t *testing.T) {
 			assert.Equal(t, tc.out, uniq(tc.in))
 		})
@@ -339,7 +334,6 @@ func TestFilterPrefix(t *testing.T) {
 			out:    []string{"foo/bar", "foo/baz"},
 		},
 	} {
-		tc := tc
 		t.Run(fmt.Sprintf("%v", tc.in), func(t *testing.T) {
 			assert.Equal(t, tc.out, filterPrefix(tc.in, tc.prefix))
 		})
@@ -372,7 +366,6 @@ func TestDefaultLengthFromEnv(t *testing.T) {
 			{in: "abc", expected: config.DefaultPasswordLength, custom: false},
 			{in: "-1", expected: config.DefaultPasswordLength, custom: false},
 		} {
-			tc := tc
 			t.Setenv(pwLengthEnvName, tc.in)
 			actual, isCustom := config.DefaultPasswordLengthFromEnv(ctx)
 			assert.Equal(t, tc.expected, actual)

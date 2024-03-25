@@ -73,7 +73,7 @@ func (c *Config) SetConfigValue(key, value string) error {
 func (c *Config) setConfigValue(key, value string) error {
 	value = strings.ToLower(value)
 	o := reflect.ValueOf(c).Elem()
-	for i := 0; i < o.NumField(); i++ {
+	for i := range o.NumField() {
 		jsonArg := o.Type().Field(i).Tag.Get("yaml")
 		if jsonArg == "" || jsonArg == "-" {
 			continue
@@ -129,7 +129,7 @@ func (c *Config) Directory() string {
 func (c *Config) ConfigMap() map[string]string {
 	m := make(map[string]string, 20)
 	o := reflect.ValueOf(c).Elem()
-	for i := 0; i < o.NumField(); i++ {
+	for i := range o.NumField() {
 		jsonArg := o.Type().Field(i).Tag.Get("yaml")
 		if jsonArg == "" || jsonArg == "-" {
 			continue

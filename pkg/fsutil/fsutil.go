@@ -166,7 +166,7 @@ func Shred(path string, runs int) error {
 		return buf
 	}
 
-	for i := 0; i < runs; i++ {
+	for i := range runs {
 		if i >= runs-1 {
 			bufFn = func() []byte {
 				return make([]byte, 1024)
