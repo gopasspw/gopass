@@ -15,7 +15,7 @@ import (
 // ParseScreen will attempt to parse all available screen and will look for otpauth QR codes. It returns the first one
 // it has found.
 func ParseScreen(ctx context.Context) (string, error) {
-	for i := 0; i < screenshot.NumActiveDisplays(); i++ {
+	for i := range screenshot.NumActiveDisplays() {
 		out.Noticef(ctx, "Scanning screen n°%d", i)
 
 		img, err := screenshot.CaptureDisplay(i)

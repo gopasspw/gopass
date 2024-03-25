@@ -149,7 +149,7 @@ func (a *Auditor) Batch(ctx context.Context, secrets []string) (*Report, error) 
 	debug.Log("launching %d audit workers", maxJobs)
 
 	done := make(chan struct{}, maxJobs)
-	for jobs := 0; jobs < maxJobs; jobs++ {
+	for range maxJobs {
 		go a.audit(ctx, pending, done)
 	}
 
@@ -166,7 +166,7 @@ func (a *Auditor) Batch(ctx context.Context, secrets []string) (*Report, error) 
 		bar.Inc()
 	}
 
-	for i := 0; i < maxJobs; i++ {
+	for range maxJobs {
 		<-done
 	}
 	bar.Done()
@@ -228,8 +228,6 @@ func (a *Auditor) auditSecret(ctx context.Context, secret string) {
 	// pass the secret to all validators.
 	var wg sync.WaitGroup
 	for _, v := range a.v {
-		v := v
-
 		wg.Add(1)
 		go func() {
 			defer wg.Done()

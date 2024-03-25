@@ -59,7 +59,7 @@ func (lr LineReader) ReadLine() (string, error) {
 		}
 
 		// process the user input
-		for i := 0; i < n; i++ {
+		for i := range n {
 			if buf[i] == '\n' {
 				return out.String(), nil
 			}

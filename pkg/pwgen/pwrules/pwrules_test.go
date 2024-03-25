@@ -53,7 +53,6 @@ func TestParseRule(t *testing.T) {
 			},
 		},
 	} {
-		tc := tc
 		t.Run(tc.in, func(t *testing.T) {
 			t.Parallel()
 

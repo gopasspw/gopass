@@ -44,7 +44,7 @@ func (s *Store) reencrypt(ctx context.Context) error {
 		logger := log.New(os.Stdout, "", 0)
 		out.Print(ctx, "Starting reencrypt")
 
-		for i := 0; i < conc; i++ {
+		for i := range conc {
 			wg.Add(1) // we start a new job
 			go func(workerId int) {
 				// the workers are fed through an unbuffered channel

@@ -30,8 +30,6 @@ func TestCalculate(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		t.Run(fmt.Sprintf("%s", tc), func(t *testing.T) {
 			t.Parallel()
 
@@ -78,8 +76,6 @@ func TestGetOTPURL(t *testing.T) {
 			url:  totpURL,
 		},
 	} {
-		tc := tc
-
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 

@@ -71,7 +71,7 @@ func xkcdGen(c *cli.Context, length, num int) error {
 		numbers = c.Bool("xkcdnumbers")
 	}
 
-	for i := 0; i < num; i++ {
+	for range num {
 		s, err := xkcdgen.RandomLengthDelim(length, sep, lang, capitalize, numbers)
 		if err != nil {
 			return err
@@ -109,8 +109,8 @@ func pwGen(c *cli.Context, pwLen, pwNum int) error {
 		charset += pwgen.Syms
 	}
 
-	for i := 0; i < pwNum; i++ {
-		for j := 0; j < perLine; j++ {
+	for range pwNum {
+		for range perLine {
 			ctx := out.WithNewline(ctx, false)
 			out.Print(ctx, pwgen.GeneratePasswordCharset(pwLen, charset))
 			out.Print(ctx, " ")

@@ -28,8 +28,6 @@ func TestDetectCrypto(t *testing.T) {
 			file: ".age-recipients",
 		},
 	} {
-		tc := tc
-
 		t.Run(tc.name, func(t *testing.T) {
 			ctx := config.NewContextInMemory()
 

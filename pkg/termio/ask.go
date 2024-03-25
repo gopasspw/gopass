@@ -126,7 +126,7 @@ func AskForConfirmation(ctx context.Context, text string) bool {
 		return true
 	}
 
-	for i := 0; i < maxTries; i++ {
+	for range maxTries {
 		choice, err := AskForBool(ctx, text, false)
 		if err == nil {
 			return choice
@@ -166,7 +166,7 @@ func AskForPassword(ctx context.Context, name string, repeat bool) (string, erro
 
 	askFn := GetPassPromptFunc(ctx)
 
-	for i := 0; i < maxTries; i++ {
+	for range maxTries {
 		// check for context cancellation
 		select {
 		case <-ctx.Done():

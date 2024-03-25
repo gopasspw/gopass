@@ -97,7 +97,6 @@ func TestContainsAllClasses(t *testing.T) {
 			ok:      false,
 		},
 	} {
-		tc := tc
 		t.Run(tc.pw, func(t *testing.T) {
 			t.Parallel()
 
@@ -154,13 +153,13 @@ func TestPrune(t *testing.T) {
 }
 
 func BenchmarkPwgen(b *testing.B) {
-	for n := 0; n < b.N; n++ {
+	for n := 0; n < b.N; n++ { //nolint:intrange // b.N is evaluated at each iteration.
 		GeneratePasswordCharset(24, CharAll)
 	}
 }
 
 func BenchmarkPwgenCheck(b *testing.B) {
-	for n := 0; n < b.N; n++ {
+	for n := 0; n < b.N; n++ { //nolint:intrange // b.N is evaluated at each iteration.
 		GeneratePasswordCharsetCheck(24, CharAll)
 	}
 }

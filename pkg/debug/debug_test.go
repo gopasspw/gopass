@@ -15,7 +15,7 @@ func BenchmarkLogging(b *testing.B) {
 
 	initDebug()
 
-	for i := 0; i < b.N; i++ {
+	for i := 0; i < b.N; i++ { //nolint:intrange // b.N is evaluated at each iteration.
 		Log("string")
 	}
 }
@@ -25,7 +25,7 @@ func BenchmarkNoLogging(b *testing.B) {
 
 	initDebug()
 
-	for i := 0; i < b.N; i++ {
+	for i := 0; i < b.N; i++ { //nolint:intrange // b.N is evaluated at each iteration.
 		Log("string")
 	}
 }

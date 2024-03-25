@@ -1,8 +1,5 @@
 run:
-  skip-dirs:
-    - helpers/
-  go: 1.22
-  deadline: 5m
+  timeout: 5m
 
 linters-settings:
   gocyclo:
@@ -80,6 +77,14 @@ linters:
   - wsl
 
 issues:
-  exclude-use-default: false # disable filtering of defaults for better zero-issue policy
-  max-per-linter: 0 # disable limit; report all issues of a linter
+  max-issues-per-linter: 0 # disable limit; report all issues of a linter
   max-same-issues: 0 # disable limit; report all issues of the same issue
+  exclude-use-default: false # disable filtering of defaults for better zero-issue policy
+  exclude-dirs:
+    - helpers/
+
+output:
+  sort-results: true
+  sort-order:
+    - linter
+    - file

@@ -141,14 +141,13 @@ func (s *Action) RecipientsAdd(c *cli.Context) error {
 			continue
 		}
 
-		recp := r
 		debug.Log("found recipients for %q: %+v", r, keys)
 
-		if !termio.AskForConfirmation(ctx, fmt.Sprintf("Do you want to add %q (key %q) as a recipient to the store %q?", crypto.FormatKey(ctx, recp, ""), recp, store)) {
+		if !termio.AskForConfirmation(ctx, fmt.Sprintf("Do you want to add %q (key %q) as a recipient to the store %q?", crypto.FormatKey(ctx, r, ""), r, store)) {
 			continue
 		}
 
-		if err := s.Store.AddRecipient(ctx, store, recp); err != nil {
+		if err := s.Store.AddRecipient(ctx, store, r); err != nil {
 			return exit.Error(exit.Recipients, err, "failed to add recipient %q: %s", r, err)
 		}
 		added++
@@ -201,7 +200,7 @@ func (s *Action) RecipientsRemove(c *cli.Context) error {
 			}
 		}
 
-		// if we a literal recipient (e.g. ID) is given just remove that w/o any kind of lookups.
+		// if a literal recipient (e.g. ID) is given just remove that w/o any kind of lookups.
 		if set.Contains(knownRecipients, r) {
 			debug.Log("Removing %q from %q (direct)", r, store)
 			if err := s.Store.RemoveRecipient(ctx, store, r); err != nil {
@@ -213,7 +212,7 @@ func (s *Action) RecipientsRemove(c *cli.Context) error {
 			continue
 		}
 
-		// look up the full key ID of the given recipient (could be email or any kinf of short ID)
+		// look up the full key ID of the given recipient (could be email or any kind of short ID)
 		keys, err := crypto.FindRecipients(ctx, r)
 		if err != nil {
 			out.Printf(ctx, "WARNING: Failed to list public key %q: %s", r, err)
@@ -235,7 +234,7 @@ func (s *Action) RecipientsRemove(c *cli.Context) error {
 			continue
 		}
 
-		recp := r
+		recp := r //nolint:copyloopvar
 		if len(keys) > 0 {
 			if nr := crypto.Fingerprint(ctx, keys[0]); nr != "" {
 				debug.Log("Fingerprint translated %q into %q", keys[0], nr)

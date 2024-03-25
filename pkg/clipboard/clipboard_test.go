@@ -13,7 +13,7 @@ import (
 	"github.com/atotto/clipboard"
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
-	ps "github.com/mitchellh/go-ps"
+	"github.com/mitchellh/go-ps"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -53,7 +53,7 @@ func TestClearClipboard(t *testing.T) {
 }
 
 func BenchmarkWalkProc(b *testing.B) {
-	for i := 0; i < b.N; i++ {
+	for i := 0; i < b.N; i++ { //nolint:intrange // b.N is evaluated at each iteration.
 		_ = filepath.Walk("/proc", func(path string, info os.FileInfo, err error) error {
 			if err != nil {
 				return nil
@@ -76,7 +76,7 @@ func BenchmarkWalkProc(b *testing.B) {
 }
 
 func BenchmarkListProc(b *testing.B) {
-	for i := 0; i < b.N; i++ {
+	for i := 0; i < b.N; i++ { //nolint:intrange // b.N is evaluated at each iteration.
 		procs, err := ps.Processes()
 		if err != nil {
 			b.Fatalf("err: %s", err)

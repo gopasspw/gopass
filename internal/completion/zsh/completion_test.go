@@ -41,7 +41,6 @@ func TestFormatFlag(t *testing.T) {
 	}{
 		{"print, p", "Print", "--print[Print]"},
 	} {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, tc.out, formatFlag(tc.name, tc.usage))

@@ -396,7 +396,7 @@ func (f *Fossil) Revisions(ctx context.Context, name string) ([]backend.Revision
 		}
 
 		debug.Log("Parsing line: %s", line)
-		body := line // retain full line for the body
+		body := line //nolint:copyloopvar // retain full line for the body
 		date, line, found := strings.Cut(line, " ")
 		if !found {
 			debug.Log("Failed to parse date")

@@ -406,8 +406,6 @@ func TestComputeMoveDestination(t *testing.T) {
 			dstIsDir: true,
 		},
 	} {
-		tc := tc
-
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 

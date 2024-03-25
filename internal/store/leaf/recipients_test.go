@@ -11,7 +11,7 @@ import (
 	"testing"
 
 	"github.com/gopasspw/gopass/internal/backend"
-	plain "github.com/gopasspw/gopass/internal/backend/crypto/plain"
+	"github.com/gopasspw/gopass/internal/backend/crypto/plain"
 	"github.com/gopasspw/gopass/internal/backend/storage/fs"
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
@@ -137,7 +137,7 @@ func TestSaveRecipients(t *testing.T) {
 	sort.Strings(foundRecs)
 
 	ids := rs.IDs()
-	for i := 0; i < len(ids); i++ {
+	for i := range len(ids) {
 		if i >= len(foundRecs) {
 			t.Errorf("Read too few recipients")
 

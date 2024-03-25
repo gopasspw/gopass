@@ -91,7 +91,7 @@ func TestShred(t *testing.T) {
 	require.NoError(t, err)
 
 	buf := make([]byte, 1024)
-	for i := 0; i < 10*1024; i++ {
+	for range 10 * 1024 {
 		_, _ = rand.Read(buf)
 		_, _ = fh.Write(buf)
 	}
@@ -105,7 +105,7 @@ func TestShred(t *testing.T) {
 	require.NoError(t, err)
 
 	buf = make([]byte, 1024)
-	for i := 0; i < 10*1024; i++ {
+	for range 10 * 1024 {
 		_, _ = rand.Read(buf)
 		_, _ = fh.Write(buf)
 	}

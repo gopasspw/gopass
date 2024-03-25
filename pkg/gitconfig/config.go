@@ -421,7 +421,7 @@ func LoadConfigFromEnv(envPrefix string) *Config {
 
 	c.vars = make(map[string][]string, count)
 
-	for i := 0; i < count; i++ {
+	for i := range count {
 		keyVar := fmt.Sprintf("%s%d", envPrefix+"_KEY_", i)
 		key := os.Getenv(keyVar)
 

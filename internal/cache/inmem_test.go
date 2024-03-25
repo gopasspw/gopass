@@ -73,8 +73,8 @@ func TestPar(t *testing.T) {
 	c := NewInMemTTL[int, int](time.Minute, time.Minute)
 	c.now = nowFunc(0)
 
-	for i := 0; i < 32; i++ {
-		for j := 0; j < 32; j++ {
+	for i := range 32 {
+		for range 32 {
 			t.Run("set"+strconv.Itoa(i), func(t *testing.T) {
 				t.Parallel()
 				c.Set(i, i)

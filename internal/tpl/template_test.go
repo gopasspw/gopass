@@ -333,7 +333,6 @@ func TestVars(t *testing.T) {
 			ShouldFail: true,
 		},
 	} {
-		tc := tc
 		t.Run(tc.Template, func(t *testing.T) {
 			t.Parallel()
 

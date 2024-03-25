@@ -24,7 +24,6 @@ func TestCrypticForDomain(t *testing.T) {
 	sort.Strings(keys)
 
 	for _, domain := range keys {
-		domain := domain
 		t.Run(domain, func(t *testing.T) {
 			for _, length := range []int{1, 4, 8, 100} {
 				tcName := fmt.Sprintf("%s: generated password with %d chars", domain, length)

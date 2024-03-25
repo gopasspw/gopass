@@ -11,7 +11,7 @@ func ExampleProgressBar() { //nolint:testableexamples
 	max := 100
 	pb := NewProgressBar(int64(max))
 
-	for i := 0; i < max+20; i++ {
+	for range max + 20 {
 		pb.Inc()
 		pb.Add(23)
 		pb.Set(42)
@@ -45,7 +45,7 @@ func TestProgressBytes(t *testing.T) {
 	pb.Hidden = true
 	pb.Bytes = true
 
-	for i := 0; i < 24; i++ {
+	for i := range 24 {
 		pb.Set(2 << (i + 1))
 	}
 
