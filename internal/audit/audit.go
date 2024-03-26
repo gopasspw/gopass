@@ -219,6 +219,8 @@ func (a *Auditor) auditSecret(ctx context.Context, secret string) {
 
 	// do not check empty secrets.
 	if sec.Password() == "" {
+		debug.Log("Skipping empty secret %s", secret)
+
 		return
 	}
 
