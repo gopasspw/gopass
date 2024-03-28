@@ -127,6 +127,11 @@ func (r *ReportBuilder) AddFinding(secret, finding, message, severity string) {
 	s.Findings[finding] = f
 	r.secrets[secret] = s
 
+	debug.Log("Secret %q has finding %q: %s with severity %s", secret, finding, message, severity)
+	if severity == "none" {
+		return
+	}
+
 	// record secrets per finding, for the summary
 	ss := r.findings[finding]
 	ss.Add(secret)
