@@ -60,18 +60,18 @@ func (s *Store) Set(ctx context.Context, name string, value []byte) error {
 			return err
 		}
 	}
-	debug.Log("Writing %s to %s", name, filepath.Join(s.path, name))
+	debug.Log("Writing %s to %q", name, filename)
 
 	// if we ever try to write a secret that is identical (in ciphertext) to the secret in store,
 	// we might want to act differently
 	// (for instance, by not adding/committing/pushing the secret in git,
 	//  or by panicking in the case of password generation)
-	oldvalue, err := os.ReadFile(filepath.Join(s.path, name))
+	oldvalue, err := os.ReadFile(filename)
 	if err == nil && bytes.Equal(oldvalue, value) {
 		return store.ErrMeaninglessWrite
 	}
 
-	return os.WriteFile(filepath.Join(s.path, name), value, 0o644)
+	return os.WriteFile(filename, value, 0o644)
 }
 
 // Move moves the named entity to the new location.
