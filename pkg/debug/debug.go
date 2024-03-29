@@ -48,7 +48,7 @@ func initDebug() bool {
 		_ = opts.logFile.Close()
 	}
 
-	if l := os.Getenv("GOPASS_DEBUG_LEVEL"); l != "" {
+	if l := os.Getenv("GOPASS_DEBUG_VERBOSE"); l != "" {
 		if iv, err := strconv.Atoi(l); err != nil && iv >= 0 {
 			opts.verbosity = iv
 		}
