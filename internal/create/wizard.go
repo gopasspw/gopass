@@ -8,13 +8,16 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/gopasspw/gopass/internal/action/exit"
 	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/cui"
+	"github.com/gopasspw/gopass/internal/editor"
 	"github.com/gopasspw/gopass/internal/hook"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/set"
 	"github.com/gopasspw/gopass/internal/store/root"
+	"github.com/gopasspw/gopass/internal/tpl"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/fsutil"
@@ -81,9 +84,34 @@ func New(ctx context.Context, s backend.Storage) (*Wizard, error) {
 		}
 	}
 
+	// fallback to the default templates if no templates were found
+	// even after writing them. this indicates a problem with writing
+	// and should be investigated.
+	if len(tpls) < 1 {
+		out.Error(ctx, "No templates found, falling back to default templates")
+
+		tpls, err = w.parseTemplatesFallback(ctx)
+		if err != nil {
+			return w, fmt.Errorf("could not parse fallback templates: %w", err)
+		}
+	}
+
 	w.Templates = tpls
 
 	return w, nil
+}
+
+func (w *Wizard) parseTemplatesFallback(ctx context.Context) ([]Template, error) {
+	parsed := []Template{}
+	for _, tpl := range defaultTemplates {
+		t := Template{}
+		if err := yaml.Unmarshal([]byte(tpl), &t); err != nil {
+			return nil, err
+		}
+		parsed = append(parsed, t)
+	}
+
+	return parsed, nil
 }
 
 func (w *Wizard) parseTemplates(ctx context.Context, s backend.Storage) ([]Template, error) {
@@ -163,7 +191,7 @@ func mkActFunc(tpl Template, s *root.Store, cb ActionCallback) func(context.Cont
 			return err
 		}
 
-		sec := secrets.New()
+		sec := secrets.NewAKV()
 
 		out.Print(ctx, tpl.Welcome)
 
@@ -204,6 +232,21 @@ func mkActFunc(tpl Template, s *root.Store, cb ActionCallback) func(context.Cont
 					nameParts = append(nameParts, sv)
 				}
 				_ = sec.Set(k, sv)
+			case "multiline":
+				ed := editor.Path(c)
+
+				content, err := renderTemplate(ctx, k, s)
+				if err != nil {
+					debug.Log("failed to render template %q: %s", k, err)
+				}
+				content, err = editor.Invoke(ctx, ed, content)
+				if err != nil {
+					return exit.Error(exit.Unknown, err, "failed to invoke editor: %s", err)
+				}
+				n, err := sec.Write(content)
+				if err != nil {
+					return fmt.Errorf("failed to write %d bytes to %s: %w", n, k, err)
+				}
 			case "hostname":
 				var def string
 				if k == "username" {
@@ -293,6 +336,29 @@ func mkActFunc(tpl Template, s *root.Store, cb ActionCallback) func(context.Cont
 
 		return cb(ctx, c, name, password, genPw)
 	}
+}
+
+func renderTemplate(ctx context.Context, name string, s *root.Store) ([]byte, error) {
+	tName, tmpl, found := s.LookupTemplate(ctx, name)
+	if !found {
+		debug.Log("No template found for %s", name)
+
+		return nil, nil
+	}
+
+	tmplStr := strings.TrimSpace(string(tmpl))
+	if tmplStr == "" {
+		debug.Log("Skipping empty template %q, for %s", tName, name)
+
+		return nil, nil
+	}
+
+	nc, err := tpl.Execute(ctx, string(tmpl), name, nil, s)
+	if err != nil {
+		return nil, fmt.Errorf("failed to execute template %q: %w", tName, err)
+	}
+
+	return nc, nil
 }
 
 // generatePasssword will walk through the password generation steps.
