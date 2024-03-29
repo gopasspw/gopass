@@ -30,7 +30,7 @@ func Notify(ctx context.Context, subj, msg string) error {
 	// check if terminal-notifier was installed else use the applescript fallback
 	tn, _ := executableExists(terminalNotifier)
 	if tn {
-		return tnNotification(msg, subj)
+		return tnNotification(ctx, msg, subj)
 	}
 
 	return osaNotification(msg, subj)
@@ -53,8 +53,8 @@ func execNotification(executable string, args []string) error {
 }
 
 // display notification with terminal-notifier.
-func tnNotification(msg string, subj string) error {
-	arguments := []string{"-title", "Gopass", "-message", msg, "-subtitle", subj, "-appIcon", iconURI()}
+func tnNotification(ctx context.Context, msg string, subj string) error {
+	arguments := []string{"-title", "Gopass", "-message", msg, "-subtitle", subj, "-appIcon", iconURI(ctx)}
 
 	return execNotification(terminalNotifier, arguments)
 }

@@ -1,6 +1,7 @@
 package notify
 
 import (
+	"context"
 	"image/png"
 	"os"
 	"strings"
@@ -20,9 +21,11 @@ func TestNotify(t *testing.T) {
 func TestIcon(t *testing.T) {
 	t.Parallel()
 
-	fn := strings.TrimPrefix(iconURI(), "file://")
+	ctx := context.Background()
+
+	fn := strings.TrimPrefix(iconURI(ctx), "file://")
 	require.NoError(t, os.Remove(fn))
-	_ = iconURI()
+	_ = iconURI(ctx)
 	fh, err := os.Open(fn)
 	require.NoError(t, err)
 

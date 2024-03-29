@@ -3,15 +3,21 @@ package notify
 import (
 	"bytes"
 	"compress/gzip"
+	"context"
 	"io"
 	"os"
 	"path/filepath"
 
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/pkg/appdir"
 	"github.com/gopasspw/gopass/pkg/fsutil"
 )
 
-func iconURI() string {
+func iconURI(ctx context.Context) string {
+	if config.Bool(ctx, "notify.disable-icon") {
+		return ""
+	}
+
 	userCache := appdir.UserCache()
 	if !fsutil.IsDir(userCache) {
 		if err := os.MkdirAll(userCache, 0o755); err != nil {
