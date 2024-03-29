@@ -14,7 +14,7 @@ import (
 )
 
 func iconURI(ctx context.Context) string {
-	if config.Bool(ctx, "notifications.disable-icon") {
+	if config.Bool(ctx, "notify.disable-icon") {
 		return ""
 	}
 
