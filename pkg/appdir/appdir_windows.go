@@ -17,16 +17,16 @@ func (a *Appdir) UserConfig() string {
 // UserCache returns the users cache dir
 func (a *Appdir) UserCache() string {
 	if hd := os.Getenv("GOPASS_HOMEDIR"); hd != "" {
-		return filepath.Join(hd, ".cache", a.ame)
+		return filepath.Join(hd, ".cache", a.name)
 	}
 
-	return filepath.Join(os.Getenv("LOCALAPPDATA"), a.ame)
+	return filepath.Join(os.Getenv("LOCALAPPDATA"), a.name)
 }
 
 // UserData returns the users data dir
 func (a *Appdir) UserData() string {
 	if hd := os.Getenv("GOPASS_HOMEDIR"); hd != "" {
-		return filepath.Join(hd, ".local", "share", a.ame)
+		return filepath.Join(hd, ".local", "share", a.name)
 	}
-	return filepath.Join(os.Getenv("LOCALAPPDATA"), a.ame)
+	return filepath.Join(os.Getenv("LOCALAPPDATA"), a.name)
 }
