@@ -49,7 +49,7 @@ func initDebug() bool {
 	}
 
 	if l := os.Getenv("GOPASS_DEBUG_VERBOSE"); l != "" {
-		if iv, err := strconv.Atoi(l); err != nil && iv >= 0 {
+		if iv, err := strconv.Atoi(l); err == nil {
 			opts.verbosity = iv
 		}
 	}
