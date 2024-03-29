@@ -25,8 +25,8 @@ func TestConfig(t *testing.T) {
 	require.NoError(t, cfg.Set("", "core.int", "42"))
 
 	assert.Equal(t, "foo", cfg.Get("core.string"))
-	assert.True(t, cfg.GetBool("core.bool"))
-	assert.Equal(t, 42, cfg.GetInt("core.int"))
+	assert.True(t, AsBool(cfg.Get("core.bool")))
+	assert.Equal(t, 42, AsInt(cfg.Get("core.int")))
 
 	require.NoError(t, cfg.SetEnv("env.string", "foo"))
 	assert.Equal(t, "foo", cfg.Get("env.string"))

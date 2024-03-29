@@ -113,7 +113,7 @@ func setupApp(ctx context.Context, sv semver.Version) (context.Context, *cli.App
 	}
 
 	// set some action callbacks
-	if !cfg.GetBool("core.autoimport") {
+	if !config.AsBool(cfg.Get("core.autoimport")) {
 		ctx = ctxutil.WithImportFunc(ctx, termio.AskForKeyImport)
 	}
 
@@ -326,7 +326,7 @@ func initContext(ctx context.Context, cfg *config.Config) context.Context {
 		// on all other platforms we should be able to use color. Only set
 		// this if it's in the config.
 		if cfg.IsSet("core.nocolor") {
-			color.NoColor = cfg.GetBool("core.nocolor")
+			color.NoColor = config.AsBool(cfg.Get("core.nocolor"))
 		}
 	}
 
