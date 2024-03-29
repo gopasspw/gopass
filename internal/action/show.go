@@ -204,7 +204,7 @@ func (s *Action) showHandleOutput(ctx context.Context, name string, sec gopass.S
 	}
 
 	if (IsClip(ctx) || config.Bool(ctx, "show.autoclip")) && pw != "" {
-		if err := clipboard.CopyTo(ctx, name, []byte(pw), s.cfg.GetInt("core.cliptimeout")); err != nil {
+		if err := clipboard.CopyTo(ctx, name, []byte(pw), config.AsInt(s.cfg.Get("core.cliptimeout"))); err != nil {
 			return err
 		}
 	}

@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 	"strconv"
-	"strings"
 
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/gitconfig"
@@ -146,6 +145,19 @@ func (c *Config) IsSet(key string) bool {
 	return c.root.IsSet(key)
 }
 
+// IsSetM returns true if the key is set in the mount or the root config if mount is empty.
+func (c *Config) IsSetM(mount, key string) bool {
+	if mount == "" || mount == "<root>" {
+		return c.root.IsSet(key)
+	}
+
+	if cfg := c.cfgs[mount]; cfg != nil {
+		return cfg.IsSet(key)
+	}
+
+	return false
+}
+
 // Get returns the given key from the root config.
 func (c *Config) Get(key string) string {
 	return c.root.Get(key)
@@ -173,41 +185,6 @@ func (c *Config) GetM(mount, key string) string {
 	}
 
 	return ""
-}
-
-// GetBool returns true if the value of the key evaluates to "true".
-// Otherwise, it returns false.
-func (c *Config) GetBool(key string) bool {
-	return c.GetBoolM("", key)
-}
-
-// GetBoolM returns true if the value of the key evaluates to "true" for the provided mount,
-// or the root config if mount is empty.
-// Otherwise, it returns false.
-func (c *Config) GetBoolM(mount, key string) bool {
-	if strings.ToLower(strings.TrimSpace(c.GetM(mount, key))) == "true" {
-		return true
-	}
-
-	return false
-}
-
-// GetInt returns the integer value of the key if it can be parsed.
-// Otherwise, it returns 0.
-func (c *Config) GetInt(key string) int {
-	return c.GetIntM("", key)
-}
-
-// GetIntM returns the integer value of the key if it can be parsed for the provided mount,
-// or the root config if mount is empty
-// Otherwise, it returns 0.
-func (c *Config) GetIntM(mount, key string) int {
-	iv, err := strconv.Atoi(c.GetM(mount, key))
-	if err != nil {
-		return 0
-	}
-
-	return iv
 }
 
 // Set tries to set the key to the given value.
@@ -361,7 +338,7 @@ func DefaultPasswordLengthFromEnv(ctx context.Context) (int, bool) {
 	def := DefaultPasswordLength
 	cfg, mp := FromContext(ctx)
 
-	if l := cfg.GetIntM(mp, "generate.length"); l > 0 {
+	if l := AsInt(cfg.GetM(mp, "generate.length")); l > 0 {
 		def = l
 	}
 

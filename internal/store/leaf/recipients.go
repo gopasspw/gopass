@@ -302,7 +302,7 @@ func (s *Store) getRecipients(ctx context.Context, idf string) (*recipients.Reci
 
 	cfg, _ := config.FromContext(ctx)
 	// check recipients hash, global config takes precedence here for security reasons
-	if cfg.GetGlobal("recipients.check") != "true" && !cfg.GetBoolM(s.alias, "recipients.check") {
+	if cfg.GetGlobal("recipients.check") != "true" && !config.AsBool(cfg.GetM(s.alias, "recipients.check")) {
 		return rs, nil
 	}
 
@@ -464,7 +464,7 @@ func (s *Store) saveRecipients(ctx context.Context, rs recipientMarshaler, msg s
 	}
 
 	// save all recipients public keys to the repo if wanted
-	if cfg.GetBoolM(s.alias, "core.exportkeys") {
+	if config.AsBoolWithDefault(cfg.GetM(s.alias, "core.exportkeys"), true) {
 		debug.Log("updating exported keys")
 		if _, err := s.UpdateExportedPublicKeys(ctx, rs.IDs()); err != nil {
 			out.Errorf(ctx, "Failed to export missing public keys: %s", err)
@@ -487,7 +487,7 @@ func (s *Store) saveRecipients(ctx context.Context, rs recipientMarshaler, msg s
 		return fmt.Errorf("failed to commit changes to git: %w", err)
 	}
 
-	if !cfg.GetBoolM(s.alias, "core.autopush") {
+	if !config.AsBool(cfg.GetM(s.alias, "core.autopush")) {
 		debug.Log("not pushing to git remote, core.autopush is false")
 
 		return nil
