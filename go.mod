@@ -1,6 +1,6 @@
 module github.com/gopasspw/gopass
 
-go 1.22.0
+go 1.22.1
 
 require (
 	filippo.io/age v1.1.1
@@ -17,7 +17,7 @@ require (
 	github.com/google/go-cmp v0.6.0
 	github.com/google/go-github v17.0.0+incompatible
 	github.com/google/go-github/v33 v33.0.0
-	github.com/gopasspw/gopass-hibp v1.15.11
+	github.com/gopasspw/gopass-hibp v1.15.12
 	github.com/hashicorp/golang-lru v1.0.2
 	github.com/jsimonetti/pwscheme v0.0.0-20220922140336-67a4d090f150
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
@@ -41,7 +41,7 @@ require (
 	github.com/zalando/go-keyring v0.2.4
 	github.com/zeebo/blake3 v0.2.3
 	golang.org/x/crypto v0.21.0
-	golang.org/x/exp v0.0.0-20240314144324-c7f7c6466f7f
+	golang.org/x/exp v0.0.0-20240325151524-a685a6edb6d8
 	golang.org/x/net v0.22.0
 	golang.org/x/oauth2 v0.18.0
 	golang.org/x/sys v0.18.0
@@ -54,9 +54,9 @@ require (
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/alessio/shellescape v1.4.2 // indirect
 	github.com/boombuler/barcode v1.0.1 // indirect
-	github.com/cenkalti/backoff/v4 v4.2.1 // indirect
+	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/cloudflare/circl v1.3.7 // indirect
-	github.com/cpuguy83/go-md2man/v2 v2.0.3 // indirect
+	github.com/cpuguy83/go-md2man/v2 v2.0.4 // indirect
 	github.com/danieljoos/wincred v1.2.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/frankban/quicktest v1.14.4 // indirect
