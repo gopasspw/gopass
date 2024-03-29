@@ -8,6 +8,7 @@ import (
 	"path"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 )
 
@@ -17,15 +18,24 @@ var (
 	// Stderr is exported for tests.
 	Stderr io.Writer = os.Stderr
 	// LogWriter is exposed for consuming extra command output, if needed.
-	LogWriter  io.Writer = io.Discard
-	logSecrets bool
+	LogWriter io.Writer = io.Discard
 )
 
 var opts struct {
-	logger  *log.Logger
-	funcs   map[string]bool
-	files   map[string]bool
-	logFile *os.File
+	logger     *log.Logger
+	funcs      map[string]bool
+	files      map[string]bool
+	logFile    *os.File
+	logSecrets bool
+	verbosity  int
+}
+
+// v is a verbosity level.
+type v int
+
+// V returns a logger at the given verbosity level.
+func V(n int) v {
+	return v(n)
 }
 
 var logFn = doNotLog
@@ -38,6 +48,12 @@ func initDebug() bool {
 		_ = opts.logFile.Close()
 	}
 
+	if l := os.Getenv("GOPASS_DEBUG_VERBOSE"); l != "" {
+		if iv, err := strconv.Atoi(l); err == nil {
+			opts.verbosity = iv
+		}
+	}
+
 	if os.Getenv("GOPASS_DEBUG") == "" && os.Getenv("GOPASS_DEBUG_LOG") == "" {
 		logFn = doNotLog
 
@@ -47,9 +63,9 @@ func initDebug() bool {
 	// we need to explicitly set logSecrets to false in case tests run under an environment
 	// where GOPASS_DEBUG_LOG_SECRETS is true. Otherwise setting it to false in the test
 	// context won't have any effect.
-	logSecrets = false
+	opts.logSecrets = false
 	if sv := os.Getenv("GOPASS_DEBUG_LOG_SECRETS"); sv != "" && sv != "false" {
-		logSecrets = true
+		opts.logSecrets = true
 	}
 
 	initDebugLogger()
@@ -192,21 +208,33 @@ func checkFilter(filter map[string]bool, key string) bool {
 }
 
 // Log logs a statement to Stderr (unless filtered) and the
+// debug log file (if enabled), but only if the verbosity
+// level is greater or equal to the given level.
+func (n v) Log(f string, args ...any) {
+	logFn(int(n), 0, f, args...)
+}
+
+// Log logs a statement to Stderr (unless filtered) and the
 // debug log file (if enabled).
 func Log(f string, args ...any) {
-	logFn(0, f, args...)
+	logFn(0, 0, f, args...)
 }
 
 // LogN logs a statement to Stderr (unless filtered) and the
 // debug log file (if enabled). The offset will be applied to
 // the runtime position.
 func LogN(offset int, f string, args ...any) {
-	logFn(offset, f, args...)
+	logFn(0, offset, f, args...)
 }
 
-func doNotLog(offset int, f string, args ...any) {}
+func doNotLog(verbosity, offset int, f string, args ...any) {}
 
-func doLog(offset int, f string, args ...any) {
+func doLog(verbosity, offset int, f string, args ...any) {
+	// if the log message is too verbose for the requested verbosity level, skip it
+	if verbosity > opts.verbosity {
+		return
+	}
+
 	fn, dir, file, line := getPosition(offset)
 
 	if len(f) == 0 || f[len(f)-1] != '\n' {
@@ -224,7 +252,7 @@ func doLog(offset int, f string, args ...any) {
 	argsi := make([]any, len(args))
 	for i, item := range args {
 		argsi[i] = item
-		if secreter, ok := item.(Safer); ok && !logSecrets {
+		if secreter, ok := item.(Safer); ok && !opts.logSecrets {
 			argsi[i] = secreter.SafeStr()
 
 			continue

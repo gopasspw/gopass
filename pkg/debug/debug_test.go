@@ -84,7 +84,7 @@ func TestDebugSecret(t *testing.T) {
 	// it's been already initialized, need to re-init
 	assert.True(t, initDebug())
 
-	assert.True(t, logSecrets)
+	assert.True(t, opts.logSecrets)
 
 	Log("foo")
 	Log("%s", testSecret("secret"))

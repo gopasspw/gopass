@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
+	"github.com/gopasspw/gopass/pkg/debug"
 )
 
 const (
@@ -60,7 +61,7 @@ func (r *Root) AddTemplate(path string) error {
 func (r *Root) insert(path string, template bool, mountPath string) error {
 	t := r.Subtree
 
-	// debug.Log("adding: %s [tpl: %t, mp: %q]", path, template, mountPath)
+	debug.V(4).Log("adding: %s [tpl: %t, mp: %q]", path, template, mountPath)
 
 	// split the path into its components, iterate over them and create
 	// the tree structure. Everything but the last element is a folder.
@@ -82,10 +83,10 @@ func (r *Root) insert(path string, template bool, mountPath string) error {
 			}
 		}
 
-		// debug.Log("[%d] %s -> Node: %+v", i, e, n)
+		debug.V(4).Log("[%d] %s -> Node: %+v", i, e, n)
 
 		node := t.Insert(n)
-		// debug.Log("node after insert: %+v", node)
+		debug.V(4).Log("node after insert: %+v", node)
 
 		// do we need to extend an existing subtree?
 		if i < len(p)-1 && node.Subtree == nil {
