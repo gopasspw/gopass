@@ -9,8 +9,40 @@ import (
 	"github.com/gopasspw/gopass/pkg/debug"
 )
 
-// Name is used in the final path of the generated path.
-var Name = "gopass"
+var DefaultAppdir = New("gopass")
+
+// Appdir is a helper struct to generate paths for config, cache and data dirs.
+type Appdir struct {
+	// Name is used in the final path of the generated path.
+	name string
+}
+
+// New returns a new Appdir.
+func New(name string) *Appdir {
+	return &Appdir{
+		name: name,
+	}
+}
+
+// Name returns the name of the appdir.
+func (a *Appdir) Name() string {
+	return a.name
+}
+
+// UserConfig returns the users config dir.
+func UserConfig() string {
+	return DefaultAppdir.UserConfig()
+}
+
+// UserCache returns the users cache dir.
+func UserCache() string {
+	return DefaultAppdir.UserCache()
+}
+
+// UserData returns the users data dir.
+func UserData() string {
+	return DefaultAppdir.UserData()
+}
 
 // UserHome returns the users home dir.
 func UserHome() string {

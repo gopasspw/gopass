@@ -23,6 +23,7 @@ type Configs struct {
 	env      *Config
 	workdir  string
 
+	Name           string
 	SystemConfig   string
 	GlobalConfig   string
 	LocalConfig    string
@@ -37,7 +38,7 @@ func New() *Configs {
 			readonly: true,
 		},
 		global: &Config{
-			path: globalConfigFile(),
+			path: globalConfigFile(name),
 		},
 		local:    &Config{},
 		worktree: &Config{},
@@ -45,6 +46,7 @@ func New() *Configs {
 			noWrites: true,
 		},
 
+		Name:           name,
 		SystemConfig:   systemConfig,
 		GlobalConfig:   globalConfig,
 		LocalConfig:    localConfig,
@@ -60,7 +62,7 @@ func (cs *Configs) Reload() {
 
 // String implements fmt.Stringer.
 func (cs *Configs) String() string {
-	return fmt.Sprintf("GitConfigs{Workdir: %s - Env: %s - System: %s - Global: %s - Local: %s - Worktree: %s}", cs.workdir, cs.EnvPrefix, cs.SystemConfig, cs.GlobalConfig, cs.LocalConfig, cs.WorktreeConfig)
+	return fmt.Sprintf("GitConfigs{Name: %s - Workdir: %s - Env: %s - System: %s - Global: %s - Local: %s - Worktree: %s}", cs.Name, cs.workdir, cs.EnvPrefix, cs.SystemConfig, cs.GlobalConfig, cs.LocalConfig, cs.WorktreeConfig)
 }
 
 // LoadAll tries to load all known config files. Missing or invalid files are
@@ -69,15 +71,15 @@ func (cs *Configs) String() string {
 func (cs *Configs) LoadAll(workdir string) *Configs {
 	cs.workdir = workdir
 
-	debug.Log("Loading gitconfigs for %s", cs)
+	debug.Log("Loading gitconfigs for %s", cs.Name)
 
 	// load the system config, if any
 	if os.Getenv(cs.EnvPrefix+"_NOSYSTEM") == "" {
 		c, err := LoadConfig(cs.SystemConfig)
 		if err != nil {
-			debug.Log("[%s] failed to load system config: %s", cs.EnvPrefix, err)
+			debug.Log("[%s] failed to load system config: %s", cs.Name, err)
 		} else {
-			debug.Log("[%s] loaded system config from %s", cs.EnvPrefix, cs.SystemConfig)
+			debug.Log("[%s] loaded system config from %s", cs.Name, cs.SystemConfig)
 			cs.system = c
 			// the system config should generally not be written from gopass.
 			// in almost any scenario gopass shouldn't have write access
@@ -96,11 +98,11 @@ func (cs *Configs) LoadAll(workdir string) *Configs {
 		localConfigPath := filepath.Join(workdir, cs.LocalConfig)
 		c, err := LoadConfig(localConfigPath)
 		if err != nil {
-			debug.Log("[%s] failed to load local config from %s: %s", cs.EnvPrefix, localConfigPath, err)
+			debug.Log("[%s] failed to load local config from %s: %s", cs.Name, localConfigPath, err)
 			// set the path just in case we want to modify / write to it later
 			cs.local.path = localConfigPath
 		} else {
-			debug.Log("[%s] loaded local config from %s", cs.EnvPrefix, localConfigPath)
+			debug.Log("[%s] loaded local config from %s", cs.Name, localConfigPath)
 			cs.local = c
 		}
 	}
@@ -111,11 +113,11 @@ func (cs *Configs) LoadAll(workdir string) *Configs {
 		worktreeConfigPath := filepath.Join(workdir, cs.WorktreeConfig)
 		c, err := LoadConfig(worktreeConfigPath)
 		if err != nil {
-			debug.Log("[%s] failed to load worktree config from %s: %s", cs.EnvPrefix, worktreeConfigPath, err)
+			// debug.Log("[%s] failed to load worktree config from %s: %s", cs.Name, worktreeConfigPath, err)
 			// set the path just in case we want to modify / write to it later
 			cs.worktree.path = worktreeConfigPath
 		} else {
-			debug.Log("[%s] loaded worktree config from %s", cs.EnvPrefix, worktreeConfigPath)
+			debug.Log("[%s] loaded worktree config from %s", cs.Name, worktreeConfigPath)
 			cs.worktree = c
 		}
 	}
@@ -127,9 +129,9 @@ func (cs *Configs) LoadAll(workdir string) *Configs {
 	return cs
 }
 
-func globalConfigFile() string {
+func globalConfigFile(name string) string {
 	// $XDG_CONFIG_HOME/git/config
-	return filepath.Join(appdir.UserConfig(), "config")
+	return filepath.Join(appdir.New(name).UserConfig(), "config")
 }
 
 // loadGlobalConfigs will try to load the per-user (Git calls them "global") configs.
@@ -137,7 +139,7 @@ func globalConfigFile() string {
 // it's easier to handle this in its own method.
 func (cs *Configs) loadGlobalConfigs() string {
 	locs := []string{
-		globalConfigFile(),
+		globalConfigFile(cs.Name),
 	}
 
 	if cs.GlobalConfig != "" {
@@ -148,10 +150,10 @@ func (cs *Configs) loadGlobalConfigs() string {
 	// if we already have a global config we can just reload it instead of trying all locations
 	if !cs.global.IsEmpty() {
 		if p := cs.global.path; p != "" {
-			debug.Log("[%s] reloading existing global config from %s", cs.EnvPrefix, p)
+			debug.Log("[%s] reloading existing global config from %s", cs.Name, p)
 			cfg, err := LoadConfig(p)
 			if err != nil {
-				debug.Log("[%s] failed to reload global config from %s", cs.EnvPrefix, p)
+				debug.Log("[%s] failed to reload global config from %s", cs.Name, p)
 			} else {
 				cs.global = cfg
 
@@ -160,7 +162,7 @@ func (cs *Configs) loadGlobalConfigs() string {
 		}
 	}
 
-	debug.Log("[%s] trying to find global configs in %v", cs.EnvPrefix, locs)
+	debug.Log("[%s] trying to find global configs in %v", cs.Name, locs)
 	for _, p := range locs {
 		// GlobalConfig might be set to an empty string to disable it
 		// and instead of the XDG_CONFIG_HOME path only.
@@ -169,22 +171,22 @@ func (cs *Configs) loadGlobalConfigs() string {
 		}
 		cfg, err := LoadConfig(p)
 		if err != nil {
-			debug.Log("[%s] failed to load global config from %s", cs.EnvPrefix, p)
+			debug.Log("[%s] failed to load global config from %s: %s", cs.Name, p, err)
 
 			continue
 		}
 
-		debug.Log("[%s] loaded global config from %s", cs.EnvPrefix, p)
+		debug.Log("[%s] loaded global config from %s", cs.Name, p)
 		cs.global = cfg
 
 		return p
 	}
 
-	debug.Log("[%s] no global config found", cs.EnvPrefix)
+	debug.Log("[%s] no global config found", cs.Name)
 
 	// set the path to the default one in case we want to write to it (create it) later
 	cs.global = &Config{
-		path: globalConfigFile(),
+		path: globalConfigFile(cs.Name),
 	}
 
 	return ""
@@ -214,7 +216,7 @@ func (cs *Configs) Get(key string) string {
 		}
 	}
 
-	debug.Log("[%s] no value for %s found", cs.EnvPrefix, key)
+	// debug.Log("[%s] no value for %s found", cs.Name, key)
 
 	return ""
 }
@@ -238,7 +240,7 @@ func (cs *Configs) GetAll(key string) []string {
 		}
 	}
 
-	debug.Log("[%s] no value for %s found", cs.EnvPrefix, key)
+	// debug.Log("[%s] no value for %s found", cs.Name, key)
 
 	return nil
 }
@@ -253,7 +255,7 @@ func (cs *Configs) GetGlobal(key string) string {
 		return v
 	}
 
-	debug.Log("[%s] no value for %s found", cs.EnvPrefix, key)
+	// debug.Log("[%s] no value for %s found", cs.Name, key)
 
 	return ""
 }
@@ -268,7 +270,7 @@ func (cs *Configs) GetLocal(key string) string {
 		return v
 	}
 
-	debug.Log("[%s] no value for %s found", cs.EnvPrefix, key)
+	// debug.Log("[%s] no value for %s found", cs.Name, key)
 
 	return ""
 }
@@ -309,7 +311,7 @@ func (cs *Configs) SetLocal(key, value string) error {
 func (cs *Configs) SetGlobal(key, value string) error {
 	if cs.global == nil {
 		cs.global = &Config{
-			path: globalConfigFile(),
+			path: globalConfigFile(cs.Name),
 		}
 	}
 

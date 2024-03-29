@@ -36,6 +36,7 @@ const (
 
 func newGitconfig() *gitconfig.Configs {
 	c := gitconfig.New()
+	c.Name = "gopass"
 	c.EnvPrefix = envPrefix
 	c.GlobalConfig = os.Getenv("GOPASS_CONFIG")
 	c.SystemConfig = systemConfig
