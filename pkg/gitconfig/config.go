@@ -122,16 +122,16 @@ func (c *Config) Set(key, value string) error {
 	vs[0] = value
 	c.vars[key] = vs
 
-	debug.Log("set %q to %q", key, value)
+	// debug.Log("set %q to %q", key, value)
 
 	// a new key, insert it into an existing section, if any
 	if !present {
-		debug.Log("inserting value")
+		// debug.Log("inserting value")
 
 		return c.insertValue(key, value)
 	}
 
-	debug.Log("updating value")
+	// debug.Log("updating value")
 
 	var updated bool
 
@@ -146,7 +146,7 @@ func (c *Config) Set(key, value string) error {
 }
 
 func (c *Config) insertValue(key, value string) error {
-	debug.Log("input (%s: %s): \n--------------\n%s\n--------------\n", key, value, strings.Join(strings.Split("- "+c.raw.String(), "\n"), "\n- "))
+	// debug.Log("input (%s: %s): \n--------------\n%s\n--------------\n", key, value, strings.Join(strings.Split("- "+c.raw.String(), "\n"), "\n- "))
 
 	wSection, wSubsection, wKey := splitKey(key)
 
@@ -204,7 +204,7 @@ func (c *Config) insertValue(key, value string) error {
 	c.raw.WriteString(strings.Join(lines, "\n"))
 	c.raw.WriteString("\n")
 
-	debug.Log("output: \n--------------\n%s\n--------------\n", strings.Join(strings.Split("+ "+c.raw.String(), "\n"), "\n+ "))
+	// debug.Log("output: \n--------------\n%s\n--------------\n", strings.Join(strings.Split("+ "+c.raw.String(), "\n"), "\n+ "))
 
 	return c.flushRaw()
 }
@@ -231,7 +231,7 @@ func parseSectionHeader(line string) (section, subsection string, skip bool) { /
 // rewriteRaw is used to rewrite the raw config copy. It is used for set and unset operations
 // with different callbacks each.
 func (c *Config) rewriteRaw(key, value string, cb parseFunc) error {
-	debug.Log("input (%s: %s): \n--------------\n%s\n--------------\n", key, value, strings.Join(strings.Split("- "+c.raw.String(), "\n"), "\n- "))
+	// debug.Log("input (%s: %s): \n--------------\n%s\n--------------\n", key, value, strings.Join(strings.Split("- "+c.raw.String(), "\n"), "\n- "))
 
 	lines := parseConfig(strings.NewReader(c.raw.String()), key, value, cb)
 
@@ -239,7 +239,7 @@ func (c *Config) rewriteRaw(key, value string, cb parseFunc) error {
 	c.raw.WriteString(strings.Join(lines, "\n"))
 	c.raw.WriteString("\n")
 
-	debug.Log("output: \n--------------\n%s\n--------------\n", strings.Join(strings.Split("+ "+c.raw.String(), "\n"), "\n+ "))
+	// debug.Log("output: \n--------------\n%s\n--------------\n", strings.Join(strings.Split("+ "+c.raw.String(), "\n"), "\n+ "))
 
 	return c.flushRaw()
 }
@@ -255,11 +255,13 @@ func (c *Config) flushRaw() error {
 		return err
 	}
 
-	debug.Log("writing config to %s: \n--------------\n%s\n--------------", c.path, c.raw.String())
+	// debug.Log("writing config to %s: \n--------------\n%s\n--------------", c.path, c.raw.String())
 
 	if err := os.WriteFile(c.path, []byte(c.raw.String()), 0o600); err != nil {
 		return fmt.Errorf("failed to write config to %s: %w", c.path, err)
 	}
+
+	debug.Log("wrote config to %s", c.path)
 
 	return nil
 }

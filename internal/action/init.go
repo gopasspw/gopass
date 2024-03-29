@@ -179,11 +179,10 @@ func (s *Action) init(ctx context.Context, alias, path string, keys ...string) e
 func (s *Action) printRecipients(ctx context.Context, alias string) {
 	crypto := s.Store.Crypto(ctx, alias)
 	for _, recipient := range s.Store.ListRecipients(ctx, alias) {
-		r := "0x" + recipient
 		if kl, err := crypto.FindRecipients(ctx, recipient); err == nil && len(kl) > 0 {
-			r = crypto.FormatKey(ctx, kl[0], "")
+			recipient = crypto.FormatKey(ctx, kl[0], "")
 		}
-		out.Printf(ctx, "📩 "+r)
+		out.Printf(ctx, "📩 "+recipient)
 	}
 }
 

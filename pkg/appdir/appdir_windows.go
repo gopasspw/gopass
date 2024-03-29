@@ -6,27 +6,27 @@ import (
 )
 
 // UserConfig returns the users config dir
-func UserConfig() string {
+func (a *Appdir) UserConfig() string {
 	if hd := os.Getenv("GOPASS_HOMEDIR"); hd != "" {
-		return filepath.Join(hd, ".config", Name)
+		return filepath.Join(hd, ".config", a.name)
 	}
 
-	return filepath.Join(os.Getenv("APPDATA"), Name)
+	return filepath.Join(os.Getenv("APPDATA"), a.name)
 }
 
 // UserCache returns the users cache dir
-func UserCache() string {
+func (a *Appdir) UserCache() string {
 	if hd := os.Getenv("GOPASS_HOMEDIR"); hd != "" {
-		return filepath.Join(hd, ".cache", Name)
+		return filepath.Join(hd, ".cache", a.name)
 	}
 
-	return filepath.Join(os.Getenv("LOCALAPPDATA"), Name)
+	return filepath.Join(os.Getenv("LOCALAPPDATA"), a.name)
 }
 
 // UserData returns the users data dir
-func UserData() string {
+func (a *Appdir) UserData() string {
 	if hd := os.Getenv("GOPASS_HOMEDIR"); hd != "" {
-		return filepath.Join(hd, ".local", "share", Name)
+		return filepath.Join(hd, ".local", "share", a.name)
 	}
-	return filepath.Join(os.Getenv("LOCALAPPDATA"), Name)
+	return filepath.Join(os.Getenv("LOCALAPPDATA"), a.name)
 }
