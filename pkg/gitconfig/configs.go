@@ -113,7 +113,7 @@ func (cs *Configs) LoadAll(workdir string) *Configs {
 		worktreeConfigPath := filepath.Join(workdir, cs.WorktreeConfig)
 		c, err := LoadConfig(worktreeConfigPath)
 		if err != nil {
-			// debug.Log("[%s] failed to load worktree config from %s: %s", cs.Name, worktreeConfigPath, err)
+			debug.V(3).Log("[%s] failed to load worktree config from %s: %s", cs.Name, worktreeConfigPath, err)
 			// set the path just in case we want to modify / write to it later
 			cs.worktree.path = worktreeConfigPath
 		} else {
@@ -216,7 +216,7 @@ func (cs *Configs) Get(key string) string {
 		}
 	}
 
-	// debug.Log("[%s] no value for %s found", cs.Name, key)
+	debug.V(3).Log("[%s] no value for %s found", cs.Name, key)
 
 	return ""
 }
@@ -240,7 +240,7 @@ func (cs *Configs) GetAll(key string) []string {
 		}
 	}
 
-	// debug.Log("[%s] no value for %s found", cs.Name, key)
+	debug.V(3).Log("[%s] no value for %s found", cs.Name, key)
 
 	return nil
 }
@@ -255,7 +255,7 @@ func (cs *Configs) GetGlobal(key string) string {
 		return v
 	}
 
-	// debug.Log("[%s] no value for %s found", cs.Name, key)
+	debug.V(3).Log("[%s] no value for %s found", cs.Name, key)
 
 	return ""
 }
@@ -270,7 +270,7 @@ func (cs *Configs) GetLocal(key string) string {
 		return v
 	}
 
-	// debug.Log("[%s] no value for %s found", cs.Name, key)
+	debug.V(3).Log("[%s] no value for %s found", cs.Name, key)
 
 	return ""
 }
