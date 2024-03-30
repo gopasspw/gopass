@@ -6,6 +6,7 @@ package env
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"io"
 	"os"
 	"os/exec"
@@ -28,7 +29,7 @@ func Check(ctx context.Context) (string, error) {
 	cmd.Stderr = Stderr
 
 	if err := cmd.Run(); err != nil {
-		return "", err
+		return "", fmt.Errorf("`default read org.gpgtools.common UseKeychain` failed: %w", err)
 	}
 
 	// if the keychain is not used, we can skip the rest
