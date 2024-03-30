@@ -1033,7 +1033,7 @@ func (s *Action) GetCommands() []*cli.Command {
 			continue
 		}
 		nc := bc.Commands()
-		debug.Log("Backend %s added %d commands", be, len(nc))
+		debug.V(2).Log("Backend %s added %d commands", be, len(nc))
 		cmds = append(cmds, nc...)
 	}
 
@@ -1052,7 +1052,7 @@ func (s *Action) GetCommands() []*cli.Command {
 
 			return sub.Path(), nil
 		})
-		debug.Log("Backend %s added %d commands", be, len(nc))
+		debug.V(2).Log("Backend %s added %d commands", be, len(nc))
 		cmds = append(cmds, nc...)
 	}
 

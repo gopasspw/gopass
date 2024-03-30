@@ -77,9 +77,9 @@ func (cs *Configs) LoadAll(workdir string) *Configs {
 	if os.Getenv(cs.EnvPrefix+"_NOSYSTEM") == "" {
 		c, err := LoadConfig(cs.SystemConfig)
 		if err != nil {
-			debug.Log("[%s] failed to load system config: %s", cs.Name, err)
+			debug.V(1).Log("[%s] failed to load system config: %s", cs.Name, err)
 		} else {
-			debug.Log("[%s] loaded system config from %s", cs.Name, cs.SystemConfig)
+			debug.V(1).Log("[%s] loaded system config from %s", cs.Name, cs.SystemConfig)
 			cs.system = c
 			// the system config should generally not be written from gopass.
 			// in almost any scenario gopass shouldn't have write access
@@ -98,11 +98,11 @@ func (cs *Configs) LoadAll(workdir string) *Configs {
 		localConfigPath := filepath.Join(workdir, cs.LocalConfig)
 		c, err := LoadConfig(localConfigPath)
 		if err != nil {
-			debug.Log("[%s] failed to load local config from %s: %s", cs.Name, localConfigPath, err)
+			debug.V(1).Log("[%s] failed to load local config from %s: %s", cs.Name, localConfigPath, err)
 			// set the path just in case we want to modify / write to it later
 			cs.local.path = localConfigPath
 		} else {
-			debug.Log("[%s] loaded local config from %s", cs.Name, localConfigPath)
+			debug.V(1).Log("[%s] loaded local config from %s", cs.Name, localConfigPath)
 			cs.local = c
 		}
 	}
@@ -117,7 +117,7 @@ func (cs *Configs) LoadAll(workdir string) *Configs {
 			// set the path just in case we want to modify / write to it later
 			cs.worktree.path = worktreeConfigPath
 		} else {
-			debug.Log("[%s] loaded worktree config from %s", cs.Name, worktreeConfigPath)
+			debug.V(1).Log("[%s] loaded worktree config from %s", cs.Name, worktreeConfigPath)
 			cs.worktree = c
 		}
 	}
@@ -150,10 +150,10 @@ func (cs *Configs) loadGlobalConfigs() string {
 	// if we already have a global config we can just reload it instead of trying all locations
 	if !cs.global.IsEmpty() {
 		if p := cs.global.path; p != "" {
-			debug.Log("[%s] reloading existing global config from %s", cs.Name, p)
+			debug.V(1).Log("[%s] reloading existing global config from %s", cs.Name, p)
 			cfg, err := LoadConfig(p)
 			if err != nil {
-				debug.Log("[%s] failed to reload global config from %s", cs.Name, p)
+				debug.V(1).Log("[%s] failed to reload global config from %s", cs.Name, p)
 			} else {
 				cs.global = cfg
 
@@ -162,7 +162,7 @@ func (cs *Configs) loadGlobalConfigs() string {
 		}
 	}
 
-	debug.Log("[%s] trying to find global configs in %v", cs.Name, locs)
+	debug.V(1).Log("[%s] trying to find global configs in %v", cs.Name, locs)
 	for _, p := range locs {
 		// GlobalConfig might be set to an empty string to disable it
 		// and instead of the XDG_CONFIG_HOME path only.
@@ -171,18 +171,18 @@ func (cs *Configs) loadGlobalConfigs() string {
 		}
 		cfg, err := LoadConfig(p)
 		if err != nil {
-			debug.Log("[%s] failed to load global config from %s: %s", cs.Name, p, err)
+			debug.V(1).Log("[%s] failed to load global config from %s: %s", cs.Name, p, err)
 
 			continue
 		}
 
-		debug.Log("[%s] loaded global config from %s", cs.Name, p)
+		debug.V(1).Log("[%s] loaded global config from %s", cs.Name, p)
 		cs.global = cfg
 
 		return p
 	}
 
-	debug.Log("[%s] no global config found", cs.Name)
+	debug.V(1).Log("[%s] no global config found", cs.Name)
 
 	// set the path to the default one in case we want to write to it (create it) later
 	cs.global = &Config{

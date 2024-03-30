@@ -89,8 +89,12 @@ func (s *Action) Setup(c *cli.Context) error {
 		return s.initJoinTeam(ctx, team, remote)
 	}
 
+	if team == "" && create {
+		return fmt.Errorf("can not create a team without a team name")
+	}
+
 	// assume local setup by default, remotes can be added easily later.
-	if err := s.initLocal(ctx); err != nil {
+	if err := s.initLocal(ctx, remote); err != nil {
 		debug.Log("Setup failed. initLocal error: %s", err)
 
 		return err
@@ -282,7 +286,7 @@ func (s *Action) initSetupGitRemote(ctx context.Context, team, remote string) er
 
 // initLocal will initialize a local store, useful for local-only setups or as
 // part of team setups to create the root store.
-func (s *Action) initLocal(ctx context.Context) error {
+func (s *Action) initLocal(ctx context.Context, remote string) error {
 	path := ""
 	if s.Store != nil {
 		path = s.Store.Path()
@@ -295,9 +299,9 @@ func (s *Action) initLocal(ctx context.Context) error {
 
 	if backend.GetStorageBackend(ctx) == backend.GitFS {
 		debug.Log("configuring git remotes")
-		if want, err := termio.AskForBool(ctx, "❓ Do you want to add a git remote?", false); err == nil && want {
+		if want, err := termio.AskForBool(ctx, "❓ Do you want to add a git remote?", false); (err == nil && want) || remote != "" {
 			out.Printf(ctx, "Configuring the git remote ...")
-			if err := s.initSetupGitRemote(ctx, "", ""); err != nil {
+			if err := s.initSetupGitRemote(ctx, "", remote); err != nil {
 				return fmt.Errorf("failed to setup git remote: %w", err)
 			}
 		}
@@ -338,7 +342,7 @@ func (s *Action) initCreateTeam(ctx context.Context, team, remote string) error 
 	var err error
 
 	out.Printf(ctx, "Creating a new team ...")
-	if err := s.initLocal(ctx); err != nil {
+	if err := s.initLocal(ctx, ""); err != nil {
 		return fmt.Errorf("failed to create local store: %w", err)
 	}
 
@@ -370,7 +374,7 @@ func (s *Action) initJoinTeam(ctx context.Context, team, remote string) error {
 	var err error
 
 	out.Printf(ctx, "Joining existing team ...")
-	if err := s.initLocal(ctx); err != nil {
+	if err := s.initLocal(ctx, ""); err != nil {
 		return fmt.Errorf("failed to create local store: %w", err)
 	}
 

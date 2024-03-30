@@ -10,7 +10,7 @@ import (
 func migrateConfigs() error {
 	cfg := legacy.LoadWithOptions(true, false)
 	if cfg == nil {
-		debug.Log("no legacy config found. not migrating.")
+		debug.V(2).Log("no legacy config found. not migrating.")
 
 		return nil
 	}
