@@ -296,17 +296,17 @@ func (c *Config) migrateOptions(migrations map[string]string) {
 		return
 	}
 	var errs []error
-	debug.Log("migrateOptions running")
+	debug.V(2).Log("migrateOptions running")
 	for oldK, newK := range migrations {
 		found := false
 		if val := c.root.GetGlobal(oldK); val != "" {
-			debug.Log("migrating option in root global store: %s -> %s ", oldK, newK)
+			debug.V(2).Log("migrating option in root global store: %s -> %s ", oldK, newK)
 			errs = append(errs, c.root.SetGlobal(newK, val))
 			errs = append(errs, c.root.UnsetGlobal(oldK))
 			found = true
 		}
 		if val := c.root.GetLocal(oldK); val != "" {
-			debug.Log("migrating option in <root> local store: %s -> %s ", oldK, newK)
+			debug.V(2).Log("migrating option in <root> local store: %s -> %s ", oldK, newK)
 			errs = append(errs, c.root.SetLocal(newK, val))
 			errs = append(errs, c.root.UnsetLocal(oldK))
 			found = true
@@ -314,13 +314,13 @@ func (c *Config) migrateOptions(migrations map[string]string) {
 		for _, m := range c.Mounts() {
 			if cfg := c.cfgs[m]; cfg != nil {
 				if val := cfg.GetLocal(oldK); val != "" {
-					debug.Log("migrating option in local store %s: %s -> %s ", m, oldK, newK)
+					debug.V(2).Log("migrating option in local store %s: %s -> %s ", m, oldK, newK)
 					errs = append(errs, cfg.SetLocal(newK, val))
 					errs = append(errs, cfg.UnsetLocal(oldK))
 					found = true
 				}
 				if val := cfg.Get(oldK); !found && val != "" {
-					debug.Log("Found old option %s = %s in config, probably at the worktree or env level, "+
+					debug.V(2).Log("Found old option %s = %s in config, probably at the worktree or env level, "+
 						"or maybe at the system level cannot migrate it.", oldK, val)
 				}
 			}

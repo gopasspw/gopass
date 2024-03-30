@@ -108,7 +108,7 @@ func (c *Config) Set(key, value string) error {
 	if vs, found := c.vars[key]; found {
 		for _, v := range vs {
 			if v == value {
-				debug.Log("key %q with value %q already present. Not re-writing.", key, value)
+				debug.V(1).Log("key %q with value %q already present. Not re-writing.", key, value)
 
 				return nil
 			}
@@ -246,7 +246,7 @@ func (c *Config) rewriteRaw(key, value string, cb parseFunc) error {
 
 func (c *Config) flushRaw() error {
 	if c.noWrites || c.path == "" {
-		debug.Log("not writing changes to disk (noWrites %t, path %q)", c.noWrites, c.path)
+		debug.V(3).Log("not writing changes to disk (noWrites %t, path %q)", c.noWrites, c.path)
 
 		return nil
 	}
@@ -261,7 +261,7 @@ func (c *Config) flushRaw() error {
 		return fmt.Errorf("failed to write config to %s: %w", c.path, err)
 	}
 
-	debug.Log("wrote config to %s", c.path)
+	debug.V(1).Log("wrote config to %s", c.path)
 
 	return nil
 }
@@ -437,7 +437,7 @@ func LoadConfigFromEnv(envPrefix string) *Config {
 		}
 
 		c.vars[key] = append(c.vars[key], value)
-		debug.Log("added %s from env", key)
+		debug.V(3).Log("added %s from env", key)
 	}
 
 	return c

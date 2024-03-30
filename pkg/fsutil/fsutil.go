@@ -28,12 +28,12 @@ func CleanFilename(in string) string {
 func ExpandHomedir(path string) string {
 	if len(path) > 1 && path[:2] == "~/" {
 		dir := filepath.Clean(appdir.UserHome() + path[1:])
-		debug.Log("Expanding %s to %s", path, dir)
+		debug.V(1).Log("Expanding %s to %s", path, dir)
 
 		return dir
 	}
 
-	debug.Log("No tilde found in %s", path)
+	debug.V(2).Log("No tilde found in %s", path)
 
 	return path
 }
