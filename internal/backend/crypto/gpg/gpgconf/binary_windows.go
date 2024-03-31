@@ -22,13 +22,13 @@ func detectBinary(ctx context.Context, bin string) (string, error) {
 
 	bv := make(byVersion, 0, len(bins))
 	for _, b := range bins {
-		debug.Log("Looking for %q ...", b)
+		debug.V(3).Log("Looking for %q ...", b)
 		if p, err := exec.LookPath(b); err == nil {
 			gb := gpgBin{
 				path: p,
 				ver:  Version(ctx, p),
 			}
-			debug.Log("Found %q at %q (%s)", b, p, gb.ver.String())
+			debug.V(1).Log("Found %q at %q (%s)", b, p, gb.ver.String())
 			bv = append(bv, gb)
 		}
 	}
@@ -38,7 +38,7 @@ func detectBinary(ctx context.Context, bin string) (string, error) {
 	}
 
 	binary := bv[0].path
-	debug.Log("using %q", binary)
+	debug.V(1).Log("using %q", binary)
 
 	return binary, nil
 }

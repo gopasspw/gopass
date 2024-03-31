@@ -26,7 +26,7 @@ func detectBinary(_ context.Context, name string) (string, error) {
 		return exec.LookPath("gpg")
 	}
 
-	debug.Log("gpgconf returned %q for gpg", p)
+	debug.V(3).Log("gpgconf returned %q for gpg", p)
 
 	return p, nil
 }

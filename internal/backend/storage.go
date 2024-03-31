@@ -56,7 +56,7 @@ func DetectStorage(ctx context.Context, path string) (Storage, error) {
 	// The call to HasStorageBackend is important since GetStorageBackend will always return FS
 	// if nothing is found in the context.
 	if be, err := StorageRegistry.Get(GetStorageBackend(ctx)); HasStorageBackend(ctx) && err == nil {
-		debug.Log("Trying requested %s for %s", be, path)
+		debug.V(1).Log("Trying requested %s for %s", be, path)
 		st, err := be.New(ctx, path)
 		if err == nil {
 			debug.Log("Using requested %s for %s", be, path)
@@ -77,7 +77,7 @@ func DetectStorage(ctx context.Context, path string) (Storage, error) {
 
 	// Nothing requested in the context. Try to detect the backend.
 	for _, be := range StorageRegistry.Prioritized() {
-		debug.Log("Trying %s for %s", be, path)
+		debug.V(1).Log("Trying %s for %s", be, path)
 		if err := be.Handles(ctx, path); err != nil {
 			debug.Log("failed to use %s for %s: %s", be, path, err)
 

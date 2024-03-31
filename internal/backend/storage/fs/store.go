@@ -41,7 +41,7 @@ func (s *Store) Get(ctx context.Context, name string) ([]byte, error) {
 	}
 
 	path := filepath.Join(s.path, filepath.Clean(name))
-	debug.Log("Reading %s from %s", name, path)
+	debug.V(3).Log("Reading %s from %s", name, path)
 
 	return os.ReadFile(path)
 }
@@ -60,7 +60,7 @@ func (s *Store) Set(ctx context.Context, name string, value []byte) error {
 			return err
 		}
 	}
-	debug.Log("Writing %s to %q", name, filename)
+	debug.V(3).Log("Writing %s to %q", name, filename)
 
 	// if we ever try to write a secret that is identical (in ciphertext) to the secret in store,
 	// we might want to act differently
@@ -90,7 +90,7 @@ func (s *Store) Move(ctx context.Context, from, to string, del bool) error {
 			return fmt.Errorf("failed to create directory %q: %w", toDir, err)
 		}
 	}
-	debug.Log("Copying %q (%q) to %q (%q)", from, fromFn, to, toFn)
+	debug.V(3).Log("Copying %q (%q) to %q (%q)", from, fromFn, to, toFn)
 
 	if del {
 		if err := os.Rename(fromFn, toFn); err != nil {
@@ -109,7 +109,7 @@ func (s *Store) Delete(ctx context.Context, name string) error {
 		name = filepath.FromSlash(name)
 	}
 	path := filepath.Join(s.path, filepath.Clean(name))
-	debug.Log("Deleting %s from %s", name, path)
+	debug.V(3).Log("Deleting %s from %s", name, path)
 
 	if err := os.Remove(path); err != nil {
 		return err
@@ -131,7 +131,7 @@ func (s *Store) removeEmptyParentDirectories(path string) error {
 		return nil
 	}
 
-	debug.Log("removing empty parent dir: %q", parent)
+	debug.V(1).Log("removing empty parent dir: %q", parent)
 	err := os.Remove(parent)
 	switch {
 	case err == nil:
@@ -151,7 +151,7 @@ func (s *Store) Exists(ctx context.Context, name string) bool {
 	}
 	path := filepath.Join(s.path, filepath.Clean(name))
 	found := fsutil.IsFile(path)
-	debug.Log("Checking if '%s' exists at %s: %t", name, path, found)
+	debug.V(2).Log("Checking if '%s' exists at %s: %t", name, path, found)
 
 	return found
 }
@@ -161,7 +161,7 @@ func (s *Store) Exists(ctx context.Context, name string) bool {
 // directory separator are normalized using `/`.
 func (s *Store) List(ctx context.Context, prefix string) ([]string, error) {
 	prefix = strings.TrimPrefix(prefix, "/")
-	debug.Log("Listing %s/%s", s.path, prefix)
+	debug.V(2).Log("Listing %s/%s", s.path, prefix)
 
 	files := make([]string, 0, 100)
 	if err := walkSymlinks(s.path, func(path string, info os.FileInfo, err error) error {
@@ -171,7 +171,7 @@ func (s *Store) List(ctx context.Context, prefix string) ([]string, error) {
 
 		relPath := strings.TrimPrefix(path, s.path+string(filepath.Separator)) + string(filepath.Separator)
 		if info.IsDir() && strings.HasPrefix(info.Name(), ".") && path != s.path && !strings.HasPrefix(prefix, relPath) && filepath.Base(path) != filepath.Base(prefix) {
-			debug.Log("skipping dot dir (relPath: %s, prefix: %s)", relPath, prefix)
+			debug.V(3).Log("skipping dot dir (relPath: %s, prefix: %s)", relPath, prefix)
 
 			return filepath.SkipDir
 		}
@@ -207,7 +207,7 @@ func (s *Store) IsDir(ctx context.Context, name string) bool {
 	}
 	path := filepath.Join(s.path, filepath.Clean(name))
 	isDir := fsutil.IsDir(path)
-	debug.Log("%s at %s is a directory? %t", name, path, isDir)
+	debug.V(2).Log("%s at %s is a directory? %t", name, path, isDir)
 
 	return isDir
 }

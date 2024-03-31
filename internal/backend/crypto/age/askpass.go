@@ -85,7 +85,7 @@ func newAskPass(ctx context.Context) *askPass {
 
 	if config.Bool(ctx, "age.usekeychain") {
 		if err := keyring.Set("gopass", "sentinel", "empty"); err == nil {
-			debug.Log("using OS keychain to cache age credentials")
+			debug.V(1).Log("using OS keychain to cache age credentials")
 			a.cache = newOsKeyring()
 		}
 	}
@@ -99,7 +99,7 @@ func (a *askPass) Ping(_ context.Context) error {
 
 func (a *askPass) Passphrase(key string, reason string, repeat bool) (string, error) {
 	if value, found := a.cache.Get(key); found || a.testing {
-		debug.Log("Read value for %s from cache", key)
+		debug.V(1).Log("Read value for %s from cache", key)
 
 		return value, nil
 	}
@@ -110,7 +110,7 @@ func (a *askPass) Passphrase(key string, reason string, repeat bool) (string, er
 		return "", fmt.Errorf("pinentry error: %w", err)
 	}
 
-	debug.Log("Updated value for %s in cache", key)
+	debug.V(1).Log("Updated value for %s in cache", key)
 	a.cache.Set(key, pw)
 
 	return pw, nil

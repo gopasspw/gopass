@@ -28,7 +28,7 @@ func NewOnDisk(name string, ttl time.Duration) (*OnDisk, error) {
 
 // NewOnDiskWithDir creates a new on disk cache.
 func NewOnDiskWithDir(name, dir string, ttl time.Duration) (*OnDisk, error) {
-	debug.Log("New on disk cache %s created at %s", name, dir)
+	debug.V(1).Log("New on disk cache %s created at %s", name, dir)
 
 	o := &OnDisk{
 		ttl:  ttl,

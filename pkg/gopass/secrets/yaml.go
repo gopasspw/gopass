@@ -108,7 +108,7 @@ func ParseYAML(in []byte) (*YAML, error) {
 		data: make(map[string]any, 10),
 	}
 
-	debug.Log("Parsing %q", out.Secret(in))
+	debug.V(3).Log("Parsing %q", out.Secret(in))
 
 	r := bufio.NewReader(bytes.NewReader(in))
 
@@ -166,7 +166,7 @@ func parseBody(r *bufio.Reader) (string, error) {
 		}
 
 		if string(nextLine) == "---" {
-			debug.Log("Beginning of YAML section detected")
+			debug.V(2).Log("Beginning of YAML section detected")
 
 			return sb.String(), nil
 		}
