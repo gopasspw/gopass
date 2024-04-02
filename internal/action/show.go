@@ -258,7 +258,7 @@ func (s *Action) showGetContent(ctx context.Context, sec gopass.Secret) (string,
 	}
 
 	// everything but the first line.
-	if config.Bool(ctx, "show.safecontent") && !ctxutil.IsForce(ctx) {
+	if config.Bool(ctx, "show.safecontent") && !ctxutil.IsForce(ctx) && ctxutil.IsShowParsing(ctx) {
 		body := showSafeContent(sec)
 		if IsAlsoClip(ctx) {
 			return pw, body, nil
@@ -278,7 +278,7 @@ func showSafeContent(sec gopass.Secret) string {
 		sb.WriteString(": ")
 		// check if this key should be obstructed.
 		if isUnsafeKey(k, sec) {
-			debug.Log("obstructing unsafe key %s", k)
+			debug.V(1).Log("obstructing unsafe key %s", k)
 			sb.WriteString(randAsterisk())
 		} else {
 			v, found := sec.Values(k)

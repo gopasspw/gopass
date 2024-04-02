@@ -240,7 +240,7 @@ func ParseAKV(in []byte) *AKV {
 	a.raw = strings.Builder{}
 	s := newScanner(bytes.NewReader(in), len(in))
 
-	debug.Log("Parsing %d bytes of input", len(in))
+	debug.V(2).Log("Parsing %d bytes of input", len(in))
 
 	first := true
 	for s.Scan() {
@@ -290,7 +290,7 @@ func (a *AKV) Body() string {
 		a.raw.WriteString("\n")
 	}
 
-	debug.Log("Building body from %d chars", a.raw.Len())
+	debug.V(2).Log("Building body from %d chars", a.raw.Len())
 	s := newScanner(strings.NewReader(a.raw.String()), a.raw.Len())
 
 	first := true
@@ -305,16 +305,16 @@ func (a *AKV) Body() string {
 		line := s.Text()
 		// ignore KV pairs
 		if strings.Contains(line, kvSep) {
-			debug.Log("ignoring line: %q", line)
+			debug.V(3).Log("ignoring line: %q", line)
 
 			continue
 		}
-		debug.Log("adding line of %d chars", len(line))
+		debug.V(3).Log("adding line of %d chars", len(line))
 		out.WriteString(line)
 		out.WriteString("\n")
 	}
 
-	debug.Log("built %d chars body", out.Len())
+	debug.V(2).Log("built %d chars body", out.Len())
 
 	return out.String()
 }
@@ -330,7 +330,7 @@ func newScanner(in io.Reader, inSize int) *bufio.Scanner {
 	scanBuf := make([]byte, bufSize)
 	s.Buffer(scanBuf, bufSize)
 
-	debug.Log("Using buffer of len %d and max %d", len(scanBuf), bufSize)
+	debug.V(4).Log("Using buffer of len %d and max %d", len(scanBuf), bufSize)
 
 	return s
 }
