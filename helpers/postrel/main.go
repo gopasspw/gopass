@@ -399,7 +399,7 @@ func (u *inUpdater) doUpdate(ctx context.Context, dir string) error {
 	if gitHasTag(path, tag) {
 		fmt.Printf("✅ Integration %s has tag %s already.\n", dir, tag)
 
-		// TODO return nil
+		return nil
 	}
 	fmt.Printf("✅ [%s] %s is not tagged, yet.\n", dir, tag)
 
