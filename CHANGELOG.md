@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.15.13 / 2024-04-06
+
+* [bugfix] Default to true for core.exportkeys even in substores (#2848)
+* [bugfix] Do not report findings with severity none in audit summary (#2843)
+* [bugfix] Fix loading of git configs (#2849)
+* [chore] Update dependencies (#2850)
+* [chore] Use clean filepath in all of the fs.Set operation (#2846)
+* [chore] use the same version of golangci-lint (#2841)
+* [feat] Add an multi-line input type to the create wizard (#2847)
+* [feat] Add option to disable notification icon (#2845)
+* [feat] Add verbosity levels to the debug package (#2851)
+* [fix] Disble safecontent parsing if noparsing is requested (#2855)
+* [fix] Pass remote, if given, to local init as well (#2852)
+
 ## 1.15.12 / 2024-03-17
 
 * [BUGFIX] Use 'en' as default language for the xkcd generator (#2793)
