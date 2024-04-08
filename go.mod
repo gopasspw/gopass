@@ -12,7 +12,7 @@ require (
 	github.com/dustin/go-humanize v1.0.1
 	github.com/ergochat/readline v0.1.0
 	github.com/fatih/color v1.16.0
-	github.com/godbus/dbus v0.0.0-20190623212516-8a1682060722
+	github.com/godbus/dbus/v5 v5.1.0
 	github.com/gokyle/twofactor v1.0.1
 	github.com/google/go-cmp v0.6.0
 	github.com/google/go-github v17.0.0+incompatible
@@ -64,7 +64,6 @@ require (
 	github.com/gdamore/encoding v1.0.1 // indirect
 	github.com/gdamore/tcell/v2 v2.7.4 // indirect
 	github.com/gen2brain/shm v0.1.0 // indirect
-	github.com/godbus/dbus/v5 v5.1.0 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
 	github.com/jezek/xgb v1.1.1 // indirect
