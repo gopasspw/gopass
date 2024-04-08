@@ -10,7 +10,7 @@ import (
 	"github.com/gopasspw/gopass/internal/backend/crypto/gpg"
 	"github.com/gopasspw/gopass/internal/backend/crypto/gpg/gpgconf"
 	"github.com/gopasspw/gopass/pkg/debug"
-	lru "github.com/hashicorp/golang-lru"
+	lru "github.com/hashicorp/golang-lru/v2"
 )
 
 var (
@@ -33,7 +33,7 @@ type GPG struct {
 	args      []string
 	pubKeys   gpg.KeyList
 	privKeys  gpg.KeyList
-	listCache *lru.TwoQueueCache
+	listCache *lru.TwoQueueCache[string, gpg.KeyList]
 	throwKids bool
 }
 
@@ -69,7 +69,7 @@ func New(ctx context.Context, cfg Config) (*GPG, error) {
 		throwKids: hasThrowKids,
 	}
 
-	cache, err := lru.New2Q(1024)
+	cache, err := lru.New2Q[string, gpg.KeyList](1024)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize the LRU cache: %w", err)
 	}
