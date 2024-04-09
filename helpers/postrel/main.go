@@ -27,7 +27,7 @@ import (
 	"time"
 
 	"github.com/blang/semver/v4"
-	"github.com/google/go-github/v33/github"
+	"github.com/google/go-github/v61/github"
 	"github.com/gopasspw/gopass/pkg/fsutil"
 	"golang.org/x/oauth2"
 )
@@ -206,10 +206,9 @@ func (g *ghClient) createMilestone(ctx context.Context, title string, offset int
 		}
 	}
 
-	due := time.Now().Add(time.Duration(offset) * 30 * 24 * time.Hour)
 	_, _, err := g.client.Issues.CreateMilestone(ctx, g.org, g.repo, &github.Milestone{
 		Title: &title,
-		DueOn: &due,
+		DueOn: &github.Timestamp{Time: time.Now().Add(time.Duration(offset) * 30 * 24 * time.Hour)},
 	})
 	if err == nil {
 		fmt.Printf("✅ Milestone %s created\n", title)
