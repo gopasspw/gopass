@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/godbus/dbus"
+	"github.com/godbus/dbus/v5"
 )
 
 func clearClipboardHistory(ctx context.Context) error {
