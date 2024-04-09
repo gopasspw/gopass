@@ -20,7 +20,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/urfave/cli/v2"
-	"github.com/xhit/go-str2duration"
+	"github.com/xhit/go-str2duration/v2"
 )
 
 var (
@@ -76,7 +76,7 @@ func (s *Action) autoSync(ctx context.Context) error {
 		if _, err := strconv.Atoi(intervalStr); err == nil {
 			intervalStr += "d"
 		}
-		if duration, err := str2duration.Str2Duration(intervalStr); err != nil {
+		if duration, err := str2duration.ParseDuration(intervalStr); err != nil {
 			out.Warningf(ctx, "failed to parse autosync.interval %q: %q", intervalStr, err)
 		} else {
 			syncInterval = duration
