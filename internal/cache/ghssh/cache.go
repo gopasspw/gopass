@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/google/go-github/github"
+	"github.com/google/go-github/v61/github"
 	"github.com/gopasspw/gopass/internal/cache"
 )
 
