@@ -34,7 +34,7 @@ func NewAKV() *AKV {
 	return a
 }
 
-// NewKVWithData returns a new KV secret populated with data.
+// NewAKVWithData returns a new KV secret populated with data.
 func NewAKVWithData(pw string, kvps map[string][]string, body string, converted bool) *AKV {
 	kv := NewAKV()
 	kv.SetPassword(pw)

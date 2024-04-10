@@ -361,7 +361,7 @@ func renderTemplate(ctx context.Context, name string, s *root.Store) ([]byte, er
 	return nc, nil
 }
 
-// generatePasssword will walk through the password generation steps.
+// generatePassword will walk through the password generation steps.
 func generatePassword(ctx context.Context, hostname, charset string) (string, error) {
 	defaultLength, _ := config.DefaultPasswordLengthFromEnv(ctx)
 

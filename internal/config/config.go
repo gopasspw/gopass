@@ -86,7 +86,7 @@ func NewInMemory() *Config {
 	return newWithOptions(true)
 }
 
-// NewContextReadOnly returns a context with a read-only config.
+// NewContextInMemory returns a context with a read-only config.
 func NewContextInMemory() context.Context {
 	return NewInMemory().WithConfig(context.Background())
 }
