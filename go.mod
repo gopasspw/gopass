@@ -7,7 +7,7 @@ require (
 	github.com/ProtonMail/go-crypto v1.0.0
 	github.com/atotto/clipboard v0.1.4
 	github.com/blang/semver/v4 v4.0.0
-	github.com/caspr-io/yamlpath v0.0.0-20200722075116-502e8d113a9b
+	github.com/caspr-io/yamlpath v0.0.1
 	github.com/cenkalti/backoff/v4 v4.3.0
 	github.com/dustin/go-humanize v1.0.1
 	github.com/ergochat/readline v0.1.0
@@ -16,7 +16,7 @@ require (
 	github.com/gokyle/twofactor v1.0.1
 	github.com/google/go-cmp v0.6.0
 	github.com/google/go-github/v61 v61.0.0
-	github.com/gopasspw/gopass-hibp v1.15.12
+	github.com/gopasspw/gopass-hibp v1.15.13
 	github.com/hashicorp/golang-lru/v2 v2.0.7
 	github.com/jsimonetti/pwscheme v0.0.0-20220922140336-67a4d090f150
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
@@ -31,7 +31,7 @@ require (
 	github.com/nbutton23/zxcvbn-go v0.0.0-20210217022336-fa2cb2858354
 	github.com/noborus/ov v0.33.3
 	github.com/pquerna/otp v1.4.0
-	github.com/schollz/closestmatch v0.0.0-20190308193919-1fbe626be92e
+	github.com/schollz/closestmatch v2.1.1-0.20190308193919-1fbe626be92e+incompatible
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	github.com/stretchr/testify v1.9.0
 	github.com/twpayne/go-pinentry v0.3.0
@@ -40,7 +40,7 @@ require (
 	github.com/zalando/go-keyring v0.2.4
 	github.com/zeebo/blake3 v0.2.3
 	golang.org/x/crypto v0.22.0
-	golang.org/x/exp v0.0.0-20240404231335-c0f41cb1a7a0
+	golang.org/x/exp v0.0.0-20240409090435-93d18d7e34b8
 	golang.org/x/net v0.24.0
 	golang.org/x/oauth2 v0.19.0
 	golang.org/x/sys v0.19.0
@@ -67,7 +67,7 @@ require (
 	github.com/jwalton/gchalk v1.3.0 // indirect
 	github.com/jwalton/go-supportscolor v1.2.0 // indirect
 	github.com/kjk/lzmadec v0.0.0-20210713164611-19ac3ee91a71 // indirect
-	github.com/klauspost/compress v1.17.7 // indirect
+	github.com/klauspost/compress v1.17.8 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.7 // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
 	github.com/lxn/win v0.0.0-20210218163916-a377121e959e // indirect
