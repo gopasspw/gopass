@@ -49,15 +49,6 @@ func (s *SecretReport) HumanizeAge() string {
 	return fmt.Sprintf("%d years", years)
 }
 
-func errors(e []error) []string {
-	s := make([]string, 0, len(e))
-	for _, es := range e {
-		s = append(s, es.Error())
-	}
-
-	return s
-}
-
 type Report struct {
 	// secret name -> report
 	Secrets map[string]SecretReport

@@ -22,9 +22,9 @@ import (
 type ErrorSeverity int
 
 const (
-	errsNil      ErrorSeverity = 0
-	errsNonFatal               = 1 // an error that was recovered from, but still should be acknowledged
-	errsFatal                  = 2 // an error that terminated the function early
+	errsNil      ErrorSeverity = iota
+	errsNonFatal               // an error that was recovered from, but still should be acknowledged
+	errsFatal                  // an error that terminated the function early
 )
 
 func (e ErrorSeverity) String() string {
@@ -174,6 +174,7 @@ func (s *Store) fsckLoop(ctx context.Context, path string) error {
 	sort.Strings(names)
 
 	debug.Log("names (%d): %q", len(names), names)
+	buf := &strings.Builder{}
 	for _, name := range names {
 		pcb()
 		if strings.HasPrefix(name, s.alias+"/") {
@@ -189,7 +190,11 @@ func (s *Store) fsckLoop(ctx context.Context, path string) error {
 			continue
 		}
 
-		ctx = ctxutil.AddToCommitMessageBody(ctx, msg)
+		buf.WriteString(msg)
+		buf.WriteString("\n")
+	}
+	if buf.Len() > 0 {
+		ctx = ctxutil.AddToCommitMessageBody(ctx, buf.String())
 	}
 
 	// print out any deferred warnings (if any)

@@ -11,7 +11,7 @@ func walkSymlinks(path string, walkFn filepath.WalkFunc) error {
 }
 
 func walk(filename, linkDir string, walkFn filepath.WalkFunc) error {
-	sWalkFn := func(path string, info fs.FileInfo, err error) error {
+	sWalkFn := func(path string, info fs.FileInfo, _ error) error {
 		fname, err := filepath.Rel(filename, path)
 		if err != nil {
 			return err

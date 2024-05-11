@@ -171,7 +171,7 @@ func (ts tester) run(arg string) (string, error) {
 	return strings.TrimSpace(string(out)), nil
 }
 
-func (ts tester) runWithInput(arg, input string) ([]byte, error) {
+func (ts tester) runWithInput(arg, input string) ([]byte, error) { //nolint:unused
 	ts.t.Helper()
 
 	reader := strings.NewReader(input)
@@ -179,7 +179,7 @@ func (ts tester) runWithInput(arg, input string) ([]byte, error) {
 	return ts.runWithInputReader(arg, reader)
 }
 
-func (ts tester) runWithInputReader(arg string, input io.Reader) ([]byte, error) {
+func (ts tester) runWithInputReader(arg string, input io.Reader) ([]byte, error) { //nolint:unused
 	ts.t.Helper()
 
 	args, err := shellquote.Split(arg)

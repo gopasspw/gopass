@@ -69,6 +69,7 @@ func download(ctx context.Context, url string) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to download %s: %w", url, err)
 	}
+	defer resp.Body.Close() //nolint:errcheck
 
 	var body io.ReadCloser
 	// do not show progress bar for small assets, like SHA256SUMS

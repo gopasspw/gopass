@@ -42,11 +42,10 @@ type validator struct {
 var DefaultExpiration = time.Hour * 24 * 365
 
 type Auditor struct {
-	s      secretGetter
-	r      *ReportBuilder
-	expiry time.Duration
-	pcb    func()
-	v      []validator
+	s   secretGetter
+	r   *ReportBuilder
+	pcb func()
+	v   []validator
 }
 
 func New(ctx context.Context, s secretGetter) *Auditor {

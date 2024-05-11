@@ -27,5 +27,5 @@ func TestPwgen(t *testing.T) {
 	}()
 
 	require.NoError(t, Pwgen(gptest.CliCtxWithFlags(ctx, t, map[string]string{"one-per-line": "true"}, "24", "1")))
-	assert.GreaterOrEqual(t, len(buf.Bytes()), 24, string(buf.Bytes()))
+	assert.GreaterOrEqual(t, len(buf.Bytes()), 24, buf.String())
 }

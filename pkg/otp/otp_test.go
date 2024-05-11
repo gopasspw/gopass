@@ -30,7 +30,7 @@ func TestCalculate(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		t.Run(fmt.Sprintf("%s", tc), func(t *testing.T) {
+		t.Run(string(tc), func(t *testing.T) {
 			t.Parallel()
 
 			s, err := secparse.Parse(tc)
