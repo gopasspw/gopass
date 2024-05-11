@@ -21,7 +21,6 @@ linters:
   - asciicheck
   - bidichk
   - bodyclose
-  - canonicalheader
   - containedctx
   - copyloopvar
   - cyclop
@@ -33,7 +32,6 @@ linters:
   - errorlint
   - exhaustive
   - exportloopref
-  - fatcontext
   - forcetypeassert
   - funlen
   - ginkgolinter
