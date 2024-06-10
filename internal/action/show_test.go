@@ -383,7 +383,7 @@ func TestShowPrintQR(t *testing.T) {
 	act, err := newMock(ctx, u.StoreDir(""))
 	require.NoError(t, err)
 	require.NotNil(t, act)
-	ctx = act.cfg.WithConfig(ctx) //nolint:ineffassign
+	ctx = act.cfg.WithConfig(ctx) //nolint:ineffassign,staticcheck
 
 	color.NoColor = true
 	buf := &bytes.Buffer{}

@@ -1,5 +1,6 @@
 run:
   timeout: 5m
+  go: "1.22"
 
 linters-settings:
   gocyclo:
@@ -8,7 +9,6 @@ linters-settings:
     max-complexity: 22
     skip-tests: true
   staticcheck:
-    go: "1.22"
     # https://staticcheck.io/docs/options#checks
     checks: ["all","-SA1019"]
   funlen:
@@ -16,65 +16,66 @@ linters-settings:
     statements: 100
 
 linters:
-  enable-all: true
-  disable:
+  enable:
+  - asasalint
+  - asciicheck
+  - bidichk
   - bodyclose
-  - contextcheck
-  - deadcode
-  - depguard
-  - durationcheck
-  - dupl
-  - dupword
-  - exhaustruct
-  - exhaustivestruct
-  - forbidigo
-  - gci
-  - gochecknoglobals
-  - gochecknoinits
-  - gocognit
-  - goconst
-  - gocritic
-  - gocyclo
-  - godox
-  - goerr113
-  - golint
-  - gomnd
-  - gosec
-  - gosimple
-  - govet
-  - interfacer
-  - ifshort
-  - inamedparam
-  - interfacebloat
-  - ireturn
-  - lll
-  - maintidx
-  - maligned
-  - musttag
-  - nilerr
-  - noctx
-  - nolintlint
-  - nosnakecase
-  - paralleltest
-  - perfsprint
-  - revive
-  - rowserrcheck
-  - scopelint
-  - sqlclosecheck
-  - staticcheck
-  - structcheck
-  - stylecheck
-  - tagliatelle
-  - testpackage
-  - tparallel
-  - typecheck
-  - unparam
-  - unused
-  - varcheck
-  - varnamelen
-  - wastedassign
-  - wrapcheck
-  - wsl
+  - containedctx
+  - copyloopvar
+  - cyclop
+  - decorder
+  - dogsled
+  - errcheck
+  - errchkjson
+  - errname
+  - errorlint
+  - exhaustive
+  - exportloopref
+  - forcetypeassert
+  - funlen
+  - ginkgolinter
+  - gocheckcompilerdirectives
+  - gochecksumtype
+  - godot
+  - gofmt
+  - gofumpt
+  - goheader
+  - goimports
+  - gomoddirectives
+  - gomodguard
+  - goprintffuncname
+  - gosmopolitan
+  - grouper
+  - importas
+  - ineffassign
+  - intrange
+  - loggercheck
+  - makezero
+  - mirror
+  - misspell
+  - nakedret
+  - nestif
+  - nilnil
+  - nlreturn
+  - nonamedreturns
+  - nosprintfhostport
+  - prealloc
+  - predeclared
+  - promlinter
+  - protogetter
+  - reassign
+  - sloglint
+  - spancheck
+  - tagalign
+  - tenv
+  - testableexamples
+  - testifylint
+  - thelper
+  - unconvert
+  - usestdlibvars
+  - whitespace
+  - zerologlint
 
 issues:
   max-issues-per-linter: 0 # disable limit; report all issues of a linter

@@ -353,7 +353,7 @@ func TestParseComplex(t *testing.T) {
 func TestParseDocs(t *testing.T) {
 	t.Parallel()
 
-	c := ParseConfig(strings.NewReader(configSampleComplex))
+	c := ParseConfig(strings.NewReader(configSampleComplex)) //nolint:staticcheck
 
 	// TODO(#2479) - fix parsing
 	t.Skip("TODO - broken")

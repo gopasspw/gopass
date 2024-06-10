@@ -17,7 +17,7 @@ import (
 )
 
 func TestSetupAgeGitFS(t *testing.T) {
-	u := gptest.NewUnitTester(t)
+	u := gptest.NewUnitTester(t) //nolint:staticcheck
 
 	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
@@ -27,7 +27,7 @@ func TestSetupAgeGitFS(t *testing.T) {
 	ctx = ctxutil.WithPasswordCallback(ctx, func(_ string, _ bool) ([]byte, error) {
 		return []byte("foobar"), nil
 	})
-	ctx = ctxutil.WithPasswordPurgeCallback(ctx, func(s string) {})
+	ctx = ctxutil.WithPasswordPurgeCallback(ctx, func(s string) {}) //nolint:staticcheck
 
 	t.Skip("TODO: fix setup test")
 
