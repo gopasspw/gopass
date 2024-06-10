@@ -131,6 +131,11 @@ func (a *askPass) getPassphrase(reason string, repeat bool) (string, error) {
 
 			return match.Score, true
 		}))
+	} else {
+		opts = append(opts,
+			pinentry.WithOption(pinentry.OptionAllowExternalPasswordCache),
+			pinentry.WithKeyInfo("gopass/age-identities"),
+		)
 	}
 
 	p, err := pinentry.NewClient(opts...)
