@@ -90,6 +90,7 @@ install-man: gopass.1
 	@install -m 0644 gopass.1 $(DESTDIR)$(PREFIX)/share/man/man1/gopass.1
 
 fulltest: $(GOPASS_OUTPUT)
+	mkdir -p ~/.gnupg
 	@echo ">> TEST, \"full-mode\": race detector off"
 	@echo "mode: atomic" > coverage-all.out
 	@$(foreach pkg, $(PKGS),\

@@ -4,13 +4,14 @@ import (
 	"runtime"
 	"testing"
 
+	"github.com/gopasspw/gopass/internal/backend/crypto/gpg"
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/pkg/gopass/secrets"
 	"github.com/stretchr/testify/require"
 )
 
 func TestSet(t *testing.T) {
-	ctx := config.NewContextInMemory()
+	ctx := gpg.WithAlwaysTrust(config.NewContextInMemory(), true)
 
 	s, err := createSubStore(t)
 	require.NoError(t, err)
