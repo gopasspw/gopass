@@ -17,7 +17,9 @@ func TestEncrypt(t *testing.T) {
 	g.binary = "rundll32"
 
 	_, err := g.Encrypt(ctx, []byte("foo"), nil)
-	require.NoError(t, err)
+
+	// No recipients are configured so it will fail
+	require.Error(t, err)
 	cancel()
 }
 
