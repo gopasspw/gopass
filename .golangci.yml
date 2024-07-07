@@ -3,6 +3,11 @@ run:
   go: "1.22"
 
 linters-settings:
+  errcheck:
+    exclude-functions:
+      - fmt.Fprint
+      - fmt.Fprintf
+      - fmt.Fprintln
   gocyclo:
     min-complexity: 22
   cyclop:
