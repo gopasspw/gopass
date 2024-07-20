@@ -289,12 +289,15 @@ func parseConfig(in io.Reader, key, value string, cb parseFunc) []string {
 		lines = append(lines, fullLine)
 
 		line := strings.TrimSpace(fullLine)
+		// Handle full-line comments
 		if strings.HasPrefix(line, "#") {
 			continue
 		}
 		if strings.HasPrefix(line, ";") {
 			continue
 		}
+
+		// Handle section headers
 		if strings.HasPrefix(line, "[") {
 			s, subs, skip := parseSectionHeader(line)
 			if skip {
@@ -312,12 +315,16 @@ func parseConfig(in io.Reader, key, value string, cb parseFunc) []string {
 		// [core]
 		//  sslVerify
 		// These are odd but we should still support them.
-		k, v, found := strings.Cut(line, " = ")
+		// Check https://git-scm.com/docs/git-config#_syntax for more details.
+		k, v, found := strings.Cut(line, "=")
 		if !found {
 			debug.V(3).Log("no valid KV-pair on line: %q", line)
 
 			continue
 		}
+		// Remove whitespace from key and value that might be around the '='
+		k = strings.TrimRight(k, " ")
+		v = strings.TrimLeft(v, " ")
 
 		fKey := section + "."
 		if subsection != "" {
@@ -331,6 +338,7 @@ func parseConfig(in io.Reader, key, value string, cb parseFunc) []string {
 		oValue := v
 		comment := ""
 
+		// Handle inline comments
 		if strings.ContainsAny(oValue, "#;") {
 			comment = " " + oValue[strings.IndexAny(oValue, "#;"):]
 			oValue = oValue[:strings.IndexAny(oValue, "#;")]
