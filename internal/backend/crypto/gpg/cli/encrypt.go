@@ -58,8 +58,11 @@ func (g *GPG) Encrypt(ctx context.Context, plaintext []byte, recipients []string
 	cmd.Stdout = io.MultiWriter(buf, debug.LogWriter)
 	cmd.Stderr = io.MultiWriter(os.Stderr, debug.LogWriter)
 
-	debug.Log("%s %+v", cmd.Path, cmd.Args)
+	debug.V(1).Log("%s %+v", cmd.Path, cmd.Args)
 	err := cmd.Run()
+	if err != nil {
+		debug.Log("GPG encrypt failed: %s %+v: %+v", cmd.Path, cmd.Args, err)
+	}
 
 	return buf.Bytes(), err
 }

@@ -26,10 +26,10 @@ func (g *GPG) Decrypt(ctx context.Context, ciphertext []byte) ([]byte, error) {
 	// we write this stderr to the log file as well.
 	cmd.Stderr = io.MultiWriter(os.Stderr, debug.LogWriter)
 
-	debug.Log("Running %s %+v", cmd.Path, cmd.Args)
+	debug.V(1).Log("Running %s %+v", cmd.Path, cmd.Args)
 	stdout, err := cmd.Output()
 	if err != nil {
-		debug.Log("Got %+v when running gpg command!", err)
+		debug.Log("GPG decrypt failed: %s %+v: %+v", cmd.Path, cmd.Args, err)
 	}
 
 	return stdout, err
