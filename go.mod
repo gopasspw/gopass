@@ -25,22 +25,22 @@ require (
 	github.com/martinhoefling/goxkcdpwgen v0.1.2-0.20231122080842-e51aa57005ca
 	github.com/mattn/go-colorable v0.1.13
 	github.com/mattn/go-isatty v0.0.20
-	github.com/mattn/go-tty v0.0.5
+	github.com/mattn/go-tty v0.0.7
 	github.com/mitchellh/go-ps v1.0.0
 	github.com/muesli/crunchy v0.4.0
 	github.com/nbutton23/zxcvbn-go v0.0.0-20210217022336-fa2cb2858354
-	github.com/noborus/ov v0.35.0
+	github.com/noborus/ov v0.36.0
 	github.com/pquerna/otp v1.4.0
 	github.com/schollz/closestmatch v0.0.0-20190308193919-1fbe626be92e
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	github.com/stretchr/testify v1.9.0
 	github.com/twpayne/go-pinentry v0.3.0
-	github.com/urfave/cli/v2 v2.27.2
+	github.com/urfave/cli/v2 v2.27.3
 	github.com/xhit/go-str2duration/v2 v2.1.0
 	github.com/zalando/go-keyring v0.2.5
 	github.com/zeebo/blake3 v0.2.3
 	golang.org/x/crypto v0.25.0
-	golang.org/x/exp v0.0.0-20240613232115-7f521ea00fb8
+	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56
 	golang.org/x/net v0.27.0
 	golang.org/x/oauth2 v0.21.0
 	golang.org/x/sys v0.22.0
@@ -56,9 +56,8 @@ require (
 	github.com/cloudflare/circl v1.3.9 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.4 // indirect
 	github.com/creack/pty v1.1.21 // indirect
-	github.com/danieljoos/wincred v1.2.1 // indirect
+	github.com/danieljoos/wincred v1.2.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/frankban/quicktest v1.14.4 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/gdamore/encoding v1.0.1 // indirect
 	github.com/gdamore/tcell/v2 v2.7.4 // indirect
@@ -70,11 +69,12 @@ require (
 	github.com/kjk/lzmadec v0.0.0-20210713164611-19ac3ee91a71 // indirect
 	github.com/klauspost/compress v1.17.9 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.8 // indirect
+	github.com/kr/text v0.2.0 // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
 	github.com/lxn/win v0.0.0-20210218163916-a377121e959e // indirect
-	github.com/mattn/go-runewidth v0.0.15 // indirect
-	github.com/noborus/guesswidth v0.3.4 // indirect
-	github.com/pierrec/lz4 v2.6.1+incompatible // indirect
+	github.com/mattn/go-runewidth v0.0.16 // indirect
+	github.com/noborus/guesswidth v0.4.0 // indirect
+	github.com/pierrec/lz4/v4 v4.1.21 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/rs/zerolog v1.33.0 // indirect
@@ -83,7 +83,7 @@ require (
 	github.com/xrash/smetrics v0.0.0-20240521201337-686a1a2994c1 // indirect
 	golang.org/x/sync v0.7.0 // indirect
 	golang.org/x/text v0.16.0 // indirect
-	golang.org/x/xerrors v0.0.0-20231012003039-104605ab7028 // indirect
+	golang.org/x/xerrors v0.0.0-20240716161551-93cc26a95ae9 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	rsc.io/qr v0.2.0 // indirect
 )
