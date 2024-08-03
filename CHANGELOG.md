@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.15.14 / 2024-08-03
+
+* [bugfix] Fix parsing of key-value pairs according to the gitconfig (#2911)
+* [chore] Update dependency to github.com/cenkalti/backoff/v4 (#2864)
+* [chore] Update dependency to github.com/godbus/dbus/v5 (#2860)
+* [chore] Update dependency to github.com/google/go-github/v61 (#2863)
+* [chore] Update dependency to github.com/xhit/go-str2duration/v2 (#2865)
+* [chore] Update hashicorp/golang-lru to v2 (#2859)
+
 ## 1.15.13 / 2024-04-06
 
 * [bugfix] Default to true for core.exportkeys even in substores (#2848)
