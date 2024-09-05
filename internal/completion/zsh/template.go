@@ -58,4 +58,4 @@ _{{ $prog }}_complete_folders () {
     _describe -t folders "folders" folders -qS /
 }
 
-_{{ $prog }}`
+compdef _{{ $prog }} {{ $prog }}`
