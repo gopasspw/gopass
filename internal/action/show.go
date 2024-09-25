@@ -36,6 +36,9 @@ func showParseArgs(c *cli.Context) context.Context {
 	if c.IsSet("qr") {
 		ctx = WithPrintQR(ctx, c.Bool("qr"))
 	}
+	if c.IsSet("qrbody") {
+		ctx = WithQRBody(ctx, c.Bool("qrbody"))
+	}
 
 	if c.IsSet("password") {
 		ctx = WithPasswordOnly(ctx, c.Bool("password"))
@@ -197,6 +200,13 @@ func (s *Action) showHandleOutput(ctx context.Context, name string, sec gopass.S
 		return exit.Error(exit.NotFound, store.ErrEmptySecret, store.ErrEmptySecret.Error())
 	}
 
+	if IsPrintQR(ctx) && IsQRBody(ctx) {
+		if err := s.showPrintQR(name, body); err != nil {
+			return err
+		}
+
+		return nil
+	}
 	if IsPrintQR(ctx) && pw != "" {
 		if err := s.showPrintQR(name, pw); err != nil {
 			return err
@@ -245,6 +255,9 @@ func (s *Action) showGetContent(ctx context.Context, sec gopass.Secret) (string,
 	// fallback for old MIME secrets.
 	fullBody := strings.TrimPrefix(string(sec.Bytes()), secrets.Ident+"\n")
 
+	if IsQRBody(ctx) {
+		return pw, fullBody, nil
+	}
 	// first line of the secret only.
 	if IsPrintQR(ctx) || IsOnlyClip(ctx) {
 		return pw, "", nil

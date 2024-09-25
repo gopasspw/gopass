@@ -33,6 +33,10 @@ func ShowFlags() []cli.Flag {
 			Usage: "Print the password as a QR Code",
 		},
 		&cli.BoolFlag{
+			Name:  "qrbody",
+			Usage: "Print the body as a QR Code",
+		},
+		&cli.BoolFlag{
 			Name:    "unsafe",
 			Aliases: []string{"u", "force", "f"},
 			Usage:   "Display unsafe content (e.g. the password) even if safecontent is enabled",

@@ -13,6 +13,7 @@ const (
 	ctxKeyOnlyClip
 	ctxKeyAlsoClip
 	ctxKeyPrintChars
+	ctxKeyWithQRBody
 )
 
 // WithClip returns a context with the value for clip (for copy to clipboard)
@@ -150,4 +151,19 @@ func GetPrintChars(ctx context.Context) []int {
 	}
 
 	return mv
+}
+
+// WithQRBody returns the context with the value of with QR body set.
+func WithQRBody(ctx context.Context, qr bool) context.Context {
+	return context.WithValue(ctx, ctxKeyWithQRBody, qr)
+}
+
+// IsQRBody returns the value of with QR body or the default (false).
+func IsQRBody(ctx context.Context) bool {
+	bv, ok := ctx.Value(ctxKeyWithQRBody).(bool)
+	if !ok {
+		return false
+	}
+
+	return bv
 }
