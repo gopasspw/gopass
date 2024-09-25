@@ -74,7 +74,7 @@ func (k Key) String() string {
 
 	out += "\n      Key fingerprint = " + k.Fingerprint
 	for _, id := range k.Identities {
-		out += fmt.Sprintf("\n" + id.String())
+		out += fmt.Sprintf("\n%s", id)
 	}
 
 	return out

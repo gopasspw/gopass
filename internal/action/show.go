@@ -197,7 +197,7 @@ func (s *Action) showHandleOutput(ctx context.Context, name string, sec gopass.S
 			out.Warning(ctx, "show.safecontent=true. Use -f to display password, if any")
 		}
 
-		return exit.Error(exit.NotFound, store.ErrEmptySecret, store.ErrEmptySecret.Error())
+		return exit.Error(exit.NotFound, store.ErrEmptySecret, "%v", store.ErrEmptySecret)
 	}
 
 	if IsPrintQR(ctx) && IsQRBody(ctx) {
@@ -244,7 +244,7 @@ func (s *Action) showGetContent(ctx context.Context, sec gopass.Secret) (string,
 		key := GetKey(ctx)
 		values, found := sec.Values(key)
 		if !found {
-			return "", "", exit.Error(exit.NotFound, store.ErrNoKey, store.ErrNoKey.Error())
+			return "", "", exit.Error(exit.NotFound, store.ErrNoKey, "%v", store.ErrNoKey)
 		}
 		val := strings.Join(values, "\n")
 
@@ -264,7 +264,7 @@ func (s *Action) showGetContent(ctx context.Context, sec gopass.Secret) (string,
 	}
 	if IsPasswordOnly(ctx) {
 		if pw == "" && fullBody != "" {
-			return "", "", exit.Error(exit.NotFound, store.ErrNoPassword, store.ErrNoPassword.Error())
+			return "", "", exit.Error(exit.NotFound, store.ErrNoPassword, "%v", store.ErrNoPassword)
 		}
 
 		return pw, pw, nil

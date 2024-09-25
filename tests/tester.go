@@ -77,13 +77,13 @@ func newTester(t *testing.T) *tester {
 
 	// prepare ENVIRONMENT
 	ts.resetFn = gptest.UnsetVars("GNUPGHOME", "GOPASS_DEBUG", "NO_COLOR", "GOPASS_CONFIG", "GOPASS_NO_NOTIFY", "GOPASS_HOMEDIR")
-	require.NoError(t, os.Setenv("GNUPGHOME", ts.gpgDir()))
-	require.NoError(t, os.Setenv("GOPASS_DEBUG", ""))
-	require.NoError(t, os.Setenv("NO_COLOR", "true"))
-	require.NoError(t, os.Setenv("GOPASS_CONFIG_NOSYSTEM", "true"))
-	require.NoError(t, os.Setenv("GOPASS_CONFIG_NO_MIGRATE", "true"))
-	require.NoError(t, os.Setenv("GOPASS_NO_NOTIFY", "true"))
-	require.NoError(t, os.Setenv("GOPASS_HOMEDIR", td))
+	t.Setenv("GNUPGHOME", ts.gpgDir())
+	t.Setenv("GOPASS_DEBUG", "")
+	t.Setenv("NO_COLOR", "true")
+	t.Setenv("GOPASS_CONFIG_NOSYSTEM", "true")
+	t.Setenv("GOPASS_CONFIG_NO_MIGRATE", "true")
+	t.Setenv("GOPASS_NO_NOTIFY", "true")
+	t.Setenv("GOPASS_HOMEDIR", td)
 
 	// write config
 	require.NoError(t, os.MkdirAll(filepath.Dir(ts.gopassConfig()), 0o700))
