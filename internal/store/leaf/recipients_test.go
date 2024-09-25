@@ -137,7 +137,7 @@ func TestSaveRecipients(t *testing.T) {
 	sort.Strings(foundRecs)
 
 	ids := rs.IDs()
-	for i := range len(ids) {
+	for i := range ids {
 		if i >= len(foundRecs) {
 			t.Errorf("Read too few recipients")
 

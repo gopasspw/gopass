@@ -131,6 +131,10 @@ crosscompile:
 codequality:
 	@echo ">> CODE QUALITY"
 
+	# Note: there are 2 different version of golangci-lint used inside the project.
+	# https://github.com/gopasspw/gopass/blob/master/.github/workflows/build.yml#L65
+	# https://github.com/gopasspw/gopass/blob/master/.github/workflows/golangci-lint.yml#L46
+	# https://github.com/gopasspw/gopass/blob/master/Makefile#L136
 	@echo -n "     GOLANGCI-LINT "
 	@which golangci-lint > /dev/null; if [ $$? -ne 0 ]; then \
 		$(GO) install github.com/golangci/golangci-lint/cmd/golangci-lint@latest; \

@@ -18,7 +18,8 @@ var (
 	// -ldflags=='-X github.com/gopasspw/gopass/pkg/clipboard.Helpers=termux-api'.
 	Helpers = "xsel or xclip"
 	// ErrNotSupported is returned when the clipboard is not accessible.
-	ErrNotSupported = fmt.Errorf("WARNING: No clipboard available. Install " + Helpers + ", provide $GOPASS_CLIPBOARD_COPY_CMD and $GOPASS_CLIPBOARD_CLEAR_CMD or use -f to print to console")
+	ErrNotSupported = fmt.Errorf("WARNING: No clipboard available. "+
+		"Install %s, provide $GOPASS_CLIPBOARD_COPY_CMD and $GOPASS_CLIPBOARD_CLEAR_CMD or use -f to print to console", Helpers)
 )
 
 // CopyTo copies the given data to the clipboard and enqueues automatic
