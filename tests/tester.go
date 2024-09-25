@@ -38,6 +38,7 @@ type tester struct {
 	resetFn   func()
 }
 
+// newTester is not compatible with t.Parallel because it uses t.Setenv.
 func newTester(t *testing.T) *tester {
 	t.Helper()
 

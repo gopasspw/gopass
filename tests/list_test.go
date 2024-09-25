@@ -55,8 +55,6 @@ foo/
 
 // regression test for #1628.
 func TestListRegressions1628(t *testing.T) {
-	t.Parallel()
-
 	ts := newTester(t)
 	defer ts.teardown()
 
