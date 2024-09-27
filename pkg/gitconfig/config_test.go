@@ -9,7 +9,6 @@ import (
 	"strconv"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/gopasspw/gopass/internal/set"
 	"github.com/stretchr/testify/assert"
@@ -274,7 +273,6 @@ func TestLoadFromEnv(t *testing.T) {
 		"core.timeout": "10",
 	}
 
-	rand.Seed(time.Now().Unix())
 	prefix := fmt.Sprintf("GPTEST%d", rand.Int31n(8192))
 
 	i := 0
