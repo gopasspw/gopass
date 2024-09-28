@@ -662,7 +662,11 @@ func (s *Action) GetCommands() []*cli.Command {
 					Usage:   "Mount a password store",
 					Description: "" +
 						"This command allows for mounting an existing or new password store " +
-						"at any path in an existing root store.",
+						"at any path in an existing root store." +
+						"\n\n" +
+						"For example: gopass mounts add secondary-store /path/to/existing/store" +
+						"\n\n" +
+						"Learn more: https://github.com/gopasspw/gopass/blob/master/docs/commands/mounts.md",
 					Before: s.IsInitialized,
 					Action: s.MountAdd,
 					Flags: []cli.Flag{
