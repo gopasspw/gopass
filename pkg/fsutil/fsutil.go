@@ -10,7 +10,6 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
-	"time"
 
 	"github.com/gopasspw/gopass/pkg/appdir"
 	"github.com/gopasspw/gopass/pkg/debug"
@@ -138,8 +137,6 @@ func IsEmptyDir(path string) (bool, error) {
 
 // Shred overwrite the given file any number of times.
 func Shred(path string, runs int) error {
-	rand.Seed(time.Now().UnixNano())
-
 	fh, err := os.OpenFile(path, os.O_WRONLY, 0o600)
 	if err != nil {
 		return fmt.Errorf("failed to open file %q: %w", path, err)
