@@ -2,10 +2,10 @@ package pwgen
 
 import (
 	"bytes"
-	"crypto/rand"
+	crand "crypto/rand"
 	"fmt"
 	"io"
-	mrand "math/rand"
+	"math/rand"
 	"os"
 	"strings"
 	"testing"
@@ -40,12 +40,14 @@ func TestPwgenCharset(t *testing.T) {
 	assert.Equal(t, "", GeneratePasswordCharsetCheck(4, "a"))
 }
 
-func TestPwgenNoCrand(t *testing.T) {
-	old := rand.Reader
-	rand.Reader = strings.NewReader("")
+func TestPwgenNoCrandFallback(t *testing.T) {
+	oldFallback := randFallback
+	oldReader := crand.Reader
+	crand.Reader = strings.NewReader("")
 
 	defer func() {
-		rand.Reader = old
+		crand.Reader = oldReader
+		randFallback = oldFallback
 	}()
 
 	oldOut := os.Stdout
@@ -61,7 +63,7 @@ func TestPwgenNoCrand(t *testing.T) {
 	}()
 
 	// if we seed math/rand with 1789, the first "random number" will be 42
-	mrand.Seed(1789)
+	randFallback = rand.New(rand.NewSource(1789))
 
 	n := randomInteger(1024)
 
