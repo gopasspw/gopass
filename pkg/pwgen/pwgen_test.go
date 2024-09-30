@@ -41,7 +41,7 @@ func TestPwgenCharset(t *testing.T) {
 }
 
 func TestPwgenNoCrandFallback(t *testing.T) {
-	var oldFallback = randFallback
+	oldFallback := randFallback
 	oldReader := crand.Reader
 	crand.Reader = strings.NewReader("")
 
