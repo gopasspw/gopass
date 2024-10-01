@@ -260,15 +260,13 @@ func ParseAKV(in []byte) *AKV {
 			continue
 		}
 
-		line = strings.TrimSpace(line)
-
 		key, val, found := strings.Cut(line, kvSep)
 		if !found {
 			continue
 		}
 
 		key = strings.TrimSpace(key)
-		val = strings.TrimSpace(val)
+		// val = strings.TrimSpace(val)
 		// we only store lower case keys for KV
 		a.kvp[key] = append(a.kvp[key], val)
 	}

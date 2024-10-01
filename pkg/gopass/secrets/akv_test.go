@@ -121,6 +121,24 @@ func TestSetKeyValuePairToEmptyAKV(t *testing.T) {
 	assert.Equal(t, "bar", v)
 }
 
+func TestAKVTrailingWhitespace(t *testing.T) {
+	t.Parallel()
+	// Expected behaviour is KEY: VALUE, with one space.
+	// Fallback should exist for KEY:VALUE, with no spaces.
+	mlValue := `foobar
+defaultBehaviour: cd
+sorroundedBySpace:   cd 	 
+withoutSpace:cd`
+	s := ParseAKV([]byte(mlValue))
+	assert.NotNil(t, s)
+	v1, _ := s.Get("defaultBehaviour")
+	assert.Equal(t, "cd", v1)
+	v2, _ := s.Get("sorroundedBySpace")
+	assert.Equal(t, "  cd \t ", v2)
+	v3, _ := s.Get("defaultBehaviour")
+	assert.Equal(t, "cd", v3)
+}
+
 func TestParseAKV(t *testing.T) {
 	t.Parallel()
 
