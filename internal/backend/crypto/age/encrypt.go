@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"slices"
 
 	"filippo.io/age"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -48,6 +49,22 @@ func dedupe(recp []age.Recipient) []age.Recipient {
 	for _, r := range set {
 		out = append(out, r)
 	}
+
+	// we make sure they are sorted so that age1 identities are first
+	slices.SortFunc(out, func(a, b age.Recipient) int {
+		i, oka := a.(fmt.Stringer)
+		j, okb := b.(fmt.Stringer)
+
+		// handle non-native recipients such as SSH, we want them at the bottom
+		if !oka {
+			return -1
+		}
+		if !okb {
+			return -1
+		}
+		// yubikey identities are typically longer
+		return len(i.String()) - len(j.String())
+	})
 	debug.Log("in: %+v - out: %+v", recp, out)
 
 	return out

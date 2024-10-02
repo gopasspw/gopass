@@ -33,6 +33,8 @@ func (a *Age) Decrypt(ctx context.Context, ciphertext []byte) ([]byte, error) {
 }
 
 func (a *Age) decrypt(ciphertext []byte, ids ...age.Identity) ([]byte, error) {
+	debug.Log("decrypting with %d ids", len(ids))
+
 	out := &bytes.Buffer{}
 	f := bytes.NewReader(ciphertext)
 	r, err := age.Decrypt(f, ids...)
@@ -48,6 +50,7 @@ func (a *Age) decrypt(ciphertext []byte, ids ...age.Identity) ([]byte, error) {
 	return out.Bytes(), nil
 }
 
+// decryptFile is used to decrypt a scrypt encrypted age keyring/identity file.
 func (a *Age) decryptFile(ctx context.Context, filename string) ([]byte, error) {
 	ciphertext, err := os.ReadFile(filename)
 	if err != nil {
