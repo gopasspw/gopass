@@ -4,7 +4,6 @@ import (
 	"crypto/rand"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"testing"
 
@@ -30,22 +29,23 @@ func TestCleanPath(t *testing.T) {
 	tempdir := t.TempDir()
 	t.Setenv("GOPASS_HOMEDIR", "")
 
+	home, err := os.UserHomeDir()
+	if err != nil {
+		home = "~"
+	}
+
 	m := map[string]string{
 		".":                                 "",
 		"/home/user/../bob/.password-store": "/home/bob/.password-store",
 		"/home/user//.password-store":       "/home/user/.password-store",
 		tempdir + "/foo.gpg":                tempdir + "/foo.gpg",
-		"~/.password-store":                 "~/.password-store",
+		"~/.password-store":                 home + "/.password-store",
 	}
 
 	for in, out := range m {
 		got := CleanPath(in)
 
 		if strings.HasPrefix(out, "~") {
-			// skip these tests on windows
-			if runtime.GOOS == "windows" {
-				continue
-			}
 			assert.Equal(t, out, got)
 
 			continue

@@ -39,12 +39,16 @@ func ExpandHomedir(path string) string {
 
 // CleanPath resolves common aliases in a path and cleans it as much as possible.
 func CleanPath(path string) string {
-	// Only replace ~ if GOPASS_HOMEDIR is set. In that case we do expect any reference
-	// to the users homedir to be replaced by the value of GOPASS_HOMEDIR. This is mainly
-	// for testing and experiments. In all other cases we do want to leave ~ as-is.
+	// Replace ~ with GOPASS_HOMEDIR if set (mainly for testing and experiments),
+	// otherwise replace ~ with user's homedir if set. We expect any reference
+	// to the user's homedir to be replaced with one of these two values.
 	if len(path) > 1 && path[:2] == "~/" {
 		if hd := os.Getenv("GOPASS_HOMEDIR"); hd != "" {
 			return filepath.Clean(hd + path[2:])
+		}
+
+		if home, err := os.UserHomeDir(); err == nil {
+			return filepath.Clean(home + path[1:])
 		}
 	}
 
