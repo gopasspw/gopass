@@ -139,6 +139,57 @@ withoutSpace:cd`
 	assert.Equal(t, "cd", v3)
 }
 
+func TestAKVPasswordWhitespace(t *testing.T) {
+	t.Parallel()
+
+	helloIsWorldStr := "\nhello: world\n"
+	helloIsWorldPair := map[string][]string{
+		"hello": {"world"},
+	}
+
+	for _, tc := range []struct {
+		name string
+		in   string
+		pw   string
+		kvp  map[string][]string
+	}{
+		{
+			name: "justpassword",
+			in:   `this is a password.` + helloIsWorldStr,
+			pw:   "this is a password.",
+			kvp:  helloIsWorldPair,
+		},
+		{
+			name: "spaceonly",
+			in:   "   " + helloIsWorldStr,
+			pw:   "   ",
+			kvp:  helloIsWorldPair,
+		},
+		{
+			name: "tab",
+			in:   "\t tab padded password \t" + helloIsWorldStr,
+			pw:   "\t tab padded password \t",
+			kvp:  helloIsWorldPair,
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			a := ParseAKV([]byte(tc.in))
+
+			assert.Equal(t, tc.pw, a.password, tc.name)
+			for k, vs := range tc.kvp {
+				sort.Strings(vs)
+				gvs := a.kvp[k]
+				sort.Strings(gvs)
+				assert.Equal(t, vs, gvs, k)
+			}
+
+			assert.Equal(t, tc.in, string(a.Bytes()), tc.name)
+		})
+	}
+}
+
 func TestParseAKV(t *testing.T) {
 	t.Parallel()
 
