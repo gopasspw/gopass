@@ -250,7 +250,7 @@ func ParseAKV(in []byte) *AKV {
 
 		// handle the password that must be in the very first line
 		if first {
-			a.password = strings.TrimSpace(line)
+			a.password = line
 			first = false
 
 			continue
@@ -260,15 +260,13 @@ func ParseAKV(in []byte) *AKV {
 			continue
 		}
 
-		line = strings.TrimSpace(line)
-
 		key, val, found := strings.Cut(line, kvSep)
 		if !found {
 			continue
 		}
 
 		key = strings.TrimSpace(key)
-		val = strings.TrimSpace(val)
+		// val is not Trimmed. See https://github.com/gopasspw/gopass/issues/2873
 		// we only store lower case keys for KV
 		a.kvp[key] = append(a.kvp[key], val)
 	}
