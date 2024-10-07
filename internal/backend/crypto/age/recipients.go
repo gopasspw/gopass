@@ -6,6 +6,8 @@ import (
 
 	"filippo.io/age"
 	"filippo.io/age/agessh"
+	"filippo.io/age/plugin"
+	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/set"
 	"github.com/gopasspw/gopass/pkg/debug"
 )
@@ -45,46 +47,66 @@ func (a *Age) FindRecipients(ctx context.Context, search ...string) ([]string, e
 }
 
 func (a *Age) parseRecipients(ctx context.Context, recipients []string) ([]age.Recipient, error) {
-	out := make([]age.Recipient, 0, len(recipients))
+	ret := make([]age.Recipient, 0, len(recipients))
 	for _, r := range recipients {
-		if strings.HasPrefix(r, "age1") {
+		switch {
+		case strings.HasPrefix(r, "age1"):
 			id, err := age.ParseX25519Recipient(r)
 			if err != nil {
 				debug.Log("Failed to parse recipient %q as X25519: %s", r, err)
 
+				pid, err := plugin.NewRecipient(r, pluginTerminalUI)
+				if err != nil {
+					debug.Log("Failed to parse recipient %q as an age plugin: %s", out.Secret(r), err)
+
+					continue
+				}
+				ret = append(ret, &wrappedRecipient{rec: pid, encoding: r})
+
 				continue
 			}
-			out = append(out, id)
+			ret = append(ret, id)
 
-			continue
-		}
-		if strings.HasPrefix(r, "ssh-") {
+		case strings.HasPrefix(r, "ssh-"):
 			id, err := agessh.ParseRecipient(r)
 			if err != nil {
 				debug.Log("Failed to parse recipient %q as SSH: %s", r, err)
 
 				continue
 			}
-			out = append(out, id)
+			ret = append(ret, id)
 
-			continue
-		}
-		if strings.HasPrefix(r, "github:") {
+		case strings.HasPrefix(r, "github:"):
+			out.Warning(ctx, "github recipient support has been removed from age, consider switching to native keys")
 			pks, err := a.ghCache.ListKeys(ctx, strings.TrimPrefix(r, "github:"))
 			if err != nil {
-				return out, err
+				return ret, err
 			}
 			for _, pk := range pks {
-				id, err := agessh.ParseRecipient(r)
+				id, err := agessh.ParseRecipient(pk)
 				if err != nil {
-					debug.Log("Failed to parse GitHub recipient %q: %q: %s", r, pk, err)
+					debug.Log("Failed to parse GitHub recipient %q for key %q: %s", r, pk, err)
 
 					continue
 				}
-				out = append(out, id)
+				ret = append(ret, id)
 			}
+
+		// a special case to support the case where plugin users decided to use the plugin identity itself as a recipient
+		// when running the `gopass age identities add` command.
+		case strings.HasPrefix(r, "AGE-PLUGIN"):
+			pid, err := plugin.NewIdentity(r, pluginTerminalUI)
+			if err != nil {
+				debug.Log("Failed to parse identity as an age plugin: %s", err)
+
+				continue
+			}
+			ret = append(ret, &wrappedRecipient{rec: pid.Recipient(), encoding: r})
+
+		default:
+			debug.Log("Unknown age recipient %q failed parsing", out.Secret(r))
 		}
 	}
 
-	return out, nil
+	return ret, nil
 }

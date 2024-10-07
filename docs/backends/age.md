@@ -13,8 +13,14 @@ WARNING: This backend is experimental and the on-disk format likely to change.
 To start using the `age` backend initialize a new (sub) store with the `--crypto=age` flag:
 
 ```
-gopass init --crypto age
-gopass recipients add github:user
+$ gopass age identity add [AGE-... age1...]
+<if you do not specify an age secret key, you'll be prompted for one>
+$ gopass init --crypto age
+```
+
+or use the wizard that will help you create a new age key:
+```
+$ gopass setup --crypto age
 ```
 
 This will automatically create a new age keypair and initialize the new store.
@@ -29,6 +35,31 @@ Existing stores can be migrated using `gopass convert --crypto age`.
 * Support for using GitHub users' private keys, e.g. `github:user` as recipient
 * Automatic downloading and caching of SSH keys from GitHub
 * Encrypted keyring for age keypairs
+* Support for age plugins
+
+## Usage with a yubikey
+
+To use with a Yubikey, `age` requires the usage of the [age-plugin-yubikey plugin](https://github.com/str4d/age-plugin-yubikey/).
+
+Assuming you have Rust installed:
+```bash
+$ cargo install age-plugin-yubikey
+$ age-plugin-yubikey -i
+<should be empty>
+$ age-plugin-yubikey
+✨ Let's get your YubiKey set up for age! ✨
+<follow instructions to setup a PIV slot>
+$ age-plugin-yubikey -i
+<should display your PIV slot information now>
+$ gopass age identities add
+Enter the age identity starting in AGE-:
+<paste the `AGE-PLUGIN-YUBIKEY-...` identity from the previous command>
+Provide the corresponding age recipient starting in age1:
+<paste the `age1yubikey1...` recipient from the previous command>
+```
+
+If gopass tells you `waiting on yubikey plugin...` when decrypting secrets, it probably is waiting for you to touch
+your Yubikey because you've set a Touch policy when setting up your PIV slot.
 
 ## Roadmap
 
@@ -39,4 +70,3 @@ Assuming `age` is supporting this, we'd like to:
 * Finalize GitHub recipient support
 * Add Hardware token support
 * Make age the default gopass backend
-

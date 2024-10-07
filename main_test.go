@@ -121,6 +121,9 @@ func TestGetCommands(t *testing.T) {
 	ctx = ctxutil.WithTerminal(ctx, false)
 	ctx = ctxutil.WithHidden(ctx, true)
 	ctx = backend.WithCryptoBackendString(ctx, "plain")
+	ctx = ctxutil.WithPasswordCallback(ctx, func(_ string, _ bool) ([]byte, error) {
+		return []byte("foobar"), nil
+	})
 
 	act, err := action.New(cfg, semver.Version{})
 	require.NoError(t, err)

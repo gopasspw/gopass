@@ -22,7 +22,7 @@ var httpClient = &http.Client{
 }
 
 // ListKeys returns the public keys for a github user. It will
-// cache results up the a configurable amount of time (default: 6h).
+// cache results up to a configurable amount of time (default: 6h).
 func (c *Cache) ListKeys(ctx context.Context, user string) ([]string, error) {
 	pk, err := c.disk.Get(user)
 	if err != nil {
