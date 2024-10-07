@@ -91,6 +91,9 @@ func (a *Age) parseRecipients(ctx context.Context, recipients []string) ([]age.R
 				}
 				ret = append(ret, id)
 			}
+
+		// a special case to support the case where plugin users decided to use the plugin identity itself as a recipient
+		// when running the `gopass age identities add` command.
 		case strings.HasPrefix(r, "AGE-PLUGIN"):
 			pid, err := plugin.NewIdentity(r, pluginTerminalUI)
 			if err != nil {
@@ -99,6 +102,7 @@ func (a *Age) parseRecipients(ctx context.Context, recipients []string) ([]age.R
 				continue
 			}
 			ret = append(ret, &wrappedRecipient{rec: pid.Recipient(), encoding: r})
+
 		default:
 			debug.Log("Unknown age recipient %q failed parsing", out.Secret(r))
 		}

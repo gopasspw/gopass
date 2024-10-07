@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/fs"
 	"os"
 	"path/filepath"
 	"sort"
@@ -24,20 +23,41 @@ import (
 
 var idRecpCacheKey = "identity"
 
+// wrappedIdentity is a struct that allows us to wrap an `age.Identity` (typically
+// a `plugin.Identity` in order to keep track of its corresponding `age.Recipient`
+// and its bech32 encoding, since the `age`  plugin system doesn't provide a way
+// to easily derive a plugin `Recipient` from a given `Identity`.
+// It is very important to instantiate the recipient when instantiating a
+// wrappedIdentity.
 type wrappedIdentity struct {
 	id       age.Identity
 	rec      age.Recipient
 	encoding string
 }
 
-func (w *wrappedIdentity) String() string           { return w.encoding }
-func (w *wrappedIdentity) SafeStr() string          { return w.encoding[:12] }
 func (w *wrappedIdentity) Recipient() age.Recipient { return w.rec }
+func (w *wrappedIdentity) String() string           { return w.encoding }
 
+// SafeStr is implemented in order to avoid logging potentially sensitive data,
+// since an `age.Identity` typically contains secret key material.
+func (w *wrappedIdentity) SafeStr() string {
+	if len(w.encoding) < 12 {
+		return "(elided)"
+	} else {
+		// we return the first 12 char which are typically "AGE-PLUGIN-x" where
+		// x is the first letter of the plugin name
+		return w.encoding[:12]
+	}
+}
+
+// Unwrap simply delegates the unwrapping process to its wrapped identity.
 func (w *wrappedIdentity) Unwrap(stanzas []*age.Stanza) ([]byte, error) {
 	return w.id.Unwrap(stanzas)
 }
 
+// wrappedRecipient is meant to wrap an `age.Recipient`, typically a plugin one,
+// in order to keep track of its corresponding bech32 encoding since plugins don't
+// support deriving a recipient and its encoding from a given identity.
 type wrappedRecipient struct {
 	rec      age.Recipient
 	encoding string
@@ -45,6 +65,7 @@ type wrappedRecipient struct {
 
 func (w *wrappedRecipient) String() string { return w.encoding }
 
+// Wrap simply delegates the wrapping process to its wrapped recipient.
 func (w *wrappedRecipient) Wrap(fileKey []byte) ([]*age.Stanza, error) {
 	return w.rec.Wrap(fileKey)
 }
@@ -82,11 +103,22 @@ func (a *Age) Identities(ctx context.Context) ([]age.Identity, error) {
 	return ids, nil
 }
 
+// parseIdentity is mostly like `age` parseIdentity, except that it implements
+// our custom format we use with wrapped identities to store the encoding of
+// both the plugin identity and its corresponding recipient.
+// Custom format: `<age identity>"|"<age recipient>`
+// This custom format allows us to keep track of a given identity's recipient
+// and prevents us from storing secret identity data in our recipient cache.
 func parseIdentity(s string) (age.Identity, error) {
 	switch {
 	case strings.HasPrefix(s, "AGE-PLUGIN-"):
+		// sp will have a length at least 1 and will contain either the full string
+		// or the first part before | and the second part will be in sp[1].
 		sp := strings.Split(s, "|")
 		id, err := plugin.NewIdentity(sp[0], pluginTerminalUI)
+		if err != nil {
+			return nil, fmt.Errorf("unable to parse plugin identity: %w", err)
+		}
 		var rec age.Recipient
 		if len(sp) == 2 {
 			rec = &wrappedRecipient{
@@ -101,7 +133,7 @@ func parseIdentity(s string) (age.Identity, error) {
 			id:       id,
 			encoding: s,
 			rec:      rec,
-		}, err
+		}, nil
 	case strings.HasPrefix(s, "AGE-SECRET-KEY-1"):
 		sp := strings.Split(s, "|")
 
@@ -111,7 +143,8 @@ func parseIdentity(s string) (age.Identity, error) {
 	}
 }
 
-// parseIdentities is like age.ParseIdentities, but supports plugin identities.
+// parseIdentities is like age.ParseIdentities, but supports plugin identities,
+// it is a copy of https://github.com/FiloSottile/age/blob/2214a556f60400ad19f2ca43d3cbbb4a5a0fe5ab/cmd/age/parse.go#L123-L126
 func parseIdentities(f io.Reader) ([]age.Identity, error) {
 	const privateKeySizeLimit = 1 << 24 // 16 MiB
 	var ids []age.Identity
@@ -269,7 +302,9 @@ OUTER:
 func (a *Age) cachedIDRecipients() []age.Recipient {
 	if a.recpCache.ModTime(idRecpCacheKey).Before(modTime(a.identity)) {
 		debug.Log("identity cache expired")
-		_ = a.recpCache.Remove(idRecpCacheKey)
+		if err := a.recpCache.Remove(idRecpCacheKey); err != nil {
+			debug.Log("error invalidating age id recipient cache: %s", err)
+		}
 
 		return nil
 	}
@@ -290,9 +325,9 @@ func (a *Age) cachedIDRecipients() []age.Recipient {
 }
 
 func (a *Age) addIdentity(ctx context.Context, id age.Identity) error {
-	// we invalidate our recipient id cache when we add a new identity, if there's one
-	if err := a.recpCache.Remove(idRecpCacheKey); err != nil && !errors.Is(err, fs.ErrNotExist) {
-		return err
+	// we invalidate our recipient id cache when we add a new identity
+	if err := a.recpCache.Remove(idRecpCacheKey); err != nil {
+		debug.Log("error invalidating age id recipient cache: %s", err)
 	}
 
 	ids, _ := a.Identities(ctx)

@@ -82,6 +82,9 @@ func (l loader) Commands() []*cli.Command {
 									if err != nil || recEncm == "" {
 										return exit.Error(exit.Unknown, err, "failed to read corresponding age recipient")
 									}
+									if strings.HasPrefix(recEncm, "AGE-") {
+										out.Warning(ctx, "You have provided an identity as a recipient, recipients should start in 'age1', this might not be properly supported and might leak secret data in our identity recipient cache")
+									}
 								}
 
 								id, err := parseIdentity(idS + "|" + recEncm)
@@ -144,6 +147,7 @@ func (l loader) Commands() []*cli.Command {
 								ids, _ := a.Identities(ctx)
 								newIds := make([]string, 0, len(ids))
 
+								debug.Log("ranging over %d age identities", len(ids))
 								for _, id := range ids {
 									// we only need to care about X25519 and plugin/wrapped identities here because
 									// SSH identities are considered external and are not managed by gopass.
@@ -152,7 +156,7 @@ func (l loader) Commands() []*cli.Command {
 									switch x := id.(type) {
 									case *age.X25519Identity:
 										if x.Recipient().String() == victim {
-											debug.Log("removed X25519Identity %s", x.Recipient())
+											debug.Log("will remove X25519Identity %s", x.Recipient())
 
 											continue
 										}
@@ -165,7 +169,7 @@ func (l loader) Commands() []*cli.Command {
 											}
 										}
 										if skip {
-											debug.Log("removed Plugin Identity %s", x)
+											debug.Log("will remove Plugin Identity %s", x)
 
 											continue
 										}
@@ -177,6 +181,11 @@ func (l loader) Commands() []*cli.Command {
 									out.Warning(ctx, "Make sure to run 'gopass fsck --decrypt' to re-encrypt your secrets without including that identity if it's not in your recipient list.")
 								} else {
 									out.Notice(ctx, "no matching identity found in list")
+								}
+
+								// we invalidate our recipient id cache when we remove an identity, if there's one
+								if err := a.recpCache.Remove(idRecpCacheKey); err != nil {
+									debug.Log("error invalidating age id recipient cache: %s", err)
 								}
 
 								return a.saveIdentities(ctx, newIds, false)
