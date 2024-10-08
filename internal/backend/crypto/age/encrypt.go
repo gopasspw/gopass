@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"slices"
 
 	"filippo.io/age"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -25,6 +26,7 @@ func (a *Age) Encrypt(ctx context.Context, plaintext []byte, recipients []string
 		return nil, fmt.Errorf("failed to parse recipients file for encryption: %w", err)
 	}
 
+	// dedupe also order recipients so that native ones are first
 	recp = dedupe(append(recp, idRecps...))
 
 	return a.encrypt(plaintext, recp...)
@@ -48,6 +50,25 @@ func dedupe(recp []age.Recipient) []age.Recipient {
 	for _, r := range set {
 		out = append(out, r)
 	}
+
+	// we make sure they are sorted so that age1 identities are first,
+	// because age by default tries to decrypt in the order of the stanzas,
+	// and if we do have a native identity on our machine, we probably want to
+	// use that first before using a hardware token which might require a PIN.
+	slices.SortFunc(out, func(a, b age.Recipient) int {
+		i, oka := a.(fmt.Stringer)
+		j, okb := b.(fmt.Stringer)
+
+		// handle non-native recipients such as SSH, we want them at the bottom
+		if !oka {
+			return -1
+		}
+		if !okb {
+			return -1
+		}
+		// yubikey identities are typically longer
+		return len(i.String()) - len(j.String())
+	})
 	debug.Log("in: %+v - out: %+v", recp, out)
 
 	return out

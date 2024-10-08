@@ -6,6 +6,7 @@
 
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/gopasspw/gopass/badge)](https://securityscorecards.dev/viewer/?uri=github.com/gopasspw/gopass)
 [![Build Status](https://img.shields.io/github/actions/workflow/status/gopasspw/gopass/build.yml?branch=master)](https://github.com/gopasspw/gopass/actions/workflows/build.yml?query=branch%3Amaster)
+[![Go Report Card](https://goreportcard.com/badge/github.com/gopasspw/gopass)](https://goreportcard.com/report/github.com/gopasspw/gopass)
 [![Packaging status](https://repology.org/badge/tiny-repos/gopass-gopasspw.svg)](https://repology.org/project/gopass-gopasspw/versions)
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/gopasspw/gopass/blob/master/LICENSE)
 [![Github All Releases](https://img.shields.io/github/downloads/gopasspw/gopass/total.svg)](https://github.com/gopasspw/gopass/releases)

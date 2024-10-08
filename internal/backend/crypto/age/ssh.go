@@ -27,9 +27,13 @@ var (
 // getSSHIdentities returns all SSH identities available for the current user.
 func (a *Age) getSSHIdentities(ctx context.Context) (map[string]age.Identity, error) {
 	if sshCache != nil {
+		debug.Log("using sshCache")
+
 		return sshCache, nil
 	}
 
+	// notice that this respects the GOPASS_HOMEDIR env variable, and won't
+	// find a .ssh folder in your home directory if you set GOPASS_HOMEDIR
 	uhd := appdir.UserHome()
 	sshDir := filepath.Join(uhd, ".ssh")
 	if !fsutil.IsDir(sshDir) {
@@ -60,6 +64,7 @@ func (a *Age) getSSHIdentities(ctx context.Context) (map[string]age.Identity, er
 		ids[recp] = id
 	}
 	sshCache = ids
+	debug.Log("returned %d SSH Identities", len(ids))
 
 	return ids, nil
 }

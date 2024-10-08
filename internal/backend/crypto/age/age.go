@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
-	"runtime"
 	"time"
 
 	"github.com/blang/semver/v4"
@@ -82,7 +81,7 @@ func (a *Age) IDFile() string {
 	return IDFile
 }
 
-// Concurrency returns the number of CPUs.
+// Concurrency returns 1 for `age` since otherwise it prompts for the identity password for each worker.
 func (a *Age) Concurrency() int {
-	return runtime.NumCPU()
+	return 1
 }

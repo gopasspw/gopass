@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/gopasspw/gopass/internal/backend"
+	"github.com/gopasspw/gopass/internal/backend/crypto/age"
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/diff"
 	"github.com/gopasspw/gopass/internal/out"
@@ -253,8 +254,8 @@ func (s *Store) fsckCheckEntry(ctx context.Context, name string) (string, error)
 		if merr.Severity == errsFatal {
 			return "", errs.Append(errsFatal, fmt.Errorf("Checking recipients for %s failed:\n    %w", name, merr)).ErrorOrNil()
 		}
-		// the only errsNonFatal error from that function are missing/extra recipients,
-		// which isn't much of an error since we have yet to correct that.
+		// the only errsNonFatal error from that function are missing/extra recipients, or unsupported recipient checks
+		// all of which aren't much of an issue since we have yet to correct that by re-encrypting.
 		recpNeedFix = true
 		_ = errs.Append(merr.Severity, merr)
 	}
@@ -266,7 +267,7 @@ func (s *Store) fsckCheckEntry(ctx context.Context, name string) (string, error)
 			return "", nil
 		}
 
-		return "", errs.Append(errsFatal, fmt.Errorf("Run fsck with the --decrypt flag to re-encrypt it automatically, or edit the secret %s yourself.", name)).ErrorOrNil()
+		return "", errs.Append(errsFatal, fmt.Errorf("secret %s needs re-encryption", name)).ErrorOrNil()
 	}
 
 	// we need to make sure Parsing is enabled in order to parse old Mime secrets
@@ -322,6 +323,13 @@ func (s *Store) fsckCheckRecipients(ctx context.Context, name string) *fsckMulti
 		return e.Append(errsFatal, fmt.Errorf("failed to get raw secret: %w", err))
 	}
 
+	if _, ok := s.crypto.(*age.Age); ok {
+		debug.Log("RecipientIDs not supported yet by age")
+		_ = e.Append(errsNonFatal, fmt.Errorf("recipients check not supported by age backend for now"))
+
+		return e
+	}
+
 	itemRecps, err := s.crypto.RecipientIDs(ctx, ciphertext)
 	if err != nil {
 		return e.Append(errsFatal, fmt.Errorf("failed to read recipient IDs from raw secret: %w", err))
@@ -339,10 +347,10 @@ func (s *Store) fsckCheckRecipients(ctx context.Context, name string) *fsckMulti
 	// check itemRecps matches storeRecps
 	extra, missing := diff.List(perItemStoreRecps, itemRecps)
 	if len(missing) > 0 {
-		_ = e.Append(errsNonFatal, fmt.Errorf("Missing recipients on %s: %+v\nRun fsck with the --decrypt flag to re-encrypt it automatically, or edit this secret yourself.", name, missing))
+		_ = e.Append(errsNonFatal, fmt.Errorf("Missing recipients on %s: %+v\n", name, missing))
 	}
 	if len(extra) > 0 {
-		_ = e.Append(errsNonFatal, fmt.Errorf("Extra recipients on %s: %+v\nRun fsck with the --decrypt flag to re-encrypt it automatically, or edit this secret yourself.", name, extra))
+		_ = e.Append(errsNonFatal, fmt.Errorf("Extra recipients on %s: %+v\n", name, extra))
 	}
 
 	return e

@@ -138,9 +138,13 @@ func (s *Action) init(ctx context.Context, alias, path string, keys ...string) e
 	}
 
 	if len(keys) < 1 {
-		out.Notice(ctx, "Hint: Use 'gopass init <subkey> to use subkeys!'")
+		if crypto.Name() != "age" {
+			out.Notice(ctx, "Hint: Use 'gopass init <subkey> to use subkeys!'")
+		}
 		nk, err := cui.AskForPrivateKey(ctx, crypto, "🎮 Please select a private key for encrypting secrets:")
 		if err != nil {
+			out.Noticef(ctx, "Hint: Use 'gopass setup --crypto %s' to be guided through an initial setup instead of 'gopass init'", crypto.Name())
+
 			return fmt.Errorf("failed to read user input: %w", err)
 		}
 		keys = []string{nk}
