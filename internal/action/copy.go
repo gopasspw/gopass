@@ -3,6 +3,7 @@ package action
 import (
 	"context"
 	"fmt"
+	"github.com/gopasspw/gopass/internal/tree"
 	"path/filepath"
 	"strings"
 
@@ -43,17 +44,24 @@ func (s *Action) copy(ctx context.Context, from, to string, force bool) error {
 }
 
 func (s *Action) copyFlattenDir(ctx context.Context, from, to string, force bool) error {
-	entries, err := s.Store.List(ctx, 0)
+	entries, err := s.Store.List(ctx, tree.INF)
+
 	if err != nil {
 		return exit.Error(exit.List, err, "failed to list entries in %q", from)
 	}
 
-	for _, entry := range entries {
-		fromPath := filepath.Join(from, entry)
-		toPath := filepath.Join(to, filepath.Base(entry))
+	fromPrefix := from
+	if !strings.HasSuffix(fromPrefix, "/") {
+		fromPrefix += "/"
+	}
 
-		if err := s.copyRegular(ctx, fromPath, toPath, force); err != nil {
-			return err
+	for _, entry := range entries {
+		if strings.HasPrefix(entry, fromPrefix) {
+			toPath := filepath.Join(to, filepath.Base(entry))
+
+			if err := s.copyRegular(ctx, entry, toPath, force); err != nil {
+				return err
+			}
 		}
 	}
 
