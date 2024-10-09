@@ -3,6 +3,8 @@ package action
 import (
 	"context"
 	"fmt"
+	"path/filepath"
+	"strings"
 
 	"github.com/gopasspw/gopass/internal/action/exit"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -29,6 +31,36 @@ func (s *Action) copy(ctx context.Context, from, to string, force bool) error {
 	if !s.Store.Exists(ctx, from) && !s.Store.IsDir(ctx, from) {
 		return exit.Error(exit.NotFound, nil, "%s does not exist", from)
 	}
+
+	isSourceDir := s.Store.IsDir(ctx, from)
+	hasTrailingSlash := strings.HasSuffix(to, "/")
+
+	if isSourceDir && hasTrailingSlash {
+		return s.copyFlattenDir(ctx, from, to, force)
+	}
+
+	return s.copyRegular(ctx, from, to, force)
+}
+
+func (s *Action) copyFlattenDir(ctx context.Context, from, to string, force bool) error {
+	entries, err := s.Store.List(ctx, 0)
+	if err != nil {
+		return exit.Error(exit.List, err, "failed to list entries in %q", from)
+	}
+
+	for _, entry := range entries {
+		fromPath := filepath.Join(from, entry)
+		toPath := filepath.Join(to, filepath.Base(entry))
+
+		if err := s.copyRegular(ctx, fromPath, toPath, force); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (s *Action) copyRegular(ctx context.Context, from, to string, force bool) error {
 
 	if !force {
 		if s.Store.Exists(ctx, to) && !termio.AskForConfirmation(ctx, fmt.Sprintf("%s already exists. Overwrite it?", to)) {
