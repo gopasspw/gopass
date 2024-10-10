@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/fatih/color"
 	"github.com/gopasspw/gopass/internal/action/exit"
@@ -137,6 +138,10 @@ func (s *Action) initGenerateIdentity(ctx context.Context, crypto backend.Crypto
 		}
 
 		email, err = termio.AskForString(ctx, "📧 What is your email?", email)
+
+		if strings.TrimSpace(email) == "" {
+			return fmt.Errorf("failed to create a usable key pair")
+		}
 		if err != nil {
 			return err
 		}
