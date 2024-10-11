@@ -138,8 +138,6 @@ func (s *Action) initGenerateIdentity(ctx context.Context, crypto backend.Crypto
 		}
 
 		email, err = termio.AskForString(ctx, "📧 What is your email?", email)
-
-		
 		if err != nil {
 			return err
 		}
