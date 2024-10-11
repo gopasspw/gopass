@@ -180,3 +180,95 @@ func TestCopyGpg(t *testing.T) {
 	assert.Equal(t, "barfoo", buf.String())
 	buf.Reset()
 }
+
+func TestCopyWithTrailingSlash(t *testing.T) {
+	u := gptest.NewUnitTester(t)
+
+	ctx := config.NewContextInMemory()
+	ctx = ctxutil.WithInteractive(ctx, false)
+	ctx = ctxutil.WithAlwaysYes(ctx, true)
+
+	act, err := newMock(ctx, u.StoreDir(""))
+	require.NoError(t, err)
+	require.NotNil(t, act)
+	ctx = act.cfg.WithConfig(ctx)
+
+	require.NoError(t, act.cfg.Set("", "generate.autoclip", "false"))
+
+	buf := &bytes.Buffer{}
+	out.Stdout = buf
+	stdout = buf
+	defer func() {
+		stdout = os.Stdout
+		out.Stdout = os.Stdout
+	}()
+
+	color.NoColor = true
+
+	// generate foo
+	c := gptest.CliCtx(ctx, t, "foo")
+	require.NoError(t, act.Generate(c))
+	buf.Reset()
+
+	// copy foo bar
+	c = gptest.CliCtx(ctx, t, "foo", "bar")
+	require.NoError(t, act.Copy(c))
+	buf.Reset()
+
+	// copy foo bar (again, should fail)
+	{
+		ctx := ctxutil.WithAlwaysYes(ctx, false)
+		ctx = ctxutil.WithInteractive(ctx, false)
+		c.Context = ctx
+		require.Error(t, act.Copy(c))
+		buf.Reset()
+	}
+
+	// copy not-found still-not-there
+	c = gptest.CliCtx(ctx, t, "not-found", "still-not-there")
+	require.Error(t, act.Copy(c))
+	buf.Reset()
+
+	// copy
+	c = gptest.CliCtx(ctx, t)
+	require.Error(t, act.Copy(c))
+	buf.Reset()
+
+	// Create a directory structure
+	require.NoError(t, act.insertStdin(ctx, "secret/some/zab", []byte("secret"), false))
+	require.NoError(t, act.insertStdin(ctx, "secret/baz", []byte("another"), false))
+
+	// Test copying a directory with trailing slash
+	c = gptest.CliCtx(ctx, t, "secret/", "new/")
+	require.NoError(t, act.Copy(c))
+	buf.Reset()
+
+	// Verify the result
+	require.NoError(t, act.List(gptest.CliCtx(ctx, t)))
+	want := `gopass
+├── bar
+├── foo
+├── new/
+│   ├── baz
+│   └── zab
+└── secret/
+    ├── baz
+    └── some/
+        └── zab
+
+`
+
+	assert.Equal(t, want, buf.String())
+	buf.Reset()
+
+	// Verify content of copied files
+	ctx = ctxutil.WithTerminal(ctx, false)
+	require.NoError(t, act.show(ctx, c, "new/zab", false))
+	assert.Equal(t, "secret\n", buf.String())
+	buf.Reset()
+
+	require.NoError(t, act.show(ctx, c, "new/baz", false))
+	assert.Equal(t, "another\n", buf.String())
+	buf.Reset()
+
+}
