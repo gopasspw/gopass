@@ -140,7 +140,7 @@ func (s *Action) initGenerateIdentity(ctx context.Context, crypto backend.Crypto
 		email, err = termio.AskForString(ctx, "📧 What is your email?", email)
 
 		if strings.TrimSpace(email) == "" {
-			return fmt.Errorf("failed to create a usable key pair")
+			return fmt.Errorf("Please enter a valid email address to proceed")
 		}
 		if err != nil {
 			return err
