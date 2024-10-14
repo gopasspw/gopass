@@ -8,10 +8,10 @@ import (
 )
 
 func ExampleProgressBar() { //nolint:testableexamples
-	max := 100
-	pb := NewProgressBar(int64(max))
+	maxVal := 100
+	pb := NewProgressBar(int64(maxVal))
 
-	for range max + 20 {
+	for range maxVal + 20 {
 		pb.Inc()
 		pb.Add(23)
 		pb.Set(42)
@@ -23,8 +23,8 @@ func ExampleProgressBar() { //nolint:testableexamples
 }
 
 func TestProgress(t *testing.T) {
-	max := 2
-	pb := NewProgressBar(int64(max))
+	maxVal := 2
+	pb := NewProgressBar(int64(maxVal))
 	pb.Hidden = true
 	pb.Inc()
 	assert.Equal(t, int64(1), pb.current)
@@ -40,8 +40,8 @@ func TestProgressNil(t *testing.T) {
 }
 
 func TestProgressBytes(t *testing.T) {
-	max := 2 << 24
-	pb := NewProgressBar(int64(max))
+	maxSize := 2 << 24
+	pb := NewProgressBar(int64(maxSize))
 	pb.Hidden = true
 	pb.Bytes = true
 
@@ -49,6 +49,6 @@ func TestProgressBytes(t *testing.T) {
 		pb.Set(2 << (i + 1))
 	}
 
-	assert.Equal(t, int64(max), pb.current)
+	assert.Equal(t, int64(maxSize), pb.current)
 	pb.Done()
 }

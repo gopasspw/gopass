@@ -39,7 +39,8 @@ func newMock(ctx context.Context, path string) (*Action, error) {
 	c := cli.NewContext(cli.NewApp(), fs, nil)
 	c.Context = ctx
 	if err := act.IsInitialized(c); err != nil {
-		return nil, err
+		// we still return the action since this might be expected sometimes
+		return act, err
 	}
 
 	return act, nil

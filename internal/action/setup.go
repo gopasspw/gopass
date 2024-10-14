@@ -144,26 +144,27 @@ func (s *Action) initGenerateIdentity(ctx context.Context, crypto backend.Crypto
 
 	passphrase := xkcdgen.Random()
 	pwGenerated := true
-	want, err := termio.AskForBool(ctx, "⚠ Do you want to enter a passphrase? (otherwise we generate one for you)", false)
-	if err != nil {
-		return err
-	}
-	if want {
-		pwGenerated = false
-		sv, err := termio.AskForPassword(ctx, "passphrase for your new keypair", true)
-		if err != nil {
-			return fmt.Errorf("failed to read passphrase: %w", err)
-		}
-		passphrase = sv
-	}
-
 	// support fully automated setup (e.g. for tests)
-	if !ctxutil.IsInteractive(ctx) && ctxutil.HasPasswordCallback(ctx) {
+	//nolint:nestif
+	if ctxutil.HasPasswordCallback(ctx) {
 		pw, err := ctxutil.GetPasswordCallback(ctx)("", true)
 		if err == nil {
 			passphrase = string(pw)
 		}
 		pwGenerated = false
+	} else {
+		want, err := termio.AskForBool(ctx, "⚠ Do you want to enter a passphrase? (otherwise we generate one for you)", false)
+		if err != nil {
+			return err
+		}
+		if want {
+			pwGenerated = false
+			sv, err := termio.AskForPassword(ctx, "passphrase for your new keypair", true)
+			if err != nil {
+				return fmt.Errorf("failed to read passphrase: %w", err)
+			}
+			passphrase = sv
+		}
 	}
 
 	if crypto.Name() == "gpgcli" {

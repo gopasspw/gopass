@@ -330,6 +330,15 @@ func initContext(ctx context.Context, cfg *config.Config) context.Context {
 		}
 	}
 
+	// using a password callback for age identity file or not?
+	if pw, isSet := os.LookupEnv("GOPASS_AGE_PWID"); isSet {
+		ctx = ctxutil.WithPasswordCallback(ctx, func(_ string, _ bool) ([]byte, error) {
+			debug.Log("using age password callback from env variable GOPASS_AGE_PWID")
+
+			return []byte(pw), nil
+		})
+	}
+
 	return ctx
 }
 

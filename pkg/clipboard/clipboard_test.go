@@ -47,7 +47,7 @@ func TestUnsupportedCopyToClipboard(t *testing.T) {
 
 func TestClearClipboard(t *testing.T) {
 	ctx, cancel := context.WithCancel(config.NewContextInMemory())
-	require.NoError(t, clear(ctx, "foo", []byte("bar"), 0))
+	require.NoError(t, clearClip(ctx, "foo", []byte("bar"), 0))
 	cancel()
 	time.Sleep(50 * time.Millisecond)
 }

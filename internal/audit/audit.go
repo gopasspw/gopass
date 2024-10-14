@@ -138,9 +138,9 @@ func (a *Auditor) Batch(ctx context.Context, secrets []string) (*Report, error) 
 	// https://github.com/gopasspw/gopass/pull/245
 	//
 	maxJobs := a.s.Concurrency()
-	if max := config.Int(ctx, "audit.concurrency"); max > 0 {
-		if maxJobs > max {
-			maxJobs = max
+	if maxVal := config.Int(ctx, "audit.concurrency"); maxVal > 0 {
+		if maxJobs > maxVal {
+			maxJobs = maxVal
 		}
 	}
 

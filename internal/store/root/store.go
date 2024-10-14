@@ -106,11 +106,3 @@ func (r *Store) Concurrency() int {
 
 	return min(c, runtime.NumCPU())
 }
-
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-
-	return b
-}

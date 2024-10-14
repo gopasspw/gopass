@@ -29,10 +29,8 @@ func TestSetupAgeGitFS(t *testing.T) {
 	})
 	ctx = ctxutil.WithPasswordPurgeCallback(ctx, func(s string) {}) //nolint:staticcheck
 
-	t.Skip("TODO: fix setup test")
-
 	act, err := newMock(ctx, u.StoreDir(""))
-	require.NoError(t, err)
+	require.ErrorContains(t, err, "not initialized")
 	require.NotNil(t, act)
 
 	buf := &bytes.Buffer{}
@@ -56,11 +54,11 @@ func TestSetupAgeGitFS(t *testing.T) {
 	require.NotNil(t, crypto)
 	assert.Equal(t, "age", crypto.Name())
 	assert.True(t, act.initHasUseablePrivateKeys(ctx, crypto))
-	require.Error(t, act.initGenerateIdentity(ctx, crypto, "foo bar", "foo.bar@example.org"))
+	require.NoError(t, act.initGenerateIdentity(ctx, crypto, "foo bar", "foo.bar@example.org"))
 	buf.Reset()
 
 	act.printRecipients(ctx, "")
-	assert.Contains(t, buf.String(), "0xDEADBEEF")
+	assert.Contains(t, buf.String(), "age1")
 	buf.Reset()
 }
 
@@ -88,8 +86,6 @@ func TestSetupPlainFS(t *testing.T) {
 	c := gptest.CliCtx(ctx, t, "foo.bar@example.org")
 	require.NoError(t, act.IsInitialized(c))
 	buf.Reset()
-
-	t.Skip("TODO: fix these tests")
 
 	require.Error(t, act.Init(c))
 	assert.Contains(t, buf.String(), "already initialized")

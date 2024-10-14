@@ -50,7 +50,7 @@ func (p *ProgressBar) Add(v int64) {
 	}
 
 	cur := atomic.AddInt64(&p.current, v)
-	if max := atomic.LoadInt64(&p.total); cur > max {
+	if maxVal := atomic.LoadInt64(&p.total); cur > maxVal {
 		atomic.StoreInt64(&p.total, cur)
 	}
 
@@ -64,7 +64,7 @@ func (p *ProgressBar) Inc() {
 	}
 
 	cur := atomic.AddInt64(&p.current, 1)
-	if max := atomic.LoadInt64(&p.total); cur > max {
+	if maxVal := atomic.LoadInt64(&p.total); cur > maxVal {
 		atomic.StoreInt64(&p.total, cur)
 	}
 
@@ -79,7 +79,7 @@ func (p *ProgressBar) Set(v int64) {
 
 	atomic.StoreInt64(&p.current, v)
 
-	if max := atomic.LoadInt64(&p.total); v > max {
+	if maxVal := atomic.LoadInt64(&p.total); v > maxVal {
 		atomic.StoreInt64(&p.total, v)
 	}
 
@@ -143,7 +143,7 @@ func (p *ProgressBar) tryPrint() {
 func (p *ProgressBar) doPrint() {
 	clearLine()
 
-	cur, max, pct := p.percent()
+	cur, maxVal, pct := p.percent()
 	pctStr := fmt.Sprintf("%.2f%%", pct*100)
 	// ensure consistent length
 	for len(pctStr) < 7 {
@@ -158,17 +158,17 @@ func (p *ProgressBar) doPrint() {
 	}
 
 	barWidth := uint(termWidth)
-	digits := int(math.Log10(float64(max))) + 1
+	digits := int(math.Log10(float64(maxVal))) + 1
 	// Log10(0) is undefined
-	if max < 1 {
+	if maxVal < 1 {
 		digits = 1
 	}
 
-	text := fmt.Sprintf(fmt.Sprintf(" %%%dd / %%%dd ", digits, digits), cur, max)
+	text := fmt.Sprintf(fmt.Sprintf(" %%%dd / %%%dd ", digits, digits), cur, maxVal)
 
 	if p.Bytes {
 		curStr := humanize.Bytes(uint64(cur))
-		maxStr := humanize.Bytes(uint64(max))
+		maxStr := humanize.Bytes(uint64(maxVal))
 		digits := len(maxStr) + 1
 		text = fmt.Sprintf(fmt.Sprintf(" %%%ds / %%%ds ", digits, digits), curStr, maxStr)
 	}
@@ -210,22 +210,14 @@ func gteZero(a int) int {
 	return 0
 }
 
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-
-	return b
-}
-
 func boundedMin(a, b int) int {
 	return gteZero(min(a, b))
 }
 
 func (p *ProgressBar) percent() (int64, int64, float64) {
 	cur := atomic.LoadInt64(&p.current)
-	max := atomic.LoadInt64(&p.total)
-	pct := float64(cur) / float64(max)
+	maxVal := atomic.LoadInt64(&p.total)
+	pct := float64(cur) / float64(maxVal)
 
 	if p.total < 1 {
 		if p.current < 1 {
@@ -236,7 +228,7 @@ func (p *ProgressBar) percent() (int64, int64, float64) {
 	}
 
 	// normalized between 0.0 and 1.0
-	return cur, max, math.Min(1, math.Max(0, pct))
+	return cur, maxVal, math.Min(1, math.Max(0, pct))
 }
 
 func clearLine() {

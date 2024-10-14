@@ -44,7 +44,7 @@ var configSampleDocs = `#
 
 var configSampleComplex = `
 [alias]
-   
+
    # add
    a = add                                   # add
    aa = add --all
@@ -152,7 +152,7 @@ var configSampleComplex = `
   # merge
   merc = merge --no-ff
 	grog = log --graph --abbrev-commit --decorate --all --format=format:\"%C(bold blue)%h%C(reset) - %C(bold cyan)%aD%C(dim white) - %an%C(reset) %C(bold green)(%ar)%C(reset)%C(bold yellow)%d%C(reset)%n %C(white)%s%C(reset)\"
-   
+
 [apply]
    # Detect whitespace errors when applying a patch
    whitespace = fix
@@ -179,7 +179,7 @@ var configSampleComplex = `
    # Use colors in Git commands that are capable of colored output when outputting to the terminal
    ui = auto
 
-[diff] 
+[diff]
 
 [format]
    pretty = format:%C(blue)%ad%Creset %C(yellow)%h%C(green)%d%Creset %C(blue)%s %C(magenta) [%an]%Creset
@@ -354,9 +354,6 @@ func TestParseDocs(t *testing.T) {
 	t.Parallel()
 
 	c := ParseConfig(strings.NewReader(configSampleComplex)) //nolint:staticcheck
-
-	// TODO(#2479) - fix parsing
-	t.Skip("TODO - broken")
 
 	v, ok := c.Get("core.sshCommand")
 	assert.True(t, ok)

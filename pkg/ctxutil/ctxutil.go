@@ -396,7 +396,10 @@ func GetImportFunc(ctx context.Context) store.ImportCallback {
 	return imf
 }
 
-// PasswordCallback is a password prompt callback.
+// PasswordCallback is a password prompt callback used in our age crypto backend.
+// The arguments are typically the filename and whether or not to ask for a confirmation
+// of the provided password, we use it notably together with askPass.
+// It is linked to the GOPASS_AGE_PWID env variable.
 type PasswordCallback func(string, bool) ([]byte, error)
 
 // WithPasswordCallback returns a context with the password callback set.

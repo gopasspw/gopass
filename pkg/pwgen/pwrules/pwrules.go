@@ -75,10 +75,10 @@ func ParseRule(in string) Rule {
 
 		key := strings.TrimSpace(p[0])
 		strVal := strings.TrimSpace(p[1])
-		max := len(strVal)
+		maxVal := len(strVal)
 
 		if i := strings.Index(strVal, "["); i > 0 {
-			max = i
+			maxVal = i
 		}
 
 		switch key {
@@ -89,9 +89,9 @@ func ParseRule(in string) Rule {
 		case "max-consecutive":
 			r.Maxconsec, err = strconv.Atoi(strVal)
 		case "required":
-			r.Required = append(r.Required, strings.Split(strVal[0:max], ",")...)
+			r.Required = append(r.Required, strings.Split(strVal[0:maxVal], ",")...)
 		case "allowed":
-			r.Allowed = append(r.Allowed, strings.Split(strVal[0:max], ",")...)
+			r.Allowed = append(r.Allowed, strings.Split(strVal[0:maxVal], ",")...)
 		}
 
 		if err != nil {

@@ -3,13 +3,14 @@ package action
 import (
 	"context"
 	"fmt"
-	"github.com/gopasspw/gopass/internal/tree"
 	"path/filepath"
 	"strings"
 
 	"github.com/gopasspw/gopass/internal/action/exit"
+	"github.com/gopasspw/gopass/internal/tree"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/termio"
+
 	"github.com/urfave/cli/v2"
 )
 
@@ -45,7 +46,6 @@ func (s *Action) copy(ctx context.Context, from, to string, force bool) error {
 
 func (s *Action) copyFlattenDir(ctx context.Context, from, to string, force bool) error {
 	entries, err := s.Store.List(ctx, tree.INF)
-
 	if err != nil {
 		return exit.Error(exit.List, err, "failed to list entries in %q", from)
 	}
@@ -69,7 +69,6 @@ func (s *Action) copyFlattenDir(ctx context.Context, from, to string, force bool
 }
 
 func (s *Action) copyRegular(ctx context.Context, from, to string, force bool) error {
-
 	if !force {
 		if s.Store.Exists(ctx, to) && !termio.AskForConfirmation(ctx, fmt.Sprintf("%s already exists. Overwrite it?", to)) {
 			return exit.Error(exit.Aborted, nil, "not overwriting your current secret")
