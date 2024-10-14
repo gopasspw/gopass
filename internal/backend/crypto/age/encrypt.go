@@ -5,11 +5,11 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"slices"
 
 	"filippo.io/age"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
+	"slices"
 )
 
 // Encrypt will encrypt the given payload.

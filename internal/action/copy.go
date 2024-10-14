@@ -10,7 +10,6 @@ import (
 	"github.com/gopasspw/gopass/internal/tree"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/termio"
-
 	"github.com/urfave/cli/v2"
 )
 
