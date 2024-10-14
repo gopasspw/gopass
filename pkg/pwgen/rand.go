@@ -16,13 +16,13 @@ func init() {
 
 var randFallback *rand.Rand
 
-func randomInteger(max int) int {
-	i, err := crand.Int(crand.Reader, big.NewInt(int64(max)))
+func randomInteger(maxVal int) int {
+	i, err := crand.Int(crand.Reader, big.NewInt(int64(maxVal)))
 	if err == nil {
 		return int(i.Int64())
 	}
 
 	fmt.Fprintln(os.Stderr, "WARNING: No crypto/rand available. Falling back to PRNG")
 
-	return randFallback.Intn(max)
+	return randFallback.Intn(maxVal)
 }

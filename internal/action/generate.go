@@ -249,13 +249,13 @@ func getPwLengthFromEnvOrAskUser(ctx context.Context) (int, error) {
 	return pwlen, nil
 }
 
-func clamp(min, max, value int) int {
-	if value < min {
-		return min
+func clamp(mi, ma, value int) int {
+	if value < mi {
+		return mi
 	}
 
-	if value > max && max > 0 {
-		return max
+	if value > ma && ma > 0 {
+		return ma
 	}
 
 	return value

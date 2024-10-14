@@ -13,11 +13,11 @@ import (
 	"github.com/gopasspw/gopass/internal/pwschemes/argon2id"
 )
 
-// clear will spwan a copy of gopass that waits in a detached background
+// clearClip will spwan a copy of gopass that waits in a detached background
 // process group until the timeout is expired. It will then compare the contents
 // of the clipboard and erase it if it still contains the data gopass copied
 // to it.
-func clear(ctx context.Context, name string, content []byte, timeout int) error {
+func clearClip(ctx context.Context, name string, content []byte, timeout int) error {
 	hash, err := argon2id.Generate(string(content), 0)
 	if err != nil {
 		return err

@@ -270,5 +270,4 @@ func TestCopyWithTrailingSlash(t *testing.T) {
 	require.NoError(t, act.show(ctx, c, "new/baz", false))
 	assert.Equal(t, "another\n", buf.String())
 	buf.Reset()
-
 }

@@ -242,7 +242,11 @@ func IdentityToRecipient(id age.Identity) age.Recipient {
 
 // GenerateIdentity creates a new identity.
 func (a *Age) GenerateIdentity(ctx context.Context, _ string, _ string, pw string) error {
+	// we don't check if the password callback is set, since it could only be
+	// set through an env variable, and here pw can only be set through an
+	// actual user input.
 	if pw != "" {
+		debug.Log("age GenerateIdentity using provided pw")
 		ctx = ctxutil.WithPasswordCallback(ctx, func(prompt string, confirm bool) ([]byte, error) {
 			return []byte(pw), nil
 		})

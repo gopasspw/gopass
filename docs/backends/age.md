@@ -27,6 +27,16 @@ This will automatically create a new age keypair and initialize the new store.
 
 Existing stores can be migrated using `gopass convert --crypto age`.
 
+N.B. for a fully scripted or **non-interactive setup**, you can use the `GOPASS_AGE_PASSWORD` env variable
+to set your identity file secret passphrase, and specify the age identity and recipients
+that should be used for encrypting/decrypting passwords as follows:
+```
+$ gopass age identity add <AGE-...> <age1...>
+$  GOPASS_AGE_PASSWORD=mypassword gopass init --crypto age <age1...>
+```
+Notice the extra space in front of the command to skip most shell's history.
+You'll need to set your name and username using `git` directly if you're using it as storage backend (the default one).
+
 ## Features
 
 * Encryption using `age` library, can be decrypted using the `age` CLI

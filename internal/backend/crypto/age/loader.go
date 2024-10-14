@@ -7,6 +7,7 @@ import (
 	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/debug"
+	"github.com/gopasspw/gopass/pkg/fsutil"
 )
 
 const (
@@ -26,7 +27,8 @@ func (l loader) New(ctx context.Context) (backend.Crypto, error) {
 }
 
 func (l loader) Handles(ctx context.Context, s backend.Storage) error {
-	if s.Exists(ctx, OldIDFile) || s.Exists(ctx, OldKeyring) {
+	// OldKeyring is meant to be in the config folder, not necessarily in the store
+	if s.Exists(ctx, OldIDFile) || fsutil.IsNonEmptyFile(OldKeyring) {
 		if err := migrate(ctx, s); err != nil {
 			out.Errorf(ctx, "Failed to migrate age backend: %s", err)
 		}

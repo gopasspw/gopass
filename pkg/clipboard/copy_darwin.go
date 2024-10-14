@@ -38,7 +38,7 @@ func copyViaOsascript(ctx context.Context, password string) error {
 		"-e", "set type to current application's NSPasteboardTypeString",
 		// pb = a reference to the system's pasteboard
 		"-e", "set pb to current application's NSPasteboard's generalPasteboard()",
-		// Must clear contents before adding a new item to pasteboard
+		// Must clearClip contents before adding a new item to pasteboard
 		"-e", "pb's clearContents()",
 		// Set the flag ConcealedType so clipboard history managers don't record the password.
 		// The first argument can by anything, but an empty string will do fine.

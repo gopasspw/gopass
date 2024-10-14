@@ -241,14 +241,6 @@ func FileContains(path, needle string) bool {
 	return false
 }
 
-func min(a, b int64) int64 {
-	if a < b {
-		return a
-	}
-
-	return b
-}
-
 // CopyFile copies a file from src to dst. Permissions will be preserved. It is expected to
 // fail if the destination does exist but is not writeable.
 func CopyFile(from, to string) error {

@@ -7,6 +7,7 @@ Some configuration options are only available through setting environment variab
 | **Option**                   | **Type** | **Description**                                                                                                                                                   |
 |------------------------------|----------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `CHECKPOINT_DISABLE`         | `bool`   | Set to any non-empty value to disable calling the GitHub API when running `gopass version`.                                                                       |
+| `GOPASS_AGE_PASSWORD`        | `string` | Set to any value (including the empty string) to use as a password for the age identity file containing your secret age identities.                               |
 | `GOPASS_AUTOSYNC_INTERVAL`   | `int`    | Set this to the number of days between autosync runs.                                                                                                             |
 | `GOPASS_CHARACTER_SET`       | `bool`   | Set to any non-empty value to restrict the characters used in generated passwords                                                                                 |
 | `GOPASS_CLIPBOARD_CLEAR_CMD` | `string` | Use an external command to remove a password from the clipboard. See [GPaste](usecases/gpaste.md) for an example                                                  |
@@ -20,7 +21,7 @@ Some configuration options are only available through setting environment variab
 | `GOPASS_DEBUG_LOG_SECRETS`   | `bool`   | Set to any non-empty value to enable logging of credentials                                                                                                       |
 | `GOPASS_DEBUG_LOG`           | `string` | Set to a filename to enable debug logging (only set GOPASS_DEBUG to log to stderr)                                                                                |
 | `GOPASS_DEBUG`               | `bool`   | Set to any non-empty value to enable verbose debug output, by default on stderr, unless GOPASS_DEBUG_LOG is set                                                   |
-| `GOPASS_DEBUG_VERBOSE`       | `int`    | Set to any integer value larger than zero to increase the verbosity of debug output                                                                                |
+| `GOPASS_DEBUG_VERBOSE`       | `int`    | Set to any integer value larger than zero to increase the verbosity of debug output                                                                               |
 | `GOPASS_EXTERNAL_PWGEN`      | `string` | Use an external password generator. See [Features](features.md#using-custom-password-generators) for details                                                      |
 | `GOPASS_FORCE_CHECK`         | `string` | (internal) Force the updater to check for updates. Used for testing.                                                                                              |
 | `GOPASS_FORCE_UPDATE`        | `bool`   | Set to any non-empty value to force an update (if available)                                                                                                      |
