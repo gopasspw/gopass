@@ -13,7 +13,7 @@ import (
 	"github.com/gopasspw/gopass/internal/pwschemes/argon2id"
 )
 
-// clearClip will spwan a copy of gopass that waits in a detached background
+// clearClip will spawn a copy of gopass that waits in a detached background
 // process group until the timeout is expired. It will then compare the contents
 // of the clipboard and erase it if it still contains the data gopass copied
 // to it.
