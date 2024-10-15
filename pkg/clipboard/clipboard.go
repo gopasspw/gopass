@@ -46,7 +46,7 @@ func CopyTo(ctx context.Context, name string, content []byte, timeout int) error
 	}
 
 	if timeout < 1 {
-		debug.Log("Auto-clearClip of clipboard disabled.")
+		debug.Log("Auto-clear of clipboard disabled.")
 
 		out.Printf(ctx, "✔ Copied %s to clipboard.", color.YellowString(name))
 		_ = notify.Notify(ctx, "gopass - clipboard", fmt.Sprintf("✔ Copied %s to clipboard.", name))
@@ -55,13 +55,13 @@ func CopyTo(ctx context.Context, name string, content []byte, timeout int) error
 	}
 
 	if err := clearClip(ctx, name, content, timeout); err != nil {
-		_ = notify.Notify(ctx, "gopass - clipboard", "failed to clearClip clipboard")
+		_ = notify.Notify(ctx, "gopass - clipboard", "failed to clear clipboard")
 
-		return fmt.Errorf("failed to clearClip clipboard: %w", err)
+		return fmt.Errorf("failed to clear clipboard: %w", err)
 	}
 
-	out.Printf(ctx, "✔ Copied %s to clipboard. Will clearClip in %d seconds.", color.YellowString(name), timeout)
-	_ = notify.Notify(ctx, "gopass - clipboard", fmt.Sprintf("✔ Copied %s to clipboard. Will clearClip in %d seconds.", name, timeout))
+	out.Printf(ctx, "✔ Copied %s to clipboard. Will clear in %d seconds.", color.YellowString(name), timeout)
+	_ = notify.Notify(ctx, "gopass - clipboard", fmt.Sprintf("✔ Copied %s to clipboard. Will clear in %d seconds.", name, timeout))
 
 	return nil
 }
