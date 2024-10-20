@@ -56,7 +56,7 @@ func (s *Action) IsInitialized(c *cli.Context) error {
 	out.Printf(ctx, "🌟 Welcome to gopass!")
 	out.Noticef(ctx, "No existing configuration found.")
 
-	contSetup, err := termio.AskForBool(ctx, "❓ Do you want to continue to setup?", true)
+	contSetup, err := termio.AskForBool(ctx, "❓ Do you want to continue to setup?", false)
 	if err != nil {
 		return err
 	}
