@@ -55,6 +55,15 @@ func (s *Action) IsInitialized(c *cli.Context) error {
 	out.Printf(ctx, logo)
 	out.Printf(ctx, "🌟 Welcome to gopass!")
 	out.Noticef(ctx, "No existing configuration found.")
+
+	contSetup, err := termio.AskForBool(ctx, "❓ Do you want to continue to setup?", false)
+	if err != nil {
+		return err
+	}
+	if contSetup {
+		return s.Setup(c)
+	}
+
 	out.Printf(ctx, "☝ Please run 'gopass setup'")
 
 	return exit.Error(exit.NotInitialized, err, "not initialized")
