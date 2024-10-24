@@ -144,8 +144,6 @@ func TestBinaryCatSizes(t *testing.T) {
 
 		if string(buf) != string(sec) {
 			t.Fatalf("Input and output mismatch at tSize %d", tSize)
-
-			break
 		}
 		t.Logf("Input and Output match at tSize %d", tSize)
 	}
