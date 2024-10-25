@@ -25,6 +25,7 @@ var (
 				// enforce TLS 1.3
 				MinVersion: tls.VersionTLS13,
 			},
+			Proxy: http.ProxyFromEnvironment,
 		},
 	}
 )
