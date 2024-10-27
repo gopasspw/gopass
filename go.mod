@@ -30,7 +30,7 @@ require (
 	github.com/muesli/crunchy v0.4.0
 	github.com/nbutton23/zxcvbn-go v0.0.0-20210217022336-fa2cb2858354
 	github.com/noborus/ov v0.37.0
-	github.com/pquerna/otp v1.4.0
+	github.com/pquerna/otp v1.4.1-0.20241104074508-c95b6974670c
 	github.com/schollz/closestmatch v0.0.0-20190308193919-1fbe626be92e
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	github.com/stretchr/testify v1.10.0
