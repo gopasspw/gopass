@@ -32,14 +32,11 @@ func (a *Age) getSSHIdentities(ctx context.Context) (map[string]age.Identity, er
 		return sshCache, nil
 	}
 
-	// notice that this respects the GOPASS_HOMEDIR env variable, and won't
-	// find a .ssh folder in your home directory if you set GOPASS_HOMEDIR
-	uhd := appdir.UserHome()
-	sshDir := filepath.Join(uhd, ".ssh")
-	if !fsutil.IsDir(sshDir) {
-		debug.Log("no .ssh directory found at %s. Ignoring SSH identities", sshDir)
+	sshDir, err := getSSHDir()
+	if err != nil {
+		debug.Log("asdf: %s", err)
 
-		return nil, fmt.Errorf("no identities found: %w", ErrNoSSHDir)
+		return nil, fmt.Errorf("asdf: %w", err)
 	}
 
 	files, err := os.ReadDir(sshDir)
@@ -67,6 +64,31 @@ func (a *Age) getSSHIdentities(ctx context.Context) (map[string]age.Identity, er
 	debug.Log("returned %d SSH Identities", len(ids))
 
 	return ids, nil
+}
+
+func getSSHDir() (string, error) {
+	preferredPath := os.Getenv("GOPASS_SSHDIR")
+	if preferredPath != "" {
+		return preferredPath, nil
+	}
+	sshDir := filepath.Join(preferredPath, ".ssh")
+	if !fsutil.IsDir(sshDir) {
+		debug.Log("no .ssh directory found at %s. Ignoring SSH identities", sshDir)
+
+		return "", fmt.Errorf("no identities found: %w", ErrNoSSHDir)
+	}
+
+	// notice that this respects the GOPASS_HOMEDIR env variable, and won't
+	// find a .ssh folder in your home directory if you set GOPASS_HOMEDIR
+	uhd := appdir.UserHome()
+	sshDir = filepath.Join(uhd, ".ssh")
+	if !fsutil.IsDir(sshDir) {
+		debug.Log("no .ssh directory found at %s. Ignoring SSH identities", sshDir)
+
+		return "", fmt.Errorf("no identities found: %w", ErrNoSSHDir)
+	}
+
+	return "", nil
 }
 
 // parseSSHIdentity parses a SSH public key file and returns the recipient and the identity.
