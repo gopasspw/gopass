@@ -37,6 +37,11 @@ $  GOPASS_AGE_PASSWORD=mypassword gopass init --crypto age <age1...>
 Notice the extra space in front of the command to skip most shell's history.
 You'll need to set your name and username using `git` directly if you're using it as storage backend (the default one).
 
+You can also specify the ssh directory by setting environment variable
+```
+$  GOPASS_SSH_DIR=/Downloads/new_ssh_dir gopass init --crypto age <age1...>
+```
+
 ## Features
 
 * Encryption using `age` library, can be decrypted using the `age` CLI

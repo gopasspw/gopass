@@ -34,6 +34,7 @@ Some configuration options are only available through setting environment variab
 | `GOPASS_NO_NOTIFY`           | `bool`   | Set to any non-empty value to prevent notifications                                                                                                               |
 | `GOPASS_NO_REMINDER`         | `bool`   | Set to any non-empty value to prevent reminders                                                                                                                   |
 | `GOPASS_PW_DEFAULT_LENGTH`   | `int`    | Set to any integer value larger than zero to define a different default length in the `generate` command. By default the length is 24 characters.                 |
+| `GOPASS_SSH_DIR`             | `string` | Set to a filepath that contains ssh keys. Overrides default location. |
 | `GOPASS_UMASK`               | `octal`  | Set to any valid umask to mask bits of files created by gopass                                                                                                    |
 | `GOPASS_UNCLIP_CHECKSUM`     | `string` | (internal) Used between gopass and it's unclip helper.                                                                                                            |
 | `GOPASS_UNCLIP_NAME`         | `string` | (internal) Used between gopass and it's unclip helper.                                                                                                            |
