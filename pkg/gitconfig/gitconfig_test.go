@@ -9,7 +9,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/exp/maps"
 )
 
 // https://mirrors.edge.kernel.org/pub/software/scm/git/docs/git-config.html#EXAMPLES
@@ -343,7 +342,8 @@ func TestParseComplex(t *testing.T) {
 
 	c := ParseConfig(strings.NewReader(configSampleComplex))
 
-	assert.Contains(t, maps.Keys(c.vars), "core.sshCommand")
+	_, ok := c.vars["core.sshCommand"]
+	assert.True(t, ok)
 
 	v, ok := c.Get("core.sshCommand")
 	assert.True(t, ok)

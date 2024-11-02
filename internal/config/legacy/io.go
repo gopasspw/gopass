@@ -5,11 +5,10 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"sort"
 
+	"github.com/gopasspw/gopass/internal/set"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/fsutil"
-	"golang.org/x/exp/maps"
 	"gopkg.in/yaml.v3"
 )
 
@@ -107,8 +106,7 @@ func checkOverflow(m map[string]any) error {
 		return nil
 	}
 
-	keys := maps.Keys(m)
-	sort.Strings(keys)
+	keys := set.SortedKeys(m)
 
 	return fmt.Errorf("unknown fields: %+v", keys)
 }

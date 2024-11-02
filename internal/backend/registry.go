@@ -1,12 +1,14 @@
 package backend
 
 import (
+	"cmp"
 	"context"
 	"fmt"
-	"sort"
+	"maps"
+	"slices"
 	"sync"
 
-	"golang.org/x/exp/maps"
+	"github.com/gopasspw/gopass/internal/set"
 )
 
 var (
@@ -73,10 +75,7 @@ func (r *Registry[K, V]) BackendNames() []string {
 	r.RLock()
 	defer r.RUnlock()
 
-	names := maps.Keys(r.nameToBackend)
-	sort.Strings(names)
-
-	return names
+	return set.SortedKeys(r.nameToBackend)
 }
 
 func (r *Registry[K, V]) Backends() []V {
@@ -96,11 +95,10 @@ func (r *Registry[K, V]) Prioritized() []V {
 	defer r.RUnlock()
 
 	bes := maps.Values(r.backends)
-	sort.Slice(bes, func(i, j int) bool {
-		return bes[i].Priority() < bes[j].Priority()
-	})
 
-	return bes
+	return slices.SortedFunc(bes, func(a, b V) int {
+		return cmp.Compare(a.Priority(), b.Priority())
+	})
 }
 
 func (r *Registry[K, V]) Get(key K) (V, error) {

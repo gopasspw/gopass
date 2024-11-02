@@ -9,7 +9,6 @@ import (
 
 	"github.com/gopasspw/gopass/internal/set"
 	"github.com/gopasspw/gopass/pkg/debug"
-	"golang.org/x/exp/maps"
 )
 
 var kvSep = ": "
@@ -40,7 +39,7 @@ func NewAKVWithData(pw string, kvps map[string][]string, body string, converted 
 	kv.SetPassword(pw)
 	kv.fromMime = converted
 
-	for _, k := range set.Sorted(maps.Keys(kvps)) {
+	for _, k := range set.SortedKeys(kvps) {
 		vs := kvps[k]
 		for _, v := range vs {
 			_ = kv.Add(k, v)
@@ -59,7 +58,7 @@ func (a *AKV) Bytes() []byte {
 
 // Keys returns all the parsed keys.
 func (a *AKV) Keys() []string {
-	return set.Sorted(maps.Keys(a.kvp))
+	return set.SortedKeys(a.kvp)
 }
 
 // Get returns the value of the requested key, if found.
