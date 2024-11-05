@@ -69,7 +69,7 @@ func (a *Age) getSSHIdentities(ctx context.Context) (map[string]age.Identity, er
 func getSSHDir() (string, error) {
 	preferredPath := os.Getenv("GOPASS_SSH_DIR")
 	sshDir := filepath.Join(preferredPath, ".ssh")
-	if fsutil.IsDir(sshDir) {
+	if preferredPath != "" && fsutil.IsDir(sshDir) {
 		return preferredPath, nil
 	}
 
