@@ -5,11 +5,9 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
-	"sort"
 	"strings"
 
 	"github.com/gopasspw/gopass/internal/set"
-	"golang.org/x/exp/maps"
 )
 
 // Recipients is a list of Key IDs. It will try to retain the file as much as possible while manipulating the recipients.
@@ -37,10 +35,7 @@ func (r *Recipients) Len() int {
 
 // IDs returns the key IDs.
 func (r *Recipients) IDs() []string {
-	res := maps.Keys(r.r)
-	sort.Strings(res)
-
-	return res
+	return set.SortedKeys(r.r)
 }
 
 // Add adds a new recipients. It returns true if the recipient was added.

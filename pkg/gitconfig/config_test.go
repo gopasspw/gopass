@@ -13,7 +13,6 @@ import (
 	"github.com/gopasspw/gopass/internal/set"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/exp/maps"
 )
 
 func TestInsertOnce(t *testing.T) {
@@ -132,7 +131,7 @@ func TestInsertMultiple(t *testing.T) {
 		"core.noshow": "true",
 	}
 
-	for _, k := range set.Sorted(maps.Keys(updates)) {
+	for _, k := range set.SortedKeys(updates) {
 		v := updates[k]
 		require.NoError(t, c.insertValue(k, v))
 	}
@@ -163,7 +162,7 @@ func TestRewriteRaw(t *testing.T) {
 		"show.safecontent": "false",
 		"core.autoimport":  "false",
 	}
-	for _, k := range set.Sorted(maps.Keys(updates)) {
+	for _, k := range set.SortedKeys(updates) {
 		v := updates[k]
 		require.NoError(t, c.Set(k, v))
 	}

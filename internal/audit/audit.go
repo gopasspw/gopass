@@ -6,7 +6,9 @@ package audit
 import (
 	"context"
 	"fmt"
+	"maps"
 	"path"
+	"slices"
 	"sync"
 	"time"
 
@@ -23,7 +25,6 @@ import (
 	"github.com/gopasspw/gopass/pkg/termio"
 	"github.com/muesli/crunchy"
 	"github.com/nbutton23/zxcvbn-go"
-	"golang.org/x/exp/maps"
 )
 
 type secretGetter interface {
@@ -269,7 +270,7 @@ func (a *Auditor) checkHIBP(ctx context.Context) error {
 
 	// look up all known sha1sums. The LookupBatch method will sort the
 	// input so we don't need to.
-	matches := scanner.LookupBatch(ctx, maps.Keys(a.r.sha1sums))
+	matches := scanner.LookupBatch(ctx, slices.Collect(maps.Keys(a.r.sha1sums)))
 	for _, m := range matches {
 		// map any match back to the secret(s).
 		secs, found := a.r.sha1sums[m]

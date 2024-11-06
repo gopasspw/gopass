@@ -10,7 +10,6 @@ import (
 	"testing"
 
 	"github.com/gopasspw/gopass/internal/set"
-	"golang.org/x/exp/maps"
 )
 
 // ignoredEnvs is a list of environment variables that are used by gopass
@@ -186,12 +185,12 @@ func TestEnvVarsInDocs(t *testing.T) {
 	t.Logf("env options documented in doc: %+v", documented)
 	t.Logf("env options used in the code: %+v", used)
 
-	for _, k := range set.Sorted(maps.Keys(documented)) {
+	for _, k := range set.SortedKeys(documented) {
 		if !used[k] {
 			t.Errorf("Documented but not used: %s", k)
 		}
 	}
-	for _, k := range set.Sorted(maps.Keys(used)) {
+	for _, k := range set.SortedKeys(used) {
 		if !documented[k] {
 			t.Errorf("Used but not documented: %s", k)
 		}

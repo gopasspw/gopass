@@ -4,14 +4,13 @@ package inmem
 import (
 	"context"
 	"fmt"
-	"sort"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/blang/semver/v4"
 	"github.com/gopasspw/gopass/internal/backend"
-	"golang.org/x/exp/maps"
+	"github.com/gopasspw/gopass/internal/set"
 )
 
 // InMem is a thread-safe in-memory store.
@@ -81,10 +80,7 @@ func (m *InMem) List(ctx context.Context, prefix string) ([]string, error) {
 	m.Lock()
 	defer m.Unlock()
 
-	keys := maps.Keys(m.data)
-	sort.Strings(keys)
-
-	return keys, nil
+	return set.SortedKeys(m.data), nil
 }
 
 // IsDir returns true if the entry is a directory.

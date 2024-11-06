@@ -6,14 +6,13 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"sort"
 	"strings"
 
 	"github.com/caspr-io/yamlpath"
 	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/internal/set"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/gopass"
-	"golang.org/x/exp/maps"
 	yaml "gopkg.in/yaml.v3"
 )
 
@@ -47,10 +46,7 @@ type YAML struct {
 
 // Keys returns all keys.
 func (y *YAML) Keys() []string {
-	keys := maps.Keys(y.data)
-	sort.Strings(keys)
-
-	return keys
+	return set.SortedKeys(y.data)
 }
 
 // Get returns the first value of a single key.
