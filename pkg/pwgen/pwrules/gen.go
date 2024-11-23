@@ -22,7 +22,7 @@ import (
 )
 
 const (
-	aliasURL  = "https://raw.githubusercontent.com/apple/password-manager-resources/main/quirks/websites-with-shared-credential-backends.json"
+	aliasURL  = "https://raw.githubusercontent.com/apple/password-manager-resources/main/quirks/shared-credentials.json"
 	changeURL = "https://raw.githubusercontent.com/apple/password-manager-resources/main/quirks/change-password-URLs.json"
 	rulesURL  = "https://raw.githubusercontent.com/apple/password-manager-resources/main/quirks/password-rules.json"
 )
@@ -68,19 +68,33 @@ func main() {
 	})
 }
 
+type aliasRule struct {
+	Shared                 []string `json:"shared"`
+	From                   []string `json:"from"`
+	To                     []string `json:"to"`
+	FromDomainsAreObsolete bool     `json:"fromDomainsAreObsolete"`
+}
+
 func fetchAliases() (map[string][]string, error) {
 	resp, err := http.Get(aliasURL)
 	if err != nil {
 		return nil, err
 	}
-	var ja [][]string
+	var ja []aliasRule
 	if err := json.NewDecoder(resp.Body).Decode(&ja); err != nil {
 		return nil, err
 	}
 	aliases := make(map[string][]string, len(ja))
 	for _, as := range ja {
-		for _, a := range as {
-			aliases[a] = as
+		for _, a := range as.Shared {
+			aliases[a] = as.Shared
+		}
+		if len(as.Shared) > 0 {
+			continue
+		}
+
+		for _, f := range as.From {
+			aliases[f] = as.To
 		}
 	}
 	return aliases, nil
