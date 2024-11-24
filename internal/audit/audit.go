@@ -6,7 +6,9 @@ package audit
 import (
 	"context"
 	"fmt"
+	"maps"
 	"path"
+	"slices"
 	"sync"
 	"time"
 
@@ -23,8 +25,6 @@ import (
 	"github.com/gopasspw/gopass/pkg/termio"
 	"github.com/muesli/crunchy"
 	"github.com/nbutton23/zxcvbn-go"
-	"maps"
-	"slices"
 )
 
 type secretGetter interface {
