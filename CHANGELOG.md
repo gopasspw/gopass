@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.15.15 / 2024-11-24
+
+* [BUGFIX] Replace ~ with user homedir if `$GOPASS_HOMEDIR` is not set (#2961)
+* [CLEANUP] Replace experimental `maps` and `slices` with stdlib (#2993)
+* [CLEANUP] remove unreachable code (#2977)
+* [DEPRECATION] Remove references to deprecated rand.Seed (#2953)
+* [ENHANCEMENT] Allow for whitespace-trailing passwords (#2873) (#2954)
+* [FEATURE] Adding support for `age.Plugin` identities (#2960)
+* [FEATURE] Allow for non-interactive age setup (#2970)
+* [FEATURE] Ask for setup if not initialized (#2975)
+* [bugfix] Copy with trailing slash at destination. (#2966)
+* [chore] use the same version of golangci-lint (#2948)
+
 ## 1.15.14 / 2024-08-03
 
 * [bugfix] Fix parsing of key-value pairs according to the gitconfig (#2911)
