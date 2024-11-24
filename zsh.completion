@@ -11,7 +11,7 @@ _gopass () {
 	  age)
 	      local -a subcommands
 	      subcommands=(
-	      "identities:List identities"
+	      "identities:List age identities used for decryption and encryption"
 	      )
 	      _describe -t commands "gopass age" subcommands
 	      
@@ -213,7 +213,7 @@ _gopass () {
 	      
 	      ;;
 	  show)
-	      _arguments : "--yes[Always answer yes to yes/no questions]" "--clip[Copy the password value into the clipboard]" "--alsoclip[Copy the password and show everything]" "--qr[Print the password as a QR Code]" "--unsafe[Display unsafe content (e.g. the password) even if safecontent is enabled]" "--password[Display only the password. Takes precedence over all other flags.]" "--revision[Show a past revision. Does NOT support RCS specific shortcuts. Use exact revision or -<N> to select the Nth oldest revision of this entry.]" "--noparsing[Do not parse the output.]" "--nosync[Disable auto-sync]" "--chars[Print specific characters from the secret]"
+	      _arguments : "--yes[Always answer yes to yes/no questions]" "--clip[Copy the password value into the clipboard]" "--alsoclip[Copy the password and show everything]" "--qr[Print the password as a QR Code]" "--qrbody[Print the body as a QR Code]" "--unsafe[Display unsafe content (e.g. the password) even if safecontent is enabled]" "--password[Display only the password. Takes precedence over all other flags.]" "--revision[Show a past revision. Does NOT support RCS specific shortcuts. Use exact revision or -<N> to select the Nth oldest revision of this entry.]" "--noparsing[Do not parse the output.]" "--nosync[Disable auto-sync]" "--chars[Print specific characters from the secret]"
 	      
 	      _gopass_complete_passwords
 	      ;;
@@ -310,7 +310,7 @@ _gopass () {
 	  "help:Shows a list of commands or help for one command"
 	)
 	_describe -t command 'gopass' subcommands
-	_arguments : "--yes[Always answer yes to yes/no questions]" "--clip[Copy the password value into the clipboard]" "--alsoclip[Copy the password and show everything]" "--qr[Print the password as a QR Code]" "--unsafe[Display unsafe content (e.g. the password) even if safecontent is enabled]" "--password[Display only the password. Takes precedence over all other flags.]" "--revision[Show a past revision. Does NOT support RCS specific shortcuts. Use exact revision or -<N> to select the Nth oldest revision of this entry.]" "--noparsing[Do not parse the output.]" "--nosync[Disable auto-sync]" "--chars[Print specific characters from the secret]" "--help[show help]" "--version[print the version]" 
+	_arguments : "--yes[Always answer yes to yes/no questions]" "--clip[Copy the password value into the clipboard]" "--alsoclip[Copy the password and show everything]" "--qr[Print the password as a QR Code]" "--qrbody[Print the body as a QR Code]" "--unsafe[Display unsafe content (e.g. the password) even if safecontent is enabled]" "--password[Display only the password. Takes precedence over all other flags.]" "--revision[Show a past revision. Does NOT support RCS specific shortcuts. Use exact revision or -<N> to select the Nth oldest revision of this entry.]" "--noparsing[Do not parse the output.]" "--nosync[Disable auto-sync]" "--chars[Print specific characters from the secret]" "--help[show help]" "--version[print the version]" 
 	_gopass_complete_passwords
     fi
 }
@@ -333,4 +333,4 @@ _gopass_complete_folders () {
     _describe -t folders "folders" folders -qS /
 }
 
-_gopass
+compdef _gopass gopass
