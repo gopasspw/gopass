@@ -1,5 +1,5 @@
 
-.TH GOPASS "1" "August 2024" "gopass (github.com/gopasspw/gopass) 1.15.14" "User Commands"
+.TH GOPASS "1" "November 2024" "gopass (github.com/gopasspw/gopass) 1.15.15" "User Commands"
 .SH NAME
 gopass - The standard Unix password manager
 .SH SYNOPSIS
@@ -33,6 +33,9 @@ Display only the password. Takes precedence over all other flags.
 \fB\-\-qr\fR,
 Print the password as a QR Code
 .TP
+\fB\-\-qrbody\fR,
+Print the body as a QR Code
+.TP
 \fB\-\-revision\fR,
 \fB\-r\fR,
 Show a past revision. Does NOT support RCS specific shortcuts. Use exact revision or -<N> to select the Nth oldest revision of this entry.
@@ -53,6 +56,8 @@ age commands
 
 Built-in commands for the age backend.
 These allow limited interactions with the gopass specific age identities.
+ Added identities are automatically added as recipient to your secrets when encrypting, but not toyour recipients, make sure to keep your recipients and identities in sync as you want to.
+All age identities, including plugin ones should be supported. We also still support githubidentities despite them being deprecated by age, we do so by falling back to the ssh identitiesfor these and keeping a local cache of ssh keys for a given github identity.
 .SS alias
 Print domain aliases
 
@@ -540,6 +545,9 @@ Display only the password. Takes precedence over all other flags.
 .TP
 \fB\-\-qr\fR,
 Print the password as a QR Code
+.TP
+\fB\-\-qrbody\fR,
+Print the body as a QR Code
 .TP
 \fB\-\-revision\fR,
 \fB\-r\fR,
