@@ -1,10 +1,9 @@
 package set
 
 import (
+	"golang.org/x/exp/constraints"
 	"maps"
 	"slices"
-
-	"golang.org/x/exp/constraints"
 )
 
 // SortedKeys returns the sorted keys of the map.

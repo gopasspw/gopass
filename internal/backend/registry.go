@@ -1,14 +1,14 @@
 package backend
 
 import (
-	"cmp"
 	"context"
 	"fmt"
-	"maps"
-	"slices"
 	"sync"
 
+	"cmp"
 	"github.com/gopasspw/gopass/internal/set"
+	"maps"
+	"slices"
 )
 
 var (
