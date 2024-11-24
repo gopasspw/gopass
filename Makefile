@@ -156,7 +156,6 @@ gen:
 
 fmt:
 	@gofumpt -w $(GOFILES_NOVENDOR)
-	@gci write $(GOFILES_NOVENDOR)
 	@$(GO) mod tidy
 
 deps:
