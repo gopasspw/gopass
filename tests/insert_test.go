@@ -130,7 +130,7 @@ glossary": {
 		// using show -n to disable parsing
 		out, err = ts.run("show -f -n some/json")
 		require.NoError(t, err)
-		assert.Equal(t, json, out)
+		assert.Equal(t, json, out) //nolint:testifylint
 	})
 
 	t.Run("Regression test for #1600", func(t *testing.T) {
