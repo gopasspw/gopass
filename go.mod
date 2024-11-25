@@ -2,6 +2,8 @@ module github.com/gopasspw/gopass
 
 go 1.23.2
 
+replace github.com/pquerna/otp => github.com/nikicat/otp v1.4.0-ojo
+
 require (
 	filippo.io/age v1.2.1-0.20240618131852-7eedd929a6cf
 	github.com/ProtonMail/go-crypto v1.1.2
