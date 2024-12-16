@@ -151,6 +151,7 @@ func (s *Action) otp(ctx context.Context, name, qrf string, clip, pw, recurse bo
 				Skew:      1,
 				Digits:    two.Digits(),
 				Algorithm: two.Algorithm(),
+				Encoder:   two.Encoder(),
 			})
 			if err != nil {
 				return exit.Error(exit.Unknown, err, "Failed to compute OTP token for %s: %s", name, err)
@@ -159,6 +160,7 @@ func (s *Action) otp(ctx context.Context, name, qrf string, clip, pw, recurse bo
 			token, err = hotp.GenerateCodeCustom(two.Secret(), counter, hotp.ValidateOpts{
 				Digits:    two.Digits(),
 				Algorithm: two.Algorithm(),
+				Encoder:   two.Encoder(),
 			})
 			if err != nil {
 				return exit.Error(exit.Unknown, err, "Failed to compute OTP token for %s: %s", name, err)
