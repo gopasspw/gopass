@@ -4,8 +4,8 @@ c2sp.org/CCTV/age v0.0.0-20240306222714-3ec4d716e805 h1:u2qwJeEvnypw+OCPUHmoZE3I
 c2sp.org/CCTV/age v0.0.0-20240306222714-3ec4d716e805/go.mod h1:FomMrUJ2Lxt5jCLmZkG3FHa72zUprnhd3v/Z18Snm4w=
 code.rocketnine.space/tslocum/cbind v0.1.5 h1:i6NkeLLNPNMS4NWNi3302Ay3zSU6MrqOT+yJskiodxE=
 code.rocketnine.space/tslocum/cbind v0.1.5/go.mod h1:LtfqJTzM7qhg88nAvNhx+VnTjZ0SXBJtxBObbfBWo/M=
-filippo.io/age v1.2.1-0.20240618131852-7eedd929a6cf h1:3hBTgZCvtC31eCc8CWH0w+55Yn/R/HI3Of4Zb5TAuWU=
-filippo.io/age v1.2.1-0.20240618131852-7eedd929a6cf/go.mod h1:JL9ew2lTN+Pyft4RiNGguFfOpewKwSHm5ayKD/A4004=
+filippo.io/age v1.2.1 h1:X0TZjehAZylOIj4DubWYU1vWQxv9bJpo+Uu2/LGhi1o=
+filippo.io/age v1.2.1/go.mod h1:JL9ew2lTN+Pyft4RiNGguFfOpewKwSHm5ayKD/A4004=
 filippo.io/edwards25519 v1.1.0 h1:FNf4tywRC1HmFuKW5xopWpigGjJKiJSV0Cqo0cJWDaA=
 filippo.io/edwards25519 v1.1.0/go.mod h1:BxyFTGdWcka3PhytdK4V28tE5sGfRvvvRV7EaN4VDT4=
 github.com/ProtonMail/go-crypto v1.1.2 h1:A7JbD57ThNqh7XjmHE+PXpQ3Dqt3BrSAC0AL0Go3KS0=
