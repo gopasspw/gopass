@@ -31,6 +31,7 @@ const (
 	ctxKeyCommitTimestamp
 	ctxKeyShowParsing
 	ctxKeyHidden
+	ctxKeyAutoSync
 )
 
 // ErrNoCallback is returned when no callback is set in the context.
@@ -483,6 +484,21 @@ func WithHidden(ctx context.Context, hidden bool) context.Context {
 // IsHidden returns true if any output should be hidden in this context.
 func IsHidden(ctx context.Context) bool {
 	bv, ok := ctx.Value(ctxKeyHidden).(bool)
+	if !ok {
+		return false
+	}
+
+	return bv
+}
+
+// WithAutoSync returns a context with the autosync flag set.
+func WithAutoSync(ctx context.Context, autosync bool) context.Context {
+	return context.WithValue(ctx, ctxKeyAutoSync, autosync)
+}
+
+// HasAutoSync returns true if syncs are triggered by autosync.
+func HasAutoSync(ctx context.Context) bool {
+	bv, ok := ctx.Value(ctxKeyAutoSync).(bool)
 	if !ok {
 		return false
 	}

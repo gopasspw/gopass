@@ -85,6 +85,7 @@ func (s *Action) autoSync(ctx context.Context) error {
 	debug.Log("autosync - interval: %s", syncInterval)
 
 	if time.Since(ls) > syncInterval {
+		ctx = ctxutil.WithInteractive(ctx, true)
 		err := s.sync(ctx, "")
 		if err != nil {
 			autosyncLastRun = time.Now()
@@ -161,10 +162,12 @@ func (s *Action) sync(ctx context.Context, store string) error {
 func (s *Action) syncMount(ctx context.Context, mp string) error {
 	// using GetM here to get the value for this mount, it might be different
 	// than the global value
-	if as := s.cfg.GetM(mp, "core.autosync"); as == "false" {
-		debug.Log("not syncing %s, autosync is disabled for this mount", mp)
+	if ctxutil.HasAutoSync(ctx) {
+		if as := s.cfg.GetM(mp, "core.autosync"); as == "false" {
+			debug.Log("not syncing %s, autosync is disabled for this mount", mp)
 
-		return nil
+			return nil
+		}
 	}
 
 	ctxno := out.WithNewline(ctx, false)
