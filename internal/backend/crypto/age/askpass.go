@@ -11,7 +11,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/pinentry/cli"
 	"github.com/nbutton23/zxcvbn-go"
-	"github.com/twpayne/go-pinentry"
+	"github.com/twpayne/go-pinentry/v4"
 	"github.com/zalando/go-keyring"
 )
 
@@ -125,7 +125,7 @@ func (a *askPass) getPassphrase(reason string, repeat bool) (string, error) {
 		pinentry.WithTitle("gopass"),
 	}
 	if repeat {
-		opts = append(opts, pinentry.WithOption("REPEAT=Confirm"))
+		opts = append(opts, pinentry.WithRepeat("Confirm"))
 		opts = append(opts, pinentry.WithQualityBar(func(s string) (int, bool) {
 			match := zxcvbn.PasswordStrength(s, nil)
 
@@ -153,12 +153,12 @@ func (a *askPass) getPassphrase(reason string, repeat bool) (string, error) {
 		_ = p.Close()
 	}()
 
-	pw, _, err := p.GetPIN()
+	result, err := p.GetPIN()
 	if err != nil {
 		return "", fmt.Errorf("pinentry error: %w", err)
 	}
 
-	return pw, nil
+	return result.PIN, nil
 }
 
 func (a *askPass) Remove(key string) {
