@@ -34,7 +34,7 @@ require (
 	github.com/schollz/closestmatch v0.0.0-20190308193919-1fbe626be92e
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	github.com/stretchr/testify v1.10.0
-	github.com/twpayne/go-pinentry v0.3.0
+	github.com/twpayne/go-pinentry/v4 v4.0.0
 	github.com/urfave/cli/v2 v2.27.5
 	github.com/xhit/go-str2duration/v2 v2.1.0
 	github.com/zalando/go-keyring v0.2.6
