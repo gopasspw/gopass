@@ -204,7 +204,8 @@ func (s *Action) cloneCheckDecryptionKeys(ctx context.Context, mount string) err
 	}
 
 	idSet := set.New(ids...)
-	if idSet.IsSubset(recpSet) {
+	// Check whether any of our usable keys are in recpSet
+	if _, found := recpSet.Choose(idSet.Contains); found {
 		out.Noticef(ctx, "Found valid decryption keys. You can now decrypt your passwords.")
 
 		return nil
