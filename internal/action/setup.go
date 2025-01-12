@@ -190,6 +190,11 @@ func (s *Action) initGenerateIdentity(ctx context.Context, crypto backend.Crypto
 	if pwGenerated {
 		out.Printf(ctx, color.MagentaString("Passphrase: ")+passphrase)
 		out.Noticef(ctx, "You need to remember this very well!")
+
+		// Prompt to confirm that the user noted their passphrase
+		if want, err := termio.AskForBool(ctx, "Did you save your passphrase?", true); err != nil || !want {
+			return fmt.Errorf("user did not confirm saving the passphrase: %w", err)
+		}
 	}
 
 	out.Notice(ctx, "🔐 We need to unlock your newly created private key now! Please enter the passphrase you just generated.")
