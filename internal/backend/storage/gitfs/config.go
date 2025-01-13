@@ -40,8 +40,12 @@ func (g *Git) fixConfig(ctx context.Context) error {
 
 	// setup for persistent SSH connections.
 	if sc := gitSSHCommand(); sc != "" {
-		if err := g.ConfigSet(ctx, "core.sshCommand", sc); err != nil {
-			out.Errorf(ctx, "Error while configuring persistent SSH connections: %s", err)
+		ov, err := g.ConfigGet(ctx, "core.sshCommand")
+		// only set sshCommand if it's not already set. Avoid overwriting user settings.
+		if err != nil && ov == "" {
+			if err := g.ConfigSet(ctx, "core.sshCommand", sc); err != nil {
+				out.Errorf(ctx, "Error while configuring persistent SSH connections: %s", err)
+			}
 		}
 	}
 
