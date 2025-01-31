@@ -85,7 +85,7 @@ func (s *Action) autoSync(ctx context.Context) error {
 	debug.Log("autosync - interval: %s", syncInterval)
 
 	if time.Since(ls) > syncInterval {
-		ctx = ctxutil.WithInteractive(ctx, true)
+		ctx = ctxutil.WithAutoSync(ctx, true)
 		err := s.sync(ctx, "")
 		if err != nil {
 			autosyncLastRun = time.Now()
