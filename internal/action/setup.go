@@ -181,12 +181,6 @@ func (s *Action) initGenerateIdentity(ctx context.Context, crypto backend.Crypto
 		}
 	}
 
-	if err := crypto.GenerateIdentity(ctx, name, email, passphrase); err != nil {
-		return fmt.Errorf("failed to create new private key: %w", err)
-	}
-
-	out.OKf(ctx, "Key pair for %s generated", crypto.Name())
-
 	if pwGenerated {
 		out.Printf(ctx, color.MagentaString("Passphrase: ")+passphrase)
 		out.Noticef(ctx, "You need to remember this very well!")
@@ -196,6 +190,12 @@ func (s *Action) initGenerateIdentity(ctx context.Context, crypto backend.Crypto
 			return fmt.Errorf("user did not confirm saving the passphrase: %w", err)
 		}
 	}
+
+	if err := crypto.GenerateIdentity(ctx, name, email, passphrase); err != nil {
+		return fmt.Errorf("failed to create new private key: %w", err)
+	}
+
+	out.OKf(ctx, "Key pair for %s generated", crypto.Name())
 
 	out.Notice(ctx, "🔐 We need to unlock your newly created private key now! Please enter the passphrase you just generated.")
 
