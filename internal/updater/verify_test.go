@@ -9,19 +9,20 @@ import (
 )
 
 // To update see README.md.
-var testSignature = []byte(`-----BEGIN PGP SIGNATURE-----
+var testSignature = []byte(`
+-----BEGIN PGP SIGNATURE-----
 
-iQGzBAABCAAdFiEEofrA/VCsqN4ejERxfqcKNWfm6NIFAmenWNkACgkQfqcKNWfm
-6NLpzAwAzjLpYduk+X6JvMvpEh/KmJnLZfV0wA8YitmNxu3Ap0B1pVo/q6lyMHW8
-rGCEgY4kpgJ0MEdD4mYYNhDzpPSv00NymrtlTfiel42ksMNBjH1/EVOFy+qFVEsj
-OS7pCVHlGhPOYjjs5hMLMGvLkxXiuT0rKi2GluglGfTiYkbmsJxfj/alvb9rVQJ1
-eQV6DbGDiIPdDTqeGUZBv3xX6YMAtuzly/WpXohCIpVK6ckKmqpufwavaVmBuk8F
-U4+S/2OzuKGMySlYk8YHwaRDHeQAcpgtu6B+6h6B8rOpkI2OH6tihATo2vjQw8vd
-093guOpDwqHV8AxBksCyYEyFwVOA71De0Sm75EUQUqRskUtAEQCJcYzNacBmZxvt
-qBMi1E2U1mbv5doG+Y7zV36M33pQ/OtsHoIrXuJrqtldgQ5fXdIyD+qrn2/P39Do
-mkMsGZfH7H5TjXEuwoDXNGXEo5D7dnCTNLq6gw8fjTTVfTMC3xKwqbyajxo9SnWi
-jVGtKFWL
-=QgDD
+iQGzBAABCAAdFiEEofrA/VCsqN4ejERxfqcKNWfm6NIFAmena44ACgkQfqcKNWfm
+6NLPcgv+PeNs5OLB9y+kJhcWJXyGMyCCq4fj8ACA/mMkRxi+T9iP+51Di+GWyXvd
+iMAHCBNbra2qn6nfiy7YJbgFDWZZVVUOXayqbgoGuxojO3n5AF9sK8Ieou7iYXpd
+TXx0Zr8XFrhMMvzHVEDNqMtrRpmuwtixHA1PtGx/8Adv35gHRFZzW8xZ1ar5FVXk
+Jk/bjo7h1bVf/jaakN9SDx8xc0D72LniPFNrEeOf8QTxSHZFaAOXuU9GsED8Cx1U
+wQKBwveBSFKy17dGx03xcknqF/V3djApIgOIZ3MbaD50gpu3x9ltt9yOtkP9op0B
+ANkUpIyrgcv39Trf44Z/rgj/bZz0UaagjMwA/RWtjnA6Kuw93BctVcfxuA2jC00g
+GSny65MYtI6ynXnJ3xJVrIlNDawK/PjkS/HFWHFLKF7/K4ycL0KBVm/SETdIoGDK
+gGTBIqBqDvHISE686mpH6rBRvyu7VOdbh6WTvztynHbdX/1cwyTKghnHNlw6gtIP
+rp7LGb+c
+=NeAM
 -----END PGP SIGNATURE-----
 
 `)

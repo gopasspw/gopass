@@ -43,15 +43,18 @@ The relase signing key is set to expire every other year, so we need to follow a
 * If you are me, you should probably also save a copy of both parts of new key into your gopass maintainer password store. For convenience add the Key ID / Fingerprint into the secret so you don't have to import the key just to get the Key ID.
   * Hint: `gpg --output 0xKEYID.pub --armor --export 0xKEYID` and `gpg --output 0xKEYID.private --armor --export-secret-key 0xKEYID`
 * You should also sign the new key with the old key and possibly your personal key and push it to some keyservers.
-  * Use `gpg -u 0xOLDKEYID --edit-key 0xKEYID`, then sign. Afterwards `gpg --send-keys 0xKEYID` and possibly `gpg --keyserver pgp.mit.edu --send-keys 0xKEYID`.
+  * Use `gpg -u 0xOLDKEYID --edit-key 0xKEYID`, then sign.
 * Now export the public key and inject it into the pubkeys slice in `verify.go`. Add a comment with the year and the key id.
 * As usual send a PR and get this merged. Consider kicking off a new release, if that makes sense.
 * STOP HERE. For a seamless key rollover we need to wait until most users had a chance to update to a version that has both the old and the new keys. So if possible wait a few months at least. Keep the GH issue open and assigned to track that process.
 * After ~5 Months continue here.
 * Regenerate the test signature for verify_test.go
   * Create a file that contains `gopass-sign-test\n` and run `gpg -u 0xKEYID --armor --output /tmp/testdata.sig --detatch-sign testdata`. Use the correct KEYID (the one of the NEW key).
+  * Hint: Make sure the input only contains one line break, not two.
   * Paste the content of /tmp/testdata.sig into the `testSignature` in `verify_test.go`. Make sure all tests pass.
 * Navigate to https://github.com/gopasspw/gopass/settings/secrets/actions
     * Paste the armored private part of the new key into the existing `GPG_PRIVATE_KEY` secret.
     * Paste the corresponding passphrase into `PASSPHRASE`.
 * At this point you should be able to safely delete the old public key from verify.go and kick off a new release.
+* At the very end upload the new key to some keyservers:  `gpg --send-keys 0xKEYID` and possibly `gpg --keyserver pgp.mit.edu --send-keys 0xKEYID`.
+  * In case you mess up during key generation you might need to start over and you don't want to have conflicting keys on a keyserver where you can't delete them.
