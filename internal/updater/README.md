@@ -1,4 +1,4 @@
-# Release signing and key rollout documentation
+# Release signing and key rollover documentation
 
 Audience: core maintainers
 
@@ -9,7 +9,7 @@ This document captures the necessary steps to perform regular (usually every 2nd
 The gopass self-updater is invoked when calling `gopass update`. It works only if the binary is writable by the user running the command. It is specifically not designed to update any gopass
 packages installed by a package manager.
 
-The updater first tries to ensure that it is supposed to update the binary (usually because it can write to the binary location) and then fetches the latest release from GitHub (if this even causes trouble we could cache this info and proxy requests through gopass.pw).
+The updater first tries to ensure that it is supposed to update the binary (usually because it can write to the binary location) and then fetches the latest release from GitHub. If this ever causes trouble we could cache this info and proxy requests through gopass.pw.
 
 If there is a new release it will fetch both `SHA256SUMS` and `SHA256SUMS.sig` assets from the latest release and verify the signature matches one of the built-in updater keys.
 
