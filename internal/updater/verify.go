@@ -126,10 +126,14 @@ func (k *krLogger) Str() string {
 }
 
 func gpgVerify(data, sig []byte) (bool, error) {
-	return gpgVerifyAt(data, sig, func() time.Time { return time.Now() })
+	return gpgVerifyAt(data, sig, nil)
 }
 
 func gpgVerifyAt(data, sig []byte, nowFn func() time.Time) (bool, error) {
+	if nowFn == nil {
+		nowFn = time.Now
+	}
+
 	var keyring openpgp.EntityList
 	for _, pubkey := range pubkeys {
 		k, err := openpgp.ReadArmoredKeyRing(bytes.NewReader(pubkey))
