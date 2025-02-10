@@ -43,7 +43,7 @@ The relase signing key is set to expire every other year, so we need to follow a
 * If you are me, you should probably also save a copy of both parts of new key into your gopass maintainer password store. For convenience add the Key ID / Fingerprint into the secret so you don't have to import the key just to get the Key ID.
   * Hint: `gpg --output 0xKEYID.pub --armor --export 0xKEYID` and `gpg --output 0xKEYID.private --armor --export-secret-key 0xKEYID`
 * You should also sign the new key with the old key and possibly your personal key and push it to some keyservers.
-  * Use `gpg -u 0xOLDKEYID --edit-key 0xKEYID`, then sign.
+  * Use `gpg --yes -u 0xOLDKEYID --sign-key 0xKEYID` to sign.
 * Now export the public key and inject it into the pubkeys slice in `verify.go`. Add a comment with the year and the key id.
 * As usual send a PR and get this merged. Consider kicking off a new release, if that makes sense.
 * STOP HERE. For a seamless key rollover we need to wait until most users had a chance to update to a version that has both the old and the new keys. So if possible wait a few months at least. Keep the GH issue open and assigned to track that process.

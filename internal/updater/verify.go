@@ -108,10 +108,6 @@ wdJCHy+CAtsVhG0K9DwoV0N8+5VYnYUuO6dn7LsIahAVz3m8XpaAo/8Vk4vHomp3
 `),
 }
 
-var timeNow = func() time.Time {
-	return time.Now()
-}
-
 type krLogger struct {
 	r openpgp.EntityList
 }
@@ -130,6 +126,10 @@ func (k *krLogger) Str() string {
 }
 
 func gpgVerify(data, sig []byte) (bool, error) {
+	return gpgVerifyAt(data, sig, func() time.Time { return time.Now() })
+}
+
+func gpgVerifyAt(data, sig []byte, nowFn func() time.Time) (bool, error) {
 	var keyring openpgp.EntityList
 	for _, pubkey := range pubkeys {
 		k, err := openpgp.ReadArmoredKeyRing(bytes.NewReader(pubkey))
@@ -144,7 +144,7 @@ func gpgVerify(data, sig []byte) (bool, error) {
 	debug.Log("Keyring: %q", &krLogger{keyring})
 
 	_, err := openpgp.CheckArmoredDetachedSignature(keyring, bytes.NewReader(data), bytes.NewReader(sig), &packet.Config{
-		Time: timeNow, // only used in tests.
+		Time: nowFn,
 	})
 	if err != nil {
 		debug.Log("failed to validate detached GPG signature: %q", err)

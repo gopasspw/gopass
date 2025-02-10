@@ -42,17 +42,7 @@ func TestGPGVerify(t *testing.T) {
 // This is supposed to act as a canary so we don't forget to roll the key
 // before it expires. See README.md for details.
 func TestGPGVerifyIn6Months(t *testing.T) {
-	// Can not run parallel because we're overwriting the global timeNow variable.
-	timeNow = func() time.Time {
-		return time.Now().Add(6 * 30 * 24 * time.Hour)
-	}
-	defer func() {
-		timeNow = func() time.Time {
-			return time.Now()
-		}
-	}()
-
-	ok, err := gpgVerify(testData, testSignature)
+	ok, err := gpgVerifyAt(testData, testSignature, func() time.Time { return time.Now().AddDate(0, 6, 0) })
 	require.NoError(t, err, "If TestGPGVerify succeeds but this test fails the self-updater key is about to expire. Please open an issue to update the key. Thank you.")
 	assert.True(t, ok)
 }
