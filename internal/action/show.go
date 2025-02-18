@@ -273,7 +273,7 @@ func (s *Action) showGetContent(ctx context.Context, sec gopass.Secret) (string,
 	// everything but the first line.
 	if config.Bool(ctx, "show.safecontent") && !ctxutil.IsForce(ctx) && ctxutil.IsShowParsing(ctx) {
 		body := showSafeContent(sec)
-		if IsAlsoClip(ctx) {
+		if IsAlsoClip(ctx) || config.Bool(ctx, "show.autoclip"){
 			return pw, body, nil
 		}
 

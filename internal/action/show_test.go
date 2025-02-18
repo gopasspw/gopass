@@ -315,6 +315,18 @@ func TestShowAutoClip(t *testing.T) {
 		stdoutBuf.Reset()
 		stderrBuf.Reset()
 	})
+
+	// gopass show foo with show.autoclip and show.safecontent true
+	// -> ONLY Copy to clipboard
+	t.Run("show foo with safecontent and autoclip enabled", func(t *testing.T) {
+		require.NoError(t, act.cfg.Set("", "show.autoclip", "true"))
+		require.NoError(t, act.cfg.Set("", "show.safecontent", "true"))
+		c := gptest.CliCtx(ctx, t, "foo")
+		require.NoError(t, act.Show(c))
+		assert.Contains(t, stderrBuf.String(), "WARNING")
+		assert.NotContains(t, stdoutBuf.String(), "secret")
+		stdoutBuf.Reset()
+	})
 }
 
 func TestShowHandleRevision(t *testing.T) {
