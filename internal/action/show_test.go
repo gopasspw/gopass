@@ -119,6 +119,16 @@ func TestShowMulti(t *testing.T) {
 		buf.Reset()
 	})
 
+	t.Run("show entry with oauth field with safecontent enabled", func(t *testing.T) {
+		require.NoError(t, act.insertStdin(ctx, "otpauth", []byte("123\n---\notpauth://totp/WEBSITE:@USER?secret=SECRET&issuer=GoPass"), false))
+		buf.Reset()
+
+		c := gptest.CliCtx(ctx, t, "otpauth")
+		require.NoError(t, act.Show(c))
+		assert.NotContains(t, buf.String(), "otpauth")
+		buf.Reset()
+	})
+
 	t.Run("show twoliner with safecontent enabled", func(t *testing.T) {
 		c := gptest.CliCtx(ctx, t, "bar/baz")
 

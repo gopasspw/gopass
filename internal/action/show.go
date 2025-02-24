@@ -306,7 +306,12 @@ func showSafeContent(sec gopass.Secret) string {
 		}
 	}
 
-	sb.WriteString(sec.Body())
+	for _, l := range strings.Split(sec.Body(), "\n") {
+		if strings.HasPrefix(l, "otpauth://") {
+			continue
+		}
+		sb.WriteString(l)
+	}
 
 	return sb.String()
 }
