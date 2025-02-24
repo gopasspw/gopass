@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -308,6 +309,8 @@ func showSafeContent(sec gopass.Secret) string {
 
 	for _, l := range strings.Split(sec.Body(), "\n") {
 		if strings.HasPrefix(l, "otpauth://") {
+			sb.WriteString(fmt.Sprintf("\notpauth://%s", randAsterisk()))
+
 			continue
 		}
 		sb.WriteString(l)
@@ -317,7 +320,8 @@ func showSafeContent(sec gopass.Secret) string {
 }
 
 func isUnsafeKey(key string, sec gopass.Secret) bool {
-	if strings.ToLower(key) == "password" {
+	duks := []string{"hotp", "otpauth", "password", "totp"}
+	if slices.Contains(duks, key) {
 		return true
 	}
 

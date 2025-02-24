@@ -119,13 +119,30 @@ func TestShowMulti(t *testing.T) {
 		buf.Reset()
 	})
 
-	t.Run("show entry with oauth field with safecontent enabled", func(t *testing.T) {
+	t.Run("show entry with otpauth field with safecontent enabled", func(t *testing.T) {
 		require.NoError(t, act.insertStdin(ctx, "otpauth", []byte("123\n---\notpauth://totp/WEBSITE:@USER?secret=SECRET&issuer=GoPass"), false))
 		buf.Reset()
 
 		c := gptest.CliCtx(ctx, t, "otpauth")
 		require.NoError(t, act.Show(c))
-		assert.NotContains(t, buf.String(), "otpauth")
+		assert.Contains(t, buf.String(), "otpauth://*****")
+		buf.Reset()
+	})
+
+	t.Run("show entry with otp as keys field with safecontent enabled", func(t *testing.T) {
+		sec := secrets.NewAKV()
+		sec.SetPassword("123")
+		require.NoError(t, sec.Set("otpauth", "otpauth://totp/WEBSITE:@USER?secret=SECRET&issuer=GoPass"))
+		require.NoError(t, sec.Set("totp", "otpauth://totp/WEBSITE:@USER?secret=SECRET&issuer=GoPass"))
+		require.NoError(t, sec.Set("hotp", "otpauth://totp/WEBSITE:@USER?secret=SECRET&issuer=GoPass"))
+		require.NoError(t, act.Store.Set(ctx, "otpauthKeys", sec))
+		buf.Reset()
+
+		c := gptest.CliCtx(ctx, t, "otpauthKeys")
+		require.NoError(t, act.Show(c))
+		assert.Contains(t, buf.String(), "otpauth: *****")
+		assert.Contains(t, buf.String(), "hotp: *****")
+		assert.Contains(t, buf.String(), "totp: *****")
 		buf.Reset()
 	})
 
