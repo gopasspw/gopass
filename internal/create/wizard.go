@@ -225,7 +225,7 @@ func mkActFunc(tpl Template, s *root.Store, cb ActionCallback) func(context.Cont
 				if v.Min > 0 && len(sv) < v.Min {
 					return fmt.Errorf("%s is too short (needs %d)", v.Name, v.Min)
 				}
-				if v.Max > 0 && len(sv) > v.Min {
+				if v.Max > 0 && len(sv) > v.Max {
 					return fmt.Errorf("%s is too long (at most %d)", v.Name, v.Max)
 				}
 				if wantForName[k] {
