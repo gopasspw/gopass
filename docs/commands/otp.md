@@ -5,6 +5,8 @@ The command tries to parse the password and the totp fields as an OTP URL.
 
 Note: HTOP is currently not supported.
 
+Note: If `show.safecontent` is enabled, OTP URLs are hidden from the `show` command.
+
 ## Modes of operation
 
 * Generate the current TOTP token from a valid OTP URL

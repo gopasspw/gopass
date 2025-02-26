@@ -108,6 +108,8 @@ The secrets are split into 3 categories:
    username, it should be enclosed in string delimiters: `username: "0123"` will always be parsed as the string `0123`
    and not as octal.
 
+By default, `safecontent` will remove the first line (the password), every line starting with `otpauth://` in the body, and every YAML values where the key is one of the following: `hotp`, `otpauth`, `password`, `totp`.
+
 Both the key-value and the YAML format support so-called "unsafe-keys", which is a key-value that allows you to specify keys that should be hidden when using `gopass show` with `gopass config safecontent` set to true.
 E.g:
 ```
