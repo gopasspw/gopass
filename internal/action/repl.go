@@ -21,7 +21,7 @@ func (f *mindFlagsCompleter) Do(line []rune, pos int) ([][]rune, int) {
 	// Get the portion of the line up to the cursor and split to tokens
 	origInput := string(line[:pos])
 	tokens := strings.Fields(origInput)
-	var filtered []string
+	filtered := make([]string, 0, len(tokens))
 	for _, tok := range tokens {
 		// Skip flag tokens
 		if strings.HasPrefix(tok, "-") {
@@ -34,9 +34,9 @@ func (f *mindFlagsCompleter) Do(line []rune, pos int) ([][]rune, int) {
 	if len(origInput) > 0 && origInput[len(origInput)-1] == ' ' {
 		sanitized += " "
 	}
+
 	return f.base.Do([]rune(sanitized), len([]rune(sanitized)))
 }
-
 
 func (s *Action) entriesForCompleter(ctx context.Context) ([]*readline.PrefixCompleter, error) {
 	args := []*readline.PrefixCompleter{}
