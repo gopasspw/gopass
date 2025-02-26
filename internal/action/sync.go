@@ -46,7 +46,7 @@ func init() {
 
 // Sync all stores with their remotes.
 func (s *Action) Sync(c *cli.Context) error {
-	return s.sync(ctxutil.WithGlobalFlags(c), c.String("store"))
+	return s.sync(ctxutil.WithGlobalFlags(c), c.String("store"), false)
 }
 
 func (s *Action) autoSync(ctx context.Context) error {
@@ -85,8 +85,7 @@ func (s *Action) autoSync(ctx context.Context) error {
 	debug.Log("autosync - interval: %s", syncInterval)
 
 	if time.Since(ls) > syncInterval {
-		ctx = ctxutil.WithAutoSync(ctx, true)
-		err := s.sync(ctx, "")
+		err := s.sync(ctx, "", true)
 		if err != nil {
 			autosyncLastRun = time.Now()
 		}
@@ -97,7 +96,7 @@ func (s *Action) autoSync(ctx context.Context) error {
 	return nil
 }
 
-func (s *Action) sync(ctx context.Context, store string) error {
+func (s *Action) sync(ctx context.Context, store string, isAutosync bool) error {
 	// we just did a full sync, no need to run it again
 	if time.Since(autosyncLastRun) < 10*time.Second {
 		debug.Log("skipping sync. last sync %ds ago", time.Since(autosyncLastRun))
@@ -128,7 +127,7 @@ func (s *Action) sync(ctx context.Context, store string) error {
 		}
 
 		numMPs++
-		_ = s.syncMount(ctx, mp)
+		_ = s.syncMount(ctx, mp, isAutosync)
 	}
 	out.OKf(ctx, "All done")
 
@@ -159,10 +158,10 @@ func (s *Action) sync(ctx context.Context, store string) error {
 }
 
 // syncMount syncs a single mount.
-func (s *Action) syncMount(ctx context.Context, mp string) error {
-	// using GetM here to get the value for this mount, it might be different
-	// than the global value
-	if ctxutil.HasAutoSync(ctx) {
+func (s *Action) syncMount(ctx context.Context, mp string, isAutosync bool) error {
+	if isAutosync {
+		// using GetM here to get the value for this mount, it might be different
+		// from the global value
 		if as := s.cfg.GetM(mp, "core.autosync"); as == "false" {
 			debug.Log("not syncing %s, autosync is disabled for this mount", mp)
 
