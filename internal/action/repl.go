@@ -13,6 +13,31 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
+type mindFlagsCompleter struct {
+	base readline.AutoCompleter
+}
+
+func (f *mindFlagsCompleter) Do(line []rune, pos int) ([][]rune, int) {
+	// Get the portion of the line up to the cursor and split to tokens
+	origInput := string(line[:pos])
+	tokens := strings.Fields(origInput)
+	filtered := make([]string, 0, len(tokens))
+	for _, tok := range tokens {
+		// Skip flag tokens
+		if strings.HasPrefix(tok, "-") {
+			continue
+		}
+		filtered = append(filtered, tok)
+	}
+	sanitized := strings.Join(filtered, " ")
+	// Add additional space if had one on original line
+	if len(origInput) > 0 && origInput[len(origInput)-1] == ' ' {
+		sanitized += " "
+	}
+
+	return f.base.Do([]rune(sanitized), len([]rune(sanitized)))
+}
+
 func (s *Action) entriesForCompleter(ctx context.Context) ([]*readline.PrefixCompleter, error) {
 	args := []*readline.PrefixCompleter{}
 	list, err := s.Store.List(ctx, tree.INF)
@@ -144,7 +169,7 @@ READ:
 		// the list of secrets may have changed, e.g. due to
 		// the user adding a new secret.
 		cfg := rl.GetConfig()
-		cfg.AutoComplete = s.prefixCompleter(c)
+		cfg.AutoComplete = &mindFlagsCompleter{base: s.prefixCompleter(c)}
 		if err := rl.SetConfig(cfg); err != nil {
 			debug.Log("Failed to set readline config: %s", err)
 
