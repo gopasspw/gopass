@@ -311,7 +311,8 @@ func date(ts time.Time) string {
 
 func truncate(length int, v any) string {
 	sv := strval(v)
-	if len(sv) < length {
+	// we can't properly truncate to zero, so we return the full string
+	if len(sv) < length || length < 3 {
 		return sv
 	}
 
