@@ -7,6 +7,7 @@ import (
 
 	"github.com/gopasspw/gopass/internal/hashsum"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestMd5sum(t *testing.T) {
