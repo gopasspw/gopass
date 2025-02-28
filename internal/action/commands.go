@@ -723,6 +723,11 @@ func (s *Action) GetCommands() []*cli.Command {
 					Usage:   "Write QR code to FILE",
 				},
 				&cli.BoolFlag{
+					Name:    "chained",
+					Aliases: []string{"p"},
+					Usage:   "chain the token to the password",
+				},
+				&cli.BoolFlag{
 					Name:    "password",
 					Aliases: []string{"o"},
 					Usage:   "Only display the token",
