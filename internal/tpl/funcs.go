@@ -288,17 +288,17 @@ func roundDuration(duration any) string {
 	second := uint64(time.Second)
 
 	switch {
-	case u > year:
+	case u >= year:
 		return strconv.FormatUint(u/year, 10) + "y"
-	case u > month:
+	case u >= month:
 		return strconv.FormatUint(u/month, 10) + "mo"
-	case u > day:
+	case u >= day:
 		return strconv.FormatUint(u/day, 10) + "d"
-	case u > hour:
+	case u >= hour:
 		return strconv.FormatUint(u/hour, 10) + "h"
-	case u > minute:
+	case u >= minute:
 		return strconv.FormatUint(u/minute, 10) + "m"
-	case u > second:
+	case u >= second:
 		return strconv.FormatUint(u/second, 10) + "s"
 	default:
 		return "0s"
@@ -311,11 +311,12 @@ func date(ts time.Time) string {
 
 func truncate(length int, v any) string {
 	sv := strval(v)
-	if len(sv) < length-3 {
+	// we can't properly truncate to zero, so we return the full string
+	if len(sv) < length {
 		return sv
 	}
 
-	return sv[:length-3] + "..."
+	return sv[:length] + "..."
 }
 
 func join(sep string, v any) string {
