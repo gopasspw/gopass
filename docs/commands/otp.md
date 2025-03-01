@@ -18,5 +18,6 @@ Note: If `show.safecontent` is enabled, OTP URLs are hidden from the `show` comm
 |--------------|---------|--------------------------------------------------------------------------|
 | `--clip`     | `-c`    | Copy the time-based token into the clipboard.                            |
 | `--qr`       | `-q`    | Write QR code to file.                                                   |
+| `--chained`  | `-p`    | chain the token to the password                                          |
 | `--password` | `-o`    | Only display the token. For use in scripts.                              |
 | `--snip`     | `-s`    | Try and find a QR code in the screen content to add as OTP to the entry. |
