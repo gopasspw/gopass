@@ -312,11 +312,11 @@ func date(ts time.Time) string {
 func truncate(length int, v any) string {
 	sv := strval(v)
 	// we can't properly truncate to zero, so we return the full string
-	if len(sv) < length || length < 3 {
+	if len(sv) < length {
 		return sv
 	}
 
-	return sv[:length-3] + "..."
+	return sv[:length] + "..."
 }
 
 func join(sep string, v any) string {

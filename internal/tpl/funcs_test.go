@@ -97,14 +97,14 @@ func TestDate(t *testing.T) {
 }
 
 func TestTruncate(t *testing.T) {
-	assert.Equal(t, "hello...", truncate(8, "hello world"))
+	assert.Equal(t, "hello wo...", truncate(8, "hello world"))
 	assert.Equal(t, "hello", truncate(8, "hello"))
 	assert.Equal(t, "...", truncate(0, "hello"))
 	assert.Equal(t, "h...", truncate(1, "hello"))
 	assert.Equal(t, "he...", truncate(2, "hello"))
 	assert.Equal(t, "hel...", truncate(3, "hello"))
 	assert.Equal(t, "hell...", truncate(4, "hello"))
-	assert.Equal(t, "hel", truncate(3, "hel"))
+	assert.Equal(t, "hel...", truncate(3, "hel"))
 	assert.Equal(t, "he...", truncate(2, "hel"))
 }
 
