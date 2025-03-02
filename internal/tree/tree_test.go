@@ -29,7 +29,7 @@ func TestTreeInsert(t *testing.T) {
 
 	insertedNode := tree.Insert(node)
 	assert.Equal(t, node, insertedNode)
-	assert.Len(t, len(tree.Nodes), 1)
+	assert.Len(t, tree.Nodes, 1)
 	assert.Equal(t, "foo", tree.Nodes[0].Name)
 }
 
