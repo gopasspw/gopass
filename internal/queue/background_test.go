@@ -27,6 +27,7 @@ func TestQueue_Close(t *testing.T) {
 
 	task := func(ctx context.Context) (context.Context, error) {
 		time.Sleep(100 * time.Millisecond)
+
 		return ctx, nil
 	}
 
@@ -45,6 +46,7 @@ func TestQueue_Idle(t *testing.T) {
 
 	task := func(ctx context.Context) (context.Context, error) {
 		time.Sleep(100 * time.Millisecond)
+
 		return ctx, nil
 	}
 
