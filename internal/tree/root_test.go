@@ -85,3 +85,54 @@ func TestMountShadow(t *testing.T) {
 	_, err := r.FindFolder("mnt/m1")
 	require.Error(t, err)
 }
+
+func TestAddFile(t *testing.T) {
+	t.Parallel()
+
+	r := New("gopass")
+	require.NoError(t, r.AddFile("foo/bar/baz", ""))
+	assert.Equal(t, []string{"foo/bar/baz"}, r.List(INF))
+}
+
+func TestAddTemplate(t *testing.T) {
+	t.Parallel()
+
+	r := New("gopass")
+	require.NoError(t, r.AddTemplate("foo"))
+	assert.Equal(t, []string{"foo"}, r.List(INF))
+}
+
+func TestAddMount(t *testing.T) {
+	t.Parallel()
+
+	r := New("gopass")
+	require.NoError(t, r.AddMount("mnt/m1", "/tmp/m1"))
+	// empty mounts don't show up in the list, so we need to add a file
+	require.NoError(t, r.AddFile("mnt/m1/baz", ""))
+	assert.Equal(t, []string{"mnt/m1/baz"}, r.List(INF))
+}
+
+func TestFindFolderNotFound(t *testing.T) {
+	t.Parallel()
+
+	r := New("gopass")
+	_, err := r.FindFolder("nonexistent")
+	require.Error(t, err)
+	assert.Equal(t, ErrNotFound, err)
+}
+
+func TestSetName(t *testing.T) {
+	t.Parallel()
+
+	r := New("gopass")
+	r.SetName("newname")
+	assert.Equal(t, "newname", r.Name)
+}
+
+func TestLen(t *testing.T) {
+	t.Parallel()
+
+	r := New("gopass")
+	require.NoError(t, r.AddFile("foo/bar/baz", ""))
+	assert.Equal(t, 1, r.Len())
+}
