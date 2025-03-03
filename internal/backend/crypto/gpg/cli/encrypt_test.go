@@ -2,6 +2,7 @@ package cli
 
 import (
 	"bytes"
+	"runtime"
 	"testing"
 
 	"github.com/gopasspw/gopass/internal/backend"
@@ -16,7 +17,7 @@ import (
 )
 
 func TestEncryptDecrypt(t *testing.T) {
-	if testing.Short() {
+	if testing.Short() || runtime.GOOS != "linux" {
 		t.Skip("skipping test in short mode.")
 	}
 

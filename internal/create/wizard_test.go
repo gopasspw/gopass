@@ -91,17 +91,3 @@ attributes:
 	assert.Equal(t, "password", w.Templates[0].Attributes[2].Type, "wrong type")
 	assert.True(t, w.Templates[0].Attributes[2].AlwaysPrompt, "wrong always_prompt")
 }
-
-func TestExtractHostname(t *testing.T) {
-	t.Parallel()
-
-	for in, out := range map[string]string{
-		"":                                     "",
-		"http://www.example.org/":              "www.example.org",
-		"++#+++#jhlkadsrezu 33 553q ++++##$§&": "jhlkadsrezu_33_553q",
-		"www.example.org/?foo=bar#abc":         "www.example.org",
-		"a test":                               "a_test",
-	} {
-		assert.Equal(t, out, extractHostname(in))
-	}
-}

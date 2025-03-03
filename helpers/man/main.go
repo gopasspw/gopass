@@ -26,6 +26,8 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
+var filename = "VERSION"
+
 func main() {
 	// this is a workaround for the man helper getting accidentally
 	// installed into my $GOBIN dir and me not being able to figure out
@@ -48,7 +50,7 @@ func main() {
 		return
 	}
 
-	vs, err := os.ReadFile("VERSION")
+	vs, err := os.ReadFile(filename)
 	if err != nil {
 		panic(err)
 	}
