@@ -20,10 +20,15 @@ const (
 	IDFile = ".age-recipients"
 )
 
+type ghCache interface {
+	ListKeys(ctx context.Context, user string) ([]string, error)
+	String() string
+}
+
 // Age is an age backend.
 type Age struct {
 	identity  string
-	ghCache   *ghssh.Cache
+	ghCache   ghCache
 	askPass   *askPass
 	recpCache *cache.OnDisk
 }

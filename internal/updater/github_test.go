@@ -101,8 +101,8 @@ func TestDownloadAsset(t *testing.T) {
 		{
 			name: "successful download",
 			assets: []Asset{
-				{Name: "asset1.txt", URL: "http://example.com/asset1.txt"},
-				{Name: "asset2.txt", URL: "http://example.com/asset2.txt"},
+				{Name: "asset1.txt", URL: "/asset1.txt"},
+				{Name: "asset2.txt", URL: "/asset2.txt"},
 			},
 			suffix:        ".txt",
 			expectedError: false,
@@ -111,7 +111,7 @@ func TestDownloadAsset(t *testing.T) {
 		{
 			name: "asset not found",
 			assets: []Asset{
-				{Name: "asset1.bin", URL: "http://example.com/asset1.bin"},
+				{Name: "asset1.bin", URL: "/asset1.bin"},
 			},
 			suffix:        ".txt",
 			expectedError: true,
@@ -120,19 +120,17 @@ func TestDownloadAsset(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ctx := context.Background()
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(http.StatusOK)
+				_, _ = w.Write([]byte("test content"))
+			}))
+			defer server.Close()
 
-			httpClient = &http.Client{
-				Transport: &http.Transport{
-					RoundTripper: http.RoundTripperFunc(func(req *http.Request) (*http.Response, error) {
-						return &http.Response{
-							StatusCode: http.StatusOK,
-							Body:       httptest.NewBody([]byte("file content")),
-							Header:     make(http.Header),
-						}, nil
-					}),
-				},
+			for i, a := range tt.assets {
+				tt.assets[i].URL = server.URL + a.URL
 			}
+
+			ctx := context.Background()
 
 			name, _, err := downloadAsset(ctx, tt.assets, tt.suffix)
 

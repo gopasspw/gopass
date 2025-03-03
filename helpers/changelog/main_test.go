@@ -54,6 +54,7 @@ func TestMain(t *testing.T) {
 	expected := `## [1.0.1] - 2021-01-01
 ### Added
 - New feature
+
 `
 	if output.String() != expected {
 		t.Errorf("expected %q, got %q", expected, output.String())

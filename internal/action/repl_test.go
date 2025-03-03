@@ -2,38 +2,46 @@ package action
 
 import (
 	"bytes"
-	"context"
+	"os"
 	"testing"
 
 	"github.com/ergochat/readline"
+	"github.com/fatih/color"
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/tests/gptest"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/urfave/cli/v2"
 )
 
 func TestREPL(t *testing.T) {
-	ctx := context.Background()
-	app := cli.NewApp()
-	app.Commands = []*cli.Command{
-		{
-			Name: "test",
-			Action: func(c *cli.Context) error {
-				out.Printf(c.Context, "test command executed")
-				return nil
-			},
-		},
-	}
-	action := &Action{
-		Store: &mockStore{},
-	}
+	u := gptest.NewUnitTester(t)
+
+	ctx := config.NewContextInMemory()
+	ctx = ctxutil.WithAlwaysYes(ctx, true)
+	ctx = ctxutil.WithInteractive(ctx, false)
+
+	act, err := newMock(ctx, u.StoreDir(""))
+	require.NoError(t, err)
+	require.NotNil(t, act)
+	ctx = act.cfg.WithConfig(ctx)
 
 	buf := &bytes.Buffer{}
 	out.Stdout = buf
 	out.Stderr = buf
+	stdout = buf
+	color.NoColor = true
+	defer func() {
+		out.Stdout = os.Stdout
+		out.Stderr = os.Stderr
+		stdout = os.Stdout
+	}()
 
 	rl, err := readline.NewEx(&readline.Config{
 		Prompt: "gopass> ",
-		Stdin:  bytes.NewBufferString("test\nquit\n"),
+		Stdin:  bytes.NewBufferString("help\nquit\n"),
 	})
 	assert.NoError(t, err)
 
@@ -41,74 +49,97 @@ func TestREPL(t *testing.T) {
 		_ = rl.Close()
 	}()
 
-	err = action.REPL(cli.NewContext(app, nil, nil))
+	err = act.REPL(gptest.CliCtx(ctx, t))
 	assert.NoError(t, err)
-	assert.Contains(t, buf.String(), "test command executed")
+	assert.Contains(t, buf.String(), "help")
 }
 
 func TestEntriesForCompleter(t *testing.T) {
-	ctx := context.Background()
-	action := &Action{
-		Store: &mockStore{
-			entries: []string{"foo", "bar"},
-		},
-	}
+	u := gptest.NewUnitTester(t)
 
-	completers, err := action.entriesForCompleter(ctx)
+	ctx := config.NewContextInMemory()
+	ctx = ctxutil.WithAlwaysYes(ctx, true)
+	ctx = ctxutil.WithInteractive(ctx, false)
+
+	act, err := newMock(ctx, u.StoreDir(""))
+	require.NoError(t, err)
+	require.NotNil(t, act)
+	ctx = act.cfg.WithConfig(ctx)
+
+	buf := &bytes.Buffer{}
+	out.Stdout = buf
+	out.Stderr = buf
+	stdout = buf
+	color.NoColor = true
+	defer func() {
+		out.Stdout = os.Stdout
+		out.Stderr = os.Stderr
+		stdout = os.Stdout
+	}()
+
+	completers, err := act.entriesForCompleter(ctx)
 	assert.NoError(t, err)
-	assert.Len(t, completers, 2)
+	assert.Len(t, completers, 1)
 }
 
 func TestReplCompleteRecipients(t *testing.T) {
-	ctx := context.Background()
-	action := &Action{
-		Store: &mockStore{
-			recipients: []string{"alice", "bob"},
-		},
-	}
+	u := gptest.NewUnitTester(t)
+
+	ctx := config.NewContextInMemory()
+	ctx = ctxutil.WithAlwaysYes(ctx, true)
+	ctx = ctxutil.WithInteractive(ctx, false)
+
+	act, err := newMock(ctx, u.StoreDir(""))
+	require.NoError(t, err)
+	require.NotNil(t, act)
+	ctx = act.cfg.WithConfig(ctx)
+
+	buf := &bytes.Buffer{}
+	out.Stdout = buf
+	out.Stderr = buf
+	stdout = buf
+	color.NoColor = true
+	defer func() {
+		out.Stdout = os.Stdout
+		out.Stderr = os.Stderr
+		stdout = os.Stdout
+	}()
 
 	cmd := &cli.Command{
 		Name: "remove",
 	}
 
-	completers := action.replCompleteRecipients(ctx, cmd)
-	assert.Len(t, completers, 2)
+	completers := act.replCompleteRecipients(ctx, cmd)
+	assert.Len(t, completers, 1)
 }
 
 func TestReplCompleteTemplates(t *testing.T) {
-	ctx := context.Background()
-	action := &Action{
-		Store: &mockStore{
-			templates: []string{"tmpl1", "tmpl2"},
-		},
-	}
+	u := gptest.NewUnitTester(t)
+
+	ctx := config.NewContextInMemory()
+	ctx = ctxutil.WithAlwaysYes(ctx, true)
+	ctx = ctxutil.WithInteractive(ctx, false)
+
+	act, err := newMock(ctx, u.StoreDir(""))
+	require.NoError(t, err)
+	require.NotNil(t, act)
+	ctx = act.cfg.WithConfig(ctx)
+
+	buf := &bytes.Buffer{}
+	out.Stdout = buf
+	out.Stderr = buf
+	stdout = buf
+	color.NoColor = true
+	defer func() {
+		out.Stdout = os.Stdout
+		out.Stderr = os.Stderr
+		stdout = os.Stdout
+	}()
 
 	cmd := &cli.Command{
 		Name: "templates",
 	}
 
-	completers := action.replCompleteTemplates(ctx, cmd)
-	assert.Len(t, completers, 2)
-}
-
-type mockStore struct {
-	entries    []string
-	recipients []string
-	templates  []string
-}
-
-func (m *mockStore) List(ctx context.Context, prefix string) ([]string, error) {
-	return m.entries, nil
-}
-
-func (m *mockStore) Lock() error {
-	return nil
-}
-
-func (m *mockStore) recipientsList(ctx context.Context) []string {
-	return m.recipients
-}
-
-func (m *mockStore) templatesList(ctx context.Context) []string {
-	return m.templates
+	completers := act.replCompleteTemplates(ctx, cmd)
+	assert.Len(t, completers, 1)
 }

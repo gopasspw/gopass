@@ -98,14 +98,14 @@ func (a *Age) loadIdentitiesFromKeyring(ctx context.Context) ([]string, error) {
 	if err != nil {
 		debug.Log("can't decrypt keyring at %s: %s", OldKeyring, err)
 
-		return nil, err
+		return nil, fmt.Errorf("can not decrypt old keyring at %s: %w", OldKeyring, err)
 	}
 
 	var kr Keyring
 	if err := json.Unmarshal(buf, &kr); err != nil {
 		debug.Log("can't parse keyring at %s: %s", OldKeyring, err)
 
-		return nil, err
+		return nil, fmt.Errorf("can not parse old keyring at %s: %w", OldKeyring, err)
 	}
 
 	// remove invalid IDs.

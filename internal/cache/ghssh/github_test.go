@@ -2,10 +2,8 @@ package ghssh
 
 import (
 	"context"
-	"crypto/tls"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -15,8 +13,7 @@ import (
 func TestListKeys(t *testing.T) {
 	// Set GOPASS_HOMEDIR to a temp directory
 	tempDir := t.TempDir()
-	os.Setenv("GOPASS_HOMEDIR", tempDir)
-	defer os.Unsetenv("GOPASS_HOMEDIR")
+	t.Setenv("GOPASS_HOMEDIR", tempDir)
 
 	// Mock HTTP server
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -29,21 +26,14 @@ func TestListKeys(t *testing.T) {
 	}))
 	defer mockServer.Close()
 
-	// Override the httpClient to use the mock server
-	httpClient = &http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{
-				MinVersion: tls.VersionTLS13,
-			},
-			Proxy: func(req *http.Request) (*http.URL, error) {
-				return http.ParseURL(mockServer.URL)
-			},
-		},
-	}
+	oURL := baseURL
+	baseURL = mockServer.URL
+	defer func() {
+		baseURL = oURL
+	}()
 
-	cache := &Cache{
-		disk: NewDiskCache(tempDir),
-	}
+	cache, err := New()
+	require.NoError(t, err)
 
 	t.Run("valid user", func(t *testing.T) {
 		keys, err := cache.ListKeys(context.Background(), "validuser")
@@ -62,8 +52,7 @@ func TestListKeys(t *testing.T) {
 func TestFetchKeys(t *testing.T) {
 	// Set GOPASS_HOMEDIR to a temp directory
 	tempDir := t.TempDir()
-	os.Setenv("GOPASS_HOMEDIR", tempDir)
-	defer os.Unsetenv("GOPASS_HOMEDIR")
+	t.Setenv("GOPASS_HOMEDIR", tempDir)
 
 	// Mock HTTP server
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -76,21 +65,14 @@ func TestFetchKeys(t *testing.T) {
 	}))
 	defer mockServer.Close()
 
-	// Override the httpClient to use the mock server
-	httpClient = &http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{
-				MinVersion: tls.VersionTLS13,
-			},
-			Proxy: func(req *http.Request) (*http.URL, error) {
-				return http.ParseURL(mockServer.URL)
-			},
-		},
-	}
+	oURL := baseURL
+	baseURL = mockServer.URL
+	defer func() {
+		baseURL = oURL
+	}()
 
-	cache := &Cache{
-		disk: NewDiskCache(tempDir),
-	}
+	cache, err := New()
+	require.NoError(t, err)
 
 	t.Run("valid user", func(t *testing.T) {
 		keys, err := cache.fetchKeys(context.Background(), "validuser")

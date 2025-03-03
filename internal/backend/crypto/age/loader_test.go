@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/gopasspw/gopass/internal/backend/mock"
+	"github.com/gopasspw/gopass/internal/store/mockstore/inmem"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -20,21 +20,29 @@ func TestLoader_New(t *testing.T) {
 func TestLoader_Handles(t *testing.T) {
 	ctx := context.Background()
 	l := loader{}
-	s := mock.NewMockStorage()
+	s := inmem.New()
 
 	// Test case where OldIDFile or OldKeyring exists
-	s.SetExists(OldIDFile, true)
+	s.Set(ctx, OldIDFile, []byte("test"))
 	err := l.Handles(ctx, s)
 	assert.NoError(t, err)
+	s.Delete(ctx, OldIDFile)
 
 	// Test case where IDFile exists
-	s.SetExists(OldIDFile, false)
-	s.SetExists(IDFile, true)
+	s.Set(ctx, OldIDFile, []byte("test"))
+	s.Set(ctx, IDFile, []byte("test"))
 	err = l.Handles(ctx, s)
 	assert.NoError(t, err)
+	s.Delete(ctx, OldIDFile)
+	s.Delete(ctx, IDFile)
+
+	// Test case where IDFile exists
+	s.Set(ctx, IDFile, []byte("test"))
+	err = l.Handles(ctx, s)
+	assert.NoError(t, err)
+	s.Delete(ctx, IDFile)
 
 	// Test case where neither OldIDFile nor IDFile exists
-	s.SetExists(IDFile, false)
 	err = l.Handles(ctx, s)
 	assert.Error(t, err)
 }

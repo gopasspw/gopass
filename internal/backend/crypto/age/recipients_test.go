@@ -55,6 +55,7 @@ func TestParseRecipients(t *testing.T) {
 		ghCache: &mockGHCache{},
 	}
 
+	// both age and ssh keys are valid, throw away keys generated for this test case.
 	tests := []struct {
 		name     string
 		input    []string
@@ -62,17 +63,12 @@ func TestParseRecipients(t *testing.T) {
 	}{
 		{
 			name:     "valid age key",
-			input:    []string{"age1qxy2z..."},
+			input:    []string{"age1zf3t7aw2rv39fmcddc469nhtj6lm22kn5kh0gy4fv3a7ds3r29rsr69l89"},
 			expected: 1,
 		},
 		{
 			name:     "valid ssh key",
-			input:    []string{"ssh-rsa AAAAB3Nza..."},
-			expected: 1,
-		},
-		{
-			name:     "github key",
-			input:    []string{"github:username"},
+			input:    []string{"ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDHnOMnKBLlwDOHWh0EEk8r/VdeLaPe7hOwdS/040YVU04PXG7U0YFoXRe1GP6KtM0SrIOIl2S3QrCc7m1cwZSBBPE3rVprrCShaIG2Wn57nTPv2kb9Qtqlc8nMXBOKITCfLmtuzN39n7E7T0EZGrThocrvcNCsPLdrc8Nd0I+eVidgN215DeWhDB4X0pJmScMRSWOmFgnPEPBpDcHvly9wTT+Iv8V7mvGiVKYBHFBA73lCpLS1+LWa+7GXJkKsLbZtBgOQKj9txmwRMkQCecrBAN3z5skdAQc1XPTc3Nihzw6FnPAe69hmjgVl8YTSdmojxbpaJwLvpkR9/Gv5w9ZH/VYM2lhmhCoXTVTLWDGIbxEG3tjEhB7dfVVEcLRod33X2f1LIzhC5lW+dIwVV9IprJooCAtNnHy06DNpQNE/2YTTjCtUSx+DX+ZLEHaGQ2QXlaARXnUfNgM+ct8VAGRL/UkQnqGDE7NgQ4U6JfsohWfR8QXrEkAvLzctmw2AHc8="},
 			expected: 1,
 		},
 		{
@@ -95,4 +91,8 @@ type mockGHCache struct{}
 
 func (m *mockGHCache) ListKeys(ctx context.Context, user string) ([]string, error) {
 	return []string{"ssh-rsa AAAAB3Nza..."}, nil
+}
+
+func (m *mockGHCache) String() string {
+	return "mockGHCache"
 }

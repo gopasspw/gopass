@@ -36,14 +36,11 @@ func TestOption(t *testing.T) {
 func TestGetPIN(t *testing.T) {
 	client := New()
 
-	// Mock termio.AskForPassword
-	originalAskForPassword := termio.AskForPassword
-	defer func() { termio.AskForPassword = originalAskForPassword }()
-	termio.AskForPassword = func(ctx context.Context, prompt string, repeat bool) (string, error) {
+	ctx := termio.WithPassPromptFunc(context.Background(), func(ctx context.Context, s string) (string, error) {
 		return "1234", nil
-	}
+	})
 
-	pin, err := client.GetPIN()
+	pin, err := client.GetPINContext(ctx)
 	assert.NoError(t, err)
 	assert.Equal(t, "1234", pin)
 }

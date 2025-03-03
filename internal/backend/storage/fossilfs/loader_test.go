@@ -2,10 +2,12 @@ package fossilfs
 
 import (
 	"context"
+	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestLoader_New(t *testing.T) {
@@ -52,18 +54,17 @@ func TestLoader_Init(t *testing.T) {
 func TestLoader_Handles(t *testing.T) {
 	l := loader{}
 	ctx := context.Background()
-	path := "/tmp/testpath"
+	td := t.TempDir()
 
-	err := l.Handles(ctx, path)
+	err := l.Handles(ctx, td)
 	assert.Error(t, err)
 
 	// Create a mock marker file for testing
-	fsutil.MkdirAll(path, 0o700)
-	defer fsutil.RemoveAll(path)
-	marker := filepath.Join(path, CheckoutMarker)
-	fsutil.WriteFile(marker, []byte("marker"), 0o600)
+	require.NoError(t, os.MkdirAll(td, 0o700))
+	marker := filepath.Join(td, CheckoutMarker)
+	os.WriteFile(marker, []byte("marker"), 0o600)
 
-	err = l.Handles(ctx, path)
+	err = l.Handles(ctx, td)
 	assert.NoError(t, err)
 }
 

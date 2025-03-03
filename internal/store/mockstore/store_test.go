@@ -111,16 +111,20 @@ func TestMockStore(t *testing.T) {
 	})
 
 	t.Run("Copy", func(t *testing.T) {
-		err := store.Set(ctx, "from", secrets.New("password", ""))
+		sec := secrets.New()
+		sec.Set("password", "password")
+		err := store.Set(ctx, "from", sec)
 		assert.NoError(t, err)
 		assert.NoError(t, store.Copy(ctx, "from", "to"))
-		sec, err := store.Get(ctx, "to")
+		sec, err = store.Get(ctx, "to")
 		assert.NoError(t, err)
 		assert.Equal(t, "password", sec.Password())
 	})
 
 	t.Run("Delete", func(t *testing.T) {
-		assert.NoError(t, store.Set(ctx, "test", secrets.New("password", "")))
+		sec := secrets.New()
+		sec.Set("password", "password")
+		assert.NoError(t, store.Set(ctx, "test", sec))
 		assert.NoError(t, store.Delete(ctx, "test"))
 		_, err := store.Get(ctx, "test")
 		assert.Error(t, err)
@@ -132,12 +136,16 @@ func TestMockStore(t *testing.T) {
 	})
 
 	t.Run("Exists", func(t *testing.T) {
-		assert.NoError(t, store.Set(ctx, "test", secrets.New("password", "")))
+		sec := secrets.New()
+		sec.Set("password", "password")
+		assert.NoError(t, store.Set(ctx, "test", sec))
 		assert.True(t, store.Exists(ctx, "test"))
 	})
 
 	t.Run("Get", func(t *testing.T) {
-		assert.NoError(t, store.Set(ctx, "test", secrets.New("password", "")))
+		sec := secrets.New()
+		sec.Set("password", "password")
+		assert.NoError(t, store.Set(ctx, "test", sec))
 		sec, err := store.Get(ctx, "test")
 		assert.NoError(t, err)
 		assert.Equal(t, "password", sec.Password())
@@ -157,12 +165,16 @@ func TestMockStore(t *testing.T) {
 	})
 
 	t.Run("IsDir", func(t *testing.T) {
-		assert.NoError(t, store.Set(ctx, "test/dir", secrets.New("password", "")))
+		sec := secrets.New()
+		sec.Set("password", "password")
+		assert.NoError(t, store.Set(ctx, "test/dir", sec))
 		assert.True(t, store.IsDir(ctx, "test"))
 	})
 
 	t.Run("List", func(t *testing.T) {
-		assert.NoError(t, store.Set(ctx, "test", secrets.New("password", "")))
+		sec := secrets.New()
+		sec.Set("password", "password")
+		assert.NoError(t, store.Set(ctx, "test", sec))
 		list, err := store.List(ctx, "test")
 		assert.NoError(t, err)
 		assert.Contains(t, list, "test")
@@ -175,17 +187,21 @@ func TestMockStore(t *testing.T) {
 	})
 
 	t.Run("Move", func(t *testing.T) {
-		assert.NoError(t, store.Set(ctx, "from", secrets.New("password", "")))
+		sec := secrets.New()
+		sec.Set("password", "password")
+		assert.NoError(t, store.Set(ctx, "from", sec))
 		assert.NoError(t, store.Move(ctx, "from", "to"))
 		_, err := store.Get(ctx, "from")
 		assert.Error(t, err)
-		sec, err := store.Get(ctx, "to")
+		sec, err = store.Get(ctx, "to")
 		assert.NoError(t, err)
 		assert.Equal(t, "password", sec.Password())
 	})
 
 	t.Run("Set", func(t *testing.T) {
-		assert.NoError(t, store.Set(ctx, "test", secrets.New("password", "")))
+		sec := secrets.New()
+		sec.Set("password", "password")
+		assert.NoError(t, store.Set(ctx, "test", sec))
 		sec, err := store.Get(ctx, "test")
 		assert.NoError(t, err)
 		assert.Equal(t, "password", sec.Password())
