@@ -29,6 +29,7 @@ jobs:
           allowed-endpoints: >
             api.github.com:443
             github.com:443
+            golangci-lint.run:443
             objects.githubusercontent.com:443
             proxy.golang.org:443
             raw.githubusercontent.com:443
