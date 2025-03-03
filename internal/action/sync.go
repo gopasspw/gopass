@@ -104,7 +104,10 @@ func (s *Action) sync(ctx context.Context, store string, isAutosync bool) error 
 		return nil
 	}
 
-	out.Printf(ctx, "🚥 Syncing with all remotes ...")
+	// check if user asked for single store/remote sync or all remote sync
+	if store == "" {
+		out.Printf(ctx, "🚥 Syncing with all remotes ...")
+	}
 
 	numEntries := 0
 	if l, err := s.Store.Tree(ctx); err == nil {
@@ -118,6 +121,7 @@ func (s *Action) sync(ctx context.Context, store string, isAutosync bool) error 
 	// sync all stores (root and all mounted sub stores).
 	for _, mp := range mps {
 		if store != "" {
+			out.Printf(ctx, "🚥 Syncing with store/remote %q...", store)
 			if store != "<root>" && mp != store {
 				continue
 			}
@@ -129,7 +133,12 @@ func (s *Action) sync(ctx context.Context, store string, isAutosync bool) error 
 		numMPs++
 		_ = s.syncMount(ctx, mp, isAutosync)
 	}
-	out.OKf(ctx, "All done")
+
+	if numMPs > 0 {
+		out.OKf(ctx, "All done")
+	} else {
+		out.Printf(ctx, "⚠️ No remotes were found")
+	}
 
 	// If we just sync'ed all stores we can reset the auto-sync interval
 	if store == "" {
