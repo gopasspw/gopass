@@ -22,6 +22,7 @@ import (
 	"time"
 
 	"github.com/blang/semver/v4"
+	"github.com/gopasspw/gopass/helpers/gitutils"
 )
 
 var (
@@ -172,11 +173,11 @@ func main() {
 
 func getVersions() (semver.Version, semver.Version) {
 	nextVerFlag := ""
-	if len(os.Args) > 1 {
+	if len(os.Args) > 1 && !strings.HasPrefix(os.Args[2], "-test.") {
 		nextVerFlag = strings.TrimSpace(strings.TrimPrefix(os.Args[1], "v"))
 	}
 	prevVerFlag := ""
-	if len(os.Args) > 2 {
+	if len(os.Args) > 2 && !strings.HasPrefix(os.Args[2], "-test.") {
 		prevVerFlag = strings.TrimSpace(strings.TrimPrefix(os.Args[2], "v"))
 	}
 
@@ -293,29 +294,19 @@ func updateDeps() error {
 }
 
 func gitCoMaster() error {
-	cmd := exec.Command("git", "checkout", "master")
-	cmd.Stderr = os.Stderr
-
-	return cmd.Run()
+	return gitutils.GitCoMaster(".")
 }
 
 func gitPom() error {
-	cmd := exec.Command("git", "pull", "origin", "master")
-	cmd.Stderr = os.Stderr
-
-	return cmd.Run()
+	return gitutils.GitPom(".")
 }
 
 func gitCoRel(v semver.Version) error {
-	cmd := exec.Command("git", "checkout", "-b", "release/v"+v.String())
-	cmd.Stderr = os.Stderr
-
-	return cmd.Run()
+	return gitutils.GitCoBranch(".", "release/v"+v.String())
 }
 
 func gitCommit(v semver.Version) error {
 	args := []string{
-		"add",
 		"CHANGELOG.md",
 		"VERSION",
 		"version.go",
@@ -325,16 +316,7 @@ func gitCommit(v semver.Version) error {
 		"go.sum",
 		"pkg/pwgen/pwrules/pwrules_gen.go",
 	}
-	cmd := exec.Command("git", args...)
-	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err != nil {
-		return err
-	}
-
-	cmd = exec.Command("git", "commit", "-s", "-m", "Tag v"+v.String())
-	cmd.Stderr = os.Stderr
-
-	return cmd.Run()
+	return gitutils.GitCommit(".", "Tag v"+v.String(), args...)
 }
 
 func writeChangelog(prev, next semver.Version) error {
@@ -426,16 +408,7 @@ func writeVersionGo(v semver.Version) error {
 }
 
 func isGitClean() bool {
-	if sv := os.Getenv("GOPASS_FORCE_CLEAN"); sv != "" {
-		return true
-	}
-
-	buf, err := exec.Command("git", "diff", "--stat").CombinedOutput()
-	if err != nil {
-		panic(err)
-	}
-
-	return strings.TrimSpace(string(buf)) == ""
+	return gitutils.IsGitClean(".")
 }
 
 func versionFile() (semver.Version, error) {

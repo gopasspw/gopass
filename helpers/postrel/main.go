@@ -10,7 +10,6 @@ package main
 
 import (
 	"bufio"
-	"bytes"
 	"context"
 	"crypto/sha256"
 	"crypto/sha512"
@@ -28,6 +27,7 @@ import (
 
 	"github.com/blang/semver/v4"
 	"github.com/google/go-github/v61/github"
+	"github.com/gopasspw/gopass/helpers/gitutils"
 	"github.com/gopasspw/gopass/pkg/fsutil"
 	"golang.org/x/oauth2"
 )
@@ -68,6 +68,7 @@ const logo = `
 `
 
 func main() {
+	gitutils.Verbose = true
 	ctx := context.Background()
 
 	fmt.Print(logo)
@@ -244,87 +245,11 @@ func updateGopasspw(dir string, ver semver.Version) error {
 		return err
 	}
 
-	return gitCommitAndPush(dir, fmt.Sprintf("v%s", ver))
-}
-
-func isGitClean(dir string) bool {
-	cmd := exec.Command("git", "diff", "--stat")
-	cmd.Dir = dir
-	buf, err := cmd.CombinedOutput()
-	if err != nil {
-		panic(err)
+	if err := gitutils.GitAdd(dir, "index.html", "index.tpl"); err != nil {
+		return err
 	}
 
-	if strings.TrimSpace(string(buf)) != "" {
-		fmt.Printf("❌ Git in %s is not clean: %q\n", dir, string(buf))
-
-		return false
-	}
-
-	return true
-}
-
-func gitCoMaster(dir string) error {
-	cmd := exec.Command("git", "checkout", "master")
-	cmd.Dir = dir
-	cmd.Stderr = os.Stderr
-
-	return cmd.Run()
-}
-
-func gitPom(dir string) error {
-	cmd := exec.Command("git", "pull", "origin", "master")
-	cmd.Dir = dir
-	cmd.Stderr = os.Stderr
-
-	return cmd.Run()
-}
-
-func gitCommitAndPush(dir, tag string) error {
-	cmd := exec.Command("git", "commit", "-a", "-s", "-m", "Update to "+tag)
-	cmd.Dir = dir
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("failed to commit changes: %w", err)
-	}
-
-	cmd = exec.Command("git", "push", "origin", "master")
-	cmd.Dir = dir
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("failed to push changes: %w", err)
-	}
-
-	return nil
-}
-
-func gitTagAndPush(dir string, tag string) error {
-	cmd := exec.Command("git", "tag", "-m", "'Tag "+tag+"'", tag)
-	cmd.Dir = dir
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("failed to commit changes: %w", err)
-	}
-
-	cmd = exec.Command("git", "push", "origin", tag)
-	cmd.Dir = dir
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("failed to push changes: %w", err)
-	}
-
-	return nil
-}
-
-func gitHasTag(dir string, tag string) bool {
-	cmd := exec.Command("git", "rev-parse", tag)
-	cmd.Dir = dir
-
-	return cmd.Run() == nil
+	return gitutils.GitCommitAndPush(dir, fmt.Sprintf("v%s", ver))
 }
 
 func runCmd(dir string, args ...string) error {
@@ -395,7 +320,7 @@ func (u *inUpdater) doUpdate(ctx context.Context, dir string) error {
 
 	tag := fmt.Sprintf("v%s", u.v.String())
 	// check if the release is already tagged
-	if gitHasTag(path, tag) {
+	if gitutils.GitHasTag(path, tag) {
 		fmt.Printf("✅ Integration %s has tag %s already.\n", dir, tag)
 
 		return nil
@@ -403,13 +328,13 @@ func (u *inUpdater) doUpdate(ctx context.Context, dir string) error {
 	fmt.Printf("✅ [%s] %s is not tagged, yet.\n", dir, tag)
 
 	// make sure we're at head
-	if !isGitClean(path) {
+	if !gitutils.IsGitClean(path) {
 		return fmt.Errorf("git not clean at %s", path)
 	}
 	fmt.Printf("✅ [%s] Git is clean.", dir)
 
 	// git pull origin master
-	if err := gitPom(path); err != nil {
+	if err := gitutils.GitPom(path); err != nil {
 		return fmt.Errorf("failed to fetch changes at %s: %s", path, err)
 	}
 
@@ -468,13 +393,13 @@ func (u *inUpdater) doUpdate(ctx context.Context, dir string) error {
 	fmt.Printf("✅ [%s] wrote CHANGELOG.md.\n", dir)
 
 	// git commit
-	if err := gitCommitAndPush(path, tag); err != nil {
+	if err := gitutils.GitCommitAndPush(path, tag); err != nil {
 		return err
 	}
 	fmt.Printf("✅ [%s] committed.\n", dir)
 
 	// git tag v
-	if err := gitTagAndPush(path, tag); err != nil {
+	if err := gitutils.GitTagAndPush(path, tag); err != nil {
 		return err
 	}
 	fmt.Printf("✅ [%s] tagged.\n", dir)
@@ -906,93 +831,31 @@ func (r *repo) updateFinalize(path string) error {
 }
 
 func (r *repo) gitCoMaster() error {
-	cmd := exec.Command("git", "checkout", "master")
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	cmd.Dir = r.dir
-	fmt.Printf("Running command: %s\n", cmd)
-
-	return cmd.Run()
+	return gitutils.GitCoMaster(r.dir)
 }
 
 func (r *repo) gitBranch() error {
-	cmd := exec.Command("git", "checkout", "-b", r.branch())
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	cmd.Dir = r.dir
-	fmt.Printf("Running command: %s\n", cmd)
-
-	return cmd.Run()
+	return gitutils.GitCoBranch(r.dir, r.branch())
 }
 
 func (r *repo) gitBranchDel() error {
-	cmd := exec.Command("git", "branch", "-D", r.branch())
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	cmd.Dir = r.dir
-	fmt.Printf("Running command: %s\n", cmd)
-
-	return cmd.Run()
+	return gitutils.GitDelBranch(r.dir, r.branch())
 }
 
 func (r *repo) gitPom() error {
-	cmd := exec.Command("git", "pull", "origin", "master")
-	// hide long pull output unless an error occurs
-	buf := &bytes.Buffer{}
-	cmd.Stdout = buf
-	cmd.Stderr = os.Stderr
-	cmd.Dir = r.dir
-	if err := cmd.Run(); err != nil {
-		fmt.Println(buf.String())
-
-		return err
-	}
-
-	return nil
+	return gitutils.GitPom(r.dir)
 }
 
 func (r *repo) gitPush(remote string) error {
-	cmd := exec.Command("git", "push", remote, r.branch())
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	cmd.Dir = r.dir
-	fmt.Printf("Running command: %s\n", cmd)
-
-	return cmd.Run()
+	return gitutils.GitPush(remote, r.branch())
 }
 
 func (r *repo) gitCommit(files ...string) error {
-	args := []string{"add"}
-	args = append(args, files...)
-
-	cmd := exec.Command("git", args...)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	cmd.Dir = r.dir
-	fmt.Printf("Running command: %s\n", cmd)
-	if err := cmd.Run(); err != nil {
-		return err
-	}
-
-	cmd = exec.Command("git", "commit", "-s", "-m", r.commitMsg())
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	cmd.Dir = r.dir
-	fmt.Printf("Running command: %s\n", cmd)
-
-	return cmd.Run()
+	return gitutils.GitCommit(r.dir, r.commitMsg(), files...)
 }
 
 func (r *repo) isGitClean() bool {
-	cmd := exec.Command("git", "diff", "--stat")
-	cmd.Dir = r.dir
-
-	buf, err := cmd.CombinedOutput()
-	if err != nil {
-		panic(err)
-	}
-
-	return strings.TrimSpace(string(buf)) == ""
+	return gitutils.IsGitClean(r.dir)
 }
 
 func strp(s string) *string {
