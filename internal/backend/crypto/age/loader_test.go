@@ -24,24 +24,24 @@ func TestLoader_Handles(t *testing.T) {
 	s := inmem.New()
 
 	// Test case where OldIDFile or OldKeyring exists
-	s.Set(ctx, OldIDFile, []byte("test"))
+	require.NoError(t, s.Set(ctx, OldIDFile, []byte("test")))
 	err := l.Handles(ctx, s)
 	require.NoError(t, err)
 	s.Delete(ctx, OldIDFile)
 
 	// Test case where IDFile exists
-	s.Set(ctx, OldIDFile, []byte("test"))
-	s.Set(ctx, IDFile, []byte("test"))
+	require.NoError(t, s.Set(ctx, OldIDFile, []byte("test")))
+	require.NoError(t, s.Set(ctx, IDFile, []byte("test")))
 	err = l.Handles(ctx, s)
 	require.NoError(t, err)
-	s.Delete(ctx, OldIDFile)
-	s.Delete(ctx, IDFile)
+	require.NoError(t, s.Delete(ctx, OldIDFile))
+	require.NoError(t, s.Delete(ctx, IDFile))
 
 	// Test case where IDFile exists
-	s.Set(ctx, IDFile, []byte("test"))
+	require.NoError(t, s.Set(ctx, IDFile, []byte("test")))
 	err = l.Handles(ctx, s)
 	require.NoError(t, err)
-	s.Delete(ctx, IDFile)
+	require.NoError(t, s.Delete(ctx, IDFile))
 
 	// Test case where neither OldIDFile nor IDFile exists
 	err = l.Handles(ctx, s)

@@ -19,7 +19,7 @@ func TestListKeys(t *testing.T) {
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/validuser.keys" {
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte("ssh-rsa AAAAB3Nza... validuser@github\n"))
+			w.Write([]byte("ssh-rsa AAAAB3Nza... validuser@github\n")) //nolint:errcheck
 		} else {
 			w.WriteHeader(http.StatusNotFound)
 		}
@@ -58,7 +58,7 @@ func TestFetchKeys(t *testing.T) {
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/validuser.keys" {
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte("ssh-rsa AAAAB3Nza... validuser@github\n"))
+			w.Write([]byte("ssh-rsa AAAAB3Nza... validuser@github\n")) //nolint:errcheck
 		} else {
 			w.WriteHeader(http.StatusNotFound)
 		}
