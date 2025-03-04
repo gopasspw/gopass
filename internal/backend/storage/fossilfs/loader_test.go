@@ -11,6 +11,8 @@ import (
 )
 
 func createMarker(t *testing.T, path string) {
+	t.Helper()
+
 	// Create a mock marker file for testing
 	require.NoError(t, os.MkdirAll(path, 0o700))
 	marker := filepath.Join(path, CheckoutMarker)
