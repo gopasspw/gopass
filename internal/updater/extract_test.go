@@ -29,8 +29,8 @@ func TestExtractFile(t *testing.T) {
 	require.NoError(t, err)
 	_, err = tw.Write([]byte("test content"))
 	require.NoError(t, err)
-	assert.NoError(t, tw.Close())
-	assert.NoError(t, gz.Close())
+	require.NoError(t, tw.Close())
+	require.NoError(t, gz.Close())
 
 	err = extractFile(buf.Bytes(), "gopass.gz", dest)
 	require.NoError(t, err)
@@ -57,8 +57,8 @@ func TestExtractToTempFile(t *testing.T) {
 	require.NoError(t, err)
 	_, err = tw.Write([]byte("test content"))
 	require.NoError(t, err)
-	assert.NoError(t, tw.Close())
-	assert.NoError(t, gz.Close())
+	require.NoError(t, tw.Close())
+	require.NoError(t, gz.Close())
 
 	tempFile, err := extractToTempFile(buf.Bytes(), "gopass.gz", dest)
 	require.NoError(t, err)

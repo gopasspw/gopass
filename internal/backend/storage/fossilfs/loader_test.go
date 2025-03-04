@@ -72,7 +72,7 @@ func TestLoader_Handles(t *testing.T) {
 	td := t.TempDir()
 
 	err := l.Handles(ctx, td)
-	assert.Error(t, err)
+	require.Error(t, err)
 
 	createMarker(t, td)
 

@@ -17,6 +17,7 @@ type mockSecretGetter struct{}
 func (m *mockSecretGetter) Get(ctx context.Context, name string) (gopass.Secret, error) {
 	sec := secrets.New()
 	sec.SetPassword("password")
+
 	return sec, nil
 }
 

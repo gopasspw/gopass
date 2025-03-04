@@ -38,35 +38,35 @@ func TestMockStore(t *testing.T) {
 	})
 
 	t.Run("RemoveTemplate", func(t *testing.T) {
-		assert.NoError(t, store.RemoveTemplate(ctx, "test"))
+		require.NoError(t, store.RemoveTemplate(ctx, "test"))
 	})
 
 	t.Run("SetTemplate", func(t *testing.T) {
-		assert.NoError(t, store.SetTemplate(ctx, "test", []byte("data")))
+		require.NoError(t, store.SetTemplate(ctx, "test", []byte("data")))
 	})
 
 	t.Run("TemplateTree", func(t *testing.T) {
 		tree, err := store.TemplateTree(ctx)
-		assert.Error(t, err)
+		require.Error(t, err)
 		assert.Nil(t, tree)
 	})
 
 	t.Run("AddRecipient", func(t *testing.T) {
-		assert.NoError(t, store.AddRecipient(ctx, "test"))
+		require.NoError(t, store.AddRecipient(ctx, "test"))
 	})
 
 	t.Run("GetRecipients", func(t *testing.T) {
 		recipients, err := store.GetRecipients(ctx, "test")
-		assert.Error(t, err)
+		require.Error(t, err)
 		assert.Nil(t, recipients)
 	})
 
 	t.Run("RemoveRecipient", func(t *testing.T) {
-		assert.NoError(t, store.RemoveRecipient(ctx, "test"))
+		require.NoError(t, store.RemoveRecipient(ctx, "test"))
 	})
 
 	t.Run("SaveRecipients", func(t *testing.T) {
-		assert.NoError(t, store.SaveRecipients(ctx))
+		require.NoError(t, store.SaveRecipients(ctx))
 	})
 
 	t.Run("Recipients", func(t *testing.T) {
@@ -74,7 +74,7 @@ func TestMockStore(t *testing.T) {
 	})
 
 	t.Run("ImportMissingPublicKeys", func(t *testing.T) {
-		assert.NoError(t, store.ImportMissingPublicKeys(ctx))
+		require.NoError(t, store.ImportMissingPublicKeys(ctx))
 	})
 
 	t.Run("ExportMissingPublicKeys", func(t *testing.T) {
@@ -84,7 +84,7 @@ func TestMockStore(t *testing.T) {
 	})
 
 	t.Run("Fsck", func(t *testing.T) {
-		assert.NoError(t, store.Fsck(ctx, "test"))
+		require.NoError(t, store.Fsck(ctx, "test"))
 	})
 
 	t.Run("Path", func(t *testing.T) {
@@ -104,7 +104,7 @@ func TestMockStore(t *testing.T) {
 	})
 
 	t.Run("GitInit", func(t *testing.T) {
-		assert.NoError(t, store.GitInit(ctx, "test", "test"))
+		require.NoError(t, store.GitInit(ctx, "test", "test"))
 	})
 
 	t.Run("Alias", func(t *testing.T) {
@@ -116,7 +116,7 @@ func TestMockStore(t *testing.T) {
 		sec.SetPassword("password")
 		err := store.Set(ctx, "from", sec)
 		require.NoError(t, err)
-		assert.NoError(t, store.Copy(ctx, "from", "to"))
+		require.NoError(t, store.Copy(ctx, "from", "to"))
 		sec, err = store.Get(ctx, "to")
 		require.NoError(t, err)
 		assert.Equal(t, "password", sec.Password())
@@ -124,11 +124,11 @@ func TestMockStore(t *testing.T) {
 
 	t.Run("Delete", func(t *testing.T) {
 		sec := secrets.New()
-		sec.Set("password", "password")
-		assert.NoError(t, store.Set(ctx, "test", sec))
-		assert.NoError(t, store.Delete(ctx, "test"))
+		sec.SetPassword("password")
+		require.NoError(t, store.Set(ctx, "test", sec))
+		require.NoError(t, store.Delete(ctx, "test"))
 		_, err := store.Get(ctx, "test")
-		assert.Error(t, err)
+		require.Error(t, err)
 	})
 
 	t.Run("Equals", func(t *testing.T) {
@@ -138,15 +138,15 @@ func TestMockStore(t *testing.T) {
 
 	t.Run("Exists", func(t *testing.T) {
 		sec := secrets.New()
-		sec.Set("password", "password")
-		assert.NoError(t, store.Set(ctx, "test", sec))
+		sec.SetPassword("password")
+		require.NoError(t, store.Set(ctx, "test", sec))
 		assert.True(t, store.Exists(ctx, "test"))
 	})
 
 	t.Run("Get", func(t *testing.T) {
 		sec := secrets.New()
 		sec.SetPassword("password")
-		assert.NoError(t, store.Set(ctx, "test", sec))
+		require.NoError(t, store.Set(ctx, "test", sec))
 		sec, err := store.Get(ctx, "test")
 		require.NoError(t, err)
 		assert.Equal(t, "password", sec.Password())
@@ -154,11 +154,11 @@ func TestMockStore(t *testing.T) {
 
 	t.Run("GetRevision", func(t *testing.T) {
 		_, err := store.GetRevision(ctx, "test", "revision")
-		assert.Error(t, err)
+		require.Error(t, err)
 	})
 
 	t.Run("Init", func(t *testing.T) {
-		assert.NoError(t, store.Init(ctx, "test"))
+		require.NoError(t, store.Init(ctx, "test"))
 	})
 
 	t.Run("Initialized", func(t *testing.T) {
@@ -167,15 +167,15 @@ func TestMockStore(t *testing.T) {
 
 	t.Run("IsDir", func(t *testing.T) {
 		sec := secrets.New()
-		sec.Set("password", "password")
-		assert.NoError(t, store.Set(ctx, "test/dir", sec))
+		sec.SetPassword("password")
+		require.NoError(t, store.Set(ctx, "test/dir", sec))
 		assert.True(t, store.IsDir(ctx, "test"))
 	})
 
 	t.Run("List", func(t *testing.T) {
 		sec := secrets.New()
-		sec.Set("password", "password")
-		assert.NoError(t, store.Set(ctx, "test", sec))
+		sec.SetPassword("password")
+		require.NoError(t, store.Set(ctx, "test", sec))
 		list, err := store.List(ctx, "test")
 		require.NoError(t, err)
 		assert.Contains(t, list, "test")
@@ -190,10 +190,10 @@ func TestMockStore(t *testing.T) {
 	t.Run("Move", func(t *testing.T) {
 		sec := secrets.New()
 		sec.SetPassword("password")
-		assert.NoError(t, store.Set(ctx, "from", sec))
-		assert.NoError(t, store.Move(ctx, "from", "to"))
+		require.NoError(t, store.Set(ctx, "from", sec))
+		require.NoError(t, store.Move(ctx, "from", "to"))
 		_, err := store.Get(ctx, "from")
-		assert.Error(t, err)
+		require.Error(t, err)
 		sec, err = store.Get(ctx, "to")
 		require.NoError(t, err)
 		assert.Equal(t, "password", sec.Password())
@@ -202,14 +202,14 @@ func TestMockStore(t *testing.T) {
 	t.Run("Set", func(t *testing.T) {
 		sec := secrets.New()
 		sec.SetPassword("password")
-		assert.NoError(t, store.Set(ctx, "test", sec))
+		require.NoError(t, store.Set(ctx, "test", sec))
 		sec, err := store.Get(ctx, "test")
 		require.NoError(t, err)
 		assert.Equal(t, "password", sec.Password())
 	})
 
 	t.Run("Prune", func(t *testing.T) {
-		assert.Error(t, store.Prune(ctx, "test"))
+		require.Error(t, store.Prune(ctx, "test"))
 	})
 
 	t.Run("Valid", func(t *testing.T) {
@@ -221,6 +221,6 @@ func TestMockStore(t *testing.T) {
 	})
 
 	t.Run("Link", func(t *testing.T) {
-		assert.NoError(t, store.Link(ctx, "from", "to"))
+		require.NoError(t, store.Link(ctx, "from", "to"))
 	})
 }

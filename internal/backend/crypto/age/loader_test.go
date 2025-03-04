@@ -27,7 +27,7 @@ func TestLoader_Handles(t *testing.T) {
 	require.NoError(t, s.Set(ctx, OldIDFile, []byte("test")))
 	err := l.Handles(ctx, s)
 	require.NoError(t, err)
-	s.Delete(ctx, OldIDFile)
+	require.NoError(t, s.Delete(ctx, OldIDFile))
 
 	// Test case where IDFile exists
 	require.NoError(t, s.Set(ctx, OldIDFile, []byte("test")))
@@ -45,7 +45,7 @@ func TestLoader_Handles(t *testing.T) {
 
 	// Test case where neither OldIDFile nor IDFile exists
 	err = l.Handles(ctx, s)
-	assert.Error(t, err)
+	require.Error(t, err)
 }
 
 func TestLoader_Priority(t *testing.T) {

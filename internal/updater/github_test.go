@@ -82,7 +82,7 @@ func TestFetchLatestRelease(t *testing.T) {
 			release, err := FetchLatestRelease(ctx)
 
 			if tt.expectedError {
-				assert.Error(t, err)
+				require.Error(t, err)
 			} else {
 				require.NoError(t, err)
 				assert.Equal(t, tt.expectedTag, release.TagName)
@@ -136,7 +136,7 @@ func TestDownloadAsset(t *testing.T) {
 			name, _, err := downloadAsset(ctx, tt.assets, tt.suffix)
 
 			if tt.expectedError {
-				assert.Error(t, err)
+				require.Error(t, err)
 			} else {
 				require.NoError(t, err)
 				assert.Equal(t, tt.expectedName, name)
