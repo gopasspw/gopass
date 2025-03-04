@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestNew(t *testing.T) {
@@ -13,7 +14,7 @@ func TestNew(t *testing.T) {
 	t.Setenv("GOPASS_HOMEDIR", tempDir)
 
 	c, err := New()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NotNil(t, c)
 	assert.Equal(t, 30*time.Second, c.Timeout)
 	assert.NotNil(t, c.disk)
@@ -25,7 +26,7 @@ func TestCache_String(t *testing.T) {
 	t.Setenv("GOPASS_HOMEDIR", tempDir)
 
 	c, err := New()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NotNil(t, c)
 
 	assert.Contains(t, c.String(), "Github SSH key cache (OnDisk:")

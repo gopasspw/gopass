@@ -6,6 +6,7 @@ import (
 
 	"github.com/gopasspw/gopass/pkg/termio"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestNew(t *testing.T) {
@@ -18,11 +19,11 @@ func TestSet(t *testing.T) {
 	client := New()
 
 	err := client.Set("REPEAT")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.True(t, client.repeat)
 
 	err = client.Set("OTHER")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.True(t, client.repeat)
 }
 
@@ -30,7 +31,7 @@ func TestOption(t *testing.T) {
 	client := New()
 
 	err := client.Option("ANY")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 }
 
 func TestGetPIN(t *testing.T) {
@@ -41,6 +42,6 @@ func TestGetPIN(t *testing.T) {
 	})
 
 	pin, err := client.GetPINContext(ctx)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "1234", pin)
 }

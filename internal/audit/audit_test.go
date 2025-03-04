@@ -9,6 +9,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/gopass"
 	"github.com/gopasspw/gopass/pkg/gopass/secrets"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 type mockSecretGetter struct{}
@@ -48,7 +49,7 @@ func TestBatch(t *testing.T) {
 	secrets := []string{"secret1", "secret2"}
 	report, err := a.Batch(ctx, secrets)
 
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NotNil(t, report)
 	assert.Equal(t, len(secrets), len(report.Secrets))
 }
@@ -71,5 +72,5 @@ func TestCheckHIBP(t *testing.T) {
 
 	err := a.checkHIBP(ctx)
 
-	assert.NoError(t, err)
+	require.NoError(t, err)
 }

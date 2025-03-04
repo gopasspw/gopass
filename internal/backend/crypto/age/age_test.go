@@ -6,29 +6,30 @@ import (
 
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestNew(t *testing.T) {
 	ctx := context.Background()
 	a, err := New(ctx)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NotNil(t, a)
 }
 
 func TestInitialized(t *testing.T) {
 	ctx := context.Background()
 	a, err := New(ctx)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NotNil(t, a)
 
 	err = a.Initialized(ctx)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 }
 
 func TestName(t *testing.T) {
 	ctx := context.Background()
 	a, err := New(ctx)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NotNil(t, a)
 
 	name := a.Name()
@@ -38,7 +39,7 @@ func TestName(t *testing.T) {
 func TestVersion(t *testing.T) {
 	ctx := context.Background()
 	a, err := New(ctx)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NotNil(t, a)
 
 	version := a.Version(ctx)
@@ -49,7 +50,7 @@ func TestVersion(t *testing.T) {
 func TestExt(t *testing.T) {
 	ctx := context.Background()
 	a, err := New(ctx)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NotNil(t, a)
 
 	ext := a.Ext()
@@ -59,7 +60,7 @@ func TestExt(t *testing.T) {
 func TestIDFile(t *testing.T) {
 	ctx := context.Background()
 	a, err := New(ctx)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NotNil(t, a)
 
 	idFile := a.IDFile()
@@ -69,7 +70,7 @@ func TestIDFile(t *testing.T) {
 func TestConcurrency(t *testing.T) {
 	ctx := context.Background()
 	a, err := New(ctx)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NotNil(t, a)
 
 	concurrency := a.Concurrency()

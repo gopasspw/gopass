@@ -8,6 +8,7 @@ import (
 
 	"github.com/gopasspw/gopass/internal/backend/storage/fs"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestFossil_Get(t *testing.T) {
@@ -19,7 +20,7 @@ func TestFossil_Get(t *testing.T) {
 	fossil.fs.Set(ctx, name, []byte("content"))
 
 	content, err := fossil.Get(ctx, name)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, []byte("content"), content)
 }
 
@@ -31,7 +32,7 @@ func TestFossil_Set(t *testing.T) {
 	value := []byte("content")
 
 	err := fossil.Set(ctx, name, value)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 }
 
 func TestFossil_Delete(t *testing.T) {
@@ -45,7 +46,7 @@ func TestFossil_Delete(t *testing.T) {
 	fossil.fs.Set(ctx, name, []byte("content"))
 
 	err := fossil.Delete(ctx, name)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 }
 
 func TestFossil_Exists(t *testing.T) {
@@ -71,7 +72,7 @@ func TestFossil_List(t *testing.T) {
 	fossil.fs.Set(ctx, "foo/bar", []byte("content"))
 
 	list, err := fossil.List(ctx, prefix)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, []string{"test/bar", "test/foo"}, list)
 }
 
@@ -96,7 +97,7 @@ func TestFossil_Prune(t *testing.T) {
 	fossil.fs.Set(ctx, "test/bar", []byte("content"))
 
 	err := fossil.Prune(ctx, prefix)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 }
 
 func TestFossil_String(t *testing.T) {
@@ -122,7 +123,7 @@ func TestFossil_Fsck(t *testing.T) {
 	ctx := context.Background()
 
 	err := fossil.Fsck(ctx)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 }
 
 func TestFossil_Link(t *testing.T) {
@@ -135,7 +136,7 @@ func TestFossil_Link(t *testing.T) {
 	fossil.fs.Set(ctx, "from", []byte("content"))
 
 	err := fossil.Link(ctx, from, to)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 }
 
 func TestFossil_Move(t *testing.T) {
@@ -149,5 +150,5 @@ func TestFossil_Move(t *testing.T) {
 	fossil.fs.Set(ctx, "src", []byte("content"))
 
 	err := fossil.Move(ctx, src, dst, del)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 }

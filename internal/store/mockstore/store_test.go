@@ -6,6 +6,7 @@ import (
 
 	"github.com/gopasspw/gopass/pkg/gopass/secrets"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestMockStore(t *testing.T) {
@@ -18,7 +19,7 @@ func TestMockStore(t *testing.T) {
 
 	t.Run("GetTemplate", func(t *testing.T) {
 		data, err := store.GetTemplate(ctx, "test")
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Empty(t, data)
 	})
 
@@ -78,7 +79,7 @@ func TestMockStore(t *testing.T) {
 
 	t.Run("ExportMissingPublicKeys", func(t *testing.T) {
 		ok, err := store.ExportMissingPublicKeys(ctx, []string{"test"})
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.False(t, ok)
 	})
 
@@ -114,10 +115,10 @@ func TestMockStore(t *testing.T) {
 		sec := secrets.New()
 		sec.SetPassword("password")
 		err := store.Set(ctx, "from", sec)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.NoError(t, store.Copy(ctx, "from", "to"))
 		sec, err = store.Get(ctx, "to")
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, "password", sec.Password())
 	})
 
@@ -147,7 +148,7 @@ func TestMockStore(t *testing.T) {
 		sec.SetPassword("password")
 		assert.NoError(t, store.Set(ctx, "test", sec))
 		sec, err := store.Get(ctx, "test")
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, "password", sec.Password())
 	})
 
@@ -176,13 +177,13 @@ func TestMockStore(t *testing.T) {
 		sec.Set("password", "password")
 		assert.NoError(t, store.Set(ctx, "test", sec))
 		list, err := store.List(ctx, "test")
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Contains(t, list, "test")
 	})
 
 	t.Run("ListRevisions", func(t *testing.T) {
 		revisions, err := store.ListRevisions(ctx, "test")
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Nil(t, revisions)
 	})
 
@@ -194,7 +195,7 @@ func TestMockStore(t *testing.T) {
 		_, err := store.Get(ctx, "from")
 		assert.Error(t, err)
 		sec, err = store.Get(ctx, "to")
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, "password", sec.Password())
 	})
 
@@ -203,7 +204,7 @@ func TestMockStore(t *testing.T) {
 		sec.SetPassword("password")
 		assert.NoError(t, store.Set(ctx, "test", sec))
 		sec, err := store.Get(ctx, "test")
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, "password", sec.Password())
 	})
 

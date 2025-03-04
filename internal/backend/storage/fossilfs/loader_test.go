@@ -24,7 +24,7 @@ func TestLoader_New(t *testing.T) {
 	createMarker(t, path)
 
 	storage, err := l.New(ctx, path)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NotNil(t, storage)
 }
 
@@ -35,7 +35,7 @@ func TestLoader_Open(t *testing.T) {
 	createMarker(t, path)
 
 	storage, err := l.Open(ctx, path)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NotNil(t, storage)
 }
 
@@ -49,7 +49,7 @@ func TestLoader_Clone(t *testing.T) {
 	createMarker(t, path)
 
 	storage, err := l.Clone(ctx, repo, path)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NotNil(t, storage)
 }
 
@@ -62,7 +62,7 @@ func TestLoader_Init(t *testing.T) {
 	createMarker(t, path)
 
 	storage, err := l.Init(ctx, path)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NotNil(t, storage)
 }
 
@@ -77,7 +77,7 @@ func TestLoader_Handles(t *testing.T) {
 	createMarker(t, td)
 
 	err = l.Handles(ctx, td)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 }
 
 func TestLoader_Priority(t *testing.T) {

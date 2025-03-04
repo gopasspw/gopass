@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestFindRecipients(t *testing.T) {
@@ -43,7 +44,7 @@ func TestFindRecipients(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			recipients, err := a.FindRecipients(ctx, tt.search...)
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			assert.ElementsMatch(t, tt.expected, recipients)
 		})
 	}
@@ -81,7 +82,7 @@ func TestParseRecipients(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			recipients, err := a.parseRecipients(ctx, tt.input)
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			assert.Len(t, recipients, tt.expected)
 		})
 	}

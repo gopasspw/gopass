@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestFetchLatestRelease(t *testing.T) {
@@ -83,7 +84,7 @@ func TestFetchLatestRelease(t *testing.T) {
 			if tt.expectedError {
 				assert.Error(t, err)
 			} else {
-				assert.NoError(t, err)
+				require.NoError(t, err)
 				assert.Equal(t, tt.expectedTag, release.TagName)
 			}
 		})
@@ -137,7 +138,7 @@ func TestDownloadAsset(t *testing.T) {
 			if tt.expectedError {
 				assert.Error(t, err)
 			} else {
-				assert.NoError(t, err)
+				require.NoError(t, err)
 				assert.Equal(t, tt.expectedName, name)
 			}
 		})

@@ -43,14 +43,14 @@ func TestREPL(t *testing.T) {
 		Prompt: "gopass> ",
 		Stdin:  bytes.NewBufferString("help\nquit\n"),
 	})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	defer func() {
 		_ = rl.Close()
 	}()
 
 	err = act.REPL(gptest.CliCtx(ctx, t))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Contains(t, buf.String(), "help")
 }
 
@@ -78,7 +78,7 @@ func TestEntriesForCompleter(t *testing.T) {
 	}()
 
 	completers, err := act.entriesForCompleter(ctx)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Len(t, completers, 1)
 }
 

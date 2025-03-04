@@ -20,7 +20,7 @@ const (
 	IDFile = ".age-recipients"
 )
 
-type ghCache interface {
+type githubSSHCacher interface {
 	ListKeys(ctx context.Context, user string) ([]string, error)
 	String() string
 }
@@ -28,7 +28,7 @@ type ghCache interface {
 // Age is an age backend.
 type Age struct {
 	identity  string
-	ghCache   ghCache
+	ghCache   githubSSHCacher
 	askPass   *askPass
 	recpCache *cache.OnDisk
 }
