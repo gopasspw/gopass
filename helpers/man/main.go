@@ -8,6 +8,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"io/fs"
 	"os"
 	"os/exec"
@@ -26,7 +27,10 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-var filename = "VERSION"
+var (
+	filename           = "VERSION"
+	stdout   io.Writer = os.Stdout
+)
 
 func main() {
 	// this is a workaround for the man helper getting accidentally
@@ -76,7 +80,7 @@ func main() {
 	funcMap := template.FuncMap{
 		"flags": getFlags,
 	}
-	if err := template.Must(template.New("man").Funcs(funcMap).Parse(manTpl)).Execute(os.Stdout, data); err != nil {
+	if err := template.Must(template.New("man").Funcs(funcMap).Parse(manTpl)).Execute(stdout, data); err != nil {
 		panic(err)
 	}
 }
