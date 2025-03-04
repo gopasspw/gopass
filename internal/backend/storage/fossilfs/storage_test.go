@@ -1,3 +1,5 @@
+//go:build fossil
+
 package fossilfs
 
 import (

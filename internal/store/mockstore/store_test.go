@@ -112,7 +112,7 @@ func TestMockStore(t *testing.T) {
 
 	t.Run("Copy", func(t *testing.T) {
 		sec := secrets.New()
-		sec.Set("password", "password")
+		sec.SetPassword("password")
 		err := store.Set(ctx, "from", sec)
 		assert.NoError(t, err)
 		assert.NoError(t, store.Copy(ctx, "from", "to"))
@@ -144,7 +144,7 @@ func TestMockStore(t *testing.T) {
 
 	t.Run("Get", func(t *testing.T) {
 		sec := secrets.New()
-		sec.Set("password", "password")
+		sec.SetPassword("password")
 		assert.NoError(t, store.Set(ctx, "test", sec))
 		sec, err := store.Get(ctx, "test")
 		assert.NoError(t, err)
@@ -188,7 +188,7 @@ func TestMockStore(t *testing.T) {
 
 	t.Run("Move", func(t *testing.T) {
 		sec := secrets.New()
-		sec.Set("password", "password")
+		sec.SetPassword("password")
 		assert.NoError(t, store.Set(ctx, "from", sec))
 		assert.NoError(t, store.Move(ctx, "from", "to"))
 		_, err := store.Get(ctx, "from")
@@ -200,7 +200,7 @@ func TestMockStore(t *testing.T) {
 
 	t.Run("Set", func(t *testing.T) {
 		sec := secrets.New()
-		sec.Set("password", "password")
+		sec.SetPassword("password")
 		assert.NoError(t, store.Set(ctx, "test", sec))
 		sec, err := store.Get(ctx, "test")
 		assert.NoError(t, err)

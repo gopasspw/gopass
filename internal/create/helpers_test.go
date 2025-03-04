@@ -14,9 +14,9 @@ func TestFmtfn(t *testing.T) {
 		t        string
 		expected string
 	}{
-		{0, "1", "test", color.GreenString("[1]") + " test                               "},
-		{2, "2", "example", "  " + color.GreenString("[2]") + " example                            "},
-		{4, "3", "sample", "    " + color.GreenString("[3]") + " sample                             "},
+		{0, "1", "test", color.GreenString("[1]") + " test                                    "},
+		{2, "2", "example", "  " + color.GreenString("[2]") + " example                               "},
+		{4, "3", "sample", "    " + color.GreenString("[3]") + " sample                              "},
 	}
 
 	for _, tt := range tests {

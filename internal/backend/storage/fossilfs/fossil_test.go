@@ -1,3 +1,5 @@
+//go:build fossil
+
 package fossilfs
 
 import (
@@ -9,17 +11,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func setupTestDir(t *testing.T) string {
-	dir, err := os.MkdirTemp("", "fossilfs-test")
-	if err != nil {
-		t.Fatalf("Failed to create temp dir: %s", err)
-	}
-	return dir
-}
-
 func TestNew(t *testing.T) {
-	dir := setupTestDir(t)
-	defer os.RemoveAll(dir)
+	dir := t.TempDir()
 
 	marker := filepath.Join(dir, CheckoutMarker)
 	_, err := os.Create(marker)
@@ -31,8 +24,7 @@ func TestNew(t *testing.T) {
 }
 
 func TestClone(t *testing.T) {
-	dir := setupTestDir(t)
-	defer os.RemoveAll(dir)
+	dir := t.TempDir()
 
 	ctx := context.Background()
 	repo := "https://example.com/repo.fossil"
@@ -43,8 +35,7 @@ func TestClone(t *testing.T) {
 }
 
 func TestInit(t *testing.T) {
-	dir := setupTestDir(t)
-	defer os.RemoveAll(dir)
+	dir := t.TempDir()
 
 	ctx := context.Background()
 
@@ -54,8 +45,7 @@ func TestInit(t *testing.T) {
 }
 
 func TestAdd(t *testing.T) {
-	dir := setupTestDir(t)
-	defer os.RemoveAll(dir)
+	dir := t.TempDir()
 
 	ctx := context.Background()
 	f, err := Init(ctx, dir, "", "")
@@ -66,8 +56,7 @@ func TestAdd(t *testing.T) {
 }
 
 func TestCommit(t *testing.T) {
-	dir := setupTestDir(t)
-	defer os.RemoveAll(dir)
+	dir := t.TempDir()
 
 	ctx := context.Background()
 	f, err := Init(ctx, dir, "", "")
@@ -78,8 +67,7 @@ func TestCommit(t *testing.T) {
 }
 
 func TestPush(t *testing.T) {
-	dir := setupTestDir(t)
-	defer os.RemoveAll(dir)
+	dir := t.TempDir()
 
 	ctx := context.Background()
 	f, err := Init(ctx, dir, "", "")
@@ -90,8 +78,7 @@ func TestPush(t *testing.T) {
 }
 
 func TestPull(t *testing.T) {
-	dir := setupTestDir(t)
-	defer os.RemoveAll(dir)
+	dir := t.TempDir()
 
 	ctx := context.Background()
 	f, err := Init(ctx, dir, "", "")
@@ -102,8 +89,7 @@ func TestPull(t *testing.T) {
 }
 
 func TestAddRemote(t *testing.T) {
-	dir := setupTestDir(t)
-	defer os.RemoveAll(dir)
+	dir := t.TempDir()
 
 	ctx := context.Background()
 	f, err := Init(ctx, dir, "", "")
@@ -114,8 +100,7 @@ func TestAddRemote(t *testing.T) {
 }
 
 func TestRemoveRemote(t *testing.T) {
-	dir := setupTestDir(t)
-	defer os.RemoveAll(dir)
+	dir := t.TempDir()
 
 	ctx := context.Background()
 	f, err := Init(ctx, dir, "", "")
@@ -126,8 +111,7 @@ func TestRemoveRemote(t *testing.T) {
 }
 
 func TestRevisions(t *testing.T) {
-	dir := setupTestDir(t)
-	defer os.RemoveAll(dir)
+	dir := t.TempDir()
 
 	ctx := context.Background()
 	f, err := Init(ctx, dir, "", "")
@@ -139,8 +123,7 @@ func TestRevisions(t *testing.T) {
 }
 
 func TestGetRevision(t *testing.T) {
-	dir := setupTestDir(t)
-	defer os.RemoveAll(dir)
+	dir := t.TempDir()
 
 	ctx := context.Background()
 	f, err := Init(ctx, dir, "", "")
@@ -152,8 +135,7 @@ func TestGetRevision(t *testing.T) {
 }
 
 func TestStatus(t *testing.T) {
-	dir := setupTestDir(t)
-	defer os.RemoveAll(dir)
+	dir := t.TempDir()
 
 	ctx := context.Background()
 	f, err := Init(ctx, dir, "", "")
@@ -165,8 +147,7 @@ func TestStatus(t *testing.T) {
 }
 
 func TestCompact(t *testing.T) {
-	dir := setupTestDir(t)
-	defer os.RemoveAll(dir)
+	dir := t.TempDir()
 
 	ctx := context.Background()
 	f, err := Init(ctx, dir, "", "")
