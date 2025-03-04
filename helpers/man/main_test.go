@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -47,6 +48,10 @@ func TestGetFlags(t *testing.T) {
 }
 
 func TestLookPath(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Skipping test lookPath on Windows. It is not supported.")
+	}
+
 	// Test finding an executable in PATH
 	path, err := lookPath("ls")
 	assert.NoError(t, err)
