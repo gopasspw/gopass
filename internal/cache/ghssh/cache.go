@@ -4,14 +4,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/google/go-github/v61/github"
 	"github.com/gopasspw/gopass/internal/cache"
 )
 
 // Cache is a disk-backed GitHub SSH public key cache.
 type Cache struct {
 	disk    *cache.OnDisk
-	client  *github.Client
 	Timeout time.Duration
 }
 
@@ -24,7 +22,6 @@ func New() (*Cache, error) {
 
 	return &Cache{
 		disk:    cDir,
-		client:  github.NewClient(nil),
 		Timeout: 30 * time.Second,
 	}, nil
 }

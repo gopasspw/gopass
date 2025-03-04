@@ -18,8 +18,10 @@ import (
 	"strings"
 )
 
+var filename = "CHANGELOG.md"
+
 func main() {
-	fh, err := os.Open("CHANGELOG.md")
+	fh, err := os.Open(filename)
 	if err != nil {
 		panic(err)
 	}

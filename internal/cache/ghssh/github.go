@@ -21,6 +21,8 @@ var httpClient = &http.Client{
 	},
 }
 
+var baseURL = "https://github.com"
+
 // ListKeys returns the public keys for a github user. It will
 // cache results up to a configurable amount of time (default: 6h).
 func (c *Cache) ListKeys(ctx context.Context, user string) ([]string, error) {
@@ -52,7 +54,7 @@ func (c *Cache) fetchKeys(ctx context.Context, user string) ([]string, error) {
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
-	url := fmt.Sprintf("https://github.com/%s.keys", user)
+	url := fmt.Sprintf("%s/%s.keys", baseURL, user)
 	debug.Log("fetching public keys for %s from github: %s", user, url)
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
@@ -65,6 +67,10 @@ func (c *Cache) fetchKeys(ctx context.Context, user string) ([]string, error) {
 		return nil, err
 	}
 	defer resp.Body.Close() //nolint:errcheck
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to fetch keys from %s: %s", url, resp.Status)
+	}
 
 	out := make([]string, 0, 5)
 	scanner := bufio.NewScanner(resp.Body)
