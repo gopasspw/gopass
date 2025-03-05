@@ -44,6 +44,7 @@ func ModuleVersion(m string) semver.Version {
 
 			// remove invalid characters
 			dv := strings.Trim(strings.TrimPrefix(dep.Version, "v"), "()")
+
 			return semver.Version{
 				Build: []string{dv},
 			}
@@ -62,5 +63,6 @@ func paths(mods []*rdebug.Module) []string {
 	for _, m := range mods {
 		out = append(out, m.Path)
 	}
+
 	return out
 }
