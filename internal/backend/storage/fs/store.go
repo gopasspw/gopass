@@ -231,7 +231,7 @@ func (s *Store) Name() string {
 
 // Version returns the version of this backend.
 func (s *Store) Version(context.Context) semver.Version {
-	return debug.ModuleVersion("github.com/gopasspw/gopass/internal/backend/fs")
+	return debug.ModuleVersion("github.com/gopasspw/gopass/internal/backend/storage/fs")
 }
 
 // String implements fmt.Stringer.
