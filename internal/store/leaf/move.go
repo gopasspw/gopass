@@ -94,6 +94,16 @@ func (s *Store) directMove(ctx context.Context, from, to string, del bool) error
 	pFrom := s.Passfile(from)
 	pTo := s.Passfile(to)
 
+	// if original destination has trailing slash,
+	// it means we should create folder and move/copy source file in it
+	if strings.HasSuffix(to, "/") {
+		// Check if the destination already exists as a file
+		if s.storage.Exists(ctx, to) && !s.storage.IsDir(ctx, to) {
+			return fmt.Errorf("destination %q already exists as a file", to)
+		}
+		pTo = filepath.Join(to, filepath.Base(pFrom))
+	}
+
 	debug.Log("directMove %s (%q) -> %s (%q)", from, to, pFrom, pTo)
 
 	if err := s.storage.Move(ctx, pFrom, pTo, del); err != nil {
