@@ -56,7 +56,10 @@ func (s *Action) find(ctx context.Context, c *cli.Context, needle string, cb sho
 	}
 
 	// filter our the ones from the haystack matching the needle.
-	choices := filter(haystack, needle, c.Bool("regex"))
+	choices, err := filter(haystack, needle, c.Bool("regex"))
+	if err != nil {
+		return exit.Error(exit.Usage, err, "%s", err)
+	}
 
 	// if we have an exact match print it.
 	if len(choices) == 1 {
@@ -141,12 +144,15 @@ func (s *Action) findSelection(ctx context.Context, c *cli.Context, choices []st
 	}
 }
 
-func filter(l []string, needle string, regex bool) []string {
+func filter(l []string, needle string, regex bool) ([]string, error) {
 	choices := make([]string, 0, 10)
 	for _, value := range l {
 		if regex {
 			matched, err := regexp.MatchString(needle, value)
-			if err == nil && matched {
+			if err != nil {
+				return nil, err
+			}
+			if matched {
 				choices = append(choices, value)
 			}
 		} else if strings.Contains(strings.ToLower(value), strings.ToLower(needle)) {
@@ -154,5 +160,5 @@ func filter(l []string, needle string, regex bool) []string {
 		}
 	}
 
-	return choices
+	return choices, nil
 }
