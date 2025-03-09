@@ -51,7 +51,7 @@ func showParseArgs(c *cli.Context) context.Context {
 
 	if c.IsSet("alsoclip") {
 		ctx = WithAlsoClip(ctx, c.Bool("alsoclip"))
-	} else if config.Bool(ctx, "show.autoclip") {
+	} else {
 		ctx = WithAlsoClip(ctx, config.Bool(ctx, "show.autoclip"))
 	}
 
