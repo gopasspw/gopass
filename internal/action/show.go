@@ -49,6 +49,7 @@ func showParseArgs(c *cli.Context) context.Context {
 		ctx = WithRevision(ctx, c.String("revision"))
 	}
 
+	ctx = WithAlsoClip(ctx, config.Bool(ctx, "show.autoclip"))
 	if c.IsSet("alsoclip") {
 		ctx = WithAlsoClip(ctx, c.Bool("alsoclip"))
 	}
@@ -214,7 +215,7 @@ func (s *Action) showHandleOutput(ctx context.Context, name string, sec gopass.S
 		}
 	}
 
-	if (IsClip(ctx) || config.Bool(ctx, "show.autoclip")) && pw != "" {
+	if (IsClip(ctx) || IsAlsoClip(ctx)) && pw != "" {
 		if err := clipboard.CopyTo(ctx, name, []byte(pw), config.AsInt(s.cfg.Get("core.cliptimeout"))); err != nil {
 			return err
 		}
@@ -274,7 +275,7 @@ func (s *Action) showGetContent(ctx context.Context, sec gopass.Secret) (string,
 	// everything but the first line.
 	if config.Bool(ctx, "show.safecontent") && !ctxutil.IsForce(ctx) && ctxutil.IsShowParsing(ctx) {
 		body := showSafeContent(sec)
-		if IsAlsoClip(ctx) || config.Bool(ctx, "show.autoclip") {
+		if IsAlsoClip(ctx) {
 			return pw, body, nil
 		}
 
