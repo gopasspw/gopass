@@ -49,10 +49,9 @@ func showParseArgs(c *cli.Context) context.Context {
 		ctx = WithRevision(ctx, c.String("revision"))
 	}
 
+	ctx = WithAlsoClip(ctx, config.Bool(ctx, "show.autoclip"))
 	if c.IsSet("alsoclip") {
 		ctx = WithAlsoClip(ctx, c.Bool("alsoclip"))
-	} else {
-		ctx = WithAlsoClip(ctx, config.Bool(ctx, "show.autoclip"))
 	}
 
 	if c.IsSet("noparsing") {
