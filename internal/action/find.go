@@ -146,19 +146,24 @@ func (s *Action) findSelection(ctx context.Context, c *cli.Context, choices []st
 
 func filter(l []string, needle string, reMatch bool) ([]string, error) {
 	choices := make([]string, 0, 10)
-	for _, value := range l {
-		if reMatch {
-			matched, err := regexp.MatchString(needle, value)
-			if err != nil {
-				return nil, err
-			}
-			if matched {
+
+	if reMatch {
+		compiledRE, err := regexp.Compile(needle)
+		if err != nil {
+			return nil, err
+		}
+		for _, value := range l {
+			if compiledRE.MatchString(value) {
 				choices = append(choices, value)
 			}
-		} else if strings.Contains(strings.ToLower(value), strings.ToLower(needle)) {
+		}
+		return choices, nil
+	}
+
+	for _, value := range l {
+		if strings.Contains(strings.ToLower(value), strings.ToLower(needle)) {
 			choices = append(choices, value)
 		}
 	}
-
 	return choices, nil
 }
