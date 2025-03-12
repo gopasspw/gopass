@@ -144,10 +144,10 @@ func (s *Action) findSelection(ctx context.Context, c *cli.Context, choices []st
 	}
 }
 
-func filter(l []string, needle string, regex bool) ([]string, error) {
+func filter(l []string, needle string, reMatch bool) ([]string, error) {
 	choices := make([]string, 0, 10)
 	for _, value := range l {
-		if regex {
+		if reMatch {
 			matched, err := regexp.MatchString(needle, value)
 			if err != nil {
 				return nil, err
