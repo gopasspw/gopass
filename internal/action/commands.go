@@ -336,6 +336,11 @@ func (s *Action) GetCommands() []*cli.Command {
 					Aliases: []string{"u", "force", "f"},
 					Usage:   "In the case of an exact match, display the password even if safecontent is enabled",
 				},
+				&cli.BoolFlag{
+					Name:    "regex",
+					Aliases: []string{"r"},
+					Usage:   "Interpret pattern as regular expression",
+				},
 			},
 		},
 		{

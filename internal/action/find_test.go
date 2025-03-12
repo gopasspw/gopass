@@ -121,4 +121,21 @@ func TestFind(t *testing.T) {
 	// findSelection w/o options
 	c = gptest.CliCtx(ctx, t)
 	require.Error(t, act.findSelection(ctx, c, nil, "fo", func(_ context.Context, _ *cli.Context, _ string, _ bool) error { return nil }))
+
+	// Test regex matching
+	// Add a secret with a pattern that can be matched by a regex
+	require.NoError(t, act.Store.Set(ctx, "test/regex123", sec))
+	require.NoError(t, act.Store.Set(ctx, "test/no-match", sec))
+	buf.Reset()
+
+	// find using regex pattern
+	c = gptest.CliCtxWithFlags(ctx, t, map[string]string{"regex": "true"}, "regex.*")
+	require.NoError(t, act.Find(c))
+	assert.Equal(t, "test/regex123", strings.TrimSpace(buf.String()))
+	buf.Reset()
+
+	// find using regex pattern with no match
+	c = gptest.CliCtxWithFlags(ctx, t, map[string]string{"regex": "true"}, "nomatch.*")
+	require.Error(t, act.Find(c))
+	buf.Reset()
 }

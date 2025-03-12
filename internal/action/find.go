@@ -3,6 +3,7 @@ package action
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"sort"
 	"strings"
 
@@ -55,8 +56,10 @@ func (s *Action) find(ctx context.Context, c *cli.Context, needle string, cb sho
 	}
 
 	// filter our the ones from the haystack matching the needle.
-	needle = strings.ToLower(needle)
-	choices := filter(haystack, needle)
+	choices, err := filter(haystack, needle, c.Bool("regex"))
+	if err != nil {
+		return exit.Error(exit.Usage, err, "%s", err)
+	}
 
 	// if we have an exact match print it.
 	if len(choices) == 1 {
@@ -141,13 +144,26 @@ func (s *Action) findSelection(ctx context.Context, c *cli.Context, choices []st
 	}
 }
 
-func filter(l []string, needle string) []string {
+func filter(l []string, needle string, reMatch bool) ([]string, error) {
 	choices := make([]string, 0, 10)
+
+	if reMatch {
+		compiledRE, err := regexp.Compile(needle)
+		if err != nil {
+			return nil, err
+		}
+		for _, value := range l {
+			if compiledRE.MatchString(value) {
+				choices = append(choices, value)
+			}
+		}
+		return choices, nil
+	}
+
 	for _, value := range l {
-		if strings.Contains(strings.ToLower(value), needle) {
+		if strings.Contains(strings.ToLower(value), strings.ToLower(needle)) {
 			choices = append(choices, value)
 		}
 	}
-
-	return choices
+	return choices, nil
 }
