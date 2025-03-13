@@ -58,6 +58,11 @@ func showParseArgs(c *cli.Context) context.Context {
 		ctx = ctxutil.WithShowParsing(ctx, !c.Bool("noparsing"))
 	}
 
+	ctx = WithLine(ctx, config.Bool(ctx, "show.autolinekey"))
+	if c.IsSet("line") {
+		ctx = WithLine(ctx, c.Bool("line"))
+	}
+
 	if c.IsSet("chars") {
 		iv := []int{}
 		for _, v := range strings.Split(c.String("chars"), ",") {
@@ -85,8 +90,17 @@ func (s *Action) Show(c *cli.Context) error {
 	ctx := showParseArgs(c)
 
 	if key := c.Args().Get(1); key != "" {
-		debug.Log("Adding key to ctx: %s", key)
-		ctx = WithKey(ctx, key)
+		if IsLine(ctx) {
+			debug.Log("Adding line index to ctx: %s", key)
+			iv, err := strconv.Atoi(key)
+			if err != nil {
+				return exit.Error(exit.Decrypt, err, "Bad line index: %q is not an unsigned integer", key)
+			}
+			ctx = WithLineIndex(ctx, iv)
+		} else {
+			debug.Log("Adding key to ctx: %s", key)
+			ctx = WithKey(ctx, key)
+		}
 	}
 
 	if err := s.show(ctx, c, name, true); err != nil {
@@ -231,6 +245,9 @@ func (s *Action) showHandleOutput(ctx context.Context, name string, sec gopass.S
 		if HasKey(ctx) {
 			header += fmt.Sprintf("Key: %s\n", GetKey(ctx))
 		}
+		if HasLineIndex(ctx) {
+			header += fmt.Sprintf("Line: %d\n", GetLineIndex(ctx))
+		}
 		out.Print(ctx, header)
 	}
 
@@ -253,9 +270,22 @@ func (s *Action) showGetContent(ctx context.Context, sec gopass.Secret) (string,
 		return val, val, nil
 	}
 
-	pw := sec.Password()
 	// fallback for old MIME secrets.
 	fullBody := strings.TrimPrefix(string(sec.Bytes()), secrets.Ident+"\n")
+
+	// Line number
+	if HasLineIndex(ctx) {
+		lineNum := GetLineIndex(ctx)
+		bodyLines := strings.Split(strings.TrimSuffix(fullBody, "\n"), "\n")
+		if lineNum >= len(bodyLines) {
+			return "", "", exit.Error(exit.NotFound, store.ErrNoLine, "%v", store.ErrNoLine)
+		}
+		val := bodyLines[lineNum]
+
+		return val, val, nil
+	}
+
+	pw := sec.Password()
 
 	if IsQRBody(ctx) {
 		return pw, fullBody, nil
