@@ -46,8 +46,7 @@ func Example() {
 func TestTempdirBase(t *testing.T) {
 	t.Parallel()
 
-	tempdir, err := os.MkdirTemp(tempdirBase(), "gopass-")
-	require.NoError(t, err)
+	tempdir := t.TempDir()
 
 	defer func() {
 		_ = os.RemoveAll(tempdir)
