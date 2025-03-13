@@ -47,6 +47,7 @@ func TestTempdirBase(t *testing.T) {
 	t.Parallel()
 
 	tempdir := t.TempDir()
+	require.NotEmpty(t, tempdir)
 
 	defer func() {
 		_ = os.RemoveAll(tempdir)

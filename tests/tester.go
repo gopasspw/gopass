@@ -71,6 +71,7 @@ func newTester(t *testing.T) *tester {
 
 	// create tempDir
 	td := t.TempDir()
+	require.NotEmpty(t, td)
 	require.NoError(t, err)
 
 	t.Logf("Tempdir: %s", td)
