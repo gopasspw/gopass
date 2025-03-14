@@ -157,6 +157,7 @@ func filter(l []string, needle string, reMatch bool) ([]string, error) {
 				choices = append(choices, value)
 			}
 		}
+
 		return choices, nil
 	}
 
@@ -165,5 +166,6 @@ func filter(l []string, needle string, reMatch bool) ([]string, error) {
 			choices = append(choices, value)
 		}
 	}
+
 	return choices, nil
 }

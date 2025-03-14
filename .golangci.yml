@@ -73,7 +73,8 @@ linters:
   - sloglint
   - spancheck
   - tagalign
-  - tenv
+  # - tenv # replaced with usetesting
+  - usetesting
   - testableexamples
   - testifylint
   - thelper

@@ -48,7 +48,9 @@ func TestIsUpdateable(t *testing.T) {
 		{
 			name: "force update",
 			pre: func() error {
-				return os.Setenv("GOPASS_FORCE_UPDATE", "true")
+				t.Setenv("GOPASS_FORCE_UPDATE", "true")
+
+				return nil
 			},
 			exec: func(context.Context) (string, error) {
 				return "", nil
@@ -61,7 +63,9 @@ func TestIsUpdateable(t *testing.T) {
 		{
 			name: "update in gopath",
 			pre: func() error {
-				return os.Setenv("GOPATH", "/tmp/foo")
+				t.Setenv("GOPATH", "/tmp/foo")
+
+				return nil
 			},
 			exec: func(context.Context) (string, error) {
 				return "/tmp/foo/gopass", nil
