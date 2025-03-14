@@ -3,7 +3,7 @@ module github.com/gopasspw/gopass
 go 1.23.2
 
 require (
-	filippo.io/age v1.2.1
+	filippo.io/age v1.2.1 // Updated to address GO-2024-3344 / GHSA-32gq-x56h-299c
 	github.com/ProtonMail/go-crypto v1.1.6
 	github.com/atotto/clipboard v0.1.4
 	github.com/blang/semver/v4 v4.0.0
@@ -39,10 +39,10 @@ require (
 	github.com/xhit/go-str2duration/v2 v2.1.0
 	github.com/zalando/go-keyring v0.2.6
 	github.com/zeebo/blake3 v0.2.4
-	golang.org/x/crypto v0.36.0
+	golang.org/x/crypto v0.36.0 // Updated to address GO-2025-3487
 	golang.org/x/exp v0.0.0-20250305212735-054e65f0b394
-	golang.org/x/net v0.37.0
-	golang.org/x/oauth2 v0.28.0
+	golang.org/x/net v0.37.0 // Updated to address GO-2025-3503 / GHSA-qxp5-gwg8-xv66
+	golang.org/x/oauth2 v0.28.0 // Updated to address GO-2025-3488
 	golang.org/x/sys v0.31.0
 	golang.org/x/term v0.30.0
 	gopkg.in/yaml.v3 v3.0.1
