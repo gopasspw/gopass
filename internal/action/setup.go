@@ -197,8 +197,6 @@ func (s *Action) initGenerateIdentity(ctx context.Context, crypto backend.Crypto
 
 	out.OKf(ctx, "Key pair for %s generated", crypto.Name())
 
-	out.Notice(ctx, "🔐 We need to unlock your newly created private key now! Please enter the passphrase you just generated.")
-
 	// avoid the gpg cache or we won't find the newly created key
 	kl, err := crypto.ListIdentities(gpg.WithUseCache(ctx, false))
 	if err != nil {
