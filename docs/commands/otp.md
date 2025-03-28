@@ -17,6 +17,7 @@ Note: If `show.safecontent` is enabled, OTP URLs are hidden from the `show` comm
 | Flag         | Aliases | Description                                                              |
 |--------------|---------|--------------------------------------------------------------------------|
 | `--clip`     | `-c`    | Copy the time-based token into the clipboard.                            |
+| `--alsoclip` | `-C`    | Copy the time-based token into the clipboard and show it.                |
 | `--qr`       | `-q`    | Write QR code to file.                                                   |
 | `--chained`  | `-p`    | chain the token to the password                                          |
 | `--password` | `-o`    | Only display the token. For use in scripts.                              |
