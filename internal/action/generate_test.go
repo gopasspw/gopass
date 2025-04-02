@@ -23,7 +23,7 @@ import (
 
 func TestRuleLookup(t *testing.T) {
 	domain, _ := hasPwRuleForSecret(config.NewContextInMemory(), "foo/gopass.pw")
-	assert.Equal(t, "", domain)
+	assert.Empty(t, domain)
 }
 
 func TestGenerate(t *testing.T) {

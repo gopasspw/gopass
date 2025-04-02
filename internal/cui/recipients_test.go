@@ -53,21 +53,21 @@ func TestAskForStore(t *testing.T) {
 
 	// test non-interactive
 	ctx = ctxutil.WithInteractive(ctx, false)
-	assert.Equal(t, "", AskForStore(ctx, fakeMountPointer{"foo", "bar"}))
+	assert.Empty(t, AskForStore(ctx, fakeMountPointer{"foo", "bar"}))
 
 	// test interactive
 	ctx = ctxutil.WithInteractive(ctx, true)
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
-	assert.Equal(t, "", AskForStore(ctx, fakeMountPointer{"foo", "bar"}))
+	assert.Empty(t, AskForStore(ctx, fakeMountPointer{"foo", "bar"}))
 
 	// test zero mps
-	assert.Equal(t, "", AskForStore(ctx, fakeMountPointer{}))
+	assert.Empty(t, AskForStore(ctx, fakeMountPointer{}))
 
 	// test one mp
-	assert.Equal(t, "", AskForStore(ctx, fakeMountPointer{"foo"}))
+	assert.Empty(t, AskForStore(ctx, fakeMountPointer{"foo"}))
 
 	// test two mps
-	assert.Equal(t, "", AskForStore(ctx, fakeMountPointer{"foo", "bar"}))
+	assert.Empty(t, AskForStore(ctx, fakeMountPointer{"foo", "bar"}))
 }
 
 func TestSorted(t *testing.T) {

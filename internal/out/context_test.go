@@ -12,7 +12,7 @@ func TestPrefix(t *testing.T) {
 
 	ctx := config.NewContextInMemory()
 
-	assert.Equal(t, "", Prefix(ctx))
+	assert.Empty(t, Prefix(ctx))
 
 	ctx = AddPrefix(ctx, "[foo] ")
 	assert.Equal(t, "[foo] ", Prefix(ctx))

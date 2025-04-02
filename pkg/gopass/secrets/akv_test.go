@@ -27,7 +27,7 @@ password: bar
 
 	v, found := s.Get("Test / test.com")
 	assert.False(t, found)
-	assert.Equal(t, "", v)
+	assert.Empty(t, v)
 
 	t.Logf("Secret:\n%+v\n%s\n", s, string(s.Bytes()))
 
@@ -56,7 +56,7 @@ password: bar
 		s.Del("username")
 		v, ok := s.Get("username")
 		assert.False(t, ok)
-		assert.Equal(t, "", v)
+		assert.Empty(t, v)
 
 		assert.Equal(t, `somepasswd
 Test / test.com

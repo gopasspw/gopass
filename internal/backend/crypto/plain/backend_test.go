@@ -55,8 +55,8 @@ func TestPlain(t *testing.T) {
 	require.NoError(t, m.ImportPublicKey(ctx, buf))
 	assert.Equal(t, semver.Version{}, m.Version(ctx))
 
-	assert.Equal(t, "", m.FormatKey(ctx, "", ""))
-	assert.Equal(t, "", m.Fingerprint(ctx, ""))
+	assert.Empty(t, m.FormatKey(ctx, "", ""))
+	assert.Empty(t, m.Fingerprint(ctx, ""))
 	require.NoError(t, m.Initialized(ctx))
 	assert.Equal(t, "plain", m.Name())
 	assert.Equal(t, "txt", m.Ext())
