@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"time"
 
 	"github.com/atotto/clipboard"
 	"github.com/fatih/color"
@@ -54,11 +55,18 @@ func CopyTo(ctx context.Context, name string, content []byte, timeout int) error
 		return nil
 	}
 
-	if err := clearClip(ctx, name, content, timeout); err != nil {
-		_ = notify.Notify(ctx, "gopass - clipboard", "failed to clear clipboard")
-
-		return fmt.Errorf("failed to clear clipboard: %w", err)
-	}
+	go func() {
+		for i := range 3 { // Retry to clear clipboard up to 3 times
+			err := clearClip(ctx, name, content, timeout)
+			if err == nil {
+				return // Success, exit the goroutine
+			}
+			out.Errorf(ctx, "failed to clear clipboard (attempt %d/3): %s", i+1, err)
+			_ = notify.Notify(ctx, "gopass - clipboard", "failed to clear clipboard")
+			time.Sleep(time.Second) // Wait a second before retrying
+		}
+		out.Errorf(ctx, "failed to clear clipboard after multiple retries")
+	}()
 
 	out.Printf(ctx, "✔ Copied %s to clipboard. Will clear in %d seconds.", color.YellowString(name), timeout)
 	_ = notify.Notify(ctx, "gopass - clipboard", fmt.Sprintf("✔ Copied %s to clipboard. Will clear in %d seconds.", name, timeout))
