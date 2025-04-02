@@ -46,7 +46,7 @@ func KeyID() string {
 func WriteTo(path string) error {
 	fes, err := can.ReadDir("gnupg")
 	if err != nil {
-		return fmt.Errorf("Failed to read can dir: %w", err)
+		return fmt.Errorf("failed to read can dir: %w", err)
 	}
 	for _, fe := range fes {
 		from := "gnupg/" + fe.Name()

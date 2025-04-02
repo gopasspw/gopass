@@ -25,7 +25,7 @@ func TestTTL(t *testing.T) {
 	c.now = nowFunc(0)
 
 	val, found := c.Get("foo")
-	assert.Equal(t, "", val)
+	assert.Empty(t, val)
 	assert.False(t, found)
 
 	c.Set("foo", "bar")
@@ -42,7 +42,7 @@ func TestTTL(t *testing.T) {
 	c.now = nowFunc(6)
 
 	val, found = c.Get("foo")
-	assert.Equal(t, "", val)
+	assert.Empty(t, val)
 	assert.False(t, found)
 
 	c.Set("bar", "baz")
@@ -52,7 +52,7 @@ func TestTTL(t *testing.T) {
 
 	c.Remove("bar")
 	val, found = c.Get("bar")
-	assert.Equal(t, "", val)
+	assert.Empty(t, val)
 	assert.False(t, found)
 
 	c.Set("foo", "bar")
@@ -63,7 +63,7 @@ func TestTTL(t *testing.T) {
 
 	c.Purge()
 	val, found = c.Get("bar")
-	assert.Equal(t, "", val)
+	assert.Empty(t, val)
 	assert.False(t, found)
 }
 

@@ -52,10 +52,10 @@ func TestConfigs(t *testing.T) {
 	assert.Equal(t, "env", c.Get("env.key"))
 
 	assert.Equal(t, "global", c.GetGlobal("global.key"))
-	assert.Equal(t, "", c.GetGlobal("local.key"))
+	assert.Empty(t, c.GetGlobal("local.key"))
 
 	assert.Equal(t, "local", c.GetLocal("local.key"))
-	assert.Equal(t, "", c.GetLocal("global.key"))
+	assert.Empty(t, c.GetLocal("global.key"))
 
 	for _, k := range []string{"system.key", "global.key", "local.key", "worktree.key", "env.key"} {
 		assert.True(t, c.IsSet(k))
@@ -64,21 +64,21 @@ func TestConfigs(t *testing.T) {
 	// SetLocal
 	require.NoError(t, c.SetLocal("global.fakekey", "local"))
 	assert.Equal(t, "local", c.GetLocal("global.fakekey"))
-	assert.Equal(t, "", c.GetGlobal("global.fakekey"))
+	assert.Empty(t, c.GetGlobal("global.fakekey"))
 	require.NoError(t, c.UnsetLocal("global.fakekey"))
-	assert.Equal(t, "", c.Get("global.fakekey"))
+	assert.Empty(t, c.Get("global.fakekey"))
 
 	// SetGlobal
 	require.NoError(t, c.SetGlobal("local.fakekey", "global"))
-	assert.Equal(t, "", c.GetLocal("local.fakekey"))
+	assert.Empty(t, c.GetLocal("local.fakekey"))
 	assert.Equal(t, "global", c.GetGlobal("local.fakekey"))
 	require.NoError(t, c.UnsetGlobal("local.fakekey"))
-	assert.Equal(t, "", c.Get("local.fakekey"))
+	assert.Empty(t, c.Get("local.fakekey"))
 
 	// SetEnv
 	require.NoError(t, c.SetEnv("worktree.fakekey", "env"))
-	assert.Equal(t, "", c.GetLocal("worktree.fakekey"))
-	assert.Equal(t, "", c.GetGlobal("worktree.fakekey"))
+	assert.Empty(t, c.GetLocal("worktree.fakekey"))
+	assert.Empty(t, c.GetGlobal("worktree.fakekey"))
 	assert.Equal(t, "env", c.Get("worktree.fakekey"))
 
 	// List

@@ -91,5 +91,5 @@ func TestFormatflagFunc(t *testing.T) {
 
 	sv, err := ff(&unknownFlag{})
 	require.Error(t, err)
-	assert.Equal(t, "", sv)
+	assert.Empty(t, sv)
 }

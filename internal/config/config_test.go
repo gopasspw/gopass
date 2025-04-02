@@ -117,7 +117,7 @@ func TestOptsMigration(t *testing.T) {
 		require.NoError(t, cfg.Set("", "core.showsafecontent", "true"))
 		assert.True(t, cfg.IsSet("core.showsafecontent"))
 		assert.Equal(t, "true", cfg.root.GetGlobal("core.showsafecontent"))
-		assert.Equal(t, "", cfg.root.GetLocal("core.showsafecontent"))
+		assert.Empty(t, cfg.root.GetLocal("core.showsafecontent"))
 		assert.False(t, cfg.IsSet("core.safecontent"))
 		assert.False(t, cfg.IsSet("show.safecontent"))
 
@@ -128,9 +128,9 @@ func TestOptsMigration(t *testing.T) {
 		cfg2 := New()
 		assert.False(t, cfg2.IsSet("core.showsafecontent"))
 		assert.False(t, cfg2.IsSet("core.safecontent"))
-		assert.Equal(t, "", cfg2.root.GetGlobal("core.showsafecontent"))
+		assert.Empty(t, cfg2.root.GetGlobal("core.showsafecontent"))
 		assert.Equal(t, "true", cfg2.root.GetGlobal("show.safecontent"))
-		assert.Equal(t, "", cfg2.root.GetLocal("show.safecontent"))
+		assert.Empty(t, cfg2.root.GetLocal("show.safecontent"))
 	})
 
 	t.Run("migrated config matches test config", func(t *testing.T) {
@@ -169,7 +169,7 @@ func TestOptsMigration(t *testing.T) {
 		// this will write to the local config because of the <root> arg
 		require.NoError(t, cfg.Set("<root>", "core.showsafecontent", "true"))
 		assert.Equal(t, "true", cfg.root.GetLocal("core.showsafecontent"))
-		assert.Equal(t, "", cfg.root.GetGlobal("core.showsafecontent"))
+		assert.Empty(t, cfg.root.GetGlobal("core.showsafecontent"))
 		assert.False(t, cfg.IsSet("show.safecontent"))
 
 		t.Setenv("GOPASS_CONFIG_NO_MIGRATE", "")
@@ -177,7 +177,7 @@ func TestOptsMigration(t *testing.T) {
 		cfg = New()
 		assert.False(t, cfg.IsSet("core.showsafecontent"))
 		assert.Equal(t, "true", cfg.root.GetLocal("show.safecontent"))
-		assert.Equal(t, "", cfg.root.GetGlobal("show.safecontent"))
+		assert.Empty(t, cfg.root.GetGlobal("show.safecontent"))
 	})
 
 	t.Run("env variable are not migrated", func(t *testing.T) {
@@ -214,15 +214,15 @@ func TestOptsMigration(t *testing.T) {
 		// this will write to the local mount config
 		require.NoError(t, cfg.Set("submount", "core.showsafecontent", "true"))
 		assert.Equal(t, "true", cfg.GetM("submount", "core.showsafecontent"))
-		assert.Equal(t, "", cfg.Get("core.showsafecontent"))
-		assert.Equal(t, "", cfg.GetM("submount", "show.safecontent"))
+		assert.Empty(t, cfg.Get("core.showsafecontent"))
+		assert.Empty(t, cfg.GetM("submount", "show.safecontent"))
 
 		t.Setenv("GOPASS_CONFIG_NO_MIGRATE", "")
 		// we test the migration path
 		cfg = New()
 		assert.False(t, cfg.IsSet("core.showsafecontent"))
 		assert.False(t, cfg.IsSet("show.safecontent"))
-		assert.Equal(t, "", cfg.GetM("submount", "core.showsafecontent"))
+		assert.Empty(t, cfg.GetM("submount", "core.showsafecontent"))
 		assert.Equal(t, "true", cfg.GetM("submount", "show.safecontent"))
 	})
 }

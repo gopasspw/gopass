@@ -37,7 +37,7 @@ func TestGit(t *testing.T) {
 		require.NotNil(t, git)
 
 		sv := git.Version(ctx)
-		assert.NotEqual(t, "", sv.String())
+		assert.NotEmpty(t, sv.String())
 
 		assert.True(t, git.IsInitialized())
 		tf := filepath.Join(gitdir, "some-file")

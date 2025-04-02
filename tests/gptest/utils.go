@@ -1,3 +1,6 @@
+// Package gptest contains test helpers for gopass, including
+// creating temporary directories, setting up environment variables,
+// and creating CLI contexts for testing.
 package gptest
 
 import (

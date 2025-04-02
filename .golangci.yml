@@ -1,98 +1,105 @@
+version: "2"
 run:
-  timeout: 5m
   go: "1.22"
-
-linters-settings:
-  errcheck:
-    exclude-functions:
-      - fmt.Fprint
-      - fmt.Fprintf
-      - fmt.Fprintln
-  gocyclo:
-    min-complexity: 22
-  cyclop:
-    max-complexity: 22
-    skip-tests: true
-  staticcheck:
-    # https://staticcheck.io/docs/options#checks
-    checks: ["all","-SA1019"]
-  funlen:
-    lines: -1
-    statements: 100
-
-linters:
-  enable:
-  - asasalint
-  - asciicheck
-  - bidichk
-  - bodyclose
-  - containedctx
-  - copyloopvar
-  - cyclop
-  - decorder
-  - dogsled
-  - errcheck
-  - errchkjson
-  - errname
-  - errorlint
-  - exhaustive
-  # - exportloopref # deprecated since Go 1.22
-  - forcetypeassert
-  - funlen
-  - ginkgolinter
-  - gocheckcompilerdirectives
-  - gochecksumtype
-  - godot
-  - gofmt
-  - gofumpt
-  - goheader
-  - goimports
-  - gomoddirectives
-  - gomodguard
-  - goprintffuncname
-  - gosmopolitan
-  - grouper
-  - importas
-  - ineffassign
-  - intrange
-  - loggercheck
-  - makezero
-  - mirror
-  - misspell
-  - nakedret
-  - nestif
-  - nilnil
-  - nlreturn
-  - nonamedreturns
-  - nosprintfhostport
-  - prealloc
-  - predeclared
-  - promlinter
-  - protogetter
-  - reassign
-  - sloglint
-  - spancheck
-  - tagalign
-  # - tenv # replaced with usetesting
-  - usetesting
-  - testableexamples
-  - testifylint
-  - thelper
-  - unconvert
-  - usestdlibvars
-  - whitespace
-  - zerologlint
-
-issues:
-  max-issues-per-linter: 0 # disable limit; report all issues of a linter
-  max-same-issues: 0 # disable limit; report all issues of the same issue
-  exclude-use-default: false # disable filtering of defaults for better zero-issue policy
-  exclude-dirs:
-    - helpers/
-
 output:
-  show-stats: true
-  sort-results: true
   sort-order:
     - linter
     - file
+linters:
+  enable:
+    - asasalint
+    - asciicheck
+    - bidichk
+    - bodyclose
+    - containedctx
+    - copyloopvar
+    - cyclop
+    - decorder
+    - dogsled
+    - errchkjson
+    - errname
+    - errorlint
+    - exhaustive
+    - forcetypeassert
+    - funlen
+    - ginkgolinter
+    - gocheckcompilerdirectives
+    - gochecksumtype
+    - godot
+    - goheader
+    - gomoddirectives
+    - gomodguard
+    - goprintffuncname
+    - gosmopolitan
+    - grouper
+    - importas
+    - intrange
+    - loggercheck
+    - makezero
+    - mirror
+    - misspell
+    - nakedret
+    - nestif
+    - nilnil
+    - nlreturn
+    - nonamedreturns
+    - nosprintfhostport
+    - prealloc
+    - predeclared
+    - promlinter
+    - protogetter
+    - reassign
+    - sloglint
+    - spancheck
+    - tagalign
+    - testableexamples
+    - testifylint
+    - thelper
+    - unconvert
+    - usestdlibvars
+    - usetesting
+    - whitespace
+    - zerologlint
+  settings:
+    cyclop:
+      max-complexity: 22
+    errcheck:
+      exclude-functions:
+        - fmt.Fprint
+        - fmt.Fprintf
+        - fmt.Fprintln
+    funlen:
+      lines: -1
+      statements: 100
+    gocyclo:
+      min-complexity: 22
+    staticcheck:
+      checks:
+        - -SA1019
+        - all
+  exclusions:
+    generated: lax
+    rules:
+      - linters:
+          - cyclop
+        path: (.+)_test\.go
+    paths:
+      - helpers/
+      - third_party$
+      - builtin$
+      - examples$
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
+formatters:
+  enable:
+    - gofmt
+    - gofumpt
+    - goimports
+  exclusions:
+    generated: lax
+    paths:
+      - helpers/
+      - third_party$
+      - builtin$
+      - examples$
