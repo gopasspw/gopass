@@ -194,6 +194,46 @@ func TestShowMulti(t *testing.T) {
 		buf.Reset()
 	})
 
+	t.Run("show line number", func(t *testing.T) {
+		require.NoError(t, act.insertStdin(ctx, "baz3", []byte("pass123\nline1\nuser: line2\nline3 body text"), false))
+		buf.Reset()
+
+		c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"line": "true"}, "baz3", "0")
+		require.NoError(t, act.Show(c))
+		assert.Equal(t, "pass123", buf.String())
+		buf.Reset()
+	})
+
+	t.Run("show invalid line number input", func(t *testing.T) {
+		c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"line": "true"}, "baz3", "notint")
+		require.Error(t, act.Show(c))
+		buf.Reset()
+	})
+
+	t.Run("show out of bound line number", func(t *testing.T) {
+		c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"line": "true"}, "baz3", "10")
+		require.Error(t, act.Show(c))
+		buf.Reset()
+	})
+
+	require.NoError(t, act.cfg.Set("", "show.autolinekey", "true"))
+
+	t.Run("show line number when show.autolinekey set to true", func(t *testing.T) {
+		c := gptest.CliCtx(ctx, t, "baz3", "0")
+		require.NoError(t, act.Show(c))
+		assert.Equal(t, "pass123", buf.String())
+		buf.Reset()
+	})
+
+	t.Run("show override show.autolinekey when set to true", func(t *testing.T) {
+		c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"line": "false"}, "baz3", "user")
+		require.NoError(t, act.Show(c))
+		assert.Equal(t, "line2", buf.String())
+		buf.Reset()
+	})
+
+	require.NoError(t, act.cfg.Set("", "show.autolinekey", "false"))
+
 	t.Run("show value with format strings", func(t *testing.T) {
 		pw := "some-chars-are-odd-%s-%p-%q"
 
