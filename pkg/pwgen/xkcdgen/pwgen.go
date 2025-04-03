@@ -1,3 +1,5 @@
+// Package xkcdgen provides a simple wrapper around the xkcdpwgen
+// package to generate random passphrases.
 package xkcdgen
 
 import (

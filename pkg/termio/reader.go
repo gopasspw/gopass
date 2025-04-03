@@ -1,3 +1,5 @@
+// Package termio provides helpers and functions to work with
+// terminal input and output.
 package termio
 
 import (

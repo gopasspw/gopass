@@ -1,3 +1,7 @@
+// Package can provides access to the embedded key material used for testing.
+// The key material is embedded in the binary and is used for testing
+// purposes only.
+
 package can
 
 import (
