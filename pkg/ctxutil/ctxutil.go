@@ -1,3 +1,5 @@
+// Package ctxutil provides a set of functions to manage context values
+// in a gopass application. It allows to set and get values in the context.
 package ctxutil
 
 import (
