@@ -73,7 +73,7 @@ func TestReadNamesFromKey(t *testing.T) {
 
 	g, err := New(ctx, Config{})
 	require.NoError(t, err)
-	assert.NotEqual(t, "", g.Binary())
+	assert.NotEmpty(t, g.Binary())
 
 	names, err := g.ReadNamesFromKey(ctx, []byte(pubkey))
 	require.NoError(t, err)

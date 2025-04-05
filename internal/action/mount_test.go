@@ -43,7 +43,7 @@ func TestMounts(t *testing.T) {
 	t.Run("complete mounts", func(t *testing.T) {
 		defer buf.Reset()
 		act.MountsComplete(gptest.CliCtx(ctx, t))
-		assert.Equal(t, "", buf.String())
+		assert.Empty(t, buf.String())
 	})
 
 	t.Run("remove no non-existing mount", func(t *testing.T) {

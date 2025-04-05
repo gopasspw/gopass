@@ -37,7 +37,7 @@ func TestPwgenCharset(t *testing.T) {
 	t.Setenv("GOPASS_CHARACTER_SET", "a")
 
 	assert.Equal(t, "aaaa", GeneratePassword(4, true))
-	assert.Equal(t, "", GeneratePasswordCharsetCheck(4, "a"))
+	assert.Empty(t, GeneratePasswordCharsetCheck(4, "a"))
 }
 
 func TestPwgenNoCrandFallback(t *testing.T) {

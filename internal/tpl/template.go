@@ -1,3 +1,5 @@
+// Package tpl provides functions to handle templates.
+// It can parse templates from various formats and generate output for them.
 package tpl
 
 import (

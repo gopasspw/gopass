@@ -1,3 +1,4 @@
+// Package clipboard provides functions to copy and clear the clipboard.
 package clipboard
 
 import (

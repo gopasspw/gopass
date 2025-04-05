@@ -1,3 +1,6 @@
+// Package api provides a gopass API implementation.
+// It provides a simple interface to interact with the gopass password store.
+// It is used by the gopass CLI and other tools to access the password store.
 package api
 
 import (

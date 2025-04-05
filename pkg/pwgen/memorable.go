@@ -12,7 +12,8 @@ func GenerateMemorablePassword(minLength int, symbols bool, capitals bool) strin
 	for sb.Len() < minLength {
 		// when requesting uppercase, we randomly uppercase words
 		if capitals && randomInteger(2) == 0 {
-			sb.WriteString(strings.Title(randomWord()))
+			// We control the input so we can safely ignore the linter.
+			sb.WriteString(strings.Title(randomWord())) //nolint:staticcheck
 
 			upper = true
 		} else {
@@ -31,7 +32,7 @@ func GenerateMemorablePassword(minLength int, symbols bool, capitals bool) strin
 	if capitals && !upper {
 		str := sb.String()
 
-		return strings.Title(string(str[0])) + str[1:]
+		return strings.Title(string(str[0])) + str[1:] //nolint:staticcheck
 	}
 
 	return sb.String()

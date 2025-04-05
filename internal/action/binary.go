@@ -195,10 +195,10 @@ func (s *Action) binaryCopy(ctx context.Context, c *cli.Context, from, to string
 	switch {
 	case isFilePath(from) && isFilePath(to):
 		// copying from on file to another file is not supported.
-		return fmt.Errorf("ambiguity detected. Only from or to can be a file. Use cp to copy between files.")
+		return fmt.Errorf("ambiguity detected. Only from or to can be a file. Use cp to copy between files")
 	case s.Store.Exists(ctx, from) && s.Store.Exists(ctx, to):
 		// copying from one secret to another secret is not supported.
-		return fmt.Errorf("ambiguity detected. Either from or to must be a file. Use gopass cp to copy between secrets.")
+		return fmt.Errorf("ambiguity detected. Either from or to must be a file. Use gopass cp to copy between secrets")
 	case isFilePath(from) && !isFilePath(to):
 		if s.isInStore(from) {
 			out.Warningf(ctx, "Ambiguity detected. Source %q is in the store. Use --force if intended", from)

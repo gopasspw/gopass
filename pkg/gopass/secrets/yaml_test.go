@@ -45,7 +45,7 @@ func TestYAMLKeyFromEmptySecret(t *testing.T) {
 
 	v, ok := s.Get(yamlKey)
 	assert.False(t, ok)
-	assert.Equal(t, "", v)
+	assert.Empty(t, v)
 }
 
 type inlineB struct {
@@ -68,7 +68,7 @@ func TestYAMLEncodingError(t *testing.T) {
 			}{1, inlineB{2, inlineC{3}}},
 		},
 	}
-	assert.Equal(t, "", string(s.Bytes()))
+	assert.Empty(t, string(s.Bytes()))
 }
 
 func TestYAMLKeyToEmptySecret(t *testing.T) {

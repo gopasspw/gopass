@@ -34,7 +34,7 @@ func TestCrypticForDomain(t *testing.T) {
 
 				pw := c.Password()
 
-				assert.NotEqual(t, "", pw, tcName)
+				assert.NotEmpty(t, pw, tcName)
 				t.Logf("%s -> %s (%d)", tcName, pw, len(pw))
 			}
 		})

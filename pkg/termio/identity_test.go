@@ -17,7 +17,7 @@ func TestDetectName(t *testing.T) {
 	t.Setenv("DEBFULLNAME", "")
 	t.Setenv("USER", "")
 
-	assert.Equal(t, "", DetectName(ctx, nil))
+	assert.Empty(t, DetectName(ctx, nil))
 
 	t.Setenv("USER", "foo")
 	assert.Equal(t, "foo", DetectName(ctx, nil))
@@ -33,7 +33,7 @@ func TestDetectEmail(t *testing.T) {
 	t.Setenv("DEBEMAIL", "")
 	t.Setenv("EMAIL", "")
 
-	assert.Equal(t, "", DetectEmail(ctx, nil))
+	assert.Empty(t, DetectEmail(ctx, nil))
 
 	t.Setenv("EMAIL", "foo@bar.de")
 	assert.Equal(t, "foo@bar.de", DetectEmail(ctx, nil))
