@@ -1,3 +1,6 @@
+// Package updater provides a simple update mechanism for gopass.
+// It will check for updates, download the latest release and
+// verify the GPG signature of the release.
 package updater
 
 import (

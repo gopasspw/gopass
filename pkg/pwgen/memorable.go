@@ -32,7 +32,7 @@ func GenerateMemorablePassword(minLength int, symbols bool, capitals bool) strin
 	if capitals && !upper {
 		str := sb.String()
 
-		return strings.Title(string(str[0])) + str[1:]
+		return strings.Title(string(str[0])) + str[1:] //nolint:staticcheck
 	}
 
 	return sb.String()

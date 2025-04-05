@@ -1,3 +1,7 @@
+// Package root provides the root store implementation for gopass.
+// It implements the gopass.Store interface and provides methods to
+// interact with the password store. It is responsible for managing
+// the underlying storage backends and mounting them as needed.
 package root
 
 import (

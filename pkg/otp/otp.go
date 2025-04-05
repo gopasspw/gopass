@@ -1,3 +1,5 @@
+// Package otp provides functions to handle OTP secrets.
+// It can parse OTP secrets from various formats and generate QR codes for them.
 package otp
 
 import (

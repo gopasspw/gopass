@@ -70,7 +70,7 @@ func authDataFlags(options CredentialFlags) uint8 {
 	return flags
 }
 
-// Implementation of the authenticatorMakeCredential Operation: https://www.w3.org/TR/webauthn-2/#sctn-op-make-cred
+// CreateCredential is an implementation of the authenticatorMakeCredential Operation: https://www.w3.org/TR/webauthn-2/#sctn-op-make-cred
 func CreateCredential(rp string, user string, flags CredentialFlags) (*Credential, error) {
 	rawID := make([]byte, 32)
 	_, err := rand.Read(rawID)
