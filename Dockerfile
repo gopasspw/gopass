@@ -1,4 +1,4 @@
-FROM docker.io/library/golang:1.22-alpine@sha256:0d3653dd6f35159ec6e3d10263a42372f6f194c3dea0b35235d72aabde86486e AS build-env
+FROM docker.io/library/golang:1.23-alpine@sha256:b7486658b87d34ecf95125e5b97e8dfe86c21f712aa36fc0c702e5dc41dc63e1 AS build-env
 
 ENV CGO_ENABLED 0
 
