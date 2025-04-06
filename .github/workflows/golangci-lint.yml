@@ -42,11 +42,7 @@ jobs:
           go-version: '1.23'
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@1481404843c368bc19ca9406f87d6e0fc97bdcfd # v7.0.0
+        uses: golangci/golangci-lint-action@55c2c1448f86e01eaae002a5a3a9624417608d84 # v6.5.2
         with:
-          # Note: there are 2 different version of golangci-lint used inside the project.
-          # https://github.com/gopasspw/gopass/blob/master/.github/workflows/build.yml#L65
-          # https://github.com/gopasspw/gopass/blob/master/.github/workflows/golangci-lint.yml#L46
-          # https://github.com/gopasspw/gopass/blob/master/Makefile#L136
           version: v1.61.0 # we have a list of linters in our .golangci.yml config file
           only-new-issues: true
