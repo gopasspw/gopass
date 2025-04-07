@@ -1,3 +1,6 @@
+// Package can provides access to the embedded key material used for testing.
+// The key material is embedded in the binary and is used for testing
+// purposes only.
 package can
 
 import (
@@ -46,7 +49,7 @@ func KeyID() string {
 func WriteTo(path string) error {
 	fes, err := can.ReadDir("gnupg")
 	if err != nil {
-		return fmt.Errorf("Failed to read can dir: %w", err)
+		return fmt.Errorf("failed to read can dir: %w", err)
 	}
 	for _, fe := range fes {
 		from := "gnupg/" + fe.Name()

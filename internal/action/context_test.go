@@ -41,7 +41,7 @@ func TestWithPrintQR(t *testing.T) {
 func TestWithRevision(t *testing.T) {
 	ctx := config.NewContextInMemory()
 
-	assert.Equal(t, "", GetRevision(ctx))
+	assert.Empty(t, GetRevision(ctx))
 	assert.Equal(t, "foo", GetRevision(WithRevision(ctx, "foo")))
 	assert.False(t, HasRevision(ctx))
 	assert.True(t, HasRevision(WithRevision(ctx, "foo")))
@@ -50,7 +50,7 @@ func TestWithRevision(t *testing.T) {
 func TestWithKey(t *testing.T) {
 	ctx := config.NewContextInMemory()
 
-	assert.Equal(t, "", GetKey(ctx))
+	assert.Empty(t, GetKey(ctx))
 	assert.Equal(t, "foo", GetKey(WithKey(ctx, "foo")))
 }
 

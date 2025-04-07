@@ -23,7 +23,7 @@ func TestPrint(t *testing.T) {
 	buf.Reset()
 
 	Printf(ctxutil.WithHidden(ctx, true), "%s = %d", "foo", 42)
-	assert.Equal(t, "", buf.String())
+	assert.Empty(t, buf.String())
 	buf.Reset()
 
 	Printf(WithNewline(ctx, false), "%s = %d", "foo", 42)

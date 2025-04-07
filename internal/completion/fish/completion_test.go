@@ -91,7 +91,7 @@ func TestFormatflagFunc(t *testing.T) {
 	} {
 		sv, err := formatFlagFunc("short")(flag)
 		require.NoError(t, err)
-		assert.Equal(t, "", sv)
+		assert.Empty(t, sv)
 
 		sv, err = formatFlagFunc("long")(flag)
 		require.NoError(t, err)
@@ -104,13 +104,13 @@ func TestFormatflagFunc(t *testing.T) {
 
 	sv, err := formatFlagFunc("short")(&unknownFlag{})
 	require.Error(t, err)
-	assert.Equal(t, "", sv)
+	assert.Empty(t, sv)
 
 	sv, err = formatFlagFunc("long")(&unknownFlag{})
 	require.Error(t, err)
-	assert.Equal(t, "", sv)
+	assert.Empty(t, sv)
 
 	sv, err = formatFlagFunc("usage")(&unknownFlag{})
 	require.Error(t, err)
-	assert.Equal(t, "", sv)
+	assert.Empty(t, sv)
 }

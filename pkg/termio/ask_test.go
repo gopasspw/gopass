@@ -248,7 +248,7 @@ foobat
 
 	sv, err = AskForPassword(ctx, "test", true)
 	require.NoError(t, err)
-	assert.Equal(t, "", sv)
+	assert.Empty(t, sv)
 }
 
 func TestAskForPasswordInteractive(t *testing.T) {

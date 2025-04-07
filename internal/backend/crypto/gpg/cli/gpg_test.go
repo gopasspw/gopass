@@ -20,11 +20,11 @@ func TestGPG(t *testing.T) {
 	var err error
 	var g *GPG
 
-	assert.Equal(t, "", g.Binary())
+	assert.Empty(t, g.Binary())
 
 	g, err = New(ctx, Config{})
 	require.NoError(t, err)
-	assert.NotEqual(t, "", g.Binary())
+	assert.NotEmpty(t, g.Binary())
 
 	_, err = g.ListRecipients(ctx)
 	require.NoError(t, err)

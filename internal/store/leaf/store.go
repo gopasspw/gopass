@@ -1,3 +1,6 @@
+// Package leaf provides the leaf store implementation for gopass.
+// It implements the gopass.Store interface and provides methods to
+// interact with the password store.
 package leaf
 
 import (

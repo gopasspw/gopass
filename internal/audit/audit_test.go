@@ -52,7 +52,7 @@ func TestBatch(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.NotNil(t, report)
-	assert.Equal(t, len(secrets), len(report.Secrets))
+	assert.Len(t, len(secrets), len(report.Secrets))
 }
 
 func TestAuditSecret(t *testing.T) {

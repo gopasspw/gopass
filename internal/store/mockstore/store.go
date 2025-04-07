@@ -1,3 +1,6 @@
+// Package mockstore provides a mock store for testing purposes.
+// It implements the gopass.Store interface and uses an in-memory storage backend.
+
 package mockstore
 
 import (

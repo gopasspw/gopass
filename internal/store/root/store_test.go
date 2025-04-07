@@ -122,7 +122,7 @@ func TestListNested(t *testing.T) {
 
 	assert.False(t, rs.Exists(ctx, "sub1"))
 	assert.True(t, rs.IsDir(ctx, "sub1"))
-	assert.Equal(t, "", rs.Alias())
+	assert.Empty(t, rs.Alias())
 	assert.NotNil(t, rs.Storage(ctx, "sub1"))
 }
 

@@ -79,8 +79,8 @@ func TestAlias(t *testing.T) {
 
 	ctx := config.NewContextInMemory()
 
-	assert.Equal(t, "", GetAlias(ctx))
-	assert.Equal(t, "", GetAlias(WithAlias(ctx, "")))
+	assert.Empty(t, GetAlias(ctx))
+	assert.Empty(t, GetAlias(WithAlias(ctx, "")))
 }
 
 func TestGitInit(t *testing.T) {
@@ -108,9 +108,9 @@ func TestCommitMessage(t *testing.T) {
 
 	ctx := config.NewContextInMemory()
 
-	assert.Equal(t, "", GetCommitMessage(ctx))
+	assert.Empty(t, GetCommitMessage(ctx))
 	assert.Equal(t, "foo", GetCommitMessage(WithCommitMessage(ctx, "foo")))
-	assert.Equal(t, "", GetCommitMessage(WithCommitMessage(ctx, "")))
+	assert.Empty(t, GetCommitMessage(WithCommitMessage(ctx, "")))
 }
 
 func TestCommitMessageBody(t *testing.T) {
@@ -123,13 +123,13 @@ func TestCommitMessageBody(t *testing.T) {
 	assert.Equal(t, "foo", GetCommitMessage(ctx2))
 	assert.Equal(t, "bar\nbaz", GetCommitMessageBody(ctx2))
 	ctx2 = AddToCommitMessageBody(AddToCommitMessageBody(ctx, "bar"), "baz")
-	assert.Equal(t, "", GetCommitMessage(ctx2))
+	assert.Empty(t, GetCommitMessage(ctx2))
 	assert.Equal(t, "bar\nbaz", GetCommitMessageFull(ctx2))
 	assert.Equal(t, "bar\nbaz", GetCommitMessageBody(ctx2))
 	ctx2 = WithCommitMessage(ctx, "foo")
 	assert.Equal(t, "foo", GetCommitMessage(ctx2))
 	assert.Equal(t, "foo", GetCommitMessageFull(ctx2))
-	assert.Equal(t, "", GetCommitMessageBody(ctx2))
+	assert.Empty(t, GetCommitMessageBody(ctx2))
 }
 
 func TestComposite(t *testing.T) {
