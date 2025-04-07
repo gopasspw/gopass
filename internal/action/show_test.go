@@ -119,6 +119,20 @@ func TestShowMulti(t *testing.T) {
 		buf.Reset()
 	})
 
+	t.Run("copy a key with the clip flag without showing any output", func(t *testing.T) {
+		sec := secrets.NewAKV()
+		sec.SetPassword("123")
+		require.NoError(t, sec.Set("bar", "zab"))
+		require.NoError(t, act.Store.Set(ctx, "clipped/keys", sec))
+		buf.Reset()
+
+		c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"clip": "true"}, "clipped/keys")
+		require.NoError(t, act.Show(c))
+		assert.NotContains(t, buf.String(), "bar")
+		assert.NotContains(t, buf.String(), "zab")
+		buf.Reset()
+	})
+
 	t.Run("show entry with otpauth field with safecontent enabled", func(t *testing.T) {
 		require.NoError(t, act.insertStdin(ctx, "otpauth", []byte("123\n---\notpauth://totp/WEBSITE:@USER?secret=SECRET&issuer=GoPass"), false))
 		buf.Reset()
@@ -309,7 +323,7 @@ func TestShowAutoClip(t *testing.T) {
 	})
 
 	// gopass show -c foo
-	// -> Copy to clipboard
+	// -> Copy to clipboard and DO NOT print
 	t.Run("gopass show -c foo", func(t *testing.T) {
 		c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"clip": "true"}, "foo")
 		require.NoError(t, act.Show(c))

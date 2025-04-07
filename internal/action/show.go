@@ -225,6 +225,11 @@ func (s *Action) showHandleOutput(ctx context.Context, name string, sec gopass.S
 		return nil
 	}
 
+	// do not output when the clip flag is set
+	if IsOnlyClip(ctx) {
+		return nil
+	}
+
 	ctx = out.WithNewline(ctx, ctxutil.IsTerminal(ctx))
 	if ctxutil.IsTerminal(ctx) && !IsPasswordOnly(ctx) {
 		header := fmt.Sprintf("Secret: %s\n", name)
