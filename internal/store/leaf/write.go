@@ -20,7 +20,7 @@ func (s *Store) Set(ctx context.Context, name string, sec gopass.Byter) error {
 	}
 
 	if cfg, _ := config.FromContext(ctx); cfg.GetM(s.alias, "core.readonly") == "true" {
-		return fmt.Errorf("writing to %s is disabled by `core.readonly`.", s.alias)
+		return fmt.Errorf("writing to %s is disabled by `core.readonly`", s.alias)
 	}
 
 	p := s.Passfile(name)
