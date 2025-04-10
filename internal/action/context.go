@@ -14,6 +14,8 @@ const (
 	ctxKeyAlsoClip
 	ctxKeyPrintChars
 	ctxKeyWithQRBody
+	ctxKeyWithLine
+	ctxKeyLineIndex
 )
 
 // WithClip returns a context with the value for clip (for copy to clipboard)
@@ -114,6 +116,43 @@ func GetRevision(ctx context.Context) string {
 	}
 
 	return sv
+}
+
+// WithLine returns a context with the value of line set.
+func WithLine(ctx context.Context, line bool) context.Context {
+	return context.WithValue(ctx, ctxKeyWithLine, line)
+}
+
+// IsLine returns the value of line or the default (false).
+func IsLine(ctx context.Context) bool {
+	bv, ok := ctx.Value(ctxKeyWithLine).(bool)
+	if !ok {
+		return false
+	}
+
+	return bv
+}
+
+// WithLineIndex returns a context with the line index set.
+func WithLineIndex(ctx context.Context, index int) context.Context {
+	return context.WithValue(ctx, ctxKeyLineIndex, index)
+}
+
+// HasLineIndex returns true if the line index is set.
+func HasLineIndex(ctx context.Context) bool {
+	_, ok := ctx.Value(ctxKeyLineIndex).(int)
+
+	return ok
+}
+
+// GetLineIndex returns the value of the line index or the default (-1).
+func GetLineIndex(ctx context.Context) int {
+	iv, ok := ctx.Value(ctxKeyLineIndex).(int)
+	if !ok {
+		return -1
+	}
+
+	return iv
 }
 
 // WithKey returns a context with the key set.
