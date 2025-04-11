@@ -78,7 +78,12 @@ func (s *Store) Set(ctx context.Context, name string, sec gopass.Byter) error {
 }
 
 func (s *Store) gitCommitAndPush(ctx context.Context, name string) error {
-	if err := s.storage.TryCommit(ctx, fmt.Sprintf("Save secret to %s: %s", name, ctxutil.GetCommitMessage(ctx))); err != nil {
+	commitMessage := ctxutil.GetCommitMessage(ctx)
+	message := fmt.Sprintf("Save secret %s: %s", name, commitMessage)
+	if commitMessage == "" {
+		message = fmt.Sprintf("Save secret: %s", name)
+	}
+	if err := s.storage.TryCommit(ctx, message); err != nil {
 		return fmt.Errorf("failed to commit changes to git: %w", err)
 	}
 
