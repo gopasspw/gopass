@@ -41,7 +41,8 @@ func (l loader) Init(ctx context.Context, path string) (backend.Storage, error) 
 
 func (l loader) Handles(ctx context.Context, path string) error {
 	path = fsutil.ExpandHomedir(path)
-	if !fsutil.IsDir(filepath.Join(path, ".git")) {
+	gitPath := filepath.Join(path, ".git")
+	if !fsutil.IsDir(gitPath) && !fsutil.IsFile(gitPath) {
 		return fmt.Errorf("no .git at %s", path)
 	}
 
