@@ -20,6 +20,8 @@ var (
 	Stderr io.Writer = os.Stderr
 )
 
+// Check validates the runtime environment on MacOS.
+// It checks if the keychain is used.
 func Check(ctx context.Context) (string, error) {
 	buf := &bytes.Buffer{}
 

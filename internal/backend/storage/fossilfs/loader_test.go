@@ -1,3 +1,8 @@
+// Package fossilfs provides an experimental storage backend for gopass
+// based on the Fossil SCM system.
+//
+// It is not recommended for production use and is only intended for testing
+// purposes.
 package fossilfs
 
 import (

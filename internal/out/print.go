@@ -1,3 +1,6 @@
+// Package out provides a simple output interface for gopass.
+// It provides functions to print messages to stdout and stderr.
+// These sinks can be replaced by a different implementation, e.g. for testing.
 package out
 
 import (

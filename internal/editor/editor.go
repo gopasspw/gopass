@@ -1,3 +1,4 @@
+// Package editor provides a simple wrapper around the EDITOR environment variable.
 package editor
 
 import (

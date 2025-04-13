@@ -1,3 +1,4 @@
+// Package fish implements a fish completion template for gopass.
 package fish
 
 // see https://fishshell.com/docs/current/commands.html#complete

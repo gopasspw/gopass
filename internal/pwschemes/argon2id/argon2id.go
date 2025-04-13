@@ -1,3 +1,4 @@
+// Package argon2id provides an Argon2id password hashing scheme.
 package argon2id
 
 import (

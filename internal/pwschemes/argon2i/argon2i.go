@@ -1,3 +1,4 @@
+// Package argon2i provides an Argon2i password hashing scheme.
 package argon2i
 
 import (

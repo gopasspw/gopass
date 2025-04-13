@@ -1,3 +1,5 @@
+// Package recipients provides a datastruct for managing for managinig recipients.
+// It also provides methods for marshalling and unmarshalling the recipients.
 package recipients
 
 import (

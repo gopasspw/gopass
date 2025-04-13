@@ -1,3 +1,4 @@
+// Package hook provides a flexbile hook system for gopass.
 package hook
 
 import (

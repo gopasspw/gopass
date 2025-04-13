@@ -1,3 +1,5 @@
+// Package bcrypt provides a bcrypt password hashing scheme.
+// It is compatible with Dovecot and other systems that use bcrypt.
 package bcrypt
 
 import (

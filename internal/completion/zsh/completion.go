@@ -1,3 +1,4 @@
+// Package zsh implements a zsh completion script generator.
 package zsh
 
 import (

@@ -1,3 +1,4 @@
+// Package create provides a credential creation wizard.
 package create
 
 import (

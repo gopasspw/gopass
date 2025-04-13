@@ -1,3 +1,4 @@
+// Package diff implements diffing of two lists.
 package diff
 
 // Stat returnes the number of items added to and removed from the first to
