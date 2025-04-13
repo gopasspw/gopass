@@ -423,7 +423,7 @@ func (a *Age) getAllIdentities(ctx context.Context) (map[string]age.Identity, er
 }
 
 func (a *Age) getPassageIdentities(ctx context.Context) (map[string]age.Identity, error) {
-	fn := PassageIdFile()
+	fn := PassageIDFile()
 	fh, err := os.Open(fn)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open %s: %w", fn, err)
@@ -440,8 +440,8 @@ func (a *Age) getPassageIdentities(ctx context.Context) (map[string]age.Identity
 	return idMap(ids), nil
 }
 
-// PassageIdFile returns the location of the passage identities file.
-func PassageIdFile() string {
+// PassageIDFile returns the location of the passage identities file.
+func PassageIDFile() string {
 	return filepath.Join(appdir.UserHome(), ".passage", "identities")
 }
 

@@ -75,8 +75,9 @@ linters:
       min-complexity: 22
     staticcheck:
       checks:
-        - -SA1019
         - all
+        - -SA1019
+        - -ST1000
   exclusions:
     generated: lax
     rules:

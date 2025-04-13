@@ -329,7 +329,7 @@ func (s *Action) initLocal(ctx context.Context, remote string) error {
 }
 
 func (s *Action) initDetectPassage(ctx context.Context) error {
-	pIds := age.PassageIdFile()
+	pIds := age.PassageIDFile()
 	if !fsutil.IsFile(pIds) {
 		debug.Log("no passage identities found at %s", pIds)
 

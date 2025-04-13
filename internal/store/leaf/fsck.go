@@ -34,6 +34,8 @@ func (e ErrorSeverity) String() string {
 		return "non-fatal"
 	case errsFatal:
 		return "fatal"
+	case errsNil:
+		return "nil"
 	default:
 		return "nil"
 	}

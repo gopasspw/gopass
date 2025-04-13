@@ -203,7 +203,7 @@ func (s *Action) binaryCopy(ctx context.Context, c *cli.Context, from, to string
 		if s.isInStore(from) {
 			out.Warningf(ctx, "Ambiguity detected. Source %q is in the store. Use --force if intended", from)
 			if !c.Bool("force") {
-				return fmt.Errorf("ambiguity detected. Source is in the store.")
+				return fmt.Errorf("ambiguity detected. Source is in the store")
 			}
 		}
 
@@ -212,7 +212,7 @@ func (s *Action) binaryCopy(ctx context.Context, c *cli.Context, from, to string
 		if s.isInStore(to) {
 			out.Warningf(ctx, "Ambiguity detected. Destination %q is in the store. Use --force if intended", to)
 			if !c.Bool("force") {
-				return fmt.Errorf("ambiguity detected. Destination is in the store.")
+				return fmt.Errorf("ambiguity detected. Destination is in the store")
 			}
 		}
 
