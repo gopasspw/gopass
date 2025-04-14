@@ -63,8 +63,7 @@ jobs:
         echo ${GITHUB_WORKSPACE}
         echo ${GOPATH}
         echo ${GOROOT}
-        env
-          sum.golang.org:443      
+        env  
     - name: Build and Unit Test
       run: make travis
     - name: Integration Test
