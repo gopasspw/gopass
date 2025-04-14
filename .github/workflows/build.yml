@@ -32,7 +32,9 @@ jobs:
           sum.golang.org:443
           golang.org:443
           go.dev:443
-
+          azure.archive.ubuntu.com:443
+          archive.ubuntu.com:443
+          security.ubuntu.com:443
     - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       with:
         fetch-depth: 0
@@ -62,7 +64,7 @@ jobs:
         echo ${GOPATH}
         echo ${GOROOT}
         env
-      
+          sum.golang.org:443      
     - name: Build and Unit Test
       run: make travis
     - name: Integration Test
