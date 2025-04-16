@@ -81,6 +81,7 @@ func TestClone(t *testing.T) {
 	})
 }
 
+// TODO FIXME
 func TestCloneBackendIsStoredForMount(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 
@@ -140,6 +141,7 @@ func TestCloneGetGitConfig(t *testing.T) {
 	assert.Equal(t, "0xDEADBEEF", email)
 }
 
+// TODO FIXME
 func TestCloneCheckDecryptionKeys(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 

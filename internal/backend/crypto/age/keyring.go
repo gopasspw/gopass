@@ -18,27 +18,41 @@ import (
 var (
 	// OldIDFile is the old file name for the recipients.
 	OldIDFile = ".age-ids"
-	// OldKeyring is the old file name for the keyring.
-	OldKeyring = filepath.Join(appdir.UserConfig(), "age-keyring.age")
 )
+
+// OldKeyring is the old file name for the keyring.
+// Must be a func to allow us to honor GOPASS_HOMEDIR in tests.
+// Otherwise it would be read at init time and setting GOPASS_HOMEDIR
+// later would have no effect.
+func OldKeyringPath() string {
+	return filepath.Join(appdir.UserConfig(), "age-keyring.age")
+}
 
 func migrate(ctx context.Context, s backend.Storage) error {
 	out.Noticef(ctx, "Attempting to migrate age backend. You will need to unlock your identities keyring.")
 
-	oldIDPath := filepath.Join(s.Path(), OldIDFile)
-	newIDPath := filepath.Join(s.Path(), IDFile)
-	if fsutil.IsFile(oldIDPath) && fsutil.IsFile(newIDPath) {
-		out.Warningf(ctx, "Both %s and %s exist. Removing the old one (%s).", oldIDPath, newIDPath, oldIDPath)
-		if err := os.Remove(oldIDPath); err != nil {
-			out.Errorf(ctx, "Failed to remove %s: %s", oldIDPath, err)
+	if s.Exists(ctx, OldIDFile) && s.Exists(ctx, IDFile) {
+		out.Warningf(ctx, "Both %s and %s exist. Removing the old one (%s).", OldIDFile, IDFile, OldIDFile)
+		if err := s.Delete(ctx, OldIDFile); err != nil {
+			out.Errorf(ctx, "Failed to remove %s: %s", OldIDFile, err)
+		} else {
+			out.OKf(ctx, "Removed the old IDFile at %s", OldIDFile)
 		}
 	}
 
-	if fsutil.IsFile(oldIDPath) {
-		out.Noticef(ctx, "Found %s. Migrating to %s.", oldIDPath, newIDPath)
-		if err := os.Rename(oldIDPath, newIDPath); err != nil {
-			out.Errorf(ctx, "Failed to rename %s to %s: %s", oldIDPath, newIDPath, err)
+	if s.Exists(ctx, OldIDFile) {
+		out.Noticef(ctx, "Found %s. Migrating to %s.", OldIDFile, IDFile)
+		buf, err := s.Get(ctx, OldIDFile)
+		if err != nil {
+			return err
 		}
+		if err := s.Set(ctx, IDFile, buf); err != nil {
+			out.Errorf(ctx, "Failed to rename %s to %s: %s", OldIDFile, IDFile, err)
+		}
+
+		debug.Log("Renamed the old IDFile at %s to %s", OldIDFile, IDFile)
+	} else {
+		debug.Log("Old IDFile %s does not exist, nothing to do", OldIDFile)
 	}
 
 	// create a new instance so we can use decryptFile.
@@ -47,27 +61,30 @@ func migrate(ctx context.Context, s backend.Storage) error {
 		return err
 	}
 
+	oldKeyring := OldKeyringPath()
 	if !ctxutil.HasPasswordCallback(ctx) {
 		debug.Log("no password callback found, redirecting to askPass")
 		ctx = ctxutil.WithPasswordCallback(ctx, func(prompt string, _ bool) ([]byte, error) {
-			pw, err := a.askPass.Passphrase(prompt, fmt.Sprintf("to load the age keyring at %s", OldKeyring), false)
+			pw, err := a.askPass.Passphrase(prompt, fmt.Sprintf("to load the age keyring at %s", oldKeyring), false)
 
 			return []byte(pw), err
 		})
 		ctx = ctxutil.WithPasswordPurgeCallback(ctx, a.askPass.Remove)
 	}
 
-	if fsutil.IsFile(OldKeyring) && fsutil.IsFile(a.identity) {
-		out.Warningf(ctx, "Both %s and %s exist. Keeping both. Recover any identities from %s as needed.", OldKeyring, a.identity, OldKeyring)
+	if fsutil.IsFile(oldKeyring) && fsutil.IsFile(a.identity) {
+		out.Warningf(ctx, "Both %s and %s exist. Keeping both. Recover any identities from %s as needed.", oldKeyring, a.identity, oldKeyring)
 
 		return nil
 	}
-	if !fsutil.IsFile(OldKeyring) {
+	if !fsutil.IsFile(oldKeyring) {
+		debug.Log("old keyring %s does not exist, nothing to do", oldKeyring)
+
 		// nothing to do.
 		return nil
 	}
 
-	debug.Log("loading old identities from %s", OldKeyring)
+	debug.Log("loading old identities from %s", oldKeyring)
 	ids, err := a.loadIdentitiesFromKeyring(ctx)
 	if err != nil {
 		return err
@@ -78,7 +95,7 @@ func migrate(ctx context.Context, s backend.Storage) error {
 		return err
 	}
 
-	return os.Remove(OldKeyring)
+	return os.Remove(oldKeyring)
 }
 
 // Keyring is an age keyring.
@@ -94,18 +111,19 @@ type Keypair struct {
 }
 
 func (a *Age) loadIdentitiesFromKeyring(ctx context.Context) ([]string, error) {
-	buf, err := a.decryptFile(ctx, OldKeyring)
+	oldKeyring := OldKeyringPath()
+	buf, err := a.decryptFile(ctx, oldKeyring)
 	if err != nil {
-		debug.Log("can't decrypt keyring at %s: %s", OldKeyring, err)
+		debug.Log("can't decrypt keyring at %s: %s", oldKeyring, err)
 
-		return nil, fmt.Errorf("can not decrypt old keyring at %s: %w", OldKeyring, err)
+		return nil, fmt.Errorf("can not decrypt old keyring at %s: %w", oldKeyring, err)
 	}
 
 	var kr Keyring
 	if err := json.Unmarshal(buf, &kr); err != nil {
-		debug.Log("can't parse keyring at %s: %s", OldKeyring, err)
+		debug.Log("can't parse keyring at %s: %s", oldKeyring, err)
 
-		return nil, fmt.Errorf("can not parse old keyring at %s: %w", OldKeyring, err)
+		return nil, fmt.Errorf("can not parse old keyring at %s: %w", oldKeyring, err)
 	}
 
 	// remove invalid IDs.
@@ -116,7 +134,7 @@ func (a *Age) loadIdentitiesFromKeyring(ctx context.Context) ([]string, error) {
 		}
 		valid = append(valid, k.Identity)
 	}
-	debug.Log("loaded keyring with %d valid entries from %s", len(kr), OldKeyring)
+	debug.Log("loaded keyring with %d valid entries from %s", len(kr), oldKeyring)
 
 	return valid, nil
 }

@@ -53,7 +53,7 @@ func TestPlain(t *testing.T) {
 	require.NoError(t, err)
 
 	require.NoError(t, m.ImportPublicKey(ctx, buf))
-	assert.Equal(t, semver.Version{}, m.Version(ctx))
+	assert.NotEqual(t, semver.Version{}, m.Version(ctx), "loaded a valid module version")
 
 	assert.Equal(t, "", m.FormatKey(ctx, "", ""))
 	assert.Equal(t, "", m.Fingerprint(ctx, ""))

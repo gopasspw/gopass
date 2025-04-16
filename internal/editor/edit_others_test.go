@@ -37,6 +37,8 @@ func TestGetEditor(t *testing.T) {
 	app := cli.NewApp()
 
 	t.Setenv("EDITOR", "")
+	td := t.TempDir()
+	t.Setenv("GOPASS_HOMEDIR", td)
 
 	t.Run("--editor=fooed", func(t *testing.T) {
 		fs := flag.NewFlagSet("default", flag.ContinueOnError)
