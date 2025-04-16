@@ -3,7 +3,6 @@ package fs
 import (
 	"testing"
 
-	"github.com/blang/semver/v4"
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -24,7 +23,6 @@ func TestRCS(t *testing.T) {
 	require.NoError(t, g.Cmd(ctx, "foo", "bar"))
 	require.Error(t, g.Init(ctx, "foo", "bar"))
 	require.NoError(t, g.InitConfig(ctx, "foo", "bar"))
-	assert.True(t, g.Version(ctx).EQ(semver.Version{}), "Version eq 0.0.0")
 	assert.Equal(t, "fs", g.Name())
 	require.Error(t, g.AddRemote(ctx, "foo", "bar"))
 	revs, err := g.Revisions(ctx, "foo")

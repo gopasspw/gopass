@@ -22,30 +22,40 @@ func TestLoader_Handles(t *testing.T) {
 	ctx := context.Background()
 	l := loader{}
 	s := inmem.New()
+	td := t.TempDir()
+	t.Setenv("GOPASS_HOMEDIR", td)
 
 	// Test case where OldIDFile or OldKeyring exists
-	require.NoError(t, s.Set(ctx, OldIDFile, []byte("test")))
-	err := l.Handles(ctx, s)
-	require.NoError(t, err)
-	require.NoError(t, s.Delete(ctx, OldIDFile))
+	t.Run("OldIDFile or OldKeyring exists", func(t *testing.T) {
+		require.NoError(t, s.Set(ctx, OldIDFile, []byte("test")))
+		err := l.Handles(ctx, s)
+		require.NoError(t, err)
+		require.NoError(t, s.Delete(ctx, OldIDFile))
+	})
 
 	// Test case where IDFile exists
-	require.NoError(t, s.Set(ctx, OldIDFile, []byte("test")))
-	require.NoError(t, s.Set(ctx, IDFile, []byte("test")))
-	err = l.Handles(ctx, s)
-	require.NoError(t, err)
-	require.NoError(t, s.Delete(ctx, OldIDFile))
-	require.NoError(t, s.Delete(ctx, IDFile))
+	t.Run("IDFile exists", func(t *testing.T) {
+		require.NoError(t, s.Set(ctx, OldIDFile, []byte("test")))
+		require.NoError(t, s.Set(ctx, IDFile, []byte("test")))
+		err := l.Handles(ctx, s)
+		require.NoError(t, err)
+		require.NoError(t, s.Delete(ctx, OldIDFile))
+		require.NoError(t, s.Delete(ctx, IDFile))
+	})
 
 	// Test case where IDFile exists
-	require.NoError(t, s.Set(ctx, IDFile, []byte("test")))
-	err = l.Handles(ctx, s)
-	require.NoError(t, err)
-	require.NoError(t, s.Delete(ctx, IDFile))
+	t.Run("IDFile exists", func(t *testing.T) {
+		require.NoError(t, s.Set(ctx, IDFile, []byte("test")))
+		err := l.Handles(ctx, s)
+		require.NoError(t, err)
+		require.NoError(t, s.Delete(ctx, IDFile))
+	})
 
 	// Test case where neither OldIDFile nor IDFile exists
-	err = l.Handles(ctx, s)
-	require.Error(t, err)
+	t.Run("neither OldIDFile nor IDFile exists", func(t *testing.T) {
+		err := l.Handles(ctx, s)
+		require.Error(t, err)
+	})
 }
 
 func TestLoader_Priority(t *testing.T) {
