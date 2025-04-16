@@ -3,7 +3,6 @@ package plain
 import (
 	"testing"
 
-	"github.com/blang/semver/v4"
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/stretchr/testify/assert"
@@ -53,7 +52,6 @@ func TestPlain(t *testing.T) {
 	require.NoError(t, err)
 
 	require.NoError(t, m.ImportPublicKey(ctx, buf))
-	assert.NotEqual(t, semver.Version{}, m.Version(ctx), "loaded a valid module version")
 
 	assert.Equal(t, "", m.FormatKey(ctx, "", ""))
 	assert.Equal(t, "", m.Fingerprint(ctx, ""))
