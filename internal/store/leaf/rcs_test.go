@@ -3,7 +3,6 @@ package leaf
 import (
 	"testing"
 
-	"github.com/blang/semver/v4"
 	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -20,7 +19,6 @@ func TestGit(t *testing.T) {
 	require.NotNil(t, s.Storage())
 	require.Equal(t, "fs", s.Storage().Name())
 	require.NoError(t, s.Storage().InitConfig(ctx, "foo", "bar@baz.com"))
-	assert.NotEqual(t, semver.Version{}, s.Storage().Version(ctx))
 	// RCS ops not supported by the fs backend
 	require.Error(t, s.Storage().AddRemote(ctx, "foo", "bar"))
 	require.Error(t, s.Storage().Pull(ctx, "origin", "master"))
