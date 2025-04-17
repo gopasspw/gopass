@@ -6,7 +6,6 @@
 package fossilfs
 
 import (
-	"context"
 	"os"
 	"path/filepath"
 	"testing"
@@ -26,7 +25,7 @@ func createMarker(t *testing.T, path string) {
 
 func TestLoader_New(t *testing.T) {
 	l := loader{}
-	ctx := context.Background()
+	ctx := t.Context()
 	path := t.TempDir()
 	createMarker(t, path)
 
@@ -37,7 +36,7 @@ func TestLoader_New(t *testing.T) {
 
 func TestLoader_Open(t *testing.T) {
 	l := loader{}
-	ctx := context.Background()
+	ctx := t.Context()
 	path := t.TempDir()
 	createMarker(t, path)
 
@@ -50,7 +49,7 @@ func TestLoader_Clone(t *testing.T) {
 	t.Skip("needs fossil binary and valid remote")
 
 	l := loader{}
-	ctx := context.Background()
+	ctx := t.Context()
 	repo := "https://example.com/repo.git"
 	path := t.TempDir()
 	createMarker(t, path)
@@ -64,7 +63,7 @@ func TestLoader_Init(t *testing.T) {
 	t.Skip("needs fossil binary")
 
 	l := loader{}
-	ctx := context.Background()
+	ctx := t.Context()
 	path := t.TempDir()
 	createMarker(t, path)
 
@@ -75,7 +74,7 @@ func TestLoader_Init(t *testing.T) {
 
 func TestLoader_Handles(t *testing.T) {
 	l := loader{}
-	ctx := context.Background()
+	ctx := t.Context()
 	td := t.TempDir()
 
 	err := l.Handles(ctx, td)

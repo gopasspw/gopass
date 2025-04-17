@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"context"
 	"flag"
 	"fmt"
 	"os"
@@ -178,7 +177,7 @@ func testCommands(t *testing.T, c *cli.Context, commands []*cli.Command, prefix 
 func TestInitContext(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx := t.Context()
 	cfg := config.NewInMemory()
 
 	ctx = initContext(ctx, cfg)

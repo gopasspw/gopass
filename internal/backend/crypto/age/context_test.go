@@ -1,12 +1,11 @@
 package age
 
 import (
-	"context"
 	"testing"
 )
 
 func TestWithOnlyNative(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	ctx = WithOnlyNative(ctx, true)
 
 	val := ctx.Value(ctxKeyOnlyNative)
@@ -25,7 +24,7 @@ func TestWithOnlyNative(t *testing.T) {
 }
 
 func TestIsOnlyNative(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 
 	// Test default value
 	if IsOnlyNative(ctx) {

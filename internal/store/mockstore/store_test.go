@@ -1,7 +1,6 @@
 package mockstore
 
 import (
-	"context"
 	"testing"
 
 	"github.com/gopasspw/gopass/pkg/gopass/secrets"
@@ -10,7 +9,7 @@ import (
 )
 
 func TestMockStore(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	store := New("test")
 
 	t.Run("String", func(t *testing.T) {

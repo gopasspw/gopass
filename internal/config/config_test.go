@@ -1,7 +1,6 @@
 package config
 
 import (
-	"context"
 	"testing"
 
 	"github.com/gopasspw/gopass/tests/gptest"
@@ -39,7 +38,7 @@ func TestConfig(t *testing.T) {
 	require.NoError(t, cfg.Set("", "pwgen.xkcd-lang", "de"))
 	assert.Equal(t, "de", cfg.Get("pwgen.xkcd-lang"))
 
-	ctx := cfg.WithConfig(context.Background())
+	ctx := cfg.WithConfig(t.Context())
 	assert.True(t, Bool(ctx, "core.bool"))
 	assert.Equal(t, "foo", String(ctx, "core.string"))
 	assert.Equal(t, 42, Int(ctx, "core.int"))

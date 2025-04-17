@@ -3,7 +3,6 @@
 package fossilfs
 
 import (
-	"context"
 	"testing"
 
 	"github.com/gopasspw/gopass/internal/backend/storage/fs"
@@ -14,7 +13,7 @@ import (
 func TestFossil_Get(t *testing.T) {
 	td := t.TempDir()
 	fossil := &Fossil{fs: fs.New(td)}
-	ctx := context.Background()
+	ctx := t.Context()
 	name := "test"
 
 	fossil.fs.Set(ctx, name, []byte("content"))
@@ -27,7 +26,7 @@ func TestFossil_Get(t *testing.T) {
 func TestFossil_Set(t *testing.T) {
 	td := t.TempDir()
 	fossil := &Fossil{fs: fs.New(td)}
-	ctx := context.Background()
+	ctx := t.Context()
 	name := "test"
 	value := []byte("content")
 
@@ -40,7 +39,7 @@ func TestFossil_Delete(t *testing.T) {
 
 	td := t.TempDir()
 	fossil := &Fossil{fs: fs.New(td)}
-	ctx := context.Background()
+	ctx := t.Context()
 	name := "test"
 
 	fossil.fs.Set(ctx, name, []byte("content"))
@@ -52,7 +51,7 @@ func TestFossil_Delete(t *testing.T) {
 func TestFossil_Exists(t *testing.T) {
 	td := t.TempDir()
 	fossil := &Fossil{fs: fs.New(td)}
-	ctx := context.Background()
+	ctx := t.Context()
 	name := "test"
 
 	fossil.fs.Set(ctx, name, []byte("content"))
@@ -64,7 +63,7 @@ func TestFossil_Exists(t *testing.T) {
 func TestFossil_List(t *testing.T) {
 	td := t.TempDir()
 	fossil := &Fossil{fs: fs.New(td)}
-	ctx := context.Background()
+	ctx := t.Context()
 	prefix := "test"
 
 	fossil.fs.Set(ctx, "test/foo", []byte("content"))
@@ -79,7 +78,7 @@ func TestFossil_List(t *testing.T) {
 func TestFossil_IsDir(t *testing.T) {
 	td := t.TempDir()
 	fossil := &Fossil{fs: fs.New(td)}
-	ctx := context.Background()
+	ctx := t.Context()
 	name := "test"
 
 	fossil.fs.Set(ctx, "test/foo", []byte("content"))
@@ -90,7 +89,7 @@ func TestFossil_IsDir(t *testing.T) {
 func TestFossil_Prune(t *testing.T) {
 	td := t.TempDir()
 	fossil := &Fossil{fs: fs.New(td)}
-	ctx := context.Background()
+	ctx := t.Context()
 	prefix := "test"
 
 	fossil.fs.Set(ctx, "test/foo", []byte("content"))
@@ -120,7 +119,7 @@ func TestFossil_Path(t *testing.T) {
 func TestFossil_Fsck(t *testing.T) {
 	td := t.TempDir()
 	fossil := &Fossil{fs: fs.New(td)}
-	ctx := context.Background()
+	ctx := t.Context()
 
 	err := fossil.Fsck(ctx)
 	require.NoError(t, err)
@@ -129,7 +128,7 @@ func TestFossil_Fsck(t *testing.T) {
 func TestFossil_Link(t *testing.T) {
 	td := t.TempDir()
 	fossil := &Fossil{fs: fs.New(td)}
-	ctx := context.Background()
+	ctx := t.Context()
 	from := "from"
 	to := "to"
 
@@ -142,7 +141,7 @@ func TestFossil_Link(t *testing.T) {
 func TestFossil_Move(t *testing.T) {
 	td := t.TempDir()
 	fossil := &Fossil{fs: fs.New(td)}
-	ctx := context.Background()
+	ctx := t.Context()
 	src := "src"
 	dst := "dst"
 	del := true

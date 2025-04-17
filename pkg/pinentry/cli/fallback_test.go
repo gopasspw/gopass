@@ -37,7 +37,7 @@ func TestOption(t *testing.T) {
 func TestGetPIN(t *testing.T) {
 	client := New()
 
-	ctx := termio.WithPassPromptFunc(context.Background(), func(ctx context.Context, s string) (string, error) {
+	ctx := termio.WithPassPromptFunc(t.Context(), func(ctx context.Context, s string) (string, error) {
 		return "1234", nil
 	})
 

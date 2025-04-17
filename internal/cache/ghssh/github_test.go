@@ -1,7 +1,6 @@
 package ghssh
 
 import (
-	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -36,14 +35,14 @@ func TestListKeys(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Run("valid user", func(t *testing.T) {
-		keys, err := cache.ListKeys(context.Background(), "validuser")
+		keys, err := cache.ListKeys(t.Context(), "validuser")
 		require.NoError(t, err)
 		assert.Len(t, keys, 1)
 		assert.Equal(t, "ssh-rsa AAAAB3Nza... validuser@github", keys[0])
 	})
 
 	t.Run("invalid user", func(t *testing.T) {
-		keys, err := cache.ListKeys(context.Background(), "invaliduser")
+		keys, err := cache.ListKeys(t.Context(), "invaliduser")
 		require.Error(t, err)
 		assert.Nil(t, keys)
 	})
@@ -75,14 +74,14 @@ func TestFetchKeys(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Run("valid user", func(t *testing.T) {
-		keys, err := cache.fetchKeys(context.Background(), "validuser")
+		keys, err := cache.fetchKeys(t.Context(), "validuser")
 		require.NoError(t, err)
 		assert.Len(t, keys, 1)
 		assert.Equal(t, "ssh-rsa AAAAB3Nza... validuser@github", keys[0])
 	})
 
 	t.Run("invalid user", func(t *testing.T) {
-		keys, err := cache.fetchKeys(context.Background(), "invaliduser")
+		keys, err := cache.fetchKeys(t.Context(), "invaliduser")
 		require.Error(t, err)
 		assert.Nil(t, keys)
 	})
