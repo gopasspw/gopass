@@ -28,9 +28,9 @@ OK := $(shell tput setaf 6; echo ' [OK]'; tput sgr0;)
 all: sysinfo build
 build: $(GOPASS_OUTPUT)
 completion: $(BASH_COMPLETION_OUTPUT) $(FISH_COMPLETION_OUTPUT) $(ZSH_COMPLETION_OUTPUT)
-travis: sysinfo crosscompile build fulltest completion codequality
-travis-osx: sysinfo build test completion
-travis-windows: sysinfo build test-win completion
+gha-linux: sysinfo licensecheck crosscompile build fulltest completion
+gha-osx: sysinfo build test completion
+gha-windows: sysinfo build test-win completion
 
 sysinfo:
 	@echo ">> SYSTEM INFORMATION"
@@ -128,7 +128,7 @@ crosscompile:
 	@./gopass completion $* > $@
 	@printf "%s\n" "$(OK)"
 
-codequality:
+codequality: licensecheck
 	@echo ">> CODE QUALITY"
 
 	# Note: there are 2 different version of golangci-lint used inside the project.
@@ -143,6 +143,7 @@ codequality:
 
 	@printf '%s\n' '$(OK)'
 
+licensecheck:
 	@echo -n "     LICENSE-LINT "
 	@which license-lint > /dev/null; if [ $$? -ne 0 ]; then \
 		$(GO) install istio.io/tools/cmd/license-lint@latest; \
