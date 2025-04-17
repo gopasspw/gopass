@@ -1,8 +1,10 @@
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
 # goreleaser.yml
 # Release automation
 #
 # Build customization
 project_name: gopass
+version: 2
 
 before:
   hooks:
@@ -41,10 +43,10 @@ builds:
 archives:
   - id: gopass
     name_template: "{{.Binary}}-{{.Version}}-{{.Os}}-{{.Arch}}{{ if .Arm }}v{{.Arm }}{{ end }}"
-    format: tar.gz
+    formats: ['tar.gz']
     format_overrides:
       - goos: windows
-        format: zip
+        formats: ['zip']
     files:
       - CHANGELOG.md
       - LICENSE

@@ -88,7 +88,7 @@ _gopass () {
 	      
 	      ;;
 	  find|search)
-	      _arguments : "--unsafe[In the case of an exact match, display the password even if safecontent is enabled]"
+	      _arguments : "--unsafe[In the case of an exact match, display the password even if safecontent is enabled]" "--regex[Interpret pattern as regular expression]"
 	      
 	      
 	      ;;
@@ -170,7 +170,7 @@ _gopass () {
 	      _gopass_complete_passwords
 	      ;;
 	  otp|totp|hotp)
-	      _arguments : "--clip[Copy the time-based token into the clipboard]" "--qr[Write QR code to FILE]" "--password[Only display the token]" "--snip[Scan screen content to insert a OTP QR code into provided entry]"
+	      _arguments : "--clip[Copy the time-based token into the clipboard]" "--qr[Write QR code to FILE]" "--chained[chain the token to the password]" "--password[Only display the token]" "--snip[Scan screen content to insert a OTP QR code into provided entry]"
 	      
 	      _gopass_complete_passwords
 	      ;;
