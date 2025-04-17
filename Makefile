@@ -119,7 +119,7 @@ test-integration: $(GOPASS_OUTPUT)
 crosscompile:
 	@echo ">> CROSSCOMPILE"
 	@which goreleaser > /dev/null; if [ $$? -ne 0 ]; then \
-		$(GO) install github.com/goreleaser/goreleaser@latest; \
+		$(GO) install go install github.com/goreleaser/goreleaser/v2@latest; \
 	fi
 	@goreleaser build --snapshot
 
