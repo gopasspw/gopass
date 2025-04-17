@@ -7,7 +7,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/atotto/clipboard"
+	"github.com/gopasspw/clipboard"
 )
 
 func copyToClipboard(ctx context.Context, content []byte) error {

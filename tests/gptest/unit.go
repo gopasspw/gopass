@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	aclip "github.com/atotto/clipboard"
+	aclip "github.com/gopasspw/clipboard"
 	"github.com/stretchr/testify/require"
 )
 

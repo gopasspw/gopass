@@ -10,7 +10,7 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/atotto/clipboard"
+	"github.com/gopasspw/clipboard"
 	"github.com/gopasspw/gopass/pkg/debug"
 )
 

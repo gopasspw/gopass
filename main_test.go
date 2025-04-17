@@ -8,9 +8,9 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/atotto/clipboard"
 	"github.com/blang/semver/v4"
 	"github.com/fatih/color"
+	"github.com/gopasspw/clipboard"
 	"github.com/gopasspw/gopass/internal/action"
 	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/internal/backend/crypto/gpg"

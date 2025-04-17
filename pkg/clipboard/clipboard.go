@@ -7,8 +7,8 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/atotto/clipboard"
 	"github.com/fatih/color"
+	"github.com/gopasspw/clipboard"
 	"github.com/gopasspw/gopass/internal/notify"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/debug"
@@ -17,7 +17,7 @@ import (
 var (
 	// Helpers can be overridden at compile time, e.g. go build \
 	// -ldflags=='-X github.com/gopasspw/gopass/pkg/clipboard.Helpers=termux-api'.
-	Helpers = "xsel or xclip"
+	Helpers = "xsel, xclip or wl-clipboard"
 	// ErrNotSupported is returned when the clipboard is not accessible.
 	ErrNotSupported = fmt.Errorf("WARNING: No clipboard available. "+
 		"Install %s, provide $GOPASS_CLIPBOARD_COPY_CMD and $GOPASS_CLIPBOARD_CLEAR_CMD or use -f to print to console", Helpers)

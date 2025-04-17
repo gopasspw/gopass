@@ -6,8 +6,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/atotto/clipboard"
 	"github.com/fatih/color"
+	"github.com/gopasspw/clipboard"
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"

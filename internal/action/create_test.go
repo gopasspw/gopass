@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	aclip "github.com/atotto/clipboard"
+	aclip "github.com/gopasspw/clipboard"
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"

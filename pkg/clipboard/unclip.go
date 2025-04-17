@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/atotto/clipboard"
+	"github.com/gopasspw/clipboard"
 	"github.com/gopasspw/gopass/internal/notify"
 	"github.com/gopasspw/gopass/internal/pwschemes/argon2id"
 	"github.com/gopasspw/gopass/pkg/debug"
