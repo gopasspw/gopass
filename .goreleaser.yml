@@ -87,6 +87,19 @@ nfpms:
     recommends:
       - rng-tools
       - bash-completion
+    contents:
+      - src: gopass.1
+        dst: /usr/share/man/man1/gopass.1
+      - src: LICENSE
+        dst: /usr/share/doc/gopass/LICENSE
+      - src: CHANGELOG.md
+        dst: /usr/share/doc/gopass/CHANGELOG.md
+      - src: bash.completion
+        dst: /usr/share/bash-completion/completions/gopass
+      - src: fish.completion
+        dst: /usr/share/fish/vendor_completions.d/gopass.fish
+      - src: zsh.completion
+        dst: /usr/share/zsh/functions/Completion/Linux/_gopass
   - id: gopass_rpm
     vendor: Gopass Authors
     homepage: "https://www.gopass.pw"
@@ -109,6 +122,19 @@ nfpms:
     recommends:
       - rng-tools
       - bash-completion
+    contents:
+      - src: gopass.1
+        dst: /usr/share/man/man1/gopass.1
+      - src: LICENSE
+        dst: /usr/share/doc/gopass/LICENSE
+      - src: CHANGELOG.md
+        dst: /usr/share/doc/gopass/CHANGELOG.md
+      - src: bash.completion
+        dst: /usr/share/bash-completion/completions/gopass
+      - src: fish.completion
+        dst: /usr/share/fish/vendor_completions.d/gopass.fish
+      - src: zsh.completion
+        dst: /usr/share/zsh/functions/Completion/Linux/_gopass
 
 source:
   enabled: true
