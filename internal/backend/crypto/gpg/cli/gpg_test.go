@@ -9,11 +9,12 @@ import (
 )
 
 func TestGPG(t *testing.T) {
-	t.Parallel()
-
 	if testing.Short() {
 		t.Skip("skipping test in short mode.")
 	}
+
+	td := t.TempDir()
+	t.Setenv("GNUPGHOME", td)
 
 	ctx := config.NewContextInMemory()
 
