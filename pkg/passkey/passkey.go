@@ -14,7 +14,7 @@ import (
 	"fmt"
 )
 
-// Flags for the credential parameters: https://www.w3.org/TR/webauthn-2/#flags
+// CredentialFlags for the credential parameters: https://www.w3.org/TR/webauthn-2/#flags
 type CredentialFlags struct {
 	UserPresent     bool
 	UserVerified    bool
@@ -22,9 +22,9 @@ type CredentialFlags struct {
 	ExtensionData   bool
 }
 
-// Structure to store information and key of public key credential.
+// Credential is a structure to store information and key of public key credential.
 type Credential struct {
-	Id        string
+	ID        string
 	Rp        string
 	UserName  string
 	Algorithm string
@@ -33,7 +33,7 @@ type Credential struct {
 	Flags     CredentialFlags
 }
 
-// Client data for signature: https://www.w3.org/TR/webauthn-1/#sec-client-data
+// ClientData for signature: https://www.w3.org/TR/webauthn-1/#sec-client-data
 type ClientData struct {
 	Challenge string `json:"challenge"`
 	Origin    string `json:"origin"`
@@ -70,17 +70,17 @@ func authDataFlags(options CredentialFlags) uint8 {
 	return flags
 }
 
-// Implementation of the authenticatorMakeCredential Operation: https://www.w3.org/TR/webauthn-2/#sctn-op-make-cred
+// CreateCredential is an implementation of the authenticatorMakeCredential Operation: https://www.w3.org/TR/webauthn-2/#sctn-op-make-cred
 func CreateCredential(rp string, user string, flags CredentialFlags) (*Credential, error) {
-	rawId := make([]byte, 32)
-	_, err := rand.Read(rawId)
+	rawID := make([]byte, 32)
+	_, err := rand.Read(rawID)
 	if err != nil {
 		return nil, fmt.Errorf("error while generating random ID: %w", err)
 	}
 	privateKey, _ := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 
 	return &Credential{
-		Id:        base64.RawURLEncoding.EncodeToString(rawId),
+		ID:        base64.RawURLEncoding.EncodeToString(rawID),
 		Rp:        rp,
 		UserName:  user,
 		Algorithm: "ECDSA",
@@ -90,7 +90,7 @@ func CreateCredential(rp string, user string, flags CredentialFlags) (*Credentia
 	}, nil
 }
 
-// Implementation of the authenticatorGetAssertion Operation: https://www.w3.org/TR/webauthn-2/#authenticatorgetassertion
+// GetAssertion is an implementation of the authenticatorGetAssertion Operation: https://www.w3.org/TR/webauthn-2/#authenticatorgetassertion
 func (cred *Credential) GetAssertion(challenge string, origin string) (*Response, error) {
 	credType := "webauthn.get"
 	clientData := ClientData{
@@ -102,15 +102,16 @@ func (cred *Credential) GetAssertion(challenge string, origin string) (*Response
 	if err != nil {
 		return nil, fmt.Errorf("error while reading client data: %w", err)
 	}
+
 	clientDataHash := sha256.Sum256(clientDataJSON)
-	rpIdHash := sha256.Sum256([]byte(cred.Rp))
+	rpIDHash := sha256.Sum256([]byte(cred.Rp))
 	flags := []byte{authDataFlags(cred.Flags)}
 
 	// Signature counter is incremented according to https://www.w3.org/TR/webauthn-2/#signature-counter
 	cred.Counter += 1
 	signCount := make([]byte, 4)
 	binary.BigEndian.PutUint32(signCount, cred.Counter)
-	authData := append(rpIdHash[:], flags...)
+	authData := append(rpIDHash[:], flags...)
 	authData = append(authData[:], signCount[:]...)
 	message := sha256.Sum256(append(authData[:], clientDataHash[:]...))
 	signature, serr := ecdsa.SignASN1(rand.Reader, cred.SecretKey, message[:])

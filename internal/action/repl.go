@@ -160,7 +160,7 @@ READ:
 	for {
 		// check for context cancellation
 		select {
-		case <-c.Context.Done():
+		case <-c.Done():
 			return fmt.Errorf("user aborted")
 		default:
 		}

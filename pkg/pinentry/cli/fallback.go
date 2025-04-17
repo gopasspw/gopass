@@ -1,3 +1,7 @@
+// Package cli provides a pinentry client that uses the terminal
+// for input and output. It is a drop-in replacement for the
+// pinentry program. It is used to ask for a passphrase or PIN
+// in the terminal.
 package cli
 
 import (

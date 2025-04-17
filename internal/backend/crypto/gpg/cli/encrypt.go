@@ -30,7 +30,7 @@ func (g *GPG) Encrypt(ctx context.Context, plaintext []byte, recipients []string
 
 	buf := &bytes.Buffer{}
 	if len(recipients) == 0 {
-		return buf.Bytes(), errors.New("recipients list is empty!")
+		return buf.Bytes(), errors.New("recipients list is empty")
 	}
 	var badRecipients []string
 	for _, r := range recipients {
@@ -49,7 +49,7 @@ func (g *GPG) Encrypt(ctx context.Context, plaintext []byte, recipients []string
 		args = append(args, "--recipient", r)
 	}
 	if len(badRecipients) == len(recipients) {
-		return buf.Bytes(), errors.New("no valid and trusted recipients were found!")
+		return buf.Bytes(), errors.New("no valid and trusted recipients were found")
 	}
 
 	cmd := exec.CommandContext(ctx, g.binary, args...)

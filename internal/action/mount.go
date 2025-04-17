@@ -117,7 +117,7 @@ func (s *Action) MountAdd(c *cli.Context) error {
 	return nil
 }
 
-// MountsVersion prints the backend versions for each mount.
+// MountsVersions prints the backend versions for each mount.
 func (s *Action) MountsVersions(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 

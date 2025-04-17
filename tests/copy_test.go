@@ -47,7 +47,7 @@ func TestCopy(t *testing.T) {
 	t.Run("copy existing secret to non-existing destination", func(t *testing.T) {
 		out, err := ts.run("copy foo/bar foo/baz")
 		require.NoError(t, err)
-		assert.Equal(t, "", out)
+		assert.Empty(t, out)
 
 		orig, err := ts.run("show -f foo/bar")
 		require.NoError(t, err)

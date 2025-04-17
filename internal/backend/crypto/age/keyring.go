@@ -15,12 +15,10 @@ import (
 	"github.com/gopasspw/gopass/pkg/fsutil"
 )
 
-var (
-	// OldIDFile is the old file name for the recipients.
-	OldIDFile = ".age-ids"
-)
+// OldIDFile is the old file name for the recipients.
+var OldIDFile = ".age-ids"
 
-// OldKeyring is the old file name for the keyring.
+// OldKeyringPath is the old file name for the keyring.
 // Must be a func to allow us to honor GOPASS_HOMEDIR in tests.
 // Otherwise it would be read at init time and setting GOPASS_HOMEDIR
 // later would have no effect.

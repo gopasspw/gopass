@@ -1,3 +1,5 @@
+// Package reminder provides a reminder store for gopass.
+// It stores timestamps on disk to remind the user of certain events.
 package reminder
 
 import (

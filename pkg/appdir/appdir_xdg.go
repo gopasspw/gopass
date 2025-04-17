@@ -14,6 +14,7 @@ import (
 func (a *Appdir) UserConfig() string {
 	if hd := os.Getenv("GOPASS_HOMEDIR"); hd != "" {
 		debug.V(3).Log("GOPASS_HOMEDIR is set to %s", hd)
+
 		return filepath.Join(hd, ".config", a.name)
 	}
 

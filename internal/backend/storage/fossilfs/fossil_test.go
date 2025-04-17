@@ -3,7 +3,6 @@
 package fossilfs
 
 import (
-	"context"
 	"os"
 	"path/filepath"
 	"testing"
@@ -27,7 +26,7 @@ func TestNew(t *testing.T) {
 func TestClone(t *testing.T) {
 	dir := t.TempDir()
 
-	ctx := context.Background()
+	ctx := t.Context()
 	repo := "https://example.com/repo.fossil"
 
 	f, err := Clone(ctx, repo, dir)
@@ -38,7 +37,7 @@ func TestClone(t *testing.T) {
 func TestInit(t *testing.T) {
 	dir := t.TempDir()
 
-	ctx := context.Background()
+	ctx := t.Context()
 
 	f, err := Init(ctx, dir, "", "")
 	require.NoError(t, err)
@@ -48,7 +47,7 @@ func TestInit(t *testing.T) {
 func TestAdd(t *testing.T) {
 	dir := t.TempDir()
 
-	ctx := context.Background()
+	ctx := t.Context()
 	f, err := Init(ctx, dir, "", "")
 	require.NoError(t, err)
 
@@ -59,7 +58,7 @@ func TestAdd(t *testing.T) {
 func TestCommit(t *testing.T) {
 	dir := t.TempDir()
 
-	ctx := context.Background()
+	ctx := t.Context()
 	f, err := Init(ctx, dir, "", "")
 	require.NoError(t, err)
 
@@ -70,7 +69,7 @@ func TestCommit(t *testing.T) {
 func TestPush(t *testing.T) {
 	dir := t.TempDir()
 
-	ctx := context.Background()
+	ctx := t.Context()
 	f, err := Init(ctx, dir, "", "")
 	require.NoError(t, err)
 
@@ -81,7 +80,7 @@ func TestPush(t *testing.T) {
 func TestPull(t *testing.T) {
 	dir := t.TempDir()
 
-	ctx := context.Background()
+	ctx := t.Context()
 	f, err := Init(ctx, dir, "", "")
 	require.NoError(t, err)
 
@@ -92,7 +91,7 @@ func TestPull(t *testing.T) {
 func TestAddRemote(t *testing.T) {
 	dir := t.TempDir()
 
-	ctx := context.Background()
+	ctx := t.Context()
 	f, err := Init(ctx, dir, "", "")
 	require.NoError(t, err)
 
@@ -103,7 +102,7 @@ func TestAddRemote(t *testing.T) {
 func TestRemoveRemote(t *testing.T) {
 	dir := t.TempDir()
 
-	ctx := context.Background()
+	ctx := t.Context()
 	f, err := Init(ctx, dir, "", "")
 	require.NoError(t, err)
 
@@ -114,7 +113,7 @@ func TestRemoveRemote(t *testing.T) {
 func TestRevisions(t *testing.T) {
 	dir := t.TempDir()
 
-	ctx := context.Background()
+	ctx := t.Context()
 	f, err := Init(ctx, dir, "", "")
 	require.NoError(t, err)
 
@@ -126,7 +125,7 @@ func TestRevisions(t *testing.T) {
 func TestGetRevision(t *testing.T) {
 	dir := t.TempDir()
 
-	ctx := context.Background()
+	ctx := t.Context()
 	f, err := Init(ctx, dir, "", "")
 	require.NoError(t, err)
 
@@ -138,7 +137,7 @@ func TestGetRevision(t *testing.T) {
 func TestStatus(t *testing.T) {
 	dir := t.TempDir()
 
-	ctx := context.Background()
+	ctx := t.Context()
 	f, err := Init(ctx, dir, "", "")
 	require.NoError(t, err)
 
@@ -150,7 +149,7 @@ func TestStatus(t *testing.T) {
 func TestCompact(t *testing.T) {
 	dir := t.TempDir()
 
-	ctx := context.Background()
+	ctx := t.Context()
 	f, err := Init(ctx, dir, "", "")
 	require.NoError(t, err)
 

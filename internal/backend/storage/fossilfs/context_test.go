@@ -1,12 +1,11 @@
 package fossilfs
 
 import (
-	"context"
 	"testing"
 )
 
 func TestWithPathOverride(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	path := "/test/path"
 	ctx = withPathOverride(ctx, path)
 
@@ -16,7 +15,7 @@ func TestWithPathOverride(t *testing.T) {
 }
 
 func TestGetPathOverride(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	defaultPath := "/default/path"
 
 	// Test with no override

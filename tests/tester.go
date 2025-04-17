@@ -1,3 +1,4 @@
+// Package tests contains common test helpers
 package tests
 
 import (

@@ -1,11 +1,13 @@
+// Package fsutil provides some common file system utilities
+// for gopass. It is used to handle file paths, directories, and files.
 package fsutil
 
 import (
 	"bufio"
+	"crypto/rand"
 	"errors"
 	"fmt"
 	"io"
-	"math/rand"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -180,12 +182,7 @@ func Shred(path string, runs int) error {
 
 		var written int64
 
-		for {
-			// end of file
-			if written >= flen {
-				break
-			}
-
+		for written < flen {
 			buf := bufFn()
 
 			n, err := fh.Write(buf[0:min(flen-written, int64(len(buf)))])

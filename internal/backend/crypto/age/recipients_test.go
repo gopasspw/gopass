@@ -9,7 +9,7 @@ import (
 )
 
 func TestFindRecipients(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	a := &Age{
 		ghCache: &mockGHCache{},
 	}
@@ -51,7 +51,7 @@ func TestFindRecipients(t *testing.T) {
 }
 
 func TestParseRecipients(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	a := &Age{
 		ghCache: &mockGHCache{},
 	}

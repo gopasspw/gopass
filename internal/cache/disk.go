@@ -1,3 +1,5 @@
+// Package cache proivdes a simple on disk cache for gopass.
+// It stores the data in a user specific directory.
 package cache
 
 import (

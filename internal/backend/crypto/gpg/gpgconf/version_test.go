@@ -44,7 +44,7 @@ func TestSort(t *testing.T) {
 
 			sort.Sort(byVersion(tc.in))
 
-			require.Equal(t, len(tc.in), len(tc.out))
+			require.Len(t, tc.in, len(tc.out))
 			for i, v := range tc.out {
 				if !tc.in[i].ver.Equals(v) {
 					t.Errorf("wrong sort order at %d: %s != %s", i, tc.in[i].ver, v)

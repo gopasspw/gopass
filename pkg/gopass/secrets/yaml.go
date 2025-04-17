@@ -1,3 +1,4 @@
+// Package secrets provides the different secret types that gopass supports.
 package secrets
 
 import (

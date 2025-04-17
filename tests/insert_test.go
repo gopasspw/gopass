@@ -78,7 +78,7 @@ func TestInsert(t *testing.T) {
 		// This is arguably not a good behaviour: it should not overwrite the password when we are only working on a key:value.
 		out, err = ts.run("insert -f some/other test:inline")
 		require.NoError(t, err)
-		assert.Equal(t, "", out)
+		assert.Empty(t, out)
 
 		out, err = ts.run("show some/other test")
 		require.NoError(t, err)
@@ -94,7 +94,7 @@ func TestInsert(t *testing.T) {
 
 		out, err = ts.run("--yes insert some/other test:inline2")
 		require.NoError(t, err)
-		assert.Equal(t, "", out)
+		assert.Empty(t, out)
 
 		out, err = ts.run("show some/other Test")
 		require.NoError(t, err)

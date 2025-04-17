@@ -1,7 +1,6 @@
 package age
 
 import (
-	"context"
 	"testing"
 
 	"github.com/gopasspw/gopass/internal/store/mockstore/inmem"
@@ -10,7 +9,7 @@ import (
 )
 
 func TestLoader_New(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	l := loader{}
 
 	crypto, err := l.New(ctx)
@@ -19,7 +18,7 @@ func TestLoader_New(t *testing.T) {
 }
 
 func TestLoader_Handles(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	l := loader{}
 	s := inmem.New()
 	td := t.TempDir()

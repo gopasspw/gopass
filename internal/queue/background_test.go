@@ -7,7 +7,7 @@ import (
 )
 
 func TestQueue_Add(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	q := New(ctx)
 
 	task := func(ctx context.Context) (context.Context, error) {
@@ -22,7 +22,7 @@ func TestQueue_Add(t *testing.T) {
 }
 
 func TestQueue_Close(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	q := New(ctx)
 
 	task := func(ctx context.Context) (context.Context, error) {
@@ -41,7 +41,7 @@ func TestQueue_Close(t *testing.T) {
 }
 
 func TestQueue_Idle(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	q := New(ctx)
 
 	task := func(ctx context.Context) (context.Context, error) {
@@ -66,7 +66,7 @@ func TestQueue_Idle(t *testing.T) {
 }
 
 func TestWithQueue(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	q := New(ctx)
 
 	ctxWithQueue := WithQueue(ctx, q)
@@ -76,7 +76,7 @@ func TestWithQueue(t *testing.T) {
 }
 
 func TestGetQueue(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 
 	q := GetQueue(ctx)
 	if _, ok := q.(*noop); !ok {

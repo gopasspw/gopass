@@ -2,7 +2,6 @@ package action
 
 import (
 	"bytes"
-	"context"
 	"flag"
 	"fmt"
 	"os"
@@ -23,13 +22,13 @@ import (
 
 func TestRuleLookup(t *testing.T) {
 	domain, _ := hasPwRuleForSecret(config.NewContextInMemory(), "foo/gopass.pw")
-	assert.Equal(t, "", domain)
+	assert.Empty(t, domain)
 }
 
 func TestGenerate(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 
-	ctx := context.Background()
+	ctx := t.Context()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithInteractive(ctx, false)
 

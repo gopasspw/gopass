@@ -1,3 +1,6 @@
+// Package config provides a way to manage the configuration of gopass.
+// It handles the loading and saving of configuration files,
+// as well as the management of environment variables.
 package config
 
 import (

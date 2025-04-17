@@ -1,3 +1,4 @@
+// Package hashsum provides hash functions for various algorithms.
 package hashsum
 
 import (

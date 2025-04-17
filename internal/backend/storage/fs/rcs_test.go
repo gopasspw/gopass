@@ -30,6 +30,6 @@ func TestRCS(t *testing.T) {
 	assert.Len(t, revs, 1)
 	body, err := g.GetRevision(ctx, "foo", "latest")
 	require.Error(t, err)
-	assert.Equal(t, "", string(body))
+	assert.Empty(t, string(body))
 	require.Error(t, g.RemoveRemote(ctx, "foo"))
 }

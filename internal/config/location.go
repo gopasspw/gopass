@@ -24,20 +24,6 @@ func configLocation() string {
 	return filepath.Join(appdir.UserConfig(), "config.yml")
 }
 
-// configLocations returns the possible locations of gopass config files,
-// in decreasing priority.
-func configLocations() []string {
-	l := []string{}
-	if cf := os.Getenv("GOPASS_CONFIG"); cf != "" {
-		l = append(l, cf)
-	}
-	l = append(l, filepath.Join(appdir.UserConfig(), "config.yml"))
-	l = append(l, filepath.Join(appdir.UserHome(), ".config", "gopass", "config.yml"))
-	l = append(l, filepath.Join(appdir.UserHome(), ".gopass.yml"))
-
-	return l
-}
-
 // PwStoreDir reads the password store dir from the environment
 // or returns the default location if the env is not set.
 func PwStoreDir(mount string) string {

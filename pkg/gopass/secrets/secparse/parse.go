@@ -1,3 +1,5 @@
+// Package secparse provides functions to parse secrets from various formats.
+// It can parse secrets from legacy MIME format, YAML format, and AKV format.
 package secparse
 
 import (

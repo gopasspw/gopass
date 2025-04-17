@@ -32,7 +32,7 @@ func (m *mockSecretGetter) Concurrency() int {
 }
 
 func TestNewAuditor(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	s := &mockSecretGetter{}
 	a := New(ctx, s)
 
@@ -43,7 +43,7 @@ func TestNewAuditor(t *testing.T) {
 }
 
 func TestBatch(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	s := &mockSecretGetter{}
 	a := New(ctx, s)
 
@@ -52,11 +52,11 @@ func TestBatch(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.NotNil(t, report)
-	assert.Equal(t, len(secrets), len(report.Secrets))
+	assert.Len(t, secrets, len(report.Secrets))
 }
 
 func TestAuditSecret(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	s := &mockSecretGetter{}
 	a := New(ctx, s)
 
@@ -67,7 +67,7 @@ func TestAuditSecret(t *testing.T) {
 }
 
 func TestCheckHIBP(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	s := &mockSecretGetter{}
 	a := New(ctx, s)
 

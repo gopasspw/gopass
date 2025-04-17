@@ -50,7 +50,7 @@ func TestKeyList(t *testing.T) {
 	// search for non existing key
 	k, err = kl.FindKey("0x62AF4091C82E2019")
 	require.Error(t, err)
-	assert.Equal(t, "", k.ID())
+	assert.Empty(t, k.ID())
 
 	// search by full name
 	k, err = kl.FindKey("John Doe")

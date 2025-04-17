@@ -1,3 +1,6 @@
+// Package legacy provides the legacy config struct for gopass.
+// It is used for backwards compatibility and should be removed in the future.
+// It is not intended for use in new code.
 package legacy
 
 import (
@@ -88,12 +91,16 @@ func (c *Config) setConfigValue(key, value string) error {
 
 			return nil
 		case reflect.Bool:
-			switch {
-			case value == "true" || value == "on":
+			switch value {
+			case "true":
+				fallthrough
+			case "on":
 				f.SetBool(true)
 
 				return nil
-			case value == "false" || value == "off":
+			case "false":
+				fallthrough
+			case "off":
 				f.SetBool(false)
 
 				return nil

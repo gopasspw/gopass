@@ -4,7 +4,6 @@
 package main
 
 import (
-	"context"
 	"os"
 	"path/filepath"
 	"testing"
@@ -26,7 +25,7 @@ func TestMustCheckEnv(t *testing.T) {
 // Test createMilestones function
 // TODO: Add test for createMilestones function
 // func TestCreateMilestones(t *testing.T) {
-// 	ctx := context.Background()
+// 	ctx := t.Context()
 // 	ghCl := newMockGHClient(ctx)
 // 	version := semver.MustParse("1.2.3")
 
@@ -85,7 +84,7 @@ func TestUpdateWorkflows(t *testing.T) {
 		goVer: "1.16",
 	}
 
-	err = updater.updateWorkflows(context.Background(), dir)
+	err = updater.updateWorkflows(t.Context(), dir)
 	assert.NoError(t, err)
 
 	content, err := os.ReadFile(filepath.Join(dir, ".github", "workflows", "test.yml"))

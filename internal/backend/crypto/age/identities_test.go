@@ -44,22 +44,22 @@ func TestParseIdentity(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tId, err := parseIdentity(tt.encoding)
+			tID, err := parseIdentity(tt.encoding)
 			if tt.shouldFail {
 				require.Error(t, err)
 			} else {
 				require.NoError(t, err)
-				require.IsType(t, tt.expectedType, tId)
+				require.IsType(t, tt.expectedType, tID)
 			}
 		})
 	}
 }
 
 func TestIdentityAndRecipient(t *testing.T) {
-	testId, err := age.GenerateX25519Identity()
+	testID, err := age.GenerateX25519Identity()
 	require.NoError(t, err)
 
-	pluginId, err := plugin.NewIdentity("AGE-PLUGIN-YUBIKEY-1GKZKJQYZL98RLMC67F9PJ", nil)
+	pluginID, err := plugin.NewIdentity("AGE-PLUGIN-YUBIKEY-1GKZKJQYZL98RLMC67F9PJ", nil)
 	require.NoError(t, err)
 	pluginRec, err := plugin.NewRecipient("age1yubikey1qt2r3tfk7wvlykudm7ew28dqqm3h8ln9zfsxsq4lcd2w8rh4n4hhz46ur24", nil)
 	require.NoError(t, err)
@@ -74,22 +74,22 @@ func TestIdentityAndRecipient(t *testing.T) {
 	}{
 		{
 			"native identity",
-			testId,
-			testId.Recipient(),
+			testID,
+			testID.Recipient(),
 		},
 		{
 			"wrapped native id",
 			&wrappedIdentity{
-				id:       testId,
-				rec:      testId.Recipient(),
-				encoding: testId.String(),
+				id:       testID,
+				rec:      testID.Recipient(),
+				encoding: testID.String(),
 			},
-			testId.Recipient(),
+			testID.Recipient(),
 		},
 		{
 			"wrapped plugin id",
 			&wrappedIdentity{
-				id:       pluginId,
+				id:       pluginID,
 				rec:      wrRec,
 				encoding: "AGE-PLUGIN-YUBIKEY-1GKZKJQYZL98RLMC67F9PJ",
 			},

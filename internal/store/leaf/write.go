@@ -20,7 +20,7 @@ func (s *Store) Set(ctx context.Context, name string, sec gopass.Byter) error {
 	}
 
 	if cfg, _ := config.FromContext(ctx); cfg.GetM(s.alias, "core.readonly") == "true" {
-		return fmt.Errorf("writing to %s is disabled by `core.readonly`.", s.alias)
+		return fmt.Errorf("writing to %s is disabled by `core.readonly`", s.alias)
 	}
 
 	p := s.Passfile(name)
@@ -35,7 +35,7 @@ func (s *Store) Set(ctx context.Context, name string, sec gopass.Byter) error {
 
 	// we can not encrypt without recipients
 	if len(recipients) < 1 {
-		return fmt.Errorf("no useable recipients for %q. can not encrypt without recipients.", name)
+		return fmt.Errorf("no useable recipients for %q. can not encrypt without recipients", name)
 	}
 
 	ciphertext, err := s.crypto.Encrypt(ctx, sec.Bytes(), recipients)

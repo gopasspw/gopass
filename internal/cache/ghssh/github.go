@@ -1,3 +1,5 @@
+// Package ghssh provides a cache for github ssh keys.
+// It fetches the keys from github and caches them on disk.
 package ghssh
 
 import (

@@ -1,3 +1,5 @@
+// Package cui provides a simple command line user interface
+// for gopass. It is used to interact with the user.
 package cui
 
 import (

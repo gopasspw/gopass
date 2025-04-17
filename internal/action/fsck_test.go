@@ -47,28 +47,28 @@ func TestFsck(t *testing.T) {
 	require.NoError(t, act.Fsck(gptest.CliCtx(ctx, t)))
 	output := strings.TrimSpace(buf.String())
 	assert.Contains(t, output, "Checking password store integrity ...")
-	assert.Contains(t, output, "Extra recipients on foo: [0xFEEDBEEF]")
+	assert.Contains(t, output, "extra recipients on foo: [0xFEEDBEEF]")
 	buf.Reset()
 
 	// fsck (hidden)
 	require.NoError(t, act.Fsck(gptest.CliCtx(ctxutil.WithHidden(ctx, true), t)))
 	output = strings.TrimSpace(buf.String())
 	assert.NotContains(t, output, "Checking password store integrity ...")
-	assert.NotContains(t, output, "Extra recipients on foo: [0xFEEDBEEF]")
+	assert.NotContains(t, output, "extra recipients on foo: [0xFEEDBEEF]")
 	buf.Reset()
 
 	// fsck --decrypt
 	require.NoError(t, act.Fsck(gptest.CliCtxWithFlags(ctx, t, map[string]string{"decrypt": "true"})))
 	output = strings.TrimSpace(buf.String())
 	assert.Contains(t, output, "Checking password store integrity ...")
-	assert.Contains(t, output, "Extra recipients on foo: [0xFEEDBEEF]")
+	assert.Contains(t, output, "extra recipients on foo: [0xFEEDBEEF]")
 	buf.Reset()
 
 	// fsck foo
 	require.NoError(t, act.Fsck(gptest.CliCtx(ctx, t, "foo")))
 	output = strings.TrimSpace(buf.String())
 	assert.Contains(t, output, "Checking password store integrity ...")
-	assert.Contains(t, output, "Extra recipients on foo: [0xFEEDBEEF]")
+	assert.Contains(t, output, "extra recipients on foo: [0xFEEDBEEF]")
 	buf.Reset()
 }
 

@@ -29,11 +29,13 @@ const (
 )
 
 func (e ErrorSeverity) String() string {
-	switch {
-	case e == errsNonFatal:
+	switch e {
+	case errsNonFatal:
 		return "non-fatal"
-	case e == errsFatal:
+	case errsFatal:
 		return "fatal"
+	case errsNil:
+		return "nil"
 	default:
 		return "nil"
 	}
@@ -186,7 +188,7 @@ func (s *Store) fsckLoop(ctx context.Context, path string) error {
 
 		msg, err := s.fsckCheckEntry(ctx, name)
 		if err != nil {
-			warnings.WriteString(fmt.Errorf("failed to check %q:\n    %w\n", name, err).Error())
+			warnings.WriteString(fmt.Sprintf("failed to check %q:\n    %s\n", name, err))
 
 			continue
 		}
@@ -252,7 +254,7 @@ func (s *Store) fsckCheckEntry(ctx context.Context, name string) (string, error)
 	merr := s.fsckCheckRecipients(ctx, name)
 	if merr.ErrorOrNil() != nil {
 		if merr.Severity == errsFatal {
-			return "", errs.Append(errsFatal, fmt.Errorf("Checking recipients for %s failed:\n    %w", name, merr)).ErrorOrNil()
+			return "", errs.Append(errsFatal, fmt.Errorf("checking recipients for %s failed:\n    %w", name, merr)).ErrorOrNil()
 		}
 		// the only errsNonFatal error from that function are missing/extra recipients, or unsupported recipient checks
 		// all of which aren't much of an issue since we have yet to correct that by re-encrypting.
@@ -300,7 +302,7 @@ func (s *Store) fsckCheckEntry(ctx context.Context, name string) (string, error)
 	merr = s.fsckCheckRecipients(ctx, name)
 	if merr.ErrorOrNil() != nil {
 		if merr.Severity == errsFatal {
-			_ = errs.Append(merr.Severity, fmt.Errorf("Checking recipients for %s failed:\n    %w", name, merr))
+			_ = errs.Append(merr.Severity, fmt.Errorf("checking recipients for %s failed:\n    %w", name, merr))
 		} else {
 			_ = errs.Append(merr.Severity, merr)
 		}
@@ -347,10 +349,10 @@ func (s *Store) fsckCheckRecipients(ctx context.Context, name string) *fsckMulti
 	// check itemRecps matches storeRecps
 	extra, missing := diff.List(perItemStoreRecps, itemRecps)
 	if len(missing) > 0 {
-		_ = e.Append(errsNonFatal, fmt.Errorf("Missing recipients on %s: %+v\n", name, missing))
+		_ = e.Append(errsNonFatal, fmt.Errorf("missing recipients on %s: %+v", name, missing))
 	}
 	if len(extra) > 0 {
-		_ = e.Append(errsNonFatal, fmt.Errorf("Extra recipients on %s: %+v\n", name, extra))
+		_ = e.Append(errsNonFatal, fmt.Errorf("extra recipients on %s: %+v", name, extra))
 	}
 
 	return e

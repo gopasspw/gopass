@@ -1,7 +1,6 @@
 package updater
 
 import (
-	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -78,7 +77,7 @@ func TestFetchLatestRelease(t *testing.T) {
 
 			BaseURL = server.URL + "/repos/%s/%s/releases/latest"
 
-			ctx := context.Background()
+			ctx := t.Context()
 			release, err := FetchLatestRelease(ctx)
 
 			if tt.expectedError {
@@ -131,7 +130,7 @@ func TestDownloadAsset(t *testing.T) {
 				tt.assets[i].URL = server.URL + a.URL
 			}
 
-			ctx := context.Background()
+			ctx := t.Context()
 
 			name, _, err := downloadAsset(ctx, tt.assets, tt.suffix)
 

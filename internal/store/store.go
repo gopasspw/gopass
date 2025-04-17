@@ -1,3 +1,5 @@
+// Package store provides the interface for the gopass password store.
+// It defines the methods and types used to interact with the password store.
 package store
 
 import (

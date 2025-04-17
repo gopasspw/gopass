@@ -28,7 +28,7 @@ func TestDelete(t *testing.T) {
 	for _, secret := range secrets {
 		out, err = ts.run("delete -f " + secret)
 		require.NoError(t, err)
-		assert.Equal(t, "", out)
+		assert.Empty(t, out)
 
 		out, err = ts.run("delete -f " + secret)
 		require.Error(t, err)

@@ -137,9 +137,9 @@ codequality:
 	# https://github.com/gopasspw/gopass/blob/master/Makefile#L136
 	@echo -n "     GOLANGCI-LINT "
 	@which golangci-lint > /dev/null; if [ $$? -ne 0 ]; then \
-		$(GO) install github.com/golangci/golangci-lint/cmd/golangci-lint@latest; \
+		$(GO) install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.1.1; \
 	fi
-	@golangci-lint run --max-issues-per-linter 0 --max-same-issues 0 --sort-results || exit 1
+	@golangci-lint run --max-issues-per-linter 0 --max-same-issues 0 || exit 1
 
 	@printf '%s\n' '$(OK)'
 
