@@ -11,7 +11,7 @@ import (
 	"github.com/ProtonMail/go-crypto/openpgp"
 	"github.com/ProtonMail/go-crypto/openpgp/armor"
 	"github.com/ProtonMail/go-crypto/openpgp/packet"
-	aclip "github.com/gopasspw/clipboard"
+	"github.com/gopasspw/clipboard"
 	"github.com/gopasspw/gopass/tests/can"
 	"github.com/stretchr/testify/require"
 )
@@ -41,7 +41,7 @@ func (u GUnit) GPGHome() string {
 func NewGUnitTester(t *testing.T) *GUnit {
 	t.Helper()
 
-	aclip.Unsupported = true
+	clipboard.ForceUnsupported = true
 
 	td := t.TempDir()
 	u := &GUnit{

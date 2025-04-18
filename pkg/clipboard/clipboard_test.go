@@ -36,7 +36,7 @@ func TestUnsupportedCopyToClipboard(t *testing.T) {
 	ctx, cancel := context.WithCancel(config.NewContextInMemory())
 	defer cancel()
 
-	clipboard.Unsupported = true
+	clipboard.ForceUnsupported = true
 
 	buf := &bytes.Buffer{}
 	out.Stderr = buf
@@ -53,7 +53,7 @@ func TestClearClipboard(t *testing.T) {
 }
 
 func BenchmarkWalkProc(b *testing.B) {
-	for i := 0; i < b.N; i++ { //nolint:intrange // b.N is evaluated at each iteration.
+	for b.Loop() {
 		_ = filepath.Walk("/proc", func(path string, info os.FileInfo, err error) error {
 			if err != nil {
 				return nil
@@ -76,7 +76,7 @@ func BenchmarkWalkProc(b *testing.B) {
 }
 
 func BenchmarkListProc(b *testing.B) {
-	for i := 0; i < b.N; i++ { //nolint:intrange // b.N is evaluated at each iteration.
+	for b.Loop() {
 		procs, err := ps.Processes()
 		if err != nil {
 			b.Fatalf("err: %s", err)

@@ -73,6 +73,10 @@ github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 h1:El6M4kTTCOh6aBiKaU
 github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510/go.mod h1:pupxD2MaaD3pAXIBCelhxNneeOaAeabZDe5s4K6zSpQ=
 github.com/gopasspw/clipboard v0.0.0-20250417190150-d64f7d604636 h1:IqhPR3G2C1cdMgKKHYwaASJuh9meJDy6Abes44nYxTQ=
 github.com/gopasspw/clipboard v0.0.0-20250417190150-d64f7d604636/go.mod h1:b2ka158TfIu6UEYbnuYGjztg9dNwAIwCBL3qNoKH8qE=
+github.com/gopasspw/clipboard v0.0.0-20250418164705-c6bd724b45e0 h1:xCvVD0/DfFzYybu1t/dkLwXWwGPQdrfHvQSRtFJKhC8=
+github.com/gopasspw/clipboard v0.0.0-20250418164705-c6bd724b45e0/go.mod h1:i0cShr7JEbOXZ/iKM5RyfBLbu1FPzouO8BTCJy0uHy8=
+github.com/gopasspw/clipboard v0.0.0-20250418174641-ec5f8eb4a01b h1:wMbrBbxjh/cZeqXGTGhYs4L65tP6YBKvIgDTo9RIv94=
+github.com/gopasspw/clipboard v0.0.0-20250418174641-ec5f8eb4a01b/go.mod h1:i0cShr7JEbOXZ/iKM5RyfBLbu1FPzouO8BTCJy0uHy8=
 github.com/gopasspw/gopass-hibp v1.15.15 h1:zmLhxXKu3fLa7qAexKw4EWVfKGgFzJ1j5ra9nzNnd1Y=
 github.com/gopasspw/gopass-hibp v1.15.15/go.mod h1:7xE84pJnO6x3i+u38NeUAvYlJVYPTUNL3Y5XJHSAwaY=
 github.com/hashicorp/golang-lru/v2 v2.0.7 h1:a+bsQ5rvGLjzHuww6tVxozPZFVghXaHOwFs4luLUK2k=

@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/fatih/color"
-	"github.com/gopasspw/clipboard"
+	"github.com/gopass/clipboard"
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -224,11 +224,11 @@ func TestShowMulti(t *testing.T) {
 
 func TestShowAutoClip(t *testing.T) {
 	// make sure we consistently get the unsupported error message
-	ov := clipboard.Unsupported
+	ov := clipboard.ForceUnsupported
 	defer func() {
-		clipboard.Unsupported = ov
+		clipboard.ForceUnsupported = ov
 	}()
-	clipboard.Unsupported = true
+	clipboard.ForceUnsupported = true
 
 	u := gptest.NewUnitTester(t)
 

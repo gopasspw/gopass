@@ -26,11 +26,11 @@ func Clear(ctx context.Context, name string, checksum string, force bool) error 
 		return nil
 	}
 
-	if clipboard.Unsupported {
+	if clipboard.IsUnsupported() {
 		return ErrNotSupported
 	}
 
-	cur, err := clipboard.ReadAll()
+	cur, err := clipboard.ReadAllString(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to read clipboard: %w", err)
 	}
@@ -46,7 +46,7 @@ func Clear(ctx context.Context, name string, checksum string, force bool) error 
 		return nil
 	}
 
-	if err := clipboard.WriteAll(""); err != nil {
+	if err := clipboard.WriteAllString(ctx, ""); err != nil {
 		_ = notify.Notify(ctx, "gopass - clipboard", "Failed to clear clipboard")
 
 		return fmt.Errorf("failed to write clipboard: %w", err)
