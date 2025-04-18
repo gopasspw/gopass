@@ -112,7 +112,7 @@ func TestGetCommands(t *testing.T) {
 	cfg := config.NewInMemory()
 	require.NoError(t, cfg.SetPath(u.StoreDir("")))
 
-	clipboard.Unsupported = true
+	clipboard.ForceUnsupported = true
 
 	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
