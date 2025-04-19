@@ -141,6 +141,12 @@ codequality: licensecheck
 	fi
 	@golangci-lint run --max-issues-per-linter 0 --max-same-issues 0 || exit 1
 
+	@echo -n "      KEEP-SORTED "
+	@which keep-sorted > /dev/null; if [ $$? -ne 0 ]; then \
+		$(GO) install github.com/keep-sorted/keep-sorted@latest; \
+	fi
+	@keep-sorted --mode lint $(GOFILES_NOVENDOR) || exit 1
+
 	@printf '%s\n' '$(OK)'
 
 licensecheck:
@@ -156,6 +162,7 @@ gen:
 	@$(GO) generate ./...
 
 fmt:
+	@keep-sorted --mode fix $(GOFILES_NOVENDOR)
 	@gofumpt -w $(GOFILES_NOVENDOR)
 	@$(GO) mod tidy
 
