@@ -275,7 +275,7 @@ func TestLoadConfigWithInclude(t *testing.T) {
 	tdBar := t.TempDir()
 	fnBar := path.Join(tdBar, "bar.config")
 
-	assert.NoError(t, os.WriteFile(fn, []byte(`[core]
+	require.NoError(t, os.WriteFile(fn, []byte(`[core]
 	int = 7
 	string = foo
 	bar = false
@@ -284,7 +284,7 @@ func TestLoadConfigWithInclude(t *testing.T) {
     path = foo.config`), 0o600))
 	fnFoo := filepath.Join(td, "foo.config")
 
-	assert.NoError(t, os.WriteFile(fnFoo, []byte(fmt.Sprintf(`[core]
+	require.NoError(t, os.WriteFile(fnFoo, []byte(fmt.Sprintf(`[core]
 	int = 8
   [include]
     path = config
@@ -360,14 +360,14 @@ func TestMergeConfigs(t *testing.T) {
 	extensionConfig.raw.WriteString("foo")
 
 	mergedConfig := mergeConfigs(&baseConfig, &extensionConfig)
-	assert.False(t, &baseConfig == mergedConfig)
-	assert.False(t, &baseConfig.raw == &mergedConfig.raw)
-	assert.False(t, &extensionConfig == mergedConfig)
-	assert.False(t, &extensionConfig.raw == &mergedConfig.raw)
-	assert.Equal(t, mergedConfig.noWrites, baseConfig.noWrites)
-	assert.Equal(t, mergedConfig.readonly, baseConfig.readonly)
-	assert.Equal(t, mergedConfig.path, baseConfig.path)
-	assert.Equal(t, mergedConfig.vars, map[string][]string{"core.bar": {"1", "2"}})
+	assert.NotSame(t, &baseConfig, mergedConfig)
+	assert.NotSame(t, &baseConfig.raw, &mergedConfig.raw)
+	assert.NotSame(t, &extensionConfig, mergedConfig)
+	assert.NotSame(t, &extensionConfig.raw, &mergedConfig.raw)
+	assert.Equal(t, baseConfig.noWrites, mergedConfig.noWrites)
+	assert.Equal(t, baseConfig.readonly, mergedConfig.readonly)
+	assert.Equal(t, baseConfig.path, mergedConfig.path)
+	assert.Equal(t, map[string][]string{"core.bar": {"1", "2"}}, mergedConfig.vars)
 }
 
 func TestMultiInclude(t *testing.T) {
@@ -429,9 +429,9 @@ func TestIncludeWrite(t *testing.T) {
 	cfg, err := LoadConfig(fn)
 	require.NoError(t, err)
 
-	cfg.Set("core.int", "9")
-	cfg.Set("core.string", "bar")
-	cfg.Set("core.bar", "true")
+	require.NoError(t, cfg.Set("core.int", "9"))
+	require.NoError(t, cfg.Set("core.string", "bar"))
+	require.NoError(t, cfg.Set("core.bar", "true"))
 
 	cfg, err = LoadConfig(fn)
 	require.NoError(t, err)

@@ -442,11 +442,12 @@ func loadConfig(fn string) (*Config, error) {
 
 	c := ParseConfig(fh)
 	c.path = fn
+
 	return c, nil
 }
 
-// mergeConfigs merge two configs, using first config as a base config extending it with vars, raw fields from the latter
-func mergeConfigs(base *Config, extention *Config) *Config {
+// mergeConfigs merge two configs, using first config as a base config extending it with vars, raw fields from the latter.
+func mergeConfigs(base *Config, extension *Config) *Config {
 	newConfig := Config{path: base.path, readonly: base.readonly, noWrites: base.noWrites, raw: strings.Builder{}, vars: map[string][]string{}}
 	newConfig.raw.WriteString(base.raw.String())
 	// Note: We can not append the included config raw to the base config raw, because it will
@@ -455,17 +456,18 @@ func mergeConfigs(base *Config, extention *Config) *Config {
 	// populate the new config with the base config
 	maps.Copy(newConfig.vars, base.vars)
 
-	for k, v := range extention.vars {
+	for k, v := range extension.vars {
 		_, existing := newConfig.vars[k]
 		if !existing {
 			newConfig.vars[k] = []string{}
 		}
 		newConfig.vars[k] = append(newConfig.vars[k], v...)
 	}
+
 	return &newConfig
 }
 
-// getPathsForNestedConfig tries to convert paths of nested configs ('/absolute', '~/from/home', 'relative/to/base') to absolute paths
+// getPathsForNestedConfig tries to convert paths of nested configs ('/absolute', '~/from/home', 'relative/to/base') to absolute paths.
 func getPathsForNestedConfig(nestedConfigs []string, baseConfig string) []string {
 	absolutePaths := []string{}
 	for _, nc := range nestedConfigs {
