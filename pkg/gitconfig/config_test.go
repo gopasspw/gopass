@@ -338,8 +338,6 @@ func TestLoadFromEnv(t *testing.T) {
 }
 
 func TestGetPathsForNestedConfig(t *testing.T) {
-	t.Parallel()
-
 	t.Setenv("HOME", "/home/user")
 	tc := map[string][3]string{
 		"relative": {"/home/user/config", "foo.config", "/home/user/foo.config"},
@@ -355,6 +353,7 @@ func TestGetPathsForNestedConfig(t *testing.T) {
 
 func TestMergeConfigs(t *testing.T) {
 	t.Parallel()
+
 	baseConfig := Config{path: "/home/user/config", noWrites: true, readonly: true, raw: strings.Builder{}, vars: map[string][]string{"core.bar": {"1"}}}
 	baseConfig.raw.WriteString("base")
 	extensionConfig := Config{path: "/home/user/config.foo", noWrites: false, readonly: false, raw: strings.Builder{}, vars: map[string][]string{"core.bar": {"2"}}}
@@ -369,4 +368,96 @@ func TestMergeConfigs(t *testing.T) {
 	assert.Equal(t, mergedConfig.readonly, baseConfig.readonly)
 	assert.Equal(t, mergedConfig.path, baseConfig.path)
 	assert.Equal(t, mergedConfig.vars, map[string][]string{"core.bar": {"1", "2"}})
+}
+
+func TestMultiInclude(t *testing.T) {
+	t.Parallel()
+
+	td := t.TempDir()
+	fn := filepath.Join(td, "config")
+	require.NoError(t, os.WriteFile(fn, []byte(`[core]
+	int = 7
+	string = foo
+	bar = false
+  [include]
+	path = foo.config`), 0o600))
+	fnFoo := filepath.Join(td, "foo.config")
+	require.NoError(t, os.WriteFile(fnFoo, []byte(`[core]
+	int = 8
+  [include]
+	path = bar.config`), 0o600))
+	fnBar := filepath.Join(td, "bar.config")
+	require.NoError(t, os.WriteFile(fnBar, []byte(`[core]
+	int = 9
+  [include]
+	path = baz.config`), 0o600))
+	fnBaz := filepath.Join(td, "baz.config")
+	require.NoError(t, os.WriteFile(fnBaz, []byte(`[core]
+	int = 10`), 0o600))
+
+	cfg, err := LoadConfig(fn)
+	require.NoError(t, err)
+	v, ok := cfg.Get("core.int")
+	assert.True(t, ok)
+	assert.Equal(t, "7", v)
+	vs, ok := cfg.GetAll("core.int")
+	assert.True(t, ok)
+	assert.Equal(t, []string{"7", "8", "9", "10"}, vs)
+	v, ok = cfg.Get("core.string")
+	assert.True(t, ok)
+	assert.Equal(t, "foo", v)
+	v, ok = cfg.Get("core.bar")
+	assert.True(t, ok)
+	assert.Equal(t, "false", v)
+}
+
+func TestIncludeWrite(t *testing.T) {
+	t.Parallel()
+
+	td := t.TempDir()
+	fn := filepath.Join(td, "config")
+	require.NoError(t, os.WriteFile(fn, []byte(`[core]
+	int = 7
+	string = foo
+	bar = false
+  [include]
+	path = foo.config`), 0o600))
+	fnFoo := filepath.Join(td, "foo.config")
+	require.NoError(t, os.WriteFile(fnFoo, []byte(`[core]
+	int = 8`), 0o600))
+
+	cfg, err := LoadConfig(fn)
+	require.NoError(t, err)
+
+	cfg.Set("core.int", "9")
+	cfg.Set("core.string", "bar")
+	cfg.Set("core.bar", "true")
+
+	cfg, err = LoadConfig(fn)
+	require.NoError(t, err)
+	v, ok := cfg.Get("core.int")
+	assert.True(t, ok)
+	assert.Equal(t, "9", v)
+	vs, ok := cfg.GetAll("core.int")
+	assert.True(t, ok)
+	assert.Equal(t, []string{"9", "8"}, vs)
+	v, ok = cfg.Get("core.string")
+	assert.True(t, ok)
+	assert.Equal(t, "bar", v)
+	v, ok = cfg.Get("core.bar")
+	assert.True(t, ok)
+	assert.Equal(t, "true", v)
+
+	// Check if the config was written correctly
+	expected := `[core]
+	int = 9
+	string = bar
+	bar = true
+  [include]
+	path = foo.config
+`
+
+	actual, err := os.ReadFile(fn)
+	require.NoError(t, err)
+	assert.Equal(t, expected, string(actual))
 }
