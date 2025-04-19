@@ -8,8 +8,8 @@ import (
 	"filippo.io/age/agessh"
 	"filippo.io/age/plugin"
 	"github.com/gopasspw/gopass/internal/out"
-	"github.com/gopasspw/gopass/internal/set"
 	"github.com/gopasspw/gopass/pkg/debug"
+	"github.com/gopasspw/gopass/pkg/set"
 )
 
 // FindRecipients returns all list of usable recipient key IDs matching the search strings.

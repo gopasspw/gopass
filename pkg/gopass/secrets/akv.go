@@ -7,8 +7,8 @@ import (
 	"io"
 	"strings"
 
-	"github.com/gopasspw/gopass/internal/set"
 	"github.com/gopasspw/gopass/pkg/debug"
+	"github.com/gopasspw/gopass/pkg/set"
 )
 
 var kvSep = ": "
