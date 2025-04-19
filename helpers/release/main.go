@@ -50,7 +50,7 @@ func getVersion() semver.Version {
 		Pre: []semver.PRVersion{
 			{VersionStr: "git"},
 		},
-		Build: []string{"HEAD"},
+		Build: []string{"{{ .Build }}"},
 	}
 }
 `
@@ -250,7 +250,7 @@ func updateDeps() error {
 	}
 
 	if sv := os.Getenv("GOPASS_NOTEST"); sv != "" {
-		fmt.Printf("⚠ GOPASS_NOTEST=%v, skipping 'make travis'", sv)
+		fmt.Printf("⚠ GOPASS_NOTEST=%v, skipping 'make gha-linux'", sv)
 
 		return nil
 	}
@@ -262,7 +262,7 @@ func updateDeps() error {
 		return err
 	}
 
-	cmd = exec.Command("make", "travis")
+	cmd = exec.Command("make", "gha-linux")
 	cmd.Stderr = os.Stderr
 	cmd.Stdout = fh
 	cmd.Env = []string{
@@ -281,7 +281,7 @@ func updateDeps() error {
 
 	if err := cmd.Run(); err != nil {
 		_ = fh.Close()
-		fmt.Printf("⚠ 'make travis' failed. Please see the log at %s!", fn)
+		fmt.Printf("⚠ 'make gha-linux' failed. Please see the log at %s!", fn)
 
 		return err
 	}
@@ -387,6 +387,7 @@ type tplPayload struct {
 	Major uint64
 	Minor uint64
 	Patch uint64
+	Build string
 }
 
 func writeVersionGo(v semver.Version) error {
@@ -400,10 +401,16 @@ func writeVersionGo(v semver.Version) error {
 	}
 	defer fh.Close()
 
+	build := "HEAD"
+	if sv, err := gitCommitHash(); err == nil {
+		build = sv
+	}
+
 	return tmpl.Execute(fh, tplPayload{
 		Major: v.Major,
 		Minor: v.Minor,
 		Patch: v.Patch,
+		Build: build,
 	})
 }
 
@@ -418,6 +425,15 @@ func versionFile() (semver.Version, error) {
 	}
 
 	return semver.Parse(strings.TrimSpace(string(buf)))
+}
+
+func gitCommitHash() (string, error) {
+	buf, err := exec.Command("git", "rev-parse", "--short", "HEAD").CombinedOutput()
+	if err != nil {
+		return "", err
+	}
+
+	return strings.TrimSpace(string(buf)), nil
 }
 
 func gitVersion() (semver.Version, error) {
