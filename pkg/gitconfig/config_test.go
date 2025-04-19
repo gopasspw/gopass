@@ -480,3 +480,60 @@ func TestIncludeWrite(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, expected, string(actual))
 }
+
+func TestConditionalInclude(t *testing.T) {
+	t.Parallel()
+
+	td := t.TempDir()
+
+	// base config
+	fn := filepath.Join(td, "config")
+	require.NoError(t, os.WriteFile(fn, fmt.Appendf(nil, `[core]
+	int = 7
+	string = foo
+	bar = false
+  [includeIf "gitdir:/foo/bar/repo]
+	path = foo.config
+  [includeIf "gitdir:%s/"]
+    path = bar.config`, td), 0o600))
+
+	// foo.config, should NOT be included
+	fnFoo := filepath.Join(td, "foo.config")
+	require.NoError(t, os.WriteFile(fnFoo, []byte(`[core]
+	int = 8`), 0o600))
+
+	// bar.config, should be included
+	fnBar := filepath.Join(td, "bar.config")
+	require.NoError(t, os.WriteFile(fnBar, fmt.Appendf(nil, `[core]
+	int = 9
+  [includeIf "gitdir:/foo/bar/repo]
+	path = baz.config
+  [includeIf "gitdir:%s/"]
+    path = zab.config`, td), 0o600))
+
+	// baz.config, nested, should NOT be included
+	fnBaz := filepath.Join(td, "baz.config")
+	require.NoError(t, os.WriteFile(fnBaz, []byte(`[core]
+	int = 10`), 0o600))
+
+	// zab.config, nested, should be included
+	fnZab := filepath.Join(td, "zab.config")
+	require.NoError(t, os.WriteFile(fnZab, []byte(`[core]
+	int = 11
+	deep = rock`), 0o600))
+
+	cfg, err := LoadConfig(fn)
+	require.NoError(t, err)
+	v, ok := cfg.Get("core.int")
+	assert.True(t, ok)
+	assert.Equal(t, "7", v)
+	vs, ok := cfg.GetAll("core.int")
+	assert.True(t, ok)
+	assert.Equal(t, []string{"7", "9", "11"}, vs)
+	v, ok = cfg.Get("core.string")
+	assert.True(t, ok)
+	assert.Equal(t, "foo", v)
+	v, ok = cfg.Get("core.deep")
+	assert.True(t, ok)
+	assert.Equal(t, "rock", v)
+}
