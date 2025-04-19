@@ -33,7 +33,7 @@ func TestVersionPrinter(t *testing.T) {
 
 	commitStr := ""
 	if commit, _, _ := parseBuildInfo(); commit != "" {
-		commitStr = " (" + commit + ")"
+		commitStr = "(" + commit + ") "
 	}
 
 	assert.Equal(t, fmt.Sprintf("gopass 1.0.0 %s%s %s %s\n", commitStr, runtime.Version(), runtime.GOOS, runtime.GOARCH), buf.String())
