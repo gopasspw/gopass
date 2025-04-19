@@ -233,13 +233,13 @@ func parseBuildInfo() (string, string, string) {
 
 	for _, v := range bi.Settings {
 		switch v.Key {
-		case "gitrevision":
+		case "vcs.revision":
 			commit = v.Value[len(v.Value)-8:]
-		case "gitcommittime":
+		case "vcs.time":
 			if bt, err := time.Parse("2006-01-02T15:04:05Z", date); err == nil {
 				date = bt.Format("2006-01-02 15:04:05")
 			}
-		case "gituncommitted":
+		case "vcs.modified":
 			if v.Value == "true" {
 				dirty = " (dirty)"
 			}
