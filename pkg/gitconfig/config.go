@@ -420,6 +420,7 @@ func LoadConfig(fn string) (*Config, error) {
 		if err != nil {
 			return nil, err
 		}
+
 		c = mergeConfigs(c, nc)
 		loadedConfigs[head] = struct{}{}
 
