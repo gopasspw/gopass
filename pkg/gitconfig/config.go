@@ -434,7 +434,7 @@ func filterCandidates(candidates []string, workdir string) []string {
 	out := make([]string, 0, len(candidates))
 	for _, candidate := range candidates {
 		sec, subsec, key := splitKey(candidate)
-		if sec != "includeIf" || subsec != "" || key != "path" {
+		if sec != "includeIf" || subsec == "" || key != "path" {
 			debug.V(3).Log("skipping invalid include candidate %q", candidate)
 
 			continue
@@ -452,8 +452,8 @@ func filterCandidates(candidates []string, workdir string) []string {
 		dir := p[1]
 
 		// Either it is a full match or a prefix match.
-		if workdir != dir && !prefixMatch(workdir, dir) {
-			debug.V(3).Log("skipping include candidate %q, no match for %q", candidate, workdir)
+		if strings.TrimSuffix(workdir, "/") != strings.TrimSuffix(dir, "/") && !prefixMatch(dir, workdir) {
+			debug.V(3).Log("skipping include candidate %q, no exact match for workdir: %q == dir: %q and no prefix match for dir: %q, workdir: %q", candidate, workdir, dir, dir, workdir)
 
 			continue
 		}

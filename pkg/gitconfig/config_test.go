@@ -492,7 +492,7 @@ func TestConditionalInclude(t *testing.T) {
 	int = 7
 	string = foo
 	bar = false
-  [includeIf "gitdir:/foo/bar/repo]
+  [includeIf "gitdir:/foo/bar/repo"]
 	path = foo.config
   [includeIf "gitdir:%s/"]
     path = bar.config`, td), 0o600))
@@ -506,7 +506,7 @@ func TestConditionalInclude(t *testing.T) {
 	fnBar := filepath.Join(td, "bar.config")
 	require.NoError(t, os.WriteFile(fnBar, fmt.Appendf(nil, `[core]
 	int = 9
-  [includeIf "gitdir:/foo/bar/repo]
+  [includeIf "gitdir:/foo/bar/repo"]
 	path = baz.config
   [includeIf "gitdir:%s/"]
     path = zab.config`, td), 0o600))
@@ -522,7 +522,7 @@ func TestConditionalInclude(t *testing.T) {
 	int = 11
 	deep = rock`), 0o600))
 
-	cfg, err := LoadConfig(fn)
+	cfg, err := LoadConfigWithWorkdir(fn, td)
 	require.NoError(t, err)
 	v, ok := cfg.Get("core.int")
 	assert.True(t, ok)
