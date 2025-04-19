@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+	"path"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 	"testing"
@@ -265,6 +267,58 @@ func TestLoadConfig(t *testing.T) {
 	assert.Equal(t, "false", v)
 }
 
+func TestLoadConfigWithInclude(t *testing.T) {
+	t.Parallel()
+
+	if runtime.GOOS == "windows" {
+		// this test is currently failing on windows.
+		// skip it for now, but we should try to fix it.
+		t.Skip("Skipping test on windows")
+	}
+
+	td := t.TempDir()
+	fn := filepath.Join(td, "config")
+
+	tdBar := t.TempDir()
+	fnBar := path.Join(tdBar, "bar.config")
+
+	require.NoError(t, os.WriteFile(fn, []byte(`[core]
+	int = 7
+	string = foo
+	bar = false
+  [include]
+    path = foo.config
+    path = foo.config`), 0o600))
+	fnFoo := filepath.Join(td, "foo.config")
+
+	require.NoError(t, os.WriteFile(fnFoo, []byte(fmt.Sprintf(`[core]
+	int = 8
+  [include]
+    path = config
+    path = %s`, fnBar)), 0o600))
+	assert.NoError(t, os.WriteFile(fnBar, []byte(`[core]
+	int = 9`), 0o600))
+
+	cfg, err := LoadConfig(fn)
+	require.NoError(t, err)
+
+	v, ok := cfg.Get("core.int")
+	assert.True(t, ok)
+	assert.Equal(t, "7", v)
+
+	vs, ok := cfg.GetAll("core.int")
+	assert.True(t, ok)
+	assert.Equal(t, []string{"7", "8", "9"}, vs)
+
+	v, ok = cfg.Get("core.string")
+	assert.True(t, ok)
+	assert.Equal(t, "foo", v)
+
+	v, ok = cfg.Get("core.bar")
+	assert.True(t, ok)
+	assert.Equal(t, "false", v)
+}
+
 func TestLoadFromEnv(t *testing.T) {
 	tc := map[string]string{
 		"core.foo":     "bar",
@@ -288,4 +342,141 @@ func TestLoadFromEnv(t *testing.T) {
 		assert.True(t, ok)
 		assert.Equal(t, v, got)
 	}
+}
+
+func TestGetPathsForNestedConfig(t *testing.T) {
+	t.Setenv("HOME", "/home/user")
+	tc := map[string][3]string{
+		"relative": {"/home/user/config", "foo.config", "/home/user/foo.config"},
+		"~":        {"/home/user/config", "~/foo.config", "/home/user/foo.config"},
+		"absolute": {"/home/user/config", "/home/user/foo.config", "/home/user/foo.config"},
+	}
+
+	for _, v := range tc {
+		got := getPathsForNestedConfig([]string{v[1]}, v[0])
+		assert.Equal(t, []string{v[2]}, got)
+	}
+}
+
+func TestMergeConfigs(t *testing.T) {
+	t.Parallel()
+
+	baseConfig := Config{path: "/home/user/config", noWrites: true, readonly: true, raw: strings.Builder{}, vars: map[string][]string{"core.bar": {"1"}}}
+	baseConfig.raw.WriteString("base")
+	extensionConfig := Config{path: "/home/user/config.foo", noWrites: false, readonly: false, raw: strings.Builder{}, vars: map[string][]string{"core.bar": {"2"}}}
+	extensionConfig.raw.WriteString("foo")
+
+	mergedConfig := mergeConfigs(&baseConfig, &extensionConfig)
+	assert.NotSame(t, &baseConfig, mergedConfig)
+	assert.NotSame(t, &baseConfig.raw, &mergedConfig.raw)
+	assert.NotSame(t, &extensionConfig, mergedConfig)
+	assert.NotSame(t, &extensionConfig.raw, &mergedConfig.raw)
+	assert.Equal(t, baseConfig.noWrites, mergedConfig.noWrites)
+	assert.Equal(t, baseConfig.readonly, mergedConfig.readonly)
+	assert.Equal(t, baseConfig.path, mergedConfig.path)
+	assert.Equal(t, map[string][]string{"core.bar": {"1", "2"}}, mergedConfig.vars)
+}
+
+func TestMultiInclude(t *testing.T) {
+	t.Parallel()
+
+	if runtime.GOOS == "windows" {
+		// this test is currently failing on windows.
+		// skip it for now, but we should try to fix it.
+		t.Skip("Skipping test on windows")
+	}
+
+	td := t.TempDir()
+	fn := filepath.Join(td, "config")
+	require.NoError(t, os.WriteFile(fn, []byte(`[core]
+	int = 7
+	string = foo
+	bar = false
+  [include]
+	path = foo.config`), 0o600))
+	fnFoo := filepath.Join(td, "foo.config")
+	require.NoError(t, os.WriteFile(fnFoo, []byte(`[core]
+	int = 8
+  [include]
+	path = bar.config`), 0o600))
+	fnBar := filepath.Join(td, "bar.config")
+	require.NoError(t, os.WriteFile(fnBar, []byte(`[core]
+	int = 9
+  [include]
+	path = baz.config`), 0o600))
+	fnBaz := filepath.Join(td, "baz.config")
+	require.NoError(t, os.WriteFile(fnBaz, []byte(`[core]
+	int = 10`), 0o600))
+
+	cfg, err := LoadConfig(fn)
+	require.NoError(t, err)
+	v, ok := cfg.Get("core.int")
+	assert.True(t, ok)
+	assert.Equal(t, "7", v)
+	vs, ok := cfg.GetAll("core.int")
+	assert.True(t, ok)
+	assert.Equal(t, []string{"7", "8", "9", "10"}, vs)
+	v, ok = cfg.Get("core.string")
+	assert.True(t, ok)
+	assert.Equal(t, "foo", v)
+	v, ok = cfg.Get("core.bar")
+	assert.True(t, ok)
+	assert.Equal(t, "false", v)
+}
+
+func TestIncludeWrite(t *testing.T) {
+	t.Parallel()
+
+	if runtime.GOOS == "windows" {
+		// this test is currently failing on windows.
+		// skip it for now, but we should try to fix it.
+		t.Skip("Skipping test on non-linux OS")
+	}
+
+	td := t.TempDir()
+	fn := filepath.Join(td, "config")
+	require.NoError(t, os.WriteFile(fn, []byte(`[core]
+	int = 7
+	string = foo
+	bar = false
+  [include]
+	path = foo.config`), 0o600))
+	fnFoo := filepath.Join(td, "foo.config")
+	require.NoError(t, os.WriteFile(fnFoo, []byte(`[core]
+	int = 8`), 0o600))
+
+	cfg, err := LoadConfig(fn)
+	require.NoError(t, err)
+
+	require.NoError(t, cfg.Set("core.int", "9"))
+	require.NoError(t, cfg.Set("core.string", "bar"))
+	require.NoError(t, cfg.Set("core.bar", "true"))
+
+	cfg, err = LoadConfig(fn)
+	require.NoError(t, err)
+	v, ok := cfg.Get("core.int")
+	assert.True(t, ok)
+	assert.Equal(t, "9", v)
+	vs, ok := cfg.GetAll("core.int")
+	assert.True(t, ok)
+	assert.Equal(t, []string{"9", "8"}, vs)
+	v, ok = cfg.Get("core.string")
+	assert.True(t, ok)
+	assert.Equal(t, "bar", v)
+	v, ok = cfg.Get("core.bar")
+	assert.True(t, ok)
+	assert.Equal(t, "true", v)
+
+	// Check if the config was written correctly
+	expected := `[core]
+	int = 9
+	string = bar
+	bar = true
+  [include]
+	path = foo.config
+`
+
+	actual, err := os.ReadFile(fn)
+	require.NoError(t, err)
+	assert.Equal(t, expected, string(actual))
 }

@@ -4,7 +4,9 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"maps"
 	"os"
+	"path"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -381,6 +383,57 @@ func NewFromMap(data map[string]string) *Config {
 
 // LoadConfig tries to load a gitconfig from the given path.
 func LoadConfig(fn string) (*Config, error) {
+	c, err := loadConfig(fn)
+	if err != nil {
+		return nil, err
+	}
+	c.path = fn
+
+	loadedConfigs := map[string]struct{}{
+		fn: {},
+	}
+	configsToLoad := []string{}
+
+	includePaths, includeExists := c.GetAll("include.path")
+	if includeExists {
+		configsToLoad = append(configsToLoad, getPathsForNestedConfig(includePaths, c.path)...)
+	}
+
+	// load all nested configs
+	// this is using a slice as a stack because when we load a config
+	// it may include other configs
+	// so we need to load them in the order they are found.
+	for len(configsToLoad) > 0 {
+		head := configsToLoad[0]
+		configsToLoad = configsToLoad[1:]
+
+		// check if we already loaded this config
+		// this is needed to avoid infinite loops when loading nested configs
+		_, ignore := loadedConfigs[head]
+		if ignore {
+			debug.V(3).Log("skipping already loaded config %q", head)
+
+			continue
+		}
+
+		nc, err := loadConfig(head)
+		if err != nil {
+			return nil, err
+		}
+
+		c = mergeConfigs(c, nc)
+		loadedConfigs[head] = struct{}{}
+
+		includePaths, includeExists := nc.GetAll("include.path")
+		if includeExists {
+			configsToLoad = append(configsToLoad, getPathsForNestedConfig(includePaths, nc.path)...)
+		}
+	}
+
+	return c, nil
+}
+
+func loadConfig(fn string) (*Config, error) {
 	fh, err := os.Open(fn)
 	if err != nil {
 		return nil, err
@@ -391,6 +444,54 @@ func LoadConfig(fn string) (*Config, error) {
 	c.path = fn
 
 	return c, nil
+}
+
+// mergeConfigs merge two configs, using first config as a base config extending it with vars, raw fields from the latter.
+func mergeConfigs(base *Config, extension *Config) *Config {
+	newConfig := Config{path: base.path, readonly: base.readonly, noWrites: base.noWrites, raw: strings.Builder{}, vars: map[string][]string{}}
+	newConfig.raw.WriteString(base.raw.String())
+	// Note: We can not append the included config raw to the base config raw, because it will
+	// write the included config to the base config file when we write the base config.
+
+	// populate the new config with the base config
+	maps.Copy(newConfig.vars, base.vars)
+
+	for k, v := range extension.vars {
+		_, existing := newConfig.vars[k]
+		if !existing {
+			newConfig.vars[k] = []string{}
+		}
+		newConfig.vars[k] = append(newConfig.vars[k], v...)
+	}
+
+	return &newConfig
+}
+
+// getPathsForNestedConfig tries to convert paths of nested configs ('/absolute', '~/from/home', 'relative/to/base') to absolute paths.
+func getPathsForNestedConfig(nestedConfigs []string, baseConfig string) []string {
+	absolutePaths := []string{}
+	for _, nc := range nestedConfigs {
+		if path.IsAbs(nc) {
+			absolutePaths = append(absolutePaths, nc)
+
+			continue
+		}
+		if strings.HasPrefix(nc, "~/") {
+			home, exists := os.LookupEnv("HOME")
+			if !exists {
+				// cannot resolve home directory
+				debug.V(3).Log("cannot resolve home directory, skipping %q", nc)
+
+				continue
+			}
+			absolutePaths = append(absolutePaths, path.Join(home, strings.Replace(nc, "~/", "", 1)))
+
+			continue
+		}
+		absolutePaths = append(absolutePaths, path.Clean(path.Join(path.Dir(baseConfig), nc)))
+	}
+
+	return absolutePaths
 }
 
 // ParseConfig will try to parse a gitconfig from the given io.Reader. It never fails.

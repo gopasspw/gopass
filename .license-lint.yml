@@ -15,6 +15,7 @@ allowlisted_modules:
 - github.com/russross/blackfriday/v2
 # Apache license
 - github.com/dgraph-io/ristretto
+- github.com/spf13/afero
 # Modified BSD-2-Clause with extra no-Google clause: https://github.com/jezek/xgb/blob/master/LICENSE
 - github.com/jezek/xgb
 # MIT
