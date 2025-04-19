@@ -11,9 +11,9 @@ import (
 
 	"github.com/caspr-io/yamlpath"
 	"github.com/gopasspw/gopass/internal/out"
-	"github.com/gopasspw/gopass/internal/set"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/gopass"
+	"github.com/gopasspw/gopass/pkg/set"
 	yaml "gopkg.in/yaml.v3"
 )
 

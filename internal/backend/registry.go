@@ -8,7 +8,7 @@ import (
 	"slices"
 	"sync"
 
-	"github.com/gopasspw/gopass/internal/set"
+	"github.com/gopasspw/gopass/pkg/set"
 )
 
 var (

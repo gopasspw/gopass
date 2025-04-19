@@ -10,7 +10,7 @@ import (
 
 	"github.com/blang/semver/v4"
 	"github.com/gopasspw/gopass/internal/backend"
-	"github.com/gopasspw/gopass/internal/set"
+	"github.com/gopasspw/gopass/pkg/set"
 )
 
 // InMem is a thread-safe in-memory store.

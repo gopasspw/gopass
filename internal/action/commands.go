@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/gopasspw/gopass/internal/backend"
-	"github.com/gopasspw/gopass/internal/set"
 	"github.com/gopasspw/gopass/pkg/debug"
+	"github.com/gopasspw/gopass/pkg/set"
 	"github.com/urfave/cli/v2"
 )
 

@@ -12,9 +12,9 @@ import (
 	"time"
 
 	"github.com/gopasspw/gopass/internal/out"
-	"github.com/gopasspw/gopass/internal/set"
 	"github.com/gopasspw/gopass/internal/tpl"
 	"github.com/gopasspw/gopass/pkg/debug"
+	"github.com/gopasspw/gopass/pkg/set"
 )
 
 func (r *Report) PrintResults(ctx context.Context) error {
