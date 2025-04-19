@@ -145,7 +145,7 @@ codequality: licensecheck
 	@which keep-sorted > /dev/null; if [ $$? -ne 0 ]; then \
 		$(GO) install github.com/keep-sorted/keep-sorted@latest; \
 	fi
-	@keep-sorted -mode lint $(GOFILES_NOVENDOR) || exit 1
+	@keep-sorted --mode lint $(GOFILES_NOVENDOR) || exit 1
 
 	@printf '%s\n' '$(OK)'
 
@@ -162,7 +162,7 @@ gen:
 	@$(GO) generate ./...
 
 fmt:
-	@keep-sorted -mode fix $(GOFILES_NOVENDOR)
+	@keep-sorted --mode fix $(GOFILES_NOVENDOR)
 	@gofumpt -w $(GOFILES_NOVENDOR)
 	@$(GO) mod tidy
 
