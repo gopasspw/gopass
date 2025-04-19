@@ -442,6 +442,7 @@ func loadConfig(fn string) (*Config, error) {
 
 	c := ParseConfig(fh)
 	c.path = fn
+
 	return c, nil
 }
 
