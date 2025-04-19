@@ -383,6 +383,97 @@ func NewFromMap(data map[string]string) *Config {
 
 // LoadConfig tries to load a gitconfig from the given path.
 func LoadConfig(fn string) (*Config, error) {
+	return loadConfigs(fn, "")
+}
+
+// LoadConfigWithWorkdir tries to load a gitconfig from the given path and
+// a workdir. The workdir is used to resolve relative paths in the config.
+func LoadConfigWithWorkdir(fn, workdir string) (*Config, error) {
+	return loadConfigs(fn, workdir)
+}
+
+func getEffectiveIncludes(c *Config, workdir string) ([]string, bool) {
+	includePaths, includeExists := c.GetAll("include.path")
+
+	if cIncludes := getConditionalIncludes(c, workdir); len(cIncludes) > 0 {
+		includePaths = append(includePaths, cIncludes...)
+		includeExists = true
+	}
+
+	return includePaths, includeExists
+}
+
+func getConditionalIncludes(c *Config, workdir string) []string {
+	candidates := []string{}
+	for k := range c.vars {
+		// must have the form includeIf.<condition>.path
+		// e.g. includeIf."gitdir:/path/to/group/".path
+		// see https://git-scm.com/docs/git-config#_conditional_includes
+		if !strings.HasPrefix(k, "includeIf.") || !strings.HasSuffix(k, ".path") {
+			continue
+		}
+		candidates = append(candidates, k)
+	}
+
+	out := make([]string, 0, len(candidates))
+	for _, k := range filterCandidates(candidates, workdir) {
+		path, found := c.GetAll(k)
+		if !found {
+			continue
+		}
+		out = append(out, path...)
+	}
+
+	return out
+}
+
+// filterCandidates filters the candidates for include paths.
+// Currently only the gitdir condition is supported.
+// Others might be added in the future.
+func filterCandidates(candidates []string, workdir string) []string {
+	out := make([]string, 0, len(candidates))
+	for _, candidate := range candidates {
+		sec, subsec, key := splitKey(candidate)
+		if sec != "includeIf" || subsec == "" || key != "path" {
+			debug.V(3).Log("skipping invalid include candidate %q", candidate)
+
+			continue
+		}
+
+		// We only support gitdir: for now.
+		if !strings.HasPrefix(subsec, "gitdir:") {
+			debug.V(3).Log("skipping unsupported include candidate %q", candidate)
+
+			continue
+		}
+
+		p := strings.Split(subsec, ":")
+		// We have checked that there is a colon above.
+		dir := p[1]
+
+		// Either it is a full match or a prefix match.
+		if strings.TrimSuffix(workdir, "/") != strings.TrimSuffix(dir, "/") && !prefixMatch(dir, workdir) {
+			debug.V(3).Log("skipping include candidate %q, no exact match for workdir: %q == dir: %q and no prefix match for dir: %q, workdir: %q", candidate, workdir, dir, dir, workdir)
+
+			continue
+		}
+
+		// We have a match, so we can add the path to the list.
+		out = append(out, candidate)
+	}
+
+	return out
+}
+
+func prefixMatch(path, prefix string) bool {
+	if !strings.HasSuffix(prefix, "/") {
+		return false
+	}
+
+	return strings.HasPrefix(path, prefix)
+}
+
+func loadConfigs(fn, workdir string) (*Config, error) {
 	c, err := loadConfig(fn)
 	if err != nil {
 		return nil, err
@@ -394,7 +485,7 @@ func LoadConfig(fn string) (*Config, error) {
 	}
 	configsToLoad := []string{}
 
-	includePaths, includeExists := c.GetAll("include.path")
+	includePaths, includeExists := getEffectiveIncludes(c, workdir)
 	if includeExists {
 		configsToLoad = append(configsToLoad, getPathsForNestedConfig(includePaths, c.path)...)
 	}
@@ -424,7 +515,7 @@ func LoadConfig(fn string) (*Config, error) {
 		c = mergeConfigs(c, nc)
 		loadedConfigs[head] = struct{}{}
 
-		includePaths, includeExists := nc.GetAll("include.path")
+		includePaths, includeExists := getEffectiveIncludes(nc, workdir)
 		if includeExists {
 			configsToLoad = append(configsToLoad, getPathsForNestedConfig(includePaths, nc.path)...)
 		}
