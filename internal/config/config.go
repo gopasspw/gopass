@@ -10,8 +10,8 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/gopasspw/gitconfig"
 	"github.com/gopasspw/gopass/pkg/debug"
-	"github.com/gopasspw/gopass/pkg/gitconfig"
 )
 
 const (

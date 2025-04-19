@@ -4,8 +4,8 @@ import (
 	"context"
 	"os"
 
+	"github.com/gopasspw/gitconfig"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"github.com/gopasspw/gopass/pkg/gitconfig"
 	"github.com/urfave/cli/v2"
 )
 

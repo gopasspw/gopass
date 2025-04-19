@@ -3,8 +3,8 @@ package config
 import (
 	"context"
 
+	"github.com/gopasspw/gitconfig"
 	"github.com/gopasspw/gopass/pkg/debug"
-	"github.com/gopasspw/gopass/pkg/gitconfig"
 )
 
 type contextKey int

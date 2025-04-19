@@ -16,6 +16,7 @@ require (
 	github.com/google/go-cmp v0.7.0
 	github.com/google/go-github/v61 v61.0.0
 	github.com/gopasspw/clipboard v0.0.0-20250418184741-a9895c5a47ee
+	github.com/gopasspw/gitconfig v0.0.1
 	github.com/gopasspw/gopass-hibp v1.15.15
 	github.com/hashicorp/golang-lru/v2 v2.0.7
 	github.com/jsimonetti/pwscheme v0.0.0-20220922140336-67a4d090f150
