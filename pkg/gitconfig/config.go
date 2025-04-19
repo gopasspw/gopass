@@ -461,6 +461,7 @@ func filterCandidates(candidates []string, workdir string) []string {
 		// We have a match, so we can add the path to the list.
 		out = append(out, candidate)
 	}
+
 	return out
 }
 
