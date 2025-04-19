@@ -7,8 +7,8 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/atotto/clipboard"
 	"github.com/fatih/color"
+	"github.com/gopasspw/clipboard"
 	"github.com/gopasspw/gopass/internal/notify"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/debug"
@@ -17,7 +17,7 @@ import (
 var (
 	// Helpers can be overridden at compile time, e.g. go build \
 	// -ldflags=='-X github.com/gopasspw/gopass/pkg/clipboard.Helpers=termux-api'.
-	Helpers = "xsel or xclip"
+	Helpers = "xsel, xclip or wl-clipboard"
 	// ErrNotSupported is returned when the clipboard is not accessible.
 	ErrNotSupported = fmt.Errorf("WARNING: No clipboard available. "+
 		"Install %s, provide $GOPASS_CLIPBOARD_COPY_CMD and $GOPASS_CLIPBOARD_CLEAR_CMD or use -f to print to console", Helpers)
@@ -35,7 +35,7 @@ func CopyTo(ctx context.Context, name string, content []byte, timeout int) error
 
 			return fmt.Errorf("failed to call clipboard copy command: %w", err)
 		}
-	} else if clipboard.Unsupported {
+	} else if clipboard.IsUnsupported() {
 		out.Errorf(ctx, "%s", ErrNotSupported)
 		_ = notify.Notify(ctx, "gopass - clipboard", ErrNotSupported.Error())
 
@@ -67,7 +67,15 @@ func CopyTo(ctx context.Context, name string, content []byte, timeout int) error
 	return nil
 }
 
-func callCommand(ctx context.Context, cmd string, parameter string, stdinValue []byte) error {
+func copyToClipboard(ctx context.Context, content []byte) error {
+	if err := clipboard.WriteAll(ctx, content); err != nil {
+		return fmt.Errorf("failed to write to clipboard: %w", err)
+	}
+
+	return nil
+}
+
+func callCommand(_ context.Context, cmd string, parameter string, stdinValue []byte) error {
 	clipboardProcess := exec.Command(cmd, parameter)
 	stdin, err := clipboardProcess.StdinPipe()
 

@@ -1,11 +1,10 @@
 module github.com/gopasspw/gopass
 
-go 1.24.0
+go 1.24.1
 
 require (
 	filippo.io/age v1.2.1-0.20240618131852-7eedd929a6cf
 	github.com/ProtonMail/go-crypto v1.2.0
-	github.com/atotto/clipboard v0.1.4
 	github.com/blang/semver/v4 v4.0.0
 	github.com/caspr-io/yamlpath v0.0.0-20200722075116-502e8d113a9b
 	github.com/cenkalti/backoff/v4 v4.3.0
@@ -16,6 +15,7 @@ require (
 	github.com/gokyle/twofactor v1.0.1
 	github.com/google/go-cmp v0.7.0
 	github.com/google/go-github/v61 v61.0.0
+	github.com/gopasspw/clipboard v0.0.0-20250418184741-a9895c5a47ee
 	github.com/gopasspw/gopass-hibp v1.15.15
 	github.com/hashicorp/golang-lru/v2 v2.0.7
 	github.com/jsimonetti/pwscheme v0.0.0-20220922140336-67a4d090f150
@@ -52,6 +52,7 @@ require (
 	al.essio.dev/pkg/shellescape v1.6.0 // indirect
 	codeberg.org/tslocum/cbind v0.1.6 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
+	github.com/atotto/clipboard v0.1.4 // indirect
 	github.com/boombuler/barcode v1.0.2 // indirect
 	github.com/cloudflare/circl v1.6.1 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.6 // indirect

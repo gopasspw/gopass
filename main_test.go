@@ -8,9 +8,9 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/atotto/clipboard"
 	"github.com/blang/semver/v4"
 	"github.com/fatih/color"
+	"github.com/gopasspw/clipboard"
 	"github.com/gopasspw/gopass/internal/action"
 	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/internal/backend/crypto/gpg"
@@ -118,7 +118,7 @@ func TestGetCommands(t *testing.T) {
 	cfg := config.NewInMemory()
 	require.NoError(t, cfg.SetPath(u.StoreDir("")))
 
-	clipboard.Unsupported = true
+	clipboard.ForceUnsupported = true
 
 	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)

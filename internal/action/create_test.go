@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	aclip "github.com/atotto/clipboard"
+	"github.com/gopasspw/clipboard"
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -16,7 +16,7 @@ import (
 func TestCreate(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 
-	aclip.Unsupported = true
+	clipboard.ForceUnsupported = true
 
 	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
