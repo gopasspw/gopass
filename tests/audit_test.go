@@ -18,6 +18,5 @@ func TestAudit(t *testing.T) {
 		out, err := ts.run("audit")
 		require.Error(t, err)
 		assert.Contains(t, out, "crunchy")
-		assert.Contains(t, out, "zxcvbn")
 	})
 }

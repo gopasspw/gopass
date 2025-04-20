@@ -24,7 +24,6 @@ import (
 	"github.com/gopasspw/gopass/pkg/gopass"
 	"github.com/gopasspw/gopass/pkg/termio"
 	"github.com/muesli/crunchy"
-	"github.com/nbutton23/zxcvbn-go"
 )
 
 type secretGetter interface {
@@ -63,27 +62,6 @@ func New(ctx context.Context, s secretGetter) *Auditor {
 			Description: "github.com/muesli/crunchy",
 			Validate: func(_ string, sec gopass.Secret) error {
 				return cv.Check(sec.Password())
-			},
-		},
-		{
-			Name:        "zxcvbn",
-			Description: "github.com/nbutton23/zxcvbn-go",
-			Validate: func(name string, sec gopass.Secret) error {
-				ui := make([]string, 0, len(sec.Keys())+1)
-				for _, k := range sec.Keys() {
-					pw, found := sec.Get(k)
-					if !found {
-						continue
-					}
-					ui = append(ui, pw)
-				}
-				ui = append(ui, name)
-				match := zxcvbn.PasswordStrength(sec.Password(), ui)
-				if match.Score < 3 {
-					return fmt.Errorf("weak password (%d / 4)", match.Score)
-				}
-
-				return nil
 			},
 		},
 		{

@@ -10,7 +10,6 @@ import (
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/pinentry/cli"
-	"github.com/nbutton23/zxcvbn-go"
 	"github.com/twpayne/go-pinentry/v4"
 	"github.com/zalando/go-keyring"
 )
@@ -126,11 +125,6 @@ func (a *askPass) getPassphrase(reason string, repeat bool) (string, error) {
 	}
 	if repeat {
 		opts = append(opts, pinentry.WithRepeat("Confirm"))
-		opts = append(opts, pinentry.WithQualityBar(func(s string) (int, bool) {
-			match := zxcvbn.PasswordStrength(s, nil)
-
-			return match.Score, true
-		}))
 	} else {
 		opts = append(opts,
 			pinentry.WithOption(pinentry.OptionAllowExternalPasswordCache),
