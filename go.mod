@@ -29,7 +29,6 @@ require (
 	github.com/mattn/go-tty v0.0.7
 	github.com/mitchellh/go-ps v1.0.0
 	github.com/muesli/crunchy v0.4.0
-	github.com/nbutton23/zxcvbn-go v0.0.0-20210217022336-fa2cb2858354
 	github.com/noborus/ov v0.40.1
 	github.com/pquerna/otp v1.4.1-0.20241104074508-c95b6974670c
 	github.com/schollz/closestmatch v0.0.0-20190308193919-1fbe626be92e

@@ -26,6 +26,5 @@ test_folder/ignore_this
 
 | Backend                                         | Description                                                            |
 |-------------------------------------------------|------------------------------------------------------------------------|
-| [`zxcvbn`](https://github.com/nbutton23/zxcvbn) | [zxcvbn](https://github.com/dropbox/zxcvbn) password strength checker. |
 | [`crunchy`](https://github.com/muesli/crunchy)  | Crunchy password strength checker                                      |
 | `name`                                          | Checks if password equals the name of the secret                       |
