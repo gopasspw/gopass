@@ -12,6 +12,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -263,7 +264,7 @@ func updateDeps() error {
 	}
 
 	cmd = exec.Command("make", "gha-linux")
-	cmd.Stderr = os.Stderr
+	cmd.Stderr = io.MultiWriter(fh, os.Stderr)
 	cmd.Stdout = fh
 	cmd.Env = []string{
 		"LANG=en_US.UTF-8",
