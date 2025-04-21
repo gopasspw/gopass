@@ -71,8 +71,8 @@ github.com/google/go-querystring v1.1.0 h1:AnCroh3fv4ZBgVIf1Iwtovgjaw/GiKJo8M8yD
 github.com/google/go-querystring v1.1.0/go.mod h1:Kcdr2DB4koayq7X8pmAG4sNG59So17icRSOU623lUBU=
 github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 h1:El6M4kTTCOh6aBiKaUGG7oYTSPP8MxqL4YI3kZKwcP4=
 github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510/go.mod h1:pupxD2MaaD3pAXIBCelhxNneeOaAeabZDe5s4K6zSpQ=
-github.com/gopasspw/clipboard v0.0.0-20250418184741-a9895c5a47ee h1:I1bYhCNc3Qbd/sbjFPFZfeKmNvC+wIuFhwzCDmnBaX8=
-github.com/gopasspw/clipboard v0.0.0-20250418184741-a9895c5a47ee/go.mod h1:i0cShr7JEbOXZ/iKM5RyfBLbu1FPzouO8BTCJy0uHy8=
+github.com/gopasspw/clipboard v0.0.1 h1:arxUYK7k6+5JBTjgEMWlcxjVXxeW5cWDUKULznIbeb8=
+github.com/gopasspw/clipboard v0.0.1/go.mod h1:i0cShr7JEbOXZ/iKM5RyfBLbu1FPzouO8BTCJy0uHy8=
 github.com/gopasspw/gitconfig v0.0.1 h1:3qsCvQZQlOBqgouXeE21U+Pio/SIsFdY/fNBoHox/qw=
 github.com/gopasspw/gitconfig v0.0.1/go.mod h1:QXipMxku0UNLRXdNHskPQ8zsnnT0ZL9+XrNJPCMHuGY=
 github.com/gopasspw/gopass-hibp v1.15.15 h1:zmLhxXKu3fLa7qAexKw4EWVfKGgFzJ1j5ra9nzNnd1Y=
