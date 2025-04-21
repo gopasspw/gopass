@@ -131,10 +131,6 @@ crosscompile:
 codequality: licensecheck
 	@echo ">> CODE QUALITY"
 
-	# Note: there are 2 different version of golangci-lint used inside the project.
-	# https://github.com/gopasspw/gopass/blob/master/.github/workflows/build.yml#L65
-	# https://github.com/gopasspw/gopass/blob/master/.github/workflows/golangci-lint.yml#L46
-	# https://github.com/gopasspw/gopass/blob/master/Makefile#L136
 	@echo -n "     GOLANGCI-LINT "
 	@which golangci-lint > /dev/null; if [ $$? -ne 0 ]; then \
 		$(GO) install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.1.1; \
@@ -143,7 +139,7 @@ codequality: licensecheck
 
 	@echo -n "      KEEP-SORTED "
 	@which keep-sorted > /dev/null; if [ $$? -ne 0 ]; then \
-		$(GO) install github.com/keep-sorted/keep-sorted@latest; \
+		$(GO) install github.com/google/keep-sorted@latest; \
 	fi
 	@keep-sorted --mode lint $(GOFILES_NOVENDOR) || exit 1
 
