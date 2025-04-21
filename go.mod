@@ -3,7 +3,7 @@ module github.com/gopasspw/gopass
 go 1.24.1
 
 require (
-	filippo.io/age v1.2.1-0.20240618131852-7eedd929a6cf
+	filippo.io/age v1.2.1
 	github.com/ProtonMail/go-crypto v1.2.0
 	github.com/blang/semver/v4 v4.0.0
 	github.com/caspr-io/yamlpath v0.0.0-20200722075116-502e8d113a9b
