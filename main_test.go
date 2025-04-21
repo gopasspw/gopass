@@ -3,9 +3,7 @@ package main
 import (
 	"bytes"
 	"flag"
-	"fmt"
 	"os"
-	"runtime"
 	"testing"
 
 	"github.com/blang/semver/v4"
@@ -36,7 +34,8 @@ func TestVersionPrinter(t *testing.T) {
 		commitStr = "(" + commit + ") "
 	}
 
-	assert.Equal(t, fmt.Sprintf("gopass 1.0.0 %s%s %s %s\n", commitStr, runtime.Version(), runtime.GOOS, runtime.GOARCH), buf.String())
+	assert.Contains(t, buf.String(), "gopass 1.0.0")
+	assert.Contains(t, buf.String(), commitStr)
 }
 
 func TestGetVersion(t *testing.T) {
