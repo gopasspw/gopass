@@ -29,13 +29,10 @@ func TestVersionPrinter(t *testing.T) {
 	vp := makeVersionPrinter(buf, semver.Version{Major: 1})
 	vp(nil)
 
-	commitStr := ""
-	if commit, _, _ := parseBuildInfo(); commit != "" {
-		commitStr = "(" + commit + ") "
-	}
+	commit, _, _ := parseBuildInfo()
 
 	assert.Contains(t, buf.String(), "gopass 1.0.0")
-	assert.Contains(t, buf.String(), commitStr)
+	assert.Contains(t, buf.String(), commit)
 }
 
 func TestGetVersion(t *testing.T) {
