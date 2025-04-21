@@ -1,5 +1,5 @@
 
-.TH GOPASS "1" "November 2024" "gopass (github.com/gopasspw/gopass) 1.15.15" "User Commands"
+.TH GOPASS "1" "April 2025" "gopass (github.com/gopasspw/gopass) 1.15.16" "User Commands"
 .SH NAME
 gopass - The standard Unix password manager
 .SH SYNOPSIS
@@ -202,6 +202,10 @@ Search for secrets
 This command will first attempt a simple pattern match on the name of the secret.  If there is an exact match it will be shown directly; if there are multiple matches, a selection will be shown.
 
 .B Flags
+.TP
+\fB\-\-regex\fR,
+\fB\-r\fR,
+Interpret pattern as regular expression
 .TP
 \fB\-\-unsafe\fR,
 \fB\-u\fR,
@@ -406,6 +410,10 @@ Generate time- or hmac-based tokens
 Tries to parse an OTP URL (otpauth://). URL can be TOTP or HOTP. The URL can be provided on its own line or on a key value line with a key named 'totp'.
 
 .B Flags
+.TP
+\fB\-\-chained\fR,
+\fB\-p\fR,
+chain the token to the password
 .TP
 \fB\-\-clip\fR,
 \fB\-c\fR,

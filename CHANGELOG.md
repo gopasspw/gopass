@@ -1,5 +1,39 @@
 # Changelog
 
+## 1.15.16 / 2025-04-21
+
+* [BUGFIX] Allow use of trailing slash for cp/mv command (#3080)
+* [BUGFIX] Check if any usable key matches on clone (#3027)
+* [BUGFIX] Fixed max length check for strings in create/wizard (#3056)
+* [BUGFIX] Fixed password not saving to clipboard with safecontent and autoclip true (#3053)
+* [BUGFIX] replace return of wrong error variable (#3015)
+* [ENHANCEMENT] Add support for autocompletion with flags in REPL mode (#3057)
+* [ENHANCEMENT] Make it possible to override `show.autoclip` (#3082)
+* [FEATURE] Add option -r/--regex to find (#3083)
+* [UX] Make single store sync more intuitive / verbose (#3076)
+* [bugfix] Don't check for autosync on manual triggered sync (#3026) (#3029)
+* [chore] Add keep-sorted linter (#3130)
+* [chore] Add tpl func tests and fix two small issues (#3058)
+* [chore] Do not run linters twice (#3119)
+* [chore] Migrate goreleaser config to v2 (#3122)
+* [chore] Migrate to golangci-lint v2 (#3104)
+* [chore] Move gitconfig to their own repo (#3131)
+* [chore] Move set from internal to pkg (#3129)
+* [chore] Update dependencies (#3120)
+* [feat] Add conditional includes for gitconfig (#3128)
+* [feat] Add unconditional includes for gitconfig (#3127)
+* [feat] Remove expensive and unmaintained zxcvbn-go strength checker (#3133)
+* [feat] Replace clipboard library to support wl-copy args (#3123)
+* [fix] Add LICENSE, Changelog, manpage and shell completions to deb and (#3121)
+* [fix] Fix a flaky test (#3137)
+* [fix] Fix debug.ModuleVersion (#3079)
+* [fix] Fix test failure due to ambient variables (#3135)
+* [fix] Fix test regressions (#3116)
+* [fix] Fix this annoying test
+* [fix] Include git commit hash in tarballs (#3124)
+* [fix] Relase fixes (#3136)
+* [fix] Update Makefile and fix lint violations (#3134)
+
 ## 1.15.15 / 2024-11-24
 
 * [BUGFIX] Replace ~ with user homedir if `$GOPASS_HOMEDIR` is not set (#2961)
