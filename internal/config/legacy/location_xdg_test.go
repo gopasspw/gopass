@@ -36,6 +36,7 @@ func TestConfigLocations(t *testing.T) {
 	})
 
 	t.Run("XDG_CONFIG_HOME set only", func(t *testing.T) {
+		t.Setenv("GOPASS_HOMEDIR", "")
 		t.Setenv("XDG_CONFIG_HOME", xdghome)
 		assert.Equal(t, xdgcfg, ConfigLocations()[0])
 	})
