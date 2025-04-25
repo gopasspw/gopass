@@ -718,6 +718,11 @@ func (s *Action) GetCommands() []*cli.Command {
 			BashComplete: s.Complete,
 			Flags: []cli.Flag{
 				&cli.BoolFlag{
+					Name:    "alsoclip",
+					Aliases: []string{"C"},
+					Usage:   "Copy the time-based token and show it",
+				},
+				&cli.BoolFlag{
 					Name:    "clip",
 					Aliases: []string{"c"},
 					Usage:   "Copy the time-based token into the clipboard",

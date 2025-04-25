@@ -59,12 +59,12 @@ func TestOTP(t *testing.T) {
 
 	t.Run("copy to clipboard", func(t *testing.T) {
 		defer buf.Reset()
-		require.NoError(t, act.otp(ctx, "bar", "", true, false, false, false))
+		require.NoError(t, act.otp(ctx, "bar", "", true, false, false, false, false))
 	})
 
 	t.Run("copy to clipboard chained", func(t *testing.T) {
 		defer buf.Reset()
-		require.NoError(t, act.otp(ctx, "bar", "", true, false, false, true))
+		require.NoError(t, act.otp(ctx, "bar", "", true, false, false, true, false))
 	})
 
 	t.Run("write QR file", func(t *testing.T) {
