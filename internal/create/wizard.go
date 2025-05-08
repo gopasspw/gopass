@@ -102,7 +102,7 @@ func New(ctx context.Context, s backend.Storage) (*Wizard, error) {
 	return w, nil
 }
 
-func (w *Wizard) parseTemplatesFallback(ctx context.Context) ([]Template, error) {
+func (w *Wizard) parseTemplatesFallback(_ context.Context) ([]Template, error) {
 	parsed := []Template{}
 	for _, tpl := range defaultTemplates {
 		t := Template{}
@@ -374,6 +374,7 @@ func generatePassword(ctx context.Context, hostname, charset string) (string, er
 
 		return pwgen.GeneratePasswordCharset(length, charset), nil
 	}
+
 	if _, found := pwrules.LookupRule(ctx, hostname); found {
 		out.Noticef(ctx, "Using password rules for %s ...", hostname)
 		length, err := termio.AskForInt(ctx, fmtfn(4, "b", "How long?"), defaultLength)
@@ -383,21 +384,13 @@ func generatePassword(ctx context.Context, hostname, charset string) (string, er
 
 		return pwgen.NewCrypticForDomain(ctx, length, hostname).Password(), nil
 	}
+
 	xkcd, err := termio.AskForBool(ctx, fmtfn(4, "a", "Human-pronounceable passphrase?"), false)
 	if err != nil {
 		return "", err
 	}
 	if xkcd {
-		length, err := termio.AskForInt(ctx, fmtfn(4, "b", "How many words?"), config.DefaultXKCDLength)
-		if err != nil {
-			return "", err
-		}
-		g := xkcdpwgen.NewGenerator()
-		g.SetNumWords(length)
-		g.SetDelimiter(" ")
-		g.SetCapitalize(true)
-
-		return string(g.GeneratePassword()), nil
+		return generatePasswordXKCD(ctx)
 	}
 
 	length, err := termio.AskForInt(ctx, fmtfn(4, "b", "How long?"), defaultLength)
@@ -405,7 +398,7 @@ func generatePassword(ctx context.Context, hostname, charset string) (string, er
 		return "", err
 	}
 
-	symbols, err := termio.AskForBool(ctx, fmtfn(4, "c", "Include symbols?"), false)
+	symbols, err := termio.AskForBool(ctx, fmtfn(4, "c", "Include symbols?"), config.Bool(ctx, "generate.symbols"))
 	if err != nil {
 		return "", err
 	}
@@ -419,4 +412,32 @@ func generatePassword(ctx context.Context, hostname, charset string) (string, er
 	}
 
 	return pwgen.GeneratePassword(length, symbols), nil
+}
+
+func generatePasswordXKCD(ctx context.Context) (string, error) {
+	length, err := termio.AskForInt(ctx, fmtfn(4, "b", "How many words?"), config.Int(ctx, "pwgen.xkcd-len"))
+	if err != nil {
+		return "", err
+	}
+	if length < 1 {
+		length = config.DefaultXKCDLength
+	}
+
+	g := xkcdpwgen.NewGenerator()
+	g.SetNumWords(length)
+
+	if sv := config.String(ctx, "pwgen.xkcd-sep"); sv != "" {
+		g.SetDelimiter(sv)
+	}
+
+	g.SetCapitalize(config.Bool(ctx, "pwgen.xkcd-capitalize"))
+	g.SetRandomNumbers(config.Bool(ctx, "pwgen.xkcd-numbers"))
+
+	if sv := config.String(ctx, "pwgen.xkcd-lang"); sv != "" {
+		if err := g.UseLangWordlist(sv); err != nil {
+			return "", fmt.Errorf("failed to use wordlist for lang %s: %w", sv, err)
+		}
+	}
+
+	return g.GeneratePasswordString(), nil
 }

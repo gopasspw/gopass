@@ -172,15 +172,6 @@ func (s *Action) generatePassword(ctx context.Context, c *cli.Context, length, n
 
 	cfg, mp := config.FromContext(ctx)
 
-	symbols := false
-	if c.IsSet("symbols") {
-		symbols = c.Bool("symbols")
-	} else {
-		if cfg.GetM(mp, "generate.symbols") != "" {
-			symbols = config.AsBool(cfg.GetM(mp, "generate.symbols"))
-		}
-	}
-
 	generator := cfg.GetM(mp, "generate.generator")
 	if c.IsSet("generator") {
 		generator = c.String("generator")
@@ -188,6 +179,15 @@ func (s *Action) generatePassword(ctx context.Context, c *cli.Context, length, n
 
 	if generator == "xkcd" {
 		return s.generatePasswordXKCD(ctx, c, length)
+	}
+
+	symbols := false
+	if c.IsSet("symbols") {
+		symbols = c.Bool("symbols")
+	} else {
+		if cfg.GetM(mp, "generate.symbols") != "" {
+			symbols = config.AsBool(cfg.GetM(mp, "generate.symbols"))
+		}
 	}
 
 	var pwlen int
