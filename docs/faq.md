@@ -57,9 +57,11 @@ crypto implementation (GPG) and we can not easily work around these.
 
 ## API Stability
 
-gopass is provided as an CLI program, not as a library. While we try to make the packages usable as libraries we make no guarantees whatsoever with respect to the API stability. The gopass version only reflects changes in the CLI commands.
+This repository primarily delivers gopass as a command-line interface (CLI) tool. While the underlying Go packages might be importable, we explicitly state that semantic versioning applies solely to changes in the CLI. We offer no API stability guarantees for the Go packages within this repository, and breaking changes may occur without a major version bump of `gopass` itself.
 
-If you use gopass as a library, be sure to vendor it, and expect breaking changes.
+If you choose to utilize `gopass` packages as libraries, it is strongly recommended to vendor them to mitigate potential integration issues arising from non-backward-compatible updates.
+
+Should specific Go packages within this project prove valuable for independent use, we encourage you to request their extraction into separate repositories. In such dedicated repositories, we will adhere to strict semantic versioning principles, ensuring predictable API stability for those packages.
 
 ## Further Reading
 
