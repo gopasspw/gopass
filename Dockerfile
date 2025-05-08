@@ -1,6 +1,6 @@
 FROM docker.io/library/golang:1.24-alpine@sha256:7772cb5322baa875edd74705556d08f0eeca7b9c4b5367754ce3f2f00041ccee AS build-env
 
-ENV CGO_ENABLED 0
+ENV CGO_ENABLED=0
 
 RUN apk add --no-cache make git ncurses
 
@@ -13,7 +13,7 @@ RUN go mod download
 
 COPY . .
 
-ARG golags_arg=""
+ARG goflags_arg=""
 ENV GOFLAGS=$goflags_arg
 
 RUN make clean
