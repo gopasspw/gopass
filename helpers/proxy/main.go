@@ -14,7 +14,6 @@ import (
 var (
 	listen = flag.String("listen", ":8080", "Address to listen on")
 	// List of common text-based MIME types
-	// You can expand this list as needed
 	textContentTypes = map[string]bool{
 		"text/plain":             true,
 		"text/html":              true,
