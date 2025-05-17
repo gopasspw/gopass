@@ -1,0 +1,4 @@
+Debug::Acquire::http "true";
+Debug::Acquire::https "true";
+Debug::pkgAcquire "true";
+Acquire::http::Proxy "http://HOST:8080/";

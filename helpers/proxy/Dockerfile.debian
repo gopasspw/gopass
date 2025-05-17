@@ -1,0 +1,13 @@
+FROM debian:bookworm
+
+RUN apt update && apt install -y \
+    sudo \
+    curl \
+    iproute2 \
+    iputils-ping \
+    vim
+RUN curl -L -q https://packages.gopass.pw/repos/gopass/gopass-archive-keyring.gpg | sudo tee /usr/share/keyrings/gopass-archive-keyring.gpg
+ADD helpers/proxy/apt.debughttp /etc/apt/apt.conf.d/99debughttp
+ADD helpers/proxy/gopass.sources /etc/apt/sources.list.d/gopass.sources
+
+CMD /bin/bash
