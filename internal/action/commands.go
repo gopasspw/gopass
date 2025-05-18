@@ -308,7 +308,6 @@ func (s *Action) GetCommands() []*cli.Command {
 			Before:       s.IsInitialized,
 			Action:       s.Env,
 			BashComplete: s.Complete,
-			Hidden:       true,
 			Flags: []cli.Flag{
 				&cli.BoolFlag{
 					Name:    "keep-case",
