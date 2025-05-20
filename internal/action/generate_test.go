@@ -81,7 +81,7 @@ func TestGenerate(t *testing.T) {
 			t.Skip("skipping test in short mode.")
 		}
 
-		require.NoError(t, act.Generate(gptest.CliCtxWithFlags(ctx, t, map[string]string{"edit": "true", "editor": "/bin/cat"}, "foobar")))
+		require.NoError(t, act.Generate(gptest.CliCtxWithFlags(ctx, t, map[string]string{"edit": "true", "editor": "/usr/bin/env cat"}, "foobar")))
 		buf.Reset()
 	})
 
