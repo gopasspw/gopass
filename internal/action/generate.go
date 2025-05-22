@@ -79,7 +79,7 @@ func (s *Action) Generate(c *cli.Context) error {
 	}
 
 	// if requested launch editor to add more data to the generated secret.
-	if edit && termio.AskForConfirmation(ctx, fmt.Sprintf("Do you want to add more data for %s?", name)) {
+	if edit {
 		c.Context = ctx
 		if err := s.Edit(c); err != nil {
 			return exit.Error(exit.Unknown, err, "failed to edit %q: %s", name, err)
