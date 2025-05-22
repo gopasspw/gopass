@@ -167,7 +167,7 @@ func hasPwRuleForSecret(ctx context.Context, name string) (string, pwrules.Rule)
 // generatePassword will run through the password generation steps.
 func (s *Action) generatePassword(ctx context.Context, c *cli.Context, length, name string) (string, error) {
 	if domain, rule := hasPwRuleForSecret(ctx, name); domain != "" && !c.Bool("force") {
-		return s.generatePasswordForRule(ctx, c, length, name, domain, rule)
+		return s.generatePasswordForRule(ctx, length, domain, rule)
 	}
 
 	cfg, mp := config.FromContext(ctx)
@@ -261,22 +261,39 @@ func clamp(mi, ma, value int) int {
 	return value
 }
 
-func (s *Action) generatePasswordForRule(ctx context.Context, c *cli.Context, length, name, domain string, rule pwrules.Rule) (string, error) {
+// generatePasswordForRule validates the user-provided password length against
+// the rule for the domain and condtionally prompts the user for a correct
+// length if the initial value is invalid.
+func (s *Action) generatePasswordForRule(ctx context.Context, length, domain string, rule pwrules.Rule) (string, error) {
 	out.Noticef(ctx, "Using password rules for %s ...", domain)
 
-	wl := 16
-	if iv, err := strconv.Atoi(length); err == nil {
-		wl = clamp(rule.Minlen, rule.Maxlen, iv)
-		debug.Log("restricting requested password length (%s) to %d because of the rule {%d,%d}", length, wl, rule.Minlen, rule.Maxlen)
-	}
+	var iv int
+	var err error
 
-	question := fmt.Sprintf("How long should the password be? (min: %d, max: %d)", rule.Minlen, rule.Maxlen)
-	iv, err := termio.AskForInt(ctx, question, wl)
-	if err != nil {
+	if iv, err = strconv.Atoi(length); err != nil {
 		return "", exit.Error(exit.Usage, err, "password length must be a number")
 	}
 
-	iv = clamp(rule.Minlen, rule.Maxlen, iv)
+	if iv < rule.Minlen || iv > rule.Maxlen {
+		debug.Log(
+			"pw length %s does not match rule {min: %d, max: %d}, prompting for another one",
+			length, rule.Minlen, rule.Maxlen,
+		)
+
+		question := fmt.Sprintf(
+			"How long should the password be? (min: %d, max: %d)",
+			rule.Minlen, rule.Maxlen,
+		)
+
+		var sv string
+
+		if sv, err = termio.AskForString(ctx, question, strconv.Itoa(rule.Maxlen)); err != nil {
+			return "", err
+		}
+
+		// recursively prompt the user until a valid length is provided
+		return s.generatePasswordForRule(ctx, sv, domain, rule)
+	}
 
 	pw := pwgen.NewCrypticForDomain(ctx, iv, domain).Password()
 	if pw == "" {
