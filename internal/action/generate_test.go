@@ -14,6 +14,7 @@ import (
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/pwgen/pwrules"
 	"github.com/gopasspw/gopass/tests/gptest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -371,4 +372,74 @@ func TestDefaultLengthFromEnv(t *testing.T) {
 			assert.Equal(t, isCustom, tc.custom)
 		}
 	})
+}
+
+func TestHasPwRuleForSecret(t *testing.T) {
+	ctx := t.Context()
+
+	wantRule := pwrules.Rule{
+		Minlen:   8,
+		Maxlen:   63,
+		Required: []string{"digit", "lower", "upper"},
+		Allowed:  []string{"ascii-printable"},
+		Exact:    false,
+	}
+	for _, tc := range []struct {
+		name   string
+		input  string
+		domain string
+		want   pwrules.Rule
+	}{
+		{
+			name:   "domain only",
+			input:  "websites/apple.com",
+			domain: "apple.com",
+			want:   wantRule,
+		},
+		{
+			name:   "domain and username",
+			input:  "websites/apple.com/gopass",
+			domain: "apple.com",
+			want:   wantRule,
+		},
+		{
+			name:   "domain and email",
+			input:  "websites/apple.com/gopass@gopass.pw",
+			domain: "apple.com",
+			want:   wantRule,
+		},
+		{
+			name:   "domain and user that looks like a domain",
+			input:  "websites/apple.com/gopass.pw",
+			domain: "apple.com",
+			want:   wantRule,
+		},
+		{
+			name:   "empty input",
+			input:  "",
+			domain: "",
+			want:   pwrules.Rule{},
+		},
+		{
+			// domains are search for starting from the end of the string, so
+			// the the further right the domain is, the more specific it is.
+			name:   "double domains",
+			input:  "websites/apple.com/google.com",
+			domain: "google.com",
+			want: pwrules.Rule{
+				Minlen:    8,
+				Maxlen:    0,
+				Required:  []string{},
+				Allowed:   []string{"", "digit", "lower", "upper"},
+				Maxconsec: 0,
+				Exact:     false,
+			},
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			domain, rule := hasPwRuleForSecret(ctx, tc.input)
+			assert.Equal(t, tc.domain, domain, tc.name)
+			assert.Equal(t, tc.want, rule, tc.name)
+		})
+	}
 }

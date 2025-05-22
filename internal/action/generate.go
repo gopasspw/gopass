@@ -152,7 +152,11 @@ func (s *Action) generateCopyOrPrint(ctx context.Context, c *cli.Context, name, 
 	return nil
 }
 
+// hasRuleForSecret extracts the domain from the secret name and checks if there is a
+// password rule for it. If so, it returns the domain and the rule. If the domain is
+// empty no rule is found.
 func hasPwRuleForSecret(ctx context.Context, name string) (string, pwrules.Rule) {
+	// trim elements from the end of the path until we find a domain or the root.
 	for name != "" && name != "." {
 		d := path.Base(name)
 		if r, found := pwrules.LookupRule(ctx, d); found {
@@ -247,18 +251,6 @@ func getPwLengthFromEnvOrAskUser(ctx context.Context) (int, error) {
 	}
 
 	return pwlen, nil
-}
-
-func clamp(mi, ma, value int) int {
-	if value < mi {
-		return mi
-	}
-
-	if value > ma && ma > 0 {
-		return ma
-	}
-
-	return value
 }
 
 // generatePasswordForRule validates the user-provided password length against
