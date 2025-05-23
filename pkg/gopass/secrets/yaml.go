@@ -85,6 +85,17 @@ func (y *YAML) Set(key string, value any) error {
 	return nil
 }
 
+// Ref returns reference in case of having password of the
+// gopass://ref
+// which references another secret in the store.
+func (y *YAML) Ref() (string, bool) {
+	if strings.HasPrefix(y.password, gopassRef) {
+		return strings.TrimPrefix(y.password, gopassRef), true
+	}
+
+	return "", false
+}
+
 // Add doesn't work since as per YAML specification keys must be unique.
 func (y *YAML) Add(key string, value any) error {
 	return ErrNotSupported

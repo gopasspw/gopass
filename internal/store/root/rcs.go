@@ -65,6 +65,15 @@ func (r *Store) GetRevision(ctx context.Context, name, revision string) (context
 	store, name := r.getStore(name)
 	sec, err := store.GetRevision(ctx, name, revision)
 
+	if ref, ok := sec.Ref(); ok {
+		refSec, err := store.GetRevision(ctx, ref, revision)
+		if err != nil {
+			return ctx, sec, err
+		}
+
+		sec.SetPassword(refSec.Password())
+	}
+
 	return ctx, sec, err
 }
 

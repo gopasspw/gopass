@@ -10,5 +10,19 @@ import (
 func (r *Store) Get(ctx context.Context, name string) (gopass.Secret, error) {
 	store, name := r.getStore(name)
 
-	return store.Get(ctx, name)
+	sec, err := store.Get(ctx, name)
+	if err != nil {
+		return sec, err
+	}
+
+	if ref, ok := sec.Ref(); ok {
+		refSec, err := store.Get(ctx, ref)
+		if err != nil {
+			return sec, err
+		}
+
+		sec.SetPassword(refSec.Password())
+	}
+
+	return sec, nil
 }
