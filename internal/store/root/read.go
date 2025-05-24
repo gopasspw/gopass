@@ -2,6 +2,7 @@ package root
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/gopasspw/gopass/pkg/gopass"
 )
@@ -18,7 +19,7 @@ func (r *Store) Get(ctx context.Context, name string) (gopass.Secret, error) {
 	if ref, ok := sec.Ref(); ok {
 		refSec, err := store.Get(ctx, ref)
 		if err != nil {
-			return sec, err
+			return sec, fmt.Errorf("failed to read reference %s by %s: %w", ref, name, err)
 		}
 
 		sec.SetPassword(refSec.Password())
