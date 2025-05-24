@@ -26,6 +26,11 @@ type Secret interface {
 	// Del removes a single header value
 	Del(key string) bool
 
+	// Ref returns reference in case of having password of the
+	// gopass://ref
+	// which references another secret in the store.
+	Ref() (string, bool)
+
 	// GetBody returns everything except the header. Use Bytes to get everything.
 	Body() string
 	Password() string

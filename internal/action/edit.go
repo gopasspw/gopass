@@ -24,6 +24,8 @@ import (
 // Edit the content of a password file.
 func (s *Action) Edit(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
+	ctx = ctxutil.WithFollowRef(ctx, false)
+
 	name := c.Args().First()
 	if name == "" {
 		return exit.Error(exit.Usage, nil, "Usage: %s edit secret", s.Name)

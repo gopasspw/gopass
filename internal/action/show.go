@@ -60,7 +60,7 @@ func showParseArgs(c *cli.Context) context.Context {
 
 	if c.IsSet("chars") {
 		iv := []int{}
-		for _, v := range strings.Split(c.String("chars"), ",") {
+		for v := range strings.SplitSeq(c.String("chars"), ",") {
 			v = strings.TrimSpace(v)
 			if v == "" {
 				continue

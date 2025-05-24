@@ -317,6 +317,9 @@ func initContext(ctx context.Context, cfg *config.Config) context.Context {
 		ctx = ctxutil.WithStdin(ctx, true)
 	}
 
+	// enable following references based on the configuration
+	ctx = ctxutil.WithFollowRef(ctx, config.AsBool(cfg.Get("core.follow-references")))
+
 	// disable colored output on windows since cmd.exe doesn't support ANSI color
 	// codes. Other terminal may do, but until we can figure that out better
 	// disable this for all terms on this platform
