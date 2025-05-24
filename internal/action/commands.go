@@ -19,10 +19,6 @@ func ShowFlags() []cli.Flag {
 			Usage:   "Always answer yes to yes/no questions",
 		},
 		&cli.BoolFlag{
-			Name:  "no-follow-ref",
-			Usage: "do not following the gopass:// referenced password",
-		},
-		&cli.BoolFlag{
 			Name:    "clip",
 			Aliases: []string{"c"},
 			Usage:   "Copy the password value into the clipboard",
