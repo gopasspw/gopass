@@ -2,6 +2,7 @@ package root
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/internal/out"
@@ -65,10 +66,10 @@ func (r *Store) GetRevision(ctx context.Context, name, revision string) (context
 	store, name := r.getStore(name)
 	sec, err := store.GetRevision(ctx, name, revision)
 
-	if ref, ok := sec.Ref(); ok {
+	if ref, ok := sec.Ref(); ctxutil.IsFollowRef(ctx) && ok {
 		refSec, err := store.GetRevision(ctx, ref, revision)
 		if err != nil {
-			return ctx, sec, err
+			return ctx, sec, fmt.Errorf("failed to read reference %s by %s: %w", ref, name, err)
 		}
 
 		sec.SetPassword(refSec.Password())

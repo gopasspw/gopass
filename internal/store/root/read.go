@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/gopass"
 )
 
@@ -16,7 +17,7 @@ func (r *Store) Get(ctx context.Context, name string) (gopass.Secret, error) {
 		return sec, err
 	}
 
-	if ref, ok := sec.Ref(); ok {
+	if ref, ok := sec.Ref(); ctxutil.IsFollowRef(ctx) && ok {
 		refSec, err := store.Get(ctx, ref)
 		if err != nil {
 			return sec, fmt.Errorf("failed to read reference %s by %s: %w", ref, name, err)

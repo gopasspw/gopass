@@ -33,6 +33,7 @@ const (
 	ctxKeyCommitTimestamp
 	ctxKeyShowParsing
 	ctxKeyHidden
+	ctxFollowRef
 )
 
 // ErrNoCallback is returned when no callback is set in the context.
@@ -43,6 +44,10 @@ var ErrNoCallback = fmt.Errorf("no callback")
 func WithGlobalFlags(c *cli.Context) context.Context {
 	if c.Bool("yes") {
 		return WithAlwaysYes(c.Context, true)
+	}
+
+	if c.Bool("no-follow-ref") {
+		return WithFollowRef(c.Context, false)
 	}
 
 	return c.Context
@@ -156,6 +161,23 @@ func HasGitCommit(ctx context.Context) bool {
 // IsGitCommit returns the value of git commit or the default (true).
 func IsGitCommit(ctx context.Context) bool {
 	return is(ctx, ctxKeyGitCommit, true)
+}
+
+// IsFollowRef returns the value of follow-ref or the default (true).
+func IsFollowRef(ctx context.Context) bool {
+	return is(ctx, ctxFollowRef, true)
+}
+
+// HasFollowRef returns true if a value for follow-ref has been set in this context.
+func HasFollowRef(ctx context.Context) bool {
+	_, ok := ctx.Value(ctxFollowRef).(bool)
+
+	return ok
+}
+
+// WithFollowRef returns a context with the value of follow-ref set.
+func WithFollowRef(ctx context.Context, bv bool) context.Context {
+	return context.WithValue(ctx, ctxFollowRef, bv)
 }
 
 // WithAlwaysYes returns a context with the value of always yes set.
