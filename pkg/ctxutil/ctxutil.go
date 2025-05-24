@@ -46,10 +46,6 @@ func WithGlobalFlags(c *cli.Context) context.Context {
 		return WithAlwaysYes(c.Context, true)
 	}
 
-	if c.Bool("no-follow-ref") {
-		return WithFollowRef(c.Context, false)
-	}
-
 	return c.Context
 }
 
@@ -165,7 +161,7 @@ func IsGitCommit(ctx context.Context) bool {
 
 // IsFollowRef returns the value of follow-ref or the default (true).
 func IsFollowRef(ctx context.Context) bool {
-	return is(ctx, ctxFollowRef, true)
+	return is(ctx, ctxFollowRef, false)
 }
 
 // HasFollowRef returns true if a value for follow-ref has been set in this context.
