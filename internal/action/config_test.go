@@ -42,6 +42,7 @@ core.autopush = true
 core.autosync = true
 core.cliptimeout = 45
 core.exportkeys = true
+core.follow-references = false
 core.nopager = true
 core.notifications = true
 generate.autoclip = true
@@ -84,6 +85,7 @@ core.autopush = true
 core.autosync = true
 core.cliptimeout = 45
 core.exportkeys = true
+core.follow-references = false
 core.nopager = true
 core.notifications = true
 generate.autoclip = true
@@ -119,6 +121,7 @@ core.autopush
 core.autosync
 core.cliptimeout
 core.exportkeys
+core.follow-references
 core.nopager
 core.notifications
 generate.autoclip
