@@ -72,8 +72,8 @@ func TestMountConfig(t *testing.T) {
 core.autosync = true
 core.cliptimeout = 45
 core.exportkeys = false
-core.notifications = true
 core.follow-references = false
+core.notifications = true
 `
 	wanted += "mounts.mnt/m1.path = " + ts.storeDir("m1") + "\n"
 	wanted += "mounts.path = " + ts.storeDir("root") + "\n"
