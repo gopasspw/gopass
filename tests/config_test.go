@@ -19,8 +19,8 @@ func TestBaseConfig(t *testing.T) {
 core.autosync = true
 core.cliptimeout = 45
 core.exportkeys = false
-core.notifications = true
 core.follow-references = false
+core.notifications = true
 `
 	wanted += "mounts.path = " + ts.storeDir("root") + "\n" +
 		"pwgen.xkcd-lang = en"
