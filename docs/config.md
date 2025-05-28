@@ -5,7 +5,7 @@
 Some configuration options are only available through setting environment variables.
 
 | **Option**                   | **Type** | **Description**                                                                                                                                                   |
-|------------------------------|----------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ---------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `CHECKPOINT_DISABLE`         | `bool`   | Set to any non-empty value to disable calling the GitHub API when running `gopass version`.                                                                       |
 | `GOPASS_AGE_PASSWORD`        | `string` | Set to any value (including the empty string) to use as a password for the age identity file containing your secret age identities.                               |
 | `GOPASS_AUTOSYNC_INTERVAL`   | `int`    | Set this to the number of days between autosync runs.                                                                                                             |
@@ -34,7 +34,7 @@ Some configuration options are only available through setting environment variab
 | `GOPASS_NO_NOTIFY`           | `bool`   | Set to any non-empty value to prevent notifications                                                                                                               |
 | `GOPASS_NO_REMINDER`         | `bool`   | Set to any non-empty value to prevent reminders                                                                                                                   |
 | `GOPASS_PW_DEFAULT_LENGTH`   | `int`    | Set to any integer value larger than zero to define a different default length in the `generate` command. By default the length is 24 characters.                 |
-| `GOPASS_SSH_DIR`             | `string` | Set to a filepath that contains ssh keys. Overrides default location. |
+| `GOPASS_SSH_DIR`             | `string` | Set to a filepath that contains ssh keys. Overrides default location.                                                                                             |
 | `GOPASS_UMASK`               | `octal`  | Set to any valid umask to mask bits of files created by gopass                                                                                                    |
 | `GOPASS_UNCLIP_CHECKSUM`     | `string` | (internal) Used between gopass and it's unclip helper.                                                                                                            |
 | `GOPASS_UNCLIP_NAME`         | `string` | (internal) Used between gopass and it's unclip helper.                                                                                                            |
@@ -43,7 +43,7 @@ Some configuration options are only available through setting environment variab
 Variables not exclusively used by gopass:
 
 | **Option**             | **Type** | **Description**                                                                                        |
-|------------------------|----------|--------------------------------------------------------------------------------------------------------|
+| ---------------------- | -------- | ------------------------------------------------------------------------------------------------------ |
 | `PASSWORD_STORE_DIR`   | `string` | absolute path containing the password store (a directory). Only supported during initialization!       |
 | `PASSWORD_STORE_UMASK` | `string` | Set to any valid umask to mask bits of files created by gopass (GOPASS_UMASK has precedence over this) |
 | `EDITOR`               | `string` | command name to execute for editing password entries                                                   |
@@ -58,10 +58,10 @@ During start up, gopass will look for a configuration file at `$HOME/.config/gop
 
 All configuration options are also available for reading and writing through the sub-command `gopass config`.
 
-* To display all values: `gopass config`
-* To display a single value: `gopass config generate.autoclip`
-* To update a single value: `gopass config generate.autoclip false`
-* As many other sub-commands this command accepts a `--store` flag to operate on a given sub-store, provided the sub-store is a remote one.
+- To display all values: `gopass config`
+- To display a single value: `gopass config generate.autoclip`
+- To update a single value: `gopass config generate.autoclip false`
+- As many other sub-commands this command accepts a `--store` flag to operate on a given sub-store, provided the sub-store is a remote one.
 
 ### Configuration format
 
@@ -70,19 +70,19 @@ different configuration sources that take precedence over each other, just like 
 
 #### Configuration precedence
 
-* Hard-coded presets apply if nothing else is set
-* System-wide configuration file allows operators or package maintainers to supply system-wide defaults in `/etc/gopass/config`.
-* User-wide (aka. global) configuration allows to set per-user settings. This is the closest equivalent to the old gopass configs. Located in `$HOME/.config/gopass/config`
-* Per-store (aka. local) configuration allow to set per-store settings, e.g. read-only. Located in `<STORE_DIR>/config`.
-* Per-store unversioned (aka `config.worktree`) configuration allows to override versioned per-store settings, e.g. disabling read-only. Located in `<STORE_DIR>/config.worktree`
-* Environment variables (or command line flags) override all other values. Read from `GOPASS_CONFIG_KEY_n` and `GOPASS_CONFIG_VALUE_n` up to `GOPASS_CONFIG_COUNT`. Command line flags take precedence over environment variables.
+- Hard-coded presets apply if nothing else is set
+- System-wide configuration file allows operators or package maintainers to supply system-wide defaults in `/etc/gopass/config`.
+- User-wide (aka. global) configuration allows to set per-user settings. This is the closest equivalent to the old gopass configs. Located in `$HOME/.config/gopass/config`
+- Per-store (aka. local) configuration allow to set per-store settings, e.g. read-only. Located in `<STORE_DIR>/config`.
+- Per-store unversioned (aka `config.worktree`) configuration allows to override versioned per-store settings, e.g. disabling read-only. Located in `<STORE_DIR>/config.worktree`
+- Environment variables (or command line flags) override all other values. Read from `GOPASS_CONFIG_KEY_n` and `GOPASS_CONFIG_VALUE_n` up to `GOPASS_CONFIG_COUNT`. Command line flags take precedence over environment variables.
 
 ### Configuration options
 
 This is a list of available options:
 
-| **Option**                      | **Type** | Description                                                                                                                                                                                                                        | *Default*                           |
-|---------------------------------|----------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------|
+| **Option**                      | **Type** | Description                                                                                                                                                                                                                        | _Default_                           |
+| ------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------- |
 | `age.usekeychain`               | `bool`   | Use the OS keychain to cache age passphrases.                                                                                                                                                                                      | `false`                             |
 | `audit.concurrency`             | `int`    | Number of concurrent audit workers.                                                                                                                                                                                                | ``                                  |
 | `audit.hibp-dump-file`          | `string` | Specify to a HIBPv2 Dump file (sorted) if you want `audit` to check password hashes against this file.                                                                                                                             | `None`                              |
@@ -94,6 +94,7 @@ This is a list of available options:
 | `core.cliptimeout`              | `int`    | How many seconds the secret is stored when using `-c`. Setting this to `0` disables auto-clear.                                                                                                                                    | `45`                                |
 | `core.exportkeys`               | `bool`   | Export public keys of all recipients to the store.                                                                                                                                                                                 | `true`                              |
 | `core.nocolor`                  | `bool`   | Do not use color.                                                                                                                                                                                                                  | `false`                             |
+| `core.follow-references`        | `bool`   | Follow references in passwords. You can reference another file using `gopass://path` in store to use that file password.                                                                                                           | `false`                             |
 | `core.nopager`                  | `bool`   | Do not invoke a pager to display long lists.                                                                                                                                                                                       | `false`                             |
 | `core.noreminder`               | `bool`   | Set to true to disable periodic update reminder. Equivalent to setting `GOPASS_NO_REMINDER`.                                                                                                                                       | `false`                             |
 | `core.notifications`            | `bool`   | Enable desktop notifications.                                                                                                                                                                                                      | `true`                              |
@@ -115,15 +116,15 @@ This is a list of available options:
 | `generate.strict`               | `bool`   | Use strict mode for generated password.                                                                                                                                                                                            | `false`                             |
 | `generate.symbols`              | `bool`   | Include symbols in generated password.                                                                                                                                                                                             | `false`                             |
 | `mounts.path`                   | `string` | Path to the root store.                                                                                                                                                                                                            | `$XDG_DATA_HOME/gopass/stores/root` |
-| `notify.disable-icon`           | `bool`   | Do not show notification icon (not available on every platform). |
-| `otp.autoclip`                  | `bool`   | Automatically clip in `gopass otp` by default, while still displaying the codes and timers.                                                                              | `false`                             |
-| `otp.onlyclip`                  | `bool`   | Automatically clip in `gopass otp` by default, without displaying the OTP codes. This takes precedence over `otp.autoclip`. Requires using `gopass otp --clip=false` to force display the codes.                                                                                       | `false`                             |
+| `notify.disable-icon`           | `bool`   | Do not show notification icon (not available on every platform).                                                                                                                                                                   |
+| `otp.autoclip`                  | `bool`   | Automatically clip in `gopass otp` by default, while still displaying the codes and timers.                                                                                                                                        | `false`                             |
+| `otp.onlyclip`                  | `bool`   | Automatically clip in `gopass otp` by default, without displaying the OTP codes. This takes precedence over `otp.autoclip`. Requires using `gopass otp --clip=false` to force display the codes.                                   | `false`                             |
 | `recipients.check`              | `bool`   | Check recipients hash. The global config option takes precedence over local ones here for security reasons.                                                                                                                        | `false`                             |
 | `recipients.hash`               | `string` | SHA256 hash of the recipients file. Used to notify the user when the recipients files change. Not set, nor read at the local level for security reasons.                                                                           | ``                                  |
 | `recipients.remove-extra-keys`  | `bool`   | Remove extra recipients during key import. Not supported at the local level for security reasons.                                                                                                                                  | `false`                             |
 | `show.autoclip`                 | `bool`   | Autoclip in `gopass show` by default.                                                                                                                                                                                              | `false`                             |
 | `show.post-hook`                | `string` | This hook is run right after displaying a secret with `gopass show`.                                                                                                                                                               | `None`                              |
-| `show.safecontent`              | `bool`   | Only output *safe content* (i.e. everything but the first line of a secret) to the terminal. Use *copy* (`-c`) to retrieve the password in the clipboard, or *force* (`-f`) to still print it.                                     | `false`                             |
+| `show.safecontent`              | `bool`   | Only output _safe content_ (i.e. everything but the first line of a secret) to the terminal. Use _copy_ (`-c`) to retrieve the password in the clipboard, or _force_ (`-f`) to still print it.                                     | `false`                             |
 | `updater.check`                 | `bool`   | Check for updates when running `gopass version`. Only supported as a global, system or env config option, not at the local level.                                                                                                  | `true`                              |
 | `output.internal-pager`         | `bool`   | Use the internal pager `ov`.                                                                                                                                                                                                       | `false`                             |
 | `pwgen.xkcd-sep`                | `string` | `xkcd` password generator separator.                                                                                                                                                                                               | ` `                                 |
@@ -136,7 +137,7 @@ Furthermore, the following table list the legacy options (starting with v1.15.9)
 unless you've set them at the system level or using Env variables, in which case you'll need to migrate them manually:
 
 | **Legacy option name** | **New option name** | **Version of migration** |
-|------------------------|---------------------|--------------------------|
+| ---------------------- | ------------------- | ------------------------ |
 | `core.showsafecontent` | `show.safecontent`  | v1.15.9                  |
 | `core.autoclip`        | `generate.autoclip` | v1.15.9                  |
 | `core.showautoclip`    | `show.autoclip`     | v1.15.9                  |

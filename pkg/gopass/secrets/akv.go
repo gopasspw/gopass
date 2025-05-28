@@ -11,7 +11,10 @@ import (
 	"github.com/gopasspw/gopass/pkg/set"
 )
 
-var kvSep = ": "
+var (
+	kvSep     = ": "
+	gopassRef = "gopass://"
+)
 
 // AKV is the new Key-Value implementation that will replace KV.
 type AKV struct {
@@ -75,6 +78,17 @@ func (a *AKV) Values(key string) ([]string, bool) {
 	v, found := a.kvp[key]
 
 	return v, found
+}
+
+// Ref returns reference in case of having password of the
+// gopass://ref
+// which references another secret in the store.
+func (a *AKV) Ref() (string, bool) {
+	if strings.HasPrefix(a.password, gopassRef) {
+		return strings.TrimPrefix(a.password, gopassRef), true
+	}
+
+	return "", false
 }
 
 // Set writes a single key.

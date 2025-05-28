@@ -47,12 +47,13 @@ func newGitconfig() *gitconfig.Configs {
 }
 
 var defaults = map[string]string{
-	"core.autopush":      "true",
-	"core.autosync":      "true",
-	"core.cliptimeout":   "45",
-	"core.exportkeys":    "true",
-	"core.notifications": "true",
-	"pwgen.xkcd-lang":    "en",
+	"core.autopush":          "true",
+	"core.autosync":          "true",
+	"core.cliptimeout":       "45",
+	"core.exportkeys":        "true",
+	"core.notifications":     "true",
+	"core.follow-references": "false",
+	"pwgen.xkcd-lang":        "en",
 }
 
 // Config is a gopass config handler.
