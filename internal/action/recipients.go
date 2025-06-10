@@ -143,7 +143,7 @@ func (s *Action) RecipientsAdd(c *cli.Context) error {
 
 		debug.Log("found recipients for %q: %+v", r, keys)
 
-		if !termio.AskForConfirmation(ctx, fmt.Sprintf("Do you want to add %q (key %q) as a recipient to the store %q?", crypto.FormatKey(ctx, r, ""), r, store)) {
+		if !force && !termio.AskForConfirmation(ctx, fmt.Sprintf("Do you want to add %q (key %q) as a recipient to the store %q?", crypto.FormatKey(ctx, r, ""), r, store)) {
 			continue
 		}
 
