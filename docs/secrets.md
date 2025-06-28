@@ -1,7 +1,7 @@
 # Secrets
 
 `gopass` supports different secret formats. This page documents the different formats.
-You can read more about how secrets are shown and parsed in the documentation for the [`show` commands](docs/commands/show.md#parsing-and-secrets).
+You can read more about how secrets are shown and parsed in the documentation for the [`show` commands](commands/show.md#parsing-and-secrets).
 
 ## Key-Value
 
