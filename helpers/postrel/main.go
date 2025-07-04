@@ -88,17 +88,17 @@ func main() {
 	}
 
 	// update gopass.pw
-	fmt.Println("☝  Updating gopass.pw ...")
-	if err := updateGopasspw(htmlDir, curVer); err != nil {
-		fmt.Printf("Failed to update gopasspw.github.io: %s\n", err)
-	}
+	// fmt.Println("☝  Updating gopass.pw ...")
+	// if err := updateGopasspw(htmlDir, curVer); err != nil {
+	// 	fmt.Printf("Failed to update gopasspw.github.io: %s\n", err)
+	// }
 
-	// only update gopasspw
-	if len(os.Args) > 1 && os.Args[1] == "render" {
-		fmt.Println("💎🙌 Done (render gopasspw only) 🚀🚀🚀🚀🚀🚀")
+	// // only update gopasspw
+	// if len(os.Args) > 1 && os.Args[1] == "render" {
+	// 	fmt.Println("💎🙌 Done (render gopasspw only) 🚀🚀🚀🚀🚀🚀")
 
-		return
-	}
+	// 	return
+	// }
 
 	mustCheckEnv()
 
