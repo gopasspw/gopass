@@ -452,7 +452,7 @@ Because gopass is fully backwards compatible with pass, you can use some existin
 
 * Android - [PwdStore](https://github.com/zeapo/Android-Password-Store)
 * iOS - [Pass for iOS](https://github.com/davidjb/pass-ios#readme)
-* Windows / MacOS / Linux -  [QtPass](https://qtpass.org/)
+* Windows / MacOS / Linux -  [QtPass](https://qtpass.org/),[Pass Simple](https://sourceforge.net/projects/pass-simple/)
 
 There is also [Gopass UI](https://github.com/codecentric/gopass-ui) which was exclusively implemented for gopass and is available for MacOS, Linux and Windows.
 
