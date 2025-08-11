@@ -51,6 +51,7 @@ sysinfo:
 
 clean:
 	@echo -n ">> CLEAN"
+	@rm -rf vendor/
 	@$(GO) clean -i ./...
 	@rm -f ./coverage-all.html
 	@rm -f ./coverage-all.out
