@@ -468,7 +468,7 @@ func TestShowHasAliasDomain(t *testing.T) {
 	sec.SetPassword("foo")
 	require.NoError(t, act.Store.Set(ctx, "websites/foo.de/user", sec))
 
-	require.NoError(t, act.cfg.Set("", "domain-alias.foo.de.insteadOf", "foo.com"))
+	require.NoError(t, act.cfg.Set("", "domain-alias.foo.de.insteadof", "foo.com"))
 
 	alias := act.hasAliasDomain(ctx, "websites/foo.com/user")
 	assert.Equal(t, "websites/foo.de/user", alias)
