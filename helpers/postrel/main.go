@@ -270,8 +270,19 @@ func versionFile() (semver.Version, error) {
 	return semver.Parse(strings.TrimSpace(string(buf)))
 }
 
-func goVersion() string {
-	sv := semver.MustParse(strings.TrimPrefix(runtime.Version(), "go"))
+func goVersion(v string) string {
+	v = strings.TrimPrefix(v, "go")
+	sv, err := semver.ParseTolerant(v)
+	if err != nil {
+		// if we can't parse the version, we assume it's a dev version
+		// and return the current major.minor version
+		if len(v) > 3 {
+			sv, err = semver.ParseTolerant(v[:3])
+			if err != nil {
+				panic(err)
+			}
+		}
+	}
 
 	return fmt.Sprintf("%d.%d", sv.Major, sv.Minor)
 }
@@ -286,7 +297,7 @@ func newIntegrationsUpdater(client *github.Client, v semver.Version) (*inUpdater
 	return &inUpdater{
 		github: client,
 		v:      v,
-		goVer:  goVersion(),
+		goVer:  goVersion(runtime.Version()),
 	}, nil
 }
 

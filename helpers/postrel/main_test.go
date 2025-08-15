@@ -1,5 +1,5 @@
-//go:build linux
-// +build linux
+//go:build linux || darwin
+// +build linux darwin
 
 package main
 
@@ -65,8 +65,10 @@ func TestVersionFile(t *testing.T) {
 
 // Test goVersion function
 func TestGoVersion(t *testing.T) {
-	version := goVersion()
-	assert.NotEmpty(t, version)
+	for _, v := range []string{"1.15", "1.16", "1.17", "1.25rc2"} {
+		t.Logf("Testing goVersion with %s", v)
+		assert.NotEmpty(t, goVersion(v), v)
+	}
 }
 
 // Test updateWorkflows function
