@@ -10,14 +10,14 @@ import (
 
 func TestNew(t *testing.T) {
 	ctx := t.Context()
-	a, err := New(ctx)
+	a, err := New(ctx, "")
 	require.NoError(t, err)
 	assert.NotNil(t, a)
 }
 
 func TestInitialized(t *testing.T) {
 	ctx := t.Context()
-	a, err := New(ctx)
+	a, err := New(ctx, "")
 	require.NoError(t, err)
 	assert.NotNil(t, a)
 
@@ -27,7 +27,7 @@ func TestInitialized(t *testing.T) {
 
 func TestName(t *testing.T) {
 	ctx := t.Context()
-	a, err := New(ctx)
+	a, err := New(ctx, "")
 	require.NoError(t, err)
 	assert.NotNil(t, a)
 
@@ -37,7 +37,7 @@ func TestName(t *testing.T) {
 
 func TestVersion(t *testing.T) {
 	ctx := t.Context()
-	a, err := New(ctx)
+	a, err := New(ctx, "")
 	require.NoError(t, err)
 	assert.NotNil(t, a)
 
@@ -48,7 +48,7 @@ func TestVersion(t *testing.T) {
 
 func TestExt(t *testing.T) {
 	ctx := t.Context()
-	a, err := New(ctx)
+	a, err := New(ctx, "")
 	require.NoError(t, err)
 	assert.NotNil(t, a)
 
@@ -58,7 +58,7 @@ func TestExt(t *testing.T) {
 
 func TestIDFile(t *testing.T) {
 	ctx := t.Context()
-	a, err := New(ctx)
+	a, err := New(ctx, "")
 	require.NoError(t, err)
 	assert.NotNil(t, a)
 
@@ -68,7 +68,7 @@ func TestIDFile(t *testing.T) {
 
 func TestConcurrency(t *testing.T) {
 	ctx := t.Context()
-	a, err := New(ctx)
+	a, err := New(ctx, "")
 	require.NoError(t, err)
 	assert.NotNil(t, a)
 

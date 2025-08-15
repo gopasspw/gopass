@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/gopasspw/gopass/internal/backend"
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/fsutil"
@@ -23,7 +24,7 @@ type loader struct{}
 func (l loader) New(ctx context.Context) (backend.Crypto, error) {
 	debug.Log("Using Crypto Backend: %s", name)
 
-	return New(ctx)
+	return New(ctx, config.String(ctx, "age.ssh-key-path"))
 }
 
 func (l loader) Handles(ctx context.Context, s backend.Storage) error {

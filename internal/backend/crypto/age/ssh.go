@@ -32,33 +32,62 @@ func (a *Age) getSSHIdentities(ctx context.Context) (map[string]age.Identity, er
 		return sshCache, nil
 	}
 
+	ids := make(map[string]age.Identity, 10) // preallocate some space for the cache
+	sshDirs := make([]string, 0, 2)
+
 	sshDir, err := getSSHDir()
 	if err != nil {
-		debug.Log("no .ssh directory found at %s. Ignoring SSH identities", sshDir)
-
-		return nil, fmt.Errorf("no identities found: %w", err)
+		debug.Log("no .ssh directory found at %s.", sshDir)
 	}
-
-	files, err := os.ReadDir(sshDir)
-	if err != nil {
-		debug.Log("unable to read .ssh dir %s: %s", sshDir, err)
-
-		return nil, fmt.Errorf("no identities found: %w", ErrNoSSHDir)
+	if sshDir != "" {
+		debug.Log("found .ssh directory at %s", sshDir)
+		sshDirs = append(sshDirs, sshDir)
 	}
-
-	ids := make(map[string]age.Identity, len(files))
-	for _, file := range files {
-		fn := filepath.Join(sshDir, file.Name())
-		if !strings.HasSuffix(fn, ".pub") {
-			continue
+	// also check the SSH key path, if set
+	if a.sshKeyPath != "" { //nolint:nestif
+		debug.Log("using custom SSH key path %s", a.sshKeyPath)
+		if fsutil.IsDir(a.sshKeyPath) {
+			sshDirs = append(sshDirs, a.sshKeyPath)
+		} else if fsutil.IsFile(a.sshKeyPath) {
+			debug.Log("using custom SSH key file %s", a.sshKeyPath)
+			recp, id, err := a.parseSSHIdentity(ctx, a.sshKeyPath)
+			if err != nil {
+				debug.Log("unable to parse custom SSH key %s: %s", a.sshKeyPath, err)
+			} else {
+				debug.Log("found custom SSH identity %s", recp)
+				ids[recp] = id
+			}
 		}
+	}
 
-		recp, id, err := a.parseSSHIdentity(ctx, fn)
+	if len(sshDirs) < 1 {
+		return nil, fmt.Errorf("no SSH identities found: %w", ErrNoSSHDir)
+	}
+
+	debug.Log("searching for SSH identities in %d directories: %s", len(sshDirs), strings.Join(sshDirs, ", "))
+
+	for _, sshDir := range sshDirs {
+		debug.Log("searching for SSH identities in %s", sshDir)
+		files, err := os.ReadDir(sshDir)
 		if err != nil {
-			continue
+			debug.Log("unable to read .ssh dir %s: %s", sshDir, err)
+
+			return nil, fmt.Errorf("no identities found: %w", ErrNoSSHDir)
 		}
 
-		ids[recp] = id
+		for _, file := range files {
+			fn := filepath.Join(sshDir, file.Name())
+			if !strings.HasSuffix(fn, ".pub") {
+				continue
+			}
+
+			recp, id, err := a.parseSSHIdentity(ctx, fn)
+			if err != nil {
+				continue
+			}
+
+			ids[recp] = id
+		}
 	}
 	sshCache = ids
 	debug.Log("returned %d SSH Identities", len(ids))
