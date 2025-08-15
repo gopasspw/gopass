@@ -27,14 +27,15 @@ type githubSSHCacher interface {
 
 // Age is an age backend.
 type Age struct {
-	identity  string
-	ghCache   githubSSHCacher
-	askPass   *askPass
-	recpCache *cache.OnDisk
+	identity   string
+	ghCache    githubSSHCacher
+	askPass    *askPass
+	recpCache  *cache.OnDisk
+	sshKeyPath string // custom SSH key or directory path
 }
 
 // New creates a new Age backend.
-func New(ctx context.Context) (*Age, error) {
+func New(ctx context.Context, sshKeyPath string) (*Age, error) {
 	ghc, err := ghssh.New()
 	if err != nil {
 		return nil, err
@@ -46,13 +47,14 @@ func New(ctx context.Context) (*Age, error) {
 	}
 
 	a := &Age{
-		ghCache:   ghc,
-		recpCache: rc,
-		identity:  filepath.Join(appdir.UserConfig(), "age", "identities"),
-		askPass:   newAskPass(ctx),
+		ghCache:    ghc,
+		recpCache:  rc,
+		identity:   filepath.Join(appdir.UserConfig(), "age", "identities"),
+		askPass:    newAskPass(ctx),
+		sshKeyPath: sshKeyPath,
 	}
 
-	debug.Log("age initialized (ghc: %s, recipients: %s, identity: %s)", a.ghCache.String(), a.recpCache.String(), a.identity)
+	debug.Log("age initialized (ghc: %s, recipients: %s, identity: %s, sshKeyPath: %s)", a.ghCache.String(), a.recpCache.String(), a.identity, a.sshKeyPath)
 
 	return a, nil
 }
@@ -89,4 +91,9 @@ func (a *Age) IDFile() string {
 // Concurrency returns 1 for `age` since otherwise it prompts for the identity password for each worker.
 func (a *Age) Concurrency() int {
 	return 1
+}
+
+// Add a method to get the SSH key path
+func (a *Age) SSHKeyPath() string {
+	return a.sshKeyPath
 }

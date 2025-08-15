@@ -6,6 +6,7 @@ import (
 
 	"filippo.io/age"
 	"github.com/gopasspw/gopass/internal/action/exit"
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
@@ -28,6 +29,13 @@ func (l loader) Commands() []*cli.Command {
 				"All age identities, including plugin ones should be supported. We also still support github" +
 				"identities despite them being deprecated by age, we do so by falling back to the ssh identities" +
 				"for these and keeping a local cache of ssh keys for a given github identity.",
+			Flags: []cli.Flag{
+				&cli.StringFlag{
+					Name:    "age-ssh-key-path",
+					Usage:   "Custom path to SSH key or directory for age backend",
+					EnvVars: []string{"GOPASS_SSH_DIR"},
+				},
+			},
 			Subcommands: []*cli.Command{
 				{
 					Name:  "identities",
@@ -36,7 +44,11 @@ func (l loader) Commands() []*cli.Command {
 						"List identities",
 					Action: func(c *cli.Context) error {
 						ctx := ctxutil.WithGlobalFlags(c)
-						a, err := New(ctx)
+						sshKeyPath := config.String(ctx, "age.ssh-key-path")
+						if sv := c.String("age-ssh-key-path"); sv != "" {
+							sshKeyPath = sv
+						}
+						a, err := New(ctx, sshKeyPath)
 						if err != nil {
 							return exit.Error(exit.Unknown, err, "failed to create age backend")
 						}
@@ -64,7 +76,11 @@ func (l loader) Commands() []*cli.Command {
 								"Add an existing age identity, interactively",
 							Action: func(c *cli.Context) error {
 								ctx := ctxutil.WithGlobalFlags(c)
-								a, err := New(ctx)
+								sshKeyPath := config.String(ctx, "age.ssh-key-path")
+								if sv := c.String("age-ssh-key-path"); sv != "" {
+									sshKeyPath = sv
+								}
+								a, err := New(ctx, sshKeyPath)
 								if err != nil {
 									return exit.Error(exit.Unknown, err, "failed to create age backend")
 								}
@@ -111,7 +127,11 @@ func (l loader) Commands() []*cli.Command {
 								"Generate a new age identity",
 							Action: func(c *cli.Context) error {
 								ctx := ctxutil.WithGlobalFlags(c)
-								a, err := New(ctx)
+								sshKeyPath := config.String(ctx, "age.ssh-key-path")
+								if sv := c.String("age-ssh-key-path"); sv != "" {
+									sshKeyPath = sv
+								}
+								a, err := New(ctx, sshKeyPath)
 								if err != nil {
 									return exit.Error(exit.Unknown, err, "failed to create age backend")
 								}
@@ -135,7 +155,11 @@ func (l loader) Commands() []*cli.Command {
 								"Remove all identity matching the argument",
 							Action: func(c *cli.Context) error {
 								ctx := ctxutil.WithGlobalFlags(c)
-								a, err := New(ctx)
+								sshKeyPath := config.String(ctx, "age.ssh-key-path")
+								if sv := c.String("age-ssh-key-path"); sv != "" {
+									sshKeyPath = sv
+								}
+								a, err := New(ctx, sshKeyPath)
 								if err != nil {
 									return exit.Error(exit.Unknown, err, "failed to create age backend")
 								}

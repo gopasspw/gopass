@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 
 	"github.com/gopasspw/gopass/internal/backend"
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/appdir"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -54,7 +55,7 @@ func migrate(ctx context.Context, s backend.Storage) error {
 	}
 
 	// create a new instance so we can use decryptFile.
-	a, err := New(ctx)
+	a, err := New(ctx, config.String(ctx, "age.ssh-key-path"))
 	if err != nil {
 		return err
 	}
