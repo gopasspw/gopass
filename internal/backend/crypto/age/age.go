@@ -93,7 +93,7 @@ func (a *Age) Concurrency() int {
 	return 1
 }
 
-// Add a method to get the SSH key path
+// Add a method to get the SSH key path.
 func (a *Age) SSHKeyPath() string {
 	return a.sshKeyPath
 }

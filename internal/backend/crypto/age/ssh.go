@@ -44,7 +44,7 @@ func (a *Age) getSSHIdentities(ctx context.Context) (map[string]age.Identity, er
 		sshDirs = append(sshDirs, sshDir)
 	}
 	// also check the SSH key path, if set
-	if a.sshKeyPath != "" {
+	if a.sshKeyPath != "" { //nolint:nestif
 		debug.Log("using custom SSH key path %s", a.sshKeyPath)
 		if fsutil.IsDir(a.sshKeyPath) {
 			sshDirs = append(sshDirs, a.sshKeyPath)
