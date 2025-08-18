@@ -21,6 +21,8 @@ const (
 	GitFS
 	// FossilFS is a filesystem-backed storage with Fossil.
 	FossilFS
+	// JJ is a filesystem-backed storage with Jujutsu.
+	JJFS
 )
 
 func (s StorageBackend) String() string {
