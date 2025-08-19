@@ -74,7 +74,7 @@ func NewGUnitTester(t *testing.T) *GUnit {
 
 func (u GUnit) initConfig() error {
 	if err := os.MkdirAll(filepath.Dir(u.GPConfig()), 0o755); err != nil {
-		return err
+		return fmt.Errorf("failed to initialize the directory at %q: %w", filepath.Dir(u.GPConfig()), err)
 	}
 	err := os.WriteFile(
 		u.GPConfig(),
@@ -124,7 +124,7 @@ func (u GUnit) InitStore(name string) error {
 	}
 
 	if err := can.WriteTo(u.GPGHome()); err != nil {
-		return err
+		return fmt.Errorf("failed to write to GPG home %s: %w", u.GPGHome(), err)
 	}
 
 	dir := u.StoreDir(name)

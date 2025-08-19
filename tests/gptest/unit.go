@@ -85,7 +85,7 @@ func NewUnitTester(t *testing.T) *Unit {
 
 func (u Unit) initConfig() error {
 	if err := os.MkdirAll(filepath.Dir(u.GPConfig()), 0o755); err != nil {
-		return err
+		return fmt.Errorf("failed to initialize the test config at %q: %w", u.GPConfig(), err)
 	}
 
 	err := os.WriteFile(

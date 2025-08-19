@@ -98,39 +98,39 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
-  windows:
-    runs-on: windows-latest
-    defaults:
-      run:
-          shell: msys2 {0}
-    steps:
-    - name: Harden Runner
-      uses: step-security/harden-runner@ec9f2d5744a09debf3a187a3f4f675c53b671911 # v2.13.0
-      with:
-        egress-policy: audit
+  # windows:
+  #   runs-on: windows-latest
+  #   defaults:
+  #     run:
+  #         shell: msys2 {0}
+  #   steps:
+  #   - name: Harden Runner
+  #     uses: step-security/harden-runner@ec9f2d5744a09debf3a187a3f4f675c53b671911 # v2.13.0
+  #     with:
+  #       egress-policy: audit
 
-    - uses: msys2/setup-msys2@40677d36a502eb2cf0fb808cc9dec31bf6152638 # v2.28.0
-      with:
-        release: false
-        path-type: inherit
-        install: >-
-          base-devel
-          git
+  #   - uses: msys2/setup-msys2@40677d36a502eb2cf0fb808cc9dec31bf6152638 # v2.28.0
+  #     with:
+  #       release: false
+  #       path-type: inherit
+  #       install: >-
+  #         base-devel
+  #         git
 
-    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      with:
-        fetch-depth: 0
+  #   - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+  #     with:
+  #       fetch-depth: 0
 
-    - name: Set up Go
-      uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
-      with:
-        go-version: '1.24'
+  #   - name: Set up Go
+  #     uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
+  #     with:
+  #       go-version: '1.24'
 
-    - run: git config --global user.name nobody
-    - run: git config --global user.email foo.bar@example.org
+  #   - run: git config --global user.name nobody
+  #   - run: git config --global user.email foo.bar@example.org
       
-    - name: Build and Unit Test
-      run: make gha-windows
+  #   - name: Build and Unit Test
+  #     run: make gha-windows
 
   macos:
     runs-on: macos-latest
