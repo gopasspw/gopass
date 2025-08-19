@@ -133,6 +133,9 @@ func TestOptsMigration(t *testing.T) {
 	})
 
 	t.Run("migrated config matches test config", func(t *testing.T) {
+		// we use our own temp dir
+		td := t.TempDir()
+		t.Setenv("GOPASS_HOMEDIR", td)
 		u := gptest.NewUnitTester(t)
 		assert.NotNil(t, u)
 		cfg := New()
@@ -161,6 +164,10 @@ func TestOptsMigration(t *testing.T) {
 	})
 
 	t.Run("migrate local options", func(t *testing.T) {
+		// we use our own temp dir
+		td := t.TempDir()
+		t.Setenv("GOPASS_HOMEDIR", td)
+
 		u := gptest.NewUnitTester(t)
 		assert.NotNil(t, u)
 
@@ -180,6 +187,10 @@ func TestOptsMigration(t *testing.T) {
 	})
 
 	t.Run("env variable are not migrated", func(t *testing.T) {
+		// we use our own temp dir
+		td := t.TempDir()
+		t.Setenv("GOPASS_HOMEDIR", td)
+
 		envs := map[string]string{
 			"GOPASS_CONFIG_COUNT":      "1",
 			"GOPASS_CONFIG_KEY_0":      "core.showsafecontent",
@@ -199,6 +210,10 @@ func TestOptsMigration(t *testing.T) {
 	})
 
 	t.Run("migrate submount options", func(t *testing.T) {
+		// we use our own temp dir
+		td := t.TempDir()
+		t.Setenv("GOPASS_HOMEDIR", td)
+
 		u := gptest.NewUnitTester(t)
 		assert.NotNil(t, u)
 		// we create a submount store
