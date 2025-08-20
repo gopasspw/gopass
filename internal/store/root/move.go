@@ -161,7 +161,7 @@ func (r *Store) directMove(ctx context.Context, from, to string, del bool) error
 	subFrom, from := r.getStore(from)
 
 	// we don't remove store prefix for destination, as it can be a new folder
-	subTo, _ := r.getStore(to)
+	subTo, to := r.getStore(to)
 
 	if subFrom.Equals(subTo) {
 		debug.Log("directMove from %q to %q: same store", from, to)
