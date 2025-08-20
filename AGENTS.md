@@ -48,3 +48,10 @@ The project is specifically targeting users on all major platform, i.e. Linux, U
 - If a new dependency is required, please state the reason.
 - The project is licensed under the terms of the MIT license and we can only add compatible licenses. See [.license-lint.yml](.license-lint.yml) for a list of compatible licenses.
 - We must avoid introducing CGo dependencies since this make cross-compiling infeasible.
+
+## Testing instructions
+
+- Always run `make test` and `make codequality` before submitting.
+- Run `make fmt` to properly format the code. Run this before `make codequality`.
+- Before mailing a PR run `make test-integration`
+
