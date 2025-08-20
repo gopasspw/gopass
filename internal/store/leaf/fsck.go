@@ -233,7 +233,7 @@ func (s *Store) fsckUpdatePublicKeys(ctx context.Context) error {
 
 	// then export our (possibly updated) keys for consumption
 	// by others.
-	exported, err := s.UpdateExportedPublicKeys(ctx, rs)
+	exported, err := s.UpdateExportedPublicKeys(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to update exported pubkeys: %w", err)
 	}
