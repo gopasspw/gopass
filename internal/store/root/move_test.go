@@ -6,6 +6,7 @@ import (
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/tree"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/gopass/secrets"
 	"github.com/gopasspw/gopass/tests/gptest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -450,4 +451,38 @@ func TestRegression892(t *testing.T) {
 		"some/example/test1",
 		"some/example/test2",
 	}, entries)
+}
+
+func TestMoveInMountedStore(t *testing.T) {
+	u := gptest.NewUnitTester(t)
+
+	ctx := t.Context()
+	ctx = ctxutil.WithAlwaysYes(ctx, true)
+	ctx = ctxutil.WithHidden(ctx, true)
+
+	rs, err := createRootStore(ctx, u)
+	require.NoError(t, err)
+
+	// create a mount
+	require.NoError(t, u.InitStore("m7an"))
+	mountDir := u.StoreDir("m7an")
+	require.NoError(t, rs.AddMount(ctx, "m7an", mountDir))
+	sec := secrets.New()
+	sec.SetPassword("foo")
+	require.NoError(t, rs.Set(ctx, "m7an/www/hostprvdr.de/hostprvdr@m7an.de", sec))
+
+	// move the secret
+	require.NoError(t, rs.Move(ctx, "m7an/www/hostprvdr.de/hostprvdr@m7an.de", "m7an/www/hostprvdr.de/meinhostprvdr@m7an.de"))
+
+	// check if the secret was moved correctly
+	_, err = rs.Get(ctx, "m7an/www/hostprvdr.de/meinhostprvdr@m7an.de")
+	require.NoError(t, err)
+
+	// check that the old secret is gone
+	_, err = rs.Get(ctx, "m7an/www/hostprvdr.de/hostprvdr@m7an.de")
+	require.Error(t, err)
+
+	// check that no extra directory was created
+	_, err = rs.Get(ctx, "m7an/m7an/www/hostprvdr.de/meinhostprvdr@m7an.de")
+	require.Error(t, err)
 }
