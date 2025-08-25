@@ -64,6 +64,11 @@ func ShowFlags() []cli.Flag {
 			Name:  "chars",
 			Usage: "Print specific characters from the secret",
 		},
+		&cli.BoolFlag{
+			Name:    "line",
+			Aliases: []string{"l"},
+			Usage:   "Interpret the [key] argument as a line number. 0 indexed. Does nothing if <key> value is not provided.",
+		},
 	}
 }
 
