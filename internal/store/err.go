@@ -35,4 +35,6 @@ var (
 	ErrNoKey = fmt.Errorf("key not found in entry")
 	// ErrYAMLValueUnsupported is returned is the user tries to unmarshal an nested struct.
 	ErrYAMLValueUnsupported = fmt.Errorf("can not unmarshal nested YAML value")
+	// ErrNoLine is returned if a line in the body of a secret does not exist.
+	ErrNoLine = fmt.Errorf("line not found in secret")
 )
