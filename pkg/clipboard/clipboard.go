@@ -68,7 +68,7 @@ func CopyTo(ctx context.Context, name string, content []byte, timeout int) error
 }
 
 func copyToClipboard(ctx context.Context, content []byte) error {
-	if err := clipboard.WriteAll(ctx, content); err != nil {
+	if err := clipboard.WritePassword(ctx, content); err != nil {
 		return fmt.Errorf("failed to write to clipboard: %w", err)
 	}
 
