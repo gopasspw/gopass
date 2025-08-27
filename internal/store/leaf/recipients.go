@@ -97,6 +97,19 @@ func (s *Store) RecipientsTree(ctx context.Context) map[string][]string {
 	return out
 }
 
+// AllRecipients returns a list of all recipients of this store,
+// including all sub-stores.
+func (s *Store) AllRecipients(ctx context.Context) *recipients.Recipients {
+	rs := recipients.New()
+	for _, recs := range s.RecipientsTree(ctx) {
+		for _, r := range recs {
+			rs.Add(r)
+		}
+	}
+
+	return rs
+}
+
 // CheckRecipients makes sure all existing recipients are valid.
 func (s *Store) CheckRecipients(ctx context.Context) error {
 	rs, err := s.GetRecipients(ctx, "")
@@ -318,7 +331,7 @@ func (s *Store) getRecipients(ctx context.Context, idf string) (*recipients.Reci
 
 // UpdateExportedPublicKeys will export any possibly missing public keys to the
 // stores .public-keys directory.
-func (s *Store) UpdateExportedPublicKeys(ctx context.Context, rs []string) (bool, error) {
+func (s *Store) UpdateExportedPublicKeys(ctx context.Context) (bool, error) {
 	exp, ok := s.crypto.(keyExporter)
 	if !ok {
 		debug.Log("not exporting public keys for %T", s.crypto)
@@ -326,8 +339,8 @@ func (s *Store) UpdateExportedPublicKeys(ctx context.Context, rs []string) (bool
 		return false, nil
 	}
 
-	recipients := make(map[string]bool, len(rs))
-	for _, r := range rs {
+	recipients := make(map[string]bool, s.AllRecipients(ctx).Len())
+	for _, r := range s.AllRecipients(ctx).IDs() {
 		recipients[r] = true
 	}
 
@@ -390,6 +403,24 @@ func (s *Store) addMissingKeys(ctx context.Context, exp keyExporter, recipients 
 	return failed, exported
 }
 
+func extraKeys(recipients map[string]bool, keys []string) []string {
+	extras := make([]string, 0, len(keys))
+	for _, key := range keys {
+		// do not use filepath, that would break on Windows. storage.List normalizes all paths
+		// returned to normal (forward) slashes. Even on Windows.
+		key := path.Base(key)
+
+		if recipients[key] {
+			debug.Log("Key %s found. Not removing", key)
+
+			continue
+		}
+		extras = append(extras, key)
+	}
+
+	return extras
+}
+
 func (s *Store) removeExtraKeys(ctx context.Context, recipients map[string]bool) (bool, bool) {
 	var failed, exported bool
 
@@ -401,18 +432,8 @@ func (s *Store) removeExtraKeys(ctx context.Context, recipients map[string]bool)
 	}
 
 	debug.Log("Checking %q for extra keys that need to be removed", keys)
-	for _, key := range keys {
-		// do not use filepath, that would break on Windows. storage.List normalizes all paths
-		// returned to normal (forward) slashes. Even on Windows.
-		key := path.Base(key)
-
-		if recipients[key] {
-			debug.Log("Key %s found. Not removing", key)
-
-			continue
-		}
-
-		debug.Log("Remvoing extra key %s", key)
+	for _, key := range extraKeys(recipients, keys) {
+		debug.Log("Removing extra key %s", key)
 
 		if err := s.storage.Delete(ctx, filepath.Join(keyDir, key)); err != nil {
 			out.Errorf(ctx, "Failed to remove extra key %q: %s", key, err)
@@ -466,7 +487,7 @@ func (s *Store) saveRecipients(ctx context.Context, rs recipientMarshaler, msg s
 	// save all recipients public keys to the repo if wanted
 	if config.AsBoolWithDefault(cfg.GetM(s.alias, "core.exportkeys"), true) {
 		debug.Log("updating exported keys")
-		if _, err := s.UpdateExportedPublicKeys(ctx, rs.IDs()); err != nil {
+		if _, err := s.UpdateExportedPublicKeys(ctx); err != nil {
 			out.Errorf(ctx, "Failed to export missing public keys: %s", err)
 		}
 	} else {
