@@ -8,12 +8,23 @@ import (
 	"os"
 
 	"filippo.io/age"
+	"github.com/gopasspw/gopass/internal/backend/crypto/age/agent"
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
 )
 
 // Decrypt will attempt to decrypt the given payload.
 func (a *Age) Decrypt(ctx context.Context, ciphertext []byte) ([]byte, error) {
+	if config.Bool(ctx, "age.agent-enabled") {
+		client := agent.NewClient()
+		plaintext, err := client.Decrypt(ciphertext)
+		if err == nil {
+			return plaintext, nil
+		}
+		debug.Log("failed to decrypt with agent: %s", err)
+	}
+
 	if !ctxutil.HasPasswordCallback(ctx) {
 		debug.Log("no password callback found, redirecting to askPass")
 		ctx = ctxutil.WithPasswordCallback(ctx, func(prompt string, _ bool) ([]byte, error) {

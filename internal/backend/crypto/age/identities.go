@@ -73,13 +73,19 @@ func (w *wrappedRecipient) Wrap(fileKey []byte) ([]*age.Stanza, error) {
 // Identities returns all identities, used for decryption.
 func (a *Age) Identities(ctx context.Context) ([]age.Identity, error) {
 	if !ctxutil.HasPasswordCallback(ctx) {
-		debug.Log("no password callback found, redirecting to askPass")
-		ctx = ctxutil.WithPasswordCallback(ctx, func(prompt string, confirm bool) ([]byte, error) {
-			pw, err := a.askPass.Passphrase(prompt, fmt.Sprintf("to read the age keyring from %s", a.identity), confirm)
+		if pw := os.Getenv("GOPASS_PASSWORD"); pw != "" {
+			ctx = ctxutil.WithPasswordCallback(ctx, func(prompt string, confirm bool) ([]byte, error) {
+				return []byte(pw), nil
+			})
+		} else {
+			debug.Log("no password callback found, redirecting to askPass")
+			ctx = ctxutil.WithPasswordCallback(ctx, func(prompt string, confirm bool) ([]byte, error) {
+				pw, err := a.askPass.Passphrase(prompt, fmt.Sprintf("to read the age keyring from %s", a.identity), confirm)
 
-			return []byte(pw), err
-		})
-		ctx = ctxutil.WithPasswordPurgeCallback(ctx, a.askPass.Remove)
+				return []byte(pw), err
+			})
+			ctx = ctxutil.WithPasswordPurgeCallback(ctx, a.askPass.Remove)
+		}
 	}
 
 	debug.Log("reading native identities from %s", a.identity)
@@ -241,10 +247,13 @@ func IdentityToRecipient(id age.Identity) age.Recipient {
 }
 
 // GenerateIdentity creates a new identity.
-func (a *Age) GenerateIdentity(ctx context.Context, _ string, _ string, pw string) error {
+func (a *Age) GenerateIdentity(ctx context.Context, _ string, _ string, pw string) (string, error) {
 	// we don't check if the password callback is set, since it could only be
 	// set through an env variable, and here pw can only be set through an
 	// actual user input.
+	if pw == "" {
+		pw = os.Getenv("GOPASS_PASSWORD")
+	}
 	if pw != "" {
 		debug.Log("age GenerateIdentity using provided pw")
 		ctx = ctxutil.WithPasswordCallback(ctx, func(prompt string, confirm bool) ([]byte, error) {
@@ -254,10 +263,13 @@ func (a *Age) GenerateIdentity(ctx context.Context, _ string, _ string, pw strin
 
 	id, err := age.GenerateX25519Identity()
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	return a.addIdentity(ctx, id)
+	if err := a.addIdentity(ctx, id); err != nil {
+		return "", err
+	}
+	return id.Recipient().String(), nil
 }
 
 // ListIdentities lists all identities.

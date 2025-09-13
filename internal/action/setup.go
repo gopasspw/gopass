@@ -191,7 +191,7 @@ func (s *Action) initGenerateIdentity(ctx context.Context, crypto backend.Crypto
 		}
 	}
 
-	if err := crypto.GenerateIdentity(ctx, name, email, passphrase); err != nil {
+	if _, err := crypto.GenerateIdentity(ctx, name, email, passphrase); err != nil {
 		return fmt.Errorf("failed to create new private key: %w", err)
 	}
 

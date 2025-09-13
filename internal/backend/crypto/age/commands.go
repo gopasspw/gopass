@@ -6,6 +6,7 @@ import (
 
 	"filippo.io/age"
 	"github.com/gopasspw/gopass/internal/action/exit"
+	"github.com/gopasspw/gopass/internal/backend/crypto/age/agent"
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -37,6 +38,11 @@ func (l loader) Commands() []*cli.Command {
 				},
 			},
 			Subcommands: []*cli.Command{
+				{
+					Name:   "agent",
+					Usage:  "Start the age agent",
+					Action: l.agent,
+				},
 				{
 					Name:  "identities",
 					Usage: "List age identities used for decryption and encryption",
@@ -136,11 +142,12 @@ func (l loader) Commands() []*cli.Command {
 									return exit.Error(exit.Unknown, err, "failed to create age backend")
 								}
 
-								err = a.GenerateIdentity(ctx, "", "", "")
+								rec, err := a.GenerateIdentity(ctx, "", "", "")
 								if err != nil {
 									return exit.Error(exit.Unknown, err, "failed to generate age identity")
 								}
 
+								out.Printf(ctx, "New age identity created: %s", rec)
 								out.Notice(ctx, "New age identities are not automatically added to your recipient list, consider adding it using 'gopass recipients add age1...'")
 								out.Warning(ctx, "If you do not add this recipient to the recipient list, make sure to re-encrypt using 'gopass fsck --decrypt' to properly support this identity")
 
@@ -217,7 +224,32 @@ func (l loader) Commands() []*cli.Command {
 						},
 					},
 				},
+				{
+					Name:   "lock",
+					Usage:  "Lock the age agent",
+					Action: l.lock,
+				},
 			},
 		},
 	}
+}
+
+func (l loader) agent(c *cli.Context) error {
+	out.Printf(c.Context, "Starting age agent ...")
+
+	ag, err := agent.New()
+	if err != nil {
+		return err
+	}
+
+	return ag.Run(c.Context)
+}
+
+func (l loader) lock(c *cli.Context) error {
+	client := agent.NewClient()
+	if err := client.Lock(); err != nil {
+		return exit.Error(exit.Unknown, err, "failed to lock agent: %s", err)
+	}
+
+	return nil
 }
