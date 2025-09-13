@@ -15,7 +15,7 @@ require (
 	github.com/gokyle/twofactor v1.0.1
 	github.com/google/go-cmp v0.7.0
 	github.com/google/go-github/v61 v61.0.0
-	github.com/gopasspw/clipboard v0.0.2
+	github.com/gopasspw/clipboard v0.0.3
 	github.com/gopasspw/gitconfig v0.0.3-0.20250819161336-9ff4f059ac1d
 	github.com/gopasspw/gopass-hibp v1.15.16
 	github.com/hashicorp/golang-lru/v2 v2.0.7
@@ -43,7 +43,7 @@ require (
 	golang.org/x/exp v0.0.0-20250813145105-42675adae3e6
 	golang.org/x/net v0.43.0
 	golang.org/x/oauth2 v0.30.0
-	golang.org/x/sys v0.35.0
+	golang.org/x/sys v0.36.0
 	golang.org/x/term v0.34.0
 	gopkg.in/yaml.v3 v3.0.1
 )
