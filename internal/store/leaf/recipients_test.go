@@ -281,3 +281,55 @@ func TestCheckRecipients(t *testing.T) {
 	u.AddExpiredRecipient()
 	require.Error(t, s.CheckRecipients(ctx))
 }
+
+func TestExtraKeys(t *testing.T) {
+	for _, tc := range []struct {
+		Name       string
+		Recipients map[string]bool
+		Keys       []string
+		Extras     []string
+	}{
+		{
+			Name:   "empty",
+			Extras: []string{},
+		},
+		{
+			Name: "one recipient, one key, match",
+			Recipients: map[string]bool{
+				"foo": true,
+			},
+			Keys:   []string{"foo"},
+			Extras: []string{},
+		},
+		{
+			Name: "one recipient, one key, no match",
+			Recipients: map[string]bool{
+				"foo": true,
+			},
+			Keys:   []string{"bar"},
+			Extras: []string{"bar"},
+		},
+		{
+			Name: "two recipients, one key, no match",
+			Recipients: map[string]bool{
+				"foo": true,
+				"bar": true,
+			},
+			Keys:   []string{"baz"},
+			Extras: []string{"baz"},
+		},
+		{
+			Name: "two recipients, two keys, one match",
+			Recipients: map[string]bool{
+				"foo": true,
+				"bar": true,
+			},
+			Keys:   []string{"foo", "baz"},
+			Extras: []string{"baz"},
+		},
+	} {
+		t.Run(tc.Name, func(t *testing.T) {
+			assert.Equal(t, tc.Extras, extraKeys(tc.Recipients, tc.Keys))
+		})
+	}
+}

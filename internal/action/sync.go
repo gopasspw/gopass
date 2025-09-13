@@ -258,13 +258,7 @@ func syncImportKeys(ctx context.Context, sub *leaf.Store, name string) error {
 
 func syncExportKeys(ctx context.Context, sub *leaf.Store, name string) error {
 	// export keys.
-	rs, err := sub.GetRecipients(ctx, "")
-	if err != nil {
-		out.Errorf(ctx, "Failed to load recipients for %q: %s", name, err)
-
-		return err
-	}
-	exported, err := sub.UpdateExportedPublicKeys(ctx, rs.IDs())
+	exported, err := sub.UpdateExportedPublicKeys(ctx)
 	if err != nil {
 		out.Errorf(ctx, "Failed to export missing public keys for %q: %s", name, err)
 

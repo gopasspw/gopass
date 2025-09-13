@@ -115,25 +115,22 @@ func (s *Store) idFiles(ctx context.Context) []string {
 		return nil
 	}
 
-	files, err := s.Storage().List(ctx, "")
+	files, err := s.storage.List(ctx, "")
 	if err != nil {
+		debug.Log("failed to list files: %s", err)
+
 		return nil
 	}
 
-	// we need to transform the list of files into a list of id files so we can't use
-	// set.SortedFiltered as it doesn't support transformations
 	idfs := make([]string, 0, len(files))
-
-	for _, f := range files {
-		if strings.HasPrefix(filepath.Base(f), ".") {
+	for _, file := range files {
+		if !strings.HasSuffix(file, s.crypto.IDFile()) {
 			continue
 		}
-
-		idf := s.idFile(ctx, f)
-		debug.Log("checking for if %q has an idf: %q", f, idf)
-		if s.storage.Exists(ctx, idf) {
-			idfs = append(idfs, idf)
+		if filepath.Base(file) != s.crypto.IDFile() {
+			continue
 		}
+		idfs = append(idfs, file)
 	}
 
 	debug.Log("idFiles: %q", idfs)
