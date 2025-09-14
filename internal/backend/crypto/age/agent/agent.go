@@ -10,12 +10,13 @@ import (
 	"io"
 	"net"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"strings"
-	"time"
+	"sync"
+	"syscall"
 
 	"filippo.io/age"
-	"github.com/gopasspw/gopass/internal/cache"
 	"github.com/gopasspw/gopass/pkg/appdir"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/pinentry/cli"
@@ -30,7 +31,8 @@ const (
 type Agent struct {
 	socketPath string
 	listener   net.Listener
-	cache      *cache.InMemTTL[string, string]
+
+	mux        sync.Mutex
 	identities []age.Identity
 }
 
@@ -45,7 +47,6 @@ func New() (*Agent, error) {
 
 	return &Agent{
 		socketPath: socketPath,
-		cache:      cache.NewInMemTTL[string, string](time.Minute*5, time.Hour),
 	}, nil
 }
 
@@ -65,6 +66,15 @@ func (a *Agent) Run(ctx context.Context) error {
 	}()
 
 	debug.Log("agent listening on %s", a.socketPath)
+
+	// handle signals
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+	go func() {
+		sig := <-sigChan
+		debug.Log("received signal %s, shutting down", sig)
+		a.Shutdown(ctx)
+	}()
 
 	// accept connections
 	for {
@@ -122,7 +132,10 @@ func (a *Agent) handleConnection(ctx context.Context, conn net.Conn) {
 				fmt.Fprintln(conn, "ERR failed to parse identities: "+err.Error())
 				continue
 			}
+			a.mux.Lock()
 			a.identities = ids
+			a.mux.Unlock()
+			debug.Log("loaded %d identities", len(ids))
 			fmt.Fprintln(conn, "OK")
 		case "decrypt":
 			if len(args) != 1 {
@@ -140,16 +153,13 @@ func (a *Agent) handleConnection(ctx context.Context, conn net.Conn) {
 				continue
 			}
 			fmt.Fprintln(conn, "OK "+base64.StdEncoding.EncodeToString(plaintext))
-		case "remove":
-			if len(args) != 1 {
-				fmt.Fprintln(conn, "ERR missing key")
-
-				continue
-			}
-			a.cache.Remove(args[0])
-			fmt.Fprintln(conn, "OK")
 		case "lock":
-			a.cache.Purge()
+			// clear all identities from memory
+			a.mux.Lock()
+			a.identities = nil
+			a.mux.Unlock()
+
+			debug.Log("cleared identities from memory")
 			fmt.Fprintln(conn, "OK")
 		case "quit":
 			fmt.Fprintln(conn, "OK")

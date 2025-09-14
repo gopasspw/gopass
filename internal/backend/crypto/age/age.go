@@ -66,11 +66,15 @@ func New(ctx context.Context, sshKeyPath string) (*Age, error) {
 
 func (a *Age) tryStartAgent(ctx context.Context) {
 	if !config.Bool(ctx, "age.agent-enabled") {
+		debug.Log("age agent disabled")
+
 		return
 	}
 
 	client := agent.NewClient()
 	if err := client.Ping(); err == nil {
+		debug.Log("age agent already running")
+
 		return
 	}
 
@@ -82,10 +86,11 @@ func (a *Age) tryStartAgent(ctx context.Context) {
 
 	bo := backoff.NewExponentialBackOff()
 	bo.InitialInterval = 25 * time.Millisecond
+	bo.MaxElapsedTime = 5 * time.Second
 	op := func() error {
 		return client.Ping()
 	}
-	if err := backoff.Retry(op, backoff.WithMaxRetries(bo, 200)); err != nil {
+	if err := backoff.Retry(op, bo); err != nil {
 		debug.Log("failed to ping age agent after starting: %s", err)
 		return
 	}

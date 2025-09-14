@@ -18,8 +18,8 @@ func testCommand(t *testing.T, cmd *cli.Command) {
 		assert.NotNil(t, cmd.Action, cmd.Name)
 	}
 
-	assert.NotEmpty(t, cmd.Usage)
-	assert.NotEmpty(t, cmd.Description)
+	assert.NotEmpty(t, cmd.Usage, "Required usage for command %s", cmd.Name)
+	assert.NotEmpty(t, cmd.Description, "Required description for command %s", cmd.Name)
 
 	for _, flag := range cmd.Flags {
 		switch v := flag.(type) {
