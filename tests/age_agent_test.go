@@ -25,11 +25,12 @@ echo "OK"
 `
 	pinentryPath := filepath.Join(ts.tempDir, "pinentry.sh")
 	require.NoError(t, os.WriteFile(pinentryPath, []byte(pinentryScript), 0755))
-	t.Setenv("GOPASS_PINENTRY", pinentryPath)
-	t.Setenv("GOPASS_PASSWORD", "test")
+
+	gpgAgentConf := `pinentry-program ` + pinentryPath
+	require.NoError(t, os.WriteFile(filepath.Join(ts.gpgDir(), "gpg-agent.conf"), []byte(gpgAgentConf), 0644))
 
 	// create a new age identity
-	out, err := ts.run("age identities keygen")
+	out, err := ts.runCmd([]string{ts.Binary, "age", "identities", "keygen"}, []byte("test\ntest"))
 	require.NoError(t, err, out)
 	lines := strings.Split(out, "\n")
 	require.True(t, len(lines) > 0)

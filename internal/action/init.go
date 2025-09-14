@@ -3,7 +3,6 @@ package action
 import (
 	"context"
 	"fmt"
-	"os"
 
 	"github.com/gopasspw/gopass/internal/action/exit"
 	"github.com/gopasspw/gopass/internal/backend"
@@ -73,11 +72,6 @@ func (s *Action) IsInitialized(c *cli.Context) error {
 // Init a new password store with a first gpg id.
 func (s *Action) Init(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
-	if pw := os.Getenv("GOPASS_PASSWORD"); pw != "" {
-		ctx = ctxutil.WithPasswordCallback(ctx, func(prompt string, confirm bool) ([]byte, error) {
-			return []byte(pw), nil
-		})
-	}
 	path := c.String("path")
 	alias := c.String("store")
 

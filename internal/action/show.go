@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
 	"slices"
 	"strconv"
 	"strings"
@@ -81,15 +80,9 @@ func showParseArgs(c *cli.Context) context.Context {
 
 // Show the content of a secret file.
 func (s *Action) Show(c *cli.Context) error {
-	ctx := ctxutil.WithGlobalFlags(c)
-	if pw := os.Getenv("GOPASS_PASSWORD"); pw != "" {
-		ctx = ctxutil.WithPasswordCallback(ctx, func(prompt string, confirm bool) ([]byte, error) {
-			return []byte(pw), nil
-		})
-	}
 	name := c.Args().First()
 
-	ctx = showParseArgs(c)
+	ctx := showParseArgs(c)
 
 	if key := c.Args().Get(1); key != "" {
 		debug.Log("Adding key to ctx: %s", key)
