@@ -43,5 +43,6 @@ func TestGenerateIdentity(t *testing.T) {
 	g := &GPG{}
 	g.binary = "true"
 
-	require.NoError(t, g.GenerateIdentity(ctx, "foo", "foo@bar.com", "bar"))
+	_, err := g.GenerateIdentity(ctx, "foo", "foo@bar.com", "bar")
+	require.NoError(t, err)
 }

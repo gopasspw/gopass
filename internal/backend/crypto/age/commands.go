@@ -131,6 +131,12 @@ func (l loader) Commands() []*cli.Command {
 							Usage: "Generate a new age identity",
 							Description: "" +
 								"Generate a new age identity",
+							Flags: []cli.Flag{
+								&cli.StringFlag{
+									Name:  "password",
+									Usage: "Password for the new key",
+								},
+							},
 							Action: func(c *cli.Context) error {
 								ctx := ctxutil.WithGlobalFlags(c)
 								sshKeyPath := config.String(ctx, "age.ssh-key-path")
@@ -142,7 +148,14 @@ func (l loader) Commands() []*cli.Command {
 									return exit.Error(exit.Unknown, err, "failed to create age backend")
 								}
 
-								rec, err := a.GenerateIdentity(ctx, "", "", "")
+								pw := c.String("password")
+								if pw == "" {
+									pw, err = termio.AskForPassword(ctx, "Enter password for new key", true)
+									if err != nil {
+										return err
+									}
+								}
+								rec, err := a.GenerateIdentity(ctx, "", "", pw)
 								if err != nil {
 									return exit.Error(exit.Unknown, err, "failed to generate age identity")
 								}

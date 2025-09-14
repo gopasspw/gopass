@@ -10,10 +10,8 @@ import (
 	"io"
 	"net"
 	"os"
-	"os/signal"
 	"path/filepath"
 	"strings"
-	"syscall"
 	"time"
 
 	"filippo.io/age"
@@ -67,15 +65,6 @@ func (a *Agent) Run(ctx context.Context) error {
 	}()
 
 	debug.Log("agent listening on %s", a.socketPath)
-
-	// handle signals
-	sigChan := make(chan os.Signal, 1)
-	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
-	go func() {
-		sig := <-sigChan
-		debug.Log("received signal %s, shutting down", sig)
-		a.Shutdown(ctx)
-	}()
 
 	// accept connections
 	for {
