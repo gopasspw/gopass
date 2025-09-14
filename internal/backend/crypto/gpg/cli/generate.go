@@ -5,8 +5,13 @@ import (
 	"context"
 	"fmt"
 	"os/exec"
+	"regexp"
 
 	"github.com/gopasspw/gopass/pkg/debug"
+)
+
+var (
+	gpgRevocsRE = regexp.MustCompile(`.*/openpgp-revocs.d/([0-9A-F]{40})\.rev`)
 )
 
 // GenerateIdentity will create a new GPG keypair in batch mode.
@@ -40,15 +45,23 @@ Expire-Date: 0
 	g.privKeys = nil
 	g.pubKeys = nil
 
-	// parse key id from output
-	for _, line := range bytes.Split(out.Bytes(), []byte{'\n'}) {
-		if !bytes.HasPrefix(line, []byte("gpg: key ")) {
+	// try to parse key id from the output
+	for line := range bytes.SplitSeq(out.Bytes(), []byte{'\n'}) {
+		if !gpgRevocsRE.Match(line) {
+
 			continue
 		}
-		line = bytes.TrimPrefix(line, []byte("gpg: key "))
-		keyID := string(bytes.Split(line, []byte{' '})[0])
-		return keyID, nil
+
+		matches := gpgRevocsRE.FindSubmatch(line)
+		if len(matches) == 2 {
+			keyID := string(matches[1])
+			debug.Log("Generated new GPG key: %s", keyID)
+			return keyID, nil
+		}
 	}
 
-	return "", fmt.Errorf("failed to parse key id from output: %s", out.String())
+	// Ignoring this failure since we're usually not using the Key ID directly.
+	debug.Log("Failed to find key ID in output: %q", out.String())
+
+	return "", nil
 }

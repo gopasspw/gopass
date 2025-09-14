@@ -37,7 +37,8 @@ func TestConfig(t *testing.T) {
 
 		c := gptest.CliCtx(ctx, t)
 		require.NoError(t, act.Config(c))
-		want := `core.autoimport = true
+		want := `age.agent-enabled = false
+core.autoimport = true
 core.autopush = true
 core.autosync = true
 core.cliptimeout = 45
@@ -80,7 +81,8 @@ generate.autoclip = true
 		defer buf.Reset()
 
 		act.printConfigValues(ctx, "")
-		want := `core.autoimport = true
+		want := `age.agent-enabled = false
+core.autoimport = true
 core.autopush = true
 core.autosync = true
 core.cliptimeout = 45
@@ -116,7 +118,8 @@ generate.autoclip = true
 		defer buf.Reset()
 
 		act.ConfigComplete(gptest.CliCtx(ctx, t))
-		want := `core.autoimport
+		want := `age.agent-enabled
+core.autoimport
 core.autopush
 core.autosync
 core.cliptimeout

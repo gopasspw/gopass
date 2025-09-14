@@ -34,6 +34,7 @@ var ignoredEnvs = set.Map([]string{
 	"XDG_CACHE_HOME",
 	"XDG_CONFIG_HOME",
 	"XDG_DATA_HOME",
+	"XDG_RUNTIME_DIR",
 	// keep-sorted end
 })
 
