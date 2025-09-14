@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"filippo.io/age"
+	"github.com/gopasspw/gopass/internal/cache"
 	"github.com/gopasspw/gopass/pkg/appdir"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/pinentry/cli"
@@ -31,7 +32,7 @@ const (
 type Agent struct {
 	socketPath string
 	listener   net.Listener
-	cache      *InMemTTL[string, string]
+	cache      *cache.InMemTTL[string, string]
 	identities []age.Identity
 }
 
@@ -46,7 +47,7 @@ func New() (*Agent, error) {
 
 	return &Agent{
 		socketPath: socketPath,
-		cache:      NewInMemTTL[string, string](time.Minute*5, time.Hour),
+		cache:      cache.NewInMemTTL[string, string](time.Minute*5, time.Hour),
 	}, nil
 }
 

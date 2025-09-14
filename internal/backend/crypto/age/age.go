@@ -3,13 +3,12 @@ package age
 import (
 	"context"
 	"fmt"
-	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/blang/semver/v4"
+	"github.com/cenkalti/backoff/v4"
 	"github.com/gopasspw/gopass/internal/backend/crypto/age/agent"
 	"github.com/gopasspw/gopass/internal/cache"
 	"github.com/gopasspw/gopass/internal/cache/ghssh"
@@ -76,16 +75,17 @@ func (a *Age) tryStartAgent(ctx context.Context) {
 	}
 
 	debug.Log("age agent not running, starting it...")
-	cmd := exec.Command(os.Args[0], "age", "agent")
-	if err := cmd.Start(); err != nil {
+	if err := startAgent(ctx); err != nil {
 		debug.Log("failed to start age agent: %s", err)
-
 		return
 	}
 
-	// wait a bit for the agent to start
-	time.Sleep(time.Second)
-	if err := client.Ping(); err != nil {
+	bo := backoff.NewExponentialBackOff()
+	bo.InitialInterval = 25 * time.Millisecond
+	op := func() error {
+		return client.Ping()
+	}
+	if err := backoff.Retry(op, backoff.WithMaxRetries(bo, 200)); err != nil {
 		debug.Log("failed to ping age agent after starting: %s", err)
 		return
 	}

@@ -34,14 +34,16 @@ func TestAgent(t *testing.T) {
 	require.NoError(t, c.Ping())
 
 	// test decrypt
-	id, err := age.NewScryptIdentity("test")
-	require.NoError(t, err)
-	recip, err := age.NewScryptRecipient("test")
+	id, err := age.GenerateX25519Identity()
 	require.NoError(t, err)
 
 	plaintext := []byte("hello world")
-	ciphertext, err := age.Encrypt(bytes.NewReader(plaintext), recip)
+	buf := &bytes.Buffer{}
+	wc, err := age.Encrypt(buf, id.Recipient())
 	require.NoError(t, err)
+	_, _ = wc.Write(plaintext)
+	require.NoError(t, wc.Close())
+	ciphertext := buf.Bytes()
 
 	require.NoError(t, c.SendIdentities(id.String()))
 
