@@ -9,10 +9,11 @@ import (
 	"syscall"
 )
 
-func startAgent(ctx context.Context) error {
+func startAgent(_ context.Context) error {
 	cmd := exec.Command(os.Args[0], "age", "agent")
 	cmd.SysProcAttr = &syscall.SysProcAttr{
 		Setpgid: true,
 	}
+
 	return cmd.Start()
 }

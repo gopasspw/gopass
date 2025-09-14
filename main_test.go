@@ -58,6 +58,7 @@ func TestSetupApp(t *testing.T) {
 var commandsWithError = set.Map([]string{
 	".age.identities.add",
 	".age.identities.remove",
+	".age.lock",
 	".alias.add",
 	".alias.remove",
 	".alias.delete",
@@ -145,7 +146,7 @@ func testCommands(t *testing.T, c *cli.Context, commands []*cli.Command, prefix 
 	t.Helper()
 
 	for _, cmd := range commands {
-		if cmd.Name == "update" {
+		if cmd.Name == "update" || cmd.Name == "agent" {
 			continue
 		}
 

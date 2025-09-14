@@ -39,9 +39,45 @@ func (l loader) Commands() []*cli.Command {
 			},
 			Subcommands: []*cli.Command{
 				{
-					Name:   "agent",
-					Usage:  "Start the age agent",
+					Name:  "agent",
+					Usage: "Start the age agent",
+					Description: "Start the age agent, this will start a background process that will cache your age identities in memory and provide them to gopass on demand. " +
+						"This is optional, but recommended if you use age identities that require a password or are managed by a plugin.",
 					Action: l.agent,
+					Subcommands: []*cli.Command{
+						{
+							Name: "stop",
+							Usage: "Stop the age agent, this will remove all cached identities and stop the agent. " +
+								"Any running gopass instance using the agent will no longer be able to decrypt secrets.",
+							Description: "Stop the age agent, this will remove all cached identities and stop the agent.",
+							Action: func(c *cli.Context) error {
+								ctx := ctxutil.WithGlobalFlags(c)
+								client := agent.NewClient()
+								if err := client.Quit(); err != nil {
+									return exit.Error(exit.Unknown, err, "failed to stop agent: %s", err)
+								}
+								out.Printf(ctx, "Age agent asked to stop")
+
+								return nil
+							},
+						},
+						{
+							Name:        "status",
+							Usage:       "Check if the age agent is running, this will return 0 if the agent is running and 1 otherwise",
+							Description: "Check if the age agent is running, this will return 0 if the agent is running and 1 otherwise",
+							Action: func(c *cli.Context) error {
+								ctx := ctxutil.WithGlobalFlags(c)
+								client := agent.NewClient()
+								if err := client.Ping(); err != nil {
+									out.Printf(ctx, "Age agent is not running")
+									return exit.Error(exit.Unknown, err, "agent not running")
+								}
+								out.Printf(ctx, "Age agent is running")
+
+								return nil
+							},
+						},
+					},
 				},
 				{
 					Name:  "identities",
@@ -238,9 +274,10 @@ func (l loader) Commands() []*cli.Command {
 					},
 				},
 				{
-					Name:   "lock",
-					Usage:  "Lock the age agent",
-					Action: l.lock,
+					Name:        "lock",
+					Usage:       "Lock the age agent",
+					Description: "Lock the age agent, this will remove all cached identities from memory and require you to re-enter any passwords for your identities when decrypting",
+					Action:      l.lock,
 				},
 			},
 		},

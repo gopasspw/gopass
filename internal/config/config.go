@@ -47,7 +47,7 @@ func newGitconfig() *gitconfig.Configs {
 }
 
 var defaults = map[string]string{
-	"age.agent-enabled":      "true",
+	"age.agent-enabled":      "false",
 	"core.autopush":          "true",
 	"core.autosync":          "true",
 	"core.cliptimeout":       "45",
