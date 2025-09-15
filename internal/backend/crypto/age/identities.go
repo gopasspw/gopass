@@ -260,6 +260,7 @@ func (a *Age) GenerateIdentity(ctx context.Context, _ string, _ string, pw strin
 	if err := a.addIdentity(ctx, id); err != nil {
 		return "", err
 	}
+
 	return id.Recipient().String(), nil
 }
 

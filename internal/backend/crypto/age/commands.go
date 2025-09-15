@@ -70,6 +70,7 @@ func (l loader) Commands() []*cli.Command {
 								client := agent.NewClient()
 								if err := client.Ping(); err != nil {
 									out.Printf(ctx, "Age agent is not running")
+
 									return exit.Error(exit.Unknown, err, "agent not running")
 								}
 								out.Printf(ctx, "Age agent is running")

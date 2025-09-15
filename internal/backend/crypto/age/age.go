@@ -104,10 +104,12 @@ func (a *Age) tryStartAgent(ctx context.Context) {
 
 		return
 	}
-	var idStrs []string
+
+	idStrs := make([]string, 0, len(ids))
 	for _, id := range ids {
 		idStrs = append(idStrs, fmt.Sprintf("%s", id))
 	}
+
 	if err := client.SendIdentities(strings.Join(idStrs, "\n")); err != nil {
 		debug.Log("failed to send identities to agent: %s", err)
 	}

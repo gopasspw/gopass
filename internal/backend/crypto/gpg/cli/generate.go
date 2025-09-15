@@ -10,9 +10,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/debug"
 )
 
-var (
-	gpgRevocsRE = regexp.MustCompile(`.*/openpgp-revocs.d/([0-9A-F]{40})\.rev`)
-)
+var gpgRevocsRE = regexp.MustCompile(`.*/openpgp-revocs.d/([0-9A-F]{40})\.rev`)
 
 // GenerateIdentity will create a new GPG keypair in batch mode.
 func (g *GPG) GenerateIdentity(ctx context.Context, name, email, passphrase string) (string, error) {
@@ -48,7 +46,6 @@ Expire-Date: 0
 	// try to parse key id from the output
 	for line := range bytes.SplitSeq(out.Bytes(), []byte{'\n'}) {
 		if !gpgRevocsRE.Match(line) {
-
 			continue
 		}
 
@@ -56,6 +53,7 @@ Expire-Date: 0
 		if len(matches) == 2 {
 			keyID := string(matches[1])
 			debug.Log("Generated new GPG key: %s", keyID)
+
 			return keyID, nil
 		}
 	}
