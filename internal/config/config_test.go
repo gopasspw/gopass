@@ -31,7 +31,21 @@ func TestConfig(t *testing.T) {
 	assert.Equal(t, "foo", cfg.Get("env.string"))
 
 	// test default values
-	assert.Equal(t, []string{"core.autopush", "core.autosync", "core.bool", "core.cliptimeout", "core.exportkeys", "core.follow-references", "core.int", "core.notifications", "core.string", "env.string", "mounts.path", "pwgen.xkcd-lang"}, cfg.Keys(""))
+	assert.Equal(t, []string{
+		"age.agent-enabled",
+		"core.autopush",
+		"core.autosync",
+		"core.bool",
+		"core.cliptimeout",
+		"core.exportkeys",
+		"core.follow-references",
+		"core.int",
+		"core.notifications",
+		"core.string",
+		"env.string",
+		"mounts.path",
+		"pwgen.xkcd-lang",
+	}, cfg.Keys(""))
 	for key, expected := range defaults {
 		assert.Equal(t, expected, cfg.Get(key))
 	}

@@ -6,6 +6,7 @@ import (
 
 	"filippo.io/age"
 	"github.com/gopasspw/gopass/internal/action/exit"
+	"github.com/gopasspw/gopass/internal/backend/crypto/age/agent"
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -37,6 +38,48 @@ func (l loader) Commands() []*cli.Command {
 				},
 			},
 			Subcommands: []*cli.Command{
+				{
+					Name:  "agent",
+					Usage: "Start the age agent",
+					Description: "Start the age agent, this will start a background process that will cache your age identities in memory and provide them to gopass on demand. " +
+						"This is optional, but recommended if you use age identities that require a password or are managed by a plugin.",
+					Action: l.agent,
+					Subcommands: []*cli.Command{
+						{
+							Name: "stop",
+							Usage: "Stop the age agent, this will remove all cached identities and stop the agent. " +
+								"Any running gopass instance using the agent will no longer be able to decrypt secrets.",
+							Description: "Stop the age agent, this will remove all cached identities and stop the agent.",
+							Action: func(c *cli.Context) error {
+								ctx := ctxutil.WithGlobalFlags(c)
+								client := agent.NewClient()
+								if err := client.Quit(); err != nil {
+									return exit.Error(exit.Unknown, err, "failed to stop agent: %s", err)
+								}
+								out.Printf(ctx, "Age agent asked to stop")
+
+								return nil
+							},
+						},
+						{
+							Name:        "status",
+							Usage:       "Check if the age agent is running, this will return 0 if the agent is running and 1 otherwise",
+							Description: "Check if the age agent is running, this will return 0 if the agent is running and 1 otherwise",
+							Action: func(c *cli.Context) error {
+								ctx := ctxutil.WithGlobalFlags(c)
+								client := agent.NewClient()
+								if err := client.Ping(); err != nil {
+									out.Printf(ctx, "Age agent is not running")
+
+									return exit.Error(exit.Unknown, err, "agent not running")
+								}
+								out.Printf(ctx, "Age agent is running")
+
+								return nil
+							},
+						},
+					},
+				},
 				{
 					Name:  "identities",
 					Usage: "List age identities used for decryption and encryption",
@@ -125,6 +168,12 @@ func (l loader) Commands() []*cli.Command {
 							Usage: "Generate a new age identity",
 							Description: "" +
 								"Generate a new age identity",
+							Flags: []cli.Flag{
+								&cli.StringFlag{
+									Name:  "password",
+									Usage: "Password for the new key",
+								},
+							},
 							Action: func(c *cli.Context) error {
 								ctx := ctxutil.WithGlobalFlags(c)
 								sshKeyPath := config.String(ctx, "age.ssh-key-path")
@@ -136,11 +185,19 @@ func (l loader) Commands() []*cli.Command {
 									return exit.Error(exit.Unknown, err, "failed to create age backend")
 								}
 
-								err = a.GenerateIdentity(ctx, "", "", "")
+								pw := c.String("password")
+								if pw == "" {
+									pw, err = termio.AskForPassword(ctx, "Enter password for new key", true)
+									if err != nil {
+										return err
+									}
+								}
+								rec, err := a.GenerateIdentity(ctx, "", "", pw)
 								if err != nil {
 									return exit.Error(exit.Unknown, err, "failed to generate age identity")
 								}
 
+								out.Printf(ctx, "New age identity created: %s", rec)
 								out.Notice(ctx, "New age identities are not automatically added to your recipient list, consider adding it using 'gopass recipients add age1...'")
 								out.Warning(ctx, "If you do not add this recipient to the recipient list, make sure to re-encrypt using 'gopass fsck --decrypt' to properly support this identity")
 
@@ -217,7 +274,33 @@ func (l loader) Commands() []*cli.Command {
 						},
 					},
 				},
+				{
+					Name:        "lock",
+					Usage:       "Lock the age agent",
+					Description: "Lock the age agent, this will remove all cached identities from memory and require you to re-enter any passwords for your identities when decrypting",
+					Action:      l.lock,
+				},
 			},
 		},
 	}
+}
+
+func (l loader) agent(c *cli.Context) error {
+	out.Printf(c.Context, "Starting age agent ...")
+
+	ag, err := agent.New()
+	if err != nil {
+		return err
+	}
+
+	return ag.Run(c.Context)
+}
+
+func (l loader) lock(c *cli.Context) error {
+	client := agent.NewClient()
+	if err := client.Lock(); err != nil {
+		return exit.Error(exit.Unknown, err, "failed to lock agent: %s", err)
+	}
+
+	return nil
 }

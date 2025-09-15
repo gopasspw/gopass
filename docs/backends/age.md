@@ -51,6 +51,20 @@ $  GOPASS_SSH_DIR=/Downloads/new_ssh_dir gopass init --crypto age <age1...>
 * Automatic downloading and caching of SSH keys from GitHub
 * Encrypted keyring for age keypairs
 * Support for age plugins
+* Caching of passphrases via an agent
+
+## Agent
+
+The age backend comes with an agent that can cache the passphrases for your age identities.
+The agent is started automatically by gopass if it's not already running.
+You can disable the agent by setting `age.agent-enabled` to `false` in your gopass config.
+
+The agent performs the decryption and the passphrase never leaves the agent process.
+The agent listens on a unix socket at `$XDG_RUNTIME_DIR/gopass/gopass-age-agent.sock`.
+
+You can interact with the agent using the following commands:
+- `gopass age agent`: starts the agent in the foreground.
+- `gopass age lock`: locks the agent, clearing all cached passphrases.
 
 ## Usage with a yubikey
 

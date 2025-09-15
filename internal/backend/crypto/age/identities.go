@@ -241,7 +241,7 @@ func IdentityToRecipient(id age.Identity) age.Recipient {
 }
 
 // GenerateIdentity creates a new identity.
-func (a *Age) GenerateIdentity(ctx context.Context, _ string, _ string, pw string) error {
+func (a *Age) GenerateIdentity(ctx context.Context, _ string, _ string, pw string) (string, error) {
 	// we don't check if the password callback is set, since it could only be
 	// set through an env variable, and here pw can only be set through an
 	// actual user input.
@@ -254,10 +254,14 @@ func (a *Age) GenerateIdentity(ctx context.Context, _ string, _ string, pw strin
 
 	id, err := age.GenerateX25519Identity()
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	return a.addIdentity(ctx, id)
+	if err := a.addIdentity(ctx, id); err != nil {
+		return "", err
+	}
+
+	return id.Recipient().String(), nil
 }
 
 // ListIdentities lists all identities.

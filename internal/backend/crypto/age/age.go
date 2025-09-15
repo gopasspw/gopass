@@ -4,11 +4,15 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/blang/semver/v4"
+	"github.com/cenkalti/backoff/v4"
+	"github.com/gopasspw/gopass/internal/backend/crypto/age/agent"
 	"github.com/gopasspw/gopass/internal/cache"
 	"github.com/gopasspw/gopass/internal/cache/ghssh"
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/pkg/appdir"
 	"github.com/gopasspw/gopass/pkg/debug"
 )
@@ -53,10 +57,62 @@ func New(ctx context.Context, sshKeyPath string) (*Age, error) {
 		askPass:    newAskPass(ctx),
 		sshKeyPath: sshKeyPath,
 	}
+	a.tryStartAgent(ctx)
 
 	debug.Log("age initialized (ghc: %s, recipients: %s, identity: %s, sshKeyPath: %s)", a.ghCache.String(), a.recpCache.String(), a.identity, a.sshKeyPath)
 
 	return a, nil
+}
+
+func (a *Age) tryStartAgent(ctx context.Context) {
+	if !config.Bool(ctx, "age.agent-enabled") {
+		debug.Log("age agent disabled")
+
+		return
+	}
+
+	client := agent.NewClient()
+	if err := client.Ping(); err == nil {
+		debug.Log("age agent already running")
+
+		return
+	}
+
+	debug.Log("age agent not running, starting it...")
+	if err := startAgent(ctx); err != nil {
+		debug.Log("failed to start age agent: %s", err)
+
+		return
+	}
+
+	bo := backoff.NewExponentialBackOff()
+	bo.InitialInterval = 25 * time.Millisecond
+	bo.MaxElapsedTime = 5 * time.Second
+	op := func() error {
+		return client.Ping()
+	}
+	if err := backoff.Retry(op, bo); err != nil {
+		debug.Log("failed to ping age agent after starting: %s", err)
+
+		return
+	}
+
+	// send identities to agent
+	ids, err := a.getAllIdentities(ctx)
+	if err != nil {
+		debug.Log("failed to get identities: %s", err)
+
+		return
+	}
+
+	idStrs := make([]string, 0, len(ids))
+	for _, id := range ids {
+		idStrs = append(idStrs, fmt.Sprintf("%s", id))
+	}
+
+	if err := client.SendIdentities(strings.Join(idStrs, "\n")); err != nil {
+		debug.Log("failed to send identities to agent: %s", err)
+	}
 }
 
 // Initialized returns nil.
@@ -91,4 +147,9 @@ func (a *Age) IDFile() string {
 // Concurrency returns 1 for `age` since otherwise it prompts for the identity password for each worker.
 func (a *Age) Concurrency() int {
 	return 1
+}
+
+// Lock flushes the password cache.
+func (a *Age) Lock() {
+	a.askPass.Lock()
 }

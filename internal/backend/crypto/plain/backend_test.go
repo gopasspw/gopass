@@ -38,7 +38,8 @@ func TestPlain(t *testing.T) {
 
 	assert.Equal(t, "gpg", m.Binary())
 
-	require.Error(t, m.GenerateIdentity(ctx, "", "", ""))
+	_, err = m.GenerateIdentity(ctx, "", "", "")
+	require.Error(t, err)
 
 	kl, err = m.FindRecipients(ctx)
 	require.NoError(t, err)

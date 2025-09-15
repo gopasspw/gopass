@@ -40,7 +40,7 @@ type Keyring interface {
 	FormatKey(ctx context.Context, id, tpl string) string
 	ReadNamesFromKey(ctx context.Context, buf []byte) ([]string, error)
 
-	GenerateIdentity(ctx context.Context, name, email, passphrase string) error
+	GenerateIdentity(ctx context.Context, name, email, passphrase string) (string, error)
 }
 
 // Crypto is a crypto backend.
