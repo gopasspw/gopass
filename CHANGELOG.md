@@ -1,5 +1,26 @@
 # Changelog
 
+## 1.15.17 / 2025-09-15
+
+* [BUGFIX] Fix --force flag in recipients add (#3173)
+* [chore] Add tests and comments for hasPwRuleForSecret (#3162)
+* [chore] Automatically approve and merge dependabot PRs (#3220)
+* [chore] Bump github.com/gopasspw/clipboard to v0.0.3 (#3219)
+* [chore] Disable updating gopasspw.github.io (#3184)
+* [chore] Expose gopass env in help (#3158)
+* [chore] Fix hardened runner (#3196)
+* [chore] Update Go versions (#3139)
+* [chore] Update dependencies (#3197)
+* [feat] Add Jujutsu storage backend (#3202)
+* [feat] Honor generator options in the create workflow (#3149)
+* [fix] Add workaround for pre-release test failures (#3198)
+* [fix] Disable Windows tests (#3204)
+* [fix] Fixes creation template lookup on Windows (#3157)
+* [fix] avoid length prompt when input is within rule boundary (#3159)
+* [fix] skip redundant confirmation when --edit is used (#3161)
+* [fix] use WritePassword for secure write (#3200)
+* [testing] use `/usr/bin/env cat` instead of `/bin/cat` (#3160)
+
 ## 1.15.16 / 2025-04-21
 
 * [BUGFIX] Allow use of trailing slash for cp/mv command (#3080)

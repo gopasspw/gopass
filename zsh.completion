@@ -11,10 +11,12 @@ _gopass () {
 	  age)
 	      local -a subcommands
 	      subcommands=(
+	      "agent:Start the age agent"
 	      "identities:List age identities used for decryption and encryption"
+	      "lock:Lock the age agent"
 	      )
 	      _describe -t commands "gopass age" subcommands
-	      
+	      _arguments : "--age-ssh-key-path[Custom path to SSH key or directory for age backend]"
 	      
 	      
 	      ;;
@@ -34,7 +36,7 @@ _gopass () {
 	      
 	      ;;
 	  clone)
-	      _arguments : "--path[Path to clone the repo to]" "--crypto[Select crypto backend \[age gpgcli plain\]]" "--storage[Select storage backend \[fossilfs gitfs\]]" "--check-keys[Check for valid decryption keys. Generate new keys if none are found.]"
+	      _arguments : "--path[Path to clone the repo to]" "--crypto[Select crypto backend \[age gpgcli plain\]]" "--storage[Select storage backend \[fossilfs gitfs jj\]]" "--check-keys[Check for valid decryption keys. Generate new keys if none are found.]"
 	      
 	      
 	      ;;
@@ -58,7 +60,7 @@ _gopass () {
 	      
 	      ;;
 	  convert)
-	      _arguments : "--store[Specify which store to convert]" "--move[Replace store?]" "--crypto[Which crypto backend? \[age gpgcli plain\]]" "--storage[Which storage backend? \[fossilfs fs gitfs\]]"
+	      _arguments : "--store[Specify which store to convert]" "--move[Replace store?]" "--crypto[Which crypto backend? \[age gpgcli plain\]]" "--storage[Which storage backend? \[fossilfs fs gitfs jj\]]"
 	      
 	      
 	      ;;
@@ -128,7 +130,7 @@ _gopass () {
 	      
 	      ;;
 	  init)
-	      _arguments : "--path[Set the sub-store path to operate on]" "--store[Set the name of the sub-store]" "--crypto[Select crypto backend \[age gpgcli plain\]]" "--storage[Select storage backend \[fossilfs fs gitfs\]]"
+	      _arguments : "--path[Set the sub-store path to operate on]" "--store[Set the name of the sub-store]" "--crypto[Select crypto backend \[age gpgcli plain\]]" "--storage[Select storage backend \[fossilfs fs gitfs jj\]]"
 	      
 	      
 	      ;;
@@ -170,7 +172,7 @@ _gopass () {
 	      _gopass_complete_passwords
 	      ;;
 	  otp|totp|hotp)
-	      _arguments : "--clip[Copy the time-based token into the clipboard]" "--qr[Write QR code to FILE]" "--chained[chain the token to the password]" "--password[Only display the token]" "--snip[Scan screen content to insert a OTP QR code into provided entry]"
+	      _arguments : "--alsoclip[Copy the time-based token and show it]" "--clip[Copy the time-based token into the clipboard]" "--qr[Write QR code to FILE]" "--chained[chain the token to the password]" "--password[Only display the token]" "--snip[Scan screen content to insert a OTP QR code into provided entry]"
 	      
 	      _gopass_complete_passwords
 	      ;;
@@ -208,7 +210,7 @@ _gopass () {
 	      
 	      ;;
 	  setup)
-	      _arguments : "--remote[URL to a git remote, will attempt to join this team]" "--alias[Local mount point for the given remote]" "--create[Create a new team (default: false, i.e. join an existing team)]" "--name[Firstname and Lastname for unattended GPG key generation]" "--email[EMail for unattended GPG key generation]" "--crypto[Select crypto backend \[age gpgcli plain\]]" "--storage[Select storage backend \[fossilfs fs gitfs\]]"
+	      _arguments : "--remote[URL to a git remote, will attempt to join this team]" "--alias[Local mount point for the given remote]" "--create[Create a new team (default: false, i.e. join an existing team)]" "--name[Firstname and Lastname for unattended GPG key generation]" "--email[EMail for unattended GPG key generation]" "--crypto[Select crypto backend \[age gpgcli plain\]]" "--storage[Select storage backend \[fossilfs fs gitfs jj\]]"
 	      
 	      
 	      ;;

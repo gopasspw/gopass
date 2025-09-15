@@ -1,5 +1,5 @@
 
-.TH GOPASS "1" "April 2025" "gopass (github.com/gopasspw/gopass) 1.15.16" "User Commands"
+.TH GOPASS "1" "September 2025" "gopass (github.com/gopasspw/gopass) 1.15.17" "User Commands"
 .SH NAME
 gopass - The standard Unix password manager
 .SH SYNOPSIS
@@ -58,6 +58,11 @@ Built-in commands for the age backend.
 These allow limited interactions with the gopass specific age identities.
  Added identities are automatically added as recipient to your secrets when encrypting, but not toyour recipients, make sure to keep your recipients and identities in sync as you want to.
 All age identities, including plugin ones should be supported. We also still support githubidentities despite them being deprecated by age, we do so by falling back to the ssh identitiesfor these and keeping a local cache of ssh keys for a given github identity.
+
+.B Flags
+.TP
+\fB\-\-age-ssh-key-path\fR,
+Custom path to SSH key or directory for age backend
 .SS alias
 Print domain aliases
 
@@ -105,7 +110,7 @@ Select crypto backend [age gpgcli plain]
 Path to clone the repo to
 .TP
 \fB\-\-storage\fR,
-Select storage backend [fossilfs gitfs]
+Select storage backend [fossilfs gitfs jj]
 .SS config
 Display and edit the configuration file
 
@@ -129,7 +134,7 @@ Which crypto backend? [age gpgcli plain]
 Replace store?
 .TP
 \fB\-\-storage\fR,
-Which storage backend? [fossilfs fs gitfs]
+Which storage backend? [fossilfs fs gitfs jj]
 .TP
 \fB\-\-store\fR,
 Specify which store to convert
@@ -323,7 +328,7 @@ Select crypto backend [age gpgcli plain]
 Set the sub-store path to operate on
 .TP
 \fB\-\-storage\fR,
-Select storage backend [fossilfs fs gitfs]
+Select storage backend [fossilfs fs gitfs jj]
 .TP
 \fB\-\-store\fR,
 \fB\-s\fR,
@@ -410,6 +415,10 @@ Generate time- or hmac-based tokens
 Tries to parse an OTP URL (otpauth://). URL can be TOTP or HOTP. The URL can be provided on its own line or on a key value line with a key named 'totp'.
 
 .B Flags
+.TP
+\fB\-\-alsoclip\fR,
+\fB\-C\fR,
+Copy the time-based token and show it
 .TP
 \fB\-\-chained\fR,
 \fB\-p\fR,
@@ -521,7 +530,7 @@ Firstname and Lastname for unattended GPG key generation
 URL to a git remote, will attempt to join this team
 .TP
 \fB\-\-storage\fR,
-Select storage backend [fossilfs fs gitfs]
+Select storage backend [fossilfs fs gitfs jj]
 .SS show
 Display the content of a secret
 
