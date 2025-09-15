@@ -16,6 +16,6 @@ func TestAgeAgent(t *testing.T) {
 	defer ts.teardown()
 
 	// create a new age identity
-	out, err := ts.runCmd([]string{ts.Binary, "age", "identities", "keygen"}, []byte("test\ntest\n"))
+	out, err := ts.runCmd([]string{ts.Binary, "age", "identities", "keygen", "--password", "foo"}, []byte("test\ntest\n"))
 	require.NoError(t, err, out)
 }
