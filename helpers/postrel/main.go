@@ -21,7 +21,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
-	"runtime"
 	"strings"
 	"time"
 
@@ -29,6 +28,7 @@ import (
 	"github.com/google/go-github/v61/github"
 	"github.com/gopasspw/gopass/helpers/gitutils"
 	"github.com/gopasspw/gopass/pkg/fsutil"
+	"golang.org/x/mod/modfile"
 	"golang.org/x/oauth2"
 )
 
@@ -86,19 +86,6 @@ func main() {
 	if h := os.Getenv("GOPASS_HTMLDIR"); h != "" {
 		htmlDir = h
 	}
-
-	// update gopass.pw
-	// fmt.Println("☝  Updating gopass.pw ...")
-	// if err := updateGopasspw(htmlDir, curVer); err != nil {
-	// 	fmt.Printf("Failed to update gopasspw.github.io: %s\n", err)
-	// }
-
-	// // only update gopasspw
-	// if len(os.Args) > 1 && os.Args[1] == "render" {
-	// 	fmt.Println("💎🙌 Done (render gopasspw only) 🚀🚀🚀🚀🚀🚀")
-
-	// 	return
-	// }
 
 	mustCheckEnv()
 
@@ -294,10 +281,18 @@ type inUpdater struct {
 }
 
 func newIntegrationsUpdater(client *github.Client, v semver.Version) (*inUpdater, error) {
+	buf, err := os.ReadFile("go.mod")
+	if err != nil {
+		return nil, err
+	}
+	modfile, err := modfile.Parse("go.mod", buf, nil)
+	if err != nil {
+		return nil, err
+	}
 	return &inUpdater{
 		github: client,
 		v:      v,
-		goVer:  goVersion(runtime.Version()),
+		goVer:  goVersion(modfile.Go.Version),
 	}, nil
 }
 
@@ -444,7 +439,7 @@ func (u *inUpdater) updateWorkflows(ctx context.Context, dir string) error {
 
 var goVersionRE = regexp.MustCompile(`go-version:\s+\d+\.\d+`)
 
-func (u *inUpdater) updateWorkflow(ctx context.Context, path string) error {
+func (u *inUpdater) updateWorkflow(_ context.Context, path string) error {
 	buf, err := os.ReadFile(path)
 	if err != nil {
 		return err
