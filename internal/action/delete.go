@@ -36,9 +36,26 @@ func (s *Action) Delete(c *cli.Context) error {
 	if s.Store.IsDir(ctx, name) && !s.Store.Exists(ctx, name) {
 		return exit.Error(exit.Usage, nil, "Cannot remove %q: Is a directory. Use 'gopass rm -r %s' to delete", name, name)
 	}
-
 	// specifying a key is optional.
 	key := c.Args().Get(1)
+
+	// multiple secrets, so not a key
+	if len(c.Args().Tail()) > 1 {
+		key = ""
+	}
+
+	// Check for custom commit message
+	commitMsg := fmt.Sprintf("Deleted %s", name)
+	if key != "" {
+		commitMsg = fmt.Sprintf("Deleted key %s from %s", key, name)
+	}
+	if c.IsSet("commit-message") {
+		commitMsg = c.String("commit-message")
+	}
+	if c.Bool("interactive-commit") {
+		commitMsg = ""
+	}
+	ctx = ctxutil.WithCommitMessage(ctx, commitMsg)
 
 	// multiple secrets, so not a key
 	if len(c.Args().Tail()) > 1 {
@@ -111,7 +128,7 @@ func (s *Action) deleteKeyFromYAML(ctx context.Context, name, key string) error 
 
 	sec.Del(key)
 
-	if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, "Updated Key"), name, sec); err != nil {
+	if err := s.Store.Set(ctx, name, sec); err != nil {
 		if !errors.Is(err, store.ErrMeaninglessWrite) {
 			return exit.Error(exit.IO, err, "Can not delete key %q from %q: %s", key, name, err)
 		}

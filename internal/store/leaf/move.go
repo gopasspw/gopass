@@ -90,7 +90,6 @@ func (s *Store) Move(ctx context.Context, from, to string) error {
 }
 
 func (s *Store) directMove(ctx context.Context, from, to string, del bool) error {
-	ctx = ctxutil.WithCommitMessage(ctx, fmt.Sprintf("Move from %s to %s", from, to))
 	pFrom := s.Passfile(from)
 	pTo := s.Passfile(to)
 
@@ -170,7 +169,12 @@ func (s *Store) delete(ctx context.Context, name string, recurse bool) error {
 		return nil
 	}
 
-	if err := s.storage.TryCommit(ctx, fmt.Sprintf("Remove %s from store.", name)); err != nil {
+	commitMsg := ctxutil.GetCommitMessage(ctx)
+	if commitMsg == "" {
+		commitMsg = fmt.Sprintf("Remove %s from store.", name)
+	}
+
+	if err := s.storage.TryCommit(ctx, ctxutil.GetCommitMessage(ctx)); err != nil {
 		return fmt.Errorf("failed to commit changes to git: %w", err)
 	}
 

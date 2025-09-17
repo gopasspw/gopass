@@ -285,7 +285,13 @@ func (g *Git) Commit(ctx context.Context, msg string) error {
 		return store.ErrGitNothingToCommit
 	}
 
-	return g.Cmd(ctx, "gitCommit", "commit", fmt.Sprintf("--date=%d +00:00", ctxutil.GetCommitTimestamp(ctx).UTC().Unix()), "-m", msg)
+	args := []string{"commit", fmt.Sprintf("--date=%d +00:00", ctxutil.GetCommitTimestamp(ctx).UTC().Unix())}
+	// if the message is empty git will open an editor
+	if msg != "" {
+		args = append(args, "-m", msg)
+	}
+
+	return g.Cmd(ctx, "gitCommit", args...)
 }
 
 // TryCommit calls commit and returns nil if there was nothing to commit or if the git repo was not initialized.

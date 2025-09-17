@@ -25,6 +25,16 @@ func (s *Action) Copy(c *cli.Context) error {
 	from := c.Args().Get(0)
 	to := c.Args().Get(1)
 
+	// Check for custom commit message
+	commitMsg := fmt.Sprintf("Copied %s to %s", from, to)
+	if c.IsSet("commit-message") {
+		commitMsg = c.String("commit-message")
+	}
+	if c.Bool("interactive-commit") {
+		commitMsg = ""
+	}
+	ctx = ctxutil.WithCommitMessage(ctx, commitMsg)
+
 	return s.copy(ctx, from, to, force)
 }
 
