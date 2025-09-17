@@ -161,6 +161,11 @@ func (m *Mocker) ReadNamesFromKey(ctx context.Context, buf []byte) ([]string, er
 	return []string{"unsupported"}, nil
 }
 
+// GetFingerprint returns an empty fingerprint.
+func (m *Mocker) GetFingerprint(ctx context.Context, key []byte) (string, error) {
+	return "", nil
+}
+
 // Concurrency returns the number of CPUs.
 func (m *Mocker) Concurrency() int {
 	return runtime.NumCPU()

@@ -149,6 +149,11 @@ func (a *Age) Concurrency() int {
 	return 1
 }
 
+// GetFingerprint returns the fingerprint of a key.
+func (a *Age) GetFingerprint(ctx context.Context, key []byte) (string, error) {
+	return string(key), nil
+}
+
 // Lock flushes the password cache.
 func (a *Age) Lock() {
 	a.askPass.Lock()

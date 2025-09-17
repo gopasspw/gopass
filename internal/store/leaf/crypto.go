@@ -73,6 +73,26 @@ func (s *Store) ImportMissingPublicKeys(ctx context.Context, newrs ...string) er
 					continue
 				}
 			}
+		} else {
+			// if key is not found, try to check by fingerprint
+			pk, err := s.getPublicKey(ctx, r)
+			if err != nil {
+				debug.Log("failed to get public key for %s: %s", r, err)
+				continue
+			}
+			fp, err := s.crypto.GetFingerprint(ctx, pk)
+			if err != nil {
+				debug.Log("failed to get fingerprint for %s: %s", r, err)
+				continue
+			}
+			kl, err = s.crypto.FindRecipients(ctx, fp)
+			if err != nil {
+				debug.Log("failed to find recipients for %s: %s", fp, err)
+			}
+			if len(kl) > 0 {
+				debug.Log("key %s with fingerprint %s already in keyring", r, fp)
+				continue
+			}
 		}
 
 		// get info about this public key
