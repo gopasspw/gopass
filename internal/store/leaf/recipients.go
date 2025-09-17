@@ -485,7 +485,7 @@ func (s *Store) saveRecipients(ctx context.Context, rs recipientMarshaler, msg s
 	}
 
 	// save all recipients public keys to the repo if wanted
-	if config.AsBoolWithDefault(cfg.GetM(s.alias, "core.exportkeys"), true) {
+	if config.AsBool(cfg.GetM(s.alias, "core.exportkeys")) {
 		debug.Log("updating exported keys")
 		if _, err := s.UpdateExportedPublicKeys(ctx); err != nil {
 			out.Errorf(ctx, "Failed to export missing public keys: %s", err)
