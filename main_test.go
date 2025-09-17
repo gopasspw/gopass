@@ -99,6 +99,7 @@ var commandsWithError = set.Map([]string{
 	".templates.remove",
 	".templates.show",
 	".unclip",
+	".reorg",
 })
 
 func TestGetCommands(t *testing.T) {
@@ -120,7 +121,7 @@ func TestGetCommands(t *testing.T) {
 	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithInteractive(ctx, false)
-	ctx = ctxutil.WithTerminal(ctx, false)
+	ctx = ctxutil.WithTerminal(ctx, true)
 	ctx = ctxutil.WithHidden(ctx, true)
 	ctx = backend.WithCryptoBackendString(ctx, "plain")
 	ctx = ctxutil.WithPasswordCallback(ctx, func(_ string, _ bool) ([]byte, error) {
@@ -136,7 +137,7 @@ func TestGetCommands(t *testing.T) {
 	c.Context = ctx
 
 	commands := getCommands(act, app)
-	assert.Len(t, commands, 41)
+	assert.Len(t, commands, 42)
 
 	prefix := ""
 	testCommands(t, c, commands, prefix)
