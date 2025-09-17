@@ -31,6 +31,67 @@ func (s *Store) Crypto() backend.Crypto {
 	return s.crypto
 }
 
+// recipientCheck checks if a recipient is already present in the keyring and up-to-date.
+// It returns true if the recipient is fine and the import can be skipped.
+func (s *Store) recipientCheck(ctx context.Context, r string) bool {
+	// check if this recipient is missing
+	// we could list all keys outside the loop and just do the lookup here
+	// but this way we ensure to use the exact same lookup logic as
+	// gpg does on encryption
+	kl, err := s.crypto.FindRecipients(ctx, r)
+	if err != nil {
+		// this is expected if we don't have the key
+		debug.Log("Failed to get public key for %s: %s", r, err)
+	}
+
+	if len(kl) > 0 { //nolint:nestif
+		debug.Log("Keyring contains %d public keys for %s", len(kl), r)
+		if !IsPubkeyUpdate(ctx) {
+			return true
+		}
+		ex, ok := s.crypto.(keyExporter)
+		if !ok {
+			return true
+		}
+		pk, err := ex.ExportPublicKey(ctx, r)
+		if err != nil {
+			return true
+		}
+		pk2, err2 := s.getPublicKey(ctx, r)
+		if err2 != nil {
+			return true
+		}
+		if bytes.Equal(pk, pk2) {
+			return true
+		}
+	} else {
+		// if key is not found, try to check by fingerprint
+		pk, err := s.getPublicKey(ctx, r)
+		if err != nil {
+			debug.Log("failed to get public key for %s: %s", r, err)
+
+			return true
+		}
+		fp, err := s.crypto.GetFingerprint(ctx, pk)
+		if err != nil {
+			debug.Log("failed to get fingerprint for %s: %s", r, err)
+
+			return true
+		}
+		kl, err = s.crypto.FindRecipients(ctx, fp)
+		if err != nil {
+			debug.Log("failed to find recipients for %s: %s", fp, err)
+		}
+		if len(kl) > 0 {
+			debug.Log("key %s with fingerprint %s already in keyring", r, fp)
+
+			return true
+		}
+	}
+
+	return false
+}
+
 // ImportMissingPublicKeys will try to import any missing public keys from the
 // .public-keys folder in the password store.
 func (s *Store) ImportMissingPublicKeys(ctx context.Context, newrs ...string) error {
@@ -50,49 +111,8 @@ func (s *Store) ImportMissingPublicKeys(ctx context.Context, newrs ...string) er
 	ids := append(rs.IDs(), newrs...)
 	for _, r := range ids {
 		debug.Log("Checking recipients %s ...", r)
-		// check if this recipient is missing
-		// we could list all keys outside the loop and just do the lookup here
-		// but this way we ensure to use the exact same lookup logic as
-		// gpg does on encryption
-		kl, err := s.crypto.FindRecipients(ctx, r)
-		if err != nil {
-			// this is expected if we don't have the key
-			debug.Log("Failed to get public key for %s: %s", r, err)
-		}
-
-		if len(kl) > 0 {
-			debug.Log("Keyring contains %d public keys for %s", len(kl), r)
-			if !IsPubkeyUpdate(ctx) {
-				continue
-			}
-			ex, ok := s.crypto.(keyExporter)
-			if ok {
-				pk, err := ex.ExportPublicKey(ctx, r)
-				pk2, err2 := s.getPublicKey(ctx, r)
-				if err == nil && err2 == nil && bytes.Equal(pk, pk2) {
-					continue
-				}
-			}
-		} else {
-			// if key is not found, try to check by fingerprint
-			pk, err := s.getPublicKey(ctx, r)
-			if err != nil {
-				debug.Log("failed to get public key for %s: %s", r, err)
-				continue
-			}
-			fp, err := s.crypto.GetFingerprint(ctx, pk)
-			if err != nil {
-				debug.Log("failed to get fingerprint for %s: %s", r, err)
-				continue
-			}
-			kl, err = s.crypto.FindRecipients(ctx, fp)
-			if err != nil {
-				debug.Log("failed to find recipients for %s: %s", fp, err)
-			}
-			if len(kl) > 0 {
-				debug.Log("key %s with fingerprint %s already in keyring", r, fp)
-				continue
-			}
+		if s.recipientCheck(ctx, r) {
+			continue
 		}
 
 		// get info about this public key
