@@ -4,6 +4,10 @@
 
 While [Vault](https://www.vaultproject.io/) is for machines, gopass is for humans [#7](https://github.com/gopasspw/gopass/issues/7)
 
+## Is gopass compatible with pass?
+
+Yes, gopass is a drop-in replacement for pass. It has a similar command structure and is compatible with the pass storage format. However, gopass offers additional features like multiple stores, mounts, and structured secrets, while pass has a more flexible plugin system.
+
 ## `gopass show secret` displays `Error: Failed to decrypt`
 
 This issue may happen if your GPG setup is broken. On MacOS try `brew link --overwrite gnupg`. You also may need to set `export GPG_TTY=$(tty)` in your `.bashrc` [#208](https://github.com/gopasspw/gopass/issues/208), [#209](https://github.com/gopasspw/gopass/issues/209)

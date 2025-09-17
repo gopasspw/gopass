@@ -291,11 +291,15 @@ invocation.
 
 ### Migrating from pass to gopass
 
-If you are migrating from pass to gopass, you can simply use your existing password store and everything should just work. Furthermore, it may be helpful to link the gopass binary so that you can use it as a drop-in replacement. For example, assuming `$HOME/bin/` exists and is present in your `$PATH`:
+gopass is compatible with pass and can be used as a drop-in replacement. If you are migrating from pass to gopass, you can simply use your existing password store and everything should just work.
+
+You can even alias `pass` to `gopass` to start using it right away. For example, assuming `$HOME/bin/` exists and is present in your `$PATH`:
 
 ```bash
-ln -s $GOPATH/bin/gopass $HOME/bin/pass
+ln -s $(which gopass) $HOME/bin/pass
 ```
+
+While gopass maintains compatibility with pass, it also introduces new features such as mounts for managing multiple stores and structured secrets using YAML. On the other hand, pass has a more extensive plugin system. You can choose the tool that best fits your workflow, or even use both in parallel.
 
 ### Migrating to gopass from Other Password Stores
 

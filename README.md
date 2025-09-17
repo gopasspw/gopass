@@ -22,6 +22,7 @@ Manage your credentials with ease. In a globally distributed team, on multiple d
 
 # How Does It Work?
 
+Gopass is a drop-in replacement for pass, the standard UNIX password manager.
 By default your credentials are encrypted with GPG and versioned in git. This can be customized easily.
 The primary interface is the command line, making it an excellent choice for CLI fans, CI/CD systems or
 anything you can hook it up with. Gopass can also integrate with your browser so you can largely avoid
