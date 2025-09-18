@@ -50,6 +50,9 @@ func (s *Action) Reorg(c *cli.Context) error {
 	initialContent := []byte(strings.Join(initialSecrets, "\n") + "\n")
 
 	// open editor
+	if !ctxutil.IsInteractive(ctx) {
+		return exit.Error(exit.Unsupported, nil, "reorg is not supported in non-interactive mode")
+	}
 	editorPath := editor.Path(c)
 	modifiedContent, err := editor.Invoke(ctx, editorPath, initialContent)
 	if err != nil {
