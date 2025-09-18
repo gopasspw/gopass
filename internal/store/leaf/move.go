@@ -174,7 +174,7 @@ func (s *Store) delete(ctx context.Context, name string, recurse bool) error {
 		commitMsg = fmt.Sprintf("Remove %s from store.", name)
 	}
 
-	if err := s.storage.TryCommit(ctx, ctxutil.GetCommitMessage(ctx)); err != nil {
+	if err := s.storage.TryCommit(ctx, commitMsg); err != nil {
 		return fmt.Errorf("failed to commit changes to git: %w", err)
 	}
 
