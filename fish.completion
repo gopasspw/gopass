@@ -314,6 +314,7 @@ complete -c $PROG -f -n '__fish_gopass_uses_command recipients remove -l nosync 
 complete -c $PROG -f -n '__fish_gopass_uses_command recipients remove -l chars -d "Print specific characters from the secret"'
 complete -c $PROG -f -n '__fish_gopass_uses_command recipients remove -l help -d "show help"'
 complete -c $PROG -f -n '__fish_gopass_uses_command recipients remove -l version -d "print the version"'
+complete -c $PROG -f -n '__fish_gopass_needs_command' -a reorg -d 'Command: Reorganize a password store by editing a text file'
 complete -c $PROG -f -n '__fish_gopass_needs_command' -a setup -d 'Command: Initialize a new password store'
 complete -c $PROG -f -n '__fish_gopass_needs_command' -a show -d 'Command: Display the content of a secret'
 complete -c $PROG -f -n '__fish_gopass_uses_command show' -a "(__fish_gopass_print_entries)"

@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.15.18 / 2025-09-19
+
+* [fix] Enable Windows builders (#3237)
+* [fix] Fix recipient check error (#3235)
+* [fix] Update gitconfig to v0.0.3 to pull in Windows fixes (#3236)
+* [fix] Use Go 1.24 instead of Go 1.25 (#3226)
+
 ## 1.15.17 / 2025-09-15
 
 * [BUGFIX] Fix --force flag in recipients add (#3173)

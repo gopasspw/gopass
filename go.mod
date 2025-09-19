@@ -1,6 +1,6 @@
 module github.com/gopasspw/gopass
 
-go 1.24.1
+go 1.25
 
 require (
 	filippo.io/age v1.2.1
@@ -17,7 +17,7 @@ require (
 	github.com/google/go-github/v61 v61.0.0
 	github.com/gopasspw/clipboard v0.0.3
 	github.com/gopasspw/gitconfig v0.0.3
-	github.com/gopasspw/gopass-hibp v1.15.16
+	github.com/gopasspw/gopass-hibp v1.15.17
 	github.com/hashicorp/golang-lru/v2 v2.0.7
 	github.com/jsimonetti/pwscheme v0.0.0-20220922140336-67a4d090f150
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
@@ -41,6 +41,7 @@ require (
 	github.com/zeebo/blake3 v0.2.4
 	golang.org/x/crypto v0.42.0
 	golang.org/x/exp v0.0.0-20250911091902-df9299821621
+	golang.org/x/mod v0.28.0
 	golang.org/x/net v0.44.0
 	golang.org/x/oauth2 v0.31.0
 	golang.org/x/sys v0.36.0
@@ -94,7 +95,6 @@ require (
 	github.com/ulikunitz/xz v0.5.15 // indirect
 	github.com/xrash/smetrics v0.0.0-20250705151800-55b8f293f342 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
-	golang.org/x/mod v0.28.0 // indirect
 	golang.org/x/sync v0.17.0 // indirect
 	golang.org/x/text v0.29.0 // indirect
 	golang.org/x/xerrors v0.0.0-20240903120638-7835f813f4da // indirect

@@ -1,5 +1,5 @@
 
-.TH GOPASS "1" "September 2025" "gopass (github.com/gopasspw/gopass) 1.15.17" "User Commands"
+.TH GOPASS "1" "September 2025" "gopass (github.com/gopasspw/gopass) 1.15.18" "User Commands"
 .SH NAME
 gopass - The standard Unix password manager
 .SH SYNOPSIS
@@ -145,9 +145,17 @@ This command copies an existing secret in the store to another location. This al
 
 .B Flags
 .TP
+\fB\-\-commit-message\fR,
+\fB\-m\fR,
+Set the commit message
+.TP
 \fB\-\-force\fR,
 \fB\-f\fR,
 Force to copy the secret and overwrite existing one
+.TP
+\fB\-\-interactive-commit\fR,
+\fB\-i\fR,
+Open an editor for the commit message
 .SS create
 Easy creation of new secrets
 
@@ -169,9 +177,17 @@ This command removes secrets. It can work recursively on folders. Recursing acro
 
 .B Flags
 .TP
+\fB\-\-commit-message\fR,
+\fB\-m\fR,
+Set the commit message
+.TP
 \fB\-\-force\fR,
 \fB\-f\fR,
 Force to delete the secret
+.TP
+\fB\-\-interactive-commit\fR,
+\fB\-i\fR,
+Open an editor for the commit message
 .TP
 \fB\-\-recursive\fR,
 \fB\-r\fR,
@@ -184,6 +200,10 @@ Note: If $EDITOR is not set we will try 'editor'. If that's not available either
 
 .B Flags
 .TP
+\fB\-\-commit-message\fR,
+\fB\-m\fR,
+Set the commit message
+.TP
 \fB\-\-create\fR,
 \fB\-c\fR,
 Create a new secret if none found
@@ -191,6 +211,10 @@ Create a new secret if none found
 \fB\-\-editor\fR,
 \fB\-e\fR,
 Use this editor binary
+.TP
+\fB\-\-interactive-commit\fR,
+\fB\-i\fR,
+Open an editor for the commit message
 .SS env
 Run a subprocess with a pre-populated environment
 
@@ -248,6 +272,10 @@ Dialog to generate a new password and write it into a new or existing secret. By
 \fB\-c\fR,
 Copy the generated password to the clipboard
 .TP
+\fB\-\-commit-message\fR,
+\fB\-m\fR,
+Set the commit message
+.TP
 \fB\-\-edit\fR,
 \fB\-e\fR,
 Open secret for editing after generating a password
@@ -263,6 +291,10 @@ Force full re-generation, incl. evaluation of templates. Will overwrite the enti
 \fB\-\-generator\fR,
 \fB\-g\fR,
 Choose a password generator, use one of: cryptic, memorable, xkcd or external. Default: cryptic
+.TP
+\fB\-\-interactive-commit\fR,
+\fB\-i\fR,
+Open an editor for the commit message
 .TP
 \fB\-\-lang\fR,
 \fB\-\-xkcdlang\fR,
@@ -344,6 +376,9 @@ Insert a new secret. Optionally, echo the secret back to the console during entr
 \fB\-a\fR,
 Append data read from STDIN to existing data
 .TP
+\fB\-\-commit-message\fR,
+Set the commit message
+.TP
 \fB\-\-echo\fR,
 \fB\-e\fR,
 Display secret while typing
@@ -351,6 +386,10 @@ Display secret while typing
 \fB\-\-force\fR,
 \fB\-f\fR,
 Overwrite any existing secret and do not prompt to confirm recipients
+.TP
+\fB\-\-interactive-commit\fR,
+\fB\-i\fR,
+Open an editor for the commit message
 .TP
 \fB\-\-multiline\fR,
 \fB\-m\fR,
@@ -406,9 +445,17 @@ This command moves a secret from one path to another. This also works across dif
 
 .B Flags
 .TP
+\fB\-\-commit-message\fR,
+\fB\-m\fR,
+Set the commit message
+.TP
 \fB\-\-force\fR,
 \fB\-f\fR,
 Force to move the secret and overwrite existing one
+.TP
+\fB\-\-interactive-commit\fR,
+\fB\-i\fR,
+Open an editor for the commit message
 .SS otp
 Generate time- or hmac-based tokens
 
@@ -504,6 +551,10 @@ This command displays all existing recipients for all mounted stores. The subcom
 .TP
 \fB\-\-pretty\fR,
 Pretty print recipients
+.SS reorg
+Reorganize a password store by editing a text file
+
+This command lists all the secrets in a text file, line by line, and then opens it in an editor. Once the user saves and leaves the editor, gopass will read the temp file, calculate the necessary moves and show a diff and a confirmation prompt. Once the user acknowledges that it will reorganize the secrets and create a meaningful commit message.
 .SS setup
 Initialize a new password store
 
