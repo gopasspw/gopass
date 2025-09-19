@@ -954,6 +954,18 @@ func (s *Action) GetCommands() []*cli.Command {
 			},
 		},
 		{
+			Name:      "reorg",
+			Usage:     "Reorganize a password store by editing a text file",
+			ArgsUsage: "[prefix]",
+			Description: "" +
+				"This command lists all the secrets in a text file, line by line, and then opens it in an editor. " +
+				"Once the user saves and leaves the editor, gopass will read the temp file, calculate the necessary moves and show a diff and a confirmation prompt. " +
+				"Once the user acknowledges that it will reorganize the secrets and create a meaningful commit message.",
+			Before:       s.IsInitialized,
+			Action:       s.Reorg,
+			BashComplete: s.Complete,
+		},
+		{
 			Name:  "setup",
 			Usage: "Initialize a new password store",
 			Description: "" +
