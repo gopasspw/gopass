@@ -16,7 +16,7 @@ require (
 	github.com/google/go-cmp v0.7.0
 	github.com/google/go-github/v61 v61.0.0
 	github.com/gopasspw/clipboard v0.0.3
-	github.com/gopasspw/gitconfig v0.0.3-0.20250819161336-9ff4f059ac1d
+	github.com/gopasspw/gitconfig v0.0.3
 	github.com/gopasspw/gopass-hibp v1.15.16
 	github.com/hashicorp/golang-lru/v2 v2.0.7
 	github.com/jsimonetti/pwscheme v0.0.0-20220922140336-67a4d090f150
@@ -64,6 +64,7 @@ require (
 	github.com/gdamore/tcell/v2 v2.9.0 // indirect
 	github.com/gen2brain/shm v0.1.1 // indirect
 	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
+	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
 	github.com/jezek/xgb v1.1.1 // indirect
