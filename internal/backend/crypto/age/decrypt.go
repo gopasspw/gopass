@@ -7,7 +7,7 @@ import (
 	"io"
 	"os"
 
-	"filippo.io/age"
+	a "filippo.io/age"
 	"github.com/gopasspw/gopass/internal/backend/crypto/age/agent"
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -43,7 +43,7 @@ func (a *Age) Decrypt(ctx context.Context, ciphertext []byte) ([]byte, error) {
 	return a.decrypt(ciphertext, ids...)
 }
 
-func (a *Age) decrypt(ciphertext []byte, ids ...age.Identity) ([]byte, error) {
+func (a *Age) decrypt(ciphertext []byte, ids ...a.Identity) ([]byte, error) {
 	debug.Log("decrypting with %d ids", len(ids))
 
 	out := &bytes.Buffer{}

@@ -40,16 +40,20 @@ func (l loader) Commands() []*cli.Command {
 			Subcommands: []*cli.Command{
 				{
 					Name:  "agent",
-					Usage: "Start the age agent",
-					Description: "Start the age agent, this will start a background process that will cache your age identities in memory and provide them to gopass on demand. " +
+					Usage: "Manage the age agent",
+					Description: "Manage the age agent, this will start a background process that will cache your age identities in memory and provide them to gopass on demand. " +
 						"This is optional, but recommended if you use age identities that require a password or are managed by a plugin.",
-					Action: l.agent,
 					Subcommands: []*cli.Command{
 						{
-							Name: "stop",
-							Usage: "Stop the age agent, this will remove all cached identities and stop the agent. " +
-								"Any running gopass instance using the agent will no longer be able to decrypt secrets.",
-							Description: "Stop the age agent, this will remove all cached identities and stop the agent.",
+							Name:        "start",
+							Usage:       "Start the age agent",
+							Description: "Start the age agent",
+							Action:      l.agent,
+						},
+						{
+							Name:        "stop",
+							Usage:       "Stop the age agent",
+							Description: "Stop the age agent",
 							Action: func(c *cli.Context) error {
 								ctx := ctxutil.WithGlobalFlags(c)
 								client := agent.NewClient()
@@ -68,15 +72,39 @@ func (l loader) Commands() []*cli.Command {
 							Action: func(c *cli.Context) error {
 								ctx := ctxutil.WithGlobalFlags(c)
 								client := agent.NewClient()
-								if err := client.Ping(); err != nil {
+								status, err := client.Status()
+								if err != nil {
 									out.Printf(ctx, "Age agent is not running")
 
 									return exit.Error(exit.Unknown, err, "agent not running")
 								}
 								out.Printf(ctx, "Age agent is running")
+								if status == "locked" {
+									out.Printf(ctx, " (locked)")
+								}
 
 								return nil
 							},
+						},
+						{
+							Name:        "unlock",
+							Usage:       "Unlock the age agent",
+							Description: "Unlock the age agent, this will allow gopass to ask for your password again when decrypting",
+							Action: func(c *cli.Context) error {
+								client := agent.NewClient()
+								if err := client.Unlock(); err != nil {
+									return exit.Error(exit.Unknown, err, "failed to unlock agent: %s", err)
+								}
+								out.Printf(c.Context, "Age agent unlocked")
+
+								return nil
+							},
+						},
+						{
+							Name:        "lock",
+							Usage:       "Lock the age agent",
+							Description: "Lock the age agent",
+							Action:      l.lock,
 						},
 					},
 				},
@@ -279,6 +307,7 @@ func (l loader) Commands() []*cli.Command {
 					Usage:       "Lock the age agent",
 					Description: "Lock the age agent, this will remove all cached identities from memory and require you to re-enter any passwords for your identities when decrypting",
 					Action:      l.lock,
+					Hidden:      true,
 				},
 			},
 		},

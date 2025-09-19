@@ -68,6 +68,11 @@ func (c *Client) Ping() error {
 	return err
 }
 
+// Status returns the agent's status.
+func (c *Client) Status() (string, error) {
+	return c.send("status")
+}
+
 // SendIdentities sends the identities to the agent.
 func (c *Client) SendIdentities(ids string) error {
 	_, err := c.send("identities " + ids)
@@ -95,6 +100,13 @@ func (c *Client) Remove(key string) error {
 // Lock locks the agent.
 func (c *Client) Lock() error {
 	_, err := c.send("lock")
+
+	return err
+}
+
+// Unlock unlocks the agent.
+func (c *Client) Unlock() error {
+	_, err := c.send("unlock")
 
 	return err
 }

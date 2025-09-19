@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	a "filippo.io/age"
 	"github.com/blang/semver/v4"
 	"github.com/cenkalti/backoff/v4"
 	"github.com/gopasspw/gopass/internal/backend/crypto/age/agent"
@@ -157,4 +158,13 @@ func (a *Age) GetFingerprint(ctx context.Context, key []byte) (string, error) {
 // Lock flushes the password cache.
 func (a *Age) Lock() {
 	a.askPass.Lock()
+}
+
+func (a *Age) identitiesToString(ids []a.Identity) (string, error) {
+	var sb strings.Builder
+	for _, id := range ids {
+		fmt.Fprintln(&sb, id)
+	}
+
+	return sb.String(), nil
 }

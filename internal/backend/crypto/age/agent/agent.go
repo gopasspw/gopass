@@ -32,6 +32,7 @@ type Agent struct {
 
 	mux        sync.Mutex
 	identities []age.Identity
+	locked     bool
 }
 
 // New creates a new agent.
@@ -45,6 +46,7 @@ func New() (*Agent, error) {
 
 	return &Agent{
 		socketPath: socketPath,
+		locked:     false,
 	}, nil
 }
 
@@ -120,6 +122,15 @@ func (a *Agent) handleConnection(ctx context.Context, conn net.Conn) {
 		switch cmd {
 		case "ping":
 			fmt.Fprintln(conn, "OK")
+		case "status":
+			a.mux.Lock()
+			locked := a.locked
+			a.mux.Unlock()
+			if locked {
+				fmt.Fprintln(conn, "OK locked")
+			} else {
+				fmt.Fprintln(conn, "OK")
+			}
 		case "identities":
 			if len(args) < 1 {
 				fmt.Fprintln(conn, "ERR missing identities")
@@ -151,7 +162,11 @@ func (a *Agent) handleConnection(ctx context.Context, conn net.Conn) {
 			}
 			plaintext, err := a.decrypt(ciphertext)
 			if err != nil {
-				fmt.Fprintln(conn, "ERR failed to decrypt: "+err.Error())
+				if err.Error() == "agent is locked" {
+					fmt.Fprintln(conn, "ERR agent is locked")
+				} else {
+					fmt.Fprintln(conn, "ERR failed to decrypt: "+err.Error())
+				}
 
 				continue
 			}
@@ -160,9 +175,17 @@ func (a *Agent) handleConnection(ctx context.Context, conn net.Conn) {
 			// clear all identities from memory
 			a.mux.Lock()
 			a.identities = nil
+			a.locked = true
 			a.mux.Unlock()
 
-			debug.Log("cleared identities from memory")
+			debug.Log("cleared identities from memory and locked agent")
+			fmt.Fprintln(conn, "OK")
+		case "unlock":
+			a.mux.Lock()
+			a.locked = false
+			a.mux.Unlock()
+
+			debug.Log("unlocked agent")
 			fmt.Fprintln(conn, "OK")
 		case "quit":
 			fmt.Fprintln(conn, "OK")
@@ -176,6 +199,11 @@ func (a *Agent) handleConnection(ctx context.Context, conn net.Conn) {
 }
 
 func (a *Agent) decrypt(ciphertext []byte) ([]byte, error) {
+	a.mux.Lock()
+	defer a.mux.Unlock()
+	if a.locked {
+		return nil, fmt.Errorf("agent is locked")
+	}
 	out := &bytes.Buffer{}
 	f := bytes.NewReader(ciphertext)
 	r, err := age.Decrypt(f, a.identities...)
