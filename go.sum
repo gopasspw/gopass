@@ -54,6 +54,8 @@ github.com/gen2brain/shm v0.1.1 h1:1cTVA5qcsUFixnDHl14TmRoxgfWEEZlTezpUj1vm5uQ=
 github.com/gen2brain/shm v0.1.1/go.mod h1:UgIcVtvmOu+aCJpqJX7GOtiN7X2ct+TKLg4RTxwPIUA=
 github.com/go-viper/mapstructure/v2 v2.4.0 h1:EBsztssimR/CONLSZZ04E8qAkxNYq4Qp9LvH92wZUgs=
 github.com/go-viper/mapstructure/v2 v2.4.0/go.mod h1:oJDH3BJKyqBA2TXFhDsKDGDTlndYOZ6rGS0BRZIxGhM=
+github.com/gobwas/glob v0.2.3 h1:A4xDbljILXROh+kObIiy5kIaPYD8e96x1tgBhUI5J+Y=
+github.com/gobwas/glob v0.2.3/go.mod h1:d3Ez4x06l9bZtSvzIay5+Yzi0fmZzPgnTbPcKjJAkT8=
 github.com/godbus/dbus/v5 v5.1.0 h1:4KLkAxT3aOY8Li4FRJe/KvhoNFFxo0m6fNuFUO8QJUk=
 github.com/godbus/dbus/v5 v5.1.0/go.mod h1:xhWf0FNVPg57R7Z0UbKHbJfkEywrmjJnf7w5xrFpKfA=
 github.com/gokyle/twofactor v1.0.1 h1:uRhvx0S4Hb82RPIDALnf7QxbmPL49LyyaCkJDpWx+Ek=
@@ -74,6 +76,8 @@ github.com/gopasspw/clipboard v0.0.3 h1:RYSU2bBcHClFkoie6lCsrxDtP/yzRpDr2zmePWxj
 github.com/gopasspw/clipboard v0.0.3/go.mod h1:i0cShr7JEbOXZ/iKM5RyfBLbu1FPzouO8BTCJy0uHy8=
 github.com/gopasspw/gitconfig v0.0.3-0.20250819161336-9ff4f059ac1d h1:ULDMvON9pUIRelCfpn4fujlndn1eUmrLYiMsUpuu6LI=
 github.com/gopasspw/gitconfig v0.0.3-0.20250819161336-9ff4f059ac1d/go.mod h1:QXipMxku0UNLRXdNHskPQ8zsnnT0ZL9+XrNJPCMHuGY=
+github.com/gopasspw/gitconfig v0.0.3 h1:uJn9y5jUabHtX09p5C3UeNcAQm27MkHDHEDn4XaNacY=
+github.com/gopasspw/gitconfig v0.0.3/go.mod h1:qWxSOCbeGpetrXC5kGftIxSm0Au/5NHnK6HUtCWeyDQ=
 github.com/gopasspw/gopass-hibp v1.15.16 h1:0pC/AsNqvDs5LNCzU1ewTR7sr+8yxNcSBhFsvUYLvwM=
 github.com/gopasspw/gopass-hibp v1.15.16/go.mod h1:mK3Kc9W1Me7q/oE3+XRNRVEzXEUxDrJHmcQm9cdnFGw=
 github.com/hashicorp/golang-lru/v2 v2.0.7 h1:a+bsQ5rvGLjzHuww6tVxozPZFVghXaHOwFs4luLUK2k=
