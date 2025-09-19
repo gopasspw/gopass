@@ -727,7 +727,11 @@ func (s *Action) GetCommands() []*cli.Command {
 						"This command allows for mounting an existing or new password store " +
 						"at any path in an existing root store." +
 						"\n\n" +
-						"For example: gopass mounts add secondary-store /path/to/existing/store" +
+						"For example: gopass mounts add /path/to/existing/store" +
+						"\n" +
+						"This will mount the store at /path/to/existing/store with the alias 'store'." +
+						"\n\n" +
+						"Or with a custom alias: gopass mounts add secondary-store /path/to/existing/store" +
 						"\n\n" +
 						"Learn more: https://github.com/gopasspw/gopass/blob/master/docs/commands/mounts.md",
 					Before: s.IsInitialized,

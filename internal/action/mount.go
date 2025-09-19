@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"path/filepath"
 	"sort"
 	"strings"
 
@@ -11,7 +12,6 @@ import (
 	"github.com/fatih/color"
 	"github.com/gopasspw/gopass/internal/action/exit"
 	"github.com/gopasspw/gopass/internal/backend"
-	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/internal/store/root"
@@ -75,14 +75,17 @@ func (s *Action) MountsComplete(*cli.Context) {
 // MountAdd adds a new mount.
 func (s *Action) MountAdd(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
-	alias := c.Args().Get(0)
-	localPath := c.Args().Get(1)
-	if alias == "" {
-		return exit.Error(exit.Usage, nil, "usage: %s mounts add <alias> [local path]", s.Name)
-	}
 
-	if localPath == "" {
-		localPath = config.PwStoreDir(alias)
+	var alias, localPath string
+	switch c.Args().Len() {
+	case 0:
+		return exit.Error(exit.Usage, nil, "usage: %s mounts add <local path> OR %s mounts add <alias> <local path>", s.Name, s.Name)
+	case 1:
+		localPath = c.Args().Get(0)
+		alias = filepath.Base(localPath)
+	default:
+		alias = c.Args().Get(0)
+		localPath = c.Args().Get(1)
 	}
 
 	if s.Store.Exists(ctx, alias) {
