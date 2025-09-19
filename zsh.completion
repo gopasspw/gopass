@@ -65,7 +65,7 @@ _gopass () {
 	      
 	      ;;
 	  copy|cp)
-	      _arguments : "--force[Force to copy the secret and overwrite existing one]"
+	      _arguments : "--force[Force to copy the secret and overwrite existing one]" "--commit-message[Set the commit message]" "--interactive-commit[Open an editor for the commit message]"
 	      
 	      _gopass_complete_passwords
 	      ;;
@@ -75,12 +75,12 @@ _gopass () {
 	      
 	      ;;
 	  delete|remove|rm)
-	      _arguments : "--recursive[Recursive delete files and folders]" "--force[Force to delete the secret]"
+	      _arguments : "--recursive[Recursive delete files and folders]" "--force[Force to delete the secret]" "--commit-message[Set the commit message]" "--interactive-commit[Open an editor for the commit message]"
 	      
 	      _gopass_complete_passwords
 	      ;;
 	  edit|set)
-	      _arguments : "--editor[Use this editor binary]" "--create[Create a new secret if none found]"
+	      _arguments : "--editor[Use this editor binary]" "--create[Create a new secret if none found]" "--commit-message[Set the commit message]" "--interactive-commit[Open an editor for the commit message]"
 	      
 	      _gopass_complete_passwords
 	      ;;
@@ -110,7 +110,7 @@ _gopass () {
 	      
 	      ;;
 	  generate)
-	      _arguments : "--clip[Copy the generated password to the clipboard]" "--print[Print the generated password to the terminal]" "--force[Force to overwrite existing password]" "--edit[Open secret for editing after generating a password]" "--symbols[Use symbols in the password]" "--generator[Choose a password generator, use one of: cryptic, memorable, xkcd or external. Default: cryptic]" "--strict[Require strict character class rules]" "--force-regen[Force full re-generation, incl. evaluation of templates. Will overwrite the entire secret!]" "--sep[Word separator for generated passwords. If no separator is specified, the words are combined without spaces/separator and the first character of words is capitalised.]" "--lang[Language to generate password from, currently only en (english, default) or de are supported]"
+	      _arguments : "--clip[Copy the generated password to the clipboard]" "--print[Print the generated password to the terminal]" "--force[Force to overwrite existing password]" "--edit[Open secret for editing after generating a password]" "--symbols[Use symbols in the password]" "--generator[Choose a password generator, use one of: cryptic, memorable, xkcd or external. Default: cryptic]" "--strict[Require strict character class rules]" "--force-regen[Force full re-generation, incl. evaluation of templates. Will overwrite the entire secret!]" "--sep[Word separator for generated passwords. If no separator is specified, the words are combined without spaces/separator and the first character of words is capitalised.]" "--lang[Language to generate password from, currently only en (english, default) or de are supported]" "--commit-message[Set the commit message]" "--interactive-commit[Open an editor for the commit message]"
 	      _gopass_complete_folders
 	      _gopass_complete_passwords
 	      ;;
@@ -135,7 +135,7 @@ _gopass () {
 	      
 	      ;;
 	  insert)
-	      _arguments : "--echo[Display secret while typing]" "--multiline[Insert using $EDITOR]" "--force[Overwrite any existing secret and do not prompt to confirm recipients]" "--append[Append data read from STDIN to existing data]"
+	      _arguments : "--echo[Display secret while typing]" "--multiline[Insert using $EDITOR]" "--force[Overwrite any existing secret and do not prompt to confirm recipients]" "--append[Append data read from STDIN to existing data]" "--commit-message[Set the commit message]" "--interactive-commit[Open an editor for the commit message]"
 	      _gopass_complete_folders
 	      _gopass_complete_passwords
 	      ;;
@@ -167,7 +167,7 @@ _gopass () {
 	      
 	      ;;
 	  move|mv)
-	      _arguments : "--force[Force to move the secret and overwrite existing one]"
+	      _arguments : "--force[Force to move the secret and overwrite existing one]" "--commit-message[Set the commit message]" "--interactive-commit[Open an editor for the commit message]"
 	      
 	      _gopass_complete_passwords
 	      ;;
@@ -206,6 +206,11 @@ _gopass () {
 	      )
 	      _describe -t commands "gopass recipients" subcommands
 	      _arguments : "--pretty[Pretty print recipients]"
+	      
+	      
+	      ;;
+	  reorg)
+	      
 	      
 	      
 	      ;;
@@ -301,6 +306,7 @@ _gopass () {
 	  "pwgen:Generate passwords"
 	  "rcs:Run a RCS command inside a password store"
 	  "recipients:Edit recipient permissions"
+	  "reorg:Reorganize a password store by editing a text file"
 	  "setup:Initialize a new password store"
 	  "show:Display the content of a secret"
 	  "sum:Compute the SHA256 checksum"
