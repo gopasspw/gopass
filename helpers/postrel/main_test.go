@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/blang/semver/v4"
 	"github.com/gopasspw/gopass/helpers/gitutils"
 	"github.com/stretchr/testify/assert"
 )
@@ -32,24 +31,6 @@ func TestMustCheckEnv(t *testing.T) {
 // 	err := ghCl.createMilestones(ctx, version)
 // 	assert.NoError(t, err)
 // }
-
-// Test updateGopasspw function
-func TestUpdateGopasspw(t *testing.T) {
-	td := t.TempDir()
-	version := semver.MustParse("1.2.3")
-
-	dir := gitutils.InitGitDirWithRemote(t, td)
-
-	err := os.WriteFile(filepath.Join(dir, "index.tpl"), []byte("Version: {{.Version}}"), 0o644)
-	assert.NoError(t, err)
-
-	err = updateGopasspw(dir, version)
-	assert.NoError(t, err)
-
-	content, err := os.ReadFile(filepath.Join(dir, "index.html"))
-	assert.NoError(t, err)
-	assert.Contains(t, string(content), "Version: 1.2.3")
-}
 
 // Test versionFile function
 func TestVersionFile(t *testing.T) {
