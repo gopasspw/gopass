@@ -23,7 +23,7 @@ func (s *Action) Reorg(c *cli.Context) error {
 	prefix := c.Args().Get(0)
 
 	// list secrets
-	secrets, err := s.Store.List(ctx, 0)
+	secrets, err := s.Store.List(ctx, -1)
 	if err != nil {
 		return exit.Error(exit.List, err, "failed to list secrets: %s", err)
 	}
