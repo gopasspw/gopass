@@ -61,6 +61,16 @@ func (s *Action) edit(ctx context.Context, c *cli.Context, name string) error {
 		return exit.Error(exit.Unknown, err, "failed to invoke editor: %s", err)
 	}
 
+	// Check for custom commit message
+	commitMsg := fmt.Sprintf("Edited with %s", ed)
+	if c.IsSet("commit-message") {
+		commitMsg = c.String("commit-message")
+	}
+	if c.Bool("interactive-commit") {
+		commitMsg = ""
+	}
+	ctx = ctxutil.WithCommitMessage(ctx, commitMsg)
+
 	return s.editUpdate(ctx, name, content, newContent, changed, ed)
 }
 
@@ -78,7 +88,7 @@ func (s *Action) editUpdate(ctx context.Context, name string, content, nContent 
 	}
 
 	// write result (back) to store.
-	if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, fmt.Sprintf("Edited with %s", ed)), name, nSec); err != nil {
+	if err := s.Store.Set(ctx, name, nSec); err != nil {
 		if !errors.Is(err, store.ErrMeaninglessWrite) {
 			return exit.Error(exit.Encrypt, err, "failed to encrypt secret %s: %s", name, err)
 		}

@@ -42,6 +42,16 @@ func (s *Action) Insert(c *cli.Context) error {
 func (s *Action) insert(ctx context.Context, c *cli.Context, name, key string, echo, multiline, force, appending bool, kvps map[string]string) error {
 	var content []byte
 
+	// Check for custom commit message
+	commitMsg := "Inserted user supplied password"
+	if c.IsSet("commit-message") {
+		commitMsg = c.String("commit-message")
+	}
+	if c.Bool("interactive-commit") {
+		commitMsg = ""
+	}
+	ctx = ctxutil.WithCommitMessage(ctx, commitMsg)
+
 	// if content is piped to stdin, read and save it.
 	if ctxutil.IsStdin(ctx) {
 		buf := &bytes.Buffer{}
@@ -102,7 +112,7 @@ func (s *Action) insertStdin(ctx context.Context, name string, content []byte, a
 		}
 	}
 
-	if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, "Read secret from STDIN"), name, sec); err != nil {
+	if err := s.Store.Set(ctx, name, sec); err != nil {
 		if !errors.Is(err, store.ErrMeaninglessWrite) {
 			return exit.Error(exit.Encrypt, err, "failed to set %q: %s", name, err)
 		}
@@ -146,7 +156,7 @@ func (s *Action) insertSingle(ctx context.Context, name, pw string, kvps map[str
 		audit.Single(ctx, pw)
 	}
 
-	if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, "Inserted user supplied password"), name, sec); err != nil {
+	if err := s.Store.Set(ctx, name, sec); err != nil {
 		if !errors.Is(err, store.ErrMeaninglessWrite) {
 			return exit.Error(exit.Encrypt, err, "failed to write secret %q: %s", name, err)
 		}
@@ -214,7 +224,7 @@ func (s *Action) insertYAML(ctx context.Context, name, key string, content []byt
 		return exit.Error(exit.Usage, err, "failed set key %q of %q: %q", key, name, err)
 	}
 
-	if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, "Inserted YAML value from STDIN"), name, sec); err != nil {
+	if err := s.Store.Set(ctx, name, sec); err != nil {
 		if !errors.Is(err, store.ErrMeaninglessWrite) {
 			return exit.Error(exit.Encrypt, err, "failed to set key %q of %q: %s", key, name, err)
 		}
@@ -246,7 +256,7 @@ func (s *Action) insertMultiline(ctx context.Context, c *cli.Context, name strin
 		out.Errorf(ctx, "WARNING: Invalid secret: %s of len %d", err, n)
 	}
 
-	if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, fmt.Sprintf("Inserted user supplied password with %s", ed)), name, sec); err != nil {
+	if err := s.Store.Set(ctx, name, sec); err != nil {
 		if !errors.Is(err, store.ErrMeaninglessWrite) {
 			return exit.Error(exit.Encrypt, err, "failed to store secret %q: %s", name, err)
 		}

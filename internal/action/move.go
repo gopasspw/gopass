@@ -26,6 +26,16 @@ func (s *Action) Move(c *cli.Context) error {
 		}
 	}
 
+	// Check for custom commit message
+	commitMsg := fmt.Sprintf("Moved %s to %s", from, to)
+	if c.IsSet("commit-message") {
+		commitMsg = c.String("commit-message")
+	}
+	if c.Bool("interactive-commit") {
+		commitMsg = ""
+	}
+	ctx = ctxutil.WithCommitMessage(ctx, commitMsg)
+
 	if err := s.Store.Move(ctx, from, to); err != nil {
 		return exit.Error(exit.Unknown, err, "%s", err)
 	}

@@ -46,12 +46,13 @@ func (r *Store) move(ctx context.Context, from, to string, del bool) error {
 		return err
 	}
 
-	if err := subFrom.Storage().TryCommit(ctx, fmt.Sprintf("Move from %s to %s", from, to)); del && err != nil {
+	commitMsg := ctxutil.GetCommitMessage(ctx)
+	if err := subFrom.Storage().TryCommit(ctx, commitMsg); del && err != nil {
 		return fmt.Errorf("failed to commit changes to git (%s): %w", subFrom.Alias(), err)
 	}
 
 	if !subFrom.Equals(subTo) {
-		if err := subTo.Storage().TryCommit(ctx, fmt.Sprintf("Move from %s to %s", from, to)); err != nil {
+		if err := subTo.Storage().TryCommit(ctx, commitMsg); err != nil {
 			return fmt.Errorf("failed to commit changes to git (%s): %w", subTo.Alias(), err)
 		}
 	}
@@ -127,7 +128,7 @@ func (r *Store) moveFromTo(ctx context.Context, subFrom *leaf.Store, from, to, f
 			return fmt.Errorf("source %s does not exist in source store %s: %w", from, subFrom.Alias(), err)
 		}
 
-		if err := r.Set(ctxutil.WithCommitMessage(ctx, fmt.Sprintf("Move from %s to %s", src, dst)), dst, content); err != nil {
+		if err := r.Set(ctx, dst, content); err != nil {
 			if !errors.Is(err, store.ErrMeaninglessWrite) {
 				return fmt.Errorf("failed to save secret %q to store: %w", to, err)
 			}

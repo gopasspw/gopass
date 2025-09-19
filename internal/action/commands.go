@@ -222,6 +222,16 @@ func (s *Action) GetCommands() []*cli.Command {
 					Aliases: []string{"f"},
 					Usage:   "Force to copy the secret and overwrite existing one",
 				},
+				&cli.StringFlag{
+					Name:    "commit-message",
+					Aliases: []string{"m"},
+					Usage:   "Set the commit message",
+				},
+				&cli.BoolFlag{
+					Name:    "interactive-commit",
+					Aliases: []string{"i"},
+					Usage:   "Open an editor for the commit message",
+				},
 			},
 		},
 		{
@@ -268,6 +278,16 @@ func (s *Action) GetCommands() []*cli.Command {
 					Aliases: []string{"f"},
 					Usage:   "Force to delete the secret",
 				},
+				&cli.StringFlag{
+					Name:    "commit-message",
+					Aliases: []string{"m"},
+					Usage:   "Set the commit message",
+				},
+				&cli.BoolFlag{
+					Name:    "interactive-commit",
+					Aliases: []string{"i"},
+					Usage:   "Open an editor for the commit message",
+				},
 			},
 		},
 		{
@@ -297,6 +317,16 @@ func (s *Action) GetCommands() []*cli.Command {
 					Name:    "create",
 					Aliases: []string{"c"},
 					Usage:   "Create a new secret if none found",
+				},
+				&cli.StringFlag{
+					Name:    "commit-message",
+					Aliases: []string{"m"},
+					Usage:   "Set the commit message",
+				},
+				&cli.BoolFlag{
+					Name:    "interactive-commit",
+					Aliases: []string{"i"},
+					Usage:   "Open an editor for the commit message",
 				},
 			},
 		},
@@ -455,6 +485,16 @@ func (s *Action) GetCommands() []*cli.Command {
 					Usage:   "Language to generate password from, currently only en (english, default) or de are supported",
 					Value:   "en",
 				},
+				&cli.StringFlag{
+					Name:    "commit-message",
+					Aliases: []string{"m"},
+					Usage:   "Set the commit message",
+				},
+				&cli.BoolFlag{
+					Name:    "interactive-commit",
+					Aliases: []string{"i"},
+					Usage:   "Open an editor for the commit message",
+				},
 			},
 		},
 		{
@@ -554,6 +594,15 @@ func (s *Action) GetCommands() []*cli.Command {
 					Aliases: []string{"a"},
 					Usage:   "Append data read from STDIN to existing data",
 				},
+				&cli.StringFlag{
+					Name:  "commit-message",
+					Usage: "Set the commit message",
+				},
+				&cli.BoolFlag{
+					Name:    "interactive-commit",
+					Aliases: []string{"i"},
+					Usage:   "Open an editor for the commit message",
+				},
 			},
 		},
 		{
@@ -648,6 +697,16 @@ func (s *Action) GetCommands() []*cli.Command {
 					Name:    "force",
 					Aliases: []string{"f"},
 					Usage:   "Force to move the secret and overwrite existing one",
+				},
+				&cli.StringFlag{
+					Name:    "commit-message",
+					Aliases: []string{"m"},
+					Usage:   "Set the commit message",
+				},
+				&cli.BoolFlag{
+					Name:    "interactive-commit",
+					Aliases: []string{"i"},
+					Usage:   "Open an editor for the commit message",
 				},
 			},
 		},

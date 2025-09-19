@@ -51,6 +51,16 @@ func (s *Action) Generate(c *cli.Context) error {
 		}
 	}
 
+	// Check for custom commit message
+	commitMsg := "Generated Password"
+	if c.IsSet("commit-message") {
+		commitMsg = c.String("commit-message")
+	}
+	if c.Bool("interactive-commit") {
+		commitMsg = ""
+	}
+	ctx = ctxutil.WithCommitMessage(ctx, commitMsg)
+
 	// ask for confirmation before overwriting existing entry.
 	if !force { // don't check if it's force anyway.
 		if s.Store.Exists(ctx, name) && key == "" && !termio.AskForConfirmation(ctx, fmt.Sprintf("An entry already exists for %s. Overwrite the current password?", name)) {
@@ -354,7 +364,7 @@ func (s *Action) generateSetPassword(ctx context.Context, name, key, password st
 
 		setMetadata(sec, kvps)
 		_ = sec.Set(key, password)
-		if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, "Generated password for key"), name, sec); err != nil {
+		if err := s.Store.Set(ctx, name, sec); err != nil {
 			if !errors.Is(err, store.ErrMeaninglessWrite) {
 				return ctx, exit.Error(exit.Encrypt, err, "failed to set key %q of %q: %s", key, name, err)
 			}
@@ -392,7 +402,7 @@ func (s *Action) generateSetPassword(ctx context.Context, name, key, password st
 		}
 	}
 
-	if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, "Generated Password"), name, sec); err != nil {
+	if err := s.Store.Set(ctx, name, sec); err != nil {
 		if !errors.Is(err, store.ErrMeaninglessWrite) {
 			return ctx, exit.Error(exit.Encrypt, err, "failed to create %q: %s", name, err)
 		}
@@ -421,7 +431,7 @@ func (s *Action) generateReplaceExisting(ctx context.Context, name, key, passwor
 
 	setMetadata(sec, kvps)
 	sec.SetPassword(password)
-	if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, "Generated password for YAML key"), name, sec); err != nil {
+	if err := s.Store.Set(ctx, name, sec); err != nil {
 		if !errors.Is(err, store.ErrMeaninglessWrite) {
 			return ctx, exit.Error(exit.Encrypt, err, "failed to set key %q of %q: %s", key, name, err)
 		}
