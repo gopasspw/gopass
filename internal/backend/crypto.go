@@ -39,6 +39,7 @@ type Keyring interface {
 	Fingerprint(ctx context.Context, id string) string
 	FormatKey(ctx context.Context, id, tpl string) string
 	ReadNamesFromKey(ctx context.Context, buf []byte) ([]string, error)
+	GetFingerprint(ctx context.Context, key []byte) (string, error)
 
 	GenerateIdentity(ctx context.Context, name, email, passphrase string) (string, error)
 }

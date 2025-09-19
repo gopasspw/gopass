@@ -3,6 +3,7 @@ package cli
 import (
 	"bytes"
 	"context"
+	"encoding/hex"
 	"fmt"
 	"os/exec"
 	"strings"
@@ -136,6 +137,28 @@ func (g *GPG) ImportPublicKey(ctx context.Context, buf []byte) error {
 	g.pubKeys = nil
 
 	return nil
+}
+
+// GetFingerprint returns the fingerprint of a key.
+func (g *GPG) GetFingerprint(ctx context.Context, buf []byte) (string, error) {
+	if len(buf) < 1 {
+		return "", fmt.Errorf("empty input")
+	}
+
+	el, err := openpgp.ReadArmoredKeyRing(bytes.NewReader(buf))
+	if err != nil {
+		// maybe it's a non-armored key?
+		el, err = openpgp.ReadKeyRing(bytes.NewReader(buf))
+		if err != nil {
+			return "", fmt.Errorf("failed to read key ring: %w", err)
+		}
+	}
+
+	if len(el) != 1 {
+		return "", fmt.Errorf("public Key must contain exactly one Entity")
+	}
+
+	return strings.ToUpper(hex.EncodeToString(el[0].PrimaryKey.Fingerprint[:])), nil
 }
 
 // ExportPublicKey will export the named public key to the location given.
