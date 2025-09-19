@@ -246,11 +246,13 @@ Will use
 }
 
 func updateDeps() error {
-	cmd := exec.Command("make", "upgrade")
-	cmd.Stderr = os.Stderr
+	if sv := os.Getenv("GOPASS_NOUPGRADE"); sv == "" {
+		cmd := exec.Command("make", "upgrade")
+		cmd.Stderr = os.Stderr
 
-	if err := cmd.Run(); err != nil {
-		return err
+		if err := cmd.Run(); err != nil {
+			return err
+		}
 	}
 
 	if sv := os.Getenv("GOPASS_NOTEST"); sv != "" {
@@ -266,7 +268,7 @@ func updateDeps() error {
 		return err
 	}
 
-	cmd = exec.Command("make", "gha-linux")
+	cmd := exec.Command("make", "gha-linux")
 	cmd.Stderr = io.MultiWriter(fh, os.Stderr)
 	cmd.Stdout = fh
 	cmd.Env = []string{
