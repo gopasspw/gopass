@@ -121,7 +121,7 @@ func TestGetCommands(t *testing.T) {
 	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithInteractive(ctx, false)
-	ctx = ctxutil.WithTerminal(ctx, true)
+	ctx = ctxutil.WithTerminal(ctx, false)
 	ctx = ctxutil.WithHidden(ctx, true)
 	ctx = backend.WithCryptoBackendString(ctx, "plain")
 	ctx = ctxutil.WithPasswordCallback(ctx, func(_ string, _ bool) ([]byte, error) {
