@@ -27,9 +27,12 @@ import (
 )
 
 var (
-	sleep     = time.Second
-	issueRE   = regexp.MustCompile(`#(\d+)\b`)
-	subjectRE = regexp.MustCompile(`^(\[\w+\]\s+.*)$`)
+	sleep   = time.Second
+	issueRE = regexp.MustCompile(`#(\d+)\b`)
+	// Supported formats:
+	// [TAG] description
+	// TAG: description
+	subjectRE = regexp.MustCompile(`^(\[\w+\]\s+.*|\S+:\s.*)$`)
 	verTmpl   = `package main
 
 import (
@@ -243,11 +246,13 @@ Will use
 }
 
 func updateDeps() error {
-	cmd := exec.Command("make", "upgrade")
-	cmd.Stderr = os.Stderr
+	if sv := os.Getenv("GOPASS_NOUPGRADE"); sv == "" {
+		cmd := exec.Command("make", "upgrade")
+		cmd.Stderr = os.Stderr
 
-	if err := cmd.Run(); err != nil {
-		return err
+		if err := cmd.Run(); err != nil {
+			return err
+		}
 	}
 
 	if sv := os.Getenv("GOPASS_NOTEST"); sv != "" {
@@ -263,7 +268,7 @@ func updateDeps() error {
 		return err
 	}
 
-	cmd = exec.Command("make", "gha-linux")
+	cmd := exec.Command("make", "gha-linux")
 	cmd.Stderr = io.MultiWriter(fh, os.Stderr)
 	cmd.Stdout = fh
 	cmd.Env = []string{
@@ -289,7 +294,7 @@ func updateDeps() error {
 
 	// remove the log, we don't need it anymore
 	_ = fh.Close()
-	_ = os.RemoveAll(td)
+	_ = os.RemoveAll(fn)
 
 	return nil
 }
@@ -483,8 +488,8 @@ func changelogEntries(since semver.Version) ([]string, error) {
 
 	// gitSep separates each commit from the next
 	notes := make([]string, 0, 10)
-	commits := strings.Split(string(buf), gitSep)
-	for _, commit := range commits {
+	commits := strings.SplitSeq(string(buf), gitSep)
+	for commit := range commits {
 		commit := strings.TrimSpace(commit)
 		if commit == "" {
 			continue
@@ -516,7 +521,7 @@ func changelogEntries(since semver.Version) ([]string, error) {
 		}
 
 		// if no suitable subject was parsed, try to parse the body as well
-		for _, line := range strings.Split(p[2], "\n") {
+		for line := range strings.SplitSeq(p[2], "\n") {
 			line := strings.TrimSpace(line)
 
 			if m := issueRE.FindStringSubmatch(line); len(m) > 1 {
