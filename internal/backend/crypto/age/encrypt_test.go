@@ -1,4 +1,4 @@
-package age
+package agecrypto
 
 import (
 	"crypto/ed25519"

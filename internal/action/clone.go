@@ -9,7 +9,7 @@ import (
 
 	"github.com/gopasspw/gopass/internal/action/exit"
 	"github.com/gopasspw/gopass/internal/backend"
-	"github.com/gopasspw/gopass/internal/backend/crypto/age"
+	agecrypto "github.com/gopasspw/gopass/internal/backend/crypto/age"
 	"github.com/gopasspw/gopass/internal/backend/crypto/gpg"
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/cui"
@@ -62,7 +62,7 @@ func (s *Action) Clone(c *cli.Context) error {
 	// "[ssh] types should only be used for compatibility with existing keys,
 	// and native X25519 keys should be preferred otherwise."
 	// https://pkg.go.dev/filippo.io/age@v1.0.0/agessh#pkg-overview.
-	ctx = age.WithOnlyNative(ctx, true)
+	ctx = agecrypto.WithOnlyNative(ctx, true)
 	// gpg: only trusted keys
 	// only list "usable" / properly trused and signed GPG keys by requesting
 	// always trust is false. Ignored for other backends. See

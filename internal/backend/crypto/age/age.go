@@ -1,4 +1,4 @@
-package age
+package agecrypto
 
 import (
 	"context"
@@ -7,11 +7,11 @@ import (
 	"strings"
 	"time"
 
-	. "filippo.io/age"
 	"github.com/blang/semver/v4"
 	"github.com/cenkalti/backoff/v4"
 	"github.com/gopasspw/gopass/internal/backend/crypto/age/agent"
 	"github.com/gopasspw/gopass/internal/cache"
+	"filippo.io/age"
 	"github.com/gopasspw/gopass/internal/cache/ghssh"
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/pkg/appdir"
@@ -160,11 +160,10 @@ func (a *Age) Lock() {
 	a.askPass.Lock()
 }
 
-func (a *Age) identitiesToString(ids []Identity) (string, error) {
+func (a *Age) identitiesToString(ids []age.Identity) (string, error) {
 	var sb strings.Builder
 	for _, id := range ids {
 		fmt.Fprintln(&sb, id)
 	}
-
 	return sb.String(), nil
 }

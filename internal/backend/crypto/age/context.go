@@ -1,4 +1,4 @@
-package age
+package agecrypto
 
 import "context"
 

@@ -1,6 +1,6 @@
 //go:build windows
 
-package age
+package agecrypto
 
 import (
 	"context"

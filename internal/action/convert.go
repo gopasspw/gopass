@@ -3,7 +3,7 @@ package action
 import (
 	"github.com/gopasspw/gopass/internal/action/exit"
 	"github.com/gopasspw/gopass/internal/backend"
-	"github.com/gopasspw/gopass/internal/backend/crypto/age"
+	agecrypto "github.com/gopasspw/gopass/internal/backend/crypto/age"
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -15,7 +15,7 @@ import (
 // Convert converts a store to a different set of backends.
 func (s *Action) Convert(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
-	ctx = age.WithOnlyNative(ctx, true)
+	ctx = agecrypto.WithOnlyNative(ctx, true)
 
 	store := c.String("store")
 	move := c.Bool("move")

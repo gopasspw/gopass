@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/gopasspw/gopass/internal/backend"
-	"github.com/gopasspw/gopass/internal/backend/crypto/age"
+	agecrypto "github.com/gopasspw/gopass/internal/backend/crypto/age"
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/diff"
 	"github.com/gopasspw/gopass/internal/out"
@@ -325,7 +325,7 @@ func (s *Store) fsckCheckRecipients(ctx context.Context, name string) *fsckMulti
 		return e.Append(errsFatal, fmt.Errorf("failed to get raw secret: %w", err))
 	}
 
-	if _, ok := s.crypto.(*age.Age); ok {
+	if _, ok := s.crypto.(*agecrypto.Age); ok {
 		debug.Log("RecipientIDs not supported yet by age")
 		_ = e.Append(errsNonFatal, fmt.Errorf("recipients check not supported by age backend for now"))
 

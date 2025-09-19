@@ -1,4 +1,4 @@
-package age
+package agecrypto
 
 import (
 	"bytes"
@@ -7,8 +7,10 @@ import (
 	"io"
 	"os"
 
-	. "filippo.io/age"
+	"filippo.io/age"
 	"github.com/gopasspw/gopass/internal/backend/crypto/age/agent"
+	"strings"
+
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
@@ -21,6 +23,31 @@ func (a *Age) Decrypt(ctx context.Context, ciphertext []byte) ([]byte, error) {
 		plaintext, err := client.Decrypt(ciphertext)
 		if err == nil {
 			return plaintext, nil
+		}
+		if strings.Contains(err.Error(), "agent is locked") {
+			debug.Log("agent is locked, trying to unlock")
+			// unlock the agent
+			if err := client.Unlock(); err != nil {
+				debug.Log("failed to unlock agent: %s", err)
+			}
+			// get identities
+			ids, err := a.getAllIds(ctx)
+			if err != nil {
+				return nil, err
+			}
+			// send identities to agent
+			sIds, err := a.identitiesToString(ids)
+			if err != nil {
+				return nil, err
+			}
+			if err := client.SendIdentities(sIds); err != nil {
+				debug.Log("failed to send identities to agent: %s", err)
+			}
+			// retry decryption
+			plaintext, err = client.Decrypt(ciphertext)
+			if err == nil {
+				return plaintext, nil
+			}
 		}
 		debug.Log("failed to decrypt with agent: %s", err)
 	}
@@ -43,12 +70,12 @@ func (a *Age) Decrypt(ctx context.Context, ciphertext []byte) ([]byte, error) {
 	return a.decrypt(ciphertext, ids...)
 }
 
-func (a *Age) decrypt(ciphertext []byte, ids ...Identity) ([]byte, error) {
+func (a *Age) decrypt(ciphertext []byte, ids ...age.Identity) ([]byte, error) {
 	debug.Log("decrypting with %d ids", len(ids))
 
 	out := &bytes.Buffer{}
 	f := bytes.NewReader(ciphertext)
-	r, err := Decrypt(f, ids...)
+	r, err := age.Decrypt(f, ids...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to decrypt: %w", err)
 	}
@@ -74,7 +101,7 @@ func (a *Age) decryptFile(ctx context.Context, filename string) ([]byte, error) 
 		return nil, err
 	}
 
-	id, err := NewScryptIdentity(string(pw))
+	id, err := age.NewScryptIdentity(string(pw))
 	if err != nil {
 		return nil, err
 	}
@@ -87,12 +114,12 @@ func (a *Age) decryptFile(ctx context.Context, filename string) ([]byte, error) 
 	return plaintext, err
 }
 
-func (a *Age) getAllIds(ctx context.Context) ([]Identity, error) {
+func (a *Age) getAllIds(ctx context.Context) ([]age.Identity, error) {
 	ids, err := a.getAllIdentities(ctx)
 	if err != nil {
 		return nil, err
 	}
-	idl := make([]Identity, 0, len(ids))
+	idl := make([]age.Identity, 0, len(ids))
 	for _, id := range ids {
 		idl = append(idl, id)
 	}
