@@ -62,7 +62,7 @@ linters:
     - zerologlint
   settings:
     cyclop:
-      max-complexity: 22
+      max-complexity: 24
     errcheck:
       exclude-functions:
         - fmt.Fprint

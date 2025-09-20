@@ -36,6 +36,7 @@ func (s *Action) Delete(c *cli.Context) error {
 	if s.Store.IsDir(ctx, name) && !s.Store.Exists(ctx, name) {
 		return exit.Error(exit.Usage, nil, "Cannot remove %q: Is a directory. Use 'gopass rm -r %s' to delete", name, name)
 	}
+
 	// specifying a key is optional.
 	key := c.Args().Get(1)
 
@@ -56,11 +57,6 @@ func (s *Action) Delete(c *cli.Context) error {
 		commitMsg = ""
 	}
 	ctx = ctxutil.WithCommitMessage(ctx, commitMsg)
-
-	// multiple secrets, so not a key
-	if len(c.Args().Tail()) > 1 {
-		key = ""
-	}
 
 	names := append([]string{name}, c.Args().Tail()...)
 

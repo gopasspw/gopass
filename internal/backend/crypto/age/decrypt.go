@@ -6,9 +6,11 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 
 	"filippo.io/age"
 	"github.com/gopasspw/gopass/internal/backend/crypto/age/agent"
+
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
@@ -17,12 +19,12 @@ import (
 // Decrypt will attempt to decrypt the given payload.
 func (a *Age) Decrypt(ctx context.Context, ciphertext []byte) ([]byte, error) {
 	if config.Bool(ctx, "age.agent-enabled") {
-		client := agent.NewClient()
-		plaintext, err := client.Decrypt(ciphertext)
+		plaintext, err := a.decryptWithAgent(ctx, ciphertext)
 		if err == nil {
 			return plaintext, nil
 		}
 		debug.Log("failed to decrypt with agent: %s", err)
+		debug.Log("falling back to direct decryption")
 	}
 
 	if !ctxutil.HasPasswordCallback(ctx) {
@@ -41,6 +43,47 @@ func (a *Age) Decrypt(ctx context.Context, ciphertext []byte) ([]byte, error) {
 	}
 
 	return a.decrypt(ciphertext, ids...)
+}
+
+func (a *Age) decryptWithAgent(ctx context.Context, ciphertext []byte) ([]byte, error) {
+	client := agent.NewClient()
+	plaintext, err := client.Decrypt(ciphertext)
+	if err == nil {
+		return plaintext, nil
+	}
+
+	if !strings.Contains(err.Error(), "agent is locked") {
+		debug.Log("failed to decrypt with agent: %s", err)
+
+		return nil, err
+	}
+
+	debug.Log("agent is locked, trying to unlock")
+	// unlock the agent
+	if err := client.Unlock(); err != nil {
+		debug.Log("failed to unlock agent: %s", err)
+	}
+	// get identities
+	ids, err := a.getAllIds(ctx)
+	if err != nil {
+		return nil, err
+	}
+	// send identities to agent
+	sIds, err := a.identitiesToString(ids)
+	if err != nil {
+		return nil, err
+	}
+	if err := client.SendIdentities(sIds); err != nil {
+		debug.Log("failed to send identities to agent: %s", err)
+	}
+	// set timeout
+	if timeout := config.AsInt(config.String(ctx, "age.agent-timeout")); timeout > 0 {
+		if err := client.SetTimeout(timeout); err != nil {
+			debug.Log("failed to set agent timeout: %s", err)
+		}
+	}
+	// retry decryption
+	return client.Decrypt(ciphertext)
 }
 
 func (a *Age) decrypt(ciphertext []byte, ids ...age.Identity) ([]byte, error) {

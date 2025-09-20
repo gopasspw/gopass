@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"filippo.io/age"
 	"github.com/blang/semver/v4"
 	"github.com/cenkalti/backoff/v4"
 	"github.com/gopasspw/gopass/internal/backend/crypto/age/agent"
@@ -87,7 +88,7 @@ func (a *Age) tryStartAgent(ctx context.Context) {
 
 	bo := backoff.NewExponentialBackOff()
 	bo.InitialInterval = 25 * time.Millisecond
-	bo.MaxElapsedTime = 5 * time.Second
+	bo.MaxElapsedTime = 3 * time.Second
 	op := func() error {
 		return client.Ping()
 	}
@@ -112,6 +113,13 @@ func (a *Age) tryStartAgent(ctx context.Context) {
 
 	if err := client.SendIdentities(strings.Join(idStrs, "\n")); err != nil {
 		debug.Log("failed to send identities to agent: %s", err)
+	}
+
+	// set timeout
+	if timeout := config.AsInt(config.String(ctx, "age.agent-timeout")); timeout > 0 {
+		if err := client.SetTimeout(timeout); err != nil {
+			debug.Log("failed to set agent timeout: %s", err)
+		}
 	}
 }
 
@@ -157,4 +165,13 @@ func (a *Age) GetFingerprint(ctx context.Context, key []byte) (string, error) {
 // Lock flushes the password cache.
 func (a *Age) Lock() {
 	a.askPass.Lock()
+}
+
+func (a *Age) identitiesToString(ids []age.Identity) (string, error) {
+	var sb strings.Builder
+	for _, id := range ids {
+		fmt.Fprintln(&sb, id)
+	}
+
+	return sb.String(), nil
 }
