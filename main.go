@@ -87,6 +87,7 @@ func main() {
 	ctx = queue.WithQueue(ctx, q)
 	ctx, app := setupApp(ctx, sv)
 
+	debug.Log("gopass %s starting ...", sv.String())
 	if err := app.RunContext(ctx, os.Args); err != nil {
 		log.Fatal(err)
 	}
@@ -95,6 +96,8 @@ func main() {
 	_ = q.Close(ctx)
 
 	writeMemProfile()
+
+	debug.Log("gopass %s shutting down ...\n\n", sv.String())
 }
 
 //nolint:wrapcheck

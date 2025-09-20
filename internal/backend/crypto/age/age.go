@@ -1,4 +1,4 @@
-package agecrypto
+package age
 
 import (
 	"context"
@@ -7,11 +7,11 @@ import (
 	"strings"
 	"time"
 
+	"filippo.io/age"
 	"github.com/blang/semver/v4"
 	"github.com/cenkalti/backoff/v4"
 	"github.com/gopasspw/gopass/internal/backend/crypto/age/agent"
 	"github.com/gopasspw/gopass/internal/cache"
-	"filippo.io/age"
 	"github.com/gopasspw/gopass/internal/cache/ghssh"
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/pkg/appdir"
@@ -88,7 +88,7 @@ func (a *Age) tryStartAgent(ctx context.Context) {
 
 	bo := backoff.NewExponentialBackOff()
 	bo.InitialInterval = 25 * time.Millisecond
-	bo.MaxElapsedTime = 5 * time.Second
+	bo.MaxElapsedTime = 3 * time.Second
 	op := func() error {
 		return client.Ping()
 	}
@@ -172,5 +172,6 @@ func (a *Age) identitiesToString(ids []age.Identity) (string, error) {
 	for _, id := range ids {
 		fmt.Fprintln(&sb, id)
 	}
+
 	return sb.String(), nil
 }

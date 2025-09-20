@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 
 	"github.com/gopasspw/gopass/internal/backend"
-	agecrypto "github.com/gopasspw/gopass/internal/backend/crypto/age"
+	"github.com/gopasspw/gopass/internal/backend/crypto/age"
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
@@ -97,7 +97,7 @@ func (s *Store) recipientCheck(ctx context.Context, r string) bool {
 func (s *Store) ImportMissingPublicKeys(ctx context.Context, newrs ...string) error {
 	// do not import any keys for age, where public key == key id
 	// TODO: do not hard code exceptions, ask the backend if it supports it
-	if _, ok := s.crypto.(*agecrypto.Age); ok {
+	if _, ok := s.crypto.(*age.Age); ok {
 		debug.Log("not importing public keys for age")
 
 		return nil

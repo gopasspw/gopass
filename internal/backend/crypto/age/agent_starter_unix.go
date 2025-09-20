@@ -1,6 +1,6 @@
 //go:build !windows
 
-package agecrypto
+package age
 
 import (
 	"context"
@@ -10,7 +10,9 @@ import (
 )
 
 func startAgent(_ context.Context) error {
-	cmd := exec.Command(os.Args[0], "age", "agent")
+	cmd := exec.Command(os.Args[0], "age", "agent", "start")
+	cmd.Env = os.Environ()
+	cmd.Stderr = os.Stderr
 	cmd.SysProcAttr = &syscall.SysProcAttr{
 		Setpgid: true,
 	}

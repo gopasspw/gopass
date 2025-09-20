@@ -1,4 +1,4 @@
-package agecrypto
+package age
 
 import (
 	"context"

@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/gopasspw/gopass/pkg/appdir"
+	"github.com/gopasspw/gopass/pkg/debug"
 )
 
 // Client is a client for the age agent.
@@ -28,11 +29,14 @@ func (c *Client) connect() (net.Conn, error) {
 	if err := c.checkSocketSecurity(); err != nil {
 		return nil, err
 	}
+
+	debug.Log("connecting to agent at %s", c.socketPath)
 	conn, err := net.Dial("unix", c.socketPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to agent: %w", err)
 	}
 
+	debug.Log("connected to agent at %s", c.socketPath)
 	return conn, nil
 }
 

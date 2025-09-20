@@ -104,6 +104,8 @@ func (a *Agent) Shutdown(ctx context.Context) {
 	if err := os.Remove(a.socketPath); err != nil {
 		debug.Log("failed to remove socket file: %s", err)
 	}
+
+	debug.Log("agent shut down")
 }
 
 func (a *Agent) handleConnection(ctx context.Context, conn net.Conn) {

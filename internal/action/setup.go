@@ -10,7 +10,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/gopasspw/gopass/internal/action/exit"
 	"github.com/gopasspw/gopass/internal/backend"
-	agecrypto "github.com/gopasspw/gopass/internal/backend/crypto/age"
+	"github.com/gopasspw/gopass/internal/backend/crypto/age"
 	"github.com/gopasspw/gopass/internal/backend/crypto/gpg"
 	gpgcli "github.com/gopasspw/gopass/internal/backend/crypto/gpg/cli"
 	"github.com/gopasspw/gopass/internal/out"
@@ -48,7 +48,7 @@ func (s *Action) Setup(c *cli.Context) error {
 	// "[ssh] types should only be used for compatibility with existing keys,
 	// and native X25519 keys should be preferred otherwise."
 	// https://pkg.go.dev/filippo.io/age@v1.0.0/agessh#pkg-overview.
-	ctx = agecrypto.WithOnlyNative(ctx, true)
+	ctx = age.WithOnlyNative(ctx, true)
 	// gpg: only trusted keys
 	// only list "usable" / properly trused and signed GPG keys by requesting
 	// always trust is false. Ignored for other backends. See
@@ -329,7 +329,7 @@ func (s *Action) initLocal(ctx context.Context, remote string) error {
 }
 
 func (s *Action) initDetectPassage(ctx context.Context) error {
-	pIds := agecrypto.PassageIDFile()
+	pIds := age.PassageIDFile()
 	if !fsutil.IsFile(pIds) {
 		debug.Log("no passage identities found at %s", pIds)
 

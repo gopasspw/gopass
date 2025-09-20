@@ -1,4 +1,4 @@
-package agecrypto
+package age
 
 import (
 	"fmt"
@@ -43,6 +43,13 @@ func (l loader) Commands() []*cli.Command {
 					Usage: "Manage the age agent",
 					Description: "Manage the age agent, this will start a background process that will cache your age identities in memory and provide them to gopass on demand. " +
 						"This is optional, but recommended if you use age identities that require a password or are managed by a plugin.",
+					Action: func(c *cli.Context) error {
+						if err := cli.ShowSubcommandHelp(c); err != nil {
+							return exit.Error(exit.Unknown, err, "failed to show help")
+						}
+
+						return exit.Error(exit.Usage, nil, "Please specify a subcommand")
+					},
 					Subcommands: []*cli.Command{
 						{
 							Name:        "start",
