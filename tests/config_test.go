@@ -16,6 +16,7 @@ func TestBaseConfig(t *testing.T) {
 	require.NoError(t, err)
 
 	wanted := `age.agent-enabled = false
+age.agent-timeout = 0
 core.autopush = true
 core.autosync = true
 core.cliptimeout = 45
@@ -70,6 +71,7 @@ func TestMountConfig(t *testing.T) {
 	require.NoError(t, err)
 
 	wanted := `age.agent-enabled = false
+age.agent-timeout = 0
 core.autopush = true
 core.autosync = true
 core.cliptimeout = 45

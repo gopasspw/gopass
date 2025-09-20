@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/gopasspw/gopass/pkg/appdir"
@@ -107,6 +108,13 @@ func (c *Client) Lock() error {
 // Unlock unlocks the agent.
 func (c *Client) Unlock() error {
 	_, err := c.send("unlock")
+
+	return err
+}
+
+// SetTimeout sets the agent's timeout.
+func (c *Client) SetTimeout(timeout int) error {
+	_, err := c.send("set-timeout " + strconv.Itoa(timeout))
 
 	return err
 }

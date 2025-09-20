@@ -12,9 +12,11 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"sync"
 	"syscall"
+	"time"
 
 	"filippo.io/age"
 	"github.com/gopasspw/gopass/pkg/appdir"
@@ -33,6 +35,8 @@ type Agent struct {
 	mux        sync.Mutex
 	identities []age.Identity
 	locked     bool
+	timer      *time.Timer
+	timeout    time.Duration
 }
 
 // New creates a new agent.
@@ -47,6 +51,7 @@ func New() (*Agent, error) {
 	return &Agent{
 		socketPath: socketPath,
 		locked:     false,
+		timeout:    0,
 	}, nil
 }
 
@@ -187,6 +192,20 @@ func (a *Agent) handleConnection(ctx context.Context, conn net.Conn) {
 
 			debug.Log("unlocked agent")
 			fmt.Fprintln(conn, "OK")
+		case "set-timeout":
+			if len(args) != 1 {
+				fmt.Fprintln(conn, "ERR missing timeout")
+
+				continue
+			}
+			timeout, err := strconv.Atoi(args[0])
+			if err != nil {
+				fmt.Fprintln(conn, "ERR failed to parse timeout: "+err.Error())
+
+				continue
+			}
+			a.setTimeout(time.Duration(timeout) * time.Second)
+			fmt.Fprintln(conn, "OK")
 		case "quit":
 			fmt.Fprintln(conn, "OK")
 			go a.Shutdown(ctx)
@@ -198,11 +217,41 @@ func (a *Agent) handleConnection(ctx context.Context, conn net.Conn) {
 	}
 }
 
+func (a *Agent) setTimeout(timeout time.Duration) {
+	a.mux.Lock()
+	defer a.mux.Unlock()
+
+	a.timeout = timeout
+	if a.timer != nil {
+		a.timer.Stop()
+	}
+	if a.timeout > 0 {
+		a.timer = time.AfterFunc(a.timeout, func() {
+			a.lock()
+		})
+	}
+}
+
+func (a *Agent) lock() {
+	a.mux.Lock()
+	defer a.mux.Unlock()
+
+	a.identities = nil
+	a.locked = true
+	if a.timer != nil {
+		a.timer.Stop()
+	}
+	debug.Log("cleared identities from memory and locked agent")
+}
+
 func (a *Agent) decrypt(ciphertext []byte) ([]byte, error) {
 	a.mux.Lock()
 	defer a.mux.Unlock()
 	if a.locked {
 		return nil, fmt.Errorf("agent is locked")
+	}
+	if a.timer != nil {
+		a.timer.Reset(a.timeout)
 	}
 	out := &bytes.Buffer{}
 	f := bytes.NewReader(ciphertext)

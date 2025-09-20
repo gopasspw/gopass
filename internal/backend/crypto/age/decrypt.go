@@ -43,6 +43,12 @@ func (a *Age) Decrypt(ctx context.Context, ciphertext []byte) ([]byte, error) {
 			if err := client.SendIdentities(sIds); err != nil {
 				debug.Log("failed to send identities to agent: %s", err)
 			}
+			// set timeout
+			if timeout := config.AsInt(config.String(ctx, "age.agent-timeout")); timeout > 0 {
+				if err := client.SetTimeout(timeout); err != nil {
+					debug.Log("failed to set agent timeout: %s", err)
+				}
+			}
 			// retry decryption
 			plaintext, err = client.Decrypt(ciphertext)
 			if err == nil {

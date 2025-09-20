@@ -114,6 +114,13 @@ func (a *Age) tryStartAgent(ctx context.Context) {
 	if err := client.SendIdentities(strings.Join(idStrs, "\n")); err != nil {
 		debug.Log("failed to send identities to agent: %s", err)
 	}
+
+	// set timeout
+	if timeout := config.AsInt(config.String(ctx, "age.agent-timeout")); timeout > 0 {
+		if err := client.SetTimeout(timeout); err != nil {
+			debug.Log("failed to set agent timeout: %s", err)
+		}
+	}
 }
 
 // Initialized returns nil.

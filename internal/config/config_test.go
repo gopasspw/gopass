@@ -33,6 +33,7 @@ func TestConfig(t *testing.T) {
 	// test default values
 	assert.Equal(t, []string{
 		"age.agent-enabled",
+		"age.agent-timeout",
 		"core.autopush",
 		"core.autosync",
 		"core.bool",
