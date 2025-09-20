@@ -51,6 +51,7 @@ type Storage interface {
 	Path() string
 	Version(context.Context) semver.Version
 	Fsck(context.Context) error
+	IsInitialized() bool
 }
 
 // DetectStorage tries to detect the storage backend being used.

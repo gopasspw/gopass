@@ -30,12 +30,16 @@ func aGitRepo(ctx context.Context, t *testing.T, u *gptest.Unit, name string) st
 	_, err := git.New(gd)
 	require.Error(t, err)
 
-	idf := filepath.Join(gd, ".gpg-id")
-	require.NoError(t, os.WriteFile(idf, []byte("0xDEADBEEF"), 0o600))
-
 	gr, err := git.Init(ctx, gd, "Nobody", "foo.bar@example.org")
 	require.NoError(t, err)
 	assert.NotNil(t, gr)
+
+	require.NoError(t, gr.ConfigSet(ctx, "user.name", "Nobody"))
+	require.NoError(t, gr.ConfigSet(ctx, "user.email", "foo.bar@example.org"))
+
+	require.NoError(t, os.WriteFile(filepath.Join(gd, ".gpg-id"), []byte("0xDEADBEEF"), 0o600))
+	require.NoError(t, gr.Add(ctx, ".gpg-id"))
+	require.NoError(t, gr.Commit(ctx, "initial commit"))
 
 	return gd
 }
