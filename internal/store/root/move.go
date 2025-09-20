@@ -46,6 +46,10 @@ func (r *Store) move(ctx context.Context, from, to string, del bool) error {
 		return err
 	}
 
+	if !ctxutil.IsGitCommit(ctx) {
+		return nil
+	}
+
 	commitMsg := ctxutil.GetCommitMessage(ctx)
 	if err := subFrom.Storage().TryCommit(ctx, commitMsg); del && err != nil {
 		return fmt.Errorf("failed to commit changes to git (%s): %w", subFrom.Alias(), err)
