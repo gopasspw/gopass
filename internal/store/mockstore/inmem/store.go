@@ -237,3 +237,8 @@ func (m *InMem) Link(context.Context, string, string) error {
 func (m *InMem) Move(context.Context, string, string, bool) error {
 	return nil
 }
+
+// IsInitialized is not implemented.
+func (m *InMem) IsInitialized() bool {
+	return true
+}

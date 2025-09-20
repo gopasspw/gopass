@@ -246,3 +246,8 @@ func (s *Store) String() string {
 func (s *Store) Path() string {
 	return s.path
 }
+
+// IsInitialized returns true if the store is initialized.
+func (s *Store) IsInitialized() bool {
+	return fsutil.IsDir(s.path)
+}
