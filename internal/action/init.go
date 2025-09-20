@@ -3,8 +3,6 @@ package action
 import (
 	"context"
 	"fmt"
-	"net/url"
-	"strings"
 
 	"github.com/gopasspw/gopass/internal/action/exit"
 	"github.com/gopasspw/gopass/internal/backend"
@@ -136,31 +134,6 @@ func (s *Action) init(ctx context.Context, alias, path string, keys ...string) e
 	}
 	path = fsutil.CleanPath(path)
 
-	// if the path is a git remote, clone it and continue
-	if remote, ok := remoteFromKeys(keys); ok {
-		debug.Log("path %q is a git remote, cloning", path)
-		// remove the remote from the list of keys
-		nkeys := make([]string, 0, len(keys)-1)
-		for _, k := range keys {
-			if k == remote {
-				continue
-			}
-			nkeys = append(nkeys, k)
-		}
-		keys = nkeys
-		// clone the repo
-		if _, err := backend.Clone(ctx, backend.GetStorageBackend(ctx), remote, path); err != nil {
-			return fmt.Errorf("failed to clone git remote %q: %w", remote, err)
-		}
-		// check if the store is initialized
-		storage, err := backend.NewStorage(ctx, backend.GetStorageBackend(ctx), path)
-		if err == nil && storage.IsInitialized() {
-			debug.Log("cloned repository is already initialized")
-			// if so, use the existing recipients
-			keys = s.Store.ListRecipients(ctx, alias)
-		}
-	}
-
 	debug.Log("Initializing Store %q in %q for %+v", alias, path, keys)
 
 	out.Printf(ctx, "🔑 Searching for usable private Keys ...")
@@ -228,16 +201,4 @@ func (s *Action) printRecipients(ctx context.Context, alias string) {
 
 func (s *Action) getCryptoFor(ctx context.Context, name string) backend.Crypto {
 	return s.Store.Crypto(ctx, name)
-}
-
-func remoteFromKeys(keys []string) (string, bool) {
-	for _, key := range keys {
-		if u, err := url.Parse(key); err == nil && u.Scheme != "" && u.Host != "" {
-			return key, true
-		}
-		if strings.HasPrefix(key, "git@") {
-			return key, true
-		}
-	}
-	return "", false
 }

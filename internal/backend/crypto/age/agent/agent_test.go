@@ -27,7 +27,7 @@ func TestAgent(t *testing.T) {
 	defer a.Shutdown(ctx)
 
 	// wait for it to be ready
-	time.Sleep(5 * time.Second)
+	time.Sleep(time.Second)
 
 	// create client
 	c := NewClient()
@@ -74,7 +74,7 @@ func TestAgentAutoLock(t *testing.T) {
 	defer a.Shutdown(ctx)
 
 	// wait for it to be ready
-	time.Sleep(5 * time.Second)
+	time.Sleep(time.Second)
 
 	// create client
 	c := NewClient()

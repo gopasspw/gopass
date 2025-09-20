@@ -238,7 +238,7 @@ func (m *InMem) Move(context.Context, string, string, bool) error {
 	return nil
 }
 
-// IsInitialized is not implemented.
-func (m *InMem) IsInitialized() bool {
+// HasBranches returns true.
+func (m *InMem) HasBranches(context.Context) bool {
 	return true
 }
