@@ -11,6 +11,7 @@ import (
 )
 
 // LookupAliases looks up known aliases for the given domain.
+// It will check for both built-in and custom aliases.
 func LookupAliases(ctx context.Context, domain string) []string {
 	customAliases := loadCustomAliases(ctx)
 	aliases := make([]string, 0, len(genAliases[domain])+len(customAliases[domain]))
@@ -21,7 +22,7 @@ func LookupAliases(ctx context.Context, domain string) []string {
 	return aliases
 }
 
-// AllAliases returns all aliases.
+// AllAliases returns all aliases, including built-in and custom aliases.
 func AllAliases(ctx context.Context) map[string][]string {
 	customAliases := loadCustomAliases(ctx)
 	all := make(map[string][]string, len(genAliases)+len(customAliases))

@@ -18,7 +18,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/gopass"
 )
 
-// Gopass is a secret store implementation.
+// Gopass is a secret store implementation. It is the main entry point for the gopass API.
 type Gopass struct {
 	rs *root.Store
 }
@@ -26,15 +26,17 @@ type Gopass struct {
 // make sure that *Gopass implements Store.
 var _ gopass.Store = &Gopass{}
 
-// ErrNotImplemented is returned when a method is not implemented.
+// ErrNotImplemented is returned when a method is not yet implemented.
 var ErrNotImplemented = fmt.Errorf("not yet implemented")
 
 // ErrNotInitialized is returned when the store is not initialized.
+// This happens when the gopass CLI has not been used to set up a password store yet.
 var ErrNotInitialized = fmt.Errorf("password store not initialized. run 'gopass setup' first")
 
-// New initializes an existing password store. It will attempt to load an existing
-// configuration or use the built-in defaults. If no password store is found and
-// the user will need to initialize it with the gopass CLI (`gopass setup`) first.
+// New initializes an existing password store and returns a new Gopass instance.
+// It will attempt to load an existing configuration or use the built-in defaults.
+// If no password store is found the user will need to initialize it with the gopass
+// CLI (`gopass setup`) first.
 //
 // WARNING: This will need to change to accommodate for runtime configuration.
 func New(ctx context.Context) (*Gopass, error) {
@@ -55,19 +57,21 @@ func New(ctx context.Context) (*Gopass, error) {
 	}, nil
 }
 
-// List returns a list of all secrets.
+// List returns a list of all secret names.
 func (g *Gopass) List(ctx context.Context) ([]string, error) {
 	return g.rs.List(ctx, tree.INF) //nolint:wrapcheck
 }
 
 // Get returns a single, encrypted secret. It must be unwrapped before use.
 // Use "latest" to get the latest revision.
+// The revision parameter is not yet implemented.
 func (g *Gopass) Get(ctx context.Context, name, revision string) (gopass.Secret, error) {
 	return g.rs.Get(ctx, name) //nolint:wrapcheck
 }
 
-// Set adds a new revision to an existing secret or creates a new one.
+// Set adds a new revision to an existing secret or creates a new one if it doesn't exist.
 // Create new secrets with secrets.New().
+// The secret is passed as a gopass.Byter, which is an interface that can be satisfied by a []byte.
 func (g *Gopass) Set(ctx context.Context, name string, sec gopass.Byter) error {
 	return g.rs.Set(ctx, name, sec) //nolint:wrapcheck
 }
@@ -82,28 +86,31 @@ func (g *Gopass) RemoveAll(ctx context.Context, prefix string) error {
 	return g.rs.Prune(ctx, prefix) //nolint:wrapcheck
 }
 
-// Rename move a prefix to another.
+// Rename moves a secret from one path to another.
 func (g *Gopass) Rename(ctx context.Context, src, dest string) error {
 	return g.rs.Move(ctx, src, dest) //nolint:wrapcheck
 }
 
-// Sync synchronizes a secret with a remote.
+// Sync synchronizes the store with a remote.
+// Not yet implemented.
 func (g *Gopass) Sync(ctx context.Context) error {
 	return ErrNotImplemented
 }
 
 // Revisions lists all revisions of this secret.
+// Not yet implemented.
 func (g *Gopass) Revisions(ctx context.Context, name string) ([]string, error) {
 	return nil, ErrNotImplemented
 }
 
+// String returns the name of this store.
 func (g *Gopass) String() string {
 	return "gopass"
 }
 
-// Close shuts down all background processes.
+// Close shuts down all background processes and closes the store.
 //
-// MUST be called before existing to make sure any background processing
+// MUST be called before exiting to make sure any background processing
 // (e.g. pending commits or pushes) are complete. Failing to do so might
 // result in an invalid password store state.
 func (g *Gopass) Close(ctx context.Context) error {

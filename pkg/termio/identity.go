@@ -25,6 +25,8 @@ var (
 )
 
 // DetectName tries to guess the name of the logged in user.
+// It checks the context, the command line flags, environment variables,
+// and the git config.
 func DetectName(ctx context.Context, c *cli.Context) string {
 	cand := make([]string, 0, 10)
 	cand = append(cand, ctxutil.GetUsername(ctx))
@@ -50,6 +52,8 @@ func DetectName(ctx context.Context, c *cli.Context) string {
 }
 
 // DetectEmail tries to guess the email of the logged in user.
+// It checks the context, the command line flags, environment variables,
+// and the git config.
 func DetectEmail(ctx context.Context, c *cli.Context) string {
 	cand := make([]string, 0, 10)
 	cand = append(cand, ctxutil.GetEmail(ctx))

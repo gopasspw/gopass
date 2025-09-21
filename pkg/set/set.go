@@ -8,7 +8,7 @@ import (
 	"golang.org/x/exp/constraints"
 )
 
-// Set is a generic set type.
+// Set is a generic set type, implemented as a map of keys to booleans.
 type Set[K constraints.Ordered] map[K]bool
 
 // New initializes a new Set with the given elements.
@@ -78,7 +78,7 @@ func (s Set[K]) Equals(s2 Set[K]) bool {
 	return len(s) == len(s2) && s.IsSubset(s2)
 }
 
-// Contains returs true if the set contains the presented
+// Contains returns true if the set contains the given
 // element.
 func (s Set[K]) Contains(e K) bool {
 	for k := range s {
@@ -194,7 +194,7 @@ func (s *Set[K]) Add(elems ...K) bool {
 	return len(*s) != il
 }
 
-// Remove deletes the given element from the set.
+// Remove deletes the given elements from the set.
 func (s Set[K]) Remove(s2 Set[K]) bool {
 	if s.Empty() {
 		return false
@@ -220,8 +220,8 @@ func (s Set[K]) Discard(elems ...K) bool {
 	return len(s) != il
 }
 
-// Map returns a new set by applied the function f
-// to all it's elements.
+// Map returns a new set by applying the function f
+// to all its elements.
 func (s Set[K]) Map(f func(K) K) Set[K] {
 	out := make(Set[K], len(s))
 	for k := range s {
@@ -231,7 +231,7 @@ func (s Set[K]) Map(f func(K) K) Set[K] {
 	return out
 }
 
-// Each applies the function f to all it's elements.
+// Each applies the function f to all its elements.
 func (s Set[K]) Each(f func(K)) {
 	for k := range s {
 		f(k)
@@ -239,7 +239,7 @@ func (s Set[K]) Each(f func(K)) {
 }
 
 // Select returns a new set with all the elements for
-// that f returns true.
+// which f returns true.
 func (s Set[K]) Select(f func(K) bool) Set[K] {
 	out := make(Set[K], len(s))
 	for k := range s {
@@ -252,7 +252,7 @@ func (s Set[K]) Select(f func(K) bool) Set[K] {
 }
 
 // Partition returns two new sets: the first contains all
-// the elements for which f returns true. The seconds the others.
+// the elements for which f returns true. The second contains the others.
 func (s Set[K]) Partition(f func(K) bool) (Set[K], Set[K]) {
 	yes := make(Set[K], len(s))
 	no := make(Set[K], len(s))

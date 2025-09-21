@@ -11,7 +11,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/termio"
 )
 
-// Client is pinentry CLI drop-in.
+// Client is a pinentry CLI drop-in.
 type Client struct {
 	repeat bool
 }
@@ -35,7 +35,7 @@ func (c *Client) Option(string) error {
 	return nil
 }
 
-// GetPINContext prompts for the pin in the termnial and returns the output.
+// GetPINContext prompts for the pin in the terminal and returns the output.
 // The context is only used for tests.
 func (c *Client) GetPINContext(ctx context.Context) (string, error) {
 	pw, err := termio.AskForPassword(ctx, "your PIN", c.repeat)
@@ -46,7 +46,7 @@ func (c *Client) GetPINContext(ctx context.Context) (string, error) {
 	return pw, nil
 }
 
-// GetPIN prompts for the pin in the termnial and returns the output.
+// GetPIN prompts for the pin in the terminal and returns the output.
 func (c *Client) GetPIN() (string, error) {
 	return c.GetPINContext(context.TODO())
 }

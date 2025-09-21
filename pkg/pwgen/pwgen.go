@@ -16,11 +16,16 @@ var ErrMaxTries = fmt.Errorf("maximum tries exceeded")
 
 // Character classes.
 const (
+	// Digits is the class of digits.
 	Digits = "0123456789"
-	Upper  = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	Lower  = "abcdefghijklmnopqrstuvwxyz"
-	Syms   = "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~"
-	Ambiq  = "0ODQ1IlB8G6S5Z2"
+	// Upper is the class of upper case letters.
+	Upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	// Lower is the class of lower case letters.
+	Lower = "abcdefghijklmnopqrstuvwxyz"
+	// Syms is the class of symbols.
+	Syms = "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~"
+	// Ambiq is the class of ambiguous characters.
+	Ambiq = "0ODQ1IlB8G6S5Z2"
 	// CharAlpha is the class of letters.
 	CharAlpha = Upper + Lower
 	// CharAlphaNum is the class of alpha-numeric characters.
@@ -29,7 +34,7 @@ const (
 	CharAll = Digits + Upper + Lower + Syms
 )
 
-// GeneratePassword generates a random, hard to remember password.
+// GeneratePassword generates a random, hard-to-remember password.
 func GeneratePassword(length int, symbols bool) string {
 	chars := Digits + Upper + Lower
 	if symbols {
@@ -45,6 +50,7 @@ func GeneratePassword(length int, symbols bool) string {
 
 // GeneratePasswordCharset generates a random password from a given
 // set of characters.
+// It does not perform any checks on the generated password.
 func GeneratePasswordCharset(length int, chars string) string {
 	c := NewCryptic(length, false)
 	c.Chars = chars
@@ -56,6 +62,8 @@ func GeneratePasswordCharset(length int, chars string) string {
 // contains all character classes instead of only enabling them.
 // This is especially useful for broken (corporate) password policies
 // that mandate the use of certain character classes for no good reason.
+// It will try to generate a password that contains at least one character from each of the
+// enabled character classes (digits, upper, lower, symbols).
 func GeneratePasswordWithAllClasses(length int, symbols bool) (string, error) {
 	c := NewCrypticWithAllClasses(length, symbols)
 	if pw := c.Password(); pw != "" {
@@ -67,6 +75,7 @@ func GeneratePasswordWithAllClasses(length int, symbols bool) (string, error) {
 
 // GeneratePasswordCharsetCheck generates a random password from a given
 // set of characters and validates the generated password with crunchy.
+// It will try to generate a password that passes the crunchy check.
 func GeneratePasswordCharsetCheck(length int, chars string) string {
 	c := NewCrypticWithCrunchy(length, false)
 	c.Chars = chars
@@ -74,7 +83,7 @@ func GeneratePasswordCharsetCheck(length int, chars string) string {
 	return c.Password()
 }
 
-// Prune removes all characters in cutset from the input.
+// Prune removes all characters in cutset from the input string.
 func Prune(in string, cutset string) string {
 	out := make([]rune, 0, len(in))
 

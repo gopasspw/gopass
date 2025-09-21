@@ -20,6 +20,7 @@ const (
 var now = time.Now
 
 // ProgressBar is a gopass progress bar.
+// It is used to display progress for long-running operations.
 type ProgressBar struct {
 	// keep both int64 fields at the top to ensure correct
 	// 8-byte alignment on 32 bit systems. See https://golang.org/pkg/sync/atomic/#pkg-note-BUG

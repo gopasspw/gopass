@@ -5,6 +5,7 @@ import (
 )
 
 // New creates a new secret.
+// It returns a new AKV secret.
 func New() gopass.Secret { //nolint:ireturn
 	return NewAKV()
 }

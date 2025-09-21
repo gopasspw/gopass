@@ -25,7 +25,7 @@ func HasPassPromptFunc(ctx context.Context) bool {
 	return ok && ppf != nil
 }
 
-// GetPassPromptFunc will return the password prompt func or a default one
+// GetPassPromptFunc will return the password prompt func or a default one.
 // Note: will never return nil.
 func GetPassPromptFunc(ctx context.Context) PassPromptFunc {
 	ppf, ok := ctx.Value(ctxKeyPassPromptFunc).(PassPromptFunc)
@@ -37,12 +37,14 @@ func GetPassPromptFunc(ctx context.Context) PassPromptFunc {
 }
 
 // WithWorkdir returns a context with the working directory option set.
+// The working directory is used to resolve relative paths.
 func WithWorkdir(ctx context.Context, dir string) context.Context {
 	return context.WithValue(ctx, ctxKeyWorkdir, dir)
 }
 
 // GetWorkdir returns the working directory from the context or an empty
 // string if it is not set.
+// The working directory is used to resolve relative paths.
 func GetWorkdir(ctx context.Context) string {
 	sv, ok := ctx.Value(ctxKeyWorkdir).(string)
 	if !ok {

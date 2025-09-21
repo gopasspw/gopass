@@ -17,6 +17,9 @@ var ErrCrypticInvalid = fmt.Errorf("password does not satisfy all validators")
 
 // Cryptic is a generator for hard-to-remember passwords as required by (too)
 // many sites. Prefer memorable or xkcd-style passwords, if possible.
+//
+// The generator can be configured with a character set, a length, a maximum
+// number of tries, and a list of validators.
 type Cryptic struct {
 	Chars      string
 	Length     int
@@ -25,6 +28,8 @@ type Cryptic struct {
 }
 
 // NewCryptic creates a new generator with sane defaults.
+// The default length is 16, and the default character set is digits, upper and lower case letters.
+// If symbols is true, the symbol character set is added.
 func NewCryptic(length int, symbols bool) *Cryptic {
 	if length < 1 {
 		length = 16
@@ -45,6 +50,7 @@ func NewCryptic(length int, symbols bool) *Cryptic {
 
 // NewCrypticForDomain tries to look up password rules for the given domain
 // or uses the default generator.
+// It will adjust the length and character set of the generator based on the rules.
 func NewCrypticForDomain(ctx context.Context, length int, domain string) *Cryptic {
 	c := NewCryptic(length, true)
 	r, found := pwrules.LookupRule(ctx, domain)
@@ -149,6 +155,7 @@ func uniqueChars(in string) string {
 
 // NewCrypticWithAllClasses returns a password generator that generates passwords
 // containing all available character classes.
+// This is useful for password policies that require a mix of character types.
 func NewCrypticWithAllClasses(length int, symbols bool) *Cryptic {
 	c := NewCryptic(length, symbols)
 	c.Validators = append(c.Validators, func(pw string) error {
@@ -162,7 +169,7 @@ func NewCrypticWithAllClasses(length int, symbols bool) *Cryptic {
 	return c
 }
 
-// NewCrypticWithCrunchy returns a password generators that only returns a
+// NewCrypticWithCrunchy returns a password generator that only returns a
 // password if it's successfully validated with crunchy.
 func NewCrypticWithCrunchy(length int, symbols bool) *Cryptic {
 	c := NewCryptic(length, symbols)
@@ -174,6 +181,8 @@ func NewCrypticWithCrunchy(length int, symbols bool) *Cryptic {
 }
 
 // Password returns a single password from the generator.
+// It will try to generate a password that satisfies all validators.
+// If it fails after MaxTries, it will return an empty string.
 func (c *Cryptic) Password() string {
 	round := 0
 	maxFn := func() bool {

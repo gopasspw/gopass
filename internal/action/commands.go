@@ -9,8 +9,8 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-// ShowFlags returns the flags for the show command. Exported to re-use in main
-// for the default command.
+// ShowFlags returns the flags for the show command.
+// Exported to re-use in main for the default command.
 func ShowFlags() []cli.Flag {
 	return []cli.Flag{
 		&cli.BoolFlag{
@@ -68,6 +68,7 @@ func ShowFlags() []cli.Flag {
 }
 
 // GetCommands returns the cli commands exported by this module.
+// It also includes any commands provided by the crypto and storage backends.
 func (s *Action) GetCommands() []*cli.Command {
 	cmds := []*cli.Command{
 		{

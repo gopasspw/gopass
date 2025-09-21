@@ -18,7 +18,8 @@ var (
 )
 
 // GenerateExternal will invoke an external password generator,
-// if set, and return it's output.
+// if set, and return its output.
+// The external generator is configured via the GOPASS_EXTERNAL_PWGEN environment variable.
 func GenerateExternal(pwlen int) (string, error) {
 	c := os.Getenv("GOPASS_EXTERNAL_PWGEN")
 	if c == "" {

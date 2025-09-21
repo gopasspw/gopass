@@ -19,8 +19,8 @@ import (
 
 var reCleanFilename = regexp.MustCompile(`[^\w\d@.-]`)
 
-// CleanFilename strips all possibly suspicious characters from a filename
-// WARNING: NOT suiteable for pathnames as slashes will be stripped as well!
+// CleanFilename strips all possibly suspicious characters from a filename.
+// WARNING: NOT suitable for pathnames as slashes will be stripped as well!
 func CleanFilename(in string) string {
 	return strings.Trim(reCleanFilename.ReplaceAllString(in, "_"), "_ ")
 }
@@ -40,6 +40,7 @@ func ExpandHomedir(path string) string {
 }
 
 // CleanPath resolves common aliases in a path and cleans it as much as possible.
+// It expands the tilde to the user's home directory and resolves relative paths.
 func CleanPath(path string) string {
 	// Replace ~ with GOPASS_HOMEDIR if set (mainly for testing and experiments),
 	// otherwise replace ~ with user's homedir if set. We expect any reference
@@ -62,7 +63,6 @@ func CleanPath(path string) string {
 }
 
 // IsDir checks if a certain path exists and is a directory.
-// https://stackoverflow.com/questions/10510691/how-to-check-whether-a-file-or-directory-denoted-by-a-path-exists-in-golang
 func IsDir(path string) bool {
 	fi, err := os.Stat(path)
 	if err != nil {
@@ -141,7 +141,8 @@ func IsEmptyDir(path string) (bool, error) {
 	return empty, nil
 }
 
-// Shred overwrite the given file any number of times.
+// Shred overwrites the given file with random data and deletes it.
+// The file is overwritten `runs` times. The last run is with zeros.
 func Shred(path string, runs int) error {
 	fh, err := os.OpenFile(path, os.O_WRONLY, 0o600)
 	if err != nil {
@@ -278,7 +279,7 @@ func CopyFile(from, to string) error {
 }
 
 // CopyFileForce copies a file from src to dst. Permissions will be preserved. The destination
-// if removed before copying to avoid permission issues.
+// is removed before copying to avoid permission issues.
 func CopyFileForce(from, to string) error {
 	if IsFile(to) {
 		if err := os.Remove(to); err != nil {

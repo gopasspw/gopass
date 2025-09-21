@@ -14,7 +14,7 @@
 
 > The slightly more awesome standard UNIX password manager for teams.
 
-Manage your credentials with ease. In a globally distributed team, on multiple devices or fully offline on an air gapped machine.
+Manage your credentials with ease. In a globally distributed team, on multiple devices or fully offline on an air-gapped machine.
 
 - **Works everywhere** - The same user experience on Linux, MacOS, *BSD or Windows
 - **Built for teams** - Built from our experience working in distributed development teams
@@ -24,6 +24,7 @@ Manage your credentials with ease. In a globally distributed team, on multiple d
 
 Gopass is a drop-in replacement for pass, the standard UNIX password manager.
 By default your credentials are encrypted with GPG and versioned in git. This can be customized easily.
+Other backends for encryption (e.g. age) and storage (e.g. fossil) are also available.
 The primary interface is the command line, making it an excellent choice for CLI fans, CI/CD systems or
 anything you can hook it up with. Gopass can also integrate with your browser so you can largely avoid
 the command line - if you want.
@@ -55,7 +56,7 @@ sudo port install gopass
 
 ### Debian (Ubuntu, Debian, Raspbian, ...)
 
-**Warning**: Do not install the `gopass` package for the official repositories. That is a completely different project that has no relation to us.
+**Warning**: Do not install the `gopass` package from the official repositories. That is a completely different project that has no relation to us.
 
 ```shell
 curl https://packages.gopass.pw/repos/gopass/gopass-archive-keyring.gpg | sudo tee /usr/share/keyrings/gopass-archive-keyring.gpg >/dev/null

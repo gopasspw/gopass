@@ -31,7 +31,7 @@ var ErrNotSupported = fmt.Errorf("not supported")
 // is neither trivial nor intuitive for users manually editing secrets (e.g.
 // unquoted phone numbers being parsed as octal and such).
 //
-// Format
+// Format:
 // ------
 // Line | Description
 //
@@ -45,12 +45,13 @@ type YAML struct {
 	body     string
 }
 
-// Keys returns all keys.
+// Keys returns all keys from the YAML data.
 func (y *YAML) Keys() []string {
 	return set.SortedKeys(y.data)
 }
 
 // Get returns the first value of a single key.
+// It supports yamlpath expressions.
 func (y *YAML) Get(key string) (string, bool) {
 	if y.data == nil {
 		y.data = make(map[string]any)
@@ -67,7 +68,8 @@ func (y *YAML) Get(key string) (string, bool) {
 	return "", false
 }
 
-// Values returns Get since as per YAML specification keys must be unique.
+// Values returns all values for a given key.
+// Since YAML keys are unique, this is equivalent to Get.
 func (y *YAML) Values(key string) ([]string, bool) {
 	data, found := y.Get(key)
 
@@ -85,9 +87,8 @@ func (y *YAML) Set(key string, value any) error {
 	return nil
 }
 
-// Ref returns reference in case of having password of the
-// gopass://ref
-// which references another secret in the store.
+// Ref returns a reference in case the password is of the form
+// gopass://ref, which references another secret in the store.
 func (y *YAML) Ref() (string, bool) {
 	if strings.HasPrefix(y.password, gopassRef) {
 		return strings.TrimPrefix(y.password, gopassRef), true
@@ -96,12 +97,12 @@ func (y *YAML) Ref() (string, bool) {
 	return "", false
 }
 
-// Add doesn't work since as per YAML specification keys must be unique.
+// Add is not supported for YAML secrets, as keys must be unique.
 func (y *YAML) Add(key string, value any) error {
 	return ErrNotSupported
 }
 
-// Del removes a single key.
+// Del removes a single key from the YAML data.
 func (y *YAML) Del(key string) bool {
 	_, found := y.data[key]
 
@@ -110,7 +111,7 @@ func (y *YAML) Del(key string) bool {
 	return found
 }
 
-// ParseYAML will try to parse a YAML secret.
+// ParseYAML will try to parse a YAML secret from a byte slice.
 func ParseYAML(in []byte) (*YAML, error) {
 	y := &YAML{
 		data: make(map[string]any, 10),
@@ -145,7 +146,7 @@ func ParseYAML(in []byte) (*YAML, error) {
 	return y, nil
 }
 
-// Body returns the body.
+// Body returns the body of the secret.
 func (y *YAML) Body() string {
 	return y.body
 }
@@ -194,7 +195,7 @@ func parseBody(r *bufio.Reader) (string, error) {
 	return "", ErrNoYAML
 }
 
-// Bytes serialized this secret.
+// Bytes serializes this secret to a byte slice.
 func (y *YAML) Bytes() []byte {
 	defer func() {
 		if r := recover(); r != nil {
@@ -232,7 +233,7 @@ func (y *YAML) Write(buf []byte) (int, error) {
 	return len(buf), nil
 }
 
-// SafeStr always returnes "(elided)".
+// SafeStr always returns "(elided)".
 func (y *YAML) SafeStr() string {
 	return "(elided)"
 }

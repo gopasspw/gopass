@@ -40,7 +40,8 @@ const (
 var ErrNoCallback = fmt.Errorf("no callback")
 
 // WithGlobalFlags parses any global flags from the cli context and returns
-// a regular context.
+// a regular context. It handles the --yes flag and sets the appropriate
+// context value.
 func WithGlobalFlags(c *cli.Context) context.Context {
 	if c.Bool("yes") {
 		return WithAlwaysYes(c.Context, true)
@@ -49,10 +50,11 @@ func WithGlobalFlags(c *cli.Context) context.Context {
 	return c.Context
 }
 
-// ProgressCallback is a callback for updateing progress.
+// ProgressCallback is a callback for updating progress.
 type ProgressCallback func()
 
-// WithTerminal returns a context with an explicit value for terminal.
+// WithTerminal returns a context with an explicit value for whether or not we are
+// in a terminal.
 func WithTerminal(ctx context.Context, isTerm bool) context.Context {
 	return context.WithValue(ctx, ctxKeyTerminal, isTerm)
 }
@@ -74,7 +76,8 @@ func IsTerminal(ctx context.Context) bool {
 	return bv
 }
 
-// WithInteractive returns a context with an explicit value for interactive.
+// WithInteractive returns a context with an explicit value for whether or not we are
+// in an interactive session.
 func WithInteractive(ctx context.Context, isInteractive bool) context.Context {
 	return context.WithValue(ctx, ctxKeyInteractive, isInteractive)
 }
@@ -121,6 +124,7 @@ func IsStdin(ctx context.Context) bool {
 }
 
 // WithShowParsing returns a context with the value for ShowParsing set.
+// This is used to control whether to show parsing errors.
 func WithShowParsing(ctx context.Context, bv bool) context.Context {
 	return context.WithValue(ctx, ctxKeyShowParsing, bv)
 }
@@ -143,6 +147,7 @@ func IsShowParsing(ctx context.Context) bool {
 }
 
 // WithGitCommit returns a context with the value of git commit set.
+// If true, changes will be committed to git.
 func WithGitCommit(ctx context.Context, bv bool) context.Context {
 	return context.WithValue(ctx, ctxKeyGitCommit, bv)
 }
@@ -159,7 +164,8 @@ func IsGitCommit(ctx context.Context) bool {
 	return is(ctx, ctxKeyGitCommit, true)
 }
 
-// IsFollowRef returns the value of follow-ref or the default (true).
+// IsFollowRef returns the value of follow-ref or the default (false).
+// If true, symlinks will be followed.
 func IsFollowRef(ctx context.Context) bool {
 	return is(ctx, ctxFollowRef, false)
 }
@@ -177,6 +183,7 @@ func WithFollowRef(ctx context.Context, bv bool) context.Context {
 }
 
 // WithAlwaysYes returns a context with the value of always yes set.
+// If true, any prompts will be answered with yes.
 func WithAlwaysYes(ctx context.Context, bv bool) context.Context {
 	return context.WithValue(ctx, ctxKeyAlwaysYes, bv)
 }
@@ -221,7 +228,7 @@ func GetProgressCallback(ctx context.Context) ProgressCallback {
 	return cb
 }
 
-// WithAlias returns an context with the alias set.
+// WithAlias returns a context with the alias set.
 func WithAlias(ctx context.Context, alias string) context.Context {
 	return context.WithValue(ctx, ctxKeyAlias, alias)
 }
@@ -242,6 +249,7 @@ func GetAlias(ctx context.Context) string {
 }
 
 // WithGitInit returns a context with the value for the git init flag set.
+// If true, a git repository will be initialized.
 func WithGitInit(ctx context.Context, bv bool) context.Context {
 	return context.WithValue(ctx, ctxKeyGitInit, bv)
 }
@@ -251,12 +259,13 @@ func HasGitInit(ctx context.Context) bool {
 	return hasBool(ctx, ctxKeyGitInit)
 }
 
-// IsGitInit returns the value of the git init flag or ture if none was set.
+// IsGitInit returns the value of the git init flag or true if none was set.
 func IsGitInit(ctx context.Context) bool {
 	return is(ctx, ctxKeyGitInit, true)
 }
 
 // WithForce returns a context with the force flag set.
+// If true, operations that would otherwise fail will be forced to succeed.
 func WithForce(ctx context.Context, bv bool) context.Context {
 	return context.WithValue(ctx, ctxKeyForce, bv)
 }
@@ -335,7 +344,7 @@ func GetCommitMessage(ctx context.Context) string {
 	return ht.head
 }
 
-// GetCommitMessageFull returns the set commit message (head+body, of either are defined) or an empty string.
+// GetCommitMessageFull returns the set commit message (head+body, if either are defined) or an empty string.
 func GetCommitMessageFull(ctx context.Context) string {
 	ht, ok := ctx.Value(ctxKeyCommitMessage).(*HeadedText)
 	if !ok {
@@ -346,6 +355,7 @@ func GetCommitMessageFull(ctx context.Context) string {
 }
 
 // WithNoNetwork returns a context with the value of no network set.
+// If true, no network operations will be performed.
 func WithNoNetwork(ctx context.Context, bv bool) context.Context {
 	return context.WithValue(ctx, ctxKeyNoNetwork, bv)
 }
@@ -391,6 +401,7 @@ func GetEmail(ctx context.Context) string {
 }
 
 // WithImportFunc will return a context with the import callback set.
+// The callback is used to ask the user for confirmation before importing a key.
 func WithImportFunc(ctx context.Context, imf store.ImportCallback) context.Context {
 	return context.WithValue(ctx, ctxKeyImportFunc, imf)
 }
@@ -435,6 +446,7 @@ func HasPasswordCallback(ctx context.Context) bool {
 }
 
 // GetPasswordCallback returns the password callback or a default (which always fails).
+// The default callback returns ErrNoCallback.
 func GetPasswordCallback(ctx context.Context) PasswordCallback {
 	pwcb, ok := ctx.Value(ctxKeyPasswordCallback).(PasswordCallback)
 	if !ok || pwcb == nil {
@@ -462,6 +474,7 @@ func HasPasswordPurgeCallback(ctx context.Context) bool {
 }
 
 // GetPasswordPurgeCallback returns the password purge callback or a default (which is a no-op).
+// The default callback does nothing.
 func GetPasswordPurgeCallback(ctx context.Context) PasswordPurgeCallback {
 	ppcb, ok := ctx.Value(ctxKeyPasswordPurgeCallback).(PasswordPurgeCallback)
 	if !ok || ppcb == nil {
@@ -473,6 +486,7 @@ func GetPasswordPurgeCallback(ctx context.Context) PasswordPurgeCallback {
 
 // WithCommitTimestamp returns a context with the value for the commit
 // timestamp set.
+// This is used to allow for reproducible builds.
 func WithCommitTimestamp(ctx context.Context, ts time.Time) context.Context {
 	return context.WithValue(ctx, ctxKeyCommitTimestamp, ts)
 }
@@ -496,6 +510,7 @@ func GetCommitTimestamp(ctx context.Context) time.Time {
 }
 
 // WithHidden returns a context with the flag value for hidden set.
+// This is used to hide secrets from the output.
 func WithHidden(ctx context.Context, hidden bool) context.Context {
 	return context.WithValue(ctx, ctxKeyHidden, hidden)
 }

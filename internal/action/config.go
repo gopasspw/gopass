@@ -14,6 +14,8 @@ import (
 )
 
 // Config handles changes to the gopass configuration.
+// It can be used to print the whole config, a single key, or to set a new
+// value for a given key.
 func (s *Action) Config(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	store := c.String("store")
@@ -126,7 +128,7 @@ func (s *Action) configKeys() []string {
 	return s.cfg.Keys("")
 }
 
-// ConfigComplete will print the list of valid config keys.
+// ConfigComplete will print the list of valid config keys for bash completion.
 func (s *Action) ConfigComplete(c *cli.Context) {
 	for _, k := range s.configKeys() {
 		fmt.Fprintln(stdout, k)

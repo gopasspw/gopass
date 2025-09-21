@@ -10,6 +10,7 @@
 package protect
 
 // ProtectEnabled lets us know if we have protection or not.
+// It is false on all systems except OpenBSD.
 var ProtectEnabled = false
 
 // Pledge on any other system than OpenBSD doesn't do anything.

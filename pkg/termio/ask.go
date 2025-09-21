@@ -95,7 +95,7 @@ func AskForBool(ctx context.Context, text string, def bool) (bool, error) {
 	}
 }
 
-// AskForInt asks for an valid interger once. If the input
+// AskForInt asks for a valid integer once. If the input
 // can not be converted to an int it returns an error.
 func AskForInt(ctx context.Context, text string, def int) (int, error) {
 	if ctxutil.IsAlwaysYes(ctx) {
@@ -121,6 +121,7 @@ func AskForInt(ctx context.Context, text string, def int) (int, error) {
 
 // AskForConfirmation asks a yes/no question until the user
 // replies yes or no.
+// It will retry until a valid answer is given or the user aborts.
 func AskForConfirmation(ctx context.Context, text string) bool {
 	if ctxutil.IsAlwaysYes(ctx) {
 		return true
@@ -141,6 +142,7 @@ func AskForConfirmation(ctx context.Context, text string) bool {
 }
 
 // AskForKeyImport asks for permissions to import the named key.
+// It will ask the user for confirmation.
 func AskForKeyImport(ctx context.Context, key string, names []string) bool {
 	if ctxutil.IsAlwaysYes(ctx) {
 		return true
@@ -159,6 +161,7 @@ func AskForKeyImport(ctx context.Context, key string, names []string) bool {
 }
 
 // AskForPassword prompts for a password, optionally prompting twice until both match.
+// It will retry until the passwords match or the user aborts.
 func AskForPassword(ctx context.Context, name string, repeat bool) (string, error) {
 	if ctxutil.IsAlwaysYes(ctx) {
 		return "", nil

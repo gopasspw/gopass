@@ -25,6 +25,8 @@ import (
 var binstdin = os.Stdin
 
 // Cat prints to or reads from STDIN/STDOUT.
+// If the content is piped to stdin, it is written to the secret.
+// Otherwise, the secret content is printed to stdout.
 func (s *Action) Cat(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	name := c.Args().First()
@@ -112,7 +114,7 @@ func secFromBytes(dst, src string, in []byte) (gopass.Secret, error) {
 	return sec, nil
 }
 
-// BinaryCopy copies either from the filesystem to the store or from the store.
+// BinaryCopy copies either from the filesystem to the store or from the store
 // to the filesystem.
 func (s *Action) BinaryCopy(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
@@ -355,6 +357,7 @@ func (s *Action) binaryGet(ctx context.Context, name string) ([]byte, error) {
 }
 
 // Sum decodes binary content and computes the SHA256 checksum.
+// It prints the checksum to stdout.
 func (s *Action) Sum(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	name := c.Args().First()
