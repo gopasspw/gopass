@@ -411,12 +411,3 @@ func (j *JJFS) Move(ctx context.Context, from, to string, del bool) error {
 func (j *JJFS) String() string {
 	return j.fs.String()
 }
-
-// HasBranches returns true if the store has branches.
-func (j *JJFS) HasBranches(ctx context.Context) bool {
-	out, _, err := j.captureCmd(ctx, "HasBranches", "branch", "list")
-	if err != nil {
-		return false
-	}
-	return len(out) > 0
-}

@@ -481,12 +481,3 @@ func (f *Fossil) Status(ctx context.Context) ([]byte, error) {
 func (f *Fossil) Compact(ctx context.Context) error {
 	return f.Cmd(ctx, "fossilRebuild", "rebuild", "--compress", "--analyze", "--vacuum")
 }
-
-// HasBranches returns true if the store has branches.
-func (f *Fossil) HasBranches(ctx context.Context) bool {
-	out, _, err := f.captureCmd(ctx, "HasBranches", "branch", "list")
-	if err != nil {
-		return false
-	}
-	return len(out) > 0
-}

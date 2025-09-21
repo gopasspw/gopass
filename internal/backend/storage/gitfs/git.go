@@ -542,12 +542,3 @@ func (g *Git) Status(ctx context.Context) ([]byte, error) {
 func (g *Git) Compact(ctx context.Context) error {
 	return g.Cmd(ctx, "gitGC", "gc", "--aggressive")
 }
-
-// HasBranches returns true if the store has branches.
-func (g *Git) HasBranches(ctx context.Context) bool {
-	out, _, err := g.captureCmd(ctx, "HasBranches", "branch", "--list")
-	if err != nil {
-		return false
-	}
-	return len(out) > 0
-}

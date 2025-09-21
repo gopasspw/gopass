@@ -139,17 +139,9 @@ func (s *Action) clone(ctx context.Context, repo, mount, path string) error {
 	// clone repo.
 	sb := storageBackendOrDefault(ctx, repo)
 	out.Noticef(ctx, "Cloning %s repository %q to %q ...", sb, repo, path)
-	storage, err := backend.Clone(ctx, sb, repo, path)
+	_, err = backend.Clone(ctx, sb, repo, path)
 	if err != nil {
 		return exit.Error(exit.Git, err, "failed to clone repo %q to %q: %s", repo, path, err)
-	}
-
-	// if the repo has no branches, it's a new repo.
-	// run init to create the first commit.
-	if !storage.HasBranches(ctx) {
-		if err := s.init(ctx, mount, path); err != nil {
-			return exit.Error(exit.Git, err, "failed to initialize repo %q: %s", repo, err)
-		}
 	}
 
 	// add mount.

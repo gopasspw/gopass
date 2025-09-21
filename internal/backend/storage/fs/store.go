@@ -246,8 +246,3 @@ func (s *Store) String() string {
 func (s *Store) Path() string {
 	return s.path
 }
-
-// HasBranches returns true if the store has branches.
-func (s *Store) HasBranches(ctx context.Context) bool {
-	return true
-}

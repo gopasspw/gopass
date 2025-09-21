@@ -237,8 +237,3 @@ func (m *InMem) Link(context.Context, string, string) error {
 func (m *InMem) Move(context.Context, string, string, bool) error {
 	return nil
 }
-
-// HasBranches returns true.
-func (m *InMem) HasBranches(context.Context) bool {
-	return true
-}

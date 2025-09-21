@@ -86,6 +86,7 @@ func (s *Action) Setup(c *cli.Context) error {
 		if err := s.clone(ctx, remote, "", ""); err != nil {
 			return fmt.Errorf("failed to clone remote %q: %w", remote, err)
 		}
+
 		return nil
 	}
 
