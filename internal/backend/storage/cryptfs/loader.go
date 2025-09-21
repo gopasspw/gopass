@@ -23,10 +23,12 @@ func (l *loader) New(ctx context.Context, path string) (backend.Storage, error) 
 	if err != nil {
 		return nil, err
 	}
+
 	sub, err := backend.NewStorage(ctx, subID, path)
 	if err != nil {
 		return nil, err
 	}
+
 	return newCrypt(ctx, sub)
 }
 
@@ -36,10 +38,14 @@ func (l *loader) Init(ctx context.Context, path string) (backend.Storage, error)
 	if err != nil {
 		return nil, err
 	}
+
 	sub, err := backend.InitStorage(ctx, subID, path)
 	if err != nil {
 		return nil, err
 	}
+
+	debug.Log("Initialized sub storage %s at %s", subID, path)
+
 	c, err := newCrypt(ctx, sub)
 	if err != nil {
 		return nil, err
@@ -47,6 +53,7 @@ func (l *loader) Init(ctx context.Context, path string) (backend.Storage, error)
 	if err := c.saveMappings(ctx); err != nil {
 		out.Warningf(ctx, "Failed to save initial mapping: %s", err)
 	}
+
 	return c, nil
 }
 
@@ -55,6 +62,7 @@ func (l *loader) Handles(ctx context.Context, path string) error {
 	if fsutil.IsFile(path + "/" + mappingFile) {
 		return nil
 	}
+
 	return fmt.Errorf("no mapping file found")
 }
 
@@ -65,7 +73,7 @@ func (l *loader) String() string {
 
 // Priority returns the priority of this backend.
 func (l *loader) Priority() int {
-	return 50
+	return 7
 }
 
 // Clone clones an existing repository and initializes the cryptfs backend.
@@ -74,14 +82,17 @@ func (l *loader) Clone(ctx context.Context, repo, path string) (backend.Storage,
 	if err != nil {
 		return nil, err
 	}
+
 	subLoader, err := backend.StorageRegistry.Get(subID)
 	if err != nil {
 		return nil, err
 	}
+
 	sub, err := subLoader.Clone(ctx, repo, path)
 	if err != nil {
 		return nil, err
 	}
+
 	return newCrypt(ctx, sub)
 }
 
@@ -90,9 +101,11 @@ func getSubStorage(ctx context.Context) (backend.StorageBackend, error) {
 	if subStoreName == "" {
 		subStoreName = "gitfs"
 	}
+
 	id, err := backend.StorageRegistry.Backend(subStoreName)
 	if err != nil {
 		debug.Log("Failed to get backend ID for %q: %s", subStoreName, err)
 	}
+
 	return id, err
 }

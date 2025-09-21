@@ -19,7 +19,7 @@ func (l loader) String() string {
 }
 
 func (l loader) Priority() int {
-	return 50
+	return 10
 }
 
 func (l loader) New(ctx context.Context, path string) (backend.Storage, error) {

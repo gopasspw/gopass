@@ -6,9 +6,9 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
-	"path/filepath"
-
+	"errors"
 	"fmt"
+	"path/filepath"
 	"sort"
 	"strings"
 
@@ -16,12 +16,14 @@ import (
 	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/internal/backend/crypto/age"
 	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/internal/store"
+	"github.com/gopasspw/gopass/pkg/debug"
 )
 
 const (
 	name = "cryptfs"
 	// mappingFile is the file that contains the name mapping.
-	mappingFile = ".gopass-mapping.age"
+	mappingFile = ".gopass-mapping"
 )
 
 // Crypt is a storage backend that encrypts filenames.
@@ -56,6 +58,7 @@ func newCrypt(ctx context.Context, sub backend.Storage) (*Crypt, error) {
 func (c *Crypt) hash(s string) string {
 	h := sha256.New()
 	h.Write([]byte(s))
+
 	return hex.EncodeToString(h.Sum(nil))
 }
 
@@ -124,10 +127,6 @@ func (c *Crypt) Version(ctx context.Context) semver.Version {
 
 // Fsck performs a consistency check on the backend.
 func (c *Crypt) Fsck(ctx context.Context) error {
-	return c.sub.Fsck(ctx)
-}
-
-func (c *Crypt) Prune(ctx context.Context, prefix string) error {
 	// list all files in sub-storage
 	allFiles, err := c.sub.List(ctx, "")
 	if err != nil {
@@ -154,16 +153,29 @@ func (c *Crypt) Prune(ctx context.Context, prefix string) error {
 			}
 		}
 	}
+
+	return c.sub.Fsck(ctx)
+}
+
+func (c *Crypt) Prune(ctx context.Context, prefix string) error {
 	return c.sub.Prune(ctx, prefix)
 }
 
 // Link creates a symlink.
 func (c *Crypt) Link(ctx context.Context, from, to string) error {
-	// not yet supported
-	return backend.ErrNotSupported
+	h, ok := c.mappings[from]
+	if !ok {
+		return backend.ErrNotFound
+	}
+	if _, ok := c.mappings[to]; ok {
+		return fmt.Errorf("destination %s already exists", to)
+	}
+
+	c.mappings[to] = h
+	return c.saveMappings(ctx)
 }
 
-// rcs methods
+// rcs methods.
 func (c *Crypt) getCryptoExt(ctx context.Context) string {
 	cryptoID := backend.GetCryptoBackend(ctx)
 	loader, err := backend.CryptoRegistry.Get(cryptoID)
@@ -176,6 +188,7 @@ func (c *Crypt) getCryptoExt(ctx context.Context) string {
 		// fallback to gpg
 		return ".gpg"
 	}
+
 	return crypto.Ext()
 }
 
@@ -184,10 +197,10 @@ func (c *Crypt) pathToName(ctx context.Context, p string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to get relative path for %s: %w", p, err)
 	}
+
 	ext := c.getCryptoExt(ctx)
-	if strings.HasSuffix(rel, ext) {
-		rel = strings.TrimSuffix(rel, ext)
-	}
+	rel = strings.TrimSuffix(rel, ext)
+
 	return filepath.ToSlash(rel), nil
 }
 
@@ -196,10 +209,13 @@ func (c *Crypt) Add(ctx context.Context, files ...string) error {
 	for _, file := range files {
 		name, err := c.pathToName(ctx, file)
 		if err != nil {
-			// not in our store? pass through.
-			hashedFiles = append(hashedFiles, file)
-			continue
+			// not in our store?
+			debug.Log("Failed to get name for %s: %s", file, err)
+
+			name = file
 		}
+
+		debug.Log("Mapping file %s to name %s", file, name)
 
 		h, ok := c.mappings[name]
 		if !ok {
@@ -207,13 +223,20 @@ func (c *Crypt) Add(ctx context.Context, files ...string) error {
 			// pass it through and hope for the best.
 			// This is not perfect, but should work for the common cases.
 			hashedFiles = append(hashedFiles, file)
+
+			debug.Log("No mapping for %s found, passing through", name)
+
 			continue
 		}
+
+		debug.Log("Mapping name %s to hash %s found", name, h)
 		hashedFile := filepath.Join(c.path, h)
 		hashedFiles = append(hashedFiles, hashedFile)
 	}
 	// always add the mapping file
 	hashedFiles = append(hashedFiles, filepath.Join(c.path, mappingFile))
+
+	debug.Log("Adding files to the git index: %+v", hashedFiles)
 
 	return c.sub.Add(ctx, hashedFiles...)
 }
@@ -223,7 +246,17 @@ func (c *Crypt) Commit(ctx context.Context, msg string) error {
 }
 
 func (c *Crypt) TryAdd(ctx context.Context, files ...string) error {
-	return c.sub.TryAdd(ctx, files...)
+	err := c.Add(ctx, files...)
+	if err == nil {
+		return nil
+	}
+	if errors.Is(err, store.ErrGitNotInit) {
+		debug.Log("Git not initialized. Ignoring.")
+
+		return nil
+	}
+
+	return err
 }
 
 func (c *Crypt) TryCommit(ctx context.Context, msg string) error {
@@ -247,6 +280,7 @@ func (c *Crypt) Revisions(ctx context.Context, name string) ([]backend.Revision,
 	if !ok {
 		return nil, backend.ErrNotFound
 	}
+
 	return c.sub.Revisions(ctx, h)
 }
 
@@ -255,6 +289,7 @@ func (c *Crypt) GetRevision(ctx context.Context, name, revision string) ([]byte,
 	if !ok {
 		return nil, backend.ErrNotFound
 	}
+
 	return c.sub.GetRevision(ctx, h, revision)
 }
 
@@ -285,13 +320,13 @@ func (c *Crypt) IsDir(ctx context.Context, name string) bool {
 			return true
 		}
 	}
+
 	return false
 }
 
 // List returns a list of all secrets.
 func (c *Crypt) List(ctx context.Context, prefix string) ([]string, error) {
 	var list []string
-	seen := make(map[string]struct{})
 
 	if !strings.HasSuffix(prefix, "/") && prefix != "" {
 		prefix += "/"
@@ -301,20 +336,10 @@ func (c *Crypt) List(ctx context.Context, prefix string) ([]string, error) {
 		if !strings.HasPrefix(k, prefix) {
 			continue
 		}
-		// remove prefix
-		sub := strings.TrimPrefix(k, prefix)
-		// take the first path component
-		parts := strings.SplitN(sub, "/", 2)
-		entry := parts[0]
-		if len(parts) > 1 {
-			entry += "/"
-		}
-		if _, ok := seen[entry]; !ok {
-			list = append(list, entry)
-			seen[entry] = struct{}{}
-		}
+		list = append(list, k)
 	}
 	sort.Strings(list)
+
 	return list, nil
 }
 
@@ -324,6 +349,9 @@ func (c *Crypt) Get(ctx context.Context, name string) ([]byte, error) {
 	if !ok {
 		return nil, backend.ErrNotFound
 	}
+
+	debug.Log("Reading content for %s from %s", name, h)
+
 	return c.sub.Get(ctx, h)
 }
 
@@ -333,10 +361,15 @@ func (c *Crypt) Set(ctx context.Context, name string, value []byte) error {
 	if !ok {
 		h = c.hash(name)
 		c.mappings[name] = h
+
+		debug.Log("New mapping: %s -> %s", name, h)
 	}
+
+	debug.Log("Writing content for %s to %s", name, h)
 	if err := c.sub.Set(ctx, h, value); err != nil {
 		return err
 	}
+
 	return c.saveMappings(ctx)
 }
 
@@ -350,12 +383,14 @@ func (c *Crypt) Delete(ctx context.Context, name string) error {
 		return err
 	}
 	delete(c.mappings, name)
+
 	return c.saveMappings(ctx)
 }
 
 // Exists returns true if a secret exists.
 func (c *Crypt) Exists(ctx context.Context, name string) bool {
 	_, ok := c.mappings[name]
+
 	return ok
 }
 
@@ -388,6 +423,7 @@ func (c *Crypt) Move(ctx context.Context, from, to string, del bool) error {
 		// try to rollback
 		c.mappings[from] = fromH
 		delete(c.mappings, to)
+
 		return err
 	}
 
