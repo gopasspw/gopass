@@ -37,6 +37,7 @@ func (c *Client) connect() (net.Conn, error) {
 	}
 
 	debug.Log("connected to agent at %s", c.socketPath)
+
 	return conn, nil
 }
 

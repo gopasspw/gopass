@@ -78,9 +78,9 @@ func TestSyncKeepSubkey(t *testing.T) {
 
 	// create .gpg-id file
 	subDir := filepath.Join(ts.storeDir("root"), "project_123")
-	require.NoError(t, os.MkdirAll(subDir, 0755))
+	require.NoError(t, os.MkdirAll(subDir, 0o755))
 	gpgIDFile := filepath.Join(subDir, ".gpg-id")
-	err = os.WriteFile(gpgIDFile, []byte(keyID), 0644)
+	err = os.WriteFile(gpgIDFile, []byte(keyID), 0o644)
 	require.NoError(t, err)
 
 	// re-encrypt the secret
@@ -95,7 +95,7 @@ func TestSyncKeepSubkey(t *testing.T) {
 	pubKeyFile := filepath.Join(ts.storeDir("root"), ".public-keys", keyID)
 	out, err = ts.runCmd([]string{"gpg", "--armor", "--export", keyID}, nil)
 	require.NoError(t, err, "failed to export key: %s", out)
-	err = os.WriteFile(pubKeyFile, []byte(out), 0644)
+	err = os.WriteFile(pubKeyFile, []byte(out), 0o644)
 	require.NoError(t, err)
 
 	// run sync again
