@@ -13,6 +13,10 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/gopasspw/gopass/internal/backend"
+	"github.com/gopasspw/gopass/internal/backend/crypto/gpg/cli"
+	"github.com/gopasspw/gopass/internal/config"
+	"github.com/gopasspw/gopass/internal/store/root"
 	"github.com/gopasspw/gopass/tests/can"
 	"github.com/gopasspw/gopass/tests/gptest"
 	shellquote "github.com/kballard/go-shellquote"
@@ -37,6 +41,10 @@ type tester struct {
 	sourceDir string
 	tempDir   string
 	resetFn   func()
+
+	store *root.Store
+	gpg   backend.Crypto
+	ctx   context.Context
 }
 
 // newTester is not compatible with t.Parallel because it uses t.Setenv.
@@ -98,6 +106,18 @@ func newTester(t *testing.T) *tester {
 	// copy gpg test files
 	require.NoError(t, can.WriteTo(ts.gpgDir()))
 
+	// init context
+	ts.ctx = context.Background()
+	cfg := config.New()
+	ts.ctx = cfg.WithConfig(ts.ctx)
+
+	// init gpg
+	gpg, err := cli.New(ts.ctx, cli.Config{
+		Binary: "gpg",
+	})
+	require.NoError(t, err)
+	ts.gpg = gpg
+
 	return ts
 }
 
@@ -142,8 +162,9 @@ func (ts tester) runCmd(args []string, in []byte) (string, error) {
 	ts.t.Logf("%+v", cmd.Args)
 
 	out, err := cmd.CombinedOutput()
+	ts.t.Log(string(out))
 	if err != nil {
-		return string(out), err
+		return string(out), fmt.Errorf("%w: %s", err, string(out))
 	}
 
 	return strings.TrimSpace(string(out)), nil
@@ -205,8 +226,55 @@ func (ts tester) runWithInputReader(arg string, input io.Reader) ([]byte, error)
 }
 
 func (ts *tester) initStore() {
-	out, err := ts.run("init --crypto=gpgcli --storage=fs " + keyID)
-	require.NoError(ts.t, err, "failed to init password store:\n%s", out)
+	ts.initStoreWithRecipients(keyID)
+}
+
+func (ts *tester) initStoreWithRecipients(recipients ...string) {
+	if len(recipients) > 0 {
+		args := []string{"init", "--crypto=gpgcli", "--storage=fs"}
+		args = append(args, recipients...)
+		out, err := ts.run(strings.Join(args, " "))
+		require.NoError(ts.t, err, "failed to init password store:\n%s", out)
+	}
+
+	// init root store
+	cfg, _ := config.FromContext(ts.ctx)
+	s := root.New(cfg)
+	_, err := s.IsInitialized(ts.ctx)
+	require.NoError(ts.t, err)
+	ts.store = s
+}
+
+func (ts *tester) addFakeGPGKey(email string) (string, error) {
+	home := ts.gpgDir()
+	in := strings.NewReader(`
+Key-Type: rsa
+Key-Length: 1024
+Subkey-Type: rsa
+Subkey-Length: 1024
+Name-Real: Test User
+Name-Email: ` + email + `
+Expire-Date: 0
+%no-protection
+%commit
+`)
+	cmd := exec.Command("gpg", "--batch", "--homedir", home, "--generate-key")
+	cmd.Stdin = in
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return "", fmt.Errorf("failed to generate key: %s: %s", err, string(out))
+	}
+	keyID, err := exec.Command("gpg", "--homedir", home, "--list-keys", "--with-colons", email).CombinedOutput()
+	if err != nil {
+		return "", fmt.Errorf("failed to get key id: %s: %s", err, string(keyID))
+	}
+	lines := strings.Split(string(keyID), "\n")
+	for _, line := range lines {
+		if strings.HasPrefix(line, "pub:") {
+			return strings.Split(line, ":")[4], nil
+		}
+	}
+	return "", fmt.Errorf("failed to find key id in output: %s", string(keyID))
 }
 
 func (ts *tester) initSecrets(prefix string) {
