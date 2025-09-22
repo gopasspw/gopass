@@ -14,7 +14,8 @@ import (
 	"fmt"
 )
 
-// CredentialFlags for the credential parameters: https://www.w3.org/TR/webauthn-2/#flags
+// CredentialFlags for the credential parameters.
+// See: https://www.w3.org/TR/webauthn-2/#flags
 type CredentialFlags struct {
 	UserPresent     bool
 	UserVerified    bool
@@ -33,14 +34,16 @@ type Credential struct {
 	Flags     CredentialFlags
 }
 
-// ClientData for signature: https://www.w3.org/TR/webauthn-1/#sec-client-data
+// ClientData for signature.
+// See: https://www.w3.org/TR/webauthn-1/#sec-client-data
 type ClientData struct {
 	Challenge string `json:"challenge"`
 	Origin    string `json:"origin"`
 	CredType  string `json:"type"`
 }
 
-// Response from a GetAssertion: https://www.w3.org/TR/webauthn-1/#authenticatorGetAssertion-return-values
+// Response from a GetAssertion.
+// See: https://www.w3.org/TR/webauthn-1/#authenticatorGetAssertion-return-values
 type Response struct {
 	AuthenticatorData []byte `json:"authdata"`
 	ClientDataJSON    []byte `json:"client_data_json"`
@@ -70,7 +73,8 @@ func authDataFlags(options CredentialFlags) uint8 {
 	return flags
 }
 
-// CreateCredential is an implementation of the authenticatorMakeCredential Operation: https://www.w3.org/TR/webauthn-2/#sctn-op-make-cred
+// CreateCredential is an implementation of the authenticatorMakeCredential Operation.
+// See: https://www.w3.org/TR/webauthn-2/#sctn-op-make-cred
 func CreateCredential(rp string, user string, flags CredentialFlags) (*Credential, error) {
 	rawID := make([]byte, 32)
 	_, err := rand.Read(rawID)
@@ -90,7 +94,8 @@ func CreateCredential(rp string, user string, flags CredentialFlags) (*Credentia
 	}, nil
 }
 
-// GetAssertion is an implementation of the authenticatorGetAssertion Operation: https://www.w3.org/TR/webauthn-2/#authenticatorgetassertion
+// GetAssertion is an implementation of the authenticatorGetAssertion Operation.
+// See: https://www.w3.org/TR/webauthn-2/#authenticatorgetassertion
 func (cred *Credential) GetAssertion(challenge string, origin string) (*Response, error) {
 	credType := "webauthn.get"
 	clientData := ClientData{

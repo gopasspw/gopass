@@ -9,7 +9,7 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-// AliasesPrint prints all configured aliases.
+// AliasesPrint prints all configured aliases for password generation rules.
 func (s *Action) AliasesPrint(c *cli.Context) error {
 	out.Printf(c.Context, "Configured aliases:")
 	aliases := pwrules.AllAliases(c.Context)

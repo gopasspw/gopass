@@ -18,8 +18,8 @@ const (
 // ErrUnknowColor is returned when the color is unknown.
 var ErrUnknowColor = fmt.Errorf("unknown color")
 
-// QRCode returns a string containing an ANSI encoded
-// QR Code.
+// QRCode returns a string containing an ANSI encoded QR Code.
+// This can be printed to a terminal that supports ANSI escape codes.
 func QRCode(content string) (string, error) {
 	q, err := qrcode.New(content, qrcode.Medium)
 	if err != nil {

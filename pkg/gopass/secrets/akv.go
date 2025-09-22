@@ -17,6 +17,9 @@ var (
 )
 
 // AKV is the new Key-Value implementation that will replace KV.
+// It stores a password and a set of key-value pairs.
+// The raw content is stored in a strings.Builder, which is a more
+// efficient way to build strings.
 type AKV struct {
 	password string
 	kvp      map[string][]string
@@ -26,7 +29,7 @@ type AKV struct {
 	fromMime bool
 }
 
-// NewAKV creates a new AKV instances.
+// NewAKV creates a new, empty AKV instance.
 func NewAKV() *AKV {
 	a := &AKV{
 		kvp: make(map[string][]string),
@@ -36,7 +39,7 @@ func NewAKV() *AKV {
 	return a
 }
 
-// NewAKVWithData returns a new KV secret populated with data.
+// NewAKVWithData returns a new AKV secret populated with data.
 func NewAKVWithData(pw string, kvps map[string][]string, body string, converted bool) *AKV {
 	kv := NewAKV()
 	kv.SetPassword(pw)
@@ -54,17 +57,17 @@ func NewAKVWithData(pw string, kvps map[string][]string, body string, converted 
 	return kv
 }
 
-// Bytes returns the raw string as bytes.
+// Bytes returns the raw content of the secret as a byte slice.
 func (a *AKV) Bytes() []byte {
 	return []byte(a.raw.String())
 }
 
-// Keys returns all the parsed keys.
+// Keys returns a sorted list of all keys in the secret.
 func (a *AKV) Keys() []string {
 	return set.SortedKeys(a.kvp)
 }
 
-// Get returns the value of the requested key, if found.
+// Get returns the first value for a given key, if found.
 func (a *AKV) Get(key string) (string, bool) {
 	if v, found := a.kvp[key]; found {
 		return v[0], true
@@ -73,16 +76,15 @@ func (a *AKV) Get(key string) (string, bool) {
 	return "", false
 }
 
-// Values returns all values for that key.
+// Values returns all values for a given key.
 func (a *AKV) Values(key string) ([]string, bool) {
 	v, found := a.kvp[key]
 
 	return v, found
 }
 
-// Ref returns reference in case of having password of the
-// gopass://ref
-// which references another secret in the store.
+// Ref returns a reference to another secret if the password is a gopass URI.
+// A gopass URI is a string that starts with "gopass://".
 func (a *AKV) Ref() (string, bool) {
 	if strings.HasPrefix(a.password, gopassRef) {
 		return strings.TrimPrefix(a.password, gopassRef), true
@@ -91,7 +93,8 @@ func (a *AKV) Ref() (string, bool) {
 	return "", false
 }
 
-// Set writes a single key.
+// Set sets the value for a given key, replacing the first instance if it exists.
+// If the key does not exist, it is added to the end of the secret.
 func (a *AKV) Set(key string, value any) error {
 	// if it's new key we can just append it at the end
 	if _, found := a.kvp[key]; !found {
@@ -155,7 +158,7 @@ func (a *AKV) Set(key string, value any) error {
 	return nil
 }
 
-// Add appends data to a given key.
+// Add adds a new value for a given key.
 func (a *AKV) Add(key string, value any) error {
 	sv := fmt.Sprintf("%s", value)
 	a.kvp[key] = append(a.kvp[key], sv)
@@ -169,7 +172,7 @@ func (a *AKV) Add(key string, value any) error {
 	return nil
 }
 
-// Del removes a given key and all of its values.
+// Del removes a key and all of its values.
 func (a *AKV) Del(key string) bool {
 	_, found := a.kvp[key]
 	if !found {
@@ -218,12 +221,12 @@ func (a *AKV) Del(key string) bool {
 	return true
 }
 
-// Password returns the password.
+// Password returns the password of the secret.
 func (a *AKV) Password() string {
 	return a.password
 }
 
-// SetPassword updates the password.
+// SetPassword updates the password of the secret.
 func (a *AKV) SetPassword(p string) {
 	s := newScanner(strings.NewReader(a.raw.String()), a.raw.Len())
 	a.raw = strings.Builder{}
@@ -247,7 +250,7 @@ func (a *AKV) SetPassword(p string) {
 	}
 }
 
-// ParseAKV tries to parse an AKV secret.
+// ParseAKV parses a byte slice and returns a new AKV instance.
 func ParseAKV(in []byte) *AKV {
 	a := NewAKV()
 	a.raw = strings.Builder{}
@@ -291,7 +294,8 @@ func ParseAKV(in []byte) *AKV {
 	return a
 }
 
-// Body returns the body.
+// Body returns the body of the secret, which is the content of the secret
+// without the password and the key-value pairs.
 func (a *AKV) Body() string {
 	out := strings.Builder{}
 
@@ -346,7 +350,7 @@ func newScanner(in io.Reader, inSize int) *bufio.Scanner {
 	return s
 }
 
-// Write appends the buffer to the secret's body.
+// Write appends data to the secret's body.
 func (a *AKV) Write(buf []byte) (int, error) {
 	var w io.Writer
 	w = &a.raw
@@ -365,26 +369,27 @@ func (a *AKV) Write(buf []byte) (int, error) {
 	return w.Write(buf)
 }
 
-// FromMime returns whether this secret was converted from a Mime secret of not.
+// FromMime returns whether this secret was converted from a MIME secret.
 func (a *AKV) FromMime() bool {
 	return a.fromMime
 }
 
-// SafeStr always returnes "(elided)".
+// SafeStr always returns "(elided)" to avoid leaking sensitive information.
 func (a *AKV) SafeStr() string {
 	return "(elided)"
 }
 
-// pwWriter is a io.Writer that will extract the first line of the input stream and
-// then write it to the password field of the provided callback. The first line can stretch
-// multiple chunks but once the first line has been completed any writes to this
-// writer will be silently discarded.
+// pwWriter is an io.Writer that extracts the first line of the input stream
+// and writes it to the password field of the provided callback. The first
+// line can stretch multiple chunks, but once the first line has been
+// completed, any subsequent writes to this writer will be silently discarded.
 type pwWriter struct {
 	w   io.Writer
 	cb  func(string)
 	buf strings.Builder
 }
 
+// Write implements the io.Writer interface for pwWriter.
 func (p *pwWriter) Write(buf []byte) (int, error) {
 	n, err := p.w.Write(buf)
 	if p.cb == nil {

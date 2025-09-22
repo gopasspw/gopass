@@ -15,7 +15,7 @@ var ErrNotInit = fmt.Errorf("not initialized")
 // globalPrefix is prefixed to all temporary dirs.
 var globalPrefix string
 
-// File is a temporary file.
+// File is a temporary file that is stored on a ramdisk if possible.
 type File struct {
 	dir string
 	dev string
@@ -23,6 +23,8 @@ type File struct {
 }
 
 // New returns a new tempfile wrapper.
+// It will create a temporary directory and a file inside it.
+// If possible, it will mount a ramdisk to the temporary directory.
 func New(ctx context.Context, prefix string) (*File, error) {
 	td, err := os.MkdirTemp(tempdirBase(), globalPrefix+prefix)
 	if err != nil {

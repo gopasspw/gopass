@@ -38,7 +38,7 @@ func WithAlsoClip(ctx context.Context, clip bool) context.Context {
 	return context.WithValue(ctx, ctxKeyAlsoClip, clip)
 }
 
-// IsAlsoClip returns the value for alsoclip of the dfeault (false).
+// IsAlsoClip returns the value for alsoclip or the default (false).
 func IsAlsoClip(ctx context.Context) bool {
 	bv, ok := ctx.Value(ctxKeyAlsoClip).(bool)
 	if !ok {

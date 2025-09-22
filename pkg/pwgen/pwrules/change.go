@@ -16,7 +16,7 @@ func init() {
 }
 
 // LookupChangeURL looks up a change URL, either directly or through
-// one of it's know aliases.
+// one of its known aliases.
 func LookupChangeURL(ctx context.Context, domain string) string {
 	if u, found := changeURLs[domain]; found {
 		return u

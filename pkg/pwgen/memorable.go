@@ -4,6 +4,9 @@ import "strings"
 
 // GenerateMemorablePassword will generate a memorable password
 // with a minimum length.
+// It will use a wordlist to generate the password.
+// If symbols is true, it will add symbols to the password.
+// If capitals is true, it will capitalize some words.
 func GenerateMemorablePassword(minLength int, symbols bool, capitals bool) string {
 	var sb strings.Builder
 

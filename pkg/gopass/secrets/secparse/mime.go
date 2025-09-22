@@ -13,6 +13,7 @@ import (
 )
 
 // ErrUnknown is returned when the secret is not recognized.
+// This is a sentinel error.
 var ErrUnknown = fmt.Errorf("unknown secrets type")
 
 // parseLegacyMIME is a fallback parser for the transient MIME format.

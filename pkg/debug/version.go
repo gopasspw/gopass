@@ -9,7 +9,8 @@ import (
 
 var biFunc func() (*rdebug.BuildInfo, bool) = rdebug.ReadBuildInfo
 
-// ModuleVersion the version of the named import.
+// ModuleVersion returns the version of the named module.
+// It reads the build info and parses the version of the requested module.
 func ModuleVersion(m string) semver.Version {
 	bi, ok := biFunc()
 	if !ok || bi == nil {

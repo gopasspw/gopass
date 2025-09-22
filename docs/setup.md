@@ -273,7 +273,7 @@ go install github.com/gopasspw/gopass@latest
 Various editors may store temporary files outside of the secure working directory when editing secrets.
 We advise you to check and disable this behavior for your editor of choice.
 
-Here are a few useuful example settings:
+Here are a few useful example settings:
 
 ```vim
 " neovim on Linux
@@ -319,7 +319,7 @@ grep -q "source <(gopass completion bash)" ~/.bashrc || echo "source <(gopass co
 ```
 
 
-**MacOS**: The version of bash shipped with MacOS may [require a workaround](https://stackoverflow.com/questions/32596123/why-source-command-doesnt-work-with-process-substitution-in-bash-3-2) to enable auto completion. If the instructions above do not work try the following one:
+**MacOS**: The version of bash shipped with MacOS may [require a workaround](https://stackoverflow.com/questions/32596123/why-source-command-doesnt-work-with-process-substitution-in-bash-3-2) to enable auto completion. If the instructions above do not work try the following:
 
 ```bash
 source /dev/stdin <<<"$(gopass completion bash)"
@@ -341,7 +341,7 @@ rm -i ${ZDOTDIR:-${HOME:?No ZDOTDIR or HOME}}/.zcompdump && compinit
 Then exit and re-run zsh if the last command failed.
 
 Notice that it is important to directly redirect Gopass' output to a file,
-using pipes or echo mess up the output. Also notice that the generated `_gopass` file is
+using pipes or echo mess up the output.
 a completion file that is supposed to be handled by zsh and to be installed in the zsh
 completions directory, as defined by either the standard `/usr/share/zsh/site-functions/` path,
 or by a user-specified `fpath` folder. It is not meant to used with `source`.
@@ -379,7 +379,7 @@ gopass ls --flat | dmenu | xargs --no-run-if-empty gopass show -c
 gopass ls --flat | dmenu | xargs --no-run-if-empty gopass show -o | xdotool type --clearmodifiers --file -
 # First pipe the selected name to gopass, and type the value from the key "username" with xdotool.
 gopass ls --flat | dmenu | xargs --no-run-if-empty -- bash -c 'gopass show -f $0 username' | head -n 1 | xdotool type --clearmodifiers --file -
-# Oterwise type the name of the entry using xdotool, in case you are not including a username key in your entries
+# Otherwise type the name of the entry using xdotool, in case you are not including a username key in your entries
 gopass ls --flat | dmenu | sed 's!.*/!!' | tr -d '\n' | xdotool type --clearmodifiers --file -
 ```
 
@@ -410,8 +410,8 @@ For more detailed instructions, please read: [gopass-jsonapi/README](https://git
 
 This is the recommended way to use `gopass`.
 
-NOTE: We do recommend to use a private Git repository. A public one will keep
-your credentials secure but it will leak metadata.
+NOTE: We recommend using a private Git repository. A public one will keep
+your credentials secure, but it will leak metadata.
 
 To use `gopass` with `git` either create a new git repository or clone an existing
 password store.

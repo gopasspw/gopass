@@ -24,7 +24,8 @@ var (
 )
 
 // CopyTo copies the given data to the clipboard and enqueues automatic
-// clearing of the clipboard.
+// clearing of the clipboard. The name of the secret is passed for logging
+// and notifications. The timeout is in seconds.
 func CopyTo(ctx context.Context, name string, content []byte, timeout int) error {
 	debug.Log("Copying to clipboard: %s for %ds", name, timeout)
 

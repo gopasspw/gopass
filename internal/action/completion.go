@@ -35,7 +35,7 @@ func bashEscape(s string) string {
 	})
 }
 
-// Complete prints a list of all password names to os.Stdout.
+// Complete prints a list of all password names to os.Stdout, for bash completion.
 func (s *Action) Complete(c *cli.Context) {
 	ctx := ctxutil.WithGlobalFlags(c)
 	_, err := s.Store.IsInitialized(ctx) // important to make sure the structs are not nil.

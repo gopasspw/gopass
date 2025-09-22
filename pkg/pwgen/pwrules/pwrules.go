@@ -14,12 +14,12 @@ import (
 
 var reChars = regexp.MustCompile(`(allowed|required):\s*\[(.*)\](?:;|,)`)
 
-// AllRules returns all rules.
+// AllRules returns all password rules.
 func AllRules() map[string]Rule {
 	return genRules
 }
 
-// LookupRule looks up a rule either directly or through one of it's know
+// LookupRule looks up a rule either directly or through one of its known
 // aliases.
 func LookupRule(ctx context.Context, domain string) (Rule, bool) {
 	r, found := genRules[domain]
@@ -36,7 +36,8 @@ func LookupRule(ctx context.Context, domain string) (Rule, bool) {
 	return Rule{}, false
 }
 
-// Rule is a password rule as defined by Apple at https://developer.apple.com/password-rules/
+// Rule is a password rule as defined by Apple.
+// See: https://developer.apple.com/password-rules/
 type Rule struct {
 	Minlen    int
 	Maxlen    int
