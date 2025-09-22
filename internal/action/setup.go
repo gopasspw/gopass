@@ -81,6 +81,15 @@ func (s *Action) Setup(c *cli.Context) error {
 		return fmt.Errorf("failed to check private keys: %w", err)
 	}
 
+	// if a git remote is given, clone it and exit
+	if remote != "" && team == "" {
+		if err := s.clone(ctx, remote, "", ""); err != nil {
+			return fmt.Errorf("failed to clone remote %q: %w", remote, err)
+		}
+
+		return nil
+	}
+
 	// if a git remote and a team name are given attempt unattended team setup.
 	if remote != "" && team != "" {
 		if create {
