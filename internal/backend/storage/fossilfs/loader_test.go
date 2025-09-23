@@ -88,7 +88,7 @@ func TestLoader_Handles(t *testing.T) {
 
 func TestLoader_Priority(t *testing.T) {
 	l := loader{}
-	assert.Equal(t, 2, l.Priority())
+	assert.Equal(t, 12, l.Priority())
 }
 
 func TestLoader_String(t *testing.T) {

@@ -172,6 +172,7 @@ func (c *Crypt) Link(ctx context.Context, from, to string) error {
 	}
 
 	c.mappings[to] = h
+
 	return c.saveMappings(ctx)
 }
 
@@ -326,7 +327,7 @@ func (c *Crypt) IsDir(ctx context.Context, name string) bool {
 
 // List returns a list of all secrets.
 func (c *Crypt) List(ctx context.Context, prefix string) ([]string, error) {
-	var list []string
+	list := make([]string, 0, len(c.mappings))
 
 	if !strings.HasSuffix(prefix, "/") && prefix != "" {
 		prefix += "/"

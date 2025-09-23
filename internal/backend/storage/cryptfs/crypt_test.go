@@ -15,9 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var (
-	password = "hunter2"
-)
+var password = "hunter2"
 
 func newTestCryptFS(ctx context.Context, t *testing.T, td string) (*Crypt, string) {
 	t.Helper()
