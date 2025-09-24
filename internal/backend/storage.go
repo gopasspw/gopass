@@ -23,6 +23,8 @@ const (
 	FossilFS
 	// JJ is a filesystem-backed storage with Jujutsu.
 	JJFS
+	// CryptFS is a filename encrypting storage.
+	CryptFS
 )
 
 func (s StorageBackend) String() string {

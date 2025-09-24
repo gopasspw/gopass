@@ -47,7 +47,7 @@ func (l loader) Handles(ctx context.Context, path string) error {
 }
 
 func (l loader) Priority() int {
-	return 2
+	return 12
 }
 
 func (l loader) String() string {

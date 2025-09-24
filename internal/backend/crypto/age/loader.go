@@ -44,6 +44,8 @@ func (l loader) Handles(ctx context.Context, s backend.Storage) error {
 		return nil
 	}
 
+	debug.Log("No age ID file %q found in %s", IDFile, s.Path())
+
 	return fmt.Errorf("not supported")
 }
 
