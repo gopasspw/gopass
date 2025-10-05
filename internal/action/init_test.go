@@ -100,7 +100,9 @@ func TestInitParseContext(t *testing.T) {
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			c := gptest.CliCtxWithFlags(config.NewContextInMemory(), t, tc.flags)
-			require.NoError(t, tc.check(initParseContext(c.Context, c)), tc.name)
+			ctx, err := initParseContext(c.Context, c)
+			require.NoError(t, err)
+			require.NoError(t, tc.check(ctx), tc.name)
 			buf.Reset()
 		})
 	}

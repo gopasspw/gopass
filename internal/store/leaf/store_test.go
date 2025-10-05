@@ -40,8 +40,10 @@ func createSubStore(t *testing.T) (*Store, error) {
 	}
 
 	ctx := config.NewContextInMemory()
-	ctx = backend.WithCryptoBackendString(ctx, "plain")
-	ctx = backend.WithStorageBackendString(ctx, "fs")
+	ctx, err = backend.WithCryptoBackendString(ctx, "plain")
+	require.NoError(t, err)
+	ctx, err = backend.WithStorageBackendString(ctx, "fs")
+	require.NoError(t, err)
 
 	return New(
 		ctx,
