@@ -128,7 +128,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v6.0.0
       with:
-        go-version: '1.24'
+        go-version: '1.25'
 
     - run: git config --global user.name nobody
     - run: git config --global user.email foo.bar@example.org
@@ -151,7 +151,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v6.0.0
       with:
-        go-version: '1.24'
+        go-version: '1.25'
 
     - run: git config --global user.name nobody
     - run: git config --global user.email foo.bar@example.org
