@@ -41,7 +41,7 @@ func Init(ctx context.Context, path, userName, userEmail string) (*JJFS, error) 
 	}
 
 	if !j.IsInitialized() {
-		if err := j.Cmd(ctx, "Init", "init", "--git-repo", "."); err != nil {
+		if err := j.Cmd(ctx, "Init", "git", "init", "--colocate"); err != nil {
 			return nil, fmt.Errorf("failed to initialize jj: %w", err)
 		}
 		out.Printf(ctx, "jj initialized at %s", j.fs.Path())
@@ -153,7 +153,7 @@ func (j *JJFS) Commit(ctx context.Context, msg string) error {
 		return store.ErrGitNotInit
 	}
 
-	return j.Cmd(ctx, "jjCommit", "commit", "-m", msg)
+	return j.Cmd(ctx, "jjCommit", "describe", "-m", msg)
 }
 
 // TryCommit calls commit and returns nil if there was nothing to commit or if the git repo was not initialized.
@@ -177,25 +177,31 @@ func (j *JJFS) TryCommit(ctx context.Context, msg string) error {
 }
 
 // Push pushes to the git remote.
-func (j *JJFS) Push(ctx context.Context, remote, branch string) error {
+func (j *JJFS) Push(ctx context.Context, _, _ string) error {
 	if ctxutil.IsNoNetwork(ctx) {
 		debug.Log("Skipping network ops. NoNetwork=true")
 
 		return nil
 	}
+	if !j.IsInitialized() {
+		return store.ErrGitNotInit
+	}
 
-	return j.Cmd(ctx, "jjGitPush", "git", "push", remote, branch)
+	return j.Cmd(ctx, "jjGitPush", "git", "push")
 }
 
 // Pull pulls from the git remote.
-func (j *JJFS) Pull(ctx context.Context, remote, branch string) error {
+func (j *JJFS) Pull(ctx context.Context, _, _ string) error {
 	if ctxutil.IsNoNetwork(ctx) {
 		debug.Log("Skipping network ops. NoNetwork=true")
 
 		return nil
 	}
+	if !j.IsInitialized() {
+		return store.ErrGitNotInit
+	}
 
-	return j.Cmd(ctx, "jjGitPull", "git", "fetch", remote, branch)
+	return j.Cmd(ctx, "jjGitPull", "git", "fetch")
 }
 
 // TryPush calls Push and returns nil if the git repo was not initialized.
@@ -221,6 +227,10 @@ func (j *JJFS) TryPush(ctx context.Context, remote, branch string) error {
 
 // Revisions will list all available revisions of the named entity.
 func (j *JJFS) Revisions(ctx context.Context, name string) ([]backend.Revision, error) {
+	if !j.IsInitialized() {
+		return nil, store.ErrGitNotInit
+	}
+
 	args := []string{
 		"log",
 		"--revisions", "@",
@@ -275,6 +285,10 @@ func (j *JJFS) Revisions(ctx context.Context, name string) ([]backend.Revision, 
 
 // GetRevision will return the content of any revision of the named entity.
 func (j *JJFS) GetRevision(ctx context.Context, name, revision string) ([]byte, error) {
+	if !j.IsInitialized() {
+		return nil, store.ErrGitNotInit
+	}
+
 	name = strings.TrimSpace(name)
 	revision = strings.TrimSpace(revision)
 	args := []string{

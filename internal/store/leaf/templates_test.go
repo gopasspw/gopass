@@ -22,8 +22,10 @@ func TestTemplates(t *testing.T) {
 	_, _, err := createStore(tempdir, nil, nil)
 	require.NoError(t, err)
 
-	ctx = backend.WithCryptoBackendString(ctx, "plain")
-	ctx = backend.WithStorageBackendString(ctx, "fs")
+	ctx, err = backend.WithCryptoBackendString(ctx, "plain")
+	require.NoError(t, err)
+	ctx, err = backend.WithStorageBackendString(ctx, "fs")
+	require.NoError(t, err)
 	s, err := New(
 		ctx,
 		"",

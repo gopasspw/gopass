@@ -28,11 +28,19 @@ import (
 func (s *Action) Clone(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	if c.IsSet("crypto") {
-		ctx = backend.WithCryptoBackendString(ctx, c.String("crypto"))
+		var err error
+		ctx, err = backend.WithCryptoBackendString(ctx, c.String("crypto"))
+		if err != nil {
+			return exit.Error(exit.Unknown, err, "Failed to set crypto backend: %s", err)
+		}
 	}
 
 	if c.IsSet("storage") {
-		ctx = backend.WithStorageBackendString(ctx, c.String("storage"))
+		var err error
+		ctx, err = backend.WithStorageBackendString(ctx, c.String("storage"))
+		if err != nil {
+			return exit.Error(exit.Unknown, err, "Failed to set storage backend: %s", err)
+		}
 	}
 
 	path := c.String("path")

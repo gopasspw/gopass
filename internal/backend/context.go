@@ -19,12 +19,13 @@ func CryptoBackendName(cb CryptoBackend) string {
 }
 
 // WithCryptoBackendString returns a context with the given crypto backend set.
-func WithCryptoBackendString(ctx context.Context, be string) context.Context {
-	if cb, err := CryptoRegistry.Backend(be); err == nil {
-		ctx = WithCryptoBackend(ctx, cb)
+func WithCryptoBackendString(ctx context.Context, be string) (context.Context, error) {
+	cb, err := CryptoRegistry.Backend(be)
+	if err != nil {
+		return ctx, err
 	}
 
-	return ctx
+	return WithCryptoBackend(ctx, cb), nil
 }
 
 // WithCryptoBackend returns a context with the given crypto backend set.
@@ -50,12 +51,13 @@ func GetCryptoBackend(ctx context.Context) CryptoBackend {
 }
 
 // WithStorageBackendString returns a context with the given store backend set.
-func WithStorageBackendString(ctx context.Context, sb string) context.Context {
-	if be, err := StorageRegistry.Backend(sb); err == nil {
-		return WithStorageBackend(ctx, be)
+func WithStorageBackendString(ctx context.Context, sb string) (context.Context, error) {
+	be, err := StorageRegistry.Backend(sb)
+	if err != nil {
+		return WithStorageBackend(ctx, FS), err
 	}
 
-	return WithStorageBackend(ctx, FS)
+	return WithStorageBackend(ctx, be), nil
 }
 
 // WithStorageBackend returns a context with the given store backend set.

@@ -5,6 +5,7 @@ import (
 
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestCryptoBackend(t *testing.T) {
@@ -13,7 +14,9 @@ func TestCryptoBackend(t *testing.T) {
 	ctx := config.NewContextInMemory()
 
 	assert.Equal(t, GPGCLI, GetCryptoBackend(ctx))
-	assert.Equal(t, GPGCLI, GetCryptoBackend(WithCryptoBackendString(ctx, "gpgcli")))
+	ctx1, err := WithCryptoBackendString(ctx, "gpgcli")
+	require.NoError(t, err)
+	assert.Equal(t, GPGCLI, GetCryptoBackend(ctx1))
 	assert.Equal(t, GPGCLI, GetCryptoBackend(WithCryptoBackend(ctx, GPGCLI)))
 	assert.True(t, HasCryptoBackend(WithCryptoBackend(ctx, GPGCLI)))
 }
@@ -25,7 +28,9 @@ func TestStorageBackend(t *testing.T) {
 
 	assert.Equal(t, "fs", StorageBackendName(FS))
 	assert.Equal(t, FS, GetStorageBackend(ctx))
-	assert.Equal(t, FS, GetStorageBackend(WithStorageBackendString(ctx, "fs")))
+	ctx1, err := WithStorageBackendString(ctx, "fs")
+	require.NoError(t, err)
+	assert.Equal(t, FS, GetStorageBackend(ctx1))
 	assert.Equal(t, FS, GetStorageBackend(WithStorageBackend(ctx, FS)))
 	assert.True(t, HasStorageBackend(WithStorageBackend(ctx, FS)))
 }

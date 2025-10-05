@@ -9,7 +9,7 @@ import (
 )
 
 func init() {
-	backend.StorageRegistry.Register(backend.JJFS, "jj", &loader{})
+	backend.StorageRegistry.Register(backend.JJFS, "jjfs", &loader{})
 }
 
 type loader struct{}

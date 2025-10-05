@@ -240,7 +240,8 @@ func TestListRecipients(t *testing.T) {
 		out.Stdout = os.Stdout
 	}()
 
-	ctx = backend.WithCryptoBackendString(ctx, "plain")
+	ctx, err = backend.WithCryptoBackendString(ctx, "plain")
+	require.NoError(t, err)
 	s, err := New(
 		ctx,
 		"",
