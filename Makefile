@@ -136,18 +136,34 @@ codequality: licensecheck
 	@which golangci-lint > /dev/null; if [ $$? -ne 0 ]; then \
 		$(GO) install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.1.1; \
 	fi
-	@golangci-lint run --max-issues-per-linter 0 --max-same-issues 0 || exit 1
+	@golangci-lint run --max-issues-per-linter 0 --max-same-issues 0 >/dev/null || exit 1
+	@printf '%s\n' '$(OK)'
 
-	@echo -n "      KEEP-SORTED "
+	@echo -n "     KEEP-SORTED   "
 	@which keep-sorted > /dev/null; if [ $$? -ne 0 ]; then \
 		$(GO) install github.com/google/keep-sorted@latest; \
 	fi
 	@keep-sorted --mode lint $(GOFILES_NOVENDOR) || exit 1
+	@printf '%s\n' '$(OK)'
 
+	@echo -n "     CAPSLOCK      "
+	@which capslock > /dev/null; if [ $$? -ne 0 ]; then \
+		$(GO) install github.com/google/capslock/cmd/capslock@latest; \
+	fi
+	@capslock -packages ./... -output=compare .capabilities.json || exit 1
+	@printf '%s\n' '$(OK)'
+
+	@echo -n "     GOVULNCHECK   "
+	@which govulncheck > /dev/null; if [ $$? -ne 0 ]; then \
+		$(GO) install golang.org/x/vuln/cmd/govulncheck@latest; \
+	fi
+	@govulncheck >/dev/null || exit 1
 	@printf '%s\n' '$(OK)'
 
 licensecheck:
-	@echo -n "     LICENSE-LINT "
+	@echo ">> LICENSE CHECK"
+
+	@echo -n "     LICENSE-LINT  "
 	@which license-lint > /dev/null; if [ $$? -ne 0 ]; then \
 		$(GO) install istio.io/tools/cmd/license-lint@latest; \
 	fi
