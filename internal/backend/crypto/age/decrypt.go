@@ -87,7 +87,7 @@ func (a *Age) decryptWithAgent(ctx context.Context, ciphertext []byte) ([]byte, 
 }
 
 func (a *Age) decrypt(ciphertext []byte, ids ...age.Identity) ([]byte, error) {
-	debug.Log("decrypting with %d ids", len(ids))
+	debug.V(1).Log("decrypting with %d ids", len(ids))
 
 	out := &bytes.Buffer{}
 	f := bytes.NewReader(ciphertext)
@@ -99,7 +99,7 @@ func (a *Age) decrypt(ciphertext []byte, ids ...age.Identity) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to write plaintext to buffer: %w", err)
 	}
-	debug.Log("Decrypted %d bytes of ciphertext to %d bytes of plaintext", len(ciphertext), n)
+	debug.V(1).Log("Decrypted %d bytes of ciphertext to %d bytes of plaintext", len(ciphertext), n)
 
 	return out.Bytes(), nil
 }
@@ -110,7 +110,7 @@ func (a *Age) decryptFile(ctx context.Context, filename string) ([]byte, error) 
 	if err != nil {
 		return nil, err
 	}
-	debug.Log("read %d bytes from %s", len(ciphertext), filename)
+	debug.V(1).Log("read %d bytes from %s", len(ciphertext), filename)
 
 	pw, err := ctxutil.GetPasswordCallback(ctx)(filename, false)
 	if err != nil {

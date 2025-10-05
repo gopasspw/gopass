@@ -102,7 +102,7 @@ func (a *askPass) Passphrase(key string, reason string, repeat bool) (string, er
 
 		return value, nil
 	}
-	debug.Log("Value for %s not found in cache", key)
+	debug.V(1).Log("Value for %s not found in cache", key)
 
 	pw, err := a.getPassphrase(reason, repeat)
 	if err != nil {

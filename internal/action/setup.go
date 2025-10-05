@@ -129,7 +129,7 @@ func (s *Action) initCheckPrivateKeys(ctx context.Context, crypto backend.Crypto
 		out.Printf(ctx, "🔐 Cryptographic keys generated")
 	}
 
-	debug.Log("We have useable private keys")
+	debug.V(1).Log("We have useable private keys")
 
 	return nil
 }
