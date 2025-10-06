@@ -37,7 +37,7 @@ func (g *GPG) listKeys(ctx context.Context, typ string, search ...string) (gpg.K
 	debug.V(1).Log("%s %+v\n", cmd.Path, cmd.Args)
 	cmdout, err := cmd.Output()
 	if err != nil {
-		if bytes.Contains(cmdout, []byte("secret key not available")) || strings.Contains(errBuf.String(), "No secret key") {
+		if bytes.Contains(cmdout, []byte("secret key not available")) || bytes.Contains(errBuf.Bytes(), []byte("No secret key")) {
 			debug.Log("secret key not available for %v", search)
 
 			return gpg.KeyList{}, nil
