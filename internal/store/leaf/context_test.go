@@ -43,14 +43,3 @@ func TestFsckFunc(t *testing.T) {
 	assert.True(t, GetFsckFunc(WithFsckFunc(ctx, ffunc))(ctx, ""))
 	assert.True(t, HasFsckFunc(WithFsckFunc(ctx, ffunc)))
 }
-
-func TestCheckRecipientsCtx(t *testing.T) {
-	t.Parallel()
-
-	ctx := config.NewContextInMemory()
-
-	assert.False(t, IsCheckRecipients(ctx))
-	assert.True(t, IsCheckRecipients(WithCheckRecipients(ctx, true)))
-	assert.False(t, IsCheckRecipients(WithCheckRecipients(ctx, false)))
-	assert.True(t, HasCheckRecipients(WithCheckRecipients(ctx, true)))
-}

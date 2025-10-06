@@ -18,12 +18,14 @@ import (
 
 // listKey lists all keys of the given type and matching the search strings.
 func (g *GPG) listKeys(ctx context.Context, typ string, search ...string) (gpg.KeyList, error) {
+	debug.Log("listing %s keys for %v", typ, search)
 	ctx, cancel := context.WithTimeout(ctx, Timeout)
 	defer cancel()
 
 	args := []string{"--with-colons", "--with-fingerprint", "--fixed-list-mode", "--list-" + typ + "-keys"}
 	args = append(args, search...)
 	if e, found := g.listCache.Get(strings.Join(args, ",")); found && gpg.UseCache(ctx) {
+		debug.Log("listed cached keys: %q", strings.Join(e.Recipients(), ","))
 		return e, nil
 	}
 
@@ -31,18 +33,22 @@ func (g *GPG) listKeys(ctx context.Context, typ string, search ...string) (gpg.K
 	errBuf := bytes.Buffer{}
 	cmd.Stderr = &errBuf
 
-	debug.Log("%s %+v\n", cmd.Path, cmd.Args)
+	debug.V(1).Log("%s %+v\n", cmd.Path, cmd.Args)
 	cmdout, err := cmd.Output()
 	if err != nil {
-		if bytes.Contains(cmdout, []byte("secret key not available")) {
+		if bytes.Contains(cmdout, []byte("secret key not available")) || strings.Contains(errBuf.String(), "No secret key") {
+			debug.Log("secret key not available for %v", search)
 			return gpg.KeyList{}, nil
 		}
-
-		return gpg.KeyList{}, fmt.Errorf("%w: %s|%s", err, cmdout, errBuf.String())
+		errStr := fmt.Errorf("%w: %s|%s", err, cmdout, errBuf.String())
+		debug.Log("cmd error listing %s keys: %q", typ, errStr)
+		return gpg.KeyList{}, errStr
 	}
 
 	kl := colons.Parse(bytes.NewBuffer(cmdout))
 	g.listCache.Add(strings.Join(args, ","), kl)
+
+	debug.Log("listed non-cached keys: %q", strings.Join(kl.Recipients(), ","))
 
 	return kl, nil
 }

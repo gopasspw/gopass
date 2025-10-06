@@ -12,7 +12,6 @@ const (
 	ctxKeyFsckCheck contextKey = iota
 	ctxKeyFsckForce
 	ctxKeyFsckFunc
-	ctxKeyCheckRecipients
 	ctxKeyFsckDecrypt
 	ctxKeyNoGitOps
 	ctxKeyPubkeyUpdate
@@ -84,29 +83,6 @@ func GetFsckFunc(ctx context.Context) store.FsckCallback {
 	}
 
 	return imf
-}
-
-// WithCheckRecipients will return a context with the flag for check recipients
-// set.
-func WithCheckRecipients(ctx context.Context, cr bool) context.Context {
-	return context.WithValue(ctx, ctxKeyCheckRecipients, cr)
-}
-
-// HasCheckRecipients returns true if check recipients has been set in this
-// context.
-func HasCheckRecipients(ctx context.Context) bool {
-	return hasBool(ctx, ctxKeyCheckRecipients)
-}
-
-// IsCheckRecipients will return the value of the check recipients flag or the
-// default value (false).
-func IsCheckRecipients(ctx context.Context) bool {
-	bv, ok := ctx.Value(ctxKeyCheckRecipients).(bool)
-	if !ok {
-		return false
-	}
-
-	return bv
 }
 
 // WithFsckDecrypt will return a context with the value for the decrypt

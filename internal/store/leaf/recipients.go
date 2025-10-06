@@ -210,7 +210,7 @@ func (s *Store) RemoveRecipient(ctx context.Context, key string) error {
 	var removed int
 RECIPIENTS:
 	for _, k := range rs.IDs() { //nolint:whitespace
-
+		debug.Log("testing key: %q", k)
 		// First lets try a simple match of the stored ids
 		if k == key {
 			debug.Log("removing recipient based on id match %s", k)
@@ -263,40 +263,41 @@ RECIPIENTS:
 	return s.reencrypt(ctxutil.WithCommitMessage(ctx, "Removed Recipient "+key))
 }
 
-func (s *Store) ensureOurKeyID(ctx context.Context, rs []string) []string {
+func (s *Store) ensureOurKeyID(ctx context.Context, recp []string) []string {
+	kl, _ := s.crypto.FindIdentities(ctx, recp...)
+	if len(kl) > 0 {
+		debug.Log("one of our key is already in the recipient list, not changing it")
+
+		return recp
+	}
+
 	ourID := s.OurKeyID(ctx)
 	if ourID == "" {
-		return rs
+		debug.Log("no owner key found, couldn't add it to the recipients list")
+		return recp
 	}
+	debug.Log("adding our key to the recipient list")
+	recp = append(recp, ourID)
 
-	for _, r := range rs {
-		if r == ourID {
-			return rs
-		}
-	}
-
-	rs = append(rs, ourID)
-
-	return rs
+	return recp
 }
 
 // OurKeyID returns the key fingprint this user can use to access the store
 // (if any).
 func (s *Store) OurKeyID(ctx context.Context) string {
 	recp := s.Recipients(ctx)
-	for _, r := range recp {
-		kl, err := s.crypto.FindIdentities(ctx, r)
-		if err != nil || len(kl) < 1 {
-			continue
-		}
 
-		return kl[0]
+	debug.Log("getting our key ID from store for recipients %v", recp)
+
+	kl, err := s.crypto.FindIdentities(ctx, recp...)
+	if err != nil || len(kl) < 1 {
+		debug.Log("WARNING: no owner key found in %v", recp)
+		out.Warning(ctx, "No owner key found. Make sure your key is fully trusted.")
+
+		return ""
 	}
 
-	debug.Log("WARNING: no owner key found in %v", recp)
-	out.Warning(ctx, "No owner key found. Make sure your key is fully trusted.")
-
-	return ""
+	return kl[0]
 }
 
 // GetRecipients will load all Recipients from the .gpg-id file for the given

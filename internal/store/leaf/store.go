@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/gopasspw/gopass/internal/backend"
+	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/set"
 )
@@ -163,14 +164,17 @@ func (s *Store) useableKeys(ctx context.Context, name string) ([]string, error) 
 		return nil, fmt.Errorf("failed to get recipients: %w", err)
 	}
 
-	if !IsCheckRecipients(ctx) {
-		return rs.IDs(), nil
-	}
-
 	kl, err := s.crypto.FindRecipients(ctx, rs.IDs()...)
 	if err != nil {
+		debug.Log("failed to find useableKeys: %s", err)
 		return rs.IDs(), err
 	}
+
+	if len(kl) == 0 {
+		out.Warningf(ctx, "crypto backend had no useable keys for recipients %v. Trying to default to these", rs.IDs())
+		return rs.IDs(), nil
+	}
+	debug.Log("useableKeys: %v", kl)
 
 	return kl, nil
 }

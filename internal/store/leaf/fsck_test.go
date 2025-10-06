@@ -19,7 +19,6 @@ func TestFsck(t *testing.T) {
 	t.Parallel()
 
 	ctx := config.NewContextInMemory()
-	ctx = WithCheckRecipients(ctx, false)
 
 	obuf := &bytes.Buffer{}
 	out.Stdout = obuf
