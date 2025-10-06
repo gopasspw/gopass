@@ -210,7 +210,7 @@ func (s *Store) RemoveRecipient(ctx context.Context, key string) error {
 	var removed int
 RECIPIENTS:
 	for _, k := range rs.IDs() { //nolint:whitespace
-		debug.Log("testing key: %q", k)
+		debug.V(1).Log("testing key: %q", k)
 		// First lets try a simple match of the stored ids
 		if k == key {
 			debug.Log("removing recipient based on id match %s", k)
