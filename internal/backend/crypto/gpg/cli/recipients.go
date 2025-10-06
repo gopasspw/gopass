@@ -52,7 +52,7 @@ func (g *GPG) FindRecipients(ctx context.Context, search ...string) ([]string, e
 	for _, val := range search {
 		if str := strings.TrimPrefix(strings.TrimSuffix(val, "!"), "0x"); str != "" && strings.HasSuffix(val, "!") {
 			for _, key := range kl {
-				for sub, _ := range key.SubKeys {
+				for sub := range key.SubKeys {
 					if strings.Contains(sub, str) {
 						recp = slices.DeleteFunc(recp, func(s string) bool {
 							s = strings.TrimPrefix(s, "0x")
@@ -61,6 +61,7 @@ func (g *GPG) FindRecipients(ctx context.Context, search ...string) ([]string, e
 						})
 						// we simply pass the specific subkey as is
 						recp = append(recp, val)
+
 						break
 					}
 				}

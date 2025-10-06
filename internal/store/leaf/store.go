@@ -167,15 +167,17 @@ func (s *Store) useableKeys(ctx context.Context, name string) ([]string, error) 
 	kl, err := s.crypto.FindRecipients(ctx, rs.IDs()...)
 	if err != nil {
 		debug.Log("failed to find useableKeys: %s", err)
+
 		return rs.IDs(), err
 	}
 
 	// not ideal, but since this used to be a no-op, let us warn about it when it's triggered for now
 	if len(kl) == 0 {
 		out.Warningf(ctx, "crypto backend had no useable keys for recipients %v. Trying to default to these", rs.IDs())
+
 		return rs.IDs(), nil
 	}
-	
+
 	debug.Log("useableKeys: %v", kl)
 
 	return kl, nil

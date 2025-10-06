@@ -26,6 +26,7 @@ func (g *GPG) listKeys(ctx context.Context, typ string, search ...string) (gpg.K
 	args = append(args, search...)
 	if e, found := g.listCache.Get(strings.Join(args, ",")); found && gpg.UseCache(ctx) {
 		debug.Log("listed cached keys: %q", strings.Join(e.Recipients(), ","))
+
 		return e, nil
 	}
 
@@ -38,10 +39,12 @@ func (g *GPG) listKeys(ctx context.Context, typ string, search ...string) (gpg.K
 	if err != nil {
 		if bytes.Contains(cmdout, []byte("secret key not available")) || strings.Contains(errBuf.String(), "No secret key") {
 			debug.Log("secret key not available for %v", search)
+
 			return gpg.KeyList{}, nil
 		}
 		errStr := fmt.Errorf("%w: %s|%s", err, cmdout, errBuf.String())
 		debug.Log("cmd error listing %s keys: %q", typ, errStr)
+
 		return gpg.KeyList{}, errStr
 	}
 

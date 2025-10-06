@@ -274,6 +274,7 @@ func (s *Store) ensureOurKeyID(ctx context.Context, recp []string) []string {
 	ourID := s.OurKeyID(ctx)
 	if ourID == "" {
 		debug.Log("no owner key found, couldn't add it to the recipients list")
+
 		return recp
 	}
 	debug.Log("adding our key to the recipient list")

@@ -62,7 +62,7 @@ func (g *GPG) Encrypt(ctx context.Context, plaintext []byte, recipients []string
 
 	debug.V(1).Log("%s %+v", cmd.Path, cmd.Args)
 	err := cmd.Run()
-	hexLogger.Close()
+	_ = hexLogger.Close()
 	if err != nil {
 		debug.Log("GPG encrypt failed: %s %+v: %+v", cmd.Path, cmd.Args, err)
 	}
