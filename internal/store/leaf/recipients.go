@@ -308,7 +308,7 @@ func (s *Store) GetRecipients(ctx context.Context, name string) (*recipients.Rec
 func (s *Store) getRecipients(ctx context.Context, idf string) (*recipients.Recipients, error) {
 	buf, err := s.storage.Get(ctx, idf)
 	if err != nil {
-		return recipients.New(), fmt.Errorf("failed to get recipients from %q: %w", idf, err)
+		return recipients.New(), fmt.Errorf("failed to get recipients from IDFile %q: %w", idf, err)
 	}
 
 	rs := recipients.Unmarshal(buf)
@@ -515,6 +515,7 @@ func (s *Store) saveRecipients(ctx context.Context, rs recipientMarshaler, msg s
 	}
 
 	// push to remote repo
+	debug.Log("pushing changes to git remote")
 	if err := s.storage.Push(ctx, "", ""); err != nil {
 		if errors.Is(err, store.ErrGitNotInit) {
 			return nil
@@ -531,6 +532,7 @@ func (s *Store) saveRecipients(ctx context.Context, rs recipientMarshaler, msg s
 		return fmt.Errorf("failed to push changes to git: %w", err)
 	}
 
+	debug.Log("recipients saved")
 	return nil
 }
 

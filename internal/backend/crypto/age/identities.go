@@ -73,7 +73,7 @@ func (w *wrappedRecipient) Wrap(fileKey []byte) ([]*age.Stanza, error) {
 // Identities returns all identities, used for decryption.
 func (a *Age) Identities(ctx context.Context) ([]age.Identity, error) {
 	if !ctxutil.HasPasswordCallback(ctx) {
-		debug.Log("no password callback found, redirecting to askPass")
+		debug.V(1).Log("no password callback found, redirecting to askPass")
 		ctx = ctxutil.WithPasswordCallback(ctx, func(prompt string, confirm bool) ([]byte, error) {
 			pw, err := a.askPass.Passphrase(prompt, fmt.Sprintf("to read the age keyring from %s", a.identity), confirm)
 
@@ -82,7 +82,7 @@ func (a *Age) Identities(ctx context.Context) ([]age.Identity, error) {
 		ctx = ctxutil.WithPasswordPurgeCallback(ctx, a.askPass.Remove)
 	}
 
-	debug.Log("reading native identities from %s", a.identity)
+	debug.V(1).Log("reading native identities from %s", a.identity)
 	buf, err := a.decryptFile(ctx, a.identity)
 	if err != nil {
 		debug.Log("failed to decrypt existing identities from %s: %s", a.identity, err)
@@ -98,7 +98,7 @@ func (a *Age) Identities(ctx context.Context) ([]age.Identity, error) {
 		return nil, err
 	}
 
-	debug.Log("read %d native identities from %s", len(ids), a.identity)
+	debug.V(1).Log("read %d native identities from %s", len(ids), a.identity)
 
 	return ids, nil
 }
@@ -382,20 +382,20 @@ func (a *Age) saveIdentities(ctx context.Context, ids []string, newFile bool) er
 }
 
 func (a *Age) getAllIdentities(ctx context.Context) (map[string]age.Identity, error) {
-	debug.Log("checking native identities")
+	debug.V(1).Log("checking native identities")
 	native, err := a.getNativeIdentities(ctx)
 	if err != nil {
 		return nil, err
 	}
-	debug.Log("got %d native identities", len(native))
+	debug.V(1).Log("got %d native identities", len(native))
 
 	if IsOnlyNative(ctx) {
-		debug.Log("returning only native identities")
+		debug.V(1).Log("returning only native identities")
 
 		return native, nil
 	}
 
-	debug.Log("checking ssh identities")
+	debug.V(1).Log("checking ssh identities")
 	ssh, err := a.getSSHIdentities(ctx)
 	if err != nil {
 		if errors.Is(err, ErrNoSSHDir) {
@@ -405,17 +405,17 @@ func (a *Age) getAllIdentities(ctx context.Context) (map[string]age.Identity, er
 		return nil, err
 	}
 
-	debug.Log("got %d ssh identities", len(ssh))
+	debug.V(1).Log("got %d ssh identities", len(ssh))
 
 	// merge both.
 	for k, v := range ssh {
 		native[k] = v
 	}
-	debug.Log("got %d merged identities", len(native))
+	debug.V(1).Log("got %d merged identities", len(native))
 
 	ps, err := a.getPassageIdentities(ctx)
 	if err != nil {
-		debug.Log("unable to load passage identities: %s", err)
+		debug.V(1).Log("unable to load passage identities: %s", err)
 	}
 
 	// merge

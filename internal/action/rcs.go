@@ -42,11 +42,15 @@ func (s *Action) rcsInit(ctx context.Context, store, un, ue string) error {
 	be := backend.GetStorageBackend(ctx)
 	// TODO this should rather ask s.Store if it HasRCSInit or something.
 	if be == backend.FS {
+		debug.V(1).Log("No RCS init for FS backend")
+
 		return nil
 	}
 
 	bn := backend.StorageBackendName(be)
 	userName, userEmail := s.getUserData(ctx, store, un, ue)
+	debug.V(1).Log("Initializing RCS backend %s for %q with user %s / %s", bn, store, userName, userEmail)
+
 	if err := s.Store.RCSInit(ctx, store, userName, userEmail); err != nil {
 		if errors.Is(err, backend.ErrNotSupported) {
 			debug.Log("RCSInit not supported for backend %s in %q", bn, store)

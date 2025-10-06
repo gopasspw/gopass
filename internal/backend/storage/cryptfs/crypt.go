@@ -51,6 +51,7 @@ func newCrypt(ctx context.Context, sub backend.Storage) (*Crypt, error) {
 	if err := c.loadMappings(ctx); err != nil {
 		out.Warningf(ctx, "Failed to load mappings: %s", err)
 	}
+	debug.Log("Loaded %d mappings", len(c.mappings))
 
 	return c, nil
 }
