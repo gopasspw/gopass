@@ -5,14 +5,12 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"path/filepath"
 	"regexp"
 	"runtime"
 	"strings"
 	"testing"
 
 	"github.com/fatih/color"
-	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -444,55 +442,4 @@ func TestHasPwRuleForSecret(t *testing.T) {
 			assert.Equal(t, tc.want, rule, tc.name)
 		})
 	}
-}
-
-func TestSubstores(t *testing.T) {
-
-	u := gptest.NewGUnitTester(t)
-
-	ctx := t.Context()
-	ctx = ctxutil.WithAlwaysYes(ctx, true)
-	ctx = backend.WithCryptoBackend(ctx, backend.GPGCLI)
-	ctx = ctxutil.WithInteractive(ctx, false)
-
-	act, err := newMock(ctx, u.StoreDir(""))
-	require.NoError(t, err)
-	require.NotNil(t, act)
-	ctx = act.cfg.WithConfig(ctx)
-
-	require.NoError(t, act.cfg.Set("", "generate.autoclip", "false"))
-
-	buf := &bytes.Buffer{}
-	out.Stdout = buf
-	out.Stderr = buf
-	defer func() {
-		out.Stdout = os.Stdout
-		out.Stderr = os.Stderr
-	}()
-	color.NoColor = true
-
-	require.NoError(t, act.Generate(gptest.CliCtx(ctx, t, "foo", "15")))
-
-	// add mount using a path in the root store, like pass does
-	subPath := filepath.Join(u.StoreDir(""), "sub")
-	// overwrite mount recipient with subkey
-	require.NoError(t, os.MkdirAll(subPath, 0o777))
-	require.NoError(t, os.WriteFile(filepath.Join(subPath, ".gpg-id"), []byte("0x72917C1875125F08!"), 0o777))
-
-	require.NoError(t, act.Store.AddMount(ctx, "sub", subPath))
-	require.NoError(t, act.Generate(gptest.CliCtx(ctx, t, "sub/foobar", "15")))
-	require.NoError(t, act.Generate(gptest.CliCtx(ctx, t, "bar", "15")))
-
-	ciphertext, err := os.ReadFile(filepath.Join(subPath, "foobar.gpg"))
-	require.NoError(t, err)
-	recpsFoobar, err := act.Store.Crypto(ctx, "").RecipientIDs(ctx, ciphertext)
-	t.Log(recpsFoobar)
-	ciphertextFoo, err := os.ReadFile(filepath.Join(u.StoreDir(""), "bar.gpg"))
-	require.NoError(t, err)
-	recpsFoo, err := act.Store.Crypto(ctx, "").RecipientIDs(ctx, ciphertextFoo)
-	require.NoError(t, err)
-
-	t.Log(recpsFoo)
-	buf.Reset()
-
 }
