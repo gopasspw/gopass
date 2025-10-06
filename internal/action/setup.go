@@ -30,11 +30,20 @@ func (s *Action) Setup(c *cli.Context) error {
 	team := c.String("alias")
 	create := c.Bool("create")
 
-	ctx = initParseContext(ctx, c)
+	ctx, err := initParseContext(ctx, c)
+	if err != nil {
+		return err
+	}
 
 	out.Printf(ctx, logo)
 	out.Printf(ctx, "🌟 Welcome to gopass!")
 	out.Printf(ctx, "🌟 Initializing a new password store ...")
+	if backend.HasCryptoBackend(ctx) {
+		out.Printf(ctx, "🔐 Using crypto backend: %s", backend.GetCryptoBackend(ctx))
+	}
+	if backend.HasStorageBackend(ctx) {
+		out.Printf(ctx, "💾 Using storage backend: %s", backend.GetStorageBackend(ctx))
+	}
 
 	if name := termio.DetectName(ctx, c); name != "" {
 		ctx = ctxutil.WithUsername(ctx, name)
