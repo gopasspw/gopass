@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"slices"
 	"strings"
 
 	"github.com/gopasspw/gopass/internal/backend/crypto/gpg"
@@ -44,6 +45,33 @@ func (g *GPG) FindRecipients(ctx context.Context, search ...string) ([]string, e
 	recp := kl.UseableKeys(gpg.IsAlwaysTrust(ctx)).Recipients()
 	if gpg.IsAlwaysTrust(ctx) {
 		recp = kl.Recipients()
+	}
+	debug.Log("recp before subkey check: %q", recp)
+
+	// let us support the ! syntax that enforces specific subkey usage
+	for _, val := range search {
+		str := strings.TrimPrefix(strings.TrimSuffix(val, "!"), "0x")
+		if !strings.HasSuffix(val, "!") || str == "" {
+			continue
+		}
+		for _, key := range kl {
+			for sub := range key.SubKeys {
+				if !strings.Contains(sub, str) {
+					continue
+				}
+				// we remove that key from the recp
+				recp = slices.DeleteFunc(recp, func(s string) bool {
+					s = strings.TrimPrefix(s, "0x")
+					// because we use short fingerprints in recp
+					return strings.Contains(key.Fingerprint, s)
+				})
+				// and we add the specific subkey as is, keeping the !
+				recp = append(recp, val)
+
+				// we go to the next key in the odd case the subkey is part of multiple keys
+				break
+			}
+		}
 	}
 
 	debug.Log("found useable keys for %q: %q (all: %q)", search, recp, kl.Recipients())

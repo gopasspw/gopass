@@ -60,7 +60,7 @@ func (k Key) IsUseable(alwaysTrust bool) bool {
 }
 
 // String implement fmt.Stringer. This method produces output that is close to, but
-// not exactly the same, as the output form GPG itself.
+// not exactly the same, as the output from GPG itself.
 func (k Key) String() string {
 	fp := ""
 	if len(k.Fingerprint) > 24 {

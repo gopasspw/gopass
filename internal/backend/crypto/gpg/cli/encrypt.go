@@ -3,6 +3,7 @@ package cli
 import (
 	"bytes"
 	"context"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"io"
@@ -54,12 +55,14 @@ func (g *GPG) Encrypt(ctx context.Context, plaintext []byte, recipients []string
 
 	cmd := exec.CommandContext(ctx, g.binary, args...)
 	cmd.Stdin = bytes.NewReader(plaintext)
-	// the encrypted blob and errors are printed to the log file, and to stdout
-	cmd.Stdout = io.MultiWriter(buf, debug.LogWriter)
+	// the encrypted blob as an hexdump and errors are printed to the log file, and to stdout
+	hexLogger := hex.Dumper(debug.LogWriter)
+	cmd.Stdout = io.MultiWriter(buf, hexLogger)
 	cmd.Stderr = io.MultiWriter(os.Stderr, debug.LogWriter)
 
 	debug.V(1).Log("%s %+v", cmd.Path, cmd.Args)
 	err := cmd.Run()
+	_ = hexLogger.Close()
 	if err != nil {
 		debug.Log("GPG encrypt failed: %s %+v: %+v", cmd.Path, cmd.Args, err)
 	}

@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/gopasspw/gopass/internal/backend/crypto/gpg"
+	"github.com/gopasspw/gopass/pkg/debug"
 )
 
 // ListIdentities returns a parsed list of GPG secret keys.
@@ -38,6 +39,7 @@ func (g *GPG) FindIdentities(ctx context.Context, search ...string) ([]string, e
 }
 
 func (g *GPG) findKey(ctx context.Context, id string) (gpg.Key, bool) {
+	debug.Log("finding key %q", id)
 	kl, _ := g.listKeys(ctx, "secret", id)
 	if len(kl) >= 1 {
 		return kl[0], true

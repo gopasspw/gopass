@@ -63,6 +63,7 @@ func (m *Mocker) FindRecipients(ctx context.Context, keys ...string) ([]string, 
 	res := make([]string, 0, len(rs))
 	for _, r := range rs {
 		for _, needle := range keys {
+			debug.V(1).Log("checking recipient %q = %q", r, needle)
 			if strings.HasSuffix(r, needle) {
 				res = append(res, r)
 			}

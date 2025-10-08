@@ -301,12 +301,6 @@ func initContext(ctx context.Context, cfg *config.Config) context.Context {
 	// always trust
 	ctx = gpg.WithAlwaysTrust(ctx, true)
 
-	// check recipients conflicts with always trust, make sure it's not enabled
-	// when always trust is
-	if gpg.IsAlwaysTrust(ctx) {
-		ctx = leaf.WithCheckRecipients(ctx, false)
-	}
-
 	// only emit color codes when stdout is a terminal
 	if !isatty.IsTerminal(os.Stdout.Fd()) {
 		color.NoColor = true

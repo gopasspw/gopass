@@ -112,10 +112,6 @@ func (s *Store) Fsck(ctx context.Context, path string) error {
 	// make sure all recipients are valid
 	debug.Log("Checking recipients")
 	if err := s.CheckRecipients(ctx); err != nil {
-		if IsCheckRecipients(ctx) {
-			return fmt.Errorf("invalid recipients found: %w", err)
-		}
-
 		out.Errorf(ctx, "Invalid recipients found: %s", err)
 	}
 
