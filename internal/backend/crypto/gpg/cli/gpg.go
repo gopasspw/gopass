@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/gopasspw/gopass/internal/backend/crypto/gpg"
@@ -119,4 +120,22 @@ func (g *GPG) Binary() string {
 	}
 
 	return g.binary
+}
+
+// String implements fmt.Stringer.
+func (g *GPG) String() string {
+	var sb strings.Builder
+	sb.WriteString("gpgcli(")
+	if g == nil {
+		sb.WriteString("<nil>)")
+
+		return sb.String()
+	}
+	sb.WriteString("binary:")
+	sb.WriteString(g.binary)
+	sb.WriteString(",args: [")
+	sb.WriteString(strings.Join(g.args, " "))
+	sb.WriteString("])")
+
+	return sb.String()
 }

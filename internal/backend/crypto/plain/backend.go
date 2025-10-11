@@ -170,3 +170,8 @@ func (m *Mocker) GetFingerprint(ctx context.Context, key []byte) (string, error)
 func (m *Mocker) Concurrency() int {
 	return runtime.NumCPU()
 }
+
+// String implements fmt.Stringer.
+func (m *Mocker) String() string {
+	return "Plaintext(Encrypt/Decrypt no-op)"
+}

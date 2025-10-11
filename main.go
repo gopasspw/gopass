@@ -82,12 +82,13 @@ func main() {
 	sv := getVersion()
 	cli.VersionPrinter = makeVersionPrinter(os.Stdout, sv)
 
+	debug.Log("gopass %s starting. Args: %v", sv.String(), os.Args)
+
 	// run the app
 	q := queue.New(ctx)
 	ctx = queue.WithQueue(ctx, q)
 	ctx, app := setupApp(ctx, sv)
 
-	debug.Log("gopass %s starting ...", sv.String())
 	if err := app.RunContext(ctx, os.Args); err != nil {
 		log.Fatal(err)
 	}
