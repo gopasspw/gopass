@@ -127,7 +127,10 @@ func TestListNested(t *testing.T) {
 }
 
 func createRootStore(ctx context.Context, u *gptest.Unit) (*Store, error) {
-	ctx = backend.WithCryptoBackendString(ctx, "plain")
+	ctx, err := backend.WithCryptoBackendString(ctx, "plain")
+	if err != nil {
+		return nil, err
+	}
 	cfg := config.NewInMemory()
 	if err := cfg.SetPath(u.StoreDir("")); err != nil {
 		return nil, err

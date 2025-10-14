@@ -24,7 +24,14 @@ func (s *Action) RCSInit(c *cli.Context) error {
 	store := c.String("store")
 	un := termio.DetectName(c.Context, c)
 	ue := termio.DetectEmail(c.Context, c)
-	ctx = backend.WithStorageBackendString(ctx, c.String("storage"))
+
+	if c.IsSet("storage") {
+		var err error
+		ctx, err = backend.WithStorageBackendString(ctx, c.String("storage"))
+		if err != nil {
+			return exit.Error(exit.Unknown, err, "Failed to set storage backend: %s", err)
+		}
+	}
 
 	// default to git.
 	if !backend.HasStorageBackend(ctx) {

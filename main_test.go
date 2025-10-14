@@ -90,7 +90,6 @@ var commandsWithError = set.Map([]string{
 	".move",
 	".otp",
 	".process",
-	".rcs.status",
 	".recipients.add",
 	".recipients.remove",
 	".show",
@@ -123,7 +122,8 @@ func TestGetCommands(t *testing.T) {
 	ctx = ctxutil.WithInteractive(ctx, false)
 	ctx = ctxutil.WithTerminal(ctx, false)
 	ctx = ctxutil.WithHidden(ctx, true)
-	ctx = backend.WithCryptoBackendString(ctx, "plain")
+	ctx, err := backend.WithCryptoBackendString(ctx, "plain")
+	require.NoError(t, err)
 	ctx = ctxutil.WithPasswordCallback(ctx, func(_ string, _ bool) ([]byte, error) {
 		return []byte("foobar"), nil
 	})

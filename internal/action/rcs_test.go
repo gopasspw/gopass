@@ -56,6 +56,6 @@ func TestGit(t *testing.T) {
 	buf.Reset()
 
 	// GitPush
-	require.Error(t, act.RCSPush(c))
+	require.NoError(t, act.RCSPush(c))
 	buf.Reset()
 }
