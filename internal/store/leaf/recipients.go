@@ -535,6 +535,7 @@ func (s *Store) saveRecipients(ctx context.Context, rs recipientMarshaler, msg s
 	}
 
 	debug.Log("recipients saved")
+
 	return nil
 }
 

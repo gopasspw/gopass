@@ -1,5 +1,4 @@
 //go:build !openbsd
-// +build !openbsd
 
 // Package protect provides an interface to the pledge syscall.
 // It is used to limit the system calls a process can make.

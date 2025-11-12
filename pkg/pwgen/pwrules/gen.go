@@ -1,5 +1,4 @@
 //go:build ignore
-// +build ignore
 
 // This program generates pwrules_gen.go. It can be invoked by running
 // go generate.
