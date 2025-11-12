@@ -177,7 +177,7 @@ func main() {
 
 func getVersions() (semver.Version, semver.Version) {
 	nextVerFlag := ""
-	if len(os.Args) > 1 && !strings.HasPrefix(os.Args[2], "-test.") {
+	if len(os.Args) > 1 && !strings.HasPrefix(os.Args[1], "-test.") {
 		nextVerFlag = strings.TrimSpace(strings.TrimPrefix(os.Args[1], "v"))
 	}
 	prevVerFlag := ""
