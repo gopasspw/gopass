@@ -175,3 +175,23 @@ func (a *Age) identitiesToString(ids []age.Identity) (string, error) {
 
 	return sb.String(), nil
 }
+
+// String implements fmt.Stringer.
+func (a *Age) String() string {
+	var sb strings.Builder
+	sb.WriteString("Age(")
+	if a == nil {
+		sb.WriteString("<nil>)")
+
+		return sb.String()
+	}
+	sb.WriteString("Identity: ")
+	sb.WriteString(a.identity)
+	if a.sshKeyPath != "" {
+		sb.WriteString(", SSHKeyPath: ")
+		sb.WriteString(a.sshKeyPath)
+	}
+	sb.WriteString(")")
+
+	return sb.String()
+}

@@ -36,20 +36,20 @@ func (s *Store) LastSeen(key string) time.Time {
 
 	res, err := s.cache.Get(key)
 	if err != nil {
-		debug.Log("failed to read %q from cache: %s", key, err)
+		debug.V(2).Log("failed to read %q from cache: %s", key, err)
 
 		return t
 	}
 
 	if len(res) < 1 {
-		debug.Log("cache result is empty")
+		debug.V(1).Log("cache result is empty")
 
 		return t
 	}
 
 	ts, err := time.Parse(time.RFC3339, res[0])
 	if err != nil {
-		debug.Log("failed to parse stored time %q: %s", err)
+		debug.V(1).Log("failed to parse stored time %q: %s", err)
 
 		return t
 	}

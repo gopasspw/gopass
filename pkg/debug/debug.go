@@ -28,6 +28,7 @@ var opts struct {
 	logFile    *os.File
 	logSecrets bool
 	verbosity  int
+	pid        int
 }
 
 // v is a verbosity level.
@@ -68,6 +69,8 @@ func initDebug() bool {
 	if sv := os.Getenv("GOPASS_DEBUG_LOG_SECRETS"); sv != "" && sv != "false" {
 		opts.logSecrets = true
 	}
+
+	opts.pid = os.Getpid()
 
 	initDebugLogger()
 	initDebugTags()
@@ -119,7 +122,7 @@ func parseFilter(envname string, pad func(string) string) map[string]bool {
 		return filter
 	}
 
-	for _, fn := range strings.Split(env, ",") {
+	for fn := range strings.SplitSeq(env, ",") {
 		t := pad(strings.TrimSpace(fn))
 		val := true
 
@@ -273,7 +276,7 @@ func doLog(verbosity, offset int, f string, args ...any) {
 
 	pos := fmt.Sprintf("%s/%s:%d", dir, file, line)
 
-	formatString := fmt.Sprintf("%s\t%s\t%s", pos, fn, f)
+	formatString := fmt.Sprintf("%d\t%-20s\t%-20s\t%s", opts.pid, pos, fn, f)
 
 	dbgprint := func() {
 		fmt.Fprintf(Stderr, formatString, argsi...)
