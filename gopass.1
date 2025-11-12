@@ -1,5 +1,5 @@
 
-.TH GOPASS "1" "September 2025" "gopass (github.com/gopasspw/gopass) 1.15.18" "User Commands"
+.TH GOPASS "1" "November 2025" "gopass (github.com/gopasspw/gopass) 1.16.0" "User Commands"
 .SH NAME
 gopass - The standard Unix password manager
 .SH SYNOPSIS
@@ -110,7 +110,7 @@ Select crypto backend [age gpgcli plain]
 Path to clone the repo to
 .TP
 \fB\-\-storage\fR,
-Select storage backend [fossilfs gitfs jj]
+Select storage backend [cryptfs fossilfs gitfs jjfs]
 .SS config
 Display and edit the configuration file
 
@@ -134,7 +134,7 @@ Which crypto backend? [age gpgcli plain]
 Replace store?
 .TP
 \fB\-\-storage\fR,
-Which storage backend? [fossilfs fs gitfs jj]
+Which storage backend? [cryptfs fossilfs fs gitfs jjfs]
 .TP
 \fB\-\-store\fR,
 Specify which store to convert
@@ -360,7 +360,7 @@ Select crypto backend [age gpgcli plain]
 Set the sub-store path to operate on
 .TP
 \fB\-\-storage\fR,
-Select storage backend [fossilfs fs gitfs jj]
+Select storage backend [cryptfs fossilfs fs gitfs jjfs]
 .TP
 \fB\-\-store\fR,
 \fB\-s\fR,
@@ -581,7 +581,7 @@ Firstname and Lastname for unattended GPG key generation
 URL to a git remote, will attempt to join this team
 .TP
 \fB\-\-storage\fR,
-Select storage backend [fossilfs fs gitfs jj]
+Select storage backend [cryptfs fossilfs fs gitfs jjfs]
 .SS show
 Display the content of a secret
 

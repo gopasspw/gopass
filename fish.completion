@@ -38,7 +38,7 @@ complete -c $PROG -e
 complete -c $PROG -f -n '__fish_gopass_needs_command' -a "(__fish_gopass_print_entries)"
 complete -c $PROG -f -s c -l clip -r -a "(__fish_gopass_print_entries)"
 complete -c $PROG -f -n '__fish_gopass_needs_command' -a age -d 'Command: age commands'
-complete -c $PROG -f -n '__fish_gopass_uses_command age' -a agent -d 'Subcommand: Start the age agent'
+complete -c $PROG -f -n '__fish_gopass_uses_command age' -a agent -d 'Subcommand: Manage the age agent'
 complete -c $PROG -f -n '__fish_gopass_uses_command age agent -l yes -d "Always answer yes to yes/no questions"'
 complete -c $PROG -f -n '__fish_gopass_uses_command age agent -l clip -d "Copy the password value into the clipboard"'
 complete -c $PROG -f -n '__fish_gopass_uses_command age agent -l alsoclip -d "Copy the password and show everything"'
@@ -237,7 +237,7 @@ complete -c $PROG -f -n '__fish_gopass_uses_command rcs' -a init -d 'Subcommand:
 complete -c $PROG -f -n '__fish_gopass_uses_command rcs init -l store -d "Store to operate on"'
 complete -c $PROG -f -n '__fish_gopass_uses_command rcs init -l name -d "Git Author Name"'
 complete -c $PROG -f -n '__fish_gopass_uses_command rcs init -l email -d "Git Author Email"'
-complete -c $PROG -f -n '__fish_gopass_uses_command rcs init -l storage -d "Select storage backend [fossilfs gitfs jj]"'
+complete -c $PROG -f -n '__fish_gopass_uses_command rcs init -l storage -d "Select storage backend [cryptfs fossilfs gitfs jjfs]"'
 complete -c $PROG -f -n '__fish_gopass_uses_command rcs init -l yes -d "Always answer yes to yes/no questions"'
 complete -c $PROG -f -n '__fish_gopass_uses_command rcs init -l clip -d "Copy the password value into the clipboard"'
 complete -c $PROG -f -n '__fish_gopass_uses_command rcs init -l alsoclip -d "Copy the password and show everything"'

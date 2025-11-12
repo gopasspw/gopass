@@ -1,5 +1,38 @@
 # Changelog
 
+## 1.16.0 / 2025-11-12
+
+* [BUGFIX] reorg: List all secrets instead of just top-level folders (#3245)
+* [chore] Add capability and vulnerability checks (#3266)
+* [chore] Initial fixes and added a warning for CryptFS and JJFS (#3270)
+* [chore] Logging improvements (#3273)
+* [chore] Run linux builds with multiple Go versions (#3272)
+* [fix] Correctly handle IsGitCommit false in store.Move (#3246)
+* [fix] Drop Go 1.23 (#3274)
+* [fix] Fix clipboard issues (#3267)
+* [fix] Fix version check (#3268)
+* chore(deps): bump actions/cache from 4.2.4 to 4.3.0 (#3263)
+* chore(deps): bump actions/setup-go from 5.5.0 to 6.0.0 (#3262)
+* chore(deps): bump actions/upload-artifact from 4.6.2 to 5.0.0 (#3281)
+* chore(deps): bump anchore/sbom-action from 0.20.5 to 0.20.6 (#3258)
+* chore(deps): bump anchore/sbom-action from 0.20.6 to 0.20.9 (#3284)
+* chore(deps): bump anchore/scan-action from 6.5.1 to 7.0.0 (#3264)
+* chore(deps): bump anchore/scan-action from 7.0.0 to 7.1.0 (#3280)
+* chore(deps): bump docker/login-action from 3.5.0 to 3.6.0 (#3260)
+* chore(deps): bump github/codeql-action from 3.30.0 to 3.30.5 (#3261)
+* chore(deps): bump github/codeql-action from 3.30.5 to 4.31.2 (#3282)
+* chore(deps): bump msys2/setup-msys2 from 2.28.0 to 2.29.0 (#3257)
+* chore(deps): bump ossf/scorecard-action from 2.4.2 to 2.4.3 (#3259)
+* chore(deps): bump sigstore/cosign-installer from 3.10.0 to 4.0.0 (#3283)
+* chore(deps): bump sigstore/cosign-installer from 3.9.2 to 3.10.0 (#3255)
+* chore(deps): bump step-security/harden-runner from 2.13.0 to 2.13.1 (#3256)
+* chore: Update golangci-lint (#3287)
+* docs: Add GoDoc to pkg and improve markdown files (#3251)
+* feat(age): Add unlock command to age agent (#3244)
+* feat: Add cryptfs storage backend for filename encryption (#3249)
+* feat: Clone remote on init (#3247)
+* fix: Fix release helper and update capabilities for caplos (#3288)
+
 ## 1.15.18 / 2025-09-19
 
 * [fix] Enable Windows builders (#3237)

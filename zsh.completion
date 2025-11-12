@@ -11,7 +11,7 @@ _gopass () {
 	  age)
 	      local -a subcommands
 	      subcommands=(
-	      "agent:Start the age agent"
+	      "agent:Manage the age agent"
 	      "identities:List age identities used for decryption and encryption"
 	      "lock:Lock the age agent"
 	      )
@@ -36,7 +36,7 @@ _gopass () {
 	      
 	      ;;
 	  clone)
-	      _arguments : "--path[Path to clone the repo to]" "--crypto[Select crypto backend \[age gpgcli plain\]]" "--storage[Select storage backend \[fossilfs gitfs jj\]]" "--check-keys[Check for valid decryption keys. Generate new keys if none are found.]"
+	      _arguments : "--path[Path to clone the repo to]" "--crypto[Select crypto backend \[age gpgcli plain\]]" "--storage[Select storage backend \[cryptfs fossilfs gitfs jjfs\]]" "--check-keys[Check for valid decryption keys. Generate new keys if none are found.]"
 	      
 	      
 	      ;;
@@ -60,7 +60,7 @@ _gopass () {
 	      
 	      ;;
 	  convert)
-	      _arguments : "--store[Specify which store to convert]" "--move[Replace store?]" "--crypto[Which crypto backend? \[age gpgcli plain\]]" "--storage[Which storage backend? \[fossilfs fs gitfs jj\]]"
+	      _arguments : "--store[Specify which store to convert]" "--move[Replace store?]" "--crypto[Which crypto backend? \[age gpgcli plain\]]" "--storage[Which storage backend? \[cryptfs fossilfs fs gitfs jjfs\]]"
 	      
 	      
 	      ;;
@@ -130,7 +130,7 @@ _gopass () {
 	      
 	      ;;
 	  init)
-	      _arguments : "--path[Set the sub-store path to operate on]" "--store[Set the name of the sub-store]" "--crypto[Select crypto backend \[age gpgcli plain\]]" "--storage[Select storage backend \[fossilfs fs gitfs jj\]]"
+	      _arguments : "--path[Set the sub-store path to operate on]" "--store[Set the name of the sub-store]" "--crypto[Select crypto backend \[age gpgcli plain\]]" "--storage[Select storage backend \[cryptfs fossilfs fs gitfs jjfs\]]"
 	      
 	      
 	      ;;
@@ -215,7 +215,7 @@ _gopass () {
 	      
 	      ;;
 	  setup)
-	      _arguments : "--remote[URL to a git remote, will attempt to join this team]" "--alias[Local mount point for the given remote]" "--create[Create a new team (default: false, i.e. join an existing team)]" "--name[Firstname and Lastname for unattended GPG key generation]" "--email[EMail for unattended GPG key generation]" "--crypto[Select crypto backend \[age gpgcli plain\]]" "--storage[Select storage backend \[fossilfs fs gitfs jj\]]"
+	      _arguments : "--remote[URL to a git remote, will attempt to join this team]" "--alias[Local mount point for the given remote]" "--create[Create a new team (default: false, i.e. join an existing team)]" "--name[Firstname and Lastname for unattended GPG key generation]" "--email[EMail for unattended GPG key generation]" "--crypto[Select crypto backend \[age gpgcli plain\]]" "--storage[Select storage backend \[cryptfs fossilfs fs gitfs jjfs\]]"
 	      
 	      
 	      ;;
