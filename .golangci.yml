@@ -84,6 +84,9 @@ linters:
       - linters:
           - cyclop
         path: (.+)_test\.go
+      - linters:
+          - govet
+        path: (.+)_fuzz\.go
     paths:
       - helpers/
       - third_party$
