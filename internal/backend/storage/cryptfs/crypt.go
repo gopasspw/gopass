@@ -8,9 +8,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
 	"path/filepath"
 	"sort"
 	"strings"
+	"sync"
 
 	"github.com/blang/semver/v4"
 	"github.com/gopasspw/gopass/internal/backend"
@@ -31,6 +33,7 @@ type Crypt struct {
 	sub      backend.Storage
 	crypto   *age.Age
 	path     string
+	mux      sync.RWMutex
 	mappings map[string]string
 }
 
@@ -128,6 +131,9 @@ func (c *Crypt) Version(ctx context.Context) semver.Version {
 
 // Fsck performs a consistency check on the backend.
 func (c *Crypt) Fsck(ctx context.Context) error {
+	c.mux.RLock()
+	defer c.mux.RUnlock()
+
 	// list all files in sub-storage
 	allFiles, err := c.sub.List(ctx, "")
 	if err != nil {
@@ -164,9 +170,12 @@ func (c *Crypt) Prune(ctx context.Context, prefix string) error {
 
 // Link creates a symlink.
 func (c *Crypt) Link(ctx context.Context, from, to string) error {
+	c.mux.RLock()
+	defer c.mux.RUnlock()
+
 	h, ok := c.mappings[from]
 	if !ok {
-		return backend.ErrNotFound
+		return os.ErrNotExist
 	}
 	if _, ok := c.mappings[to]; ok {
 		return fmt.Errorf("destination %s already exists", to)
@@ -207,6 +216,9 @@ func (c *Crypt) pathToName(ctx context.Context, p string) (string, error) {
 }
 
 func (c *Crypt) Add(ctx context.Context, files ...string) error {
+	c.mux.Lock()
+	defer c.mux.Unlock()
+
 	hashedFiles := make([]string, 0, len(files))
 	for _, file := range files {
 		name, err := c.pathToName(ctx, file)
@@ -278,18 +290,24 @@ func (c *Crypt) TryPush(ctx context.Context, remote, branch string) error {
 }
 
 func (c *Crypt) Revisions(ctx context.Context, name string) ([]backend.Revision, error) {
+	c.mux.RLock()
+	defer c.mux.RUnlock()
+
 	h, ok := c.mappings[name]
 	if !ok {
-		return nil, backend.ErrNotFound
+		return nil, os.ErrNotExist
 	}
 
 	return c.sub.Revisions(ctx, h)
 }
 
 func (c *Crypt) GetRevision(ctx context.Context, name, revision string) ([]byte, error) {
+	c.mux.RLock()
+	defer c.mux.RUnlock()
+
 	h, ok := c.mappings[name]
 	if !ok {
-		return nil, backend.ErrNotFound
+		return nil, os.ErrNotExist
 	}
 
 	return c.sub.GetRevision(ctx, h, revision)
@@ -317,6 +335,9 @@ func (c *Crypt) RemoveRemote(ctx context.Context, remote string) error {
 
 // IsDir returns true if the given path is a directory.
 func (c *Crypt) IsDir(ctx context.Context, name string) bool {
+	c.mux.RLock()
+	defer c.mux.RUnlock()
+
 	for k := range c.mappings {
 		if strings.HasPrefix(k, name+"/") {
 			return true
@@ -328,6 +349,9 @@ func (c *Crypt) IsDir(ctx context.Context, name string) bool {
 
 // List returns a list of all secrets.
 func (c *Crypt) List(ctx context.Context, prefix string) ([]string, error) {
+	c.mux.RLock()
+	defer c.mux.RUnlock()
+
 	list := make([]string, 0, len(c.mappings))
 
 	if !strings.HasSuffix(prefix, "/") && prefix != "" {
@@ -347,9 +371,16 @@ func (c *Crypt) List(ctx context.Context, prefix string) ([]string, error) {
 
 // Get returns the content of a secret.
 func (c *Crypt) Get(ctx context.Context, name string) ([]byte, error) {
+	c.mux.RLock()
+	defer c.mux.RUnlock()
+
 	h, ok := c.mappings[name]
 	if !ok {
-		return nil, backend.ErrNotFound
+		if c.sub.Exists(ctx, name) {
+			return c.sub.Get(ctx, name)
+		}
+
+		return nil, os.ErrNotExist
 	}
 
 	debug.Log("Reading content for %s from %s", name, h)
@@ -359,6 +390,9 @@ func (c *Crypt) Get(ctx context.Context, name string) ([]byte, error) {
 
 // Set sets the content of a secret.
 func (c *Crypt) Set(ctx context.Context, name string, value []byte) error {
+	c.mux.Lock()
+	defer c.mux.Unlock()
+
 	h, ok := c.mappings[name]
 	if !ok {
 		h = c.hash(name)
@@ -377,9 +411,12 @@ func (c *Crypt) Set(ctx context.Context, name string, value []byte) error {
 
 // Delete removes a secret.
 func (c *Crypt) Delete(ctx context.Context, name string) error {
+	c.mux.Lock()
+	defer c.mux.Unlock()
+
 	h, ok := c.mappings[name]
 	if !ok {
-		return backend.ErrNotFound
+		return os.ErrNotExist
 	}
 	if err := c.sub.Delete(ctx, h); err != nil {
 		return err
@@ -391,6 +428,13 @@ func (c *Crypt) Delete(ctx context.Context, name string) error {
 
 // Exists returns true if a secret exists.
 func (c *Crypt) Exists(ctx context.Context, name string) bool {
+	if c.sub.Exists(ctx, name) {
+		return true
+	}
+
+	c.mux.RLock()
+	defer c.mux.RUnlock()
+
 	_, ok := c.mappings[name]
 
 	return ok
@@ -398,9 +442,12 @@ func (c *Crypt) Exists(ctx context.Context, name string) bool {
 
 // Move moves a secret.
 func (c *Crypt) Move(ctx context.Context, from, to string, del bool) error {
+	c.mux.Lock()
+	defer c.mux.Unlock()
+
 	fromH, ok := c.mappings[from]
 	if !ok {
-		return backend.ErrNotFound
+		return os.ErrNotExist
 	}
 	if _, ok := c.mappings[to]; ok {
 		return fmt.Errorf("destination %s already exists", to)

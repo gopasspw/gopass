@@ -426,7 +426,7 @@ func (a *Age) getAllIdentities(ctx context.Context) (map[string]age.Identity, er
 	return native, nil
 }
 
-func (a *Age) getPassageIdentities(ctx context.Context) (map[string]age.Identity, error) {
+func (a *Age) getPassageIdentities(_ context.Context) (map[string]age.Identity, error) {
 	fn := PassageIDFile()
 	fh, err := os.Open(fn)
 	if err != nil {

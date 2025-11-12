@@ -75,7 +75,10 @@ func (s *Action) Init(c *cli.Context) error {
 	path := c.String("path")
 	alias := c.String("store")
 
-	ctx = initParseContext(ctx, c)
+	ctx, err := initParseContext(ctx, c)
+	if err != nil {
+		return err
+	}
 	out.Printf(ctx, "🍭 Initializing a new password store ...")
 
 	if name := termio.DetectName(c.Context, c); name != "" {
@@ -102,13 +105,21 @@ func (s *Action) Init(c *cli.Context) error {
 	return nil
 }
 
-func initParseContext(ctx context.Context, c *cli.Context) context.Context {
+func initParseContext(ctx context.Context, c *cli.Context) (context.Context, error) {
 	if c.IsSet("crypto") {
-		ctx = backend.WithCryptoBackendString(ctx, c.String("crypto"))
+		var err error
+		ctx, err = backend.WithCryptoBackendString(ctx, c.String("crypto"))
+		if err != nil {
+			return ctx, exit.Error(exit.Unknown, err, "Failed to set crypto backend: %s", err)
+		}
 	}
 
 	if c.IsSet("storage") {
-		ctx = backend.WithStorageBackendString(ctx, c.String("storage"))
+		var err error
+		ctx, err = backend.WithStorageBackendString(ctx, c.String("storage"))
+		if err != nil {
+			return ctx, exit.Error(exit.Unknown, err, "Failed to set storage backend: %s", err)
+		}
 	}
 
 	if !backend.HasCryptoBackend(ctx) {
@@ -121,7 +132,15 @@ func initParseContext(ctx context.Context, c *cli.Context) context.Context {
 		ctx = backend.WithStorageBackend(ctx, backend.GitFS)
 	}
 
-	return ctx
+	sb := backend.GetStorageBackend(ctx)
+	if sb == backend.CryptFS {
+		out.Warning(ctx, "⚠ CryptFS is an experimental backend. Use at your own risk! ⚠")
+	}
+	if sb == backend.JJFS {
+		out.Warning(ctx, "⚠ JJFS is an experimental backend. Use at your own risk! ⚠")
+	}
+
+	return ctx, nil
 }
 
 func (s *Action) init(ctx context.Context, alias, path string, keys ...string) error {
