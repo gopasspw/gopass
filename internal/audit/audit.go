@@ -32,23 +32,22 @@ type secretGetter interface {
 	Concurrency() int
 }
 
-type validator struct {
+type ValidateFunc func(string, gopass.Secret) error
+
+type Validator struct {
 	Name        string
 	Description string
-	Validate    func(string, gopass.Secret) error
+	Validate    ValidateFunc
 }
-
-// DefaultExpiration is the default expiration time for secrets.
-var DefaultExpiration = time.Hour * 24 * 365
 
 type Auditor struct {
 	s   secretGetter
 	r   *ReportBuilder
 	pcb func()
-	v   []validator
+	v   []Validator
 }
 
-func New(ctx context.Context, s secretGetter) *Auditor {
+func New(ctx context.Context, s secretGetter, vs ...Validator) *Auditor {
 	a := &Auditor{
 		s:   s,
 		r:   newReport(),
@@ -56,7 +55,7 @@ func New(ctx context.Context, s secretGetter) *Auditor {
 	}
 
 	cv := crunchy.NewValidator()
-	a.v = []validator{
+	a.v = []Validator{
 		{
 			Name:        "crunchy",
 			Description: "github.com/muesli/crunchy",
@@ -77,8 +76,10 @@ func New(ctx context.Context, s secretGetter) *Auditor {
 		},
 	}
 
+	a.v = append(a.v, vs...)
+
 	if config.Bool(ctx, "audit.hibp-use-api") {
-		a.v = append(a.v, validator{
+		a.v = append(a.v, Validator{
 			Name:        "hibp",
 			Description: "Checks passwords against the HIBPv2 API. See https://haveibeenpwned.com/",
 			Validate: func(_ string, sec gopass.Secret) error {

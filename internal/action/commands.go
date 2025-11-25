@@ -175,6 +175,10 @@ func (s *Action) GetCommands() []*cli.Command {
 					Usage: "Print a summary of the audit results. Default: true (print summary)",
 					Value: true,
 				},
+				&cli.StringFlag{
+					Name:  "expr",
+					Usage: "CEL expression to apply to audit results.",
+				},
 			},
 		},
 		{
