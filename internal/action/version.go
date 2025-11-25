@@ -84,7 +84,7 @@ func (s *Action) checkVersion(ctx context.Context, u chan string) {
 		return
 	}
 
-	if r.Version.GT(s.version) {
+	if !r.Version.GT(s.version) {
 		_ = s.rem.Reset("update")
 		debug.Log("gopass is up-to-date (local: %q, GitHub: %q)", s.version, r.Version)
 
