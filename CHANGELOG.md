@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.16.1 / 2025-12-13
+
+* chore(deps): bump actions/checkout from 5.0.0 to 6.0.0 (#3299)
+* chore(deps): bump actions/setup-go from 6.0.0 to 6.1.0 (#3300)
+* chore(deps): bump anchore/sbom-action from 0.20.9 to 0.20.10 (#3296)
+* chore(deps): bump anchore/scan-action from 7.1.0 to 7.2.1 (#3298)
+* chore(deps): bump docker/metadata-action from 5.8.0 to 5.10.0 (#3297)
+* chore(deps): bump github/codeql-action from 4.31.2 to 4.31.6 (#3295)
+* chore(deps): bump golangci/golangci-lint-action from 9.0.0 to 9.1.0 (#3302)
+* chore(deps): bump step-security/harden-runner from 2.13.1 to 2.13.2 (#3301)
+* fix(config): use the config propery generate.strict as default value for Strict rules (#3303)
+* fix: Fix version check against latest release (#3292)
+
 ## 1.16.0 / 2025-11-12
 
 * [BUGFIX] reorg: List all secrets instead of just top-level folders (#3245)
