@@ -403,7 +403,7 @@ func generatePassword(ctx context.Context, hostname, charset string) (string, er
 		return "", err
 	}
 
-	corp, err := termio.AskForBool(ctx, fmtfn(4, "d", "Strict rules?"), false)
+	corp, err := termio.AskForBool(ctx, fmtfn(4, "d", "Strict rules?"), config.Bool(ctx, "generate.strict"))
 	if err != nil {
 		return "", err
 	}
