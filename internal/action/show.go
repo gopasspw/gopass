@@ -34,6 +34,12 @@ func showParseArgs(c *cli.Context) context.Context {
 		ctx = ctxutil.WithForce(ctx, c.Bool("unsafe"))
 	}
 
+	if c.IsSet("safe") {
+		cfg, _ := config.FromContext(ctx)
+		_ = cfg.SetEnv("show.safecontent", strconv.FormatBool(c.Bool("safe")))
+		ctx = cfg.WithConfig(ctx)
+	}
+
 	if c.IsSet("qr") {
 		ctx = WithPrintQR(ctx, c.Bool("qr"))
 	}

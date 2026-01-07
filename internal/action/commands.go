@@ -42,6 +42,11 @@ func ShowFlags() []cli.Flag {
 			Usage:   "Display unsafe content (e.g. the password) even if safecontent is enabled",
 		},
 		&cli.BoolFlag{
+			Name:    "safe",
+			Aliases: []string{"s"},
+			Usage:   "Do not display unsafe content (e.g. the password) even if safecontent is disabled",
+		},
+		&cli.BoolFlag{
 			Name:    "password",
 			Aliases: []string{"o"},
 			Usage:   "Display only the password. Takes precedence over all other flags.",
