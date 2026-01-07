@@ -34,6 +34,10 @@ func showParseArgs(c *cli.Context) context.Context {
 		ctx = ctxutil.WithForce(ctx, c.Bool("unsafe"))
 	}
 
+	if c.IsSet("safe") {
+		ctx = WithSafeContentOnly(ctx, c.Bool("safe"))
+	}
+
 	if c.IsSet("qr") {
 		ctx = WithPrintQR(ctx, c.Bool("qr"))
 	}
@@ -278,7 +282,7 @@ func (s *Action) showGetContent(ctx context.Context, sec gopass.Secret) (string,
 	}
 
 	// everything but the first line.
-	if config.Bool(ctx, "show.safecontent") && !ctxutil.IsForce(ctx) && ctxutil.IsShowParsing(ctx) {
+	if IsSafeContentOnly(ctx) || (config.Bool(ctx, "show.safecontent") && !ctxutil.IsForce(ctx) && ctxutil.IsShowParsing(ctx)) {
 		body := showSafeContent(sec)
 		if IsAlsoClip(ctx) {
 			return pw, body, nil
