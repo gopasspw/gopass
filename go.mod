@@ -51,7 +51,7 @@ require (
 
 require (
 	al.essio.dev/pkg/shellescape v1.6.0 // indirect
-	codeberg.org/tslocum/cbind v0.1.8 // indirect
+	codeberg.org/tslocum/cbind v0.1.7 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
 	filippo.io/hpke v0.4.0 // indirect
 	github.com/atotto/clipboard v0.1.4 // indirect
@@ -65,8 +65,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/gdamore/encoding v1.0.1 // indirect
-	github.com/gdamore/tcell/v2 v2.13.7 // indirect
-	github.com/gdamore/tcell/v3 v3.1.1 // indirect
+	github.com/gdamore/tcell/v2 v2.13.2 // indirect
 	github.com/gen2brain/shm v0.1.1 // indirect
 	github.com/go-viper/mapstructure/v2 v2.5.0 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
@@ -82,7 +81,7 @@ require (
 	github.com/lxn/win v0.0.0-20210218163916-a377121e959e // indirect
 	github.com/mattn/go-runewidth v0.0.19 // indirect
 	github.com/noborus/guesswidth v0.4.0 // indirect
-	github.com/noborus/tcellansi v0.4.1 // indirect
+	github.com/noborus/tcellansi v0.3.0 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.4 // indirect
 	github.com/pierrec/lz4/v4 v4.1.25 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
