@@ -403,7 +403,7 @@ func (s *Action) GetCommands() []*cli.Command {
 				"encoded and encrypted version in the store or it decrypts and decodes " +
 				"a secret and writes the result to a file. Either source or destination " +
 				"must be a file and the other one a secret. If you want the source to " +
-				"be securely removed after copying, use 'gopass binary move'",
+				"be securely removed after copying, use 'gopass fsmove'",
 			Before:       s.IsInitialized,
 			Action:       s.BinaryCopy,
 			BashComplete: s.Complete,
@@ -419,7 +419,7 @@ func (s *Action) GetCommands() []*cli.Command {
 				"must be a file and the other one a secret. The source will be wiped " +
 				"from disk or from the store after it has been copied successfully " +
 				"and validated. If you don't want the source to be removed use " +
-				"'gopass binary copy'",
+				"'gopass fscopy'",
 			Before:       s.IsInitialized,
 			Action:       s.BinaryMove,
 			BashComplete: s.Complete,
