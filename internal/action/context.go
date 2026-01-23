@@ -14,6 +14,7 @@ const (
 	ctxKeyAlsoClip
 	ctxKeyPrintChars
 	ctxKeyWithQRBody
+	ctxKeySafeContentOnly
 )
 
 // WithClip returns a context with the value for clip (for copy to clipboard)
@@ -87,6 +88,21 @@ func WithPrintQR(ctx context.Context, qr bool) context.Context {
 // IsPrintQR returns the value of print QR or the default (false).
 func IsPrintQR(ctx context.Context) bool {
 	bv, ok := ctx.Value(ctxKeyPrintQR).(bool)
+	if !ok {
+		return false
+	}
+
+	return bv
+}
+
+// WithSafeContentOnly returns a context with the value of safe content only set.
+func WithSafeContentOnly(ctx context.Context, sc bool) context.Context {
+	return context.WithValue(ctx, ctxKeySafeContentOnly, sc)
+}
+
+// IsSafeContentOnly returns the value of safe content only or the default (false).
+func IsSafeContentOnly(ctx context.Context) bool {
+	bv, ok := ctx.Value(ctxKeySafeContentOnly).(bool)
 	if !ok {
 		return false
 	}
