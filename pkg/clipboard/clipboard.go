@@ -68,14 +68,6 @@ func CopyTo(ctx context.Context, name string, content []byte, timeout int) error
 	return nil
 }
 
-func copyToClipboard(ctx context.Context, content []byte) error {
-	if err := clipboard.WriteAll(ctx, content); err != nil {
-		return fmt.Errorf("failed to write to clipboard: %w", err)
-	}
-
-	return nil
-}
-
 func callCommand(_ context.Context, cmd string, parameter string, stdinValue []byte) error {
 	clipboardProcess := exec.Command(cmd, parameter)
 	stdin, err := clipboardProcess.StdinPipe()
