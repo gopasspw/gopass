@@ -29,11 +29,11 @@ function __fish_{{ $prog }}_print_gpg_keys
 end
 
 function __fish_{{ $prog }}_print_entries
-  {{ $prog }} ls --flat
+  {{ $prog }} ls --flat | sed "s/\\\\/\\\\\\\\/g; s/'/\\\\'/g"
 end
 
 function __fish_{{ $prog }}_print_dir
-  for i in ({{ $prog }} ls --flat)
+  for i in ({{ $prog }} ls --flat | sed "s/\\\\/\\\\\\\\/g; s/'/\\\\'/g")
 	  echo (dirname $i)
 	end | sort -u
 end

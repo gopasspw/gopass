@@ -19,6 +19,18 @@ func longName(name string) string {
 	return strings.TrimSpace(strings.Split(name, ",")[0])
 }
 
+func escapePasswordName(name string) string {
+	// Escape special characters for zsh _values command.
+	// Must escape backslash first to avoid double-escaping.
+	// Then escape colon (used as value:description separator) and brackets (glob chars)
+	name = strings.ReplaceAll(name, "\\", "\\\\")
+	name = strings.ReplaceAll(name, ":", "\\:")
+	name = strings.ReplaceAll(name, "[", "\\[")
+	name = strings.ReplaceAll(name, "]", "\\]")
+
+	return name
+}
+
 func formatFlag(name, usage string) string {
 	// Suare brackets must be escaped in zsh completions
 	usage = strings.ReplaceAll(usage, "[", "\\[")
@@ -61,7 +73,8 @@ func formatFlagFunc() func(cli.Flag) (string, error) {
 // GetCompletion returns a zsh completion script.
 func GetCompletion(a *cli.App) (string, error) {
 	tplFuncs := template.FuncMap{
-		"formatFlag": formatFlagFunc(),
+		"formatFlag":         formatFlagFunc(),
+		"escapePasswordName": escapePasswordName,
 	}
 
 	tpl, err := template.New("zsh").Funcs(tplFuncs).Parse(zshTemplate)

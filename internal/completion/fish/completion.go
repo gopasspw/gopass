@@ -27,6 +27,18 @@ func shortName(name string) string {
 	return strings.TrimSpace(parts[1])
 }
 
+func escapePasswordName(name string) string {
+	// Escape special characters for fish completions.
+	// In fish, we use single quotes in the complete command, so we need to handle single quotes.
+	// We also escape backslashes to be safe.
+	name = strings.ReplaceAll(name, "\\", "\\\\")
+	// Single quotes need to be escaped by ending the single-quoted string, adding an escaped single quote, and starting a new single-quoted string
+	// E.g. 'hello'world' becomes 'hello'\''world'
+	name = strings.ReplaceAll(name, "'", "'\\''")
+
+	return name
+}
+
 func formatFlag(name, usage, typ string) string {
 	switch typ {
 	case "short":
@@ -74,9 +86,10 @@ func formatFlagFunc(typ string) func(cli.Flag) (string, error) {
 // GetCompletion returns a fish completion script.
 func GetCompletion(a *cli.App) (string, error) {
 	tplFuncs := template.FuncMap{
-		"formatShortFlag": formatFlagFunc("short"),
-		"formatLongFlag":  formatFlagFunc("long"),
-		"formatFlagUsage": formatFlagFunc("usage"),
+		"formatShortFlag":    formatFlagFunc("short"),
+		"formatLongFlag":     formatFlagFunc("long"),
+		"formatFlagUsage":    formatFlagFunc("usage"),
+		"escapePasswordName": escapePasswordName,
 	}
 
 	tpl, err := template.New("fish").Funcs(tplFuncs).Parse(fishTemplate)

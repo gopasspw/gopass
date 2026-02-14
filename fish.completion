@@ -24,11 +24,11 @@ function __fish_gopass_print_gpg_keys
 end
 
 function __fish_gopass_print_entries
-  gopass ls --flat
+  gopass ls --flat | sed "s/\\\\/\\\\\\\\/g; s/'/\\\\'/g"
 end
 
 function __fish_gopass_print_dir
-  for i in (gopass ls --flat)
+  for i in (gopass ls --flat | sed "s/\\\\/\\\\\\\\/g; s/'/\\\\'/g")
 	  echo (dirname $i)
 	end | sort -u
 end
@@ -45,6 +45,7 @@ complete -c $PROG -f -n '__fish_gopass_uses_command age agent -l alsoclip -d "Co
 complete -c $PROG -f -n '__fish_gopass_uses_command age agent -l qr -d "Print the password as a QR Code"'
 complete -c $PROG -f -n '__fish_gopass_uses_command age agent -l qrbody -d "Print the body as a QR Code"'
 complete -c $PROG -f -n '__fish_gopass_uses_command age agent -l unsafe -d "Display unsafe content (e.g. the password) even if safecontent is enabled"'
+complete -c $PROG -f -n '__fish_gopass_uses_command age agent -l safe -d "Do not display unsafe content (e.g. the password) even if safecontent is disabled"'
 complete -c $PROG -f -n '__fish_gopass_uses_command age agent -l password -d "Display only the password. Takes precedence over all other flags."'
 complete -c $PROG -f -n '__fish_gopass_uses_command age agent -l revision -d "Show a past revision. Does NOT support RCS specific shortcuts. Use exact revision or -&lt;N&gt; to select the Nth oldest revision of this entry."'
 complete -c $PROG -f -n '__fish_gopass_uses_command age agent -l noparsing -d "Do not parse the output."'
@@ -59,6 +60,7 @@ complete -c $PROG -f -n '__fish_gopass_uses_command age identities -l alsoclip -
 complete -c $PROG -f -n '__fish_gopass_uses_command age identities -l qr -d "Print the password as a QR Code"'
 complete -c $PROG -f -n '__fish_gopass_uses_command age identities -l qrbody -d "Print the body as a QR Code"'
 complete -c $PROG -f -n '__fish_gopass_uses_command age identities -l unsafe -d "Display unsafe content (e.g. the password) even if safecontent is enabled"'
+complete -c $PROG -f -n '__fish_gopass_uses_command age identities -l safe -d "Do not display unsafe content (e.g. the password) even if safecontent is disabled"'
 complete -c $PROG -f -n '__fish_gopass_uses_command age identities -l password -d "Display only the password. Takes precedence over all other flags."'
 complete -c $PROG -f -n '__fish_gopass_uses_command age identities -l revision -d "Show a past revision. Does NOT support RCS specific shortcuts. Use exact revision or -&lt;N&gt; to select the Nth oldest revision of this entry."'
 complete -c $PROG -f -n '__fish_gopass_uses_command age identities -l noparsing -d "Do not parse the output."'
@@ -73,6 +75,7 @@ complete -c $PROG -f -n '__fish_gopass_uses_command age lock -l alsoclip -d "Cop
 complete -c $PROG -f -n '__fish_gopass_uses_command age lock -l qr -d "Print the password as a QR Code"'
 complete -c $PROG -f -n '__fish_gopass_uses_command age lock -l qrbody -d "Print the body as a QR Code"'
 complete -c $PROG -f -n '__fish_gopass_uses_command age lock -l unsafe -d "Display unsafe content (e.g. the password) even if safecontent is enabled"'
+complete -c $PROG -f -n '__fish_gopass_uses_command age lock -l safe -d "Do not display unsafe content (e.g. the password) even if safecontent is disabled"'
 complete -c $PROG -f -n '__fish_gopass_uses_command age lock -l password -d "Display only the password. Takes precedence over all other flags."'
 complete -c $PROG -f -n '__fish_gopass_uses_command age lock -l revision -d "Show a past revision. Does NOT support RCS specific shortcuts. Use exact revision or -&lt;N&gt; to select the Nth oldest revision of this entry."'
 complete -c $PROG -f -n '__fish_gopass_uses_command age lock -l noparsing -d "Do not parse the output."'
@@ -92,6 +95,7 @@ complete -c $PROG -f -n '__fish_gopass_uses_command completion bash -l alsoclip 
 complete -c $PROG -f -n '__fish_gopass_uses_command completion bash -l qr -d "Print the password as a QR Code"'
 complete -c $PROG -f -n '__fish_gopass_uses_command completion bash -l qrbody -d "Print the body as a QR Code"'
 complete -c $PROG -f -n '__fish_gopass_uses_command completion bash -l unsafe -d "Display unsafe content (e.g. the password) even if safecontent is enabled"'
+complete -c $PROG -f -n '__fish_gopass_uses_command completion bash -l safe -d "Do not display unsafe content (e.g. the password) even if safecontent is disabled"'
 complete -c $PROG -f -n '__fish_gopass_uses_command completion bash -l password -d "Display only the password. Takes precedence over all other flags."'
 complete -c $PROG -f -n '__fish_gopass_uses_command completion bash -l revision -d "Show a past revision. Does NOT support RCS specific shortcuts. Use exact revision or -&lt;N&gt; to select the Nth oldest revision of this entry."'
 complete -c $PROG -f -n '__fish_gopass_uses_command completion bash -l noparsing -d "Do not parse the output."'
@@ -106,6 +110,7 @@ complete -c $PROG -f -n '__fish_gopass_uses_command completion zsh -l alsoclip -
 complete -c $PROG -f -n '__fish_gopass_uses_command completion zsh -l qr -d "Print the password as a QR Code"'
 complete -c $PROG -f -n '__fish_gopass_uses_command completion zsh -l qrbody -d "Print the body as a QR Code"'
 complete -c $PROG -f -n '__fish_gopass_uses_command completion zsh -l unsafe -d "Display unsafe content (e.g. the password) even if safecontent is enabled"'
+complete -c $PROG -f -n '__fish_gopass_uses_command completion zsh -l safe -d "Do not display unsafe content (e.g. the password) even if safecontent is disabled"'
 complete -c $PROG -f -n '__fish_gopass_uses_command completion zsh -l password -d "Display only the password. Takes precedence over all other flags."'
 complete -c $PROG -f -n '__fish_gopass_uses_command completion zsh -l revision -d "Show a past revision. Does NOT support RCS specific shortcuts. Use exact revision or -&lt;N&gt; to select the Nth oldest revision of this entry."'
 complete -c $PROG -f -n '__fish_gopass_uses_command completion zsh -l noparsing -d "Do not parse the output."'
@@ -121,6 +126,7 @@ complete -c $PROG -f -n '__fish_gopass_uses_command completion fish -l alsoclip 
 complete -c $PROG -f -n '__fish_gopass_uses_command completion fish -l qr -d "Print the password as a QR Code"'
 complete -c $PROG -f -n '__fish_gopass_uses_command completion fish -l qrbody -d "Print the body as a QR Code"'
 complete -c $PROG -f -n '__fish_gopass_uses_command completion fish -l unsafe -d "Display unsafe content (e.g. the password) even if safecontent is enabled"'
+complete -c $PROG -f -n '__fish_gopass_uses_command completion fish -l safe -d "Do not display unsafe content (e.g. the password) even if safecontent is disabled"'
 complete -c $PROG -f -n '__fish_gopass_uses_command completion fish -l password -d "Display only the password. Takes precedence over all other flags."'
 complete -c $PROG -f -n '__fish_gopass_uses_command completion fish -l revision -d "Show a past revision. Does NOT support RCS specific shortcuts. Use exact revision or -&lt;N&gt; to select the Nth oldest revision of this entry."'
 complete -c $PROG -f -n '__fish_gopass_uses_command completion fish -l noparsing -d "Do not parse the output."'
@@ -135,6 +141,7 @@ complete -c $PROG -f -n '__fish_gopass_uses_command completion openbsdksh -l als
 complete -c $PROG -f -n '__fish_gopass_uses_command completion openbsdksh -l qr -d "Print the password as a QR Code"'
 complete -c $PROG -f -n '__fish_gopass_uses_command completion openbsdksh -l qrbody -d "Print the body as a QR Code"'
 complete -c $PROG -f -n '__fish_gopass_uses_command completion openbsdksh -l unsafe -d "Display unsafe content (e.g. the password) even if safecontent is enabled"'
+complete -c $PROG -f -n '__fish_gopass_uses_command completion openbsdksh -l safe -d "Do not display unsafe content (e.g. the password) even if safecontent is disabled"'
 complete -c $PROG -f -n '__fish_gopass_uses_command completion openbsdksh -l password -d "Display only the password. Takes precedence over all other flags."'
 complete -c $PROG -f -n '__fish_gopass_uses_command completion openbsdksh -l revision -d "Show a past revision. Does NOT support RCS specific shortcuts. Use exact revision or -&lt;N&gt; to select the Nth oldest revision of this entry."'
 complete -c $PROG -f -n '__fish_gopass_uses_command completion openbsdksh -l noparsing -d "Do not parse the output."'
@@ -149,6 +156,7 @@ complete -c $PROG -f -n '__fish_gopass_uses_command completion help -l alsoclip 
 complete -c $PROG -f -n '__fish_gopass_uses_command completion help -l qr -d "Print the password as a QR Code"'
 complete -c $PROG -f -n '__fish_gopass_uses_command completion help -l qrbody -d "Print the body as a QR Code"'
 complete -c $PROG -f -n '__fish_gopass_uses_command completion help -l unsafe -d "Display unsafe content (e.g. the password) even if safecontent is enabled"'
+complete -c $PROG -f -n '__fish_gopass_uses_command completion help -l safe -d "Do not display unsafe content (e.g. the password) even if safecontent is disabled"'
 complete -c $PROG -f -n '__fish_gopass_uses_command completion help -l password -d "Display only the password. Takes precedence over all other flags."'
 complete -c $PROG -f -n '__fish_gopass_uses_command completion help -l revision -d "Show a past revision. Does NOT support RCS specific shortcuts. Use exact revision or -&lt;N&gt; to select the Nth oldest revision of this entry."'
 complete -c $PROG -f -n '__fish_gopass_uses_command completion help -l noparsing -d "Do not parse the output."'
@@ -191,6 +199,7 @@ complete -c $PROG -f -n '__fish_gopass_uses_command mounts add -l alsoclip -d "C
 complete -c $PROG -f -n '__fish_gopass_uses_command mounts add -l qr -d "Print the password as a QR Code"'
 complete -c $PROG -f -n '__fish_gopass_uses_command mounts add -l qrbody -d "Print the body as a QR Code"'
 complete -c $PROG -f -n '__fish_gopass_uses_command mounts add -l unsafe -d "Display unsafe content (e.g. the password) even if safecontent is enabled"'
+complete -c $PROG -f -n '__fish_gopass_uses_command mounts add -l safe -d "Do not display unsafe content (e.g. the password) even if safecontent is disabled"'
 complete -c $PROG -f -n '__fish_gopass_uses_command mounts add -l password -d "Display only the password. Takes precedence over all other flags."'
 complete -c $PROG -f -n '__fish_gopass_uses_command mounts add -l revision -d "Show a past revision. Does NOT support RCS specific shortcuts. Use exact revision or -&lt;N&gt; to select the Nth oldest revision of this entry."'
 complete -c $PROG -f -n '__fish_gopass_uses_command mounts add -l noparsing -d "Do not parse the output."'
@@ -205,6 +214,7 @@ complete -c $PROG -f -n '__fish_gopass_uses_command mounts remove -l alsoclip -d
 complete -c $PROG -f -n '__fish_gopass_uses_command mounts remove -l qr -d "Print the password as a QR Code"'
 complete -c $PROG -f -n '__fish_gopass_uses_command mounts remove -l qrbody -d "Print the body as a QR Code"'
 complete -c $PROG -f -n '__fish_gopass_uses_command mounts remove -l unsafe -d "Display unsafe content (e.g. the password) even if safecontent is enabled"'
+complete -c $PROG -f -n '__fish_gopass_uses_command mounts remove -l safe -d "Do not display unsafe content (e.g. the password) even if safecontent is disabled"'
 complete -c $PROG -f -n '__fish_gopass_uses_command mounts remove -l password -d "Display only the password. Takes precedence over all other flags."'
 complete -c $PROG -f -n '__fish_gopass_uses_command mounts remove -l revision -d "Show a past revision. Does NOT support RCS specific shortcuts. Use exact revision or -&lt;N&gt; to select the Nth oldest revision of this entry."'
 complete -c $PROG -f -n '__fish_gopass_uses_command mounts remove -l noparsing -d "Do not parse the output."'
@@ -219,6 +229,7 @@ complete -c $PROG -f -n '__fish_gopass_uses_command mounts versions -l alsoclip 
 complete -c $PROG -f -n '__fish_gopass_uses_command mounts versions -l qr -d "Print the password as a QR Code"'
 complete -c $PROG -f -n '__fish_gopass_uses_command mounts versions -l qrbody -d "Print the body as a QR Code"'
 complete -c $PROG -f -n '__fish_gopass_uses_command mounts versions -l unsafe -d "Display unsafe content (e.g. the password) even if safecontent is enabled"'
+complete -c $PROG -f -n '__fish_gopass_uses_command mounts versions -l safe -d "Do not display unsafe content (e.g. the password) even if safecontent is disabled"'
 complete -c $PROG -f -n '__fish_gopass_uses_command mounts versions -l password -d "Display only the password. Takes precedence over all other flags."'
 complete -c $PROG -f -n '__fish_gopass_uses_command mounts versions -l revision -d "Show a past revision. Does NOT support RCS specific shortcuts. Use exact revision or -&lt;N&gt; to select the Nth oldest revision of this entry."'
 complete -c $PROG -f -n '__fish_gopass_uses_command mounts versions -l noparsing -d "Do not parse the output."'
@@ -244,6 +255,7 @@ complete -c $PROG -f -n '__fish_gopass_uses_command rcs init -l alsoclip -d "Cop
 complete -c $PROG -f -n '__fish_gopass_uses_command rcs init -l qr -d "Print the password as a QR Code"'
 complete -c $PROG -f -n '__fish_gopass_uses_command rcs init -l qrbody -d "Print the body as a QR Code"'
 complete -c $PROG -f -n '__fish_gopass_uses_command rcs init -l unsafe -d "Display unsafe content (e.g. the password) even if safecontent is enabled"'
+complete -c $PROG -f -n '__fish_gopass_uses_command rcs init -l safe -d "Do not display unsafe content (e.g. the password) even if safecontent is disabled"'
 complete -c $PROG -f -n '__fish_gopass_uses_command rcs init -l password -d "Display only the password. Takes precedence over all other flags."'
 complete -c $PROG -f -n '__fish_gopass_uses_command rcs init -l revision -d "Show a past revision. Does NOT support RCS specific shortcuts. Use exact revision or -&lt;N&gt; to select the Nth oldest revision of this entry."'
 complete -c $PROG -f -n '__fish_gopass_uses_command rcs init -l noparsing -d "Do not parse the output."'
@@ -259,6 +271,7 @@ complete -c $PROG -f -n '__fish_gopass_uses_command rcs status -l alsoclip -d "C
 complete -c $PROG -f -n '__fish_gopass_uses_command rcs status -l qr -d "Print the password as a QR Code"'
 complete -c $PROG -f -n '__fish_gopass_uses_command rcs status -l qrbody -d "Print the body as a QR Code"'
 complete -c $PROG -f -n '__fish_gopass_uses_command rcs status -l unsafe -d "Display unsafe content (e.g. the password) even if safecontent is enabled"'
+complete -c $PROG -f -n '__fish_gopass_uses_command rcs status -l safe -d "Do not display unsafe content (e.g. the password) even if safecontent is disabled"'
 complete -c $PROG -f -n '__fish_gopass_uses_command rcs status -l password -d "Display only the password. Takes precedence over all other flags."'
 complete -c $PROG -f -n '__fish_gopass_uses_command rcs status -l revision -d "Show a past revision. Does NOT support RCS specific shortcuts. Use exact revision or -&lt;N&gt; to select the Nth oldest revision of this entry."'
 complete -c $PROG -f -n '__fish_gopass_uses_command rcs status -l noparsing -d "Do not parse the output."'
@@ -275,6 +288,7 @@ complete -c $PROG -f -n '__fish_gopass_uses_command recipients ack -l alsoclip -
 complete -c $PROG -f -n '__fish_gopass_uses_command recipients ack -l qr -d "Print the password as a QR Code"'
 complete -c $PROG -f -n '__fish_gopass_uses_command recipients ack -l qrbody -d "Print the body as a QR Code"'
 complete -c $PROG -f -n '__fish_gopass_uses_command recipients ack -l unsafe -d "Display unsafe content (e.g. the password) even if safecontent is enabled"'
+complete -c $PROG -f -n '__fish_gopass_uses_command recipients ack -l safe -d "Do not display unsafe content (e.g. the password) even if safecontent is disabled"'
 complete -c $PROG -f -n '__fish_gopass_uses_command recipients ack -l password -d "Display only the password. Takes precedence over all other flags."'
 complete -c $PROG -f -n '__fish_gopass_uses_command recipients ack -l revision -d "Show a past revision. Does NOT support RCS specific shortcuts. Use exact revision or -&lt;N&gt; to select the Nth oldest revision of this entry."'
 complete -c $PROG -f -n '__fish_gopass_uses_command recipients ack -l noparsing -d "Do not parse the output."'
@@ -291,6 +305,7 @@ complete -c $PROG -f -n '__fish_gopass_uses_command recipients add -l alsoclip -
 complete -c $PROG -f -n '__fish_gopass_uses_command recipients add -l qr -d "Print the password as a QR Code"'
 complete -c $PROG -f -n '__fish_gopass_uses_command recipients add -l qrbody -d "Print the body as a QR Code"'
 complete -c $PROG -f -n '__fish_gopass_uses_command recipients add -l unsafe -d "Display unsafe content (e.g. the password) even if safecontent is enabled"'
+complete -c $PROG -f -n '__fish_gopass_uses_command recipients add -l safe -d "Do not display unsafe content (e.g. the password) even if safecontent is disabled"'
 complete -c $PROG -f -n '__fish_gopass_uses_command recipients add -l password -d "Display only the password. Takes precedence over all other flags."'
 complete -c $PROG -f -n '__fish_gopass_uses_command recipients add -l revision -d "Show a past revision. Does NOT support RCS specific shortcuts. Use exact revision or -&lt;N&gt; to select the Nth oldest revision of this entry."'
 complete -c $PROG -f -n '__fish_gopass_uses_command recipients add -l noparsing -d "Do not parse the output."'
@@ -307,6 +322,7 @@ complete -c $PROG -f -n '__fish_gopass_uses_command recipients remove -l alsocli
 complete -c $PROG -f -n '__fish_gopass_uses_command recipients remove -l qr -d "Print the password as a QR Code"'
 complete -c $PROG -f -n '__fish_gopass_uses_command recipients remove -l qrbody -d "Print the body as a QR Code"'
 complete -c $PROG -f -n '__fish_gopass_uses_command recipients remove -l unsafe -d "Display unsafe content (e.g. the password) even if safecontent is enabled"'
+complete -c $PROG -f -n '__fish_gopass_uses_command recipients remove -l safe -d "Do not display unsafe content (e.g. the password) even if safecontent is disabled"'
 complete -c $PROG -f -n '__fish_gopass_uses_command recipients remove -l password -d "Display only the password. Takes precedence over all other flags."'
 complete -c $PROG -f -n '__fish_gopass_uses_command recipients remove -l revision -d "Show a past revision. Does NOT support RCS specific shortcuts. Use exact revision or -&lt;N&gt; to select the Nth oldest revision of this entry."'
 complete -c $PROG -f -n '__fish_gopass_uses_command recipients remove -l noparsing -d "Do not parse the output."'
@@ -328,6 +344,7 @@ complete -c $PROG -f -n '__fish_gopass_uses_command templates show -l alsoclip -
 complete -c $PROG -f -n '__fish_gopass_uses_command templates show -l qr -d "Print the password as a QR Code"'
 complete -c $PROG -f -n '__fish_gopass_uses_command templates show -l qrbody -d "Print the body as a QR Code"'
 complete -c $PROG -f -n '__fish_gopass_uses_command templates show -l unsafe -d "Display unsafe content (e.g. the password) even if safecontent is enabled"'
+complete -c $PROG -f -n '__fish_gopass_uses_command templates show -l safe -d "Do not display unsafe content (e.g. the password) even if safecontent is disabled"'
 complete -c $PROG -f -n '__fish_gopass_uses_command templates show -l password -d "Display only the password. Takes precedence over all other flags."'
 complete -c $PROG -f -n '__fish_gopass_uses_command templates show -l revision -d "Show a past revision. Does NOT support RCS specific shortcuts. Use exact revision or -&lt;N&gt; to select the Nth oldest revision of this entry."'
 complete -c $PROG -f -n '__fish_gopass_uses_command templates show -l noparsing -d "Do not parse the output."'
@@ -342,6 +359,7 @@ complete -c $PROG -f -n '__fish_gopass_uses_command templates edit -l alsoclip -
 complete -c $PROG -f -n '__fish_gopass_uses_command templates edit -l qr -d "Print the password as a QR Code"'
 complete -c $PROG -f -n '__fish_gopass_uses_command templates edit -l qrbody -d "Print the body as a QR Code"'
 complete -c $PROG -f -n '__fish_gopass_uses_command templates edit -l unsafe -d "Display unsafe content (e.g. the password) even if safecontent is enabled"'
+complete -c $PROG -f -n '__fish_gopass_uses_command templates edit -l safe -d "Do not display unsafe content (e.g. the password) even if safecontent is disabled"'
 complete -c $PROG -f -n '__fish_gopass_uses_command templates edit -l password -d "Display only the password. Takes precedence over all other flags."'
 complete -c $PROG -f -n '__fish_gopass_uses_command templates edit -l revision -d "Show a past revision. Does NOT support RCS specific shortcuts. Use exact revision or -&lt;N&gt; to select the Nth oldest revision of this entry."'
 complete -c $PROG -f -n '__fish_gopass_uses_command templates edit -l noparsing -d "Do not parse the output."'
@@ -356,6 +374,7 @@ complete -c $PROG -f -n '__fish_gopass_uses_command templates remove -l alsoclip
 complete -c $PROG -f -n '__fish_gopass_uses_command templates remove -l qr -d "Print the password as a QR Code"'
 complete -c $PROG -f -n '__fish_gopass_uses_command templates remove -l qrbody -d "Print the body as a QR Code"'
 complete -c $PROG -f -n '__fish_gopass_uses_command templates remove -l unsafe -d "Display unsafe content (e.g. the password) even if safecontent is enabled"'
+complete -c $PROG -f -n '__fish_gopass_uses_command templates remove -l safe -d "Do not display unsafe content (e.g. the password) even if safecontent is disabled"'
 complete -c $PROG -f -n '__fish_gopass_uses_command templates remove -l password -d "Display only the password. Takes precedence over all other flags."'
 complete -c $PROG -f -n '__fish_gopass_uses_command templates remove -l revision -d "Show a past revision. Does NOT support RCS specific shortcuts. Use exact revision or -&lt;N&gt; to select the Nth oldest revision of this entry."'
 complete -c $PROG -f -n '__fish_gopass_uses_command templates remove -l noparsing -d "Do not parse the output."'
