@@ -14,7 +14,6 @@ const (
 	ctxKeyAlsoClip
 	ctxKeyPrintChars
 	ctxKeyWithQRBody
-	ctxKeySafeContentOnly
 )
 
 // WithClip returns a context with the value for clip (for copy to clipboard)

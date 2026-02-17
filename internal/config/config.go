@@ -183,6 +183,11 @@ func (c *Config) GetGlobal(key string) string {
 
 // GetM returns the given key from the mount or the root config if mount is empty.
 func (c *Config) GetM(mount, key string) string {
+	// env vars always win
+	if sv, found := c.root.GetFrom(key, "env"); found && sv != "" {
+		return sv
+	}
+
 	if mount == "" || mount == "<root>" {
 		return c.root.Get(key)
 	}

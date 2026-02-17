@@ -16,7 +16,7 @@ require (
 	github.com/google/go-cmp v0.7.0
 	github.com/google/go-github/v61 v61.0.0
 	github.com/gopasspw/clipboard v0.0.4
-	github.com/gopasspw/gitconfig v0.0.3
+	github.com/gopasspw/gitconfig v0.0.4
 	github.com/gopasspw/gopass-hibp v1.15.18
 	github.com/hashicorp/golang-lru/v2 v2.0.7
 	github.com/jsimonetti/pwscheme v0.0.0-20220922140336-67a4d090f150
@@ -40,8 +40,8 @@ require (
 	github.com/zalando/go-keyring v0.2.6
 	github.com/zeebo/blake3 v0.2.4
 	golang.org/x/crypto v0.44.0
-	golang.org/x/exp v0.0.0-20251023183803-a4bb9ffd2546
-	golang.org/x/mod v0.30.0
+	golang.org/x/exp v0.0.0-20260209203927-2842357ff358
+	golang.org/x/mod v0.33.0
 	golang.org/x/net v0.47.0
 	golang.org/x/oauth2 v0.33.0
 	golang.org/x/sys v0.38.0
@@ -96,7 +96,7 @@ require (
 	github.com/ulikunitz/xz v0.5.15 // indirect
 	github.com/xrash/smetrics v0.0.0-20250705151800-55b8f293f342 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
-	golang.org/x/sync v0.18.0 // indirect
+	golang.org/x/sync v0.19.0 // indirect
 	golang.org/x/text v0.31.0 // indirect
 	golang.org/x/xerrors v0.0.0-20240903120638-7835f813f4da // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
