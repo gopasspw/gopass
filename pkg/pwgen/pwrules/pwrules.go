@@ -66,7 +66,7 @@ func ParseRule(in string) Rule {
 		}
 	}
 
-	for _, part := range strings.Split(strings.TrimSuffix(in, ";"), ";") {
+	for part := range strings.SplitSeq(strings.TrimSuffix(in, ";"), ";") {
 		p := strings.Split(part, ": ")
 		if len(p) < 2 {
 			continue

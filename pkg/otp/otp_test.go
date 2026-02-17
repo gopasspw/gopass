@@ -23,10 +23,10 @@ func TestCalculate(t *testing.T) {
 
 	testCases := [][]byte{
 		[]byte(totpSecret),
-		[]byte(fmt.Sprintf("%s\ntotp: %s", pw, totpSecret)),
-		[]byte(fmt.Sprintf("%s\n---\ntotp: %s", pw, totpSecret)),
-		[]byte(fmt.Sprintf("%s\n%s", pw, totpURL)),
-		[]byte(fmt.Sprintf("%s\n---\n%s", pw, totpURL)),
+		fmt.Appendf(nil, "%s\ntotp: %s", pw, totpSecret),
+		fmt.Appendf(nil, "%s\n---\ntotp: %s", pw, totpSecret),
+		fmt.Appendf(nil, "%s\n%s", pw, totpURL),
+		fmt.Appendf(nil, "%s\n---\n%s", pw, totpURL),
 	}
 
 	for _, tc := range testCases {

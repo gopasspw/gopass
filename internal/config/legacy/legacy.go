@@ -1,6 +1,7 @@
 package legacy
 
 import (
+	"maps"
 	"net/url"
 	"strings"
 )
@@ -40,9 +41,7 @@ func (c *Pre1127) Config() *Config {
 		Mounts:        make(map[string]string, len(c.Mounts)),
 	}
 
-	for k, v := range c.Mounts {
-		cfg.Mounts[k] = v
-	}
+	maps.Copy(cfg.Mounts, c.Mounts)
 
 	return cfg
 }
@@ -90,9 +89,7 @@ func (c *Pre1102) Config() *Config {
 		Mounts:        make(map[string]string, len(c.Mounts)),
 	}
 
-	for k, v := range c.Mounts {
-		cfg.Mounts[k] = v
-	}
+	maps.Copy(cfg.Mounts, c.Mounts)
 
 	return cfg
 }
@@ -261,9 +258,7 @@ func (c *Pre140) Config() *Config {
 		Mounts:      make(map[string]string, len(c.Mounts)),
 	}
 
-	for k, v := range c.Mounts {
-		cfg.Mounts[k] = v
-	}
+	maps.Copy(cfg.Mounts, c.Mounts)
 
 	return cfg
 }
@@ -308,9 +303,7 @@ func (c *Pre130) Config() *Config {
 		Mounts:      make(map[string]string, len(c.Mounts)),
 	}
 
-	for k, v := range c.Mounts {
-		cfg.Mounts[k] = v
-	}
+	maps.Copy(cfg.Mounts, c.Mounts)
 
 	return cfg
 }

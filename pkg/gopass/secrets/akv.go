@@ -86,8 +86,8 @@ func (a *AKV) Values(key string) ([]string, bool) {
 // Ref returns a reference to another secret if the password is a gopass URI.
 // A gopass URI is a string that starts with "gopass://".
 func (a *AKV) Ref() (string, bool) {
-	if strings.HasPrefix(a.password, gopassRef) {
-		return strings.TrimPrefix(a.password, gopassRef), true
+	if after, ok := strings.CutPrefix(a.password, gopassRef); ok {
+		return after, true
 	}
 
 	return "", false

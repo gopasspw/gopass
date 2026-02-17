@@ -37,7 +37,7 @@ func Version(ctx context.Context, binary string) semver.Version {
 		return v
 	}
 
-	for _, line := range strings.Split(string(out), "\n") {
+	for line := range strings.SplitSeq(string(out), "\n") {
 		line = strings.TrimSpace(line)
 		if !strings.HasPrefix(line, "gpg ") {
 			continue

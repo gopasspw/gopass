@@ -176,8 +176,8 @@ func (s *Store) fsckLoop(ctx context.Context, path string) error {
 	buf := &strings.Builder{}
 	for _, name := range names {
 		pcb()
-		if strings.HasPrefix(name, s.alias+"/") {
-			name = strings.TrimPrefix(name, s.alias+"/")
+		if after, ok := strings.CutPrefix(name, s.alias+"/"); ok {
+			name = after
 		}
 
 		debug.Log("[%s] Checking %s", path, name)

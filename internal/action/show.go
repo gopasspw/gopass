@@ -319,7 +319,7 @@ func showSafeContent(sec gopass.Secret) string {
 		}
 	}
 
-	for _, l := range strings.Split(sec.Body(), "\n") {
+	for l := range strings.SplitSeq(sec.Body(), "\n") {
 		if strings.HasPrefix(l, "otpauth://") {
 			sb.WriteString(fmt.Sprintf("\notpauth://%s", randAsterisk()))
 
@@ -342,7 +342,7 @@ func isUnsafeKey(key string, sec gopass.Secret) bool {
 		return false
 	}
 
-	for _, uk := range strings.Split(uks, ",") {
+	for uk := range strings.SplitSeq(uks, ",") {
 		uk = strings.TrimSpace(uk)
 		if uk == "" {
 			continue

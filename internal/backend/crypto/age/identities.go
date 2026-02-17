@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"maps"
 	"os"
 	"path/filepath"
 	"sort"
@@ -408,9 +409,7 @@ func (a *Age) getAllIdentities(ctx context.Context) (map[string]age.Identity, er
 	debug.V(1).Log("got %d ssh identities", len(ssh))
 
 	// merge both.
-	for k, v := range ssh {
-		native[k] = v
-	}
+	maps.Copy(native, ssh)
 	debug.V(1).Log("got %d merged identities", len(native))
 
 	ps, err := a.getPassageIdentities(ctx)
@@ -419,9 +418,7 @@ func (a *Age) getAllIdentities(ctx context.Context) (map[string]age.Identity, er
 	}
 
 	// merge
-	for k, v := range ps {
-		native[k] = v
-	}
+	maps.Copy(native, ps)
 
 	return native, nil
 }

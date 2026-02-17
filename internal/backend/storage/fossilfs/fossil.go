@@ -387,7 +387,7 @@ func (f *Fossil) Revisions(ctx context.Context, name string) ([]backend.Revision
 	}
 
 	revs := make([]backend.Revision, 0, strings.Count(string(stdout), "\n"))
-	for _, line := range strings.Split(string(stdout), "\n") {
+	for line := range strings.SplitSeq(string(stdout), "\n") {
 		line = strings.TrimSpace(line)
 		if line == "" {
 			debug.Log("empty line")
