@@ -52,7 +52,7 @@ require (
 require (
 	al.essio.dev/pkg/shellescape v1.6.0 // indirect
 	codeberg.org/tslocum/cbind v0.1.6 // indirect
-	filippo.io/edwards25519 v1.1.0 // indirect
+	filippo.io/edwards25519 v1.1.1 // indirect
 	github.com/atotto/clipboard v0.1.4 // indirect
 	github.com/boombuler/barcode v1.1.0 // indirect
 	github.com/clipperhouse/stringish v0.1.1 // indirect
