@@ -8,7 +8,7 @@ set PROG '{{ $prog }}'
 
 function __fish_{{ $prog }}_needs_command
   set -l cmd (commandline -opc)
-  if [ (count $cmd) -eq 1 -a $cmd[1] = $PROG ]
+  if [ (count $cmd) -eq 1 ] && [ $cmd[1] = $PROG ]
     return 0
   end
   return 1
