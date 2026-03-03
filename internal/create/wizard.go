@@ -45,6 +45,7 @@ type Attribute struct {
 	Min          int    `yaml:"min"`
 	Max          int    `yaml:"max"`
 	AlwaysPrompt bool   `yaml:"always_prompt"` // always prompt for the crendentials
+	Strict       bool   `yaml:"strict"`        // enforce character class rules (all detected classes must be present)
 }
 
 // Template is an action template for the create wizard.
@@ -278,7 +279,7 @@ func mkActFunc(tpl Template, s *root.Store, cb ActionCallback) func(context.Cont
 				}
 
 				if genPw { //nolint:nestif
-					password, err = generatePassword(ctx, hostname, v.Charset)
+					password, err = generatePassword(ctx, hostname, v.Charset, v.Strict)
 					if err != nil {
 						return err
 					}
@@ -363,13 +364,17 @@ func renderTemplate(ctx context.Context, name string, s *root.Store) ([]byte, er
 }
 
 // generatePassword will walk through the password generation steps.
-func generatePassword(ctx context.Context, hostname, charset string) (string, error) {
+func generatePassword(ctx context.Context, hostname, charset string, strict bool) (string, error) {
 	defaultLength, _ := config.DefaultPasswordLengthFromEnv(ctx)
 
 	if charset != "" {
 		length, err := termio.AskForInt(ctx, fmtfn(4, "a", "How long?"), 4)
 		if err != nil {
 			return "", err
+		}
+
+		if strict {
+			return pwgen.GeneratePasswordCharsetStrict(length, charset)
 		}
 
 		return pwgen.GeneratePasswordCharset(length, charset), nil
