@@ -1,0 +1,411 @@
+package secrets
+
+import (
+	"bufio"
+	"bytes"
+	"fmt"
+	"io"
+	"strings"
+
+	"github.com/gopasspw/gopass/pkg/debug"
+	"github.com/gopasspw/gopass/pkg/set"
+)
+
+var (
+	kvSep     = ": "
+	gopassRef = "gopass://"
+)
+
+// AKV is the new Key-Value implementation that will replace KV.
+// It stores a password and a set of key-value pairs.
+// The raw content is stored in a strings.Builder, which is a more
+// efficient way to build strings.
+type AKV struct {
+	password string
+	kvp      map[string][]string
+
+	raw strings.Builder
+
+	fromMime bool
+}
+
+// NewAKV creates a new, empty AKV instance.
+func NewAKV() *AKV {
+	a := &AKV{
+		kvp: make(map[string][]string),
+		raw: strings.Builder{},
+	}
+
+	return a
+}
+
+// NewAKVWithData returns a new AKV secret populated with data.
+func NewAKVWithData(pw string, kvps map[string][]string, body string, converted bool) *AKV {
+	kv := NewAKV()
+	kv.SetPassword(pw)
+	kv.fromMime = converted
+
+	for _, k := range set.SortedKeys(kvps) {
+		vs := kvps[k]
+		for _, v := range vs {
+			_ = kv.Add(k, v)
+		}
+	}
+
+	kv.raw.WriteString(body)
+
+	return kv
+}
+
+// Bytes returns the raw content of the secret as a byte slice.
+func (a *AKV) Bytes() []byte {
+	return []byte(a.raw.String())
+}
+
+// Keys returns a sorted list of all keys in the secret.
+func (a *AKV) Keys() []string {
+	return set.SortedKeys(a.kvp)
+}
+
+// Get returns the first value for a given key, if found.
+func (a *AKV) Get(key string) (string, bool) {
+	if v, found := a.kvp[key]; found {
+		return v[0], true
+	}
+
+	return "", false
+}
+
+// Values returns all values for a given key.
+func (a *AKV) Values(key string) ([]string, bool) {
+	v, found := a.kvp[key]
+
+	return v, found
+}
+
+// Ref returns a reference to another secret if the password is a gopass URI.
+// A gopass URI is a string that starts with "gopass://".
+func (a *AKV) Ref() (string, bool) {
+	if strings.HasPrefix(a.password, gopassRef) {
+		return strings.TrimPrefix(a.password, gopassRef), true
+	}
+
+	return "", false
+}
+
+// Set sets the value for a given key, replacing the first instance if it exists.
+// If the key does not exist, it is added to the end of the secret.
+func (a *AKV) Set(key string, value any) error {
+	// if it's new key we can just append it at the end
+	if _, found := a.kvp[key]; !found {
+		return a.Add(key, value)
+	}
+
+	if len(a.kvp[key]) < 1 {
+		a.kvp[key] = make([]string, 1)
+	}
+	a.kvp[key][0] = fmt.Sprintf("%s", value)
+
+	// if the key does exist we must make sure to update only
+	// the first instance and leave all others intact.
+
+	if a.raw.Len() == 0 {
+		a.raw.WriteString("\n")
+	}
+	s := bufio.NewScanner(strings.NewReader(a.raw.String()))
+	a.raw = strings.Builder{}
+
+	firstLine := true
+	written := false
+	for s.Scan() {
+		line := s.Text()
+
+		// pass through any non-key value pair and
+		// always leave the password in place, even if it
+		// might look like a kv pair. Also stop looking
+		// for kv pairs after we updated the first instance.
+		if written || firstLine || !strings.Contains(line, kvSep) {
+			a.raw.WriteString(line)
+			a.raw.WriteString("\n")
+			firstLine = false
+
+			continue
+		}
+
+		k, _, found := strings.Cut(strings.TrimSpace(line), ":")
+		if !found {
+			// should not happen
+			a.raw.WriteString(line)
+			a.raw.WriteString("\n")
+
+			continue
+		}
+
+		k = strings.TrimSpace(k)
+		if k == key {
+			// update the key
+			a.raw.WriteString(fmt.Sprintf("%s: %s\n", key, value))
+			written = true
+
+			continue
+		}
+
+		// keep all others
+		a.raw.WriteString(line)
+		a.raw.WriteString("\n")
+	}
+
+	return nil
+}
+
+// Add adds a new value for a given key.
+func (a *AKV) Add(key string, value any) error {
+	sv := fmt.Sprintf("%s", value)
+	a.kvp[key] = append(a.kvp[key], sv)
+
+	// we must not accidentially write the KVP into the password field
+	if a.raw.Len() == 0 {
+		a.raw.WriteString("\n")
+	}
+	a.raw.WriteString(fmt.Sprintf("%s: %s\n", key, sv))
+
+	return nil
+}
+
+// Del removes a key and all of its values.
+func (a *AKV) Del(key string) bool {
+	_, found := a.kvp[key]
+	if !found {
+		return false
+	}
+
+	delete(a.kvp, key)
+
+	s := newScanner(strings.NewReader(a.raw.String()), a.raw.Len())
+	a.raw = strings.Builder{}
+	first := true
+	for s.Scan() {
+		line := s.Text()
+
+		// pass through any non-key value pair and
+		// always leave the password in place, even if it
+		// might look like a kv pair.
+		if first || !strings.Contains(line, kvSep) {
+			a.raw.WriteString(line)
+			a.raw.WriteString("\n")
+			first = false
+
+			continue
+		}
+
+		k, _, found := strings.Cut(strings.TrimSpace(line), kvSep)
+		if !found {
+			// should not happen
+			a.raw.WriteString(line)
+			a.raw.WriteString("\n")
+
+			continue
+		}
+
+		k = strings.TrimSpace(k)
+		if k == key {
+			// skip the key we want to delete
+			continue
+		}
+
+		// keep all others
+		a.raw.WriteString(line)
+		a.raw.WriteString("\n")
+	}
+
+	return true
+}
+
+// Password returns the password of the secret.
+func (a *AKV) Password() string {
+	return a.password
+}
+
+// SetPassword updates the password of the secret.
+func (a *AKV) SetPassword(p string) {
+	s := newScanner(strings.NewReader(a.raw.String()), a.raw.Len())
+	a.raw = strings.Builder{}
+
+	// write the new password
+	a.password = p
+	a.raw.WriteString(p)
+	a.raw.WriteString("\n")
+
+	write := false
+	for s.Scan() {
+		// skip only the first line, that contains the new password and was already written
+		if !write {
+			write = true
+
+			continue
+		}
+
+		a.raw.WriteString(s.Text())
+		a.raw.WriteString("\n")
+	}
+}
+
+// ParseAKV parses a byte slice and returns a new AKV instance.
+func ParseAKV(in []byte) *AKV {
+	a := NewAKV()
+	a.raw = strings.Builder{}
+	s := newScanner(bytes.NewReader(in), len(in))
+
+	debug.V(2).Log("Parsing %d bytes of input", len(in))
+
+	first := true
+	for s.Scan() {
+		line := s.Text()
+		a.raw.WriteString(line)
+		a.raw.WriteString("\n")
+
+		// handle the password that must be in the very first line
+		if first {
+			a.password = line
+			first = false
+
+			continue
+		}
+
+		if !strings.Contains(line, kvSep) {
+			continue
+		}
+
+		key, val, found := strings.Cut(line, kvSep)
+		if !found {
+			continue
+		}
+
+		key = strings.TrimSpace(key)
+		// val is not Trimmed. See https://github.com/gopasspw/gopass/issues/2873
+		// we only store lower case keys for KV
+		a.kvp[key] = append(a.kvp[key], val)
+	}
+
+	if a.raw.String() == "" {
+		a.raw.WriteString("\n")
+	}
+
+	return a
+}
+
+// Body returns the body of the secret, which is the content of the secret
+// without the password and the key-value pairs.
+func (a *AKV) Body() string {
+	out := strings.Builder{}
+
+	// make sure we always have a terminating newline so the scanner below
+	// can always find a full line.
+	if !strings.HasSuffix(a.raw.String(), "\n") {
+		a.raw.WriteString("\n")
+	}
+
+	debug.V(2).Log("Building body from %d chars", a.raw.Len())
+	s := newScanner(strings.NewReader(a.raw.String()), a.raw.Len())
+
+	first := true
+	for s.Scan() {
+		// skip over the password
+		if first {
+			first = false
+
+			continue
+		}
+
+		line := s.Text()
+		// ignore KV pairs
+		if strings.Contains(line, kvSep) {
+			debug.V(3).Log("ignoring line: %q", line)
+
+			continue
+		}
+		debug.V(3).Log("adding line of %d chars", len(line))
+		out.WriteString(line)
+		out.WriteString("\n")
+	}
+
+	debug.V(2).Log("built %d chars body", out.Len())
+
+	return out.String()
+}
+
+// newScanner creates a new line scanner and sets it up to properly handle larger secrets.
+// bufio.Scanner uses bufio.MaxScanTokenSize by default. That is only 64k, too little
+// for larger binary secrets. We double the allocation size to account for Base64 encoding
+// overhead.
+func newScanner(in io.Reader, inSize int) *bufio.Scanner {
+	bufSize := inSize * 2
+
+	s := bufio.NewScanner(in)
+	scanBuf := make([]byte, bufSize)
+	s.Buffer(scanBuf, bufSize)
+
+	debug.V(4).Log("Using buffer of len %d and max %d", len(scanBuf), bufSize)
+
+	return s
+}
+
+// Write appends data to the secret's body.
+func (a *AKV) Write(buf []byte) (int, error) {
+	var w io.Writer
+	w = &a.raw
+
+	// If the body is empty before writing we must treat the first line
+	// of the newly written content as the password or multi-line insert
+	// and similar operations (like insert from stdin) might fail.
+	// For regular command line usage this is actually a non-issue since
+	// the gopass process will exit after writing and when reading the secret
+	// it will be (correctly) parsed. But for tests, library and maybe REPL
+	// usage this is an issue.
+	if a.raw.Len() == 0 {
+		w = &pwWriter{w: &a.raw, cb: func(pw string) { a.password = pw }}
+	}
+
+	return w.Write(buf)
+}
+
+// FromMime returns whether this secret was converted from a MIME secret.
+func (a *AKV) FromMime() bool {
+	return a.fromMime
+}
+
+// SafeStr always returns "(elided)" to avoid leaking sensitive information.
+func (a *AKV) SafeStr() string {
+	return "(elided)"
+}
+
+// pwWriter is an io.Writer that extracts the first line of the input stream
+// and writes it to the password field of the provided callback. The first
+// line can stretch multiple chunks, but once the first line has been
+// completed, any subsequent writes to this writer will be silently discarded.
+type pwWriter struct {
+	w   io.Writer
+	cb  func(string)
+	buf strings.Builder
+}
+
+// Write implements the io.Writer interface for pwWriter.
+func (p *pwWriter) Write(buf []byte) (int, error) {
+	n, err := p.w.Write(buf)
+	if p.cb == nil {
+		return n, err
+	}
+
+	i := bytes.Index(buf, []byte("\n"))
+	if i > 0 {
+		p.buf.Write(buf[0:i])
+
+		p.cb(p.buf.String())
+		p.cb = nil
+
+		return n, err
+	}
+	p.buf.Write(buf)
+
+	return n, err
+}

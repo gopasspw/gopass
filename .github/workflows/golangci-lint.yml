@@ -1,0 +1,55 @@
+name: golangci-lint
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  golangci:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@95d9a5deda9de15063e7595e9719c11c38c90ae2 # v2.13.2
+        with:
+          disable-sudo: true
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+            github.com:443
+            golangci-lint.run:443
+            objects.githubusercontent.com:443
+            release-assets.githubusercontent.com:443
+            proxy.golang.org:443
+            raw.githubusercontent.com:443
+            storage.googleapis.com:443
+            sum.golang.org:443
+
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Set up Go
+        uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5 # v6.2.0
+        with:
+          go-version-file: 'go.mod'
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@1e7e51e771db61008b38414a730f564565cf7c20 # v9.2.0
+        with:
+          # Note: there are 2 different version of golangci-lint used inside the project.
+          # https://github.com/gopasspw/gopass/blob/master/.github/workflows/build.yml#L65
+          # https://github.com/gopasspw/gopass/blob/master/.github/workflows/golangci-lint.yml#L46
+          # https://github.com/gopasspw/gopass/blob/master/Makefile#L136
+          version: v2.6.1 # we have a list of linters in our .golangci.yml config file
+          only-new-issues: true

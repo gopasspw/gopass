@@ -1,0 +1,181 @@
+name: Build gopass
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go: ['1.25']
+    name: Go ${{ matrix.go }}
+    steps:
+    - name: Harden Runner
+      uses: step-security/harden-runner@95d9a5deda9de15063e7595e9719c11c38c90ae2 # v2.13.2
+      with:
+        egress-policy: block
+        allowed-endpoints: >
+          github.com:443
+          objects.githubusercontent.com:443
+          proxy.golang.org:443
+          raw.githubusercontent.com:443
+          release-assets.githubusercontent.com:443
+          storage.googleapis.com:443
+          sum.golang.org:443
+          golang.org:443
+          go.dev:443
+          azure.archive.ubuntu.com:443
+          archive.ubuntu.com:443
+          security.ubuntu.com:443
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      with:
+        fetch-depth: 0
+
+    - name: Set up Go
+      uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5 # v6.2.0
+      with:
+        go-version: ${{ matrix.go }}
+    - uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+      with:
+        path: ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
+    - name: Ubuntu Dependencies
+      run: sudo apt-get install --yes git gnupg
+    - run: git config --global user.name nobody
+    - run: git config --global user.email foo.bar@example.org
+
+    -
+      name: Debug
+      run:  |
+        echo "Go env ------------------"
+        pwd
+        echo ${HOME}
+        echo ${GITHUB_WORKSPACE}
+        echo ${GOPATH}
+        echo ${GOROOT}
+        env  
+
+    - name: Build and Unit Test
+      run: make gha-linux
+    - name: Integration Test
+      run: make test-integration
+
+  container:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@95d9a5deda9de15063e7595e9719c11c38c90ae2 # v2.13.2
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051
+        env:
+          IMAGE_NAME: ${{ github.repository }}
+        with:
+          images: ${{ env.IMAGE_NAME }}
+
+      - name: Build container image
+        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83
+        with:
+          context: .
+          push: false
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+  windows:
+    runs-on: windows-latest
+    defaults:
+      run:
+          shell: msys2 {0}
+    steps:
+    - name: Harden Runner
+      uses: step-security/harden-runner@95d9a5deda9de15063e7595e9719c11c38c90ae2 # v2.13.2
+      with:
+        egress-policy: audit
+
+    - uses: msys2/setup-msys2@fb197b72ce45fb24f17bf3f807a388985654d1f2 # v2.29.0
+      with:
+        release: false
+        path-type: inherit
+        install: >-
+          base-devel
+          git
+
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      with:
+        fetch-depth: 0
+
+    - name: Set up Go
+      uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5 # v6.2.0
+      with:
+        go-version-file: 'go.mod'
+
+    - run: git config --global user.name nobody
+    - run: git config --global user.email foo.bar@example.org
+      
+    - name: Build and Unit Test
+      run: make gha-windows
+
+  macos:
+    runs-on: macos-latest
+    steps:
+    - name: Harden Runner
+      uses: step-security/harden-runner@95d9a5deda9de15063e7595e9719c11c38c90ae2 # v2.13.2
+      with:
+        egress-policy: audit
+
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      with:
+        fetch-depth: 0
+
+    - name: Set up Go
+      uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5 # v6.2.0
+      with:
+        go-version-file: 'go.mod'
+
+    - run: git config --global user.name nobody
+    - run: git config --global user.email foo.bar@example.org
+      
+    - name: Build and Unit Test
+      run: make gha-osx
+      env:
+        SLOW_TEST_FACTOR: 100 
+
+  dependabot:
+    needs: [linux]
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: write
+    if: ${{ github.actor == 'dependabot[bot]' && github.event_name == 'pull_request'}}
+    steps:
+      - id: metadata
+        uses: dependabot/fetch-metadata@v2
+        with:
+          github-token: "${{ secrets.GITHUB_TOKEN }}"
+      - run: |
+          gh pr review --approve "$PR_URL"
+          gh pr merge --squash --auto "$PR_URL"
+        env:
+          PR_URL: ${{github.event.pull_request.html_url}}
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}

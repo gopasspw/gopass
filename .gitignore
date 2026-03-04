@@ -1,0 +1,61 @@
+gopass
+gopass-*-amd64
+gopass-full
+dev.sh
+!pkg/gopass/
+coverage.out
+coverage-all.*
+.vscode/
+
+# Profiling
+*.out
+
+# Compiled Object files, Static and Dynamic libs (Shared Objects)
+*.o
+*.a
+*.so
+
+# Folders
+_obj
+_test
+
+# Architecture specific extensions/prefixes
+*.[568vq]
+[568vq].out
+
+*.cgo1.go
+*.cgo2.c
+_cgo_defun.c
+_cgo_gotypes.go
+_cgo_export.*
+
+_testmain.go
+
+*.exe
+*.test
+*.prof
+
+# gopass specific ignores
+*.sublime-*
+*.swp
+/.env
+
+# package files
+*.deb
+*.pkg.tar.xz
+*.rpm
+*.tar.bz2
+
+releases/
+dist/
+
+manifest-*.json
+
+# go-fuzz
+*-fuzz.zip
+workdir/
+
+.vscode/
+NOTICE.new
+
+debian/

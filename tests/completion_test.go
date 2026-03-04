@@ -1,0 +1,68 @@
+package tests
+
+import (
+	"runtime"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+)
+
+func TestCompletion(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("skipping test on windows.")
+	}
+
+	ts := newTester(t)
+	defer ts.teardown()
+
+	t.Run("completion help", func(t *testing.T) {
+		out, err := ts.run("completion")
+		require.NoError(t, err)
+		assert.Contains(t, out, "Source for auto completion in bash")
+		assert.Contains(t, out, "Source for auto completion in zsh")
+	})
+
+	t.Run("bash completion", func(t *testing.T) {
+		bash := `_gopass_bash_autocomplete() {
+     local cur opts base
+     COMPREPLY=()
+     cur="${COMP_WORDS[COMP_CWORD]}"
+     # Use error handling to prevent crashes from invalid flags
+     opts=$( ${COMP_WORDS[@]:0:$COMP_CWORD} --generate-bash-completion 2>/dev/null ) || opts=""
+     local IFS=$'\n'
+     COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+     return 0
+ }
+
+complete -F _gopass_bash_autocomplete gopass`
+
+		out, err := ts.run("completion bash")
+		require.NoError(t, err)
+		assert.Equal(t, bash, out)
+	})
+
+	t.Run("zsh completion", func(t *testing.T) {
+		out, err := ts.run("completion zsh")
+		require.NoError(t, err)
+		assert.Contains(t, out, "compdef gopass")
+	})
+
+	t.Run("fish completion", func(t *testing.T) {
+		out, err := ts.run("completion fish")
+		require.NoError(t, err)
+		assert.Contains(t, out, "complete")
+	})
+}
+
+func TestCompletionNoPath(t *testing.T) {
+	ts := newTester(t)
+	defer ts.teardown()
+
+	t.Setenv("PATH", "/tmp/foobar")
+
+	t.Run("generate bash", func(t *testing.T) {
+		_, err := ts.run("--generate-bash-completion")
+		require.NoError(t, err)
+	})
+}

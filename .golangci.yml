@@ -1,0 +1,107 @@
+version: "2"
+output:
+  sort-order:
+    - linter
+    - file
+linters:
+  enable:
+    - asasalint
+    - asciicheck
+    - bidichk
+    - bodyclose
+    - containedctx
+    - copyloopvar
+    - cyclop
+    - decorder
+    - dogsled
+    - errchkjson
+    - errname
+    - errorlint
+    - exhaustive
+    - forcetypeassert
+    - funlen
+    - ginkgolinter
+    - gocheckcompilerdirectives
+    - gochecksumtype
+    - godot
+    - goheader
+    - gomoddirectives
+    - gomodguard
+    - goprintffuncname
+    - gosmopolitan
+    - grouper
+    - importas
+    - intrange
+    - loggercheck
+    - makezero
+    - mirror
+    - misspell
+    - nakedret
+    - nestif
+    - nilnil
+    - nlreturn
+    - nonamedreturns
+    - nosprintfhostport
+    - prealloc
+    - predeclared
+    - promlinter
+    - protogetter
+    - reassign
+    - sloglint
+    - spancheck
+    - tagalign
+    - testableexamples
+    - testifylint
+    - thelper
+    - unconvert
+    - usestdlibvars
+    - usetesting
+    - whitespace
+    - zerologlint
+  settings:
+    cyclop:
+      max-complexity: 24
+    errcheck:
+      exclude-functions:
+        - fmt.Fprint
+        - fmt.Fprintf
+        - fmt.Fprintln
+    funlen:
+      lines: -1
+      statements: 100
+    gocyclo:
+      min-complexity: 22
+    staticcheck:
+      checks:
+        - all
+        - -SA1019
+        - -ST1000
+  exclusions:
+    generated: lax
+    rules:
+      - linters:
+          - cyclop
+        path: (.+)_test\.go
+      - linters:
+          - govet
+        path: (.+)_fuzz\.go
+    paths:
+      - helpers/
+      - third_party$
+      - builtin$
+      - examples$
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
+formatters:
+  enable:
+    - gofmt
+    - gofumpt
+    - goimports
+  exclusions:
+    generated: lax
+    paths:
+      - helpers/
+      - third_party$
+      - builtin$
+      - examples$

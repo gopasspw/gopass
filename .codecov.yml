@@ -1,0 +1,13 @@
+coverage:
+  range: 40..90
+  round: nearest
+  precision: 2
+  status:
+    project:
+      default: on
+    patch:
+      default: off
+    changes:
+      default: off
+ignore:
+  - "vendor/"

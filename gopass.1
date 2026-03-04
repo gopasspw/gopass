@@ -1,0 +1,677 @@
+
+.TH GOPASS "1" "December 2025" "gopass (github.com/gopasspw/gopass) 1.16.1" "User Commands"
+.SH NAME
+gopass - The standard Unix password manager
+.SH SYNOPSIS
+.B gopass
+[\fI\,global options\/\fR] \fI\,command\/\fR [\fI\,command options\/\fR] [\fI,arguments\/\fR...]
+.SH GLOBAL OPTIONS
+
+.TP
+\fB\-\-alsoclip\fR,
+\fB\-C\fR,
+Copy the password and show everything
+.TP
+\fB\-\-chars\fR,
+Print specific characters from the secret
+.TP
+\fB\-\-clip\fR,
+\fB\-c\fR,
+Copy the password value into the clipboard
+.TP
+\fB\-\-noparsing\fR,
+\fB\-n\fR,
+Do not parse the output.
+.TP
+\fB\-\-nosync\fR,
+Disable auto-sync
+.TP
+\fB\-\-password\fR,
+\fB\-o\fR,
+Display only the password. Takes precedence over all other flags.
+.TP
+\fB\-\-qr\fR,
+Print the password as a QR Code
+.TP
+\fB\-\-qrbody\fR,
+Print the body as a QR Code
+.TP
+\fB\-\-revision\fR,
+\fB\-r\fR,
+Show a past revision. Does NOT support RCS specific shortcuts. Use exact revision or -<N> to select the Nth oldest revision of this entry.
+.TP
+\fB\-\-unsafe\fR,
+\fB\-u\fR,
+\fB\-\-force\fR,
+\fB\-f\fR,
+Display unsafe content (e.g. the password) even if safecontent is enabled
+.TP
+\fB\-\-yes\fR,
+\fB\-y\fR,
+Always answer yes to yes/no questions
+.SH COMMANDS
+
+.SS age
+age commands
+
+Built-in commands for the age backend.
+These allow limited interactions with the gopass specific age identities.
+ Added identities are automatically added as recipient to your secrets when encrypting, but not toyour recipients, make sure to keep your recipients and identities in sync as you want to.
+All age identities, including plugin ones should be supported. We also still support githubidentities despite them being deprecated by age, we do so by falling back to the ssh identitiesfor these and keeping a local cache of ssh keys for a given github identity.
+
+.B Flags
+.TP
+\fB\-\-age-ssh-key-path\fR,
+Custom path to SSH key or directory for age backend
+.SS alias
+Print domain aliases
+
+Print defined domain aliases.
+.SS audit
+Decrypt all secrets and scan for weak or leaked passwords
+
+This command decrypts all secrets and checks for common flaws and (optionally) against a list of previously leaked passwords.
+
+.B Flags
+.TP
+\fB\-\-format\fR,
+Output format. text, csv or html. Default: text
+.TP
+\fB\-\-full\fR,
+Print full details of all findings. Default: false
+.TP
+\fB\-\-output-file\fR,
+\fB\-o\fR,
+Output filename. Used for csv and html
+.TP
+\fB\-\-summary\fR,
+Print a summary of the audit results. Default: true (print summary)
+.TP
+\fB\-\-template\fR,
+HTML template. If not set use the built-in default.
+.SS cat
+Decode and print content of a binary secret to stdout, or encode and insert from stdin
+
+This command is similar to the way cat works on the command line. It can either be used to retrieve the decoded content of a secret similar to 'cat file' or vice versa to encode the content from STDIN to a secret.
+.SS clone
+Clone a password store from a git repository
+
+This command clones an existing password store from a git remote to a local password store. Can be either used to initialize a new root store or to add a new mounted sub-store. Needs at least one argument (git URL) to clone from. Accepts a second argument (mount location) to clone and mount a sub-store, e.g. 'gopass clone git@example.com/store.git foo/bar'
+
+.B Flags
+.TP
+\fB\-\-check-keys\fR,
+Check for valid decryption keys. Generate new keys if none are found.
+.TP
+\fB\-\-crypto\fR,
+Select crypto backend [age gpgcli plain]
+.TP
+\fB\-\-path\fR,
+Path to clone the repo to
+.TP
+\fB\-\-storage\fR,
+Select storage backend [cryptfs fossilfs gitfs jjfs]
+.SS config
+Display and edit the configuration file
+
+This command allows for easy printing and editing of the configuration. Without argument, the entire config is printed. With a single argument, a single key can be printed. With two arguments a setting specified by key can be set to value.
+
+.B Flags
+.TP
+\fB\-\-store\fR,
+Set options to a specific store
+.SS convert
+Convert a store to different backends
+
+Convert a store to a different set of backends
+
+.B Flags
+.TP
+\fB\-\-crypto\fR,
+Which crypto backend? [age gpgcli plain]
+.TP
+\fB\-\-move\fR,
+Replace store?
+.TP
+\fB\-\-storage\fR,
+Which storage backend? [cryptfs fossilfs fs gitfs jjfs]
+.TP
+\fB\-\-store\fR,
+Specify which store to convert
+.SS copy
+Copy secrets from one location to another
+
+This command copies an existing secret in the store to another location. This also works across different sub-stores. If the source is a directory it will automatically copy recursively. In that case, the source directory is re-created at the destination if no trailing slash is found, otherwise the contents are flattened (similar to rsync).
+
+.B Flags
+.TP
+\fB\-\-commit-message\fR,
+\fB\-m\fR,
+Set the commit message
+.TP
+\fB\-\-force\fR,
+\fB\-f\fR,
+Force to copy the secret and overwrite existing one
+.TP
+\fB\-\-interactive-commit\fR,
+\fB\-i\fR,
+Open an editor for the commit message
+.SS create
+Easy creation of new secrets
+
+This command starts a wizard to aid in creation of new secrets.
+
+.B Flags
+.TP
+\fB\-\-force\fR,
+\fB\-f\fR,
+Force path selection
+.TP
+\fB\-\-store\fR,
+\fB\-s\fR,
+Which store to use
+.SS delete
+Remove one or many secrets from the store
+
+This command removes secrets. It can work recursively on folders. Recursing across stores is purposefully not supported.
+
+.B Flags
+.TP
+\fB\-\-commit-message\fR,
+\fB\-m\fR,
+Set the commit message
+.TP
+\fB\-\-force\fR,
+\fB\-f\fR,
+Force to delete the secret
+.TP
+\fB\-\-interactive-commit\fR,
+\fB\-i\fR,
+Open an editor for the commit message
+.TP
+\fB\-\-recursive\fR,
+\fB\-r\fR,
+Recursive delete files and folders
+.SS edit
+Edit new or existing secrets
+
+Use this command to insert a new secret or edit an existing one using your $EDITOR. It will attempt to create a secure temporary directory for storing your secret while the editor is accessing it. Please make sure your editor doesn't leak sensitive data to other locations while editing.
+Note: If $EDITOR is not set we will try 'editor'. If that's not available either we fall back to 'vi'. Consider using 'update-alternatives --config editor to change the defaults.
+
+.B Flags
+.TP
+\fB\-\-commit-message\fR,
+\fB\-m\fR,
+Set the commit message
+.TP
+\fB\-\-create\fR,
+\fB\-c\fR,
+Create a new secret if none found
+.TP
+\fB\-\-editor\fR,
+\fB\-e\fR,
+Use this editor binary
+.TP
+\fB\-\-interactive-commit\fR,
+\fB\-i\fR,
+Open an editor for the commit message
+.SS env
+Run a subprocess with a pre-populated environment
+
+This command runs a sub process with the environment populated from the keys of a secret.
+
+.B Flags
+.TP
+\fB\-\-keep-case\fR,
+\fB\-\-kc\fR,
+Do not capitalize the environment variable and instead retain the original capitalization
+.SS find
+Search for secrets
+
+This command will first attempt a simple pattern match on the name of the secret.  If there is an exact match it will be shown directly; if there are multiple matches, a selection will be shown.
+
+.B Flags
+.TP
+\fB\-\-regex\fR,
+\fB\-r\fR,
+Interpret pattern as regular expression
+.TP
+\fB\-\-unsafe\fR,
+\fB\-u\fR,
+\fB\-\-force\fR,
+\fB\-f\fR,
+In the case of an exact match, display the password even if safecontent is enabled
+.SS fsck
+Check store integrity, clean up artifacts and possibly re-write secrets
+
+Check the integrity of the given sub-store or all stores if none are specified. Will automatically fix all issues found, i.e. it will change permissions, re-write secrets and remove outdated configs.
+
+.B Flags
+.TP
+\fB\-\-decrypt\fR,
+Decrypt and reencrypt during fsck.
+.TP
+\fB\-\-store\fR,
+Limit fsck to this mount point
+.SS fscopy
+Copy files from or to the password store
+
+This command either reads a file from the filesystem and writes the encoded and encrypted version in the store or it decrypts and decodes a secret and writes the result to a file. Either source or destination must be a file and the other one a secret. If you want the source to be securely removed after copying, use 'gopass binary move'
+.SS fsmove
+Move files from or to the password store
+
+This command either reads a file from the filesystem and writes the encoded and encrypted version in the store or it decrypts and decodes a secret and writes the result to a file. Either source or destination must be a file and the other one a secret. The source will be wiped from disk or from the store after it has been copied successfully and validated. If you don't want the source to be removed use 'gopass binary copy'
+.SS generate
+Generate a new password
+
+Dialog to generate a new password and write it into a new or existing secret. By default, the new password will replace the first line of an existing secret (or create a new one).
+
+.B Flags
+.TP
+\fB\-\-clip\fR,
+\fB\-c\fR,
+Copy the generated password to the clipboard
+.TP
+\fB\-\-commit-message\fR,
+\fB\-m\fR,
+Set the commit message
+.TP
+\fB\-\-edit\fR,
+\fB\-e\fR,
+Open secret for editing after generating a password
+.TP
+\fB\-\-force\fR,
+\fB\-f\fR,
+Force to overwrite existing password
+.TP
+\fB\-\-force-regen\fR,
+\fB\-t\fR,
+Force full re-generation, incl. evaluation of templates. Will overwrite the entire secret!
+.TP
+\fB\-\-generator\fR,
+\fB\-g\fR,
+Choose a password generator, use one of: cryptic, memorable, xkcd or external. Default: cryptic
+.TP
+\fB\-\-interactive-commit\fR,
+\fB\-i\fR,
+Open an editor for the commit message
+.TP
+\fB\-\-lang\fR,
+\fB\-\-xkcdlang\fR,
+\fB\-\-xl\fR,
+Language to generate password from, currently only en (english, default) or de are supported
+.TP
+\fB\-\-print\fR,
+\fB\-p\fR,
+Print the generated password to the terminal
+.TP
+\fB\-\-sep\fR,
+\fB\-\-xkcdsep\fR,
+\fB\-\-xs\fR,
+Word separator for generated passwords. If no separator is specified, the words are combined without spaces/separator and the first character of words is capitalised.
+.TP
+\fB\-\-strict\fR,
+Require strict character class rules
+.TP
+\fB\-\-symbols\fR,
+\fB\-s\fR,
+Use symbols in the password
+.SS git
+Run a git command inside a password store: gopass git [--store=<store>] <git-command>
+
+If the password store is a git repository, execute a git command specified by git-command-args.
+
+.B Flags
+.TP
+\fB\-\-store\fR,
+Store to operate on
+.SS grep
+Search for secrets files containing search-string when decrypted.
+
+This command decrypts all secrets and performs a pattern matching on the content.
+
+.B Flags
+.TP
+\fB\-\-regexp\fR,
+\fB\-r\fR,
+Interpret pattern as RE2 regular expression
+.SS history
+Show password history
+
+Display the change history for a secret
+
+.B Flags
+.TP
+\fB\-\-password\fR,
+\fB\-p\fR,
+Include passwords in output
+.SS init
+Initialize new password store.
+
+Initialize new password storage and use gpg-id for encryption.
+
+.B Flags
+.TP
+\fB\-\-crypto\fR,
+Select crypto backend [age gpgcli plain]
+.TP
+\fB\-\-path\fR,
+\fB\-p\fR,
+Set the sub-store path to operate on
+.TP
+\fB\-\-storage\fR,
+Select storage backend [cryptfs fossilfs fs gitfs jjfs]
+.TP
+\fB\-\-store\fR,
+\fB\-s\fR,
+Set the name of the sub-store
+.SS insert
+Insert a new secret
+
+Insert a new secret. Optionally, echo the secret back to the console during entry. Or, optionally, the entry may be multiline. Prompt before overwriting existing secret unless forced.
+
+.B Flags
+.TP
+\fB\-\-append\fR,
+\fB\-a\fR,
+Append data read from STDIN to existing data
+.TP
+\fB\-\-commit-message\fR,
+Set the commit message
+.TP
+\fB\-\-echo\fR,
+\fB\-e\fR,
+Display secret while typing
+.TP
+\fB\-\-force\fR,
+\fB\-f\fR,
+Overwrite any existing secret and do not prompt to confirm recipients
+.TP
+\fB\-\-interactive-commit\fR,
+\fB\-i\fR,
+Open an editor for the commit message
+.TP
+\fB\-\-multiline\fR,
+\fB\-m\fR,
+Insert using $EDITOR
+.SS link
+Create a symlink
+
+This command creates a symlink from one entry in a mounted store to another entry. Important: Does not cross mounts!
+.SS list
+List existing secrets
+
+This command will list all existing secrets. Provide a folder prefix to list only certain subfolders of the store.
+
+.B Flags
+.TP
+\fB\-\-flat\fR,
+\fB\-f\fR,
+Print a flat list
+.TP
+\fB\-\-folders\fR,
+\fB\-d\fR,
+Print a flat list of folders
+.TP
+\fB\-\-limit\fR,
+\fB\-l\fR,
+Display no more than this many levels of the tree
+.TP
+\fB\-\-strip-prefix\fR,
+\fB\-s\fR,
+Strip this prefix from filtered entries
+.SS merge
+Merge multiple secrets into one
+
+This command implements a merge workflow to help deduplicate secrets. It requires exactly one destination (may already exist) and at least one source (must exist, can be multiple). gopass will then merge all entries into one, drop into an editor, save the result and remove all merged entries.
+
+.B Flags
+.TP
+\fB\-\-delete\fR,
+\fB\-d\fR,
+Remove merged entries
+.TP
+\fB\-\-force\fR,
+\fB\-f\fR,
+Skip editor, merge entries unattended
+.SS mounts
+Edit mounted stores
+
+This command displays all mounted password stores. It offers several subcommands to create or remove mounts.
+.SS move
+Move secrets from one location to another
+
+This command moves a secret from one path to another. This also works across different sub-stores. If the source is a directory, the source directory is re-created at the destination if no trailing slash is found, otherwise the contents are flattened (similar to rsync).
+
+.B Flags
+.TP
+\fB\-\-commit-message\fR,
+\fB\-m\fR,
+Set the commit message
+.TP
+\fB\-\-force\fR,
+\fB\-f\fR,
+Force to move the secret and overwrite existing one
+.TP
+\fB\-\-interactive-commit\fR,
+\fB\-i\fR,
+Open an editor for the commit message
+.SS otp
+Generate time- or hmac-based tokens
+
+Tries to parse an OTP URL (otpauth://). URL can be TOTP or HOTP. The URL can be provided on its own line or on a key value line with a key named 'totp'.
+
+.B Flags
+.TP
+\fB\-\-alsoclip\fR,
+\fB\-C\fR,
+Copy the time-based token and show it
+.TP
+\fB\-\-chained\fR,
+\fB\-p\fR,
+chain the token to the password
+.TP
+\fB\-\-clip\fR,
+\fB\-c\fR,
+Copy the time-based token into the clipboard
+.TP
+\fB\-\-password\fR,
+\fB\-o\fR,
+Only display the token
+.TP
+\fB\-\-qr\fR,
+\fB\-q\fR,
+Write QR code to FILE
+.TP
+\fB\-\-snip\fR,
+\fB\-s\fR,
+Scan screen content to insert a OTP QR code into provided entry
+.SS process
+Process a template file
+
+This command processes a template file. It will read the template file and replace all variables with their values.
+.SS pwgen
+Generate passwords
+
+Print any number of password to the console. The optional length parameter specifies the length of each password.
+
+.B Flags
+.TP
+\fB\-\-ambiguous\fR,
+\fB\-B\fR,
+Do not include characters that could be easily confused with each other, like '1' and 'l' or '0' and 'O'
+.TP
+\fB\-\-lang\fR,
+\fB\-\-xkcdlang\fR,
+\fB\-\-xl\fR,
+Language to generate password from, currently only en (english, default) or de are supported
+.TP
+\fB\-\-no-capitalize\fR,
+\fB\-A\fR,
+Do not include capital letter in the generated passwords.
+.TP
+\fB\-\-no-numerals\fR,
+\fB\-0\fR,
+Do not include numerals in the generated passwords.
+.TP
+\fB\-\-one-per-line\fR,
+\fB\-1\fR,
+Print one password per line
+.TP
+\fB\-\-sep\fR,
+\fB\-\-xkcdsep\fR,
+\fB\-\-xs\fR,
+Word separator for generated xkcd style password. If no separator is specified, the words are combined without spaces/separator and the first character of words is capitalised. This flag implies -xkcd
+.TP
+\fB\-\-symbols\fR,
+\fB\-y\fR,
+Include at least one symbol in the password.
+.TP
+\fB\-\-xkcd\fR,
+\fB\-x\fR,
+Use multiple random english words combined to a password. By default, space is used as separator and all words are lowercase
+.TP
+\fB\-\-xkcdcapitalize\fR,
+\fB\-\-xc\fR,
+Capitalize first letter of each word in generated xkcd style password. This flag implies -xkcd
+.TP
+\fB\-\-xkcdnumbers\fR,
+\fB\-\-xn\fR,
+Add a random number to the end of the generated xkcd style password. This flag implies -xkcd
+.SS rcs
+Run a RCS command inside a password store
+
+If the password store is a git repository, execute a git command specified by git-command-args.
+.SS recipients
+Edit recipient permissions
+
+This command displays all existing recipients for all mounted stores. The subcommands allow adding or removing recipients.
+
+.B Flags
+.TP
+\fB\-\-pretty\fR,
+Pretty print recipients
+.SS reorg
+Reorganize a password store by editing a text file
+
+This command lists all the secrets in a text file, line by line, and then opens it in an editor. Once the user saves and leaves the editor, gopass will read the temp file, calculate the necessary moves and show a diff and a confirmation prompt. Once the user acknowledges that it will reorganize the secrets and create a meaningful commit message.
+.SS setup
+Initialize a new password store
+
+This command is automatically invoked if gopass is started without any existing password store. This command exists so users can be provided with simple one-command setup instructions.
+
+.B Flags
+.TP
+\fB\-\-alias\fR,
+Local mount point for the given remote
+.TP
+\fB\-\-create\fR,
+Create a new team (default: false, i.e. join an existing team)
+.TP
+\fB\-\-crypto\fR,
+Select crypto backend [age gpgcli plain]
+.TP
+\fB\-\-email\fR,
+EMail for unattended GPG key generation
+.TP
+\fB\-\-name\fR,
+Firstname and Lastname for unattended GPG key generation
+.TP
+\fB\-\-remote\fR,
+URL to a git remote, will attempt to join this team
+.TP
+\fB\-\-storage\fR,
+Select storage backend [cryptfs fossilfs fs gitfs jjfs]
+.SS show
+Display the content of a secret
+
+Show an existing secret and optionally put its first line on the clipboard. If put on the clipboard, it will be cleared after 45 seconds.
+
+.B Flags
+.TP
+\fB\-\-alsoclip\fR,
+\fB\-C\fR,
+Copy the password and show everything
+.TP
+\fB\-\-chars\fR,
+Print specific characters from the secret
+.TP
+\fB\-\-clip\fR,
+\fB\-c\fR,
+Copy the password value into the clipboard
+.TP
+\fB\-\-noparsing\fR,
+\fB\-n\fR,
+Do not parse the output.
+.TP
+\fB\-\-nosync\fR,
+Disable auto-sync
+.TP
+\fB\-\-password\fR,
+\fB\-o\fR,
+Display only the password. Takes precedence over all other flags.
+.TP
+\fB\-\-qr\fR,
+Print the password as a QR Code
+.TP
+\fB\-\-qrbody\fR,
+Print the body as a QR Code
+.TP
+\fB\-\-revision\fR,
+\fB\-r\fR,
+Show a past revision. Does NOT support RCS specific shortcuts. Use exact revision or -<N> to select the Nth oldest revision of this entry.
+.TP
+\fB\-\-unsafe\fR,
+\fB\-u\fR,
+\fB\-\-force\fR,
+\fB\-f\fR,
+Display unsafe content (e.g. the password) even if safecontent is enabled
+.TP
+\fB\-\-yes\fR,
+\fB\-y\fR,
+Always answer yes to yes/no questions
+.SS sum
+Compute the SHA256 checksum
+
+This command decodes an Base64 encoded secret and computes the SHA256 checksum over the decoded data. This is useful to verify the integrity of an inserted secret.
+.SS sync
+Sync all local stores with their remotes
+
+Sync all local stores with their git remotes, if any, and check any possibly affected gpg keys.
+
+.B Flags
+.TP
+\fB\-\-store\fR,
+\fB\-s\fR,
+Select the store to sync
+.SS templates
+Edit templates
+
+List existing templates in the password store and allow for editing and creating them.
+.SS unclip
+Internal command to clear clipboard
+
+Clear the clipboard if the content matches the checksum.
+
+.B Flags
+.TP
+\fB\-\-force\fR,
+Clear clipboard even if checksum mismatches
+.TP
+\fB\-\-timeout\fR,
+Time to wait
+.SS update
+Check for updates
+
+This command checks for gopass updates at GitHub and automatically downloads and installs any missing update.
+.SS version
+Display version
+
+This command displays version and build time information.
+
+.SH "REPORTING BUGS"
+Report bugs to <https://github.com/gopasspw/gopass/issues/new>
+.SH "COPYRIGHT"
+Copyright \(co 2021 Gopass Authors
+This program is free software; you may redistribute it under the terms of
+the MIT license. This program has absolutely no warranty.

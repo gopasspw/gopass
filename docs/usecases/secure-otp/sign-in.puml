@@ -1,0 +1,31 @@
+@startuml
+title Sign-In with local otp
+
+actor User
+database "Git-Passwordstore"
+database "Local-Passwordstore"
+database "gpg-key"
+
+activate User
+
+activate "Git-Passwordstore"
+User -> "Git-Passwordstore": show (login,password)
+"Git-Passwordstore" -> "gpg-key": decrypt
+"gpg-key" -> User: enter passphrase
+deactivate "Git-Passwordstore"
+
+activate Website
+User -> Website: sign-in (login,password)
+Website -> User: request: otp-code
+
+User -> "Local-Passwordstore": otp
+activate "Local-Passwordstore"
+"Local-Passwordstore" -> "gpg-key": decrypt(otp-token)
+"Local-Passwordstore" -> "Local-Passwordstore": generate otp-code (otp-token,local-time)
+deactivate "Local-Passwordstore"
+
+User -> Website: enter (otp-code)
+Website -> Website: validate (otp-code,website-time,otp-token)
+User <-- Website: success
+
+@enduml
