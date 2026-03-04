@@ -389,7 +389,7 @@ You can then bind these command lines to your preferred shortcuts in your window
 
 Gopass allows filling in passwords in browsers leveraging a browser plugin like [gopass bridge](https://github.com/gopasspw/gopassbridge).
 The browser plugin communicates with gopass-jsonapi via JSON messages.
-To allow the plugin to start gopass-jsonapi, a [native messaging manifest](https://developer.mozilla.org/en-US/Add-ons/WebExtensions/Native_messaging) must be installed for each browser.
+To allow the plugin to start gopass-jsonapi, a [native messaging manifest](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Native_messaging) must be installed for each browser.
 Chrome, Chromium and Firefox are supported, currently.
 
 **Upgrade to gopass v1.10 / v1.11**:
