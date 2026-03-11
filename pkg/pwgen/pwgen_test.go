@@ -115,6 +115,83 @@ func TestGeneratePasswordWithAllClasses(t *testing.T) {
 	assert.Len(t, pw, 50)
 }
 
+func TestGeneratePasswordCharsetStrict(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		name    string
+		length  int
+		charset string
+		wantErr bool
+	}{
+		{
+			name:    "all character classes",
+			length:  20,
+			charset: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%&*",
+			wantErr: false,
+		},
+		{
+			name:    "only digits and lowercase",
+			length:  10,
+			charset: "abcdefghijklmnopqrstuvwxyz0123456789",
+			wantErr: false,
+		},
+		{
+			name:    "only uppercase",
+			length:  10,
+			charset: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+			wantErr: false,
+		},
+		{
+			name:    "digits only",
+			length:  6,
+			charset: "0123456789",
+			wantErr: false,
+		},
+		{
+			name:    "symbols and digits",
+			length:  15,
+			charset: "0123456789!@#$%^&*()",
+			wantErr: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			pw, err := GeneratePasswordCharsetStrict(tc.length, tc.charset)
+			if tc.wantErr {
+				require.Error(t, err)
+
+				return
+			}
+
+			require.NoError(t, err)
+			assert.Len(t, pw, tc.length)
+
+			// Verify all detected character classes are present
+			if strings.ContainsAny(tc.charset, Digits) {
+				assert.True(t, containsAllClasses(pw, Digits), "password should contain at least one digit")
+			}
+			if strings.ContainsAny(tc.charset, Upper) {
+				assert.True(t, containsAllClasses(pw, Upper), "password should contain at least one uppercase letter")
+			}
+			if strings.ContainsAny(tc.charset, Lower) {
+				assert.True(t, containsAllClasses(pw, Lower), "password should contain at least one lowercase letter")
+			}
+			if strings.ContainsAny(tc.charset, Syms) {
+				assert.True(t, containsAllClasses(pw, Syms), "password should contain at least one symbol")
+			}
+
+			// Verify all characters are from the charset
+			for _, c := range pw {
+				assert.Contains(t, tc.charset, string(c), "password should only contain characters from charset")
+			}
+		})
+	}
+}
+
 func TestGenerateMemorablePassword(t *testing.T) {
 	t.Parallel()
 

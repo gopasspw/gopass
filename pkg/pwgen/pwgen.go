@@ -83,6 +83,47 @@ func GeneratePasswordCharsetCheck(length int, chars string) string {
 	return c.Password()
 }
 
+// GeneratePasswordCharsetStrict generates a random password from a given
+// set of characters and ensures that all detected character classes are
+// represented in the generated password.
+// It detects which character classes (digits, upper, lower, symbols) are present
+// in the charset and enforces that at least one character from each class appears
+// in the generated password.
+func GeneratePasswordCharsetStrict(length int, chars string) (string, error) {
+	c := NewCryptic(length, false)
+	c.Chars = chars
+
+	// Detect which character classes are present in the charset
+	var classes []string
+	if strings.ContainsAny(chars, Digits) {
+		classes = append(classes, Digits)
+	}
+	if strings.ContainsAny(chars, Upper) {
+		classes = append(classes, Upper)
+	}
+	if strings.ContainsAny(chars, Lower) {
+		classes = append(classes, Lower)
+	}
+	if strings.ContainsAny(chars, Syms) {
+		classes = append(classes, Syms)
+	}
+
+	// Add validator to ensure all detected classes are present
+	c.Validators = append(c.Validators, func(pw string) error {
+		if containsAllClasses(pw, classes...) {
+			return nil
+		}
+
+		return fmt.Errorf("password does not contain all character classes: %w", ErrCrypticInvalid)
+	})
+
+	if pw := c.Password(); pw != "" {
+		return pw, nil
+	}
+
+	return "", fmt.Errorf("failed to generate matching password after %d rounds: %w", c.MaxTries, ErrMaxTries)
+}
+
 // Prune removes all characters in cutset from the input string.
 func Prune(in string, cutset string) string {
 	out := make([]rune, 0, len(in))
