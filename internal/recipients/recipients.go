@@ -96,8 +96,8 @@ func (r *Recipients) Marshal() []byte {
 
 		key := line
 		// trim any trailing comments
-		if idx := strings.Index(line, "#"); idx != -1 {
-			key = strings.TrimSpace(line[:idx])
+		if before, _, ok := strings.Cut(line, "#"); ok {
+			key = strings.TrimSpace(before)
 		}
 
 		// skip deleted IDs
@@ -156,8 +156,8 @@ func Unmarshal(buf []byte) *Recipients {
 
 		// trim trailing comments
 		key := line
-		if idx := strings.Index(line, "#"); idx != -1 {
-			key = strings.TrimSpace(line[:idx])
+		if before, _, ok := strings.Cut(line, "#"); ok {
+			key = strings.TrimSpace(before)
 		}
 
 		if len(key) < 1 {

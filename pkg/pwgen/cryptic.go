@@ -114,26 +114,26 @@ func NewCrypticForDomain(ctx context.Context, length int, domain string) *Crypti
 }
 
 func charsFromRule(rules ...string) string {
-	chars := ""
+	var chars strings.Builder
 
 	for _, req := range rules {
 		switch req {
 		case "lower":
-			chars += Lower
+			chars.WriteString(Lower)
 		case "upper":
-			chars += Upper
+			chars.WriteString(Upper)
 		case "digit":
-			chars += Digits
+			chars.WriteString(Digits)
 		case "special":
-			chars += Syms
+			chars.WriteString(Syms)
 		default:
 			if strings.HasPrefix(req, "[") && strings.HasSuffix(req, "]") {
-				chars += strings.Trim(req, "[]")
+				chars.WriteString(strings.Trim(req, "[]"))
 			}
 		}
 	}
 
-	return uniqueChars(chars)
+	return uniqueChars(chars.String())
 }
 
 func uniqueChars(in string) string {

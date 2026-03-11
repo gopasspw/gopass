@@ -90,8 +90,8 @@ func (y *YAML) Set(key string, value any) error {
 // Ref returns a reference in case the password is of the form
 // gopass://ref, which references another secret in the store.
 func (y *YAML) Ref() (string, bool) {
-	if strings.HasPrefix(y.password, gopassRef) {
-		return strings.TrimPrefix(y.password, gopassRef), true
+	if after, ok := strings.CutPrefix(y.password, gopassRef); ok {
+		return after, true
 	}
 
 	return "", false

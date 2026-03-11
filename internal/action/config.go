@@ -3,6 +3,7 @@ package action
 import (
 	"context"
 	"fmt"
+	"slices"
 
 	"github.com/gopasspw/gopass/internal/action/exit"
 	"github.com/gopasspw/gopass/internal/config"
@@ -69,13 +70,7 @@ func contains(haystack []string, needle string) bool {
 		return true
 	}
 
-	for _, blade := range haystack {
-		if blade == needle {
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains(haystack, needle)
 }
 
 func (s *Action) setConfigValue(ctx context.Context, store, key, value string) error {

@@ -57,7 +57,7 @@ func getOTPURL(sec gopass.Secret) string {
 	}
 
 	// if there is no KV entry check the body
-	for _, line := range strings.Split(sec.Body(), "\n") {
+	for line := range strings.SplitSeq(sec.Body(), "\n") {
 		if strings.HasPrefix(line, "otpauth://") {
 			return line
 		}

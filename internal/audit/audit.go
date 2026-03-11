@@ -208,10 +208,7 @@ func (a *Auditor) auditSecret(ctx context.Context, secret string) {
 	// pass the secret to all validators.
 	var wg sync.WaitGroup
 	for _, v := range a.v {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-
+		wg.Go(func() {
 			if err := v.Validate(secret, sec); err != nil {
 				a.r.AddFinding(secret, v.Name, err.Error(), "warning")
 
@@ -219,7 +216,7 @@ func (a *Auditor) auditSecret(ctx context.Context, secret string) {
 			}
 
 			a.r.AddFinding(secret, v.Name, "ok", "none")
-		}()
+		})
 	}
 	wg.Wait()
 }

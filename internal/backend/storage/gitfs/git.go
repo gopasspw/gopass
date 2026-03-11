@@ -265,7 +265,7 @@ func (g *Git) ListUntrackedFiles(ctx context.Context) []string {
 		return []string{fmt.Sprintf("ERROR: %s", err)}
 	}
 	uf := []string{}
-	for _, f := range strings.Split(string(stdout), "\n") {
+	for f := range strings.SplitSeq(string(stdout), "\n") {
 		if f == "" {
 			continue
 		}
@@ -464,7 +464,7 @@ func (g *Git) Revisions(ctx context.Context, name string) ([]backend.Revision, e
 
 	so := string(stdout)
 	revs := make([]backend.Revision, 0, strings.Count(so, "\x1e"))
-	for _, rev := range strings.Split(so, "\x1e") {
+	for rev := range strings.SplitSeq(so, "\x1e") {
 		rev = strings.TrimSpace(rev)
 		if rev == "" {
 			continue

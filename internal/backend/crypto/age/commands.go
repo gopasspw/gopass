@@ -279,7 +279,7 @@ func (l loader) Commands() []*cli.Command {
 									case *wrappedIdentity:
 										skip := false
 										// to avoid fuzzy matching, let's match on entire parts
-										for _, part := range strings.Split(x.String(), "|") {
+										for part := range strings.SplitSeq(x.String(), "|") {
 											if part == victim {
 												skip = true
 											}

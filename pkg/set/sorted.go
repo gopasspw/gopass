@@ -1,15 +1,14 @@
 package set
 
 import (
+	"cmp"
 	"maps"
 	"slices"
-
-	"golang.org/x/exp/constraints"
 )
 
 // SortedKeys returns the sorted keys of the map.
 // The keys are sorted in ascending order.
-func SortedKeys[K constraints.Ordered, V any](m map[K]V) []K {
+func SortedKeys[K cmp.Ordered, V any](m map[K]V) []K {
 	// sort
 	keys := maps.Keys(m)
 
@@ -18,7 +17,7 @@ func SortedKeys[K constraints.Ordered, V any](m map[K]V) []K {
 
 // Sorted returns a sorted set of the input.
 // Duplicates are removed.
-func Sorted[K constraints.Ordered](l []K) []K {
+func Sorted[K cmp.Ordered](l []K) []K {
 	return SortedFiltered(l, func(k K) bool {
 		return true
 	})
@@ -26,7 +25,7 @@ func Sorted[K constraints.Ordered](l []K) []K {
 
 // SortedFiltered returns a sorted set of the input, filtered by the predicate.
 // Duplicates are removed.
-func SortedFiltered[K constraints.Ordered](l []K, want func(K) bool) []K {
+func SortedFiltered[K cmp.Ordered](l []K, want func(K) bool) []K {
 	if len(l) == 0 {
 		return l
 	}

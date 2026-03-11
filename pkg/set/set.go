@@ -2,17 +2,16 @@
 package set
 
 import (
+	"cmp"
 	"fmt"
 	"strings"
-
-	"golang.org/x/exp/constraints"
 )
 
 // Set is a generic set type, implemented as a map of keys to booleans.
-type Set[K constraints.Ordered] map[K]bool
+type Set[K cmp.Ordered] map[K]bool
 
 // New initializes a new Set with the given elements.
-func New[K constraints.Ordered](elems ...K) Set[K] {
+func New[K cmp.Ordered](elems ...K) Set[K] {
 	s := make(map[K]bool, len(elems))
 
 	for _, e := range elems {

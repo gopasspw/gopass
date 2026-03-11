@@ -327,7 +327,7 @@ func stringslice(v any) []string {
 	switch v := v.(type) {
 	case []string:
 		return v
-	case []interface{}:
+	case []any:
 		res := make([]string, 0, len(v))
 		for _, s := range v {
 			if s == nil {

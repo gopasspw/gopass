@@ -26,7 +26,7 @@ func FilterExcludes(excludes string, in []string) []string {
 	debug.Log("Filtering %d secrets against %d exclude patterns", len(in), strings.Count(excludes, "\n"))
 
 	res := make(res, 0, 10)
-	for _, line := range strings.Split(excludes, "\n") {
+	for line := range strings.SplitSeq(excludes, "\n") {
 		line = strings.TrimSpace(line)
 		if line == "" {
 			continue
