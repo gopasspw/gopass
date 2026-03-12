@@ -37,6 +37,7 @@ Some examples are available in our [example password store](https://github.com/g
 - [tessen](https://github.com/ayushnix/tessen): autotype and copy gopass data on wayland compositors on Linux
 - [raycast-gopass](https://github.com/raycast/extensions/tree/main/extensions/gopass): a gopass extension for Raycast Mac launcher
 - [gnome-pass-search-provider](https://github.com/jle64/gnome-pass-search-provider): pass search provider for GNOME Shell, which also supports gopass
+- [gopass-secret-service](https://github.com/nikicat/gopass-secret-service): D-Bus daemon implementing the [Secret Service API](https://specifications.freedesktop.org/secret-service/) with gopass as the backend
 
 ## Mobile apps
 
