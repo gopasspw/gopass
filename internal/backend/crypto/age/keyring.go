@@ -64,7 +64,7 @@ func migrate(ctx context.Context, s backend.Storage) error {
 	if !ctxutil.HasPasswordCallback(ctx) {
 		debug.Log("no password callback found, redirecting to askPass")
 		ctx = ctxutil.WithPasswordCallback(ctx, func(prompt string, _ bool) ([]byte, error) {
-			pw, err := a.askPass.Passphrase(prompt, fmt.Sprintf("to load the age keyring at %s", oldKeyring), false)
+			pw, err := a.askPass.Passphrase(ctx, prompt, fmt.Sprintf("to load the age keyring at %s", oldKeyring), false)
 
 			return []byte(pw), err
 		})
