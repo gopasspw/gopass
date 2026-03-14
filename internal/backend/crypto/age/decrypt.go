@@ -30,7 +30,7 @@ func (a *Age) Decrypt(ctx context.Context, ciphertext []byte) ([]byte, error) {
 	if !ctxutil.HasPasswordCallback(ctx) {
 		debug.Log("no password callback found, redirecting to askPass")
 		ctx = ctxutil.WithPasswordCallback(ctx, func(prompt string, _ bool) ([]byte, error) {
-			pw, err := a.askPass.Passphrase(prompt, fmt.Sprintf("to load the keyring at %s", a.identity), false)
+			pw, err := a.askPass.Passphrase(ctx, prompt, fmt.Sprintf("to load the keyring at %s", a.identity), false)
 
 			return []byte(pw), err
 		})

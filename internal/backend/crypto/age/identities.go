@@ -76,7 +76,7 @@ func (a *Age) Identities(ctx context.Context) ([]age.Identity, error) {
 	if !ctxutil.HasPasswordCallback(ctx) {
 		debug.V(1).Log("no password callback found, redirecting to askPass")
 		ctx = ctxutil.WithPasswordCallback(ctx, func(prompt string, confirm bool) ([]byte, error) {
-			pw, err := a.askPass.Passphrase(prompt, fmt.Sprintf("to read the age keyring from %s", a.identity), confirm)
+			pw, err := a.askPass.Passphrase(ctx, prompt, fmt.Sprintf("to read the age keyring from %s", a.identity), confirm)
 
 			return []byte(pw), err
 		})
@@ -359,7 +359,7 @@ func (a *Age) saveIdentities(ctx context.Context, ids []string, newFile bool) er
 	if !ctxutil.HasPasswordCallback(ctx) && !ctxutil.IsAlwaysYes(ctx) {
 		debug.Log("no password callback found, redirecting to askPass")
 		ctx = ctxutil.WithPasswordCallback(ctx, func(prompt string, confirm bool) ([]byte, error) {
-			pw, err := a.askPass.Passphrase(prompt, fmt.Sprintf("to save the age keyring to %s", a.identity), confirm)
+			pw, err := a.askPass.Passphrase(ctx, prompt, fmt.Sprintf("to save the age keyring to %s", a.identity), confirm)
 
 			return []byte(pw), err
 		})
