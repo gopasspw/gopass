@@ -135,6 +135,10 @@ func parseIdentity(s string) (age.Identity, error) {
 			encoding: s,
 			rec:      rec,
 		}, nil
+	case strings.HasPrefix(s, "AGE-SECRET-KEY-PQ-1"):
+		sp := strings.Split(s, "|")
+
+		return age.ParseHybridIdentity(sp[0])
 	case strings.HasPrefix(s, "AGE-SECRET-KEY-1"):
 		sp := strings.Split(s, "|")
 
@@ -212,6 +216,10 @@ func IdentityToRecipient(id age.Identity) age.Recipient {
 	switch id := id.(type) {
 	case *age.X25519Identity:
 		debug.Log("parsed age identity as X25519Identity")
+
+		return id.Recipient()
+	case *age.HybridIdentity:
+		debug.Log("parsed age identity as HybridIdentity")
 
 		return id.Recipient()
 	case *wrappedIdentity:
@@ -459,7 +467,12 @@ func idMap(ids []age.Identity) map[string]age.Identity {
 	m := make(map[string]age.Identity)
 	for _, id := range ids {
 		switch i := id.(type) {
+		// Identity interface type doesn't implement Recipient, have to break it out like this
 		case *age.X25519Identity:
+			m[i.Recipient().String()] = id
+
+			continue
+		case *age.HybridIdentity:
 			m[i.Recipient().String()] = id
 
 			continue

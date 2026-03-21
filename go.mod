@@ -3,7 +3,7 @@ module github.com/gopasspw/gopass
 go 1.25
 
 require (
-	filippo.io/age v1.2.1
+	filippo.io/age v1.3.1
 	github.com/ProtonMail/go-crypto v1.3.0
 	github.com/blang/semver/v4 v4.0.0
 	github.com/caspr-io/yamlpath v0.0.0-20200722075116-502e8d113a9b
@@ -39,8 +39,7 @@ require (
 	github.com/xhit/go-str2duration/v2 v2.1.0
 	github.com/zalando/go-keyring v0.2.6
 	github.com/zeebo/blake3 v0.2.4
-	golang.org/x/crypto v0.44.0
-	golang.org/x/exp v0.0.0-20260209203927-2842357ff358
+	golang.org/x/crypto v0.45.0
 	golang.org/x/mod v0.33.0
 	golang.org/x/net v0.47.0
 	golang.org/x/oauth2 v0.33.0
@@ -53,6 +52,7 @@ require (
 	al.essio.dev/pkg/shellescape v1.6.0 // indirect
 	codeberg.org/tslocum/cbind v0.1.6 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
+	filippo.io/hpke v0.4.0 // indirect
 	github.com/atotto/clipboard v0.1.4 // indirect
 	github.com/boombuler/barcode v1.1.0 // indirect
 	github.com/clipperhouse/stringish v0.1.1 // indirect
