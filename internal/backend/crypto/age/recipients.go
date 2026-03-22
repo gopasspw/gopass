@@ -50,6 +50,23 @@ func (a *Age) parseRecipients(ctx context.Context, recipients []string) ([]age.R
 	ret := make([]age.Recipient, 0, len(recipients))
 	for _, r := range recipients {
 		switch {
+		case strings.HasPrefix(r, "age1pq"):
+			id, err := age.ParseHybridRecipient(r)
+			if err != nil {
+				debug.Log("Failed to parse recipient %q as Hybrid: %s", r, err)
+
+				pid, err := plugin.NewRecipient(r, pluginTerminalUI)
+				if err != nil {
+					debug.Log("Failed to parse recipient %q as an age plugin: %s", out.Secret(r), err)
+
+					continue
+				}
+				ret = append(ret, &wrappedRecipient{rec: pid, encoding: r})
+
+				continue
+			}
+			ret = append(ret, id)
+
 		case strings.HasPrefix(r, "age1"):
 			id, err := age.ParseX25519Recipient(r)
 			if err != nil {

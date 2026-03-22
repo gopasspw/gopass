@@ -13,7 +13,7 @@ WARNING: This backend is experimental and the on-disk format likely to change.
 To start using the `age` backend initialize a new (sub) store with the `--crypto=age` flag:
 
 ```
-$ gopass age identity add [AGE-... age1...]
+$ gopass age identities add [AGE-... age1...]
 <if you do not specify an age secret key, you'll be prompted for one>
 $ gopass init --crypto age
 ```
@@ -31,7 +31,7 @@ N.B. for a fully scripted or **non-interactive setup**, you can use the `GOPASS_
 to set your identity file secret passphrase, and specify the age identity and recipients
 that should be used for encrypting/decrypting passwords as follows:
 ```
-$ gopass age identity add <AGE-...> <age1...>
+$ gopass age identities add <AGE-...> <age1...>
 $  GOPASS_AGE_PASSWORD=mypassword gopass init --crypto age <age1...>
 ```
 Notice the extra space in front of the command to skip most shell's history.
