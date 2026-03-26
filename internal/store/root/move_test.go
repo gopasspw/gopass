@@ -486,3 +486,119 @@ func TestMoveInMountedStore(t *testing.T) {
 	_, err = rs.Get(ctx, "m7an/m7an/www/hostprvdr.de/meinhostprvdr@m7an.de")
 	require.Error(t, err)
 }
+
+// TestCrossStoreMoveReencrypts is a regression test for
+// https://github.com/gopasspw/gopass/issues/3359.
+// Moving a secret from one store to another must decrypt it and re-encrypt
+// it for the destination store's recipients, not merely copy the raw
+// ciphertext file.
+func TestCrossStoreMoveReencrypts(t *testing.T) {
+	u := gptest.NewUnitTester(t)
+
+	ctx := t.Context()
+	ctx = ctxutil.WithAlwaysYes(ctx, true)
+	ctx = ctxutil.WithHidden(ctx, true)
+
+	rs, err := createRootStore(ctx, u)
+	require.NoError(t, err)
+
+	// Write a secret in the root store.
+	sec := secrets.New()
+	sec.SetPassword("secret-password")
+	require.NoError(t, rs.Set(ctx, "root-secret", sec))
+
+	// Create and mount a second store.
+	require.NoError(t, u.InitStore("sub"))
+	require.NoError(t, rs.AddMount(ctx, "sub", u.StoreDir("sub")))
+
+	// Move the secret from the root store to the mounted sub-store.
+	require.NoError(t, rs.Move(ctx, "root-secret", "sub/root-secret"))
+
+	// The secret must be readable from the destination store.
+	got, err := rs.Get(ctx, "sub/root-secret")
+	require.NoError(t, err)
+	require.Equal(t, "secret-password", got.Password())
+
+	// The secret must no longer exist in the source store.
+	_, err = rs.Get(ctx, "root-secret")
+	require.Error(t, err)
+}
+
+// TestCrossStoreCopyReencrypts is a regression test for
+// https://github.com/gopasspw/gopass/issues/3359.
+// Copying a secret from one store to another must also go through Get+Set
+// to re-encrypt for the destination store's recipients.
+func TestCrossStoreCopyReencrypts(t *testing.T) {
+	u := gptest.NewUnitTester(t)
+
+	ctx := t.Context()
+	ctx = ctxutil.WithAlwaysYes(ctx, true)
+	ctx = ctxutil.WithHidden(ctx, true)
+
+	rs, err := createRootStore(ctx, u)
+	require.NoError(t, err)
+
+	// Write a secret in the root store.
+	sec := secrets.New()
+	sec.SetPassword("secret-password")
+	require.NoError(t, rs.Set(ctx, "root-secret", sec))
+
+	// Create and mount a second store.
+	require.NoError(t, u.InitStore("sub"))
+	require.NoError(t, rs.AddMount(ctx, "sub", u.StoreDir("sub")))
+
+	// Copy the secret from the root store to the mounted sub-store.
+	require.NoError(t, rs.Copy(ctx, "root-secret", "sub/root-secret"))
+
+	// The secret must be readable from the destination store.
+	got, err := rs.Get(ctx, "sub/root-secret")
+	require.NoError(t, err)
+	require.Equal(t, "secret-password", got.Password())
+
+	// The original must still exist in the source store.
+	orig, err := rs.Get(ctx, "root-secret")
+	require.NoError(t, err)
+	require.Equal(t, "secret-password", orig.Password())
+}
+
+// TestCrossStoreMoveDirectory is a regression test for
+// https://github.com/gopasspw/gopass/issues/3359.
+// All secrets in a directory moved across stores must be re-encrypted.
+func TestCrossStoreMoveDirectory(t *testing.T) {
+	u := gptest.NewUnitTester(t)
+	u.Entries = []string{
+		"folder/a",
+		"folder/b",
+		"folder/c",
+	}
+	require.NoError(t, u.InitStore(""))
+
+	ctx := t.Context()
+	ctx = ctxutil.WithAlwaysYes(ctx, true)
+	ctx = ctxutil.WithHidden(ctx, true)
+
+	rs, err := createRootStore(ctx, u)
+	require.NoError(t, err)
+	require.NoError(t, rs.Delete(ctx, "foo"))
+
+	// Create and mount a second store.
+	require.NoError(t, u.InitStore("sub"))
+	require.NoError(t, rs.AddMount(ctx, "sub", u.StoreDir("sub")))
+
+	// Move the whole folder to the mounted sub-store.
+	require.NoError(t, rs.Move(ctx, "folder", "sub/folder"))
+
+	// Every secret must be readable at the destination.
+	for _, name := range []string{"sub/folder/a", "sub/folder/b", "sub/folder/c"} {
+		_, err := rs.Get(ctx, name)
+		require.NoError(t, err, "expected %q to be readable after cross-store move", name)
+	}
+
+	// No secret must remain at the source paths.
+	_, err = rs.Get(ctx, "folder/a")
+	require.Error(t, err)
+	_, err = rs.Get(ctx, "folder/b")
+	require.Error(t, err)
+	_, err = rs.Get(ctx, "folder/c")
+	require.Error(t, err)
+}

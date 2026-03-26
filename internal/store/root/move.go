@@ -4,9 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
 	"path"
-	"path/filepath"
 	"strings"
 
 	"github.com/gopasspw/gopass/internal/out"
@@ -14,7 +12,6 @@ import (
 	"github.com/gopasspw/gopass/internal/store/leaf"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
-	"github.com/gopasspw/gopass/pkg/fsutil"
 )
 
 // Copy will copy one entry to another location. Multi-store copies are
@@ -168,42 +165,21 @@ func (r *Store) directMove(ctx context.Context, from, to string, del bool) error
 	// we don't remove store prefix for destination, as it can be a new folder
 	subTo, to := r.getStore(to)
 
-	if subFrom.Equals(subTo) {
-		debug.Log("directMove from %q to %q: same store", from, to)
-
-		if del {
-			return subFrom.Move(ctx, from, to)
-		}
-
-		return subFrom.Copy(ctx, from, to)
+	if !subFrom.Equals(subTo) {
+		// Cross-store moves must go through Get+Set so the secret is
+		// decrypted and then re-encrypted for the destination store's
+		// recipients. Copying the raw ciphertext would leave the secret
+		// encrypted only for the source store's key set.
+		return fmt.Errorf("cross-store move requires re-encryption")
 	}
 
-	debug.Log("cross mount direct move from %s%s to %s%s", subFrom.Alias(), from, subTo.Alias(), to)
-
-	// assemble source and destination paths, call fsutil.CopyFile(from, to), remove source
-	// if del is true and then git add and commit both stores.
-	sfn := filepath.Join(subFrom.Path(), subFrom.Passfile(from))
-	dfn := filepath.Join(subTo.Path(), subTo.Passfile(to))
-
-	if err := fsutil.CopyFile(sfn, dfn); err != nil {
-		return fmt.Errorf("failed to copy %q to %q: %w", from, to, err)
-	}
+	debug.Log("directMove from %q to %q: same store", from, to)
 
 	if del {
-		if err := os.Remove(sfn); err != nil {
-			return fmt.Errorf("failed to delete %q from %s: %w", sfn, subFrom.Alias(), err)
-		}
+		return subFrom.Move(ctx, from, to)
 	}
 
-	if err := subFrom.Storage().Add(ctx, sfn); err != nil {
-		debug.Log("failed to add %q to %s: %w", sfn, subFrom.Alias(), err)
-	}
-
-	if err := subTo.Storage().Add(ctx, dfn); err != nil {
-		debug.Log("failed to add %q to %s: %w", dfn, subTo.Alias(), err)
-	}
-
-	return nil
+	return subFrom.Copy(ctx, from, to)
 }
 
 func computeMoveDestination(src, from, to string, srcIsDir, dstIsDir bool) string {
