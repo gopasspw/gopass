@@ -143,3 +143,90 @@ func TestReplCompleteTemplates(t *testing.T) {
 	completers := act.replCompleteTemplates(ctx, cmd)
 	assert.Len(t, completers, 1)
 }
+
+func TestEscapeEntry(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{
+			name:     "no special chars",
+			input:    "simple",
+			expected: "simple",
+		},
+		{
+			name:     "spaces",
+			input:    "this is a test",
+			expected: `this\ is\ a\ test`,
+		},
+		{
+			name:     "backslash",
+			input:    `back\slash`,
+			expected: `back\\slash`,
+		},
+		{
+			name:     "single quotes",
+			input:    "it's",
+			expected: `it\'s`,
+		},
+		{
+			name:     "double quotes",
+			input:    `say "hello"`,
+			expected: `say\ \"hello\"`,
+		},
+		{
+			name:     "path separators preserved",
+			input:    "folder/my entry",
+			expected: `folder/my\ entry`,
+		},
+		{
+			name:     "special chars",
+			input:    "a<>&;#|*?()",
+			expected: `a\<\>\&\;\#\|\*\?\(\)`,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			result := escapeEntry(tc.input)
+			assert.Equal(t, tc.expected, result)
+		})
+	}
+}
+
+func TestUnescapeEntry(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{
+			name:     "no escapes",
+			input:    "simple",
+			expected: "simple",
+		},
+		{
+			name:     "escaped spaces",
+			input:    `this\ is\ a\ test`,
+			expected: "this is a test",
+		},
+		{
+			name:     "escaped backslash",
+			input:    `back\\slash`,
+			expected: `back\slash`,
+		},
+		{
+			name:     "roundtrip",
+			input:    escapeEntry("hello world"),
+			expected: "hello world",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			result := unescapeEntry(tc.input)
+			assert.Equal(t, tc.expected, result)
+		})
+	}
+}

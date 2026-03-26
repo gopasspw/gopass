@@ -221,3 +221,44 @@ func (s *Action) replLock(ctx context.Context) {
 	}
 	out.OKf(ctx, "Locked")
 }
+
+// escapeEntry escapes special shell characters in a secret name so that
+// tab-completed values are safe to use on the REPL command line.
+// Spaces, quotes, backslashes and other special chars are backslash-escaped.
+func escapeEntry(s string) string {
+	var b strings.Builder
+	b.Grow(len(s))
+	for _, r := range s {
+		switch r {
+		case ' ', '\\', '\'', '"', '(', ')', '<', '>', '&', ';', '#', '|', '*', '?':
+			b.WriteByte('\\')
+		}
+		b.WriteRune(r)
+	}
+
+	return b.String()
+}
+
+// unescapeEntry reverses escapeEntry — it removes backslash escapes so
+// the raw entry name can be matched against store contents.
+func unescapeEntry(s string) string {
+	var b strings.Builder
+	b.Grow(len(s))
+	escaped := false
+	for _, r := range s {
+		if escaped {
+			b.WriteRune(r)
+			escaped = false
+
+			continue
+		}
+		if r == '\\' {
+			escaped = true
+
+			continue
+		}
+		b.WriteRune(r)
+	}
+
+	return b.String()
+}
