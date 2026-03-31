@@ -9,8 +9,10 @@ import (
 
 	"github.com/gopasspw/gopass/internal/cache"
 	"github.com/gopasspw/gopass/internal/config"
+	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/pinentry/cli"
+	"github.com/gopasspw/gopass/pkg/termio"
 	"github.com/twpayne/go-pinentry/v4"
 	"github.com/zalando/go-keyring"
 )
@@ -124,7 +126,13 @@ func (a *askPass) getPassphrase(reason string, repeat bool) (string, error) {
 			_ = pf.Set("REPEAT")
 		}
 
-		return pf.GetPIN()
+		ctx := ctxutil.WithTerminal(context.Background(), false)
+		pw, err := termio.AskForPassword(ctx, reason, repeat)
+		if err != nil {
+			return "", fmt.Errorf("failed to ask for passphrase: %w", err)
+		}
+
+		return pw, nil
 	}
 
 	opts := []pinentry.ClientOption{

@@ -13,6 +13,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/gopasspw/gopass/tests/agecan"
 	"github.com/gopasspw/gopass/tests/can"
 	"github.com/gopasspw/gopass/tests/gptest"
 	shellquote "github.com/kballard/go-shellquote"
@@ -221,4 +222,79 @@ func (ts *tester) initSecrets(prefix string) {
 
 	out, err = ts.runCmd([]string{ts.Binary, "insert", prefix + "fixed/twoliner"}, []byte("first line\nsecond line"))
 	require.NoError(ts.t, err, "failed to insert password:\n%s", out)
+}
+
+func newAgeTester(t *testing.T) *tester {
+	t.Helper()
+
+	sourceDir := "."
+	if d := os.Getenv("GOPASS_TEST_DIR"); d != "" {
+		sourceDir = d
+	}
+
+	gopassBin := ""
+	if b := os.Getenv("GOPASS_BINARY"); b != "" {
+		gopassBin = b
+	}
+
+	fi, err := os.Stat(gopassBin)
+	if err != nil {
+		t.Skipf("Failed to stat GOPASS_BINARY %s: %s", gopassBin, err)
+	}
+
+	if !strings.HasSuffix(gopassBin, ".exe") && fi.Mode()&0o111 == 0 {
+		t.Fatalf("GOPASS_BINARY is not executable")
+	}
+
+	t.Logf("Using gopass binary: %s", gopassBin)
+
+	ts := &tester{
+		t:         t,
+		sourceDir: sourceDir,
+		Binary:    gopassBin,
+	}
+
+	td := t.TempDir()
+	require.NotEmpty(t, td)
+
+	t.Logf("Tempdir: %s", td)
+	ts.tempDir = td
+
+	ts.resetFn = gptest.UnsetVars("GNUPGHOME", "GOPASS_DEBUG", "NO_COLOR", "GOPASS_CONFIG", "GOPASS_NO_NOTIFY", "GOPASS_HOMEDIR")
+	t.Setenv("GOPASS_DEBUG", "")
+	t.Setenv("NO_COLOR", "true")
+	t.Setenv("GOPASS_CONFIG_NOSYSTEM", "true")
+	t.Setenv("GOPASS_CONFIG_NO_MIGRATE", "true")
+	t.Setenv("GOPASS_NO_NOTIFY", "true")
+	t.Setenv("GOPASS_HOMEDIR", td)
+	t.Setenv("GOPASS_AGE_PASSWORD", agecan.TestPin)
+	t.Setenv("GOPASS_AGE_STDIN_PASSPHRASE", "1")
+
+	ageConfig := `[core]
+exportkeys = false
+
+[age]
+agent-enabled = true
+`
+	require.NoError(t, os.MkdirAll(filepath.Dir(ts.gopassConfig()), 0o700))
+	if err := os.WriteFile(ts.gopassConfig(), []byte(ageConfig+"\n[path]\npath = "+ts.storeDir("root")+"\n"), 0o600); err != nil {
+		t.Fatalf("Failed to write gopass config: %s", err)
+	}
+
+	return ts
+}
+
+func (ts *tester) initAgeStore(passPhrase bool) {
+	identity, err := agecan.Identity(passPhrase)
+	require.NoError(ts.t, err)
+
+	recipient, err := agecan.Recipient(passPhrase)
+	require.NoError(ts.t, err)
+
+	idPath := filepath.Join(ts.tempDir, ".config", "gopass", "age", "identities")
+	require.NoError(ts.t, os.MkdirAll(filepath.Dir(idPath), 0o700))
+	require.NoError(ts.t, os.WriteFile(idPath, []byte(identity), 0o600))
+
+	out, err := ts.run("init --crypto=age --storage=fs " + recipient)
+	require.NoError(ts.t, err, "failed to init age store:\n%s", out)
 }
