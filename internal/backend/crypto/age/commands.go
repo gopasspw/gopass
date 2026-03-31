@@ -97,13 +97,48 @@ func (l loader) Commands() []*cli.Command {
 						{
 							Name:        "unlock",
 							Usage:       "Unlock the age agent",
-							Description: "Unlock the age agent, this will allow gopass to ask for your password again when decrypting",
+							Description: "Unlock the age agent and reload identities (will prompt for PIN)",
 							Action: func(ctx context.Context, cmd *cli.Command) error {
+								ctx = ctxutil.WithGlobalFlags(ctx, cmd)
+								sshKeyPath := config.String(ctx, "age.ssh-key-path")
+								if sv := cmd.String("age-ssh-key-path"); sv != "" {
+									sshKeyPath = sv
+								}
+								a, err := New(ctx, sshKeyPath)
+								if err != nil {
+									return exit.Error(exit.Unknown, err, "failed to create age backend")
+								}
+
+								// Load identities first (will prompt for PIN if needed)
+								ids, err := a.getAllIds(ctx)
+								if err != nil {
+									return exit.Error(exit.Unknown, err, "failed to get identities: %s", err)
+								}
+
+								sIds, err := a.identitiesToString(ids)
+								if err != nil {
+									return exit.Error(exit.Unknown, err, "failed to serialize identities: %s", err)
+								}
+
 								client := agent.NewClient()
+
+								// Send identities to agent (works even if agent is locked)
+								if err := client.SendIdentities(sIds); err != nil {
+									return exit.Error(exit.Unknown, err, "failed to send identities to agent: %s", err)
+								}
+
+								// Only unlock the agent AFTER identities have been sent
 								if err := client.Unlock(); err != nil {
 									return exit.Error(exit.Unknown, err, "failed to unlock agent: %s", err)
 								}
-								out.Printf(ctx, "Age agent unlocked")
+
+								if timeout := config.AsInt(config.String(ctx, "age.agent-timeout")); timeout > 0 {
+									if err := client.SetTimeout(timeout); err != nil {
+										return exit.Error(exit.Unknown, err, "failed to set agent timeout: %s", err)
+									}
+								}
+
+								out.Printf(ctx, "Age agent unlocked and identities reloaded")
 
 								return nil
 							},

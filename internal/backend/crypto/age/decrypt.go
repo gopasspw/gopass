@@ -108,7 +108,6 @@ func (a *Age) decryptFile(_ context.Context, filename string, pwcb func(string, 
 		return nil, err
 	}
 
-	// debug.Log("deriving scrypt identity from password: %q", out.Secret(pw))
 	id, err := age.NewScryptIdentity(string(pw))
 	if err != nil {
 		return nil, err
