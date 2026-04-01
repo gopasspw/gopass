@@ -34,7 +34,7 @@ Adding or removing recipients with `gopass recipients add` or `gopass recipients
 
 ## gopass can automatically import missing recipient keys, but can it export them as well?
 
-When adding a recipient with `gopass recipients add`, their public key will automatically be exported to the store `.gpg-keys/<ID>`.
+When adding a recipient with `gopass recipients add`, their public key will automatically be exported to the store `.public-keys/<ID>`.
 
 ## Can gopass be used with Terraform?
 
