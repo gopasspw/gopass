@@ -338,7 +338,7 @@ func (g *gopassCompleter) completeFromList(candidates []string, prefix string, n
 	trimmedPrefix := strings.TrimLeft(prefix, " ")
 	rawPrefix := unescapeEntry(trimmedPrefix)
 
-	var matches [][]rune
+	matches := make([][]rune, 0, len(candidates))
 	for _, c := range candidates {
 		if !strings.HasPrefix(strings.ToLower(c), strings.ToLower(rawPrefix)) {
 			continue
