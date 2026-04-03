@@ -28,7 +28,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/termio"
 	"github.com/martinhoefling/goxkcdpwgen/xkcdpwgen"
 	"github.com/urfave/cli/v2"
-	"gopkg.in/yaml.v3"
+	"go.yaml.in/yaml/v3"
 )
 
 const (
