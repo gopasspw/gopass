@@ -115,6 +115,30 @@ func TestInvalidEnvConfig(t *testing.T) {
 	assert.Equal(t, "true", cfg.Get("core.autosync"))
 }
 
+func TestGetMMountFallbackToRoot(t *testing.T) {
+	// we use our own temp dir
+	td := t.TempDir()
+	t.Setenv("GOPASS_HOMEDIR", td)
+	mountDir := t.TempDir()
+
+	cfg := New()
+	// add it as a mount path to our global config
+	require.NoError(t, cfg.SetMountPath("submount", mountDir))
+	// reload so the submount config is loaded
+	cfg = New()
+
+	// If the key is not set in the mount config, we should inherit from root.
+	assert.Equal(t, defaults["core.exportkeys"], cfg.GetM("submount", "core.exportkeys"))
+
+	// Root local changes should be visible to submounts unless overridden there.
+	require.NoError(t, cfg.Set("<root>", "core.exportkeys", "false"))
+	assert.Equal(t, "false", cfg.GetM("submount", "core.exportkeys"))
+
+	// A mount-local value should override the root value.
+	require.NoError(t, cfg.Set("submount", "core.exportkeys", "true"))
+	assert.Equal(t, "true", cfg.GetM("submount", "core.exportkeys"))
+}
+
 func TestOptsMigration(t *testing.T) {
 	t.Run("migrate global options", func(t *testing.T) {
 		// we use our own temp dir
