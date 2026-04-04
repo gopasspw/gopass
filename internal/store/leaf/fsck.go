@@ -184,7 +184,7 @@ func (s *Store) fsckLoop(ctx context.Context, path string) error {
 
 		msg, err := s.fsckCheckEntry(ctx, name)
 		if err != nil {
-			warnings.WriteString(fmt.Sprintf("failed to check %q:\n    %s\n", name, err))
+			fmt.Fprintf(&warnings, "failed to check %q:\n    %s\n", name, err)
 
 			continue
 		}

@@ -126,7 +126,8 @@ func (j *JJFS) Add(ctx context.Context, files ...string) error {
 		files[i] = strings.TrimPrefix(files[i], j.fs.Path()+"/")
 	}
 
-	args := []string{"git", "add"}
+	args := make([]string, 0, 2+len(files))
+	args = append(args, "git", "add")
 	args = append(args, files...)
 
 	return j.Cmd(ctx, "jjGitAdd", args...)

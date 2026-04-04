@@ -69,14 +69,14 @@ func (k Key) String() string {
 	}
 
 	var out strings.Builder
-	out.WriteString(fmt.Sprintf("%s   %dD/0x%s %s", k.KeyType, k.KeyLength, fp, k.CreationDate.Format("2006-01-02")))
+	fmt.Fprintf(&out, "%s   %dD/0x%s %s", k.KeyType, k.KeyLength, fp, k.CreationDate.Format("2006-01-02"))
 	if !k.ExpirationDate.IsZero() {
-		out.WriteString(fmt.Sprintf(" [expires: %s]", k.ExpirationDate.Format("2006-01-02")))
+		fmt.Fprintf(&out, " [expires: %s]", k.ExpirationDate.Format("2006-01-02"))
 	}
 
 	out.WriteString("\n      Key fingerprint = " + k.Fingerprint)
 	for _, id := range k.Identities {
-		out.WriteString(fmt.Sprintf("\n%s", id))
+		fmt.Fprintf(&out, "\n%s", id)
 	}
 
 	return out.String()

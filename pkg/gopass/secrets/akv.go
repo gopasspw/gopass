@@ -144,7 +144,7 @@ func (a *AKV) Set(key string, value any) error {
 		k = strings.TrimSpace(k)
 		if k == key {
 			// update the key
-			a.raw.WriteString(fmt.Sprintf("%s: %s\n", key, value))
+			fmt.Fprintf(&a.raw, "%s: %s\n", key, value)
 			written = true
 
 			continue
@@ -167,7 +167,7 @@ func (a *AKV) Add(key string, value any) error {
 	if a.raw.Len() == 0 {
 		a.raw.WriteString("\n")
 	}
-	a.raw.WriteString(fmt.Sprintf("%s: %s\n", key, sv))
+	fmt.Fprintf(&a.raw, "%s: %s\n", key, sv)
 
 	return nil
 }

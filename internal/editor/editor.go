@@ -54,7 +54,7 @@ func Invoke(ctx context.Context, editor string, content []byte) ([]byte, error) 
 		return []byte{}, fmt.Errorf("failed to close tmpfile to start with %s %v: %w", editor, tmpfile.Name(), err)
 	}
 
-	args := make([]string, 0, 4)
+	args := make([]string, 0, 5)
 	if runtime.GOOS != "windows" {
 		cmdArgs, err := shellquote.Split(editor)
 		if err != nil {
@@ -113,10 +113,8 @@ func vimOptions(editor string) []string {
 		viminfo = `shada=""`
 	}
 
-	args := []string{
-		"-c",
-		fmt.Sprintf("autocmd BufNewFile,BufRead %s setlocal noswapfile nobackup noundofile %s", path, viminfo),
-	}
+	args := make([]string, 0, 5)
+	args = append(args, "-c", fmt.Sprintf("autocmd BufNewFile,BufRead %s setlocal noswapfile nobackup noundofile %s", path, viminfo))
 	args = append(args, "-i", "NONE") // disable viminfo
 	args = append(args, "-n")         // disable swap
 

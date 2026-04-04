@@ -81,7 +81,7 @@ func flagset(t *testing.T, flags map[string]string, args []string) *flag.FlagSet
 		}
 	}
 
-	argl := []string{}
+	argl := make([]string, 0, len(flags)+len(args))
 	for k, v := range flags {
 		argl = append(argl, "--"+k+"="+v)
 	}

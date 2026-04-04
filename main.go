@@ -154,40 +154,41 @@ func setupApp(ctx context.Context, sv semver.Version) (context.Context, *cli.App
 }
 
 func getCommands(action *ap.Action, app *cli.App) []*cli.Command {
-	cmds := []*cli.Command{
-		{
-			Name:  "completion",
-			Usage: "Bash and ZSH completion",
-			Description: "" +
-				"Source the output of this command with bash or zsh to get auto completion",
-			Subcommands: []*cli.Command{{
-				Name:   "bash",
-				Usage:  "Source for auto completion in bash",
-				Action: action.CompletionBash,
-			}, {
-				Name:  "zsh",
-				Usage: "Source for auto completion in zsh",
-				Action: func(c *cli.Context) error {
-					return action.CompletionZSH(app) //nolint:wrapcheck
-				},
-			}, {
-				Name:  "fish",
-				Usage: "Source for auto completion in fish",
-				Action: func(c *cli.Context) error {
-					return action.CompletionFish(app) //nolint:wrapcheck
-				},
-			}, {
-				Name:  "openbsdksh",
-				Usage: "Source for auto completion in OpenBSD's ksh",
-				Action: func(c *cli.Context) error {
-					return action.CompletionOpenBSDKsh(app) //nolint:wrapcheck
-				},
-			}},
-		},
-	}
+	extra := action.GetCommands()
+	extra2 := pwgen.GetCommands()
+	cmds := make([]*cli.Command, 0, 1+len(extra)+len(extra2))
+	cmds = append(cmds, &cli.Command{
+		Name:  "completion",
+		Usage: "Bash and ZSH completion",
+		Description: "" +
+			"Source the output of this command with bash or zsh to get auto completion",
+		Subcommands: []*cli.Command{{
+			Name:   "bash",
+			Usage:  "Source for auto completion in bash",
+			Action: action.CompletionBash,
+		}, {
+			Name:  "zsh",
+			Usage: "Source for auto completion in zsh",
+			Action: func(c *cli.Context) error {
+				return action.CompletionZSH(app) //nolint:wrapcheck
+			},
+		}, {
+			Name:  "fish",
+			Usage: "Source for auto completion in fish",
+			Action: func(c *cli.Context) error {
+				return action.CompletionFish(app) //nolint:wrapcheck
+			},
+		}, {
+			Name:  "openbsdksh",
+			Usage: "Source for auto completion in OpenBSD's ksh",
+			Action: func(c *cli.Context) error {
+				return action.CompletionOpenBSDKsh(app) //nolint:wrapcheck
+			},
+		}},
+	})
 
-	cmds = append(cmds, action.GetCommands()...)
-	cmds = append(cmds, pwgen.GetCommands()...)
+	cmds = append(cmds, extra...)
+	cmds = append(cmds, extra2...)
 	sort.Slice(cmds, func(i, j int) bool { return cmds[i].Name < cmds[j].Name })
 
 	for i, cmd := range cmds {

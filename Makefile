@@ -134,7 +134,7 @@ codequality: licensecheck
 
 	@echo -n "     GOLANGCI-LINT "
 	@which golangci-lint > /dev/null; if [ $$? -ne 0 ]; then \
-		$(GO) install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.6.1; \
+		$(GO) install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.11.4; \
 	fi
 	@golangci-lint run --max-issues-per-linter 0 --max-same-issues 0 || exit 1
 	@printf '%s\n' '$(OK)'
@@ -159,6 +159,9 @@ codequality: licensecheck
 	fi
 	@govulncheck >/dev/null || exit 1
 	@printf '%s\n' '$(OK)'
+
+update-caps:
+	@capslock -packages ./... -output json >.capabilities.json
 
 licensecheck:
 	@echo ">> LICENSE CHECK"
@@ -185,6 +188,9 @@ deps:
 upgrade: gen fmt
 	@$(GO) get -u ./...
 	@$(GO) mod tidy
+
+fix:
+	@$(GO) fix ./...
 
 man:
 	@$(GO) run helpers/man/main.go > gopass.1
