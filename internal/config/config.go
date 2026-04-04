@@ -193,10 +193,14 @@ func (c *Config) GetM(mount, key string) string {
 	}
 
 	if cfg := c.cfgs[mount]; cfg != nil {
-		return cfg.Get(key)
+		if v := cfg.Get(key); v != "" {
+			return v
+		}
 	}
 
-	return ""
+	// Fall back to the root config (including defaults) so sub-stores inherit
+	// global settings when not explicitly overridden in their local config.
+	return c.root.Get(key)
 }
 
 // Set tries to set the key to the given value.
