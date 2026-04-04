@@ -20,4 +20,5 @@ $ gopass find -c entry
 |------------|---------|---------------------------------------------------------------|
 | `--clip`   | `-c`    | Copy the password into the clipboard.                         |
 | `--unsafe` | `-u`    | Display any unsafe content, even if `safecontent` is enabled. |
+| `--regex`  | `-r`    | Interpret the pattern as a regular expression instead of a plain substring match. |
 

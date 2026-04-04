@@ -24,10 +24,13 @@ Flag | Aliases | Description
 `--clip` | `-c` | Copy the password value into the clipboard and don't show the content.
 `--alsoclip` | `-C` | Copy the password value into the clipboard and show the content.
 `--qr` | | Encode the password field as a QR code and print it. Note: When combining with `-c`/`-C` the unencoded password is copied. Not the QR code.
+`--qrbody` | | Encode the entire body (all lines after the first) as a QR code and print it.
 `--unsafe` | `-u` | Display unsafe content (e.g. the password) even when the `safecontent` option is set. No-op when `safecontent` is `false`.
+`--safe` | `-s` | Hide unsafe content (e.g. the password) even when the `safecontent` option is `false`. Overrides the config value for this invocation.
 `--password` | `-o` | Display only the password. For use in scripts. Takes precedence over other flags.
 `--revision` | `-r` | Display a specific revision of the entry. Use an exact version identifier from `gopass history` or the special `-<N>` syntax. Does not work with native (e.g. git) refs.
 `--noparsing` | `-n` | Do not parse the content, disable YAML and Key-Value functions.
+`--nosync` | | Disable auto-sync for this invocation.
 `--chars` | | Display selected characters from the password.
 
 ## Details
@@ -38,7 +41,7 @@ config options.
 Note: This section describes the expected behaviour, not necessarily the observed behaviour.
 If you notice any discrepancies please file a bug and we will try to fix it.
 
-TODO: We need to specify the expectations around new lines.
+Note: The parser ensures every parsed secret contains a terminating newline, even if the stored content did not. When displaying via `gopass show` the trailing newline is suppressed so that copying output does not include a spurious newline character. When piping output to another command (`gopass show entry | …`), the trailing newline is preserved to make the output compatible with standard Unix text-processing tools.
 
 * When no flag is set the `show` command will display the full content of the secret and will parse it to support key-value lookup and YAML entries.
   If the `safecontent` option is set to `true` any secret fields (current default is only `password`) are replaced with a random number of '*' characters (length: 5-10).

@@ -255,8 +255,6 @@ WARNING: The short form `gopass <secret>` is deprecated. Use `gopass show <secre
 Since it may be dangerous to always display the password, the `safecontent` setting may be set to `true` to allow one to display only the rest of the password entries by default but hiding the password. In order to display the whole entry, with the password in clear, the `-u`/`--unsafe` flag must then be used.
 The password can still be shown using the `-o` flag.
 
-WARNING: The `safecontent` setting is not perfect and *might* be removed in the future.
-
 #### Copy a secret to the clipboard
 
 ```shell

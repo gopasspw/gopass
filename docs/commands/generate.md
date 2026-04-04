@@ -29,8 +29,10 @@ $ gopass generate entry key [length]
 | `--generator` | `-g`    | Choose of of the available password generators, desribed below. Default: `cryptic`                                                                                 |
 | `--symbols`   | `-s`    | Include symbols in the generated password (default: `false`)                                                                                                       |
 | `--strict`    |         | Ensure each requested character class is actually included. Without this option all requested classes can be included, but not necessarily are. (default: `false`) |
-| `--sep`       |         | Word separator for multi-word generators.                                                                                                                          |
-| `--lang`      |         | Language for word-based generators.                                                                                                                                |
+| `--sep`       | `--xkcdsep`, `-xs` | Word separator for multi-word generators.                                                                                                               |
+| `--lang`      | `--xkcdlang`, `-xl` | Language for word-based generators.                                                                                                                    |
+| `--xkcdcapitalize` |    | Capitalize the first letter of each word when using the `xkcd` generator. Equivalent to setting `pwgen.xkcd-capitalize = true` in config.                    |
+| `--xkcdnumbers`    |    | Append a random number to each word when using the `xkcd` generator. Equivalent to setting `pwgen.xkcd-numbers = true` in config.                            |
 
 ## Password Generators
 

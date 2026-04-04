@@ -68,3 +68,31 @@ Password: ...
 ### Plain
 
 The old KV implementation had some limitations so we did sometimes fall back to the old Plain format. With the new KV implementation this is not necessary anymore so this was removed.
+
+## Parser Priority Order
+
+When gopass reads a secret from disk it tries each parser in a fixed order and uses the first one that succeeds:
+
+1. **Legacy MIME** — Identified by a `GOPASS-SECRET-1.0` header. If a permanent parse error occurs the secret is returned as AKV and the error is propagated.
+2. **YAML** — Identified by a `---` YAML separator somewhere in the body. Falls through to AKV if parsing fails.
+3. **AKV (Key-Value)** — The default parser. Always succeeds.
+
+This order means that a secret that accidentally resembles a YAML document (e.g. contains `---`) will be parsed as YAML rather than AKV, which can lead to surprising behaviour. To avoid this, use `gopass show --noparsing` to see the raw content.
+
+## References
+
+Secrets can reference other secrets in the store using a `gopass://` URI:
+
+```text
+gopass://path/to/other/secret
+```
+
+When `core.follow-references` is set to `true` (default: `false`) and a secret's password field contains a `gopass://` URI, gopass will transparently retrieve the referenced secret instead of returning the URI itself. This allows a single canonical secret to be referenced from multiple locations without duplicating the value.
+
+To enable this feature:
+
+```shell
+gopass config core.follow-references true
+```
+
+References are resolved at read time. Circular references are not supported and will cause an error.

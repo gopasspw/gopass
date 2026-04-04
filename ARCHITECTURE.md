@@ -96,7 +96,14 @@ This directory contains one file, and sometimes sub folders, for each command
 `gopass` supports. These are mostly self-contained, but some (e.g. show / edit
 / find) need to depend on each other.
 
-TODO: There is a lot to be said about this package, e.g. custom errors.
+All commands are registered on the central `Action` struct and wired up in
+`commands.go`. Each command file exposes one or more public methods that are
+passed as handler callbacks to the CLI framework.
+
+Error handling uses the `internal/action/exit` package which provides typed
+exit codes (e.g. `exit.Usage`, `exit.NotFound`, `exit.IO`). Custom errors
+returned from `exit.Error()` carry both a human-readable message and a numeric
+exit code so that callers and scripts can distinguish failure modes.
 
 ### `internal/backend`
 
