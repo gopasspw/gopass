@@ -96,13 +96,44 @@ func (l loader) Commands() []*cli.Command {
 						{
 							Name:        "unlock",
 							Usage:       "Unlock the age agent",
-							Description: "Unlock the age agent, this will allow gopass to ask for your password again when decrypting",
+							Description: "Unlock the age agent and reload identities (will prompt for PIN)",
 							Action: func(c *cli.Context) error {
+								ctx := ctxutil.WithGlobalFlags(c)
+								sshKeyPath := config.String(ctx, "age.ssh-key-path")
+								if sv := c.String("age-ssh-key-path"); sv != "" {
+									sshKeyPath = sv
+								}
+								a, err := New(ctx, sshKeyPath)
+								if err != nil {
+									return exit.Error(exit.Unknown, err, "failed to create age backend")
+								}
+
 								client := agent.NewClient()
 								if err := client.Unlock(); err != nil {
 									return exit.Error(exit.Unknown, err, "failed to unlock agent: %s", err)
 								}
-								out.Printf(c.Context, "Age agent unlocked")
+
+								ids, err := a.getAllIds(ctx)
+								if err != nil {
+									return exit.Error(exit.Unknown, err, "failed to get identities: %s", err)
+								}
+
+								sIds, err := a.identitiesToString(ids)
+								if err != nil {
+									return exit.Error(exit.Unknown, err, "failed to serialize identities: %s", err)
+								}
+
+								if err := client.SendIdentities(sIds); err != nil {
+									return exit.Error(exit.Unknown, err, "failed to send identities to agent: %s", err)
+								}
+
+								if timeout := config.AsInt(config.String(ctx, "age.agent-timeout")); timeout > 0 {
+									if err := client.SetTimeout(timeout); err != nil {
+										return exit.Error(exit.Unknown, err, "failed to set agent timeout: %s", err)
+									}
+								}
+
+								out.Printf(ctx, "Age agent unlocked and identities reloaded")
 
 								return nil
 							},
